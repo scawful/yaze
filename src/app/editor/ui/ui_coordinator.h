@@ -65,6 +65,7 @@ class UICoordinator {
   // Core UI components (actual ImGui rendering moved from EditorManager)
   void DrawCommandPalette();
   void DrawGlobalSearch();
+  void DrawWorkspacePresetDialogs();
   
   // Session UI components
   void DrawSessionSwitcher();
@@ -78,6 +79,7 @@ class UICoordinator {
   
   // Window management UI
   void DrawWindowManagementUI();
+  void DrawRomSelector();
   
   // Popup and dialog management
   void DrawAllPopups();
@@ -87,6 +89,8 @@ class UICoordinator {
   // UI state management
   void ShowEditorSelection() { show_editor_selection_ = true; }
   void ShowDisplaySettings();
+  void ShowSaveWorkspacePresetDialog() { show_save_workspace_preset_ = true; }
+  void ShowLoadWorkspacePresetDialog() { show_load_workspace_preset_ = true; }
   // Session switcher is now managed by SessionCoordinator
   void ShowSessionSwitcher();
   void HideCurrentEditorCards();
@@ -113,6 +117,11 @@ class UICoordinator {
   bool IsCardSidebarVisible() const { return show_card_sidebar_; }
   bool IsImGuiDemoVisible() const { return show_imgui_demo_; }
   bool IsImGuiMetricsVisible() const { return show_imgui_metrics_; }
+  bool IsEmulatorVisible() const { return show_emulator_; }
+  bool IsMemoryEditorVisible() const { return show_memory_editor_; }
+  bool IsAsmEditorVisible() const { return show_asm_editor_; }
+  bool IsPaletteEditorVisible() const { return show_palette_editor_; }
+  bool IsResourceLabelManagerVisible() const { return show_resource_label_manager_; }
   
   // UI state setters (for programmatic control)
   void SetEditorSelectionVisible(bool visible) { show_editor_selection_ = visible; }
@@ -128,6 +137,11 @@ class UICoordinator {
   void SetCardSidebarVisible(bool visible) { show_card_sidebar_ = visible; }
   void SetImGuiDemoVisible(bool visible) { show_imgui_demo_ = visible; }
   void SetImGuiMetricsVisible(bool visible) { show_imgui_metrics_ = visible; }
+  void SetEmulatorVisible(bool visible) { show_emulator_ = visible; }
+  void SetMemoryEditorVisible(bool visible) { show_memory_editor_ = visible; }
+  void SetAsmEditorVisible(bool visible) { show_asm_editor_ = visible; }
+  void SetPaletteEditorVisible(bool visible) { show_palette_editor_ = visible; }
+  void SetResourceLabelManagerVisible(bool visible) { show_resource_label_manager_ = visible; }
   
   // Note: Theme styling is handled by ThemeManager, not UICoordinator
 
@@ -162,6 +176,8 @@ class UICoordinator {
   bool show_asm_editor_ = false;
   bool show_palette_editor_ = false;
   bool show_resource_label_manager_ = false;
+  bool show_save_workspace_preset_ = false;
+  bool show_load_workspace_preset_ = false;
   bool show_card_sidebar_ = true;  // Show sidebar by default
   
   // Command Palette state
@@ -180,8 +196,9 @@ class UICoordinator {
   void DrawSessionBadges();
   
   // Material Design component helpers
-  void DrawMaterialButton(const std::string& text, const std::string& icon, 
-                         std::function<void()> callback, bool enabled = true);
+  void DrawMaterialButton(const std::string& text, const std::string& icon,
+                         const ImVec4& color, std::function<void()> callback,
+                         bool enabled = true);
   
   // Layout and positioning helpers
   void CenterWindow(const std::string& window_name);

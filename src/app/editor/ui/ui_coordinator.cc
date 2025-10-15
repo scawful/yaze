@@ -108,10 +108,45 @@ void UICoordinator::DrawAllUI() {
   // Session dialogs are drawn by SessionCoordinator separately to avoid duplication
   DrawCommandPalette();          // Ctrl+Shift+P
   DrawGlobalSearch();            // Ctrl+Shift+K
+  DrawWorkspacePresetDialogs();  // Save/Load workspace dialogs
   DrawLayoutPresets();           // Layout preset dialogs
   DrawWelcomeScreen();           // Welcome screen
   DrawProjectHelp();             // Project help
   DrawWindowManagementUI();      // Window management
+}
+
+void UICoordinator::DrawRomSelector() {
+  auto* current_rom = editor_manager_->GetCurrentRom();
+  ImGui::SameLine((ImGui::GetWindowWidth() / 2) - 100);
+  if (current_rom && current_rom->is_loaded()) {
+    ImGui::SetNextItemWidth(ImGui::GetWindowWidth() / 6);
+    if (ImGui::BeginCombo("##ROMSelector", current_rom->short_name().c_str())) {
+      for (size_t i = 0; i < session_coordinator_.GetTotalSessionCount(); ++i) {
+        if (session_coordinator_.IsSessionClosed(i)) continue;
+        
+        auto* session = static_cast<RomSession*>(session_coordinator_.GetSession(i));
+        if (!session) continue;
+
+        Rom* rom = &session->rom;
+        ImGui::PushID(static_cast<int>(i));
+        bool selected = (rom == current_rom);
+        if (ImGui::Selectable(rom->short_name().c_str(), selected)) {
+          editor_manager_->SwitchToSession(i);
+        }
+        ImGui::PopID();
+      }
+      ImGui::EndCombo();
+    }
+    // Inline status next to ROM selector
+    ImGui::SameLine();
+    ImGui::Text("Size: %.1f MB", current_rom->size() / 1048576.0f);
+
+    // Context-sensitive card control (right after ROM info)
+    ImGui::SameLine();
+    DrawContextSensitiveCardControl();
+  } else {
+    ImGui::Text("No ROM loaded");
+  }
 }
 
 void UICoordinator::DrawMenuBarExtras() {
@@ -312,6 +347,50 @@ void UICoordinator::DrawProjectHelp() {
   // Show context-sensitive help based on current editor and ROM state
 }
 
+void UICoordinator::DrawWorkspacePresetDialogs() {
+  if (show_save_workspace_preset_) {
+    ImGui::Begin("Save Workspace Preset", &show_save_workspace_preset_,
+                 ImGuiWindowFlags_AlwaysAutoResize);
+    static char preset_name[128] = "";
+    ImGui::InputText("Name", preset_name, IM_ARRAYSIZE(preset_name));
+    if (ImGui::Button("Save", gui::kDefaultModalSize)) {
+      if (strlen(preset_name) > 0) {
+        editor_manager_->SaveWorkspacePreset(preset_name);
+        toast_manager_.Show("Preset saved", editor::ToastType::kSuccess);
+        show_save_workspace_preset_ = false;
+        preset_name[0] = '\0';
+      }
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Cancel", gui::kDefaultModalSize)) {
+      show_save_workspace_preset_ = false;
+      preset_name[0] = '\0';
+    }
+    ImGui::End();
+  }
+
+  if (show_load_workspace_preset_) {
+    ImGui::Begin("Load Workspace Preset", &show_load_workspace_preset_,
+                 ImGuiWindowFlags_AlwaysAutoResize);
+
+    // Lazy load workspace presets when UI is accessed
+    editor_manager_->RefreshWorkspacePresets();
+
+    if (auto* workspace_manager = editor_manager_->workspace_manager()) {
+        for (const auto& name : workspace_manager->workspace_presets()) {
+          if (ImGui::Selectable(name.c_str())) {
+            editor_manager_->LoadWorkspacePreset(name);
+            toast_manager_.Show("Preset loaded", editor::ToastType::kSuccess);
+            show_load_workspace_preset_ = false;
+          }
+        }
+        if (workspace_manager->workspace_presets().empty())
+          ImGui::Text("No presets found");
+    }
+    ImGui::End();
+  }
+}
+
 void UICoordinator::DrawWindowManagementUI() {
   // TODO: [EditorManagerRefactor] Implement window management dialog
   // Provide UI for toggling window visibility, managing docking, etc.
@@ -370,8 +449,9 @@ void UICoordinator::DrawSessionBadges() {
 }
 
 // Material Design component helpers
-void UICoordinator::DrawMaterialButton(const std::string& text, const std::string& icon, 
-                                      std::function<void()> callback, bool enabled) {
+void UICoordinator::DrawMaterialButton(const std::string& text, const std::string& icon,
+                                     const ImVec4& color, std::function<void()> callback,
+                                     bool enabled) {
   if (!enabled) {
     ImGui::PushStyleColor(ImGuiCol_Button, gui::GetSurfaceContainerHighestVec4());
     ImGui::PushStyleColor(ImGuiCol_Text, gui::GetOnSurfaceVariantVec4());
@@ -592,147 +672,192 @@ void UICoordinator::DrawCommandPalette() {
 void UICoordinator::DrawGlobalSearch() {
   if (!show_global_search_) return;
   
-  using namespace ImGui;
-  auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
-  
-  SetNextWindowPos(GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
-  SetNextWindowSize(ImVec2(900, 700), ImGuiCond_FirstUseEver);
+  ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(),
+                          ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+  ImGui::SetNextWindowSize(ImVec2(800, 600), ImGuiCond_FirstUseEver);
   
   bool show_search = true;
-  if (Begin(absl::StrFormat("%s Global Search", ICON_MD_SEARCH).c_str(),
+  if (ImGui::Begin(
+          absl::StrFormat("%s Global Search", ICON_MD_MANAGE_SEARCH).c_str(),
             &show_search, ImGuiWindowFlags_NoCollapse)) {
     
-    // Search input with focus management
-    SetNextItemWidth(-100);
-    if (IsWindowAppearing()) {
-      SetKeyboardFocusHere();
+    // Enhanced search input with focus management
+    ImGui::SetNextItemWidth(-100);
+    if (ImGui::IsWindowAppearing()) {
+      ImGui::SetKeyboardFocusHere();
     }
-    
-    bool input_changed = InputTextWithHint(
-        "##global_search_query",
-        absl::StrFormat("%s Search ROM data, cards, editors, resources...", ICON_MD_SEARCH).c_str(),
+
+    bool input_changed = ImGui::InputTextWithHint(
+        "##global_query",
+        absl::StrFormat("%s Search everything...", ICON_MD_SEARCH).c_str(),
         global_search_query_, IM_ARRAYSIZE(global_search_query_));
     
-    SameLine();
-    if (Button(absl::StrFormat("%s Clear", ICON_MD_CLEAR).c_str())) {
+    ImGui::SameLine();
+    if (ImGui::Button(absl::StrFormat("%s Clear", ICON_MD_CLEAR).c_str())) {
       global_search_query_[0] = '\0';
       input_changed = true;
     }
     
-    Separator();
-    
-    // Search results organized by category
-    if (BeginTabBar("SearchCategories")) {
-      // TODO: [EditorManagerRefactor] Implement actual ROM data searching
-      // This should search through:
-      // - Editor cards (all registered cards across all editors)
-      // - ROM resources (palettes, graphics, sprites, etc.)
-      // - Text strings (messages, dialogue)
-      // - Map names, room names, sprite names
-      // - Memory addresses and labels
-      
-      if (BeginTabItem(absl::StrFormat("%s All Results", ICON_MD_LIST).c_str())) {
-        if (global_search_query_[0] != '\0') {
-          // Search through editor cards
-          TextColored(gui::ConvertColorToImVec4(theme.info), 
-                     "%s Editor Cards", ICON_MD_DASHBOARD);
-          Separator();
-          
-          // Get current session ID from editor manager
-          size_t current_session_id = 0;
-          if (editor_manager_) {
-            current_session_id = editor_manager_->GetCurrentSessionId();
+    ImGui::Separator();
+
+    // Tabbed search results for better organization
+    if (ImGui::BeginTabBar("SearchResultTabs")) {
+
+      // Recent Files Tab
+      if (ImGui::BeginTabItem(
+              absl::StrFormat("%s Recent Files", ICON_MD_HISTORY).c_str())) {
+        auto& manager = core::RecentFilesManager::GetInstance();
+        auto recent_files = manager.GetRecentFiles();
+
+        if (ImGui::BeginTable("RecentFilesTable", 3,
+                              ImGuiTableFlags_ScrollY |
+                                  ImGuiTableFlags_RowBg |
+                                  ImGuiTableFlags_SizingStretchProp)) {
+
+          ImGui::TableSetupColumn("File", ImGuiTableColumnFlags_WidthStretch,
+                                  0.6f);
+          ImGui::TableSetupColumn("Type", ImGuiTableColumnFlags_WidthFixed,
+                                  80.0f);
+          ImGui::TableSetupColumn("Action", ImGuiTableColumnFlags_WidthFixed,
+                                  100.0f);
+          ImGui::TableHeadersRow();
+
+          for (const auto& file : recent_files) {
+            if (global_search_query_[0] != '\0' && file.find(global_search_query_) == std::string::npos)
+              continue;
+
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            ImGui::Text("%s", util::GetFileName(file).c_str());
+
+            ImGui::TableNextColumn();
+            std::string ext = util::GetFileExtension(file);
+            if (ext == "sfc" || ext == "smc") {
+              ImGui::TextColored(ImVec4(0.2f, 0.8f, 0.2f, 1.0f), "%s ROM",
+                                 ICON_MD_VIDEOGAME_ASSET);
+            } else if (ext == "yaze") {
+              ImGui::TextColored(ImVec4(0.2f, 0.6f, 0.8f, 1.0f), "%s Project",
+                                 ICON_MD_FOLDER);
+            } else {
+              ImGui::Text("%s File", ICON_MD_DESCRIPTION);
+            }
+
+            ImGui::TableNextColumn();
+            ImGui::PushID(file.c_str());
+            if (ImGui::Button("Open")) {
+              auto status = editor_manager_->OpenRomOrProject(file);
+              if (!status.ok()) {
+                toast_manager_.Show(absl::StrCat("Failed to open: ", status.message()), ToastType::kError);
+              }
+              SetGlobalSearchVisible(false);
+            }
+            ImGui::PopID();
           }
-          
-          // Get all cards in current session
-          auto card_ids = card_registry_.GetCardsInSession(current_session_id);
-          bool found_cards = false;
-          
-          for (const auto& card_id : card_ids) {
-            const auto* card_info = card_registry_.GetCardInfo(current_session_id, card_id);
-            if (!card_info) continue;
-            
-            std::string search_lower = global_search_query_;
-            std::string card_lower = card_info->display_name;
-            std::transform(search_lower.begin(), search_lower.end(), 
-                         search_lower.begin(), ::tolower);
-            std::transform(card_lower.begin(), card_lower.end(), 
-                         card_lower.begin(), ::tolower);
-            
-            if (card_lower.find(search_lower) != std::string::npos) {
-              if (Selectable(absl::StrFormat("%s %s - %s", 
-                            card_info->icon.c_str(),
-                            card_info->display_name.c_str(),
-                            card_info->category.c_str()).c_str())) {
-                // Show the card when selected
-                card_registry_.ShowCard(current_session_id, card_id);
-                show_global_search_ = false;
+
+          ImGui::EndTable();
+        }
+        ImGui::EndTabItem();
+      }
+
+      // Labels Tab (only if ROM is loaded)
+      auto* current_rom = editor_manager_->GetCurrentRom();
+      if (current_rom && current_rom->resource_label()) {
+        if (ImGui::BeginTabItem(
+                absl::StrFormat("%s Labels", ICON_MD_LABEL).c_str())) {
+          auto& labels = current_rom->resource_label()->labels_;
+
+          if (ImGui::BeginTable("LabelsTable", 3,
+                                ImGuiTableFlags_ScrollY |
+                                    ImGuiTableFlags_RowBg |
+                                    ImGuiTableFlags_SizingStretchProp)) {
+
+            ImGui::TableSetupColumn("Type", ImGuiTableColumnFlags_WidthFixed,
+                                    100.0f);
+            ImGui::TableSetupColumn("Label",
+                                    ImGuiTableColumnFlags_WidthStretch, 0.4f);
+            ImGui::TableSetupColumn("Value",
+                                    ImGuiTableColumnFlags_WidthStretch, 0.6f);
+            ImGui::TableHeadersRow();
+
+            for (const auto& type_pair : labels) {
+              for (const auto& kv : type_pair.second) {
+                if (global_search_query_[0] != '\0' &&
+                    kv.first.find(global_search_query_) == std::string::npos &&
+                    kv.second.find(global_search_query_) == std::string::npos)
+                  continue;
+
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::Text("%s", type_pair.first.c_str());
+
+                ImGui::TableNextColumn();
+                if (ImGui::Selectable(kv.first.c_str(), false,
+                               ImGuiSelectableFlags_SpanAllColumns)) {
+                  // Future: navigate to related editor/location
+                }
+
+                ImGui::TableNextColumn();
+                ImGui::TextDisabled("%s", kv.second.c_str());
               }
-              if (IsItemHovered()) {
-                BeginTooltip();
-                Text("Category: %s", card_info->category.c_str());
-                Text("Shortcut: %s", card_info->shortcut_hint.c_str());
-                Text("Click to open");
-                EndTooltip();
+            }
+
+            ImGui::EndTable();
+          }
+          ImGui::EndTabItem();
+        }
+      }
+
+      // Sessions Tab
+      if (session_coordinator_.GetActiveSessionCount() > 1) {
+        if (ImGui::BeginTabItem(
+                absl::StrFormat("%s Sessions", ICON_MD_TAB).c_str())) {
+          ImGui::Text("Search and switch between active sessions:");
+
+          for (size_t i = 0; i < session_coordinator_.GetTotalSessionCount(); ++i) {
+            std::string session_info = session_coordinator_.GetSessionDisplayName(i);
+            if (session_info == "[CLOSED SESSION]")
+                continue;
+
+            if (global_search_query_[0] != '\0' &&
+                session_info.find(global_search_query_) == std::string::npos)
+              continue;
+
+            bool is_current = (i == session_coordinator_.GetActiveSessionIndex());
+            if (is_current) {
+              ImGui::PushStyleColor(ImGuiCol_Text,
+                                    ImVec4(0.2f, 0.8f, 0.2f, 1.0f));
+            }
+
+            if (ImGui::Selectable(absl::StrFormat("%s %s %s", ICON_MD_TAB,
+                                           session_info.c_str(),
+                                           is_current ? "(Current)" : "")
+                               .c_str())) {
+              if (!is_current) {
+                editor_manager_->SwitchToSession(i);
+                SetGlobalSearchVisible(false);
               }
-              found_cards = true;
+            }
+
+            if (is_current) {
+              ImGui::PopStyleColor();
             }
           }
-          
-          if (!found_cards) {
-            PushStyleColor(ImGuiCol_Text, gui::ConvertColorToImVec4(theme.text_disabled));
-            Text("No cards found matching '%s'", global_search_query_);
-            PopStyleColor();
-          }
-          
-          Spacing();
-          Spacing();
-          
-          // TODO: [EditorManagerRefactor] Add more search categories:
-          // - ROM Resources (palettes, graphics, sprites)
-          // - Text/Messages
-          // - Map/Room names
-          // - Memory addresses
-        } else {
-          PushStyleColor(ImGuiCol_Text, gui::ConvertColorToImVec4(theme.text_disabled));
-          Text("%s Enter search query to find ROM data, cards, and resources", 
-               ICON_MD_INFO);
-          PopStyleColor();
+          ImGui::EndTabItem();
         }
-        EndTabItem();
       }
-      
-      if (BeginTabItem(absl::StrFormat("%s Cards", ICON_MD_DASHBOARD).c_str())) {
-        Text("Card-specific search coming soon...");
-        EndTabItem();
-      }
-      
-      if (BeginTabItem(absl::StrFormat("%s ROM Data", ICON_MD_STORAGE).c_str())) {
-        Text("ROM data search coming soon...");
-        EndTabItem();
-      }
-      
-      if (BeginTabItem(absl::StrFormat("%s Text", ICON_MD_TEXT_FIELDS).c_str())) {
-        Text("Text search coming soon...");
-        EndTabItem();
-      }
-      
-      EndTabBar();
+
+      ImGui::EndTabBar();
     }
     
     // Status bar
-    Separator();
-    Text("%s Global Search", ICON_MD_INFO);
-    SameLine();
-    PushStyleColor(ImGuiCol_Text, gui::ConvertColorToImVec4(theme.text_disabled));
-    Text("| Currently searches: Editor Cards | More categories coming soon");
-    PopStyleColor();
+    ImGui::Separator();
+    ImGui::Text("%s Global search across all YAZE data", ICON_MD_INFO);
   }
-  End();
+  ImGui::End();
   
   // Update visibility state
   if (!show_search) {
-    show_global_search_ = false;
+    SetGlobalSearchVisible(false);
   }
 }
 

@@ -6,28 +6,19 @@
 #include "app/editor/editor.h"
 #include "app/editor/system/user_settings.h"
 #include "app/editor/ui/workspace_manager.h"
+#include "app/editor/session_types.h"
 
 #include "imgui/imgui.h"
 
 #include <cstddef>
 #include <deque>
-#include <vector>
+#include <memory>
+#include <string>
 
 #include "absl/status/status.h"
-#include "app/core/features.h"
 #include "app/core/project.h"
 #include "app/editor/agent/agent_chat_history_popup.h"
-#include "app/editor/code/assembly_editor.h"
-#include "app/editor/code/memory_editor.h"
 #include "app/editor/code/project_file_editor.h"
-#include "app/editor/dungeon/dungeon_editor_v2.h"
-#include "app/editor/graphics/graphics_editor.h"
-#include "app/editor/graphics/screen_editor.h"
-#include "app/editor/message/message_editor.h"
-#include "app/editor/music/music_editor.h"
-#include "app/editor/overworld/overworld_editor.h"
-#include "app/editor/palette/palette_editor.h"
-#include "app/editor/sprite/sprite_editor.h"
 #include "app/editor/system/editor_card_registry.h"
 #include "app/editor/system/editor_registry.h"
 #include "app/editor/system/menu_orchestrator.h"
@@ -36,7 +27,6 @@
 #include "app/editor/system/proposal_drawer.h"
 #include "app/editor/system/rom_file_manager.h"
 #include "app/editor/system/session_coordinator.h"
-#include "app/editor/system/settings_editor.h"
 #include "app/editor/system/toast_manager.h"
 #include "app/editor/system/window_delegate.h"
 #include "app/editor/ui/editor_selection_dialog.h"
@@ -61,58 +51,6 @@ class AgentControlServer;
 
 namespace yaze {
 namespace editor {
-
-/**
- * @class EditorSet
- * @brief Contains a complete set of editors for a single ROM instance
- */
-class EditorSet {
- public:
-  explicit EditorSet(Rom* rom = nullptr, UserSettings* user_settings = nullptr,
-                     size_t session_id = 0)
-      : session_id_(session_id),
-        assembly_editor_(rom),
-        dungeon_editor_(rom),
-        graphics_editor_(rom),
-        music_editor_(rom),
-        overworld_editor_(rom),
-        palette_editor_(rom),
-        screen_editor_(rom),
-        sprite_editor_(rom),
-        settings_editor_(rom, user_settings),
-        message_editor_(rom),
-        memory_editor_(rom) {
-    active_editors_ = {&overworld_editor_, &dungeon_editor_, &graphics_editor_,
-                       &palette_editor_,   &sprite_editor_,  &message_editor_,
-                       &music_editor_,     &screen_editor_,  &settings_editor_,
-                       &assembly_editor_};
-  }
-
-  void set_user_settings(UserSettings* settings) {
-    settings_editor_.set_user_settings(settings);
-  }
-
-  void ApplyDependencies(const EditorDependencies& dependencies);
-
-  size_t session_id() const { return session_id_; }
-
-  AssemblyEditor assembly_editor_;
-  DungeonEditorV2 dungeon_editor_;
-  GraphicsEditor graphics_editor_;
-  MusicEditor music_editor_;
-  OverworldEditor overworld_editor_;
-  PaletteEditor palette_editor_;
-  ScreenEditor screen_editor_;
-  SpriteEditor sprite_editor_;
-  SettingsEditor settings_editor_;
-  MessageEditor message_editor_;
-  MemoryEditorWithDiffChecker memory_editor_;
-
-  std::vector<Editor*> active_editors_;
-
- private:
-  size_t session_id_ = 0;
-};
 
 /**
  * @class EditorManager
@@ -144,15 +82,19 @@ class EditorManager {
   auto version() const { return version_; }
 
   MenuBuilder& menu_builder() { return menu_builder_; }
+  WorkspaceManager* workspace_manager() { return &workspace_manager_; }
 
   absl::Status SetCurrentRom(Rom* rom);
-  auto GetCurrentRom() -> Rom* { return current_rom_; }
-  auto GetCurrentEditorSet() -> EditorSet* { return current_editor_set_; }
-  auto GetCurrentEditor() -> Editor* { return current_editor_; }
-  size_t GetCurrentSessionId() const { return current_session_id_; }
+  auto GetCurrentRom() const -> Rom* { return session_coordinator_ ? session_coordinator_->GetCurrentRom() : nullptr; }
+  auto GetCurrentEditorSet() const -> EditorSet* { return session_coordinator_ ? session_coordinator_->GetCurrentEditorSet() : nullptr; }
+  auto GetCurrentEditor() const -> Editor* { return current_editor_; }
+  size_t GetCurrentSessionId() const { return session_coordinator_ ? session_coordinator_->GetActiveSessionIndex() : 0; }
   UICoordinator* ui_coordinator() { return ui_coordinator_.get(); }
-  auto overworld() -> yaze::zelda3::Overworld* {
-    return &current_editor_set_->overworld_editor_.overworld();
+  auto overworld() const -> yaze::zelda3::Overworld* {
+    if (auto* editor_set = GetCurrentEditorSet()) {
+        return &editor_set->overworld_editor_.overworld();
+    }
+    return nullptr;
   }
 
   // Session management helpers
@@ -262,9 +204,9 @@ class EditorManager {
       ui_coordinator_->SetImGuiMetricsVisible(true);
   }
   void ShowHexEditor();
-  void ShowEmulator() { show_emulator_ = true; }
-  void ShowMemoryEditor() { show_memory_editor_ = true; }
-  void ShowResourceLabelManager() { show_resource_label_manager = true; }
+  void ShowEmulator() { if (ui_coordinator_) ui_coordinator_->SetEmulatorVisible(true); }
+  void ShowMemoryEditor() { if (ui_coordinator_) ui_coordinator_->SetMemoryEditorVisible(true); }
+  void ShowResourceLabelManager() { if (ui_coordinator_) ui_coordinator_->SetResourceLabelManagerVisible(true); }
   void ShowCardBrowser() {
     if (ui_coordinator_)
       ui_coordinator_->ShowCardBrowser();
@@ -298,7 +240,7 @@ class EditorManager {
   absl::Status RepairCurrentProject();
 
  private:
-  absl::Status DrawRomSelector();
+  absl::Status DrawRomSelector() = delete; // Moved to UICoordinator
   void DrawContextSensitiveCardControl();  // Card control for current editor
 
   absl::Status LoadAssets();
@@ -308,16 +250,11 @@ class EditorManager {
 
   bool quit_ = false;
 
-  bool show_emulator_ = false;
-  bool show_memory_editor_ = false;
-  bool show_asm_editor_ = false;
-  bool show_palette_editor_ = false;
-  bool show_resource_label_manager = false;
-  // Note: show_imgui_demo_ and show_imgui_metrics_ moved to UICoordinator
+  // Note: All show_* flags are being moved to UICoordinator
+  // Access via ui_coordinator_->IsXxxVisible() or SetXxxVisible()
+  
   // Workspace dialog flags (managed by EditorManager, not UI)
   bool show_workspace_layout = false;
-  bool show_save_workspace_preset_ = false;
-  bool show_load_workspace_preset_ = false;
   size_t session_to_rename_ = 0;
   char session_rename_buffer_[256] = {};
 
@@ -355,40 +292,13 @@ class EditorManager {
   emu::Emulator emulator_;
 
  public:
-  struct RomSession {
-    Rom rom;
-    EditorSet editors;
-    std::string custom_name;  // User-defined session name
-    std::string filepath;     // ROM filepath for duplicate detection
-    core::FeatureFlags::Flags feature_flags;  // Per-session feature flags
-
-    RomSession() = default;
-    explicit RomSession(Rom&& r, UserSettings* user_settings = nullptr,
-                        size_t session_id = 0)
-        : rom(std::move(r)), editors(&rom, user_settings, session_id) {
-      filepath = rom.filename();
-      // Initialize with default feature flags
-      feature_flags = core::FeatureFlags::Flags{};
-    }
-
-    // Get display name (custom name or ROM title)
-    std::string GetDisplayName() const {
-      if (!custom_name.empty()) {
-        return custom_name;
-      }
-      return rom.title().empty() ? "Untitled Session" : rom.title();
-    }
-  };
 
  private:
   std::deque<RomSession> sessions_;
-  Rom* current_rom_ = nullptr;
-  EditorSet* current_editor_set_ = nullptr;
   Editor* current_editor_ = nullptr;
   EditorSet blank_editor_set_{};
   // Tracks which session is currently active so delegators (menus, popups,
   // shortcuts) stay in sync without relying on per-editor context.
-  size_t current_session_id_ = 0;
 
   gfx::IRenderer* renderer_ = nullptr;
 
@@ -399,7 +309,6 @@ class EditorManager {
   MenuBuilder menu_builder_;
   ShortcutManager shortcut_manager_;
   UserSettings user_settings_;
-  WorkspaceManager workspace_manager_{&toast_manager_};
 
   // New delegated components (dependency injection architecture)
   EditorCardRegistry card_registry_;  // Card management with session awareness
@@ -411,6 +320,7 @@ class EditorManager {
   WindowDelegate window_delegate_;
   std::unique_ptr<SessionCoordinator> session_coordinator_;
   std::unique_ptr<LayoutManager> layout_manager_;  // DockBuilder layout management
+  WorkspaceManager workspace_manager_{&toast_manager_};
 
   float autosave_timer_ = 0.0f;
 
