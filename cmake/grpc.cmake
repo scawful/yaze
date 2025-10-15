@@ -59,8 +59,6 @@ endif()
 set(_SAVED_CMAKE_CXX_STANDARD ${CMAKE_CXX_STANDARD})
 set(CMAKE_CXX_STANDARD 17)
 
-find_package(ZLIB REQUIRED)
-
 # Configure gRPC build options before fetching
 set(gRPC_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(gRPC_BUILD_CODEGEN ON CACHE BOOL "" FORCE)
