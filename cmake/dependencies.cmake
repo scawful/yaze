@@ -105,6 +105,13 @@ else()
   set(YAZE_PROTOBUF_TARGET "")
 endif()
 
+set(YAZE_PROTOBUF_WHOLEARCHIVE_TARGETS)
+foreach(_yaze_proto_candidate IN LISTS YAZE_PROTOBUF_TARGETS)
+  if(NOT _yaze_proto_candidate MATCHES "lite")
+    list(APPEND YAZE_PROTOBUF_WHOLEARCHIVE_TARGETS ${_yaze_proto_candidate})
+  endif()
+endforeach()
+
 # SDL2
 include(cmake/sdl2.cmake)
 
