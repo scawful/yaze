@@ -154,55 +154,130 @@ void PopupManager::DrawRomInfoPopup() {
 }
 
 void PopupManager::DrawSaveAsPopup() {
+  using namespace ImGui;
+  
+  Text("%s Save ROM to new location", ICON_MD_SAVE_AS);
+  Separator();
+  
   static std::string save_as_filename = "";
-  InputText("Filename", &save_as_filename);
-  if (Button("Save", gui::kDefaultModalSize)) {
-    // Call the save function from editor manager
-    // This will need to be implemented in the editor manager
-    Hide("Save As..");
+  if (editor_manager_->GetCurrentRom() && save_as_filename.empty()) {
+    save_as_filename = editor_manager_->GetCurrentRom()->title();
   }
+  
+  InputText("Filename", &save_as_filename);
+  Separator();
+  
+  if (Button(absl::StrFormat("%s Browse...", ICON_MD_FOLDER_OPEN).c_str(),
+             gui::kDefaultModalSize)) {
+    auto file_path = util::FileDialogWrapper::ShowSaveFileDialog(save_as_filename, "sfc");
+    if (!file_path.empty()) {
+      save_as_filename = file_path;
+    }
+  }
+  
   SameLine();
-  if (Button("Cancel", gui::kDefaultModalSize)) {
+  if (Button(absl::StrFormat("%s Save", ICON_MD_SAVE).c_str(),
+             gui::kDefaultModalSize)) {
+    if (!save_as_filename.empty()) {
+      // Ensure proper file extension
+      std::string final_filename = save_as_filename;
+      if (final_filename.find(".sfc") == std::string::npos &&
+          final_filename.find(".smc") == std::string::npos) {
+        final_filename += ".sfc";
+      }
+      
+      auto status = editor_manager_->SaveRomAs(final_filename);
+      if (status.ok()) {
+        save_as_filename = "";
+        Hide("Save As..");
+      }
+    }
+  }
+  
+  SameLine();
+  if (Button(absl::StrFormat("%s Cancel", ICON_MD_CANCEL).c_str(),
+             gui::kDefaultModalSize)) {
+    save_as_filename = "";
     Hide("Save As..");
   }
 }
 
 void PopupManager::DrawNewProjectPopup() {
-  static std::string save_as_filename = "";
-  InputText("Project Name", &save_as_filename);
+  using namespace ImGui;
   
-  // These would need to be implemented in the editor manager
-  if (Button("Destination Filepath", gui::kDefaultModalSize)) {
-    // Call file dialog
+  static std::string project_name = "";
+  static std::string project_filepath = "";
+  static std::string rom_filename = "";
+  static std::string labels_filename = "";
+  static std::string code_folder = "";
+  
+  InputText("Project Name", &project_name);
+  
+  if (Button(absl::StrFormat("%s Destination Folder", ICON_MD_FOLDER).c_str(),
+             gui::kDefaultModalSize)) {
+    project_filepath = util::FileDialogWrapper::ShowOpenFolderDialog();
   }
   SameLine();
-  Text("%s", "filepath"); // This would be from the editor manager
+  Text("%s", project_filepath.empty() ? "(Not set)" : project_filepath.c_str());
   
-  if (Button("ROM File", gui::kDefaultModalSize)) {
-    // Call file dialog
+  if (Button(absl::StrFormat("%s ROM File", ICON_MD_VIDEOGAME_ASSET).c_str(),
+             gui::kDefaultModalSize)) {
+    rom_filename = util::FileDialogWrapper::ShowOpenFileDialog();
   }
   SameLine();
-  Text("%s", "rom_filename"); // This would be from the editor manager
+  Text("%s", rom_filename.empty() ? "(Not set)" : rom_filename.c_str());
   
-  if (Button("Labels File", gui::kDefaultModalSize)) {
-    // Call file dialog
+  if (Button(absl::StrFormat("%s Labels File", ICON_MD_LABEL).c_str(),
+             gui::kDefaultModalSize)) {
+    labels_filename = util::FileDialogWrapper::ShowOpenFileDialog();
   }
   SameLine();
-  Text("%s", "labels_filename"); // This would be from the editor manager
+  Text("%s", labels_filename.empty() ? "(Not set)" : labels_filename.c_str());
   
-  if (Button("Code Folder", gui::kDefaultModalSize)) {
-    // Call file dialog
+  if (Button(absl::StrFormat("%s Code Folder", ICON_MD_CODE).c_str(),
+             gui::kDefaultModalSize)) {
+    code_folder = util::FileDialogWrapper::ShowOpenFolderDialog();
   }
   SameLine();
-  Text("%s", "code_folder"); // This would be from the editor manager
+  Text("%s", code_folder.empty() ? "(Not set)" : code_folder.c_str());
 
   Separator();
-  if (Button("Create", gui::kDefaultModalSize)) {
-    // Create project
-    Hide("New Project");
+  
+  if (Button(absl::StrFormat("%s Choose Project File Location", ICON_MD_SAVE).c_str(),
+             gui::kDefaultModalSize)) {
+    auto project_file_path = util::FileDialogWrapper::ShowSaveFileDialog(project_name, "yaze");
+    if (!project_file_path.empty()) {
+      if (project_file_path.find(".yaze") == std::string::npos) {
+        project_file_path += ".yaze";
+      }
+      project_filepath = project_file_path;
+    }
+  }
+  
+  if (Button(absl::StrFormat("%s Create Project", ICON_MD_ADD).c_str(),
+             gui::kDefaultModalSize)) {
+    if (!project_filepath.empty() && !project_name.empty()) {
+      auto status = editor_manager_->CreateNewProject();
+      if (status.ok()) {
+        // Clear fields
+        project_name = "";
+        project_filepath = "";
+        rom_filename = "";
+        labels_filename = "";
+        code_folder = "";
+        Hide("New Project");
+      }
+    }
   }
   SameLine();
-  if (Button("Cancel", gui::kDefaultModalSize)) {
+  if (Button(absl::StrFormat("%s Cancel", ICON_MD_CANCEL).c_str(),
+             gui::kDefaultModalSize)) {
+    // Clear fields
+    project_name = "";
+    project_filepath = "";
+    rom_filename = "";
+    labels_filename = "";
+    code_folder = "";
     Hide("New Project");
   }
 }

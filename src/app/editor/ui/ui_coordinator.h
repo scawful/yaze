@@ -157,6 +157,13 @@ class UICoordinator {
   bool show_resource_label_manager_ = false;
   bool show_card_sidebar_ = false;
   
+  // Command Palette state
+  char command_palette_query_[256] = {};
+  int command_palette_selected_idx_ = 0;
+  
+  // Global Search state
+  char global_search_query_[256] = {};
+  
   // Welcome screen component
   std::unique_ptr<WelcomeScreen> welcome_screen_;
   
