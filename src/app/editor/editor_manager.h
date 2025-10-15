@@ -35,11 +35,14 @@
 #endif
 #include "app/editor/system/settings_editor.h"
 #include "app/editor/system/toast_manager.h"
+#include "app/rom.h"
+#include "app/editor/system/session_card_registry.h"
+#include "app/editor/system/window_delegate.h"
+#include "app/editor/ui/session_coordinator.h"
 #include "app/editor/ui/editor_selection_dialog.h"
 #include "app/editor/ui/welcome_screen.h"
 #include "app/emu/emulator.h"
 #include "app/gfx/debug/performance/performance_dashboard.h"
-#include "app/rom.h"
 #include "yaze_config.h"
 
 #ifdef YAZE_WITH_GRPC
@@ -58,8 +61,9 @@ namespace editor {
  */
 class EditorSet {
  public:
-  explicit EditorSet(Rom* rom = nullptr, UserSettings* user_settings = nullptr)
-      : assembly_editor_(rom),
+  explicit EditorSet(Rom* rom = nullptr, UserSettings* user_settings = nullptr, size_t session_id = 0)
+      : session_id_(session_id),
+        assembly_editor_(rom),
         dungeon_editor_(rom),
         graphics_editor_(rom),
         music_editor_(rom),
@@ -79,6 +83,8 @@ class EditorSet {
   void set_user_settings(UserSettings* settings) {
     settings_editor_.set_user_settings(settings);
   }
+  
+  size_t session_id() const { return session_id_; }
 
   AssemblyEditor assembly_editor_;
   DungeonEditorV2 dungeon_editor_;
@@ -93,6 +99,9 @@ class EditorSet {
   MemoryEditorWithDiffChecker memory_editor_;
 
   std::vector<Editor*> active_editors_;
+  
+ private:
+  size_t session_id_ = 0;
 };
 
 /**
@@ -297,6 +306,7 @@ class EditorManager {
   absl::Status status_;
   emu::Emulator emulator_;
 
+ public:
   struct RomSession {
     Rom rom;
     EditorSet editors;
@@ -305,8 +315,8 @@ class EditorManager {
     core::FeatureFlags::Flags feature_flags;  // Per-session feature flags
 
     RomSession() = default;
-    explicit RomSession(Rom&& r, UserSettings* user_settings = nullptr) 
-        : rom(std::move(r)), editors(&rom, user_settings) {
+    explicit RomSession(Rom&& r, UserSettings* user_settings = nullptr, size_t session_id = 0) 
+        : rom(std::move(r)), editors(&rom, user_settings, session_id) {
       filepath = rom.filename();
       // Initialize with default feature flags
       feature_flags = core::FeatureFlags::Flags{};
@@ -320,6 +330,8 @@ class EditorManager {
       return rom.title().empty() ? "Untitled Session" : rom.title();
     }
   };
+
+ private:
 
   std::deque<RomSession> sessions_;
   Rom* current_rom_ = nullptr;
@@ -337,7 +349,25 @@ class EditorManager {
   UserSettings user_settings_;
   WorkspaceManager workspace_manager_{&toast_manager_};
   
+  // New delegated components
+  SessionCardRegistry card_registry_;
+  WindowDelegate window_delegate_;
+  std::unique_ptr<SessionCoordinator> session_coordinator_;
+  
   float autosave_timer_ = 0.0f;
+  
+  // RAII helper for clean session context switching
+  class SessionScope {
+   public:
+    SessionScope(EditorManager* manager, size_t session_id);
+    ~SessionScope();
+    
+   private:
+    EditorManager* manager_;
+    Rom* prev_rom_;
+    EditorSet* prev_editor_set_;
+    size_t prev_session_id_;
+  };
 };
 
 }  // namespace editor

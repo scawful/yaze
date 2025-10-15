@@ -31,7 +31,7 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
   auto& card_manager = gui::EditorCardManager::Get();
   
   card_manager.RegisterCard({
-      .card_id = "dungeon.control_panel",
+      .card_id = MakeCardId("dungeon.control_panel"),
       .display_name = "Dungeon Controls",
       .icon = ICON_MD_CASTLE,
       .category = "Dungeon",
@@ -41,7 +41,7 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
   });
   
   card_manager.RegisterCard({
-      .card_id = "dungeon.room_selector",
+      .card_id = MakeCardId("dungeon.room_selector"),
       .display_name = "Room Selector",
       .icon = ICON_MD_LIST,
       .category = "Dungeon",
@@ -51,7 +51,7 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
   });
   
   card_manager.RegisterCard({
-      .card_id = "dungeon.room_matrix",
+      .card_id = MakeCardId("dungeon.room_matrix"),
       .display_name = "Room Matrix",
       .icon = ICON_MD_GRID_VIEW,
       .category = "Dungeon",
@@ -61,7 +61,7 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
   });
   
   card_manager.RegisterCard({
-      .card_id = "dungeon.entrances",
+      .card_id = MakeCardId("dungeon.entrances"),
       .display_name = "Entrances",
       .icon = ICON_MD_DOOR_FRONT,
       .category = "Dungeon",
@@ -71,7 +71,7 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
   });
   
   card_manager.RegisterCard({
-      .card_id = "dungeon.room_graphics",
+      .card_id = MakeCardId("dungeon.room_graphics"),
       .display_name = "Room Graphics",
       .icon = ICON_MD_IMAGE,
       .category = "Dungeon",
@@ -81,7 +81,7 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
   });
   
   card_manager.RegisterCard({
-      .card_id = "dungeon.object_editor",
+      .card_id = MakeCardId("dungeon.object_editor"),
       .display_name = "Object Editor",
       .icon = ICON_MD_CONSTRUCTION,
       .category = "Dungeon",
@@ -91,7 +91,7 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
   });
   
   card_manager.RegisterCard({
-      .card_id = "dungeon.palette_editor",
+      .card_id = MakeCardId("dungeon.palette_editor"),
       .display_name = "Palette Editor",
       .icon = ICON_MD_PALETTE,
       .category = "Dungeon",
@@ -101,7 +101,7 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
   });
   
   card_manager.RegisterCard({
-      .card_id = "dungeon.debug_controls",
+      .card_id = MakeCardId("dungeon.debug_controls"),
       .display_name = "Debug Controls",
       .icon = ICON_MD_BUG_REPORT,
       .category = "Dungeon",

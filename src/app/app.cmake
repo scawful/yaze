@@ -40,8 +40,13 @@ target_link_libraries(yaze PRIVATE
   absl::flags
   absl::flags_parse
 )
-if(YAZE_WITH_GRPC AND YAZE_PROTOBUF_TARGET)
-  target_link_libraries(yaze PRIVATE ${YAZE_PROTOBUF_TARGET})
+if(YAZE_WITH_GRPC AND YAZE_PROTOBUF_TARGETS)
+  target_link_libraries(yaze PRIVATE ${YAZE_PROTOBUF_TARGETS})
+  if(MSVC)
+    foreach(_yaze_proto_target IN LISTS YAZE_PROTOBUF_TARGETS)
+      target_link_options(yaze PRIVATE /WHOLEARCHIVE:$<TARGET_FILE:${_yaze_proto_target}>)
+    endforeach()
+  endif()
 endif()
 
 # Link test support library (yaze_editor needs TestManager)

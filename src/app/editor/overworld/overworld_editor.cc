@@ -53,7 +53,7 @@ void OverworldEditor::Initialize() {
   
   // Register Overworld Canvas (main canvas card with toolset)
   card_manager.RegisterCard({
-      .card_id = "overworld.canvas",
+      .card_id = MakeCardId("overworld.canvas"),
       .display_name = "Overworld Canvas",
       .icon = ICON_MD_MAP,
       .category = "Overworld",
@@ -63,7 +63,7 @@ void OverworldEditor::Initialize() {
   });
   
   card_manager.RegisterCard({
-      .card_id = "overworld.tile16_selector",
+      .card_id = MakeCardId("overworld.tile16_selector"),
       .display_name = "Tile16 Selector",
       .icon = ICON_MD_GRID_ON,
       .category = "Overworld",
@@ -73,7 +73,7 @@ void OverworldEditor::Initialize() {
   });
   
   card_manager.RegisterCard({
-      .card_id = "overworld.tile8_selector",
+      .card_id = MakeCardId("overworld.tile8_selector"),
       .display_name = "Tile8 Selector",
       .icon = ICON_MD_GRID_3X3,
       .category = "Overworld",
@@ -83,7 +83,7 @@ void OverworldEditor::Initialize() {
   });
   
   card_manager.RegisterCard({
-      .card_id = "overworld.area_graphics",
+      .card_id = MakeCardId("overworld.area_graphics"),
       .display_name = "Area Graphics",
       .icon = ICON_MD_IMAGE,
       .category = "Overworld",
@@ -93,7 +93,7 @@ void OverworldEditor::Initialize() {
   });
   
   card_manager.RegisterCard({
-      .card_id = "overworld.scratch",
+      .card_id = MakeCardId("overworld.scratch"),
       .display_name = "Scratch Workspace",
       .icon = ICON_MD_DRAW,
       .category = "Overworld",
@@ -103,7 +103,7 @@ void OverworldEditor::Initialize() {
   });
   
   card_manager.RegisterCard({
-      .card_id = "overworld.gfx_groups",
+      .card_id = MakeCardId("overworld.gfx_groups"),
       .display_name = "GFX Groups",
       .icon = ICON_MD_FOLDER,
       .category = "Overworld",
@@ -113,7 +113,7 @@ void OverworldEditor::Initialize() {
   });
   
   card_manager.RegisterCard({
-      .card_id = "overworld.usage_stats",
+      .card_id = MakeCardId("overworld.usage_stats"),
       .display_name = "Usage Statistics",
       .icon = ICON_MD_ANALYTICS,
       .category = "Overworld",
@@ -123,7 +123,7 @@ void OverworldEditor::Initialize() {
   });
   
   card_manager.RegisterCard({
-      .card_id = "overworld.v3_settings",
+      .card_id = MakeCardId("overworld.v3_settings"),
       .display_name = "v3 Settings",
       .icon = ICON_MD_SETTINGS,
       .category = "Overworld",

@@ -88,6 +88,25 @@ void EditorCardManager::UnregisterCard(const std::string& card_id) {
   }
 }
 
+void EditorCardManager::UnregisterCardsWithPrefix(const std::string& prefix) {
+  std::vector<std::string> to_remove;
+  
+  // Find all cards with the given prefix
+  for (const auto& [card_id, card_info] : cards_) {
+    if (card_id.find(prefix) == 0) {  // Starts with prefix
+      to_remove.push_back(card_id);
+    }
+  }
+  
+  // Remove all found cards
+  for (const auto& card_id : to_remove) {
+    UnregisterCard(card_id);
+  }
+  
+  printf("[EditorCardManager] Unregistered %zu cards with prefix: %s\n", 
+         to_remove.size(), prefix.c_str());
+}
+
 void EditorCardManager::ClearAllCards() {
   printf("[EditorCardManager] Clearing all %zu registered cards\n", cards_.size());
   cards_.clear();
@@ -230,6 +249,24 @@ std::vector<CardInfo> EditorCardManager::GetCardsInCategory(const std::string& c
   return result;
 }
 
+std::vector<CardInfo> EditorCardManager::GetCardsWithPrefix(const std::string& prefix) const {
+  std::vector<CardInfo> result;
+  
+  for (const auto& [id, info] : cards_) {
+    if (id.find(prefix) == 0) {  // Starts with prefix
+      result.push_back(info);
+    }
+  }
+  
+  // Sort by priority
+  std::sort(result.begin(), result.end(), 
+           [](const CardInfo& a, const CardInfo& b) {
+             return a.priority < b.priority;
+           });
+  
+  return result;
+}
+
 std::vector<std::string> EditorCardManager::GetAllCategories() const {
   std::vector<std::string> categories;
   
@@ -319,7 +356,23 @@ void EditorCardManager::DrawViewMenuAll() {
 }
 
 void EditorCardManager::DrawCompactCardControl(const std::string& category) {
-  auto cards_in_category = GetCardsInCategory(category);
+  DrawCompactCardControlWithSession(category, "");
+}
+
+void EditorCardManager::DrawCompactCardControlWithSession(const std::string& category, const std::string& session_prefix) {
+  std::vector<CardInfo> cards_in_category;
+  
+  if (session_prefix.empty()) {
+    cards_in_category = GetCardsInCategory(category);
+  } else {
+    // Filter cards by session prefix
+    auto all_cards = GetCardsWithPrefix(session_prefix);
+    for (const auto& card : all_cards) {
+      if (card.category == category) {
+        cards_in_category.push_back(card);
+      }
+    }
+  }
   
   if (cards_in_category.empty()) {
     return;  // Nothing to show
@@ -337,13 +390,21 @@ void EditorCardManager::DrawCompactCardControl(const std::string& category) {
   ImGui::PopStyleColor(3);
   
   if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("%s Card Controls", category.c_str());
+    std::string tooltip = category + " Card Controls";
+    if (!session_prefix.empty()) {
+      tooltip += " (" + session_prefix + ")";
+    }
+    ImGui::SetTooltip("%s", tooltip.c_str());
   }
   
   // Compact popup with checkboxes
   if (ImGui::BeginPopup("CardControlPopup")) {
-    ImGui::TextColored(ImVec4(0.7f, 0.9f, 1.0f, 1.0f), "%s %s Cards", 
-                      ICON_MD_DASHBOARD, category.c_str());
+    std::string title = category + " Cards";
+    if (!session_prefix.empty()) {
+      title += " (" + session_prefix + ")";
+    }
+    ImGui::TextColored(ImVec4(0.7f, 0.9f, 1.0f, 1.0f), "%s %s", 
+                      ICON_MD_DASHBOARD, title.c_str());
     ImGui::Separator();
     
     for (const auto& info : cards_in_category) {
@@ -743,9 +804,17 @@ void EditorCardManager::SetActiveCategory(const std::string& category) {
 }
 
 void EditorCardManager::DrawSidebar(const std::string& category,
-                                    const std::vector<std::string>& active_categories,
-                                    std::function<void(const std::string&)> on_category_switch,
-                                    std::function<void()> on_collapse) {
+                                   const std::vector<std::string>& active_categories,
+                                   std::function<void(const std::string&)> on_category_switch,
+                                   std::function<void()> on_collapse) {
+  DrawSidebarWithSessionFilter(category, "", active_categories, on_category_switch, on_collapse);
+}
+
+void EditorCardManager::DrawSidebarWithSessionFilter(const std::string& category,
+                                                    const std::string& session_prefix,
+                                                    const std::vector<std::string>& active_categories,
+                                                    std::function<void(const std::string&)> on_category_switch,
+                                                    std::function<void()> on_collapse) {
   // Use ThemeManager for consistent theming
   const auto& theme = ThemeManager::Get().GetCurrentTheme();
   
