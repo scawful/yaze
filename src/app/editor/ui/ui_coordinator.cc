@@ -104,6 +104,7 @@ void UICoordinator::DrawAllUI() {
   // Draw all UI components in order
   DrawMenuBarExtras();
   DrawContextSensitiveCardControl();
+  DrawCommandPalette();          // NEW: Moved from EditorManager
   DrawSessionSwitcher();
   DrawSessionManager();
   DrawSessionRenameDialog();
@@ -119,15 +120,15 @@ void UICoordinator::DrawAllUI() {
 void UICoordinator::DrawMenuBarExtras() {
   // Get current ROM from EditorManager (RomFileManager doesn't track "current")
   auto* current_rom = editor_manager_->GetCurrentRom();
+  
+  // Calculate version width for right alignment
   std::string version_text = absl::StrFormat("v%s", editor_manager_->version().c_str());
   float version_width = ImGui::CalcTextSize(version_text.c_str()).x;
-  float session_rom_area_width = 280.0f;
-
-  ImGui::SameLine(ImGui::GetWindowWidth() - version_width - 10 - session_rom_area_width);
 
   // Session indicator with Material Design styling
   if (session_coordinator_.HasMultipleSessions()) {
-    std::string session_button_text = absl::StrFormat("%s%zu", ICON_MD_TAB, 
+    ImGui::SameLine();
+    std::string session_button_text = absl::StrFormat("%s %zu", ICON_MD_TAB, 
                                                      session_coordinator_.GetActiveSessionCount());
     
     // Material Design button styling
@@ -142,21 +143,32 @@ void UICoordinator::DrawMenuBarExtras() {
     ImGui::PopStyleColor(3);
     
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Sessions: %zu active\nClick to switch",
-                        session_coordinator_.GetActiveSessionCount());
+      ImGui::SetTooltip("Switch Sessions (Ctrl+Tab)");
     }
-    ImGui::SameLine();
   }
 
   // ROM information display with Material Design card styling
+  ImGui::SameLine();
   if (current_rom && current_rom->is_loaded()) {
     ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
-    ImGui::Text("%s %s", ICON_MD_INSERT_DRIVE_FILE, current_rom->title().c_str());
+    std::string rom_title = current_rom->title();
+    if (current_rom->dirty()) {
+      ImGui::Text("%s %s*", ICON_MD_CIRCLE, rom_title.c_str());
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Unsaved changes");
+      }
+    } else {
+      ImGui::Text("%s %s", ICON_MD_INSERT_DRIVE_FILE, rom_title.c_str());
+    }
     ImGui::PopStyleColor();
-    ImGui::SameLine();
+  } else {
+    ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextDisabledVec4());
+    ImGui::Text("%s No ROM", ICON_MD_WARNING);
+    ImGui::PopStyleColor();
   }
 
-  // Version info with subtle styling
+  // Version info aligned to far right
+  ImGui::SameLine(ImGui::GetWindowWidth() - version_width - 15.0f);
   ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextDisabledVec4());
   ImGui::Text("%s", version_text.c_str());
   ImGui::PopStyleColor();
@@ -319,8 +331,9 @@ void UICoordinator::HidePopup(const std::string& popup_name) {
 }
 
 void UICoordinator::ShowDisplaySettings() {
-  show_display_settings_ = true;
-  ShowPopup("Display Settings");
+  // Display Settings is now a popup managed by PopupManager
+  // Delegate directly to PopupManager instead of UICoordinator
+  popup_manager_.Show(PopupID::kDisplaySettings);
 }
 
 void UICoordinator::HideCurrentEditorCards() {

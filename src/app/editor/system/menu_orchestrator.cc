@@ -199,18 +199,18 @@ void MenuOrchestrator::AddViewMenuItems() {
             [this]() { OnShowEmulator(); }, "Ctrl+Shift+E")
       .Separator();
   
+  // Settings and UI
+  menu_builder_
+      .Item("Display Settings", ICON_MD_DISPLAY_SETTINGS,
+            [this]() { OnShowDisplaySettings(); })
+      .Separator();
+  
   // Additional UI Elements
   menu_builder_
       .Item("Card Browser", ICON_MD_DASHBOARD,
             [this]() { OnShowCardBrowser(); }, "Ctrl+Shift+B")
       .Item("Welcome Screen", ICON_MD_HOME,
-            [this]() { OnShowWelcomeScreen(); })
-      .Separator();
-  
-  // Display Settings
-  menu_builder_
-      .Item("Display Settings", ICON_MD_DISPLAY_SETTINGS,
-            [this]() { OnShowDisplaySettings(); });
+            [this]() { OnShowWelcomeScreen(); });
 }
 
 void MenuOrchestrator::BuildToolsMenu() {
@@ -401,8 +401,7 @@ void MenuOrchestrator::OnSaveRom() {
 }
 
 void MenuOrchestrator::OnSaveRomAs() {
-  // TODO: Show save dialog and delegate to rom_manager_
-  toast_manager_.Show("Save ROM As", ToastType::kInfo);
+  popup_manager_.Show(PopupID::kSaveAs);
 }
 
 void MenuOrchestrator::OnCreateProject() {
@@ -552,12 +551,7 @@ void MenuOrchestrator::OnShowEditorSelection() {
 }
 
 void MenuOrchestrator::OnShowDisplaySettings() {
-  // Delegate to UICoordinator for display settings popup
-  if (editor_manager_) {
-    if (auto* ui = editor_manager_->ui_coordinator()) {
-      ui->ShowDisplaySettings();
-    }
-  }
+  popup_manager_.Show(PopupID::kDisplaySettings);
 }
 
 void MenuOrchestrator::OnShowHexEditor() {
@@ -785,44 +779,44 @@ void MenuOrchestrator::OnShowNetworkStatus() {
 
 // Help menu actions
 void MenuOrchestrator::OnShowAbout() {
-  popup_manager_.Show("About");
+  popup_manager_.Show(PopupID::kAbout);
 }
 
 void MenuOrchestrator::OnShowGettingStarted() {
-  popup_manager_.Show("Getting Started");
+  popup_manager_.Show(PopupID::kGettingStarted);
 }
 
 void MenuOrchestrator::OnShowAsarIntegration() {
-  popup_manager_.Show("Asar Integration");
+  popup_manager_.Show(PopupID::kAsarIntegration);
 }
 
 void MenuOrchestrator::OnShowBuildInstructions() {
-  popup_manager_.Show("Build Instructions");
+  popup_manager_.Show(PopupID::kBuildInstructions);
 }
 
 void MenuOrchestrator::OnShowCLIUsage() {
-  popup_manager_.Show("CLI Usage");
+  popup_manager_.Show(PopupID::kCLIUsage);
 }
 
 void MenuOrchestrator::OnShowTroubleshooting() {
-  popup_manager_.Show("Troubleshooting");
+  popup_manager_.Show(PopupID::kTroubleshooting);
 }
 
 void MenuOrchestrator::OnShowContributing() {
-  popup_manager_.Show("Contributing");
+  popup_manager_.Show(PopupID::kContributing);
 }
 
 void MenuOrchestrator::OnShowWhatsNew() {
-  popup_manager_.Show("Whats New v03");
+  popup_manager_.Show(PopupID::kWhatsNew);
 }
 
 void MenuOrchestrator::OnShowSupportedFeatures() {
-  popup_manager_.Show("Supported Features");
+  popup_manager_.Show(PopupID::kSupportedFeatures);
 }
 
 // Additional File menu actions
 void MenuOrchestrator::OnShowRomInfo() {
-  popup_manager_.Show("ROM Information");
+  popup_manager_.Show(PopupID::kRomInfo);
 }
 
 void MenuOrchestrator::OnCreateBackup() {

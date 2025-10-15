@@ -16,31 +16,104 @@ PopupManager::PopupManager(EditorManager* editor_manager)
     : editor_manager_(editor_manager), status_(absl::OkStatus()) {}
 
 void PopupManager::Initialize() {
-  // Register all popups
-  popups_["About"] = {"About", false, [this]() { DrawAboutPopup(); }};
-  popups_["ROM Information"] = {"ROM Information", false, [this]() { DrawRomInfoPopup(); }};
-  popups_["Save As.."] = {"Save As..", false, [this]() { DrawSaveAsPopup(); }};
-  popups_["New Project"] = {"New Project", false, [this]() { DrawNewProjectPopup(); }};
-  popups_["Supported Features"] = {"Supported Features", false, [this]() { DrawSupportedFeaturesPopup(); }};
-  popups_["Open a ROM"] = {"Open a ROM", false, [this]() { DrawOpenRomHelpPopup(); }};
-  popups_["Manage Project"] = {"Manage Project", false, [this]() { DrawManageProjectPopup(); }};
+  // ============================================================================
+  // POPUP REGISTRATION
+  // ============================================================================
+  // All popups must be registered here BEFORE any menu callbacks can trigger them.
+  // This method is called in EditorManager constructor BEFORE MenuOrchestrator
+  // and UICoordinator are created, ensuring safe initialization order.
+  //
+  // Popup Registration Format:
+  // popups_[PopupID::kConstant] = {
+  //   .name = PopupID::kConstant,
+  //   .type = PopupType::kXxx,
+  //   .is_visible = false,
+  //   .allow_resize = false/true,
+  //   .draw_function = [this]() { DrawXxxPopup(); }
+  // };
+  // ============================================================================
   
-  // v0.3 Help Documentation popups
-  popups_["Getting Started"] = {"Getting Started", false, [this]() { DrawGettingStartedPopup(); }};
-  popups_["Asar Integration"] = {"Asar Integration", false, [this]() { DrawAsarIntegrationPopup(); }};
-  popups_["Build Instructions"] = {"Build Instructions", false, [this]() { DrawBuildInstructionsPopup(); }};
-  popups_["CLI Usage"] = {"CLI Usage", false, [this]() { DrawCLIUsagePopup(); }};
-  popups_["Troubleshooting"] = {"Troubleshooting", false, [this]() { DrawTroubleshootingPopup(); }};
-  popups_["Contributing"] = {"Contributing", false, [this]() { DrawContributingPopup(); }};
-  popups_["Whats New v03"] = {"What's New in v0.3", false, [this]() { DrawWhatsNewPopup(); }};
+  // File Operations
+  popups_[PopupID::kSaveAs] = {
+    PopupID::kSaveAs, PopupType::kFileOperation, false, false,
+    [this]() { DrawSaveAsPopup(); }
+  };
+  popups_[PopupID::kNewProject] = {
+    PopupID::kNewProject, PopupType::kFileOperation, false, false,
+    [this]() { DrawNewProjectPopup(); }
+  };
+  popups_[PopupID::kManageProject] = {
+    PopupID::kManageProject, PopupType::kFileOperation, false, false,
+    [this]() { DrawManageProjectPopup(); }
+  };
   
-  // Workspace-related popups
-  popups_["Workspace Help"] = {"Workspace Help", false, [this]() { DrawWorkspaceHelpPopup(); }};
-  popups_["Session Limit Warning"] = {"Session Limit Warning", false, [this]() { DrawSessionLimitWarningPopup(); }};
-  popups_["Layout Reset Confirm"] = {"Reset Layout Confirmation", false, [this]() { DrawLayoutResetConfirmPopup(); }};
+  // Information
+  popups_[PopupID::kAbout] = {
+    PopupID::kAbout, PopupType::kInfo, false, false,
+    [this]() { DrawAboutPopup(); }
+  };
+  popups_[PopupID::kRomInfo] = {
+    PopupID::kRomInfo, PopupType::kInfo, false, false,
+    [this]() { DrawRomInfoPopup(); }
+  };
+  popups_[PopupID::kSupportedFeatures] = {
+    PopupID::kSupportedFeatures, PopupType::kInfo, false, false,
+    [this]() { DrawSupportedFeaturesPopup(); }
+  };
+  popups_[PopupID::kOpenRomHelp] = {
+    PopupID::kOpenRomHelp, PopupType::kHelp, false, false,
+    [this]() { DrawOpenRomHelpPopup(); }
+  };
   
-  // Settings popups (accessible without ROM)
-  popups_["Display Settings"] = {"Display Settings", false, [this]() { DrawDisplaySettingsPopup(); }};
+  // Help Documentation
+  popups_[PopupID::kGettingStarted] = {
+    PopupID::kGettingStarted, PopupType::kHelp, false, false,
+    [this]() { DrawGettingStartedPopup(); }
+  };
+  popups_[PopupID::kAsarIntegration] = {
+    PopupID::kAsarIntegration, PopupType::kHelp, false, false,
+    [this]() { DrawAsarIntegrationPopup(); }
+  };
+  popups_[PopupID::kBuildInstructions] = {
+    PopupID::kBuildInstructions, PopupType::kHelp, false, false,
+    [this]() { DrawBuildInstructionsPopup(); }
+  };
+  popups_[PopupID::kCLIUsage] = {
+    PopupID::kCLIUsage, PopupType::kHelp, false, false,
+    [this]() { DrawCLIUsagePopup(); }
+  };
+  popups_[PopupID::kTroubleshooting] = {
+    PopupID::kTroubleshooting, PopupType::kHelp, false, false,
+    [this]() { DrawTroubleshootingPopup(); }
+  };
+  popups_[PopupID::kContributing] = {
+    PopupID::kContributing, PopupType::kHelp, false, false,
+    [this]() { DrawContributingPopup(); }
+  };
+  popups_[PopupID::kWhatsNew] = {
+    PopupID::kWhatsNew, PopupType::kHelp, false, false,
+    [this]() { DrawWhatsNewPopup(); }
+  };
+  
+  // Settings
+  popups_[PopupID::kDisplaySettings] = {
+    PopupID::kDisplaySettings, PopupType::kSettings, false, true,  // Resizable
+    [this]() { DrawDisplaySettingsPopup(); }
+  };
+  
+  // Workspace
+  popups_[PopupID::kWorkspaceHelp] = {
+    PopupID::kWorkspaceHelp, PopupType::kHelp, false, false,
+    [this]() { DrawWorkspaceHelpPopup(); }
+  };
+  popups_[PopupID::kSessionLimitWarning] = {
+    PopupID::kSessionLimitWarning, PopupType::kWarning, false, false,
+    [this]() { DrawSessionLimitWarningPopup(); }
+  };
+  popups_[PopupID::kLayoutResetConfirm] = {
+    PopupID::kLayoutResetConfirm, PopupType::kConfirmation, false, false,
+    [this]() { DrawLayoutResetConfirmPopup(); }
+  };
 }
 
 void PopupManager::DrawPopups() {
@@ -52,11 +125,9 @@ void PopupManager::DrawPopups() {
     if (params.is_visible) {
       OpenPopup(name.c_str());
       
-      // Special handling for Display Settings popup to make it resizable
-      ImGuiWindowFlags popup_flags = ImGuiWindowFlags_AlwaysAutoResize;
-      if (name == "Display Settings") {
-        popup_flags = ImGuiWindowFlags_None; // Allow resizing for display settings
-      }
+      // Use allow_resize flag from popup definition
+      ImGuiWindowFlags popup_flags = params.allow_resize ? 
+          ImGuiWindowFlags_None : ImGuiWindowFlags_AlwaysAutoResize;
       
       if (BeginPopupModal(name.c_str(), nullptr, popup_flags)) {
         params.draw_function();
@@ -67,14 +138,31 @@ void PopupManager::DrawPopups() {
 }
 
 void PopupManager::Show(const char* name) {
-  auto it = popups_.find(name);
+  if (!name) {
+    return;  // Safety check for null pointer
+  }
+  
+  std::string name_str(name);
+  auto it = popups_.find(name_str);
   if (it != popups_.end()) {
     it->second.is_visible = true;
+  } else {
+    // Log warning for unregistered popup
+    printf("[PopupManager] Warning: Popup '%s' not registered. Available popups: ", name);
+    for (const auto& [key, _] : popups_) {
+      printf("'%s' ", key.c_str());
+    }
+    printf("\n");
   }
 }
 
 void PopupManager::Hide(const char* name) {
-  auto it = popups_.find(name);
+  if (!name) {
+    return;  // Safety check for null pointer
+  }
+  
+  std::string name_str(name);
+  auto it = popups_.find(name_str);
   if (it != popups_.end()) {
     it->second.is_visible = false;
     CloseCurrentPopup();
@@ -82,7 +170,12 @@ void PopupManager::Hide(const char* name) {
 }
 
 bool PopupManager::IsVisible(const char* name) const {
-  auto it = popups_.find(name);
+  if (!name) {
+    return false;  // Safety check for null pointer
+  }
+  
+  std::string name_str(name);
+  auto it = popups_.find(name_str);
   if (it != popups_.end()) {
     return it->second.is_visible;
   }
@@ -189,7 +282,7 @@ void PopupManager::DrawSaveAsPopup() {
       auto status = editor_manager_->SaveRomAs(final_filename);
       if (status.ok()) {
         save_as_filename = "";
-        Hide("Save As..");
+        Hide(PopupID::kSaveAs);
       }
     }
   }
@@ -198,7 +291,7 @@ void PopupManager::DrawSaveAsPopup() {
   if (Button(absl::StrFormat("%s Cancel", ICON_MD_CANCEL).c_str(),
              gui::kDefaultModalSize)) {
     save_as_filename = "";
-    Hide("Save As..");
+    Hide(PopupID::kSaveAs);
   }
 }
 
@@ -265,7 +358,7 @@ void PopupManager::DrawNewProjectPopup() {
         rom_filename = "";
         labels_filename = "";
         code_folder = "";
-        Hide("New Project");
+        Hide(PopupID::kNewProject);
       }
     }
   }
@@ -278,7 +371,7 @@ void PopupManager::DrawNewProjectPopup() {
     rom_filename = "";
     labels_filename = "";
     code_folder = "";
-    Hide("New Project");
+    Hide(PopupID::kNewProject);
   }
 }
 

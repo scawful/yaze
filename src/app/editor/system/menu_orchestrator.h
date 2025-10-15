@@ -86,7 +86,7 @@ class MenuOrchestrator {
   // Editor-specific menu actions
   void OnSwitchToEditor(EditorType editor_type);
   void OnShowEditorSelection();
-  void OnShowDisplaySettings();
+  void OnShowDisplaySettings();  // Display settings popup
   void OnShowHexEditor();
   void OnShowEmulator();
   void OnShowCardBrowser();
