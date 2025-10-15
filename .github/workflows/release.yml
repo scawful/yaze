@@ -143,6 +143,10 @@ jobs:
         with:
           submodules: recursive
 
+      - name: "Install Ninja (Windows only)"
+        if: runner.os == 'Windows'
+        uses: seanmiddleditch/gha-setup-ninja@v1
+
       - name: "Set up vcpkg (Windows only)"
         if: runner.os == 'Windows'
         uses: lukka/run-vcpkg@v11
