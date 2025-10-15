@@ -471,109 +471,192 @@ void EditorCardRegistry::DrawSidebar(size_t session_id,
                                     const std::vector<std::string>& active_categories,
                                     std::function<void(const std::string&)> on_category_switch,
                                     std::function<void()> on_collapse) {
-  // Get cards for this session and category
-  auto cards = GetCardsInCategory(session_id, category);
-  
-  if (cards.empty()) {
-    return;
-  }
-  
   // Use ThemeManager for consistent theming
   const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
   const float sidebar_width = GetSidebarWidth();
   
-  // Fixed sidebar window on the left edge of screen (VSCode style)
-  ImGui::SetNextWindowPos(ImVec2(0, ImGui::GetFrameHeight()));  // Below menu bar
-  ImGui::SetNextWindowSize(ImVec2(sidebar_width + 220, -1));  // Full height below menu
+  // Fixed sidebar window on the left edge of screen - exactly like VSCode
+  // Positioned below menu bar, spans full height, fixed 48px width
+  ImGui::SetNextWindowPos(ImVec2(0, ImGui::GetFrameHeight()));
+  ImGui::SetNextWindowSize(ImVec2(sidebar_width, -1));  // Exactly 48px wide, full height
   
   ImGuiWindowFlags sidebar_flags = 
       ImGuiWindowFlags_NoTitleBar |
       ImGuiWindowFlags_NoResize |
       ImGuiWindowFlags_NoMove |
       ImGuiWindowFlags_NoCollapse |
-      ImGuiWindowFlags_NoDocking |  // Don't allow docking over sidebar
+      ImGuiWindowFlags_NoDocking |
       ImGuiWindowFlags_NoScrollbar |
       ImGuiWindowFlags_NoScrollWithMouse |
-      ImGuiWindowFlags_NoFocusOnAppearing |  // Don't steal focus
-      ImGuiWindowFlags_NoNavFocus;  // Don't participate in nav
+      ImGuiWindowFlags_NoFocusOnAppearing |
+      ImGuiWindowFlags_NoNavFocus;
   
-  // Make sidebar VERY visible - fully opaque dark background
-  ImVec4 sidebar_bg = ImVec4(0.18f, 0.18f, 0.20f, 1.0f);  // Dark opaque gray
-  ImVec4 sidebar_border = ImVec4(0.4f, 0.4f, 0.45f, 1.0f);  // Visible border
+  // VSCode-style dark sidebar background with visible border
+  ImVec4 sidebar_bg = ImVec4(0.18f, 0.18f, 0.20f, 1.0f);
+  ImVec4 sidebar_border = ImVec4(0.4f, 0.4f, 0.45f, 1.0f);
   
   ImGui::PushStyleColor(ImGuiCol_WindowBg, sidebar_bg);
   ImGui::PushStyleColor(ImGuiCol_Border, sidebar_border);
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4.0f, 8.0f));
   ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 6.0f));
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 2.0f);  // Thicker border
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 2.0f);
   
-  ImGui::Begin("##EditorCardSidebar", nullptr, sidebar_flags);
-  
-  // Draw category tabs on the left (if multiple editors active)
-  if (active_categories.size() > 1) {
-    ImGui::BeginChild("CategoryTabs", ImVec2(sidebar_width, 0), false,
-                     ImGuiWindowFlags_NoScrollbar);
-    
-    ImVec4 accent = gui::ConvertColorToImVec4(theme.accent);
-    ImVec4 inactive = gui::ConvertColorToImVec4(theme.button);
-    
-    for (const auto& cat : active_categories) {
-      bool is_current = (cat == category);
+  if (ImGui::Begin("##EditorCardSidebar", nullptr, sidebar_flags)) {
+    // Category switcher buttons at top (only if multiple editors are active)
+    if (active_categories.size() > 1) {
+      ImVec4 accent = gui::ConvertColorToImVec4(theme.accent);
+      ImVec4 inactive = gui::ConvertColorToImVec4(theme.button);
       
-      if (is_current) {
-        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(accent.x, accent.y, accent.z, 0.8f));
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(accent.x, accent.y, accent.z, 1.0f));
-      } else {
-        ImGui::PushStyleColor(ImGuiCol_Button, inactive);
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, gui::ConvertColorToImVec4(theme.button_hovered));
-      }
-      
-      // Use first letter as icon
-      std::string icon = cat.substr(0, 1);
-      if (ImGui::Button(icon.c_str(), ImVec2(sidebar_width - 8, 40))) {
-        if (on_category_switch) {
-          on_category_switch(cat);
+      for (const auto& cat : active_categories) {
+        bool is_current = (cat == category);
+        
+        // Highlight current category with accent color
+        if (is_current) {
+          ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(accent.x, accent.y, accent.z, 0.8f));
+          ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(accent.x, accent.y, accent.z, 1.0f));
+        } else {
+          ImGui::PushStyleColor(ImGuiCol_Button, inactive);
+          ImGui::PushStyleColor(ImGuiCol_ButtonHovered, gui::ConvertColorToImVec4(theme.button_hovered));
+        }
+        
+        // Show first letter of category as button label
+        std::string btn_label = cat.empty() ? "?" : std::string(1, cat[0]);
+        if (ImGui::Button(btn_label.c_str(), ImVec2(40.0f, 32.0f))) {
+          // Switch to this category/editor
+          if (on_category_switch) {
+            on_category_switch(cat);
+          } else {
+            SetActiveCategory(cat);
+          }
+        }
+        
+        ImGui::PopStyleColor(2);
+        
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("%s Editor\nClick to switch", cat.c_str());
         }
       }
       
-      ImGui::PopStyleColor(2);
+      ImGui::Dummy(ImVec2(0, 2.0f));
+      ImGui::Separator();
+      ImGui::Spacing();
+    }
+    
+    // Get cards for current category
+    auto cards = GetCardsInCategory(session_id, category);
+    
+    // Set this category as active when showing cards
+    if (!cards.empty()) {
+      SetActiveCategory(category);
+    }
+    
+    // Close All and Show All buttons (only if cards exist)
+    if (!cards.empty()) {
+      ImVec4 error_color = gui::ConvertColorToImVec4(theme.error);
+      ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(
+          error_color.x * 0.6f, error_color.y * 0.6f, error_color.z * 0.6f, 0.9f));
+      ImGui::PushStyleColor(ImGuiCol_ButtonHovered, error_color);
+      ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(
+          error_color.x * 1.2f, error_color.y * 1.2f, error_color.z * 1.2f, 1.0f));
+      
+      if (ImGui::Button(ICON_MD_CLOSE, ImVec2(40.0f, 36.0f))) {
+        HideAllCardsInCategory(session_id, category);
+      }
+      
+      ImGui::PopStyleColor(3);
       
       if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("%s", cat.c_str());
+        ImGui::SetTooltip("Close All %s Cards", category.c_str());
       }
-    }
+      
+      // Show All button
+      ImVec4 success_color = gui::ConvertColorToImVec4(theme.success);
+      ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(
+          success_color.x * 0.6f, success_color.y * 0.6f, success_color.z * 0.6f, 0.7f));
+      ImGui::PushStyleColor(ImGuiCol_ButtonHovered, success_color);
+      ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(
+          success_color.x * 1.2f, success_color.y * 1.2f, success_color.z * 1.2f, 1.0f));
+      
+      if (ImGui::Button(ICON_MD_DONE_ALL, ImVec2(40.0f, 36.0f))) {
+        ShowAllCardsInCategory(session_id, category);
+      }
+      
+      ImGui::PopStyleColor(3);
+      
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Show All %s Cards", category.c_str());
+      }
+      
+      ImGui::Dummy(ImVec2(0, 2.0f));
+      
+      // Draw individual card toggle buttons
+      ImVec4 accent_color = gui::ConvertColorToImVec4(theme.accent);
+      ImVec4 button_bg = gui::ConvertColorToImVec4(theme.button);
+      
+      for (const auto& card : cards) {
+        ImGui::PushID(card.card_id.c_str());
+
+        bool is_active = card.visibility_flag && *card.visibility_flag;
+        
+        // Highlight active cards with accent color
+        if (is_active) {
+          ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(
+              accent_color.x, accent_color.y, accent_color.z, 0.5f));
+          ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(
+              accent_color.x, accent_color.y, accent_color.z, 0.7f));
+          ImGui::PushStyleColor(ImGuiCol_ButtonActive, accent_color);
+        } else {
+          ImGui::PushStyleColor(ImGuiCol_Button, button_bg);
+          ImGui::PushStyleColor(ImGuiCol_ButtonHovered, gui::ConvertColorToImVec4(theme.button_hovered));
+          ImGui::PushStyleColor(ImGuiCol_ButtonActive, gui::ConvertColorToImVec4(theme.button_active));
+        }
+
+        // Icon-only button for each card
+        if (ImGui::Button(card.icon.c_str(), ImVec2(40.0f, 40.0f))) {
+          ToggleCard(session_id, card.card_id);
+          SetActiveCategory(category);
+        }
+
+        ImGui::PopStyleColor(3);
+
+        // Show tooltip with card name and shortcut
+        if (ImGui::IsItemHovered() || ImGui::IsItemActive()) {
+          SetActiveCategory(category);
+          
+          ImGui::SetTooltip("%s\n%s", card.display_name.c_str(), 
+                           card.shortcut_hint.empty() ? "" : card.shortcut_hint.c_str());
+        }
+
+        ImGui::PopID();
+      }
+    }  // End if (!cards.empty())
     
-    // Collapse button at bottom
-    ImGui::SetCursorPosY(ImGui::GetWindowHeight() - 50);
-    if (ImGui::Button(ICON_MD_CHEVRON_LEFT, ImVec2(sidebar_width - 8, 40))) {
-      if (on_collapse) {
+    // Card Browser and Collapse buttons at bottom
+    if (on_collapse) {
+      ImGui::Dummy(ImVec2(0, 10.0f));
+      ImGui::Separator();
+      ImGui::Spacing();
+      
+      // Collapse button
+      ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.2f, 0.22f, 0.9f));
+      ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.3f, 0.3f, 0.32f, 1.0f));
+      ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.25f, 0.25f, 0.27f, 1.0f));
+      
+      if (ImGui::Button(ICON_MD_KEYBOARD_ARROW_LEFT, ImVec2(40.0f, 36.0f))) {
         on_collapse();
       }
+      
+      ImGui::PopStyleColor(3);
+      
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Hide Sidebar\nCtrl+B");
+      }
     }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Hide Sidebar (Ctrl+B)");
-    }
-    
-    ImGui::EndChild();
-    ImGui::SameLine();
   }
-  
-  // Draw cards list on the right
-  ImGui::BeginChild("CardsList", ImVec2(0, 0), false);
-  
-  ImGui::Text("%s %s", ICON_MD_DASHBOARD, category.c_str());
-  ImGui::Separator();
-  
-  for (const auto& card : cards) {
-    DrawCardInSidebar(card, IsCardVisible(session_id, card.card_id));
-  }
-  
-  ImGui::EndChild();
-  
   ImGui::End();
   
-  ImGui::PopStyleVar(3);
-  ImGui::PopStyleColor(2);
+  ImGui::PopStyleVar(3);  // WindowPadding, ItemSpacing, WindowBorderSize
+  ImGui::PopStyleColor(2);  // WindowBg, Border
 }
 
 // ============================================================================

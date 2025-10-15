@@ -59,17 +59,23 @@ absl::Status SpriteEditor::Update() {
   vanilla_card.SetDefaultSize(900, 700);
   custom_card.SetDefaultSize(800, 600);
 
-  // Get visibility flags from card manager and pass to Begin()
-  // Always call End() after Begin() - End() handles ImGui state safely
-  if (vanilla_card.Begin(card_registry->GetVisibilityFlag("sprite.vanilla_editor"))) {
-    DrawVanillaSpriteEditor();
+  // Vanilla Sprites Card - Check visibility flag exists and is true before rendering
+  bool* vanilla_visible = card_registry->GetVisibilityFlag("sprite.vanilla_editor");
+  if (vanilla_visible && *vanilla_visible) {
+    if (vanilla_card.Begin(vanilla_visible)) {
+      DrawVanillaSpriteEditor();
+    }
+    vanilla_card.End();
   }
-  vanilla_card.End();
 
-  if (custom_card.Begin(card_registry->GetVisibilityFlag("sprite.custom_editor"))) {
-    DrawCustomSprites();
+  // Custom Sprites Card - Check visibility flag exists and is true before rendering
+  bool* custom_visible = card_registry->GetVisibilityFlag("sprite.custom_editor");
+  if (custom_visible && *custom_visible) {
+    if (custom_card.Begin(custom_visible)) {
+      DrawCustomSprites();
+    }
+    custom_card.End();
   }
-  custom_card.End();
 
   return status_.ok() ? absl::OkStatus() : status_;
 }

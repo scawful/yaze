@@ -150,42 +150,46 @@ absl::Status MessageEditor::Update() {
   
   auto* card_registry = dependencies_.card_registry;
   
-  // Message List Card
-  if (card_registry->IsCardVisible(MakeCardId("message.message_list"))) {
+  // Message List Card - Get visibility flag and pass to Begin() for proper X button
+  bool* list_visible = card_registry->GetVisibilityFlag(MakeCardId("message.message_list"));
+  if (list_visible && *list_visible) {
     static gui::EditorCard list_card("Message List", ICON_MD_LIST);
     list_card.SetDefaultSize(400, 600);
-    if (list_card.Begin()) {
+    if (list_card.Begin(list_visible)) {
       DrawMessageList();
     }
     list_card.End();
   }
   
-  // Message Editor Card
-  if (card_registry->IsCardVisible(MakeCardId("message.message_editor"))) {
+  // Message Editor Card - Get visibility flag and pass to Begin() for proper X button
+  bool* editor_visible = card_registry->GetVisibilityFlag(MakeCardId("message.message_editor"));
+  if (editor_visible && *editor_visible) {
     static gui::EditorCard editor_card("Message Editor", ICON_MD_EDIT);
     editor_card.SetDefaultSize(500, 600);
-    if (editor_card.Begin()) {
+    if (editor_card.Begin(editor_visible)) {
       DrawCurrentMessage();
     }
     editor_card.End();
   }
   
-  // Font Atlas Card
-  if (card_registry->IsCardVisible(MakeCardId("message.font_atlas"))) {
+  // Font Atlas Card - Get visibility flag and pass to Begin() for proper X button
+  bool* font_visible = card_registry->GetVisibilityFlag(MakeCardId("message.font_atlas"));
+  if (font_visible && *font_visible) {
     static gui::EditorCard font_card("Font Atlas", ICON_MD_FONT_DOWNLOAD);
     font_card.SetDefaultSize(400, 500);
-    if (font_card.Begin()) {
+    if (font_card.Begin(font_visible)) {
       DrawFontAtlas();
       DrawExpandedMessageSettings();
     }
     font_card.End();
   }
   
-  // Dictionary Card
-  if (card_registry->IsCardVisible(MakeCardId("message.dictionary"))) {
+  // Dictionary Card - Get visibility flag and pass to Begin() for proper X button
+  bool* dict_visible = card_registry->GetVisibilityFlag(MakeCardId("message.dictionary"));
+  if (dict_visible && *dict_visible) {
     static gui::EditorCard dict_card("Dictionary", ICON_MD_BOOK);
     dict_card.SetDefaultSize(400, 500);
-    if (dict_card.Begin()) {
+    if (dict_card.Begin(dict_visible)) {
       DrawTextCommands();
       DrawSpecialCharacters();
       DrawDictionary();
