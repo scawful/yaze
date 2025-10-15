@@ -6,6 +6,7 @@
 
 #include "absl/status/status.h"
 #include "app/editor/editor.h"
+#include "app/editor/system/session_coordinator.h"
 #include "app/editor/ui/menu_builder.h"
 
 namespace yaze {

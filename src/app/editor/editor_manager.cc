@@ -7,6 +7,7 @@
 #include <memory>
 #include <sstream>
 #include <string>
+#include "zelda3/screen/dungeon_map.h"
 
 #define IMGUI_DEFINE_MATH_OPERATORS
 
@@ -138,6 +139,11 @@ EditorManager::EditorManager()
   menu_orchestrator_ = std::make_unique<MenuOrchestrator>(
       menu_builder_, rom_file_manager_, project_manager_, editor_registry_,
       *session_coordinator_, toast_manager_);
+  
+  // Initialize UICoordinator after all other components are created
+  ui_coordinator_ = std::make_unique<UICoordinator>(
+      this, rom_file_manager_, project_manager_, editor_registry_,
+      *session_coordinator_, window_delegate_, toast_manager_, *popup_manager_);
 }
 
 EditorManager::~EditorManager() = default;
@@ -1041,60 +1047,10 @@ absl::Status EditorManager::DrawRomSelector() {
 }
 
 void EditorManager::DrawContextSensitiveCardControl() {
-  if (!current_editor_set_ || !current_editor_) {
-    return;
+  // Delegate to UICoordinator for clean separation of concerns
+  if (ui_coordinator_) {
+    ui_coordinator_->DrawContextSensitiveCardControl();
   }
-
-  // Determine which category to show based on active editor
-  std::string category;
-
-  switch (current_editor_->type()) {
-    case EditorType::kDungeon:
-      category = "Dungeon";
-      break;
-    case EditorType::kGraphics:
-      category = "Graphics";
-      break;
-    case EditorType::kScreen:
-      category = "Screen";
-      break;
-    case EditorType::kSprite:
-      category = "Sprite";
-      break;
-    case EditorType::kOverworld:
-      category = "Overworld";
-      break;
-    case EditorType::kMessage:
-      category = "Message";
-      break;
-    case EditorType::kPalette:
-      category = "Palette";
-      break;
-    case EditorType::kAssembly:
-      // Assembly editor uses dynamic file tabs
-      return;
-    case EditorType::kEmulator:
-      category = "Emulator";
-      break;
-    case EditorType::kMusic:
-      // Music editor doesn't use cards yet
-      return;
-    default:
-      return;  // No cards for this editor type
-  }
-
-  // Draw compact card control for the active editor's cards with session awareness
-  auto& card_manager = gui::EditorCardManager::Get();
-  if (session_coordinator_ && session_coordinator_->HasMultipleSessions()) {
-    std::string session_prefix = absl::StrFormat("s%zu", context_.session_id);
-    card_manager.DrawCompactCardControlWithSession(category, session_prefix);
-  } else {
-    card_manager.DrawCompactCardControl(category);
-  }
-
-  // Show visible/total count
-  SameLine();
-  card_manager.DrawInlineCardToggles(category);
 }
 
 void EditorManager::BuildModernMenu() {
@@ -1105,63 +1061,10 @@ void EditorManager::BuildModernMenu() {
 }
 
 void EditorManager::DrawMenuBarExtras() {
-  auto* current_rom = GetCurrentRom();
-  std::string version_text = absl::StrFormat("v%s", version_.c_str());
-  float version_width = ImGui::CalcTextSize(version_text.c_str()).x;
-  float session_rom_area_width = 280.0f;
-
-  SameLine(ImGui::GetWindowWidth() - version_width - 10 -
-           session_rom_area_width);
-
-  if (session_coordinator_ && session_coordinator_->HasMultipleSessions()) {
-    if (ImGui::SmallButton(
-            absl::StrFormat("%s%zu", ICON_MD_TAB, session_coordinator_->GetActiveSessionCount())
-                .c_str())) {
-      session_coordinator_->ToggleSessionSwitcher();
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Sessions: %zu active\nClick to switch",
-                        session_coordinator_->GetActiveSessionCount());
-    }
-    ImGui::SameLine();
+  // Delegate to UICoordinator for clean separation of concerns
+  if (ui_coordinator_) {
+    ui_coordinator_->DrawMenuBarExtras();
   }
-
-  if (current_rom && current_rom->is_loaded()) {
-    if (ImGui::SmallButton(ICON_MD_APPS)) {
-      ShowEditorSelection();
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(ICON_MD_DASHBOARD " Editor Selection (Ctrl+E)");
-    }
-    ImGui::SameLine();
-    if (ImGui::SmallButton(ICON_MD_DISPLAY_SETTINGS)) {
-      ShowDisplaySettings();
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(ICON_MD_TUNE " Display Settings");
-    }
-    ImGui::SameLine();
-    ImGui::Separator();
-    ImGui::SameLine();
-  }
-
-  if (current_rom && current_rom->is_loaded()) {
-    std::string rom_display = current_rom->title();
-    if (rom_display.length() > 22) {
-      rom_display = rom_display.substr(0, 19) + "...";
-    }
-    if (ImGui::SmallButton(absl::StrFormat("%s%s", rom_display.c_str(),
-                                           current_rom->dirty() ? "*" : "")
-                               .c_str())) {
-      ImGui::OpenPopup("ROM Details");
-    }
-  } else {
-    ImGui::TextColored(ImVec4(0.5f, 0.5f, 0.5f, 1.0f), "No ROM");
-    ImGui::SameLine();
-  }
-
-  SameLine(ImGui::GetWindowWidth() - version_width - 10);
-  ImGui::Text("%s", version_text.c_str());
 }
 
 void EditorManager::ShowSessionSwitcher() {
@@ -1170,13 +1073,25 @@ void EditorManager::ShowSessionSwitcher() {
   }
 }
 
+void EditorManager::DrawSessionSwitcher() {
+  // Delegate to UICoordinator for clean separation of concerns
+  if (ui_coordinator_) {
+    ui_coordinator_->DrawSessionSwitcher();
+  }
+}
+
 void EditorManager::ShowEditorSelection() {
-  show_editor_selection_ = true;
+  // Delegate to UICoordinator for clean separation of concerns
+  if (ui_coordinator_) {
+    ui_coordinator_->ShowEditorSelection();
+  }
 }
 
 void EditorManager::ShowDisplaySettings() {
-  if (popup_manager_)
-    popup_manager_->Show("Display Settings");
+  // Delegate to UICoordinator for clean separation of concerns
+  if (ui_coordinator_) {
+    ui_coordinator_->ShowDisplaySettings();
+  }
 }
 
 void EditorManager::DrawMenuBar() {
@@ -2030,8 +1945,8 @@ absl::Status EditorManager::CreateNewProject(const std::string& template_name) {
   auto status = project_manager_.CreateNewProject(template_name);
   if (status.ok()) {
     current_project_ = project_manager_.GetCurrentProject();
-    // Show project creation dialog
-    popup_manager_->Show("Create New Project");
+  // Show project creation dialog
+  popup_manager_->Show("Create New Project");
   }
   return status;
 }
@@ -2255,10 +2170,10 @@ void EditorManager::CreateNewSession() {
     
     // Wire editor contexts for new session
     if (!sessions_.empty()) {
-      RomSession& session = sessions_.back();
-      session.editors.set_user_settings(&user_settings_);
-      for (auto* editor : session.editors.active_editors_) {
-        editor->set_context(&context_);
+  RomSession& session = sessions_.back();
+  session.editors.set_user_settings(&user_settings_);
+  for (auto* editor : session.editors.active_editors_) {
+    editor->set_context(&context_);
       }
     }
   }
@@ -2289,9 +2204,9 @@ void EditorManager::DuplicateCurrentSession() {
     // Wire editor contexts for duplicated session
     if (!sessions_.empty()) {
       RomSession& session = sessions_.back();
-      for (auto* editor : session.editors.active_editors_) {
-        editor->set_context(&context_);
-      }
+  for (auto* editor : session.editors.active_editors_) {
+    editor->set_context(&context_);
+  }
     }
   }
 }
@@ -2334,15 +2249,15 @@ void EditorManager::SwitchToSession(size_t index) {
     
     // Update current pointers after session switch
     if (index < sessions_.size()) {
-      auto& session = sessions_[index];
-      current_rom_ = &session.rom;
-      current_editor_set_ = &session.editors;
-      
-      // Update test manager with current ROM for ROM-dependent tests
-      util::logf("EditorManager: Setting ROM in TestManager - %p ('%s')",
-                 (void*)current_rom_,
-                 current_rom_ ? current_rom_->title().c_str() : "null");
-      test::TestManager::Get().SetCurrentRom(current_rom_);
+  auto& session = sessions_[index];
+  current_rom_ = &session.rom;
+  current_editor_set_ = &session.editors;
+
+  // Update test manager with current ROM for ROM-dependent tests
+  util::logf("EditorManager: Setting ROM in TestManager - %p ('%s')",
+             (void*)current_rom_,
+             current_rom_ ? current_rom_->title().c_str() : "null");
+  test::TestManager::Get().SetCurrentRom(current_rom_);
     }
   }
 }
@@ -2407,45 +2322,17 @@ void EditorManager::LoadWorkspaceLayout() {
 }
 
 void EditorManager::ShowAllWindows() {
-  if (!current_editor_set_)
-    return;
-
-  // Delegate to WindowDelegate for registered windows
-  window_delegate_.ShowAllWindows();
-  
-  // Also show editor windows
-  for (auto* editor : current_editor_set_->active_editors_) {
-    editor->set_active(true);
+  // Delegate to UICoordinator for clean separation of concerns
+  if (ui_coordinator_) {
+    ui_coordinator_->ShowAllWindows();
   }
-  show_imgui_demo_ = true;
-  show_imgui_metrics_ = true;
-  show_performance_dashboard_ = true;
-#ifdef YAZE_ENABLE_TESTING
-  show_test_dashboard_ = true;
-#endif
-
-  toast_manager_.Show("All windows shown", editor::ToastType::kInfo);
 }
 
 void EditorManager::HideAllWindows() {
-  if (!current_editor_set_)
-    return;
-
-  // Delegate to WindowDelegate for registered windows
-  window_delegate_.HideAllWindows();
-  
-  // Also hide editor windows
-  for (auto* editor : current_editor_set_->active_editors_) {
-    editor->set_active(false);
+  // Delegate to UICoordinator for clean separation of concerns
+  if (ui_coordinator_) {
+    ui_coordinator_->HideAllWindows();
   }
-  show_imgui_demo_ = false;
-  show_imgui_metrics_ = false;
-  show_performance_dashboard_ = false;
-#ifdef YAZE_ENABLE_TESTING
-  show_test_dashboard_ = false;
-#endif
-
-  toast_manager_.Show("All windows hidden", editor::ToastType::kInfo);
 }
 
 void EditorManager::MaximizeCurrentWindow() {
@@ -2523,518 +2410,34 @@ void EditorManager::LoadModderLayout() {
   toast_manager_.Show("Modder layout loaded", editor::ToastType::kSuccess);
 }
 
-void EditorManager::DrawSessionSwitcher() {
-  if (!show_session_switcher_)
-    return;
-
-  ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(),
-                          ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
-  ImGui::SetNextWindowSize(ImVec2(700, 450), ImGuiCond_Appearing);
-
-  if (ImGui::Begin(
-          absl::StrFormat("%s Session Switcher", ICON_MD_SWITCH_ACCOUNT)
-              .c_str(),
-          &show_session_switcher_, ImGuiWindowFlags_NoCollapse)) {
-
-    // Header with enhanced info
-    ImGui::Text("%s %zu Sessions Available", ICON_MD_TAB, sessions_.size());
-    ImGui::SameLine(ImGui::GetWindowWidth() - 120);
-    if (ImGui::Button(absl::StrFormat("%s New", ICON_MD_ADD).c_str(),
-                      ImVec2(50, 0))) {
-      CreateNewSession();
-    }
-    ImGui::SameLine();
-    if (ImGui::Button(absl::StrFormat("%s Manager", ICON_MD_SETTINGS).c_str(),
-                      ImVec2(60, 0))) {
-      show_session_manager_ = true;
-    }
-
-    ImGui::Separator();
-
-    // Enhanced session list using table for better layout
-    const float TABLE_HEIGHT = ImGui::GetContentRegionAvail().y -
-                               50;  // Reserve space for close button
-
-    if (ImGui::BeginTable("SessionSwitcherTable", 4,
-                          ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg |
-                              ImGuiTableFlags_SizingStretchProp |
-                              ImGuiTableFlags_ScrollY |
-                              ImGuiTableFlags_Resizable,
-                          ImVec2(0, TABLE_HEIGHT))) {
-
-      // Setup columns with proper sizing weights
-      ImGui::TableSetupColumn("Session", ImGuiTableColumnFlags_WidthStretch,
-                              0.3f);
-      ImGui::TableSetupColumn("ROM Info", ImGuiTableColumnFlags_WidthStretch,
-                              0.4f);
-      ImGui::TableSetupColumn("Status", ImGuiTableColumnFlags_WidthFixed,
-                              90.0f);
-      ImGui::TableSetupColumn("Actions", ImGuiTableColumnFlags_WidthFixed,
-                              140.0f);
-      ImGui::TableHeadersRow();
-
-      for (size_t i = 0; i < sessions_.size(); ++i) {
-        auto& session = sessions_[i];
-
-        // Skip closed sessions
-        if (session.custom_name == "[CLOSED SESSION]") {
-          continue;
-        }
-
-        bool is_current = (&session.rom == current_rom_);
-
-        ImGui::PushID(static_cast<int>(i));
-        ImGui::TableNextRow(ImGuiTableRowFlags_None,
-                            55.0f);  // Consistent row height
-
-        // Session name column with better styling
-        ImGui::TableNextColumn();
-        ImGui::AlignTextToFramePadding();
-
-        if (is_current) {
-          ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.2f, 0.8f, 0.2f, 1.0f));
-          ImGui::Text("%s %s", ICON_MD_STAR, session.GetDisplayName().c_str());
-          ImGui::PopStyleColor();
-        } else {
-          ImGui::Text("%s %s", ICON_MD_TAB, session.GetDisplayName().c_str());
-        }
-
-        // ROM info column with better information layout
-        ImGui::TableNextColumn();
-        ImGui::AlignTextToFramePadding();
-
-        if (session.rom.is_loaded()) {
-          ImGui::Text("%s %s", ICON_MD_VIDEOGAME_ASSET,
-                      session.rom.title().c_str());
-          ImGui::Text("%.1f MB | %s", session.rom.size() / 1048576.0f,
-                      session.rom.dirty() ? "Modified" : "Clean");
-        } else {
-          ImGui::TextColored(ImVec4(0.6f, 0.6f, 0.6f, 1.0f), "%s No ROM loaded",
-                             ICON_MD_WARNING);
-        }
-
-        // Status column with better visual indicators
-        ImGui::TableNextColumn();
-        ImGui::AlignTextToFramePadding();
-
-        if (session.rom.is_loaded()) {
-          if (session.rom.dirty()) {
-            ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f), "%s",
-                               ICON_MD_EDIT);
-          } else {
-            ImGui::TextColored(ImVec4(0.2f, 0.8f, 0.2f, 1.0f), "%s",
-                               ICON_MD_CHECK_CIRCLE);
-          }
-        } else {
-          ImGui::TextColored(ImVec4(0.6f, 0.6f, 0.6f, 1.0f), "%s",
-                             ICON_MD_RADIO_BUTTON_UNCHECKED);
-        }
-
-        // Actions column with improved button layout
-        ImGui::TableNextColumn();
-
-        // Create button group for better alignment
-        ImGui::BeginGroup();
-
-        if (!is_current) {
-          if (ImGui::Button("Switch")) {
-            SwitchToSession(i);
-            show_session_switcher_ = false;
-          }
-        } else {
-          ImGui::BeginDisabled();
-          ImGui::Button("Current");
-          ImGui::EndDisabled();
-        }
-
-        ImGui::SameLine();
-        if (ImGui::Button("Rename")) {
-          session_to_rename_ = i;
-          // Safe string copy with bounds checking
-          const std::string& name = session.GetDisplayName();
-          size_t copy_len =
-              std::min(name.length(), sizeof(session_rename_buffer_) - 1);
-          std::memcpy(session_rename_buffer_, name.c_str(), copy_len);
-          session_rename_buffer_[copy_len] = '\0';
-          show_session_rename_dialog_ = true;
-        }
-
-        ImGui::SameLine();
-
-        // Close button logic
-        bool can_close = GetActiveSessionCount() > 1;
-        if (!can_close) {
-          ImGui::BeginDisabled();
-        }
-
-        if (ImGui::Button("Close")) {
-          if (is_current) {
-            CloseCurrentSession();
-          } else {
-            // Remove non-current session directly
-            RemoveSession(i);
-            show_session_switcher_ =
-                false;  // Close switcher since indices changed
-          }
-        }
-
-        if (!can_close) {
-          ImGui::EndDisabled();
-        }
-
-        ImGui::EndGroup();
-
-        ImGui::PopID();
-      }
-
-      ImGui::EndTable();
-    }
-
-    ImGui::Separator();
-    if (ImGui::Button(
-            absl::StrFormat("%s Close Switcher", ICON_MD_CLOSE).c_str(),
-            ImVec2(-1, 0))) {
-      show_session_switcher_ = false;
-    }
+void EditorManager::DrawWelcomeScreen() {
+  // Delegate to UICoordinator for clean separation of concerns
+  if (ui_coordinator_) {
+    ui_coordinator_->DrawWelcomeScreen();
   }
-  ImGui::End();
 }
 
 void EditorManager::DrawSessionManager() {
-  if (!show_session_manager_)
-    return;
-
-  if (ImGui::Begin(absl::StrCat(ICON_MD_VIEW_LIST, " Session Manager").c_str(),
-                   &show_session_manager_)) {
-
-    ImGui::Text("%s Session Management", ICON_MD_MANAGE_ACCOUNTS);
-
-    if (ImGui::Button(absl::StrCat(ICON_MD_ADD, " New Session").c_str())) {
-      CreateNewSession();
-    }
-    ImGui::SameLine();
-    if (ImGui::Button(
-            absl::StrCat(ICON_MD_CONTENT_COPY, " Duplicate Current").c_str()) &&
-        current_rom_) {
-      DuplicateCurrentSession();
-    }
-
-    ImGui::Separator();
-    ImGui::Text("%s Active Sessions (%zu)", ICON_MD_TAB,
-                GetActiveSessionCount());
-
-    // Enhanced session management table with proper sizing
-    const float AVAILABLE_HEIGHT = ImGui::GetContentRegionAvail().y;
-
-    if (ImGui::BeginTable("SessionTable", 6,
-                          ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg |
-                              ImGuiTableFlags_Resizable |
-                              ImGuiTableFlags_ScrollY |
-                              ImGuiTableFlags_SizingStretchProp |
-                              ImGuiTableFlags_ContextMenuInBody,
-                          ImVec2(0, AVAILABLE_HEIGHT))) {
-
-      // Setup columns with explicit sizing for better control
-      ImGui::TableSetupColumn("Session", ImGuiTableColumnFlags_WidthStretch,
-                              0.15f);
-      ImGui::TableSetupColumn("ROM Title", ImGuiTableColumnFlags_WidthStretch,
-                              0.3f);
-      ImGui::TableSetupColumn("Size", ImGuiTableColumnFlags_WidthFixed, 70.0f);
-      ImGui::TableSetupColumn("Status", ImGuiTableColumnFlags_WidthFixed,
-                              80.0f);
-      ImGui::TableSetupColumn("Custom OW", ImGuiTableColumnFlags_WidthFixed,
-                              80.0f);
-      ImGui::TableSetupColumn("Actions", ImGuiTableColumnFlags_WidthStretch,
-                              0.25f);
-      ImGui::TableHeadersRow();
-
-      for (size_t i = 0; i < sessions_.size(); ++i) {
-        auto& session = sessions_[i];
-
-        // Skip closed sessions in session manager too
-        if (session.custom_name == "[CLOSED SESSION]") {
-          continue;
-        }
-
-        bool is_current = (&session.rom == current_rom_);
-
-        ImGui::TableNextRow(ImGuiTableRowFlags_None,
-                            50.0f);  // Consistent row height
-        ImGui::PushID(static_cast<int>(i));
-
-        // Session name column
-        ImGui::TableNextColumn();
-        ImGui::AlignTextToFramePadding();
-        if (is_current) {
-          ImGui::TextColored(ImVec4(0.2f, 0.8f, 0.2f, 1.0f), "%s Session %zu",
-                             ICON_MD_STAR, i + 1);
-        } else {
-          ImGui::Text("%s Session %zu", ICON_MD_TAB, i + 1);
-        }
-
-        // ROM title column
-        ImGui::TableNextColumn();
-        ImGui::AlignTextToFramePadding();
-        std::string display_name = session.GetDisplayName();
-        if (!session.custom_name.empty()) {
-          ImGui::TextColored(ImVec4(0.7f, 0.9f, 1.0f, 1.0f), "%s %s",
-                             ICON_MD_EDIT, display_name.c_str());
-        } else {
-          // Use TextWrapped for long ROM titles
-          ImGui::PushTextWrapPos(ImGui::GetCursorPos().x +
-                                 ImGui::GetColumnWidth());
-          ImGui::Text("%s", display_name.c_str());
-          ImGui::PopTextWrapPos();
-        }
-
-        // File size column
-        ImGui::TableNextColumn();
-        ImGui::AlignTextToFramePadding();
-        if (session.rom.is_loaded()) {
-          ImGui::Text("%.1f MB", session.rom.size() / 1048576.0f);
-        } else {
-          ImGui::TextDisabled("N/A");
-        }
-
-        // Status column
-        ImGui::TableNextColumn();
-        ImGui::AlignTextToFramePadding();
-        if (session.rom.is_loaded()) {
-          if (session.rom.dirty()) {
-            ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f), "%s",
-                               ICON_MD_EDIT);
-          } else {
-            ImGui::TextColored(ImVec4(0.2f, 0.8f, 0.2f, 1.0f), "%s",
-                               ICON_MD_CHECK_CIRCLE);
-          }
-        } else {
-          ImGui::TextColored(ImVec4(0.6f, 0.6f, 0.6f, 1.0f), "%s",
-                             ICON_MD_RADIO_BUTTON_UNCHECKED);
-        }
-
-        // Custom Overworld checkbox column
-        ImGui::TableNextColumn();
-
-        // Center the checkbox vertically
-        float checkbox_offset =
-            (ImGui::GetFrameHeight() - ImGui::GetTextLineHeight()) * 0.5f;
-        ImGui::SetCursorPosY(ImGui::GetCursorPosY() + checkbox_offset);
-
-        ImGui::PushID(
-            static_cast<int>(i + 100));  // Different ID to avoid conflicts
-        bool custom_ow_enabled =
-            session.feature_flags.overworld.kLoadCustomOverworld;
-        if (ImGui::Checkbox("##CustomOW", &custom_ow_enabled)) {
-          session.feature_flags.overworld.kLoadCustomOverworld =
-              custom_ow_enabled;
-          if (is_current) {
-            core::FeatureFlags::get().overworld.kLoadCustomOverworld =
-                custom_ow_enabled;
-          }
-          toast_manager_.Show(
-              absl::StrFormat("Session %zu: Custom Overworld %s", i + 1,
-                              custom_ow_enabled ? "Enabled" : "Disabled"),
-              editor::ToastType::kInfo);
-        }
-        ImGui::PopID();
-
-        // Actions column with better button layout
-        ImGui::TableNextColumn();
-
-        // Create button group for better alignment
-        ImGui::BeginGroup();
-
-        if (!is_current) {
-          if (ImGui::Button("Switch")) {
-            SwitchToSession(i);
-          }
-        } else {
-          ImGui::BeginDisabled();
-          ImGui::Button("Current");
-          ImGui::EndDisabled();
-        }
-
-        ImGui::SameLine();
-        if (ImGui::Button("Rename")) {
-          session_to_rename_ = i;
-          // Safe string copy with bounds checking
-          const std::string& name = session.GetDisplayName();
-          size_t copy_len =
-              std::min(name.length(), sizeof(session_rename_buffer_) - 1);
-          std::memcpy(session_rename_buffer_, name.c_str(), copy_len);
-          session_rename_buffer_[copy_len] = '\0';
-          show_session_rename_dialog_ = true;
-        }
-
-        ImGui::SameLine();
-
-        // Close button logic
-        bool can_close = GetActiveSessionCount() > 1;
-        if (!can_close || is_current) {
-          ImGui::BeginDisabled();
-        }
-
-        if (ImGui::Button("Close")) {
-          if (is_current) {
-            CloseCurrentSession();
-            break;  // Exit loop since current session was closed
-          } else {
-            // Remove non-current session directly
-            RemoveSession(i);
-            break;  // Exit loop since session indices changed
-          }
-        }
-
-        if (!can_close || is_current) {
-          ImGui::EndDisabled();
-        }
-
-        ImGui::EndGroup();
-
-        ImGui::PopID();
-      }
-
-      ImGui::EndTable();
-    }
-  }
-  ImGui::End();
-}
-
-void EditorManager::DrawLayoutPresets() {
-  if (!show_layout_presets_)
-    return;
-
-  if (ImGui::Begin(absl::StrCat(ICON_MD_BOOKMARK, " Layout Presets").c_str(),
-                   &show_layout_presets_)) {
-
-    ImGui::Text("%s Predefined Layouts", ICON_MD_DASHBOARD);
-
-    // Predefined layouts
-    if (ImGui::Button(
-            absl::StrCat(ICON_MD_DEVELOPER_MODE, " Developer Layout").c_str(),
-            ImVec2(-1, 40))) {
-      LoadDeveloperLayout();
-    }
-    ImGui::SameLine();
-    ImGui::Text("Code editing, debugging, testing");
-
-    if (ImGui::Button(
-            absl::StrCat(ICON_MD_DESIGN_SERVICES, " Designer Layout").c_str(),
-            ImVec2(-1, 40))) {
-      LoadDesignerLayout();
-    }
-    ImGui::SameLine();
-    ImGui::Text("Graphics, palettes, sprites");
-
-    if (ImGui::Button(absl::StrCat(ICON_MD_GAMEPAD, " Modder Layout").c_str(),
-                      ImVec2(-1, 40))) {
-      LoadModderLayout();
-    }
-    ImGui::SameLine();
-    ImGui::Text("All gameplay editors");
-
-    ImGui::Separator();
-    ImGui::Text("%s Custom Presets", ICON_MD_BOOKMARK);
-
-    // Lazy load workspace presets when UI is accessed
-    if (!workspace_manager_.workspace_presets_loaded()) {
-      RefreshWorkspacePresets();
-    }
-
-    for (const auto& preset : workspace_manager_.workspace_presets()) {
-      if (ImGui::Button(
-              absl::StrFormat("%s %s", ICON_MD_BOOKMARK, preset.c_str())
-                  .c_str(),
-              ImVec2(-1, 0))) {
-        LoadWorkspacePreset(preset);
-        toast_manager_.Show(
-            absl::StrFormat("Loaded preset: %s", preset.c_str()),
-            editor::ToastType::kSuccess);
-      }
-    }
-
-    if (workspace_manager_.workspace_presets().empty()) {
-      ImGui::TextColored(ImVec4(0.6f, 0.6f, 0.6f, 1.0f),
-                         "No custom presets saved");
-    }
-
-    ImGui::Separator();
-    if (ImGui::Button(
-            absl::StrCat(ICON_MD_ADD, " Save Current Layout").c_str())) {
-      show_save_workspace_preset_ = true;
-    }
-  }
-  ImGui::End();
-}
-
-bool EditorManager::HasDuplicateSession(const std::string& filepath) {
-  for (const auto& session : sessions_) {
-    if (session.filepath == filepath) {
-      return true;
-    }
-  }
-  return false;
-}
-
-void EditorManager::RenameSession(size_t index, const std::string& new_name) {
-  if (index < sessions_.size()) {
-    sessions_[index].custom_name = new_name;
-    toast_manager_.Show(
-        absl::StrFormat("Session renamed to: %s", new_name.c_str()),
-        editor::ToastType::kSuccess);
+  // Delegate to UICoordinator for clean separation of concerns
+  if (ui_coordinator_) {
+    ui_coordinator_->DrawSessionManager();
   }
 }
 
 void EditorManager::DrawSessionRenameDialog() {
-  if (!show_session_rename_dialog_)
-    return;
-
-  ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(),
-                          ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
-  ImGui::SetNextWindowSize(ImVec2(400, 150), ImGuiCond_Appearing);
-
-  if (ImGui::Begin("Rename Session", &show_session_rename_dialog_,
-                   ImGuiWindowFlags_NoResize)) {
-    if (session_to_rename_ < sessions_.size()) {
-      const auto& session = sessions_[session_to_rename_];
-
-      ImGui::Text("Rename Session:");
-      ImGui::Text("Current: %s", session.GetDisplayName().c_str());
-      ImGui::Separator();
-
-      ImGui::InputText("New Name", session_rename_buffer_,
-                       sizeof(session_rename_buffer_));
-
-      ImGui::Separator();
-      if (ImGui::Button("Rename", ImVec2(120, 0))) {
-        std::string new_name(session_rename_buffer_);
-        if (!new_name.empty()) {
-          RenameSession(session_to_rename_, new_name);
-        }
-        show_session_rename_dialog_ = false;
-      }
-
-      ImGui::SameLine();
-      if (ImGui::Button("Cancel", ImVec2(120, 0))) {
-        show_session_rename_dialog_ = false;
-      }
-    }
-  }
-  ImGui::End();
-}
-
-void EditorManager::DrawWelcomeScreen() {
-  // Use the new WelcomeScreen class for a modern, feature-rich experience
-  welcome_screen_.RefreshRecentProjects();
-  bool was_open = show_welcome_screen_;
-  bool action_taken = welcome_screen_.Show(&show_welcome_screen_);
-
-  // Check if the welcome screen was manually closed via the close button
-  if (was_open && !show_welcome_screen_) {
-    welcome_screen_manually_closed_ = true;
-    welcome_screen_.MarkManuallyClosed();
+  // Delegate to UICoordinator for clean separation of concerns
+  if (ui_coordinator_) {
+    ui_coordinator_->DrawSessionRenameDialog();
   }
 }
+
+void EditorManager::DrawLayoutPresets() {
+  // Delegate to UICoordinator for clean separation of concerns
+  if (ui_coordinator_) {
+    ui_coordinator_->DrawLayoutPresets();
+  }
+}
+
 
 // ============================================================================
 // Jump-to Functionality for Cross-Editor Navigation
@@ -3146,6 +2549,15 @@ EditorManager::SessionScope::~SessionScope() {
   manager_->current_rom_ = prev_rom_;
   manager_->current_editor_set_ = prev_editor_set_;
   manager_->context_.session_id = prev_session_id_;
+}
+
+bool EditorManager::HasDuplicateSession(const std::string& filepath) {
+  for (const auto& session : sessions_) {
+    if (session.filepath == filepath) {
+      return true;
+    }
+  }
+  return false;
 }
 
 }  // namespace editor

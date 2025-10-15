@@ -1,5 +1,5 @@
-#ifndef YAZE_APP_EDITOR_UI_SESSION_COORDINATOR_H_
-#define YAZE_APP_EDITOR_UI_SESSION_COORDINATOR_H_
+#ifndef YAZE_APP_EDITOR_SYSTEM_SESSION_COORDINATOR_H_
+#define YAZE_APP_EDITOR_SYSTEM_SESSION_COORDINATOR_H_
 
 #include <deque>
 #include <string>
@@ -161,4 +161,4 @@ class SessionCoordinator {
 }  // namespace editor
 }  // namespace yaze
 
-#endif  // YAZE_APP_EDITOR_UI_SESSION_COORDINATOR_H_
+#endif  // YAZE_APP_EDITOR_SYSTEM_SESSION_COORDINATOR_H_

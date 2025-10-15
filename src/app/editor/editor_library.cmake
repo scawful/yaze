@@ -43,11 +43,12 @@ set(
   app/editor/system/session_card_registry.cc
   app/editor/system/settings_editor.cc
   app/editor/system/shortcut_manager.cc
+  app/editor/system/session_coordinator.cc
   app/editor/system/user_settings.cc
   app/editor/system/window_delegate.cc
   app/editor/ui/editor_selection_dialog.cc
   app/editor/ui/menu_builder.cc
-  app/editor/ui/session_coordinator.cc
+  app/editor/ui/ui_coordinator.cc
   app/editor/ui/welcome_screen.cc
   app/editor/ui/workspace_manager.cc
 )

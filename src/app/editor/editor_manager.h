@@ -41,9 +41,10 @@
 #include "app/editor/system/project_manager.h"
 #include "app/editor/system/rom_file_manager.h"
 #include "app/editor/system/session_card_registry.h"
+#include "app/editor/system/session_coordinator.h"
 #include "app/editor/system/window_delegate.h"
-#include "app/editor/ui/session_coordinator.h"
 #include "app/editor/ui/editor_selection_dialog.h"
+#include "app/editor/ui/ui_coordinator.h"
 #include "app/editor/ui/welcome_screen.h"
 #include "app/emu/emulator.h"
 #include "app/gfx/debug/performance/performance_dashboard.h"
@@ -359,6 +360,7 @@ class EditorManager {
   ProjectManager project_manager_;
   RomFileManager rom_file_manager_;
   SessionCardRegistry card_registry_;
+  std::unique_ptr<UICoordinator> ui_coordinator_;
   WindowDelegate window_delegate_;
   std::unique_ptr<SessionCoordinator> session_coordinator_;
   
