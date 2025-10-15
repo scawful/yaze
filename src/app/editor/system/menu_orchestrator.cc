@@ -343,11 +343,6 @@ void MenuOrchestrator::AddHelpMenuItems() {
   menu_builder_
       .Item("Getting Started", ICON_MD_PLAY_ARROW,
             [this]() { OnShowGettingStarted(); })
-      .Item("User Guide", ICON_MD_HELP,
-            [this]() { OnShowUserGuide(); })
-      .Item("Keyboard Shortcuts", ICON_MD_KEYBOARD,
-            [this]() { OnShowKeyboardShortcuts(); })
-      .Separator()
       .Item("Asar Integration", ICON_MD_CODE,
             [this]() { OnShowAsarIntegration(); })
       .Item("Build Instructions", ICON_MD_BUILD,
@@ -548,8 +543,7 @@ void MenuOrchestrator::OnSwitchToEditor(EditorType editor_type) {
 }
 
 void MenuOrchestrator::OnShowEditorSelection() {
-  // Delegate to EditorManager
-  // TODO: Draw editor selection via UICoordinator
+  // Delegate to UICoordinator for editor selection dialog display
   if (editor_manager_) {
     if (auto* ui = editor_manager_->ui_coordinator()) {
       ui->ShowEditorSelection();
@@ -558,8 +552,7 @@ void MenuOrchestrator::OnShowEditorSelection() {
 }
 
 void MenuOrchestrator::OnShowDisplaySettings() {
-  // Delegate to EditorManager
-  // TODO: Draw display settings via UICoordinator
+  // Delegate to UICoordinator for display settings popup
   if (editor_manager_) {
     if (auto* ui = editor_manager_->ui_coordinator()) {
       ui->ShowDisplaySettings();
@@ -630,7 +623,7 @@ void MenuOrchestrator::OnSwitchToSession(size_t session_index) {
 }
 
 void MenuOrchestrator::OnShowSessionSwitcher() {
-  // TODO: Draw session switcher via UICoordinator
+  // Delegate to UICoordinator for session switcher UI
   if (editor_manager_) {
     if (auto* ui = editor_manager_->ui_coordinator()) {
       ui->ShowSessionSwitcher();
@@ -793,14 +786,6 @@ void MenuOrchestrator::OnShowNetworkStatus() {
 // Help menu actions
 void MenuOrchestrator::OnShowAbout() {
   popup_manager_.Show("About");
-}
-
-void MenuOrchestrator::OnShowKeyboardShortcuts() {
-  popup_manager_.Show("Keyboard Shortcuts");
-}
-
-void MenuOrchestrator::OnShowUserGuide() {
-  popup_manager_.Show("User Guide");
 }
 
 void MenuOrchestrator::OnShowGettingStarted() {

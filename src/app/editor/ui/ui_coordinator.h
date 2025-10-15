@@ -21,6 +21,7 @@ class EditorRegistry;
 class SessionCoordinator;
 class ToastManager;
 class WindowDelegate;
+class ShortcutManager;
 
 /**
  * @class UICoordinator
@@ -47,7 +48,8 @@ class UICoordinator {
                 SessionCoordinator& session_coordinator,
                 WindowDelegate& window_delegate,
                 ToastManager& toast_manager,
-                PopupManager& popup_manager);
+                PopupManager& popup_manager,
+                ShortcutManager& shortcut_manager);
   ~UICoordinator() = default;
   
   // Non-copyable due to reference members
@@ -58,6 +60,10 @@ class UICoordinator {
   void DrawAllUI();
   void DrawMenuBarExtras();
   void DrawContextSensitiveCardControl();
+  
+  // Core UI components (actual ImGui rendering moved from EditorManager)
+  void DrawCommandPalette();
+  void DrawGlobalSearch();
   
   // Session UI components
   void DrawSessionSwitcher();
@@ -117,10 +123,7 @@ class UICoordinator {
   void SetImGuiDemoVisible(bool visible) { show_imgui_demo_ = visible; }
   void SetImGuiMetricsVisible(bool visible) { show_imgui_metrics_ = visible; }
   
-  // Theme and styling helpers
-  void ApplyMaterialDesignStyling();
-  void UpdateThemeElements();
-  void DrawThemePreview();
+  // Note: Theme styling is handled by ThemeManager, not UICoordinator
 
  private:
   // References to coordinated managers
@@ -132,6 +135,7 @@ class UICoordinator {
   WindowDelegate& window_delegate_;
   ToastManager& toast_manager_;
   PopupManager& popup_manager_;
+  ShortcutManager& shortcut_manager_;
   
   // UI state flags (UICoordinator owns all UI visibility state)
   bool show_editor_selection_ = false;

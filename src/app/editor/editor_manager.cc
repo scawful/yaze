@@ -164,7 +164,8 @@ EditorManager::EditorManager()
   // UICoordinator: Coordinates all UI drawing (dialogs, popups, welcome screen)
   ui_coordinator_ = std::make_unique<UICoordinator>(
       this, rom_file_manager_, project_manager_, editor_registry_,
-      *session_coordinator_, window_delegate_, toast_manager_, *popup_manager_);
+      *session_coordinator_, window_delegate_, toast_manager_, *popup_manager_,
+      shortcut_manager_);
 }
 
 EditorManager::~EditorManager() = default;
@@ -936,29 +937,35 @@ void EditorManager::DrawContextSensitiveCardControl() {
   }
 }
 
+/**
+ * @brief Draw the main menu bar
+ * 
+ * DELEGATION:
+ * - Menu items: MenuOrchestrator::BuildMainMenu()
+ * - ROM selector: EditorManager::DrawRomSelector() (inline, needs current_rom_ access)
+ * - Menu bar extras: UICoordinator::DrawMenuBarExtras() (session indicator, version)
+ * 
+ * Note: ROM selector stays in EditorManager because it needs direct access to sessions_
+ * and current_rom_ for the combo box. Could be extracted to SessionCoordinator in future.
+ */
 void EditorManager::DrawMenuBar() {
   static bool show_display_settings = false;
   static bool save_as_menu = false;
-  std::string version_text = absl::StrFormat("v%s", version_.c_str());
-  float version_width = ImGui::CalcTextSize(version_text.c_str()).x;
 
   if (ImGui::BeginMenuBar()) {
-    // Delegate to MenuOrchestrator for clean separation of concerns
+    // Delegate menu building to MenuOrchestrator
     if (menu_orchestrator_) {
       menu_orchestrator_->BuildMainMenu();
     }
 
-    // Inline ROM selector and status
+    // Inline ROM selector (requires direct session access)
     status_ = DrawRomSelector();
 
-    // Delegate to UICoordinator for clean separation of concerns
+    // Delegate menu bar extras to UICoordinator (session indicator, version display)
     if (ui_coordinator_) {
       ui_coordinator_->DrawMenuBarExtras();
     }
 
-    // Version display on far right
-    ImGui::SameLine(ImGui::GetWindowWidth() - version_width - 10);
-    ImGui::Text("%s", version_text.c_str());
     ImGui::EndMenuBar();
   }
 
