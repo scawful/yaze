@@ -1,10 +1,13 @@
 #include "app/editor/ui/ui_coordinator.h"
 
+#include <algorithm>
 #include <functional>
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "absl/strings/str_format.h"
+#include "app/core/project.h"
 #include "app/editor/editor.h"
 #include "app/editor/editor_manager.h"
 #include "app/editor/system/editor_registry.h"
@@ -16,9 +19,11 @@
 #include "app/editor/system/window_delegate.h"
 #include "app/editor/ui/welcome_screen.h"
 #include "app/gui/core/icons.h"
+#include "app/gui/core/layout_helpers.h"
 #include "app/gui/core/style.h"
 #include "app/gui/core/theme_manager.h"
 #include "imgui/imgui.h"
+#include "util/file_util.h"
 
 namespace yaze {
 namespace editor {
@@ -331,75 +336,6 @@ void UICoordinator::HideAllWindows() {
   window_delegate_.HideAllWindows();
 }
 
-void UICoordinator::ApplyMaterialDesignStyling() {
-  // Apply Material Design 3 color scheme
-  ImGuiStyle& style = ImGui::GetStyle();
-  
-  // Set Material Design colors
-  style.Colors[ImGuiCol_WindowBg] = gui::GetSurfaceVec4();
-  style.Colors[ImGuiCol_ChildBg] = gui::GetSurfaceVariantVec4();
-  style.Colors[ImGuiCol_PopupBg] = gui::GetSurfaceContainerVec4();
-  style.Colors[ImGuiCol_Border] = gui::GetOutlineVec4();
-  style.Colors[ImGuiCol_BorderShadow] = gui::GetShadowVec4();
-  
-  // Text colors
-  style.Colors[ImGuiCol_Text] = gui::GetOnSurfaceVec4();
-  style.Colors[ImGuiCol_TextDisabled] = gui::GetOnSurfaceVariantVec4();
-  
-  // Button colors
-  style.Colors[ImGuiCol_Button] = gui::GetSurfaceContainerHighestVec4();
-  style.Colors[ImGuiCol_ButtonHovered] = gui::GetSurfaceContainerHighVec4();
-  style.Colors[ImGuiCol_ButtonActive] = gui::GetPrimaryVec4();
-  
-  // Header colors
-  style.Colors[ImGuiCol_Header] = gui::GetSurfaceContainerHighVec4();
-  style.Colors[ImGuiCol_HeaderHovered] = gui::GetSurfaceContainerHighestVec4();
-  style.Colors[ImGuiCol_HeaderActive] = gui::GetPrimaryVec4();
-  
-  // Frame colors
-  style.Colors[ImGuiCol_FrameBg] = gui::GetSurfaceContainerHighestVec4();
-  style.Colors[ImGuiCol_FrameBgHovered] = gui::GetSurfaceContainerHighVec4();
-  style.Colors[ImGuiCol_FrameBgActive] = gui::GetPrimaryVec4();
-  
-  // Scrollbar colors
-  style.Colors[ImGuiCol_ScrollbarBg] = gui::GetSurfaceContainerVec4();
-  style.Colors[ImGuiCol_ScrollbarGrab] = gui::GetOutlineVec4();
-  style.Colors[ImGuiCol_ScrollbarGrabHovered] = gui::GetOnSurfaceVariantVec4();
-  style.Colors[ImGuiCol_ScrollbarGrabActive] = gui::GetOnSurfaceVec4();
-  
-  // Slider colors
-  style.Colors[ImGuiCol_SliderGrab] = gui::GetPrimaryVec4();
-  style.Colors[ImGuiCol_SliderGrabActive] = gui::GetPrimaryActiveVec4();
-  
-  // Tab colors
-  style.Colors[ImGuiCol_Tab] = gui::GetSurfaceContainerHighVec4();
-  style.Colors[ImGuiCol_TabHovered] = gui::GetSurfaceContainerHighestVec4();
-  style.Colors[ImGuiCol_TabActive] = gui::GetPrimaryVec4();
-  style.Colors[ImGuiCol_TabUnfocused] = gui::GetSurfaceContainerVec4();
-  style.Colors[ImGuiCol_TabUnfocusedActive] = gui::GetPrimaryActiveVec4();
-  
-  // Title bar colors
-  style.Colors[ImGuiCol_TitleBg] = gui::GetSurfaceContainerVec4();
-  style.Colors[ImGuiCol_TitleBgActive] = gui::GetSurfaceContainerHighVec4();
-  style.Colors[ImGuiCol_TitleBgCollapsed] = gui::GetSurfaceContainerVec4();
-  
-  // Menu bar colors
-  style.Colors[ImGuiCol_MenuBarBg] = gui::GetSurfaceContainerVec4();
-  
-  // Modal dimming
-  style.Colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.0f, 0.0f, 0.0f, 0.6f);
-}
-
-void UICoordinator::UpdateThemeElements() {
-  // Update theme-specific elements
-  ApplyMaterialDesignStyling();
-}
-
-void UICoordinator::DrawThemePreview() {
-  // TODO: Implement theme preview
-  // This would show a preview of the current theme
-}
-
 // Helper methods for drawing operations
 void UICoordinator::DrawSessionIndicator() {
   // TODO: Implement session indicator
@@ -544,6 +480,163 @@ void UICoordinator::DrawDebugUI() {
 
 void UICoordinator::DrawTestingUI() {
   // TODO: Implement testing UI
+}
+
+void UICoordinator::DrawCommandPalette() {
+  if (!show_command_palette_) return;
+  
+  using namespace ImGui;
+  auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
+  
+  SetNextWindowPos(GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+  SetNextWindowSize(ImVec2(800, 600), ImGuiCond_FirstUseEver);
+  
+  bool show_palette = true;
+  if (Begin(absl::StrFormat("%s Command Palette", ICON_MD_SEARCH).c_str(),
+            &show_palette, ImGuiWindowFlags_NoCollapse)) {
+    
+    // Search input with focus management
+    SetNextItemWidth(-100);
+    if (IsWindowAppearing()) {
+      SetKeyboardFocusHere();
+      command_palette_selected_idx_ = 0;
+    }
+    
+    bool input_changed = InputTextWithHint(
+        "##cmd_query",
+        absl::StrFormat("%s Search commands (fuzzy matching enabled)...", ICON_MD_SEARCH).c_str(),
+        command_palette_query_, IM_ARRAYSIZE(command_palette_query_));
+    
+    SameLine();
+    if (Button(absl::StrFormat("%s Clear", ICON_MD_CLEAR).c_str())) {
+      command_palette_query_[0] = '\0';
+      input_changed = true;
+      command_palette_selected_idx_ = 0;
+    }
+    
+    Separator();
+    
+    // Fuzzy filter commands with scoring
+    std::vector<std::pair<int, std::pair<std::string, std::string>>> scored_commands;
+    std::string query_lower = command_palette_query_;
+    std::transform(query_lower.begin(), query_lower.end(), query_lower.begin(), ::tolower);
+    
+    for (const auto& entry : shortcut_manager_.GetShortcuts()) {
+      const auto& name = entry.first;
+      const auto& shortcut = entry.second;
+      
+      std::string name_lower = name;
+      std::transform(name_lower.begin(), name_lower.end(), name_lower.begin(), ::tolower);
+      
+      int score = 0;
+      if (command_palette_query_[0] == '\0') {
+        score = 1;  // Show all when no query
+      } else if (name_lower.find(query_lower) == 0) {
+        score = 1000;  // Starts with
+      } else if (name_lower.find(query_lower) != std::string::npos) {
+        score = 500;  // Contains
+      } else {
+        // Fuzzy match - characters in order
+        size_t text_idx = 0, query_idx = 0;
+        while (text_idx < name_lower.length() && query_idx < query_lower.length()) {
+          if (name_lower[text_idx] == query_lower[query_idx]) {
+            score += 10;
+            query_idx++;
+          }
+          text_idx++;
+        }
+        if (query_idx != query_lower.length()) score = 0;
+      }
+      
+      if (score > 0) {
+        std::string shortcut_text = shortcut.keys.empty()
+            ? ""
+            : absl::StrFormat("(%s)", PrintShortcut(shortcut.keys).c_str());
+        scored_commands.push_back({score, {name, shortcut_text}});
+      }
+    }
+    
+    std::sort(scored_commands.begin(), scored_commands.end(),
+              [](const auto& a, const auto& b) { return a.first > b.first; });
+    
+    // Display results with categories
+    if (BeginTabBar("CommandCategories")) {
+      if (BeginTabItem(absl::StrFormat("%s All Commands", ICON_MD_LIST).c_str())) {
+        if (gui::LayoutHelpers::BeginTableWithTheming("CommandPaletteTable", 3,
+            ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg | ImGuiTableFlags_SizingStretchProp,
+            ImVec2(0, -30))) {
+          
+          TableSetupColumn("Command", ImGuiTableColumnFlags_WidthStretch, 0.5f);
+          TableSetupColumn("Shortcut", ImGuiTableColumnFlags_WidthStretch, 0.3f);
+          TableSetupColumn("Score", ImGuiTableColumnFlags_WidthStretch, 0.2f);
+          TableHeadersRow();
+          
+          for (size_t i = 0; i < scored_commands.size(); ++i) {
+            const auto& [score, cmd_pair] = scored_commands[i];
+            const auto& [command_name, shortcut_text] = cmd_pair;
+            
+            TableNextRow();
+            TableNextColumn();
+            
+            PushID(static_cast<int>(i));
+            bool is_selected = (static_cast<int>(i) == command_palette_selected_idx_);
+            if (Selectable(command_name.c_str(), is_selected,
+                          ImGuiSelectableFlags_SpanAllColumns)) {
+              command_palette_selected_idx_ = i;
+              const auto& shortcuts = shortcut_manager_.GetShortcuts();
+              auto it = shortcuts.find(command_name);
+              if (it != shortcuts.end() && it->second.callback) {
+                it->second.callback();
+                show_command_palette_ = false;
+              }
+            }
+            PopID();
+            
+            TableNextColumn();
+            PushStyleColor(ImGuiCol_Text, gui::ConvertColorToImVec4(theme.text_secondary));
+            Text("%s", shortcut_text.c_str());
+            PopStyleColor();
+            
+            TableNextColumn();
+            if (score > 0) {
+              PushStyleColor(ImGuiCol_Text, gui::ConvertColorToImVec4(theme.text_disabled));
+              Text("%d", score);
+              PopStyleColor();
+            }
+          }
+          
+          EndTable();
+        }
+        EndTabItem();
+      }
+      
+      if (BeginTabItem(absl::StrFormat("%s Recent", ICON_MD_HISTORY).c_str())) {
+        Text("Recent commands coming soon...");
+        EndTabItem();
+      }
+      
+      if (BeginTabItem(absl::StrFormat("%s Frequent", ICON_MD_STAR).c_str())) {
+        Text("Frequent commands coming soon...");
+        EndTabItem();
+      }
+      
+      EndTabBar();
+    }
+    
+    // Status bar with tips
+    Separator();
+    Text("%s %zu commands | Score: fuzzy match", ICON_MD_INFO, scored_commands.size());
+    SameLine();
+    PushStyleColor(ImGuiCol_Text, gui::ConvertColorToImVec4(theme.text_disabled));
+    Text("| ↑↓=Navigate | Enter=Execute | Esc=Close");
+    PopStyleColor();
+  }
+  End();
+  
+  // Update visibility state
+  if (!show_palette) {
+    show_command_palette_ = false;
+  }
 }
 
 }  // namespace editor

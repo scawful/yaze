@@ -306,7 +306,6 @@ class EditorManager {
   void InitializeTestSuites();
 
   bool quit_ = false;
-  bool new_project_menu = false;
 
   bool show_emulator_ = false;
   bool show_memory_editor_ = false;
