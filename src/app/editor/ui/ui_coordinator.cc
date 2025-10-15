@@ -250,29 +250,77 @@ void UICoordinator::DrawLayoutPresets() {
 }
 
 void UICoordinator::DrawWelcomeScreen() {
-  // Auto-show welcome screen when no ROM is loaded (unless manually closed)
-  if (!show_welcome_screen_ && !welcome_screen_manually_closed_) {
-    // Check with EditorManager if we should show welcome screen
-    if (editor_manager_ && editor_manager_->GetActiveSessionCount() == 0) {
-      show_welcome_screen_ = true;
-    }
+  // ============================================================================
+  // WELCOME SCREEN VISIBILITY LOGIC - Redesigned for clarity
+  // ============================================================================
+  // 
+  // SHOW WELCOME SCREEN WHEN:
+  // 1. No ROM is loaded AND
+  // 2. User hasn't manually closed it this session
+  //
+  // HIDE WELCOME SCREEN WHEN:
+  // 1. ROM is loaded OR
+  // 2. User closes it manually
+  // ============================================================================
+  
+  if (!editor_manager_) {
+    LOG_ERROR("UICoordinator", "EditorManager is null - cannot check ROM state");
+    return;
   }
   
-  if (!show_welcome_screen_) return;
-  
-  if (welcome_screen_) {
-    // Update recent projects before showing
-    welcome_screen_->RefreshRecentProjects();
-    
-    bool was_open = show_welcome_screen_;
-    welcome_screen_->Show(&show_welcome_screen_);
-    
-    // Check if the welcome screen was manually closed via the close button
-    if (was_open && !show_welcome_screen_) {
-      welcome_screen_manually_closed_ = true;
-      welcome_screen_->MarkManuallyClosed();
-    }
+  if (!welcome_screen_) {
+    LOG_ERROR("UICoordinator", "WelcomeScreen object is null - cannot render");
+    return;
   }
+  
+  // Get current ROM state
+  auto* current_rom = editor_manager_->GetCurrentRom();
+  bool rom_is_loaded = current_rom && current_rom->is_loaded();
+  
+  // Determine if welcome screen should be visible
+  bool should_show = !rom_is_loaded && !welcome_screen_manually_closed_;
+  
+  // Log state changes for debugging
+  static bool last_should_show = false;
+  static bool first_run = true;
+  if (first_run || should_show != last_should_show) {
+    LOG_INFO("UICoordinator", 
+             "Welcome screen state: should_show=%s, rom_loaded=%s, manually_closed=%s",
+             should_show ? "true" : "false",
+             rom_is_loaded ? "true" : "false", 
+             welcome_screen_manually_closed_ ? "true" : "false");
+    last_should_show = should_show;
+    first_run = false;
+  }
+  
+  // Update visibility flag
+  show_welcome_screen_ = should_show;
+  
+  // Early exit if shouldn't show
+  if (!should_show) {
+    return;
+  }
+  
+  // Draw the welcome screen
+  LOG_INFO("UICoordinator", "Rendering welcome screen window");
+  
+  // Update recent projects before showing
+  welcome_screen_->RefreshRecentProjects();
+  
+  // Show the welcome screen (it manages its own ImGui window)
+  bool is_open = true;
+  bool action_taken = welcome_screen_->Show(&is_open);
+  
+  // If user closed the window via X button, mark as manually closed
+  if (!is_open) {
+    welcome_screen_manually_closed_ = true;
+    show_welcome_screen_ = false;
+    welcome_screen_->MarkManuallyClosed();
+    LOG_INFO("UICoordinator", "Welcome screen manually closed by user (X button)");
+  }
+  
+  // If an action was taken (ROM loaded, project opened), the welcome screen will auto-hide
+  // next frame when rom_is_loaded becomes true
 }
 
 void UICoordinator::DrawProjectHelp() {
@@ -624,3 +672,4 @@ void UICoordinator::DrawCommandPalette() {
 
 }  // namespace editor
 }  // namespace yaze
+
