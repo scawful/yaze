@@ -8,7 +8,6 @@
 #include "app/editor/editor.h"
 #include "app/editor/sprite/zsprite.h"
 #include "app/gui/canvas/canvas.h"
-#include "app/gui/app/editor_card_manager.h"
 #include "app/gui/app/editor_layout.h"
 #include "app/rom.h"
 

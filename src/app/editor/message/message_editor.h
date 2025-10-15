@@ -9,7 +9,6 @@
 #include "app/editor/editor.h"
 #include "app/editor/message/message_data.h"
 #include "app/editor/message/message_preview.h"
-#include "app/gui/app/editor_card_manager.h"
 #include "app/gui/app/editor_layout.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gui/canvas/canvas.h"

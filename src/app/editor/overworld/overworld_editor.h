@@ -5,7 +5,6 @@
 #include "app/editor/editor.h"
 #include "app/editor/graphics/gfx_group_editor.h"
 #include "app/editor/palette/palette_editor.h"
-#include "app/gui/app/editor_card_manager.h"
 #include "app/editor/overworld/tile16_editor.h"
 #include "app/editor/overworld/map_properties.h"
 #include "app/editor/overworld/overworld_entity_renderer.h"
