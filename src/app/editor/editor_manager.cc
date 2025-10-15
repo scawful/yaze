@@ -2232,9 +2232,9 @@ void EditorManager::CreateNewSession() {
     // Wire editor contexts for new session
     if (!sessions_.empty()) {
   RomSession& session = sessions_.back();
-  session.editors.set_user_settings(&user_settings_);
-  for (auto* editor : session.editors.active_editors_) {
-    editor->set_context(&context_);
+      session.editors.set_user_settings(&user_settings_);
+      for (auto* editor : session.editors.active_editors_) {
+        editor->set_context(&context_);
       }
     }
   }
@@ -2265,9 +2265,9 @@ void EditorManager::DuplicateCurrentSession() {
     // Wire editor contexts for duplicated session
     if (!sessions_.empty()) {
       RomSession& session = sessions_.back();
-  for (auto* editor : session.editors.active_editors_) {
-    editor->set_context(&context_);
-  }
+      for (auto* editor : session.editors.active_editors_) {
+        editor->set_context(&context_);
+      }
     }
   }
 }
@@ -2282,7 +2282,10 @@ void EditorManager::CloseCurrentSession() {
       if (active_index < sessions_.size()) {
         current_rom_ = &sessions_[active_index].rom;
         current_editor_set_ = &sessions_[active_index].editors;
+        context_.session_id = active_index;
+#ifdef YAZE_ENABLE_TESTING
         test::TestManager::Get().SetCurrentRom(current_rom_);
+#endif
       }
     }
   }
@@ -2298,29 +2301,37 @@ void EditorManager::RemoveSession(size_t index) {
       if (active_index < sessions_.size()) {
         current_rom_ = &sessions_[active_index].rom;
         current_editor_set_ = &sessions_[active_index].editors;
+        context_.session_id = active_index;
+#ifdef YAZE_ENABLE_TESTING
         test::TestManager::Get().SetCurrentRom(current_rom_);
+#endif
       }
     }
   }
 }
 
 void EditorManager::SwitchToSession(size_t index) {
-  if (session_coordinator_) {
-    session_coordinator_->SwitchToSession(index);
-    
-    // Update current pointers after session switch
-    if (index < sessions_.size()) {
+  if (!session_coordinator_) {
+    return;
+  }
+
+  session_coordinator_->SwitchToSession(index);
+
+  if (index >= sessions_.size()) {
+    return;
+  }
+
   auto& session = sessions_[index];
   current_rom_ = &session.rom;
   current_editor_set_ = &session.editors;
 
-  // Update test manager with current ROM for ROM-dependent tests
-  util::logf("EditorManager: Setting ROM in TestManager - %p ('%s')",
-             (void*)current_rom_,
-             current_rom_ ? current_rom_->title().c_str() : "null");
-  test::TestManager::Get().SetCurrentRom(current_rom_);
-    }
+  if (context_.session_id != index) {
+    context_.session_id = index;
   }
+
+#ifdef YAZE_ENABLE_TESTING
+  test::TestManager::Get().SetCurrentRom(current_rom_);
+#endif
 }
 
 size_t EditorManager::GetCurrentSessionIndex() const {
