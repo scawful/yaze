@@ -20,7 +20,7 @@ namespace yaze {
 // Forward declarations
 class Rom;
 namespace gfx {
-class Renderer;
+class IRenderer;
 }
 
 /**
@@ -72,10 +72,9 @@ struct EditorDependencies {
   ShortcutManager* shortcut_manager = nullptr;
   UserSettings* user_settings = nullptr;
   size_t session_id = 0;
-  
-  // Optional dependencies for specialized editors
-  gfx::Renderer* renderer = nullptr;  // For emulator, dungeon editor
-  void* custom_data = nullptr;  // Type-erased for editor-specific needs
+
+  gfx::IRenderer* renderer = nullptr;
+  void* custom_data = nullptr;
 };
 
 struct EditorContext {
