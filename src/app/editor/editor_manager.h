@@ -40,6 +40,7 @@
 #include "app/editor/system/toast_manager.h"
 #include "app/editor/system/window_delegate.h"
 #include "app/editor/ui/editor_selection_dialog.h"
+#include "app/editor/ui/layout_manager.h"
 #include "app/editor/ui/menu_builder.h"
 #include "app/editor/ui/ui_coordinator.h"
 #include "app/editor/ui/welcome_screen.h"
@@ -409,6 +410,7 @@ class EditorManager {
   std::unique_ptr<UICoordinator> ui_coordinator_;
   WindowDelegate window_delegate_;
   std::unique_ptr<SessionCoordinator> session_coordinator_;
+  std::unique_ptr<LayoutManager> layout_manager_;  // DockBuilder layout management
 
   float autosave_timer_ = 0.0f;
 

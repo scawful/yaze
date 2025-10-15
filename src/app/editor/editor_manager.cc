@@ -182,6 +182,9 @@ EditorManager::EditorManager()
       *session_coordinator_, window_delegate_, toast_manager_, *popup_manager_,
       shortcut_manager_);
   
+  // STEP 4.5: Initialize LayoutManager (DockBuilder layouts for editors)
+  layout_manager_ = std::make_unique<LayoutManager>();
+  
   // STEP 5: ShortcutConfigurator created later in Initialize() method
   // It depends on all above coordinators being available
 }
@@ -1954,6 +1957,12 @@ void EditorManager::SwitchToEditor(EditorType editor_type) {
           // Editor activated - set its category
           card_registry_.SetActiveCategory(
               EditorRegistry::GetEditorCategory(editor_type));
+          
+          // Initialize default layout on first activation
+          if (layout_manager_ && !layout_manager_->IsLayoutInitialized(editor_type)) {
+            ImGuiID dockspace_id = ImGui::GetID("MainDockSpace");
+            layout_manager_->InitializeEditorLayout(editor_type, dockspace_id);
+          }
         } else {
           // Editor deactivated - switch to another active card-based editor
           for (auto* other : current_editor_set_->active_editors_) {

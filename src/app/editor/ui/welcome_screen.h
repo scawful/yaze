@@ -79,6 +79,11 @@ class WelcomeScreen {
    */
   void MarkManuallyClosed() { manually_closed_ = true; }
   
+  /**
+   * @brief Reset first show flag (for testing/forcing display)
+   */
+  void ResetFirstShow() { first_show_attempt_ = true; }
+  
  private:
   void DrawHeader();
   void DrawQuickActions();
@@ -90,6 +95,7 @@ class WelcomeScreen {
   
   std::vector<RecentProject> recent_projects_;
   bool manually_closed_ = false;
+  bool first_show_attempt_ = true;  // Override ImGui ini state on first display
   
   // Callbacks
   std::function<void()> open_rom_callback_;

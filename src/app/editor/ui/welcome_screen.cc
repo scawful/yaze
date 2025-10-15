@@ -160,6 +160,15 @@ bool WelcomeScreen::Show(bool* p_open) {
   ImGui::SetNextWindowPos(center, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
   ImGui::SetNextWindowSize(ImVec2(width, height), ImGuiCond_Always);
   
+  // CRITICAL: Override ImGui's saved window state from imgui.ini
+  // Without this, ImGui will restore the last saved state (hidden/collapsed)
+  // even when our logic says the window should be visible
+  if (first_show_attempt_) {
+    ImGui::SetNextWindowCollapsed(false);  // Force window to be expanded
+    ImGui::SetNextWindowFocus();           // Bring window to front
+    first_show_attempt_ = false;
+  }
+  
   ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoCollapse | 
                                    ImGuiWindowFlags_NoResize |
                                    ImGuiWindowFlags_NoMove;

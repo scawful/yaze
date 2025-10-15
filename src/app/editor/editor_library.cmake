@@ -48,6 +48,7 @@ set(
   app/editor/system/window_delegate.cc
   app/editor/system/shortcut_configurator.cc
   app/editor/ui/editor_selection_dialog.cc
+  app/editor/ui/layout_manager.cc
   app/editor/ui/menu_builder.cc
   app/editor/ui/ui_coordinator.cc
   app/editor/ui/welcome_screen.cc
