@@ -3,7 +3,7 @@
   "name": "yaze",
   "version": "0.3.2",
   "description": "Yet Another Zelda3 Editor",
-  "builtin-baseline": "01f602195983451bc83e72f4214af2cbc495aa94",
+  "builtin-baseline": "8eb57355a4ffb410a2e94c07b4dca2dffbee8e50",
   "dependencies": [
     {
       "name": "sdl2",
