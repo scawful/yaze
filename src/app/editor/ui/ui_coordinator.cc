@@ -31,7 +31,8 @@ UICoordinator::UICoordinator(
     SessionCoordinator& session_coordinator,
     WindowDelegate& window_delegate,
     ToastManager& toast_manager,
-    PopupManager& popup_manager)
+    PopupManager& popup_manager,
+    ShortcutManager& shortcut_manager)
     : editor_manager_(editor_manager),
       rom_manager_(rom_manager),
       project_manager_(project_manager),
@@ -39,7 +40,8 @@ UICoordinator::UICoordinator(
       session_coordinator_(session_coordinator),
       window_delegate_(window_delegate),
       toast_manager_(toast_manager),
-      popup_manager_(popup_manager) {
+      popup_manager_(popup_manager),
+      shortcut_manager_(shortcut_manager) {
   
   // Initialize welcome screen with proper callbacks
   welcome_screen_ = std::make_unique<WelcomeScreen>();
@@ -92,8 +94,7 @@ UICoordinator::UICoordinator(
 }
 
 void UICoordinator::DrawAllUI() {
-  // Apply Material Design styling
-  ApplyMaterialDesignStyling();
+  // Note: Theme styling is applied by ThemeManager, not here
   
   // Draw all UI components in order
   DrawMenuBarExtras();
