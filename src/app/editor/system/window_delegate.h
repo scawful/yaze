@@ -58,6 +58,11 @@ class WindowDelegate {
   void LoadWorkspaceLayout();
   void ResetWorkspaceLayout();
   
+  // Layout presets
+  void LoadDeveloperLayout();
+  void LoadDesignerLayout();
+  void LoadModderLayout();
+  
   // Window state queries
   std::vector<std::string> GetVisibleWindows() const;
   std::vector<std::string> GetHiddenWindows() const;
@@ -74,9 +79,6 @@ class WindowDelegate {
   void UnregisterWindow(const std::string& window_id);
   
   // Layout presets
-  void LoadDeveloperLayout();
-  void LoadDesignerLayout();
-  void LoadModderLayout();
   void LoadMinimalLayout();
 
  private:
