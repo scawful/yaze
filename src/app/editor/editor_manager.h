@@ -208,14 +208,12 @@ class EditorManager {
   size_t GetActiveSessionCount() const;
   
   // Workspace layout management
-  void SaveWorkspaceLayout();
-  void LoadWorkspaceLayout();
-  void ResetWorkspaceLayout();
-  void ShowAllWindows();
-  void HideAllWindows();
-  void MaximizeCurrentWindow();
-  void RestoreAllWindows();
-  void CloseAllFloatingWindows();
+  // Window management - inline delegation (reduces EditorManager bloat)
+  void SaveWorkspaceLayout() { window_delegate_.SaveWorkspaceLayout(); }
+  void LoadWorkspaceLayout() { window_delegate_.LoadWorkspaceLayout(); }
+  void ResetWorkspaceLayout() { window_delegate_.ResetWorkspaceLayout(); }
+  void ShowAllWindows() { if (ui_coordinator_) ui_coordinator_->ShowAllWindows(); }
+  void HideAllWindows() { if (ui_coordinator_) ui_coordinator_->HideAllWindows(); }
   
   // Layout presets
   void LoadDeveloperLayout();
@@ -229,26 +227,23 @@ class EditorManager {
   void Quit() { quit_ = true; }
   
   // UI visibility controls (public for MenuOrchestrator)
-  void ShowGlobalSearch() { 
-    if (ui_coordinator_) ui_coordinator_->ShowGlobalSearch(); 
-  }
-  void ShowPerformanceDashboard() { 
-    if (ui_coordinator_) ui_coordinator_->SetPerformanceDashboardVisible(true); 
-  }
-  void ShowImGuiDemo() { 
-    if (ui_coordinator_) ui_coordinator_->SetImGuiDemoVisible(true); 
-  }
-  void ShowImGuiMetrics() { 
-    if (ui_coordinator_) ui_coordinator_->SetImGuiMetricsVisible(true); 
-  }
+  // UI visibility controls - inline for performance (single-line wrappers delegating to UICoordinator)
+  void ShowGlobalSearch() { if (ui_coordinator_) ui_coordinator_->ShowGlobalSearch(); }
+  void ShowCommandPalette() { if (ui_coordinator_) ui_coordinator_->ShowCommandPalette(); }
+  void ShowPerformanceDashboard() { if (ui_coordinator_) ui_coordinator_->SetPerformanceDashboardVisible(true); }
+  void ShowImGuiDemo() { if (ui_coordinator_) ui_coordinator_->SetImGuiDemoVisible(true); }
+  void ShowImGuiMetrics() { if (ui_coordinator_) ui_coordinator_->SetImGuiMetricsVisible(true); }
   void ShowHexEditor();
   void ShowEmulator() { show_emulator_ = true; }
-  void ShowCardBrowser() {
-    if (ui_coordinator_) ui_coordinator_->ShowCardBrowser();
-  }
-  void ShowWelcomeScreen() {
-    if (ui_coordinator_) ui_coordinator_->SetWelcomeScreenVisible(true);
-  }
+  void ShowMemoryEditor() { show_memory_editor_ = true; }
+  void ShowResourceLabelManager() { show_resource_label_manager = true; }
+  void ShowCardBrowser() { if (ui_coordinator_) ui_coordinator_->ShowCardBrowser(); }
+  void ShowWelcomeScreen() { if (ui_coordinator_) ui_coordinator_->SetWelcomeScreenVisible(true); }
+  
+#ifdef YAZE_ENABLE_TESTING
+  void ShowTestDashboard() { show_test_dashboard_ = true; }
+#endif
+  
 #ifdef YAZE_WITH_GRPC
   void ShowAIAgent();
   void ShowChatHistory();

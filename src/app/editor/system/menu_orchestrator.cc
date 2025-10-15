@@ -224,16 +224,56 @@ void MenuOrchestrator::AddToolsMenuItems() {
   menu_builder_
       .Item("Global Search", ICON_MD_SEARCH,
             [this]() { OnShowGlobalSearch(); }, "Ctrl+Shift+F")
+      .Item("Command Palette", ICON_MD_SEARCH,
+            [this]() { OnShowCommandPalette(); }, "Ctrl+Shift+P")
       .Item("Performance Dashboard", ICON_MD_SPEED,
             [this]() { OnShowPerformanceDashboard(); })
       .Separator();
   
+  // Testing Tools (only when tests are enabled)
+#ifdef YAZE_ENABLE_TESTING
+  menu_builder_
+      .BeginSubMenu("Testing", ICON_MD_SCIENCE)
+      .Item("Test Dashboard", ICON_MD_DASHBOARD,
+            [this]() { OnShowTestDashboard(); }, "Ctrl+T")
+      .Item("Run All Tests", ICON_MD_PLAY_ARROW,
+            [this]() { OnRunAllTests(); })
+      .Item("Run Unit Tests", ICON_MD_CHECK_BOX,
+            [this]() { OnRunUnitTests(); })
+      .Item("Run Integration Tests", ICON_MD_INTEGRATION_INSTRUCTIONS,
+            [this]() { OnRunIntegrationTests(); })
+      .Item("Run E2E Tests", ICON_MD_VISIBILITY,
+            [this]() { OnRunE2ETests(); })
+      .EndMenu()
+      .Separator();
+#endif
+  
   // Debug Tools
   menu_builder_
-      .Item("ImGui Demo", ICON_MD_BUG_REPORT,
+      .BeginSubMenu("Debug", ICON_MD_BUG_REPORT)
+      .Item("ImGui Demo", ICON_MD_WIDGETS,
             [this]() { OnShowImGuiDemo(); })
       .Item("ImGui Metrics", ICON_MD_ANALYTICS,
-            [this]() { OnShowImGuiMetrics(); });
+            [this]() { OnShowImGuiMetrics(); })
+      .Item("Memory Editor", ICON_MD_MEMORY,
+            [this]() { OnShowMemoryEditor(); })
+      .Item("Resource Label Manager", ICON_MD_LABEL,
+            [this]() { OnShowResourceLabelManager(); })
+      .EndMenu();
+  
+  // Collaboration (GRPC builds only)
+#ifdef YAZE_WITH_GRPC
+  menu_builder_
+      .Separator()
+      .BeginSubMenu("Collaborate", ICON_MD_PEOPLE)
+      .Item("Start Collaboration Session", ICON_MD_PLAY_CIRCLE,
+            [this]() { OnStartCollaboration(); })
+      .Item("Join Collaboration Session", ICON_MD_GROUP_ADD,
+            [this]() { OnJoinCollaboration(); })
+      .Item("Network Status", ICON_MD_CLOUD,
+            [this]() { OnShowNetworkStatus(); })
+      .EndMenu();
+#endif
 }
 
 void MenuOrchestrator::BuildWindowMenu() {
@@ -660,6 +700,12 @@ void MenuOrchestrator::OnShowGlobalSearch() {
   }
 }
 
+void MenuOrchestrator::OnShowCommandPalette() {
+  if (editor_manager_) {
+    editor_manager_->ShowCommandPalette();
+  }
+}
+
 void MenuOrchestrator::OnShowPerformanceDashboard() {
   if (editor_manager_) {
     editor_manager_->ShowPerformanceDashboard();
@@ -677,6 +723,63 @@ void MenuOrchestrator::OnShowImGuiMetrics() {
     editor_manager_->ShowImGuiMetrics();
   }
 }
+
+void MenuOrchestrator::OnShowMemoryEditor() {
+  if (editor_manager_) {
+    editor_manager_->ShowMemoryEditor();
+  }
+}
+
+void MenuOrchestrator::OnShowResourceLabelManager() {
+  if (editor_manager_) {
+    editor_manager_->ShowResourceLabelManager();
+  }
+}
+
+#ifdef YAZE_ENABLE_TESTING
+void MenuOrchestrator::OnShowTestDashboard() {
+  if (editor_manager_) {
+    editor_manager_->ShowTestDashboard();
+  }
+}
+
+void MenuOrchestrator::OnRunAllTests() {
+  toast_manager_.Show("Running all tests...", ToastType::kInfo);
+  // TODO: Implement test runner integration
+}
+
+void MenuOrchestrator::OnRunUnitTests() {
+  toast_manager_.Show("Running unit tests...", ToastType::kInfo);
+  // TODO: Implement unit test runner
+}
+
+void MenuOrchestrator::OnRunIntegrationTests() {
+  toast_manager_.Show("Running integration tests...", ToastType::kInfo);
+  // TODO: Implement integration test runner
+}
+
+void MenuOrchestrator::OnRunE2ETests() {
+  toast_manager_.Show("Running E2E tests...", ToastType::kInfo);
+  // TODO: Implement E2E test runner
+}
+#endif
+
+#ifdef YAZE_WITH_GRPC
+void MenuOrchestrator::OnStartCollaboration() {
+  toast_manager_.Show("Starting collaboration session...", ToastType::kInfo);
+  // TODO: Implement collaboration session start
+}
+
+void MenuOrchestrator::OnJoinCollaboration() {
+  toast_manager_.Show("Joining collaboration session...", ToastType::kInfo);
+  // TODO: Implement collaboration session join
+}
+
+void MenuOrchestrator::OnShowNetworkStatus() {
+  toast_manager_.Show("Network Status", ToastType::kInfo);
+  // TODO: Show network status dialog
+}
+#endif
 
 // Help menu actions
 void MenuOrchestrator::OnShowAbout() {

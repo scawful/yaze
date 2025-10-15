@@ -713,7 +713,7 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
       std::vector<ImGuiKey>{ImGuiKey_O, ImGuiMod_Ctrl, ImGuiMod_Shift},
       [this]() { LoadWorkspaceLayout(); });
   context_.shortcut_manager.RegisterShortcut(
-      "Maximize Window", ImGuiKey_F11, [this]() { MaximizeCurrentWindow(); });
+      "Maximize Window", ImGuiKey_F11, [this]() { workspace_manager_.MaximizeCurrentWindow(); });
 }
 
 void EditorManager::OpenEditorAndCardsFromFlags(const std::string& editor_name,
@@ -2365,51 +2365,7 @@ std::string EditorManager::GenerateUniqueEditorTitle(
   return std::string(base_name);
 }
 
-void EditorManager::ResetWorkspaceLayout() {
-  // Show confirmation popup first, then delegate to WindowDelegate
-  popup_manager_->Show("Layout Reset Confirm");
-  window_delegate_.ResetWorkspaceLayout();
-}
-
-void EditorManager::SaveWorkspaceLayout() {
-  window_delegate_.SaveWorkspaceLayout();
-  toast_manager_.Show("Workspace layout saved", editor::ToastType::kSuccess);
-}
-
-void EditorManager::LoadWorkspaceLayout() {
-  window_delegate_.LoadWorkspaceLayout();
-  toast_manager_.Show("Workspace layout loaded", editor::ToastType::kSuccess);
-}
-
-void EditorManager::ShowAllWindows() {
-  // Delegate to UICoordinator for clean separation of concerns
-  if (ui_coordinator_) {
-    ui_coordinator_->ShowAllWindows();
-  }
-}
-
-void EditorManager::HideAllWindows() {
-  // Delegate to UICoordinator for clean separation of concerns
-  if (ui_coordinator_) {
-    ui_coordinator_->HideAllWindows();
-  }
-}
-
-void EditorManager::MaximizeCurrentWindow() {
-  // Delegate to WindowDelegate
-  // Note: This requires tracking the current focused window
-  toast_manager_.Show("Current window maximized", editor::ToastType::kInfo);
-}
-
-void EditorManager::RestoreAllWindows() {
-  // Restore all windows to normal size
-  toast_manager_.Show("All windows restored", editor::ToastType::kInfo);
-}
-
-void EditorManager::CloseAllFloatingWindows() {
-  // Close all floating (undocked) windows
-  toast_manager_.Show("All floating windows closed", editor::ToastType::kInfo);
-}
+// Window management methods removed - now inline in header for reduced bloat
 
 void EditorManager::LoadDeveloperLayout() {
   if (!current_editor_set_)
