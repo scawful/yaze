@@ -107,6 +107,7 @@ void UICoordinator::DrawAllUI() {
   // Draw UI windows and dialogs
   // Session dialogs are drawn by SessionCoordinator separately to avoid duplication
   DrawCommandPalette();          // Ctrl+Shift+P
+  DrawGlobalSearch();            // Ctrl+Shift+K
   DrawLayoutPresets();           // Layout preset dialogs
   DrawWelcomeScreen();           // Welcome screen
   DrawProjectHelp();             // Project help
@@ -303,6 +304,10 @@ void UICoordinator::DrawWelcomeScreen() {
   
   // Draw the welcome screen
   LOG_INFO("UICoordinator", "Rendering welcome screen window");
+  
+  // Reset first show flag to override ImGui ini state
+  // This ensures the window appears even if imgui.ini has it hidden
+  welcome_screen_->ResetFirstShow();
   
   // Update recent projects before showing
   welcome_screen_->RefreshRecentProjects();
@@ -667,6 +672,153 @@ void UICoordinator::DrawCommandPalette() {
   // Update visibility state
   if (!show_palette) {
     show_command_palette_ = false;
+  }
+}
+
+void UICoordinator::DrawGlobalSearch() {
+  if (!show_global_search_) return;
+  
+  using namespace ImGui;
+  auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
+  
+  SetNextWindowPos(GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+  SetNextWindowSize(ImVec2(900, 700), ImGuiCond_FirstUseEver);
+  
+  bool show_search = true;
+  if (Begin(absl::StrFormat("%s Global Search", ICON_MD_SEARCH).c_str(),
+            &show_search, ImGuiWindowFlags_NoCollapse)) {
+    
+    // Search input with focus management
+    SetNextItemWidth(-100);
+    if (IsWindowAppearing()) {
+      SetKeyboardFocusHere();
+    }
+    
+    bool input_changed = InputTextWithHint(
+        "##global_search_query",
+        absl::StrFormat("%s Search ROM data, cards, editors, resources...", ICON_MD_SEARCH).c_str(),
+        global_search_query_, IM_ARRAYSIZE(global_search_query_));
+    
+    SameLine();
+    if (Button(absl::StrFormat("%s Clear", ICON_MD_CLEAR).c_str())) {
+      global_search_query_[0] = '\0';
+      input_changed = true;
+    }
+    
+    Separator();
+    
+    // Search results organized by category
+    if (BeginTabBar("SearchCategories")) {
+      // TODO: [EditorManagerRefactor] Implement actual ROM data searching
+      // This should search through:
+      // - Editor cards (all registered cards across all editors)
+      // - ROM resources (palettes, graphics, sprites, etc.)
+      // - Text strings (messages, dialogue)
+      // - Map names, room names, sprite names
+      // - Memory addresses and labels
+      
+      if (BeginTabItem(absl::StrFormat("%s All Results", ICON_MD_LIST).c_str())) {
+        if (global_search_query_[0] != '\0') {
+          // Search through editor cards
+          TextColored(gui::ConvertColorToImVec4(theme.info), 
+                     "%s Editor Cards", ICON_MD_DASHBOARD);
+          Separator();
+          
+          // Get current session ID from editor manager
+          size_t current_session_id = 0;
+          if (editor_manager_) {
+            current_session_id = editor_manager_->GetCurrentSessionId();
+          }
+          
+          // Get all cards in current session
+          auto card_ids = card_registry_.GetCardsInSession(current_session_id);
+          bool found_cards = false;
+          
+          for (const auto& card_id : card_ids) {
+            const auto* card_info = card_registry_.GetCardInfo(current_session_id, card_id);
+            if (!card_info) continue;
+            
+            std::string search_lower = global_search_query_;
+            std::string card_lower = card_info->display_name;
+            std::transform(search_lower.begin(), search_lower.end(), 
+                         search_lower.begin(), ::tolower);
+            std::transform(card_lower.begin(), card_lower.end(), 
+                         card_lower.begin(), ::tolower);
+            
+            if (card_lower.find(search_lower) != std::string::npos) {
+              if (Selectable(absl::StrFormat("%s %s - %s", 
+                            card_info->icon.c_str(),
+                            card_info->display_name.c_str(),
+                            card_info->category.c_str()).c_str())) {
+                // Show the card when selected
+                card_registry_.ShowCard(current_session_id, card_id);
+                show_global_search_ = false;
+              }
+              if (IsItemHovered()) {
+                BeginTooltip();
+                Text("Category: %s", card_info->category.c_str());
+                Text("Shortcut: %s", card_info->shortcut_hint.c_str());
+                Text("Click to open");
+                EndTooltip();
+              }
+              found_cards = true;
+            }
+          }
+          
+          if (!found_cards) {
+            PushStyleColor(ImGuiCol_Text, gui::ConvertColorToImVec4(theme.text_disabled));
+            Text("No cards found matching '%s'", global_search_query_);
+            PopStyleColor();
+          }
+          
+          Spacing();
+          Spacing();
+          
+          // TODO: [EditorManagerRefactor] Add more search categories:
+          // - ROM Resources (palettes, graphics, sprites)
+          // - Text/Messages
+          // - Map/Room names
+          // - Memory addresses
+        } else {
+          PushStyleColor(ImGuiCol_Text, gui::ConvertColorToImVec4(theme.text_disabled));
+          Text("%s Enter search query to find ROM data, cards, and resources", 
+               ICON_MD_INFO);
+          PopStyleColor();
+        }
+        EndTabItem();
+      }
+      
+      if (BeginTabItem(absl::StrFormat("%s Cards", ICON_MD_DASHBOARD).c_str())) {
+        Text("Card-specific search coming soon...");
+        EndTabItem();
+      }
+      
+      if (BeginTabItem(absl::StrFormat("%s ROM Data", ICON_MD_STORAGE).c_str())) {
+        Text("ROM data search coming soon...");
+        EndTabItem();
+      }
+      
+      if (BeginTabItem(absl::StrFormat("%s Text", ICON_MD_TEXT_FIELDS).c_str())) {
+        Text("Text search coming soon...");
+        EndTabItem();
+      }
+      
+      EndTabBar();
+    }
+    
+    // Status bar
+    Separator();
+    Text("%s Global Search", ICON_MD_INFO);
+    SameLine();
+    PushStyleColor(ImGuiCol_Text, gui::ConvertColorToImVec4(theme.text_disabled));
+    Text("| Currently searches: Editor Cards | More categories coming soon");
+    PopStyleColor();
+  }
+  End();
+  
+  // Update visibility state
+  if (!show_search) {
+    show_global_search_ = false;
   }
 }
 

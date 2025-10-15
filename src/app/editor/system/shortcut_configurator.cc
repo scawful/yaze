@@ -218,18 +218,19 @@ void ConfigureEditorShortcuts(const ShortcutDependencies& deps,
       });
 
   if (card_registry) {
+    // Note: Using Ctrl+Alt for card shortcuts to avoid conflicts with Save As (Ctrl+Shift+S)
     RegisterIfValid(shortcut_manager, "Show Dungeon Cards",
-                    {ImGuiMod_Ctrl, ImGuiMod_Shift, ImGuiKey_D},
+                    {ImGuiMod_Ctrl, ImGuiMod_Alt, ImGuiKey_D},
                     [card_registry]() {
                       card_registry->ShowAllCardsInCategory("Dungeon");
                     });
     RegisterIfValid(shortcut_manager, "Show Graphics Cards",
-                    {ImGuiMod_Ctrl, ImGuiMod_Shift, ImGuiKey_G},
+                    {ImGuiMod_Ctrl, ImGuiMod_Alt, ImGuiKey_G},
                     [card_registry]() {
                       card_registry->ShowAllCardsInCategory("Graphics");
                     });
     RegisterIfValid(shortcut_manager, "Show Screen Cards",
-                    {ImGuiMod_Ctrl, ImGuiMod_Shift, ImGuiKey_S},
+                    {ImGuiMod_Ctrl, ImGuiMod_Alt, ImGuiKey_S},
                     [card_registry]() {
                       card_registry->ShowAllCardsInCategory("Screen");
                     });
@@ -320,8 +321,9 @@ void ConfigureMenuShortcuts(const ShortcutDependencies& deps,
                     }
                   });
 
+  // Note: Changed from Ctrl+Shift+R to Ctrl+Alt+R to avoid conflict with Proposal Drawer
   RegisterIfValid(shortcut_manager, "Reset Layout",
-                  {ImGuiMod_Ctrl, ImGuiMod_Shift, ImGuiKey_R},
+                  {ImGuiMod_Ctrl, ImGuiMod_Alt, ImGuiKey_R},
                   [workspace_manager]() {
                     if (workspace_manager) {
                       workspace_manager->ResetWorkspaceLayout();
