@@ -207,4 +207,4 @@ YAZE features native file dialogs on all platforms:
 
 ---
 
-**Status:** ✅ All CI/CD issues resolved. Next push should build successfully on all platforms.
+**Status:**  All CI/CD issues resolved. Next push should build successfully on all platforms.

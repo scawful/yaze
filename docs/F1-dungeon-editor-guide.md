@@ -10,16 +10,16 @@
 The Dungeon Editor uses a modern card-based architecture (DungeonEditorV2) with self-contained room rendering. This guide covers the architecture, recent refactoring work, and next development steps.
 
 ### Key Features
-- ✅ **Visual room editing** with 512x512 canvas per room
-- ✅ **Object position visualization** - Colored outlines by layer (Red/Green/Blue)
-- ✅ **Per-room settings** - Independent BG1/BG2 visibility and layer types
-- ✅ **Flexible docking** - EditorCard system for custom workspace layouts
-- ✅ **Self-contained rooms** - Each room owns its bitmaps and palettes
-- ✅ **Overworld integration** - Double-click entrances to open dungeon rooms
+-  **Visual room editing** with 512x512 canvas per room
+-  **Object position visualization** - Colored outlines by layer (Red/Green/Blue)
+-  **Per-room settings** - Independent BG1/BG2 visibility and layer types
+-  **Flexible docking** - EditorCard system for custom workspace layouts
+-  **Self-contained rooms** - Each room owns its bitmaps and palettes
+-  **Overworld integration** - Double-click entrances to open dungeon rooms
 
 ---
 
-### Architecture Improvements ✅
+### Architecture Improvements 
 1. **Room Buffers Decoupled** - No dependency on Arena graphics sheets
 2. **ObjectRenderer Removed** - Standardized on ObjectDrawer (~1000 lines deleted)
 3. **LoadGraphicsSheetsIntoArena Removed** - Using per-room graphics (~66 lines)
@@ -27,7 +27,7 @@ The Dungeon Editor uses a modern card-based architecture (DungeonEditorV2) with 
 5. **Texture Atlas Infrastructure** - Future-proof stub created
 6. **Test Suite Cleaned** - Deleted 1270 lines of redundant tests
 
-### UI Improvements ✅
+### UI Improvements 
 - Room ID in card title: `[003] Room Name`
 - Properties reorganized into clean 4-column table
 - Compact layer controls (1 row instead of 3)

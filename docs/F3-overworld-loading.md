@@ -41,14 +41,14 @@ constexpr int OverworldCustomASMHasBeenApplied = 0x140145;
 
 | Feature | Vanilla | v2 | v3 |
 |---------|---------|----|----| 
-| Basic Overworld Maps | ✅ | ✅ | ✅ |
-| Area Size Enum | ❌ | ❌ | ✅ |
-| Main Palette | ❌ | ✅ | ✅ |
-| Custom Background Colors | ❌ | ✅ | ✅ |
-| Subscreen Overlays | ✅ | ✅ | ✅ |
-| Animated GFX | ❌ | ❌ | ✅ |
-| Custom Tile Graphics | ❌ | ❌ | ✅ |
-| Vanilla Overlays | ✅ | ✅ | ✅ |
+| Basic Overworld Maps |  |  |  |
+| Area Size Enum | ❌ | ❌ |  |
+| Main Palette | ❌ |  |  |
+| Custom Background Colors | ❌ |  |  |
+| Subscreen Overlays |  |  |  |
+| Animated GFX | ❌ | ❌ |  |
+| Custom Tile Graphics | ❌ | ❌ |  |
+| Vanilla Overlays |  |  |  |
 
 **Note:** Subscreen overlays are visual effects (fog, rain, backgrounds, etc.) that are shared between vanilla ROMs and ZSCustomOverworld. ZSCustomOverworld v2+ expands on this by adding support for custom overlay configurations and additional overlay types.
 
@@ -403,11 +403,11 @@ absl::Status OverworldMap::SaveCustomMap(std::string_view path, bool dark_world)
 
 ### Current Status
 
-✅ **ZSCustomOverworld v2/v3 Support**: Fully implemented and tested
-✅ **Vanilla ROM Support**: Complete compatibility maintained
-✅ **Overlay System**: Both vanilla and custom overlays supported
-✅ **Map Properties System**: Integrated with UI components
-✅ **Graphics Loading**: Optimized with caching and performance monitoring
+ **ZSCustomOverworld v2/v3 Support**: Fully implemented and tested
+ **Vanilla ROM Support**: Complete compatibility maintained
+ **Overlay System**: Both vanilla and custom overlays supported
+ **Map Properties System**: Integrated with UI components
+ **Graphics Loading**: Optimized with caching and performance monitoring
 
 ## Key Differences
 

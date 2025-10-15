@@ -2,7 +2,7 @@
 
 **Date**: October 12, 2025  
 **Version**: v0.2.2-alpha  
-**Status**: Core Features Integrated ✅
+**Status**: Core Features Integrated 
 
 ## Overview
 
@@ -83,7 +83,7 @@ Persists information across agent sessions:
 - **Project Context**: ROM-specific goals and notes
 - **Conversation Memory**: Summaries of past discussions for continuity
 
-### Integration Status: ✅ Complete
+### Integration Status:  Complete
 
 **Files**:
 - `cli/service/agent/learned_knowledge_service.{h,cc}` - Core service
@@ -139,18 +139,23 @@ auto pref = service.learned_knowledge().GetPreference("palette");
 - `projects.json` - Project metadata and context
 - `memories.json` - Conversation summaries (last 100)
 
+### Current Integration
+
+- `cli/service/agent/learned_knowledge_service.{h,cc}` is constructed inside `ConversationalAgentService`.
+- CLI commands such as `z3ed agent learn …` and `agent recall …` exercise this API.
+- JSON artifacts persist under `~/.yaze/agent/`.
+
 ## Feature 2: TODO Management System
 
 ### What It Does
 
 Enables AI agents to break down complex tasks into executable steps with dependency tracking and prioritization.
 
-### Integration Status: ✅ Complete
+### Current Integration
 
-**Files**:
-- `cli/service/agent/todo_manager.{h,cc}` - Core service
-- `cli/handlers/agent/todo_commands.{h,cc}` - CLI handlers
-- `cli/handlers/agent.cc` - Routing
+- Core service in `cli/service/agent/todo_manager.{h,cc}`.
+- CLI routing in `cli/handlers/agent/todo_commands.{h,cc}` and `cli/handlers/agent.cc`.
+- JSON storage at `~/.yaze/agent/todos.json`.
 
 ### Usage Examples
 
@@ -215,12 +220,10 @@ Optimizes tool responses for AI consumption with:
 - **Structured summaries** (high-level + detailed + next steps)
 - **GUI action generation** (converts analysis → automation script)
 
-### Integration Status: ⏳ Implemented, Not Integrated
+### Status
 
-**Files**:
-- `cli/service/agent/advanced_routing.{h,cc}` - Implementation ✅
-- `cli/agent.cmake` - Added to build ✅
-- `cli/service/agent/conversational_agent_service.cc` - **Needs integration** ⏳
+- Implementation lives in `cli/service/agent/advanced_routing.{h,cc}` and is compiled via `cli/agent.cmake`.
+- Hook-ups to `ToolDispatcher` / `ConversationalAgentService` remain on the backlog.
 
 ### How to Integrate
 
@@ -278,12 +281,10 @@ Injects structured knowledge into the agent's first message to teach it about:
 - Map editing workflows (tile placement, warp creation)
 - Tool usage best practices
 
-### Integration Status: ⏳ Implemented, Not Integrated
+### Status
 
-**Files**:
-- `cli/service/agent/agent_pretraining.{h,cc}` - Implementation ✅
-- `cli/agent.cmake` - Added to build ✅
-- `cli/service/agent/conversational_agent_service.cc` - **Needs integration** ⏳
+- Pretraining scaffolding (`cli/service/agent/agent_pretraining.{h,cc}`) builds today.
+- The one-time injection step in `ConversationalAgentService` is still disabled.
 
 ### How to Integrate
 
@@ -328,112 +329,19 @@ Modules include:
 
 ## Feature 5: Agent Handoff
 
-### Concept
+Handoff covers CLI ↔ GUI transfers, specialised agent delegation, and human/AI ownership changes. The proposed `HandoffContext` structure (see code listing earlier) captures conversation history, ROM state, TODOs, and transient tool data. Serialization, cross-surface loading, and persona-specific workflows remain unimplemented.
 
-**Handoff** allows transitioning control between:
-1. **CLI → GUI**: Start debugging in terminal, continue in editor
-2. **Agent → Agent**: Specialized agents for different tasks
-3. **Human → AI**: Let AI continue work autonomously
+## Current Integration Snapshot
 
-### Implementation Status: 🚧 Architecture Defined
+Integrated components:
+- Learned knowledge service (`cli/service/agent/learned_knowledge_service.{h,cc}`) with CLI commands and JSON persistence under `~/.yaze/agent/`.
+- TODO manager (`cli/service/agent/todo_manager.{h,cc}` plus CLI handlers) with storage at `~/.yaze/agent/todos.json`.
+- Emulator debugging gRPC service; 20 of 24 methods are implemented (see `E9-ai-agent-debugging-guide.md`).
 
-### Handoff Data Structure
-
-```cpp
-struct HandoffContext {
-  std::string handoff_id;
-  std::string source_agent;
-  std::string target_agent;
-  
-  // State preservation
-  std::vector<ChatMessage> conversation_history;
-  Rom* rom_snapshot;  // ROM state at handoff
-  std::vector<uint32_t> active_breakpoints;
-  std::map<std::string, std::string> variables;  // Key findings
-  
-  // Task context
-  std::vector<TodoItem> remaining_todos;
-  std::string current_goal;
-  std::string progress_summary;
-  
-  // Tool state
-  std::vector<std::string> tools_used;
-  std::map<std::string, std::string> cached_results;
-};
-```
-
-### Implementation Plan
-
-**Phase 1: State Serialization**
-- [ ] Serialize ConversationalAgentService state to JSON
-- [ ] Include learned knowledge, TODOs, breakpoints
-- [ ] Generate handoff token (UUID + encrypted state)
-
-**Phase 2: Cross-Surface Handoff**
-- [ ] CLI saves handoff to `~/.yaze/agent/handoffs/<token>.json`
-- [ ] GUI Agent Chat widget can import handoff
-- [ ] Restore full conversation + tool state
-
-**Phase 3: Specialized Agents**
-- [ ] Define agent personas (EmulatorDebugAgent, ROMHackAgent, TestAgent)
-- [ ] Implement handoff protocol (request → accept → execute → return)
-- [ ] Add handoff commands to CLI
-
-## Current Integration Status
-
-### ✅ Fully Integrated
-
-1. **LearnedKnowledgeService**
-   - ✅ Implemented and integrated into ConversationalAgentService
-   - ✅ CLI commands available
-   - ✅ Persistent storage in `~/.yaze/agent/`
-
-2. **TodoManager**
-   - ✅ Implemented and integrated into ConversationalAgentService
-   - ✅ CLI commands available
-   - ✅ Persistent storage in `~/.yaze/agent/todos.json`
-
-3. **Emulator Debugging Service**
-   - ✅ gRPC service implemented
-   - ✅ 20/24 methods implemented
-   - ✅ Function schemas for AI tool calling
-   - ✅ See E9-ai-agent-debugging-guide.md for details
-
-### ⏳ Implemented But Not Integrated
-
-4. **AdvancedRouter**
-   - ✅ Implemented
-   - ⏳ Needs integration into ToolDispatcher or ConversationalAgentService
-
-5. **AgentPretraining**
-   - ✅ Implemented
-   - ⏳ Needs injection into first message of conversation
-
-### 🚧 Architecture Defined
-
-6. **Agent Handoff**
-   - ⏳ Architecture designed
-   - ⏳ Implementation pending
-
-## Benefits Summary
-
-### For AI Agents
-
-| Feature | Without Integration | With Integration |
-|---------|---------------------|------------------|
-| **Learned Knowledge** | Forgets between sessions | Remembers preferences, patterns |
-| **TODO Management** | Ad-hoc task tracking | Structured dependency-aware plans |
-| **Advanced Routing** | Raw tool output | Synthesized insights + GUI actions |
-| **Pretraining** | Generic LLM knowledge | ROM-specific expertise |
-| **Handoff** | Restart from scratch | Seamless context preservation |
-
-### For Users
-
-- **Faster onboarding**: AI learns your preferences
-- **Better continuity**: Past conversations inform current session
-- **Complex tasks**: AI breaks down goals automatically
-- **Cross-surface**: Start in CLI, continue in GUI
-- **Reproducible**: TODO plans serve as executable scripts
+Pending integration:
+- Advanced router (`cli/service/agent/advanced_routing.{h,cc}`) needs wiring into `ToolDispatcher` or `ConversationalAgentService`.
+- Agent pretraining (`cli/service/agent/agent_pretraining.{h,cc}`) needs the one-time injection path enabled.
+- Handoff serialization and import/export tooling are still design-only.
 
 ## References
 
@@ -449,6 +357,4 @@ struct HandoffContext {
 ---
 
 **Last Updated**: October 12, 2025  
-**Status**: Core Features Integrated ✅  
-**Next**: Context injection, Advanced routing, Handoff protocol
-
+**In progress**: Context injection for pretraining, advanced routing integration, agent handoff implementation.

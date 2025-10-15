@@ -380,7 +380,7 @@ absl::Status HandleResourceListCommand(
 
 Priority order for refactoring (based on duplication level):
 
-1. ✅ **High Priority** (Heavy duplication):
+1.  **High Priority** (Heavy duplication):
    - `HandleResourceListCommand` - Example provided ✓
    - `HandleResourceSearchCommand` - Example provided ✓
    - `HandleDungeonDescribeRoomCommand` - 80 lines → ~35 lines
@@ -484,11 +484,11 @@ TEST(ResourceListCommandTest, ListsDungeons) {
 
 ### Immediate (Current PR)
 
-1. ✅ Create abstraction layer (CommandContext, ArgumentParser, OutputFormatter)
-2. ✅ Add CommandHandler base class
-3. ✅ Provide refactored examples
-4. ✅ Update build system
-5. ✅ Document architecture
+1.  Create abstraction layer (CommandContext, ArgumentParser, OutputFormatter)
+2.  Add CommandHandler base class
+3.  Provide refactored examples
+4.  Update build system
+5.  Document architecture
 
 ### Phase 2 (Next PR)
 

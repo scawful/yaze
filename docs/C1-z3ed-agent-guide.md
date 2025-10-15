@@ -149,7 +149,7 @@ Key benefits:
 - Cuts individual command implementations by about half.
 - Establishes consistent patterns across the CLI for easier testing and automation.
 
-See [Command Abstraction Guide](z3ed-command-abstraction-guide.md) for migration details.
+See [Command Abstraction Guide](C5-z3ed-command-abstraction.md) for migration details.
 
 ## 4. Agentic & Generative Workflow (MCP)
 
@@ -480,28 +480,28 @@ docker run -p 8765:8765 yaze-server
 
 #### Advanced Features (v2.0)
 
-**🎮 ROM Synchronization**
+**ROM ROM Synchronization**
 Share ROM edits in real-time:
 - Send base64-encoded diffs to all participants
 - Automatic ROM hash tracking
 - Size limit: 5MB per diff
 - Conflict detection via hash comparison
 
-**📸 Multimodal Snapshot Sharing**
+**Snapshot Multimodal Snapshot Sharing**
 Share screenshots and images:
 - Capture and share specific editor views
 - Support for multiple snapshot types (overworld, dungeon, sprite, etc.)
 - Base64 encoding for efficient transfer
 - Size limit: 10MB per snapshot
 
-**💡 Proposal Management**
+**Proposal Proposal Management**
 Collaborative proposal workflow:
 - Share AI-generated proposals with all participants
 - Track proposal status: pending, accepted, rejected
 - Real-time status updates broadcast to all users
 - Proposal history tracked in server database
 
-**🤖 AI Agent Integration**
+**AI Agent Integration**
 Server-routed AI queries:
 - Send queries through the collaboration server
 - Shared AI responses visible to all participants
@@ -810,7 +810,7 @@ wscat -c ws://localhost:8765
 #### Security Considerations
 
 **Current Implementation:**
-⚠️ Basic security - suitable for trusted networks
+Warning: Basic security - suitable for trusted networks
 - No authentication or encryption by default
 - Plain text message transmission
 - Session codes are the only access control
@@ -847,9 +847,9 @@ Analyze screenshots of your ROM editor using Gemini's vision capabilities for vi
 1. Open **Debug → Agent Chat**
 2. Expand **"Gemini Multimodal (Preview)"** panel
 3. Select capture mode:
-   - ○ Full Window
-   - ● Active Editor (default)
-   - ○ Specific Window
+   - - Full Window
+   - * Active Editor (default)
+   - - Specific Window
 4. If Specific Window, enter window name: `Overworld Editor`
 5. Click **"Capture Snapshot"**
 6. Enter prompt: `"What issues do you see with this layout?"`
@@ -878,13 +878,13 @@ The AI response appears in your chat history and can reference specific details 
 │  │         Agent Chat Widget (ImGui)           │   │
 │  │                                             │   │
 │  │  [Collaboration Panel]                      │   │
-│  │  ├─ Local Mode (filesystem)  ✓ Working     │   │
-│  │  └─ Network Mode (websocket) ✓ Working     │   │
+│  │  ├─ Local Mode (filesystem)   Working     │   │
+│  │  └─ Network Mode (websocket)  Working     │   │
 │  │                                             │   │
 │  │  [Multimodal Panel]                         │   │
-│  │  ├─ Capture Mode Selection   ✓ Working     │   │
-│  │  ├─ Screenshot Capture        ✓ Working     │   │
-│  │  └─ Send to Gemini           ✓ Working     │   │
+│  │  ├─ Capture Mode Selection    Working     │   │
+│  │  ├─ Screenshot Capture         Working     │   │
+│  │  └─ Send to Gemini            Working     │   │
 │  └─────────────────────────────────────────────┘   │
 │           │                    │                    │
 │           ▼                    ▼                    │
@@ -969,7 +969,7 @@ The AI response appears in your chat history and can reference specific details 
 
 **Last Updated**: October 11, 2025
 
-### ✅ Completed
+###  Completed
 
 -   **Core Infrastructure**: Resource-oriented CLI, proposal workflow, sandbox manager, and resource catalog are all production-ready.
 -   **AI Backends**: Both Ollama (local) and Gemini (cloud) are operational.
@@ -996,9 +996,9 @@ The AI response appears in your chat history and can reference specific details 
 -   **Collaboration & Networking**: yaze-server v2.0 protocol, cross-platform WebSocket client, collaboration panel, and gRPC ROM service unlock real-time edits, diff sharing, and remote automation.
 -   **AI & Automation Stack**: Proactive prompt v3, native Gemini function calling, learn/TODO systems, GUI automation planners, multimodal vision suite, and dashboard-surfaced test harness coverage broaden intelligent tooling.
 
-### 🚧 Active & Next Steps
+###  Active & Next Steps
 
-1.  **CLI Command Refactoring (Phase 2)**: Complete migration of tool_commands.cc to use new abstraction layer. Refactor 15+ commands to eliminate ~1300 lines of duplication. Add comprehensive unit tests. (See [Command Abstraction Guide](z3ed-command-abstraction-guide.md))
+1.  **CLI Command Refactoring (Phase 2)**: Complete migration of tool_commands.cc to use new abstraction layer. Refactor 15+ commands to eliminate ~1300 lines of duplication. Add comprehensive unit tests. (See [Command Abstraction Guide](C5-z3ed-command-abstraction.md))
 2.  **Harden Live LLM Tooling**: Finalize native function-calling loops with Ollama/Gemini and broaden safe read-only tool coverage for dialogue, sprite, and region introspection.
 3.  **Real-Time Transport Upgrade**: Replace HTTP polling with full WebSocket support across CLI/editor and expose ROM sync, snapshot, and proposal voting controls directly inside the AgentChat widget.
 4.  **Cross-Platform Certification**: Complete Windows validation for AI, gRPC, collaboration, and build presets leveraging the documented vcpkg workflow.
@@ -1009,7 +1009,7 @@ The AI response appears in your chat history and can reference specific details 
 9.  **Automation API Unification**: Extract a reusable harness automation API consumed by both CLI `agent test` commands and the Agent Chat widget to prevent serialization drift.
 10. **UI Abstraction Cleanup**: Introduce dedicated presenter/controller layers so `editor_manager.cc` delegates to automation and collaboration services, keeping ImGui widgets declarative.
 
-### ✅ Recently Completed (v0.2.2-alpha - October 12, 2025)
+###  Recently Completed (v0.2.2-alpha - October 12, 2025)
 
 #### Emulator Debugging Infrastructure (NEW) 🔍
 -   **Advanced Debugging Service**: Complete gRPC EmulatorService implementation with breakpoints, memory inspection, step execution, and CPU state access
@@ -1027,13 +1027,13 @@ The AI response appears in your chat history and can reference specific details 
 -   **Collaborative debugging**: Share tool call sequences and findings in chat
 -   **Example**: Debugging ALTTP input issue went from 15 rebuild cycles to 6 tool calls (see `docs/examples/ai-debug-input-issue.md`)
 
-### ✅ Previously Completed (v0.2.1-alpha - October 11, 2025)
+###  Previously Completed (v0.2.1-alpha - October 11, 2025)
 
 #### CLI Architecture Improvements
 -   **Command Abstraction Layer**: Three-tier abstraction system (`CommandContext`, `ArgumentParser`, `OutputFormatter`) to eliminate code duplication across CLI commands
 -   **CommandHandler Base Class**: Structured base class for consistent command implementation with automatic context management
 -   **Refactoring Framework**: Complete migration guide and examples showing 50-60% code reduction per command
--   **Documentation**: Comprehensive [Command Abstraction Guide](z3ed-command-abstraction-guide.md) with migration checklist and testing strategies
+-   **Documentation**: Comprehensive [Command Abstraction Guide](C5-z3ed-command-abstraction.md) with migration checklist and testing strategies
 
 #### Code Quality & Maintainability
 -   **Duplication Elimination**: New abstraction layer removes ~1300 lines of duplicated code across tool commands
@@ -1041,7 +1041,7 @@ The AI response appears in your chat history and can reference specific details 
 -   **Better Testing**: Each component (context, parser, formatter) can be unit tested independently
 -   **AI-Friendly**: Predictable command structure makes it easier for AI to generate and validate tool calls
 
-### ✅ Previously Completed (v0.2.0-alpha - October 5, 2025)
+###  Previously Completed (v0.2.0-alpha - October 5, 2025)
 
 #### Core AI Features
 -   **Enhanced System Prompt (v3)**: Proactive tool chaining with implicit iteration to minimize back-and-forth conversations

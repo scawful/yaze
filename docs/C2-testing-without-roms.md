@@ -15,10 +15,10 @@ The `z3ed` AI agent now supports **mock ROM mode** for testing without requiring
 ## How Mock ROM Mode Works
 
 Mock ROM mode creates a minimal but valid ROM structure with:
-- ✅ Proper SNES header (LoROM mapping, 1MB size)
-- ✅ All Zelda3 embedded labels (rooms, sprites, entrances, items, music, etc.)
-- ✅ Resource label manager fully initialized
-- ❌ No actual ROM data (tiles, graphics, maps are empty)
+- Proper SNES header (LoROM mapping, 1MB size)
+- Zelda3 embedded labels (rooms, sprites, entrances, items, music, etc.)
+- Resource label manager initialization
+- No actual ROM data (tiles, graphics, maps remain empty)
 
 This allows the AI agent to:
 - Answer questions about room names, sprite IDs, entrance numbers
@@ -63,7 +63,7 @@ USE_MOCK_ROM=false  # At the top of agent_test_suite.sh
 
 ## What Works with Mock ROM
 
-### ✅ Fully Supported
+### Fully Supported
 
 **Label Queries:**
 - "What is room 5?" → "Tower of Hera - Moldorm Boss"
@@ -88,7 +88,7 @@ USE_MOCK_ROM=false  # At the top of agent_test_suite.sh
 - Tool output parsing
 - Multi-turn conversations
 
-### ⚠️ Limited Support
+### Limited Support
 
 **Queries Requiring Data:**
 - "What tiles are used in room 5?" → No tile data in mock ROM
@@ -98,7 +98,7 @@ USE_MOCK_ROM=false  # At the top of agent_test_suite.sh
 
 These queries will either return empty results or errors indicating no ROM data is available.
 
-### ❌ Not Supported
+### Not Supported
 
 **Operations That Modify ROM:**
 - Editing tiles
@@ -254,7 +254,7 @@ if (status.ok()) {
 
 ## Best Practices
 
-### DO ✅
+### DO 
 - Use mock ROM for CI/CD and automated tests
 - Use mock ROM for agent logic development
 - Use mock ROM when contributing (no ROM files needed)
@@ -275,11 +275,10 @@ if (status.ok()) {
 
 ---
 
-**Implementation Status:** ✅ Complete  
+**Implementation Status:**  Complete  
 **Since Version:** v0.3.3  
 **Files:**
 - `src/cli/handlers/mock_rom.h`
 - `src/cli/handlers/mock_rom.cc`
 - `src/cli/flags.cc` (--mock-rom flag)
 - `scripts/agent_test_suite.sh` (updated)
-
