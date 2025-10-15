@@ -46,9 +46,9 @@ This phase establishes a new, top-level library for application-agnostic project
 
 1.  **Create New Directory**: Create `src/core/`.
 2.  **Move Files**:
-    *   Move `src/app/core/{project.h, project.cc}` → `src/core/`
-    *   Move `src/app/core/{asar_wrapper.h, asar_wrapper.cc}` → `src/core/`
-    *   Move `src/app/core/features.h` → `src/core/`
+    *   Move `src/app/core/{project.h, project.cc}` → `src/core/` (pending)
+    *   Move `src/app/core/{asar_wrapper.h, asar_wrapper.cc}` → `src/core/` (done)
+    *   Move `src/app/core/features.h` → `src/core/` (pending)
 3.  **Update Namespace**: In the moved files, change the namespace from `yaze::core` to `yaze::project` for clarity.
 4.  **Create CMake Target**: In a new `src/core/CMakeLists.txt`, define the `yaze_core_lib` static library containing the moved files. This library should have minimal dependencies (e.g., `yaze_util`, `absl`).
 

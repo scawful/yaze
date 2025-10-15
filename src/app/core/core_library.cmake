@@ -1,6 +1,6 @@
 set(
   YAZE_APP_CORE_SRC
-  app/core/asar_wrapper.cc
+  core/asar_wrapper.cc
   app/core/controller.cc
   app/core/project.cc
   app/core/window.cc

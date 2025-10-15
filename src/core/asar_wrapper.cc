@@ -1,9 +1,9 @@
-#include "app/core/asar_wrapper.h"
+#include "core/asar_wrapper.h"
 
-#include <fstream>
-#include <sstream>
-#include <iostream>
 #include <filesystem>
+#include <fstream>
+#include <iostream>
+#include <sstream>
 
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_join.h"
@@ -85,7 +85,7 @@ absl::StatusOr<AsarPatchResult> AsarWrapper::ApplyPatch(
   int buffer_size = std::max(rom_size, 16 * 1024 * 1024);  // At least 16MB buffer
   
   // Resize ROM data if needed
-  if (rom_data.size() < buffer_size) {
+  if (rom_data.size() < static_cast<size_t>(buffer_size)) {
     rom_data.resize(buffer_size, 0);
   }
 
@@ -132,38 +132,44 @@ absl::StatusOr<AsarPatchResult> AsarWrapper::ApplyPatchFromString(
     std::vector<uint8_t>& rom_data,
     const std::string& base_path) {
   
-  // Create temporary file for patch content
-  std::string temp_path = "/tmp/yaze_temp_patch.asm";
-  if (!base_path.empty()) {
-    // Ensure directory exists
-    std::filesystem::create_directories(base_path);
-    temp_path = base_path + "/temp_patch.asm";
+  if (!initialized_) {
+    return absl::FailedPreconditionError("Asar not initialized");
   }
 
-  std::ofstream temp_file(temp_path);
-  if (!temp_file) {
-    return absl::InternalError(absl::StrFormat(
-        "Failed to create temporary patch file at: %s", temp_path));
-  }
-  
-  temp_file << patch_content;
-  temp_file.close();
+  // Reset previous state
+  Reset();
 
-  auto result = ApplyPatch(temp_path, rom_data);
-  
+  // Write patch content to temporary file
+  std::filesystem::path temp_patch_path =
+      std::filesystem::temp_directory_path() / "yaze_asar_temp.asm";
+
+  std::ofstream temp_patch_file(temp_patch_path);
+  if (!temp_patch_file) {
+    return absl::InternalError("Failed to create temporary patch file");
+  }
+
+  temp_patch_file << patch_content;
+  temp_patch_file.close();
+
+  // Apply patch using temporary file
+  auto patch_result = ApplyPatch(temp_patch_path.string(), rom_data, {base_path});
+
   // Clean up temporary file
-  std::remove(temp_path.c_str());
-  
-  return result;
+  std::error_code ec;
+  std::filesystem::remove(temp_patch_path, ec);
+
+  return patch_result;
 }
 
 absl::StatusOr<std::vector<AsarSymbol>> AsarWrapper::ExtractSymbols(
     const std::string& asm_path,
     const std::vector<std::string>& include_paths) {
-  
   if (!initialized_) {
     return absl::FailedPreconditionError("Asar not initialized");
   }
+
+  // Reset state before extraction
+  Reset();
 
   // Create a dummy ROM for symbol extraction
   std::vector<uint8_t> dummy_rom(1024 * 1024, 0);  // 1MB dummy ROM

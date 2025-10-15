@@ -10,7 +10,7 @@
 
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
-#include "app/core/asar_wrapper.h"
+#include "core/asar_wrapper.h"
 #include "app/gfx/debug/performance/performance_profiler.h"
 #include "app/core/window.h"
 #include "app/editor/overworld/entity.h"

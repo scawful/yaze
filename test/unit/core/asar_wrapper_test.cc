@@ -1,4 +1,4 @@
-#include "app/core/asar_wrapper.h"
+#include "core/asar_wrapper.h"
 #include "test_utils.h"
 
 #include <gtest/gtest.h>

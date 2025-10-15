@@ -54,7 +54,7 @@ yaze_status yaze_save_rom(zelda3_rom* rom, const char* filename);
 
 The C++ API offers a more powerful, object-oriented interface. The primary entry point for many operations is the `yaze::core::AsarWrapper` class.
 
-### AsarWrapper (`src/app/core/asar_wrapper.h`)
+### AsarWrapper (`src/core/asar_wrapper.h`)
 
 This class provides a complete, cross-platform interface for applying assembly patches, extracting symbols, and validating assembly code using the Asar library.
 
@@ -73,7 +73,7 @@ z3ed agent chat --rom zelda3.sfc
 
 #### C++ API Example
 ```cpp
-#include "app/core/asar_wrapper.h"
+#include "core/asar_wrapper.h"
 #include <vector>
 #include <string>
 

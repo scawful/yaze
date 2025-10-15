@@ -95,6 +95,14 @@ bool LayoutHelpers::BeginTableWithTheming(const char* str_id, int columns,
   return ImGui::BeginTable(str_id, columns, flags, outer_size, inner_width);
 }
 
+void LayoutHelpers::EndTableWithTheming() {
+  ImGui::EndTable();
+  // Pop style colors (5 colors pushed in BeginTableWithTheming)
+  ImGui::PopStyleColor(5);
+  // Pop style var if it was pushed (CellPadding)
+  ImGui::PopStyleVar(1);
+}
+
 void LayoutHelpers::BeginCanvasPanel(const char* label, ImVec2* canvas_size) {
   const auto& theme = GetTheme();
 

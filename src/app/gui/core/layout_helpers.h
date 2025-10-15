@@ -36,6 +36,7 @@ class LayoutHelpers {
                                      ImGuiTableFlags flags = 0,
                                      const ImVec2& outer_size = ImVec2(0, 0),
                                      float inner_width = 0.0f);
+  static void EndTableWithTheming();
   static void EndTable() { ImGui::EndTable(); }
 
   static void BeginCanvasPanel(const char* label, ImVec2* canvas_size = nullptr);

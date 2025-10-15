@@ -176,15 +176,12 @@ class UICoordinator {
   
   // Helper methods for drawing operations
   void DrawSessionIndicator();
-  void DrawVersionInfo();
   void DrawSessionTabs();
   void DrawSessionBadges();
   
   // Material Design component helpers
   void DrawMaterialButton(const std::string& text, const std::string& icon, 
                          std::function<void()> callback, bool enabled = true);
-  void DrawMaterialCard(const std::string& title, const std::string& content);
-  void DrawMaterialDialog(const std::string& title, std::function<void()> content);
   
   // Layout and positioning helpers
   void CenterWindow(const std::string& window_name);
@@ -196,27 +193,6 @@ class UICoordinator {
   std::string GetColorForEditor(EditorType type) const;
   void ApplyEditorTheme(EditorType type);
   
-  // Session UI helpers
-  void DrawSessionList();
-  void DrawSessionControls();
-  void DrawSessionInfo();
-  void DrawSessionStatus();
-  
-  // Popup helpers
-  void DrawHelpMenuPopups();
-  void DrawSettingsPopups();
-  void DrawProjectPopups();
-  void DrawSessionPopups();
-  
-  // Window management helpers
-  void DrawWindowControls();
-  void DrawLayoutControls();
-  void DrawDockingControls();
-  
-  // Performance and debug UI
-  void DrawPerformanceUI();
-  void DrawDebugUI();
-  void DrawTestingUI();
 };
 
 }  // namespace editor

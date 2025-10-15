@@ -361,10 +361,6 @@ void UICoordinator::DrawSessionIndicator() {
   // TODO: [EditorManagerRefactor] Implement session indicator in menu bar
 }
 
-void UICoordinator::DrawVersionInfo() {
-  // TODO: [EditorManagerRefactor] Implement version info display (currently in menu bar extras)
-}
-
 void UICoordinator::DrawSessionTabs() {
   // TODO: [EditorManagerRefactor] Implement session tabs UI
 }
@@ -391,16 +387,6 @@ void UICoordinator::DrawMaterialButton(const std::string& text, const std::strin
   if (!enabled) {
     ImGui::PopStyleColor(2);
   }
-}
-
-void UICoordinator::DrawMaterialCard(const std::string& title, const std::string& content) {
-  // TODO: [EditorManagerRefactor] Implement Material Design card component
-  // Use ThemeManager for consistent Material Design styling
-}
-
-void UICoordinator::DrawMaterialDialog(const std::string& title, std::function<void()> content) {
-  // TODO: [EditorManagerRefactor] Implement Material Design dialog component
-  // Use ThemeManager for consistent Material Design styling
 }
 
 // Layout and positioning helpers
@@ -444,80 +430,6 @@ std::string UICoordinator::GetColorForEditor(EditorType type) const {
 void UICoordinator::ApplyEditorTheme(EditorType type) {
   // TODO: [EditorManagerRefactor] Apply editor-specific theme overrides
   // Use ThemeManager to push/pop style colors based on editor type
-}
-
-// Session UI helpers (delegated to SessionCoordinator)
-void UICoordinator::DrawSessionList() {
-  // TODO: [EditorManagerRefactor] Implement session list UI
-  // Or delegate to SessionCoordinator
-}
-
-void UICoordinator::DrawSessionControls() {
-  // TODO: [EditorManagerRefactor] Implement session control buttons
-  // Or delegate to SessionCoordinator
-}
-
-void UICoordinator::DrawSessionInfo() {
-  // TODO: [EditorManagerRefactor] Implement session info display
-  // Or delegate to SessionCoordinator
-}
-
-void UICoordinator::DrawSessionStatus() {
-  // TODO: [EditorManagerRefactor] Implement session status indicators
-  // Or delegate to SessionCoordinator
-}
-
-// Popup helpers (delegated to PopupManager)
-void UICoordinator::DrawHelpMenuPopups() {
-  // TODO: [EditorManagerRefactor] Coordinate help menu popup display
-  // Popups are managed by PopupManager
-}
-
-void UICoordinator::DrawSettingsPopups() {
-  // TODO: [EditorManagerRefactor] Coordinate settings popup display
-  // Popups are managed by PopupManager
-}
-
-void UICoordinator::DrawProjectPopups() {
-  // TODO: [EditorManagerRefactor] Coordinate project popup display
-  // Popups are managed by PopupManager
-}
-
-void UICoordinator::DrawSessionPopups() {
-  // TODO: [EditorManagerRefactor] Coordinate session popup display
-  // Popups are managed by PopupManager
-}
-
-// Window management helpers (delegated to WindowDelegate/WorkspaceManager)
-void UICoordinator::DrawWindowControls() {
-  // TODO: [EditorManagerRefactor] Implement window visibility controls
-  // Delegate to WindowDelegate
-}
-
-void UICoordinator::DrawLayoutControls() {
-  // TODO: [EditorManagerRefactor] Implement layout management controls
-  // Delegate to LayoutManager and WorkspaceManager
-}
-
-void UICoordinator::DrawDockingControls() {
-  // TODO: [EditorManagerRefactor] Implement docking configuration controls
-  // Use ImGui::DockBuilder API
-}
-
-// Performance and debug UI (delegated to specialized components)
-void UICoordinator::DrawPerformanceUI() {
-  // TODO: [EditorManagerRefactor] Coordinate performance dashboard display
-  // Performance dashboard is managed separately (PerformanceDashboard::Get())
-}
-
-void UICoordinator::DrawDebugUI() {
-  // TODO: [EditorManagerRefactor] Coordinate debug UI display
-  // Debug windows (ImGui Demo, Metrics) managed by EditorManager
-}
-
-void UICoordinator::DrawTestingUI() {
-  // TODO: [EditorManagerRefactor] Coordinate test dashboard display
-  // Test dashboard managed by TestManager
 }
 
 void UICoordinator::DrawCommandPalette() {
@@ -643,7 +555,7 @@ void UICoordinator::DrawCommandPalette() {
             }
           }
           
-          EndTable();
+          gui::LayoutHelpers::EndTableWithTheming();
         }
         EndTabItem();
       }

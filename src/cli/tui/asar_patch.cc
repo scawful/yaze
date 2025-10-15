@@ -4,7 +4,7 @@
 #include <ftxui/component/screen_interactive.hpp>
 
 #include "cli/tui/tui.h"
-#include "app/core/asar_wrapper.h"
+#include "core/asar_wrapper.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_join.h"
 

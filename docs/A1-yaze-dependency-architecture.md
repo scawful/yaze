@@ -931,7 +931,7 @@ yaze_core_lib (INTERFACE):
 # src/app/core/core_library.cmake
 
 set(CORE_FOUNDATION_SRC
-  app/core/asar_wrapper.cc
+  core/asar_wrapper.cc
   app/core/window.cc
   app/rom.cc
   app/platform/font_loader.cc
