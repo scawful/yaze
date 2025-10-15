@@ -111,7 +111,7 @@ jobs:
       if: runner.os == 'Windows'
       shell: pwsh
       run: |
-        choco install --no-progress -y nasm ninja ccache
+        choco install --no-progress -y nasm ccache
         if ($env:ChocolateyInstall) {
           $profilePath = Join-Path $env:ChocolateyInstall "helpers\chocolateyProfile.psm1"
           if (Test-Path $profilePath) {
@@ -286,7 +286,6 @@ jobs:
         $cmakeArgs = @(
           "-S", ".",
           "-B", "build",
-          "-G", "Ninja",
           "-DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}",
           "-DCMAKE_TOOLCHAIN_FILE=$toolchain",
           "-DVCPKG_TARGET_TRIPLET=x64-windows-static",
@@ -296,8 +295,7 @@ jobs:
           "-DYAZE_BUILD_Z3ED=ON",
           "-DYAZE_BUILD_TOOLS=ON",
           "-DYAZE_ENABLE_ROM_TESTS=OFF",
-          "-DCMAKE_CXX_FLAGS=/Dgoogle_protobuf_undef_DWORD=1 /D__PRFCHWINTRIN_H /DGOOGLE_PROTOBUF_NO_RTTI /DPROTOBUF_FORCE_COPY_IN_SWAP",
-          "-DCMAKE_C_FLAGS=/Dgoogle_protobuf_undef_DWORD=1 /D__PRFCHWINTRIN_H /DGOOGLE_PROTOBUF_NO_RTTI /DPROTOBUF_FORCE_COPY_IN_SWAP"
+          "-DVCPKG_INSTALL_OPTIONS=--x-feature=pkgconfig"
         )
 
         cmake @cmakeArgs 2>&1 | Tee-Object -FilePath cmake_config.log
@@ -382,7 +380,7 @@ jobs:
         if [[ "${{ runner.os }}" == "Windows" ]]; then
           JOBS=${CMAKE_BUILD_PARALLEL_LEVEL:-4}
           echo "Using $JOBS parallel jobs"
-          cmake --build build --parallel "${JOBS}" 2>&1 | tee build.log
+          cmake --build build --config "${BUILD_TYPE}" --parallel "${JOBS}" 2>&1 | tee build.log
         else
           # Determine number of parallel jobs based on platform
           if command -v nproc >/dev/null 2>&1; then
@@ -495,6 +493,7 @@ jobs:
     - name: Test (Stable)
       id: test_stable
       working-directory: build
+      shell: bash
       run: |
         BUILD_TYPE=${BUILD_TYPE:-${{ env.BUILD_TYPE }}}
         echo "Running stable test suite..."
@@ -506,6 +505,7 @@ jobs:
       id: test_experimental
       working-directory: build
       continue-on-error: true
+      shell: bash
       run: |
         BUILD_TYPE=${BUILD_TYPE:-${{ env.BUILD_TYPE }}}
         echo "Running experimental test suite (informational only)..."
