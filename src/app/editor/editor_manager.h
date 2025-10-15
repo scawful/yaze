@@ -36,6 +36,9 @@
 #include "app/editor/system/settings_editor.h"
 #include "app/editor/system/toast_manager.h"
 #include "app/rom.h"
+#include "app/editor/system/editor_registry.h"
+#include "app/editor/system/project_manager.h"
+#include "app/editor/system/rom_file_manager.h"
 #include "app/editor/system/session_card_registry.h"
 #include "app/editor/system/window_delegate.h"
 #include "app/editor/ui/session_coordinator.h"
@@ -350,6 +353,9 @@ class EditorManager {
   WorkspaceManager workspace_manager_{&toast_manager_};
   
   // New delegated components
+  EditorRegistry editor_registry_;
+  ProjectManager project_manager_;
+  RomFileManager rom_file_manager_;
   SessionCardRegistry card_registry_;
   WindowDelegate window_delegate_;
   std::unique_ptr<SessionCoordinator> session_coordinator_;

@@ -171,7 +171,8 @@ absl::Status WindowDelegate::LoadLayout(const std::string& preset_name) {
 
 absl::Status WindowDelegate::ResetLayout() {
   printf("[WindowDelegate] ResetLayout()\n");
-  // Actual implementation would reset to default layout
+  // Load default ImGui layout
+  ImGui::LoadIniSettingsFromMemory(nullptr);
   return absl::OkStatus();
 }
 
@@ -292,6 +293,22 @@ void WindowDelegate::ApplyLayoutToWindow(const std::string& window_id, const std
     printf("[WindowDelegate] ApplyLayoutToWindow: %s\n", window_id.c_str());
     // TODO: Implement layout application
   }
+}
+
+void WindowDelegate::SaveWorkspaceLayout() {
+  ImGui::SaveIniSettingsToDisk("yaze_workspace.ini");
+  printf("[WindowDelegate] Workspace layout saved to yaze_workspace.ini\n");
+}
+
+void WindowDelegate::LoadWorkspaceLayout() {
+  ImGui::LoadIniSettingsFromDisk("yaze_workspace.ini");
+  printf("[WindowDelegate] Workspace layout loaded from yaze_workspace.ini\n");
+}
+
+void WindowDelegate::ResetWorkspaceLayout() {
+  // Reset to default ImGui layout
+  ImGui::LoadIniSettingsFromMemory(nullptr);
+  printf("[WindowDelegate] Workspace layout reset to default\n");
 }
 
 }  // namespace editor

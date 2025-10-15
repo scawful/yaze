@@ -53,6 +53,11 @@ class WindowDelegate {
   absl::Status ResetLayout();
   std::vector<std::string> GetAvailableLayouts() const;
   
+  // Workspace-specific layout methods (match EditorManager API)
+  void SaveWorkspaceLayout();
+  void LoadWorkspaceLayout();
+  void ResetWorkspaceLayout();
+  
   // Window state queries
   std::vector<std::string> GetVisibleWindows() const;
   std::vector<std::string> GetHiddenWindows() const;

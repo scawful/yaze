@@ -33,9 +33,12 @@ set(
   app/editor/sprite/sprite_editor.cc
   app/editor/system/command_manager.cc
   app/editor/system/command_palette.cc
+  app/editor/system/editor_registry.cc
   app/editor/system/extension_manager.cc
   app/editor/system/popup_manager.cc
+  app/editor/system/project_manager.cc
   app/editor/system/proposal_drawer.cc
+  app/editor/system/rom_file_manager.cc
   app/editor/system/session_card_registry.cc
   app/editor/system/settings_editor.cc
   app/editor/system/shortcut_manager.cc
