@@ -1423,6 +1423,8 @@ absl::Status EditorManager::LoadAssets() {
     emulator_.set_renderer(renderer_);
   }
 
+  // Initialize all editors - this registers their cards with EditorCardRegistry
+  // and sets up any editor-specific resources. Must be called before Load().
   current_editor_set_->overworld_editor_.Initialize();
   current_editor_set_->message_editor_.Initialize();
   current_editor_set_->graphics_editor_.Initialize();
@@ -1430,6 +1432,8 @@ absl::Status EditorManager::LoadAssets() {
   current_editor_set_->sprite_editor_.Initialize();
   current_editor_set_->palette_editor_.Initialize();
   current_editor_set_->assembly_editor_.Initialize();
+  current_editor_set_->music_editor_.Initialize();
+  current_editor_set_->settings_editor_.Initialize();  // Initialize settings editor to register System cards
   // Initialize the dungeon editor with the renderer
   current_editor_set_->dungeon_editor_.Initialize(renderer_, current_rom_);
   ASSIGN_OR_RETURN(*gfx::Arena::Get().mutable_gfx_sheets(),

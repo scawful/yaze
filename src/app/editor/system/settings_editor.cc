@@ -93,21 +93,23 @@ absl::Status SettingsEditor::Update() {
   if (!dependencies_.card_registry) return absl::OkStatus();
   auto* card_registry = dependencies_.card_registry;
   
-  // General Settings Card
-  if (card_registry->IsCardVisible(MakeCardId("settings.general"))) {
+  // General Settings Card - Check visibility flag and pass to Begin() for proper X button
+  bool* general_visible = card_registry->GetVisibilityFlag(MakeCardId("settings.general"));
+  if (general_visible && *general_visible) {
     static gui::EditorCard general_card("General Settings", ICON_MD_SETTINGS);
     general_card.SetDefaultSize(600, 500);
-    if (general_card.Begin()) {
+    if (general_card.Begin(general_visible)) {
       DrawGeneralSettings();
     }
     general_card.End();
   }
   
-  // Appearance Card (Themes + Font Manager combined)
-  if (card_registry->IsCardVisible(MakeCardId("settings.appearance"))) {
+  // Appearance Card (Themes + Font Manager combined) - Check visibility and pass flag
+  bool* appearance_visible = card_registry->GetVisibilityFlag(MakeCardId("settings.appearance"));
+  if (appearance_visible && *appearance_visible) {
     static gui::EditorCard appearance_card("Appearance", ICON_MD_PALETTE);
     appearance_card.SetDefaultSize(600, 600);
-    if (appearance_card.Begin()) {
+    if (appearance_card.Begin(appearance_visible)) {
       DrawThemeSettings();
       ImGui::Separator();
       gui::DrawFontManager();
@@ -115,41 +117,45 @@ absl::Status SettingsEditor::Update() {
     appearance_card.End();
   }
   
-  // Editor Behavior Card
-  if (card_registry->IsCardVisible(MakeCardId("settings.editor_behavior"))) {
+  // Editor Behavior Card - Check visibility and pass flag
+  bool* behavior_visible = card_registry->GetVisibilityFlag(MakeCardId("settings.editor_behavior"));
+  if (behavior_visible && *behavior_visible) {
     static gui::EditorCard behavior_card("Editor Behavior", ICON_MD_TUNE);
     behavior_card.SetDefaultSize(600, 500);
-    if (behavior_card.Begin()) {
+    if (behavior_card.Begin(behavior_visible)) {
       DrawEditorBehavior();
     }
     behavior_card.End();
   }
   
-  // Performance Card
-  if (card_registry->IsCardVisible(MakeCardId("settings.performance"))) {
+  // Performance Card - Check visibility and pass flag
+  bool* perf_visible = card_registry->GetVisibilityFlag(MakeCardId("settings.performance"));
+  if (perf_visible && *perf_visible) {
     static gui::EditorCard perf_card("Performance", ICON_MD_SPEED);
     perf_card.SetDefaultSize(600, 450);
-    if (perf_card.Begin()) {
+    if (perf_card.Begin(perf_visible)) {
       DrawPerformanceSettings();
     }
     perf_card.End();
   }
   
-  // AI Agent Settings Card
-  if (card_registry->IsCardVisible(MakeCardId("settings.ai_agent"))) {
+  // AI Agent Settings Card - Check visibility and pass flag
+  bool* ai_visible = card_registry->GetVisibilityFlag(MakeCardId("settings.ai_agent"));
+  if (ai_visible && *ai_visible) {
     static gui::EditorCard ai_card("AI Agent", ICON_MD_SMART_TOY);
     ai_card.SetDefaultSize(600, 550);
-    if (ai_card.Begin()) {
+    if (ai_card.Begin(ai_visible)) {
       DrawAIAgentSettings();
     }
     ai_card.End();
   }
   
-  // Keyboard Shortcuts Card
-  if (card_registry->IsCardVisible(MakeCardId("settings.shortcuts"))) {
+  // Keyboard Shortcuts Card - Check visibility and pass flag
+  bool* shortcuts_visible = card_registry->GetVisibilityFlag(MakeCardId("settings.shortcuts"));
+  if (shortcuts_visible && *shortcuts_visible) {
     static gui::EditorCard shortcuts_card("Keyboard Shortcuts", ICON_MD_KEYBOARD);
     shortcuts_card.SetDefaultSize(700, 600);
-    if (shortcuts_card.Begin()) {
+    if (shortcuts_card.Begin(shortcuts_visible)) {
       DrawKeyboardShortcuts();
     }
     shortcuts_card.End();

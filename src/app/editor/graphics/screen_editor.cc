@@ -122,32 +122,50 @@ absl::Status ScreenEditor::Update() {
   title_screen_card.SetDefaultSize(600, 500);
   naming_screen_card.SetDefaultSize(500, 400);
 
-  // Get visibility flags from card manager and pass to Begin()
-  // Always call End() after Begin() - End() handles ImGui state safely
-  if (dungeon_maps_card.Begin(card_registry->GetVisibilityFlag("screen.dungeon_maps"))) {
-    DrawDungeonMapsEditor();
+  // Dungeon Maps Card - Check visibility flag exists and is true before rendering
+  bool* dungeon_maps_visible = card_registry->GetVisibilityFlag("screen.dungeon_maps");
+  if (dungeon_maps_visible && *dungeon_maps_visible) {
+    if (dungeon_maps_card.Begin(dungeon_maps_visible)) {
+      DrawDungeonMapsEditor();
+    }
+    dungeon_maps_card.End();
   }
-  dungeon_maps_card.End();
   
-  if (inventory_menu_card.Begin(card_registry->GetVisibilityFlag("screen.inventory_menu"))) {
-    DrawInventoryMenuEditor();
+  // Inventory Menu Card - Check visibility flag exists and is true before rendering
+  bool* inventory_menu_visible = card_registry->GetVisibilityFlag("screen.inventory_menu");
+  if (inventory_menu_visible && *inventory_menu_visible) {
+    if (inventory_menu_card.Begin(inventory_menu_visible)) {
+      DrawInventoryMenuEditor();
+    }
+    inventory_menu_card.End();
   }
-  inventory_menu_card.End();
   
-  if (overworld_map_card.Begin(card_registry->GetVisibilityFlag("screen.overworld_map"))) {
-    DrawOverworldMapEditor();
+  // Overworld Map Card - Check visibility flag exists and is true before rendering
+  bool* overworld_map_visible = card_registry->GetVisibilityFlag("screen.overworld_map");
+  if (overworld_map_visible && *overworld_map_visible) {
+    if (overworld_map_card.Begin(overworld_map_visible)) {
+      DrawOverworldMapEditor();
+    }
+    overworld_map_card.End();
   }
-  overworld_map_card.End();
   
-  if (title_screen_card.Begin(card_registry->GetVisibilityFlag("screen.title_screen"))) {
-    DrawTitleScreenEditor();
+  // Title Screen Card - Check visibility flag exists and is true before rendering
+  bool* title_screen_visible = card_registry->GetVisibilityFlag("screen.title_screen");
+  if (title_screen_visible && *title_screen_visible) {
+    if (title_screen_card.Begin(title_screen_visible)) {
+      DrawTitleScreenEditor();
+    }
+    title_screen_card.End();
   }
-  title_screen_card.End();
   
-  if (naming_screen_card.Begin(card_registry->GetVisibilityFlag("screen.naming_screen"))) {
-    DrawNamingScreenEditor();
+  // Naming Screen Card - Check visibility flag exists and is true before rendering
+  bool* naming_screen_visible = card_registry->GetVisibilityFlag("screen.naming_screen");
+  if (naming_screen_visible && *naming_screen_visible) {
+    if (naming_screen_card.Begin(naming_screen_visible)) {
+      DrawNamingScreenEditor();
+    }
+    naming_screen_card.End();
   }
-  naming_screen_card.End();
 
   return status_;
 }

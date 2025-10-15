@@ -48,23 +48,32 @@ absl::Status MusicEditor::Update() {
   instrument_card.SetDefaultSize(600, 500);
   assembly_card.SetDefaultSize(700, 600);
   
-  // Music Tracker Card
-  if (tracker_card.Begin(card_registry->GetVisibilityFlag("music.tracker"))) {
-    DrawTrackerView();
+  // Music Tracker Card - Check visibility flag exists and is true before rendering
+  bool* tracker_visible = card_registry->GetVisibilityFlag("music.tracker");
+  if (tracker_visible && *tracker_visible) {
+    if (tracker_card.Begin(tracker_visible)) {
+      DrawTrackerView();
+    }
+    tracker_card.End();
   }
-  tracker_card.End();
   
-  // Instrument Editor Card
-  if (instrument_card.Begin(card_registry->GetVisibilityFlag("music.instrument_editor"))) {
-    DrawInstrumentEditor();
+  // Instrument Editor Card - Check visibility flag exists and is true before rendering
+  bool* instrument_visible = card_registry->GetVisibilityFlag("music.instrument_editor");
+  if (instrument_visible && *instrument_visible) {
+    if (instrument_card.Begin(instrument_visible)) {
+      DrawInstrumentEditor();
+    }
+    instrument_card.End();
   }
-  instrument_card.End();
   
-  // Assembly View Card
-  if (assembly_card.Begin(card_registry->GetVisibilityFlag("music.assembly"))) {
-    assembly_editor_.InlineUpdate();
+  // Assembly View Card - Check visibility flag exists and is true before rendering
+  bool* assembly_visible = card_registry->GetVisibilityFlag("music.assembly");
+  if (assembly_visible && *assembly_visible) {
+    if (assembly_card.Begin(assembly_visible)) {
+      assembly_editor_.InlineUpdate();
+    }
+    assembly_card.End();
   }
-  assembly_card.End();
 
   return absl::OkStatus();
 }

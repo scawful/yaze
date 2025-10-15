@@ -114,30 +114,44 @@ absl::Status GraphicsEditor::Update() {
   player_anims_card.SetDefaultSize(500, 600);
   prototype_card.SetDefaultSize(600, 500);
 
-  // Get visibility flags from card manager and pass to Begin()
-  // Always call End() after Begin() - End() handles ImGui state safely
-  if (sheet_editor_card.Begin(card_registry->GetVisibilityFlag("graphics.sheet_editor"))) {
-    status_ = UpdateGfxEdit();
-  }
-  sheet_editor_card.End();
-
-  if (sheet_browser_card.Begin(card_registry->GetVisibilityFlag("graphics.sheet_browser"))) {
-    if (asset_browser_.Initialized == false) {
-      asset_browser_.Initialize(gfx::Arena::Get().gfx_sheets());
+  // Sheet Editor Card - Check visibility flag exists and is true before rendering
+  bool* sheet_editor_visible = card_registry->GetVisibilityFlag("graphics.sheet_editor");
+  if (sheet_editor_visible && *sheet_editor_visible) {
+    if (sheet_editor_card.Begin(sheet_editor_visible)) {
+      status_ = UpdateGfxEdit();
     }
-    asset_browser_.Draw(gfx::Arena::Get().gfx_sheets());
+    sheet_editor_card.End();
   }
-  sheet_browser_card.End();
 
-  if (player_anims_card.Begin(card_registry->GetVisibilityFlag("graphics.player_animations"))) {
-    status_ = UpdateLinkGfxView();
+  // Sheet Browser Card - Check visibility flag exists and is true before rendering
+  bool* sheet_browser_visible = card_registry->GetVisibilityFlag("graphics.sheet_browser");
+  if (sheet_browser_visible && *sheet_browser_visible) {
+    if (sheet_browser_card.Begin(sheet_browser_visible)) {
+      if (asset_browser_.Initialized == false) {
+        asset_browser_.Initialize(gfx::Arena::Get().gfx_sheets());
+      }
+      asset_browser_.Draw(gfx::Arena::Get().gfx_sheets());
+    }
+    sheet_browser_card.End();
   }
-  player_anims_card.End();
 
-  if (prototype_card.Begin(card_registry->GetVisibilityFlag("graphics.prototype_viewer"))) {
-    status_ = UpdateScadView();
+  // Player Animations Card - Check visibility flag exists and is true before rendering
+  bool* player_anims_visible = card_registry->GetVisibilityFlag("graphics.player_animations");
+  if (player_anims_visible && *player_anims_visible) {
+    if (player_anims_card.Begin(player_anims_visible)) {
+      status_ = UpdateLinkGfxView();
+    }
+    player_anims_card.End();
   }
-  prototype_card.End();
+
+  // Prototype Viewer Card - Check visibility flag exists and is true before rendering
+  bool* prototype_visible = card_registry->GetVisibilityFlag("graphics.prototype_viewer");
+  if (prototype_visible && *prototype_visible) {
+    if (prototype_card.Begin(prototype_visible)) {
+      status_ = UpdateScadView();
+    }
+    prototype_card.End();
+  }
 
   CLEAR_AND_RETURN_STATUS(status_)
   return absl::OkStatus();

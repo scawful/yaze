@@ -173,21 +173,17 @@ void UICoordinator::DrawMenuBarExtras() {
 }
 
 void UICoordinator::DrawContextSensitiveCardControl() {
-  // Get current editor and determine category
-  auto* current_editor = editor_manager_->GetCurrentEditorSet();
-  if (!current_editor) return;
-  
-  // Find active card-based editor
-  Editor* active_editor = nullptr;
-  for (auto* editor : current_editor->active_editors_) {
-    if (*editor->active() && editor_registry_.IsCardBasedEditor(editor->type())) {
-      active_editor = editor;
-      break;
-    }
-  }
-  
+  // Get the currently active editor directly from EditorManager
+  // This ensures we show cards for the correct editor that has focus
+  auto* active_editor = editor_manager_->GetCurrentEditor();
   if (!active_editor) return;
   
+  // Only show card control for card-based editors (not palette, not assembly in legacy mode, etc.)
+  if (!editor_registry_.IsCardBasedEditor(active_editor->type())) {
+    return;
+  }
+  
+  // Get the category and session for the active editor
   std::string category = editor_registry_.GetEditorCategory(active_editor->type());
   size_t session_id = editor_manager_->GetCurrentSessionId();
   

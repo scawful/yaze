@@ -381,54 +381,86 @@ void Emulator::RenderEmulatorInterface() {
     breakpoints_card.SetDefaultSize(400, 350);
     performance_card.SetDefaultSize(350, 300);
 
-    if (card_registry_->IsCardVisible("emulator.cpu_debugger") && cpu_card.Begin()) {
-      RenderModernCpuDebugger();
+    // Get visibility flags from registry and pass them to Begin() for proper X button functionality
+    // This ensures each card window can be closed by the user via the window close button
+    bool* cpu_visible = card_registry_->GetVisibilityFlag("emulator.cpu_debugger");
+    if (cpu_visible && *cpu_visible) {
+      if (cpu_card.Begin(cpu_visible)) {
+        RenderModernCpuDebugger();
+      }
       cpu_card.End();
     }
 
-    if (card_registry_->IsCardVisible("emulator.ppu_viewer") && ppu_card.Begin()) {
-      RenderNavBar();
-      RenderSnesPpu();
+    bool* ppu_visible = card_registry_->GetVisibilityFlag("emulator.ppu_viewer");
+    if (ppu_visible && *ppu_visible) {
+      if (ppu_card.Begin(ppu_visible)) {
+        RenderNavBar();
+        RenderSnesPpu();
+      }
       ppu_card.End();
     }
 
-    if (card_registry_->IsCardVisible("emulator.memory_viewer") && memory_card.Begin()) {
-      RenderMemoryViewer();
+    bool* memory_visible = card_registry_->GetVisibilityFlag("emulator.memory_viewer");
+    if (memory_visible && *memory_visible) {
+      if (memory_card.Begin(memory_visible)) {
+        RenderMemoryViewer();
+      }
       memory_card.End();
     }
 
-    if (card_registry_->IsCardVisible("emulator.breakpoints") && breakpoints_card.Begin()) {
-      RenderBreakpointList();
+    bool* breakpoints_visible = card_registry_->GetVisibilityFlag("emulator.breakpoints");
+    if (breakpoints_visible && *breakpoints_visible) {
+      if (breakpoints_card.Begin(breakpoints_visible)) {
+        RenderBreakpointList();
+      }
       breakpoints_card.End();
     }
 
-    if (card_registry_->IsCardVisible("emulator.performance") && performance_card.Begin()) {
-      RenderPerformanceMonitor();
+    bool* performance_visible = card_registry_->GetVisibilityFlag("emulator.performance");
+    if (performance_visible && *performance_visible) {
+      if (performance_card.Begin(performance_visible)) {
+        RenderPerformanceMonitor();
+      }
       performance_card.End();
     }
 
-    if (card_registry_->IsCardVisible("emulator.ai_agent") && ai_card.Begin()) {
-      RenderAIAgentPanel();
+    bool* ai_agent_visible = card_registry_->GetVisibilityFlag("emulator.ai_agent");
+    if (ai_agent_visible && *ai_agent_visible) {
+      if (ai_card.Begin(ai_agent_visible)) {
+        RenderAIAgentPanel();
+      }
       ai_card.End();
     }
 
-    if (card_registry_->IsCardVisible("emulator.save_states") && save_states_card.Begin()) {
-      RenderSaveStates();
+    bool* save_states_visible = card_registry_->GetVisibilityFlag("emulator.save_states");
+    if (save_states_visible && *save_states_visible) {
+      if (save_states_card.Begin(save_states_visible)) {
+        RenderSaveStates();
+      }
       save_states_card.End();
     }
 
-    if (card_registry_->IsCardVisible("emulator.keyboard_config") && keyboard_card.Begin()) {
-      RenderKeyboardConfig();
+    bool* keyboard_config_visible = card_registry_->GetVisibilityFlag("emulator.keyboard_config");
+    if (keyboard_config_visible && *keyboard_config_visible) {
+      if (keyboard_card.Begin(keyboard_config_visible)) {
+        RenderKeyboardConfig();
+      }
       keyboard_card.End();
     }
 
-    if (card_registry_->IsCardVisible("emulator.apu_debugger") && apu_card.Begin()) {
-      RenderApuDebugger();
+    bool* apu_debugger_visible = card_registry_->GetVisibilityFlag("emulator.apu_debugger");
+    if (apu_debugger_visible && *apu_debugger_visible) {
+      if (apu_card.Begin(apu_debugger_visible)) {
+        RenderApuDebugger();
+      }
       apu_card.End();
     }
 
-    if (card_registry_->IsCardVisible("emulator.audio_mixer") && audio_card.Begin()) {
-      // RenderAudioMixer();
+    bool* audio_mixer_visible = card_registry_->GetVisibilityFlag("emulator.audio_mixer");
+    if (audio_mixer_visible && *audio_mixer_visible) {
+      if (audio_card.Begin(audio_mixer_visible)) {
+        // RenderAudioMixer();
+      }
       audio_card.End();
     }
 
