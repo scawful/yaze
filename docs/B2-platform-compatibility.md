@@ -22,6 +22,8 @@
 - `WIN32_LEAN_AND_MEAN` - Reduce Windows header pollution
 - `NOMINMAX` - Prevent min/max macro conflicts
 - `NOGDI` - Prevent GDI macro conflicts (DWORD, etc.)
+- `__PRFCHWINTRIN_H` - Work around Clang 20 `_m_prefetchw` linkage clash with
+  Windows SDK headers
 
 **Build Times:**
 - First build with FetchContent: ~45-60 minutes (compiles gRPC)
@@ -132,6 +134,21 @@ Before merging platform-specific changes:
 - ✅ gRPC v1.67.1 with MSVC compatibility flags
 - ✅ Cross-platform code uses SDL2/ImGui only
 - ⏳ Validate CI builds pass on next push
+
+### CI/CD Performance Roadmap
+
+- **Dependency caching**: Cache vcpkg installs on Windows plus Homebrew/apt
+  archives to trim 5-10 minutes per job; track cache keys via OS + lockfiles.
+- **Compiler caching**: Enable `ccache`/`sccache` across the matrix using the
+  `hendrikmuhs/ccache-action` with 500 MB per-run limits for 3-5 minute wins.
+- **Conditional work**: Add a path-filter job that skips emulator builds or
+  full test runs when only docs or CLI code change; fall back to full matrix on
+  shared components.
+- **Reusable workflows**: Centralize setup steps (checking out submodules,
+  restoring caches, configuring presets) to reduce duplication between `ci.yml`
+  and `release.yml`.
+- **Release optimizations**: Use lean presets without test targets, run platform
+  builds in parallel, and reuse cached artifacts from CI when hashes match.
 
 ---
 

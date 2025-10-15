@@ -37,6 +37,16 @@ struct PaletteGroupMap {
 };
 ```
 
+#### 3. Color Representations in Code
+- **SNES 15-bit (`uint16_t`)**: On-disk format `0bbbbbgggggrrrrr`; store raw ROM
+  words or write back with `ConvertRgbToSnes`.
+- **`gfx::snes_color` struct**: Expands each channel to 0-255 for arithmetic
+  without floating point; use in converters and palette math.
+- **`gfx::SnesColor` class**: High-level wrapper retaining the original SNES
+  value, a `snes_color`, and an ImVec4. Its `rgb()` accessor purposely returns
+  0-255 components—run the helper converters (e.g., `ConvertSnesColorToImVec4`)
+  before handing colors to ImGui widgets that expect 0.0-1.0 floats.
+
 ### Dungeon Palette System
 
 #### Structure
@@ -117,6 +127,23 @@ CreateAndRenderBitmap(0x200, 0x200, 8, data, bitmap, palette);
 //                              width, height, depth=8 bits
 ```
 
+### Transparency and Conversion Best Practices
+
+- Preserve ROM palette words exactly as read; hardware enforces transparency on
+  index 0 so we no longer call `set_transparent(true)` while loading.
+- Apply transparency only at render time via `SetPaletteWithTransparent()` for
+  3BPP sub-palettes or `SetPalette()` for full 256-color assets.
+- `SnesColor::rgb()` yields components in 0-255 space; convert to ImGui’s
+  expected 0.0-1.0 floats with the helper functions instead of manual divides.
+- Use the provided conversion helpers (`ConvertSnesToRgb`, `ImVec4ToSnesColor`,
+  `SnesTo8bppColor`) to prevent rounding mistakes and alpha bugs.
+
+```cpp
+ImVec4 rgb_255 = snes_color.rgb();
+ImVec4 display = ConvertSnesColorToImVec4(snes_color);
+ImGui::ColorButton("color", display);
+```
+
 #### Issue 3: ROM Not Loaded in Preview
 **Symptom**: "ROM not loaded" error in emulator preview
 **Cause**: Initializing before ROM is set
@@ -159,6 +186,36 @@ rom->WriteByte(address + 1, (snes_value >> 8) & 0xFF);  // High byte
 5. **Preview**: Show before/after comparison
 6. **Save**: Write modified palette back to ROM
 
+#### Palette UI Helpers
+- `InlinePaletteSelector` renders a lightweight selection strip (no editing)
+  ideal for 8- or 16-color sub-palettes.
+- `InlinePaletteEditor` supplies the full editing experience with ImGui color
+  pickers, context menus, and optional live preview toggles.
+- `PopupPaletteEditor` fits in context menus or modals; it caps at 64 colors to
+  keep popups manageable.
+- Legacy helpers such as `DisplayPalette()` remain for backward compatibility
+  but inherit the 32-color limit—prefer the new helpers for new UI.
+
+-### Metadata-Driven Palette Application
+
+`gfx::BitmapMetadata` tracks the source BPP, palette format, type string, and
+expected color count. Set it immediately after creating a bitmap so later code
+can make the right choice automatically:
+
+```cpp
+bitmap.metadata() = BitmapMetadata{/*source_bpp=*/3,
+                                   /*palette_format=*/1,  // 0=full, 1=sub-palette
+                                   /*source_type=*/"graphics_sheet",
+                                   /*palette_colors=*/8};
+bitmap.ApplyPaletteByMetadata(palette);
+```
+
+- `palette_format == 0` routes to `SetPalette()` and preserves every color
+  (Mode 7, HUD assets, etc.).
+- `palette_format == 1` routes to `SetPaletteWithTransparent()` and injects the
+  transparent color 0 for 3BPP workflows.
+- Validation hooks help catch mismatched palette sizes before they hit SDL.
+
 ### Graphics Manager Integration
 
 #### Sheet Palette Assignment
@@ -175,6 +232,30 @@ if (sheet_id > 115) {
 }
 ```
 
+### Texture Synchronization and Regression Notes
+
+- Call `bitmap.UpdateSurfacePixels()` after mutating `bitmap.mutable_data()` to
+  copy rendered bytes into the SDL surface before queuing texture creation or
+  updates.
+- `Bitmap::ApplyStoredPalette()` now rebuilds an `SDL_Color` array sized to the
+  actual palette instead of forcing 256 entries—this fixes regressions where
+  8- or 16-color palettes were padded with opaque black.
+- When updating SDL palette data yourself, mirror that pattern:
+
+```cpp
+std::vector<SDL_Color> colors(palette.size());
+for (size_t i = 0; i < palette.size(); ++i) {
+  const auto& c = palette[i];
+  const ImVec4 rgb = c.rgb();  // 0-255 components
+  colors[i] = SDL_Color{static_cast<Uint8>(rgb.x),
+                        static_cast<Uint8>(rgb.y),
+                        static_cast<Uint8>(rgb.z),
+                        c.is_transparent() ? 0 : 255};
+}
+SDL_SetPaletteColors(surface->format->palette, colors.data(), 0,
+                     static_cast<int>(colors.size()));
+```
+
 ### Best Practices
 
 1. **Always use `operator[]` for palette access** - returns reference, not copy
@@ -188,6 +269,19 @@ if (sheet_id > 115) {
 4. **Initialize ROM-dependent components** only after ROM is fully loaded
 5. **Cache palettes** when repeatedly accessing the same palette
 6. **Update textures** after changing palettes (textures don't auto-update)
+
+### User Workflow Tips
+
+- Choose the widget that matches the task: selectors for choosing colors,
+  editors for full control, popups for contextual tweaks.
+- The live preview toggle trades responsiveness for performance; disable it
+  while batch-editing large (64+ color) palettes.
+- Right-click any swatch in the editor to copy the color as SNES hex, RGB
+  tuples, or HTML hex—useful when coordinating with external art tools.
+- Remember hardware rules: palette index 0 is always transparent and will not
+  display even if the stored value is non-zero.
+- Keep ROM backups when performing large palette sweeps; palette groups are
+  shared across screens so a change can have multiple downstream effects.
 
 ### ROM Addresses (for reference)
 
@@ -257,4 +351,3 @@ bitmap.mutable_data() = new_data;
 // CORRECT - Updates both vector and surface
 bitmap.set_data(new_data);
 ```
-
