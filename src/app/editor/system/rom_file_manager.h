@@ -46,6 +46,7 @@ class RomFileManager {
   
   // Validation and backup
   absl::Status ValidateRom();
+  absl::Status ValidateRom(Rom* rom);  // Validate a specific ROM
   absl::Status CreateBackup();
 
  private:

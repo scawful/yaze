@@ -171,12 +171,26 @@ std::string RomFileManager::GetRomTitle() const {
 }
 
 absl::Status RomFileManager::ValidateRom() {
-  if (!IsRomLoaded()) {
-    return absl::FailedPreconditionError("No ROM loaded to validate");
+  return ValidateRom(current_rom_);
+}
+
+absl::Status RomFileManager::ValidateRom(Rom* rom) {
+  if (!rom || !rom->is_loaded()) {
+    return absl::FailedPreconditionError("No valid ROM to validate");
   }
   
   // TODO: Implement ROM validation logic
-  // This would check ROM integrity, checksums, etc.
+  // This would check ROM integrity, checksums, expected data structures, etc.
+  
+  // Basic validation: check if ROM size is reasonable
+  if (rom->size() < 512 * 1024 || rom->size() > 8 * 1024 * 1024) {
+    return absl::InvalidArgumentError("ROM size is outside expected range");
+  }
+  
+  // Check if ROM title is readable
+  if (rom->title().empty()) {
+    return absl::InvalidArgumentError("ROM title is empty or invalid");
+  }
   
   if (toast_manager_) {
     toast_manager_->Show("ROM validation passed", ToastType::kSuccess);

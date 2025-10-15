@@ -146,6 +146,7 @@ class EditorManager {
   absl::Status SetCurrentRom(Rom* rom);
   auto GetCurrentRom() -> Rom* { return current_rom_; }
   auto GetCurrentEditorSet() -> EditorSet* { return current_editor_set_; }
+  auto GetCurrentEditor() -> Editor* { return current_editor_; }
   auto overworld() -> yaze::zelda3::Overworld* { return &current_editor_set_->overworld_editor_.overworld(); }
 
   // Session management helpers
@@ -225,6 +226,21 @@ class EditorManager {
   std::string GenerateUniqueEditorTitle(EditorType type, size_t session_index) const;
   bool HasDuplicateSession(const std::string& filepath);
   void RenameSession(size_t index, const std::string& new_name);
+  void Quit() { quit_ = true; }
+  
+  // UI visibility controls (public for MenuOrchestrator)
+  void ShowGlobalSearch() { 
+    if (ui_coordinator_) ui_coordinator_->ShowGlobalSearch(); 
+  }
+  void ShowPerformanceDashboard() { 
+    if (ui_coordinator_) ui_coordinator_->SetPerformanceDashboardVisible(true); 
+  }
+  void ShowImGuiDemo() { 
+    if (ui_coordinator_) ui_coordinator_->SetImGuiDemoVisible(true); 
+  }
+  void ShowImGuiMetrics() { 
+    if (ui_coordinator_) ui_coordinator_->SetImGuiMetricsVisible(true); 
+  }
 
   // ROM and Project operations (public for MenuOrchestrator)
   absl::Status LoadRom();
