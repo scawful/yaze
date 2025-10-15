@@ -104,6 +104,8 @@ void UICoordinator::DrawAllUI() {
   // Note: Theme styling is applied by ThemeManager, not here
   // This is called from EditorManager::Update() - don't call menu bar stuff here
   
+  LOG_INFO("UICoordinator", "DrawAllUI() called");
+  
   // Draw UI windows and dialogs
   // Session dialogs are drawn by SessionCoordinator separately to avoid duplication
   DrawCommandPalette();          // Ctrl+Shift+P
@@ -112,6 +114,8 @@ void UICoordinator::DrawAllUI() {
   DrawWelcomeScreen();           // Welcome screen
   DrawProjectHelp();             // Project help
   DrawWindowManagementUI();      // Window management
+  
+  LOG_INFO("UICoordinator", "DrawAllUI() complete");
 }
 
 void UICoordinator::DrawMenuBarExtras() {
@@ -246,22 +250,17 @@ void UICoordinator::SetSessionSwitcherVisible(bool visible) {
 // ============================================================================
 
 void UICoordinator::DrawLayoutPresets() {
-  // TODO: Implement layout presets UI
-  // This would show available layout presets (Developer, Designer, Modder)
+  // TODO: [EditorManagerRefactor] Implement full layout preset UI with save/load
+  // For now, this is accessed via Window menu items that call workspace_manager directly
 }
 
 void UICoordinator::DrawWelcomeScreen() {
   // ============================================================================
-  // WELCOME SCREEN VISIBILITY LOGIC - Redesigned for clarity
+  // SIMPLIFIED WELCOME SCREEN LOGIC
   // ============================================================================
-  // 
-  // SHOW WELCOME SCREEN WHEN:
-  // 1. No ROM is loaded AND
-  // 2. User hasn't manually closed it this session
-  //
-  // HIDE WELCOME SCREEN WHEN:
-  // 1. ROM is loaded OR
-  // 2. User closes it manually
+  // Auto-show: When no ROM is loaded (unless manually closed this session)
+  // Auto-hide: When ROM is loaded
+  // Manual control: Can be opened via Help > Welcome Screen menu
   // ============================================================================
   
   if (!editor_manager_) {
@@ -274,36 +273,26 @@ void UICoordinator::DrawWelcomeScreen() {
     return;
   }
   
-  // Get current ROM state
+  // Check ROM state
   auto* current_rom = editor_manager_->GetCurrentRom();
   bool rom_is_loaded = current_rom && current_rom->is_loaded();
   
-  // Determine if welcome screen should be visible
-  bool should_show = !rom_is_loaded && !welcome_screen_manually_closed_;
-  
-  // Log state changes for debugging
-  static bool last_should_show = false;
-  static bool first_run = true;
-  if (first_run || should_show != last_should_show) {
-    LOG_INFO("UICoordinator", 
-             "Welcome screen state: should_show=%s, rom_loaded=%s, manually_closed=%s",
-             should_show ? "true" : "false",
-             rom_is_loaded ? "true" : "false", 
-             welcome_screen_manually_closed_ ? "true" : "false");
-    last_should_show = should_show;
-    first_run = false;
+  // SIMPLIFIED LOGIC: Auto-show when no ROM, auto-hide when ROM loads
+  if (!rom_is_loaded && !welcome_screen_manually_closed_) {
+    show_welcome_screen_ = true;
   }
   
-  // Update visibility flag
-  show_welcome_screen_ = should_show;
+  if (rom_is_loaded && !welcome_screen_manually_closed_) {
+    show_welcome_screen_ = false;
+  }
   
-  // Early exit if shouldn't show
-  if (!should_show) {
+  // Don't show if flag is false
+  if (!show_welcome_screen_) {
     return;
   }
   
-  // Draw the welcome screen
-  LOG_INFO("UICoordinator", "Rendering welcome screen window");
+  LOG_INFO("UICoordinator", "Drawing welcome screen (rom_loaded=%s)",
+           rom_is_loaded ? "true" : "false");
   
   // Reset first show flag to override ImGui ini state
   // This ensures the window appears even if imgui.ini has it hidden
@@ -329,13 +318,13 @@ void UICoordinator::DrawWelcomeScreen() {
 }
 
 void UICoordinator::DrawProjectHelp() {
-  // TODO: Implement project help UI
-  // This would show project-specific help and documentation
+  // TODO: [EditorManagerRefactor] Implement project help dialog
+  // Show context-sensitive help based on current editor and ROM state
 }
 
 void UICoordinator::DrawWindowManagementUI() {
-  // TODO: Implement window management UI
-  // This would provide controls for window visibility, docking, etc.
+  // TODO: [EditorManagerRefactor] Implement window management dialog
+  // Provide UI for toggling window visibility, managing docking, etc.
 }
 
 void UICoordinator::DrawAllPopups() {
@@ -358,8 +347,15 @@ void UICoordinator::ShowDisplaySettings() {
 }
 
 void UICoordinator::HideCurrentEditorCards() {
-  // TODO: Implement card hiding logic
-  // This would hide cards for the current editor
+  if (!editor_manager_) return;
+  
+  auto* current_editor = editor_manager_->GetCurrentEditor();
+  if (!current_editor) return;
+  
+  std::string category = editor_registry_.GetEditorCategory(current_editor->type());
+  card_registry_.HideAllCardsInCategory(category);
+  
+  LOG_INFO("UICoordinator", "Hid all cards in category: %s", category.c_str());
 }
 
 void UICoordinator::ShowAllWindows() {
@@ -372,19 +368,19 @@ void UICoordinator::HideAllWindows() {
 
 // Helper methods for drawing operations
 void UICoordinator::DrawSessionIndicator() {
-  // TODO: Implement session indicator
+  // TODO: [EditorManagerRefactor] Implement session indicator in menu bar
 }
 
 void UICoordinator::DrawVersionInfo() {
-  // TODO: Implement version info display
+  // TODO: [EditorManagerRefactor] Implement version info display (currently in menu bar extras)
 }
 
 void UICoordinator::DrawSessionTabs() {
-  // TODO: Implement session tabs
+  // TODO: [EditorManagerRefactor] Implement session tabs UI
 }
 
 void UICoordinator::DrawSessionBadges() {
-  // TODO: Implement session badges
+  // TODO: [EditorManagerRefactor] Implement session status badges
 }
 
 // Material Design component helpers
@@ -408,11 +404,13 @@ void UICoordinator::DrawMaterialButton(const std::string& text, const std::strin
 }
 
 void UICoordinator::DrawMaterialCard(const std::string& title, const std::string& content) {
-  // TODO: Implement Material Design card component
+  // TODO: [EditorManagerRefactor] Implement Material Design card component
+  // Use ThemeManager for consistent Material Design styling
 }
 
 void UICoordinator::DrawMaterialDialog(const std::string& title, std::function<void()> content) {
-  // TODO: Implement Material Design dialog component
+  // TODO: [EditorManagerRefactor] Implement Material Design dialog component
+  // Use ThemeManager for consistent Material Design styling
 }
 
 // Layout and positioning helpers
@@ -448,72 +446,88 @@ std::string UICoordinator::GetIconForEditor(EditorType type) const {
 }
 
 std::string UICoordinator::GetColorForEditor(EditorType type) const {
-  // TODO: Implement editor-specific colors
-  return "primary";  // Placeholder for now
+  // TODO: [EditorManagerRefactor] Map editor types to theme colors
+  // Use ThemeManager to get Material Design color names
+  return "primary";
 }
 
 void UICoordinator::ApplyEditorTheme(EditorType type) {
-  // TODO: Implement editor-specific theming
+  // TODO: [EditorManagerRefactor] Apply editor-specific theme overrides
+  // Use ThemeManager to push/pop style colors based on editor type
 }
 
-// Session UI helpers
+// Session UI helpers (delegated to SessionCoordinator)
 void UICoordinator::DrawSessionList() {
-  // TODO: Implement session list
+  // TODO: [EditorManagerRefactor] Implement session list UI
+  // Or delegate to SessionCoordinator
 }
 
 void UICoordinator::DrawSessionControls() {
-  // TODO: Implement session controls
+  // TODO: [EditorManagerRefactor] Implement session control buttons
+  // Or delegate to SessionCoordinator
 }
 
 void UICoordinator::DrawSessionInfo() {
-  // TODO: Implement session info
+  // TODO: [EditorManagerRefactor] Implement session info display
+  // Or delegate to SessionCoordinator
 }
 
 void UICoordinator::DrawSessionStatus() {
-  // TODO: Implement session status
+  // TODO: [EditorManagerRefactor] Implement session status indicators
+  // Or delegate to SessionCoordinator
 }
 
-// Popup helpers
+// Popup helpers (delegated to PopupManager)
 void UICoordinator::DrawHelpMenuPopups() {
-  // TODO: Implement help menu popups
+  // TODO: [EditorManagerRefactor] Coordinate help menu popup display
+  // Popups are managed by PopupManager
 }
 
 void UICoordinator::DrawSettingsPopups() {
-  // TODO: Implement settings popups
+  // TODO: [EditorManagerRefactor] Coordinate settings popup display
+  // Popups are managed by PopupManager
 }
 
 void UICoordinator::DrawProjectPopups() {
-  // TODO: Implement project popups
+  // TODO: [EditorManagerRefactor] Coordinate project popup display
+  // Popups are managed by PopupManager
 }
 
 void UICoordinator::DrawSessionPopups() {
-  // TODO: Implement session popups
+  // TODO: [EditorManagerRefactor] Coordinate session popup display
+  // Popups are managed by PopupManager
 }
 
-// Window management helpers
+// Window management helpers (delegated to WindowDelegate/WorkspaceManager)
 void UICoordinator::DrawWindowControls() {
-  // TODO: Implement window controls
+  // TODO: [EditorManagerRefactor] Implement window visibility controls
+  // Delegate to WindowDelegate
 }
 
 void UICoordinator::DrawLayoutControls() {
-  // TODO: Implement layout controls
+  // TODO: [EditorManagerRefactor] Implement layout management controls
+  // Delegate to LayoutManager and WorkspaceManager
 }
 
 void UICoordinator::DrawDockingControls() {
-  // TODO: Implement docking controls
+  // TODO: [EditorManagerRefactor] Implement docking configuration controls
+  // Use ImGui::DockBuilder API
 }
 
-// Performance and debug UI
+// Performance and debug UI (delegated to specialized components)
 void UICoordinator::DrawPerformanceUI() {
-  // TODO: Implement performance UI
+  // TODO: [EditorManagerRefactor] Coordinate performance dashboard display
+  // Performance dashboard is managed separately (PerformanceDashboard::Get())
 }
 
 void UICoordinator::DrawDebugUI() {
-  // TODO: Implement debug UI
+  // TODO: [EditorManagerRefactor] Coordinate debug UI display
+  // Debug windows (ImGui Demo, Metrics) managed by EditorManager
 }
 
 void UICoordinator::DrawTestingUI() {
-  // TODO: Implement testing UI
+  // TODO: [EditorManagerRefactor] Coordinate test dashboard display
+  // Test dashboard managed by TestManager
 }
 
 void UICoordinator::DrawCommandPalette() {

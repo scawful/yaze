@@ -1,30 +1,26 @@
 # E2 - Development Guide
 
-This guide outlines the core architectural patterns, UI systems, and best practices for developing and maintaining the yaze editor.
+This guide summarizes the architecture and implementation standards used across the editor codebase.
 
-## Editor Status
+## Editor Status (October 2025)
 
-- **Overworld Editor**: Production ready
-- **Message Editor**: Production ready (requires testing of recent rendering fixes)
-- **Emulator**: Production ready
-- **Dungeon Editor**: EXPERIMENTAL - Requires thorough testing
-- **Graphics Editor**: EXPERIMENTAL - Recent rendering pipeline changes need validation
-- **Palette Editor**: Production ready
-- **Sprite Editor**: EXPERIMENTAL
-- **Assembly Editor**: Production ready
+| Editor            | State        | Notes |
+|-------------------|--------------|-------|
+| Overworld         | Stable       | Full feature set; continue regression testing after palette fixes. |
+| Message           | Stable       | Re-test rendering after recent palette work. |
+| Emulator          | Stable       | UI and core subsystems aligned with production builds. |
+| Palette           | Stable       | Serves as the source of truth for palette helpers. |
+| Assembly          | Stable       | No outstanding refactors. |
+| Dungeon           | Experimental | Requires thorough manual coverage before release. |
+| Graphics          | Experimental | Large rendering changes in flight; validate texture pipeline. |
+| Sprite            | Experimental | UI patterns still migrating to the new card system. |
 
-### Screen Editor Progress (October 2025)
+### Screen Editor Notes
 
-- **Title screen**: Palette and graphics group loading work, but vanilla ROM
-  tilemap parsing still fails. ZScream-format ROMs render correctly; the
-  outstanding task is implementing a vanilla DMA parser so the welcome screen
-  appears. Tile painting is blocked until the display bug is resolved.
-- **Overworld map**: Mode 7 tileset conversion, interleaved tilemap loading, and
-  Light/Dark world palette switching all function. Painting and custom map
-  import/export are stable; queue up tile painting enhancements when time
-  permits.
-- **Dungeon map**: Map loading and palette rendering are in good shape. Add the
-  tile painting workflow and ROM write-back to finish the feature.
+- **Title screen**: Vanilla ROM tilemap parsing remains broken. Implement a DMA
+  parser and confirm the welcome screen renders before enabling painting.
+- **Overworld map**: Mode 7 tiling, palette switching, and custom map import/export are in place. The next milestone is faster tile painting.
+- **Dungeon map**: Rendering is wired up; tile painting and ROM write-back are still pending.
 
 ## 1. Core Architectural Patterns
 

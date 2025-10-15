@@ -712,6 +712,12 @@ absl::Status EditorManager::Update() {
     last_test_rom = current_rom_;
   }
 
+  // CRITICAL: Draw UICoordinator UI components FIRST (before ROM checks)
+  // This ensures Welcome Screen, Command Palette, etc. work even without ROM loaded
+  if (ui_coordinator_) {
+    ui_coordinator_->DrawAllUI();
+  }
+
   // Autosave timer
   if (user_settings_.prefs().autosave_enabled && current_rom_ &&
       current_rom_->dirty()) {
@@ -735,13 +741,13 @@ absl::Status EditorManager::Update() {
 
   // Check if ROM is loaded before allowing editor updates
   if (!current_editor_set_) {
-    // Note: Welcome screen auto-show is now handled by UICoordinator
+    // No ROM loaded - welcome screen shown by UICoordinator above
     return absl::OkStatus();
   }
 
   // Check if current ROM is valid
   if (!current_rom_) {
-    // Note: Welcome screen auto-show is now handled by UICoordinator
+    // No ROM loaded - welcome screen shown by UICoordinator above
     return absl::OkStatus();
   }
 
@@ -911,17 +917,7 @@ absl::Status EditorManager::Update() {
   if (session_coordinator_) {
     session_coordinator_->DrawSessionSwitcher();
     session_coordinator_->DrawSessionManager();
-    // TODO: Decide which is actually used.
-    // if (ui_coordinator_) {
-    //   ui_coordinator_->DrawSessionManager();
-    // }
     session_coordinator_->DrawSessionRenameDialog();
-  }
-
-  // Draw UICoordinator UI components (Command Palette, Global Search, etc.)
-  // CRITICAL: This must be called for Command Palette and other UI windows to appear
-  if (ui_coordinator_) {
-    ui_coordinator_->DrawAllUI();
   }
 
   return absl::OkStatus();
