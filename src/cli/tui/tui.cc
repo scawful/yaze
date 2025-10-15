@@ -11,7 +11,7 @@
 #include "absl/strings/str_format.h"
 #include "util/bps.h"
 #include "util/file_util.h"
-#include "app/core/asar_wrapper.h"
+#include "core/asar_wrapper.h"
 #include "cli/cli.h"
 #include "cli/tui/unified_layout.h"
 #include "cli/z3ed_ascii_logo.h"
@@ -329,7 +329,7 @@ void ApplyAsarPatchComponent(ftxui::ScreenInteractive &screen) {
 
     try {
       // TODO: Use new CommandHandler system for AsarPatch
-      // Reference: src/app/core/asar_wrapper.cc (AsarWrapper class)
+      // Reference: src/core/asar_wrapper.cc (AsarWrapper class)
       output_message = "❌ AsarPatch not yet implemented in new CommandHandler system";
       output_color = Color::Red;
     } catch (const std::exception& e) {

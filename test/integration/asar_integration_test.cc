@@ -2,7 +2,7 @@
 #include <filesystem>
 #include <fstream>
 
-#include "app/core/asar_wrapper.h"
+#include "core/asar_wrapper.h"
 #include "app/rom.h"
 #include "absl/status/status.h"
 #include "testing.h"
