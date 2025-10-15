@@ -38,7 +38,8 @@ class ToastManager;
 class MenuOrchestrator {
  public:
   // Constructor takes references to the managers it coordinates with
-  MenuOrchestrator(MenuBuilder& menu_builder,
+  MenuOrchestrator(EditorManager* editor_manager,
+                   MenuBuilder& menu_builder,
                    RomFileManager& rom_manager,
                    ProjectManager& project_manager,
                    EditorRegistry& editor_registry,
@@ -103,6 +104,7 @@ class MenuOrchestrator {
 
  private:
   // References to coordinated managers
+  EditorManager* editor_manager_;
   MenuBuilder& menu_builder_;
   RomFileManager& rom_manager_;
   ProjectManager& project_manager_;

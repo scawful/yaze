@@ -33,6 +33,7 @@ set(
   app/editor/sprite/sprite_editor.cc
   app/editor/system/command_manager.cc
   app/editor/system/command_palette.cc
+  app/editor/system/editor_card_registry.cc
   app/editor/system/editor_registry.cc
   app/editor/system/extension_manager.cc
   app/editor/system/menu_orchestrator.cc
