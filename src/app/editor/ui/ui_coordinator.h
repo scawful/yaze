@@ -92,10 +92,7 @@ class UICoordinator {
   void HideCurrentEditorCards();
   void ToggleCardSidebar() { show_card_sidebar_ = !show_card_sidebar_; }
   void ShowGlobalSearch() { show_global_search_ = true; }
-  void ShowCommandPalette() { 
-    LOG_INFO("UICoordinator", "ShowCommandPalette() called - setting flag to true");
-    show_command_palette_ = true; 
-  }
+  void ShowCommandPalette() { show_command_palette_ = true; }
   void ShowCardBrowser() { show_card_browser_ = true; }
   
   // Window visibility management

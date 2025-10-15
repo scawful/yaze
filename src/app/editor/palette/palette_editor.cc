@@ -7,7 +7,6 @@
 #include "app/gfx/debug/performance/performance_profiler.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/gui/core/color.h"
-#include "app/gui/app/editor_card_manager.h"
 #include "app/gui/app/editor_layout.h"
 #include "app/gui/core/icons.h"
 #include "imgui/imgui.h"
@@ -185,7 +184,7 @@ absl::Status DisplayPalette(gfx::SnesPalette& palette, bool loaded) {
 }
 
 void PaletteEditor::Initialize() {
-  // Register all cards with EditorCardManager (done once during initialization)
+  // Register all cards with EditorCardRegistry (done once during initialization)
   if (!dependencies_.card_registry) return;
   auto* card_registry = dependencies_.card_registry;
 
@@ -751,9 +750,8 @@ absl::Status PaletteEditor::ResetColorToOriginal(
 // ============================================================================
 
 void PaletteEditor::DrawToolset() {
-  // Draw VSCode-style sidebar using EditorCardManager
-  // auto& card_manager = gui::EditorCardManager::Get();
-  // card_manager.DrawSidebar("Palette");
+  // Sidebar is drawn by EditorCardRegistry in EditorManager
+  // Cards registered in Initialize() appear in the sidebar automatically
 }
 
 void PaletteEditor::DrawControlPanel() {
@@ -936,10 +934,9 @@ void PaletteEditor::DrawControlPanel() {
                         "%s Palette Card Manager", ICON_MD_PALETTE);
       ImGui::Separator();
       
-      // Use EditorCardManager to draw the menu
-      if (!dependencies_.card_registry) return;
-  auto* card_registry = dependencies_.card_registry;
       // View menu section now handled by EditorCardRegistry in EditorManager
+      if (!dependencies_.card_registry) return;
+      auto* card_registry = dependencies_.card_registry;
       
       ImGui::EndPopup();
     }

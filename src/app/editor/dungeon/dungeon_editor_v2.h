@@ -14,7 +14,6 @@
 #include "dungeon_object_selector.h"
 #include "dungeon_room_loader.h"
 #include "object_editor_card.h"
-#include "app/gui/app/editor_card_manager.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_entrance.h"
 #include "app/gui/app/editor_layout.h"

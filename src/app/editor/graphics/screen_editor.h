@@ -7,7 +7,6 @@
 #include "app/editor/editor.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/types/snes_palette.h"
-#include "app/gui/app/editor_card_manager.h"
 #include "app/gfx/render/tilemap.h"
 #include "app/gui/canvas/canvas.h"
 #include "app/rom.h"

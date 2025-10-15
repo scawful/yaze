@@ -104,8 +104,6 @@ void UICoordinator::DrawAllUI() {
   // Note: Theme styling is applied by ThemeManager, not here
   // This is called from EditorManager::Update() - don't call menu bar stuff here
   
-  LOG_INFO("UICoordinator", "DrawAllUI() called");
-  
   // Draw UI windows and dialogs
   // Session dialogs are drawn by SessionCoordinator separately to avoid duplication
   DrawCommandPalette();          // Ctrl+Shift+P
@@ -114,8 +112,6 @@ void UICoordinator::DrawAllUI() {
   DrawWelcomeScreen();           // Welcome screen
   DrawProjectHelp();             // Project help
   DrawWindowManagementUI();      // Window management
-  
-  LOG_INFO("UICoordinator", "DrawAllUI() complete");
 }
 
 void UICoordinator::DrawMenuBarExtras() {
@@ -291,26 +287,20 @@ void UICoordinator::DrawWelcomeScreen() {
     return;
   }
   
-  LOG_INFO("UICoordinator", "Drawing welcome screen (rom_loaded=%s)",
-           rom_is_loaded ? "true" : "false");
-  
   // Reset first show flag to override ImGui ini state
-  // This ensures the window appears even if imgui.ini has it hidden
   welcome_screen_->ResetFirstShow();
   
   // Update recent projects before showing
   welcome_screen_->RefreshRecentProjects();
   
-  // Show the welcome screen (it manages its own ImGui window)
+  // Show the welcome screen window
   bool is_open = true;
-  bool action_taken = welcome_screen_->Show(&is_open);
+  welcome_screen_->Show(&is_open);
   
-  // If user closed the window via X button, mark as manually closed
+  // If user closed it via X button, respect that
   if (!is_open) {
-    welcome_screen_manually_closed_ = true;
     show_welcome_screen_ = false;
-    welcome_screen_->MarkManuallyClosed();
-    LOG_INFO("UICoordinator", "Welcome screen manually closed by user (X button)");
+    welcome_screen_manually_closed_ = true;
   }
   
   // If an action was taken (ROM loaded, project opened), the welcome screen will auto-hide
@@ -532,8 +522,6 @@ void UICoordinator::DrawTestingUI() {
 
 void UICoordinator::DrawCommandPalette() {
   if (!show_command_palette_) return;
-  
-  LOG_INFO("UICoordinator", "DrawCommandPalette() - rendering command palette");
   
   using namespace ImGui;
   auto& theme = gui::ThemeManager::Get().GetCurrentTheme();

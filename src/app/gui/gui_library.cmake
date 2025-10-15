@@ -58,7 +58,6 @@ set(GUI_AUTOMATION_SRC
 set(GUI_APP_SRC
   app/gui/app/agent_chat_widget.cc
   app/gui/app/collaboration_panel.cc
-  app/gui/app/editor_card_manager.cc
   app/gui/app/editor_layout.cc
 )
 

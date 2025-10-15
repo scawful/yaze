@@ -11,7 +11,6 @@
 #include "absl/status/status.h"
 #include "app/gfx/types/snes_color.h"
 #include "app/gfx/types/snes_palette.h"
-#include "app/gui/app/editor_card_manager.h"
 #include "app/rom.h"
 #include "imgui/imgui.h"
 
@@ -61,7 +60,7 @@ struct PaletteGroupMetadata {
  * - Modified state tracking with visual indicators
  * - Save/discard workflow
  * - Common toolbar and color picker UI
- * - EditorCardManager integration
+ * - EditorCardRegistry integration
  *
  * Derived classes implement specific grid layouts and palette access.
  */
@@ -260,9 +259,6 @@ class PaletteGroupCard {
   bool auto_save_enabled_ = false;  // Auto-save to ROM on every change
   bool show_snes_format_ = true;    // Show SNES $xxxx format in info
   bool show_hex_format_ = true;     // Show #xxxxxx hex in info
-
-  // Card registration
-  gui::CardRegistration card_registration_;
 };
 
 // ============================================================================

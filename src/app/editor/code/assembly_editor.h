@@ -8,7 +8,6 @@
 #include "app/editor/editor.h"
 #include "app/gui/widgets/text_editor.h"
 #include "app/gui/app/editor_layout.h"
-#include "app/gui/app/editor_card_manager.h"
 #include "app/gui/core/style.h"
 #include "app/rom.h"
 
