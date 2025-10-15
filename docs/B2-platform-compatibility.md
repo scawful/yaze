@@ -69,27 +69,12 @@ libgtk-3-dev libdbus-1-dev gcc-12 g++-12 clang-15
 
 ## Cross-Platform Code Validation
 
-All recent additions (October 2025) are cross-platform compatible:
+The following subsystems run unchanged across Windows, macOS, and Linux:
 
-### Audio System
-- ✅ `src/app/emu/audio/audio_backend.h/cc` - Uses SDL2 (cross-platform)
-- ✅ No platform-specific code
-- ✅ Ready for SDL3 migration
-
-### Input System
-- ✅ `src/app/emu/input/input_backend.h/cc` - Uses SDL2 (cross-platform)
-- ✅ `src/app/emu/input/input_manager.h/cc` - Platform-agnostic
-- ✅ Ready for SDL3 migration
-
-### Debugger System
-- ✅ `src/app/emu/debug/apu_debugger.h/cc` - No platform dependencies
-- ✅ `src/app/emu/debug/breakpoint_manager.h/cc` - Platform-agnostic
-- ✅ `src/app/emu/debug/watchpoint_manager.h/cc` - Platform-agnostic
-- ✅ All use ImGui (cross-platform)
-
-### UI Layer
-- ✅ `src/app/emu/ui/*` - Uses ImGui + SDL2 (both cross-platform)
-- ✅ No platform-specific rendering code
+- Audio backend (`src/app/emu/audio`) uses SDL2 only; no platform branches.
+- Input backend/manager (`src/app/emu/input`) runs on SDL2 abstractions.
+- Debug tools (`src/app/emu/debug`) avoid OS-specific headers.
+- Emulator UI (`src/app/emu/ui`) is pure ImGui + SDL2.
 
 ---
 
@@ -128,12 +113,12 @@ sudo apt-get install -y [see package list above]
 
 Before merging platform-specific changes:
 
-- ✅ vcpkg baseline synchronized across CI and vcpkg.json
-- ✅ Windows x86 build removed (cpp-httplib incompatibility)
-- ✅ Windows macro pollution prevented (NOGDI, NOMINMAX, WIN32_LEAN_AND_MEAN)
-- ✅ gRPC v1.67.1 with MSVC compatibility flags
-- ✅ Cross-platform code uses SDL2/ImGui only
-- ⏳ Validate CI builds pass on next push
+- Confirm the vcpkg baseline matches `vcpkg.json`.
+- Do not reintroduce the Windows x86 build (cpp-httplib incompatibility).
+- Keep Windows macro guards (`NOGDI`, `NOMINMAX`, `WIN32_LEAN_AND_MEAN`) in place.
+- Build against gRPC 1.67.1 with the MSVC workaround flags.
+- Leave shared code paths on SDL2/ImGui abstractions.
+- Re-run the full matrix if caches or presets change.
 
 ### CI/CD Performance Roadmap
 
@@ -155,20 +140,18 @@ Before merging platform-specific changes:
 ## Testing Strategy
 
 ### Automated (CI)
-- ✅ Build on Ubuntu 22.04 (GCC-12, Clang-15)
-- ✅ Build on macOS 13/14 (x64/ARM64)
-- ✅ Build on Windows 2022 (x64 only)
-- ✅ Run core tests (AsarWrapperTest, SnesTileTest, etc.)
-- ✅ Code quality checks (clang-format, cppcheck, clang-tidy)
-- ✅ Memory sanitizer (Linux AddressSanitizer)
+- Ubuntu 22.04 (GCC-12, Clang-15)
+- macOS 13/14 (x64 and ARM64)
+- Windows Server 2022 (x64)
+- Core tests: `AsarWrapperTest`, `SnesTileTest`, others tagged `STABLE`
+- Tooling: clang-format, clang-tidy, cppcheck
+- Sanitizers: Linux AddressSanitizer job
 
 ### Manual Testing
 After successful CI build:
-- 🔲 Windows: Audio backend initializes
-- 🔲 Windows: Keyboard input works
-- 🔲 Windows: APU Debugger UI renders
-- 🔲 Linux: Input polling works
-- 🔲 macOS: All features functional
+- Windows: verify audio backend, keyboard input, APU debugger UI.
+- Linux: verify input polling and audio output.
+- macOS: spot-check rendering, input, audio.
 
 ---
 
@@ -176,11 +159,9 @@ After successful CI build:
 
 ### Build Command (All Platforms)
 ```bash
-# Simple - no flags needed!
 cmake -B build
 cmake --build build --parallel
 
-# Or use presets:
 cmake --preset [mac-dbg|lin-dbg|win-dbg]
 cmake --build --preset [mac-dbg|lin-dbg|win-dbg]
 ```

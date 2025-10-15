@@ -1,20 +1,18 @@
-# z3ed: AI-Powered CLI for YAZE
+# z3ed Command-Line Interface
 
 **Version**: 0.1.0-alpha
 **Last Updated**: October 5, 2025
 
 ## 1. Overview
 
-This document is the **source of truth** for the z3ed CLI architecture, design, and roadmap. It outlines the evolution of `z3ed` into a powerful, scriptable, and extensible tool for both manual and AI-driven ROM hacking.
-
-`z3ed` has successfully implemented its core infrastructure and is **production-ready on macOS**.
+`z3ed` is a command-line companion to YAZE. It surfaces editor functionality, test harness tooling, and automation endpoints for scripting and AI-driven workflows.
 
 ### Core Capabilities
 
-1.  **Conversational Agent**: Chat with an AI (Ollama or Gemini) to explore ROM contents and plan changes using natural language—available from the CLI, terminal UI, and now directly within the YAZE editor.
-2.  **GUI Test Automation**: A gRPC-based test harness allows for widget discovery, test recording/replay, and introspection for debugging and AI-driven validation.
-3.  **Proposal System**: A safe, sandboxed editing workflow where all changes are tracked as "proposals" that require human review and acceptance.
-4.  **Resource-Oriented CLI**: A clean `z3ed <resource> <action>` command structure that is both human-readable and machine-parsable.
+1.  Conversational agent interfaces (Ollama or Gemini) for planning and review.
+2.  gRPC test harness for widget discovery, replay, and automated verification.
+3.  Proposal workflow that records changes for manual review and acceptance.
+4.  Resource-oriented commands (`z3ed <resource> <action>`) suitable for scripting.
 
 ## 2. Quick Start
 
@@ -78,12 +76,10 @@ z3ed agent accept --proposal-id <id>
 
 ### Hybrid CLI ↔ GUI Workflow
 
-1. **Build once for both surfaces**: `cmake -B build -DZ3ED_AI=ON -DYAZE_WITH_GRPC=ON` followed by `cmake --build build --target z3ed` ensures the CLI, editor chat widget, and ImGui test harness share the same AI and gRPC feature set.
-2. **Plan in the CLI**: Use `z3ed agent plan --prompt "Describe the overworld tile 10,10" --rom zelda3.sfc --sandbox` to preview the command sequence the agent intends to execute against an isolated ROM copy.
-3. **Execute and validate**: Run `z3ed agent run ... --sandbox` to apply the plan, then launch YAZE with the same ROM and open **Debug → Agent Chat** to review proposal details, streamed logs, and harness status without leaving the editor.
-4. **Hand off to GUI automation**: From the Agent Chat widget, trigger the same plan or replay the last CLI run by selecting **Replay Last Plan** (uses the shared proposal registry) to watch the ImGui harness drive the UI.
-5. **Tighten the loop**: While the harness executes, use `z3ed agent diff --proposal-id <id>` in the terminal and the Proposal Drawer inside YAZE to compare results side-by-side. Accept or reject directly in either surface—state stays in sync.
-6. **Iterate rapidly**: When adjustments are needed, refine the prompt or modify the generated test script, rerun from the CLI, and immediately observe outcomes in the editor via the gRPC-backed harness telemetry panel.
+1. Build with `-DZ3ED_AI=ON -DYAZE_WITH_GRPC=ON` so the CLI, editor widget, and test harness share the same feature set.
+2. Use `z3ed agent plan --prompt "Describe overworld tile 10,10"` against a sandboxed ROM to preview actions.
+3. Apply the plan with `z3ed agent run ... --sandbox`, then open **Debug → Agent Chat** in YAZE to inspect proposals and logs.
+4. Re-run or replay from either surface; proposals stay synchronized through the shared registry.
 
 ## 3. Architecture
 
@@ -148,12 +144,10 @@ The CLI command architecture has been refactored to eliminate code duplication a
 └─────────────────────────────────────────────────────────┘
 ```
 
-**Key Benefits**:
-- **~1300 lines** of duplicated code eliminated
-- **50-60%** reduction in command implementation size
-- **Consistent patterns** across all CLI commands
-- **Better testing** with independently testable components
-- **AI-friendly** predictable structure for tool generation
+Key benefits:
+- Removes roughly 1300 lines of duplicated command code.
+- Cuts individual command implementations by about half.
+- Establishes consistent patterns across the CLI for easier testing and automation.
 
 See [Command Abstraction Guide](z3ed-command-abstraction-guide.md) for migration details.
 
@@ -179,14 +173,14 @@ The `z3ed` CLI is the foundation for an AI-driven Model-Code-Program (MCP) loop,
 -   `agent simple-chat`: A lightweight, non-TUI chat mode for scripting and automation.
 -   `agent test ...`: Commands for running and managing automated GUI tests.
 -   `agent learn ...`: **NEW**: Manage learned knowledge (preferences, ROM patterns, project context, conversation memory).
--   `agent todo create "Description" [--category=<category>] [--priority=<n>]`: Create a new TODO item.
--   `agent todo list [--status=<status>] [--category=<category>]`: List TODOs, with optional filters.
--   `agent todo update <id> --status=<status>`: Update the status of a TODO item.
--   `agent todo show <id>`: Display full details of a TODO item.
--   `agent todo delete <id>`: Delete a TODO item.
--   `agent todo clear-completed`: Remove all completed TODOs.
--   `agent todo next`: Get the next actionable TODO based on dependencies and priority.
--   `agent todo plan`: Generate a topologically-sorted execution plan for all TODOs.
+-   `agent todo create "Description" [--category=<category>] [--priority=<n>]`
+-   `agent todo list [--status=<status>] [--category=<category>]`
+-   `agent todo update <id> --status=<status>`
+-   `agent todo show <id>`
+-   `agent todo delete <id>`
+-   `agent todo clear-completed`
+-   `agent todo next`
+-   `agent todo plan`
 
 ### Resource Commands
 
@@ -197,7 +191,7 @@ The `z3ed` CLI is the foundation for an AI-driven Model-Code-Program (MCP) loop,
 
 #### `agent test`: Live Harness Automation
 
--   **Discover widgets**: `z3ed agent test discover --rom zelda3.sfc --grpc localhost:50051` enumerates ImGui widget IDs through the gRPC-backed harness for later scripting.
+- Discover widgets: `z3ed agent test discover --rom zelda3.sfc --grpc localhost:50051` enumerates ImGui widget IDs through the gRPC-backed harness for later scripting.
 -   **Record interactions**: `z3ed agent test record --suite harness/tests/overworld_entry.jsonl` launches YAZE, mirrors your clicks/keystrokes, and persists an editable JSONL trace.
 -   **Replay & assert**: `z3ed agent test replay harness/tests/overworld_entry.jsonl --watch` drives the GUI in real time and streams pass/fail telemetry back to both the CLI and Agent Chat widget telemetry panel.
 -   **Integrate with proposals**: `z3ed agent test verify --proposal-id <id>` links a recorded scenario with a proposal to guarantee UI state after sandboxed edits.
@@ -219,8 +213,8 @@ Full-screen interactive terminal with table rendering, syntax highlighting, and 
 ### Simple Chat (`agent simple-chat`)
 Lightweight, scriptable text-based REPL that supports single messages, interactive sessions, piped input, and batch files.
 
-**✨ New Feature: Vim Mode**
-Enable vim-style line editing with `--vim` flag for enhanced terminal UX:
+**Vim Mode**
+Enable vim-style line editing with `--vim`:
 - **Normal mode** (`ESC`): Navigate with `hjkl`, `w`/`b` word movement, `0`/`$` line start/end
 - **Insert mode** (`i`, `a`, `o`): Regular text input with vim keybindings
 - **Editing**: `x` delete char, `dd` delete line, `yy` yank line, `p`/`P` paste
@@ -243,10 +237,10 @@ z3ed agent simple-chat --rom zelda3.sfc --vim
 ### GUI Chat Widget (Editor Integration)
 Accessible from **Debug → Agent Chat** inside YAZE. Provides the same conversation loop as the CLI, including streaming history, JSON/table inspection, and ROM-aware tool dispatch.
 
-**✨ New Features:**
-- **Persistent Chat History**: Chat conversations are automatically saved and restored
-- **Collaborative Sessions**: Multiple users can join the same session and share a chat history
-- **Multimodal Vision**: Capture screenshots of your ROM editor and ask Gemini to analyze them
+Recent additions:
+- Persistent chat history across sessions
+- Collaborative sessions with shared history
+- Screenshot capture for Gemini analysis
 
 ## 7. AI Provider Configuration
 
@@ -333,13 +327,13 @@ All learned data is stored in `~/.yaze/agent/`:
 The TODO Management System enables the z3ed AI agent to create, track, and execute complex multi-step tasks with dependency management and prioritization.
 
 ### Core Capabilities
-- ✅ Create and manage TODO items with priorities
-- ✅ Track task status (pending, in_progress, completed, blocked, cancelled)
-- ✅ Dependency tracking between tasks
-- ✅ Automatic execution plan generation
-- ✅ Persistent storage in JSON format
-- ✅ Category-based organization
-- ✅ Tools/functions tracking per task
+- Create TODO items with priorities.
+- Track task status (pending, in_progress, completed, blocked, cancelled).
+- Manage dependencies between tasks.
+- Generate execution plans.
+- Persist data in JSON.
+- Organize by category.
+- Record tool/function usage per task.
 
 ### Storage Location
 TODOs are persisted to: `~/.yaze/agent/todos.json` (macOS/Linux) or `%APPDATA%/yaze/agent/todos.json` (Windows)
@@ -354,25 +348,25 @@ By default, `z3ed` provides clean, user-facing output. For detailed debugging, i
 
 **Default (Clean):**
 ```bash
-🤖 AI Provider: gemini
-   Model: gemini-2.5-flash
-⠋ Thinking...
-🔧 Calling tool: resource-list (type=room)
-✓ Tool executed successfully
+AI Provider: gemini
+Model: gemini-2.5-flash
+Waiting for response...
+Calling tool: resource-list (type=room)
+Tool executed successfully
 ```
 
 **Verbose Mode:**
 ```bash
 # z3ed agent simple-chat "What is room 5?" --verbose
-🤖 AI Provider: gemini
-   Model: gemini-2.5-flash
+AI Provider: gemini
+Model: gemini-2.5-flash
 [DEBUG] Initializing Gemini service...
 [DEBUG] Function calling: disabled
 [DEBUG] Using curl for HTTPS request...
-⠋ Thinking...
+Waiting for response...
 [DEBUG] Parsing response...
-🔧 Calling tool: resource-list (type=room)
-✓ Tool executed successfully
+Calling tool: resource-list (type=room)
+Tool executed successfully
 ```
 
 ### Hierarchical Help System

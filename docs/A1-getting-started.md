@@ -17,21 +17,21 @@ This software allows you to modify "The Legend of Zelda: A Link to the Past" (US
 
 ## Feature Status
 
-| Feature | Status | Details |
+| Feature | State | Notes |
 |---|---|---|
-| Overworld Editor | ✅ Complete | Full support for vanilla and ZSCustomOverworld v2/v3. |
-| Dungeon Editor | ✅ Complete | Stable, component-based editor for rooms, objects, and sprites. |
-| Tile16 Editor | ✅ Complete | Professional-grade tile editor with advanced palette management. |
-| Palette Editor | ✅ Complete | Edit and save all SNES palette groups. |
-| Graphics Editor | ✅ Complete | View and edit graphics sheets and groups. |
-| Sprite Editor | ✅ Complete | Edit sprite properties and attributes. |
-| Message Editor | ✅ Complete | Edit in-game text and dialogue. |
-| Hex Editor | ✅ Complete | View and edit raw ROM data. |
-| Asar Patching | ✅ Complete | Apply Asar 65816 assembly patches to the ROM. |
+| Overworld Editor | Stable | Supports vanilla and ZSCustomOverworld v2/v3 projects. |
+| Dungeon Editor | Experimental | Requires extensive manual testing before production use. |
+| Tile16 Editor | Experimental | Palette and tile workflows are still being tuned. |
+| Palette Editor | Stable | Reference implementation for palette utilities. |
+| Graphics Editor | Experimental | Rendering pipeline under active refactor. |
+| Sprite Editor | Experimental | Card/UI patterns mid-migration. |
+| Message Editor | Stable | Re-test after recent palette fixes. |
+| Hex Editor | Stable | Direct ROM editing utility. |
+| Asar Patching | Stable | Wraps the bundled Asar assembler. |
 
 ## Command-Line Interface (`z3ed`)
 
-`z3ed` is a powerful, AI-driven CLI for inspecting and editing ROMs.
+`z3ed` provides scripted access to the same ROM editors.
 
 ### AI Agent Chat
 Chat with an AI to perform edits using natural language.
@@ -62,4 +62,4 @@ z3ed asar patch.asm --rom zelda3.sfc
 
 ## Extending Functionality
 
-YAZE is designed to be extensible. Future versions will support a full plugin architecture, allowing developers to create custom tools and editors. The C API, while available, is still under development.
+YAZE exports a C API that is still evolving. Treat it as experimental and expect breaking changes while the plugin system is built out.
