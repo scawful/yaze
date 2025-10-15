@@ -39,7 +39,7 @@ jobs:
       - name: Install build tools
         shell: pwsh
         run: |
-          choco install --no-progress -y nasm ninja
+          choco install --no-progress -y nasm
           "C:\Program Files\NASM" | Out-File -FilePath $env:GITHUB_PATH -Append
 
       - name: Setup MSVC
@@ -51,17 +51,18 @@ jobs:
         shell: pwsh
         run: |
           $toolchain = "${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake"
-          cmake -S . -B build -G Ninja `
+          cmake -S . -B build `
             -DCMAKE_BUILD_TYPE=Release `
             -DCMAKE_TOOLCHAIN_FILE=$toolchain `
             -DVCPKG_TARGET_TRIPLET=x64-windows-static `
             -DYAZE_BUILD_TESTS=OFF `
             -DYAZE_BUILD_EMU=ON `
             -DYAZE_BUILD_Z3ED=ON `
-            -DYAZE_BUILD_TOOLS=ON
+            -DYAZE_BUILD_TOOLS=ON `
+            -DVCPKG_INSTALL_OPTIONS="--x-feature=pkgconfig"
 
       - name: Build
-        run: cmake --build build --config Release --parallel 4
+        run: cmake --build build --config Release --parallel 4 -- /p:CL_MPcount=4
 
       - name: Package
         shell: pwsh
