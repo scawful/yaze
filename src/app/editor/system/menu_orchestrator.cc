@@ -549,15 +549,21 @@ void MenuOrchestrator::OnSwitchToEditor(EditorType editor_type) {
 
 void MenuOrchestrator::OnShowEditorSelection() {
   // Delegate to EditorManager
+  // TODO: Draw editor selection via UICoordinator
   if (editor_manager_) {
-    editor_manager_->ShowEditorSelection();
+    if (auto* ui = editor_manager_->ui_coordinator()) {
+      ui->ShowEditorSelection();
+    }
   }
 }
 
 void MenuOrchestrator::OnShowDisplaySettings() {
   // Delegate to EditorManager
+  // TODO: Draw display settings via UICoordinator
   if (editor_manager_) {
-    editor_manager_->ShowDisplaySettings();
+    if (auto* ui = editor_manager_->ui_coordinator()) {
+      ui->ShowDisplaySettings();
+    }
   }
 }
 
@@ -624,8 +630,11 @@ void MenuOrchestrator::OnSwitchToSession(size_t session_index) {
 }
 
 void MenuOrchestrator::OnShowSessionSwitcher() {
+  // TODO: Draw session switcher via UICoordinator
   if (editor_manager_) {
-    editor_manager_->ShowSessionSwitcher();
+    if (auto* ui = editor_manager_->ui_coordinator()) {
+      ui->ShowSessionSwitcher();
+    }
   }
 }
 
@@ -879,7 +888,8 @@ void MenuOrchestrator::OnQuit() {
 
 // Menu item validation helpers
 bool MenuOrchestrator::CanSaveRom() const {
-  return rom_manager_.IsRomLoaded();
+  auto* rom = editor_manager_->GetCurrentRom();
+  return rom ? rom_manager_.IsRomLoaded(rom) : false;
 }
 
 bool MenuOrchestrator::CanSaveProject() const {
@@ -887,7 +897,8 @@ bool MenuOrchestrator::CanSaveProject() const {
 }
 
 bool MenuOrchestrator::HasActiveRom() const {
-  return rom_manager_.IsRomLoaded();
+  auto* rom = editor_manager_->GetCurrentRom();
+  return rom ? rom_manager_.IsRomLoaded(rom) : false;
 }
 
 bool MenuOrchestrator::HasActiveProject() const {
@@ -904,7 +915,8 @@ bool MenuOrchestrator::HasMultipleSessions() const {
 
 // Menu item text generation
 std::string MenuOrchestrator::GetRomFilename() const {
-  return rom_manager_.GetRomFilename();
+  auto* rom = editor_manager_->GetCurrentRom();
+  return rom ? rom_manager_.GetRomFilename(rom) : "";
 }
 
 std::string MenuOrchestrator::GetProjectName() const {

@@ -111,7 +111,8 @@ void UICoordinator::DrawAllUI() {
 }
 
 void UICoordinator::DrawMenuBarExtras() {
-  auto* current_rom = rom_manager_.GetCurrentRom();
+  // Get current ROM from EditorManager (RomFileManager doesn't track "current")
+  auto* current_rom = editor_manager_->GetCurrentRom();
   std::string version_text = absl::StrFormat("v%s", editor_manager_->version().c_str());
   float version_width = ImGui::CalcTextSize(version_text.c_str()).x;
   float session_rom_area_width = 280.0f;

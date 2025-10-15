@@ -46,6 +46,7 @@ set(
   app/editor/system/session_coordinator.cc
   app/editor/system/user_settings.cc
   app/editor/system/window_delegate.cc
+  app/editor/system/shortcut_configurator.cc
   app/editor/ui/editor_selection_dialog.cc
   app/editor/ui/menu_builder.cc
   app/editor/ui/ui_coordinator.cc
