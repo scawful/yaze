@@ -85,6 +85,20 @@ For Doxygen integration, this index can be enhanced with:
 - `@tableofcontents` for automatic TOC generation
 - See individual files for `@page` and `@section` usage
 
+### Doxygen Integration Tips
+- Add a short `@mainpage` block to `docs/index.md` so generated HTML mirrors the
+  manual structure.
+- Define high-level groups with `@defgroup` (`getting_started`, `building`,
+  `graphics_gui`, etc.) and attach individual docs using `@page ... @ingroup`.
+- Use `@subpage`, `@section`, and `@subsection` when a document benefits from
+  nested navigation.
+- Configure `Doxyfile` with `USE_MDFILE_AS_MAINPAGE = docs/index.md`,
+  `FILE_PATTERNS = *.md *.h *.cc`, and `EXTENSION_MAPPING = md=C++` to combine
+  Markdown and source comments.
+- Keep Markdown reader-friendly—wrap Doxygen directives in comment fences (`/**`
+  … `*/`) so they are ignored by GitHub while remaining visible to the
+  generator.
+
 ---
 
 *Last updated: October 13, 2025 - Version 0.3.2*

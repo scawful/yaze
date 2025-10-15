@@ -339,6 +339,68 @@ OverworldMap::OverworldMap(int index, Rom* rom) : index_(index), rom_(rom) {
 - `BuildTileset()`: Constructs graphics tileset
 - `BuildBitmap()`: Creates the final map bitmap
 
+### Mode 7 Tileset Conversion
+
+Mode 7 graphics live at PC `0x0C4000` as 0x4000 bytes of tiled 8×8 pixel data.
+Yaze mirrors ZScream’s tiled-to-linear conversion so SDL can consume it:
+
+```cpp
+std::array<uint8_t, 0x4000> mode7_raw = rom_->ReadRange(kMode7Tiles, 0x4000);
+int pos = 0;
+for (int sy = 0; sy < 16 * 1024; sy += 1024) {
+  for (int sx = 0; sx < 16 * 8; sx += 8) {
+    for (int y = 0; y < 8 * 128; y += 128) {
+      for (int x = 0; x < 8; ++x) {
+        tileset_[x + sx + y + sy] = mode7_raw[pos++];
+      }
+    }
+  }
+}
+```
+
+The result is a contiguous 128×128 tileset used by both Light and Dark world
+maps.
+
+### Interleaved Tilemap Layout
+
+The 64×64 tilemap (4 096 bytes) is interleaved across four 0x400-byte banks
+plus a Dark World override. Copying logic mirrors the original IDK/Zarby docs:
+
+```cpp
+auto load_quadrant = [&](uint8_t* dest, const uint8_t* left,
+                         const uint8_t* right) {
+  for (int count = 0, col = 0; count < 0x800; ++count, ++col) {
+    *dest++ = (col < 32 ? left : right)[count & 0x3FF];
+    if (col == 63) col = -1;  // wrap every 64 tiles
+  }
+};
+load_quadrant(lw_map_, p1, p2);     // top half
+load_quadrant(lw_map_ + 0x800, p3, p4);  // bottom half
+```
+
+The Dark World map reuses Light World data except for the final quadrant stored
+at `+0x1000`.
+
+### Palette Addresses
+
+- Light World palette: `0x055B27` (128 colors)
+- Dark World palette: `0x055C27` (128 colors)
+- Conversion uses the shared helper discussed in [G3-palete-system-overview.md](G3-palete-system-overview.md).
+
+### Custom Map Import/Export
+
+The editor ships binary import/export to accelerate iteration:
+
+```cpp
+absl::Status OverworldMap::LoadCustomMap(std::string_view path);
+absl::Status OverworldMap::SaveCustomMap(std::string_view path, bool dark_world);
+```
+
+- Load expects a raw 4 096-byte tilemap; it replaces the active Light/Dark world
+  buffer and triggers a redraw.
+- Save writes either the Light World tilemap or the Dark World override,
+  allowing collaboration with external tooling.
+
 ### Current Status
 
 ✅ **ZSCustomOverworld v2/v3 Support**: Fully implemented and tested

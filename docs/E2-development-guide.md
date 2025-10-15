@@ -13,6 +13,19 @@ This guide outlines the core architectural patterns, UI systems, and best practi
 - **Sprite Editor**: EXPERIMENTAL
 - **Assembly Editor**: Production ready
 
+### Screen Editor Progress (October 2025)
+
+- **Title screen**: Palette and graphics group loading work, but vanilla ROM
+  tilemap parsing still fails. ZScream-format ROMs render correctly; the
+  outstanding task is implementing a vanilla DMA parser so the welcome screen
+  appears. Tile painting is blocked until the display bug is resolved.
+- **Overworld map**: Mode 7 tileset conversion, interleaved tilemap loading, and
+  Light/Dark world palette switching all function. Painting and custom map
+  import/export are stable; queue up tile painting enhancements when time
+  permits.
+- **Dungeon map**: Map loading and palette rendering are in good shape. Add the
+  tile painting workflow and ROM write-back to finish the feature.
+
 ## 1. Core Architectural Patterns
 
 These patterns, established during the Overworld Editor refactoring, should be applied to all new and existing editor components.
@@ -104,9 +117,31 @@ To ensure a consistent and polished look and feel, all new UI components must ad
     - **Items**: Bright red
     - **Sprites**: Bright magenta
 
-## 4. Debugging and Testing
+## 4. Clang Tooling Configuration
 
-### 4.1. Quick Debugging with Startup Flags
+The repository ships curated `.clangd` and `.clang-tidy` files that mirror our
+Google-style C++23 guidelines while accommodating ROM hacking patterns.
+
+- `.clangd` consumes `build/compile_commands.json`, enumerates `src/`, `incl/`,
+  `third_party/`, generated directories, and sets feature flags such as
+  `YAZE_WITH_GRPC`, `YAZE_WITH_JSON`, and `Z3ED_AI` so IntelliSense matches the
+  active preset.
+- `.clang-tidy` enables the `clang-analyzer`, `performance`, `bugprone`,
+  `readability`, `modernize`, `google`, and `abseil` suites, but relaxes common
+  ROM hacking pain points (magic numbers, explicit integer sizing, C arrays,
+  carefully scoped narrowing conversions).
+- The `gfx::SnesColor` utilities intentionally return ImVec4 values in 0‑255
+  space; rely on the helper converters instead of manual scaling to avoid
+  precision loss.
+- Regenerate the compilation database whenever you reconfigure: `cmake --preset
+  mac-dbg` (or the platform equivalent) and ensure the file lives at
+  `build/compile_commands.json`.
+- Spot-check tooling with `clang-tidy path/to/file.cc -p build --quiet` or a
+  batch run via presets before sending larger patches.
+
+## 5. Debugging and Testing
+
+### 5.1. Quick Debugging with Startup Flags
 
 To accelerate your debugging workflow, use command-line flags to jump directly to specific editors and open relevant UI cards:
 
@@ -131,7 +166,7 @@ To accelerate your debugging workflow, use command-line flags to jump directly t
 
 See [debugging-startup-flags.md](debugging-startup-flags.md) for complete documentation.
 
-### 4.2. Testing Strategies
+### 5.2. Testing Strategies
 
 For a comprehensive overview of debugging tools and testing strategies, including how to use the logging framework, command-line test runners, and the GUI automation harness for AI agents, please refer to the [Debugging and Testing Guide](E5-debugging-guide.md).
 
