@@ -5,7 +5,7 @@
 1. Overworld map highlighting regression after canvas refactoring
 2. Overworld canvas scrolling unexpectedly when selecting tiles
 3. Vanilla Dark/Special World large map outlines not displaying
-**Status**: ✅ Fixed
+**Status**:  Fixed
 
 ## Problem Summary
 
@@ -31,7 +31,7 @@ int map_x = (mouse_position.x - canvas_zero_point.x) / kOverworldMapSize;
 
 **After (FIXED)**:
 ```cpp
-const auto mouse_position = ow_map_canvas_.hover_mouse_pos();  // ✅ World coordinates!
+const auto mouse_position = ow_map_canvas_.hover_mouse_pos();  //  World coordinates!
 int map_x = mouse_position.x / kOverworldMapSize;
 ```
 
@@ -69,12 +69,12 @@ void Canvas::DrawBackground(ImVec2 canvas_size) {
   // ... setup code ...
   ImGui::InvisibleButton(canvas_id_.c_str(), scaled_size, kMouseFlags);
 
-  // ✅ CRITICAL FIX: Always update hover position when hovering
+  //  CRITICAL FIX: Always update hover position when hovering
   if (IsItemHovered()) {
     const ImGuiIO& io = GetIO();
     const ImVec2 origin(canvas_p0_.x + scrolling_.x, canvas_p0_.y + scrolling_.y);
     const ImVec2 mouse_pos(io.MousePos.x - origin.x, io.MousePos.y - origin.y);
-    mouse_pos_in_canvas_ = mouse_pos;  // ✅ Updated every frame during hover
+    mouse_pos_in_canvas_ = mouse_pos;  //  Updated every frame during hover
   }
 
   if (config_.is_draggable && IsItemHovered()) {
@@ -106,13 +106,13 @@ yaze has three coordinate spaces:
 
 **For Hover/Highlighting** (CheckForCurrentMap):
 ```cpp
-auto hover_pos = canvas.hover_mouse_pos();  // ✅ Updates continuously
+auto hover_pos = canvas.hover_mouse_pos();  //  Updates continuously
 int map_x = hover_pos.x / kOverworldMapSize;
 ```
 
 **For Active Painting** (DrawOverworldEdits):
 ```cpp
-auto paint_pos = canvas.drawn_tile_position();  // ✅ Updates only during drag
+auto paint_pos = canvas.drawn_tile_position();  //  Updates only during drag
 int map_x = paint_pos.x / kOverworldMapSize;
 ```
 
@@ -131,8 +131,8 @@ int map_x = paint_pos.x / kOverworldMapSize;
 1. Open overworld editor
 2. Switch to Dark World (or any world)
 3. Right-click on overworld canvas to select a tile
-4. ✅ **Expected**: Tile16 blockset selector scrolls to show the selected tile
-5. ✅ **Expected**: Overworld canvas does NOT scroll
+4.  **Expected**: Tile16 blockset selector scrolls to show the selected tile
+5.  **Expected**: Overworld canvas does NOT scroll
 6. ❌ **Before fix**: Overworld canvas would scroll unexpectedly
 
 ### Unit Tests
@@ -173,21 +173,21 @@ Run tests:
    - Now properly accounts for Dark World (0x40-0x7F) and Special World (0x80-0x9F)
 
 ### Affected Functionality
-- ✅ **Fixed**: Overworld map highlighting during hover (all worlds, all ROM types)
-- ✅ **Fixed**: Vanilla Dark World large map highlighting (was drawing off-screen)
-- ✅ **Fixed**: Vanilla Special World large map highlighting (was drawing off-screen)
-- ✅ **Fixed**: Overworld canvas no longer scrolls when selecting tiles
-- ✅ **Fixed**: Tile16 selector properly scrolls to show selected tile (via blockset_selector_)
-- ✅ **Fixed**: Entity renderer using `hover_mouse_pos()` (already worked correctly)
-- ✅ **Preserved**: Tile painting using `drawn_tile_position()` (unchanged)
-- ✅ **Preserved**: Multi-area map support (512x512, 1024x1024)
-- ✅ **Preserved**: All three worlds (Light 0x00-0x3F, Dark 0x40-0x7F, Special 0x80+)
-- ✅ **Preserved**: ZSCustomOverworld v3 large maps (already worked correctly)
+-  **Fixed**: Overworld map highlighting during hover (all worlds, all ROM types)
+-  **Fixed**: Vanilla Dark World large map highlighting (was drawing off-screen)
+-  **Fixed**: Vanilla Special World large map highlighting (was drawing off-screen)
+-  **Fixed**: Overworld canvas no longer scrolls when selecting tiles
+-  **Fixed**: Tile16 selector properly scrolls to show selected tile (via blockset_selector_)
+-  **Fixed**: Entity renderer using `hover_mouse_pos()` (already worked correctly)
+-  **Preserved**: Tile painting using `drawn_tile_position()` (unchanged)
+-  **Preserved**: Multi-area map support (512x512, 1024x1024)
+-  **Preserved**: All three worlds (Light 0x00-0x3F, Dark 0x40-0x7F, Special 0x80+)
+-  **Preserved**: ZSCustomOverworld v3 large maps (already worked correctly)
 
 ### Related Code That Works Correctly
 These files already use the correct pattern:
-- `src/app/editor/overworld/overworld_entity_renderer.cc:68-69` - Uses `hover_mouse_pos()` for entity placement ✅
-- `src/app/editor/overworld/overworld_editor.cc:664` - Uses `drawn_tile_position()` for painting ✅
+- `src/app/editor/overworld/overworld_entity_renderer.cc:68-69` - Uses `hover_mouse_pos()` for entity placement 
+- `src/app/editor/overworld/overworld_editor.cc:664` - Uses `drawn_tile_position()` for painting 
 
 ## Multi-Area Map Support
 
@@ -256,11 +256,11 @@ void OverworldEditor::ScrollBlocksetCanvasToCurrentTile() {
 ```cpp
 void OverworldEditor::ScrollBlocksetCanvasToCurrentTile() {
   if (blockset_selector_) {
-    blockset_selector_->ScrollToTile(current_tile16_);  // ✅ Correct: Targets specific canvas
+    blockset_selector_->ScrollToTile(current_tile16_);  //  Correct: Targets specific canvas
     return;
   }
 
-  // ✅ CRITICAL FIX: Do NOT use fallback scrolling from overworld canvas context!
+  //  CRITICAL FIX: Do NOT use fallback scrolling from overworld canvas context!
   // The fallback code uses ImGui::SetScrollX/Y which scrolls the CURRENT window,
   // and when called from CheckForSelectRectangle() during overworld canvas rendering,
   // it incorrectly scrolls the overworld canvas instead of the tile16 selector.
@@ -305,11 +305,11 @@ if (IsItemHovered())  // ❌ Checks LAST item (overlay/entity), not canvas!
 if (current_mode == EditingMode::DRAW_TILE) {
   CheckForOverworldEdits();
 }
-// ✅ CRITICAL FIX: Use canvas hover state, not ImGui::IsItemHovered()
+//  CRITICAL FIX: Use canvas hover state, not ImGui::IsItemHovered()
 // IsItemHovered() checks the LAST drawn item, which could be entities/overlay,
 // not the canvas InvisibleButton. ow_map_canvas_.IsMouseHovering() correctly
 // tracks whether mouse is over the canvas area.
-if (ow_map_canvas_.IsMouseHovering())  // ✅ Checks canvas hover state directly
+if (ow_map_canvas_.IsMouseHovering())  //  Checks canvas hover state directly
   status_ = CheckForCurrentMap();
 ```
 
@@ -351,7 +351,7 @@ if (overworld_.overworld_map(current_map_)->is_large_map() ||
   const int highlight_parent =
       overworld_.overworld_map(current_highlighted_map)->parent();
 
-  // ✅ CRITICAL FIX: Account for world offset when calculating parent coordinates
+  //  CRITICAL FIX: Account for world offset when calculating parent coordinates
   int parent_map_x;
   int parent_map_y;
   if (current_world_ == 0) {

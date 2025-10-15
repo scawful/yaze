@@ -161,7 +161,7 @@ To eliminate floating-point errors, convert the `apuCyclesPerMaster` ratio to a 
 
 ## Completed Improvements
 
-### Audio System Fixes (v0.4.0) ✅
+### Audio System Fixes (v0.4.0)
 
 #### Problem Statement
 The SNES emulator experienced audio glitchiness and skips, particularly during the ALTTP title screen, with audible pops, crackling, and sample skipping during music playback.
@@ -178,19 +178,16 @@ The SNES emulator experienced audio glitchiness and skips, particularly during t
 3. **Frame Boundary Synchronization**: Added `dsp.NewFrame()` call before sample generation
 4. **Hermite Interpolation**: New interpolation type matching bsnes/Snes9x standard
 
-**Performance Comparison**:
-| Interpolation | Quality | Speed | Use Case |
-|--------------|---------|-------|----------|
-| Linear | ⭐⭐ | ⭐⭐⭐⭐⭐ | Low-end hardware only |
-| **Hermite** | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | **Recommended default** |
-| Cosine | ⭐⭐⭐ | ⭐⭐⭐ | Smooth but slow |
-| Cubic | ⭐⭐⭐⭐⭐ | ⭐⭐ | Maximum accuracy |
+**Interpolation options** (`src/app/emu/audio/dsp.cc`):
 
-**Result**: Smooth, glitch-free audio matching real SNES hardware quality.
+| Interpolation | Notes |
+|--------------|-------|
+| Linear       | Fastest; retains legacy behaviour. |
+| Hermite      | New default; balances quality and speed. |
+| Cosine       | Smoother than linear with moderate cost. |
+| Cubic        | Highest quality, heavier CPU cost. |
 
-**Testing**: Validated on ALTTP title screen, overworld theme, dungeon ambience, and menu sounds.
-
-**Status**: ✅ Production Ready
+**Result**: Manual testing on the ALTTP title screen, overworld theme, dungeon ambience, and menu sounds no longer exhibits audible pops or skips. Continue to monitor regression tests after the APU timing refactor lands.
 
 ---
 
@@ -235,4 +232,3 @@ The SNES emulator experienced audio glitchiness and skips, particularly during t
 
 **Status:** Active Planning  
 **Next Steps:** Begin APU timing refactoring for v0.4.0
-

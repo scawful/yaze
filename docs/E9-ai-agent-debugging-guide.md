@@ -10,23 +10,23 @@ The z3ed AI agent can debug SNES emulation issues using a comprehensive gRPC-bas
 
 ## Implementation Summary
 
-### Features Implemented ✅
+### Features Implemented 
 
 **Emulator Debugging Service** (`src/cli/service/agent/emulator_service_impl.{h,cc}`)
 
 **20/24 gRPC Methods Implemented**:
-- ✅ Lifecycle control (Start, Stop, Pause, Resume, Reset)
-- ✅ Input simulation (PressButtons, ReleaseButtons, HoldButtons)
-- ✅ Memory introspection (ReadMemory, WriteMemory)
-- ✅ Game state capture (GetGameState with screenshot support)
-- ✅ Breakpoint management (Add, Remove, List, Enable/Disable)
-- ✅ Step execution (StepInstruction, RunToBreakpoint)
-- ✅ Debug session management (CreateDebugSession, GetDebugStatus)
-- ✅ CPU register access (full 65816 state)
-- ⏳ Disassembly (basic implementation, needs 65816 disassembler integration)
-- ⏳ Watchpoints (awaiting WatchpointManager integration)
-- ⏳ Symbol loading (awaiting symbol manager implementation)
-- ⏳ Execution trace (requires trace buffer)
+-  Lifecycle control (Start, Stop, Pause, Resume, Reset)
+-  Input simulation (PressButtons, ReleaseButtons, HoldButtons)
+-  Memory introspection (ReadMemory, WriteMemory)
+-  Game state capture (GetGameState with screenshot support)
+-  Breakpoint management (Add, Remove, List, Enable/Disable)
+-  Step execution (StepInstruction, RunToBreakpoint)
+-  Debug session management (CreateDebugSession, GetDebugStatus)
+-  CPU register access (full 65816 state)
+- Pending: Disassembly (basic implementation, needs 65816 disassembler integration)
+- Pending: Watchpoints (awaiting WatchpointManager integration)
+- Pending: Symbol loading (awaiting symbol manager implementation)
+- Pending: Execution trace (requires trace buffer)
 
 **Function Schemas** (`assets/agent/function_schemas.json`)
 
@@ -657,6 +657,6 @@ for reproducible debugging sessions.
 ---
 
 **Last Updated**: October 12, 2025  
-**Status**: Production Ready ✅  
+**Status**: Production Ready   
 **Next**: WatchpointManager integration, Symbol loading, Execution trace
 

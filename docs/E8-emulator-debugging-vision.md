@@ -7,7 +7,7 @@
 
 ---
 
-## 📋 Executive Summary
+## Executive Summary
 
 This document outlines the roadmap for evolving YAZE's SNES emulator from a basic runtime into a **world-class debugging platform** with AI agent integration. The goal is to achieve feature parity with Mesen2's advanced debugging capabilities while adding unique AI-powered features through the z3ed CLI system.
 
@@ -20,9 +20,9 @@ This document outlines the roadmap for evolving YAZE's SNES emulator from a basi
 
 ---
 
-## 🎯 Current State Analysis
+##  Current State Analysis
 
-### What Works ✅
+### What Works 
 - **CPU Emulation**: 65816 core functional, runs games
 - **PPU Rendering**: Display works, texture updates to SDL2
 - **ROM Loading**: Can load and execute SNES ROMs
@@ -39,7 +39,7 @@ This document outlines the roadmap for evolving YAZE's SNES emulator from a basi
 - **Memory Viewer**: Basic hex view, no structured inspection
 - **Trace Logging**: No execution tracing capability
 
-### What's Missing 🚧
+### What's Missing Pending:
 - **Advanced Breakpoints**: Conditional, access-based, CPU/SPC700
 - **Memory Watchpoints**: Track reads/writes to specific addresses
 - **Disassembly View**: Real-time code annotation
@@ -51,7 +51,7 @@ This document outlines the roadmap for evolving YAZE's SNES emulator from a basi
 
 ---
 
-## 🔧 Phase 1: Audio System Fix (Priority: CRITICAL)
+## Tool Phase 1: Audio System Fix (Priority: CRITICAL)
 
 ### Problem Analysis
 **Current State**:
@@ -193,17 +193,17 @@ if (frame_count_ % 300 == 0) {  // Every 5 seconds
 
 | Feature | Mesen2 | YAZE Current | YAZE Target |
 |---------|--------|--------------|-------------|
-| CPU Breakpoints | ✅ Execute/Read/Write | ⚠️ Basic Execute | ✅ Full Support |
-| Memory Watchpoints | ✅ Conditional | ❌ None | ✅ Conditional |
-| Disassembly View | ✅ Live Annotated | ❌ Static | ✅ Live + Labels |
-| Memory Viewer | ✅ Multi-region | ⚠️ Basic Hex | ✅ Structured |
-| Trace Logger | ✅ CPU/SPC/DMA | ❌ None | ✅ All Channels |
-| Event Viewer | ✅ IRQ/NMI/DMA | ❌ None | ✅ Full Timeline |
-| Performance | ✅ Cycle Accurate | ❌ Approximate | ✅ Cycle Accurate |
-| Save States | ⚠️ Limited | ⚠️ Basic | ✅ Full State |
-| PPU Debugger | ✅ Layer Viewer | ❌ None | ✅ VRAM Inspector |
-| APU Debugger | ✅ DSP Viewer | ❌ None | ✅ Channel Mixer |
-| Scripting | ✅ Lua | ❌ None | ✅ z3ed + AI! |
+| CPU Breakpoints |  Execute/Read/Write | Warning: Basic Execute |  Full Support |
+| Memory Watchpoints |  Conditional | ❌ None |  Conditional |
+| Disassembly View |  Live Annotated | ❌ Static |  Live + Labels |
+| Memory Viewer |  Multi-region | Warning: Basic Hex |  Structured |
+| Trace Logger |  CPU/SPC/DMA | ❌ None |  All Channels |
+| Event Viewer |  IRQ/NMI/DMA | ❌ None |  Full Timeline |
+| Performance |  Cycle Accurate | ❌ Approximate |  Cycle Accurate |
+| Save States | Warning: Limited | Warning: Basic |  Full State |
+| PPU Debugger |  Layer Viewer | ❌ None |  VRAM Inspector |
+| APU Debugger |  DSP Viewer | ❌ None |  Channel Mixer |
+| Scripting |  Lua | ❌ None |  z3ed + AI! |
 
 ### 2.1 Breakpoint System
 
@@ -396,7 +396,7 @@ void Emulator::RenderDisassemblyWindow() {
       
       // Show execution count for hotspots
       if (instr.execution_count > 1000) {
-        ImGui::TextColored(ImVec4(1,0.5,0,1), "🔥");  // Hot code
+        ImGui::TextColored(ImVec4(1,0.5,0,1), "");  // Hot code
       }
       
       ImGui::Text("%06X  %s  %s  ; %s", 
@@ -476,7 +476,7 @@ public:
 
 ---
 
-## 🚀 Phase 3: Performance Optimizations
+##  Phase 3: Performance Optimizations
 
 ### 3.1 Cycle-Accurate Timing
 
@@ -585,7 +585,7 @@ void Emulator::RunFrame() {
 
 ---
 
-## 🎮 Phase 4: SPC700 Audio CPU Debugger
+## Game Phase 4: SPC700 Audio CPU Debugger
 
 ### 4.1 APU Inspector Window
 
@@ -673,7 +673,7 @@ private:
 
 ---
 
-## 🤖 Phase 5: z3ed AI Agent Integration
+## AI Phase 5: z3ed AI Agent Integration
 
 ### 5.1 Emulator State Access
 
@@ -887,7 +887,7 @@ class FrameTimeAnalyzer {
 
 ---
 
-## 🎯 Phase 7: Event System & Timeline
+##  Phase 7: Event System & Timeline
 
 ### 7.1 Event Logger
 
@@ -996,52 +996,52 @@ z3ed agent repro --prompt "Link takes damage when he shouldn't"
 
 ---
 
-## 🗺️ Implementation Roadmap
+##  Implementation Roadmap
 
 ### Sprint 1: Audio Fix (Week 1)
 **Priority**: CRITICAL  
 **Time**: 4 hours  
 **Deliverables**:
-- ✅ Investigate audio buffer size mismatch
-- ✅ Add audio debug logging
-- ✅ Fix SDL2 audio output
-- ✅ Verify audio plays correctly
+-  Investigate audio buffer size mismatch
+-  Add audio debug logging
+-  Fix SDL2 audio output
+-  Verify audio plays correctly
 
 ### Sprint 2: Basic Debugger (Weeks 2-3)
 **Priority**: HIGH  
 **Time**: 20 hours  
 **Deliverables**:
-- ✅ Breakpoint manager with execute/read/write
-- ✅ Enhanced disassembly viewer with hotspots
-- ✅ Improved memory viewer with regions
-- ✅ z3ed CLI commands for debugging
+-  Breakpoint manager with execute/read/write
+-  Enhanced disassembly viewer with hotspots
+-  Improved memory viewer with regions
+-  z3ed CLI commands for debugging
 
 ### Sprint 3: SPC700 Debugger (Week 4)
 **Priority**: MEDIUM  
 **Time**: 15 hours  
 **Deliverables**:
-- ✅ APU inspector window
-- ✅ Channel waveform visualization
-- ✅ Audio RAM viewer
-- ✅ Sample export to WAV
+-  APU inspector window
+-  Channel waveform visualization
+-  Audio RAM viewer
+-  Sample export to WAV
 
 ### Sprint 4: AI Integration (Weeks 5-6)
 **Priority**: MEDIUM  
 **Time**: 25 hours  
 **Deliverables**:
-- ✅ Emulator state tools for z3ed agent
-- ✅ Memory map learning system
-- ✅ Automated test scenario generation
-- ✅ Crash analysis AI
+-  Emulator state tools for z3ed agent
+-  Memory map learning system
+-  Automated test scenario generation
+-  Crash analysis AI
 
 ### Sprint 5: Performance (Weeks 7-8)
 **Priority**: LOW (Future)  
 **Time**: 40+ hours  
 **Deliverables**:
-- ✅ Cycle-accurate timing
-- ✅ Dynamic recompilation
-- ✅ Performance profiler
-- ✅ Frame pacing improvements
+-  Cycle-accurate timing
+-  Dynamic recompilation
+-  Performance profiler
+-  Frame pacing improvements
 
 ---
 
@@ -1116,7 +1116,7 @@ cpu.Write(0x2140, data);  // APU I/O port 0
 
 ---
 
-## 🎮 Phase 9: Advanced Features (Mesen2 Parity)
+## Game Phase 9: Advanced Features (Mesen2 Parity)
 
 ### 9.1 Rewind Feature
 
@@ -1220,7 +1220,7 @@ Memory Diff: 147 bytes different
 
 ---
 
-## 🛠️ Optimization Summary
+## Optimization Summary
 
 ### Quick Wins (< 1 week)
 1. **Fix audio output** - 4 hours
@@ -1242,7 +1242,7 @@ Memory Diff: 147 bytes different
 
 ---
 
-## 🤖 z3ed Agent Emulator Tools
+## AI z3ed Agent Emulator Tools
 
 ### New Tool Categories
 
@@ -1442,7 +1442,7 @@ src/cli/service/agent/
 
 ---
 
-## 🚀 Performance Targets
+##  Performance Targets
 
 ### Current Performance
 - **Emulation Speed**: ~60 FPS (with frame skipping)
@@ -1592,7 +1592,7 @@ Agent: I'll run comprehensive tests...
 Agent: "Tested all 12 dungeons. Found issues:
        - Dungeon 3: Softlock at room 0x34 (missing key)
        - Dungeon 7: Crash at room 0x12 (invalid sprite ID)
-       All other dungeons: ✅ PASS"
+       All other dungeons:  PASS"
 ```
 
 ---
@@ -1682,7 +1682,7 @@ Agent: "Tested all 12 dungeons. Found issues:
 
 ---
 
-## 🛣️ Recommended Implementation Order
+## Recommended Implementation Order
 
 ### Month 1: Foundation
 **Weeks 1-2**: Audio fix + Basic breakpoints  
@@ -1871,36 +1871,36 @@ Cycle    PC      Opcode  A  X  Y  SP  Flags  Event
 
 ---
 
-## 🎯 Success Criteria
+##  Success Criteria
 
 ### Phase 1 Complete When:
-- ✅ Audio plays correctly from SDL2
-- ✅ Can hear game music and sound effects
-- ✅ No audio crackling or dropouts
-- ✅ Audio buffer diagnostics implemented
+-  Audio plays correctly from SDL2
+-  Can hear game music and sound effects
+-  No audio crackling or dropouts
+-  Audio buffer diagnostics implemented
 
 ### Phase 2 Complete When:
-- ✅ Can set breakpoints on any address
-- ✅ Disassembly view shows live execution
-- ✅ Memory viewer has multi-region support
-- ✅ z3ed CLI can control debugger
+-  Can set breakpoints on any address
+-  Disassembly view shows live execution
+-  Memory viewer has multi-region support
+-  z3ed CLI can control debugger
 
 ### Phase 3 Complete When:
-- ✅ SPC700 debugger shows all APU state
-- ✅ Can visualize audio channels
-- ✅ Can export audio samples to WAV
+-  SPC700 debugger shows all APU state
+-  Can visualize audio channels
+-  Can export audio samples to WAV
 
 ### Phase 4 Complete When:
-- ✅ AI agent can read emulator memory
-- ✅ AI agent can control emulation
-- ✅ AI can generate test scenarios
-- ✅ Automated ROM testing works
+-  AI agent can read emulator memory
+-  AI agent can control emulation
+-  AI can generate test scenarios
+-  Automated ROM testing works
 
 ### Phase 5 Complete When:
-- ✅ Emulator is cycle-accurate
-- ✅ 60 FPS maintained with debugging
-- ✅ Dynarec provides 3x speedup
-- ✅ All Mesen2 features implemented
+-  Emulator is cycle-accurate
+-  60 FPS maintained with debugging
+-  Dynarec provides 3x speedup
+-  All Mesen2 features implemented
 
 ---
 
@@ -1923,7 +1923,7 @@ Cycle    PC      Opcode  A  X  Y  SP  Flags  Event
 
 ---
 
-## 🙏 Credits & Acknowledgments
+##  Credits & Acknowledgments
 
 **Emulator Core**: Based on LakeSnes by elzo-d  
 **Debugger Inspiration**: Mesen2 by SourMesen  

@@ -23,17 +23,17 @@ The proposed architecture organizes the codebase into two distinct layers: **Fou
 /src
 ├── core/         (NEW) 📖 Project model, Asar wrapper, etc.
 ├── gfx/          (MOVED) 🎨 Graphics engine, backends, resource management
-├── zelda3/       (MOVED) 🎮 Game-specific data models and logic
-├── util/         (EXISTING) 🛠️ Low-level utilities (logging, file I/O)
+├── zelda3/       (MOVED) Game Game-specific data models and logic
+├── util/         (EXISTING)  Low-level utilities (logging, file I/O)
 │
-├── app/          (REFACTORED) 🖥️ Main GUI Application
-│   ├── controller.cc   (MOVED) 🕹️ Main application controller
+├── app/          (REFACTORED)  Main GUI Application
+│   ├── controller.cc   (MOVED)  Main application controller
 │   ├── platform/       (MOVED) 윈도우 Windowing, input, platform abstractions
-│   ├── service/        (MOVED) 🤖 gRPC services for automation
+│   ├── service/        (MOVED) AI gRPC services for automation
 │   ├── editor/         (EXISTING) 🎨 Editor implementations
-│   └── gui/            (EXISTING) 🖼️ Shared ImGui widgets
+│   └── gui/            (EXISTING)  Shared ImGui widgets
 │
-└── cli/          (EXISTING) ⌨️ z3ed Command-Line Tool
+└── cli/          (EXISTING)  z3ed Command-Line Tool
 ```
 
 ## 3. Detailed Refactoring Plan

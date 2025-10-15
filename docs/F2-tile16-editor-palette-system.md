@@ -267,15 +267,15 @@ The debug panel (collapsible by default) shows:
 
 ## Known Issues and Ongoing Work
 
-### Completed Items ✅
-- ✅ **No Crashes**: Fixed SIGBUS errors - palette buttons 0-7 work without crashing
-- ✅ **Three-Column Layout**: Unified layout with blockset, tile8 source, and editor
-- ✅ **Dynamic Zoom Controls**: Independent zoom for all three canvases
-- ✅ **Canvas Popup Fixes**: Advanced properties and scaling controls now working
-- ✅ **Stable Memory**: No memory leaks or corruption
-- ✅ **Code Architecture**: Proper bounds checking and error handling
+### Completed Items 
+-  **No Crashes**: Fixed SIGBUS errors - palette buttons 0-7 work without crashing
+-  **Three-Column Layout**: Unified layout with blockset, tile8 source, and editor
+-  **Dynamic Zoom Controls**: Independent zoom for all three canvases
+-  **Canvas Popup Fixes**: Advanced properties and scaling controls now working
+-  **Stable Memory**: No memory leaks or corruption
+-  **Code Architecture**: Proper bounds checking and error handling
 
-### Active Issues ⚠️
+### Active Issues Warning:
 
 **1. Tile8 Source Canvas Palette Issues**
 - **Problem**: The tile8 source canvas (displaying current area graphics) does not show correct colors
@@ -300,14 +300,14 @@ The debug panel (collapsible by default) shows:
 
 | Component | Status | Notes |
 |-----------|--------|-------|
-| Crash Prevention | ✅ Complete | No SIGBUS errors |
-| Three-Column Layout | ✅ Complete | Fully functional |
-| Zoom Controls | ✅ Complete | All canvases working |
-| Tile16 Editor Palette | ✅ Complete | Shows correct colors |
-| Tile8 Source Palette | ⚠️ In Progress | Incorrect colors displayed |
-| Palette Button Updates | ⚠️ In Progress | Not updating palettes |
-| Sheet-Aware Logic | ⚠️ Partial | Foundation in place, needs fixes |
-| Overall Color System | ⚠️ In Progress | Ongoing development |
+| Crash Prevention |  Complete | No SIGBUS errors |
+| Three-Column Layout |  Complete | Fully functional |
+| Zoom Controls |  Complete | All canvases working |
+| Tile16 Editor Palette |  Complete | Shows correct colors |
+| Tile8 Source Palette | Warning: In Progress | Incorrect colors displayed |
+| Palette Button Updates | Warning: In Progress | Not updating palettes |
+| Sheet-Aware Logic | Warning: Partial | Foundation in place, needs fixes |
+| Overall Color System | Warning: In Progress | Ongoing development |
 
 ### Future Enhancements
 

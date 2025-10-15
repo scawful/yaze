@@ -149,8 +149,8 @@ Dependencies:
 │ Depends on: yaze_gfx, yaze_util, yaze_common, absl             │
 └─────────────────────────────────────────────────────────────────┘
 
-⚠️ ISSUE: Located at src/app/zelda3/ but used by both app AND cli
-⚠️ ISSUE: Monolithic - any change rebuilds entire library
+Warning: ISSUE: Located at src/app/zelda3/ but used by both app AND cli
+Warning: ISSUE: Monolithic - any change rebuilds entire library
 ```
 
 ### 1.5 Zelda3 Library (Proposed - Tiered)
@@ -183,17 +183,17 @@ Dependencies:
         └───────────────┘
 
 Benefits:
-✅ Location: src/zelda3/ (proper top-level shared lib)
-✅ Granular: Change dungeon logic → only rebuilds dungeon + dependents
-✅ Clear boundaries: Separate overworld/dungeon/sprite concerns
-✅ Legacy isolation: Music tracker separated from modern code
+ Location: src/zelda3/ (proper top-level shared lib)
+ Granular: Change dungeon logic → only rebuilds dungeon + dependents
+ Clear boundaries: Separate overworld/dungeon/sprite concerns
+ Legacy isolation: Music tracker separated from modern code
 ```
 
 ### 1.6 Core Libraries
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│ yaze_core_lib (⚠️ CIRCULAR DEPENDENCY RISK)                   │
+│ yaze_core_lib (Warning: CIRCULAR DEPENDENCY RISK)                   │
 │ • ROM management (rom.cc)                                       │
 │ • Window/input (window.cc)                                      │
 │ • Asar wrapper (asar_wrapper.cc)                                │
@@ -206,7 +206,7 @@ Benefits:
 │             ImGui, asar-static, SDL2, (gRPC)                    │
 └─────────────────────────────────────────────────────────────────┘
                               ↓
-⚠️ CIRCULAR: yaze_gfx → depends on gfx_resource (Arena)
+Warning: CIRCULAR: yaze_gfx → depends on gfx_resource (Arena)
             Arena.h includes background_buffer.h (from gfx_render)
             gfx_render → gfx_core → gfx_resource
             BUT yaze_core_lib → yaze_gfx
@@ -241,7 +241,7 @@ Benefits:
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│ yaze_test_support (⚠️ CIRCULAR WITH yaze_editor)              │
+│ yaze_test_support (Warning: CIRCULAR WITH yaze_editor)              │
 │ • TestManager (core test infrastructure)                        │
 │ • z3ed test suite                                               │
 │                                                                 │
@@ -249,7 +249,7 @@ Benefits:
 │             yaze_gfx, yaze_util, yaze_common, yaze_agent        │
 └────────────────────────┬────────────────────────────────────────┘
                          │
-                         │ ⚠️ CIRCULAR DEPENDENCY
+                         │ Warning: CIRCULAR DEPENDENCY
                          ↓
 ┌─────────────────────────────────────────────────────────────────┐
 │ yaze_editor                                                     │
@@ -271,10 +271,10 @@ Benefits:
                          └───────────────────────────────────────────┐
                                                                      │
                                                                      ▼
-                                                    ⚠️ CIRCULAR DEPENDENCY
+                                                    Warning: CIRCULAR DEPENDENCY
 
 ┌─────────────────────────────────────────────────────────────────┐
-│ yaze_agent (⚠️ LINKS TO ALMOST EVERYTHING)                    │
+│ yaze_agent (Warning: LINKS TO ALMOST EVERYTHING)                    │
 │ • Command handlers (resource, dungeon, overworld, graphics)     │
 │ • AI services (Ollama, Gemini)                                  │
 │ • GUI automation client                                         │
@@ -288,7 +288,7 @@ Benefits:
 │             yaml-cpp, ftxui, (gRPC), (nlohmann_json), (OpenSSL) │
 └─────────────────────────────────────────────────────────────────┘
 
-⚠️ ISSUE: yaze_agent is massive and pulls in the entire application stack
+Warning: ISSUE: yaze_agent is massive and pulls in the entire application stack
    Even simple CLI commands link against graphics, GUI, emulator, etc.
 ```
 
@@ -310,7 +310,7 @@ Benefits:
 │ Links: yaze_agent, yaze_core_lib, yaze_zelda3, ftxui          │
 │                                                                │
 │ Transitively gets: All libraries through yaze_agent (!)        │
-│ ⚠️ ISSUE: CLI tool rebuilds if GUI/graphics/emulator changes  │
+│ Warning: ISSUE: CLI tool rebuilds if GUI/graphics/emulator changes  │
 └────────────────────────────────────────────────────────────────┘
 
 ┌────────────────────────────────────────────────────────────────┐
@@ -318,7 +318,7 @@ Benefits:
 │                                                                │
 │ Links: yaze_emulator, yaze_core_lib, ImGui, SDL2              │
 │                                                                │
-│ ⚠️ Conditionally built with YAZE_BUILD_EMU=ON                 │
+│ Warning: Conditionally built with YAZE_BUILD_EMU=ON                 │
 └────────────────────────────────────────────────────────────────┘
 
 ┌────────────────────────────────────────────────────────────────┐
@@ -413,14 +413,14 @@ If yaze_core_lib internals ever need gfx_resource specifics:
 
 ```
 yaze_test_support dependencies:
-├─→ yaze_editor (⚠️ Brings in entire app stack)
+├─→ yaze_editor (Warning: Brings in entire app stack)
 ├─→ yaze_core_lib
-├─→ yaze_gui (⚠️ Brings in all GUI widgets)
+├─→ yaze_gui (Warning: Brings in all GUI widgets)
 ├─→ yaze_zelda3
-├─→ yaze_gfx (⚠️ All 7 gfx libraries)
+├─→ yaze_gfx (Warning: All 7 gfx libraries)
 ├─→ yaze_util
 ├─→ yaze_common
-└─→ yaze_agent (⚠️ Brings in AI services, emulator, etc.)
+└─→ yaze_agent (Warning: Brings in AI services, emulator, etc.)
 
 Result: Test executables link against THE ENTIRE APPLICATION
 ```
@@ -507,8 +507,8 @@ Result: Changes to ANY of these trigger editor rebuild
 - Hard to test individual editors
 
 **Mitigation** (already done for gfx/gui):
-- ✅ gfx refactored into 7 granular libs
-- ✅ gui refactored into 5 granular libs
+-  gfx refactored into 7 granular libs
+-  gui refactored into 5 granular libs
 - Next: Refactor zelda3 into 6 granular libs
 - Next: Split editor into editor modules
 
@@ -621,7 +621,7 @@ All test executables (link to yaze_test_support)
 TOTAL: 3 libraries rebuilt, 8+ executables relinked
 TIME: 1-2 minutes
 
-⚠️ CIRCULAR: Editor change forces test rebuild,
+Warning: CIRCULAR: Editor change forces test rebuild,
              Test change forces editor rebuild
 ```
 
@@ -636,8 +636,8 @@ yaze_gfx_core (depends on gfx_types)
     ↓
 yaze_gfx_util + yaze_gfx_render (depend on gfx_core)
 
-✅ STOP: Changes don't affect gfx_backend or gfx_resource
-✅ STOP: gui libraries still use old gfx INTERFACE
+ STOP: Changes don't affect gfx_backend or gfx_resource
+ STOP: gui libraries still use old gfx INTERFACE
 
 Only rebuilt if consumers explicitly use changed APIs:
     - yaze_zelda3 (if it uses modified tile functions)
@@ -645,7 +645,7 @@ Only rebuilt if consumers explicitly use changed APIs:
 
 TOTAL: 3-5 libraries rebuilt, 1-2 executables relinked
 TIME: 30-60 seconds on CI, 15-30 seconds locally
-SAVINGS: 80% faster! ✅
+SAVINGS: 80% faster! 
 ```
 
 #### Scenario 2: Change overworld_map.cc (zelda3) - Optimized
@@ -657,8 +657,8 @@ overworld_map.cc (zelda3_overworld sub-library)
     ↓
 yaze_zelda3_overworld (only this sub-library rebuilt)
 
-✅ STOP: zelda3_dungeon, zelda3_sprite unchanged
-✅ STOP: zelda3_screen depends on overworld but may not need rebuild
+ STOP: zelda3_dungeon, zelda3_sprite unchanged
+ STOP: zelda3_screen depends on overworld but may not need rebuild
 
 Only rebuilt if consumers use changed APIs:
     - yaze_editor_overworld_module
@@ -667,7 +667,7 @@ Only rebuilt if consumers use changed APIs:
 
 TOTAL: 2-3 libraries rebuilt, 1-2 executables relinked
 TIME: 30-45 seconds on CI, 15-20 seconds locally
-SAVINGS: 70% faster! ✅
+SAVINGS: 70% faster! 
 ```
 
 #### Scenario 3: Change test_manager.cc - Optimized
@@ -679,9 +679,9 @@ test_manager.cc (test_framework)
     ↓
 test_framework
 
-✅ STOP: test_suites may not need rebuild (depends on interface changes)
-✅ STOP: test_dashboard is separate, doesn't rebuild
-✅ STOP: yaze_editor has NO dependency on test system
+ STOP: test_suites may not need rebuild (depends on interface changes)
+ STOP: test_dashboard is separate, doesn't rebuild
+ STOP: yaze_editor has NO dependency on test system
 
 Only rebuilt:
     - test_framework
@@ -689,9 +689,9 @@ Only rebuilt:
 
 TOTAL: 1 library rebuilt, 5 test executables relinked
 TIME: 20-30 seconds on CI, 10-15 seconds locally
-SAVINGS: 60% faster! ✅
+SAVINGS: 60% faster! 
 
-⚠️ BONUS: Release builds exclude test_dashboard entirely
+Warning: BONUS: Release builds exclude test_dashboard entirely
           → Smaller binary, faster builds, cleaner architecture
 ```
 
@@ -699,11 +699,11 @@ SAVINGS: 60% faster! ✅
 
 | Change Type | Current Time | After Refactoring | Savings |
 |-------------|--------------|-------------------|---------|
-| gfx_types change | 5-10 min | 30-60 sec | **80%** ✅ |
-| zelda3 change | 3-5 min | 30-45 sec | **70%** ✅ |
-| Test infrastructure | 1-2 min | 20-30 sec | **60%** ✅ |
-| GUI widget change | 4-6 min | 45-90 sec | **65%** ✅ |
-| Agent change | 2-3 min | 30-45 sec | **50%** ✅ |
+| gfx_types change | 5-10 min | 30-60 sec | **80%**  |
+| zelda3 change | 3-5 min | 30-45 sec | **70%**  |
+| Test infrastructure | 1-2 min | 20-30 sec | **60%**  |
+| GUI widget change | 4-6 min | 45-90 sec | **65%**  |
+| Agent change | 2-3 min | 30-45 sec | **50%**  |
 
 **Overall Incremental Build Improvement**: **40-60% faster** across common development scenarios
 
@@ -746,10 +746,10 @@ SAVINGS: 60% faster! ✅
    - Remove circular dependency
 
 **Benefits**:
-- ✅ No circular dependencies
-- ✅ Release builds exclude test dashboard
-- ✅ Test changes don't rebuild editor
-- ✅ Cleaner architecture
+-  No circular dependencies
+-  Release builds exclude test dashboard
+-  Test changes don't rebuild editor
+-  Cleaner architecture
 
 #### B. Zelda3 Library Refactoring (B6)
 
@@ -857,22 +857,22 @@ target_link_libraries(yaze_zelda3 INTERFACE
 ```
 
 **Benefits**:
-- ✅ Proper top-level shared library
-- ✅ Granular rebuilds (change dungeon → only dungeon + screen rebuild)
-- ✅ Clear domain boundaries
-- ✅ Legacy code isolated
+-  Proper top-level shared library
+-  Granular rebuilds (change dungeon → only dungeon + screen rebuild)
+-  Clear domain boundaries
+-  Legacy code isolated
 
 #### C. z3ed Command Abstraction (C4)
 
-**Status**: ✅ **COMPLETED**
+**Status**:  **COMPLETED**
 **Priority**: N/A (already done)
 **Impact**: 1300+ lines eliminated, 50-60% smaller command implementations
 
 **Achievements**:
-- ✅ Command abstraction layer (`CommandContext`, `ArgumentParser`, `OutputFormatter`)
-- ✅ Enhanced TUI with themes and autocomplete
-- ✅ Comprehensive test coverage
-- ✅ AI-friendly predictable structure
+-  Command abstraction layer (`CommandContext`, `ArgumentParser`, `OutputFormatter`)
+-  Enhanced TUI with themes and autocomplete
+-  Comprehensive test coverage
+-  AI-friendly predictable structure
 
 **Next Steps**: None required, refactoring complete
 
@@ -921,10 +921,10 @@ yaze_core_lib (INTERFACE):
 ```
 
 **Benefits**:
-- ✅ Clear separation: foundation vs services
-- ✅ Prevents cycles: gfx → core_foundation → gfx ❌ (no longer possible)
-- ✅ Selective linking: CLI can use foundation only
-- ✅ Better testability
+-  Clear separation: foundation vs services
+-  Prevents cycles: gfx → core_foundation → gfx ❌ (no longer possible)
+-  Selective linking: CLI can use foundation only
+-  Better testability
 
 **Migration**:
 ```cmake
@@ -1013,10 +1013,10 @@ z3ed executable:
 ```
 
 **Benefits**:
-- ✅ 80% smaller CLI binary for basic commands
-- ✅ Faster CLI development (no GUI rebuilds)
-- ✅ Server deployments can use minimal agent
-- ✅ Clear separation: core vs services
+-  80% smaller CLI binary for basic commands
+-  Faster CLI development (no GUI rebuilds)
+-  Server deployments can use minimal agent
+-  Clear separation: core vs services
 
 **Implementation**:
 ```cmake
@@ -1128,13 +1128,13 @@ yaze_editor (INTERFACE):
 
 | Configuration | Purpose | Test Dashboard | Agent | gRPC | ROM Tests |
 |---------------|---------|----------------|-------|------|-----------|
-| **Debug** | Local development | ✅ ON | ✅ ON | ✅ ON | ❌ OFF |
-| **Debug-AI** | AI feature development | ✅ ON | ✅ ON | ✅ ON | ❌ OFF |
+| **Debug** | Local development |  ON |  ON |  ON | ❌ OFF |
+| **Debug-AI** | AI feature development |  ON |  ON |  ON | ❌ OFF |
 | **Release** | Production | ❌ OFF | ❌ OFF | ❌ OFF | ❌ OFF |
-| **CI-Linux** | Ubuntu CI/CD | ❌ OFF | ✅ ON | ✅ ON | ❌ OFF |
-| **CI-Windows** | Windows CI/CD | ❌ OFF | ✅ ON | ✅ ON | ❌ OFF |
-| **CI-macOS** | macOS CI/CD | ❌ OFF | ✅ ON | ✅ ON | ❌ OFF |
-| **Dev-ROM** | ROM testing | ✅ ON | ✅ ON | ✅ ON | ✅ ON |
+| **CI-Linux** | Ubuntu CI/CD | ❌ OFF |  ON |  ON | ❌ OFF |
+| **CI-Windows** | Windows CI/CD | ❌ OFF |  ON |  ON | ❌ OFF |
+| **CI-macOS** | macOS CI/CD | ❌ OFF |  ON |  ON | ❌ OFF |
+| **Dev-ROM** | ROM testing |  ON |  ON |  ON |  ON |
 
 ### Feature Flags
 
@@ -1155,16 +1155,16 @@ yaze_editor (INTERFACE):
 
 | Library | Always Built | Conditional | Notes |
 |---------|--------------|-------------|-------|
-| yaze_util | ✅ | - | Foundation |
-| yaze_common | ✅ | - | Foundation |
-| yaze_gfx | ✅ | - | Core graphics |
-| yaze_gui | ✅ | - | Core GUI |
-| yaze_zelda3 | ✅ | - | Game logic |
-| yaze_core_lib | ✅ | - | ROM management |
-| yaze_emulator | ✅ | - | SNES emulation |
-| yaze_net | ✅ | JSON/gRPC | Networking |
-| yaze_editor | ✅ | APP | Main editor |
-| yaze_agent | ✅ | Z3ED | CLI features |
+| yaze_util |  | - | Foundation |
+| yaze_common |  | - | Foundation |
+| yaze_gfx |  | - | Core graphics |
+| yaze_gui |  | - | Core GUI |
+| yaze_zelda3 |  | - | Game logic |
+| yaze_core_lib |  | - | ROM management |
+| yaze_emulator |  | - | SNES emulation |
+| yaze_net |  | JSON/gRPC | Networking |
+| yaze_editor |  | APP | Main editor |
+| yaze_agent |  | Z3ED | CLI features |
 | yaze_test_support | ❌ | TESTS | Test infrastructure |
 | yaze_test_dashboard | ❌ | TEST_DASHBOARD | GUI test dashboard |
 
@@ -1183,15 +1183,15 @@ yaze_editor (INTERFACE):
 
 ## 6. Migration Roadmap
 
-### Phase 1: Foundation Fixes (✅ This PR)
+### Phase 1: Foundation Fixes ( This PR)
 
 **Timeline**: Immediate
 **Status**: In Progress
 
 **Tasks**:
-1. ✅ Fix `BackgroundBuffer` constructor in `Arena::Arena()`
-2. ✅ Add `yaze_core_lib` dependency to `yaze_emulator`
-3. ✅ Document current architecture in this file
+1.  Fix `BackgroundBuffer` constructor in `Arena::Arena()`
+2.  Add `yaze_core_lib` dependency to `yaze_emulator`
+3.  Document current architecture in this file
 
 **Expected Outcome**:
 - Ubuntu CI passes
@@ -1214,10 +1214,10 @@ yaze_editor (INTERFACE):
 7. Verify clean release builds
 
 **Expected Outcome**:
-- ✅ No circular dependencies
-- ✅ 60% faster test builds
-- ✅ Cleaner release binaries
-- ✅ Isolated test framework
+-  No circular dependencies
+-  60% faster test builds
+-  Cleaner release binaries
+-  Isolated test framework
 
 ### Phase 3: Zelda3 Refactoring (Week 2-3)
 
@@ -1245,10 +1245,10 @@ yaze_editor (INTERFACE):
    - Migration guide
 
 **Expected Outcome**:
-- ✅ Proper top-level shared library
-- ✅ 70% faster zelda3 incremental builds
-- ✅ Clear domain boundaries
-- ✅ Legacy code isolated
+-  Proper top-level shared library
+-  70% faster zelda3 incremental builds
+-  Clear domain boundaries
+-  Legacy code isolated
 
 ### Phase 4: Core Library Split (Week 4)
 
@@ -1273,9 +1273,9 @@ yaze_editor (INTERFACE):
    - No circular dependencies
 
 **Expected Outcome**:
-- ✅ Prevents future circular dependencies
-- ✅ Cleaner separation of concerns
-- ✅ Minimal CLI can use foundation only
+-  Prevents future circular dependencies
+-  Cleaner separation of concerns
+-  Minimal CLI can use foundation only
 
 ### Phase 5: Agent Split (Week 5)
 
@@ -1297,9 +1297,9 @@ yaze_editor (INTERFACE):
    - Optional full services
 
 **Expected Outcome**:
-- ✅ 80% smaller CLI binary
-- ✅ 50% faster CLI development
-- ✅ Server-friendly minimal agent
+-  80% smaller CLI binary
+-  50% faster CLI development
+-  Server-friendly minimal agent
 
 ### Phase 6: Benchmarking & Optimization (Week 6)
 
@@ -1323,9 +1323,9 @@ yaze_editor (INTERFACE):
    - Parallel build tuning
 
 **Expected Outcome**:
-- ✅ Data-driven optimization
-- ✅ Documented build time improvements
-- ✅ Tuned build system
+-  Data-driven optimization
+-  Documented build time improvements
+-  Tuned build system
 
 ### Phase 7: Documentation & Polish (Week 7)
 
@@ -1349,9 +1349,9 @@ yaze_editor (INTERFACE):
    - Test parallelization
 
 **Expected Outcome**:
-- ✅ Complete documentation
-- ✅ Smooth onboarding
-- ✅ Optimized CI/CD
+-  Complete documentation
+-  Smooth onboarding
+-  Optimized CI/CD
 
 ---
 
@@ -1435,7 +1435,7 @@ Measured on Apple M1 Max, 32 GB RAM, macOS 14.0
 **Dependencies**: None (foundation)
 **Dependents**: gfx_core, gfx_util
 **Build Impact**: Medium (4-6 libs)
-**Priority**: DONE (refactored) ✅
+**Priority**: DONE (refactored) 
 
 #### yaze_gfx_backend
 
@@ -1445,7 +1445,7 @@ Measured on Apple M1 Max, 32 GB RAM, macOS 14.0
 **Dependencies**: SDL2
 **Dependents**: gfx_resource, gfx_render
 **Build Impact**: Low (2-3 libs)
-**Priority**: DONE (refactored) ✅
+**Priority**: DONE (refactored) 
 
 #### yaze_gfx_resource
 
@@ -1455,8 +1455,8 @@ Measured on Apple M1 Max, 32 GB RAM, macOS 14.0
 **Dependencies**: gfx_backend, gfx_render (BackgroundBuffer)
 **Dependents**: gfx_core
 **Build Impact**: Medium (3-4 libs)
-**Priority**: DONE (refactored) ✅
-**Note**: Fixed BackgroundBuffer constructor issue in this PR ✅
+**Priority**: DONE (refactored) 
+**Note**: Fixed BackgroundBuffer constructor issue in this PR 
 
 #### yaze_gfx_core
 
@@ -1466,7 +1466,7 @@ Measured on Apple M1 Max, 32 GB RAM, macOS 14.0
 **Dependencies**: gfx_types, gfx_resource
 **Dependents**: gfx_util, gfx_render, gui_canvas
 **Build Impact**: High (8+ libs)
-**Priority**: DONE (refactored) ✅
+**Priority**: DONE (refactored) 
 
 #### yaze_gfx_render
 
@@ -1476,7 +1476,7 @@ Measured on Apple M1 Max, 32 GB RAM, macOS 14.0
 **Dependencies**: gfx_core, gfx_backend
 **Dependents**: gfx_debug, zelda3
 **Build Impact**: Medium (5-7 libs)
-**Priority**: DONE (refactored) ✅
+**Priority**: DONE (refactored) 
 
 #### yaze_gfx_util
 
@@ -1486,7 +1486,7 @@ Measured on Apple M1 Max, 32 GB RAM, macOS 14.0
 **Dependencies**: gfx_core
 **Dependents**: gfx_debug, editor
 **Build Impact**: Medium (4-6 libs)
-**Priority**: DONE (refactored) ✅
+**Priority**: DONE (refactored) 
 
 #### yaze_gfx_debug
 
@@ -1496,7 +1496,7 @@ Measured on Apple M1 Max, 32 GB RAM, macOS 14.0
 **Dependencies**: gfx_util, gfx_render
 **Dependents**: editor (optional)
 **Build Impact**: Low (1-2 libs)
-**Priority**: DONE (refactored) ✅
+**Priority**: DONE (refactored) 
 
 ### 8.3 GUI Libraries
 
@@ -1508,7 +1508,7 @@ Measured on Apple M1 Max, 32 GB RAM, macOS 14.0
 **Dependencies**: yaze_util, ImGui, nlohmann_json
 **Dependents**: All other GUI libs
 **Build Impact**: High (8+ libs)
-**Priority**: DONE (refactored) ✅
+**Priority**: DONE (refactored) 
 
 #### yaze_gui_canvas
 
@@ -1518,7 +1518,7 @@ Measured on Apple M1 Max, 32 GB RAM, macOS 14.0
 **Dependencies**: gui_core, yaze_gfx
 **Dependents**: editor (all editors use Canvas)
 **Build Impact**: Very High (10+ libs)
-**Priority**: DONE (refactored) ✅
+**Priority**: DONE (refactored) 
 
 #### yaze_gui_widgets
 
@@ -1528,7 +1528,7 @@ Measured on Apple M1 Max, 32 GB RAM, macOS 14.0
 **Dependencies**: gui_core, yaze_gfx
 **Dependents**: editor
 **Build Impact**: Medium (5-7 libs)
-**Priority**: DONE (refactored) ✅
+**Priority**: DONE (refactored) 
 
 #### yaze_gui_automation
 
@@ -1538,7 +1538,7 @@ Measured on Apple M1 Max, 32 GB RAM, macOS 14.0
 **Dependencies**: gui_core
 **Dependents**: gui_app, agent (GUI automation)
 **Build Impact**: Low (2-3 libs)
-**Priority**: DONE (refactored) ✅
+**Priority**: DONE (refactored) 
 
 #### yaze_gui_app
 
@@ -1548,14 +1548,14 @@ Measured on Apple M1 Max, 32 GB RAM, macOS 14.0
 **Dependencies**: gui_core, gui_widgets, gui_automation
 **Dependents**: editor
 **Build Impact**: Low (1-2 libs)
-**Priority**: DONE (refactored) ✅
+**Priority**: DONE (refactored) 
 
 ### 8.4 Game Logic Libraries
 
 #### yaze_zelda3 (Current)
 
 **Purpose**: All Zelda3 game logic
-**Location**: `src/app/zelda3/` ⚠️ (wrong location)
+**Location**: `src/app/zelda3/` Warning: (wrong location)
 **Source Files**: 21 .cc files (monolithic)
 **Dependencies**: yaze_gfx, yaze_util
 **Dependents**: core_lib, editor, agent
@@ -1631,7 +1631,7 @@ Measured on Apple M1 Max, 32 GB RAM, macOS 14.0
 
 **Purpose**: ROM, window, asar, project, services
 **Location**: `src/app/core/`
-**Source Files**: 10+ .cc files (mixed concerns) ⚠️
+**Source Files**: 10+ .cc files (mixed concerns) Warning:
 **Dependencies**: yaze_util, yaze_gfx, yaze_zelda3, ImGui, asar, SDL2, [gRPC]
 **Dependents**: editor, agent, emulator, net
 **Build Impact**: Very High (10+ libs)
@@ -1668,8 +1668,8 @@ Measured on Apple M1 Max, 32 GB RAM, macOS 14.0
 **Dependencies**: yaze_util, yaze_common, yaze_core_lib, absl, SDL2
 **Dependents**: editor, agent (emulator commands)
 **Build Impact**: Medium (3-5 libs)
-**Priority**: LOW (stable) ✅
-**Note**: Fixed missing core_lib dependency in this PR ✅
+**Priority**: LOW (stable) 
+**Note**: Fixed missing core_lib dependency in this PR 
 
 #### yaze_net
 
@@ -1700,7 +1700,7 @@ Measured on Apple M1 Max, 32 GB RAM, macOS 14.0
 
 **Purpose**: CLI functionality, AI services
 **Location**: `src/cli/`
-**Source Files**: 60+ .cc files (massive) ⚠️
+**Source Files**: 60+ .cc files (massive) Warning:
 **Dependencies**: common, util, gfx, gui, core_lib, zelda3, emulator, absl, yaml, ftxui, [gRPC], [JSON], [OpenSSL]
 **Dependents**: editor (agent integration), z3ed
 **Build Impact**: Very High (15+ libs)
@@ -1733,9 +1733,9 @@ Measured on Apple M1 Max, 32 GB RAM, macOS 14.0
 
 **Purpose**: Test manager + test suites
 **Location**: `src/app/test/`
-**Source Files**: 2 .cc files (mixed concerns) ⚠️
+**Source Files**: 2 .cc files (mixed concerns) Warning:
 **Dependencies**: editor, core_lib, gui, zelda3, gfx, util, common, agent
-**Dependents**: editor (CIRCULAR ⚠️), all test executables
+**Dependents**: editor (CIRCULAR Warning:), all test executables
 **Build Impact**: Very High (10+ libs)
 **Priority**: HIGH (separate per A2) 🔴
 **Issues**:
@@ -1780,16 +1780,16 @@ Measured on Apple M1 Max, 32 GB RAM, macOS 14.0
 
 ### Primary Documents
 
-- **C4-z3ed-refactoring.md**: CLI command abstraction (COMPLETED ✅)
+- **C4-z3ed-refactoring.md**: CLI command abstraction (COMPLETED )
 - **B6-zelda3-library-refactoring.md**: Zelda3 move & decomposition (PROPOSED 🔴)
 - **A2-test-dashboard-refactoring.md**: Test infrastructure separation (PROPOSED 🔴)
 - **This Document (A1)**: Comprehensive dependency analysis (NEW 📄)
 
 ### Related Refactoring Documents
 
-- **docs/gfx-refactor.md**: Graphics tier decomposition (COMPLETED ✅)
-- **docs/gui-refactor.md**: GUI tier decomposition (COMPLETED ✅)
-- **docs/G3-renderer-migration-complete.md**: Renderer abstraction (COMPLETED ✅)
+- **docs/gfx-refactor.md**: Graphics tier decomposition (COMPLETED )
+- **docs/gui-refactor.md**: GUI tier decomposition (COMPLETED )
+- **docs/G3-renderer-migration-complete.md**: Renderer abstraction (COMPLETED )
 
 ### Build System Documentation
 
@@ -1826,11 +1826,11 @@ This document provides a comprehensive analysis of YAZE's dependency architectur
 5. **Timeline**: 6-7 weeks for complete refactoring
 
 By following this roadmap, YAZE will achieve:
-- ✅ Faster development iteration
-- ✅ Cleaner architecture
-- ✅ Better testability
-- ✅ Easier maintenance
-- ✅ Improved CI/CD performance
+-  Faster development iteration
+-  Cleaner architecture
+-  Better testability
+-  Easier maintenance
+-  Improved CI/CD performance
 
 The proposed changes are backwards-compatible and can be implemented incrementally without disrupting ongoing development.
 

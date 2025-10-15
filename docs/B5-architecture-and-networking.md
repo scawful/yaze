@@ -17,14 +17,14 @@ The yaze ecosystem is split into two main components: the **YAZE GUI Application
 │  │  ════════════════════════════════════════════════════════    │        │
 │  │  Hosts 3 gRPC Services on a SINGLE PORT:                     │        │
 │  │                                                               │        │
-│  │  1️⃣  ImGuiTestHarness Service                                 │        │
+│  │  1. ImGuiTestHarness Service                                 │        │
 │  │     • GUI automation (click, type, wait, assert)             │        │
 │  │                                                               │        │
-│  │  2️⃣  RomService                                               │        │
+│  │  2. RomService                                               │        │
 │  │     • Read/write ROM bytes                                   │        │
 │  │     • Proposal system for collaborative editing              │        │
 │  │                                                               │        │
-│  │  3️⃣  CanvasAutomation Service                                 │        │
+│  │  3. CanvasAutomation Service                                 │        │
 │  │     • High-level canvas operations (tile ops, selection)     │        │
 │  └─────────────────────────────────────────────────────────────┘        │
 │                                    ↑                                      │

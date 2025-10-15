@@ -30,51 +30,51 @@ This document provides a comprehensive overview of the YAZE SNES emulator subsys
 
 The YAZE SNES emulator has achieved a **MAJOR BREAKTHROUGH**! After solving a critical PC advancement bug in the SPC700 multi-step instruction handling, "The Legend of Zelda: A Link to the Past" is **NOW RUNNING**! 
 
-### ✅ Confirmed Working
+###  Confirmed Working
 
 **Core Emulation**:
-- ✅ **Accurate SNES CPU (65816)** - Full instruction set
-- ✅ **CPU-APU Synchronization** - Cycle-accurate timing
-- ✅ **SPC700 Emulation** - All critical instructions fixed, including multi-step PC advancement
-- ✅ **IPL ROM Protocol** - Complete handshake and 112-byte data transfer **SUCCESSFUL**
-- ✅ **Memory System** - Stable and consolidated
-- ✅ **Game Boot** - ALTTP loads and runs! 🎮
+-  **Accurate SNES CPU (65816)** - Full instruction set
+-  **CPU-APU Synchronization** - Cycle-accurate timing
+-  **SPC700 Emulation** - All critical instructions fixed, including multi-step PC advancement
+-  **IPL ROM Protocol** - Complete handshake and 112-byte data transfer **SUCCESSFUL**
+-  **Memory System** - Stable and consolidated
+-  **Game Boot** - ALTTP loads and runs! Game
 
 **Display & Rendering**:
-- ✅ **Full PPU (Picture Processing Unit)** - Hardware-accurate rendering
-- ✅ **Correct Color Output** - No green/red tint (SNES BGR555 format)
-- ✅ **Stable Frame Timing** - 60 FPS (NTSC) / 50 FPS (PAL)
-- ✅ **Proper Pixel Format** - RGBX8888 with BGRX layout
-- ✅ **Full Brightness Support**
+-  **Full PPU (Picture Processing Unit)** - Hardware-accurate rendering
+-  **Correct Color Output** - No green/red tint (SNES BGR555 format)
+-  **Stable Frame Timing** - 60 FPS (NTSC) / 50 FPS (PAL)
+-  **Proper Pixel Format** - RGBX8888 with BGRX layout
+-  **Full Brightness Support**
 
 **Audio**:
-- ✅ **APU (Audio Processing Unit)** - Full audio subsystem
-- ✅ **DSP** - Sample generation correct
-- ✅ **SDL Audio Device** - Configured and unpaused
-- ✅ **Sample Buffering** - 2-6 frames prevents crackling
-- ✅ **48000 Hz Stereo 16-bit PCM**
+-  **APU (Audio Processing Unit)** - Full audio subsystem
+-  **DSP** - Sample generation correct
+-  **SDL Audio Device** - Configured and unpaused
+-  **Sample Buffering** - 2-6 frames prevents crackling
+-  **48000 Hz Stereo 16-bit PCM**
 
 **Performance**:
-- ✅ **Frame Skipping** - Prevents spiral of death
-- ✅ **Optimized Texture Locking** - 30-50% reduction
-- ✅ **Smart Audio Buffer Management**
-- ✅ **Real-time FPS Counter**
+-  **Frame Skipping** - Prevents spiral of death
+-  **Optimized Texture Locking** - 30-50% reduction
+-  **Smart Audio Buffer Management**
+-  **Real-time FPS Counter**
 
 **Debugging & Development**:
-- ✅ **Professional Disassembly Viewer** - Sparse storage, virtual scrolling
-- ✅ **Breakpoint System** - Interactive debugging
-- ✅ **Memory Inspection Tools**
-- ✅ **Interactive Debugging UI**
+-  **Professional Disassembly Viewer** - Sparse storage, virtual scrolling
+-  **Breakpoint System** - Interactive debugging
+-  **Memory Inspection Tools**
+-  **Interactive Debugging UI**
 
 **Cross-Platform**:
-- ✅ **macOS** (Intel & ARM)
-- ✅ **Windows** (x64 & ARM64)
-- ✅ **Linux**
-- ✅ **vcpkg Integration**
+-  **macOS** (Intel & ARM)
+-  **Windows** (x64 & ARM64)
+-  **Linux**
+-  **vcpkg Integration**
 
-### 🔧 Known Issues (Non-Critical)
+### Tool Known Issues (Non-Critical)
 
-- ⚠️ Transfer termination: Currently overshoots expected byte count (244 vs 112 bytes)
+- Warning: Transfer termination: Currently overshoots expected byte count (244 vs 112 bytes)
 - 🔄 Save state system with thumbnails (in progress)
 - 🔄 Rewind functionality (in progress)
 - 🔄 Enhanced PPU viewer (in progress)
@@ -233,12 +233,12 @@ The path to a functional emulator involved fixing a cascade of **10 critical, in
 9. **SDL Event Loop Blocking**: The main application loop used `SDL_WaitEvent`, which blocked rendering unless the user moved the mouse.
    - **Fix**: Switched to `SDL_PollEvent` to enable continuous rendering at 60 FPS.
 
-10. **🔥 CRITICAL PC ADVANCEMENT BUG (THE BREAKTHROUGH) 🔥**: Opcode 0xD7 (`MOV [$00+Y], A`) was calling `idy()` addressing function **twice** during multi-step execution, causing the program counter to skip instruction $FFE4 (`INC Y`).
+10. ** CRITICAL PC ADVANCEMENT BUG (THE BREAKTHROUGH) **: Opcode 0xD7 (`MOV [$00+Y], A`) was calling `idy()` addressing function **twice** during multi-step execution, causing the program counter to skip instruction $FFE4 (`INC Y`).
     - **Symptom**: Transfer stuck at 109/112 bytes, counter never reached $02, INC Y never executed
     - **Evidence**: PC jumped from $FFE2 directly to $FFE5, completely skipping $FFE4
     - **Root Cause**: Multi-step instructions must only call addressing mode functions once when `bstep == 0`, but case 0xD7 was calling `idy()` on every step
     - **Fix**: Added guard `if (bstep == 0) { adr = idy(); }` and reused saved address in `MOVS(adr)`
-    - **Impact**: Transfer counter now progresses correctly: $00 → $01 → $02 → ... → $F4 ✅
+    - **Impact**: Transfer counter now progresses correctly: $00 → $01 → $02 → ... → $F4 
     - **Bonus Fixes**: Also fixed flag calculation bugs in DECY (0xDC) and MUL (0xCF) that were treating 8-bit Y as 16-bit
 
 ### The Critical Pattern for Multi-Step Instructions
@@ -533,7 +533,7 @@ The **Dungeon Object Emulator Preview** is a research and development tool for u
 memory.WriteByte(0x7E2000, 0x00);  // ❌ CRASH!
 
 // AFTER (Fixed):
-snes_instance_->Write(0x7E2000, 0x00);  // ✅ Works!
+snes_instance_->Write(0x7E2000, 0x00);  //  Works!
 ```
 
 **Why**: `Snes::Write()` properly handles:
@@ -554,7 +554,7 @@ snes_instance_->Write(0x7E2000, 0x00);  // ✅ Works!
 snes_instance_->Write(0x018000, 0x60);  // RTS - 2 byte return ❌
 
 // CORRECT:
-snes_instance_->Write(0x018000, 0x6B);  // RTL - 3 byte return ✅
+snes_instance_->Write(0x018000, 0x6B);  // RTL - 3 byte return 
 
 // Push 3 bytes for RTL (bank, high, low)
 uint16_t sp = cpu.SP();
@@ -828,12 +828,12 @@ uint8_t b_rgb = ((snes >> 10) & 0x1F) * 255 / 31;
 
 | Metric | Before | After |
 |--------|--------|-------|
-| **Color Display** | ❌ Incorrect | ✅ Correct |
-| **Frame Rate** | ⚠️ Inconsistent | ✅ Stable 60 FPS |
-| **Audio** | ❓ Unverified | ✅ Working |
-| **FPS Display** | ❌ None | ✅ Real-time |
-| **Windows Compat** | ❓ Unknown | ✅ Verified |
-| **Game Boot** | ❌ Failed | ✅ ALTTP Running |
+| **Color Display** | ❌ Incorrect |  Correct |
+| **Frame Rate** | Warning: Inconsistent |  Stable 60 FPS |
+| **Audio** | ❓ Unverified |  Working |
+| **FPS Display** | ❌ None |  Real-time |
+| **Windows Compat** | ❓ Unknown |  Verified |
+| **Game Boot** | ❌ Failed |  ALTTP Running |
 
 ---
 
@@ -1146,21 +1146,21 @@ class MusicEditor {
 
 ## 12. Next Steps & Roadmap
 
-### 🎯 Immediate Priorities (Critical Path to Full Functionality)
+###  Immediate Priorities (Critical Path to Full Functionality)
 
-1. **Fix Transfer Termination Logic** ⚠️ MEDIUM PRIORITY
+1. **Fix Transfer Termination Logic** Warning: MEDIUM PRIORITY
    - Issue: Transfer overshoots to 244 bytes instead of stopping at 112 bytes
    - Likely cause: IPL ROM exit conditions at $FFEF not executing properly
    - Files to check: `src/app/emu/audio/apu.cc` (transfer detection logic)
    - Impact: Ensures clean protocol termination
 
-2. **Verify Other Multi-Step Opcodes** ⚠️ MEDIUM PRIORITY
+2. **Verify Other Multi-Step Opcodes** Warning: MEDIUM PRIORITY
    - Task: Audit all MOVS/MOVSX/MOVSY variants for the same PC advancement bug
    - Opcodes to check: 0xD4 (dpx), 0xD5 (abx), 0xD6 (aby), 0xD8 (dp), 0xD9 (dpy), 0xDB (dpx)
    - Pattern: Ensure `if (bstep == 0)` guards all addressing mode calls
    - Impact: Prevents similar bugs in other instructions
 
-### 🚀 Enhancement Priorities (After Core is Stable)
+###  Enhancement Priorities (After Core is Stable)
 
 3. **Modern UI Architecture**
    - Design Goals: Match quality of AgentChatWidget, WelcomeScreen, EditorSelectorDialog
@@ -1314,14 +1314,14 @@ cmake --build build --target yaze -j12
 
 ## Status Summary
 
-### ✅ Production Ready
+###  Production Ready
 
 The emulator is now ready for:
-- ✅ ROM hacking and testing
-- ✅ Debugging and development
-- ✅ AI agent integration
-- ✅ Cross-platform deployment
-- ✅ **ALTTP and other games running!** 🎮
+-  ROM hacking and testing
+-  Debugging and development
+-  AI agent integration
+-  Cross-platform deployment
+-  **ALTTP and other games running!** Game
 
 **Key Achievements**:
 - Stable, accurate emulation

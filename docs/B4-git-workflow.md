@@ -4,15 +4,15 @@
 **Status:** Active  
 **Current Phase:** Pre-1.0 (Relaxed Rules)
 
-## ⚠️ Pre-1.0 Workflow (Current)
+## Warning: Pre-1.0 Workflow (Current)
 
 **TLDR for now:** Since yaze is pre-1.0 and actively evolving, we use a **simplified workflow**:
 
-- ✅ **Documentation changes**: Commit directly to `master` or `develop`
-- ✅ **Small bug fixes**: Can go direct to `develop`, no PR required
-- ✅ **Solo work**: Push directly when you're the only one working
-- ⚠️ **Breaking changes**: Use feature branches and document in changelog
-- ⚠️ **Major refactors**: Use feature branches for safety (can always revert)
+-  **Documentation changes**: Commit directly to `master` or `develop`
+-  **Small bug fixes**: Can go direct to `develop`, no PR required
+-  **Solo work**: Push directly when you're the only one working
+- Warning: **Breaking changes**: Use feature branches and document in changelog
+- Warning: **Major refactors**: Use feature branches for safety (can always revert)
 
 **Why relaxed?**
 - Small team / solo development
@@ -35,7 +35,7 @@ For all versions prior to 1.0.0, yaze follows a **"best effort"** release strate
 ### Core Principles
 1.  **Release Can Proceed with Failed Platforms**: The `release` CI/CD workflow will create a GitHub Release even if one or more platform-specific build jobs (e.g., Windows, Linux, macOS) fail.
 2.  **Missing Platforms Can Be Added Later**: A failed job for a specific platform can be re-run from the GitHub Actions UI. If it succeeds, the binary artifact will be **automatically added to the existing GitHub Release**.
-3.  **Transparency is Key**: The release notes will automatically generate a "Platform Availability" report, clearly indicating which platforms succeeded (✅) and which failed (❌), so users know the current status.
+3.  **Transparency is Key**: The release notes will automatically generate a "Platform Availability" report, clearly indicating which platforms succeeded () and which failed (❌), so users know the current status.
 
 ### How It Works in Practice
 - The `build-and-package` jobs in the `release.yml` workflow have `continue-on-error: true`.
@@ -410,7 +410,7 @@ develop
 
 ## Best Practices
 
-### DO ✅
+### DO 
 - Keep commits atomic and focused
 - Write descriptive commit messages
 - Rebase feature branches on develop regularly
@@ -476,7 +476,7 @@ git checkout -b release/v0.4.0
 
 ---
 
-## 🚀 Current Simplified Workflow (Pre-1.0)
+##  Current Simplified Workflow (Pre-1.0)
 
 ### Daily Development Pattern
 
