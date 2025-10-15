@@ -6,7 +6,6 @@
 #include <vector>
 
 #include "absl/status/status.h"
-#include "app/editor/system/session_card_registry.h"
 #include "app/editor/system/toast_manager.h"
 #include "app/rom.h"
 #include "imgui/imgui.h"
@@ -15,6 +14,7 @@
 namespace yaze {
 namespace editor {
 class EditorManager;
+class EditorCardRegistry;
 }
 }
 
@@ -37,7 +37,7 @@ class ToastManager;
 class SessionCoordinator {
  public:
   explicit SessionCoordinator(void* sessions_ptr,
-                             SessionCardRegistry* card_registry,
+                             EditorCardRegistry* card_registry,
                              ToastManager* toast_manager);
   ~SessionCoordinator() = default;
 
@@ -120,7 +120,7 @@ class SessionCoordinator {
  private:
   // Core dependencies
   void* sessions_ptr_;  // std::deque<EditorManager::RomSession>*
-  SessionCardRegistry* card_registry_;
+  EditorCardRegistry* card_registry_;
   ToastManager* toast_manager_;
   
   // Session state

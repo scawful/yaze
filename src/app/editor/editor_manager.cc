@@ -7,6 +7,7 @@
 #include <memory>
 #include <sstream>
 #include <string>
+#include <vector>
 #include "zelda3/screen/dungeon_map.h"
 
 #define IMGUI_DEFINE_MATH_OPERATORS
@@ -116,14 +117,14 @@ void EditorManager::HideCurrentEditorCards() {
     return;
   }
 
-  auto& card_manager = gui::EditorCardManager::Get();
+  // Using EditorCardRegistry directly
   std::string category = GetEditorCategory(current_editor_->type());
-  card_manager.HideAllCardsInCategory(category);
+  card_registry_.HideAllCardsInCategory(category);
 }
 
 void EditorManager::ShowHexEditor() {
-  auto& card_manager = gui::EditorCardManager::Get();
-  card_manager.ShowCard("memory.hex_editor");
+  // Using EditorCardRegistry directly
+  card_registry_.ShowCard("memory.hex_editor");
 }
 
 #ifdef YAZE_WITH_GRPC
@@ -237,64 +238,64 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
       });
 
   // Register emulator cards early (emulator Initialize might not be called)
-  auto& card_manager = gui::EditorCardManager::Get();
-  card_manager.RegisterCard({.card_id = "emulator.cpu_debugger",
+  // Using EditorCardRegistry directly
+  card_registry_.RegisterCard({.card_id = "emulator.cpu_debugger",
                              .display_name = "CPU Debugger",
                              .icon = ICON_MD_BUG_REPORT,
                              .category = "Emulator",
                              .priority = 10});
-  card_manager.RegisterCard({.card_id = "emulator.ppu_viewer",
+  card_registry_.RegisterCard({.card_id = "emulator.ppu_viewer",
                              .display_name = "PPU Viewer",
                              .icon = ICON_MD_VIDEOGAME_ASSET,
                              .category = "Emulator",
                              .priority = 20});
-  card_manager.RegisterCard({.card_id = "emulator.memory_viewer",
+  card_registry_.RegisterCard({.card_id = "emulator.memory_viewer",
                              .display_name = "Memory Viewer",
                              .icon = ICON_MD_MEMORY,
                              .category = "Emulator",
                              .priority = 30});
-  card_manager.RegisterCard({.card_id = "emulator.breakpoints",
+  card_registry_.RegisterCard({.card_id = "emulator.breakpoints",
                              .display_name = "Breakpoints",
                              .icon = ICON_MD_STOP,
                              .category = "Emulator",
                              .priority = 40});
-  card_manager.RegisterCard({.card_id = "emulator.performance",
+  card_registry_.RegisterCard({.card_id = "emulator.performance",
                              .display_name = "Performance",
                              .icon = ICON_MD_SPEED,
                              .category = "Emulator",
                              .priority = 50});
-  card_manager.RegisterCard({.card_id = "emulator.ai_agent",
+  card_registry_.RegisterCard({.card_id = "emulator.ai_agent",
                              .display_name = "AI Agent",
                              .icon = ICON_MD_SMART_TOY,
                              .category = "Emulator",
                              .priority = 60});
-  card_manager.RegisterCard({.card_id = "emulator.save_states",
+  card_registry_.RegisterCard({.card_id = "emulator.save_states",
                              .display_name = "Save States",
                              .icon = ICON_MD_SAVE,
                              .category = "Emulator",
                              .priority = 70});
-  card_manager.RegisterCard({.card_id = "emulator.keyboard_config",
+  card_registry_.RegisterCard({.card_id = "emulator.keyboard_config",
                              .display_name = "Keyboard Config",
                              .icon = ICON_MD_KEYBOARD,
                              .category = "Emulator",
                              .priority = 80});
-  card_manager.RegisterCard({.card_id = "emulator.apu_debugger",
+  card_registry_.RegisterCard({.card_id = "emulator.apu_debugger",
                              .display_name = "APU Debugger",
                              .icon = ICON_MD_AUDIOTRACK,
                              .category = "Emulator",
                              .priority = 90});
-  card_manager.RegisterCard({.card_id = "emulator.audio_mixer",
+  card_registry_.RegisterCard({.card_id = "emulator.audio_mixer",
                              .display_name = "Audio Mixer",
                              .icon = ICON_MD_AUDIO_FILE,
                              .category = "Emulator",
                              .priority = 100});
 
   // Show CPU debugger and PPU viewer by default for emulator
-  card_manager.ShowCard("emulator.cpu_debugger");
-  card_manager.ShowCard("emulator.ppu_viewer");
+  card_registry_.ShowCard("emulator.cpu_debugger");
+  card_registry_.ShowCard("emulator.ppu_viewer");
 
   // Register memory/hex editor card
-  card_manager.RegisterCard({.card_id = "memory.hex_editor",
+  card_registry_.RegisterCard({.card_id = "memory.hex_editor",
                              .display_name = "Hex Editor",
                              .icon = ICON_MD_MEMORY,
                              .category = "Memory",
@@ -646,17 +647,17 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
   // Only register essential category-level shortcuts
   context_.shortcut_manager.RegisterShortcut(
       "Show All Dungeon Cards", {ImGuiKey_D, ImGuiMod_Ctrl, ImGuiMod_Shift},
-      []() {
-        gui::EditorCardManager::Get().ShowAllCardsInCategory("Dungeon");
+      [this]() {
+        card_registry_.ShowAllCardsInCategory("Dungeon");
       });
   context_.shortcut_manager.RegisterShortcut(
       "Show All Graphics Cards", {ImGuiKey_G, ImGuiMod_Ctrl, ImGuiMod_Shift},
-      []() {
-        gui::EditorCardManager::Get().ShowAllCardsInCategory("Graphics");
+      [this]() {
+        card_registry_.ShowAllCardsInCategory("Graphics");
       });
   context_.shortcut_manager.RegisterShortcut(
       "Show All Screen Cards", {ImGuiKey_S, ImGuiMod_Ctrl, ImGuiMod_Shift},
-      []() { gui::EditorCardManager::Get().ShowAllCardsInCategory("Screen"); });
+      [this]() { card_registry_.ShowAllCardsInCategory("Screen"); });
 
 #ifdef YAZE_WITH_GRPC
   // Agent Editor shortcut
@@ -810,7 +811,7 @@ absl::Status EditorManager::Update() {
   // Draw card browser (managed by UICoordinator)
   if (ui_coordinator_ && ui_coordinator_->IsCardBrowserVisible()) {
     bool show = true;
-    gui::EditorCardManager::Get().DrawCardBrowser(&show);
+    card_registry_.DrawCardBrowser(&show);
     if (!show) {
       ui_coordinator_->SetCardBrowserVisible(false);
     }
@@ -990,7 +991,7 @@ absl::Status EditorManager::Update() {
 
   // Draw unified sidebar LAST so it appears on top of all other windows
   if (ui_coordinator_ && ui_coordinator_->IsCardSidebarVisible() && current_editor_set_) {
-    auto& card_manager = gui::EditorCardManager::Get();
+    // Using EditorCardRegistry directly
 
     // Collect all active card-based editors
     std::vector<std::string> active_categories;
@@ -1015,16 +1016,16 @@ absl::Status EditorManager::Update() {
     std::string sidebar_category;
 
     // Priority 1: Use active_category from card manager (user's last interaction)
-    if (!card_manager.GetActiveCategory().empty() &&
+    if (!card_registry_.GetActiveCategory().empty() &&
         std::find(active_categories.begin(), active_categories.end(),
-                  card_manager.GetActiveCategory()) !=
+                  card_registry_.GetActiveCategory()) !=
             active_categories.end()) {
-      sidebar_category = card_manager.GetActiveCategory();
+      sidebar_category = card_registry_.GetActiveCategory();
     }
     // Priority 2: Use first active category
     else if (!active_categories.empty()) {
       sidebar_category = active_categories[0];
-      card_manager.SetActiveCategory(sidebar_category);
+      card_registry_.SetActiveCategory(sidebar_category);
     }
 
     // Draw sidebar if we have a category
@@ -1043,7 +1044,7 @@ absl::Status EditorManager::Update() {
         }
       };
 
-      card_manager.DrawSidebar(sidebar_category, active_categories,
+      card_registry_.DrawSidebar(sidebar_category, active_categories,
                                category_switch_callback, collapse_callback);
     }
   }
@@ -1167,19 +1168,19 @@ void EditorManager::DrawMenuBar() {
   if (show_imgui_metrics_)
     ShowMetricsWindow(&show_imgui_metrics_);
 
-  auto& card_manager = gui::EditorCardManager::Get();
+  // Using EditorCardRegistry directly
   if (current_editor_set_) {
     // Pass the actual visibility flag pointer so the X button works
-    bool* hex_visibility = card_manager.GetVisibilityFlag("memory.hex_editor");
+    bool* hex_visibility = card_registry_.GetVisibilityFlag("memory.hex_editor");
     if (hex_visibility && *hex_visibility) {
       current_editor_set_->memory_editor_.Update(*hex_visibility);
     }
 
     bool* assembly_visibility =
-        card_manager.GetVisibilityFlag("assembly.editor");
+        card_registry_.GetVisibilityFlag("assembly.editor");
     if (assembly_visibility && *assembly_visibility) {
       current_editor_set_->assembly_editor_.Update(
-          *card_manager.GetVisibilityFlag("assembly.editor"));
+          *card_registry_.GetVisibilityFlag("assembly.editor"));
     }
   }
 
@@ -2367,65 +2368,6 @@ std::string EditorManager::GenerateUniqueEditorTitle(
 
 // Window management methods removed - now inline in header for reduced bloat
 
-void EditorManager::LoadDeveloperLayout() {
-  if (!current_editor_set_)
-    return;
-
-  // Developer layout: Code editor, assembly editor, test dashboard
-  current_editor_set_->assembly_editor_.set_active(true);
-#ifdef YAZE_ENABLE_TESTING
-  show_test_dashboard_ = true;
-#endif
-  show_imgui_metrics_ = true;
-
-  // Hide non-dev windows
-  current_editor_set_->graphics_editor_.set_active(false);
-  current_editor_set_->music_editor_.set_active(false);
-  current_editor_set_->sprite_editor_.set_active(false);
-
-  toast_manager_.Show("Developer layout loaded", editor::ToastType::kSuccess);
-}
-
-void EditorManager::LoadDesignerLayout() {
-  if (!current_editor_set_)
-    return;
-
-  // Designer layout: Graphics, palette, sprite editors
-  current_editor_set_->graphics_editor_.set_active(true);
-  current_editor_set_->palette_editor_.set_active(true);
-  current_editor_set_->sprite_editor_.set_active(true);
-  current_editor_set_->overworld_editor_.set_active(true);
-
-  // Hide non-design windows
-  current_editor_set_->assembly_editor_.set_active(false);
-#ifdef YAZE_ENABLE_TESTING
-  show_test_dashboard_ = false;
-#endif
-  show_imgui_metrics_ = false;
-
-  toast_manager_.Show("Designer layout loaded", editor::ToastType::kSuccess);
-}
-
-void EditorManager::LoadModderLayout() {
-  if (!current_editor_set_)
-    return;
-
-  // Modder layout: All editors except technical ones
-  current_editor_set_->overworld_editor_.set_active(true);
-  current_editor_set_->dungeon_editor_.set_active(true);
-  current_editor_set_->graphics_editor_.set_active(true);
-  current_editor_set_->palette_editor_.set_active(true);
-  current_editor_set_->sprite_editor_.set_active(true);
-  current_editor_set_->message_editor_.set_active(true);
-  current_editor_set_->music_editor_.set_active(true);
-
-  // Hide technical windows
-  current_editor_set_->assembly_editor_.set_active(false);
-  show_imgui_metrics_ = false;
-
-  toast_manager_.Show("Modder layout loaded", editor::ToastType::kSuccess);
-}
-
 void EditorManager::DrawWelcomeScreen() {
   // Delegate to UICoordinator for clean separation of concerns
   if (ui_coordinator_) {
@@ -2491,17 +2433,17 @@ void EditorManager::SwitchToEditor(EditorType editor_type) {
       editor->toggle_active();
 
       if (IsCardBasedEditor(editor_type)) {
-        auto& card_manager = gui::EditorCardManager::Get();
+        // Using EditorCardRegistry directly
 
         if (*editor->active()) {
           // Editor activated - set its category
-          card_manager.SetActiveCategory(GetEditorCategory(editor_type));
+          card_registry_.SetActiveCategory(GetEditorCategory(editor_type));
         } else {
           // Editor deactivated - switch to another active card-based editor
           for (auto* other : current_editor_set_->active_editors_) {
             if (*other->active() && IsCardBasedEditor(other->type()) &&
                 other != editor) {
-              card_manager.SetActiveCategory(GetEditorCategory(other->type()));
+              card_registry_.SetActiveCategory(GetEditorCategory(other->type()));
               break;
             }
           }
@@ -2517,7 +2459,7 @@ void EditorManager::SwitchToEditor(EditorType editor_type) {
   } else if (editor_type == EditorType::kEmulator) {
     show_emulator_ = !show_emulator_;
     if (show_emulator_) {
-      gui::EditorCardManager::Get().SetActiveCategory("Emulator");
+      card_registry_.SetActiveCategory("Emulator");
     }
   }
 }

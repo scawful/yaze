@@ -40,7 +40,7 @@
 #include "app/editor/system/menu_orchestrator.h"
 #include "app/editor/system/project_manager.h"
 #include "app/editor/system/rom_file_manager.h"
-#include "app/editor/system/session_card_registry.h"
+#include "app/editor/system/editor_card_registry.h"
 #include "app/editor/system/session_coordinator.h"
 #include "app/editor/system/window_delegate.h"
 #include "app/editor/ui/editor_selection_dialog.h"
@@ -215,10 +215,10 @@ class EditorManager {
   void ShowAllWindows() { if (ui_coordinator_) ui_coordinator_->ShowAllWindows(); }
   void HideAllWindows() { if (ui_coordinator_) ui_coordinator_->HideAllWindows(); }
   
-  // Layout presets
-  void LoadDeveloperLayout();
-  void LoadDesignerLayout();
-  void LoadModderLayout();
+  // Layout presets (inline delegation)
+  void LoadDeveloperLayout() { window_delegate_.LoadDeveloperLayout(); }
+  void LoadDesignerLayout() { window_delegate_.LoadDesignerLayout(); }
+  void LoadModderLayout() { window_delegate_.LoadModderLayout(); }
   
   // Helper methods
   std::string GenerateUniqueEditorTitle(EditorType type, size_t session_index) const;
@@ -370,12 +370,12 @@ class EditorManager {
   UserSettings user_settings_;
   WorkspaceManager workspace_manager_{&toast_manager_};
   
-  // New delegated components
+  // New delegated components (dependency injection architecture)
+  EditorCardRegistry card_registry_;  // Card management with session awareness
   EditorRegistry editor_registry_;
   std::unique_ptr<MenuOrchestrator> menu_orchestrator_;
   ProjectManager project_manager_;
   RomFileManager rom_file_manager_;
-  SessionCardRegistry card_registry_;
   std::unique_ptr<UICoordinator> ui_coordinator_;
   WindowDelegate window_delegate_;
   std::unique_ptr<SessionCoordinator> session_coordinator_;

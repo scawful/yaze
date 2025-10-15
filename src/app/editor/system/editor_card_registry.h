@@ -361,6 +361,79 @@ class EditorCardRegistry {
    * @return true if session_count > 1
    */
   bool ShouldPrefixCards() const { return session_count_ > 1; }
+  
+  // ============================================================================
+  // Convenience Methods (for EditorManager direct usage without session_id)
+  // ============================================================================
+  
+  /**
+   * @brief Register card for active session (convenience)
+   */
+  void RegisterCard(const CardInfo& base_info) {
+    RegisterCard(active_session_, base_info);
+  }
+  
+  /**
+   * @brief Show card in active session (convenience)
+   */
+  bool ShowCard(const std::string& base_card_id) {
+    return ShowCard(active_session_, base_card_id);
+  }
+  
+  /**
+   * @brief Hide card in active session (convenience)
+   */
+  bool HideCard(const std::string& base_card_id) {
+    return HideCard(active_session_, base_card_id);
+  }
+  
+  /**
+   * @brief Hide all cards in category for active session (convenience)
+   */
+  void HideAllCardsInCategory(const std::string& category) {
+    HideAllCardsInCategory(active_session_, category);
+  }
+  
+  /**
+   * @brief Draw card browser for active session (convenience)
+   */
+  void DrawCardBrowser(bool* p_open) {
+    DrawCardBrowser(active_session_, p_open);
+  }
+  
+  /**
+   * @brief Get active category (for sidebar)
+   */
+  std::string GetActiveCategory() const { return active_category_; }
+  
+  /**
+   * @brief Set active category (for sidebar)
+   */
+  void SetActiveCategory(const std::string& category) { active_category_ = category; }
+  
+  /**
+   * @brief Show all cards in category for active session (convenience)
+   */
+  void ShowAllCardsInCategory(const std::string& category) {
+    ShowAllCardsInCategory(active_session_, category);
+  }
+  
+  /**
+   * @brief Get visibility flag for active session (convenience)
+   */
+  bool* GetVisibilityFlag(const std::string& base_card_id) {
+    return GetVisibilityFlag(active_session_, base_card_id);
+  }
+  
+  /**
+   * @brief Draw sidebar for active session (convenience)
+   */
+  void DrawSidebar(const std::string& category,
+                  const std::vector<std::string>& active_categories = {},
+                  std::function<void(const std::string&)> on_category_switch = nullptr,
+                  std::function<void()> on_collapse = nullptr) {
+    DrawSidebar(active_session_, category, active_categories, on_category_switch, on_collapse);
+  }
 
  private:
   // Core card storage (prefixed IDs → CardInfo)

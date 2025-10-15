@@ -13,8 +13,8 @@ namespace yaze {
 namespace editor {
 
 SessionCoordinator::SessionCoordinator(void* sessions_ptr,
-                                       SessionCardRegistry* card_registry,
-                                       ToastManager* toast_manager)
+                                     EditorCardRegistry* card_registry,
+                                     ToastManager* toast_manager)
     : sessions_ptr_(sessions_ptr),
       card_registry_(card_registry),
       toast_manager_(toast_manager) {

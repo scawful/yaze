@@ -41,7 +41,6 @@ set(
   app/editor/system/project_manager.cc
   app/editor/system/proposal_drawer.cc
   app/editor/system/rom_file_manager.cc
-  app/editor/system/session_card_registry.cc
   app/editor/system/settings_editor.cc
   app/editor/system/shortcut_manager.cc
   app/editor/system/session_coordinator.cc
