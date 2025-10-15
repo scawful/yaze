@@ -131,6 +131,14 @@ class Editor {
     }
     return base_title;
   }
+  
+  // Helper method to create session-aware card IDs for multi-session support
+  std::string MakeCardId(const std::string& base_id) const {
+    if (context_ && context_->session_id > 0) {
+      return absl::StrFormat("s%zu.%s", context_->session_id, base_id);
+    }
+    return base_id;
+  }
 
   // Helper method for ROM access with safety check
   template<typename T>

@@ -4,8 +4,7 @@
 #include <cstdint>
 #include <vector>
 
-namespace yaze {
-namespace zelda3 {
+namespace yaze::zelda3 {
 
 // ============================================================================
 // Palette Group Names
@@ -303,8 +302,7 @@ const PaletteGroupMetadata* GetPaletteGroupMetadata(const char* group_id);
 // Get all available palette groups
 std::vector<const PaletteGroupMetadata*> GetAllPaletteGroups();
 
-}  // namespace zelda3
-}  // namespace yaze
+}  // namespace yaze::zelda3
 
 #endif  // YAZE_ZELDA3_PALETTE_CONSTANTS_H
 

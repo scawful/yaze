@@ -88,6 +88,7 @@ class EditorCardManager {
                    bool visible_by_default = false);
   
   void UnregisterCard(const std::string& card_id);
+  void UnregisterCardsWithPrefix(const std::string& prefix);
   void ClearAllCards();
   
   // Card control (programmatic, no GUI)
@@ -106,6 +107,7 @@ class EditorCardManager {
   
   // Query
   std::vector<CardInfo> GetCardsInCategory(const std::string& category) const;
+  std::vector<CardInfo> GetCardsWithPrefix(const std::string& prefix) const;
   std::vector<std::string> GetAllCategories() const;
   const CardInfo* GetCardInfo(const std::string& card_id) const;
   
@@ -118,6 +120,11 @@ class EditorCardManager {
                   const std::vector<std::string>& active_categories = {},
                   std::function<void(const std::string&)> on_category_switch = nullptr,
                   std::function<void()> on_collapse = nullptr);
+  void DrawSidebarWithSessionFilter(const std::string& category,
+                                   const std::string& session_prefix = "",
+                                   const std::vector<std::string>& active_categories = {},
+                                   std::function<void(const std::string&)> on_category_switch = nullptr,
+                                   std::function<void()> on_collapse = nullptr);
   static constexpr float GetSidebarWidth() { return 48.0f; }
   
   // Active editor tracking (based on most recently interacted card)
@@ -127,6 +134,7 @@ class EditorCardManager {
   
   // Compact inline card control for menu bar
   void DrawCompactCardControl(const std::string& category);  // Shows only active editor's cards
+  void DrawCompactCardControlWithSession(const std::string& category, const std::string& session_prefix = "");
   void DrawInlineCardToggles(const std::string& category);   // Minimal inline checkboxes
   
   // Card browser UI

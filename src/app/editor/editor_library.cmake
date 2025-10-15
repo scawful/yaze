@@ -36,11 +36,14 @@ set(
   app/editor/system/extension_manager.cc
   app/editor/system/popup_manager.cc
   app/editor/system/proposal_drawer.cc
+  app/editor/system/session_card_registry.cc
   app/editor/system/settings_editor.cc
   app/editor/system/shortcut_manager.cc
   app/editor/system/user_settings.cc
+  app/editor/system/window_delegate.cc
   app/editor/ui/editor_selection_dialog.cc
   app/editor/ui/menu_builder.cc
+  app/editor/ui/session_coordinator.cc
   app/editor/ui/welcome_screen.cc
   app/editor/ui/workspace_manager.cc
 )
@@ -143,8 +146,13 @@ if(YAZE_WITH_GRPC)
     grpc++
     grpc++_reflection
   )
-  if(YAZE_PROTOBUF_TARGET)
-    target_link_libraries(yaze_editor PRIVATE ${YAZE_PROTOBUF_TARGET})
+  if(YAZE_PROTOBUF_TARGETS)
+    target_link_libraries(yaze_editor PRIVATE ${YAZE_PROTOBUF_TARGETS})
+    if(MSVC)
+      foreach(_yaze_proto_target IN LISTS YAZE_PROTOBUF_TARGETS)
+        target_link_options(yaze_editor PRIVATE /WHOLEARCHIVE:$<TARGET_FILE:${_yaze_proto_target}>)
+      endforeach()
+    endif()
   endif()
 endif()
 

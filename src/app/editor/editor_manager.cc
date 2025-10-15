@@ -189,6 +189,10 @@ EditorManager::EditorManager() : blank_editor_set_(nullptr, &user_settings_) {
      << YAZE_VERSION_PATCH;
   ss >> version_;
   context_.popup_manager = popup_manager_.get();
+  
+  // Initialize new delegated components
+  session_coordinator_ = std::make_unique<SessionCoordinator>(
+      static_cast<void*>(&sessions_), &card_registry_, &toast_manager_);
 }
 
 EditorManager::~EditorManager() = default;
@@ -901,6 +905,9 @@ absl::Status EditorManager::Update() {
     if (!session.rom.is_loaded())
       continue;  // Skip sessions with invalid ROMs
 
+    // Use RAII SessionScope for clean context switching
+    SessionScope scope(this, session_idx);
+
     for (auto editor : session.editors.active_editors_) {
       if (*editor->active()) {
         if (editor->type() == EditorType::kOverworld) {
@@ -920,14 +927,7 @@ absl::Status EditorManager::Update() {
         if (is_card_based_editor) {
           // Card-based editors create their own top-level windows
           // No parent wrapper needed - this allows independent docking
-          Rom* prev_rom = current_rom_;
-          EditorSet* prev_editor_set = current_editor_set_;
-          size_t prev_session_id = context_.session_id;
-
-          current_rom_ = &session.rom;
-          current_editor_set_ = &session.editors;
           current_editor_ = editor;
-          context_.session_id = session_idx;
 
           status_ = editor->Update();
 
@@ -938,11 +938,6 @@ absl::Status EditorManager::Update() {
                 absl::StrFormat("%s Error: %s", editor_name, status_.message()),
                 editor::ToastType::kError, 8.0f);
           }
-
-          // Restore context
-          current_rom_ = prev_rom;
-          current_editor_set_ = prev_editor_set;
-          context_.session_id = prev_session_id;
 
         } else {
           // TRADITIONAL EDITORS: Wrap in Begin/End
@@ -1060,6 +1055,13 @@ absl::Status EditorManager::Update() {
     }
   }
 
+  // Draw SessionCoordinator UI components
+  if (session_coordinator_) {
+    session_coordinator_->DrawSessionSwitcher();
+    session_coordinator_->DrawSessionManager();
+    session_coordinator_->DrawSessionRenameDialog();
+  }
+
   return absl::OkStatus();
 }
 
@@ -1136,9 +1138,14 @@ void EditorManager::DrawContextSensitiveCardControl() {
       return;  // No cards for this editor type
   }
 
-  // Draw compact card control for the active editor's cards
+  // Draw compact card control for the active editor's cards with session awareness
   auto& card_manager = gui::EditorCardManager::Get();
-  card_manager.DrawCompactCardControl(category);
+  if (session_coordinator_ && session_coordinator_->HasMultipleSessions()) {
+    std::string session_prefix = absl::StrFormat("s%zu", context_.session_id);
+    card_manager.DrawCompactCardControlWithSession(category, session_prefix);
+  } else {
+    card_manager.DrawCompactCardControl(category);
+  }
 
   // Show visible/total count
   SameLine();
@@ -1672,15 +1679,15 @@ void EditorManager::DrawMenuBarExtras() {
   SameLine(ImGui::GetWindowWidth() - version_width - 10 -
            session_rom_area_width);
 
-  if (GetActiveSessionCount() > 1) {
+  if (session_coordinator_ && session_coordinator_->HasMultipleSessions()) {
     if (ImGui::SmallButton(
-            absl::StrFormat("%s%zu", ICON_MD_TAB, GetActiveSessionCount())
+            absl::StrFormat("%s%zu", ICON_MD_TAB, session_coordinator_->GetActiveSessionCount())
                 .c_str())) {
-      ShowSessionSwitcher();
+      session_coordinator_->ToggleSessionSwitcher();
     }
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("Sessions: %zu active\nClick to switch",
-                        GetActiveSessionCount());
+                        session_coordinator_->GetActiveSessionCount());
     }
     ImGui::SameLine();
   }
@@ -1724,7 +1731,9 @@ void EditorManager::DrawMenuBarExtras() {
 }
 
 void EditorManager::ShowSessionSwitcher() {
-  show_session_switcher_ = true;
+  if (session_coordinator_) {
+    session_coordinator_->ShowSessionSwitcher();
+  }
 }
 
 void EditorManager::ShowEditorSelection() {
@@ -2403,7 +2412,8 @@ absl::Status EditorManager::LoadRom() {
     current_editor_set_ = &target_session->editors;
   } else {
     // Create new session only if no empty ones exist
-    sessions_.emplace_back(std::move(temp_rom), &user_settings_);
+    size_t new_session_id = sessions_.size();
+    sessions_.emplace_back(std::move(temp_rom), &user_settings_, new_session_id);
     RomSession& session = sessions_.back();
     session.filepath = file_name;  // Store filepath for duplicate detection
 
@@ -2801,22 +2811,17 @@ absl::Status EditorManager::SetCurrentRom(Rom* rom) {
 }
 
 void EditorManager::CreateNewSession() {
-  // Check session limit
-  if (sessions_.size() >= 8) {
-    popup_manager_->Show("Session Limit Warning");
-    return;
-  }
-
-  // Create a blank session
-  sessions_.emplace_back();
-  RomSession& session = sessions_.back();
-
-  // Set user settings for the blank session
-  session.editors.set_user_settings(&user_settings_);
-
-  // Wire editor contexts for new session
-  for (auto* editor : session.editors.active_editors_) {
-    editor->set_context(&context_);
+  if (session_coordinator_) {
+    session_coordinator_->CreateNewSession();
+    
+    // Wire editor contexts for new session
+    if (!sessions_.empty()) {
+      RomSession& session = sessions_.back();
+      session.editors.set_user_settings(&user_settings_);
+      for (auto* editor : session.editors.active_editors_) {
+        editor->set_context(&context_);
+      }
+    }
   }
 
   // Don't switch to the new session automatically
@@ -2839,105 +2844,76 @@ void EditorManager::DuplicateCurrentSession() {
     return;
   }
 
-  // Create a copy of the current ROM
-  Rom rom_copy = *current_rom_;
-  sessions_.emplace_back(std::move(rom_copy), &user_settings_);
-  RomSession& session = sessions_.back();
-
-  // Wire editor contexts
-  for (auto* editor : session.editors.active_editors_) {
-    editor->set_context(&context_);
+  if (session_coordinator_) {
+    session_coordinator_->DuplicateCurrentSession();
+    
+    // Wire editor contexts for duplicated session
+    if (!sessions_.empty()) {
+      RomSession& session = sessions_.back();
+      for (auto* editor : session.editors.active_editors_) {
+        editor->set_context(&context_);
+      }
+    }
   }
-
-  toast_manager_.Show(
-      absl::StrFormat("Session duplicated (Session %zu)", sessions_.size()),
-      editor::ToastType::kSuccess);
 }
 
 void EditorManager::CloseCurrentSession() {
-  if (GetActiveSessionCount() <= 1) {
-    toast_manager_.Show("Cannot close the last active session",
-                        editor::ToastType::kWarning);
-    return;
-  }
-
-  // Find current session index
-  size_t current_index = GetCurrentSessionIndex();
-
-  // Switch to another active session before removing current one
-  size_t next_index = 0;
-  for (size_t i = 0; i < sessions_.size(); ++i) {
-    if (i != current_index && sessions_[i].custom_name != "[CLOSED SESSION]") {
-      next_index = i;
-      break;
+  if (session_coordinator_) {
+    session_coordinator_->CloseCurrentSession();
+    
+    // Update current pointers after session change
+    if (!sessions_.empty()) {
+      size_t active_index = session_coordinator_->GetActiveSessionIndex();
+      if (active_index < sessions_.size()) {
+        current_rom_ = &sessions_[active_index].rom;
+        current_editor_set_ = &sessions_[active_index].editors;
+        test::TestManager::Get().SetCurrentRom(current_rom_);
+      }
     }
   }
-
-  current_rom_ = &sessions_[next_index].rom;
-  current_editor_set_ = &sessions_[next_index].editors;
-  test::TestManager::Get().SetCurrentRom(current_rom_);
-
-  // Now remove the current session
-  RemoveSession(current_index);
-
-  toast_manager_.Show("Session closed successfully",
-                      editor::ToastType::kSuccess);
 }
 
 void EditorManager::RemoveSession(size_t index) {
-  if (index >= sessions_.size()) {
-    toast_manager_.Show("Invalid session index for removal",
-                        editor::ToastType::kError);
-    return;
+  if (session_coordinator_) {
+    session_coordinator_->RemoveSession(index);
+    
+    // Update current pointers after session change
+    if (!sessions_.empty()) {
+      size_t active_index = session_coordinator_->GetActiveSessionIndex();
+      if (active_index < sessions_.size()) {
+        current_rom_ = &sessions_[active_index].rom;
+        current_editor_set_ = &sessions_[active_index].editors;
+        test::TestManager::Get().SetCurrentRom(current_rom_);
+      }
+    }
   }
-
-  if (GetActiveSessionCount() <= 1) {
-    toast_manager_.Show("Cannot remove the last active session",
-                        editor::ToastType::kWarning);
-    return;
-  }
-
-  // Get session info for logging
-  std::string session_name = sessions_[index].GetDisplayName();
-
-  // For now, mark the session as invalid instead of removing it from the deque
-  // This is a safer approach until RomSession becomes fully movable
-  sessions_[index].rom.Close();  // Close the ROM to mark as invalid
-  sessions_[index].custom_name = "[CLOSED SESSION]";
-  sessions_[index].filepath = "";
-
-  LOG_DEBUG("EditorManager", "Marked session as closed: %s (index %zu)",
-            session_name.c_str(), index);
-  toast_manager_.Show(
-      absl::StrFormat("Session marked as closed: %s", session_name),
-      editor::ToastType::kInfo);
-
-  // TODO: Implement proper session removal when EditorSet becomes movable
-  // The current workaround marks sessions as closed instead of removing them
 }
 
 void EditorManager::SwitchToSession(size_t index) {
-  if (index >= sessions_.size()) {
-    toast_manager_.Show("Invalid session index", editor::ToastType::kError);
-    return;
+  if (session_coordinator_) {
+    session_coordinator_->SwitchToSession(index);
+    
+    // Update current pointers after session switch
+    if (index < sessions_.size()) {
+      auto& session = sessions_[index];
+      current_rom_ = &session.rom;
+      current_editor_set_ = &session.editors;
+      
+      // Update test manager with current ROM for ROM-dependent tests
+      util::logf("EditorManager: Setting ROM in TestManager - %p ('%s')",
+                 (void*)current_rom_,
+                 current_rom_ ? current_rom_->title().c_str() : "null");
+      test::TestManager::Get().SetCurrentRom(current_rom_);
+    }
   }
-
-  auto& session = sessions_[index];
-  current_rom_ = &session.rom;
-  current_editor_set_ = &session.editors;
-
-  // Update test manager with current ROM for ROM-dependent tests
-  util::logf("EditorManager: Setting ROM in TestManager - %p ('%s')",
-             (void*)current_rom_,
-             current_rom_ ? current_rom_->title().c_str() : "null");
-  test::TestManager::Get().SetCurrentRom(current_rom_);
-
-  std::string session_name = session.GetDisplayName();
-  toast_manager_.Show(absl::StrFormat("Switched to %s", session_name),
-                      editor::ToastType::kInfo);
 }
 
 size_t EditorManager::GetCurrentSessionIndex() const {
+  if (session_coordinator_) {
+    return session_coordinator_->GetActiveSessionIndex();
+  }
+  
+  // Fallback to finding by ROM pointer
   for (size_t i = 0; i < sessions_.size(); ++i) {
     if (&sessions_[i].rom == current_rom_ &&
         sessions_[i].custom_name != "[CLOSED SESSION]") {
@@ -2948,6 +2924,11 @@ size_t EditorManager::GetCurrentSessionIndex() const {
 }
 
 size_t EditorManager::GetActiveSessionCount() const {
+  if (session_coordinator_) {
+    return session_coordinator_->GetActiveSessionCount();
+  }
+  
+  // Fallback to counting non-closed sessions
   size_t count = 0;
   for (const auto& session : sessions_) {
     if (session.custom_name != "[CLOSED SESSION]") {
@@ -3704,6 +3685,28 @@ void EditorManager::SaveUserSettings() {
     LOG_WARN("EditorManager", "Failed to save user settings: %s",
              status.ToString().c_str());
   }
+}
+
+// SessionScope implementation
+EditorManager::SessionScope::SessionScope(EditorManager* manager, size_t session_id)
+    : manager_(manager),
+      prev_rom_(manager->current_rom_),
+      prev_editor_set_(manager->current_editor_set_),
+      prev_session_id_(manager->context_.session_id) {
+  
+  // Set new session context
+  if (session_id < manager->sessions_.size()) {
+    manager->current_rom_ = &manager->sessions_[session_id].rom;
+    manager->current_editor_set_ = &manager->sessions_[session_id].editors;
+    manager->context_.session_id = session_id;
+  }
+}
+
+EditorManager::SessionScope::~SessionScope() {
+  // Restore previous context
+  manager_->current_rom_ = prev_rom_;
+  manager_->current_editor_set_ = prev_editor_set_;
+  manager_->context_.session_id = prev_session_id_;
 }
 
 }  // namespace editor

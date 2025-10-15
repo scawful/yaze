@@ -161,10 +161,12 @@ if(YAZE_WITH_GRPC)
     grpc++
     grpc++_reflection
   )
-  if(YAZE_PROTOBUF_TARGET)
-    target_link_libraries(yaze_agent PUBLIC ${YAZE_PROTOBUF_TARGET})
-    if(MSVC AND CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-      target_link_options(yaze_agent PUBLIC /WHOLEARCHIVE:$<TARGET_FILE:${YAZE_PROTOBUF_TARGET}>)
+  if(YAZE_PROTOBUF_TARGETS)
+    target_link_libraries(yaze_agent PUBLIC ${YAZE_PROTOBUF_TARGETS})
+    if(MSVC)
+      foreach(_yaze_proto_target IN LISTS YAZE_PROTOBUF_TARGETS)
+        target_link_options(yaze_agent PUBLIC /WHOLEARCHIVE:$<TARGET_FILE:${_yaze_proto_target}>)
+      endforeach()
     endif()
   endif()
   

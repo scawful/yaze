@@ -7,6 +7,7 @@
 
 #include "absl/status/status.h"
 #include "app/core/window.h"
+#include "app/rom.h"
 #include "app/editor/editor_manager.h"
 #include "app/gfx/backend/irenderer.h"
 
