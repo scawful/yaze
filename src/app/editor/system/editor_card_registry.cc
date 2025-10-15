@@ -478,44 +478,88 @@ void EditorCardRegistry::DrawSidebar(size_t session_id,
     return;
   }
   
-  // Sidebar window
-  ImGui::SetNextWindowSize(ImVec2(GetSidebarWidth() + 220, 0), ImGuiCond_Always);
-  ImGui::SetNextWindowPos(ImVec2(0, ImGui::GetFrameHeightWithSpacing()), ImGuiCond_Always);
+  // Use ThemeManager for consistent theming
+  const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
+  const float sidebar_width = GetSidebarWidth();
   
-  ImGui::Begin("##CardSidebar", nullptr,
-              ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
-              ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
+  // Fixed sidebar window on the left edge of screen (VSCode style)
+  ImGui::SetNextWindowPos(ImVec2(0, ImGui::GetFrameHeight()));  // Below menu bar
+  ImGui::SetNextWindowSize(ImVec2(sidebar_width + 220, -1));  // Full height below menu
   
-  // Draw category tabs on the left
-  ImGui::BeginChild("CategoryTabs", ImVec2(GetSidebarWidth(), 0), true);
+  ImGuiWindowFlags sidebar_flags = 
+      ImGuiWindowFlags_NoTitleBar |
+      ImGuiWindowFlags_NoResize |
+      ImGuiWindowFlags_NoMove |
+      ImGuiWindowFlags_NoCollapse |
+      ImGuiWindowFlags_NoDocking |  // Don't allow docking over sidebar
+      ImGuiWindowFlags_NoScrollbar |
+      ImGuiWindowFlags_NoScrollWithMouse |
+      ImGuiWindowFlags_NoFocusOnAppearing |  // Don't steal focus
+      ImGuiWindowFlags_NoNavFocus;  // Don't participate in nav
   
-  for (const auto& cat : active_categories) {
-    bool is_active = (cat == category);
-    if (is_active) {
-      ImGui::PushStyleColor(ImGuiCol_Button, gui::GetPrimaryVec4());
-    }
+  // Make sidebar VERY visible - fully opaque dark background
+  ImVec4 sidebar_bg = ImVec4(0.18f, 0.18f, 0.20f, 1.0f);  // Dark opaque gray
+  ImVec4 sidebar_border = ImVec4(0.4f, 0.4f, 0.45f, 1.0f);  // Visible border
+  
+  ImGui::PushStyleColor(ImGuiCol_WindowBg, sidebar_bg);
+  ImGui::PushStyleColor(ImGuiCol_Border, sidebar_border);
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4.0f, 8.0f));
+  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 6.0f));
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 2.0f);  // Thicker border
+  
+  ImGui::Begin("##EditorCardSidebar", nullptr, sidebar_flags);
+  
+  // Draw category tabs on the left (if multiple editors active)
+  if (active_categories.size() > 1) {
+    ImGui::BeginChild("CategoryTabs", ImVec2(sidebar_width, 0), false,
+                     ImGuiWindowFlags_NoScrollbar);
     
-    if (ImGui::Button(cat.substr(0, 1).c_str(), ImVec2(GetSidebarWidth() - 8, 40))) {
-      if (on_category_switch) {
-        on_category_switch(cat);
+    ImVec4 accent = gui::ConvertColorToImVec4(theme.accent);
+    ImVec4 inactive = gui::ConvertColorToImVec4(theme.button);
+    
+    for (const auto& cat : active_categories) {
+      bool is_current = (cat == category);
+      
+      if (is_current) {
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(accent.x, accent.y, accent.z, 0.8f));
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(accent.x, accent.y, accent.z, 1.0f));
+      } else {
+        ImGui::PushStyleColor(ImGuiCol_Button, inactive);
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, gui::ConvertColorToImVec4(theme.button_hovered));
+      }
+      
+      // Use first letter as icon
+      std::string icon = cat.substr(0, 1);
+      if (ImGui::Button(icon.c_str(), ImVec2(sidebar_width - 8, 40))) {
+        if (on_category_switch) {
+          on_category_switch(cat);
+        }
+      }
+      
+      ImGui::PopStyleColor(2);
+      
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("%s", cat.c_str());
       }
     }
     
-    if (is_active) {
-      ImGui::PopStyleColor();
+    // Collapse button at bottom
+    ImGui::SetCursorPosY(ImGui::GetWindowHeight() - 50);
+    if (ImGui::Button(ICON_MD_CHEVRON_LEFT, ImVec2(sidebar_width - 8, 40))) {
+      if (on_collapse) {
+        on_collapse();
+      }
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Hide Sidebar (Ctrl+B)");
     }
     
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("%s", cat.c_str());
-    }
+    ImGui::EndChild();
+    ImGui::SameLine();
   }
   
-  ImGui::EndChild();
-  
-  ImGui::SameLine();
-  
-  // Draw cards on the right
-  ImGui::BeginChild("Cards", ImVec2(0, 0), true);
+  // Draw cards list on the right
+  ImGui::BeginChild("CardsList", ImVec2(0, 0), false);
   
   ImGui::Text("%s %s", ICON_MD_DASHBOARD, category.c_str());
   ImGui::Separator();
@@ -527,6 +571,9 @@ void EditorCardRegistry::DrawSidebar(size_t session_id,
   ImGui::EndChild();
   
   ImGui::End();
+  
+  ImGui::PopStyleVar(3);
+  ImGui::PopStyleColor(2);
 }
 
 // ============================================================================
