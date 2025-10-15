@@ -3,846 +3,254 @@ name: Release
 on:
   push:
     tags:
-      - 'v[0-9]+.[0-9]+.[0-9]+'
-      - 'v[0-9]+.[0-9]+.[0-9]+-*' # e.g., v1.2.3-beta, v1.2.3-rc1
+      - 'v*'
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Release tag (e.g., v0.3.0)'
+        description: 'Release tag (e.g., v0.3.2)'
         required: true
         type: string
-
-concurrency:
-  group: release-${{ github.ref_name || github.event.inputs.tag }}
-  cancel-in-progress: true
 
 permissions:
   contents: write
 
 env:
   BUILD_TYPE: Release
-  # CI optimizations
-  CMAKE_BUILD_PARALLEL_LEVEL: 4  # Limit parallel jobs to avoid OOM
-  VCPKG_FORCE_SYSTEM_BINARIES: 1
 
 jobs:
-  # ======================================================================================
-  #  VALIDATE & PREPARE RELEASE
-  # ======================================================================================
-  prepare-release:
-    name: "✅ Validate & Prepare"
-    runs-on: ubuntu-latest
-    outputs:
-      tag_name: ${{ steps.validate.outputs.tag_name }}
-      release_notes: ${{ steps.notes.outputs.content }}
-      is_prerelease: ${{ steps.validate.outputs.is_prerelease }}
-
+  build-windows:
+    name: Windows x64
+    runs-on: windows-2022
     steps:
-      - name: "Checkout Code"
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0 # Required for changelog extraction
-
-      - name: "Set up Python"
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.x'
-
-      - name: "Determine & Validate Tag"
-        id: validate
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          if [[ "${{ github.event_name }}" == "push" ]]; then
-            TAG="${{ github.ref_name }}"
-          else
-            TAG="${{ github.event.inputs.tag }}"
-          fi
-
-          echo "Validating tag: ${TAG}"
-          if [[ ! "${TAG}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-.*)?$ ]]; then
-            echo "::error::Tag '${TAG}' must follow semantic versioning (e.g., v1.2.3 or v1.2.3-beta)."
-            exit 1
-          fi
-
-          # Determine if it's a pre-release
-          if [[ "${TAG}" =~ - ]]; then
-            echo "is_prerelease=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "is_prerelease=false" >> "$GITHUB_OUTPUT"
-          fi
-
-          echo "tag_name=${TAG}" >> "$GITHUB_OUTPUT"
-          echo "VALIDATED_TAG=${TAG}" >> "$GITHUB_ENV"
-          echo "✅ Tag is valid and processed."
-
-      - name: "Generate Release Notes"
-        shell: bash
-        env:
-          TAG_NAME: ${{ steps.validate.outputs.tag_name }}
-        run: |
-          set -euo pipefail
-          VERSION="${TAG_NAME#v}"
-
-          if [[ -f scripts/extract_changelog.py ]]; then
-            echo "Attempting to extract changelog for version ${VERSION}..."
-            python3 scripts/extract_changelog.py "${VERSION}" > release_notes.md
-          else
-            echo "::warning::'scripts/extract_changelog.py' not found. Creating default release notes."
-            echo "# Yaze ${TAG_NAME} Release Notes" > release_notes.md
-            echo "" >> release_notes.md
-            echo "For a detailed list of changes, please see the project's commit history or changelog file." >> release_notes.md
-          fi
-
-          echo "Generated release notes:"
-          cat release_notes.md
-
-      - name: "Store Release Notes"
-        id: notes
-        shell: bash
-        run: |
-          {
-            echo 'content<<EOF'
-            cat release_notes.md
-            echo 'EOF'
-          } >> "$GITHUB_OUTPUT"
-
-  # ======================================================================================
-  #  BUILD & PACKAGE
-  # ======================================================================================
-  build-and-package:
-    name: "📦 Build (${{ matrix.name }})"
-    needs: prepare-release
-    continue-on-error: true  # PRE-1.0: Don't block release on platform failure
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - name: "Windows x64 (Clang)"
-            os: windows-2022
-            cc: clang-cl
-            cxx: clang-cl
-            artifact_name: "yaze-windows-x64"
-          - name: "macOS arm64"
-            os: macos-14
-            mac_arch: arm64
-            artifact_name: "yaze-macos-arm64-slice"
-          - name: "macOS x86_64"
-            os: macos-14
-            mac_arch: x86_64
-            artifact_name: "yaze-macos-x86_64-slice"
-          - name: "Linux x64"
-            os: ubuntu-22.04
-            artifact_name: "yaze-linux-x64"
-
-    runs-on: ${{ matrix.os }}
-
-    steps:
-      - name: "Checkout Code"
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
 
-      - name: "Set up vcpkg (Windows only)"
-        if: runner.os == 'Windows'
+      - name: Setup vcpkg
         uses: lukka/run-vcpkg@v11
-        id: vcpkg
-        continue-on-error: true
+        with:
+          vcpkgDirectory: '${{ github.workspace }}/vcpkg'
+          vcpkgGitCommitId: '8eb57355a4ffb410a2e94c07b4dca2dffbee8e50'
+          runVcpkgInstall: false
         env:
           VCPKG_DEFAULT_TRIPLET: x64-windows-static
           VCPKG_BINARY_SOURCES: 'clear;x-gha,readwrite'
-        with:
-          vcpkgDirectory: '${{ github.workspace }}/vcpkg'
-          vcpkgGitCommitId: '8eb57355a4ffb410a2e94c07b4dca2dffbee8e50'  # November 2024 release
-          runVcpkgInstall: true
 
-      - name: "Resolve vcpkg toolchain (Windows)"
-        if: runner.os == 'Windows'
+      - name: Install build tools
         shell: pwsh
         run: |
-          $vcpkgRoot = "${{ steps.vcpkg.outputs.vcpkgRoot }}"
-          if (-not $vcpkgRoot) {
-            $vcpkgRoot = Join-Path "${{ github.workspace }}" "vcpkg"
-          }
-          if (-not (Test-Path $vcpkgRoot)) {
-            Write-Host "::error::vcpkg root not found at $vcpkgRoot"
-            exit 1
-          }
+          choco install --no-progress -y nasm ninja
+          "C:\Program Files\NASM" | Out-File -FilePath $env:GITHUB_PATH -Append
 
-          $toolchain = Join-Path $vcpkgRoot "scripts/buildsystems/vcpkg.cmake"
-          if (-not (Test-Path $toolchain)) {
-            Write-Host "::error::vcpkg toolchain file missing at $toolchain"
-            exit 1
-          }
-
-          $normalizedRoot = $vcpkgRoot -replace '\\', '/'
-          $normalizedToolchain = $toolchain -replace '\\', '/'
-
-          "VCPKG_ROOT=$normalizedRoot" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          "CMAKE_TOOLCHAIN_FILE=$normalizedToolchain" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-
-      - name: "Install Windows build tools"
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          choco install --no-progress -y nasm ninja ccache
-          if ($env:ChocolateyInstall) {
-            $profilePath = Join-Path $env:ChocolateyInstall "helpers\chocolateyProfile.psm1"
-            if (Test-Path $profilePath) {
-              Import-Module $profilePath
-              refreshenv
-            }
-          }
-          if (Test-Path "C:\Program Files\NASM") {
-            "C:\Program Files\NASM" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-          }
-
-      - name: "Setup MSVC environment (Windows)"
-        if: runner.os == 'Windows'
+      - name: Setup MSVC
         uses: ilammy/msvc-dev-cmd@v1
         with:
           arch: x64
 
-      - name: "Free Disk Space (Linux)"
-        if: runner.os == 'Linux'
-        shell: bash
-        run: |
-          echo "=== Freeing Disk Space for Release Build ==="
-          df -h
-          echo ""
-          echo "Removing unnecessary software..."
-          sudo rm -rf /usr/share/dotnet
-          sudo rm -rf /usr/local/lib/android
-          sudo rm -rf /opt/ghc
-          sudo rm -rf /opt/hostedtoolcache/CodeQL
-          sudo apt-get clean
-          echo ""
-          echo "Disk space after cleanup:"
-          df -h
-
-      - name: "Restore ccache"
-        uses: actions/cache@v4
-        with:
-          path: ~/.ccache
-          key: release-ccache-${{ runner.os }}-${{ matrix.cc || 'default' }}-${{ hashFiles('CMakeLists.txt', 'src/**', 'test/**', 'cmake/**') }}
-          restore-keys: |
-            release-ccache-${{ runner.os }}-${{ matrix.cc || 'default' }}-
-
-      - name: "Restore CMake dependencies"
-        uses: actions/cache@v4
-        with:
-          path: |
-            build/_deps
-            build/vcpkg_installed
-          key: release-cmake-deps-${{ runner.os }}-${{ matrix.cc || 'default' }}-${{ hashFiles('CMakeLists.txt', 'cmake/**', 'src/**/CMakeLists.txt', 'test/CMakeLists.txt') }}
-          restore-keys: |
-            release-cmake-deps-${{ runner.os }}-${{ matrix.cc || 'default' }}-
-
-      - name: "Install Dependencies (Unix)"
-        id: deps
-        shell: bash
-        continue-on-error: true
-        run: |
-          if [[ "${{ runner.os }}" == "Linux" ]]; then
-            sudo apt-get update
-            sudo apt-get install -y \
-              build-essential ninja-build pkg-config ccache \
-              libglew-dev libxext-dev libwavpack-dev libboost-all-dev \
-              libpng-dev python3-dev libpython3-dev \
-              libasound2-dev libpulse-dev libx11-dev libxrandr-dev libxcursor-dev \
-              libxinerama-dev libxi-dev libgtk-3-dev libdbus-1-dev \
-              libxss-dev libxxf86vm-dev libxkbcommon-dev libwayland-dev libdecor-0-dev
-            # Note: Added missing Linux dependencies for full feature support
-            # Note: libabsl-dev removed - gRPC uses bundled Abseil via FetchContent when enabled
-          elif [[ "${{ runner.os }}" == "macOS" ]]; then
-            brew install ninja cmake pkg-config ccache
-          fi
-
-      - name: "Retry Dependencies (Unix)"
-        if: steps.deps.outcome == 'failure'
-        shell: bash
-        run: |
-          echo "::warning::First dependency install failed, retrying..."
-          if [[ "${{ runner.os }}" == "Linux" ]]; then
-            sudo apt-get clean
-            sudo apt-get update --fix-missing
-            sudo apt-get install -y \
-              build-essential ninja-build pkg-config ccache \
-              libglew-dev libxext-dev libwavpack-dev libboost-all-dev \
-              libpng-dev python3-dev libpython3-dev \
-              libasound2-dev libpulse-dev libx11-dev libxrandr-dev libxcursor-dev \
-              libxinerama-dev libxi-dev libgtk-3-dev libdbus-1-dev \
-              libxss-dev libxxf86vm-dev libxkbcommon-dev libwayland-dev libdecor-0-dev
-          elif [[ "${{ runner.os }}" == "macOS" ]]; then
-            brew update
-            brew install ninja cmake pkg-config ccache
-          fi
-
-      - name: "Configure (Windows)"
-        if: runner.os == 'Windows'
-        id: configure_windows
+      - name: Configure
         shell: pwsh
         run: |
-          Write-Host "::group::CMake Configuration (Windows)" -ForegroundColor Cyan
-          if (Get-Command ccache -ErrorAction SilentlyContinue) {
-            $env:CCACHE_BASEDIR = "${{ github.workspace }}"
-            $env:CCACHE_DIR = Join-Path $env:USERPROFILE ".ccache"
-            ccache --zero-stats
-          }
+          $toolchain = "${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake"
+          cmake -S . -B build -G Ninja `
+            -DCMAKE_BUILD_TYPE=Release `
+            -DCMAKE_TOOLCHAIN_FILE=$toolchain `
+            -DVCPKG_TARGET_TRIPLET=x64-windows-static `
+            -DYAZE_BUILD_TESTS=OFF `
+            -DYAZE_BUILD_EMU=ON `
+            -DYAZE_BUILD_Z3ED=ON `
+            -DYAZE_BUILD_TOOLS=ON
 
-          $toolchain = "${env:CMAKE_TOOLCHAIN_FILE}"
-          if (-not $toolchain -or -not (Test-Path $toolchain)) {
-            Write-Host "::error::CMAKE_TOOLCHAIN_FILE is missing or invalid: '$toolchain'"
-            exit 1
-          }
+      - name: Build
+        run: cmake --build build --config Release --parallel 4
 
-          $cmakeArgs = @(
-            "-S", ".",
-            "-B", "build",
-            "-G", "Ninja",
-            "-DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}",
-            "-DCMAKE_TOOLCHAIN_FILE=$toolchain",
-            "-DVCPKG_TARGET_TRIPLET=x64-windows-static",
-            "-DVCPKG_MANIFEST_MODE=ON",
-            "-DYAZE_BUILD_TESTS=ON",
-            "-DYAZE_BUILD_EMU=ON",
-            "-DYAZE_BUILD_Z3ED=ON",
-            "-DYAZE_BUILD_TOOLS=ON",
-            "-DYAZE_ENABLE_ROM_TESTS=OFF",
-            "-DCMAKE_CXX_FLAGS=/Dgoogle_protobuf_undef_DWORD=1 /D__PRFCHWINTRIN_H /DGOOGLE_PROTOBUF_NO_RTTI /DPROTOBUF_FORCE_COPY_IN_SWAP",
-            "-DCMAKE_C_FLAGS=/Dgoogle_protobuf_undef_DWORD=1 /D__PRFCHWINTRIN_H /DGOOGLE_PROTOBUF_NO_RTTI /DPROTOBUF_FORCE_COPY_IN_SWAP"
-          )
-
-          cmake @cmakeArgs 2>&1 | Tee-Object -FilePath cmake_config.log
-          $exit = $LASTEXITCODE
-          Write-Host "::endgroup::"
-
-          if ($exit -ne 0) {
-            exit $exit
-          }
-
-          if (Get-Command ccache -ErrorAction SilentlyContinue) {
-            ccache --show-stats
-          }
-
-      - name: "Configure (macOS)"
-        if: runner.os == 'macOS'
-        id: configure_macos
-        shell: bash
-        run: |
-          set -e
-          echo "::group::CMake Configuration (macOS)"
-          if command -v ccache >/dev/null 2>&1; then
-            export CCACHE_BASEDIR=${GITHUB_WORKSPACE}
-            export CCACHE_DIR=${HOME}/.ccache
-            ccache --zero-stats
-          fi
-          cmake -B build -G Ninja \
-            -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
-            -DCMAKE_OSX_ARCHITECTURES=${{ matrix.mac_arch }} \
-            -DYAZE_BUILD_TESTS=ON \
-            -DYAZE_BUILD_EMU=ON \
-            -DYAZE_BUILD_Z3ED=ON \
-            -DYAZE_BUILD_TOOLS=ON \
-            -DYAZE_ENABLE_ROM_TESTS=OFF 2>&1 | tee cmake_config.log
-          echo "::endgroup::"
-          if command -v ccache >/dev/null 2>&1; then
-            ccache --show-stats
-          fi
-          # Note: YAZE_BUILD_EMU=OFF disables standalone emulator executable
-          #       but yaze_emulator library is still built for main app
-          # Note: Tests enabled for pre-1.0 releases to catch issues before publishing
-
-      - name: "Configure (Linux)"
-        if: runner.os == 'Linux'
-        id: configure_linux
-        shell: bash
-        run: |
-          set -e
-          echo "::group::CMake Configuration (Linux)"
-          if command -v ccache >/dev/null 2>&1; then
-            export CCACHE_BASEDIR=${GITHUB_WORKSPACE}
-            export CCACHE_DIR=${HOME}/.ccache
-            ccache --zero-stats
-          fi
-          cmake -B build -G Ninja \
-            -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
-            -DYAZE_BUILD_TESTS=ON \
-            -DYAZE_BUILD_EMU=ON \
-            -DYAZE_BUILD_Z3ED=ON \
-            -DYAZE_BUILD_TOOLS=ON \
-            -DYAZE_ENABLE_ROM_TESTS=OFF \
-            -DNFD_PORTAL=ON 2>&1 | tee cmake_config.log
-          echo "::endgroup::"
-          if command -v ccache >/dev/null 2>&1; then
-            ccache --show-stats
-          fi
-          # Note: YAZE_BUILD_EMU=OFF disables standalone emulator executable
-          #       but yaze_emulator library is still built for main app
-          # Note: Tests enabled for pre-1.0 releases to catch issues before publishing
-          # Note: NFD_PORTAL=ON uses D-Bus portal instead of GTK for file dialogs (more reliable in CI)
-
-      - name: "Report Configure Failure"
-        if: |
-          failure() &&
-          (steps.configure_windows.outcome == 'failure' ||
-           steps.configure_macos.outcome == 'failure' ||
-           steps.configure_linux.outcome == 'failure')
-        shell: bash
-        run: |
-          echo "::error::CMake configuration failed for ${{ matrix.name }}"
-          if [ -f cmake_config.log ]; then
-            echo "::group::CMake Configuration Log (last 50 lines)"
-            tail -50 cmake_config.log
-            echo "::endgroup::"
-          fi
-          if [ -f build/CMakeFiles/CMakeError.log ]; then
-            echo "::group::CMake Error Log"
-            cat build/CMakeFiles/CMakeError.log
-            echo "::endgroup::"
-          fi
-
-      - name: "Build"
-        id: build
-        shell: bash
-        run: |
-          BUILD_TYPE=${BUILD_TYPE:-${{ env.BUILD_TYPE }}}
-          echo "Building release with ${BUILD_TYPE} configuration..."
-          if [[ "${{ runner.os }}" == "Windows" ]]; then
-            JOBS=${CMAKE_BUILD_PARALLEL_LEVEL:-4}
-            echo "Using $JOBS parallel jobs"
-            cmake --build build --parallel "${JOBS}" 2>&1 | tee build.log
-          else
-            # Use all available cores for faster builds
-            if command -v nproc >/dev/null 2>&1; then
-              CORES=$(nproc)
-            elif command -v sysctl >/dev/null 2>&1; then
-              CORES=$(sysctl -n hw.ncpu)
-            else
-              CORES=2
-            fi
-            echo "Using $CORES parallel jobs"
-            cmake --build build --parallel $CORES 2>&1 | tee build.log
-          fi
-          if command -v ccache >/dev/null 2>&1; then
-            ccache --show-stats
-          fi
-
-      - name: "Report Build Failure"
-        if: failure() && steps.build.outcome == 'failure'
-        shell: bash
-        run: |
-          echo "::error::Build failed for ${{ matrix.name }}"
-          if [ -f build.log ]; then
-            echo "::group::Build Log (last 100 lines)"
-            tail -100 build.log
-            echo "::endgroup::"
-
-            echo "::group::Build Errors"
-            grep -i "error" build.log | head -20 || true
-            echo "::endgroup::"
-          fi
-
-      - name: "Upload Build Logs on Failure"
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: release-build-logs-${{ matrix.artifact_name }}
-          path: |
-            cmake_config.log
-            build.log
-            build/CMakeFiles/CMakeError.log
-            build/CMakeFiles/CMakeOutput.log
-          if-no-files-found: ignore
-          retention-days: 7
-
-      - name: "Package Artifacts (Windows)"
-        if: runner.os == 'Windows'
+      - name: Package
         shell: pwsh
         run: |
-          $ErrorActionPreference = "Stop"
-          $ARTIFACT_NAME = "${{ matrix.artifact_name }}"
+          New-Item -ItemType Directory -Path release
+          Copy-Item -Path build/bin/Release/* -Destination release/ -Recurse
+          Copy-Item -Path assets -Destination release/ -Recurse
+          Copy-Item LICENSE, README.md -Destination release/
+          Compress-Archive -Path release/* -DestinationPath yaze-windows-x64.zip
 
-          # Create staging directory
-          New-Item -ItemType Directory -Force -Path stage | Out-Null
-
-          $config = "${{ env.BUILD_TYPE }}"
-          $binRoots = @("build/bin/$config", "build/bin")
-          $sourceBin = $null
-          foreach ($root in $binRoots) {
-            if (Test-Path (Join-Path $root "yaze.exe")) {
-              $sourceBin = $root
-              break
-            }
-          }
-          if (-not $sourceBin) {
-            Write-Host "::error::Windows binary not found in expected locations"
-            Get-ChildItem -Path "build" -Filter yaze.exe -Recurse -ErrorAction SilentlyContinue
-            exit 1
-          }
-          Write-Host "Packaging Windows artifacts from $sourceBin..."
-          Copy-Item -Path "$sourceBin/*" -Destination "stage/" -Recurse -Force
-          Copy-Item -Path "assets/" -Destination "stage/assets/" -Recurse -Force
-          Copy-Item -Path "LICENSE", "README.md" -Destination "stage/" -Force
-          
-          Push-Location stage
-          Compress-Archive -Path * -DestinationPath "../${ARTIFACT_NAME}.zip" -Force
-          Pop-Location
-          Write-Host "Created ${ARTIFACT_NAME}.zip"
-
-      - name: "Package Artifacts (macOS)"
-        if: runner.os == 'macOS'
-        shell: bash
-        run: |
-          set -euo pipefail
-          ARTIFACT_NAME="${{ matrix.artifact_name }}"
-
-          # Create staging directory
-          mkdir -p stage
-
-          # macOS creates app bundle: build/bin/yaze.app
-          echo "Packaging macOS artifacts..."
-          if [[ ! -d build/bin/yaze.app ]]; then
-            echo "::error::macOS app bundle not found at build/bin/yaze.app"
-            ls -la build/bin/ || true
-            exit 1
-          fi
-          cp -R build/bin/yaze.app stage/yaze.app
-          echo "Staged yaze.app slice for ${ARTIFACT_NAME}"
-
-      - name: "Package Artifacts (Linux)"
-        if: runner.os == 'Linux'
-        shell: bash
-        run: |
-          set -euo pipefail
-          ARTIFACT_NAME="${{ matrix.artifact_name }}"
-
-          # Create staging directory
-          mkdir -p stage
-
-          # Linux uses Ninja generator: build/bin/yaze (no subdirectory)
-          echo "Packaging Linux artifacts..."
-          if [[ -f build/bin/yaze ]]; then
-            echo "Found binary at build/bin/yaze"
-            cp build/bin/yaze stage/
-          else
-            echo "::error::Linux binary not found at build/bin/yaze"
-            ls -la build/bin/ || true
-            exit 1
-          fi
-
-          # Copy assets from source tree
-          if [[ -d assets ]]; then
-            cp -r assets/ stage/assets/
-          else
-            echo "::error::Assets directory not found"
-            exit 1
-          fi
-
-          cp LICENSE README.md stage/
-          tar -czf "${ARTIFACT_NAME}.tar.gz" -C stage .
-          echo "Created ${ARTIFACT_NAME}.tar.gz"
-
-      - name: "Upload Artifact (Windows)"
-        if: runner.os == 'Windows'
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.artifact_name }}
-          path: ${{ matrix.artifact_name }}.zip
-          if-no-files-found: error
-          retention-days: 5
+          name: yaze-windows-x64
+          path: yaze-windows-x64.zip
 
-      - name: "Upload Artifact (macOS)"
-        if: runner.os == 'macOS'
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ matrix.artifact_name }}
-          path: stage/yaze.app
-          if-no-files-found: error
-          retention-days: 5
-
-      - name: "Upload Artifact (Linux)"
-        if: runner.os == 'Linux'
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ matrix.artifact_name }}
-          path: ${{ matrix.artifact_name }}.tar.gz
-          if-no-files-found: error
-          retention-days: 5
-
-      - name: "Generate Build Summary"
-        if: always()
-        shell: bash
-        run: |
-          echo "## Release Build Summary - ${{ matrix.name }}" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-
-          echo "### Configuration" >> $GITHUB_STEP_SUMMARY
-          echo "- **Platform**: ${{ matrix.os }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Artifact**: ${{ matrix.artifact_name }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Build Type**: ${{ env.BUILD_TYPE }}" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-
-          echo "### Build Status" >> $GITHUB_STEP_SUMMARY
-          CONFIGURE_OUTCOME="${{ steps.configure_windows.outcome || steps.configure_macos.outcome || steps.configure_linux.outcome }}"
-          if [[ "$CONFIGURE_OUTCOME" == "success" ]]; then
-            echo "- ✅ Configure: Success" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "- ❌ Configure: Failed" >> $GITHUB_STEP_SUMMARY
-          fi
-
-          if [[ "${{ steps.build.outcome }}" == "success" ]]; then
-            echo "- ✅ Build: Success" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "- ❌ Build: Failed" >> $GITHUB_STEP_SUMMARY
-          fi
-
-          # Show package size if build succeeded
-          if [[ "${{ steps.build.outcome }}" == "success" ]]; then
-            if [[ "${{ runner.os }}" == "Windows" && -f "${{ matrix.artifact_name }}.zip" ]]; then
-              SIZE=$(du -h "${{ matrix.artifact_name }}.zip" | cut -f1)
-              echo "- 📦 Artifact Size: $SIZE" >> $GITHUB_STEP_SUMMARY
-            elif [[ "${{ runner.os }}" == "Linux" && -f "${{ matrix.artifact_name }}.tar.gz" ]]; then
-              SIZE=$(du -h "${{ matrix.artifact_name }}.tar.gz" | cut -f1)
-              echo "- 📦 Artifact Size: $SIZE" >> $GITHUB_STEP_SUMMARY
-            elif [[ "${{ runner.os }}" == "macOS" && -d "stage/yaze.app" ]]; then
-              SIZE=$(du -sh "stage/yaze.app" | cut -f1)
-              echo "- 📦 Artifact Size: $SIZE" >> $GITHUB_STEP_SUMMARY
-            fi
-          fi
-
-  # ======================================================================================
-  #  MERGE MACOS & CREATE UNIVERSAL BINARY
-  # ======================================================================================
-  merge-macos-universal:
-    name: "🍎 Merge macOS Universal"
-    needs: [prepare-release, build-and-package]
-    if: always()  # PRE-1.0: Run even if some platform builds failed
-    continue-on-error: true  # PRE-1.0: Don't block release if universal merge fails
+  build-macos:
+    name: macOS Universal
     runs-on: macos-14
     steps:
-      - name: "Download arm64 Slice"
-        id: download_arm64
-        uses: actions/download-artifact@v4
-        continue-on-error: true
+      - uses: actions/checkout@v4
         with:
-          name: yaze-macos-arm64-slice
-          path: arm64-slice
+          submodules: recursive
 
-      - name: "Download x86_64 Slice"
-        id: download_x64
-        uses: actions/download-artifact@v4
-        continue-on-error: true
-        with:
-          name: yaze-macos-x86_64-slice
-          path: x86_64-slice
+      - name: Install dependencies
+        run: brew install ninja cmake
 
-      - name: "Create Universal Binary"
-        shell: bash
+      - name: Configure arm64
         run: |
-          set -euo pipefail
+          cmake -S . -B build-arm64 -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_OSX_ARCHITECTURES=arm64 \
+            -DYAZE_BUILD_TESTS=OFF \
+            -DYAZE_BUILD_EMU=ON \
+            -DYAZE_BUILD_Z3ED=ON \
+            -DYAZE_BUILD_TOOLS=ON
 
-          # Check which slices are available
-          ARM_AVAILABLE="false"
-          X64_AVAILABLE="false"
+      - name: Build arm64
+        run: cmake --build build-arm64 --config Release
 
-          if [[ "${{ steps.download_arm64.outcome }}" == "success" ]]; then
-            ARM_AVAILABLE="true"
-          fi
+      - name: Configure x86_64
+        run: |
+          cmake -S . -B build-x86_64 -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_OSX_ARCHITECTURES=x86_64 \
+            -DYAZE_BUILD_TESTS=OFF \
+            -DYAZE_BUILD_EMU=ON \
+            -DYAZE_BUILD_Z3ED=ON \
+            -DYAZE_BUILD_TOOLS=ON
 
-          if [[ "${{ steps.download_x64.outcome }}" == "success" ]]; then
-            X64_AVAILABLE="true"
-          fi
+      - name: Build x86_64
+        run: cmake --build build-x86_64 --config Release
 
-          echo "ARM64 slice available: $ARM_AVAILABLE"
-          echo "x86_64 slice available: $X64_AVAILABLE"
+      - name: Create Universal Binary
+        run: |
+          cp -R build-arm64/bin/yaze.app yaze.app
+          lipo -create \
+            build-arm64/bin/yaze.app/Contents/MacOS/yaze \
+            build-x86_64/bin/yaze.app/Contents/MacOS/yaze \
+            -output yaze.app/Contents/MacOS/yaze
+          lipo -info yaze.app/Contents/MacOS/yaze
 
-          if [[ "$ARM_AVAILABLE" == "false" && "$X64_AVAILABLE" == "false" ]]; then
-            echo "::error::No macOS slices available - cannot create macOS release"
-            exit 1
-          fi
+      - name: Create DMG
+        run: |
+          hdiutil create -fs HFS+ -srcfolder yaze.app \
+            -volname "yaze" yaze-macos-universal.dmg
 
-          # The artifacts are downloaded as yaze.app directly
-          ARM_APP="arm64-slice/yaze.app"
-          X64_APP="x86_64-slice/yaze.app"
-          TAG_NAME="${{ needs.prepare-release.outputs.tag_name }}"
-
-          if [[ "$ARM_AVAILABLE" == "true" && "$X64_AVAILABLE" == "true" ]]; then
-            echo "Creating universal binary from both architectures..."
-            echo "Checking downloaded artifacts..."
-            ls -la arm64-slice/
-            ls -la x86_64-slice/
-
-            # Use the arm64 bundle as the base
-            cp -R "${ARM_APP}" ./yaze.app
-
-            echo "Merging executables..."
-            lipo -create "${ARM_APP}/Contents/MacOS/yaze" "${X64_APP}/Contents/MacOS/yaze" -output "./yaze.app/Contents/MacOS/yaze"
-
-            echo "Verifying universal binary..."
-            lipo -info "./yaze.app/Contents/MacOS/yaze"
-
-            echo "Creating DMG..."
-            hdiutil create -fs HFS+ -srcfolder ./yaze.app -volname "yaze ${TAG_NAME} (Universal)" yaze-macos-universal.dmg
-
-          elif [[ "$ARM_AVAILABLE" == "true" ]]; then
-            echo "::warning::Only ARM64 slice available - creating ARM64-only DMG"
-            cp -R "${ARM_APP}" ./yaze.app
-            hdiutil create -fs HFS+ -srcfolder ./yaze.app -volname "yaze ${TAG_NAME} (ARM64)" yaze-macos-arm64.dmg
-            mv yaze-macos-arm64.dmg yaze-macos-universal.dmg  # Use same name for upload
-
-          else
-            echo "::warning::Only x86_64 slice available - creating x86_64-only DMG"
-            cp -R "${X64_APP}" ./yaze.app
-            hdiutil create -fs HFS+ -srcfolder ./yaze.app -volname "yaze ${TAG_NAME} (Intel)" yaze-macos-x86_64.dmg
-            mv yaze-macos-x86_64.dmg yaze-macos-universal.dmg  # Use same name for upload
-          fi
-
-      - name: "Upload Universal macOS Artifact"
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: yaze-macos-universal
           path: yaze-macos-universal.dmg
-          if-no-files-found: error
-          retention-days: 5
 
-  # ======================================================================================
-  #  CREATE GITHUB RELEASE
-  # ======================================================================================
-  create-github-release:
-    name: "🚀 Create GitHub Release"
-    needs: [prepare-release, build-and-package, merge-macos-universal]
-    if: always()  # PRE-1.0: Always run to create release even if some platforms failed
-    runs-on: ubuntu-latest
+  build-linux:
+    name: Linux x64
+    runs-on: ubuntu-22.04
     steps:
-      - name: "Download Windows Artifact"
-        id: download_windows
-        uses: actions/download-artifact@v4
-        continue-on-error: true
+      - uses: actions/checkout@v4
         with:
-          name: yaze-windows-x64
-          path: release-artifacts
+          submodules: recursive
 
-      - name: "Download Linux Artifact"
-        id: download_linux
-        uses: actions/download-artifact@v4
-        continue-on-error: true
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+          sudo apt-get clean
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential ninja-build pkg-config \
+            libglew-dev libxext-dev libwavpack-dev libboost-all-dev \
+            libpng-dev python3-dev \
+            libasound2-dev libpulse-dev \
+            libx11-dev libxrandr-dev libxcursor-dev libxinerama-dev libxi-dev \
+            libxss-dev libxxf86vm-dev libxkbcommon-dev libwayland-dev libdecor-0-dev \
+            libgtk-3-dev libdbus-1-dev
+
+      - name: Configure
+        run: |
+          cmake -S . -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DYAZE_BUILD_TESTS=OFF \
+            -DYAZE_BUILD_EMU=ON \
+            -DYAZE_BUILD_Z3ED=ON \
+            -DYAZE_BUILD_TOOLS=ON \
+            -DNFD_PORTAL=ON
+
+      - name: Build
+        run: cmake --build build --config Release
+
+      - name: Package
+        run: |
+          mkdir -p release
+          cp build/bin/yaze release/
+          cp -r assets release/
+          cp LICENSE README.md release/
+          tar -czf yaze-linux-x64.tar.gz -C release .
+
+      - uses: actions/upload-artifact@v4
         with:
           name: yaze-linux-x64
-          path: release-artifacts
+          path: yaze-linux-x64.tar.gz
 
-      - name: "Download macOS Universal Artifact"
-        id: download_macos
+  create-release:
+    name: Create Release
+    needs: [build-windows, build-macos, build-linux]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Determine tag
+        id: tag
+        run: |
+          if [ "${{ github.event_name }}" = "push" ]; then
+            echo "tag=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+          else
+            echo "tag=${{ github.event.inputs.tag }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Download artifacts
         uses: actions/download-artifact@v4
-        continue-on-error: true
         with:
-          name: yaze-macos-universal
-          path: release-artifacts
+          path: artifacts
 
-      - name: "List Release Artifacts"
-        run: ls -lR release-artifacts || echo "No artifacts directory"
+      - name: Display structure
+        run: ls -R artifacts
 
-      - name: "Prepare Release Metadata"
-        id: metadata
-        shell: bash
-        env:
-          TAG_NAME: ${{ needs.prepare-release.outputs.tag_name }}
+      - name: Create release notes
+        id: notes
         run: |
-          echo "release_name=yaze ${TAG_NAME}" >> "$GITHUB_OUTPUT"
-          echo "Prepared release name: yaze ${TAG_NAME}"
+          TAG="${{ steps.tag.outputs.tag }}"
+          VERSION="${TAG#v}"
+          
+          cat > release_notes.md << 'EOF'
+          ## yaze ${{ steps.tag.outputs.tag }}
+          
+          ### Downloads
+          - **Windows**: `yaze-windows-x64.zip`
+          - **macOS**: `yaze-macos-universal.dmg` (Universal Binary)
+          - **Linux**: `yaze-linux-x64.tar.gz`
+          
+          ### Installation
+          
+          **Windows**: Extract the ZIP file and run `yaze.exe`
+          
+          **macOS**: Open the DMG and drag yaze.app to Applications
+          
+          **Linux**: Extract the tarball and run `./yaze`
+          
+          ### Changes
+          See the [changelog](https://github.com/${{ github.repository }}/blob/develop/docs/H1-changelog.md) for details.
+          EOF
+          
+          cat release_notes.md
 
-      - name: "Generate Platform Availability Report"
-        id: platform_report
-        shell: bash
-        run: |
-          echo "Checking which platforms succeeded..."
-
-          # Check which platforms are available
-          WINDOWS_OK="false"
-          LINUX_OK="false"
-          MACOS_OK="false"
-
-          if [[ "${{ steps.download_windows.outcome }}" == "success" ]]; then
-            WINDOWS_OK="true"
-          fi
-
-          if [[ "${{ steps.download_linux.outcome }}" == "success" ]]; then
-            LINUX_OK="true"
-          fi
-
-          if [[ "${{ steps.download_macos.outcome }}" == "success" ]]; then
-            MACOS_OK="true"
-          fi
-
-          # Build availability message
-          AVAILABILITY="## Platform Availability\n\n"
-
-          if [[ "$WINDOWS_OK" == "true" ]]; then
-            AVAILABILITY+="- ✅ **Windows x64**: Available\n"
-          else
-            AVAILABILITY+="- ❌ **Windows x64**: Build failed (will be added in subsequent release)\n"
-          fi
-
-          if [[ "$LINUX_OK" == "true" ]]; then
-            AVAILABILITY+="- ✅ **Linux x64**: Available\n"
-          else
-            AVAILABILITY+="- ❌ **Linux x64**: Build failed (will be added in subsequent release)\n"
-          fi
-
-          if [[ "$MACOS_OK" == "true" ]]; then
-            AVAILABILITY+="- ✅ **macOS Universal**: Available\n"
-          else
-            AVAILABILITY+="- ❌ **macOS**: Build failed (will be added in subsequent release)\n"
-          fi
-
-          AVAILABILITY+="\n---\n\n"
-
-          # Save to output
-          {
-            echo 'availability<<EOF'
-            echo -e "$AVAILABILITY"
-            echo 'EOF'
-          } >> "$GITHUB_OUTPUT"
-
-          # Check if we have at least one successful build
-          if [[ "$WINDOWS_OK" == "false" && "$LINUX_OK" == "false" && "$MACOS_OK" == "false" ]]; then
-            echo "::error::All platform builds failed - cannot create release"
-            exit 1
-          fi
-
-          echo "✅ At least one platform succeeded - release can proceed"
-
-      - name: "Create/Update Release"
+      - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ needs.prepare-release.outputs.tag_name }}
-          name: ${{ steps.metadata.outputs.release_name }}
-          body: |
-            ${{ steps.platform_report.outputs.availability }}
-            
-            ${{ needs.prepare-release.outputs.release_notes }}
-            
-            ---
-            
-            **Note**: This is a pre-1.0 release. Platforms may be added incrementally.
-            You can re-run failed platform jobs to add missing binaries to this release.
+          tag_name: ${{ steps.tag.outputs.tag }}
+          name: yaze ${{ steps.tag.outputs.tag }}
+          body_path: release_notes.md
           draft: false
-          prerelease: ${{ needs.prepare-release.outputs.is_prerelease == 'true' }}
-          files: release-artifacts/*
+          prerelease: ${{ contains(steps.tag.outputs.tag, '-') }}
+          files: |
+            artifacts/yaze-windows-x64/*
+            artifacts/yaze-macos-universal/*
+            artifacts/yaze-linux-x64/*
           fail_on_unmatched_files: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: "Generate Release Summary"
-        if: always()
-        shell: bash
-        run: |
-          echo "## 🚀 Release Created: ${{ needs.prepare-release.outputs.tag_name }}" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "${{ steps.platform_report.outputs.availability }}" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Next Steps" >> $GITHUB_STEP_SUMMARY
-          echo "- If platforms failed, you can re-run those specific jobs" >> $GITHUB_STEP_SUMMARY
-          echo "- Failed builds will be added to this same release when re-run succeeds" >> $GITHUB_STEP_SUMMARY
-          echo "- The release tag remains the same (${{ needs.prepare-release.outputs.tag_name }})" >> $GITHUB_STEP_SUMMARY
