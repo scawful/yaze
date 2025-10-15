@@ -89,28 +89,19 @@ set(YAZE_PROTOBUF_TARGETS)
 
 if(TARGET protobuf::libprotobuf)
   list(APPEND YAZE_PROTOBUF_TARGETS protobuf::libprotobuf)
-elseif(TARGET libprotobuf)
-  list(APPEND YAZE_PROTOBUF_TARGETS libprotobuf)
+else()
+  if(TARGET libprotobuf)
+    list(APPEND YAZE_PROTOBUF_TARGETS libprotobuf)
+  endif()
 endif()
 
-if(TARGET protobuf::libprotobuf-lite)
-  list(APPEND YAZE_PROTOBUF_TARGETS protobuf::libprotobuf-lite)
-elseif(TARGET libprotobuf-lite)
-  list(APPEND YAZE_PROTOBUF_TARGETS libprotobuf-lite)
-endif()
+set(YAZE_PROTOBUF_WHOLEARCHIVE_TARGETS ${YAZE_PROTOBUF_TARGETS})
 
 if(YAZE_PROTOBUF_TARGETS)
   list(GET YAZE_PROTOBUF_TARGETS 0 YAZE_PROTOBUF_TARGET)
 else()
   set(YAZE_PROTOBUF_TARGET "")
 endif()
-
-set(YAZE_PROTOBUF_WHOLEARCHIVE_TARGETS)
-foreach(_yaze_proto_candidate IN LISTS YAZE_PROTOBUF_TARGETS)
-  if(NOT _yaze_proto_candidate MATCHES "lite")
-    list(APPEND YAZE_PROTOBUF_WHOLEARCHIVE_TARGETS ${_yaze_proto_candidate})
-  endif()
-endforeach()
 
 # SDL2
 include(cmake/sdl2.cmake)
