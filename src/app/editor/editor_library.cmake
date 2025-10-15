@@ -14,6 +14,7 @@ set(
   app/editor/dungeon/dungeon_usage_tracker.cc
   app/editor/dungeon/object_editor_card.cc
   app/editor/editor_manager.cc
+  app/editor/session_types.cc
   app/editor/graphics/gfx_group_editor.cc
   app/editor/graphics/graphics_editor.cc
   app/editor/graphics/screen_editor.cc

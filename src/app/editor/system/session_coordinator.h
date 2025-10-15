@@ -6,14 +6,17 @@
 #include <vector>
 
 #include "absl/status/status.h"
+#include "app/editor/session_types.h"
 #include "app/editor/system/toast_manager.h"
 #include "app/rom.h"
 #include "imgui/imgui.h"
 
 // Forward declarations
 namespace yaze {
+class Rom;
 namespace editor {
 class EditorManager;
+class EditorSet;
 class EditorCardRegistry;
 }
 }
@@ -38,8 +41,11 @@ class SessionCoordinator {
  public:
   explicit SessionCoordinator(void* sessions_ptr,
                              EditorCardRegistry* card_registry,
-                             ToastManager* toast_manager);
+                             ToastManager* toast_manager,
+                             UserSettings* user_settings);
   ~SessionCoordinator() = default;
+
+  void SetEditorManager(EditorManager* manager) { editor_manager_ = manager; }
 
   // Session lifecycle management
   void CreateNewSession();
@@ -52,8 +58,11 @@ class SessionCoordinator {
   // Session activation and queries
   void ActivateSession(size_t index);
   size_t GetActiveSessionIndex() const;
-  void* GetActiveSession();
-  void* GetSession(size_t index);
+  void* GetActiveSession() const;
+  RomSession* GetActiveRomSession() const;
+  Rom* GetCurrentRom() const;
+  EditorSet* GetCurrentEditorSet() const;
+  void* GetSession(size_t index) const;
   bool HasMultipleSessions() const;
   size_t GetActiveSessionCount() const;
   bool HasDuplicateSession(const std::string& filepath) const;
@@ -95,6 +104,7 @@ class SessionCoordinator {
   absl::Status LoadRomIntoSession(const std::string& filename, size_t session_index = SIZE_MAX);
   absl::Status SaveActiveSession(const std::string& filename = "");
   absl::Status SaveSessionAs(size_t session_index, const std::string& filename);
+  absl::StatusOr<RomSession*> CreateSessionFromRom(Rom&& rom, const std::string& filepath);
   
   // Session cleanup
   void CleanupClosedSessions();
@@ -117,27 +127,6 @@ class SessionCoordinator {
   void ToggleSessionManager() { show_session_manager_ = !show_session_manager_; }
   bool IsSessionManagerVisible() const { return show_session_manager_; }
 
- private:
-  // Core dependencies
-  void* sessions_ptr_;  // std::deque<EditorManager::RomSession>*
-  EditorCardRegistry* card_registry_;
-  ToastManager* toast_manager_;
-  
-  // Session state
-  size_t active_session_index_ = 0;
-  size_t session_count_ = 0;
-  
-  // UI state
-  bool show_session_switcher_ = false;
-  bool show_session_manager_ = false;
-  bool show_session_rename_dialog_ = false;
-  size_t session_to_rename_ = 0;
-  char session_rename_buffer_[256] = {};
-  
-  // Session limits
-  static constexpr size_t kMaxSessions = 8;
-  static constexpr size_t kMinSessions = 1;
-  
   // Helper methods
   void UpdateActiveSession();
   void ValidateSessionIndex(size_t index) const;
@@ -156,6 +145,28 @@ class SessionCoordinator {
   bool IsSessionEmpty(size_t index) const;
   bool IsSessionClosed(size_t index) const;
   bool IsSessionModified(size_t index) const;
+ private:
+  // Core dependencies
+  EditorManager* editor_manager_ = nullptr;
+  void* sessions_ptr_;  // std::deque<EditorManager::RomSession>*
+  EditorCardRegistry* card_registry_;
+  ToastManager* toast_manager_;
+  UserSettings* user_settings_;
+  
+  // Session state
+  size_t active_session_index_ = 0;
+  size_t session_count_ = 0;
+  
+  // UI state
+  bool show_session_switcher_ = false;
+  bool show_session_manager_ = false;
+  bool show_session_rename_dialog_ = false;
+  size_t session_to_rename_ = 0;
+  char session_rename_buffer_[256] = {};
+  
+  // Session limits
+  static constexpr size_t kMaxSessions = 8;
+  static constexpr size_t kMinSessions = 1;
 };
 
 }  // namespace editor

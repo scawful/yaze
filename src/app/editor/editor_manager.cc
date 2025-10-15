@@ -19,6 +19,7 @@
 #include "app/core/features.h"
 #include "app/core/project.h"
 #include "app/core/timing.h"
+#include "app/editor/session_types.h"
 #include "app/editor/code/assembly_editor.h"
 #include "app/editor/dungeon/dungeon_editor_v2.h"
 #include "app/editor/graphics/graphics_editor.h"
@@ -169,12 +170,14 @@ EditorManager::EditorManager()
   
   // STEP 2: Initialize SessionCoordinator (independent of popups)
   session_coordinator_ = std::make_unique<SessionCoordinator>(
-      static_cast<void*>(&sessions_), &card_registry_, &toast_manager_);
+      static_cast<void*>(&sessions_), &card_registry_, &toast_manager_, &user_settings_);
   
   // STEP 3: Initialize MenuOrchestrator (depends on popup_manager_, session_coordinator_)
   menu_orchestrator_ = std::make_unique<MenuOrchestrator>(
       this, menu_builder_, rom_file_manager_, project_manager_,
       editor_registry_, *session_coordinator_, toast_manager_, *popup_manager_);
+
+  session_coordinator_->SetEditorManager(this);
   
   // STEP 4: Initialize UICoordinator (depends on popup_manager_, session_coordinator_, card_registry_)
   ui_coordinator_ = std::make_unique<UICoordinator>(
@@ -243,7 +246,7 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
   workspace_manager_.set_card_registry(&card_registry_);
 
   // Point to a blank editor set when no ROM is loaded
-  current_editor_set_ = &blank_editor_set_;
+  // current_editor_set_ = &blank_editor_set_;
 
   if (!filename.empty()) {
     PRINT_IF_ERROR(OpenRomOrProject(filename));
@@ -410,7 +413,7 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
     agent_msg.sender = cli::agent::ChatMessage::Sender::kAgent;
     agent_msg.message = response->text_response;
     agent_msg.timestamp = absl::Now();
-    agent_editor_.GetChatWidget()->SetRomContext(current_rom_);
+    agent_editor_.GetChatWidget()->SetRomContext(GetCurrentRom());
 
     return absl::OkStatus();
   };
@@ -578,8 +581,8 @@ void EditorManager::OpenEditorAndCardsFromFlags(const std::string& editor_name,
   }
 
   // Activate the main editor window
-  if (current_editor_set_) {
-    auto* editor = current_editor_set_
+  if (auto* editor_set = GetCurrentEditorSet()) {
+    auto* editor = editor_set
                        ->active_editors_[static_cast<int>(editor_type_to_open)];
     if (editor) {
       editor->set_active(true);
@@ -588,6 +591,7 @@ void EditorManager::OpenEditorAndCardsFromFlags(const std::string& editor_name,
 
   // Handle specific cards for the Dungeon Editor
   if (editor_type_to_open == EditorType::kDungeon && !cards_str.empty()) {
+    if (auto* editor_set = GetCurrentEditorSet()) {
     std::stringstream ss(cards_str);
     std::string card_name;
     while (std::getline(ss, card_name, ',')) {
@@ -599,21 +603,21 @@ void EditorManager::OpenEditorAndCardsFromFlags(const std::string& editor_name,
                 card_name.c_str());
 
       if (card_name == "Rooms List") {
-        current_editor_set_->dungeon_editor_.show_room_selector_ = true;
+            editor_set->dungeon_editor_.show_room_selector_ = true;
       } else if (card_name == "Room Matrix") {
-        current_editor_set_->dungeon_editor_.show_room_matrix_ = true;
+            editor_set->dungeon_editor_.show_room_matrix_ = true;
       } else if (card_name == "Entrances List") {
-        current_editor_set_->dungeon_editor_.show_entrances_list_ = true;
+            editor_set->dungeon_editor_.show_entrances_list_ = true;
       } else if (card_name == "Room Graphics") {
-        current_editor_set_->dungeon_editor_.show_room_graphics_ = true;
+            editor_set->dungeon_editor_.show_room_graphics_ = true;
       } else if (card_name == "Object Editor") {
-        current_editor_set_->dungeon_editor_.show_object_editor_ = true;
+            editor_set->dungeon_editor_.show_object_editor_ = true;
       } else if (card_name == "Palette Editor") {
-        current_editor_set_->dungeon_editor_.show_palette_editor_ = true;
+            editor_set->dungeon_editor_.show_palette_editor_ = true;
       } else if (absl::StartsWith(card_name, "Room ")) {
         try {
           int room_id = std::stoi(card_name.substr(5));
-          current_editor_set_->dungeon_editor_.add_room(room_id);
+              editor_set->dungeon_editor_.add_room(room_id);
         } catch (const std::exception& e) {
           LOG_WARN("EditorManager", "Invalid room ID format: %s",
                    card_name.c_str());
@@ -621,6 +625,7 @@ void EditorManager::OpenEditorAndCardsFromFlags(const std::string& editor_name,
       } else {
         LOG_WARN("EditorManager", "Unknown card name for Dungeon Editor: %s",
                  card_name.c_str());
+          }
       }
     }
   }
@@ -702,14 +707,15 @@ absl::Status EditorManager::Update() {
 
   // Ensure TestManager always has the current ROM
   static Rom* last_test_rom = nullptr;
-  if (last_test_rom != current_rom_) {
+  auto* current_rom = GetCurrentRom();
+  if (last_test_rom != current_rom) {
     LOG_DEBUG(
         "EditorManager",
         "EditorManager::Update - ROM changed, updating TestManager: %p -> "
         "%p",
-        (void*)last_test_rom, (void*)current_rom_);
-    test::TestManager::Get().SetCurrentRom(current_rom_);
-    last_test_rom = current_rom_;
+        (void*)last_test_rom, (void*)current_rom);
+    test::TestManager::Get().SetCurrentRom(current_rom);
+    last_test_rom = current_rom;
   }
 
   // CRITICAL: Draw UICoordinator UI components FIRST (before ROM checks)
@@ -719,15 +725,15 @@ absl::Status EditorManager::Update() {
   }
 
   // Autosave timer
-  if (user_settings_.prefs().autosave_enabled && current_rom_ &&
-      current_rom_->dirty()) {
+  if (user_settings_.prefs().autosave_enabled && current_rom &&
+      current_rom->dirty()) {
     autosave_timer_ += ImGui::GetIO().DeltaTime;
     if (autosave_timer_ >= user_settings_.prefs().autosave_interval) {
       autosave_timer_ = 0.0f;
       Rom::SaveSettings s;
       s.backup = true;
       s.save_new = false;
-      auto st = current_rom_->SaveToFile(s);
+      auto st = current_rom->SaveToFile(s);
       if (st.ok()) {
         toast_manager_.Show("Autosave completed", editor::ToastType::kSuccess);
       } else {
@@ -740,13 +746,14 @@ absl::Status EditorManager::Update() {
   }
 
   // Check if ROM is loaded before allowing editor updates
-  if (!current_editor_set_) {
+  auto* current_editor_set = GetCurrentEditorSet();
+  if (!current_editor_set) {
     // No ROM loaded - welcome screen shown by UICoordinator above
     return absl::OkStatus();
   }
 
   // Check if current ROM is valid
-  if (!current_rom_) {
+  if (!current_rom) {
     // No ROM loaded - welcome screen shown by UICoordinator above
     return absl::OkStatus();
   }
@@ -768,7 +775,7 @@ absl::Status EditorManager::Update() {
         if (editor->type() == EditorType::kOverworld) {
           auto& overworld_editor = static_cast<OverworldEditor&>(*editor);
           if (overworld_editor.jump_to_tab() != -1) {
-            session.editors.dungeon_editor_.set_active(true);
+            session_coordinator_->SwitchToSession(session_idx);
             // Set the dungeon editor to the jump to tab
             session.editors.dungeon_editor_.add_room(
                 overworld_editor.jump_to_tab());
@@ -808,14 +815,8 @@ absl::Status EditorManager::Update() {
           if (ImGui::Begin(window_title.c_str(), editor->active(),
                            ImGuiWindowFlags_None)) {  // Allow full docking
             // Temporarily switch context for this editor's update
-            Rom* prev_rom = current_rom_;
-            EditorSet* prev_editor_set = current_editor_set_;
-            size_t prev_session_id = current_session_id_;
-
-            current_rom_ = &session.rom;
-            current_editor_set_ = &session.editors;
+            SessionScope scope(this, session_idx);
             current_editor_ = editor;
-            current_session_id_ = session_idx;
 
             status_ = editor->Update();
 
@@ -828,9 +829,6 @@ absl::Status EditorManager::Update() {
             }
 
             // Restore context
-            current_rom_ = prev_rom;
-            current_editor_set_ = prev_editor_set;
-            current_session_id_ = prev_session_id;
           }
           ImGui::End();
         }
@@ -847,14 +845,14 @@ absl::Status EditorManager::Update() {
 
 #ifdef YAZE_WITH_GRPC
   // Update ROM context for agent editor
-  if (current_rom_ && current_rom_->is_loaded()) {
-    agent_editor_.SetRomContext(current_rom_);
+  if (current_rom && current_rom->is_loaded()) {
+    agent_editor_.SetRomContext(current_rom);
   }
 #endif
 
   // Draw unified sidebar LAST so it appears on top of all other windows
   if (ui_coordinator_ && ui_coordinator_->IsCardSidebarVisible() &&
-      current_editor_set_) {
+      current_editor_set) {
     // Using EditorCardRegistry directly
 
     // Collect all active card-based editors
@@ -923,36 +921,6 @@ absl::Status EditorManager::Update() {
   return absl::OkStatus();
 }
 
-absl::Status EditorManager::DrawRomSelector() {
-  ImGui::SameLine((ImGui::GetWindowWidth() / 2) - 100);
-  if (current_rom_ && current_rom_->is_loaded()) {
-    ImGui::SetNextItemWidth(ImGui::GetWindowWidth() / 6);
-    if (ImGui::BeginCombo("##ROMSelector", current_rom_->short_name().c_str())) {
-      int idx = 0;
-      for (auto it = sessions_.begin(); it != sessions_.end(); ++it, ++idx) {
-        Rom* rom = &it->rom;
-        ImGui::PushID(idx);
-        bool selected = (rom == current_rom_);
-        if (ImGui::Selectable(rom->short_name().c_str(), selected)) {
-          RETURN_IF_ERROR(SetCurrentRom(rom));
-        }
-        ImGui::PopID();
-      }
-      ImGui::EndCombo();
-    }
-    // Inline status next to ROM selector
-    ImGui::SameLine();
-    ImGui::Text("Size: %.1f MB", current_rom_->size() / 1048576.0f);
-
-    // Context-sensitive card control (right after ROM info)
-    ImGui::SameLine();
-    DrawContextSensitiveCardControl();
-  } else {
-    ImGui::Text("No ROM loaded");
-  }
-  return absl::OkStatus();
-}
-
 void EditorManager::DrawContextSensitiveCardControl() {
   // Delegate to UICoordinator for clean separation of concerns
   if (ui_coordinator_) {
@@ -980,8 +948,10 @@ void EditorManager::DrawMenuBar() {
       menu_orchestrator_->BuildMainMenu();
     }
 
-    // Inline ROM selector (requires direct session access)
-    status_ = DrawRomSelector();
+    // ROM selector now drawn by UICoordinator
+    if (ui_coordinator_) {
+      ui_coordinator_->DrawRomSelector();
+    }
 
     // Delegate menu bar extras to UICoordinator (session indicator, version display)
     if (ui_coordinator_) {
@@ -1015,19 +985,20 @@ void EditorManager::DrawMenuBar() {
   }
 
   // Using EditorCardRegistry directly
-  if (current_editor_set_) {
+  if (auto* editor_set = GetCurrentEditorSet()) {
     // Pass the actual visibility flag pointer so the X button works
     bool* hex_visibility =
         card_registry_.GetVisibilityFlag("memory.hex_editor");
     if (hex_visibility && *hex_visibility) {
-      current_editor_set_->memory_editor_.Update(*hex_visibility);
+      editor_set->memory_editor_.Update(*hex_visibility);
     }
 
-    bool* assembly_visibility =
-        card_registry_.GetVisibilityFlag("assembly.editor");
-    if (assembly_visibility && *assembly_visibility) {
-      current_editor_set_->assembly_editor_.Update(
-          *card_registry_.GetVisibilityFlag("assembly.editor"));
+    if (ui_coordinator_ && ui_coordinator_->IsAsmEditorVisible()) {
+       bool visible = true;
+       editor_set->assembly_editor_.Update(visible);
+       if (!visible) {
+         ui_coordinator_->SetAsmEditorVisible(false);
+       }
     }
   }
 
@@ -1052,7 +1023,7 @@ void EditorManager::DrawMenuBar() {
 #endif
 
   // Agent proposal drawer (right side)
-  proposal_drawer_.SetRom(current_rom_);
+  proposal_drawer_.SetRom(GetCurrentRom());
   proposal_drawer_.Draw();
 
   // Agent chat history popup (left side)
@@ -1062,207 +1033,21 @@ void EditorManager::DrawMenuBar() {
   // Removed duplicate call to avoid showing welcome screen twice
 
   // TODO: Fix emulator not appearing
-  if (show_emulator_) {
-    emulator_.Run(current_rom_);
+  if (ui_coordinator_ && ui_coordinator_->IsEmulatorVisible()) {
+    if (auto* current_rom = GetCurrentRom()) {
+      emulator_.Run(current_rom);
+    }
   }
 
   // Enhanced Global Search UI (managed by UICoordinator)
-  // TODO: Move this to UI
-  if (ui_coordinator_ && ui_coordinator_->IsGlobalSearchVisible()) {
-    ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(),
-                            ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
-    ImGui::SetNextWindowSize(ImVec2(800, 600), ImGuiCond_FirstUseEver);
+  // No longer here - handled by ui_coordinator_->DrawAllUI()
 
-    bool show_search = true;
-    if (ImGui::Begin(
-            absl::StrFormat("%s Global Search", ICON_MD_MANAGE_SEARCH).c_str(),
-            &show_search, ImGuiWindowFlags_NoCollapse)) {
-
-      // Enhanced search input with focus management
-      static char query[256] = {};
-      ImGui::SetNextItemWidth(-100);
-      if (ImGui::IsWindowAppearing()) {
-        ImGui::SetKeyboardFocusHere();
-      }
-
-      bool input_changed = ImGui::InputTextWithHint(
-          "##global_query",
-          absl::StrFormat("%s Search everything...", ICON_MD_SEARCH).c_str(),
-          query, IM_ARRAYSIZE(query));
-
-      ImGui::SameLine();
-      if (ImGui::Button(absl::StrFormat("%s Clear", ICON_MD_CLEAR).c_str())) {
-        query[0] = '\0';
-        input_changed = true;
-      }
-
-      ImGui::Separator();
-
-      // Tabbed search results for better organization
-      if (ImGui::BeginTabBar("SearchResultTabs")) {
-
-        // Recent Files Tab
-        if (ImGui::BeginTabItem(
-                absl::StrFormat("%s Recent Files", ICON_MD_HISTORY).c_str())) {
-          auto& manager = core::RecentFilesManager::GetInstance();
-          auto recent_files = manager.GetRecentFiles();
-
-          if (ImGui::BeginTable("RecentFilesTable", 3,
-                                ImGuiTableFlags_ScrollY |
-                                    ImGuiTableFlags_RowBg |
-                                    ImGuiTableFlags_SizingStretchProp)) {
-
-            ImGui::TableSetupColumn("File", ImGuiTableColumnFlags_WidthStretch,
-                                    0.6f);
-            ImGui::TableSetupColumn("Type", ImGuiTableColumnFlags_WidthFixed,
-                                    80.0f);
-            ImGui::TableSetupColumn("Action", ImGuiTableColumnFlags_WidthFixed,
-                                    100.0f);
-            ImGui::TableHeadersRow();
-
-            for (const auto& file : recent_files) {
-              if (query[0] != '\0' && file.find(query) == std::string::npos)
-                continue;
-
-              ImGui::TableNextRow();
-              ImGui::TableNextColumn();
-              ImGui::Text("%s", util::GetFileName(file).c_str());
-
-              ImGui::TableNextColumn();
-              std::string ext = util::GetFileExtension(file);
-              if (ext == "sfc" || ext == "smc") {
-                ImGui::TextColored(ImVec4(0.2f, 0.8f, 0.2f, 1.0f), "%s ROM",
-                                   ICON_MD_VIDEOGAME_ASSET);
-              } else if (ext == "yaze") {
-                ImGui::TextColored(ImVec4(0.2f, 0.6f, 0.8f, 1.0f), "%s Project",
-                                   ICON_MD_FOLDER);
-              } else {
-                ImGui::Text("%s File", ICON_MD_DESCRIPTION);
-              }
-
-              ImGui::TableNextColumn();
-              ImGui::PushID(file.c_str());
-              if (ImGui::Button("Open")) {
-                status_ = OpenRomOrProject(file);
-                if (ui_coordinator_) {
-                  ui_coordinator_->SetGlobalSearchVisible(false);
-                }
-              }
-              ImGui::PopID();
-            }
-
-            ImGui::EndTable();
-          }
-          ImGui::EndTabItem();
-        }
-
-        // Labels Tab (only if ROM is loaded)
-        if (current_rom_ && current_rom_->resource_label()) {
-          if (ImGui::BeginTabItem(
-                  absl::StrFormat("%s Labels", ICON_MD_LABEL).c_str())) {
-            auto& labels = current_rom_->resource_label()->labels_;
-
-            if (ImGui::BeginTable("LabelsTable", 3,
-                                  ImGuiTableFlags_ScrollY |
-                                      ImGuiTableFlags_RowBg |
-                                      ImGuiTableFlags_SizingStretchProp)) {
-
-              ImGui::TableSetupColumn("Type", ImGuiTableColumnFlags_WidthFixed,
-                                      100.0f);
-              ImGui::TableSetupColumn("Label",
-                                      ImGuiTableColumnFlags_WidthStretch, 0.4f);
-              ImGui::TableSetupColumn("Value",
-                                      ImGuiTableColumnFlags_WidthStretch, 0.6f);
-              ImGui::TableHeadersRow();
-
-              for (const auto& type_pair : labels) {
-                for (const auto& kv : type_pair.second) {
-                  if (query[0] != '\0' &&
-                      kv.first.find(query) == std::string::npos &&
-                      kv.second.find(query) == std::string::npos)
-                    continue;
-
-                  ImGui::TableNextRow();
-                  ImGui::TableNextColumn();
-                  ImGui::Text("%s", type_pair.first.c_str());
-
-                  ImGui::TableNextColumn();
-                  if (ImGui::Selectable(kv.first.c_str(), false,
-                                 ImGuiSelectableFlags_SpanAllColumns)) {
-                    // Future: navigate to related editor/location
-                  }
-
-                  ImGui::TableNextColumn();
-                  ImGui::TextDisabled("%s", kv.second.c_str());
-                }
-              }
-
-              ImGui::EndTable();
-            }
-            ImGui::EndTabItem();
-          }
-        }
-
-        // Sessions Tab
-        if (GetActiveSessionCount() > 1) {
-          if (ImGui::BeginTabItem(
-                  absl::StrFormat("%s Sessions", ICON_MD_TAB).c_str())) {
-            ImGui::Text("Search and switch between active sessions:");
-
-            for (size_t i = 0; i < sessions_.size(); ++i) {
-              auto& session = sessions_[i];
-              if (session.custom_name == "[CLOSED SESSION]")
-                continue;
-
-              std::string session_info = session.GetDisplayName();
-              if (query[0] != '\0' &&
-                  session_info.find(query) == std::string::npos)
-                continue;
-
-              bool is_current = (&session.rom == current_rom_);
-              if (is_current) {
-                ImGui::PushStyleColor(ImGuiCol_Text,
-                                      ImVec4(0.2f, 0.8f, 0.2f, 1.0f));
-              }
-
-              if (ImGui::Selectable(absl::StrFormat("%s %s %s", ICON_MD_TAB,
-                                             session_info.c_str(),
-                                             is_current ? "(Current)" : "")
-                                 .c_str())) {
-                if (!is_current) {
-                  SwitchToSession(i);
-                  if (ui_coordinator_) {
-                    ui_coordinator_->SetGlobalSearchVisible(false);
-                  }
-                }
-              }
-
-              if (is_current) {
-                ImGui::PopStyleColor();
-              }
-            }
-            ImGui::EndTabItem();
-          }
-        }
-
-        ImGui::EndTabBar();
-      }
-
-      // Status bar
-      ImGui::Separator();
-      ImGui::Text("%s Global search across all YAZE data", ICON_MD_INFO);
+  if (ui_coordinator_ && ui_coordinator_->IsPaletteEditorVisible()) {
+    bool visible = true;
+    ImGui::Begin("Palette Editor", &visible);
+    if (auto* editor_set = GetCurrentEditorSet()) {
+        status_ = editor_set->palette_editor_.Update();
     }
-    ImGui::End();
-    
-    // Update visibility state
-    if (!show_search && ui_coordinator_) {
-      ui_coordinator_->SetGlobalSearchVisible(false);
-    }
-  }
-
-  if (show_palette_editor_ && current_editor_set_) {
-    ImGui::Begin("Palette Editor", &show_palette_editor_);
-    status_ = current_editor_set_->palette_editor_.Update();
 
     // Route palette editor errors to toast manager
     if (!status_.ok()) {
@@ -1272,55 +1057,25 @@ void EditorManager::DrawMenuBar() {
     }
 
     ImGui::End();
+    if (!visible) {
+      ui_coordinator_->SetPaletteEditorVisible(false);
+    }
   }
 
-  if (show_resource_label_manager && current_rom_) {
-    current_rom_->resource_label()->DisplayLabels(&show_resource_label_manager);
+  if (ui_coordinator_ && ui_coordinator_->IsResourceLabelManagerVisible() && GetCurrentRom()) {
+    bool visible = true;
+    GetCurrentRom()->resource_label()->DisplayLabels(&visible);
     if (current_project_.project_opened() &&
         !current_project_.labels_filename.empty()) {
       current_project_.labels_filename =
-          current_rom_->resource_label()->filename_;
+          GetCurrentRom()->resource_label()->filename_;
+    }
+    if (!visible) {
+      ui_coordinator_->SetResourceLabelManagerVisible(false);
     }
   }
 
-  // Workspace preset dialogs
-  if (show_save_workspace_preset_) {
-    ImGui::Begin("Save Workspace Preset", &show_save_workspace_preset_,
-          ImGuiWindowFlags_AlwaysAutoResize);
-    static std::string preset_name = "";
-    ImGui::InputText("Name", &preset_name);
-    if (ImGui::Button("Save", gui::kDefaultModalSize)) {
-      SaveWorkspacePreset(preset_name);
-      toast_manager_.Show("Preset saved", editor::ToastType::kSuccess);
-      show_save_workspace_preset_ = false;
-    }
-    ImGui::SameLine();
-    if (ImGui::Button("Cancel", gui::kDefaultModalSize)) {
-      show_save_workspace_preset_ = false;
-    }
-    ImGui::End();
-  }
-
-  if (show_load_workspace_preset_) {
-    ImGui::Begin("Load Workspace Preset", &show_load_workspace_preset_,
-          ImGuiWindowFlags_AlwaysAutoResize);
-
-    // Lazy load workspace presets when UI is accessed
-    if (!workspace_manager_.workspace_presets_loaded()) {
-      RefreshWorkspacePresets();
-    }
-
-    for (const auto& name : workspace_manager_.workspace_presets()) {
-      if (ImGui::Selectable(name.c_str())) {
-        LoadWorkspacePreset(name);
-        toast_manager_.Show("Preset loaded", editor::ToastType::kSuccess);
-        show_load_workspace_preset_ = false;
-      }
-    }
-    if (workspace_manager_.workspace_presets().empty())
-      ImGui::Text("No presets found");
-    ImGui::End();
-  }
+  // Workspace preset dialogs are now in UICoordinator
 
   // Layout presets UI (session dialogs are drawn by SessionCoordinator at lines 907-915)
   if (ui_coordinator_) {
@@ -1355,7 +1110,7 @@ absl::Status EditorManager::LoadRom() {
     return absl::OkStatus();
   }
 
-  if (HasDuplicateSession(file_name)) {
+  if (session_coordinator_->HasDuplicateSession(file_name)) {
     toast_manager_.Show("ROM already open in another session",
                         editor::ToastType::kWarning);
     return absl::OkStatus();
@@ -1365,35 +1120,15 @@ absl::Status EditorManager::LoadRom() {
   Rom temp_rom;
   RETURN_IF_ERROR(rom_file_manager_.LoadRom(&temp_rom, file_name));
 
-  RomSession* target_session = nullptr;
-  for (auto& session : sessions_) {
-    if (!session.rom.is_loaded()) {
-      target_session = &session;
-      LOG_DEBUG("EditorManager", "Found empty session to populate with ROM: %s",
-                file_name.c_str());
-      break;
-    }
+  auto session_or = session_coordinator_->CreateSessionFromRom(std::move(temp_rom), file_name);
+  if (!session_or.ok()) {
+    return session_or.status();
   }
 
-  if (target_session) {
-    target_session->rom = std::move(temp_rom);
-    target_session->filepath = file_name;
-    current_rom_ = &target_session->rom;
-    current_editor_set_ = &target_session->editors;
-    ConfigureEditorDependencies(current_editor_set_, &target_session->rom,
-                                target_session->editors.session_id());
-  } else {
-    size_t new_session_id = sessions_.size();
-    sessions_.emplace_back(std::move(temp_rom), &user_settings_, new_session_id);
-    RomSession& session = sessions_.back();
-    session.filepath = file_name;
-    current_rom_ = &session.rom;
-    current_editor_set_ = &session.editors;
-    ConfigureEditorDependencies(current_editor_set_, current_rom_, new_session_id);
-  }
+  ConfigureEditorDependencies(GetCurrentEditorSet(), GetCurrentRom(), GetCurrentSessionId());
 
 #ifdef YAZE_ENABLE_TESTING
-  test::TestManager::Get().SetCurrentRom(current_rom_);
+  test::TestManager::Get().SetCurrentRom(GetCurrentRom());
 #endif
 
   auto& manager = core::RecentFilesManager::GetInstance();
@@ -1412,7 +1147,9 @@ absl::Status EditorManager::LoadRom() {
 }
 
 absl::Status EditorManager::LoadAssets() {
-  if (!current_rom_ || !current_editor_set_) {
+  auto* current_rom = GetCurrentRom();
+  auto* current_editor_set = GetCurrentEditorSet();
+  if (!current_rom || !current_editor_set) {
     return absl::FailedPreconditionError("No ROM or editor set loaded");
   }
 
@@ -1425,27 +1162,27 @@ absl::Status EditorManager::LoadAssets() {
 
   // Initialize all editors - this registers their cards with EditorCardRegistry
   // and sets up any editor-specific resources. Must be called before Load().
-  current_editor_set_->overworld_editor_.Initialize();
-  current_editor_set_->message_editor_.Initialize();
-  current_editor_set_->graphics_editor_.Initialize();
-  current_editor_set_->screen_editor_.Initialize();
-  current_editor_set_->sprite_editor_.Initialize();
-  current_editor_set_->palette_editor_.Initialize();
-  current_editor_set_->assembly_editor_.Initialize();
-  current_editor_set_->music_editor_.Initialize();
-  current_editor_set_->settings_editor_.Initialize();  // Initialize settings editor to register System cards
+  current_editor_set->overworld_editor_.Initialize();
+  current_editor_set->message_editor_.Initialize();
+  current_editor_set->graphics_editor_.Initialize();
+  current_editor_set->screen_editor_.Initialize();
+  current_editor_set->sprite_editor_.Initialize();
+  current_editor_set->palette_editor_.Initialize();
+  current_editor_set->assembly_editor_.Initialize();
+  current_editor_set->music_editor_.Initialize();
+  current_editor_set->settings_editor_.Initialize();  // Initialize settings editor to register System cards
   // Initialize the dungeon editor with the renderer
-  current_editor_set_->dungeon_editor_.Initialize(renderer_, current_rom_);
+  current_editor_set->dungeon_editor_.Initialize(renderer_, current_rom);
   ASSIGN_OR_RETURN(*gfx::Arena::Get().mutable_gfx_sheets(),
-                   LoadAllGraphicsData(*current_rom_));
-  RETURN_IF_ERROR(current_editor_set_->overworld_editor_.Load());
-  RETURN_IF_ERROR(current_editor_set_->dungeon_editor_.Load());
-  RETURN_IF_ERROR(current_editor_set_->screen_editor_.Load());
-  RETURN_IF_ERROR(current_editor_set_->settings_editor_.Load());
-  RETURN_IF_ERROR(current_editor_set_->sprite_editor_.Load());
-  RETURN_IF_ERROR(current_editor_set_->message_editor_.Load());
-  RETURN_IF_ERROR(current_editor_set_->music_editor_.Load());
-  RETURN_IF_ERROR(current_editor_set_->palette_editor_.Load());
+                   LoadAllGraphicsData(*current_rom));
+  RETURN_IF_ERROR(current_editor_set->overworld_editor_.Load());
+  RETURN_IF_ERROR(current_editor_set->dungeon_editor_.Load());
+  RETURN_IF_ERROR(current_editor_set->screen_editor_.Load());
+  RETURN_IF_ERROR(current_editor_set->settings_editor_.Load());
+  RETURN_IF_ERROR(current_editor_set->sprite_editor_.Load());
+  RETURN_IF_ERROR(current_editor_set->message_editor_.Load());
+  RETURN_IF_ERROR(current_editor_set->music_editor_.Load());
+  RETURN_IF_ERROR(current_editor_set->palette_editor_.Load());
 
   gfx::PerformanceProfiler::Get().PrintSummary();
 
@@ -1473,43 +1210,47 @@ absl::Status EditorManager::LoadAssets() {
  * and the order in which they must be saved to maintain ROM integrity.
  */
 absl::Status EditorManager::SaveRom() {
-  if (!current_rom_ || !current_editor_set_) {
+  auto* current_rom = GetCurrentRom();
+  auto* current_editor_set = GetCurrentEditorSet();
+  if (!current_rom || !current_editor_set) {
     return absl::FailedPreconditionError("No ROM or editor set loaded");
   }
 
   // Save editor-specific data first
   if (core::FeatureFlags::get().kSaveDungeonMaps) {
     RETURN_IF_ERROR(zelda3::SaveDungeonMaps(
-        *current_rom_, current_editor_set_->screen_editor_.dungeon_maps_));
+        *current_rom, current_editor_set->screen_editor_.dungeon_maps_));
   }
 
-  RETURN_IF_ERROR(current_editor_set_->overworld_editor_.Save());
+  RETURN_IF_ERROR(current_editor_set->overworld_editor_.Save());
 
   if (core::FeatureFlags::get().kSaveGraphicsSheet)
     RETURN_IF_ERROR(
-        SaveAllGraphicsData(*current_rom_, gfx::Arena::Get().gfx_sheets()));
+        SaveAllGraphicsData(*current_rom, gfx::Arena::Get().gfx_sheets()));
 
   // Delegate final ROM file writing to RomFileManager
-  return rom_file_manager_.SaveRom(current_rom_);
+  return rom_file_manager_.SaveRom(current_rom);
 }
 
 absl::Status EditorManager::SaveRomAs(const std::string& filename) {
-  if (!current_rom_ || !current_editor_set_) {
+  auto* current_rom = GetCurrentRom();
+  auto* current_editor_set = GetCurrentEditorSet();
+  if (!current_rom || !current_editor_set) {
     return absl::FailedPreconditionError("No ROM or editor set loaded");
   }
 
   if (core::FeatureFlags::get().kSaveDungeonMaps) {
     RETURN_IF_ERROR(zelda3::SaveDungeonMaps(
-        *current_rom_, current_editor_set_->screen_editor_.dungeon_maps_));
+        *current_rom, current_editor_set->screen_editor_.dungeon_maps_));
   }
 
-  RETURN_IF_ERROR(current_editor_set_->overworld_editor_.Save());
+  RETURN_IF_ERROR(current_editor_set->overworld_editor_.Save());
 
   if (core::FeatureFlags::get().kSaveGraphicsSheet)
     RETURN_IF_ERROR(
-        SaveAllGraphicsData(*current_rom_, gfx::Arena::Get().gfx_sheets()));
+        SaveAllGraphicsData(*current_rom, gfx::Arena::Get().gfx_sheets()));
 
-  auto save_status = rom_file_manager_.SaveRomAs(current_rom_, filename);
+  auto save_status = rom_file_manager_.SaveRomAs(current_rom, filename);
   if (save_status.ok()) {
     size_t current_session_idx = GetCurrentSessionIndex();
     if (current_session_idx < sessions_.size()) {
@@ -1534,12 +1275,31 @@ absl::Status EditorManager::OpenRomOrProject(const std::string& filename) {
   } else {
     Rom temp_rom;
     RETURN_IF_ERROR(rom_file_manager_.LoadRom(&temp_rom, filename));
-    size_t new_session_id = sessions_.size();
-    sessions_.emplace_back(std::move(temp_rom), &user_settings_, new_session_id);
-    RomSession& session = sessions_.back();
-    current_rom_ = &session.rom;
-    current_editor_set_ = &session.editors;
-    ConfigureEditorDependencies(current_editor_set_, current_rom_, new_session_id);
+    
+    auto session_or = session_coordinator_->CreateSessionFromRom(std::move(temp_rom), filename);
+    if (!session_or.ok()) {
+      return session_or.status();
+    }
+    RomSession* session = *session_or;
+
+    ConfigureEditorDependencies(GetCurrentEditorSet(), GetCurrentRom(), GetCurrentSessionId());
+
+    // Apply project feature flags to the session
+    session->feature_flags = current_project_.feature_flags;
+
+    // Update test manager with current ROM for ROM-dependent tests (only when tests are enabled)
+#ifdef YAZE_ENABLE_TESTING
+    LOG_DEBUG("EditorManager", "Setting ROM in TestManager - %p ('%s')",
+              (void*)GetCurrentRom(),
+              GetCurrentRom() ? GetCurrentRom()->title().c_str() : "null");
+    test::TestManager::Get().SetCurrentRom(GetCurrentRom());
+#endif
+
+    if (auto* editor_set = GetCurrentEditorSet(); editor_set && !current_project_.code_folder.empty()) {
+      editor_set->assembly_editor_.OpenFolder(
+          current_project_.code_folder);
+    }
+
     RETURN_IF_ERROR(LoadAssets());
 
     // Hide welcome screen and show editor selection when ROM is loaded
@@ -1588,26 +1348,28 @@ absl::Status EditorManager::OpenProject() {
     Rom temp_rom;
     RETURN_IF_ERROR(
         rom_file_manager_.LoadRom(&temp_rom, current_project_.rom_filename));
-    size_t new_session_id = sessions_.size();
-    sessions_.emplace_back(std::move(temp_rom), &user_settings_, new_session_id);
-    RomSession& session = sessions_.back();
-    current_rom_ = &session.rom;
-    current_editor_set_ = &session.editors;
-    ConfigureEditorDependencies(current_editor_set_, current_rom_, new_session_id);
+    
+    auto session_or = session_coordinator_->CreateSessionFromRom(std::move(temp_rom), current_project_.rom_filename);
+    if (!session_or.ok()) {
+      return session_or.status();
+    }
+    RomSession* session = *session_or;
+
+    ConfigureEditorDependencies(GetCurrentEditorSet(), GetCurrentRom(), GetCurrentSessionId());
 
     // Apply project feature flags to the session
-    session.feature_flags = current_project_.feature_flags;
+    session->feature_flags = current_project_.feature_flags;
 
     // Update test manager with current ROM for ROM-dependent tests (only when tests are enabled)
 #ifdef YAZE_ENABLE_TESTING
     LOG_DEBUG("EditorManager", "Setting ROM in TestManager - %p ('%s')",
-              (void*)current_rom_,
-              current_rom_ ? current_rom_->title().c_str() : "null");
-    test::TestManager::Get().SetCurrentRom(current_rom_);
+              (void*)GetCurrentRom(),
+              GetCurrentRom() ? GetCurrentRom()->title().c_str() : "null");
+    test::TestManager::Get().SetCurrentRom(GetCurrentRom());
 #endif
 
-    if (current_editor_set_ && !current_project_.code_folder.empty()) {
-      current_editor_set_->assembly_editor_.OpenFolder(
+    if (auto* editor_set = GetCurrentEditorSet(); editor_set && !current_project_.code_folder.empty()) {
+      editor_set->assembly_editor_.OpenFolder(
           current_project_.code_folder);
     }
 
@@ -1646,7 +1408,7 @@ absl::Status EditorManager::SaveProject() {
   }
 
   // Update project with current settings
-  if (current_rom_ && current_editor_set_) {
+  if (GetCurrentRom() && GetCurrentEditorSet()) {
     size_t session_idx = GetCurrentSessionIndex();
     if (session_idx < sessions_.size()) {
       current_project_.feature_flags = sessions_[session_idx].feature_flags;
@@ -1745,13 +1507,12 @@ absl::Status EditorManager::SetCurrentRom(Rom* rom) {
     return absl::InvalidArgumentError("Invalid ROM pointer");
   }
 
-  for (auto& session : sessions_) {
-    if (&session.rom == rom) {
-      current_rom_ = &session.rom;
-      current_editor_set_ = &session.editors;
+  for (size_t i = 0; i < sessions_.size(); ++i) {
+    if (&sessions_[i].rom == rom) {
+      session_coordinator_->SwitchToSession(i);
 
       // Update test manager with current ROM for ROM-dependent tests
-      test::TestManager::Get().SetCurrentRom(current_rom_);
+      test::TestManager::Get().SetCurrentRom(GetCurrentRom());
 
       return absl::OkStatus();
     }
@@ -1771,7 +1532,7 @@ void EditorManager::CreateNewSession() {
   session.editors.set_user_settings(&user_settings_);
       ConfigureEditorDependencies(&session.editors, &session.rom,
                                   session.editors.session_id());
-      current_session_id_ = session.editors.session_id();
+      session_coordinator_->SwitchToSession(sessions_.size() - 1);
     }
   }
 
@@ -1789,7 +1550,7 @@ void EditorManager::CreateNewSession() {
 }
 
 void EditorManager::DuplicateCurrentSession() {
-  if (!current_rom_) {
+  if (!GetCurrentRom()) {
     toast_manager_.Show("No current ROM to duplicate",
                         editor::ToastType::kWarning);
     return;
@@ -1803,7 +1564,7 @@ void EditorManager::DuplicateCurrentSession() {
       RomSession& session = sessions_.back();
       ConfigureEditorDependencies(&session.editors, &session.rom,
                                   session.editors.session_id());
-      current_session_id_ = session.editors.session_id();
+      session_coordinator_->SwitchToSession(sessions_.size() - 1);
     }
   }
 }
@@ -1812,18 +1573,7 @@ void EditorManager::CloseCurrentSession() {
   if (session_coordinator_) {
     session_coordinator_->CloseCurrentSession();
     
-    // Update current pointers after session change
-    if (!sessions_.empty()) {
-      size_t active_index = session_coordinator_->GetActiveSessionIndex();
-      if (active_index < sessions_.size()) {
-        current_rom_ = &sessions_[active_index].rom;
-        current_editor_set_ = &sessions_[active_index].editors;
-        current_session_id_ = active_index;
-#ifdef YAZE_ENABLE_TESTING
-        test::TestManager::Get().SetCurrentRom(current_rom_);
-#endif
-      }
-    }
+    // Update current pointers after session change -- no longer needed
   }
 }
 
@@ -1831,18 +1581,7 @@ void EditorManager::RemoveSession(size_t index) {
   if (session_coordinator_) {
     session_coordinator_->RemoveSession(index);
     
-    // Update current pointers after session change
-    if (!sessions_.empty()) {
-      size_t active_index = session_coordinator_->GetActiveSessionIndex();
-      if (active_index < sessions_.size()) {
-        current_rom_ = &sessions_[active_index].rom;
-        current_editor_set_ = &sessions_[active_index].editors;
-        current_session_id_ = active_index;
-#ifdef YAZE_ENABLE_TESTING
-        test::TestManager::Get().SetCurrentRom(current_rom_);
-#endif
-      }
-    }
+    // Update current pointers after session change -- no longer needed
   }
 }
 
@@ -1857,13 +1596,10 @@ void EditorManager::SwitchToSession(size_t index) {
     return;
   }
 
-  auto& session = sessions_[index];
-  current_rom_ = &session.rom;
-  current_editor_set_ = &session.editors;
-  current_session_id_ = index;
+  // This logic is now handled by SessionCoordinator and GetCurrent... methods.
 
 #ifdef YAZE_ENABLE_TESTING
-  test::TestManager::Get().SetCurrentRom(current_rom_);
+  test::TestManager::Get().SetCurrentRom(GetCurrentRom());
 #endif
 }
 
@@ -1874,7 +1610,7 @@ size_t EditorManager::GetCurrentSessionIndex() const {
   
   // Fallback to finding by ROM pointer
   for (size_t i = 0; i < sessions_.size(); ++i) {
-    if (&sessions_[i].rom == current_rom_ &&
+    if (&sessions_[i].rom == GetCurrentRom() &&
         sessions_[i].custom_name != "[CLOSED SESSION]") {
       return i;
     }
@@ -1916,33 +1652,34 @@ std::string EditorManager::GenerateUniqueEditorTitle(
 // ============================================================================
 
 void EditorManager::JumpToDungeonRoom(int room_id) {
-  if (!current_editor_set_)
+  if (!GetCurrentEditorSet())
     return;
 
   // Switch to dungeon editor
   SwitchToEditor(EditorType::kDungeon);
 
   // Open the room in the dungeon editor
-  current_editor_set_->dungeon_editor_.add_room(room_id);
+  GetCurrentEditorSet()->dungeon_editor_.add_room(room_id);
 }
 
 void EditorManager::JumpToOverworldMap(int map_id) {
-  if (!current_editor_set_)
+  if (!GetCurrentEditorSet())
     return;
 
   // Switch to overworld editor
   SwitchToEditor(EditorType::kOverworld);
 
   // Set the current map in the overworld editor
-  current_editor_set_->overworld_editor_.set_current_map(map_id);
+  GetCurrentEditorSet()->overworld_editor_.set_current_map(map_id);
 }
 
 void EditorManager::SwitchToEditor(EditorType editor_type) {
-  if (!current_editor_set_)
+  auto* editor_set = GetCurrentEditorSet();
+  if (!editor_set)
     return;
 
   // Toggle the editor
-  for (auto* editor : current_editor_set_->active_editors_) {
+  for (auto* editor : editor_set->active_editors_) {
     if (editor->type() == editor_type) {
       editor->toggle_active();
 
@@ -1961,7 +1698,7 @@ void EditorManager::SwitchToEditor(EditorType editor_type) {
           }
         } else {
           // Editor deactivated - switch to another active card-based editor
-          for (auto* other : current_editor_set_->active_editors_) {
+          for (auto* other : editor_set->active_editors_) {
             if (*other->active() && IsCardBasedEditor(other->type()) &&
                 other != editor) {
             card_registry_.SetActiveCategory(
@@ -1977,11 +1714,13 @@ void EditorManager::SwitchToEditor(EditorType editor_type) {
 
   // Handle non-editor-class cases
   if (editor_type == EditorType::kAssembly) {
-    show_asm_editor_ = !show_asm_editor_;
+    if (ui_coordinator_) ui_coordinator_->SetAsmEditorVisible(!ui_coordinator_->IsAsmEditorVisible());
   } else if (editor_type == EditorType::kEmulator) {
-    show_emulator_ = !show_emulator_;
-    if (show_emulator_) {
+    if (ui_coordinator_) {
+      ui_coordinator_->SetEmulatorVisible(!ui_coordinator_->IsEmulatorVisible());
+      if (ui_coordinator_->IsEmulatorVisible()) {
       card_registry_.SetActiveCategory("Emulator");
+      }
     }
   }
 }
@@ -1990,23 +1729,17 @@ void EditorManager::SwitchToEditor(EditorType editor_type) {
 EditorManager::SessionScope::SessionScope(EditorManager* manager,
                                           size_t session_id)
     : manager_(manager),
-      prev_rom_(manager->current_rom_),
-      prev_editor_set_(manager->current_editor_set_),
-      prev_session_id_(manager->current_session_id_) {
+      prev_rom_(manager->GetCurrentRom()),
+      prev_editor_set_(manager->GetCurrentEditorSet()),
+      prev_session_id_(manager->GetCurrentSessionId()) {
   
   // Set new session context
-  if (session_id < manager->sessions_.size()) {
-    manager->current_rom_ = &manager->sessions_[session_id].rom;
-    manager->current_editor_set_ = &manager->sessions_[session_id].editors;
-    manager->current_session_id_ = session_id;
-  }
+  manager_->session_coordinator_->SwitchToSession(session_id);
 }
 
 EditorManager::SessionScope::~SessionScope() {
   // Restore previous context
-  manager_->current_rom_ = prev_rom_;
-  manager_->current_editor_set_ = prev_editor_set_;
-  manager_->current_session_id_ = prev_session_id_;
+  manager_->session_coordinator_->SwitchToSession(prev_session_id_);
 }
 
 bool EditorManager::HasDuplicateSession(const std::string& filepath) {
@@ -2059,17 +1792,6 @@ void EditorManager::ConfigureEditorDependencies(EditorSet* editor_set, Rom* rom,
   deps.renderer = renderer_;
 
   editor_set->ApplyDependencies(deps);
-}
-
-void EditorSet::ApplyDependencies(
-    const EditorDependencies& dependencies) {
-  // Inject dependencies into migrated editors using base class method
-  // Note: ROM pointer comes from constructor, dependencies provide managers/services
-  for (auto* editor : active_editors_) {
-    editor->SetDependencies(dependencies);
-  }
-  // Non-editor members need manual ROM updates if dependencies.rom differs
-  memory_editor_.set_rom(dependencies.rom);
 }
 
 }  // namespace editor

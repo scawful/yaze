@@ -14,11 +14,13 @@ namespace editor {
 
 SessionCoordinator::SessionCoordinator(void* sessions_ptr,
                                      EditorCardRegistry* card_registry,
-                                     ToastManager* toast_manager)
+                                     ToastManager* toast_manager,
+                                     UserSettings* user_settings)
     : sessions_ptr_(sessions_ptr),
       card_registry_(card_registry),
-      toast_manager_(toast_manager) {
-  auto* sessions = static_cast<std::deque<EditorManager::RomSession>*>(sessions_ptr_);
+      toast_manager_(toast_manager),
+      user_settings_(user_settings) {
+  auto* sessions = static_cast<std::deque<RomSession>*>(sessions_ptr_);
   if (sessions && !sessions->empty()) {
     active_session_index_ = 0;
     session_count_ = sessions->size();
@@ -26,7 +28,7 @@ SessionCoordinator::SessionCoordinator(void* sessions_ptr,
 }
 
 // Helper macro to get sessions pointer
-#define GET_SESSIONS() static_cast<std::deque<EditorManager::RomSession>*>(sessions_ptr_)
+#define GET_SESSIONS() static_cast<std::deque<RomSession>*>(sessions_ptr_)
 
 void SessionCoordinator::CreateNewSession() {
   auto* sessions = GET_SESSIONS();
@@ -137,7 +139,7 @@ size_t SessionCoordinator::GetActiveSessionIndex() const {
   return active_session_index_;
 }
 
-void* SessionCoordinator::GetActiveSession() {
+void* SessionCoordinator::GetActiveSession() const {
   auto* sessions = GET_SESSIONS();
   if (!sessions || !IsValidSessionIndex(active_session_index_)) {
     return nullptr;
@@ -145,7 +147,21 @@ void* SessionCoordinator::GetActiveSession() {
   return &sessions->at(active_session_index_);
 }
 
-void* SessionCoordinator::GetSession(size_t index) {
+RomSession* SessionCoordinator::GetActiveRomSession() const {
+  return static_cast<RomSession*>(GetActiveSession());
+}
+
+Rom* SessionCoordinator::GetCurrentRom() const {
+    auto* session = GetActiveRomSession();
+    return session ? &session->rom : nullptr;
+}
+
+EditorSet* SessionCoordinator::GetCurrentEditorSet() const {
+    auto* session = GetActiveRomSession();
+    return session ? &session->editors : nullptr;
+}
+
+void* SessionCoordinator::GetSession(size_t index) const {
   auto* sessions = GET_SESSIONS();
   if (!sessions || !IsValidSessionIndex(index)) {
     return nullptr;
@@ -586,6 +602,21 @@ absl::Status SessionCoordinator::SaveSessionAs(size_t session_index, const std::
          session_index, filename.c_str());
   
   return absl::OkStatus();
+}
+
+absl::StatusOr<RomSession*> SessionCoordinator::CreateSessionFromRom(Rom&& rom, const std::string& filepath) {
+    auto* sessions = GET_SESSIONS();
+    if (!sessions) return absl::InternalError("Sessions not initialized");
+
+    size_t new_session_id = sessions->size();
+    sessions->emplace_back(std::move(rom), user_settings_, new_session_id);
+    RomSession& session = sessions->back();
+    session.filepath = filepath;
+
+    UpdateSessionCount();
+    SwitchToSession(new_session_id);
+
+    return &session;
 }
 
 void SessionCoordinator::CleanupClosedSessions() {
