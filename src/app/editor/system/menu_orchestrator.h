@@ -19,6 +19,7 @@ class ProjectManager;
 class EditorRegistry;
 class SessionCoordinator;
 class ToastManager;
+class PopupManager;
 
 /**
  * @class MenuOrchestrator
@@ -44,7 +45,8 @@ class MenuOrchestrator {
                    ProjectManager& project_manager,
                    EditorRegistry& editor_registry,
                    SessionCoordinator& session_coordinator,
-                   ToastManager& toast_manager);
+                   ToastManager& toast_manager,
+                   PopupManager& popup_manager);
   ~MenuOrchestrator() = default;
   
   // Non-copyable due to reference members
@@ -73,6 +75,14 @@ class MenuOrchestrator {
   void OnSaveProject();
   void OnSaveProjectAs();
   
+  // Edit menu actions (delegate to current editor)
+  void OnUndo();
+  void OnRedo();
+  void OnCut();
+  void OnCopy();
+  void OnPaste();
+  void OnFind();
+  
   // Editor-specific menu actions
   void OnSwitchToEditor(EditorType editor_type);
   void OnShowEditorSelection();
@@ -83,6 +93,8 @@ class MenuOrchestrator {
   void OnDuplicateCurrentSession();
   void OnCloseCurrentSession();
   void OnSwitchToSession(size_t session_index);
+  void OnShowSessionSwitcher();
+  void OnShowSessionManager();
   
   // Window management menu actions
   void OnShowAllWindows();
@@ -90,6 +102,10 @@ class MenuOrchestrator {
   void OnResetWorkspaceLayout();
   void OnSaveWorkspaceLayout();
   void OnLoadWorkspaceLayout();
+  void OnShowLayoutPresets();
+  void OnLoadDeveloperLayout();
+  void OnLoadDesignerLayout();
+  void OnLoadModderLayout();
   
   // Tool menu actions
   void OnShowGlobalSearch();
@@ -101,6 +117,21 @@ class MenuOrchestrator {
   void OnShowAbout();
   void OnShowKeyboardShortcuts();
   void OnShowUserGuide();
+  void OnShowGettingStarted();
+  void OnShowAsarIntegration();
+  void OnShowBuildInstructions();
+  void OnShowCLIUsage();
+  void OnShowTroubleshooting();
+  void OnShowContributing();
+  void OnShowWhatsNew();
+  void OnShowSupportedFeatures();
+  
+  // Additional File menu actions
+  void OnShowRomInfo();
+  void OnCreateBackup();
+  void OnValidateRom();
+  void OnShowSettings();
+  void OnQuit();
 
  private:
   // References to coordinated managers
@@ -111,6 +142,7 @@ class MenuOrchestrator {
   EditorRegistry& editor_registry_;
   SessionCoordinator& session_coordinator_;
   ToastManager& toast_manager_;
+  PopupManager& popup_manager_;
   
   // Menu state
   bool menu_needs_refresh_ = false;

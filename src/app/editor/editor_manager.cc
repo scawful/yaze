@@ -138,7 +138,7 @@ EditorManager::EditorManager()
   // Initialize MenuOrchestrator after SessionCoordinator is created
   menu_orchestrator_ = std::make_unique<MenuOrchestrator>(
       this, menu_builder_, rom_file_manager_, project_manager_, editor_registry_,
-      *session_coordinator_, toast_manager_);
+      *session_coordinator_, toast_manager_, *popup_manager_);
   
   // Initialize UICoordinator after all other components are created
   ui_coordinator_ = std::make_unique<UICoordinator>(
