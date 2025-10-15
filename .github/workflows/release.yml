@@ -216,7 +216,12 @@ jobs:
             $destination = Join-Path $downloads $pkg.Name
             if (-not (Test-Path $destination)) {
               Write-Host "Downloading $($pkg.Name)"
-              Invoke-WebRequest -Uri $pkg.Url -OutFile $destination
+              try {
+                Invoke-WebRequest -Uri $pkg.Url -OutFile $destination -Headers @{ "Accept" = "application/octet-stream" }
+              } catch {
+                Write-Host "Invoke-WebRequest failed, retrying with curl.exe"
+                & curl.exe -L $pkg.Url -o $destination
+              }
             } else {
               Write-Host "$($pkg.Name) already present, skipping download"
             }
