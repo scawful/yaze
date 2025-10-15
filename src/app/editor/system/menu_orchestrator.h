@@ -59,6 +59,7 @@ class MenuOrchestrator {
   void BuildEditMenu();
   void BuildViewMenu();
   void BuildToolsMenu();
+  void BuildDebugMenu();
   void BuildWindowMenu();
   void BuildHelpMenu();
 
@@ -126,6 +127,25 @@ class MenuOrchestrator {
   void OnShowMemoryEditor();
   void OnShowResourceLabelManager();
   
+  // ROM Analysis menu actions
+  void OnShowRomInfo();
+  void OnCreateBackup();
+  void OnValidateRom();
+  void OnRunDataIntegrityCheck();
+  void OnTestSaveLoad();
+  
+  // ZSCustomOverworld menu actions
+  void OnCheckRomVersion();
+  void OnUpgradeRom();
+  void OnToggleCustomLoading();
+  
+  // Asar Integration menu actions
+  void OnToggleAsarPatch();
+  void OnLoadAsmFile();
+  
+  // Editor launch actions
+  void OnShowAssemblyEditor();
+  
 #ifdef YAZE_ENABLE_TESTING
   void OnShowTestDashboard();
   void OnRunAllTests();
@@ -154,9 +174,6 @@ class MenuOrchestrator {
   void OnShowSupportedFeatures();
   
   // Additional File menu actions
-  void OnShowRomInfo();
-  void OnCreateBackup();
-  void OnValidateRom();
   void OnShowSettings();
   void OnQuit();
 
@@ -179,6 +196,7 @@ class MenuOrchestrator {
   void AddEditMenuItems();
   void AddViewMenuItems();
   void AddToolsMenuItems();
+  void AddDebugMenuItems();
   void AddWindowMenuItems();
   void AddHelpMenuItems();
   

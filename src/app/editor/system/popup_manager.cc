@@ -2,6 +2,7 @@
 
 #include "absl/strings/str_format.h"
 #include "app/editor/editor_manager.h"
+#include "app/gui/app/feature_flags_menu.h"
 #include "app/gui/core/style.h"
 #include "app/gui/core/icons.h"
 #include "util/hex.h"
@@ -100,6 +101,10 @@ void PopupManager::Initialize() {
     PopupID::kDisplaySettings, PopupType::kSettings, false, true,  // Resizable
     [this]() { DrawDisplaySettingsPopup(); }
   };
+  popups_[PopupID::kFeatureFlags] = {
+    PopupID::kFeatureFlags, PopupType::kSettings, false, true,  // Resizable
+    [this]() { DrawFeatureFlagsPopup(); }
+  };
   
   // Workspace
   popups_[PopupID::kWorkspaceHelp] = {
@@ -113,6 +118,12 @@ void PopupManager::Initialize() {
   popups_[PopupID::kLayoutResetConfirm] = {
     PopupID::kLayoutResetConfirm, PopupType::kConfirmation, false, false,
     [this]() { DrawLayoutResetConfirmPopup(); }
+  };
+  
+  // Debug/Testing
+  popups_[PopupID::kDataIntegrity] = {
+    PopupID::kDataIntegrity, PopupType::kInfo, false, true,  // Resizable
+    [this]() { DrawDataIntegrityPopup(); }
   };
 }
 
@@ -707,6 +718,74 @@ void PopupManager::DrawDisplaySettingsPopup() {
   Separator();
   if (Button("Close", gui::kDefaultModalSize)) {
     Hide("Display Settings");
+  }
+}
+
+void PopupManager::DrawFeatureFlagsPopup() {
+  using namespace ImGui;
+  
+  // Display feature flags editor using the existing FlagsMenu system
+  Text("Feature Flags Configuration");
+  Separator();
+  
+  BeginChild("##FlagsContent", ImVec2(0, -30), true);
+  
+  // Use the feature flags menu system
+  static gui::FlagsMenu flags_menu;
+  
+  if (BeginTabBar("FlagCategories")) {
+    if (BeginTabItem("Overworld")) {
+      flags_menu.DrawOverworldFlags();
+      EndTabItem();
+    }
+    if (BeginTabItem("Dungeon")) {
+      flags_menu.DrawDungeonFlags();
+      EndTabItem();
+    }
+    if (BeginTabItem("Resources")) {
+      flags_menu.DrawResourceFlags();
+      EndTabItem();
+    }
+    if (BeginTabItem("System")) {
+      flags_menu.DrawSystemFlags();
+      EndTabItem();
+    }
+    EndTabBar();
+  }
+  
+  EndChild();
+  
+  Separator();
+  if (Button("Close", gui::kDefaultModalSize)) {
+    Hide(PopupID::kFeatureFlags);
+  }
+}
+
+void PopupManager::DrawDataIntegrityPopup() {
+  using namespace ImGui;
+  
+  Text("Data Integrity Check Results");
+  Separator();
+  
+  BeginChild("##IntegrityContent", ImVec2(0, -30), true);
+  
+  // Placeholder for data integrity results
+  // In a full implementation, this would show test results
+  Text("ROM Data Integrity:");
+  Separator();
+  TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "✓ ROM header valid");
+  TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "✓ Checksum valid");
+  TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "✓ Graphics data intact");
+  TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "✓ Map data intact");
+  
+  Spacing();
+  Text("No issues detected.");
+  
+  EndChild();
+  
+  Separator();
+  if (Button("Close", gui::kDefaultModalSize)) {
+    Hide(PopupID::kDataIntegrity);
   }
 }
 

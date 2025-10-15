@@ -79,11 +79,15 @@ namespace PopupID {
   
   // Settings
   constexpr const char* kDisplaySettings = "Display Settings";
+  constexpr const char* kFeatureFlags = "Feature Flags";
   
   // Workspace
   constexpr const char* kWorkspaceHelp = "Workspace Help";
   constexpr const char* kSessionLimitWarning = "Session Limit Warning";
   constexpr const char* kLayoutResetConfirm = "Reset Layout Confirmation";
+  
+  // Debug/Testing
+  constexpr const char* kDataIntegrity = "Data Integrity Check";
   
   // Future expansion
   constexpr const char* kQuickExport = "Quick Export";
@@ -161,6 +165,10 @@ class PopupManager {
   
   // Settings popups (accessible without ROM)
   void DrawDisplaySettingsPopup();
+  void DrawFeatureFlagsPopup();
+  
+  // Debug/Testing popups
+  void DrawDataIntegrityPopup();
 
   EditorManager* editor_manager_;
   std::unordered_map<std::string, PopupParams> popups_;

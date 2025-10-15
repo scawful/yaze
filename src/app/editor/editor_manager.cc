@@ -915,6 +915,12 @@ absl::Status EditorManager::Update() {
     session_coordinator_->DrawSessionRenameDialog();
   }
 
+  // Draw UICoordinator UI components (Command Palette, Global Search, etc.)
+  // CRITICAL: This must be called for Command Palette and other UI windows to appear
+  if (ui_coordinator_) {
+    ui_coordinator_->DrawAllUI();
+  }
+
   return absl::OkStatus();
 }
 
@@ -1053,10 +1059,8 @@ void EditorManager::DrawMenuBar() {
   // Agent chat history popup (left side)
   agent_chat_history_popup_.Draw();
 
-  // Welcome screen (managed by UICoordinator)
-  if (ui_coordinator_) {
-    ui_coordinator_->DrawWelcomeScreen();
-  }
+  // Welcome screen is now drawn by UICoordinator::DrawAllUI()
+  // Removed duplicate call to avoid showing welcome screen twice
 
   // TODO: Fix emulator not appearing
   if (show_emulator_) {
@@ -1319,12 +1323,9 @@ void EditorManager::DrawMenuBar() {
     ImGui::End();
   }
 
-  // Draw new workspace UI elements
+  // Layout presets UI (session dialogs are drawn by SessionCoordinator at lines 907-915)
   if (ui_coordinator_) {
-    ui_coordinator_->DrawSessionSwitcher();
-    ui_coordinator_->DrawSessionManager();
     ui_coordinator_->DrawLayoutPresets();
-    ui_coordinator_->DrawSessionRenameDialog();
   }
 }
 
