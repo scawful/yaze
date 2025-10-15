@@ -157,228 +157,52 @@ jobs:
           vcpkgGitCommitId: '01f602195983451bc83e72f4214af2cbc495aa94'  # 2024.10.21 release
           runVcpkgInstall: true
 
-      - name: "Retry vcpkg setup (Windows only)"
-        if: runner.os == 'Windows' && steps.vcpkg.outcome == 'failure'
-        uses: lukka/run-vcpkg@v11
-        id: vcpkg_retry
-        env:
-          VCPKG_DEFAULT_TRIPLET: x64-windows-static
-          VCPKG_BINARY_SOURCES: 'clear;x-gha,readwrite'
-        with:
-          vcpkgDirectory: '${{ github.workspace }}/vcpkg'
-          vcpkgGitCommitId: '01f602195983451bc83e72f4214af2cbc495aa94'
-          runVcpkgInstall: true
-          doNotUpdateVcpkg: true  # Use existing clone on retry
-
-      - name: "Cache vcpkg toolchain path (Windows)"
+      - name: "Resolve vcpkg toolchain (Windows)"
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
           $vcpkgRoot = "${{ steps.vcpkg.outputs.vcpkgRoot }}"
-          if ([string]::IsNullOrWhiteSpace($vcpkgRoot)) {
-            $vcpkgRoot = "${{ steps.vcpkg_retry.outputs.vcpkgRoot }}"
+          if (-not $vcpkgRoot) {
+            $vcpkgRoot = Join-Path "${{ github.workspace }}" "vcpkg"
           }
-          if ([string]::IsNullOrWhiteSpace($vcpkgRoot) -and $env:RUNVCPKG_VCPKG_ROOT) {
-            $vcpkgRoot = $env:RUNVCPKG_VCPKG_ROOT
-          }
-          if ([string]::IsNullOrWhiteSpace($vcpkgRoot) -and $env:VCPKG_ROOT) {
-            $vcpkgRoot = $env:VCPKG_ROOT
-          }
-          if ([string]::IsNullOrWhiteSpace($vcpkgRoot)) {
-            Write-Host "::error::lukka/run-vcpkg did not emit vcpkgRoot"
+          if (-not (Test-Path $vcpkgRoot)) {
+            Write-Host "::error::vcpkg root not found at $vcpkgRoot"
             exit 1
           }
 
           $toolchain = Join-Path $vcpkgRoot "scripts/buildsystems/vcpkg.cmake"
           if (-not (Test-Path $toolchain)) {
             Write-Host "::error::vcpkg toolchain file missing at $toolchain"
-            Get-ChildItem -Path $vcpkgRoot -Recurse -File | Select-Object -First 20 FullName
             exit 1
           }
 
+          $normalizedRoot = $vcpkgRoot -replace '\\', '/'
           $normalizedToolchain = $toolchain -replace '\\', '/'
-          "VCPKG_ROOT=$($vcpkgRoot -replace '\\', '/')" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+          "VCPKG_ROOT=$normalizedRoot" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
           "CMAKE_TOOLCHAIN_FILE=$normalizedToolchain" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
-          Write-Host "Persisted VCPKG_ROOT=$vcpkgRoot"
-          Write-Host "Persisted CMAKE_TOOLCHAIN_FILE=$normalizedToolchain"
-
-      - name: "Prefetch MSYS runtime (Windows)"
+      - name: "Install Windows build tools"
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          $downloads = Join-Path "${{ github.workspace }}" "vcpkg/downloads"
-          New-Item -ItemType Directory -Force -Path $downloads | Out-Null
-          $packages = @(
-            @{ Name = "msys2-runtime-3.4.10-4-x86_64.pkg.tar.zst"; Urls = @(
-                "https://mirror.msys2.org/msys/x86_64/msys2-runtime-3.4.10-4-x86_64.pkg.tar.zst",
-                "https://github.com/msys2/MSYS2-packages/releases/download/msys2-runtime-3.4.10-4/msys2-runtime-3.4.10-4-x86_64.pkg.tar.zst"
-              ) },
-            @{ Name = "msys2-runtime-3.4.10-4-x86_64.pkg.tar.zst.sig"; Urls = @(
-                "https://mirror.msys2.org/msys/x86_64/msys2-runtime-3.4.10-4-x86_64.pkg.tar.zst.sig",
-                "https://github.com/msys2/MSYS2-packages/releases/download/msys2-runtime-3.4.10-4/msys2-runtime-3.4.10-4-x86_64.pkg.tar.zst.sig"
-              ) }
-          )
-          foreach ($pkg in $packages) {
-            $destination = Join-Path $downloads $pkg.Name
-            if (-not (Test-Path $destination)) {
-              $downloaded = $false
-              foreach ($url in $pkg.Urls) {
-                Write-Host "Attempting download of $($pkg.Name) from $url"
-                try {
-                  Invoke-WebRequest -Uri $url -OutFile $destination -Headers @{ "Accept" = "application/octet-stream" }
-                  $downloaded = $true
-                  break
-                } catch {
-                  Write-Host "Invoke-WebRequest failed for $url"
-                }
-              }
-              if (-not $downloaded) {
-                Write-Host "Falling back to curl for $($pkg.Name)"
-                foreach ($url in $pkg.Urls) {
-                  try {
-                    & curl.exe -L $url -o $destination
-                    $downloaded = $true
-                    break
-                  } catch {
-                    Write-Host "curl.exe failed for $url"
-                  }
-                }
-              }
-              if (-not $downloaded) {
-                Write-Host "::error::Unable to download $($pkg.Name) from any mirror"
-                exit 1
-              }
-            } else {
-              Write-Host "$($pkg.Name) already present, skipping download"
+          choco install --no-progress -y nasm ninja ccache
+          if ($env:ChocolateyInstall) {
+            $profilePath = Join-Path $env:ChocolateyInstall "helpers\chocolateyProfile.psm1"
+            if (Test-Path $profilePath) {
+              Import-Module $profilePath
+              refreshenv
             }
           }
-
-      - name: "Compute MSVC linker path (Windows)"
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
-          if (-not (Test-Path $vswhere)) {
-            Write-Host "::warning::vswhere.exe not found; falling back to PATH linker"
-            return
+          if (Test-Path "C:\Program Files\NASM") {
+            "C:\Program Files\NASM" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
           }
 
-          $vsInstall = & $vswhere -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
-          if ([string]::IsNullOrWhiteSpace($vsInstall) -or -not (Test-Path $vsInstall)) {
-            Write-Host "::warning::Visual Studio with VC tools not located; falling back to PATH linker"
-            return
-          }
-
-          $toolsetDir = Get-ChildItem -Path (Join-Path $vsInstall "VC\Tools\MSVC") -Directory | Sort-Object Name -Descending | Select-Object -First 1
-          if (-not $toolsetDir) {
-            Write-Host "::warning::MSVC toolset directory not found; falling back to PATH linker"
-            return
-          }
-
-          $linkPath = Join-Path $toolsetDir.FullName "bin\Hostx64\x64\link.exe"
-          if (-not (Test-Path $linkPath)) {
-            Write-Host "::warning::MSVC linker not found at $linkPath; falling back to PATH linker"
-            return
-          }
-
-          $normalized = $linkPath -replace '\\', '/'
-          "MSVC_LINK_PATH=$normalized" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          Write-Host "Persisted MSVC_LINK_PATH=$normalized"
-
-      - name: "Initialize MSVC developer environment (Windows)"
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          $vsDevCmdPaths = @(
-            "${env:ProgramFiles(x86)}\Microsoft Visual Studio\2022\Enterprise\Common7\Tools\VsDevCmd.bat",
-            "${env:ProgramFiles(x86)}\Microsoft Visual Studio\2022\Professional\Common7\Tools\VsDevCmd.bat",
-            "${env:ProgramFiles(x86)}\Microsoft Visual Studio\2022\Community\Common7\Tools\VsDevCmd.bat"
-          )
-
-          $vsDevCmd = $vsDevCmdPaths | Where-Object { Test-Path $_ } | Select-Object -First 1
-
-          if (-not $vsDevCmd) {
-            Write-Host "::warning::VsDevCmd.bat not found; MSVC environment variables may be missing"
-            return
-          }
-
-          Write-Host "Initializing MSVC environment via $vsDevCmd"
-          $cmdOutput = cmd /c "`"$vsDevCmd`" -arch=amd64 -host_arch=amd64 && set" 2>$null
-          if (-not $cmdOutput) {
-            Write-Host "::warning::VsDevCmd invocation produced no output"
-            return
-          }
-
-          $captured = @{}
-          foreach ($line in $cmdOutput) {
-            if ($line -match '^(.*?)=(.*)$') {
-              $name = $matches[1]
-              $value = $matches[2]
-              $captured[$name] = $value
-            }
-          }
-
-          $keysToExport = @(
-            'INCLUDE', 'LIB', 'LIBPATH', 'UCRTVersion',
-            'UniversalCRTSdkDir', 'WindowsSdkDir', 'WindowsLibPath',
-            'VCToolsInstallDir', 'VCINSTALLDIR', 'FrameworkDIR', 'FrameworkDIR64',
-            'FrameworkVersion', 'FrameworkVersion64', 'ExtensionSdkDir',
-            'DevEnvDir', 'VCIDEInstallDir', 'VSINSTALLDIR', 'VisualStudioVersion',
-            'VC_VCTIP_INSTALLDIR', 'VC_TOOLS_INSTALL_DIR', 'Path', 'PATH'
-          )
-
-          foreach ($key in $keysToExport) {
-            if ($captured.ContainsKey($key)) {
-              $value = $captured[$key]
-              if ($key -ieq 'PATH') {
-                $merged = "$value;$env:PATH"
-                "PATH=$merged" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-                Write-Host "Exported PATH from VsDevCmd (merged with existing PATH)"
-              } elseif ($key -ieq 'Path') {
-                $merged = "$value;$env:PATH"
-                "PATH=$merged" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-                Write-Host "Exported Path from VsDevCmd (merged with existing PATH)"
-              } else {
-                "{0}={1}" -f $key, $value | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-                Write-Host "Exported $key from VsDevCmd"
-              }
-            }
-          }
-          Write-Host "MSVC developer environment variables exported (selected set)"
-
-      - name: "Ensure MSVC Dev Cmd (Windows)"
+      - name: "Setup MSVC environment (Windows)"
         if: runner.os == 'Windows'
         uses: ilammy/msvc-dev-cmd@v1
         with:
           arch: x64
-
-      - name: "Add pkg-config to PATH (Windows)"
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          $candidateDirs = @(
-            'C:\msys64\usr\bin',
-            (Join-Path "${{ github.workspace }}" 'vcpkg/downloads/tools')
-          )
-
-          $added = $false
-          foreach ($dir in $candidateDirs) {
-            if (-not (Test-Path $dir)) { continue }
-
-            $pkg = Get-ChildItem -Path $dir -Recurse -Filter 'pkg-config.exe' -ErrorAction SilentlyContinue | Select-Object -First 1
-            if ($pkg) {
-              $pkgDir = $pkg.Directory.FullName
-              $pkgDir | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-              Write-Host "Added $pkgDir to PATH"
-              $added = $true
-              break
-            }
-          }
-
-          if (-not $added) {
-            Write-Host "::warning::pkg-config.exe not located; vcpkg may retry its own acquisition."
-          }
 
       - name: "Free Disk Space (Linux)"
         if: runner.os == 'Linux'
@@ -415,7 +239,7 @@ jobs:
           restore-keys: |
             release-cmake-deps-${{ runner.os }}-${{ matrix.cc || 'default' }}-
 
-      - name: "Install Dependencies"
+      - name: "Install Dependencies (Unix)"
         id: deps
         shell: bash
         continue-on-error: true
@@ -433,14 +257,9 @@ jobs:
             # Note: libabsl-dev removed - gRPC uses bundled Abseil via FetchContent when enabled
           elif [[ "${{ runner.os }}" == "macOS" ]]; then
             brew install ninja cmake pkg-config ccache
-          elif [[ "${{ runner.os }}" == "Windows" ]]; then
-            # Install NASM for BoringSSL (required by gRPC)
-            choco install nasm ccache -y
-            # Add NASM to PATH for this session
-            echo "C:\Program Files\NASM" >> $GITHUB_PATH
           fi
 
-      - name: "Retry Dependencies (if failed)"
+      - name: "Retry Dependencies (Unix)"
         if: steps.deps.outcome == 'failure'
         shell: bash
         run: |
@@ -458,9 +277,6 @@ jobs:
           elif [[ "${{ runner.os }}" == "macOS" ]]; then
             brew update
             brew install ninja cmake pkg-config ccache
-          elif [[ "${{ runner.os }}" == "Windows" ]]; then
-            choco install nasm ccache -y --force
-            echo "C:\Program Files\NASM" >> $GITHUB_PATH
           fi
 
       - name: "Configure (Windows)"
@@ -469,81 +285,43 @@ jobs:
         shell: pwsh
         run: |
           Write-Host "::group::CMake Configuration (Windows)" -ForegroundColor Cyan
-          
-          # Set up ccache directories for Windows
           if (Get-Command ccache -ErrorAction SilentlyContinue) {
             $env:CCACHE_BASEDIR = "${{ github.workspace }}"
             $env:CCACHE_DIR = Join-Path $env:USERPROFILE ".ccache"
-            Write-Host "CCACHE_DIR set to: $env:CCACHE_DIR"
             ccache --zero-stats
           }
-          if (-not $env:CMAKE_TOOLCHAIN_FILE -or -not (Test-Path $env:CMAKE_TOOLCHAIN_FILE)) {
-            Write-Host "::error::CMAKE_TOOLCHAIN_FILE environment variable missing or invalid: '$env:CMAKE_TOOLCHAIN_FILE'"
+
+          $toolchain = "${env:CMAKE_TOOLCHAIN_FILE}"
+          if (-not $toolchain -or -not (Test-Path $toolchain)) {
+            Write-Host "::error::CMAKE_TOOLCHAIN_FILE is missing or invalid: '$toolchain'"
             exit 1
           }
-          Write-Host "Using vcpkg toolchain: $env:CMAKE_TOOLCHAIN_FILE"
-
-          if (-not $env:WindowsSdkDir -or -not $env:WindowsSdkVersion) {
-            Write-Host "::warning::Windows SDK environment variables not set (WindowsSdkDir/WindowsSdkVersion)"
-          } else {
-            $kernelLib = Join-Path $env:WindowsSdkDir ("Lib/{0}/um/x64/kernel32.lib" -f $env:WindowsSdkVersion.TrimEnd('\'))
-            if (Test-Path $kernelLib) {
-              Write-Host "Found Windows SDK kernel32.lib at: $kernelLib"
-            } else {
-              Write-Host "::warning::kernel32.lib not found at expected path: $kernelLib"
-            }
-          }
-
-          $cmakeGenerator = "Visual Studio 17 2022"
-          $cmakeArch = "x64"
-          $toolset = if ("${{ matrix.cc }}" -like "*clang-cl*") { "ClangCL" } else { "" }
-
-          Write-Host "Using generator: $cmakeGenerator ($cmakeArch) toolset: $toolset"
 
           $cmakeArgs = @(
+            "-S", ".",
             "-B", "build",
-            "-G", $cmakeGenerator,
-            "-A", $cmakeArch,
+            "-G", "Ninja",
             "-DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}",
-            "-DCMAKE_TOOLCHAIN_FILE=$env:CMAKE_TOOLCHAIN_FILE",
+            "-DCMAKE_TOOLCHAIN_FILE=$toolchain",
             "-DVCPKG_TARGET_TRIPLET=x64-windows-static",
             "-DVCPKG_MANIFEST_MODE=ON",
-            "-DVCPKG_INSTALL_OPTIONS=--debug",
-            "-DOPENSSL_NO_ASM=ON",
-            "-DCMAKE_CXX_FLAGS=/Dgoogle_protobuf_undef_DWORD=1 /D__PRFCHWINTRIN_H /DGOOGLE_PROTOBUF_NO_RTTI /DPROTOBUF_FORCE_COPY_IN_SWAP",
-            "-DCMAKE_C_FLAGS=/Dgoogle_protobuf_undef_DWORD=1 /D__PRFCHWINTRIN_H /DGOOGLE_PROTOBUF_NO_RTTI /DPROTOBUF_FORCE_COPY_IN_SWAP",
-            "-DProtobuf_USE_STATIC_LIBS=ON",
-            "-DProtobuf_MSVC_STATIC_RUNTIME=ON",
-            "-DgRPC_BUILD_GRPC_CPP_PLUGIN=OFF",
-            "-DgRPC_BUILD_GRPC_CSHARP_PLUGIN=OFF",
-            "-DgRPC_BUILD_GRPC_NODE_PLUGIN=OFF",
-            "-DgRPC_BUILD_GRPC_OBJECTIVE_C_PLUGIN=OFF",
-            "-DgRPC_BUILD_GRPC_PHP_PLUGIN=OFF",
-            "-DgRPC_BUILD_GRPC_PYTHON_PLUGIN=OFF",
-            "-DgRPC_BUILD_GRPC_RUBY_PLUGIN=OFF",
-            "-DgRPC_USE_PROTO_LITE=ON",
-            "-DgRPC_USE_ABSL=ON",
             "-DYAZE_BUILD_TESTS=ON",
             "-DYAZE_BUILD_EMU=ON",
             "-DYAZE_BUILD_Z3ED=ON",
             "-DYAZE_BUILD_TOOLS=ON",
-            "-DYAZE_ENABLE_ROM_TESTS=OFF"
+            "-DYAZE_ENABLE_ROM_TESTS=OFF",
+            "-DCMAKE_CXX_FLAGS=/Dgoogle_protobuf_undef_DWORD=1 /D__PRFCHWINTRIN_H /DGOOGLE_PROTOBUF_NO_RTTI /DPROTOBUF_FORCE_COPY_IN_SWAP",
+            "-DCMAKE_C_FLAGS=/Dgoogle_protobuf_undef_DWORD=1 /D__PRFCHWINTRIN_H /DGOOGLE_PROTOBUF_NO_RTTI /DPROTOBUF_FORCE_COPY_IN_SWAP"
           )
 
-          if ($toolset) {
-            $cmakeArgs += @("-T", $toolset)
-          }
-
           cmake @cmakeArgs 2>&1 | Tee-Object -FilePath cmake_config.log
-          # Note: Tests enabled for pre-1.0 releases to catch issues before publishing
-          # ROM tests disabled (require test ROM file)
+          $exit = $LASTEXITCODE
+          Write-Host "::endgroup::"
 
-          if ($LASTEXITCODE -ne 0) {
-            Write-Host "::error::CMake configuration failed with exit code $LASTEXITCODE"
-            exit $LASTEXITCODE
+          if ($exit -ne 0) {
+            exit $exit
           }
 
-          Write-Host "::endgroup::"
           if (Get-Command ccache -ErrorAction SilentlyContinue) {
             ccache --show-stats
           }
@@ -632,7 +410,9 @@ jobs:
           BUILD_TYPE=${BUILD_TYPE:-${{ env.BUILD_TYPE }}}
           echo "Building release with ${BUILD_TYPE} configuration..."
           if [[ "${{ runner.os }}" == "Windows" ]]; then
-            cmake --build build --config "${BUILD_TYPE}" -- /m 2>&1 | tee build.log
+            JOBS=${CMAKE_BUILD_PARALLEL_LEVEL:-4}
+            echo "Using $JOBS parallel jobs"
+            cmake --build build --parallel "${JOBS}" 2>&1 | tee build.log
           else
             # Use all available cores for faster builds
             if command -v nproc >/dev/null 2>&1; then
