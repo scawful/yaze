@@ -9,9 +9,6 @@
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_format.h"
-#include "app/editor/system/command_manager.h"
-#include "app/editor/system/extension_manager.h"
-#include "app/editor/system/history_manager.h"
 #include "app/editor/system/popup_manager.h"
 #include "app/editor/system/shortcut_manager.h"
 
@@ -65,36 +62,11 @@ class UserSettings;
  * ```
  */
 struct EditorDependencies {
-  Rom* rom = nullptr;
-  EditorCardRegistry* card_registry = nullptr;
-  ToastManager* toast_manager = nullptr;
-  PopupManager* popup_manager = nullptr;
-  ShortcutManager* shortcut_manager = nullptr;
-  UserSettings* user_settings = nullptr;
-  size_t session_id = 0;
-
-  gfx::IRenderer* renderer = nullptr;
-  void* custom_data = nullptr;
-};
-
-struct EditorContext {
-  CommandManager command_manager;
-  ExtensionManager extension_manager;
-  HistoryManager history_manager;
-  PopupManager* popup_manager = nullptr;
-  ShortcutManager shortcut_manager;
-  
-  // Session identification for multi-session support
-  // Used by child panels to create unique ImGui IDs
-  size_t session_id = 0;
-  
-  // Cross-session shared clipboard for editor data transfers
   struct SharedClipboard {
-    // Overworld tile16 selection payload
     bool has_overworld_tile16 = false;
     std::vector<int> overworld_tile16_ids;
-    int overworld_width = 0;   // in tile16 units
-    int overworld_height = 0;  // in tile16 units
+    int overworld_width = 0;
+    int overworld_height = 0;
 
     void Clear() {
       has_overworld_tile16 = false;
@@ -102,7 +74,20 @@ struct EditorContext {
       overworld_width = 0;
       overworld_height = 0;
     }
-  } shared_clipboard;
+  };
+
+  Rom* rom = nullptr;
+  EditorCardRegistry* card_registry = nullptr;
+  ToastManager* toast_manager = nullptr;
+  PopupManager* popup_manager = nullptr;
+  ShortcutManager* shortcut_manager = nullptr;
+  SharedClipboard* shared_clipboard = nullptr;
+  UserSettings* user_settings = nullptr;
+  size_t session_id = 0;
+
+  gfx::IRenderer* renderer = nullptr;
+
+  void* custom_data = nullptr;
 };
 
 enum class EditorType {
@@ -139,6 +124,8 @@ class Editor {
   Editor() = default;
   virtual ~Editor() = default;
 
+  void SetDependencies(const EditorDependencies& deps) { dependencies_ = deps; }
+
   // Initialization of the editor, no ROM assets.
   virtual void Initialize() = 0;
 
@@ -164,8 +151,6 @@ class Editor {
 
   EditorType type() const { return type_; }
 
-  void set_context(EditorContext* context) { context_ = context; }
-
   bool* active() { return &active_; }
   void set_active(bool active) { active_ = active; }
   void toggle_active() { active_ = !active_; }
@@ -177,20 +162,20 @@ class Editor {
  protected:
   bool active_ = false;
   EditorType type_;
-  EditorContext* context_ = nullptr;
+  EditorDependencies dependencies_;
 
   // Helper method to create session-aware card titles for multi-session support
   std::string MakeCardTitle(const std::string& base_title) const {
-    if (context_ && context_->session_id > 0) {
-      return absl::StrFormat("%s [S%zu]", base_title, context_->session_id);
+    if (dependencies_.session_id > 0) {
+      return absl::StrFormat("%s [S%zu]", base_title, dependencies_.session_id);
     }
     return base_title;
   }
   
   // Helper method to create session-aware card IDs for multi-session support
   std::string MakeCardId(const std::string& base_id) const {
-    if (context_ && context_->session_id > 0) {
-      return absl::StrFormat("s%zu.%s", context_->session_id, base_id);
+    if (dependencies_.session_id > 0) {
+      return absl::StrFormat("s%zu.%s", dependencies_.session_id, base_id);
     }
     return base_id;
   }

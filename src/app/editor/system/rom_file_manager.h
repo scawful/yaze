@@ -27,34 +27,21 @@ class RomFileManager {
   ~RomFileManager() = default;
 
   // ROM file operations
-  absl::Status LoadRom(const std::string& filename = "");
-  absl::Status SaveRom();
-  absl::Status SaveRomAs(const std::string& filename);
-  absl::Status OpenRomOrProject(const std::string& filename);
-  
-  // Asset operations
-  absl::Status LoadAssets();
-  
-  // ROM state management
-  absl::Status SetCurrentRom(Rom* rom);
-  Rom* GetCurrentRom() const { return current_rom_; }
-  
-  // ROM information
-  bool IsRomLoaded() const { return current_rom_ && current_rom_->is_loaded(); }
-  std::string GetRomFilename() const;
-  std::string GetRomTitle() const;
-  
-  // Validation and backup
-  absl::Status ValidateRom();
-  absl::Status ValidateRom(Rom* rom);  // Validate a specific ROM
-  absl::Status CreateBackup();
+  absl::Status LoadRom(Rom* rom, const std::string& filename);
+  absl::Status SaveRom(Rom* rom);
+  absl::Status SaveRomAs(Rom* rom, const std::string& filename);
+  absl::Status OpenRomOrProject(Rom* rom, const std::string& filename);
+  absl::Status CreateBackup(Rom* rom);
+  absl::Status ValidateRom(Rom* rom);
+
+  // Utility helpers
+  bool IsRomLoaded(Rom* rom) const;
+  std::string GetRomFilename(Rom* rom) const;
 
  private:
-  Rom* current_rom_ = nullptr;
   ToastManager* toast_manager_ = nullptr;
-  
-  // Helper methods
-  absl::Status LoadRomFromFile(const std::string& filename);
+
+  absl::Status LoadRomFromFile(Rom* rom, const std::string& filename);
   std::string GenerateBackupFilename(const std::string& original_filename) const;
   bool IsValidRomFile(const std::string& filename) const;
 };

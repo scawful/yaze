@@ -1032,8 +1032,9 @@ void OverworldEditor::CheckForSelectRectangle() {
 }
 
 absl::Status OverworldEditor::Copy() {
-  if (!context_)
-    return absl::FailedPreconditionError("No editor context");
+  if (!dependencies_.shared_clipboard) {
+    return absl::FailedPreconditionError("Clipboard unavailable");
+  }
   // If a rectangle selection exists, copy its tile16 IDs into shared clipboard
   if (ow_map_canvas_.select_rect_active() &&
       !ow_map_canvas_.selected_points().empty()) {
@@ -1059,27 +1060,28 @@ absl::Status OverworldEditor::Copy() {
       }
     }
 
-    context_->shared_clipboard.overworld_tile16_ids = std::move(ids);
-    context_->shared_clipboard.overworld_width = width;
-    context_->shared_clipboard.overworld_height = height;
-    context_->shared_clipboard.has_overworld_tile16 = true;
+    dependencies_.shared_clipboard->overworld_tile16_ids = std::move(ids);
+    dependencies_.shared_clipboard->overworld_width = width;
+    dependencies_.shared_clipboard->overworld_height = height;
+    dependencies_.shared_clipboard->has_overworld_tile16 = true;
     return absl::OkStatus();
   }
   // Single tile copy fallback
   if (current_tile16_ >= 0) {
-    context_->shared_clipboard.overworld_tile16_ids = {current_tile16_};
-    context_->shared_clipboard.overworld_width = 1;
-    context_->shared_clipboard.overworld_height = 1;
-    context_->shared_clipboard.has_overworld_tile16 = true;
+    dependencies_.shared_clipboard->overworld_tile16_ids = {current_tile16_};
+    dependencies_.shared_clipboard->overworld_width = 1;
+    dependencies_.shared_clipboard->overworld_height = 1;
+    dependencies_.shared_clipboard->has_overworld_tile16 = true;
     return absl::OkStatus();
   }
   return absl::FailedPreconditionError("Nothing selected to copy");
 }
 
 absl::Status OverworldEditor::Paste() {
-  if (!context_)
-    return absl::FailedPreconditionError("No editor context");
-  if (!context_->shared_clipboard.has_overworld_tile16) {
+  if (!dependencies_.shared_clipboard) {
+    return absl::FailedPreconditionError("Clipboard unavailable");
+  }
+  if (!dependencies_.shared_clipboard->has_overworld_tile16) {
     return absl::FailedPreconditionError("Clipboard empty");
   }
   if (ow_map_canvas_.points().empty() &&
@@ -1105,9 +1107,9 @@ absl::Status OverworldEditor::Paste() {
   const int superX = current_map_ % 8;
   const int tiles_per_local_map = 512 / kTile16Size;
 
-  const int width = context_->shared_clipboard.overworld_width;
-  const int height = context_->shared_clipboard.overworld_height;
-  const auto& ids = context_->shared_clipboard.overworld_tile16_ids;
+  const int width = dependencies_.shared_clipboard->overworld_width;
+  const int height = dependencies_.shared_clipboard->overworld_height;
+  const auto& ids = dependencies_.shared_clipboard->overworld_tile16_ids;
 
   // Guard
   if (width * height != static_cast<int>(ids.size())) {

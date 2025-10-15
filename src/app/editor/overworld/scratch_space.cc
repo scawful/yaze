@@ -96,23 +96,24 @@ absl::Status OverworldEditor::DrawScratchSpace() {
               scratch_spaces_[current_scratch_slot_].tile_data[tile_x][tile_y]);
         }
       }
-      if (!scratch_tile_ids.empty() && context_) {
+      if (!scratch_tile_ids.empty() && dependencies_.shared_clipboard) {
         const auto& points = scratch_canvas_.selected_points();
         int width =
             std::abs(static_cast<int>((points[1].x - points[0].x) / 32)) + 1;
         int height =
             std::abs(static_cast<int>((points[1].y - points[0].y) / 32)) + 1;
-        context_->shared_clipboard.overworld_tile16_ids =
+        dependencies_.shared_clipboard->overworld_tile16_ids =
             std::move(scratch_tile_ids);
-        context_->shared_clipboard.overworld_width = width;
-        context_->shared_clipboard.overworld_height = height;
-        context_->shared_clipboard.has_overworld_tile16 = true;
+        dependencies_.shared_clipboard->overworld_width = width;
+        dependencies_.shared_clipboard->overworld_height = height;
+        dependencies_.shared_clipboard->has_overworld_tile16 = true;
       }
     }
   }
   HOVER_HINT("Copy scratch selection to clipboard for pasting in overworld");
 
-  if (context_ && context_->shared_clipboard.has_overworld_tile16) {
+  if (dependencies_.shared_clipboard &&
+      dependencies_.shared_clipboard->has_overworld_tile16) {
     Text(ICON_MD_CONTENT_PASTE
          " Pattern ready! Use Shift+Click to stamp, or paste in overworld");
   }
@@ -223,13 +224,15 @@ void OverworldEditor::DrawScratchSpacePattern() {
   int start_tile_y = static_cast<int>(mouse_position.y) / 32;
 
   // Get the selected tiles from overworld via clipboard
-  if (!context_ || !context_->shared_clipboard.has_overworld_tile16) {
+  if (!dependencies_.shared_clipboard ||
+      !dependencies_.shared_clipboard->has_overworld_tile16) {
     return;
   }
 
-  const auto& tile_ids = context_->shared_clipboard.overworld_tile16_ids;
-  int pattern_width = context_->shared_clipboard.overworld_width;
-  int pattern_height = context_->shared_clipboard.overworld_height;
+  const auto& tile_ids =
+      dependencies_.shared_clipboard->overworld_tile16_ids;
+  int pattern_width = dependencies_.shared_clipboard->overworld_width;
+  int pattern_height = dependencies_.shared_clipboard->overworld_height;
 
   if (tile_ids.empty())
     return;

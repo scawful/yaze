@@ -35,6 +35,11 @@ class MessageEditor : public Editor {
     type_ = EditorType::kMessage;
   }
 
+  explicit MessageEditor(Rom* rom, const EditorDependencies& deps)
+      : MessageEditor(rom) {
+    dependencies_ = deps;
+  }
+
   void Initialize() override;
   absl::Status Load() override;
   absl::Status Update() override;

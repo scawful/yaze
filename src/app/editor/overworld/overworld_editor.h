@@ -69,6 +69,11 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
     // MapPropertiesSystem will be initialized after maps_bmp_ and canvas are ready
   }
 
+  explicit OverworldEditor(Rom* rom, const EditorDependencies& deps)
+      : OverworldEditor(rom) {
+    dependencies_ = deps;
+  }
+
   void Initialize(gfx::IRenderer* renderer, Rom* rom);
   void Initialize() override;
   absl::Status Load() override;
@@ -104,6 +109,8 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
     return absl::StrFormat("ROM loaded: %s", rom_->title());
   }
   
+  Rom* rom() const { return rom_; }
+
   // Jump-to functionality
   void set_current_map(int map_id) {
     if (map_id >= 0 && map_id < zelda3::kNumOverworldMaps) {

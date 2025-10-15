@@ -315,7 +315,9 @@ void MessageEditor::DrawExpandedMessageSettings() {
                                 expanded_messages_,
                                 message_preview_.all_dictionaries_)
                .ok()) {
-        context_->popup_manager->Show("Error");
+        if (auto* popup_manager = dependencies_.popup_manager) {
+          popup_manager->Show("Error");
+        }
       }
     }
   }
