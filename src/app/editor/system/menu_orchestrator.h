@@ -87,6 +87,16 @@ class MenuOrchestrator {
   void OnSwitchToEditor(EditorType editor_type);
   void OnShowEditorSelection();
   void OnShowDisplaySettings();
+  void OnShowHexEditor();
+  void OnShowEmulator();
+  void OnShowCardBrowser();
+  void OnShowWelcomeScreen();
+  
+#ifdef YAZE_WITH_GRPC
+  void OnShowAIAgent();
+  void OnShowChatHistory();
+  void OnShowProposalDrawer();
+#endif
   
   // Session management menu actions
   void OnCreateNewSession();

@@ -241,6 +241,19 @@ class EditorManager {
   void ShowImGuiMetrics() { 
     if (ui_coordinator_) ui_coordinator_->SetImGuiMetricsVisible(true); 
   }
+  void ShowHexEditor();
+  void ShowEmulator() { show_emulator_ = true; }
+  void ShowCardBrowser() {
+    if (ui_coordinator_) ui_coordinator_->ShowCardBrowser();
+  }
+  void ShowWelcomeScreen() {
+    if (ui_coordinator_) ui_coordinator_->SetWelcomeScreenVisible(true);
+  }
+#ifdef YAZE_WITH_GRPC
+  void ShowAIAgent();
+  void ShowChatHistory();
+  void ShowProposalDrawer() { proposal_drawer_.Show(); }
+#endif
 
   // ROM and Project operations (public for MenuOrchestrator)
   absl::Status LoadRom();

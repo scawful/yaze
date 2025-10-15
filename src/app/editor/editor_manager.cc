@@ -121,6 +121,21 @@ void EditorManager::HideCurrentEditorCards() {
   card_manager.HideAllCardsInCategory(category);
 }
 
+void EditorManager::ShowHexEditor() {
+  auto& card_manager = gui::EditorCardManager::Get();
+  card_manager.ShowCard("memory.hex_editor");
+}
+
+#ifdef YAZE_WITH_GRPC
+void EditorManager::ShowAIAgent() {
+  agent_editor_.set_active(true);
+}
+
+void EditorManager::ShowChatHistory() {
+  agent_chat_history_popup_.Toggle();
+}
+#endif
+
 EditorManager::EditorManager() 
     : blank_editor_set_(nullptr, &user_settings_),
       project_manager_(&toast_manager_),

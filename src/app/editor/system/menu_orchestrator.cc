@@ -177,10 +177,34 @@ void MenuOrchestrator::AddViewMenuItems() {
             [this]() { OnSwitchToEditor(EditorType::kPalette); }, "Ctrl+7")
       .Item("Screens", ICON_MD_TV,
             [this]() { OnSwitchToEditor(EditorType::kScreen); }, "Ctrl+8")
-      .Item("Hex Editor", ICON_MD_DATA_ARRAY,
-            [this]() { OnSwitchToEditor(EditorType::kHex); }, "Ctrl+9")
       .Item("Assembly", ICON_MD_CODE,
-            [this]() { OnSwitchToEditor(EditorType::kAssembly); }, "Ctrl+0")
+            [this]() { OnSwitchToEditor(EditorType::kAssembly); }, "Ctrl+9")
+      .Item("Hex Editor", ICON_MD_DATA_ARRAY,
+            [this]() { OnShowHexEditor(); }, "Ctrl+0")
+      .Separator();
+  
+  // Special Editors
+#ifdef YAZE_WITH_GRPC
+  menu_builder_
+      .Item("AI Agent", ICON_MD_SMART_TOY,
+            [this]() { OnShowAIAgent(); }, "Ctrl+Shift+A")
+      .Item("Chat History", ICON_MD_CHAT,
+            [this]() { OnShowChatHistory(); }, "Ctrl+H")
+      .Item("Proposal Drawer", ICON_MD_PREVIEW,
+            [this]() { OnShowProposalDrawer(); }, "Ctrl+P");
+#endif
+  
+  menu_builder_
+      .Item("Emulator", ICON_MD_VIDEOGAME_ASSET,
+            [this]() { OnShowEmulator(); }, "Ctrl+Shift+E")
+      .Separator();
+  
+  // Additional UI Elements
+  menu_builder_
+      .Item("Card Browser", ICON_MD_DASHBOARD,
+            [this]() { OnShowCardBrowser(); }, "Ctrl+Shift+B")
+      .Item("Welcome Screen", ICON_MD_HOME,
+            [this]() { OnShowWelcomeScreen(); })
       .Separator();
   
   // Display Settings
@@ -496,6 +520,51 @@ void MenuOrchestrator::OnShowDisplaySettings() {
     editor_manager_->ShowDisplaySettings();
   }
 }
+
+void MenuOrchestrator::OnShowHexEditor() {
+  // Show hex editor card via EditorCardManager
+  if (editor_manager_) {
+    editor_manager_->ShowHexEditor();
+  }
+}
+
+void MenuOrchestrator::OnShowEmulator() {
+  if (editor_manager_) {
+    editor_manager_->ShowEmulator();
+  }
+}
+
+void MenuOrchestrator::OnShowCardBrowser() {
+  if (editor_manager_) {
+    editor_manager_->ShowCardBrowser();
+  }
+}
+
+void MenuOrchestrator::OnShowWelcomeScreen() {
+  if (editor_manager_) {
+    editor_manager_->ShowWelcomeScreen();
+  }
+}
+
+#ifdef YAZE_WITH_GRPC
+void MenuOrchestrator::OnShowAIAgent() {
+  if (editor_manager_) {
+    editor_manager_->ShowAIAgent();
+  }
+}
+
+void MenuOrchestrator::OnShowChatHistory() {
+  if (editor_manager_) {
+    editor_manager_->ShowChatHistory();
+  }
+}
+
+void MenuOrchestrator::OnShowProposalDrawer() {
+  if (editor_manager_) {
+    editor_manager_->ShowProposalDrawer();
+  }
+}
+#endif
 
 // Session management menu actions
 void MenuOrchestrator::OnCreateNewSession() {
