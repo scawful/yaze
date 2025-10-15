@@ -217,6 +217,28 @@ public:
   Color GetWelcomeScreenBorder() const;
   Color GetWelcomeScreenAccent() const;
   
+  // Convenient theme color access interface
+  Color GetThemeColor(const std::string& color_name) const;
+  ImVec4 GetThemeColorVec4(const std::string& color_name) const;
+  
+  // Material Design color accessors
+  Color GetPrimary() const { return current_theme_.primary; }
+  Color GetPrimaryHover() const { return current_theme_.button_hovered; }
+  Color GetPrimaryActive() const { return current_theme_.button_active; }
+  Color GetSecondary() const { return current_theme_.secondary; }
+  Color GetSurface() const { return current_theme_.surface; }
+  Color GetSurfaceVariant() const { return current_theme_.child_bg; }
+  Color GetSurfaceContainer() const { return current_theme_.popup_bg; }
+  Color GetSurfaceContainerHigh() const { return current_theme_.header; }
+  Color GetSurfaceContainerHighest() const { return current_theme_.header_hovered; }
+  Color GetOnSurface() const { return current_theme_.text_primary; }
+  Color GetOnSurfaceVariant() const { return current_theme_.text_secondary; }
+  Color GetOnPrimary() const { return current_theme_.text_primary; }
+  Color GetOutline() const { return current_theme_.border; }
+  Color GetTextSecondary() const { return current_theme_.text_secondary; }
+  Color GetTextDisabled() const { return current_theme_.text_disabled; }
+  Color GetShadow() const { return current_theme_.border_shadow; }
+  
 private:
   ThemeManager() { InitializeBuiltInThemes(); }
   
@@ -235,7 +257,52 @@ private:
   std::string GetCurrentThemeFilePath() const;
 };
 
+// Global convenience functions for easy theme color access
+  // Material Design color accessors - global convenience functions
+  inline Color GetThemeColor(const std::string& color_name) {
+    return ThemeManager::Get().GetThemeColor(color_name);
+  }
+  
+  inline ImVec4 GetThemeColorVec4(const std::string& color_name) {
+    return ThemeManager::Get().GetThemeColorVec4(color_name);
+  }
+  
+  // Material Design color accessors
+  inline Color GetPrimary() { return ThemeManager::Get().GetPrimary(); }
+  inline Color GetPrimaryHover() { return ThemeManager::Get().GetPrimaryHover(); }
+  inline Color GetPrimaryActive() { return ThemeManager::Get().GetPrimaryActive(); }
+  inline Color GetSecondary() { return ThemeManager::Get().GetSecondary(); }
+  inline Color GetSurface() { return ThemeManager::Get().GetSurface(); }
+  inline Color GetSurfaceVariant() { return ThemeManager::Get().GetSurfaceVariant(); }
+  inline Color GetSurfaceContainer() { return ThemeManager::Get().GetSurfaceContainer(); }
+  inline Color GetSurfaceContainerHigh() { return ThemeManager::Get().GetSurfaceContainerHigh(); }
+  inline Color GetSurfaceContainerHighest() { return ThemeManager::Get().GetSurfaceContainerHighest(); }
+  inline Color GetOnSurface() { return ThemeManager::Get().GetOnSurface(); }
+  inline Color GetOnSurfaceVariant() { return ThemeManager::Get().GetOnSurfaceVariant(); }
+  inline Color GetOnPrimary() { return ThemeManager::Get().GetOnPrimary(); }
+  inline Color GetOutline() { return ThemeManager::Get().GetOutline(); }
+  inline Color GetTextSecondary() { return ThemeManager::Get().GetTextSecondary(); }
+  inline Color GetTextDisabled() { return ThemeManager::Get().GetTextDisabled(); }
+  inline Color GetShadow() { return ThemeManager::Get().GetShadow(); }
+  
+  // ImVec4 versions for direct ImGui usage
+  inline ImVec4 GetPrimaryVec4() { return ConvertColorToImVec4(GetPrimary()); }
+  inline ImVec4 GetPrimaryHoverVec4() { return ConvertColorToImVec4(GetPrimaryHover()); }
+  inline ImVec4 GetPrimaryActiveVec4() { return ConvertColorToImVec4(GetPrimaryActive()); }
+  inline ImVec4 GetSurfaceVec4() { return ConvertColorToImVec4(GetSurface()); }
+  inline ImVec4 GetSurfaceVariantVec4() { return ConvertColorToImVec4(GetSurfaceVariant()); }
+  inline ImVec4 GetSurfaceContainerVec4() { return ConvertColorToImVec4(GetSurfaceContainer()); }
+  inline ImVec4 GetSurfaceContainerHighVec4() { return ConvertColorToImVec4(GetSurfaceContainerHigh()); }
+  inline ImVec4 GetSurfaceContainerHighestVec4() { return ConvertColorToImVec4(GetSurfaceContainerHighest()); }
+  inline ImVec4 GetOnSurfaceVec4() { return ConvertColorToImVec4(GetOnSurface()); }
+  inline ImVec4 GetOnSurfaceVariantVec4() { return ConvertColorToImVec4(GetOnSurfaceVariant()); }
+  inline ImVec4 GetOnPrimaryVec4() { return ConvertColorToImVec4(GetOnPrimary()); }
+  inline ImVec4 GetOutlineVec4() { return ConvertColorToImVec4(GetOutline()); }
+  inline ImVec4 GetTextSecondaryVec4() { return ConvertColorToImVec4(GetTextSecondary()); }
+  inline ImVec4 GetTextDisabledVec4() { return ConvertColorToImVec4(GetTextDisabled()); }
+  inline ImVec4 GetShadowVec4() { return ConvertColorToImVec4(GetShadow()); }
 } // namespace gui
+
 } // namespace yaze
 
 #endif // YAZE_APP_GUI_THEME_MANAGER_H

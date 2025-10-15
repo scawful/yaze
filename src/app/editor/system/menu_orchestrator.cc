@@ -7,7 +7,7 @@
 #include "app/editor/system/rom_file_manager.h"
 #include "app/editor/system/toast_manager.h"
 #include "app/editor/ui/menu_builder.h"
-#include "app/editor/ui/session_coordinator.h"
+#include "app/editor/system/session_coordinator.h"
 #include "app/gui/core/icons.h"
 
 namespace yaze {
