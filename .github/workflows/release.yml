@@ -199,8 +199,8 @@ jobs:
           "VCPKG_ROOT=$($vcpkgRoot -replace '\\', '/')" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
           "CMAKE_TOOLCHAIN_FILE=$normalizedToolchain" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
-        Write-Host "Persisted VCPKG_ROOT=$vcpkgRoot"
-        Write-Host "Persisted CMAKE_TOOLCHAIN_FILE=$normalizedToolchain"
+          Write-Host "Persisted VCPKG_ROOT=$vcpkgRoot"
+          Write-Host "Persisted CMAKE_TOOLCHAIN_FILE=$normalizedToolchain"
 
       - name: "Prefetch MSYS runtime (Windows)"
         if: runner.os == 'Windows'
