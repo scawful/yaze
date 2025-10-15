@@ -144,28 +144,46 @@ EditorManager::EditorManager()
   // - EditorCardRegistry: Card-based editor UI management
   // - ShortcutConfigurator: Keyboard shortcut registration
   // - WindowDelegate: Window layout operations
+  // - PopupManager: Modal popup/dialog management
   //
   // EditorManager retains:
   // - Session storage (sessions_) and current pointers (current_rom_, etc.)
   // - Main update loop (iterates sessions, calls editor updates)
   // - Asset loading (Initialize/Load on all editors)
   // - Session ID tracking (current_session_id_)
+  //
+  // INITIALIZATION ORDER (CRITICAL):
+  // 1. PopupManager - MUST be first, MenuOrchestrator/UICoordinator take ref to it
+  // 2. SessionCoordinator - Independent, can be early
+  // 3. MenuOrchestrator - Depends on PopupManager, SessionCoordinator
+  // 4. UICoordinator - Depends on PopupManager, SessionCoordinator
+  // 5. ShortcutConfigurator - Created in Initialize(), depends on all above
+  //
+  // If this order is violated, you will get SIGSEGV crashes when menu callbacks
+  // try to call popup_manager_.Show() with an uninitialized PopupManager!
   // ============================================================================
   
-  // SessionCoordinator: Manages session lifecycle and session-specific UI
+  // STEP 1: Initialize PopupManager FIRST
+  popup_manager_ = std::make_unique<PopupManager>(this);
+  popup_manager_->Initialize();  // Registers all popups with PopupID constants
+  
+  // STEP 2: Initialize SessionCoordinator (independent of popups)
   session_coordinator_ = std::make_unique<SessionCoordinator>(
       static_cast<void*>(&sessions_), &card_registry_, &toast_manager_);
   
-  // MenuOrchestrator: Builds all menus and routes actions to appropriate managers
+  // STEP 3: Initialize MenuOrchestrator (depends on popup_manager_, session_coordinator_)
   menu_orchestrator_ = std::make_unique<MenuOrchestrator>(
       this, menu_builder_, rom_file_manager_, project_manager_,
       editor_registry_, *session_coordinator_, toast_manager_, *popup_manager_);
   
-  // UICoordinator: Coordinates all UI drawing (dialogs, popups, welcome screen)
+  // STEP 4: Initialize UICoordinator (depends on popup_manager_, session_coordinator_)
   ui_coordinator_ = std::make_unique<UICoordinator>(
       this, rom_file_manager_, project_manager_, editor_registry_,
       *session_coordinator_, window_delegate_, toast_manager_, *popup_manager_,
       shortcut_manager_);
+  
+  // STEP 5: ShortcutConfigurator created later in Initialize() method
+  // It depends on all above coordinators being available
 }
 
 EditorManager::~EditorManager() = default;
@@ -227,9 +245,8 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
     PRINT_IF_ERROR(OpenRomOrProject(filename));
   }
 
-  // Initialize popup manager
-  popup_manager_ = std::make_unique<PopupManager>(this);
-  popup_manager_->Initialize();
+  // Note: PopupManager is now initialized in constructor before MenuOrchestrator
+  // This ensures all menu callbacks can safely call popup_manager_.Show()
 
   // Register emulator cards early (emulator Initialize might not be called)
   // Using EditorCardRegistry directly
