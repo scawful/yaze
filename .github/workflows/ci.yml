@@ -69,10 +69,6 @@ jobs:
       with:
         submodules: recursive
 
-    - name: Install Ninja (Windows)
-      if: runner.os == 'Windows'
-      run: choco install ninja --no-progress -y
-      
     - name: Set up vcpkg (Windows)
       if: runner.os == 'Windows'
       uses: lukka/run-vcpkg@v11
@@ -131,6 +127,26 @@ jobs:
 
         Write-Host "Persisted VCPKG_ROOT=$vcpkgRoot"
         Write-Host "Persisted CMAKE_TOOLCHAIN_FILE=$normalizedToolchain"
+
+    - name: Prefetch MSYS runtime (Windows)
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        $downloads = Join-Path "${{ github.workspace }}" "vcpkg/downloads"
+        New-Item -ItemType Directory -Force -Path $downloads | Out-Null
+        $packages = @(
+          @{ Name = "msys2-runtime-3.4.10-4-x86_64.pkg.tar.zst"; Url = "https://github.com/msys2/MSYS2-packages/releases/download/msys2-runtime-3.4.10-4/msys2-runtime-3.4.10-4-x86_64.pkg.tar.zst" },
+          @{ Name = "msys2-runtime-3.4.10-4-x86_64.pkg.tar.zst.sig"; Url = "https://github.com/msys2/MSYS2-packages/releases/download/msys2-runtime-3.4.10-4/msys2-runtime-3.4.10-4-x86_64.pkg.tar.zst.sig" }
+        )
+        foreach ($pkg in $packages) {
+          $destination = Join-Path $downloads $pkg.Name
+          if (-not (Test-Path $destination)) {
+            Write-Host "Downloading $($pkg.Name)"
+            Invoke-WebRequest -Uri $pkg.Url -OutFile $destination
+          } else {
+            Write-Host "$($pkg.Name) already present, skipping download"
+          }
+        }
 
     - name: Compute MSVC linker path (Windows)
       if: runner.os == 'Windows'
@@ -409,40 +425,47 @@ jobs:
           }
         }
 
-        $linker = "link.exe"
-        if ($env:MSVC_LINK_PATH -and (Test-Path $env:MSVC_LINK_PATH)) {
-          $linker = $env:MSVC_LINK_PATH
-        }
-        Write-Host "Using linker: $linker"
+        $cmakeGenerator = "Visual Studio 17 2022"
+        $cmakeArch = "x64"
+        $toolset = if ("${{ matrix.cc }}" -like "*clang-cl*") { "ClangCL" } else { "" }
+
+        Write-Host "Using generator: $cmakeGenerator ($cmakeArch) toolset: $toolset"
         
-        cmake -B build -G "Ninja" `
-          -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} `
-          -DCMAKE_C_COMPILER=${{ matrix.cc }} `
-          -DCMAKE_CXX_COMPILER=${{ matrix.cxx }} `
-          -DCMAKE_LINKER="$linker" `
-          -DCMAKE_TOOLCHAIN_FILE="$env:CMAKE_TOOLCHAIN_FILE" `
-          -DVCPKG_TARGET_TRIPLET=x64-windows-static `
-          -DVCPKG_MANIFEST_MODE=ON `
-          -DVCPKG_INSTALL_OPTIONS="--debug" `
-          -DOPENSSL_NO_ASM=ON `
-          -DCMAKE_CXX_FLAGS="/Dgoogle_protobuf_undef_DWORD=1 /D__PRFCHWINTRIN_H /DGOOGLE_PROTOBUF_NO_RTTI /DPROTOBUF_FORCE_COPY_IN_SWAP" `
-          -DCMAKE_C_FLAGS="/Dgoogle_protobuf_undef_DWORD=1 /D__PRFCHWINTRIN_H /DGOOGLE_PROTOBUF_NO_RTTI /DPROTOBUF_FORCE_COPY_IN_SWAP" `
-          -DProtobuf_USE_STATIC_LIBS=ON `
-          -DProtobuf_MSVC_STATIC_RUNTIME=ON `
-          -DgRPC_BUILD_GRPC_CPP_PLUGIN=OFF `
-          -DgRPC_BUILD_GRPC_CSHARP_PLUGIN=OFF `
-          -DgRPC_BUILD_GRPC_NODE_PLUGIN=OFF `
-          -DgRPC_BUILD_GRPC_OBJECTIVE_C_PLUGIN=OFF `
-          -DgRPC_BUILD_GRPC_PHP_PLUGIN=OFF `
-          -DgRPC_BUILD_GRPC_PYTHON_PLUGIN=OFF `
-          -DgRPC_BUILD_GRPC_RUBY_PLUGIN=OFF `
-          -DgRPC_USE_PROTO_LITE=ON `
-          -DgRPC_USE_ABSL=ON `
-          -DYAZE_BUILD_TESTS=ON `
-          -DYAZE_BUILD_EMU=ON `
-          -DYAZE_ENABLE_ROM_TESTS=OFF `
-          -DYAZE_BUILD_Z3ED=ON `
-          -DYAZE_BUILD_TOOLS=ON 2>&1 | Tee-Object -FilePath cmake_config.log
+        $cmakeArgs = @(
+          "-B", "build",
+          "-G", $cmakeGenerator,
+          "-A", $cmakeArch,
+          "-DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}",
+          "-DCMAKE_TOOLCHAIN_FILE=$env:CMAKE_TOOLCHAIN_FILE",
+          "-DVCPKG_TARGET_TRIPLET=x64-windows-static",
+          "-DVCPKG_MANIFEST_MODE=ON",
+          "-DVCPKG_INSTALL_OPTIONS=--debug",
+          "-DOPENSSL_NO_ASM=ON",
+          "-DCMAKE_CXX_FLAGS=/Dgoogle_protobuf_undef_DWORD=1 /D__PRFCHWINTRIN_H /DGOOGLE_PROTOBUF_NO_RTTI /DPROTOBUF_FORCE_COPY_IN_SWAP",
+          "-DCMAKE_C_FLAGS=/Dgoogle_protobuf_undef_DWORD=1 /D__PRFCHWINTRIN_H /DGOOGLE_PROTOBUF_NO_RTTI /DPROTOBUF_FORCE_COPY_IN_SWAP",
+          "-DProtobuf_USE_STATIC_LIBS=ON",
+          "-DProtobuf_MSVC_STATIC_RUNTIME=ON",
+          "-DgRPC_BUILD_GRPC_CPP_PLUGIN=OFF",
+          "-DgRPC_BUILD_GRPC_CSHARP_PLUGIN=OFF",
+          "-DgRPC_BUILD_GRPC_NODE_PLUGIN=OFF",
+          "-DgRPC_BUILD_GRPC_OBJECTIVE_C_PLUGIN=OFF",
+          "-DgRPC_BUILD_GRPC_PHP_PLUGIN=OFF",
+          "-DgRPC_BUILD_GRPC_PYTHON_PLUGIN=OFF",
+          "-DgRPC_BUILD_GRPC_RUBY_PLUGIN=OFF",
+          "-DgRPC_USE_PROTO_LITE=ON",
+          "-DgRPC_USE_ABSL=ON",
+          "-DYAZE_BUILD_TESTS=ON",
+          "-DYAZE_BUILD_EMU=ON",
+          "-DYAZE_ENABLE_ROM_TESTS=OFF",
+          "-DYAZE_BUILD_Z3ED=ON",
+          "-DYAZE_BUILD_TOOLS=ON"
+        )
+
+        if ($toolset) {
+          $cmakeArgs += @("-T", $toolset)
+        }
+
+        cmake @cmakeArgs 2>&1 | Tee-Object -FilePath cmake_config.log
         # Note: Full-featured build to match release configuration
         # Note: YAZE_BUILD_EMU=OFF disables standalone emulator executable
         #       but yaze_emulator library is still built for main app/tests
@@ -522,17 +545,22 @@ jobs:
       id: build
       shell: bash
       run: |
-        echo "Building with ${{ env.BUILD_TYPE }} configuration..."
-        # Determine number of parallel jobs based on platform
-        if command -v nproc >/dev/null 2>&1; then
-          CORES=$(nproc)
-        elif command -v sysctl >/dev/null 2>&1; then
-          CORES=$(sysctl -n hw.ncpu)
+        BUILD_TYPE=${BUILD_TYPE:-${{ env.BUILD_TYPE }}}
+        echo "Building with ${BUILD_TYPE} configuration..."
+        if [[ "${{ runner.os }}" == "Windows" ]]; then
+          cmake --build build --config "${BUILD_TYPE}" -- /m 2>&1 | tee build.log
         else
-          CORES=2
+          # Determine number of parallel jobs based on platform
+          if command -v nproc >/dev/null 2>&1; then
+            CORES=$(nproc)
+          elif command -v sysctl >/dev/null 2>&1; then
+            CORES=$(sysctl -n hw.ncpu)
+          else
+            CORES=2
+          fi
+          echo "Using $CORES parallel jobs"
+          cmake --build build --parallel $CORES 2>&1 | tee build.log
         fi
-        echo "Using $CORES parallel jobs"
-        cmake --build build --parallel $CORES 2>&1 | tee build.log
         if command -v ccache >/dev/null 2>&1; then
           ccache --show-stats
         fi
@@ -590,24 +618,28 @@ jobs:
       run: |
         Write-Host "=== Post-Build Diagnostics ===" -ForegroundColor Green
         
-        $binPath = "build/bin"
-        if (Test-Path $binPath) {
-          Write-Host "`nBuilt executables and libraries:" -ForegroundColor Cyan
-          Get-ChildItem -Path $binPath -Include *.exe,*.dll -Recurse | ForEach-Object {
+        $binCandidates = @("build/bin", "build/bin/${{ env.BUILD_TYPE }}")
+        $found = $false
+        foreach ($candidate in $binCandidates) {
+          if (-not (Test-Path $candidate)) { continue }
+          $found = $true
+          Write-Host "`nArtifacts under $candidate:" -ForegroundColor Cyan
+          Get-ChildItem -Path $candidate -Include *.exe,*.dll -Recurse | ForEach-Object {
             $size = [math]::Round($_.Length / 1MB, 2)
-            Write-Host "  $($_.Name) - ${size} MB"
+            Write-Host "  $($_.FullName.Replace($PWD.Path + '\', '')) - ${size} MB"
           }
-          
-          # Check for specific yaze executable
-          if (Test-Path "$binPath/yaze.exe") {
-            Write-Host "`n✅ yaze.exe successfully built" -ForegroundColor Green
-            $yazeSize = [math]::Round((Get-Item "$binPath/yaze.exe").Length / 1MB, 2)
+        }
+        if (-not $found) {
+          Write-Host "⚠️ Build output directories not found." -ForegroundColor Yellow
+        } else {
+          $yazeExe = Get-ChildItem -Path build -Filter yaze.exe -Recurse | Select-Object -First 1
+          if ($yazeExe) {
+            Write-Host "`n✅ yaze.exe located at $($yazeExe.FullName)" -ForegroundColor Green
+            $yazeSize = [math]::Round($yazeExe.Length / 1MB, 2)
             Write-Host "   Size: ${yazeSize} MB"
           } else {
-            Write-Host "`n⚠️ yaze.exe not found" -ForegroundColor Yellow
+            Write-Host "`n⚠️ yaze.exe not found in build output" -ForegroundColor Yellow
           }
-        } else {
-          Write-Host "⚠️ Build output directory not found: $binPath" -ForegroundColor Yellow
         }
     
     - name: Upload Build Artifacts (Windows)
@@ -621,6 +653,8 @@ jobs:
         path: |
           build/bin/*.exe
           build/bin/*.dll
+          build/bin/${{ env.BUILD_TYPE }}/*.exe
+          build/bin/${{ env.BUILD_TYPE }}/*.dll
         if-no-files-found: warn
         retention-days: 3
 
@@ -628,8 +662,9 @@ jobs:
       id: test_stable
       working-directory: build
       run: |
+        BUILD_TYPE=${BUILD_TYPE:-${{ env.BUILD_TYPE }}}
         echo "Running stable test suite..."
-        ctest --output-on-failure -j1 \
+        ctest --output-on-failure -C "$BUILD_TYPE" -j1 \
           -L "stable" \
           --output-junit stable_test_results.xml 2>&1 | tee ../stable_test.log || true
 
@@ -638,8 +673,9 @@ jobs:
       working-directory: build
       continue-on-error: true
       run: |
+        BUILD_TYPE=${BUILD_TYPE:-${{ env.BUILD_TYPE }}}
         echo "Running experimental test suite (informational only)..."
-        ctest --output-on-failure --parallel \
+        ctest --output-on-failure -C "$BUILD_TYPE" --parallel \
           -L "experimental" \
           --output-junit experimental_test_results.xml 2>&1 | tee ../experimental_test.log
     

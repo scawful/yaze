@@ -143,10 +143,6 @@ jobs:
         with:
           submodules: recursive
 
-      - name: "Install Ninja (Windows only)"
-        if: runner.os == 'Windows'
-        run: choco install ninja --no-progress -y
-
       - name: "Set up vcpkg (Windows only)"
         if: runner.os == 'Windows'
         uses: lukka/run-vcpkg@v11
@@ -201,10 +197,30 @@ jobs:
 
           $normalizedToolchain = $toolchain -replace '\\', '/'
           "VCPKG_ROOT=$($vcpkgRoot -replace '\\', '/')" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          "CMAKE_TOOLCHAIN_FILE=$normalizedToolchain" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+        "CMAKE_TOOLCHAIN_FILE=$normalizedToolchain" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
-          Write-Host "Persisted VCPKG_ROOT=$vcpkgRoot"
-          Write-Host "Persisted CMAKE_TOOLCHAIN_FILE=$normalizedToolchain"
+        Write-Host "Persisted VCPKG_ROOT=$vcpkgRoot"
+        Write-Host "Persisted CMAKE_TOOLCHAIN_FILE=$normalizedToolchain"
+
+      - name: "Prefetch MSYS runtime (Windows)"
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $downloads = Join-Path "${{ github.workspace }}" "vcpkg/downloads"
+          New-Item -ItemType Directory -Force -Path $downloads | Out-Null
+          $packages = @(
+            @{ Name = "msys2-runtime-3.4.10-4-x86_64.pkg.tar.zst"; Url = "https://github.com/msys2/MSYS2-packages/releases/download/msys2-runtime-3.4.10-4/msys2-runtime-3.4.10-4-x86_64.pkg.tar.zst" },
+            @{ Name = "msys2-runtime-3.4.10-4-x86_64.pkg.tar.zst.sig"; Url = "https://github.com/msys2/MSYS2-packages/releases/download/msys2-runtime-3.4.10-4/msys2-runtime-3.4.10-4-x86_64.pkg.tar.zst.sig" }
+          )
+          foreach ($pkg in $packages) {
+            $destination = Join-Path $downloads $pkg.Name
+            if (-not (Test-Path $destination)) {
+              Write-Host "Downloading $($pkg.Name)"
+              Invoke-WebRequest -Uri $pkg.Url -OutFile $destination
+            } else {
+              Write-Host "$($pkg.Name) already present, skipping download"
+            }
+          }
 
       - name: "Compute MSVC linker path (Windows)"
         if: runner.os == 'Windows'
@@ -419,39 +435,47 @@ jobs:
             }
           }
 
-          $linker = "link.exe"
-          if ($env:MSVC_LINK_PATH -and (Test-Path $env:MSVC_LINK_PATH)) {
-            $linker = $env:MSVC_LINK_PATH
-          }
-          Write-Host "Using linker: $linker"
+          $cmakeGenerator = "Visual Studio 17 2022"
+          $cmakeArch = "x64"
+          $toolset = if ("${{ matrix.cc }}" -like "*clang-cl*") { "ClangCL" } else { "" }
 
-          cmake -B build -G "Ninja" `
-            -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} `
-            -DCMAKE_C_COMPILER=${{ matrix.cc }} `
-            -DCMAKE_CXX_COMPILER=${{ matrix.cxx }} `
-            -DCMAKE_LINKER="$linker" `
-            -DCMAKE_TOOLCHAIN_FILE="$env:CMAKE_TOOLCHAIN_FILE" `
-            -DVCPKG_TARGET_TRIPLET=x64-windows-static `
-            -DVCPKG_MANIFEST_MODE=ON `
-            -DOPENSSL_NO_ASM=ON `
-            -DCMAKE_CXX_FLAGS="/Dgoogle_protobuf_undef_DWORD=1 /D__PRFCHWINTRIN_H /DGOOGLE_PROTOBUF_NO_RTTI /DPROTOBUF_FORCE_COPY_IN_SWAP" `
-            -DCMAKE_C_FLAGS="/Dgoogle_protobuf_undef_DWORD=1 /D__PRFCHWINTRIN_H /DGOOGLE_PROTOBUF_NO_RTTI /DPROTOBUF_FORCE_COPY_IN_SWAP" `
-            -DProtobuf_USE_STATIC_LIBS=ON `
-            -DProtobuf_MSVC_STATIC_RUNTIME=ON `
-            -DgRPC_BUILD_GRPC_CPP_PLUGIN=OFF `
-            -DgRPC_BUILD_GRPC_CSHARP_PLUGIN=OFF `
-            -DgRPC_BUILD_GRPC_NODE_PLUGIN=OFF `
-            -DgRPC_BUILD_GRPC_OBJECTIVE_C_PLUGIN=OFF `
-            -DgRPC_BUILD_GRPC_PHP_PLUGIN=OFF `
-            -DgRPC_BUILD_GRPC_PYTHON_PLUGIN=OFF `
-            -DgRPC_BUILD_GRPC_RUBY_PLUGIN=OFF `
-            -DgRPC_USE_PROTO_LITE=ON `
-            -DgRPC_USE_ABSL=ON `
-            -DYAZE_BUILD_TESTS=ON `
-            -DYAZE_BUILD_EMU=ON `
-            -DYAZE_BUILD_Z3ED=ON `
-            -DYAZE_BUILD_TOOLS=ON `
-            -DYAZE_ENABLE_ROM_TESTS=OFF 2>&1 | Tee-Object -FilePath cmake_config.log
+          Write-Host "Using generator: $cmakeGenerator ($cmakeArch) toolset: $toolset"
+
+          $cmakeArgs = @(
+            "-B", "build",
+            "-G", $cmakeGenerator,
+            "-A", $cmakeArch,
+            "-DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}",
+            "-DCMAKE_TOOLCHAIN_FILE=$env:CMAKE_TOOLCHAIN_FILE",
+            "-DVCPKG_TARGET_TRIPLET=x64-windows-static",
+            "-DVCPKG_MANIFEST_MODE=ON",
+            "-DVCPKG_INSTALL_OPTIONS=--debug",
+            "-DOPENSSL_NO_ASM=ON",
+            "-DCMAKE_CXX_FLAGS=/Dgoogle_protobuf_undef_DWORD=1 /D__PRFCHWINTRIN_H /DGOOGLE_PROTOBUF_NO_RTTI /DPROTOBUF_FORCE_COPY_IN_SWAP",
+            "-DCMAKE_C_FLAGS=/Dgoogle_protobuf_undef_DWORD=1 /D__PRFCHWINTRIN_H /DGOOGLE_PROTOBUF_NO_RTTI /DPROTOBUF_FORCE_COPY_IN_SWAP",
+            "-DProtobuf_USE_STATIC_LIBS=ON",
+            "-DProtobuf_MSVC_STATIC_RUNTIME=ON",
+            "-DgRPC_BUILD_GRPC_CPP_PLUGIN=OFF",
+            "-DgRPC_BUILD_GRPC_CSHARP_PLUGIN=OFF",
+            "-DgRPC_BUILD_GRPC_NODE_PLUGIN=OFF",
+            "-DgRPC_BUILD_GRPC_OBJECTIVE_C_PLUGIN=OFF",
+            "-DgRPC_BUILD_GRPC_PHP_PLUGIN=OFF",
+            "-DgRPC_BUILD_GRPC_PYTHON_PLUGIN=OFF",
+            "-DgRPC_BUILD_GRPC_RUBY_PLUGIN=OFF",
+            "-DgRPC_USE_PROTO_LITE=ON",
+            "-DgRPC_USE_ABSL=ON",
+            "-DYAZE_BUILD_TESTS=ON",
+            "-DYAZE_BUILD_EMU=ON",
+            "-DYAZE_BUILD_Z3ED=ON",
+            "-DYAZE_BUILD_TOOLS=ON",
+            "-DYAZE_ENABLE_ROM_TESTS=OFF"
+          )
+
+          if ($toolset) {
+            $cmakeArgs += @("-T", $toolset)
+          }
+
+          cmake @cmakeArgs 2>&1 | Tee-Object -FilePath cmake_config.log
           # Note: Tests enabled for pre-1.0 releases to catch issues before publishing
           # ROM tests disabled (require test ROM file)
 
@@ -546,17 +570,22 @@ jobs:
         id: build
         shell: bash
         run: |
-          echo "Building release with ${{ env.BUILD_TYPE }} configuration..."
-          # Use all available cores for faster builds
-          if command -v nproc >/dev/null 2>&1; then
-            CORES=$(nproc)
-          elif command -v sysctl >/dev/null 2>&1; then
-            CORES=$(sysctl -n hw.ncpu)
+          BUILD_TYPE=${BUILD_TYPE:-${{ env.BUILD_TYPE }}}
+          echo "Building release with ${BUILD_TYPE} configuration..."
+          if [[ "${{ runner.os }}" == "Windows" ]]; then
+            cmake --build build --config "${BUILD_TYPE}" -- /m 2>&1 | tee build.log
           else
-            CORES=2
+            # Use all available cores for faster builds
+            if command -v nproc >/dev/null 2>&1; then
+              CORES=$(nproc)
+            elif command -v sysctl >/dev/null 2>&1; then
+              CORES=$(sysctl -n hw.ncpu)
+            else
+              CORES=2
+            fi
+            echo "Using $CORES parallel jobs"
+            cmake --build build --parallel $CORES 2>&1 | tee build.log
           fi
-          echo "Using $CORES parallel jobs"
-          cmake --build build --parallel $CORES 2>&1 | tee build.log
           if command -v ccache >/dev/null 2>&1; then
             ccache --show-stats
           fi
@@ -599,14 +628,22 @@ jobs:
           # Create staging directory
           New-Item -ItemType Directory -Force -Path stage | Out-Null
 
-          # Windows uses Ninja generator: build/bin/
-          Write-Host "Packaging Windows artifacts..."
-          if (-not (Test-Path "build/bin/yaze.exe")) {
-            Write-Host "::error::Windows binary not found at build/bin/yaze.exe"
-            Get-ChildItem -Path "build/bin/" -ErrorAction SilentlyContinue
+          $config = "${{ env.BUILD_TYPE }}"
+          $binRoots = @("build/bin/$config", "build/bin")
+          $sourceBin = $null
+          foreach ($root in $binRoots) {
+            if (Test-Path (Join-Path $root "yaze.exe")) {
+              $sourceBin = $root
+              break
+            }
+          }
+          if (-not $sourceBin) {
+            Write-Host "::error::Windows binary not found in expected locations"
+            Get-ChildItem -Path "build" -Filter yaze.exe -Recurse -ErrorAction SilentlyContinue
             exit 1
           }
-          Copy-Item -Path "build/bin/*" -Destination "stage/" -Recurse -Force
+          Write-Host "Packaging Windows artifacts from $sourceBin..."
+          Copy-Item -Path "$sourceBin/*" -Destination "stage/" -Recurse -Force
           Copy-Item -Path "assets/" -Destination "stage/assets/" -Recurse -Force
           Copy-Item -Path "LICENSE", "README.md" -Destination "stage/" -Force
           
