@@ -105,10 +105,8 @@ void UICoordinator::DrawAllUI() {
   // This is called from EditorManager::Update() - don't call menu bar stuff here
   
   // Draw UI windows and dialogs
+  // Session dialogs are drawn by SessionCoordinator separately to avoid duplication
   DrawCommandPalette();          // Ctrl+Shift+P
-  DrawSessionSwitcher();         // Ctrl+Tab popup
-  DrawSessionManager();          // Session management window
-  DrawSessionRenameDialog();     // Rename popup
   DrawLayoutPresets();           // Layout preset dialogs
   DrawWelcomeScreen();           // Welcome screen
   DrawProjectHelp();             // Project help
@@ -220,79 +218,31 @@ void UICoordinator::DrawContextSensitiveCardControl() {
   }
 }
 
-void UICoordinator::DrawSessionSwitcher() {
-  if (!show_session_switcher_) return;
-  
-  // Material Design dialog styling
-  ImGui::SetNextWindowSize(ImVec2(400, 300), ImGuiCond_FirstUseEver);
-  ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
-  
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(16, 16));
-  ImGui::PushStyleColor(ImGuiCol_WindowBg, gui::GetSurfaceVec4());
-  ImGui::PushStyleColor(ImGuiCol_Border, gui::GetOutlineVec4());
-  
-  if (ImGui::Begin("Session Switcher", &show_session_switcher_, 
-                   ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse)) {
-    
-    // Header with Material Design typography
-    ImGui::PushStyleColor(ImGuiCol_Text, gui::GetOnSurfaceVec4());
-    ImGui::Text("%s Session Switcher", ICON_MD_TAB);
-    ImGui::PopStyleColor();
-    ImGui::Separator();
-    
-    // Session list with Material Design list styling
-    for (size_t i = 0; i < session_coordinator_.GetActiveSessionCount(); ++i) {
-      std::string session_name = session_coordinator_.GetSessionDisplayName(i);
-      bool is_active = (i == session_coordinator_.GetActiveSessionIndex());
-      
-      // Active session highlighting
-      if (is_active) {
-        ImGui::PushStyleColor(ImGuiCol_Button, gui::GetPrimaryVec4());
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, gui::GetPrimaryHoverVec4());
-        ImGui::PushStyleColor(ImGuiCol_Text, gui::GetOnPrimaryVec4());
-      }
-      
-      std::string button_text = absl::StrFormat("%s %s", 
-                                               is_active ? ICON_MD_RADIO_BUTTON_CHECKED : ICON_MD_RADIO_BUTTON_UNCHECKED,
-                                               session_name.c_str());
-      
-      if (ImGui::Button(button_text.c_str(), ImVec2(-1, 0))) {
-        session_coordinator_.SwitchToSession(i);
-        show_session_switcher_ = false;
-      }
-      
-      if (is_active) {
-        ImGui::PopStyleColor(3);
-      }
-    }
-    
-    ImGui::Separator();
-    
-    // Action buttons with Material Design styling
-    if (ImGui::Button(absl::StrFormat("%s New Session", ICON_MD_ADD).c_str(), ImVec2(-1, 0))) {
-      session_coordinator_.CreateNewSession();
-      show_session_switcher_ = false;
-    }
-    
-    if (ImGui::Button(absl::StrFormat("%s Close", ICON_MD_CLOSE).c_str(), ImVec2(-1, 0))) {
-      show_session_switcher_ = false;
-    }
+// ============================================================================
+// Session UI Delegation
+// ============================================================================
+// All session-related UI is now managed by SessionCoordinator to eliminate
+// duplication. UICoordinator methods delegate to SessionCoordinator.
+
+void UICoordinator::ShowSessionSwitcher() {
+  session_coordinator_.ShowSessionSwitcher();
+}
+
+bool UICoordinator::IsSessionSwitcherVisible() const {
+  return session_coordinator_.IsSessionSwitcherVisible();
+}
+
+void UICoordinator::SetSessionSwitcherVisible(bool visible) {
+  if (visible) {
+    session_coordinator_.ShowSessionSwitcher();
+  } else {
+    session_coordinator_.HideSessionSwitcher();
   }
-  
-  ImGui::End();
-  ImGui::PopStyleColor(2);
-  ImGui::PopStyleVar();
 }
 
-void UICoordinator::DrawSessionManager() {
-  // TODO: Implement session manager dialog
-  // This would be a more comprehensive session management interface
-}
-
-void UICoordinator::DrawSessionRenameDialog() {
-  // TODO: Implement session rename dialog
-  // This would allow users to rename sessions for better organization
-}
+// ============================================================================
+// Layout and Window Management UI
+// ============================================================================
 
 void UICoordinator::DrawLayoutPresets() {
   // TODO: Implement layout presets UI
@@ -515,6 +465,8 @@ void UICoordinator::DrawTestingUI() {
 
 void UICoordinator::DrawCommandPalette() {
   if (!show_command_palette_) return;
+  
+  LOG_INFO("UICoordinator", "DrawCommandPalette() - rendering command palette");
   
   using namespace ImGui;
   auto& theme = gui::ThemeManager::Get().GetCurrentTheme();

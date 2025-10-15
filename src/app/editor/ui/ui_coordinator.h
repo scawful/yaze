@@ -87,11 +87,15 @@ class UICoordinator {
   // UI state management
   void ShowEditorSelection() { show_editor_selection_ = true; }
   void ShowDisplaySettings();
-  void ShowSessionSwitcher() { show_session_switcher_ = true; }
+  // Session switcher is now managed by SessionCoordinator
+  void ShowSessionSwitcher();
   void HideCurrentEditorCards();
   void ToggleCardSidebar() { show_card_sidebar_ = !show_card_sidebar_; }
   void ShowGlobalSearch() { show_global_search_ = true; }
-  void ShowCommandPalette() { show_command_palette_ = true; }
+  void ShowCommandPalette() { 
+    LOG_INFO("UICoordinator", "ShowCommandPalette() called - setting flag to true");
+    show_command_palette_ = true; 
+  }
   void ShowCardBrowser() { show_card_browser_ = true; }
   
   // Window visibility management
@@ -101,7 +105,8 @@ class UICoordinator {
   // UI state queries (EditorManager can check these)
   bool IsEditorSelectionVisible() const { return show_editor_selection_; }
   bool IsDisplaySettingsVisible() const { return show_display_settings_; }
-  bool IsSessionSwitcherVisible() const { return show_session_switcher_; }
+  // Session switcher visibility managed by SessionCoordinator
+  bool IsSessionSwitcherVisible() const;
   bool IsWelcomeScreenVisible() const { return show_welcome_screen_; }
   bool IsWelcomeScreenManuallyClosed() const { return welcome_screen_manually_closed_; }
   bool IsGlobalSearchVisible() const { return show_global_search_; }
@@ -115,7 +120,8 @@ class UICoordinator {
   // UI state setters (for programmatic control)
   void SetEditorSelectionVisible(bool visible) { show_editor_selection_ = visible; }
   void SetDisplaySettingsVisible(bool visible) { show_display_settings_ = visible; }
-  void SetSessionSwitcherVisible(bool visible) { show_session_switcher_ = visible; }
+  // Session switcher state managed by SessionCoordinator
+  void SetSessionSwitcherVisible(bool visible);
   void SetWelcomeScreenVisible(bool visible) { show_welcome_screen_ = visible; }
   void SetWelcomeScreenManuallyClosed(bool closed) { welcome_screen_manually_closed_ = closed; }
   void SetGlobalSearchVisible(bool visible) { show_global_search_ = visible; }
@@ -144,7 +150,7 @@ class UICoordinator {
   // UI state flags (UICoordinator owns all UI visibility state)
   bool show_editor_selection_ = false;
   bool show_display_settings_ = false;
-  bool show_session_switcher_ = false;
+  // show_session_switcher_ removed - managed by SessionCoordinator
   bool show_welcome_screen_ = true;
   bool welcome_screen_manually_closed_ = false;
   bool show_global_search_ = false;
