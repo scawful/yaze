@@ -23,6 +23,8 @@
 #include "app/gui/canvas/canvas_usage_tracker.h"
 #include "app/gui/canvas/canvas_performance_integration.h"
 #include "app/gui/canvas/canvas_interaction_handler.h"
+#include "app/gui/canvas/canvas_menu.h"
+#include "app/gui/canvas/canvas_popup.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -204,6 +206,10 @@ class Canvas {
   void OpenPersistentPopup(const std::string& popup_id, std::function<void()> render_callback);
   void ClosePersistentPopup(const std::string& popup_id);
   void RenderPersistentPopups();
+  
+  // Popup registry access (Phase 3: for advanced users and testing)
+  PopupRegistry& GetPopupRegistry() { return popup_registry_; }
+  const PopupRegistry& GetPopupRegistry() const { return popup_registry_; }
   
   // Enhanced view and edit operations
   void ShowAdvancedCanvasProperties();
@@ -432,6 +438,11 @@ class Canvas {
   bool context_menu_enabled_ = true;
   
   // Persistent popup state for context menu actions
+  // Phase 3: New popup registry (preferred for new code)
+  PopupRegistry popup_registry_;
+  
+  // Legacy popup state (deprecated - kept for backward compatibility during migration)
+  // TODO(Phase 4): Remove once all editors use popup_registry_ directly
   struct PopupState {
     std::string popup_id;
     bool is_open = false;

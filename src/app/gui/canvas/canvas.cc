@@ -605,51 +605,64 @@ void Canvas::ClearContextMenuItems() {
 }
 
 void Canvas::OpenPersistentPopup(const std::string& popup_id, std::function<void()> render_callback) {
-  // Check if popup already exists
+  // Phase 3: Delegate to new popup registry
+  popup_registry_.Open(popup_id, render_callback);
+  
+  // Maintain backward compatibility with legacy active_popups_ vector
+  // TODO(Phase 4): Remove this synchronization once all editors migrate
+  bool found = false;
   for (auto& popup : active_popups_) {
     if (popup.popup_id == popup_id) {
       popup.is_open = true;
-      popup.render_callback = std::move(render_callback);
-      ImGui::OpenPopup(popup_id.c_str());
-      return;
+      popup.render_callback = render_callback;
+      found = true;
+      break;
     }
   }
   
-  // Add new popup
-  PopupState new_popup;
-  new_popup.popup_id = popup_id;
-  new_popup.is_open = true;
-  new_popup.render_callback = std::move(render_callback);
-  active_popups_.push_back(new_popup);
-  ImGui::OpenPopup(popup_id.c_str());
+  if (!found) {
+    PopupState new_popup;
+    new_popup.popup_id = popup_id;
+    new_popup.is_open = true;
+    new_popup.render_callback = render_callback;
+    active_popups_.push_back(new_popup);
+  }
 }
 
 void Canvas::ClosePersistentPopup(const std::string& popup_id) {
+  // Phase 3: Delegate to new popup registry
+  popup_registry_.Close(popup_id);
+  
+  // Maintain backward compatibility with legacy active_popups_ vector
+  // TODO(Phase 4): Remove this synchronization once all editors migrate
   for (auto& popup : active_popups_) {
     if (popup.popup_id == popup_id) {
       popup.is_open = false;
-      ImGui::CloseCurrentPopup();
       return;
     }
   }
 }
 
 void Canvas::RenderPersistentPopups() {
-  // Render all active popups
+  // Phase 3: Delegate to new popup registry
+  popup_registry_.RenderAll();
+  
+  // Maintain backward compatibility: sync legacy vector with registry state
+  // TODO(Phase 4): Remove this synchronization once all editors migrate
+  const auto& registry_popups = popup_registry_.GetPopups();
+  
+  // Remove closed popups from legacy vector
   auto it = active_popups_.begin();
   while (it != active_popups_.end()) {
-    if (it->is_open && it->render_callback) {
-      // Call the render callback which should handle BeginPopup/EndPopup
-      it->render_callback();
-      
-      // If popup was closed by user, mark it for removal
-      if (!ImGui::IsPopupOpen(it->popup_id.c_str())) {
-        it->is_open = false;
+    bool found_in_registry = false;
+    for (const auto& reg_popup : registry_popups) {
+      if (reg_popup.popup_id == it->popup_id && reg_popup.is_open) {
+        found_in_registry = true;
+        break;
       }
     }
     
-    // Remove closed popups
-    if (!it->is_open) {
+    if (!found_in_registry) {
       it = active_popups_.erase(it);
     } else {
       ++it;
@@ -1487,6 +1500,8 @@ void GraphicsBinCanvasPipeline(int width, int height, int tile_size,
     canvas.DrawTileSelector(tile_size);
     canvas.DrawGrid(tile_size);
     canvas.DrawOverlay();
+    // Phase 3: Render persistent popups (previously only available via End())
+    canvas.RenderPersistentPopups();
   }
   ImGui::EndChild();
 }
@@ -1502,6 +1517,8 @@ void BitmapCanvasPipeline(gui::Canvas& canvas, gfx::Bitmap& bitmap, int width,
     canvas.DrawTileSelector(tile_size);
     canvas.DrawGrid(tile_size);
     canvas.DrawOverlay();
+    // Phase 3: Render persistent popups (previously only available via End())
+    canvas.RenderPersistentPopups();
   };
 
   if (scrollbar) {
@@ -1542,6 +1559,8 @@ void TableCanvasPipeline(gui::Canvas& canvas, gfx::Bitmap& bitmap,
 
     canvas.DrawGrid();
     canvas.DrawOverlay();
+    // Phase 3: Render persistent popups (previously only available via End())
+    canvas.RenderPersistentPopups();
   }
   canvas.EndTableCanvas();
 }
