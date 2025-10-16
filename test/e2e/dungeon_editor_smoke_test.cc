@@ -1,6 +1,6 @@
 #include "e2e/dungeon_editor_smoke_test.h"
 #include "test_utils.h"
-#include "app/core/controller.h"
+#include "app/controller.h"
 #include "imgui_test_engine/imgui_te_context.h"
 
 /**

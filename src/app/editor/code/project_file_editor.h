@@ -4,7 +4,7 @@
 #include <string>
 
 #include "absl/status/status.h"
-#include "app/core/project.h"
+#include "core/project.h"
 #include "app/gui/widgets/text_editor.h"
 
 namespace yaze {
@@ -20,7 +20,7 @@ class ToastManager;
  * - Syntax highlighting for INI-style format
  * - Real-time validation
  * - Auto-save capability
- * - Integration with core::YazeProject
+ * - Integration with project::YazeProject
  */
 class ProjectFileEditor {
  public:

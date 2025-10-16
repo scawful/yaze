@@ -9,8 +9,8 @@
 #include "absl/strings/str_format.h"
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
-#include "app/core/project.h"
-#include "app/core/timing.h"
+#include "core/project.h"
+#include "app/platform/timing.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/theme_manager.h"
 #include "imgui/imgui.h"
@@ -255,7 +255,7 @@ bool WelcomeScreen::Show(bool* p_open) {
       
       // Smooth interpolation to target position (faster response)
       // Use TimingManager for accurate delta time
-      float lerp_speed = 8.0f * yaze::core::TimingManager::Get().GetDeltaTime();
+      float lerp_speed = 8.0f * yaze::TimingManager::Get().GetDeltaTime();
       triforce_positions_[i].x += (target_pos.x - triforce_positions_[i].x) * lerp_speed;
       triforce_positions_[i].y += (target_pos.y - triforce_positions_[i].y) * lerp_speed;
       
@@ -424,7 +424,7 @@ void WelcomeScreen::RefreshRecentProjects() {
   recent_projects_.clear();
   
   // Use the ProjectManager singleton to get recent files
-  auto& recent_files = core::RecentFilesManager::GetInstance().GetRecentFiles();
+  auto& recent_files = project::RecentFilesManager::GetInstance().GetRecentFiles();
   
   for (const auto& filepath : recent_files) {
     if (recent_projects_.size() >= kMaxRecentProjects) break;

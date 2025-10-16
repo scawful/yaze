@@ -18,7 +18,7 @@
 #include "absl/strings/str_join.h"
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
-#include "app/core/project.h"
+#include "core/project.h"
 #include "app/editor/agent/agent_chat_history_codec.h"
 #include "app/editor/agent/agent_ui_theme.h"
 #include "app/editor/agent/agent_chat_history_popup.h"
@@ -136,7 +136,7 @@ void AgentChatWidget::SetRomContext(Rom* rom) {
 
   // Only initialize labels ONCE per ROM instance
   if (rom && rom->is_loaded() && rom->resource_label() && last_rom_initialized != rom) {
-    core::YazeProject project;
+    project::YazeProject project;
     project.use_embedded_labels = true;
 
     auto labels_status = project.InitializeEmbeddedLabels();
@@ -2757,7 +2757,7 @@ void AgentChatWidget::CreateNewFileInEditor(const std::string& filename) {
 }
 
 void AgentChatWidget::LoadAgentSettingsFromProject(
-    const core::YazeProject& project) {
+    const project::YazeProject& project) {
   // Load AI provider settings from project
   agent_config_.ai_provider = project.agent_settings.ai_provider;
   agent_config_.ai_model = project.agent_settings.ai_model;
@@ -2816,7 +2816,7 @@ void AgentChatWidget::LoadAgentSettingsFromProject(
   }
 }
 
-void AgentChatWidget::SaveAgentSettingsToProject(core::YazeProject& project) {
+void AgentChatWidget::SaveAgentSettingsToProject(project::YazeProject& project) {
   // Save AI provider settings to project
   project.agent_settings.ai_provider = agent_config_.ai_provider;
   project.agent_settings.ai_model = agent_config_.ai_model;

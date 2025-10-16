@@ -1,6 +1,6 @@
 #include "cli/service/agent/emulator_service_impl.h"
 #include "app/emu/emulator.h"
-#include "app/core/service/screenshot_utils.h"
+#include "app/service/screenshot_utils.h"
 #include "app/emu/input/input_backend.h" // Required for SnesButton enum
 #include "app/emu/debug/breakpoint_manager.h"
 #include "app/emu/debug/watchpoint_manager.h"

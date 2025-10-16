@@ -5,7 +5,7 @@
 
 #include "absl/strings/str_format.h"
 #include "app/editor/system/toast_manager.h"
-#include "app/core/project.h"
+#include "core/project.h"
 
 namespace yaze {
 namespace editor {
@@ -17,7 +17,7 @@ ProjectManager::ProjectManager(ToastManager* toast_manager)
 absl::Status ProjectManager::CreateNewProject(const std::string& template_name) {
   if (template_name.empty()) {
     // Create default project
-    current_project_ = core::YazeProject();
+    current_project_ = project::YazeProject();
     current_project_.name = "New Project";
     current_project_.filepath = GenerateProjectFilename("New Project");
     
@@ -49,7 +49,7 @@ absl::Status ProjectManager::LoadProjectFromFile(const std::string& filename) {
     // TODO: Implement actual project loading from JSON/YAML
     // For now, create a basic project structure
     
-    current_project_ = core::YazeProject();
+    current_project_ = project::YazeProject();
     current_project_.filepath = filename;
     current_project_.name = std::filesystem::path(filename).stem().string();
     
@@ -223,7 +223,7 @@ absl::Status ProjectManager::CreateFromTemplate(const std::string& template_name
   // TODO: Implement template-based project creation
   // This would copy template files and customize them
   
-  current_project_ = core::YazeProject();
+  current_project_ = project::YazeProject();
   current_project_.name = project_name;
   current_project_.filepath = GenerateProjectFilename(project_name);
   

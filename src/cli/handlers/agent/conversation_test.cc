@@ -1,5 +1,5 @@
 #include "app/rom.h"
-#include "app/core/project.h"
+#include "core/project.h"
 #include "cli/handlers/rom/mock_rom.h"
 
 #include "absl/flags/declare.h"
@@ -378,7 +378,7 @@ absl::Status HandleTestConversationCommand(
   
   // Load embedded labels for natural language queries
   std::cout << "🔍 Debug: Initializing embedded labels...\n";
-  core::YazeProject project;
+  project::YazeProject project;
   auto labels_status = project.InitializeEmbeddedLabels();
   if (!labels_status.ok()) {
     std::cerr << "⚠️  Warning: Could not initialize embedded labels: " 

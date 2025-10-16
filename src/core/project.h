@@ -1,5 +1,5 @@
-#ifndef YAZE_APP_CORE_PROJECT_H
-#define YAZE_APP_CORE_PROJECT_H
+#ifndef YAZE_CORE_PROJECT_H
+#define YAZE_CORE_PROJECT_H
 
 #include <algorithm>
 #include <map>
@@ -9,10 +9,10 @@
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
-#include "app/core/features.h"
+#include "core/features.h"
 
 namespace yaze {
-namespace core {
+namespace project {
 
 /**
  * @enum ProjectFormat
@@ -95,7 +95,7 @@ struct YazeProject {
   std::string symbols_filename;
   
   // Consolidated settings (previously scattered across multiple files)
-  FeatureFlags::Flags feature_flags;
+  core::FeatureFlags::Flags feature_flags;
   WorkspaceSettings workspace_settings;
   std::unordered_map<std::string, std::unordered_map<std::string, std::string>> resource_labels;
   
@@ -287,7 +287,8 @@ class RecentFilesManager {
   std::vector<std::string> recent_files_;
 };
 
-} // namespace core
+} // namespace project
 } // namespace yaze
 
-#endif // YAZE_APP_CORE_PROJECT_H
+#endif // YAZE_CORE_PROJECT_H
+

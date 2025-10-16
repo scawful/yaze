@@ -6,6 +6,7 @@
 #include "absl/strings/match.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_split.h"
+#include "core/project.h"
 #include "util/file_util.h"
 #include "app/editor/system/toast_manager.h"
 #include "app/gui/core/icons.h"
@@ -170,7 +171,7 @@ absl::Status ProjectFileEditor::SaveFileAs(const std::string& filepath) {
   modified_ = false;
   
   // Add to recent files
-  auto& recent_mgr = core::RecentFilesManager::GetInstance();
+  auto& recent_mgr = project::RecentFilesManager::GetInstance();
   recent_mgr.AddFile(filepath_);
   recent_mgr.Save();
   

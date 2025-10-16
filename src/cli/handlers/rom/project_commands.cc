@@ -1,6 +1,6 @@
 #include "cli/handlers/rom/project_commands.h"
 
-#include "app/core/project.h"
+#include "core/project.h"
 #include "util/file_util.h"
 #include "util/bps.h"
 #include "util/macro.h"
@@ -22,7 +22,7 @@ absl::Status ProjectInitCommandHandler::Execute(Rom* rom,
   
   std::string project_name = project_opt.value();
   
-  core::YazeProject project;
+  project::YazeProject project;
   auto status = project.Create(project_name, ".");
   if (!status.ok()) {
     return status;
@@ -38,7 +38,7 @@ absl::Status ProjectInitCommandHandler::Execute(Rom* rom,
 absl::Status ProjectBuildCommandHandler::Execute(Rom* rom, 
                                                 const resources::ArgumentParser& parser,
                                                 resources::OutputFormatter& formatter) {
-  core::YazeProject project;
+  project::YazeProject project;
   auto status = project.Open(".");
   if (!status.ok()) {
     return status;

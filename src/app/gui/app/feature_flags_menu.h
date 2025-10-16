@@ -1,7 +1,7 @@
 #ifndef YAZE_APP_GUI_FEATURE_FLAGS_MENU_H
 #define YAZE_APP_GUI_FEATURE_FLAGS_MENU_H
 
-#include "app/core/features.h"
+#include "core/features.h"
 #include "imgui/imgui.h"
 
 namespace yaze {

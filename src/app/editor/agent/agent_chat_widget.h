@@ -15,7 +15,7 @@
 #include "cli/service/agent/advanced_routing.h"
 #include "cli/service/agent/agent_pretraining.h"
 #include "cli/service/agent/prompt_manager.h"
-#include "app/core/project.h"
+#include "core/project.h"
 
 namespace yaze {
 
@@ -254,8 +254,8 @@ public:
   void UpdateAgentConfig(const AgentConfigState& config);
   
   // Load agent settings from project
-  void LoadAgentSettingsFromProject(const core::YazeProject& project);
-  void SaveAgentSettingsToProject(core::YazeProject& project);
+  void LoadAgentSettingsFromProject(const project::YazeProject& project);
+  void SaveAgentSettingsToProject(project::YazeProject& project);
 
   // Collaboration history management (public so EditorManager can call them)
   void SwitchToSharedHistory(const std::string& session_id);

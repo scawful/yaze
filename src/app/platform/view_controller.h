@@ -7,13 +7,13 @@
 #if TARGET_OS_OSX
 #ifdef __OBJC__
 @interface AppViewController : NSViewController <NSWindowDelegate>
-@property(nonatomic) yaze::core::Controller *controller;
+@property(nonatomic) yaze::Controller *controller;
 @end
 #endif
 #else
 #ifdef __OBJC__
 @interface AppViewController : UIViewController <MTKViewDelegate>
-@property(nonatomic) yaze::core::Controller *controller;
+@property(nonatomic) yaze::Controller *controller;
 @property(nonatomic) UIHoverGestureRecognizer *hoverGestureRecognizer;
 @property(nonatomic) UIPinchGestureRecognizer *pinchRecognizer;
 @property(nonatomic) UISwipeGestureRecognizer *swipeRecognizer;

@@ -20,8 +20,8 @@
 #include "imgui_test_engine/imgui_te_context.h"
 #include "imgui_test_engine/imgui_te_engine.h"
 #include "imgui_test_engine/imgui_te_ui.h"
-#include "app/core/window.h"
-#include "app/core/controller.h"
+#include "app/platform/window.h"
+#include "app/controller.h"
 #include "app/gfx/backend/sdl2_renderer.h"
 #include "e2e/canvas_selection_test.h"
 #include "e2e/framework_smoke_test.h"
@@ -296,7 +296,7 @@ int main(int argc, char* argv[]) {
     ImGui_ImplSDL2_InitForSDLRenderer(window.window_.get(), sdl_renderer);
     ImGui_ImplSDLRenderer2_Init(sdl_renderer);
 
-    yaze::core::Controller controller;
+    yaze::Controller controller;
 
     // Setup test engine
     ImGuiTestEngine* engine = ImGuiTestEngine_CreateContext();

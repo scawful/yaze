@@ -6,7 +6,7 @@
 #endif
 
 #import "app/platform/app_delegate.h"
-#import "app/core/controller.h"
+#import "app/controller.h"
 #import "util/file_util.h"
 #import "app/editor/editor.h"
 #import "app/rom.h"
@@ -253,7 +253,7 @@ extern "C" void yaze_initialize_cococa() {
 
 extern "C" int yaze_run_cocoa_app_delegate(const char *filename) {
   yaze_initialize_cococa();
-  auto controller = std::make_unique<yaze::core::Controller>();
+  auto controller = std::make_unique<yaze::Controller>();
   EXIT_IF_ERROR(controller->OnEntry(filename));
   while (controller->IsActive()) {
     @autoreleasepool {

@@ -56,8 +56,8 @@
 #include "imgui_test_engine/imgui_te_engine.h"
 #include "imgui_test_engine/imgui_te_ui.h"
 
-#include "app/core/controller.h"
-#include "app/core/window.h"
+#include "app/controller.h"
+#include "app/platform/window.h"
 #include "app/editor/dungeon/dungeon_editor_v2.h"
 #include "app/rom.h"
 #include "zelda3/dungeon/room.h"

@@ -7,7 +7,7 @@
 #include <vector>
 
 #include "absl/strings/str_format.h"
-#include "app/core/project.h"
+#include "core/project.h"
 #include "app/editor/editor.h"
 #include "app/editor/editor_manager.h"
 #include "app/editor/system/editor_registry.h"
@@ -706,7 +706,7 @@ void UICoordinator::DrawGlobalSearch() {
       // Recent Files Tab
       if (ImGui::BeginTabItem(
               absl::StrFormat("%s Recent Files", ICON_MD_HISTORY).c_str())) {
-        auto& manager = core::RecentFilesManager::GetInstance();
+        auto& manager = project::RecentFilesManager::GetInstance();
         auto recent_files = manager.GetRecentFiles();
 
         if (ImGui::BeginTable("RecentFilesTable", 3,

@@ -19,7 +19,7 @@
 #include "absl/status/statusor.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/string_view.h"
-#include "app/core/project.h"
+#include "core/project.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/types/snes_color.h"
 #include "app/gfx/types/snes_palette.h"
@@ -220,7 +220,7 @@ class Rom {
     return palette_groups_.dungeon_main.mutable_palette(i);
   }
 
-  core::ResourceLabelManager* resource_label() { return &resource_label_manager_; }
+  project::ResourceLabelManager* resource_label() { return &resource_label_manager_; }
   zelda3_version_pointers version_constants() const {
     return kVersionConstantsMap.at(version_);
   }
@@ -250,7 +250,7 @@ class Rom {
   std::vector<uint8_t> graphics_buffer_;
 
   // Label manager for unique resource names.
-  core::ResourceLabelManager resource_label_manager_;
+  project::ResourceLabelManager resource_label_manager_;
 
   // All palette groups in the game
   gfx::PaletteGroupMap palette_groups_;

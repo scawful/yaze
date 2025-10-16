@@ -11,7 +11,7 @@
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/render/tilemap.h"
 #include "zelda3/overworld/overworld.h"
-#include "app/core/window.h"
+#include "app/platform/window.h"
 
 namespace yaze {
 namespace editor {

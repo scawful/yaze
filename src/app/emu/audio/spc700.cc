@@ -5,7 +5,7 @@
 #include <sstream>
 #include <string>
 #include "util/log.h"
-#include "app/core/features.h"
+#include "core/features.h"
 
 #include "app/emu/audio/internal/opcodes.h"
 #include "app/emu/audio/internal/spc700_accurate_cycles.h"

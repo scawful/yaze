@@ -6,7 +6,7 @@
 #include "cli/service/ai/gemini_ai_service.h"
 
 #ifdef YAZE_WITH_GRPC
-#include "app/core/service/screenshot_utils.h"
+#include "app/service/screenshot_utils.h"
 #endif
 
 namespace yaze {

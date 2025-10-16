@@ -31,10 +31,10 @@
 #include <vector>
 #include <algorithm>
 
-#include "app/core/controller.h"
+#include "app/controller.h"
 #include "app/platform/app_delegate.h"
 #include "app/platform/font_loader.h"
-#include "app/core/window.h"
+#include "app/platform/window.h"
 #include "app/rom.h"
 
 #include <SDL.h>
@@ -101,7 +101,7 @@
   SDL_SetHint(SDL_HINT_IME_SHOW_UI, "1");
 
   // Create and initialize controller with modern API
-  _controller = new yaze::core::Controller();
+  _controller = new yaze::Controller();
   auto init_status = _controller->OnEntry(rom_filename);
   if (!init_status.ok()) {
     NSLog(@"Failed to initialize controller: %s", init_status.message().data());

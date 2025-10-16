@@ -12,7 +12,7 @@
 #include "app/editor/ui/ui_coordinator.h"
 #include "app/editor/ui/workspace_manager.h"
 #include "app/editor/system/popup_manager.h"
-#include "app/core/project.h"
+#include "core/project.h"
 
 namespace yaze::editor {
 
@@ -164,7 +164,7 @@ void ConfigureEditorShortcuts(const ShortcutDependencies& deps,
   RegisterIfValid(shortcut_manager, "Load Last ROM",
                   {ImGuiMod_Ctrl, ImGuiKey_R},
                   [editor_manager]() {
-                    auto& recent = core::RecentFilesManager::GetInstance();
+                    auto& recent = project::RecentFilesManager::GetInstance();
                     if (!recent.GetRecentFiles().empty() && editor_manager) {
                       editor_manager->OpenRomOrProject(
                           recent.GetRecentFiles().front());

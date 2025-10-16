@@ -1,4 +1,4 @@
-#include "app/core/window.h"
+#include "app/platform/window.h"
 
 #include <filesystem>
 

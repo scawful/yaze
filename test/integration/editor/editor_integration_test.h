@@ -6,8 +6,8 @@
 #include "imgui/imgui.h"
 #include "app/editor/editor.h"
 #include "app/rom.h"
-#include "app/core/controller.h"
-#include "app/core/window.h"
+#include "app/controller.h"
+#include "app/platform/window.h"
 #include "app/gfx/backend/sdl2_renderer.h"
 
 #ifdef YAZE_ENABLE_IMGUI_TEST_ENGINE
@@ -75,7 +75,7 @@ class EditorIntegrationTest {
   absl::Status TestEditorClear(editor::Editor* editor);
 
  private:
-  core::Controller controller_;
+  Controller controller_;
 #ifdef YAZE_ENABLE_IMGUI_TEST_ENGINE
   ImGuiTestEngine* engine_;
   bool show_demo_window_;

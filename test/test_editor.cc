@@ -2,8 +2,8 @@
 
 #include <SDL.h>
 
-#include "app/core/controller.h"
-#include "app/core/window.h"
+#include "app/controller.h"
+#include "app/platform/window.h"
 #include "app/gfx/backend/sdl2_renderer.h"
 #include "app/gui/core/style.h"
 #include "imgui/backends/imgui_impl_sdl2.h"
@@ -55,7 +55,7 @@ void TestEditor::RegisterTests(ImGuiTestEngine* engine) {
 
 // TODO: Fix the window/controller management
 int RunIntegrationTest() {
-  yaze::core::Controller controller;
+  yaze::Controller controller;
   yaze::core::Window window;
   // Create renderer for test
   auto test_renderer = std::make_unique<yaze::gfx::SDL2Renderer>();

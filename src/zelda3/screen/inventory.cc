@@ -1,7 +1,7 @@
 #include "inventory.h"
 
 #include "app/gfx/backend/irenderer.h"
-#include "app/core/window.h"
+#include "app/platform/window.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/types/snes_tile.h"

@@ -1,4 +1,4 @@
-#include "app/core/service/widget_discovery_service.h"
+#include "app/service/widget_discovery_service.h"
 
 #include <algorithm>
 #include <cstdint>

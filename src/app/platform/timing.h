@@ -5,7 +5,6 @@
 #include <cstdint>
 
 namespace yaze {
-namespace core {
 
 /**
  * @class TimingManager
@@ -112,7 +111,6 @@ class TimingManager {
   TimingManager& operator=(const TimingManager&) = delete;
 };
 
-}  // namespace core
 }  // namespace yaze
 
 #endif  // YAZE_APP_CORE_TIMING_H

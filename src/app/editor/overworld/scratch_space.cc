@@ -12,7 +12,7 @@
 #include "absl/strings/str_format.h"
 #include "core/asar_wrapper.h"
 #include "app/gfx/debug/performance/performance_profiler.h"
-#include "app/core/window.h"
+#include "app/platform/window.h"
 #include "app/editor/overworld/entity.h"
 #include "app/editor/overworld/map_properties.h"
 #include "app/editor/overworld/tile16_editor.h"

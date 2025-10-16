@@ -1,7 +1,7 @@
 #ifndef YAZE_APP_EDITOR_SESSION_TYPES_H_
 #define YAZE_APP_EDITOR_SESSION_TYPES_H_
 
-#include "app/core/features.h"
+#include "core/features.h"
 #include "app/editor/code/assembly_editor.h"
 #include "app/editor/code/memory_editor.h"
 #include "app/editor/dungeon/dungeon_editor_v2.h"

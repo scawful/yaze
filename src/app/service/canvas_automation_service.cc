@@ -1,4 +1,4 @@
-#include "app/core/service/canvas_automation_service.h"
+#include "app/service/canvas_automation_service.h"
 
 #ifdef YAZE_WITH_GRPC
 

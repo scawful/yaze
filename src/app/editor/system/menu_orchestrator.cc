@@ -1,7 +1,7 @@
 #include "menu_orchestrator.h"
 
 #include "absl/strings/str_format.h"
-#include "app/core/features.h"
+#include "core/features.h"
 #include "app/editor/editor.h"
 #include "app/editor/editor_manager.h"
 #include "app/editor/system/editor_registry.h"
