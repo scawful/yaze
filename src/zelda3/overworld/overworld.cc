@@ -1,6 +1,7 @@
 #include "overworld.h"
 
 #include <algorithm>
+#include <cstdint>
 #include <future>
 #include <mutex>
 #include <set>
@@ -20,6 +21,7 @@
 #include "util/hex.h"
 #include "util/log.h"
 #include "util/macro.h"
+#include "zelda3/overworld/overworld_item.h"
 
 namespace yaze {
 namespace zelda3 {
@@ -2572,34 +2574,54 @@ absl::Status Overworld::SaveMap16Tiles() {
 absl::Status Overworld::SaveEntrances() {
   util::logf("Saving Entrances");
 
-  // Use expanded entrance tables if available
+  auto write_entrance = [&](int index, uint32_t map_addr, uint32_t pos_addr,
+                            uint32_t id_addr) -> absl::Status {
+    // Mirrors ZeldaFullEditor/Save.cs::SaveOWEntrances (see lines ~1081-1085)
+    // where MapID and MapPos are written as 16-bit words and EntranceID as a byte.
+    RETURN_IF_ERROR(
+        rom()->WriteShort(map_addr, all_entrances_[index].map_id_));
+    RETURN_IF_ERROR(
+        rom()->WriteShort(pos_addr, all_entrances_[index].map_pos_));
+    RETURN_IF_ERROR(
+        rom()->WriteByte(id_addr, all_entrances_[index].entrance_id_));
+    return absl::OkStatus();
+  };
+
+  // Always keep the legacy tables in sync for pure vanilla ROMs so e.g. Hyrule
+  // Magic expects them. ZScream does the same in SaveOWEntrances.
+  for (int i = 0; i < kNumOverworldEntrances; ++i) {
+    RETURN_IF_ERROR(write_entrance(i, kOverworldEntranceMap + (i * 2),
+                                   kOverworldEntrancePos + (i * 2),
+                                   kOverworldEntranceEntranceId + i));
+  }
+
   if (expanded_entrances_) {
-    for (int i = 0; i < kNumOverworldEntrances; i++) {
-      RETURN_IF_ERROR(rom()->WriteShort(kOverworldEntranceMapExpanded + (i * 2),
-                                        all_entrances_[i].map_id_))
-      RETURN_IF_ERROR(rom()->WriteShort(kOverworldEntrancePosExpanded + (i * 2),
-                                        all_entrances_[i].map_pos_))
-      RETURN_IF_ERROR(rom()->WriteByte(kOverworldEntranceEntranceIdExpanded + i,
-                                       all_entrances_[i].entrance_id_))
-    }
-  } else {
-    for (int i = 0; i < kNumOverworldEntrances; i++) {
-      RETURN_IF_ERROR(rom()->WriteShort(kOverworldEntranceMap + (i * 2),
-                                        all_entrances_[i].map_id_))
-      RETURN_IF_ERROR(rom()->WriteShort(kOverworldEntrancePos + (i * 2),
-                                        all_entrances_[i].map_pos_))
-      RETURN_IF_ERROR(rom()->WriteByte(kOverworldEntranceEntranceId + i,
-                                       all_entrances_[i].entrance_id_))
+    // For ZS v3+ ROMs, mirror writes into the expanded tables the way
+    // ZeldaFullEditor does when the ASM patch is active.
+    for (int i = 0; i < kNumOverworldEntrances; ++i) {
+      RETURN_IF_ERROR(write_entrance(i,
+                                     kOverworldEntranceMapExpanded + (i * 2),
+                                     kOverworldEntrancePosExpanded + (i * 2),
+                                     kOverworldEntranceEntranceIdExpanded + i));
     }
   }
 
-  for (int i = 0; i < kNumOverworldHoles; i++) {
+  for (int i = 0; i < kNumOverworldHoles; ++i) {
     RETURN_IF_ERROR(
-        rom()->WriteShort(kOverworldHoleArea + (i * 2), all_holes_[i].map_id_))
+        rom()->WriteShort(kOverworldHoleArea + (i * 2), all_holes_[i].map_id_));
+
+    // ZeldaFullEditor/Data/Overworld.cs::LoadHoles() adds 0x400 when loading
+    // (see lines ~1006-1014). SaveOWEntrances subtracts it before writing
+    // (Save.cs lines ~1088-1092). We replicate that here so vanilla ROMs
+    // receive the expected values.
+    uint16_t rom_map_pos =
+        static_cast<uint16_t>(all_holes_[i].map_pos_ >= 0x400
+                                  ? all_holes_[i].map_pos_ - 0x400
+                                  : all_holes_[i].map_pos_);
     RETURN_IF_ERROR(
-        rom()->WriteShort(kOverworldHolePos + (i * 2), all_holes_[i].map_pos_))
+        rom()->WriteShort(kOverworldHolePos + (i * 2), rom_map_pos));
     RETURN_IF_ERROR(rom()->WriteByte(kOverworldHoleEntrance + i,
-                                     all_holes_[i].entrance_id_))
+                                     all_holes_[i].entrance_id_));
   }
 
   return absl::OkStatus();
@@ -2632,13 +2654,13 @@ absl::Status Overworld::SaveExits() {
     RETURN_IF_ERROR(
         rom()->WriteShort(OWExitXScroll + (i * 2), all_exits_[i].x_scroll_));
     RETURN_IF_ERROR(
-        rom()->WriteByte(OWExitYPlayer + (i * 2), all_exits_[i].y_player_));
+        rom()->WriteShort(OWExitYPlayer + (i * 2), all_exits_[i].y_player_));
     RETURN_IF_ERROR(
-        rom()->WriteByte(OWExitXPlayer + (i * 2), all_exits_[i].x_player_));
+        rom()->WriteShort(OWExitXPlayer + (i * 2), all_exits_[i].x_player_));
     RETURN_IF_ERROR(
-        rom()->WriteByte(OWExitYCamera + (i * 2), all_exits_[i].y_camera_));
+        rom()->WriteShort(OWExitYCamera + (i * 2), all_exits_[i].y_camera_));
     RETURN_IF_ERROR(
-        rom()->WriteByte(OWExitXCamera + (i * 2), all_exits_[i].x_camera_));
+        rom()->WriteShort(OWExitXCamera + (i * 2), all_exits_[i].x_camera_));
     RETURN_IF_ERROR(
         rom()->WriteByte(OWExitUnk1 + i, all_exits_[i].scroll_mod_y_));
     RETURN_IF_ERROR(
@@ -2647,6 +2669,17 @@ absl::Status Overworld::SaveExits() {
                                       all_exits_[i].door_type_1_));
     RETURN_IF_ERROR(rom()->WriteShort(OWExitDoorType2 + (i * 2),
                                       all_exits_[i].door_type_2_));
+
+    if (all_exits_[i].room_id_ == 0x0180) {
+      RETURN_IF_ERROR(rom()->WriteByte(OWExitDoorPosition + 0,
+                                       all_exits_[i].map_id_ & 0xFF));
+    } else if (all_exits_[i].room_id_ == 0x0181) {
+      RETURN_IF_ERROR(rom()->WriteByte(OWExitDoorPosition + 2,
+                                       all_exits_[i].map_id_ & 0xFF));
+    } else if (all_exits_[i].room_id_ == 0x0182) {
+      RETURN_IF_ERROR(rom()->WriteByte(OWExitDoorPosition + 4,
+                                       all_exits_[i].map_id_ & 0xFF));
+    }
   }
 
   return absl::OkStatus();
@@ -2682,76 +2715,115 @@ bool CompareItemsArrays(std::vector<OverworldItem> item_array1,
 }  // namespace
 
 absl::Status Overworld::SaveItems() {
-  std::vector<std::vector<OverworldItem>> room_items(
-      kNumOverworldMapItemPointers);
+  const int pointer_count = zelda3::kNumOverworldMaps;
 
-  for (int i = 0; i < kNumOverworldMapItemPointers; i++) {
-    room_items[i] = std::vector<OverworldItem>();
-    for (const OverworldItem& item : all_items_) {
-      if (item.room_map_id_ == i) {
-        room_items[i].emplace_back(item);
-        if (item.id_ == 0x86) {
-          RETURN_IF_ERROR(rom()->WriteWord(
-              0x16DC5 + (i * 2), (item.game_x_ + (item.game_y_ * 64)) * 2));
-        }
-      }
+  std::vector<std::vector<OverworldItem>> room_items(pointer_count);
+
+  // Reset bomb door lookup table used by special item (0x86)
+  for (int i = 0; i < zelda3::kNumOverworldMaps; ++i) {
+    RETURN_IF_ERROR(rom()->WriteShort(zelda3::kOverworldBombDoorItemLocationsNew +
+                                         (i * 2),
+                                     0x0000));
+  }
+
+  for (const OverworldItem& item : all_items_) {
+    if (item.deleted) continue;
+
+    const int map_index = static_cast<int>(item.room_map_id_);
+    if (map_index < 0 || map_index >= pointer_count) {
+      LOG_WARN("Overworld::SaveItems",
+               "Skipping item with map index %d outside pointer table (size=%d)",
+               map_index, pointer_count);
+      continue;
+    }
+
+    room_items[map_index].push_back(item);
+
+    if (item.id_ == 0x86) {
+      const int lookup_index = std::min(map_index, zelda3::kNumOverworldMaps - 1);
+      RETURN_IF_ERROR(rom()->WriteShort(
+          zelda3::kOverworldBombDoorItemLocationsNew + (lookup_index * 2),
+          static_cast<uint16_t>((item.game_x_ + (item.game_y_ * 64)) * 2)));
     }
   }
 
-  int data_pos = kOverworldItemsPointers + 0x100;
-  int item_pointers[kNumOverworldMapItemPointers];
-  int item_pointers_reuse[kNumOverworldMapItemPointers];
-  int empty_pointer = 0;
-  for (int i = 0; i < kNumOverworldMapItemPointers; i++) {
+  // Prepare pointer reuse cache
+  std::vector<int> item_pointers(pointer_count, -1);
+  std::vector<int> item_pointers_reuse(pointer_count, -1);
+
+  for (int i = 0; i < pointer_count; ++i) {
     item_pointers_reuse[i] = -1;
-    for (int ci = 0; ci < i; ci++) {
+    for (int ci = 0; ci < i; ++ci) {
       if (room_items[i].empty()) {
-        item_pointers_reuse[i] = -2;
+        item_pointers_reuse[i] = -2;  // reuse empty terminator
         break;
       }
 
-      // Copy into separator vectors from i to ci, then ci to end
-      if (CompareItemsArrays(
-              std::vector<OverworldItem>(room_items[i].begin(),
-                                         room_items[i].end()),
-              std::vector<OverworldItem>(room_items[ci].begin(),
-                                         room_items[ci].end()))) {
+      if (CompareItemsArrays(room_items[i], room_items[ci])) {
         item_pointers_reuse[i] = ci;
         break;
       }
     }
   }
 
-  for (int i = 0; i < kNumOverworldMapItemPointers; i++) {
+  // Item data always lives in the vanilla data block
+  int data_pos = zelda3::kOverworldItemsStartDataNew;
+  int empty_pointer = -1;
+
+  for (int i = 0; i < pointer_count; ++i) {
     if (item_pointers_reuse[i] == -1) {
       item_pointers[i] = data_pos;
       for (const OverworldItem& item : room_items[i]) {
-        short map_pos =
-            static_cast<short>(((item.game_y_ << 6) + item.game_x_) << 1);
+        const uint16_t map_pos =
+            static_cast<uint16_t>(((item.game_y_ << 6) + item.game_x_) << 1);
+        const uint32_t data =
+            static_cast<uint32_t>(map_pos & 0xFF) |
+            (static_cast<uint32_t>((map_pos >> 8) & 0xFF) << 8) |
+            (static_cast<uint32_t>(item.id_) << 16);
 
-        uint32_t data = static_cast<uint8_t>(map_pos & 0xFF) |
-                        static_cast<uint8_t>(map_pos >> 8) |
-                        static_cast<uint8_t>(item.id_);
         RETURN_IF_ERROR(rom()->WriteLong(data_pos, data));
         data_pos += 3;
       }
 
       empty_pointer = data_pos;
-      RETURN_IF_ERROR(rom()->WriteWord(data_pos, 0xFFFF));
+      RETURN_IF_ERROR(rom()->WriteShort(data_pos, 0xFFFF));
       data_pos += 2;
     } else if (item_pointers_reuse[i] == -2) {
-      item_pointers[i] = empty_pointer;
+      if (empty_pointer < 0) {
+        item_pointers[i] = data_pos;
+        empty_pointer = data_pos;
+        RETURN_IF_ERROR(rom()->WriteShort(data_pos, 0xFFFF));
+        data_pos += 2;
+      } else {
+        item_pointers[i] = empty_pointer;
+      }
     } else {
       item_pointers[i] = item_pointers[item_pointers_reuse[i]];
     }
-
-    int snesaddr = PcToSnes(item_pointers[i]);
-    RETURN_IF_ERROR(
-        rom()->WriteWord(kOverworldItemsPointers + (i * 2), snesaddr));
   }
 
   if (data_pos > kOverworldItemsEndData) {
     return absl::AbortedError("Too many items");
+  }
+
+  // Update pointer table metadata to the expanded location used by ZScream
+  RETURN_IF_ERROR(rom()->WriteLong(
+      zelda3::overworldItemsAddress, PcToSnes(zelda3::kOverworldItemsPointersNew)));
+  RETURN_IF_ERROR(rom()->WriteByte(
+      zelda3::overworldItemsAddressBank,
+      static_cast<uint8_t>((PcToSnes(zelda3::kOverworldItemsStartDataNew) >> 16) &
+                           0xFF)));
+
+  // Clear pointer table (write zero) to avoid stale values when pointer count shrinks
+  for (int i = 0; i < zelda3::kNumOverworldMaps; ++i) {
+    RETURN_IF_ERROR(rom()->WriteShort(zelda3::kOverworldItemsPointersNew + (i * 2),
+                                     0x0000));
+  }
+
+  for (int i = 0; i < pointer_count; ++i) {
+    const uint32_t snes_addr = PcToSnes(item_pointers[i]);
+    RETURN_IF_ERROR(rom()->WriteShort(zelda3::kOverworldItemsPointersNew + (i * 2),
+                                     static_cast<uint16_t>(snes_addr & 0xFFFF)));
   }
 
   util::logf("End of Items : %d", data_pos);

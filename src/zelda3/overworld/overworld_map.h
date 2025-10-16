@@ -10,6 +10,7 @@
 #include "app/gfx/types/snes_palette.h"
 #include "app/gfx/types/snes_tile.h"
 #include "app/rom.h"
+#include "zelda3/overworld/overworld_item.h"
 
 namespace yaze {
 namespace zelda3 {
