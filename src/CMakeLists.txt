@@ -67,7 +67,7 @@ add_subdirectory(core)
 include(app/gfx/gfx_library.cmake)
 include(app/net/net_library.cmake)
 include(app/gui/gui_library.cmake)
-include(app/core/core_library.cmake)
+# NOTE: app/core/core_library.cmake merged into app/app.cmake
 
 # Include test support library BEFORE yaze_editor so it can link against it
 # (yaze_editor needs TestManager for editor features)
