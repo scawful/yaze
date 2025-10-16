@@ -1,34 +1,74 @@
-# yaze clang-tidy configuration
-# More lenient configuration for easier compliance
+# YAZE ROM Editor - clang-tidy configuration
+# Optimized for Google C++ style, Abseil/gRPC, and ROM hacking workflows
 
 Checks: >
   -*-,
+  # Core static analysis
   clang-analyzer-*,
   -clang-analyzer-alpha*,
+  -clang-analyzer-deadcode.DeadStores,
+  
+  # Performance checks (critical for ROM emulation)
   performance-*,
   -performance-unnecessary-value-param,
+  -performance-for-range-copy,
+  -performance-move-const-arg,
+  
+  # Readability (adapted for ROM hacking)
   readability-*,
-  -readability-magic-numbers,
+  -readability-magic-numbers,  # ROM hacking uses many magic numbers
   -readability-braces-around-statements,
   -readability-named-parameter,
   -readability-function-cognitive-complexity,
   -readability-avoid-const-params-in-decls,
+  -readability-identifier-naming,  # Allow ROM-specific naming patterns
+  -readability-uppercase-literal-suffix,
+  -readability-function-size,
+  
+  # Modernize (selective for ROM compatibility)
   modernize-*,
   -modernize-use-trailing-return-type,
-  -modernize-use-auto,
-  -modernize-avoid-c-arrays,
+  -modernize-use-auto,  # ROM hacking needs explicit types
+  -modernize-avoid-c-arrays,  # ROM data structures use C arrays
   -modernize-use-default-member-init,
+  -modernize-use-nodiscard,
+  -modernize-use-override,
+  -modernize-use-equals-default,
+  -modernize-use-equals-delete,
+  
+  # Bug-prone checks (ROM-specific exceptions)
   bugprone-*,
   -bugprone-easily-swappable-parameters,
   -bugprone-exception-escape,
-  -bugprone-narrowing-conversions,
+  -bugprone-narrowing-conversions,  # ROM data often requires narrowing
   -bugprone-implicit-widening-of-multiplication-result,
+  -bugprone-signed-char-misuse,
+  -bugprone-branch-clone,
+  
+  # Miscellaneous checks
   misc-*,
   -misc-no-recursion,
   -misc-non-private-member-variables-in-classes,
-  -misc-const-correctness
+  -misc-const-correctness,
+  -misc-no-recursion,
+  -misc-redundant-expression,
+  
+  # Abseil-specific checks
+  abseil-*,
+  
+  # Google C++ style enforcement
+  google-*,
+  -google-readability-casting,
+  -google-readability-todo,
+  -google-runtime-int,
+  -google-runtime-references,
+  -google-build-using-namespace,
+  -google-explicit-constructor,
+  -google-global-names-in-headers,
+  -google-readability-braces-around-statements
 
 CheckOptions:
+  # Naming conventions (Google C++ style)
   - key: readability-identifier-naming.VariableCase
     value: lower_case
   - key: readability-identifier-naming.FunctionCase  
@@ -41,13 +81,50 @@ CheckOptions:
     value: lower_case
   - key: readability-identifier-naming.MacroCase
     value: UPPER_CASE
+  - key: readability-identifier-naming.EnumCase
+    value: CamelCase
+  - key: readability-identifier-naming.EnumConstantCase
+    value: UPPER_CASE
+  
+  # Function size limits (relaxed for ROM hacking)
   - key: readability-function-size.LineThreshold
-    value: 150
+    value: 200
   - key: readability-function-size.StatementThreshold
-    value: 100
+    value: 150
+  - key: readability-function-size.BranchThreshold
+    value: 20
+  
+  # Performance optimizations
   - key: performance-unnecessary-value-param.AllowedTypes
-    value: 'std::function;std::unique_ptr;std::shared_ptr'
+    value: 'std::function;std::unique_ptr;std::shared_ptr;absl::StatusOr;absl::string_view'
+  - key: performance-for-range-copy.WarnOnAllAutoCopies
+    value: false
+  
+  # ROM hacking specific options
+  - key: readability-magic-numbers.IgnoredValues
+    value: '0,1,2,4,8,16,32,64,128,256,512,1024,2048,4096,8192,16384,32768,65536'
+  - key: readability-magic-numbers.IgnorePowersOf2IntegerValues
+    value: true
+  - key: readability-magic-numbers.IgnorePowersOf2FloatingValues
+    value: true
+  
+  # Abseil-specific options
+  - key: abseil-string-find-startswith.AllowedFunctions
+    value: 'absl::StartsWith;absl::EndsWith'
+  
+  # Google style options
+  - key: google-readability-casting.AllowedTypes
+    value: 'uint8_t;uint16_t;uint32_t;uint64_t;int8_t;int16_t;int32_t;int64_t'
+  - key: google-runtime-int.SignedIntegerMaxBits
+    value: 64
+  - key: google-runtime-int.UnsignedIntegerMaxBits
+    value: 64
 
 WarningsAsErrors: ''
-HeaderFilterRegex: '(src|test)\/.*\.(h|hpp|hxx)$'
+HeaderFilterRegex: '(src|test|incl)\/.*\.(h|hpp|hxx)$'
 FormatStyle: google
+
+# Additional ROM hacking specific configurations
+UseColor: true
+SystemHeaders: false
+User: ''
