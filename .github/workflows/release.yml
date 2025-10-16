@@ -48,6 +48,7 @@ jobs:
           arch: x64
 
       - name: Configure
+        id: configure
         shell: pwsh
         run: |
           $toolchain = "${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake"
@@ -55,13 +56,40 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release `
             -DCMAKE_TOOLCHAIN_FILE=$toolchain `
             -DVCPKG_TARGET_TRIPLET=x64-windows-static `
+            -DVCPKG_MANIFEST_MODE=ON `
             -DYAZE_BUILD_TESTS=OFF `
             -DYAZE_BUILD_EMU=ON `
             -DYAZE_BUILD_Z3ED=ON `
-            -DYAZE_BUILD_TOOLS=ON
+            -DYAZE_BUILD_TOOLS=ON 2>&1 | Tee-Object -FilePath cmake_config.log
+
+      - name: Report Configure Failure
+        if: always() && steps.configure.outcome == 'failure'
+        shell: pwsh
+        run: |
+          Write-Host "::error::CMake configuration failed. Check cmake_config.log for details." -ForegroundColor Red
+          if (Test-Path cmake_config.log) {
+            Write-Host "::group::CMake Configuration Log (last 50 lines)"
+            Get-Content cmake_config.log -Tail 50
+            Write-Host "::endgroup::"
+          }
+          exit 1
 
       - name: Build
-        run: cmake --build build --config Release --parallel 4 -- /p:CL_MPcount=4
+        id: build
+        shell: pwsh
+        run: cmake --build build --config Release --parallel 4 -- /p:CL_MPcount=4 2>&1 | Tee-Object -FilePath build.log
+
+      - name: Report Build Failure
+        if: always() && steps.build.outcome == 'failure'
+        shell: pwsh
+        run: |
+          Write-Host "::error::Build failed. Check build.log for details." -ForegroundColor Red
+          if (Test-Path build.log) {
+            Write-Host "::group::Build Log (last 100 lines)"
+            Get-Content build.log -Tail 100
+            Write-Host "::endgroup::"
+          }
+          exit 1
 
       - name: Package
         shell: pwsh
@@ -72,7 +100,19 @@ jobs:
           Copy-Item LICENSE, README.md -Destination release/
           Compress-Archive -Path release/* -DestinationPath yaze-windows-x64.zip
 
+      - name: Upload Build Logs on Failure (Windows)
+        if: always() && (steps.configure.outcome == 'failure' || steps.build.outcome == 'failure')
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs-windows
+          path: |
+            cmake_config.log
+            build.log
+          if-no-files-found: ignore
+          retention-days: 7
+
       - uses: actions/upload-artifact@v4
+        if: steps.build.outcome == 'success'
         with:
           name: yaze-windows-x64
           path: yaze-windows-x64.zip
@@ -89,6 +129,7 @@ jobs:
         run: brew install ninja cmake
 
       - name: Configure arm64
+        id: configure_arm64
         run: |
           cmake -S . -B build-arm64 -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
@@ -96,12 +137,14 @@ jobs:
             -DYAZE_BUILD_TESTS=OFF \
             -DYAZE_BUILD_EMU=ON \
             -DYAZE_BUILD_Z3ED=ON \
-            -DYAZE_BUILD_TOOLS=ON
+            -DYAZE_BUILD_TOOLS=ON 2>&1 | tee cmake_config_arm64.log
 
       - name: Build arm64
-        run: cmake --build build-arm64 --config Release
+        id: build_arm64
+        run: cmake --build build-arm64 --config Release 2>&1 | tee build_arm64.log
 
       - name: Configure x86_64
+        id: configure_x86_64
         run: |
           cmake -S . -B build-x86_64 -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
@@ -109,10 +152,11 @@ jobs:
             -DYAZE_BUILD_TESTS=OFF \
             -DYAZE_BUILD_EMU=ON \
             -DYAZE_BUILD_Z3ED=ON \
-            -DYAZE_BUILD_TOOLS=ON
+            -DYAZE_BUILD_TOOLS=ON 2>&1 | tee cmake_config_x86_64.log
 
       - name: Build x86_64
-        run: cmake --build build-x86_64 --config Release
+        id: build_x86_64
+        run: cmake --build build-x86_64 --config Release 2>&1 | tee build_x86_64.log
 
       - name: Create Universal Binary
         run: |
@@ -128,7 +172,21 @@ jobs:
           hdiutil create -fs HFS+ -srcfolder yaze.app \
             -volname "yaze" yaze-macos-universal.dmg
 
+      - name: Upload Build Logs on Failure (macOS)
+        if: always() && (steps.configure_arm64.outcome == 'failure' || steps.build_arm64.outcome == 'failure' || steps.configure_x86_64.outcome == 'failure' || steps.build_x86_64.outcome == 'failure')
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs-macos
+          path: |
+            cmake_config_arm64.log
+            build_arm64.log
+            cmake_config_x86_64.log
+            build_x86_64.log
+          if-no-files-found: ignore
+          retention-days: 7
+
       - uses: actions/upload-artifact@v4
+        if: steps.build_arm64.outcome == 'success' && steps.build_x86_64.outcome == 'success'
         with:
           name: yaze-macos-universal
           path: yaze-macos-universal.dmg
@@ -161,6 +219,7 @@ jobs:
             libgtk-3-dev libdbus-1-dev
 
       - name: Configure
+        id: configure
         run: |
           cmake -S . -B build -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
@@ -168,10 +227,11 @@ jobs:
             -DYAZE_BUILD_EMU=ON \
             -DYAZE_BUILD_Z3ED=ON \
             -DYAZE_BUILD_TOOLS=ON \
-            -DNFD_PORTAL=ON
+            -DNFD_PORTAL=ON 2>&1 | tee cmake_config.log
 
       - name: Build
-        run: cmake --build build --config Release
+        id: build
+        run: cmake --build build --config Release 2>&1 | tee build.log
 
       - name: Package
         run: |
@@ -181,7 +241,19 @@ jobs:
           cp LICENSE README.md release/
           tar -czf yaze-linux-x64.tar.gz -C release .
 
+      - name: Upload Build Logs on Failure (Linux)
+        if: always() && (steps.configure.outcome == 'failure' || steps.build.outcome == 'failure')
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs-linux
+          path: |
+            cmake_config.log
+            build.log
+          if-no-files-found: ignore
+          retention-days: 7
+
       - uses: actions/upload-artifact@v4
+        if: steps.build.outcome == 'success'
         with:
           name: yaze-linux-x64
           path: yaze-linux-x64.tar.gz
@@ -190,7 +262,7 @@ jobs:
     name: Create Release
     needs: [build-windows, build-macos, build-linux]
     runs-on: ubuntu-latest
-    if: always()
+    if: always() && (needs.build-windows.result == 'success' || needs.build-macos.result == 'success' || needs.build-linux.result == 'success')
     steps:
       - uses: actions/checkout@v4
 

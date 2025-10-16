@@ -391,7 +391,7 @@ jobs:
         # Note: NFD_PORTAL=ON uses D-Bus portal instead of GTK on Linux (more reliable in CI)
     
     - name: Report Configure Failure
-      if: failure() && (steps.configure_windows.outcome == 'failure' || steps.configure_unix.outcome == 'failure')
+      if: always() && (steps.configure_windows.outcome == 'failure' || steps.configure_unix.outcome == 'failure')
       shell: bash
       run: |
         echo "::error::CMake configuration failed. Check cmake_config.log for details."
@@ -433,7 +433,7 @@ jobs:
         fi
     
     - name: Report Build Failure
-      if: failure() && steps.build.outcome == 'failure'
+      if: always() && steps.build.outcome == 'failure'
       shell: bash
       run: |
         echo "::error::Build failed. Check build.log for details."
@@ -449,7 +449,7 @@ jobs:
         fi
     
     - name: Windows Build Diagnostics
-      if: failure() && runner.os == 'Windows' && steps.build.outcome == 'failure'
+      if: always() && runner.os == 'Windows' && steps.build.outcome == 'failure'
       shell: pwsh
       run: |
         Write-Host "=== Windows Build Diagnostics ===" -ForegroundColor Red
@@ -480,7 +480,7 @@ jobs:
         }
     
     - name: Post-Build Diagnostics (Windows)
-      if: runner.os == 'Windows' && steps.build.outcome == 'success'
+      if: always() && runner.os == 'Windows' && steps.build.outcome == 'success'
       shell: pwsh
       run: |
         Write-Host "=== Post-Build Diagnostics ===" -ForegroundColor Green
