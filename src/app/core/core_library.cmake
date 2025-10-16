@@ -122,27 +122,15 @@ if(YAZE_WITH_GRPC)
     ${CMAKE_SOURCE_DIR}/third_party/json/include)
   target_compile_definitions(yaze_app_core_lib PRIVATE YAZE_WITH_JSON)
 
-  # Add proto definitions for test harness, ROM service, and canvas automation
-  target_add_protobuf(yaze_app_core_lib
-    ${PROJECT_SOURCE_DIR}/src/protos/imgui_test_harness.proto)
+  # Add proto definitions for ROM service and canvas automation
+  # NOTE: Test harness proto moved to test.cmake with yaze_test_support
   target_add_protobuf(yaze_app_core_lib
     ${PROJECT_SOURCE_DIR}/src/protos/rom_service.proto)
   target_add_protobuf(yaze_app_core_lib
     ${PROJECT_SOURCE_DIR}/src/protos/canvas_automation.proto)
 
-  # Add service and testing implementation (now in app/service/ and app/test/)
+  # Add unified gRPC server (non-test services only)
   target_sources(yaze_app_core_lib PRIVATE
-    ${CMAKE_SOURCE_DIR}/src/app/service/imgui_test_harness_service.cc
-    ${CMAKE_SOURCE_DIR}/src/app/service/imgui_test_harness_service.h
-    ${CMAKE_SOURCE_DIR}/src/app/service/screenshot_utils.cc
-    ${CMAKE_SOURCE_DIR}/src/app/service/screenshot_utils.h
-    ${CMAKE_SOURCE_DIR}/src/app/service/widget_discovery_service.cc
-    ${CMAKE_SOURCE_DIR}/src/app/service/widget_discovery_service.h
-    ${CMAKE_SOURCE_DIR}/src/app/test/test_recorder.cc
-    ${CMAKE_SOURCE_DIR}/src/app/test/test_recorder.h
-    ${CMAKE_SOURCE_DIR}/src/app/test/test_script_parser.cc
-    ${CMAKE_SOURCE_DIR}/src/app/test/test_script_parser.h
-    # Add unified gRPC server
     ${CMAKE_SOURCE_DIR}/src/app/service/unified_grpc_server.cc
     ${CMAKE_SOURCE_DIR}/src/app/service/unified_grpc_server.h
   )
@@ -160,7 +148,8 @@ if(YAZE_WITH_GRPC)
     endif()
   endif()
   
-  message(STATUS "  - gRPC test harness + ROM service enabled")
+  message(STATUS "  - gRPC ROM service + canvas automation enabled")
+  message(STATUS "  - gRPC test harness moved to yaze_test_support (avoid circular deps)")
 endif()
 
 # Platform-specific libraries
