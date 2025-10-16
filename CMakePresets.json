@@ -68,7 +68,7 @@
     {
       "name": "_win",
       "hidden": true,
-      "description": "Windows base configuration",
+      "description": "Windows base configuration with vcpkg static triplet",
       "condition": {
         "type": "equals",
         "lhs": "${hostSystemName}",
@@ -77,7 +77,8 @@
       "generator": "Visual Studio 17 2022",
       "cacheVariables": {
         "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/vcpkg/scripts/buildsystems/vcpkg.cmake",
-        "VCPKG_MANIFEST_MODE": "ON"
+        "VCPKG_MANIFEST_MODE": "ON",
+        "VCPKG_TARGET_TRIPLET": "x64-windows-static"
       }
     },
     {
@@ -193,34 +194,31 @@
     {
       "name": "win-dbg",
       "displayName": "Windows Debug (x64)",
-      "description": "Windows x64 debug build (warnings off)",
+      "description": "Windows x64 debug build with static vcpkg (warnings off)",
       "inherits": ["_base", "_win", "_quiet"],
       "architecture": "x64",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug",
-        "VCPKG_TARGET_TRIPLET": "x64-windows"
+        "CMAKE_BUILD_TYPE": "Debug"
       }
     },
     {
       "name": "win-dbg-v",
       "displayName": "Windows Debug Verbose (x64)",
-      "description": "Windows x64 debug build with all warnings",
+      "description": "Windows x64 debug build with static vcpkg and all warnings",
       "inherits": ["_base", "_win", "_verbose"],
       "architecture": "x64",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug",
-        "VCPKG_TARGET_TRIPLET": "x64-windows"
+        "CMAKE_BUILD_TYPE": "Debug"
       }
     },
     {
       "name": "win-rel",
       "displayName": "Windows Release (x64)",
-      "description": "Windows x64 release build (warnings off)",
+      "description": "Windows x64 release build with static vcpkg (warnings off)",
       "inherits": ["_base", "_win", "_quiet"],
       "architecture": "x64",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
-        "VCPKG_TARGET_TRIPLET": "x64-windows",
         "YAZE_BUILD_TESTS": "OFF"
       }
     },

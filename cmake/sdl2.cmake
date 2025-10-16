@@ -1,6 +1,9 @@
 # SDL2
 # On Windows with vcpkg, prefer vcpkg packages for faster builds
 if(WIN32)
+  # Disable pkgconfig for SDL on Windows (prevents MSYS2 download failures in vcpkg)
+  set(SDL_PKGCONFIG OFF CACHE BOOL "Disable pkgconfig on Windows" FORCE)
+  
   # Try to find SDL2 via vcpkg first if toolchain is available
   if(DEFINED CMAKE_TOOLCHAIN_FILE AND EXISTS "${CMAKE_TOOLCHAIN_FILE}")
     find_package(SDL2 CONFIG QUIET)

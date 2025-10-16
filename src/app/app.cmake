@@ -108,12 +108,14 @@ if(YAZE_WITH_GRPC)
     ${CMAKE_SOURCE_DIR}/third_party/json/include)
   target_compile_definitions(yaze_app_core_lib PRIVATE YAZE_WITH_JSON)
 
-  # Add proto definitions for ROM service and canvas automation
-  # NOTE: Test harness proto is in test.cmake with yaze_test_support
+  # Add proto definitions for ROM service, canvas automation, and test harness
+  # Test harness proto is needed because widget_discovery_service.h includes it
   target_add_protobuf(yaze_app_core_lib
     ${PROJECT_SOURCE_DIR}/src/protos/rom_service.proto)
   target_add_protobuf(yaze_app_core_lib
     ${PROJECT_SOURCE_DIR}/src/protos/canvas_automation.proto)
+  target_add_protobuf(yaze_app_core_lib
+    ${PROJECT_SOURCE_DIR}/src/protos/imgui_test_harness.proto)
 
   # Add unified gRPC server (non-test services only)
   target_sources(yaze_app_core_lib PRIVATE

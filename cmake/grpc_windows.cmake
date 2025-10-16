@@ -63,13 +63,113 @@ if(WIN32 AND YAZE_USE_VCPKG_GRPC)
     endif()
     
     # Set variables for compatibility with rest of build system
-    set(_gRPC_PROTOBUF_PROTOC_EXECUTABLE $<TARGET_FILE:protoc>)
-    set(_gRPC_CPP_PLUGIN $<TARGET_FILE:grpc_cpp_plugin>)
+    set(_gRPC_PROTOBUF_PROTOC_EXECUTABLE $<TARGET_FILE:protoc> PARENT_SCOPE)
+    set(_gRPC_CPP_PLUGIN $<TARGET_FILE:grpc_cpp_plugin> PARENT_SCOPE)
     set(_gRPC_PROTO_GENS_DIR ${CMAKE_BINARY_DIR}/gens)
     file(MAKE_DIRECTORY ${_gRPC_PROTO_GENS_DIR})
+    set(_gRPC_PROTO_GENS_DIR ${_gRPC_PROTO_GENS_DIR} PARENT_SCOPE)
+    
+    # Export Abseil targets from vcpkg (critical for linking!)
+    set(ABSL_TARGETS
+      absl::base
+      absl::config
+      absl::core_headers
+      absl::utility
+      absl::memory
+      absl::container_memory
+      absl::strings
+      absl::str_format
+      absl::cord
+      absl::hash
+      absl::time
+      absl::status
+      absl::statusor
+      absl::flags
+      absl::flags_parse
+      absl::flags_usage
+      absl::flags_commandlineflag
+      absl::flags_marshalling
+      absl::flags_private_handle_accessor
+      absl::flags_program_name
+      absl::flags_config
+      absl::flags_reflection
+      absl::examine_stack
+      absl::stacktrace
+      absl::failure_signal_handler
+      absl::flat_hash_map
+      absl::synchronization
+      absl::symbolize
+      PARENT_SCOPE
+    )
+    
+    # Export protobuf targets
+    set(YAZE_PROTOBUF_TARGETS protobuf::libprotobuf PARENT_SCOPE)
+    set(YAZE_PROTOBUF_WHOLEARCHIVE_TARGETS protobuf::libprotobuf PARENT_SCOPE)
+    
+    # Get protobuf include directories for proto generation
+    get_target_property(_PROTOBUF_INCLUDE_DIRS protobuf::libprotobuf 
+                        INTERFACE_INCLUDE_DIRECTORIES)
+    if(_PROTOBUF_INCLUDE_DIRS)
+      list(GET _PROTOBUF_INCLUDE_DIRS 0 _gRPC_PROTOBUF_WELLKNOWN_INCLUDE_DIR)
+      set(_gRPC_PROTOBUF_WELLKNOWN_INCLUDE_DIR ${_gRPC_PROTOBUF_WELLKNOWN_INCLUDE_DIR} PARENT_SCOPE)
+    endif()
+    
+    # Define target_add_protobuf() function for proto compilation (needed by vcpkg path)
+    function(target_add_protobuf target)
+        if(NOT TARGET ${target})
+            message(FATAL_ERROR "Target ${target} doesn't exist")
+        endif()
+        if(NOT ARGN)
+            message(SEND_ERROR "Error: target_add_protobuf() called without any proto files")
+            return()
+        endif()
+
+        set(_protobuf_include_path -I . -I ${_gRPC_PROTOBUF_WELLKNOWN_INCLUDE_DIR})
+        foreach(FIL ${ARGN})
+            get_filename_component(ABS_FIL ${FIL} ABSOLUTE)
+            get_filename_component(FIL_WE ${FIL} NAME_WE)
+            file(RELATIVE_PATH REL_FIL ${CMAKE_CURRENT_SOURCE_DIR} ${ABS_FIL})
+            get_filename_component(REL_DIR ${REL_FIL} DIRECTORY)
+            if(NOT REL_DIR)
+                set(RELFIL_WE "${FIL_WE}")
+            else()
+                set(RELFIL_WE "${REL_DIR}/${FIL_WE}")
+            endif()
+
+            add_custom_command(
+            OUTPUT  "${_gRPC_PROTO_GENS_DIR}/${RELFIL_WE}.grpc.pb.cc"
+                    "${_gRPC_PROTO_GENS_DIR}/${RELFIL_WE}.grpc.pb.h"
+                    "${_gRPC_PROTO_GENS_DIR}/${RELFIL_WE}_mock.grpc.pb.h"
+                    "${_gRPC_PROTO_GENS_DIR}/${RELFIL_WE}.pb.cc"
+                    "${_gRPC_PROTO_GENS_DIR}/${RELFIL_WE}.pb.h"
+            COMMAND ${_gRPC_PROTOBUF_PROTOC_EXECUTABLE}
+            ARGS --grpc_out=generate_mock_code=true:${_gRPC_PROTO_GENS_DIR}
+                --cpp_out=${_gRPC_PROTO_GENS_DIR}
+                --plugin=protoc-gen-grpc=${_gRPC_CPP_PLUGIN}
+                ${_protobuf_include_path}
+                ${REL_FIL}
+            DEPENDS ${ABS_FIL} protoc grpc_cpp_plugin
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+            COMMENT "Running gRPC C++ protocol buffer compiler on ${FIL}"
+            VERBATIM)
+
+            target_sources(${target} PRIVATE
+                "${_gRPC_PROTO_GENS_DIR}/${RELFIL_WE}.grpc.pb.cc"
+                "${_gRPC_PROTO_GENS_DIR}/${RELFIL_WE}.grpc.pb.h"
+                "${_gRPC_PROTO_GENS_DIR}/${RELFIL_WE}_mock.grpc.pb.h"
+                "${_gRPC_PROTO_GENS_DIR}/${RELFIL_WE}.pb.cc"
+                "${_gRPC_PROTO_GENS_DIR}/${RELFIL_WE}.pb.h"
+            )
+            target_include_directories(${target} PUBLIC
+                $<BUILD_INTERFACE:${_gRPC_PROTO_GENS_DIR}>
+                $<BUILD_INTERFACE:${_gRPC_PROTOBUF_WELLKNOWN_INCLUDE_DIR}>
+            )
+        endforeach()
+    endfunction()
     
     # Skip the FetchContent path
     set(YAZE_GRPC_CONFIGURED TRUE PARENT_SCOPE)
+    message(STATUS "gRPC setup complete via vcpkg (includes bundled Abseil)")
     return()
   else()
     message(WARNING "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
