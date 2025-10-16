@@ -116,16 +116,13 @@ if(APPLE AND CMAKE_OSX_ARCHITECTURES STREQUAL "arm64")
   set(ABSL_BUILD_TEST_HELPERS OFF CACHE BOOL "" FORCE)
 endif()
 
-# Declare gRPC - use v1.75.1 which includes ARM64 macOS fixes and is compatible with modern compilers
-# v1.75.1 includes:
-# - ARM64 macOS compilation fixes (Abseil randen_hwaes)
-# - MSVC/Visual Studio compatibility fixes
-# - Clang 18+ compatibility
-# - Updated Abseil and Protobuf dependencies
+# Declare gRPC - use v1.67.1 which is proven MSVC-compatible
+# v1.67.1 is stable and tested with MSVC, avoiding UPB compilation errors
+# For newer features/fixes, use vcpkg which provides v1.71.0+
 FetchContent_Declare(
   grpc
   GIT_REPOSITORY https://github.com/grpc/grpc.git
-  GIT_TAG        v1.75.1
+  GIT_TAG        v1.67.1
   GIT_PROGRESS   TRUE
   GIT_SHALLOW    TRUE
   USES_TERMINAL_DOWNLOAD TRUE
