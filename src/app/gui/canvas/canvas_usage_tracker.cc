@@ -9,7 +9,6 @@
 
 namespace yaze {
 namespace gui {
-namespace canvas {
 
 void CanvasUsageTracker::Initialize(const std::string& canvas_id) {
   canvas_id_ = canvas_id;
@@ -127,6 +126,7 @@ std::string CanvasUsageTracker::GetUsageModeName(CanvasUsage usage) const {
     case CanvasUsage::kPaletteEditing: return "Palette Editing";
     case CanvasUsage::kBppConversion: return "BPP Conversion";
     case CanvasUsage::kPerformanceMode: return "Performance Mode";
+    case CanvasUsage::kEntityManipulation: return "Entity Manipulation";
     case CanvasUsage::kUnknown: return "Unknown";
     default: return "Unknown";
   }
@@ -142,6 +142,7 @@ ImVec4 CanvasUsageTracker::GetUsageModeColor(CanvasUsage usage) const {
     case CanvasUsage::kPaletteEditing: return ImVec4(0.8F, 0.2F, 1.0F, 1.0F); // Purple
     case CanvasUsage::kBppConversion: return ImVec4(0.2F, 1.0F, 1.0F, 1.0F); // Cyan
     case CanvasUsage::kPerformanceMode: return ImVec4(1.0F, 0.2F, 0.2F, 1.0F); // Red
+    case CanvasUsage::kEntityManipulation: return ImVec4(0.4F, 0.8F, 1.0F, 1.0F); // Light Blue
     case CanvasUsage::kUnknown: return ImVec4(0.7F, 0.7F, 0.7F, 1.0F); // Gray
     default: return ImVec4(0.7F, 0.7F, 0.7F, 1.0F); // Gray
   }
@@ -424,6 +425,5 @@ void CanvasUsageManager::ClearAllTrackers() {
   LOG_DEBUG("CanvasUsage", "Cleared all canvas usage trackers");
 }
 
-}  // namespace canvas
 }  // namespace gui
 }  // namespace yaze

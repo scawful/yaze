@@ -163,44 +163,35 @@ void Canvas::Cleanup() {
 
 void Canvas::InitializeEnhancedComponents() {
   // Initialize modals system
-  modals_ = std::make_unique<canvas::CanvasModals>();
+  modals_ = std::make_unique<CanvasModals>();
 
   // Initialize context menu system
-  context_menu_ = std::make_unique<canvas::CanvasContextMenu>();
+  context_menu_ = std::make_unique<CanvasContextMenu>();
   context_menu_->Initialize(canvas_id_);
 
-  // Initialize usage tracker
-  usage_tracker_ = std::make_shared<canvas::CanvasUsageTracker>();
-  usage_tracker_->Initialize(canvas_id_);
-  canvas::CanvasUsageManager::Get().RegisterTracker(canvas_id_, usage_tracker_);
+  // Initialize usage tracker (optional, controlled by config.enable_metrics)
+  if (config_.enable_metrics) {
+    usage_tracker_ = std::make_shared<CanvasUsageTracker>();
+    usage_tracker_->Initialize(canvas_id_);
+    usage_tracker_->StartSession();
 
-  // Initialize performance integration
-  performance_integration_ =
-      std::make_shared<canvas::CanvasPerformanceIntegration>();
-  performance_integration_->Initialize(canvas_id_);
-  performance_integration_->SetUsageTracker(usage_tracker_);
-  canvas::CanvasPerformanceManager::Get().RegisterIntegration(
-      canvas_id_, performance_integration_);
-
-  // Start performance monitoring
-  performance_integration_->StartMonitoring();
-  usage_tracker_->StartSession();
+    // Initialize performance integration
+    performance_integration_ =
+        std::make_shared<CanvasPerformanceIntegration>();
+    performance_integration_->Initialize(canvas_id_);
+    performance_integration_->SetUsageTracker(usage_tracker_);
+    performance_integration_->StartMonitoring();
+  }
 }
 
-void Canvas::SetUsageMode(canvas::CanvasUsage usage) {
+void Canvas::SetUsageMode(CanvasUsage usage) {
   if (usage_tracker_) {
     usage_tracker_->SetUsageMode(usage);
   }
   if (context_menu_) {
     context_menu_->SetUsageMode(usage);
   }
-}
-
-canvas::CanvasUsage Canvas::GetUsageMode() const {
-  if (usage_tracker_) {
-    return usage_tracker_->GetCurrentStats().usage_mode;
-  }
-  return canvas::CanvasUsage::kUnknown;
+  config_.usage_mode = usage;
 }
 
 void Canvas::RecordCanvasOperation(const std::string& operation_name,
@@ -210,7 +201,7 @@ void Canvas::RecordCanvasOperation(const std::string& operation_name,
   }
   if (performance_integration_) {
     performance_integration_->RecordOperation(operation_name, time_ms,
-                                              GetUsageMode());
+                                              usage_mode());
   }
 }
 
@@ -455,7 +446,7 @@ void Canvas::DrawContextMenu() {
 
   // Use enhanced context menu if available
   if (context_menu_) {
-    canvas::CanvasConfig snapshot;
+    CanvasConfig snapshot;
     snapshot.canvas_size = canvas_sz_;
     snapshot.content_size = config_.content_size;
     snapshot.global_scale = global_scale_;
@@ -476,78 +467,78 @@ void Canvas::DrawContextMenu() {
     context_menu_->Render(
         context_id_, mouse_pos, rom_, bitmap_,
         bitmap_ ? bitmap_->mutable_palette() : nullptr,
-        [this](canvas::CanvasContextMenu::Command command,
-               const canvas::CanvasConfig& updated_config) {
+        [this](CanvasContextMenu::Command command,
+               const CanvasConfig& updated_config) {
           switch (command) {
-            case canvas::CanvasContextMenu::Command::kResetView:
+            case CanvasContextMenu::Command::kResetView:
               ResetView();
               break;
-            case canvas::CanvasContextMenu::Command::kZoomToFit:
+            case CanvasContextMenu::Command::kZoomToFit:
               if (bitmap_) {
                 SetZoomToFit(*bitmap_);
               }
               break;
-            case canvas::CanvasContextMenu::Command::kZoomIn:
+            case CanvasContextMenu::Command::kZoomIn:
               SetGlobalScale(config_.global_scale * 1.25f);
               break;
-            case canvas::CanvasContextMenu::Command::kZoomOut:
+            case CanvasContextMenu::Command::kZoomOut:
               SetGlobalScale(config_.global_scale * 0.8f);
               break;
-            case canvas::CanvasContextMenu::Command::kToggleGrid:
+            case CanvasContextMenu::Command::kToggleGrid:
               config_.enable_grid = !config_.enable_grid;
               enable_grid_ = config_.enable_grid;
               break;
-            case canvas::CanvasContextMenu::Command::kToggleHexLabels:
+            case CanvasContextMenu::Command::kToggleHexLabels:
               config_.enable_hex_labels = !config_.enable_hex_labels;
               enable_hex_tile_labels_ = config_.enable_hex_labels;
               break;
-            case canvas::CanvasContextMenu::Command::kToggleCustomLabels:
+            case CanvasContextMenu::Command::kToggleCustomLabels:
               config_.enable_custom_labels = !config_.enable_custom_labels;
               enable_custom_labels_ = config_.enable_custom_labels;
               break;
-            case canvas::CanvasContextMenu::Command::kToggleContextMenu:
+            case CanvasContextMenu::Command::kToggleContextMenu:
               config_.enable_context_menu = !config_.enable_context_menu;
               enable_context_menu_ = config_.enable_context_menu;
               break;
-            case canvas::CanvasContextMenu::Command::kToggleAutoResize:
+            case CanvasContextMenu::Command::kToggleAutoResize:
               config_.auto_resize = !config_.auto_resize;
               break;
-            case canvas::CanvasContextMenu::Command::kToggleDraggable:
+            case CanvasContextMenu::Command::kToggleDraggable:
               config_.is_draggable = !config_.is_draggable;
               draggable_ = config_.is_draggable;
               break;
-            case canvas::CanvasContextMenu::Command::kSetGridStep:
+            case CanvasContextMenu::Command::kSetGridStep:
               config_.grid_step = updated_config.grid_step;
               custom_step_ = config_.grid_step;
               break;
-            case canvas::CanvasContextMenu::Command::kSetScale:
+            case CanvasContextMenu::Command::kSetScale:
               config_.global_scale = updated_config.global_scale;
               global_scale_ = config_.global_scale;
               break;
-            case canvas::CanvasContextMenu::Command::kOpenAdvancedProperties:
+            case CanvasContextMenu::Command::kOpenAdvancedProperties:
               if (modals_) {
-                canvas::CanvasConfig modal_config = updated_config;
+                CanvasConfig modal_config = updated_config;
                 modal_config.on_config_changed =
-                    [this](const canvas::CanvasConfig& cfg) {
+                    [this](const CanvasConfig& cfg) {
                       ApplyConfigSnapshot(cfg);
                     };
                 modal_config.on_scale_changed =
-                    [this](const canvas::CanvasConfig& cfg) {
+                    [this](const CanvasConfig& cfg) {
                       ApplyScaleSnapshot(cfg);
                     };
                 modals_->ShowAdvancedProperties(canvas_id_, modal_config,
                                                 bitmap_);
               }
               break;
-            case canvas::CanvasContextMenu::Command::kOpenScalingControls:
+            case CanvasContextMenu::Command::kOpenScalingControls:
               if (modals_) {
-                canvas::CanvasConfig modal_config = updated_config;
+                CanvasConfig modal_config = updated_config;
                 modal_config.on_config_changed =
-                    [this](const canvas::CanvasConfig& cfg) {
+                    [this](const CanvasConfig& cfg) {
                       ApplyConfigSnapshot(cfg);
                     };
                 modal_config.on_scale_changed =
-                    [this](const canvas::CanvasConfig& cfg) {
+                    [this](const CanvasConfig& cfg) {
                       ApplyScaleSnapshot(cfg);
                     };
                 modals_->ShowScalingControls(canvas_id_, modal_config, bitmap_);
@@ -695,7 +686,7 @@ void Canvas::ResetView() {
   scrolling_ = ImVec2(0, 0);
 }
 
-void Canvas::ApplyConfigSnapshot(const canvas::CanvasConfig& snapshot) {
+void Canvas::ApplyConfigSnapshot(const CanvasConfig& snapshot) {
   config_.enable_grid = snapshot.enable_grid;
   config_.enable_hex_labels = snapshot.enable_hex_labels;
   config_.enable_custom_labels = snapshot.enable_custom_labels;
@@ -719,7 +710,7 @@ void Canvas::ApplyConfigSnapshot(const canvas::CanvasConfig& snapshot) {
   scrolling_ = snapshot.scrolling;
 }
 
-void Canvas::ApplyScaleSnapshot(const canvas::CanvasConfig& snapshot) {
+void Canvas::ApplyScaleSnapshot(const CanvasConfig& snapshot) {
   config_.global_scale = snapshot.global_scale;
   global_scale_ = config_.global_scale;
   scrolling_ = snapshot.scrolling;
@@ -1586,7 +1577,7 @@ void TableCanvasPipeline(gui::Canvas& canvas, gfx::Bitmap& bitmap,
 void Canvas::ShowAdvancedCanvasProperties() {
   // Use the new modal system if available
   if (modals_) {
-    canvas::CanvasConfig modal_config;
+    CanvasConfig modal_config;
     modal_config.canvas_size = canvas_sz_;
     modal_config.content_size = config_.content_size;
     modal_config.global_scale = global_scale_;
@@ -1599,14 +1590,14 @@ void Canvas::ShowAdvancedCanvasProperties() {
     modal_config.auto_resize = config_.auto_resize;
     modal_config.scrolling = scrolling_;
     modal_config.on_config_changed =
-        [this](const canvas::CanvasConfig& updated_config) {
+        [this](const CanvasConfig& updated_config) {
           // Update legacy variables when config changes
           enable_grid_ = updated_config.enable_grid;
           enable_hex_tile_labels_ = updated_config.enable_hex_labels;
           enable_custom_labels_ = updated_config.enable_custom_labels;
         };
     modal_config.on_scale_changed =
-        [this](const canvas::CanvasConfig& updated_config) {
+        [this](const CanvasConfig& updated_config) {
           global_scale_ = updated_config.global_scale;
           scrolling_ = updated_config.scrolling;
         };
@@ -1709,7 +1700,7 @@ void Canvas::ShowAdvancedCanvasProperties() {
 void Canvas::ShowScalingControls() {
   // Use the new modal system if available
   if (modals_) {
-    canvas::CanvasConfig modal_config;
+    CanvasConfig modal_config;
     modal_config.canvas_size = canvas_sz_;
     modal_config.content_size = config_.content_size;
     modal_config.global_scale = global_scale_;
@@ -1722,7 +1713,7 @@ void Canvas::ShowScalingControls() {
     modal_config.auto_resize = config_.auto_resize;
     modal_config.scrolling = scrolling_;
     modal_config.on_config_changed =
-        [this](const canvas::CanvasConfig& updated_config) {
+        [this](const CanvasConfig& updated_config) {
           // Update legacy variables when config changes
           enable_grid_ = updated_config.enable_grid;
           enable_hex_tile_labels_ = updated_config.enable_hex_labels;
@@ -1730,7 +1721,7 @@ void Canvas::ShowScalingControls() {
           enable_context_menu_ = updated_config.enable_context_menu;
         };
     modal_config.on_scale_changed =
-        [this](const canvas::CanvasConfig& updated_config) {
+        [this](const CanvasConfig& updated_config) {
           draggable_ = updated_config.is_draggable;
           custom_step_ = updated_config.grid_step;
           global_scale_ = updated_config.global_scale;

@@ -7,6 +7,7 @@
 #include "app/gui/core/color.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/input.h"
+#include "app/gui/core/layout_helpers.h"
 #include "zelda3/overworld/overworld_map.h"
 #include "imgui/imgui.h"
 
@@ -410,10 +411,68 @@ void MapPropertiesSystem::DrawOverlayEditor(int current_map,
 void MapPropertiesSystem::SetupCanvasContextMenu(
     gui::Canvas& canvas, int current_map, bool current_map_lock,
     bool& show_map_properties_panel, bool& show_custom_bg_color_editor,
-    bool& show_overlay_editor) {
+    bool& show_overlay_editor, int current_mode) {
   (void)current_map;  // Used for future context-sensitive menu items
   // Clear any existing context menu items
   canvas.ClearContextMenuItems();
+  
+  // Add entity insertion submenu (only in MOUSE mode)
+  if (current_mode == 0 && entity_insert_callback_) {  // 0 = EditingMode::MOUSE
+    gui::Canvas::ContextMenuItem entity_menu;
+    entity_menu.label = ICON_MD_ADD_LOCATION " Insert Entity";
+    
+    // Entrance submenu item
+    gui::Canvas::ContextMenuItem entrance_item;
+    entrance_item.label = ICON_MD_DOOR_FRONT " Entrance";
+    entrance_item.callback = [this]() {
+      if (entity_insert_callback_) {
+        entity_insert_callback_("entrance");
+      }
+    };
+    entity_menu.subitems.push_back(entrance_item);
+    
+    // Hole submenu item
+    gui::Canvas::ContextMenuItem hole_item;
+    hole_item.label = ICON_MD_CYCLONE " Hole";
+    hole_item.callback = [this]() {
+      if (entity_insert_callback_) {
+        entity_insert_callback_("hole");
+      }
+    };
+    entity_menu.subitems.push_back(hole_item);
+    
+    // Exit submenu item
+    gui::Canvas::ContextMenuItem exit_item;
+    exit_item.label = ICON_MD_DOOR_BACK " Exit";
+    exit_item.callback = [this]() {
+      if (entity_insert_callback_) {
+        entity_insert_callback_("exit");
+      }
+    };
+    entity_menu.subitems.push_back(exit_item);
+    
+    // Item submenu item
+    gui::Canvas::ContextMenuItem item_item;
+    item_item.label = ICON_MD_GRASS " Item";
+    item_item.callback = [this]() {
+      if (entity_insert_callback_) {
+        entity_insert_callback_("item");
+      }
+    };
+    entity_menu.subitems.push_back(item_item);
+    
+    // Sprite submenu item
+    gui::Canvas::ContextMenuItem sprite_item;
+    sprite_item.label = ICON_MD_PEST_CONTROL_RODENT " Sprite";
+    sprite_item.callback = [this]() {
+      if (entity_insert_callback_) {
+        entity_insert_callback_("sprite");
+      }
+    };
+    entity_menu.subitems.push_back(sprite_item);
+    
+    canvas.AddContextMenuItem(entity_menu);
+  }
 
   // Add overworld-specific context menu items
   gui::Canvas::ContextMenuItem lock_item;
@@ -476,18 +535,16 @@ void MapPropertiesSystem::SetupCanvasContextMenu(
     canvas.set_global_scale(scale);
   };
   canvas.AddContextMenuItem(zoom_out_item);
-  
-  // Entity Operations submenu will be added in future iteration
-  // For now, users can use keyboard shortcuts (3-8) to activate entity editing
 }
 
 // Private method implementations
 void MapPropertiesSystem::DrawGraphicsPopup(int current_map, int game_state) {
   if (ImGui::BeginPopup("GraphicsPopup")) {
-    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,
-                        ImVec2(kCompactItemSpacing, kCompactFramePadding));
-    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,
-                        ImVec2(kCompactItemSpacing, kCompactFramePadding));
+    // Use theme-aware spacing instead of hardcoded constants
+    float spacing = gui::LayoutHelpers::GetStandardSpacing();
+    float padding = gui::LayoutHelpers::GetButtonPadding();
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(spacing, spacing));
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(padding, padding));
 
     ImGui::Text("Graphics Settings");
     ImGui::Separator();
@@ -589,10 +646,11 @@ void MapPropertiesSystem::DrawGraphicsPopup(int current_map, int game_state) {
 void MapPropertiesSystem::DrawPalettesPopup(int current_map, int game_state,
                                             bool& show_custom_bg_color_editor) {
   if (ImGui::BeginPopup("PalettesPopup")) {
-    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,
-                        ImVec2(kCompactItemSpacing, kCompactFramePadding));
-    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,
-                        ImVec2(kCompactItemSpacing, kCompactFramePadding));
+    // Use theme-aware spacing instead of hardcoded constants
+    float spacing = gui::LayoutHelpers::GetStandardSpacing();
+    float padding = gui::LayoutHelpers::GetButtonPadding();
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(spacing, spacing));
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(padding, padding));
 
     ImGui::Text("Palette Settings");
     ImGui::Separator();
@@ -651,10 +709,11 @@ void MapPropertiesSystem::DrawPropertiesPopup(int current_map,
                                               bool& show_overlay_preview,
                                               int& game_state) {
   if (ImGui::BeginPopup("ConfigPopup")) {
-    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,
-                        ImVec2(kCompactItemSpacing, kCompactFramePadding));
-    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,
-                        ImVec2(kCompactItemSpacing, kCompactFramePadding));
+    // Use theme-aware spacing instead of hardcoded constants
+    float spacing = gui::LayoutHelpers::GetStandardSpacing();
+    float padding = gui::LayoutHelpers::GetButtonPadding();
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(spacing, spacing));
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(padding, padding));
 
     ImGui::Text(ICON_MD_TUNE " Area Configuration");
     ImGui::Separator();
@@ -1590,10 +1649,11 @@ void MapPropertiesSystem::DrawOverlayPreviewOnMap(int current_map,
 
 void MapPropertiesSystem::DrawViewPopup() {
   if (ImGui::BeginPopup("ViewPopup")) {
-    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,
-                        ImVec2(kCompactItemSpacing, kCompactFramePadding));
-    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,
-                        ImVec2(kCompactItemSpacing, kCompactFramePadding));
+    // Use theme-aware spacing instead of hardcoded constants
+    float spacing = gui::LayoutHelpers::GetStandardSpacing();
+    float padding = gui::LayoutHelpers::GetButtonPadding();
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(spacing, spacing));
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(padding, padding));
 
     ImGui::Text("View Controls");
     ImGui::Separator();
@@ -1624,10 +1684,11 @@ void MapPropertiesSystem::DrawViewPopup() {
 
 void MapPropertiesSystem::DrawQuickAccessPopup() {
   if (ImGui::BeginPopup("QuickPopup")) {
-    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,
-                        ImVec2(kCompactItemSpacing, kCompactFramePadding));
-    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,
-                        ImVec2(kCompactItemSpacing, kCompactFramePadding));
+    // Use theme-aware spacing instead of hardcoded constants
+    float spacing = gui::LayoutHelpers::GetStandardSpacing();
+    float padding = gui::LayoutHelpers::GetButtonPadding();
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(spacing, spacing));
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(padding, padding));
 
     ImGui::Text("Quick Access");
     ImGui::Separator();

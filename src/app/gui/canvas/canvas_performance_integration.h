@@ -13,7 +13,6 @@
 
 namespace yaze {
 namespace gui {
-namespace canvas {
 
 /**
  * @brief Canvas performance metrics
@@ -262,7 +261,6 @@ class CanvasPerformanceManager {
   std::unordered_map<std::string, std::shared_ptr<CanvasPerformanceIntegration>> integrations_;
 };
 
-}  // namespace canvas
 }  // namespace gui
 }  // namespace yaze
 

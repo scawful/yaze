@@ -18,6 +18,7 @@
 #include "core/features.h"
 #include "app/editor/overworld/map_properties.h"
 #include "app/editor/overworld/entity.h"
+#include "app/editor/overworld/entity_operations.h"
 #include "app/editor/overworld/tile16_editor.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/core/bitmap.h"
@@ -189,6 +190,14 @@ absl::Status OverworldEditor::Load() {
     LOG_DEBUG("OverworldEditor", "Overworld editor refreshed after Tile16 changes");
     return absl::OkStatus();
   });
+  
+  // Set up entity insertion callback for MapPropertiesSystem
+  if (map_properties_system_) {
+    map_properties_system_->SetEntityCallbacks(
+        [this](const std::string& entity_type) {
+          HandleEntityInsertion(entity_type);
+        });
+  }
 
   ASSIGN_OR_RETURN(entrance_tiletypes_, zelda3::LoadEntranceTileTypes(rom_));
   all_gfx_loaded_ = true;
@@ -476,11 +485,17 @@ void OverworldEditor::DrawToolset() {
   toolbar.BeginModeGroup();
   
   if (toolbar.ModeButton(ICON_MD_MOUSE, current_mode == EditingMode::MOUSE, "Mouse Mode (1)\nNavigate, pan, and manage entities")) {
-    current_mode = EditingMode::MOUSE;
+    if (current_mode != EditingMode::MOUSE) {
+      current_mode = EditingMode::MOUSE;
+      ow_map_canvas_.SetUsageMode(gui::CanvasUsage::kEntityManipulation);
+    }
   }
   
   if (toolbar.ModeButton(ICON_MD_DRAW, current_mode == EditingMode::DRAW_TILE, "Tile Paint Mode (2)\nDraw tiles on the map")) {
-    current_mode = EditingMode::DRAW_TILE;
+    if (current_mode != EditingMode::DRAW_TILE) {
+      current_mode = EditingMode::DRAW_TILE;
+      ow_map_canvas_.SetUsageMode(gui::CanvasUsage::kTilePainting);
+    }
   }
   
   toolbar.EndModeGroup();
@@ -647,6 +662,8 @@ void OverworldEditor::DrawToolset() {
   // Keyboard shortcuts for the Overworld Editor
   if (!ImGui::IsAnyItemActive()) {
     using enum EditingMode;
+    
+    EditingMode old_mode = current_mode;
 
     // Tool shortcuts (simplified)
     if (ImGui::IsKeyDown(ImGuiKey_1)) {
@@ -655,25 +672,40 @@ void OverworldEditor::DrawToolset() {
       current_mode = EditingMode::DRAW_TILE;
     }
     
+    // Update canvas usage mode when mode changes
+    if (old_mode != current_mode) {
+      if (current_mode == EditingMode::MOUSE) {
+        ow_map_canvas_.SetUsageMode(gui::CanvasUsage::kEntityManipulation);
+      } else if (current_mode == EditingMode::DRAW_TILE) {
+        ow_map_canvas_.SetUsageMode(gui::CanvasUsage::kTilePainting);
+      }
+    }
+    
     // Entity editing shortcuts (3-8)
     if (ImGui::IsKeyDown(ImGuiKey_3)) {
       entity_edit_mode_ = EntityEditMode::ENTRANCES;
       current_mode = EditingMode::MOUSE;
+      ow_map_canvas_.SetUsageMode(gui::CanvasUsage::kEntityManipulation);
     } else if (ImGui::IsKeyDown(ImGuiKey_4)) {
       entity_edit_mode_ = EntityEditMode::EXITS;
       current_mode = EditingMode::MOUSE;
+      ow_map_canvas_.SetUsageMode(gui::CanvasUsage::kEntityManipulation);
     } else if (ImGui::IsKeyDown(ImGuiKey_5)) {
       entity_edit_mode_ = EntityEditMode::ITEMS;
       current_mode = EditingMode::MOUSE;
+      ow_map_canvas_.SetUsageMode(gui::CanvasUsage::kEntityManipulation);
     } else if (ImGui::IsKeyDown(ImGuiKey_6)) {
       entity_edit_mode_ = EntityEditMode::SPRITES;
       current_mode = EditingMode::MOUSE;
+      ow_map_canvas_.SetUsageMode(gui::CanvasUsage::kEntityManipulation);
     } else if (ImGui::IsKeyDown(ImGuiKey_7)) {
       entity_edit_mode_ = EntityEditMode::TRANSPORTS;
       current_mode = EditingMode::MOUSE;
+      ow_map_canvas_.SetUsageMode(gui::CanvasUsage::kEntityManipulation);
     } else if (ImGui::IsKeyDown(ImGuiKey_8)) {
       entity_edit_mode_ = EntityEditMode::MUSIC;
       current_mode = EditingMode::MOUSE;
+      ow_map_canvas_.SetUsageMode(gui::CanvasUsage::kEntityManipulation);
     }
 
     // View shortcuts
@@ -1455,7 +1487,7 @@ void OverworldEditor::DrawOverworldCanvas() {
     map_properties_system_->SetupCanvasContextMenu(
         ow_map_canvas_, current_map_, current_map_lock_,
         show_map_properties_panel_, show_custom_bg_color_editor_,
-        show_overlay_editor_);
+        show_overlay_editor_, static_cast<int>(current_mode));
   }
 
   // Handle pan and zoom (works in all modes)
@@ -2969,6 +3001,83 @@ int OverworldEditor::AutomationGetTile(int x, int y) {
   overworld_.set_current_map(current_map_);
   
   return overworld_.GetTile(x, y);
+}
+
+void OverworldEditor::HandleEntityInsertion(const std::string& entity_type) {
+  if (!overworld_.is_loaded()) {
+    LOG_ERROR("OverworldEditor", "Cannot insert entity: overworld not loaded");
+    return;
+  }
+  
+  // Get mouse position from canvas (in world coordinates)
+  ImVec2 mouse_pos = ow_map_canvas_.hover_mouse_pos();
+  
+  LOG_DEBUG("OverworldEditor", "Inserting entity type='%s' at pos=(%f,%f) map=%d",
+           entity_type.c_str(), mouse_pos.x, mouse_pos.y, current_map_);
+  
+  if (entity_type == "entrance") {
+    auto result = InsertEntrance(&overworld_, mouse_pos, current_map_, false);
+    if (result.ok()) {
+      current_entrance_ = **result;
+      current_entity_ = *result;
+      ImGui::OpenPopup("Entrance Editor");
+      rom_->set_dirty(true);
+    } else {
+      LOG_ERROR("OverworldEditor", "Failed to insert entrance: %s", 
+               result.status().message().data());
+    }
+    
+  } else if (entity_type == "hole") {
+    auto result = InsertEntrance(&overworld_, mouse_pos, current_map_, true);
+    if (result.ok()) {
+      current_entrance_ = **result;
+      current_entity_ = *result;
+      ImGui::OpenPopup("Entrance Editor");
+      rom_->set_dirty(true);
+    } else {
+      LOG_ERROR("OverworldEditor", "Failed to insert hole: %s", 
+               result.status().message().data());
+    }
+    
+  } else if (entity_type == "exit") {
+    auto result = InsertExit(&overworld_, mouse_pos, current_map_);
+    if (result.ok()) {
+      current_exit_ = **result;
+      current_entity_ = *result;
+      ImGui::OpenPopup("Exit editor");
+      rom_->set_dirty(true);
+    } else {
+      LOG_ERROR("OverworldEditor", "Failed to insert exit: %s", 
+               result.status().message().data());
+    }
+    
+  } else if (entity_type == "item") {
+    auto result = InsertItem(&overworld_, mouse_pos, current_map_, 0x00);
+    if (result.ok()) {
+      current_item_ = **result;
+      current_entity_ = *result;
+      ImGui::OpenPopup("Item editor");
+      rom_->set_dirty(true);
+    } else {
+      LOG_ERROR("OverworldEditor", "Failed to insert item: %s", 
+               result.status().message().data());
+    }
+    
+  } else if (entity_type == "sprite") {
+    auto result = InsertSprite(&overworld_, mouse_pos, current_map_, game_state_, 0x00);
+    if (result.ok()) {
+      current_sprite_ = **result;
+      current_entity_ = *result;
+      ImGui::OpenPopup("Sprite editor");
+      rom_->set_dirty(true);
+    } else {
+      LOG_ERROR("OverworldEditor", "Failed to insert sprite: %s", 
+               result.status().message().data());
+    }
+    
+  } else {
+    LOG_WARN("OverworldEditor", "Unknown entity type: %s", entity_type.c_str());
+  }
 }
 
 }  // namespace yaze::editor

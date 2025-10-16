@@ -19,8 +19,6 @@ namespace gui {
 // Forward declarations
 class PaletteEditorWidget;
 
-namespace canvas {
-
 class CanvasContextMenu {
  public:
   enum class Command {
@@ -71,7 +69,7 @@ class CanvasContextMenu {
               Rom* rom,
               const gfx::Bitmap* bitmap,
               const gfx::SnesPalette* palette,
-              const std::function<void(Command, const canvas::CanvasConfig&)>& command_handler,
+              const std::function<void(Command, const CanvasConfig&)>& command_handler,
               CanvasConfig current_config);
 
   bool ShouldShowContextMenu() const;
@@ -159,7 +157,6 @@ class CanvasContextMenu {
                                             std::function<void()> callback);
 };
 
-}  // namespace canvas
 }  // namespace gui
 }  // namespace yaze
 

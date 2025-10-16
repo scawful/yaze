@@ -23,6 +23,7 @@ set(
   app/editor/message/message_preview.cc
   app/editor/music/music_editor.cc
   app/editor/overworld/entity.cc
+  app/editor/overworld/entity_operations.cc
   app/editor/overworld/map_properties.cc
   app/editor/overworld/overworld_editor.cc
   app/editor/overworld/overworld_entity_renderer.cc

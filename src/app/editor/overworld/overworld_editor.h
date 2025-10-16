@@ -126,6 +126,16 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
    * assembling the OverworldMap Bitmap objects.
    */
   absl::Status LoadGraphics();
+  
+  /**
+   * @brief Handle entity insertion from context menu
+   * 
+   * Delegates to flat helper functions in entity_operations.cc
+   * following ZScream's pattern for entity management.
+   * 
+   * @param entity_type Type of entity to insert ("entrance", "hole", "exit", "item", "sprite")
+   */
+  void HandleEntityInsertion(const std::string& entity_type);
 
  private:
   void DrawFullscreenCanvas();

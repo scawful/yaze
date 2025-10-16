@@ -12,7 +12,6 @@
 
 namespace yaze {
 namespace gui {
-namespace canvas {
 
 void CanvasPerformanceIntegration::Initialize(const std::string& canvas_id) {
   canvas_id_ = canvas_id;
@@ -607,6 +606,5 @@ void CanvasPerformanceManager::ClearAllIntegrations() {
   LOG_DEBUG("CanvasPerformance", "Cleared all canvas performance integrations");
 }
 
-}  // namespace canvas
 }  // namespace gui
 }  // namespace yaze

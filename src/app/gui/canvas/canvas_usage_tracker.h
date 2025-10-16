@@ -10,7 +10,6 @@
 
 namespace yaze {
 namespace gui {
-namespace canvas {
 
 /**
  * @brief Canvas usage patterns and tracking
@@ -24,6 +23,7 @@ enum class CanvasUsage {
   kPaletteEditing,    // Palette editing mode
   kBppConversion,     // BPP format conversion
   kPerformanceMode,   // Performance monitoring mode
+  kEntityManipulation, // Generic entity manipulation (insertion/editing/deletion)
   kUnknown           // Unknown or mixed usage
 };
 
@@ -242,7 +242,6 @@ class CanvasUsageManager {
   std::unordered_map<std::string, std::shared_ptr<CanvasUsageTracker>> trackers_;
 };
 
-}  // namespace canvas
 }  // namespace gui
 }  // namespace yaze
 
