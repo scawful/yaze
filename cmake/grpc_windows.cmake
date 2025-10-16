@@ -18,8 +18,23 @@ if(WIN32 AND YAZE_USE_VCPKG_GRPC)
   message(STATUS "Attempting to use vcpkg gRPC packages for faster Windows builds...")
   message(STATUS "  Note: This is only for full builds with YAZE_WITH_GRPC=ON")
   
-  # Try to find gRPC via vcpkg
+  # Debug: Check if vcpkg toolchain is being used
+  if(DEFINED VCPKG_TOOLCHAIN)
+    message(STATUS "  vcpkg toolchain detected: ${VCPKG_TOOLCHAIN}")
+  endif()
+  if(DEFINED CMAKE_TOOLCHAIN_FILE)
+    message(STATUS "  CMAKE_TOOLCHAIN_FILE: ${CMAKE_TOOLCHAIN_FILE}")
+  endif()
+  
+  # Try to find gRPC via vcpkg (try both gRPC and grpc package names)
   find_package(gRPC CONFIG QUIET)
+  if(NOT gRPC_FOUND)
+    find_package(grpc CONFIG QUIET)
+    if(grpc_FOUND)
+      set(gRPC_FOUND TRUE)
+    endif()
+  endif()
+  
   find_package(Protobuf CONFIG QUIET)
   
   if(gRPC_FOUND AND Protobuf_FOUND)
@@ -33,32 +48,77 @@ if(WIN32 AND YAZE_USE_VCPKG_GRPC)
     )
 
     
-    # Verify required targets exist
-    if(NOT TARGET grpc++)
+    # Verify required targets exist (check both with and without gRPC:: namespace)
+    set(_grpc_target_found FALSE)
+    if(TARGET gRPC::grpc++)
+      message(STATUS "  Found gRPC::grpc++ target")
+      set(_grpc_target_found TRUE)
+      # Create aliases without namespace for compatibility with existing code
+      if(NOT TARGET grpc++)
+        add_library(grpc++ ALIAS gRPC::grpc++)
+      endif()
+      if(TARGET gRPC::grpc++_reflection AND NOT TARGET grpc++_reflection)
+        add_library(grpc++_reflection ALIAS gRPC::grpc++_reflection)
+      endif()
+    elseif(TARGET grpc++)
+      message(STATUS "  Found grpc++ target")
+      set(_grpc_target_found TRUE)
+    endif()
+    
+    if(NOT _grpc_target_found)
       message(WARNING "gRPC found but grpc++ target missing - falling back to FetchContent")
+      message(STATUS "  Available targets containing 'grpc':")
+      get_property(_all_targets DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY BUILDSYSTEM_TARGETS)
+      foreach(_target ${_all_targets})
+        if(_target MATCHES "grpc" OR _target MATCHES "gRPC")
+          message(STATUS "    - ${_target}")
+        endif()
+      endforeach()
       set(YAZE_GRPC_CONFIGURED FALSE PARENT_SCOPE)
       return()
     endif()
     
+    # Handle protoc (check for both protoc and protobuf::protoc)
     if(NOT TARGET protoc)
-      # Create protoc target if it doesn't exist
-      get_target_property(PROTOC_LOCATION protobuf::protoc LOCATION)
-      if(PROTOC_LOCATION)
-        add_executable(protoc IMPORTED)
-        set_target_properties(protoc PROPERTIES IMPORTED_LOCATION "${PROTOC_LOCATION}")
+      if(TARGET protobuf::protoc)
+        get_target_property(PROTOC_LOCATION protobuf::protoc IMPORTED_LOCATION_RELEASE)
+        if(NOT PROTOC_LOCATION)
+          get_target_property(PROTOC_LOCATION protobuf::protoc IMPORTED_LOCATION)
+        endif()
+        if(PROTOC_LOCATION)
+          add_executable(protoc IMPORTED)
+          set_target_properties(protoc PROPERTIES IMPORTED_LOCATION "${PROTOC_LOCATION}")
+          message(STATUS "  Found protoc at: ${PROTOC_LOCATION}")
+        else()
+          message(FATAL_ERROR "protoc executable not found in vcpkg package")
+        endif()
       else()
-        message(FATAL_ERROR "protoc executable not found in vcpkg gRPC package")
+        message(FATAL_ERROR "protoc target not found in vcpkg gRPC package")
       endif()
     endif()
     
+    # Handle grpc_cpp_plugin (check for both grpc_cpp_plugin and gRPC::grpc_cpp_plugin)
     if(NOT TARGET grpc_cpp_plugin)
-      # Find grpc_cpp_plugin
-      find_program(GRPC_CPP_PLUGIN grpc_cpp_plugin)
-      if(GRPC_CPP_PLUGIN)
-        add_executable(grpc_cpp_plugin IMPORTED)
-        set_target_properties(grpc_cpp_plugin PROPERTIES IMPORTED_LOCATION "${GRPC_CPP_PLUGIN}")
+      if(TARGET gRPC::grpc_cpp_plugin)
+        get_target_property(PLUGIN_LOCATION gRPC::grpc_cpp_plugin IMPORTED_LOCATION_RELEASE)
+        if(NOT PLUGIN_LOCATION)
+          get_target_property(PLUGIN_LOCATION gRPC::grpc_cpp_plugin IMPORTED_LOCATION)
+        endif()
+        if(PLUGIN_LOCATION)
+          add_executable(grpc_cpp_plugin IMPORTED)
+          set_target_properties(grpc_cpp_plugin PROPERTIES IMPORTED_LOCATION "${PLUGIN_LOCATION}")
+          message(STATUS "  Found grpc_cpp_plugin at: ${PLUGIN_LOCATION}")
+        endif()
       else()
-        message(FATAL_ERROR "grpc_cpp_plugin not found in vcpkg gRPC package")
+        # Try find_program as fallback
+        find_program(GRPC_CPP_PLUGIN grpc_cpp_plugin HINTS ${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/tools/grpc)
+        if(GRPC_CPP_PLUGIN)
+          add_executable(grpc_cpp_plugin IMPORTED)
+          set_target_properties(grpc_cpp_plugin PROPERTIES IMPORTED_LOCATION "${GRPC_CPP_PLUGIN}")
+          message(STATUS "  Found grpc_cpp_plugin at: ${GRPC_CPP_PLUGIN}")
+        else()
+          message(FATAL_ERROR "grpc_cpp_plugin not found in vcpkg gRPC package")
+        endif()
       endif()
     endif()
     
@@ -69,7 +129,13 @@ if(WIN32 AND YAZE_USE_VCPKG_GRPC)
     file(MAKE_DIRECTORY ${_gRPC_PROTO_GENS_DIR})
     set(_gRPC_PROTO_GENS_DIR ${_gRPC_PROTO_GENS_DIR} PARENT_SCOPE)
     
+    # Export gRPC library targets (vcpkg uses gRPC:: namespace)
+    # Use the namespaced targets directly
+    set(_GRPC_GRPCPP_LIBRARY gRPC::grpc++)
+    set(_GRPC_REFLECTION_LIBRARY gRPC::grpc++_reflection)
+    
     # Export Abseil targets from vcpkg (critical for linking!)
+    # Note: Abseil targets use absl:: namespace consistently
     set(ABSL_TARGETS
       absl::base
       absl::config
@@ -102,7 +168,7 @@ if(WIN32 AND YAZE_USE_VCPKG_GRPC)
       PARENT_SCOPE
     )
     
-    # Export protobuf targets
+    # Export protobuf targets (vcpkg uses protobuf:: namespace)
     set(YAZE_PROTOBUF_TARGETS protobuf::libprotobuf PARENT_SCOPE)
     set(YAZE_PROTOBUF_WHOLEARCHIVE_TARGETS protobuf::libprotobuf PARENT_SCOPE)
     
