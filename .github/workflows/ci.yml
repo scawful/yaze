@@ -79,19 +79,39 @@ jobs:
         VCPKG_BINARY_SOURCES: 'clear;x-gha,readwrite'
       with:
         vcpkgDirectory: '${{ github.workspace }}/vcpkg'
-        vcpkgGitCommitId: '8eb57355a4ffb410a2e94c07b4dca2dffbee8e50'  # November 2024 release
+        vcpkgGitCommitId: '7ba0ba7334c3346e7eee1e049ba85da193a8d821'  # 2025.01.20 release
         runVcpkgInstall: false  # Let CMake handle installation via manifest mode
+    
+    - name: Retry vcpkg setup (Windows)
+      if: runner.os == 'Windows' && steps.vcpkg.outcome == 'failure'
+      uses: lukka/run-vcpkg@v11
+      id: vcpkg_retry
+      env:
+        VCPKG_DEFAULT_TRIPLET: x64-windows-static
+        VCPKG_BINARY_SOURCES: 'clear;x-gha,readwrite'
+      with:
+        vcpkgDirectory: '${{ github.workspace }}/vcpkg'
+        vcpkgGitCommitId: '7ba0ba7334c3346e7eee1e049ba85da193a8d821'
+        runVcpkgInstall: false
     
     - name: Resolve vcpkg toolchain (Windows)
       if: runner.os == 'Windows'
       shell: pwsh
       run: |
+        # Try to get vcpkg root from either initial setup or retry
         $vcpkgRoot = "${{ steps.vcpkg.outputs.vcpkgRoot }}"
+        if (-not $vcpkgRoot) {
+          $vcpkgRoot = "${{ steps.vcpkg_retry.outputs.vcpkgRoot }}"
+        }
         if (-not $vcpkgRoot) {
           $vcpkgRoot = Join-Path "${{ github.workspace }}" "vcpkg"
         }
+        
+        Write-Host "Checking vcpkg root: $vcpkgRoot"
         if (-not (Test-Path $vcpkgRoot)) {
           Write-Host "::error::vcpkg root not found at $vcpkgRoot"
+          Write-Host "vcpkg setup status: ${{ steps.vcpkg.outcome }}"
+          Write-Host "vcpkg retry status: ${{ steps.vcpkg_retry.outcome }}"
           exit 1
         }
 
@@ -104,6 +124,9 @@ jobs:
         $normalizedRoot = $vcpkgRoot -replace '\\', '/'
         $normalizedToolchain = $toolchain -replace '\\', '/'
 
+        Write-Host "✓ vcpkg root: $normalizedRoot"
+        Write-Host "✓ Toolchain: $normalizedToolchain"
+        
         "VCPKG_ROOT=$normalizedRoot" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
         "CMAKE_TOOLCHAIN_FILE=$normalizedToolchain" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
@@ -130,24 +153,37 @@ jobs:
         arch: x64
     
     - name: Diagnose vcpkg (Windows)
-      if: runner.os == 'Windows' && (steps.vcpkg.outcome == 'failure' || steps.vcpkg.outcome == 'success')
+      if: runner.os == 'Windows'
       shell: pwsh
       run: |
         Write-Host "=== vcpkg Diagnostics ===" -ForegroundColor Cyan
+        Write-Host "Initial setup: ${{ steps.vcpkg.outcome }}"
+        Write-Host "Retry setup: ${{ steps.vcpkg_retry.outcome }}"
         Write-Host "vcpkg directory: ${{ github.workspace }}/vcpkg"
         
         if (Test-Path "${{ github.workspace }}/vcpkg/vcpkg.exe") {
           Write-Host "✅ vcpkg.exe found" -ForegroundColor Green
           & "${{ github.workspace }}/vcpkg/vcpkg.exe" version
+          Write-Host "`nvcpkg installed packages:" -ForegroundColor Cyan
+          & "${{ github.workspace }}/vcpkg/vcpkg.exe" list | Select-Object -First 20
         } else {
           Write-Host "❌ vcpkg.exe not found" -ForegroundColor Red
         }
-        Write-Host "CMAKE_TOOLCHAIN_FILE: $env:CMAKE_TOOLCHAIN_FILE"
         
         Write-Host "`nEnvironment:" -ForegroundColor Cyan
+        Write-Host "CMAKE_TOOLCHAIN_FILE: $env:CMAKE_TOOLCHAIN_FILE"
         Write-Host "VCPKG_DEFAULT_TRIPLET: $env:VCPKG_DEFAULT_TRIPLET"
         Write-Host "VCPKG_ROOT: $env:VCPKG_ROOT"
         Write-Host "Workspace: ${{ github.workspace }}"
+        
+        Write-Host "`nManifest files:" -ForegroundColor Cyan
+        if (Test-Path "vcpkg.json") {
+          Write-Host "✅ vcpkg.json found"
+          Get-Content "vcpkg.json" | Write-Host
+        }
+        if (Test-Path "vcpkg-configuration.json") {
+          Write-Host "✅ vcpkg-configuration.json found"
+        }
 
     - name: Restore ccache
       uses: actions/cache@v4
@@ -294,8 +330,7 @@ jobs:
           "-DYAZE_BUILD_EMU=ON",
           "-DYAZE_BUILD_Z3ED=ON",
           "-DYAZE_BUILD_TOOLS=ON",
-          "-DYAZE_ENABLE_ROM_TESTS=OFF",
-          "-DVCPKG_INSTALL_OPTIONS=--x-feature=pkgconfig"
+          "-DYAZE_ENABLE_ROM_TESTS=OFF"
         )
 
         cmake @cmakeArgs 2>&1 | Tee-Object -FilePath cmake_config.log

@@ -30,7 +30,7 @@ jobs:
         uses: lukka/run-vcpkg@v11
         with:
           vcpkgDirectory: '${{ github.workspace }}/vcpkg'
-          vcpkgGitCommitId: '8eb57355a4ffb410a2e94c07b4dca2dffbee8e50'
+          vcpkgGitCommitId: '7ba0ba7334c3346e7eee1e049ba85da193a8d821'
           runVcpkgInstall: false
         env:
           VCPKG_DEFAULT_TRIPLET: x64-windows-static
@@ -58,8 +58,7 @@ jobs:
             -DYAZE_BUILD_TESTS=OFF `
             -DYAZE_BUILD_EMU=ON `
             -DYAZE_BUILD_Z3ED=ON `
-            -DYAZE_BUILD_TOOLS=ON `
-            -DVCPKG_INSTALL_OPTIONS="--x-feature=pkgconfig"
+            -DYAZE_BUILD_TOOLS=ON
 
       - name: Build
         run: cmake --build build --config Release --parallel 4 -- /p:CL_MPcount=4
