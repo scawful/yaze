@@ -116,13 +116,23 @@ if(APPLE AND CMAKE_OSX_ARCHITECTURES STREQUAL "arm64")
   set(ABSL_BUILD_TEST_HELPERS OFF CACHE BOOL "" FORCE)
 endif()
 
-# Declare gRPC - use v1.67.1 which is proven MSVC-compatible
-# v1.67.1 is stable and tested with MSVC, avoiding UPB compilation errors
-# For newer features/fixes, use vcpkg which provides v1.71.0+
+# Declare gRPC with platform-specific versions
+# - macOS/Linux: v1.75.1 (has ARM64 + modern Clang fixes)
+# - Windows MSVC: v1.67.1 (proven stable with MSVC, fewer UPB issues)
+if(WIN32 AND MSVC)
+  set(_GRPC_VERSION "v1.67.1")
+  set(_GRPC_VERSION_REASON "MSVC-compatible, avoids UPB compilation errors")
+else()
+  set(_GRPC_VERSION "v1.75.1")
+  set(_GRPC_VERSION_REASON "ARM64 macOS + modern Clang compatibility")
+endif()
+
+message(STATUS "FetchContent gRPC version: ${_GRPC_VERSION} (${_GRPC_VERSION_REASON})")
+
 FetchContent_Declare(
   grpc
   GIT_REPOSITORY https://github.com/grpc/grpc.git
-  GIT_TAG        v1.67.1
+  GIT_TAG        ${_GRPC_VERSION}
   GIT_PROGRESS   TRUE
   GIT_SHALLOW    TRUE
   USES_TERMINAL_DOWNLOAD TRUE
