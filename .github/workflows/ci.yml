@@ -326,7 +326,6 @@ jobs:
           "-DCMAKE_TOOLCHAIN_FILE=$toolchain",
           "-DVCPKG_TARGET_TRIPLET=x64-windows-static",
           "-DVCPKG_MANIFEST_MODE=ON",
-          "-DVCPKG_OVERLAY_PORTS=${{ github.workspace }}/cmake/overlays",
           "-DYAZE_BUILD_TESTS=ON",
           "-DYAZE_BUILD_EMU=ON",
           "-DYAZE_BUILD_Z3ED=ON",
