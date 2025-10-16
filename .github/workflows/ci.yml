@@ -163,7 +163,7 @@ jobs:
         path: |
           build/_deps
           build/vcpkg_installed
-        key: cmake-deps-${{ runner.os }}-${{ matrix.cc }}-${{ hashFiles('CMakeLists.txt', 'cmake/**', 'src/**/CMakeLists.txt', 'test/CMakeLists.txt') }}
+        key: cmake-deps-${{ runner.os }}-${{ matrix.cc }}-${{ hashFiles('CMakeLists.txt', 'cmake/**', 'src/**/CMakeLists.txt', 'src/**/*.cmake', 'test/CMakeLists.txt') }}
         restore-keys: |
           cmake-deps-${{ runner.os }}-${{ matrix.cc }}-
 
