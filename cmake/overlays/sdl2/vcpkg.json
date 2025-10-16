@@ -1,0 +1,68 @@
+{
+  "name": "sdl2",
+  "version": "2.30.9",
+  "description": "Simple DirectMedia Layer (patched to skip pkgconfig on Windows)",
+  "homepage": "https://www.libsdl.org/",
+  "license": "Zlib",
+  "dependencies": [
+    {
+      "name": "vcpkg-cmake",
+      "host": true
+    },
+    {
+      "name": "vcpkg-cmake-config",
+      "host": true
+    }
+  ],
+  "default-features": [],
+  "features": {
+    "alsa": {
+      "description": "Support for alsa audio",
+      "dependencies": [
+        {
+          "name": "alsa",
+          "platform": "linux"
+        }
+      ]
+    },
+    "ibus": {
+      "description": "Build with support for IBus",
+      "dependencies": [
+        {
+          "name": "ibus",
+          "platform": "linux"
+        }
+      ]
+    },
+    "samplerate": {
+      "description": "Use libsamplerate for audio rate conversion",
+      "dependencies": [
+        "libsamplerate"
+      ]
+    },
+    "wayland": {
+      "description": "Build with support for Wayland",
+      "dependencies": [
+        {
+          "name": "wayland",
+          "platform": "linux"
+        },
+        {
+          "name": "wayland-protocols",
+          "host": true,
+          "platform": "linux"
+        }
+      ]
+    },
+    "x11": {
+      "description": "Build with support for X11",
+      "dependencies": [
+        {
+          "name": "libxext",
+          "platform": "linux"
+        }
+      ]
+    }
+  }
+}
+

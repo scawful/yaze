@@ -1,0 +1,8 @@
+SDL2 provides CMake targets:
+
+  find_package(SDL2 CONFIG REQUIRED)
+  target_link_libraries(main PRIVATE $<IF:$<TARGET_EXISTS:SDL2::SDL2>,SDL2::SDL2,SDL2::SDL2-static>)
+  
+  # SDL2::SDL2main may be optionally added manually to provide a main() function wrapper.
+  # If you use this, don't use SDL_MAIN_HANDLED.
+
