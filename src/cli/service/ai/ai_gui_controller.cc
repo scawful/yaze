@@ -11,7 +11,7 @@
 
 #ifdef YAZE_WITH_GRPC
 #include "cli/service/gui/gui_automation_client.h"
-#include "app/core/service/screenshot_utils.h"
+#include "app/service/screenshot_utils.h"
 #endif
 
 namespace yaze {

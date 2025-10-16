@@ -1,12 +1,12 @@
 #include "test_utils.h"
-#include "app/core/controller.h"
+#include "app/controller.h"
 
 namespace yaze {
 namespace test {
 namespace gui {
 
 void LoadRomInTest(ImGuiTestContext* ctx, const std::string& rom_path) {
-    yaze::core::Controller* controller = (yaze::core::Controller*)ctx->Test->UserData;
+    yaze::Controller* controller = (yaze::Controller*)ctx->Test->UserData;
     controller->OnEntry(rom_path);
 }
 

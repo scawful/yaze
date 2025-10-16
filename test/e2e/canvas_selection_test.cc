@@ -1,12 +1,12 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include "e2e/canvas_selection_test.h"
-#include "app/core/controller.h"
+#include "app/controller.h"
 #include "test_utils.h"
 
 void E2ETest_CanvasSelectionTest(ImGuiTestContext* ctx)
 {
     yaze::test::gui::LoadRomInTest(ctx, "zelda3.sfc");
-    yaze::core::Controller* controller = (yaze::core::Controller*)ctx->Test->UserData;
+    yaze::Controller* controller = (yaze::Controller*)ctx->Test->UserData;
     yaze::zelda3::Overworld* overworld = controller->overworld();
 
     // 1. Open the Overworld Editor

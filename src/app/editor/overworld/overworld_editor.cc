@@ -15,7 +15,7 @@
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
 #include "core/asar_wrapper.h"
-#include "app/core/features.h"
+#include "core/features.h"
 #include "app/editor/overworld/map_properties.h"
 #include "app/editor/overworld/entity.h"
 #include "app/editor/overworld/tile16_editor.h"

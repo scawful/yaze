@@ -1,4 +1,4 @@
-#include "app/core/testing/test_script_parser.h"
+#include "app/test/test_script_parser.h"
 
 #include <filesystem>
 #include <fstream>

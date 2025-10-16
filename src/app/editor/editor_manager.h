@@ -16,7 +16,7 @@
 #include <string>
 
 #include "absl/status/status.h"
-#include "app/core/project.h"
+#include "core/project.h"
 #include "app/editor/agent/agent_chat_history_popup.h"
 #include "app/editor/code/project_file_editor.h"
 #include "app/editor/system/editor_card_registry.h"
@@ -302,7 +302,7 @@ class EditorManager {
 
   gfx::IRenderer* renderer_ = nullptr;
 
-  core::YazeProject current_project_;
+  project::YazeProject current_project_;
   EditorDependencies::SharedClipboard shared_clipboard_;
   std::unique_ptr<PopupManager> popup_manager_;
   ToastManager toast_manager_;

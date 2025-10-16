@@ -7,7 +7,7 @@
 #include <vector>
 
 #include "absl/strings/str_format.h"
-#include "app/core/features.h"
+#include "core/features.h"
 #include "app/emu/cpu/internal/opcodes.h"
 #include "app/emu/debug/disassembly_viewer.h"
 #include "util/log.h"

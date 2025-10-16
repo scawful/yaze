@@ -4,7 +4,7 @@
 #include <string>
 
 #include "absl/status/status.h"
-#include "app/core/project.h"
+#include "core/project.h"
 
 namespace yaze {
 namespace editor {
@@ -41,8 +41,8 @@ class ProjectManager {
   absl::Status ValidateProject();
   
   // Project information
-  core::YazeProject& GetCurrentProject() { return current_project_; }
-  const core::YazeProject& GetCurrentProject() const { return current_project_; }
+  project::YazeProject& GetCurrentProject() { return current_project_; }
+  const project::YazeProject& GetCurrentProject() const { return current_project_; }
   bool HasActiveProject() const { return !current_project_.filepath.empty(); }
   std::string GetProjectName() const;
   std::string GetProjectPath() const;
@@ -53,7 +53,7 @@ class ProjectManager {
                                  const std::string& project_name);
 
  private:
-  core::YazeProject current_project_;
+  project::YazeProject current_project_;
   ToastManager* toast_manager_ = nullptr;
   
   // Helper methods

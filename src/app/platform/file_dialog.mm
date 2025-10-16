@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-#include "app/core/features.h"
+#include "core/features.h"
 
 #if defined(YAZE_ENABLE_NFD) && YAZE_ENABLE_NFD
 #include <nfd.h>

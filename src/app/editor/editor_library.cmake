@@ -83,7 +83,7 @@ endif()
 # - System editors (settings, commands, extensions)
 # - Testing infrastructure
 #
-# Dependencies: yaze_core_lib, yaze_gfx, yaze_gui, yaze_zelda3, ImGui
+# Dependencies: yaze_app_core_lib, yaze_gfx, yaze_gui, yaze_zelda3, ImGui
 # ==============================================================================
 
 add_library(yaze_editor STATIC ${YAZE_APP_EDITOR_SRC})
@@ -103,7 +103,7 @@ target_include_directories(yaze_editor PUBLIC
 )
 
 target_link_libraries(yaze_editor PUBLIC
-  yaze_core_lib
+  yaze_app_core_lib
   yaze_gfx
   yaze_gui
   yaze_zelda3

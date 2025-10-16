@@ -1,5 +1,5 @@
-#ifndef YAZE_APP_CORE_FEATURES_H
-#define YAZE_APP_CORE_FEATURES_H
+#ifndef YAZE_CORE_FEATURES_H
+#define YAZE_CORE_FEATURES_H
 
 #include <string>
 
@@ -123,4 +123,5 @@ class FeatureFlags {
 }  // namespace core
 }  // namespace yaze
 
-#endif  // YAZE_APP_CORE_FEATURES_H
+#endif  // YAZE_CORE_FEATURES_H
+

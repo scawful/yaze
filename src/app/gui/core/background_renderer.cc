@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <cmath>
 
-#include "app/core/timing.h"
+#include "app/platform/timing.h"
 #include "app/gui/core/theme_manager.h"
 #include "imgui/imgui.h"
 
@@ -24,7 +24,7 @@ void BackgroundRenderer::RenderDockingBackground(ImDrawList* draw_list, const Im
                                                const ImVec2& window_size, const Color& theme_color) {
   if (!draw_list) return;
   
-  UpdateAnimation(core::TimingManager::Get().GetDeltaTime());
+  UpdateAnimation(TimingManager::Get().GetDeltaTime());
   
   // Get current theme colors
   auto& theme_manager = ThemeManager::Get();

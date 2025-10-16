@@ -90,7 +90,7 @@ set(_yaze_agent_link_targets
   yaze_util
   yaze_gfx
   yaze_gui
-  yaze_core_lib
+  yaze_app_core_lib
   yaze_zelda3
   yaze_emulator
   ${ABSL_TARGETS}

@@ -491,68 +491,63 @@
   ],
   "testPresets": [
     {
+      "name": "all",
+      "configurePreset": "mac-dev",
+      "displayName": "Run all tests",
+      "description": "Runs all tests, including ROM-dependent and experimental tests."
+    },
+    {
       "name": "stable",
       "configurePreset": "ci",
-      "displayName": "Stable Tests (Release Ready)",
-      "execution": {
-        "noTestsAction": "error",
-        "stopOnFailure": true
-      },
-      "filter": {
-        "exclude": {
-          "name": ".*(IntegrationTest|E2ERomDependentTest|ZSCustomOverworldUpgradeTest|RomIntegrationTest|ComprehensiveIntegrationTest|OverworldIntegrationTest|DungeonIntegrationTest|DungeonEditorIntegrationTest|DungeonEditorSystemIntegrationTest|DungeonObjectRendererIntegrationTest|DungeonObjectRendererMockTest|DungeonObjectRenderingTests|Tile16EditorIntegrationTest).*"
-        }
-      }
-    },
-    {
-      "name": "dev",
-      "configurePreset": "mac-dev",
-      "displayName": "Development Tests (with ROM)",
-      "execution": {
-        "noTestsAction": "error",
-        "stopOnFailure": false
-      },
-      "filter": {
-        "exclude": {
-          "name": ".*(E2ERomDependentTest|ZSCustomOverworldUpgradeTest).*"
-        }
-      }
-    },
-    {
-      "name": "ci",
-      "configurePreset": "ci",
-      "displayName": "CI Tests (stable only)",
-      "execution": {
-        "noTestsAction": "error",
-        "stopOnFailure": true
-      },
-      "filter": {
-        "exclude": {
-          "name": ".*(IntegrationTest|E2ERomDependentTest|ZSCustomOverworldUpgradeTest|RomIntegrationTest|ComprehensiveIntegrationTest|OverworldIntegrationTest|DungeonIntegrationTest|DungeonEditorIntegrationTest|DungeonEditorSystemIntegrationTest|DungeonObjectRendererIntegrationTest|DungeonObjectRendererMockTest|DungeonObjectRenderingTests|Tile16EditorIntegrationTest).*"
-        }
-      }
-    },
-    {
-      "name": "unit",
-      "configurePreset": "ci",
-      "displayName": "Unit Tests Only",
-      "filter": {
-        "exclude": {
-          "name": ".*(IntegrationTest|E2ERomDependentTest|ZSCustomOverworldUpgradeTest|RomIntegrationTest|ComprehensiveIntegrationTest|OverworldIntegrationTest|DungeonIntegrationTest|DungeonEditorIntegrationTest|DungeonEditorSystemIntegrationTest|DungeonObjectRendererIntegrationTest|DungeonObjectRendererMockTest|DungeonObjectRenderingTests|Tile16EditorIntegrationTest).*"
-        }
-      }
-    },
-    {
-      "name": "integration",
-      "configurePreset": "mac-dev",
-      "displayName": "Integration Tests Only",
-      "execution": {
-        "noTestsAction": "error",
-        "stopOnFailure": false
-      },
+      "displayName": "Stable tests",
+      "description": "Runs tests marked with the 'stable' label.",
       "filter": {
         "include": {
-          "name": ".*(IntegrationTest|RomIntegrationTest|ComprehensiveIntegrationTest|OverworldIntegrationTest|DungeonIntegrationTest|DungeonEditorIntegrationTest|DungeonEditorSystemIntegrationTest|DungeonObjectRendererIntegrationTest|DungeonObjectRendererMockTest|DungeonObjectRenderingTests|Tile16EditorIntegrationTest).*"
+          "label": "stable"
+        }
+      }
+    },
+    {
+      "name": "rom-dependent",
+      "configurePreset": "mac-dev",
+      "displayName": "ROM-dependent tests",
+      "description": "Runs tests that require a ROM file.",
+      "filter": {
+        "include": {
+          "label": "rom_dependent"
+        }
+      }
+    },
+    {
+      "name": "gui",
+      "configurePreset": "mac-dev",
+      "displayName": "GUI tests",
+      "description": "Runs GUI-based tests.",
+      "filter": {
+        "include": {
+          "label": "gui"
+        }
+      }
+    },
+    {
+      "name": "experimental",
+      "configurePreset": "mac-dev",
+      "displayName": "Experimental tests",
+      "description": "Runs tests marked as 'experimental'.",
+      "filter": {
+        "include": {
+          "label": "experimental"
+        }
+      }
+    },
+    {
+      "name": "benchmark",
+      "configurePreset": "mac-rel",
+      "displayName": "Benchmark tests",
+      "description": "Runs performance benchmark tests.",
+      "filter": {
+        "include": {
+          "label": "benchmark"
         }
       }
     }
@@ -594,7 +589,7 @@
         },
         {
           "type": "test",
-          "name": "dev"
+          "name": "all"
         }
       ]
     },
@@ -612,7 +607,7 @@
         },
         {
           "type": "test",
-          "name": "ci"
+          "name": "stable"
         }
       ]
     },
@@ -631,6 +626,20 @@
         {
           "type": "package",
           "name": "mac-uni"
+        }
+      ]
+    },
+    {
+      "name": "format-check",
+      "displayName": "Check Code Formatting",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "mac-dev"
+        },
+        {
+          "type": "build",
+          "name": "mac-dev"
         }
       ]
     }

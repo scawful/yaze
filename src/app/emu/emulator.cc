@@ -5,7 +5,7 @@
 #include <fstream>
 #include <vector>
 
-#include "app/core/window.h"
+#include "app/platform/window.h"
 #include "app/editor/system/editor_card_registry.h"
 #include "util/log.h"
 

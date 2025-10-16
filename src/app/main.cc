@@ -5,13 +5,13 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include "absl/debugging/failure_signal_handler.h"
 #include "absl/debugging/symbolize.h"
-#include "app/core/controller.h"
-#include "app/core/features.h"
+#include "app/controller.h"
+#include "core/features.h"
 #include "util/flag.h"
 #include "util/log.h"
 
 #ifdef YAZE_WITH_GRPC
-#include "app/core/service/imgui_test_harness_service.h"
+#include "app/service/imgui_test_harness_service.h"
 #include "app/test/test_manager.h"
 #endif
 
@@ -129,7 +129,7 @@ int main(int argc, char **argv) {
   SDL_SetMainReady();
 #endif
 
-  auto controller = std::make_unique<core::Controller>();
+  auto controller = std::make_unique<Controller>();
   EXIT_IF_ERROR(controller->OnEntry(rom_filename))
   
   // Set startup editor and cards from flags (after OnEntry initializes editor manager)

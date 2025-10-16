@@ -8,8 +8,8 @@
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
-#include "app/core/service/widget_discovery_service.h"
-#include "app/core/testing/test_recorder.h"
+#include "app/service/widget_discovery_service.h"
+#include "app/test/test_recorder.h"
 
 // Undefine Windows macros that conflict with protobuf generated code
 #ifdef _WIN32

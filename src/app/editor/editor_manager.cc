@@ -16,9 +16,9 @@
 #include "absl/strings/match.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
-#include "app/core/features.h"
-#include "app/core/project.h"
-#include "app/core/timing.h"
+#include "core/features.h"
+#include "core/project.h"
+#include "app/platform/timing.h"
 #include "app/editor/session_types.h"
 #include "app/editor/code/assembly_editor.h"
 #include "app/editor/dungeon/dungeon_editor_v2.h"
@@ -65,7 +65,7 @@
 #include "app/gfx/debug/performance/performance_dashboard.h"
 
 #ifdef YAZE_WITH_GRPC
-#include "app/core/service/screenshot_utils.h"
+#include "app/service/screenshot_utils.h"
 #include "app/editor/agent/agent_chat_widget.h"
 #include "app/test/z3ed_test_suite.h"
 #include "cli/service/agent/agent_control_server.h"
@@ -650,7 +650,7 @@ absl::Status EditorManager::Update() {
 
   // Update timing manager for accurate delta time across the application
   // This fixes animation timing issues that occur when mouse isn't moving
-  core::TimingManager::Get().Update();
+  TimingManager::Get().Update();
 
   // Delegate to PopupManager for modal dialog rendering
   popup_manager_->DrawPopups();
@@ -1131,7 +1131,7 @@ absl::Status EditorManager::LoadRom() {
   test::TestManager::Get().SetCurrentRom(GetCurrentRom());
 #endif
 
-  auto& manager = core::RecentFilesManager::GetInstance();
+  auto& manager = project::RecentFilesManager::GetInstance();
   manager.AddFile(file_name);
   manager.Save();
 
@@ -1257,7 +1257,7 @@ absl::Status EditorManager::SaveRomAs(const std::string& filename) {
       sessions_[current_session_idx].filepath = filename;
     }
 
-    auto& manager = core::RecentFilesManager::GetInstance();
+    auto& manager = project::RecentFilesManager::GetInstance();
     manager.AddFile(filename);
     manager.Save();
   }
@@ -1327,7 +1327,7 @@ absl::Status EditorManager::OpenProject() {
     return absl::OkStatus();
   }
 
-  core::YazeProject new_project;
+  project::YazeProject new_project;
   RETURN_IF_ERROR(new_project.Open(file_path));
 
   // Validate project
@@ -1391,7 +1391,7 @@ absl::Status EditorManager::OpenProject() {
   ImGui::GetIO().FontGlobalScale = user_settings_.prefs().font_global_scale;
 
   // Add to recent files
-  auto& manager = core::RecentFilesManager::GetInstance();
+  auto& manager = project::RecentFilesManager::GetInstance();
   manager.AddFile(current_project_.filepath);
   manager.Save();
 
@@ -1422,7 +1422,7 @@ absl::Status EditorManager::SaveProject() {
         user_settings_.prefs().autosave_interval;
 
     // Save recent files
-    auto& manager = core::RecentFilesManager::GetInstance();
+    auto& manager = project::RecentFilesManager::GetInstance();
     current_project_.workspace_settings.recent_files.clear();
     for (const auto& file : manager.GetRecentFiles()) {
       current_project_.workspace_settings.recent_files.push_back(file);
@@ -1456,7 +1456,7 @@ absl::Status EditorManager::SaveProjectAs() {
   auto save_status = current_project_.Save();
   if (save_status.ok()) {
     // Add to recent files
-    auto& manager = core::RecentFilesManager::GetInstance();
+    auto& manager = project::RecentFilesManager::GetInstance();
     manager.AddFile(file_path);
     manager.Save();
 
@@ -1474,7 +1474,7 @@ absl::Status EditorManager::SaveProjectAs() {
 }
 
 absl::Status EditorManager::ImportProject(const std::string& project_path) {
-  core::YazeProject imported_project;
+  project::YazeProject imported_project;
 
   if (project_path.ends_with(".zsproj")) {
     RETURN_IF_ERROR(imported_project.ImportZScreamProject(project_path));

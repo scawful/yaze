@@ -4,7 +4,7 @@
 #include <fstream>
 #include <sstream>
 
-#include "app/core/features.h"
+#include "core/features.h"
 #include "util/platform_paths.h"
 
 namespace yaze {

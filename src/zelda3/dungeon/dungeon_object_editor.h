@@ -9,7 +9,7 @@
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
-#include "app/core/window.h"
+#include "app/platform/window.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/rom.h"

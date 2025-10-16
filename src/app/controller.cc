@@ -5,8 +5,8 @@
 #include <string>
 
 #include "absl/status/status.h"
-#include "app/core/timing.h"
-#include "app/core/window.h"
+#include "app/platform/timing.h"
+#include "app/platform/window.h"
 #include "app/editor/editor_manager.h"
 #include "app/gui/core/background_renderer.h"
 #include "app/gfx/resource/arena.h"                  // Add include for Arena
@@ -18,7 +18,6 @@
 #include "imgui/imgui.h"
 
 namespace yaze {
-namespace core {
 
 absl::Status Controller::OnEntry(std::string filename) {
   // Create renderer FIRST
@@ -125,5 +124,4 @@ void Controller::OnExit() {
   PRINT_IF_ERROR(ShutdownWindow(window_));
 }
 
-}  // namespace core
 }  // namespace yaze

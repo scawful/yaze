@@ -19,7 +19,7 @@
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
 #include "absl/strings/string_view.h"
-#include "app/core/project.h"
+#include "core/project.h"
 #include "zelda3/dungeon/room.h"
 #include "cli/handlers/agent/common.h"
 #include "cli/cli.h"
@@ -58,7 +58,7 @@ struct DescribeOptions {
 // Helper to load project and labels if available
 absl::Status TryLoadProjectAndLabels(Rom& rom) {
   // Try to find and load a project file in current directory
-  core::YazeProject project;
+  project::YazeProject project;
   auto project_status = project.Open(".");
   
   if (project_status.ok()) {

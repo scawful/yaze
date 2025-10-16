@@ -9,7 +9,7 @@
 #include <vector>
 
 #include "absl/status/status.h"
-#include "app/core/features.h"
+#include "core/features.h"
 #include "app/gfx/debug/performance/performance_profiler.h"
 #include "app/gfx/util/compression.h"
 #include "app/gfx/types/snes_tile.h"

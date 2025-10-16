@@ -5,7 +5,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "app/core/features.h"
+#include "core/features.h"
 #include "app/gfx/types/snes_color.h"
 #include "app/gfx/types/snes_tile.h"
 #include "app/rom.h"

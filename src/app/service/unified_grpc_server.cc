@@ -1,4 +1,4 @@
-#include "app/core/service/unified_grpc_server.h"
+#include "app/service/unified_grpc_server.h"
 
 #ifdef YAZE_WITH_GRPC
 
@@ -6,8 +6,8 @@
 #include <thread>
 
 #include "absl/strings/str_format.h"
-#include "app/core/service/imgui_test_harness_service.h"
-#include "app/core/service/canvas_automation_service.h"
+#include "app/service/imgui_test_harness_service.h"
+#include "app/service/canvas_automation_service.h"
 #include "app/net/rom_service_impl.h"
 #include "app/rom.h"
 

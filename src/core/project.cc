@@ -1,4 +1,4 @@
-#include "project.h"
+#include "core/project.h"
 
 #include <chrono>
 #include <filesystem>
@@ -23,7 +23,7 @@ using json = nlohmann::json;
 #endif
 
 namespace yaze {
-namespace core {
+namespace project {
 
 namespace {
   // Helper functions for parsing key-value pairs
@@ -1104,5 +1104,5 @@ void RecentFilesManager::Load() {
   }
 }
 
-} // namespace core
+} // namespace project
 } // namespace yaze

@@ -6,7 +6,7 @@
 #include <memory>
 
 #include "absl/status/status.h"
-#include "app/core/window.h"
+#include "app/platform/window.h"
 #include "app/rom.h"
 #include "app/editor/editor_manager.h"
 #include "app/gfx/backend/irenderer.h"
@@ -14,7 +14,6 @@
 int main(int argc, char** argv);
 
 namespace yaze {
-namespace core {
 
 /**
  * @brief Main controller for the application.
@@ -52,7 +51,6 @@ class Controller {
   std::unique_ptr<gfx::IRenderer> renderer_;
 };
 
-}  // namespace core
 }  // namespace yaze
 
 #endif  // YAZE_APP_CORE_CONTROLLER_H

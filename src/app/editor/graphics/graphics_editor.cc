@@ -8,7 +8,7 @@
 #include "absl/strings/str_cat.h"
 #include "app/gui/core/ui_helpers.h"
 #include "util/file_util.h"
-#include "app/core/window.h"
+#include "app/platform/window.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/util/compression.h"

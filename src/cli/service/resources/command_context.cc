@@ -9,7 +9,7 @@
 #include "absl/strings/numbers.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_join.h"
-#include "app/core/project.h"
+#include "core/project.h"
 #include "cli/handlers/rom/mock_rom.h"
 
 ABSL_DECLARE_FLAG(std::string, rom);
@@ -102,7 +102,7 @@ absl::Status CommandContext::EnsureLabelsLoaded(Rom* rom) {
 
   if (!rom->resource_label()->labels_loaded_ || 
       rom->resource_label()->labels_.empty()) {
-    core::YazeProject project;
+    project::YazeProject project;
     project.use_embedded_labels = true;
     auto labels_status = project.InitializeEmbeddedLabels();
     if (labels_status.ok()) {

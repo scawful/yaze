@@ -28,7 +28,7 @@ The proposed architecture organizes the codebase into two distinct layers: **Fou
 │
 ├── app/          (REFACTORED)  Main GUI Application
 │   ├── controller.cc   (MOVED)  Main application controller
-│   ├── platform/       (MOVED) 윈도우 Windowing, input, platform abstractions
+│   ├── platform/       (MOVED) Windowing, input, platform abstractions
 │   ├── service/        (MOVED) AI gRPC services for automation
 │   ├── editor/         (EXISTING) 🎨 Editor implementations
 │   └── gui/            (EXISTING)  Shared ImGui widgets
@@ -81,17 +81,37 @@ This architectural refactoring fully supports and complements the ongoing `Edito
 
 ## 5. Migration Checklist
 
-1.  [ ] **Phase 1**: Create `src/core/` and move `project`, `asar_wrapper`, and `features` files.
-2.  [ ] **Phase 1**: Create the `yaze_core_lib` CMake target.
-3.  [ ] **Phase 2**: Move `src/app/gfx/` to `src/gfx/`.
-4.  [ ] **Phase 2**: Create the `yaze_gfx_lib` CMake target.
-5.  [ ] **Phase 3**: Move `src/app/core/service/` to `src/app/service/`.
-6.  [ ] **Phase 3**: Move `window.cc`, `timing.h` to `src/app/platform/`.
-7.  [ ] **Phase 3**: Move `controller.cc` to `src/app/`.
-8.  [ ] **Phase 3**: Update the `yaze` executable's CMake target to include the moved sources and link against the new libraries.
-9.  [ ] **Phase 3**: Delete the now-empty `src/app/core/` directory and its `core_library.cmake` file.
-10. [ ] **Verification**: Perform a clean build of all targets (`yaze`, `z3ed`, `yaze_test`) to ensure all dependencies are correctly resolved.
-11. [ ] **Cleanup**: Search the codebase for any remaining `#include "app/core/..."` or `#include "app/gfx/..."` directives and update them to their new paths.
+1.  [x] **Phase 1**: Create `src/core/` and move `project`, `asar_wrapper`, and `features` files.
+2.  [x] **Phase 1**: Create the `yaze_core_lib` CMake target.
+3.  [ ] **Phase 2**: Move `src/app/gfx/` to `src/gfx/`. (DEFERRED - app-specific)
+4.  [ ] **Phase 2**: Create the `yaze_gfx_lib` CMake target. (DEFERRED - app-specific)
+5.  [x] **Phase 3**: Move `src/app/core/service/` to `src/app/service/`.
+6.  [x] **Phase 3**: Move `src/app/core/testing/` to `src/app/test/` (merged with existing test/).
+7.  [x] **Phase 3**: Move `window.cc`, `timing.h` to `src/app/platform/`.
+8.  [x] **Phase 3**: Move `controller.cc` to `src/app/`.
+9.  [x] **Phase 3**: Update CMake targets - renamed `yaze_core_lib` to `yaze_app_core_lib` to distinguish from foundational `yaze_core_lib`.
+10. [x] **Phase 3**: `src/app/core/` now only contains `core_library.cmake` for app-level functionality.
+11. [x] **Cleanup**: All `#include "app/core/..."` directives updated to new paths.
+
+## 6. Completed Changes (October 15, 2025)
+
+### Phase 1: Foundational Core Library ✅
+- Created `src/core/` with `project.{h,cc}`, `features.h`, and `asar_wrapper.{h,cc}`
+- Changed namespace from `yaze::core` to `yaze::project` for project management types
+- Created new `yaze_core_lib` in `src/core/CMakeLists.txt` with minimal dependencies
+- Updated all 32+ files to use `#include "core/project.h"` and `#include "core/features.h"`
+
+### Phase 3: Application Layer Streamlining ✅
+- Moved `src/app/core/service/` → `src/app/service/` (gRPC services)
+- Moved `src/app/core/testing/` → `src/app/test/` (merged with existing test infrastructure)
+- Moved `src/app/core/window.{cc,h}`, `timing.h` → `src/app/platform/`
+- Moved `src/app/core/controller.{cc,h}` → `src/app/`
+- Renamed old `yaze_core_lib` to `yaze_app_core_lib` to avoid naming conflict
+- Updated all CMake dependencies in editor, emulator, agent, and test libraries
+- Removed duplicate source files from `src/app/core/`
+
+### Deferred (Phase 2)
+Graphics refactoring (`src/app/gfx/` → `src/gfx/`) deferred as it's app-specific and requires careful consideration of rendering backends.
 
 ## 6. Expected Benefits
 

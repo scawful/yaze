@@ -1,4 +1,4 @@
-#include "app/core/service/screenshot_utils.h"
+#include "app/service/screenshot_utils.h"
 
 #ifdef YAZE_WITH_GRPC
 
