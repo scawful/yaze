@@ -371,60 +371,56 @@ void Canvas::UpdateInfoGrid(ImVec2 bg_size, float grid_size, int label_id) {
 
 void Canvas::DrawBackground(ImVec2 canvas_size) {
   draw_list_ = GetWindowDrawList();
-  canvas_p0_ = GetCursorScreenPos();
-
-  // Calculate canvas size using utility function
-  ImVec2 content_region = GetContentRegionAvail();
-  canvas_sz_ = CanvasUtils::CalculateCanvasSize(
-      content_region, config_.canvas_size, config_.custom_canvas_size);
-
+  
+  // Phase 1: Calculate geometry using new helper
+  state_.geometry = CalculateCanvasGeometry(
+      config_, canvas_size, 
+      GetCursorScreenPos(),
+      GetContentRegionAvail());
+  
+  // Sync legacy fields for backward compatibility
+  canvas_p0_ = state_.geometry.canvas_p0;
+  canvas_p1_ = state_.geometry.canvas_p1;
+  canvas_sz_ = state_.geometry.canvas_sz;
+  scrolling_ = state_.geometry.scrolling;
+  
+  // Update config if explicit size provided
   if (canvas_size.x != 0) {
-    canvas_sz_ = canvas_size;
     config_.canvas_size = canvas_size;
   }
+  
+  // Phase 1: Render background using helper
+  RenderCanvasBackground(draw_list_, state_.geometry);
 
-  // Calculate scaled canvas bounds
-  ImVec2 scaled_size =
-      CanvasUtils::CalculateScaledCanvasSize(canvas_sz_, config_.global_scale);
-
-  // CRITICAL FIX: Ensure minimum size to prevent ImGui assertions
-  if (scaled_size.x <= 0.0f)
-    scaled_size.x = 1.0f;
-  if (scaled_size.y <= 0.0f)
-    scaled_size.y = 1.0f;
-
-  canvas_p1_ =
-      ImVec2(canvas_p0_.x + scaled_size.x, canvas_p0_.y + scaled_size.y);
-
-  // Draw border and background color
-  draw_list_->AddRectFilled(canvas_p0_, canvas_p1_, kRectangleColor);
-  draw_list_->AddRect(canvas_p0_, canvas_p1_, kWhiteColor);
-
-  ImGui::InvisibleButton(canvas_id_.c_str(), scaled_size, kMouseFlags);
+  ImGui::InvisibleButton(canvas_id_.c_str(), state_.geometry.scaled_size, kMouseFlags);
 
   // CRITICAL FIX: Always update hover mouse position when hovering over canvas
   // This fixes the regression where CheckForCurrentMap() couldn't track hover
+  // Phase 1: Use geometry helper for mouse calculation
   if (IsItemHovered()) {
     const ImGuiIO& io = GetIO();
-    const ImVec2 origin(canvas_p0_.x + scrolling_.x, canvas_p0_.y + scrolling_.y);
-    const ImVec2 mouse_pos(io.MousePos.x - origin.x, io.MousePos.y - origin.y);
-    mouse_pos_in_canvas_ = mouse_pos;
+    mouse_pos_in_canvas_ = CalculateMouseInCanvas(state_.geometry, io.MousePos);
+    state_.mouse_pos_in_canvas = mouse_pos_in_canvas_;  // Sync to state
+    state_.is_hovered = true;
+    is_hovered_ = true;
+  } else {
+    state_.is_hovered = false;
+    is_hovered_ = false;
   }
 
+  // Pan handling (Phase 1: Use geometry helper)
   if (config_.is_draggable && IsItemHovered()) {
     const ImGuiIO& io = GetIO();
     const bool is_active = IsItemActive();  // Held
-    const ImVec2 origin(canvas_p0_.x + scrolling_.x,
-                        canvas_p0_.y + scrolling_.y);  // Lock scrolled origin
-    const ImVec2 mouse_pos(io.MousePos.x - origin.x, io.MousePos.y - origin.y);
 
     // Pan (we use a zero mouse threshold when there's no context menu)
     if (const float mouse_threshold_for_pan =
             enable_context_menu_ ? -1.0f : 0.0f;
         is_active &&
         IsMouseDragging(ImGuiMouseButton_Right, mouse_threshold_for_pan)) {
-      scrolling_.x += io.MouseDelta.x;
-      scrolling_.y += io.MouseDelta.y;
+      ApplyScrollDelta(state_.geometry, io.MouseDelta);
+      scrolling_ = state_.geometry.scrolling;  // Sync legacy field
+      config_.scrolling = scrolling_;  // Sync config
     }
   }
 }
@@ -1050,7 +1046,7 @@ void Canvas::DrawSelectRect(int current_map, int tile_size, float scale) {
   }
 }
 
-void Canvas::DrawBitmap(Bitmap& bitmap, int /*border_offset*/, float scale) {
+void Canvas::DrawBitmap(Bitmap& bitmap, int border_offset, float scale) {
   if (!bitmap.is_active()) {
     return;
   }
@@ -1059,11 +1055,8 @@ void Canvas::DrawBitmap(Bitmap& bitmap, int /*border_offset*/, float scale) {
   // Update content size for table integration
   config_.content_size = ImVec2(bitmap.width(), bitmap.height());
 
-  draw_list_->AddImage((ImTextureID)(intptr_t)bitmap.texture(),
-                       ImVec2(canvas_p0_.x, canvas_p0_.y),
-                       ImVec2(canvas_p0_.x + (bitmap.width() * scale),
-                              canvas_p0_.y + (bitmap.height() * scale)));
-  draw_list_->AddRect(canvas_p0_, canvas_p1_, kWhiteColor);
+  // Phase 1: Use rendering helper
+  RenderBitmapOnCanvas(draw_list_, state_.geometry, bitmap, border_offset, scale);
 }
 
 void Canvas::DrawBitmap(Bitmap& bitmap, int x_offset, int y_offset, float scale,
@@ -1077,23 +1070,8 @@ void Canvas::DrawBitmap(Bitmap& bitmap, int x_offset, int y_offset, float scale,
   // CRITICAL: Store UNSCALED bitmap size as content - scale is applied during rendering
   config_.content_size = ImVec2(bitmap.width(), bitmap.height());
 
-  // Calculate the actual rendered size including scale and offsets
-  // CRITICAL: Use scale parameter (NOT global_scale_) for per-bitmap scaling
-  ImVec2 rendered_size(bitmap.width() * scale, bitmap.height() * scale);
-  ImVec2 total_size(x_offset + rendered_size.x, y_offset + rendered_size.y);
-
-  // CRITICAL FIX: Draw bitmap WITHOUT additional global_scale multiplication
-  // The scale parameter already contains the correct scale factor
-  // The scrolling should NOT be scaled - it's already in screen space
-  draw_list_->AddImage(
-      (ImTextureID)(intptr_t)bitmap.texture(),
-      ImVec2(canvas_p0_.x + x_offset + scrolling_.x,
-             canvas_p0_.y + y_offset + scrolling_.y),
-      ImVec2(canvas_p0_.x + x_offset + scrolling_.x + rendered_size.x,
-             canvas_p0_.y + y_offset + scrolling_.y + rendered_size.y),
-      ImVec2(0, 0), ImVec2(1, 1), IM_COL32(255, 255, 255, alpha));
-
-  // Note: Content size for child windows should be set before BeginChild, not here
+  // Phase 1: Use rendering helper
+  RenderBitmapOnCanvas(draw_list_, state_.geometry, bitmap, x_offset, y_offset, scale, alpha);
 }
 
 void Canvas::DrawBitmap(Bitmap& bitmap, ImVec2 dest_pos, ImVec2 dest_size,
@@ -1106,14 +1084,8 @@ void Canvas::DrawBitmap(Bitmap& bitmap, ImVec2 dest_pos, ImVec2 dest_size,
   // Update content size for table integration
   config_.content_size = ImVec2(bitmap.width(), bitmap.height());
 
-  draw_list_->AddImage(
-      (ImTextureID)(intptr_t)bitmap.texture(),
-      ImVec2(canvas_p0_.x + dest_pos.x, canvas_p0_.y + dest_pos.y),
-      ImVec2(canvas_p0_.x + dest_pos.x + dest_size.x,
-             canvas_p0_.y + dest_pos.y + dest_size.y),
-      ImVec2(src_pos.x / bitmap.width(), src_pos.y / bitmap.height()),
-      ImVec2((src_pos.x + src_size.x) / bitmap.width(),
-             (src_pos.y + src_size.y) / bitmap.height()));
+  // Phase 1: Use rendering helper
+  RenderBitmapOnCanvas(draw_list_, state_.geometry, bitmap, dest_pos, dest_size, src_pos, src_size);
 }
 
 // TODO: Add parameters for sizing and positioning

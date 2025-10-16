@@ -12,6 +12,9 @@
 #include "app/gfx/core/bitmap.h"
 #include "app/rom.h"
 #include "app/gui/canvas/canvas_utils.h"
+#include "app/gui/canvas/canvas_state.h"
+#include "app/gui/canvas/canvas_geometry.h"
+#include "app/gui/canvas/canvas_rendering.h"
 #include "app/gui/widgets/palette_editor_widget.h"
 #include "app/gfx/util/bpp_format_manager.h"
 #include "app/gui/canvas/bpp_format_ui.h"
@@ -413,6 +416,9 @@ class Canvas {
   CanvasConfig config_;
   CanvasSelection selection_;
   std::unique_ptr<PaletteEditorWidget> palette_editor_;
+  
+  // Phase 1: Consolidated state (gradually replacing scattered members)
+  CanvasState state_;
   
   // Automation API (lazy-initialized on first access)
   std::unique_ptr<CanvasAutomationAPI> automation_api_;
