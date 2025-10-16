@@ -8,7 +8,6 @@
 
 namespace yaze {
 namespace gui {
-namespace canvas {
 
 /**
  * @brief Tile interaction mode for canvas
@@ -201,7 +200,6 @@ class CanvasInteractionHandler {
   bool IsMouseReleased(ImGuiMouseButton button);
 };
 
-}  // namespace canvas
 }  // namespace gui
 }  // namespace yaze
 

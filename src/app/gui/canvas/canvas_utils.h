@@ -6,15 +6,20 @@
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/rom.h"
+#include "app/gui/canvas/canvas_usage_tracker.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
 namespace gui {
 
 /**
- * @brief Configuration for canvas display and interaction
+ * @brief Unified configuration for canvas display and interaction
+ * 
+ * Consolidates all canvas configuration into a single struct, including
+ * display settings, interaction state, and optional callbacks for updates.
  */
 struct CanvasConfig {
+  // Display settings
   bool enable_grid = true;
   bool enable_hex_labels = false;
   bool enable_custom_labels = false;
@@ -23,11 +28,22 @@ struct CanvasConfig {
   bool auto_resize = false;
   bool clamp_rect_to_local_maps = true;  // Prevent rectangle wrap across 512x512 boundaries
   bool use_theme_sizing = true;  // Use theme-aware sizing instead of fixed sizes
+  bool enable_metrics = false;  // Enable performance/usage tracking
+  
+  // Sizing and scale
   float grid_step = 32.0f;
   float global_scale = 1.0f;
   ImVec2 canvas_size = ImVec2(0, 0);
   ImVec2 content_size = ImVec2(0, 0);  // Size of actual content (bitmap, etc.)
+  ImVec2 scrolling = ImVec2(0, 0);
   bool custom_canvas_size = false;
+  
+  // Usage tracking
+  CanvasUsage usage_mode = CanvasUsage::kUnknown;
+  
+  // Callbacks for configuration changes (used by modals)
+  std::function<void(const CanvasConfig&)> on_config_changed;
+  std::function<void(const CanvasConfig&)> on_scale_changed;
 
   // Get theme-aware canvas toolbar height (when use_theme_sizing is true)
   float GetToolbarHeight() const;

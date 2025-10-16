@@ -41,6 +41,12 @@ class MapPropertiesSystem {
     refresh_tile16_blockset_ = std::move(refresh_tile16_blockset);
     force_refresh_graphics_ = std::move(force_refresh_graphics);
   }
+  
+  // Set callbacks for entity operations
+  void SetEntityCallbacks(
+      std::function<void(const std::string&)> insert_callback) {
+    entity_insert_callback_ = std::move(insert_callback);
+  }
 
   // Main interface methods
   void DrawSimplifiedMapSettings(int& current_world, int& current_map, 
@@ -60,7 +66,7 @@ class MapPropertiesSystem {
   // Context menu integration
   void SetupCanvasContextMenu(gui::Canvas& canvas, int current_map, bool current_map_lock,
                              bool& show_map_properties_panel, bool& show_custom_bg_color_editor,
-                             bool& show_overlay_editor);
+                             bool& show_overlay_editor, int current_mode = 0);
 
  private:
   // Property category drawers
@@ -107,6 +113,9 @@ class MapPropertiesSystem {
   RefreshPaletteCallback refresh_map_palette_;
   RefreshPaletteCallback refresh_tile16_blockset_;
   ForceRefreshGraphicsCallback force_refresh_graphics_;
+  
+  // Callback for entity insertion (generic, editor handles entity types)
+  std::function<void(const std::string&)> entity_insert_callback_;
   
   // Using centralized UI constants from ui_constants.h
 };

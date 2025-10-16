@@ -12,33 +12,9 @@
 
 namespace yaze {
 namespace gui {
-namespace canvas {
 
-void DispatchConfigCallback(const std::function<void(const CanvasConfig&)>& callback,
-                            const CanvasConfig& config);
-void DispatchScaleCallback(const std::function<void(const CanvasConfig&)>& callback,
-                           const CanvasConfig& config);
-
-/**
- * @brief Canvas configuration options for modals
- */
-struct CanvasConfig {
-  ImVec2 canvas_size = ImVec2(0, 0);
-  ImVec2 content_size = ImVec2(0, 0);
-  float global_scale = 1.0f;
-  float grid_step = 32.0f;
-  bool enable_grid = true;
-  bool enable_hex_labels = false;
-  bool enable_custom_labels = false;
-  bool enable_context_menu = true;
-  bool is_draggable = false;
-  bool auto_resize = false;
-  ImVec2 scrolling = ImVec2(0, 0);
-  
-  // Callbacks provide updated configuration state
-  std::function<void(const CanvasConfig&)> on_config_changed;
-  std::function<void(const CanvasConfig&)> on_scale_changed;
-};
+// Note: DispatchConfigCallback and DispatchScaleCallback are internal helpers
+// defined in canvas_modals.cc (not part of public API)
 
 /**
  * @brief BPP conversion options
@@ -175,7 +151,6 @@ class CanvasModals {
                            const char* format = "%.2f");
 };
 
-}  // namespace canvas
 }  // namespace gui
 }  // namespace yaze
 

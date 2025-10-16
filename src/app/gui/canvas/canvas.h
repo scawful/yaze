@@ -187,11 +187,11 @@ class Canvas {
   std::unique_ptr<gui::BppComparisonTool> bpp_comparison_tool_;
   
   // Enhanced canvas components
-  std::unique_ptr<canvas::CanvasModals> modals_;
-  std::unique_ptr<canvas::CanvasContextMenu> context_menu_;
-  std::shared_ptr<canvas::CanvasUsageTracker> usage_tracker_;
-  std::shared_ptr<canvas::CanvasPerformanceIntegration> performance_integration_;
-  canvas::CanvasInteractionHandler interaction_handler_;
+  std::unique_ptr<CanvasModals> modals_;
+  std::unique_ptr<CanvasContextMenu> context_menu_;
+  std::shared_ptr<CanvasUsageTracker> usage_tracker_;
+  std::shared_ptr<CanvasPerformanceIntegration> performance_integration_;
+  CanvasInteractionHandler interaction_handler_;
   
   void AddContextMenuItem(const ContextMenuItem& item);
   void ClearContextMenuItems();
@@ -207,8 +207,8 @@ class Canvas {
   void ShowScalingControls();
   void SetZoomToFit(const gfx::Bitmap& bitmap);
   void ResetView();
-  void ApplyConfigSnapshot(const canvas::CanvasConfig& snapshot);
-  void ApplyScaleSnapshot(const canvas::CanvasConfig& snapshot);
+  void ApplyConfigSnapshot(const CanvasConfig& snapshot);
+  void ApplyScaleSnapshot(const CanvasConfig& snapshot);
   
   // Modular component access
   CanvasConfig& GetConfig() { return config_; }
@@ -231,15 +231,16 @@ class Canvas {
   
   // Enhanced canvas management
   void InitializeEnhancedComponents();
-  void SetUsageMode(canvas::CanvasUsage usage);
-  canvas::CanvasUsage GetUsageMode() const;
+  void SetUsageMode(CanvasUsage usage);
+  auto usage_mode() const { return config_.usage_mode; }
+  
   void RecordCanvasOperation(const std::string& operation_name, double time_ms);
   void ShowPerformanceUI();
   void ShowUsageReport();
   
   // Interaction handler access
-  canvas::CanvasInteractionHandler& GetInteractionHandler() { return interaction_handler_; }
-  const canvas::CanvasInteractionHandler& GetInteractionHandler() const { return interaction_handler_; }
+  CanvasInteractionHandler& GetInteractionHandler() { return interaction_handler_; }
+  const CanvasInteractionHandler& GetInteractionHandler() const { return interaction_handler_; }
   
   // Automation API access (Phase 4A)
   CanvasAutomationAPI* GetAutomationAPI();

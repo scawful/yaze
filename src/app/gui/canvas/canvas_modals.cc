@@ -13,21 +13,17 @@
 
 namespace yaze {
 namespace gui {
-namespace canvas {
 
+// Helper functions for dispatching config callbacks
 namespace {
-void DispatchConfigCallback(const std::function<void(const CanvasConfig&)>& callback,
-                            const CanvasConfig& config) {
-  if (callback) {
-    callback(config);
-  }
+inline void DispatchConfig(const std::function<void(const CanvasConfig&)>& callback,
+                           const CanvasConfig& config) {
+  if (callback) callback(config);
 }
 
-void DispatchScaleCallback(const std::function<void(const CanvasConfig&)>& callback,
-                           const CanvasConfig& config) {
-  if (callback) {
-    callback(config);
-  }
+inline void DispatchScale(const std::function<void(const CanvasConfig&)>& callback,
+                          const CanvasConfig& config) {
+  if (callback) callback(config);
 }
 }  // namespace
 
@@ -214,7 +210,7 @@ void CanvasModals::RenderAdvancedPropertiesModal(const std::string& canvas_id,
         if (i > 0) ImGui::SameLine();
         if (ImGui::Button(preset_labels[i])) {
           config.global_scale = preset_values[i];
-          DispatchConfigCallback(config.on_config_changed, config);
+          DispatchConfig(config.on_config_changed, config);
         }
       }
     }
@@ -225,14 +221,14 @@ void CanvasModals::RenderAdvancedPropertiesModal(const std::string& canvas_id,
       
       if (ImGui::Button("Reset Scroll")) {
         config.scrolling = ImVec2(0, 0);
-        DispatchConfigCallback(config.on_config_changed, config);
+        DispatchConfig(config.on_config_changed, config);
       }
       ImGui::SameLine();
       
       if (ImGui::Button("Center View") && bitmap) {
         config.scrolling = ImVec2(-(bitmap->width() * config.global_scale - config.canvas_size.x) / 2.0f,
                                  -(bitmap->height() * config.global_scale - config.canvas_size.y) / 2.0f);
-        DispatchConfigCallback(config.on_config_changed, config);
+        DispatchConfig(config.on_config_changed, config);
       }
     }
     
@@ -262,7 +258,7 @@ void CanvasModals::RenderAdvancedPropertiesModal(const std::string& canvas_id,
     ImGui::Spacing();
     
     if (ImGui::Button("Apply Changes", ImVec2(120, 0))) {
-      DispatchConfigCallback(config.on_config_changed, config);
+      DispatchConfig(config.on_config_changed, config);
       ImGui::CloseCurrentPopup();
     }
     ImGui::SameLine();
@@ -282,7 +278,7 @@ void CanvasModals::RenderAdvancedPropertiesModal(const std::string& canvas_id,
       config.is_draggable = false;
       config.auto_resize = false;
       config.scrolling = ImVec2(0, 0);
-      DispatchConfigCallback(config.on_config_changed, config);
+      DispatchConfig(config.on_config_changed, config);
     }
     
     ImGui::EndPopup();
@@ -316,7 +312,7 @@ void CanvasModals::RenderScalingControlsModal(const std::string& canvas_id,
       if (i > 0) ImGui::SameLine();
       if (ImGui::Button(preset_labels[i])) {
         config.global_scale = preset_values[i];
-        DispatchScaleCallback(config.on_scale_changed, config);
+        DispatchScale(config.on_scale_changed, config);
       }
     }
     
@@ -335,7 +331,7 @@ void CanvasModals::RenderScalingControlsModal(const std::string& canvas_id,
       if (i > 0) ImGui::SameLine();
       if (ImGui::Button(grid_labels[i])) {
         config.grid_step = grid_values[i];
-        DispatchScaleCallback(config.on_scale_changed, config);
+        DispatchScale(config.on_scale_changed, config);
       }
     }
     
@@ -360,7 +356,7 @@ void CanvasModals::RenderScalingControlsModal(const std::string& canvas_id,
     ImGui::Spacing();
     
     if (ImGui::Button("Apply", ImVec2(120, 0))) {
-      DispatchScaleCallback(config.on_scale_changed, config);
+      DispatchScale(config.on_scale_changed, config);
       ImGui::CloseCurrentPopup();
     }
     ImGui::SameLine();
@@ -586,6 +582,5 @@ void CanvasModals::RenderSliderWithIcon(const std::string& label, const std::str
   ImGui::SliderFloat(("##" + label).c_str(), value, min_val, max_val, format);
 }
 
-}  // namespace canvas
 }  // namespace gui
 }  // namespace yaze

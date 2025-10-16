@@ -6,7 +6,6 @@
 
 namespace yaze {
 namespace gui {
-namespace canvas {
 
 namespace {
 
@@ -364,6 +363,5 @@ bool CanvasInteractionHandler::IsMouseReleased(ImGuiMouseButton button) {
   return ImGui::IsMouseReleased(button);
 }
 
-}  // namespace canvas
 }  // namespace gui
 }  // namespace yaze

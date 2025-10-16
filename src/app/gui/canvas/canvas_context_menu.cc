@@ -12,7 +12,6 @@
 
 namespace yaze {
 namespace gui {
-namespace canvas {
 
 namespace {
 inline void Dispatch(
@@ -506,6 +505,7 @@ std::string CanvasContextMenu::GetUsageModeName(CanvasUsage usage) const {
     case CanvasUsage::kPaletteEditing: return "Palette Editing";
     case CanvasUsage::kBppConversion: return "BPP Conversion";
     case CanvasUsage::kPerformanceMode: return "Performance Mode";
+    case CanvasUsage::kEntityManipulation: return "Entity Manipulation";
     case CanvasUsage::kUnknown: return "Unknown";
     default: return "Unknown";
   }
@@ -521,6 +521,7 @@ ImVec4 CanvasContextMenu::GetUsageModeColor(CanvasUsage usage) const {
     case CanvasUsage::kPaletteEditing: return ImVec4(0.8F, 0.2F, 1.0F, 1.0F); // Purple
     case CanvasUsage::kBppConversion: return ImVec4(0.2F, 1.0F, 1.0F, 1.0F); // Cyan
     case CanvasUsage::kPerformanceMode: return ImVec4(1.0F, 0.2F, 0.2F, 1.0F); // Red
+    case CanvasUsage::kEntityManipulation: return ImVec4(0.4F, 0.8F, 1.0F, 1.0F); // Light Blue
     case CanvasUsage::kUnknown: return ImVec4(0.7F, 0.7F, 0.7F, 1.0F); // Gray
     default: return ImVec4(0.7F, 0.7F, 0.7F, 1.0F); // Gray
   }
@@ -578,36 +579,35 @@ void CanvasContextMenu::CreateDefaultMenuItems() {
   usage_specific_items_[CanvasUsage::kPerformanceMode].push_back(perf_item);
 }
 
-canvas::CanvasContextMenu::ContextMenuItem canvas::CanvasContextMenu::CreateViewMenuItem(const std::string& label, 
+CanvasContextMenu::ContextMenuItem CanvasContextMenu::CreateViewMenuItem(const std::string& label, 
                                                      const std::string& icon, 
                                                      std::function<void()> callback) {
   return ContextMenuItem(label, icon, callback);
 }
 
-canvas::CanvasContextMenu::ContextMenuItem canvas::CanvasContextMenu::CreateBitmapMenuItem(const std::string& label, 
+CanvasContextMenu::ContextMenuItem CanvasContextMenu::CreateBitmapMenuItem(const std::string& label, 
                                                        const std::string& icon, 
                                                        std::function<void()> callback) {
   return ContextMenuItem(label, icon, callback);
 }
 
-canvas::CanvasContextMenu::ContextMenuItem canvas::CanvasContextMenu::CreatePaletteMenuItem(const std::string& label, 
+CanvasContextMenu::ContextMenuItem CanvasContextMenu::CreatePaletteMenuItem(const std::string& label, 
                                                         const std::string& icon, 
                                                         std::function<void()> callback) {
   return ContextMenuItem(label, icon, callback);
 }
 
-canvas::CanvasContextMenu::ContextMenuItem canvas::CanvasContextMenu::CreateBppMenuItem(const std::string& label, 
+CanvasContextMenu::ContextMenuItem CanvasContextMenu::CreateBppMenuItem(const std::string& label, 
                                                     const std::string& icon, 
                                                     std::function<void()> callback) {
   return ContextMenuItem(label, icon, callback);
 }
 
-canvas::CanvasContextMenu::ContextMenuItem canvas::CanvasContextMenu::CreatePerformanceMenuItem(const std::string& label, 
+CanvasContextMenu::ContextMenuItem CanvasContextMenu::CreatePerformanceMenuItem(const std::string& label, 
                                                             const std::string& icon, 
                                                             std::function<void()> callback) {
   return ContextMenuItem(label, icon, callback);
 }
 
-}  // namespace canvas
 }  // namespace gui
 }  // namespace yaze
