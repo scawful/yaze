@@ -6,23 +6,11 @@
   "builtin-baseline": "b2c74683ecfd6a8e7d27ffb0df077f66a9339509",
   "dependencies": [
     {
-      "name": "grpc",
-      "platform": "windows"
-    },
-    {
-      "name": "protobuf",
-      "platform": "windows"
-    },
-    {
       "name": "sdl2",
       "platform": "windows"
     },
     {
       "name": "yaml-cpp",
-      "platform": "windows"
-    },
-    {
-      "name": "zlib",
       "platform": "windows"
     }
   ]
