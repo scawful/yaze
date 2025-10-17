@@ -4,10 +4,10 @@
 #include <cstdint>
 #include <iostream>
 
+#include "app/rom.h"
 #include "zelda3/common.h"
 
-namespace yaze {
-namespace zelda3 {
+namespace yaze::zelda3 {
 
 constexpr int kNumOverworldExits = 0x4F;
 constexpr int OWExitRoomId = 0x15D8A;  // 0x15E07 Credits sequences
@@ -208,7 +208,9 @@ class OverworldExit : public GameEntity {
   }
 };
 
-}  // namespace zelda3
-}  // namespace yaze
+absl::StatusOr<std::vector<OverworldExit>> LoadExits(Rom* rom);
+absl::Status SaveExits(Rom* rom, const std::vector<OverworldExit>& exits);
+
+}  // namespace yaze::zelda3
 
 #endif  // YAZE_APP_ZELDA3_OVERWORLD_EXIT_H_
