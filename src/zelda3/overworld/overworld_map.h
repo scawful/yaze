@@ -10,16 +10,11 @@
 #include "app/gfx/types/snes_palette.h"
 #include "app/gfx/types/snes_tile.h"
 #include "app/rom.h"
-#include "zelda3/overworld/overworld_item.h"
 
 namespace yaze {
 namespace zelda3 {
 
 static constexpr int kTileOffsets[] = {0, 8, 4096, 4104};
-
-// 1 byte, not 0 if enabled
-// vanilla, v2, v3
-constexpr int OverworldCustomASMHasBeenApplied = 0x140145;
 
 // 2 bytes for each overworld area (0x140)
 constexpr int OverworldCustomAreaSpecificBGPalette = 0x140000;

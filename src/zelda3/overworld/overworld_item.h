@@ -8,10 +8,16 @@
 #include <string>
 #include <vector>
 
+#include "absl/status/status.h"
+#include "absl/status/statusor.h"
+#include "app/rom.h"
 #include "zelda3/common.h"
 
 namespace yaze {
 namespace zelda3 {
+
+// Forward declaration of OverworldMap class
+class OverworldMap;
 
 constexpr int kNumOverworldMapItemPointers = 0x80;
 constexpr int kOverworldItemsPointers = 0xDC2F9;
@@ -22,6 +28,15 @@ constexpr int kOverworldItemsEndData = 0xDC89C;  // 0DC89E
 constexpr int kOverworldBombDoorItemLocationsNew = 0x012644;
 constexpr int kOverworldItemsPointersNew = 0x012784;
 constexpr int kOverworldItemsStartDataNew = 0x0DC2F9;
+
+constexpr int overworldItemsPointers = 0x0DC2F9;
+constexpr int overworldItemsAddress = 0x0DC8B9; // 1BC2F9
+constexpr int overworldItemsAddressBank = 0x0DC8BF;
+constexpr int overworldItemsEndData = 0x0DC89C; // 0DC89E
+
+constexpr int overworldBombDoorItemLocationsNew = 0x012644;
+constexpr int overworldItemsPointersNew = 0x012784;
+constexpr int overworldItemsStartDataNew = 0x0DC2F9;
 
 class OverworldItem : public GameEntity {
  public:
@@ -82,6 +97,36 @@ inline bool CompareOverworldItems(const std::vector<OverworldItem>& items1,
                                           });
                      });
 }
+
+inline bool CompareItemsArrays(std::vector<OverworldItem> item_array1,
+                        std::vector<OverworldItem> item_array2) {
+  if (item_array1.size() != item_array2.size()) {
+    return false;
+  }
+
+  bool match;
+  for (size_t i = 0; i < item_array1.size(); i++) {
+    match = false;
+    for (size_t j = 0; j < item_array2.size(); j++) {
+      // Check all sprite in 2nd array if one match
+      if (item_array1[i].x_ == item_array2[j].x_ &&
+          item_array1[i].y_ == item_array2[j].y_ &&
+          item_array1[i].id_ == item_array2[j].id_) {
+        match = true;
+        break;
+      }
+    }
+
+    if (!match) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+absl::StatusOr<std::vector<OverworldItem>> LoadItems(Rom* rom, std::vector<OverworldMap>& overworld_maps);
+absl::Status SaveItems(Rom* rom, const std::vector<OverworldItem>& items);
 
 const std::vector<std::string> kSecretItemNames = {
     "Nothing",        // 0

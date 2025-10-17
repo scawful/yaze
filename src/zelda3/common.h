@@ -44,6 +44,12 @@ class GameEntity {
   virtual void UpdateMapProperties(uint16_t map_id) = 0;
 };
 
+constexpr int kNumOverworldMaps = 160;
+
+// 1 byte, not 0 if enabled
+// vanilla, v2, v3
+constexpr int OverworldCustomASMHasBeenApplied = 0x140145;
+
 constexpr const char* kEntranceNames[] = {
     "Link's House Intro",
     "Link's House Post-intro",
