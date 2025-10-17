@@ -103,6 +103,13 @@ set(protobuf_BUILD_PROTOC_BINARIES ON CACHE BOOL "" FORCE)
 set(protobuf_WITH_ZLIB ON CACHE BOOL "" FORCE)
 set(protobuf_MSVC_STATIC_RUNTIME ON CACHE BOOL "" FORCE)
 
+# Disable protobuf version resource on Windows to avoid LNK1241 duplicate resource errors
+# gRPC v1.75.1 protobuf generates version.res that gets linked multiple times
+if(WIN32)
+  set(protobuf_RC_FILEVERSION "" CACHE STRING "" FORCE)
+  set(protobuf_DISABLE_RTTI ON CACHE BOOL "" FORCE)
+endif()
+
 # Abseil configuration
 set(ABSL_PROPAGATE_CXX_STD ON CACHE BOOL "" FORCE)
 set(ABSL_ENABLE_INSTALL ON CACHE BOOL "" FORCE)

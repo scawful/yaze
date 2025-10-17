@@ -103,7 +103,7 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release `
             -DCMAKE_C_COMPILER=clang-cl `
             -DCMAKE_CXX_COMPILER=clang-cl `
-            -DCMAKE_TOOLCHAIN_FILE=$toolchain `
+            "-DCMAKE_TOOLCHAIN_FILE=$toolchain" `
             -DVCPKG_TARGET_TRIPLET=x64-windows-static `
             -DVCPKG_MANIFEST_MODE=ON `
             -DYAZE_BUILD_TESTS=OFF `
@@ -387,7 +387,7 @@ jobs:
           
           cat release_notes.md
 
-      - name: Create Release
+      - name: Create or Update Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.tag.outputs.tag }}
@@ -395,6 +395,7 @@ jobs:
           body_path: release_notes.md
           draft: false
           prerelease: ${{ contains(steps.tag.outputs.tag, '-') }}
+          make_latest: ${{ !contains(steps.tag.outputs.tag, '-') }}
           files: |
             artifacts/yaze-windows-x64/*
             artifacts/yaze-macos-universal/*
