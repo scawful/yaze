@@ -103,13 +103,6 @@ set(protobuf_BUILD_PROTOC_BINARIES ON CACHE BOOL "" FORCE)
 set(protobuf_WITH_ZLIB ON CACHE BOOL "" FORCE)
 set(protobuf_MSVC_STATIC_RUNTIME ON CACHE BOOL "" FORCE)
 
-# Disable protobuf version resource on Windows to avoid LNK1241 duplicate resource errors
-# gRPC v1.75.1 protobuf generates version.res that gets linked multiple times
-if(WIN32)
-  set(protobuf_RC_FILEVERSION "" CACHE STRING "" FORCE)
-  set(protobuf_DISABLE_RTTI ON CACHE BOOL "" FORCE)
-endif()
-
 # Abseil configuration
 set(ABSL_PROPAGATE_CXX_STD ON CACHE BOOL "" FORCE)
 set(ABSL_ENABLE_INSTALL ON CACHE BOOL "" FORCE)
@@ -125,15 +118,16 @@ endif()
 
 # Declare gRPC with platform-specific versions
 # - macOS/Linux: v1.75.1 (has ARM64 + modern Clang fixes)
-# - Windows: v1.75.1 (better NASM/clang-cl support than v1.67.1)
-set(_GRPC_VERSION "v1.75.1")
+# - Windows: v1.68.0 (stable, no protobuf resource file issues)
 if(WIN32)
-  set(_GRPC_VERSION_REASON "Windows clang-cl + MSVC compatibility")
+  set(_GRPC_VERSION "v1.68.0")
+  set(_GRPC_VERSION_REASON "Windows clang-cl + MSVC compatibility, no protobuf LNK1241 errors")
   # Disable BoringSSL ASM to avoid NASM build issues on Windows
   # ASM optimizations cause NASM flag conflicts with clang-cl
   set(OPENSSL_NO_ASM ON CACHE BOOL "" FORCE)
   message(STATUS "Disabling BoringSSL ASM optimizations for Windows build compatibility")
 else()
+  set(_GRPC_VERSION "v1.75.1")
   set(_GRPC_VERSION_REASON "ARM64 macOS + modern Clang compatibility")
 endif()
 
