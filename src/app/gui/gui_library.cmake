@@ -33,6 +33,7 @@ set(CANVAS_SRC
   app/gui/canvas/canvas_interaction.cc
   app/gui/canvas/canvas_interaction_handler.cc
   app/gui/canvas/canvas_menu.cc
+  app/gui/canvas/canvas_menu_builder.cc
   app/gui/canvas/canvas_modals.cc
   app/gui/canvas/canvas_performance_integration.cc
   app/gui/canvas/canvas_popup.cc

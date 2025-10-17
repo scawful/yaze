@@ -418,11 +418,11 @@ void MapPropertiesSystem::SetupCanvasContextMenu(
   
   // Add entity insertion submenu (only in MOUSE mode)
   if (current_mode == 0 && entity_insert_callback_) {  // 0 = EditingMode::MOUSE
-    gui::Canvas::ContextMenuItem entity_menu;
+    gui::CanvasMenuItem entity_menu;
     entity_menu.label = ICON_MD_ADD_LOCATION " Insert Entity";
     
     // Entrance submenu item
-    gui::Canvas::ContextMenuItem entrance_item;
+    gui::CanvasMenuItem entrance_item;
     entrance_item.label = ICON_MD_DOOR_FRONT " Entrance";
     entrance_item.callback = [this]() {
       if (entity_insert_callback_) {
@@ -432,7 +432,7 @@ void MapPropertiesSystem::SetupCanvasContextMenu(
     entity_menu.subitems.push_back(entrance_item);
     
     // Hole submenu item
-    gui::Canvas::ContextMenuItem hole_item;
+    gui::CanvasMenuItem hole_item;
     hole_item.label = ICON_MD_CYCLONE " Hole";
     hole_item.callback = [this]() {
       if (entity_insert_callback_) {
@@ -442,7 +442,7 @@ void MapPropertiesSystem::SetupCanvasContextMenu(
     entity_menu.subitems.push_back(hole_item);
     
     // Exit submenu item
-    gui::Canvas::ContextMenuItem exit_item;
+    gui::CanvasMenuItem exit_item;
     exit_item.label = ICON_MD_DOOR_BACK " Exit";
     exit_item.callback = [this]() {
       if (entity_insert_callback_) {
@@ -452,7 +452,7 @@ void MapPropertiesSystem::SetupCanvasContextMenu(
     entity_menu.subitems.push_back(exit_item);
     
     // Item submenu item
-    gui::Canvas::ContextMenuItem item_item;
+    gui::CanvasMenuItem item_item;
     item_item.label = ICON_MD_GRASS " Item";
     item_item.callback = [this]() {
       if (entity_insert_callback_) {
@@ -462,7 +462,7 @@ void MapPropertiesSystem::SetupCanvasContextMenu(
     entity_menu.subitems.push_back(item_item);
     
     // Sprite submenu item
-    gui::Canvas::ContextMenuItem sprite_item;
+    gui::CanvasMenuItem sprite_item;
     sprite_item.label = ICON_MD_PEST_CONTROL_RODENT " Sprite";
     sprite_item.callback = [this]() {
       if (entity_insert_callback_) {
@@ -475,7 +475,7 @@ void MapPropertiesSystem::SetupCanvasContextMenu(
   }
 
   // Add overworld-specific context menu items
-  gui::Canvas::ContextMenuItem lock_item;
+  gui::CanvasMenuItem lock_item;
   lock_item.label = current_map_lock ? "Unlock Map" : "Lock to This Map";
   lock_item.callback = [&current_map_lock]() {
     current_map_lock = !current_map_lock;
@@ -483,7 +483,7 @@ void MapPropertiesSystem::SetupCanvasContextMenu(
   canvas.AddContextMenuItem(lock_item);
 
   // Area Configuration
-  gui::Canvas::ContextMenuItem properties_item;
+  gui::CanvasMenuItem properties_item;
   properties_item.label = ICON_MD_TUNE " Area Configuration";
   properties_item.callback = [&show_map_properties_panel]() {
     show_map_properties_panel = true;
@@ -495,7 +495,7 @@ void MapPropertiesSystem::SetupCanvasContextMenu(
       (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
   if (asm_version >= 3 && asm_version != 0xFF) {
     // Custom Background Color
-    gui::Canvas::ContextMenuItem bg_color_item;
+    gui::CanvasMenuItem bg_color_item;
     bg_color_item.label = ICON_MD_FORMAT_COLOR_FILL " Custom Background Color";
     bg_color_item.callback = [&show_custom_bg_color_editor]() {
       show_custom_bg_color_editor = true;
@@ -503,7 +503,7 @@ void MapPropertiesSystem::SetupCanvasContextMenu(
     canvas.AddContextMenuItem(bg_color_item);
 
     // Visual Effects Editor
-    gui::Canvas::ContextMenuItem overlay_item;
+    gui::CanvasMenuItem overlay_item;
     overlay_item.label = ICON_MD_LAYERS " Visual Effects";
     overlay_item.callback = [&show_overlay_editor]() {
       show_overlay_editor = true;
@@ -512,7 +512,7 @@ void MapPropertiesSystem::SetupCanvasContextMenu(
   }
 
   // Canvas controls
-  gui::Canvas::ContextMenuItem reset_view_item;
+  gui::CanvasMenuItem reset_view_item;
   reset_view_item.label = ICON_MD_RESTORE " Reset View";
   reset_view_item.callback = [&canvas]() {
     canvas.set_global_scale(1.0f);
@@ -520,7 +520,7 @@ void MapPropertiesSystem::SetupCanvasContextMenu(
   };
   canvas.AddContextMenuItem(reset_view_item);
 
-  gui::Canvas::ContextMenuItem zoom_in_item;
+  gui::CanvasMenuItem zoom_in_item;
   zoom_in_item.label = ICON_MD_ZOOM_IN " Zoom In";
   zoom_in_item.callback = [&canvas]() {
     float scale = std::min(2.0f, canvas.global_scale() + 0.25f);
@@ -528,7 +528,7 @@ void MapPropertiesSystem::SetupCanvasContextMenu(
   };
   canvas.AddContextMenuItem(zoom_in_item);
 
-  gui::Canvas::ContextMenuItem zoom_out_item;
+  gui::CanvasMenuItem zoom_out_item;
   zoom_out_item.label = ICON_MD_ZOOM_OUT " Zoom Out";
   zoom_out_item.callback = [&canvas]() {
     float scale = std::max(0.25f, canvas.global_scale() - 0.25f);

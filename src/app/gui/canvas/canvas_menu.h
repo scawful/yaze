@@ -12,6 +12,22 @@ namespace yaze {
 namespace gui {
 
 /**
+ * @brief Menu section priority for controlling rendering order
+ * 
+ * Lower values render first in the context menu:
+ * - Editor-specific items (0) appear at the top
+ * - Bitmap/palette operations (10) in the middle
+ * - Canvas properties (20) near the bottom
+ * - Debug/performance (30) at the bottom
+ */
+enum class MenuSectionPriority {
+  kEditorSpecific = 0,   // Highest priority - editor-specific actions
+  kBitmapPalette = 10,   // Medium priority - bitmap/palette operations
+  kCanvasProperties = 20, // Low priority - canvas settings
+  kDebug = 30            // Lowest priority - debug/performance
+};
+
+/**
  * @brief Declarative popup definition for menu items
  * 
  * Links a menu item to a persistent popup that should open when the menu
@@ -126,6 +142,7 @@ struct CanvasMenuItem {
  * @brief Menu section grouping related menu items
  * 
  * Provides visual organization of menu items with optional section titles.
+ * Sections are rendered in priority order.
  */
 struct CanvasMenuSection {
   // Optional section title (rendered as colored text)
@@ -140,6 +157,9 @@ struct CanvasMenuSection {
   // Whether to show a separator after this section
   bool separator_after = true;
   
+  // Priority for ordering sections (lower values render first)
+  MenuSectionPriority priority = MenuSectionPriority::kEditorSpecific;
+  
   // Default constructor
   CanvasMenuSection() = default;
   
@@ -149,6 +169,11 @@ struct CanvasMenuSection {
   // Constructor with title and items
   CanvasMenuSection(const std::string& t, const std::vector<CanvasMenuItem>& its)
       : title(t), items(its) {}
+  
+  // Constructor with title, items, and priority
+  CanvasMenuSection(const std::string& t, const std::vector<CanvasMenuItem>& its,
+                   MenuSectionPriority prio)
+      : title(t), items(its), priority(prio) {}
 };
 
 /**

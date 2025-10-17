@@ -544,18 +544,18 @@ void Canvas::DrawContextMenu() {
               break;
           }
         },
-        snapshot);
+        snapshot, this);  // Phase 4: Pass Canvas* for editor menu integration
 
     if (modals_) {
       modals_->Render();
     }
 
-    // CRITICAL: Render custom context menu items AFTER enhanced menu
-    // Don't return early - we need to show custom items too!
-    if (!context_menu_items_.empty() && ImGui::BeginPopupContextItem(context_id_.c_str())) {
-      for (const auto& item : context_menu_items_) {
-        DrawContextMenuItem(item);
-      }
+    // Phase 4: Render editor menu items using declarative menu system
+    if (!editor_menu_.sections.empty() && ImGui::BeginPopupContextItem(context_id_.c_str())) {
+      auto popup_callback = [this](const std::string& id, std::function<void()> callback) {
+        popup_registry_.Open(id, callback);
+      };
+      gui::RenderCanvasMenu(editor_menu_, popup_callback);
       ImGui::EndPopup();
     }
 
@@ -569,105 +569,56 @@ void Canvas::DrawContextMenu() {
   ShowScalingControls();
 }
 
-void Canvas::DrawContextMenuItem(const ContextMenuItem& item) {
-  if (!item.enabled_condition()) {
-    ImGui::BeginDisabled();
-  }
-
-  if (item.subitems.empty()) {
-    // Simple menu item
-    if (ImGui::MenuItem(item.label.c_str(), item.shortcut.empty()
-                                                ? nullptr
-                                                : item.shortcut.c_str())) {
-      item.callback();
-    }
-  } else {
-    // Menu with subitems
-    if (ImGui::BeginMenu(item.label.c_str())) {
-      for (const auto& subitem : item.subitems) {
-        DrawContextMenuItem(subitem);
-      }
-      ImGui::EndMenu();
-    }
-  }
-
-  if (!item.enabled_condition()) {
-    ImGui::EndDisabled();
-  }
+void Canvas::DrawContextMenuItem(const gui::CanvasMenuItem& item) {
+  // Phase 4: Use RenderMenuItem from canvas_menu.h for consistent rendering
+  auto popup_callback = [this](const std::string& id, std::function<void()> callback) {
+    popup_registry_.Open(id, callback);
+  };
+  
+  gui::RenderMenuItem(item, popup_callback);
 }
 
-void Canvas::AddContextMenuItem(const ContextMenuItem& item) {
-  context_menu_items_.push_back(item);
+void Canvas::AddContextMenuItem(const gui::CanvasMenuItem& item) {
+  // Phase 4: Add to editor menu definition
+  // Items are added to a default section with editor-specific priority
+  if (editor_menu_.sections.empty()) {
+    CanvasMenuSection section;
+    section.priority = MenuSectionPriority::kEditorSpecific;
+    section.separator_after = true;
+    editor_menu_.sections.push_back(section);
+  }
+  
+  // Add to the last section (or create new if the last isn't editor-specific)
+  auto& last_section = editor_menu_.sections.back();
+  if (last_section.priority != MenuSectionPriority::kEditorSpecific) {
+    CanvasMenuSection new_section;
+    new_section.priority = MenuSectionPriority::kEditorSpecific;
+    new_section.separator_after = true;
+    editor_menu_.sections.push_back(new_section);
+    editor_menu_.sections.back().items.push_back(item);
+  } else {
+    last_section.items.push_back(item);
+  }
 }
 
 void Canvas::ClearContextMenuItems() {
-  context_menu_items_.clear();
+  editor_menu_.sections.clear();
 }
 
-void Canvas::OpenPersistentPopup(const std::string& popup_id, std::function<void()> render_callback) {
-  // Phase 3: Delegate to new popup registry
+void Canvas::OpenPersistentPopup(const std::string& popup_id, 
+                                std::function<void()> render_callback) {
+  // Phase 4: Simplified popup management (no legacy synchronization)
   popup_registry_.Open(popup_id, render_callback);
-  
-  // Maintain backward compatibility with legacy active_popups_ vector
-  // TODO(Phase 4): Remove this synchronization once all editors migrate
-  bool found = false;
-  for (auto& popup : active_popups_) {
-    if (popup.popup_id == popup_id) {
-      popup.is_open = true;
-      popup.render_callback = render_callback;
-      found = true;
-      break;
-    }
-  }
-  
-  if (!found) {
-    PopupState new_popup;
-    new_popup.popup_id = popup_id;
-    new_popup.is_open = true;
-    new_popup.render_callback = render_callback;
-    active_popups_.push_back(new_popup);
-  }
 }
 
 void Canvas::ClosePersistentPopup(const std::string& popup_id) {
-  // Phase 3: Delegate to new popup registry
+  // Phase 4: Simplified popup management (no legacy synchronization)
   popup_registry_.Close(popup_id);
-  
-  // Maintain backward compatibility with legacy active_popups_ vector
-  // TODO(Phase 4): Remove this synchronization once all editors migrate
-  for (auto& popup : active_popups_) {
-    if (popup.popup_id == popup_id) {
-      popup.is_open = false;
-      return;
-    }
-  }
 }
 
 void Canvas::RenderPersistentPopups() {
-  // Phase 3: Delegate to new popup registry
+  // Phase 4: Simplified rendering (no legacy synchronization)
   popup_registry_.RenderAll();
-  
-  // Maintain backward compatibility: sync legacy vector with registry state
-  // TODO(Phase 4): Remove this synchronization once all editors migrate
-  const auto& registry_popups = popup_registry_.GetPopups();
-  
-  // Remove closed popups from legacy vector
-  auto it = active_popups_.begin();
-  while (it != active_popups_.end()) {
-    bool found_in_registry = false;
-    for (const auto& reg_popup : registry_popups) {
-      if (reg_popup.popup_id == it->popup_id && reg_popup.is_open) {
-        found_in_registry = true;
-        break;
-      }
-    }
-    
-    if (!found_in_registry) {
-      it = active_popups_.erase(it);
-    } else {
-      ++it;
-    }
-  }
 }
 
 void Canvas::SetZoomToFit(const gfx::Bitmap& bitmap) {
