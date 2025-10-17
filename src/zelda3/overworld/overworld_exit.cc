@@ -3,9 +3,9 @@
 #include "absl/status/statusor.h"
 #include "app/rom.h"
 #include "util/macro.h"
+#include "zelda3/common.h"
 #include <cstdint>
 #include <vector>
-#include "zelda3/overworld/overworld_map.h"
 
 namespace yaze::zelda3 {
 

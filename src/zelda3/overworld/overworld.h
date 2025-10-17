@@ -2,20 +2,23 @@
 #define YAZE_APP_DATA_OVERWORLD_H
 
 #include <array>
+#include <cstdint>
 #include <vector>
 #include <mutex>
 
 #include "absl/status/status.h"
+#include "absl/status/statusor.h"
 #include "app/gfx/types/snes_tile.h"
 #include "app/rom.h"
+#include "imgui.h"
+#include "zelda3/common.h"
 #include "zelda3/overworld/overworld_entrance.h"
 #include "zelda3/overworld/overworld_exit.h"
 #include "zelda3/overworld/overworld_item.h"
 #include "zelda3/overworld/overworld_map.h"
 #include "zelda3/sprite/sprite.h"
 
-namespace yaze {
-namespace zelda3 {
+namespace yaze::zelda3 {
 
 constexpr int GravesYTilePos = 0x49968;          // short (0x0F entries)
 constexpr int GravesXTilePos = 0x49986;          // short (0x0F entries)
@@ -130,7 +133,6 @@ class Overworld {
   absl::Status LoadOverworldMaps();
   void LoadTileTypes();
 
-  // absl::Status LoadItems();
   absl::Status LoadSprites();
   absl::Status LoadSpritesFromMap(int sprite_start, int sprite_count,
                                   int sprite_index);
@@ -365,7 +367,6 @@ class Overworld {
   std::array<int, kNumOverworldMaps> map_pointers2;
 };
 
-}  // namespace zelda3
-}  // namespace yaze
+}  // namespace yaze::zelda3
 
 #endif

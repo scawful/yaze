@@ -676,7 +676,6 @@ absl::Status Overworld::EnsureMapBuilt(int map_index) {
     world_type = 2;
   }
   
-  util::logf("Building map %d on-demand", map_index);
   return overworld_maps_[map_index].BuildMap(size, game_state_, world_type,
                                              tiles16_, GetMapTiles(world_type));
 }

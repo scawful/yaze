@@ -20,8 +20,7 @@ void EditorCardRegistry::RegisterSession(size_t session_id) {
     session_cards_[session_id] = std::vector<std::string>();
     session_card_mapping_[session_id] = std::unordered_map<std::string, std::string>();
     UpdateSessionCount();
-    printf("[EditorCardRegistry] Registered session %zu (total: %zu)\n", 
-           session_id, session_count_);
+    LOG_INFO("EditorCardRegistry", "Registered session %zu (total: %zu)", session_id, session_count_);
   }
 }
 
@@ -41,15 +40,13 @@ void EditorCardRegistry::UnregisterSession(size_t session_id) {
       }
     }
     
-    printf("[EditorCardRegistry] Unregistered session %zu (total: %zu)\n", 
-           session_id, session_count_);
+    LOG_INFO("EditorCardRegistry", "Unregistered session %zu (total: %zu)", session_id, session_count_);
   }
 }
 
 void EditorCardRegistry::SetActiveSession(size_t session_id) {
   if (session_cards_.find(session_id) != session_cards_.end()) {
     active_session_ = session_id;
-    printf("[EditorCardRegistry] Set active session to %zu\n", session_id);
   }
 }
 
@@ -64,8 +61,7 @@ void EditorCardRegistry::RegisterCard(size_t session_id, const CardInfo& base_in
   
   // Check if already registered to avoid duplicates
   if (cards_.find(prefixed_id) != cards_.end()) {
-    printf("[EditorCardRegistry] WARNING: Card '%s' already registered, skipping duplicate\n", 
-           prefixed_id.c_str());
+    LOG_WARN("EditorCardRegistry", "Card '%s' already registered, skipping duplicate", prefixed_id.c_str());
     return;
   }
   
@@ -86,8 +82,7 @@ void EditorCardRegistry::RegisterCard(size_t session_id, const CardInfo& base_in
   session_cards_[session_id].push_back(prefixed_id);
   session_card_mapping_[session_id][base_info.card_id] = prefixed_id;
   
-  printf("[EditorCardRegistry] Registered card %s -> %s for session %zu\n",
-         base_info.card_id.c_str(), prefixed_id.c_str(), session_id);
+  LOG_INFO("EditorCardRegistry", "Registered card %s -> %s for session %zu", base_info.card_id.c_str(), prefixed_id.c_str(), session_id);
 }
 
 void EditorCardRegistry::RegisterCard(size_t session_id,
@@ -127,7 +122,7 @@ void EditorCardRegistry::UnregisterCard(size_t session_id, const std::string& ba
   
   auto it = cards_.find(prefixed_id);
   if (it != cards_.end()) {
-    printf("[EditorCardRegistry] Unregistered card: %s\n", prefixed_id.c_str());
+    LOG_INFO("EditorCardRegistry", "Unregistered card: %s", prefixed_id.c_str());
     cards_.erase(it);
     centralized_visibility_.erase(prefixed_id);
     
@@ -155,8 +150,7 @@ void EditorCardRegistry::UnregisterCardsWithPrefix(const std::string& prefix) {
   for (const auto& card_id : to_remove) {
     cards_.erase(card_id);
     centralized_visibility_.erase(card_id);
-    printf("[EditorCardRegistry] Unregistered card with prefix '%s': %s\n", 
-           prefix.c_str(), card_id.c_str());
+    LOG_INFO("EditorCardRegistry", "Unregistered card with prefix '%s': %s", prefix.c_str(), card_id.c_str());
   }
   
   // Also clean up session tracking
@@ -176,7 +170,7 @@ void EditorCardRegistry::ClearAllCards() {
   session_cards_.clear();
   session_card_mapping_.clear();
   session_count_ = 0;
-  printf("[EditorCardRegistry] Cleared all cards\n");
+    LOG_INFO("EditorCardRegistry", "Cleared all cards");
 }
 
 // ============================================================================
@@ -828,8 +822,7 @@ void EditorCardRegistry::SavePreset(const std::string& name, const std::string& 
   
   presets_[name] = preset;
   SavePresetsToFile();
-  printf("[EditorCardRegistry] Saved preset: %s (%zu cards)\n", 
-         name.c_str(), preset.visible_cards.size());
+  LOG_INFO("EditorCardRegistry", "Saved preset: %s (%zu cards)", name.c_str(), preset.visible_cards.size());
 }
 
 bool EditorCardRegistry::LoadPreset(const std::string& name) {
@@ -856,7 +849,7 @@ bool EditorCardRegistry::LoadPreset(const std::string& name) {
     }
   }
   
-  printf("[EditorCardRegistry] Loaded preset: %s\n", name.c_str());
+  LOG_INFO("EditorCardRegistry", "Loaded preset: %s", name.c_str());
   return true;
 }
 
@@ -890,7 +883,7 @@ void EditorCardRegistry::ResetToDefaults(size_t session_id) {
   HideAllCardsInSession(session_id);
   
   // TODO: Load default visibility from config file or hardcoded defaults
-  printf("[EditorCardRegistry] Reset to defaults for session %zu\n", session_id);
+  LOG_INFO("EditorCardRegistry", "Reset to defaults for session %zu", session_id);
 }
 
 // ============================================================================
@@ -962,12 +955,12 @@ void EditorCardRegistry::UnregisterSessionCards(size_t session_id) {
 
 void EditorCardRegistry::SavePresetsToFile() {
   // TODO: Implement file I/O for presets
-  printf("[EditorCardRegistry] SavePresetsToFile() - not yet implemented\n");
+  LOG_INFO("EditorCardRegistry", "SavePresetsToFile() - not yet implemented");
 }
 
 void EditorCardRegistry::LoadPresetsFromFile() {
   // TODO: Implement file I/O for presets
-  printf("[EditorCardRegistry] LoadPresetsFromFile() - not yet implemented\n");
+  LOG_INFO("EditorCardRegistry", "LoadPresetsFromFile() - not yet implemented");
 }
 
 void EditorCardRegistry::DrawCardMenuItem(const CardInfo& info) {
