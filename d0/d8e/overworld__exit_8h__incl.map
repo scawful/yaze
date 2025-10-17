@@ -1,12 +1,13 @@
-<map id="src/app/zelda3/overworld/overworld_exit.h" name="src/app/zelda3/overworld/overworld_exit.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,171,46"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="47,168,108,193"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="71,48,55,69,43,95,41,110,44,126,59,154,54,157,39,127,35,110,37,93,50,67,67,45"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="52,94,124,120"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="91,46,91,78,85,78,85,46"/>
-<area shape="rect" id="Node000004" href="$d4/db5/app_2zelda3_2common_8h.html" title=" " alt="" coords="148,94,295,120"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="123,44,189,83,186,88,120,49"/>
-<area shape="poly" id="edge4_Node000004_Node000002" title=" " alt="" coords="198,123,117,163,114,158,196,118"/>
-<area shape="rect" id="Node000005" title=" " alt="" coords="195,168,248,193"/>
-<area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="224,120,224,152,219,152,219,120"/>
+<map id="src/zelda3/overworld/overworld_exit.h" name="src/zelda3/overworld/overworld_exit.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="38,5,178,46"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="127,168,188,193"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="63,49,39,63,19,80,9,99,9,108,13,118,33,139,59,155,86,165,113,172,112,177,85,170,56,159,30,143,9,121,4,109,3,98,14,77,35,59,61,44"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="23,94,95,120"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="98,48,77,82,72,79,94,45"/>
+<area shape="rect" id="Node000004" href="$da/de5/rom_8h.html" title=" " alt="" coords="118,94,197,120"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="123,45,144,79,140,82,118,48"/>
+<area shape="rect" id="Node000038" href="$d4/d6c/zelda3_2common_8h.html" title=" " alt="" coords="220,94,343,120"/>
+<area shape="poly" id="edge5_Node000001_Node000038" title=" " alt="" coords="153,44,242,85,240,90,150,49"/>
+<area shape="poly" id="edge4_Node000004_Node000002" title=" " alt="" coords="160,120,160,152,155,152,155,120"/>
+<area shape="poly" id="edge6_Node000038_Node000002" title=" " alt="" coords="262,123,193,162,190,157,259,118"/>
 </map>

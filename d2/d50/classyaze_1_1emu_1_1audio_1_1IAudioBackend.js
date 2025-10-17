@@ -9,10 +9,13 @@ var classyaze_1_1emu_1_1audio_1_1IAudioBackend =
     [ "Clear", "d2/d50/classyaze_1_1emu_1_1audio_1_1IAudioBackend.html#a4a5e2fdeedb09ef8cea8f7e9261c65f3", null ],
     [ "QueueSamples", "d2/d50/classyaze_1_1emu_1_1audio_1_1IAudioBackend.html#afbd9cdda8024d0bc50c157aaf6703dc1", null ],
     [ "QueueSamples", "d2/d50/classyaze_1_1emu_1_1audio_1_1IAudioBackend.html#a3269c915ba7258efa6e9a11a83cab2f9", null ],
+    [ "QueueSamplesNative", "d2/d50/classyaze_1_1emu_1_1audio_1_1IAudioBackend.html#a8889a1f8b7f3606cdcfb56f432ff195a", null ],
     [ "GetStatus", "d2/d50/classyaze_1_1emu_1_1audio_1_1IAudioBackend.html#aad48a50fd48e23d8438bab01c93ad14e", null ],
     [ "IsInitialized", "d2/d50/classyaze_1_1emu_1_1audio_1_1IAudioBackend.html#acaf5b97199b91600e88ca0067466bba6", null ],
     [ "GetConfig", "d2/d50/classyaze_1_1emu_1_1audio_1_1IAudioBackend.html#adf32c3d04e62f1f2dee14bfdeac08e3f", null ],
     [ "SetVolume", "d2/d50/classyaze_1_1emu_1_1audio_1_1IAudioBackend.html#a3d8f01c9edb4a85682592dc6c82a0035", null ],
     [ "GetVolume", "d2/d50/classyaze_1_1emu_1_1audio_1_1IAudioBackend.html#aebec6bcf968d249a7e8a35e38d14ce5a", null ],
+    [ "SetAudioStreamResampling", "d2/d50/classyaze_1_1emu_1_1audio_1_1IAudioBackend.html#a9029db2555f003c8e99a2602290a8565", null ],
+    [ "SupportsAudioStream", "d2/d50/classyaze_1_1emu_1_1audio_1_1IAudioBackend.html#ab0ccc8c6c10b6a9cbd24d80fa8c75124", null ],
     [ "GetBackendName", "d2/d50/classyaze_1_1emu_1_1audio_1_1IAudioBackend.html#a141c0f90374642135e463bef5a552b7a", null ]
 ];

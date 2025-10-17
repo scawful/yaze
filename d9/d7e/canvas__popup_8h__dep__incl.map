@@ -1,0 +1,12 @@
+<map id="src/app/gui/canvas/canvas_popup.h" name="src/app/gui/canvas/canvas_popup.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="106,5,238,46"/>
+<area shape="rect" id="Node000002" href="$d4/dcf/canvas_8h.html" title=" " alt="" coords="29,94,160,135"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="146,60,114,95,110,92,142,56"/>
+<area shape="rect" id="Node000076" href="$d4/d63/canvas__popup_8cc.html" title=" " alt="" coords="185,94,316,135"/>
+<area shape="poly" id="edge5_Node000001_Node000076" title=" " alt="" coords="202,56,235,92,231,95,198,60"/>
+<area shape="rect" id="Node000003" href="$d3/d38/dungeon__canvas__viewer_8h.html" title=" " alt="" coords="5,271,184,312"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="72,148,56,183,52,203,56,223,67,248,81,270,76,273,62,250,51,224,47,203,51,182,68,146"/>
+<area shape="rect" id="Node000037" href="$d4/ded/dungeon__object__interaction_8h.html" title=" " alt="" coords="66,183,259,223"/>
+<area shape="poly" id="edge3_Node000002_Node000037" title=" " alt="" coords="121,145,149,181,145,184,117,149"/>
+<area shape="poly" id="edge4_Node000037_Node000003" title=" " alt="" coords="140,237,112,273,108,269,136,234"/>
+</map>

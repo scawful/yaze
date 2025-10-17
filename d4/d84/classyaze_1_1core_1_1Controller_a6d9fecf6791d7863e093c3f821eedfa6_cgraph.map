@@ -1,7 +1,0 @@
-<map id="yaze::core::Controller::overworld" name="yaze::core::Controller::overworld">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,145,46"/>
-<area shape="rect" id="Node000002" href="$dd/d12/classyaze_1_1editor_1_1EditorManager.html#aeea38d7642ff4cd0f8adb37d07cba5a9" title=" " alt="" coords="193,5,367,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="145,23,177,23,177,28,145,28"/>
-<area shape="rect" id="Node000003" href="$d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#a9dc47badfa37026739ccb2f0e1aff3e5" title=" " alt="" coords="415,5,598,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="367,23,399,23,399,28,367,28"/>
-</map>

@@ -1,0 +1,7 @@
+<map id="yaze::cli::CommandRegistry::GenerateCategoryHelp" name="yaze::cli::CommandRegistry::GenerateCategoryHelp">
+<area shape="rect" id="Node000001" title="Generate category help text." alt="" coords="5,39,184,79"/>
+<area shape="rect" id="Node000002" href="$d7/de8/classyaze_1_1cli_1_1CommandRegistry.html#a40fc905de44d8fae99452a67ab4592ce" title="Get all commands in a category." alt="" coords="232,5,410,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="184,43,216,38,216,44,185,48"/>
+<area shape="rect" id="Node000003" href="$d7/de8/classyaze_1_1cli_1_1CommandRegistry.html#a691f14cad0ca5159f8286433fc0a62f0" title="Get command metadata." alt="" coords="232,71,410,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="185,69,216,74,216,79,184,74"/>
+</map>

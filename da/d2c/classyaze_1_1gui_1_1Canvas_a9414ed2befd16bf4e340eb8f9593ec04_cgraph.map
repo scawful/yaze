@@ -1,12 +1,12 @@
 <map id="yaze::gui::Canvas::Begin" name="yaze::gui::Canvas::Begin">
 <area shape="rect" id="Node000001" title="Begin canvas rendering (ImGui&#45;style)" alt="" coords="5,63,132,103"/>
-<area shape="rect" id="Node000002" href="$da/d2c/classyaze_1_1gui_1_1Canvas.html#a96755cc4cc8e256b44751c6ab4c50c36" title=" " alt="" coords="367,5,493,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="131,60,179,48,268,35,351,27,352,33,269,40,180,54,133,65"/>
+<area shape="rect" id="Node000002" href="$da/d2c/classyaze_1_1gui_1_1Canvas.html#a96755cc4cc8e256b44751c6ab4c50c36" title=" " alt="" coords="378,5,504,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="131,60,179,48,274,34,362,27,362,32,274,40,180,54,133,65"/>
 <area shape="rect" id="Node000003" href="$da/d2c/classyaze_1_1gui_1_1Canvas.html#ad8f81f1ad4537d5b9c094ed4bb66d304" title=" " alt="" coords="180,63,307,103"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="132,80,165,80,165,86,132,86"/>
-<area shape="rect" id="Node000006" href="$da/d2c/classyaze_1_1gui_1_1Canvas.html#a401e3bebaabb7d192f9466835c86f3ab" title=" " alt="" coords="180,128,307,169"/>
-<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="126,101,174,120,172,125,124,106"/>
-<area shape="poly" id="edge4_Node000003_Node000002" title=" " alt="" coords="306,61,352,47,353,52,308,66"/>
-<area shape="rect" id="Node000004" href="$d5/d08/namespaceyaze_1_1gui_1_1CanvasUtils.html#a434cd63fa78b972755cd86b494ca8cc6" title=" " alt="" coords="355,71,505,111"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="307,83,339,84,339,90,307,88"/>
+<area shape="rect" id="Node000011" href="$da/d2c/classyaze_1_1gui_1_1Canvas.html#a401e3bebaabb7d192f9466835c86f3ab" title=" " alt="" coords="180,128,307,169"/>
+<area shape="poly" id="edge5_Node000001_Node000011" title=" " alt="" coords="126,101,174,120,172,125,124,106"/>
+<area shape="poly" id="edge4_Node000003_Node000002" title=" " alt="" coords="306,62,362,46,363,51,308,67"/>
+<area shape="rect" id="Node000004" href="$d3/dbf/namespaceyaze_1_1gui.html#a3b5cd7813df0ff86846f91de0a717b98" title="Apply scroll delta to geometry." alt="" coords="355,70,526,96"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="307,80,339,80,339,86,307,86"/>
 </map>

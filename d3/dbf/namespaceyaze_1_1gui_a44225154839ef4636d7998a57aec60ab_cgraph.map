@@ -1,0 +1,12 @@
+<map id="yaze::gui::InlinePaletteEditor" name="yaze::gui::InlinePaletteEditor">
+<area shape="rect" id="Node000001" title="Full inline palette editor with color picker and copy options." alt="" coords="5,56,154,97"/>
+<area shape="rect" id="Node000002" href="$d3/dbf/namespaceyaze_1_1gui.html#a7133468eeb96ba6d81b2c91bc7118d1d" title="Convert SnesColor to standard ImVec4 for display." alt="" coords="424,27,605,67"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="110,53,152,30,201,12,259,4,319,4,376,10,427,20,426,25,375,16,318,9,260,9,202,17,154,35,113,58"/>
+<area shape="rect" id="Node000004" href="$da/d68/classyaze_1_1gfx_1_1SnesPalette.html#a683161f8ef9326f82fa64f35d4fb3eda" title=" " alt="" coords="215,27,363,67"/>
+<area shape="poly" id="edge2_Node000001_Node000004" title=" " alt="" coords="154,63,199,57,200,62,155,68"/>
+<area shape="rect" id="Node000005" href="$d3/dbf/namespaceyaze_1_1gui.html#a1136a9ab95fd67e2ab97a00f59818ddb" title=" " alt="" coords="202,91,376,117"/>
+<area shape="poly" id="edge3_Node000001_Node000005" title=" " alt="" coords="155,83,186,88,186,93,154,89"/>
+<area shape="rect" id="Node000007" href="$da/d68/classyaze_1_1gfx_1_1SnesPalette.html#aee465810f89bc92689da01913646bef2" title=" " alt="" coords="215,141,363,182"/>
+<area shape="poly" id="edge5_Node000001_Node000007" title=" " alt="" coords="128,95,203,127,217,133,215,138,201,132,125,100"/>
+<area shape="poly" id="edge4_Node000005_Node000002" title=" " alt="" coords="342,88,416,69,417,74,343,93"/>
+</map>

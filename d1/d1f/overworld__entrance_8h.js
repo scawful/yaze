@@ -2,6 +2,10 @@ var overworld__entrance_8h =
 [
     [ "yaze::zelda3::OverworldEntrance", "d3/d5a/classyaze_1_1zelda3_1_1OverworldEntrance.html", "d3/d5a/classyaze_1_1zelda3_1_1OverworldEntrance" ],
     [ "yaze::zelda3::OverworldEntranceTileTypes", "df/d0c/structyaze_1_1zelda3_1_1OverworldEntranceTileTypes.html", "df/d0c/structyaze_1_1zelda3_1_1OverworldEntranceTileTypes" ],
+    [ "LoadEntrances", "d1/d1f/overworld__entrance_8h.html#a1756c020372b8de106b374ed87457ac8", null ],
+    [ "LoadHoles", "d1/d1f/overworld__entrance_8h.html#abfb9512d6c1b0607a8b3610568efed71", null ],
+    [ "SaveEntrances", "d1/d1f/overworld__entrance_8h.html#a05663190b78b4df9710fa484236c27b3", null ],
+    [ "SaveHoles", "d1/d1f/overworld__entrance_8h.html#abbf4027e93bcda60e48f8fe695b7c99b", null ],
     [ "LoadEntranceTileTypes", "d1/d1f/overworld__entrance_8h.html#abed829d1617688b38b43d3bb71b87e95", null ],
     [ "kEntranceRoomEXP", "d1/d1f/overworld__entrance_8h.html#a878727135e8e89c736977b9433e14d12", null ],
     [ "kEntranceScrollEdgeEXP", "d1/d1f/overworld__entrance_8h.html#a18e93386f312411eccce90503af5ae91", null ],
@@ -36,6 +40,7 @@ var overworld__entrance_8h =
     [ "kOverworldEntranceMapExpanded", "d1/d1f/overworld__entrance_8h.html#ab77d18fdb72f1304bcdf701f7401d33d", null ],
     [ "kOverworldEntrancePosExpanded", "d1/d1f/overworld__entrance_8h.html#aa4013aeee53e79c998a70f67b0a6ca32", null ],
     [ "kOverworldEntranceEntranceIdExpanded", "d1/d1f/overworld__entrance_8h.html#a26e5a7b9e91ebbb569929295138dbc33", null ],
+    [ "kOverworldEntranceExpandedFlagPos", "d1/d1f/overworld__entrance_8h.html#ad7f4c2a68fdd515015aae0aa460adc47", null ],
     [ "kOverworldHolePos", "d1/d1f/overworld__entrance_8h.html#a467f524f73f3fdfe3598e1f90627f22a", null ],
     [ "kOverworldHoleArea", "d1/d1f/overworld__entrance_8h.html#a07733b1877e42f53cff11a648c2b4ab5", null ],
     [ "kOverworldHoleEntrance", "d1/d1f/overworld__entrance_8h.html#a0b76a585e0f3e8fac732a803ef61f1f1", null ],

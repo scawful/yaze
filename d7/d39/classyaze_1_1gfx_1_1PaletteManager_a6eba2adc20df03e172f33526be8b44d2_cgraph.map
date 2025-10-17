@@ -1,0 +1,7 @@
+<map id="yaze::gfx::PaletteManager::EndBatch" name="yaze::gfx::PaletteManager::EndBatch">
+<area shape="rect" id="Node000001" title="End a batch operation." alt="" coords="5,39,173,79"/>
+<area shape="rect" id="Node000002" href="$d7/d39/classyaze_1_1gfx_1_1PaletteManager.html#a60f767b79f34e46266cf4dec82a96c7c" title="Helper: Notify all listeners of an event." alt="" coords="221,5,388,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="173,43,205,38,205,44,174,49"/>
+<area shape="rect" id="Node000003" href="$d7/d39/classyaze_1_1gfx_1_1PaletteManager.html#a048162c608ec7fa543a3d2ab4212950f" title="Helper: Record a change for undo." alt="" coords="221,71,388,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="174,69,205,74,205,79,173,74"/>
+</map>

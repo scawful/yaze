@@ -1,0 +1,9 @@
+<map id="yaze::editor::EditorCardRegistry::DrawCardInSidebar" name="yaze::editor::EditorCardRegistry::DrawCardInSidebar">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,35,192,75"/>
+<area shape="rect" id="Node000002" href="$d3/dbf/namespaceyaze_1_1gui.html#a58c1196c380724a9ed07522fa0688633" title=" " alt="" coords="240,42,411,68"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="192,52,224,52,224,58,192,58"/>
+<area shape="rect" id="Node000003" href="$d3/dbf/namespaceyaze_1_1gui.html#a0a2f4e28780bd8cf64f9d6e7b67be924" title=" " alt="" coords="459,5,625,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="411,41,443,36,444,42,412,46"/>
+<area shape="rect" id="Node000004" href="$d3/dbf/namespaceyaze_1_1gui.html#ac2a17da2340489ac8d807010ce9ee1bb" title=" " alt="" coords="472,70,613,96"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="412,63,456,69,456,75,411,69"/>
+</map>

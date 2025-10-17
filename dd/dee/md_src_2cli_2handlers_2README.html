@@ -101,8 +101,8 @@ $(document).ready(function(){initNavTree('dd/dee/md_src_2cli_2handlers_2README.h
   <div class="headertitle"><div class="title">YAZE Modern Command Handler Architecture</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md1416"></a> This directory contains the modern command handler system that provides a consistent interface for both CLI and AI agent interactions with ROM data.</p>
-<h1><a class="anchor" id="autotoc_md1417"></a>
+<div class="textblock"><p><a class="anchor" id="autotoc_md1837"></a> This directory contains the modern command handler system that provides a consistent interface for both CLI and AI agent interactions with ROM data.</p>
+<h1><a class="anchor" id="autotoc_md1838"></a>
 Architecture Overview</h1>
 <p>The command handler system follows a clean, layered architecture:</p>
 <div class="fragment"><div class="line">┌─────────────────────────────────────────┐</div>
@@ -135,7 +135,7 @@ Architecture Overview</h1>
 <div class="line">│  - gfx/ (graphics, palette)             │</div>
 <div class="line">│  - app/editor/ (ROM operations)         │</div>
 <div class="line">└─────────────────────────────────────────┘</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md1418"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md1839"></a>
 Namespace Structure</h1>
 <p>All command handlers are organized under a simplified namespace:</p>
 <div class="fragment"><div class="line"><span class="keyword">namespace </span><a class="code hl_namespace" href="../../dc/d46/namespaceyaze.html">yaze</a> {</div>
@@ -148,8 +148,8 @@ Namespace Structure</h1>
 <div class="line">}</div>
 <div class="line">}</div>
 <div class="line">}</div>
-<div class="ttc" id="anamespaceyaze_html"><div class="ttname"><a href="../../dc/d46/namespaceyaze.html">yaze</a></div><div class="ttdoc">Main namespace for the application.</div><div class="ttdef"><b>Definition</b> <a href="../../db/d17/asar__wrapper_8cc_source.html#l00014">asar_wrapper.cc:14</a></div></div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md1419"></a>
+<div class="ttc" id="anamespaceyaze_html"><div class="ttname"><a href="../../dc/d46/namespaceyaze.html">yaze</a></div><div class="ttdoc">Main namespace for the application.</div><div class="ttdef"><b>Definition</b> <a href="../../da/d0c/controller_8cc_source.html#l00020">controller.cc:20</a></div></div>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md1840"></a>
 Directory Organization</h1>
 <div class="fragment"><div class="line">handlers/</div>
 <div class="line">├── README.md (this file)</div>
@@ -180,9 +180,9 @@ Directory Organization</h1>
 <div class="line">    ├── general_commands.cc      // Agent command routing</div>
 <div class="line">    ├── test_commands.cc         // Test harness</div>
 <div class="line">    └── todo_commands.h/.cc      // Task management</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md1420"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md1841"></a>
 Creating a New Command Handler</h1>
-<h2><a class="anchor" id="autotoc_md1421"></a>
+<h2><a class="anchor" id="autotoc_md1842"></a>
 1. Define the Handler Class</h2>
 <p>Create a header file (e.g., <code>new_feature_commands.h</code>):</p>
 <div class="fragment"><div class="line"><span class="preprocessor">#ifndef YAZE_SRC_CLI_HANDLERS_NEW_FEATURE_COMMANDS_H_</span></div>
@@ -221,7 +221,7 @@ Creating a New Command Handler</h1>
 <div class="line"> </div>
 <div class="line"><span class="preprocessor">#endif  </span><span class="comment">// YAZE_SRC_CLI_HANDLERS_NEW_FEATURE_COMMANDS_H_</span></div>
 <div class="ttc" id="acommand__handler_8h_html"><div class="ttname"><a href="../../d9/d72/command__handler_8h.html">command_handler.h</a></div></div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1422"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1843"></a>
 2. Implement the Handler</h2>
 <p>Create the implementation file (e.g., <code>new_feature_commands.cc</code>):</p>
 <div class="fragment"><div class="line"><span class="preprocessor">#include &quot;cli/handlers/new_feature_commands.h&quot;</span></div>
@@ -260,7 +260,7 @@ Creating a New Command Handler</h1>
 <div class="line">}  <span class="comment">// namespace handlers</span></div>
 <div class="line">}  <span class="comment">// namespace cli</span></div>
 <div class="line">}  <span class="comment">// namespace yaze</span></div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1423"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1844"></a>
 3. Register in Factory</h2>
 <p>Add to <code><a class="el" href="../../db/dae/command__handlers_8cc.html">command_handlers.cc</a></code>:</p>
 <div class="fragment"><div class="line"><span class="preprocessor">#include &quot;cli/handlers/new_feature_commands.h&quot;</span></div>
@@ -270,22 +270,22 @@ Creating a New Command Handler</h1>
 <div class="line">  handlers.push_back(std::make_unique&lt;NewFeatureCommandHandler&gt;());</div>
 <div class="line">  <span class="keywordflow">return</span> handlers;</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1424"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1845"></a>
 4. Add Forward Declaration</h2>
 <p>Add to <code><a class="el" href="../../dc/ddc/command__handlers_8h.html">command_handlers.h</a></code>:</p>
 <div class="fragment"><div class="line"><span class="comment">// Forward declarations for command handler classes</span></div>
 <div class="line"><span class="keyword">class </span>NewFeatureCommandHandler;</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md1425"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md1846"></a>
 Command Handler Base Class</h1>
 <p>The <code>resources::CommandHandler</code> base class provides:</p>
-<h2><a class="anchor" id="autotoc_md1426"></a>
+<h2><a class="anchor" id="autotoc_md1847"></a>
 Lifecycle Methods</h2>
 <ul>
 <li><code>Run(args, rom_context)</code> - Main entry point that orchestrates the full command execution</li>
 <li><code>ValidateArgs(parser)</code> - Override to validate command arguments</li>
 <li><code>Execute(rom, parser, formatter)</code> - Override to implement command logic</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1427"></a>
+<h2><a class="anchor" id="autotoc_md1848"></a>
 Helper Methods</h2>
 <ul>
 <li><code>GetUsage()</code> - Return usage string for help</li>
@@ -295,7 +295,7 @@ Helper Methods</h2>
 <li><code>GetDefaultFormat()</code> - Return "json" or "text" for default output</li>
 <li><code>GetOutputTitle()</code> - Return title for output object</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md1428"></a>
+<h1><a class="anchor" id="autotoc_md1849"></a>
 Argument Parsing</h1>
 <p>The <code>ArgumentParser</code> class handles common CLI patterns:</p>
 <div class="fragment"><div class="line"><span class="comment">// Get string argument</span></div>
@@ -316,7 +316,7 @@ Argument Parsing</h1>
 <div class="line"><span class="comment">// Require specific arguments</span></div>
 <div class="line"><a class="code hl_define" href="../../d4/d9e/macro_8h.html#a755e0e0d964b4d81ae730d174c5fa3ce">RETURN_IF_ERROR</a>(parser.RequireArgs({<span class="stringliteral">&quot;required1&quot;</span>, <span class="stringliteral">&quot;required2&quot;</span>}));</div>
 <div class="ttc" id="amacro_8h_html_a755e0e0d964b4d81ae730d174c5fa3ce"><div class="ttname"><a href="../../d4/d9e/macro_8h.html#a755e0e0d964b4d81ae730d174c5fa3ce">RETURN_IF_ERROR</a></div><div class="ttdeci">#define RETURN_IF_ERROR(expression)</div><div class="ttdef"><b>Definition</b> <a href="../../d4/d9e/macro_8h_source.html#l00053">macro.h:53</a></div></div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md1429"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md1850"></a>
 Output Formatting</h1>
 <p>The <code>OutputFormatter</code> class provides consistent JSON/text output:</p>
 <div class="fragment"><div class="line"><span class="comment">// Begin object</span></div>
@@ -342,15 +342,15 @@ Output Formatting</h1>
 <div class="line"> </div>
 <div class="line"><span class="comment">// End object</span></div>
 <div class="line">formatter.EndObject();</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md1430"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md1851"></a>
 Integration with Public API</h1>
 <p>Command handlers are designed to work alongside the public C API defined in <code><a class="el" href="../../d9/d89/yaze_8h.html" title="Yet Another Zelda3 Editor (YAZE) - Public C API.">incl/yaze.h</a></code> and <code><a class="el" href="../../de/dae/zelda_8h.html" title="The Legend of Zelda: A Link to the Past - Data Structures and Constants.">incl/zelda.h</a></code>.</p>
 <ul>
-<li>Handlers use internal C++ classes from <code>app/zelda3/</code></li>
+<li>Handlers use internal C++ classes from <code>zelda3/</code></li>
 <li>Output structures align with C API data types where possible</li>
 <li>Future: C API bridge will expose commands to external applications</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md1431"></a>
+<h1><a class="anchor" id="autotoc_md1852"></a>
 Best Practices</h1>
 <ol type="1">
 <li><b>Keep handlers focused</b> - One command per handler class</li>
@@ -362,7 +362,7 @@ Best Practices</h1>
 <li><b>Test with agents</b> - Commands should be AI-friendly</li>
 <li><b>Mark unused rom parameter</b> - Use <code>Rom* /*rom*/</code> if not needed</li>
 </ol>
-<h1><a class="anchor" id="autotoc_md1432"></a>
+<h1><a class="anchor" id="autotoc_md1853"></a>
 Testing</h1>
 <p>Test commands using the CLI:</p>
 <div class="fragment"><div class="line"># Direct command execution</div>
@@ -374,7 +374,7 @@ Testing</h1>
 <div class="line"> </div>
 <div class="line"># In agent test suite</div>
 <div class="line">./build/bin/z3ed agent test-conversation --rom zelda3.sfc</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md1433"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md1854"></a>
 Future Enhancements</h1>
 <ul>
 <li>[ ] C API bridge for external language bindings</li>

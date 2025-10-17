@@ -1,0 +1,5 @@
+<map id="yaze::gui::CanvasMenuBuilder::AddPopupItem" name="yaze::gui::CanvasMenuBuilder::AddPopupItem">
+<area shape="rect" id="Node000001" title="Add a menu item with icon that opens a persistent popup." alt="" coords="5,5,198,46"/>
+<area shape="rect" id="Node000002" href="$dd/d7b/structyaze_1_1gui_1_1CanvasMenuItem.html#abf2b7316718778d8de11679938086669" title=" " alt="" coords="246,5,424,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="198,23,230,23,230,28,198,28"/>
+</map>

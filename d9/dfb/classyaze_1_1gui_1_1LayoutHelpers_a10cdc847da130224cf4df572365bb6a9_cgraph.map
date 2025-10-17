@@ -1,0 +1,11 @@
+<map id="yaze::gui::LayoutHelpers::SectionHeader" name="yaze::gui::LayoutHelpers::SectionHeader">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,166,79"/>
+<area shape="rect" id="Node000002" href="$d3/dbf/namespaceyaze_1_1gui.html#a0a2f4e28780bd8cf64f9d6e7b67be924" title=" " alt="" coords="214,5,380,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="166,44,198,39,199,44,167,49"/>
+<area shape="rect" id="Node000003" href="$d9/dfb/classyaze_1_1gui_1_1LayoutHelpers.html#a539bca266d42c2a2b603dc12bed9446c" title=" " alt="" coords="217,71,377,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="167,69,202,74,201,79,166,74"/>
+<area shape="rect" id="Node000004" href="$d3/d27/classyaze_1_1gui_1_1ThemeManager.html#ab3423e72fe874f8c370ed2d3e52ac278" title=" " alt="" coords="428,49,621,75"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="377,78,412,73,413,79,378,83"/>
+<area shape="rect" id="Node000005" href="$d3/d27/classyaze_1_1gui_1_1ThemeManager.html#ad706e6146dd664adffe3350c520f397b" title=" " alt="" coords="442,99,608,139"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="378,98,426,104,425,109,377,104"/>
+</map>

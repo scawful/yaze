@@ -1,12 +1,11 @@
 <map id="src/app/editor/system/user_settings.h" name="src/app/editor/system/user_settings.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="72,5,218,46"/>
-<area shape="rect" id="Node000002" href="$df/d60/editor__manager_8h.html" title=" " alt="" coords="21,183,157,223"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="96,57,77,74,62,95,57,117,60,140,78,181,73,183,55,141,52,117,57,93,73,71,92,53"/>
-<area shape="rect" id="Node000018" href="$d9/d0a/settings__editor_8h.html" title=" " alt="" coords="72,94,218,135"/>
-<area shape="poly" id="edge3_Node000001_Node000018" title=" " alt="" coords="148,62,148,94,142,94,142,62"/>
-<area shape="rect" id="Node000020" href="$dd/dc5/user__settings_8cc.html" title=" " alt="" coords="243,94,389,135"/>
-<area shape="poly" id="edge5_Node000001_Node000020" title=" " alt="" coords="198,51,278,91,276,96,196,56"/>
-<area shape="rect" id="Node000003" href="$da/d0c/controller_8cc.html" title=" " alt="" coords="5,271,173,297"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="92,239,92,271,86,271,86,239"/>
-<area shape="poly" id="edge4_Node000018_Node000002" title=" " alt="" coords="126,149,104,184,99,181,122,147"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="252,5,399,46"/>
+<area shape="rect" id="Node000002" href="$df/d60/editor__manager_8h.html" title=" " alt="" coords="5,94,142,135"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="255,54,132,96,130,91,253,49"/>
+<area shape="rect" id="Node000022" href="$d5/d1d/session__types_8cc.html" title=" " alt="" coords="166,94,315,135"/>
+<area shape="poly" id="edge2_Node000001_Node000022" title=" " alt="" coords="298,59,261,95,258,92,294,55"/>
+<area shape="rect" id="Node000023" href="$d9/d0a/settings__editor_8h.html" title=" " alt="" coords="339,94,485,135"/>
+<area shape="poly" id="edge3_Node000001_Node000023" title=" " alt="" coords="358,55,394,92,391,95,354,59"/>
+<area shape="rect" id="Node000028" href="$dd/dc5/user__settings_8cc.html" title=" " alt="" coords="510,94,656,135"/>
+<area shape="poly" id="edge4_Node000001_Node000028" title=" " alt="" coords="399,49,525,91,523,96,397,54"/>
 </map>

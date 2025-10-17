@@ -1,0 +1,11 @@
+<map id="yaze::editor::MenuOrchestrator::OnDuplicateCurrentSession" name="yaze::editor::MenuOrchestrator::OnDuplicateCurrentSession">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,71,201,111"/>
+<area shape="rect" id="Node000002" href="$d5/dcf/classyaze_1_1editor_1_1SessionCoordinator.html#a52b35d07dbef800a3b5ab19f06ce5c12" title=" " alt="" coords="249,71,453,111"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="201,88,233,88,233,94,201,94"/>
+<area shape="rect" id="Node000003" href="$d5/dcf/classyaze_1_1editor_1_1SessionCoordinator.html#abadccff37ebbdc0ce87e65769e60139a" title=" " alt="" coords="501,5,705,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="432,67,506,48,508,53,433,73"/>
+<area shape="rect" id="Node000005" href="$d5/dcf/classyaze_1_1editor_1_1SessionCoordinator.html#ac542a29f368c44f2522abc93fa285271" title=" " alt="" coords="501,71,705,111"/>
+<area shape="poly" id="edge3_Node000002_Node000005" title=" " alt="" coords="453,88,485,88,485,94,453,94"/>
+<area shape="rect" id="Node000006" href="$d5/dcf/classyaze_1_1editor_1_1SessionCoordinator.html#a450606aef9c779de55435f12ebf55e57" title=" " alt="" coords="501,136,705,177"/>
+<area shape="poly" id="edge4_Node000002_Node000006" title=" " alt="" coords="433,109,508,129,506,134,432,115"/>
+</map>

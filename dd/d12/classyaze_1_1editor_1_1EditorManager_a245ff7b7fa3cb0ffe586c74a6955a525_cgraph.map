@@ -1,9 +1,12 @@
 <map id="yaze::editor::EditorManager::JumpToDungeonRoom" name="yaze::editor::EditorManager::JumpToDungeonRoom">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,39,180,79"/>
-<area shape="rect" id="Node000002" href="$da/d45/classyaze_1_1editor_1_1DungeonEditorV2.html#a212fb5a83c47cb2ea1e501a5fd81a27a" title=" " alt="" coords="228,5,403,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="180,43,212,38,213,44,181,49"/>
-<area shape="rect" id="Node000006" href="$dd/d12/classyaze_1_1editor_1_1EditorManager.html#a3760b587fd7b18f85187f9c86a1a6f53" title=" " alt="" coords="228,71,403,111"/>
-<area shape="poly" id="edge3_Node000001_Node000006" title=" " alt="" coords="181,69,213,74,212,79,180,74"/>
-<area shape="rect" id="Node000003" href="$da/d45/classyaze_1_1editor_1_1DungeonEditorV2.html#af5b46bb90815fb2548d1f2e4344abe97" title=" " alt="" coords="451,5,626,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="403,23,436,23,436,28,403,28"/>
+<area shape="rect" id="Node000002" href="$dd/d12/classyaze_1_1editor_1_1EditorManager.html#a660484e6ff4135276dd2a2d91531f3f4" title=" " alt="" coords="450,5,624,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="180,50,434,31,435,36,180,55"/>
+<area shape="rect" id="Node000003" href="$dd/d12/classyaze_1_1editor_1_1EditorManager.html#a3760b587fd7b18f85187f9c86a1a6f53" title=" " alt="" coords="228,67,402,107"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="180,67,212,71,212,77,180,73"/>
+<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="390,63,446,48,447,53,392,69"/>
+<area shape="rect" id="Node000004" href="$d4/d3f/classyaze_1_1editor_1_1EditorRegistry.html#af4f307c2b8476c9c32c845981b738455" title=" " alt="" coords="452,71,623,111"/>
+<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="402,86,436,87,436,92,402,91"/>
+<area shape="rect" id="Node000005" href="$dd/d12/classyaze_1_1editor_1_1EditorManager.html#a023e174b078dffe267152d7cc003a9f6" title=" " alt="" coords="450,136,624,177"/>
+<area shape="poly" id="edge5_Node000003_Node000005" title=" " alt="" coords="383,105,456,128,454,133,382,111"/>
 </map>

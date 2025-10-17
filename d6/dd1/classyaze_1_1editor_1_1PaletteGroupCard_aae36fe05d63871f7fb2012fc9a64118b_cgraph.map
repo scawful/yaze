@@ -1,0 +1,12 @@
+<map id="yaze::editor::PaletteGroupCard::ResetPalette" name="yaze::editor::PaletteGroupCard::ResetPalette">
+<area shape="rect" id="Node000001" title="Reset a specific palette to original ROM values." alt="" coords="5,27,173,68"/>
+<area shape="rect" id="Node000002" href="$d7/d39/classyaze_1_1gfx_1_1PaletteManager.html#ad76357b3c747d397e99dd16972cf1235" title="Get the singleton instance." alt="" coords="221,5,415,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="173,34,205,30,205,35,174,39"/>
+<area shape="rect" id="Node000003" href="$d7/d39/classyaze_1_1gfx_1_1PaletteManager.html#a898d408b1922e8e5ade7b6b7a33a478e" title="Reset an entire palette to original ROM values." alt="" coords="234,55,402,96"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="174,55,219,61,218,66,173,60"/>
+<area shape="rect" id="Node000004" href="$d7/d39/classyaze_1_1gfx_1_1PaletteManager.html#a2e456087d1fa6be7f676ff21a50be921" title="Helper: Get mutable palette group." alt="" coords="463,26,630,67"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="402,62,447,56,448,62,402,67"/>
+<area shape="rect" id="Node000005" href="$d7/d39/classyaze_1_1gfx_1_1PaletteManager.html#abb4b2a02a30c7d06ee74c0c4b93c86fb" title="Check if manager is initialized." alt="" coords="678,55,846,96"/>
+<area shape="poly" id="edge5_Node000003_Node000005" title=" " alt="" coords="402,75,463,76,630,76,663,75,663,80,630,81,463,81,402,80"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="631,55,663,59,662,65,630,60"/>
+</map>

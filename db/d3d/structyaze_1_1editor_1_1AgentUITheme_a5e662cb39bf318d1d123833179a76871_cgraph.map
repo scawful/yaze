@@ -1,7 +1,9 @@
 <map id="yaze::editor::AgentUITheme::FromCurrentTheme" name="yaze::editor::AgentUITheme::FromCurrentTheme">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,27,185,68"/>
-<area shape="rect" id="Node000002" href="$d3/d27/classyaze_1_1gui_1_1ThemeManager.html#ab3423e72fe874f8c370ed2d3e52ac278" title=" " alt="" coords="233,5,426,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="185,34,217,30,217,35,186,39"/>
-<area shape="rect" id="Node000003" href="$d3/d27/classyaze_1_1gui_1_1ThemeManager.html#ad706e6146dd664adffe3350c520f397b" title=" " alt="" coords="246,55,413,96"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="186,56,231,61,231,66,185,61"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,63,185,103"/>
+<area shape="rect" id="Node000002" href="$d3/dbf/namespaceyaze_1_1gui.html#a0a2f4e28780bd8cf64f9d6e7b67be924" title=" " alt="" coords="246,5,413,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="180,60,230,47,232,52,181,65"/>
+<area shape="rect" id="Node000003" href="$d3/d27/classyaze_1_1gui_1_1ThemeManager.html#ab3423e72fe874f8c370ed2d3e52ac278" title=" " alt="" coords="233,70,426,96"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="185,80,217,80,217,86,185,86"/>
+<area shape="rect" id="Node000004" href="$d3/d27/classyaze_1_1gui_1_1ThemeManager.html#ad706e6146dd664adffe3350c520f397b" title=" " alt="" coords="246,120,413,161"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="181,101,232,114,230,119,180,106"/>
 </map>

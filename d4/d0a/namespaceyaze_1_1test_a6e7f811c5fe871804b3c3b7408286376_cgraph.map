@@ -1,7 +1,11 @@
 <map id="yaze::test::TEST_F" name="yaze::test::TEST_F">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,13,135,39"/>
-<area shape="rect" id="Node000002" href="$da/d45/classyaze_1_1editor_1_1DungeonEditorV2.html#a3c2b2ed543dd26436a7c7ccd16f5c3b2" title=" " alt="" coords="183,5,358,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="135,23,167,23,167,28,135,28"/>
-<area shape="rect" id="Node000003" href="$d6/d30/classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="406,13,547,39"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="359,23,391,23,391,28,359,28"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,55,135,80"/>
+<area shape="rect" id="Node000002" href="$da/d45/classyaze_1_1editor_1_1DungeonEditorV2.html#a3c2b2ed543dd26436a7c7ccd16f5c3b2" title=" " alt="" coords="183,47,358,88"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="135,65,167,65,167,70,135,70"/>
+<area shape="rect" id="Node000003" href="$d7/d39/classyaze_1_1gfx_1_1PaletteManager.html#ad76357b3c747d397e99dd16972cf1235" title="Get the singleton instance." alt="" coords="406,5,600,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="357,46,424,32,425,37,359,52"/>
+<area shape="rect" id="Node000004" href="$d6/d30/classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="433,55,574,80"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="358,65,417,65,417,70,358,70"/>
+<area shape="rect" id="Node000005" href="$d7/d39/classyaze_1_1gfx_1_1PaletteManager.html#ae15259177e54ce432453888a89489727" title="Save ALL modified palettes to ROM." alt="" coords="420,105,587,145"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="356,86,405,98,404,103,355,91"/>
 </map>

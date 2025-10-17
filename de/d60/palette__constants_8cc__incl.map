@@ -1,0 +1,12 @@
+<map id="src/zelda3/palette_constants.cc" name="src/zelda3/palette_constants.cc">
+<area shape="rect" id="Node000001" title=" " alt="" coords="157,5,280,46"/>
+<area shape="rect" id="Node000002" href="$d0/d63/palette__constants_8h.html" title=" " alt="" coords="5,94,181,120"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="189,49,127,88,124,83,186,44"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="168,168,226,193"/>
+<area shape="poly" id="edge5_Node000001_Node000004" title=" " alt="" coords="218,47,203,152,198,152,213,46"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="256,94,309,120"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="236,45,265,80,261,83,232,48"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="63,168,123,193"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="96,120,96,152,90,152,90,120"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="112,118,168,156,165,161,109,122"/>
+</map>

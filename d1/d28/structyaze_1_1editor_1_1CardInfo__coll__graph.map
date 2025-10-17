@@ -1,0 +1,5 @@
+<map id="yaze::editor::CardInfo" name="yaze::editor::CardInfo">
+<area shape="rect" id="Node000001" title="Metadata for an editor card." alt="" coords="5,94,146,120"/>
+<area shape="rect" id="Node000002" href="$d4/d96/classyaze_1_1gui_1_1EditorCard.html" title="Draggable, dockable card for editor sub&#45;windows." alt="" coords="7,5,144,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="78,47,78,94,73,94,73,47"/>
+</map>

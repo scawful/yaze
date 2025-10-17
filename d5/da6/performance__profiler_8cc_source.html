@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.9.8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>yaze: src/app/gfx/performance/performance_profiler.cc Source File</title>
+<title>yaze: src/app/gfx/debug/performance/performance_profiler.cc Source File</title>
 <link href="../../tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript">var page_layout=1;</script>
 <script type="text/javascript" src="../../jquery.js"></script>
@@ -101,7 +101,7 @@ $(document).ready(function(){initNavTree('d5/da6/performance__profiler_8cc_sourc
   <div class="headertitle"><div class="title">performance_profiler.cc</div></div>
 </div><!--header-->
 <div class="contents">
-<a href="../../d5/da6/performance__profiler_8cc.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="preprocessor">#include &quot;<a class="code" href="../../dd/db2/performance__profiler_8h.html">app/gfx/performance/performance_profiler.h</a>&quot;</span></div>
+<a href="../../d5/da6/performance__profiler_8cc.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="preprocessor">#include &quot;<a class="code" href="../../dd/db2/performance__profiler_8h.html">app/gfx/debug/performance/performance_profiler.h</a>&quot;</span></div>
 <div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span> </div>
 <div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span><span class="preprocessor">#include &lt;algorithm&gt;</span></div>
 <div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="preprocessor">#include &lt;iomanip&gt;</span></div>
@@ -109,7 +109,7 @@ $(document).ready(function(){initNavTree('d5/da6/performance__profiler_8cc_sourc
 <div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span><span class="preprocessor">#include &lt;numeric&gt;</span></div>
 <div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="preprocessor">#include &lt;sstream&gt;</span></div>
 <div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span> </div>
-<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span><span class="preprocessor">#include &quot;<a class="code" href="../../de/d5c/memory__pool_8h.html">app/gfx/memory_pool.h</a>&quot;</span></div>
+<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span><span class="preprocessor">#include &quot;<a class="code" href="../../de/d5c/memory__pool_8h.html">app/gfx/resource/memory_pool.h</a>&quot;</span></div>
 <div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="preprocessor">#include &quot;<a class="code" href="../../d7/d7f/log_8h.html">util/log.h</a>&quot;</span></div>
 <div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span> </div>
 <div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span><span class="keyword">namespace </span><a class="code hl_namespace" href="../../dc/d46/namespaceyaze.html">yaze</a> {</div>
@@ -452,7 +452,7 @@ $(document).ready(function(){initNavTree('d5/da6/performance__profiler_8cc_sourc
 <div class="ttc" id="aclassyaze_1_1gfx_1_1ScopedTimer_html_ad2af38c5cd5b3af49f82b93dcf07a12f"><div class="ttname"><a href="../../d7/ddb/classyaze_1_1gfx_1_1ScopedTimer.html#ad2af38c5cd5b3af49f82b93dcf07a12f">yaze::gfx::ScopedTimer::~ScopedTimer</a></div><div class="ttdeci">~ScopedTimer()</div><div class="ttdef"><b>Definition</b> <a href="../../d5/da6/performance__profiler_8cc_source.html#l00277">performance_profiler.cc:277</a></div></div>
 <div class="ttc" id="alog_8h_html"><div class="ttname"><a href="../../d7/d7f/log_8h.html">log.h</a></div></div>
 <div class="ttc" id="amemory__pool_8h_html"><div class="ttname"><a href="../../de/d5c/memory__pool_8h.html">memory_pool.h</a></div></div>
-<div class="ttc" id="anamespaceyaze_html"><div class="ttname"><a href="../../dc/d46/namespaceyaze.html">yaze</a></div><div class="ttdoc">Main namespace for the application.</div><div class="ttdef"><b>Definition</b> <a href="../../db/d17/asar__wrapper_8cc_source.html#l00014">asar_wrapper.cc:14</a></div></div>
+<div class="ttc" id="anamespaceyaze_html"><div class="ttname"><a href="../../dc/d46/namespaceyaze.html">yaze</a></div><div class="ttdoc">Main namespace for the application.</div><div class="ttdef"><b>Definition</b> <a href="../../da/d0c/controller_8cc_source.html#l00020">controller.cc:20</a></div></div>
 <div class="ttc" id="aperformance__profiler_8h_html"><div class="ttname"><a href="../../dd/db2/performance__profiler_8h.html">performance_profiler.h</a></div></div>
 <div class="ttc" id="astructyaze_1_1gfx_1_1PerformanceProfiler_1_1TimingStats_html"><div class="ttname"><a href="../../d2/da3/structyaze_1_1gfx_1_1PerformanceProfiler_1_1TimingStats.html">yaze::gfx::PerformanceProfiler::TimingStats</a></div><div class="ttdoc">Get timing statistics for an operation.</div><div class="ttdef"><b>Definition</b> <a href="../../dd/db2/performance__profiler_8h_source.html#l00092">performance_profiler.h:92</a></div></div>
 <div class="ttc" id="astructyaze_1_1gfx_1_1PerformanceProfiler_1_1TimingStats_html_a3383f34fc276b9dd9716972dba87a5c6"><div class="ttname"><a href="../../d2/da3/structyaze_1_1gfx_1_1PerformanceProfiler_1_1TimingStats.html#a3383f34fc276b9dd9716972dba87a5c6">yaze::gfx::PerformanceProfiler::TimingStats::max_time_us</a></div><div class="ttdeci">double max_time_us</div><div class="ttdef"><b>Definition</b> <a href="../../dd/db2/performance__profiler_8h_source.html#l00094">performance_profiler.h:94</a></div></div>
@@ -466,7 +466,7 @@ $(document).ready(function(){initNavTree('d5/da6/performance__profiler_8cc_sourc
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="navelem"><a class="el" href="../../dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="../../dir_5194e5fea318fda12687127c23f8aba1.html">app</a></li><li class="navelem"><a class="el" href="../../dir_0b974e391fb3f3024b1f06092da5c188.html">gfx</a></li><li class="navelem"><a class="el" href="../../dir_54446c4229d517694e0df2aa5c27dcc5.html">performance</a></li><li class="navelem"><a class="el" href="../../d5/da6/performance__profiler_8cc.html">performance_profiler.cc</a></li>
+    <li class="navelem"><a class="el" href="../../dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="../../dir_5194e5fea318fda12687127c23f8aba1.html">app</a></li><li class="navelem"><a class="el" href="../../dir_0b974e391fb3f3024b1f06092da5c188.html">gfx</a></li><li class="navelem"><a class="el" href="../../dir_004772eb11b660ee2e60dbe535843c34.html">debug</a></li><li class="navelem"><a class="el" href="../../dir_88e30e984d51f9afbcdb2d0905aba8b9.html">performance</a></li><li class="navelem"><a class="el" href="../../d5/da6/performance__profiler_8cc.html">performance_profiler.cc</a></li>
     <li class="footer">Generated by <a href="https://www.doxygen.org/index.html"><img class="footer" src="../../doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
   </ul>
 </div>

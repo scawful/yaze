@@ -1,0 +1,7 @@
+<map id="yaze::gfx::anonymous_namespace{palette_manager_test::cc}::TEST_F" name="yaze::gfx::anonymous_namespace{palette_manager_test::cc}::TEST_F">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,16,201,71"/>
+<area shape="rect" id="Node000002" href="$d7/d39/classyaze_1_1gfx_1_1PaletteManager.html#ad76357b3c747d397e99dd16972cf1235" title="Get the singleton instance." alt="" coords="249,5,443,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="201,31,233,27,234,33,202,36"/>
+<area shape="rect" id="Node000003" href="$d5/d31/classyaze_1_1gfx_1_1SnesColor.html#a0a6bc657e8a8778b7672d2e6102771e2" title="Get RGB values (WARNING: stored as 0&#45;255 in ImVec4)" alt="" coords="266,55,426,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="202,51,250,55,250,61,201,56"/>
+</map>

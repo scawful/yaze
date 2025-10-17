@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.9.8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>yaze: src/app/core/asar_wrapper.cc Source File</title>
+<title>yaze: src/core/asar_wrapper.cc Source File</title>
 <link href="../../tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript">var page_layout=1;</script>
 <script type="text/javascript" src="../../jquery.js"></script>
@@ -101,12 +101,12 @@ $(document).ready(function(){initNavTree('db/d17/asar__wrapper_8cc_source.html',
   <div class="headertitle"><div class="title">asar_wrapper.cc</div></div>
 </div><!--header-->
 <div class="contents">
-<a href="../../db/d17/asar__wrapper_8cc.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="preprocessor">#include &quot;<a class="code" href="../../de/d62/asar__wrapper_8h.html">app/core/asar_wrapper.h</a>&quot;</span></div>
+<a href="../../db/d17/asar__wrapper_8cc.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="preprocessor">#include &quot;<a class="code" href="../../de/d62/asar__wrapper_8h.html">core/asar_wrapper.h</a>&quot;</span></div>
 <div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span> </div>
-<div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span><span class="preprocessor">#include &lt;fstream&gt;</span></div>
-<div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="preprocessor">#include &lt;sstream&gt;</span></div>
+<div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span><span class="preprocessor">#include &lt;filesystem&gt;</span></div>
+<div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="preprocessor">#include &lt;fstream&gt;</span></div>
 <div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span><span class="preprocessor">#include &lt;iostream&gt;</span></div>
-<div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span><span class="preprocessor">#include &lt;filesystem&gt;</span></div>
+<div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span><span class="preprocessor">#include &lt;sstream&gt;</span></div>
 <div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span> </div>
 <div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span><span class="preprocessor">#include &quot;absl/strings/str_format.h&quot;</span></div>
 <div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span><span class="preprocessor">#include &quot;absl/strings/str_join.h&quot;</span></div>
@@ -114,10 +114,8 @@ $(document).ready(function(){initNavTree('db/d17/asar__wrapper_8cc_source.html',
 <div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span><span class="comment">// Include Asar C bindings  </span></div>
 <div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span><span class="preprocessor">#include &quot;asar-dll-bindings/c/asar.h&quot;</span></div>
 <div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span> </div>
-<div class="foldopen" id="foldopen00014" data-start="{" data-end="}">
-<div class="line"><a id="l00014" name="l00014"></a><span class="lineno"><a class="line" href="../../dc/d46/namespaceyaze.html">   14</a></span><span class="keyword">namespace </span><a class="code hl_namespace" href="../../dc/d46/namespaceyaze.html">yaze</a> {</div>
-<div class="foldopen" id="foldopen00015" data-start="{" data-end="}">
-<div class="line"><a id="l00015" name="l00015"></a><span class="lineno"><a class="line" href="../../db/d33/namespaceyaze_1_1core.html">   15</a></span><span class="keyword">namespace </span>core {</div>
+<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span><span class="keyword">namespace </span><a class="code hl_namespace" href="../../dc/d46/namespaceyaze.html">yaze</a> {</div>
+<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span><span class="keyword">namespace </span>core {</div>
 <div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span> </div>
 <div class="line"><a id="l00017" name="l00017"></a><span class="lineno"><a class="line" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a28640aadf323ca224c00b151ad5981be">   17</a></span><a class="code hl_function" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a28640aadf323ca224c00b151ad5981be">AsarWrapper::AsarWrapper</a>() : initialized_(false) {}</div>
 <div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span> </div>
@@ -201,7 +199,7 @@ $(document).ready(function(){initNavTree('db/d17/asar__wrapper_8cc_source.html',
 <div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span>  <span class="keywordtype">int</span> buffer_size = std::max(rom_size, 16 * 1024 * 1024);  <span class="comment">// At least 16MB buffer</span></div>
 <div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span>  </div>
 <div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span>  <span class="comment">// Resize ROM data if needed</span></div>
-<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span>  <span class="keywordflow">if</span> (rom_data.size() &lt; buffer_size) {</div>
+<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span>  <span class="keywordflow">if</span> (rom_data.size() &lt; <span class="keyword">static_cast&lt;</span><span class="keywordtype">size_t</span><span class="keyword">&gt;</span>(buffer_size)) {</div>
 <div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span>    rom_data.resize(buffer_size, 0);</div>
 <div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span>  }</div>
 <div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span> </div>
@@ -250,217 +248,221 @@ $(document).ready(function(){initNavTree('db/d17/asar__wrapper_8cc_source.html',
 <div class="line"><a id="l00132" name="l00132"></a><span class="lineno">  132</span>    std::vector&lt;uint8_t&gt;&amp; rom_data,</div>
 <div class="line"><a id="l00133" name="l00133"></a><span class="lineno">  133</span>    <span class="keyword">const</span> std::string&amp; base_path) {</div>
 <div class="line"><a id="l00134" name="l00134"></a><span class="lineno">  134</span>  </div>
-<div class="line"><a id="l00135" name="l00135"></a><span class="lineno">  135</span>  <span class="comment">// Create temporary file for patch content</span></div>
-<div class="line"><a id="l00136" name="l00136"></a><span class="lineno">  136</span>  std::string temp_path = <span class="stringliteral">&quot;/tmp/yaze_temp_patch.asm&quot;</span>;</div>
-<div class="line"><a id="l00137" name="l00137"></a><span class="lineno">  137</span>  <span class="keywordflow">if</span> (!base_path.empty()) {</div>
-<div class="line"><a id="l00138" name="l00138"></a><span class="lineno">  138</span>    <span class="comment">// Ensure directory exists</span></div>
-<div class="line"><a id="l00139" name="l00139"></a><span class="lineno">  139</span>    std::filesystem::create_directories(base_path);</div>
-<div class="line"><a id="l00140" name="l00140"></a><span class="lineno">  140</span>    temp_path = base_path + <span class="stringliteral">&quot;/temp_patch.asm&quot;</span>;</div>
-<div class="line"><a id="l00141" name="l00141"></a><span class="lineno">  141</span>  }</div>
-<div class="line"><a id="l00142" name="l00142"></a><span class="lineno">  142</span> </div>
-<div class="line"><a id="l00143" name="l00143"></a><span class="lineno">  143</span>  std::ofstream temp_file(temp_path);</div>
-<div class="line"><a id="l00144" name="l00144"></a><span class="lineno">  144</span>  <span class="keywordflow">if</span> (!temp_file) {</div>
-<div class="line"><a id="l00145" name="l00145"></a><span class="lineno">  145</span>    <span class="keywordflow">return</span> absl::InternalError(absl::StrFormat(</div>
-<div class="line"><a id="l00146" name="l00146"></a><span class="lineno">  146</span>        <span class="stringliteral">&quot;Failed to create temporary patch file at: %s&quot;</span>, temp_path));</div>
-<div class="line"><a id="l00147" name="l00147"></a><span class="lineno">  147</span>  }</div>
-<div class="line"><a id="l00148" name="l00148"></a><span class="lineno">  148</span>  </div>
-<div class="line"><a id="l00149" name="l00149"></a><span class="lineno">  149</span>  temp_file &lt;&lt; patch_content;</div>
-<div class="line"><a id="l00150" name="l00150"></a><span class="lineno">  150</span>  temp_file.close();</div>
-<div class="line"><a id="l00151" name="l00151"></a><span class="lineno">  151</span> </div>
-<div class="line"><a id="l00152" name="l00152"></a><span class="lineno">  152</span>  <span class="keyword">auto</span> result = <a class="code hl_function" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a970cffb421b3db4f9697edbfa5027828">ApplyPatch</a>(temp_path, rom_data);</div>
-<div class="line"><a id="l00153" name="l00153"></a><span class="lineno">  153</span>  </div>
-<div class="line"><a id="l00154" name="l00154"></a><span class="lineno">  154</span>  <span class="comment">// Clean up temporary file</span></div>
-<div class="line"><a id="l00155" name="l00155"></a><span class="lineno">  155</span>  std::remove(temp_path.c_str());</div>
-<div class="line"><a id="l00156" name="l00156"></a><span class="lineno">  156</span>  </div>
-<div class="line"><a id="l00157" name="l00157"></a><span class="lineno">  157</span>  <span class="keywordflow">return</span> result;</div>
-<div class="line"><a id="l00158" name="l00158"></a><span class="lineno">  158</span>}</div>
+<div class="line"><a id="l00135" name="l00135"></a><span class="lineno">  135</span>  <span class="keywordflow">if</span> (!<a class="code hl_variable" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#af434423d63161f0902018a082cbb3a41">initialized_</a>) {</div>
+<div class="line"><a id="l00136" name="l00136"></a><span class="lineno">  136</span>    <span class="keywordflow">return</span> absl::FailedPreconditionError(<span class="stringliteral">&quot;Asar not initialized&quot;</span>);</div>
+<div class="line"><a id="l00137" name="l00137"></a><span class="lineno">  137</span>  }</div>
+<div class="line"><a id="l00138" name="l00138"></a><span class="lineno">  138</span> </div>
+<div class="line"><a id="l00139" name="l00139"></a><span class="lineno">  139</span>  <span class="comment">// Reset previous state</span></div>
+<div class="line"><a id="l00140" name="l00140"></a><span class="lineno">  140</span>  <a class="code hl_function" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a93b7ee552cb76f48eeba62eb493f3416">Reset</a>();</div>
+<div class="line"><a id="l00141" name="l00141"></a><span class="lineno">  141</span> </div>
+<div class="line"><a id="l00142" name="l00142"></a><span class="lineno">  142</span>  <span class="comment">// Write patch content to temporary file</span></div>
+<div class="line"><a id="l00143" name="l00143"></a><span class="lineno">  143</span>  std::filesystem::path temp_patch_path =</div>
+<div class="line"><a id="l00144" name="l00144"></a><span class="lineno">  144</span>      std::filesystem::temp_directory_path() / <span class="stringliteral">&quot;yaze_asar_temp.asm&quot;</span>;</div>
+<div class="line"><a id="l00145" name="l00145"></a><span class="lineno">  145</span> </div>
+<div class="line"><a id="l00146" name="l00146"></a><span class="lineno">  146</span>  std::ofstream temp_patch_file(temp_patch_path);</div>
+<div class="line"><a id="l00147" name="l00147"></a><span class="lineno">  147</span>  <span class="keywordflow">if</span> (!temp_patch_file) {</div>
+<div class="line"><a id="l00148" name="l00148"></a><span class="lineno">  148</span>    <span class="keywordflow">return</span> absl::InternalError(<span class="stringliteral">&quot;Failed to create temporary patch file&quot;</span>);</div>
+<div class="line"><a id="l00149" name="l00149"></a><span class="lineno">  149</span>  }</div>
+<div class="line"><a id="l00150" name="l00150"></a><span class="lineno">  150</span> </div>
+<div class="line"><a id="l00151" name="l00151"></a><span class="lineno">  151</span>  temp_patch_file &lt;&lt; patch_content;</div>
+<div class="line"><a id="l00152" name="l00152"></a><span class="lineno">  152</span>  temp_patch_file.close();</div>
+<div class="line"><a id="l00153" name="l00153"></a><span class="lineno">  153</span> </div>
+<div class="line"><a id="l00154" name="l00154"></a><span class="lineno">  154</span>  <span class="comment">// Apply patch using temporary file</span></div>
+<div class="line"><a id="l00155" name="l00155"></a><span class="lineno">  155</span>  <span class="keyword">auto</span> patch_result = <a class="code hl_function" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a970cffb421b3db4f9697edbfa5027828">ApplyPatch</a>(temp_patch_path.string(), rom_data, {base_path});</div>
+<div class="line"><a id="l00156" name="l00156"></a><span class="lineno">  156</span> </div>
+<div class="line"><a id="l00157" name="l00157"></a><span class="lineno">  157</span>  <span class="comment">// Clean up temporary file</span></div>
+<div class="line"><a id="l00158" name="l00158"></a><span class="lineno">  158</span>  std::error_code ec;</div>
+<div class="line"><a id="l00159" name="l00159"></a><span class="lineno">  159</span>  std::filesystem::remove(temp_patch_path, ec);</div>
+<div class="line"><a id="l00160" name="l00160"></a><span class="lineno">  160</span> </div>
+<div class="line"><a id="l00161" name="l00161"></a><span class="lineno">  161</span>  <span class="keywordflow">return</span> patch_result;</div>
+<div class="line"><a id="l00162" name="l00162"></a><span class="lineno">  162</span>}</div>
 </div>
-<div class="line"><a id="l00159" name="l00159"></a><span class="lineno">  159</span> </div>
-<div class="foldopen" id="foldopen00160" data-start="{" data-end="}">
-<div class="line"><a id="l00160" name="l00160"></a><span class="lineno"><a class="line" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#ac875ea1cb847a2a8d274f0217f624460">  160</a></span>absl::StatusOr&lt;std::vector&lt;AsarSymbol&gt;&gt; <a class="code hl_function" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#ac875ea1cb847a2a8d274f0217f624460">AsarWrapper::ExtractSymbols</a>(</div>
-<div class="line"><a id="l00161" name="l00161"></a><span class="lineno">  161</span>    <span class="keyword">const</span> std::string&amp; asm_path,</div>
-<div class="line"><a id="l00162" name="l00162"></a><span class="lineno">  162</span>    <span class="keyword">const</span> std::vector&lt;std::string&gt;&amp; include_paths) {</div>
-<div class="line"><a id="l00163" name="l00163"></a><span class="lineno">  163</span>  </div>
-<div class="line"><a id="l00164" name="l00164"></a><span class="lineno">  164</span>  <span class="keywordflow">if</span> (!<a class="code hl_variable" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#af434423d63161f0902018a082cbb3a41">initialized_</a>) {</div>
-<div class="line"><a id="l00165" name="l00165"></a><span class="lineno">  165</span>    <span class="keywordflow">return</span> absl::FailedPreconditionError(<span class="stringliteral">&quot;Asar not initialized&quot;</span>);</div>
-<div class="line"><a id="l00166" name="l00166"></a><span class="lineno">  166</span>  }</div>
-<div class="line"><a id="l00167" name="l00167"></a><span class="lineno">  167</span> </div>
-<div class="line"><a id="l00168" name="l00168"></a><span class="lineno">  168</span>  <span class="comment">// Create a dummy ROM for symbol extraction</span></div>
-<div class="line"><a id="l00169" name="l00169"></a><span class="lineno">  169</span>  std::vector&lt;uint8_t&gt; dummy_rom(1024 * 1024, 0);  <span class="comment">// 1MB dummy ROM</span></div>
-<div class="line"><a id="l00170" name="l00170"></a><span class="lineno">  170</span>  </div>
-<div class="line"><a id="l00171" name="l00171"></a><span class="lineno">  171</span>  <span class="keyword">auto</span> result = <a class="code hl_function" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a970cffb421b3db4f9697edbfa5027828">ApplyPatch</a>(asm_path, dummy_rom, include_paths);</div>
-<div class="line"><a id="l00172" name="l00172"></a><span class="lineno">  172</span>  <span class="keywordflow">if</span> (!result.ok()) {</div>
-<div class="line"><a id="l00173" name="l00173"></a><span class="lineno">  173</span>    <span class="keywordflow">return</span> result.status();</div>
-<div class="line"><a id="l00174" name="l00174"></a><span class="lineno">  174</span>  }</div>
-<div class="line"><a id="l00175" name="l00175"></a><span class="lineno">  175</span> </div>
-<div class="line"><a id="l00176" name="l00176"></a><span class="lineno">  176</span>  <span class="keywordflow">return</span> result-&gt;symbols;</div>
-<div class="line"><a id="l00177" name="l00177"></a><span class="lineno">  177</span>}</div>
+<div class="line"><a id="l00163" name="l00163"></a><span class="lineno">  163</span> </div>
+<div class="foldopen" id="foldopen00164" data-start="{" data-end="}">
+<div class="line"><a id="l00164" name="l00164"></a><span class="lineno"><a class="line" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#ac875ea1cb847a2a8d274f0217f624460">  164</a></span>absl::StatusOr&lt;std::vector&lt;AsarSymbol&gt;&gt; <a class="code hl_function" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#ac875ea1cb847a2a8d274f0217f624460">AsarWrapper::ExtractSymbols</a>(</div>
+<div class="line"><a id="l00165" name="l00165"></a><span class="lineno">  165</span>    <span class="keyword">const</span> std::string&amp; asm_path,</div>
+<div class="line"><a id="l00166" name="l00166"></a><span class="lineno">  166</span>    <span class="keyword">const</span> std::vector&lt;std::string&gt;&amp; include_paths) {</div>
+<div class="line"><a id="l00167" name="l00167"></a><span class="lineno">  167</span>  <span class="keywordflow">if</span> (!<a class="code hl_variable" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#af434423d63161f0902018a082cbb3a41">initialized_</a>) {</div>
+<div class="line"><a id="l00168" name="l00168"></a><span class="lineno">  168</span>    <span class="keywordflow">return</span> absl::FailedPreconditionError(<span class="stringliteral">&quot;Asar not initialized&quot;</span>);</div>
+<div class="line"><a id="l00169" name="l00169"></a><span class="lineno">  169</span>  }</div>
+<div class="line"><a id="l00170" name="l00170"></a><span class="lineno">  170</span> </div>
+<div class="line"><a id="l00171" name="l00171"></a><span class="lineno">  171</span>  <span class="comment">// Reset state before extraction</span></div>
+<div class="line"><a id="l00172" name="l00172"></a><span class="lineno">  172</span>  <a class="code hl_function" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a93b7ee552cb76f48eeba62eb493f3416">Reset</a>();</div>
+<div class="line"><a id="l00173" name="l00173"></a><span class="lineno">  173</span> </div>
+<div class="line"><a id="l00174" name="l00174"></a><span class="lineno">  174</span>  <span class="comment">// Create a dummy ROM for symbol extraction</span></div>
+<div class="line"><a id="l00175" name="l00175"></a><span class="lineno">  175</span>  std::vector&lt;uint8_t&gt; dummy_rom(1024 * 1024, 0);  <span class="comment">// 1MB dummy ROM</span></div>
+<div class="line"><a id="l00176" name="l00176"></a><span class="lineno">  176</span>  </div>
+<div class="line"><a id="l00177" name="l00177"></a><span class="lineno">  177</span>  <span class="keyword">auto</span> result = <a class="code hl_function" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a970cffb421b3db4f9697edbfa5027828">ApplyPatch</a>(asm_path, dummy_rom, include_paths);</div>
+<div class="line"><a id="l00178" name="l00178"></a><span class="lineno">  178</span>  <span class="keywordflow">if</span> (!result.ok()) {</div>
+<div class="line"><a id="l00179" name="l00179"></a><span class="lineno">  179</span>    <span class="keywordflow">return</span> result.status();</div>
+<div class="line"><a id="l00180" name="l00180"></a><span class="lineno">  180</span>  }</div>
+<div class="line"><a id="l00181" name="l00181"></a><span class="lineno">  181</span> </div>
+<div class="line"><a id="l00182" name="l00182"></a><span class="lineno">  182</span>  <span class="keywordflow">return</span> result-&gt;symbols;</div>
+<div class="line"><a id="l00183" name="l00183"></a><span class="lineno">  183</span>}</div>
 </div>
-<div class="line"><a id="l00178" name="l00178"></a><span class="lineno">  178</span> </div>
-<div class="foldopen" id="foldopen00179" data-start="{" data-end="}">
-<div class="line"><a id="l00179" name="l00179"></a><span class="lineno"><a class="line" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#ade7b3915a5246e8c8e32c01008125094">  179</a></span>std::map&lt;std::string, AsarSymbol&gt; <a class="code hl_function" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#ade7b3915a5246e8c8e32c01008125094">AsarWrapper::GetSymbolTable</a>()<span class="keyword"> const </span>{</div>
-<div class="line"><a id="l00180" name="l00180"></a><span class="lineno">  180</span>  <span class="keywordflow">return</span> <a class="code hl_variable" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a91a158cae5b9bb4901ac7d7682b92fdf">symbol_table_</a>;</div>
-<div class="line"><a id="l00181" name="l00181"></a><span class="lineno">  181</span>}</div>
+<div class="line"><a id="l00184" name="l00184"></a><span class="lineno">  184</span> </div>
+<div class="foldopen" id="foldopen00185" data-start="{" data-end="}">
+<div class="line"><a id="l00185" name="l00185"></a><span class="lineno"><a class="line" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#ade7b3915a5246e8c8e32c01008125094">  185</a></span>std::map&lt;std::string, AsarSymbol&gt; <a class="code hl_function" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#ade7b3915a5246e8c8e32c01008125094">AsarWrapper::GetSymbolTable</a>()<span class="keyword"> const </span>{</div>
+<div class="line"><a id="l00186" name="l00186"></a><span class="lineno">  186</span>  <span class="keywordflow">return</span> <a class="code hl_variable" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a91a158cae5b9bb4901ac7d7682b92fdf">symbol_table_</a>;</div>
+<div class="line"><a id="l00187" name="l00187"></a><span class="lineno">  187</span>}</div>
 </div>
-<div class="line"><a id="l00182" name="l00182"></a><span class="lineno">  182</span> </div>
-<div class="foldopen" id="foldopen00183" data-start="{" data-end="}">
-<div class="line"><a id="l00183" name="l00183"></a><span class="lineno"><a class="line" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a532beea9f0fe141b922bd47af6100415">  183</a></span>std::optional&lt;AsarSymbol&gt; <a class="code hl_function" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a532beea9f0fe141b922bd47af6100415">AsarWrapper::FindSymbol</a>(<span class="keyword">const</span> std::string&amp; name)<span class="keyword"> const </span>{</div>
-<div class="line"><a id="l00184" name="l00184"></a><span class="lineno">  184</span>  <span class="keyword">auto</span> it = <a class="code hl_variable" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a91a158cae5b9bb4901ac7d7682b92fdf">symbol_table_</a>.find(name);</div>
-<div class="line"><a id="l00185" name="l00185"></a><span class="lineno">  185</span>  <span class="keywordflow">if</span> (it != <a class="code hl_variable" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a91a158cae5b9bb4901ac7d7682b92fdf">symbol_table_</a>.end()) {</div>
-<div class="line"><a id="l00186" name="l00186"></a><span class="lineno">  186</span>    <span class="keywordflow">return</span> it-&gt;second;</div>
-<div class="line"><a id="l00187" name="l00187"></a><span class="lineno">  187</span>  }</div>
-<div class="line"><a id="l00188" name="l00188"></a><span class="lineno">  188</span>  <span class="keywordflow">return</span> std::nullopt;</div>
-<div class="line"><a id="l00189" name="l00189"></a><span class="lineno">  189</span>}</div>
+<div class="line"><a id="l00188" name="l00188"></a><span class="lineno">  188</span> </div>
+<div class="foldopen" id="foldopen00189" data-start="{" data-end="}">
+<div class="line"><a id="l00189" name="l00189"></a><span class="lineno"><a class="line" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a532beea9f0fe141b922bd47af6100415">  189</a></span>std::optional&lt;AsarSymbol&gt; <a class="code hl_function" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a532beea9f0fe141b922bd47af6100415">AsarWrapper::FindSymbol</a>(<span class="keyword">const</span> std::string&amp; name)<span class="keyword"> const </span>{</div>
+<div class="line"><a id="l00190" name="l00190"></a><span class="lineno">  190</span>  <span class="keyword">auto</span> it = <a class="code hl_variable" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a91a158cae5b9bb4901ac7d7682b92fdf">symbol_table_</a>.find(name);</div>
+<div class="line"><a id="l00191" name="l00191"></a><span class="lineno">  191</span>  <span class="keywordflow">if</span> (it != <a class="code hl_variable" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a91a158cae5b9bb4901ac7d7682b92fdf">symbol_table_</a>.end()) {</div>
+<div class="line"><a id="l00192" name="l00192"></a><span class="lineno">  192</span>    <span class="keywordflow">return</span> it-&gt;second;</div>
+<div class="line"><a id="l00193" name="l00193"></a><span class="lineno">  193</span>  }</div>
+<div class="line"><a id="l00194" name="l00194"></a><span class="lineno">  194</span>  <span class="keywordflow">return</span> std::nullopt;</div>
+<div class="line"><a id="l00195" name="l00195"></a><span class="lineno">  195</span>}</div>
 </div>
-<div class="line"><a id="l00190" name="l00190"></a><span class="lineno">  190</span> </div>
-<div class="foldopen" id="foldopen00191" data-start="{" data-end="}">
-<div class="line"><a id="l00191" name="l00191"></a><span class="lineno"><a class="line" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#ad8d8a1b351b04389dfb11a4db38cc034">  191</a></span>std::vector&lt;AsarSymbol&gt; <a class="code hl_function" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#ad8d8a1b351b04389dfb11a4db38cc034">AsarWrapper::GetSymbolsAtAddress</a>(uint32_t address)<span class="keyword"> const </span>{</div>
-<div class="line"><a id="l00192" name="l00192"></a><span class="lineno">  192</span>  std::vector&lt;AsarSymbol&gt; symbols;</div>
-<div class="line"><a id="l00193" name="l00193"></a><span class="lineno">  193</span>  <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span>&amp; [name, symbol] : <a class="code hl_variable" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a91a158cae5b9bb4901ac7d7682b92fdf">symbol_table_</a>) {</div>
-<div class="line"><a id="l00194" name="l00194"></a><span class="lineno">  194</span>    <span class="keywordflow">if</span> (symbol.address == address) {</div>
-<div class="line"><a id="l00195" name="l00195"></a><span class="lineno">  195</span>      symbols.push_back(symbol);</div>
-<div class="line"><a id="l00196" name="l00196"></a><span class="lineno">  196</span>    }</div>
-<div class="line"><a id="l00197" name="l00197"></a><span class="lineno">  197</span>  }</div>
-<div class="line"><a id="l00198" name="l00198"></a><span class="lineno">  198</span>  <span class="keywordflow">return</span> symbols;</div>
-<div class="line"><a id="l00199" name="l00199"></a><span class="lineno">  199</span>}</div>
+<div class="line"><a id="l00196" name="l00196"></a><span class="lineno">  196</span> </div>
+<div class="foldopen" id="foldopen00197" data-start="{" data-end="}">
+<div class="line"><a id="l00197" name="l00197"></a><span class="lineno"><a class="line" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#ad8d8a1b351b04389dfb11a4db38cc034">  197</a></span>std::vector&lt;AsarSymbol&gt; <a class="code hl_function" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#ad8d8a1b351b04389dfb11a4db38cc034">AsarWrapper::GetSymbolsAtAddress</a>(uint32_t address)<span class="keyword"> const </span>{</div>
+<div class="line"><a id="l00198" name="l00198"></a><span class="lineno">  198</span>  std::vector&lt;AsarSymbol&gt; symbols;</div>
+<div class="line"><a id="l00199" name="l00199"></a><span class="lineno">  199</span>  <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span>&amp; [name, symbol] : <a class="code hl_variable" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a91a158cae5b9bb4901ac7d7682b92fdf">symbol_table_</a>) {</div>
+<div class="line"><a id="l00200" name="l00200"></a><span class="lineno">  200</span>    <span class="keywordflow">if</span> (symbol.address == address) {</div>
+<div class="line"><a id="l00201" name="l00201"></a><span class="lineno">  201</span>      symbols.push_back(symbol);</div>
+<div class="line"><a id="l00202" name="l00202"></a><span class="lineno">  202</span>    }</div>
+<div class="line"><a id="l00203" name="l00203"></a><span class="lineno">  203</span>  }</div>
+<div class="line"><a id="l00204" name="l00204"></a><span class="lineno">  204</span>  <span class="keywordflow">return</span> symbols;</div>
+<div class="line"><a id="l00205" name="l00205"></a><span class="lineno">  205</span>}</div>
 </div>
-<div class="line"><a id="l00200" name="l00200"></a><span class="lineno">  200</span> </div>
-<div class="foldopen" id="foldopen00201" data-start="{" data-end="}">
-<div class="line"><a id="l00201" name="l00201"></a><span class="lineno"><a class="line" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a93b7ee552cb76f48eeba62eb493f3416">  201</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a93b7ee552cb76f48eeba62eb493f3416">AsarWrapper::Reset</a>() {</div>
-<div class="line"><a id="l00202" name="l00202"></a><span class="lineno">  202</span>  <span class="keywordflow">if</span> (<a class="code hl_variable" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#af434423d63161f0902018a082cbb3a41">initialized_</a>) {</div>
-<div class="line"><a id="l00203" name="l00203"></a><span class="lineno">  203</span>    asar_reset();</div>
-<div class="line"><a id="l00204" name="l00204"></a><span class="lineno">  204</span>  }</div>
-<div class="line"><a id="l00205" name="l00205"></a><span class="lineno">  205</span>  <a class="code hl_variable" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a91a158cae5b9bb4901ac7d7682b92fdf">symbol_table_</a>.clear();</div>
-<div class="line"><a id="l00206" name="l00206"></a><span class="lineno">  206</span>  <a class="code hl_variable" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#ab0c1ac5efd618de425e52203ec05c110">last_errors_</a>.clear();</div>
-<div class="line"><a id="l00207" name="l00207"></a><span class="lineno">  207</span>  <a class="code hl_variable" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a50badc1b1c873d012d9321bd8d17a023">last_warnings_</a>.clear();</div>
-<div class="line"><a id="l00208" name="l00208"></a><span class="lineno">  208</span>}</div>
+<div class="line"><a id="l00206" name="l00206"></a><span class="lineno">  206</span> </div>
+<div class="foldopen" id="foldopen00207" data-start="{" data-end="}">
+<div class="line"><a id="l00207" name="l00207"></a><span class="lineno"><a class="line" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a93b7ee552cb76f48eeba62eb493f3416">  207</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a93b7ee552cb76f48eeba62eb493f3416">AsarWrapper::Reset</a>() {</div>
+<div class="line"><a id="l00208" name="l00208"></a><span class="lineno">  208</span>  <span class="keywordflow">if</span> (<a class="code hl_variable" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#af434423d63161f0902018a082cbb3a41">initialized_</a>) {</div>
+<div class="line"><a id="l00209" name="l00209"></a><span class="lineno">  209</span>    asar_reset();</div>
+<div class="line"><a id="l00210" name="l00210"></a><span class="lineno">  210</span>  }</div>
+<div class="line"><a id="l00211" name="l00211"></a><span class="lineno">  211</span>  <a class="code hl_variable" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a91a158cae5b9bb4901ac7d7682b92fdf">symbol_table_</a>.clear();</div>
+<div class="line"><a id="l00212" name="l00212"></a><span class="lineno">  212</span>  <a class="code hl_variable" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#ab0c1ac5efd618de425e52203ec05c110">last_errors_</a>.clear();</div>
+<div class="line"><a id="l00213" name="l00213"></a><span class="lineno">  213</span>  <a class="code hl_variable" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a50badc1b1c873d012d9321bd8d17a023">last_warnings_</a>.clear();</div>
+<div class="line"><a id="l00214" name="l00214"></a><span class="lineno">  214</span>}</div>
 </div>
-<div class="line"><a id="l00209" name="l00209"></a><span class="lineno">  209</span> </div>
-<div class="foldopen" id="foldopen00210" data-start="{" data-end="}">
-<div class="line"><a id="l00210" name="l00210"></a><span class="lineno"><a class="line" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a4c279be4f38cd8fda1ec14c08181d414">  210</a></span>absl::Status <a class="code hl_function" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a4c279be4f38cd8fda1ec14c08181d414">AsarWrapper::CreatePatch</a>(</div>
-<div class="line"><a id="l00211" name="l00211"></a><span class="lineno">  211</span>    <span class="keyword">const</span> std::vector&lt;uint8_t&gt;&amp; original_rom,</div>
-<div class="line"><a id="l00212" name="l00212"></a><span class="lineno">  212</span>    <span class="keyword">const</span> std::vector&lt;uint8_t&gt;&amp; modified_rom,</div>
-<div class="line"><a id="l00213" name="l00213"></a><span class="lineno">  213</span>    <span class="keyword">const</span> std::string&amp; patch_path) {</div>
-<div class="line"><a id="l00214" name="l00214"></a><span class="lineno">  214</span>  </div>
-<div class="line"><a id="l00215" name="l00215"></a><span class="lineno">  215</span>  <span class="comment">// This is a complex operation that would require:</span></div>
-<div class="line"><a id="l00216" name="l00216"></a><span class="lineno">  216</span>  <span class="comment">// 1. Analyzing differences between ROMs</span></div>
-<div class="line"><a id="l00217" name="l00217"></a><span class="lineno">  217</span>  <span class="comment">// 2. Generating appropriate assembly code</span></div>
-<div class="line"><a id="l00218" name="l00218"></a><span class="lineno">  218</span>  <span class="comment">// 3. Writing the patch file</span></div>
-<div class="line"><a id="l00219" name="l00219"></a><span class="lineno">  219</span>  </div>
-<div class="line"><a id="l00220" name="l00220"></a><span class="lineno">  220</span>  <span class="comment">// For now, return not implemented</span></div>
-<div class="line"><a id="l00221" name="l00221"></a><span class="lineno">  221</span>  <span class="keywordflow">return</span> absl::UnimplementedError(</div>
-<div class="line"><a id="l00222" name="l00222"></a><span class="lineno">  222</span>      <span class="stringliteral">&quot;Patch creation from ROM differences not yet implemented&quot;</span>);</div>
-<div class="line"><a id="l00223" name="l00223"></a><span class="lineno">  223</span>}</div>
+<div class="line"><a id="l00215" name="l00215"></a><span class="lineno">  215</span> </div>
+<div class="foldopen" id="foldopen00216" data-start="{" data-end="}">
+<div class="line"><a id="l00216" name="l00216"></a><span class="lineno"><a class="line" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a4c279be4f38cd8fda1ec14c08181d414">  216</a></span>absl::Status <a class="code hl_function" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a4c279be4f38cd8fda1ec14c08181d414">AsarWrapper::CreatePatch</a>(</div>
+<div class="line"><a id="l00217" name="l00217"></a><span class="lineno">  217</span>    <span class="keyword">const</span> std::vector&lt;uint8_t&gt;&amp; original_rom,</div>
+<div class="line"><a id="l00218" name="l00218"></a><span class="lineno">  218</span>    <span class="keyword">const</span> std::vector&lt;uint8_t&gt;&amp; modified_rom,</div>
+<div class="line"><a id="l00219" name="l00219"></a><span class="lineno">  219</span>    <span class="keyword">const</span> std::string&amp; patch_path) {</div>
+<div class="line"><a id="l00220" name="l00220"></a><span class="lineno">  220</span>  </div>
+<div class="line"><a id="l00221" name="l00221"></a><span class="lineno">  221</span>  <span class="comment">// This is a complex operation that would require:</span></div>
+<div class="line"><a id="l00222" name="l00222"></a><span class="lineno">  222</span>  <span class="comment">// 1. Analyzing differences between ROMs</span></div>
+<div class="line"><a id="l00223" name="l00223"></a><span class="lineno">  223</span>  <span class="comment">// 2. Generating appropriate assembly code</span></div>
+<div class="line"><a id="l00224" name="l00224"></a><span class="lineno">  224</span>  <span class="comment">// 3. Writing the patch file</span></div>
+<div class="line"><a id="l00225" name="l00225"></a><span class="lineno">  225</span>  </div>
+<div class="line"><a id="l00226" name="l00226"></a><span class="lineno">  226</span>  <span class="comment">// For now, return not implemented</span></div>
+<div class="line"><a id="l00227" name="l00227"></a><span class="lineno">  227</span>  <span class="keywordflow">return</span> absl::UnimplementedError(</div>
+<div class="line"><a id="l00228" name="l00228"></a><span class="lineno">  228</span>      <span class="stringliteral">&quot;Patch creation from ROM differences not yet implemented&quot;</span>);</div>
+<div class="line"><a id="l00229" name="l00229"></a><span class="lineno">  229</span>}</div>
 </div>
-<div class="line"><a id="l00224" name="l00224"></a><span class="lineno">  224</span> </div>
-<div class="foldopen" id="foldopen00225" data-start="{" data-end="}">
-<div class="line"><a id="l00225" name="l00225"></a><span class="lineno"><a class="line" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a5252e9b914bf6a5123491e21bbdca3d2">  225</a></span>absl::Status <a class="code hl_function" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a5252e9b914bf6a5123491e21bbdca3d2">AsarWrapper::ValidateAssembly</a>(<span class="keyword">const</span> std::string&amp; asm_path) {</div>
-<div class="line"><a id="l00226" name="l00226"></a><span class="lineno">  226</span>  <span class="comment">// Create a dummy ROM for validation</span></div>
-<div class="line"><a id="l00227" name="l00227"></a><span class="lineno">  227</span>  std::vector&lt;uint8_t&gt; dummy_rom(1024, 0);</div>
-<div class="line"><a id="l00228" name="l00228"></a><span class="lineno">  228</span>  </div>
-<div class="line"><a id="l00229" name="l00229"></a><span class="lineno">  229</span>  <span class="keyword">auto</span> result = <a class="code hl_function" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a970cffb421b3db4f9697edbfa5027828">ApplyPatch</a>(asm_path, dummy_rom);</div>
-<div class="line"><a id="l00230" name="l00230"></a><span class="lineno">  230</span>  <span class="keywordflow">if</span> (!result.ok()) {</div>
-<div class="line"><a id="l00231" name="l00231"></a><span class="lineno">  231</span>    <span class="keywordflow">return</span> result.status();</div>
-<div class="line"><a id="l00232" name="l00232"></a><span class="lineno">  232</span>  }</div>
-<div class="line"><a id="l00233" name="l00233"></a><span class="lineno">  233</span>  </div>
-<div class="line"><a id="l00234" name="l00234"></a><span class="lineno">  234</span>  <span class="keywordflow">if</span> (!result-&gt;success) {</div>
-<div class="line"><a id="l00235" name="l00235"></a><span class="lineno">  235</span>    <span class="keywordflow">return</span> absl::InvalidArgumentError(absl::StrFormat(</div>
-<div class="line"><a id="l00236" name="l00236"></a><span class="lineno">  236</span>        <span class="stringliteral">&quot;Assembly validation failed: %s&quot;</span>, </div>
-<div class="line"><a id="l00237" name="l00237"></a><span class="lineno">  237</span>        absl::StrJoin(result-&gt;errors, <span class="stringliteral">&quot;; &quot;</span>)));</div>
+<div class="line"><a id="l00230" name="l00230"></a><span class="lineno">  230</span> </div>
+<div class="foldopen" id="foldopen00231" data-start="{" data-end="}">
+<div class="line"><a id="l00231" name="l00231"></a><span class="lineno"><a class="line" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a5252e9b914bf6a5123491e21bbdca3d2">  231</a></span>absl::Status <a class="code hl_function" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a5252e9b914bf6a5123491e21bbdca3d2">AsarWrapper::ValidateAssembly</a>(<span class="keyword">const</span> std::string&amp; asm_path) {</div>
+<div class="line"><a id="l00232" name="l00232"></a><span class="lineno">  232</span>  <span class="comment">// Create a dummy ROM for validation</span></div>
+<div class="line"><a id="l00233" name="l00233"></a><span class="lineno">  233</span>  std::vector&lt;uint8_t&gt; dummy_rom(1024, 0);</div>
+<div class="line"><a id="l00234" name="l00234"></a><span class="lineno">  234</span>  </div>
+<div class="line"><a id="l00235" name="l00235"></a><span class="lineno">  235</span>  <span class="keyword">auto</span> result = <a class="code hl_function" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a970cffb421b3db4f9697edbfa5027828">ApplyPatch</a>(asm_path, dummy_rom);</div>
+<div class="line"><a id="l00236" name="l00236"></a><span class="lineno">  236</span>  <span class="keywordflow">if</span> (!result.ok()) {</div>
+<div class="line"><a id="l00237" name="l00237"></a><span class="lineno">  237</span>    <span class="keywordflow">return</span> result.status();</div>
 <div class="line"><a id="l00238" name="l00238"></a><span class="lineno">  238</span>  }</div>
 <div class="line"><a id="l00239" name="l00239"></a><span class="lineno">  239</span>  </div>
-<div class="line"><a id="l00240" name="l00240"></a><span class="lineno">  240</span>  <span class="keywordflow">return</span> absl::OkStatus();</div>
-<div class="line"><a id="l00241" name="l00241"></a><span class="lineno">  241</span>}</div>
-</div>
-<div class="line"><a id="l00242" name="l00242"></a><span class="lineno">  242</span> </div>
-<div class="foldopen" id="foldopen00243" data-start="{" data-end="}">
-<div class="line"><a id="l00243" name="l00243"></a><span class="lineno"><a class="line" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#acd19c5a46722fbacaf7691642507ef57">  243</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#acd19c5a46722fbacaf7691642507ef57">AsarWrapper::ProcessErrors</a>() {</div>
-<div class="line"><a id="l00244" name="l00244"></a><span class="lineno">  244</span>  <a class="code hl_variable" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#ab0c1ac5efd618de425e52203ec05c110">last_errors_</a>.clear();</div>
+<div class="line"><a id="l00240" name="l00240"></a><span class="lineno">  240</span>  <span class="keywordflow">if</span> (!result-&gt;success) {</div>
+<div class="line"><a id="l00241" name="l00241"></a><span class="lineno">  241</span>    <span class="keywordflow">return</span> absl::InvalidArgumentError(absl::StrFormat(</div>
+<div class="line"><a id="l00242" name="l00242"></a><span class="lineno">  242</span>        <span class="stringliteral">&quot;Assembly validation failed: %s&quot;</span>, </div>
+<div class="line"><a id="l00243" name="l00243"></a><span class="lineno">  243</span>        absl::StrJoin(result-&gt;errors, <span class="stringliteral">&quot;; &quot;</span>)));</div>
+<div class="line"><a id="l00244" name="l00244"></a><span class="lineno">  244</span>  }</div>
 <div class="line"><a id="l00245" name="l00245"></a><span class="lineno">  245</span>  </div>
-<div class="line"><a id="l00246" name="l00246"></a><span class="lineno">  246</span>  <span class="keywordtype">int</span> error_count = 0;</div>
-<div class="line"><a id="l00247" name="l00247"></a><span class="lineno">  247</span>  <span class="keyword">const</span> errordata* errors = asar_geterrors(&amp;error_count);</div>
-<div class="line"><a id="l00248" name="l00248"></a><span class="lineno">  248</span>  </div>
-<div class="line"><a id="l00249" name="l00249"></a><span class="lineno">  249</span>  <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; error_count; ++i) {</div>
-<div class="line"><a id="l00250" name="l00250"></a><span class="lineno">  250</span>    <a class="code hl_variable" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#ab0c1ac5efd618de425e52203ec05c110">last_errors_</a>.push_back(std::string(errors[i].fullerrdata));</div>
-<div class="line"><a id="l00251" name="l00251"></a><span class="lineno">  251</span>  }</div>
-<div class="line"><a id="l00252" name="l00252"></a><span class="lineno">  252</span>}</div>
+<div class="line"><a id="l00246" name="l00246"></a><span class="lineno">  246</span>  <span class="keywordflow">return</span> absl::OkStatus();</div>
+<div class="line"><a id="l00247" name="l00247"></a><span class="lineno">  247</span>}</div>
 </div>
-<div class="line"><a id="l00253" name="l00253"></a><span class="lineno">  253</span> </div>
-<div class="foldopen" id="foldopen00254" data-start="{" data-end="}">
-<div class="line"><a id="l00254" name="l00254"></a><span class="lineno"><a class="line" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a4cd070d24a088076ed931b3493abbe67">  254</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a4cd070d24a088076ed931b3493abbe67">AsarWrapper::ProcessWarnings</a>() {</div>
-<div class="line"><a id="l00255" name="l00255"></a><span class="lineno">  255</span>  <a class="code hl_variable" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a50badc1b1c873d012d9321bd8d17a023">last_warnings_</a>.clear();</div>
-<div class="line"><a id="l00256" name="l00256"></a><span class="lineno">  256</span>  </div>
-<div class="line"><a id="l00257" name="l00257"></a><span class="lineno">  257</span>  <span class="keywordtype">int</span> warning_count = 0;</div>
-<div class="line"><a id="l00258" name="l00258"></a><span class="lineno">  258</span>  <span class="keyword">const</span> errordata* warnings = asar_getwarnings(&amp;warning_count);</div>
-<div class="line"><a id="l00259" name="l00259"></a><span class="lineno">  259</span>  </div>
-<div class="line"><a id="l00260" name="l00260"></a><span class="lineno">  260</span>  <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; warning_count; ++i) {</div>
-<div class="line"><a id="l00261" name="l00261"></a><span class="lineno">  261</span>    <a class="code hl_variable" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a50badc1b1c873d012d9321bd8d17a023">last_warnings_</a>.push_back(std::string(warnings[i].fullerrdata));</div>
-<div class="line"><a id="l00262" name="l00262"></a><span class="lineno">  262</span>  }</div>
-<div class="line"><a id="l00263" name="l00263"></a><span class="lineno">  263</span>}</div>
+<div class="line"><a id="l00248" name="l00248"></a><span class="lineno">  248</span> </div>
+<div class="foldopen" id="foldopen00249" data-start="{" data-end="}">
+<div class="line"><a id="l00249" name="l00249"></a><span class="lineno"><a class="line" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#acd19c5a46722fbacaf7691642507ef57">  249</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#acd19c5a46722fbacaf7691642507ef57">AsarWrapper::ProcessErrors</a>() {</div>
+<div class="line"><a id="l00250" name="l00250"></a><span class="lineno">  250</span>  <a class="code hl_variable" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#ab0c1ac5efd618de425e52203ec05c110">last_errors_</a>.clear();</div>
+<div class="line"><a id="l00251" name="l00251"></a><span class="lineno">  251</span>  </div>
+<div class="line"><a id="l00252" name="l00252"></a><span class="lineno">  252</span>  <span class="keywordtype">int</span> error_count = 0;</div>
+<div class="line"><a id="l00253" name="l00253"></a><span class="lineno">  253</span>  <span class="keyword">const</span> errordata* errors = asar_geterrors(&amp;error_count);</div>
+<div class="line"><a id="l00254" name="l00254"></a><span class="lineno">  254</span>  </div>
+<div class="line"><a id="l00255" name="l00255"></a><span class="lineno">  255</span>  <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; error_count; ++i) {</div>
+<div class="line"><a id="l00256" name="l00256"></a><span class="lineno">  256</span>    <a class="code hl_variable" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#ab0c1ac5efd618de425e52203ec05c110">last_errors_</a>.push_back(std::string(errors[i].fullerrdata));</div>
+<div class="line"><a id="l00257" name="l00257"></a><span class="lineno">  257</span>  }</div>
+<div class="line"><a id="l00258" name="l00258"></a><span class="lineno">  258</span>}</div>
 </div>
-<div class="line"><a id="l00264" name="l00264"></a><span class="lineno">  264</span> </div>
-<div class="foldopen" id="foldopen00265" data-start="{" data-end="}">
-<div class="line"><a id="l00265" name="l00265"></a><span class="lineno"><a class="line" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a6478db61ddfcd71c9f1ab8bd2d87966d">  265</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a6478db61ddfcd71c9f1ab8bd2d87966d">AsarWrapper::ExtractSymbolsFromLastOperation</a>() {</div>
-<div class="line"><a id="l00266" name="l00266"></a><span class="lineno">  266</span>  <a class="code hl_variable" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a91a158cae5b9bb4901ac7d7682b92fdf">symbol_table_</a>.clear();</div>
-<div class="line"><a id="l00267" name="l00267"></a><span class="lineno">  267</span>  </div>
-<div class="line"><a id="l00268" name="l00268"></a><span class="lineno">  268</span>  <span class="comment">// Extract labels using the correct API function</span></div>
-<div class="line"><a id="l00269" name="l00269"></a><span class="lineno">  269</span>  <span class="keywordtype">int</span> symbol_count = 0;</div>
-<div class="line"><a id="l00270" name="l00270"></a><span class="lineno">  270</span>  <span class="keyword">const</span> labeldata* labels = asar_getalllabels(&amp;symbol_count);</div>
-<div class="line"><a id="l00271" name="l00271"></a><span class="lineno">  271</span>  </div>
-<div class="line"><a id="l00272" name="l00272"></a><span class="lineno">  272</span>  <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; symbol_count; ++i) {</div>
-<div class="line"><a id="l00273" name="l00273"></a><span class="lineno">  273</span>    <a class="code hl_struct" href="../../de/da4/structyaze_1_1core_1_1AsarSymbol.html">AsarSymbol</a> symbol;</div>
-<div class="line"><a id="l00274" name="l00274"></a><span class="lineno">  274</span>    symbol.<a class="code hl_variable" href="../../de/da4/structyaze_1_1core_1_1AsarSymbol.html#a39db07841c9aa5960be8425c25bff349">name</a> = std::string(labels[i].name);</div>
-<div class="line"><a id="l00275" name="l00275"></a><span class="lineno">  275</span>    symbol.<a class="code hl_variable" href="../../de/da4/structyaze_1_1core_1_1AsarSymbol.html#a50c6612f3859aaec54edd007ba1c1bf3">address</a> = labels[i].location;</div>
-<div class="line"><a id="l00276" name="l00276"></a><span class="lineno">  276</span>    symbol.<a class="code hl_variable" href="../../de/da4/structyaze_1_1core_1_1AsarSymbol.html#ad44abd0514e8ccb7a1e2a3b04391531f">file</a> = <span class="stringliteral">&quot;&quot;</span>;  <span class="comment">// Not available in basic API</span></div>
-<div class="line"><a id="l00277" name="l00277"></a><span class="lineno">  277</span>    symbol.<a class="code hl_variable" href="../../de/da4/structyaze_1_1core_1_1AsarSymbol.html#a709b55176aa380cbb4233ae7613768de">line</a> = 0;   <span class="comment">// Not available in basic API</span></div>
-<div class="line"><a id="l00278" name="l00278"></a><span class="lineno">  278</span>    symbol.<a class="code hl_variable" href="../../de/da4/structyaze_1_1core_1_1AsarSymbol.html#abb341ee7248ec231fca76e2d36234be9">opcode</a> = <span class="stringliteral">&quot;&quot;</span>;  <span class="comment">// Would need additional processing</span></div>
-<div class="line"><a id="l00279" name="l00279"></a><span class="lineno">  279</span>    symbol.<a class="code hl_variable" href="../../de/da4/structyaze_1_1core_1_1AsarSymbol.html#af82d4b6d18bf7a06516f2c25d7c5bfc0">comment</a> = <span class="stringliteral">&quot;&quot;</span>;</div>
-<div class="line"><a id="l00280" name="l00280"></a><span class="lineno">  280</span>    </div>
-<div class="line"><a id="l00281" name="l00281"></a><span class="lineno">  281</span>    <a class="code hl_variable" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a91a158cae5b9bb4901ac7d7682b92fdf">symbol_table_</a>[symbol.<a class="code hl_variable" href="../../de/da4/structyaze_1_1core_1_1AsarSymbol.html#a39db07841c9aa5960be8425c25bff349">name</a>] = symbol;</div>
-<div class="line"><a id="l00282" name="l00282"></a><span class="lineno">  282</span>  }</div>
-<div class="line"><a id="l00283" name="l00283"></a><span class="lineno">  283</span>}</div>
+<div class="line"><a id="l00259" name="l00259"></a><span class="lineno">  259</span> </div>
+<div class="foldopen" id="foldopen00260" data-start="{" data-end="}">
+<div class="line"><a id="l00260" name="l00260"></a><span class="lineno"><a class="line" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a4cd070d24a088076ed931b3493abbe67">  260</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a4cd070d24a088076ed931b3493abbe67">AsarWrapper::ProcessWarnings</a>() {</div>
+<div class="line"><a id="l00261" name="l00261"></a><span class="lineno">  261</span>  <a class="code hl_variable" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a50badc1b1c873d012d9321bd8d17a023">last_warnings_</a>.clear();</div>
+<div class="line"><a id="l00262" name="l00262"></a><span class="lineno">  262</span>  </div>
+<div class="line"><a id="l00263" name="l00263"></a><span class="lineno">  263</span>  <span class="keywordtype">int</span> warning_count = 0;</div>
+<div class="line"><a id="l00264" name="l00264"></a><span class="lineno">  264</span>  <span class="keyword">const</span> errordata* warnings = asar_getwarnings(&amp;warning_count);</div>
+<div class="line"><a id="l00265" name="l00265"></a><span class="lineno">  265</span>  </div>
+<div class="line"><a id="l00266" name="l00266"></a><span class="lineno">  266</span>  <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; warning_count; ++i) {</div>
+<div class="line"><a id="l00267" name="l00267"></a><span class="lineno">  267</span>    <a class="code hl_variable" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a50badc1b1c873d012d9321bd8d17a023">last_warnings_</a>.push_back(std::string(warnings[i].fullerrdata));</div>
+<div class="line"><a id="l00268" name="l00268"></a><span class="lineno">  268</span>  }</div>
+<div class="line"><a id="l00269" name="l00269"></a><span class="lineno">  269</span>}</div>
 </div>
-<div class="line"><a id="l00284" name="l00284"></a><span class="lineno">  284</span> </div>
-<div class="foldopen" id="foldopen00285" data-start="{" data-end="}">
-<div class="line"><a id="l00285" name="l00285"></a><span class="lineno"><a class="line" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a26aaa854c38ed65356f40b2da7284ce4">  285</a></span><a class="code hl_struct" href="../../de/da4/structyaze_1_1core_1_1AsarSymbol.html">AsarSymbol</a> <a class="code hl_function" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a26aaa854c38ed65356f40b2da7284ce4">AsarWrapper::ConvertAsarSymbol</a>(<span class="keyword">const</span> <span class="keywordtype">void</span>* asar_symbol_data)<span class="keyword"> const </span>{</div>
-<div class="line"><a id="l00286" name="l00286"></a><span class="lineno">  286</span>  <span class="comment">// This would convert from Asar&#39;s internal symbol representation</span></div>
-<div class="line"><a id="l00287" name="l00287"></a><span class="lineno">  287</span>  <span class="comment">// to our AsarSymbol struct. Implementation depends on Asar&#39;s API.</span></div>
-<div class="line"><a id="l00288" name="l00288"></a><span class="lineno">  288</span>  </div>
-<div class="line"><a id="l00289" name="l00289"></a><span class="lineno">  289</span>  <a class="code hl_struct" href="../../de/da4/structyaze_1_1core_1_1AsarSymbol.html">AsarSymbol</a> symbol;</div>
-<div class="line"><a id="l00290" name="l00290"></a><span class="lineno">  290</span>  <span class="comment">// Placeholder implementation</span></div>
-<div class="line"><a id="l00291" name="l00291"></a><span class="lineno">  291</span>  <span class="keywordflow">return</span> symbol;</div>
-<div class="line"><a id="l00292" name="l00292"></a><span class="lineno">  292</span>}</div>
+<div class="line"><a id="l00270" name="l00270"></a><span class="lineno">  270</span> </div>
+<div class="foldopen" id="foldopen00271" data-start="{" data-end="}">
+<div class="line"><a id="l00271" name="l00271"></a><span class="lineno"><a class="line" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a6478db61ddfcd71c9f1ab8bd2d87966d">  271</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a6478db61ddfcd71c9f1ab8bd2d87966d">AsarWrapper::ExtractSymbolsFromLastOperation</a>() {</div>
+<div class="line"><a id="l00272" name="l00272"></a><span class="lineno">  272</span>  <a class="code hl_variable" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a91a158cae5b9bb4901ac7d7682b92fdf">symbol_table_</a>.clear();</div>
+<div class="line"><a id="l00273" name="l00273"></a><span class="lineno">  273</span>  </div>
+<div class="line"><a id="l00274" name="l00274"></a><span class="lineno">  274</span>  <span class="comment">// Extract labels using the correct API function</span></div>
+<div class="line"><a id="l00275" name="l00275"></a><span class="lineno">  275</span>  <span class="keywordtype">int</span> symbol_count = 0;</div>
+<div class="line"><a id="l00276" name="l00276"></a><span class="lineno">  276</span>  <span class="keyword">const</span> labeldata* labels = asar_getalllabels(&amp;symbol_count);</div>
+<div class="line"><a id="l00277" name="l00277"></a><span class="lineno">  277</span>  </div>
+<div class="line"><a id="l00278" name="l00278"></a><span class="lineno">  278</span>  <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; symbol_count; ++i) {</div>
+<div class="line"><a id="l00279" name="l00279"></a><span class="lineno">  279</span>    <a class="code hl_struct" href="../../de/da4/structyaze_1_1core_1_1AsarSymbol.html">AsarSymbol</a> symbol;</div>
+<div class="line"><a id="l00280" name="l00280"></a><span class="lineno">  280</span>    symbol.<a class="code hl_variable" href="../../de/da4/structyaze_1_1core_1_1AsarSymbol.html#a39db07841c9aa5960be8425c25bff349">name</a> = std::string(labels[i].name);</div>
+<div class="line"><a id="l00281" name="l00281"></a><span class="lineno">  281</span>    symbol.<a class="code hl_variable" href="../../de/da4/structyaze_1_1core_1_1AsarSymbol.html#a50c6612f3859aaec54edd007ba1c1bf3">address</a> = labels[i].location;</div>
+<div class="line"><a id="l00282" name="l00282"></a><span class="lineno">  282</span>    symbol.<a class="code hl_variable" href="../../de/da4/structyaze_1_1core_1_1AsarSymbol.html#ad44abd0514e8ccb7a1e2a3b04391531f">file</a> = <span class="stringliteral">&quot;&quot;</span>;  <span class="comment">// Not available in basic API</span></div>
+<div class="line"><a id="l00283" name="l00283"></a><span class="lineno">  283</span>    symbol.<a class="code hl_variable" href="../../de/da4/structyaze_1_1core_1_1AsarSymbol.html#a709b55176aa380cbb4233ae7613768de">line</a> = 0;   <span class="comment">// Not available in basic API</span></div>
+<div class="line"><a id="l00284" name="l00284"></a><span class="lineno">  284</span>    symbol.<a class="code hl_variable" href="../../de/da4/structyaze_1_1core_1_1AsarSymbol.html#abb341ee7248ec231fca76e2d36234be9">opcode</a> = <span class="stringliteral">&quot;&quot;</span>;  <span class="comment">// Would need additional processing</span></div>
+<div class="line"><a id="l00285" name="l00285"></a><span class="lineno">  285</span>    symbol.<a class="code hl_variable" href="../../de/da4/structyaze_1_1core_1_1AsarSymbol.html#af82d4b6d18bf7a06516f2c25d7c5bfc0">comment</a> = <span class="stringliteral">&quot;&quot;</span>;</div>
+<div class="line"><a id="l00286" name="l00286"></a><span class="lineno">  286</span>    </div>
+<div class="line"><a id="l00287" name="l00287"></a><span class="lineno">  287</span>    <a class="code hl_variable" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a91a158cae5b9bb4901ac7d7682b92fdf">symbol_table_</a>[symbol.<a class="code hl_variable" href="../../de/da4/structyaze_1_1core_1_1AsarSymbol.html#a39db07841c9aa5960be8425c25bff349">name</a>] = symbol;</div>
+<div class="line"><a id="l00288" name="l00288"></a><span class="lineno">  288</span>  }</div>
+<div class="line"><a id="l00289" name="l00289"></a><span class="lineno">  289</span>}</div>
 </div>
-<div class="line"><a id="l00293" name="l00293"></a><span class="lineno">  293</span> </div>
-<div class="line"><a id="l00294" name="l00294"></a><span class="lineno">  294</span>}  <span class="comment">// namespace core</span></div>
+<div class="line"><a id="l00290" name="l00290"></a><span class="lineno">  290</span> </div>
+<div class="foldopen" id="foldopen00291" data-start="{" data-end="}">
+<div class="line"><a id="l00291" name="l00291"></a><span class="lineno"><a class="line" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a26aaa854c38ed65356f40b2da7284ce4">  291</a></span><a class="code hl_struct" href="../../de/da4/structyaze_1_1core_1_1AsarSymbol.html">AsarSymbol</a> <a class="code hl_function" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a26aaa854c38ed65356f40b2da7284ce4">AsarWrapper::ConvertAsarSymbol</a>(<span class="keyword">const</span> <span class="keywordtype">void</span>* asar_symbol_data)<span class="keyword"> const </span>{</div>
+<div class="line"><a id="l00292" name="l00292"></a><span class="lineno">  292</span>  <span class="comment">// This would convert from Asar&#39;s internal symbol representation</span></div>
+<div class="line"><a id="l00293" name="l00293"></a><span class="lineno">  293</span>  <span class="comment">// to our AsarSymbol struct. Implementation depends on Asar&#39;s API.</span></div>
+<div class="line"><a id="l00294" name="l00294"></a><span class="lineno">  294</span>  </div>
+<div class="line"><a id="l00295" name="l00295"></a><span class="lineno">  295</span>  <a class="code hl_struct" href="../../de/da4/structyaze_1_1core_1_1AsarSymbol.html">AsarSymbol</a> symbol;</div>
+<div class="line"><a id="l00296" name="l00296"></a><span class="lineno">  296</span>  <span class="comment">// Placeholder implementation</span></div>
+<div class="line"><a id="l00297" name="l00297"></a><span class="lineno">  297</span>  <span class="keywordflow">return</span> symbol;</div>
+<div class="line"><a id="l00298" name="l00298"></a><span class="lineno">  298</span>}</div>
 </div>
-<div class="line"><a id="l00295" name="l00295"></a><span class="lineno">  295</span>}  <span class="comment">// namespace yaze</span></div>
-</div>
+<div class="line"><a id="l00299" name="l00299"></a><span class="lineno">  299</span> </div>
+<div class="line"><a id="l00300" name="l00300"></a><span class="lineno">  300</span>}  <span class="comment">// namespace core</span></div>
+<div class="line"><a id="l00301" name="l00301"></a><span class="lineno">  301</span>}  <span class="comment">// namespace yaze</span></div>
 <div class="ttc" id="aasar__wrapper_8h_html"><div class="ttname"><a href="../../de/d62/asar__wrapper_8h.html">asar_wrapper.h</a></div></div>
-<div class="ttc" id="aclassyaze_1_1core_1_1AsarWrapper_html_a08b6869353d6f64b0a7c220da00d181a"><div class="ttname"><a href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a08b6869353d6f64b0a7c220da00d181a">yaze::core::AsarWrapper::ApplyPatchFromString</a></div><div class="ttdeci">absl::StatusOr&lt; AsarPatchResult &gt; ApplyPatchFromString(const std::string &amp;patch_content, std::vector&lt; uint8_t &gt; &amp;rom_data, const std::string &amp;base_path=&quot;&quot;)</div><div class="ttdoc">Apply an assembly patch from string content.</div><div class="ttdef"><b>Definition</b> <a href="../../db/d17/asar__wrapper_8cc_source.html#l00130">asar_wrapper.cc:130</a></div></div>
-<div class="ttc" id="aclassyaze_1_1core_1_1AsarWrapper_html_a26aaa854c38ed65356f40b2da7284ce4"><div class="ttname"><a href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a26aaa854c38ed65356f40b2da7284ce4">yaze::core::AsarWrapper::ConvertAsarSymbol</a></div><div class="ttdeci">AsarSymbol ConvertAsarSymbol(const void *asar_symbol_data) const</div><div class="ttdoc">Convert Asar symbol data to AsarSymbol struct.</div><div class="ttdef"><b>Definition</b> <a href="../../db/d17/asar__wrapper_8cc_source.html#l00285">asar_wrapper.cc:285</a></div></div>
+<div class="ttc" id="aclassyaze_1_1core_1_1AsarWrapper_html_a08b6869353d6f64b0a7c220da00d181a"><div class="ttname"><a href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a08b6869353d6f64b0a7c220da00d181a">yaze::core::AsarWrapper::ApplyPatchFromString</a></div><div class="ttdeci">absl::StatusOr&lt; AsarPatchResult &gt; ApplyPatchFromString(const std::string &amp;patch_content, std::vector&lt; uint8_t &gt; &amp;rom_data, const std::string &amp;base_path=&quot;&quot;)</div><div class="ttdef"><b>Definition</b> <a href="../../db/d17/asar__wrapper_8cc_source.html#l00130">asar_wrapper.cc:130</a></div></div>
+<div class="ttc" id="aclassyaze_1_1core_1_1AsarWrapper_html_a26aaa854c38ed65356f40b2da7284ce4"><div class="ttname"><a href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a26aaa854c38ed65356f40b2da7284ce4">yaze::core::AsarWrapper::ConvertAsarSymbol</a></div><div class="ttdeci">AsarSymbol ConvertAsarSymbol(const void *asar_symbol_data) const</div><div class="ttdef"><b>Definition</b> <a href="../../db/d17/asar__wrapper_8cc_source.html#l00291">asar_wrapper.cc:291</a></div></div>
 <div class="ttc" id="aclassyaze_1_1core_1_1AsarWrapper_html_a28640aadf323ca224c00b151ad5981be"><div class="ttname"><a href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a28640aadf323ca224c00b151ad5981be">yaze::core::AsarWrapper::AsarWrapper</a></div><div class="ttdeci">AsarWrapper()</div><div class="ttdef"><b>Definition</b> <a href="../../db/d17/asar__wrapper_8cc_source.html#l00017">asar_wrapper.cc:17</a></div></div>
-<div class="ttc" id="aclassyaze_1_1core_1_1AsarWrapper_html_a4c279be4f38cd8fda1ec14c08181d414"><div class="ttname"><a href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a4c279be4f38cd8fda1ec14c08181d414">yaze::core::AsarWrapper::CreatePatch</a></div><div class="ttdeci">absl::Status CreatePatch(const std::vector&lt; uint8_t &gt; &amp;original_rom, const std::vector&lt; uint8_t &gt; &amp;modified_rom, const std::string &amp;patch_path)</div><div class="ttdoc">Create a patch that can be applied to transform one ROM to another.</div><div class="ttdef"><b>Definition</b> <a href="../../db/d17/asar__wrapper_8cc_source.html#l00210">asar_wrapper.cc:210</a></div></div>
-<div class="ttc" id="aclassyaze_1_1core_1_1AsarWrapper_html_a4cd070d24a088076ed931b3493abbe67"><div class="ttname"><a href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a4cd070d24a088076ed931b3493abbe67">yaze::core::AsarWrapper::ProcessWarnings</a></div><div class="ttdeci">void ProcessWarnings()</div><div class="ttdoc">Process warnings from Asar and store them.</div><div class="ttdef"><b>Definition</b> <a href="../../db/d17/asar__wrapper_8cc_source.html#l00254">asar_wrapper.cc:254</a></div></div>
-<div class="ttc" id="aclassyaze_1_1core_1_1AsarWrapper_html_a50badc1b1c873d012d9321bd8d17a023"><div class="ttname"><a href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a50badc1b1c873d012d9321bd8d17a023">yaze::core::AsarWrapper::last_warnings_</a></div><div class="ttdeci">std::vector&lt; std::string &gt; last_warnings_</div><div class="ttdef"><b>Definition</b> <a href="../../de/d62/asar__wrapper_8h_source.html#l00184">asar_wrapper.h:184</a></div></div>
-<div class="ttc" id="aclassyaze_1_1core_1_1AsarWrapper_html_a5252e9b914bf6a5123491e21bbdca3d2"><div class="ttname"><a href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a5252e9b914bf6a5123491e21bbdca3d2">yaze::core::AsarWrapper::ValidateAssembly</a></div><div class="ttdeci">absl::Status ValidateAssembly(const std::string &amp;asm_path)</div><div class="ttdoc">Validate an assembly file for syntax errors.</div><div class="ttdef"><b>Definition</b> <a href="../../db/d17/asar__wrapper_8cc_source.html#l00225">asar_wrapper.cc:225</a></div></div>
-<div class="ttc" id="aclassyaze_1_1core_1_1AsarWrapper_html_a532beea9f0fe141b922bd47af6100415"><div class="ttname"><a href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a532beea9f0fe141b922bd47af6100415">yaze::core::AsarWrapper::FindSymbol</a></div><div class="ttdeci">std::optional&lt; AsarSymbol &gt; FindSymbol(const std::string &amp;name) const</div><div class="ttdoc">Find a symbol by name.</div><div class="ttdef"><b>Definition</b> <a href="../../db/d17/asar__wrapper_8cc_source.html#l00183">asar_wrapper.cc:183</a></div></div>
-<div class="ttc" id="aclassyaze_1_1core_1_1AsarWrapper_html_a5a3921a2f3d48d5afe2078095e35a3f8"><div class="ttname"><a href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a5a3921a2f3d48d5afe2078095e35a3f8">yaze::core::AsarWrapper::GetVersion</a></div><div class="ttdeci">std::string GetVersion() const</div><div class="ttdoc">Get Asar version information.</div><div class="ttdef"><b>Definition</b> <a href="../../db/d17/asar__wrapper_8cc_source.html#l00048">asar_wrapper.cc:48</a></div></div>
-<div class="ttc" id="aclassyaze_1_1core_1_1AsarWrapper_html_a6478db61ddfcd71c9f1ab8bd2d87966d"><div class="ttname"><a href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a6478db61ddfcd71c9f1ab8bd2d87966d">yaze::core::AsarWrapper::ExtractSymbolsFromLastOperation</a></div><div class="ttdeci">void ExtractSymbolsFromLastOperation()</div><div class="ttdoc">Extract symbols from the last Asar operation.</div><div class="ttdef"><b>Definition</b> <a href="../../db/d17/asar__wrapper_8cc_source.html#l00265">asar_wrapper.cc:265</a></div></div>
-<div class="ttc" id="aclassyaze_1_1core_1_1AsarWrapper_html_a9012a1946992998bbefee51c3f8a57b3"><div class="ttname"><a href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a9012a1946992998bbefee51c3f8a57b3">yaze::core::AsarWrapper::Shutdown</a></div><div class="ttdeci">void Shutdown()</div><div class="ttdoc">Clean up and close the Asar library.</div><div class="ttdef"><b>Definition</b> <a href="../../db/d17/asar__wrapper_8cc_source.html#l00041">asar_wrapper.cc:41</a></div></div>
-<div class="ttc" id="aclassyaze_1_1core_1_1AsarWrapper_html_a91a158cae5b9bb4901ac7d7682b92fdf"><div class="ttname"><a href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a91a158cae5b9bb4901ac7d7682b92fdf">yaze::core::AsarWrapper::symbol_table_</a></div><div class="ttdeci">std::map&lt; std::string, AsarSymbol &gt; symbol_table_</div><div class="ttdef"><b>Definition</b> <a href="../../de/d62/asar__wrapper_8h_source.html#l00182">asar_wrapper.h:182</a></div></div>
-<div class="ttc" id="aclassyaze_1_1core_1_1AsarWrapper_html_a93b7ee552cb76f48eeba62eb493f3416"><div class="ttname"><a href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a93b7ee552cb76f48eeba62eb493f3416">yaze::core::AsarWrapper::Reset</a></div><div class="ttdeci">void Reset()</div><div class="ttdoc">Reset the Asar state (clear errors, warnings, symbols)</div><div class="ttdef"><b>Definition</b> <a href="../../db/d17/asar__wrapper_8cc_source.html#l00201">asar_wrapper.cc:201</a></div></div>
-<div class="ttc" id="aclassyaze_1_1core_1_1AsarWrapper_html_a9696c9ed3e363b0a989213d0d0862010"><div class="ttname"><a href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a9696c9ed3e363b0a989213d0d0862010">yaze::core::AsarWrapper::Initialize</a></div><div class="ttdeci">absl::Status Initialize()</div><div class="ttdoc">Initialize the Asar library.</div><div class="ttdef"><b>Definition</b> <a href="../../db/d17/asar__wrapper_8cc_source.html#l00025">asar_wrapper.cc:25</a></div></div>
-<div class="ttc" id="aclassyaze_1_1core_1_1AsarWrapper_html_a970cffb421b3db4f9697edbfa5027828"><div class="ttname"><a href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a970cffb421b3db4f9697edbfa5027828">yaze::core::AsarWrapper::ApplyPatch</a></div><div class="ttdeci">absl::StatusOr&lt; AsarPatchResult &gt; ApplyPatch(const std::string &amp;patch_path, std::vector&lt; uint8_t &gt; &amp;rom_data, const std::vector&lt; std::string &gt; &amp;include_paths={})</div><div class="ttdoc">Apply an assembly patch to a ROM.</div><div class="ttdef"><b>Definition</b> <a href="../../db/d17/asar__wrapper_8cc_source.html#l00068">asar_wrapper.cc:68</a></div></div>
-<div class="ttc" id="aclassyaze_1_1core_1_1AsarWrapper_html_ab0c1ac5efd618de425e52203ec05c110"><div class="ttname"><a href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#ab0c1ac5efd618de425e52203ec05c110">yaze::core::AsarWrapper::last_errors_</a></div><div class="ttdeci">std::vector&lt; std::string &gt; last_errors_</div><div class="ttdef"><b>Definition</b> <a href="../../de/d62/asar__wrapper_8h_source.html#l00183">asar_wrapper.h:183</a></div></div>
-<div class="ttc" id="aclassyaze_1_1core_1_1AsarWrapper_html_ab77afa4fc6d5ea4364e017ba64ccce53"><div class="ttname"><a href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#ab77afa4fc6d5ea4364e017ba64ccce53">yaze::core::AsarWrapper::GetApiVersion</a></div><div class="ttdeci">int GetApiVersion() const</div><div class="ttdoc">Get Asar API version.</div><div class="ttdef"><b>Definition</b> <a href="../../db/d17/asar__wrapper_8cc_source.html#l00061">asar_wrapper.cc:61</a></div></div>
-<div class="ttc" id="aclassyaze_1_1core_1_1AsarWrapper_html_ac875ea1cb847a2a8d274f0217f624460"><div class="ttname"><a href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#ac875ea1cb847a2a8d274f0217f624460">yaze::core::AsarWrapper::ExtractSymbols</a></div><div class="ttdeci">absl::StatusOr&lt; std::vector&lt; AsarSymbol &gt; &gt; ExtractSymbols(const std::string &amp;asm_path, const std::vector&lt; std::string &gt; &amp;include_paths={})</div><div class="ttdoc">Extract symbols from an assembly file without patching.</div><div class="ttdef"><b>Definition</b> <a href="../../db/d17/asar__wrapper_8cc_source.html#l00160">asar_wrapper.cc:160</a></div></div>
-<div class="ttc" id="aclassyaze_1_1core_1_1AsarWrapper_html_acd19c5a46722fbacaf7691642507ef57"><div class="ttname"><a href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#acd19c5a46722fbacaf7691642507ef57">yaze::core::AsarWrapper::ProcessErrors</a></div><div class="ttdeci">void ProcessErrors()</div><div class="ttdoc">Process errors from Asar and store them.</div><div class="ttdef"><b>Definition</b> <a href="../../db/d17/asar__wrapper_8cc_source.html#l00243">asar_wrapper.cc:243</a></div></div>
+<div class="ttc" id="aclassyaze_1_1core_1_1AsarWrapper_html_a4c279be4f38cd8fda1ec14c08181d414"><div class="ttname"><a href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a4c279be4f38cd8fda1ec14c08181d414">yaze::core::AsarWrapper::CreatePatch</a></div><div class="ttdeci">absl::Status CreatePatch(const std::vector&lt; uint8_t &gt; &amp;original_rom, const std::vector&lt; uint8_t &gt; &amp;modified_rom, const std::string &amp;patch_path)</div><div class="ttdef"><b>Definition</b> <a href="../../db/d17/asar__wrapper_8cc_source.html#l00216">asar_wrapper.cc:216</a></div></div>
+<div class="ttc" id="aclassyaze_1_1core_1_1AsarWrapper_html_a4cd070d24a088076ed931b3493abbe67"><div class="ttname"><a href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a4cd070d24a088076ed931b3493abbe67">yaze::core::AsarWrapper::ProcessWarnings</a></div><div class="ttdeci">void ProcessWarnings()</div><div class="ttdef"><b>Definition</b> <a href="../../db/d17/asar__wrapper_8cc_source.html#l00260">asar_wrapper.cc:260</a></div></div>
+<div class="ttc" id="aclassyaze_1_1core_1_1AsarWrapper_html_a50badc1b1c873d012d9321bd8d17a023"><div class="ttname"><a href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a50badc1b1c873d012d9321bd8d17a023">yaze::core::AsarWrapper::last_warnings_</a></div><div class="ttdeci">std::vector&lt; std::string &gt; last_warnings_</div><div class="ttdef"><b>Definition</b> <a href="../../de/d62/asar__wrapper_8h_source.html#l00097">asar_wrapper.h:97</a></div></div>
+<div class="ttc" id="aclassyaze_1_1core_1_1AsarWrapper_html_a5252e9b914bf6a5123491e21bbdca3d2"><div class="ttname"><a href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a5252e9b914bf6a5123491e21bbdca3d2">yaze::core::AsarWrapper::ValidateAssembly</a></div><div class="ttdeci">absl::Status ValidateAssembly(const std::string &amp;asm_path)</div><div class="ttdef"><b>Definition</b> <a href="../../db/d17/asar__wrapper_8cc_source.html#l00231">asar_wrapper.cc:231</a></div></div>
+<div class="ttc" id="aclassyaze_1_1core_1_1AsarWrapper_html_a532beea9f0fe141b922bd47af6100415"><div class="ttname"><a href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a532beea9f0fe141b922bd47af6100415">yaze::core::AsarWrapper::FindSymbol</a></div><div class="ttdeci">std::optional&lt; AsarSymbol &gt; FindSymbol(const std::string &amp;name) const</div><div class="ttdef"><b>Definition</b> <a href="../../db/d17/asar__wrapper_8cc_source.html#l00189">asar_wrapper.cc:189</a></div></div>
+<div class="ttc" id="aclassyaze_1_1core_1_1AsarWrapper_html_a5a3921a2f3d48d5afe2078095e35a3f8"><div class="ttname"><a href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a5a3921a2f3d48d5afe2078095e35a3f8">yaze::core::AsarWrapper::GetVersion</a></div><div class="ttdeci">std::string GetVersion() const</div><div class="ttdef"><b>Definition</b> <a href="../../db/d17/asar__wrapper_8cc_source.html#l00048">asar_wrapper.cc:48</a></div></div>
+<div class="ttc" id="aclassyaze_1_1core_1_1AsarWrapper_html_a6478db61ddfcd71c9f1ab8bd2d87966d"><div class="ttname"><a href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a6478db61ddfcd71c9f1ab8bd2d87966d">yaze::core::AsarWrapper::ExtractSymbolsFromLastOperation</a></div><div class="ttdeci">void ExtractSymbolsFromLastOperation()</div><div class="ttdef"><b>Definition</b> <a href="../../db/d17/asar__wrapper_8cc_source.html#l00271">asar_wrapper.cc:271</a></div></div>
+<div class="ttc" id="aclassyaze_1_1core_1_1AsarWrapper_html_a9012a1946992998bbefee51c3f8a57b3"><div class="ttname"><a href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a9012a1946992998bbefee51c3f8a57b3">yaze::core::AsarWrapper::Shutdown</a></div><div class="ttdeci">void Shutdown()</div><div class="ttdef"><b>Definition</b> <a href="../../db/d17/asar__wrapper_8cc_source.html#l00041">asar_wrapper.cc:41</a></div></div>
+<div class="ttc" id="aclassyaze_1_1core_1_1AsarWrapper_html_a91a158cae5b9bb4901ac7d7682b92fdf"><div class="ttname"><a href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a91a158cae5b9bb4901ac7d7682b92fdf">yaze::core::AsarWrapper::symbol_table_</a></div><div class="ttdeci">std::map&lt; std::string, AsarSymbol &gt; symbol_table_</div><div class="ttdef"><b>Definition</b> <a href="../../de/d62/asar__wrapper_8h_source.html#l00095">asar_wrapper.h:95</a></div></div>
+<div class="ttc" id="aclassyaze_1_1core_1_1AsarWrapper_html_a93b7ee552cb76f48eeba62eb493f3416"><div class="ttname"><a href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a93b7ee552cb76f48eeba62eb493f3416">yaze::core::AsarWrapper::Reset</a></div><div class="ttdeci">void Reset()</div><div class="ttdef"><b>Definition</b> <a href="../../db/d17/asar__wrapper_8cc_source.html#l00207">asar_wrapper.cc:207</a></div></div>
+<div class="ttc" id="aclassyaze_1_1core_1_1AsarWrapper_html_a9696c9ed3e363b0a989213d0d0862010"><div class="ttname"><a href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a9696c9ed3e363b0a989213d0d0862010">yaze::core::AsarWrapper::Initialize</a></div><div class="ttdeci">absl::Status Initialize()</div><div class="ttdef"><b>Definition</b> <a href="../../db/d17/asar__wrapper_8cc_source.html#l00025">asar_wrapper.cc:25</a></div></div>
+<div class="ttc" id="aclassyaze_1_1core_1_1AsarWrapper_html_a970cffb421b3db4f9697edbfa5027828"><div class="ttname"><a href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a970cffb421b3db4f9697edbfa5027828">yaze::core::AsarWrapper::ApplyPatch</a></div><div class="ttdeci">absl::StatusOr&lt; AsarPatchResult &gt; ApplyPatch(const std::string &amp;patch_path, std::vector&lt; uint8_t &gt; &amp;rom_data, const std::vector&lt; std::string &gt; &amp;include_paths={})</div><div class="ttdef"><b>Definition</b> <a href="../../db/d17/asar__wrapper_8cc_source.html#l00068">asar_wrapper.cc:68</a></div></div>
+<div class="ttc" id="aclassyaze_1_1core_1_1AsarWrapper_html_ab0c1ac5efd618de425e52203ec05c110"><div class="ttname"><a href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#ab0c1ac5efd618de425e52203ec05c110">yaze::core::AsarWrapper::last_errors_</a></div><div class="ttdeci">std::vector&lt; std::string &gt; last_errors_</div><div class="ttdef"><b>Definition</b> <a href="../../de/d62/asar__wrapper_8h_source.html#l00096">asar_wrapper.h:96</a></div></div>
+<div class="ttc" id="aclassyaze_1_1core_1_1AsarWrapper_html_ab77afa4fc6d5ea4364e017ba64ccce53"><div class="ttname"><a href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#ab77afa4fc6d5ea4364e017ba64ccce53">yaze::core::AsarWrapper::GetApiVersion</a></div><div class="ttdeci">int GetApiVersion() const</div><div class="ttdef"><b>Definition</b> <a href="../../db/d17/asar__wrapper_8cc_source.html#l00061">asar_wrapper.cc:61</a></div></div>
+<div class="ttc" id="aclassyaze_1_1core_1_1AsarWrapper_html_ac875ea1cb847a2a8d274f0217f624460"><div class="ttname"><a href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#ac875ea1cb847a2a8d274f0217f624460">yaze::core::AsarWrapper::ExtractSymbols</a></div><div class="ttdeci">absl::StatusOr&lt; std::vector&lt; AsarSymbol &gt; &gt; ExtractSymbols(const std::string &amp;asm_path, const std::vector&lt; std::string &gt; &amp;include_paths={})</div><div class="ttdef"><b>Definition</b> <a href="../../db/d17/asar__wrapper_8cc_source.html#l00164">asar_wrapper.cc:164</a></div></div>
+<div class="ttc" id="aclassyaze_1_1core_1_1AsarWrapper_html_acd19c5a46722fbacaf7691642507ef57"><div class="ttname"><a href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#acd19c5a46722fbacaf7691642507ef57">yaze::core::AsarWrapper::ProcessErrors</a></div><div class="ttdeci">void ProcessErrors()</div><div class="ttdef"><b>Definition</b> <a href="../../db/d17/asar__wrapper_8cc_source.html#l00249">asar_wrapper.cc:249</a></div></div>
 <div class="ttc" id="aclassyaze_1_1core_1_1AsarWrapper_html_ad6ea68dd2f57310d3e545911b1d1da55"><div class="ttname"><a href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#ad6ea68dd2f57310d3e545911b1d1da55">yaze::core::AsarWrapper::~AsarWrapper</a></div><div class="ttdeci">~AsarWrapper()</div><div class="ttdef"><b>Definition</b> <a href="../../db/d17/asar__wrapper_8cc_source.html#l00019">asar_wrapper.cc:19</a></div></div>
-<div class="ttc" id="aclassyaze_1_1core_1_1AsarWrapper_html_ad8d8a1b351b04389dfb11a4db38cc034"><div class="ttname"><a href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#ad8d8a1b351b04389dfb11a4db38cc034">yaze::core::AsarWrapper::GetSymbolsAtAddress</a></div><div class="ttdeci">std::vector&lt; AsarSymbol &gt; GetSymbolsAtAddress(uint32_t address) const</div><div class="ttdoc">Get symbols at a specific address.</div><div class="ttdef"><b>Definition</b> <a href="../../db/d17/asar__wrapper_8cc_source.html#l00191">asar_wrapper.cc:191</a></div></div>
-<div class="ttc" id="aclassyaze_1_1core_1_1AsarWrapper_html_ade7b3915a5246e8c8e32c01008125094"><div class="ttname"><a href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#ade7b3915a5246e8c8e32c01008125094">yaze::core::AsarWrapper::GetSymbolTable</a></div><div class="ttdeci">std::map&lt; std::string, AsarSymbol &gt; GetSymbolTable() const</div><div class="ttdoc">Get all available symbols from the last patch operation.</div><div class="ttdef"><b>Definition</b> <a href="../../db/d17/asar__wrapper_8cc_source.html#l00179">asar_wrapper.cc:179</a></div></div>
-<div class="ttc" id="aclassyaze_1_1core_1_1AsarWrapper_html_af434423d63161f0902018a082cbb3a41"><div class="ttname"><a href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#af434423d63161f0902018a082cbb3a41">yaze::core::AsarWrapper::initialized_</a></div><div class="ttdeci">bool initialized_</div><div class="ttdef"><b>Definition</b> <a href="../../de/d62/asar__wrapper_8h_source.html#l00181">asar_wrapper.h:181</a></div></div>
-<div class="ttc" id="anamespaceyaze_html"><div class="ttname"><a href="../../dc/d46/namespaceyaze.html">yaze</a></div><div class="ttdoc">Main namespace for the application.</div><div class="ttdef"><b>Definition</b> <a href="../../db/d17/asar__wrapper_8cc_source.html#l00014">asar_wrapper.cc:14</a></div></div>
+<div class="ttc" id="aclassyaze_1_1core_1_1AsarWrapper_html_ad8d8a1b351b04389dfb11a4db38cc034"><div class="ttname"><a href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#ad8d8a1b351b04389dfb11a4db38cc034">yaze::core::AsarWrapper::GetSymbolsAtAddress</a></div><div class="ttdeci">std::vector&lt; AsarSymbol &gt; GetSymbolsAtAddress(uint32_t address) const</div><div class="ttdef"><b>Definition</b> <a href="../../db/d17/asar__wrapper_8cc_source.html#l00197">asar_wrapper.cc:197</a></div></div>
+<div class="ttc" id="aclassyaze_1_1core_1_1AsarWrapper_html_ade7b3915a5246e8c8e32c01008125094"><div class="ttname"><a href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#ade7b3915a5246e8c8e32c01008125094">yaze::core::AsarWrapper::GetSymbolTable</a></div><div class="ttdeci">std::map&lt; std::string, AsarSymbol &gt; GetSymbolTable() const</div><div class="ttdef"><b>Definition</b> <a href="../../db/d17/asar__wrapper_8cc_source.html#l00185">asar_wrapper.cc:185</a></div></div>
+<div class="ttc" id="aclassyaze_1_1core_1_1AsarWrapper_html_af434423d63161f0902018a082cbb3a41"><div class="ttname"><a href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#af434423d63161f0902018a082cbb3a41">yaze::core::AsarWrapper::initialized_</a></div><div class="ttdeci">bool initialized_</div><div class="ttdef"><b>Definition</b> <a href="../../de/d62/asar__wrapper_8h_source.html#l00094">asar_wrapper.h:94</a></div></div>
+<div class="ttc" id="anamespaceyaze_html"><div class="ttname"><a href="../../dc/d46/namespaceyaze.html">yaze</a></div><div class="ttdoc">Main namespace for the application.</div><div class="ttdef"><b>Definition</b> <a href="../../da/d0c/controller_8cc_source.html#l00020">controller.cc:20</a></div></div>
 <div class="ttc" id="astructyaze_1_1core_1_1AsarPatchResult_html"><div class="ttname"><a href="../../de/d0c/structyaze_1_1core_1_1AsarPatchResult.html">yaze::core::AsarPatchResult</a></div><div class="ttdoc">Asar patch result information.</div><div class="ttdef"><b>Definition</b> <a href="../../de/d62/asar__wrapper_8h_source.html#l00031">asar_wrapper.h:31</a></div></div>
 <div class="ttc" id="astructyaze_1_1core_1_1AsarPatchResult_html_a5dc2e22abf280310bf28b95a0be6a923"><div class="ttname"><a href="../../de/d0c/structyaze_1_1core_1_1AsarPatchResult.html#a5dc2e22abf280310bf28b95a0be6a923">yaze::core::AsarPatchResult::rom_size</a></div><div class="ttdeci">uint32_t rom_size</div><div class="ttdef"><b>Definition</b> <a href="../../de/d62/asar__wrapper_8h_source.html#l00036">asar_wrapper.h:36</a></div></div>
 <div class="ttc" id="astructyaze_1_1core_1_1AsarPatchResult_html_a7c3eea062dba8954a5198dea3606fd26"><div class="ttname"><a href="../../de/d0c/structyaze_1_1core_1_1AsarPatchResult.html#a7c3eea062dba8954a5198dea3606fd26">yaze::core::AsarPatchResult::errors</a></div><div class="ttdeci">std::vector&lt; std::string &gt; errors</div><div class="ttdef"><b>Definition</b> <a href="../../de/d62/asar__wrapper_8h_source.html#l00033">asar_wrapper.h:33</a></div></div>
@@ -480,7 +482,7 @@ $(document).ready(function(){initNavTree('db/d17/asar__wrapper_8cc_source.html',
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="navelem"><a class="el" href="../../dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="../../dir_5194e5fea318fda12687127c23f8aba1.html">app</a></li><li class="navelem"><a class="el" href="../../dir_fcc5e025f1b672ef47e35e5c700d9477.html">core</a></li><li class="navelem"><a class="el" href="../../db/d17/asar__wrapper_8cc.html">asar_wrapper.cc</a></li>
+    <li class="navelem"><a class="el" href="../../dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="../../dir_aebb8dcc11953d78e620bbef0b9e2183.html">core</a></li><li class="navelem"><a class="el" href="../../db/d17/asar__wrapper_8cc.html">asar_wrapper.cc</a></li>
     <li class="footer">Generated by <a href="https://www.doxygen.org/index.html"><img class="footer" src="../../doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
   </ul>
 </div>

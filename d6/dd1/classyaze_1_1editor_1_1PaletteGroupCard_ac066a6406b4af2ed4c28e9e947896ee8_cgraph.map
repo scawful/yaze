@@ -1,0 +1,8 @@
+<map id="yaze::editor::PaletteGroupCard::DrawMetadataInfo" name="yaze::editor::PaletteGroupCard::DrawMetadataInfo">
+<area shape="rect" id="Node000001" title="Draw palette metadata info panel." alt="" coords="5,47,173,87"/>
+<area shape="rect" id="Node000002" href="$d6/dd1/classyaze_1_1editor_1_1PaletteGroupCard.html#aaddbf58b125b8e0d8b17478463509133" title="Get metadata for this palette group." alt="" coords="221,5,388,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="173,48,205,42,206,47,174,54"/>
+<area shape="rect" id="Node000003" href="$d3/dbf/namespaceyaze_1_1gui.html#a5fa374aea4d5d783b38f9fc32e937eb0" title=" " alt="" coords="223,94,386,120"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="174,80,217,88,216,93,173,85"/>
+<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="269,95,261,86,266,76,280,70,304,68,331,70,344,77,342,82,329,75,304,73,282,75,269,80,267,85,273,92"/>
+</map>

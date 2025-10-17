@@ -1,5 +1,0 @@
-<map id="yaze::zelda3::Inventory::LoadRom" name="yaze::zelda3::Inventory::LoadRom">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,155,46"/>
-<area shape="rect" id="Node000002" href="$d6/d3c/classyaze_1_1zelda3_1_1Inventory.html#a993ab3e306ed36bf3ba0d8f871e52225" title=" " alt="" coords="203,13,380,39"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="155,23,187,23,187,28,155,28"/>
-</map>

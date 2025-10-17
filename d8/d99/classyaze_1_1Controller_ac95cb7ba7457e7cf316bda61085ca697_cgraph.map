@@ -1,0 +1,11 @@
+<map id="yaze::Controller::DoRender" name="yaze::Controller::DoRender">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,84,177,110"/>
+<area shape="rect" id="Node000002" href="$d4/de6/classyaze_1_1gfx_1_1Arena.html#ae6809b5062da35e7d8f3ff54a79c7b55" title=" " alt="" coords="241,5,378,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="121,81,224,40,242,34,244,39,226,45,123,86"/>
+<area shape="rect" id="Node000003" href="$dd/df2/classyaze_1_1TimingManager.html#a1815a9d8b5833cca897c30ababd88c37" title=" " alt="" coords="225,55,394,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="177,83,209,78,210,84,177,88"/>
+<area shape="rect" id="Node000004" href="$d4/de6/classyaze_1_1gfx_1_1Arena.html#aaa4008abdfc004444497722d9a9167c9" title=" " alt="" coords="227,105,392,145"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="177,105,212,110,211,115,177,110"/>
+<area shape="rect" id="Node000008" href="$dd/df2/classyaze_1_1TimingManager.html#a359bb3ee12c13939ced96f9dacd1772f" title="Update the timing manager (call once per frame)" alt="" coords="238,170,381,211"/>
+<area shape="poly" id="edge4_Node000001_Node000008" title=" " alt="" coords="122,108,226,154,241,161,239,166,224,159,120,113"/>
+</map>

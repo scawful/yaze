@@ -1,5 +1,7 @@
 <map id="yaze::editor::WorkspaceManager" name="yaze::editor::WorkspaceManager">
-<area shape="rect" id="Node000001" title="Manages workspace layouts, sessions, and presets." alt="" coords="5,94,212,120"/>
-<area shape="rect" id="Node000002" href="$d7/d92/classyaze_1_1editor_1_1ToastManager.html" title=" " alt="" coords="21,5,196,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="111,47,111,94,106,94,106,47"/>
+<area shape="rect" id="Node000001" title="Manages workspace layouts, sessions, and presets." alt="" coords="83,109,289,135"/>
+<area shape="rect" id="Node000002" href="$d7/d92/classyaze_1_1editor_1_1ToastManager.html" title=" " alt="" coords="5,13,180,39"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="117,47,176,107,172,110,113,51"/>
+<area shape="rect" id="Node000003" href="$d0/d2e/classyaze_1_1editor_1_1EditorCardRegistry.html" title="Central registry for all editor cards with session awareness and dependency injection." alt="" coords="204,5,355,46"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="269,62,252,87,235,101,217,111,214,106,232,96,248,83,264,59"/>
 </map>

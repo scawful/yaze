@@ -1,11 +1,11 @@
 <map id="yaze::cli::agent::anonymous_namespace{general_commands::cc}::TryLoadProjectAndLabels" name="yaze::cli::agent::anonymous_namespace{general_commands::cc}::TryLoadProjectAndLabels">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,63,218,119"/>
 <area shape="poly" id="edge5_Node000001_Node000001" title=" " alt="" coords="64,63,65,53,73,44,89,38,112,37,137,39,152,46,150,51,135,44,111,42,90,44,76,48,70,55,70,63"/>
-<area shape="rect" id="Node000002" href="$da/d5e/structyaze_1_1core_1_1YazeProject.html#a92a9dfec8ba27e3ccae53fcb267b8d16" title=" " alt="" coords="266,5,440,46"/>
+<area shape="rect" id="Node000002" href="$dd/d28/structyaze_1_1project_1_1YazeProject.html#a5493d4301d278dfe72ae6218aed8676d" title=" " alt="" coords="266,5,440,46"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="216,60,260,48,261,53,218,65"/>
-<area shape="rect" id="Node000015" href="$da/d5e/structyaze_1_1core_1_1YazeProject.html#a01c9181e16416e9999014de5ea21f9c4" title=" " alt="" coords="276,71,430,111"/>
-<area shape="poly" id="edge3_Node000001_Node000015" title=" " alt="" coords="218,88,260,88,260,94,218,94"/>
-<area shape="rect" id="Node000019" href="$d6/d30/classyaze_1_1Rom.html#aaf2600f3334bb925086268e63e225418" title=" " alt="" coords="285,136,421,177"/>
+<area shape="rect" id="Node000015" href="$dd/d28/structyaze_1_1project_1_1YazeProject.html#acf26c9c1e39eab165dc5d736c7d06e96" title=" " alt="" coords="269,71,437,111"/>
+<area shape="poly" id="edge3_Node000001_Node000015" title=" " alt="" coords="218,88,253,88,253,94,218,94"/>
+<area shape="rect" id="Node000019" href="$d6/d30/classyaze_1_1Rom.html#a0d83b56676ffe1b6205d68cf875a9c8c" title=" " alt="" coords="285,136,421,177"/>
 <area shape="poly" id="edge4_Node000001_Node000019" title=" " alt="" coords="218,117,270,131,269,137,216,122"/>
 <area shape="rect" id="Node000003" href="$d4/d42/structyaze_1_1zelda3_1_1Zelda3Labels.html#a34742ede25e2a3dff22e0165d7220079" title="Convert all labels to a structured map for project embedding." alt="" coords="488,5,662,46"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="440,23,472,23,472,28,440,28"/>

@@ -105,24 +105,25 @@ $(document).ready(function(){initNavTree('d2/d1f/canvas__interaction__handler_8c
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><code>#include &quot;<a class="el" href="../../dd/db1/canvas__interaction__handler_8h_source.html">canvas_interaction_handler.h</a>&quot;</code><br />
-<code>#include &lt;algorithm&gt;</code><br />
 <code>#include &lt;cmath&gt;</code><br />
+<code>#include &quot;<a class="el" href="../../da/d0e/canvas__interaction_8h_source.html">app/gui/canvas/canvas_interaction.h</a>&quot;</code><br />
 <code>#include &quot;imgui/imgui.h&quot;</code><br />
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for canvas_interaction_handler.cc:</div>
 <div class="dyncontent">
 <div class="center"><img src="../../db/d82/canvas__interaction__handler_8cc__incl.png" border="0" usemap="#asrc_2app_2gui_2canvas_2canvas__interaction__handler_8cc" alt=""/></div>
 <map name="asrc_2app_2gui_2canvas_2canvas__interaction__handler_8cc" id="asrc_2app_2gui_2canvas_2canvas__interaction__handler_8cc">
-<area shape="rect" title=" " alt="" coords="143,5,278,61"/>
+<area shape="rect" title=" " alt="" coords="139,5,274,61"/>
 <area shape="rect" href="../../dd/db1/canvas__interaction__handler_8h.html" title=" " alt="" coords="5,109,136,150"/>
-<area shape="poly" title=" " alt="" coords="171,64,114,102,111,98,169,59"/>
-<area shape="rect" title=" " alt="" coords="73,198,170,223"/>
-<area shape="poly" title=" " alt="" coords="199,63,136,185,132,183,194,60"/>
-<area shape="rect" title=" " alt="" coords="211,117,285,142"/>
-<area shape="poly" title=" " alt="" coords="224,61,240,101,235,103,219,63"/>
-<area shape="rect" title=" " alt="" coords="309,117,366,142"/>
-<area shape="poly" title=" " alt="" coords="249,59,310,105,307,109,246,64"/>
-<area shape="poly" title=" " alt="" coords="85,149,107,183,103,186,81,152"/>
+<area shape="poly" title=" " alt="" coords="169,64,113,102,110,98,166,59"/>
+<area shape="rect" title=" " alt="" coords="125,198,222,223"/>
+<area shape="poly" title=" " alt="" coords="204,62,181,183,176,182,199,61"/>
+<area shape="rect" title=" " alt="" coords="211,117,269,142"/>
+<area shape="poly" title=" " alt="" coords="219,61,233,101,228,103,214,62"/>
+<area shape="rect" href="../../da/d0e/canvas__interaction_8h.html" title="Free functions for canvas interaction handling." alt="" coords="293,109,448,150"/>
+<area shape="poly" title=" " alt="" coords="255,59,325,99,322,103,253,64"/>
+<area shape="poly" title=" " alt="" coords="97,148,147,186,144,190,94,152"/>
+<area shape="poly" title=" " alt="" coords="322,153,219,194,217,189,320,148"/>
 </map>
 </div>
 </div>
@@ -136,15 +137,13 @@ Namespaces</h2></td></tr>
 <tr class="memitem:d3/dbf/namespaceyaze_1_1gui" id="r_d3/dbf/namespaceyaze_1_1gui"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/dbf/namespaceyaze_1_1gui.html">yaze::gui</a></td></tr>
 <tr class="memdesc:d3/dbf/namespaceyaze_1_1gui"><td class="mdescLeft">&#160;</td><td class="mdescRight">Graphical User Interface (GUI) components for the application. <br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:db/dc3/namespaceyaze_1_1gui_1_1canvas" id="r_db/dc3/namespaceyaze_1_1gui_1_1canvas"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/dc3/namespaceyaze_1_1gui_1_1canvas.html">yaze::gui::canvas</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:dc/df0/namespaceyaze_1_1gui_1_1canvas_1_1anonymous__namespace_02canvas__interaction__handler_8cc_03" id="r_dc/df0/namespaceyaze_1_1gui_1_1canvas_1_1anonymous__namespace_02canvas__interaction__handler_8cc_03"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/df0/namespaceyaze_1_1gui_1_1canvas_1_1anonymous__namespace_02canvas__interaction__handler_8cc_03.html">yaze::gui::canvas::anonymous_namespace{canvas_interaction_handler.cc}</a></td></tr>
+<tr class="memitem:d1/ddf/namespaceyaze_1_1gui_1_1anonymous__namespace_02canvas__interaction__handler_8cc_03" id="r_d1/ddf/namespaceyaze_1_1gui_1_1anonymous__namespace_02canvas__interaction__handler_8cc_03"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/ddf/namespaceyaze_1_1gui_1_1anonymous__namespace_02canvas__interaction__handler_8cc_03.html">yaze::gui::anonymous_namespace{canvas_interaction_handler.cc}</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a1997cb7aec1a12055c39f4b36163a4c2" id="r_a1997cb7aec1a12055c39f4b36163a4c2"><td class="memItemLeft" align="right" valign="top">ImVec2&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/df0/namespaceyaze_1_1gui_1_1canvas_1_1anonymous__namespace_02canvas__interaction__handler_8cc_03.html#a1997cb7aec1a12055c39f4b36163a4c2">yaze::gui::canvas::anonymous_namespace{canvas_interaction_handler.cc}::AlignToGrid</a> (ImVec2 pos, float grid_step)</td></tr>
-<tr class="separator:a1997cb7aec1a12055c39f4b36163a4c2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a02e3c955613c6089d0d5fc05a3e7be86" id="r_a02e3c955613c6089d0d5fc05a3e7be86"><td class="memItemLeft" align="right" valign="top">ImVec2&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/ddf/namespaceyaze_1_1gui_1_1anonymous__namespace_02canvas__interaction__handler_8cc_03.html#a02e3c955613c6089d0d5fc05a3e7be86">yaze::gui::anonymous_namespace{canvas_interaction_handler.cc}::AlignToGridLocal</a> (ImVec2 pos, float grid_step)</td></tr>
+<tr class="separator:a02e3c955613c6089d0d5fc05a3e7be86"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 </div><!-- contents -->
 </div><!-- doc-content -->

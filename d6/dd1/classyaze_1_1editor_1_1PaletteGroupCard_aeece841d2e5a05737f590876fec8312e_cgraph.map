@@ -1,0 +1,11 @@
+<map id="yaze::editor::PaletteGroupCard::DiscardChanges" name="yaze::editor::PaletteGroupCard::DiscardChanges">
+<area shape="rect" id="Node000001" title="Discard all unsaved changes." alt="" coords="5,68,173,109"/>
+<area shape="rect" id="Node000002" href="$d7/d39/classyaze_1_1gfx_1_1PaletteManager.html#aa08c6e2cb9666ef5af90ce509c13a42c" title="Discard changes for a specific group." alt="" coords="234,39,402,79"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="173,75,218,69,219,74,174,80"/>
+<area shape="rect" id="Node000008" href="$d7/d39/classyaze_1_1gfx_1_1PaletteManager.html#ad76357b3c747d397e99dd16972cf1235" title="Get the singleton instance." alt="" coords="221,104,415,129"/>
+<area shape="poly" id="edge4_Node000001_Node000008" title=" " alt="" coords="174,96,205,100,205,105,173,101"/>
+<area shape="rect" id="Node000003" href="$d7/d39/classyaze_1_1gfx_1_1PaletteManager.html#a665768d2ec24bed9e18cde8b4565a7eb" title="Helper: Clear modified flags for a group." alt="" coords="463,5,630,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="402,44,447,37,448,43,402,49"/>
+<area shape="rect" id="Node000004" href="$d7/d39/classyaze_1_1gfx_1_1PaletteManager.html#a2e456087d1fa6be7f676ff21a50be921" title="Helper: Get mutable palette group." alt="" coords="463,71,630,111"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="402,68,448,75,447,80,402,73"/>
+</map>

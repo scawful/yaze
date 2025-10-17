@@ -1,8 +1,5 @@
 var namespaceyaze_1_1cli_1_1handlers =
 [
-    [ "anonymous_namespace{command_handlers.cc}", "d4/d4c/namespaceyaze_1_1cli_1_1handlers_1_1anonymous__namespace_02command__handlers_8cc_03.html", [
-      [ "g_command_registry", "d4/d4c/namespaceyaze_1_1cli_1_1handlers_1_1anonymous__namespace_02command__handlers_8cc_03.html#a98b15c78276079ebb96b5e02b0a8c9ea", null ]
-    ] ],
     [ "anonymous_namespace{emulator_commands.cc}", "d7/dfd/namespaceyaze_1_1cli_1_1handlers_1_1anonymous__namespace_02emulator__commands_8cc_03.html", "d7/dfd/namespaceyaze_1_1cli_1_1handlers_1_1anonymous__namespace_02emulator__commands_8cc_03" ],
     [ "anonymous_namespace{todo_commands.cc}", "d6/d5b/namespaceyaze_1_1cli_1_1handlers_1_1anonymous__namespace_02todo__commands_8cc_03.html", [
       [ "GetTodoManager", "d6/d5b/namespaceyaze_1_1cli_1_1handlers_1_1anonymous__namespace_02todo__commands_8cc_03.html#adab7a6c5147a257c4f83f754bec2f025", null ],
@@ -78,6 +75,5 @@ var namespaceyaze_1_1cli_1_1handlers =
     [ "HandleTodoCommand", "d0/db7/namespaceyaze_1_1cli_1_1handlers.html#aff388999b191247a4d1405d230851467", null ],
     [ "CreateCliCommandHandlers", "d0/db7/namespaceyaze_1_1cli_1_1handlers.html#a6364d0634bf85eccfd1c2d6378a8e0c4", null ],
     [ "CreateAgentCommandHandlers", "d0/db7/namespaceyaze_1_1cli_1_1handlers.html#ade230bf1ab4f618a1656f0fe7193cc1a", null ],
-    [ "CreateAllCommandHandlers", "d0/db7/namespaceyaze_1_1cli_1_1handlers.html#a50c4a22a1afe49ec337fce20c546d92a", null ],
-    [ "GetCommandHandler", "d0/db7/namespaceyaze_1_1cli_1_1handlers.html#ab6b2bed757e2ca7ea895a6922a0cd36f", null ]
+    [ "CreateAllCommandHandlers", "d0/db7/namespaceyaze_1_1cli_1_1handlers.html#a50c4a22a1afe49ec337fce20c546d92a", null ]
 ];

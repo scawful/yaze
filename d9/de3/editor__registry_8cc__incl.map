@@ -1,0 +1,13 @@
+<map id="src/app/editor/system/editor_registry.cc" name="src/app/editor/system/editor_registry.cc">
+<area shape="rect" id="Node000001" title=" " alt="" coords="107,5,253,46"/>
+<area shape="rect" id="Node000002" href="$d9/da3/editor__registry_8h.html" title=" " alt="" coords="5,94,118,120"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="152,49,94,87,91,83,149,44"/>
+<area shape="rect" id="Node000006" href="$dd/d60/editor_8h.html" title=" " alt="" coords="43,168,168,193"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="173,47,120,155,116,152,168,45"/>
+<area shape="rect" id="Node000012" title=" " alt="" coords="74,241,236,267"/>
+<area shape="poly" id="edge4_Node000001_Node000012" title=" " alt="" coords="185,46,189,112,188,153,183,194,171,228,166,227,178,193,183,152,184,112,180,46"/>
+<area shape="rect" id="Node000016" title=" " alt="" coords="243,94,347,120"/>
+<area shape="poly" id="edge6_Node000001_Node000016" title=" " alt="" coords="210,44,266,83,263,87,207,49"/>
+<area shape="poly" id="edge2_Node000002_Node000006" title=" " alt="" coords="71,118,92,153,88,156,66,121"/>
+<area shape="poly" id="edge3_Node000006_Node000012" title=" " alt="" coords="116,192,140,227,136,230,111,195"/>
+</map>

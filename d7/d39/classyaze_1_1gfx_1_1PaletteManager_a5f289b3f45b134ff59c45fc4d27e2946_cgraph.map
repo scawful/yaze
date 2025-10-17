@@ -1,0 +1,11 @@
+<map id="yaze::gfx::PaletteManager::ResetColor" name="yaze::gfx::PaletteManager::ResetColor">
+<area shape="rect" id="Node000001" title="Reset a single color to its original ROM value." alt="" coords="5,39,173,79"/>
+<area shape="rect" id="Node000002" href="$d7/d39/classyaze_1_1gfx_1_1PaletteManager.html#a90c06d48416f54ea3f32c2b2ae08755e" title="Helper: Get original color from snapshot." alt="" coords="221,5,388,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="173,43,205,38,205,44,174,49"/>
+<area shape="rect" id="Node000003" href="$d7/d39/classyaze_1_1gfx_1_1PaletteManager.html#a04d090df59f559acfa2fa6a97f37c9d1" title="Set a color in a palette (records change for undo)" alt="" coords="221,71,388,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="174,69,205,74,205,79,173,74"/>
+<area shape="rect" id="Node000004" href="$d7/d39/classyaze_1_1gfx_1_1PaletteManager.html#a2e456087d1fa6be7f676ff21a50be921" title="Helper: Get mutable palette group." alt="" coords="436,37,603,78"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="388,75,420,70,421,76,389,81"/>
+<area shape="rect" id="Node000007" href="$d7/d39/classyaze_1_1gfx_1_1PaletteManager.html#a4e9b21f3e13e2b66adb32dccb6d81677" title="Check if currently in a batch operation." alt="" coords="436,103,603,143"/>
+<area shape="poly" id="edge4_Node000003_Node000007" title=" " alt="" coords="389,101,421,106,420,111,388,106"/>
+</map>

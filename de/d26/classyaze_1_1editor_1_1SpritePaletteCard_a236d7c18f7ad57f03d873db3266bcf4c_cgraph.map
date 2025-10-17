@@ -1,0 +1,5 @@
+<map id="yaze::editor::SpritePaletteCard::GetPaletteGroup" name="yaze::editor::SpritePaletteCard::GetPaletteGroup">
+<area shape="rect" id="Node000001" title="Get the palette group for this card." alt="" coords="5,5,172,46"/>
+<area shape="rect" id="Node000002" href="$d6/d30/classyaze_1_1Rom.html#a35e5778c114edd659015f76c6d067cd8" title=" " alt="" coords="220,5,352,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="172,23,204,23,204,28,172,28"/>
+</map>

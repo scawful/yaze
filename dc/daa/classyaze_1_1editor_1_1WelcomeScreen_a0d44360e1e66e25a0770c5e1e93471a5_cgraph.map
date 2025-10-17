@@ -1,7 +1,7 @@
 <map id="yaze::editor::WelcomeScreen::RefreshRecentProjects" name="yaze::editor::WelcomeScreen::RefreshRecentProjects">
 <area shape="rect" id="Node000001" title="Refresh recent projects list from the project manager." alt="" coords="5,39,192,79"/>
-<area shape="rect" id="Node000002" href="$d8/d4b/classyaze_1_1core_1_1RecentFilesManager.html#a5d27da46038aed6b42243f1010ee043d" title=" " alt="" coords="240,5,443,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="192,44,224,39,224,44,192,49"/>
-<area shape="rect" id="Node000003" href="$d8/d4b/classyaze_1_1core_1_1RecentFilesManager.html#af39fda2f363c71393d931e218fe43e9b" title=" " alt="" coords="240,71,443,111"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="192,69,224,73,224,78,192,74"/>
+<area shape="rect" id="Node000002" href="$da/d2c/classyaze_1_1project_1_1RecentFilesManager.html#a59ca67c0c25fd089fdbb707fbb9c2c0e" title=" " alt="" coords="240,5,407,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="192,43,224,38,225,43,193,48"/>
+<area shape="rect" id="Node000003" href="$da/d2c/classyaze_1_1project_1_1RecentFilesManager.html#a99c3ca29fa29099a949d6723b80bb611" title=" " alt="" coords="240,71,407,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="193,70,225,74,224,80,192,75"/>
 </map>

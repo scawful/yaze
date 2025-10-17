@@ -1,11 +1,13 @@
 <map id="yaze::editor::SettingsEditor" name="yaze::editor::SettingsEditor">
-<area shape="rect" id="Node000001" title=" " alt="" coords="130,183,302,208"/>
-<area shape="rect" id="Node000002" href="$d3/d9f/classyaze_1_1editor_1_1Editor.html" title="Interface for editor classes." alt="" coords="27,94,152,120"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="121,126,200,180,197,184,118,131"/>
-<area shape="rect" id="Node000003" href="$dc/d69/structyaze_1_1editor_1_1EditorContext.html" title=" " alt="" coords="5,5,174,31"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="92,47,92,94,87,94,87,47"/>
-<area shape="rect" id="Node000011" href="$d6/d30/classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="176,94,256,120"/>
-<area shape="poly" id="edge3_Node000001_Node000011" title=" " alt="" coords="219,135,219,182,214,182,214,135"/>
-<area shape="rect" id="Node000133" href="$d8/d46/classyaze_1_1editor_1_1UserSettings.html" title="Manages user preferences and settings persistence." alt="" coords="281,94,448,120"/>
-<area shape="poly" id="edge4_Node000001_Node000133" title=" " alt="" coords="332,130,238,184,236,180,329,125"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="58,258,230,283"/>
+<area shape="rect" id="Node000002" href="$d3/d9f/classyaze_1_1editor_1_1Editor.html" title="Interface for editor classes." alt="" coords="82,183,206,208"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="147,224,147,257,142,257,142,224"/>
+<area shape="rect" id="Node000003" href="$d9/d40/structyaze_1_1editor_1_1EditorDependencies.html" title="Unified dependency container for all editor types." alt="" coords="41,94,247,120"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="147,135,147,182,142,182,142,135"/>
+<area shape="rect" id="Node000004" href="$d6/d30/classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="5,5,86,31"/>
+<area shape="poly" id="edge5_Node000001_Node000004" title=" " alt="" coords="39,46,31,81,32,119,45,166,72,207,99,234,126,255,123,259,95,238,67,210,41,168,27,120,26,81,33,45"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="72,39,132,92,129,96,69,43"/>
+<area shape="rect" id="Node000141" href="$d8/d46/classyaze_1_1editor_1_1UserSettings.html" title="Manages user preferences and settings persistence." alt="" coords="155,5,323,31"/>
+<area shape="poly" id="edge6_Node000001_Node000141" title=" " alt="" coords="262,42,268,54,269,85,261,120,247,168,221,210,193,238,165,259,162,255,190,234,217,207,242,166,256,119,264,85,263,56,258,45"/>
+<area shape="poly" id="edge4_Node000003_Node000141" title=" " alt="" coords="206,42,186,57,154,95,150,92,183,53,203,38"/>
 </map>

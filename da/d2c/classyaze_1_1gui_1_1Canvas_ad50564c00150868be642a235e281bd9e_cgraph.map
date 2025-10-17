@@ -1,0 +1,7 @@
+<map id="yaze::gui::Canvas::OpenPersistentPopup" name="yaze::gui::Canvas::OpenPersistentPopup">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,154,46"/>
+<area shape="rect" id="Node000002" href="$df/d70/classyaze_1_1gui_1_1PopupRegistry.html#afbcf953454978fcabe240ff19c968581" title="Open a persistent popup." alt="" coords="202,5,362,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="154,23,186,23,186,28,154,28"/>
+<area shape="rect" id="Node000003" href="$df/d70/classyaze_1_1gui_1_1PopupRegistry.html#ae67514016e7536cf44a145e0b08efe1c" title=" " alt="" coords="410,5,570,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="362,23,394,23,394,28,362,28"/>
+</map>

@@ -1,0 +1,27 @@
+var classyaze_1_1editor_1_1ProjectManager =
+[
+    [ "ProjectManager", "df/d3e/classyaze_1_1editor_1_1ProjectManager.html#a9c25dfac112b95405ca34e0f4deffc6a", null ],
+    [ "~ProjectManager", "df/d3e/classyaze_1_1editor_1_1ProjectManager.html#ade9f75213726f39ace5c6a776697f191", null ],
+    [ "CreateNewProject", "df/d3e/classyaze_1_1editor_1_1ProjectManager.html#a701f7047519445860484ceb0f6e54bfb", null ],
+    [ "OpenProject", "df/d3e/classyaze_1_1editor_1_1ProjectManager.html#a777a7d87dadc4cfef03d2877a1e98866", null ],
+    [ "SaveProject", "df/d3e/classyaze_1_1editor_1_1ProjectManager.html#a6623dd88b674a241093dfbaecf54524b", null ],
+    [ "SaveProjectAs", "df/d3e/classyaze_1_1editor_1_1ProjectManager.html#a0a35a8b1f3e7f48dc776650c54cad236", null ],
+    [ "ImportProject", "df/d3e/classyaze_1_1editor_1_1ProjectManager.html#ab073b27c0e5d5244f53752ace8b605b1", null ],
+    [ "ExportProject", "df/d3e/classyaze_1_1editor_1_1ProjectManager.html#a0a9d365f9ea9c2b2a69c73959ae8f329", null ],
+    [ "RepairCurrentProject", "df/d3e/classyaze_1_1editor_1_1ProjectManager.html#a0e4ad83b92bd4959231ce9def480b40a", null ],
+    [ "ValidateProject", "df/d3e/classyaze_1_1editor_1_1ProjectManager.html#a38ed28a5376c937beab192a04d44af9d", null ],
+    [ "GetCurrentProject", "df/d3e/classyaze_1_1editor_1_1ProjectManager.html#af17789e48dddc80ae498310910eb7af4", null ],
+    [ "GetCurrentProject", "df/d3e/classyaze_1_1editor_1_1ProjectManager.html#a6e8225d0f8fb3ab6287b45e6ae82c962", null ],
+    [ "HasActiveProject", "df/d3e/classyaze_1_1editor_1_1ProjectManager.html#a26bb76b6838c87e4c3832cfbda0e8d65", null ],
+    [ "GetProjectName", "df/d3e/classyaze_1_1editor_1_1ProjectManager.html#af2cf87a580aa60748ee12643e9d83bca", null ],
+    [ "GetProjectPath", "df/d3e/classyaze_1_1editor_1_1ProjectManager.html#a3106470744d63cf7fa31ea109dc98890", null ],
+    [ "GetAvailableTemplates", "df/d3e/classyaze_1_1editor_1_1ProjectManager.html#a131b2c9e53ee215641a2659e14cd32b2", null ],
+    [ "CreateFromTemplate", "df/d3e/classyaze_1_1editor_1_1ProjectManager.html#aef3a463d17c8c3d87afcbe38bfa13eb3", null ],
+    [ "LoadProjectFromFile", "df/d3e/classyaze_1_1editor_1_1ProjectManager.html#aeac902e616623ae73ebd9297171c7980", null ],
+    [ "SaveProjectToFile", "df/d3e/classyaze_1_1editor_1_1ProjectManager.html#af201b324984526e3a526b6d2289ec454", null ],
+    [ "GenerateProjectFilename", "df/d3e/classyaze_1_1editor_1_1ProjectManager.html#a03614a6cbd461a5f4a4102aa65d7d5c4", null ],
+    [ "IsValidProjectFile", "df/d3e/classyaze_1_1editor_1_1ProjectManager.html#a59853453bc8d70920d31c3cb1195444b", null ],
+    [ "InitializeProjectStructure", "df/d3e/classyaze_1_1editor_1_1ProjectManager.html#aeed11c98475b08b134aa53663a923a3c", null ],
+    [ "current_project_", "df/d3e/classyaze_1_1editor_1_1ProjectManager.html#a71f86770f835b69a07791860d283c6eb", null ],
+    [ "toast_manager_", "df/d3e/classyaze_1_1editor_1_1ProjectManager.html#a20b68934391b6acdb0051be416fac2c9", null ]
+];

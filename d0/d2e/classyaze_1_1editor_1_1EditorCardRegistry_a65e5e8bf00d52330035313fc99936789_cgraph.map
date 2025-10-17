@@ -1,0 +1,10 @@
+<map id="yaze::editor::EditorCardRegistry::ShowOnlyCard" name="yaze::editor::EditorCardRegistry::ShowOnlyCard">
+<area shape="rect" id="Node000001" title="Show only one card, hiding all others in its category." alt="" coords="5,26,166,67"/>
+<area shape="rect" id="Node000002" href="$d0/d2e/classyaze_1_1editor_1_1EditorCardRegistry.html#acb99175d46cfd90ab21338b79eb38fc4" title=" " alt="" coords="474,30,653,71"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="156,23,213,12,320,3,426,12,483,23,482,28,426,17,320,8,214,17,157,28"/>
+<area shape="rect" id="Node000003" href="$d0/d2e/classyaze_1_1editor_1_1EditorCardRegistry.html#af3bc7742c906eebefff0f9e6722d51e3" title="Hide all cards in a category for a session." alt="" coords="214,26,426,67"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="166,44,198,44,198,49,166,49"/>
+<area shape="rect" id="Node000004" href="$d0/d2e/classyaze_1_1editor_1_1EditorCardRegistry.html#af55f5aa1056635eaef917ab2412bb93d" title="Show a card programmatically." alt="" coords="244,91,396,132"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="161,65,230,84,229,89,160,70"/>
+<area shape="poly" id="edge4_Node000004_Node000002" title=" " alt="" coords="395,90,464,72,466,78,397,95"/>
+</map>

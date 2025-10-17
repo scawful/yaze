@@ -1,0 +1,5 @@
+<map id="yaze::editor::PaletteGroupCard::GetMutablePalette" name="yaze::editor::PaletteGroupCard::GetMutablePalette">
+<area shape="rect" id="Node000001" title="Get mutable palette by index." alt="" coords="5,5,173,46"/>
+<area shape="rect" id="Node000002" href="$d6/dd1/classyaze_1_1editor_1_1PaletteGroupCard.html#a164b4de6489125bc51a2da74a658b040" title="Get the palette group for this card." alt="" coords="221,5,388,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="173,23,205,23,205,28,173,28"/>
+</map>

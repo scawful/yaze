@@ -1,0 +1,12 @@
+<map id="yaze::gui::LayoutHelpers::BeginTableWithTheming" name="yaze::gui::LayoutHelpers::BeginTableWithTheming">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,71,174,111"/>
+<area shape="rect" id="Node000002" href="$d3/dbf/namespaceyaze_1_1gui.html#a0a2f4e28780bd8cf64f9d6e7b67be924" title=" " alt="" coords="222,5,388,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="158,68,220,49,221,54,159,73"/>
+<area shape="rect" id="Node000003" href="$d9/dfb/classyaze_1_1gui_1_1LayoutHelpers.html#a52b27e135722fadc13d9372b9141a466" title=" " alt="" coords="225,71,385,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="174,88,209,88,209,94,174,94"/>
+<area shape="rect" id="Node000005" href="$d9/dfb/classyaze_1_1gui_1_1LayoutHelpers.html#a539bca266d42c2a2b603dc12bed9446c" title=" " alt="" coords="436,128,596,169"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="168,109,222,120,324,133,421,141,420,147,324,139,221,126,167,115"/>
+<area shape="rect" id="Node000004" href="$d9/dfb/classyaze_1_1gui_1_1LayoutHelpers.html#a914764588589974133906f76aea5cfae" title=" " alt="" coords="436,63,596,103"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="386,85,420,84,421,89,386,91"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="383,109,425,121,423,126,381,114"/>
+</map>

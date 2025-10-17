@@ -1,0 +1,9 @@
+<map id="yaze::gui::HandleRectangleSelection" name="yaze::gui::HandleRectangleSelection">
+<area shape="rect" id="Node000001" title="Handle rectangle selection interaction." alt="" coords="5,55,181,96"/>
+<area shape="rect" id="Node000002" href="$d3/dbf/namespaceyaze_1_1gui.html#a7978950748d21f9f26d67b5822f20107" title="Align position to grid." alt="" coords="252,5,397,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="177,52,254,33,255,38,178,57"/>
+<area shape="rect" id="Node000003" href="$d3/dbf/namespaceyaze_1_1gui.html#a6349a09af8c05a1771715251f8727318" title="Get mouse position in canvas space." alt="" coords="229,55,420,96"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="181,73,213,73,213,78,181,78"/>
+<area shape="rect" id="Node000004" href="$d3/dbf/namespaceyaze_1_1gui.html#afef7e9d33fbb81fd43e8ca96b05b1999" title="Check if mouse is in canvas bounds." alt="" coords="234,120,415,146"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="178,94,255,113,254,118,177,99"/>
+</map>

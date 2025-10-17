@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.9.8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>yaze: src/app/zelda3/overworld/overworld_item.h File Reference</title>
+<title>yaze: src/zelda3/overworld/overworld_item.h File Reference</title>
 <link href="../../tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript">var page_layout=1;</script>
 <script type="text/javascript" src="../../jquery.js"></script>
@@ -112,24 +112,10 @@ $(document).ready(function(){initNavTree('d9/d87/overworld__item_8h.html','../..
 <code>#include &lt;iostream&gt;</code><br />
 <code>#include &lt;string&gt;</code><br />
 <code>#include &lt;vector&gt;</code><br />
-<code>#include &quot;<a class="el" href="../../d4/db5/app_2zelda3_2common_8h_source.html">app/zelda3/common.h</a>&quot;</code><br />
-</div><div class="textblock"><div class="dynheader">
-This graph shows which files directly or indirectly include this file:</div>
-<div class="dyncontent">
-<div class="center"><img src="../../db/d10/overworld__item_8h__dep__incl.png" border="0" usemap="#asrc_2app_2zelda3_2overworld_2overworld__item_8hdep" alt=""/></div>
-<map name="asrc_2app_2zelda3_2overworld_2overworld__item_8hdep" id="asrc_2app_2zelda3_2overworld_2overworld__item_8hdep">
-<area shape="rect" title=" " alt="" coords="96,5,262,46"/>
-<area shape="rect" href="../../d8/d83/entity_8h.html" title=" " alt="" coords="5,94,166,135"/>
-<area shape="poly" title=" " alt="" coords="148,59,108,96,105,92,145,55"/>
-<area shape="rect" href="../../d7/d9c/overworld_8h.html" title=" " alt="" coords="190,94,355,135"/>
-<area shape="poly" title=" " alt="" coords="213,55,253,92,249,96,209,59"/>
-<area shape="rect" href="../../d8/d78/entity_8cc.html" title=" " alt="" coords="5,183,166,223"/>
-<area shape="poly" title=" " alt="" coords="88,150,88,182,83,182,83,150"/>
-<area shape="rect" href="../../d9/d8a/overworld__editor_8cc.html" title=" " alt="" coords="191,183,351,223"/>
-<area shape="poly" title=" " alt="" coords="142,139,230,180,228,185,140,144"/>
-<area shape="poly" title=" " alt="" coords="274,150,274,182,268,182,269,150"/>
-</map>
-</div>
+<code>#include &quot;absl/status/status.h&quot;</code><br />
+<code>#include &quot;absl/status/statusor.h&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../da/de5/rom_8h_source.html">app/rom.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../d4/d6c/zelda3_2common_8h_source.html">zelda3/common.h</a>&quot;</code><br />
 </div>
 <p><a href="../../d9/d87/overworld__item_8h_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
@@ -151,6 +137,12 @@ Namespaces</h2></td></tr>
 Functions</h2></td></tr>
 <tr class="memitem:a1d3db86fa851805dcabb7790837e175a" id="r_a1d3db86fa851805dcabb7790837e175a"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d1f/namespaceyaze_1_1zelda3.html#a1d3db86fa851805dcabb7790837e175a">yaze::zelda3::CompareOverworldItems</a> (const std::vector&lt; <a class="el" href="../../d1/d26/classyaze_1_1zelda3_1_1OverworldItem.html">OverworldItem</a> &gt; &amp;items1, const std::vector&lt; <a class="el" href="../../d1/d26/classyaze_1_1zelda3_1_1OverworldItem.html">OverworldItem</a> &gt; &amp;items2)</td></tr>
 <tr class="separator:a1d3db86fa851805dcabb7790837e175a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4d3565479b8d29d443b93e8830837ab5" id="r_a4d3565479b8d29d443b93e8830837ab5"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d1f/namespaceyaze_1_1zelda3.html#a4d3565479b8d29d443b93e8830837ab5">yaze::zelda3::CompareItemsArrays</a> (std::vector&lt; <a class="el" href="../../d1/d26/classyaze_1_1zelda3_1_1OverworldItem.html">OverworldItem</a> &gt; item_array1, std::vector&lt; <a class="el" href="../../d1/d26/classyaze_1_1zelda3_1_1OverworldItem.html">OverworldItem</a> &gt; item_array2)</td></tr>
+<tr class="separator:a4d3565479b8d29d443b93e8830837ab5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a221eb8850932f78659c1c3ced86e8508" id="r_a221eb8850932f78659c1c3ced86e8508"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; std::vector&lt; <a class="el" href="../../d1/d26/classyaze_1_1zelda3_1_1OverworldItem.html">OverworldItem</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d1f/namespaceyaze_1_1zelda3.html#a221eb8850932f78659c1c3ced86e8508">yaze::zelda3::LoadItems</a> (<a class="el" href="../../d6/d30/classyaze_1_1Rom.html">Rom</a> *rom, std::vector&lt; <a class="el" href="../../d9/dcc/classyaze_1_1zelda3_1_1OverworldMap.html">OverworldMap</a> &gt; &amp;overworld_maps)</td></tr>
+<tr class="separator:a221eb8850932f78659c1c3ced86e8508"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a197a9907f9c4b4c3f4860bf9a5dabdfa" id="r_a197a9907f9c4b4c3f4860bf9a5dabdfa"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d1f/namespaceyaze_1_1zelda3.html#a197a9907f9c4b4c3f4860bf9a5dabdfa">yaze::zelda3::SaveItems</a> (<a class="el" href="../../d6/d30/classyaze_1_1Rom.html">Rom</a> *rom, const std::vector&lt; <a class="el" href="../../d1/d26/classyaze_1_1zelda3_1_1OverworldItem.html">OverworldItem</a> &gt; &amp;items)</td></tr>
+<tr class="separator:a197a9907f9c4b4c3f4860bf9a5dabdfa"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
 Variables</h2></td></tr>
@@ -170,6 +162,20 @@ Variables</h2></td></tr>
 <tr class="separator:afa5b4d1cfe21749d9483f75ea0f530e5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a708ddae39f56af4b374bac3b0e381078" id="r_a708ddae39f56af4b374bac3b0e381078"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d1f/namespaceyaze_1_1zelda3.html#a708ddae39f56af4b374bac3b0e381078">yaze::zelda3::kOverworldItemsStartDataNew</a> = 0x0DC2F9</td></tr>
 <tr class="separator:a708ddae39f56af4b374bac3b0e381078"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa0148854719c3e4c4a49bdf6c21151c8" id="r_aa0148854719c3e4c4a49bdf6c21151c8"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d1f/namespaceyaze_1_1zelda3.html#aa0148854719c3e4c4a49bdf6c21151c8">yaze::zelda3::overworldItemsPointers</a> = 0x0DC2F9</td></tr>
+<tr class="separator:aa0148854719c3e4c4a49bdf6c21151c8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a74cb33c6b3fbad72452e9b418ef67073" id="r_a74cb33c6b3fbad72452e9b418ef67073"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d1f/namespaceyaze_1_1zelda3.html#a74cb33c6b3fbad72452e9b418ef67073">yaze::zelda3::overworldItemsAddress</a> = 0x0DC8B9</td></tr>
+<tr class="separator:a74cb33c6b3fbad72452e9b418ef67073"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a290a5d6a40147f63f5eb61da018f78fe" id="r_a290a5d6a40147f63f5eb61da018f78fe"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d1f/namespaceyaze_1_1zelda3.html#a290a5d6a40147f63f5eb61da018f78fe">yaze::zelda3::overworldItemsAddressBank</a> = 0x0DC8BF</td></tr>
+<tr class="separator:a290a5d6a40147f63f5eb61da018f78fe"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a882d1d544dfc7e1f7a23f0234439ed90" id="r_a882d1d544dfc7e1f7a23f0234439ed90"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d1f/namespaceyaze_1_1zelda3.html#a882d1d544dfc7e1f7a23f0234439ed90">yaze::zelda3::overworldItemsEndData</a> = 0x0DC89C</td></tr>
+<tr class="separator:a882d1d544dfc7e1f7a23f0234439ed90"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac4f3724a3dfea3eae43142de9a263c2a" id="r_ac4f3724a3dfea3eae43142de9a263c2a"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d1f/namespaceyaze_1_1zelda3.html#ac4f3724a3dfea3eae43142de9a263c2a">yaze::zelda3::overworldBombDoorItemLocationsNew</a> = 0x012644</td></tr>
+<tr class="separator:ac4f3724a3dfea3eae43142de9a263c2a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a074713b945a174f6d10c3d0849bdb068" id="r_a074713b945a174f6d10c3d0849bdb068"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d1f/namespaceyaze_1_1zelda3.html#a074713b945a174f6d10c3d0849bdb068">yaze::zelda3::overworldItemsPointersNew</a> = 0x012784</td></tr>
+<tr class="separator:a074713b945a174f6d10c3d0849bdb068"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab88b0302f6b34e8bacba72d88a2ebc9a" id="r_ab88b0302f6b34e8bacba72d88a2ebc9a"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d1f/namespaceyaze_1_1zelda3.html#ab88b0302f6b34e8bacba72d88a2ebc9a">yaze::zelda3::overworldItemsStartDataNew</a> = 0x0DC2F9</td></tr>
+<tr class="separator:ab88b0302f6b34e8bacba72d88a2ebc9a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5dc8588fe49be6ba766225ccc0ca4a90" id="r_a5dc8588fe49be6ba766225ccc0ca4a90"><td class="memItemLeft" align="right" valign="top">const std::vector&lt; std::string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d1f/namespaceyaze_1_1zelda3.html#a5dc8588fe49be6ba766225ccc0ca4a90">yaze::zelda3::kSecretItemNames</a></td></tr>
 <tr class="separator:a5dc8588fe49be6ba766225ccc0ca4a90"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
@@ -178,7 +184,7 @@ Variables</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="navelem"><a class="el" href="../../dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="../../dir_5194e5fea318fda12687127c23f8aba1.html">app</a></li><li class="navelem"><a class="el" href="../../dir_3692ec13241b192189de912e0a54f355.html">zelda3</a></li><li class="navelem"><a class="el" href="../../dir_60849a5aa9e5cf0054b74175bb71a434.html">overworld</a></li><li class="navelem"><a class="el" href="../../d9/d87/overworld__item_8h.html">overworld_item.h</a></li>
+    <li class="navelem"><a class="el" href="../../dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="../../dir_1788f27b06fb7c1688f22833adbbe224.html">zelda3</a></li><li class="navelem"><a class="el" href="../../dir_51f7991cbd2c825776dc519ea7018a47.html">overworld</a></li><li class="navelem"><a class="el" href="../../d9/d87/overworld__item_8h.html">overworld_item.h</a></li>
     <li class="footer">Generated by <a href="https://www.doxygen.org/index.html"><img class="footer" src="../../doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
   </ul>
 </div>

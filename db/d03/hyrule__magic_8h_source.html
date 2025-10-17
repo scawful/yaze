@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.9.8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>yaze: src/app/zelda3/hyrule_magic.h Source File</title>
+<title>yaze: src/util/hyrule_magic.h Source File</title>
 <link href="../../tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript">var page_layout=1;</script>
 <script type="text/javascript" src="../../jquery.js"></script>
@@ -101,8 +101,8 @@ $(document).ready(function(){initNavTree('db/d03/hyrule__magic_8h_source.html','
   <div class="headertitle"><div class="title">hyrule_magic.h</div></div>
 </div><!--header-->
 <div class="contents">
-<a href="../../db/d03/hyrule__magic_8h.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="preprocessor">#ifndef YAZE_APP_ZELDA3_HYRULE_MAGIC_H</span></div>
-<div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span><span class="preprocessor">#define YAZE_APP_ZELDA3_HYRULE_MAGIC_H</span></div>
+<a href="../../db/d03/hyrule__magic_8h.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="preprocessor">#ifndef YAZE_UTIL_HYRULE_MAGIC_H</span></div>
+<div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span><span class="preprocessor">#define YAZE_UTIL_HYRULE_MAGIC_H</span></div>
 <div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span> </div>
 <div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="preprocessor">#include &lt;cstdint&gt;</span></div>
 <div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span><span class="preprocessor">#include &lt;cstring&gt;</span></div>
@@ -122,18 +122,18 @@ $(document).ready(function(){initNavTree('db/d03/hyrule__magic_8h_source.html','
 <div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>}  <span class="comment">// namespace zelda3</span></div>
 <div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>}  <span class="comment">// namespace yaze</span></div>
 <div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span> </div>
-<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span><span class="preprocessor">#endif  </span><span class="comment">// YAZE_APP_ZELDA3_HYRULE_MAGIC_H</span></div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span><span class="preprocessor">#endif  </span><span class="comment">// YAZE_UTIL_HYRULE_MAGIC_H</span></div>
 <div class="ttc" id="anamespaceyaze_1_1zelda3_html_a170971bb7a8dd89072c7180edc712057"><div class="ttname"><a href="../../d5/d1f/namespaceyaze_1_1zelda3.html#a170971bb7a8dd89072c7180edc712057">yaze::zelda3::stle16b_i</a></div><div class="ttdeci">void stle16b_i(uint8_t *const p_arr, size_t const p_index, uint16_t const p_val)</div><div class="ttdoc">Store little endian 16-bit value using a byte pointer, offset by an index before dereferencing.</div><div class="ttdef"><b>Definition</b> <a href="../../da/d37/hyrule__magic_8cc_source.html#l00051">hyrule_magic.cc:51</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1zelda3_html_a197e8a71bbb281224f38410a3025804d"><div class="ttname"><a href="../../d5/d1f/namespaceyaze_1_1zelda3.html#a197e8a71bbb281224f38410a3025804d">yaze::zelda3::ldle16b_i</a></div><div class="ttdeci">uint16_t ldle16b_i(uint8_t const *const p_arr, size_t const p_index)</div><div class="ttdoc">Load little endian halfword (16-bit) dereferenced from an arrays of bytes. This version provides an i...</div><div class="ttdef"><b>Definition</b> <a href="../../da/d37/hyrule__magic_8cc_source.html#l00067">hyrule_magic.cc:67</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1zelda3_html_a23f2763cd8a3044a6a63cfa1c4c0ce53"><div class="ttname"><a href="../../d5/d1f/namespaceyaze_1_1zelda3.html#a23f2763cd8a3044a6a63cfa1c4c0ce53">yaze::zelda3::ldle16b</a></div><div class="ttdeci">uint16_t ldle16b(uint8_t const *const p_arr)</div><div class="ttdef"><b>Definition</b> <a href="../../da/d37/hyrule__magic_8cc_source.html#l00061">hyrule_magic.cc:61</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1zelda3_html_a774997795015cda5de65dd2621c1284a"><div class="ttname"><a href="../../d5/d1f/namespaceyaze_1_1zelda3.html#a774997795015cda5de65dd2621c1284a">yaze::zelda3::stle16b</a></div><div class="ttdeci">void stle16b(uint8_t *const p_arr, uint16_t const p_val)</div><div class="ttdef"><b>Definition</b> <a href="../../da/d37/hyrule__magic_8cc_source.html#l00056">hyrule_magic.cc:56</a></div></div>
-<div class="ttc" id="anamespaceyaze_html"><div class="ttname"><a href="../../dc/d46/namespaceyaze.html">yaze</a></div><div class="ttdoc">Main namespace for the application.</div><div class="ttdef"><b>Definition</b> <a href="../../db/d17/asar__wrapper_8cc_source.html#l00014">asar_wrapper.cc:14</a></div></div>
+<div class="ttc" id="anamespaceyaze_html"><div class="ttname"><a href="../../dc/d46/namespaceyaze.html">yaze</a></div><div class="ttdoc">Main namespace for the application.</div><div class="ttdef"><b>Definition</b> <a href="../../da/d0c/controller_8cc_source.html#l00020">controller.cc:20</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="navelem"><a class="el" href="../../dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="../../dir_5194e5fea318fda12687127c23f8aba1.html">app</a></li><li class="navelem"><a class="el" href="../../dir_3692ec13241b192189de912e0a54f355.html">zelda3</a></li><li class="navelem"><a class="el" href="../../db/d03/hyrule__magic_8h.html">hyrule_magic.h</a></li>
+    <li class="navelem"><a class="el" href="../../dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="../../dir_b7878ad5ecbf2506f4125b9d34c97e45.html">util</a></li><li class="navelem"><a class="el" href="../../db/d03/hyrule__magic_8h.html">hyrule_magic.h</a></li>
     <li class="footer">Generated by <a href="https://www.doxygen.org/index.html"><img class="footer" src="../../doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
   </ul>
 </div>

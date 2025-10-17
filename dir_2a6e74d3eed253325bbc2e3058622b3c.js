@@ -2,6 +2,8 @@ var dir_2a6e74d3eed253325bbc2e3058622b3c =
 [
     [ "entity.cc", "d8/d78/entity_8cc.html", "d8/d78/entity_8cc" ],
     [ "entity.h", "d8/d83/entity_8h.html", "d8/d83/entity_8h" ],
+    [ "entity_operations.cc", "d8/d8f/entity__operations_8cc.html", "d8/d8f/entity__operations_8cc" ],
+    [ "entity_operations.h", "d1/d91/entity__operations_8h.html", "d1/d91/entity__operations_8h" ],
     [ "map_properties.cc", "d0/da7/map__properties_8cc.html", null ],
     [ "map_properties.h", "d4/dd2/map__properties_8h.html", "d4/dd2/map__properties_8h" ],
     [ "overworld_editor.cc", "d9/d8a/overworld__editor_8cc.html", "d9/d8a/overworld__editor_8cc" ],

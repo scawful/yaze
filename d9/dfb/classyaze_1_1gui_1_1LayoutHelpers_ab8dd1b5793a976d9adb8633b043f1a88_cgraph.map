@@ -1,0 +1,11 @@
+<map id="yaze::gui::LayoutHelpers::GetStandardWidgetHeight" name="yaze::gui::LayoutHelpers::GetStandardWidgetHeight">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,184,79"/>
+<area shape="rect" id="Node000002" href="$d9/dfb/classyaze_1_1gui_1_1LayoutHelpers.html#a914764588589974133906f76aea5cfae" title=" " alt="" coords="232,5,392,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="183,43,216,38,217,43,184,48"/>
+<area shape="rect" id="Node000003" href="$d9/dfb/classyaze_1_1gui_1_1LayoutHelpers.html#a539bca266d42c2a2b603dc12bed9446c" title=" " alt="" coords="232,71,392,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="184,69,217,74,216,80,183,75"/>
+<area shape="rect" id="Node000004" href="$d3/d27/classyaze_1_1gui_1_1ThemeManager.html#ab3423e72fe874f8c370ed2d3e52ac278" title=" " alt="" coords="440,49,633,75"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="392,78,424,74,425,79,392,83"/>
+<area shape="rect" id="Node000005" href="$d3/d27/classyaze_1_1gui_1_1ThemeManager.html#ad706e6146dd664adffe3350c520f397b" title=" " alt="" coords="454,99,620,139"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="392,98,438,104,437,109,392,104"/>
+</map>

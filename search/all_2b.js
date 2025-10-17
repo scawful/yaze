@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['❌_0',['❌',['../da/dc1/md_docs_2B4-git-workflow.html#autotoc_md203',1,'DON&apos;T ❌'],['../d7/d43/md_docs_2C2-testing-without-roms.html#autotoc_md335',1,'DON&apos;T ❌'],['../df/d0c/md_docs_2E8-emulator-debugging-vision.html#autotoc_md592',1,'What&apos;s Broken ❌']]],
-  ['❌_20not_20supported_1',['❌ Not Supported',['../d7/d43/md_docs_2C2-testing-without-roms.html#autotoc_md319',1,'']]]
+  ['🎉_20conclusion_0',['🎉 Conclusion',['../d5/dc8/md_docs_2G3-renderer-migration-complete.html#autotoc_md1369',1,'']]],
+  ['🎉_20major_20breakthrough_3a_20game_20is_20running_1',['🎉 Major Breakthrough: Game is Running!',['../d7/d44/md_docs_2E4-Emulator-Development-Guide.html#autotoc_md626',1,'']]]
 ];

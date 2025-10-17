@@ -1,0 +1,7 @@
+<map id="yaze::editor::PaletteGroupCard::CanUndo" name="yaze::editor::PaletteGroupCard::CanUndo">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,35,173,75"/>
+<area shape="rect" id="Node000002" href="$d7/d39/classyaze_1_1gfx_1_1PaletteManager.html#a53f0067fdf87396b70288cb93f1da621" title="Check if undo is available." alt="" coords="234,5,402,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="173,42,218,36,219,41,174,47"/>
+<area shape="rect" id="Node000003" href="$d7/d39/classyaze_1_1gfx_1_1PaletteManager.html#ad76357b3c747d397e99dd16972cf1235" title="Get the singleton instance." alt="" coords="221,70,415,96"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="174,63,205,67,205,72,173,68"/>
+</map>

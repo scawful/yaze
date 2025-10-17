@@ -1,3 +1,19 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" href="$dc/d39/classyaze_1_1editor_1_1palette__internal_1_1PaletteEditorHistory.html" title=" " alt="" coords="5,5,197,46"/>
+<area shape="rect" id="Node000000" href="$d6/dd1/classyaze_1_1editor_1_1PaletteGroupCard.html" title="Base class for palette group editing cards." alt="" coords="5,222,200,248"/>
+<area shape="rect" id="Node000001" href="$dd/d32/classyaze_1_1editor_1_1DungeonMainPaletteCard.html" title="Dungeon Main palette group card." alt="" coords="273,5,443,46"/>
+<area shape="poly" id="edge130_Node000000_Node000001" title=" " alt="" coords="116,207,137,173,167,132,204,91,246,55,271,42,273,47,249,60,207,94,171,135,142,176,121,210"/>
+<area shape="rect" id="Node000002" href="$d0/d13/classyaze_1_1editor_1_1EquipmentPaletteCard.html" title="Equipment/Armor palette group card." alt="" coords="248,70,468,96"/>
+<area shape="poly" id="edge131_Node000000_Node000002" title=" " alt="" coords="123,208,176,156,210,129,246,106,277,94,279,99,249,111,213,133,179,160,127,212"/>
+<area shape="rect" id="Node000003" href="$d6/dbe/classyaze_1_1editor_1_1OverworldAnimatedPaletteCard.html" title="Overworld Animated palette group card." alt="" coords="255,120,461,161"/>
+<area shape="poly" id="edge132_Node000000_Node000003" title=" " alt="" coords="146,213,247,171,283,159,285,164,249,176,148,218"/>
+<area shape="rect" id="Node000004" href="$dc/dac/classyaze_1_1editor_1_1OverworldMainPaletteCard.html" title="Overworld Main palette group card." alt="" coords="269,185,447,226"/>
+<area shape="poly" id="edge133_Node000000_Node000004" title=" " alt="" coords="215,219,268,213,269,219,215,225"/>
+<area shape="rect" id="Node000005" href="$de/d26/classyaze_1_1editor_1_1SpritePaletteCard.html" title="Global Sprite palette group card." alt="" coords="261,250,455,276"/>
+<area shape="poly" id="edge134_Node000000_Node000005" title=" " alt="" coords="215,245,261,250,260,255,215,250"/>
+<area shape="rect" id="Node000006" href="$d4/d13/classyaze_1_1editor_1_1SpritesAux1PaletteCard.html" title="Sprites Aux1 palette group card." alt="" coords="277,300,439,341"/>
+<area shape="poly" id="edge135_Node000000_Node000006" title=" " alt="" coords="153,251,249,286,284,297,282,302,247,291,151,256"/>
+<area shape="rect" id="Node000007" href="$dc/d9a/classyaze_1_1editor_1_1SpritesAux2PaletteCard.html" title="Sprites Aux2 palette group card." alt="" coords="277,365,439,406"/>
+<area shape="poly" id="edge136_Node000000_Node000007" title=" " alt="" coords="129,257,181,304,214,329,249,350,278,363,276,368,246,355,211,333,178,308,125,261"/>
+<area shape="rect" id="Node000008" href="$dc/da4/classyaze_1_1editor_1_1SpritesAux3PaletteCard.html" title="Sprites Aux3 palette group card." alt="" coords="277,431,439,471"/>
+<area shape="poly" id="edge137_Node000000_Node000008" title=" " alt="" coords="120,260,141,296,170,337,207,380,249,415,278,430,275,435,246,420,203,383,166,341,137,298,116,263"/>
 </map>

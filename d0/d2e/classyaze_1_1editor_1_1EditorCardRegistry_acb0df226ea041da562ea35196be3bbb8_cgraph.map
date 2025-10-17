@@ -1,0 +1,7 @@
+<map id="yaze::editor::EditorCardRegistry::GetVisibilityFlag" name="yaze::editor::EditorCardRegistry::GetVisibilityFlag">
+<area shape="rect" id="Node000001" title="Get visibility flag for active session (convenience)" alt="" coords="5,5,174,46"/>
+<area shape="rect" id="Node000002" href="$d0/d2e/classyaze_1_1editor_1_1EditorCardRegistry.html#a064f51a5ef671706b898090e6ab1f80b" title="Get visibility flag pointer for a card." alt="" coords="222,5,390,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="174,23,206,23,206,28,174,28"/>
+<area shape="rect" id="Node000003" href="$d0/d2e/classyaze_1_1editor_1_1EditorCardRegistry.html#acb99175d46cfd90ab21338b79eb38fc4" title=" " alt="" coords="438,5,617,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="391,23,423,23,423,28,391,28"/>
+</map>

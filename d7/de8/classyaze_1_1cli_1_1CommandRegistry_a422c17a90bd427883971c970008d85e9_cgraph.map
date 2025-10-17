@@ -1,0 +1,9 @@
+<map id="yaze::cli::CommandRegistry::Instance" name="yaze::cli::CommandRegistry::Instance">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,184,79"/>
+<area shape="rect" id="Node000002" href="$d7/de8/classyaze_1_1cli_1_1CommandRegistry.html#a4fd313e4ea0b3e8e816bbef4cae2e4c3" title=" " alt="" coords="232,39,410,79"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="184,56,216,56,216,62,184,62"/>
+<area shape="rect" id="Node000003" href="$d0/db7/namespaceyaze_1_1cli_1_1handlers.html#a50c4a22a1afe49ec337fce20c546d92a" title="Factory function to create all command handlers (CLI + agent)" alt="" coords="458,5,649,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="410,44,442,39,443,44,411,49"/>
+<area shape="rect" id="Node000006" href="$d7/de8/classyaze_1_1cli_1_1CommandRegistry.html#aea0b6c1fc10ef14b979286e866adbe79" title="Register a command handler." alt="" coords="465,71,643,111"/>
+<area shape="poly" id="edge3_Node000002_Node000006" title=" " alt="" coords="411,69,449,74,449,79,410,74"/>
+</map>

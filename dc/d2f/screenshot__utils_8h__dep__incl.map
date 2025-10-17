@@ -1,9 +1,9 @@
-<map id="src/app/core/service/screenshot_utils.h" name="src/app/core/service/screenshot_utils.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="195,5,334,46"/>
-<area shape="rect" id="Node000002" href="$d7/d7f/screenshot__utils_8cc.html" title=" " alt="" coords="5,94,145,135"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="209,55,119,96,117,91,207,50"/>
-<area shape="rect" id="Node000003" href="$d1/d2e/test__manager_8cc.html" title=" " alt="" coords="169,102,360,127"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="267,62,267,101,262,101,262,62"/>
-<area shape="rect" id="Node000004" href="$df/dcb/emulator__service__impl_8cc.html" title=" " alt="" coords="384,94,556,135"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="326,50,424,91,422,96,324,55"/>
+<map id="src/app/service/screenshot_utils.h" name="src/app/service/screenshot_utils.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="213,5,392,46"/>
+<area shape="rect" id="Node000002" href="$d7/d7f/screenshot__utils_8cc.html" title=" " alt="" coords="5,94,184,135"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="242,55,143,96,141,91,240,50"/>
+<area shape="rect" id="Node000003" href="$d1/d2e/test__manager_8cc.html" title=" " alt="" coords="207,102,398,127"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="305,62,305,101,300,101,300,62"/>
+<area shape="rect" id="Node000004" href="$df/dcb/emulator__service__impl_8cc.html" title=" " alt="" coords="422,94,594,135"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="364,50,462,91,460,96,362,55"/>
 </map>

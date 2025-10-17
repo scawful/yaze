@@ -1,5 +1,5 @@
-<map id="src/app/core/service/canvas_automation_service.h" name="src/app/core/service/canvas_automation_service.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,203,46"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="37,94,171,135"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="107,47,107,78,101,78,101,47"/>
+<map id="src/app/service/canvas_automation_service.h" name="src/app/service/canvas_automation_service.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,162,46"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="16,94,151,135"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="86,47,86,78,81,78,81,47"/>
 </map>

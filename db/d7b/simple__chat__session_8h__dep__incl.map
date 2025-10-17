@@ -1,11 +1,9 @@
 <map id="src/cli/service/agent/simple_chat_session.h" name="src/cli/service/agent/simple_chat_session.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="291,5,448,46"/>
-<area shape="rect" id="Node000002" href="$d9/d8d/general__commands_8cc.html" title=" " alt="" coords="5,94,161,135"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="291,53,149,96,147,91,289,48"/>
-<area shape="rect" id="Node000003" href="$dd/d8e/simple__chat__command_8cc.html" title=" " alt="" coords="184,94,361,135"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="338,58,296,96,293,92,335,54"/>
-<area shape="rect" id="Node000004" href="$da/de7/simple__chat__session_8cc.html" title=" " alt="" coords="385,94,549,135"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="405,54,447,92,443,96,401,58"/>
-<area shape="rect" id="Node000005" href="$d4/d8e/tui_8cc.html" title=" " alt="" coords="574,102,683,127"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="443,49,593,98,591,103,442,54"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="210,5,367,46"/>
+<area shape="rect" id="Node000002" href="$dd/d8e/simple__chat__command_8cc.html" title=" " alt="" coords="5,94,182,135"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="231,55,139,96,137,91,229,50"/>
+<area shape="rect" id="Node000003" href="$da/de7/simple__chat__session_8cc.html" title=" " alt="" coords="206,94,370,135"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="291,62,291,94,286,94,286,62"/>
+<area shape="rect" id="Node000004" href="$d4/d8e/tui_8cc.html" title=" " alt="" coords="395,102,504,127"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="340,51,428,99,426,103,337,56"/>
 </map>

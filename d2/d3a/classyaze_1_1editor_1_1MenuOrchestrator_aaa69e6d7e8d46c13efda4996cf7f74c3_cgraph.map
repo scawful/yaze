@@ -1,0 +1,9 @@
+<map id="yaze::editor::MenuOrchestrator::CanSaveRom" name="yaze::editor::MenuOrchestrator::CanSaveRom">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,201,79"/>
+<area shape="rect" id="Node000002" href="$dd/d12/classyaze_1_1editor_1_1EditorManager.html#adb34f60bfe068566c25e33c581aad058" title=" " alt="" coords="256,5,431,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="201,43,241,37,241,42,201,48"/>
+<area shape="rect" id="Node000003" href="$d0/d97/classyaze_1_1editor_1_1RomFileManager.html#ae826961458a00fdc5d16c1ba1b555aba" title=" " alt="" coords="249,71,438,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="201,69,233,74,233,79,201,75"/>
+<area shape="rect" id="Node000004" href="$d6/d30/classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="486,78,627,104"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="438,88,470,88,470,94,438,94"/>
+</map>

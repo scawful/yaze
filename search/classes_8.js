@@ -16,5 +16,6 @@ var searchData=
   ['inventory_13',['Inventory',['../d6/d3c/classyaze_1_1zelda3_1_1Inventory.html',1,'yaze::zelda3']]],
   ['irenderer_14',['IRenderer',['../d0/dca/classyaze_1_1gfx_1_1IRenderer.html',1,'yaze::gfx']]],
   ['itemdata_15',['ItemData',['../d2/d4b/structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1ItemData.html',1,'yaze::zelda3::DungeonEditorSystem']]],
-  ['iteminfo_16',['ItemInfo',['../d8/d57/structyaze_1_1zelda3_1_1ItemTypes_1_1ItemInfo.html',1,'yaze::zelda3::ItemTypes']]]
+  ['itemicon_16',['ItemIcon',['../d5/d4a/structyaze_1_1zelda3_1_1ItemIcon.html',1,'yaze::zelda3']]],
+  ['iteminfo_17',['ItemInfo',['../d8/d57/structyaze_1_1zelda3_1_1ItemTypes_1_1ItemInfo.html',1,'yaze::zelda3::ItemTypes']]]
 ];

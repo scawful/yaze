@@ -1,0 +1,9 @@
+<map id="yaze::editor::WorkspaceManager::HideAllWindows" name="yaze::editor::WorkspaceManager::HideAllWindows">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,212,79"/>
+<area shape="rect" id="Node000002" href="$d0/d2e/classyaze_1_1editor_1_1EditorCardRegistry.html#ab9f99584b06c5c0d7ba7fb565b1f6582" title=" " alt="" coords="271,5,423,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="212,42,255,36,256,41,213,47"/>
+<area shape="rect" id="Node000004" href="$d7/d92/classyaze_1_1editor_1_1ToastManager.html#aa9b4c4a8d7c6746e46466530f1eea654" title=" " alt="" coords="260,71,434,111"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="213,70,245,75,244,80,212,76"/>
+<area shape="rect" id="Node000003" href="$d0/d2e/classyaze_1_1editor_1_1EditorCardRegistry.html#a12c1727cfeb9809f08ac90aa47b9de1f" title="Hide all cards in a specific session." alt="" coords="482,5,690,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="423,23,466,23,466,28,423,28"/>
+</map>

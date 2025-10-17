@@ -1,0 +1,7 @@
+<map id="yaze::gui::ColorInfoPanel" name="yaze::gui::ColorInfoPanel">
+<area shape="rect" id="Node000001" title="Display color information with copy&#45;to&#45;clipboard functionality." alt="" coords="5,35,167,60"/>
+<area shape="rect" id="Node000002" href="$d5/d31/classyaze_1_1gfx_1_1SnesColor.html#a0a6bc657e8a8778b7672d2e6102771e2" title="Get RGB values (WARNING: stored as 0&#45;255 in ImVec4)" alt="" coords="215,5,375,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="167,34,199,29,199,34,167,39"/>
+<area shape="rect" id="Node000003" href="$d5/d31/classyaze_1_1gfx_1_1SnesColor.html#ade9df7154cb3707cffe5e644c995f090" title="Get SNES 15&#45;bit color." alt="" coords="227,55,363,96"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="167,56,212,62,211,67,167,61"/>
+</map>

@@ -4,8 +4,8 @@
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="89,164,95,187,107,200,123,210,120,214,104,204,91,190,84,166"/>
 <area shape="rect" id="Node000003" href="$d6/d30/classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="200,117,280,142"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="231,158,210,190,183,214,179,210,206,187,226,155"/>
-<area shape="rect" id="Node000004" href="$d8/d4d/structyaze_1_1core_1_1ResourceLabelManager.html" title=" " alt="" coords="56,5,227,46"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="150,60,162,83,182,101,205,114,203,118,179,105,157,87,145,62"/>
-<area shape="rect" id="Node000005" href="$d7/dcc/structyaze_1_1gfx_1_1PaletteGroupMap.html" title="Represents a mapping of palette groups." alt="" coords="251,13,429,39"/>
-<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="333,54,313,87,291,105,269,118,266,114,288,100,308,83,328,51"/>
+<area shape="rect" id="Node000004" href="$db/df5/structyaze_1_1project_1_1ResourceLabelManager.html" title=" " alt="" coords="45,5,230,46"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="150,59,164,83,185,101,209,114,206,118,182,105,160,87,145,62"/>
+<area shape="rect" id="Node000005" href="$d7/dcc/structyaze_1_1gfx_1_1PaletteGroupMap.html" title="Represents a mapping of palette groups." alt="" coords="254,13,431,39"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="336,54,315,87,293,105,270,118,267,114,290,101,311,83,331,51"/>
 </map>

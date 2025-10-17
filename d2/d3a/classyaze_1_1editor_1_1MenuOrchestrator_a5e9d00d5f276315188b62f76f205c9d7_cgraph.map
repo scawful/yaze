@@ -1,0 +1,12 @@
+<map id="yaze::editor::MenuOrchestrator::OnCreateProject" name="yaze::editor::MenuOrchestrator::OnCreateProject">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,100,201,141"/>
+<area shape="rect" id="Node000002" href="$dd/d12/classyaze_1_1editor_1_1EditorManager.html#a5a195f2663d455707edd59a1fda60fa4" title=" " alt="" coords="249,71,423,111"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="201,105,233,101,234,107,202,111"/>
+<area shape="rect" id="Node000006" href="$d7/d92/classyaze_1_1editor_1_1ToastManager.html#aa9b4c4a8d7c6746e46466530f1eea654" title=" " alt="" coords="701,67,876,107"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="201,126,296,131,409,134,532,131,653,120,708,109,709,115,654,126,532,136,409,139,296,137,201,131"/>
+<area shape="rect" id="Node000003" href="$df/d3e/classyaze_1_1editor_1_1ProjectManager.html#a701f7047519445860484ceb0f6e54bfb" title=" " alt="" coords="471,5,653,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="408,68,474,48,476,53,409,73"/>
+<area shape="rect" id="Node000007" href="$df/d3e/classyaze_1_1editor_1_1ProjectManager.html#af17789e48dddc80ae498310910eb7af4" title=" " alt="" coords="471,71,653,111"/>
+<area shape="poly" id="edge4_Node000002_Node000007" title=" " alt="" coords="424,88,456,88,456,94,424,94"/>
+<area shape="poly" id="edge3_Node000003_Node000006" title=" " alt="" coords="641,44,697,59,695,65,639,49"/>
+</map>

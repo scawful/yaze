@@ -1,5 +1,5 @@
-<map id="src/app/zelda3/sprite/sprite_builder.cc" name="src/app/zelda3/sprite/sprite_builder.cc">
-<area shape="rect" id="Node000001" title=" " alt="" coords="81,5,222,46"/>
+<map id="src/zelda3/sprite/sprite_builder.cc" name="src/zelda3/sprite/sprite_builder.cc">
+<area shape="rect" id="Node000001" title=" " alt="" coords="75,5,228,46"/>
 <area shape="rect" id="Node000002" href="$d3/d37/sprite__builder_8h.html" title=" " alt="" coords="5,94,114,120"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="130,48,87,86,83,82,127,44"/>
 <area shape="rect" id="Node000004" title=" " alt="" coords="117,168,170,193"/>

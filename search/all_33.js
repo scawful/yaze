@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['🏗️_20architecture_20overview_0',['🏗️ Architecture Overview',['../d5/dc8/md_docs_2G3-renderer-migration-complete.html#autotoc_md985',1,'']]]
+  ['📌_20current_20progress_20highlights_20october_205_202025_0',['📌 Current Progress Highlights (October 5, 2025)',['../d2/d4a/md_docs_2C1-z3ed-agent-guide.html#autotoc_md393',1,'']]]
 ];

@@ -1,0 +1,11 @@
+<map id="yaze::editor::EditorCardRegistry::RegisterCard" name="yaze::editor::EditorCardRegistry::RegisterCard">
+<area shape="rect" id="Node000001" title="Register a card for a specific session." alt="" coords="5,39,157,79"/>
+<area shape="rect" id="Node000002" href="$d0/d2e/classyaze_1_1editor_1_1EditorCardRegistry.html#a309a910e28d7198f4e07a140245541f7" title="Generate session&#45;aware card ID." alt="" coords="214,5,365,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="157,44,198,38,199,43,158,50"/>
+<area shape="rect" id="Node000004" href="$d0/d2e/classyaze_1_1editor_1_1EditorCardRegistry.html#aa4be0773bd6facbe27150676d4876a58" title="Register a new session in the registry." alt="" coords="205,71,374,111"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="158,68,189,73,189,78,157,73"/>
+<area shape="rect" id="Node000003" href="$d0/d2e/classyaze_1_1editor_1_1EditorCardRegistry.html#a89a511e01fd2b501092efcb9b9bd42f2" title="Check if card IDs should be prefixed." alt="" coords="431,5,611,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="366,23,415,23,415,28,366,28"/>
+<area shape="rect" id="Node000005" href="$d0/d2e/classyaze_1_1editor_1_1EditorCardRegistry.html#a54a6fdb8f92b10853b9a203ed550aed7" title=" " alt="" coords="422,71,619,111"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="375,88,406,88,406,94,375,94"/>
+</map>

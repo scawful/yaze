@@ -155,6 +155,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:aebd2155c24994e465978390fb7d5afb1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a60cc79ca39b9b42200e41d688a5fcc10" id="r_a60cc79ca39b9b42200e41d688a5fcc10"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/d03/classyaze_1_1emu_1_1audio_1_1SDL2AudioBackend.html#a60cc79ca39b9b42200e41d688a5fcc10">QueueSamples</a> (const float *samples, int num_samples) override</td></tr>
 <tr class="separator:a60cc79ca39b9b42200e41d688a5fcc10"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae9011938e2aee30a5bbad8652c170fe1" id="r_ae9011938e2aee30a5bbad8652c170fe1"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/d03/classyaze_1_1emu_1_1audio_1_1SDL2AudioBackend.html#ae9011938e2aee30a5bbad8652c170fe1">QueueSamplesNative</a> (const int16_t *samples, int frames_per_channel, int channels, int native_rate) override</td></tr>
+<tr class="separator:ae9011938e2aee30a5bbad8652c170fe1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad9dadd0aa7f4c49c3e15faaa3b95a3f0" id="r_ad9dadd0aa7f4c49c3e15faaa3b95a3f0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d5/dd6/structyaze_1_1emu_1_1audio_1_1AudioStatus.html">AudioStatus</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/d03/classyaze_1_1emu_1_1audio_1_1SDL2AudioBackend.html#ad9dadd0aa7f4c49c3e15faaa3b95a3f0">GetStatus</a> () const override</td></tr>
 <tr class="separator:ad9dadd0aa7f4c49c3e15faaa3b95a3f0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a929b3919644a3dd3f688651f382f3b2b" id="r_a929b3919644a3dd3f688651f382f3b2b"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/d03/classyaze_1_1emu_1_1audio_1_1SDL2AudioBackend.html#a929b3919644a3dd3f688651f382f3b2b">IsInitialized</a> () const override</td></tr>
@@ -165,6 +167,10 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a439b99d26eca69b2646c95d72accff91"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae768496ab1ba16d24d49337b5bad44fa" id="r_ae768496ab1ba16d24d49337b5bad44fa"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/d03/classyaze_1_1emu_1_1audio_1_1SDL2AudioBackend.html#ae768496ab1ba16d24d49337b5bad44fa">GetVolume</a> () const override</td></tr>
 <tr class="separator:ae768496ab1ba16d24d49337b5bad44fa"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af0d3ebead5d23b38c2a8513958dc662e" id="r_af0d3ebead5d23b38c2a8513958dc662e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/d03/classyaze_1_1emu_1_1audio_1_1SDL2AudioBackend.html#af0d3ebead5d23b38c2a8513958dc662e">SetAudioStreamResampling</a> (bool enable, int native_rate, int channels) override</td></tr>
+<tr class="separator:af0d3ebead5d23b38c2a8513958dc662e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a14583ee2ab5060a43feeacfc48358cf2" id="r_a14583ee2ab5060a43feeacfc48358cf2"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/d03/classyaze_1_1emu_1_1audio_1_1SDL2AudioBackend.html#a14583ee2ab5060a43feeacfc48358cf2">SupportsAudioStream</a> () const override</td></tr>
+<tr class="separator:a14583ee2ab5060a43feeacfc48358cf2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abeee46fd990372ab4633cffcf36e00c1" id="r_abeee46fd990372ab4633cffcf36e00c1"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/d03/classyaze_1_1emu_1_1audio_1_1SDL2AudioBackend.html#abeee46fd990372ab4633cffcf36e00c1">GetBackendName</a> () const override</td></tr>
 <tr class="separator:abeee46fd990372ab4633cffcf36e00c1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_classyaze_1_1emu_1_1audio_1_1IAudioBackend"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_classyaze_1_1emu_1_1audio_1_1IAudioBackend')"><img src="../../closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="../../d2/d50/classyaze_1_1emu_1_1audio_1_1IAudioBackend.html">yaze::emu::audio::IAudioBackend</a></td></tr>
@@ -181,11 +187,25 @@ Private Attributes</h2></td></tr>
 <tr class="separator:a1e8b17320e12c5fbdb397f001ff017c9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5a82b5d698ce8510237652762505c086" id="r_a5a82b5d698ce8510237652762505c086"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/d03/classyaze_1_1emu_1_1audio_1_1SDL2AudioBackend.html#a5a82b5d698ce8510237652762505c086">volume_</a> = 1.0f</td></tr>
 <tr class="separator:a5a82b5d698ce8510237652762505c086"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a07b3d83ae628a06dfb3d5b2897801439" id="r_a07b3d83ae628a06dfb3d5b2897801439"><td class="memItemLeft" align="right" valign="top">SDL_AudioFormat&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/d03/classyaze_1_1emu_1_1audio_1_1SDL2AudioBackend.html#a07b3d83ae628a06dfb3d5b2897801439">device_format_</a> = AUDIO_S16</td></tr>
+<tr class="separator:a07b3d83ae628a06dfb3d5b2897801439"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a71a63d2b2184907e4e0a0807a0dc7136" id="r_a71a63d2b2184907e4e0a0807a0dc7136"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/d03/classyaze_1_1emu_1_1audio_1_1SDL2AudioBackend.html#a71a63d2b2184907e4e0a0807a0dc7136">device_channels_</a> = 2</td></tr>
+<tr class="separator:a71a63d2b2184907e4e0a0807a0dc7136"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a96bc9bc8191632b06131a05c77ea9407" id="r_a96bc9bc8191632b06131a05c77ea9407"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/d03/classyaze_1_1emu_1_1audio_1_1SDL2AudioBackend.html#a96bc9bc8191632b06131a05c77ea9407">device_freq_</a> = 48000</td></tr>
+<tr class="separator:a96bc9bc8191632b06131a05c77ea9407"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa9975378b39a3b589323d9fc0b8575ff" id="r_aa9975378b39a3b589323d9fc0b8575ff"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/d03/classyaze_1_1emu_1_1audio_1_1SDL2AudioBackend.html#aa9975378b39a3b589323d9fc0b8575ff">audio_stream_enabled_</a> = false</td></tr>
+<tr class="separator:aa9975378b39a3b589323d9fc0b8575ff"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad19b8c4924789c894b6940916f2ee80e" id="r_ad19b8c4924789c894b6940916f2ee80e"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/d03/classyaze_1_1emu_1_1audio_1_1SDL2AudioBackend.html#ad19b8c4924789c894b6940916f2ee80e">stream_native_rate_</a> = 0</td></tr>
+<tr class="separator:ad19b8c4924789c894b6940916f2ee80e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acc7c49f531722659e39aa0977ba34db3" id="r_acc7c49f531722659e39aa0977ba34db3"><td class="memItemLeft" align="right" valign="top">SDL_AudioStream *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/d03/classyaze_1_1emu_1_1audio_1_1SDL2AudioBackend.html#acc7c49f531722659e39aa0977ba34db3">audio_stream_</a> = nullptr</td></tr>
+<tr class="separator:acc7c49f531722659e39aa0977ba34db3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a92a65b2cabb2a0d6fb6dc722edd4bcd8" id="r_a92a65b2cabb2a0d6fb6dc722edd4bcd8"><td class="memItemLeft" align="right" valign="top">std::vector&lt; int16_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/d03/classyaze_1_1emu_1_1audio_1_1SDL2AudioBackend.html#a92a65b2cabb2a0d6fb6dc722edd4bcd8">stream_buffer_</a></td></tr>
+<tr class="separator:a92a65b2cabb2a0d6fb6dc722edd4bcd8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>SDL2 audio backend implementation. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00077">77</a> of file <a class="el" href="../../d4/d03/audio__backend_8h_source.html">audio_backend.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00089">89</a> of file <a class="el" href="../../d4/d03/audio__backend_8h_source.html">audio_backend.h</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="ac170081a1a21a70ec60828d4a3e8126d" name="ac170081a1a21a70ec60828d4a3e8126d"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ac170081a1a21a70ec60828d4a3e8126d">&#9670;&#160;</a></span>SDL2AudioBackend()</h2>
@@ -235,9 +255,9 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00017">17</a> of file <a class="el" href="../../df/dc6/audio__backend_8cc_source.html">audio_backend.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00018">18</a> of file <a class="el" href="../../df/dc6/audio__backend_8cc_source.html">audio_backend.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00066">Shutdown()</a>.</p>
+<p class="reference">References <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00078">Shutdown()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -278,9 +298,9 @@ Here is the call graph for this function:</div>
 
 <p>Implements <a class="el" href="../../d2/d50/classyaze_1_1emu_1_1audio_1_1IAudioBackend.html#a5fe705258476561cbe48f2b1cb38e9d9">yaze::emu::audio::IAudioBackend</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00021">21</a> of file <a class="el" href="../../df/dc6/audio__backend_8cc_source.html">audio_backend.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00022">22</a> of file <a class="el" href="../../df/dc6/audio__backend_8cc_source.html">audio_backend.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00025">yaze::emu::audio::AudioConfig::buffer_frames</a>, <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00024">yaze::emu::audio::AudioConfig::channels</a>, <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00104">config_</a>, <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00103">device_id_</a>, <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00026">yaze::emu::audio::AudioConfig::format</a>, <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00105">initialized_</a>, <a class="el" href="../../d2/dc8/namespaceyaze_1_1emu_1_1audio.html#a870fe4320e8f6ce85c55f7a2aa695898a5f90af42814c0a419d715d43ae54fd7a">yaze::emu::audio::INT16</a>, <a class="el" href="../../d7/d7f/log_8h_source.html#l00110">LOG_ERROR</a>, <a class="el" href="../../d7/d7f/log_8h_source.html#l00106">LOG_INFO</a>, <a class="el" href="../../d7/d7f/log_8h_source.html#l00108">LOG_WARN</a>, <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00023">yaze::emu::audio::AudioConfig::sample_rate</a>, and <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00066">Shutdown()</a>.</p>
+<p class="reference">References <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00130">audio_stream_</a>, <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00128">audio_stream_enabled_</a>, <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00028">yaze::emu::audio::AudioConfig::buffer_frames</a>, <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00027">yaze::emu::audio::AudioConfig::channels</a>, <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00122">config_</a>, <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00126">device_channels_</a>, <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00125">device_format_</a>, <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00127">device_freq_</a>, <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00121">device_id_</a>, <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00029">yaze::emu::audio::AudioConfig::format</a>, <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00123">initialized_</a>, <a class="el" href="../../d2/dc8/namespaceyaze_1_1emu_1_1audio.html#a870fe4320e8f6ce85c55f7a2aa695898a5f90af42814c0a419d715d43ae54fd7a">yaze::emu::audio::INT16</a>, <a class="el" href="../../d7/d7f/log_8h_source.html#l00110">LOG_ERROR</a>, <a class="el" href="../../d7/d7f/log_8h_source.html#l00106">LOG_INFO</a>, <a class="el" href="../../d7/d7f/log_8h_source.html#l00108">LOG_WARN</a>, <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00026">yaze::emu::audio::AudioConfig::sample_rate</a>, <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00078">Shutdown()</a>, <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00131">stream_buffer_</a>, and <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00129">stream_native_rate_</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -319,11 +339,11 @@ Here is the call graph for this function:</div>
 
 <p>Implements <a class="el" href="../../d2/d50/classyaze_1_1emu_1_1audio_1_1IAudioBackend.html#ad0c8073b683dad786e0c6ad725a7c2ce">yaze::emu::audio::IAudioBackend</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00066">66</a> of file <a class="el" href="../../df/dc6/audio__backend_8cc_source.html">audio_backend.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00078">78</a> of file <a class="el" href="../../df/dc6/audio__backend_8cc_source.html">audio_backend.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00103">device_id_</a>, <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00105">initialized_</a>, and <a class="el" href="../../d7/d7f/log_8h_source.html#l00106">LOG_INFO</a>.</p>
+<p class="reference">References <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00130">audio_stream_</a>, <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00128">audio_stream_enabled_</a>, <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00121">device_id_</a>, <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00123">initialized_</a>, <a class="el" href="../../d7/d7f/log_8h_source.html#l00106">LOG_INFO</a>, <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00131">stream_buffer_</a>, and <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00129">stream_native_rate_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00021">Initialize()</a>, and <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00017">~SDL2AudioBackend()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00022">Initialize()</a>, and <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00018">~SDL2AudioBackend()</a>.</p>
 
 </div>
 </div>
@@ -352,9 +372,9 @@ Here is the call graph for this function:</div>
 
 <p>Implements <a class="el" href="../../d2/d50/classyaze_1_1emu_1_1audio_1_1IAudioBackend.html#ac8c5775f03d613cf08bfe3f9ce60bfe9">yaze::emu::audio::IAudioBackend</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00079">79</a> of file <a class="el" href="../../df/dc6/audio__backend_8cc_source.html">audio_backend.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00099">99</a> of file <a class="el" href="../../df/dc6/audio__backend_8cc_source.html">audio_backend.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00103">device_id_</a>, and <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00105">initialized_</a>.</p>
+<p class="reference">References <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00121">device_id_</a>, and <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00123">initialized_</a>.</p>
 
 </div>
 </div>
@@ -383,9 +403,9 @@ Here is the call graph for this function:</div>
 
 <p>Implements <a class="el" href="../../d2/d50/classyaze_1_1emu_1_1audio_1_1IAudioBackend.html#a876a1713720b206a9f64ade55fef5d2e">yaze::emu::audio::IAudioBackend</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00084">84</a> of file <a class="el" href="../../df/dc6/audio__backend_8cc_source.html">audio_backend.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00104">104</a> of file <a class="el" href="../../df/dc6/audio__backend_8cc_source.html">audio_backend.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00103">device_id_</a>, and <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00105">initialized_</a>.</p>
+<p class="reference">References <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00121">device_id_</a>, and <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00123">initialized_</a>.</p>
 
 </div>
 </div>
@@ -414,9 +434,9 @@ Here is the call graph for this function:</div>
 
 <p>Implements <a class="el" href="../../d2/d50/classyaze_1_1emu_1_1audio_1_1IAudioBackend.html#a4aac183d6e64188ed4652f58d63c5e2a">yaze::emu::audio::IAudioBackend</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00089">89</a> of file <a class="el" href="../../df/dc6/audio__backend_8cc_source.html">audio_backend.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00109">109</a> of file <a class="el" href="../../df/dc6/audio__backend_8cc_source.html">audio_backend.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00095">Clear()</a>, <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00103">device_id_</a>, and <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00105">initialized_</a>.</p>
+<p class="reference">References <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00115">Clear()</a>, <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00121">device_id_</a>, and <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00123">initialized_</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -455,11 +475,11 @@ Here is the call graph for this function:</div>
 
 <p>Implements <a class="el" href="../../d2/d50/classyaze_1_1emu_1_1audio_1_1IAudioBackend.html#a4a5e2fdeedb09ef8cea8f7e9261c65f3">yaze::emu::audio::IAudioBackend</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00095">95</a> of file <a class="el" href="../../df/dc6/audio__backend_8cc_source.html">audio_backend.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00115">115</a> of file <a class="el" href="../../df/dc6/audio__backend_8cc_source.html">audio_backend.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00103">device_id_</a>, and <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00105">initialized_</a>.</p>
+<p class="reference">References <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00130">audio_stream_</a>, <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00121">device_id_</a>, and <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00123">initialized_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00089">Stop()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00109">Stop()</a>.</p>
 
 </div>
 </div>
@@ -499,11 +519,11 @@ Here is the call graph for this function:</div>
 
 <p>Implements <a class="el" href="../../d2/d50/classyaze_1_1emu_1_1audio_1_1IAudioBackend.html#afbd9cdda8024d0bc50c157aaf6703dc1">yaze::emu::audio::IAudioBackend</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00100">100</a> of file <a class="el" href="../../df/dc6/audio__backend_8cc_source.html">audio_backend.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00123">123</a> of file <a class="el" href="../../df/dc6/audio__backend_8cc_source.html">audio_backend.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00103">device_id_</a>, <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00105">initialized_</a>, <a class="el" href="../../d7/d7f/log_8h_source.html#l00110">LOG_ERROR</a>, and <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00106">volume_</a>.</p>
+<p class="reference">References <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00121">device_id_</a>, <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00123">initialized_</a>, <a class="el" href="../../d7/d7f/log_8h_source.html#l00110">LOG_ERROR</a>, and <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00124">volume_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00142">QueueSamples()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00165">QueueSamples()</a>, and <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00178">QueueSamplesNative()</a>.</p>
 
 </div>
 </div>
@@ -543,9 +563,9 @@ Here is the call graph for this function:</div>
 
 <p>Implements <a class="el" href="../../d2/d50/classyaze_1_1emu_1_1audio_1_1IAudioBackend.html#a3269c915ba7258efa6e9a11a83cab2f9">yaze::emu::audio::IAudioBackend</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00142">142</a> of file <a class="el" href="../../df/dc6/audio__backend_8cc_source.html">audio_backend.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00165">165</a> of file <a class="el" href="../../df/dc6/audio__backend_8cc_source.html">audio_backend.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00105">initialized_</a>, <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00100">QueueSamples()</a>, and <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00106">volume_</a>.</p>
+<p class="reference">References <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00123">initialized_</a>, <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00123">QueueSamples()</a>, and <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00124">volume_</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -554,6 +574,72 @@ Here is the call graph for this function:</div>
 <area shape="rect" title=" " alt="" coords="5,5,193,46"/>
 <area shape="rect" href="../../d3/d03/classyaze_1_1emu_1_1audio_1_1SDL2AudioBackend.html#aebd2155c24994e465978390fb7d5afb1" title=" " alt="" coords="241,5,428,46"/>
 <area shape="poly" title=" " alt="" coords="193,23,225,23,225,28,193,28"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="ae9011938e2aee30a5bbad8652c170fe1" name="ae9011938e2aee30a5bbad8652c170fe1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae9011938e2aee30a5bbad8652c170fe1">&#9670;&#160;</a></span>QueueSamplesNative()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool yaze::emu::audio::SDL2AudioBackend::QueueSamplesNative </td>
+          <td>(</td>
+          <td class="paramtype">const int16_t *&#160;</td>
+          <td class="paramname"><em>samples</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>frames_per_channel</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>channels</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>native_rate</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Reimplemented from <a class="el" href="../../d2/d50/classyaze_1_1emu_1_1audio_1_1IAudioBackend.html#a8889a1f8b7f3606cdcfb56f432ff195a">yaze::emu::audio::IAudioBackend</a>.</p>
+
+<p class="definition">Definition at line <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00178">178</a> of file <a class="el" href="../../df/dc6/audio__backend_8cc_source.html">audio_backend.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00130">audio_stream_</a>, <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00128">audio_stream_enabled_</a>, <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00027">yaze::emu::audio::AudioConfig::channels</a>, <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00122">config_</a>, <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00123">initialized_</a>, <a class="el" href="../../d7/d7f/log_8h_source.html#l00110">LOG_ERROR</a>, <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00123">QueueSamples()</a>, <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00257">SetAudioStreamResampling()</a>, <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00131">stream_buffer_</a>, and <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00129">stream_native_rate_</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d3/d03/classyaze_1_1emu_1_1audio_1_1SDL2AudioBackend_ae9011938e2aee30a5bbad8652c170fe1_cgraph.png" border="0" usemap="#ad3/d03/classyaze_1_1emu_1_1audio_1_1SDL2AudioBackend_ae9011938e2aee30a5bbad8652c170fe1_cgraph" alt=""/></div>
+<map name="ad3/d03/classyaze_1_1emu_1_1audio_1_1SDL2AudioBackend_ae9011938e2aee30a5bbad8652c170fe1_cgraph" id="ad3/d03/classyaze_1_1emu_1_1audio_1_1SDL2AudioBackend_ae9011938e2aee30a5bbad8652c170fe1_cgraph">
+<area shape="rect" title=" " alt="" coords="5,39,211,79"/>
+<area shape="rect" href="../../d3/d03/classyaze_1_1emu_1_1audio_1_1SDL2AudioBackend.html#aebd2155c24994e465978390fb7d5afb1" title=" " alt="" coords="286,5,473,46"/>
+<area shape="poly" title=" " alt="" coords="211,44,270,36,271,42,212,49"/>
+<area shape="rect" href="../../d3/d03/classyaze_1_1emu_1_1audio_1_1SDL2AudioBackend.html#af0d3ebead5d23b38c2a8513958dc662e" title=" " alt="" coords="259,71,500,111"/>
+<area shape="poly" title=" " alt="" coords="212,68,243,72,243,78,211,74"/>
 </map>
 </div>
 
@@ -584,9 +670,9 @@ Here is the call graph for this function:</div>
 
 <p>Implements <a class="el" href="../../d2/d50/classyaze_1_1emu_1_1audio_1_1IAudioBackend.html#aad48a50fd48e23d8438bab01c93ad14e">yaze::emu::audio::IAudioBackend</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00155">155</a> of file <a class="el" href="../../df/dc6/audio__backend_8cc_source.html">audio_backend.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00228">228</a> of file <a class="el" href="../../df/dc6/audio__backend_8cc_source.html">audio_backend.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00024">yaze::emu::audio::AudioConfig::channels</a>, <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00104">config_</a>, <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00103">device_id_</a>, <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00026">yaze::emu::audio::AudioConfig::format</a>, <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00034">yaze::emu::audio::AudioStatus::has_underrun</a>, <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00105">initialized_</a>, <a class="el" href="../../d2/dc8/namespaceyaze_1_1emu_1_1audio.html#a870fe4320e8f6ce85c55f7a2aa695898a5f90af42814c0a419d715d43ae54fd7a">yaze::emu::audio::INT16</a>, <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00031">yaze::emu::audio::AudioStatus::is_playing</a>, <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00032">yaze::emu::audio::AudioStatus::queued_bytes</a>, and <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00033">yaze::emu::audio::AudioStatus::queued_frames</a>.</p>
+<p class="reference">References <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00027">yaze::emu::audio::AudioConfig::channels</a>, <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00122">config_</a>, <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00121">device_id_</a>, <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00029">yaze::emu::audio::AudioConfig::format</a>, <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00037">yaze::emu::audio::AudioStatus::has_underrun</a>, <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00123">initialized_</a>, <a class="el" href="../../d2/dc8/namespaceyaze_1_1emu_1_1audio.html#a870fe4320e8f6ce85c55f7a2aa695898a5f90af42814c0a419d715d43ae54fd7a">yaze::emu::audio::INT16</a>, <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00034">yaze::emu::audio::AudioStatus::is_playing</a>, <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00035">yaze::emu::audio::AudioStatus::queued_bytes</a>, and <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00036">yaze::emu::audio::AudioStatus::queued_frames</a>.</p>
 
 </div>
 </div>
@@ -615,9 +701,9 @@ Here is the call graph for this function:</div>
 
 <p>Implements <a class="el" href="../../d2/d50/classyaze_1_1emu_1_1audio_1_1IAudioBackend.html#acaf5b97199b91600e88ca0067466bba6">yaze::emu::audio::IAudioBackend</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00176">176</a> of file <a class="el" href="../../df/dc6/audio__backend_8cc_source.html">audio_backend.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00249">249</a> of file <a class="el" href="../../df/dc6/audio__backend_8cc_source.html">audio_backend.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00105">initialized_</a>.</p>
+<p class="reference">References <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00123">initialized_</a>.</p>
 
 </div>
 </div>
@@ -646,9 +732,9 @@ Here is the call graph for this function:</div>
 
 <p>Implements <a class="el" href="../../d2/d50/classyaze_1_1emu_1_1audio_1_1IAudioBackend.html#adf32c3d04e62f1f2dee14bfdeac08e3f">yaze::emu::audio::IAudioBackend</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00180">180</a> of file <a class="el" href="../../df/dc6/audio__backend_8cc_source.html">audio_backend.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00253">253</a> of file <a class="el" href="../../df/dc6/audio__backend_8cc_source.html">audio_backend.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00104">config_</a>.</p>
+<p class="reference">References <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00122">config_</a>.</p>
 
 </div>
 </div>
@@ -678,9 +764,9 @@ Here is the call graph for this function:</div>
 
 <p>Implements <a class="el" href="../../d2/d50/classyaze_1_1emu_1_1audio_1_1IAudioBackend.html#a3d8f01c9edb4a85682592dc6c82a0035">yaze::emu::audio::IAudioBackend</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00184">184</a> of file <a class="el" href="../../df/dc6/audio__backend_8cc_source.html">audio_backend.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00302">302</a> of file <a class="el" href="../../df/dc6/audio__backend_8cc_source.html">audio_backend.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00106">volume_</a>.</p>
+<p class="reference">References <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00124">volume_</a>.</p>
 
 </div>
 </div>
@@ -709,9 +795,88 @@ Here is the call graph for this function:</div>
 
 <p>Implements <a class="el" href="../../d2/d50/classyaze_1_1emu_1_1audio_1_1IAudioBackend.html#aebec6bcf968d249a7e8a35e38d14ce5a">yaze::emu::audio::IAudioBackend</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00188">188</a> of file <a class="el" href="../../df/dc6/audio__backend_8cc_source.html">audio_backend.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00306">306</a> of file <a class="el" href="../../df/dc6/audio__backend_8cc_source.html">audio_backend.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00106">volume_</a>.</p>
+<p class="reference">References <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00124">volume_</a>.</p>
+
+</div>
+</div>
+<a id="af0d3ebead5d23b38c2a8513958dc662e" name="af0d3ebead5d23b38c2a8513958dc662e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af0d3ebead5d23b38c2a8513958dc662e">&#9670;&#160;</a></span>SetAudioStreamResampling()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::emu::audio::SDL2AudioBackend::SetAudioStreamResampling </td>
+          <td>(</td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>enable</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>native_rate</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>channels</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Reimplemented from <a class="el" href="../../d2/d50/classyaze_1_1emu_1_1audio_1_1IAudioBackend.html#a9029db2555f003c8e99a2602290a8565">yaze::emu::audio::IAudioBackend</a>.</p>
+
+<p class="definition">Definition at line <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00257">257</a> of file <a class="el" href="../../df/dc6/audio__backend_8cc_source.html">audio_backend.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00130">audio_stream_</a>, <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00128">audio_stream_enabled_</a>, <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00027">yaze::emu::audio::AudioConfig::channels</a>, <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00122">config_</a>, <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00126">device_channels_</a>, <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00125">device_format_</a>, <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00127">device_freq_</a>, <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00123">initialized_</a>, <a class="el" href="../../d7/d7f/log_8h_source.html#l00110">LOG_ERROR</a>, <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00131">stream_buffer_</a>, and <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00129">stream_native_rate_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00178">QueueSamplesNative()</a>.</p>
+
+</div>
+</div>
+<a id="a14583ee2ab5060a43feeacfc48358cf2" name="a14583ee2ab5060a43feeacfc48358cf2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a14583ee2ab5060a43feeacfc48358cf2">&#9670;&#160;</a></span>SupportsAudioStream()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool yaze::emu::audio::SDL2AudioBackend::SupportsAudioStream </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">override</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Reimplemented from <a class="el" href="../../d2/d50/classyaze_1_1emu_1_1audio_1_1IAudioBackend.html#ab0ccc8c6c10b6a9cbd24d80fa8c75124">yaze::emu::audio::IAudioBackend</a>.</p>
+
+<p class="definition">Definition at line <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00116">116</a> of file <a class="el" href="../../d4/d03/audio__backend_8h_source.html">audio_backend.h</a>.</p>
 
 </div>
 </div>
@@ -740,7 +905,7 @@ Here is the call graph for this function:</div>
 
 <p>Implements <a class="el" href="../../d2/d50/classyaze_1_1emu_1_1audio_1_1IAudioBackend.html#a141c0f90374642135e463bef5a552b7a">yaze::emu::audio::IAudioBackend</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00100">100</a> of file <a class="el" href="../../d4/d03/audio__backend_8h_source.html">audio_backend.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00118">118</a> of file <a class="el" href="../../d4/d03/audio__backend_8h_source.html">audio_backend.h</a>.</p>
 
 </div>
 </div>
@@ -765,9 +930,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00103">103</a> of file <a class="el" href="../../d4/d03/audio__backend_8h_source.html">audio_backend.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00121">121</a> of file <a class="el" href="../../d4/d03/audio__backend_8h_source.html">audio_backend.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00095">Clear()</a>, <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00155">GetStatus()</a>, <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00021">Initialize()</a>, <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00084">Pause()</a>, <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00079">Play()</a>, <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00100">QueueSamples()</a>, <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00066">Shutdown()</a>, and <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00089">Stop()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00115">Clear()</a>, <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00228">GetStatus()</a>, <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00022">Initialize()</a>, <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00104">Pause()</a>, <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00099">Play()</a>, <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00123">QueueSamples()</a>, <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00078">Shutdown()</a>, and <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00109">Stop()</a>.</p>
 
 </div>
 </div>
@@ -791,9 +956,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00104">104</a> of file <a class="el" href="../../d4/d03/audio__backend_8h_source.html">audio_backend.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00122">122</a> of file <a class="el" href="../../d4/d03/audio__backend_8h_source.html">audio_backend.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00180">GetConfig()</a>, <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00155">GetStatus()</a>, and <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00021">Initialize()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00253">GetConfig()</a>, <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00228">GetStatus()</a>, <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00022">Initialize()</a>, <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00178">QueueSamplesNative()</a>, and <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00257">SetAudioStreamResampling()</a>.</p>
 
 </div>
 </div>
@@ -817,9 +982,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00105">105</a> of file <a class="el" href="../../d4/d03/audio__backend_8h_source.html">audio_backend.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00123">123</a> of file <a class="el" href="../../d4/d03/audio__backend_8h_source.html">audio_backend.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00095">Clear()</a>, <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00155">GetStatus()</a>, <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00021">Initialize()</a>, <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00176">IsInitialized()</a>, <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00084">Pause()</a>, <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00079">Play()</a>, <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00142">QueueSamples()</a>, <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00100">QueueSamples()</a>, <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00066">Shutdown()</a>, and <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00089">Stop()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00115">Clear()</a>, <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00228">GetStatus()</a>, <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00022">Initialize()</a>, <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00249">IsInitialized()</a>, <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00104">Pause()</a>, <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00099">Play()</a>, <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00165">QueueSamples()</a>, <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00123">QueueSamples()</a>, <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00178">QueueSamplesNative()</a>, <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00257">SetAudioStreamResampling()</a>, <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00078">Shutdown()</a>, and <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00109">Stop()</a>.</p>
 
 </div>
 </div>
@@ -843,9 +1008,191 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00106">106</a> of file <a class="el" href="../../d4/d03/audio__backend_8h_source.html">audio_backend.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00124">124</a> of file <a class="el" href="../../d4/d03/audio__backend_8h_source.html">audio_backend.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00188">GetVolume()</a>, <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00142">QueueSamples()</a>, <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00100">QueueSamples()</a>, and <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00184">SetVolume()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00306">GetVolume()</a>, <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00165">QueueSamples()</a>, <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00123">QueueSamples()</a>, and <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00302">SetVolume()</a>.</p>
+
+</div>
+</div>
+<a id="a07b3d83ae628a06dfb3d5b2897801439" name="a07b3d83ae628a06dfb3d5b2897801439"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a07b3d83ae628a06dfb3d5b2897801439">&#9670;&#160;</a></span>device_format_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">SDL_AudioFormat yaze::emu::audio::SDL2AudioBackend::device_format_ = AUDIO_S16</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00125">125</a> of file <a class="el" href="../../d4/d03/audio__backend_8h_source.html">audio_backend.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00022">Initialize()</a>, and <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00257">SetAudioStreamResampling()</a>.</p>
+
+</div>
+</div>
+<a id="a71a63d2b2184907e4e0a0807a0dc7136" name="a71a63d2b2184907e4e0a0807a0dc7136"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a71a63d2b2184907e4e0a0807a0dc7136">&#9670;&#160;</a></span>device_channels_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">int yaze::emu::audio::SDL2AudioBackend::device_channels_ = 2</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00126">126</a> of file <a class="el" href="../../d4/d03/audio__backend_8h_source.html">audio_backend.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00022">Initialize()</a>, and <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00257">SetAudioStreamResampling()</a>.</p>
+
+</div>
+</div>
+<a id="a96bc9bc8191632b06131a05c77ea9407" name="a96bc9bc8191632b06131a05c77ea9407"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a96bc9bc8191632b06131a05c77ea9407">&#9670;&#160;</a></span>device_freq_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">int yaze::emu::audio::SDL2AudioBackend::device_freq_ = 48000</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00127">127</a> of file <a class="el" href="../../d4/d03/audio__backend_8h_source.html">audio_backend.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00022">Initialize()</a>, and <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00257">SetAudioStreamResampling()</a>.</p>
+
+</div>
+</div>
+<a id="aa9975378b39a3b589323d9fc0b8575ff" name="aa9975378b39a3b589323d9fc0b8575ff"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa9975378b39a3b589323d9fc0b8575ff">&#9670;&#160;</a></span>audio_stream_enabled_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool yaze::emu::audio::SDL2AudioBackend::audio_stream_enabled_ = false</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00128">128</a> of file <a class="el" href="../../d4/d03/audio__backend_8h_source.html">audio_backend.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00022">Initialize()</a>, <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00178">QueueSamplesNative()</a>, <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00257">SetAudioStreamResampling()</a>, and <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00078">Shutdown()</a>.</p>
+
+</div>
+</div>
+<a id="ad19b8c4924789c894b6940916f2ee80e" name="ad19b8c4924789c894b6940916f2ee80e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad19b8c4924789c894b6940916f2ee80e">&#9670;&#160;</a></span>stream_native_rate_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">int yaze::emu::audio::SDL2AudioBackend::stream_native_rate_ = 0</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00129">129</a> of file <a class="el" href="../../d4/d03/audio__backend_8h_source.html">audio_backend.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00022">Initialize()</a>, <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00178">QueueSamplesNative()</a>, <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00257">SetAudioStreamResampling()</a>, and <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00078">Shutdown()</a>.</p>
+
+</div>
+</div>
+<a id="acc7c49f531722659e39aa0977ba34db3" name="acc7c49f531722659e39aa0977ba34db3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acc7c49f531722659e39aa0977ba34db3">&#9670;&#160;</a></span>audio_stream_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">SDL_AudioStream* yaze::emu::audio::SDL2AudioBackend::audio_stream_ = nullptr</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00130">130</a> of file <a class="el" href="../../d4/d03/audio__backend_8h_source.html">audio_backend.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00115">Clear()</a>, <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00022">Initialize()</a>, <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00178">QueueSamplesNative()</a>, <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00257">SetAudioStreamResampling()</a>, and <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00078">Shutdown()</a>.</p>
+
+</div>
+</div>
+<a id="a92a65b2cabb2a0d6fb6dc722edd4bcd8" name="a92a65b2cabb2a0d6fb6dc722edd4bcd8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a92a65b2cabb2a0d6fb6dc722edd4bcd8">&#9670;&#160;</a></span>stream_buffer_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt;int16_t&gt; yaze::emu::audio::SDL2AudioBackend::stream_buffer_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00131">131</a> of file <a class="el" href="../../d4/d03/audio__backend_8h_source.html">audio_backend.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00022">Initialize()</a>, <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00178">QueueSamplesNative()</a>, <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00257">SetAudioStreamResampling()</a>, and <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00078">Shutdown()</a>.</p>
 
 </div>
 </div>

@@ -1,5 +1,11 @@
-<map id="src/app/zelda3/screen/title_screen.h" name="src/app/zelda3/screen/title_screen.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,154,46"/>
-<area shape="rect" id="Node000002" href="$d5/dce/title__screen_8cc.html" title=" " alt="" coords="5,94,154,135"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="82,62,82,94,77,94,77,62"/>
+<map id="src/zelda3/screen/title_screen.h" name="src/zelda3/screen/title_screen.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="170,5,318,46"/>
+<area shape="rect" id="Node000002" href="$d7/dd0/screen__editor_8h.html" title=" " alt="" coords="81,94,234,135"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="216,59,179,95,175,92,212,55"/>
+<area shape="rect" id="Node000028" href="$d5/dce/title__screen_8cc.html" title=" " alt="" coords="258,94,406,135"/>
+<area shape="poly" id="edge4_Node000001_Node000028" title=" " alt="" coords="277,55,314,92,310,95,273,59"/>
+<area shape="rect" id="Node000003" href="$d0/dd9/editor__manager_8cc.html" title=" " alt="" coords="5,183,142,223"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="130,148,94,184,91,180,126,144"/>
+<area shape="rect" id="Node000004" href="$de/d57/screen__editor_8cc.html" title=" " alt="" coords="166,183,320,223"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="189,144,225,180,222,184,185,148"/>
 </map>

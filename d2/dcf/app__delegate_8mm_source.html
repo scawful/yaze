@@ -109,7 +109,7 @@ $(document).ready(function(){initNavTree('d2/dcf/app__delegate_8mm_source.html',
 <div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span><span class="preprocessor">#endif</span></div>
 <div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span> </div>
 <div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span><span class="preprocessor">#import &quot;<a class="code" href="../../d3/d16/app__delegate_8h.html">app/platform/app_delegate.h</a>&quot;</span></div>
-<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span><span class="preprocessor">#import &quot;<a class="code" href="../../d2/dd9/controller_8h.html">app/core/controller.h</a>&quot;</span></div>
+<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span><span class="preprocessor">#import &quot;<a class="code" href="../../d2/dd9/controller_8h.html">app/controller.h</a>&quot;</span></div>
 <div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="preprocessor">#import &quot;<a class="code" href="../../d0/dae/file__util_8h.html">util/file_util.h</a>&quot;</span></div>
 <div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span><span class="preprocessor">#import &quot;<a class="code" href="../../dd/d60/editor_8h.html">app/editor/editor.h</a>&quot;</span></div>
 <div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span><span class="preprocessor">#import &quot;<a class="code" href="../../da/de5/rom_8h.html">app/rom.h</a>&quot;</span></div>
@@ -356,7 +356,7 @@ $(document).ready(function(){initNavTree('d2/dcf/app__delegate_8mm_source.html',
 <div class="line"><a id="l00253" name="l00253"></a><span class="lineno">  253</span> </div>
 <div class="line"><a id="l00254" name="l00254"></a><span class="lineno">  254</span><span class="keyword">extern</span> <span class="stringliteral">&quot;C&quot;</span> <span class="keywordtype">int</span> yaze_run_cocoa_app_delegate(<span class="keyword">const</span> <span class="keywordtype">char</span> *filename) {</div>
 <div class="line"><a id="l00255" name="l00255"></a><span class="lineno">  255</span>  yaze_initialize_cococa();</div>
-<div class="line"><a id="l00256" name="l00256"></a><span class="lineno">  256</span>  <span class="keyword">auto</span> controller = std::make_unique&lt;yaze::core::Controller&gt;();</div>
+<div class="line"><a id="l00256" name="l00256"></a><span class="lineno">  256</span>  <span class="keyword">auto</span> controller = std::make_unique&lt;yaze::Controller&gt;();</div>
 <div class="line"><a id="l00257" name="l00257"></a><span class="lineno">  257</span>  <a class="code hl_define" href="../../d4/d9e/macro_8h.html#adf4d2e200654d8260cc2244953f64247">EXIT_IF_ERROR</a>(controller-&gt;OnEntry(filename));</div>
 <div class="line"><a id="l00258" name="l00258"></a><span class="lineno">  258</span>  <span class="keywordflow">while</span> (controller-&gt;IsActive()) {</div>
 <div class="line"><a id="l00259" name="l00259"></a><span class="lineno">  259</span>    @autoreleasepool {</div>

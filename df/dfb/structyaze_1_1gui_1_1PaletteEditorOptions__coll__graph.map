@@ -1,0 +1,5 @@
+<map id="yaze::gui::PaletteEditorOptions" name="yaze::gui::PaletteEditorOptions">
+<area shape="rect" id="Node000001" title="Palette editor options." alt="" coords="5,94,156,135"/>
+<area shape="rect" id="Node000002" href="$da/d68/classyaze_1_1gfx_1_1SnesPalette.html" title="Represents a palette of colors for the Super Nintendo Entertainment System (SNES)." alt="" coords="7,5,154,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="83,46,83,93,78,93,78,46"/>
+</map>

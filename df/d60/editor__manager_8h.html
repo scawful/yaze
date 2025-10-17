@@ -105,66 +105,47 @@ $(document).ready(function(){initNavTree('df/d60/editor__manager_8h.html','../..
   <div class="headertitle"><div class="title">editor_manager.h File Reference</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &quot;<a class="el" href="../../da/dd9/user__settings_8h_source.html">app/editor/system/user_settings.h</a>&quot;</code><br />
+<div class="textblock"><code>#include &quot;<a class="el" href="../../dd/d60/editor_8h_source.html">app/editor/editor.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../da/dd9/user__settings_8h_source.html">app/editor/system/user_settings.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../d1/dbf/workspace__manager_8h_source.html">app/editor/ui/workspace_manager.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../d9/d13/session__types_8h_source.html">app/editor/session_types.h</a>&quot;</code><br />
 <code>#include &quot;imgui/imgui.h&quot;</code><br />
+<code>#include &lt;cstddef&gt;</code><br />
 <code>#include &lt;deque&gt;</code><br />
-<code>#include &lt;vector&gt;</code><br />
+<code>#include &lt;memory&gt;</code><br />
+<code>#include &lt;string&gt;</code><br />
 <code>#include &quot;absl/status/status.h&quot;</code><br />
-<code>#include &quot;<a class="el" href="../../de/d47/features_8h_source.html">app/core/features.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="../../dc/d8d/project_8h_source.html">app/core/project.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="../../d6/dad/assembly__editor_8h_source.html">app/editor/code/assembly_editor.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="../../d0/d1d/memory__editor_8h_source.html">app/editor/code/memory_editor.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="../../dc/d28/menu__builder_8h_source.html">app/editor/ui/menu_builder.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="../../d3/dce/project__file__editor_8h_source.html">app/editor/code/project_file_editor.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html">app/editor/dungeon/dungeon_editor_v2.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="../../dc/d9b/graphics__editor_8h_source.html">app/editor/graphics/graphics_editor.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="../../d7/d04/app_2editor_2graphics_2palette__editor_8h_source.html">app/editor/graphics/palette_editor.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="../../d7/dd0/screen__editor_8h_source.html">app/editor/graphics/screen_editor.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="../../dd/de3/message__editor_8h_source.html">app/editor/message/message_editor.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="../../d5/de8/music__editor_8h_source.html">app/editor/music/music_editor.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="../../db/d9f/overworld__editor_8h_source.html">app/editor/overworld/overworld_editor.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="../../d7/d6f/sprite__editor_8h_source.html">app/editor/sprite/sprite_editor.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="../../dd/da4/popup__manager_8h_source.html">app/editor/system/popup_manager.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="../../d5/dca/proposal__drawer_8h_source.html">app/editor/system/proposal_drawer.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../dc/d8d/project_8h_source.html">core/project.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html">app/editor/agent/agent_chat_history_popup.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="../../d9/d0a/settings__editor_8h_source.html">app/editor/system/settings_editor.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../d3/dce/project__file__editor_8h_source.html">app/editor/code/project_file_editor.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../d4/d5b/editor__card__registry_8h_source.html">app/editor/system/editor_card_registry.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../d9/da3/editor__registry_8h_source.html">app/editor/system/editor_registry.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../db/d15/menu__orchestrator_8h_source.html">app/editor/system/menu_orchestrator.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../dd/da4/popup__manager_8h_source.html">app/editor/system/popup_manager.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../df/dc4/project__manager_8h_source.html">app/editor/system/project_manager.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../d5/dca/proposal__drawer_8h_source.html">app/editor/system/proposal_drawer.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../da/d80/rom__file__manager_8h_source.html">app/editor/system/rom_file_manager.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../d6/d0e/session__coordinator_8h_source.html">app/editor/system/session_coordinator.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../de/d7d/toast__manager_8h_source.html">app/editor/system/toast_manager.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../d1/d5e/window__delegate_8h_source.html">app/editor/system/window_delegate.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../da/d0d/editor__selection__dialog_8h_source.html">app/editor/ui/editor_selection_dialog.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../d2/d97/layout__manager_8h_source.html">app/editor/ui/layout_manager.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../dc/d28/menu__builder_8h_source.html">app/editor/ui/menu_builder.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../d1/d21/ui__coordinator_8h_source.html">app/editor/ui/ui_coordinator.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../d2/df1/welcome__screen_8h_source.html">app/editor/ui/welcome_screen.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../db/dc0/emulator_8h_source.html">app/emu/emulator.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="../../db/d5c/performance__dashboard_8h_source.html">app/gfx/performance/performance_dashboard.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../d7/d9c/overworld_8h_source.html">zelda3/overworld/overworld.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../da/de5/rom_8h_source.html">app/rom.h</a>&quot;</code><br />
 <code>#include &quot;yaze_config.h&quot;</code><br />
-</div><div class="textblock"><div class="dynheader">
-This graph shows which files directly or indirectly include this file:</div>
-<div class="dyncontent">
-<div class="center"><img src="../../db/d89/editor__manager_8h__dep__incl.png" border="0" usemap="#asrc_2app_2editor_2editor__manager_8hdep" alt=""/></div>
-<map name="asrc_2app_2editor_2editor__manager_8hdep" id="asrc_2app_2editor_2editor__manager_8hdep">
-<area shape="rect" title=" " alt="" coords="165,5,301,46"/>
-<area shape="rect" href="../../da/d0c/controller_8cc.html" title=" " alt="" coords="5,183,173,208"/>
-<area shape="poly" title=" " alt="" coords="151,40,99,60,76,75,58,95,51,117,56,140,68,162,81,181,76,184,63,165,51,142,46,117,53,93,73,71,96,55,149,35"/>
-<area shape="rect" href="../../d2/dd9/controller_8h.html" title=" " alt="" coords="68,102,228,127"/>
-<area shape="poly" title=" " alt="" coords="205,59,161,103,157,99,201,55"/>
-<area shape="rect" href="../../d0/dd9/editor__manager_8cc.html" title=" " alt="" coords="252,94,388,135"/>
-<area shape="poly" title=" " alt="" coords="265,55,302,92,298,95,261,59"/>
-<area shape="rect" href="../../d8/de0/popup__manager_8cc.html" title=" " alt="" coords="412,94,558,135"/>
-<area shape="poly" title=" " alt="" coords="306,49,428,91,427,96,304,54"/>
-<area shape="poly" title=" " alt="" coords="132,141,100,184,96,181,127,138"/>
-</map>
-</div>
 </div>
 <p><a href="../../df/d60/editor__manager_8h_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/d21/classyaze_1_1editor_1_1EditorSet.html">yaze::editor::EditorSet</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Contains a complete set of editors for a single ROM instance.  <a href="../../d3/d21/classyaze_1_1editor_1_1EditorSet.html#details">More...</a><br /></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/d12/classyaze_1_1editor_1_1EditorManager.html">yaze::editor::EditorManager</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The <a class="el" href="../../dd/d12/classyaze_1_1editor_1_1EditorManager.html" title="The EditorManager controls the main editor window and manages the various editor classes.">EditorManager</a> controls the main editor window and manages the various editor classes.  <a href="../../dd/d12/classyaze_1_1editor_1_1EditorManager.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/da6/structyaze_1_1editor_1_1EditorManager_1_1RomSession.html">yaze::editor::EditorManager::RomSession</a></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d9/db2/classyaze_1_1editor_1_1EditorManager_1_1SessionScope.html">yaze::editor::EditorManager::SessionScope</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="namespaces" name="namespaces"></a>

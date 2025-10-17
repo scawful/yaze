@@ -2,7 +2,7 @@
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,29,120,55"/>
 <area shape="rect" id="Node000002" href="$d0/d27/namespaceyaze_1_1gfx.html#a58538e81c6b1b5c0d28310f84eced8b7" title=" " alt="" coords="168,29,289,55"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="120,40,152,40,152,45,120,45"/>
-<area shape="rect" id="Node000003" href="$d0/d27/namespaceyaze_1_1gfx.html#a4e83a052d42017612243c3f81b538b7d" title=" " alt="" coords="337,29,526,55"/>
+<area shape="rect" id="Node000003" href="$d0/d27/namespaceyaze_1_1gfx.html#a4e83a052d42017612243c3f81b538b7d" title="Convert RGB (0&#45;255) to SNES 15&#45;bit color." alt="" coords="337,29,526,55"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="289,40,322,40,322,45,289,45"/>
 <area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="398,31,391,21,395,11,409,5,432,3,457,5,469,12,467,17,455,10,432,8,410,10,399,15,396,20,402,27"/>
 </map>

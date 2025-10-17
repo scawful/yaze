@@ -5,7 +5,7 @@ var namespaceyaze_1_1gui_1_1CanvasUtils =
     [ "CalculateEffectiveScale", "d5/d08/namespaceyaze_1_1gui_1_1CanvasUtils.html#a8ca045966d86258316be042afe49d251", null ],
     [ "GetTileIdFromPosition", "d5/d08/namespaceyaze_1_1gui_1_1CanvasUtils.html#a996ea6ecdce025ca9cb1e01b9406e0f9", null ],
     [ "LoadROMPaletteGroups", "d5/d08/namespaceyaze_1_1gui_1_1CanvasUtils.html#a5fb5a1e89437d46557ffab8291b49ea3", null ],
-    [ "ApplyPaletteGroup", "d5/d08/namespaceyaze_1_1gui_1_1CanvasUtils.html#a6ddb27e42fa03eb92cb94a97c1651168", null ],
+    [ "ApplyPaletteGroup", "d5/d08/namespaceyaze_1_1gui_1_1CanvasUtils.html#aaead57e896734d5f01dce603847e15a5", null ],
     [ "DrawCanvasRect", "d5/d08/namespaceyaze_1_1gui_1_1CanvasUtils.html#a1366d6accda53f25cc1c5f8651161c4f", null ],
     [ "DrawCanvasText", "d5/d08/namespaceyaze_1_1gui_1_1CanvasUtils.html#ac0910f171a77137f82396c45cb1b02cc", null ],
     [ "DrawCanvasOutline", "d5/d08/namespaceyaze_1_1gui_1_1CanvasUtils.html#a8ceb52571f7d28aff6121cd21779e3e3", null ],
@@ -22,5 +22,6 @@ var namespaceyaze_1_1gui_1_1CanvasUtils =
     [ "SetNextCanvasSize", "d5/d08/namespaceyaze_1_1gui_1_1CanvasUtils.html#a12bbd9b2031d2139978766cf9f57e73d", null ],
     [ "DrawCanvasGrid", "d5/d08/namespaceyaze_1_1gui_1_1CanvasUtils.html#ab00f5769eb96b749ecfe385571b5d486", null ],
     [ "DrawCanvasOverlay", "d5/d08/namespaceyaze_1_1gui_1_1CanvasUtils.html#a3179a79f843f6076dbf595c97da7342c", null ],
-    [ "DrawCanvasLabels", "d5/d08/namespaceyaze_1_1gui_1_1CanvasUtils.html#a195c54ea0600ea6e367ee37e8c9aadca", null ]
+    [ "DrawCanvasLabels", "d5/d08/namespaceyaze_1_1gui_1_1CanvasUtils.html#a195c54ea0600ea6e367ee37e8c9aadca", null ],
+    [ "ApplyPendingPaletteUpdates", "d5/d08/namespaceyaze_1_1gui_1_1CanvasUtils.html#a63972d4e05696fd7f060c4c9d81769e9", null ]
 ];

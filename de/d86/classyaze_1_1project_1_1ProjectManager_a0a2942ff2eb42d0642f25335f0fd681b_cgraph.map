@@ -1,0 +1,10 @@
+<map id="yaze::project::ProjectManager::CreateFromTemplate" name="yaze::project::ProjectManager::CreateFromTemplate">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,43,195,83"/>
+<area shape="rect" id="Node000002" href="$dd/d28/structyaze_1_1project_1_1YazeProject.html#a704916697047bd11d6cc5eb3c52fa671" title=" " alt="" coords="243,13,411,54"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="195,48,227,44,228,49,195,53"/>
+<area shape="rect" id="Node000004" href="$dd/d28/structyaze_1_1project_1_1YazeProject.html#a750ee5757461619a5bf78797923d831f" title=" " alt="" coords="459,71,627,111"/>
+<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="195,66,444,82,443,87,195,72"/>
+<area shape="rect" id="Node000003" href="$dd/d28/structyaze_1_1project_1_1YazeProject.html#ac548f253f95054ca80ecb49ca149ae7f" title=" " alt="" coords="459,5,627,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="411,28,443,27,444,32,411,33"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="407,52,450,64,448,69,405,57"/>
+</map>

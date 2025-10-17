@@ -1,0 +1,10 @@
+<map id="yaze::gui::Canvas::DrawContextMenuItem" name="yaze::gui::Canvas::DrawContextMenuItem">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,47,159,87"/>
+<area shape="rect" id="Node000002" href="$df/d70/classyaze_1_1gui_1_1PopupRegistry.html#afbcf953454978fcabe240ff19c968581" title="Open a persistent popup." alt="" coords="214,5,375,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="159,49,198,42,199,47,160,55"/>
+<area shape="rect" id="Node000004" href="$d3/dbf/namespaceyaze_1_1gui.html#ab2866873cfa51ad6e48f5e97c9e44f4e" title="Render a single menu item." alt="" coords="207,94,382,120"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="160,79,208,88,207,93,159,84"/>
+<area shape="rect" id="Node000003" href="$df/d70/classyaze_1_1gui_1_1PopupRegistry.html#ae67514016e7536cf44a145e0b08efe1c" title=" " alt="" coords="430,5,590,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="375,23,414,23,414,28,375,28"/>
+<area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="259,95,252,86,256,76,271,70,294,68,320,70,334,77,331,82,319,75,294,73,272,75,260,80,257,85,263,92"/>
+</map>

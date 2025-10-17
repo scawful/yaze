@@ -1,6 +1,7 @@
 var classyaze_1_1editor_1_1MessageEditor =
 [
     [ "MessageEditor", "d3/d6c/classyaze_1_1editor_1_1MessageEditor.html#aa053e9ab0942b2146c57bb8497497b31", null ],
+    [ "MessageEditor", "d3/d6c/classyaze_1_1editor_1_1MessageEditor.html#aaea3754f06450b150ac8937021ab5fe8", null ],
     [ "Initialize", "d3/d6c/classyaze_1_1editor_1_1MessageEditor.html#a9a0f814cb63b33a9cd3c407a0274240c", null ],
     [ "Load", "d3/d6c/classyaze_1_1editor_1_1MessageEditor.html#a7a14ce80654534bcdcbd129562f08d95", null ],
     [ "Update", "d3/d6c/classyaze_1_1editor_1_1MessageEditor.html#a304ea5c627aa7044cd6221eaba59fa25", null ],

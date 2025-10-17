@@ -1,13 +1,13 @@
 <map id="yaze::gui::CollaborationPanel" name="yaze::gui::CollaborationPanel">
-<area shape="rect" id="Node000001" title="ImGui panel for collaboration features." alt="" coords="55,390,207,431"/>
-<area shape="rect" id="Node000002" href="$d6/d30/classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="51,109,131,135"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="94,150,98,223,113,316,129,389,124,390,108,317,92,224,88,150"/>
-<area shape="rect" id="Node000006" href="$d6/d28/classyaze_1_1net_1_1RomVersionManager.html" title="Manages ROM versioning, snapshots, and rollback capabilities." alt="" coords="107,198,305,223"/>
-<area shape="poly" id="edge4_Node000006_Node000002" title=" " alt="" coords="120,142,191,195,188,199,117,146"/>
-<area shape="rect" id="Node000003" href="$d8/d4d/structyaze_1_1core_1_1ResourceLabelManager.html" title=" " alt="" coords="5,5,177,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="94,61,94,109,88,109,88,61"/>
-<area shape="poly" id="edge3_Node000001_Node000006" title=" " alt="" coords="182,236,162,260,146,287,138,314,133,342,132,390,127,389,128,341,132,313,141,285,158,257,178,233"/>
-<area shape="rect" id="Node000008" href="$d8/d96/classyaze_1_1net_1_1ProposalApprovalManager.html" title="Manages proposal approval workflow for collaborative sessions." alt="" coords="236,286,415,327"/>
-<area shape="poly" id="edge6_Node000008_Node000006" title=" " alt="" coords="234,231,302,284,299,288,231,235"/>
-<area shape="poly" id="edge5_Node000001_Node000008" title=" " alt="" coords="276,337,170,392,168,387,273,332"/>
+<area shape="rect" id="Node000001" title="ImGui panel for collaboration features." alt="" coords="62,390,214,431"/>
+<area shape="rect" id="Node000002" href="$d6/d30/classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="58,109,138,135"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="101,150,105,223,120,316,136,389,131,390,115,317,99,224,95,150"/>
+<area shape="rect" id="Node000006" href="$d6/d28/classyaze_1_1net_1_1RomVersionManager.html" title="Manages ROM versioning, snapshots, and rollback capabilities." alt="" coords="114,198,312,223"/>
+<area shape="poly" id="edge4_Node000006_Node000002" title=" " alt="" coords="127,142,198,195,195,199,124,146"/>
+<area shape="rect" id="Node000003" href="$db/df5/structyaze_1_1project_1_1ResourceLabelManager.html" title=" " alt="" coords="5,5,191,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="101,61,101,109,95,109,95,61"/>
+<area shape="poly" id="edge3_Node000001_Node000006" title=" " alt="" coords="189,236,169,260,153,287,145,314,140,342,139,390,134,389,135,341,139,313,148,285,165,257,185,233"/>
+<area shape="rect" id="Node000008" href="$d8/d96/classyaze_1_1net_1_1ProposalApprovalManager.html" title="Manages proposal approval workflow for collaborative sessions." alt="" coords="243,286,422,327"/>
+<area shape="poly" id="edge6_Node000008_Node000006" title=" " alt="" coords="241,231,309,284,306,288,238,235"/>
+<area shape="poly" id="edge5_Node000001_Node000008" title=" " alt="" coords="283,337,177,392,175,387,280,332"/>
 </map>

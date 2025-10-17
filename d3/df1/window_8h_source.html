@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.9.8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>yaze: src/app/core/window.h Source File</title>
+<title>yaze: src/app/platform/window.h Source File</title>
 <link href="../../tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript">var page_layout=1;</script>
 <script type="text/javascript" src="../../jquery.js"></script>
@@ -111,7 +111,7 @@ $(document).ready(function(){initNavTree('d3/df1/window_8h_source.html','../../'
 <div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span><span class="preprocessor">#include &quot;absl/status/status.h&quot;</span></div>
 <div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span><span class="preprocessor">#include &quot;absl/strings/str_format.h&quot;</span></div>
 <div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="preprocessor">#include &quot;<a class="code" href="../../d5/dd7/sdl__deleter_8h.html">util/sdl_deleter.h</a>&quot;</span></div>
-<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span><span class="preprocessor">#include &quot;<a class="code" href="../../da/dcb/bitmap_8h.html">app/gfx/bitmap.h</a>&quot;</span></div>
+<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span><span class="preprocessor">#include &quot;<a class="code" href="../../da/dcb/bitmap_8h.html">app/gfx/core/bitmap.h</a>&quot;</span></div>
 <div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span><span class="preprocessor">#include &quot;<a class="code" href="../../df/d18/irenderer_8h.html">app/gfx/backend/irenderer.h</a>&quot;</span></div>
 <div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span> </div>
 <div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span><span class="keyword">namespace </span><a class="code hl_namespace" href="../../dc/d46/namespaceyaze.html">yaze</a> {</div>
@@ -142,7 +142,7 @@ $(document).ready(function(){initNavTree('d3/df1/window_8h_source.html','../../'
 <div class="ttc" id="anamespaceyaze_1_1core_html_a0f3dc6283ebf6a0957247ec1ca09c657"><div class="ttname"><a href="../../db/d33/namespaceyaze_1_1core.html#a0f3dc6283ebf6a0957247ec1ca09c657">yaze::core::ShutdownWindow</a></div><div class="ttdeci">absl::Status ShutdownWindow(Window &amp;window)</div><div class="ttdef"><b>Definition</b> <a href="../../d7/d60/window_8cc_source.html#l00137">window.cc:137</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1core_html_ad4a900088575fbf46321559795839a51"><div class="ttname"><a href="../../db/d33/namespaceyaze_1_1core.html#ad4a900088575fbf46321559795839a51">yaze::core::HandleEvents</a></div><div class="ttdeci">absl::Status HandleEvents(Window &amp;window)</div><div class="ttdef"><b>Definition</b> <a href="../../d7/d60/window_8cc_source.html#l00177">window.cc:177</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1core_html_ad9ef5ea7c217135fe0d8756429f83839"><div class="ttname"><a href="../../db/d33/namespaceyaze_1_1core.html#ad9ef5ea7c217135fe0d8756429f83839">yaze::core::CreateWindow</a></div><div class="ttdeci">absl::Status CreateWindow(Window &amp;window, gfx::IRenderer *renderer, int flags)</div><div class="ttdef"><b>Definition</b> <a href="../../d7/d60/window_8cc_source.html#l00057">window.cc:57</a></div></div>
-<div class="ttc" id="anamespaceyaze_html"><div class="ttname"><a href="../../dc/d46/namespaceyaze.html">yaze</a></div><div class="ttdoc">Main namespace for the application.</div><div class="ttdef"><b>Definition</b> <a href="../../db/d17/asar__wrapper_8cc_source.html#l00014">asar_wrapper.cc:14</a></div></div>
+<div class="ttc" id="anamespaceyaze_html"><div class="ttname"><a href="../../dc/d46/namespaceyaze.html">yaze</a></div><div class="ttdoc">Main namespace for the application.</div><div class="ttdef"><b>Definition</b> <a href="../../da/d0c/controller_8cc_source.html#l00020">controller.cc:20</a></div></div>
 <div class="ttc" id="asdl__deleter_8h_html"><div class="ttname"><a href="../../d5/dd7/sdl__deleter_8h.html">sdl_deleter.h</a></div></div>
 <div class="ttc" id="astructyaze_1_1core_1_1Window_html"><div class="ttname"><a href="../../de/d86/structyaze_1_1core_1_1Window.html">yaze::core::Window</a></div><div class="ttdef"><b>Definition</b> <a href="../../d3/df1/window_8h_source.html#l00017">window.h:17</a></div></div>
 <div class="ttc" id="astructyaze_1_1core_1_1Window_html_a10f471fcb56fd4388fb62b37fc7a3c1d"><div class="ttname"><a href="../../de/d86/structyaze_1_1core_1_1Window.html#a10f471fcb56fd4388fb62b37fc7a3c1d">yaze::core::Window::window_</a></div><div class="ttdeci">std::shared_ptr&lt; SDL_Window &gt; window_</div><div class="ttdef"><b>Definition</b> <a href="../../d3/df1/window_8h_source.html#l00018">window.h:18</a></div></div>
@@ -154,7 +154,7 @@ $(document).ready(function(){initNavTree('d3/df1/window_8h_source.html','../../'
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="navelem"><a class="el" href="../../dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="../../dir_5194e5fea318fda12687127c23f8aba1.html">app</a></li><li class="navelem"><a class="el" href="../../dir_fcc5e025f1b672ef47e35e5c700d9477.html">core</a></li><li class="navelem"><a class="el" href="../../d3/df1/window_8h.html">window.h</a></li>
+    <li class="navelem"><a class="el" href="../../dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="../../dir_5194e5fea318fda12687127c23f8aba1.html">app</a></li><li class="navelem"><a class="el" href="../../dir_b5073da0a0de1fec69310c7003d323a8.html">platform</a></li><li class="navelem"><a class="el" href="../../d3/df1/window_8h.html">window.h</a></li>
     <li class="footer">Generated by <a href="https://www.doxygen.org/index.html"><img class="footer" src="../../doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
   </ul>
 </div>

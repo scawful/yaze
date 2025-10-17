@@ -1,0 +1,12 @@
+<map id="yaze::gfx::PaletteManager::ResetPalette" name="yaze::gfx::PaletteManager::ResetPalette">
+<area shape="rect" id="Node000001" title="Reset an entire palette to original ROM values." alt="" coords="5,63,173,103"/>
+<area shape="rect" id="Node000002" href="$d7/d39/classyaze_1_1gfx_1_1PaletteManager.html#a2e456087d1fa6be7f676ff21a50be921" title="Helper: Get mutable palette group." alt="" coords="221,63,388,103"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="173,80,205,80,205,86,173,86"/>
+<area shape="rect" id="Node000003" href="$d7/d39/classyaze_1_1gfx_1_1PaletteManager.html#abb4b2a02a30c7d06ee74c0c4b93c86fb" title="Check if manager is initialized." alt="" coords="436,5,603,46"/>
+<area shape="poly" id="edge4_Node000001_Node000003" title=" " alt="" coords="167,59,220,48,323,35,420,27,421,33,324,41,221,54,168,65"/>
+<area shape="rect" id="Node000005" href="$d7/d39/classyaze_1_1gfx_1_1PaletteManager.html#a60f767b79f34e46266cf4dec82a96c7c" title="Helper: Notify all listeners of an event." alt="" coords="221,128,388,169"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="159,101,221,120,219,125,157,106"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="382,60,425,48,427,53,384,65"/>
+<area shape="rect" id="Node000004" href="$d6/d30/classyaze_1_1Rom.html#a35e5778c114edd659015f76c6d067cd8" title=" " alt="" coords="454,71,586,111"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="389,83,438,85,438,91,388,89"/>
+</map>

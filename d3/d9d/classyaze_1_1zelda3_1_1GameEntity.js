@@ -12,6 +12,7 @@ var classyaze_1_1zelda3_1_1GameEntity =
       [ "kDungeonSprite", "d3/d9d/classyaze_1_1zelda3_1_1GameEntity.html#a04318cae2fac826a7a06bdbb6e7948b2aa988cf0fcaba7dc6442ff03ead1cba26", null ]
     ] ],
     [ "GameEntity", "d3/d9d/classyaze_1_1zelda3_1_1GameEntity.html#a6bb1a2cdae1be1ad21fc1b637727eb68", null ],
+    [ "~GameEntity", "d3/d9d/classyaze_1_1zelda3_1_1GameEntity.html#ab02a3afa2614bfde61bb711c31900475", null ],
     [ "set_x", "d3/d9d/classyaze_1_1zelda3_1_1GameEntity.html#ae907b49a8e22053ae8b8a1d15f82ab07", null ],
     [ "set_y", "d3/d9d/classyaze_1_1zelda3_1_1GameEntity.html#aee3698feddd380f910b96d88539e779e", null ],
     [ "UpdateMapProperties", "d3/d9d/classyaze_1_1zelda3_1_1GameEntity.html#ae6fb12db3dc4ea2f15b02ea0ab56ac86", null ],

@@ -190,6 +190,8 @@ Private Attributes</h2></td></tr>
 <tr class="separator:a357029ac656b6272a45b82dc8ccbd5df"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af89a3e3ecc6f03629ea8bda0938be5c3" id="r_af89a3e3ecc6f03629ea8bda0938be5c3"><td class="memItemLeft" align="right" valign="top">bool *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/d96/classyaze_1_1gui_1_1EditorCard.html#af89a3e3ecc6f03629ea8bda0938be5c3">p_open_</a> = nullptr</td></tr>
 <tr class="separator:af89a3e3ecc6f03629ea8bda0938be5c3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad00064ea0a1db62ec1a332532506bfd2" id="r_ad00064ea0a1db62ec1a332532506bfd2"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/d96/classyaze_1_1gui_1_1EditorCard.html#ad00064ea0a1db62ec1a332532506bfd2">imgui_begun_</a> = false</td></tr>
+<tr class="separator:ad00064ea0a1db62ec1a332532506bfd2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a619a69ca17d8a446d30fd7cb732045c2" id="r_a619a69ca17d8a446d30fd7cb732045c2"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/d96/classyaze_1_1gui_1_1EditorCard.html#a619a69ca17d8a446d30fd7cb732045c2">headless_</a> = false</td></tr>
 <tr class="separator:a619a69ca17d8a446d30fd7cb732045c2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6e1ee83a39b46cb2f7d5626031a7913a" id="r_a6e1ee83a39b46cb2f7d5626031a7913a"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/d96/classyaze_1_1gui_1_1EditorCard.html#a6e1ee83a39b46cb2f7d5626031a7913a">docking_allowed_</a> = true</td></tr>
@@ -215,9 +217,9 @@ Private Attributes</h2></td></tr>
 <div class="line">tile_card.SetPosition(CardPosition::Right);</div>
 <div class="line"> </div>
 <div class="line"><span class="keywordflow">if</span> (tile_card.Begin()) {</div>
-<div class="line">  <span class="comment">// Draw tile selector content</span></div>
-<div class="line">  tile_card.End();</div>
+<div class="line">  <span class="comment">// Draw tile selector content when visible</span></div>
 <div class="line">}</div>
+<div class="line">tile_card.End();  <span class="comment">// Always call End() after Begin()</span></div>
 <div class="ttc" id="aclassyaze_1_1gui_1_1EditorCard_html"><div class="ttname"><a href="../../d4/d96/classyaze_1_1gui_1_1EditorCard.html">yaze::gui::EditorCard</a></div><div class="ttdoc">Draggable, dockable card for editor sub-windows.</div><div class="ttdef"><b>Definition</b> <a href="../../d5/d1d/editor__layout_8h_source.html#l00106">editor_layout.h:106</a></div></div>
 <div class="ttc" id="aicons_8h_html_a02efd072d0b725a38998bb0824c6dcd0"><div class="ttname"><a href="../../de/dbf/icons_8h.html#a02efd072d0b725a38998bb0824c6dcd0">ICON_MD_GRID_VIEW</a></div><div class="ttdeci">#define ICON_MD_GRID_VIEW</div><div class="ttdef"><b>Definition</b> <a href="../../de/dbf/icons_8h_source.html#l00895">icons.h:895</a></div></div>
 </div><!-- fragment --> 
@@ -356,7 +358,7 @@ Private Attributes</h2></td></tr>
 
 <p class="reference">References <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00149">default_size_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d3/d91/object__editor__card_8cc_source.html#l00016">yaze::editor::ObjectEditorCard::Draw()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00952">yaze::editor::DungeonEditorV2::DrawDebugControlsCard()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00606">yaze::editor::DungeonEditorV2::DrawEntrancesListCard()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00852">yaze::editor::DungeonEditorV2::DrawRoomGraphicsCard()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00707">yaze::editor::DungeonEditorV2::DrawRoomMatrixCard()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00539">yaze::editor::DungeonEditorV2::DrawRoomsListCard()</a>, <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00347">yaze::emu::Emulator::RenderEmulatorInterface()</a>, <a class="el" href="../../d9/d8a/overworld__editor_8cc_source.html#l00185">yaze::editor::OverworldEditor::Update()</a>, and <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00169">yaze::editor::DungeonEditorV2::Update()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d3/d91/object__editor__card_8cc_source.html#l00016">yaze::editor::ObjectEditorCard::Draw()</a>, <a class="el" href="../../dc/d3a/app_2editor_2palette_2palette__editor_8cc_source.html#l01013">yaze::editor::PaletteEditor::DrawCustomPaletteCard()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00843">yaze::editor::DungeonEditorV2::DrawDebugControlsCard()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00503">yaze::editor::DungeonEditorV2::DrawEntrancesListCard()</a>, <a class="el" href="../../dc/d3a/app_2editor_2palette_2palette__editor_8cc_source.html#l00955">yaze::editor::PaletteEditor::DrawQuickAccessCard()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00747">yaze::editor::DungeonEditorV2::DrawRoomGraphicsCard()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00602">yaze::editor::DungeonEditorV2::DrawRoomMatrixCard()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00438">yaze::editor::DungeonEditorV2::DrawRoomsListCard()</a>, <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00363">yaze::emu::Emulator::RenderEmulatorInterface()</a>, <a class="el" href="../../d9/d8a/overworld__editor_8cc_source.html#l00204">yaze::editor::OverworldEditor::Update()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00181">yaze::editor::DungeonEditorV2::Update()</a>, <a class="el" href="../../d4/dbe/graphics__editor_8cc_source.html#l00103">yaze::editor::GraphicsEditor::Update()</a>, <a class="el" href="../../de/d57/screen__editor_8cc_source.html#l00109">yaze::editor::ScreenEditor::Update()</a>, <a class="el" href="../../d9/d47/message__editor_8cc_source.html#l00148">yaze::editor::MessageEditor::Update()</a>, <a class="el" href="../../dc/d9f/music__editor_8cc_source.html#l00039">yaze::editor::MusicEditor::Update()</a>, <a class="el" href="../../dc/d3a/app_2editor_2palette_2palette__editor_8cc_source.html#l00336">yaze::editor::PaletteEditor::Update()</a>, <a class="el" href="../../db/d30/sprite__editor_8cc_source.html#l00048">yaze::editor::SpriteEditor::Update()</a>, and <a class="el" href="../../d6/dbd/settings__editor_8cc_source.html#l00092">yaze::editor::SettingsEditor::Update()</a>.</p>
 
 </div>
 </div>
@@ -380,7 +382,7 @@ Private Attributes</h2></td></tr>
 
 <p class="reference">References <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00150">position_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d3/d91/object__editor__card_8cc_source.html#l00016">yaze::editor::ObjectEditorCard::Draw()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00852">yaze::editor::DungeonEditorV2::DrawRoomGraphicsCard()</a>, <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00347">yaze::emu::Emulator::RenderEmulatorInterface()</a>, and <a class="el" href="../../d9/d8a/overworld__editor_8cc_source.html#l00185">yaze::editor::OverworldEditor::Update()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d3/d91/object__editor__card_8cc_source.html#l00016">yaze::editor::ObjectEditorCard::Draw()</a>, <a class="el" href="../../dc/d3a/app_2editor_2palette_2palette__editor_8cc_source.html#l01013">yaze::editor::PaletteEditor::DrawCustomPaletteCard()</a>, <a class="el" href="../../dc/d3a/app_2editor_2palette_2palette__editor_8cc_source.html#l00955">yaze::editor::PaletteEditor::DrawQuickAccessCard()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00747">yaze::editor::DungeonEditorV2::DrawRoomGraphicsCard()</a>, and <a class="el" href="../../d9/d8a/overworld__editor_8cc_source.html#l00204">yaze::editor::OverworldEditor::Update()</a>.</p>
 
 </div>
 </div>
@@ -470,7 +472,7 @@ Private Attributes</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00124">124</a> of file <a class="el" href="../../d5/d1d/editor__layout_8h_source.html">editor_layout.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00159">headless_</a>.</p>
+<p class="reference">References <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00160">headless_</a>.</p>
 
 </div>
 </div>
@@ -500,7 +502,7 @@ Private Attributes</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00125">125</a> of file <a class="el" href="../../d5/d1d/editor__layout_8h_source.html">editor_layout.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00160">docking_allowed_</a>.</p>
+<p class="reference">References <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00161">docking_allowed_</a>.</p>
 
 </div>
 </div>
@@ -530,7 +532,7 @@ Private Attributes</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00126">126</a> of file <a class="el" href="../../d5/d1d/editor__layout_8h_source.html">editor_layout.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00161">icon_collapsible_</a>.</p>
+<p class="reference">References <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00162">icon_collapsible_</a>.</p>
 
 </div>
 </div>
@@ -552,9 +554,9 @@ Private Attributes</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00250">250</a> of file <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html">editor_layout.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d4/d96/classyaze_1_1gui_1_1EditorCard.html#a6d7f9e282571c88aaf0e1d66c981af8ba2ad9d63b69c4a10a5cc9cad923133bc4">Bottom</a>, <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00152">closable_</a>, <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00162">collapsed_to_icon_</a>, <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00149">default_size_</a>, <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00160">docking_allowed_</a>, <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00344">DrawFloatingIconButton()</a>, <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00154">first_draw_</a>, <a class="el" href="../../d4/d96/classyaze_1_1gui_1_1EditorCard.html#a6d7f9e282571c88aaf0e1d66c981af8bac8df43648942ec3a9aec140f07f47b7c">Floating</a>, <a class="el" href="../../d4/d96/classyaze_1_1gui_1_1EditorCard.html#a6d7f9e282571c88aaf0e1d66c981af8bab24ce0cd392a5b0b8dedc66c25213594">Free</a>, <a class="el" href="../../d8/dfa/ui__helpers_8cc_source.html#l00040">yaze::gui::GetAccentColor()</a>, <a class="el" href="../../d8/dfa/ui__helpers_8cc_source.html#l00016">yaze::gui::GetThemeColor()</a>, <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00159">headless_</a>, <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00147">icon_</a>, <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00161">icon_collapsible_</a>, <a class="el" href="../../d3/d10/widget__id__registry_8cc_source.html#l00058">yaze::gui::WidgetIdRegistry::Instance()</a>, <a class="el" href="../../d4/d96/classyaze_1_1gui_1_1EditorCard.html#a6d7f9e282571c88aaf0e1d66c981af8ba945d5e233cf7d6240f6b783b36a374ff">Left</a>, <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00156">p_open_</a>, <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00150">position_</a>, <a class="el" href="../../d3/d10/widget__id__registry_8cc_source.html#l00158">yaze::gui::WidgetIdRegistry::RegisterWidget()</a>, <a class="el" href="../../d4/d96/classyaze_1_1gui_1_1EditorCard.html#a6d7f9e282571c88aaf0e1d66c981af8ba92b09c7c48c520c3c55e497875da437c">Right</a>, and <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00146">title_</a>.</p>
+<p class="reference">References <a class="el" href="../../d4/d96/classyaze_1_1gui_1_1EditorCard.html#a6d7f9e282571c88aaf0e1d66c981af8ba2ad9d63b69c4a10a5cc9cad923133bc4">Bottom</a>, <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00152">closable_</a>, <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00163">collapsed_to_icon_</a>, <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00149">default_size_</a>, <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00161">docking_allowed_</a>, <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00358">DrawFloatingIconButton()</a>, <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00154">first_draw_</a>, <a class="el" href="../../d4/d96/classyaze_1_1gui_1_1EditorCard.html#a6d7f9e282571c88aaf0e1d66c981af8bac8df43648942ec3a9aec140f07f47b7c">Floating</a>, <a class="el" href="../../d4/d96/classyaze_1_1gui_1_1EditorCard.html#a6d7f9e282571c88aaf0e1d66c981af8bab24ce0cd392a5b0b8dedc66c25213594">Free</a>, <a class="el" href="../../d8/dfa/ui__helpers_8cc_source.html#l00041">yaze::gui::GetAccentColor()</a>, <a class="el" href="../../d8/d65/theme__manager_8h_source.html#l00262">yaze::gui::GetThemeColor()</a>, <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00160">headless_</a>, <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00147">icon_</a>, <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00162">icon_collapsible_</a>, <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00157">imgui_begun_</a>, <a class="el" href="../../d3/d10/widget__id__registry_8cc_source.html#l00058">yaze::gui::WidgetIdRegistry::Instance()</a>, <a class="el" href="../../d4/d96/classyaze_1_1gui_1_1EditorCard.html#a6d7f9e282571c88aaf0e1d66c981af8ba945d5e233cf7d6240f6b783b36a374ff">Left</a>, <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00156">p_open_</a>, <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00150">position_</a>, <a class="el" href="../../d3/d10/widget__id__registry_8cc_source.html#l00158">yaze::gui::WidgetIdRegistry::RegisterWidget()</a>, <a class="el" href="../../d4/d96/classyaze_1_1gui_1_1EditorCard.html#a6d7f9e282571c88aaf0e1d66c981af8ba92b09c7c48c520c3c55e497875da437c">Right</a>, and <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00146">title_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d3/d91/object__editor__card_8cc_source.html#l00016">yaze::editor::ObjectEditorCard::Draw()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00952">yaze::editor::DungeonEditorV2::DrawDebugControlsCard()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00606">yaze::editor::DungeonEditorV2::DrawEntrancesListCard()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00338">yaze::editor::DungeonEditorV2::DrawLayout()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00852">yaze::editor::DungeonEditorV2::DrawRoomGraphicsCard()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00707">yaze::editor::DungeonEditorV2::DrawRoomMatrixCard()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00539">yaze::editor::DungeonEditorV2::DrawRoomsListCard()</a>, <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00347">yaze::emu::Emulator::RenderEmulatorInterface()</a>, <a class="el" href="../../d9/d8a/overworld__editor_8cc_source.html#l00185">yaze::editor::OverworldEditor::Update()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00169">yaze::editor::DungeonEditorV2::Update()</a>, <a class="el" href="../../d4/dbe/graphics__editor_8cc_source.html#l00126">yaze::editor::GraphicsEditor::Update()</a>, <a class="el" href="../../de/d57/screen__editor_8cc_source.html#l00121">yaze::editor::ScreenEditor::Update()</a>, <a class="el" href="../../db/d30/sprite__editor_8cc_source.html#l00057">yaze::editor::SpriteEditor::Update()</a>, and <a class="el" href="../../d5/da3/assembly__editor_8cc_source.html#l00223">yaze::editor::AssemblyEditor::UpdateCodeView()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d3/d91/object__editor__card_8cc_source.html#l00016">yaze::editor::ObjectEditorCard::Draw()</a>, <a class="el" href="../../dc/d3a/app_2editor_2palette_2palette__editor_8cc_source.html#l01013">yaze::editor::PaletteEditor::DrawCustomPaletteCard()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00843">yaze::editor::DungeonEditorV2::DrawDebugControlsCard()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00503">yaze::editor::DungeonEditorV2::DrawEntrancesListCard()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00237">yaze::editor::DungeonEditorV2::DrawLayout()</a>, <a class="el" href="../../dc/d3a/app_2editor_2palette_2palette__editor_8cc_source.html#l00955">yaze::editor::PaletteEditor::DrawQuickAccessCard()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00747">yaze::editor::DungeonEditorV2::DrawRoomGraphicsCard()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00602">yaze::editor::DungeonEditorV2::DrawRoomMatrixCard()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00438">yaze::editor::DungeonEditorV2::DrawRoomsListCard()</a>, <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00363">yaze::emu::Emulator::RenderEmulatorInterface()</a>, <a class="el" href="../../d9/d8a/overworld__editor_8cc_source.html#l00204">yaze::editor::OverworldEditor::Update()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00181">yaze::editor::DungeonEditorV2::Update()</a>, <a class="el" href="../../d4/dbe/graphics__editor_8cc_source.html#l00103">yaze::editor::GraphicsEditor::Update()</a>, <a class="el" href="../../de/d57/screen__editor_8cc_source.html#l00109">yaze::editor::ScreenEditor::Update()</a>, <a class="el" href="../../d9/d47/message__editor_8cc_source.html#l00148">yaze::editor::MessageEditor::Update()</a>, <a class="el" href="../../dc/d9f/music__editor_8cc_source.html#l00039">yaze::editor::MusicEditor::Update()</a>, <a class="el" href="../../dc/d3a/app_2editor_2palette_2palette__editor_8cc_source.html#l00336">yaze::editor::PaletteEditor::Update()</a>, <a class="el" href="../../db/d30/sprite__editor_8cc_source.html#l00048">yaze::editor::SpriteEditor::Update()</a>, <a class="el" href="../../d6/dbd/settings__editor_8cc_source.html#l00092">yaze::editor::SettingsEditor::Update()</a>, and <a class="el" href="../../d5/da3/assembly__editor_8cc_source.html#l00237">yaze::editor::AssemblyEditor::UpdateCodeView()</a>.</p>
 
 </div>
 </div>
@@ -573,11 +575,11 @@ Private Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00329">329</a> of file <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html">editor_layout.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00339">339</a> of file <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html">editor_layout.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00155">focused_</a>.</p>
+<p class="reference">References <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00155">focused_</a>, and <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00157">imgui_begun_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d3/d91/object__editor__card_8cc_source.html#l00016">yaze::editor::ObjectEditorCard::Draw()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00952">yaze::editor::DungeonEditorV2::DrawDebugControlsCard()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00606">yaze::editor::DungeonEditorV2::DrawEntrancesListCard()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00338">yaze::editor::DungeonEditorV2::DrawLayout()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00852">yaze::editor::DungeonEditorV2::DrawRoomGraphicsCard()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00707">yaze::editor::DungeonEditorV2::DrawRoomMatrixCard()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00539">yaze::editor::DungeonEditorV2::DrawRoomsListCard()</a>, <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00347">yaze::emu::Emulator::RenderEmulatorInterface()</a>, <a class="el" href="../../d9/d8a/overworld__editor_8cc_source.html#l00185">yaze::editor::OverworldEditor::Update()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00169">yaze::editor::DungeonEditorV2::Update()</a>, <a class="el" href="../../d4/dbe/graphics__editor_8cc_source.html#l00126">yaze::editor::GraphicsEditor::Update()</a>, <a class="el" href="../../de/d57/screen__editor_8cc_source.html#l00121">yaze::editor::ScreenEditor::Update()</a>, <a class="el" href="../../db/d30/sprite__editor_8cc_source.html#l00057">yaze::editor::SpriteEditor::Update()</a>, and <a class="el" href="../../d5/da3/assembly__editor_8cc_source.html#l00223">yaze::editor::AssemblyEditor::UpdateCodeView()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d3/d91/object__editor__card_8cc_source.html#l00016">yaze::editor::ObjectEditorCard::Draw()</a>, <a class="el" href="../../dc/d3a/app_2editor_2palette_2palette__editor_8cc_source.html#l01013">yaze::editor::PaletteEditor::DrawCustomPaletteCard()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00843">yaze::editor::DungeonEditorV2::DrawDebugControlsCard()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00503">yaze::editor::DungeonEditorV2::DrawEntrancesListCard()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00237">yaze::editor::DungeonEditorV2::DrawLayout()</a>, <a class="el" href="../../dc/d3a/app_2editor_2palette_2palette__editor_8cc_source.html#l00955">yaze::editor::PaletteEditor::DrawQuickAccessCard()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00747">yaze::editor::DungeonEditorV2::DrawRoomGraphicsCard()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00602">yaze::editor::DungeonEditorV2::DrawRoomMatrixCard()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00438">yaze::editor::DungeonEditorV2::DrawRoomsListCard()</a>, <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00363">yaze::emu::Emulator::RenderEmulatorInterface()</a>, <a class="el" href="../../d9/d8a/overworld__editor_8cc_source.html#l00204">yaze::editor::OverworldEditor::Update()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00181">yaze::editor::DungeonEditorV2::Update()</a>, <a class="el" href="../../d4/dbe/graphics__editor_8cc_source.html#l00103">yaze::editor::GraphicsEditor::Update()</a>, <a class="el" href="../../de/d57/screen__editor_8cc_source.html#l00109">yaze::editor::ScreenEditor::Update()</a>, <a class="el" href="../../d9/d47/message__editor_8cc_source.html#l00148">yaze::editor::MessageEditor::Update()</a>, <a class="el" href="../../dc/d9f/music__editor_8cc_source.html#l00039">yaze::editor::MusicEditor::Update()</a>, <a class="el" href="../../dc/d3a/app_2editor_2palette_2palette__editor_8cc_source.html#l00336">yaze::editor::PaletteEditor::Update()</a>, <a class="el" href="../../db/d30/sprite__editor_8cc_source.html#l00048">yaze::editor::SpriteEditor::Update()</a>, <a class="el" href="../../d6/dbd/settings__editor_8cc_source.html#l00092">yaze::editor::SettingsEditor::Update()</a>, and <a class="el" href="../../d5/da3/assembly__editor_8cc_source.html#l00237">yaze::editor::AssemblyEditor::UpdateCodeView()</a>.</p>
 
 </div>
 </div>
@@ -655,7 +657,7 @@ Private Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00338">338</a> of file <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html">editor_layout.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00352">352</a> of file <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html">editor_layout.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00155">focused_</a>, and <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00148">window_name_</a>.</p>
 
@@ -742,9 +744,9 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00344">344</a> of file <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html">editor_layout.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00358">358</a> of file <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html">editor_layout.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00162">collapsed_to_icon_</a>, <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00147">icon_</a>, <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00163">saved_icon_pos_</a>, <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00146">title_</a>, and <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00148">window_name_</a>.</p>
+<p class="reference">References <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00163">collapsed_to_icon_</a>, <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00147">icon_</a>, <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00164">saved_icon_pos_</a>, <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00146">title_</a>, and <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00148">window_name_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00250">Begin()</a>.</p>
 
@@ -773,7 +775,7 @@ Private Attributes</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00146">146</a> of file <a class="el" href="../../d5/d1d/editor__layout_8h_source.html">editor_layout.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00250">Begin()</a>, <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00344">DrawFloatingIconButton()</a>, <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00236">EditorCard()</a>, and <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00231">EditorCard()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00250">Begin()</a>, <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00358">DrawFloatingIconButton()</a>, <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00236">EditorCard()</a>, and <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00231">EditorCard()</a>.</p>
 
 </div>
 </div>
@@ -799,7 +801,7 @@ Private Attributes</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00147">147</a> of file <a class="el" href="../../d5/d1d/editor__layout_8h_source.html">editor_layout.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00250">Begin()</a>, <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00344">DrawFloatingIconButton()</a>, <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00236">EditorCard()</a>, and <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00231">EditorCard()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00250">Begin()</a>, <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00358">DrawFloatingIconButton()</a>, <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00236">EditorCard()</a>, and <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00231">EditorCard()</a>.</p>
 
 </div>
 </div>
@@ -825,7 +827,7 @@ Private Attributes</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00148">148</a> of file <a class="el" href="../../d5/d1d/editor__layout_8h_source.html">editor_layout.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00344">DrawFloatingIconButton()</a>, <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00236">EditorCard()</a>, <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00231">EditorCard()</a>, <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00338">Focus()</a>, and <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00143">GetWindowName()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00358">DrawFloatingIconButton()</a>, <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00236">EditorCard()</a>, <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00231">EditorCard()</a>, <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00352">Focus()</a>, and <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00143">GetWindowName()</a>.</p>
 
 </div>
 </div>
@@ -1007,7 +1009,7 @@ Private Attributes</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00155">155</a> of file <a class="el" href="../../d5/d1d/editor__layout_8h_source.html">editor_layout.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00329">End()</a>, <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00338">Focus()</a>, and <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00140">IsFocused()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00339">End()</a>, <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00352">Focus()</a>, and <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00140">IsFocused()</a>.</p>
 
 </div>
 </div>
@@ -1037,6 +1039,32 @@ Private Attributes</h2></td></tr>
 
 </div>
 </div>
+<a id="ad00064ea0a1db62ec1a332532506bfd2" name="ad00064ea0a1db62ec1a332532506bfd2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad00064ea0a1db62ec1a332532506bfd2">&#9670;&#160;</a></span>imgui_begun_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool yaze::gui::EditorCard::imgui_begun_ = false</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00157">157</a> of file <a class="el" href="../../d5/d1d/editor__layout_8h_source.html">editor_layout.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00250">Begin()</a>, and <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00339">End()</a>.</p>
+
+</div>
+</div>
 <a id="a619a69ca17d8a446d30fd7cb732045c2" name="a619a69ca17d8a446d30fd7cb732045c2"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a619a69ca17d8a446d30fd7cb732045c2">&#9670;&#160;</a></span>headless_</h2>
 
@@ -1057,7 +1085,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00159">159</a> of file <a class="el" href="../../d5/d1d/editor__layout_8h_source.html">editor_layout.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00160">160</a> of file <a class="el" href="../../d5/d1d/editor__layout_8h_source.html">editor_layout.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00250">Begin()</a>, and <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00124">SetHeadless()</a>.</p>
 
@@ -1083,7 +1111,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00160">160</a> of file <a class="el" href="../../d5/d1d/editor__layout_8h_source.html">editor_layout.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00161">161</a> of file <a class="el" href="../../d5/d1d/editor__layout_8h_source.html">editor_layout.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00250">Begin()</a>, and <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00125">SetDockingAllowed()</a>.</p>
 
@@ -1109,7 +1137,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00161">161</a> of file <a class="el" href="../../d5/d1d/editor__layout_8h_source.html">editor_layout.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00162">162</a> of file <a class="el" href="../../d5/d1d/editor__layout_8h_source.html">editor_layout.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00250">Begin()</a>, and <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00126">SetIconCollapsible()</a>.</p>
 
@@ -1135,9 +1163,9 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00162">162</a> of file <a class="el" href="../../d5/d1d/editor__layout_8h_source.html">editor_layout.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00163">163</a> of file <a class="el" href="../../d5/d1d/editor__layout_8h_source.html">editor_layout.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00250">Begin()</a>, and <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00344">DrawFloatingIconButton()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00250">Begin()</a>, and <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00358">DrawFloatingIconButton()</a>.</p>
 
 </div>
 </div>
@@ -1161,15 +1189,15 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00163">163</a> of file <a class="el" href="../../d5/d1d/editor__layout_8h_source.html">editor_layout.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00164">164</a> of file <a class="el" href="../../d5/d1d/editor__layout_8h_source.html">editor_layout.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00344">DrawFloatingIconButton()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00358">DrawFloatingIconButton()</a>.</p>
 
 </div>
 </div>
 <hr/>The documentation for this class was generated from the following files:<ul>
-<li>src/app/gui/<a class="el" href="../../d5/d1d/editor__layout_8h_source.html">editor_layout.h</a></li>
-<li>src/app/gui/<a class="el" href="../../d5/ddd/editor__layout_8cc_source.html">editor_layout.cc</a></li>
+<li>src/app/gui/app/<a class="el" href="../../d5/d1d/editor__layout_8h_source.html">editor_layout.h</a></li>
+<li>src/app/gui/app/<a class="el" href="../../d5/ddd/editor__layout_8cc_source.html">editor_layout.cc</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->

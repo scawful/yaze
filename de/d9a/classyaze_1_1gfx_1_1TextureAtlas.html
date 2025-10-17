@@ -117,13 +117,15 @@ Collaboration diagram for yaze::gfx::TextureAtlas:</div>
 <div class="dyncontent">
 <div class="center"><img src="../../d9/d0c/classyaze_1_1gfx_1_1TextureAtlas__coll__graph.png" border="0" usemap="#ayaze_1_1gfx_1_1TextureAtlas_coll__map" alt="Collaboration graph"/></div>
 <map name="ayaze_1_1gfx_1_1TextureAtlas_coll__map" id="ayaze_1_1gfx_1_1TextureAtlas_coll__map">
-<area shape="rect" title="Manages multiple textures packed into a single large texture for performance." alt="" coords="84,198,234,223"/>
-<area shape="rect" href="../../df/d0e/classyaze_1_1gfx_1_1Bitmap.html" title="Represents a bitmap image optimized for SNES ROM hacking." alt="" coords="100,109,218,135"/>
-<area shape="poly" title=" " alt="" coords="162,150,162,197,156,197,156,150"/>
-<area shape="rect" href="../../da/d68/classyaze_1_1gfx_1_1SnesPalette.html" title="Represents a palette of colors for the Super Nintendo Entertainment System (SNES)." alt="" coords="5,13,153,39"/>
-<area shape="poly" title=" " alt="" coords="101,49,151,107,147,110,97,52"/>
-<area shape="rect" href="../../d7/d95/structyaze_1_1gfx_1_1Bitmap_1_1DirtyRegion.html" title=" " alt="" coords="177,5,301,46"/>
-<area shape="poly" title=" " alt="" coords="215,60,171,111,167,107,211,56"/>
+<area shape="rect" title="Manages multiple textures packed into a single large texture for performance." alt="" coords="526,63,675,88"/>
+<area shape="rect" href="../../df/d0e/classyaze_1_1gfx_1_1Bitmap.html" title="Represents a bitmap image optimized for SNES ROM hacking." alt="" coords="277,63,394,88"/>
+<area shape="poly" title=" " alt="" coords="409,73,526,73,526,78,409,78"/>
+<area shape="rect" href="../../da/d68/classyaze_1_1gfx_1_1SnesPalette.html" title="Represents a palette of colors for the Super Nintendo Entertainment System (SNES)." alt="" coords="5,5,153,31"/>
+<area shape="poly" title=" " alt="" coords="160,32,253,53,281,59,280,65,252,58,159,37"/>
+<area shape="rect" href="../../d1/d13/structyaze_1_1gfx_1_1Bitmap_1_1BitmapMetadata.html" title="Metadata for tracking bitmap source format and palette requirements." alt="" coords="17,55,141,96"/>
+<area shape="poly" title=" " alt="" coords="156,73,276,73,276,78,156,78"/>
+<area shape="rect" href="../../d7/d95/structyaze_1_1gfx_1_1Bitmap_1_1DirtyRegion.html" title=" " alt="" coords="17,121,141,161"/>
+<area shape="poly" title=" " alt="" coords="155,119,281,86,283,92,156,124"/>
 </map>
 <center><span class="legend">[<a target="top" href="../../graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
@@ -312,7 +314,7 @@ Here is the call graph for this function:</div>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Pointer to allocated region, or nullptr if no space</dd></dl>
 <p>Uses simple rect packing algorithm. Future: implement more efficient packing. </p>
-<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000085">Todo:</a></b></dt><dd>Implement more efficient rect packing (shelf, guillotine, etc.) </dd></dl>
+<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000147">Todo:</a></b></dt><dd>Implement more efficient rect packing (shelf, guillotine, etc.) </dd></dl>
 
 <p class="definition">Definition at line <a class="el" href="../../d3/d1b/texture__atlas_8cc_source.html#l00016">16</a> of file <a class="el" href="../../d3/d1b/texture__atlas_8cc_source.html">texture_atlas.cc</a>.</p>
 
@@ -372,11 +374,11 @@ Here is the call graph for this function:</div>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Status of packing operation</dd></dl>
 <p>Copies pixel data from source bitmap into atlas at region coordinates. </p>
-<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000086">Todo:</a></b></dt><dd>Implement pixel copying from src to atlas_bitmap_ at region coordinates </dd></dl>
+<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000148">Todo:</a></b></dt><dd>Implement pixel copying from src to atlas_bitmap_ at region coordinates </dd></dl>
 
 <p class="definition">Definition at line <a class="el" href="../../d3/d1b/texture__atlas_8cc_source.html#l00043">43</a> of file <a class="el" href="../../d3/d1b/texture__atlas_8cc_source.html">texture_atlas.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../da/dcb/bitmap_8h_source.html#l00254">yaze::gfx::Bitmap::height()</a>, <a class="el" href="../../db/dd3/texture__atlas_8h_source.html#l00042">yaze::gfx::TextureAtlas::AtlasRegion::height</a>, <a class="el" href="../../db/dd3/texture__atlas_8h_source.html#l00044">yaze::gfx::TextureAtlas::AtlasRegion::in_use</a>, <a class="el" href="../../da/dcb/bitmap_8h_source.html#l00264">yaze::gfx::Bitmap::is_active()</a>, <a class="el" href="../../d7/d7f/log_8h_source.html#l00104">LOG_DEBUG</a>, <a class="el" href="../../db/dd3/texture__atlas_8h_source.html#l00043">yaze::gfx::TextureAtlas::AtlasRegion::source_id</a>, <a class="el" href="../../da/dcb/bitmap_8h_source.html#l00253">yaze::gfx::Bitmap::width()</a>, <a class="el" href="../../db/dd3/texture__atlas_8h_source.html#l00041">yaze::gfx::TextureAtlas::AtlasRegion::width</a>, <a class="el" href="../../db/dd3/texture__atlas_8h_source.html#l00039">yaze::gfx::TextureAtlas::AtlasRegion::x</a>, and <a class="el" href="../../db/dd3/texture__atlas_8h_source.html#l00040">yaze::gfx::TextureAtlas::AtlasRegion::y</a>.</p>
+<p class="reference">References <a class="el" href="../../da/dcb/bitmap_8h_source.html#l00283">yaze::gfx::Bitmap::height()</a>, <a class="el" href="../../db/dd3/texture__atlas_8h_source.html#l00042">yaze::gfx::TextureAtlas::AtlasRegion::height</a>, <a class="el" href="../../db/dd3/texture__atlas_8h_source.html#l00044">yaze::gfx::TextureAtlas::AtlasRegion::in_use</a>, <a class="el" href="../../da/dcb/bitmap_8h_source.html#l00293">yaze::gfx::Bitmap::is_active()</a>, <a class="el" href="../../d7/d7f/log_8h_source.html#l00104">LOG_DEBUG</a>, <a class="el" href="../../db/dd3/texture__atlas_8h_source.html#l00043">yaze::gfx::TextureAtlas::AtlasRegion::source_id</a>, <a class="el" href="../../da/dcb/bitmap_8h_source.html#l00282">yaze::gfx::Bitmap::width()</a>, <a class="el" href="../../db/dd3/texture__atlas_8h_source.html#l00041">yaze::gfx::TextureAtlas::AtlasRegion::width</a>, <a class="el" href="../../db/dd3/texture__atlas_8h_source.html#l00039">yaze::gfx::TextureAtlas::AtlasRegion::x</a>, and <a class="el" href="../../db/dd3/texture__atlas_8h_source.html#l00040">yaze::gfx::TextureAtlas::AtlasRegion::y</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -437,7 +439,7 @@ Here is the call graph for this function:</div>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Status of drawing operation</dd></dl>
 <p>Future: Integrate with renderer to draw atlas regions. </p>
-<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000087">Todo:</a></b></dt><dd>Integrate with renderer to draw atlas region at (dest_x, dest_y) </dd></dl>
+<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000149">Todo:</a></b></dt><dd>Integrate with renderer to draw atlas region at (dest_x, dest_y) </dd></dl>
 
 <p class="definition">Definition at line <a class="el" href="../../d3/d1b/texture__atlas_8cc_source.html#l00065">65</a> of file <a class="el" href="../../d3/d1b/texture__atlas_8cc_source.html">texture_atlas.cc</a>.</p>
 
@@ -925,8 +927,8 @@ Here is the call graph for this function:</div>
 </div>
 </div>
 <hr/>The documentation for this class was generated from the following files:<ul>
-<li>src/app/gfx/<a class="el" href="../../db/dd3/texture__atlas_8h_source.html">texture_atlas.h</a></li>
-<li>src/app/gfx/<a class="el" href="../../d3/d1b/texture__atlas_8cc_source.html">texture_atlas.cc</a></li>
+<li>src/app/gfx/render/<a class="el" href="../../db/dd3/texture__atlas_8h_source.html">texture_atlas.h</a></li>
+<li>src/app/gfx/render/<a class="el" href="../../d3/d1b/texture__atlas_8cc_source.html">texture_atlas.cc</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->

@@ -5,12 +5,13 @@ var classyaze_1_1editor_1_1MapPropertiesSystem =
     [ "ForceRefreshGraphicsCallback", "d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#a5fb18f3b4119c1f30f859e0ca6f7850e", null ],
     [ "MapPropertiesSystem", "d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#a363c5443f9668c862e91ff80858cef95", null ],
     [ "SetRefreshCallbacks", "d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#a7738a24a52d24d2d331b51ae7c5a8689", null ],
+    [ "SetEntityCallbacks", "d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#a5208963aef85a92375add994217e0ad8", null ],
     [ "DrawSimplifiedMapSettings", "d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#af13190b62324d112d646d6c5f91a12d2", null ],
     [ "DrawMapPropertiesPanel", "d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#a526d75aa0e1a930e3d0e51f8331deee0", null ],
     [ "DrawCustomBackgroundColorEditor", "d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#a9f174734623c84d71a6bafc06d70e068", null ],
     [ "DrawOverlayEditor", "d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#a28204da147523d30af76ad3ad3e8f32d", null ],
     [ "DrawOverlayPreviewOnMap", "d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#a4655981005022081b546243634c97153", null ],
-    [ "SetupCanvasContextMenu", "d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#ab0af7d1a9d7df73cfa9eef8ec64624e6", null ],
+    [ "SetupCanvasContextMenu", "d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#a1bdd34aac023852fa43e4d290e870561", null ],
     [ "DrawGraphicsPopup", "d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#afe8931050f666097ce65591c5eee5d1d", null ],
     [ "DrawPalettesPopup", "d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#a97d4a5326c87fba41d7d7c6a69f27758", null ],
     [ "DrawPropertiesPopup", "d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#a2bd278af0fe262342d95735db7fb1a6b", null ],
@@ -39,5 +40,6 @@ var classyaze_1_1editor_1_1MapPropertiesSystem =
     [ "refresh_overworld_map_", "d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#a0ec3f9e62f50eb197e9346a17d186fd6", null ],
     [ "refresh_map_palette_", "d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#a82e98169c794a318bf6aa705e225159d", null ],
     [ "refresh_tile16_blockset_", "d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#a45b19dfbe38133cb18744b551e952e72", null ],
-    [ "force_refresh_graphics_", "d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#aecd08960e6466ba32d94783cbd5b5ce5", null ]
+    [ "force_refresh_graphics_", "d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#aecd08960e6466ba32d94783cbd5b5ce5", null ],
+    [ "entity_insert_callback_", "d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#a7968e42c5cab7ce9aefdb16579d54b1e", null ]
 ];

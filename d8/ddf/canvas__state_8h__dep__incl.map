@@ -1,0 +1,13 @@
+<map id="src/app/gui/canvas/canvas_state.h" name="src/app/gui/canvas/canvas_state.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="111,5,242,46"/>
+<area shape="rect" id="Node000002" href="$d4/dcf/canvas_8h.html" title=" " alt="" coords="28,183,159,223"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="97,43,51,62,31,77,15,95,8,114,15,133,34,160,59,180,56,184,30,163,10,136,3,114,10,93,27,73,48,58,95,38"/>
+<area shape="rect" id="Node000076" href="$d5/d93/canvas__geometry_8h.html" title=" " alt="" coords="25,94,162,135"/>
+<area shape="poly" id="edge2_Node000001_Node000076" title=" " alt="" coords="149,59,114,95,110,92,145,56"/>
+<area shape="rect" id="Node000078" href="$da/d0e/canvas__interaction_8h.html" title="Free functions for canvas interaction handling." alt="" coords="187,94,331,135"/>
+<area shape="poly" id="edge4_Node000001_Node000078" title=" " alt="" coords="207,56,242,92,238,95,204,59"/>
+<area shape="rect" id="Node000081" href="$d6/db2/canvas__rendering_8h.html" title=" " alt="" coords="356,94,493,135"/>
+<area shape="poly" id="edge5_Node000001_Node000081" title=" " alt="" coords="248,49,369,91,367,96,246,54"/>
+<area shape="poly" id="edge3_Node000076_Node000002" title=" " alt="" coords="96,150,96,182,91,182,91,150"/>
+<area shape="poly" id="edge6_Node000081_Node000002" title=" " alt="" coords="341,140,160,187,159,182,340,135"/>
+</map>

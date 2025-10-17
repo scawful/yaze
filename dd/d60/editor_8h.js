@@ -1,7 +1,7 @@
 var editor_8h =
 [
-    [ "yaze::editor::EditorContext", "dc/d69/structyaze_1_1editor_1_1EditorContext.html", "dc/d69/structyaze_1_1editor_1_1EditorContext" ],
-    [ "yaze::editor::EditorContext::SharedClipboard", "d7/d4a/structyaze_1_1editor_1_1EditorContext_1_1SharedClipboard.html", "d7/d4a/structyaze_1_1editor_1_1EditorContext_1_1SharedClipboard" ],
+    [ "yaze::editor::EditorDependencies", "d9/d40/structyaze_1_1editor_1_1EditorDependencies.html", "d9/d40/structyaze_1_1editor_1_1EditorDependencies" ],
+    [ "yaze::editor::EditorDependencies::SharedClipboard", "dc/d8c/structyaze_1_1editor_1_1EditorDependencies_1_1SharedClipboard.html", "dc/d8c/structyaze_1_1editor_1_1EditorDependencies_1_1SharedClipboard" ],
     [ "yaze::editor::Editor", "d3/d9f/classyaze_1_1editor_1_1Editor.html", "d3/d9f/classyaze_1_1editor_1_1Editor" ],
     [ "EditorType", "dd/d60/editor_8h.html#a297b0603822af41a3d23fbc2da2a622a", [
       [ "kUnknown", "dd/d60/editor_8h.html#a297b0603822af41a3d23fbc2da2a622aa25c2dc47991b3df171ed5192bcf70390", null ],

@@ -154,6 +154,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:ae5edaa7fde331a8099f5b42cfc1a88e9 inherit pub_methods_classyaze_1_1cli_1_1resources_1_1CommandHandler" id="r_ae5edaa7fde331a8099f5b42cfc1a88e9"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="../../de/da2/structyaze_1_1cli_1_1resources_1_1CommandHandler_1_1Descriptor.html">Descriptor</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d22/classyaze_1_1cli_1_1resources_1_1CommandHandler.html#ae5edaa7fde331a8099f5b42cfc1a88e9">Describe</a> () const</td></tr>
 <tr class="memdesc:ae5edaa7fde331a8099f5b42cfc1a88e9 inherit pub_methods_classyaze_1_1cli_1_1resources_1_1CommandHandler"><td class="mdescLeft">&#160;</td><td class="mdescRight">Provide metadata for TUI/help summaries.  <br /></td></tr>
 <tr class="separator:ae5edaa7fde331a8099f5b42cfc1a88e9 inherit pub_methods_classyaze_1_1cli_1_1resources_1_1CommandHandler"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a15fd3019625d4423e15a6eefbfaaa612 inherit pub_methods_classyaze_1_1cli_1_1resources_1_1CommandHandler" id="r_a15fd3019625d4423e15a6eefbfaaa612"><td class="memItemLeft" align="right" valign="top">virtual std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d22/classyaze_1_1cli_1_1resources_1_1CommandHandler.html#a15fd3019625d4423e15a6eefbfaaa612">GetUsage</a> () const =0</td></tr>
+<tr class="memdesc:a15fd3019625d4423e15a6eefbfaaa612 inherit pub_methods_classyaze_1_1cli_1_1resources_1_1CommandHandler"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the command usage string.  <br /></td></tr>
+<tr class="separator:a15fd3019625d4423e15a6eefbfaaa612 inherit pub_methods_classyaze_1_1cli_1_1resources_1_1CommandHandler"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pro-methods" name="pro-methods"></a>
 Protected Member Functions</h2></td></tr>
@@ -172,9 +175,6 @@ Protected Member Functions</h2></td></tr>
 <tr class="memitem:a51438225e1b8815f2c47329cdbb771b7 inherit pro_methods_classyaze_1_1cli_1_1resources_1_1CommandHandler" id="r_a51438225e1b8815f2c47329cdbb771b7"><td class="memItemLeft" align="right" valign="top">virtual absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d22/classyaze_1_1cli_1_1resources_1_1CommandHandler.html#a51438225e1b8815f2c47329cdbb771b7">Execute</a> (<a class="el" href="../../d6/d30/classyaze_1_1Rom.html">Rom</a> *rom, const <a class="el" href="../../d5/dfa/classyaze_1_1cli_1_1resources_1_1ArgumentParser.html">ArgumentParser</a> &amp;parser, <a class="el" href="../../d2/d52/classyaze_1_1cli_1_1resources_1_1OutputFormatter.html">OutputFormatter</a> &amp;formatter)=0</td></tr>
 <tr class="memdesc:a51438225e1b8815f2c47329cdbb771b7 inherit pro_methods_classyaze_1_1cli_1_1resources_1_1CommandHandler"><td class="mdescLeft">&#160;</td><td class="mdescRight">Execute the command business logic.  <br /></td></tr>
 <tr class="separator:a51438225e1b8815f2c47329cdbb771b7 inherit pro_methods_classyaze_1_1cli_1_1resources_1_1CommandHandler"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a15fd3019625d4423e15a6eefbfaaa612 inherit pro_methods_classyaze_1_1cli_1_1resources_1_1CommandHandler" id="r_a15fd3019625d4423e15a6eefbfaaa612"><td class="memItemLeft" align="right" valign="top">virtual std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d22/classyaze_1_1cli_1_1resources_1_1CommandHandler.html#a15fd3019625d4423e15a6eefbfaaa612">GetUsage</a> () const =0</td></tr>
-<tr class="memdesc:a15fd3019625d4423e15a6eefbfaaa612 inherit pro_methods_classyaze_1_1cli_1_1resources_1_1CommandHandler"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the command usage string.  <br /></td></tr>
-<tr class="separator:a15fd3019625d4423e15a6eefbfaaa612 inherit pro_methods_classyaze_1_1cli_1_1resources_1_1CommandHandler"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a04347864047b00727d3336af8896aabf inherit pro_methods_classyaze_1_1cli_1_1resources_1_1CommandHandler" id="r_a04347864047b00727d3336af8896aabf"><td class="memItemLeft" align="right" valign="top">virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d22/classyaze_1_1cli_1_1resources_1_1CommandHandler.html#a04347864047b00727d3336af8896aabf">RequiresLabels</a> () const</td></tr>
 <tr class="memdesc:a04347864047b00727d3336af8896aabf inherit pro_methods_classyaze_1_1cli_1_1resources_1_1CommandHandler"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check if the command requires ROM labels.  <br /></td></tr>
 <tr class="separator:a04347864047b00727d3336af8896aabf inherit pro_methods_classyaze_1_1cli_1_1resources_1_1CommandHandler"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -337,7 +337,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
-<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000167">Todo:</a></b></dt><dd>Implement interactive prompting in TUI </dd></dl>
+<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000208">Todo:</a></b></dt><dd>Implement interactive prompting in TUI </dd></dl>
 
 <p class="definition">Definition at line <a class="el" href="../../d4/d92/enhanced__tui_8h_source.html#l00251">251</a> of file <a class="el" href="../../d4/d92/enhanced__tui_8h_source.html">enhanced_tui.h</a>.</p>
 

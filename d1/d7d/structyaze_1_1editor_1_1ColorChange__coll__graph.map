@@ -1,0 +1,7 @@
+<map id="yaze::editor::ColorChange" name="yaze::editor::ColorChange">
+<area shape="rect" id="Node000001" title="Represents a single color change for undo/redo." alt="" coords="5,198,171,223"/>
+<area shape="rect" id="Node000002" href="$d5/d31/classyaze_1_1gfx_1_1SnesColor.html" title="SNES Color container." alt="" coords="20,94,156,120"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="91,135,91,197,85,197,85,135"/>
+<area shape="rect" id="Node000003" href="$df/d71/structsnes__color.html" title="SNES color in 15&#45;bit RGB format (BGR555)" alt="" coords="46,5,130,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="91,47,91,94,85,94,85,47"/>
+</map>

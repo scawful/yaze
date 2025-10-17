@@ -2,10 +2,10 @@
 <area shape="rect" id="Node000001" title="Resource management arena for efficient graphics memory handling." alt="" coords="325,80,435,106"/>
 <area shape="rect" id="Node000002" href="$dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html" title=" " alt="" coords="9,5,189,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="200,32,301,57,352,77,350,82,300,62,199,37"/>
-<area shape="rect" id="Node000006" href="$d3/dec/structyaze_1_1gfx_1_1Arena_1_1TexturePool.html" title=" " alt="" coords="6,55,192,80"/>
-<area shape="poly" id="edge2_Node000001_Node000006" title=" " alt="" coords="208,75,324,85,324,91,207,80"/>
-<area shape="rect" id="Node000007" href="$d7/d5d/structyaze_1_1gfx_1_1Arena_1_1SurfacePool.html" title=" " alt="" coords="5,104,193,130"/>
-<area shape="poly" id="edge3_Node000001_Node000007" title=" " alt="" coords="208,116,300,109,330,104,331,109,301,114,208,121"/>
-<area shape="rect" id="Node000008" href="$d0/dca/classyaze_1_1gfx_1_1IRenderer.html" title="Defines an abstract interface for all rendering operations." alt="" coords="33,153,165,179"/>
-<area shape="poly" id="edge4_Node000001_Node000008" title=" " alt="" coords="180,160,240,151,300,136,332,121,359,104,362,109,334,126,302,141,241,157,181,165"/>
+<area shape="rect" id="Node000007" href="$d3/dec/structyaze_1_1gfx_1_1Arena_1_1TexturePool.html" title=" " alt="" coords="6,55,192,80"/>
+<area shape="poly" id="edge2_Node000001_Node000007" title=" " alt="" coords="208,75,324,85,324,91,207,80"/>
+<area shape="rect" id="Node000008" href="$d7/d5d/structyaze_1_1gfx_1_1Arena_1_1SurfacePool.html" title=" " alt="" coords="5,104,193,130"/>
+<area shape="poly" id="edge3_Node000001_Node000008" title=" " alt="" coords="208,116,300,109,330,104,331,109,301,114,208,121"/>
+<area shape="rect" id="Node000009" href="$d0/dca/classyaze_1_1gfx_1_1IRenderer.html" title="Defines an abstract interface for all rendering operations." alt="" coords="33,153,165,179"/>
+<area shape="poly" id="edge4_Node000001_Node000009" title=" " alt="" coords="180,160,240,151,300,136,332,121,359,104,362,109,334,126,302,141,241,157,181,165"/>
 </map>

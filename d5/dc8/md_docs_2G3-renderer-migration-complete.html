@@ -101,46 +101,30 @@ $(document).ready(function(){initNavTree('d5/dc8/md_docs_2G3-renderer-migration-
   <div class="headertitle"><div class="title">Graphics Renderer Migration - Complete Documentation</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md978"></a> <b>Date</b>: October 7, 2025 <br  />
- <b>Status</b>: ✅ Complete <br  />
+<div class="textblock"><p><a class="anchor" id="autotoc_md1266"></a> <b>Date</b>: October 7, 2025 <br  />
+ <b>Status</b>: Complete <br  />
  <b>Migration</b>: SDL2 Singleton → IRenderer Interface with SDL2/SDL3 Support</p>
 <hr  />
-<h1><a class="anchor" id="autotoc_md980"></a>
-📋 Executive Summary</h1>
-<p>This document details the complete migration of YAZE's rendering architecture from a tightly-coupled SDL2 singleton pattern to a flexible, abstracted renderer interface. This migration enables future SDL3 support, improves testability, and implements a high-performance deferred texture system.</p>
-<h2><a class="anchor" id="autotoc_md981"></a>
-Key Achievements</h2>
-<ul>
-<li>✅ <b>100% Removal</b> of <code>core::Renderer</code> singleton</li>
-<li>✅ <b>Zero Breaking Changes</b> to existing editor functionality</li>
-<li>✅ <b>Performance Gains</b> through batched texture operations</li>
-<li>✅ <b>SDL3 Ready</b> via abstract <code>IRenderer</code> interface</li>
-<li>✅ <b>Backwards Compatible</b> Canvas API for legacy code</li>
-<li>✅ <b>Memory Optimized</b> with texture/surface pooling</li>
+<h1><a class="anchor" id="autotoc_md1268"></a>
+Executive Summary</h1>
+<p>This document records the migration from the legacy SDL2 <code>core::Renderer</code> singleton to a dependency-injected renderer interface. The new design enables SDL3 backends, keeps SDL2 compatibility, and moves texture work onto a deferred queue.</p>
+<p>Key outcomes:</p><ul>
+<li><code>core::Renderer</code> singleton removed; editors now depend on <code>gfx::IRenderer</code>.</li>
+<li>Deferred queue batches up to eight texture operations per frame (<code>gfx::Arena::ProcessTextureQueue</code>).</li>
+<li>Canvas APIs remain source-compatible for existing editors.</li>
+<li>Texture and surface pooling reduces redundant allocations during editor startup.</li>
+</ul>
+<p>Migration goals and current state:</p><ul>
+<li>Decouple from SDL2: complete. Rendering code paths call <code>gfx::IRenderer</code>.</li>
+<li>SDL3 readiness: backends implement <code>IRenderer</code>; an SDL3 backend can now be added without touching editor code.</li>
+<li>Performance: local benchmarks during October 2025 testing showed faster editor startup due to batched texture creation.</li>
+<li>Compatibility: existing editors build and run without behavioural regressions on SDL2.</li>
+<li>Code cleanup: renderer TODOs resolved and tests updated to use the injected interface.</li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md983"></a>
-🎯 Migration Goals &amp; Results</h1>
-<table class="markdownTable">
-<tr class="markdownTableHead">
-<th class="markdownTableHeadNone">Goal   </th><th class="markdownTableHeadNone">Status   </th><th class="markdownTableHeadNone">Details    </th></tr>
-<tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">Decouple from SDL2   </td><td class="markdownTableBodyNone">✅ Complete   </td><td class="markdownTableBodyNone">All rendering goes through <code>IRenderer</code>    </td></tr>
-<tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone">Enable SDL3 migration   </td><td class="markdownTableBodyNone">✅ Ready   </td><td class="markdownTableBodyNone">New backend = implement <code>IRenderer</code>    </td></tr>
-<tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">Improve performance   </td><td class="markdownTableBodyNone">✅ 40% faster   </td><td class="markdownTableBodyNone">Batched texture ops, deferred queue    </td></tr>
-<tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone">Maintain compatibility   </td><td class="markdownTableBodyNone">✅ Zero breaks   </td><td class="markdownTableBodyNone">Legacy constructors preserved    </td></tr>
-<tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">Reduce memory usage   </td><td class="markdownTableBodyNone">✅ 25% reduction   </td><td class="markdownTableBodyNone">Surface/texture pooling in Arena    </td></tr>
-<tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone">Fix all TODOs   </td><td class="markdownTableBodyNone">✅ Complete   </td><td class="markdownTableBodyNone">All rendering TODOs resolved   </td></tr>
-</table>
-<hr  />
-<h1><a class="anchor" id="autotoc_md985"></a>
-🏗️ Architecture Overview</h1>
-<h2><a class="anchor" id="autotoc_md986"></a>
+<h1><a class="anchor" id="autotoc_md1270"></a>
+Architecture Overview</h1>
+<h2><a class="anchor" id="autotoc_md1271"></a>
 Before: Singleton Pattern</h2>
 <div class="fragment"><div class="line"><span class="comment">// Old approach - tightly coupled to SDL2</span></div>
 <div class="line">core::Renderer::Get().RenderBitmap(&amp;bitmap);</div>
@@ -151,7 +135,7 @@ Before: Singleton Pattern</h2>
 <div class="line"><span class="comment">// - Immediate texture operations (slow)</span></div>
 <div class="line"><span class="comment">// - Global state (hard to test)</span></div>
 <div class="line"><span class="comment">// - No SDL3 migration path</span></div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md987"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1272"></a>
 After: Dependency Injection + Deferred Queue</h2>
 <div class="fragment"><div class="line"><span class="comment">// New approach - abstracted and efficient</span></div>
 <div class="line"><span class="keyword">class </span>Editor {</div>
@@ -176,16 +160,16 @@ After: Dependency Injection + Deferred Queue</h2>
 <div class="line">  renderer_-&gt;Present();</div>
 <div class="line">}</div>
 </div><!-- fragment --><p><b>Benefits:</b></p><ul>
-<li>✅ Swap SDL2/SDL3 by changing backend</li>
-<li>✅ Batched texture ops (8 per frame)</li>
-<li>✅ Non-blocking asset loading</li>
-<li>✅ Testable with mock renderer</li>
-<li>✅ Better CPU/GPU utilization</li>
+<li>Swap SDL2/SDL3 by changing backend</li>
+<li>Batched texture ops (8 per frame)</li>
+<li>Non-blocking asset loading</li>
+<li>Testable with mock renderer</li>
+<li>Better CPU/GPU utilization</li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md989"></a>
+<h1><a class="anchor" id="autotoc_md1274"></a>
 📦 Component Details</h1>
-<h2><a class="anchor" id="autotoc_md990"></a>
+<h2><a class="anchor" id="autotoc_md1275"></a>
 1. IRenderer Interface (&lt;tt&gt;src/app/gfx/backend/irenderer.h&lt;/tt&gt;)</h2>
 <p><b>Purpose</b>: Abstract all rendering operations from specific APIs</p>
 <p><b>Key Methods</b>: </p><div class="fragment"><div class="line"><span class="keyword">class </span>IRenderer {</div>
@@ -213,7 +197,7 @@ After: Dependency Injection + Deferred Queue</h2>
 <li>Pure virtual = forces implementation in concrete backends</li>
 </ul>
 <hr  />
-<h2><a class="anchor" id="autotoc_md992"></a>
+<h2><a class="anchor" id="autotoc_md1277"></a>
 2. SDL2Renderer (&lt;tt&gt;src/app/gfx/backend/sdl2_renderer.{h,cc}&lt;/tt&gt;)</h2>
 <p><b>Purpose</b>: Concrete SDL2 implementation of <code>IRenderer</code></p>
 <p><b>Implementation Highlights</b>: </p><div class="fragment"><div class="line"><span class="keyword">class </span>SDL2Renderer : <span class="keyword">public</span> IRenderer {</div>
@@ -242,7 +226,7 @@ After: Dependency Injection + Deferred Queue</h2>
 <li>Prevents SIGSEGV when graphics sheets have invalid surfaces</li>
 </ul>
 <hr  />
-<h2><a class="anchor" id="autotoc_md994"></a>
+<h2><a class="anchor" id="autotoc_md1279"></a>
 3. Arena Deferred Texture Queue (&lt;tt&gt;src/app/gfx/arena.{h,cc}&lt;/tt&gt;)</h2>
 <p><b>Purpose</b>: Batch and defer texture operations for performance</p>
 <p><b>Architecture</b>: </p><div class="fragment"><div class="line"><span class="keyword">class </span>Arena {</div>
@@ -283,7 +267,7 @@ After: Dependency Injection + Deferred Queue</h2>
 <li>Tested empirically for best balance</li>
 </ul>
 <hr  />
-<h2><a class="anchor" id="autotoc_md996"></a>
+<h2><a class="anchor" id="autotoc_md1281"></a>
 4. Bitmap Palette Refactoring (&lt;tt&gt;src/app/gfx/bitmap.{h,cc}&lt;/tt&gt;)</h2>
 <p><b>Problem Solved</b>: Palette calls threw exceptions when surface didn't exist yet</p>
 <p><b>Solution - Deferred Palette Application</b>: </p><div class="fragment"><div class="line"><span class="keywordtype">void</span> Bitmap::SetPalette(<span class="keyword">const</span> SnesPalette&amp; palette) {</div>
@@ -312,7 +296,7 @@ After: Dependency Injection + Deferred Queue</h2>
 <div class="line">}</div>
 </div><!-- fragment --><p><b>Result</b>: No more crashes when setting palette before surface creation!</p>
 <hr  />
-<h2><a class="anchor" id="autotoc_md998"></a>
+<h2><a class="anchor" id="autotoc_md1283"></a>
 5. Canvas Optional Renderer (&lt;tt&gt;src/app/gui/canvas.{h,cc}&lt;/tt&gt;)</h2>
 <p><b>Problem</b>: Canvas required renderer in all constructors, breaking legacy code</p>
 <p><b>Solution - Dual Constructor Pattern</b>: </p><div class="fragment"><div class="line"><span class="keyword">class </span>Canvas {</div>
@@ -338,7 +322,7 @@ After: Dependency Injection + Deferred Queue</h2>
 <li><b>Zero Breaking Changes</b>: Both patterns work simultaneously</li>
 </ul>
 <hr  />
-<h2><a class="anchor" id="autotoc_md1000"></a>
+<h2><a class="anchor" id="autotoc_md1285"></a>
 6. Tilemap Texture Queue Integration (&lt;tt&gt;src/app/gfx/tilemap.cc&lt;/tt&gt;)</h2>
 <p><b>Before</b>: </p><div class="fragment"><div class="line"><span class="keywordtype">void</span> CreateTilemap(...) {</div>
 <div class="line">  tilemap.<a class="code hl_variable" href="../../db/d0a/structyaze_1_1gfx_1_1Tilemap.html#ad1dcf60d4ca3d385ee232da8af4281ea">atlas</a> = Bitmap(width, height, 8, data);</div>
@@ -364,9 +348,9 @@ After: Dependency Injection + Deferred Queue</h2>
 <li>**User Experience**: No loading freeze!</li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md1002"></a>
+<h1><a class="anchor" id="autotoc_md1287"></a>
 🔄 Dependency Injection Flow</h1>
-<h2><a class="anchor" id="autotoc_md1003"></a>
+<h2><a class="anchor" id="autotoc_md1288"></a>
 Controller → EditorManager → Editors</h2>
 <div class="fragment"><div class="line"><span class="comment">// 1. Controller creates renderer</span></div>
 <div class="line">Controller::OnEntry(filename) {</div>
@@ -393,9 +377,9 @@ Controller → EditorManager → Editors</h2>
 <div class="line">}</div>
 </div><!-- fragment --><p><b>Key Pattern</b>: Top-down dependency injection, no global state!</p>
 <hr  />
-<h1><a class="anchor" id="autotoc_md1005"></a>
+<h1><a class="anchor" id="autotoc_md1290"></a>
 ⚡ Performance Optimizations</h1>
-<h2><a class="anchor" id="autotoc_md1006"></a>
+<h2><a class="anchor" id="autotoc_md1291"></a>
 1. Batched Texture Processing</h2>
 <p><b>Location</b>: <code><a class="el" href="../../d2/dee/arena_8cc.html">arena.cc</a>:35-92</code></p>
 <p><b>Optimization</b>: </p><div class="fragment"><div class="line"><span class="keyword">constexpr</span> <span class="keywordtype">size_t</span> kMaxTexturesPerFrame = 8;</div>
@@ -404,7 +388,7 @@ Controller → EditorManager → Editors</h2>
 <li><b>After</b>: Process max 8/frame, spread over time</li>
 <li><b>Measurement</b>: 60 FPS maintained even when loading 100+ textures</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1007"></a>
+<h2><a class="anchor" id="autotoc_md1292"></a>
 2. Frame Rate Limiting</h2>
 <p><b>Location</b>: <code><a class="el" href="../../da/d0c/controller_8cc.html">controller.cc</a>:100-107</code></p>
 <p><b>Implementation</b>: </p><div class="fragment"><div class="line"><span class="keywordtype">float</span> delta_time = TimingManager::Get().Update();</div>
@@ -416,7 +400,7 @@ Controller → EditorManager → Editors</h2>
 <li><b>After</b>: 20-30% CPU, no loading indicator</li>
 <li><b>Battery Life</b>: ~2x improvement on MacBooks</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1008"></a>
+<h2><a class="anchor" id="autotoc_md1293"></a>
 3. Auto-Pause on Focus Loss</h2>
 <p><b>Location</b>: <code><a class="el" href="../../d3/d87/emulator_8cc.html">emulator.cc</a>:108-118</code></p>
 <p><b>Impact</b>:</p><ul>
@@ -424,7 +408,7 @@ Controller → EditorManager → Editors</h2>
 <li>Saves CPU cycles when not actively using emulator</li>
 <li>User must manually resume (prevents accidental gameplay)</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1009"></a>
+<h2><a class="anchor" id="autotoc_md1294"></a>
 4. Surface/Texture Pooling</h2>
 <p><b>Location</b>: <code><a class="el" href="../../d2/dee/arena_8cc.html">arena.cc</a>:95-131</code></p>
 <p><b>Strategy</b>: </p><div class="fragment"><div class="line">SDL_Surface* Arena::AllocateSurface(<span class="keywordtype">int</span> w, <span class="keywordtype">int</span> h, <span class="keywordtype">int</span> depth, <span class="keywordtype">int</span> format) {</div>
@@ -444,9 +428,9 @@ Controller → EditorManager → Editors</h2>
 <li><b>Memory</b>: 25% reduction in allocation churn</li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md1011"></a>
-🗺️ Migration Map: File Changes</h1>
-<h2><a class="anchor" id="autotoc_md1012"></a>
+<h1><a class="anchor" id="autotoc_md1296"></a>
+Migration Map: File Changes</h1>
+<h2><a class="anchor" id="autotoc_md1297"></a>
 Core Architecture Files (New)</h2>
 <ul>
 <li><code><a class="el" href="../../df/d18/irenderer_8h.html">src/app/gfx/backend/irenderer.h</a></code> - Abstract renderer interface</li>
@@ -454,17 +438,17 @@ Core Architecture Files (New)</h2>
 <li><code><a class="el" href="../../d7/d5e/G2-renderer-migration-plan_8md.html">docs/G2-renderer-migration-plan.md</a></code> - Original migration plan</li>
 <li><code><a class="el" href="../../dd/de3/G3-renderer-migration-complete_8md.html">docs/G3-renderer-migration-complete.md</a></code> - This document!</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1013"></a>
+<h2><a class="anchor" id="autotoc_md1298"></a>
 Core Modified Files (Major)</h2>
 <ul>
 <li><code>src/app/core/controller.{h,cc}</code> - Creates renderer, injects to EditorManager</li>
 <li><code>src/app/core/window.{h,cc}</code> - Accepts optional renderer parameter</li>
 <li><code>src/app/gfx/arena.{h,cc}</code> - Added deferred texture queue system</li>
 <li><code>src/app/gfx/bitmap.{h,cc}</code> - Deferred palette application, texture setters</li>
-<li><code><a class="el" href="../../d6/de2/tilemap_8cc.html">src/app/gfx/tilemap.cc</a></code> - Direct Arena queue usage</li>
+<li><code>src/app/gfx/tilemap.cc</code> - Direct Arena queue usage</li>
 <li><code>src/app/gui/canvas.{h,cc}</code> - Optional renderer dependency</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1014"></a>
+<h2><a class="anchor" id="autotoc_md1299"></a>
 Editor Files (Renderer Injection)</h2>
 <ul>
 <li><code>src/app/editor/editor_manager.{h,cc}</code> - Accepts and distributes renderer</li>
@@ -480,21 +464,21 @@ Editor Files (Renderer Injection)</h2>
 <li><code><a class="el" href="../../d9/d47/message__editor_8cc.html">src/app/editor/message/message_editor.cc</a></code> - Font preview textures</li>
 <li><code><a class="el" href="../../d8/df1/scratch__space_8cc.html">src/app/editor/overworld/scratch_space.cc</a></code> - Arena queue</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1015"></a>
+<h2><a class="anchor" id="autotoc_md1300"></a>
 Emulator Files (Special Handling)</h2>
 <ul>
 <li><code>src/app/emu/emulator.{h,cc}</code> - Lazy initialization, custom texture format</li>
 <li><code><a class="el" href="../../d8/d5b/emu_8cc.html">src/app/emu/emu.cc</a></code> - Standalone emulator with SDL2Renderer</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1016"></a>
+<h2><a class="anchor" id="autotoc_md1301"></a>
 GUI/Widget Files</h2>
 <ul>
 <li><code><a class="el" href="../../dd/df4/canvas__utils_8cc.html">src/app/gui/canvas/canvas_utils.cc</a></code> - Fixed palette application logic</li>
 <li><code><a class="el" href="../../df/db2/canvas__context__menu_8cc.html">src/app/gui/canvas/canvas_context_menu.cc</a></code> - Arena queue for bitmap ops</li>
-<li><code><a class="el" href="../../d2/d93/palette__widget_8cc.html">src/app/gui/widgets/palette_widget.cc</a></code> - Arena queue for palette changes</li>
+<li><code>src/app/gui/widgets/palette_widget.cc</code> - Arena queue for palette changes</li>
 <li><code>src/app/gui/widgets/dungeon_object_emulator_preview.{h,cc}</code> - Optional renderer</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1017"></a>
+<h2><a class="anchor" id="autotoc_md1302"></a>
 Test Files (Updated for DI)</h2>
 <ul>
 <li><code><a class="el" href="../../db/d7d/test__editor_8cc.html">test/test_editor.cc</a></code> - Creates SDL2Renderer for tests</li>
@@ -510,9 +494,9 @@ Test Files (Updated for DI)</h2>
  <b>Build Errors Fixed</b>: 87 compilation errors <br  />
  <b>Runtime Crashes Fixed</b>: 12 crashes</p>
 <hr  />
-<h1><a class="anchor" id="autotoc_md1019"></a>
-🔧 Critical Fixes Applied</h1>
-<h2><a class="anchor" id="autotoc_md1020"></a>
+<h1><a class="anchor" id="autotoc_md1304"></a>
+Tool Critical Fixes Applied</h1>
+<h2><a class="anchor" id="autotoc_md1305"></a>
 1. Bitmap::SetPalette() Crash</h2>
 <p><b>Location</b>: <code><a class="el" href="../../d4/d13/bitmap_8cc.html">bitmap.cc</a>:252-288</code></p>
 <p><b>Problem</b>: </p><div class="fragment"><div class="line"><span class="keywordtype">void</span> Bitmap::SetPalette(<span class="keyword">const</span> SnesPalette&amp; palette) {</div>
@@ -534,7 +518,7 @@ Test Files (Updated for DI)</h2>
 <div class="line">}</div>
 </div><!-- fragment --><p><b>Impact</b>: Eliminates <code>BitmapError: Surface is null</code> crash during initialization</p>
 <hr  />
-<h2><a class="anchor" id="autotoc_md1022"></a>
+<h2><a class="anchor" id="autotoc_md1307"></a>
 2. SDL2Renderer::UpdateTexture() SIGSEGV</h2>
 <p><b>Location</b>: <code><a class="el" href="../../d0/dac/sdl2__renderer_8cc.html">sdl2_renderer.cc</a>:57-80</code></p>
 <p><b>Problem</b>: </p><div class="fragment"><div class="line"><span class="keywordtype">void</span> UpdateTexture(...) {</div>
@@ -552,7 +536,7 @@ Test Files (Updated for DI)</h2>
 <div class="line">}</div>
 </div><!-- fragment --><p><b>Impact</b>: Prevents Graphics Editor crash on open</p>
 <hr  />
-<h2><a class="anchor" id="autotoc_md1024"></a>
+<h2><a class="anchor" id="autotoc_md1309"></a>
 3. Emulator Audio System Corruption</h2>
 <p><b>Location</b>: <code><a class="el" href="../../d3/d87/emulator_8cc.html">emulator.cc</a>:52-68</code>, <code><a class="el" href="../../d0/dd9/editor__manager_8cc.html">editor_manager.cc</a>:2103-2106</code></p>
 <p><b>Problem</b>: </p><div class="fragment"><div class="line">EditorManager::LoadAssets() {</div>
@@ -572,7 +556,7 @@ Test Files (Updated for DI)</h2>
 <div class="line">}</div>
 </div><!-- fragment --><p><b>Impact</b>: Eliminates <code>objc[]: Hash table corrupted</code> crash on startup</p>
 <hr  />
-<h2><a class="anchor" id="autotoc_md1026"></a>
+<h2><a class="anchor" id="autotoc_md1311"></a>
 4. Emulator Cleanup During Shutdown</h2>
 <p><b>Location</b>: <code><a class="el" href="../../d3/d87/emulator_8cc.html">emulator.cc</a>:56-69</code></p>
 <p><b>Problem</b>: </p><div class="fragment"><div class="line">Emulator::~Emulator() {</div>
@@ -589,7 +573,7 @@ Test Files (Updated for DI)</h2>
 <div class="line">}</div>
 </div><!-- fragment --><p><b>Impact</b>: Clean shutdown, no crash on app exit</p>
 <hr  />
-<h2><a class="anchor" id="autotoc_md1028"></a>
+<h2><a class="anchor" id="autotoc_md1313"></a>
 5. Controller/CreateWindow Initialization Order</h2>
 <p><b>Location</b>: <code><a class="el" href="../../da/d0c/controller_8cc.html">controller.cc</a>:20-37</code></p>
 <p><b>Problem</b>: Originally had duplicated initialization logic in both files</p>
@@ -604,12 +588,12 @@ Test Files (Updated for DI)</h2>
 <li><code>Controller::OnEntry()</code>: Renderer lifecycle, dependency injection</li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md1030"></a>
+<h1><a class="anchor" id="autotoc_md1315"></a>
 🎨 Canvas Refactoring</h1>
-<h2><a class="anchor" id="autotoc_md1031"></a>
+<h2><a class="anchor" id="autotoc_md1316"></a>
 The Challenge</h2>
 <p>Canvas is used in 50+ locations. Breaking changes would require updating all of them.</p>
-<h2><a class="anchor" id="autotoc_md1032"></a>
+<h2><a class="anchor" id="autotoc_md1317"></a>
 The Solution: Backwards-Compatible Dual API</h2>
 <p><b>Legacy API (No Renderer)</b>: </p><div class="fragment"><div class="line"><span class="comment">// Existing code continues to work</span></div>
 <div class="line">Canvas canvas(<span class="stringliteral">&quot;MyCanvas&quot;</span>, ImVec2(512, 512));</div>
@@ -634,9 +618,9 @@ The Solution: Backwards-Compatible Dual API</h2>
 <li>Eventually deprecate legacy constructors (SDL3 migration)</li>
 </ol>
 <hr  />
-<h1><a class="anchor" id="autotoc_md1034"></a>
+<h1><a class="anchor" id="autotoc_md1319"></a>
 🧪 Testing Strategy</h1>
-<h2><a class="anchor" id="autotoc_md1035"></a>
+<h2><a class="anchor" id="autotoc_md1320"></a>
 Test Files Updated</h2>
 <p>All test targets now create their own renderer:</p>
 <div class="fragment"><div class="line"><span class="comment">// test/yaze_test.cc</span></div>
@@ -651,17 +635,17 @@ Test Files Updated</h2>
 <div class="line">gfx::CreateTilemap(<span class="keyword">nullptr</span>, data, ...);  <span class="comment">// Can pass nullptr in tests!</span></div>
 <div class="ttc" id="atest__conversation__minimal_8cc_html_ae66f6b31b5ad750f1fe042a706a4e3d4"><div class="ttname"><a href="../../d1/dd0/test__conversation__minimal_8cc.html#ae66f6b31b5ad750f1fe042a706a4e3d4">main</a></div><div class="ttdeci">int main()</div><div class="ttdef"><b>Definition</b> <a href="../../d1/dd0/test__conversation__minimal_8cc_source.html#l00010">test_conversation_minimal.cc:10</a></div></div>
 </div><!-- fragment --><p><b>Test Coverage</b>:</p><ul>
-<li>✅ <code>yaze</code> - Main application</li>
-<li>✅ <code>yaze_test</code> - Unit tests</li>
-<li>✅ <code>yaze_emu</code> - Standalone emulator</li>
-<li>✅ <code>z3ed</code> - Legacy editor mode</li>
-<li>✅ All integration tests</li>
-<li>✅ All benchmarks</li>
+<li><code>yaze</code> - Main application</li>
+<li><code>yaze_test</code> - Unit tests</li>
+<li><code>yaze_emu</code> - Standalone emulator</li>
+<li><code>z3ed</code> - Legacy editor mode</li>
+<li>All integration tests</li>
+<li>All benchmarks</li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md1037"></a>
-🛣️ Road to SDL3</h1>
-<h2><a class="anchor" id="autotoc_md1038"></a>
+<h1><a class="anchor" id="autotoc_md1322"></a>
+Road to SDL3</h1>
+<h2><a class="anchor" id="autotoc_md1323"></a>
 Why This Migration Matters</h2>
 <p><b>SDL3 Changes Requiring Abstraction</b>:</p><ol type="1">
 <li><code>SDL_Renderer</code> → <code>SDL_GPUDevice</code> (complete API change)</li>
@@ -669,7 +653,7 @@ Why This Migration Matters</h2>
 <li>Immediate mode → Command buffers (fundamentally different)</li>
 <li>Different synchronization model</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md1039"></a>
+<h2><a class="anchor" id="autotoc_md1324"></a>
 Our Abstraction Layer Handles This</h2>
 <p><b>To Add SDL3 Support</b>:</p>
 <ol type="1">
@@ -717,9 +701,9 @@ Our Abstraction Layer Handles This</h2>
 <li><b>Zero changes</b> to editors, canvas, arena, etc!</li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md1041"></a>
+<h1><a class="anchor" id="autotoc_md1326"></a>
 📊 Performance Benchmarks</h1>
-<h2><a class="anchor" id="autotoc_md1042"></a>
+<h2><a class="anchor" id="autotoc_md1327"></a>
 Texture Loading Performance</h2>
 <p><b>Test</b>: Load 160 overworld maps with textures</p>
 <table class="markdownTable">
@@ -736,7 +720,7 @@ Texture Loading Performance</h2>
 <tr class="markdownTableRowOdd">
 <td class="markdownTableBodyNone">Textures/Frame   </td><td class="markdownTableBodyNone">All (160)   </td><td class="markdownTableBodyNone">8 (batched)   </td><td class="markdownTableBodyNone"><b>Smoother</b>   </td></tr>
 </table>
-<h2><a class="anchor" id="autotoc_md1043"></a>
+<h2><a class="anchor" id="autotoc_md1328"></a>
 Graphics Editor Performance</h2>
 <p><b>Test</b>: Open graphics editor, browse 223 sheets</p>
 <table class="markdownTable">
@@ -751,7 +735,7 @@ Graphics Editor Performance</h2>
 <tr class="markdownTableRowEven">
 <td class="markdownTableBodyNone">CPU (browsing)   </td><td class="markdownTableBodyNone">95%   </td><td class="markdownTableBodyNone">35%   </td><td class="markdownTableBodyNone"><b>63% reduction</b>   </td></tr>
 </table>
-<h2><a class="anchor" id="autotoc_md1044"></a>
+<h2><a class="anchor" id="autotoc_md1329"></a>
 Emulator Performance</h2>
 <p><b>Test</b>: Run emulator alongside overworld editor</p>
 <table class="markdownTable">
@@ -769,50 +753,50 @@ Emulator Performance</h2>
 <td class="markdownTableBodyNone">Focus Loss   </td><td class="markdownTableBodyNone">Runs   </td><td class="markdownTableBodyNone">Pauses   </td><td class="markdownTableBodyNone"><b>Battery Save</b>   </td></tr>
 </table>
 <hr  />
-<h1><a class="anchor" id="autotoc_md1046"></a>
+<h1><a class="anchor" id="autotoc_md1331"></a>
 🐛 Bugs Fixed During Migration</h1>
-<h2><a class="anchor" id="autotoc_md1047"></a>
+<h2><a class="anchor" id="autotoc_md1332"></a>
 Critical Crashes</h2>
 <ol type="1">
-<li>✅ <b>Graphics Editor SIGSEGV</b> - Null surface-&gt;format in SDL_ConvertSurfaceFormat</li>
-<li>✅ <b>Emulator Audio Corruption</b> - Early SNES initialization before audio ready</li>
-<li>✅ <b>Bitmap Palette Exception</b> - Setting palette before surface creation</li>
-<li>✅ <b>Tile16 Editor White Graphics</b> - Textures never created from queue</li>
-<li>✅ <b>Metal/CoreAnimation Crash</b> - Texture destruction during Initialize</li>
-<li>✅ <b>Emulator Shutdown SIGSEGV</b> - Destroying texture after renderer destroyed</li>
+<li><b>Graphics Editor SIGSEGV</b> - Null surface-&gt;format in SDL_ConvertSurfaceFormat</li>
+<li><b>Emulator Audio Corruption</b> - Early SNES initialization before audio ready</li>
+<li><b>Bitmap Palette Exception</b> - Setting palette before surface creation</li>
+<li><b>Tile16 Editor White Graphics</b> - Textures never created from queue</li>
+<li><b>Metal/CoreAnimation Crash</b> - Texture destruction during Initialize</li>
+<li><b>Emulator Shutdown SIGSEGV</b> - Destroying texture after renderer destroyed</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md1048"></a>
+<h2><a class="anchor" id="autotoc_md1333"></a>
 Build Errors</h2>
 <ol type="1">
-<li>✅ <b>87 Compilation Errors</b> - <code>core::Renderer</code> namespace references</li>
-<li>✅ <b>Canvas Constructor Mismatch</b> - Legacy code broken by new constructors</li>
-<li>✅ <b>CreateWindow Parameter Order</b> - Test files had wrong parameters</li>
-<li>✅ <b>Duplicate <a class="el" href="../../d1/dd0/test__conversation__minimal_8cc.html#ae66f6b31b5ad750f1fe042a706a4e3d4">main()</a> Symbol</b> - Test file conflicts</li>
-<li>✅ <b>Missing <a class="el" href="../../dc/db4/graphics__optimizer_8cc.html">graphics_optimizer.cc</a></b> - CMake file reference</li>
-<li>✅ <b>AssetLoader Namespace</b> - core::AssetLoader → AssetLoader</li>
+<li><b>87 Compilation Errors</b> - <code>core::Renderer</code> namespace references</li>
+<li><b>Canvas Constructor Mismatch</b> - Legacy code broken by new constructors</li>
+<li><b>CreateWindow Parameter Order</b> - Test files had wrong parameters</li>
+<li><b>Duplicate <a class="el" href="../../d1/dd0/test__conversation__minimal_8cc.html#ae66f6b31b5ad750f1fe042a706a4e3d4">main()</a> Symbol</b> - Test file conflicts</li>
+<li><b>Missing <a class="el" href="../../dc/db4/graphics__optimizer_8cc.html">graphics_optimizer.cc</a></b> - CMake file reference</li>
+<li><b>AssetLoader Namespace</b> - core::AssetLoader → AssetLoader</li>
 </ol>
 <hr  />
-<h1><a class="anchor" id="autotoc_md1050"></a>
-💡 Key Design Patterns Used</h1>
-<h2><a class="anchor" id="autotoc_md1051"></a>
+<h1><a class="anchor" id="autotoc_md1335"></a>
+Key Design Patterns Used</h1>
+<h2><a class="anchor" id="autotoc_md1336"></a>
 1. Dependency Injection</h2>
 <p><b>Pattern</b>: Pass dependencies through constructors <b>Example</b>: <code>Editor(IRenderer* renderer)</code> instead of <code>Renderer::Get()</code> <b>Benefit</b>: Testable, flexible, no global state</p>
-<h2><a class="anchor" id="autotoc_md1052"></a>
+<h2><a class="anchor" id="autotoc_md1337"></a>
 2. Command Pattern (Deferred Queue)</h2>
 <p><b>Pattern</b>: Queue operations for batch processing <b>Example</b>: <code>Arena::QueueTextureCommand()</code> + <code>ProcessTextureQueue()</code> <b>Benefit</b>: Non-blocking, batchable, retryable</p>
-<h2><a class="anchor" id="autotoc_md1053"></a>
+<h2><a class="anchor" id="autotoc_md1338"></a>
 3. RAII (Resource Management)</h2>
 <p><b>Pattern</b>: Automatic cleanup in destructors <b>Example</b>: <code>std::unique_ptr&lt;SDL_Renderer, SDL_Deleter&gt;</code> <b>Benefit</b>: No leaks, exception-safe</p>
-<h2><a class="anchor" id="autotoc_md1054"></a>
+<h2><a class="anchor" id="autotoc_md1339"></a>
 4. Adapter Pattern (Backend Abstraction)</h2>
 <p><b>Pattern</b>: Translate abstract interface to concrete API <b>Example</b>: <code>SDL2Renderer</code> implements <code>IRenderer</code> <b>Benefit</b>: Swappable backends (SDL2 ↔ SDL3)</p>
-<h2><a class="anchor" id="autotoc_md1055"></a>
+<h2><a class="anchor" id="autotoc_md1340"></a>
 5. Singleton with DI (Arena)</h2>
 <p><b>Pattern</b>: Global resource manager with injected renderer <b>Example</b>: <code>Arena::Get().Initialize(renderer)</code> then <code>Arena::Get().ProcessTextureQueue()</code> <b>Benefit</b>: Global access for convenience, DI for flexibility</p>
 <hr  />
-<h1><a class="anchor" id="autotoc_md1057"></a>
+<h1><a class="anchor" id="autotoc_md1342"></a>
 🔮 Future Enhancements</h1>
-<h2><a class="anchor" id="autotoc_md1058"></a>
+<h2><a class="anchor" id="autotoc_md1343"></a>
 Short Term (SDL2)</h2>
 <ul>
 <li>[ ] Add texture compression support (DXT/BC)</li>
@@ -820,7 +804,7 @@ Short Term (SDL2)</h2>
 <li>[ ] Add render target pooling</li>
 <li>[ ] GPU profiling integration</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1059"></a>
+<h2><a class="anchor" id="autotoc_md1344"></a>
 Medium Term (SDL3 Prep)</h2>
 <ul>
 <li>[ ] Abstract <a class="el" href="../../df/de4/namespaceImGui.html">ImGui</a> backend dependency</li>
@@ -828,7 +812,7 @@ Medium Term (SDL3 Prep)</h2>
 <li>[ ] Add Vulkan/Metal renderers alongside SDL3</li>
 <li>[ ] Implement render graph for complex scenes</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1060"></a>
+<h2><a class="anchor" id="autotoc_md1345"></a>
 Long Term (SDL3 Migration)</h2>
 <ul>
 <li>[ ] Implement SDL3Renderer backend</li>
@@ -837,9 +821,9 @@ Long Term (SDL3 Migration)</h2>
 <li>[ ] Hybrid mode (both renderers selectable)</li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md1062"></a>
+<h1><a class="anchor" id="autotoc_md1347"></a>
 📝 Lessons Learned</h1>
-<h2><a class="anchor" id="autotoc_md1063"></a>
+<h2><a class="anchor" id="autotoc_md1348"></a>
 What Went Well</h2>
 <ol type="1">
 <li><b>Incremental Migration</b>: Fixed errors one target at a time (yaze → yaze_emu → z3ed → yaze_test)</li>
@@ -847,7 +831,7 @@ What Went Well</h2>
 <li><b>Comprehensive Testing</b>: All targets built and tested</li>
 <li><b>Performance Wins</b>: Optimizations discovered during migration</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md1064"></a>
+<h2><a class="anchor" id="autotoc_md1349"></a>
 Challenges Overcome</h2>
 <ol type="1">
 <li><b>Canvas Refactoring</b>: Made renderer optional without breaking 50+ call sites</li>
@@ -855,7 +839,7 @@ Challenges Overcome</h2>
 <li><b>Metal/CoreAnimation</b>: Learned texture lifecycle matters for system integration</li>
 <li><b>Static Variables</b>: Found and eliminated static bool that prevented ROM switching</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md1065"></a>
+<h2><a class="anchor" id="autotoc_md1350"></a>
 Best Practices Established</h2>
 <ol type="1">
 <li><b>Always validate surfaces</b> before SDL operations</li>
@@ -865,9 +849,9 @@ Best Practices Established</h2>
 <li><b>Test destruction order</b> - shutdown crashes are subtle!</li>
 </ol>
 <hr  />
-<h1><a class="anchor" id="autotoc_md1067"></a>
+<h1><a class="anchor" id="autotoc_md1352"></a>
 🎓 Technical Deep Dive: Texture Queue System</h1>
-<h2><a class="anchor" id="autotoc_md1068"></a>
+<h2><a class="anchor" id="autotoc_md1353"></a>
 Why Deferred Rendering?</h2>
 <p><b>Immediate Rendering Problems</b>: </p><div class="fragment"><div class="line"><span class="comment">// Loading 160 maps immediately</span></div>
 <div class="line"><span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; 160; i++) {</div>
@@ -887,7 +871,7 @@ Why Deferred Rendering?</h2>
 <div class="line">  Arena::Get().ProcessTextureQueue(renderer);  <span class="comment">// 8 textures @ 60 FPS = 480/sec</span></div>
 <div class="line">  <span class="comment">// 160 textures done in ~20 frames (333ms spread over time)</span></div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1069"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1354"></a>
 Queue Processing Algorithm</h2>
 <div class="fragment"><div class="line"><span class="keywordtype">void</span> ProcessTextureQueue(IRenderer* renderer) {</div>
 <div class="line">  <span class="keywordflow">if</span> (queue_.empty()) <span class="keywordflow">return</span>;  <span class="comment">// O(1) check</span></div>
@@ -937,54 +921,54 @@ Queue Processing Algorithm</h2>
 <li>Texture LOD system</li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md1071"></a>
+<h1><a class="anchor" id="autotoc_md1356"></a>
 🏆 Success Metrics</h1>
-<h2><a class="anchor" id="autotoc_md1072"></a>
+<h2><a class="anchor" id="autotoc_md1357"></a>
 Build Health</h2>
 <ul>
-<li>✅ All targets build: <code>yaze</code>, <code>yaze_emu</code>, <code>z3ed</code>, <code>yaze_test</code></li>
-<li>✅ Zero compiler warnings (renderer-related)</li>
-<li>✅ Zero linter errors</li>
-<li>✅ All tests pass</li>
+<li>All targets build: <code>yaze</code>, <code>yaze_emu</code>, <code>z3ed</code>, <code>yaze_test</code></li>
+<li>Zero compiler warnings (renderer-related)</li>
+<li>Zero linter errors</li>
+<li>All tests pass</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1073"></a>
+<h2><a class="anchor" id="autotoc_md1358"></a>
 Runtime Stability</h2>
 <ul>
-<li>✅ App starts without crashes</li>
-<li>✅ All editors load successfully</li>
-<li>✅ Emulator runs without corruption</li>
-<li>✅ Clean shutdown (no leaks)</li>
-<li>✅ ROM switching works</li>
+<li>App starts without crashes</li>
+<li>All editors load successfully</li>
+<li>Emulator runs without corruption</li>
+<li>Clean shutdown (no leaks)</li>
+<li>ROM switching works</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1074"></a>
+<h2><a class="anchor" id="autotoc_md1359"></a>
 Performance</h2>
 <ul>
-<li>✅ 64% faster texture loading</li>
-<li>✅ 82% lower CPU usage (idle)</li>
-<li>✅ 60 FPS maintained across all editors</li>
-<li>✅ No frame drops during loading</li>
-<li>✅ Smooth emulator performance</li>
+<li>64% faster texture loading</li>
+<li>82% lower CPU usage (idle)</li>
+<li>60 FPS maintained across all editors</li>
+<li>No frame drops during loading</li>
+<li>Smooth emulator performance</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1075"></a>
+<h2><a class="anchor" id="autotoc_md1360"></a>
 Code Quality</h2>
 <ul>
-<li>✅ Removed global <code>core::Renderer</code> singleton</li>
-<li>✅ Dependency injection throughout</li>
-<li>✅ Testable architecture</li>
-<li>✅ SDL3-ready abstraction</li>
-<li>✅ Clear separation of concerns</li>
+<li>Removed global <code>core::Renderer</code> singleton</li>
+<li>Dependency injection throughout</li>
+<li>Testable architecture</li>
+<li>SDL3-ready abstraction</li>
+<li>Clear separation of concerns</li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md1077"></a>
+<h1><a class="anchor" id="autotoc_md1362"></a>
 📚 References</h1>
-<h2><a class="anchor" id="autotoc_md1078"></a>
+<h2><a class="anchor" id="autotoc_md1363"></a>
 Related Documents</h2>
 <ul>
 <li><code><a class="el" href="../../d7/d5e/G2-renderer-migration-plan_8md.html">docs/G2-renderer-migration-plan.md</a></code> - Original migration strategy</li>
 <li><code><a class="el" href="../../df/d18/irenderer_8h.html">src/app/gfx/backend/irenderer.h</a></code> - Interface documentation</li>
-<li><code><a class="el" href="../../da/d0c/arena_8h.html">src/app/gfx/arena.h</a></code> - Arena and queue system</li>
+<li><code>src/app/gfx/arena.h</code> - Arena and queue system</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1079"></a>
+<h2><a class="anchor" id="autotoc_md1364"></a>
 Key Commits</h2>
 <ul>
 <li>Renderer abstraction and IRenderer interface</li>
@@ -993,7 +977,7 @@ Key Commits</h2>
 <li>Emulator lazy initialization fix</li>
 <li>Performance optimizations (batching, timing)</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1080"></a>
+<h2><a class="anchor" id="autotoc_md1365"></a>
 External Resources</h2>
 <ul>
 <li><a href="https://github.com/libsdl-org/SDL/blob/main/docs/README-migration.md">SDL2 to SDL3 Migration Guide</a></li>
@@ -1001,8 +985,8 @@ External Resources</h2>
 <li><a href="https://wiki.superfamicom.org/ppu-registers">SNES PPU Pixel Formats</a></li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md1082"></a>
-🙏 Acknowledgments</h1>
+<h1><a class="anchor" id="autotoc_md1367"></a>
+Acknowledgments</h1>
 <p>This migration was a collaborative effort involving:</p><ul>
 <li><b>Initial Design</b>: IRenderer interface and migration plan</li>
 <li><b>Implementation</b>: Systematic refactoring across 42 files</li>
@@ -1017,7 +1001,7 @@ External Resources</h2>
 <li>Persistence through 12 crashes and 87 build errors!</li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md1084"></a>
+<h1><a class="anchor" id="autotoc_md1369"></a>
 🎉 Conclusion</h1>
 <p>The YAZE rendering architecture has been successfully modernized with:</p>
 <ol type="1">
@@ -1027,11 +1011,10 @@ External Resources</h2>
 <li><b>Flexibility</b>: Dependency injection allows testing and swapping</li>
 <li><b>Compatibility</b>: Legacy code continues working unchanged</li>
 </ol>
-<p><b>The renderer refactor is complete and production-ready!</b> 🚀</p>
 <hr  />
-<h1><a class="anchor" id="autotoc_md1086"></a>
-🚧 Known Issues &amp; Next Steps</h1>
-<h2><a class="anchor" id="autotoc_md1087"></a>
+<h1><a class="anchor" id="autotoc_md1371"></a>
+Known Issues &amp; Next Steps</h1>
+<h2><a class="anchor" id="autotoc_md1372"></a>
 macOS-Specific Issues (Not Renderer-Related)</h2>
 <p><b>Issue 1: NSPersistentUIManager Crashes</b></p><ul>
 <li><b>Symptom</b>: Random crashes in <code>NSApplication _copyPublicPersistentUIInfo</code> during resize</li>
@@ -1055,9 +1038,9 @@ macOS-Specific Issues (Not Renderer-Related)</h2>
 </li>
 <li><b>Future Fix</b>: Move texture processing to background thread (SDL3)</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1088"></a>
+<h2><a class="anchor" id="autotoc_md1373"></a>
 Stability Improvements for Next Session</h2>
-<h3><a class="anchor" id="autotoc_md1089"></a>
+<h3><a class="anchor" id="autotoc_md1374"></a>
 High Priority</h3>
 <ol type="1">
 <li><b>Add Background Thread for Texture Processing</b><ul>
@@ -1082,7 +1065,7 @@ High Priority</h3>
 </ul>
 </li>
 </ol>
-<h3><a class="anchor" id="autotoc_md1090"></a>
+<h3><a class="anchor" id="autotoc_md1375"></a>
 Medium Priority</h3>
 <ol type="1">
 <li><b>Profile SDL Event Handling</b><ul>
@@ -1107,7 +1090,7 @@ Medium Priority</h3>
 </ul>
 </li>
 </ol>
-<h3><a class="anchor" id="autotoc_md1091"></a>
+<h3><a class="anchor" id="autotoc_md1376"></a>
 Low Priority (SDL3 Migration)</h3>
 <ol type="1">
 <li><b>Create Mock Renderer for Testing</b><ul>
@@ -1132,7 +1115,7 @@ Low Priority (SDL3 Migration)</h3>
 </ul>
 </li>
 </ol>
-<h2><a class="anchor" id="autotoc_md1092"></a>
+<h2><a class="anchor" id="autotoc_md1377"></a>
 Testing Recommendations</h2>
 <p><b>Before Next Major Change:</b></p><ol type="1">
 <li>Run all test targets: <code>cmake --build build --target yaze yaze_test yaze_emu z3ed -j8</code></li>
@@ -1153,7 +1136,7 @@ Testing Recommendations</h2>
 <li>These are NOT renderer bugs - they're macOS issues</li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md1094"></a>
+<h1><a class="anchor" id="autotoc_md1379"></a>
 🎵 Final Notes</h1>
 <p>This migration involved:</p><ul>
 <li><b>16 hours</b> of active development</li>
@@ -1163,12 +1146,12 @@ Testing Recommendations</h2>
 <li><b>12 runtime crashes</b> resolved</li>
 <li><b>64% performance improvement</b></li>
 </ul>
-<p><b>Special Thanks</b> to Portal 2's soundtrack for powering through the final bugs! 🎮</p>
+<p><b>Special Thanks</b> to Portal 2's soundtrack for powering through the final bugs! Game</p>
 <p>The rendering system is now:</p><ul>
-<li>✅ <b>Abstracted</b> - Ready for SDL3</li>
-<li>✅ <b>Optimized</b> - 82% lower CPU usage</li>
-<li>✅ <b>Stable</b> - All critical crashes fixed</li>
-<li>✅ <b>Documented</b> - Comprehensive guide written</li>
+<li><b>Abstracted</b> - Ready for SDL3</li>
+<li><b>Optimized</b> - 82% lower CPU usage</li>
+<li><b>Stable</b> - All critical crashes fixed</li>
+<li><b>Documented</b> - Comprehensive guide written</li>
 </ul>
 <p><b>Known Quirks:</b></p><ul>
 <li>macOS resize with emulator may occasionally show loading indicator (macOS bug, not ours)</li>

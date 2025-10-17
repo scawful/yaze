@@ -1,0 +1,9 @@
+<map id="yaze::editor::PaletteEditor::Initialize" name="yaze::editor::PaletteEditor::Initialize">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,171,79"/>
+<area shape="rect" id="Node000002" href="$d0/d2e/classyaze_1_1editor_1_1EditorCardRegistry.html#a78ce4b14788249c71c60777b79a5bebc" title="Register a card for a specific session." alt="" coords="219,39,370,79"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="171,56,203,56,203,62,171,62"/>
+<area shape="rect" id="Node000003" href="$d0/d2e/classyaze_1_1editor_1_1EditorCardRegistry.html#a309a910e28d7198f4e07a140245541f7" title="Generate session&#45;aware card ID." alt="" coords="427,5,578,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="370,44,411,38,412,43,371,50"/>
+<area shape="rect" id="Node000005" href="$d0/d2e/classyaze_1_1editor_1_1EditorCardRegistry.html#aa4be0773bd6facbe27150676d4876a58" title="Register a new session in the registry." alt="" coords="418,71,587,111"/>
+<area shape="poly" id="edge3_Node000002_Node000005" title=" " alt="" coords="371,68,403,73,402,78,370,73"/>
+</map>

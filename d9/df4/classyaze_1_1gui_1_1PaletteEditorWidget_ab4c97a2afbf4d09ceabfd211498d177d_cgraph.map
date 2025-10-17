@@ -1,0 +1,7 @@
+<map id="yaze::gui::PaletteEditorWidget::DrawColorEditControls" name="yaze::gui::PaletteEditorWidget::DrawColorEditControls">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,27,203,68"/>
+<area shape="rect" id="Node000002" href="$d5/d31/classyaze_1_1gfx_1_1SnesColor.html#a0a6bc657e8a8778b7672d2e6102771e2" title="Get RGB values (WARNING: stored as 0&#45;255 in ImVec4)" alt="" coords="251,5,411,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="203,32,235,28,236,33,203,37"/>
+<area shape="rect" id="Node000003" href="$d5/d31/classyaze_1_1gfx_1_1SnesColor.html#ade9df7154cb3707cffe5e644c995f090" title="Get SNES 15&#45;bit color." alt="" coords="263,55,399,96"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="203,57,248,63,247,68,203,62"/>
+</map>

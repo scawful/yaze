@@ -19,5 +19,6 @@ var namespaces_dup =
     [ "ImGui", "df/de4/namespaceImGui.html", [
       [ "InputScalarLeft", "df/de4/namespaceImGui.html#aa81ca8a6c22cc91f5a079a92cdbefc3d", null ]
     ] ],
+    [ "PopupID", "d3/d01/namespacePopupID.html", null ],
     [ "yaze", "dc/d46/namespaceyaze.html", "dc/d46/namespaceyaze" ]
 ];

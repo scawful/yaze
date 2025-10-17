@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.9.8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>yaze: src/app/core/project.cc File Reference</title>
+<title>yaze: src/core/project.cc File Reference</title>
 <link href="../../tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript">var page_layout=1;</script>
 <script type="text/javascript" src="../../jquery.js"></script>
@@ -104,7 +104,7 @@ $(document).ready(function(){initNavTree('d3/dd5/project_8cc.html','../../'); in
   <div class="headertitle"><div class="title">project.cc File Reference</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &quot;<a class="el" href="../../dc/d8d/project_8h_source.html">project.h</a>&quot;</code><br />
+<div class="textblock"><code>#include &quot;<a class="el" href="../../dc/d8d/project_8h_source.html">core/project.h</a>&quot;</code><br />
 <code>#include &lt;chrono&gt;</code><br />
 <code>#include &lt;filesystem&gt;</code><br />
 <code>#include &lt;fstream&gt;</code><br />
@@ -115,9 +115,9 @@ $(document).ready(function(){initNavTree('d3/dd5/project_8cc.html','../../'); in
 <code>#include &quot;absl/strings/str_split.h&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../d0/dae/file__util_8h_source.html">util/file_util.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../d5/dc8/platform__paths_8h_source.html">util/platform_paths.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="../../de/dbf/icons_8h_source.html">app/gui/icons.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../de/dbf/icons_8h_source.html">app/gui/core/icons.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../d7/d7f/log_8h_source.html">util/log.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="../../d3/d0f/zelda3__labels_8h_source.html">app/zelda3/zelda3_labels.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../d3/d0f/zelda3__labels_8h_source.html">zelda3/zelda3_labels.h</a>&quot;</code><br />
 <code>#include &quot;imgui/imgui.h&quot;</code><br />
 <code>#include &quot;yaze_config.h&quot;</code><br />
 </div>
@@ -128,28 +128,28 @@ Namespaces</h2></td></tr>
 <tr class="memitem:dc/d46/namespaceyaze" id="r_dc/d46/namespaceyaze"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d46/namespaceyaze.html">yaze</a></td></tr>
 <tr class="memdesc:dc/d46/namespaceyaze"><td class="mdescLeft">&#160;</td><td class="mdescRight">Main namespace for the application. <br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:db/d33/namespaceyaze_1_1core" id="r_db/d33/namespaceyaze_1_1core"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/d33/namespaceyaze_1_1core.html">yaze::core</a></td></tr>
+<tr class="memitem:d3/d48/namespaceyaze_1_1project" id="r_d3/d48/namespaceyaze_1_1project"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/d48/namespaceyaze_1_1project.html">yaze::project</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:de/db1/namespaceyaze_1_1core_1_1anonymous__namespace_02project_8cc_03" id="r_de/db1/namespaceyaze_1_1core_1_1anonymous__namespace_02project_8cc_03"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../de/db1/namespaceyaze_1_1core_1_1anonymous__namespace_02project_8cc_03.html">yaze::core::anonymous_namespace{project.cc}</a></td></tr>
+<tr class="memitem:d6/d87/namespaceyaze_1_1project_1_1anonymous__namespace_02project_8cc_03" id="r_d6/d87/namespaceyaze_1_1project_1_1anonymous__namespace_02project_8cc_03"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d87/namespaceyaze_1_1project_1_1anonymous__namespace_02project_8cc_03.html">yaze::project::anonymous_namespace{project.cc}</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:ad27d05709b9eec1a229aab08f178575c" id="r_ad27d05709b9eec1a229aab08f178575c"><td class="memItemLeft" align="right" valign="top">std::pair&lt; std::string, std::string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../de/db1/namespaceyaze_1_1core_1_1anonymous__namespace_02project_8cc_03.html#ad27d05709b9eec1a229aab08f178575c">yaze::core::anonymous_namespace{project.cc}::ParseKeyValue</a> (const std::string &amp;line)</td></tr>
-<tr class="separator:ad27d05709b9eec1a229aab08f178575c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab275661a03c76657529623faa3f23c55" id="r_ab275661a03c76657529623faa3f23c55"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../de/db1/namespaceyaze_1_1core_1_1anonymous__namespace_02project_8cc_03.html#ab275661a03c76657529623faa3f23c55">yaze::core::anonymous_namespace{project.cc}::ParseBool</a> (const std::string &amp;value)</td></tr>
-<tr class="separator:ab275661a03c76657529623faa3f23c55"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0369272ce2752af89286d11b1477d29c" id="r_a0369272ce2752af89286d11b1477d29c"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../de/db1/namespaceyaze_1_1core_1_1anonymous__namespace_02project_8cc_03.html#a0369272ce2752af89286d11b1477d29c">yaze::core::anonymous_namespace{project.cc}::ParseFloat</a> (const std::string &amp;value)</td></tr>
-<tr class="separator:a0369272ce2752af89286d11b1477d29c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8990b1b4fa967540cf11979bcaec8a7d" id="r_a8990b1b4fa967540cf11979bcaec8a7d"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../de/db1/namespaceyaze_1_1core_1_1anonymous__namespace_02project_8cc_03.html#a8990b1b4fa967540cf11979bcaec8a7d">yaze::core::anonymous_namespace{project.cc}::ParseStringList</a> (const std::string &amp;value)</td></tr>
-<tr class="separator:a8990b1b4fa967540cf11979bcaec8a7d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afdd24a8818815fa680ce5e29ecdceb5f" id="r_afdd24a8818815fa680ce5e29ecdceb5f"><td class="memItemLeft" align="right" valign="top">std::pair&lt; std::string, std::string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d87/namespaceyaze_1_1project_1_1anonymous__namespace_02project_8cc_03.html#afdd24a8818815fa680ce5e29ecdceb5f">yaze::project::anonymous_namespace{project.cc}::ParseKeyValue</a> (const std::string &amp;line)</td></tr>
+<tr class="separator:afdd24a8818815fa680ce5e29ecdceb5f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a50b2a27ed386805ac0960adcbaa951d8" id="r_a50b2a27ed386805ac0960adcbaa951d8"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d87/namespaceyaze_1_1project_1_1anonymous__namespace_02project_8cc_03.html#a50b2a27ed386805ac0960adcbaa951d8">yaze::project::anonymous_namespace{project.cc}::ParseBool</a> (const std::string &amp;value)</td></tr>
+<tr class="separator:a50b2a27ed386805ac0960adcbaa951d8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0f86007ac20b6d5c5dda649e17ed48bc" id="r_a0f86007ac20b6d5c5dda649e17ed48bc"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d87/namespaceyaze_1_1project_1_1anonymous__namespace_02project_8cc_03.html#a0f86007ac20b6d5c5dda649e17ed48bc">yaze::project::anonymous_namespace{project.cc}::ParseFloat</a> (const std::string &amp;value)</td></tr>
+<tr class="separator:a0f86007ac20b6d5c5dda649e17ed48bc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aff671df1883b4632672c2912e8c80f7c" id="r_aff671df1883b4632672c2912e8c80f7c"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d87/namespaceyaze_1_1project_1_1anonymous__namespace_02project_8cc_03.html#aff671df1883b4632672c2912e8c80f7c">yaze::project::anonymous_namespace{project.cc}::ParseStringList</a> (const std::string &amp;value)</td></tr>
+<tr class="separator:aff671df1883b4632672c2912e8c80f7c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 </div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="navelem"><a class="el" href="../../dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="../../dir_5194e5fea318fda12687127c23f8aba1.html">app</a></li><li class="navelem"><a class="el" href="../../dir_fcc5e025f1b672ef47e35e5c700d9477.html">core</a></li><li class="navelem"><a class="el" href="../../d3/dd5/project_8cc.html">project.cc</a></li>
+    <li class="navelem"><a class="el" href="../../dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="../../dir_aebb8dcc11953d78e620bbef0b9e2183.html">core</a></li><li class="navelem"><a class="el" href="../../d3/dd5/project_8cc.html">project.cc</a></li>
     <li class="footer">Generated by <a href="https://www.doxygen.org/index.html"><img class="footer" src="../../doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
   </ul>
 </div>

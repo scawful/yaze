@@ -126,6 +126,10 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a16076c223b0b3dfea4f5dc03b4223f23"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa126613baf1a31d8bdb2b032b01e3a6a" id="r_aa126613baf1a31d8bdb2b032b01e3a6a"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d84/classyaze_1_1editor_1_1ShortcutManager.html#aa126613baf1a31d8bdb2b032b01e3a6a">GetShortcuts</a> () const</td></tr>
 <tr class="separator:aa126613baf1a31d8bdb2b032b01e3a6a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9b90d52dd548837936a93c4cfb0f3414" id="r_a9b90d52dd548837936a93c4cfb0f3414"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d84/classyaze_1_1editor_1_1ShortcutManager.html#a9b90d52dd548837936a93c4cfb0f3414">RegisterStandardShortcuts</a> (std::function&lt; void()&gt; save_callback, std::function&lt; void()&gt; open_callback, std::function&lt; void()&gt; close_callback, std::function&lt; void()&gt; find_callback, std::function&lt; void()&gt; settings_callback)</td></tr>
+<tr class="separator:a9b90d52dd548837936a93c4cfb0f3414"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aac60b04a4d6aadeed7d44ac31100bc58" id="r_aac60b04a4d6aadeed7d44ac31100bc58"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d84/classyaze_1_1editor_1_1ShortcutManager.html#aac60b04a4d6aadeed7d44ac31100bc58">RegisterWindowNavigationShortcuts</a> (std::function&lt; void()&gt; focus_left, std::function&lt; void()&gt; focus_right, std::function&lt; void()&gt; focus_up, std::function&lt; void()&gt; focus_down, std::function&lt; void()&gt; close_window, std::function&lt; void()&gt; split_horizontal, std::function&lt; void()&gt; split_vertical)</td></tr>
+<tr class="separator:aac60b04a4d6aadeed7d44ac31100bc58"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-attribs" name="pri-attribs"></a>
 Private Attributes</h2></td></tr>
@@ -134,7 +138,7 @@ Private Attributes</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock">
-<p class="definition">Definition at line <a class="el" href="../../d1/d72/shortcut__manager_8h_source.html#l00028">28</a> of file <a class="el" href="../../d1/d72/shortcut__manager_8h_source.html">shortcut_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d1/d72/shortcut__manager_8h_source.html#l00029">29</a> of file <a class="el" href="../../d1/d72/shortcut__manager_8h_source.html">shortcut_manager.h</a>.</p>
 </div><h2 class="groupheader">Member Function Documentation</h2>
 <a id="ae82db42417f28be091e36073115b6c39" name="ae82db42417f28be091e36073115b6c39"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ae82db42417f28be091e36073115b6c39">&#9670;&#160;</a></span>RegisterShortcut() <span class="overload">[1/3]</span></h2>
@@ -170,11 +174,11 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d1/d72/shortcut__manager_8h_source.html#l00030">30</a> of file <a class="el" href="../../d1/d72/shortcut__manager_8h_source.html">shortcut_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d1/d72/shortcut__manager_8h_source.html#l00031">31</a> of file <a class="el" href="../../d1/d72/shortcut__manager_8h_source.html">shortcut_manager.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d1/d72/shortcut__manager_8h_source.html#l00066">shortcuts_</a>.</p>
+<p class="reference">References <a class="el" href="../../d1/d72/shortcut__manager_8h_source.html#l00084">shortcuts_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l00146">yaze::editor::EditorManager::Initialize()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d9/da9/shortcut__configurator_8cc_source.html#l00021">yaze::editor::anonymous_namespace{shortcut_configurator.cc}::RegisterIfValid()</a>, <a class="el" href="../../d9/da9/shortcut__configurator_8cc_source.html#l00031">yaze::editor::anonymous_namespace{shortcut_configurator.cc}::RegisterIfValid()</a>, <a class="el" href="../../d3/d0d/shortcut__manager_8cc_source.html#l00190">RegisterStandardShortcuts()</a>, and <a class="el" href="../../d3/d0d/shortcut__manager_8cc_source.html#l00226">RegisterWindowNavigationShortcuts()</a>.</p>
 
 </div>
 </div>
@@ -218,9 +222,9 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d1/d72/shortcut__manager_8h_source.html#l00034">34</a> of file <a class="el" href="../../d1/d72/shortcut__manager_8h_source.html">shortcut_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d1/d72/shortcut__manager_8h_source.html#l00035">35</a> of file <a class="el" href="../../d1/d72/shortcut__manager_8h_source.html">shortcut_manager.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d1/d72/shortcut__manager_8h_source.html#l00066">shortcuts_</a>.</p>
+<p class="reference">References <a class="el" href="../../d1/d72/shortcut__manager_8h_source.html#l00084">shortcuts_</a>.</p>
 
 </div>
 </div>
@@ -264,9 +268,9 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d1/d72/shortcut__manager_8h_source.html#l00040">40</a> of file <a class="el" href="../../d1/d72/shortcut__manager_8h_source.html">shortcut_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d1/d72/shortcut__manager_8h_source.html#l00041">41</a> of file <a class="el" href="../../d1/d72/shortcut__manager_8h_source.html">shortcut_manager.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d1/d72/shortcut__manager_8h_source.html#l00066">shortcuts_</a>.</p>
+<p class="reference">References <a class="el" href="../../d1/d72/shortcut__manager_8h_source.html#l00084">shortcuts_</a>.</p>
 
 </div>
 </div>
@@ -294,9 +298,9 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d1/d72/shortcut__manager_8h_source.html#l00045">45</a> of file <a class="el" href="../../d1/d72/shortcut__manager_8h_source.html">shortcut_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d1/d72/shortcut__manager_8h_source.html#l00046">46</a> of file <a class="el" href="../../d1/d72/shortcut__manager_8h_source.html">shortcut_manager.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d1/d72/shortcut__manager_8h_source.html#l00066">shortcuts_</a>.</p>
+<p class="reference">References <a class="el" href="../../d1/d72/shortcut__manager_8h_source.html#l00084">shortcuts_</a>.</p>
 
 </div>
 </div>
@@ -324,9 +328,9 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d1/d72/shortcut__manager_8h_source.html#l00050">50</a> of file <a class="el" href="../../d1/d72/shortcut__manager_8h_source.html">shortcut_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d1/d72/shortcut__manager_8h_source.html#l00051">51</a> of file <a class="el" href="../../d1/d72/shortcut__manager_8h_source.html">shortcut_manager.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d1/d72/shortcut__manager_8h_source.html#l00066">shortcuts_</a>.</p>
+<p class="reference">References <a class="el" href="../../d1/d72/shortcut__manager_8h_source.html#l00084">shortcuts_</a>.</p>
 
 </div>
 </div>
@@ -354,9 +358,9 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d1/d72/shortcut__manager_8h_source.html#l00055">55</a> of file <a class="el" href="../../d1/d72/shortcut__manager_8h_source.html">shortcut_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d1/d72/shortcut__manager_8h_source.html#l00056">56</a> of file <a class="el" href="../../d1/d72/shortcut__manager_8h_source.html">shortcut_manager.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d1/d72/shortcut__manager_8h_source.html#l00066">shortcuts_</a>.</p>
+<p class="reference">References <a class="el" href="../../d1/d72/shortcut__manager_8h_source.html#l00084">shortcuts_</a>.</p>
 
 </div>
 </div>
@@ -384,9 +388,9 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d1/d72/shortcut__manager_8h_source.html#l00059">59</a> of file <a class="el" href="../../d1/d72/shortcut__manager_8h_source.html">shortcut_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d1/d72/shortcut__manager_8h_source.html#l00060">60</a> of file <a class="el" href="../../d1/d72/shortcut__manager_8h_source.html">shortcut_manager.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d3/d0d/shortcut__manager_8cc_source.html#l00086">yaze::editor::PrintShortcut()</a>, and <a class="el" href="../../d1/d72/shortcut__manager_8h_source.html#l00066">shortcuts_</a>.</p>
+<p class="reference">References <a class="el" href="../../d3/d0d/shortcut__manager_8cc_source.html#l00090">yaze::editor::PrintShortcut()</a>, and <a class="el" href="../../d1/d72/shortcut__manager_8h_source.html#l00084">shortcuts_</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -423,11 +427,143 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d1/d72/shortcut__manager_8h_source.html#l00063">63</a> of file <a class="el" href="../../d1/d72/shortcut__manager_8h_source.html">shortcut_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d1/d72/shortcut__manager_8h_source.html#l00064">64</a> of file <a class="el" href="../../d1/d72/shortcut__manager_8h_source.html">shortcut_manager.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d1/d72/shortcut__manager_8h_source.html#l00066">shortcuts_</a>.</p>
+<p class="reference">References <a class="el" href="../../d1/d72/shortcut__manager_8h_source.html#l00084">shortcuts_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l01420">yaze::editor::EditorManager::DrawMenuBar()</a>, and <a class="el" href="../../d3/d0d/shortcut__manager_8cc_source.html#l00140">yaze::editor::ExecuteShortcuts()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d3/d26/ui__coordinator_8cc_source.html#l00515">yaze::editor::UICoordinator::DrawCommandPalette()</a>, and <a class="el" href="../../d3/d0d/shortcut__manager_8cc_source.html#l00144">yaze::editor::ExecuteShortcuts()</a>.</p>
+
+</div>
+</div>
+<a id="a9b90d52dd548837936a93c4cfb0f3414" name="a9b90d52dd548837936a93c4cfb0f3414"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9b90d52dd548837936a93c4cfb0f3414">&#9670;&#160;</a></span>RegisterStandardShortcuts()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::editor::ShortcutManager::RegisterStandardShortcuts </td>
+          <td>(</td>
+          <td class="paramtype">std::function&lt; void()&gt;&#160;</td>
+          <td class="paramname"><em>save_callback</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::function&lt; void()&gt;&#160;</td>
+          <td class="paramname"><em>open_callback</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::function&lt; void()&gt;&#160;</td>
+          <td class="paramname"><em>close_callback</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::function&lt; void()&gt;&#160;</td>
+          <td class="paramname"><em>find_callback</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::function&lt; void()&gt;&#160;</td>
+          <td class="paramname"><em>settings_callback</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d3/d0d/shortcut__manager_8cc_source.html#l00190">190</a> of file <a class="el" href="../../d3/d0d/shortcut__manager_8cc_source.html">shortcut_manager.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d1/d72/shortcut__manager_8h_source.html#l00031">RegisterShortcut()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d7/d84/classyaze_1_1editor_1_1ShortcutManager_a9b90d52dd548837936a93c4cfb0f3414_cgraph.png" border="0" usemap="#ad7/d84/classyaze_1_1editor_1_1ShortcutManager_a9b90d52dd548837936a93c4cfb0f3414_cgraph" alt=""/></div>
+<map name="ad7/d84/classyaze_1_1editor_1_1ShortcutManager_a9b90d52dd548837936a93c4cfb0f3414_cgraph" id="ad7/d84/classyaze_1_1editor_1_1ShortcutManager_a9b90d52dd548837936a93c4cfb0f3414_cgraph">
+<area shape="rect" title=" " alt="" coords="5,5,196,46"/>
+<area shape="rect" href="../../d7/d84/classyaze_1_1editor_1_1ShortcutManager.html#ae82db42417f28be091e36073115b6c39" title=" " alt="" coords="244,5,434,46"/>
+<area shape="poly" title=" " alt="" coords="196,23,228,23,228,28,196,28"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="aac60b04a4d6aadeed7d44ac31100bc58" name="aac60b04a4d6aadeed7d44ac31100bc58"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aac60b04a4d6aadeed7d44ac31100bc58">&#9670;&#160;</a></span>RegisterWindowNavigationShortcuts()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::editor::ShortcutManager::RegisterWindowNavigationShortcuts </td>
+          <td>(</td>
+          <td class="paramtype">std::function&lt; void()&gt;&#160;</td>
+          <td class="paramname"><em>focus_left</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::function&lt; void()&gt;&#160;</td>
+          <td class="paramname"><em>focus_right</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::function&lt; void()&gt;&#160;</td>
+          <td class="paramname"><em>focus_up</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::function&lt; void()&gt;&#160;</td>
+          <td class="paramname"><em>focus_down</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::function&lt; void()&gt;&#160;</td>
+          <td class="paramname"><em>close_window</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::function&lt; void()&gt;&#160;</td>
+          <td class="paramname"><em>split_horizontal</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::function&lt; void()&gt;&#160;</td>
+          <td class="paramname"><em>split_vertical</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d3/d0d/shortcut__manager_8cc_source.html#l00226">226</a> of file <a class="el" href="../../d3/d0d/shortcut__manager_8cc_source.html">shortcut_manager.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d1/d72/shortcut__manager_8h_source.html#l00031">RegisterShortcut()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d7/d84/classyaze_1_1editor_1_1ShortcutManager_aac60b04a4d6aadeed7d44ac31100bc58_cgraph.png" border="0" usemap="#ad7/d84/classyaze_1_1editor_1_1ShortcutManager_aac60b04a4d6aadeed7d44ac31100bc58_cgraph" alt=""/></div>
+<map name="ad7/d84/classyaze_1_1editor_1_1ShortcutManager_aac60b04a4d6aadeed7d44ac31100bc58_cgraph" id="ad7/d84/classyaze_1_1editor_1_1ShortcutManager_aac60b04a4d6aadeed7d44ac31100bc58_cgraph">
+<area shape="rect" title=" " alt="" coords="5,5,245,46"/>
+<area shape="rect" href="../../d7/d84/classyaze_1_1editor_1_1ShortcutManager.html#ae82db42417f28be091e36073115b6c39" title=" " alt="" coords="293,5,483,46"/>
+<area shape="poly" title=" " alt="" coords="245,23,277,23,277,28,245,28"/>
+</map>
+</div>
 
 </div>
 </div>
@@ -452,14 +588,15 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d1/d72/shortcut__manager_8h_source.html#l00066">66</a> of file <a class="el" href="../../d1/d72/shortcut__manager_8h_source.html">shortcut_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d1/d72/shortcut__manager_8h_source.html#l00084">84</a> of file <a class="el" href="../../d1/d72/shortcut__manager_8h_source.html">shortcut_manager.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d1/d72/shortcut__manager_8h_source.html#l00045">ExecuteShortcut()</a>, <a class="el" href="../../d1/d72/shortcut__manager_8h_source.html#l00055">GetCallback()</a>, <a class="el" href="../../d1/d72/shortcut__manager_8h_source.html#l00059">GetKeys()</a>, <a class="el" href="../../d1/d72/shortcut__manager_8h_source.html#l00050">GetShortcut()</a>, <a class="el" href="../../d1/d72/shortcut__manager_8h_source.html#l00063">GetShortcuts()</a>, <a class="el" href="../../d1/d72/shortcut__manager_8h_source.html#l00030">RegisterShortcut()</a>, <a class="el" href="../../d1/d72/shortcut__manager_8h_source.html#l00034">RegisterShortcut()</a>, and <a class="el" href="../../d1/d72/shortcut__manager_8h_source.html#l00040">RegisterShortcut()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d1/d72/shortcut__manager_8h_source.html#l00046">ExecuteShortcut()</a>, <a class="el" href="../../d1/d72/shortcut__manager_8h_source.html#l00056">GetCallback()</a>, <a class="el" href="../../d1/d72/shortcut__manager_8h_source.html#l00060">GetKeys()</a>, <a class="el" href="../../d1/d72/shortcut__manager_8h_source.html#l00051">GetShortcut()</a>, <a class="el" href="../../d1/d72/shortcut__manager_8h_source.html#l00064">GetShortcuts()</a>, <a class="el" href="../../d1/d72/shortcut__manager_8h_source.html#l00031">RegisterShortcut()</a>, <a class="el" href="../../d1/d72/shortcut__manager_8h_source.html#l00035">RegisterShortcut()</a>, and <a class="el" href="../../d1/d72/shortcut__manager_8h_source.html#l00041">RegisterShortcut()</a>.</p>
 
 </div>
 </div>
-<hr/>The documentation for this class was generated from the following file:<ul>
+<hr/>The documentation for this class was generated from the following files:<ul>
 <li>src/app/editor/system/<a class="el" href="../../d1/d72/shortcut__manager_8h_source.html">shortcut_manager.h</a></li>
+<li>src/app/editor/system/<a class="el" href="../../d3/d0d/shortcut__manager_8cc_source.html">shortcut_manager.cc</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->

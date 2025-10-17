@@ -1,0 +1,7 @@
+<map id="yaze::gui::CanvasMenuBuilder" name="yaze::gui::CanvasMenuBuilder">
+<area shape="rect" id="Node000001" title="Builder pattern for constructing canvas menus fluently." alt="" coords="124,94,316,120"/>
+<area shape="rect" id="Node000002" href="$de/dfa/structyaze_1_1gui_1_1CanvasMenuDefinition.html" title="Complete menu definition." alt="" coords="5,5,211,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="137,38,206,91,203,95,134,43"/>
+<area shape="rect" id="Node000003" href="$dc/db5/structyaze_1_1gui_1_1CanvasMenuSection.html" title="Menu section grouping related menu items." alt="" coords="235,5,432,31"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="307,43,238,95,234,91,304,38"/>
+</map>

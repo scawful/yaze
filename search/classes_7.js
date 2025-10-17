@@ -7,5 +7,6 @@ var searchData=
   ['hexstringparams_4',['HexStringParams',['../da/df6/structyaze_1_1util_1_1HexStringParams.html',1,'yaze::util']]],
   ['hexviewercomponent_5',['HexViewerComponent',['../de/dce/classyaze_1_1cli_1_1HexViewerComponent.html',1,'yaze::cli']]],
   ['hexwritecommandhandler_6',['HexWriteCommandHandler',['../d7/dc4/classyaze_1_1cli_1_1handlers_1_1HexWriteCommandHandler.html',1,'yaze::cli::handlers']]],
-  ['historymanager_7',['HistoryManager',['../d9/d6c/classyaze_1_1editor_1_1HistoryManager.html',1,'yaze::editor']]]
+  ['historymanager_7',['HistoryManager',['../d9/d6c/classyaze_1_1editor_1_1HistoryManager.html',1,'yaze::editor']]],
+  ['hoverevent_8',['HoverEvent',['../db/d2b/structyaze_1_1gui_1_1HoverEvent.html',1,'yaze::gui']]]
 ];

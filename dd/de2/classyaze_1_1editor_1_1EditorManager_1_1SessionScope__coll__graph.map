@@ -1,0 +1,13 @@
+<map id="yaze::editor::EditorManager::SessionScope" name="yaze::editor::EditorManager::SessionScope">
+<area shape="rect" id="Node000001" title=" " alt="" coords="117,271,291,312"/>
+<area shape="rect" id="Node000002" href="$dd/d12/classyaze_1_1editor_1_1EditorManager.html" title="The EditorManager controls the main editor window and manages the various editor classes." alt="" coords="117,183,291,208"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="207,224,207,271,202,271,202,224"/>
+<area shape="rect" id="Node000003" href="$dd/dcc/classyaze_1_1editor_1_1ProposalDrawer.html" title="ImGui drawer for displaying and managing agent proposals." alt="" coords="62,94,245,120"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="138,134,135,146,138,157,149,170,165,180,162,184,146,174,133,160,130,146,133,132"/>
+<area shape="rect" id="Node000005" href="$d6/d30/classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="5,5,86,31"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="46,47,48,100,55,130,66,157,91,191,120,222,176,269,173,273,116,226,87,195,62,160,50,132,43,101,41,47"/>
+<area shape="poly" id="edge3_Node000003_Node000005" title=" " alt="" coords="74,39,140,91,137,95,71,43"/>
+<area shape="rect" id="Node000056" href="$d3/d21/classyaze_1_1editor_1_1EditorSet.html" title="Contains a complete set of editors for a single ROM instance." alt="" coords="288,94,432,120"/>
+<area shape="poly" id="edge6_Node000001_Node000056" title=" " alt="" coords="378,133,381,146,379,160,354,198,321,229,285,254,251,273,248,268,282,250,318,225,350,194,374,158,376,146,373,134"/>
+<area shape="poly" id="edge4_Node000002_Node000056" title=" " alt="" coords="311,128,273,146,219,184,216,180,270,141,308,123"/>
+</map>

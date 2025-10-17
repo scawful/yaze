@@ -1,0 +1,11 @@
+<map id="yaze::project::ProjectManager::ProjectTemplate" name="yaze::project::ProjectManager::ProjectTemplate">
+<area shape="rect" id="Node000001" title=" " alt="" coords="681,55,870,96"/>
+<area shape="rect" id="Node000002" href="$dd/d28/structyaze_1_1project_1_1YazeProject.html" title="Modern project structure with comprehensive settings consolidation." alt="" coords="366,63,534,88"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="549,73,681,73,681,78,549,78"/>
+<area shape="rect" id="Node000003" href="$dc/df8/structyaze_1_1project_1_1ProjectMetadata.html" title="Enhanced metadata for project tracking." alt="" coords="5,5,199,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="209,31,342,53,379,59,378,65,341,58,208,37"/>
+<area shape="rect" id="Node000004" href="$dd/d19/structyaze_1_1core_1_1FeatureFlags_1_1Flags.html" title=" " alt="" coords="22,55,182,96"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="198,73,365,73,365,78,198,78"/>
+<area shape="rect" id="Node000006" href="$dd/df6/structyaze_1_1project_1_1WorkspaceSettings.html" title="Consolidated workspace and UI settings." alt="" coords="20,121,184,161"/>
+<area shape="poly" id="edge4_Node000002_Node000006" title=" " alt="" coords="198,120,341,93,377,86,378,92,342,98,199,125"/>
+</map>

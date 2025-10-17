@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.9.8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>yaze: src/app/zelda3/screen/inventory.h File Reference</title>
+<title>yaze: src/zelda3/screen/inventory.h File Reference</title>
 <link href="../../tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript">var page_layout=1;</script>
 <script type="text/javascript" src="../../jquery.js"></script>
@@ -105,26 +105,26 @@ $(document).ready(function(){initNavTree('da/dab/inventory_8h.html','../../'); i
   <div class="headertitle"><div class="title">inventory.h File Reference</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &quot;<a class="el" href="../../da/dcb/bitmap_8h_source.html">app/gfx/bitmap.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="../../d8/ddb/snes__palette_8h_source.html">app/gfx/snes_palette.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="../../d0/d8d/snes__tile_8h_source.html">app/gfx/snes_tile.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="../../d4/dcf/canvas_8h_source.html">app/gui/canvas.h</a>&quot;</code><br />
+<div class="textblock"><code>#include &quot;absl/status/status.h&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../da/dcb/bitmap_8h_source.html">app/gfx/core/bitmap.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../d8/ddb/snes__palette_8h_source.html">app/gfx/types/snes_palette.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../d0/d8d/snes__tile_8h_source.html">app/gfx/types/snes_tile.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../d4/dcf/canvas_8h_source.html">app/gui/canvas/canvas.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../da/de5/rom_8h_source.html">app/rom.h</a>&quot;</code><br />
 </div><div class="textblock"><div class="dynheader">
 This graph shows which files directly or indirectly include this file:</div>
 <div class="dyncontent">
-<div class="center"><img src="../../dd/d26/inventory_8h__dep__incl.png" border="0" usemap="#asrc_2app_2zelda3_2screen_2inventory_8hdep" alt=""/></div>
-<map name="asrc_2app_2zelda3_2screen_2inventory_8hdep" id="asrc_2app_2zelda3_2screen_2inventory_8hdep">
-<area shape="rect" title=" " alt="" coords="95,5,243,46"/>
-<area shape="rect" href="../../d7/dd0/screen__editor_8h.html" title=" " alt="" coords="5,94,159,135"/>
-<area shape="poly" title=" " alt="" coords="140,59,103,95,100,92,136,55"/>
-<area shape="rect" href="../../d1/dcc/inventory_8cc.html" title=" " alt="" coords="183,94,331,135"/>
-<area shape="poly" title=" " alt="" coords="201,55,239,92,235,95,198,59"/>
-<area shape="rect" href="../../d0/dd9/editor__manager_8cc.html" title=" " alt="" coords="14,271,150,312"/>
-<area shape="poly" title=" " alt="" coords="68,150,58,183,55,203,58,223,75,270,70,272,53,224,50,203,53,182,63,148"/>
-<area shape="rect" href="../../df/d60/editor__manager_8h.html" title=" " alt="" coords="67,183,204,223"/>
-<area shape="poly" title=" " alt="" coords="104,147,126,181,121,184,100,149"/>
-<area shape="poly" title=" " alt="" coords="118,238,96,272,92,269,113,235"/>
+<div class="center"><img src="../../dd/d26/inventory_8h__dep__incl.png" border="0" usemap="#asrc_2zelda3_2screen_2inventory_8hdep" alt=""/></div>
+<map name="asrc_2zelda3_2screen_2inventory_8hdep" id="asrc_2zelda3_2screen_2inventory_8hdep">
+<area shape="rect" title=" " alt="" coords="162,5,351,31"/>
+<area shape="rect" href="../../d7/dd0/screen__editor_8h.html" title=" " alt="" coords="81,79,234,120"/>
+<area shape="poly" title=" " alt="" coords="231,43,184,81,180,77,228,39"/>
+<area shape="rect" href="../../d1/dcc/inventory_8cc.html" title=" " alt="" coords="258,87,454,112"/>
+<area shape="poly" title=" " alt="" coords="285,39,342,84,339,88,281,43"/>
+<area shape="rect" href="../../d0/dd9/editor__manager_8cc.html" title=" " alt="" coords="5,168,142,208"/>
+<area shape="poly" title=" " alt="" coords="130,133,94,169,91,165,126,129"/>
+<area shape="rect" href="../../de/d57/screen__editor_8cc.html" title=" " alt="" coords="166,168,320,208"/>
+<area shape="poly" title=" " alt="" coords="189,129,225,165,222,169,185,133"/>
 </map>
 </div>
 </div>
@@ -132,7 +132,11 @@ This graph shows which files directly or indirectly include this file:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d4a/structyaze_1_1zelda3_1_1ItemIcon.html">yaze::zelda3::ItemIcon</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Represents a single item icon (2x2 tiles = 4 tile words)  <a href="../../d5/d4a/structyaze_1_1zelda3_1_1ItemIcon.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d3c/classyaze_1_1zelda3_1_1Inventory.html">yaze::zelda3::Inventory</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="../../d6/d3c/classyaze_1_1zelda3_1_1Inventory.html" title="Inventory manages the inventory screen graphics and layout.">Inventory</a> manages the inventory screen graphics and layout.  <a href="../../d6/d3c/classyaze_1_1zelda3_1_1Inventory.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="namespaces" name="namespaces"></a>
@@ -148,15 +152,15 @@ Namespaces</h2></td></tr>
 Variables</h2></td></tr>
 <tr class="memitem:aa169c4a87d4b45c92c632597ccaf8b8b" id="r_aa169c4a87d4b45c92c632597ccaf8b8b"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d1f/namespaceyaze_1_1zelda3.html#aa169c4a87d4b45c92c632597ccaf8b8b">yaze::zelda3::kInventoryStart</a> = 0x6564A</td></tr>
 <tr class="separator:aa169c4a87d4b45c92c632597ccaf8b8b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad29bc56db4a9f7ae93d0cee2d85ac13b" id="r_ad29bc56db4a9f7ae93d0cee2d85ac13b"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d1f/namespaceyaze_1_1zelda3.html#ad29bc56db4a9f7ae93d0cee2d85ac13b">yaze::zelda3::kBowItemPos</a> = 0x6F631</td></tr>
-<tr class="separator:ad29bc56db4a9f7ae93d0cee2d85ac13b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8baa2be94bfdb411a8f39f6719e46855" id="r_a8baa2be94bfdb411a8f39f6719e46855"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d1f/namespaceyaze_1_1zelda3.html#a8baa2be94bfdb411a8f39f6719e46855">yaze::zelda3::kItemIconsPtr</a> = 0x0DF629</td></tr>
+<tr class="separator:a8baa2be94bfdb411a8f39f6719e46855"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 </div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="navelem"><a class="el" href="../../dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="../../dir_5194e5fea318fda12687127c23f8aba1.html">app</a></li><li class="navelem"><a class="el" href="../../dir_3692ec13241b192189de912e0a54f355.html">zelda3</a></li><li class="navelem"><a class="el" href="../../dir_8c83c8b12307546e2fe7c08e26a70ba7.html">screen</a></li><li class="navelem"><a class="el" href="../../da/dab/inventory_8h.html">inventory.h</a></li>
+    <li class="navelem"><a class="el" href="../../dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="../../dir_1788f27b06fb7c1688f22833adbbe224.html">zelda3</a></li><li class="navelem"><a class="el" href="../../dir_e202862c906d973181c8f732910cf2bb.html">screen</a></li><li class="navelem"><a class="el" href="../../da/dab/inventory_8h.html">inventory.h</a></li>
     <li class="footer">Generated by <a href="https://www.doxygen.org/index.html"><img class="footer" src="../../doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
   </ul>
 </div>

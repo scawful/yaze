@@ -140,6 +140,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:afbd9cdda8024d0bc50c157aaf6703dc1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3269c915ba7258efa6e9a11a83cab2f9" id="r_a3269c915ba7258efa6e9a11a83cab2f9"><td class="memItemLeft" align="right" valign="top">virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d50/classyaze_1_1emu_1_1audio_1_1IAudioBackend.html#a3269c915ba7258efa6e9a11a83cab2f9">QueueSamples</a> (const float *samples, int num_samples)=0</td></tr>
 <tr class="separator:a3269c915ba7258efa6e9a11a83cab2f9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8889a1f8b7f3606cdcfb56f432ff195a" id="r_a8889a1f8b7f3606cdcfb56f432ff195a"><td class="memItemLeft" align="right" valign="top">virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d50/classyaze_1_1emu_1_1audio_1_1IAudioBackend.html#a8889a1f8b7f3606cdcfb56f432ff195a">QueueSamplesNative</a> (const int16_t *samples, int frames_per_channel, int channels, int native_rate)</td></tr>
+<tr class="separator:a8889a1f8b7f3606cdcfb56f432ff195a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aad48a50fd48e23d8438bab01c93ad14e" id="r_aad48a50fd48e23d8438bab01c93ad14e"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="../../d5/dd6/structyaze_1_1emu_1_1audio_1_1AudioStatus.html">AudioStatus</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d50/classyaze_1_1emu_1_1audio_1_1IAudioBackend.html#aad48a50fd48e23d8438bab01c93ad14e">GetStatus</a> () const =0</td></tr>
 <tr class="separator:aad48a50fd48e23d8438bab01c93ad14e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acaf5b97199b91600e88ca0067466bba6" id="r_acaf5b97199b91600e88ca0067466bba6"><td class="memItemLeft" align="right" valign="top">virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d50/classyaze_1_1emu_1_1audio_1_1IAudioBackend.html#acaf5b97199b91600e88ca0067466bba6">IsInitialized</a> () const =0</td></tr>
@@ -150,6 +152,10 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a3d8f01c9edb4a85682592dc6c82a0035"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aebec6bcf968d249a7e8a35e38d14ce5a" id="r_aebec6bcf968d249a7e8a35e38d14ce5a"><td class="memItemLeft" align="right" valign="top">virtual float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d50/classyaze_1_1emu_1_1audio_1_1IAudioBackend.html#aebec6bcf968d249a7e8a35e38d14ce5a">GetVolume</a> () const =0</td></tr>
 <tr class="separator:aebec6bcf968d249a7e8a35e38d14ce5a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9029db2555f003c8e99a2602290a8565" id="r_a9029db2555f003c8e99a2602290a8565"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d50/classyaze_1_1emu_1_1audio_1_1IAudioBackend.html#a9029db2555f003c8e99a2602290a8565">SetAudioStreamResampling</a> (bool enable, int native_rate, int channels)</td></tr>
+<tr class="separator:a9029db2555f003c8e99a2602290a8565"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab0ccc8c6c10b6a9cbd24d80fa8c75124" id="r_ab0ccc8c6c10b6a9cbd24d80fa8c75124"><td class="memItemLeft" align="right" valign="top">virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d50/classyaze_1_1emu_1_1audio_1_1IAudioBackend.html#ab0ccc8c6c10b6a9cbd24d80fa8c75124">SupportsAudioStream</a> () const</td></tr>
+<tr class="separator:ab0ccc8c6c10b6a9cbd24d80fa8c75124"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a141c0f90374642135e463bef5a552b7a" id="r_a141c0f90374642135e463bef5a552b7a"><td class="memItemLeft" align="right" valign="top">virtual std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d50/classyaze_1_1emu_1_1audio_1_1IAudioBackend.html#a141c0f90374642135e463bef5a552b7a">GetBackendName</a> () const =0</td></tr>
 <tr class="separator:a141c0f90374642135e463bef5a552b7a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
@@ -157,7 +163,7 @@ Public Member Functions</h2></td></tr>
 <div class="textblock"><p>Abstract audio backend interface. </p>
 <p>Allows swapping between SDL2, SDL3, or custom audio implementations without changing emulator/music editor code. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00043">43</a> of file <a class="el" href="../../d4/d03/audio__backend_8h_source.html">audio_backend.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00046">46</a> of file <a class="el" href="../../d4/d03/audio__backend_8h_source.html">audio_backend.h</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="ad73083d5a287141d2708355442b7d0e5" name="ad73083d5a287141d2708355442b7d0e5"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ad73083d5a287141d2708355442b7d0e5">&#9670;&#160;</a></span>~IAudioBackend()</h2>
@@ -424,6 +430,58 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="a8889a1f8b7f3606cdcfb56f432ff195a" name="a8889a1f8b7f3606cdcfb56f432ff195a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8889a1f8b7f3606cdcfb56f432ff195a">&#9670;&#160;</a></span>QueueSamplesNative()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual bool yaze::emu::audio::IAudioBackend::QueueSamplesNative </td>
+          <td>(</td>
+          <td class="paramtype">const int16_t *&#160;</td>
+          <td class="paramname"><em>samples</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>frames_per_channel</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>channels</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>native_rate</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Reimplemented in <a class="el" href="../../d3/d03/classyaze_1_1emu_1_1audio_1_1SDL2AudioBackend.html#ae9011938e2aee30a5bbad8652c170fe1">yaze::emu::audio::SDL2AudioBackend</a>.</p>
+
+<p class="definition">Definition at line <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00063">63</a> of file <a class="el" href="../../d4/d03/audio__backend_8h_source.html">audio_backend.h</a>.</p>
+
+</div>
+</div>
 <a id="aad48a50fd48e23d8438bab01c93ad14e" name="aad48a50fd48e23d8438bab01c93ad14e"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aad48a50fd48e23d8438bab01c93ad14e">&#9670;&#160;</a></span>GetStatus()</h2>
 
@@ -449,7 +507,7 @@ Public Member Functions</h2></td></tr>
 
 <p>Implemented in <a class="el" href="../../d3/d03/classyaze_1_1emu_1_1audio_1_1SDL2AudioBackend.html#ad9dadd0aa7f4c49c3e15faaa3b95a3f0">yaze::emu::audio::SDL2AudioBackend</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d2/d01/emulator__ui_8cc_source.html#l00041">yaze::emu::ui::RenderNavBar()</a>, and <a class="el" href="../../d2/d01/emulator__ui_8cc_source.html#l00318">yaze::emu::ui::RenderPerformanceMonitor()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d2/d01/emulator__ui_8cc_source.html#l00041">yaze::emu::ui::RenderNavBar()</a>, and <a class="el" href="../../d2/d01/emulator__ui_8cc_source.html#l00328">yaze::emu::ui::RenderPerformanceMonitor()</a>.</p>
 
 </div>
 </div>
@@ -562,6 +620,81 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="a9029db2555f003c8e99a2602290a8565" name="a9029db2555f003c8e99a2602290a8565"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9029db2555f003c8e99a2602290a8565">&#9670;&#160;</a></span>SetAudioStreamResampling()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void yaze::emu::audio::IAudioBackend::SetAudioStreamResampling </td>
+          <td>(</td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>enable</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>native_rate</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>channels</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Reimplemented in <a class="el" href="../../d3/d03/classyaze_1_1emu_1_1audio_1_1SDL2AudioBackend.html#af0d3ebead5d23b38c2a8513958dc662e">yaze::emu::audio::SDL2AudioBackend</a>.</p>
+
+<p class="definition">Definition at line <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00078">78</a> of file <a class="el" href="../../d4/d03/audio__backend_8h_source.html">audio_backend.h</a>.</p>
+
+</div>
+</div>
+<a id="ab0ccc8c6c10b6a9cbd24d80fa8c75124" name="ab0ccc8c6c10b6a9cbd24d80fa8c75124"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab0ccc8c6c10b6a9cbd24d80fa8c75124">&#9670;&#160;</a></span>SupportsAudioStream()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual bool yaze::emu::audio::IAudioBackend::SupportsAudioStream </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Reimplemented in <a class="el" href="../../d3/d03/classyaze_1_1emu_1_1audio_1_1SDL2AudioBackend.html#a14583ee2ab5060a43feeacfc48358cf2">yaze::emu::audio::SDL2AudioBackend</a>.</p>
+
+<p class="definition">Definition at line <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00080">80</a> of file <a class="el" href="../../d4/d03/audio__backend_8h_source.html">audio_backend.h</a>.</p>
+
+</div>
+</div>
 <a id="a141c0f90374642135e463bef5a552b7a" name="a141c0f90374642135e463bef5a552b7a"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a141c0f90374642135e463bef5a552b7a">&#9670;&#160;</a></span>GetBackendName()</h2>
 
@@ -587,7 +720,7 @@ Public Member Functions</h2></td></tr>
 
 <p>Implemented in <a class="el" href="../../d3/d03/classyaze_1_1emu_1_1audio_1_1SDL2AudioBackend.html#abeee46fd990372ab4633cffcf36e00c1">yaze::emu::audio::SDL2AudioBackend</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d2/d01/emulator__ui_8cc_source.html#l00041">yaze::emu::ui::RenderNavBar()</a>, and <a class="el" href="../../d2/d01/emulator__ui_8cc_source.html#l00318">yaze::emu::ui::RenderPerformanceMonitor()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d2/d01/emulator__ui_8cc_source.html#l00041">yaze::emu::ui::RenderNavBar()</a>, and <a class="el" href="../../d2/d01/emulator__ui_8cc_source.html#l00328">yaze::emu::ui::RenderPerformanceMonitor()</a>.</p>
 
 </div>
 </div>

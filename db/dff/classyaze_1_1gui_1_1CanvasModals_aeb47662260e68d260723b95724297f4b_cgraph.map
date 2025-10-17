@@ -1,0 +1,7 @@
+<map id="yaze::gui::CanvasModals::ShowBppConversionDialog" name="yaze::gui::CanvasModals::ShowBppConversionDialog">
+<area shape="rect" id="Node000001" title="Show BPP format conversion dialog." alt="" coords="5,39,190,79"/>
+<area shape="rect" id="Node000002" href="$db/dff/classyaze_1_1gui_1_1CanvasModals.html#a7b5a62dc75ff8f2ac36e3946e9b3f22a" title=" " alt="" coords="252,5,415,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="190,43,236,37,237,42,191,49"/>
+<area shape="rect" id="Node000003" href="$db/dff/classyaze_1_1gui_1_1CanvasModals.html#aaea5a6492e86a89dd4cce8dee45ab0c1" title=" " alt="" coords="238,71,429,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="191,69,223,73,222,79,190,74"/>
+</map>

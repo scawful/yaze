@@ -1,11 +1,11 @@
 <map id="yaze::editor::EditorManager::ImportProject" name="yaze::editor::EditorManager::ImportProject">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,71,180,111"/>
-<area shape="rect" id="Node000002" href="$da/d5e/structyaze_1_1core_1_1YazeProject.html#ae6d05e1352d9df96299771de0b660354" title=" " alt="" coords="236,5,394,46"/>
+<area shape="rect" id="Node000002" href="$dd/d28/structyaze_1_1project_1_1YazeProject.html#a321c02402718071cfd0bf401d56ceeca" title=" " alt="" coords="231,5,399,46"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="163,68,228,48,229,54,165,73"/>
-<area shape="rect" id="Node000004" href="$da/d5e/structyaze_1_1core_1_1YazeProject.html#a01c9181e16416e9999014de5ea21f9c4" title=" " alt="" coords="238,71,392,111"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="180,88,222,88,222,94,180,94"/>
+<area shape="rect" id="Node000004" href="$dd/d28/structyaze_1_1project_1_1YazeProject.html#acf26c9c1e39eab165dc5d736c7d06e96" title=" " alt="" coords="231,71,399,111"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="180,88,215,88,215,94,180,94"/>
 <area shape="rect" id="Node000007" href="$d7/d92/classyaze_1_1editor_1_1ToastManager.html#aa9b4c4a8d7c6746e46466530f1eea654" title=" " alt="" coords="228,136,402,177"/>
 <area shape="poly" id="edge4_Node000001_Node000007" title=" " alt="" coords="165,109,229,128,228,134,163,114"/>
-<area shape="rect" id="Node000003" href="$da/d5e/structyaze_1_1core_1_1YazeProject.html#abefe2d7d5a46114d09a776066a03d19a" title=" " alt="" coords="450,5,604,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="394,23,434,23,434,28,394,28"/>
+<area shape="rect" id="Node000003" href="$dd/d28/structyaze_1_1project_1_1YazeProject.html#ac548f253f95054ca80ecb49ca149ae7f" title=" " alt="" coords="450,5,618,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="399,23,434,23,434,28,399,28"/>
 </map>

@@ -1,8 +1,8 @@
 <map id="yaze::cli::agent::HandleTestConversationCommand" name="yaze::cli::agent::HandleTestConversationCommand">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,104,188,145"/>
-<area shape="rect" id="Node000002" href="$da/d5e/structyaze_1_1core_1_1YazeProject.html#a92a9dfec8ba27e3ccae53fcb267b8d16" title=" " alt="" coords="247,5,421,46"/>
+<area shape="rect" id="Node000002" href="$dd/d28/structyaze_1_1project_1_1YazeProject.html#a5493d4301d278dfe72ae6218aed8676d" title=" " alt="" coords="247,5,421,46"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="138,101,235,57,254,49,255,54,237,61,140,106"/>
-<area shape="rect" id="Node000015" href="$d6/d30/classyaze_1_1Rom.html#aaf2600f3334bb925086268e63e225418" title=" " alt="" coords="266,71,402,111"/>
+<area shape="rect" id="Node000015" href="$d6/d30/classyaze_1_1Rom.html#a0d83b56676ffe1b6205d68cf875a9c8c" title=" " alt="" coords="266,71,402,111"/>
 <area shape="poly" id="edge2_Node000001_Node000015" title=" " alt="" coords="188,109,250,100,251,105,189,114"/>
 <area shape="rect" id="Node000016" href="$d6/df5/classyaze_1_1cli_1_1agent_1_1ConversationalAgentService.html#a3999875c7eace4cdf85c06b71cb7d11c" title=" " alt="" coords="236,136,432,177"/>
 <area shape="poly" id="edge3_Node000001_Node000016" title=" " alt="" coords="189,134,220,138,220,144,188,139"/>

@@ -1,9 +1,0 @@
-<map id="yaze::gui::EditorCardManager::DrawCompactCardControl" name="yaze::gui::EditorCardManager::DrawCompactCardControl">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,71,192,111"/>
-<area shape="rect" id="Node000002" href="$d1/dea/classyaze_1_1gui_1_1EditorCardManager.html#a1d953834e5c02ec2888f0e9f7f68bd97" title=" " alt="" coords="240,5,426,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="173,68,242,48,243,53,174,73"/>
-<area shape="rect" id="Node000003" href="$d1/dea/classyaze_1_1gui_1_1EditorCardManager.html#a1d56761df353d7d7f3d71d09d43b5d0c" title=" " alt="" coords="240,71,426,111"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="192,88,224,88,224,94,192,94"/>
-<area shape="rect" id="Node000004" href="$d1/dea/classyaze_1_1gui_1_1EditorCardManager.html#a1196f9b862356e2a182d29ead84173ac" title=" " alt="" coords="240,136,426,177"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="174,109,243,129,242,134,173,114"/>
-</map>

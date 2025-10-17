@@ -1,0 +1,9 @@
+<map id="yaze::gui::HandleHover" name="yaze::gui::HandleHover">
+<area shape="rect" id="Node000001" title="Update hover state for canvas." alt="" coords="5,63,158,88"/>
+<area shape="rect" id="Node000002" href="$d3/dbf/namespaceyaze_1_1gui.html#a7978950748d21f9f26d67b5822f20107" title="Align position to grid." alt="" coords="229,5,374,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="133,59,234,33,235,38,134,65"/>
+<area shape="rect" id="Node000003" href="$d3/dbf/namespaceyaze_1_1gui.html#a6349a09af8c05a1771715251f8727318" title="Get mouse position in canvas space." alt="" coords="206,55,397,96"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="158,73,190,73,190,78,158,78"/>
+<area shape="rect" id="Node000004" href="$d3/dbf/namespaceyaze_1_1gui.html#afef7e9d33fbb81fd43e8ca96b05b1999" title="Check if mouse is in canvas bounds." alt="" coords="211,120,392,146"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="134,86,235,113,234,118,133,92"/>
+</map>

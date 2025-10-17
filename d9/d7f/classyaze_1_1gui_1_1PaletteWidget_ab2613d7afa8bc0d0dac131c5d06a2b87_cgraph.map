@@ -1,7 +1,0 @@
-<map id="yaze::gui::PaletteWidget::Initialize" name="yaze::gui::PaletteWidget::Initialize">
-<area shape="rect" id="Node000001" title="Initialize the palette editor with ROM data." alt="" coords="5,5,163,46"/>
-<area shape="rect" id="Node000002" href="$d9/d7f/classyaze_1_1gui_1_1PaletteWidget.html#a3407e812f17fc136e8449caf0d0096f6" title=" " alt="" coords="211,5,368,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="163,23,195,23,195,28,163,28"/>
-<area shape="rect" id="Node000003" href="$d6/d30/classyaze_1_1Rom.html#a30ec716ea7eafc1fff75856ab67e27f7" title=" " alt="" coords="416,5,541,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="368,23,400,23,400,28,368,28"/>
-</map>

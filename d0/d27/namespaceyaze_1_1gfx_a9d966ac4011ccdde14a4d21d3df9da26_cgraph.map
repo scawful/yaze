@@ -1,0 +1,8 @@
+<map id="yaze::gfx::SnesTo8bppColor" name="yaze::gfx::SnesTo8bppColor">
+<area shape="rect" id="Node000001" title="Convert SNES 15&#45;bit color directly to ImVec4 (0.0&#45;1.0)" alt="" coords="5,55,185,80"/>
+<area shape="rect" id="Node000002" href="$d0/d27/namespaceyaze_1_1gfx.html#a022dccbb572c0562d73aebce90df22db" title="Convert SNES 15&#45;bit color to RGB (0&#45;255 range)" alt="" coords="236,29,426,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="185,55,220,51,221,57,185,61"/>
+<area shape="rect" id="Node000003" href="$d0/d27/namespaceyaze_1_1gfx.html#a106e26f62c8518f6b2d52524fc3e14a7" title="Convert snes_color (0&#45;255) to ImVec4 (0.0&#45;1.0)" alt="" coords="233,79,429,104"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="185,74,218,77,217,83,185,79"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="292,31,284,21,289,11,305,5,331,3,360,5,374,12,372,17,358,11,331,8,306,10,292,15,289,20,296,27"/>
+</map>

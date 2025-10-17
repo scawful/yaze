@@ -1,0 +1,26 @@
+var classyaze_1_1gui_1_1CanvasModals =
+[
+    [ "ModalState", "d3/df3/structyaze_1_1gui_1_1CanvasModals_1_1ModalState.html", "d3/df3/structyaze_1_1gui_1_1CanvasModals_1_1ModalState" ],
+    [ "CanvasModals", "db/dff/classyaze_1_1gui_1_1CanvasModals.html#aa4d5ca89d6a37213cb412d9fa2979b3d", null ],
+    [ "ShowAdvancedProperties", "db/dff/classyaze_1_1gui_1_1CanvasModals.html#a0e57f4b08ee5492dfc15e36fbfa8dc4e", null ],
+    [ "ShowScalingControls", "db/dff/classyaze_1_1gui_1_1CanvasModals.html#af2698373d2a8f3a9801234c2d7d5c103", null ],
+    [ "ShowBppConversionDialog", "db/dff/classyaze_1_1gui_1_1CanvasModals.html#aeb47662260e68d260723b95724297f4b", null ],
+    [ "ShowPaletteEditor", "db/dff/classyaze_1_1gui_1_1CanvasModals.html#a17f1f80fdd99c13a30d9051675a6f811", null ],
+    [ "ShowColorAnalysis", "db/dff/classyaze_1_1gui_1_1CanvasModals.html#acb332b218528065c6b2846308311c4e1", null ],
+    [ "ShowPerformanceIntegration", "db/dff/classyaze_1_1gui_1_1CanvasModals.html#a23c94fb57b1eac82018931f26481c385", null ],
+    [ "Render", "db/dff/classyaze_1_1gui_1_1CanvasModals.html#a71b95b5526f764c290975b01937a71c3", null ],
+    [ "IsAnyModalOpen", "db/dff/classyaze_1_1gui_1_1CanvasModals.html#af8f463586f4589175b2946dcccee6bf1", null ],
+    [ "RenderAdvancedPropertiesModal", "db/dff/classyaze_1_1gui_1_1CanvasModals.html#a98b8d263dfd9680ee5e3b06116c8f90f", null ],
+    [ "RenderScalingControlsModal", "db/dff/classyaze_1_1gui_1_1CanvasModals.html#a66f2b7c787cc6a2b04b9b1aa70453234", null ],
+    [ "RenderBppConversionModal", "db/dff/classyaze_1_1gui_1_1CanvasModals.html#aaea5a6492e86a89dd4cce8dee45ab0c1", null ],
+    [ "RenderPaletteEditorModal", "db/dff/classyaze_1_1gui_1_1CanvasModals.html#ac3c67994a047a07c3f34dc8194ec824a", null ],
+    [ "RenderColorAnalysisModal", "db/dff/classyaze_1_1gui_1_1CanvasModals.html#af0534e163cf7a17af11f0e9f75804953", null ],
+    [ "RenderPerformanceModal", "db/dff/classyaze_1_1gui_1_1CanvasModals.html#a71eb66b568c97158d631d4229c0f859d", null ],
+    [ "OpenModal", "db/dff/classyaze_1_1gui_1_1CanvasModals.html#a7b5a62dc75ff8f2ac36e3946e9b3f22a", null ],
+    [ "CloseModal", "db/dff/classyaze_1_1gui_1_1CanvasModals.html#a70ed2fba3766cc7bd2a29cd854e526cb", null ],
+    [ "IsModalOpen", "db/dff/classyaze_1_1gui_1_1CanvasModals.html#afa472ceedde7e402cff7b9d849501086", null ],
+    [ "RenderMaterialIcon", "db/dff/classyaze_1_1gui_1_1CanvasModals.html#a32f932feab2cc4cdcf817af1da811ae3", null ],
+    [ "RenderMetricCard", "db/dff/classyaze_1_1gui_1_1CanvasModals.html#a60af0a1e7b44a659e787b3478ff66ee1", null ],
+    [ "RenderSliderWithIcon", "db/dff/classyaze_1_1gui_1_1CanvasModals.html#a1f07c5a4ddf421d8bb532f7eb4164108", null ],
+    [ "active_modals_", "db/dff/classyaze_1_1gui_1_1CanvasModals.html#a2dc1ad7d862aff901fa49f43ac192dd2", null ]
+];

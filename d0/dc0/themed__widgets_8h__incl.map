@@ -1,0 +1,16 @@
+<map id="src/app/gui/widgets/themed_widgets.h" name="src/app/gui/widgets/themed_widgets.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="9,5,144,46"/>
+<area shape="rect" id="Node000002" href="$da/dec/color_8h.html" title=" " alt="" coords="37,271,172,297"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="77,46,71,124,72,174,79,223,92,257,87,259,74,224,67,174,66,124,71,46"/>
+<area shape="rect" id="Node000020" title=" " alt="" coords="108,345,205,371"/>
+<area shape="poly" id="edge9_Node000001_Node000020" title=" " alt="" coords="67,48,41,95,17,160,10,195,9,230,14,264,28,296,41,311,57,323,94,341,92,346,54,328,37,315,24,298,9,266,3,230,5,194,12,158,37,93,62,45"/>
+<area shape="rect" id="Node000022" href="$de/d0f/layout__helpers_8h.html" title=" " alt="" coords="139,94,270,135"/>
+<area shape="poly" id="edge3_Node000001_Node000022" title=" " alt="" coords="107,44,165,83,162,87,104,49"/>
+<area shape="rect" id="Node000023" href="$d8/d65/theme__manager_8h.html" title=" " alt="" coords="89,183,221,223"/>
+<area shape="poly" id="edge8_Node000001_Node000023" title=" " alt="" coords="88,45,143,167,138,170,83,47"/>
+<area shape="poly" id="edge2_Node000002_Node000020" title=" " alt="" coords="115,296,141,331,137,334,111,299"/>
+<area shape="poly" id="edge7_Node000022_Node000020" title=" " alt="" coords="218,134,228,156,237,182,239,203,237,224,227,256,212,286,179,334,175,331,207,283,222,254,231,223,234,203,231,183,223,158,213,136"/>
+<area shape="poly" id="edge4_Node000022_Node000023" title=" " alt="" coords="196,137,176,170,172,168,191,134"/>
+<area shape="poly" id="edge5_Node000023_Node000002" title=" " alt="" coords="145,225,123,259,118,257,141,222"/>
+<area shape="poly" id="edge6_Node000023_Node000020" title=" " alt="" coords="170,223,184,257,187,277,186,298,173,332,168,330,181,296,182,278,178,259,165,225"/>
+</map>

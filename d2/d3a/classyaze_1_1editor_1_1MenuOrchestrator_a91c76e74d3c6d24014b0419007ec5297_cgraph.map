@@ -1,0 +1,5 @@
+<map id="yaze::editor::MenuOrchestrator::ClearMenu" name="yaze::editor::MenuOrchestrator::ClearMenu">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,201,46"/>
+<area shape="rect" id="Node000002" href="$d7/d73/classyaze_1_1editor_1_1MenuBuilder.html#a4522cae39bc4bca2544c18521e0844fb" title="Clear all menus." alt="" coords="249,5,412,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="201,23,233,23,233,28,201,28"/>
+</map>

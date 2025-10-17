@@ -1,7 +1,7 @@
 <map id="yaze::test::TestEditor" name="yaze::test::TestEditor">
-<area shape="rect" id="Node000001" title=" " alt="" coords="19,169,160,195"/>
-<area shape="rect" id="Node000002" href="$d3/d9f/classyaze_1_1editor_1_1Editor.html" title="Interface for editor classes." alt="" coords="27,94,152,120"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="92,135,92,169,87,169,87,135"/>
-<area shape="rect" id="Node000003" href="$dc/d69/structyaze_1_1editor_1_1EditorContext.html" title=" " alt="" coords="5,5,174,31"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="92,47,92,94,87,94,87,47"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="38,169,179,195"/>
+<area shape="rect" id="Node000002" href="$d3/d9f/classyaze_1_1editor_1_1Editor.html" title="Interface for editor classes." alt="" coords="46,94,171,120"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="111,135,111,169,106,169,106,135"/>
+<area shape="rect" id="Node000003" href="$d9/d40/structyaze_1_1editor_1_1EditorDependencies.html" title="Unified dependency container for all editor types." alt="" coords="5,5,212,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="111,47,111,94,106,94,106,47"/>
 </map>

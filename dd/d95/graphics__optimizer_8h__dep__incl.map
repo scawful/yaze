@@ -1,5 +1,5 @@
-<map id="src/app/gfx/graphics_optimizer.h" name="src/app/gfx/graphics_optimizer.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,144,46"/>
-<area shape="rect" id="Node000002" href="$dc/db4/graphics__optimizer_8cc.html" title=" " alt="" coords="5,94,144,135"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="77,62,77,94,72,94,72,62"/>
+<map id="src/app/gfx/debug/graphics_optimizer.h" name="src/app/gfx/debug/graphics_optimizer.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,183,46"/>
+<area shape="rect" id="Node000002" href="$dc/db4/graphics__optimizer_8cc.html" title=" " alt="" coords="5,94,183,135"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="97,62,97,94,91,94,91,62"/>
 </map>

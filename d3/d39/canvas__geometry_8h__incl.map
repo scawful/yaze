@@ -1,0 +1,15 @@
+<map id="src/app/gui/canvas/canvas_geometry.h" name="src/app/gui/canvas/canvas_geometry.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="129,5,266,46"/>
+<area shape="rect" id="Node000002" href="$d0/d9f/canvas__state_8h.html" title=" " alt="" coords="5,94,161,135"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="173,49,123,87,119,82,170,44"/>
+<area shape="rect" id="Node000004" href="$d1/d39/canvas__utils_8h.html" title=" " alt="" coords="120,183,275,223"/>
+<area shape="poly" id="edge7_Node000001_Node000004" title=" " alt="" coords="200,46,200,167,195,167,195,46"/>
+<area shape="rect" id="Node000031" title=" " alt="" coords="149,271,246,297"/>
+<area shape="poly" id="edge8_Node000001_Node000031" title=" " alt="" coords="216,45,255,104,275,142,290,182,295,204,289,225,270,249,245,266,242,262,266,245,285,222,289,204,284,183,270,144,251,106,211,48"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="39,271,92,297"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="79,136,67,183,67,223,68,256,62,256,62,223,62,182,73,135"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="111,133,161,171,158,175,107,137"/>
+<area shape="poly" id="edge6_Node000002_Node000031" title=" " alt="" coords="86,135,92,177,99,201,110,222,132,244,157,262,154,266,128,248,106,225,94,203,87,179,81,136"/>
+<area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="166,226,100,265,97,261,163,222"/>
+<area shape="poly" id="edge5_Node000004_Node000031" title=" " alt="" coords="200,224,200,256,195,256,195,224"/>
+</map>

@@ -1,0 +1,7 @@
+<map id="yaze::gui::GetSurface" name="yaze::gui::GetSurface">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,35,148,60"/>
+<area shape="rect" id="Node000002" href="$d3/d27/classyaze_1_1gui_1_1ThemeManager.html#ab3423e72fe874f8c370ed2d3e52ac278" title=" " alt="" coords="196,5,389,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="148,35,180,31,181,36,149,40"/>
+<area shape="rect" id="Node000003" href="$d3/d27/classyaze_1_1gui_1_1ThemeManager.html#a22dd301960f0f899dde0f0f74b6dab36" title=" " alt="" coords="209,55,376,96"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="149,54,194,60,193,65,148,59"/>
+</map>

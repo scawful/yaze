@@ -1,0 +1,11 @@
+<map id="yaze::gui::LayoutHelpers::GetCanvasToolbarHeight" name="yaze::gui::LayoutHelpers::GetCanvasToolbarHeight">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,179,79"/>
+<area shape="rect" id="Node000002" href="$d9/dfb/classyaze_1_1gui_1_1LayoutHelpers.html#a914764588589974133906f76aea5cfae" title=" " alt="" coords="227,5,387,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="179,43,211,38,211,43,179,48"/>
+<area shape="rect" id="Node000003" href="$d9/dfb/classyaze_1_1gui_1_1LayoutHelpers.html#a539bca266d42c2a2b603dc12bed9446c" title=" " alt="" coords="227,71,387,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="179,69,211,74,211,79,179,75"/>
+<area shape="rect" id="Node000004" href="$d3/d27/classyaze_1_1gui_1_1ThemeManager.html#ab3423e72fe874f8c370ed2d3e52ac278" title=" " alt="" coords="435,49,628,75"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="387,78,419,74,420,79,387,83"/>
+<area shape="rect" id="Node000005" href="$d3/d27/classyaze_1_1gui_1_1ThemeManager.html#ad706e6146dd664adffe3350c520f397b" title=" " alt="" coords="449,99,615,139"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="387,98,433,104,432,109,387,104"/>
+</map>

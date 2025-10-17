@@ -157,6 +157,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a0945d0faf5c1eb3d9cd749d96576d3bd" id="r_a0945d0faf5c1eb3d9cd749d96576d3bd"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#a0945d0faf5c1eb3d9cd749d96576d3bd">MarkManuallyClosed</a> ()</td></tr>
 <tr class="memdesc:a0945d0faf5c1eb3d9cd749d96576d3bd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Mark as manually closed (don't show again this session)  <br /></td></tr>
 <tr class="separator:a0945d0faf5c1eb3d9cd749d96576d3bd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aedc16682b73c8ca1f95cab6f16d206ac" id="r_aedc16682b73c8ca1f95cab6f16d206ac"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#aedc16682b73c8ca1f95cab6f16d206ac">ResetFirstShow</a> ()</td></tr>
+<tr class="memdesc:aedc16682b73c8ca1f95cab6f16d206ac"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reset first show flag (for testing/forcing display)  <br /></td></tr>
+<tr class="separator:aedc16682b73c8ca1f95cab6f16d206ac"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-methods" name="pri-methods"></a>
 Private Member Functions</h2></td></tr>
@@ -181,6 +184,8 @@ Private Attributes</h2></td></tr>
 <tr class="separator:a3135052ad6671219d4f63b32fd943b58"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a275a392e49bee7e8eeb4b4333a6411a4" id="r_a275a392e49bee7e8eeb4b4333a6411a4"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#a275a392e49bee7e8eeb4b4333a6411a4">manually_closed_</a> = false</td></tr>
 <tr class="separator:a275a392e49bee7e8eeb4b4333a6411a4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1ca1dd831c3bf8a607bdec1fc89881d2" id="r_a1ca1dd831c3bf8a607bdec1fc89881d2"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#a1ca1dd831c3bf8a607bdec1fc89881d2">first_show_attempt_</a> = true</td></tr>
+<tr class="separator:a1ca1dd831c3bf8a607bdec1fc89881d2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0253184cf5bf4e3d5eadf7a852e4c173" id="r_a0253184cf5bf4e3d5eadf7a852e4c173"><td class="memItemLeft" align="right" valign="top">std::function&lt; void()&gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#a0253184cf5bf4e3d5eadf7a852e4c173">open_rom_callback_</a></td></tr>
 <tr class="separator:a0253184cf5bf4e3d5eadf7a852e4c173"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0382baeded8500d19221e3a7dec92661" id="r_a0382baeded8500d19221e3a7dec92661"><td class="memItemLeft" align="right" valign="top">std::function&lt; void()&gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#a0382baeded8500d19221e3a7dec92661">new_project_callback_</a></td></tr>
@@ -251,7 +256,7 @@ Static Private Attributes</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00132">132</a> of file <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html">welcome_screen.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00414">RefreshRecentProjects()</a>.</p>
+<p class="reference">References <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00423">RefreshRecentProjects()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -260,10 +265,10 @@ Here is the call graph for this function:</div>
 <area shape="rect" title=" " alt="" coords="5,39,192,79"/>
 <area shape="rect" href="../../dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#a0d44360e1e66e25a0770c5e1e93471a5" title="Refresh recent projects list from the project manager." alt="" coords="240,39,426,79"/>
 <area shape="poly" title=" " alt="" coords="192,56,224,56,224,62,192,62"/>
-<area shape="rect" href="../../d8/d4b/classyaze_1_1core_1_1RecentFilesManager.html#a5d27da46038aed6b42243f1010ee043d" title=" " alt="" coords="474,5,677,46"/>
-<area shape="poly" title=" " alt="" coords="426,44,458,39,459,44,427,49"/>
-<area shape="rect" href="../../d8/d4b/classyaze_1_1core_1_1RecentFilesManager.html#af39fda2f363c71393d931e218fe43e9b" title=" " alt="" coords="474,71,677,111"/>
-<area shape="poly" title=" " alt="" coords="427,69,459,73,458,78,426,74"/>
+<area shape="rect" href="../../da/d2c/classyaze_1_1project_1_1RecentFilesManager.html#a59ca67c0c25fd089fdbb707fbb9c2c0e" title=" " alt="" coords="474,5,641,46"/>
+<area shape="poly" title=" " alt="" coords="426,43,458,38,459,43,427,48"/>
+<area shape="rect" href="../../da/d2c/classyaze_1_1project_1_1RecentFilesManager.html#a99c3ca29fa29099a949d6723b80bb611" title=" " alt="" coords="474,71,641,111"/>
+<area shape="poly" title=" " alt="" coords="427,70,459,74,458,80,426,75"/>
 </map>
 </div>
 
@@ -297,9 +302,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00136">136</a> of file <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html">welcome_screen.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00125">active_particle_count_</a>, <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00120">yaze::editor::WelcomeScreen::Particle::alpha</a>, <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00104">animation_time_</a>, <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00444">DrawHeader()</a>, <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00488">DrawQuickActions()</a>, <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00537">DrawRecentProjects()</a>, <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00686">DrawTemplatesSection()</a>, <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00781">DrawTipsSection()</a>, <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00806">DrawWhatsNew()</a>, <a class="el" href="../../db/d41/timing_8h_source.html#l00020">yaze::core::TimingManager::Get()</a>, <a class="el" href="../../db/d41/timing_8h_source.html#l00060">yaze::core::TimingManager::GetDeltaTime()</a>, <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00115">kMaxParticles</a>, <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00109">kNumTriforces</a>, <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00121">yaze::editor::WelcomeScreen::Particle::lifetime</a>, <a class="el" href="../../de/dea/background__renderer_8cc_source.html#l00011">M_PI</a>, <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00122">yaze::editor::WelcomeScreen::Particle::max_lifetime</a>, <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00134">particle_spawn_rate_</a>, <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00124">particles_</a>, <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00133">particles_enabled_</a>, <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00117">yaze::editor::WelcomeScreen::Particle::position</a>, <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00119">yaze::editor::WelcomeScreen::Particle::size</a>, <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00129">triforce_alpha_multiplier_</a>, <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00111">triforce_base_positions_</a>, <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00132">triforce_mouse_repel_enabled_</a>, <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00110">triforce_positions_</a>, <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00112">triforce_positions_initialized_</a>, <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00131">triforce_size_multiplier_</a>, <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00130">triforce_speed_multiplier_</a>, <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00402">UpdateAnimations()</a>, and <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00118">yaze::editor::WelcomeScreen::Particle::velocity</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l03252">yaze::editor::EditorManager::DrawWelcomeScreen()</a>.</p>
+<p class="reference">References <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00131">active_particle_count_</a>, <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00126">yaze::editor::WelcomeScreen::Particle::alpha</a>, <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00110">animation_time_</a>, <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00453">DrawHeader()</a>, <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00497">DrawQuickActions()</a>, <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00546">DrawRecentProjects()</a>, <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00695">DrawTemplatesSection()</a>, <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00790">DrawTipsSection()</a>, <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00815">DrawWhatsNew()</a>, <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00098">first_show_attempt_</a>, <a class="el" href="../../db/d41/timing_8h_source.html#l00019">yaze::TimingManager::Get()</a>, <a class="el" href="../../db/d41/timing_8h_source.html#l00059">yaze::TimingManager::GetDeltaTime()</a>, <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00121">kMaxParticles</a>, <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00115">kNumTriforces</a>, <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00127">yaze::editor::WelcomeScreen::Particle::lifetime</a>, <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00021">M_PI</a>, <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00128">yaze::editor::WelcomeScreen::Particle::max_lifetime</a>, <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00140">particle_spawn_rate_</a>, <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00130">particles_</a>, <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00139">particles_enabled_</a>, <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00123">yaze::editor::WelcomeScreen::Particle::position</a>, <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00125">yaze::editor::WelcomeScreen::Particle::size</a>, <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00135">triforce_alpha_multiplier_</a>, <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00117">triforce_base_positions_</a>, <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00138">triforce_mouse_repel_enabled_</a>, <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00116">triforce_positions_</a>, <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00118">triforce_positions_initialized_</a>, <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00137">triforce_size_multiplier_</a>, <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00136">triforce_speed_multiplier_</a>, <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00411">UpdateAnimations()</a>, and <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00124">yaze::editor::WelcomeScreen::Particle::velocity</a>.</p>
 
 </div>
 </div>
@@ -331,9 +334,9 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00044">44</a> of file <a class="el" href="../../d2/df1/welcome__screen_8h_source.html">welcome_screen.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00095">open_rom_callback_</a>.</p>
+<p class="reference">References <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00101">open_rom_callback_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l00146">yaze::editor::EditorManager::Initialize()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l00240">yaze::editor::EditorManager::Initialize()</a>.</p>
 
 </div>
 </div>
@@ -365,9 +368,9 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00051">51</a> of file <a class="el" href="../../d2/df1/welcome__screen_8h_source.html">welcome_screen.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00096">new_project_callback_</a>.</p>
+<p class="reference">References <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00102">new_project_callback_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l00146">yaze::editor::EditorManager::Initialize()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l00240">yaze::editor::EditorManager::Initialize()</a>.</p>
 
 </div>
 </div>
@@ -399,9 +402,9 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00058">58</a> of file <a class="el" href="../../d2/df1/welcome__screen_8h_source.html">welcome_screen.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00097">open_project_callback_</a>.</p>
+<p class="reference">References <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00103">open_project_callback_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l00146">yaze::editor::EditorManager::Initialize()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l00240">yaze::editor::EditorManager::Initialize()</a>.</p>
 
 </div>
 </div>
@@ -422,21 +425,21 @@ Here is the call graph for this function:</div>
 
 <p>Refresh recent projects list from the project manager. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00414">414</a> of file <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html">welcome_screen.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00423">423</a> of file <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html">welcome_screen.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00019">yaze::editor::RecentProject::filepath</a>, <a class="el" href="../../dc/d8d/project_8h_source.html#l00244">yaze::core::RecentFilesManager::GetInstance()</a>, <a class="el" href="../../dc/d8d/project_8h_source.html#l00272">yaze::core::RecentFilesManager::GetRecentFiles()</a>, <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00101">kMaxRecentProjects</a>, <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00021">yaze::editor::RecentProject::last_modified</a>, <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00018">yaze::editor::RecentProject::name</a>, <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00091">recent_projects_</a>, and <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00020">yaze::editor::RecentProject::rom_title</a>.</p>
+<p class="reference">References <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00019">yaze::editor::RecentProject::filepath</a>, <a class="el" href="../../dc/d8d/project_8h_source.html#l00244">yaze::project::RecentFilesManager::GetInstance()</a>, <a class="el" href="../../dc/d8d/project_8h_source.html#l00272">yaze::project::RecentFilesManager::GetRecentFiles()</a>, <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00107">kMaxRecentProjects</a>, <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00021">yaze::editor::RecentProject::last_modified</a>, <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00018">yaze::editor::RecentProject::name</a>, <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00096">recent_projects_</a>, and <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00020">yaze::editor::RecentProject::rom_title</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l03252">yaze::editor::EditorManager::DrawWelcomeScreen()</a>, and <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00132">WelcomeScreen()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00132">WelcomeScreen()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="../../dc/daa/classyaze_1_1editor_1_1WelcomeScreen_a0d44360e1e66e25a0770c5e1e93471a5_cgraph.png" border="0" usemap="#adc/daa/classyaze_1_1editor_1_1WelcomeScreen_a0d44360e1e66e25a0770c5e1e93471a5_cgraph" alt=""/></div>
 <map name="adc/daa/classyaze_1_1editor_1_1WelcomeScreen_a0d44360e1e66e25a0770c5e1e93471a5_cgraph" id="adc/daa/classyaze_1_1editor_1_1WelcomeScreen_a0d44360e1e66e25a0770c5e1e93471a5_cgraph">
 <area shape="rect" title="Refresh recent projects list from the project manager." alt="" coords="5,39,192,79"/>
-<area shape="rect" href="../../d8/d4b/classyaze_1_1core_1_1RecentFilesManager.html#a5d27da46038aed6b42243f1010ee043d" title=" " alt="" coords="240,5,443,46"/>
-<area shape="poly" title=" " alt="" coords="192,44,224,39,224,44,192,49"/>
-<area shape="rect" href="../../d8/d4b/classyaze_1_1core_1_1RecentFilesManager.html#af39fda2f363c71393d931e218fe43e9b" title=" " alt="" coords="240,71,443,111"/>
-<area shape="poly" title=" " alt="" coords="192,69,224,73,224,78,192,74"/>
+<area shape="rect" href="../../da/d2c/classyaze_1_1project_1_1RecentFilesManager.html#a59ca67c0c25fd089fdbb707fbb9c2c0e" title=" " alt="" coords="240,5,407,46"/>
+<area shape="poly" title=" " alt="" coords="192,43,224,38,225,43,193,48"/>
+<area shape="rect" href="../../da/d2c/classyaze_1_1project_1_1RecentFilesManager.html#a99c3ca29fa29099a949d6723b80bb611" title=" " alt="" coords="240,71,407,111"/>
+<area shape="poly" title=" " alt="" coords="193,70,225,74,224,80,192,75"/>
 </map>
 </div>
 
@@ -459,9 +462,9 @@ Here is the call graph for this function:</div>
 
 <p>Update animation time for dynamic effects. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00402">402</a> of file <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html">welcome_screen.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00411">411</a> of file <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html">welcome_screen.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00104">animation_time_</a>, <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00105">card_hover_scale_</a>, and <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00106">hovered_card_</a>.</p>
+<p class="reference">References <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00110">animation_time_</a>, <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00111">card_hover_scale_</a>, and <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00112">hovered_card_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00136">Show()</a>.</p>
 
@@ -494,7 +497,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00075">75</a> of file <a class="el" href="../../d2/df1/welcome__screen_8h_source.html">welcome_screen.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00092">manually_closed_</a>.</p>
+<p class="reference">References <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00097">manually_closed_</a>.</p>
 
 </div>
 </div>
@@ -525,9 +528,38 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00080">80</a> of file <a class="el" href="../../d2/df1/welcome__screen_8h_source.html">welcome_screen.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00092">manually_closed_</a>.</p>
+<p class="reference">References <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00097">manually_closed_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l03252">yaze::editor::EditorManager::DrawWelcomeScreen()</a>.</p>
+</div>
+</div>
+<a id="aedc16682b73c8ca1f95cab6f16d206ac" name="aedc16682b73c8ca1f95cab6f16d206ac"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aedc16682b73c8ca1f95cab6f16d206ac">&#9670;&#160;</a></span>ResetFirstShow()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::editor::WelcomeScreen::ResetFirstShow </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Reset first show flag (for testing/forcing display) </p>
+
+<p class="definition">Definition at line <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00085">85</a> of file <a class="el" href="../../d2/df1/welcome__screen_8h_source.html">welcome_screen.h</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00098">first_show_attempt_</a>.</p>
 
 </div>
 </div>
@@ -554,7 +586,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00444">444</a> of file <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html">welcome_screen.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00453">453</a> of file <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html">welcome_screen.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="../../de/dbf/icons_8h_source.html#l00378">ICON_MD_CASTLE</a>.</p>
 
@@ -585,9 +617,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00488">488</a> of file <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html">welcome_screen.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00497">497</a> of file <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html">welcome_screen.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../de/dbf/icons_8h_source.html#l00093">ICON_MD_ADD_CIRCLE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00280">ICON_MD_BOLT</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00811">ICON_MD_FOLDER_OPEN</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00991">ICON_MD_INFO</a>, <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00096">new_project_callback_</a>, and <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00095">open_rom_callback_</a>.</p>
+<p class="reference">References <a class="el" href="../../de/dbf/icons_8h_source.html#l00093">ICON_MD_ADD_CIRCLE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00280">ICON_MD_BOLT</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00811">ICON_MD_FOLDER_OPEN</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00991">ICON_MD_INFO</a>, <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00102">new_project_callback_</a>, and <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00101">open_rom_callback_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00136">Show()</a>.</p>
 
@@ -616,9 +648,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00537">537</a> of file <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html">welcome_screen.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00546">546</a> of file <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html">welcome_screen.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00569">DrawProjectCard()</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00703">ICON_MD_EXPLORE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00944">ICON_MD_HISTORY</a>, and <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00091">recent_projects_</a>.</p>
+<p class="reference">References <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00578">DrawProjectCard()</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00703">ICON_MD_EXPLORE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00944">ICON_MD_HISTORY</a>, and <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00096">recent_projects_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00136">Show()</a>.</p>
 <div class="dynheader">
@@ -668,11 +700,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00569">569</a> of file <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html">welcome_screen.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00578">578</a> of file <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html">welcome_screen.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00105">card_hover_scale_</a>, <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00019">yaze::editor::RecentProject::filepath</a>, <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00106">hovered_card_</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00807">ICON_MD_FOLDER</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00864">ICON_MD_GAMEPAD</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00991">ICON_MD_INFO</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01998">ICON_MD_TOUCH_APP</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l02074">ICON_MD_VIDEOGAME_ASSET</a>, <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00018">yaze::editor::RecentProject::name</a>, <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00097">open_project_callback_</a>, and <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00020">yaze::editor::RecentProject::rom_title</a>.</p>
+<p class="reference">References <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00111">card_hover_scale_</a>, <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00019">yaze::editor::RecentProject::filepath</a>, <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00112">hovered_card_</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00807">ICON_MD_FOLDER</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00864">ICON_MD_GAMEPAD</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00991">ICON_MD_INFO</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01998">ICON_MD_TOUCH_APP</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l02074">ICON_MD_VIDEOGAME_ASSET</a>, <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00018">yaze::editor::RecentProject::name</a>, <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00103">open_project_callback_</a>, and <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00020">yaze::editor::RecentProject::rom_title</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00537">DrawRecentProjects()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00546">DrawRecentProjects()</a>.</p>
 
 </div>
 </div>
@@ -699,9 +731,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00686">686</a> of file <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html">welcome_screen.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00695">695</a> of file <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html">welcome_screen.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../de/dbf/icons_8h_source.html#l00212">ICON_MD_AUTO_AWESOME</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00216">ICON_MD_AUTO_FIX_HIGH</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00416">ICON_MD_CLOSE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00478">ICON_MD_COTTAGE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01066">ICON_MD_LAYERS</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01171">ICON_MD_MAP</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01249">ICON_MD_MOUSE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01349">ICON_MD_OPACITY</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01570">ICON_MD_REFRESH</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01610">ICON_MD_ROCKET_LAUNCH</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01815">ICON_MD_SPEED</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01846">ICON_MD_STAR</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l02020">ICON_MD_TUNE</a>, <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00134">particle_spawn_rate_</a>, <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00133">particles_enabled_</a>, <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00100">selected_template_</a>, <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00128">show_triforce_settings_</a>, <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00129">triforce_alpha_multiplier_</a>, <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00132">triforce_mouse_repel_enabled_</a>, <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00131">triforce_size_multiplier_</a>, and <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00130">triforce_speed_multiplier_</a>.</p>
+<p class="reference">References <a class="el" href="../../de/dbf/icons_8h_source.html#l00212">ICON_MD_AUTO_AWESOME</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00216">ICON_MD_AUTO_FIX_HIGH</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00416">ICON_MD_CLOSE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00478">ICON_MD_COTTAGE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01066">ICON_MD_LAYERS</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01171">ICON_MD_MAP</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01249">ICON_MD_MOUSE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01349">ICON_MD_OPACITY</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01570">ICON_MD_REFRESH</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01610">ICON_MD_ROCKET_LAUNCH</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01815">ICON_MD_SPEED</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01846">ICON_MD_STAR</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l02020">ICON_MD_TUNE</a>, <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00140">particle_spawn_rate_</a>, <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00139">particles_enabled_</a>, <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00106">selected_template_</a>, <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00134">show_triforce_settings_</a>, <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00135">triforce_alpha_multiplier_</a>, <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00138">triforce_mouse_repel_enabled_</a>, <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00137">triforce_size_multiplier_</a>, and <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00136">triforce_speed_multiplier_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00136">Show()</a>.</p>
 
@@ -730,9 +762,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00781">781</a> of file <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html">welcome_screen.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00790">790</a> of file <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html">welcome_screen.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../de/dbf/icons_8h_source.html#l00416">ICON_MD_CLOSE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01081">ICON_MD_LIGHTBULB</a>, and <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00092">manually_closed_</a>.</p>
+<p class="reference">References <a class="el" href="../../de/dbf/icons_8h_source.html#l00416">ICON_MD_CLOSE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01081">ICON_MD_LIGHTBULB</a>, and <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00097">manually_closed_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00136">Show()</a>.</p>
 
@@ -761,7 +793,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00806">806</a> of file <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html">welcome_screen.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00815">815</a> of file <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html">welcome_screen.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="../../de/dbf/icons_8h_source.html#l00427">ICON_MD_CLOUD_SYNC</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00944">ICON_MD_HISTORY</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01289">ICON_MD_NEW_RELEASES</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01352">ICON_MD_OPEN_IN_NEW</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01368">ICON_MD_PALETTE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01521">ICON_MD_PSYCHOLOGY</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01815">ICON_MD_SPEED</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l02053">ICON_MD_VERIFIED</a>, and <a class="el" href="../../d9/d89/yaze_8h_source.html#l00032">YAZE_VERSION_STRING</a>.</p>
 
@@ -790,9 +822,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00091">91</a> of file <a class="el" href="../../d2/df1/welcome__screen_8h_source.html">welcome_screen.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00096">96</a> of file <a class="el" href="../../d2/df1/welcome__screen_8h_source.html">welcome_screen.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00537">DrawRecentProjects()</a>, and <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00414">RefreshRecentProjects()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00546">DrawRecentProjects()</a>, and <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00423">RefreshRecentProjects()</a>.</p>
 
 </div>
 </div>
@@ -816,9 +848,35 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00092">92</a> of file <a class="el" href="../../d2/df1/welcome__screen_8h_source.html">welcome_screen.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00097">97</a> of file <a class="el" href="../../d2/df1/welcome__screen_8h_source.html">welcome_screen.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00781">DrawTipsSection()</a>, <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00080">MarkManuallyClosed()</a>, and <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00075">ShouldShow()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00790">DrawTipsSection()</a>, <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00080">MarkManuallyClosed()</a>, and <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00075">ShouldShow()</a>.</p>
+
+</div>
+</div>
+<a id="a1ca1dd831c3bf8a607bdec1fc89881d2" name="a1ca1dd831c3bf8a607bdec1fc89881d2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1ca1dd831c3bf8a607bdec1fc89881d2">&#9670;&#160;</a></span>first_show_attempt_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool yaze::editor::WelcomeScreen::first_show_attempt_ = true</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00098">98</a> of file <a class="el" href="../../d2/df1/welcome__screen_8h_source.html">welcome_screen.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00085">ResetFirstShow()</a>, and <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00136">Show()</a>.</p>
 
 </div>
 </div>
@@ -842,9 +900,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00095">95</a> of file <a class="el" href="../../d2/df1/welcome__screen_8h_source.html">welcome_screen.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00101">101</a> of file <a class="el" href="../../d2/df1/welcome__screen_8h_source.html">welcome_screen.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00488">DrawQuickActions()</a>, and <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00044">SetOpenRomCallback()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00497">DrawQuickActions()</a>, and <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00044">SetOpenRomCallback()</a>.</p>
 
 </div>
 </div>
@@ -868,9 +926,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00096">96</a> of file <a class="el" href="../../d2/df1/welcome__screen_8h_source.html">welcome_screen.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00102">102</a> of file <a class="el" href="../../d2/df1/welcome__screen_8h_source.html">welcome_screen.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00488">DrawQuickActions()</a>, and <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00051">SetNewProjectCallback()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00497">DrawQuickActions()</a>, and <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00051">SetNewProjectCallback()</a>.</p>
 
 </div>
 </div>
@@ -894,9 +952,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00097">97</a> of file <a class="el" href="../../d2/df1/welcome__screen_8h_source.html">welcome_screen.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00103">103</a> of file <a class="el" href="../../d2/df1/welcome__screen_8h_source.html">welcome_screen.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00569">DrawProjectCard()</a>, and <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00058">SetOpenProjectCallback()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00578">DrawProjectCard()</a>, and <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00058">SetOpenProjectCallback()</a>.</p>
 
 </div>
 </div>
@@ -920,9 +978,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00100">100</a> of file <a class="el" href="../../d2/df1/welcome__screen_8h_source.html">welcome_screen.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00106">106</a> of file <a class="el" href="../../d2/df1/welcome__screen_8h_source.html">welcome_screen.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00686">DrawTemplatesSection()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00695">DrawTemplatesSection()</a>.</p>
 
 </div>
 </div>
@@ -946,9 +1004,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00101">101</a> of file <a class="el" href="../../d2/df1/welcome__screen_8h_source.html">welcome_screen.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00107">107</a> of file <a class="el" href="../../d2/df1/welcome__screen_8h_source.html">welcome_screen.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00414">RefreshRecentProjects()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00423">RefreshRecentProjects()</a>.</p>
 
 </div>
 </div>
@@ -972,9 +1030,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00104">104</a> of file <a class="el" href="../../d2/df1/welcome__screen_8h_source.html">welcome_screen.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00110">110</a> of file <a class="el" href="../../d2/df1/welcome__screen_8h_source.html">welcome_screen.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00136">Show()</a>, and <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00402">UpdateAnimations()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00136">Show()</a>, and <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00411">UpdateAnimations()</a>.</p>
 
 </div>
 </div>
@@ -998,9 +1056,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00105">105</a> of file <a class="el" href="../../d2/df1/welcome__screen_8h_source.html">welcome_screen.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00111">111</a> of file <a class="el" href="../../d2/df1/welcome__screen_8h_source.html">welcome_screen.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00569">DrawProjectCard()</a>, and <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00402">UpdateAnimations()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00578">DrawProjectCard()</a>, and <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00411">UpdateAnimations()</a>.</p>
 
 </div>
 </div>
@@ -1024,9 +1082,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00106">106</a> of file <a class="el" href="../../d2/df1/welcome__screen_8h_source.html">welcome_screen.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00112">112</a> of file <a class="el" href="../../d2/df1/welcome__screen_8h_source.html">welcome_screen.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00569">DrawProjectCard()</a>, and <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00402">UpdateAnimations()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00578">DrawProjectCard()</a>, and <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00411">UpdateAnimations()</a>.</p>
 
 </div>
 </div>
@@ -1050,7 +1108,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00109">109</a> of file <a class="el" href="../../d2/df1/welcome__screen_8h_source.html">welcome_screen.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00115">115</a> of file <a class="el" href="../../d2/df1/welcome__screen_8h_source.html">welcome_screen.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00136">Show()</a>.</p>
 
@@ -1076,7 +1134,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00110">110</a> of file <a class="el" href="../../d2/df1/welcome__screen_8h_source.html">welcome_screen.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00116">116</a> of file <a class="el" href="../../d2/df1/welcome__screen_8h_source.html">welcome_screen.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00136">Show()</a>.</p>
 
@@ -1102,7 +1160,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00111">111</a> of file <a class="el" href="../../d2/df1/welcome__screen_8h_source.html">welcome_screen.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00117">117</a> of file <a class="el" href="../../d2/df1/welcome__screen_8h_source.html">welcome_screen.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00136">Show()</a>.</p>
 
@@ -1128,7 +1186,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00112">112</a> of file <a class="el" href="../../d2/df1/welcome__screen_8h_source.html">welcome_screen.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00118">118</a> of file <a class="el" href="../../d2/df1/welcome__screen_8h_source.html">welcome_screen.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00136">Show()</a>.</p>
 
@@ -1154,7 +1212,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00115">115</a> of file <a class="el" href="../../d2/df1/welcome__screen_8h_source.html">welcome_screen.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00121">121</a> of file <a class="el" href="../../d2/df1/welcome__screen_8h_source.html">welcome_screen.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00136">Show()</a>.</p>
 
@@ -1180,7 +1238,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00124">124</a> of file <a class="el" href="../../d2/df1/welcome__screen_8h_source.html">welcome_screen.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00130">130</a> of file <a class="el" href="../../d2/df1/welcome__screen_8h_source.html">welcome_screen.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00136">Show()</a>.</p>
 
@@ -1206,7 +1264,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00125">125</a> of file <a class="el" href="../../d2/df1/welcome__screen_8h_source.html">welcome_screen.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00131">131</a> of file <a class="el" href="../../d2/df1/welcome__screen_8h_source.html">welcome_screen.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00136">Show()</a>.</p>
 
@@ -1232,9 +1290,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00128">128</a> of file <a class="el" href="../../d2/df1/welcome__screen_8h_source.html">welcome_screen.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00134">134</a> of file <a class="el" href="../../d2/df1/welcome__screen_8h_source.html">welcome_screen.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00686">DrawTemplatesSection()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00695">DrawTemplatesSection()</a>.</p>
 
 </div>
 </div>
@@ -1258,9 +1316,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00129">129</a> of file <a class="el" href="../../d2/df1/welcome__screen_8h_source.html">welcome_screen.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00135">135</a> of file <a class="el" href="../../d2/df1/welcome__screen_8h_source.html">welcome_screen.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00686">DrawTemplatesSection()</a>, and <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00136">Show()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00695">DrawTemplatesSection()</a>, and <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00136">Show()</a>.</p>
 
 </div>
 </div>
@@ -1284,9 +1342,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00130">130</a> of file <a class="el" href="../../d2/df1/welcome__screen_8h_source.html">welcome_screen.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00136">136</a> of file <a class="el" href="../../d2/df1/welcome__screen_8h_source.html">welcome_screen.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00686">DrawTemplatesSection()</a>, and <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00136">Show()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00695">DrawTemplatesSection()</a>, and <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00136">Show()</a>.</p>
 
 </div>
 </div>
@@ -1310,9 +1368,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00131">131</a> of file <a class="el" href="../../d2/df1/welcome__screen_8h_source.html">welcome_screen.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00137">137</a> of file <a class="el" href="../../d2/df1/welcome__screen_8h_source.html">welcome_screen.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00686">DrawTemplatesSection()</a>, and <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00136">Show()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00695">DrawTemplatesSection()</a>, and <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00136">Show()</a>.</p>
 
 </div>
 </div>
@@ -1336,9 +1394,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00132">132</a> of file <a class="el" href="../../d2/df1/welcome__screen_8h_source.html">welcome_screen.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00138">138</a> of file <a class="el" href="../../d2/df1/welcome__screen_8h_source.html">welcome_screen.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00686">DrawTemplatesSection()</a>, and <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00136">Show()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00695">DrawTemplatesSection()</a>, and <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00136">Show()</a>.</p>
 
 </div>
 </div>
@@ -1362,9 +1420,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00133">133</a> of file <a class="el" href="../../d2/df1/welcome__screen_8h_source.html">welcome_screen.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00139">139</a> of file <a class="el" href="../../d2/df1/welcome__screen_8h_source.html">welcome_screen.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00686">DrawTemplatesSection()</a>, and <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00136">Show()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00695">DrawTemplatesSection()</a>, and <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00136">Show()</a>.</p>
 
 </div>
 </div>
@@ -1388,9 +1446,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00134">134</a> of file <a class="el" href="../../d2/df1/welcome__screen_8h_source.html">welcome_screen.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df1/welcome__screen_8h_source.html#l00140">140</a> of file <a class="el" href="../../d2/df1/welcome__screen_8h_source.html">welcome_screen.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00686">DrawTemplatesSection()</a>, and <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00136">Show()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00695">DrawTemplatesSection()</a>, and <a class="el" href="../../d0/d62/welcome__screen_8cc_source.html#l00136">Show()</a>.</p>
 
 </div>
 </div>

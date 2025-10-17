@@ -1,0 +1,12 @@
+<map id="yaze::gui::PrimaryButton" name="yaze::gui::PrimaryButton">
+<area shape="rect" id="Node000001" title="Primary action button (uses accent color)" alt="" coords="5,42,164,68"/>
+<area shape="poly" id="edge5_Node000001_Node000001" title=" " alt="" coords="49,43,43,34,47,24,61,18,85,16,110,18,123,25,121,30,109,23,84,21,62,23,50,28,48,33,54,40"/>
+<area shape="rect" id="Node000002" href="$d3/dbf/namespaceyaze_1_1gui.html#a0a2f4e28780bd8cf64f9d6e7b67be924" title=" " alt="" coords="212,5,378,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="163,41,196,37,197,42,164,47"/>
+<area shape="rect" id="Node000003" href="$d3/dbf/namespaceyaze_1_1gui.html#a4c84c2cc40ee46b790e1e05ba0c5edaf" title="Get current theme (shortcut)" alt="" coords="226,70,364,96"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="164,63,211,69,210,74,163,68"/>
+<area shape="rect" id="Node000004" href="$d3/d27/classyaze_1_1gui_1_1ThemeManager.html#ab3423e72fe874f8c370ed2d3e52ac278" title=" " alt="" coords="426,41,619,67"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="363,72,410,65,411,71,364,77"/>
+<area shape="rect" id="Node000005" href="$d3/d27/classyaze_1_1gui_1_1ThemeManager.html#ad706e6146dd664adffe3350c520f397b" title=" " alt="" coords="440,91,606,131"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="364,89,425,96,424,102,363,94"/>
+</map>

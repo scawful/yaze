@@ -101,8 +101,8 @@ $(document).ready(function(){initNavTree('dd/de3/md_docs_2B5-architecture-and-ne
   <div class="headertitle"><div class="title">B5 - Architecture and Networking</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md217"></a> This document provides a comprehensive overview of the yaze application's architecture, focusing on its service-oriented design, gRPC integration, and real-time collaboration features.</p>
-<h1><a class="anchor" id="autotoc_md218"></a>
+<div class="textblock"><p><a class="anchor" id="autotoc_md298"></a> This document provides a comprehensive overview of the yaze application's architecture, focusing on its service-oriented design, gRPC integration, and real-time collaboration features.</p>
+<h1><a class="anchor" id="autotoc_md299"></a>
 1. High-Level Architecture</h1>
 <p>The yaze ecosystem is split into two main components: the <b>YAZE GUI Application</b> and the **<code>z3ed</code> CLI Tool**.</p>
 <div class="fragment"><div class="line">┌─────────────────────────────────────────────────────────────────────────┐</div>
@@ -115,14 +115,14 @@ $(document).ready(function(){initNavTree('dd/de3/md_docs_2B5-architecture-and-ne
 <div class="line">│  │  ════════════════════════════════════════════════════════    │        │</div>
 <div class="line">│  │  Hosts 3 gRPC Services on a SINGLE PORT:                     │        │</div>
 <div class="line">│  │                                                               │        │</div>
-<div class="line">│  │  1️⃣  ImGuiTestHarness Service                                 │        │</div>
+<div class="line">│  │  1. ImGuiTestHarness Service                                 │        │</div>
 <div class="line">│  │     • GUI automation (click, type, wait, assert)             │        │</div>
 <div class="line">│  │                                                               │        │</div>
-<div class="line">│  │  2️⃣  RomService                                               │        │</div>
+<div class="line">│  │  2. RomService                                               │        │</div>
 <div class="line">│  │     • Read/write ROM bytes                                   │        │</div>
 <div class="line">│  │     • Proposal system for collaborative editing              │        │</div>
 <div class="line">│  │                                                               │        │</div>
-<div class="line">│  │  3️⃣  CanvasAutomation Service                                 │        │</div>
+<div class="line">│  │  3. CanvasAutomation Service                                 │        │</div>
 <div class="line">│  │     • High-level canvas operations (tile ops, selection)     │        │</div>
 <div class="line">│  └─────────────────────────────────────────────────────────────┘        │</div>
 <div class="line">│                                    ↑                                      │</div>
@@ -142,10 +142,10 @@ $(document).ready(function(){initNavTree('dd/de3/md_docs_2B5-architecture-and-ne
 <div class="line">│  │  - Network Clients (gRPC and WebSocket clients)               │       │</div>
 <div class="line">│  └──────────────────────────────────────────────────────────────┘       │</div>
 <div class="line">└───────────────────────────────────────────────────────────────────────────┘</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md219"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md300"></a>
 2. Service Taxonomy</h1>
 <p>It's important to distinguish between the two types of "services" in the yaze project.</p>
-<h2><a class="anchor" id="autotoc_md220"></a>
+<h2><a class="anchor" id="autotoc_md301"></a>
 APP Services (gRPC Servers)</h2>
 <ul>
 <li><b>Location</b>: <code>src/app/core/service/</code>, <code>src/app/net/</code></li>
@@ -153,7 +153,7 @@ APP Services (gRPC Servers)</h2>
 <li><b>Purpose</b>: Expose application functionality to remote clients (like the <code>z3ed</code> CLI).</li>
 <li><b>Type</b>: gRPC <b>SERVER</b> implementations.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md221"></a>
+<h2><a class="anchor" id="autotoc_md302"></a>
 CLI Services (Business Logic)</h2>
 <ul>
 <li><b>Location</b>: <code>src/cli/service/</code></li>
@@ -161,34 +161,34 @@ CLI Services (Business Logic)</h2>
 <li><b>Purpose</b>: Implement the business logic for the CLI commands.</li>
 <li><b>Type</b>: These are helper classes, <b>NOT</b> gRPC servers. They may include gRPC <b>CLIENTS</b> to connect to the APP Services.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md222"></a>
+<h1><a class="anchor" id="autotoc_md303"></a>
 3. gRPC Services</h1>
 <p>yaze exposes its core functionality through a <code>UnifiedGRPCServer</code> that hosts multiple services on a single port (typically 50051).</p>
-<h2><a class="anchor" id="autotoc_md223"></a>
+<h2><a class="anchor" id="autotoc_md304"></a>
 ImGuiTestHarness Service</h2>
 <ul>
 <li><b>Proto</b>: <code>imgui_test_harness.proto</code></li>
 <li><b>Purpose</b>: GUI automation.</li>
 <li><b>Features</b>: Click, type, screenshots, widget discovery.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md224"></a>
+<h2><a class="anchor" id="autotoc_md305"></a>
 RomService</h2>
 <ul>
 <li><b>Proto</b>: <code>rom_service.proto</code></li>
 <li><b>Purpose</b>: Low-level ROM manipulation.</li>
 <li><b>Features</b>: Read/write bytes, proposal system for collaborative editing, snapshots for version management.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md225"></a>
+<h2><a class="anchor" id="autotoc_md306"></a>
 CanvasAutomation Service</h2>
 <ul>
 <li><b>Proto</b>: <code>canvas_automation.proto</code></li>
 <li><b>Purpose</b>: High-level, abstracted control over canvas-based editors.</li>
 <li><b>Features</b>: Tile operations (get/set), selection management, view control (pan/zoom).</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md226"></a>
+<h1><a class="anchor" id="autotoc_md307"></a>
 4. Real-Time Collaboration</h1>
 <p>Real-time collaboration is enabled through a WebSocket-based protocol managed by the <code>yaze-server</code>, a separate Node.js application.</p>
-<h2><a class="anchor" id="autotoc_md227"></a>
+<h2><a class="anchor" id="autotoc_md308"></a>
 Architecture</h2>
 <div class="fragment"><div class="line">┌─────────────┐         WebSocket          ┌──────────────┐</div>
 <div class="line">│  yaze app   │◄────────────────────────────►│ yaze-server  │</div>
@@ -200,14 +200,14 @@ Architecture</h2>
 <div class="line">              ┌──────▼──────┐                       │</div>
 <div class="line">              │  z3ed CLI   │◄──────────────────────┘</div>
 <div class="line">              └─────────────┘</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md228"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md309"></a>
 Core Components</h2>
 <ul>
 <li><b>ROM Version Manager</b>: Protects the ROM from corruption with snapshots and safe points.</li>
 <li><b>Proposal Approval Manager</b>: Manages a collaborative voting system for applying changes.</li>
 <li><b>Collaboration Panel</b>: A UI within the YAZE editor for managing collaboration.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md229"></a>
+<h2><a class="anchor" id="autotoc_md310"></a>
 WebSocket Protocol</h2>
 <p>The WebSocket protocol handles real-time messaging for:</p><ul>
 <li>Hosting and joining sessions.</li>
@@ -215,7 +215,7 @@ WebSocket Protocol</h2>
 <li>Sharing and voting on proposals (<code>proposal_share</code>, <code>proposal_vote</code>).</li>
 <li>Sharing snapshots.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md230"></a>
+<h1><a class="anchor" id="autotoc_md311"></a>
 5. Data Flow Example: AI Agent Edits a Tile</h1>
 <ol type="1">
 <li><b>User</b> runs <code>z3ed agent --prompt "Paint grass at 10,10"</code>.</li>

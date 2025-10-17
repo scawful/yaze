@@ -1,0 +1,11 @@
+<map id="yaze::editor::EquipmentPaletteCard::DrawPaletteGrid" name="yaze::editor::EquipmentPaletteCard::DrawPaletteGrid">
+<area shape="rect" id="Node000001" title="Draw the palette grid specific to this palette type." alt="" coords="5,104,199,145"/>
+<area shape="rect" id="Node000002" href="$d0/d13/classyaze_1_1editor_1_1EquipmentPaletteCard.html#aeb7cc6c2cfd2441227bb2d4778aecdc2" title="Get the number of colors per row for grid layout." alt="" coords="247,5,440,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="145,101,246,57,265,49,267,54,248,61,147,106"/>
+<area shape="rect" id="Node000003" href="$d6/dd1/classyaze_1_1editor_1_1PaletteGroupCard.html#a1344c8292dff5b94e9fa126821554034" title="Get mutable palette by index." alt="" coords="260,71,427,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="199,108,244,102,245,107,199,114"/>
+<area shape="rect" id="Node000005" href="$d6/dd1/classyaze_1_1editor_1_1PaletteGroupCard.html#a335714073128db9f99a89d6435e67523" title=" " alt="" coords="260,136,427,177"/>
+<area shape="poly" id="edge3_Node000001_Node000005" title=" " alt="" coords="199,135,245,141,244,146,199,140"/>
+<area shape="rect" id="Node000008" href="$d3/dbf/namespaceyaze_1_1gui.html#a7054efbe47b48b246e183ec25d958f22" title=" " alt="" coords="251,201,436,227"/>
+<area shape="poly" id="edge4_Node000001_Node000008" title=" " alt="" coords="146,143,248,186,272,194,270,199,246,191,144,148"/>
+</map>

@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.9.8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>yaze: src/app/gui/color.cc File Reference</title>
+<title>yaze: src/app/gui/core/color.cc File Reference</title>
 <link href="../../tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript">var page_layout=1;</script>
 <script type="text/javascript" src="../../jquery.js"></script>
@@ -105,28 +105,28 @@ $(document).ready(function(){initNavTree('d3/de1/color_8cc.html','../../'); init
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><code>#include &quot;<a class="el" href="../../da/dec/color_8h_source.html">color.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="../../d5/d52/snes__color_8h_source.html">app/gfx/snes_color.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="../../d8/ddb/snes__palette_8h_source.html">app/gfx/snes_palette.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../d5/d52/snes__color_8h_source.html">app/gfx/types/snes_color.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../d8/ddb/snes__palette_8h_source.html">app/gfx/types/snes_palette.h</a>&quot;</code><br />
 <code>#include &quot;imgui/imgui.h&quot;</code><br />
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for color.cc:</div>
 <div class="dyncontent">
-<div class="center"><img src="../../da/dd0/color_8cc__incl.png" border="0" usemap="#asrc_2app_2gui_2color_8cc" alt=""/></div>
-<map name="asrc_2app_2gui_2color_8cc" id="asrc_2app_2gui_2color_8cc">
-<area shape="rect" title=" " alt="" coords="42,5,176,31"/>
-<area shape="rect" href="../../da/dec/color_8h.html" title=" " alt="" coords="46,79,105,105"/>
-<area shape="poly" title=" " alt="" coords="106,32,90,66,85,64,101,30"/>
-<area shape="rect" href="../../d8/ddb/snes__palette_8h.html" title=" " alt="" coords="66,153,218,178"/>
-<area shape="poly" title=" " alt="" coords="114,31,138,137,133,138,109,32"/>
-<area shape="rect" href="../../d5/d52/snes__color_8h.html" title=" " alt="" coords="117,226,258,252"/>
-<area shape="poly" title=" " alt="" coords="128,29,182,78,211,112,233,152,235,169,231,187,213,217,208,214,226,185,230,169,227,154,207,115,179,81,124,33"/>
-<area shape="rect" title=" " alt="" coords="5,300,103,326"/>
-<area shape="poly" title=" " alt="" coords="85,34,58,53,36,80,27,106,22,134,23,191,33,243,46,285,41,286,28,245,18,191,17,134,22,105,32,78,54,49,82,29"/>
-<area shape="poly" title=" " alt="" coords="88,103,122,139,118,143,84,107"/>
-<area shape="poly" title=" " alt="" coords="72,106,57,153,51,224,54,284,49,284,46,224,51,152,67,104"/>
-<area shape="poly" title=" " alt="" coords="152,177,174,212,169,215,147,180"/>
-<area shape="poly" title=" " alt="" coords="137,180,107,228,71,288,66,285,102,225,132,177"/>
-<area shape="poly" title=" " alt="" coords="166,255,91,295,89,290,163,250"/>
+<div class="center"><img src="../../da/dd0/color_8cc__incl.png" border="0" usemap="#asrc_2app_2gui_2core_2color_8cc" alt=""/></div>
+<map name="asrc_2app_2gui_2core_2color_8cc" id="asrc_2app_2gui_2core_2color_8cc">
+<area shape="rect" title=" " alt="" coords="16,5,180,31"/>
+<area shape="rect" href="../../da/dec/color_8h.html" title=" " alt="" coords="35,79,94,105"/>
+<area shape="poly" title=" " alt="" coords="95,32,79,66,74,64,90,30"/>
+<area shape="rect" href="../../d8/ddb/snes__palette_8h.html" title=" " alt="" coords="66,153,197,193"/>
+<area shape="poly" title=" " alt="" coords="103,31,126,137,121,138,98,32"/>
+<area shape="rect" href="../../d5/d52/snes__color_8h.html" title=" " alt="" coords="117,241,247,282"/>
+<area shape="poly" title=" " alt="" coords="115,30,165,78,192,113,211,152,215,171,214,191,203,228,198,226,209,191,210,172,206,154,187,116,161,82,111,33"/>
+<area shape="rect" title=" " alt="" coords="5,330,103,356"/>
+<area shape="poly" title=" " alt="" coords="75,34,47,53,26,80,15,111,10,143,10,176,13,209,28,269,45,315,40,317,23,271,8,210,4,176,5,143,10,109,21,78,44,49,72,29"/>
+<area shape="poly" title=" " alt="" coords="77,103,107,139,103,143,73,107"/>
+<area shape="poly" title=" " alt="" coords="65,105,57,153,53,241,55,315,50,315,48,241,51,152,59,105"/>
+<area shape="poly" title=" " alt="" coords="145,192,165,226,160,229,141,195"/>
+<area shape="poly" title=" " alt="" coords="125,195,68,317,63,315,120,192"/>
+<area shape="poly" title=" " alt="" coords="152,285,88,324,85,319,149,280"/>
 </map>
 </div>
 </div>
@@ -144,26 +144,39 @@ Namespaces</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:a7133468eeb96ba6d81b2c91bc7118d1d" id="r_a7133468eeb96ba6d81b2c91bc7118d1d"><td class="memItemLeft" align="right" valign="top">ImVec4&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/dbf/namespaceyaze_1_1gui.html#a7133468eeb96ba6d81b2c91bc7118d1d">yaze::gui::ConvertSnesColorToImVec4</a> (const <a class="el" href="../../d5/d31/classyaze_1_1gfx_1_1SnesColor.html">gfx::SnesColor</a> &amp;color)</td></tr>
+<tr class="memdesc:a7133468eeb96ba6d81b2c91bc7118d1d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Convert SnesColor to standard ImVec4 for display.  <br /></td></tr>
 <tr class="separator:a7133468eeb96ba6d81b2c91bc7118d1d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad6ba4f05b40456918b1e49bfbb876c14" id="r_ad6ba4f05b40456918b1e49bfbb876c14"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d5/d31/classyaze_1_1gfx_1_1SnesColor.html">gfx::SnesColor</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/dbf/namespaceyaze_1_1gui.html#ad6ba4f05b40456918b1e49bfbb876c14">yaze::gui::ConvertImVec4ToSnesColor</a> (const ImVec4 &amp;color)</td></tr>
+<tr class="memdesc:ad6ba4f05b40456918b1e49bfbb876c14"><td class="mdescLeft">&#160;</td><td class="mdescRight">Convert standard ImVec4 to SnesColor.  <br /></td></tr>
 <tr class="separator:ad6ba4f05b40456918b1e49bfbb876c14"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1136a9ab95fd67e2ab97a00f59818ddb" id="r_a1136a9ab95fd67e2ab97a00f59818ddb"><td class="memItemLeft" align="right" valign="top">IMGUI_API bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/dbf/namespaceyaze_1_1gui.html#a1136a9ab95fd67e2ab97a00f59818ddb">yaze::gui::SnesColorButton</a> (absl::string_view id, <a class="el" href="../../d5/d31/classyaze_1_1gfx_1_1SnesColor.html">gfx::SnesColor</a> &amp;color, ImGuiColorEditFlags flags, const ImVec2 &amp;size_arg)</td></tr>
 <tr class="separator:a1136a9ab95fd67e2ab97a00f59818ddb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa32511a1a3eadf62366b193da8b5f3da" id="r_aa32511a1a3eadf62366b193da8b5f3da"><td class="memItemLeft" align="right" valign="top">IMGUI_API bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/dbf/namespaceyaze_1_1gui.html#aa32511a1a3eadf62366b193da8b5f3da">yaze::gui::SnesColorEdit4</a> (absl::string_view label, <a class="el" href="../../d5/d31/classyaze_1_1gfx_1_1SnesColor.html">gfx::SnesColor</a> *color, ImGuiColorEditFlags flags)</td></tr>
 <tr class="separator:aa32511a1a3eadf62366b193da8b5f3da"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0e88945cb5082f0a296444c6ab8f1735" id="r_a0e88945cb5082f0a296444c6ab8f1735"><td class="memItemLeft" align="right" valign="top">IMGUI_API bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/dbf/namespaceyaze_1_1gui.html#a0e88945cb5082f0a296444c6ab8f1735">yaze::gui::InlinePaletteSelector</a> (<a class="el" href="../../da/d68/classyaze_1_1gfx_1_1SnesPalette.html">gfx::SnesPalette</a> &amp;palette, int num_colors=8, int *selected_index=nullptr)</td></tr>
+<tr class="memdesc:a0e88945cb5082f0a296444c6ab8f1735"><td class="mdescLeft">&#160;</td><td class="mdescRight">Small inline palette selector - just color buttons for selection.  <br /></td></tr>
+<tr class="separator:a0e88945cb5082f0a296444c6ab8f1735"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a44225154839ef4636d7998a57aec60ab" id="r_a44225154839ef4636d7998a57aec60ab"><td class="memItemLeft" align="right" valign="top">IMGUI_API absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/dbf/namespaceyaze_1_1gui.html#a44225154839ef4636d7998a57aec60ab">yaze::gui::InlinePaletteEditor</a> (<a class="el" href="../../da/d68/classyaze_1_1gfx_1_1SnesPalette.html">gfx::SnesPalette</a> &amp;palette, const std::string &amp;title=&quot;&quot;, ImGuiColorEditFlags flags=0)</td></tr>
+<tr class="memdesc:a44225154839ef4636d7998a57aec60ab"><td class="mdescLeft">&#160;</td><td class="mdescRight">Full inline palette editor with color picker and copy options.  <br /></td></tr>
+<tr class="separator:a44225154839ef4636d7998a57aec60ab"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a215a9b1ec261c77a208ac61594e557de" id="r_a215a9b1ec261c77a208ac61594e557de"><td class="memItemLeft" align="right" valign="top">IMGUI_API bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/dbf/namespaceyaze_1_1gui.html#a215a9b1ec261c77a208ac61594e557de">yaze::gui::PopupPaletteEditor</a> (const char *popup_id, <a class="el" href="../../da/d68/classyaze_1_1gfx_1_1SnesPalette.html">gfx::SnesPalette</a> &amp;palette, ImGuiColorEditFlags flags=0)</td></tr>
+<tr class="memdesc:a215a9b1ec261c77a208ac61594e557de"><td class="mdescLeft">&#160;</td><td class="mdescRight">Popup palette editor - same as inline but in a popup.  <br /></td></tr>
+<tr class="separator:a215a9b1ec261c77a208ac61594e557de"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab4191a76f6cec5d60a28a6c49d7065d9" id="r_ab4191a76f6cec5d60a28a6c49d7065d9"><td class="memItemLeft" align="right" valign="top">IMGUI_API bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/dbf/namespaceyaze_1_1gui.html#ab4191a76f6cec5d60a28a6c49d7065d9">yaze::gui::DisplayPalette</a> (<a class="el" href="../../da/d68/classyaze_1_1gfx_1_1SnesPalette.html">gfx::SnesPalette</a> &amp;palette, bool loaded)</td></tr>
 <tr class="separator:ab4191a76f6cec5d60a28a6c49d7065d9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9f7caa95981f846c2eac84bff36b952d" id="r_a9f7caa95981f846c2eac84bff36b952d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/dbf/namespaceyaze_1_1gui.html#a9f7caa95981f846c2eac84bff36b952d">yaze::gui::SelectablePalettePipeline</a> (uint64_t &amp;palette_id, bool &amp;refresh_graphics, <a class="el" href="../../da/d68/classyaze_1_1gfx_1_1SnesPalette.html">gfx::SnesPalette</a> &amp;palette)</td></tr>
 <tr class="separator:a9f7caa95981f846c2eac84bff36b952d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae0d03d6cdef355d2ffa9bfa5d5e3247a" id="r_ae0d03d6cdef355d2ffa9bfa5d5e3247a"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/dbf/namespaceyaze_1_1gui.html#ae0d03d6cdef355d2ffa9bfa5d5e3247a">yaze::gui::DisplayEditablePalette</a> (<a class="el" href="../../da/d68/classyaze_1_1gfx_1_1SnesPalette.html">gfx::SnesPalette</a> &amp;palette, const std::string &amp;title, bool show_color_picker, int colors_per_row, ImGuiColorEditFlags flags)</td></tr>
 <tr class="separator:ae0d03d6cdef355d2ffa9bfa5d5e3247a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7054efbe47b48b246e183ec25d958f22" id="r_a7054efbe47b48b246e183ec25d958f22"><td class="memItemLeft" align="right" valign="top">IMGUI_API bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/dbf/namespaceyaze_1_1gui.html#a7054efbe47b48b246e183ec25d958f22">yaze::gui::PaletteColorButton</a> (const char *id, const <a class="el" href="../../d5/d31/classyaze_1_1gfx_1_1SnesColor.html">gfx::SnesColor</a> &amp;color, bool is_selected, bool is_modified, const ImVec2 &amp;size, ImGuiColorEditFlags flags)</td></tr>
+<tr class="separator:a7054efbe47b48b246e183ec25d958f22"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 </div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="navelem"><a class="el" href="../../dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="../../dir_5194e5fea318fda12687127c23f8aba1.html">app</a></li><li class="navelem"><a class="el" href="../../dir_8fca90320bcc7393a52982c8dc104a2a.html">gui</a></li><li class="navelem"><a class="el" href="../../d3/de1/color_8cc.html">color.cc</a></li>
+    <li class="navelem"><a class="el" href="../../dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="../../dir_5194e5fea318fda12687127c23f8aba1.html">app</a></li><li class="navelem"><a class="el" href="../../dir_8fca90320bcc7393a52982c8dc104a2a.html">gui</a></li><li class="navelem"><a class="el" href="../../dir_594b16f80a27b2517b093564d7e50ef5.html">core</a></li><li class="navelem"><a class="el" href="../../d3/de1/color_8cc.html">color.cc</a></li>
     <li class="footer">Generated by <a href="https://www.doxygen.org/index.html"><img class="footer" src="../../doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
   </ul>
 </div>

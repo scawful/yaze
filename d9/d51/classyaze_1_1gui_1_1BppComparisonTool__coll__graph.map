@@ -1,10 +1,12 @@
 <map id="yaze::gui::BppComparisonTool" name="yaze::gui::BppComparisonTool">
-<area shape="rect" id="Node000001" title="BPP format comparison tool." alt="" coords="28,198,221,223"/>
-<area shape="rect" id="Node000002" href="$df/d0e/classyaze_1_1gfx_1_1Bitmap.html" title="Represents a bitmap image optimized for SNES ROM hacking." alt="" coords="188,109,306,135"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="219,146,143,199,140,195,216,141"/>
+<area shape="rect" id="Node000001" title="BPP format comparison tool." alt="" coords="29,198,222,223"/>
+<area shape="rect" id="Node000002" href="$df/d0e/classyaze_1_1gfx_1_1Bitmap.html" title="Represents a bitmap image optimized for SNES ROM hacking." alt="" coords="190,109,307,135"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="221,146,145,199,141,195,218,141"/>
 <area shape="rect" id="Node000003" href="$da/d68/classyaze_1_1gfx_1_1SnesPalette.html" title="Represents a palette of colors for the Super Nintendo Entertainment System (SNES)." alt="" coords="5,13,153,39"/>
-<area shape="poly" id="edge4_Node000001_Node000003" title=" " alt="" coords="79,53,78,92,84,134,99,169,117,196,113,199,94,171,79,135,73,92,73,53"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="115,44,227,106,224,111,113,49"/>
-<area shape="rect" id="Node000004" href="$d7/d95/structyaze_1_1gfx_1_1Bitmap_1_1DirtyRegion.html" title=" " alt="" coords="185,5,309,46"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="250,61,250,109,244,109,244,61"/>
+<area shape="poly" id="edge5_Node000001_Node000003" title=" " alt="" coords="79,53,79,92,85,134,101,169,119,196,114,199,96,171,80,135,73,92,74,53"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="115,44,228,106,225,111,113,49"/>
+<area shape="rect" id="Node000004" href="$d1/d13/structyaze_1_1gfx_1_1Bitmap_1_1BitmapMetadata.html" title="Metadata for tracking bitmap source format and palette requirements." alt="" coords="181,5,305,46"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="248,61,250,109,245,109,242,62"/>
+<area shape="rect" id="Node000005" href="$d7/d95/structyaze_1_1gfx_1_1Bitmap_1_1DirtyRegion.html" title=" " alt="" coords="329,5,453,46"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="358,58,318,87,275,111,273,106,315,83,355,54"/>
 </map>

@@ -8,10 +8,10 @@ var searchData=
   ['teststatus_5',['TestStatus',['../d4/d0a/namespaceyaze_1_1test.html#a24fd08ea41d8314e6fccdb0fdcd9f072',1,'yaze::test']]],
   ['teststeptype_6',['TestStepType',['../dd/d63/namespaceyaze_1_1cli.html#a0be616999fa8e675f482f53ca1830fce',1,'yaze::cli']]],
   ['texturecommandtype_7',['TextureCommandType',['../d4/de6/classyaze_1_1gfx_1_1Arena.html#a7c65b9804f35c3b9c2848da846088c8c',1,'yaze::gfx::Arena']]],
-  ['tileinteractionmode_8',['TileInteractionMode',['../db/dc3/namespaceyaze_1_1gui_1_1canvas.html#a7cd25682920de9e3b6559931b14f461e',1,'yaze::gui::canvas']]],
+  ['tileinteractionmode_8',['TileInteractionMode',['../d3/dbf/namespaceyaze_1_1gui.html#a58bb8c0a1b52f2257755db0567378960',1,'yaze::gui']]],
   ['toasttype_9',['ToastType',['../d1/d3e/namespaceyaze_1_1editor.html#a6b8cab865089eface70ba97013bc8bc7',1,'yaze::editor']]],
   ['toolcalltype_10',['ToolCallType',['../d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a570346e91ec90d0baf95a883ca3665e1',1,'yaze::cli::agent']]],
   ['tuicomponent_11',['TUIComponent',['../d8/dd3/namespaceyaze_1_1cli_1_1agent.html#ab3b3441f7d7ffe97fcf6c31971ca8430',1,'yaze::cli::agent']]],
   ['tuitheme_12',['TUITheme',['../d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a2cb689cd05f7c7e98eafe5d80a645345',1,'yaze::cli::agent']]],
-  ['type_13',['type',['../d1/ddb/structyaze_1_1editor_1_1MenuBuilder_1_1MenuItem.html#ae91591afd3dd8e2fd315b75a3ab2d2d0',1,'yaze::editor::MenuBuilder::MenuItem::Type'],['../d9/ded/classyaze_1_1emu_1_1BreakpointManager.html#ab89cacd2103b2dbebc7632199f14d9b8',1,'yaze::emu::BreakpointManager::Type']]]
+  ['type_13',['type',['../dc/dad/structyaze_1_1gui_1_1EntityInteractionEvent.html#ac5d8eacea5e78fabdb2e0cd81ff30ed8',1,'yaze::gui::EntityInteractionEvent::Type'],['../d6/d27/structyaze_1_1gfx_1_1PaletteChangeEvent.html#a7a7b6863fb255dc4a5569914c187e875',1,'yaze::gfx::PaletteChangeEvent::Type'],['../d9/ded/classyaze_1_1emu_1_1BreakpointManager.html#ab89cacd2103b2dbebc7632199f14d9b8',1,'yaze::emu::BreakpointManager::Type'],['../d1/ddb/structyaze_1_1editor_1_1MenuBuilder_1_1MenuItem.html#ae91591afd3dd8e2fd315b75a3ab2d2d0',1,'yaze::editor::MenuBuilder::MenuItem::Type']]]
 ];

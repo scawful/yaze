@@ -1,0 +1,5 @@
+<map id="yaze::zelda3::OverworldMapScreen::Save" name="yaze::zelda3::OverworldMapScreen::Save">
+<area shape="rect" id="Node000001" title="Save changes back to ROM." alt="" coords="5,5,186,46"/>
+<area shape="rect" id="Node000002" href="$d6/d30/classyaze_1_1Rom.html#a3f76910dd3716dc67f477e7da77cee33" title=" " alt="" coords="234,13,376,39"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="186,23,218,23,218,28,186,28"/>
+</map>

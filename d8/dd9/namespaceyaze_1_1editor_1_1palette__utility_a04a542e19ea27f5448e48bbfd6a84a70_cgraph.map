@@ -1,0 +1,5 @@
+<map id="yaze::editor::palette_utility::DrawPaletteJumpButton" name="yaze::editor::palette_utility::DrawPaletteJumpButton">
+<area shape="rect" id="Node000001" title="Draw a palette selector button that opens palette editor." alt="" coords="5,5,211,46"/>
+<area shape="rect" id="Node000002" href="$d2/d46/classyaze_1_1editor_1_1PaletteEditor.html#ad40791dedf61fa7257e0bc018bd2d826" title="Jump to a specific palette by group and index." alt="" coords="259,5,424,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="211,23,243,23,243,28,211,28"/>
+</map>

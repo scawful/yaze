@@ -1,0 +1,13 @@
+<map id="src/app/editor/system/project_manager.h" name="src/app/editor/system/project_manager.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="47,5,193,46"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,168,59,193"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="100,48,79,70,61,95,48,125,40,154,35,152,43,123,56,93,75,66,96,44"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="182,168,317,193"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="141,45,183,92,233,154,229,157,179,96,137,48"/>
+<area shape="rect" id="Node000004" href="$dc/d8d/project_8h.html" title=" " alt="" coords="70,94,170,120"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="123,46,123,78,117,78,117,46"/>
+<area shape="poly" id="edge5_Node000004_Node000002" title=" " alt="" coords="107,122,60,160,57,156,103,118"/>
+<area shape="poly" id="edge6_Node000004_Node000003" title=" " alt="" coords="143,118,215,157,213,162,141,123"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="83,168,157,193"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="123,120,123,152,117,152,117,120"/>
+</map>

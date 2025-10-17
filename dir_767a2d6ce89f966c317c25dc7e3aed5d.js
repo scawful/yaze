@@ -7,11 +7,14 @@ var dir_767a2d6ce89f966c317c25dc7e3aed5d =
     [ "message", "dir_9c1a46080f50032b6ef9b9828875c905.html", "dir_9c1a46080f50032b6ef9b9828875c905" ],
     [ "music", "dir_ba20656b17ede4dccc88b5a44dbd1f76.html", "dir_ba20656b17ede4dccc88b5a44dbd1f76" ],
     [ "overworld", "dir_2a6e74d3eed253325bbc2e3058622b3c.html", "dir_2a6e74d3eed253325bbc2e3058622b3c" ],
+    [ "palette", "dir_1addf15ecfe200e698b3234e01c47f84.html", "dir_1addf15ecfe200e698b3234e01c47f84" ],
     [ "sprite", "dir_d61788e60caad948d761f6bd7dfa638e.html", "dir_d61788e60caad948d761f6bd7dfa638e" ],
     [ "system", "dir_6786299e5fb540707e8551af9d97f855.html", "dir_6786299e5fb540707e8551af9d97f855" ],
     [ "ui", "dir_fe13d6a204968d30e9c0a5aa2ed29400.html", "dir_fe13d6a204968d30e9c0a5aa2ed29400" ],
     [ "editor.h", "dd/d60/editor_8h.html", "dd/d60/editor_8h" ],
     [ "editor_manager.cc", "d0/dd9/editor__manager_8cc.html", "d0/dd9/editor__manager_8cc" ],
     [ "editor_manager.h", "df/d60/editor__manager_8h.html", "df/d60/editor__manager_8h" ],
-    [ "editor_safeguards.h", "dc/ddd/editor__safeguards_8h.html", "dc/ddd/editor__safeguards_8h" ]
+    [ "editor_safeguards.h", "dc/ddd/editor__safeguards_8h.html", "dc/ddd/editor__safeguards_8h" ],
+    [ "session_types.cc", "d5/d1d/session__types_8cc.html", null ],
+    [ "session_types.h", "d9/d13/session__types_8h.html", "d9/d13/session__types_8h" ]
 ];

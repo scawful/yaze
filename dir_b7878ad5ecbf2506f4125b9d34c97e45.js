@@ -8,6 +8,8 @@ var dir_b7878ad5ecbf2506f4125b9d34c97e45 =
     [ "flag.h", "d2/da4/flag_8h.html", "d2/da4/flag_8h" ],
     [ "hex.cc", "df/dcb/hex_8cc.html", "df/dcb/hex_8cc" ],
     [ "hex.h", "d0/d84/hex_8h.html", "d0/d84/hex_8h" ],
+    [ "hyrule_magic.cc", "da/d37/hyrule__magic_8cc.html", "da/d37/hyrule__magic_8cc" ],
+    [ "hyrule_magic.h", "db/d03/hyrule__magic_8h.html", "db/d03/hyrule__magic_8h" ],
     [ "log.cc", "d4/dc1/log_8cc.html", null ],
     [ "log.h", "d7/d7f/log_8h.html", "d7/d7f/log_8h" ],
     [ "macro.h", "d4/d9e/macro_8h.html", "d4/d9e/macro_8h" ],

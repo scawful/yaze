@@ -13,7 +13,7 @@ var searchData=
   ['agenteditor_10',['AgentEditor',['../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html',1,'yaze::editor']]],
   ['agentpretraining_11',['AgentPretraining',['../d7/d62/classyaze_1_1cli_1_1agent_1_1AgentPretraining.html',1,'yaze::cli::agent']]],
   ['agentresponse_12',['AgentResponse',['../db/d5f/structyaze_1_1cli_1_1AgentResponse.html',1,'yaze::cli']]],
-  ['agentsettings_13',['AgentSettings',['../d4/db6/structyaze_1_1core_1_1YazeProject_1_1AgentSettings.html',1,'yaze::core::YazeProject']]],
+  ['agentsettings_13',['AgentSettings',['../d7/d46/structyaze_1_1project_1_1YazeProject_1_1AgentSettings.html',1,'yaze::project::YazeProject']]],
   ['agentuitheme_14',['AgentUITheme',['../db/d3d/structyaze_1_1editor_1_1AgentUITheme.html',1,'yaze::editor']]],
   ['aiaction_15',['AIAction',['../d3/d8b/structyaze_1_1cli_1_1ai_1_1AIAction.html',1,'yaze::cli::ai']]],
   ['aiactionparser_16',['AIActionParser',['../df/def/classyaze_1_1cli_1_1ai_1_1AIActionParser.html',1,'yaze::cli::ai']]],

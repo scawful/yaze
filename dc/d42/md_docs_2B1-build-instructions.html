@@ -101,48 +101,48 @@ $(document).ready(function(){initNavTree('dc/d42/md_docs_2B1-build-instructions.
   <div class="headertitle"><div class="title">Build Instructions</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md65"></a> yaze uses a modern CMake build system with presets for easy configuration. This guide covers how to build yaze on macOS, Linux, and Windows.</p>
-<h1><a class="anchor" id="autotoc_md66"></a>
+<div class="textblock"><p><a class="anchor" id="autotoc_md148"></a> yaze uses a modern CMake build system with presets for easy configuration. This guide covers how to build yaze on macOS, Linux, and Windows.</p>
+<h1><a class="anchor" id="autotoc_md149"></a>
 1. Environment Verification</h1>
 <p><b>Before your first build</b>, run the verification script to ensure your environment is configured correctly.</p>
-<h2><a class="anchor" id="autotoc_md67"></a>
+<h2><a class="anchor" id="autotoc_md150"></a>
 Windows (PowerShell)</h2>
 <div class="fragment"><div class="line">.\scripts\verify-build-environment.ps1</div>
 <div class="line"> </div>
 <div class="line"># With automatic fixes</div>
 <div class="line">.\scripts\verify-build-environment.ps1 -FixIssues</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md68"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md151"></a>
 macOS &amp; Linux (Bash)</h2>
 <div class="fragment"><div class="line">./scripts/verify-build-environment.sh</div>
 <div class="line"> </div>
 <div class="line"># With automatic fixes</div>
 <div class="line">./scripts\verify-build-environment.sh --fix</div>
 </div><!-- fragment --><p>The script checks for required tools like CMake, a C++23 compiler, and platform-specific dependencies.</p>
-<h1><a class="anchor" id="autotoc_md69"></a>
+<h1><a class="anchor" id="autotoc_md152"></a>
 2. Quick Start: Building with Presets</h1>
 <p>We use CMake Presets for simple, one-command builds. See the <a class="el" href="../../d7/d51/md_docs_2B3-build-presets.html">CMake Presets Guide</a> for a full list.</p>
-<h2><a class="anchor" id="autotoc_md70"></a>
+<h2><a class="anchor" id="autotoc_md153"></a>
 macOS</h2>
 <div class="fragment"><div class="line"># Configure a debug build (Apple Silicon)</div>
 <div class="line">cmake --preset mac-dbg</div>
 <div class="line"> </div>
 <div class="line"># Build the project</div>
 <div class="line">cmake --build --preset mac-dbg</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md71"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md154"></a>
 Linux</h2>
 <div class="fragment"><div class="line"># Configure a debug build</div>
 <div class="line">cmake --preset lin-dbg</div>
 <div class="line"> </div>
 <div class="line"># Build the project</div>
 <div class="line">cmake --build --preset lin-dbg</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md72"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md155"></a>
 Windows</h2>
 <div class="fragment"><div class="line"># Configure a debug build for Visual Studio (x64)</div>
 <div class="line">cmake --preset win-dbg</div>
 <div class="line"> </div>
 <div class="line"># Build the project</div>
 <div class="line">cmake --build --preset win-dbg</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md73"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md156"></a>
 AI-Enabled Build (All Platforms)</h2>
 <p>To build with the <code>z3ed</code> AI agent features: </p><div class="fragment"><div class="line"># macOS</div>
 <div class="line">cmake --preset mac-ai</div>
@@ -151,7 +151,7 @@ AI-Enabled Build (All Platforms)</h2>
 <div class="line"># Windows</div>
 <div class="line">cmake --preset win-ai</div>
 <div class="line">cmake --build --preset win-ai</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md74"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md157"></a>
 3. Dependencies</h1>
 <ul>
 <li><b>Required</b>: CMake 3.16+, C++23 Compiler (GCC 13+, Clang 16+, MSVC 2019+), Git.</li>
@@ -162,31 +162,31 @@ AI-Enabled Build (All Platforms)</h2>
 </ul>
 </li>
 </ul>
-<h1><a class="anchor" id="autotoc_md75"></a>
+<h1><a class="anchor" id="autotoc_md158"></a>
 4. Platform Setup</h1>
-<h2><a class="anchor" id="autotoc_md76"></a>
+<h2><a class="anchor" id="autotoc_md159"></a>
 macOS</h2>
 <div class="fragment"><div class="line"># Install Xcode Command Line Tools</div>
 <div class="line">xcode-select --install</div>
 <div class="line"> </div>
 <div class="line"># Recommended: Install build tools via Homebrew</div>
 <div class="line">brew install cmake pkg-config</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md77"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md160"></a>
 Linux (Ubuntu/Debian)</h2>
 <div class="fragment"><div class="line">sudo apt-get update</div>
 <div class="line">sudo apt-get install -y build-essential cmake ninja-build pkg-config \</div>
 <div class="line">  libgtk-3-dev libdbus-1-dev</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md78"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md161"></a>
 Windows</h2>
 <ul>
 <li><b>Visual Studio 2022</b> is required, with the "Desktop development with C++" workload.</li>
 <li>The <code>verify-build-environment.ps1</code> script will help identify any missing components.</li>
 <li>For building with gRPC, see the "Windows Build Optimization" section below.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md79"></a>
+<h1><a class="anchor" id="autotoc_md162"></a>
 5. Testing</h1>
 <p>The project uses CTest and GoogleTest. Tests are organized into categories using labels. See the <a class="el" href="../../d6/d10/md_docs_2A1-testing-guide.html">Testing Guide</a> for details.</p>
-<h2><a class="anchor" id="autotoc_md80"></a>
+<h2><a class="anchor" id="autotoc_md163"></a>
 Running Tests with Presets</h2>
 <p>The easiest way to run tests is with <code>ctest</code> presets.</p>
 <div class="fragment"><div class="line"># Configure a development build (enables ROM-dependent tests)</div>
@@ -200,7 +200,7 @@ Running Tests with Presets</h2>
 <div class="line"> </div>
 <div class="line"># Run all tests, including ROM-dependent and experimental</div>
 <div class="line">ctest --preset all</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md81"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md164"></a>
 Running Tests Manually</h2>
 <p>You can also run tests by invoking the test executable directly or using CTest with labels.</p>
 <div class="fragment"><div class="line"># Run all tests via the executable</div>
@@ -214,9 +214,9 @@ Running Tests Manually</h2>
 <div class="line"> </div>
 <div class="line"># Exclude ROM-dependent tests</div>
 <div class="line">ctest --test-dir build --label-exclude &quot;ROM_DEPENDENT&quot;</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md82"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md165"></a>
 6. IDE Integration</h1>
-<h2><a class="anchor" id="autotoc_md83"></a>
+<h2><a class="anchor" id="autotoc_md166"></a>
 VS Code (Recommended)</h2>
 <ol type="1">
 <li>Install the <b>CMake Tools</b> extension.</li>
@@ -225,7 +225,7 @@ VS Code (Recommended)</h2>
 <li>Press F5 to build and debug.</li>
 <li>After changing presets, run <code>cp build/compile_commands.json .</code> to update IntelliSense.</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md84"></a>
+<h2><a class="anchor" id="autotoc_md167"></a>
 Visual Studio (Windows)</h2>
 <ol type="1">
 <li>Select <b>File → Open → Folder</b> and choose the <code>yaze</code> directory.</li>
@@ -233,99 +233,119 @@ Visual Studio (Windows)</h2>
 <li>Select the desired preset (e.g., <code>win-dbg</code> or <code>win-ai</code>) from the configuration dropdown.</li>
 <li>Press F5 to build and run.</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md85"></a>
+<h2><a class="anchor" id="autotoc_md168"></a>
 Xcode (macOS)</h2>
 <div class="fragment"><div class="line"># Generate an Xcode project from a preset</div>
 <div class="line">cmake --preset mac-dbg -G Xcode</div>
 <div class="line"> </div>
 <div class="line"># Open the project</div>
 <div class="line">open build/yaze.xcodeproj</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md86"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md169"></a>
 7. Windows Build Optimization</h1>
-<h2><a class="anchor" id="autotoc_md87"></a>
-gRPC v1.67.1 and MSVC Compatibility</h2>
-<p><b>Recent Update (October 2025):</b> The project has been upgraded to gRPC v1.67.1 which includes critical MSVC template fixes. This version resolves previous template instantiation errors that occurred with v1.62.0.</p>
-<p><b>MSVC-Specific Compiler Flags:</b> The build system now automatically applies these flags for Windows builds:</p><ul>
-<li><code>/bigobj</code> - Allows large object files (gRPC generates many symbols)</li>
-<li><code>/permissive-</code> - Enables standards conformance mode</li>
-<li><code>/wd4267 /wd4244</code> - Suppresses harmless conversion warnings</li>
-<li><code>/constexpr:depth2048</code> - Handles deep template instantiations (MSVC 2019+)</li>
+<h2><a class="anchor" id="autotoc_md170"></a>
+GitHub Actions / CI Builds</h2>
+<p><b>Current Configuration (Optimized):</b></p><ul>
+<li><b>Compilers</b>: Both clang-cl and MSVC supported (matrix)</li>
+<li><b>vcpkg</b>: Only fast packages (SDL2, yaml-cpp) - 2 minutes</li>
+<li><b>gRPC</b>: Built via FetchContent (v1.67.1) - cached after first build</li>
+<li><b>Caching</b>: Aggressive multi-tier caching (vcpkg + FetchContent + sccache)</li>
+<li><b>Expected time</b>:<ul>
+<li>First build: ~10-15 minutes</li>
+<li>Cached build: ~3-5 minutes</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md88"></a>
-The Problem: Slow gRPC Builds</h2>
-<p>Building with gRPC on Windows (<code>-DYAZE_WITH_GRPC=ON</code>) can take <b>15-20 minutes</b> the first time, as it compiles gRPC v1.67.1 and its dependencies from source.</p>
-<h2><a class="anchor" id="autotoc_md89"></a>
-Solution A: Use vcpkg for Pre-compiled Binaries (Recommended - FAST)</h2>
-<p>Using <code>vcpkg</code> to manage gRPC is the recommended approach for Windows developers who need GUI automation features.</p>
-<p><b>Step 1: Install vcpkg and Dependencies</b> </p><div class="fragment"><div class="line"># This only needs to be done once</div>
-<div class="line"># Use the setup script for convenience:</div>
-<div class="line">.\scripts\setup-vcpkg-windows.ps1</div>
-<div class="line"> </div>
-<div class="line"># Or manually:</div>
-<div class="line">vcpkg install grpc:x64-windows protobuf:x64-windows abseil:x64-windows</div>
-</div><!-- fragment --><p><b>Step 2: Configure CMake to Use vcpkg</b> Pass the <code>vcpkg.cmake</code> toolchain file to your configure command.</p>
-<div class="fragment"><div class="line"># Configure a build that uses vcpkg for gRPC</div>
-<div class="line">cmake -B build -G &quot;Visual Studio 17 2022&quot; -A x64 `</div>
-<div class="line">  -DCMAKE_TOOLCHAIN_FILE=&quot;vcpkg/scripts/buildsystems/vcpkg.cmake&quot;</div>
-<div class="line"> </div>
-<div class="line"># Build (will now be much faster: 5-10 minutes)</div>
-<div class="line">cmake --build build --config RelWithDebInfo --parallel</div>
-</div><!-- fragment --><p><b>Build Time:</b> ~5-10 minutes (uses pre-compiled gRPC)</p>
-<h2><a class="anchor" id="autotoc_md90"></a>
-Solution B: FetchContent Build (Slow but Automatic)</h2>
-<p>If you don't want to use vcpkg, CMake will automatically download and build gRPC from source.</p>
-<div class="fragment"><div class="line"># Configure (will download and build gRPC v1.67.1 from source)</div>
+</li>
+</ul>
+<p><b>Why Not vcpkg for gRPC?</b></p><ul>
+<li>vcpkg's latest gRPC (v1.71.0) has no pre-built binaries</li>
+<li>Building from source via vcpkg: 45-90 minutes</li>
+<li>FetchContent with caching: 10-15 minutes first time, &lt;1 min cached</li>
+<li>Better control over gRPC version (v1.75.1 with Windows fixes)</li>
+<li>BoringSSL ASM disabled on Windows for clang-cl compatibility</li>
+<li>zlib conflict: gRPC's FetchContent builds its own zlib, conflicts with vcpkg's</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md171"></a>
+Local Development</h2>
+<h3><a class="anchor" id="autotoc_md172"></a>
+Fast Build (Recommended)</h3>
+<p>Use FetchContent for all dependencies (matches CI): </p><div class="fragment"><div class="line"># Configure (first time: ~15 min, subsequent: ~2 min)</div>
 <div class="line">cmake -B build -G &quot;Visual Studio 17 2022&quot; -A x64</div>
 <div class="line"> </div>
-<div class="line"># Build (first time: ~45-60 minutes, subsequent: ~2-5 minutes)</div>
+<div class="line"># Build</div>
 <div class="line">cmake --build build --config RelWithDebInfo --parallel</div>
-</div><!-- fragment --><p><b>Build Time:</b> ~45-60 minutes first time, ~2-5 minutes subsequent builds (gRPC cached)</p>
-<h1><a class="anchor" id="autotoc_md91"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md173"></a>
+Using vcpkg (Optional)</h3>
+<p>If you prefer vcpkg for local development: </p><div class="fragment"><div class="line"># Install ONLY the fast packages</div>
+<div class="line">vcpkg install sdl2:x64-windows yaml-cpp:x64-windows</div>
+<div class="line"> </div>
+<div class="line"># Let CMake use FetchContent for gRPC</div>
+<div class="line">cmake -B build -DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake</div>
+</div><!-- fragment --><p>**DO NOT** install grpc or zlib via vcpkg:</p><ul>
+<li>gRPC v1.71.0 has no pre-built binaries (45-90 min build)</li>
+<li>zlib conflicts with gRPC's bundled zlib</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md174"></a>
+Compiler Support</h2>
+<p>**clang-cl (Recommended):**</p><ul>
+<li>Used in both CI and release workflows</li>
+<li>Better diagnostics than MSVC</li>
+<li>Fully compatible with MSVC libraries</li>
+</ul>
+<p>**MSVC:**</p><ul>
+<li>Also tested in CI matrix</li>
+<li>Fallback option if clang-cl issues occur</li>
+</ul>
+<p>**Compiler Flags (Applied Automatically):**</p><ul>
+<li>`/bigobj` - Large object files (required for gRPC)</li>
+<li>`/permissive-` - Standards conformance</li>
+<li>`/wd4267 /wd4244` - Suppress harmless conversion warnings</li>
+<li>`/constexpr:depth2048` - Template instantiation depth</li>
+</ul>
+<h1><a class="anchor" id="autotoc_md175"></a>
 8. Troubleshooting</h1>
 <p>Build issues, especially on Windows, often stem from environment misconfiguration. Before anything else, run the verification script.</p>
 <div class="fragment"><div class="line"># Run the verification script in PowerShell</div>
 <div class="line">.\scripts\verify-build-environment.ps1</div>
 </div><!-- fragment --><p>This script is your primary diagnostic tool and can detect most common problems.</p>
-<h2><a class="anchor" id="autotoc_md92"></a>
+<h2><a class="anchor" id="autotoc_md176"></a>
 Automatic Fixes</h2>
-<p>If the script finds issues, you can often fix them automatically by running it with the <code>-FixIssues</code> flag. This can:</p><ul>
+<p>If the script finds issues, you can often fix them automatically by running it with the `-FixIssues` flag. This can:</p><ul>
 <li>Synchronize Git submodules.</li>
-<li>Correct Git <code>core.autocrlf</code> and <code>core.longpaths</code> settings, which are critical for cross-platform compatibility on Windows.</li>
+<li>Correct Git `core.autocrlf` and `core.longpaths` settings, which are critical for cross-platform compatibility on Windows.</li>
 <li>Prompt to clean stale CMake caches.</li>
 </ul>
 <div class="fragment"><div class="line"># Attempt to fix detected issues automatically</div>
 <div class="line">.\scripts\verify-build-environment.ps1 -FixIssues</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md93"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md177"></a>
 Cleaning Stale Builds</h2>
-<p>After pulling major changes or switching branches, your build directory can become "stale," leading to strange compiler or linker errors. The verification script will warn you about old build files. You can clean them manually or use the <code>-CleanCache</code> flag.</p>
-<p><b>This will delete all <code>build*</code> and <code>out</code> directories.</b></p>
+<p>After pulling major changes or switching branches, your build directory can become "stale," leading to strange compiler or linker errors. The verification script will warn you about old build files. You can clean them manually or use the `-CleanCache` flag.</p>
+<p>**This will delete all `build*` and `out` directories.**</p>
 <div class="fragment"><div class="line"># Clean all build artifacts to start fresh</div>
 <div class="line">.\scripts\verify-build-environment.ps1 -CleanCache</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md94"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md178"></a>
 Common Issues</h2>
-<h3><a class="anchor" id="autotoc_md95"></a>
+<h3><a class="anchor" id="autotoc_md179"></a>
 "nlohmann/json.hpp: No such file or directory"</h3>
-<p><b>Cause</b>: You are building code that requires AI features without using an AI-enabled preset, or your Git submodules are not initialized. <b>Solution</b>:</p><ol type="1">
-<li>Use an AI preset like <code>win-ai</code> or <code>mac-ai</code>.</li>
-<li>Ensure submodules are present by running <code>git submodule update --init --recursive</code>.</li>
+<p>**Cause**: You are building code that requires AI features without using an AI-enabled preset, or your Git submodules are not initialized. **Solution**:</p><ol type="1">
+<li>Use an AI preset like `win-ai` or `mac-ai`.</li>
+<li>Ensure submodules are present by running `git submodule update --init --recursive`.</li>
 </ol>
-<h3><a class="anchor" id="autotoc_md96"></a>
+<h3><a class="anchor" id="autotoc_md180"></a>
 "Cannot open file 'yaze.exe': Permission denied"</h3>
-<p><b>Cause</b>: A previous instance of <code>yaze.exe</code> is still running in the background. <b>Solution</b>: Close it using Task Manager or run: </p><div class="fragment"><div class="line">taskkill /F /IM yaze.exe</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md97"></a>
+<p>**Cause**: A previous instance of `yaze.exe` is still running in the background. **Solution**: Close it using Task Manager or run: </p><div class="fragment"><div class="line">taskkill /F /IM yaze.exe</div>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md181"></a>
 "C++ standard 'cxx_std_23' not supported"</h3>
-<p><b>Cause</b>: Your compiler is too old. <b>Solution</b>: Update your tools. You need Visual Studio 2022 17.4+, GCC 13+, or Clang 16+. The verification script checks this.</p>
-<h3><a class="anchor" id="autotoc_md98"></a>
+<p>**Cause**: Your compiler is too old. **Solution**: Update your tools. You need Visual Studio 2022 17.4+, GCC 13+, or Clang 16+. The verification script checks this.</p>
+<h3><a class="anchor" id="autotoc_md182"></a>
 Visual Studio Can't Find Presets</h3>
-<p><b>Cause</b>: VS failed to parse <code>CMakePresets.json</code> or its cache is corrupt. <b>Solution</b>:</p><ol type="1">
-<li>Close and reopen the folder (<code>File -&gt; Close Folder</code>).</li>
-<li>Check the "CMake" pane in the Output window for specific JSON parsing errors.</li>
-<li>Delete the hidden <code>.vs</code> directory in the project root to force Visual Studio to re-index the project.</li>
+<p>**Cause**: VS failed to parse `CMakePresets.json` or its cache is corrupt. **Solution**:</p><ol type="1">
+<li>Close and reopen the folder (`File -&gt; Close Folder<code>).</code></li>
+<li><code> Check the "CMake" pane in the Output window for specific JSON parsing errors.</code></li>
+<li><code> Delete the hidden</code>.vs` directory in the project root to force Visual Studio to re-index the project.</li>
 </ol>
-<h3><a class="anchor" id="autotoc_md99"></a>
+<h3><a class="anchor" id="autotoc_md183"></a>
 Git Line Ending (CRLF) Issues</h3>
 <p><b>Cause</b>: Git may be automatically converting line endings, which can break shell scripts and other assets. <b>Solution</b>: The verification script checks for this. Use the <code>-FixIssues</code> flag or run <code>git config --global core.autocrlf false</code> to prevent this behavior.</p>
-<h3><a class="anchor" id="autotoc_md100"></a>
+<h3><a class="anchor" id="autotoc_md184"></a>
 File Path Length Limit on Windows</h3>
 <p><b>Cause</b>: By default, Windows has a 260-character path limit, which can be exceeded by nested dependencies. <b>Solution</b>: The verification script checks for this. Use the <code>-FixIssues</code> flag or run <code>git config --global core.longpaths true</code> to enable long path support. </p>
 </div></div><!-- contents -->

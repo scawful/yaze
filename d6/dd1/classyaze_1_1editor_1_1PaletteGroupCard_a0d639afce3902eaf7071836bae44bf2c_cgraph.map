@@ -1,0 +1,11 @@
+<map id="yaze::editor::PaletteGroupCard::SaveToRom" name="yaze::editor::PaletteGroupCard::SaveToRom">
+<area shape="rect" id="Node000001" title="Save all modified palettes to ROM." alt="" coords="5,27,173,68"/>
+<area shape="rect" id="Node000002" href="$d7/d39/classyaze_1_1gfx_1_1PaletteManager.html#ad76357b3c747d397e99dd16972cf1235" title="Get the singleton instance." alt="" coords="221,5,415,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="173,34,205,30,205,35,174,39"/>
+<area shape="rect" id="Node000003" href="$d7/d39/classyaze_1_1gfx_1_1PaletteManager.html#a2994bfea8bd176ddfd968fdf574cebe3" title="Save a specific palette group to ROM." alt="" coords="234,55,402,96"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="174,55,219,61,218,66,173,60"/>
+<area shape="rect" id="Node000004" href="$d7/d39/classyaze_1_1gfx_1_1PaletteManager.html#a665768d2ec24bed9e18cde8b4565a7eb" title="Helper: Clear modified flags for a group." alt="" coords="463,22,630,63"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="402,61,447,54,448,59,402,66"/>
+<area shape="rect" id="Node000005" href="$d7/d39/classyaze_1_1gfx_1_1PaletteManager.html#a2e456087d1fa6be7f676ff21a50be921" title="Helper: Get mutable palette group." alt="" coords="463,87,630,128"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="402,85,448,91,447,96,402,90"/>
+</map>

@@ -108,8 +108,6 @@ $(document).ready(function(){initNavTree('d0/db7/namespaceyaze_1_1cli_1_1handler
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="namespaces" name="namespaces"></a>
 Namespaces</h2></td></tr>
-<tr class="memitem:d4/d4c/namespaceyaze_1_1cli_1_1handlers_1_1anonymous__namespace_02command__handlers_8cc_03" id="r_d4/d4c/namespaceyaze_1_1cli_1_1handlers_1_1anonymous__namespace_02command__handlers_8cc_03"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/d4c/namespaceyaze_1_1cli_1_1handlers_1_1anonymous__namespace_02command__handlers_8cc_03.html">anonymous_namespace{command_handlers.cc}</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:d7/dfd/namespaceyaze_1_1cli_1_1handlers_1_1anonymous__namespace_02emulator__commands_8cc_03" id="r_d7/dfd/namespaceyaze_1_1cli_1_1handlers_1_1anonymous__namespace_02emulator__commands_8cc_03"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/dfd/namespaceyaze_1_1cli_1_1handlers_1_1anonymous__namespace_02emulator__commands_8cc_03.html">anonymous_namespace{emulator_commands.cc}</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:d6/d5b/namespaceyaze_1_1cli_1_1handlers_1_1anonymous__namespace_02todo__commands_8cc_03" id="r_d6/d5b/namespaceyaze_1_1cli_1_1handlers_1_1anonymous__namespace_02todo__commands_8cc_03"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d5b/namespaceyaze_1_1cli_1_1handlers_1_1anonymous__namespace_02todo__commands_8cc_03.html">anonymous_namespace{todo_commands.cc}</a></td></tr>
@@ -279,6 +277,7 @@ Classes</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:aa19a4f679cd7820d51bb4c6a8d2832af" id="r_aa19a4f679cd7820d51bb4c6a8d2832af"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/db7/namespaceyaze_1_1cli_1_1handlers.html#aa19a4f679cd7820d51bb4c6a8d2832af">HandleAgentCommand</a> (const std::vector&lt; std::string &gt; &amp;arg_vec)</td></tr>
+<tr class="memdesc:aa19a4f679cd7820d51bb4c6a8d2832af"><td class="mdescLeft">&#160;</td><td class="mdescRight">Unified agent command handler using <a class="el" href="../../d7/de8/classyaze_1_1cli_1_1CommandRegistry.html" title="Single source of truth for all z3ed commands.">CommandRegistry</a>.  <br /></td></tr>
 <tr class="separator:aa19a4f679cd7820d51bb4c6a8d2832af"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aff388999b191247a4d1405d230851467" id="r_aff388999b191247a4d1405d230851467"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/db7/namespaceyaze_1_1cli_1_1handlers.html#aff388999b191247a4d1405d230851467">HandleTodoCommand</a> (const std::vector&lt; std::string &gt; &amp;args)</td></tr>
 <tr class="memdesc:aff388999b191247a4d1405d230851467"><td class="mdescLeft">&#160;</td><td class="mdescRight">Handle z3ed agent todo commands.  <br /></td></tr>
@@ -292,9 +291,6 @@ Functions</h2></td></tr>
 <tr class="memitem:a50c4a22a1afe49ec337fce20c546d92a" id="r_a50c4a22a1afe49ec337fce20c546d92a"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::unique_ptr&lt; <a class="el" href="../../d0/d22/classyaze_1_1cli_1_1resources_1_1CommandHandler.html">resources::CommandHandler</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/db7/namespaceyaze_1_1cli_1_1handlers.html#a50c4a22a1afe49ec337fce20c546d92a">CreateAllCommandHandlers</a> ()</td></tr>
 <tr class="memdesc:a50c4a22a1afe49ec337fce20c546d92a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Factory function to create all command handlers (CLI + agent)  <br /></td></tr>
 <tr class="separator:a50c4a22a1afe49ec337fce20c546d92a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab6b2bed757e2ca7ea895a6922a0cd36f" id="r_ab6b2bed757e2ca7ea895a6922a0cd36f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d0/d22/classyaze_1_1cli_1_1resources_1_1CommandHandler.html">resources::CommandHandler</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/db7/namespaceyaze_1_1cli_1_1handlers.html#ab6b2bed757e2ca7ea895a6922a0cd36f">GetCommandHandler</a> (const std::string &amp;name)</td></tr>
-<tr class="memdesc:ab6b2bed757e2ca7ea895a6922a0cd36f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get a command handler by name.  <br /></td></tr>
-<tr class="separator:ab6b2bed757e2ca7ea895a6922a0cd36f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Function Documentation</h2>
 <a id="aa19a4f679cd7820d51bb4c6a8d2832af" name="aa19a4f679cd7820d51bb4c6a8d2832af"></a>
@@ -313,9 +309,18 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/d0e/agent_8cc_source.html#l00142">142</a> of file <a class="el" href="../../d2/d0e/agent_8cc_source.html">agent.cc</a>.</p>
+<p>Unified agent command handler using <a class="el" href="../../d7/de8/classyaze_1_1cli_1_1CommandRegistry.html" title="Single source of truth for all z3ed commands.">CommandRegistry</a>. </p>
+<p>Routes commands in this order:</p><ol type="1">
+<li>Special agent commands (plan, test, learn, todo) - Not in registry</li>
+<li>Registry commands (resource-*, dungeon-*, overworld-*, emulator-*, etc.)</li>
+<li>Fallback to error </li>
+</ol>
 
-<p class="reference">References <a class="el" href="../../d9/d8d/general__commands_8cc_source.html#l00633">yaze::cli::agent::HandleDescribeCommand()</a>, <a class="el" href="../../d2/d0e/agent_8cc_source.html#l00049">yaze::cli::agent::HandleDungeonDescribeRoomCommand()</a>, <a class="el" href="../../d2/d0e/agent_8cc_source.html#l00044">yaze::cli::agent::HandleDungeonListSpritesCommand()</a>, <a class="el" href="../../d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a1aa4bfa94e362a7dcfbe69e0fae9af1c">yaze::cli::agent::HandleGuiCommand()</a>, <a class="el" href="../../d9/d8d/general__commands_8cc_source.html#l00402">yaze::cli::agent::HandleLearnCommand()</a>, <a class="el" href="../../d9/d8d/general__commands_8cc_source.html#l00566">yaze::cli::agent::HandleListCommand()</a>, <a class="el" href="../../d2/d0e/agent_8cc_source.html#l00059">yaze::cli::agent::HandleOverworldDescribeMapCommand()</a>, <a class="el" href="../../d2/d0e/agent_8cc_source.html#l00054">yaze::cli::agent::HandleOverworldFindTileCommand()</a>, <a class="el" href="../../d2/d0e/agent_8cc_source.html#l00064">yaze::cli::agent::HandleOverworldListWarpsCommand()</a>, <a class="el" href="../../d9/d8d/general__commands_8cc_source.html#l00242">yaze::cli::agent::HandlePlanCommand()</a>, <a class="el" href="../../d2/d0e/agent_8cc_source.html#l00034">yaze::cli::agent::HandleResourceListCommand()</a>, <a class="el" href="../../d2/d0e/agent_8cc_source.html#l00039">yaze::cli::agent::HandleResourceSearchCommand()</a>, <a class="el" href="../../d7/d2d/test__commands_8cc_source.html#l00589">yaze::cli::agent::HandleTestCommand()</a>, and <a class="el" href="../../de/d20/conversation__test_8cc_source.html#l00350">yaze::cli::agent::HandleTestConversationCommand()</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/d0e/agent_8cc_source.html#l00109">109</a> of file <a class="el" href="../../d2/d0e/agent_8cc_source.html">agent.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d9/d8d/general__commands_8cc_source.html#l00686">yaze::cli::agent::HandleAcceptCommand()</a>, <a class="el" href="../../d9/d8d/general__commands_8cc_source.html#l00603">yaze::cli::agent::HandleCommitCommand()</a>, <a class="el" href="../../d9/d8d/general__commands_8cc_source.html#l00629">yaze::cli::agent::HandleDescribeCommand()</a>, <a class="el" href="../../d9/d8d/general__commands_8cc_source.html#l00281">yaze::cli::agent::HandleDiffCommand()</a>, <a class="el" href="../../d9/d8d/general__commands_8cc_source.html#l00398">yaze::cli::agent::HandleLearnCommand()</a>, <a class="el" href="../../d9/d8d/general__commands_8cc_source.html#l00562">yaze::cli::agent::HandleListCommand()</a>, <a class="el" href="../../d9/d8d/general__commands_8cc_source.html#l00238">yaze::cli::agent::HandlePlanCommand()</a>, <a class="el" href="../../d9/d8d/general__commands_8cc_source.html#l00616">yaze::cli::agent::HandleRevertCommand()</a>, <a class="el" href="../../d9/d8d/general__commands_8cc_source.html#l00180">yaze::cli::agent::HandleRunCommand()</a>, <a class="el" href="../../d7/d2d/test__commands_8cc_source.html#l00587">yaze::cli::agent::HandleTestCommand()</a>, <a class="el" href="../../de/d20/conversation__test_8cc_source.html#l00349">yaze::cli::agent::HandleTestConversationCommand()</a>, <a class="el" href="../../dc/d41/todo__commands_8cc_source.html#l00261">HandleTodoCommand()</a>, and <a class="el" href="../../d2/d9f/command__registry_8cc_source.html#l00011">yaze::cli::CommandRegistry::Instance()</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d0/d4f/cli_8cc_source.html#l00023">yaze::cli::ModernCLI::Run()</a>.</p>
 
 </div>
 </div>
@@ -340,6 +345,8 @@ Functions</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="../../dc/d41/todo__commands_8cc_source.html#l00261">261</a> of file <a class="el" href="../../dc/d41/todo__commands_8cc_source.html">todo_commands.cc</a>.</p>
 
+<p class="reference">Referenced by <a class="el" href="../../d2/d0e/agent_8cc_source.html#l00109">HandleAgentCommand()</a>.</p>
+
 </div>
 </div>
 <a id="a6364d0634bf85eccfd1c2d6378a8e0c4" name="a6364d0634bf85eccfd1c2d6378a8e0c4"></a>
@@ -360,9 +367,9 @@ Functions</h2></td></tr>
 <p>Factory function to create all CLI-level command handlers. </p>
 <dl class="section return"><dt>Returns</dt><dd>Vector of unique pointers to command handler instances </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../db/dae/command__handlers_8cc_source.html#l00029">29</a> of file <a class="el" href="../../db/dae/command__handlers_8cc_source.html">command_handlers.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../db/dae/command__handlers_8cc_source.html#l00023">23</a> of file <a class="el" href="../../db/dae/command__handlers_8cc_source.html">command_handlers.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../db/dae/command__handlers_8cc_source.html#l00118">CreateAllCommandHandlers()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../db/dae/command__handlers_8cc_source.html#l00112">CreateAllCommandHandlers()</a>.</p>
 
 </div>
 </div>
@@ -384,9 +391,9 @@ Functions</h2></td></tr>
 <p>Factory function to create all agent-specific command handlers. </p>
 <dl class="section return"><dt>Returns</dt><dd>Vector of unique pointers to command handler instances </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../db/dae/command__handlers_8cc_source.html#l00067">67</a> of file <a class="el" href="../../db/dae/command__handlers_8cc_source.html">command_handlers.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../db/dae/command__handlers_8cc_source.html#l00061">61</a> of file <a class="el" href="../../db/dae/command__handlers_8cc_source.html">command_handlers.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../db/dae/command__handlers_8cc_source.html#l00118">CreateAllCommandHandlers()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../db/dae/command__handlers_8cc_source.html#l00112">CreateAllCommandHandlers()</a>.</p>
 
 </div>
 </div>
@@ -408,11 +415,11 @@ Functions</h2></td></tr>
 <p>Factory function to create all command handlers (CLI + agent) </p>
 <dl class="section return"><dt>Returns</dt><dd>Vector of unique pointers to command handler instances </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../db/dae/command__handlers_8cc_source.html#l00118">118</a> of file <a class="el" href="../../db/dae/command__handlers_8cc_source.html">command_handlers.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../db/dae/command__handlers_8cc_source.html#l00112">112</a> of file <a class="el" href="../../db/dae/command__handlers_8cc_source.html">command_handlers.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../db/dae/command__handlers_8cc_source.html#l00067">CreateAgentCommandHandlers()</a>, and <a class="el" href="../../db/dae/command__handlers_8cc_source.html#l00029">CreateCliCommandHandlers()</a>.</p>
+<p class="reference">References <a class="el" href="../../db/dae/command__handlers_8cc_source.html#l00061">CreateAgentCommandHandlers()</a>, and <a class="el" href="../../db/dae/command__handlers_8cc_source.html#l00023">CreateCliCommandHandlers()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/d4f/cli_8cc_source.html#l00017">yaze::cli::ModernCLI::SetupCommands()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d2/d9f/command__registry_8cc_source.html#l00190">yaze::cli::CommandRegistry::RegisterAllCommands()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -425,35 +432,6 @@ Here is the call graph for this function:</div>
 <area shape="poly" title=" " alt="" coords="197,69,239,74,238,79,197,74"/>
 </map>
 </div>
-
-</div>
-</div>
-<a id="ab6b2bed757e2ca7ea895a6922a0cd36f" name="ab6b2bed757e2ca7ea895a6922a0cd36f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab6b2bed757e2ca7ea895a6922a0cd36f">&#9670;&#160;</a></span>GetCommandHandler()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="../../d0/d22/classyaze_1_1cli_1_1resources_1_1CommandHandler.html">resources::CommandHandler</a> * yaze::cli::handlers::GetCommandHandler </td>
-          <td>(</td>
-          <td class="paramtype">const std::string &amp;&#160;</td>
-          <td class="paramname"><em>name</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Get a command handler by name. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">name</td><td>Command name (e.g., "resource-list", "hex-read") </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>Pointer to command handler or nullptr if not found </dd></dl>
-
-<p class="definition">Definition at line <a class="el" href="../../db/dae/command__handlers_8cc_source.html#l00136">136</a> of file <a class="el" href="../../db/dae/command__handlers_8cc_source.html">command_handlers.cc</a>.</p>
 
 </div>
 </div>

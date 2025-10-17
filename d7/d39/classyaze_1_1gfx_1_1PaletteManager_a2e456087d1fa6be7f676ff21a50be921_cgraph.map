@@ -1,0 +1,7 @@
+<map id="yaze::gfx::PaletteManager::GetMutableGroup" name="yaze::gfx::PaletteManager::GetMutableGroup">
+<area shape="rect" id="Node000001" title="Helper: Get mutable palette group." alt="" coords="5,39,173,79"/>
+<area shape="rect" id="Node000002" href="$d7/d39/classyaze_1_1gfx_1_1PaletteManager.html#abb4b2a02a30c7d06ee74c0c4b93c86fb" title="Check if manager is initialized." alt="" coords="221,5,388,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="173,43,205,38,205,44,174,49"/>
+<area shape="rect" id="Node000003" href="$d6/d30/classyaze_1_1Rom.html#a35e5778c114edd659015f76c6d067cd8" title=" " alt="" coords="238,71,371,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="174,69,223,76,222,82,173,74"/>
+</map>

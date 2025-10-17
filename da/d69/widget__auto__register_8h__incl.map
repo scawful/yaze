@@ -1,13 +1,13 @@
-<map id="src/app/gui/widgets/widget_auto_register.h" name="src/app/gui/widgets/widget_auto_register.h">
-<area shape="rect" id="Node000001" title="Automatic widget registration helpers for ImGui Test Engine integration." alt="" coords="81,5,236,46"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="21,183,75,208"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="82,47,43,66,27,79,14,95,8,113,11,133,19,152,30,169,26,172,14,154,6,134,3,113,10,93,24,76,41,62,79,42"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="106,183,203,208"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="173,45,184,67,193,93,197,114,193,135,176,171,171,169,188,134,191,114,188,95,179,70,168,47"/>
-<area shape="rect" id="Node000004" href="$d3/dd9/widget__id__registry_8h.html" title=" " alt="" coords="24,94,178,135"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="148,48,125,83,120,80,143,45"/>
-<area shape="rect" id="Node000011" title=" " alt="" coords="253,102,395,127"/>
-<area shape="poly" id="edge6_Node000001_Node000011" title=" " alt="" coords="197,44,288,92,286,96,195,49"/>
-<area shape="poly" id="edge4_Node000004_Node000002" title=" " alt="" coords="90,137,67,171,62,168,86,134"/>
-<area shape="poly" id="edge5_Node000004_Node000003" title=" " alt="" coords="117,134,140,168,136,171,112,137"/>
+<map id="src/app/gui/automation/widget_auto_register.h" name="src/app/gui/automation/widget_auto_register.h">
+<area shape="rect" id="Node000001" title="Automatic widget registration helpers for ImGui Test Engine integration." alt="" coords="69,5,224,46"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="15,183,68,208"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="74,49,40,68,14,95,9,113,10,132,26,169,21,171,5,133,3,112,10,93,37,64,72,44"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="95,183,193,208"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="160,45,177,93,180,114,177,135,163,170,158,168,172,134,175,114,172,95,155,47"/>
+<area shape="rect" id="Node000004" href="$d3/dd9/widget__id__registry_8h.html" title=" " alt="" coords="24,94,163,135"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="137,48,116,82,111,79,132,45"/>
+<area shape="rect" id="Node000011" title=" " alt="" coords="237,102,379,127"/>
+<area shape="poly" id="edge6_Node000001_Node000011" title=" " alt="" coords="185,44,274,92,271,96,182,49"/>
+<area shape="poly" id="edge4_Node000004_Node000002" title=" " alt="" coords="83,137,60,171,56,168,78,134"/>
+<area shape="poly" id="edge5_Node000004_Node000003" title=" " alt="" coords="108,134,130,168,126,171,104,137"/>
 </map>

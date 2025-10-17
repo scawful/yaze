@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.9.8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>yaze: z3ed: AI-Powered CLI for YAZE</title>
+<title>yaze: z3ed Command-Line Interface</title>
 <link href="../../tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript">var page_layout=1;</script>
 <script type="text/javascript" src="../../jquery.js"></script>
@@ -98,25 +98,24 @@ $(document).ready(function(){initNavTree('d2/d4a/md_docs_2C1-z3ed-agent-guide.ht
 </div>
 
 <div><div class="header">
-  <div class="headertitle"><div class="title">z3ed: AI-Powered CLI for YAZE</div></div>
+  <div class="headertitle"><div class="title">z3ed Command-Line Interface</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md231"></a> <b>Version</b>: 0.1.0-alpha <b>Last Updated</b>: October 5, 2025</p>
-<h1><a class="anchor" id="autotoc_md232"></a>
+<div class="textblock"><p><a class="anchor" id="autotoc_md326"></a> <b>Version</b>: 0.1.0-alpha <b>Last Updated</b>: October 5, 2025</p>
+<h1><a class="anchor" id="autotoc_md327"></a>
 1. Overview</h1>
-<p>This document is the <b>source of truth</b> for the z3ed CLI architecture, design, and roadmap. It outlines the evolution of <code>z3ed</code> into a powerful, scriptable, and extensible tool for both manual and AI-driven ROM hacking.</p>
-<p><code>z3ed</code> has successfully implemented its core infrastructure and is <b>production-ready on macOS</b>.</p>
-<h2><a class="anchor" id="autotoc_md233"></a>
+<p><code>z3ed</code> is a command-line companion to YAZE. It surfaces editor functionality, test harness tooling, and automation endpoints for scripting and AI-driven workflows.</p>
+<h2><a class="anchor" id="autotoc_md328"></a>
 Core Capabilities</h2>
 <ol type="1">
-<li><b>Conversational Agent</b>: Chat with an AI (Ollama or Gemini) to explore ROM contents and plan changes using natural language—available from the CLI, terminal UI, and now directly within the YAZE editor.</li>
-<li><b>GUI Test Automation</b>: A gRPC-based test harness allows for widget discovery, test recording/replay, and introspection for debugging and AI-driven validation.</li>
-<li><b>Proposal System</b>: A safe, sandboxed editing workflow where all changes are tracked as "proposals" that require human review and acceptance.</li>
-<li><b>Resource-Oriented CLI</b>: A clean <code>z3ed &lt;resource&gt; &lt;action&gt;</code> command structure that is both human-readable and machine-parsable.</li>
+<li>Conversational agent interfaces (Ollama or Gemini) for planning and review.</li>
+<li>gRPC test harness for widget discovery, replay, and automated verification.</li>
+<li>Proposal workflow that records changes for manual review and acceptance.</li>
+<li>Resource-oriented commands (<code>z3ed &lt;resource&gt; &lt;action&gt;</code>) suitable for scripting.</li>
 </ol>
-<h1><a class="anchor" id="autotoc_md234"></a>
+<h1><a class="anchor" id="autotoc_md329"></a>
 2. Quick Start</h1>
-<h2><a class="anchor" id="autotoc_md235"></a>
+<h2><a class="anchor" id="autotoc_md330"></a>
 Build</h2>
 <p>A single <code>Z3ED_AI=ON</code> CMake flag enables all AI features, including JSON, YAML, and httplib dependencies. This simplifies the build process.</p>
 <div class="fragment"><div class="line"># Build with AI features (RECOMMENDED)</div>
@@ -126,14 +125,14 @@ Build</h2>
 <div class="line"># For GUI automation features, also include gRPC</div>
 <div class="line">cmake -B build -DZ3ED_AI=ON -DYAZE_WITH_GRPC=ON</div>
 <div class="line">cmake --build build --target z3ed</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md236"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md331"></a>
 AI Setup</h2>
 <p><b>Ollama (Recommended for Development)</b>: </p><div class="fragment"><div class="line">brew install ollama              # macOS</div>
 <div class="line">ollama pull qwen2.5-coder:7b    # Pull recommended model</div>
 <div class="line">ollama serve                     # Start server</div>
 </div><!-- fragment --><p><b>Gemini (Cloud API)</b>: </p><div class="fragment"><div class="line"># Get API key from https://aistudio.google.com/apikey</div>
 <div class="line">export GEMINI_API_KEY=&quot;your-key-here&quot;</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md237"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md332"></a>
 Example Commands</h2>
 <p><b>Conversational Agent</b>: </p><div class="fragment"><div class="line"># Interactive chat (FTXUI)</div>
 <div class="line">z3ed agent chat --rom zelda3.sfc</div>
@@ -154,20 +153,18 @@ Example Commands</h2>
 <div class="line"> </div>
 <div class="line"># Accept</div>
 <div class="line">z3ed agent accept --proposal-id &lt;id&gt;</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md238"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md333"></a>
 Hybrid CLI ↔ GUI Workflow</h2>
 <ol type="1">
-<li><b>Build once for both surfaces</b>: <code>cmake -B build -DZ3ED_AI=ON -DYAZE_WITH_GRPC=ON</code> followed by <code>cmake --build build --target z3ed</code> ensures the CLI, editor chat widget, and <a class="el" href="../../df/de4/namespaceImGui.html">ImGui</a> test harness share the same AI and gRPC feature set.</li>
-<li><b>Plan in the CLI</b>: Use <code>z3ed agent plan --prompt "Describe the overworld tile 10,10" --rom zelda3.sfc --sandbox</code> to preview the command sequence the agent intends to execute against an isolated ROM copy.</li>
-<li><b>Execute and validate</b>: Run <code>z3ed agent run ... --sandbox</code> to apply the plan, then launch YAZE with the same ROM and open <b>Debug → Agent Chat</b> to review proposal details, streamed logs, and harness status without leaving the editor.</li>
-<li><b>Hand off to GUI automation</b>: From the Agent Chat widget, trigger the same plan or replay the last CLI run by selecting <b>Replay Last Plan</b> (uses the shared proposal registry) to watch the <a class="el" href="../../df/de4/namespaceImGui.html">ImGui</a> harness drive the UI.</li>
-<li><b>Tighten the loop</b>: While the harness executes, use <code>z3ed agent diff --proposal-id &lt;id&gt;</code> in the terminal and the Proposal Drawer inside YAZE to compare results side-by-side. Accept or reject directly in either surface—state stays in sync.</li>
-<li><b>Iterate rapidly</b>: When adjustments are needed, refine the prompt or modify the generated test script, rerun from the CLI, and immediately observe outcomes in the editor via the gRPC-backed harness telemetry panel.</li>
+<li>Build with <code>-DZ3ED_AI=ON -DYAZE_WITH_GRPC=ON</code> so the CLI, editor widget, and test harness share the same feature set.</li>
+<li>Use <code>z3ed agent plan --prompt "Describe overworld tile 10,10"</code> against a sandboxed ROM to preview actions.</li>
+<li>Apply the plan with <code>z3ed agent run ... --sandbox</code>, then open <b>Debug → Agent Chat</b> in YAZE to inspect proposals and logs.</li>
+<li>Re-run or replay from either surface; proposals stay synchronized through the shared registry.</li>
 </ol>
-<h1><a class="anchor" id="autotoc_md239"></a>
+<h1><a class="anchor" id="autotoc_md334"></a>
 3. Architecture</h1>
 <p>The z3ed system is composed of several layers, from the high-level AI agent down to the YAZE GUI and test harness.</p>
-<h2><a class="anchor" id="autotoc_md240"></a>
+<h2><a class="anchor" id="autotoc_md335"></a>
 System Components Diagram</h2>
 <div class="fragment"><div class="line">┌─────────────────────────────────────────────────────────┐</div>
 <div class="line">│ AI Agent Layer (LLM: Ollama, Gemini)                    │</div>
@@ -198,7 +195,7 @@ System Components Diagram</h2>
 <div class="line">│ YAZE GUI (ImGui Application)                            │</div>
 <div class="line">│  └─ ProposalDrawer &amp; Editor Windows                     │</div>
 <div class="line">└─────────────────────────────────────────────────────────┘</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md241"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md336"></a>
 Command Abstraction Layer (v0.2.1)</h2>
 <p>The CLI command architecture has been refactored to eliminate code duplication and provide consistent patterns:</p>
 <div class="fragment"><div class="line">┌─────────────────────────────────────────────────────────┐</div>
@@ -219,15 +216,13 @@ Command Abstraction Layer (v0.2.1)</h2>
 <div class="line">│  ├─ OverworldInspector                                  │</div>
 <div class="line">│  └─ DungeonAnalyzer                                     │</div>
 <div class="line">└─────────────────────────────────────────────────────────┘</div>
-</div><!-- fragment --><p><b>Key Benefits</b>:</p><ul>
-<li>**~1300 lines** of duplicated code eliminated</li>
-<li><b>50-60%</b> reduction in command implementation size</li>
-<li><b>Consistent patterns</b> across all CLI commands</li>
-<li><b>Better testing</b> with independently testable components</li>
-<li><b>AI-friendly</b> predictable structure for tool generation</li>
+</div><!-- fragment --><p>Key benefits:</p><ul>
+<li>Removes roughly 1300 lines of duplicated command code.</li>
+<li>Cuts individual command implementations by about half.</li>
+<li>Establishes consistent patterns across the CLI for easier testing and automation.</li>
 </ul>
-<p>See <a class="el" href="../../d4/dd7/md_docs_2z3ed-command-abstraction-guide.html">Command Abstraction Guide</a> for migration details.</p>
-<h1><a class="anchor" id="autotoc_md242"></a>
+<p>See <a class="el" href="../../d7/d9e/md_docs_2C5-z3ed-command-abstraction.html">Command Abstraction Guide</a> for migration details.</p>
+<h1><a class="anchor" id="autotoc_md337"></a>
 4. Agentic &amp; Generative Workflow (MCP)</h1>
 <p>The <code>z3ed</code> CLI is the foundation for an AI-driven Model-Code-Program (MCP) loop, where the AI agent's "program" is a script of <code>z3ed</code> commands.</p>
 <ol type="1">
@@ -236,9 +231,9 @@ Command Abstraction Layer (v0.2.1)</h2>
 <li><b>Program (Execution)</b>: The <code>z3ed agent</code> parses the plan and executes each command sequentially in a sandboxed ROM environment.</li>
 <li><b>Verification (Tester)</b>: The <code>ImGuiTestHarness</code> is used to run automated GUI tests to verify that the changes were applied correctly.</li>
 </ol>
-<h1><a class="anchor" id="autotoc_md243"></a>
+<h1><a class="anchor" id="autotoc_md338"></a>
 5. Command Reference</h1>
-<h2><a class="anchor" id="autotoc_md244"></a>
+<h2><a class="anchor" id="autotoc_md339"></a>
 Agent Commands</h2>
 <ul>
 <li><code>agent run --prompt "..."</code>: Executes an AI-driven ROM modification in a sandbox.</li>
@@ -250,16 +245,16 @@ Agent Commands</h2>
 <li><code>agent simple-chat</code>: A lightweight, non-TUI chat mode for scripting and automation.</li>
 <li><code>agent test ...</code>: Commands for running and managing automated GUI tests.</li>
 <li><code>agent learn ...</code>: <b>NEW</b>: Manage learned knowledge (preferences, ROM patterns, project context, conversation memory).</li>
-<li><code>agent todo create "Description" [--category=&lt;category&gt;] [--priority=&lt;n&gt;]</code>: Create a new TODO item.</li>
-<li><code>agent todo list [--status=&lt;status&gt;] [--category=&lt;category&gt;]</code>: List TODOs, with optional filters.</li>
-<li><code>agent todo update &lt;id&gt; --status=&lt;status&gt;</code>: Update the status of a TODO item.</li>
-<li><code>agent todo show &lt;id&gt;</code>: Display full details of a TODO item.</li>
-<li><code>agent todo delete &lt;id&gt;</code>: Delete a TODO item.</li>
-<li><code>agent todo clear-completed</code>: Remove all completed TODOs.</li>
-<li><code>agent todo next</code>: Get the next actionable TODO based on dependencies and priority.</li>
-<li><code>agent todo plan</code>: Generate a topologically-sorted execution plan for all TODOs.</li>
+<li><code>agent todo create "Description" [--category=&lt;category&gt;] [--priority=&lt;n&gt;]</code></li>
+<li><code>agent todo list [--status=&lt;status&gt;] [--category=&lt;category&gt;]</code></li>
+<li><code>agent todo update &lt;id&gt; --status=&lt;status&gt;</code></li>
+<li><code>agent todo show &lt;id&gt;</code></li>
+<li><code>agent todo delete &lt;id&gt;</code></li>
+<li><code>agent todo clear-completed</code></li>
+<li><code>agent todo next</code></li>
+<li><code>agent todo plan</code></li>
 </ul>
-<h2><a class="anchor" id="autotoc_md245"></a>
+<h2><a class="anchor" id="autotoc_md340"></a>
 Resource Commands</h2>
 <ul>
 <li><code>rom info|validate|diff</code>: Commands for ROM file inspection and comparison.</li>
@@ -267,18 +262,18 @@ Resource Commands</h2>
 <li><code>overworld get-tile|find-tile|set-tile</code>: Commands for overworld editing.</li>
 <li><code>dungeon list-sprites|list-rooms</code>: Commands for dungeon inspection.</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md246"></a>
+<h3><a class="anchor" id="autotoc_md341"></a>
 &lt;tt&gt;agent test&lt;/tt&gt;: Live Harness Automation</h3>
 <ul>
-<li><b>Discover widgets</b>: <code>z3ed agent test discover --rom zelda3.sfc --grpc localhost:50051</code> enumerates <a class="el" href="../../df/de4/namespaceImGui.html">ImGui</a> widget IDs through the gRPC-backed harness for later scripting.</li>
+<li>Discover widgets: <code>z3ed agent test discover --rom zelda3.sfc --grpc localhost:50051</code> enumerates <a class="el" href="../../df/de4/namespaceImGui.html">ImGui</a> widget IDs through the gRPC-backed harness for later scripting.</li>
 <li><b>Record interactions</b>: <code>z3ed agent test record --suite harness/tests/overworld_entry.jsonl</code> launches YAZE, mirrors your clicks/keystrokes, and persists an editable JSONL trace.</li>
 <li><b>Replay &amp; assert</b>: <code>z3ed agent test replay harness/tests/overworld_entry.jsonl --watch</code> drives the GUI in real time and streams pass/fail telemetry back to both the CLI and Agent Chat widget telemetry panel.</li>
 <li><b>Integrate with proposals</b>: <code>z3ed agent test verify --proposal-id &lt;id&gt;</code> links a recorded scenario with a proposal to guarantee UI state after sandboxed edits.</li>
 <li><b>Debug in the editor</b>: While a replay is running, open <b>Debug → Agent Chat → Harness Monitor</b> to step through events, capture screenshots, or restart the scenario without leaving <a class="el" href="../../df/de4/namespaceImGui.html">ImGui</a>.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md247"></a>
+<h1><a class="anchor" id="autotoc_md342"></a>
 6. Chat Modes</h1>
-<h2><a class="anchor" id="autotoc_md248"></a>
+<h2><a class="anchor" id="autotoc_md343"></a>
 FTXUI Chat (&lt;tt&gt;agent chat&lt;/tt&gt;)</h2>
 <p>Full-screen interactive terminal with table rendering, syntax highlighting, and scrollable history. Best for manual exploration.</p>
 <p><b>Features:</b></p><ul>
@@ -289,10 +284,10 @@ FTXUI Chat (&lt;tt&gt;agent chat&lt;/tt&gt;)</h2>
 <li><b>Syntax highlighting</b>: Color-coded responses and tables</li>
 <li><b>Metrics display</b>: Real-time performance stats and turn counters</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md249"></a>
+<h2><a class="anchor" id="autotoc_md344"></a>
 Simple Chat (&lt;tt&gt;agent simple-chat&lt;/tt&gt;)</h2>
 <p>Lightweight, scriptable text-based REPL that supports single messages, interactive sessions, piped input, and batch files.</p>
-<p><b>✨ New Feature: Vim Mode</b> Enable vim-style line editing with <code>--vim</code> flag for enhanced terminal UX:</p><ul>
+<p><b>Vim Mode</b> Enable vim-style line editing with <code>--vim</code>:</p><ul>
 <li><b>Normal mode</b> (<code>ESC</code>): Navigate with <code>hjkl</code>, <code>w</code>/<code>b</code> word movement, <code>0</code>/<code>$</code> line start/end</li>
 <li><b>Insert mode</b> (<code>i</code>, <code>a</code>, <code>o</code>): Regular text input with vim keybindings</li>
 <li><b>Editing</b>: <code>x</code> delete char, <code>dd</code> delete line, <code>yy</code> yank line, <code>p</code>/<code>P</code> paste</li>
@@ -309,15 +304,15 @@ Simple Chat (&lt;tt&gt;agent simple-chat&lt;/tt&gt;)</h2>
 <div class="line"># 3. Use hjkl to navigate, w/b for word movement</div>
 <div class="line"># 4. Press i to return to INSERT mode</div>
 <div class="line"># 5. Press Enter to send message</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md250"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md345"></a>
 GUI Chat Widget (Editor Integration)</h2>
 <p>Accessible from <b>Debug → Agent Chat</b> inside YAZE. Provides the same conversation loop as the CLI, including streaming history, JSON/table inspection, and ROM-aware tool dispatch.</p>
-<p><b>✨ New Features:</b></p><ul>
-<li><b>Persistent Chat History</b>: Chat conversations are automatically saved and restored</li>
-<li><b>Collaborative Sessions</b>: Multiple users can join the same session and share a chat history</li>
-<li><b>Multimodal Vision</b>: Capture screenshots of your ROM editor and ask Gemini to analyze them</li>
+<p>Recent additions:</p><ul>
+<li>Persistent chat history across sessions</li>
+<li>Collaborative sessions with shared history</li>
+<li>Screenshot capture for Gemini analysis</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md251"></a>
+<h1><a class="anchor" id="autotoc_md346"></a>
 7. AI Provider Configuration</h1>
 <p>Z3ED supports multiple AI providers. Configuration is resolved with command-line flags taking precedence over environment variables.</p>
 <ul>
@@ -326,7 +321,7 @@ GUI Chat Widget (Editor Integration)</h2>
 <li><code>--gemini_api_key=&lt;key&gt;</code>: Your Gemini API key.</li>
 <li><code>--ollama_host=&lt;url&gt;</code>: The URL for your Ollama server (default: <code><a href="http://localhost:11434">http://localhost:11434</a></code>).</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md252"></a>
+<h2><a class="anchor" id="autotoc_md347"></a>
 System Prompt Versions</h2>
 <p>Z3ED includes multiple system prompt versions for different use cases:</p>
 <ul>
@@ -335,10 +330,10 @@ System Prompt Versions</h2>
 <li><b>v3 (latest)</b>: Proactive prompt with intelligent tool chaining and implicit iteration - <b>RECOMMENDED</b></li>
 </ul>
 <p>To use v3 prompt: Set environment variable <code>Z3ED_PROMPT_VERSION=v3</code> or it will be auto-selected for Gemini 2.0+ models.</p>
-<h1><a class="anchor" id="autotoc_md253"></a>
+<h1><a class="anchor" id="autotoc_md348"></a>
 8. Learn Command - Knowledge Management</h1>
 <p>The learn command enables the AI agent to remember preferences, patterns, and context across sessions.</p>
-<h2><a class="anchor" id="autotoc_md254"></a>
+<h2><a class="anchor" id="autotoc_md349"></a>
 Basic Usage</h2>
 <div class="fragment"><div class="line"># Store a preference</div>
 <div class="line">z3ed agent learn --preference &quot;default_palette=2&quot;</div>
@@ -357,7 +352,7 @@ Basic Usage</h2>
 <div class="line"> </div>
 <div class="line"># Import learned data</div>
 <div class="line">z3ed agent learn --import my_learned_data.json</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md255"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md350"></a>
 Project Context</h2>
 <p>Store project-specific information that the agent can reference:</p>
 <div class="fragment"><div class="line"># Save project context</div>
@@ -368,7 +363,7 @@ Project Context</h2>
 <div class="line"> </div>
 <div class="line"># Get project details</div>
 <div class="line">z3ed agent learn --get-project &quot;myrom&quot;</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md256"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md351"></a>
 Conversation Memory</h2>
 <p>The agent automatically stores summaries of conversations for future reference:</p>
 <div class="fragment"><div class="line"># View recent memories</div>
@@ -376,7 +371,7 @@ Conversation Memory</h2>
 <div class="line"> </div>
 <div class="line"># Search memories by topic</div>
 <div class="line">z3ed agent learn --search-memories &quot;room 5&quot;</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md257"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md352"></a>
 Storage Location</h2>
 <p>All learned data is stored in <code>~/.yaze/agent/</code>:</p><ul>
 <li><code>preferences.json</code>: User preferences</li>
@@ -384,61 +379,61 @@ Storage Location</h2>
 <li><code>projects.json</code>: Project contexts</li>
 <li><code>memories.json</code>: Conversation summaries</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md258"></a>
+<h1><a class="anchor" id="autotoc_md353"></a>
 9. TODO Management System</h1>
 <p>The TODO Management System enables the z3ed AI agent to create, track, and execute complex multi-step tasks with dependency management and prioritization.</p>
-<h2><a class="anchor" id="autotoc_md259"></a>
+<h2><a class="anchor" id="autotoc_md354"></a>
 Core Capabilities</h2>
 <ul>
-<li>✅ Create and manage TODO items with priorities</li>
-<li>✅ Track task status (pending, in_progress, completed, blocked, cancelled)</li>
-<li>✅ Dependency tracking between tasks</li>
-<li>✅ Automatic execution plan generation</li>
-<li>✅ Persistent storage in JSON format</li>
-<li>✅ Category-based organization</li>
-<li>✅ Tools/functions tracking per task</li>
+<li>Create TODO items with priorities.</li>
+<li>Track task status (pending, in_progress, completed, blocked, cancelled).</li>
+<li>Manage dependencies between tasks.</li>
+<li>Generate execution plans.</li>
+<li>Persist data in JSON.</li>
+<li>Organize by category.</li>
+<li>Record tool/function usage per task.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md260"></a>
+<h2><a class="anchor" id="autotoc_md355"></a>
 Storage Location</h2>
 <p>TODOs are persisted to: <code>~/.yaze/agent/todos.json</code> (macOS/Linux) or <code>APPDATA%/yaze/agent/todos.json</code> (Windows)</p>
-<h1><a class="anchor" id="autotoc_md261"></a>
+<h1><a class="anchor" id="autotoc_md356"></a>
 10. CLI Output &amp; Help System</h1>
 <p>The <code>z3ed</code> CLI features a modernized output system designed to be clean for users and informative for developers.</p>
-<h2><a class="anchor" id="autotoc_md262"></a>
+<h2><a class="anchor" id="autotoc_md357"></a>
 Verbose Logging</h2>
 <p>By default, <code>z3ed</code> provides clean, user-facing output. For detailed debugging, including API calls and internal state, use the <code>--verbose</code> flag.</p>
-<p><b>Default (Clean):</b> </p><div class="fragment"><div class="line">🤖 AI Provider: gemini</div>
-<div class="line">   Model: gemini-2.5-flash</div>
-<div class="line">⠋ Thinking...</div>
-<div class="line">🔧 Calling tool: resource-list (type=room)</div>
-<div class="line">✓ Tool executed successfully</div>
+<p><b>Default (Clean):</b> </p><div class="fragment"><div class="line">AI Provider: gemini</div>
+<div class="line">Model: gemini-2.5-flash</div>
+<div class="line">Waiting for response...</div>
+<div class="line">Calling tool: resource-list (type=room)</div>
+<div class="line">Tool executed successfully</div>
 </div><!-- fragment --><p><b>Verbose Mode:</b> </p><div class="fragment"><div class="line"># z3ed agent simple-chat &quot;What is room 5?&quot; --verbose</div>
-<div class="line">🤖 AI Provider: gemini</div>
-<div class="line">   Model: gemini-2.5-flash</div>
+<div class="line">AI Provider: gemini</div>
+<div class="line">Model: gemini-2.5-flash</div>
 <div class="line">[DEBUG] Initializing Gemini service...</div>
 <div class="line">[DEBUG] Function calling: disabled</div>
 <div class="line">[DEBUG] Using curl for HTTPS request...</div>
-<div class="line">⠋ Thinking...</div>
+<div class="line">Waiting for response...</div>
 <div class="line">[DEBUG] Parsing response...</div>
-<div class="line">🔧 Calling tool: resource-list (type=room)</div>
-<div class="line">✓ Tool executed successfully</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md263"></a>
+<div class="line">Calling tool: resource-list (type=room)</div>
+<div class="line">Tool executed successfully</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md358"></a>
 Hierarchical Help System</h2>
 <p>The help system is organized by category for easy navigation.</p>
 <ul>
 <li><b>Main Help</b>: <code>z3ed --help</code> or <code>z3ed -h</code> shows a high-level overview of command categories.</li>
 <li><b>Category Help</b>: <code>z3ed help &lt;category&gt;</code> provides detailed information for a specific group of commands (e.g., <code>agent</code>, <code>patch</code>, <code>rom</code>).</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md264"></a>
+<h1><a class="anchor" id="autotoc_md359"></a>
 10. Collaborative Sessions &amp; Multimodal Vision</h1>
-<h2><a class="anchor" id="autotoc_md265"></a>
+<h2><a class="anchor" id="autotoc_md360"></a>
 Overview</h2>
 <p>YAZE supports real-time collaboration for ROM hacking through dual modes: <b>Local</b> (filesystem-based) for same-machine collaboration, and <b>Network</b> (WebSocket-based via yaze-server v2.0) for internet-based collaboration with advanced features including ROM synchronization, snapshot sharing, and AI agent integration.</p>
 <hr  />
-<h2><a class="anchor" id="autotoc_md267"></a>
+<h2><a class="anchor" id="autotoc_md362"></a>
 Local Collaboration Mode</h2>
 <p>Perfect for multiple YAZE instances on the same machine or cloud-synced folders (Dropbox, iCloud).</p>
-<h3><a class="anchor" id="autotoc_md268"></a>
+<h3><a class="anchor" id="autotoc_md363"></a>
 How to Use</h3>
 <ol type="1">
 <li>Open YAZE → <b>Debug → Agent Chat</b></li>
@@ -456,7 +451,7 @@ How to Use</h3>
 </ul>
 </li>
 </ol>
-<h3><a class="anchor" id="autotoc_md269"></a>
+<h3><a class="anchor" id="autotoc_md364"></a>
 Features</h3>
 <ul>
 <li><b>Shared History</b>: <code>~/.yaze/agent/sessions/&lt;code&gt;_history.json</code></li>
@@ -465,7 +460,7 @@ Features</h3>
 <li><b>Toast Notifications</b>: Get notified when collaborators send messages</li>
 <li><b>Zero Setup</b>: No server required</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md270"></a>
+<h3><a class="anchor" id="autotoc_md365"></a>
 Cloud Folder Workaround</h3>
 <p>Enable internet collaboration without a server:</p>
 <div class="fragment"><div class="line"># Link your sessions directory to Dropbox/iCloud</div>
@@ -474,17 +469,17 @@ Cloud Folder Workaround</h3>
 <div class="line"># Have your collaborator do the same</div>
 <div class="line"># Now you can collaborate through cloud sync!</div>
 </div><!-- fragment --><hr  />
-<h2><a class="anchor" id="autotoc_md272"></a>
+<h2><a class="anchor" id="autotoc_md367"></a>
 Network Collaboration Mode (yaze-server v2.0)</h2>
 <p>Real-time collaboration over the internet with advanced features powered by the yaze-server v2.0.</p>
-<h3><a class="anchor" id="autotoc_md273"></a>
+<h3><a class="anchor" id="autotoc_md368"></a>
 Requirements</h3>
 <ul>
 <li><b>Server</b>: Node.js 18+ with yaze-server running</li>
 <li><b>Client</b>: YAZE built with <code>-DYAZE_WITH_GRPC=ON</code> and <code>-DZ3ED_AI=ON</code></li>
 <li><b>Network</b>: Connectivity between collaborators</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md274"></a>
+<h3><a class="anchor" id="autotoc_md369"></a>
 Server Setup</h3>
 <p><b>Option 1: Using z3ed CLI</b> </p><div class="fragment"><div class="line">z3ed collab start [--port=8765]</div>
 </div><!-- fragment --><p><b>Option 2: Manual Launch</b> </p><div class="fragment"><div class="line">cd /path/to/yaze-server</div>
@@ -495,7 +490,7 @@ Server Setup</h3>
 <div class="line"># Health check: curl http://localhost:8765/health</div>
 </div><!-- fragment --><p><b>Option 3: Docker</b> </p><div class="fragment"><div class="line">docker build -t yaze-server .</div>
 <div class="line">docker run -p 8765:8765 yaze-server</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md275"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md370"></a>
 Client Connection</h3>
 <ol type="1">
 <li>Open YAZE → <b>Debug → Agent Chat</b></li>
@@ -504,7 +499,7 @@ Client Connection</h3>
 <li>Click **"Connect to Server"**</li>
 <li>Host or join sessions like local mode</li>
 </ol>
-<h3><a class="anchor" id="autotoc_md276"></a>
+<h3><a class="anchor" id="autotoc_md371"></a>
 Core Features</h3>
 <p><b>Session Management:</b></p><ul>
 <li>Unique 6-character session codes</li>
@@ -518,33 +513,33 @@ Core Features</h3>
 <li>Automatic cleanup of inactive sessions</li>
 <li>Rate limiting (100 messages/minute per IP)</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md277"></a>
+<h3><a class="anchor" id="autotoc_md372"></a>
 Advanced Features (v2.0)</h3>
-<p><b>🎮 ROM Synchronization</b> Share ROM edits in real-time:</p><ul>
+<p><b>ROM ROM Synchronization</b> Share ROM edits in real-time:</p><ul>
 <li>Send base64-encoded diffs to all participants</li>
 <li>Automatic ROM hash tracking</li>
 <li>Size limit: 5MB per diff</li>
 <li>Conflict detection via hash comparison</li>
 </ul>
-<p><b>📸 Multimodal Snapshot Sharing</b> Share screenshots and images:</p><ul>
+<p><b>Snapshot Multimodal Snapshot Sharing</b> Share screenshots and images:</p><ul>
 <li>Capture and share specific editor views</li>
 <li>Support for multiple snapshot types (overworld, dungeon, sprite, etc.)</li>
 <li>Base64 encoding for efficient transfer</li>
 <li>Size limit: 10MB per snapshot</li>
 </ul>
-<p><b>💡 Proposal Management</b> Collaborative proposal workflow:</p><ul>
+<p><b>Proposal Proposal Management</b> Collaborative proposal workflow:</p><ul>
 <li>Share AI-generated proposals with all participants</li>
 <li>Track proposal status: pending, accepted, rejected</li>
 <li>Real-time status updates broadcast to all users</li>
 <li>Proposal history tracked in server database</li>
 </ul>
-<p><b>🤖 AI Agent Integration</b> Server-routed AI queries:</p><ul>
+<p><b>AI Agent Integration</b> Server-routed AI queries:</p><ul>
 <li>Send queries through the collaboration server</li>
 <li>Shared AI responses visible to all participants</li>
 <li>Query history tracked in database</li>
 <li>Optional: Disable AI per session</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md278"></a>
+<h3><a class="anchor" id="autotoc_md373"></a>
 Protocol Reference</h3>
 <p>The server uses JSON WebSocket messages over HTTP/WebSocket transport.</p>
 <p><b>Client → Server Messages:</b></p>
@@ -759,7 +754,7 @@ Protocol Reference</h3>
 <div class="line">  &quot;type&quot;: &quot;error&quot;,</div>
 <div class="line">  &quot;payload&quot;: { &quot;error&quot;: &quot;Session ABC123 not found&quot; }</div>
 <div class="line">}</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md279"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md374"></a>
 Server Configuration</h3>
 <p><b>Environment Variables:</b></p><ul>
 <li><code>PORT</code> - Server port (default: 8765)</li>
@@ -772,7 +767,7 @@ Server Configuration</h3>
 <li>Max snapshot size: 10 MB</li>
 <li>Max ROM diff size: 5 MB</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md280"></a>
+<h3><a class="anchor" id="autotoc_md375"></a>
 Database Schema (Server v2.0)</h3>
 <p>The server uses SQLite with the following tables:</p>
 <ul>
@@ -784,7 +779,7 @@ Database Schema (Server v2.0)</h3>
 <li><b>proposals</b>: AI proposal tracking with status</li>
 <li><b>agent_interactions</b>: AI query and response history</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md281"></a>
+<h3><a class="anchor" id="autotoc_md376"></a>
 Deployment</h3>
 <p><b>Heroku:</b> </p><div class="fragment"><div class="line">cd /path/to/yaze-server</div>
 <div class="line">heroku create yaze-collab</div>
@@ -799,7 +794,7 @@ Deployment</h3>
 <div class="line">pm2 save</div>
 </div><!-- fragment --><p><b>Docker:</b> </p><div class="fragment"><div class="line">docker build -t yaze-server .</div>
 <div class="line">docker run -p 8765:8765 -e ENABLE_AI_AGENT=true yaze-server</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md282"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md377"></a>
 Testing</h3>
 <p><b>Health Check:</b> </p><div class="fragment"><div class="line">curl http://localhost:8765/health</div>
 <div class="line">curl http://localhost:8765/metrics</div>
@@ -814,9 +809,9 @@ Testing</h3>
 <div class="line"> </div>
 <div class="line"># Send message</div>
 <div class="line">&gt; {&quot;type&quot;:&quot;chat_message&quot;,&quot;payload&quot;:{&quot;sender&quot;:&quot;alice&quot;,&quot;message&quot;:&quot;Hello!&quot;}}</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md283"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md378"></a>
 Security Considerations</h3>
-<p><b>Current Implementation:</b> ⚠️ Basic security - suitable for trusted networks</p><ul>
+<p><b>Current Implementation:</b> Warning: Basic security - suitable for trusted networks</p><ul>
 <li>No authentication or encryption by default</li>
 <li>Plain text message transmission</li>
 <li>Session codes are the only access control</li>
@@ -830,29 +825,29 @@ Security Considerations</h3>
 <li><b>Backup</b>: Regular database backups</li>
 </ol>
 <hr  />
-<h2><a class="anchor" id="autotoc_md285"></a>
+<h2><a class="anchor" id="autotoc_md380"></a>
 Multimodal Vision (Gemini)</h2>
 <p>Analyze screenshots of your ROM editor using Gemini's vision capabilities for visual feedback and suggestions.</p>
-<h3><a class="anchor" id="autotoc_md286"></a>
+<h3><a class="anchor" id="autotoc_md381"></a>
 Requirements</h3>
 <ul>
 <li><code>GEMINI_API_KEY</code> environment variable set</li>
 <li>YAZE built with <code>-DYAZE_WITH_GRPC=ON</code> and <code>-DZ3ED_AI=ON</code></li>
 </ul>
-<h3><a class="anchor" id="autotoc_md287"></a>
+<h3><a class="anchor" id="autotoc_md382"></a>
 Capture Modes</h3>
 <p><b>Full Window</b>: Captures the entire YAZE application window</p>
 <p><b>Active Editor</b> (default): Captures only the currently focused editor window</p>
 <p><b>Specific Window</b>: Captures a named window (e.g., "Overworld Editor")</p>
-<h3><a class="anchor" id="autotoc_md288"></a>
+<h3><a class="anchor" id="autotoc_md383"></a>
 How to Use</h3>
 <ol type="1">
 <li>Open <b>Debug → Agent Chat</b></li>
 <li>Expand **"Gemini Multimodal (Preview)"** panel</li>
 <li>Select capture mode:<ul>
-<li>○ Full Window</li>
-<li>● Active Editor (default)</li>
-<li>○ Specific Window</li>
+<li>- Full Window</li>
+<li>* Active Editor (default)</li>
+<li>- Specific Window</li>
 </ul>
 </li>
 <li>If Specific Window, enter window name: <code>Overworld Editor</code></li>
@@ -860,7 +855,7 @@ How to Use</h3>
 <li>Enter prompt: <code>"What issues do you see with this layout?"</code></li>
 <li>Click **"Send to Gemini"**</li>
 </ol>
-<h3><a class="anchor" id="autotoc_md289"></a>
+<h3><a class="anchor" id="autotoc_md384"></a>
 Example Prompts</h3>
 <ul>
 <li>"Analyze the tile placement in this overworld screen"</li>
@@ -872,7 +867,7 @@ Example Prompts</h3>
 </ul>
 <p>The AI response appears in your chat history and can reference specific details from the screenshot. In network collaboration mode, multimodal snapshots can be shared with all participants.</p>
 <hr  />
-<h2><a class="anchor" id="autotoc_md291"></a>
+<h2><a class="anchor" id="autotoc_md386"></a>
 Architecture</h2>
 <div class="fragment"><div class="line">┌──────────────────────────────────────────────────────┐</div>
 <div class="line">│                    YAZE Editor                       │</div>
@@ -881,13 +876,13 @@ Architecture</h2>
 <div class="line">│  │         Agent Chat Widget (ImGui)           │   │</div>
 <div class="line">│  │                                             │   │</div>
 <div class="line">│  │  [Collaboration Panel]                      │   │</div>
-<div class="line">│  │  ├─ Local Mode (filesystem)  ✓ Working     │   │</div>
-<div class="line">│  │  └─ Network Mode (websocket) ✓ Working     │   │</div>
+<div class="line">│  │  ├─ Local Mode (filesystem)   Working     │   │</div>
+<div class="line">│  │  └─ Network Mode (websocket)  Working     │   │</div>
 <div class="line">│  │                                             │   │</div>
 <div class="line">│  │  [Multimodal Panel]                         │   │</div>
-<div class="line">│  │  ├─ Capture Mode Selection   ✓ Working     │   │</div>
-<div class="line">│  │  ├─ Screenshot Capture        ✓ Working     │   │</div>
-<div class="line">│  │  └─ Send to Gemini           ✓ Working     │   │</div>
+<div class="line">│  │  ├─ Capture Mode Selection    Working     │   │</div>
+<div class="line">│  │  ├─ Screenshot Capture         Working     │   │</div>
+<div class="line">│  │  └─ Send to Gemini            Working     │   │</div>
 <div class="line">│  └─────────────────────────────────────────────┘   │</div>
 <div class="line">│           │                    │                    │</div>
 <div class="line">│           ▼                    ▼                    │</div>
@@ -916,7 +911,7 @@ Architecture</h2>
 <div class="line">│  - AI Agent Integration                  │</div>
 <div class="line">└──────────────────────────────────────────┘</div>
 </div><!-- fragment --><hr  />
-<h2><a class="anchor" id="autotoc_md293"></a>
+<h2><a class="anchor" id="autotoc_md388"></a>
 Troubleshooting</h2>
 <p>**"Failed to start collaboration server"**</p><ul>
 <li>Ensure Node.js is installed: <code>node --version</code></li>
@@ -958,18 +953,18 @@ Troubleshooting</h2>
 <li>Verify network connectivity between client and server</li>
 </ul>
 <hr  />
-<h2><a class="anchor" id="autotoc_md295"></a>
+<h2><a class="anchor" id="autotoc_md390"></a>
 References</h2>
 <ul>
 <li><b>Server Repository</b>: <a href="https://github.com/scawful/yaze-server">yaze-server</a></li>
 <li><b>Agent Editor Docs</b>: <code><a class="el" href="../../de/dc6/src_2app_2editor_2agent_2README_8md.html">src/app/editor/agent/README.md</a></code></li>
 <li><b>Integration Guide</b>: <code>docs/z3ed/YAZE_SERVER_V2_INTEGRATION.md</code></li>
 </ul>
-<h1><a class="anchor" id="autotoc_md296"></a>
+<h1><a class="anchor" id="autotoc_md391"></a>
 11. Roadmap &amp; Implementation Status</h1>
 <p><b>Last Updated</b>: October 11, 2025</p>
-<h2><a class="anchor" id="autotoc_md297"></a>
-✅ Completed</h2>
+<h2><a class="anchor" id="autotoc_md392"></a>
+Completed</h2>
 <ul>
 <li><b>Core Infrastructure</b>: Resource-oriented CLI, proposal workflow, sandbox manager, and resource catalog are all production-ready.</li>
 <li><b>AI Backends</b>: Both Ollama (local) and Gemini (cloud) are operational.</li>
@@ -992,7 +987,7 @@ References</h2>
 </ul>
 </li>
 </ul>
-<h2><a class="anchor" id="autotoc_md298"></a>
+<h2><a class="anchor" id="autotoc_md393"></a>
 📌 Current Progress Highlights (October 5, 2025)</h2>
 <ul>
 <li><b>Agent Platform Expansion</b>: AgentEditor now delivers full bot lifecycle controls, live prompt editing, multi-session management, and metrics synchronized with chat history and popup views.</li>
@@ -1001,10 +996,10 @@ References</h2>
 <li><b>Collaboration &amp; Networking</b>: yaze-server v2.0 protocol, cross-platform WebSocket client, collaboration panel, and gRPC ROM service unlock real-time edits, diff sharing, and remote automation.</li>
 <li><b>AI &amp; Automation Stack</b>: Proactive prompt v3, native Gemini function calling, learn/TODO systems, GUI automation planners, multimodal vision suite, and dashboard-surfaced test harness coverage broaden intelligent tooling.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md299"></a>
-🚧 Active &amp; Next Steps</h2>
+<h2><a class="anchor" id="autotoc_md394"></a>
+Active &amp; Next Steps</h2>
 <ol type="1">
-<li><b>CLI Command Refactoring (Phase 2)</b>: Complete migration of tool_commands.cc to use new abstraction layer. Refactor 15+ commands to eliminate ~1300 lines of duplication. Add comprehensive unit tests. (See <a class="el" href="../../d4/dd7/md_docs_2z3ed-command-abstraction-guide.html">Command Abstraction Guide</a>)</li>
+<li><b>CLI Command Refactoring (Phase 2)</b>: Complete migration of tool_commands.cc to use new abstraction layer. Refactor 15+ commands to eliminate ~1300 lines of duplication. Add comprehensive unit tests. (See <a class="el" href="../../d7/d9e/md_docs_2C5-z3ed-command-abstraction.html">Command Abstraction Guide</a>)</li>
 <li><b>Harden Live LLM Tooling</b>: Finalize native function-calling loops with Ollama/Gemini and broaden safe read-only tool coverage for dialogue, sprite, and region introspection.</li>
 <li><b>Real-Time Transport Upgrade</b>: Replace HTTP polling with full WebSocket support across CLI/editor and expose ROM sync, snapshot, and proposal voting controls directly inside the AgentChat widget.</li>
 <li><b>Cross-Platform Certification</b>: Complete Windows validation for AI, gRPC, collaboration, and build presets leveraging the documented vcpkg workflow.</li>
@@ -1015,17 +1010,39 @@ References</h2>
 <li><b>Automation API Unification</b>: Extract a reusable harness automation API consumed by both CLI <code>agent test</code> commands and the Agent Chat widget to prevent serialization drift.</li>
 <li><b>UI Abstraction Cleanup</b>: Introduce dedicated presenter/controller layers so <code><a class="el" href="../../d0/dd9/editor__manager_8cc.html">editor_manager.cc</a></code> delegates to automation and collaboration services, keeping <a class="el" href="../../df/de4/namespaceImGui.html">ImGui</a> widgets declarative.</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md300"></a>
-✅ Recently Completed (v0.2.1-alpha - October 11, 2025)</h2>
-<h3><a class="anchor" id="autotoc_md301"></a>
-CLI Architecture Improvements (NEW)</h3>
+<h2><a class="anchor" id="autotoc_md395"></a>
+Recently Completed (v0.2.2-alpha - October 12, 2025)</h2>
+<h3><a class="anchor" id="autotoc_md396"></a>
+Emulator Debugging Infrastructure (NEW) 🔍</h3>
+<ul>
+<li><b>Advanced Debugging Service</b>: Complete gRPC EmulatorService implementation with breakpoints, memory inspection, step execution, and CPU state access</li>
+<li><b>Breakpoint Management</b>: Set execute/read/write/access breakpoints with conditional support for systematic debugging</li>
+<li><b>Memory Introspection</b>: Read/write WRAM, hardware registers ($4xxx), and ROM from running emulator without rebuilds</li>
+<li><b>Execution Control</b>: Step instruction-by-instruction, run to breakpoint, pause/resume with full CPU state capture</li>
+<li><b>AI-Driven Debugging</b>: Function schemas for 12 new emulator tools enabling natural language debugging sessions</li>
+<li><b>Reproducible Scripts</b>: AI can generate bash scripts with breakpoint sequences for regression testing</li>
+<li><b>Documentation</b>: Comprehensive Emulator Debugging Guide with real-world examples</li>
+</ul>
+<h3><a class="anchor" id="autotoc_md397"></a>
+Benefits for AI Agents</h3>
+<ul>
+<li><b>15min vs 3hr debugging</b>: Systematic tool-based approach vs manual print-debug cycles</li>
+<li><b>No rebuilds required</b>: Set breakpoints and read state without recompiling</li>
+<li><b>Precise observation</b>: Pause at exact addresses, read memory at critical moments</li>
+<li><b>Collaborative debugging</b>: Share tool call sequences and findings in chat</li>
+<li><b>Example</b>: Debugging ALTTP input issue went from 15 rebuild cycles to 6 tool calls (see <code>docs/examples/ai-debug-input-issue.md</code>)</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md398"></a>
+Previously Completed (v0.2.1-alpha - October 11, 2025)</h2>
+<h3><a class="anchor" id="autotoc_md399"></a>
+CLI Architecture Improvements</h3>
 <ul>
 <li><b>Command Abstraction Layer</b>: Three-tier abstraction system (<code>CommandContext</code>, <code>ArgumentParser</code>, <code>OutputFormatter</code>) to eliminate code duplication across CLI commands</li>
 <li><b>CommandHandler Base Class</b>: Structured base class for consistent command implementation with automatic context management</li>
 <li><b>Refactoring Framework</b>: Complete migration guide and examples showing 50-60% code reduction per command</li>
-<li><b>Documentation</b>: Comprehensive <a class="el" href="../../d4/dd7/md_docs_2z3ed-command-abstraction-guide.html">Command Abstraction Guide</a> with migration checklist and testing strategies</li>
+<li><b>Documentation</b>: Comprehensive <a class="el" href="../../d7/d9e/md_docs_2C5-z3ed-command-abstraction.html">Command Abstraction Guide</a> with migration checklist and testing strategies</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md302"></a>
+<h3><a class="anchor" id="autotoc_md400"></a>
 Code Quality &amp; Maintainability</h3>
 <ul>
 <li><b>Duplication Elimination</b>: New abstraction layer removes ~1300 lines of duplicated code across tool commands</li>
@@ -1033,9 +1050,9 @@ Code Quality &amp; Maintainability</h3>
 <li><b>Better Testing</b>: Each component (context, parser, formatter) can be unit tested independently</li>
 <li><b>AI-Friendly</b>: Predictable command structure makes it easier for AI to generate and validate tool calls</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md303"></a>
-✅ Previously Completed (v0.2.0-alpha - October 5, 2025)</h2>
-<h3><a class="anchor" id="autotoc_md304"></a>
+<h2><a class="anchor" id="autotoc_md401"></a>
+Previously Completed (v0.2.0-alpha - October 5, 2025)</h2>
+<h3><a class="anchor" id="autotoc_md402"></a>
 Core AI Features</h3>
 <ul>
 <li><b>Enhanced System Prompt (v3)</b>: Proactive tool chaining with implicit iteration to minimize back-and-forth conversations</li>
@@ -1045,13 +1062,13 @@ Core AI Features</h3>
 <li><b>AI-Controlled GUI Automation</b>: Natural language parsing (<code>AIActionParser</code>) and test script generation (<code>GuiActionGenerator</code>) for automated tile placement</li>
 <li><b>TODO Management System</b>: Full <code>TodoManager</code> class with CRUD operations, CLI commands, dependency tracking, execution planning, and JSON persistence.</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md305"></a>
+<h3><a class="anchor" id="autotoc_md403"></a>
 Version Management &amp; Protection</h3>
 <ul>
 <li><b>ROM Version Management System</b>: <code>RomVersionManager</code> with automatic snapshots, safe points, corruption detection, and rollback capabilities</li>
 <li><b>Proposal Approval Framework</b>: <code>ProposalApprovalManager</code> with host/majority/unanimous voting modes to protect ROM from unwanted changes</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md306"></a>
+<h3><a class="anchor" id="autotoc_md404"></a>
 Networking &amp; Collaboration (NEW)</h3>
 <ul>
 <li><b>Cross-Platform WebSocket Client</b>: <code>WebSocketClient</code> with Windows/macOS/Linux support using httplib</li>
@@ -1061,13 +1078,13 @@ Networking &amp; Collaboration (NEW)</h3>
 <li><b>Collaboration UI Panel</b>: <code>CollaborationPanel</code> widget with version history, ROM sync tracking, snapshot gallery, and approval workflow</li>
 <li><b>gRPC ROM Service</b>: Complete protocol buffer and implementation for remote ROM manipulation (pending build integration)</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md307"></a>
+<h3><a class="anchor" id="autotoc_md405"></a>
 UI/UX Enhancements</h3>
 <ul>
 <li><b>Welcome Screen Enhancement</b>: Dynamic theme integration, Zelda-themed animations, and project cards.</li>
 <li><b>Component Refactoring</b>: <code>PaletteWidget</code> renamed and moved, UI organization improved (<code>app/editor/ui/</code> for welcome_screen, editor_selection_dialog, background_renderer).</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md308"></a>
+<h3><a class="anchor" id="autotoc_md406"></a>
 Build System &amp; Infrastructure</h3>
 <ul>
 <li><b>gRPC Windows Build Optimization</b>: vcpkg integration for 10-20x faster Windows builds, removed abseil-cpp submodule</li>
@@ -1076,7 +1093,7 @@ Build System &amp; Infrastructure</h3>
 <li><b>Improved Documentation</b>: Consolidated architecture, enhancement plans, networking guide, and build instructions with JSON-first approach</li>
 <li><b>Build System Improvements</b>: <code>mac-ai</code> preset, proto fixes, and updated GEMINI.md with AI build policies.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md309"></a>
+<h1><a class="anchor" id="autotoc_md407"></a>
 12. Troubleshooting</h1>
 <ul>
 <li>**"Build with -DZ3ED_AI=ON" warning**: AI features are disabled. Rebuild with the flag to enable them.</li>

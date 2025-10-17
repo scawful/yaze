@@ -1,0 +1,10 @@
+<map id="yaze::project::RecentFilesManager::Save" name="yaze::project::RecentFilesManager::Save">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,173,46"/>
+<area shape="rect" id="Node000002" href="$db/dd8/classyaze_1_1util_1_1PlatformPaths.html#a629daba112fc1c989572eab96ab0ffcd" title="Get the user&#45;specific configuration directory for YAZE." alt="" coords="436,5,595,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="173,20,221,19,388,19,420,20,420,25,388,24,221,24,173,25"/>
+<area shape="rect" id="Node000007" href="$da/d2c/classyaze_1_1project_1_1RecentFilesManager.html#a0509a98d1d933aa31b05b9afe855aff6" title=" " alt="" coords="221,33,388,74"/>
+<area shape="poly" id="edge3_Node000001_Node000007" title=" " alt="" coords="174,34,205,38,205,43,173,39"/>
+<area shape="rect" id="Node000003" href="$db/dd8/classyaze_1_1util_1_1PlatformPaths.html#a12f8860efbb23052a82006f24b221c6f" title="Get the user&#45;specific application data directory for YAZE." alt="" coords="643,5,803,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="596,23,628,23,628,28,596,28"/>
+<area shape="poly" id="edge4_Node000007_Node000002" title=" " alt="" coords="388,40,420,36,421,41,388,45"/>
+</map>

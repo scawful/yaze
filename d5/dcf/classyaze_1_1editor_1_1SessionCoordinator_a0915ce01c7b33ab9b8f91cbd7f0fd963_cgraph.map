@@ -1,0 +1,7 @@
+<map id="yaze::editor::SessionCoordinator::SwitchToSession" name="yaze::editor::SessionCoordinator::SwitchToSession">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,210,79"/>
+<area shape="rect" id="Node000002" href="$d5/dcf/classyaze_1_1editor_1_1SessionCoordinator.html#ac6a684b1d7091bf5a3f48cf5b289af22" title=" " alt="" coords="258,5,462,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="210,43,242,39,242,44,210,48"/>
+<area shape="rect" id="Node000003" href="$d0/d2e/classyaze_1_1editor_1_1EditorCardRegistry.html#a3fa093cdd540d16283d6a6e3aa2d8f96" title="Set the currently active session." alt="" coords="271,71,449,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="210,69,256,75,255,80,210,75"/>
+</map>

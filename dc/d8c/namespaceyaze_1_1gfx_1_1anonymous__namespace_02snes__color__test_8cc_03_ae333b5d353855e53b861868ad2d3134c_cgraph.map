@@ -1,0 +1,10 @@
+<map id="yaze::gfx::anonymous_namespace{snes_color_test::cc}::TEST_F" name="yaze::gfx::anonymous_namespace{snes_color_test::cc}::TEST_F">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,31,168,87"/>
+<area shape="rect" id="Node000002" href="$d5/d31/classyaze_1_1gfx_1_1SnesColor.html#a657647653346936b1e42cbe4acb43810" title=" " alt="" coords="216,5,352,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="168,43,200,37,201,42,169,48"/>
+<area shape="rect" id="Node000003" href="$d5/d31/classyaze_1_1gfx_1_1SnesColor.html#aea6308f5abbe766e900fb8baeb71b257" title="Set color from ImVec4 (0.0&#45;1.0 range)" alt="" coords="216,71,352,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="169,70,201,75,200,80,168,75"/>
+<area shape="rect" id="Node000004" href="$d0/d27/namespaceyaze_1_1gfx.html#a4e83a052d42017612243c3f81b538b7d" title="Convert RGB (0&#45;255) to SNES 15&#45;bit color." alt="" coords="400,78,589,104"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="352,88,385,88,385,94,352,94"/>
+<area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="460,79,453,70,457,60,471,54,495,52,521,54,534,61,531,66,519,59,495,57,472,59,460,64,458,69,464,76"/>
+</map>

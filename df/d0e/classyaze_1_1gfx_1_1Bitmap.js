@@ -1,5 +1,6 @@
 var classyaze_1_1gfx_1_1Bitmap =
 [
+    [ "BitmapMetadata", "d1/d13/structyaze_1_1gfx_1_1Bitmap_1_1BitmapMetadata.html", "d1/d13/structyaze_1_1gfx_1_1Bitmap_1_1BitmapMetadata" ],
     [ "DirtyRegion", "d7/d95/structyaze_1_1gfx_1_1Bitmap_1_1DirtyRegion.html", "d7/d95/structyaze_1_1gfx_1_1Bitmap_1_1DirtyRegion" ],
     [ "Bitmap", "df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a581325df602245d58086208cb6e85739", null ],
     [ "Bitmap", "df/d0e/classyaze_1_1gfx_1_1Bitmap.html#abfcc8b8d5411f0e1332b695fd446cc61", null ],
@@ -19,7 +20,9 @@ var classyaze_1_1gfx_1_1Bitmap =
     [ "UpdateTextureData", "df/d0e/classyaze_1_1gfx_1_1Bitmap.html#ae54809d052e7f6cbf3b1900d8b13686e", null ],
     [ "SetPalette", "df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a8b0be39d195a5d6d7002d2ecd70f2a3c", null ],
     [ "SetPaletteWithTransparent", "df/d0e/classyaze_1_1gfx_1_1Bitmap.html#ab90397bc4fd41c6b62f70ca25cabe895", null ],
+    [ "ApplyPaletteByMetadata", "df/d0e/classyaze_1_1gfx_1_1Bitmap.html#ac69fac5ae34800c0ea380dee48a37307", null ],
     [ "ApplyStoredPalette", "df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a9139f2f9427fd314cd21ef4b93ae7fa7", null ],
+    [ "UpdateSurfacePixels", "df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a2f9a25b2efae3f8fa6b95e9ee4a8152c", null ],
     [ "SetPalette", "df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a9c987690a2aa0099aa0531749a660c06", null ],
     [ "WriteToPixel", "df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a0b6240e469dae9ab4d88f3e2051d4510", null ],
     [ "WriteColor", "df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a748139853655afc687cf9668eeb01443", null ],
@@ -32,6 +35,8 @@ var classyaze_1_1gfx_1_1Bitmap =
     [ "Get16x16Tile", "df/d0e/classyaze_1_1gfx_1_1Bitmap.html#adab34aa5b35c696b6b5831263c6dfc6a", null ],
     [ "palette", "df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a05432a1e204b43ea1cb4820449b7e0b8", null ],
     [ "mutable_palette", "df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a6569297508f48d61c983ddda166099f7", null ],
+    [ "metadata", "df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a5bd0b8b804292d907926fb92960d8af7", null ],
+    [ "metadata", "df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a425df766ba09bef1441e25e7d73d0ac4", null ],
     [ "width", "df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a8bf88ae41aef8eee49c560b96cf4d050", null ],
     [ "height", "df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a7729f6c60dee1836a303ce39448febc3", null ],
     [ "depth", "df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a985c964b37adc34496b5c6898712c8c0", null ],
@@ -56,6 +61,7 @@ var classyaze_1_1gfx_1_1Bitmap =
     [ "texture_pixels", "df/d0e/classyaze_1_1gfx_1_1Bitmap.html#ac4324517f92d404ea71c2bc7b9eb8036", null ],
     [ "pixel_data_", "df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a412edae11ee0612cad4a6691211df16c", null ],
     [ "palette_", "df/d0e/classyaze_1_1gfx_1_1Bitmap.html#ae3d7a292bdf5c64aa11b34efa13fa38c", null ],
+    [ "metadata_", "df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a8c0563610fc9e75a22411cd2d44f8205", null ],
     [ "data_", "df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a94bb9a034aef85db52ad56dd59ca5c5e", null ],
     [ "surface_", "df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a06f2c8e38b83a9e1b2456eb1bec6facd", null ],
     [ "texture_", "df/d0e/classyaze_1_1gfx_1_1Bitmap.html#ac9e6097a89a61497bf35f5ed56779ab6", null ],

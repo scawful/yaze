@@ -106,5 +106,14 @@ var structyaze_1_1gui_1_1EnhancedTheme =
     [ "frame_border_size", "d2/dfe/structyaze_1_1gui_1_1EnhancedTheme.html#a42de678f1f53ac27f76b75f921a757e0", null ],
     [ "enable_animations", "d2/dfe/structyaze_1_1gui_1_1EnhancedTheme.html#ad28832820c09e4553ad0e8e1da51bacf", null ],
     [ "animation_speed", "d2/dfe/structyaze_1_1gui_1_1EnhancedTheme.html#a3988da8b56d22e9865ac5db53fe6e063", null ],
-    [ "enable_glow_effects", "d2/dfe/structyaze_1_1gui_1_1EnhancedTheme.html#a125365082e3fb1c0dbf79e68dae1e5f5", null ]
+    [ "enable_glow_effects", "d2/dfe/structyaze_1_1gui_1_1EnhancedTheme.html#a125365082e3fb1c0dbf79e68dae1e5f5", null ],
+    [ "compact_factor", "d2/dfe/structyaze_1_1gui_1_1EnhancedTheme.html#adfe8aa549880ceb2f96678756de3377b", null ],
+    [ "widget_height_multiplier", "d2/dfe/structyaze_1_1gui_1_1EnhancedTheme.html#a2cda87274fb6e252915f5ffd748d4268", null ],
+    [ "spacing_multiplier", "d2/dfe/structyaze_1_1gui_1_1EnhancedTheme.html#ac99236530b27994b04bc576bee121b48", null ],
+    [ "toolbar_height_multiplier", "d2/dfe/structyaze_1_1gui_1_1EnhancedTheme.html#af80efe75ead65e9e1183868b30125d13", null ],
+    [ "panel_padding_multiplier", "d2/dfe/structyaze_1_1gui_1_1EnhancedTheme.html#a00c1660cfaea1aae1119edb723dc9fda", null ],
+    [ "input_width_multiplier", "d2/dfe/structyaze_1_1gui_1_1EnhancedTheme.html#a2bfab349a5252e2e6957342e2239c3f7", null ],
+    [ "button_padding_multiplier", "d2/dfe/structyaze_1_1gui_1_1EnhancedTheme.html#a98efaf7b4b9edea6e6af1f4c84fca495", null ],
+    [ "table_row_height_multiplier", "d2/dfe/structyaze_1_1gui_1_1EnhancedTheme.html#a4ca4cd86a7eee17921de8d16d9c2665f", null ],
+    [ "canvas_toolbar_multiplier", "d2/dfe/structyaze_1_1gui_1_1EnhancedTheme.html#a9f8bbda30f280d3d34d9a528b0ef8967", null ]
 ];

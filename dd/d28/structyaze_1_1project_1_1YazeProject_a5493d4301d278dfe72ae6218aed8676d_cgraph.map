@@ -1,0 +1,11 @@
+<map id="yaze::project::YazeProject::InitializeEmbeddedLabels" name="yaze::project::YazeProject::InitializeEmbeddedLabels">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,71,180,111"/>
+<area shape="rect" id="Node000002" href="$d4/d42/structyaze_1_1zelda3_1_1Zelda3Labels.html#a34742ede25e2a3dff22e0165d7220079" title="Convert all labels to a structured map for project embedding." alt="" coords="228,71,402,111"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="180,88,212,88,212,94,180,94"/>
+<area shape="rect" id="Node000003" href="$d4/d42/structyaze_1_1zelda3_1_1Zelda3Labels.html#a351fff6618509798994babd36b20c7a8" title=" " alt="" coords="451,5,625,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="386,68,451,48,452,54,387,73"/>
+<area shape="rect" id="Node000004" href="$d4/d42/structyaze_1_1zelda3_1_1Zelda3Labels.html#a55d1b9b5ad840bb62e8b0bc2be4b8c44" title=" " alt="" coords="450,71,626,111"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="402,88,434,88,434,94,402,94"/>
+<area shape="rect" id="Node000005" href="$d4/d42/structyaze_1_1zelda3_1_1Zelda3Labels.html#a30b841f5cd61763bc47715a6e03821df" title=" " alt="" coords="451,136,625,177"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="387,109,452,128,451,134,386,114"/>
+</map>

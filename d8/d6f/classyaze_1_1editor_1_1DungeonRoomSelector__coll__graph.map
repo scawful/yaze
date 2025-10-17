@@ -1,9 +1,9 @@
 <map id="yaze::editor::DungeonRoomSelector" name="yaze::editor::DungeonRoomSelector">
-<area shape="rect" id="Node000001" title="Handles room and entrance selection UI." alt="" coords="102,198,278,238"/>
-<area shape="rect" id="Node000002" href="$d6/d30/classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="150,109,230,135"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="192,150,192,197,187,197,187,150"/>
-<area shape="rect" id="Node000003" href="$d8/d4d/structyaze_1_1core_1_1ResourceLabelManager.html" title=" " alt="" coords="5,5,177,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="99,60,111,83,129,98,150,108,148,113,126,102,107,87,94,62"/>
-<area shape="rect" id="Node000004" href="$d7/dcc/structyaze_1_1gfx_1_1PaletteGroupMap.html" title="Represents a mapping of palette groups." alt="" coords="201,13,378,39"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="283,54,274,71,262,87,245,101,225,111,223,106,242,96,258,83,270,68,278,52"/>
+<area shape="rect" id="Node000001" title="Handles room and entrance selection UI." alt="" coords="113,198,289,238"/>
+<area shape="rect" id="Node000002" href="$d6/d30/classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="161,109,241,135"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="203,150,203,197,198,197,198,150"/>
+<area shape="rect" id="Node000003" href="$db/df5/structyaze_1_1project_1_1ResourceLabelManager.html" title=" " alt="" coords="5,5,191,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="110,59,125,83,142,96,161,106,159,111,139,101,121,87,105,62"/>
+<area shape="rect" id="Node000004" href="$d7/dcc/structyaze_1_1gfx_1_1PaletteGroupMap.html" title="Represents a mapping of palette groups." alt="" coords="215,13,392,39"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="297,54,288,71,276,87,258,101,238,111,236,106,255,96,272,83,284,68,292,52"/>
 </map>

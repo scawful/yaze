@@ -4,7 +4,7 @@ var dir_b78fdfbbb632ce54d070469d6a721373 =
     [ "service", "dir_cd557cd98d3609a5460b7bf9ac42fb88.html", "dir_cd557cd98d3609a5460b7bf9ac42fb88" ],
     [ "tui", "dir_042c7286d22eeafbe3e57928adf9e34e.html", "dir_042c7286d22eeafbe3e57928adf9e34e" ],
     [ "util", "dir_a12ca1202b646c941970b6069c22198b.html", "dir_a12ca1202b646c941970b6069c22198b" ],
-    [ "cli.cc", "d0/d4f/cli_8cc.html", null ],
+    [ "cli.cc", "d0/d4f/cli_8cc.html", "d0/d4f/cli_8cc" ],
     [ "cli.h", "dc/db0/cli_8h.html", "dc/db0/cli_8h" ],
     [ "cli_main.cc", "d5/d48/cli__main_8cc.html", "d5/d48/cli__main_8cc" ],
     [ "flags.cc", "d5/d54/flags_8cc.html", "d5/d54/flags_8cc" ],

@@ -2,10 +2,10 @@
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,71,189,111"/>
 <area shape="rect" id="Node000002" href="$da/d2c/classyaze_1_1gui_1_1Canvas.html#a06eab9bafdad1cdd915c22937e07bf2d" title=" " alt="" coords="265,5,392,46"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="171,68,249,45,251,50,172,73"/>
-<area shape="rect" id="Node000007" href="$d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#aac6c51b5127e913a40b3aef5166a48a2" title="Ensure a specific map has its texture created." alt="" coords="237,71,420,111"/>
-<area shape="poly" id="edge3_Node000001_Node000007" title=" " alt="" coords="189,88,221,88,221,94,189,94"/>
-<area shape="rect" id="Node000018" href="$da/d2c/classyaze_1_1gui_1_1Canvas.html#ab3664ce0fdd6afa2113d10dd55fa9d80" title=" " alt="" coords="265,136,392,177"/>
-<area shape="poly" id="edge4_Node000001_Node000018" title=" " alt="" coords="172,109,251,132,249,137,171,114"/>
+<area shape="rect" id="Node000008" href="$d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#aac6c51b5127e913a40b3aef5166a48a2" title="Ensure a specific map has its texture created." alt="" coords="237,71,420,111"/>
+<area shape="poly" id="edge3_Node000001_Node000008" title=" " alt="" coords="189,88,221,88,221,94,189,94"/>
+<area shape="rect" id="Node000016" href="$da/d2c/classyaze_1_1gui_1_1Canvas.html#ab3664ce0fdd6afa2113d10dd55fa9d80" title=" " alt="" coords="265,136,392,177"/>
+<area shape="poly" id="edge4_Node000001_Node000016" title=" " alt="" coords="172,109,251,132,249,137,171,114"/>
 <area shape="rect" id="Node000003" href="$df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a7729f6c60dee1836a303ce39448febc3" title=" " alt="" coords="468,5,591,46"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="392,23,453,23,453,28,392,28"/>
 </map>

@@ -1,0 +1,5 @@
+<map id="yaze::gfx::Bitmap::UpdateSurfacePixels" name="yaze::gfx::Bitmap::UpdateSurfacePixels">
+<area shape="rect" id="Node000001" title="Update SDL surface with current pixel data from data_ vector Call this after modifying pixel data via..." alt="" coords="5,5,149,46"/>
+<area shape="rect" id="Node000002" href="$df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a2a93bfee737bef55dbf436f2605282ce" title=" " alt="" coords="197,5,320,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="149,23,181,23,181,28,149,28"/>
+</map>

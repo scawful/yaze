@@ -1,0 +1,9 @@
+<map id="yaze::editor::MenuOrchestrator::OnSwitchToSession" name="yaze::editor::MenuOrchestrator::OnSwitchToSession">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,201,79"/>
+<area shape="rect" id="Node000002" href="$d5/dcf/classyaze_1_1editor_1_1SessionCoordinator.html#a0915ce01c7b33ab9b8f91cbd7f0fd963" title=" " alt="" coords="249,39,453,79"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="201,56,233,56,233,62,201,62"/>
+<area shape="rect" id="Node000003" href="$d5/dcf/classyaze_1_1editor_1_1SessionCoordinator.html#ac6a684b1d7091bf5a3f48cf5b289af22" title=" " alt="" coords="501,5,705,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="453,43,485,39,486,44,454,48"/>
+<area shape="rect" id="Node000004" href="$d0/d2e/classyaze_1_1editor_1_1EditorCardRegistry.html#a3fa093cdd540d16283d6a6e3aa2d8f96" title="Set the currently active session." alt="" coords="514,71,692,111"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="454,69,499,75,498,80,453,75"/>
+</map>

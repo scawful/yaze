@@ -1,0 +1,7 @@
+<map id="yaze::gfx::PaletteManager::GetColor" name="yaze::gfx::PaletteManager::GetColor">
+<area shape="rect" id="Node000001" title="Get a color from a palette." alt="" coords="5,5,173,46"/>
+<area shape="rect" id="Node000002" href="$d7/d39/classyaze_1_1gfx_1_1PaletteManager.html#adce4d4aec32971ace56be8d0d6c78824" title="Helper: Get const palette group." alt="" coords="221,5,388,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="173,23,205,23,205,28,173,28"/>
+<area shape="rect" id="Node000003" href="$d7/d39/classyaze_1_1gfx_1_1PaletteManager.html#abb4b2a02a30c7d06ee74c0c4b93c86fb" title="Check if manager is initialized." alt="" coords="436,5,603,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="388,23,420,23,420,28,388,28"/>
+</map>

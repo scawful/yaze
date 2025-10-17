@@ -1,5 +1,5 @@
-<map id="src/app/core/features.h" name="src/app/core/features.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,160,31"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="56,79,109,105"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="85,31,85,63,80,63,80,31"/>
+<map id="src/core/features.h" name="src/core/features.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,135,31"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="43,79,97,105"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="73,31,73,63,67,63,67,31"/>
 </map>

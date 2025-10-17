@@ -1,0 +1,7 @@
+<map id="yaze::editor::PaletteGroupCard::HasUnsavedChanges" name="yaze::editor::PaletteGroupCard::HasUnsavedChanges">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,27,187,68"/>
+<area shape="rect" id="Node000002" href="$d7/d39/classyaze_1_1gfx_1_1PaletteManager.html#ad76357b3c747d397e99dd16972cf1235" title="Get the singleton instance." alt="" coords="235,5,429,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="187,34,219,30,219,35,187,39"/>
+<area shape="rect" id="Node000003" href="$d7/d39/classyaze_1_1gfx_1_1PaletteManager.html#a147d64b967f77671122dea165664d5a0" title="Check if a specific palette group has modifications." alt="" coords="248,55,416,96"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="187,56,233,61,232,66,187,61"/>
+</map>

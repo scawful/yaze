@@ -1,0 +1,12 @@
+<map id="src/app/editor/ui/layout_manager.h" name="src/app/editor/ui/layout_manager.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="82,5,235,46"/>
+<area shape="rect" id="Node000002" href="$df/d60/editor__manager_8h.html" title=" " alt="" coords="6,94,143,135"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="131,59,95,95,92,92,127,56"/>
+<area shape="rect" id="Node000022" href="$df/df8/layout__manager_8cc.html" title=" " alt="" coords="166,94,319,135"/>
+<area shape="poly" id="edge5_Node000001_Node000022" title=" " alt="" coords="190,56,225,92,222,95,186,59"/>
+<area shape="rect" id="Node000003" href="$da/d0c/controller_8cc.html" title=" " alt="" coords="5,256,144,282"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="60,149,52,178,52,208,60,233,70,255,65,257,55,235,47,209,47,177,55,148"/>
+<area shape="rect" id="Node000004" href="$d2/dd9/controller_8h.html" title=" " alt="" coords="61,183,192,208"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="98,146,121,181,116,184,93,149"/>
+<area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="111,222,85,257,81,254,107,219"/>
+</map>

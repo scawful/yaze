@@ -101,23 +101,40 @@ $(document).ready(function(){initNavTree('d5/d18/md_docs_2E2-development-guide.h
   <div class="headertitle"><div class="title">E2 - Development Guide</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md349"></a> This guide outlines the core architectural patterns, UI systems, and best practices for developing and maintaining the yaze editor.</p>
-<h1><a class="anchor" id="autotoc_md350"></a>
-Editor Status</h1>
+<div class="textblock"><p><a class="anchor" id="autotoc_md581"></a> This guide summarizes the architecture and implementation standards used across the editor codebase.</p>
+<h1><a class="anchor" id="autotoc_md582"></a>
+Editor Status (October 2025)</h1>
+<table class="markdownTable">
+<tr class="markdownTableHead">
+<th class="markdownTableHeadNone">Editor   </th><th class="markdownTableHeadNone">State   </th><th class="markdownTableHeadNone">Notes    </th></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">Overworld   </td><td class="markdownTableBodyNone">Stable   </td><td class="markdownTableBodyNone">Full feature set; continue regression testing after palette fixes.    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">Message   </td><td class="markdownTableBodyNone">Stable   </td><td class="markdownTableBodyNone">Re-test rendering after recent palette work.    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">Emulator   </td><td class="markdownTableBodyNone">Stable   </td><td class="markdownTableBodyNone">UI and core subsystems aligned with production builds.    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">Palette   </td><td class="markdownTableBodyNone">Stable   </td><td class="markdownTableBodyNone">Serves as the source of truth for palette helpers.    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">Assembly   </td><td class="markdownTableBodyNone">Stable   </td><td class="markdownTableBodyNone">No outstanding refactors.    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">Dungeon   </td><td class="markdownTableBodyNone">Experimental   </td><td class="markdownTableBodyNone">Requires thorough manual coverage before release.    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">Graphics   </td><td class="markdownTableBodyNone">Experimental   </td><td class="markdownTableBodyNone">Large rendering changes in flight; validate texture pipeline.    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">Sprite   </td><td class="markdownTableBodyNone">Experimental   </td><td class="markdownTableBodyNone">UI patterns still migrating to the new card system.   </td></tr>
+</table>
+<h2><a class="anchor" id="autotoc_md583"></a>
+Screen Editor Notes</h2>
 <ul>
-<li><b>Overworld Editor</b>: Production ready</li>
-<li><b>Message Editor</b>: Production ready (requires testing of recent rendering fixes)</li>
-<li><b>Emulator</b>: Production ready</li>
-<li><b>Dungeon Editor</b>: EXPERIMENTAL - Requires thorough testing</li>
-<li><b>Graphics Editor</b>: EXPERIMENTAL - Recent rendering pipeline changes need validation</li>
-<li><b>Palette Editor</b>: Production ready</li>
-<li><b>Sprite Editor</b>: EXPERIMENTAL</li>
-<li><b>Assembly Editor</b>: Production ready</li>
+<li><b>Title screen</b>: Vanilla ROM tilemap parsing remains broken. Implement a DMA parser and confirm the welcome screen renders before enabling painting.</li>
+<li><b>Overworld map</b>: Mode 7 tiling, palette switching, and custom map import/export are in place. The next milestone is faster tile painting.</li>
+<li><b>Dungeon map</b>: Rendering is wired up; tile painting and ROM write-back are still pending.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md351"></a>
+<h1><a class="anchor" id="autotoc_md584"></a>
 1. Core Architectural Patterns</h1>
 <p>These patterns, established during the Overworld Editor refactoring, should be applied to all new and existing editor components.</p>
-<h2><a class="anchor" id="autotoc_md352"></a>
+<h2><a class="anchor" id="autotoc_md585"></a>
 Pattern 1: Modular Systems</h2>
 <p><b>Principle</b>: Decompose large, monolithic editor classes into smaller, single-responsibility modules.</p>
 <ul>
@@ -126,14 +143,14 @@ Pattern 1: Modular Systems</h2>
 <li><b>Interaction</b>: Canvas interaction logic (mouse handling, editing modes) should be separated from the main editor class to simplify state management.</li>
 </ul>
 <p><b>Benefit</b>: Smaller, focused modules are easier to test, debug, and maintain. The main editor class becomes a coordinator, which is a much cleaner architecture.</p>
-<h2><a class="anchor" id="autotoc_md353"></a>
+<h2><a class="anchor" id="autotoc_md586"></a>
 Pattern 2: Callback-Based Communication</h2>
 <p><b>Principle</b>: Use <code>std::function</code> callbacks for child-to-parent communication to avoid circular dependencies.</p>
 <ul>
 <li><b>Implementation</b>: A parent editor provides its child components with callbacks (typically via a <code>SetCallbacks</code> method) during initialization. The child component invokes these callbacks to notify the parent of events or to request actions (like a refresh).</li>
 <li><b>Example</b>: <code>MapPropertiesSystem</code> receives a <code>RefreshCallback</code> from <code>OverworldEditor</code>. When a property is changed in the UI, it calls the function, allowing the <code>OverworldEditor</code> to execute the refresh logic without the <code>MapPropertiesSystem</code> needing to know anything about the editor itself.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md354"></a>
+<h2><a class="anchor" id="autotoc_md587"></a>
 Pattern 3: Centralized Progressive Loading via &lt;tt&gt;gfx::Arena&lt;/tt&gt;</h2>
 <p><b>Principle</b>: All expensive asset loading operations must be performed asynchronously to prevent UI freezes. The <code>gfx::Arena</code> singleton provides a centralized, priority-based system for this.</p>
 <ul>
@@ -145,10 +162,10 @@ Pattern 3: Centralized Progressive Loading via &lt;tt&gt;gfx::Arena&lt;/tt&gt;</
 </li>
 <li><b>Benefit</b>: This provides a globally consistent, non-blocking loading mechanism that is available to all editors and ensures the UI remains responsive.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md355"></a>
+<h1><a class="anchor" id="autotoc_md588"></a>
 2. UI &amp; Theming System</h1>
 <p>To ensure a consistent and polished look and feel, all new UI components must adhere to the established theme and helper function system.</p>
-<h2><a class="anchor" id="autotoc_md356"></a>
+<h2><a class="anchor" id="autotoc_md589"></a>
 2.1. The Theme System (&lt;tt&gt;AgentUITheme&lt;/tt&gt;)</h2>
 <ul>
 <li><b>Principle</b>: <b>Never use hardcoded colors (<code>ImVec4</code>)**. All UI colors must be derived from the central theme.</b></li>
@@ -157,7 +174,7 @@ Pattern 3: Centralized Progressive Loading via &lt;tt&gt;gfx::Arena&lt;/tt&gt;</
 <p class="startli"><code>cpp const auto&amp; theme = AgentUI::GetTheme(); ImGui::PushStyleColor(ImGuiCol_ChildBg, theme.panel_bg_color); </code></p>
 </li>
 </ul>
-<h2><a class="anchor" id="autotoc_md357"></a>
+<h2><a class="anchor" id="autotoc_md590"></a>
 2.2. Reusable UI Helper Functions</h2>
 <ul>
 <li><b>Principle</b>: Encapsulate common UI patterns into helper functions to reduce boilerplate and ensure consistency.</li>
@@ -171,16 +188,16 @@ Pattern 3: Centralized Progressive Loading via &lt;tt&gt;gfx::Arena&lt;/tt&gt;</
 </li>
 <li><b>Benefit</b>: Creates a consistent visual language and makes the UI code far more readable and maintainable.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md358"></a>
+<h2><a class="anchor" id="autotoc_md591"></a>
 2.3. Toolbar Implementation (&lt;tt&gt;CompactToolbar&lt;/tt&gt;)</h2>
 <ul>
 <li><b>Stretching</b>: To prevent <a class="el" href="../../df/de4/namespaceImGui.html">ImGui</a> from stretching the last item in a toolbar, do not use <code>ImGui::BeginGroup()</code>. Instead, manage layout with <code>ImGui::SameLine()</code> and end the toolbar with <code>ImGui::NewLine()</code>.</li>
 <li><b>Separators</b>: Use <code>ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical)</code> for vertical separators that do not affect item layout.</li>
 <li><b>Property Inputs</b>: Use the <code>toolbar.AddProperty()</code> method for consistent spacing and sizing of input fields within the toolbar.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md359"></a>
+<h1><a class="anchor" id="autotoc_md592"></a>
 3. Key System Implementations &amp; Gotchas</h1>
-<h2><a class="anchor" id="autotoc_md360"></a>
+<h2><a class="anchor" id="autotoc_md593"></a>
 3.1. Graphics Refresh Logic</h2>
 <ul>
 <li><b>Immediate vs. Deferred</b>: When a visual property changes, the texture must be updated on the GPU immediately. Use <code>Renderer::Get().RenderBitmap()</code> for an immediate, blocking update. <code>UpdateBitmap()</code> is deferred and should not be used for changes the user expects to see instantly.</li>
@@ -191,19 +208,19 @@ Pattern 3: Centralized Progressive Loading via &lt;tt&gt;gfx::Arena&lt;/tt&gt;</
 </ol>
 </li>
 </ul>
-<h2><a class="anchor" id="autotoc_md361"></a>
+<h2><a class="anchor" id="autotoc_md594"></a>
 3.2. Multi-Area Map Configuration</h2>
 <ul>
 <li><b>Use the Helper</b>: When changing a map's area size (e.g., from <code>Small</code> to <code>Large</code>), you <b>must</b> use the <code>zelda3::Overworld::ConfigureMultiAreaMap()</code> method. Do not set the <code>area_size</code> property directly.</li>
 <li><b>Why</b>: This method correctly handles the complex logic of assigning parent IDs to all sibling maps and updating the necessary ROM data for persistence. Failure to use it will result in inconsistent state and refresh bugs.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md362"></a>
+<h2><a class="anchor" id="autotoc_md595"></a>
 3.3. Version-Specific Feature Gating</h2>
 <ul>
 <li><b>Principle</b>: The UI must adapt to the features supported by the loaded ROM. Do not show UI for features that are not available.</li>
 <li><b>Implementation</b>: Check the ROM's <code>asm_version</code> byte before rendering a UI component. If the feature is not supported, display a helpful message (e.g., "This feature requires ZSCustomOverworld v3+") instead of the UI.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md363"></a>
+<h2><a class="anchor" id="autotoc_md596"></a>
 3.4. Entity Visibility for Visual Testing</h2>
 <ul>
 <li><b>Standard</b>: All overworld entity markers (entrances, exits, items, sprites) should be rendered with a high-contrast color and an alpha of <code>0.85f</code> to ensure they are clearly visible against any background.<ul>
@@ -214,10 +231,20 @@ Pattern 3: Centralized Progressive Loading via &lt;tt&gt;gfx::Arena&lt;/tt&gt;</
 </ul>
 </li>
 </ul>
-<h1><a class="anchor" id="autotoc_md364"></a>
-4. Debugging and Testing</h1>
-<h2><a class="anchor" id="autotoc_md365"></a>
-4.1. Quick Debugging with Startup Flags</h2>
+<h1><a class="anchor" id="autotoc_md597"></a>
+4. Clang Tooling Configuration</h1>
+<p>The repository ships curated <code>.clangd</code> and <code>.clang-tidy</code> files that mirror our Google-style C++23 guidelines while accommodating ROM hacking patterns.</p>
+<ul>
+<li><code>.clangd</code> consumes <code>build/compile_commands.json</code>, enumerates <code>src/</code>, <code>incl/</code>, <code>third_party/</code>, generated directories, and sets feature flags such as <code>YAZE_WITH_GRPC</code>, <code>YAZE_WITH_JSON</code>, and <code>Z3ED_AI</code> so IntelliSense matches the active preset.</li>
+<li><code>.clang-tidy</code> enables the <code>clang-analyzer</code>, <code>performance</code>, <code>bugprone</code>, <code>readability</code>, <code>modernize</code>, <code>google</code>, and <code>abseil</code> suites, but relaxes common ROM hacking pain points (magic numbers, explicit integer sizing, C arrays, carefully scoped narrowing conversions).</li>
+<li>The <code>gfx::SnesColor</code> utilities intentionally return ImVec4 values in 0‑255 space; rely on the helper converters instead of manual scaling to avoid precision loss.</li>
+<li>Regenerate the compilation database whenever you reconfigure: <code>cmake --preset mac-dbg</code> (or the platform equivalent) and ensure the file lives at <code>build/compile_commands.json</code>.</li>
+<li>Spot-check tooling with <code>clang-tidy path/to/file.cc -p build --quiet</code> or a batch run via presets before sending larger patches.</li>
+</ul>
+<h1><a class="anchor" id="autotoc_md598"></a>
+5. Debugging and Testing</h1>
+<h2><a class="anchor" id="autotoc_md599"></a>
+5.1. Quick Debugging with Startup Flags</h2>
 <p>To accelerate your debugging workflow, use command-line flags to jump directly to specific editors and open relevant UI cards:</p>
 <div class="fragment"><div class="line"># Quick dungeon room testing</div>
 <div class="line">./yaze --rom_file=zelda3.sfc --editor=Dungeon --cards=&quot;Room 0&quot;</div>
@@ -234,13 +261,13 @@ Pattern 3: Centralized Progressive Loading via &lt;tt&gt;gfx::Arena&lt;/tt&gt;</
 </div><!-- fragment --><p><b>Available Editors</b>: Assembly, Dungeon, Graphics, Music, Overworld, Palette, Screen, Sprite, Message, Hex, Agent, Settings</p>
 <p><b>Dungeon Editor Cards</b>: Rooms List, Room Matrix, Entrances List, Room Graphics, Object Editor, Palette Editor, Room N (where N is room ID 0-319)</p>
 <p>See debugging-startup-flags.md for complete documentation.</p>
-<h2><a class="anchor" id="autotoc_md366"></a>
-4.2. Testing Strategies</h2>
+<h2><a class="anchor" id="autotoc_md600"></a>
+5.2. Testing Strategies</h2>
 <p>For a comprehensive overview of debugging tools and testing strategies, including how to use the logging framework, command-line test runners, and the GUI automation harness for AI agents, please refer to the <a class="el" href="../../de/dc5/md_docs_2E5-debugging-guide.html">Debugging and Testing Guide</a>.</p>
-<h1><a class="anchor" id="autotoc_md367"></a>
+<h1><a class="anchor" id="autotoc_md601"></a>
 5. Command-Line Flag Standardization</h1>
 <p><b>Decision</b>: All binaries in the yaze project (<code>yaze</code>, <code>z3ed</code>, <code>yaze_test</code>, etc.) will standardize on the <b>Abseil Flags</b> library for command-line argument parsing.</p>
-<h2><a class="anchor" id="autotoc_md368"></a>
+<h2><a class="anchor" id="autotoc_md602"></a>
 Rationale</h2>
 <ul>
 <li><b>Consistency</b>: Provides a single, consistent flag system and user experience across all tools.</li>
@@ -249,7 +276,7 @@ Rationale</h2>
 <li><b>Reduced Maintenance</b>: Eliminates the need to maintain multiple custom flag parsers, reducing the project's technical debt.</li>
 <li><b>Existing Dependency</b>: Abseil is already included as a dependency via gRPC, so this adds no new third-party code.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md369"></a>
+<h2><a class="anchor" id="autotoc_md603"></a>
 Migration Plan</h2>
 <p>The project will migrate away from the legacy <code><a class="el" href="../../d7/dc5/classyaze_1_1util_1_1Flag.html">yaze::util::Flag</a></code> system and manual parsing in phases. All new flags should be implemented using <code>ABSL_FLAG</code>.</p>
 <ul>
@@ -276,7 +303,7 @@ Migration Plan</h2>
 <div class="line"> </div>
 <div class="line"><span class="comment">// CORRECT - updates both vector and SDL surface</span></div>
 <div class="line">bitmap.set_data(new_data);</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md371"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md605"></a>
 3.6. Graphics Sheet Management</h2>
 <p>Graphics sheets (223 total) are managed centrally by <code>gfx::Arena</code>. When modifying a sheet:</p>
 <ol type="1">
@@ -289,7 +316,7 @@ Migration Plan</h2>
 <li>Sheets 113-127: Sprite palettes</li>
 <li>Sheets 128-222: HUD/menu palettes</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md372"></a>
+<h2><a class="anchor" id="autotoc_md606"></a>
 Naming Conventions</h2>
 <ul>
 <li>Load: Reading data from ROM into memory</li>

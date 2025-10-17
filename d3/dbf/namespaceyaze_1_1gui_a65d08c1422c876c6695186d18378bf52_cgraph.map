@@ -1,0 +1,6 @@
+<map id="yaze::gui::RenderMenuSection" name="yaze::gui::RenderMenuSection">
+<area shape="rect" id="Node000001" title="Render a menu section." alt="" coords="5,29,199,55"/>
+<area shape="rect" id="Node000002" href="$d3/dbf/namespaceyaze_1_1gui.html#ab2866873cfa51ad6e48f5e97c9e44f4e" title="Render a single menu item." alt="" coords="247,29,422,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="199,40,231,40,231,45,199,45"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="296,31,288,21,293,11,309,5,334,3,363,5,377,12,375,17,361,11,334,8,310,10,296,15,294,20,300,27"/>
+</map>

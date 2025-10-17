@@ -1,0 +1,12 @@
+<map id="yaze::gui::DangerButton" name="yaze::gui::DangerButton">
+<area shape="rect" id="Node000001" title="Danger/destructive action button (uses error color)" alt="" coords="5,42,161,68"/>
+<area shape="poly" id="edge2_Node000001_Node000001" title=" " alt="" coords="48,43,41,34,45,24,60,18,83,16,109,18,122,25,119,30,107,23,83,21,61,23,49,28,47,33,52,40"/>
+<area shape="rect" id="Node000002" href="$d3/dbf/namespaceyaze_1_1gui.html#a0a2f4e28780bd8cf64f9d6e7b67be924" title=" " alt="" coords="209,5,375,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="161,41,193,37,193,42,161,47"/>
+<area shape="rect" id="Node000003" href="$d3/dbf/namespaceyaze_1_1gui.html#a4c84c2cc40ee46b790e1e05ba0c5edaf" title="Get current theme (shortcut)" alt="" coords="223,70,361,96"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="161,63,208,69,207,74,161,68"/>
+<area shape="rect" id="Node000004" href="$d3/d27/classyaze_1_1gui_1_1ThemeManager.html#ab3423e72fe874f8c370ed2d3e52ac278" title=" " alt="" coords="423,41,616,67"/>
+<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="360,72,407,65,408,71,361,77"/>
+<area shape="rect" id="Node000005" href="$d3/d27/classyaze_1_1gui_1_1ThemeManager.html#ad706e6146dd664adffe3350c520f397b" title=" " alt="" coords="437,91,603,131"/>
+<area shape="poly" id="edge5_Node000003_Node000005" title=" " alt="" coords="361,89,422,96,421,102,360,94"/>
+</map>

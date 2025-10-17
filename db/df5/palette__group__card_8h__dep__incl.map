@@ -1,0 +1,12 @@
+<map id="src/app/editor/palette/palette_group_card.h" name="src/app/editor/palette/palette_group_card.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="90,5,235,46"/>
+<area shape="rect" id="Node000002" href="$dc/d6e/app_2editor_2palette_2palette__editor_8h.html" title=" " alt="" coords="5,94,149,135"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="134,59,98,95,94,92,131,55"/>
+<area shape="rect" id="Node000039" href="$d1/d96/palette__group__card_8cc.html" title=" " alt="" coords="173,94,325,135"/>
+<area shape="poly" id="edge5_Node000001_Node000039" title=" " alt="" coords="195,55,231,92,228,95,191,59"/>
+<area shape="rect" id="Node000003" href="$d0/dd9/editor__manager_8cc.html" title=" " alt="" coords="9,271,145,312"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="60,149,48,183,45,203,48,223,56,248,67,270,63,272,51,250,42,224,39,203,42,182,55,147"/>
+<area shape="rect" id="Node000004" href="$dc/d9b/graphics__editor_8h.html" title=" " alt="" coords="58,183,211,223"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="101,146,124,181,119,184,96,149"/>
+<area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="115,238,92,272,88,269,111,235"/>
+</map>

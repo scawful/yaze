@@ -186,6 +186,9 @@ Classes</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d14/classyaze_1_1cli_1_1CommandPaletteComponent.html">CommandPaletteComponent</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/de8/classyaze_1_1cli_1_1CommandRegistry.html">CommandRegistry</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Single source of truth for all z3ed commands.  <a href="../../d7/de8/classyaze_1_1cli_1_1CommandRegistry.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d13/structyaze_1_1cli_1_1Context.html">Context</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d9/d5d/structyaze_1_1cli_1_1DiscoveredWindowInfo.html">DiscoveredWindowInfo</a></td></tr>
@@ -853,7 +856,7 @@ Variables</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="../../dc/d42/dungeon_8cc_source.html#l00014">14</a> of file <a class="el" href="../../dc/d42/dungeon_8cc_source.html">dungeon.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00349">yaze::zelda3::Room::blockset</a>, <a class="el" href="../../da/d13/dungeon__editor__system_8cc_source.html#l00083">yaze::zelda3::DungeonEditorSystem::GetRoom()</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00197">yaze::Rom::is_loaded()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00352">yaze::zelda3::Room::layout</a>, <a class="el" href="../../d5/d00/rom_8cc_source.html#l00289">yaze::Rom::LoadFromFile()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00351">yaze::zelda3::Room::palette</a>, and <a class="el" href="../../d9/dc0/room_8h_source.html#l00350">yaze::zelda3::Room::spriteset</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00349">yaze::zelda3::Room::blockset</a>, <a class="el" href="../../da/d13/dungeon__editor__system_8cc_source.html#l00083">yaze::zelda3::DungeonEditorSystem::GetRoom()</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00200">yaze::Rom::is_loaded()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00352">yaze::zelda3::Room::layout</a>, <a class="el" href="../../d5/d00/rom_8cc_source.html#l00292">yaze::Rom::LoadFromFile()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00351">yaze::zelda3::Room::palette</a>, and <a class="el" href="../../d9/dc0/room_8h_source.html#l00350">yaze::zelda3::Room::spriteset</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -892,7 +895,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../dc/d42/dungeon_8cc_source.html#l00049">49</a> of file <a class="el" href="../../dc/d42/dungeon_8cc_source.html">dungeon.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../da/d13/dungeon__editor__system_8cc_source.html#l00083">yaze::zelda3::DungeonEditorSystem::GetRoom()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00220">yaze::zelda3::Room::GetTileObjects()</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00197">yaze::Rom::is_loaded()</a>, <a class="el" href="../../d5/d00/rom_8cc_source.html#l00289">yaze::Rom::LoadFromFile()</a>, and <a class="el" href="../../d5/d1b/room_8cc_source.html#l00606">yaze::zelda3::Room::LoadObjects()</a>.</p>
+<p class="reference">References <a class="el" href="../../da/d13/dungeon__editor__system_8cc_source.html#l00083">yaze::zelda3::DungeonEditorSystem::GetRoom()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00220">yaze::zelda3::Room::GetTileObjects()</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00200">yaze::Rom::is_loaded()</a>, <a class="el" href="../../d5/d00/rom_8cc_source.html#l00292">yaze::Rom::LoadFromFile()</a>, and <a class="el" href="../../d5/d1b/room_8cc_source.html#l00606">yaze::zelda3::Room::LoadObjects()</a>.</p>
 
 </div>
 </div>
@@ -911,11 +914,11 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000147">Todo:</a></b></dt><dd>Implement OverworldGetTileCommandHandler </dd></dl>
+<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000178">Todo:</a></b></dt><dd>Implement OverworldGetTileCommandHandler </dd></dl>
 
 <p class="definition">Definition at line <a class="el" href="../../d1/d34/cli_2handlers_2game_2overworld_8cc_source.html#l00034">34</a> of file <a class="el" href="../../d1/d34/cli_2handlers_2game_2overworld_8cc_source.html">overworld.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d7/d9c/overworld_8h_source.html#l00293">yaze::zelda3::Overworld::GetTile()</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00197">yaze::Rom::is_loaded()</a>, <a class="el" href="../../d2/d35/app_2zelda3_2overworld_2overworld_8cc_source.html#l00027">yaze::zelda3::Overworld::Load()</a>, and <a class="el" href="../../d5/d00/rom_8cc_source.html#l00289">yaze::Rom::LoadFromFile()</a>.</p>
+<p class="reference">References <a class="el" href="../../d7/d9c/overworld_8h_source.html#l00282">yaze::zelda3::Overworld::GetTile()</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00200">yaze::Rom::is_loaded()</a>, <a class="el" href="../../d6/da6/zelda3_2overworld_2overworld_8cc_source.html#l00031">yaze::zelda3::Overworld::Load()</a>, and <a class="el" href="../../d5/d00/rom_8cc_source.html#l00292">yaze::Rom::LoadFromFile()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -951,11 +954,11 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000148">Todo:</a></b></dt><dd>Implement OverworldSetTileCommandHandler </dd></dl>
+<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000179">Todo:</a></b></dt><dd>Implement OverworldSetTileCommandHandler </dd></dl>
 
 <p class="definition">Definition at line <a class="el" href="../../d1/d34/cli_2handlers_2game_2overworld_8cc_source.html#l00081">81</a> of file <a class="el" href="../../d1/d34/cli_2handlers_2game_2overworld_8cc_source.html">overworld.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../da/de5/rom_8h_source.html#l00197">yaze::Rom::is_loaded()</a>, <a class="el" href="../../d2/d35/app_2zelda3_2overworld_2overworld_8cc_source.html#l00027">yaze::zelda3::Overworld::Load()</a>, <a class="el" href="../../d5/d00/rom_8cc_source.html#l00289">yaze::Rom::LoadFromFile()</a>, <a class="el" href="../../d5/d00/rom_8cc_source.html#l00536">yaze::Rom::SaveToFile()</a>, <a class="el" href="../../d7/d9c/overworld_8h_source.html#l00292">yaze::zelda3::Overworld::set_current_world()</a>, and <a class="el" href="../../d7/d9c/overworld_8h_source.html#l00302">yaze::zelda3::Overworld::SetTile()</a>.</p>
+<p class="reference">References <a class="el" href="../../da/de5/rom_8h_source.html#l00200">yaze::Rom::is_loaded()</a>, <a class="el" href="../../d6/da6/zelda3_2overworld_2overworld_8cc_source.html#l00031">yaze::zelda3::Overworld::Load()</a>, <a class="el" href="../../d5/d00/rom_8cc_source.html#l00292">yaze::Rom::LoadFromFile()</a>, <a class="el" href="../../d5/d00/rom_8cc_source.html#l00539">yaze::Rom::SaveToFile()</a>, <a class="el" href="../../d7/d9c/overworld_8h_source.html#l00281">yaze::zelda3::Overworld::set_current_world()</a>, and <a class="el" href="../../d7/d9c/overworld_8h_source.html#l00291">yaze::zelda3::Overworld::SetTile()</a>.</p>
 
 </div>
 </div>
@@ -974,11 +977,11 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000149">Todo:</a></b></dt><dd>Implement OverworldFindTileCommandHandler </dd></dl>
+<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000180">Todo:</a></b></dt><dd>Implement OverworldFindTileCommandHandler </dd></dl>
 
 <p class="definition">Definition at line <a class="el" href="../../d1/d34/cli_2handlers_2game_2overworld_8cc_source.html#l00154">154</a> of file <a class="el" href="../../d1/d34/cli_2handlers_2game_2overworld_8cc_source.html">overworld.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d4/d9e/macro_8h_source.html#l00061">ASSIGN_OR_RETURN</a>, <a class="el" href="../../d0/dfd/overworld__inspect_8cc_source.html#l00298">yaze::cli::overworld::FindTileMatches()</a>, <a class="el" href="../../d0/dfd/overworld__inspect_8cc_source.html#l00133">yaze::cli::overworld::InferWorldFromMapId()</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00197">yaze::Rom::is_loaded()</a>, <a class="el" href="../../d2/d35/app_2zelda3_2overworld_2overworld_8cc_source.html#l00027">yaze::zelda3::Overworld::Load()</a>, <a class="el" href="../../d5/d00/rom_8cc_source.html#l00289">yaze::Rom::LoadFromFile()</a>, <a class="el" href="../../df/d12/overworld__inspect_8h_source.html#l00094">yaze::cli::overworld::TileSearchOptions::map_id</a>, <a class="el" href="../../d0/dfd/overworld__inspect_8cc_source.html#l00103">yaze::cli::overworld::ParseNumeric()</a>, <a class="el" href="../../d0/dfd/overworld__inspect_8cc_source.html#l00118">yaze::cli::overworld::ParseWorldSpecifier()</a>, <a class="el" href="../../df/d12/overworld__inspect_8h_source.html#l00095">yaze::cli::overworld::TileSearchOptions::world</a>, and <a class="el" href="../../d0/dfd/overworld__inspect_8cc_source.html#l00144">yaze::cli::overworld::WorldName()</a>.</p>
+<p class="reference">References <a class="el" href="../../d4/d9e/macro_8h_source.html#l00061">ASSIGN_OR_RETURN</a>, <a class="el" href="../../d0/dfd/overworld__inspect_8cc_source.html#l00298">yaze::cli::overworld::FindTileMatches()</a>, <a class="el" href="../../d0/dfd/overworld__inspect_8cc_source.html#l00133">yaze::cli::overworld::InferWorldFromMapId()</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00200">yaze::Rom::is_loaded()</a>, <a class="el" href="../../d6/da6/zelda3_2overworld_2overworld_8cc_source.html#l00031">yaze::zelda3::Overworld::Load()</a>, <a class="el" href="../../d5/d00/rom_8cc_source.html#l00292">yaze::Rom::LoadFromFile()</a>, <a class="el" href="../../df/d12/overworld__inspect_8h_source.html#l00094">yaze::cli::overworld::TileSearchOptions::map_id</a>, <a class="el" href="../../d0/dfd/overworld__inspect_8cc_source.html#l00103">yaze::cli::overworld::ParseNumeric()</a>, <a class="el" href="../../d0/dfd/overworld__inspect_8cc_source.html#l00118">yaze::cli::overworld::ParseWorldSpecifier()</a>, <a class="el" href="../../df/d12/overworld__inspect_8h_source.html#l00095">yaze::cli::overworld::TileSearchOptions::world</a>, and <a class="el" href="../../d0/dfd/overworld__inspect_8cc_source.html#l00144">yaze::cli::overworld::WorldName()</a>.</p>
 
 </div>
 </div>
@@ -997,11 +1000,11 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000150">Todo:</a></b></dt><dd>Implement OverworldDescribeMapCommandHandler </dd></dl>
+<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000181">Todo:</a></b></dt><dd>Implement OverworldDescribeMapCommandHandler </dd></dl>
 
 <p class="definition">Definition at line <a class="el" href="../../d1/d34/cli_2handlers_2game_2overworld_8cc_source.html#l00326">326</a> of file <a class="el" href="../../d1/d34/cli_2handlers_2game_2overworld_8cc_source.html">overworld.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d4/d9e/macro_8h_source.html#l00061">ASSIGN_OR_RETURN</a>, <a class="el" href="../../d0/dfd/overworld__inspect_8cc_source.html#l00170">yaze::cli::overworld::BuildMapSummary()</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00197">yaze::Rom::is_loaded()</a>, <a class="el" href="../../d7/d9c/overworld_8h_source.html#l00119">yaze::zelda3::kNumOverworldMaps</a>, <a class="el" href="../../d2/d35/app_2zelda3_2overworld_2overworld_8cc_source.html#l00027">yaze::zelda3::Overworld::Load()</a>, <a class="el" href="../../d5/d00/rom_8cc_source.html#l00289">yaze::Rom::LoadFromFile()</a>, <a class="el" href="../../d0/dfd/overworld__inspect_8cc_source.html#l00103">yaze::cli::overworld::ParseNumeric()</a>, and <a class="el" href="../../d0/dfd/overworld__inspect_8cc_source.html#l00144">yaze::cli::overworld::WorldName()</a>.</p>
+<p class="reference">References <a class="el" href="../../d4/d9e/macro_8h_source.html#l00061">ASSIGN_OR_RETURN</a>, <a class="el" href="../../d0/dfd/overworld__inspect_8cc_source.html#l00170">yaze::cli::overworld::BuildMapSummary()</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00200">yaze::Rom::is_loaded()</a>, <a class="el" href="../../d4/d6c/zelda3_2common_8h_source.html#l00046">yaze::zelda3::kNumOverworldMaps</a>, <a class="el" href="../../d6/da6/zelda3_2overworld_2overworld_8cc_source.html#l00031">yaze::zelda3::Overworld::Load()</a>, <a class="el" href="../../d5/d00/rom_8cc_source.html#l00292">yaze::Rom::LoadFromFile()</a>, <a class="el" href="../../d0/dfd/overworld__inspect_8cc_source.html#l00103">yaze::cli::overworld::ParseNumeric()</a>, and <a class="el" href="../../d0/dfd/overworld__inspect_8cc_source.html#l00144">yaze::cli::overworld::WorldName()</a>.</p>
 
 </div>
 </div>
@@ -1020,11 +1023,11 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000151">Todo:</a></b></dt><dd>Implement OverworldListWarpsCommandHandler </dd></dl>
+<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000182">Todo:</a></b></dt><dd>Implement OverworldListWarpsCommandHandler </dd></dl>
 
 <p class="definition">Definition at line <a class="el" href="../../d1/d34/cli_2handlers_2game_2overworld_8cc_source.html#l00511">511</a> of file <a class="el" href="../../d1/d34/cli_2handlers_2game_2overworld_8cc_source.html">overworld.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d4/d9e/macro_8h_source.html#l00061">ASSIGN_OR_RETURN</a>, <a class="el" href="../../d0/dfd/overworld__inspect_8cc_source.html#l00226">yaze::cli::overworld::CollectWarpEntries()</a>, <a class="el" href="../../d0/dfd/overworld__inspect_8cc_source.html#l00133">yaze::cli::overworld::InferWorldFromMapId()</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00197">yaze::Rom::is_loaded()</a>, <a class="el" href="../../d5/d93/namespaceyaze_1_1cli_1_1overworld.html#a488562d98c871126f559038f340ba8cbaa300b71af23bae0362ebfb23ebb3708c">yaze::cli::overworld::kEntrance</a>, <a class="el" href="../../d5/d93/namespaceyaze_1_1cli_1_1overworld.html#a488562d98c871126f559038f340ba8cbac2477f77de6d38233af46d78ec777846">yaze::cli::overworld::kExit</a>, <a class="el" href="../../d5/d93/namespaceyaze_1_1cli_1_1overworld.html#a488562d98c871126f559038f340ba8cbac7bd6bc9809b45c9c45dcb8414d15893">yaze::cli::overworld::kHole</a>, <a class="el" href="../../d7/d9c/overworld_8h_source.html#l00119">yaze::zelda3::kNumOverworldMaps</a>, <a class="el" href="../../d2/d35/app_2zelda3_2overworld_2overworld_8cc_source.html#l00027">yaze::zelda3::Overworld::Load()</a>, <a class="el" href="../../d5/d00/rom_8cc_source.html#l00289">yaze::Rom::LoadFromFile()</a>, <a class="el" href="../../df/d12/overworld__inspect_8h_source.html#l00080">yaze::cli::overworld::WarpQuery::map_id</a>, <a class="el" href="../../d0/dfd/overworld__inspect_8cc_source.html#l00103">yaze::cli::overworld::ParseNumeric()</a>, <a class="el" href="../../d0/dfd/overworld__inspect_8cc_source.html#l00118">yaze::cli::overworld::ParseWorldSpecifier()</a>, <a class="el" href="../../df/d12/overworld__inspect_8h_source.html#l00081">yaze::cli::overworld::WarpQuery::type</a>, <a class="el" href="../../d0/dfd/overworld__inspect_8cc_source.html#l00157">yaze::cli::overworld::WarpTypeName()</a>, <a class="el" href="../../df/d12/overworld__inspect_8h_source.html#l00079">yaze::cli::overworld::WarpQuery::world</a>, and <a class="el" href="../../d0/dfd/overworld__inspect_8cc_source.html#l00144">yaze::cli::overworld::WorldName()</a>.</p>
+<p class="reference">References <a class="el" href="../../d4/d9e/macro_8h_source.html#l00061">ASSIGN_OR_RETURN</a>, <a class="el" href="../../d0/dfd/overworld__inspect_8cc_source.html#l00226">yaze::cli::overworld::CollectWarpEntries()</a>, <a class="el" href="../../d0/dfd/overworld__inspect_8cc_source.html#l00133">yaze::cli::overworld::InferWorldFromMapId()</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00200">yaze::Rom::is_loaded()</a>, <a class="el" href="../../d5/d93/namespaceyaze_1_1cli_1_1overworld.html#a488562d98c871126f559038f340ba8cbaa300b71af23bae0362ebfb23ebb3708c">yaze::cli::overworld::kEntrance</a>, <a class="el" href="../../d5/d93/namespaceyaze_1_1cli_1_1overworld.html#a488562d98c871126f559038f340ba8cbac2477f77de6d38233af46d78ec777846">yaze::cli::overworld::kExit</a>, <a class="el" href="../../d5/d93/namespaceyaze_1_1cli_1_1overworld.html#a488562d98c871126f559038f340ba8cbac7bd6bc9809b45c9c45dcb8414d15893">yaze::cli::overworld::kHole</a>, <a class="el" href="../../d4/d6c/zelda3_2common_8h_source.html#l00046">yaze::zelda3::kNumOverworldMaps</a>, <a class="el" href="../../d6/da6/zelda3_2overworld_2overworld_8cc_source.html#l00031">yaze::zelda3::Overworld::Load()</a>, <a class="el" href="../../d5/d00/rom_8cc_source.html#l00292">yaze::Rom::LoadFromFile()</a>, <a class="el" href="../../df/d12/overworld__inspect_8h_source.html#l00080">yaze::cli::overworld::WarpQuery::map_id</a>, <a class="el" href="../../d0/dfd/overworld__inspect_8cc_source.html#l00103">yaze::cli::overworld::ParseNumeric()</a>, <a class="el" href="../../d0/dfd/overworld__inspect_8cc_source.html#l00118">yaze::cli::overworld::ParseWorldSpecifier()</a>, <a class="el" href="../../df/d12/overworld__inspect_8h_source.html#l00081">yaze::cli::overworld::WarpQuery::type</a>, <a class="el" href="../../d0/dfd/overworld__inspect_8cc_source.html#l00157">yaze::cli::overworld::WarpTypeName()</a>, <a class="el" href="../../df/d12/overworld__inspect_8h_source.html#l00079">yaze::cli::overworld::WarpQuery::world</a>, and <a class="el" href="../../d0/dfd/overworld__inspect_8cc_source.html#l00144">yaze::cli::overworld::WorldName()</a>.</p>
 
 </div>
 </div>
@@ -1043,7 +1046,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000152">Todo:</a></b></dt><dd>Implement OverworldSelectRectCommandHandler </dd></dl>
+<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000183">Todo:</a></b></dt><dd>Implement OverworldSelectRectCommandHandler </dd></dl>
 
 <p class="definition">Definition at line <a class="el" href="../../d1/d34/cli_2handlers_2game_2overworld_8cc_source.html#l00732">732</a> of file <a class="el" href="../../d1/d34/cli_2handlers_2game_2overworld_8cc_source.html">overworld.cc</a>.</p>
 
@@ -1064,7 +1067,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000153">Todo:</a></b></dt><dd>Implement OverworldScrollToCommandHandler </dd></dl>
+<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000184">Todo:</a></b></dt><dd>Implement OverworldScrollToCommandHandler </dd></dl>
 
 <p class="definition">Definition at line <a class="el" href="../../d1/d34/cli_2handlers_2game_2overworld_8cc_source.html#l00768">768</a> of file <a class="el" href="../../d1/d34/cli_2handlers_2game_2overworld_8cc_source.html">overworld.cc</a>.</p>
 
@@ -1085,7 +1088,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000154">Todo:</a></b></dt><dd>Implement OverworldSetZoomCommandHandler </dd></dl>
+<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000185">Todo:</a></b></dt><dd>Implement OverworldSetZoomCommandHandler </dd></dl>
 
 <p class="definition">Definition at line <a class="el" href="../../d1/d34/cli_2handlers_2game_2overworld_8cc_source.html#l00801">801</a> of file <a class="el" href="../../d1/d34/cli_2handlers_2game_2overworld_8cc_source.html">overworld.cc</a>.</p>
 
@@ -1106,7 +1109,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000155">Todo:</a></b></dt><dd>Implement OverworldGetVisibleRegionCommandHandler </dd></dl>
+<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000186">Todo:</a></b></dt><dd>Implement OverworldGetVisibleRegionCommandHandler </dd></dl>
 
 <p class="definition">Definition at line <a class="el" href="../../d1/d34/cli_2handlers_2game_2overworld_8cc_source.html#l00827">827</a> of file <a class="el" href="../../d1/d34/cli_2handlers_2game_2overworld_8cc_source.html">overworld.cc</a>.</p>
 
@@ -1127,12 +1130,12 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000156">Todo:</a></b></dt><dd>Implement GfxExportCommandHandler </dd></dl>
-<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000157">Todo:</a></b></dt><dd>Convert the 8bpp data to the correct SNES bpp format. </dd></dl>
+<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000187">Todo:</a></b></dt><dd>Implement GfxExportCommandHandler </dd></dl>
+<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000188">Todo:</a></b></dt><dd>Convert the 8bpp data to the correct SNES bpp format. </dd></dl>
 
 <p class="definition">Definition at line <a class="el" href="../../d7/dfd/gfx_8cc_source.html#l00014">14</a> of file <a class="el" href="../../d7/dfd/gfx_8cc_source.html">gfx.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d2/dee/arena_8cc_source.html#l00015">yaze::gfx::Arena::Get()</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00197">yaze::Rom::is_loaded()</a>, <a class="el" href="../../d5/d00/rom_8cc_source.html#l00289">yaze::Rom::LoadFromFile()</a>, and <a class="el" href="../../d1/de3/scad__format_8cc_source.html#l00158">yaze::gfx::SaveCgx()</a>.</p>
+<p class="reference">References <a class="el" href="../../d2/dee/arena_8cc_source.html#l00015">yaze::gfx::Arena::Get()</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00200">yaze::Rom::is_loaded()</a>, <a class="el" href="../../d5/d00/rom_8cc_source.html#l00292">yaze::Rom::LoadFromFile()</a>, and <a class="el" href="../../d1/de3/scad__format_8cc_source.html#l00158">yaze::gfx::SaveCgx()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1168,13 +1171,13 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000158">Todo:</a></b></dt><dd>Implement GfxImportCommandHandler </dd></dl>
-<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000159">Todo:</a></b></dt><dd>Convert the 8bpp data to the correct SNES bpp format before writing. </dd></dl>
-<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000160">Todo:</a></b></dt><dd>Implement saving the modified graphics sheet back to the ROM. </dd></dl>
+<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000189">Todo:</a></b></dt><dd>Implement GfxImportCommandHandler </dd></dl>
+<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000190">Todo:</a></b></dt><dd>Convert the 8bpp data to the correct SNES bpp format before writing. </dd></dl>
+<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000191">Todo:</a></b></dt><dd>Implement saving the modified graphics sheet back to the ROM. </dd></dl>
 
 <p class="definition">Definition at line <a class="el" href="../../d7/dfd/gfx_8cc_source.html#l00054">54</a> of file <a class="el" href="../../d7/dfd/gfx_8cc_source.html">gfx.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../da/de5/rom_8h_source.html#l00208">yaze::Rom::filename()</a>, <a class="el" href="../../d2/dee/arena_8cc_source.html#l00015">yaze::gfx::Arena::Get()</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00197">yaze::Rom::is_loaded()</a>, <a class="el" href="../../d1/de3/scad__format_8cc_source.html#l00042">yaze::gfx::LoadCgx()</a>, <a class="el" href="../../d5/d00/rom_8cc_source.html#l00289">yaze::Rom::LoadFromFile()</a>, and <a class="el" href="../../d5/d00/rom_8cc_source.html#l00536">yaze::Rom::SaveToFile()</a>.</p>
+<p class="reference">References <a class="el" href="../../da/de5/rom_8h_source.html#l00211">yaze::Rom::filename()</a>, <a class="el" href="../../d2/dee/arena_8cc_source.html#l00015">yaze::gfx::Arena::Get()</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00200">yaze::Rom::is_loaded()</a>, <a class="el" href="../../d1/de3/scad__format_8cc_source.html#l00042">yaze::gfx::LoadCgx()</a>, <a class="el" href="../../d5/d00/rom_8cc_source.html#l00292">yaze::Rom::LoadFromFile()</a>, and <a class="el" href="../../d5/d00/rom_8cc_source.html#l00539">yaze::Rom::SaveToFile()</a>.</p>
 
 </div>
 </div>
@@ -1196,7 +1199,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../de/d6a/palette_8cc_source.html#l00046">46</a> of file <a class="el" href="../../de/d6a/palette_8cc_source.html">palette.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../da/de5/rom_8h_source.html#l00197">yaze::Rom::is_loaded()</a>, <a class="el" href="../../d5/d00/rom_8cc_source.html#l00289">yaze::Rom::LoadFromFile()</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00213">yaze::Rom::palette_group()</a>, and <a class="el" href="../../d1/de3/scad__format_8cc_source.html#l00221">yaze::gfx::SaveCol()</a>.</p>
+<p class="reference">References <a class="el" href="../../da/de5/rom_8h_source.html#l00200">yaze::Rom::is_loaded()</a>, <a class="el" href="../../d5/d00/rom_8cc_source.html#l00292">yaze::Rom::LoadFromFile()</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00216">yaze::Rom::palette_group()</a>, and <a class="el" href="../../d1/de3/scad__format_8cc_source.html#l00221">yaze::gfx::SaveCol()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../de/d6a/palette_8cc_source.html#l00022">HandlePaletteLegacy()</a>.</p>
 <div class="dynheader">
@@ -1234,12 +1237,12 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000162">Todo:</a></b></dt><dd>Implement saving the modified palette back to the ROM. </dd></dl>
-<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000162">Todo:</a></b></dt><dd>Implement saving the modified palette back to the ROM. </dd></dl>
+<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000193">Todo:</a></b></dt><dd>Implement saving the modified palette back to the ROM. </dd></dl>
+<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000193">Todo:</a></b></dt><dd>Implement saving the modified palette back to the ROM. </dd></dl>
 
 <p class="definition">Definition at line <a class="el" href="../../de/d6a/palette_8cc_source.html#l00108">108</a> of file <a class="el" href="../../de/d6a/palette_8cc_source.html">palette.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d1/de3/scad__format_8cc_source.html#l00186">yaze::gfx::DecodeColFile()</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00208">yaze::Rom::filename()</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00197">yaze::Rom::is_loaded()</a>, <a class="el" href="../../d5/d00/rom_8cc_source.html#l00289">yaze::Rom::LoadFromFile()</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00213">yaze::Rom::palette_group()</a>, and <a class="el" href="../../d5/d00/rom_8cc_source.html#l00536">yaze::Rom::SaveToFile()</a>.</p>
+<p class="reference">References <a class="el" href="../../d1/de3/scad__format_8cc_source.html#l00186">yaze::gfx::DecodeColFile()</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00211">yaze::Rom::filename()</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00200">yaze::Rom::is_loaded()</a>, <a class="el" href="../../d5/d00/rom_8cc_source.html#l00292">yaze::Rom::LoadFromFile()</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00216">yaze::Rom::palette_group()</a>, and <a class="el" href="../../d5/d00/rom_8cc_source.html#l00539">yaze::Rom::SaveToFile()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../de/d6a/palette_8cc_source.html#l00022">HandlePaletteLegacy()</a>.</p>
 
@@ -1301,7 +1304,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000161">Todo:</a></b></dt><dd>Implement palette editor TUI </dd></dl>
+<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000192">Todo:</a></b></dt><dd>Implement palette editor TUI </dd></dl>
 
 <p class="definition">Definition at line <a class="el" href="../../de/d6a/palette_8cc_source.html#l00040">40</a> of file <a class="el" href="../../de/d6a/palette_8cc_source.html">palette.cc</a>.</p>
 
@@ -1340,20 +1343,20 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../dc/d5b/mock__rom_8cc_source.html#l00016">16</a> of file <a class="el" href="../../dc/d5b/mock__rom_8cc_source.html">mock_rom.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d3/dd5/project_8cc_source.html#l00887">yaze::core::YazeProject::InitializeEmbeddedLabels()</a>, <a class="el" href="../../dc/d8d/project_8h_source.html#l00235">yaze::core::ResourceLabelManager::labels_</a>, <a class="el" href="../../dc/d8d/project_8h_source.html#l00227">yaze::core::ResourceLabelManager::labels_loaded_</a>, <a class="el" href="../../d5/d00/rom_8cc_source.html#l00381">yaze::Rom::LoadFromData()</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00220">yaze::Rom::resource_label()</a>, and <a class="el" href="../../dc/d8d/project_8h_source.html#l00100">yaze::core::YazeProject::resource_labels</a>.</p>
+<p class="reference">References <a class="el" href="../../d3/dd5/project_8cc_source.html#l00887">yaze::project::YazeProject::InitializeEmbeddedLabels()</a>, <a class="el" href="../../dc/d8d/project_8h_source.html#l00235">yaze::project::ResourceLabelManager::labels_</a>, <a class="el" href="../../dc/d8d/project_8h_source.html#l00227">yaze::project::ResourceLabelManager::labels_loaded_</a>, <a class="el" href="../../d5/d00/rom_8cc_source.html#l00384">yaze::Rom::LoadFromData()</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00223">yaze::Rom::resource_label()</a>, and <a class="el" href="../../dc/d8d/project_8h_source.html#l00100">yaze::project::YazeProject::resource_labels</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d8/dcf/command__context_8cc_source.html#l00028">yaze::cli::resources::CommandContext::Initialize()</a>, and <a class="el" href="../../de/d20/conversation__test_8cc_source.html#l00028">yaze::cli::agent::anonymous_namespace{conversation_test.cc}::LoadRomForAgent()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d8/dcf/command__context_8cc_source.html#l00028">yaze::cli::resources::CommandContext::Initialize()</a>, and <a class="el" href="../../de/d20/conversation__test_8cc_source.html#l00027">yaze::cli::agent::anonymous_namespace{conversation_test.cc}::LoadRomForAgent()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="../../dd/d63/namespaceyaze_1_1cli_a2c164e6cd26b8d8f65ff130d80f0f737_cgraph.png" border="0" usemap="#add/d63/namespaceyaze_1_1cli_a2c164e6cd26b8d8f65ff130d80f0f737_cgraph" alt=""/></div>
 <map name="add/d63/namespaceyaze_1_1cli_a2c164e6cd26b8d8f65ff130d80f0f737_cgraph" id="add/d63/namespaceyaze_1_1cli_a2c164e6cd26b8d8f65ff130d80f0f737_cgraph">
 <area shape="rect" title="Initialize a mock ROM for testing without requiring an actual ROM file." alt="" coords="5,94,184,120"/>
-<area shape="rect" href="../../da/d5e/structyaze_1_1core_1_1YazeProject.html#a92a9dfec8ba27e3ccae53fcb267b8d16" title=" " alt="" coords="232,5,406,46"/>
+<area shape="rect" href="../../dd/d28/structyaze_1_1project_1_1YazeProject.html#a5493d4301d278dfe72ae6218aed8676d" title=" " alt="" coords="232,5,406,46"/>
 <area shape="poly" title=" " alt="" coords="132,91,245,49,247,54,133,96"/>
 <area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#a3aacb1ac78a97db45382a8ad580ec4db" title=" " alt="" coords="233,94,405,120"/>
 <area shape="poly" title=" " alt="" coords="184,104,217,104,217,110,184,110"/>
-<area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#aaf2600f3334bb925086268e63e225418" title=" " alt="" coords="251,144,387,185"/>
+<area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#a0d83b56676ffe1b6205d68cf875a9c8c" title=" " alt="" coords="251,144,387,185"/>
 <area shape="poly" title=" " alt="" coords="148,118,236,141,235,146,147,123"/>
 <area shape="rect" href="../../d4/d42/structyaze_1_1zelda3_1_1Zelda3Labels.html#a34742ede25e2a3dff22e0165d7220079" title="Convert all labels to a structured map for project embedding." alt="" coords="454,5,628,46"/>
 <area shape="poly" title=" " alt="" coords="406,23,438,23,438,28,406,28"/>
@@ -1404,7 +1407,7 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="../../d8/d98/service__factory_8cc_source.html#l00026">CreateAIService()</a>, <a class="el" href="../../d9/d37/service__factory_8h_source.html#l00015">yaze::cli::AIServiceConfig::gemini_api_key</a>, <a class="el" href="../../d9/d37/service__factory_8h_source.html#l00014">yaze::cli::AIServiceConfig::model</a>, <a class="el" href="../../d9/d37/service__factory_8h_source.html#l00016">yaze::cli::AIServiceConfig::ollama_host</a>, and <a class="el" href="../../d9/d37/service__factory_8h_source.html#l00013">yaze::cli::AIServiceConfig::provider</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d3/d5c/conversational__agent__service_8cc_source.html#l00175">yaze::cli::agent::ConversationalAgentService::ConversationalAgentService()</a>, <a class="el" href="../../d3/d5c/conversational__agent__service_8cc_source.html#l00179">yaze::cli::agent::ConversationalAgentService::ConversationalAgentService()</a>, <a class="el" href="../../d8/d98/service__factory_8cc_source.html#l00026">CreateAIService()</a>, <a class="el" href="../../d9/d8d/general__commands_8cc_source.html#l00242">yaze::cli::agent::HandlePlanCommand()</a>, <a class="el" href="../../d9/d8d/general__commands_8cc_source.html#l00184">yaze::cli::agent::HandleRunCommand()</a>, and <a class="el" href="../../d1/dd0/test__conversation__minimal_8cc_source.html#l00010">main()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d3/d5c/conversational__agent__service_8cc_source.html#l00183">yaze::cli::agent::ConversationalAgentService::ConversationalAgentService()</a>, <a class="el" href="../../d3/d5c/conversational__agent__service_8cc_source.html#l00202">yaze::cli::agent::ConversationalAgentService::ConversationalAgentService()</a>, <a class="el" href="../../d8/d98/service__factory_8cc_source.html#l00026">CreateAIService()</a>, <a class="el" href="../../d9/d8d/general__commands_8cc_source.html#l00238">yaze::cli::agent::HandlePlanCommand()</a>, <a class="el" href="../../d9/d8d/general__commands_8cc_source.html#l00180">yaze::cli::agent::HandleRunCommand()</a>, and <a class="el" href="../../d1/dd0/test__conversation__minimal_8cc_source.html#l00010">main()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1819,7 +1822,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d1/d06/z3ed__ascii__logo_8h_source.html#l00047">47</a> of file <a class="el" href="../../d1/d06/z3ed__ascii__logo_8h_source.html">z3ed_ascii_logo.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d4/d8e/tui_8cc_source.html#l00761">yaze::cli::anonymous_namespace{tui.cc}::DashboardComponent()</a>, <a class="el" href="../../d5/d48/cli__main_8cc_source.html#l00041">anonymous_namespace{cli_main.cc}::PrintCompactHelp()</a>, <a class="el" href="../../d5/d48/cli__main_8cc_source.html#l00031">anonymous_namespace{cli_main.cc}::PrintVersion()</a>, and <a class="el" href="../../d0/d4f/cli_8cc_source.html#l00068">yaze::cli::ModernCLI::ShowHelp()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d4/d8e/tui_8cc_source.html#l00761">yaze::cli::anonymous_namespace{tui.cc}::DashboardComponent()</a>, <a class="el" href="../../d5/d48/cli__main_8cc_source.html#l00041">anonymous_namespace{cli_main.cc}::PrintCompactHelp()</a>, <a class="el" href="../../d5/d48/cli__main_8cc_source.html#l00031">anonymous_namespace{cli_main.cc}::PrintVersion()</a>, and <a class="el" href="../../d0/d4f/cli_8cc_source.html#l00077">yaze::cli::ModernCLI::ShowHelp()</a>.</p>
 
 </div>
 </div>

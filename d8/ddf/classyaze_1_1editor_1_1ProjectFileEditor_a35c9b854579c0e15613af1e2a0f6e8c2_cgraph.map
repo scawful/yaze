@@ -1,10 +1,10 @@
 <map id="yaze::editor::ProjectFileEditor::SaveFileAs" name="yaze::editor::ProjectFileEditor::SaveFileAs">
 <area shape="rect" id="Node000001" title="Save to a new file path." alt="" coords="5,71,159,111"/>
-<area shape="rect" id="Node000002" href="$d8/ddf/classyaze_1_1editor_1_1ProjectFileEditor.html#afb0116cc3fd3dbc12af513d5c52238c1" title="Get the current filepath." alt="" coords="232,5,385,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="154,68,220,48,222,53,155,73"/>
-<area shape="rect" id="Node000003" href="$d8/d4b/classyaze_1_1core_1_1RecentFilesManager.html#a5d27da46038aed6b42243f1010ee043d" title=" " alt="" coords="207,71,410,111"/>
+<area shape="rect" id="Node000002" href="$d8/ddf/classyaze_1_1editor_1_1ProjectFileEditor.html#afb0116cc3fd3dbc12af513d5c52238c1" title="Get the current filepath." alt="" coords="214,5,367,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="148,68,208,49,210,54,150,73"/>
+<area shape="rect" id="Node000003" href="$da/d2c/classyaze_1_1project_1_1RecentFilesManager.html#a59ca67c0c25fd089fdbb707fbb9c2c0e" title=" " alt="" coords="207,71,374,111"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="159,88,191,88,191,94,159,94"/>
-<area shape="rect" id="Node000004" href="$d0/d28/classTextEditor.html#a581e92e7aff81a99dcd1ab8dcc95e909" title=" " alt="" coords="243,160,374,185"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="142,109,256,151,255,156,140,114"/>
-<area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="271,161,263,151,268,141,283,135,308,133,336,136,350,142,348,147,335,141,308,138,284,140,271,145,269,150,275,157"/>
+<area shape="rect" id="Node000004" href="$d0/d28/classTextEditor.html#a581e92e7aff81a99dcd1ab8dcc95e909" title=" " alt="" coords="225,160,356,185"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="137,109,242,151,240,156,135,114"/>
+<area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="256,161,249,151,253,141,267,135,290,133,316,136,329,142,326,147,314,141,290,138,268,140,257,145,254,150,260,158"/>
 </map>

@@ -1,7 +1,9 @@
 var classyaze_1_1editor_1_1EditorSet =
 [
-    [ "EditorSet", "d3/d21/classyaze_1_1editor_1_1EditorSet.html#a92f12c84f098ad8a19979287a2ba2434", null ],
+    [ "EditorSet", "d3/d21/classyaze_1_1editor_1_1EditorSet.html#ac13b8213775279a07e1abfca8137f2d2", null ],
     [ "set_user_settings", "d3/d21/classyaze_1_1editor_1_1EditorSet.html#aad04f8c4dfa4b3214401c6bbce1b9973", null ],
+    [ "ApplyDependencies", "d3/d21/classyaze_1_1editor_1_1EditorSet.html#a68a0e9e841a4608cfb851086d5d3981e", null ],
+    [ "session_id", "d3/d21/classyaze_1_1editor_1_1EditorSet.html#a633125fcb1f12cbd41ef7951597f0d2d", null ],
     [ "assembly_editor_", "d3/d21/classyaze_1_1editor_1_1EditorSet.html#ac073c43793ade0d820758bd6d7175322", null ],
     [ "dungeon_editor_", "d3/d21/classyaze_1_1editor_1_1EditorSet.html#a52760cfa4105c4e46b39ea8c6b966963", null ],
     [ "graphics_editor_", "d3/d21/classyaze_1_1editor_1_1EditorSet.html#a75df97875600232e9193257a7c59a06a", null ],
@@ -13,5 +15,6 @@ var classyaze_1_1editor_1_1EditorSet =
     [ "settings_editor_", "d3/d21/classyaze_1_1editor_1_1EditorSet.html#a2a2bdeccaae8f1d2a8020b09fb136af6", null ],
     [ "message_editor_", "d3/d21/classyaze_1_1editor_1_1EditorSet.html#ae4266067767015b05e680125e3921678", null ],
     [ "memory_editor_", "d3/d21/classyaze_1_1editor_1_1EditorSet.html#a686c90ad81065e962a097122915b6114", null ],
-    [ "active_editors_", "d3/d21/classyaze_1_1editor_1_1EditorSet.html#ae585f2bf8457f4051612c66805263a71", null ]
+    [ "active_editors_", "d3/d21/classyaze_1_1editor_1_1EditorSet.html#ae585f2bf8457f4051612c66805263a71", null ],
+    [ "session_id_", "d3/d21/classyaze_1_1editor_1_1EditorSet.html#a304457ca61704aa6cf2b574b74273400", null ]
 ];

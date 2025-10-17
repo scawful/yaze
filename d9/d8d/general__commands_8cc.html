@@ -105,8 +105,7 @@ $(document).ready(function(){initNavTree('d9/d8d/general__commands_8cc.html','..
   <div class="headertitle"><div class="title">general_commands.cc File Reference</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &quot;cli/handlers/commands.h&quot;</code><br />
-<code>#include &lt;algorithm&gt;</code><br />
+<div class="textblock"><code>#include &lt;algorithm&gt;</code><br />
 <code>#include &lt;filesystem&gt;</code><br />
 <code>#include &lt;fstream&gt;</code><br />
 <code>#include &lt;optional&gt;</code><br />
@@ -125,8 +124,8 @@ $(document).ready(function(){initNavTree('d9/d8d/general__commands_8cc.html','..
 <code>#include &quot;absl/time/clock.h&quot;</code><br />
 <code>#include &quot;absl/time/time.h&quot;</code><br />
 <code>#include &quot;absl/strings/string_view.h&quot;</code><br />
-<code>#include &quot;<a class="el" href="../../dc/d8d/project_8h_source.html">app/core/project.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="../../d9/dc0/room_8h_source.html">app/zelda3/dungeon/room.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../dc/d8d/project_8h_source.html">core/project.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../d9/dc0/room_8h_source.html">zelda3/dungeon/room.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../d6/dbc/cli_2handlers_2agent_2common_8h_source.html">cli/handlers/agent/common.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../dc/db0/cli_8h_source.html">cli/cli.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../d7/d52/ai__service_8h_source.html">cli/service/ai/ai_service.h</a>&quot;</code><br />
@@ -135,13 +134,11 @@ $(document).ready(function(){initNavTree('d9/d8d/general__commands_8cc.html','..
 <code>#include &quot;<a class="el" href="../../d9/d37/service__factory_8h_source.html">cli/service/ai/service_factory.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../de/dc1/learned__knowledge__service_8h_source.html">cli/service/agent/learned_knowledge_service.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../d9/d55/proposal__executor_8h_source.html">cli/service/agent/proposal_executor.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="../../d5/dee/simple__chat__session_8h_source.html">cli/service/agent/simple_chat_session.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../d4/d3d/proposal__registry_8h_source.html">cli/service/planning/proposal_registry.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../de/d9c/tile16__proposal__generator_8h_source.html">cli/service/planning/tile16_proposal_generator.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../d9/d7d/resource__catalog_8h_source.html">cli/service/resources/resource_catalog.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../d5/d28/resource__context__builder_8h_source.html">cli/service/resources/resource_context_builder.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../d0/d7b/rom__sandbox__manager_8h_source.html">cli/service/rom/rom_sandbox_manager.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="../../db/d67/chat__tui_8h_source.html">cli/tui/chat_tui.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../d4/d9e/macro_8h_source.html">util/macro.h</a>&quot;</code><br />
 </div>
 <p><a href="../../d9/d8d/general__commands_8cc_source.html">Go to the source code of this file.</a></p>
@@ -176,8 +173,8 @@ Functions</h2></td></tr>
 <tr class="separator:a4ee29d0836cb9056ee4f2f0d2550bdd4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad45792c6e00bfd5e60f63ecf17dc70e4" id="r_ad45792c6e00bfd5e60f63ecf17dc70e4"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; <a class="el" href="../../d9/d7e/structyaze_1_1cli_1_1agent_1_1anonymous__namespace_02general__commands_8cc_03_1_1DescribeOptions.html">DescribeOptions</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/ddf/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02general__commands_8cc_03.html#ad45792c6e00bfd5e60f63ecf17dc70e4">yaze::cli::agent::anonymous_namespace{general_commands.cc}::ParseDescribeArgs</a> (const std::vector&lt; std::string &gt; &amp;args)</td></tr>
 <tr class="separator:ad45792c6e00bfd5e60f63ecf17dc70e4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7f4e497bb28123e1057f1f5425a7f4e3" id="r_a7f4e497bb28123e1057f1f5425a7f4e3"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a7f4e497bb28123e1057f1f5425a7f4e3">yaze::cli::agent::HandleRunCommand</a> (const std::vector&lt; std::string &gt; &amp;arg_vec, <a class="el" href="../../d6/d30/classyaze_1_1Rom.html">Rom</a> &amp;rom)</td></tr>
-<tr class="separator:a7f4e497bb28123e1057f1f5425a7f4e3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4c88dbe6c96f20bba8fd432738e1a528" id="r_a4c88dbe6c96f20bba8fd432738e1a528"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a4c88dbe6c96f20bba8fd432738e1a528">yaze::cli::agent::HandleRunCommand</a> (const std::vector&lt; std::string &gt; &amp;args, <a class="el" href="../../d6/d30/classyaze_1_1Rom.html">Rom</a> &amp;rom)</td></tr>
+<tr class="separator:a4c88dbe6c96f20bba8fd432738e1a528"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af164e32341de8c5ac58d6836bb3bc483" id="r_af164e32341de8c5ac58d6836bb3bc483"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/dd3/namespaceyaze_1_1cli_1_1agent.html#af164e32341de8c5ac58d6836bb3bc483">yaze::cli::agent::HandlePlanCommand</a> (const std::vector&lt; std::string &gt; &amp;args)</td></tr>
 <tr class="separator:af164e32341de8c5ac58d6836bb3bc483"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab7fbe1f4946d07411f70942eed73a58e" id="r_ab7fbe1f4946d07411f70942eed73a58e"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/dd3/namespaceyaze_1_1cli_1_1agent.html#ab7fbe1f4946d07411f70942eed73a58e">yaze::cli::agent::HandleDiffCommand</a> (<a class="el" href="../../d6/d30/classyaze_1_1Rom.html">Rom</a> &amp;rom, const std::vector&lt; std::string &gt; &amp;args)</td></tr>
@@ -192,12 +189,8 @@ Functions</h2></td></tr>
 <tr class="separator:ac2a2ccb930ec7a842d23197aa6a43a51"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab38d737f28d3d64b29b1accf378fa7bc" id="r_ab38d737f28d3d64b29b1accf378fa7bc"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/dd3/namespaceyaze_1_1cli_1_1agent.html#ab38d737f28d3d64b29b1accf378fa7bc">yaze::cli::agent::HandleDescribeCommand</a> (const std::vector&lt; std::string &gt; &amp;args)</td></tr>
 <tr class="separator:ab38d737f28d3d64b29b1accf378fa7bc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab9c0a392ce6c066aca8d36eac12dc2b9" id="r_ab9c0a392ce6c066aca8d36eac12dc2b9"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/dd3/namespaceyaze_1_1cli_1_1agent.html#ab9c0a392ce6c066aca8d36eac12dc2b9">yaze::cli::agent::HandleChatCommand</a> (<a class="el" href="../../d6/d30/classyaze_1_1Rom.html">Rom</a> &amp;rom)</td></tr>
-<tr class="separator:ab9c0a392ce6c066aca8d36eac12dc2b9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a03ae7219e427e6f49ba3e5d642f9e9f5" id="r_a03ae7219e427e6f49ba3e5d642f9e9f5"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a03ae7219e427e6f49ba3e5d642f9e9f5">yaze::cli::agent::HandleSimpleChatCommand</a> (const std::vector&lt; std::string &gt; &amp;arg_vec, <a class="el" href="../../d6/d30/classyaze_1_1Rom.html">Rom</a> *rom, bool quiet)</td></tr>
-<tr class="separator:a03ae7219e427e6f49ba3e5d642f9e9f5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a589b2fa2a025f7e0ef5901901d7df584" id="r_a589b2fa2a025f7e0ef5901901d7df584"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a589b2fa2a025f7e0ef5901901d7df584">yaze::cli::agent::HandleAcceptCommand</a> (const std::vector&lt; std::string &gt; &amp;arg_vec, <a class="el" href="../../d6/d30/classyaze_1_1Rom.html">Rom</a> &amp;rom)</td></tr>
-<tr class="separator:a589b2fa2a025f7e0ef5901901d7df584"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2ff357fa1f94a07051d15276d26264b3" id="r_a2ff357fa1f94a07051d15276d26264b3"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a2ff357fa1f94a07051d15276d26264b3">yaze::cli::agent::HandleAcceptCommand</a> (const std::vector&lt; std::string &gt; &amp;args, <a class="el" href="../../d6/d30/classyaze_1_1Rom.html">Rom</a> &amp;rom)</td></tr>
+<tr class="separator:a2ff357fa1f94a07051d15276d26264b3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Function Documentation</h2>
 <a id="aa9c3df97146a4533c1c78f5ac7c9e36e" name="aa9c3df97146a4533c1c78f5ac7c9e36e"></a>

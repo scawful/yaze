@@ -1,24 +1,8 @@
 var dir_8fca90320bcc7393a52982c8dc104a2a =
 [
+    [ "app", "dir_72afdb7d394bba07c800779cf3a4716b.html", "dir_72afdb7d394bba07c800779cf3a4716b" ],
+    [ "automation", "dir_22129c30d3654d52622c841e9d547d7b.html", "dir_22129c30d3654d52622c841e9d547d7b" ],
     [ "canvas", "dir_2e70ebb92041ee9a8b6891199983e337.html", "dir_2e70ebb92041ee9a8b6891199983e337" ],
-    [ "modules", "dir_5135344c6c8014219232547b6844b904.html", "dir_5135344c6c8014219232547b6844b904" ],
-    [ "widgets", "dir_6d885699addaf9c45f1674a8d2e992c3.html", "dir_6d885699addaf9c45f1674a8d2e992c3" ],
-    [ "canvas.cc", "da/dbb/canvas_8cc.html", "da/dbb/canvas_8cc" ],
-    [ "canvas.h", "d4/dcf/canvas_8h.html", "d4/dcf/canvas_8h" ],
-    [ "color.cc", "d3/de1/color_8cc.html", "d3/de1/color_8cc" ],
-    [ "color.h", "da/dec/color_8h.html", "da/dec/color_8h" ],
-    [ "editor_card_manager.cc", "dc/d28/editor__card__manager_8cc.html", null ],
-    [ "editor_card_manager.h", "d3/d2f/editor__card__manager_8h.html", "d3/d2f/editor__card__manager_8h" ],
-    [ "editor_layout.cc", "d5/ddd/editor__layout_8cc.html", "d5/ddd/editor__layout_8cc" ],
-    [ "editor_layout.h", "d5/d1d/editor__layout_8h.html", "d5/d1d/editor__layout_8h" ],
-    [ "feature_flags_menu.h", "d3/d47/feature__flags__menu_8h.html", "d3/d47/feature__flags__menu_8h" ],
-    [ "icons.h", "de/dbf/icons_8h.html", "de/dbf/icons_8h" ],
-    [ "input.cc", "de/d4c/input_8cc.html", "de/d4c/input_8cc" ],
-    [ "input.h", "de/ded/input_8h.html", "de/ded/input_8h" ],
-    [ "style.cc", "d8/d05/style_8cc.html", "d8/d05/style_8cc" ],
-    [ "style.h", "de/d12/style_8h.html", "de/d12/style_8h" ],
-    [ "theme_manager.cc", "dd/d4c/theme__manager_8cc.html", "dd/d4c/theme__manager_8cc" ],
-    [ "theme_manager.h", "d8/d65/theme__manager_8h.html", "d8/d65/theme__manager_8h" ],
-    [ "ui_helpers.cc", "d8/dfa/ui__helpers_8cc.html", "d8/dfa/ui__helpers_8cc" ],
-    [ "ui_helpers.h", "d1/d95/ui__helpers_8h.html", "d1/d95/ui__helpers_8h" ]
+    [ "core", "dir_594b16f80a27b2517b093564d7e50ef5.html", "dir_594b16f80a27b2517b093564d7e50ef5" ],
+    [ "widgets", "dir_6d885699addaf9c45f1674a8d2e992c3.html", "dir_6d885699addaf9c45f1674a8d2e992c3" ]
 ];

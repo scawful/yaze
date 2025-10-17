@@ -1,7 +1,9 @@
 <map id="yaze::gfx::Bitmap" name="yaze::gfx::Bitmap">
-<area shape="rect" id="Node000001" title="Represents a bitmap image optimized for SNES ROM hacking." alt="" coords="100,109,218,135"/>
-<area shape="rect" id="Node000002" href="$da/d68/classyaze_1_1gfx_1_1SnesPalette.html" title="Represents a palette of colors for the Super Nintendo Entertainment System (SNES)." alt="" coords="5,13,153,39"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="101,49,151,107,147,110,97,52"/>
-<area shape="rect" id="Node000003" href="$d7/d95/structyaze_1_1gfx_1_1Bitmap_1_1DirtyRegion.html" title=" " alt="" coords="177,5,301,46"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="215,60,171,111,167,107,211,56"/>
+<area shape="rect" id="Node000001" title="Represents a bitmap image optimized for SNES ROM hacking." alt="" coords="277,63,394,88"/>
+<area shape="rect" id="Node000002" href="$da/d68/classyaze_1_1gfx_1_1SnesPalette.html" title="Represents a palette of colors for the Super Nintendo Entertainment System (SNES)." alt="" coords="5,5,153,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="160,32,253,53,281,59,280,65,252,58,159,37"/>
+<area shape="rect" id="Node000003" href="$d1/d13/structyaze_1_1gfx_1_1Bitmap_1_1BitmapMetadata.html" title="Metadata for tracking bitmap source format and palette requirements." alt="" coords="17,55,141,96"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="156,73,276,73,276,78,156,78"/>
+<area shape="rect" id="Node000004" href="$d7/d95/structyaze_1_1gfx_1_1Bitmap_1_1DirtyRegion.html" title=" " alt="" coords="17,121,141,161"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="155,119,281,86,283,92,156,124"/>
 </map>

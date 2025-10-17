@@ -10,7 +10,14 @@ var classyaze_1_1editor_1_1CommandManager =
     [ "RegisterCommand", "d3/d8a/classyaze_1_1editor_1_1CommandManager.html#adf0aeba0580d0246dbb85f18481b38d8", null ],
     [ "ExecuteCommand", "d3/d8a/classyaze_1_1editor_1_1CommandManager.html#a8cb83df38be9ee7a9db1ea0d5c1d93f8", null ],
     [ "ShowWhichKey", "d3/d8a/classyaze_1_1editor_1_1CommandManager.html#a32369d53d4f58f37befdbd5e6a60fe70", null ],
+    [ "ShowWhichKeyHierarchical", "d3/d8a/classyaze_1_1editor_1_1CommandManager.html#ab47a7b9b335a3ad97cbb105ef525cab4", null ],
+    [ "HandleWhichKeyInput", "d3/d8a/classyaze_1_1editor_1_1CommandManager.html#aa866381da53d3a320f8acb29b1e4c2e0", null ],
     [ "SaveKeybindings", "d3/d8a/classyaze_1_1editor_1_1CommandManager.html#adc4086ea45a3cd7d3c8da5540d15fea4", null ],
     [ "LoadKeybindings", "d3/d8a/classyaze_1_1editor_1_1CommandManager.html#a89f63faef0cbfa72325a43a0b1a5dd7b", null ],
-    [ "commands_", "d3/d8a/classyaze_1_1editor_1_1CommandManager.html#abad9dda1df082aad927e2c4649e7d729", null ]
+    [ "IsWhichKeyActive", "d3/d8a/classyaze_1_1editor_1_1CommandManager.html#a9207775a108b1e9fe4e96bd90b751390", null ],
+    [ "GetCurrentPrefix", "d3/d8a/classyaze_1_1editor_1_1CommandManager.html#af262faebea2d7b96da92bad708c3e0e9", null ],
+    [ "commands_", "d3/d8a/classyaze_1_1editor_1_1CommandManager.html#abad9dda1df082aad927e2c4649e7d729", null ],
+    [ "whichkey_active_", "d3/d8a/classyaze_1_1editor_1_1CommandManager.html#a71e5d83cb7bf54f504f95cb4c042d4c9", null ],
+    [ "current_prefix_", "d3/d8a/classyaze_1_1editor_1_1CommandManager.html#a97597203678cb609b77569994f0e51c5", null ],
+    [ "whichkey_timer_", "d3/d8a/classyaze_1_1editor_1_1CommandManager.html#a32ce054a6dcdedf2370d2937ca8c13ec", null ]
 ];

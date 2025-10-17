@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.9.8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>yaze: yaze Build Scripts</title>
+<title>yaze: YAZE Build Scripts</title>
 <link href="../../tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript">var page_layout=1;</script>
 <script type="text/javascript" src="../../jquery.js"></script>
@@ -98,130 +98,101 @@ $(document).ready(function(){initNavTree('de/d82/md_scripts_2README.html','../..
 </div>
 
 <div><div class="header">
-  <div class="headertitle"><div class="title">yaze Build Scripts</div></div>
+  <div class="headertitle"><div class="title">YAZE Build Scripts</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md1362"></a> This directory contains build and setup scripts for YAZE development on different platforms.</p>
-<h1><a class="anchor" id="autotoc_md1363"></a>
-Windows Scripts</h1>
-<h2><a class="anchor" id="autotoc_md1364"></a>
-vcpkg Setup (Optional)</h2>
-<ul>
-<li>**<code>setup-vcpkg-windows.ps1</code>** - Setup vcpkg for SDL2 dependency (PowerShell)</li>
-<li>**<code>setup-vcpkg-windows.bat</code>** - Setup vcpkg for SDL2 dependency (Batch)</li>
-</ul>
-<p><b>Note</b>: vcpkg is optional. YAZE uses bundled dependencies by default.</p>
-<h1><a class="anchor" id="autotoc_md1365"></a>
-Windows Build Workflow</h1>
-<h2><a class="anchor" id="autotoc_md1366"></a>
-Recommended: Visual Studio CMake Mode</h2>
-<p><b>YAZE uses Visual Studio's native CMake support - no project generation needed.</b></p>
+<div class="textblock"><p><a class="anchor" id="autotoc_md1789"></a> This directory contains build automation and maintenance scripts for the YAZE project.</p>
+<h1><a class="anchor" id="autotoc_md1790"></a>
+build_cleaner.py</h1>
+<p>Automates CMake source list maintenance and header include management with IWYU-style analysis.</p>
+<h2><a class="anchor" id="autotoc_md1791"></a>
+Features</h2>
 <ol type="1">
-<li><b>Install Visual Studio 2022</b> with "Desktop development with C++" workload</li>
-<li><b>Open Visual Studio 2022</b></li>
-<li><b>File → Open → Folder</b></li>
-<li><b>Navigate to yaze directory</b></li>
-<li><b>Select configuration</b> (Debug/Release) from toolbar</li>
-<li><b>Press F5</b> to build and run</li>
+<li><b>CMake Source List Maintenance</b>: Automatically updates source file lists in CMake files</li>
+<li><b>Self-Header Includes</b>: Ensures source files include their corresponding headers</li>
+<li><b>IWYU-Style Analysis</b>: Suggests missing headers based on symbol usage</li>
+<li>**.gitignore Support**: Respects .gitignore patterns when scanning files</li>
+<li><b>Auto-Discovery</b>: Can discover CMake libraries that opt-in to auto-maintenance</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md1367"></a>
-Command Line Build</h2>
-<div class="fragment"><div class="line"># Standard CMake workflow</div>
-<div class="line">cmake -B build -DCMAKE_BUILD_TYPE=Debug</div>
-<div class="line">cmake --build build --config Debug</div>
-<div class="line"> </div>
-<div class="line"># Run the application</div>
-<div class="line">.\build\bin\Debug\yaze.exe</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1368"></a>
-Compiler Notes</h2>
-<p>The CMake configuration is designed to work with <b>MSVC</b> (Visual Studio's compiler). The build system includes automatic workarounds for C++23 compatibility:</p><ul>
-<li>Abseil int128 is automatically excluded on Windows</li>
-<li>C++23 deprecation warnings are properly silenced</li>
-<li>Platform-specific definitions are handled automatically</li>
-</ul>
-<h1><a class="anchor" id="autotoc_md1369"></a>
-Quick Start (Windows)</h1>
-<h2><a class="anchor" id="autotoc_md1370"></a>
-Option 1: Visual Studio (Recommended)</h2>
-<ol type="1">
-<li>Open Visual Studio 2022</li>
-<li>File → Open → Folder</li>
-<li>Navigate to yaze directory</li>
-<li>Select configuration (Debug/Release)</li>
-<li>Press F5 to build and run</li>
-</ol>
-<h2><a class="anchor" id="autotoc_md1371"></a>
-Option 2: Command Line</h2>
-<div class="fragment"><div class="line"># Standard CMake build</div>
-<div class="line">cmake -B build -DCMAKE_BUILD_TYPE=Debug</div>
-<div class="line">cmake --build build --config Debug</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1372"></a>
-Option 3: With vcpkg (Optional)</h2>
-<div class="fragment"><div class="line"># Setup vcpkg for SDL2</div>
-<div class="line">.\scripts\setup-vcpkg-windows.ps1</div>
-<div class="line"> </div>
-<div class="line"># Then build normally in Visual Studio or command line</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md1373"></a>
-Troubleshooting</h1>
-<h2><a class="anchor" id="autotoc_md1374"></a>
-Common Issues</h2>
-<ol type="1">
-<li><b>PowerShell Execution Policy</b> <div class="fragment"><div class="line">Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser</div>
-</div><!-- fragment --></li>
-<li><b>Visual Studio Not Detecting CMakeLists.txt</b><ul>
-<li>Ensure you opened the folder (not a solution file)</li>
-<li>Check that CMakeLists.txt exists in the root directory</li>
-<li>Try: File → Close Folder, then File → Open → Folder</li>
-</ul>
-</li>
-<li><b>vcpkg Issues (if using vcpkg)</b><ul>
-<li>Run <code>.\scripts\setup-vcpkg-windows.ps1</code> to reinstall</li>
-<li>Check internet connection for dependency downloads</li>
-<li>Note: vcpkg is optional; bundled dependencies work by default</li>
-</ul>
-</li>
-<li><b>CMake Configuration Errors</b><ul>
-<li>Delete the <code>build/</code> directory</li>
-<li>Close and reopen the folder in Visual Studio</li>
-<li>Or run: <code>cmake -B build -DCMAKE_BUILD_TYPE=Debug</code></li>
-</ul>
-</li>
-<li><b>Missing Git Submodules</b> <div class="fragment"><div class="line">git submodule update --init --recursive</div>
-</div><!-- fragment --></li>
-</ol>
-<h2><a class="anchor" id="autotoc_md1375"></a>
-Getting Help</h2>
-<ol type="1">
-<li>Check the Build Instructions</li>
-<li>Review CMake output for specific error messages</li>
-<li>Ensure all prerequisites are installed (Visual Studio 2022 with C++ workload)</li>
-</ol>
-<h1><a class="anchor" id="autotoc_md1376"></a>
-Other Scripts</h1>
-<ul>
-<li>**<code>create_release.sh</code>** - Create GitHub releases (Linux/macOS)</li>
-<li>**<code><a class="el" href="../../d4/d85/extract__changelog_8py.html">extract_changelog.py</a></code>** - Extract changelog for releases</li>
-<li>**<code>quality_check.sh</code>** - Code quality checks (Linux/macOS)</li>
-<li>**<code>create-macos-bundle.sh</code>** - Create macOS application bundle for releases</li>
-</ul>
-<h1><a class="anchor" id="autotoc_md1377"></a>
-Build Environment Verification</h1>
-<p>This directory also contains build environment verification scripts.</p>
-<h2><a class="anchor" id="autotoc_md1378"></a>
-&lt;tt&gt;verify-build-environment.ps1&lt;/tt&gt; / &lt;tt&gt;.sh&lt;/tt&gt;</h2>
-<p>A comprehensive script that checks:</p>
-<ul>
-<li>✅ <b>CMake Installation</b> - Version 3.16+ required</li>
-<li>✅ <b>Git Installation</b> - With submodule support</li>
-<li>✅ <b>C++ Compiler</b> - GCC 13+, Clang 16+, or MSVC 2019+</li>
-<li>✅ <b>Platform Tools</b> - Xcode (macOS), Visual Studio (Windows), build-essential (Linux)</li>
-<li>✅ <b>Git Submodules</b> - All dependencies synchronized</li>
-</ul>
-<h2><a class="anchor" id="autotoc_md1379"></a>
+<h2><a class="anchor" id="autotoc_md1792"></a>
 Usage</h2>
-<p><b>Windows (PowerShell):</b> </p><div class="fragment"><div class="line">.\scripts\verify-build-environment.ps1</div>
-</div><!-- fragment --><p><b>macOS/Linux:</b> </p><div class="fragment"><div class="line">./scripts/verify-build-environment.sh</div>
-</div><!-- fragment --> </div></div><!-- contents -->
+<div class="fragment"><div class="line"># Dry-run to see what would change (recommended first step)</div>
+<div class="line">python3 scripts/build_cleaner.py --dry-run</div>
+<div class="line"> </div>
+<div class="line"># Update CMake source lists and header includes</div>
+<div class="line">python3 scripts/build_cleaner.py</div>
+<div class="line"> </div>
+<div class="line"># Run IWYU-style header analysis</div>
+<div class="line">python3 scripts/build_cleaner.py --iwyu</div>
+<div class="line"> </div>
+<div class="line"># Auto-discover CMake libraries marked for auto-maintenance</div>
+<div class="line">python3 scripts/build_cleaner.py --auto-discover</div>
+<div class="line"> </div>
+<div class="line"># Update only CMake source lists</div>
+<div class="line">python3 scripts/build_cleaner.py --cmake-only</div>
+<div class="line"> </div>
+<div class="line"># Update only header includes</div>
+<div class="line">python3 scripts/build_cleaner.py --includes-only</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1793"></a>
+Opting-In to Auto-Maintenance</h2>
+<p>By default, the script only auto-maintains source lists that are explicitly marked. To mark a CMake variable for auto-maintenance, add a comment above the <code>set()</code> statement:</p>
+<div class="fragment"><div class="line"># This list is auto-maintained by scripts/build_cleaner.py</div>
+<div class="line">set(</div>
+<div class="line">  YAZE_APP_EMU_SRC</div>
+<div class="line">  app/emu/audio/apu.cc</div>
+<div class="line">  app/emu/cpu/cpu.cc</div>
+<div class="line">  # ... more files</div>
+<div class="line">)</div>
+</div><!-- fragment --><p>The script looks for comments containing "auto-maintain" (case-insensitive) within 3 lines above the <code>set()</code> statement.</p>
+<h2><a class="anchor" id="autotoc_md1794"></a>
+Excluding Files from Processing</h2>
+<p>To exclude a specific file from all processing (CMake lists, header includes, IWYU), add this token near the top of the file:</p>
+<div class="fragment"><div class="line"><span class="comment">// build_cleaner:ignore</span></div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1795"></a>
+.gitignore Support</h2>
+<p>The script automatically respects <code>.gitignore</code> patterns. To enable this feature, install the <code>pathspec</code> dependency:</p>
+<div class="fragment"><div class="line">pip3 install -r scripts/requirements.txt</div>
+<div class="line"># or</div>
+<div class="line">pip3 install pathspec</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1796"></a>
+IWYU Configuration</h2>
+<p>The script includes basic IWYU-style analysis that suggests headers based on symbol prefixes. To customize which headers are suggested, edit the <code>COMMON_HEADERS</code> dictionary in the script:</p>
+<div class="fragment"><div class="line">COMMON_HEADERS = {</div>
+<div class="line">    <span class="stringliteral">&#39;std::&#39;</span>: [<span class="stringliteral">&#39;&lt;memory&gt;&#39;</span>, <span class="stringliteral">&#39;&lt;string&gt;&#39;</span>, <span class="stringliteral">&#39;&lt;vector&gt;&#39;</span>, ...],</div>
+<div class="line">    <span class="stringliteral">&#39;absl::&#39;</span>: [<span class="stringliteral">&#39;&lt;absl/status/status.h&gt;&#39;</span>, ...],</div>
+<div class="line">    <span class="stringliteral">&#39;ImGui::&#39;</span>: [<span class="stringliteral">&#39;&lt;imgui.h&gt;&#39;</span>],</div>
+<div class="line">    <span class="stringliteral">&#39;SDL_&#39;</span>: [<span class="stringliteral">&#39;&lt;SDL.h&gt;&#39;</span>],</div>
+<div class="line">}</div>
+</div><!-- fragment --><p><b>Note</b>: The IWYU analysis is conservative and may suggest headers that are already transitively included. Use with care and review suggestions before applying.</p>
+<h2><a class="anchor" id="autotoc_md1797"></a>
+Integration with CMake</h2>
+<p>The script is integrated into the CMake build system:</p>
+<div class="fragment"><div class="line"># Run as a CMake target</div>
+<div class="line">cmake --build build --target build_cleaner</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1798"></a>
+Dependencies</h2>
+<ul>
+<li>Python 3.7+</li>
+<li><code>pathspec</code> (optional, for .gitignore support): <code>pip3 install pathspec</code></li>
+</ul>
+<h2><a class="anchor" id="autotoc_md1799"></a>
+How It Works</h2>
+<ol type="1">
+<li><b>CMake Maintenance</b>: Scans directories specified in the configuration and updates <code>set(VAR_NAME ...)</code> blocks with the current list of source files</li>
+<li><b>Self-Headers</b>: For each <code>.cc</code>/<code>.cpp</code> file, ensures it includes its corresponding <code>.h</code> file</li>
+<li><b>IWYU Analysis</b>: Scans source files for symbols and suggests appropriate headers based on prefix matching</li>
+</ol>
+<h2><a class="anchor" id="autotoc_md1800"></a>
+Current Auto-Maintained Variables</h2>
+<p><b>All 20 library source lists are now auto-maintained by default:</b></p>
+<ul>
+<li>Core: <code>YAZE_APP_EMU_SRC</code>, <code>YAZE_APP_CORE_SRC</code>, <code>YAZE_APP_EDITOR_SRC</code>, <code>YAZE_APP_ZELDA3_SRC</code>, <code>YAZE_NET_SRC</code>, <code>YAZE_UTIL_SRC</code></li>
+<li>GFX: <code>GFX_TYPES_SRC</code>, <code>GFX_BACKEND_SRC</code>, <code>GFX_RESOURCE_SRC</code>, <code>GFX_CORE_SRC</code>, <code>GFX_UTIL_SRC</code>, <code>GFX_RENDER_SRC</code>, <code>GFX_DEBUG_SRC</code></li>
+<li>GUI: <code>GUI_CORE_SRC</code>, <code>CANVAS_SRC</code>, <code>GUI_WIDGETS_SRC</code>, <code>GUI_AUTOMATION_SRC</code>, <code>GUI_APP_SRC</code></li>
+<li>Other: <code>YAZE_AGENT_SOURCES</code>, <code>YAZE_TEST_SOURCES</code></li>
+</ul>
+<p>The script intelligently preserves conditional blocks (if/endif) and excludes conditional files from the main source list. </p>
+</div></div><!-- contents -->
 </div><!-- PageDoc -->
 </div><!-- doc-content -->
 <!-- start footer part -->

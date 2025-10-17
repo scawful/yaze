@@ -1,0 +1,10 @@
+<map id="yaze::zelda3::OverworldMapScreen::RenderMapLayer" name="yaze::zelda3::OverworldMapScreen::RenderMapLayer">
+<area shape="rect" id="Node000001" title="Render map tiles into bitmap." alt="" coords="5,71,186,111"/>
+<area shape="rect" id="Node000002" href="$df/d0e/classyaze_1_1gfx_1_1Bitmap.html#aba6e7ff12ec269f3d2de46bf600f7fa6" title=" " alt="" coords="244,5,367,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="162,68,228,47,229,52,164,73"/>
+<area shape="rect" id="Node000003" href="$df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a2f9a25b2efae3f8fa6b95e9ee4a8152c" title="Update SDL surface with current pixel data from data_ vector Call this after modifying pixel data via..." alt="" coords="234,71,377,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="186,88,218,88,218,94,186,94"/>
+<area shape="rect" id="Node000004" href="$df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a2a93bfee737bef55dbf436f2605282ce" title=" " alt="" coords="425,100,548,141"/>
+<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="173,109,234,120,305,123,377,120,409,120,409,125,377,126,305,129,233,126,172,115"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="378,100,410,105,409,111,377,105"/>
+</map>

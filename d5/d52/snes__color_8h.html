@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.9.8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>yaze: src/app/gfx/snes_color.h File Reference</title>
+<title>yaze: src/app/gfx/types/snes_color.h File Reference</title>
 <link href="../../tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript">var page_layout=1;</script>
 <script type="text/javascript" src="../../jquery.js"></script>
@@ -113,17 +113,17 @@ $(document).ready(function(){initNavTree('d5/d52/snes__color_8h.html','../../');
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for snes_color.h:</div>
 <div class="dyncontent">
-<div class="center"><img src="../../df/d50/snes__color_8h__incl.png" border="0" usemap="#asrc_2app_2gfx_2snes__color_8h" alt=""/></div>
-<map name="asrc_2app_2gfx_2snes__color_8h" id="asrc_2app_2gfx_2snes__color_8h">
-<area shape="rect" title=" " alt="" coords="77,5,239,31"/>
-<area shape="rect" href="../../d9/d89/yaze_8h.html" title="Yet Another Zelda3 Editor (YAZE) &#45; Public C API." alt="" coords="5,79,63,105"/>
-<area shape="poly" title=" " alt="" coords="138,34,69,73,67,69,136,29"/>
-<area shape="rect" title=" " alt="" coords="87,79,147,105"/>
-<area shape="poly" title=" " alt="" coords="153,33,134,67,129,64,149,30"/>
-<area shape="rect" title=" " alt="" coords="171,79,228,105"/>
-<area shape="poly" title=" " alt="" coords="167,30,187,64,182,67,163,33"/>
-<area shape="rect" title=" " alt="" coords="252,79,349,105"/>
-<area shape="poly" title=" " alt="" coords="183,29,264,69,261,74,181,34"/>
+<div class="center"><img src="../../df/d50/snes__color_8h__incl.png" border="0" usemap="#asrc_2app_2gfx_2types_2snes__color_8h" alt=""/></div>
+<map name="asrc_2app_2gfx_2types_2snes__color_8h" id="asrc_2app_2gfx_2types_2snes__color_8h">
+<area shape="rect" title=" " alt="" coords="82,5,234,46"/>
+<area shape="rect" href="../../d9/d89/yaze_8h.html" title="Yet Another Zelda3 Editor (YAZE) &#45; Public C API." alt="" coords="5,94,63,120"/>
+<area shape="poly" title=" " alt="" coords="129,49,67,88,64,83,126,44"/>
+<area shape="rect" title=" " alt="" coords="87,94,147,120"/>
+<area shape="poly" title=" " alt="" coords="150,48,132,81,128,79,145,45"/>
+<area shape="rect" title=" " alt="" coords="171,94,228,120"/>
+<area shape="poly" title=" " alt="" coords="171,45,188,79,184,81,166,48"/>
+<area shape="rect" title=" " alt="" coords="252,94,349,120"/>
+<area shape="poly" title=" " alt="" coords="195,44,267,84,264,88,192,49"/>
 </map>
 </div>
 </div>
@@ -146,12 +146,24 @@ Namespaces</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a893d31b6aeb9a3df9754b9def778b458" id="r_a893d31b6aeb9a3df9754b9def778b458"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../df/d71/structsnes__color.html">snes_color</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d27/namespaceyaze_1_1gfx.html#a893d31b6aeb9a3df9754b9def778b458">yaze::gfx::ConvertSnesToRgb</a> (uint16_t color_snes)</td></tr>
-<tr class="separator:a893d31b6aeb9a3df9754b9def778b458"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a022dccbb572c0562d73aebce90df22db" id="r_a022dccbb572c0562d73aebce90df22db"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../df/d71/structsnes__color.html">snes_color</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d27/namespaceyaze_1_1gfx.html#a022dccbb572c0562d73aebce90df22db">yaze::gfx::ConvertSnesToRgb</a> (uint16_t <a class="el" href="../../df/d71/structsnes__color.html">snes_color</a>)</td></tr>
+<tr class="memdesc:a022dccbb572c0562d73aebce90df22db"><td class="mdescLeft">&#160;</td><td class="mdescRight">Convert SNES 15-bit color to RGB (0-255 range)  <br /></td></tr>
+<tr class="separator:a022dccbb572c0562d73aebce90df22db"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4e83a052d42017612243c3f81b538b7d" id="r_a4e83a052d42017612243c3f81b538b7d"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d27/namespaceyaze_1_1gfx.html#a4e83a052d42017612243c3f81b538b7d">yaze::gfx::ConvertRgbToSnes</a> (const <a class="el" href="../../df/d71/structsnes__color.html">snes_color</a> &amp;color)</td></tr>
+<tr class="memdesc:a4e83a052d42017612243c3f81b538b7d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Convert RGB (0-255) to SNES 15-bit color.  <br /></td></tr>
 <tr class="separator:a4e83a052d42017612243c3f81b538b7d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a78da9ee9b2de37e218f0152a1ecc4e36" id="r_a78da9ee9b2de37e218f0152a1ecc4e36"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d27/namespaceyaze_1_1gfx.html#a78da9ee9b2de37e218f0152a1ecc4e36">yaze::gfx::ConvertRgbToSnes</a> (const ImVec4 &amp;color)</td></tr>
+<tr class="memdesc:a78da9ee9b2de37e218f0152a1ecc4e36"><td class="mdescLeft">&#160;</td><td class="mdescRight">Convert ImVec4 (0.0-1.0) to SNES 15-bit color.  <br /></td></tr>
 <tr class="separator:a78da9ee9b2de37e218f0152a1ecc4e36"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a106e26f62c8518f6b2d52524fc3e14a7" id="r_a106e26f62c8518f6b2d52524fc3e14a7"><td class="memItemLeft" align="right" valign="top">ImVec4&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d27/namespaceyaze_1_1gfx.html#a106e26f62c8518f6b2d52524fc3e14a7">yaze::gfx::SnesColorToImVec4</a> (const <a class="el" href="../../df/d71/structsnes__color.html">snes_color</a> &amp;color)</td></tr>
+<tr class="memdesc:a106e26f62c8518f6b2d52524fc3e14a7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Convert <a class="el" href="../../df/d71/structsnes__color.html" title="SNES color in 15-bit RGB format (BGR555)">snes_color</a> (0-255) to ImVec4 (0.0-1.0)  <br /></td></tr>
+<tr class="separator:a106e26f62c8518f6b2d52524fc3e14a7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6174dc119e645e290b53241d91af7459" id="r_a6174dc119e645e290b53241d91af7459"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../df/d71/structsnes__color.html">snes_color</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d27/namespaceyaze_1_1gfx.html#a6174dc119e645e290b53241d91af7459">yaze::gfx::ImVec4ToSnesColor</a> (const ImVec4 &amp;color)</td></tr>
+<tr class="memdesc:a6174dc119e645e290b53241d91af7459"><td class="mdescLeft">&#160;</td><td class="mdescRight">Convert ImVec4 (0.0-1.0) to <a class="el" href="../../df/d71/structsnes__color.html" title="SNES color in 15-bit RGB format (BGR555)">snes_color</a> (0-255)  <br /></td></tr>
+<tr class="separator:a6174dc119e645e290b53241d91af7459"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9d966ac4011ccdde14a4d21d3df9da26" id="r_a9d966ac4011ccdde14a4d21d3df9da26"><td class="memItemLeft" align="right" valign="top">ImVec4&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d27/namespaceyaze_1_1gfx.html#a9d966ac4011ccdde14a4d21d3df9da26">yaze::gfx::SnesTo8bppColor</a> (uint16_t color_value)</td></tr>
+<tr class="memdesc:a9d966ac4011ccdde14a4d21d3df9da26"><td class="mdescLeft">&#160;</td><td class="mdescRight">Convert SNES 15-bit color directly to ImVec4 (0.0-1.0)  <br /></td></tr>
+<tr class="separator:a9d966ac4011ccdde14a4d21d3df9da26"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a10d06c5c03e3faef4b05f4183024650e" id="r_a10d06c5c03e3faef4b05f4183024650e"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="../../df/d71/structsnes__color.html">snes_color</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d27/namespaceyaze_1_1gfx.html#a10d06c5c03e3faef4b05f4183024650e">yaze::gfx::Extract</a> (const char *data, unsigned int offset, unsigned int palette_size)</td></tr>
 <tr class="separator:a10d06c5c03e3faef4b05f4183024650e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a58538e81c6b1b5c0d28310f84eced8b7" id="r_a58538e81c6b1b5c0d28310f84eced8b7"><td class="memItemLeft" align="right" valign="top">std::vector&lt; char &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d27/namespaceyaze_1_1gfx.html#a58538e81c6b1b5c0d28310f84eced8b7">yaze::gfx::Convert</a> (const std::vector&lt; <a class="el" href="../../df/d71/structsnes__color.html">snes_color</a> &gt; &amp;palette)</td></tr>
@@ -177,7 +189,7 @@ Variables</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="navelem"><a class="el" href="../../dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="../../dir_5194e5fea318fda12687127c23f8aba1.html">app</a></li><li class="navelem"><a class="el" href="../../dir_0b974e391fb3f3024b1f06092da5c188.html">gfx</a></li><li class="navelem"><a class="el" href="../../d5/d52/snes__color_8h.html">snes_color.h</a></li>
+    <li class="navelem"><a class="el" href="../../dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="../../dir_5194e5fea318fda12687127c23f8aba1.html">app</a></li><li class="navelem"><a class="el" href="../../dir_0b974e391fb3f3024b1f06092da5c188.html">gfx</a></li><li class="navelem"><a class="el" href="../../dir_e5928f202a84b137b4e3e4c1c03ab501.html">types</a></li><li class="navelem"><a class="el" href="../../d5/d52/snes__color_8h.html">snes_color.h</a></li>
     <li class="footer">Generated by <a href="https://www.doxygen.org/index.html"><img class="footer" src="../../doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
   </ul>
 </div>

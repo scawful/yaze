@@ -1,0 +1,11 @@
+<map id="yaze::gui::ThemedInputFloat" name="yaze::gui::ThemedInputFloat">
+<area shape="rect" id="Node000001" title="Themed float input." alt="" coords="5,78,187,104"/>
+<area shape="rect" id="Node000002" href="$d3/dbf/namespaceyaze_1_1gui.html#a0a2f4e28780bd8cf64f9d6e7b67be924" title=" " alt="" coords="235,5,401,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="141,75,231,48,232,54,143,80"/>
+<area shape="rect" id="Node000003" href="$d9/dfb/classyaze_1_1gui_1_1LayoutHelpers.html#a638d94b7d5258a3bc52602a51a89b915" title=" " alt="" coords="237,71,399,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="187,88,221,88,221,94,187,94"/>
+<area shape="rect" id="Node000008" href="$d3/dbf/namespaceyaze_1_1gui.html#a4c84c2cc40ee46b790e1e05ba0c5edaf" title="Get current theme (shortcut)" alt="" coords="249,136,387,161"/>
+<area shape="poly" id="edge4_Node000001_Node000008" title=" " alt="" coords="149,102,251,129,250,134,148,107"/>
+<area shape="rect" id="Node000004" href="$d9/dfb/classyaze_1_1gui_1_1LayoutHelpers.html#a914764588589974133906f76aea5cfae" title=" " alt="" coords="449,71,609,111"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="399,88,434,88,434,94,399,94"/>
+</map>

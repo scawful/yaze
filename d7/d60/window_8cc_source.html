@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.9.8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>yaze: src/app/core/window.cc Source File</title>
+<title>yaze: src/app/platform/window.cc Source File</title>
 <link href="../../tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript">var page_layout=1;</script>
 <script type="text/javascript" src="../../jquery.js"></script>
@@ -101,7 +101,7 @@ $(document).ready(function(){initNavTree('d7/d60/window_8cc_source.html','../../
   <div class="headertitle"><div class="title">window.cc</div></div>
 </div><!--header-->
 <div class="contents">
-<a href="../../d7/d60/window_8cc.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="preprocessor">#include &quot;<a class="code" href="../../d3/df1/window_8h.html">app/core/window.h</a>&quot;</span></div>
+<a href="../../d7/d60/window_8cc.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="preprocessor">#include &quot;<a class="code" href="../../d3/df1/window_8h.html">app/platform/window.h</a>&quot;</span></div>
 <div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span> </div>
 <div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span><span class="preprocessor">#include &lt;filesystem&gt;</span></div>
 <div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span> </div>
@@ -110,8 +110,8 @@ $(document).ready(function(){initNavTree('d7/d60/window_8cc_source.html','../../
 <div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="preprocessor">#include &quot;<a class="code" href="../../d2/d36/font__loader_8h.html">app/platform/font_loader.h</a>&quot;</span></div>
 <div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span><span class="preprocessor">#include &quot;<a class="code" href="../../d5/dd7/sdl__deleter_8h.html">util/sdl_deleter.h</a>&quot;</span></div>
 <div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span><span class="preprocessor">#include &quot;<a class="code" href="../../d7/d7f/log_8h.html">util/log.h</a>&quot;</span></div>
-<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="preprocessor">#include &quot;<a class="code" href="../../da/d0c/arena_8h.html">app/gfx/arena.h</a>&quot;</span></div>
-<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span><span class="preprocessor">#include &quot;<a class="code" href="../../de/d12/style_8h.html">app/gui/style.h</a>&quot;</span></div>
+<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="preprocessor">#include &quot;<a class="code" href="../../da/d0c/arena_8h.html">app/gfx/resource/arena.h</a>&quot;</span></div>
+<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span><span class="preprocessor">#include &quot;<a class="code" href="../../de/d12/style_8h.html">app/gui/core/style.h</a>&quot;</span></div>
 <div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span><span class="preprocessor">#include &quot;imgui/backends/imgui_impl_sdl2.h&quot;</span></div>
 <div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span><span class="preprocessor">#include &quot;imgui/backends/imgui_impl_sdlrenderer2.h&quot;</span></div>
 <div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span><span class="preprocessor">#include &quot;imgui/imgui.h&quot;</span></div>
@@ -369,7 +369,7 @@ $(document).ready(function(){initNavTree('d7/d60/window_8cc_source.html','../../
 <div class="ttc" id="anamespaceyaze_1_1core_html_ad4a900088575fbf46321559795839a51"><div class="ttname"><a href="../../db/d33/namespaceyaze_1_1core.html#ad4a900088575fbf46321559795839a51">yaze::core::HandleEvents</a></div><div class="ttdeci">absl::Status HandleEvents(Window &amp;window)</div><div class="ttdef"><b>Definition</b> <a href="../../d7/d60/window_8cc_source.html#l00177">window.cc:177</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1core_html_ad9ef5ea7c217135fe0d8756429f83839"><div class="ttname"><a href="../../db/d33/namespaceyaze_1_1core.html#ad9ef5ea7c217135fe0d8756429f83839">yaze::core::CreateWindow</a></div><div class="ttdeci">absl::Status CreateWindow(Window &amp;window, gfx::IRenderer *renderer, int flags)</div><div class="ttdef"><b>Definition</b> <a href="../../d7/d60/window_8cc_source.html#l00057">window.cc:57</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1gui_html_abd9a49ec6350e33700334b783e0c9cad"><div class="ttname"><a href="../../d3/dbf/namespaceyaze_1_1gui.html#abd9a49ec6350e33700334b783e0c9cad">yaze::gui::ColorsYaze</a></div><div class="ttdeci">void ColorsYaze()</div><div class="ttdef"><b>Definition</b> <a href="../../d8/d05/style_8cc_source.html#l00032">style.cc:32</a></div></div>
-<div class="ttc" id="anamespaceyaze_html"><div class="ttname"><a href="../../dc/d46/namespaceyaze.html">yaze</a></div><div class="ttdoc">Main namespace for the application.</div><div class="ttdef"><b>Definition</b> <a href="../../db/d17/asar__wrapper_8cc_source.html#l00014">asar_wrapper.cc:14</a></div></div>
+<div class="ttc" id="anamespaceyaze_html"><div class="ttname"><a href="../../dc/d46/namespaceyaze.html">yaze</a></div><div class="ttdoc">Main namespace for the application.</div><div class="ttdef"><b>Definition</b> <a href="../../da/d0c/controller_8cc_source.html#l00020">controller.cc:20</a></div></div>
 <div class="ttc" id="anamespaceyaze_html_a647006b6752ce59edf7f5a7865d1a2f7"><div class="ttname"><a href="../../dc/d46/namespaceyaze.html#a647006b6752ce59edf7f5a7865d1a2f7">yaze::LoadPackageFonts</a></div><div class="ttdeci">absl::Status LoadPackageFonts()</div><div class="ttdef"><b>Definition</b> <a href="../../d0/d19/font__loader_8cc_source.html#l00098">font_loader.cc:98</a></div></div>
 <div class="ttc" id="asdl__deleter_8h_html"><div class="ttname"><a href="../../d5/dd7/sdl__deleter_8h.html">sdl_deleter.h</a></div></div>
 <div class="ttc" id="astructyaze_1_1core_1_1Window_html"><div class="ttname"><a href="../../de/d86/structyaze_1_1core_1_1Window.html">yaze::core::Window</a></div><div class="ttdef"><b>Definition</b> <a href="../../d3/df1/window_8h_source.html#l00017">window.h:17</a></div></div>
@@ -385,7 +385,7 @@ $(document).ready(function(){initNavTree('d7/d60/window_8cc_source.html','../../
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="navelem"><a class="el" href="../../dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="../../dir_5194e5fea318fda12687127c23f8aba1.html">app</a></li><li class="navelem"><a class="el" href="../../dir_fcc5e025f1b672ef47e35e5c700d9477.html">core</a></li><li class="navelem"><a class="el" href="../../d7/d60/window_8cc.html">window.cc</a></li>
+    <li class="navelem"><a class="el" href="../../dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="../../dir_5194e5fea318fda12687127c23f8aba1.html">app</a></li><li class="navelem"><a class="el" href="../../dir_b5073da0a0de1fec69310c7003d323a8.html">platform</a></li><li class="navelem"><a class="el" href="../../d7/d60/window_8cc.html">window.cc</a></li>
     <li class="footer">Generated by <a href="https://www.doxygen.org/index.html"><img class="footer" src="../../doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
   </ul>
 </div>

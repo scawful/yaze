@@ -101,28 +101,28 @@ $(document).ready(function(){initNavTree('d5/db9/md_docs_2G4-canvas-coordinate-f
   <div class="headertitle"><div class="title">Canvas Coordinate Synchronization and Scroll Fix</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md1096"></a> <b>Date</b>: October 10, 2025 <b>Issues</b>:</p><ol type="1">
+<div class="textblock"><p><a class="anchor" id="autotoc_md1381"></a> <b>Date</b>: October 10, 2025 <b>Issues</b>:</p><ol type="1">
 <li>Overworld map highlighting regression after canvas refactoring</li>
 <li>Overworld canvas scrolling unexpectedly when selecting tiles</li>
-<li>Vanilla Dark/Special World large map outlines not displaying <b>Status</b>: ✅ Fixed</li>
+<li>Vanilla Dark/Special World large map outlines not displaying <b>Status</b>: Fixed</li>
 </ol>
-<h1><a class="anchor" id="autotoc_md1097"></a>
+<h1><a class="anchor" id="autotoc_md1382"></a>
 Problem Summary</h1>
 <p>After the canvas refactoring (commits f538775954, 60ddf76331), two critical bugs appeared:</p>
 <ol type="1">
 <li><b>Map highlighting broken</b>: The overworld editor stopped properly highlighting the current map when hovering. The map highlighting only worked during active tile painting, not during normal mouse hover.</li>
 <li><b>Wrong canvas scrolling</b>: When right-clicking to select tiles (especially on Dark World), the overworld canvas would scroll unexpectedly instead of the tile16 blockset selector.</li>
 </ol>
-<h1><a class="anchor" id="autotoc_md1098"></a>
+<h1><a class="anchor" id="autotoc_md1383"></a>
 Root Cause</h1>
 <p>The regression had <b>FIVE</b> issues:</p>
-<h2><a class="anchor" id="autotoc_md1099"></a>
+<h2><a class="anchor" id="autotoc_md1384"></a>
 Issue 1: Wrong Coordinate System (Line 1041)</h2>
 <p><b>File</b>: <code><a class="el" href="../../d9/d8a/overworld__editor_8cc.html">src/app/editor/overworld/overworld_editor.cc</a>:1041</code></p>
 <p><b>Before (BROKEN)</b>: </p><div class="fragment"><div class="line"><span class="keyword">const</span> <span class="keyword">auto</span> mouse_position = ImGui::GetIO().MousePos;  <span class="comment">// ❌ Screen coordinates!</span></div>
 <div class="line"><span class="keyword">const</span> <span class="keyword">auto</span> canvas_zero_point = ow_map_canvas_.zero_point();</div>
 <div class="line"><span class="keywordtype">int</span> map_x = (mouse_position.x - canvas_zero_point.x) / kOverworldMapSize;</div>
-</div><!-- fragment --><p><b>After (FIXED)</b>: </p><div class="fragment"><div class="line"><span class="keyword">const</span> <span class="keyword">auto</span> mouse_position = ow_map_canvas_.hover_mouse_pos();  <span class="comment">// ✅ World coordinates!</span></div>
+</div><!-- fragment --><p><b>After (FIXED)</b>: </p><div class="fragment"><div class="line"><span class="keyword">const</span> <span class="keyword">auto</span> mouse_position = ow_map_canvas_.hover_mouse_pos();  <span class="comment">//  World coordinates!</span></div>
 <div class="line"><span class="keywordtype">int</span> map_x = mouse_position.x / kOverworldMapSize;</div>
 </div><!-- fragment --><p><b>Why This Was Wrong</b>:</p><ul>
 <li><code>ImGui::GetIO().MousePos</code> returns <b>screen space</b> coordinates (absolute position on screen)</li>
@@ -130,9 +130,9 @@ Issue 1: Wrong Coordinate System (Line 1041)</h2>
 <li>Screen coordinates don't account for canvas scrolling/offset</li>
 <li><code>hover_mouse_pos()</code> returns <b>canvas/world space</b> coordinates (relative to canvas content)</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1100"></a>
+<h2><a class="anchor" id="autotoc_md1385"></a>
 Issue 2: Hover Position Not Updated (Line 416)</h2>
-<p><b>File</b>: <code><a class="el" href="../../da/dbb/canvas_8cc.html">src/app/gui/canvas.cc</a>:416</code></p>
+<p><b>File</b>: <code>src/app/gui/canvas.cc:416</code></p>
 <p><b>Before (BROKEN)</b>: </p><div class="fragment"><div class="line"><span class="keywordtype">void</span> Canvas::DrawBackground(ImVec2 canvas_size) {</div>
 <div class="line">  <span class="comment">// ... setup code ...</span></div>
 <div class="line">  ImGui::InvisibleButton(canvas_id_.c_str(), scaled_size, kMouseFlags);</div>
@@ -152,21 +152,21 @@ Issue 2: Hover Position Not Updated (Line 416)</h2>
 <div class="line">  <span class="comment">// ... setup code ...</span></div>
 <div class="line">  ImGui::InvisibleButton(canvas_id_.c_str(), scaled_size, kMouseFlags);</div>
 <div class="line"> </div>
-<div class="line">  <span class="comment">// ✅ CRITICAL FIX: Always update hover position when hovering</span></div>
+<div class="line">  <span class="comment">//  CRITICAL FIX: Always update hover position when hovering</span></div>
 <div class="line">  <span class="keywordflow">if</span> (IsItemHovered()) {</div>
 <div class="line">    <span class="keyword">const</span> ImGuiIO&amp; io = GetIO();</div>
 <div class="line">    <span class="keyword">const</span> ImVec2 origin(canvas_p0_.x + scrolling_.x, canvas_p0_.y + scrolling_.y);</div>
 <div class="line">    <span class="keyword">const</span> ImVec2 mouse_pos(io.MousePos.x - origin.x, io.MousePos.y - origin.y);</div>
-<div class="line">    mouse_pos_in_canvas_ = mouse_pos;  <span class="comment">// ✅ Updated every frame during hover</span></div>
+<div class="line">    mouse_pos_in_canvas_ = mouse_pos;  <span class="comment">//  Updated every frame during hover</span></div>
 <div class="line">  }</div>
 <div class="line"> </div>
 <div class="line">  <span class="keywordflow">if</span> (config_.is_draggable &amp;&amp; IsItemHovered()) {</div>
 <div class="line">    <span class="comment">// ... pan handling ...</span></div>
 <div class="line">  }</div>
 <div class="line">}</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md1101"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md1386"></a>
 Technical Details</h1>
-<h2><a class="anchor" id="autotoc_md1102"></a>
+<h2><a class="anchor" id="autotoc_md1387"></a>
 Coordinate Spaces</h2>
 <p>yaze has three coordinate spaces:</p>
 <ol type="1">
@@ -187,15 +187,15 @@ Coordinate Spaces</h2>
 </ul>
 </li>
 </ol>
-<h2><a class="anchor" id="autotoc_md1103"></a>
+<h2><a class="anchor" id="autotoc_md1388"></a>
 Usage Patterns</h2>
-<p><b>For Hover/Highlighting</b> (CheckForCurrentMap): </p><div class="fragment"><div class="line"><span class="keyword">auto</span> hover_pos = canvas.hover_mouse_pos();  <span class="comment">// ✅ Updates continuously</span></div>
+<p><b>For Hover/Highlighting</b> (CheckForCurrentMap): </p><div class="fragment"><div class="line"><span class="keyword">auto</span> hover_pos = canvas.hover_mouse_pos();  <span class="comment">//  Updates continuously</span></div>
 <div class="line"><span class="keywordtype">int</span> map_x = hover_pos.x / kOverworldMapSize;</div>
-</div><!-- fragment --><p><b>For Active Painting</b> (DrawOverworldEdits): </p><div class="fragment"><div class="line"><span class="keyword">auto</span> paint_pos = canvas.drawn_tile_position();  <span class="comment">// ✅ Updates only during drag</span></div>
+</div><!-- fragment --><p><b>For Active Painting</b> (DrawOverworldEdits): </p><div class="fragment"><div class="line"><span class="keyword">auto</span> paint_pos = canvas.drawn_tile_position();  <span class="comment">//  Updates only during drag</span></div>
 <div class="line"><span class="keywordtype">int</span> map_x = paint_pos.x / kOverworldMapSize;</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md1104"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md1389"></a>
 Testing</h1>
-<h2><a class="anchor" id="autotoc_md1105"></a>
+<h2><a class="anchor" id="autotoc_md1390"></a>
 Visual Testing</h2>
 <p><b>Map Highlighting Test</b>:</p><ol type="1">
 <li>Open overworld editor</li>
@@ -208,11 +208,11 @@ Visual Testing</h2>
 <li>Open overworld editor</li>
 <li>Switch to Dark World (or any world)</li>
 <li>Right-click on overworld canvas to select a tile</li>
-<li>✅ <b>Expected</b>: Tile16 blockset selector scrolls to show the selected tile</li>
-<li>✅ <b>Expected</b>: Overworld canvas does NOT scroll</li>
+<li><b>Expected</b>: Tile16 blockset selector scrolls to show the selected tile</li>
+<li><b>Expected</b>: Overworld canvas does NOT scroll</li>
 <li>❌ <b>Before fix</b>: Overworld canvas would scroll unexpectedly</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md1106"></a>
+<h2><a class="anchor" id="autotoc_md1391"></a>
 Unit Tests</h2>
 <p>Created <code><a class="el" href="../../d5/df9/canvas__coordinate__sync__test_8cc.html">test/unit/gui/canvas_coordinate_sync_test.cc</a></code> with regression tests:</p><ul>
 <li><code>HoverMousePos_IndependentFromDrawnPos</code>: Verifies hover vs paint separation</li>
@@ -223,9 +223,9 @@ Unit Tests</h2>
 <li><code>OverworldMapIndex_From8x8Grid</code>: Tests all three worlds (Light/Dark/Special)</li>
 </ul>
 <p>Run tests: </p><div class="fragment"><div class="line">./build/bin/yaze_test --unit</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md1107"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md1392"></a>
 Impact Analysis</h1>
-<h2><a class="anchor" id="autotoc_md1108"></a>
+<h2><a class="anchor" id="autotoc_md1393"></a>
 Files Changed</h2>
 <ol type="1">
 <li><code><a class="el" href="../../d9/d8a/overworld__editor_8cc.html">src/app/editor/overworld/overworld_editor.cc</a></code> (line 1041-1049)<ul>
@@ -233,7 +233,7 @@ Files Changed</h2>
 <li>Removed incorrect <code>canvas_zero_point</code> subtraction</li>
 </ul>
 </li>
-<li><code><a class="el" href="../../da/dbb/canvas_8cc.html">src/app/gui/canvas.cc</a></code> (line 414-421)<ul>
+<li><code>src/app/gui/canvas.cc</code> (line 414-421)<ul>
 <li>Added continuous hover position tracking in <code>DrawBackground()</code></li>
 <li>Now updates <code>mouse_pos_in_canvas_</code> every frame when hovering</li>
 </ul>
@@ -254,41 +254,41 @@ Files Changed</h2>
 </ul>
 </li>
 </ol>
-<h2><a class="anchor" id="autotoc_md1109"></a>
+<h2><a class="anchor" id="autotoc_md1394"></a>
 Affected Functionality</h2>
 <ul>
-<li>✅ <b>Fixed</b>: Overworld map highlighting during hover (all worlds, all ROM types)</li>
-<li>✅ <b>Fixed</b>: Vanilla Dark World large map highlighting (was drawing off-screen)</li>
-<li>✅ <b>Fixed</b>: Vanilla Special World large map highlighting (was drawing off-screen)</li>
-<li>✅ <b>Fixed</b>: Overworld canvas no longer scrolls when selecting tiles</li>
-<li>✅ <b>Fixed</b>: Tile16 selector properly scrolls to show selected tile (via blockset_selector_)</li>
-<li>✅ <b>Fixed</b>: Entity renderer using <code>hover_mouse_pos()</code> (already worked correctly)</li>
-<li>✅ <b>Preserved</b>: Tile painting using <code>drawn_tile_position()</code> (unchanged)</li>
-<li>✅ <b>Preserved</b>: Multi-area map support (512x512, 1024x1024)</li>
-<li>✅ <b>Preserved</b>: All three worlds (Light 0x00-0x3F, Dark 0x40-0x7F, Special 0x80+)</li>
-<li>✅ <b>Preserved</b>: ZSCustomOverworld v3 large maps (already worked correctly)</li>
+<li><b>Fixed</b>: Overworld map highlighting during hover (all worlds, all ROM types)</li>
+<li><b>Fixed</b>: Vanilla Dark World large map highlighting (was drawing off-screen)</li>
+<li><b>Fixed</b>: Vanilla Special World large map highlighting (was drawing off-screen)</li>
+<li><b>Fixed</b>: Overworld canvas no longer scrolls when selecting tiles</li>
+<li><b>Fixed</b>: Tile16 selector properly scrolls to show selected tile (via blockset_selector_)</li>
+<li><b>Fixed</b>: Entity renderer using <code>hover_mouse_pos()</code> (already worked correctly)</li>
+<li><b>Preserved</b>: Tile painting using <code>drawn_tile_position()</code> (unchanged)</li>
+<li><b>Preserved</b>: Multi-area map support (512x512, 1024x1024)</li>
+<li><b>Preserved</b>: All three worlds (Light 0x00-0x3F, Dark 0x40-0x7F, Special 0x80+)</li>
+<li><b>Preserved</b>: ZSCustomOverworld v3 large maps (already worked correctly)</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1110"></a>
+<h2><a class="anchor" id="autotoc_md1395"></a>
 Related Code That Works Correctly</h2>
 <p>These files already use the correct pattern:</p><ul>
-<li><code><a class="el" href="../../d2/dae/overworld__entity__renderer_8cc.html">src/app/editor/overworld/overworld_entity_renderer.cc</a>:68-69</code> - Uses <code>hover_mouse_pos()</code> for entity placement ✅</li>
-<li><code><a class="el" href="../../d9/d8a/overworld__editor_8cc.html">src/app/editor/overworld/overworld_editor.cc</a>:664</code> - Uses <code>drawn_tile_position()</code> for painting ✅</li>
+<li><code><a class="el" href="../../d2/dae/overworld__entity__renderer_8cc.html">src/app/editor/overworld/overworld_entity_renderer.cc</a>:68-69</code> - Uses <code>hover_mouse_pos()</code> for entity placement</li>
+<li><code><a class="el" href="../../d9/d8a/overworld__editor_8cc.html">src/app/editor/overworld/overworld_editor.cc</a>:664</code> - Uses <code>drawn_tile_position()</code> for painting</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md1111"></a>
+<h1><a class="anchor" id="autotoc_md1396"></a>
 Multi-Area Map Support</h1>
 <p>The fix properly handles all area sizes:</p>
-<h2><a class="anchor" id="autotoc_md1112"></a>
+<h2><a class="anchor" id="autotoc_md1397"></a>
 Standard Maps (512x512)</h2>
 <div class="fragment"><div class="line"><span class="keywordtype">int</span> map_x = hover_pos.x / 512;  <span class="comment">// 0-7 range</span></div>
 <div class="line"><span class="keywordtype">int</span> map_y = hover_pos.y / 512;  <span class="comment">// 0-7 range</span></div>
 <div class="line"><span class="keywordtype">int</span> map_index = map_x + map_y * 8;  <span class="comment">// 0-63 (8x8 grid)</span></div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1113"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1398"></a>
 ZSCustomOverworld v3 Large Maps (1024x1024)</h2>
 <div class="fragment"><div class="line"><span class="keywordtype">int</span> map_x = hover_pos.x / 1024;  <span class="comment">// Large map X</span></div>
 <div class="line"><span class="keywordtype">int</span> map_y = hover_pos.y / 1024;  <span class="comment">// Large map Y</span></div>
 <div class="line"><span class="comment">// Parent map calculation handled in lines 1073-1190</span></div>
 </div><!-- fragment --><p>The existing multi-area logic (lines 1068-1190) remains unchanged and works correctly with the fix.</p>
-<h1><a class="anchor" id="autotoc_md1114"></a>
+<h1><a class="anchor" id="autotoc_md1399"></a>
 Issue 3: Wrong Canvas Being Scrolled (Line 2344-2366)</h1>
 <p><b>File</b>: <code><a class="el" href="../../d9/d8a/overworld__editor_8cc.html">src/app/editor/overworld/overworld_editor.cc</a>:2344</code></p>
 <p><b>Problem</b>: When selecting tiles with right-click on the overworld canvas, <code>ScrollBlocksetCanvasToCurrentTile()</code> was calling <code>ImGui::SetScrollX/Y()</code> which scrolls <b>the current <a class="el" href="../../df/de4/namespaceImGui.html">ImGui</a> window</b>, not a specific canvas.</p>
@@ -323,11 +323,11 @@ Issue 3: Wrong Canvas Being Scrolled (Line 2344-2366)</h1>
 <div class="line">}</div>
 </div><!-- fragment --><p><b>After (FIXED)</b>: </p><div class="fragment"><div class="line"><span class="keywordtype">void</span> OverworldEditor::ScrollBlocksetCanvasToCurrentTile() {</div>
 <div class="line">  <span class="keywordflow">if</span> (blockset_selector_) {</div>
-<div class="line">    blockset_selector_-&gt;ScrollToTile(current_tile16_);  <span class="comment">// ✅ Correct: Targets specific canvas</span></div>
+<div class="line">    blockset_selector_-&gt;ScrollToTile(current_tile16_);  <span class="comment">//  Correct: Targets specific canvas</span></div>
 <div class="line">    <span class="keywordflow">return</span>;</div>
 <div class="line">  }</div>
 <div class="line"> </div>
-<div class="line">  <span class="comment">// ✅ CRITICAL FIX: Do NOT use fallback scrolling from overworld canvas context!</span></div>
+<div class="line">  <span class="comment">//  CRITICAL FIX: Do NOT use fallback scrolling from overworld canvas context!</span></div>
 <div class="line">  <span class="comment">// The fallback code uses ImGui::SetScrollX/Y which scrolls the CURRENT window,</span></div>
 <div class="line">  <span class="comment">// and when called from CheckForSelectRectangle() during overworld canvas rendering,</span></div>
 <div class="line">  <span class="comment">// it incorrectly scrolls the overworld canvas instead of the tile16 selector.</span></div>
@@ -341,7 +341,7 @@ Issue 3: Wrong Canvas Being Scrolled (Line 2344-2366)</h1>
 <li>By removing the fallback, we prevent scrolling the wrong canvas</li>
 <li>If <code>blockset_selector_</code> is null (shouldn't happen in modern builds), we safely do nothing instead of breaking user interaction</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md1115"></a>
+<h1><a class="anchor" id="autotoc_md1400"></a>
 Issue 4: Wrong Hover Check (Line 1403)</h1>
 <p><b>File</b>: <code><a class="el" href="../../d9/d8a/overworld__editor_8cc.html">src/app/editor/overworld/overworld_editor.cc</a>:1403</code></p>
 <p><b>Problem</b>: The code was using <code>ImGui::IsItemHovered()</code> to check if the mouse was over the canvas, but this checks the <b>last drawn <a class="el" href="../../df/de4/namespaceImGui.html">ImGui</a> item</b>, which could be entities, overlays, or anything drawn after the canvas's InvisibleButton. This meant hover detection was completely broken.</p>
@@ -358,11 +358,11 @@ Issue 4: Wrong Hover Check (Line 1403)</h1>
 </div><!-- fragment --><p><b>After (FIXED)</b>: </p><div class="fragment"><div class="line"><span class="keywordflow">if</span> (current_mode == EditingMode::DRAW_TILE) {</div>
 <div class="line">  CheckForOverworldEdits();</div>
 <div class="line">}</div>
-<div class="line"><span class="comment">// ✅ CRITICAL FIX: Use canvas hover state, not ImGui::IsItemHovered()</span></div>
+<div class="line"><span class="comment">//  CRITICAL FIX: Use canvas hover state, not ImGui::IsItemHovered()</span></div>
 <div class="line"><span class="comment">// IsItemHovered() checks the LAST drawn item, which could be entities/overlay,</span></div>
 <div class="line"><span class="comment">// not the canvas InvisibleButton. ow_map_canvas_.IsMouseHovering() correctly</span></div>
 <div class="line"><span class="comment">// tracks whether mouse is over the canvas area.</span></div>
-<div class="line"><span class="keywordflow">if</span> (ow_map_canvas_.IsMouseHovering())  <span class="comment">// ✅ Checks canvas hover state directly</span></div>
+<div class="line"><span class="keywordflow">if</span> (ow_map_canvas_.IsMouseHovering())  <span class="comment">//  Checks canvas hover state directly</span></div>
 <div class="line">  status_ = CheckForCurrentMap();</div>
 </div><!-- fragment --><p><b>Why This Fixes It</b>:</p><ul>
 <li><code>IsItemHovered()</code> is context-sensitive - it checks whatever the last <code><a class="el" href="../../df/de4/namespaceImGui.html">ImGui</a>::*()</code> call was</li>
@@ -370,7 +370,7 @@ Issue 4: Wrong Hover Check (Line 1403)</h1>
 <li><code>Canvas::IsMouseHovering()</code> tracks the hover state from the InvisibleButton in <code>DrawBackground()</code></li>
 <li>This state is set correctly when the InvisibleButton is hovered (line 416 in <a class="el" href="../../da/dbb/canvas_8cc.html">canvas.cc</a>)</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md1116"></a>
+<h1><a class="anchor" id="autotoc_md1401"></a>
 Issue 5: Vanilla Large Map World Offset (Line 1132-1136)</h1>
 <p><b>File</b>: <code><a class="el" href="../../d9/d8a/overworld__editor_8cc.html">src/app/editor/overworld/overworld_editor.cc</a>:1132-1136</code></p>
 <p><b>Problem</b>: For vanilla ROMs, the large map highlighting logic wasn't accounting for world offsets when calculating parent map coordinates. Dark World maps (0x40-0x7F) and Special World maps (0x80-0x9F) use map IDs with offsets, but the display grid coordinates are 0-7.</p>
@@ -394,7 +394,7 @@ Issue 5: Vanilla Large Map World Offset (Line 1132-1136)</h1>
 <div class="line">  <span class="keyword">const</span> <span class="keywordtype">int</span> highlight_parent =</div>
 <div class="line">      overworld_.overworld_map(current_highlighted_map)-&gt;parent();</div>
 <div class="line"> </div>
-<div class="line">  <span class="comment">// ✅ CRITICAL FIX: Account for world offset when calculating parent coordinates</span></div>
+<div class="line">  <span class="comment">//  CRITICAL FIX: Account for world offset when calculating parent coordinates</span></div>
 <div class="line">  <span class="keywordtype">int</span> parent_map_x;</div>
 <div class="line">  <span class="keywordtype">int</span> parent_map_y;</div>
 <div class="line">  <span class="keywordflow">if</span> (current_world_ == 0) {</div>
@@ -421,14 +421,14 @@ Issue 5: Vanilla Large Map World Offset (Line 1132-1136)</h1>
 <li>Without subtracting the world offset, coordinates overflow the display grid</li>
 <li>This matches the same logic used for v3 large maps (lines 1084-1096) and small maps (lines 1141-1172)</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md1117"></a>
+<h1><a class="anchor" id="autotoc_md1402"></a>
 Commit Reference</h1>
 <p><b>Canvas Refactoring Commits</b>:</p><ul>
 <li><code>f538775954</code> - Organize Canvas Utilities and BPP Format Management</li>
 <li><code>60ddf76331</code> - Integrate Canvas Automation API and Simplify Overworld Editor Controls</li>
 </ul>
 <p>These commits moved canvas utilities to modular components but introduced the regression by not maintaining hover position tracking.</p>
-<h1><a class="anchor" id="autotoc_md1118"></a>
+<h1><a class="anchor" id="autotoc_md1403"></a>
 Future Improvements</h1>
 <ol type="1">
 <li><b>Canvas Mode System</b>: Complete the interaction handler modes (tile paint, select, etc.)</li>
@@ -436,7 +436,7 @@ Future Improvements</h1>
 <li><b>Debugging Visualization</b>: Add canvas coordinate overlay for debugging</li>
 <li><b>E2E Tests</b>: Create end-to-end tests for overworld map highlighting workflow</li>
 </ol>
-<h1><a class="anchor" id="autotoc_md1119"></a>
+<h1><a class="anchor" id="autotoc_md1404"></a>
 Related Documentation</h1>
 <ul>
 <li><code><a class="el" href="../../dc/dee/G1-canvas-guide_8md.html">docs/G1-canvas-guide.md</a></code> - Canvas system architecture</li>

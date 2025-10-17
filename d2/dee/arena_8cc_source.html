@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.9.8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>yaze: src/app/gfx/arena.cc Source File</title>
+<title>yaze: src/app/gfx/resource/arena.cc Source File</title>
 <link href="../../tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript">var page_layout=1;</script>
 <script type="text/javascript" src="../../jquery.js"></script>
@@ -101,7 +101,7 @@ $(document).ready(function(){initNavTree('d2/dee/arena_8cc_source.html','../../'
   <div class="headertitle"><div class="title">arena.cc</div></div>
 </div><!--header-->
 <div class="contents">
-<a href="../../d2/dee/arena_8cc.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="preprocessor">#include &quot;<a class="code" href="../../da/d0c/arena_8h.html">app/gfx/arena.h</a>&quot;</span></div>
+<a href="../../d2/dee/arena_8cc.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="preprocessor">#include &quot;<a class="code" href="../../da/d0c/arena_8h.html">app/gfx/resource/arena.h</a>&quot;</span></div>
 <div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span> </div>
 <div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span><span class="preprocessor">#include &lt;SDL.h&gt;</span></div>
 <div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="preprocessor">#include &lt;algorithm&gt;</span></div>
@@ -123,7 +123,7 @@ $(document).ready(function(){initNavTree('d2/dee/arena_8cc_source.html','../../'
 </div>
 <div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span> </div>
 <div class="foldopen" id="foldopen00020" data-start="{" data-end="}">
-<div class="line"><a id="l00020" name="l00020"></a><span class="lineno"><a class="line" href="../../d4/de6/classyaze_1_1gfx_1_1Arena.html#a8392acf381212aa4b22fafbdf87e28ca">   20</a></span><a class="code hl_function" href="../../d4/de6/classyaze_1_1gfx_1_1Arena.html#a8392acf381212aa4b22fafbdf87e28ca">Arena::Arena</a>() {</div>
+<div class="line"><a id="l00020" name="l00020"></a><span class="lineno"><a class="line" href="../../d4/de6/classyaze_1_1gfx_1_1Arena.html#a8392acf381212aa4b22fafbdf87e28ca">   20</a></span><a class="code hl_function" href="../../d4/de6/classyaze_1_1gfx_1_1Arena.html#a8392acf381212aa4b22fafbdf87e28ca">Arena::Arena</a>() : bg1_(512, 512), bg2_(512, 512) {</div>
 <div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>  <a class="code hl_variable" href="../../d4/de6/classyaze_1_1gfx_1_1Arena.html#ac4e2011a2e3310f093861f6d1e558fa1">layer1_buffer_</a>.fill(0);</div>
 <div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span>  <a class="code hl_variable" href="../../d4/de6/classyaze_1_1gfx_1_1Arena.html#a56c7243e3f809866903126bc0bb05667">layer2_buffer_</a>.fill(0);</div>
 <div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span>}</div>
@@ -363,7 +363,7 @@ $(document).ready(function(){initNavTree('d2/dee/arena_8cc_source.html','../../'
 <div class="ttc" id="alog_8h_html_a81229895d58d7ea5d7b6fa913cc417fc"><div class="ttname"><a href="../../d7/d7f/log_8h.html#a81229895d58d7ea5d7b6fa913cc417fc">LOG_ERROR</a></div><div class="ttdeci">#define LOG_ERROR(category, format,...)</div><div class="ttdef"><b>Definition</b> <a href="../../d7/d7f/log_8h_source.html#l00110">log.h:110</a></div></div>
 <div class="ttc" id="alog_8h_html_aa4ffcb3b4801fa1427aac8c47b42f266"><div class="ttname"><a href="../../d7/d7f/log_8h.html#aa4ffcb3b4801fa1427aac8c47b42f266">LOG_WARN</a></div><div class="ttdeci">#define LOG_WARN(category, format,...)</div><div class="ttdef"><b>Definition</b> <a href="../../d7/d7f/log_8h_source.html#l00108">log.h:108</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1gfx_html_a88d0646ee27ae9755070c4e936cb36bf"><div class="ttname"><a href="../../d0/d27/namespaceyaze_1_1gfx.html#a88d0646ee27ae9755070c4e936cb36bf">yaze::gfx::GetSnesPixelFormat</a></div><div class="ttdeci">Uint32 GetSnesPixelFormat(int format)</div><div class="ttdoc">Convert bitmap format enum to SDL pixel format.</div><div class="ttdef"><b>Definition</b> <a href="../../d4/d13/bitmap_8cc_source.html#l00034">bitmap.cc:34</a></div></div>
-<div class="ttc" id="anamespaceyaze_html"><div class="ttname"><a href="../../dc/d46/namespaceyaze.html">yaze</a></div><div class="ttdoc">Main namespace for the application.</div><div class="ttdef"><b>Definition</b> <a href="../../db/d17/asar__wrapper_8cc_source.html#l00014">asar_wrapper.cc:14</a></div></div>
+<div class="ttc" id="anamespaceyaze_html"><div class="ttname"><a href="../../dc/d46/namespaceyaze.html">yaze</a></div><div class="ttdoc">Main namespace for the application.</div><div class="ttdef"><b>Definition</b> <a href="../../da/d0c/controller_8cc_source.html#l00020">controller.cc:20</a></div></div>
 <div class="ttc" id="asdl__deleter_8h_html"><div class="ttname"><a href="../../d5/dd7/sdl__deleter_8h.html">sdl_deleter.h</a></div></div>
 <div class="ttc" id="astructyaze_1_1gfx_1_1Arena_1_1SurfacePool_html_a3833d3a7212cb622e7d5d5477931033b"><div class="ttname"><a href="../../d7/d5d/structyaze_1_1gfx_1_1Arena_1_1SurfacePool.html#a3833d3a7212cb622e7d5d5477931033b">yaze::gfx::Arena::SurfacePool::MAX_POOL_SIZE</a></div><div class="ttdeci">static constexpr size_t MAX_POOL_SIZE</div><div class="ttdef"><b>Definition</b> <a href="../../da/d0c/arena_8h_source.html#l00153">arena.h:153</a></div></div>
 <div class="ttc" id="astructyaze_1_1gfx_1_1Arena_1_1SurfacePool_html_a752625ddb30232f4328da483d25438e8"><div class="ttname"><a href="../../d7/d5d/structyaze_1_1gfx_1_1Arena_1_1SurfacePool.html#a752625ddb30232f4328da483d25438e8">yaze::gfx::Arena::SurfacePool::available_surfaces_</a></div><div class="ttdeci">std::vector&lt; SDL_Surface * &gt; available_surfaces_</div><div class="ttdef"><b>Definition</b> <a href="../../da/d0c/arena_8h_source.html#l00151">arena.h:151</a></div></div>
@@ -375,7 +375,7 @@ $(document).ready(function(){initNavTree('d2/dee/arena_8cc_source.html','../../'
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="navelem"><a class="el" href="../../dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="../../dir_5194e5fea318fda12687127c23f8aba1.html">app</a></li><li class="navelem"><a class="el" href="../../dir_0b974e391fb3f3024b1f06092da5c188.html">gfx</a></li><li class="navelem"><a class="el" href="../../d2/dee/arena_8cc.html">arena.cc</a></li>
+    <li class="navelem"><a class="el" href="../../dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="../../dir_5194e5fea318fda12687127c23f8aba1.html">app</a></li><li class="navelem"><a class="el" href="../../dir_0b974e391fb3f3024b1f06092da5c188.html">gfx</a></li><li class="navelem"><a class="el" href="../../dir_ceb05c5eecd2d6984b90a0a067296363.html">resource</a></li><li class="navelem"><a class="el" href="../../d2/dee/arena_8cc.html">arena.cc</a></li>
     <li class="footer">Generated by <a href="https://www.doxygen.org/index.html"><img class="footer" src="../../doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
   </ul>
 </div>

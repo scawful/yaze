@@ -1,0 +1,11 @@
+<map id="yaze::gui::PushThemedWidgetColors" name="yaze::gui::PushThemedWidgetColors">
+<area shape="rect" id="Node000001" title="Apply theme colors to next widget." alt="" coords="5,35,199,75"/>
+<area shape="rect" id="Node000002" href="$d3/dbf/namespaceyaze_1_1gui.html#a0a2f4e28780bd8cf64f9d6e7b67be924" title=" " alt="" coords="247,5,413,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="198,40,231,36,231,41,199,45"/>
+<area shape="rect" id="Node000003" href="$d3/dbf/namespaceyaze_1_1gui.html#a4c84c2cc40ee46b790e1e05ba0c5edaf" title="Get current theme (shortcut)" alt="" coords="261,70,399,96"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="199,64,246,70,245,75,198,70"/>
+<area shape="rect" id="Node000004" href="$d3/d27/classyaze_1_1gui_1_1ThemeManager.html#ab3423e72fe874f8c370ed2d3e52ac278" title=" " alt="" coords="461,41,654,67"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="398,72,445,65,446,71,399,77"/>
+<area shape="rect" id="Node000005" href="$d3/d27/classyaze_1_1gui_1_1ThemeManager.html#ad706e6146dd664adffe3350c520f397b" title=" " alt="" coords="475,91,641,131"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="399,89,460,96,459,102,398,94"/>
+</map>

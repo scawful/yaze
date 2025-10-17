@@ -106,8 +106,11 @@ $(document).ready(function(){initNavTree('df/dcb/emulator__service__impl_8cc.htm
 <div class="contents">
 <div class="textblock"><code>#include &quot;<a class="el" href="../../de/d22/emulator__service__impl_8h_source.html">cli/service/agent/emulator_service_impl.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../db/dc0/emulator_8h_source.html">app/emu/emulator.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="../../d7/d65/screenshot__utils_8h_source.html">app/core/service/screenshot_utils.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../d7/d65/screenshot__utils_8h_source.html">app/service/screenshot_utils.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../d9/d2a/input__backend_8h_source.html">app/emu/input/input_backend.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../dc/d0f/breakpoint__manager_8h_source.html">app/emu/debug/breakpoint_manager.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../da/d65/watchpoint__manager_8h_source.html">app/emu/debug/watchpoint_manager.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html">app/emu/debug/disassembly_viewer.h</a>&quot;</code><br />
 <code>#include &quot;absl/strings/escaping.h&quot;</code><br />
 <code>#include &quot;absl/strings/str_format.h&quot;</code><br />
 <code>#include &lt;fstream&gt;</code><br />
@@ -129,6 +132,14 @@ Namespaces</h2></td></tr>
 Functions</h2></td></tr>
 <tr class="memitem:a8d088b6c7366acd4b4fa9e832808d679" id="r_a8d088b6c7366acd4b4fa9e832808d679"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d5/df0/namespaceyaze_1_1emu_1_1input.html#adba5be4e20df51e4ba9273c1d018cbbb">emu::input::SnesButton</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/d89/namespaceyaze_1_1agent_1_1anonymous__namespace_02emulator__service__impl_8cc_03.html#a8d088b6c7366acd4b4fa9e832808d679">yaze::agent::anonymous_namespace{emulator_service_impl.cc}::ToSnesButton</a> (Button button)</td></tr>
 <tr class="separator:a8d088b6c7366acd4b4fa9e832808d679"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4e1ab6c7d15895374c203715c60695e2" id="r_a4e1ab6c7d15895374c203715c60695e2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d9/ded/classyaze_1_1emu_1_1BreakpointManager.html#ab89cacd2103b2dbebc7632199f14d9b8">emu::BreakpointManager::Type</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/da9/namespaceyaze_1_1agent.html#a4e1ab6c7d15895374c203715c60695e2">yaze::agent::ToBreakpointType</a> (BreakpointType proto_type)</td></tr>
+<tr class="separator:a4e1ab6c7d15895374c203715c60695e2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a09da79e53a4403923fad191eb8745683" id="r_a09da79e53a4403923fad191eb8745683"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d9/ded/classyaze_1_1emu_1_1BreakpointManager.html#ac8a0731654f403685cc4d7af00d1e520">emu::BreakpointManager::CpuType</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/da9/namespaceyaze_1_1agent.html#a09da79e53a4403923fad191eb8745683">yaze::agent::ToCpuType</a> (CpuType proto_cpu)</td></tr>
+<tr class="separator:a09da79e53a4403923fad191eb8745683"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a48045ec3dc1adec7dbb6b9b49ba1072a" id="r_a48045ec3dc1adec7dbb6b9b49ba1072a"><td class="memItemLeft" align="right" valign="top">BreakpointType&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/da9/namespaceyaze_1_1agent.html#a48045ec3dc1adec7dbb6b9b49ba1072a">yaze::agent::ToProtoBreakpointType</a> (<a class="el" href="../../d9/ded/classyaze_1_1emu_1_1BreakpointManager.html#ab89cacd2103b2dbebc7632199f14d9b8">emu::BreakpointManager::Type</a> type)</td></tr>
+<tr class="separator:a48045ec3dc1adec7dbb6b9b49ba1072a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a30ebd3ab36b300691f2bbbf80261afa1" id="r_a30ebd3ab36b300691f2bbbf80261afa1"><td class="memItemLeft" align="right" valign="top">CpuType&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/da9/namespaceyaze_1_1agent.html#a30ebd3ab36b300691f2bbbf80261afa1">yaze::agent::ToProtoCpuType</a> (<a class="el" href="../../d9/ded/classyaze_1_1emu_1_1BreakpointManager.html#ac8a0731654f403685cc4d7af00d1e520">emu::BreakpointManager::CpuType</a> cpu)</td></tr>
+<tr class="separator:a30ebd3ab36b300691f2bbbf80261afa1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 </div><!-- contents -->
 </div><!-- doc-content -->

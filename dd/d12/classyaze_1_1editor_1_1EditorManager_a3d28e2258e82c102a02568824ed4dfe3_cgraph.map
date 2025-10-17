@@ -1,9 +1,11 @@
 <map id="yaze::editor::EditorManager::CreateNewSession" name="yaze::editor::EditorManager::CreateNewSession">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,180,79"/>
-<area shape="rect" id="Node000002" href="$d3/d21/classyaze_1_1editor_1_1EditorSet.html#aad04f8c4dfa4b3214401c6bbce1b9973" title=" " alt="" coords="243,5,387,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="180,43,227,36,227,41,180,49"/>
-<area shape="rect" id="Node000004" href="$d7/d92/classyaze_1_1editor_1_1ToastManager.html#aa9b4c4a8d7c6746e46466530f1eea654" title=" " alt="" coords="228,71,402,111"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="180,69,213,74,212,79,180,74"/>
-<area shape="rect" id="Node000003" href="$dd/d00/classyaze_1_1editor_1_1SettingsEditor.html#a8bc1bdcceff65273b0964441cbb79369" title=" " alt="" coords="450,5,622,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="387,23,435,23,435,28,387,28"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,104,180,145"/>
+<area shape="rect" id="Node000002" href="$dd/d12/classyaze_1_1editor_1_1EditorManager.html#add78fab14d70ab2c363c5582ae768123" title="Injects dependencies into all editors within an EditorSet." alt="" coords="228,5,424,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="132,101,227,57,245,49,247,54,229,61,134,106"/>
+<area shape="rect" id="Node000006" href="$d3/d21/classyaze_1_1editor_1_1EditorSet.html#a633125fcb1f12cbd41ef7951597f0d2d" title=" " alt="" coords="254,71,398,111"/>
+<area shape="poly" id="edge2_Node000001_Node000006" title=" " alt="" coords="179,109,238,101,239,106,180,115"/>
+<area shape="rect" id="Node000007" href="$d3/d21/classyaze_1_1editor_1_1EditorSet.html#aad04f8c4dfa4b3214401c6bbce1b9973" title=" " alt="" coords="254,136,398,177"/>
+<area shape="poly" id="edge3_Node000001_Node000007" title=" " alt="" coords="180,134,239,142,238,147,179,139"/>
+<area shape="rect" id="Node000009" href="$d7/d92/classyaze_1_1editor_1_1ToastManager.html#aa9b4c4a8d7c6746e46466530f1eea654" title=" " alt="" coords="239,201,413,242"/>
+<area shape="poly" id="edge4_Node000001_Node000009" title=" " alt="" coords="135,143,229,186,247,193,246,198,227,191,133,148"/>
 </map>

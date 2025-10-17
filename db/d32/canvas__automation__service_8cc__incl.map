@@ -1,7 +1,7 @@
-<map id="src/app/core/service/canvas_automation_service.cc" name="src/app/core/service/canvas_automation_service.cc">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,210,46"/>
-<area shape="rect" id="Node000002" href="$dc/d6c/canvas__automation__service_8h.html" title=" " alt="" coords="26,94,189,135"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="110,47,110,78,105,78,105,47"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="40,183,175,223"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="110,135,110,167,105,167,105,135"/>
+<map id="src/app/service/canvas_automation_service.cc" name="src/app/service/canvas_automation_service.cc">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,164,46"/>
+<area shape="rect" id="Node000002" href="$dc/d6c/canvas__automation__service_8h.html" title=" " alt="" coords="9,94,160,135"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="87,47,87,78,82,78,82,47"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="17,183,152,223"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="87,135,87,167,82,167,82,135"/>
 </map>

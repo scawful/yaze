@@ -101,168 +101,167 @@ $(document).ready(function(){initNavTree('d1/d30/md_docs_2B2-platform-compatibil
   <div class="headertitle"><div class="title">Platform Compatibility &amp; CI/CD Fixes</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md101"></a> <b>Last Updated</b>: October 9, 2025 <br  />
+<div class="textblock"><p><a class="anchor" id="autotoc_md185"></a> <b>Last Updated</b>: October 9, 2025 <br  />
 </p>
 <hr  />
-<h1><a class="anchor" id="autotoc_md103"></a>
+<h1><a class="anchor" id="autotoc_md187"></a>
 Platform-Specific Notes</h1>
-<h2><a class="anchor" id="autotoc_md104"></a>
+<h2><a class="anchor" id="autotoc_md188"></a>
 Windows</h2>
 <p><b>Build System:</b></p><ul>
-<li>Uses vcpkg for: SDL2, yaml-cpp, zlib (fast, pre-compiled)</li>
-<li>Uses FetchContent for: gRPC v1.67.1, abseil, protobuf (slower first time)</li>
+<li>Supported compilers: clang-cl (preferred), MSVC 2022 17.4+</li>
+<li>Uses vcpkg for: SDL2, yaml-cpp (fast packages only)</li>
+<li>Uses FetchContent for: gRPC v1.75.1, protobuf, abseil, zlib (better caching)</li>
 </ul>
-<p><b>MSVC Flags Applied:</b></p><ul>
-<li><code>/bigobj</code> - Support large object files</li>
-<li><code>/permissive-</code> - Standards conformance</li>
-<li><code>/wd4267 /wd4244</code> - Suppress conversion warnings</li>
-<li><code>/constexpr:depth2048</code> - Deep template instantiation</li>
+<p><b>Why FetchContent for gRPC?</b></p><ul>
+<li>vcpkg gRPC v1.71.0 has no pre-built binaries (builds from source: 45-90 min)</li>
+<li>FetchContent uses v1.75.1 with Windows compatibility fixes</li>
+<li>BoringSSL ASM disabled on Windows (avoids NASM build conflicts with clang-cl)</li>
+<li>Better caching in CI/CD (separate cache keys for vcpkg vs FetchContent)</li>
+<li>First build: ~10-15 min, subsequent: &lt;1 min (cached)</li>
+<li>zlib bundled with gRPC (avoids vcpkg conflicts)</li>
 </ul>
-<p><b>Macro Definitions:</b></p><ul>
-<li><code>WIN32_LEAN_AND_MEAN</code> - Reduce Windows header pollution</li>
-<li><code>NOMINMAX</code> - Prevent min/max macro conflicts</li>
-<li><code>NOGDI</code> - Prevent GDI macro conflicts (DWORD, etc.)</li>
+<p>**Compiler Flags (both clang-cl and MSVC):**</p><ul>
+<li>`/bigobj` - Support large object files (required for gRPC)</li>
+<li>`/permissive-` - Standards conformance mode</li>
+<li>`/wd4267 /wd4244` - Suppress harmless conversion warnings</li>
+<li>`/constexpr:depth2048` - Deep template instantiation (MSVC 2019+)</li>
 </ul>
-<p><b>Build Times:</b></p><ul>
-<li>First build with FetchContent: ~45-60 minutes (compiles gRPC)</li>
-<li>Subsequent builds: ~2-5 minutes</li>
-<li>With vcpkg pre-compiled gRPC: ~5-10 minutes first time</li>
+<p>**Macro Definitions:**</p><ul>
+<li>`WIN32_LEAN_AND_MEAN` - Reduce Windows header pollution</li>
+<li>`NOMINMAX` - Prevent min/max macro conflicts</li>
+<li>`NOGDI` - Prevent GDI macro conflicts (DWORD, etc.)</li>
+<li>`__PRFCHWINTRIN_H` - Work around Clang 20 `_m_prefetchw` linkage clash</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md105"></a>
+<p>**Build Times:**</p><ul>
+<li>First build (no cache): ~10-15 minutes</li>
+<li>Incremental build (cached): ~3-5 minutes</li>
+<li>CI/CD with full caching: ~5-8 minutes</li>
+</ul>
+<p>**CI/CD Configuration:**</p><ul>
+<li>Compiler matrix: clang-cl + MSVC</li>
+<li>3-tier caching: vcpkg packages, FetchContent deps, sccache objects</li>
+<li>Binary caching via GitHub Actions for vcpkg</li>
+<li>Parallel builds: 4 jobs</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md189"></a>
 macOS</h2>
-<p><b>Build System:</b></p><ul>
+<p>**Build System:**</p><ul>
 <li>Uses vcpkg for: SDL2, yaml-cpp, zlib</li>
 <li>Uses FetchContent for: gRPC, abseil, protobuf</li>
 </ul>
-<p><b>Supported Architectures:</b></p><ul>
+<p>**Supported Architectures:**</p><ul>
 <li>x64 (Intel Macs) - macOS 13+</li>
 <li>ARM64 (Apple Silicon) - macOS 14+</li>
 </ul>
-<p><b>Build Times:</b></p><ul>
+<p>**Build Times:**</p><ul>
 <li>First build: ~20-30 minutes</li>
 <li>Subsequent builds: ~3-5 minutes</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md106"></a>
+<h2><a class="anchor" id="autotoc_md190"></a>
 Linux</h2>
-<p><b>Build System:</b></p><ul>
+<p>**Build System:**</p><ul>
 <li>Uses system packages (apt) for most dependencies</li>
 <li>Does NOT use vcpkg</li>
 <li>Uses FetchContent for: gRPC, abseil, protobuf (when not in system)</li>
 </ul>
-<p><b>Required System Packages:</b> </p><div class="fragment"><div class="line">build-essential ninja-build pkg-config libglew-dev libxext-dev </div>
+<p>**Required System Packages:** </p><div class="fragment"><div class="line">build-essential ninja-build pkg-config libglew-dev libxext-dev </div>
 <div class="line">libwavpack-dev libabsl-dev libboost-all-dev libpng-dev python3-dev </div>
 <div class="line">libpython3-dev libasound2-dev libpulse-dev libaudio-dev libx11-dev </div>
 <div class="line">libxrandr-dev libxcursor-dev libxinerama-dev libxi-dev libxss-dev </div>
 <div class="line">libxxf86vm-dev libxkbcommon-dev libwayland-dev libdecor-0-dev </div>
 <div class="line">libgtk-3-dev libdbus-1-dev gcc-12 g++-12 clang-15</div>
-</div><!-- fragment --><p><b>Build Times:</b></p><ul>
+</div><!-- fragment --><p>**Build Times:**</p><ul>
 <li>First build: ~15-20 minutes</li>
 <li>Subsequent builds: ~2-4 minutes</li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md108"></a>
+<h1><a class="anchor" id="autotoc_md192"></a>
 Cross-Platform Code Validation</h1>
-<p>All recent additions (October 2025) are cross-platform compatible:</p>
-<h2><a class="anchor" id="autotoc_md109"></a>
-Audio System</h2>
+<p>The following subsystems run unchanged across Windows, macOS, and Linux:</p>
 <ul>
-<li>✅ <code><a class="el" href="../../d4/d03/audio__backend_8h.html">src/app/emu/audio/audio_backend.h</a>/cc</code> - Uses SDL2 (cross-platform)</li>
-<li>✅ No platform-specific code</li>
-<li>✅ Ready for SDL3 migration</li>
-</ul>
-<h2><a class="anchor" id="autotoc_md110"></a>
-Input System</h2>
-<ul>
-<li>✅ <code><a class="el" href="../../d9/d2a/input__backend_8h.html">src/app/emu/input/input_backend.h</a>/cc</code> - Uses SDL2 (cross-platform)</li>
-<li>✅ <code><a class="el" href="../../d8/dd2/input__manager_8h.html">src/app/emu/input/input_manager.h</a>/cc</code> - Platform-agnostic</li>
-<li>✅ Ready for SDL3 migration</li>
-</ul>
-<h2><a class="anchor" id="autotoc_md111"></a>
-Debugger System</h2>
-<ul>
-<li>✅ <code><a class="el" href="../../d9/d51/apu__debugger_8h.html">src/app/emu/debug/apu_debugger.h</a>/cc</code> - No platform dependencies</li>
-<li>✅ <code><a class="el" href="../../dc/d0f/breakpoint__manager_8h.html">src/app/emu/debug/breakpoint_manager.h</a>/cc</code> - Platform-agnostic</li>
-<li>✅ <code><a class="el" href="../../da/d65/watchpoint__manager_8h.html">src/app/emu/debug/watchpoint_manager.h</a>/cc</code> - Platform-agnostic</li>
-<li>✅ All use <a class="el" href="../../df/de4/namespaceImGui.html">ImGui</a> (cross-platform)</li>
-</ul>
-<h2><a class="anchor" id="autotoc_md112"></a>
-UI Layer</h2>
-<ul>
-<li>✅ <code>src/app/emu/ui/*</code> - Uses <a class="el" href="../../df/de4/namespaceImGui.html">ImGui</a> + SDL2 (both cross-platform)</li>
-<li>✅ No platform-specific rendering code</li>
+<li>Audio backend (<code>src/app/emu/audio</code>) uses SDL2 only; no platform branches.</li>
+<li>Input backend/manager (<code>src/app/emu/input</code>) runs on SDL2 abstractions.</li>
+<li>Debug tools (<code>src/app/emu/debug</code>) avoid OS-specific headers.</li>
+<li>Emulator UI (<code>src/app/emu/ui</code>) is pure <a class="el" href="../../df/de4/namespaceImGui.html">ImGui</a> + SDL2.</li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md114"></a>
+<h1><a class="anchor" id="autotoc_md194"></a>
 Common Build Issues &amp; Solutions</h1>
-<h2><a class="anchor" id="autotoc_md115"></a>
+<h2><a class="anchor" id="autotoc_md195"></a>
 Windows: "use of undefined type 'PromiseLike'"</h2>
 <p><b>Cause:</b> Old gRPC version (&lt; v1.67.1) <br  />
  <b>Fix:</b> Clear build cache and reconfigure </p><div class="fragment"><div class="line">rm -r build/_deps/grpc-*</div>
 <div class="line">cmake -B build -G &quot;Visual Studio 17 2022&quot; -A x64</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md116"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md196"></a>
 macOS: "absl not found"</h2>
 <p><b>Cause:</b> vcpkg not finding abseil packages <br  />
  <b>Fix:</b> Use FetchContent (default) - abseil is fetched automatically by gRPC </p><div class="fragment"><div class="line">cmake -B build</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md117"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md197"></a>
 Linux: CMake configuration fails</h2>
 <p><b>Cause:</b> Missing system dependencies <br  />
  <b>Fix:</b> Install required packages </p><div class="fragment"><div class="line">sudo apt-get update</div>
 <div class="line">sudo apt-get install -y [see package list above]</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md118"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md198"></a>
 Windows: "DWORD syntax error"</h2>
 <p><b>Cause:</b> Windows macros conflicting with protobuf enums <br  />
  <b>Fix:</b> Ensure <code>NOGDI</code> is defined (now automatic in grpc.cmake)</p>
 <hr  />
-<h1><a class="anchor" id="autotoc_md120"></a>
+<h1><a class="anchor" id="autotoc_md200"></a>
 CI/CD Validation Checklist</h1>
 <p>Before merging platform-specific changes:</p>
 <ul>
-<li>✅ vcpkg baseline synchronized across CI and vcpkg.json</li>
-<li>✅ Windows x86 build removed (cpp-httplib incompatibility)</li>
-<li>✅ Windows macro pollution prevented (NOGDI, NOMINMAX, WIN32_LEAN_AND_MEAN)</li>
-<li>✅ gRPC v1.67.1 with MSVC compatibility flags</li>
-<li>✅ Cross-platform code uses SDL2/ImGui only</li>
-<li>⏳ Validate CI builds pass on next push</li>
+<li>Confirm the vcpkg baseline matches <code>vcpkg.json</code>.</li>
+<li>Do not reintroduce the Windows x86 build (cpp-httplib incompatibility).</li>
+<li>Keep Windows macro guards (<code>NOGDI</code>, <code>NOMINMAX</code>, <code>WIN32_LEAN_AND_MEAN</code>) in place.</li>
+<li>Build against gRPC 1.67.1 with the MSVC workaround flags.</li>
+<li>Leave shared code paths on SDL2/ImGui abstractions.</li>
+<li>Re-run the full matrix if caches or presets change.</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md201"></a>
+CI/CD Performance Roadmap</h2>
+<ul>
+<li><b>Dependency caching</b>: Cache vcpkg installs on Windows plus Homebrew/apt archives to trim 5-10 minutes per job; track cache keys via OS + lockfiles.</li>
+<li><b>Compiler caching</b>: Enable <code>ccache</code>/<code>sccache</code> across the matrix using the <code>hendrikmuhs/ccache-action</code> with 500 MB per-run limits for 3-5 minute wins.</li>
+<li><b>Conditional work</b>: Add a path-filter job that skips emulator builds or full test runs when only docs or CLI code change; fall back to full matrix on shared components.</li>
+<li><b>Reusable workflows</b>: Centralize setup steps (checking out submodules, restoring caches, configuring presets) to reduce duplication between <code>ci.yml</code> and <code>release.yml</code>.</li>
+<li><b>Release optimizations</b>: Use lean presets without test targets, run platform builds in parallel, and reuse cached artifacts from CI when hashes match.</li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md122"></a>
+<h1><a class="anchor" id="autotoc_md203"></a>
 Testing Strategy</h1>
-<h2><a class="anchor" id="autotoc_md123"></a>
+<h2><a class="anchor" id="autotoc_md204"></a>
 Automated (CI)</h2>
 <ul>
-<li>✅ Build on Ubuntu 22.04 (GCC-12, Clang-15)</li>
-<li>✅ Build on macOS 13/14 (x64/ARM64)</li>
-<li>✅ Build on Windows 2022 (x64 only)</li>
-<li>✅ Run core tests (AsarWrapperTest, SnesTileTest, etc.)</li>
-<li>✅ Code quality checks (clang-format, cppcheck, clang-tidy)</li>
-<li>✅ Memory sanitizer (Linux AddressSanitizer)</li>
+<li>Ubuntu 22.04 (GCC-12, Clang-15)</li>
+<li>macOS 13/14 (x64 and ARM64)</li>
+<li>Windows Server 2022 (x64)</li>
+<li>Core tests: <code>AsarWrapperTest</code>, <code>SnesTileTest</code>, others tagged <code>STABLE</code></li>
+<li>Tooling: clang-format, clang-tidy, cppcheck</li>
+<li>Sanitizers: Linux AddressSanitizer job</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md124"></a>
+<h2><a class="anchor" id="autotoc_md205"></a>
 Manual Testing</h2>
 <p>After successful CI build:</p><ul>
-<li>🔲 Windows: Audio backend initializes</li>
-<li>🔲 Windows: Keyboard input works</li>
-<li>🔲 Windows: APU Debugger UI renders</li>
-<li>🔲 Linux: Input polling works</li>
-<li>🔲 macOS: All features functional</li>
+<li>Windows: verify audio backend, keyboard input, APU debugger UI.</li>
+<li>Linux: verify input polling and audio output.</li>
+<li>macOS: spot-check rendering, input, audio.</li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md126"></a>
+<h1><a class="anchor" id="autotoc_md207"></a>
 Quick Reference</h1>
-<h2><a class="anchor" id="autotoc_md127"></a>
+<h2><a class="anchor" id="autotoc_md208"></a>
 Build Command (All Platforms)</h2>
-<div class="fragment"><div class="line"># Simple - no flags needed!</div>
-<div class="line">cmake -B build</div>
+<div class="fragment"><div class="line">cmake -B build</div>
 <div class="line">cmake --build build --parallel</div>
 <div class="line"> </div>
-<div class="line"># Or use presets:</div>
 <div class="line">cmake --preset [mac-dbg|lin-dbg|win-dbg]</div>
 <div class="line">cmake --build --preset [mac-dbg|lin-dbg|win-dbg]</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md128"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md209"></a>
 Enable Features</h2>
 <p>All features (JSON, gRPC, AI) are <b>always enabled</b> by default. <br  />
  No need to specify <code>-DZ3ED_AI=ON</code> or <code>-DYAZE_WITH_GRPC=ON</code>.</p>
-<h2><a class="anchor" id="autotoc_md129"></a>
+<h2><a class="anchor" id="autotoc_md210"></a>
 Windows Troubleshooting</h2>
 <div class="fragment"><div class="line"># Verify environment</div>
 <div class="line">.\scripts\verify-build-environment.ps1</div>
@@ -271,7 +270,7 @@ Windows Troubleshooting</h2>
 <div class="line">.\scripts\setup-vcpkg-windows.ps1</div>
 <div class="line">cmake -B build -DCMAKE_TOOLCHAIN_FILE=&quot;vcpkg/scripts/buildsystems/vcpkg.cmake&quot;</div>
 </div><!-- fragment --><hr  />
-<h1><a class="anchor" id="autotoc_md131"></a>
+<h1><a class="anchor" id="autotoc_md212"></a>
 Filesystem Abstraction</h1>
 <p>To ensure robust and consistent behavior across platforms, YAZE has standardized its filesystem operations:</p>
 <ul>
@@ -285,7 +284,7 @@ Filesystem Abstraction</h1>
 </ul>
 <p>This removes legacy platform-specific APIs (like <code>dirent.h</code> or Win32 directory functions) for cleaner, more maintainable file handling.</p>
 <hr  />
-<h1><a class="anchor" id="autotoc_md133"></a>
+<h1><a class="anchor" id="autotoc_md214"></a>
 Native File Dialog Support</h1>
 <p>YAZE features native file dialogs on all platforms:</p><ul>
 <li><b>macOS</b>: Cocoa-based file selection with proper sandboxing support</li>
@@ -294,7 +293,7 @@ Native File Dialog Support</h1>
 <li><b>Fallback</b>: Cross-platform implementation when native dialogs unavailable</li>
 </ul>
 <hr  />
-<p><b>Status:</b> ✅ All CI/CD issues resolved. Next push should build successfully on all platforms. </p>
+<p><b>Status:</b> All CI/CD issues resolved. Next push should build successfully on all platforms. </p>
 </div></div><!-- contents -->
 </div><!-- PageDoc -->
 </div><!-- doc-content -->

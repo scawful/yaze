@@ -1,7 +1,12 @@
 <map id="yaze::editor::EditorManager::JumpToOverworldMap" name="yaze::editor::EditorManager::JumpToOverworldMap">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,39,180,79"/>
-<area shape="rect" id="Node000002" href="$d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#a6d2c10fd8ffdd8096d57333856cd887e" title=" " alt="" coords="228,5,411,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="179,44,212,39,213,44,180,49"/>
-<area shape="rect" id="Node000003" href="$dd/d12/classyaze_1_1editor_1_1EditorManager.html#a3760b587fd7b18f85187f9c86a1a6f53" title=" " alt="" coords="232,71,407,111"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="180,69,217,74,217,79,179,74"/>
+<area shape="rect" id="Node000002" href="$dd/d12/classyaze_1_1editor_1_1EditorManager.html#a660484e6ff4135276dd2a2d91531f3f4" title=" " alt="" coords="450,5,624,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="180,50,434,31,435,36,180,55"/>
+<area shape="rect" id="Node000003" href="$dd/d12/classyaze_1_1editor_1_1EditorManager.html#a3760b587fd7b18f85187f9c86a1a6f53" title=" " alt="" coords="228,67,402,107"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="180,67,212,71,212,77,180,73"/>
+<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="390,63,446,48,447,53,392,69"/>
+<area shape="rect" id="Node000004" href="$d4/d3f/classyaze_1_1editor_1_1EditorRegistry.html#af4f307c2b8476c9c32c845981b738455" title=" " alt="" coords="452,71,623,111"/>
+<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="402,86,436,87,436,92,402,91"/>
+<area shape="rect" id="Node000005" href="$dd/d12/classyaze_1_1editor_1_1EditorManager.html#a023e174b078dffe267152d7cc003a9f6" title=" " alt="" coords="450,136,624,177"/>
+<area shape="poly" id="edge5_Node000003_Node000005" title=" " alt="" coords="383,105,456,128,454,133,382,111"/>
 </map>

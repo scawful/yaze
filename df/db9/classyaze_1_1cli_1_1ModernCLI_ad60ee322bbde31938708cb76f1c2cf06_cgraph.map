@@ -1,5 +1,9 @@
 <map id="yaze::cli::ModernCLI::ShowHelp" name="yaze::cli::ModernCLI::ShowHelp">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,142,46"/>
-<area shape="rect" id="Node000002" href="$dd/d63/namespaceyaze_1_1cli.html#adc29fb4ca4077f5e031b48b69220b97d" title=" " alt="" coords="190,13,356,39"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="142,23,174,23,174,28,142,28"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,27,142,68"/>
+<area shape="rect" id="Node000002" href="$dd/d63/namespaceyaze_1_1cli.html#adc29fb4ca4077f5e031b48b69220b97d" title=" " alt="" coords="196,5,362,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="142,35,180,30,181,35,143,40"/>
+<area shape="rect" id="Node000003" href="$d7/de8/classyaze_1_1cli_1_1CommandRegistry.html#a422c17a90bd427883971c970008d85e9" title=" " alt="" coords="190,55,368,96"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="143,54,174,59,174,64,142,59"/>
+<area shape="rect" id="Node000004" href="$d7/de8/classyaze_1_1cli_1_1CommandRegistry.html#a4fd313e4ea0b3e8e816bbef4cae2e4c3" title=" " alt="" coords="416,55,594,96"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="369,73,400,73,400,78,369,78"/>
 </map>

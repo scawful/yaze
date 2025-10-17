@@ -1,9 +1,0 @@
-<map id="yaze::cli::ModernCLI::SetupCommands" name="yaze::cli::ModernCLI::SetupCommands">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,142,79"/>
-<area shape="rect" id="Node000002" href="$d0/db7/namespaceyaze_1_1cli_1_1handlers.html#a50c4a22a1afe49ec337fce20c546d92a" title="Factory function to create all command handlers (CLI + agent)" alt="" coords="190,39,381,79"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="142,56,174,56,174,62,142,62"/>
-<area shape="rect" id="Node000003" href="$d0/db7/namespaceyaze_1_1cli_1_1handlers.html#ade230bf1ab4f618a1656f0fe7193cc1a" title="Factory function to create all agent&#45;specific command handlers." alt="" coords="429,5,639,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="381,44,413,39,414,44,382,49"/>
-<area shape="rect" id="Node000004" href="$d0/db7/namespaceyaze_1_1cli_1_1handlers.html#a6364d0634bf85eccfd1c2d6378a8e0c4" title="Factory function to create all CLI&#45;level command handlers." alt="" coords="439,71,630,111"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="382,69,423,74,423,79,381,74"/>
-</map>

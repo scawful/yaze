@@ -1,7 +1,0 @@
-<map id="yaze::core::Controller::SetStartupEditor" name="yaze::core::Controller::SetStartupEditor">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,145,46"/>
-<area shape="rect" id="Node000002" href="$dd/d12/classyaze_1_1editor_1_1EditorManager.html#a9490488bf03f85560a0e279b4e7f0309" title=" " alt="" coords="193,5,403,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="145,23,177,23,177,28,145,28"/>
-<area shape="rect" id="Node000003" href="$da/d45/classyaze_1_1editor_1_1DungeonEditorV2.html#a212fb5a83c47cb2ea1e501a5fd81a27a" title=" " alt="" coords="451,5,626,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="404,23,435,23,435,28,404,28"/>
-</map>

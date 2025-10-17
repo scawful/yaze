@@ -1,0 +1,13 @@
+<map id="yaze::gui::CanvasUsageTracker::EndSession" name="yaze::gui::CanvasUsageTracker::EndSession">
+<area shape="rect" id="Node000001" title="End session." alt="" coords="5,92,208,133"/>
+<area shape="rect" id="Node000002" href="$da/d7e/classyaze_1_1gui_1_1CanvasUsageTracker.html#a41c8f0917f0033c04cae4d55f3be5ef8" title=" " alt="" coords="256,5,458,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="167,89,281,49,282,54,169,94"/>
+<area shape="rect" id="Node000003" href="$da/d7e/classyaze_1_1gui_1_1CanvasUsageTracker.html#a696a711f5215ef787beb3e2555943773" title=" " alt="" coords="256,120,458,161"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="209,121,241,125,240,130,208,126"/>
+<area shape="rect" id="Node000005" href="$da/d7e/classyaze_1_1gui_1_1CanvasUsageTracker.html#a8b196b74311036a29affeff66f95440d" title=" " alt="" coords="506,76,708,117"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="208,106,490,97,490,103,208,112"/>
+<area shape="rect" id="Node000006" href="$da/d7e/classyaze_1_1gui_1_1CanvasUsageTracker.html#ad704bd30c1a75fc30a1883a1882cf8df" title=" " alt="" coords="506,153,708,194"/>
+<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="148,131,199,153,256,170,316,178,376,183,490,182,490,187,376,188,315,184,255,175,197,158,146,136"/>
+<area shape="poly" id="edge3_Node000003_Node000005" title=" " alt="" coords="458,120,490,114,491,119,459,125"/>
+<area shape="poly" id="edge4_Node000003_Node000006" title=" " alt="" coords="459,151,491,156,490,161,458,156"/>
+</map>

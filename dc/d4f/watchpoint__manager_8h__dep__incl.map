@@ -1,7 +1,9 @@
 <map id="src/app/emu/debug/watchpoint_manager.h" name="src/app/emu/debug/watchpoint_manager.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="103,5,302,46"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="201,5,401,46"/>
 <area shape="rect" id="Node000002" href="$db/da6/watchpoint__manager_8cc.html" title=" " alt="" coords="5,94,205,135"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="171,58,129,96,125,92,167,54"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="244,55,151,96,149,91,242,50"/>
 <area shape="rect" id="Node000003" href="$d1/de8/emulator__test__suite_8h.html" title=" " alt="" coords="229,94,373,135"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="238,54,280,92,277,96,234,58"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="304,62,304,94,298,94,298,62"/>
+<area shape="rect" id="Node000004" href="$df/dcb/emulator__service__impl_8cc.html" title=" " alt="" coords="398,94,570,135"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="357,50,444,91,441,96,355,55"/>
 </map>

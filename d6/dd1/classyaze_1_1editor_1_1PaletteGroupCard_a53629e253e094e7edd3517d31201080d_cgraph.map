@@ -1,0 +1,11 @@
+<map id="yaze::editor::PaletteGroupCard::SetColor" name="yaze::editor::PaletteGroupCard::SetColor">
+<area shape="rect" id="Node000001" title="Set a color value (records change for undo)" alt="" coords="5,55,173,96"/>
+<area shape="rect" id="Node000002" href="$d7/d39/classyaze_1_1gfx_1_1PaletteManager.html#ad76357b3c747d397e99dd16972cf1235" title="Get the singleton instance." alt="" coords="221,5,415,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="172,52,248,33,249,38,173,57"/>
+<area shape="rect" id="Node000003" href="$d7/d39/classyaze_1_1gfx_1_1PaletteManager.html#a04d090df59f559acfa2fa6a97f37c9d1" title="Set a color in a palette (records change for undo)" alt="" coords="234,55,402,96"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="173,73,219,73,219,78,173,78"/>
+<area shape="rect" id="Node000011" href="$d6/dd1/classyaze_1_1editor_1_1PaletteGroupCard.html#abb27e5066b459769a1c3aa926fd64bf1" title="Write a single color to ROM." alt="" coords="234,121,402,161"/>
+<area shape="poly" id="edge4_Node000001_Node000011" title=" " alt="" coords="163,94,230,113,229,118,162,99"/>
+<area shape="rect" id="Node000004" href="$d7/d39/classyaze_1_1gfx_1_1PaletteManager.html#a2e456087d1fa6be7f676ff21a50be921" title="Helper: Get mutable palette group." alt="" coords="463,55,630,96"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="402,73,447,73,447,78,402,78"/>
+</map>

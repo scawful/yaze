@@ -1,0 +1,7 @@
+<map id="yaze::editor::palette_utility::DrawPaletteIdSelector" name="yaze::editor::palette_utility::DrawPaletteIdSelector">
+<area shape="rect" id="Node000001" title="Draw a compact palette ID selector with preview." alt="" coords="5,5,200,46"/>
+<area shape="rect" id="Node000002" href="$d8/dd9/namespaceyaze_1_1editor_1_1palette__utility.html#a04a542e19ea27f5448e48bbfd6a84a70" title="Draw a palette selector button that opens palette editor." alt="" coords="248,5,453,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="200,23,232,23,232,28,200,28"/>
+<area shape="rect" id="Node000003" href="$d2/d46/classyaze_1_1editor_1_1PaletteEditor.html#ad40791dedf61fa7257e0bc018bd2d826" title="Jump to a specific palette by group and index." alt="" coords="501,5,666,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="454,23,485,23,485,28,454,28"/>
+</map>

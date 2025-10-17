@@ -1,0 +1,12 @@
+<map id="yaze::gui::PaletteEditorWidget::ShowROMPaletteManager" name="yaze::gui::PaletteEditorWidget::ShowROMPaletteManager">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,104,227,145"/>
+<area shape="rect" id="Node000002" href="$d9/df4/classyaze_1_1gui_1_1PaletteEditorWidget.html#abd1803a9a462d85a2b7f7faba40c94e1" title=" " alt="" coords="289,5,477,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="163,101,274,57,296,49,298,54,276,61,165,106"/>
+<area shape="rect" id="Node000005" href="$d9/df4/classyaze_1_1gui_1_1PaletteEditorWidget.html#aed45952ad8b431481b0dc48a15e9c2ce" title=" " alt="" coords="302,71,464,111"/>
+<area shape="poly" id="edge2_Node000001_Node000005" title=" " alt="" coords="227,108,286,100,286,106,227,113"/>
+<area shape="rect" id="Node000006" href="$d9/df4/classyaze_1_1gui_1_1PaletteEditorWidget.html#addca6ae0ac0ed134a9564e81a1c0286d" title=" " alt="" coords="275,136,491,177"/>
+<area shape="poly" id="edge3_Node000001_Node000006" title=" " alt="" coords="227,135,259,139,259,144,227,140"/>
+<area shape="rect" id="Node000007" href="$d9/df4/classyaze_1_1gui_1_1PaletteEditorWidget.html#a820d2d7825b0e8d9e3059b7aa566d0b2" title=" " alt="" coords="539,165,713,206"/>
+<area shape="poly" id="edge5_Node000001_Node000007" title=" " alt="" coords="157,143,212,167,275,186,339,195,404,198,524,194,524,200,404,203,338,200,274,191,210,172,155,147"/>
+<area shape="poly" id="edge4_Node000006_Node000007" title=" " alt="" coords="492,167,524,171,523,176,491,172"/>
+</map>

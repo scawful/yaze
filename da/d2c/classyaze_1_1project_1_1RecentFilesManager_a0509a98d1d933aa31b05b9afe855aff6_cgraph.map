@@ -1,0 +1,7 @@
+<map id="yaze::project::RecentFilesManager::GetFilePath" name="yaze::project::RecentFilesManager::GetFilePath">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,173,46"/>
+<area shape="rect" id="Node000002" href="$db/dd8/classyaze_1_1util_1_1PlatformPaths.html#a629daba112fc1c989572eab96ab0ffcd" title="Get the user&#45;specific configuration directory for YAZE." alt="" coords="221,5,380,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="173,23,205,23,205,28,173,28"/>
+<area shape="rect" id="Node000003" href="$db/dd8/classyaze_1_1util_1_1PlatformPaths.html#a12f8860efbb23052a82006f24b221c6f" title="Get the user&#45;specific application data directory for YAZE." alt="" coords="428,5,587,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="380,23,413,23,413,28,380,28"/>
+</map>

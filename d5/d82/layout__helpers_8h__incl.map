@@ -1,0 +1,13 @@
+<map id="src/app/gui/core/layout_helpers.h" name="src/app/gui/core/layout_helpers.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="115,5,268,46"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="106,183,163,208"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="116,38,87,46,60,58,35,74,15,95,8,114,15,133,30,151,49,165,92,183,90,188,47,169,27,155,11,136,3,114,11,93,32,70,57,53,86,41,114,33"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="26,102,187,127"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="174,48,131,92,127,88,170,45"/>
+<area shape="rect" id="Node000004" href="$d8/d65/theme__manager_8h.html" title=" " alt="" coords="211,94,343,135"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="213,45,249,81,245,85,209,48"/>
+<area shape="rect" id="Node000022" title=" " alt="" coords="280,183,378,208"/>
+<area shape="poly" id="edge6_Node000001_Node000022" title=" " alt="" coords="269,36,318,57,340,72,358,93,365,112,364,133,348,171,343,168,359,132,360,113,353,95,336,76,315,61,267,41"/>
+<area shape="poly" id="edge4_Node000004_Node000002" title=" " alt="" coords="243,138,171,177,168,172,240,133"/>
+<area shape="poly" id="edge5_Node000004_Node000022" title=" " alt="" coords="292,134,315,168,310,171,288,137"/>
+</map>

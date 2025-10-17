@@ -5,9 +5,7 @@ var classyaze_1_1cli_1_1ModernCLI =
     [ "PrintTopLevelHelp", "df/db9/classyaze_1_1cli_1_1ModernCLI.html#aaf3ee9771848185cc9abbb934ae10053", null ],
     [ "PrintCategoryHelp", "df/db9/classyaze_1_1cli_1_1ModernCLI.html#a2e36509c08e30abf8e7499d57228be7a", null ],
     [ "PrintCommandSummary", "df/db9/classyaze_1_1cli_1_1ModernCLI.html#a39d7e70b7e94ca73a40b0d109e24962e", null ],
-    [ "SetupCommands", "df/db9/classyaze_1_1cli_1_1ModernCLI.html#a7eca5c1ea2d7713cff409387373b4b07", null ],
     [ "ShowHelp", "df/db9/classyaze_1_1cli_1_1ModernCLI.html#ad60ee322bbde31938708cb76f1c2cf06", null ],
     [ "ShowCategoryHelp", "df/db9/classyaze_1_1cli_1_1ModernCLI.html#a3f19cf7256d5dd993b6de7802e5a407b", null ],
-    [ "ShowCommandSummary", "df/db9/classyaze_1_1cli_1_1ModernCLI.html#a6ebcd459769064532cf76cbddb6bd85b", null ],
-    [ "commands_", "df/db9/classyaze_1_1cli_1_1ModernCLI.html#aa1e36ae02887d8bd12b26a085b3b48eb", null ]
+    [ "ShowCommandSummary", "df/db9/classyaze_1_1cli_1_1ModernCLI.html#a6ebcd459769064532cf76cbddb6bd85b", null ]
 ];

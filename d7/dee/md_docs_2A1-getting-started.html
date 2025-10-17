@@ -121,29 +121,29 @@ General Tips</h1>
 Feature Status</h1>
 <table class="markdownTable">
 <tr class="markdownTableHead">
-<th class="markdownTableHeadNone">Feature   </th><th class="markdownTableHeadNone">Status   </th><th class="markdownTableHeadNone">Details    </th></tr>
+<th class="markdownTableHeadNone">Feature   </th><th class="markdownTableHeadNone">State   </th><th class="markdownTableHeadNone">Notes    </th></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">Overworld Editor   </td><td class="markdownTableBodyNone">✅ Complete   </td><td class="markdownTableBodyNone">Full support for vanilla and ZSCustomOverworld v2/v3.    </td></tr>
+<td class="markdownTableBodyNone">Overworld Editor   </td><td class="markdownTableBodyNone">Stable   </td><td class="markdownTableBodyNone">Supports vanilla and ZSCustomOverworld v2/v3 projects.    </td></tr>
 <tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone">Dungeon Editor   </td><td class="markdownTableBodyNone">✅ Complete   </td><td class="markdownTableBodyNone">Stable, component-based editor for rooms, objects, and sprites.    </td></tr>
+<td class="markdownTableBodyNone">Dungeon Editor   </td><td class="markdownTableBodyNone">Experimental   </td><td class="markdownTableBodyNone">Requires extensive manual testing before production use.    </td></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">Tile16 Editor   </td><td class="markdownTableBodyNone">✅ Complete   </td><td class="markdownTableBodyNone">Professional-grade tile editor with advanced palette management.    </td></tr>
+<td class="markdownTableBodyNone">Tile16 Editor   </td><td class="markdownTableBodyNone">Experimental   </td><td class="markdownTableBodyNone">Palette and tile workflows are still being tuned.    </td></tr>
 <tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone">Palette Editor   </td><td class="markdownTableBodyNone">✅ Complete   </td><td class="markdownTableBodyNone">Edit and save all SNES palette groups.    </td></tr>
+<td class="markdownTableBodyNone">Palette Editor   </td><td class="markdownTableBodyNone">Stable   </td><td class="markdownTableBodyNone">Reference implementation for palette utilities.    </td></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">Graphics Editor   </td><td class="markdownTableBodyNone">✅ Complete   </td><td class="markdownTableBodyNone">View and edit graphics sheets and groups.    </td></tr>
+<td class="markdownTableBodyNone">Graphics Editor   </td><td class="markdownTableBodyNone">Experimental   </td><td class="markdownTableBodyNone">Rendering pipeline under active refactor.    </td></tr>
 <tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone">Sprite Editor   </td><td class="markdownTableBodyNone">✅ Complete   </td><td class="markdownTableBodyNone">Edit sprite properties and attributes.    </td></tr>
+<td class="markdownTableBodyNone">Sprite Editor   </td><td class="markdownTableBodyNone">Experimental   </td><td class="markdownTableBodyNone">Card/UI patterns mid-migration.    </td></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">Message Editor   </td><td class="markdownTableBodyNone">✅ Complete   </td><td class="markdownTableBodyNone">Edit in-game text and dialogue.    </td></tr>
+<td class="markdownTableBodyNone">Message Editor   </td><td class="markdownTableBodyNone">Stable   </td><td class="markdownTableBodyNone">Re-test after recent palette fixes.    </td></tr>
 <tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone">Hex Editor   </td><td class="markdownTableBodyNone">✅ Complete   </td><td class="markdownTableBodyNone">View and edit raw ROM data.    </td></tr>
+<td class="markdownTableBodyNone">Hex Editor   </td><td class="markdownTableBodyNone">Stable   </td><td class="markdownTableBodyNone">Direct ROM editing utility.    </td></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">Asar Patching   </td><td class="markdownTableBodyNone">✅ Complete   </td><td class="markdownTableBodyNone">Apply Asar 65816 assembly patches to the ROM.   </td></tr>
+<td class="markdownTableBodyNone">Asar Patching   </td><td class="markdownTableBodyNone">Stable   </td><td class="markdownTableBodyNone">Wraps the bundled Asar assembler.   </td></tr>
 </table>
 <h1><a class="anchor" id="autotoc_md4"></a>
 Command-Line Interface (&lt;tt&gt;z3ed&lt;/tt&gt;)</h1>
-<p><code>z3ed</code> is a powerful, AI-driven CLI for inspecting and editing ROMs.</p>
+<p><code>z3ed</code> provides scripted access to the same ROM editors.</p>
 <h2><a class="anchor" id="autotoc_md5"></a>
 AI Agent Chat</h2>
 <p>Chat with an AI to perform edits using natural language.</p>
@@ -166,7 +166,7 @@ Patching</h2>
 <div class="line">z3ed asar patch.asm --rom zelda3.sfc</div>
 </div><!-- fragment --><h1><a class="anchor" id="autotoc_md8"></a>
 Extending Functionality</h1>
-<p>YAZE is designed to be extensible. Future versions will support a full plugin architecture, allowing developers to create custom tools and editors. The C API, while available, is still under development. </p>
+<p>YAZE exports a C API that is still evolving. Treat it as experimental and expect breaking changes while the plugin system is built out. </p>
 </div></div><!-- contents -->
 </div><!-- PageDoc -->
 </div><!-- doc-content -->

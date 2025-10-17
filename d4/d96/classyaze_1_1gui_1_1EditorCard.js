@@ -35,6 +35,7 @@ var classyaze_1_1gui_1_1EditorCard =
     [ "first_draw_", "d4/d96/classyaze_1_1gui_1_1EditorCard.html#ab43c29359073f6a631bb78bc7a4b0934", null ],
     [ "focused_", "d4/d96/classyaze_1_1gui_1_1EditorCard.html#a357029ac656b6272a45b82dc8ccbd5df", null ],
     [ "p_open_", "d4/d96/classyaze_1_1gui_1_1EditorCard.html#af89a3e3ecc6f03629ea8bda0938be5c3", null ],
+    [ "imgui_begun_", "d4/d96/classyaze_1_1gui_1_1EditorCard.html#ad00064ea0a1db62ec1a332532506bfd2", null ],
     [ "headless_", "d4/d96/classyaze_1_1gui_1_1EditorCard.html#a619a69ca17d8a446d30fd7cb732045c2", null ],
     [ "docking_allowed_", "d4/d96/classyaze_1_1gui_1_1EditorCard.html#a6e1ee83a39b46cb2f7d5626031a7913a", null ],
     [ "icon_collapsible_", "d4/d96/classyaze_1_1gui_1_1EditorCard.html#aecdfc048f6356a2891af850b9193e107", null ],

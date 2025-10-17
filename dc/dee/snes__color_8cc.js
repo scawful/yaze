@@ -1,6 +1,6 @@
 var snes__color_8cc =
 [
-    [ "ConvertSnesToRgb", "dc/dee/snes__color_8cc.html#a893d31b6aeb9a3df9754b9def778b458", null ],
+    [ "ConvertSnesToRgb", "dc/dee/snes__color_8cc.html#a022dccbb572c0562d73aebce90df22db", null ],
     [ "ConvertRgbToSnes", "dc/dee/snes__color_8cc.html#a4e83a052d42017612243c3f81b538b7d", null ],
     [ "ConvertRgbToSnes", "dc/dee/snes__color_8cc.html#a78da9ee9b2de37e218f0152a1ecc4e36", null ],
     [ "ReadColorFromRom", "dc/dee/snes__color_8cc.html#a68d9e4162aa4c03b5061b60c3da6947a", null ],

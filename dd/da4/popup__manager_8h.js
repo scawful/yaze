@@ -1,5 +1,39 @@
 var popup__manager_8h =
 [
+    [ "yaze::editor::PopupDefinition", "d0/d4c/structyaze_1_1editor_1_1PopupDefinition.html", "d0/d4c/structyaze_1_1editor_1_1PopupDefinition" ],
     [ "yaze::editor::PopupParams", "df/dc2/structyaze_1_1editor_1_1PopupParams.html", "df/dc2/structyaze_1_1editor_1_1PopupParams" ],
-    [ "yaze::editor::PopupManager", "d3/d8d/classyaze_1_1editor_1_1PopupManager.html", "d3/d8d/classyaze_1_1editor_1_1PopupManager" ]
+    [ "yaze::editor::PopupManager", "d3/d8d/classyaze_1_1editor_1_1PopupManager.html", "d3/d8d/classyaze_1_1editor_1_1PopupManager" ],
+    [ "PopupType", "dd/da4/popup__manager_8h.html#ae7ea017fd6f0a33ba35d72dca775f02b", [
+      [ "kInfo", "dd/da4/popup__manager_8h.html#ae7ea017fd6f0a33ba35d72dca775f02ba176a473e63c17ccdac91640c67f149bf", null ],
+      [ "kHelp", "dd/da4/popup__manager_8h.html#ae7ea017fd6f0a33ba35d72dca775f02ba244ce4b6c7f56eaa446d64fc2d068bbb", null ],
+      [ "kSettings", "dd/da4/popup__manager_8h.html#ae7ea017fd6f0a33ba35d72dca775f02bac935a934100d15241aefe3f7081e7767", null ],
+      [ "kFileOperation", "dd/da4/popup__manager_8h.html#ae7ea017fd6f0a33ba35d72dca775f02bace65a1507dea76a27382d9fafabb81da", null ],
+      [ "kConfirmation", "dd/da4/popup__manager_8h.html#ae7ea017fd6f0a33ba35d72dca775f02bab1f4b6476319fe8de48c8ac730c842a2", null ],
+      [ "kWarning", "dd/da4/popup__manager_8h.html#ae7ea017fd6f0a33ba35d72dca775f02baec0da41f4e48b52c362303eb27ed5dee", null ],
+      [ "kEditor", "dd/da4/popup__manager_8h.html#ae7ea017fd6f0a33ba35d72dca775f02ba3c2601c340c7c05be7f863cddf388436", null ]
+    ] ],
+    [ "kSaveAs", "dd/da4/popup__manager_8h.html#a5f54c2b346e54923d6a76df12f07d783", null ],
+    [ "kNewProject", "dd/da4/popup__manager_8h.html#a5bb44df0fdfdc171a4a55dd5e5c25945", null ],
+    [ "kManageProject", "dd/da4/popup__manager_8h.html#a52585c160cd97c9b8e895dfa23462665", null ],
+    [ "kAbout", "dd/da4/popup__manager_8h.html#a1a1237c501df8aa8276cd0bc8b780956", null ],
+    [ "kRomInfo", "dd/da4/popup__manager_8h.html#a02aacd70c3440d16ad8c2510058a1bf3", null ],
+    [ "kSupportedFeatures", "dd/da4/popup__manager_8h.html#a3d278d16ee0d062b83871cb38366424a", null ],
+    [ "kStatus", "dd/da4/popup__manager_8h.html#a35b228cd57fdac9e10f39ca5b15896d1", null ],
+    [ "kGettingStarted", "dd/da4/popup__manager_8h.html#ad91707bf0e25720a2cb9faede65f3341", null ],
+    [ "kAsarIntegration", "dd/da4/popup__manager_8h.html#ac94fd99eedbd7c2d404cc0068bfe22ca", null ],
+    [ "kBuildInstructions", "dd/da4/popup__manager_8h.html#ae52c853ca346e097b62277890b33465e", null ],
+    [ "kCLIUsage", "dd/da4/popup__manager_8h.html#a7852539aa97be079124b4602e4531e01", null ],
+    [ "kTroubleshooting", "dd/da4/popup__manager_8h.html#a1ec2474abf5fe50c267ca6ef1849ca88", null ],
+    [ "kContributing", "dd/da4/popup__manager_8h.html#adc3f64818ef8c0dd82bcd7820bea7b7b", null ],
+    [ "kWhatsNew", "dd/da4/popup__manager_8h.html#a2f704fbf0c699f8d25396f542d4af444", null ],
+    [ "kOpenRomHelp", "dd/da4/popup__manager_8h.html#ad65320059029c4e3a705dd46354df742", null ],
+    [ "kDisplaySettings", "dd/da4/popup__manager_8h.html#a64530127a4a1ee7ac4a25a07910c7933", null ],
+    [ "kFeatureFlags", "dd/da4/popup__manager_8h.html#ad7a1b68eb7fc6652629cc846d3601f77", null ],
+    [ "kWorkspaceHelp", "dd/da4/popup__manager_8h.html#aea1c1971f5c46965266a441dedb81fb2", null ],
+    [ "kSessionLimitWarning", "dd/da4/popup__manager_8h.html#a6c7e1918dbbee2f88fc6c2fb92301c20", null ],
+    [ "kLayoutResetConfirm", "dd/da4/popup__manager_8h.html#a899fdc296c90e40b8727331412e5e0d5", null ],
+    [ "kDataIntegrity", "dd/da4/popup__manager_8h.html#a3ec594ed63eec82be94ac7012f398f2f", null ],
+    [ "kQuickExport", "dd/da4/popup__manager_8h.html#a5030f4aedcf727081a1acc4f2ec184fb", null ],
+    [ "kAssetImport", "dd/da4/popup__manager_8h.html#a2198e4555e621401f09a837cebcd287a", null ],
+    [ "kScriptGenerator", "dd/da4/popup__manager_8h.html#a8126eaa019be160f5d4752a39b9a5dbf", null ]
 ];

@@ -1,9 +1,9 @@
-<map id="src/app/zelda3/hyrule_magic.cc" name="src/app/zelda3/hyrule_magic.cc">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,149,46"/>
-<area shape="rect" id="Node000002" href="$db/d03/hyrule__magic_8h.html" title=" " alt="" coords="23,94,131,120"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="80,46,80,78,74,78,74,46"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="6,168,66,193"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="72,121,53,156,48,153,68,119"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="90,168,150,193"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="86,119,107,153,102,156,82,121"/>
+<map id="src/util/hyrule_magic.cc" name="src/util/hyrule_magic.cc">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,163,31"/>
+<area shape="rect" id="Node000002" href="$db/d03/hyrule__magic_8h.html" title=" " alt="" coords="20,79,148,105"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="87,31,87,63,81,63,81,31"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="13,153,73,178"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="79,106,60,141,55,138,75,104"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="97,153,157,178"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="93,104,114,138,109,141,89,106"/>
 </map>

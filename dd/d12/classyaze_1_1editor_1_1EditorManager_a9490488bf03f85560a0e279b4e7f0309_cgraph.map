@@ -1,7 +1,5 @@
 <map id="yaze::editor::EditorManager::OpenEditorAndCardsFromFlags" name="yaze::editor::EditorManager::OpenEditorAndCardsFromFlags">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,5,216,46"/>
-<area shape="rect" id="Node000002" href="$da/d45/classyaze_1_1editor_1_1DungeonEditorV2.html#a212fb5a83c47cb2ea1e501a5fd81a27a" title=" " alt="" coords="264,5,439,46"/>
+<area shape="rect" id="Node000002" href="$dd/d12/classyaze_1_1editor_1_1EditorManager.html#a660484e6ff4135276dd2a2d91531f3f4" title=" " alt="" coords="264,5,438,46"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="216,23,248,23,248,28,216,28"/>
-<area shape="rect" id="Node000003" href="$da/d45/classyaze_1_1editor_1_1DungeonEditorV2.html#af5b46bb90815fb2548d1f2e4344abe97" title=" " alt="" coords="487,5,662,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="439,23,472,23,472,28,439,28"/>
 </map>

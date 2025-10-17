@@ -1,0 +1,5 @@
+<map id="yaze::gui::Canvas::RenderPersistentPopups" name="yaze::gui::Canvas::RenderPersistentPopups">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,171,46"/>
+<area shape="rect" id="Node000002" href="$df/d70/classyaze_1_1gui_1_1PopupRegistry.html#a3dba024601c5be5ce6b620b1b104c31d" title="Render all active popups." alt="" coords="219,5,379,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="171,23,203,23,203,28,171,28"/>
+</map>

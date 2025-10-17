@@ -1,0 +1,7 @@
+<map id="yaze::editor::palette_utility::DrawColorInfoTooltip" name="yaze::editor::palette_utility::DrawColorInfoTooltip">
+<area shape="rect" id="Node000001" title="Draw color info tooltip on hover." alt="" coords="5,27,191,68"/>
+<area shape="rect" id="Node000002" href="$d5/d31/classyaze_1_1gfx_1_1SnesColor.html#a0a6bc657e8a8778b7672d2e6102771e2" title="Get RGB values (WARNING: stored as 0&#45;255 in ImVec4)" alt="" coords="239,5,399,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="191,33,223,28,224,33,192,38"/>
+<area shape="rect" id="Node000003" href="$d5/d31/classyaze_1_1gfx_1_1SnesColor.html#ade9df7154cb3707cffe5e644c995f090" title="Get SNES 15&#45;bit color." alt="" coords="251,55,387,96"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="192,57,235,62,235,68,191,62"/>
+</map>

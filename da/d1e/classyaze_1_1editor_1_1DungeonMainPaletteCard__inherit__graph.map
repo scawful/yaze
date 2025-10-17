@@ -1,0 +1,5 @@
+<map id="yaze::editor::DungeonMainPaletteCard" name="yaze::editor::DungeonMainPaletteCard">
+<area shape="rect" id="Node000001" title="Dungeon Main palette group card." alt="" coords="17,79,188,120"/>
+<area shape="rect" id="Node000002" href="$d6/dd1/classyaze_1_1editor_1_1PaletteGroupCard.html" title="Base class for palette group editing cards." alt="" coords="5,5,200,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="105,46,105,79,100,79,100,46"/>
+</map>

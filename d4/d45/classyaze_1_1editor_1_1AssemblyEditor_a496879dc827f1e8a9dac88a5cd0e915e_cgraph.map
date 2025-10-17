@@ -1,9 +1,11 @@
 <map id="yaze::editor::AssemblyEditor::DrawCurrentFolder" name="yaze::editor::AssemblyEditor::DrawCurrentFolder">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,23,187,64"/>
-<area shape="rect" id="Node000002" href="$d4/d45/classyaze_1_1editor_1_1AssemblyEditor.html#a4b745650f8142af416a263bfee0b24c9" title=" " alt="" coords="235,23,416,64"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="187,41,219,41,219,46,187,46"/>
-<area shape="rect" id="Node000003" href="$d0/d28/classTextEditor.html#a36a929a82d045b43480326c73f383cb8" title=" " alt="" coords="464,5,638,31"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="416,31,448,27,449,32,416,36"/>
-<area shape="rect" id="Node000004" href="$d4/de1/namespaceyaze_1_1util.html#affcb30b4249275bfec576ab198b29d83" title="Loads the entire contents of a file into a string." alt="" coords="488,55,614,80"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="416,50,473,57,472,62,416,56"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,47,187,88"/>
+<area shape="rect" id="Node000002" href="$d4/d45/classyaze_1_1editor_1_1AssemblyEditor.html#a4b745650f8142af416a263bfee0b24c9" title=" " alt="" coords="235,47,416,88"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="187,65,219,65,219,70,187,70"/>
+<area shape="rect" id="Node000003" href="$d3/dbf/namespaceyaze_1_1gui.html#a662ce2afc1c96ab4df4f8f645e837981" title=" " alt="" coords="464,5,695,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="416,47,494,32,495,37,417,53"/>
+<area shape="rect" id="Node000004" href="$d0/d28/classTextEditor.html#a36a929a82d045b43480326c73f383cb8" title=" " alt="" coords="493,55,667,80"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="416,65,477,65,477,70,416,70"/>
+<area shape="rect" id="Node000005" href="$d4/de1/namespaceyaze_1_1util.html#affcb30b4249275bfec576ab198b29d83" title="Loads the entire contents of a file into a string." alt="" coords="517,104,643,130"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="417,82,502,99,501,104,416,88"/>
 </map>

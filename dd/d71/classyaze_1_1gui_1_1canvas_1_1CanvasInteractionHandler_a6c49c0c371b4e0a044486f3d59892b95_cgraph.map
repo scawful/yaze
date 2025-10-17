@@ -1,7 +1,0 @@
-<map id="yaze::gui::canvas::CanvasInteractionHandler::DrawTilePainter" name="yaze::gui::canvas::CanvasInteractionHandler::DrawTilePainter">
-<area shape="rect" id="Node000001" title="Draw tile painter (preview + interaction)" alt="" coords="5,31,177,87"/>
-<area shape="rect" id="Node000002" href="$df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a5df0c9b0c6a7368e87893881c176c919" title=" " alt="" coords="225,5,348,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="176,42,209,36,210,41,177,47"/>
-<area shape="rect" id="Node000003" href="$df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a1e0a0f5b9fa6f85be594cc99f757383b" title=" " alt="" coords="225,71,348,111"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="177,70,210,76,209,81,176,76"/>
-</map>

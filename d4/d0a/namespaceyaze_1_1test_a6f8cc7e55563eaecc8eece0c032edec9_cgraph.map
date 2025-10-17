@@ -2,10 +2,10 @@
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,78,135,104"/>
 <area shape="rect" id="Node000002" href="$da/d45/classyaze_1_1editor_1_1DungeonEditorV2.html#a849975676fce9974609cac1c55b319f0" title=" " alt="" coords="183,5,358,46"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="111,75,190,49,192,54,113,80"/>
-<area shape="rect" id="Node000005" href="$da/d45/classyaze_1_1editor_1_1DungeonEditorV2.html#adcdd7c86ceda3bbd7176b6ae5b3daf84" title=" " alt="" coords="183,71,358,111"/>
-<area shape="poly" id="edge3_Node000001_Node000005" title=" " alt="" coords="135,88,167,88,167,94,135,94"/>
-<area shape="rect" id="Node000029" href="$da/d45/classyaze_1_1editor_1_1DungeonEditorV2.html#ae9e8f7c5507d2ca2d2be380a6a8fa5b7" title=" " alt="" coords="183,136,358,177"/>
-<area shape="poly" id="edge4_Node000001_Node000029" title=" " alt="" coords="113,102,192,128,190,133,111,107"/>
-<area shape="rect" id="Node000003" href="$d1/dea/classyaze_1_1gui_1_1EditorCardManager.html#a91e8e431313cc77b068dc47f74bb417d" title=" " alt="" coords="406,13,619,39"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="359,23,390,23,390,28,359,28"/>
+<area shape="rect" id="Node000010" href="$da/d45/classyaze_1_1editor_1_1DungeonEditorV2.html#adcdd7c86ceda3bbd7176b6ae5b3daf84" title=" " alt="" coords="183,71,358,111"/>
+<area shape="poly" id="edge3_Node000001_Node000010" title=" " alt="" coords="135,88,167,88,167,94,135,94"/>
+<area shape="rect" id="Node000039" href="$da/d45/classyaze_1_1editor_1_1DungeonEditorV2.html#ae9e8f7c5507d2ca2d2be380a6a8fa5b7" title=" " alt="" coords="183,136,358,177"/>
+<area shape="poly" id="edge4_Node000001_Node000039" title=" " alt="" coords="113,102,192,128,190,133,111,107"/>
+<area shape="rect" id="Node000003" href="$d3/d9f/classyaze_1_1editor_1_1Editor.html#a98f0abd7cb1a6088da2cef730c0160dd" title=" " alt="" coords="406,5,530,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="358,23,390,23,390,28,358,28"/>
 </map>

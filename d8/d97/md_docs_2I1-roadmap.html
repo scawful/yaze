@@ -101,82 +101,85 @@ $(document).ready(function(){initNavTree('d8/d97/md_docs_2I1-roadmap.html','../.
   <div class="headertitle"><div class="title">Roadmap</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md1163"></a> <b>Last Updated: October 4, 2025</b></p>
-<p>This document outlines the development roadmap for yaze. The project has achieved stability in its core editors and testing infrastructure. The focus now shifts to completing advanced AI features, polishing UI/UX, and expanding editor capabilities.</p>
-<h1><a class="anchor" id="autotoc_md1164"></a>
-Current Focus: AI &amp; Editor Polish</h1>
-<p>With the core systems stable, the immediate priority is to finish the overworld editor features, fix dungeon object rendering, finalize the Tile16 editor, enhance the <code>z3ed</code> AI agent, and improve the user experience.</p>
-<hr  />
-<h1><a class="anchor" id="autotoc_md1166"></a>
+<div class="textblock"><p><a class="anchor" id="autotoc_md1646"></a> <b>Last Updated: October 4, 2025</b></p>
+<p>This roadmap tracks upcoming releases and major ongoing initiatives.</p>
+<h1><a class="anchor" id="autotoc_md1647"></a>
+Current Focus</h1>
+<ul>
+<li>Finish overworld editor parity (sprite workflows, performance tuning).</li>
+<li>Resolve dungeon object rendering and tile painting gaps.</li>
+<li>Close out Tile16 palette inconsistencies.</li>
+<li>Harden the <code>z3ed</code> automation paths before expanding functionality.</li>
+</ul>
+<h1><a class="anchor" id="autotoc_md1648"></a>
 0.4.0 (Next Major Release) - SDL3 Modernization &amp; Core Improvements</h1>
 <p><b>Status:</b> Planning <br  />
  <b>Type:</b> Major Breaking Release <br  />
  <b>Timeline:</b> 6-8 weeks</p>
-<h2><a class="anchor" id="autotoc_md1167"></a>
-🎯 Primary Goals</h2>
+<h2><a class="anchor" id="autotoc_md1649"></a>
+Primary Goals</h2>
 <ol type="1">
-<li><b>SDL3 Migration</b> - Modernize graphics/audio/input backend</li>
-<li><b>Dependency Reorganization</b> - Consolidate <code>src/lib/</code> + <code>third_party/</code> → <code>external/</code></li>
-<li><b>Backend Abstraction</b> - Clean separation of graphics/audio/input backends</li>
-<li><b>Editor Polish</b> - Complete remaining UX improvements</li>
+<li>SDL3 migration across graphics, audio, and input</li>
+<li>Dependency reorganization (<code>src/lib/</code> + <code>third_party/</code> → <code>external/</code>)</li>
+<li>Backend abstraction layer for renderer/audio/input</li>
+<li>Editor polish and UX clean-up</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md1168"></a>
+<h2><a class="anchor" id="autotoc_md1650"></a>
 Phase 1: Infrastructure (Week 1-2)</h2>
 <ul>
-<li><b>Dependency Consolidation</b>: Merge <code>src/lib/</code> and <code>third_party/</code> into unified <code>external/</code> directory</li>
-<li><b>CMake Modernization</b>: Update all build files, submodules, and CI workflows</li>
-<li><b>Build Validation</b>: Ensure all platforms (Windows/macOS/Linux) build cleanly</li>
+<li>Merge <code>src/lib/</code> and <code>third_party/</code> into <code>external/</code></li>
+<li>Update CMake, submodules, and CI presets</li>
+<li>Validate builds on Windows, macOS, Linux</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1169"></a>
+<h2><a class="anchor" id="autotoc_md1651"></a>
 Phase 2: SDL3 Core Migration (Week 3-4)</h2>
 <ul>
-<li><b>SDL3 Update</b>: Migrate from SDL2 to SDL3 with GPU-based rendering</li>
-<li><b>Graphics Backend</b>: Create abstraction layer (<code>GraphicsBackend</code> interface)</li>
-<li><b>Basic Rendering</b>: Get window creation and basic editor rendering working</li>
-<li><b><a class="el" href="../../df/de4/namespaceImGui.html">ImGui</a> Integration</b>: Update <a class="el" href="../../df/de4/namespaceImGui.html">ImGui</a> SDL3 backend integration</li>
+<li>Switch to SDL3 with GPU-based rendering</li>
+<li>Introduce <code>GraphicsBackend</code> abstraction</li>
+<li>Restore window creation and baseline editor rendering</li>
+<li>Update the <a class="el" href="../../df/de4/namespaceImGui.html">ImGui</a> SDL3 backend</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1170"></a>
+<h2><a class="anchor" id="autotoc_md1652"></a>
 Phase 3: Complete SDL3 Integration (Week 5-6)</h2>
 <ul>
-<li><b>All Editors</b>: Port all 6 editors (Overworld, Dungeon, Graphics, Palette, Screen, Music) to new backend</li>
-<li><b>Audio Backend</b>: Implement SDL3 audio backend for emulator</li>
-<li><b>Input Backend</b>: Implement SDL3 input backend with improved gamepad support</li>
-<li><b>Performance</b>: Optimize rendering performance, benchmark against v0.3.x</li>
+<li>Port editors (Overworld, Dungeon, Graphics, Palette, Screen, Music) to the new backend</li>
+<li>Implement SDL3 audio backend for the emulator</li>
+<li>Implement SDL3 input backend with improved gamepad support</li>
+<li>Benchmark and tune rendering performance</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1171"></a>
+<h2><a class="anchor" id="autotoc_md1653"></a>
 Phase 4: Editor Features &amp; UX (Week 7-8)</h2>
 <ul>
-<li><b>Tile16 Palette System</b>: Resolve color consistency issues in source tile view</li>
-<li><b>Overworld Sprite Editing</b>: Complete sprite add/remove/move workflow</li>
-<li><b>Dungeon Editor UI</b>: Add human-readable room labels and improved tab management</li>
-<li><b>Performance</b>: Implement lazy loading for rooms (~2.6s → &lt;1s load time)</li>
+<li>Resolve Tile16 palette inconsistencies</li>
+<li>Complete overworld sprite add/remove/move workflow</li>
+<li>Improve dungeon editor labels and tab management</li>
+<li>Add lazy loading for rooms to cut load times</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1172"></a>
+<h2><a class="anchor" id="autotoc_md1654"></a>
 Phase 5: AI Agent Enhancements (Throughout)</h2>
 <ul>
-<li>✅ **Vim Mode**: Implemented vim-style line editing in simple-chat</li>
-<li>✅ **Autocomplete**: Added intelligent command completion with fuzzy matching</li>
-<li>**Live LLM Hardening**: Finalize Gemini function-calling and proactive v3 prompts</li>
-<li>**AI-Driven Editing**: Integrate AI with GUI test harness for automated edits</li>
-<li>**Expand Toolset**: Add tools for dialogue, music data, sprite properties</li>
+<li>Vim-style editing in <code>simple-chat</code> (complete)</li>
+<li>Autocomplete engine with fuzzy matching (complete)</li>
+<li>Harden live LLM integration (Gemini function-calling, prompts)</li>
+<li>Attach AI workflows to GUI regression harness</li>
+<li>Extend tool coverage for dialogue, music, sprite data</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1173"></a>
+<h2><a class="anchor" id="autotoc_md1655"></a>
 Success Criteria</h2>
 <ul>
-<li>[ ] All platforms build and run with SDL3</li>
-<li>[ ] No performance regression vs v0.3.x</li>
-<li>[ ] All editors functional with new backend</li>
-<li>[ ] Emulator audio/input working</li>
-<li>[ ] Documentation updated</li>
-<li>[ ] Migration guide complete</li>
+<li>SDL3 builds pass on Windows, macOS, Linux</li>
+<li>No performance regression versus v0.3.x</li>
+<li>Editors function on the new backend</li>
+<li>Emulator audio/input verified</li>
+<li>Documentation and migration guide updated</li>
 </ul>
-<p>**Breaking Changes:**</p><ul>
+<p><b>Breaking Changes:</b></p><ul>
 <li>SDL2 → SDL3 (requires recompilation)</li>
 <li>Directory restructure (requires submodule re-init)</li>
 <li>API changes in graphics backend (for extensions)</li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md1175"></a>
+<h1><a class="anchor" id="autotoc_md1657"></a>
 0.5.X - Feature Expansion</h1>
 <ul>
 <li><b>Plugin Architecture</b>: Design and implement the initial framework for community-developed extensions and custom tools.</li>
@@ -188,7 +191,7 @@ Success Criteria</h2>
 </li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md1177"></a>
+<h1><a class="anchor" id="autotoc_md1659"></a>
 0.6.X - Content &amp; Integration</h1>
 <ul>
 <li><b>Advanced Content Editors</b>:<ul>
@@ -203,21 +206,21 @@ Success Criteria</h2>
 </li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md1179"></a>
+<h1><a class="anchor" id="autotoc_md1661"></a>
 Recently Completed (v0.3.3 - October 6, 2025)</h1>
 <ul>
-<li>✅ <b>Vim Mode for CLI</b>: Full vim-style modal editing in <code>simple-chat</code> with normal/insert modes, navigation (hjkl, w/b), editing (dd, yy, p), history, and autocomplete</li>
-<li>✅ <b>Autocomplete System</b>: Intelligent command completion engine with fuzzy matching, context-aware suggestions, and real-time dropdown in FTXUI chat</li>
-<li>✅ <b>Enhanced TUI</b>: Integrated autocomplete UI components with proper header files and CMake compilation</li>
+<li>Vim mode for <code>simple-chat</code>: modal editing, navigation, history, autocomplete</li>
+<li>Autocomplete engine with fuzzy matching and FTXUI dropdown</li>
+<li>TUI enhancements: integrated autocomplete UI components and CMake wiring</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md1180"></a>
+<h1><a class="anchor" id="autotoc_md1662"></a>
 Recently Completed (v0.3.2)</h1>
 <ul>
-<li>✅ <b>Dungeon Editor Stability</b>: Fixed all critical crashes in the test suite by migrating to <code>TestRomManager</code>. The editor's core logic is now stable and production-ready.</li>
-<li>✅ <b>Windows Stability</b>: Resolved stack overflow crashes and file dialog issues, bringing Windows builds to parity with macOS/Linux.</li>
-<li>✅ **<code>z3ed</code> Learn Command**: Fully implemented the <code>learn</code> command, allowing the AI to persist user preferences, ROM patterns, and conversation history.</li>
-<li>✅ <b>Gemini Native Function Calling</b>: Upgraded from manual <code>curl</code> requests to the official Gemini function calling API for improved reliability.</li>
-<li>✅ <b>Tile16 Editor Refactor</b>: Fixed critical crashes, implemented a new three-column layout, and added dynamic zoom controls. </li>
+<li>Dungeon editor: migrated to <code>TestRomManager</code>, resolved crash backlog</li>
+<li>Windows build: fixed stack overflows and file dialog regressions</li>
+<li><code>z3ed learn</code>: added persistent storage for AI preferences and ROM metadata</li>
+<li>Gemini integration: switched to native function calling API</li>
+<li>Tile16 editor: refactored layout, added dynamic zoom controls </li>
 </ul>
 </div></div><!-- contents -->
 </div><!-- PageDoc -->

@@ -1,7 +1,7 @@
-<map id="src/app/zelda3/sprite/sprite_builder.h" name="src/app/zelda3/sprite/sprite_builder.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="89,5,231,46"/>
-<area shape="rect" id="Node000002" href="$db/d3a/sprite__builder_8cc.html" title=" " alt="" coords="5,94,147,135"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="132,59,97,95,93,92,128,56"/>
-<area shape="rect" id="Node000003" href="$df/ded/sprite__builder__test_8cc.html" title=" " alt="" coords="171,94,317,135"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="192,56,227,92,223,95,188,59"/>
+<map id="src/zelda3/sprite/sprite_builder.h" name="src/zelda3/sprite/sprite_builder.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="92,5,244,46"/>
+<area shape="rect" id="Node000002" href="$db/d3a/sprite__builder_8cc.html" title=" " alt="" coords="5,94,158,135"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="140,59,103,95,99,92,136,55"/>
+<area shape="rect" id="Node000003" href="$df/ded/sprite__builder__test_8cc.html" title=" " alt="" coords="182,94,328,135"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="200,55,237,92,233,95,197,59"/>
 </map>

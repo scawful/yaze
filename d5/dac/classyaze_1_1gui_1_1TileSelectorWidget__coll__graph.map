@@ -1,11 +1,11 @@
 <map id="yaze::gui::TileSelectorWidget" name="yaze::gui::TileSelectorWidget">
-<area shape="rect" id="Node000001" title="Reusable tile selector built on top of Canvas." alt="" coords="176,213,361,238"/>
-<area shape="rect" id="Node000002" href="$da/d2c/classyaze_1_1gui_1_1Canvas.html" title="Modern, robust canvas for drawing and manipulating graphics." alt="" coords="119,117,239,142"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="203,152,259,210,255,214,199,155"/>
-<area shape="rect" id="Node000003" href="$dd/d71/classyaze_1_1gui_1_1canvas_1_1CanvasInteractionHandler.html" title="Handles all tile&#45;based interactions for Canvas." alt="" coords="5,5,177,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="106,59,121,83,139,100,158,114,155,118,135,104,117,87,101,61"/>
-<area shape="rect" id="Node000004" href="$d0/dca/classyaze_1_1gfx_1_1IRenderer.html" title="Defines an abstract interface for all rendering operations." alt="" coords="201,13,333,39"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="259,55,240,87,221,104,201,118,198,114,218,100,236,83,255,52"/>
-<area shape="rect" id="Node000014" href="$d5/d90/structyaze_1_1gui_1_1TileSelectorWidget_1_1Config.html" title=" " alt="" coords="264,109,449,150"/>
-<area shape="poly" id="edge4_Node000001_Node000014" title=" " alt="" coords="330,163,281,214,277,211,326,159"/>
+<area shape="rect" id="Node000001" title="Reusable tile selector built on top of Canvas." alt="" coords="183,213,369,238"/>
+<area shape="rect" id="Node000002" href="$da/d2c/classyaze_1_1gui_1_1Canvas.html" title="Modern, robust canvas for drawing and manipulating graphics." alt="" coords="127,117,247,142"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="210,152,266,210,263,214,207,155"/>
+<area shape="rect" id="Node000003" href="$d2/dd8/classyaze_1_1gui_1_1CanvasInteractionHandler.html" title="Handles all tile&#45;based interactions for Canvas." alt="" coords="5,5,187,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="114,58,131,83,168,114,165,118,127,87,109,61"/>
+<area shape="rect" id="Node000004" href="$d0/dca/classyaze_1_1gfx_1_1IRenderer.html" title="Defines an abstract interface for all rendering operations." alt="" coords="211,13,344,39"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="270,55,250,87,231,104,211,118,208,114,228,100,246,83,265,52"/>
+<area shape="rect" id="Node000019" href="$d5/d90/structyaze_1_1gui_1_1TileSelectorWidget_1_1Config.html" title=" " alt="" coords="271,109,457,150"/>
+<area shape="poly" id="edge4_Node000001_Node000019" title=" " alt="" coords="337,163,289,214,285,211,334,159"/>
 </map>

@@ -1,9 +1,9 @@
 <map id="yaze::editor::EditorManager::SetFontGlobalScale" name="yaze::editor::EditorManager::SetFontGlobalScale">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,39,180,79"/>
-<area shape="rect" id="Node000002" href="$d8/d46/classyaze_1_1editor_1_1UserSettings.html#af304f257b1beb9bdf7d9121266c34d13" title=" " alt="" coords="231,5,399,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="180,43,215,38,216,43,180,49"/>
-<area shape="rect" id="Node000003" href="$dd/d12/classyaze_1_1editor_1_1EditorManager.html#ad80baebf796f666e7160497911ab6d83" title=" " alt="" coords="228,71,402,111"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="180,69,213,74,212,79,180,74"/>
-<area shape="rect" id="Node000004" href="$d8/d46/classyaze_1_1editor_1_1UserSettings.html#abd246cd1cfc54409eec3abb2af49e538" title=" " alt="" coords="450,71,617,111"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="402,88,434,88,434,94,402,94"/>
+<area shape="rect" id="Node000002" href="$d8/d46/classyaze_1_1editor_1_1UserSettings.html#af304f257b1beb9bdf7d9121266c34d13" title=" " alt="" coords="228,5,395,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="179,43,212,38,212,43,180,48"/>
+<area shape="rect" id="Node000003" href="$d8/d46/classyaze_1_1editor_1_1UserSettings.html#abd246cd1cfc54409eec3abb2af49e538" title=" " alt="" coords="228,71,395,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="180,69,212,74,212,79,179,74"/>
+<area shape="rect" id="Node000004" href="$d4/de1/namespaceyaze_1_1util.html#a3a9fb8bf33ae9508c65e5597d915348e" title=" " alt="" coords="443,78,570,104"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="395,88,427,88,427,94,395,94"/>
 </map>

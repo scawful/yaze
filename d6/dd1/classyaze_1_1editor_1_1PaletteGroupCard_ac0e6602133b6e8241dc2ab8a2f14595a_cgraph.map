@@ -1,0 +1,10 @@
+<map id="yaze::editor::PaletteGroupCard::DrawColorInfo" name="yaze::editor::PaletteGroupCard::DrawColorInfo">
+<area shape="rect" id="Node000001" title="Draw color info panel with RGB/SNES/Hex values." alt="" coords="5,71,173,112"/>
+<area shape="rect" id="Node000002" href="$d5/d31/classyaze_1_1gfx_1_1SnesColor.html#a0a6bc657e8a8778b7672d2e6102771e2" title="Get RGB values (WARNING: stored as 0&#45;255 in ImVec4)" alt="" coords="222,5,382,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="142,68,220,40,238,34,240,39,222,45,144,73"/>
+<area shape="rect" id="Node000003" href="$d3/dbf/namespaceyaze_1_1gui.html#a5fa374aea4d5d783b38f9fc32e937eb0" title=" " alt="" coords="221,79,383,104"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="173,89,205,89,205,94,173,94"/>
+<area shape="rect" id="Node000004" href="$d5/d31/classyaze_1_1gfx_1_1SnesColor.html#ade9df7154cb3707cffe5e644c995f090" title="Get SNES 15&#45;bit color." alt="" coords="234,129,370,169"/>
+<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="168,110,219,124,218,129,166,115"/>
+<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="266,80,259,70,264,60,278,54,302,52,328,55,341,62,339,66,326,60,302,57,279,59,267,64,265,69,271,77"/>
+</map>

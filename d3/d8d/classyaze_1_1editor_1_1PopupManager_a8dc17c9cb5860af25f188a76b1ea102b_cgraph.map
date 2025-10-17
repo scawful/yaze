@@ -1,5 +1,12 @@
 <map id="yaze::editor::PopupManager::DrawSaveAsPopup" name="yaze::editor::PopupManager::DrawSaveAsPopup">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,184,46"/>
-<area shape="rect" id="Node000002" href="$d3/d8d/classyaze_1_1editor_1_1PopupManager.html#a480947c734a64622b5213e87eb585d9b" title=" " alt="" coords="232,5,410,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="184,23,216,23,216,28,184,28"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,61,184,102"/>
+<area shape="rect" id="Node000002" href="$dd/d12/classyaze_1_1editor_1_1EditorManager.html#adb34f60bfe068566c25e33c581aad058" title=" " alt="" coords="461,32,635,73"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="127,59,175,34,231,14,282,5,322,3,413,14,468,25,467,30,413,19,322,8,282,10,232,19,177,38,130,63"/>
+<area shape="rect" id="Node000003" href="$d3/d8d/classyaze_1_1editor_1_1PopupManager.html#a480947c734a64622b5213e87eb585d9b" title=" " alt="" coords="233,28,412,69"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="184,66,217,61,218,66,185,71"/>
+<area shape="rect" id="Node000004" href="$dd/d12/classyaze_1_1editor_1_1EditorManager.html#a10e87c8ddc10de2f54075f8b49e82c49" title=" " alt="" coords="235,93,410,134"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="185,92,220,97,219,102,184,97"/>
+<area shape="rect" id="Node000032" href="$d2/d3f/classyaze_1_1util_1_1FileDialogWrapper.html#a3d31d7aebb0a1675f63fb02dc35f4fc7" title="ShowSaveFileDialog opens a save file dialog and returns the selected filepath. Uses global feature fl..." alt="" coords="232,159,413,199"/>
+<area shape="poly" id="edge5_Node000001_Node000032" title=" " alt="" coords="139,100,233,143,250,150,248,155,231,148,137,105"/>
+<area shape="poly" id="edge4_Node000004_Node000002" title=" " alt="" coords="399,90,455,75,457,80,401,95"/>
 </map>

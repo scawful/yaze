@@ -1,0 +1,7 @@
+<map id="yaze::editor::PaletteGroupCard::IsColorModified" name="yaze::editor::PaletteGroupCard::IsColorModified">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,27,173,68"/>
+<area shape="rect" id="Node000002" href="$d7/d39/classyaze_1_1gfx_1_1PaletteManager.html#ad76357b3c747d397e99dd16972cf1235" title="Get the singleton instance." alt="" coords="221,5,415,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="173,34,205,30,205,35,174,39"/>
+<area shape="rect" id="Node000003" href="$d7/d39/classyaze_1_1gfx_1_1PaletteManager.html#a966ec0be3613614ed4bd980beb46d2a2" title="Check if a specific color is modified." alt="" coords="234,55,402,96"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="174,55,219,61,218,66,173,60"/>
+</map>

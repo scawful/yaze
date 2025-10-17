@@ -1,0 +1,7 @@
+<map id="yaze::zelda3::Inventory::LoadItemIcons" name="yaze::zelda3::Inventory::LoadItemIcons">
+<area shape="rect" id="Node000001" title="Load individual item icons from ROM." alt="" coords="5,23,155,64"/>
+<area shape="rect" id="Node000002" href="$d6/d30/classyaze_1_1Rom.html#a6bd8ce3b192c32b2ed6c58f7b154787e" title=" " alt="" coords="203,5,349,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="155,31,187,27,188,32,155,36"/>
+<area shape="rect" id="Node000003" href="$dc/d46/namespaceyaze.html#aefc163a31f0531da9e1636396859b450" title=" " alt="" coords="219,55,333,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="155,50,204,56,203,61,155,55"/>
+</map>

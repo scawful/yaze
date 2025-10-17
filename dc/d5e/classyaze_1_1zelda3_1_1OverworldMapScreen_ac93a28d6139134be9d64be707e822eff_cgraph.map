@@ -1,0 +1,5 @@
+<map id="yaze::zelda3::OverworldMapScreen::LoadMapData" name="yaze::zelda3::OverworldMapScreen::LoadMapData">
+<area shape="rect" id="Node000001" title="Load map tile data from ROM Reads the interleaved tile format from 4 ROM sections." alt="" coords="5,5,186,46"/>
+<area shape="rect" id="Node000002" href="$d6/d30/classyaze_1_1Rom.html#abfad5beaef8b6648f43c1ee018d1b6ee" title=" " alt="" coords="234,13,376,39"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="186,23,218,23,218,28,186,28"/>
+</map>

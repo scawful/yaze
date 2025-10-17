@@ -1,4 +1,4 @@
-<map id="src/app/gui/widgets/widget_state_capture.h" name="src/app/gui/widgets/widget_state_capture.h">
+<map id="src/app/gui/automation/widget_state_capture.h" name="src/app/gui/automation/widget_state_capture.h">
 <area shape="rect" id="Node000001" title=" " alt="" coords="110,5,270,46"/>
 <area shape="rect" id="Node000002" href="$da/ded/widget__state__capture_8cc.html" title=" " alt="" coords="5,94,172,135"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="157,58,113,96,110,92,154,54"/>

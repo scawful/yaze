@@ -1,0 +1,9 @@
+<map id="yaze::editor::EditorCardRegistry::DrawCompactCardControl" name="yaze::editor::EditorCardRegistry::DrawCompactCardControl">
+<area shape="rect" id="Node000001" title="Draw compact card control for active editor&#39;s cards." alt="" coords="5,39,230,79"/>
+<area shape="rect" id="Node000002" href="$d0/d2e/classyaze_1_1editor_1_1EditorCardRegistry.html#a8c4d093f789ebca668ed4da29fef5e63" title="Get cards in a specific category for a session." alt="" coords="278,5,469,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="230,42,262,37,263,43,231,47"/>
+<area shape="rect" id="Node000003" href="$d0/d2e/classyaze_1_1editor_1_1EditorCardRegistry.html#a8621f162cce8af5682c6b2f33a560d74" title="Toggle a card&#39;s visibility." alt="" coords="298,71,449,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="231,70,283,77,282,82,230,76"/>
+<area shape="rect" id="Node000004" href="$d0/d2e/classyaze_1_1editor_1_1EditorCardRegistry.html#acb99175d46cfd90ab21338b79eb38fc4" title=" " alt="" coords="517,71,696,111"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="450,88,501,88,501,94,450,94"/>
+</map>

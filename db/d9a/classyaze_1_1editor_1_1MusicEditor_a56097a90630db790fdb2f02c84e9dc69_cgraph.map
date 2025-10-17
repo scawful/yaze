@@ -1,0 +1,9 @@
+<map id="yaze::editor::MusicEditor::Initialize" name="yaze::editor::MusicEditor::Initialize">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,165,79"/>
+<area shape="rect" id="Node000002" href="$d0/d2e/classyaze_1_1editor_1_1EditorCardRegistry.html#a78ce4b14788249c71c60777b79a5bebc" title="Register a card for a specific session." alt="" coords="213,39,364,79"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="165,56,197,56,197,62,165,62"/>
+<area shape="rect" id="Node000003" href="$d0/d2e/classyaze_1_1editor_1_1EditorCardRegistry.html#a309a910e28d7198f4e07a140245541f7" title="Generate session&#45;aware card ID." alt="" coords="421,5,572,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="364,44,405,38,406,43,365,50"/>
+<area shape="rect" id="Node000005" href="$d0/d2e/classyaze_1_1editor_1_1EditorCardRegistry.html#aa4be0773bd6facbe27150676d4876a58" title="Register a new session in the registry." alt="" coords="412,71,581,111"/>
+<area shape="poly" id="edge3_Node000002_Node000005" title=" " alt="" coords="365,68,397,73,396,78,364,73"/>
+</map>

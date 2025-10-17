@@ -1,9 +1,9 @@
 <map id="yaze::gfx::PerformanceDashboard::CollectMetrics" name="yaze::gfx::PerformanceDashboard::CollectMetrics">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,47,218,88"/>
-<area shape="rect" id="Node000002" href="$dc/d55/classyaze_1_1gfx_1_1MemoryPool.html#ac1b35ae778321523dc6a7cbe9e39e251" title=" " alt="" coords="287,5,462,31"/>
+<area shape="rect" id="Node000002" href="$d4/d0a/classyaze_1_1gfx_1_1PerformanceProfiler.html#a62212835ba0bed1452ec453c7cbf11ca" title=" " alt="" coords="266,5,483,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="218,45,287,32,288,37,219,50"/>
-<area shape="rect" id="Node000003" href="$d4/d0a/classyaze_1_1gfx_1_1PerformanceProfiler.html#a62212835ba0bed1452ec453c7cbf11ca" title=" " alt="" coords="266,55,483,80"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="218,65,250,65,250,70,218,70"/>
+<area shape="rect" id="Node000003" href="$dc/d55/classyaze_1_1gfx_1_1MemoryPool.html#ac1b35ae778321523dc6a7cbe9e39e251" title=" " alt="" coords="287,55,462,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="218,65,271,65,271,70,218,70"/>
 <area shape="rect" id="Node000004" href="$dc/d55/classyaze_1_1gfx_1_1MemoryPool.html#aa4e863489eb940cf1cd5a5315cd9ae1d" title="Get memory usage statistics." alt="" coords="300,105,449,145"/>
 <area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="208,86,286,103,285,108,207,91"/>
 </map>

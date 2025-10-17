@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['📁_20file_20structure_20for_20new_20features_0',['📁 File Structure for New Features',['../df/d0c/md_docs_2E8-emulator-debugging-vision.html#autotoc_md671',1,'']]]
+  ['📦_20component_20details_0',['📦 Component Details',['../d5/dc8/md_docs_2G3-renderer-migration-complete.html#autotoc_md1274',1,'']]]
 ];

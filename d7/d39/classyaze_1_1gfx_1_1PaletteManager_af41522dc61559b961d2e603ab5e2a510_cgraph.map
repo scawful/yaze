@@ -1,0 +1,11 @@
+<map id="yaze::gfx::PaletteManager::Redo" name="yaze::gfx::PaletteManager::Redo">
+<area shape="rect" id="Node000001" title="Redo the most recently undone change." alt="" coords="5,71,173,111"/>
+<area shape="rect" id="Node000002" href="$d7/d39/classyaze_1_1gfx_1_1PaletteManager.html#a4e62c2d00f720dd268e334de9daadb01" title="Check if redo is available." alt="" coords="221,5,388,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="157,68,219,49,221,54,159,73"/>
+<area shape="rect" id="Node000003" href="$d7/d39/classyaze_1_1gfx_1_1PaletteManager.html#a2e456087d1fa6be7f676ff21a50be921" title="Helper: Get mutable palette group." alt="" coords="221,71,388,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="173,88,205,88,205,94,173,94"/>
+<area shape="rect" id="Node000006" href="$d7/d39/classyaze_1_1gfx_1_1PaletteManager.html#a60f767b79f34e46266cf4dec82a96c7c" title="Helper: Notify all listeners of an event." alt="" coords="221,136,388,177"/>
+<area shape="poly" id="edge4_Node000001_Node000006" title=" " alt="" coords="159,109,221,128,219,133,157,114"/>
+<area shape="rect" id="Node000004" href="$d7/d39/classyaze_1_1gfx_1_1PaletteManager.html#abb4b2a02a30c7d06ee74c0c4b93c86fb" title="Check if manager is initialized." alt="" coords="436,71,603,111"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="388,88,420,88,420,94,388,94"/>
+</map>

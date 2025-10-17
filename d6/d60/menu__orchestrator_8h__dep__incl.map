@@ -1,0 +1,14 @@
+<map id="src/app/editor/system/menu_orchestrator.h" name="src/app/editor/system/menu_orchestrator.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="204,5,351,46"/>
+<area shape="rect" id="Node000002" href="$d0/dd9/editor__manager_8cc.html" title=" " alt="" coords="5,183,142,223"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="212,55,178,73,147,96,127,117,110,140,85,184,80,181,105,138,123,114,144,92,175,69,209,50"/>
+<area shape="rect" id="Node000003" href="$df/d60/editor__manager_8h.html" title=" " alt="" coords="157,94,294,135"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="260,61,240,95,235,92,256,58"/>
+<area shape="rect" id="Node000017" href="$d9/d1e/menu__orchestrator_8cc.html" title=" " alt="" coords="166,183,317,223"/>
+<area shape="poly" id="edge6_Node000001_Node000017" title=" " alt="" coords="299,59,311,96,312,116,308,136,291,163,270,184,266,181,287,160,303,134,307,115,306,97,294,60"/>
+<area shape="rect" id="Node000020" href="$d9/da9/shortcut__configurator_8cc.html" title=" " alt="" coords="341,183,505,223"/>
+<area shape="poly" id="edge7_Node000001_Node000020" title=" " alt="" coords="305,56,409,181,405,184,301,60"/>
+<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="179,145,109,185,107,180,177,140"/>
+<area shape="poly" id="edge4_Node000003_Node000017" title=" " alt="" coords="235,150,241,182,235,183,229,151"/>
+<area shape="poly" id="edge5_Node000003_Node000020" title=" " alt="" coords="285,139,379,180,377,185,283,144"/>
+</map>

@@ -1,0 +1,11 @@
+<map id="yaze::editor::ProjectManager" name="yaze::editor::ProjectManager">
+<area shape="rect" id="Node000001" title="Handles all project file operations." alt="" coords="208,198,391,223"/>
+<area shape="rect" id="Node000002" href="$dd/d28/structyaze_1_1project_1_1YazeProject.html" title="Modern project structure with comprehensive settings consolidation." alt="" coords="118,109,286,135"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="229,143,288,195,284,199,225,147"/>
+<area shape="rect" id="Node000003" href="$dc/df8/structyaze_1_1project_1_1ProjectMetadata.html" title="Enhanced metadata for project tracking." alt="" coords="5,13,199,39"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="128,47,191,107,187,110,124,51"/>
+<area shape="rect" id="Node000004" href="$dd/d19/structyaze_1_1core_1_1FeatureFlags_1_1Flags.html" title=" " alt="" coords="223,5,384,46"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="273,59,216,111,213,107,269,55"/>
+<area shape="rect" id="Node000008" href="$d7/d92/classyaze_1_1editor_1_1ToastManager.html" title=" " alt="" coords="311,109,485,135"/>
+<area shape="poly" id="edge4_Node000001_Node000008" title=" " alt="" coords="384,149,360,176,325,199,322,195,356,172,380,145"/>
+</map>

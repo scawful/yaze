@@ -1,5 +1,5 @@
-<map id="src/app/gfx/texture_atlas.cc" name="src/app/gfx/texture_atlas.cc">
-<area shape="rect" id="Node000001" title=" " alt="" coords="50,5,178,46"/>
+<map id="src/app/gfx/render/texture_atlas.cc" name="src/app/gfx/render/texture_atlas.cc">
+<area shape="rect" id="Node000001" title=" " alt="" coords="51,5,177,46"/>
 <area shape="rect" id="Node000002" href="$db/dd3/texture__atlas_8h.html" title=" " alt="" coords="5,94,111,120"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="102,48,78,83,73,79,98,45"/>
 <area shape="rect" id="Node000028" href="$d7/d7f/log_8h.html" title=" " alt="" coords="135,94,205,120"/>

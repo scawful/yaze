@@ -2,10 +2,10 @@
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,55,187,96"/>
 <area shape="rect" id="Node000002" href="$d4/d45/classyaze_1_1editor_1_1AssemblyEditor.html#a4b745650f8142af416a263bfee0b24c9" title=" " alt="" coords="235,22,416,63"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="187,60,219,55,220,60,187,65"/>
-<area shape="rect" id="Node000005" href="$d2/d3f/classyaze_1_1util_1_1FileDialogWrapper.html#a92ec40e33586d99d22a6633e301a9921" title="ShowOpenFileDialog opens a file dialog and returns the selected filepath. Uses global feature flag to..." alt="" coords="235,87,416,128"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="187,86,220,90,219,95,187,91"/>
-<area shape="rect" id="Node000003" href="$d0/d28/classTextEditor.html#a36a929a82d045b43480326c73f383cb8" title=" " alt="" coords="464,5,638,31"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="416,30,448,26,449,32,416,35"/>
-<area shape="rect" id="Node000004" href="$d4/de1/namespaceyaze_1_1util.html#affcb30b4249275bfec576ab198b29d83" title="Loads the entire contents of a file into a string." alt="" coords="488,55,614,80"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="416,50,473,56,472,61,416,55"/>
+<area shape="rect" id="Node000006" href="$d2/d3f/classyaze_1_1util_1_1FileDialogWrapper.html#a92ec40e33586d99d22a6633e301a9921" title="ShowOpenFileDialog opens a file dialog and returns the selected filepath. Uses global feature flag to..." alt="" coords="235,87,416,128"/>
+<area shape="poly" id="edge4_Node000001_Node000006" title=" " alt="" coords="187,86,220,90,219,95,187,91"/>
+<area shape="rect" id="Node000003" href="$d3/dbf/namespaceyaze_1_1gui.html#a662ce2afc1c96ab4df4f8f645e837981" title=" " alt="" coords="464,5,695,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="416,31,448,28,449,33,417,36"/>
+<area shape="rect" id="Node000004" href="$d0/d28/classTextEditor.html#a36a929a82d045b43480326c73f383cb8" title=" " alt="" coords="493,55,667,80"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="417,49,477,55,477,60,416,54"/>
 </map>

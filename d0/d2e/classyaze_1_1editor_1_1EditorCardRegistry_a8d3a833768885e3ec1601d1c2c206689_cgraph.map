@@ -1,0 +1,7 @@
+<map id="yaze::editor::EditorCardRegistry::ShowCard" name="yaze::editor::EditorCardRegistry::ShowCard">
+<area shape="rect" id="Node000001" title="Show card in active session (convenience)" alt="" coords="5,5,157,46"/>
+<area shape="rect" id="Node000002" href="$d0/d2e/classyaze_1_1editor_1_1EditorCardRegistry.html#af55f5aa1056635eaef917ab2412bb93d" title="Show a card programmatically." alt="" coords="205,5,356,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="157,23,189,23,189,28,157,28"/>
+<area shape="rect" id="Node000003" href="$d0/d2e/classyaze_1_1editor_1_1EditorCardRegistry.html#acb99175d46cfd90ab21338b79eb38fc4" title=" " alt="" coords="404,5,583,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="357,23,388,23,388,28,357,28"/>
+</map>

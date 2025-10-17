@@ -1,0 +1,9 @@
+<map id="yaze::gui::CanvasModals::RenderScalingControlsModal" name="yaze::gui::CanvasModals::RenderScalingControlsModal">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,71,200,111"/>
+<area shape="rect" id="Node000002" href="$df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a7729f6c60dee1836a303ce39448febc3" title=" " alt="" coords="267,5,391,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="174,68,251,45,253,50,176,73"/>
+<area shape="rect" id="Node000003" href="$db/dff/classyaze_1_1gui_1_1CanvasModals.html#a1f07c5a4ddf421d8bb532f7eb4164108" title=" " alt="" coords="248,71,410,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="200,88,232,88,232,94,200,94"/>
+<area shape="rect" id="Node000004" href="$df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a8bf88ae41aef8eee49c560b96cf4d050" title=" " alt="" coords="267,136,391,177"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="176,109,253,132,251,137,174,114"/>
+</map>

@@ -1,0 +1,11 @@
+<map id="yaze::gui::ThemedStatusText" name="yaze::gui::ThemedStatusText">
+<area shape="rect" id="Node000001" title="Themed status text (success, warning, error, info)" alt="" coords="5,42,192,68"/>
+<area shape="rect" id="Node000002" href="$d3/dbf/namespaceyaze_1_1gui.html#a0a2f4e28780bd8cf64f9d6e7b67be924" title=" " alt="" coords="240,5,406,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="192,40,224,36,225,41,192,45"/>
+<area shape="rect" id="Node000003" href="$d3/dbf/namespaceyaze_1_1gui.html#a4c84c2cc40ee46b790e1e05ba0c5edaf" title="Get current theme (shortcut)" alt="" coords="254,70,392,96"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="192,64,239,70,238,75,192,69"/>
+<area shape="rect" id="Node000004" href="$d3/d27/classyaze_1_1gui_1_1ThemeManager.html#ab3423e72fe874f8c370ed2d3e52ac278" title=" " alt="" coords="454,41,647,67"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="391,72,438,65,439,71,392,77"/>
+<area shape="rect" id="Node000005" href="$d3/d27/classyaze_1_1gui_1_1ThemeManager.html#ad706e6146dd664adffe3350c520f397b" title=" " alt="" coords="468,91,634,131"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="392,89,453,96,452,102,391,94"/>
+</map>

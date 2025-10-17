@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.9.8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>yaze: src/app/gui/canvas.h File Reference</title>
+<title>yaze: src/app/gui/canvas/canvas.h File Reference</title>
 <link href="../../tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript">var page_layout=1;</script>
 <script type="text/javascript" src="../../jquery.js"></script>
@@ -107,22 +107,27 @@ $(document).ready(function(){initNavTree('d4/dcf/canvas_8h.html','../../'); init
   <div class="headertitle"><div class="title">canvas.h File Reference</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &quot;<a class="el" href="../../dc/d0c/tilemap_8h_source.html">app/gfx/tilemap.h</a>&quot;</code><br />
+<div class="textblock"><code>#include &quot;<a class="el" href="../../dc/d0c/tilemap_8h_source.html">app/gfx/render/tilemap.h</a>&quot;</code><br />
 <code>#include &lt;cstdint&gt;</code><br />
 <code>#include &lt;string&gt;</code><br />
 <code>#include &lt;functional&gt;</code><br />
 <code>#include &lt;memory&gt;</code><br />
-<code>#include &quot;<a class="el" href="../../da/dcb/bitmap_8h_source.html">app/gfx/bitmap.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../da/dcb/bitmap_8h_source.html">app/gfx/core/bitmap.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../da/de5/rom_8h_source.html">app/rom.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="../../d1/d39/canvas__utils_8h_source.html">canvas/canvas_utils.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="../../d8/dbb/palette__widget_8h_source.html">app/gui/widgets/palette_widget.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="../../dc/d83/bpp__format__manager_8h_source.html">app/gfx/bpp_format_manager.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="../../db/da7/bpp__format__ui_8h_source.html">canvas/bpp_format_ui.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../d1/d39/canvas__utils_8h_source.html">app/gui/canvas/canvas_utils.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../d0/d9f/canvas__state_8h_source.html">app/gui/canvas/canvas_state.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../d5/d93/canvas__geometry_8h_source.html">app/gui/canvas/canvas_geometry.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../d6/db2/canvas__rendering_8h_source.html">app/gui/canvas/canvas_rendering.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../d3/dee/palette__editor__widget_8h_source.html">app/gui/widgets/palette_editor_widget.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../dc/d83/bpp__format__manager_8h_source.html">app/gfx/util/bpp_format_manager.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../db/da7/bpp__format__ui_8h_source.html">app/gui/canvas/bpp_format_ui.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../d0/d07/canvas__modals_8h_source.html">app/gui/canvas/canvas_modals.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../d8/d2d/canvas__context__menu_8h_source.html">app/gui/canvas/canvas_context_menu.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../d3/dbf/canvas__usage__tracker_8h_source.html">app/gui/canvas/canvas_usage_tracker.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../d5/d75/canvas__performance__integration_8h_source.html">app/gui/canvas/canvas_performance_integration.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../dd/db1/canvas__interaction__handler_8h_source.html">app/gui/canvas/canvas_interaction_handler.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../d0/d65/canvas__menu_8h_source.html">app/gui/canvas/canvas_menu.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../da/d69/canvas__popup_8h_source.html">app/gui/canvas/canvas_popup.h</a>&quot;</code><br />
 <code>#include &quot;imgui/imgui.h&quot;</code><br />
 </div>
 <p><a href="../../d4/dcf/canvas_8h_source.html">Go to the source code of this file.</a></p>
@@ -131,10 +136,6 @@ $(document).ready(function(){initNavTree('d4/dcf/canvas_8h.html','../../'); init
 Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/d2c/classyaze_1_1gui_1_1Canvas.html">yaze::gui::Canvas</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Modern, robust canvas for drawing and manipulating graphics.  <a href="../../da/d2c/classyaze_1_1gui_1_1Canvas.html#details">More...</a><br /></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/df3/structyaze_1_1gui_1_1Canvas_1_1ContextMenuItem.html">yaze::gui::Canvas::ContextMenuItem</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d9/d9e/structyaze_1_1gui_1_1Canvas_1_1PopupState.html">yaze::gui::Canvas::PopupState</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/dbd/classyaze_1_1gui_1_1ScopedCanvas.html">yaze::gui::ScopedCanvas</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">RAII wrapper for <a class="el" href="../../da/d2c/classyaze_1_1gui_1_1Canvas.html" title="Modern, robust canvas for drawing and manipulating graphics.">Canvas</a> (ImGui-style)  <a href="../../da/dbd/classyaze_1_1gui_1_1ScopedCanvas.html#details">More...</a><br /></td></tr>
@@ -207,7 +208,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="navelem"><a class="el" href="../../dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="../../dir_5194e5fea318fda12687127c23f8aba1.html">app</a></li><li class="navelem"><a class="el" href="../../dir_8fca90320bcc7393a52982c8dc104a2a.html">gui</a></li><li class="navelem"><a class="el" href="../../d4/dcf/canvas_8h.html">canvas.h</a></li>
+    <li class="navelem"><a class="el" href="../../dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="../../dir_5194e5fea318fda12687127c23f8aba1.html">app</a></li><li class="navelem"><a class="el" href="../../dir_8fca90320bcc7393a52982c8dc104a2a.html">gui</a></li><li class="navelem"><a class="el" href="../../dir_2e70ebb92041ee9a8b6891199983e337.html">canvas</a></li><li class="navelem"><a class="el" href="../../d4/dcf/canvas_8h.html">canvas.h</a></li>
     <li class="footer">Generated by <a href="https://www.doxygen.org/index.html"><img class="footer" src="../../doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
   </ul>
 </div>

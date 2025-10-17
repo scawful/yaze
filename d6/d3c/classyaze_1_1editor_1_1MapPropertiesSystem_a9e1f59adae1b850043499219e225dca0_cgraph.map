@@ -1,0 +1,13 @@
+<map id="yaze::editor::MapPropertiesSystem::DrawViewPopup" name="yaze::editor::MapPropertiesSystem::DrawViewPopup">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,181,79"/>
+<area shape="rect" id="Node000002" href="$d9/dfb/classyaze_1_1gui_1_1LayoutHelpers.html#a9c86074553eb71909f4cdf126adfe0e9" title=" " alt="" coords="229,5,389,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="181,43,213,38,214,43,181,48"/>
+<area shape="rect" id="Node000007" href="$d9/dfb/classyaze_1_1gui_1_1LayoutHelpers.html#ab9ac13e908db82571e8382ff03888c71" title=" " alt="" coords="229,71,389,111"/>
+<area shape="poly" id="edge4_Node000001_Node000007" title=" " alt="" coords="181,69,214,74,213,79,181,75"/>
+<area shape="rect" id="Node000003" href="$d9/dfb/classyaze_1_1gui_1_1LayoutHelpers.html#a914764588589974133906f76aea5cfae" title=" " alt="" coords="437,5,597,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="389,23,421,23,421,28,389,28"/>
+<area shape="rect" id="Node000004" href="$d9/dfb/classyaze_1_1gui_1_1LayoutHelpers.html#a539bca266d42c2a2b603dc12bed9446c" title=" " alt="" coords="437,71,597,111"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="377,44,436,63,435,68,375,49"/>
+<area shape="poly" id="edge5_Node000007_Node000003" title=" " alt="" coords="375,68,435,49,436,54,377,73"/>
+<area shape="poly" id="edge6_Node000007_Node000004" title=" " alt="" coords="389,88,421,88,421,94,389,94"/>
+</map>

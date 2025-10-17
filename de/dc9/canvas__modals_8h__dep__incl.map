@@ -1,13 +1,12 @@
 <map id="src/app/gui/canvas/canvas_modals.h" name="src/app/gui/canvas/canvas_modals.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="161,5,292,46"/>
-<area shape="rect" id="Node000002" href="$d4/dcf/canvas_8h.html" title=" " alt="" coords="5,190,147,216"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="147,45,106,65,88,79,74,95,65,119,64,145,74,189,69,190,59,145,60,118,70,93,85,75,103,60,145,40"/>
-<area shape="rect" id="Node000066" href="$df/db2/canvas__context__menu_8cc.html" title=" " alt="" coords="186,183,358,223"/>
-<area shape="poly" id="edge2_Node000001_Node000066" title=" " alt="" coords="249,58,264,93,273,141,275,182,270,182,267,141,259,95,244,60"/>
-<area shape="rect" id="Node000067" href="$d8/d2d/canvas__context__menu_8h.html" title=" " alt="" coords="84,94,249,135"/>
-<area shape="poly" id="edge3_Node000001_Node000067" title=" " alt="" coords="207,60,182,95,178,92,202,57"/>
-<area shape="rect" id="Node000068" href="$d1/de8/canvas__modals_8cc.html" title=" " alt="" coords="324,94,457,135"/>
-<area shape="poly" id="edge6_Node000001_Node000068" title=" " alt="" coords="279,51,355,91,352,96,276,56"/>
-<area shape="poly" id="edge4_Node000067_Node000002" title=" " alt="" coords="137,148,90,192,87,188,133,144"/>
-<area shape="poly" id="edge5_Node000067_Node000066" title=" " alt="" coords="204,143,250,180,247,184,200,147"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="89,5,220,46"/>
+<area shape="rect" id="Node000002" href="$d4/dcf/canvas_8h.html" title=" " alt="" coords="29,183,160,223"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="99,57,78,74,62,95,57,117,61,140,70,162,82,181,77,184,65,164,56,141,52,117,57,93,74,70,96,52"/>
+<area shape="rect" id="Node000076" href="$d8/d2d/canvas__context__menu_8h.html" title=" " alt="" coords="72,94,237,135"/>
+<area shape="poly" id="edge3_Node000001_Node000076" title=" " alt="" coords="157,62,157,94,152,94,152,62"/>
+<area shape="rect" id="Node000077" href="$d1/de8/canvas__modals_8cc.html" title=" " alt="" coords="261,94,395,135"/>
+<area shape="poly" id="edge5_Node000001_Node000077" title=" " alt="" coords="209,51,290,91,287,96,206,56"/>
+<area shape="rect" id="Node000003" href="$d3/d38/dungeon__canvas__viewer_8h.html" title=" " alt="" coords="5,271,184,312"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="97,239,97,271,92,271,92,239"/>
+<area shape="poly" id="edge4_Node000076_Node000002" title=" " alt="" coords="134,149,110,184,106,181,130,146"/>
 </map>

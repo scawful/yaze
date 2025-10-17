@@ -1,0 +1,11 @@
+<map id="yaze::editor::SettingsEditor::Initialize" name="yaze::editor::SettingsEditor::Initialize">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,178,79"/>
+<area shape="rect" id="Node000002" href="$d3/d9f/classyaze_1_1editor_1_1Editor.html#a98f0abd7cb1a6088da2cef730c0160dd" title=" " alt="" coords="239,5,364,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="178,43,223,35,224,41,179,48"/>
+<area shape="rect" id="Node000003" href="$d0/d2e/classyaze_1_1editor_1_1EditorCardRegistry.html#a78ce4b14788249c71c60777b79a5bebc" title="Register a card for a specific session." alt="" coords="226,71,377,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="179,70,211,75,210,80,178,75"/>
+<area shape="rect" id="Node000004" href="$d0/d2e/classyaze_1_1editor_1_1EditorCardRegistry.html#a309a910e28d7198f4e07a140245541f7" title="Generate session&#45;aware card ID." alt="" coords="434,37,585,78"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="377,76,418,70,419,75,378,82"/>
+<area shape="rect" id="Node000006" href="$d0/d2e/classyaze_1_1editor_1_1EditorCardRegistry.html#aa4be0773bd6facbe27150676d4876a58" title="Register a new session in the registry." alt="" coords="425,103,594,143"/>
+<area shape="poly" id="edge4_Node000003_Node000006" title=" " alt="" coords="378,100,410,105,409,110,377,105"/>
+</map>

@@ -1,5 +1,5 @@
-<map id="src/app/gfx/memory_pool.h" name="src/app/gfx/memory_pool.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="112,5,247,46"/>
+<map id="src/app/gfx/resource/memory_pool.h" name="src/app/gfx/resource/memory_pool.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="110,5,249,46"/>
 <area shape="rect" id="Node000002" title=" " alt="" coords="5,94,66,120"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="145,49,72,88,70,84,142,44"/>
 <area shape="rect" id="Node000003" title=" " alt="" coords="90,94,157,120"/>

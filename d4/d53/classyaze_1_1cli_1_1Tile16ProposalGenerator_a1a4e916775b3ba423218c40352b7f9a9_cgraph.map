@@ -4,8 +4,8 @@
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="170,101,286,56,311,48,313,53,288,62,172,106"/>
 <area shape="rect" id="Node000003" href="$d4/d53/classyaze_1_1cli_1_1Tile16ProposalGenerator.html#a2c04fca5c3f59e78560492cba42b8220" title="Parse a &quot;overworld replace&#45;tile&quot; command into multiple Tile16Changes." alt="" coords="287,71,532,111"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="239,108,271,104,271,110,239,113"/>
-<area shape="rect" id="Node000035" href="$d4/d53/classyaze_1_1cli_1_1Tile16ProposalGenerator.html#a653c8917fa4b5a511046f1ee348f7243" title="Parse a &quot;overworld set&#45;area&quot; command into multiple Tile16Changes." alt="" coords="297,136,522,177"/>
-<area shape="poly" id="edge3_Node000001_Node000035" title=" " alt="" coords="239,135,282,139,281,145,239,140"/>
-<area shape="rect" id="Node000036" href="$d4/d53/classyaze_1_1cli_1_1Tile16ProposalGenerator.html#ad67772c00cabd6ffd0d9c8df5924a366" title="Parse a single &quot;overworld set&#45;tile&quot; command into a Tile16Change." alt="" coords="300,201,519,242"/>
-<area shape="poly" id="edge4_Node000001_Node000036" title=" " alt="" coords="174,143,288,186,314,194,312,199,286,191,172,148"/>
+<area shape="rect" id="Node000040" href="$d4/d53/classyaze_1_1cli_1_1Tile16ProposalGenerator.html#a653c8917fa4b5a511046f1ee348f7243" title="Parse a &quot;overworld set&#45;area&quot; command into multiple Tile16Changes." alt="" coords="297,136,522,177"/>
+<area shape="poly" id="edge3_Node000001_Node000040" title=" " alt="" coords="239,135,282,139,281,145,239,140"/>
+<area shape="rect" id="Node000041" href="$d4/d53/classyaze_1_1cli_1_1Tile16ProposalGenerator.html#ad67772c00cabd6ffd0d9c8df5924a366" title="Parse a single &quot;overworld set&#45;tile&quot; command into a Tile16Change." alt="" coords="300,201,519,242"/>
+<area shape="poly" id="edge4_Node000001_Node000041" title=" " alt="" coords="174,143,288,186,314,194,312,199,286,191,172,148"/>
 </map>

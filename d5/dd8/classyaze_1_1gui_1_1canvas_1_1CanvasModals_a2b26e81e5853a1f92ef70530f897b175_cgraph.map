@@ -1,7 +1,0 @@
-<map id="yaze::gui::canvas::CanvasModals::ShowColorAnalysis" name="yaze::gui::canvas::CanvasModals::ShowColorAnalysis">
-<area shape="rect" id="Node000001" title="Show color analysis modal." alt="" coords="5,41,231,82"/>
-<area shape="rect" id="Node000002" href="$d5/dd8/classyaze_1_1gui_1_1canvas_1_1CanvasModals.html#a13472d493c439fbadf315d51fd88a451" title=" " alt="" coords="306,5,485,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="231,44,290,37,290,42,231,50"/>
-<area shape="rect" id="Node000003" href="$d5/dd8/classyaze_1_1gui_1_1canvas_1_1CanvasModals.html#a35132e26b0eb6c62071bfdde213999d2" title=" " alt="" coords="279,70,512,126"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="231,74,264,78,263,83,231,79"/>
-</map>

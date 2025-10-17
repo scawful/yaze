@@ -1,0 +1,9 @@
+<map id="yaze::gui::HandleTileSelection" name="yaze::gui::HandleTileSelection">
+<area shape="rect" id="Node000001" title="Handle single tile selection (right&#45;click)" alt="" coords="5,63,198,88"/>
+<area shape="rect" id="Node000002" href="$d3/dbf/namespaceyaze_1_1gui.html#a7978950748d21f9f26d67b5822f20107" title="Align position to grid." alt="" coords="269,5,414,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="158,59,269,33,270,38,159,65"/>
+<area shape="rect" id="Node000003" href="$d3/dbf/namespaceyaze_1_1gui.html#a6349a09af8c05a1771715251f8727318" title="Get mouse position in canvas space." alt="" coords="246,55,437,96"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="198,73,230,73,230,78,198,78"/>
+<area shape="rect" id="Node000004" href="$d3/dbf/namespaceyaze_1_1gui.html#afef7e9d33fbb81fd43e8ca96b05b1999" title="Check if mouse is in canvas bounds." alt="" coords="251,120,432,146"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="159,86,270,113,269,118,158,92"/>
+</map>

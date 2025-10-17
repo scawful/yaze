@@ -1,0 +1,14 @@
+<map id="yaze::editor::SessionCoordinator" name="yaze::editor::SessionCoordinator">
+<area shape="rect" id="Node000001" title="High&#45;level orchestrator for multi&#45;session UI." alt="" coords="645,84,849,110"/>
+<area shape="rect" id="Node000002" href="$dd/d12/classyaze_1_1editor_1_1EditorManager.html" title="The EditorManager controls the main editor window and manages the various editor classes." alt="" coords="324,128,498,154"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="513,125,644,108,645,113,514,130"/>
+<area shape="rect" id="Node000010" href="$d7/d92/classyaze_1_1editor_1_1ToastManager.html" title=" " alt="" coords="5,88,180,114"/>
+<area shape="poly" id="edge6_Node000001_Node000010" title=" " alt="" coords="195,96,204,96,644,94,644,99,204,101,195,101"/>
+<area shape="poly" id="edge2_Node000002_Node000010" title=" " alt="" coords="195,111,324,127,323,133,195,116"/>
+<area shape="rect" id="Node000054" href="$d8/d46/classyaze_1_1editor_1_1UserSettings.html" title="Manages user preferences and settings persistence." alt="" coords="9,5,176,31"/>
+<area shape="poly" id="edge7_Node000001_Node000054" title=" " alt="" coords="192,24,300,34,461,53,621,76,658,81,657,86,621,81,460,59,299,39,191,29"/>
+<area shape="poly" id="edge3_Node000002_Node000054" title=" " alt="" coords="150,34,222,60,301,93,325,106,371,125,369,130,323,111,299,98,220,65,148,39"/>
+<area shape="rect" id="Node000048" href="$d0/d2e/classyaze_1_1editor_1_1EditorCardRegistry.html" title="Central registry for all editor cards with session awareness and dependency injection." alt="" coords="17,154,168,195"/>
+<area shape="poly" id="edge5_Node000001_Node000048" title=" " alt="" coords="184,182,331,190,415,188,498,179,560,165,620,146,716,108,718,113,622,151,561,170,498,184,415,193,331,195,183,188"/>
+<area shape="poly" id="edge4_Node000002_Node000048" title=" " alt="" coords="184,166,299,156,331,152,331,157,300,161,184,172"/>
+</map>

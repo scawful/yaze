@@ -1,11 +1,11 @@
 <map id="yaze::test::TEST_F" name="yaze::test::TEST_F">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,78,135,104"/>
-<area shape="rect" id="Node000002" href="$da/d45/classyaze_1_1editor_1_1DungeonEditorV2.html#adcdd7c86ceda3bbd7176b6ae5b3daf84" title=" " alt="" coords="183,71,358,111"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="135,88,167,88,167,94,135,94"/>
-<area shape="rect" id="Node000003" href="$d0/d27/namespaceyaze_1_1gfx.html#aeccc5ded5a311afcdf70cb43e466c220" title="Take a SNESPalette, divide it into palettes of 8 colors." alt="" coords="412,5,572,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="341,68,405,48,407,54,342,73"/>
-<area shape="rect" id="Node000007" href="$d9/d71/classyaze_1_1gui_1_1DungeonObjectEmulatorPreview.html#a2d4252cde9533c529313ae861b85f8ca" title=" " alt="" coords="406,71,578,111"/>
-<area shape="poly" id="edge3_Node000002_Node000007" title=" " alt="" coords="358,88,390,88,390,94,358,94"/>
-<area shape="rect" id="Node000009" href="$d9/df4/classyaze_1_1gui_1_1PaletteEditorWidget.html#aa976559ae2bd436e1d6930e494362f4e" title=" " alt="" coords="417,136,567,177"/>
-<area shape="poly" id="edge4_Node000002_Node000009" title=" " alt="" coords="342,109,407,128,405,134,341,114"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,70,135,96"/>
+<area shape="rect" id="Node000002" href="$da/d45/classyaze_1_1editor_1_1DungeonEditorV2.html#adcdd7c86ceda3bbd7176b6ae5b3daf84" title=" " alt="" coords="183,63,358,103"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="135,80,167,80,167,86,135,86"/>
+<area shape="rect" id="Node000003" href="$d0/d27/namespaceyaze_1_1gfx.html#a226d6a842b46a6a040d1ce868fd0d97c" title="Create a PaletteGroup by dividing a large palette into sub&#45;palettes." alt="" coords="423,5,583,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="355,60,407,46,409,52,356,65"/>
+<area shape="rect" id="Node000007" href="$d7/d39/classyaze_1_1gfx_1_1PaletteManager.html#ad76357b3c747d397e99dd16972cf1235" title="Get the singleton instance." alt="" coords="406,70,600,96"/>
+<area shape="poly" id="edge3_Node000002_Node000007" title=" " alt="" coords="358,80,390,80,390,86,358,86"/>
+<area shape="rect" id="Node000008" href="$d9/d71/classyaze_1_1gui_1_1DungeonObjectEmulatorPreview.html#a2d4252cde9533c529313ae861b85f8ca" title=" " alt="" coords="417,120,589,161"/>
+<area shape="poly" id="edge4_Node000002_Node000008" title=" " alt="" coords="356,101,404,113,403,118,355,106"/>
 </map>

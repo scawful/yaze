@@ -1,11 +1,11 @@
 <map id="yaze::editor::DungeonObjectInteraction" name="yaze::editor::DungeonObjectInteraction">
-<area shape="rect" id="Node000001" title="Handles object selection, placement, and interaction within the dungeon canvas." alt="" coords="173,198,353,238"/>
-<area shape="rect" id="Node000002" href="$da/d2c/classyaze_1_1gui_1_1Canvas.html" title="Modern, robust canvas for drawing and manipulating graphics." alt="" coords="119,109,239,135"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="202,145,247,195,243,199,198,148"/>
-<area shape="rect" id="Node000003" href="$dd/d71/classyaze_1_1gui_1_1canvas_1_1CanvasInteractionHandler.html" title="Handles all tile&#45;based interactions for Canvas." alt="" coords="5,5,177,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="105,59,121,83,136,96,153,106,150,111,133,100,117,87,101,62"/>
-<area shape="rect" id="Node000004" href="$d0/dca/classyaze_1_1gfx_1_1IRenderer.html" title="Defines an abstract interface for all rendering operations." alt="" coords="201,13,333,39"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="260,54,240,87,207,111,204,106,236,83,255,51"/>
-<area shape="rect" id="Node000014" href="$d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html" title=" " alt="" coords="263,109,431,135"/>
-<area shape="poly" id="edge4_Node000001_Node000014" title=" " alt="" coords="328,148,283,199,279,195,324,145"/>
+<area shape="rect" id="Node000001" title="Handles object selection, placement, and interaction within the dungeon canvas." alt="" coords="181,198,361,238"/>
+<area shape="rect" id="Node000002" href="$da/d2c/classyaze_1_1gui_1_1Canvas.html" title="Modern, robust canvas for drawing and manipulating graphics." alt="" coords="127,109,247,135"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="209,145,255,195,251,199,205,148"/>
+<area shape="rect" id="Node000003" href="$d2/dd8/classyaze_1_1gui_1_1CanvasInteractionHandler.html" title="Handles all tile&#45;based interactions for Canvas." alt="" coords="5,5,187,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="113,58,131,83,163,106,160,111,127,87,109,61"/>
+<area shape="rect" id="Node000004" href="$d0/dca/classyaze_1_1gfx_1_1IRenderer.html" title="Defines an abstract interface for all rendering operations." alt="" coords="211,13,344,39"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="270,54,250,87,216,111,213,106,246,83,266,51"/>
+<area shape="rect" id="Node000019" href="$d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html" title=" " alt="" coords="271,109,439,135"/>
+<area shape="poly" id="edge4_Node000001_Node000019" title=" " alt="" coords="336,148,290,199,286,195,332,145"/>
 </map>

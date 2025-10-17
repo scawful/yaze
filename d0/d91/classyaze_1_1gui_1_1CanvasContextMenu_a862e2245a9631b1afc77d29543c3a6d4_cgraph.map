@@ -1,0 +1,12 @@
+<map id="yaze::gui::CanvasContextMenu::RenderUsageSpecificMenu" name="yaze::gui::CanvasContextMenu::RenderUsageSpecificMenu">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,71,222,111"/>
+<area shape="rect" id="Node000002" href="$d0/d91/classyaze_1_1gui_1_1CanvasContextMenu.html#a9416fe00793ada161e794dc054b211aa" title=" " alt="" coords="272,5,453,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="193,67,267,48,268,53,194,73"/>
+<area shape="rect" id="Node000003" href="$d0/d91/classyaze_1_1gui_1_1CanvasContextMenu.html#a93e446a45a3e9b56cd6500e4ac7ced22" title=" " alt="" coords="270,71,455,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="222,88,254,88,254,94,222,94"/>
+<area shape="rect" id="Node000004" href="$d0/d91/classyaze_1_1gui_1_1CanvasContextMenu.html#a48ae922b6345fb43cd088adbc8f85b5a" title=" " alt="" coords="280,136,445,177"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="194,109,268,129,267,134,193,115"/>
+<area shape="rect" id="Node000005" href="$d3/dbf/namespaceyaze_1_1gui.html#ab2866873cfa51ad6e48f5e97c9e44f4e" title="Render a single menu item." alt="" coords="503,144,678,169"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="445,154,487,154,487,159,445,159"/>
+<area shape="poly" id="edge5_Node000005_Node000005" title=" " alt="" coords="553,145,545,135,550,125,565,119,591,117,619,120,633,126,630,131,617,125,591,122,566,124,553,129,551,134,557,141"/>
+</map>

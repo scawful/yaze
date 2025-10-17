@@ -1,12 +1,12 @@
 <map id="yaze::cli::EnhancedChatComponent" name="yaze::cli::EnhancedChatComponent">
-<area shape="rect" id="Node000001" title=" " alt="" coords="962,52,1185,77"/>
-<area shape="rect" id="Node000002" href="$d6/d30/classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="376,17,456,43"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="471,17,480,16,520,15,561,16,750,24,939,42,989,48,988,54,938,47,750,29,561,22,520,20,480,22,472,22"/>
-<area shape="rect" id="Node000006" href="$d6/df5/classyaze_1_1cli_1_1agent_1_1ConversationalAgentService.html" title=" " alt="" coords="585,44,781,85"/>
-<area shape="poly" id="edge4_Node000006_Node000002" title=" " alt="" coords="472,34,585,49,585,54,471,39"/>
-<area shape="rect" id="Node000003" href="$d8/d4d/structyaze_1_1core_1_1ResourceLabelManager.html" title=" " alt="" coords="5,9,177,50"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="192,27,375,27,375,32,192,32"/>
-<area shape="poly" id="edge3_Node000001_Node000006" title=" " alt="" coords="797,62,962,62,962,67,797,67"/>
-<area shape="rect" id="Node000010" href="$da/d90/classyaze_1_1cli_1_1AutocompleteEngine.html" title=" " alt="" coords="588,109,779,135"/>
-<area shape="poly" id="edge5_Node000001_Node000010" title=" " alt="" coords="793,103,938,82,984,75,984,80,939,87,793,109"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="976,52,1199,77"/>
+<area shape="rect" id="Node000002" href="$d6/d30/classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="390,17,470,43"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="485,17,494,16,534,15,575,16,764,24,953,42,1003,48,1002,54,952,47,764,29,575,22,534,20,494,22,486,22"/>
+<area shape="rect" id="Node000006" href="$d6/df5/classyaze_1_1cli_1_1agent_1_1ConversationalAgentService.html" title=" " alt="" coords="599,44,795,85"/>
+<area shape="poly" id="edge4_Node000006_Node000002" title=" " alt="" coords="486,34,599,49,599,54,485,39"/>
+<area shape="rect" id="Node000003" href="$db/df5/structyaze_1_1project_1_1ResourceLabelManager.html" title=" " alt="" coords="5,9,191,50"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="206,27,389,27,389,32,206,32"/>
+<area shape="poly" id="edge3_Node000001_Node000006" title=" " alt="" coords="811,62,976,62,976,67,811,67"/>
+<area shape="rect" id="Node000010" href="$da/d90/classyaze_1_1cli_1_1AutocompleteEngine.html" title=" " alt="" coords="602,109,793,135"/>
+<area shape="poly" id="edge5_Node000001_Node000010" title=" " alt="" coords="807,103,952,82,998,75,998,80,953,87,807,109"/>
 </map>

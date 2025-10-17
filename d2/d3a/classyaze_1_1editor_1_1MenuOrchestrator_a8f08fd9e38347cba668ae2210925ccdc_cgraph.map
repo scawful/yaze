@@ -1,0 +1,7 @@
+<map id="yaze::editor::MenuOrchestrator::OnLoadDeveloperLayout" name="yaze::editor::MenuOrchestrator::OnLoadDeveloperLayout">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,201,46"/>
+<area shape="rect" id="Node000002" href="$dd/d12/classyaze_1_1editor_1_1EditorManager.html#ac1ea7d0c0928b34e372c2f5b0ad9fd2c" title=" " alt="" coords="249,5,423,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="201,23,233,23,233,28,201,28"/>
+<area shape="rect" id="Node000003" href="$dc/d6e/classyaze_1_1editor_1_1WindowDelegate.html#afde36db79aaf93d1b335cfef4917bb74" title=" " alt="" coords="471,5,659,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="424,23,455,23,455,28,424,28"/>
+</map>

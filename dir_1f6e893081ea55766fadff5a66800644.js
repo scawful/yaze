@@ -8,7 +8,7 @@ var dir_1f6e893081ea55766fadff5a66800644 =
     [ "ui", "dir_c96cf71bac328d098e4801908136418a.html", "dir_c96cf71bac328d098e4801908136418a" ],
     [ "video", "dir_fc1c506276a10f7ba5357dc78cded377.html", "dir_fc1c506276a10f7ba5357dc78cded377" ],
     [ "emu.cc", "d8/d5b/emu_8cc.html", "d8/d5b/emu_8cc" ],
-    [ "emulator.cc", "d3/d87/emulator_8cc.html", null ],
+    [ "emulator.cc", "d3/d87/emulator_8cc.html", "d3/d87/emulator_8cc" ],
     [ "emulator.h", "db/dc0/emulator_8h.html", "db/dc0/emulator_8h" ],
     [ "snes.cc", "dc/dbe/snes_8cc.html", "dc/dbe/snes_8cc" ],
     [ "snes.h", "d2/de3/emu_2snes_8h.html", "d2/de3/emu_2snes_8h" ]

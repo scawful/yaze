@@ -1,7 +1,7 @@
-<map id="src/app/gui/widgets/widget_auto_register.h" name="src/app/gui/widgets/widget_auto_register.h">
-<area shape="rect" id="Node000001" title="Automatic widget registration helpers for ImGui Test Engine integration." alt="" coords="110,5,266,46"/>
-<area shape="rect" id="Node000002" href="$d5/d7c/dungeon__object__emulator__preview_8cc.html" title=" " alt="" coords="5,94,179,150"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="159,59,122,95,118,91,155,55"/>
-<area shape="rect" id="Node000003" href="$d5/d3e/widget__auto__register_8cc.html" title=" " alt="" coords="203,102,365,142"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="221,55,266,99,262,103,217,59"/>
+<map id="src/app/gui/automation/widget_auto_register.h" name="src/app/gui/automation/widget_auto_register.h">
+<area shape="rect" id="Node000001" title="Automatic widget registration helpers for ImGui Test Engine integration." alt="" coords="105,5,260,46"/>
+<area shape="rect" id="Node000002" href="$d5/d3e/widget__auto__register_8cc.html" title=" " alt="" coords="5,102,168,142"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="154,59,108,103,105,99,150,55"/>
+<area shape="rect" id="Node000003" href="$d5/d7c/dungeon__object__emulator__preview_8cc.html" title=" " alt="" coords="192,94,365,150"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="215,55,252,91,249,95,211,59"/>
 </map>

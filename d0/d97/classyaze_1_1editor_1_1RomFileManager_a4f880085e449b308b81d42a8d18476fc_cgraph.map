@@ -1,0 +1,9 @@
+<map id="yaze::editor::RomFileManager::GetRomFilename" name="yaze::editor::RomFileManager::GetRomFilename">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,27,195,68"/>
+<area shape="rect" id="Node000002" href="$d6/d30/classyaze_1_1Rom.html#a35886abe051b67913a804e4cbfdc4207" title=" " alt="" coords="270,5,405,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="195,33,254,26,255,31,195,38"/>
+<area shape="rect" id="Node000003" href="$d0/d97/classyaze_1_1editor_1_1RomFileManager.html#ae826961458a00fdc5d16c1ba1b555aba" title=" " alt="" coords="243,55,432,96"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="195,56,227,60,227,65,195,61"/>
+<area shape="rect" id="Node000004" href="$d6/d30/classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="480,63,621,88"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="432,73,464,73,464,78,432,78"/>
+</map>

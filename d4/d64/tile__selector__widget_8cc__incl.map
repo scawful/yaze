@@ -1,11 +1,11 @@
 <map id="src/app/gui/widgets/tile_selector_widget.cc" name="src/app/gui/widgets/tile_selector_widget.cc">
-<area shape="rect" id="Node000001" title=" " alt="" coords="72,5,229,46"/>
-<area shape="rect" id="Node000002" href="$dc/d4d/tile__selector__widget_8h.html" title=" " alt="" coords="20,94,153,135"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="138,48,112,83,108,80,134,45"/>
-<area shape="rect" id="Node000042" title=" " alt="" coords="178,102,252,127"/>
-<area shape="poly" id="edge4_Node000001_Node000042" title=" " alt="" coords="167,45,199,88,195,91,163,48"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="79,5,236,46"/>
+<area shape="rect" id="Node000002" href="$dc/d4d/tile__selector__widget_8h.html" title=" " alt="" coords="27,94,160,135"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="145,48,119,83,115,80,141,45"/>
+<area shape="rect" id="Node000042" title=" " alt="" coords="184,102,259,127"/>
+<area shape="poly" id="edge4_Node000001_Node000042" title=" " alt="" coords="174,45,206,88,201,91,170,48"/>
 <area shape="rect" id="Node000003" title=" " alt="" coords="5,183,59,208"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="75,137,51,171,47,168,71,134"/>
-<area shape="rect" id="Node000004" href="$da/dcb/bitmap_8h.html" title=" " alt="" coords="83,183,200,208"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="102,134,126,168,122,171,98,137"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="80,137,53,172,49,168,76,133"/>
+<area shape="rect" id="Node000004" href="$da/dcb/bitmap_8h.html" title=" " alt="" coords="83,183,229,208"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="111,133,139,169,135,172,107,137"/>
 </map>

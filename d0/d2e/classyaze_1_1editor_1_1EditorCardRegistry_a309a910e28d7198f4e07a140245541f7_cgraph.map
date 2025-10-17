@@ -1,0 +1,5 @@
+<map id="yaze::editor::EditorCardRegistry::MakeCardId" name="yaze::editor::EditorCardRegistry::MakeCardId">
+<area shape="rect" id="Node000001" title="Generate session&#45;aware card ID." alt="" coords="5,5,157,46"/>
+<area shape="rect" id="Node000002" href="$d0/d2e/classyaze_1_1editor_1_1EditorCardRegistry.html#a89a511e01fd2b501092efcb9b9bd42f2" title="Check if card IDs should be prefixed." alt="" coords="205,5,385,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="157,23,189,23,189,28,157,28"/>
+</map>

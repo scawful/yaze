@@ -1,0 +1,12 @@
+<map id="yaze::editor::SessionCoordinator::RemoveSession" name="yaze::editor::SessionCoordinator::RemoveSession">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,63,210,103"/>
+<area shape="rect" id="Node000002" href="$d5/dcf/classyaze_1_1editor_1_1SessionCoordinator.html#a3b5caa53f871ac83cc155c30310eafdb" title=" " alt="" coords="258,63,462,103"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="210,80,242,80,242,86,210,86"/>
+<area shape="rect" id="Node000003" href="$d5/dcf/classyaze_1_1editor_1_1SessionCoordinator.html#ac6a684b1d7091bf5a3f48cf5b289af22" title=" " alt="" coords="510,5,714,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="452,59,504,47,506,53,453,65"/>
+<area shape="rect" id="Node000004" href="$d7/d92/classyaze_1_1editor_1_1ToastManager.html#aa9b4c4a8d7c6746e46466530f1eea654" title=" " alt="" coords="762,92,937,133"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="463,86,747,104,747,109,463,92"/>
+<area shape="rect" id="Node000005" href="$d5/dcf/classyaze_1_1editor_1_1SessionCoordinator.html#ac542a29f368c44f2522abc93fa285271" title=" " alt="" coords="510,120,714,161"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="453,101,506,113,504,119,452,107"/>
+<area shape="poly" id="edge5_Node000005_Node000004" title=" " alt="" coords="714,126,747,122,747,127,715,131"/>
+</map>

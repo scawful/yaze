@@ -1,0 +1,11 @@
+<map id="yaze::editor::MusicEditor::DrawTrackerView" name="yaze::editor::MusicEditor::DrawTrackerView">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,55,165,96"/>
+<area shape="rect" id="Node000002" href="$db/d9a/classyaze_1_1editor_1_1MusicEditor.html#a923b466ec76879507b53a6712ae54a02" title=" " alt="" coords="213,55,372,96"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="165,73,197,73,197,78,165,78"/>
+<area shape="rect" id="Node000003" href="$d3/dbf/namespaceyaze_1_1gui.html#a201299f3c61d29a272f11301c7f03265" title=" " alt="" coords="447,5,581,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="372,52,446,33,447,38,373,57"/>
+<area shape="rect" id="Node000004" href="$d8/dd6/classyaze_1_1zelda3_1_1music_1_1Tracker.html#ac3c91c8f49743af9f6df4b148aa17609" title="High&#45;level function to load all song data from the ROM. (Currently commented out, but this would be t..." alt="" coords="442,55,585,96"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="373,73,426,73,426,78,373,78"/>
+<area shape="rect" id="Node000005" href="$db/d9a/classyaze_1_1editor_1_1MusicEditor.html#a131bbdb6ad48b6365c8aba7a4f71467e" title=" " alt="" coords="420,120,607,146"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="373,94,447,113,446,118,372,99"/>
+</map>

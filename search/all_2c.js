@@ -1,5 +1,6 @@
 var searchData=
 [
-  ['🎉_20conclusion_0',['🎉 Conclusion',['../d5/dc8/md_docs_2G3-renderer-migration-complete.html#autotoc_md1084',1,'']]],
-  ['🎉_20major_20breakthrough_3a_20game_20is_20running_1',['🎉 Major Breakthrough: Game is Running!',['../d7/d44/md_docs_2E4-Emulator-Development-Guide.html#autotoc_md392',1,'']]]
+  ['🎓_20learning_20from_20mesen2_0',['🎓 Learning from Mesen2',['../df/d0c/md_docs_2E8-emulator-debugging-vision.html#autotoc_md928',1,'']]],
+  ['🎓_20learning_20resources_1',['🎓 Learning Resources',['../df/d0c/md_docs_2E8-emulator-debugging-vision.html#autotoc_md967',1,'']]],
+  ['🎓_20technical_20deep_20dive_3a_20texture_20queue_20system_2',['🎓 Technical Deep Dive: Texture Queue System',['../d5/dc8/md_docs_2G3-renderer-migration-complete.html#autotoc_md1352',1,'']]]
 ];

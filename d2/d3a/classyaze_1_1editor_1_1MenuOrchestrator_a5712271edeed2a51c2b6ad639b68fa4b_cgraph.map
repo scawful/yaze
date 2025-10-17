@@ -1,0 +1,12 @@
+<map id="yaze::editor::MenuOrchestrator::OnValidateRom" name="yaze::editor::MenuOrchestrator::OnValidateRom">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,63,201,103"/>
+<area shape="rect" id="Node000002" href="$dd/d12/classyaze_1_1editor_1_1EditorManager.html#adb34f60bfe068566c25e33c581aad058" title=" " alt="" coords="256,5,431,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="191,59,241,47,242,53,192,65"/>
+<area shape="rect" id="Node000003" href="$d7/d92/classyaze_1_1editor_1_1ToastManager.html#aa9b4c4a8d7c6746e46466530f1eea654" title=" " alt="" coords="494,63,668,103"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="201,80,478,80,478,86,201,86"/>
+<area shape="rect" id="Node000004" href="$d0/d97/classyaze_1_1editor_1_1RomFileManager.html#a3c0e50ebe2b6de471a1c67303b047085" title=" " alt="" coords="249,120,438,161"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="192,101,241,113,240,118,191,107"/>
+<area shape="poly" id="edge5_Node000004_Node000003" title=" " alt="" coords="429,117,478,105,479,110,431,122"/>
+<area shape="rect" id="Node000005" href="$d0/d97/classyaze_1_1editor_1_1RomFileManager.html#ae826961458a00fdc5d16c1ba1b555aba" title=" " alt="" coords="486,128,675,169"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="439,141,470,142,470,147,438,146"/>
+</map>

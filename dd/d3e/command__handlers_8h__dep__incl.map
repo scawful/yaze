@@ -1,7 +1,9 @@
 <map id="src/cli/handlers/command_handlers.h" name="src/cli/handlers/command_handlers.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="43,5,213,46"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="120,5,290,46"/>
 <area shape="rect" id="Node000002" href="$d0/d4f/cli_8cc.html" title=" " alt="" coords="5,102,96,127"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="102,59,63,103,59,99,98,56"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="158,56,73,103,71,99,155,52"/>
 <area shape="rect" id="Node000003" href="$db/dae/command__handlers_8cc.html" title=" " alt="" coords="120,94,290,135"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="158,56,190,92,186,95,154,60"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="208,62,208,94,203,94,203,62"/>
+<area shape="rect" id="Node000004" href="$d2/d9f/command__registry_8cc.html" title=" " alt="" coords="314,94,478,135"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="263,50,354,91,352,96,261,55"/>
 </map>

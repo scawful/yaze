@@ -1,0 +1,5 @@
+<map id="yaze::gui::HandleEntityInteraction" name="yaze::gui::HandleEntityInteraction">
+<area shape="rect" id="Node000001" title="Handle entity interaction (hover, click, drag)" alt="" coords="5,5,216,31"/>
+<area shape="rect" id="Node000002" href="$d3/dbf/namespaceyaze_1_1gui.html#afef7e9d33fbb81fd43e8ca96b05b1999" title="Check if mouse is in canvas bounds." alt="" coords="264,5,445,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="216,16,248,16,248,21,216,21"/>
+</map>

@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.9.8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>yaze: src/app/gfx/texture_atlas.h Source File</title>
+<title>yaze: src/app/gfx/render/texture_atlas.h Source File</title>
 <link href="../../tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript">var page_layout=1;</script>
 <script type="text/javascript" src="../../jquery.js"></script>
@@ -108,7 +108,7 @@ $(document).ready(function(){initNavTree('db/dd3/texture__atlas_8h_source.html',
 <div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span><span class="preprocessor">#include &lt;memory&gt;</span></div>
 <div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span><span class="preprocessor">#include &lt;vector&gt;</span></div>
 <div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span> </div>
-<div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span><span class="preprocessor">#include &quot;<a class="code" href="../../da/dcb/bitmap_8h.html">app/gfx/bitmap.h</a>&quot;</span></div>
+<div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span><span class="preprocessor">#include &quot;<a class="code" href="../../da/dcb/bitmap_8h.html">app/gfx/core/bitmap.h</a>&quot;</span></div>
 <div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span><span class="preprocessor">#include &quot;absl/status/status.h&quot;</span></div>
 <div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span> </div>
 <div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span><span class="keyword">namespace </span><a class="code hl_namespace" href="../../dc/d46/namespaceyaze.html">yaze</a> {</div>
@@ -204,7 +204,7 @@ $(document).ready(function(){initNavTree('db/dd3/texture__atlas_8h_source.html',
 <div class="ttc" id="aclassyaze_1_1gfx_1_1TextureAtlas_html_ac752f1779d28bc0cb5a97586dbb29c0b"><div class="ttname"><a href="../../de/d9a/classyaze_1_1gfx_1_1TextureAtlas.html#ac752f1779d28bc0cb5a97586dbb29c0b">yaze::gfx::TextureAtlas::width_</a></div><div class="ttdeci">int width_</div><div class="ttdef"><b>Definition</b> <a href="../../db/dd3/texture__atlas_8h_source.html#l00130">texture_atlas.h:130</a></div></div>
 <div class="ttc" id="aclassyaze_1_1gfx_1_1TextureAtlas_html_ac93c37d5766f6500fdab13e5032c0a02"><div class="ttname"><a href="../../de/d9a/classyaze_1_1gfx_1_1TextureAtlas.html#ac93c37d5766f6500fdab13e5032c0a02">yaze::gfx::TextureAtlas::TryPackRect</a></div><div class="ttdeci">bool TryPackRect(int width, int height, int &amp;out_x, int &amp;out_y)</div><div class="ttdef"><b>Definition</b> <a href="../../d3/d1b/texture__atlas_8cc_source.html#l00120">texture_atlas.cc:120</a></div></div>
 <div class="ttc" id="aclassyaze_1_1gfx_1_1TextureAtlas_html_afdd5235ab631cb775016fdaa5a562fb5"><div class="ttname"><a href="../../de/d9a/classyaze_1_1gfx_1_1TextureAtlas.html#afdd5235ab631cb775016fdaa5a562fb5">yaze::gfx::TextureAtlas::regions_</a></div><div class="ttdeci">std::map&lt; int, AtlasRegion &gt; regions_</div><div class="ttdef"><b>Definition</b> <a href="../../db/dd3/texture__atlas_8h_source.html#l00140">texture_atlas.h:140</a></div></div>
-<div class="ttc" id="anamespaceyaze_html"><div class="ttname"><a href="../../dc/d46/namespaceyaze.html">yaze</a></div><div class="ttdoc">Main namespace for the application.</div><div class="ttdef"><b>Definition</b> <a href="../../db/d17/asar__wrapper_8cc_source.html#l00014">asar_wrapper.cc:14</a></div></div>
+<div class="ttc" id="anamespaceyaze_html"><div class="ttname"><a href="../../dc/d46/namespaceyaze.html">yaze</a></div><div class="ttdoc">Main namespace for the application.</div><div class="ttdef"><b>Definition</b> <a href="../../da/d0c/controller_8cc_source.html#l00020">controller.cc:20</a></div></div>
 <div class="ttc" id="astructyaze_1_1gfx_1_1TextureAtlas_1_1AtlasRegion_html"><div class="ttname"><a href="../../dd/d53/structyaze_1_1gfx_1_1TextureAtlas_1_1AtlasRegion.html">yaze::gfx::TextureAtlas::AtlasRegion</a></div><div class="ttdoc">Region within the atlas texture.</div><div class="ttdef"><b>Definition</b> <a href="../../db/dd3/texture__atlas_8h_source.html#l00038">texture_atlas.h:38</a></div></div>
 <div class="ttc" id="astructyaze_1_1gfx_1_1TextureAtlas_1_1AtlasRegion_html_a34b80598584e10a89b4d812d4f076965"><div class="ttname"><a href="../../dd/d53/structyaze_1_1gfx_1_1TextureAtlas_1_1AtlasRegion.html#a34b80598584e10a89b4d812d4f076965">yaze::gfx::TextureAtlas::AtlasRegion::source_id</a></div><div class="ttdeci">int source_id</div><div class="ttdef"><b>Definition</b> <a href="../../db/dd3/texture__atlas_8h_source.html#l00043">texture_atlas.h:43</a></div></div>
 <div class="ttc" id="astructyaze_1_1gfx_1_1TextureAtlas_1_1AtlasRegion_html_a53a8b39792163c9b9711b820341933e0"><div class="ttname"><a href="../../dd/d53/structyaze_1_1gfx_1_1TextureAtlas_1_1AtlasRegion.html#a53a8b39792163c9b9711b820341933e0">yaze::gfx::TextureAtlas::AtlasRegion::y</a></div><div class="ttdeci">int y</div><div class="ttdef"><b>Definition</b> <a href="../../db/dd3/texture__atlas_8h_source.html#l00040">texture_atlas.h:40</a></div></div>
@@ -223,7 +223,7 @@ $(document).ready(function(){initNavTree('db/dd3/texture__atlas_8h_source.html',
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="navelem"><a class="el" href="../../dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="../../dir_5194e5fea318fda12687127c23f8aba1.html">app</a></li><li class="navelem"><a class="el" href="../../dir_0b974e391fb3f3024b1f06092da5c188.html">gfx</a></li><li class="navelem"><a class="el" href="../../db/dd3/texture__atlas_8h.html">texture_atlas.h</a></li>
+    <li class="navelem"><a class="el" href="../../dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="../../dir_5194e5fea318fda12687127c23f8aba1.html">app</a></li><li class="navelem"><a class="el" href="../../dir_0b974e391fb3f3024b1f06092da5c188.html">gfx</a></li><li class="navelem"><a class="el" href="../../dir_62ae8e51f550a507188a83648f10b226.html">render</a></li><li class="navelem"><a class="el" href="../../db/dd3/texture__atlas_8h.html">texture_atlas.h</a></li>
     <li class="footer">Generated by <a href="https://www.doxygen.org/index.html"><img class="footer" src="../../doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
   </ul>
 </div>

@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.9.8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>yaze: src/app/core/service/imgui_test_harness_service.cc Source File</title>
+<title>yaze: src/app/service/imgui_test_harness_service.cc Source File</title>
 <link href="../../tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript">var page_layout=1;</script>
 <script type="text/javascript" src="../../jquery.js"></script>
@@ -101,7 +101,7 @@ $(document).ready(function(){initNavTree('dd/d7f/imgui__test__harness__service_8
   <div class="headertitle"><div class="title">imgui_test_harness_service.cc</div></div>
 </div><!--header-->
 <div class="contents">
-<a href="../../dd/d7f/imgui__test__harness__service_8cc.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="preprocessor">#include &quot;<a class="code" href="../../d9/d30/imgui__test__harness__service_8h.html">app/core/service/imgui_test_harness_service.h</a>&quot;</span></div>
+<a href="../../dd/d7f/imgui__test__harness__service_8cc.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="preprocessor">#include &quot;<a class="code" href="../../d9/d30/imgui__test__harness__service_8h.html">app/service/imgui_test_harness_service.h</a>&quot;</span></div>
 <div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span> </div>
 <div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span><span class="preprocessor">#ifdef YAZE_WITH_GRPC</span></div>
 <div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span> </div>
@@ -144,8 +144,8 @@ $(document).ready(function(){initNavTree('dd/d7f/imgui__test__harness__service_8
 <div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span><span class="preprocessor">#include &quot;absl/time/time.h&quot;</span></div>
 <div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span><span class="preprocessor">#include &quot;protos/imgui_test_harness.grpc.pb.h&quot;</span></div>
 <div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span><span class="preprocessor">#include &quot;protos/imgui_test_harness.pb.h&quot;</span></div>
-<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span><span class="preprocessor">#include &quot;<a class="code" href="../../d7/d65/screenshot__utils_8h.html">app/core/service/screenshot_utils.h</a>&quot;</span></div>
-<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span><span class="preprocessor">#include &quot;<a class="code" href="../../d2/dd4/test__script__parser_8h.html">app/core/testing/test_script_parser.h</a>&quot;</span></div>
+<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span><span class="preprocessor">#include &quot;<a class="code" href="../../d7/d65/screenshot__utils_8h.html">app/service/screenshot_utils.h</a>&quot;</span></div>
+<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span><span class="preprocessor">#include &quot;<a class="code" href="../../d2/dd4/test__script__parser_8h.html">app/test/test_script_parser.h</a>&quot;</span></div>
 <div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span><span class="preprocessor">#include &quot;<a class="code" href="../../d6/d5c/test__manager_8h.html">app/test/test_manager.h</a>&quot;</span></div>
 <div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span><span class="preprocessor">#include &quot;<a class="code" href="../../d9/d89/yaze_8h.html">yaze.h</a>&quot;</span>  <span class="comment">// For YAZE_VERSION_STRING</span></div>
 <div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span> </div>
@@ -1960,7 +1960,7 @@ $(document).ready(function(){initNavTree('dd/d7f/imgui__test__harness__service_8
 <div class="ttc" id="agroup__version_html_gabc3b93252a656c28dee5ac55e492cc96"><div class="ttname"><a href="../../d1/d4b/group__version.html#gabc3b93252a656c28dee5ac55e492cc96">YAZE_VERSION_STRING</a></div><div class="ttdeci">#define YAZE_VERSION_STRING</div><div class="ttdef"><b>Definition</b> <a href="../../d9/d89/yaze_8h_source.html#l00032">yaze.h:32</a></div></div>
 <div class="ttc" id="aimgui__test__harness__service_8h_html"><div class="ttname"><a href="../../d9/d30/imgui__test__harness__service_8h.html">imgui_test_harness_service.h</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1test_html_a24fd08ea41d8314e6fccdb0fdcd9f072ab62fa3c9492b6dae76c23d6dfa466611"><div class="ttname"><a href="../../d4/d0a/namespaceyaze_1_1test.html#a24fd08ea41d8314e6fccdb0fdcd9f072ab62fa3c9492b6dae76c23d6dfa466611">yaze::test::TestStatus::kFailed</a></div><div class="ttdeci">@ kFailed</div></div>
-<div class="ttc" id="anamespaceyaze_html"><div class="ttname"><a href="../../dc/d46/namespaceyaze.html">yaze</a></div><div class="ttdoc">Main namespace for the application.</div><div class="ttdef"><b>Definition</b> <a href="../../db/d17/asar__wrapper_8cc_source.html#l00014">asar_wrapper.cc:14</a></div></div>
+<div class="ttc" id="anamespaceyaze_html"><div class="ttname"><a href="../../dc/d46/namespaceyaze.html">yaze</a></div><div class="ttdoc">Main namespace for the application.</div><div class="ttdef"><b>Definition</b> <a href="../../da/d0c/controller_8cc_source.html#l00020">controller.cc:20</a></div></div>
 <div class="ttc" id="ascreenshot__utils_8h_html"><div class="ttname"><a href="../../d7/d65/screenshot__utils_8h.html">screenshot_utils.h</a></div></div>
 <div class="ttc" id="atest__manager_8h_html"><div class="ttname"><a href="../../d6/d5c/test__manager_8h.html">test_manager.h</a></div></div>
 <div class="ttc" id="atest__script__parser_8h_html"><div class="ttname"><a href="../../d2/dd4/test__script__parser_8h.html">test_script_parser.h</a></div></div>
@@ -1970,7 +1970,7 @@ $(document).ready(function(){initNavTree('dd/d7f/imgui__test__harness__service_8
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="navelem"><a class="el" href="../../dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="../../dir_5194e5fea318fda12687127c23f8aba1.html">app</a></li><li class="navelem"><a class="el" href="../../dir_fcc5e025f1b672ef47e35e5c700d9477.html">core</a></li><li class="navelem"><a class="el" href="../../dir_dc23f1be152b00b759caddf320e40b03.html">service</a></li><li class="navelem"><a class="el" href="../../dd/d7f/imgui__test__harness__service_8cc.html">imgui_test_harness_service.cc</a></li>
+    <li class="navelem"><a class="el" href="../../dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="../../dir_5194e5fea318fda12687127c23f8aba1.html">app</a></li><li class="navelem"><a class="el" href="../../dir_8a87064c29529f2a7ccb1dbdf4de5ee3.html">service</a></li><li class="navelem"><a class="el" href="../../dd/d7f/imgui__test__harness__service_8cc.html">imgui_test_harness_service.cc</a></li>
     <li class="footer">Generated by <a href="https://www.doxygen.org/index.html"><img class="footer" src="../../doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
   </ul>
 </div>

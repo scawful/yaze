@@ -1,6 +1,6 @@
 <map id="yaze::editor::PaletteEditor::ResetColorToOriginal" name="yaze::editor::PaletteEditor::ResetColorToOriginal">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,39,171,79"/>
-<area shape="rect" id="Node000002" href="$d3/dbf/namespaceyaze_1_1gui.html#ad6ba4f05b40456918b1e49bfbb876c14" title=" " alt="" coords="219,5,385,46"/>
+<area shape="rect" id="Node000002" href="$d3/dbf/namespaceyaze_1_1gui.html#ad6ba4f05b40456918b1e49bfbb876c14" title="Convert standard ImVec4 to SnesColor." alt="" coords="219,5,385,46"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="171,43,203,38,203,44,171,49"/>
 <area shape="rect" id="Node000003" href="$da/d68/classyaze_1_1gfx_1_1SnesPalette.html#a683161f8ef9326f82fa64f35d4fb3eda" title=" " alt="" coords="228,71,376,111"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="171,69,213,75,212,80,171,74"/>

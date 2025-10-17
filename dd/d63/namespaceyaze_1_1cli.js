@@ -3,6 +3,8 @@ var namespaceyaze_1_1cli =
     [ "agent", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html", "d8/dd3/namespaceyaze_1_1cli_1_1agent" ],
     [ "ai", "d8/d4c/namespaceyaze_1_1cli_1_1ai.html", "d8/d4c/namespaceyaze_1_1cli_1_1ai" ],
     [ "anonymous_namespace{agent.cc}", "dd/d48/namespaceyaze_1_1cli_1_1anonymous__namespace_02agent_8cc_03.html", [
+      [ "AgentRom", "dd/d48/namespaceyaze_1_1cli_1_1anonymous__namespace_02agent_8cc_03.html#ad430142eeb5205e7e8f5049095ae0733", null ],
+      [ "GenerateAgentHelp", "dd/d48/namespaceyaze_1_1cli_1_1anonymous__namespace_02agent_8cc_03.html#abe611970c7eef9283d198b5b47975c30", null ],
       [ "kUsage", "dd/d48/namespaceyaze_1_1cli_1_1anonymous__namespace_02agent_8cc_03.html#a722581f2f2a82bfb6b1d699607391958", null ]
     ] ],
     [ "anonymous_namespace{ai_service.cc}", "d7/d82/namespaceyaze_1_1cli_1_1anonymous__namespace_02ai__service_8cc_03.html", [
@@ -121,6 +123,7 @@ var namespaceyaze_1_1cli =
     [ "AutocompleteEngine", "da/d90/classyaze_1_1cli_1_1AutocompleteEngine.html", "da/d90/classyaze_1_1cli_1_1AutocompleteEngine" ],
     [ "AutomationResult", "d4/daf/structyaze_1_1cli_1_1AutomationResult.html", "d4/daf/structyaze_1_1cli_1_1AutomationResult" ],
     [ "CommandPaletteComponent", "dc/d14/classyaze_1_1cli_1_1CommandPaletteComponent.html", "dc/d14/classyaze_1_1cli_1_1CommandPaletteComponent" ],
+    [ "CommandRegistry", "d7/de8/classyaze_1_1cli_1_1CommandRegistry.html", "d7/de8/classyaze_1_1cli_1_1CommandRegistry" ],
     [ "Context", "d0/d13/structyaze_1_1cli_1_1Context.html", "d0/d13/structyaze_1_1cli_1_1Context" ],
     [ "DiscoveredWindowInfo", "d9/d5d/structyaze_1_1cli_1_1DiscoveredWindowInfo.html", "d9/d5d/structyaze_1_1cli_1_1DiscoveredWindowInfo" ],
     [ "DiscoverWidgetsQuery", "d1/d3b/structyaze_1_1cli_1_1DiscoverWidgetsQuery.html", "d1/d3b/structyaze_1_1cli_1_1DiscoverWidgetsQuery" ],

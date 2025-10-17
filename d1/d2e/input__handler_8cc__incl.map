@@ -1,11 +1,11 @@
 <map id="src/app/emu/ui/input_handler.cc" name="src/app/emu/ui/input_handler.cc">
-<area shape="rect" id="Node000001" title=" " alt="" coords="219,5,358,46"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="225,5,365,46"/>
 <area shape="rect" id="Node000002" href="$dc/dd5/input__handler_8h.html" title=" " alt="" coords="5,94,182,120"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="241,49,138,90,136,85,239,44"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="246,49,139,90,137,85,244,44"/>
 <area shape="rect" id="Node000008" title=" " alt="" coords="206,94,264,120"/>
-<area shape="poly" id="edge2_Node000001_Node000008" title=" " alt="" coords="277,48,254,83,249,80,273,45"/>
-<area shape="rect" id="Node000009" href="$de/dbf/icons_8h.html" title=" " alt="" coords="287,94,396,120"/>
-<area shape="poly" id="edge3_Node000001_Node000009" title=" " alt="" coords="304,45,327,80,323,83,299,48"/>
-<area shape="rect" id="Node000010" title=" " alt="" coords="420,94,517,120"/>
-<area shape="poly" id="edge4_Node000001_Node000010" title=" " alt="" coords="334,44,428,85,426,90,332,49"/>
+<area shape="poly" id="edge2_Node000001_Node000008" title=" " alt="" coords="282,48,255,83,251,80,278,45"/>
+<area shape="rect" id="Node000009" href="$de/dbf/icons_8h.html" title=" " alt="" coords="288,94,425,120"/>
+<area shape="poly" id="edge3_Node000001_Node000009" title=" " alt="" coords="312,45,339,80,335,83,308,48"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="449,94,546,120"/>
+<area shape="poly" id="edge4_Node000001_Node000010" title=" " alt="" coords="346,44,453,85,451,90,344,49"/>
 </map>

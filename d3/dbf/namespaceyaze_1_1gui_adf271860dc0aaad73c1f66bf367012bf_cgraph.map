@@ -1,0 +1,11 @@
+<map id="yaze::gui::HandleTilemapPaint" name="yaze::gui::HandleTilemapPaint">
+<area shape="rect" id="Node000001" title="Handle tilemap painting interaction." alt="" coords="5,89,169,129"/>
+<area shape="rect" id="Node000002" href="$d3/dbf/namespaceyaze_1_1gui.html#a7978950748d21f9f26d67b5822f20107" title="Align position to grid." alt="" coords="240,5,385,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="123,86,167,63,216,41,238,33,240,38,218,46,169,67,126,90"/>
+<area shape="rect" id="Node000003" href="$d3/dbf/namespaceyaze_1_1gui.html#a6349a09af8c05a1771715251f8727318" title="Get mouse position in canvas space." alt="" coords="217,55,408,96"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="168,94,201,89,202,95,169,99"/>
+<area shape="rect" id="Node000004" href="$df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a5df0c9b0c6a7368e87893881c176c919" title=" " alt="" coords="251,121,374,161"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="169,118,235,127,235,133,168,123"/>
+<area shape="rect" id="Node000005" href="$d3/dbf/namespaceyaze_1_1gui.html#afef7e9d33fbb81fd43e8ca96b05b1999" title="Check if mouse is in canvas bounds." alt="" coords="222,185,403,211"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="126,127,169,149,218,170,240,178,238,183,216,175,167,154,124,132"/>
+</map>

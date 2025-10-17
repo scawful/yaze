@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['hover_5fhint_0',['HOVER_HINT',['../d4/d9e/macro_8h.html#ae341b584a47fc74d82c009e929269df9',1,'macro.h']]]
+  ['get_5fsessions_0',['GET_SESSIONS',['../d1/dcf/session__coordinator_8cc.html#a4a318bbe3d73370e0516b863c8eefe81',1,'session_coordinator.cc']]]
 ];

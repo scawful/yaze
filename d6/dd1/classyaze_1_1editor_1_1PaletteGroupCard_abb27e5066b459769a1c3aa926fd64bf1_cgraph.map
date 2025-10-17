@@ -1,0 +1,9 @@
+<map id="yaze::editor::PaletteGroupCard::WriteColorToRom" name="yaze::editor::PaletteGroupCard::WriteColorToRom">
+<area shape="rect" id="Node000001" title="Write a single color to ROM." alt="" coords="5,23,173,64"/>
+<area shape="rect" id="Node000002" href="$d0/d27/namespaceyaze_1_1gfx.html#ab33662ca6a270d3c533b2f9d22137f3f" title=" " alt="" coords="221,5,407,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="173,31,205,28,205,33,173,37"/>
+<area shape="rect" id="Node000003" href="$d6/d30/classyaze_1_1Rom.html#a3411bbc77e219c54497575d362859c8f" title=" " alt="" coords="241,55,387,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="173,50,226,55,225,61,173,55"/>
+<area shape="rect" id="Node000004" href="$d5/d31/classyaze_1_1gfx_1_1SnesColor.html#ade9df7154cb3707cffe5e644c995f090" title="Get SNES 15&#45;bit color." alt="" coords="455,47,591,88"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="387,65,440,65,440,70,387,70"/>
+</map>

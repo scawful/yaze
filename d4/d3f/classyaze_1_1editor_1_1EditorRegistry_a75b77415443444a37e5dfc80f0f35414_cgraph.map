@@ -1,0 +1,9 @@
+<map id="yaze::editor::EditorRegistry::UnregisterEditor" name="yaze::editor::EditorRegistry::UnregisterEditor">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,177,79"/>
+<area shape="rect" id="Node000002" href="$d4/d3f/classyaze_1_1editor_1_1EditorRegistry.html#a71279ed41b2ad2684232938031fce543" title=" " alt="" coords="225,5,396,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="176,43,209,38,209,44,177,49"/>
+<area shape="rect" id="Node000003" href="$d4/d3f/classyaze_1_1editor_1_1EditorRegistry.html#a27f179e845442dd97ff97dc7caff087a" title=" " alt="" coords="225,71,396,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="177,69,209,74,209,79,176,74"/>
+<area shape="rect" id="Node000004" href="$d4/d3f/classyaze_1_1editor_1_1EditorRegistry.html#a80986540eff9c59cfec2a71efb84f6bb" title=" " alt="" coords="444,71,615,111"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="396,88,428,88,428,94,396,94"/>
+</map>

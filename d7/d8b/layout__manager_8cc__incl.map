@@ -1,0 +1,12 @@
+<map id="src/app/editor/ui/layout_manager.cc" name="src/app/editor/ui/layout_manager.cc">
+<area shape="rect" id="Node000001" title=" " alt="" coords="152,5,304,46"/>
+<area shape="rect" id="Node000002" href="$d2/d97/layout__manager_8h.html" title=" " alt="" coords="5,94,136,135"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="193,49,121,89,118,84,191,44"/>
+<area shape="rect" id="Node000015" title=" " alt="" coords="73,183,170,208"/>
+<area shape="poly" id="edge3_Node000001_Node000015" title=" " alt="" coords="218,48,139,171,135,168,213,45"/>
+<area shape="rect" id="Node000016" title=" " alt="" coords="211,102,357,127"/>
+<area shape="poly" id="edge4_Node000001_Node000016" title=" " alt="" coords="243,45,270,87,266,90,238,48"/>
+<area shape="rect" id="Node000017" href="$d7/d7f/log_8h.html" title=" " alt="" coords="381,102,451,127"/>
+<area shape="poly" id="edge5_Node000001_Node000017" title=" " alt="" coords="272,44,377,92,375,97,269,49"/>
+<area shape="poly" id="edge2_Node000002_Node000015" title=" " alt="" coords="85,134,107,168,103,171,81,137"/>
+</map>

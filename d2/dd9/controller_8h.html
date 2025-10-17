@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.9.8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>yaze: src/app/core/controller.h File Reference</title>
+<title>yaze: src/app/controller.h File Reference</title>
 <link href="../../tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript">var page_layout=1;</script>
 <script type="text/javascript" src="../../jquery.js"></script>
@@ -108,7 +108,8 @@ $(document).ready(function(){initNavTree('d2/dd9/controller_8h.html','../../'); 
 <div class="textblock"><code>#include &lt;SDL.h&gt;</code><br />
 <code>#include &lt;memory&gt;</code><br />
 <code>#include &quot;absl/status/status.h&quot;</code><br />
-<code>#include &quot;<a class="el" href="../../d3/df1/window_8h_source.html">app/core/window.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../d3/df1/window_8h_source.html">app/platform/window.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../da/de5/rom_8h_source.html">app/rom.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../df/d60/editor__manager_8h_source.html">app/editor/editor_manager.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../df/d18/irenderer_8h_source.html">app/gfx/backend/irenderer.h</a>&quot;</code><br />
 </div>
@@ -116,16 +117,14 @@ $(document).ready(function(){initNavTree('d2/dd9/controller_8h.html','../../'); 
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/d84/classyaze_1_1core_1_1Controller.html">yaze::core::Controller</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Main controller for the application.  <a href="../../d4/d84/classyaze_1_1core_1_1Controller.html#details">More...</a><br /></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d99/classyaze_1_1Controller.html">yaze::Controller</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Main controller for the application.  <a href="../../d8/d99/classyaze_1_1Controller.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="namespaces" name="namespaces"></a>
 Namespaces</h2></td></tr>
 <tr class="memitem:dc/d46/namespaceyaze" id="r_dc/d46/namespaceyaze"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d46/namespaceyaze.html">yaze</a></td></tr>
 <tr class="memdesc:dc/d46/namespaceyaze"><td class="mdescLeft">&#160;</td><td class="mdescRight">Main namespace for the application. <br /></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:db/d33/namespaceyaze_1_1core" id="r_db/d33/namespaceyaze_1_1core"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/d33/namespaceyaze_1_1core.html">yaze::core</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
@@ -162,7 +161,7 @@ Functions</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="../../d8/d5b/emu_8cc_source.html#l00032">32</a> of file <a class="el" href="../../d8/d5b/emu_8cc_source.html">emu.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00073">yaze::emu::Snes::apu()</a>, <a class="el" href="../../d4/dc1/log_8cc_source.html#l00043">yaze::util::LogManager::configure()</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00071">yaze::emu::Snes::cpu()</a>, <a class="el" href="../../d4/d9e/macro_8h_source.html#l00035">EXIT_IF_ERROR</a>, <a class="el" href="../../de/d47/features_8h_source.html#l00079">yaze::core::FeatureFlags::get()</a>, <a class="el" href="../../d1/d2e/test__manager_8cc_source.html#l00152">yaze::test::TestManager::Get()</a>, <a class="el" href="../../d2/da4/flag_8h_source.html#l00115">yaze::util::global_flag_registry()</a>, <a class="el" href="../../d4/de1/namespaceyaze_1_1util.html#ac889c033203bc2d55163d23e252285b3a551b723eafd6a31d444fcb2f5920fbd3">yaze::util::INFO</a>, <a class="el" href="../../d0/daa/emu__test_8cc_source.html#l00037">yaze::emu::test::HeadlessEmulator::Init()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00036">yaze::emu::Snes::Init()</a>, <a class="el" href="../../d4/dc1/log_8cc_source.html#l00029">yaze::util::LogManager::instance()</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00197">yaze::Rom::is_loaded()</a>, <a class="el" href="../../de/d47/features_8h_source.html#l00038">yaze::core::FeatureFlags::Flags::kLogToConsole</a>, <a class="el" href="../../d5/d00/rom_8cc_source.html#l00289">yaze::Rom::LoadFromFile()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00720">yaze::emu::Snes::loadState()</a>, <a class="el" href="../../d7/d7f/log_8h_source.html#l00106">LOG_INFO</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00074">yaze::emu::Snes::memory()</a>, <a class="el" href="../../d2/da4/flag_8h_source.html#l00135">yaze::util::FlagParser::Parse()</a>, <a class="el" href="../../d4/d9e/macro_8h_source.html#l00103">RETURN_IF_EXCEPTION</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00098">yaze::emu::Snes::RunFrame()</a>, <a class="el" href="../../d0/daa/emu__test_8cc_source.html#l00077">yaze::emu::test::HeadlessEmulator::RunFrames()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00768">yaze::emu::Snes::saveState()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00696">yaze::emu::Snes::SetPixels()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00692">yaze::emu::Snes::SetSamples()</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00202">yaze::Rom::size()</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00207">yaze::Rom::vector()</a>, and <a class="el" href="../../d4/de1/namespaceyaze_1_1util.html#ac889c033203bc2d55163d23e252285b3a66927c1a962aefd4e6239111b8a9cf41">yaze::util::YAZE_DEBUG</a>.</p>
+<p class="reference">References <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00073">yaze::emu::Snes::apu()</a>, <a class="el" href="../../d4/dc1/log_8cc_source.html#l00043">yaze::util::LogManager::configure()</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00071">yaze::emu::Snes::cpu()</a>, <a class="el" href="../../d4/d9e/macro_8h_source.html#l00035">EXIT_IF_ERROR</a>, <a class="el" href="../../d1/d2e/test__manager_8cc_source.html#l00152">yaze::test::TestManager::Get()</a>, <a class="el" href="../../de/d47/features_8h_source.html#l00082">yaze::core::FeatureFlags::get()</a>, <a class="el" href="../../d2/da4/flag_8h_source.html#l00115">yaze::util::global_flag_registry()</a>, <a class="el" href="../../d4/de1/namespaceyaze_1_1util.html#ac889c033203bc2d55163d23e252285b3a551b723eafd6a31d444fcb2f5920fbd3">yaze::util::INFO</a>, <a class="el" href="../../d0/daa/emu__test_8cc_source.html#l00037">yaze::emu::test::HeadlessEmulator::Init()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00039">yaze::emu::Snes::Init()</a>, <a class="el" href="../../d4/dc1/log_8cc_source.html#l00029">yaze::util::LogManager::instance()</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00200">yaze::Rom::is_loaded()</a>, <a class="el" href="../../de/d47/features_8h_source.html#l00038">yaze::core::FeatureFlags::Flags::kLogToConsole</a>, <a class="el" href="../../d5/d00/rom_8cc_source.html#l00292">yaze::Rom::LoadFromFile()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00769">yaze::emu::Snes::loadState()</a>, <a class="el" href="../../d7/d7f/log_8h_source.html#l00106">LOG_INFO</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00074">yaze::emu::Snes::memory()</a>, <a class="el" href="../../d2/da4/flag_8h_source.html#l00135">yaze::util::FlagParser::Parse()</a>, <a class="el" href="../../d4/d9e/macro_8h_source.html#l00103">RETURN_IF_EXCEPTION</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00104">yaze::emu::Snes::RunFrame()</a>, <a class="el" href="../../d0/daa/emu__test_8cc_source.html#l00077">yaze::emu::test::HeadlessEmulator::RunFrames()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00817">yaze::emu::Snes::saveState()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00742">yaze::emu::Snes::SetPixels()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00738">yaze::emu::Snes::SetSamples()</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00205">yaze::Rom::size()</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00210">yaze::Rom::vector()</a>, and <a class="el" href="../../d4/de1/namespaceyaze_1_1util.html#ac889c033203bc2d55163d23e252285b3a66927c1a962aefd4e6239111b8a9cf41">yaze::util::YAZE_DEBUG</a>.</p>
 
 </div>
 </div>
@@ -171,7 +170,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="navelem"><a class="el" href="../../dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="../../dir_5194e5fea318fda12687127c23f8aba1.html">app</a></li><li class="navelem"><a class="el" href="../../dir_fcc5e025f1b672ef47e35e5c700d9477.html">core</a></li><li class="navelem"><a class="el" href="../../d2/dd9/controller_8h.html">controller.h</a></li>
+    <li class="navelem"><a class="el" href="../../dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="../../dir_5194e5fea318fda12687127c23f8aba1.html">app</a></li><li class="navelem"><a class="el" href="../../d2/dd9/controller_8h.html">controller.h</a></li>
     <li class="footer">Generated by <a href="https://www.doxygen.org/index.html"><img class="footer" src="../../doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
   </ul>
 </div>

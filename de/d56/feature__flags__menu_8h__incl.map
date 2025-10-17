@@ -1,9 +1,9 @@
-<map id="src/app/gui/feature_flags_menu.h" name="src/app/gui/feature_flags_menu.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="76,5,206,46"/>
-<area shape="rect" id="Node000002" href="$de/d47/features_8h.html" title=" " alt="" coords="5,94,138,120"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="126,48,94,84,90,80,122,45"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="162,94,259,120"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="160,45,192,80,188,84,156,48"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="45,168,98,193"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="74,120,74,152,69,152,69,120"/>
+<map id="src/app/gui/app/feature_flags_menu.h" name="src/app/gui/app/feature_flags_menu.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="45,5,199,46"/>
+<area shape="rect" id="Node000002" href="$de/d47/features_8h.html" title=" " alt="" coords="5,94,113,120"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="108,48,80,83,76,80,104,45"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="137,94,234,120"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="140,45,168,80,164,83,135,48"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="32,168,86,193"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="62,120,62,152,56,152,56,120"/>
 </map>

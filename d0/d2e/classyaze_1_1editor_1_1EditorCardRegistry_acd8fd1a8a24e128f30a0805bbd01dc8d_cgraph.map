@@ -1,0 +1,9 @@
+<map id="yaze::editor::EditorCardRegistry::DrawCardBrowser" name="yaze::editor::EditorCardRegistry::DrawCardBrowser">
+<area shape="rect" id="Node000001" title="Draw visual card browser/toggler." alt="" coords="5,71,185,111"/>
+<area shape="rect" id="Node000002" href="$d0/d2e/classyaze_1_1editor_1_1EditorCardRegistry.html#ad701c07695ccbc8ec230aa3a3ca3a29b" title="Get all registered categories across all sessions." alt="" coords="242,5,415,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="169,68,238,48,239,53,171,73"/>
+<area shape="rect" id="Node000003" href="$d0/d2e/classyaze_1_1editor_1_1EditorCardRegistry.html#a8c4d093f789ebca668ed4da29fef5e63" title="Get cards in a specific category for a session." alt="" coords="233,71,424,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="185,88,217,88,217,94,185,94"/>
+<area shape="rect" id="Node000004" href="$d0/d2e/classyaze_1_1editor_1_1EditorCardRegistry.html#a1fbe255f3c4188a204b274d0512e2311" title="Get all cards registered for a session." alt="" coords="235,136,422,177"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="171,109,239,129,238,134,169,114"/>
+</map>

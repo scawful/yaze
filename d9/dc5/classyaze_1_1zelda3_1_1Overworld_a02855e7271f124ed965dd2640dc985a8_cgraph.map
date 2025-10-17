@@ -1,7 +1,0 @@
-<map id="yaze::zelda3::Overworld::LoadExits" name="yaze::zelda3::Overworld::LoadExits">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,35,161,75"/>
-<area shape="rect" id="Node000002" href="$d9/dc5/classyaze_1_1zelda3_1_1Overworld.html#a330da22ceacac461718bb46435bf02d8" title=" " alt="" coords="223,5,378,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="161,42,207,36,208,41,162,47"/>
-<area shape="rect" id="Node000003" href="$d9/dc5/classyaze_1_1zelda3_1_1Overworld.html#a024996a77d32a4e9fa6ecaa918d642b4" title=" " alt="" coords="209,70,392,96"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="162,62,194,67,193,72,161,68"/>
-</map>

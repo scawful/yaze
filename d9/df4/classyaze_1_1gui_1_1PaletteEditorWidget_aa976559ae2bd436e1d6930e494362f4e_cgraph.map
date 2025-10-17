@@ -1,0 +1,7 @@
+<map id="yaze::gui::PaletteEditorWidget::Initialize" name="yaze::gui::PaletteEditorWidget::Initialize">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,156,46"/>
+<area shape="rect" id="Node000002" href="$d9/df4/classyaze_1_1gui_1_1PaletteEditorWidget.html#a820d2d7825b0e8d9e3059b7aa566d0b2" title=" " alt="" coords="204,5,378,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="156,23,188,23,188,28,156,28"/>
+<area shape="rect" id="Node000003" href="$d6/d30/classyaze_1_1Rom.html#a30ec716ea7eafc1fff75856ab67e27f7" title=" " alt="" coords="426,5,551,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="378,23,410,23,410,28,378,28"/>
+</map>

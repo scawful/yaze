@@ -1,0 +1,13 @@
+<map id="src/app/editor/session_types.h" name="src/app/editor/session_types.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="54,5,203,46"/>
+<area shape="rect" id="Node000002" href="$d0/dd9/editor__manager_8cc.html" title=" " alt="" coords="5,271,142,312"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="107,60,75,116,60,149,49,183,47,203,49,223,66,270,61,272,44,224,41,203,44,182,55,147,70,114,103,58"/>
+<area shape="rect" id="Node000003" href="$df/d60/editor__manager_8h.html" title=" " alt="" coords="59,183,195,223"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="112,60,100,95,97,114,100,134,108,159,118,181,113,184,103,161,95,135,92,114,95,93,107,59"/>
+<area shape="rect" id="Node000022" href="$d5/d1d/session__types_8cc.html" title=" " alt="" coords="110,94,259,135"/>
+<area shape="poly" id="edge4_Node000001_Node000022" title=" " alt="" coords="151,58,174,92,169,95,147,61"/>
+<area shape="rect" id="Node000023" href="$d6/d0e/session__coordinator_8h.html" title=" " alt="" coords="283,94,435,135"/>
+<area shape="poly" id="edge5_Node000001_Node000023" title=" " alt="" coords="196,49,307,91,305,96,194,54"/>
+<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="109,238,88,272,83,269,105,235"/>
+<area shape="poly" id="edge6_Node000023_Node000003" title=" " alt="" coords="293,143,181,185,179,180,291,138"/>
+</map>

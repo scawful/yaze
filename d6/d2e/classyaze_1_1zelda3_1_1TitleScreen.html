@@ -107,425 +107,149 @@ $(document).ready(function(){initNavTree('d6/d2e/classyaze_1_1zelda3_1_1TitleScr
 </div><!--header-->
 <div class="contents">
 
+<p><a class="el" href="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html" title="TitleScreen manages the title screen graphics and tilemap data.">TitleScreen</a> manages the title screen graphics and tilemap data.  
+ <a href="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="../../d4/dea/title__screen_8h_source.html">title_screen.h</a>&gt;</code></p>
 <div class="dynheader">
 Collaboration diagram for yaze::zelda3::TitleScreen:</div>
 <div class="dyncontent">
 <div class="center"><img src="../../de/d05/classyaze_1_1zelda3_1_1TitleScreen__coll__graph.png" border="0" usemap="#ayaze_1_1zelda3_1_1TitleScreen_coll__map" alt="Collaboration graph"/></div>
 <map name="ayaze_1_1zelda3_1_1TitleScreen_coll__map" id="ayaze_1_1zelda3_1_1TitleScreen_coll__map">
-<area shape="rect" title=" " alt="" coords="137,243,299,268"/>
-<area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="51,109,131,135"/>
-<area shape="poly" title=" " alt="" coords="114,144,182,217,207,240,203,244,178,221,110,148"/>
-<area shape="rect" href="../../d8/d4d/structyaze_1_1core_1_1ResourceLabelManager.html" title=" " alt="" coords="5,5,177,46"/>
-<area shape="poly" title=" " alt="" coords="94,61,94,109,88,109,88,61"/>
-<area shape="rect" href="../../df/da2/classyaze_1_1gfx_1_1OamTile.html" title="Object Attribute Memory tile abstraction container." alt="" coords="155,109,280,135"/>
-<area shape="poly" title=" " alt="" coords="220,150,220,242,215,242,215,150"/>
-<area shape="rect" href="../../df/d0e/classyaze_1_1gfx_1_1Bitmap.html" title="Represents a bitmap image optimized for SNES ROM hacking." alt="" coords="326,109,443,135"/>
-<area shape="poly" title=" " alt="" coords="386,151,378,187,369,205,357,221,330,239,300,250,298,245,328,234,353,217,365,202,373,185,380,150"/>
+<area shape="rect" title="TitleScreen manages the title screen graphics and tilemap data." alt="" coords="122,366,284,391"/>
+<area shape="rect" href="../../df/da2/classyaze_1_1gfx_1_1OamTile.html" title="Object Attribute Memory tile abstraction container." alt="" coords="5,230,131,256"/>
+<area shape="poly" title=" " alt="" coords="67,271,69,307,75,324,84,340,101,354,122,364,120,369,98,359,80,343,70,327,64,308,62,271"/>
+<area shape="rect" href="../../df/d0e/classyaze_1_1gfx_1_1Bitmap.html" title="Represents a bitmap image optimized for SNES ROM hacking." alt="" coords="205,94,323,120"/>
+<area shape="poly" title=" " alt="" coords="260,136,208,366,203,365,255,134"/>
+<area shape="rect" href="../../db/d0a/structyaze_1_1gfx_1_1Tilemap.html" title="Tilemap structure for SNES tile&#45;based graphics management." alt="" coords="363,230,485,256"/>
+<area shape="poly" title=" " alt="" coords="292,128,411,227,408,231,288,132"/>
+<area shape="rect" href="../../da/d68/classyaze_1_1gfx_1_1SnesPalette.html" title="Represents a palette of colors for the Super Nintendo Entertainment System (SNES)." alt="" coords="116,5,263,31"/>
+<area shape="poly" title=" " alt="" coords="193,47,205,365,200,365,188,47"/>
+<area shape="poly" title=" " alt="" coords="212,41,256,92,252,95,208,45"/>
+<area shape="poly" title=" " alt="" coords="399,268,347,305,284,340,230,368,227,363,282,336,344,300,396,263"/>
 </map>
 <center><span class="legend">[<a target="top" href="../../graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:ac0944b93d7d33a52c5028526fa2129fe" id="r_ac0944b93d7d33a52c5028526fa2129fe"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#ac0944b93d7d33a52c5028526fa2129fe">Create</a> ()</td></tr>
-<tr class="separator:ac0944b93d7d33a52c5028526fa2129fe"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae9d02db89273ad57129102cd4de3ea9c" id="r_ae9d02db89273ad57129102cd4de3ea9c"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#ae9d02db89273ad57129102cd4de3ea9c">Create</a> (<a class="el" href="../../d6/d30/classyaze_1_1Rom.html">Rom</a> *rom)</td></tr>
+<tr class="memdesc:ae9d02db89273ad57129102cd4de3ea9c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initialize and load title screen data from ROM.  <br /></td></tr>
+<tr class="separator:ae9d02db89273ad57129102cd4de3ea9c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5cf9b20995abc873ef7c3ffc5daab389" id="r_a5cf9b20995abc873ef7c3ffc5daab389"><td class="memItemLeft" align="right" valign="top">auto &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#a5cf9b20995abc873ef7c3ffc5daab389">bg1_buffer</a> ()</td></tr>
+<tr class="separator:a5cf9b20995abc873ef7c3ffc5daab389"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab9a1f54ff47e27f0dd666260e0e764c8" id="r_ab9a1f54ff47e27f0dd666260e0e764c8"><td class="memItemLeft" align="right" valign="top">auto &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#ab9a1f54ff47e27f0dd666260e0e764c8">bg2_buffer</a> ()</td></tr>
+<tr class="separator:ab9a1f54ff47e27f0dd666260e0e764c8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8019ccbb070618b14c117df3f28a9990" id="r_a8019ccbb070618b14c117df3f28a9990"><td class="memItemLeft" align="right" valign="top">auto &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#a8019ccbb070618b14c117df3f28a9990">oam_buffer</a> ()</td></tr>
+<tr class="separator:a8019ccbb070618b14c117df3f28a9990"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8b98bbe55aa3e9623e2d7bfa40d3f7ef" id="r_a8b98bbe55aa3e9623e2d7bfa40d3f7ef"><td class="memItemLeft" align="right" valign="top">auto &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#a8b98bbe55aa3e9623e2d7bfa40d3f7ef">mutable_bg1_buffer</a> ()</td></tr>
+<tr class="separator:a8b98bbe55aa3e9623e2d7bfa40d3f7ef"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa2010951fa254b0a420d7461159836c2" id="r_aa2010951fa254b0a420d7461159836c2"><td class="memItemLeft" align="right" valign="top">auto &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#aa2010951fa254b0a420d7461159836c2">mutable_bg2_buffer</a> ()</td></tr>
+<tr class="separator:aa2010951fa254b0a420d7461159836c2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adf41ea0ae05ef54e760bb27ff6897580" id="r_adf41ea0ae05ef54e760bb27ff6897580"><td class="memItemLeft" align="right" valign="top">auto &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#adf41ea0ae05ef54e760bb27ff6897580">bg1_bitmap</a> ()</td></tr>
+<tr class="separator:adf41ea0ae05ef54e760bb27ff6897580"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a49984d04bf64c94dd804381a9319058b" id="r_a49984d04bf64c94dd804381a9319058b"><td class="memItemLeft" align="right" valign="top">auto &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#a49984d04bf64c94dd804381a9319058b">bg2_bitmap</a> ()</td></tr>
+<tr class="separator:a49984d04bf64c94dd804381a9319058b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7cc9c8970cf2cfdf5693ceac38b910da" id="r_a7cc9c8970cf2cfdf5693ceac38b910da"><td class="memItemLeft" align="right" valign="top">auto &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#a7cc9c8970cf2cfdf5693ceac38b910da">oam_bitmap</a> ()</td></tr>
+<tr class="separator:a7cc9c8970cf2cfdf5693ceac38b910da"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac7495b544ce1fac535cca33bfb06ae6a" id="r_ac7495b544ce1fac535cca33bfb06ae6a"><td class="memItemLeft" align="right" valign="top">auto &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#ac7495b544ce1fac535cca33bfb06ae6a">tiles8_bitmap</a> ()</td></tr>
+<tr class="separator:ac7495b544ce1fac535cca33bfb06ae6a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a628de8bae3fce1a8d6a0b2c52e68b6ed" id="r_a628de8bae3fce1a8d6a0b2c52e68b6ed"><td class="memItemLeft" align="right" valign="top">auto &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#a628de8bae3fce1a8d6a0b2c52e68b6ed">composite_bitmap</a> ()</td></tr>
+<tr class="separator:a628de8bae3fce1a8d6a0b2c52e68b6ed"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8b8d48d2ced53755a6fcfe3a3d898f44" id="r_a8b8d48d2ced53755a6fcfe3a3d898f44"><td class="memItemLeft" align="right" valign="top">auto &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#a8b8d48d2ced53755a6fcfe3a3d898f44">blockset</a> ()</td></tr>
+<tr class="separator:a8b8d48d2ced53755a6fcfe3a3d898f44"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abd08120a9490dc9a8b3b5c4ddf84f515" id="r_abd08120a9490dc9a8b3b5c4ddf84f515"><td class="memItemLeft" align="right" valign="top">auto &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#abd08120a9490dc9a8b3b5c4ddf84f515">palette</a> ()</td></tr>
+<tr class="separator:abd08120a9490dc9a8b3b5c4ddf84f515"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac732feac960d9c1811385292e6faf1d3" id="r_ac732feac960d9c1811385292e6faf1d3"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#ac732feac960d9c1811385292e6faf1d3">Save</a> (<a class="el" href="../../d6/d30/classyaze_1_1Rom.html">Rom</a> *rom)</td></tr>
+<tr class="separator:ac732feac960d9c1811385292e6faf1d3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af25dbc914c9299a9a30c27f33cd29467" id="r_af25dbc914c9299a9a30c27f33cd29467"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#af25dbc914c9299a9a30c27f33cd29467">RenderBG1Layer</a> ()</td></tr>
+<tr class="memdesc:af25dbc914c9299a9a30c27f33cd29467"><td class="mdescLeft">&#160;</td><td class="mdescRight">Render BG1 tilemap into bitmap pixels Converts tile IDs from tiles_bg1_buffer_ into pixel data.  <br /></td></tr>
+<tr class="separator:af25dbc914c9299a9a30c27f33cd29467"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acad53a190962b84970f9492eb0b83df5" id="r_acad53a190962b84970f9492eb0b83df5"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#acad53a190962b84970f9492eb0b83df5">RenderBG2Layer</a> ()</td></tr>
+<tr class="memdesc:acad53a190962b84970f9492eb0b83df5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Render BG2 tilemap into bitmap pixels Converts tile IDs from tiles_bg2_buffer_ into pixel data.  <br /></td></tr>
+<tr class="separator:acad53a190962b84970f9492eb0b83df5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab574665b29e807989bd6a26e03091086" id="r_ab574665b29e807989bd6a26e03091086"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#ab574665b29e807989bd6a26e03091086">RenderCompositeLayer</a> (bool show_bg1, bool show_bg2)</td></tr>
+<tr class="memdesc:ab574665b29e807989bd6a26e03091086"><td class="mdescLeft">&#160;</td><td class="mdescRight">Render composite layer with BG1 on top of BG2 with transparency.  <br /></td></tr>
+<tr class="separator:ab574665b29e807989bd6a26e03091086"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-methods" name="pri-methods"></a>
 Private Member Functions</h2></td></tr>
-<tr class="memitem:aa861c4906dc82355d614ecc5b994c0c1" id="r_aa861c4906dc82355d614ecc5b994c0c1"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#aa861c4906dc82355d614ecc5b994c0c1">BuildTileset</a> ()</td></tr>
-<tr class="separator:aa861c4906dc82355d614ecc5b994c0c1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa82f8973b08e88801d04e2c1844b6d96" id="r_aa82f8973b08e88801d04e2c1844b6d96"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#aa82f8973b08e88801d04e2c1844b6d96">LoadTitleScreen</a> ()</td></tr>
-<tr class="separator:aa82f8973b08e88801d04e2c1844b6d96"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac2d86288cbcb8ea4bed28df48c2a3de4" id="r_ac2d86288cbcb8ea4bed28df48c2a3de4"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#ac2d86288cbcb8ea4bed28df48c2a3de4">BuildTileset</a> (<a class="el" href="../../d6/d30/classyaze_1_1Rom.html">Rom</a> *rom)</td></tr>
+<tr class="memdesc:ac2d86288cbcb8ea4bed28df48c2a3de4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Build the tile16 blockset from ROM graphics.  <br /></td></tr>
+<tr class="separator:ac2d86288cbcb8ea4bed28df48c2a3de4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af7dda1a6be3456b8e272f258f747c576" id="r_af7dda1a6be3456b8e272f258f747c576"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#af7dda1a6be3456b8e272f258f747c576">LoadTitleScreen</a> (<a class="el" href="../../d6/d30/classyaze_1_1Rom.html">Rom</a> *rom)</td></tr>
+<tr class="memdesc:af7dda1a6be3456b8e272f258f747c576"><td class="mdescLeft">&#160;</td><td class="mdescRight">Load title screen tilemap data from ROM.  <br /></td></tr>
+<tr class="separator:af7dda1a6be3456b8e272f258f747c576"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-attribs" name="pri-attribs"></a>
 Private Attributes</h2></td></tr>
-<tr class="memitem:aa252c562dcdd0b465e0d0b249e06dbbc" id="r_aa252c562dcdd0b465e0d0b249e06dbbc"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#aa252c562dcdd0b465e0d0b249e06dbbc">sword_x_</a> = 0</td></tr>
-<tr class="separator:aa252c562dcdd0b465e0d0b249e06dbbc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5d311d8a6496aaab4d379fa4710a603a" id="r_a5d311d8a6496aaab4d379fa4710a603a"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#a5d311d8a6496aaab4d379fa4710a603a">mx_click_</a> = 0</td></tr>
-<tr class="separator:a5d311d8a6496aaab4d379fa4710a603a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a97fcb5ceb12d25ac473340e882a7dbf2" id="r_a97fcb5ceb12d25ac473340e882a7dbf2"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#a97fcb5ceb12d25ac473340e882a7dbf2">my_click_</a> = 0</td></tr>
-<tr class="separator:a97fcb5ceb12d25ac473340e882a7dbf2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0d11c479bec0870f75175245de9e4692" id="r_a0d11c479bec0870f75175245de9e4692"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#a0d11c479bec0870f75175245de9e4692">mx_dist_</a> = 0</td></tr>
-<tr class="separator:a0d11c479bec0870f75175245de9e4692"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7eb7aa79440908836322572c0121c43b" id="r_a7eb7aa79440908836322572c0121c43b"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#a7eb7aa79440908836322572c0121c43b">my_dist_</a> = 0</td></tr>
-<tr class="separator:a7eb7aa79440908836322572c0121c43b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad045e8cf3459f455ee2ab66c93670032" id="r_ad045e8cf3459f455ee2ab66c93670032"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#ad045e8cf3459f455ee2ab66c93670032">last_x_</a> = 0</td></tr>
-<tr class="separator:ad045e8cf3459f455ee2ab66c93670032"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a29be946a5c0abebe5e725b550670e9ad" id="r_a29be946a5c0abebe5e725b550670e9ad"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#a29be946a5c0abebe5e725b550670e9ad">last_y_</a> = 0</td></tr>
-<tr class="separator:a29be946a5c0abebe5e725b550670e9ad"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1aac20179411d14c68d822f6243f36f3" id="r_a1aac20179411d14c68d822f6243f36f3"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#a1aac20179411d14c68d822f6243f36f3">x_in_</a> = 0</td></tr>
-<tr class="separator:a1aac20179411d14c68d822f6243f36f3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:acabbdc63a7537921aedd737feecd81ab" id="r_acabbdc63a7537921aedd737feecd81ab"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#acabbdc63a7537921aedd737feecd81ab">y_in_</a> = 0</td></tr>
-<tr class="separator:acabbdc63a7537921aedd737feecd81ab"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a43ba5656538f3c930b2b8159c5665e23" id="r_a43ba5656538f3c930b2b8159c5665e23"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#a43ba5656538f3c930b2b8159c5665e23">dungmap_selected_tile_</a> = 0</td></tr>
-<tr class="separator:a43ba5656538f3c930b2b8159c5665e23"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aae369120f12d23313831f8c292f42c4e" id="r_aae369120f12d23313831f8c292f42c4e"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#aae369120f12d23313831f8c292f42c4e">dungmap_selected_</a> = 0</td></tr>
-<tr class="separator:aae369120f12d23313831f8c292f42c4e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a42cdbaea31e479933025c1e18efaa064" id="r_a42cdbaea31e479933025c1e18efaa064"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#a42cdbaea31e479933025c1e18efaa064">selected_palette_</a> = 0</td></tr>
-<tr class="separator:a42cdbaea31e479933025c1e18efaa064"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a97cf6e74e226a371361612441d8d49ab" id="r_a97cf6e74e226a371361612441d8d49ab"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#a97cf6e74e226a371361612441d8d49ab">total_floors_</a> = 0</td></tr>
-<tr class="separator:a97cf6e74e226a371361612441d8d49ab"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a638347bd4353f0039c740d0b96abf6fb" id="r_a638347bd4353f0039c740d0b96abf6fb"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#a638347bd4353f0039c740d0b96abf6fb">current_floor_</a> = 0</td></tr>
-<tr class="separator:a638347bd4353f0039c740d0b96abf6fb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab72a3f608ec62ac86c554902c87ab235" id="r_ab72a3f608ec62ac86c554902c87ab235"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#ab72a3f608ec62ac86c554902c87ab235">num_basement_</a> = 0</td></tr>
-<tr class="separator:ab72a3f608ec62ac86c554902c87ab235"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4989f1e4f6fdc58a569b88d377a026ff" id="r_a4989f1e4f6fdc58a569b88d377a026ff"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#a4989f1e4f6fdc58a569b88d377a026ff">num_floor_</a> = 0</td></tr>
-<tr class="separator:a4989f1e4f6fdc58a569b88d377a026ff"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:acf8120ec3b54b59e72747a3224c468ce" id="r_acf8120ec3b54b59e72747a3224c468ce"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#acf8120ec3b54b59e72747a3224c468ce">selected_map_tile</a> = 0</td></tr>
-<tr class="separator:acf8120ec3b54b59e72747a3224c468ce"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6002048ef8cde71dd61937966e6d3723" id="r_a6002048ef8cde71dd61937966e6d3723"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#a6002048ef8cde71dd61937966e6d3723">current_floor_rooms</a></td></tr>
-<tr class="separator:a6002048ef8cde71dd61937966e6d3723"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3fd300c85e2bf7dd2c8c55a476dc9984" id="r_a3fd300c85e2bf7dd2c8c55a476dc9984"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#a3fd300c85e2bf7dd2c8c55a476dc9984">current_floor_gfx</a></td></tr>
-<tr class="separator:a3fd300c85e2bf7dd2c8c55a476dc9984"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a00c11a329ff43505331079b74a68caf0" id="r_a00c11a329ff43505331079b74a68caf0"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#a00c11a329ff43505331079b74a68caf0">copied_data_rooms</a></td></tr>
-<tr class="separator:a00c11a329ff43505331079b74a68caf0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab713699056d6df69b2dc31774b218fa6" id="r_ab713699056d6df69b2dc31774b218fa6"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#ab713699056d6df69b2dc31774b218fa6">copied_data_gfx</a></td></tr>
-<tr class="separator:ab713699056d6df69b2dc31774b218fa6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad3877dfc872593f30ea8f25ed52e1e8b" id="r_ad3877dfc872593f30ea8f25ed52e1e8b"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#ad3877dfc872593f30ea8f25ed52e1e8b">pal_selected_</a></td></tr>
+<tr class="memitem:ad3877dfc872593f30ea8f25ed52e1e8b" id="r_ad3877dfc872593f30ea8f25ed52e1e8b"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#ad3877dfc872593f30ea8f25ed52e1e8b">pal_selected_</a> = 2</td></tr>
 <tr class="separator:ad3877dfc872593f30ea8f25ed52e1e8b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aadc3905a832ba76767c85f27e67cf601" id="r_aadc3905a832ba76767c85f27e67cf601"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#aadc3905a832ba76767c85f27e67cf601">addresses</a> [7]</td></tr>
-<tr class="separator:aadc3905a832ba76767c85f27e67cf601"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1b0b7069091716c714d171b05280a830" id="r_a1b0b7069091716c714d171b05280a830"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#a1b0b7069091716c714d171b05280a830">addressesgfx</a> [7]</td></tr>
-<tr class="separator:a1b0b7069091716c714d171b05280a830"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7d22501b206314c2a3d96439bf715261" id="r_a7d22501b206314c2a3d96439bf715261"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#a7d22501b206314c2a3d96439bf715261">bossRoom</a> = 0x000F</td></tr>
-<tr class="separator:a7d22501b206314c2a3d96439bf715261"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5252fa85e85a67f3da8560eb6c17e7a2" id="r_a5252fa85e85a67f3da8560eb6c17e7a2"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#a5252fa85e85a67f3da8560eb6c17e7a2">selected_tile</a> = 0</td></tr>
-<tr class="separator:a5252fa85e85a67f3da8560eb6c17e7a2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:adb1cf7cf4199fef6afc24f781455709d" id="r_adb1cf7cf4199fef6afc24f781455709d"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#adb1cf7cf4199fef6afc24f781455709d">tilesBG1Buffer</a> [0x1000]</td></tr>
-<tr class="separator:adb1cf7cf4199fef6afc24f781455709d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a195ffa5d53da25d9fb1567b31688d77a" id="r_a195ffa5d53da25d9fb1567b31688d77a"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#a195ffa5d53da25d9fb1567b31688d77a">tilesBG2Buffer</a> [0x1000]</td></tr>
-<tr class="separator:a195ffa5d53da25d9fb1567b31688d77a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1613c80e13dd8c0e0bf0cda71e6a1820" id="r_a1613c80e13dd8c0e0bf0cda71e6a1820"><td class="memItemLeft" align="right" valign="top">uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#a1613c80e13dd8c0e0bf0cda71e6a1820">mapdata</a></td></tr>
-<tr class="separator:a1613c80e13dd8c0e0bf0cda71e6a1820"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1f0f8241d3a6ed0d3702556dd308ca37" id="r_a1f0f8241d3a6ed0d3702556dd308ca37"><td class="memItemLeft" align="right" valign="top">uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#a1f0f8241d3a6ed0d3702556dd308ca37">dwmapdata</a></td></tr>
-<tr class="separator:a1f0f8241d3a6ed0d3702556dd308ca37"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad11ecb022fe8028407980e751708d0ee" id="r_ad11ecb022fe8028407980e751708d0ee"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#ad11ecb022fe8028407980e751708d0ee">mDown</a> = false</td></tr>
-<tr class="separator:ad11ecb022fe8028407980e751708d0ee"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6df3d1dc17ecdf7d6ae451409ab93bcd" id="r_a6df3d1dc17ecdf7d6ae451409ab93bcd"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#a6df3d1dc17ecdf7d6ae451409ab93bcd">swordSelected</a> = false</td></tr>
-<tr class="separator:a6df3d1dc17ecdf7d6ae451409ab93bcd"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a762e918f7c51c2e2e1e24956681488d2" id="r_a762e918f7c51c2e2e1e24956681488d2"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#a762e918f7c51c2e2e1e24956681488d2">darkWorld</a> = false</td></tr>
-<tr class="separator:a762e918f7c51c2e2e1e24956681488d2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aea75927a5844fd671f67796466499e81" id="r_aea75927a5844fd671f67796466499e81"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#aea75927a5844fd671f67796466499e81">currentDungeonChanged</a> = false</td></tr>
-<tr class="separator:aea75927a5844fd671f67796466499e81"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a590684a6d6fadb8d0daca86d1893ac93" id="r_a590684a6d6fadb8d0daca86d1893ac93"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#a590684a6d6fadb8d0daca86d1893ac93">editedFromEditor</a> = false</td></tr>
-<tr class="separator:a590684a6d6fadb8d0daca86d1893ac93"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8d60680de49fc10b0c37725c22ea8347" id="r_a8d60680de49fc10b0c37725c22ea8347"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#a8d60680de49fc10b0c37725c22ea8347">mouseDown</a> = false</td></tr>
-<tr class="separator:a8d60680de49fc10b0c37725c22ea8347"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a66f53fad482f85ed6d119e0378173058" id="r_a66f53fad482f85ed6d119e0378173058"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#a66f53fad482f85ed6d119e0378173058">mdown</a> = false</td></tr>
-<tr class="separator:a66f53fad482f85ed6d119e0378173058"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aea21bee828e78cc83b1d0a7a964b4b14" id="r_aea21bee828e78cc83b1d0a7a964b4b14"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d6/d30/classyaze_1_1Rom.html">Rom</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#aea21bee828e78cc83b1d0a7a964b4b14">rom_</a></td></tr>
-<tr class="separator:aea21bee828e78cc83b1d0a7a964b4b14"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7db88638fa0e02388808cb444d5c6394" id="r_a7db88638fa0e02388808cb444d5c6394"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../df/da2/classyaze_1_1gfx_1_1OamTile.html">gfx::OamTile</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#a7db88638fa0e02388808cb444d5c6394">oam_data</a> [10]</td></tr>
-<tr class="separator:a7db88638fa0e02388808cb444d5c6394"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3f0c2eef76c9c538ba5ebfb53a410050" id="r_a3f0c2eef76c9c538ba5ebfb53a410050"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../df/da2/classyaze_1_1gfx_1_1OamTile.html">gfx::OamTile</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#a3f0c2eef76c9c538ba5ebfb53a410050">selected_oam_tile</a></td></tr>
-<tr class="separator:a3f0c2eef76c9c538ba5ebfb53a410050"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:adf83b3e01aa0c604c592b3f0c46dbf77" id="r_adf83b3e01aa0c604c592b3f0c46dbf77"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../df/da2/classyaze_1_1gfx_1_1OamTile.html">gfx::OamTile</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#adf83b3e01aa0c604c592b3f0c46dbf77">last_selected_oam_tile</a></td></tr>
-<tr class="separator:adf83b3e01aa0c604c592b3f0c46dbf77"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac6ac8a4c165f0aadca4a8ebe5d68c7bd" id="r_ac6ac8a4c165f0aadca4a8ebe5d68c7bd"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../df/d0e/classyaze_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#ac6ac8a4c165f0aadca4a8ebe5d68c7bd">tilesBG1Bitmap</a></td></tr>
-<tr class="separator:ac6ac8a4c165f0aadca4a8ebe5d68c7bd"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa0594eae05cd0f4eb7ed9db5340163b4" id="r_aa0594eae05cd0f4eb7ed9db5340163b4"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../df/d0e/classyaze_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#aa0594eae05cd0f4eb7ed9db5340163b4">tilesBG2Bitmap</a></td></tr>
-<tr class="separator:aa0594eae05cd0f4eb7ed9db5340163b4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7656ac8010708e2e7fe35f5cf567fbd4" id="r_a7656ac8010708e2e7fe35f5cf567fbd4"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../df/d0e/classyaze_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#a7656ac8010708e2e7fe35f5cf567fbd4">oamBGBitmap</a></td></tr>
-<tr class="separator:a7656ac8010708e2e7fe35f5cf567fbd4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abd3fe0e48be82ce845d585eb110e4cc4" id="r_abd3fe0e48be82ce845d585eb110e4cc4"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../df/d0e/classyaze_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#abd3fe0e48be82ce845d585eb110e4cc4">tiles8Bitmap</a></td></tr>
-<tr class="separator:abd3fe0e48be82ce845d585eb110e4cc4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a96219346e9fd15f1914060ba02e58329" id="r_a96219346e9fd15f1914060ba02e58329"><td class="memItemLeft" align="right" valign="top">std::array&lt; uint16_t, 0x1000 &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#a96219346e9fd15f1914060ba02e58329">tiles_bg1_buffer_</a></td></tr>
+<tr class="separator:a96219346e9fd15f1914060ba02e58329"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a171e285630973004fe124e3007c5c04b" id="r_a171e285630973004fe124e3007c5c04b"><td class="memItemLeft" align="right" valign="top">std::array&lt; uint16_t, 0x1000 &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#a171e285630973004fe124e3007c5c04b">tiles_bg2_buffer_</a></td></tr>
+<tr class="separator:a171e285630973004fe124e3007c5c04b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2d65b9c82af7bb4fc33bed1b8ddd39f7" id="r_a2d65b9c82af7bb4fc33bed1b8ddd39f7"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../df/da2/classyaze_1_1gfx_1_1OamTile.html">gfx::OamTile</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#a2d65b9c82af7bb4fc33bed1b8ddd39f7">oam_data_</a> [10]</td></tr>
+<tr class="separator:a2d65b9c82af7bb4fc33bed1b8ddd39f7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adb101fd38210dfce7fe6e5fe46cf0ab9" id="r_adb101fd38210dfce7fe6e5fe46cf0ab9"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../df/d0e/classyaze_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#adb101fd38210dfce7fe6e5fe46cf0ab9">tiles_bg1_bitmap_</a></td></tr>
+<tr class="separator:adb101fd38210dfce7fe6e5fe46cf0ab9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7b98570ba4b15fadc6bfb495c20f8b6a" id="r_a7b98570ba4b15fadc6bfb495c20f8b6a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../df/d0e/classyaze_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#a7b98570ba4b15fadc6bfb495c20f8b6a">tiles_bg2_bitmap_</a></td></tr>
+<tr class="separator:a7b98570ba4b15fadc6bfb495c20f8b6a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad5dc2b9abd87fe69dd6de4a60810767d" id="r_ad5dc2b9abd87fe69dd6de4a60810767d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../df/d0e/classyaze_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#ad5dc2b9abd87fe69dd6de4a60810767d">oam_bg_bitmap_</a></td></tr>
+<tr class="separator:ad5dc2b9abd87fe69dd6de4a60810767d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a434eddefe0fc9a28625e815d6ef21bbc" id="r_a434eddefe0fc9a28625e815d6ef21bbc"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../df/d0e/classyaze_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#a434eddefe0fc9a28625e815d6ef21bbc">tiles8_bitmap_</a></td></tr>
+<tr class="separator:a434eddefe0fc9a28625e815d6ef21bbc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a63dbe358086562594f5ffe8d0e2546d6" id="r_a63dbe358086562594f5ffe8d0e2546d6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../df/d0e/classyaze_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#a63dbe358086562594f5ffe8d0e2546d6">title_composite_bitmap_</a></td></tr>
+<tr class="separator:a63dbe358086562594f5ffe8d0e2546d6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a77b47181ae1f8fa12132d0c0983b6f9f" id="r_a77b47181ae1f8fa12132d0c0983b6f9f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../db/d0a/structyaze_1_1gfx_1_1Tilemap.html">gfx::Tilemap</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#a77b47181ae1f8fa12132d0c0983b6f9f">tile16_blockset_</a></td></tr>
+<tr class="separator:a77b47181ae1f8fa12132d0c0983b6f9f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a615848fc91ec6921e2474a9a4913a87c" id="r_a615848fc91ec6921e2474a9a4913a87c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../da/d68/classyaze_1_1gfx_1_1SnesPalette.html">gfx::SnesPalette</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#a615848fc91ec6921e2474a9a4913a87c">palette_</a></td></tr>
+<tr class="separator:a615848fc91ec6921e2474a9a4913a87c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock">
-<p class="definition">Definition at line <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00011">11</a> of file <a class="el" href="../../d4/dea/title__screen_8h_source.html">title_screen.h</a>.</p>
-</div><h2 class="groupheader">Member Function Documentation</h2>
-<a id="ac0944b93d7d33a52c5028526fa2129fe" name="ac0944b93d7d33a52c5028526fa2129fe"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac0944b93d7d33a52c5028526fa2129fe">&#9670;&#160;</a></span>Create()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void yaze::zelda3::TitleScreen::Create </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="../../d5/dce/title__screen_8cc_source.html#l00012">12</a> of file <a class="el" href="../../d5/dce/title__screen_8cc_source.html">title_screen.cc</a>.</p>
-
-<p class="reference">References <a class="el" href="../../d5/dce/title__screen_8cc_source.html#l00021">BuildTileset()</a>, <a class="el" href="../../d4/d13/bitmap_8cc_source.html#l00162">yaze::gfx::Bitmap::Create()</a>, <a class="el" href="../../d5/dce/title__screen_8cc_source.html#l00062">LoadTitleScreen()</a>, <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00069">oamBGBitmap</a>, <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00070">tiles8Bitmap</a>, <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00067">tilesBG1Bitmap</a>, and <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00068">tilesBG2Bitmap</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen_ac0944b93d7d33a52c5028526fa2129fe_cgraph.png" border="0" usemap="#ad6/d2e/classyaze_1_1zelda3_1_1TitleScreen_ac0944b93d7d33a52c5028526fa2129fe_cgraph" alt=""/></div>
-<map name="ad6/d2e/classyaze_1_1zelda3_1_1TitleScreen_ac0944b93d7d33a52c5028526fa2129fe_cgraph" id="ad6/d2e/classyaze_1_1zelda3_1_1TitleScreen_ac0944b93d7d33a52c5028526fa2129fe_cgraph">
-<area shape="rect" title=" " alt="" coords="5,95,168,135"/>
-<area shape="rect" href="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#aa861c4906dc82355d614ecc5b994c0c1" title=" " alt="" coords="216,5,378,46"/>
-<area shape="poly" title=" " alt="" coords="134,92,215,57,230,50,232,55,217,61,136,97"/>
-<area shape="rect" href="../../df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a1725878c64e66f79cecade531d14d384" title="Create a bitmap with the given dimensions and data." alt="" coords="235,95,359,135"/>
-<area shape="poly" title=" " alt="" coords="168,112,220,112,220,118,168,118"/>
-<area shape="rect" href="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#aa82f8973b08e88801d04e2c1844b6d96" title=" " alt="" coords="216,160,378,201"/>
-<area shape="poly" title=" " alt="" coords="155,133,215,152,214,157,153,138"/>
-<area shape="rect" href="../../df/d0e/classyaze_1_1gfx_1_1Bitmap.html#aba6e7ff12ec269f3d2de46bf600f7fa6" title=" " alt="" coords="426,5,549,46"/>
-<area shape="poly" title=" " alt="" coords="379,23,410,23,410,28,379,28"/>
-<area shape="poly" title=" " alt="" coords="260,95,259,85,265,76,277,70,297,68,318,70,330,77,328,81,316,76,297,73,279,75,268,80,264,86,266,93"/>
-</map>
-</div>
-
-</div>
-</div>
-<a id="aa861c4906dc82355d614ecc5b994c0c1" name="aa861c4906dc82355d614ecc5b994c0c1"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa861c4906dc82355d614ecc5b994c0c1">&#9670;&#160;</a></span>BuildTileset()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void yaze::zelda3::TitleScreen::BuildTileset </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000140">Todo:</a></b></dt><dd>get the gfx from the GFX class rather than the rom. </dd></dl>
-
-<p class="definition">Definition at line <a class="el" href="../../d5/dce/title__screen_8cc_source.html#l00021">21</a> of file <a class="el" href="../../d5/dce/title__screen_8cc_source.html">title_screen.cc</a>.</p>
-
-<p class="reference">References <a class="el" href="../../da/dcb/bitmap_8h_source.html#l00258">yaze::gfx::Bitmap::mutable_data()</a>, and <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00070">tiles8Bitmap</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="../../d5/dce/title__screen_8cc_source.html#l00012">Create()</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen_aa861c4906dc82355d614ecc5b994c0c1_cgraph.png" border="0" usemap="#ad6/d2e/classyaze_1_1zelda3_1_1TitleScreen_aa861c4906dc82355d614ecc5b994c0c1_cgraph" alt=""/></div>
-<map name="ad6/d2e/classyaze_1_1zelda3_1_1TitleScreen_aa861c4906dc82355d614ecc5b994c0c1_cgraph" id="ad6/d2e/classyaze_1_1zelda3_1_1TitleScreen_aa861c4906dc82355d614ecc5b994c0c1_cgraph">
-<area shape="rect" title=" " alt="" coords="5,5,168,46"/>
-<area shape="rect" href="../../df/d0e/classyaze_1_1gfx_1_1Bitmap.html#aba6e7ff12ec269f3d2de46bf600f7fa6" title=" " alt="" coords="216,5,339,46"/>
-<area shape="poly" title=" " alt="" coords="168,23,200,23,200,28,168,28"/>
-</map>
-</div>
-
-</div>
-</div>
-<a id="aa82f8973b08e88801d04e2c1844b6d96" name="aa82f8973b08e88801d04e2c1844b6d96"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa82f8973b08e88801d04e2c1844b6d96">&#9670;&#160;</a></span>LoadTitleScreen()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void yaze::zelda3::TitleScreen::LoadTitleScreen </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="../../d5/dce/title__screen_8cc_source.html#l00062">62</a> of file <a class="el" href="../../d5/dce/title__screen_8cc_source.html">title_screen.cc</a>.</p>
-
-<p class="reference">References <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00040">pal_selected_</a>, <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00061">rom_</a>, <a class="el" href="../../d7/d5e/snes_8h_source.html#l00008">yaze::SnesToPc()</a>, <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00048">tilesBG1Buffer</a>, and <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00049">tilesBG2Buffer</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="../../d5/dce/title__screen_8cc_source.html#l00012">Create()</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen_aa82f8973b08e88801d04e2c1844b6d96_cgraph.png" border="0" usemap="#ad6/d2e/classyaze_1_1zelda3_1_1TitleScreen_aa82f8973b08e88801d04e2c1844b6d96_cgraph" alt=""/></div>
-<map name="ad6/d2e/classyaze_1_1zelda3_1_1TitleScreen_aa82f8973b08e88801d04e2c1844b6d96_cgraph" id="ad6/d2e/classyaze_1_1zelda3_1_1TitleScreen_aa82f8973b08e88801d04e2c1844b6d96_cgraph">
-<area shape="rect" title=" " alt="" coords="5,5,168,46"/>
-<area shape="rect" href="../../dc/d46/namespaceyaze.html#aefc163a31f0531da9e1636396859b450" title=" " alt="" coords="216,13,330,39"/>
-<area shape="poly" title=" " alt="" coords="168,23,200,23,200,28,168,28"/>
-</map>
-</div>
-
-</div>
-</div>
-<h2 class="groupheader">Member Data Documentation</h2>
-<a id="aa252c562dcdd0b465e0d0b249e06dbbc" name="aa252c562dcdd0b465e0d0b249e06dbbc"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa252c562dcdd0b465e0d0b249e06dbbc">&#9670;&#160;</a></span>sword_x_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">int yaze::zelda3::TitleScreen::sword_x_ = 0</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00019">19</a> of file <a class="el" href="../../d4/dea/title__screen_8h_source.html">title_screen.h</a>.</p>
-
-</div>
-</div>
-<a id="a5d311d8a6496aaab4d379fa4710a603a" name="a5d311d8a6496aaab4d379fa4710a603a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5d311d8a6496aaab4d379fa4710a603a">&#9670;&#160;</a></span>mx_click_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">int yaze::zelda3::TitleScreen::mx_click_ = 0</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00020">20</a> of file <a class="el" href="../../d4/dea/title__screen_8h_source.html">title_screen.h</a>.</p>
-
-</div>
-</div>
-<a id="a97fcb5ceb12d25ac473340e882a7dbf2" name="a97fcb5ceb12d25ac473340e882a7dbf2"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a97fcb5ceb12d25ac473340e882a7dbf2">&#9670;&#160;</a></span>my_click_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">int yaze::zelda3::TitleScreen::my_click_ = 0</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00021">21</a> of file <a class="el" href="../../d4/dea/title__screen_8h_source.html">title_screen.h</a>.</p>
-
-</div>
-</div>
-<a id="a0d11c479bec0870f75175245de9e4692" name="a0d11c479bec0870f75175245de9e4692"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0d11c479bec0870f75175245de9e4692">&#9670;&#160;</a></span>mx_dist_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">int yaze::zelda3::TitleScreen::mx_dist_ = 0</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00022">22</a> of file <a class="el" href="../../d4/dea/title__screen_8h_source.html">title_screen.h</a>.</p>
-
-</div>
-</div>
-<a id="a7eb7aa79440908836322572c0121c43b" name="a7eb7aa79440908836322572c0121c43b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7eb7aa79440908836322572c0121c43b">&#9670;&#160;</a></span>my_dist_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">int yaze::zelda3::TitleScreen::my_dist_ = 0</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00023">23</a> of file <a class="el" href="../../d4/dea/title__screen_8h_source.html">title_screen.h</a>.</p>
-
-</div>
-</div>
-<a id="ad045e8cf3459f455ee2ab66c93670032" name="ad045e8cf3459f455ee2ab66c93670032"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad045e8cf3459f455ee2ab66c93670032">&#9670;&#160;</a></span>last_x_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">int yaze::zelda3::TitleScreen::last_x_ = 0</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
+<div class="textblock"><p><a class="el" href="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html" title="TitleScreen manages the title screen graphics and tilemap data.">TitleScreen</a> manages the title screen graphics and tilemap data. </p>
+<p>The title screen consists of three layers:</p><ul>
+<li>BG1: Main logo and graphics</li>
+<li>BG2: Background elements</li>
+<li>OAM: <a class="el" href="../../d6/db1/classyaze_1_1zelda3_1_1Sprite.html" title="A class for managing sprites in the overworld and underworld.">Sprite</a> layer (sword, etc.)</li>
+</ul>
+<p>Each layer is stored as a 32x32 tilemap (0x400 tiles = 0x1000 bytes as words) </p>
 
 <p class="definition">Definition at line <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00024">24</a> of file <a class="el" href="../../d4/dea/title__screen_8h_source.html">title_screen.h</a>.</p>
-
-</div>
-</div>
-<a id="a29be946a5c0abebe5e725b550670e9ad" name="a29be946a5c0abebe5e725b550670e9ad"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a29be946a5c0abebe5e725b550670e9ad">&#9670;&#160;</a></span>last_y_</h2>
+</div><h2 class="groupheader">Member Function Documentation</h2>
+<a id="ae9d02db89273ad57129102cd4de3ea9c" name="ae9d02db89273ad57129102cd4de3ea9c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae9d02db89273ad57129102cd4de3ea9c">&#9670;&#160;</a></span>Create()</h2>
 
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">int yaze::zelda3::TitleScreen::last_y_ = 0</td>
+          <td class="memname">absl::Status yaze::zelda3::TitleScreen::Create </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="../../d6/d30/classyaze_1_1Rom.html">Rom</a> *&#160;</td>
+          <td class="paramname"><em>rom</em></td><td>)</td>
+          <td></td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00025">25</a> of file <a class="el" href="../../d4/dea/title__screen_8h_source.html">title_screen.h</a>.</p>
+<p>Initialize and load title screen data from ROM. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">rom</td><td>ROM instance to read data from </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="../../d5/dce/title__screen_8cc_source.html#l00013">13</a> of file <a class="el" href="../../d5/dce/title__screen_8cc_source.html">title_screen.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d8/ddb/snes__palette_8h_source.html#l00155">yaze::gfx::SnesPalette::AddColor()</a>, <a class="el" href="../../d5/dce/title__screen_8cc_source.html#l00170">BuildTileset()</a>, <a class="el" href="../../d4/d13/bitmap_8cc_source.html#l00162">yaze::gfx::Bitmap::Create()</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00200">yaze::Rom::is_loaded()</a>, <a class="el" href="../../d5/dce/title__screen_8cc_source.html#l00284">LoadTitleScreen()</a>, <a class="el" href="../../d7/d7f/log_8h_source.html#l00106">LOG_INFO</a>, <a class="el" href="../../da/dcb/bitmap_8h_source.html#l00279">yaze::gfx::Bitmap::metadata()</a>, <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00096">oam_bg_bitmap_</a>, <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00101">palette_</a>, <a class="el" href="../../da/dcb/bitmap_8h_source.html#l00270">yaze::gfx::Bitmap::BitmapMetadata::palette_colors</a>, <a class="el" href="../../da/dcb/bitmap_8h_source.html#l00268">yaze::gfx::Bitmap::BitmapMetadata::palette_format</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00216">yaze::Rom::palette_group()</a>, <a class="el" href="../../d4/d9e/macro_8h_source.html#l00053">RETURN_IF_ERROR</a>, <a class="el" href="../../d8/ddb/snes__palette_8h_source.html#l00144">yaze::gfx::SnesPalette::size()</a>, <a class="el" href="../../da/dcb/bitmap_8h_source.html#l00267">yaze::gfx::Bitmap::BitmapMetadata::source_bpp</a>, <a class="el" href="../../da/dcb/bitmap_8h_source.html#l00269">yaze::gfx::Bitmap::BitmapMetadata::source_type</a>, <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00097">tiles8_bitmap_</a>, <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00094">tiles_bg1_bitmap_</a>, <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00089">tiles_bg1_buffer_</a>, <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00095">tiles_bg2_bitmap_</a>, <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00090">tiles_bg2_buffer_</a>, and <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00098">title_composite_bitmap_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../de/d57/screen__editor_8cc_source.html#l00735">yaze::editor::ScreenEditor::DrawTitleScreenEditor()</a>.</p>
 
 </div>
 </div>
-<a id="a1aac20179411d14c68d822f6243f36f3" name="a1aac20179411d14c68d822f6243f36f3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1aac20179411d14c68d822f6243f36f3">&#9670;&#160;</a></span>x_in_</h2>
+<a id="a5cf9b20995abc873ef7c3ffc5daab389" name="a5cf9b20995abc873ef7c3ffc5daab389"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5cf9b20995abc873ef7c3ffc5daab389">&#9670;&#160;</a></span>bg1_buffer()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -534,190 +258,27 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">int yaze::zelda3::TitleScreen::x_in_ = 0</td>
+          <td class="memname">auto &amp; yaze::zelda3::TitleScreen::bg1_buffer </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
         </tr>
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00026">26</a> of file <a class="el" href="../../d4/dea/title__screen_8h_source.html">title_screen.h</a>.</p>
-
-</div>
-</div>
-<a id="acabbdc63a7537921aedd737feecd81ab" name="acabbdc63a7537921aedd737feecd81ab"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#acabbdc63a7537921aedd737feecd81ab">&#9670;&#160;</a></span>y_in_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">int yaze::zelda3::TitleScreen::y_in_ = 0</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00027">27</a> of file <a class="el" href="../../d4/dea/title__screen_8h_source.html">title_screen.h</a>.</p>
-
-</div>
-</div>
-<a id="a43ba5656538f3c930b2b8159c5665e23" name="a43ba5656538f3c930b2b8159c5665e23"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a43ba5656538f3c930b2b8159c5665e23">&#9670;&#160;</a></span>dungmap_selected_tile_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">int yaze::zelda3::TitleScreen::dungmap_selected_tile_ = 0</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00028">28</a> of file <a class="el" href="../../d4/dea/title__screen_8h_source.html">title_screen.h</a>.</p>
-
-</div>
-</div>
-<a id="aae369120f12d23313831f8c292f42c4e" name="aae369120f12d23313831f8c292f42c4e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aae369120f12d23313831f8c292f42c4e">&#9670;&#160;</a></span>dungmap_selected_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">int yaze::zelda3::TitleScreen::dungmap_selected_ = 0</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00029">29</a> of file <a class="el" href="../../d4/dea/title__screen_8h_source.html">title_screen.h</a>.</p>
-
-</div>
-</div>
-<a id="a42cdbaea31e479933025c1e18efaa064" name="a42cdbaea31e479933025c1e18efaa064"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a42cdbaea31e479933025c1e18efaa064">&#9670;&#160;</a></span>selected_palette_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">int yaze::zelda3::TitleScreen::selected_palette_ = 0</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00030">30</a> of file <a class="el" href="../../d4/dea/title__screen_8h_source.html">title_screen.h</a>.</p>
-
-</div>
-</div>
-<a id="a97cf6e74e226a371361612441d8d49ab" name="a97cf6e74e226a371361612441d8d49ab"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a97cf6e74e226a371361612441d8d49ab">&#9670;&#160;</a></span>total_floors_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">int yaze::zelda3::TitleScreen::total_floors_ = 0</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00031">31</a> of file <a class="el" href="../../d4/dea/title__screen_8h_source.html">title_screen.h</a>.</p>
-
-</div>
-</div>
-<a id="a638347bd4353f0039c740d0b96abf6fb" name="a638347bd4353f0039c740d0b96abf6fb"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a638347bd4353f0039c740d0b96abf6fb">&#9670;&#160;</a></span>current_floor_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">int yaze::zelda3::TitleScreen::current_floor_ = 0</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00032">32</a> of file <a class="el" href="../../d4/dea/title__screen_8h_source.html">title_screen.h</a>.</p>
-
-</div>
-</div>
-<a id="ab72a3f608ec62ac86c554902c87ab235" name="ab72a3f608ec62ac86c554902c87ab235"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab72a3f608ec62ac86c554902c87ab235">&#9670;&#160;</a></span>num_basement_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">int yaze::zelda3::TitleScreen::num_basement_ = 0</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
 
 <p class="definition">Definition at line <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00033">33</a> of file <a class="el" href="../../d4/dea/title__screen_8h_source.html">title_screen.h</a>.</p>
 
+<p class="reference">References <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00089">tiles_bg1_buffer_</a>.</p>
+
 </div>
 </div>
-<a id="a4989f1e4f6fdc58a569b88d377a026ff" name="a4989f1e4f6fdc58a569b88d377a026ff"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4989f1e4f6fdc58a569b88d377a026ff">&#9670;&#160;</a></span>num_floor_</h2>
+<a id="ab9a1f54ff47e27f0dd666260e0e764c8" name="ab9a1f54ff47e27f0dd666260e0e764c8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab9a1f54ff47e27f0dd666260e0e764c8">&#9670;&#160;</a></span>bg2_buffer()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -726,22 +287,27 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">int yaze::zelda3::TitleScreen::num_floor_ = 0</td>
+          <td class="memname">auto &amp; yaze::zelda3::TitleScreen::bg2_buffer </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
         </tr>
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
 
 <p class="definition">Definition at line <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00034">34</a> of file <a class="el" href="../../d4/dea/title__screen_8h_source.html">title_screen.h</a>.</p>
 
+<p class="reference">References <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00090">tiles_bg2_buffer_</a>.</p>
+
 </div>
 </div>
-<a id="acf8120ec3b54b59e72747a3224c468ce" name="acf8120ec3b54b59e72747a3224c468ce"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#acf8120ec3b54b59e72747a3224c468ce">&#9670;&#160;</a></span>selected_map_tile</h2>
+<a id="a8019ccbb070618b14c117df3f28a9990" name="a8019ccbb070618b14c117df3f28a9990"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8019ccbb070618b14c117df3f28a9990">&#9670;&#160;</a></span>oam_buffer()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -750,22 +316,27 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">int yaze::zelda3::TitleScreen::selected_map_tile = 0</td>
+          <td class="memname">auto &amp; yaze::zelda3::TitleScreen::oam_buffer </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
         </tr>
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
 
 <p class="definition">Definition at line <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00035">35</a> of file <a class="el" href="../../d4/dea/title__screen_8h_source.html">title_screen.h</a>.</p>
 
+<p class="reference">References <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00092">oam_data_</a>.</p>
+
 </div>
 </div>
-<a id="a6002048ef8cde71dd61937966e6d3723" name="a6002048ef8cde71dd61937966e6d3723"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6002048ef8cde71dd61937966e6d3723">&#9670;&#160;</a></span>current_floor_rooms</h2>
+<a id="a8b98bbe55aa3e9623e2d7bfa40d3f7ef" name="a8b98bbe55aa3e9623e2d7bfa40d3f7ef"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8b98bbe55aa3e9623e2d7bfa40d3f7ef">&#9670;&#160;</a></span>mutable_bg1_buffer()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -774,70 +345,29 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">int yaze::zelda3::TitleScreen::current_floor_rooms</td>
+          <td class="memname">auto &amp; yaze::zelda3::TitleScreen::mutable_bg1_buffer </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
         </tr>
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00036">36</a> of file <a class="el" href="../../d4/dea/title__screen_8h_source.html">title_screen.h</a>.</p>
-
-</div>
-</div>
-<a id="a3fd300c85e2bf7dd2c8c55a476dc9984" name="a3fd300c85e2bf7dd2c8c55a476dc9984"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3fd300c85e2bf7dd2c8c55a476dc9984">&#9670;&#160;</a></span>current_floor_gfx</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">int yaze::zelda3::TitleScreen::current_floor_gfx</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00037">37</a> of file <a class="el" href="../../d4/dea/title__screen_8h_source.html">title_screen.h</a>.</p>
-
-</div>
-</div>
-<a id="a00c11a329ff43505331079b74a68caf0" name="a00c11a329ff43505331079b74a68caf0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a00c11a329ff43505331079b74a68caf0">&#9670;&#160;</a></span>copied_data_rooms</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">int yaze::zelda3::TitleScreen::copied_data_rooms</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
 
 <p class="definition">Definition at line <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00038">38</a> of file <a class="el" href="../../d4/dea/title__screen_8h_source.html">title_screen.h</a>.</p>
 
+<p class="reference">References <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00089">tiles_bg1_buffer_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../de/d57/screen__editor_8cc_source.html#l00860">yaze::editor::ScreenEditor::DrawTitleScreenBG1Canvas()</a>, and <a class="el" href="../../de/d57/screen__editor_8cc_source.html#l00808">yaze::editor::ScreenEditor::DrawTitleScreenCompositeCanvas()</a>.</p>
+
 </div>
 </div>
-<a id="ab713699056d6df69b2dc31774b218fa6" name="ab713699056d6df69b2dc31774b218fa6"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab713699056d6df69b2dc31774b218fa6">&#9670;&#160;</a></span>copied_data_gfx</h2>
+<a id="aa2010951fa254b0a420d7461159836c2" name="aa2010951fa254b0a420d7461159836c2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa2010951fa254b0a420d7461159836c2">&#9670;&#160;</a></span>mutable_bg2_buffer()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -846,7 +376,388 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">int yaze::zelda3::TitleScreen::copied_data_gfx</td>
+          <td class="memname">auto &amp; yaze::zelda3::TitleScreen::mutable_bg2_buffer </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00039">39</a> of file <a class="el" href="../../d4/dea/title__screen_8h_source.html">title_screen.h</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00090">tiles_bg2_buffer_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../de/d57/screen__editor_8cc_source.html#l00903">yaze::editor::ScreenEditor::DrawTitleScreenBG2Canvas()</a>.</p>
+
+</div>
+</div>
+<a id="adf41ea0ae05ef54e760bb27ff6897580" name="adf41ea0ae05ef54e760bb27ff6897580"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adf41ea0ae05ef54e760bb27ff6897580">&#9670;&#160;</a></span>bg1_bitmap()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto &amp; yaze::zelda3::TitleScreen::bg1_bitmap </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00042">42</a> of file <a class="el" href="../../d4/dea/title__screen_8h_source.html">title_screen.h</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00094">tiles_bg1_bitmap_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../de/d57/screen__editor_8cc_source.html#l00860">yaze::editor::ScreenEditor::DrawTitleScreenBG1Canvas()</a>, and <a class="el" href="../../de/d57/screen__editor_8cc_source.html#l00808">yaze::editor::ScreenEditor::DrawTitleScreenCompositeCanvas()</a>.</p>
+
+</div>
+</div>
+<a id="a49984d04bf64c94dd804381a9319058b" name="a49984d04bf64c94dd804381a9319058b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a49984d04bf64c94dd804381a9319058b">&#9670;&#160;</a></span>bg2_bitmap()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto &amp; yaze::zelda3::TitleScreen::bg2_bitmap </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00043">43</a> of file <a class="el" href="../../d4/dea/title__screen_8h_source.html">title_screen.h</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00095">tiles_bg2_bitmap_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../de/d57/screen__editor_8cc_source.html#l00903">yaze::editor::ScreenEditor::DrawTitleScreenBG2Canvas()</a>.</p>
+
+</div>
+</div>
+<a id="a7cc9c8970cf2cfdf5693ceac38b910da" name="a7cc9c8970cf2cfdf5693ceac38b910da"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7cc9c8970cf2cfdf5693ceac38b910da">&#9670;&#160;</a></span>oam_bitmap()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto &amp; yaze::zelda3::TitleScreen::oam_bitmap </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00044">44</a> of file <a class="el" href="../../d4/dea/title__screen_8h_source.html">title_screen.h</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00096">oam_bg_bitmap_</a>.</p>
+
+</div>
+</div>
+<a id="ac7495b544ce1fac535cca33bfb06ae6a" name="ac7495b544ce1fac535cca33bfb06ae6a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac7495b544ce1fac535cca33bfb06ae6a">&#9670;&#160;</a></span>tiles8_bitmap()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto &amp; yaze::zelda3::TitleScreen::tiles8_bitmap </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00045">45</a> of file <a class="el" href="../../d4/dea/title__screen_8h_source.html">title_screen.h</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00097">tiles8_bitmap_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../de/d57/screen__editor_8cc_source.html#l00946">yaze::editor::ScreenEditor::DrawTitleScreenBlocksetSelector()</a>.</p>
+
+</div>
+</div>
+<a id="a628de8bae3fce1a8d6a0b2c52e68b6ed" name="a628de8bae3fce1a8d6a0b2c52e68b6ed"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a628de8bae3fce1a8d6a0b2c52e68b6ed">&#9670;&#160;</a></span>composite_bitmap()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto &amp; yaze::zelda3::TitleScreen::composite_bitmap </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00046">46</a> of file <a class="el" href="../../d4/dea/title__screen_8h_source.html">title_screen.h</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00098">title_composite_bitmap_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../de/d57/screen__editor_8cc_source.html#l00808">yaze::editor::ScreenEditor::DrawTitleScreenCompositeCanvas()</a>, and <a class="el" href="../../de/d57/screen__editor_8cc_source.html#l00735">yaze::editor::ScreenEditor::DrawTitleScreenEditor()</a>.</p>
+
+</div>
+</div>
+<a id="a8b8d48d2ced53755a6fcfe3a3d898f44" name="a8b8d48d2ced53755a6fcfe3a3d898f44"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8b8d48d2ced53755a6fcfe3a3d898f44">&#9670;&#160;</a></span>blockset()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto &amp; yaze::zelda3::TitleScreen::blockset </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00047">47</a> of file <a class="el" href="../../d4/dea/title__screen_8h_source.html">title_screen.h</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00100">tile16_blockset_</a>.</p>
+
+</div>
+</div>
+<a id="abd08120a9490dc9a8b3b5c4ddf84f515" name="abd08120a9490dc9a8b3b5c4ddf84f515"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abd08120a9490dc9a8b3b5c4ddf84f515">&#9670;&#160;</a></span>palette()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto &amp; yaze::zelda3::TitleScreen::palette </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00050">50</a> of file <a class="el" href="../../d4/dea/title__screen_8h_source.html">title_screen.h</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00101">palette_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d5/dce/title__screen_8cc_source.html#l00456">RenderBG1Layer()</a>, and <a class="el" href="../../d5/dce/title__screen_8cc_source.html#l00526">RenderBG2Layer()</a>.</p>
+
+</div>
+</div>
+<a id="ac732feac960d9c1811385292e6faf1d3" name="ac732feac960d9c1811385292e6faf1d3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac732feac960d9c1811385292e6faf1d3">&#9670;&#160;</a></span>Save()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">absl::Status yaze::zelda3::TitleScreen::Save </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="../../d6/d30/classyaze_1_1Rom.html">Rom</a> *&#160;</td>
+          <td class="paramname"><em>rom</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d5/dce/title__screen_8cc_source.html#l00590">590</a> of file <a class="el" href="../../d5/dce/title__screen_8cc_source.html">title_screen.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d4/d9e/macro_8h_source.html#l00061">ASSIGN_OR_RETURN</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00200">yaze::Rom::is_loaded()</a>, <a class="el" href="../../d5/d00/rom_8cc_source.html#l00661">yaze::Rom::ReadByte()</a>, <a class="el" href="../../d4/d9e/macro_8h_source.html#l00053">RETURN_IF_ERROR</a>, <a class="el" href="../../d7/d5e/snes_8h_source.html#l00008">yaze::SnesToPc()</a>, <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00089">tiles_bg1_buffer_</a>, <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00090">tiles_bg2_buffer_</a>, and <a class="el" href="../../d5/d00/rom_8cc_source.html#l00728">yaze::Rom::WriteByte()</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../de/d57/screen__editor_8cc_source.html#l00735">yaze::editor::ScreenEditor::DrawTitleScreenEditor()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen_ac732feac960d9c1811385292e6faf1d3_cgraph.png" border="0" usemap="#ad6/d2e/classyaze_1_1zelda3_1_1TitleScreen_ac732feac960d9c1811385292e6faf1d3_cgraph" alt=""/></div>
+<map name="ad6/d2e/classyaze_1_1zelda3_1_1TitleScreen_ac732feac960d9c1811385292e6faf1d3_cgraph" id="ad6/d2e/classyaze_1_1zelda3_1_1TitleScreen_ac732feac960d9c1811385292e6faf1d3_cgraph">
+<area shape="rect" title=" " alt="" coords="5,73,168,113"/>
+<area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="216,5,358,31"/>
+<area shape="poly" title=" " alt="" coords="138,70,215,40,231,34,232,39,217,45,140,75"/>
+<area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#abfad5beaef8b6648f43c1ee018d1b6ee" title=" " alt="" coords="216,55,358,80"/>
+<area shape="poly" title=" " alt="" coords="168,80,200,76,201,81,169,85"/>
+<area shape="rect" href="../../dc/d46/namespaceyaze.html#aefc163a31f0531da9e1636396859b450" title=" " alt="" coords="230,104,344,130"/>
+<area shape="poly" title=" " alt="" coords="169,100,215,106,214,111,168,105"/>
+<area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#a3f76910dd3716dc67f477e7da77cee33" title=" " alt="" coords="216,153,358,179"/>
+<area shape="poly" title=" " alt="" coords="141,111,217,140,232,145,231,150,215,145,140,116"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="af25dbc914c9299a9a30c27f33cd29467" name="af25dbc914c9299a9a30c27f33cd29467"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af25dbc914c9299a9a30c27f33cd29467">&#9670;&#160;</a></span>RenderBG1Layer()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">absl::Status yaze::zelda3::TitleScreen::RenderBG1Layer </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Render BG1 tilemap into bitmap pixels Converts tile IDs from tiles_bg1_buffer_ into pixel data. </p>
+
+<p class="definition">Definition at line <a class="el" href="../../d5/dce/title__screen_8cc_source.html#l00456">456</a> of file <a class="el" href="../../d5/dce/title__screen_8cc_source.html">title_screen.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d2/dee/arena_8cc_source.html#l00015">yaze::gfx::Arena::Get()</a>, <a class="el" href="../../d7/d7f/log_8h_source.html#l00108">LOG_WARN</a>, <a class="el" href="../../da/dcb/bitmap_8h_source.html#l00287">yaze::gfx::Bitmap::mutable_data()</a>, <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00050">palette()</a>, <a class="el" href="../../d2/dee/arena_8cc_source.html#l00032">yaze::gfx::Arena::QueueTextureCommand()</a>, <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00097">tiles8_bitmap_</a>, <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00094">tiles_bg1_bitmap_</a>, <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00089">tiles_bg1_buffer_</a>, <a class="el" href="../../d4/de6/classyaze_1_1gfx_1_1Arena.html#a7c65b9804f35c3b9c2848da846088c8ca15a8022d0ed9cd9c2a2e756822703eb4">yaze::gfx::Arena::UPDATE</a>, <a class="el" href="../../d4/d13/bitmap_8cc_source.html#l00321">yaze::gfx::Bitmap::UpdateSurfacePixels()</a>, and <a class="el" href="../../da/dcb/bitmap_8h_source.html#l00290">yaze::gfx::Bitmap::vector()</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../de/d57/screen__editor_8cc_source.html#l00860">yaze::editor::ScreenEditor::DrawTitleScreenBG1Canvas()</a>, <a class="el" href="../../de/d57/screen__editor_8cc_source.html#l00808">yaze::editor::ScreenEditor::DrawTitleScreenCompositeCanvas()</a>, and <a class="el" href="../../d5/dce/title__screen_8cc_source.html#l00284">LoadTitleScreen()</a>.</p>
+
+</div>
+</div>
+<a id="acad53a190962b84970f9492eb0b83df5" name="acad53a190962b84970f9492eb0b83df5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acad53a190962b84970f9492eb0b83df5">&#9670;&#160;</a></span>RenderBG2Layer()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">absl::Status yaze::zelda3::TitleScreen::RenderBG2Layer </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Render BG2 tilemap into bitmap pixels Converts tile IDs from tiles_bg2_buffer_ into pixel data. </p>
+
+<p class="definition">Definition at line <a class="el" href="../../d5/dce/title__screen_8cc_source.html#l00526">526</a> of file <a class="el" href="../../d5/dce/title__screen_8cc_source.html">title_screen.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d2/dee/arena_8cc_source.html#l00015">yaze::gfx::Arena::Get()</a>, <a class="el" href="../../da/dcb/bitmap_8h_source.html#l00287">yaze::gfx::Bitmap::mutable_data()</a>, <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00050">palette()</a>, <a class="el" href="../../d2/dee/arena_8cc_source.html#l00032">yaze::gfx::Arena::QueueTextureCommand()</a>, <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00097">tiles8_bitmap_</a>, <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00095">tiles_bg2_bitmap_</a>, <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00090">tiles_bg2_buffer_</a>, <a class="el" href="../../d4/de6/classyaze_1_1gfx_1_1Arena.html#a7c65b9804f35c3b9c2848da846088c8ca15a8022d0ed9cd9c2a2e756822703eb4">yaze::gfx::Arena::UPDATE</a>, <a class="el" href="../../d4/d13/bitmap_8cc_source.html#l00321">yaze::gfx::Bitmap::UpdateSurfacePixels()</a>, and <a class="el" href="../../da/dcb/bitmap_8h_source.html#l00290">yaze::gfx::Bitmap::vector()</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../de/d57/screen__editor_8cc_source.html#l00903">yaze::editor::ScreenEditor::DrawTitleScreenBG2Canvas()</a>, and <a class="el" href="../../d5/dce/title__screen_8cc_source.html#l00284">LoadTitleScreen()</a>.</p>
+
+</div>
+</div>
+<a id="ab574665b29e807989bd6a26e03091086" name="ab574665b29e807989bd6a26e03091086"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab574665b29e807989bd6a26e03091086">&#9670;&#160;</a></span>RenderCompositeLayer()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">absl::Status yaze::zelda3::TitleScreen::RenderCompositeLayer </td>
+          <td>(</td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>show_bg1</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>show_bg2</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Render composite layer with BG1 on top of BG2 with transparency. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">show_bg1</td><td>Whether to include BG1 layer </td></tr>
+    <tr><td class="paramname">show_bg2</td><td>Whether to include BG2 layer </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="../../d5/dce/title__screen_8cc_source.html#l00680">680</a> of file <a class="el" href="../../d5/dce/title__screen_8cc_source.html">title_screen.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d2/dee/arena_8cc_source.html#l00015">yaze::gfx::Arena::Get()</a>, <a class="el" href="../../da/dcb/bitmap_8h_source.html#l00287">yaze::gfx::Bitmap::mutable_data()</a>, <a class="el" href="../../d2/dee/arena_8cc_source.html#l00032">yaze::gfx::Arena::QueueTextureCommand()</a>, <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00094">tiles_bg1_bitmap_</a>, <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00095">tiles_bg2_bitmap_</a>, <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00098">title_composite_bitmap_</a>, <a class="el" href="../../d4/de6/classyaze_1_1gfx_1_1Arena.html#a7c65b9804f35c3b9c2848da846088c8ca15a8022d0ed9cd9c2a2e756822703eb4">yaze::gfx::Arena::UPDATE</a>, <a class="el" href="../../d4/d13/bitmap_8cc_source.html#l00321">yaze::gfx::Bitmap::UpdateSurfacePixels()</a>, and <a class="el" href="../../da/dcb/bitmap_8h_source.html#l00290">yaze::gfx::Bitmap::vector()</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../de/d57/screen__editor_8cc_source.html#l00808">yaze::editor::ScreenEditor::DrawTitleScreenCompositeCanvas()</a>, <a class="el" href="../../de/d57/screen__editor_8cc_source.html#l00735">yaze::editor::ScreenEditor::DrawTitleScreenEditor()</a>, and <a class="el" href="../../d5/dce/title__screen_8cc_source.html#l00284">LoadTitleScreen()</a>.</p>
+
+</div>
+</div>
+<a id="ac2d86288cbcb8ea4bed28df48c2a3de4" name="ac2d86288cbcb8ea4bed28df48c2a3de4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac2d86288cbcb8ea4bed28df48c2a3de4">&#9670;&#160;</a></span>BuildTileset()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">absl::Status yaze::zelda3::TitleScreen::BuildTileset </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="../../d6/d30/classyaze_1_1Rom.html">Rom</a> *&#160;</td>
+          <td class="paramname"><em>rom</em></td><td>)</td>
+          <td></td>
         </tr>
       </table>
   </td>
@@ -856,10 +767,64 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00039">39</a> of file <a class="el" href="../../d4/dea/title__screen_8h_source.html">title_screen.h</a>.</p>
+<p>Build the tile16 blockset from ROM graphics. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">rom</td><td>ROM instance to read graphics from </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000251">Todo:</a></b></dt><dd>Build tile16 blockset from tile8 data </dd></dl>
+
+<p class="definition">Definition at line <a class="el" href="../../d5/dce/title__screen_8cc_source.html#l00170">170</a> of file <a class="el" href="../../d5/dce/title__screen_8cc_source.html">title_screen.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d4/d9e/macro_8h_source.html#l00061">ASSIGN_OR_RETURN</a>, <a class="el" href="../../d4/de6/classyaze_1_1gfx_1_1Arena.html#a7c65b9804f35c3b9c2848da846088c8ca294ce20cdefa29be3be0735cb62e715d">yaze::gfx::Arena::CREATE</a>, <a class="el" href="../../d2/dee/arena_8cc_source.html#l00015">yaze::gfx::Arena::Get()</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00214">yaze::Rom::graphics_buffer()</a>, <a class="el" href="../../d8/d89/dungeon__rom__addresses_8h_source.html#l00032">yaze::zelda3::kGfxGroupsPointer</a>, <a class="el" href="../../d7/d7f/log_8h_source.html#l00110">LOG_ERROR</a>, <a class="el" href="../../d7/d7f/log_8h_source.html#l00106">LOG_INFO</a>, <a class="el" href="../../da/dcb/bitmap_8h_source.html#l00287">yaze::gfx::Bitmap::mutable_data()</a>, <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00101">palette_</a>, <a class="el" href="../../d2/dee/arena_8cc_source.html#l00032">yaze::gfx::Arena::QueueTextureCommand()</a>, <a class="el" href="../../d5/d00/rom_8cc_source.html#l00661">yaze::Rom::ReadByte()</a>, <a class="el" href="../../d5/d00/rom_8cc_source.html#l00668">yaze::Rom::ReadWord()</a>, <a class="el" href="../../d4/d13/bitmap_8cc_source.html#l00334">yaze::gfx::Bitmap::SetPalette()</a>, <a class="el" href="../../d8/ddb/snes__palette_8h_source.html#l00144">yaze::gfx::SnesPalette::size()</a>, <a class="el" href="../../d7/d5e/snes_8h_source.html#l00008">yaze::SnesToPc()</a>, and <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00097">tiles8_bitmap_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d5/dce/title__screen_8cc_source.html#l00013">Create()</a>.</p>
 
 </div>
 </div>
+<a id="af7dda1a6be3456b8e272f258f747c576" name="af7dda1a6be3456b8e272f258f747c576"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af7dda1a6be3456b8e272f258f747c576">&#9670;&#160;</a></span>LoadTitleScreen()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">absl::Status yaze::zelda3::TitleScreen::LoadTitleScreen </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="../../d6/d30/classyaze_1_1Rom.html">Rom</a> *&#160;</td>
+          <td class="paramname"><em>rom</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Load title screen tilemap data from ROM. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">rom</td><td>ROM instance to read tilemap from </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="../../d5/dce/title__screen_8cc_source.html#l00284">284</a> of file <a class="el" href="../../d5/dce/title__screen_8cc_source.html">title_screen.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d4/d9e/macro_8h_source.html#l00061">ASSIGN_OR_RETURN</a>, <a class="el" href="../../d4/de6/classyaze_1_1gfx_1_1Arena.html#a7c65b9804f35c3b9c2848da846088c8ca294ce20cdefa29be3be0735cb62e715d">yaze::gfx::Arena::CREATE</a>, <a class="el" href="../../d2/dee/arena_8cc_source.html#l00015">yaze::gfx::Arena::Get()</a>, <a class="el" href="../../d7/d7f/log_8h_source.html#l00106">LOG_INFO</a>, <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00096">oam_bg_bitmap_</a>, <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00087">pal_selected_</a>, <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00101">palette_</a>, <a class="el" href="../../d2/dee/arena_8cc_source.html#l00032">yaze::gfx::Arena::QueueTextureCommand()</a>, <a class="el" href="../../d5/d00/rom_8cc_source.html#l00661">yaze::Rom::ReadByte()</a>, <a class="el" href="../../d5/d00/rom_8cc_source.html#l00668">yaze::Rom::ReadWord()</a>, <a class="el" href="../../d5/dce/title__screen_8cc_source.html#l00456">RenderBG1Layer()</a>, <a class="el" href="../../d5/dce/title__screen_8cc_source.html#l00526">RenderBG2Layer()</a>, <a class="el" href="../../d5/dce/title__screen_8cc_source.html#l00680">RenderCompositeLayer()</a>, <a class="el" href="../../d4/d9e/macro_8h_source.html#l00053">RETURN_IF_ERROR</a>, <a class="el" href="../../da/dcb/bitmap_8h_source.html#l00294">yaze::gfx::Bitmap::set_active()</a>, <a class="el" href="../../d4/d13/bitmap_8cc_source.html#l00334">yaze::gfx::Bitmap::SetPalette()</a>, <a class="el" href="../../d7/d5e/snes_8h_source.html#l00008">yaze::SnesToPc()</a>, <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00094">tiles_bg1_bitmap_</a>, <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00089">tiles_bg1_buffer_</a>, <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00095">tiles_bg2_bitmap_</a>, <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00090">tiles_bg2_buffer_</a>, and <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00098">title_composite_bitmap_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d5/dce/title__screen_8cc_source.html#l00013">Create()</a>.</p>
+
+</div>
+</div>
+<h2 class="groupheader">Member Data Documentation</h2>
 <a id="ad3877dfc872593f30ea8f25ed52e1e8b" name="ad3877dfc872593f30ea8f25ed52e1e8b"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ad3877dfc872593f30ea8f25ed52e1e8b">&#9670;&#160;</a></span>pal_selected_</h2>
 
@@ -870,7 +835,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">int yaze::zelda3::TitleScreen::pal_selected_</td>
+          <td class="memname">int yaze::zelda3::TitleScreen::pal_selected_ = 2</td>
         </tr>
       </table>
   </td>
@@ -880,14 +845,14 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00040">40</a> of file <a class="el" href="../../d4/dea/title__screen_8h_source.html">title_screen.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00087">87</a> of file <a class="el" href="../../d4/dea/title__screen_8h_source.html">title_screen.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/dce/title__screen_8cc_source.html#l00062">LoadTitleScreen()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/dce/title__screen_8cc_source.html#l00284">LoadTitleScreen()</a>.</p>
 
 </div>
 </div>
-<a id="aadc3905a832ba76767c85f27e67cf601" name="aadc3905a832ba76767c85f27e67cf601"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aadc3905a832ba76767c85f27e67cf601">&#9670;&#160;</a></span>addresses</h2>
+<a id="a96219346e9fd15f1914060ba02e58329" name="a96219346e9fd15f1914060ba02e58329"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a96219346e9fd15f1914060ba02e58329">&#9670;&#160;</a></span>tiles_bg1_buffer_</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -896,7 +861,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">int yaze::zelda3::TitleScreen::addresses[7]</td>
+          <td class="memname">std::array&lt;uint16_t, 0x1000&gt; yaze::zelda3::TitleScreen::tiles_bg1_buffer_</td>
         </tr>
       </table>
   </td>
@@ -905,15 +870,15 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
-<b>Initial value:</b><div class="fragment"><div class="line">= {0x53de4, 0x53e2c, 0x53e08, 0x53e50,</div>
-<div class="line">                      0x53e74, 0x53e98, 0x53ebc}</div>
-</div><!-- fragment -->
-<p class="definition">Definition at line <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00041">41</a> of file <a class="el" href="../../d4/dea/title__screen_8h_source.html">title_screen.h</a>.</p>
+
+<p class="definition">Definition at line <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00089">89</a> of file <a class="el" href="../../d4/dea/title__screen_8h_source.html">title_screen.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00033">bg1_buffer()</a>, <a class="el" href="../../d5/dce/title__screen_8cc_source.html#l00013">Create()</a>, <a class="el" href="../../d5/dce/title__screen_8cc_source.html#l00284">LoadTitleScreen()</a>, <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00038">mutable_bg1_buffer()</a>, <a class="el" href="../../d5/dce/title__screen_8cc_source.html#l00456">RenderBG1Layer()</a>, and <a class="el" href="../../d5/dce/title__screen_8cc_source.html#l00590">Save()</a>.</p>
 
 </div>
 </div>
-<a id="a1b0b7069091716c714d171b05280a830" name="a1b0b7069091716c714d171b05280a830"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1b0b7069091716c714d171b05280a830">&#9670;&#160;</a></span>addressesgfx</h2>
+<a id="a171e285630973004fe124e3007c5c04b" name="a171e285630973004fe124e3007c5c04b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a171e285630973004fe124e3007c5c04b">&#9670;&#160;</a></span>tiles_bg2_buffer_</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -922,7 +887,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">int yaze::zelda3::TitleScreen::addressesgfx[7]</td>
+          <td class="memname">std::array&lt;uint16_t, 0x1000&gt; yaze::zelda3::TitleScreen::tiles_bg2_buffer_</td>
         </tr>
       </table>
   </td>
@@ -931,15 +896,15 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
-<b>Initial value:</b><div class="fragment"><div class="line">= {0x53ee0, 0x53f04, 0x53ef2, 0x53f16,</div>
-<div class="line">                         0x53f28, 0x53f3a, 0x53f4c}</div>
-</div><!-- fragment -->
-<p class="definition">Definition at line <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00043">43</a> of file <a class="el" href="../../d4/dea/title__screen_8h_source.html">title_screen.h</a>.</p>
+
+<p class="definition">Definition at line <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00090">90</a> of file <a class="el" href="../../d4/dea/title__screen_8h_source.html">title_screen.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00034">bg2_buffer()</a>, <a class="el" href="../../d5/dce/title__screen_8cc_source.html#l00013">Create()</a>, <a class="el" href="../../d5/dce/title__screen_8cc_source.html#l00284">LoadTitleScreen()</a>, <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00039">mutable_bg2_buffer()</a>, <a class="el" href="../../d5/dce/title__screen_8cc_source.html#l00526">RenderBG2Layer()</a>, and <a class="el" href="../../d5/dce/title__screen_8cc_source.html#l00590">Save()</a>.</p>
 
 </div>
 </div>
-<a id="a7d22501b206314c2a3d96439bf715261" name="a7d22501b206314c2a3d96439bf715261"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7d22501b206314c2a3d96439bf715261">&#9670;&#160;</a></span>bossRoom</h2>
+<a id="a2d65b9c82af7bb4fc33bed1b8ddd39f7" name="a2d65b9c82af7bb4fc33bed1b8ddd39f7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2d65b9c82af7bb4fc33bed1b8ddd39f7">&#9670;&#160;</a></span>oam_data_</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -948,7 +913,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">uint16_t yaze::zelda3::TitleScreen::bossRoom = 0x000F</td>
+          <td class="memname"><a class="el" href="../../df/da2/classyaze_1_1gfx_1_1OamTile.html">gfx::OamTile</a> yaze::zelda3::TitleScreen::oam_data_[10]</td>
         </tr>
       </table>
   </td>
@@ -958,12 +923,14 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00046">46</a> of file <a class="el" href="../../d4/dea/title__screen_8h_source.html">title_screen.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00092">92</a> of file <a class="el" href="../../d4/dea/title__screen_8h_source.html">title_screen.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00035">oam_buffer()</a>.</p>
 
 </div>
 </div>
-<a id="a5252fa85e85a67f3da8560eb6c17e7a2" name="a5252fa85e85a67f3da8560eb6c17e7a2"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5252fa85e85a67f3da8560eb6c17e7a2">&#9670;&#160;</a></span>selected_tile</h2>
+<a id="adb101fd38210dfce7fe6e5fe46cf0ab9" name="adb101fd38210dfce7fe6e5fe46cf0ab9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adb101fd38210dfce7fe6e5fe46cf0ab9">&#9670;&#160;</a></span>tiles_bg1_bitmap_</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -972,7 +939,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">uint16_t yaze::zelda3::TitleScreen::selected_tile = 0</td>
+          <td class="memname"><a class="el" href="../../df/d0e/classyaze_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a> yaze::zelda3::TitleScreen::tiles_bg1_bitmap_</td>
         </tr>
       </table>
   </td>
@@ -982,12 +949,14 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00047">47</a> of file <a class="el" href="../../d4/dea/title__screen_8h_source.html">title_screen.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00094">94</a> of file <a class="el" href="../../d4/dea/title__screen_8h_source.html">title_screen.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00042">bg1_bitmap()</a>, <a class="el" href="../../d5/dce/title__screen_8cc_source.html#l00013">Create()</a>, <a class="el" href="../../d5/dce/title__screen_8cc_source.html#l00284">LoadTitleScreen()</a>, <a class="el" href="../../d5/dce/title__screen_8cc_source.html#l00456">RenderBG1Layer()</a>, and <a class="el" href="../../d5/dce/title__screen_8cc_source.html#l00680">RenderCompositeLayer()</a>.</p>
 
 </div>
 </div>
-<a id="adb1cf7cf4199fef6afc24f781455709d" name="adb1cf7cf4199fef6afc24f781455709d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#adb1cf7cf4199fef6afc24f781455709d">&#9670;&#160;</a></span>tilesBG1Buffer</h2>
+<a id="a7b98570ba4b15fadc6bfb495c20f8b6a" name="a7b98570ba4b15fadc6bfb495c20f8b6a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7b98570ba4b15fadc6bfb495c20f8b6a">&#9670;&#160;</a></span>tiles_bg2_bitmap_</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -996,7 +965,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">uint16_t yaze::zelda3::TitleScreen::tilesBG1Buffer[0x1000]</td>
+          <td class="memname"><a class="el" href="../../df/d0e/classyaze_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a> yaze::zelda3::TitleScreen::tiles_bg2_bitmap_</td>
         </tr>
       </table>
   </td>
@@ -1006,14 +975,14 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00048">48</a> of file <a class="el" href="../../d4/dea/title__screen_8h_source.html">title_screen.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00095">95</a> of file <a class="el" href="../../d4/dea/title__screen_8h_source.html">title_screen.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/dce/title__screen_8cc_source.html#l00062">LoadTitleScreen()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00043">bg2_bitmap()</a>, <a class="el" href="../../d5/dce/title__screen_8cc_source.html#l00013">Create()</a>, <a class="el" href="../../d5/dce/title__screen_8cc_source.html#l00284">LoadTitleScreen()</a>, <a class="el" href="../../d5/dce/title__screen_8cc_source.html#l00526">RenderBG2Layer()</a>, and <a class="el" href="../../d5/dce/title__screen_8cc_source.html#l00680">RenderCompositeLayer()</a>.</p>
 
 </div>
 </div>
-<a id="a195ffa5d53da25d9fb1567b31688d77a" name="a195ffa5d53da25d9fb1567b31688d77a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a195ffa5d53da25d9fb1567b31688d77a">&#9670;&#160;</a></span>tilesBG2Buffer</h2>
+<a id="ad5dc2b9abd87fe69dd6de4a60810767d" name="ad5dc2b9abd87fe69dd6de4a60810767d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad5dc2b9abd87fe69dd6de4a60810767d">&#9670;&#160;</a></span>oam_bg_bitmap_</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1022,7 +991,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">uint16_t yaze::zelda3::TitleScreen::tilesBG2Buffer[0x1000]</td>
+          <td class="memname"><a class="el" href="../../df/d0e/classyaze_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a> yaze::zelda3::TitleScreen::oam_bg_bitmap_</td>
         </tr>
       </table>
   </td>
@@ -1032,14 +1001,14 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00049">49</a> of file <a class="el" href="../../d4/dea/title__screen_8h_source.html">title_screen.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00096">96</a> of file <a class="el" href="../../d4/dea/title__screen_8h_source.html">title_screen.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/dce/title__screen_8cc_source.html#l00062">LoadTitleScreen()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/dce/title__screen_8cc_source.html#l00013">Create()</a>, <a class="el" href="../../d5/dce/title__screen_8cc_source.html#l00284">LoadTitleScreen()</a>, and <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00044">oam_bitmap()</a>.</p>
 
 </div>
 </div>
-<a id="a1613c80e13dd8c0e0bf0cda71e6a1820" name="a1613c80e13dd8c0e0bf0cda71e6a1820"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1613c80e13dd8c0e0bf0cda71e6a1820">&#9670;&#160;</a></span>mapdata</h2>
+<a id="a434eddefe0fc9a28625e815d6ef21bbc" name="a434eddefe0fc9a28625e815d6ef21bbc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a434eddefe0fc9a28625e815d6ef21bbc">&#9670;&#160;</a></span>tiles8_bitmap_</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1048,7 +1017,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">uint8_t yaze::zelda3::TitleScreen::mapdata</td>
+          <td class="memname"><a class="el" href="../../df/d0e/classyaze_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a> yaze::zelda3::TitleScreen::tiles8_bitmap_</td>
         </tr>
       </table>
   </td>
@@ -1058,12 +1027,14 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00050">50</a> of file <a class="el" href="../../d4/dea/title__screen_8h_source.html">title_screen.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00097">97</a> of file <a class="el" href="../../d4/dea/title__screen_8h_source.html">title_screen.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d5/dce/title__screen_8cc_source.html#l00170">BuildTileset()</a>, <a class="el" href="../../d5/dce/title__screen_8cc_source.html#l00013">Create()</a>, <a class="el" href="../../d5/dce/title__screen_8cc_source.html#l00456">RenderBG1Layer()</a>, <a class="el" href="../../d5/dce/title__screen_8cc_source.html#l00526">RenderBG2Layer()</a>, and <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00045">tiles8_bitmap()</a>.</p>
 
 </div>
 </div>
-<a id="a1f0f8241d3a6ed0d3702556dd308ca37" name="a1f0f8241d3a6ed0d3702556dd308ca37"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1f0f8241d3a6ed0d3702556dd308ca37">&#9670;&#160;</a></span>dwmapdata</h2>
+<a id="a63dbe358086562594f5ffe8d0e2546d6" name="a63dbe358086562594f5ffe8d0e2546d6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a63dbe358086562594f5ffe8d0e2546d6">&#9670;&#160;</a></span>title_composite_bitmap_</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1072,7 +1043,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">uint8_t yaze::zelda3::TitleScreen::dwmapdata</td>
+          <td class="memname"><a class="el" href="../../df/d0e/classyaze_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a> yaze::zelda3::TitleScreen::title_composite_bitmap_</td>
         </tr>
       </table>
   </td>
@@ -1082,12 +1053,14 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00051">51</a> of file <a class="el" href="../../d4/dea/title__screen_8h_source.html">title_screen.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00098">98</a> of file <a class="el" href="../../d4/dea/title__screen_8h_source.html">title_screen.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00046">composite_bitmap()</a>, <a class="el" href="../../d5/dce/title__screen_8cc_source.html#l00013">Create()</a>, <a class="el" href="../../d5/dce/title__screen_8cc_source.html#l00284">LoadTitleScreen()</a>, and <a class="el" href="../../d5/dce/title__screen_8cc_source.html#l00680">RenderCompositeLayer()</a>.</p>
 
 </div>
 </div>
-<a id="ad11ecb022fe8028407980e751708d0ee" name="ad11ecb022fe8028407980e751708d0ee"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad11ecb022fe8028407980e751708d0ee">&#9670;&#160;</a></span>mDown</h2>
+<a id="a77b47181ae1f8fa12132d0c0983b6f9f" name="a77b47181ae1f8fa12132d0c0983b6f9f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a77b47181ae1f8fa12132d0c0983b6f9f">&#9670;&#160;</a></span>tile16_blockset_</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1096,7 +1069,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">bool yaze::zelda3::TitleScreen::mDown = false</td>
+          <td class="memname"><a class="el" href="../../db/d0a/structyaze_1_1gfx_1_1Tilemap.html">gfx::Tilemap</a> yaze::zelda3::TitleScreen::tile16_blockset_</td>
         </tr>
       </table>
   </td>
@@ -1106,12 +1079,14 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00053">53</a> of file <a class="el" href="../../d4/dea/title__screen_8h_source.html">title_screen.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00100">100</a> of file <a class="el" href="../../d4/dea/title__screen_8h_source.html">title_screen.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00047">blockset()</a>.</p>
 
 </div>
 </div>
-<a id="a6df3d1dc17ecdf7d6ae451409ab93bcd" name="a6df3d1dc17ecdf7d6ae451409ab93bcd"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6df3d1dc17ecdf7d6ae451409ab93bcd">&#9670;&#160;</a></span>swordSelected</h2>
+<a id="a615848fc91ec6921e2474a9a4913a87c" name="a615848fc91ec6921e2474a9a4913a87c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a615848fc91ec6921e2474a9a4913a87c">&#9670;&#160;</a></span>palette_</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1120,7 +1095,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">bool yaze::zelda3::TitleScreen::swordSelected = false</td>
+          <td class="memname"><a class="el" href="../../da/d68/classyaze_1_1gfx_1_1SnesPalette.html">gfx::SnesPalette</a> yaze::zelda3::TitleScreen::palette_</td>
         </tr>
       </table>
   </td>
@@ -1130,335 +1105,15 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00054">54</a> of file <a class="el" href="../../d4/dea/title__screen_8h_source.html">title_screen.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00101">101</a> of file <a class="el" href="../../d4/dea/title__screen_8h_source.html">title_screen.h</a>.</p>
 
-</div>
-</div>
-<a id="a762e918f7c51c2e2e1e24956681488d2" name="a762e918f7c51c2e2e1e24956681488d2"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a762e918f7c51c2e2e1e24956681488d2">&#9670;&#160;</a></span>darkWorld</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">bool yaze::zelda3::TitleScreen::darkWorld = false</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00055">55</a> of file <a class="el" href="../../d4/dea/title__screen_8h_source.html">title_screen.h</a>.</p>
-
-</div>
-</div>
-<a id="aea75927a5844fd671f67796466499e81" name="aea75927a5844fd671f67796466499e81"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aea75927a5844fd671f67796466499e81">&#9670;&#160;</a></span>currentDungeonChanged</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">bool yaze::zelda3::TitleScreen::currentDungeonChanged = false</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00056">56</a> of file <a class="el" href="../../d4/dea/title__screen_8h_source.html">title_screen.h</a>.</p>
-
-</div>
-</div>
-<a id="a590684a6d6fadb8d0daca86d1893ac93" name="a590684a6d6fadb8d0daca86d1893ac93"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a590684a6d6fadb8d0daca86d1893ac93">&#9670;&#160;</a></span>editedFromEditor</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">bool yaze::zelda3::TitleScreen::editedFromEditor = false</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00057">57</a> of file <a class="el" href="../../d4/dea/title__screen_8h_source.html">title_screen.h</a>.</p>
-
-</div>
-</div>
-<a id="a8d60680de49fc10b0c37725c22ea8347" name="a8d60680de49fc10b0c37725c22ea8347"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8d60680de49fc10b0c37725c22ea8347">&#9670;&#160;</a></span>mouseDown</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">bool yaze::zelda3::TitleScreen::mouseDown = false</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00058">58</a> of file <a class="el" href="../../d4/dea/title__screen_8h_source.html">title_screen.h</a>.</p>
-
-</div>
-</div>
-<a id="a66f53fad482f85ed6d119e0378173058" name="a66f53fad482f85ed6d119e0378173058"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a66f53fad482f85ed6d119e0378173058">&#9670;&#160;</a></span>mdown</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">bool yaze::zelda3::TitleScreen::mdown = false</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00059">59</a> of file <a class="el" href="../../d4/dea/title__screen_8h_source.html">title_screen.h</a>.</p>
-
-</div>
-</div>
-<a id="aea21bee828e78cc83b1d0a7a964b4b14" name="aea21bee828e78cc83b1d0a7a964b4b14"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aea21bee828e78cc83b1d0a7a964b4b14">&#9670;&#160;</a></span>rom_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="../../d6/d30/classyaze_1_1Rom.html">Rom</a> yaze::zelda3::TitleScreen::rom_</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00061">61</a> of file <a class="el" href="../../d4/dea/title__screen_8h_source.html">title_screen.h</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="../../d5/dce/title__screen_8cc_source.html#l00062">LoadTitleScreen()</a>.</p>
-
-</div>
-</div>
-<a id="a7db88638fa0e02388808cb444d5c6394" name="a7db88638fa0e02388808cb444d5c6394"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7db88638fa0e02388808cb444d5c6394">&#9670;&#160;</a></span>oam_data</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="../../df/da2/classyaze_1_1gfx_1_1OamTile.html">gfx::OamTile</a> yaze::zelda3::TitleScreen::oam_data[10]</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00063">63</a> of file <a class="el" href="../../d4/dea/title__screen_8h_source.html">title_screen.h</a>.</p>
-
-</div>
-</div>
-<a id="a3f0c2eef76c9c538ba5ebfb53a410050" name="a3f0c2eef76c9c538ba5ebfb53a410050"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3f0c2eef76c9c538ba5ebfb53a410050">&#9670;&#160;</a></span>selected_oam_tile</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="../../df/da2/classyaze_1_1gfx_1_1OamTile.html">gfx::OamTile</a> yaze::zelda3::TitleScreen::selected_oam_tile</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00064">64</a> of file <a class="el" href="../../d4/dea/title__screen_8h_source.html">title_screen.h</a>.</p>
-
-</div>
-</div>
-<a id="adf83b3e01aa0c604c592b3f0c46dbf77" name="adf83b3e01aa0c604c592b3f0c46dbf77"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#adf83b3e01aa0c604c592b3f0c46dbf77">&#9670;&#160;</a></span>last_selected_oam_tile</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="../../df/da2/classyaze_1_1gfx_1_1OamTile.html">gfx::OamTile</a> yaze::zelda3::TitleScreen::last_selected_oam_tile</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00065">65</a> of file <a class="el" href="../../d4/dea/title__screen_8h_source.html">title_screen.h</a>.</p>
-
-</div>
-</div>
-<a id="ac6ac8a4c165f0aadca4a8ebe5d68c7bd" name="ac6ac8a4c165f0aadca4a8ebe5d68c7bd"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac6ac8a4c165f0aadca4a8ebe5d68c7bd">&#9670;&#160;</a></span>tilesBG1Bitmap</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="../../df/d0e/classyaze_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a> yaze::zelda3::TitleScreen::tilesBG1Bitmap</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00067">67</a> of file <a class="el" href="../../d4/dea/title__screen_8h_source.html">title_screen.h</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="../../d5/dce/title__screen_8cc_source.html#l00012">Create()</a>.</p>
-
-</div>
-</div>
-<a id="aa0594eae05cd0f4eb7ed9db5340163b4" name="aa0594eae05cd0f4eb7ed9db5340163b4"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa0594eae05cd0f4eb7ed9db5340163b4">&#9670;&#160;</a></span>tilesBG2Bitmap</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="../../df/d0e/classyaze_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a> yaze::zelda3::TitleScreen::tilesBG2Bitmap</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00068">68</a> of file <a class="el" href="../../d4/dea/title__screen_8h_source.html">title_screen.h</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="../../d5/dce/title__screen_8cc_source.html#l00012">Create()</a>.</p>
-
-</div>
-</div>
-<a id="a7656ac8010708e2e7fe35f5cf567fbd4" name="a7656ac8010708e2e7fe35f5cf567fbd4"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7656ac8010708e2e7fe35f5cf567fbd4">&#9670;&#160;</a></span>oamBGBitmap</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="../../df/d0e/classyaze_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a> yaze::zelda3::TitleScreen::oamBGBitmap</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00069">69</a> of file <a class="el" href="../../d4/dea/title__screen_8h_source.html">title_screen.h</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="../../d5/dce/title__screen_8cc_source.html#l00012">Create()</a>.</p>
-
-</div>
-</div>
-<a id="abd3fe0e48be82ce845d585eb110e4cc4" name="abd3fe0e48be82ce845d585eb110e4cc4"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#abd3fe0e48be82ce845d585eb110e4cc4">&#9670;&#160;</a></span>tiles8Bitmap</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="../../df/d0e/classyaze_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a> yaze::zelda3::TitleScreen::tiles8Bitmap</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00070">70</a> of file <a class="el" href="../../d4/dea/title__screen_8h_source.html">title_screen.h</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="../../d5/dce/title__screen_8cc_source.html#l00021">BuildTileset()</a>, and <a class="el" href="../../d5/dce/title__screen_8cc_source.html#l00012">Create()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/dce/title__screen_8cc_source.html#l00170">BuildTileset()</a>, <a class="el" href="../../d5/dce/title__screen_8cc_source.html#l00013">Create()</a>, <a class="el" href="../../d5/dce/title__screen_8cc_source.html#l00284">LoadTitleScreen()</a>, and <a class="el" href="../../d4/dea/title__screen_8h_source.html#l00050">palette()</a>.</p>
 
 </div>
 </div>
 <hr/>The documentation for this class was generated from the following files:<ul>
-<li>src/app/zelda3/screen/<a class="el" href="../../d4/dea/title__screen_8h_source.html">title_screen.h</a></li>
-<li>src/app/zelda3/screen/<a class="el" href="../../d5/dce/title__screen_8cc_source.html">title_screen.cc</a></li>
+<li>src/zelda3/screen/<a class="el" href="../../d4/dea/title__screen_8h_source.html">title_screen.h</a></li>
+<li>src/zelda3/screen/<a class="el" href="../../d5/dce/title__screen_8cc_source.html">title_screen.cc</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->

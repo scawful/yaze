@@ -1,0 +1,12 @@
+<map id="yaze::editor::MenuOrchestrator::OnOpenRom" name="yaze::editor::MenuOrchestrator::OnOpenRom">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,104,201,145"/>
+<area shape="rect" id="Node000002" href="$dd/d12/classyaze_1_1editor_1_1EditorManager.html#a9e31d2cdbb2d802bf8f2a8f458cb8edf" title="Load a ROM file into a new or existing session." alt="" coords="249,73,423,114"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="201,109,233,104,234,110,202,114"/>
+<area shape="rect" id="Node000046" href="$d7/d92/classyaze_1_1editor_1_1ToastManager.html#aa9b4c4a8d7c6746e46466530f1eea654" title=" " alt="" coords="482,136,656,177"/>
+<area shape="poly" id="edge5_Node000001_Node000046" title=" " alt="" coords="201,128,467,147,466,152,201,134"/>
+<area shape="rect" id="Node000003" href="$d9/da8/classyaze_1_1editor_1_1EditorSelectionDialog.html#a2c9e5719bc794157632851f1193c53e3" title="Clear recent editors (for new ROM sessions)" alt="" coords="480,5,658,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="408,70,482,48,483,53,409,75"/>
+<area shape="rect" id="Node000011" href="$dd/d12/classyaze_1_1editor_1_1EditorManager.html#add78fab14d70ab2c363c5582ae768123" title="Injects dependencies into all editors within an EditorSet." alt="" coords="471,71,667,111"/>
+<area shape="poly" id="edge3_Node000002_Node000011" title=" " alt="" coords="423,90,455,90,455,95,423,95"/>
+<area shape="poly" id="edge4_Node000002_Node000046" title=" " alt="" coords="415,112,477,129,475,134,413,117"/>
+</map>

@@ -1,0 +1,9 @@
+<map id="yaze::gui::CanvasUsageTracker::SaveCurrentStats" name="yaze::gui::CanvasUsageTracker::SaveCurrentStats">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,71,208,111"/>
+<area shape="rect" id="Node000002" href="$d7/dfd/structyaze_1_1gui_1_1CanvasUsageStats.html#ae2054d9bfd2c554c1f56dda66e695105" title=" " alt="" coords="262,5,452,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="187,67,261,48,262,53,188,73"/>
+<area shape="rect" id="Node000003" href="$da/d7e/classyaze_1_1gui_1_1CanvasUsageTracker.html#a8b196b74311036a29affeff66f95440d" title=" " alt="" coords="256,71,458,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="208,88,240,88,240,94,208,94"/>
+<area shape="rect" id="Node000004" href="$da/d7e/classyaze_1_1gui_1_1CanvasUsageTracker.html#ad704bd30c1a75fc30a1883a1882cf8df" title=" " alt="" coords="256,136,458,177"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="188,109,262,129,261,134,187,115"/>
+</map>

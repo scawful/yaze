@@ -1,0 +1,11 @@
+<map id="yaze::gui::CanvasModals::ShowScalingControls" name="yaze::gui::CanvasModals::ShowScalingControls">
+<area shape="rect" id="Node000001" title="Show scaling controls modal." alt="" coords="5,39,168,79"/>
+<area shape="rect" id="Node000002" href="$db/dff/classyaze_1_1gui_1_1CanvasModals.html#a7b5a62dc75ff8f2ac36e3946e9b3f22a" title=" " alt="" coords="232,5,394,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="168,44,216,37,216,43,168,50"/>
+<area shape="rect" id="Node000003" href="$db/dff/classyaze_1_1gui_1_1CanvasModals.html#a66f2b7c787cc6a2b04b9b1aa70453234" title=" " alt="" coords="216,71,410,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="168,68,201,72,200,78,168,73"/>
+<area shape="rect" id="Node000004" href="$df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a7729f6c60dee1836a303ce39448febc3" title=" " alt="" coords="478,37,601,78"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="410,74,462,66,463,72,411,79"/>
+<area shape="rect" id="Node000005" href="$db/dff/classyaze_1_1gui_1_1CanvasModals.html#a1f07c5a4ddf421d8bb532f7eb4164108" title=" " alt="" coords="458,103,620,143"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="411,102,443,107,442,112,410,107"/>
+</map>

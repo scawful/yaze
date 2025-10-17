@@ -1,0 +1,12 @@
+<map id="yaze::gfx::PaletteManager::DiscardGroup" name="yaze::gfx::PaletteManager::DiscardGroup">
+<area shape="rect" id="Node000001" title="Discard changes for a specific group." alt="" coords="5,100,173,141"/>
+<area shape="rect" id="Node000002" href="$d7/d39/classyaze_1_1gfx_1_1PaletteManager.html#a665768d2ec24bed9e18cde8b4565a7eb" title="Helper: Clear modified flags for a group." alt="" coords="221,5,388,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="132,97,220,57,235,50,237,55,222,61,134,102"/>
+<area shape="rect" id="Node000003" href="$d7/d39/classyaze_1_1gfx_1_1PaletteManager.html#a2e456087d1fa6be7f676ff21a50be921" title="Helper: Get mutable palette group." alt="" coords="221,71,388,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="173,106,205,102,205,107,174,112"/>
+<area shape="rect" id="Node000004" href="$d7/d39/classyaze_1_1gfx_1_1PaletteManager.html#abb4b2a02a30c7d06ee74c0c4b93c86fb" title="Check if manager is initialized." alt="" coords="436,100,603,141"/>
+<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="173,120,221,120,388,120,420,120,420,125,388,126,221,126,173,125"/>
+<area shape="rect" id="Node000006" href="$d7/d39/classyaze_1_1gfx_1_1PaletteManager.html#a60f767b79f34e46266cf4dec82a96c7c" title="Helper: Notify all listeners of an event." alt="" coords="221,185,388,226"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="143,139,238,177,236,182,141,144"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="389,100,421,104,420,109,388,105"/>
+</map>

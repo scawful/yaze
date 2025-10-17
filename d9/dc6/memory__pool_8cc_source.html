@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.9.8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>yaze: src/app/gfx/memory_pool.cc Source File</title>
+<title>yaze: src/app/gfx/resource/memory_pool.cc Source File</title>
 <link href="../../tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript">var page_layout=1;</script>
 <script type="text/javascript" src="../../jquery.js"></script>
@@ -101,7 +101,7 @@ $(document).ready(function(){initNavTree('d9/dc6/memory__pool_8cc_source.html','
   <div class="headertitle"><div class="title">memory_pool.cc</div></div>
 </div><!--header-->
 <div class="contents">
-<a href="../../d9/dc6/memory__pool_8cc.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="preprocessor">#include &quot;<a class="code" href="../../de/d5c/memory__pool_8h.html">app/gfx/memory_pool.h</a>&quot;</span></div>
+<a href="../../d9/dc6/memory__pool_8cc.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="preprocessor">#include &quot;<a class="code" href="../../de/d5c/memory__pool_8h.html">app/gfx/resource/memory_pool.h</a>&quot;</span></div>
 <div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span> </div>
 <div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span><span class="preprocessor">#include &lt;algorithm&gt;</span></div>
 <div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="preprocessor">#include &lt;cstdlib&gt;</span></div>
@@ -312,7 +312,7 @@ $(document).ready(function(){initNavTree('d9/dc6/memory__pool_8cc_source.html','
 <div class="ttc" id="aclassyaze_1_1gfx_1_1MemoryPool_html_aecfb427e06b194333badf82bde05680b"><div class="ttname"><a href="../../dc/d55/classyaze_1_1gfx_1_1MemoryPool.html#aecfb427e06b194333badf82bde05680b">yaze::gfx::MemoryPool::InitializeBlockPool</a></div><div class="ttdeci">void InitializeBlockPool(std::vector&lt; MemoryBlock &gt; &amp;pool, size_t block_size, size_t count)</div><div class="ttdef"><b>Definition</b> <a href="../../d9/dc6/memory__pool_8cc_source.html#l00139">memory_pool.cc:139</a></div></div>
 <div class="ttc" id="aclassyaze_1_1gfx_1_1MemoryPool_html_afe1f53881bd051f56ac2d3d81202582d"><div class="ttname"><a href="../../dc/d55/classyaze_1_1gfx_1_1MemoryPool.html#afe1f53881bd051f56ac2d3d81202582d">yaze::gfx::MemoryPool::large_blocks_</a></div><div class="ttdeci">std::vector&lt; MemoryBlock &gt; large_blocks_</div><div class="ttdef"><b>Definition</b> <a href="../../de/d5c/memory__pool_8h_source.html#l00106">memory_pool.h:106</a></div></div>
 <div class="ttc" id="amemory__pool_8h_html"><div class="ttname"><a href="../../de/d5c/memory__pool_8h.html">memory_pool.h</a></div></div>
-<div class="ttc" id="anamespaceyaze_html"><div class="ttname"><a href="../../dc/d46/namespaceyaze.html">yaze</a></div><div class="ttdoc">Main namespace for the application.</div><div class="ttdef"><b>Definition</b> <a href="../../db/d17/asar__wrapper_8cc_source.html#l00014">asar_wrapper.cc:14</a></div></div>
+<div class="ttc" id="anamespaceyaze_html"><div class="ttname"><a href="../../dc/d46/namespaceyaze.html">yaze</a></div><div class="ttdoc">Main namespace for the application.</div><div class="ttdef"><b>Definition</b> <a href="../../da/d0c/controller_8cc_source.html#l00020">controller.cc:20</a></div></div>
 <div class="ttc" id="astructyaze_1_1gfx_1_1MemoryPool_1_1MemoryBlock_html"><div class="ttname"><a href="../../db/dc5/structyaze_1_1gfx_1_1MemoryPool_1_1MemoryBlock.html">yaze::gfx::MemoryPool::MemoryBlock</a></div><div class="ttdef"><b>Definition</b> <a href="../../de/d5c/memory__pool_8h_source.html#l00080">memory_pool.h:80</a></div></div>
 <div class="ttc" id="astructyaze_1_1gfx_1_1MemoryPool_1_1MemoryBlock_html_a8e09a435cdee01acac5d068d711f32f8"><div class="ttname"><a href="../../db/dc5/structyaze_1_1gfx_1_1MemoryPool_1_1MemoryBlock.html#a8e09a435cdee01acac5d068d711f32f8">yaze::gfx::MemoryPool::MemoryBlock::data</a></div><div class="ttdeci">void * data</div><div class="ttdef"><b>Definition</b> <a href="../../de/d5c/memory__pool_8h_source.html#l00081">memory_pool.h:81</a></div></div>
 <div class="ttc" id="astructyaze_1_1gfx_1_1MemoryPool_1_1MemoryBlock_html_a8fc5f84828e2b529ca5f1ef42f0d729c"><div class="ttname"><a href="../../db/dc5/structyaze_1_1gfx_1_1MemoryPool_1_1MemoryBlock.html#a8fc5f84828e2b529ca5f1ef42f0d729c">yaze::gfx::MemoryPool::MemoryBlock::size</a></div><div class="ttdeci">size_t size</div><div class="ttdef"><b>Definition</b> <a href="../../de/d5c/memory__pool_8h_source.html#l00082">memory_pool.h:82</a></div></div>
@@ -322,7 +322,7 @@ $(document).ready(function(){initNavTree('d9/dc6/memory__pool_8cc_source.html','
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="navelem"><a class="el" href="../../dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="../../dir_5194e5fea318fda12687127c23f8aba1.html">app</a></li><li class="navelem"><a class="el" href="../../dir_0b974e391fb3f3024b1f06092da5c188.html">gfx</a></li><li class="navelem"><a class="el" href="../../d9/dc6/memory__pool_8cc.html">memory_pool.cc</a></li>
+    <li class="navelem"><a class="el" href="../../dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="../../dir_5194e5fea318fda12687127c23f8aba1.html">app</a></li><li class="navelem"><a class="el" href="../../dir_0b974e391fb3f3024b1f06092da5c188.html">gfx</a></li><li class="navelem"><a class="el" href="../../dir_ceb05c5eecd2d6984b90a0a067296363.html">resource</a></li><li class="navelem"><a class="el" href="../../d9/dc6/memory__pool_8cc.html">memory_pool.cc</a></li>
     <li class="footer">Generated by <a href="https://www.doxygen.org/index.html"><img class="footer" src="../../doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
   </ul>
 </div>

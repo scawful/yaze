@@ -1,0 +1,11 @@
+<map id="yaze::gui::CanvasPerformanceIntegration::RenderPerformanceUI" name="yaze::gui::CanvasPerformanceIntegration::RenderPerformanceUI">
+<area shape="rect" id="Node000001" title="Render performance UI." alt="" coords="5,104,223,145"/>
+<area shape="rect" id="Node000002" href="$dc/dc7/classyaze_1_1gui_1_1CanvasPerformanceIntegration.html#a600d66ce4e565330e6fcc45fad97dd3c" title="Export performance report." alt="" coords="282,5,518,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="159,101,270,56,296,48,298,53,272,62,161,106"/>
+<area shape="rect" id="Node000007" href="$dc/dc7/classyaze_1_1gui_1_1CanvasPerformanceIntegration.html#a734de4a6a666d6d0ef84de0f53f00e66" title=" " alt="" coords="290,71,510,111"/>
+<area shape="poly" id="edge2_Node000001_Node000007" title=" " alt="" coords="223,109,274,103,275,108,224,114"/>
+<area shape="rect" id="Node000011" href="$dc/dc7/classyaze_1_1gui_1_1CanvasPerformanceIntegration.html#aefd8c511481b65ca95cdb96c6bf9a9d0" title=" " alt="" coords="271,136,529,177"/>
+<area shape="poly" id="edge3_Node000001_Node000011" title=" " alt="" coords="223,134,255,137,255,143,223,139"/>
+<area shape="rect" id="Node000013" href="$dc/dc7/classyaze_1_1gui_1_1CanvasPerformanceIntegration.html#a6aa823a88cfd1596128078862d1d3f8f" title=" " alt="" coords="281,201,519,242"/>
+<area shape="poly" id="edge4_Node000001_Node000013" title=" " alt="" coords="162,143,272,186,298,194,297,199,270,191,160,148"/>
+</map>

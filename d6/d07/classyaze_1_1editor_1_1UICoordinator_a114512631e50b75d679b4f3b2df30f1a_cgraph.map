@@ -1,0 +1,9 @@
+<map id="yaze::editor::UICoordinator::HideCurrentEditorCards" name="yaze::editor::UICoordinator::HideCurrentEditorCards">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,71,177,111"/>
+<area shape="rect" id="Node000002" href="$dd/d12/classyaze_1_1editor_1_1EditorManager.html#a7ea86af1bcd80f72eb25400be029f24e" title=" " alt="" coords="244,5,418,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="167,68,238,48,240,53,169,73"/>
+<area shape="rect" id="Node000003" href="$d4/d3f/classyaze_1_1editor_1_1EditorRegistry.html#af4f307c2b8476c9c32c845981b738455" title=" " alt="" coords="245,71,417,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="177,88,230,88,230,94,177,94"/>
+<area shape="rect" id="Node000004" href="$d0/d2e/classyaze_1_1editor_1_1EditorCardRegistry.html#af3bc7742c906eebefff0f9e6722d51e3" title="Hide all cards in a category for a session." alt="" coords="225,136,437,177"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="169,109,240,129,238,134,167,114"/>
+</map>

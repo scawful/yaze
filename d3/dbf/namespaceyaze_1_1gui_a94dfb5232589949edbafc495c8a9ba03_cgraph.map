@@ -1,0 +1,11 @@
+<map id="yaze::gui::GetShadowVec4" name="yaze::gui::GetShadowVec4">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,42,180,68"/>
+<area shape="rect" id="Node000002" href="$d3/dbf/namespaceyaze_1_1gui.html#a0a2f4e28780bd8cf64f9d6e7b67be924" title=" " alt="" coords="228,5,394,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="180,41,212,36,213,42,181,46"/>
+<area shape="rect" id="Node000003" href="$d3/dbf/namespaceyaze_1_1gui.html#a8d0ebb341adced962454997e39be42aa" title=" " alt="" coords="239,70,383,96"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="181,64,224,69,223,74,180,69"/>
+<area shape="rect" id="Node000004" href="$d3/d27/classyaze_1_1gui_1_1ThemeManager.html#ab3423e72fe874f8c370ed2d3e52ac278" title=" " alt="" coords="442,41,635,67"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="383,71,426,65,427,71,384,76"/>
+<area shape="rect" id="Node000005" href="$d3/d27/classyaze_1_1gui_1_1ThemeManager.html#a6fbd22f2f0a5276bbae49a085d962ab8" title=" " alt="" coords="456,91,622,131"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="384,89,440,96,440,102,383,95"/>
+</map>

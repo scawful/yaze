@@ -1,0 +1,12 @@
+<map id="yaze::gui::SectionHeader" name="yaze::gui::SectionHeader">
+<area shape="rect" id="Node000001" title="Themed section header with accent color." alt="" coords="5,59,168,84"/>
+<area shape="rect" id="Node000002" href="$d3/dbf/namespaceyaze_1_1gui.html#a5fa374aea4d5d783b38f9fc32e937eb0" title=" " alt="" coords="216,29,378,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="168,58,200,53,200,58,168,63"/>
+<area shape="rect" id="Node000003" href="$d9/dfb/classyaze_1_1gui_1_1LayoutHelpers.html#a10cdc847da130224cf4df572365bb6a9" title=" " alt="" coords="217,79,377,120"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="168,80,202,84,201,89,168,85"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="262,31,255,21,259,11,273,5,297,3,323,5,336,12,333,17,321,10,297,8,275,10,263,15,260,20,266,27"/>
+<area shape="rect" id="Node000004" href="$d3/dbf/namespaceyaze_1_1gui.html#a0a2f4e28780bd8cf64f9d6e7b67be924" title=" " alt="" coords="426,46,592,87"/>
+<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="377,84,410,79,411,84,378,90"/>
+<area shape="rect" id="Node000005" href="$d9/dfb/classyaze_1_1gui_1_1LayoutHelpers.html#a539bca266d42c2a2b603dc12bed9446c" title=" " alt="" coords="429,111,589,152"/>
+<area shape="poly" id="edge5_Node000003_Node000005" title=" " alt="" coords="378,109,414,114,413,120,377,114"/>
+</map>

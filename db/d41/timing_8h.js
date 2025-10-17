@@ -1,4 +1,4 @@
 var timing_8h =
 [
-    [ "yaze::core::TimingManager", "d5/d77/classyaze_1_1core_1_1TimingManager.html", "d5/d77/classyaze_1_1core_1_1TimingManager" ]
+    [ "yaze::TimingManager", "dd/df2/classyaze_1_1TimingManager.html", "dd/df2/classyaze_1_1TimingManager" ]
 ];

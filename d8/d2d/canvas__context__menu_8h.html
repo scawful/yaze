@@ -108,10 +108,11 @@ $(document).ready(function(){initNavTree('d8/d2d/canvas__context__menu_8h.html',
 <code>#include &lt;string&gt;</code><br />
 <code>#include &lt;unordered_map&gt;</code><br />
 <code>#include &lt;vector&gt;</code><br />
-<code>#include &quot;<a class="el" href="../../da/dcb/bitmap_8h_source.html">app/gfx/bitmap.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="../../d8/ddb/snes__palette_8h_source.html">app/gfx/snes_palette.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="../../de/dbf/icons_8h_source.html">app/gui/icons.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../da/dcb/bitmap_8h_source.html">app/gfx/core/bitmap.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../d8/ddb/snes__palette_8h_source.html">app/gfx/types/snes_palette.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../de/dbf/icons_8h_source.html">app/gui/core/icons.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../d0/d07/canvas__modals_8h_source.html">app/gui/canvas/canvas_modals.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../d0/d65/canvas__menu_8h_source.html">app/gui/canvas/canvas_menu.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../d3/dbf/canvas__usage__tracker_8h_source.html">canvas_usage_tracker.h</a>&quot;</code><br />
 <code>#include &quot;imgui/imgui.h&quot;</code><br />
 </div><div class="textblock"><div class="dynheader">
@@ -119,15 +120,16 @@ This graph shows which files directly or indirectly include this file:</div>
 <div class="dyncontent">
 <div class="center"><img src="../../d4/d53/canvas__context__menu_8h__dep__incl.png" border="0" usemap="#asrc_2app_2gui_2canvas_2canvas__context__menu_8hdep" alt=""/></div>
 <map name="asrc_2app_2gui_2canvas_2canvas__context__menu_8hdep" id="asrc_2app_2gui_2canvas_2canvas__context__menu_8hdep">
-<area shape="rect" title=" " alt="" coords="103,5,268,46"/>
-<area shape="rect" href="../../d4/dcf/canvas_8h.html" title=" " alt="" coords="24,102,165,127"/>
-<area shape="poly" title=" " alt="" coords="155,59,109,103,105,99,152,55"/>
-<area shape="rect" href="../../df/db2/canvas__context__menu_8cc.html" title=" " alt="" coords="190,94,362,135"/>
-<area shape="poly" title=" " alt="" coords="218,55,257,92,254,95,215,59"/>
+<area shape="rect" title=" " alt="" coords="183,5,348,46"/>
+<area shape="rect" href="../../d4/dcf/canvas_8h.html" title=" " alt="" coords="149,94,280,135"/>
+<area shape="poly" title=" " alt="" coords="248,61,228,95,224,92,244,58"/>
+<area shape="rect" href="../../df/db2/canvas__context__menu_8cc.html" title=" " alt="" coords="283,183,455,223"/>
+<area shape="poly" title=" " alt="" coords="287,58,360,181,355,184,282,61"/>
 <area shape="rect" href="../../d3/d38/dungeon__canvas__viewer_8h.html" title=" " alt="" coords="5,271,184,312"/>
-<area shape="poly" title=" " alt="" coords="77,141,65,161,56,183,52,203,56,223,67,248,81,270,76,273,62,250,51,224,47,203,51,182,60,159,73,138"/>
+<area shape="poly" title=" " alt="" coords="135,132,90,152,71,166,56,184,49,205,53,228,65,250,79,269,74,272,60,253,48,230,44,205,51,181,67,162,88,147,133,127"/>
 <area shape="rect" href="../../d4/ded/dungeon__object__interaction_8h.html" title=" " alt="" coords="66,183,259,223"/>
-<area shape="poly" title=" " alt="" coords="115,138,149,181,145,184,111,141"/>
+<area shape="poly" title=" " alt="" coords="197,149,177,184,172,181,193,147"/>
+<area shape="poly" title=" " alt="" coords="264,140,336,180,333,185,261,145"/>
 <area shape="poly" title=" " alt="" coords="140,237,112,273,108,269,136,234"/>
 </map>
 </div>
@@ -136,9 +138,7 @@ This graph shows which files directly or indirectly include this file:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/ddf/classyaze_1_1gui_1_1canvas_1_1CanvasContextMenu.html">yaze::gui::canvas::CanvasContextMenu</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/d94/structyaze_1_1gui_1_1canvas_1_1CanvasContextMenu_1_1ContextMenuItem.html">yaze::gui::canvas::CanvasContextMenu::ContextMenuItem</a></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d91/classyaze_1_1gui_1_1CanvasContextMenu.html">yaze::gui::CanvasContextMenu</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="namespaces" name="namespaces"></a>
@@ -148,8 +148,6 @@ Namespaces</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:d3/dbf/namespaceyaze_1_1gui" id="r_d3/dbf/namespaceyaze_1_1gui"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/dbf/namespaceyaze_1_1gui.html">yaze::gui</a></td></tr>
 <tr class="memdesc:d3/dbf/namespaceyaze_1_1gui"><td class="mdescLeft">&#160;</td><td class="mdescRight">Graphical User Interface (GUI) components for the application. <br /></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:db/dc3/namespaceyaze_1_1gui_1_1canvas" id="r_db/dc3/namespaceyaze_1_1gui_1_1canvas"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/dc3/namespaceyaze_1_1gui_1_1canvas.html">yaze::gui::canvas</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 </div><!-- contents -->

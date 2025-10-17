@@ -1,4 +1,4 @@
-<map id="src/app/zelda3/dungeon/dungeon_rom_addresses.h" name="src/app/zelda3/dungeon/dungeon_rom_addresses.h">
+<map id="src/zelda3/dungeon/dungeon_rom_addresses.h" name="src/zelda3/dungeon/dungeon_rom_addresses.h">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,5,186,46"/>
 <area shape="rect" id="Node000002" title=" " alt="" coords="27,94,87,120"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="88,48,72,81,67,79,84,45"/>

@@ -1,0 +1,11 @@
+<map id="yaze::editor::PaletteGroupCard::ResetColor" name="yaze::editor::PaletteGroupCard::ResetColor">
+<area shape="rect" id="Node000001" title="Reset a specific color to original ROM value." alt="" coords="5,27,173,68"/>
+<area shape="rect" id="Node000002" href="$d7/d39/classyaze_1_1gfx_1_1PaletteManager.html#ad76357b3c747d397e99dd16972cf1235" title="Get the singleton instance." alt="" coords="221,5,415,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="173,34,205,30,205,35,174,39"/>
+<area shape="rect" id="Node000003" href="$d7/d39/classyaze_1_1gfx_1_1PaletteManager.html#a5f289b3f45b134ff59c45fc4d27e2946" title="Reset a single color to its original ROM value." alt="" coords="234,55,402,96"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="174,55,219,61,218,66,173,60"/>
+<area shape="rect" id="Node000004" href="$d7/d39/classyaze_1_1gfx_1_1PaletteManager.html#a90c06d48416f54ea3f32c2b2ae08755e" title="Helper: Get original color from snapshot." alt="" coords="463,22,630,63"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="402,61,447,54,448,59,402,66"/>
+<area shape="rect" id="Node000005" href="$d7/d39/classyaze_1_1gfx_1_1PaletteManager.html#a04d090df59f559acfa2fa6a97f37c9d1" title="Set a color in a palette (records change for undo)" alt="" coords="463,87,630,128"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="402,85,448,91,447,96,402,90"/>
+</map>

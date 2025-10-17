@@ -1,14 +1,14 @@
-<map id="src/app/gfx/snes_color.cc" name="src/app/gfx/snes_color.cc">
-<area shape="rect" id="Node000001" title=" " alt="" coords="84,5,254,31"/>
-<area shape="rect" id="Node000002" href="$d5/d52/snes__color_8h.html" title=" " alt="" coords="45,79,186,105"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="162,33,136,68,132,65,158,30"/>
-<area shape="rect" id="Node000008" title=" " alt="" coords="5,153,66,178"/>
-<area shape="poly" id="edge5_Node000001_Node000008" title=" " alt="" coords="105,34,66,52,49,64,35,80,29,94,27,108,30,138,25,138,22,108,24,92,31,78,45,61,63,47,103,29"/>
-<area shape="rect" id="Node000009" title=" " alt="" coords="102,153,159,178"/>
-<area shape="poly" id="edge6_Node000001_Node000009" title=" " alt="" coords="181,30,200,64,204,85,201,106,185,128,166,146,162,142,181,125,196,104,199,85,195,66,176,33"/>
-<area shape="rect" id="Node000010" title=" " alt="" coords="211,153,308,178"/>
-<area shape="poly" id="edge7_Node000001_Node000010" title=" " alt="" coords="182,30,220,78,251,137,246,139,216,80,178,33"/>
-<area shape="poly" id="edge2_Node000002_Node000008" title=" " alt="" coords="104,107,62,144,58,140,100,103"/>
-<area shape="poly" id="edge3_Node000002_Node000009" title=" " alt="" coords="121,104,127,137,122,138,115,105"/>
-<area shape="poly" id="edge4_Node000002_Node000010" title=" " alt="" coords="141,103,223,143,220,148,139,108"/>
+<map id="src/app/gfx/types/snes_color.cc" name="src/app/gfx/types/snes_color.cc">
+<area shape="rect" id="Node000001" title=" " alt="" coords="89,5,241,46"/>
+<area shape="rect" id="Node000002" href="$d5/d52/snes__color_8h.html" title=" " alt="" coords="49,94,179,135"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="156,48,136,82,131,79,151,45"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="5,183,66,208"/>
+<area shape="poly" id="edge5_Node000001_Node000008" title=" " alt="" coords="98,49,65,68,39,95,32,113,29,131,32,168,26,168,24,131,27,111,35,93,62,64,95,44"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="99,183,156,208"/>
+<area shape="poly" id="edge6_Node000001_Node000009" title=" " alt="" coords="179,45,196,87,199,112,194,136,180,158,161,175,158,171,176,154,189,134,194,111,191,88,174,47"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="206,183,303,208"/>
+<area shape="poly" id="edge7_Node000001_Node000010" title=" " alt="" coords="182,45,214,93,247,167,242,169,209,95,178,48"/>
+<area shape="poly" id="edge2_Node000002_Node000008" title=" " alt="" coords="97,137,60,173,56,170,93,133"/>
+<area shape="poly" id="edge3_Node000002_Node000009" title=" " alt="" coords="120,135,126,167,120,168,115,136"/>
+<area shape="poly" id="edge4_Node000002_Node000010" title=" " alt="" coords="150,133,221,172,218,177,148,138"/>
 </map>

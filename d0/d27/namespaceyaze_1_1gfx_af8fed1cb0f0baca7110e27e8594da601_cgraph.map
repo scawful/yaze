@@ -2,6 +2,6 @@
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,13,170,39"/>
 <area shape="rect" id="Node000002" href="$d0/d27/namespaceyaze_1_1gfx.html#ae3e101d19e3d8139f0d0aac4e9e53827" title=" " alt="" coords="218,13,367,39"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="170,23,202,23,202,28,170,28"/>
-<area shape="rect" id="Node000003" href="$d5/d31/classyaze_1_1gfx_1_1SnesColor.html#aea6308f5abbe766e900fb8baeb71b257" title=" " alt="" coords="415,5,551,46"/>
+<area shape="rect" id="Node000003" href="$d5/d31/classyaze_1_1gfx_1_1SnesColor.html#aea6308f5abbe766e900fb8baeb71b257" title="Set color from ImVec4 (0.0&#45;1.0 range)" alt="" coords="415,5,551,46"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="367,23,399,23,399,28,367,28"/>
 </map>

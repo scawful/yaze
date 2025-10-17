@@ -19,7 +19,7 @@ var classyaze_1_1test_1_1EditorIntegrationTest =
     [ "TestEditorRedo", "dd/d13/classyaze_1_1test_1_1EditorIntegrationTest.html#afe16a75b594c8bca942ef652ae80c855", null ],
     [ "TestEditorFind", "dd/d13/classyaze_1_1test_1_1EditorIntegrationTest.html#ab03a189b17c209971fc5862d524e14ff", null ],
     [ "TestEditorClear", "dd/d13/classyaze_1_1test_1_1EditorIntegrationTest.html#a14909b85f39e40bd7bfb442b97ec8eab", null ],
-    [ "controller_", "dd/d13/classyaze_1_1test_1_1EditorIntegrationTest.html#a2efd8f98e14c8c9d5e27e06bd2b9a17c", null ],
+    [ "controller_", "dd/d13/classyaze_1_1test_1_1EditorIntegrationTest.html#ad327576cc24b76e9f87f54f380cdfb16", null ],
     [ "test_rom_", "dd/d13/classyaze_1_1test_1_1EditorIntegrationTest.html#a15a8712526274665bc3666a1f12c2066", null ],
     [ "window_", "dd/d13/classyaze_1_1test_1_1EditorIntegrationTest.html#a5f2bf4c8fe1c1bee75e61845092c6459", null ],
     [ "test_renderer_", "dd/d13/classyaze_1_1test_1_1EditorIntegrationTest.html#af713e9ae78fa6e3c687dc8cfdc519b51", null ]

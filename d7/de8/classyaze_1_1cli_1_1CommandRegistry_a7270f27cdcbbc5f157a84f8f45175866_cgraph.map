@@ -1,0 +1,5 @@
+<map id="yaze::cli::CommandRegistry::Execute" name="yaze::cli::CommandRegistry::Execute">
+<area shape="rect" id="Node000001" title="Execute a command by name." alt="" coords="5,5,184,46"/>
+<area shape="rect" id="Node000002" href="$d7/de8/classyaze_1_1cli_1_1CommandRegistry.html#ad45383bd3839f24bd943b80a42617a90" title="Get a command handler by name or alias." alt="" coords="232,13,437,39"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="184,23,216,23,216,28,184,28"/>
+</map>

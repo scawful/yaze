@@ -116,9 +116,11 @@ Collaboration diagram for yaze::editor::WorkspaceManager:</div>
 <div class="dyncontent">
 <div class="center"><img src="../../d2/deb/classyaze_1_1editor_1_1WorkspaceManager__coll__graph.png" border="0" usemap="#ayaze_1_1editor_1_1WorkspaceManager_coll__map" alt="Collaboration graph"/></div>
 <map name="ayaze_1_1editor_1_1WorkspaceManager_coll__map" id="ayaze_1_1editor_1_1WorkspaceManager_coll__map">
-<area shape="rect" title="Manages workspace layouts, sessions, and presets." alt="" coords="5,94,212,120"/>
-<area shape="rect" href="../../d7/d92/classyaze_1_1editor_1_1ToastManager.html" title=" " alt="" coords="21,5,196,31"/>
-<area shape="poly" title=" " alt="" coords="111,47,111,94,106,94,106,47"/>
+<area shape="rect" title="Manages workspace layouts, sessions, and presets." alt="" coords="83,109,289,135"/>
+<area shape="rect" href="../../d7/d92/classyaze_1_1editor_1_1ToastManager.html" title=" " alt="" coords="5,13,180,39"/>
+<area shape="poly" title=" " alt="" coords="117,47,176,107,172,110,113,51"/>
+<area shape="rect" href="../../d0/d2e/classyaze_1_1editor_1_1EditorCardRegistry.html" title="Central registry for all editor cards with session awareness and dependency injection." alt="" coords="204,5,355,46"/>
+<area shape="poly" title=" " alt="" coords="269,62,252,87,235,101,217,111,214,106,232,96,248,83,264,59"/>
 </map>
 <center><span class="legend">[<a target="top" href="../../graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
@@ -131,6 +133,8 @@ Classes</h2></td></tr>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a4cba997a39907565934b8862f7abc6e9" id="r_a4cba997a39907565934b8862f7abc6e9"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d9/d66/classyaze_1_1editor_1_1WorkspaceManager.html#a4cba997a39907565934b8862f7abc6e9">WorkspaceManager</a> (<a class="el" href="../../d7/d92/classyaze_1_1editor_1_1ToastManager.html">ToastManager</a> *toast_manager)</td></tr>
 <tr class="separator:a4cba997a39907565934b8862f7abc6e9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab88ad5caead073b648fcf2358c3ec6de" id="r_ab88ad5caead073b648fcf2358c3ec6de"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d9/d66/classyaze_1_1editor_1_1WorkspaceManager.html#ab88ad5caead073b648fcf2358c3ec6de">set_card_registry</a> (<a class="el" href="../../d0/d2e/classyaze_1_1editor_1_1EditorCardRegistry.html">EditorCardRegistry</a> *registry)</td></tr>
+<tr class="separator:ab88ad5caead073b648fcf2358c3ec6de"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac108681210f16191f31472ce23312a1e" id="r_ac108681210f16191f31472ce23312a1e"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d9/d66/classyaze_1_1editor_1_1WorkspaceManager.html#ac108681210f16191f31472ce23312a1e">SaveWorkspaceLayout</a> (const std::string &amp;name=&quot;&quot;)</td></tr>
 <tr class="separator:ac108681210f16191f31472ce23312a1e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae1550ec0d39a1900694bf4636774867b" id="r_ae1550ec0d39a1900694bf4636774867b"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d9/d66/classyaze_1_1editor_1_1WorkspaceManager.html#ae1550ec0d39a1900694bf4636774867b">LoadWorkspaceLayout</a> (const std::string &amp;name=&quot;&quot;)</td></tr>
@@ -159,6 +163,18 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a0f2df9c0ba6c43c755b56cbcc1130027"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac1bbe6632922338c6949925a8a1ea7ab" id="r_ac1bbe6632922338c6949925a8a1ea7ab"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d9/d66/classyaze_1_1editor_1_1WorkspaceManager.html#ac1bbe6632922338c6949925a8a1ea7ab">CloseAllFloatingWindows</a> ()</td></tr>
 <tr class="separator:ac1bbe6632922338c6949925a8a1ea7ab"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a88fa79c11a3a6ac9a087d9826409c587" id="r_a88fa79c11a3a6ac9a087d9826409c587"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d9/d66/classyaze_1_1editor_1_1WorkspaceManager.html#a88fa79c11a3a6ac9a087d9826409c587">FocusNextWindow</a> ()</td></tr>
+<tr class="separator:a88fa79c11a3a6ac9a087d9826409c587"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4e7659febe81cd4390ad999de2c333c7" id="r_a4e7659febe81cd4390ad999de2c333c7"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d9/d66/classyaze_1_1editor_1_1WorkspaceManager.html#a4e7659febe81cd4390ad999de2c333c7">FocusPreviousWindow</a> ()</td></tr>
+<tr class="separator:a4e7659febe81cd4390ad999de2c333c7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acf67e267277b4800c71e550bbf146cca" id="r_acf67e267277b4800c71e550bbf146cca"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d9/d66/classyaze_1_1editor_1_1WorkspaceManager.html#acf67e267277b4800c71e550bbf146cca">SplitWindowHorizontal</a> ()</td></tr>
+<tr class="separator:acf67e267277b4800c71e550bbf146cca"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a581b304df817bbbd1ddc4c01ea2f7d6e" id="r_a581b304df817bbbd1ddc4c01ea2f7d6e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d9/d66/classyaze_1_1editor_1_1WorkspaceManager.html#a581b304df817bbbd1ddc4c01ea2f7d6e">SplitWindowVertical</a> ()</td></tr>
+<tr class="separator:a581b304df817bbbd1ddc4c01ea2f7d6e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adfef2f9d26bd4063e3d55987f76a1c85" id="r_adfef2f9d26bd4063e3d55987f76a1c85"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d9/d66/classyaze_1_1editor_1_1WorkspaceManager.html#adfef2f9d26bd4063e3d55987f76a1c85">CloseCurrentWindow</a> ()</td></tr>
+<tr class="separator:adfef2f9d26bd4063e3d55987f76a1c85"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aff5de9bebffca678fab3d8096fda3eda" id="r_aff5de9bebffca678fab3d8096fda3eda"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d9/d66/classyaze_1_1editor_1_1WorkspaceManager.html#aff5de9bebffca678fab3d8096fda3eda">ExecuteWorkspaceCommand</a> (const std::string &amp;command_id)</td></tr>
+<tr class="separator:aff5de9bebffca678fab3d8096fda3eda"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a975a97324570562951cae6e4eaa95105" id="r_a975a97324570562951cae6e4eaa95105"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d9/d66/classyaze_1_1editor_1_1WorkspaceManager.html#a975a97324570562951cae6e4eaa95105">GetActiveSessionCount</a> () const</td></tr>
 <tr class="separator:a975a97324570562951cae6e4eaa95105"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1da74589a9b48b2ef12a854e6bfe2de8" id="r_a1da74589a9b48b2ef12a854e6bfe2de8"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d9/d66/classyaze_1_1editor_1_1WorkspaceManager.html#a1da74589a9b48b2ef12a854e6bfe2de8">HasDuplicateSession</a> (const std::string &amp;filepath) const</td></tr>
@@ -174,6 +190,8 @@ Public Member Functions</h2></td></tr>
 Private Attributes</h2></td></tr>
 <tr class="memitem:af7f4bddfc366670d46b59aadb4d518eb" id="r_af7f4bddfc366670d46b59aadb4d518eb"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d7/d92/classyaze_1_1editor_1_1ToastManager.html">ToastManager</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d9/d66/classyaze_1_1editor_1_1WorkspaceManager.html#af7f4bddfc366670d46b59aadb4d518eb">toast_manager_</a></td></tr>
 <tr class="separator:af7f4bddfc366670d46b59aadb4d518eb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af825291a150f8f2d5cc96dd69743ec94" id="r_af825291a150f8f2d5cc96dd69743ec94"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d0/d2e/classyaze_1_1editor_1_1EditorCardRegistry.html">EditorCardRegistry</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d9/d66/classyaze_1_1editor_1_1WorkspaceManager.html#af825291a150f8f2d5cc96dd69743ec94">card_registry_</a> = nullptr</td></tr>
+<tr class="separator:af825291a150f8f2d5cc96dd69743ec94"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9f2c662d7fff05fb8cc9f63c987ab2f0" id="r_a9f2c662d7fff05fb8cc9f63c987ab2f0"><td class="memItemLeft" align="right" valign="top">std::deque&lt; <a class="el" href="../../d3/d68/structyaze_1_1editor_1_1WorkspaceManager_1_1SessionInfo.html">SessionInfo</a> &gt; *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d9/d66/classyaze_1_1editor_1_1WorkspaceManager.html#a9f2c662d7fff05fb8cc9f63c987ab2f0">sessions_</a> = nullptr</td></tr>
 <tr class="separator:a9f2c662d7fff05fb8cc9f63c987ab2f0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0a1e7a7279b570d86daf56a98f992ed9" id="r_a0a1e7a7279b570d86daf56a98f992ed9"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d9/d66/classyaze_1_1editor_1_1WorkspaceManager.html#a0a1e7a7279b570d86daf56a98f992ed9">last_workspace_preset_</a></td></tr>
@@ -186,7 +204,7 @@ Private Attributes</h2></td></tr>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Manages workspace layouts, sessions, and presets. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html#l00019">19</a> of file <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html">workspace_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html#l00020">20</a> of file <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html">workspace_manager.h</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a4cba997a39907565934b8862f7abc6e9" name="a4cba997a39907565934b8862f7abc6e9"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a4cba997a39907565934b8862f7abc6e9">&#9670;&#160;</a></span>WorkspaceManager()</h2>
@@ -212,11 +230,43 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html#l00028">28</a> of file <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html">workspace_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html#l00029">29</a> of file <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html">workspace_manager.h</a>.</p>
 
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
+<a id="ab88ad5caead073b648fcf2358c3ec6de" name="ab88ad5caead073b648fcf2358c3ec6de"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab88ad5caead073b648fcf2358c3ec6de">&#9670;&#160;</a></span>set_card_registry()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::editor::WorkspaceManager::set_card_registry </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="../../d0/d2e/classyaze_1_1editor_1_1EditorCardRegistry.html">EditorCardRegistry</a> *&#160;</td>
+          <td class="paramname"><em>registry</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html#l00033">33</a> of file <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html">workspace_manager.h</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html#l00076">card_registry_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l00240">yaze::editor::EditorManager::Initialize()</a>.</p>
+
+</div>
+</div>
 <a id="ac108681210f16191f31472ce23312a1e" name="ac108681210f16191f31472ce23312a1e"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ac108681210f16191f31472ce23312a1e">&#9670;&#160;</a></span>SaveWorkspaceLayout()</h2>
 
@@ -232,11 +282,13 @@ Private Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000047">Todo:</a></b></dt><dd>Serialize <a class="el" href="../../df/de4/namespaceImGui.html">ImGui</a> docking layout </dd></dl>
+<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000113">Todo:</a></b></dt><dd>Serialize <a class="el" href="../../df/de4/namespaceImGui.html">ImGui</a> docking layout </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00011">11</a> of file <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html">workspace_manager.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00016">16</a> of file <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html">workspace_manager.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d1/d3e/namespaceyaze_1_1editor.html#a6b8cab865089eface70ba97013bc8bc7a8c632159fa131f09d04f94e3cbcd8782">yaze::editor::kSuccess</a>, <a class="el" href="../../de/d7d/toast__manager_8h_source.html#l00027">yaze::editor::ToastManager::Show()</a>, and <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html#l00061">toast_manager_</a>.</p>
+<p class="reference">References <a class="el" href="../../d1/d3e/namespaceyaze_1_1editor.html#a6b8cab865089eface70ba97013bc8bc7a8c632159fa131f09d04f94e3cbcd8782">yaze::editor::kSuccess</a>, <a class="el" href="../../de/d7d/toast__manager_8h_source.html#l00027">yaze::editor::ToastManager::Show()</a>, and <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html#l00075">toast_manager_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00256">ExecuteWorkspaceCommand()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -265,11 +317,13 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000048">Todo:</a></b></dt><dd>Deserialize <a class="el" href="../../df/de4/namespaceImGui.html">ImGui</a> docking layout </dd></dl>
+<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000114">Todo:</a></b></dt><dd>Deserialize <a class="el" href="../../df/de4/namespaceImGui.html">ImGui</a> docking layout </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00019">19</a> of file <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html">workspace_manager.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00024">24</a> of file <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html">workspace_manager.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d1/d3e/namespaceyaze_1_1editor.html#a6b8cab865089eface70ba97013bc8bc7a8c632159fa131f09d04f94e3cbcd8782">yaze::editor::kSuccess</a>, <a class="el" href="../../de/d7d/toast__manager_8h_source.html#l00027">yaze::editor::ToastManager::Show()</a>, and <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html#l00061">toast_manager_</a>.</p>
+<p class="reference">References <a class="el" href="../../d1/d3e/namespaceyaze_1_1editor.html#a6b8cab865089eface70ba97013bc8bc7a8c632159fa131f09d04f94e3cbcd8782">yaze::editor::kSuccess</a>, <a class="el" href="../../de/d7d/toast__manager_8h_source.html#l00027">yaze::editor::ToastManager::Show()</a>, and <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html#l00075">toast_manager_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00256">ExecuteWorkspaceCommand()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -297,11 +351,13 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000049">Todo:</a></b></dt><dd>Reset to default layout </dd></dl>
+<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000115">Todo:</a></b></dt><dd>Reset to default layout </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00027">27</a> of file <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html">workspace_manager.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00032">32</a> of file <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html">workspace_manager.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d1/d3e/namespaceyaze_1_1editor.html#a6b8cab865089eface70ba97013bc8bc7a176a473e63c17ccdac91640c67f149bf">yaze::editor::kInfo</a>, <a class="el" href="../../de/d7d/toast__manager_8h_source.html#l00027">yaze::editor::ToastManager::Show()</a>, and <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html#l00061">toast_manager_</a>.</p>
+<p class="reference">References <a class="el" href="../../d1/d3e/namespaceyaze_1_1editor.html#a6b8cab865089eface70ba97013bc8bc7a176a473e63c17ccdac91640c67f149bf">yaze::editor::kInfo</a>, <a class="el" href="../../de/d7d/toast__manager_8h_source.html#l00027">yaze::editor::ToastManager::Show()</a>, and <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html#l00075">toast_manager_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00256">ExecuteWorkspaceCommand()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -331,11 +387,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00035">35</a> of file <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html">workspace_manager.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00040">40</a> of file <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html">workspace_manager.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d1/d3e/namespaceyaze_1_1editor.html#a6b8cab865089eface70ba97013bc8bc7a8c632159fa131f09d04f94e3cbcd8782">yaze::editor::kSuccess</a>, <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html#l00063">last_workspace_preset_</a>, <a class="el" href="../../d1/d2b/file__util_8cc_source.html#l00056">yaze::util::SaveFile()</a>, <a class="el" href="../../de/d7d/toast__manager_8h_source.html#l00027">yaze::editor::ToastManager::Show()</a>, <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html#l00061">toast_manager_</a>, <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html#l00064">workspace_presets_</a>, and <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html#l00065">workspace_presets_loaded_</a>.</p>
+<p class="reference">References <a class="el" href="../../d1/d3e/namespaceyaze_1_1editor.html#a6b8cab865089eface70ba97013bc8bc7a8c632159fa131f09d04f94e3cbcd8782">yaze::editor::kSuccess</a>, <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html#l00078">last_workspace_preset_</a>, <a class="el" href="../../d1/d2b/file__util_8cc_source.html#l00056">yaze::util::SaveFile()</a>, <a class="el" href="../../de/d7d/toast__manager_8h_source.html#l00027">yaze::editor::ToastManager::Show()</a>, <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html#l00075">toast_manager_</a>, <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html#l00079">workspace_presets_</a>, and <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html#l00080">workspace_presets_loaded_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00163">yaze::editor::EditorManager::SaveWorkspacePreset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00124">yaze::editor::EditorManager::SaveWorkspacePreset()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -369,11 +425,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00064">64</a> of file <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html">workspace_manager.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00069">69</a> of file <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html">workspace_manager.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d1/d3e/namespaceyaze_1_1editor.html#a6b8cab865089eface70ba97013bc8bc7a8c632159fa131f09d04f94e3cbcd8782">yaze::editor::kSuccess</a>, <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html#l00063">last_workspace_preset_</a>, <a class="el" href="../../de/d7d/toast__manager_8h_source.html#l00027">yaze::editor::ToastManager::Show()</a>, and <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html#l00061">toast_manager_</a>.</p>
+<p class="reference">References <a class="el" href="../../d1/d3e/namespaceyaze_1_1editor.html#a6b8cab865089eface70ba97013bc8bc7a8c632159fa131f09d04f94e3cbcd8782">yaze::editor::kSuccess</a>, <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html#l00078">last_workspace_preset_</a>, <a class="el" href="../../de/d7d/toast__manager_8h_source.html#l00027">yaze::editor::ToastManager::Show()</a>, and <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html#l00075">toast_manager_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00164">yaze::editor::EditorManager::LoadWorkspacePreset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00127">yaze::editor::EditorManager::LoadWorkspacePreset()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -402,11 +458,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00075">75</a> of file <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html">workspace_manager.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00080">80</a> of file <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html">workspace_manager.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d6/d7d/platform__paths_8cc_source.html#l00105">yaze::util::PlatformPaths::GetConfigDirectory()</a>, <a class="el" href="../../d1/d2b/file__util_8cc_source.html#l00023">yaze::util::LoadFile()</a>, <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html#l00064">workspace_presets_</a>, and <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html#l00065">workspace_presets_loaded_</a>.</p>
+<p class="reference">References <a class="el" href="../../d6/d7d/platform__paths_8cc_source.html#l00105">yaze::util::PlatformPaths::GetConfigDirectory()</a>, <a class="el" href="../../d1/d2b/file__util_8cc_source.html#l00023">yaze::util::LoadFile()</a>, <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html#l00079">workspace_presets_</a>, and <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html#l00080">workspace_presets_loaded_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00162">yaze::editor::EditorManager::RefreshWorkspacePresets()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00123">yaze::editor::EditorManager::RefreshWorkspacePresets()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -438,11 +494,13 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000050">Todo:</a></b></dt><dd>Load preset with all debug tools </dd></dl>
+<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000116">Todo:</a></b></dt><dd>Load preset with all debug tools </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00103">103</a> of file <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html">workspace_manager.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00108">108</a> of file <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html">workspace_manager.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d1/d3e/namespaceyaze_1_1editor.html#a6b8cab865089eface70ba97013bc8bc7a176a473e63c17ccdac91640c67f149bf">yaze::editor::kInfo</a>, <a class="el" href="../../de/d7d/toast__manager_8h_source.html#l00027">yaze::editor::ToastManager::Show()</a>, and <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html#l00061">toast_manager_</a>.</p>
+<p class="reference">References <a class="el" href="../../d1/d3e/namespaceyaze_1_1editor.html#a6b8cab865089eface70ba97013bc8bc7a176a473e63c17ccdac91640c67f149bf">yaze::editor::kInfo</a>, <a class="el" href="../../de/d7d/toast__manager_8h_source.html#l00027">yaze::editor::ToastManager::Show()</a>, and <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html#l00075">toast_manager_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00256">ExecuteWorkspaceCommand()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -470,11 +528,13 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000051">Todo:</a></b></dt><dd>Load preset focused on graphics </dd></dl>
+<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000117">Todo:</a></b></dt><dd>Load preset focused on graphics </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00110">110</a> of file <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html">workspace_manager.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00115">115</a> of file <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html">workspace_manager.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d1/d3e/namespaceyaze_1_1editor.html#a6b8cab865089eface70ba97013bc8bc7a176a473e63c17ccdac91640c67f149bf">yaze::editor::kInfo</a>, <a class="el" href="../../de/d7d/toast__manager_8h_source.html#l00027">yaze::editor::ToastManager::Show()</a>, and <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html#l00061">toast_manager_</a>.</p>
+<p class="reference">References <a class="el" href="../../d1/d3e/namespaceyaze_1_1editor.html#a6b8cab865089eface70ba97013bc8bc7a176a473e63c17ccdac91640c67f149bf">yaze::editor::kInfo</a>, <a class="el" href="../../de/d7d/toast__manager_8h_source.html#l00027">yaze::editor::ToastManager::Show()</a>, and <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html#l00075">toast_manager_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00256">ExecuteWorkspaceCommand()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -502,11 +562,13 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000052">Todo:</a></b></dt><dd>Load preset for ROM hacking </dd></dl>
+<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000118">Todo:</a></b></dt><dd>Load preset for ROM hacking </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00117">117</a> of file <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html">workspace_manager.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00122">122</a> of file <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html">workspace_manager.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d1/d3e/namespaceyaze_1_1editor.html#a6b8cab865089eface70ba97013bc8bc7a176a473e63c17ccdac91640c67f149bf">yaze::editor::kInfo</a>, <a class="el" href="../../de/d7d/toast__manager_8h_source.html#l00027">yaze::editor::ToastManager::Show()</a>, and <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html#l00061">toast_manager_</a>.</p>
+<p class="reference">References <a class="el" href="../../d1/d3e/namespaceyaze_1_1editor.html#a6b8cab865089eface70ba97013bc8bc7a176a473e63c17ccdac91640c67f149bf">yaze::editor::kInfo</a>, <a class="el" href="../../de/d7d/toast__manager_8h_source.html#l00027">yaze::editor::ToastManager::Show()</a>, and <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html#l00075">toast_manager_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00256">ExecuteWorkspaceCommand()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -534,9 +596,26 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000053">Todo:</a></b></dt><dd>Set all editor windows to visible </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00124">124</a> of file <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html">workspace_manager.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00129">129</a> of file <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html">workspace_manager.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html#l00076">card_registry_</a>, <a class="el" href="../../d1/d3e/namespaceyaze_1_1editor.html#a6b8cab865089eface70ba97013bc8bc7a176a473e63c17ccdac91640c67f149bf">yaze::editor::kInfo</a>, <a class="el" href="../../de/d7d/toast__manager_8h_source.html#l00027">yaze::editor::ToastManager::Show()</a>, <a class="el" href="../../d7/d7f/editor__card__registry_8cc_source.html#l00873">yaze::editor::EditorCardRegistry::ShowAll()</a>, and <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html#l00075">toast_manager_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00256">ExecuteWorkspaceCommand()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d9/d66/classyaze_1_1editor_1_1WorkspaceManager_a5c956ee701b7eaaf966f9dfdf912ee71_cgraph.png" border="0" usemap="#ad9/d66/classyaze_1_1editor_1_1WorkspaceManager_a5c956ee701b7eaaf966f9dfdf912ee71_cgraph" alt=""/></div>
+<map name="ad9/d66/classyaze_1_1editor_1_1WorkspaceManager_a5c956ee701b7eaaf966f9dfdf912ee71_cgraph" id="ad9/d66/classyaze_1_1editor_1_1WorkspaceManager_a5c956ee701b7eaaf966f9dfdf912ee71_cgraph">
+<area shape="rect" title=" " alt="" coords="5,39,212,79"/>
+<area shape="rect" href="../../d7/d92/classyaze_1_1editor_1_1ToastManager.html#aa9b4c4a8d7c6746e46466530f1eea654" title=" " alt="" coords="260,5,434,46"/>
+<area shape="poly" title=" " alt="" coords="212,42,244,37,245,43,213,47"/>
+<area shape="rect" href="../../d0/d2e/classyaze_1_1editor_1_1EditorCardRegistry.html#a16b04d2433d97c32dfd371842a5be662" title=" " alt="" coords="271,71,423,111"/>
+<area shape="poly" title=" " alt="" coords="213,70,256,76,255,81,212,76"/>
+<area shape="rect" href="../../d0/d2e/classyaze_1_1editor_1_1EditorCardRegistry.html#a7a455f0eafb33e02b488f7bf57d081e2" title="Show all cards in a specific session." alt="" coords="482,71,696,111"/>
+<area shape="poly" title=" " alt="" coords="423,88,467,88,467,94,423,94"/>
+</map>
+</div>
 
 </div>
 </div>
@@ -554,9 +633,26 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000054">Todo:</a></b></dt><dd>Hide all editor windows </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00128">128</a> of file <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html">workspace_manager.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00138">138</a> of file <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html">workspace_manager.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html#l00076">card_registry_</a>, <a class="el" href="../../d7/d7f/editor__card__registry_8cc_source.html#l00877">yaze::editor::EditorCardRegistry::HideAll()</a>, <a class="el" href="../../d1/d3e/namespaceyaze_1_1editor.html#a6b8cab865089eface70ba97013bc8bc7a176a473e63c17ccdac91640c67f149bf">yaze::editor::kInfo</a>, <a class="el" href="../../de/d7d/toast__manager_8h_source.html#l00027">yaze::editor::ToastManager::Show()</a>, and <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html#l00075">toast_manager_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00256">ExecuteWorkspaceCommand()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d9/d66/classyaze_1_1editor_1_1WorkspaceManager_a1fb3c536872432a1b033adb3a2821de1_cgraph.png" border="0" usemap="#ad9/d66/classyaze_1_1editor_1_1WorkspaceManager_a1fb3c536872432a1b033adb3a2821de1_cgraph" alt=""/></div>
+<map name="ad9/d66/classyaze_1_1editor_1_1WorkspaceManager_a1fb3c536872432a1b033adb3a2821de1_cgraph" id="ad9/d66/classyaze_1_1editor_1_1WorkspaceManager_a1fb3c536872432a1b033adb3a2821de1_cgraph">
+<area shape="rect" title=" " alt="" coords="5,39,212,79"/>
+<area shape="rect" href="../../d0/d2e/classyaze_1_1editor_1_1EditorCardRegistry.html#ab9f99584b06c5c0d7ba7fb565b1f6582" title=" " alt="" coords="271,5,423,46"/>
+<area shape="poly" title=" " alt="" coords="212,42,255,36,256,41,213,47"/>
+<area shape="rect" href="../../d7/d92/classyaze_1_1editor_1_1ToastManager.html#aa9b4c4a8d7c6746e46466530f1eea654" title=" " alt="" coords="260,71,434,111"/>
+<area shape="poly" title=" " alt="" coords="213,70,245,75,244,80,212,76"/>
+<area shape="rect" href="../../d0/d2e/classyaze_1_1editor_1_1EditorCardRegistry.html#a12c1727cfeb9809f08ac90aa47b9de1f" title="Hide all cards in a specific session." alt="" coords="482,5,690,46"/>
+<area shape="poly" title=" " alt="" coords="423,23,466,23,466,28,423,28"/>
+</map>
+</div>
 
 </div>
 </div>
@@ -574,9 +670,22 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000055">Todo:</a></b></dt><dd>Maximize focused window </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00132">132</a> of file <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html">workspace_manager.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00147">147</a> of file <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html">workspace_manager.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d1/d3e/namespaceyaze_1_1editor.html#a6b8cab865089eface70ba97013bc8bc7a176a473e63c17ccdac91640c67f149bf">yaze::editor::kInfo</a>, <a class="el" href="../../de/d7d/toast__manager_8h_source.html#l00027">yaze::editor::ToastManager::Show()</a>, and <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html#l00075">toast_manager_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00256">ExecuteWorkspaceCommand()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d9/d66/classyaze_1_1editor_1_1WorkspaceManager_a740a91b47a99df82818429a35b204588_cgraph.png" border="0" usemap="#ad9/d66/classyaze_1_1editor_1_1WorkspaceManager_a740a91b47a99df82818429a35b204588_cgraph" alt=""/></div>
+<map name="ad9/d66/classyaze_1_1editor_1_1WorkspaceManager_a740a91b47a99df82818429a35b204588_cgraph" id="ad9/d66/classyaze_1_1editor_1_1WorkspaceManager_a740a91b47a99df82818429a35b204588_cgraph">
+<area shape="rect" title=" " alt="" coords="5,5,212,46"/>
+<area shape="rect" href="../../d7/d92/classyaze_1_1editor_1_1ToastManager.html#aa9b4c4a8d7c6746e46466530f1eea654" title=" " alt="" coords="260,5,434,46"/>
+<area shape="poly" title=" " alt="" coords="212,23,244,23,244,28,212,28"/>
+</map>
+</div>
 
 </div>
 </div>
@@ -594,9 +703,22 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000056">Todo:</a></b></dt><dd>Restore all windows to default size </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00136">136</a> of file <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html">workspace_manager.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00160">160</a> of file <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html">workspace_manager.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d1/d3e/namespaceyaze_1_1editor.html#a6b8cab865089eface70ba97013bc8bc7a176a473e63c17ccdac91640c67f149bf">yaze::editor::kInfo</a>, <a class="el" href="../../de/d7d/toast__manager_8h_source.html#l00027">yaze::editor::ToastManager::Show()</a>, and <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html#l00075">toast_manager_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00256">ExecuteWorkspaceCommand()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d9/d66/classyaze_1_1editor_1_1WorkspaceManager_a0f2df9c0ba6c43c755b56cbcc1130027_cgraph.png" border="0" usemap="#ad9/d66/classyaze_1_1editor_1_1WorkspaceManager_a0f2df9c0ba6c43c755b56cbcc1130027_cgraph" alt=""/></div>
+<map name="ad9/d66/classyaze_1_1editor_1_1WorkspaceManager_a0f2df9c0ba6c43c755b56cbcc1130027_cgraph" id="ad9/d66/classyaze_1_1editor_1_1WorkspaceManager_a0f2df9c0ba6c43c755b56cbcc1130027_cgraph">
+<area shape="rect" title=" " alt="" coords="5,5,212,46"/>
+<area shape="rect" href="../../d7/d92/classyaze_1_1editor_1_1ToastManager.html#aa9b4c4a8d7c6746e46466530f1eea654" title=" " alt="" coords="260,5,434,46"/>
+<area shape="poly" title=" " alt="" coords="212,23,244,23,244,28,212,28"/>
+</map>
+</div>
 
 </div>
 </div>
@@ -614,9 +736,147 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000057">Todo:</a></b></dt><dd>Close undocked windows </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00140">140</a> of file <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html">workspace_manager.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00175">175</a> of file <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html">workspace_manager.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d1/d3e/namespaceyaze_1_1editor.html#a6b8cab865089eface70ba97013bc8bc7a176a473e63c17ccdac91640c67f149bf">yaze::editor::kInfo</a>, <a class="el" href="../../de/d7d/toast__manager_8h_source.html#l00027">yaze::editor::ToastManager::Show()</a>, and <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html#l00075">toast_manager_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00256">ExecuteWorkspaceCommand()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d9/d66/classyaze_1_1editor_1_1WorkspaceManager_ac1bbe6632922338c6949925a8a1ea7ab_cgraph.png" border="0" usemap="#ad9/d66/classyaze_1_1editor_1_1WorkspaceManager_ac1bbe6632922338c6949925a8a1ea7ab_cgraph" alt=""/></div>
+<map name="ad9/d66/classyaze_1_1editor_1_1WorkspaceManager_ac1bbe6632922338c6949925a8a1ea7ab_cgraph" id="ad9/d66/classyaze_1_1editor_1_1WorkspaceManager_ac1bbe6632922338c6949925a8a1ea7ab_cgraph">
+<area shape="rect" title=" " alt="" coords="5,5,212,46"/>
+<area shape="rect" href="../../d7/d92/classyaze_1_1editor_1_1ToastManager.html#aa9b4c4a8d7c6746e46466530f1eea654" title=" " alt="" coords="260,5,434,46"/>
+<area shape="poly" title=" " alt="" coords="212,23,244,23,244,28,212,28"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="a88fa79c11a3a6ac9a087d9826409c587" name="a88fa79c11a3a6ac9a087d9826409c587"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a88fa79c11a3a6ac9a087d9826409c587">&#9670;&#160;</a></span>FocusNextWindow()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::editor::WorkspaceManager::FocusNextWindow </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000119">Todo:</a></b></dt><dd>Implement proper window cycling </dd></dl>
+
+<p class="definition">Definition at line <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00214">214</a> of file <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html">workspace_manager.cc</a>.</p>
+
+</div>
+</div>
+<a id="a4e7659febe81cd4390ad999de2c333c7" name="a4e7659febe81cd4390ad999de2c333c7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4e7659febe81cd4390ad999de2c333c7">&#9670;&#160;</a></span>FocusPreviousWindow()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::editor::WorkspaceManager::FocusPreviousWindow </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000120">Todo:</a></b></dt><dd>Implement window cycling backward </dd></dl>
+
+<p class="definition">Definition at line <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00222">222</a> of file <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html">workspace_manager.cc</a>.</p>
+
+</div>
+</div>
+<a id="acf67e267277b4800c71e550bbf146cca" name="acf67e267277b4800c71e550bbf146cca"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acf67e267277b4800c71e550bbf146cca">&#9670;&#160;</a></span>SplitWindowHorizontal()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::editor::WorkspaceManager::SplitWindowHorizontal </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00226">226</a> of file <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html">workspace_manager.cc</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00256">ExecuteWorkspaceCommand()</a>.</p>
+
+</div>
+</div>
+<a id="a581b304df817bbbd1ddc4c01ea2f7d6e" name="a581b304df817bbbd1ddc4c01ea2f7d6e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a581b304df817bbbd1ddc4c01ea2f7d6e">&#9670;&#160;</a></span>SplitWindowVertical()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::editor::WorkspaceManager::SplitWindowVertical </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00237">237</a> of file <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html">workspace_manager.cc</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00256">ExecuteWorkspaceCommand()</a>.</p>
+
+</div>
+</div>
+<a id="adfef2f9d26bd4063e3d55987f76a1c85" name="adfef2f9d26bd4063e3d55987f76a1c85"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adfef2f9d26bd4063e3d55987f76a1c85">&#9670;&#160;</a></span>CloseCurrentWindow()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::editor::WorkspaceManager::CloseCurrentWindow </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00248">248</a> of file <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html">workspace_manager.cc</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00256">ExecuteWorkspaceCommand()</a>.</p>
+
+</div>
+</div>
+<a id="aff5de9bebffca678fab3d8096fda3eda" name="aff5de9bebffca678fab3d8096fda3eda"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aff5de9bebffca678fab3d8096fda3eda">&#9670;&#160;</a></span>ExecuteWorkspaceCommand()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::editor::WorkspaceManager::ExecuteWorkspaceCommand </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>command_id</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00256">256</a> of file <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html">workspace_manager.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00175">CloseAllFloatingWindows()</a>, <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00248">CloseCurrentWindow()</a>, <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00138">HideAllWindows()</a>, <a class="el" href="../../d1/d3e/namespaceyaze_1_1editor.html#a6b8cab865089eface70ba97013bc8bc7aec0da41f4e48b52c362303eb27ed5dee">yaze::editor::kWarning</a>, <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00115">LoadDesignerLayout()</a>, <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00108">LoadDeveloperLayout()</a>, <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00122">LoadModderLayout()</a>, <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00024">LoadWorkspaceLayout()</a>, <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00147">MaximizeCurrentWindow()</a>, <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00032">ResetWorkspaceLayout()</a>, <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00160">RestoreAllWindows()</a>, <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00016">SaveWorkspaceLayout()</a>, <a class="el" href="../../de/d7d/toast__manager_8h_source.html#l00027">yaze::editor::ToastManager::Show()</a>, <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00129">ShowAllWindows()</a>, <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00226">SplitWindowHorizontal()</a>, <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00237">SplitWindowVertical()</a>, and <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html#l00075">toast_manager_</a>.</p>
 
 </div>
 </div>
@@ -635,9 +895,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00144">144</a> of file <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html">workspace_manager.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00190">190</a> of file <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html">workspace_manager.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html#l00062">sessions_</a>.</p>
+<p class="reference">References <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html#l00077">sessions_</a>.</p>
 
 </div>
 </div>
@@ -657,9 +917,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00156">156</a> of file <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html">workspace_manager.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00202">202</a> of file <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html">workspace_manager.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html#l00062">sessions_</a>.</p>
+<p class="reference">References <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html#l00077">sessions_</a>.</p>
 
 </div>
 </div>
@@ -687,9 +947,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html#l00055">55</a> of file <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html">workspace_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html#l00069">69</a> of file <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html">workspace_manager.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html#l00062">sessions_</a>.</p>
+<p class="reference">References <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html#l00077">sessions_</a>.</p>
 
 </div>
 </div>
@@ -716,11 +976,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html#l00057">57</a> of file <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html">workspace_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html#l00071">71</a> of file <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html">workspace_manager.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html#l00064">workspace_presets_</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l03129">yaze::editor::EditorManager::DrawLayoutPresets()</a>, and <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l01420">yaze::editor::EditorManager::DrawMenuBar()</a>.</p>
+<p class="reference">References <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html#l00079">workspace_presets_</a>.</p>
 
 </div>
 </div>
@@ -747,11 +1005,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html#l00058">58</a> of file <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html">workspace_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html#l00072">72</a> of file <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html">workspace_manager.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html#l00065">workspace_presets_loaded_</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l03129">yaze::editor::EditorManager::DrawLayoutPresets()</a>, and <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l01420">yaze::editor::EditorManager::DrawMenuBar()</a>.</p>
+<p class="reference">References <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html#l00080">workspace_presets_loaded_</a>.</p>
 
 </div>
 </div>
@@ -776,9 +1032,35 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html#l00061">61</a> of file <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html">workspace_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html#l00075">75</a> of file <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html">workspace_manager.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00110">LoadDesignerLayout()</a>, <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00103">LoadDeveloperLayout()</a>, <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00117">LoadModderLayout()</a>, <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00019">LoadWorkspaceLayout()</a>, <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00064">LoadWorkspacePreset()</a>, <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00027">ResetWorkspaceLayout()</a>, <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00011">SaveWorkspaceLayout()</a>, and <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00035">SaveWorkspacePreset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00175">CloseAllFloatingWindows()</a>, <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00256">ExecuteWorkspaceCommand()</a>, <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00138">HideAllWindows()</a>, <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00115">LoadDesignerLayout()</a>, <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00108">LoadDeveloperLayout()</a>, <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00122">LoadModderLayout()</a>, <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00024">LoadWorkspaceLayout()</a>, <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00069">LoadWorkspacePreset()</a>, <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00147">MaximizeCurrentWindow()</a>, <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00032">ResetWorkspaceLayout()</a>, <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00160">RestoreAllWindows()</a>, <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00016">SaveWorkspaceLayout()</a>, <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00040">SaveWorkspacePreset()</a>, and <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00129">ShowAllWindows()</a>.</p>
+
+</div>
+</div>
+<a id="af825291a150f8f2d5cc96dd69743ec94" name="af825291a150f8f2d5cc96dd69743ec94"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af825291a150f8f2d5cc96dd69743ec94">&#9670;&#160;</a></span>card_registry_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="../../d0/d2e/classyaze_1_1editor_1_1EditorCardRegistry.html">EditorCardRegistry</a>* yaze::editor::WorkspaceManager::card_registry_ = nullptr</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html#l00076">76</a> of file <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html">workspace_manager.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00138">HideAllWindows()</a>, <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html#l00033">set_card_registry()</a>, and <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00129">ShowAllWindows()</a>.</p>
 
 </div>
 </div>
@@ -802,9 +1084,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html#l00062">62</a> of file <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html">workspace_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html#l00077">77</a> of file <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html">workspace_manager.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00144">GetActiveSessionCount()</a>, <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00156">HasDuplicateSession()</a>, and <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html#l00055">set_sessions()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00190">GetActiveSessionCount()</a>, <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00202">HasDuplicateSession()</a>, and <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html#l00069">set_sessions()</a>.</p>
 
 </div>
 </div>
@@ -828,9 +1110,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html#l00063">63</a> of file <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html">workspace_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html#l00078">78</a> of file <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html">workspace_manager.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00064">LoadWorkspacePreset()</a>, and <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00035">SaveWorkspacePreset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00069">LoadWorkspacePreset()</a>, and <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00040">SaveWorkspacePreset()</a>.</p>
 
 </div>
 </div>
@@ -854,9 +1136,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html#l00064">64</a> of file <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html">workspace_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html#l00079">79</a> of file <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html">workspace_manager.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00075">RefreshPresets()</a>, <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00035">SaveWorkspacePreset()</a>, and <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html#l00057">workspace_presets()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00080">RefreshPresets()</a>, <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00040">SaveWorkspacePreset()</a>, and <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html#l00071">workspace_presets()</a>.</p>
 
 </div>
 </div>
@@ -880,9 +1162,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html#l00065">65</a> of file <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html">workspace_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html#l00080">80</a> of file <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html">workspace_manager.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00075">RefreshPresets()</a>, <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00035">SaveWorkspacePreset()</a>, and <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html#l00058">workspace_presets_loaded()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00080">RefreshPresets()</a>, <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00040">SaveWorkspacePreset()</a>, and <a class="el" href="../../d1/dbf/workspace__manager_8h_source.html#l00072">workspace_presets_loaded()</a>.</p>
 
 </div>
 </div>
