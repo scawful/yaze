@@ -22,6 +22,7 @@
 #include "util/log.h"
 #include "util/macro.h"
 #include "zelda3/overworld/overworld_item.h"
+#include "zelda3/overworld/overworld_map.h"
 
 namespace yaze {
 namespace zelda3 {
@@ -78,12 +79,12 @@ absl::Status Overworld::Load(Rom* rom) {
     
     {
       gfx::ScopedTimer entrances_timer("LoadEntrances");
-      RETURN_IF_ERROR(LoadEntrances());
+      ASSIGN_OR_RETURN(all_entrances_, LoadEntrances(rom_));
     }
     
     {
       gfx::ScopedTimer holes_timer("LoadHoles");
-      RETURN_IF_ERROR(LoadHoles());
+      ASSIGN_OR_RETURN(all_holes_, LoadHoles(rom_));
     }
     
     {
@@ -684,66 +685,6 @@ void Overworld::LoadTileTypes() {
     all_tiles_types_[i] =
         rom()->data()[rom()->version_constants().kOverworldTilesType + i];
   }
-}
-
-absl::Status Overworld::LoadEntrances() {
-  int ow_entrance_map_ptr = kOverworldEntranceMap;
-  int ow_entrance_pos_ptr = kOverworldEntrancePos;
-  int ow_entrance_id_ptr = kOverworldEntranceEntranceId;
-  int num_entrances = 129;
-
-  // Check if expanded entrance data is actually present in ROM
-  // The flag position should contain 0xB8 for vanilla, something else for expanded
-  if (rom()->data()[kOverworldEntranceExpandedFlagPos] != 0xB8) {
-    // ROM has expanded entrance data - use expanded addresses
-    ow_entrance_map_ptr = kOverworldEntranceMapExpanded;
-    ow_entrance_pos_ptr = kOverworldEntrancePosExpanded;
-    ow_entrance_id_ptr = kOverworldEntranceEntranceIdExpanded;
-    expanded_entrances_ = true;
-    num_entrances = 256;  // Expanded entrance count
-  }
-  // Otherwise use vanilla addresses (already set above)
-
-  for (int i = 0; i < num_entrances; i++) {
-    ASSIGN_OR_RETURN(auto map_id,
-                     rom()->ReadWord(ow_entrance_map_ptr + (i * 2)));
-    ASSIGN_OR_RETURN(auto map_pos,
-                     rom()->ReadWord(ow_entrance_pos_ptr + (i * 2)));
-    ASSIGN_OR_RETURN(auto entrance_id, rom()->ReadByte(ow_entrance_id_ptr + i));
-    int p = map_pos >> 1;
-    int x = (p % 64);
-    int y = (p >> 6);
-    bool deleted = false;
-    if (map_pos == 0xFFFF) {
-      deleted = true;
-    }
-    all_entrances_.emplace_back(
-        (x * 16) + (((map_id % 64) - (((map_id % 64) / 8) * 8)) * 512),
-        (y * 16) + (((map_id % 64) / 8) * 512), entrance_id, map_id, map_pos,
-        deleted);
-  }
-
-  return absl::OkStatus();
-}
-
-absl::Status Overworld::LoadHoles() {
-  constexpr int kNumHoles = 0x13;
-  for (int i = 0; i < kNumHoles; i++) {
-    ASSIGN_OR_RETURN(auto map_id,
-                     rom()->ReadWord(kOverworldHoleArea + (i * 2)));
-    ASSIGN_OR_RETURN(auto map_pos,
-                     rom()->ReadWord(kOverworldHolePos + (i * 2)));
-    ASSIGN_OR_RETURN(auto entrance_id,
-                     rom()->ReadByte(kOverworldHoleEntrance + i));
-    int p = (map_pos + 0x400) >> 1;
-    int x = (p % 64);
-    int y = (p >> 6);
-    all_holes_.emplace_back(
-        (x * 16) + (((map_id % 64) - (((map_id % 64) / 8) * 8)) * 512),
-        (y * 16) + (((map_id % 64) / 8) * 512), entrance_id, map_id,
-        (uint16_t)(map_pos + 0x400), true);
-  }
-  return absl::OkStatus();
 }
 
 absl::Status Overworld::LoadExits() {
@@ -2572,58 +2513,8 @@ absl::Status Overworld::SaveMap16Tiles() {
 }
 
 absl::Status Overworld::SaveEntrances() {
-  util::logf("Saving Entrances");
-
-  auto write_entrance = [&](int index, uint32_t map_addr, uint32_t pos_addr,
-                            uint32_t id_addr) -> absl::Status {
-    // Mirrors ZeldaFullEditor/Save.cs::SaveOWEntrances (see lines ~1081-1085)
-    // where MapID and MapPos are written as 16-bit words and EntranceID as a byte.
-    RETURN_IF_ERROR(
-        rom()->WriteShort(map_addr, all_entrances_[index].map_id_));
-    RETURN_IF_ERROR(
-        rom()->WriteShort(pos_addr, all_entrances_[index].map_pos_));
-    RETURN_IF_ERROR(
-        rom()->WriteByte(id_addr, all_entrances_[index].entrance_id_));
-    return absl::OkStatus();
-  };
-
-  // Always keep the legacy tables in sync for pure vanilla ROMs so e.g. Hyrule
-  // Magic expects them. ZScream does the same in SaveOWEntrances.
-  for (int i = 0; i < kNumOverworldEntrances; ++i) {
-    RETURN_IF_ERROR(write_entrance(i, kOverworldEntranceMap + (i * 2),
-                                   kOverworldEntrancePos + (i * 2),
-                                   kOverworldEntranceEntranceId + i));
-  }
-
-  if (expanded_entrances_) {
-    // For ZS v3+ ROMs, mirror writes into the expanded tables the way
-    // ZeldaFullEditor does when the ASM patch is active.
-    for (int i = 0; i < kNumOverworldEntrances; ++i) {
-      RETURN_IF_ERROR(write_entrance(i,
-                                     kOverworldEntranceMapExpanded + (i * 2),
-                                     kOverworldEntrancePosExpanded + (i * 2),
-                                     kOverworldEntranceEntranceIdExpanded + i));
-    }
-  }
-
-  for (int i = 0; i < kNumOverworldHoles; ++i) {
-    RETURN_IF_ERROR(
-        rom()->WriteShort(kOverworldHoleArea + (i * 2), all_holes_[i].map_id_));
-
-    // ZeldaFullEditor/Data/Overworld.cs::LoadHoles() adds 0x400 when loading
-    // (see lines ~1006-1014). SaveOWEntrances subtracts it before writing
-    // (Save.cs lines ~1088-1092). We replicate that here so vanilla ROMs
-    // receive the expected values.
-    uint16_t rom_map_pos =
-        static_cast<uint16_t>(all_holes_[i].map_pos_ >= 0x400
-                                  ? all_holes_[i].map_pos_ - 0x400
-                                  : all_holes_[i].map_pos_);
-    RETURN_IF_ERROR(
-        rom()->WriteShort(kOverworldHolePos + (i * 2), rom_map_pos));
-    RETURN_IF_ERROR(rom()->WriteByte(kOverworldHoleEntrance + i,
-                                     all_holes_[i].entrance_id_));
-  }
-
+  RETURN_IF_ERROR(::yaze::zelda3::SaveEntrances(rom_, all_entrances_, expanded_entrances_));
+  RETURN_IF_ERROR(SaveHoles(rom_, all_holes_));
   return absl::OkStatus();
 }
 

@@ -124,6 +124,15 @@ class OverworldExit : public GameEntity {
 
   // Overworld overworld
   void UpdateMapProperties(uint16_t map_id) override {
+    // CRITICAL FIX: Sync player position from base entity coordinates
+    // The drag system in overworld_editor.cc updates x_/y_ (base GameEntity fields),
+    // but exit auto-calculation uses x_player_/y_player_ for scroll/camera computation.
+    // Without this sync, dragged exits retain old scroll values, causing save corruption.
+    // Matches ZScream ExitMode.cs:229-244 where PlayerX/PlayerY are updated during drag,
+    // then UpdateMapStuff recalculates scroll/camera from those values.
+    x_player_ = static_cast<uint16_t>(x_);
+    y_player_ = static_cast<uint16_t>(y_);
+    
     map_id_ = map_id;
 
     int large = 256;

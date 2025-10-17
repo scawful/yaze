@@ -86,7 +86,6 @@ constexpr int kMap32TileBRExpanded = 0x1F8000;
 constexpr int kMap32TileCountExpanded = 0x0067E0;
 constexpr int kMap32ExpandedFlagPos = 0x01772E;              // 0x04
 constexpr int kMap16ExpandedFlagPos = 0x02FD28;              // 0x0F
-constexpr int kOverworldEntranceExpandedFlagPos = 0x0DB895;  // 0xB8
 
 constexpr int overworldSpritesBeginingExpanded = 0x141438;
 constexpr int overworldSpritesZeldaExpanded = 0x141578;
@@ -139,8 +138,6 @@ class Overworld {
   absl::Status Load(Rom *rom);
   absl::Status LoadOverworldMaps();
   void LoadTileTypes();
-  absl::Status LoadEntrances();
-  absl::Status LoadHoles();
 
   absl::Status LoadExits();
   absl::Status LoadItems();
