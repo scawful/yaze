@@ -31,7 +31,7 @@ jobs:
         with:
           vcpkgDirectory: '${{ github.workspace }}/vcpkg'
           vcpkgGitCommitId: 'b2c74683ecfd6a8e7d27ffb0df077f66a9339509'
-          runVcpkgInstall: false
+          runVcpkgInstall: true
         env:
           VCPKG_DEFAULT_TRIPLET: x64-windows-static
           VCPKG_BINARY_SOURCES: 'clear;x-gha,readwrite'
@@ -42,18 +42,67 @@ jobs:
           choco install --no-progress -y nasm
           "C:\Program Files\NASM" | Out-File -FilePath $env:GITHUB_PATH -Append
 
-      - name: Setup MSVC
+      - name: Setup MSVC environment for clang-cl
         uses: ilammy/msvc-dev-cmd@v1
         with:
           arch: x64
+
+      - name: Configure clang-cl
+        shell: pwsh
+        run: |
+          Write-Host "Setting up clang-cl compiler"
+          echo "CC=clang-cl" >> $env:GITHUB_ENV
+          echo "CXX=clang-cl" >> $env:GITHUB_ENV
+
+      - name: Setup sccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: windows-x64-release-${{ github.run_id }}
+          restore-keys: |
+            windows-x64-release-
+          max-size: 500M
+          variant: sccache
+
+      - name: Restore vcpkg packages cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            build/vcpkg_installed
+            ${{ github.workspace }}/vcpkg/packages
+          key: vcpkg-release-${{ hashFiles('vcpkg.json') }}
+          restore-keys: |
+            vcpkg-release-
+
+      - name: Restore FetchContent dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            build/_deps
+          key: fetchcontent-release-${{ hashFiles('cmake/grpc*.cmake') }}-v2
+          restore-keys: |
+            fetchcontent-release-
+
+      - name: Configure sccache
+        shell: pwsh
+        run: |
+          echo "CC=sccache clang-cl" >> $env:GITHUB_ENV
+          echo "CXX=sccache clang-cl" >> $env:GITHUB_ENV
 
       - name: Configure
         id: configure
         shell: pwsh
         run: |
+          Write-Host "=== Build Configuration ===" -ForegroundColor Cyan
+          Write-Host "Compiler: clang-cl"
+          Write-Host "Build Type: Release"
+          cmake --version
+          clang-cl --version
+          
           $toolchain = "${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake"
           cmake -S . -B build `
             -DCMAKE_BUILD_TYPE=Release `
+            -DCMAKE_C_COMPILER=clang-cl `
+            -DCMAKE_CXX_COMPILER=clang-cl `
             -DCMAKE_TOOLCHAIN_FILE=$toolchain `
             -DVCPKG_TARGET_TRIPLET=x64-windows-static `
             -DVCPKG_MANIFEST_MODE=ON `
@@ -87,6 +136,33 @@ jobs:
           if (Test-Path build.log) {
             Write-Host "::group::Build Log (last 100 lines)"
             Get-Content build.log -Tail 100
+            Write-Host "::endgroup::"
+            
+            # Check for specific error patterns
+            if (Select-String -Path "build.log" -Pattern "vcpkg" -Quiet) {
+              Write-Host "`n::group::vcpkg-related errors" -ForegroundColor Yellow
+              Select-String -Path "build.log" -Pattern "vcpkg.*error" -CaseSensitive:$false | Select-Object -First 10
+              Write-Host "::endgroup::"
+            }
+            
+            if (Select-String -Path "build.log" -Pattern "LNK[0-9]{4}" -Quiet) {
+              Write-Host "`n::group::Linker errors" -ForegroundColor Yellow
+              Select-String -Path "build.log" -Pattern "LNK[0-9]{4}" | Select-Object -First 10
+              Write-Host "::endgroup::"
+            }
+            
+            if (Select-String -Path "build.log" -Pattern "fatal error" -Quiet) {
+              Write-Host "`n::group::Fatal errors" -ForegroundColor Yellow
+              Select-String -Path "build.log" -Pattern "fatal error" | Select-Object -First 10
+              Write-Host "::endgroup::"
+            }
+          }
+          
+          # List vcpkg installed packages
+          $vcpkgExe = "${{ github.workspace }}/vcpkg/vcpkg.exe"
+          if (Test-Path $vcpkgExe) {
+            Write-Host "`n::group::Installed vcpkg packages"
+            & $vcpkgExe list
             Write-Host "::endgroup::"
           }
           exit 1

@@ -58,10 +58,14 @@ jobs:
             os: macos-14
             cc: clang
             cxx: clang++
-          - name: "Windows 2022 (Clang)"
+          - name: "Windows 2022 (Clang-CL)"
             os: windows-2022
             cc: clang-cl
             cxx: clang-cl
+          - name: "Windows 2022 (MSVC)"
+            os: windows-2022
+            cc: cl
+            cxx: cl
 
     steps:
     - name: Checkout
@@ -80,7 +84,7 @@ jobs:
       with:
         vcpkgDirectory: '${{ github.workspace }}/vcpkg'
         vcpkgGitCommitId: 'b2c74683ecfd6a8e7d27ffb0df077f66a9339509'  # 2025.01.20 release
-        runVcpkgInstall: false  # Let CMake handle installation via manifest mode
+        runVcpkgInstall: true  # Pre-install SDL2, yaml-cpp (fast packages only)
     
     - name: Retry vcpkg setup (Windows)
       if: runner.os == 'Windows' && steps.vcpkg.outcome == 'failure'
@@ -92,7 +96,7 @@ jobs:
       with:
         vcpkgDirectory: '${{ github.workspace }}/vcpkg'
         vcpkgGitCommitId: 'b2c74683ecfd6a8e7d27ffb0df077f66a9339509'
-        runVcpkgInstall: false
+        runVcpkgInstall: true
     
     - name: Resolve vcpkg toolchain (Windows)
       if: runner.os == 'Windows'
@@ -185,23 +189,64 @@ jobs:
           Write-Host "✅ vcpkg-configuration.json found"
         }
 
-    - name: Restore ccache
+    - name: Setup sccache
+      uses: hendrikmuhs/ccache-action@v1.2
+      with:
+        key: ${{ runner.os }}-${{ matrix.cc }}-${{ github.sha }}
+        restore-keys: |
+          ${{ runner.os }}-${{ matrix.cc }}-
+        max-size: 500M
+        variant: sccache
+
+    - name: Configure sccache for clang-cl
+      if: runner.os == 'Windows' && matrix.cc == 'clang-cl'
+      shell: pwsh
+      run: |
+        echo "CC=sccache clang-cl" >> $env:GITHUB_ENV
+        echo "CXX=sccache clang-cl" >> $env:GITHUB_ENV
+
+    - name: Restore vcpkg packages cache
       uses: actions/cache@v4
       with:
-        path: ~/.ccache
-        key: ccache-${{ runner.os }}-${{ matrix.cc }}-${{ hashFiles('CMakeLists.txt', 'src/**', 'test/**', 'cmake/**') }}
+        path: |
+          build/vcpkg_installed
+          ${{ github.workspace }}/vcpkg/packages
+          ${{ github.workspace }}/vcpkg/buildtrees
+        key: vcpkg-${{ runner.os }}-${{ hashFiles('vcpkg.json') }}
         restore-keys: |
-          ccache-${{ runner.os }}-${{ matrix.cc }}-
+          vcpkg-${{ runner.os }}-
 
-    - name: Restore CMake dependencies
+    - name: Restore FetchContent dependencies (gRPC)
       uses: actions/cache@v4
       with:
         path: |
           build/_deps
-          build/vcpkg_installed
-        key: cmake-deps-${{ runner.os }}-${{ matrix.cc }}-${{ hashFiles('CMakeLists.txt', 'cmake/**', 'src/**/CMakeLists.txt', 'src/**/*.cmake', 'test/CMakeLists.txt') }}
+        key: fetchcontent-${{ runner.os }}-${{ matrix.cc }}-${{ hashFiles('cmake/grpc*.cmake') }}-v2
         restore-keys: |
-          cmake-deps-${{ runner.os }}-${{ matrix.cc }}-
+          fetchcontent-${{ runner.os }}-${{ matrix.cc }}-
+
+    - name: Monitor build progress (Windows)
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        Write-Host "=== Pre-Build Status ===" -ForegroundColor Cyan
+        
+        # Check if gRPC is cached
+        if (Test-Path "build/_deps/grpc-subbuild") {
+          Write-Host "✅ gRPC FetchContent cache found" -ForegroundColor Green
+        } else {
+          Write-Host "⚠️  gRPC will be built from source (~10-15 min first time)" -ForegroundColor Yellow
+        }
+        
+        # Check vcpkg packages
+        if (Test-Path "build/vcpkg_installed") {
+          Write-Host "✅ vcpkg packages cache found" -ForegroundColor Green
+          if (Test-Path "${{ github.workspace }}/vcpkg/vcpkg.exe") {
+            & "${{ github.workspace }}/vcpkg/vcpkg.exe" list
+          }
+        } else {
+          Write-Host "⚠️  vcpkg packages will be installed (~2-3 min)" -ForegroundColor Yellow
+        }
 
     - name: Install Dependencies (Unix)
       id: deps
