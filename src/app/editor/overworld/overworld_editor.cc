@@ -912,8 +912,8 @@ void OverworldEditor::RenderUpdatedMapBitmap(
   current_bitmap.set_modified(true);
 
   // Immediately update the texture to reflect changes
-  // TODO: Queue texture for later rendering.
-  // core::Renderer::Get().UpdateBitmap(&current_bitmap);
+  gfx::Arena::Get().QueueTextureCommand(
+      gfx::Arena::TextureCommandType::UPDATE, &current_bitmap);
 }
 
 void OverworldEditor::CheckForOverworldEdits() {
@@ -3012,7 +3012,7 @@ void OverworldEditor::HandleEntityInsertion(const std::string& entity_type) {
   // Get mouse position from canvas (in world coordinates)
   ImVec2 mouse_pos = ow_map_canvas_.hover_mouse_pos();
   
-  LOG_DEBUG("OverworldEditor", "Inserting entity type='%s' at pos=(%f,%f) map=%d",
+  LOG_DEBUG("OverworldEditor", "HandleEntityInsertion called: type='%s' at pos=(%.0f,%.0f) map=%d",
            entity_type.c_str(), mouse_pos.x, mouse_pos.y, current_map_);
   
   if (entity_type == "entrance") {
@@ -3022,6 +3022,7 @@ void OverworldEditor::HandleEntityInsertion(const std::string& entity_type) {
       current_entity_ = *result;
       ImGui::OpenPopup("Entrance Editor");
       rom_->set_dirty(true);
+      LOG_DEBUG("OverworldEditor", "Entrance inserted successfully at map=%d", current_map_);
     } else {
       LOG_ERROR("OverworldEditor", "Failed to insert entrance: %s", 
                result.status().message().data());
@@ -3034,6 +3035,7 @@ void OverworldEditor::HandleEntityInsertion(const std::string& entity_type) {
       current_entity_ = *result;
       ImGui::OpenPopup("Entrance Editor");
       rom_->set_dirty(true);
+      LOG_DEBUG("OverworldEditor", "Hole inserted successfully at map=%d", current_map_);
     } else {
       LOG_ERROR("OverworldEditor", "Failed to insert hole: %s", 
                result.status().message().data());
@@ -3046,6 +3048,7 @@ void OverworldEditor::HandleEntityInsertion(const std::string& entity_type) {
       current_entity_ = *result;
       ImGui::OpenPopup("Exit editor");
       rom_->set_dirty(true);
+      LOG_DEBUG("OverworldEditor", "Exit inserted successfully at map=%d", current_map_);
     } else {
       LOG_ERROR("OverworldEditor", "Failed to insert exit: %s", 
                result.status().message().data());
@@ -3058,6 +3061,7 @@ void OverworldEditor::HandleEntityInsertion(const std::string& entity_type) {
       current_entity_ = *result;
       ImGui::OpenPopup("Item editor");
       rom_->set_dirty(true);
+      LOG_DEBUG("OverworldEditor", "Item inserted successfully at map=%d", current_map_);
     } else {
       LOG_ERROR("OverworldEditor", "Failed to insert item: %s", 
                result.status().message().data());
@@ -3070,6 +3074,7 @@ void OverworldEditor::HandleEntityInsertion(const std::string& entity_type) {
       current_entity_ = *result;
       ImGui::OpenPopup("Sprite editor");
       rom_->set_dirty(true);
+      LOG_DEBUG("OverworldEditor", "Sprite inserted successfully at map=%d", current_map_);
     } else {
       LOG_ERROR("OverworldEditor", "Failed to insert sprite: %s", 
                result.status().message().data());

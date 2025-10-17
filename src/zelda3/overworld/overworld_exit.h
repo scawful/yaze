@@ -43,10 +43,10 @@ class OverworldExit : public GameEntity {
  public:
   uint16_t y_scroll_;
   uint16_t x_scroll_;
-  uint8_t y_player_;
-  uint8_t x_player_;
-  uint8_t y_camera_;
-  uint8_t x_camera_;
+  uint16_t y_player_;  // CRITICAL: Changed from uint8_t to uint16_t (0-4088 range)
+  uint16_t x_player_;  // CRITICAL: Changed from uint8_t to uint16_t (0-4088 range)
+  uint16_t y_camera_;  // Changed from uint8_t to uint16_t for consistency
+  uint16_t x_camera_;  // Changed from uint8_t to uint16_t for consistency
   uint8_t scroll_mod_y_;
   uint8_t scroll_mod_x_;
   uint16_t door_type_1_;
@@ -75,17 +75,17 @@ class OverworldExit : public GameEntity {
         room_id_(room_id),
         y_scroll_(y_scroll),
         x_scroll_(x_scroll),
-        y_player_(player_y),
-        x_player_(player_x),
-        y_camera_(camera_y),
-        x_camera_(camera_x),
+        y_player_(player_y),  // No cast - preserve full 16-bit value
+        x_player_(player_x),  // No cast - preserve full 16-bit value
+        y_camera_(camera_y),  // No cast - preserve full 16-bit value
+        x_camera_(camera_x),  // No cast - preserve full 16-bit value
         scroll_mod_y_(scroll_mod_y),
         scroll_mod_x_(scroll_mod_x),
         door_type_1_(door_type_1),
         door_type_2_(door_type_2),
         is_hole_(false),
         deleted_(deleted) {
-    // Initialize entity variables
+    // Initialize entity variables with full 16-bit coordinates
     x_ = player_x;
     y_ = player_y;
     map_id_ = map_id;
@@ -150,23 +150,25 @@ class OverworldExit : public GameEntity {
     int mapy = (map_id & 56) << 6;
 
     if (is_automatic_) {
-      x_ = x_ - 120;
-      y_ = y_ - 80;
+      // Auto-calculate scroll and camera from player position
+      // Matches ZScream ExitOW.cs:256-309
+      x_scroll_ = x_player_ - 120;
+      y_scroll_ = y_player_ - 80;
 
-      if (x_ < mapx) {
-        x_ = mapx;
+      if (x_scroll_ < mapx) {
+        x_scroll_ = mapx;
       }
 
-      if (y_ < mapy) {
-        y_ = mapy;
+      if (y_scroll_ < mapy) {
+        y_scroll_ = mapy;
       }
 
-      if (x_ > mapx + large) {
-        x_ = mapx + large;
+      if (x_scroll_ > mapx + large) {
+        x_scroll_ = mapx + large;
       }
 
-      if (y_ > mapy + large + 32) {
-        y_ = mapy + large + 32;
+      if (y_scroll_ > mapy + large + 32) {
+        y_scroll_ = mapy + large + 32;
       }
 
       x_camera_ = x_player_ + 0x07;
@@ -189,8 +191,8 @@ class OverworldExit : public GameEntity {
       }
     }
 
-    short vram_x_scroll = (short)(x_ - mapx);
-    short vram_y_scroll = (short)(y_ - mapy);
+    short vram_x_scroll = (short)(x_scroll_ - mapx);
+    short vram_y_scroll = (short)(y_scroll_ - mapy);
 
     map_pos_ = (uint16_t)(((vram_y_scroll & 0xFFF0) << 3) |
                           ((vram_x_scroll & 0xFFF0) >> 3));
