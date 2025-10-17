@@ -1,21 +1,95 @@
-.favorites.json
+# Build directories - organized by platform
 build/
-.cache/
+build-*/
+out/
+build*/
+docs/html/
+docs/latex/
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+compile_commands.json
+CPackConfig.cmake
+CPackSourceConfig.cmake
+CTestTestfile.cmake
+Testing/
+
+# Build artifacts
+*.o
+*.a
+*.so
+*.dylib
+*.dll
+*.exe
+*.app
+*.out
+
+# IDE files
 .vscode/
-disasm/
-src/etc
-src/lib/
-checks.json
-assets/lib/libasar.dll
-cmake/yaze.plist.in
-etc/
-latex/
-html/
-docs/zarby_algos.md
-docs/overworld-expansion.md
-assets/asm/EditorCore.asm
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Test outputs
+test_screenshots/
+test_temp_rom.sfc
+zelda3_v3_test.sfc
+
+# Logs
+yaze_log.txt
+*.log
+
+# vcpkg
+vcpkg_installed/
+
+# Agent learned knowledge (user-specific)
+.agent_knowledge/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Backup files
+*.bak
+*.backup
+*~
+
+# Generated files
+gens/
+*.pb.h
+*.pb.cc
+*.grpc.pb.h
+*.grpc.pb.cc
+
+# Cache
+.cache/
+
+# local dependencies
+src/lib/cmake/
+src/lib/GL/
+src/lib/libpng/
+src/lib/zlib/
+src/app/gui/modules/component.h
+src/ios/macOS/Info-macOS.plist
+src/ios/macOS/MainMenu.storyboard
 src/app/emu/cpu/internal/old_cpu.cc
-build-windows
-src/lib/libpng
-src/lib/zlib
-assets/layouts/ow_toolset.zeml
+.favorites.json
+checks.json
+assets/etc/
+imgui.ini
+.gitignore
+recent_files.txt
+.vs/*
+.gitignore
+.genkit
+.claude

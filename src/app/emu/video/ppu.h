@@ -258,7 +258,9 @@ class Ppu {
   // Initialize the frame buffer
   void Init() {
     frame_buffer_.resize(256 * 240, 0);
-    pixelOutputFormat = 1;
+    // Set to BGRX format (0) for compatibility with SDL_PIXELFORMAT_ARGB8888
+    // Format 0 = BGRX: [B][G][R][A] byte order in memory (little-endian)
+    pixelOutputFormat = 0;
   }
 
   void Reset();
@@ -315,8 +317,10 @@ class Ppu {
 
   // Returns the pixel data for the current frame
   const std::vector<uint8_t>& GetFrameBuffer() const { return frame_buffer_; }
+  
+  // Set pixel output format (0 = BGRX, 1 = XBGR)
+  void SetPixelFormat(uint8_t format) { pixelOutputFormat = format; }
 
- private:
   int GetPixelForMode7(int x, int layer, bool priority);
 
   const int cyclesPerScanline = 341;  // SNES PPU has 341 cycles per scanline
@@ -338,6 +342,9 @@ class Ppu {
 
   // cgram access
   uint16_t cgram[0x100];
+
+ private:
+
   uint8_t cgram_pointer_;
   bool cgram_second_write_;
   uint8_t cgram_buffer_;

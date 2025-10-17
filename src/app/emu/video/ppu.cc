@@ -114,7 +114,7 @@ void Ppu::Reset() {
   fixed_color_g_ = 0;
   fixed_color_b_ = 0;
   forced_blank_ = true;
-  brightness = 0;
+  brightness = 15;  // SNES hardware default is maximum brightness
   mode = 0;
   bg3priority = false;
   even_frame = false;
@@ -207,18 +207,38 @@ void Ppu::HandlePixel(int x, int y) {
     }
   }
   int row = (y - 1) + (even_frame ? 0 : 239);
+  
+  // SDL_PIXELFORMAT_ARGB8888 with pixelOutputFormat=0 (BGRX)
+  // Memory layout: [B][G][R][A] at offsets 0,1,2,3 respectively
+  // Convert 5-bit SNES color (0-31) to 8-bit (0-255) via (val << 3) | (val >> 2)
+  // Two pixels per X position for hi-res support: 
+  //   pixel1 at x*8 + 0..3, pixel2 at x*8 + 4..7
+  
+  // Apply brightness
+  r = r * brightness / 15;
+  g = g * brightness / 15;
+  b = b * brightness / 15;
+  r2 = r2 * brightness / 15;
+  g2 = g2 * brightness / 15;
+  b2 = b2 * brightness / 15;
+
+  // First pixel (hi-res/main screen)
   pixelBuffer[row * 2048 + x * 8 + 0 + pixelOutputFormat] =
-      ((b2 << 3) | (b2 >> 2)) * brightness / 15;
+      ((b2 << 3) | (b2 >> 2));  // Blue channel
   pixelBuffer[row * 2048 + x * 8 + 1 + pixelOutputFormat] =
-      ((g2 << 3) | (g2 >> 2)) * brightness / 15;
+      ((g2 << 3) | (g2 >> 2));  // Green channel
   pixelBuffer[row * 2048 + x * 8 + 2 + pixelOutputFormat] =
-      ((r2 << 3) | (r2 >> 2)) * brightness / 15;
+      ((r2 << 3) | (r2 >> 2));  // Red channel
+  pixelBuffer[row * 2048 + x * 8 + 3 + pixelOutputFormat] = 0xFF;  // Alpha (opaque)
+  
+  // Second pixel (lo-res/subscreen)
   pixelBuffer[row * 2048 + x * 8 + 4 + pixelOutputFormat] =
-      ((b << 3) | (b >> 2)) * brightness / 15;
+      ((b << 3) | (b >> 2));   // Blue channel
   pixelBuffer[row * 2048 + x * 8 + 5 + pixelOutputFormat] =
-      ((g << 3) | (g >> 2)) * brightness / 15;
+      ((g << 3) | (g >> 2));   // Green channel
   pixelBuffer[row * 2048 + x * 8 + 6 + pixelOutputFormat] =
-      ((r << 3) | (r >> 2)) * brightness / 15;
+      ((r << 3) | (r >> 2));   // Red channel
+  pixelBuffer[row * 2048 + x * 8 + 7 + pixelOutputFormat] = 0xFF;  // Alpha (opaque)
 }
 
 int Ppu::GetPixel(int x, int y, bool subscreen, int* r, int* g, int* b) {

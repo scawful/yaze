@@ -4,9 +4,6 @@
 [submodule "assets/asm/alttp-hacker-workspace"]
 	path = assets/asm/alttp-hacker-workspace
 	url = https://github.com/scawful/alttp-hacker-workspace.git
-[submodule "src/lib/abseil-cpp"]
-	path = src/lib/abseil-cpp
-	url = https://github.com/abseil/abseil-cpp.git
 [submodule "src/lib/SDL"]
 	path = src/lib/SDL
 	url = https://github.com/libsdl-org/SDL.git
@@ -22,3 +19,9 @@
 [submodule "assets/asm/usdasm"]
 	path = assets/asm/usdasm
 	url = https://github.com/spannerisms/usdasm.git
+[submodule "third_party/json"]
+	path = third_party/json
+	url = https://github.com/nlohmann/json.git
+[submodule "third_party/httplib"]
+	path = third_party/httplib
+	url = https://github.com/yhirose/cpp-httplib.git

@@ -1,23 +1,29 @@
-# YAZE - Yet Another Zelda3 Editor
+# yaze - Yet Another Zelda3 Editor
 
 A modern, cross-platform editor for The Legend of Zelda: A Link to the Past ROM hacking, built with C++23 and featuring complete Asar 65816 assembler integration.
 
 [![Build Status](https://github.com/scawful/yaze/workflows/CI/badge.svg)](https://github.com/scawful/yaze/actions)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-## Version 0.3.1 - Release
+## Version 0.3.2 - Release
 
-#### Asar 65816 Assembler Integration
-- **Cross-platform ROM patching** with assembly code support
-- **Symbol extraction** with addresses and opcodes from assembly files
-- **Assembly validation** with comprehensive error reporting
-- **Modern C++ API** with safe memory management
+#### z3ed agent - AI-powered CLI assistant
+- **AI-assisted ROM hacking** with ollama and Gemini support
+- **Natural language commands** for editing and querying ROM data
+- **Tool calling** for structured data extraction and modification
+- **Interactive chat** with conversation history and context
 
 #### ZSCustomOverworld v3
 - **Enhanced overworld editing** capabilities
 - **Advanced map properties** and metadata support
 - **Custom graphics support** and tile management
 - **Improved compatibility** with existing projects
+
+#### Asar 65816 Assembler Integration
+- **Cross-platform ROM patching** with assembly code support
+- **Symbol extraction** with addresses and opcodes from assembly files
+- **Assembly validation** with comprehensive error reporting
+- **Modern C++ API** with safe memory management
 
 #### Advanced Features
 - **Theme Management**: Complete theme system with 5+ built-in themes and custom theme editor
@@ -27,13 +33,6 @@ A modern, cross-platform editor for The Legend of Zelda: A Link to the Past ROM 
 - **GUI Docking**: Flexible workspace management with customizable layouts
 - **Modern CLI**: Enhanced z3ed tool with interactive TUI and subcommands
 - **Cross-Platform**: Full support for Windows, macOS, and Linux
-
-### 🛠️ Technical Improvements
-- **Modern CMake 3.16+**: Target-based configuration and build system
-- **CMakePresets**: Development workflow presets for better productivity
-- **Cross-platform CI/CD**: Automated builds and testing for all platforms
-- **Professional packaging**: NSIS, DMG, and DEB/RPM installers
-- **Enhanced testing**: ROM-dependent test separation for CI compatibility
 
 ## Quick Start
 
@@ -46,6 +45,12 @@ cd yaze
 # Build with CMake
 cmake --preset debug        # macOS
 cmake -B build && cmake --build build  # Linux/Windows
+
+# Windows-specific
+scripts\verify-build-environment.ps1   # Verify your setup
+cmake --preset windows-debug           # Basic build
+cmake --preset windows-ai-debug        # With AI features
+cmake --build build --config Debug     # Build
 ```
 
 ### Applications

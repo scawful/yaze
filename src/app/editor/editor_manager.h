@@ -3,70 +3,54 @@
 
 #define IMGUI_DEFINE_MATH_OPERATORS
 
+#include "app/editor/editor.h"
+#include "app/editor/system/user_settings.h"
+#include "app/editor/ui/workspace_manager.h"
+#include "app/editor/session_types.h"
+
+#include "imgui/imgui.h"
+
+#include <cstddef>
 #include <deque>
-#include <vector>
+#include <memory>
+#include <string>
 
 #include "absl/status/status.h"
-#include "app/core/features.h"
-#include "app/core/project.h"
-#include "app/editor/code/assembly_editor.h"
-#include "app/editor/code/memory_editor.h"
-#include "app/editor/dungeon/dungeon_editor.h"
-#include "app/editor/graphics/graphics_editor.h"
-#include "app/editor/graphics/palette_editor.h"
-#include "app/editor/graphics/screen_editor.h"
-#include "app/editor/message/message_editor.h"
-#include "app/editor/music/music_editor.h"
-#include "app/editor/overworld/overworld_editor.h"
-#include "app/editor/sprite/sprite_editor.h"
+#include "core/project.h"
+#include "app/editor/agent/agent_chat_history_popup.h"
+#include "app/editor/code/project_file_editor.h"
+#include "app/editor/system/editor_card_registry.h"
+#include "app/editor/system/editor_registry.h"
+#include "app/editor/system/menu_orchestrator.h"
 #include "app/editor/system/popup_manager.h"
-#include "app/editor/system/settings_editor.h"
+#include "app/editor/system/project_manager.h"
+#include "app/editor/system/proposal_drawer.h"
+#include "app/editor/system/rom_file_manager.h"
+#include "app/editor/system/session_coordinator.h"
 #include "app/editor/system/toast_manager.h"
+#include "app/editor/system/window_delegate.h"
+#include "app/editor/ui/editor_selection_dialog.h"
+#include "app/editor/ui/layout_manager.h"
+#include "app/editor/ui/menu_builder.h"
+#include "app/editor/ui/ui_coordinator.h"
+#include "app/editor/ui/welcome_screen.h"
 #include "app/emu/emulator.h"
+#include "zelda3/overworld/overworld.h"
 #include "app/rom.h"
 #include "yaze_config.h"
 
+#ifdef YAZE_WITH_GRPC
+#include "app/editor/agent/agent_editor.h"
+#include "app/editor/agent/automation_bridge.h"
+
+// Forward declarations for gRPC-dependent types
+namespace yaze::agent {
+class AgentControlServer;
+}
+#endif
+
 namespace yaze {
 namespace editor {
-
-/**
- * @class EditorSet
- * @brief Contains a complete set of editors for a single ROM instance
- */
-class EditorSet {
- public:
-  explicit EditorSet(Rom* rom = nullptr)
-      : assembly_editor_(rom),
-        dungeon_editor_(rom),
-        graphics_editor_(rom),
-        music_editor_(rom),
-        overworld_editor_(rom),
-        palette_editor_(rom),
-        screen_editor_(rom),
-        sprite_editor_(rom),
-        settings_editor_(rom),
-        message_editor_(rom),
-        memory_editor_(rom) {
-    active_editors_ = {&overworld_editor_, &dungeon_editor_, &graphics_editor_,
-                       &palette_editor_,   &sprite_editor_,  &message_editor_,
-                       &music_editor_,     &screen_editor_,  &settings_editor_,
-                       &assembly_editor_};
-  }
-
-  AssemblyEditor assembly_editor_;
-  DungeonEditor dungeon_editor_;
-  GraphicsEditor graphics_editor_;
-  MusicEditor music_editor_;
-  OverworldEditor overworld_editor_;
-  PaletteEditor palette_editor_;
-  ScreenEditor screen_editor_;
-  SpriteEditor sprite_editor_;
-  SettingsEditor settings_editor_;
-  MessageEditor message_editor_;
-  MemoryEditorWithDiffChecker memory_editor_;
-
-  std::vector<Editor*> active_editors_;
-};
 
 /**
  * @class EditorManager
@@ -81,15 +65,15 @@ class EditorSet {
  */
 class EditorManager {
  public:
-  EditorManager() {
-    std::stringstream ss;
-    ss << YAZE_VERSION_MAJOR << "." << YAZE_VERSION_MINOR << "."
-       << YAZE_VERSION_PATCH;
-    ss >> version_;
-    context_.popup_manager = popup_manager_.get();
-  }
+  // Constructor and destructor must be defined in .cc file for std::unique_ptr with forward-declared types
+  EditorManager();
+  ~EditorManager();
 
-  void Initialize(const std::string& filename = "");
+  void Initialize(gfx::IRenderer* renderer, const std::string& filename = "");
+
+  // Processes startup flags to open a specific editor and cards.
+  void OpenEditorAndCardsFromFlags(const std::string& editor_name,
+                                   const std::string& cards_str);
   absl::Status Update();
   void DrawMenuBar();
 
@@ -97,9 +81,24 @@ class EditorManager {
   auto quit() const { return quit_; }
   auto version() const { return version_; }
 
+  MenuBuilder& menu_builder() { return menu_builder_; }
+  WorkspaceManager* workspace_manager() { return &workspace_manager_; }
+
   absl::Status SetCurrentRom(Rom* rom);
-  auto GetCurrentRom() -> Rom* { return current_rom_; }
-  auto GetCurrentEditorSet() -> EditorSet* { return current_editor_set_; }
+  auto GetCurrentRom() const -> Rom* { return session_coordinator_ ? session_coordinator_->GetCurrentRom() : nullptr; }
+  auto GetCurrentEditorSet() const -> EditorSet* { return session_coordinator_ ? session_coordinator_->GetCurrentEditorSet() : nullptr; }
+  auto GetCurrentEditor() const -> Editor* { return current_editor_; }
+  size_t GetCurrentSessionId() const { return session_coordinator_ ? session_coordinator_->GetActiveSessionIndex() : 0; }
+  UICoordinator* ui_coordinator() { return ui_coordinator_.get(); }
+  auto overworld() const -> yaze::zelda3::Overworld* {
+    if (auto* editor_set = GetCurrentEditorSet()) {
+        return &editor_set->overworld_editor_.overworld();
+    }
+    return nullptr;
+  }
+
+  // Session management helpers
+  size_t GetCurrentSessionIndex() const;
 
   // Get current session's feature flags (falls back to global if no session)
   core::FeatureFlags::Flags* GetCurrentFeatureFlags() {
@@ -111,21 +110,127 @@ class EditorManager {
   }
 
   void SetFontGlobalScale(float scale) {
-    font_global_scale_ = scale;
+    user_settings_.prefs().font_global_scale = scale;
     ImGui::GetIO().FontGlobalScale = scale;
-    SaveUserSettings();
+    auto status = user_settings_.Save();
+    if (!status.ok()) {
+      LOG_WARN("EditorManager", "Failed to save user settings: %s",
+               status.ToString().c_str());
+    }
   }
 
- private:
-  void DrawWelcomeScreen();
-  absl::Status DrawRomSelector();
+  // Workspace management (delegates to WorkspaceManager)
+  void RefreshWorkspacePresets() { workspace_manager_.RefreshPresets(); }
+  void SaveWorkspacePreset(const std::string& name) {
+    workspace_manager_.SaveWorkspacePreset(name);
+  }
+  void LoadWorkspacePreset(const std::string& name) {
+    workspace_manager_.LoadWorkspacePreset(name);
+  }
+
+  // Jump-to functionality for cross-editor navigation
+  void JumpToDungeonRoom(int room_id);
+  void JumpToOverworldMap(int map_id);
+  void SwitchToEditor(EditorType editor_type);
+
+  // Card-based editor registry
+  static bool IsCardBasedEditor(EditorType type);
+  bool IsSidebarVisible() const {
+    return ui_coordinator_ ? ui_coordinator_->IsCardSidebarVisible() : false;
+  }
+  void SetSidebarVisible(bool visible) {
+    if (ui_coordinator_) {
+      ui_coordinator_->SetCardSidebarVisible(visible);
+    }
+  }
+
+  // Clean up cards when switching editors
+  void HideCurrentEditorCards();
+
+  // Session management
+  void CreateNewSession();
+  void DuplicateCurrentSession();
+  void CloseCurrentSession();
+  void RemoveSession(size_t index);
+  void SwitchToSession(size_t index);
+  size_t GetActiveSessionCount() const;
+
+  // Workspace layout management
+  // Window management - inline delegation (reduces EditorManager bloat)
+  void SaveWorkspaceLayout() { window_delegate_.SaveWorkspaceLayout(); }
+  void LoadWorkspaceLayout() { window_delegate_.LoadWorkspaceLayout(); }
+  void ResetWorkspaceLayout() { window_delegate_.ResetWorkspaceLayout(); }
+  void ShowAllWindows() {
+    if (ui_coordinator_)
+      ui_coordinator_->ShowAllWindows();
+  }
+  void HideAllWindows() {
+    if (ui_coordinator_)
+      ui_coordinator_->HideAllWindows();
+  }
+
+  // Layout presets (inline delegation)
+  void LoadDeveloperLayout() { window_delegate_.LoadDeveloperLayout(); }
+  void LoadDesignerLayout() { window_delegate_.LoadDesignerLayout(); }
+  void LoadModderLayout() { window_delegate_.LoadModderLayout(); }
+
+  // Helper methods
+  std::string GenerateUniqueEditorTitle(EditorType type,
+                                        size_t session_index) const;
+  bool HasDuplicateSession(const std::string& filepath);
+  void RenameSession(size_t index, const std::string& new_name);
+  void Quit() { quit_ = true; }
+
+  // UI visibility controls (public for MenuOrchestrator)
+  // UI visibility controls - inline for performance (single-line wrappers delegating to UICoordinator)
+  void ShowGlobalSearch() {
+    if (ui_coordinator_)
+      ui_coordinator_->ShowGlobalSearch();
+  }
+  void ShowCommandPalette() {
+    if (ui_coordinator_)
+      ui_coordinator_->ShowCommandPalette();
+  }
+  void ShowPerformanceDashboard() {
+    if (ui_coordinator_)
+      ui_coordinator_->SetPerformanceDashboardVisible(true);
+  }
+  void ShowImGuiDemo() {
+    if (ui_coordinator_)
+      ui_coordinator_->SetImGuiDemoVisible(true);
+  }
+  void ShowImGuiMetrics() {
+    if (ui_coordinator_)
+      ui_coordinator_->SetImGuiMetricsVisible(true);
+  }
+  void ShowHexEditor();
+  void ShowEmulator() { if (ui_coordinator_) ui_coordinator_->SetEmulatorVisible(true); }
+  void ShowMemoryEditor() { if (ui_coordinator_) ui_coordinator_->SetMemoryEditorVisible(true); }
+  void ShowResourceLabelManager() { if (ui_coordinator_) ui_coordinator_->SetResourceLabelManagerVisible(true); }
+  void ShowCardBrowser() {
+    if (ui_coordinator_)
+      ui_coordinator_->ShowCardBrowser();
+  }
+  void ShowWelcomeScreen() {
+    if (ui_coordinator_)
+      ui_coordinator_->SetWelcomeScreenVisible(true);
+  }
+
+#ifdef YAZE_ENABLE_TESTING
+  void ShowTestDashboard() { show_test_dashboard_ = true; }
+#endif
+
+#ifdef YAZE_WITH_GRPC
+  void ShowAIAgent();
+  void ShowChatHistory();
+  void ShowProposalDrawer() { proposal_drawer_.Show(); }
+#endif
+
+  // ROM and Project operations (public for MenuOrchestrator)
   absl::Status LoadRom();
-  absl::Status LoadAssets();
   absl::Status SaveRom();
   absl::Status SaveRomAs(const std::string& filename);
   absl::Status OpenRomOrProject(const std::string& filename);
-
-  // Enhanced project management
   absl::Status CreateNewProject(
       const std::string& template_name = "Basic ROM Hack");
   absl::Status OpenProject();
@@ -133,131 +238,107 @@ class EditorManager {
   absl::Status SaveProjectAs();
   absl::Status ImportProject(const std::string& project_path);
   absl::Status RepairCurrentProject();
-  void ShowProjectHelp();
+
+ private:
+  absl::Status DrawRomSelector() = delete; // Moved to UICoordinator
+  void DrawContextSensitiveCardControl();  // Card control for current editor
+
+  absl::Status LoadAssets();
 
   // Testing system
   void InitializeTestSuites();
 
   bool quit_ = false;
-  bool backup_rom_ = false;
-  bool save_new_auto_ = true;
-  bool autosave_enabled_ = false;
-  float autosave_interval_secs_ = 120.0f;
-  float autosave_timer_ = 0.0f;
-  bool new_project_menu = false;
 
-  bool show_emulator_ = false;
-  bool show_memory_editor_ = false;
-  bool show_asm_editor_ = false;
-  bool show_imgui_metrics_ = false;
-  bool show_imgui_demo_ = false;
-  bool show_palette_editor_ = false;
-  bool show_resource_label_manager = false;
+  // Note: All show_* flags are being moved to UICoordinator
+  // Access via ui_coordinator_->IsXxxVisible() or SetXxxVisible()
+  
+  // Workspace dialog flags (managed by EditorManager, not UI)
   bool show_workspace_layout = false;
-  bool show_save_workspace_preset_ = false;
-  bool show_load_workspace_preset_ = false;
-  bool show_session_switcher_ = false;
-  bool show_session_manager_ = false;
-  bool show_layout_presets_ = false;
-  bool show_homepage_ = true;
-  bool show_command_palette_ = false;
-  bool show_global_search_ = false;
-  bool show_session_rename_dialog_ = false;
-  bool show_welcome_screen_ = false;
-  bool welcome_screen_manually_closed_ = false;
   size_t session_to_rename_ = 0;
   char session_rename_buffer_[256] = {};
 
-  // Testing interface
-  bool show_test_dashboard_ = false;
+  // Note: Most UI visibility flags have been moved to UICoordinator
+  // Access via ui_coordinator_->IsXxxVisible() or SetXxxVisible()
+
+  // Agent proposal drawer
+  ProposalDrawer proposal_drawer_;
+  bool show_proposal_drawer_ = false;
+
+#ifdef YAZE_WITH_GRPC
+  AutomationBridge harness_telemetry_bridge_;
+#endif
+
+  // Agent chat history popup
+  AgentChatHistoryPopup agent_chat_history_popup_;
+  bool show_chat_history_popup_ = false;
+
+  // Project file editor
+  ProjectFileEditor project_file_editor_;
+
+  // Note: Editor selection dialog and welcome screen are now managed by UICoordinator
+  // Kept here for backward compatibility during transition
+  EditorSelectionDialog editor_selection_dialog_;
+  WelcomeScreen welcome_screen_;
+
+#ifdef YAZE_WITH_GRPC
+  // Agent editor - manages chat, collaboration, and network coordination
+  AgentEditor agent_editor_;
+  std::unique_ptr<yaze::agent::AgentControlServer> agent_control_server_;
+#endif
 
   std::string version_ = "";
-  std::string settings_filename_ = "settings.ini";
-  float font_global_scale_ = 1.0f;
-  std::vector<std::string> workspace_presets_;
-  std::string last_workspace_preset_ = "";
-  std::string status_message_ = "";
-  bool workspace_presets_loaded_ = false;
-
   absl::Status status_;
   emu::Emulator emulator_;
 
-  struct RomSession {
-    Rom rom;
-    EditorSet editors;
-    std::string custom_name;  // User-defined session name
-    std::string filepath;     // ROM filepath for duplicate detection
-    core::FeatureFlags::Flags feature_flags;  // Per-session feature flags
+ public:
 
-    RomSession() = default;
-    explicit RomSession(Rom&& r) : rom(std::move(r)), editors(&rom) {
-      filepath = rom.filename();
-      // Initialize with default feature flags
-      feature_flags = core::FeatureFlags::Flags{};
-    }
-
-    // Get display name (custom name or ROM title)
-    std::string GetDisplayName() const {
-      if (!custom_name.empty()) {
-        return custom_name;
-      }
-      return rom.title().empty() ? "Untitled Session" : rom.title();
-    }
-  };
-
+ private:
   std::deque<RomSession> sessions_;
-  Rom* current_rom_ = nullptr;
-  EditorSet* current_editor_set_ = nullptr;
   Editor* current_editor_ = nullptr;
   EditorSet blank_editor_set_{};
+  // Tracks which session is currently active so delegators (menus, popups,
+  // shortcuts) stay in sync without relying on per-editor context.
 
-  core::YazeProject current_project_;
-  EditorContext context_;
+  gfx::IRenderer* renderer_ = nullptr;
+
+  project::YazeProject current_project_;
+  EditorDependencies::SharedClipboard shared_clipboard_;
   std::unique_ptr<PopupManager> popup_manager_;
   ToastManager toast_manager_;
+  MenuBuilder menu_builder_;
+  ShortcutManager shortcut_manager_;
+  UserSettings user_settings_;
 
-  // Settings helpers
-  void LoadUserSettings();
-  void SaveUserSettings();
+  // New delegated components (dependency injection architecture)
+  EditorCardRegistry card_registry_;  // Card management with session awareness
+  EditorRegistry editor_registry_;
+  std::unique_ptr<MenuOrchestrator> menu_orchestrator_;
+  ProjectManager project_manager_;
+  RomFileManager rom_file_manager_;
+  std::unique_ptr<UICoordinator> ui_coordinator_;
+  WindowDelegate window_delegate_;
+  std::unique_ptr<SessionCoordinator> session_coordinator_;
+  std::unique_ptr<LayoutManager> layout_manager_;  // DockBuilder layout management
+  WorkspaceManager workspace_manager_{&toast_manager_};
 
-  void RefreshWorkspacePresets();
-  void SaveWorkspacePreset(const std::string& name);
-  void LoadWorkspacePreset(const std::string& name);
+  float autosave_timer_ = 0.0f;
 
-  // Workspace management
-  void CreateNewSession();
-  void DuplicateCurrentSession();
-  void CloseCurrentSession();
-  void RemoveSession(size_t index);
-  void SwitchToSession(size_t index);
-  size_t GetCurrentSessionIndex() const;
-  size_t GetActiveSessionCount() const;
-  void ResetWorkspaceLayout();
+  // RAII helper for clean session context switching
+  class SessionScope {
+   public:
+    SessionScope(EditorManager* manager, size_t session_id);
+    ~SessionScope();
 
-  // Multi-session editor management
-  std::string GenerateUniqueEditorTitle(EditorType type,
-                                        size_t session_index) const;
-  void SaveWorkspaceLayout();
-  void LoadWorkspaceLayout();
-  void ShowAllWindows();
-  void HideAllWindows();
-  void MaximizeCurrentWindow();
-  void RestoreAllWindows();
-  void CloseAllFloatingWindows();
-  void LoadDeveloperLayout();
-  void LoadDesignerLayout();
-  void LoadModderLayout();
+   private:
+    EditorManager* manager_;
+    Rom* prev_rom_;
+    EditorSet* prev_editor_set_;
+    size_t prev_session_id_;
+  };
 
-  // Session management helpers
-  bool HasDuplicateSession(const std::string& filepath);
-  void RenameSession(size_t index, const std::string& new_name);
-  std::string GenerateUniqueEditorTitle(EditorType type, size_t session_index);
-
-  // UI drawing helpers
-  void DrawSessionSwitcher();
-  void DrawSessionManager();
-  void DrawLayoutPresets();
-  void DrawSessionRenameDialog();
+  void ConfigureEditorDependencies(EditorSet* editor_set, Rom* rom,
+                                   size_t session_id);
 };
 
 }  // namespace editor

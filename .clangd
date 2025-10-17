@@ -1,8 +1,5 @@
 CompileFlags:
-  Add: 
-    - -std=c++23
-    - -Wall
-    - -Wextra
+  CompilationDatabase: build
   Remove:
     - -mllvm
     - -xclang
@@ -20,12 +17,16 @@ Hover:
   ShowAKA: Yes
 
 Diagnostics:
+  MissingIncludes: Strict
   ClangTidy:
     Add: 
+      - performance-*
+      - bugprone-*
       - readability-*
       - modernize-*
-      - performance-*
     Remove:
+      # - readability-*
+      # - modernize-*
       - modernize-use-trailing-return-type
       - readability-braces-around-statements
       - readability-magic-numbers
@@ -33,3 +34,4 @@ Diagnostics:
       - readability-identifier-naming
       - readability-function-cognitive-complexity
       - readability-function-size
+      - readability-uppercase-literal-suffix

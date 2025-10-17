@@ -1,0 +1,6 @@
+# Python dependencies for YAZE build scripts
+# Install with: pip3 install -r scripts/requirements.txt
+
+# For .gitignore pattern matching in build_cleaner.py
+pathspec>=0.11.0
+

@@ -3,7 +3,13 @@
 
 #include <functional>
 #include <string>
+#include <vector>
 #include <unordered_map>
+
+// Must define before including imgui.h
+#ifndef IMGUI_DEFINE_MATH_OPERATORS
+#define IMGUI_DEFINE_MATH_OPERATORS
+#endif
 
 #include "imgui/imgui.h"
 
@@ -56,6 +62,23 @@ class ShortcutManager {
   }
 
   auto GetShortcuts() const { return shortcuts_; }
+
+  // Convenience methods for registering common shortcuts
+  void RegisterStandardShortcuts(
+      std::function<void()> save_callback,
+      std::function<void()> open_callback,
+      std::function<void()> close_callback,
+      std::function<void()> find_callback,
+      std::function<void()> settings_callback);
+
+  void RegisterWindowNavigationShortcuts(
+      std::function<void()> focus_left,
+      std::function<void()> focus_right,
+      std::function<void()> focus_up,
+      std::function<void()> focus_down,
+      std::function<void()> close_window,
+      std::function<void()> split_horizontal,
+      std::function<void()> split_vertical);
 
  private:
   std::unordered_map<std::string, Shortcut> shortcuts_;

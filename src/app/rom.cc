@@ -9,27 +9,66 @@
 #include <ctime>
 #include <filesystem>
 #include <fstream>
+#include <iostream>
+#include <new>
 #include <string>
 #include <vector>
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
+#include "absl/strings/str_format.h"
 #include "absl/strings/string_view.h"
-#include "app/core/features.h"
-#include "app/core/window.h"
-#include "app/gfx/compression.h"
-#include "app/gfx/snes_color.h"
-#include "app/gfx/snes_palette.h"
-#include "app/gfx/snes_tile.h"
+#include "core/features.h"
+#include "app/gfx/util/compression.h"
+#include "app/gfx/types/snes_color.h"
+#include "app/gfx/types/snes_palette.h"
+#include "app/gfx/types/snes_tile.h"
 #include "app/snes.h"
-#include "util/hex.h"
+#include "app/gfx/core/bitmap.h"
 #include "util/log.h"
+#include "util/hex.h"
 #include "util/macro.h"
+#include "zelda.h"
 
 namespace yaze {
-using core::Renderer;
 constexpr int Uncompressed3BPPSize = 0x0600;
+
+namespace {
+constexpr size_t kBaseRomSize = 1048576;  // 1MB
+constexpr size_t kHeaderSize = 0x200;     // 512 bytes
+
+void MaybeStripSmcHeader(std::vector<uint8_t> &rom_data, unsigned long &size) {
+  if (size % kBaseRomSize == kHeaderSize && size >= kHeaderSize) {
+    rom_data.erase(rom_data.begin(), rom_data.begin() + kHeaderSize);
+    size -= kHeaderSize;
+  }
+}
+
+}  // namespace
+
+RomLoadOptions RomLoadOptions::AppDefaults() { return RomLoadOptions{}; }
+
+RomLoadOptions RomLoadOptions::CliDefaults() {
+  RomLoadOptions options;
+  options.populate_palettes = false;
+  options.populate_gfx_groups = false;
+  options.expand_to_full_image = false;
+  options.load_resource_labels = false;
+  return options;
+}
+
+RomLoadOptions RomLoadOptions::RawDataOnly() {
+  RomLoadOptions options;
+  options.load_zelda3_content = false;
+  options.strip_header = false;
+  options.populate_metadata = false;
+  options.populate_palettes = false;
+  options.populate_gfx_groups = false;
+  options.expand_to_full_image = false;
+  options.load_resource_labels = false;
+  return options;
+}
 
 uint32_t GetGraphicsAddress(const uint8_t *data, uint8_t addr, uint32_t ptr1,
                             uint32_t ptr2, uint32_t ptr3) {
@@ -69,7 +108,8 @@ absl::StatusOr<std::array<gfx::Bitmap, kNumLinkSheets>> LoadLinkGraphics(
     link_graphics[i].Create(gfx::kTilesheetWidth, gfx::kTilesheetHeight,
                             gfx::kTilesheetDepth, link_sheet_8bpp);
     link_graphics[i].SetPalette(rom.palette_group().armors[0]);
-    Renderer::Get().RenderBitmap(&link_graphics[i]);
+    // Texture creation is deferred until GraphicsEditor is opened and renderer is available.
+    // The graphics will be queued for texturing when needed via Arena's deferred system.
   }
   return link_graphics;
 }
@@ -137,6 +177,10 @@ absl::StatusOr<std::array<gfx::Bitmap, kNumGfxSheets>> LoadAllGraphicsData(
   std::array<gfx::Bitmap, kNumGfxSheets> graphics_sheets;
   std::vector<uint8_t> sheet;
   bool bpp3 = false;
+  // CRITICAL: Clear the graphics buffer before loading to prevent corruption!
+  // Without this, multiple ROM loads would accumulate corrupted data.
+  rom.mutable_graphics_buffer()->clear();
+  LOG_DEBUG("Graphics", "Cleared graphics buffer, loading %d sheets", kNumGfxSheets);
 
   for (uint32_t i = 0; i < kNumGfxSheets; i++) {
     if (i >= 115 && i <= 126) {  // uncompressed sheets
@@ -161,21 +205,39 @@ absl::StatusOr<std::array<gfx::Bitmap, kNumGfxSheets>> LoadAllGraphicsData(
 
     if (bpp3) {
       auto converted_sheet = gfx::SnesTo8bppSheet(sheet, 3);
+      
       graphics_sheets[i].Create(gfx::kTilesheetWidth, gfx::kTilesheetHeight,
                                 gfx::kTilesheetDepth, converted_sheet);
-      if (graphics_sheets[i].is_active()) {
-        if (i > 115) {
-          // Apply sprites palette
-          graphics_sheets[i].SetPaletteWithTransparent(
-              rom.palette_group().global_sprites[0], 0);
+      
+      // Apply default palette based on sheet index to prevent white sheets
+      // This ensures graphics are visible immediately after loading
+      if (!rom.palette_group().empty()) {
+        gfx::SnesPalette default_palette;
+        
+        if (i < 113) {
+          // Overworld/Dungeon graphics - use dungeon main palette
+          auto palette_group = rom.palette_group().dungeon_main;
+          if (palette_group.size() > 0) {
+            default_palette = palette_group[0];
+          }
+        } else if (i < 128) {
+          // Sprite graphics - use sprite palettes  
+          auto palette_group = rom.palette_group().sprites_aux1;
+          if (palette_group.size() > 0) {
+            default_palette = palette_group[0];
+          }
         } else {
-          graphics_sheets[i].SetPaletteWithTransparent(
-              rom.palette_group().dungeon_main[0], 0);
+          // Auxiliary graphics - use HUD/menu palettes
+          auto palette_group = rom.palette_group().hud;
+          if (palette_group.size() > 0) {
+            default_palette = palette_group.palette(0);
+          }
         }
-      }
-
-      if (!defer_render) {
-        graphics_sheets[i].CreateTexture(Renderer::Get().renderer());
+        
+        // Apply palette if we have one
+        if (!default_palette.empty()) {
+          graphics_sheets[i].SetPalette(default_palette);
+        }
       }
 
       for (int j = 0; j < graphics_sheets[i].size(); ++j) {
@@ -228,10 +290,24 @@ absl::Status SaveAllGraphicsData(
 }
 
 absl::Status Rom::LoadFromFile(const std::string &filename, bool z3_load) {
+  return LoadFromFile(
+      filename, z3_load ? RomLoadOptions::AppDefaults()
+                         : RomLoadOptions::RawDataOnly());
+}
+
+absl::Status Rom::LoadFromFile(const std::string &filename,
+                               const RomLoadOptions &options) {
   if (filename.empty()) {
     return absl::InvalidArgumentError(
         "Could not load ROM: parameter `filename` is empty.");
   }
+  
+  // Validate file exists before proceeding
+  if (!std::filesystem::exists(filename)) {
+    return absl::NotFoundError(
+        absl::StrCat("ROM file does not exist: ", filename));
+  }
+  
   filename_ = std::filesystem::absolute(filename).string();
   short_name_ = filename_.substr(filename_.find_last_of("/\\") + 1);
 
@@ -241,9 +317,19 @@ absl::Status Rom::LoadFromFile(const std::string &filename, bool z3_load) {
         absl::StrCat("Could not open ROM file: ", filename_));
   }
 
-  // Get file size and resize rom_data_
+  // Get file size and validate
   try {
     size_ = std::filesystem::file_size(filename_);
+    
+    // Validate ROM size (minimum 32KB, maximum 8MB for expanded ROMs)
+    if (size_ < 32768) {
+      return absl::InvalidArgumentError(
+          absl::StrFormat("ROM file too small (%zu bytes), minimum is 32KB", size_));
+    }
+    if (size_ > 8 * 1024 * 1024) {
+      return absl::InvalidArgumentError(
+          absl::StrFormat("ROM file too large (%zu bytes), maximum is 8MB", size_));
+    }
   } catch (const std::filesystem::filesystem_error &e) {
     // Try to get the file size from the open file stream
     file.seekg(0, std::ios::end);
@@ -252,66 +338,134 @@ absl::Status Rom::LoadFromFile(const std::string &filename, bool z3_load) {
           "Could not get file size: ", filename_, " - ", e.what()));
     }
     size_ = file.tellg();
+    
+    // Validate size from stream
+    if (size_ < 32768 || size_ > 8 * 1024 * 1024) {
+      return absl::InvalidArgumentError(
+          absl::StrFormat("Invalid ROM size: %zu bytes", size_));
+    }
   }
-  rom_data_.resize(size_);
-
-  // Read file into rom_data_
-  file.read(reinterpret_cast<char *>(rom_data_.data()), size_);
+  
+  // Allocate and read ROM data
+  try {
+    rom_data_.resize(size_);
+    file.seekg(0, std::ios::beg);
+    file.read(reinterpret_cast<char *>(rom_data_.data()), size_);
+    
+    if (!file) {
+      return absl::InternalError(
+          absl::StrFormat("Failed to read ROM data, read %zu of %zu bytes",
+                         file.gcount(), size_));
+    }
+  } catch (const std::bad_alloc& e) {
+    return absl::ResourceExhaustedError(
+        absl::StrFormat("Failed to allocate memory for ROM (%zu bytes)", size_));
+  }
+  
   file.close();
 
-  if (z3_load) {
-    RETURN_IF_ERROR(LoadZelda3());
-    resource_label_manager_.LoadLabels(absl::StrFormat("%s.labels", filename));
+  if (!options.load_zelda3_content) {
+    if (options.strip_header) {
+      MaybeStripSmcHeader(rom_data_, size_);
+    }
+    size_ = rom_data_.size();
+  } else {
+    RETURN_IF_ERROR(LoadZelda3(options));
+  }
+
+  if (options.load_resource_labels) {
+    resource_label_manager_.LoadLabels(
+        absl::StrFormat("%s.labels", filename));
   }
 
   return absl::OkStatus();
 }
 
 absl::Status Rom::LoadFromData(const std::vector<uint8_t> &data, bool z3_load) {
+  return LoadFromData(
+      data, z3_load ? RomLoadOptions::AppDefaults()
+                    : RomLoadOptions::RawDataOnly());
+}
+
+absl::Status Rom::LoadFromData(const std::vector<uint8_t> &data,
+                               const RomLoadOptions &options) {
   if (data.empty()) {
     return absl::InvalidArgumentError(
         "Could not load ROM: parameter `data` is empty.");
   }
   rom_data_ = data;
   size_ = data.size();
-  if (z3_load) {
-    RETURN_IF_ERROR(LoadZelda3());
+
+  if (!options.load_zelda3_content) {
+    if (options.strip_header) {
+      MaybeStripSmcHeader(rom_data_, size_);
+    }
+    size_ = rom_data_.size();
+  } else {
+    RETURN_IF_ERROR(LoadZelda3(options));
   }
+
   return absl::OkStatus();
 }
 
 absl::Status Rom::LoadZelda3() {
-  // Check if the ROM has a header
-  constexpr size_t kBaseRomSize = 1048576;  // 1MB
-  constexpr size_t kHeaderSize = 0x200;     // 512 bytes
-  if (size_ % kBaseRomSize == kHeaderSize) {
-    auto header = std::vector<uint8_t>(rom_data_.begin(),
-                                       rom_data_.begin() + kHeaderSize);
-    rom_data_.erase(rom_data_.begin(), rom_data_.begin() + kHeaderSize);
-    size_ -= 0x200;
+  return LoadZelda3(RomLoadOptions::AppDefaults());
+}
+
+absl::Status Rom::LoadZelda3(const RomLoadOptions &options) {
+  if (rom_data_.empty()) {
+    return absl::FailedPreconditionError("ROM data is empty");
   }
 
-  // Copy ROM title
+  if (options.strip_header) {
+    MaybeStripSmcHeader(rom_data_, size_);
+  }
+
+  size_ = rom_data_.size();
+
   constexpr uint32_t kTitleStringOffset = 0x7FC0;
   constexpr uint32_t kTitleStringLength = 20;
-  title_.resize(kTitleStringLength);
-  std::copy(rom_data_.begin() + kTitleStringOffset,
-            rom_data_.begin() + kTitleStringOffset + kTitleStringLength,
-            title_.begin());
-  if (rom_data_[kTitleStringOffset + 0x19] == 0) {
-    version_ = zelda3_version::JP;
-  } else {
-    version_ = zelda3_version::US;
+  constexpr uint32_t kTitleStringOffsetWithHeader = 0x81C0;
+
+  if (options.populate_metadata) {
+    uint32_t offset = options.strip_header ? kTitleStringOffset
+                                           : kTitleStringOffsetWithHeader;
+    if (offset + kTitleStringLength > rom_data_.size()) {
+      return absl::OutOfRangeError(
+          "ROM image is too small to contain title metadata.");
+    }
+    title_.assign(rom_data_.begin() + offset,
+                  rom_data_.begin() + offset + kTitleStringLength);
+    if (rom_data_[offset + 0x19] == 0) {
+      version_ = zelda3_version::JP;
+    } else {
+      version_ = zelda3_version::US;
+    }
   }
 
-  // Load additional resources
-  RETURN_IF_ERROR(gfx::LoadAllPalettes(rom_data_, palette_groups_));
-  // TODO Load gfx groups or expanded ZS values
-  RETURN_IF_ERROR(LoadGfxGroups());
+  if (options.populate_palettes) {
+    palette_groups_.clear();
+    RETURN_IF_ERROR(gfx::LoadAllPalettes(rom_data_, palette_groups_));
+  } else {
+    palette_groups_.clear();
+  }
 
-  // Expand the ROM data to 2MB without changing the data in the first 1MB
-  rom_data_.resize(kBaseRomSize * 2);
-  size_ = kBaseRomSize * 2;
+  if (options.populate_gfx_groups) {
+    RETURN_IF_ERROR(LoadGfxGroups());
+  } else {
+    main_blockset_ids = {};
+    room_blockset_ids = {};
+    spriteset_ids = {};
+    paletteset_ids = {};
+  }
+
+  if (options.expand_to_full_image) {
+    if (rom_data_.size() < kBaseRomSize * 2) {
+      rom_data_.resize(kBaseRomSize * 2);
+    }
+  }
+
+  size_ = rom_data_.size();
 
   return absl::OkStatus();
 }
@@ -578,7 +732,7 @@ absl::Status Rom::WriteByte(int addr, uint8_t value) {
         value, addr));
   }
   rom_data_[addr] = value;
-  util::logf("WriteByte: %#06X: %s", addr, util::HexByte(value).data());
+  LOG_DEBUG("Rom", "WriteByte: %#06X: %s", addr, util::HexByte(value).data());
   dirty_ = true;
   return absl::OkStatus();
 }
@@ -591,7 +745,7 @@ absl::Status Rom::WriteWord(int addr, uint16_t value) {
   }
   rom_data_[addr] = (uint8_t)(value & 0xFF);
   rom_data_[addr + 1] = (uint8_t)((value >> 8) & 0xFF);
-  util::logf("WriteWord: %#06X: %s", addr, util::HexWord(value).data());
+  LOG_DEBUG("Rom", "WriteWord: %#06X: %s", addr, util::HexWord(value).data());
   dirty_ = true;
   return absl::OkStatus();
 }
@@ -604,7 +758,7 @@ absl::Status Rom::WriteShort(int addr, uint16_t value) {
   }
   rom_data_[addr] = (uint8_t)(value & 0xFF);
   rom_data_[addr + 1] = (uint8_t)((value >> 8) & 0xFF);
-  util::logf("WriteShort: %#06X: %s", addr, util::HexWord(value).data());
+  LOG_DEBUG("Rom", "WriteShort: %#06X: %s", addr, util::HexWord(value).data());
   dirty_ = true;
   return absl::OkStatus();
 }
@@ -618,7 +772,7 @@ absl::Status Rom::WriteLong(uint32_t addr, uint32_t value) {
   rom_data_[addr] = (uint8_t)(value & 0xFF);
   rom_data_[addr + 1] = (uint8_t)((value >> 8) & 0xFF);
   rom_data_[addr + 2] = (uint8_t)((value >> 16) & 0xFF);
-  util::logf("WriteLong: %#06X: %s", addr, util::HexLong(value).data());
+  LOG_DEBUG("Rom", "WriteLong: %#06X: %s", addr, util::HexLong(value).data());
   dirty_ = true;
   return absl::OkStatus();
 }
@@ -632,7 +786,8 @@ absl::Status Rom::WriteVector(int addr, std::vector<uint8_t> data) {
   for (int i = 0; i < static_cast<int>(data.size()); i++) {
     rom_data_[addr + i] = data[i];
   }
-  util::logf("WriteVector: %#06X: %s", addr, util::HexByte(data[0]).data());
+  LOG_DEBUG("Rom", "WriteVector: %#06X: %s", addr,
+            util::HexByte(data[0]).data());
   dirty_ = true;
   return absl::OkStatus();
 }
@@ -642,9 +797,10 @@ absl::Status Rom::WriteColor(uint32_t address, const gfx::SnesColor &color) {
                  (color.snes() & 0x7C00);
 
   // Write the 16-bit color value to the ROM at the specified address
-  util::logf("WriteColor: %#06X: %s", address, util::HexWord(bgr).data());
+  LOG_DEBUG("Rom", "WriteColor: %#06X: %s", address, util::HexWord(bgr).data());
   auto st = WriteShort(address, bgr);
-  if (st.ok()) dirty_ = true;
+  if (st.ok())
+    dirty_ = true;
   return st;
 }
 

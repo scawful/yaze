@@ -1,109 +1,206 @@
 # Build Presets Guide
 
-CMake presets for development workflow and architecture-specific builds.
+This document explains the reorganized CMake preset system for Yaze.
 
-## 🍎 macOS ARM64 Presets (Recommended for Apple Silicon)
+## Design Principles
 
-### For Development Work:
+1. **Short, memorable names** - No more `macos-dev-z3ed-ai`, just `mac-ai`
+2. **Warnings off by default** - Add `-v` suffix for verbose (e.g., `mac-dbg-v`)
+3. **Clear architecture support** - Explicit ARM64 and x86_64 presets
+4. **Platform prefixes** - `mac-`, `win-`, `lin-` for easy identification
+
+## Quick Start
+
+### macOS Development
 ```bash
-# ARM64-only development build with ROM testing
-cmake --preset macos-dev
-cmake --build --preset macos-dev
+# Most common: AI-enabled development
+cmake --preset mac-ai
+cmake --build --preset mac-ai
 
-# ARM64-only debug build 
-cmake --preset macos-debug
-cmake --build --preset macos-debug
+# Basic debug build (no AI)
+cmake --preset mac-dbg
+cmake --build --preset mac-dbg
 
-# ARM64-only release build
-cmake --preset macos-release  
-cmake --build --preset macos-release
+# Verbose warnings for debugging
+cmake --preset mac-dbg-v
+cmake --build --preset mac-dbg-v
+
+# Release build
+cmake --preset mac-rel
+cmake --build --preset mac-rel
 ```
 
-### For Distribution:
+### Windows Development
 ```bash
-# Universal binary (ARM64 + x86_64) - use only when needed for distribution
-cmake --preset macos-debug-universal
-cmake --build --preset macos-debug-universal
+# Debug build (x64)
+cmake --preset win-dbg
+cmake --build --preset win-dbg
 
-cmake --preset macos-release-universal
-cmake --build --preset macos-release-universal
+# AI-enabled development
+cmake --preset win-ai
+cmake --build --preset win-ai
+
+# ARM64 support
+cmake --preset win-arm
+cmake --build --preset win-arm
 ```
 
-## 🔧 Why This Fixes Architecture Errors
+## All Presets
 
-**Problem**: The original presets used `CMAKE_OSX_ARCHITECTURES: "x86_64;arm64"` which forced CMake to build universal binaries. This caused issues because:
-- Dependencies like Abseil tried to use x86 SSE instructions (`-msse4.1`) 
-- These instructions don't exist on ARM64 processors
-- Build failed with "unsupported option '-msse4.1' for target 'arm64-apple-darwin'"
+### macOS Presets
 
-**Solution**: The new ARM64-only presets use `CMAKE_OSX_ARCHITECTURES: "arm64"` which:
-- ✅ Only targets ARM64 architecture  
-- ✅ Prevents x86-specific instruction usage
-- ✅ Uses ARM64 optimizations instead
-- ✅ Builds much faster (no cross-compilation)
+| Preset | Description | Arch | Warnings | Features |
+|--------|-------------|------|----------|----------|
+| `mac-dbg` | Debug build | ARM64 | Off | Basic |
+| `mac-dbg-v` | Debug verbose | ARM64 | On | Basic |
+| `mac-rel` | Release | ARM64 | Off | Basic |
+| `mac-x64` | Debug x86_64 | x86_64 | Off | Basic |
+| `mac-uni` | Universal binary | Both | Off | Basic |
+| `mac-dev` | Development | ARM64 | Off | ROM tests |
+| `mac-ai` | AI development | ARM64 | Off | z3ed, JSON, gRPC, ROM tests |
+| `mac-z3ed` | z3ed CLI | ARM64 | Off | AI agent support |
+| `mac-rooms` | Dungeon editor | ARM64 | Off | Minimal build for room editing |
 
-## 📋 Available Presets
+### Windows Presets
 
-| Preset Name | Architecture | Purpose | ROM Tests |
-|-------------|-------------|---------|-----------|
-| `macos-dev` | ARM64 only | Development | ✅ Enabled |
-| `macos-debug` | ARM64 only | Debug builds | ❌ Disabled |
-| `macos-release` | ARM64 only | Release builds | ❌ Disabled |
-| `macos-debug-universal` | Universal | Distribution debug | ❌ Disabled |
-| `macos-release-universal` | Universal | Distribution release | ❌ Disabled |
+| Preset | Description | Arch | Warnings | Features |
+|--------|-------------|------|----------|----------|
+| `win-dbg` | Debug build | x64 | Off | Basic |
+| `win-dbg-v` | Debug verbose | x64 | On | Basic |
+| `win-rel` | Release | x64 | Off | Basic |
+| `win-arm` | Debug ARM64 | ARM64 | Off | Basic |
+| `win-arm-rel` | Release ARM64 | ARM64 | Off | Basic |
+| `win-dev` | Development | x64 | Off | ROM tests |
+| `win-ai` | AI development | x64 | Off | z3ed, JSON, gRPC, ROM tests |
+| `win-z3ed` | z3ed CLI | x64 | Off | AI agent support |
 
-## 🚀 Quick Start
+### Linux Presets
 
-For most development work on Apple Silicon:
+| Preset | Description | Compiler | Warnings |
+|--------|-------------|----------|----------|
+| `lin-dbg` | Debug | GCC | Off |
+| `lin-clang` | Debug | Clang | Off |
+
+### Special Purpose
+
+| Preset | Description |
+|--------|-------------|
+| `ci` | Continuous integration (no ROM tests) |
+| `asan` | AddressSanitizer build |
+| `coverage` | Code coverage build |
+
+## Warning Control
+
+By default, all presets suppress compiler warnings with `-w` for a cleaner build experience.
+
+### To Enable Verbose Warnings:
+
+1. Use a preset with `-v` suffix (e.g., `mac-dbg-v`, `win-dbg-v`)
+2. Or set `YAZE_SUPPRESS_WARNINGS=OFF` manually:
+   ```bash
+   cmake --preset mac-dbg -DYAZE_SUPPRESS_WARNINGS=OFF
+   ```
+
+## Architecture Support
+
+### macOS
+- **ARM64 (Apple Silicon)**: `mac-dbg`, `mac-rel`, `mac-ai`, etc.
+- **x86_64 (Intel)**: `mac-x64`
+- **Universal Binary**: `mac-uni` (both ARM64 + x86_64)
+
+### Windows
+- **x64**: `win-dbg`, `win-rel`, `win-ai`, etc.
+- **ARM64**: `win-arm`, `win-arm-rel`
+
+## Build Directories
+
+Most presets use `build/` directory. Exceptions:
+- `mac-rooms`: Uses `build_rooms/` to avoid conflicts
+
+## Feature Flags
+
+Common CMake options you can override:
 
 ```bash
-# Clean build
-rm -rf build
+# Enable/disable components
+-DYAZE_BUILD_TESTS=ON/OFF
+-DYAZE_BUILD_Z3ED=ON/OFF
+-DYAZE_BUILD_EMU=ON/OFF
+-DYAZE_BUILD_APP=ON/OFF
 
-# Configure for ARM64 development
-cmake --preset macos-dev
+# AI features
+-DZ3ED_AI=ON/OFF
+-DYAZE_WITH_JSON=ON/OFF
+-DYAZE_WITH_GRPC=ON/OFF
 
-# Build
-cmake --build --preset macos-dev
+# Testing
+-DYAZE_ENABLE_ROM_TESTS=ON/OFF
+-DYAZE_TEST_ROM_PATH=/path/to/zelda3.sfc
 
-# Run tests  
-cmake --build --preset macos-dev --target test
+# Build optimization
+-DYAZE_MINIMAL_BUILD=ON/OFF
 ```
 
-## 🛠️ IDE Integration
+## Examples
 
-### VS Code with CMake Tools:
-1. Open Command Palette (`Cmd+Shift+P`)
-2. Run "CMake: Select Configure Preset"
-3. Choose `macos-dev` or `macos-debug`
-
-### CLion:
-1. Go to Settings → Build, Execution, Deployment → CMake
-2. Add new profile with preset `macos-dev`
-
-### Xcode:
+### Development with AI features and verbose warnings
 ```bash
-# Generate Xcode project
-cmake --preset macos-debug -G Xcode
-open build/yaze.xcodeproj
+cmake --preset mac-dbg-v -DZ3ED_AI=ON -DYAZE_WITH_GRPC=ON
+cmake --build --preset mac-dbg-v
 ```
 
-## 🔍 Troubleshooting
+### Release build for distribution (macOS Universal)
+```bash
+cmake --preset mac-uni
+cmake --build --preset mac-uni
+cpack --preset mac-uni
+```
 
-If you still get architecture errors:
-1. **Clean completely**: `rm -rf build`
-2. **Check preset**: Ensure you're using an ARM64 preset (not universal)
-3. **Verify configuration**: Check that `CMAKE_OSX_ARCHITECTURES` shows only `arm64`
+### Quick minimal build for testing
+```bash
+cmake --preset mac-dbg -DYAZE_MINIMAL_BUILD=ON
+cmake --build --preset mac-dbg -j12
+```
+
+## Updating compile_commands.json
+
+After configuring with a new preset, copy the compile commands for IDE support:
 
 ```bash
-# Verify architecture setting
-cmake --preset macos-debug
-grep -A 5 -B 5 "CMAKE_OSX_ARCHITECTURES" build/CMakeCache.txt
+cp build/compile_commands.json .
 ```
 
-## 📝 Notes
+This ensures clangd and other LSP servers can find headers and understand build flags.
 
-- **ARM64 presets**: Fast builds, no architecture conflicts
-- **Universal presets**: Slower builds, for distribution only
-- **Deployment target**: ARM64 presets use macOS 11.0+ (when Apple Silicon was introduced)
-- **Universal presets**: Still support macOS 10.15+ for backward compatibility
+## Migration from Old Presets
+
+Old preset names have been simplified:
+
+| Old Name | New Name |
+|----------|----------|
+| `macos-dev-z3ed-ai` | `mac-ai` |
+| `macos-debug` | `mac-dbg` |
+| `macos-release` | `mac-rel` |
+| `macos-debug-universal` | `mac-uni` |
+| `macos-dungeon-dev` | `mac-rooms` |
+| `windows-debug` | `win-dbg` |
+| `windows-release` | `win-rel` |
+| `windows-arm64-debug` | `win-arm` |
+| `linux-debug` | `lin-dbg` |
+| `linux-clang` | `lin-clang` |
+
+## Troubleshooting
+
+### Warnings are still showing
+- Make sure you're using a preset without `-v` suffix
+- Check `cmake` output for `✓ Warnings suppressed` message
+- Reconfigure and rebuild: `rm -rf build && cmake --preset mac-dbg`
+
+### clangd can't find nlohmann/json
+- Run `cmake --preset <your-preset>` to regenerate compile_commands.json
+- Copy to root: `cp build/compile_commands.json .`
+- Restart your IDE or LSP server
+
+### Build fails with missing dependencies
+- Ensure submodules are initialized: `git submodule update --init --recursive`
+- For AI features, make sure you have OpenSSL: `brew install openssl` (macOS)

@@ -1,0 +1,356 @@
+syntax = "proto3";
+
+package yaze.test;
+
+// ImGuiTestHarness service for remote GUI testing
+// Allows z3ed CLI to interact with YAZE's GUI for automated testing
+service ImGuiTestHarness {
+  // Health check - verifies the service is running
+  rpc Ping(PingRequest) returns (PingResponse);
+  
+  // Click a button or interactive element
+  rpc Click(ClickRequest) returns (ClickResponse);
+  
+  // Type text into an input field
+  rpc Type(TypeRequest) returns (TypeResponse);
+  
+  // Wait for a condition to be true
+  rpc Wait(WaitRequest) returns (WaitResponse);
+  
+  // Assert that a condition is true
+  rpc Assert(AssertRequest) returns (AssertResponse);
+  
+  // Capture a screenshot
+  rpc Screenshot(ScreenshotRequest) returns (ScreenshotResponse);
+
+  // Test introspection APIs (IT-05)
+  rpc GetTestStatus(GetTestStatusRequest) returns (GetTestStatusResponse);
+  rpc ListTests(ListTestsRequest) returns (ListTestsResponse);
+  rpc GetTestResults(GetTestResultsRequest) returns (GetTestResultsResponse);
+
+  // Widget discovery API (IT-06)
+  rpc DiscoverWidgets(DiscoverWidgetsRequest) returns (DiscoverWidgetsResponse);
+
+  // Test recording & replay (IT-07)
+  rpc StartRecording(StartRecordingRequest) returns (StartRecordingResponse);
+  rpc StopRecording(StopRecordingRequest) returns (StopRecordingResponse);
+  rpc ReplayTest(ReplayTestRequest) returns (ReplayTestResponse);
+}
+
+// ============================================================================
+// Ping - Health Check
+// ============================================================================
+
+message PingRequest {
+  string message = 1;  // Message to echo back
+}
+
+message PingResponse {
+  string message = 1;         // Echoed message with "Pong: " prefix
+  int64 timestamp_ms = 2;     // Server timestamp in milliseconds
+  string yaze_version = 3;    // YAZE version string (e.g., "0.3.2")
+}
+
+// ============================================================================
+// Click - Interact with GUI elements
+// ============================================================================
+
+message ClickRequest {
+  string target = 1;     // Target element (e.g., "button:Open ROM")
+  ClickType type = 2;    // Type of click
+  
+  enum ClickType {
+    CLICK_TYPE_UNSPECIFIED = 0;  // Default/unspecified click type
+    CLICK_TYPE_LEFT = 1;         // Single left click
+    CLICK_TYPE_RIGHT = 2;        // Single right click
+    CLICK_TYPE_DOUBLE = 3;       // Double click
+    CLICK_TYPE_MIDDLE = 4;       // Middle mouse button
+  }
+}
+
+message ClickResponse {
+  bool success = 1;              // Whether the click succeeded
+  string message = 2;            // Human-readable result message
+  int32 execution_time_ms = 3;   // Time taken to execute (for debugging)
+  string test_id = 4;            // Unique test identifier for introspection
+}
+
+// ============================================================================
+// Type - Send keyboard input
+// ============================================================================
+
+message TypeRequest {
+  string target = 1;     // Target input field (e.g., "textbox:File Path")
+  string text = 2;       // Text to type
+  bool clear_first = 3;  // Clear existing text before typing
+}
+
+message TypeResponse {
+  bool success = 1;
+  string message = 2;
+  int32 execution_time_ms = 3;
+  string test_id = 4;
+}
+
+// ============================================================================
+// Wait - Poll for conditions
+// ============================================================================
+
+message WaitRequest {
+  string condition = 1;   // Condition to wait for (e.g., "window:Overworld")
+  int32 timeout_ms = 2;   // Maximum time to wait (default 5000ms)
+  int32 poll_interval_ms = 3;  // How often to check (default 100ms)
+}
+
+message WaitResponse {
+  bool success = 1;       // Whether condition was met before timeout
+  string message = 2;
+  int32 elapsed_ms = 3;   // Time taken before condition met (or timeout)
+  string test_id = 4;     // Unique test identifier for introspection
+}
+
+// ============================================================================
+// Assert - Validate GUI state
+// ============================================================================
+
+message AssertRequest {
+  string condition = 1;   // Condition to assert (e.g., "visible:button:Save")
+  string failure_message = 2;  // Custom message if assertion fails
+}
+
+message AssertResponse {
+  bool success = 1;       // Whether assertion passed
+  string message = 2;     // Diagnostic message
+  string actual_value = 3;     // Actual value found (for debugging)
+  string expected_value = 4;   // Expected value (for debugging)
+  string test_id = 5;          // Unique test identifier for introspection
+}
+
+// ============================================================================
+// Screenshot - Capture window state
+// ============================================================================
+
+message ScreenshotRequest {
+  string window_title = 1;  // Window to capture (empty = main window)
+  string output_path = 2;   // Where to save screenshot
+  ImageFormat format = 3;   // Image format
+  
+  enum ImageFormat {
+    IMAGE_FORMAT_UNSPECIFIED = 0;
+    IMAGE_FORMAT_PNG = 1;
+    IMAGE_FORMAT_JPEG = 2;
+  }
+}
+
+message ScreenshotResponse {
+  bool success = 1;
+  string message = 2;
+  string file_path = 3;   // Absolute path to saved screenshot
+  int64 file_size_bytes = 4;
+}
+
+// ============================================================================
+// GetTestStatus - Query test execution state
+// ============================================================================
+
+message GetTestStatusRequest {
+  string test_id = 1;  // Test ID from Click/Type/Wait/Assert response
+}
+
+message GetTestStatusResponse {
+  enum TestStatus {
+    TEST_STATUS_UNSPECIFIED = 0;  // Test ID not found or unspecified
+    TEST_STATUS_QUEUED = 1;       // Waiting to execute
+    TEST_STATUS_RUNNING = 2;      // Currently executing
+    TEST_STATUS_PASSED = 3;       // Completed successfully
+    TEST_STATUS_FAILED = 4;       // Assertion failed or error
+    TEST_STATUS_TIMEOUT = 5;      // Exceeded timeout
+  }
+
+  TestStatus status = 1;
+  int64 queued_at_ms = 2;      // When test was queued
+  int64 started_at_ms = 3;     // When test started (0 if not started)
+  int64 completed_at_ms = 4;   // When test completed (0 if not complete)
+  int32 execution_time_ms = 5; // Total execution time
+  string error_message = 6;    // Error details if FAILED/TIMEOUT
+  repeated string assertion_failures = 7;  // Failed assertion details
+}
+
+// ============================================================================
+// ListTests - Enumerate available tests
+// ============================================================================
+
+message ListTestsRequest {
+  string category_filter = 1;  // Optional: "grpc", "unit", "integration", "e2e"
+  int32 page_size = 2;         // Number of results per page (default 100)
+  string page_token = 3;       // Pagination token from previous response
+}
+
+message ListTestsResponse {
+  repeated TestInfo tests = 1;
+  string next_page_token = 2;  // Token for next page (empty if no more)
+  int32 total_count = 3;       // Total number of matching tests
+}
+
+message TestInfo {
+  string test_id = 1;           // Unique test identifier
+  string name = 2;              // Human-readable test name
+  string category = 3;          // Category: grpc, unit, integration, e2e
+  int64 last_run_timestamp_ms = 4;  // When test last executed
+  int32 total_runs = 5;         // Total number of executions
+  int32 pass_count = 6;         // Number of successful runs
+  int32 fail_count = 7;         // Number of failed runs
+  int32 average_duration_ms = 8;  // Average execution time
+}
+
+// ============================================================================
+// GetTestResults - Retrieve detailed results
+// ============================================================================
+
+message GetTestResultsRequest {
+  string test_id = 1;
+  bool include_logs = 2;  // Include full execution logs
+}
+
+message GetTestResultsResponse {
+  bool success = 1;         // Overall test result
+  string test_name = 2;
+  string category = 3;
+  int64 executed_at_ms = 4;
+  int32 duration_ms = 5;
+  repeated AssertionResult assertions = 6;
+  repeated string logs = 7;  // If include_logs=true
+  map<string, int32> metrics = 8;  // e.g., "frame_count": 123
+  
+  // IT-08b: Failure diagnostics
+  string screenshot_path = 9;           // Path to failure screenshot (if captured)
+  int64 screenshot_size_bytes = 10;     // Size of screenshot file
+  string failure_context = 11;          // Execution context at failure time
+  string widget_state = 12;             // Widget state dump (IT-08c - future)
+}
+
+message AssertionResult {
+  string description = 1;
+  bool passed = 2;
+  string expected_value = 3;
+  string actual_value = 4;
+  string error_message = 5;
+}
+
+// ============================================================================
+// DiscoverWidgets - Enumerate discoverable GUI widgets
+// ============================================================================
+
+message DiscoverWidgetsRequest {
+  // Optional: Limit to a window name (case-insensitive)
+  string window_filter = 1;
+  // Optional: Limit to widget type
+  WidgetType type_filter = 2;
+  // Optional: Require widget path to start with prefix
+  string path_prefix = 3;
+  // Include widgets that are currently not visible
+  bool include_invisible = 4;
+  // Include widgets that are currently disabled
+  bool include_disabled = 5;
+}
+
+enum WidgetType {
+  WIDGET_TYPE_UNSPECIFIED = 0;
+  WIDGET_TYPE_ALL = 1;
+  WIDGET_TYPE_BUTTON = 2;
+  WIDGET_TYPE_INPUT = 3;
+  WIDGET_TYPE_MENU = 4;
+  WIDGET_TYPE_TAB = 5;
+  WIDGET_TYPE_CHECKBOX = 6;
+  WIDGET_TYPE_SLIDER = 7;
+  WIDGET_TYPE_CANVAS = 8;
+  WIDGET_TYPE_SELECTABLE = 9;
+  WIDGET_TYPE_OTHER = 10;
+}
+
+message WidgetBounds {
+  float min_x = 1;
+  float min_y = 2;
+  float max_x = 3;
+  float max_y = 4;
+}
+
+message DiscoveredWidget {
+  // Full hierarchical path (e.g. Overworld/Toolset/button:Pan)
+  string path = 1;
+  // Human-readable label (e.g. Pan)
+  string label = 2;
+  // Widget type string (button, input, ...)
+  string type = 3;
+  // Description provided by registry (if any)
+  string description = 4;
+  // Suggested action for automation (e.g. "Click button:Pan")
+  string suggested_action = 5;
+  bool visible = 6;             // Currently visible in UI
+  bool enabled = 7;             // Currently enabled for interaction
+  WidgetBounds bounds = 8;      // Bounding rectangle in screen coordinates
+  uint32 widget_id = 9;         // ImGui ID (debugging / direct access)
+  int64 last_seen_frame = 10;   // Frame number when widget was last observed
+  int64 last_seen_at_ms = 11;   // Wall-clock timestamp of last observation
+  bool stale = 12;              // True if widget not seen in the current frame
+}
+
+message DiscoveredWindow {
+  // Window name (first segment of path)
+  string name = 1;
+  // Whether the window is currently visible
+  bool visible = 2;
+  // Widgets contained in this window
+  repeated DiscoveredWidget widgets = 3;
+}
+
+message DiscoverWidgetsResponse {
+  repeated DiscoveredWindow windows = 1;
+  int32 total_widgets = 2;              // Total number of widgets returned
+  int64 generated_at_ms = 3;            // Snapshot timestamp (Unix ms)
+}
+
+// ============================================================================
+// Test Recording & Replay (IT-07)
+// ============================================================================
+
+message StartRecordingRequest {
+  string output_path = 1;     // Where to store the JSON script
+  string session_name = 2;    // Optional friendly name for the recording
+  string description = 3;     // Optional description stored alongside metadata
+}
+
+message StartRecordingResponse {
+  bool success = 1;
+  string message = 2;
+  string recording_id = 3;    // Identifier required when stopping
+  int64 started_at_ms = 4;
+}
+
+message StopRecordingRequest {
+  string recording_id = 1;    // Recording session to stop
+  bool discard = 2;           // If true, delete steps instead of writing file
+}
+
+message StopRecordingResponse {
+  bool success = 1;
+  string message = 2;
+  string output_path = 3;     // Final location of saved script (if any)
+  int32 step_count = 4;       // Total steps captured during session
+  int64 duration_ms = 5;      // Duration of the recording session
+}
+
+message ReplayTestRequest {
+  string script_path = 1;                      // Path to JSON script
+  bool ci_mode = 2;                            // Suppress interactive prompts
+  map<string, string> parameter_overrides = 3; // Optional parameter overrides
+}
+
+message ReplayTestResponse {
+  bool success = 1;
+  string message = 2;
+  string replay_session_id = 3;
+  int32 steps_executed = 4;
+  repeated AssertionResult assertions = 5;  // Aggregated assertion outcomes
+  repeated string logs = 6;                 // Replay log entries
+}

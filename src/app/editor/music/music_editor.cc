@@ -1,58 +1,87 @@
 #include "music_editor.h"
+#include "app/editor/system/editor_card_registry.h"
 
 #include "absl/strings/str_format.h"
+#include "app/gfx/debug/performance/performance_profiler.h"
 #include "app/editor/code/assembly_editor.h"
-#include "app/gui/icons.h"
-#include "app/gui/input.h"
+#include "app/emu/emulator.h"
+#include "app/gui/core/icons.h"
+#include "app/gui/core/input.h"
 #include "imgui/imgui.h"
+#include "util/log.h"
 
 namespace yaze {
 namespace editor {
 
-void MusicEditor::Initialize() {}
+void MusicEditor::Initialize() {
+  if (!dependencies_.card_registry) return;
+  auto* card_registry = dependencies_.card_registry;
+  
+  card_registry->RegisterCard({.card_id = "music.tracker", .display_name = "Music Tracker",
+                            .icon = ICON_MD_MUSIC_NOTE, .category = "Music",
+                            .shortcut_hint = "Ctrl+Shift+M", .priority = 10});
+  card_registry->RegisterCard({.card_id = "music.instrument_editor", .display_name = "Instrument Editor",
+                            .icon = ICON_MD_PIANO, .category = "Music",
+                            .shortcut_hint = "Ctrl+Shift+I", .priority = 20});
+  card_registry->RegisterCard({.card_id = "music.assembly", .display_name = "Assembly View",
+                            .icon = ICON_MD_CODE, .category = "Music",
+                            .shortcut_hint = "Ctrl+Shift+A", .priority = 30});
+  
+  // Show tracker by default
+  card_registry->ShowCard("music.tracker");
+}
 
 absl::Status MusicEditor::Load() {
+  gfx::ScopedTimer timer("MusicEditor::Load");
   return absl::OkStatus();
 }
 
 absl::Status MusicEditor::Update() {
-  if (ImGui::BeginTable("MusicEditorColumns", 2, music_editor_flags_,
-                        ImVec2(0, 0))) {
-    ImGui::TableSetupColumn("Assembly");
-    ImGui::TableSetupColumn("Composition");
-    ImGui::TableHeadersRow();
-    ImGui::TableNextRow();
-
-    ImGui::TableNextColumn();
-    assembly_editor_.InlineUpdate();
-
-    ImGui::TableNextColumn();
-    DrawToolset();
-    DrawChannels();
-    DrawPianoRoll();
-
-    ImGui::EndTable();
+  if (!dependencies_.card_registry) return absl::OkStatus();
+  auto* card_registry = dependencies_.card_registry;
+  
+  static gui::EditorCard tracker_card("Music Tracker", ICON_MD_MUSIC_NOTE);
+  static gui::EditorCard instrument_card("Instrument Editor", ICON_MD_PIANO);
+  static gui::EditorCard assembly_card("Assembly View", ICON_MD_CODE);
+  
+  tracker_card.SetDefaultSize(900, 700);
+  instrument_card.SetDefaultSize(600, 500);
+  assembly_card.SetDefaultSize(700, 600);
+  
+  // Music Tracker Card - Check visibility flag exists and is true before rendering
+  bool* tracker_visible = card_registry->GetVisibilityFlag("music.tracker");
+  if (tracker_visible && *tracker_visible) {
+    if (tracker_card.Begin(tracker_visible)) {
+      DrawTrackerView();
+    }
+    tracker_card.End();
+  }
+  
+  // Instrument Editor Card - Check visibility flag exists and is true before rendering
+  bool* instrument_visible = card_registry->GetVisibilityFlag("music.instrument_editor");
+  if (instrument_visible && *instrument_visible) {
+    if (instrument_card.Begin(instrument_visible)) {
+      DrawInstrumentEditor();
+    }
+    instrument_card.End();
+  }
+  
+  // Assembly View Card - Check visibility flag exists and is true before rendering
+  bool* assembly_visible = card_registry->GetVisibilityFlag("music.assembly");
+  if (assembly_visible && *assembly_visible) {
+    if (assembly_card.Begin(assembly_visible)) {
+      assembly_editor_.InlineUpdate();
+    }
+    assembly_card.End();
   }
 
   return absl::OkStatus();
-}
-
-void MusicEditor::DrawChannels() {
-  if (ImGui::BeginTabBar("MyTabBar", ImGuiTabBarFlags_None)) {
-    for (int i = 1; i <= 8; ++i) {
-      if (ImGui::BeginTabItem(absl::StrFormat("%d", i).data())) {
-        DrawPianoStaff();
-        ImGui::EndTabItem();
-      }
-    }
-    ImGui::EndTabBar();
-  }
 }
 
 static const int NUM_KEYS = 25;
 static bool keys[NUM_KEYS];
 
-void MusicEditor::DrawPianoStaff() {
+static void DrawPianoStaff() {
   if (ImGuiID child_id = ImGui::GetID((void*)(intptr_t)9);
       ImGui::BeginChild(child_id, ImVec2(0, 170), false)) {
     const int NUM_LINES = 5;
@@ -90,7 +119,7 @@ void MusicEditor::DrawPianoStaff() {
   ImGui::EndChild();
 }
 
-void MusicEditor::DrawPianoRoll() {
+static void DrawPianoRoll() {
   // Render the piano roll
   float key_width = ImGui::GetContentRegionAvail().x / NUM_KEYS;
   float white_key_height = ImGui::GetContentRegionAvail().y * 0.8f;
@@ -154,16 +183,19 @@ void MusicEditor::DrawPianoRoll() {
   ImGui::PopStyleVar();
 }
 
-void MusicEditor::DrawSongToolset() {
-  if (ImGui::BeginTable("DWToolset", 8, toolset_table_flags_, ImVec2(0, 0))) {
-    ImGui::TableSetupColumn("#1");
-    ImGui::TableSetupColumn("#play");
-    ImGui::TableSetupColumn("#rewind");
-    ImGui::TableSetupColumn("#fastforward");
-    ImGui::TableSetupColumn("volumeController");
+void MusicEditor::DrawTrackerView() {
+  DrawToolset();
+  DrawPianoRoll();
+  DrawPianoStaff();
+  // TODO: Add music channel view
+  ImGui::Text("Music channels coming soon...");
+}
 
-    ImGui::EndTable();
-  }
+void MusicEditor::DrawInstrumentEditor() {
+  ImGui::Text("Instrument Editor");
+  ImGui::Separator();
+  // TODO: Implement instrument editor UI
+  ImGui::Text("Coming soon...");
 }
 
 void MusicEditor::DrawToolset() {
@@ -230,6 +262,76 @@ void MusicEditor::DrawToolset() {
   ImGui::SameLine();
   // Display the song duration/progress using a progress bar
   ImGui::ProgressBar((float)current_time / SONG_DURATION);
+}
+
+// ============================================================================
+// Audio Control Methods (Emulator Integration)
+// ============================================================================
+
+void MusicEditor::PlaySong(int song_id) {
+  if (!emulator_) {
+    LOG_WARN("MusicEditor", "No emulator instance - cannot play song");
+    return;
+  }
+  
+  if (!emulator_->snes().running()) {
+    LOG_WARN("MusicEditor", "Emulator not running - cannot play song");
+    return;
+  }
+  
+  // Write song request to game memory ($7E012C)
+  // This triggers the NMI handler to send the song to APU
+  try {
+    emulator_->snes().Write(0x7E012C, static_cast<uint8_t>(song_id));
+    LOG_INFO("MusicEditor", "Requested song %d (%s)", song_id, 
+             song_id < 30 ? kGameSongs[song_id] : "Unknown");
+    
+    // Ensure audio backend is playing
+    if (auto* audio = emulator_->audio_backend()) {
+      auto status = audio->GetStatus();
+      if (!status.is_playing) {
+        audio->Play();
+        LOG_INFO("MusicEditor", "Started audio backend playback");
+      }
+    }
+    
+    is_playing_ = true;
+  } catch (const std::exception& e) {
+    LOG_ERROR("MusicEditor", "Failed to play song: %s", e.what());
+  }
+}
+
+void MusicEditor::StopSong() {
+  if (!emulator_) return;
+  
+  // Write stop command to game memory
+  try {
+    emulator_->snes().Write(0x7E012C, 0xFF);  // 0xFF = stop music
+    LOG_INFO("MusicEditor", "Stopped music playback");
+    
+    // Optional: pause audio backend to save CPU
+    if (auto* audio = emulator_->audio_backend()) {
+      audio->Pause();
+    }
+    
+    is_playing_ = false;
+  } catch (const std::exception& e) {
+    LOG_ERROR("MusicEditor", "Failed to stop song: %s", e.what());
+  }
+}
+
+void MusicEditor::SetVolume(float volume) {
+  if (!emulator_) return;
+  
+  // Clamp volume to valid range
+  volume = std::clamp(volume, 0.0f, 1.0f);
+  
+  if (auto* audio = emulator_->audio_backend()) {
+    audio->SetVolume(volume);
+    LOG_DEBUG("MusicEditor", "Set volume to %.2f", volume);
+  } else {
+    LOG_WARN("MusicEditor", "No audio backend available");
+  }
 }
 
 }  // namespace editor

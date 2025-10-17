@@ -5,9 +5,9 @@
 #include <functional>
 
 #include "imgui/imgui.h"
-#include "app/gui/canvas.h"
-#include "app/zelda3/dungeon/room.h"
-#include "app/zelda3/dungeon/room_object.h"
+#include "app/gui/canvas/canvas.h"
+#include "zelda3/dungeon/room.h"
+#include "zelda3/dungeon/room_object.h"
 
 namespace yaze {
 namespace editor {
@@ -30,6 +30,7 @@ class DungeonObjectInteraction {
   // Selection rectangle (like OverworldEditor)
   void DrawObjectSelectRect();
   void SelectObjectsInRect();
+  void DrawSelectionHighlights();  // Draw highlights for selected objects
   
   // Drag and select box functionality
   void DrawSelectBox();
@@ -50,6 +51,12 @@ class DungeonObjectInteraction {
   const std::vector<size_t>& GetSelectedObjectIndices() const { return selected_object_indices_; }
   bool IsObjectSelectActive() const { return object_select_active_; }
   void ClearSelection();
+  
+  // Context menu
+  void ShowContextMenu();
+  void HandleDeleteSelected();
+  void HandleCopySelected();
+  void HandlePasteObjects();
   
   // Callbacks
   void SetObjectPlacedCallback(std::function<void(const zelda3::RoomObject&)> callback) {
@@ -86,6 +93,10 @@ class DungeonObjectInteraction {
   // Callbacks
   std::function<void(const zelda3::RoomObject&)> object_placed_callback_;
   std::function<void()> cache_invalidation_callback_;
+  
+  // Clipboard for copy/paste
+  std::vector<zelda3::RoomObject> clipboard_;
+  bool has_clipboard_data_ = false;
 };
 
 }  // namespace editor

@@ -4,69 +4,53 @@
 #include <memory>
 #include <string>
 
-#include "absl/status/status.h"
-#include "app/editor/dungeon/dungeon_editor.h"
+#include "app/editor/dungeon/dungeon_editor_v2.h"
 #include "app/rom.h"
+#include "zelda3/dungeon/room.h"
 #include "gtest/gtest.h"
 
 namespace yaze {
 namespace test {
 
 /**
- * @brief Integration test framework for dungeon editor components
+ * @brief Integration test framework using real ROM data
  * 
- * This class provides a comprehensive testing framework for the dungeon editor,
- * allowing modular testing of individual components and their interactions.
+ * Updated for DungeonEditorV2 with card-based architecture
  */
 class DungeonEditorIntegrationTest : public ::testing::Test {
  protected:
-  void SetUp() override;
-  void TearDown() override;
+  void SetUp() override {
+    // Use the real ROM (try multiple locations)
+    rom_ = std::make_unique<Rom>();
+    auto status = rom_->LoadFromFile("assets/zelda3.sfc");
+    if (!status.ok()) {
+      status = rom_->LoadFromFile("build/bin/zelda3.sfc");
+    }
+    if (!status.ok()) {
+      status = rom_->LoadFromFile("zelda3.sfc");
+    }
+    ASSERT_TRUE(status.ok()) << "Could not load zelda3.sfc from any location";
+    ASSERT_TRUE(rom_->InitializeForTesting().ok());
+    
+    // Initialize DungeonEditorV2 with ROM
+    dungeon_editor_ = std::make_unique<editor::DungeonEditorV2>();
+    dungeon_editor_->set_rom(rom_.get());
+    
+    // Load editor data
+    auto load_status = dungeon_editor_->Load();
+    ASSERT_TRUE(load_status.ok()) << "Failed to load dungeon editor: " 
+                                   << load_status.message();
+  }
 
-  // Test data setup
-  absl::Status CreateMockRom();
-  absl::Status LoadTestRoomData();
-  
-  // Component testing helpers
-  absl::Status TestObjectParsing();
-  absl::Status TestObjectRendering();
-  absl::Status TestRoomGraphics();
-  absl::Status TestPaletteHandling();
-  
-  // Mock data generators
-  std::vector<uint8_t> GenerateMockRoomHeader(int room_id);
-  std::vector<uint8_t> GenerateMockObjectData();
-  std::vector<uint8_t> GenerateMockGraphicsData();
+  void TearDown() override {
+    dungeon_editor_.reset();
+    rom_.reset();
+  }
 
-  std::unique_ptr<Rom> mock_rom_;
-  std::unique_ptr<editor::DungeonEditor> dungeon_editor_;
+  std::unique_ptr<Rom> rom_;
+  std::unique_ptr<editor::DungeonEditorV2> dungeon_editor_;
   
-  // Test constants
   static constexpr int kTestRoomId = 0x01;
-  static constexpr int kTestObjectId = 0x10;
-  static constexpr size_t kMockRomSize = 0x200000; // 2MB mock ROM
-};
-
-/**
- * @brief Mock ROM class for testing without real ROM files
- */
-class MockRom : public Rom {
- public:
-  MockRom() = default;
-
-  // Test data injection
-  void SetMockData(const std::vector<uint8_t>& data);
-  void SetMockRoomData(int room_id, const std::vector<uint8_t>& data);
-  void SetMockObjectData(int object_id, const std::vector<uint8_t>& data);
-  
-  // Validation helpers
-  bool ValidateRoomData(int room_id) const;
-  bool ValidateObjectData(int object_id) const;
-
- private:
-  std::vector<uint8_t> mock_data_;
-  std::map<int, std::vector<uint8_t>> mock_room_data_;
-  std::map<int, std::vector<uint8_t>> mock_object_data_;
 };
 
 }  // namespace test

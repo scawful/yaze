@@ -1,0 +1,19 @@
+# Test 3: Error Handling and Edge Cases
+
+# Invalid room ID. The tool should fail, and the agent should report that failure gracefully.
+List the sprites in room 0x999.
+
+# Ambiguous query. There are many "main" palettes.
+# The agent should ideally ask for clarification or state its assumption.
+Describe the main palette.
+
+# A query that is completely outside the scope of its tools.
+# The agent should recognize it cannot answer this.
+What is the story of A Link to the Past?
+
+# A complex, multi-step request that would require both reading and writing in a loop.
+# This tests if the agent attempts such a complex plan or asks the user to simplify.
+Find all the tree tiles on map 0 and replace them with water tiles.
+
+# A nonsense query to test its ability to reject impossible questions.
+How many pixels are in a single rupee?

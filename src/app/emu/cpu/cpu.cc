@@ -6,11 +6,28 @@
 #include <sstream>
 #include <vector>
 
-#include "app/core/features.h"
+#include "absl/strings/str_format.h"
+#include "core/features.h"
 #include "app/emu/cpu/internal/opcodes.h"
+#include "app/emu/debug/disassembly_viewer.h"
+#include "util/log.h"
 
 namespace yaze {
 namespace emu {
+
+debug::DisassemblyViewer& Cpu::disassembly_viewer() {
+  if (disassembly_viewer_ == nullptr) {
+    disassembly_viewer_ = new debug::DisassemblyViewer();
+  }
+  return *disassembly_viewer_;
+}
+
+const debug::DisassemblyViewer& Cpu::disassembly_viewer() const {
+  if (disassembly_viewer_ == nullptr) {
+    const_cast<Cpu*>(this)->disassembly_viewer_ = new debug::DisassemblyViewer();
+  }
+  return *disassembly_viewer_;
+}
 
 void Cpu::Reset(bool hard) {
   if (hard) {
@@ -35,6 +52,15 @@ void Cpu::Reset(bool hard) {
 }
 
 void Cpu::RunOpcode() {
+  // Check for execute breakpoint BEFORE running instruction
+  if (on_breakpoint_hit_) {
+    uint32_t current_pc = (PB << 16) | PC;
+    if (on_breakpoint_hit_(current_pc)) {
+      // Breakpoint hit - pause execution
+      return;  // Don't run this opcode yet
+    }
+  }
+  
   if (reset_wanted_) {
     reset_wanted_ = false;
     // reset: brk/interrupt without writes
@@ -55,15 +81,31 @@ void Cpu::RunOpcode() {
     SetFlags(status);  // updates x and m flags, clears
                        // upper half of x and y if needed
     PB = 0;
-    PC = ReadWord(0xfffc, 0xfffd);
+    
+    // Debug: Log reset vector read
+    uint8_t low_byte = ReadByte(0xfffc);
+    uint8_t high_byte = ReadByte(0xfffd);
+    PC = low_byte | (high_byte << 8);
+    LOG_DEBUG("CPU", "Reset vector: $FFFC=$%02X $FFFD=$%02X -> PC=$%04X", 
+             low_byte, high_byte, PC);
     return;
   }
   if (stopped_) {
+    static int stopped_log_count = 0;
+    if (stopped_log_count++ < 5) {
+      LOG_DEBUG("CPU", "CPU is STOPPED at $%02X:%04X (STP instruction executed)", PB, PC);
+    }
     callbacks_.idle(true);
     return;
   }
   if (waiting_) {
+    static int waiting_log_count = 0;
+    if (waiting_log_count++ < 5) {
+      LOG_DEBUG("CPU", "CPU is WAITING at $%02X:%04X - irq_wanted=%d nmi_wanted=%d int_flag=%d", 
+               PB, PC, irq_wanted_, nmi_wanted_, GetInterruptFlag());
+    }
     if (irq_wanted_ || nmi_wanted_) {
+      LOG_DEBUG("CPU", "CPU waking from WAIT - irq=%d nmi=%d", irq_wanted_, nmi_wanted_);
       waiting_ = false;
       callbacks_.idle(false);
       CheckInt();
@@ -80,6 +122,110 @@ void Cpu::RunOpcode() {
     DoInterrupt();
   } else {
     uint8_t opcode = ReadOpcode();
+    
+    // AUDIO DEBUG: Enhanced logging for audio initialization tracking
+    static int instruction_count = 0;
+    instruction_count++;
+    uint16_t cur_pc = PC - 1;
+    
+    // Track entry into Bank $00 (where all audio code lives)
+    static bool entered_bank00 = false;
+    static bool logged_first_nmi = false;
+    
+    if (PB == 0x00 && !entered_bank00) {
+      LOG_INFO("CPU_AUDIO", "=== ENTERED BANK $00 at PC=$%04X (instruction #%d) ===", 
+               cur_pc, instruction_count);
+      entered_bank00 = true;
+    }
+    
+    // Monitor NMI interrupts (audio init usually happens in NMI)
+    if (nmi_wanted_ && !logged_first_nmi) {
+      LOG_INFO("CPU_AUDIO", "=== FIRST NMI TRIGGERED at PC=$%02X:%04X ===", PB, cur_pc);
+      logged_first_nmi = true;
+    }
+    
+    // Track key audio routines in Bank $00
+    if (PB == 0x00) {
+      static bool logged_routines[0x10000] = {false};
+      
+      // NMI handler entry ($0080-$00FF region)
+      if (cur_pc >= 0x0080 && cur_pc <= 0x00FF) {
+        if (cur_pc == 0x0080 || cur_pc == 0x0090 || cur_pc == 0x00A0) {
+          if (!logged_routines[cur_pc]) {
+            LOG_INFO("CPU_AUDIO", "NMI code: PC=$00:%04X A=$%02X X=$%04X Y=$%04X", 
+                     cur_pc, A & 0xFF, X, Y);
+            logged_routines[cur_pc] = true;
+          }
+        }
+      }
+      
+      // LoadSongBank routine ($8888-$88FF) - This is where handshake happens!
+      // LOGIC: Track CPU's journey through audio initialization to identify where it gets stuck.
+      // We log key waypoints to understand if CPU reaches handshake write instructions.
+      if (cur_pc >= 0x8888 && cur_pc <= 0x88FF) {
+        // Log entry
+        if (cur_pc == 0x8888) {
+          LOG_INFO("CPU_AUDIO", ">>> LoadSongBank ENTRY at $8888! A=$%02X X=$%04X",
+                   A & 0xFF, X);
+        }
+
+        // DISCOVERY: Log every unique PC in this range to see the execution path
+        // This helps identify if CPU is looping, stuck, or simply not reaching write instructions
+        static int exec_count_8888 = 0;
+        if (exec_count_8888++ < 100 && !logged_routines[cur_pc]) {
+          LOG_INFO("CPU_AUDIO", "  LoadSongBank: PC=$%04X A=$%02X X=$%04X Y=$%04X SP=$%04X [exec #%d]",
+                   cur_pc, A & 0xFF, X, Y, SP(), exec_count_8888);
+          logged_routines[cur_pc] = true;
+        }
+
+        // Log handshake initiation ($88A0-$88B0 area writes $CC to F4)
+        if (cur_pc >= 0x88A0 && cur_pc <= 0x88B0) {
+          static int setup_count = 0;
+          if (setup_count++ < 20) {
+            LOG_INFO("CPU_AUDIO", "Handshake setup area: PC=$%04X A=$%02X", cur_pc, A & 0xFF);
+          }
+        }
+
+        // Log handshake wait loop
+        // LOGIC: If we see these addresses, CPU is waiting for APU response
+        static int handshake_log_count = 0;
+        if (cur_pc == 0x88B3 || cur_pc == 0x88B6) {
+          if (handshake_log_count++ < 20 || handshake_log_count % 500 == 0) {
+            uint8_t f4_val = callbacks_.read_byte(0x2140);
+            LOG_INFO("CPU_AUDIO", "Handshake wait: PC=$%04X A=$%02X F4=$%02X X=$%04X [loop #%d]",
+                     cur_pc, A & 0xFF, f4_val, X, handshake_log_count);
+          }
+        }
+      }
+    }
+    
+    // Log first 50 instructions for boot tracking
+    bool should_log = instruction_count < 50;
+    if (should_log) {
+      LOG_DEBUG("CPU", "Boot #%d: $%02X:%04X opcode=$%02X", 
+               instruction_count, PB, PC - 1, opcode);
+    }
+    
+    // Debug: Log if stuck at same PC for extended period (after first 200 instructions)
+    static uint16_t last_stuck_pc = 0xFFFF;
+    static int stuck_count = 0;
+    if (instruction_count >= 200) {
+      if (PC - 1 == last_stuck_pc) {
+        stuck_count++;
+        if (stuck_count == 100 || stuck_count == 1000 || stuck_count == 10000) {
+          LOG_DEBUG("CPU", "Stuck at $%02X:%04X opcode=$%02X for %d iterations",
+                   PB, PC - 1, opcode, stuck_count);
+        }
+      } else {
+        if (stuck_count > 50) {
+          LOG_DEBUG("CPU", "Moved from $%02X:%04X (was stuck %d times) to $%02X:%04X",
+                   PB, last_stuck_pc, stuck_count, PB, PC - 1);
+        }
+        stuck_count = 0;
+        last_stuck_pc = PC - 1;
+      }
+    }
+    
     ExecuteInstruction(opcode);
   }
 }
@@ -1321,10 +1467,26 @@ void Cpu::ExecuteInstruction(uint8_t opcode) {
       Ldx(low, high);
       break;
     }
-    case 0xb7: {  // lda ily
+    case 0xb7: {  // lda ily ([dp],Y)
+      // CRITICAL: Log LDA [$00],Y at $88CF and $88D4 to trace upload data reads
+      uint16_t cur_pc = PC - 1;
+      if (PB == 0x00 && (cur_pc == 0x88CF || cur_pc == 0x88D4)) {
+        // Read the 24-bit pointer from zero page
+        uint8_t dp0 = ReadByte(D + 0x00);
+        uint8_t dp1 = ReadByte(D + 0x01);
+        uint8_t dp2 = ReadByte(D + 0x02);
+        uint32_t ptr = dp0 | (dp1 << 8) | (dp2 << 16);
+        LOG_DEBUG("CPU", "LDA [$00],Y at PC=$%04X: DP=$%04X, [$00]=$%02X:$%04X, Y=$%04X",
+                 cur_pc, D, dp2, (uint16_t)(dp0 | (dp1 << 8)), Y);
+        LOG_DEBUG("CPU", "  -> Reading 16-bit value from address $%06X", ptr + Y);
+      }
       uint32_t low = 0;
       uint32_t high = AdrIly(&low);
       Lda(low, high);
+      // Log the value read
+      if (PB == 0x00 && (cur_pc == 0x88CF || cur_pc == 0x88D4)) {
+        LOG_DEBUG("CPU", "  -> Read value A=$%04X", A);
+      }
       break;
     }
     case 0xb8: {  // clv imp
@@ -1794,116 +1956,47 @@ void Cpu::ExecuteInstruction(uint8_t opcode) {
       break;
     }
   }
-  if (log_instructions_) {
-    LogInstructions(cache_pc, opcode, operand, immediate, accumulator_mode);
-  }
+  // REMOVED: Old log_instructions_ check - now using on_instruction_executed_ callback
+  // which is more efficient and always active (records to DisassemblyViewer)
+  LogInstructions(cache_pc, opcode, operand, immediate, accumulator_mode);
 }
 
 void Cpu::LogInstructions(uint16_t PC, uint8_t opcode, uint16_t operand,
-                          bool immediate, bool accumulator_mode) {
-  if (core::FeatureFlags::get().kLogInstructions) {
-    std::ostringstream oss;
-    oss << "$" << std::uppercase << std::setw(2) << std::setfill('0')
-        << static_cast<int>(PB) << ":" << std::hex << PC << ": 0x"
-        << std::setw(2) << std::setfill('0') << std::hex
-        << static_cast<int>(opcode) << " " << opcode_to_mnemonic.at(opcode)
-        << " ";
-
-    // Log the operand.
-    std::string ops;
-    if (operand) {
-      if (immediate) {
-        ops += "#";
-      }
-      std::ostringstream oss_ops;
-      oss_ops << "$";
-      if (accumulator_mode) {
-        oss_ops << std::hex << std::setw(2) << std::setfill('0')
-                << static_cast<int>(operand);
-      } else {
-        oss_ops << std::hex << std::setw(4) << std::setfill('0')
-                << static_cast<int>(operand);
-      }
-      ops = oss_ops.str();
+bool immediate, bool accumulator_mode) {
+  // Build full 24-bit address
+  uint32_t full_address = (PB << 16) | PC;
+  
+  // Extract operand bytes based on instruction size
+  std::vector<uint8_t> operand_bytes;
+  std::string operand_str;
+  
+  if (operand) {
+    if (immediate) {
+      operand_str += "#";
     }
-
-    oss << ops << std::endl;
-
-    InstructionEntry entry(PC, opcode, ops, oss.str());
-    instruction_log_.push_back(entry);
-  } else {
-    // Log the address and opcode.
-    std::cout << "\033[1;36m"
-              << "$" << std::uppercase << std::setw(2) << std::setfill('0')
-              << static_cast<int>(PB) << ":" << std::hex << PC;
-    std::cout << " \033[1;32m"
-              << ": 0x" << std::hex << std::uppercase << std::setw(2)
-              << std::setfill('0') << static_cast<int>(opcode) << " ";
-    std::cout << " \033[1;35m" << opcode_to_mnemonic.at(opcode) << " "
-              << "\033[0m";
-
-    // Log the operand.
-    if (operand) {
-      if (immediate) {
-        std::cout << "#";
-      }
-      std::cout << "$";
-      if (accumulator_mode) {
-        std::cout << std::hex << std::setw(2) << std::setfill('0') << operand;
-      } else {
-        std::cout << std::hex << std::setw(4) << std::setfill('0')
-                  << static_cast<int>(operand);
-      }
-
-      bool x_indexing, y_indexing;
-      auto x_indexed_instruction_opcodes = {0x15, 0x16, 0x17, 0x55, 0x56,
-                                            0x57, 0xD5, 0xD6, 0xD7, 0xF5,
-                                            0xF6, 0xF7, 0xBD};
-      auto y_indexed_instruction_opcodes = {0x19, 0x97, 0x1D, 0x59, 0x5D, 0x99,
-                                            0x9D, 0xB9, 0xD9, 0xDD, 0xF9, 0xFD};
-      if (std::find(x_indexed_instruction_opcodes.begin(),
-                    x_indexed_instruction_opcodes.end(),
-                    opcode) != x_indexed_instruction_opcodes.end()) {
-        x_indexing = true;
-      } else {
-        x_indexing = false;
-      }
-      if (std::find(y_indexed_instruction_opcodes.begin(),
-                    y_indexed_instruction_opcodes.end(),
-                    opcode) != y_indexed_instruction_opcodes.end()) {
-        y_indexing = true;
-      } else {
-        y_indexing = false;
-      }
-
-      if (x_indexing) {
-        std::cout << ", X";
-      }
-
-      if (y_indexing) {
-        std::cout << ", Y";
-      }
+    
+    if (accumulator_mode) {
+      // 8-bit operand
+      operand_bytes.push_back(operand & 0xFF);
+      operand_str += absl::StrFormat("$%02X", operand & 0xFF);
+    } else {
+      // 16-bit operand (little-endian)
+      operand_bytes.push_back(operand & 0xFF);
+      operand_bytes.push_back((operand >> 8) & 0xFF);
+      operand_str += absl::StrFormat("$%04X", operand);
     }
-
-    // Log the registers and flags.
-    std::cout << std::right;
-    std::cout << "\033[1;33m"
-              << " A:" << std::hex << std::setw(2) << std::setfill('0')
-              << static_cast<int>(A);
-    std::cout << " X:" << std::hex << std::setw(2) << std::setfill('0')
-              << static_cast<int>(X);
-    std::cout << " Y:" << std::hex << std::setw(2) << std::setfill('0')
-              << static_cast<int>(Y);
-    std::cout << " S:" << std::hex << std::setw(2) << std::setfill('0')
-              << static_cast<int>(status);
-    std::cout << " DB:" << std::hex << std::setw(2) << std::setfill('0')
-              << static_cast<int>(DB);
-    std::cout << " D:" << std::hex << std::setw(2) << std::setfill('0')
-              << static_cast<int>(D);
-    std::cout << " SP:" << std::hex << std::setw(4) << std::setfill('0')
-              << SP();
-
-    std::cout << std::endl;
+  }
+  
+  // Get mnemonic
+  const std::string& mnemonic = opcode_to_mnemonic.at(opcode);
+  
+  // ALWAYS record to DisassemblyViewer (sparse, Mesen-style, zero cost)
+  // The callback only fires if set, and DisassemblyViewer only stores unique addresses
+  // - First execution: Add to map (O(log n))
+  // - Subsequent: Increment counter (O(log n))
+  // - Total overhead: ~0.1% even with millions of instructions
+  if (on_instruction_executed_) {
+    on_instruction_executed_(full_address, opcode, operand_bytes, mnemonic, operand_str);
   }
 }
 

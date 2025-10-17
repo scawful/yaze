@@ -3,11 +3,19 @@
 
 #include "app/editor/code/assembly_editor.h"
 #include "app/editor/editor.h"
+#include "app/emu/audio/apu.h"
+#include "app/gui/app/editor_layout.h"
 #include "app/rom.h"
-#include "app/zelda3/music/tracker.h"
+#include "zelda3/music/tracker.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
+
+// Forward declaration
+namespace emu {
+class Emulator;
+}
+
 namespace editor {
 
 static const char* kGameSongs[] = {"Title",
@@ -56,8 +64,8 @@ const ImGuiTableFlags music_editor_flags_ = ImGuiTableFlags_SizingFixedFit |
  */
 class MusicEditor : public Editor {
  public:
-  explicit MusicEditor(Rom* rom = nullptr) : rom_(rom) { 
-    type_ = EditorType::kMusic; 
+  explicit MusicEditor(Rom* rom = nullptr) : rom_(rom) {
+    type_ = EditorType::kMusic;
   }
 
   void Initialize() override;
@@ -70,24 +78,57 @@ class MusicEditor : public Editor {
   absl::Status Undo() override { return absl::UnimplementedError("Undo"); }
   absl::Status Redo() override { return absl::UnimplementedError("Redo"); }
   absl::Status Find() override { return absl::UnimplementedError("Find"); }
-  
+
   // Set the ROM pointer
   void set_rom(Rom* rom) { rom_ = rom; }
-  
+
   // Get the ROM pointer
   Rom* rom() const { return rom_; }
+  
+  // Emulator integration for live audio playback
+  void set_emulator(emu::Emulator* emulator) { emulator_ = emulator; }
+  emu::Emulator* emulator() const { return emulator_; }
+  
+  // Audio control methods
+  void PlaySong(int song_id);
+  void StopSong();
+  void SetVolume(float volume);  // 0.0 to 1.0
 
  private:
-  Rom* rom_;
-  void DrawChannels();
-  void DrawPianoStaff();
-  void DrawPianoRoll();
-  void DrawSongToolset();
+  // UI Drawing Methods
+  void DrawTrackerView();
+  void DrawInstrumentEditor();
+  void DrawSampleEditor();
   void DrawToolset();
 
-  zelda3::music::Tracker music_tracker_;
+  // Playback Control
+  void StartPlayback();
+  void StopPlayback();
+  void UpdatePlayback();
 
   AssemblyEditor assembly_editor_;
+  zelda3::music::Tracker music_tracker_;
+  // Note: APU requires ROM memory, will be initialized when needed
+
+  // UI State
+  int current_song_index_ = 0;
+  int current_pattern_index_ = 0;
+  int current_channel_index_ = 0;
+  bool is_playing_ = false;
+  std::vector<bool> channel_muted_ = std::vector<bool>(8, false);
+  std::vector<bool> channel_soloed_ = std::vector<bool>(8, false);
+  std::vector<std::string> song_names_;
+
+  ImGuiTableFlags music_editor_flags_ =
+      ImGuiTableFlags_Resizable | ImGuiTableFlags_BordersOuter |
+      ImGuiTableFlags_BordersV | ImGuiTableFlags_SizingFixedFit;
+
+  ImGuiTableFlags toolset_table_flags_ =
+      ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_BordersOuter |
+      ImGuiTableFlags_BordersV | ImGuiTableFlags_PadOuterX;
+
+  Rom* rom_;
+  emu::Emulator* emulator_ = nullptr;  // For live audio playback
 };
 
 }  // namespace editor

@@ -7,6 +7,7 @@
 
 #include "app/emu/audio/apu.h"
 #include "app/emu/cpu/cpu.h"
+#include "app/emu/debug/apu_debugger.h"
 #include "app/emu/memory/memory.h"
 #include "app/emu/video/ppu.h"
 
@@ -24,6 +25,10 @@ struct Input {
 class Snes {
  public:
   Snes() {
+    // Initialize input controllers to clean state
+    input1 = {};
+    input2 = {};
+    
     cpu_.callbacks().read_byte = [this](uint32_t adr) { return CpuRead(adr); };
     cpu_.callbacks().write_byte = [this](uint32_t adr, uint8_t val) { CpuWrite(adr, val); };
     cpu_.callbacks().idle = [this](bool waiting) { CpuIdle(waiting); };
@@ -59,6 +64,9 @@ class Snes {
   void SetPixels(uint8_t* pixel_data);
   void SetButtonState(int player, int button, bool pressed);
 
+  void loadState(const std::string& path);
+  void saveState(const std::string& path);
+
   bool running() const { return running_; }
   auto cpu() -> Cpu& { return cpu_; }
   auto ppu() -> Ppu& { return ppu_; }
@@ -66,6 +74,9 @@ class Snes {
   auto memory() -> MemoryImpl& { return memory_; }
   auto get_ram() -> uint8_t* { return ram; }
   auto mutable_cycles() -> uint64_t& { return cycles_; }
+  
+  // Audio debugging
+  auto apu_handshake_tracker() -> debug::ApuHandshakeTracker& { return apu_handshake_tracker_; }
 
   bool fast_mem_ = false;
 
@@ -114,6 +125,9 @@ class Snes {
   bool auto_joy_read_ = false;
   uint16_t auto_joy_timer_ = 0;
   bool ppu_latch_;
+  
+  // Audio debugging
+  debug::ApuHandshakeTracker apu_handshake_tracker_;
 };
 
 }  // namespace emu

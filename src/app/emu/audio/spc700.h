@@ -82,6 +82,10 @@ class Spc700 {
   uint8_t dat;
   uint16_t dat16;
   uint8_t param;
+  int extra_cycles_ = 0;
+  
+  // Cycle tracking for accurate APU synchronization
+  int last_opcode_cycles_ = 0;
 
   const uint8_t ipl_rom_[64]{
       0xCD, 0xEF, 0xBD, 0xE8, 0x00, 0xC6, 0x1D, 0xD0, 0xFC, 0x8F, 0xAA,
@@ -136,6 +140,13 @@ class Spc700 {
 
   void RunOpcode();
 
+  // New atomic step function - executes one complete instruction and returns cycles consumed
+  // This is the preferred method for cycle-accurate emulation
+  int Step();
+
+  // Get the number of cycles consumed by the last opcode execution
+  int GetLastOpcodeCycles() const { return last_opcode_cycles_; }
+
   void ExecuteInstructions(uint8_t opcode);
   void LogInstruction(uint16_t initial_pc, uint8_t opcode);
 
@@ -143,8 +154,8 @@ class Spc700 {
   uint8_t read(uint16_t address) { return callbacks_.read(address); }
 
   uint16_t read_word(uint16_t address) {
-    uint8_t adrl = address;
-    uint8_t adrh = address + 1;
+    uint16_t adrl = address;
+    uint16_t adrh = address + 1;
     uint8_t value = callbacks_.read(adrl);
     return value | (callbacks_.read(adrh) << 8);
   }
@@ -161,11 +172,13 @@ class Spc700 {
   }
 
   void DoBranch(uint8_t value, bool check) {
+    callbacks_.idle(false); // Add missing base cycle for all branches
     if (check) {
       // taken branch: 2 extra cycles
       callbacks_.idle(false);
       callbacks_.idle(false);
       PC += (int8_t)value;
+      extra_cycles_ = 2;
     }
   }
 

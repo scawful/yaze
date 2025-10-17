@@ -2,7 +2,7 @@
 
 #include <fstream>
 
-#include "app/gui/input.h"
+#include "app/gui/core/input.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -73,6 +73,146 @@ void CommandManager::LoadKeybindings(const std::string &filepath) {
       commands_[shortcut].main_command = {nullptr, mnemonic, name, desc};
     }
     in.close();
+  }
+}
+
+// Enhanced hierarchical WhichKey with Spacemacs-style navigation
+void CommandManager::ShowWhichKeyHierarchical() {
+  // Activate on Space key
+  if (ImGui::IsKeyPressed(ImGuiKey_Space) && current_prefix_.empty()) {
+    whichkey_active_ = true;
+    whichkey_timer_ = 0.0f;
+    ImGui::OpenPopup("WhichKeyHierarchical");
+  }
+
+  // ESC to close or go back
+  if (ImGui::IsKeyPressed(ImGuiKey_Escape)) {
+    if (!current_prefix_.empty()) {
+      current_prefix_.clear();  // Go back to root
+    } else {
+      whichkey_active_ = false;
+      ImGui::CloseCurrentPopup();
+    }
+  }
+
+  // Position at bottom of screen
+  ImGui::SetNextWindowPos(ImVec2(0, ImGui::GetIO().DisplaySize.y - 150),
+                          ImGuiCond_Always);
+  ImGui::SetNextWindowSize(ImVec2(ImGui::GetIO().DisplaySize.x, 150),
+                           ImGuiCond_Always);
+
+  if (ImGui::BeginPopup("WhichKeyHierarchical")) {
+    whichkey_active_ = true;
+
+    // Update timer for auto-close
+    whichkey_timer_ += ImGui::GetIO().DeltaTime;
+    if (whichkey_timer_ > 5.0f) {  // Auto-close after 5 seconds
+      whichkey_active_ = false;
+      current_prefix_.clear();
+      ImGui::CloseCurrentPopup();
+      ImGui::EndPopup();
+      return;
+    }
+
+    // Show breadcrumb navigation
+    if (!current_prefix_.empty()) {
+      ImGui::TextColored(ImVec4(0.5f, 0.8f, 1.0f, 1.0f),
+                        "Space > %s", current_prefix_.c_str());
+      ImGui::Separator();
+    } else {
+      ImGui::TextColored(ImVec4(0.5f, 0.8f, 1.0f, 1.0f), "Space > ...");
+      ImGui::Separator();
+    }
+
+    // Color palette for visual grouping
+    const ImVec4 colors[] = {
+        ImVec4(0.8f, 0.2f, 0.2f, 1.0f),  // Red - Window
+        ImVec4(0.2f, 0.8f, 0.2f, 1.0f),  // Green - Buffer
+        ImVec4(0.2f, 0.2f, 0.8f, 1.0f),  // Blue - File
+        ImVec4(0.8f, 0.8f, 0.2f, 1.0f),  // Yellow - Session
+        ImVec4(0.8f, 0.2f, 0.8f, 1.0f),  // Magenta - Layout
+        ImVec4(0.2f, 0.8f, 0.8f, 1.0f)   // Cyan - Theme
+    };
+
+    // Show commands based on current navigation level
+    if (current_prefix_.empty()) {
+      // Root level - show main groups
+      if (ImGui::BeginTable("RootCommands", 6, ImGuiTableFlags_SizingStretchProp)) {
+        int colorIndex = 0;
+        for (const auto &[shortcut, group] : commands_) {
+          ImGui::TableNextColumn();
+          ImGui::TextColored(colors[colorIndex % 6],
+                            "%c: %s",
+                            group.main_command.mnemonic,
+                            group.main_command.name.c_str());
+          colorIndex++;
+        }
+        ImGui::EndTable();
+      }
+    } else {
+      // Submenu level - show subcommands
+      auto it = commands_.find(current_prefix_);
+      if (it != commands_.end()) {
+        const auto& group = it->second;
+        if (!group.subcommands.empty()) {
+          if (ImGui::BeginTable("Subcommands",
+                               std::min(6, (int)group.subcommands.size()),
+                               ImGuiTableFlags_SizingStretchProp)) {
+            int colorIndex = 0;
+            for (const auto& [key, cmd] : group.subcommands) {
+              ImGui::TableNextColumn();
+              ImGui::TextColored(colors[colorIndex % 6],
+                                "%c: %s",
+                                cmd.mnemonic,
+                                cmd.name.c_str());
+              colorIndex++;
+            }
+            ImGui::EndTable();
+          }
+        } else {
+          ImGui::TextDisabled("No subcommands available");
+        }
+      }
+    }
+
+    ImGui::EndPopup();
+  } else {
+    whichkey_active_ = false;
+    current_prefix_.clear();
+  }
+}
+
+// Handle keyboard input for WhichKey navigation
+void CommandManager::HandleWhichKeyInput() {
+  if (!whichkey_active_) return;
+
+  // Check for prefix keys (w, l, f, b, s, t, etc.)
+  for (const auto& [shortcut, group] : commands_) {
+    ImGuiKey key = gui::MapKeyToImGuiKey(group.main_command.mnemonic);
+    if (key != ImGuiKey_COUNT && ImGui::IsKeyPressed(key)) {
+      if (current_prefix_.empty()) {
+        // Enter submenu
+        current_prefix_ = shortcut;
+        whichkey_timer_ = 0.0f;
+        return;
+      } else {
+        // Execute subcommand
+        auto it = commands_.find(current_prefix_);
+        if (it != commands_.end()) {
+          for (const auto& [subkey, cmd] : it->second.subcommands) {
+            if (cmd.mnemonic == group.main_command.mnemonic) {
+              if (cmd.command) {
+                cmd.command();
+              }
+              whichkey_active_ = false;
+              current_prefix_.clear();
+              ImGui::CloseCurrentPopup();
+              return;
+            }
+          }
+        }
+      }
+    }
   }
 }
 

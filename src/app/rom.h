@@ -4,11 +4,13 @@
 #include <SDL.h>
 #include <zelda.h>
 
+#include <array>
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
 #include <ctime>
 #include <map>
+#include <stdexcept>
 #include <string>
 #include <variant>
 #include <vector>
@@ -17,10 +19,11 @@
 #include "absl/status/statusor.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/string_view.h"
-#include "app/core/project.h"
-#include "app/gfx/bitmap.h"
-#include "app/gfx/snes_palette.h"
-#include "app/gfx/snes_tile.h"
+#include "core/project.h"
+#include "app/gfx/core/bitmap.h"
+#include "app/gfx/types/snes_color.h"
+#include "app/gfx/types/snes_palette.h"
+#include "app/gfx/types/snes_tile.h"
 #include "util/macro.h"
 
 namespace yaze {
@@ -39,6 +42,20 @@ constexpr uint32_t kNumSpritesets = 144;
 constexpr uint32_t kNumPalettesets = 72;
 constexpr uint32_t kEntranceGfxGroup = 0x5D97;
 constexpr uint32_t kMaxGraphics = 0x0C3FFF;  // 0xC3FB5
+
+struct RomLoadOptions {
+  bool load_zelda3_content = true;
+  bool strip_header = true;
+  bool populate_metadata = true;
+  bool populate_palettes = true;
+  bool populate_gfx_groups = true;
+  bool expand_to_full_image = true;
+  bool load_resource_labels = true;
+
+  static RomLoadOptions AppDefaults();
+  static RomLoadOptions CliDefaults();
+  static RomLoadOptions RawDataOnly();
+};
 
 /**
  * @brief A map of version constants for each version of the game.
@@ -60,14 +77,24 @@ class Rom {
     bool backup = false;
     bool save_new = false;
     bool z3_save = true;
-    std::string filename = "";
+    std::string filename;
   };
 
   absl::Status LoadFromFile(const std::string& filename, bool z3_load = true);
+  absl::Status LoadFromFile(const std::string& filename,
+                           const RomLoadOptions& options);
   absl::Status LoadFromData(const std::vector<uint8_t>& data,
                             bool z3_load = true);
+  absl::Status LoadFromData(const std::vector<uint8_t>& data,
+                            const RomLoadOptions& options);
   absl::Status LoadZelda3();
+  absl::Status LoadZelda3(const RomLoadOptions& options);
   absl::Status LoadGfxGroups();
+
+  absl::Status InitializeForTesting() {
+    RETURN_IF_ERROR(LoadZelda3(RomLoadOptions::AppDefaults()));
+    return absl::OkStatus();
+  }
 
   absl::Status SaveGfxGroups();
   absl::Status SaveToFile(const SaveSettings& settings);
@@ -172,6 +199,7 @@ class Rom {
 
   bool is_loaded() const { return !rom_data_.empty(); }
   bool dirty() const { return dirty_; }
+  void set_dirty(bool dirty) { dirty_ = dirty; }
   void ClearDirty() { dirty_ = false; }
   auto title() const { return title_; }
   auto size() const { return size_; }
@@ -192,7 +220,7 @@ class Rom {
     return palette_groups_.dungeon_main.mutable_palette(i);
   }
 
-  core::ResourceLabelManager* resource_label() { return &resource_label_manager_; }
+  project::ResourceLabelManager* resource_label() { return &resource_label_manager_; }
   zelda3_version_pointers version_constants() const {
     return kVersionConstantsMap.at(version_);
   }
@@ -210,10 +238,10 @@ class Rom {
   std::string title_ = "ROM not loaded";
 
   // Filename of the ROM
-  std::string filename_ = "";
+  std::string filename_;
 
   // Short name of the ROM
-  std::string short_name_ = "";
+  std::string short_name_;
 
   // Full contiguous rom space
   std::vector<uint8_t> rom_data_;
@@ -222,7 +250,7 @@ class Rom {
   std::vector<uint8_t> graphics_buffer_;
 
   // Label manager for unique resource names.
-  core::ResourceLabelManager resource_label_manager_;
+  project::ResourceLabelManager resource_label_manager_;
 
   // All palette groups in the game
   gfx::PaletteGroupMap palette_groups_;

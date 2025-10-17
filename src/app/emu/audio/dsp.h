@@ -7,6 +7,13 @@
 namespace yaze {
 namespace emu {
 
+enum class InterpolationType {
+  Linear,
+  Hermite,  // Used by bsnes/Snes9x - better quality than linear
+  Cosine,
+  Cubic,
+};
+
 typedef struct DspChannel {
   // pitch
   uint16_t pitch;
@@ -103,10 +110,14 @@ class Dsp {
   int16_t GetSample(int ch);
 
   void GetSamples(int16_t* sample_data, int samples_per_frame, bool pal_timing);
+  int CopyNativeFrame(int16_t* sample_data, bool pal_timing);
+
+  InterpolationType interpolation_type = InterpolationType::Linear;
 
  private:
-  int16_t sample_buffer_[0x400 * 2];  // (1024 samples, *2 for stereo)
-  int16_t sample_offset_;             // current offset in samplebuffer
+  // sample ring buffer (1024 samples, *2 for stereo)
+  int16_t sampleBuffer[0x400 * 2];
+  uint16_t sampleOffset;  // current offset in samplebuffer
 
   std::vector<uint8_t>& aram_;
 
@@ -143,9 +154,6 @@ class Dsp {
   int8_t firValues[8];
   int16_t firBufferL[8];
   int16_t firBufferR[8];
-  // sample ring buffer (1024 samples, *2 for stereo)
-  int16_t sampleBuffer[0x400 * 2];
-  uint16_t sampleOffset;  // current offset in samplebuffer
   uint32_t lastFrameBoundary;
 };
 

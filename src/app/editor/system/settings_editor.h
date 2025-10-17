@@ -4,6 +4,7 @@
 #include "absl/status/status.h"
 #include "app/editor/editor.h"
 #include "app/rom.h"
+#include "app/editor/system/user_settings.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -207,7 +208,8 @@ static void ShowExampleAppPropertyEditor(bool* p_open) {
 
 class SettingsEditor : public Editor {
  public:
-  explicit SettingsEditor(Rom* rom = nullptr) : rom_(rom) { 
+  explicit SettingsEditor(Rom* rom = nullptr, UserSettings* user_settings = nullptr) 
+      : rom_(rom), user_settings_(user_settings) { 
     type_ = EditorType::kSettings; 
   }
 
@@ -215,6 +217,8 @@ class SettingsEditor : public Editor {
   absl::Status Load() override;
   absl::Status Save() override { return absl::UnimplementedError("Save"); }
   absl::Status Update() override;
+  
+  void set_user_settings(UserSettings* settings) { user_settings_ = settings; }
   absl::Status Cut() override { return absl::UnimplementedError("Cut"); }
   absl::Status Copy() override { return absl::UnimplementedError("Copy"); }
   absl::Status Paste() override { return absl::UnimplementedError("Paste"); }
@@ -232,8 +236,13 @@ class SettingsEditor : public Editor {
 
  private:
   Rom* rom_;
+  UserSettings* user_settings_;
   void DrawGeneralSettings();
   void DrawKeyboardShortcuts();
+  void DrawThemeSettings();
+  void DrawEditorBehavior();
+  void DrawPerformanceSettings();
+  void DrawAIAgentSettings();
 };
 
 }  // namespace editor

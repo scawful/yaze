@@ -1,72 +1,51 @@
-include(FetchContent)
+# This file defines the z3ed command-line tool.
 
-FetchContent_Declare(ftxui
-  GIT_REPOSITORY https://github.com/ArthurSonzogni/ftxui
-  GIT_TAG v5.0.0
-)
-
-FetchContent_GetProperties(ftxui)
-if(NOT ftxui_POPULATED)
-  FetchContent_Populate(ftxui)
-  add_subdirectory(${ftxui_SOURCE_DIR} ${ftxui_BINARY_DIR} EXCLUDE_FROM_ALL)
-endif()
-
-# Platform-specific file dialog sources
-if(APPLE)
-  set(FILE_DIALOG_SRC 
-    app/core/platform/file_dialog.cc   # Utility functions (all platforms)
-    app/core/platform/file_dialog.mm   # macOS-specific dialogs
-  )
-else()
-  set(FILE_DIALOG_SRC app/core/platform/file_dialog.cc)
-endif()
-
-add_executable(
-  z3ed
+add_executable(z3ed
   cli/cli_main.cc
-  cli/tui.cc
-  cli/handlers/compress.cc
-  cli/handlers/patch.cc
-  cli/handlers/tile16_transfer.cc
-  app/rom.cc
-  app/core/project.cc
-  app/core/asar_wrapper.cc
-  ${FILE_DIALOG_SRC}
-  ${YAZE_APP_EMU_SRC}
-  ${YAZE_APP_GFX_SRC}
-  ${YAZE_APP_ZELDA3_SRC}
-  ${YAZE_UTIL_SRC}
-  ${YAZE_GUI_SRC}
-  ${IMGUI_SRC}
+  cli/cli.cc
+  cli/tui/tui.cc
+  cli/tui/unified_layout.cc
+  cli/tui/chat_tui.cc
+  cli/tui/autocomplete_ui.cc
+  cli/util/autocomplete.cc
+  # ... (source files)
 )
 
-target_include_directories(
-  z3ed PUBLIC
-  ${CMAKE_SOURCE_DIR}/src/lib/
-  ${CMAKE_SOURCE_DIR}/src/app/
-  ${CMAKE_SOURCE_DIR}/src/lib/asar/src
-  ${CMAKE_SOURCE_DIR}/src/lib/asar/src/asar
-  ${CMAKE_SOURCE_DIR}/src/lib/asar/src/asar-dll-bindings/c
-  ${CMAKE_SOURCE_DIR}/incl/
-  ${CMAKE_SOURCE_DIR}/src/
-  ${CMAKE_SOURCE_DIR}/src/lib/imgui_test_engine
-  ${PNG_INCLUDE_DIRS}
-  ${SDL2_INCLUDE_DIR}
-  ${PROJECT_BINARY_DIR}
+target_compile_definitions(z3ed PRIVATE YAZE_ASSETS_PATH="${CMAKE_SOURCE_DIR}/assets")
+
+# Copy agent assets for z3ed
+if(EXISTS ${CMAKE_SOURCE_DIR}/assets/agent)
+  file(COPY ${CMAKE_SOURCE_DIR}/assets/agent/ DESTINATION "${CMAKE_BINARY_DIR}/assets/agent/")
+  add_custom_command(TARGET z3ed POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/assets/agent $<TARGET_FILE_DIR:z3ed>/assets/agent
+    COMMENT "Copying agent assets for z3ed"
+  )
+endif()
+
+target_include_directories(z3ed PUBLIC
+    "${CMAKE_CURRENT_SOURCE_DIR}"
+    "${CMAKE_CURRENT_SOURCE_DIR}/tui"
 )
 
-target_link_libraries(
-  z3ed PUBLIC
-  asar-static
-  ftxui::component
-  ftxui::screen
-  ftxui::dom
-  absl::flags
-  absl::flags_parse
-  ${ABSL_TARGETS}
-  ${SDL_TARGETS}
-  ${PNG_LIBRARIES}
-  ${CMAKE_DL_LIBS}
-  ImGuiTestEngine
-  ImGui
+target_link_libraries(z3ed PRIVATE
+    yaze_core
+    yaze_agent
+    ftxui::component
 )
+
+if(Z3ED_AI)
+    target_link_libraries(z3ed PRIVATE yaml-cpp)
+endif()
+
+if(YAZE_WITH_GRPC)
+  message(STATUS "Adding gRPC support to z3ed CLI")
+  target_link_libraries(z3ed PRIVATE grpc++ grpc++_reflection)
+  if(YAZE_PROTOBUF_TARGETS)
+    target_link_libraries(z3ed PRIVATE ${YAZE_PROTOBUF_TARGETS})
+    if(MSVC AND YAZE_PROTOBUF_WHOLEARCHIVE_TARGETS)
+      foreach(_yaze_proto_target IN LISTS YAZE_PROTOBUF_WHOLEARCHIVE_TARGETS)
+        target_link_options(z3ed PRIVATE /WHOLEARCHIVE:$<TARGET_FILE:${_yaze_proto_target}>)
+      endforeach()
+    endif()
+  endif()
+endif()

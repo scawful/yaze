@@ -1,11 +1,11 @@
 #ifndef YAZE_APP_EDITOR_OVERWORLD_ENTITY_H
 #define YAZE_APP_EDITOR_OVERWORLD_ENTITY_H
 
-#include "app/zelda3/common.h"
-#include "app/zelda3/overworld/overworld_entrance.h"
-#include "app/zelda3/overworld/overworld_exit.h"
-#include "app/zelda3/overworld/overworld_item.h"
-#include "app/zelda3/sprite/sprite.h"
+#include "zelda3/common.h"
+#include "zelda3/overworld/overworld_entrance.h"
+#include "zelda3/overworld/overworld_exit.h"
+#include "zelda3/overworld/overworld_item.h"
+#include "zelda3/sprite/sprite.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -17,11 +17,7 @@ bool IsMouseHoveringOverEntity(const zelda3::GameEntity &entity,
 void MoveEntityOnGrid(zelda3::GameEntity *entity, ImVec2 canvas_p0,
                       ImVec2 scrolling, bool free_movement = false);
 
-void HandleEntityDragging(zelda3::GameEntity *entity, ImVec2 canvas_p0,
-                          ImVec2 scrolling, bool &is_dragging_entity,
-                          zelda3::GameEntity *&dragged_entity,
-                          zelda3::GameEntity *&current_entity,
-                          bool free_movement = false);
+
 
 bool DrawEntranceInserterPopup();
 bool DrawOverworldEntrancePopup(zelda3::OverworldEntrance &entrance);

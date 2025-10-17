@@ -4,18 +4,20 @@
 #include "absl/status/status.h"
 #include "app/editor/editor.h"
 #include "app/editor/graphics/gfx_group_editor.h"
-#include "app/editor/graphics/palette_editor.h"
+#include "app/editor/palette/palette_editor.h"
 #include "app/editor/overworld/tile16_editor.h"
 #include "app/editor/overworld/map_properties.h"
-#include "app/gfx/bitmap.h"
-#include "app/gfx/snes_palette.h"
-#include "app/gfx/tilemap.h"
-#include "app/gui/canvas.h"
-#include "app/gui/input.h"
+#include "app/editor/overworld/overworld_entity_renderer.h"
+#include "app/gfx/core/bitmap.h"
+#include "app/gfx/types/snes_palette.h"
+#include "app/gfx/render/tilemap.h"
+#include "app/gui/canvas/canvas.h"
+#include "app/gui/widgets/tile_selector_widget.h"
+#include "app/gui/core/input.h"
 #include "app/rom.h"
-#include "app/zelda3/overworld/overworld.h"
-#include "app/editor/overworld/overworld_editor_manager.h"
+#include "zelda3/overworld/overworld.h"
 #include "imgui/imgui.h"
+#include <mutex>
 
 namespace yaze {
 namespace editor {
@@ -34,27 +36,12 @@ constexpr ImVec2 kGraphicsBinCanvasSize(0x100 + 1, kNumSheetsToLoad * 0x40 + 1);
 constexpr ImGuiTableFlags kOWMapFlags =
     ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable |
     ImGuiTableFlags_RowBg | ImGuiTableFlags_SizingStretchProp;
-constexpr ImGuiTableFlags kToolsetTableFlags = ImGuiTableFlags_SizingFixedFit;
-constexpr ImGuiTableFlags kOWEditFlags =
-    ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable |
-    ImGuiTableFlags_Hideable | ImGuiTableFlags_BordersOuter |
-    ImGuiTableFlags_BordersV;
-
-static constexpr absl::string_view kToolsetColumnNames[] = {
-    "#undoTool",      "#redoTool",   "#separator2",       "#zoomOutTool",
-    "#zoomInTool",    "#separator",  "#drawTool",         "#history",
-    "#entranceTool",  "#exitTool",   "#itemTool",         "#spriteTool",
-    "#transportTool", "#musicTool",  "#separator3",       "#tilemapTool",
-    "propertiesTool", "#separator4", "#experimentalTool", "#properties",
-    "#separator5"};
 
 constexpr absl::string_view kWorldList =
     "Light World\0Dark World\0Extra World\0";
 
 constexpr absl::string_view kGamePartComboString = "Part 0\0Part 1\0Part 2\0";
 
-constexpr absl::string_view kTileSelectorTab = "##TileSelectorTabBar";
-constexpr absl::string_view kOWEditTable = "##OWEditTable";
 constexpr absl::string_view kOWMapTable = "#MapSettingsTable";
 
 /**
@@ -81,6 +68,12 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
     // MapPropertiesSystem will be initialized after maps_bmp_ and canvas are ready
   }
 
+  explicit OverworldEditor(Rom* rom, const EditorDependencies& deps)
+      : OverworldEditor(rom) {
+    dependencies_ = deps;
+  }
+
+  void Initialize(gfx::IRenderer* renderer, Rom* rom);
   void Initialize() override;
   absl::Status Load() override;
   absl::Status Update() final;
@@ -92,6 +85,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   absl::Status Find() override { return absl::UnimplementedError("Find"); }
   absl::Status Save() override;
   absl::Status Clear() override;
+  zelda3::Overworld& overworld() { return overworld_; }
   
   /**
    * @brief Apply ZSCustomOverworld ASM patch to upgrade ROM version
@@ -113,6 +107,16 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
     if (!rom_->is_loaded()) return "ROM failed to load";
     return absl::StrFormat("ROM loaded: %s", rom_->title());
   }
+  
+  Rom* rom() const { return rom_; }
+
+  // Jump-to functionality
+  void set_current_map(int map_id) {
+    if (map_id >= 0 && map_id < zelda3::kNumOverworldMaps) {
+      current_map_ = map_id;
+      current_world_ = map_id / 0x40;  // Calculate which world the map belongs to
+    }
+  }
 
   /**
    * @brief Load the Bitmap objects for each OverworldMap.
@@ -122,24 +126,31 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
    * assembling the OverworldMap Bitmap objects.
    */
   absl::Status LoadGraphics();
+  
+  /**
+   * @brief Handle entity insertion from context menu
+   * 
+   * Delegates to flat helper functions in entity_operations.cc
+   * following ZScream's pattern for entity management.
+   * 
+   * @param entity_type Type of entity to insert ("entrance", "hole", "exit", "item", "sprite")
+   */
+  void HandleEntityInsertion(const std::string& entity_type);
 
  private:
   void DrawFullscreenCanvas();
   void DrawToolset();
-  void DrawOverworldMapSettings();
-  void DrawCustomOverworldMapSettings();
 
-  void RefreshChildMap(int i);
+  void RefreshChildMap(int map_index);
   void RefreshOverworldMap();
+  void RefreshOverworldMapOnDemand(int map_index);
+  void RefreshChildMapOnDemand(int map_index);
+  void RefreshMultiAreaMapsSafely(int map_index, zelda3::OverworldMap* map);
   absl::Status RefreshMapPalette();
   void RefreshMapProperties();
   absl::Status RefreshTile16Blockset();
-
-  void DrawOverworldEntrances(ImVec2 canvas_p, ImVec2 scrolling,
-                              bool holes = false);
-  void DrawOverworldExits(ImVec2 zero, ImVec2 scrolling);
-  void DrawOverworldItems();
-  void DrawOverworldSprites();
+  void ForceRefreshGraphics(int map_index);
+  void RefreshSiblingMapGraphics(int map_index, bool include_self = false);
 
   void DrawOverworldMaps();
   void DrawOverworldEdits();
@@ -160,6 +171,9 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
    * @brief Draw and create the tile16 IDs that are currently selected.
    */
   void CheckForSelectRectangle();
+  
+  // Selected tile IDs for rectangle operations (moved from local static)
+  std::vector<int> selected_tile16_ids_;
 
   /**
    * @brief Check for changes to the overworld map. Calls RefreshOverworldMap
@@ -173,21 +187,49 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   absl::Status DrawTile16Selector();
   void DrawTile8Selector();
   absl::Status DrawAreaGraphics();
-  absl::Status DrawTileSelector();
+  void UpdateBlocksetSelectorState();
 
   absl::Status LoadSpriteGraphics();
 
+  /**
+   * @brief Create textures for deferred map bitmaps on demand
+   * 
+   * This method should be called periodically to create textures for maps
+   * that are needed but haven't had their textures created yet. This allows
+   * for smooth loading without blocking the main thread during ROM loading.
+   */
+  void ProcessDeferredTextures();
+
+  /**
+   * @brief Ensure a specific map has its texture created
+   * 
+   * Call this when a map becomes visible or is about to be rendered.
+   * It will create the texture if it doesn't exist yet.
+   */
+  void EnsureMapTexture(int map_index);
+
   void DrawOverworldProperties();
-  void DrawCustomBackgroundColorEditor();
-  void DrawOverlayEditor();
-  void DrawMapLockControls();
-  void DrawOverlayPreview();
-  void DrawOverlayPreviewOnMap();
-  void DrawOverworldContextMenu();
-  void DrawSimplifiedMapSettings();
-  void DrawMapPropertiesPanel();
   void HandleMapInteraction();
-  void SetupOverworldCanvasContextMenu();
+  // SetupOverworldCanvasContextMenu removed (Phase 3B) - now handled by MapPropertiesSystem
+  
+  // Canvas pan/zoom helpers (Overworld Refactoring)
+  void HandleOverworldPan();
+  void HandleOverworldZoom();
+  void ResetOverworldView();
+  void CenterOverworldView();
+  
+  // Canvas Automation API integration (Phase 4)
+  void SetupCanvasAutomation();
+  gui::Canvas* GetOverworldCanvas() { return &ow_map_canvas_; }
+  
+  // Tile operations for automation callbacks
+  bool AutomationSetTile(int x, int y, int tile_id);
+  int AutomationGetTile(int x, int y);
+  
+  /**
+   * @brief Scroll the blockset canvas to show the current selected tile16
+   */
+  void ScrollBlocksetCanvasToCurrentTile();
   
   // Scratch space canvas methods
   absl::Status DrawScratchSpace();
@@ -204,18 +246,25 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   void DrawDebugWindow();
 
   enum class EditingMode {
-    DRAW_TILE,
+    MOUSE,      // Navigation, selection, entity management via context menu
+    DRAW_TILE   // Tile painting mode
+  };
+
+  EditingMode current_mode = EditingMode::DRAW_TILE;
+  EditingMode previous_mode = EditingMode::DRAW_TILE;
+  
+  // Entity editing state (managed via context menu now)
+  enum class EntityEditMode {
+    NONE,
     ENTRANCES,
     EXITS,
     ITEMS,
     SPRITES,
     TRANSPORTS,
-    MUSIC,
-    PAN
+    MUSIC
   };
-
-  EditingMode current_mode = EditingMode::DRAW_TILE;
-  EditingMode previous_mode = EditingMode::DRAW_TILE;
+  
+  EntityEditMode entity_edit_mode_ = EntityEditMode::NONE;
 
   enum OverworldProperty {
     LW_AREA_GFX,
@@ -254,16 +303,27 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   bool overworld_canvas_fullscreen_ = false;
   bool middle_mouse_dragging_ = false;
   bool is_dragging_entity_ = false;
+  bool dragged_entity_free_movement_ = false;
   bool current_map_lock_ = false;
   bool show_custom_bg_color_editor_ = false;
   bool show_overlay_editor_ = false;
   bool use_area_specific_bg_color_ = false;
   bool show_map_properties_panel_ = false;
   bool show_overlay_preview_ = false;
+  
+  // Card visibility states - Start hidden to prevent crash
+  bool show_overworld_canvas_ = true;
+  bool show_tile16_selector_ = false;
+  bool show_tile8_selector_ = false;
+  bool show_area_gfx_ = false;
+  bool show_scratch_ = false;
+  bool show_gfx_groups_ = false;
+  bool show_usage_stats_ = false;
+  bool show_v3_settings_ = false;
 
   // Map properties system for UI organization
   std::unique_ptr<MapPropertiesSystem> map_properties_system_;
-  std::unique_ptr<OverworldEditorManager> overworld_manager_;
+  std::unique_ptr<OverworldEntityRenderer> entity_renderer_;
   
   // Scratch space for large layouts
   // Scratch space canvas for tile16 drawing (like a mini overworld)
@@ -286,6 +346,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
 
   Rom* rom_;
 
+  gfx::IRenderer* renderer_;
   Tile16Editor tile16_editor_{rom_, &tile16_blockset_};
   GfxGroupEditor gfx_group_editor_;
   PaletteEditor palette_editor_;
@@ -300,6 +361,9 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   std::array<gfx::Bitmap, zelda3::kNumOverworldMaps> maps_bmp_;
   gfx::BitmapTable current_graphics_set_;
   std::vector<gfx::Bitmap> sprite_previews_;
+  
+  // Deferred texture creation for performance optimization
+  // Deferred texture management now handled by gfx::Arena::Get()
 
   zelda3::Overworld overworld_{rom_};
   zelda3::OverworldBlockset refresh_blockset_;
@@ -320,14 +384,11 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
                                   gui::CanvasGridSize::k32x32};
   gui::Canvas blockset_canvas_{"OwBlockset", kBlocksetCanvasSize,
                                gui::CanvasGridSize::k32x32};
+  std::unique_ptr<gui::TileSelectorWidget> blockset_selector_;
   gui::Canvas graphics_bin_canvas_{"GraphicsBin", kGraphicsBinCanvasSize,
                                    gui::CanvasGridSize::k16x16};
   gui::Canvas properties_canvas_;
   gui::Canvas scratch_canvas_{"ScratchSpace", ImVec2(320, 480), gui::CanvasGridSize::k32x32};
-
-  gui::Table toolset_table_{"##ToolsetTable0", 12, kToolsetTableFlags};
-  gui::Table map_settings_table_{kOWMapTable.data(), 8, kOWMapFlags,
-                                 ImVec2(0, 0)};
 
   absl::Status status_;
 };

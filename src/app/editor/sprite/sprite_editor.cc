@@ -1,11 +1,14 @@
 #include "sprite_editor.h"
+#include "app/editor/system/editor_card_registry.h"
 
-#include "app/core/platform/file_dialog.h"
+#include "app/gfx/debug/performance/performance_profiler.h"
+#include "app/gui/core/ui_helpers.h"
+#include "util/file_util.h"
 #include "app/editor/sprite/zsprite.h"
-#include "app/gfx/arena.h"
-#include "app/gui/icons.h"
-#include "app/gui/input.h"
-#include "app/zelda3/sprite/sprite.h"
+#include "app/gfx/resource/arena.h"
+#include "app/gui/core/icons.h"
+#include "app/gui/core/input.h"
+#include "zelda3/sprite/sprite.h"
 #include "util/hex.h"
 
 namespace yaze {
@@ -22,30 +25,66 @@ using ImGui::TableNextRow;
 using ImGui::TableSetupColumn;
 using ImGui::Text;
 
-void SpriteEditor::Initialize() {}
+void SpriteEditor::Initialize() {
+  if (!dependencies_.card_registry) return;
+  auto* card_registry = dependencies_.card_registry;
+  
+  card_registry->RegisterCard({.card_id = "sprite.vanilla_editor", .display_name = "Vanilla Sprites",
+                            .icon = ICON_MD_SMART_TOY, .category = "Sprite",
+                            .shortcut_hint = "Alt+Shift+1", .priority = 10});
+  card_registry->RegisterCard({.card_id = "sprite.custom_editor", .display_name = "Custom Sprites",
+                            .icon = ICON_MD_ADD_CIRCLE, .category = "Sprite",
+                            .shortcut_hint = "Alt+Shift+2", .priority = 20});
+  
+  // Show vanilla editor by default
+  card_registry->ShowCard("sprite.vanilla_editor");
+}
 
-absl::Status SpriteEditor::Load() { return absl::OkStatus(); }
+absl::Status SpriteEditor::Load() { 
+  gfx::ScopedTimer timer("SpriteEditor::Load");
+  return absl::OkStatus(); 
+}
 
 absl::Status SpriteEditor::Update() {
   if (rom()->is_loaded() && !sheets_loaded_) {
-    // Load the values for current_sheets_ array
     sheets_loaded_ = true;
   }
 
-  if (ImGui::BeginTabBar("##SpriteEditorTabs")) {
-    if (ImGui::BeginTabItem("Vanilla")) {
+  if (!dependencies_.card_registry) return absl::OkStatus();
+  auto* card_registry = dependencies_.card_registry;
+
+  static gui::EditorCard vanilla_card("Vanilla Sprites", ICON_MD_SMART_TOY);
+  static gui::EditorCard custom_card("Custom Sprites", ICON_MD_ADD_CIRCLE);
+
+  vanilla_card.SetDefaultSize(900, 700);
+  custom_card.SetDefaultSize(800, 600);
+
+  // Vanilla Sprites Card - Check visibility flag exists and is true before rendering
+  bool* vanilla_visible = card_registry->GetVisibilityFlag("sprite.vanilla_editor");
+  if (vanilla_visible && *vanilla_visible) {
+    if (vanilla_card.Begin(vanilla_visible)) {
       DrawVanillaSpriteEditor();
-      ImGui::EndTabItem();
     }
-    if (ImGui::BeginTabItem("Custom")) {
+    vanilla_card.End();
+  }
+
+  // Custom Sprites Card - Check visibility flag exists and is true before rendering
+  bool* custom_visible = card_registry->GetVisibilityFlag("sprite.custom_editor");
+  if (custom_visible && *custom_visible) {
+    if (custom_card.Begin(custom_visible)) {
       DrawCustomSprites();
-      ImGui::EndTabItem();
     }
-    ImGui::EndTabBar();
+    custom_card.End();
   }
 
   return status_.ok() ? absl::OkStatus() : status_;
 }
+
+void SpriteEditor::DrawToolset() {
+  // Sidebar is now drawn by EditorManager for card-based editors
+  // This method kept for compatibility but sidebar handles card toggles
+}
+
 
 void SpriteEditor::DrawVanillaSpriteEditor() {
   if (ImGui::BeginTable("##SpriteCanvasTable", 3, ImGuiTableFlags_Resizable,
@@ -250,7 +289,7 @@ void SpriteEditor::DrawCustomSpritesMetadata() {
   // ZSprite Maker format open file dialog
   if (ImGui::Button("Open ZSprite")) {
     // Open ZSprite file
-    std::string file_path = core::FileDialogWrapper::ShowOpenFileDialog();
+    std::string file_path = util::FileDialogWrapper::ShowOpenFileDialog();
     if (!file_path.empty()) {
       zsprite::ZSprite zsprite;
       status_ = zsprite.Load(file_path);

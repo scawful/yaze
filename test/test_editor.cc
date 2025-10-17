@@ -2,9 +2,10 @@
 
 #include <SDL.h>
 
-#include "app/core/controller.h"
-#include "app/core/window.h"
-#include "app/gui/style.h"
+#include "app/controller.h"
+#include "app/platform/window.h"
+#include "app/gfx/backend/sdl2_renderer.h"
+#include "app/gui/core/style.h"
 #include "imgui/backends/imgui_impl_sdl2.h"
 #include "imgui/backends/imgui_impl_sdlrenderer2.h"
 #include "imgui.h"
@@ -54,9 +55,11 @@ void TestEditor::RegisterTests(ImGuiTestEngine* engine) {
 
 // TODO: Fix the window/controller management
 int RunIntegrationTest() {
-  yaze::core::Controller controller;
+  yaze::Controller controller;
   yaze::core::Window window;
-  yaze::core::CreateWindow(window, SDL_WINDOW_RESIZABLE);
+  // Create renderer for test
+  auto test_renderer = std::make_unique<yaze::gfx::SDL2Renderer>();
+  yaze::core::CreateWindow(window, test_renderer.get(), SDL_WINDOW_RESIZABLE);
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
 
@@ -74,9 +77,9 @@ int RunIntegrationTest() {
   io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 
   // Initialize ImGui for SDL
-  ImGui_ImplSDL2_InitForSDLRenderer(
-      controller.window(), yaze::core::Renderer::Get().renderer());
-  ImGui_ImplSDLRenderer2_Init(yaze::core::Renderer::Get().renderer());
+  SDL_Renderer* sdl_renderer = static_cast<SDL_Renderer*>(test_renderer->GetBackendRenderer());
+  ImGui_ImplSDL2_InitForSDLRenderer(controller.window(), sdl_renderer);
+  ImGui_ImplSDLRenderer2_Init(sdl_renderer);
 
   yaze::test::TestEditor test_editor;
 #ifdef IMGUI_ENABLE_TEST_ENGINE

@@ -1,69 +1,61 @@
-# Yaze Emulator Standalone Application (skip in minimal builds)
-if (NOT YAZE_MINIMAL_BUILD AND APPLE)
-  add_executable(
-    yaze_emu
-    MACOSX_BUNDLE
-    app/main.cc
-    app/rom.cc
-    app/core/platform/app_delegate.mm
-    ${YAZE_APP_EMU_SRC}
-    ${YAZE_APP_CORE_SRC}
-    ${YAZE_APP_EDITOR_SRC}
-    ${YAZE_APP_GFX_SRC}
-    ${YAZE_APP_ZELDA3_SRC}
-    ${YAZE_UTIL_SRC}
-    ${YAZE_GUI_SRC}
-    ${IMGUI_SRC}
-  )
-  target_link_libraries(yaze_emu PUBLIC ${COCOA_LIBRARY})
-elseif(NOT YAZE_MINIMAL_BUILD)
-  add_executable(
-    yaze_emu
-    app/rom.cc
-    app/emu/emu.cc
-    ${YAZE_APP_EMU_SRC}
-    ${YAZE_APP_CORE_SRC}
-    ${YAZE_APP_EDITOR_SRC}
-    ${YAZE_APP_GFX_SRC}
-    ${YAZE_APP_ZELDA3_SRC}
-    ${YAZE_UTIL_SRC}
-    ${YAZE_GUI_SRC}
-    ${IMGUI_SRC}
-  )
-endif()
+# This file defines the yaze_emu standalone executable.
+# Note: The yaze_emulator library is ALWAYS built (via emu_library.cmake)
+#       because it's used by the main yaze app and test suites.
+#       This file only controls the STANDALONE emulator executable.
 
-# Only configure emulator target if it was created
-if(NOT YAZE_MINIMAL_BUILD)
-  target_include_directories(
-    yaze_emu PUBLIC
-    ${CMAKE_SOURCE_DIR}/src/lib/
-    ${CMAKE_SOURCE_DIR}/src/app/
-    ${CMAKE_SOURCE_DIR}/src/lib/asar/src
-    ${CMAKE_SOURCE_DIR}/src/lib/asar/src/asar
-    ${CMAKE_SOURCE_DIR}/src/lib/asar/src/asar-dll-bindings/c
-    ${CMAKE_SOURCE_DIR}/incl/
-    ${CMAKE_SOURCE_DIR}/src/
-    ${CMAKE_SOURCE_DIR}/src/lib/imgui_test_engine
-    ${PNG_INCLUDE_DIRS}
-    ${SDL2_INCLUDE_DIR}
+if(YAZE_BUILD_EMU AND NOT YAZE_MINIMAL_BUILD)
+  if(APPLE)
+    add_executable(yaze_emu MACOSX_BUNDLE app/emu/emu.cc app/platform/app_delegate.mm)
+    target_link_libraries(yaze_emu PUBLIC "-framework Cocoa")
+  else()
+    add_executable(yaze_emu app/emu/emu.cc)
+  endif()
+
+  target_include_directories(yaze_emu PUBLIC
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/incl
     ${PROJECT_BINARY_DIR}
   )
 
-  target_link_libraries(
-    yaze_emu PUBLIC 
-    ${ABSL_TARGETS} 
-    ${SDL_TARGETS} 
-    ${PNG_LIBRARIES} 
-    ${CMAKE_DL_LIBS} 
-    ImGui
-    asar-static
+  target_link_libraries(yaze_emu PRIVATE
+    yaze_editor
+    yaze_emulator
+    yaze_agent
+    absl::flags
+    absl::flags_parse
+    absl::failure_signal_handler
   )
 
-  # Conditionally link ImGui Test Engine
-  if(YAZE_ENABLE_UI_TESTS)
-    target_link_libraries(yaze_emu PUBLIC ImGuiTestEngine)
-    target_compile_definitions(yaze_emu PRIVATE YAZE_ENABLE_IMGUI_TEST_ENGINE=1)
+  # Link test support library (yaze_editor needs TestManager)
+  if(TARGET yaze_test_support)
+    target_link_libraries(yaze_emu PRIVATE yaze_test_support)
+    message(STATUS "✓ yaze_emu executable linked to yaze_test_support")
   else()
-    target_compile_definitions(yaze_emu PRIVATE YAZE_ENABLE_IMGUI_TEST_ENGINE=0)
+    message(WARNING "yaze_emu needs yaze_test_support but TARGET not found")
   endif()
+
+  # Test engine is always available when tests are built
+  # No need for conditional definitions
+
+  # Headless Emulator Test Harness
+  add_executable(yaze_emu_test emu_test.cc)
+  target_include_directories(yaze_emu_test PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/incl
+    ${PROJECT_BINARY_DIR}
+  )
+  target_link_libraries(yaze_emu_test PRIVATE
+    yaze_emulator
+    yaze_util
+    absl::flags
+    absl::flags_parse
+    absl::status
+    absl::strings
+    absl::str_format
+  )
+  message(STATUS "✓ yaze_emu_test: Headless emulator test harness configured")
+  message(STATUS "✓ yaze_emu: Standalone emulator executable configured")
+else()
+  message(STATUS "○ Standalone emulator builds disabled (YAZE_BUILD_EMU=OFF or YAZE_MINIMAL_BUILD=ON)")
+  message(STATUS "  Note: yaze_emulator library still available for main app and tests")
 endif()

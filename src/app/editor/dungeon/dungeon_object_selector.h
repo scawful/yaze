@@ -1,12 +1,12 @@
 #ifndef YAZE_APP_EDITOR_DUNGEON_DUNGEON_OBJECT_SELECTOR_H
 #define YAZE_APP_EDITOR_DUNGEON_DUNGEON_OBJECT_SELECTOR_H
 
-#include "app/gui/canvas.h"
+#include "app/gui/canvas/canvas.h"
 #include "app/rom.h"
-#include "app/zelda3/dungeon/object_renderer.h"
-#include "app/zelda3/dungeon/dungeon_object_editor.h"
-#include "app/zelda3/dungeon/dungeon_editor_system.h"
-#include "app/gfx/snes_palette.h"
+// object_renderer.h removed - using ObjectDrawer for production rendering
+#include "zelda3/dungeon/dungeon_object_editor.h"
+#include "zelda3/dungeon/dungeon_editor_system.h"
+#include "app/gfx/types/snes_palette.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -17,7 +17,7 @@ namespace editor {
  */
 class DungeonObjectSelector {
  public:
-  explicit DungeonObjectSelector(Rom* rom = nullptr) : rom_(rom), object_renderer_(rom) {}
+  explicit DungeonObjectSelector(Rom* rom = nullptr) : rom_(rom) {}
 
   void DrawTileSelector();
   void DrawObjectRenderer();
@@ -26,11 +26,9 @@ class DungeonObjectSelector {
   
   void set_rom(Rom* rom) { 
     rom_ = rom; 
-    object_renderer_.SetROM(rom);
   }
   void SetRom(Rom* rom) { 
     rom_ = rom; 
-    object_renderer_.SetROM(rom);
   }
   Rom* rom() const { return rom_; }
 
@@ -38,8 +36,8 @@ class DungeonObjectSelector {
   void set_dungeon_editor_system(std::unique_ptr<zelda3::DungeonEditorSystem>* system) { 
     dungeon_editor_system_ = system; 
   }
-  void set_object_editor(std::shared_ptr<zelda3::DungeonObjectEditor>* editor) { 
-    object_editor_ = editor; 
+  void set_object_editor(std::unique_ptr<zelda3::DungeonObjectEditor>* editor) { 
+    object_editor_ = editor ? editor->get() : nullptr;
   }
 
   // Room data access
@@ -89,11 +87,11 @@ class DungeonObjectSelector {
   Rom* rom_ = nullptr;
   gui::Canvas room_gfx_canvas_{"##RoomGfxCanvas", ImVec2(0x100 + 1, 0x10 * 0x40 + 1)};
   gui::Canvas object_canvas_;
-  zelda3::ObjectRenderer object_renderer_;
+  // ObjectRenderer removed - using ObjectDrawer in Room::RenderObjectsToBackground()
   
   // Editor systems
   std::unique_ptr<zelda3::DungeonEditorSystem>* dungeon_editor_system_ = nullptr;
-  std::shared_ptr<zelda3::DungeonObjectEditor>* object_editor_ = nullptr;
+  zelda3::DungeonObjectEditor* object_editor_ = nullptr;
   
   // Room data
   std::array<zelda3::Room, 0x128>* rooms_ = nullptr;

@@ -4,16 +4,15 @@
 #include <iterator>
 #include <cstring>
 
-#include "app/core/window.h"
-#include "app/gfx/arena.h"
-#include "app/gfx/snes_palette.h"
-#include "app/gui/canvas.h"
-#include "app/gui/modules/asset_browser.h"
+#include "app/platform/window.h"
+#include "app/gfx/resource/arena.h"
+#include "app/gfx/types/snes_palette.h"
+#include "app/gui/canvas/canvas.h"
+#include "app/gui/widgets/asset_browser.h"
 #include "app/rom.h"
-#include "app/zelda3/dungeon/object_renderer.h"
-#include "app/zelda3/dungeon/room.h"
-#include "app/zelda3/dungeon/dungeon_editor_system.h"
-#include "app/zelda3/dungeon/dungeon_object_editor.h"
+#include "zelda3/dungeon/room.h"
+#include "zelda3/dungeon/dungeon_editor_system.h"
+#include "zelda3/dungeon/dungeon_object_editor.h"
 #include "imgui/imgui.h"
 
 namespace yaze::editor {
@@ -85,21 +84,9 @@ void DungeonObjectSelector::DrawObjectRenderer() {
       int preview_x = 128 - 16;  // Center horizontally
       int preview_y = 128 - 16;  // Center vertically
 
-      auto preview_result = object_renderer_.RenderObject(preview_object_, preview_palette_);
-      if (preview_result.ok()) {
-        auto preview_bitmap = std::move(preview_result.value());
-        if (preview_bitmap.width() > 0 && preview_bitmap.height() > 0) {
-          preview_bitmap.SetPalette(preview_palette_);
-          core::Renderer::Get().RenderBitmap(&preview_bitmap);
-          object_canvas_.DrawBitmap(preview_bitmap, preview_x, preview_y, 1.0f, 255);
-        } else {
-          // Fallback: Draw primitive shape
-          RenderObjectPrimitive(preview_object_, preview_x, preview_y);
-        }
-      } else {
-        // Fallback: Draw primitive shape
-        RenderObjectPrimitive(preview_object_, preview_x, preview_y);
-      }
+      // TODO: Implement preview using ObjectDrawer + small BackgroundBuffer
+      // For now, use primitive shape rendering (shows object ID and rough dimensions)
+      RenderObjectPrimitive(preview_object_, preview_x, preview_y);
     }
 
     object_canvas_.DrawOverlay();
@@ -374,7 +361,7 @@ void DungeonObjectSelector::DrawRoomGraphics() {
 }
 
 void DungeonObjectSelector::DrawIntegratedEditingPanels() {
-  if (!dungeon_editor_system_ || !object_editor_ || !*dungeon_editor_system_ || !*object_editor_) {
+  if (!dungeon_editor_system_ || !*dungeon_editor_system_ || !object_editor_) {
     ImGui::Text("Editor systems not initialized");
     return;
   }
@@ -428,12 +415,12 @@ void DungeonObjectSelector::DrawIntegratedEditingPanels() {
 }
 
 void DungeonObjectSelector::DrawCompactObjectEditor() {
-  if (!object_editor_ || !*object_editor_) {
+  if (!object_editor_) {
     ImGui::Text("Object editor not initialized");
     return;
   }
 
-  auto& editor = **object_editor_;
+  auto& editor = *object_editor_;
   
   ImGui::Text("Object Editor");
   Separator();

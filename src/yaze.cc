@@ -1,52 +1,19 @@
+// C API implementation - no heavy GUI/editor dependencies
 #include "yaze.h"
 
-#include <algorithm>
 #include <cstring>
-#include <iostream>
 #include <memory>
-#include <sstream>
 #include <stdexcept>
+#include <string>
+#include <vector>
 
-#include "app/core/controller.h"
-#include "app/core/platform/app_delegate.h"
 #include "app/editor/message/message_data.h"
 #include "app/rom.h"
-#include "app/zelda3/overworld/overworld.h"
-#include "util/flag.h"
+#include "zelda3/overworld/overworld.h"
 #include "yaze_config.h"
-
-DEFINE_FLAG(std::string, rom_file, "",
-            "Path to the ROM file to load. "
-            "If not specified, the app will run without a ROM.");
 
 // Static variables for library state
 static bool g_library_initialized = false;
-
-int yaze_app_main(int argc, char** argv) {
-  yaze::util::FlagParser parser(yaze::util::global_flag_registry());
-  RETURN_IF_EXCEPTION(parser.Parse(argc, argv));
-  std::string rom_filename = "";
-  if (!FLAGS_rom_file->Get().empty()) {
-    rom_filename = FLAGS_rom_file->Get();
-  }
-
-#ifdef __APPLE__
-  return yaze_run_cocoa_app_delegate(rom_filename.c_str());
-#endif
-
-  auto controller = std::make_unique<yaze::core::Controller>();
-  EXIT_IF_ERROR(controller->OnEntry(rom_filename))
-  while (controller->IsActive()) {
-    controller->OnInput();
-    if (auto status = controller->OnLoad(); !status.ok()) {
-      std::cerr << status.message() << std::endl;
-      break;
-    }
-    controller->DoRender();
-  }
-  controller->OnExit();
-  return EXIT_SUCCESS;
-}
 
 // Version and initialization functions
 yaze_status yaze_library_init() {

@@ -1,173 +1,150 @@
-# Testing Guide
+# A1 - Testing Guide
 
-Comprehensive testing framework with efficient CI/CD integration and ROM-dependent test separation.
+This guide provides a comprehensive overview of the testing framework for the yaze project, including the test organization, execution methods, and the end-to-end GUI automation system.
 
-## Test Categories
+## 1. Test Organization
 
-### Stable Tests (STABLE)
-**Always run in CI/CD - Required for releases**
+The test suite is organized into a clear directory structure that separates tests by their purpose and dependencies. This is the primary way to understand the nature of a test.
 
-- **AsarWrapperTest**: Core Asar functionality tests
-- **SnesTileTest**: SNES tile format handling  
-- **CompressionTest**: Data compression/decompression
-- **SnesPaletteTest**: SNES palette operations
-- **HexTest**: Hexadecimal utilities
-- **AsarIntegrationTest**: Asar integration without ROM dependencies
-
-**Characteristics:**
-- Fast execution (< 30 seconds total)
-- No external dependencies (ROMs, complex setup)
-- High reliability and deterministic results
-
-### ROM-Dependent Tests (ROM_DEPENDENT)
-**Only run in development with available ROM files**
-
-- **AsarRomIntegrationTest**: Real ROM patching and symbol extraction
-- **ROM-based integration tests**: Tests requiring actual game ROM files
-
-**Characteristics:**
-- Require specific ROM files to be present
-- Test real-world functionality
-- Automatically skipped in CI if ROM files unavailable
-
-### Experimental Tests (EXPERIMENTAL)
-**Run separately, allowed to fail**
-
-- **CpuTest**: 65816 CPU emulation tests
-- **Spc700Test**: SPC700 audio processor tests
-- **ApuTest**: Audio Processing Unit tests
-- **PpuTest**: Picture Processing Unit tests
-
-**Characteristics:**
-- May be unstable due to emulation complexity
-- Test advanced/experimental features
-- Allowed to fail without blocking releases
-
-## Command Line Usage
-
-```bash
-# Run only stable tests (release-ready)
-ctest --test-dir build --label-regex "STABLE"
-
-# Run experimental tests (allowed to fail)
-ctest --test-dir build --label-regex "EXPERIMENTAL"
-
-# Run Asar-specific tests
-ctest --test-dir build -R "*Asar*"
-
-# Run tests excluding ROM-dependent ones
-ctest --test-dir build --label-exclude "ROM_DEPENDENT"
-
-# Run with specific preset
-ctest --preset stable
-ctest --preset experimental
+```
+test/
+├── unit/                    # Unit tests for individual components
+│   ├── core/                # Core functionality (asar, hex utils)
+│   ├── cli/                 # Command-line interface tests
+│   ├── emu/                 # Emulator component tests
+│   ├── gfx/                 # Graphics system (tiles, palettes)
+│   ├── gui/                 # GUI widget tests
+│   ├── rom/                 # ROM data structure tests
+│   └── zelda3/              # Game-specific logic tests
+├── integration/             # Tests for interactions between components
+│   ├── ai/                  # AI agent and vision tests
+│   ├── editor/              # Editor integration tests
+│   └── zelda3/              # Game-specific integration tests (ROM-dependent)
+├── e2e/                     # End-to-end user workflow tests (GUI-driven)
+│   ├── rom_dependent/       # E2E tests requiring a ROM
+│   └── zscustomoverworld/   # ZSCustomOverworld upgrade E2E tests
+├── benchmarks/              # Performance benchmarks
+├── mocks/                   # Mock objects for isolating tests
+└── assets/                  # Test assets (patches, data)
 ```
 
-## CMake Presets
+## 2. Test Categories
+
+Based on the directory structure, tests fall into the following categories:
+
+### Unit Tests (`unit/`)
+- **Purpose**: To test individual classes or functions in isolation.
+- **Characteristics**:
+    - Fast, self-contained, and reliable.
+    - No external dependencies (e.g., ROM files, running GUI).
+    - Form the core of the CI/CD validation pipeline.
+
+### Integration Tests (`integration/`)
+- **Purpose**: To verify that different components of the application work together correctly.
+- **Characteristics**:
+    - May require a real ROM file (especially those in `integration/zelda3/`). These are considered "ROM-dependent".
+    - Test interactions between modules, such as the `asar` wrapper and the `Rom` class, or AI services with the GUI controller.
+    - Slower than unit tests but crucial for catching bugs at module boundaries.
+
+### End-to-End (E2E) Tests (`e2e/`)
+- **Purpose**: To simulate a full user workflow from start to finish.
+- **Characteristics**:
+    - Driven by the **ImGui Test Engine**.
+    - Almost always require a running GUI and often a real ROM.
+    - The slowest but most comprehensive tests, validating the user experience.
+    - Includes smoke tests, canvas interactions, and complex workflows like ZSCustomOverworld upgrades.
+
+### Benchmarks (`benchmarks/`)
+- **Purpose**: To measure and track the performance of critical code paths, particularly in the graphics system.
+- **Characteristics**:
+    - Not focused on correctness but on speed and efficiency.
+    - Run manually or in specialized CI jobs to prevent performance regressions.
+
+## 3. Running Tests
+
+### Using the Enhanced Test Runner (`yaze_test`)
+
+The most flexible way to run tests is by using the `yaze_test` executable directly. It provides flags to filter tests by category, which is ideal for development and AI agent workflows.
 
 ```bash
-# Development workflow
-cmake --preset dev
-cmake --build --preset dev
+# First, build the test executable
+cmake --build build_ai --target yaze_test
+
+# Run all tests
+./build_ai/bin/yaze_test
+
+# Run only unit tests
+./build_ai/bin/yaze_test --unit
+
+# Run only integration tests
+./build_ai/bin/yaze_test --integration
+
+# Run E2E tests (requires a GUI)
+./build_ai/bin/yaze_test --e2e --show-gui
+
+# Run ROM-dependent tests with a specific ROM
+./build_ai/bin/yaze_test --rom-dependent --rom-path /path/to/zelda3.sfc
+
+# Run tests matching a specific pattern (e.g., all Asar tests)
+./build_ai/bin/yaze_test "*Asar*"
+
+# Get a full list of options
+./build_ai/bin/yaze_test --help
+```
+
+### Using CTest and CMake Presets
+
+For CI/CD or a more traditional workflow, you can use `ctest` with CMake presets.
+
+```bash
+# Configure a development build (enables ROM-dependent tests)
+cmake --preset mac-dev -DYAZE_TEST_ROM_PATH=/path/to/your/zelda3.sfc
+
+# Build the tests
+cmake --build --preset mac-dev --target yaze_test
+
+# Run stable tests (fast, primarily unit tests)
 ctest --preset dev
 
-# CI workflow  
-cmake --preset ci
-cmake --build --preset ci
-ctest --preset ci
-
-# Release workflow
-cmake --preset release
-cmake --build --preset release
-ctest --preset stable
+# Run all tests, including ROM-dependent and E2E
+ctest --preset all
 ```
 
-## Writing Tests
+## 4. Writing Tests
 
-### Stable Tests
-```cpp
-TEST(SnesTileTest, UnpackBppTile) {
-    std::vector<uint8_t> tile_data = {0xAA, 0x55, 0xAA, 0x55};
-    std::vector<uint8_t> result = UnpackBppTile(tile_data, 2);
-    EXPECT_EQ(result.size(), 64);
-    // Test specific pixel values...
-}
+When adding new tests, place them in the appropriate directory based on their purpose and dependencies.
+
+- **New class `MyClass`?** Add `test/unit/my_class_test.cc`.
+- **Testing `MyClass` with a real ROM?** Add `test/integration/my_class_rom_test.cc`.
+- **Testing a full UI workflow involving `MyClass`?** Add `test/e2e/my_class_workflow_test.cc`.
+
+## 5. E2E GUI Testing Framework
+
+The E2E framework uses `ImGuiTestEngine` to automate UI interactions.
+
+### Architecture
+
+- **`test/yaze_test.cc`**: The main test runner that can initialize a GUI for E2E tests.
+- **`test/e2e/`**: Contains all E2E test files, such as:
+    - `framework_smoke_test.cc`: Basic infrastructure verification.
+    - `canvas_selection_test.cc`: Canvas interaction tests.
+    - `dungeon_editor_tests.cc`: UI tests for the dungeon editor.
+- **`test/test_utils.h`**: Provides high-level helper functions for common actions like loading a ROM (`LoadRomInTest`) or opening an editor (`OpenEditorInTest`).
+
+### Running GUI Tests
+
+To run E2E tests and see the GUI interactions, use the `--show-gui` flag.
+
+```bash
+# Run all E2E tests with the GUI visible
+./build_ai/bin/yaze_test --e2e --show-gui
+
+# Run a specific E2E test by name
+./build_ai/bin/yaze_test --show-gui --gtest_filter="*DungeonEditorSmokeTest"
 ```
 
-### ROM-Dependent Tests
-```cpp
-YAZE_ROM_TEST(AsarIntegration, RealRomPatching) {
-    auto rom_data = TestRomManager::LoadTestRom();
-    if (!rom_data.has_value()) {
-        GTEST_SKIP() << "ROM file not available";
-    }
-    
-    AsarWrapper wrapper;
-    wrapper.Initialize();
-    
-    auto result = wrapper.ApplyPatch("test.asm", *rom_data);
-    EXPECT_TRUE(result.ok());
-}
-```
+### Widget Discovery and AI Integration
 
-### Experimental Tests
-```cpp
-TEST(CpuTest, InstructionExecution) {
-    // Complex emulation tests
-    // May be timing-sensitive or platform-dependent
-}
-```
+The GUI testing framework is designed for AI agent automation. All major UI elements are registered with stable IDs, allowing an agent to "discover" and interact with them programmatically via the `z3ed` CLI.
 
-## CI/CD Integration
-
-### GitHub Actions
-```yaml
-# Main CI pipeline
-- name: Run Stable Tests
-  run: ctest --label-regex "STABLE"
-
-# Experimental tests (allowed to fail)
-- name: Run Experimental Tests
-  run: ctest --label-regex "EXPERIMENTAL"
-  continue-on-error: true
-```
-
-### Test Execution Strategy
-1. **Stable tests run first** - Quick feedback for developers
-2. **Experimental tests run in parallel** - Don't block on unstable tests
-3. **ROM tests skipped** - No dependency on external files
-4. **Selective test execution** - Only run relevant tests for changes
-
-## Test Development Guidelines
-
-### Writing Stable Tests
-- **Fast execution**: Aim for < 1 second per test
-- **No external dependencies**: Self-contained test data
-- **Deterministic**: Same results every run
-- **Core functionality**: Test essential features only
-
-### Writing ROM-Dependent Tests
-- **Use TestRomManager**: Proper ROM file handling
-- **Graceful skipping**: Skip if ROM not available
-- **Real-world scenarios**: Test with actual game data
-- **Label appropriately**: Always include ROM_DEPENDENT label
-
-### Writing Experimental Tests
-- **Complex scenarios**: Multi-component integration
-- **Advanced features**: Emulation, complex algorithms
-- **Performance tests**: May vary by system
-- **GUI components**: May require display context
-
-## Performance and Maintenance
-
-### Regular Review
-- **Monthly review** of experimental test failures
-- **Promote stable experimental tests** to stable category
-- **Deprecate obsolete tests** that no longer provide value
-- **Update test categorization** as features mature
-
-### Performance Monitoring
-- **Track test execution times** for CI efficiency
-- **Identify slow tests** for optimization or recategorization
-- **Monitor CI resource usage** and adjust parallelism
-- **Benchmark critical path tests** for performance regression
+Refer to the `z3ed` agent guide for details on using commands like `z3ed gui discover`, `z3ed gui click`, and `z3ed agent test replay`.

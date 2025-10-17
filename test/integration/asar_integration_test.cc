@@ -2,7 +2,7 @@
 #include <filesystem>
 #include <fstream>
 
-#include "app/core/asar_wrapper.h"
+#include "core/asar_wrapper.h"
 #include "app/rom.h"
 #include "absl/status/status.h"
 #include "testing.h"
@@ -17,7 +17,7 @@ namespace integration {
 class AsarIntegrationTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    wrapper_ = std::make_unique<app::core::AsarWrapper>();
+    wrapper_ = std::make_unique<core::AsarWrapper>();
     
     // Create test directory
     test_dir_ = std::filesystem::temp_directory_path() / "yaze_asar_integration";
@@ -322,7 +322,7 @@ error_test:
     err_file.close();
   }
 
-  std::unique_ptr<app::core::AsarWrapper> wrapper_;
+  std::unique_ptr<core::AsarWrapper> wrapper_;
   std::filesystem::path test_dir_;
   std::filesystem::path comprehensive_asm_path_;
   std::filesystem::path advanced_asm_path_;

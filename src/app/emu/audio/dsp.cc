@@ -1,5 +1,6 @@
 #include "app/emu/audio/dsp.h"
 
+#include <cmath>
 #include <cstring>
 
 namespace yaze {
@@ -123,6 +124,7 @@ void Dsp::Reset() {
   memset(firBufferR, 0, sizeof(firBufferR));
   memset(sampleBuffer, 0, sizeof(sampleBuffer));
   sampleOffset = 0;
+  lastFrameBoundary = 0;
 }
 
 void Dsp::NewFrame() {
@@ -146,9 +148,10 @@ void Dsp::Cycle() {
     sampleOutL = 0;
     sampleOutR = 0;
   }
-  // put final sample in the samplebuffer
+  // put final sample in the ring buffer and advance pointer
   sampleBuffer[(sampleOffset & 0x3ff) * 2] = sampleOutL;
-  sampleBuffer[(sampleOffset++ & 0x3ff) * 2 + 1] = sampleOutR;
+  sampleBuffer[(sampleOffset & 0x3ff) * 2 + 1] = sampleOutR;
+  sampleOffset = (sampleOffset + 1) & 0x3ff;
 }
 
 static int clamp16(int val) {
@@ -614,17 +617,160 @@ void Dsp::Write(uint8_t adr, uint8_t val) {
   ram[adr] = val;
 }
 
+// Helper for 4-point cubic interpolation (Catmull-Rom)
+// Provides higher quality resampling compared to linear interpolation.
+inline int16_t InterpolateCubic(int16_t p0, int16_t p1, int16_t p2, int16_t p3,
+                                double t) {
+  double t2 = t * t;
+  double t3 = t2 * t;
+
+  double c0 = p1;
+  double c1 = 0.5 * (p2 - p0);
+  double c2 = (p0 - 2.5 * p1 + 2.0 * p2 - 0.5 * p3);
+  double c3 = 0.5 * (-p0 + 3.0 * p1 - 3.0 * p2 + p3);
+
+  double result = c0 + c1 * t + c2 * t2 + c3 * t3;
+
+  // Clamp to 16-bit range
+  return result > 32767.0
+             ? 32767
+             : (result < -32768.0 ? -32768 : static_cast<int16_t>(result));
+}
+
+// Helper for cosine interpolation
+inline int16_t InterpolateCosine(int16_t s0, int16_t s1, double mu) {
+  const double mu2 = (1.0 - cos(mu * 3.14159265358979323846)) / 2.0;
+  return static_cast<int16_t>(s0 * (1.0 - mu2) + s1 * mu2);
+}
+
+// Helper for linear interpolation
+inline int16_t InterpolateLinear(int16_t s0, int16_t s1, double frac) {
+  return static_cast<int16_t>(s0 + frac * (s1 - s0));
+}
+
+// Helper for Hermite interpolation (used by bsnes/Snes9x)
+// Provides smoother interpolation than linear with minimal overhead
+inline int16_t InterpolateHermite(int16_t p0, int16_t p1, int16_t p2, int16_t p3, double t) {
+  const double c0 = p1;
+  const double c1 = (p2 - p0) * 0.5;
+  const double c2 = p0 - 2.5 * p1 + 2.0 * p2 - 0.5 * p3;
+  const double c3 = (p3 - p0) * 0.5 + 1.5 * (p1 - p2);
+  
+  const double result = c0 + c1 * t + c2 * t * t + c3 * t * t * t;
+  
+  // Clamp to 16-bit range
+  return result > 32767.0 ? 32767 
+       : (result < -32768.0 ? -32768 
+       : static_cast<int16_t>(result));
+}
+
 void Dsp::GetSamples(int16_t* sample_data, int samples_per_frame,
                      bool pal_timing) {
-  // resample from 534 / 641 samples per frame to wanted value
-  float wantedSamples = (pal_timing ? 641.0 : 534.0);
-  double adder = wantedSamples / samples_per_frame;
-  double location = lastFrameBoundary - wantedSamples;
+  // Resample from native samples-per-frame (NTSC: ~534, PAL: ~641)
+  const double native_per_frame = pal_timing ? 641.0 : 534.0;
+  const double step = native_per_frame / static_cast<double>(samples_per_frame);
+  
+  // Start reading one native frame behind the frame boundary
+  double location = static_cast<double>((lastFrameBoundary + 0x400) & 0x3ff);
+  location -= native_per_frame;
+  
+  // Ensure location is within valid range
+  while (location < 0) location += 0x400;
+
   for (int i = 0; i < samples_per_frame; i++) {
-    sample_data[i * 2] = sample_buffer_[(((int)location) & 0x3ff) * 2];
-    sample_data[i * 2 + 1] = sample_buffer_[(((int)location) & 0x3ff) * 2 + 1];
-    location += adder;
+    const int idx = static_cast<int>(location) & 0x3ff;
+    const double frac = location - static_cast<int>(location);
+
+    switch (interpolation_type) {
+      case InterpolationType::Linear: {
+        const int next_idx = (idx + 1) & 0x3ff;
+        
+        // Linear interpolation for left channel
+        const int16_t s0_l = sampleBuffer[(idx * 2) + 0];
+        const int16_t s1_l = sampleBuffer[(next_idx * 2) + 0];
+        sample_data[(i * 2) + 0] = static_cast<int16_t>(
+            s0_l + frac * (s1_l - s0_l));
+        
+        // Linear interpolation for right channel
+        const int16_t s0_r = sampleBuffer[(idx * 2) + 1];
+        const int16_t s1_r = sampleBuffer[(next_idx * 2) + 1];
+        sample_data[(i * 2) + 1] = static_cast<int16_t>(
+            s0_r + frac * (s1_r - s0_r));
+        break;
+      }
+      case InterpolationType::Hermite: {
+        const int idx0 = (idx - 1 + 0x400) & 0x3ff;
+        const int idx1 = idx & 0x3ff;
+        const int idx2 = (idx + 1) & 0x3ff;
+        const int idx3 = (idx + 2) & 0x3ff;
+        // Left channel
+        const int16_t p0_l = sampleBuffer[(idx0 * 2) + 0];
+        const int16_t p1_l = sampleBuffer[(idx1 * 2) + 0];
+        const int16_t p2_l = sampleBuffer[(idx2 * 2) + 0];
+        const int16_t p3_l = sampleBuffer[(idx3 * 2) + 0];
+        sample_data[(i * 2) + 0] = InterpolateHermite(p0_l, p1_l, p2_l, p3_l, frac);
+        // Right channel
+        const int16_t p0_r = sampleBuffer[(idx0 * 2) + 1];
+        const int16_t p1_r = sampleBuffer[(idx1 * 2) + 1];
+        const int16_t p2_r = sampleBuffer[(idx2 * 2) + 1];
+        const int16_t p3_r = sampleBuffer[(idx3 * 2) + 1];
+        sample_data[(i * 2) + 1] = InterpolateHermite(p0_r, p1_r, p2_r, p3_r, frac);
+        break;
+      }
+      case InterpolationType::Cosine: {
+        const int next_idx = (idx + 1) & 0x3ff;
+        const int16_t s0_l = sampleBuffer[(idx * 2) + 0];
+        const int16_t s1_l = sampleBuffer[(next_idx * 2) + 0];
+        sample_data[(i * 2) + 0] = InterpolateCosine(s0_l, s1_l, frac);
+        const int16_t s0_r = sampleBuffer[(idx * 2) + 1];
+        const int16_t s1_r = sampleBuffer[(next_idx * 2) + 1];
+        sample_data[(i * 2) + 1] = InterpolateCosine(s0_r, s1_r, frac);
+        break;
+      }
+      case InterpolationType::Cubic: {
+        const int idx0 = (idx - 1 + 0x400) & 0x3ff;
+        const int idx1 = idx & 0x3ff;
+        const int idx2 = (idx + 1) & 0x3ff;
+        const int idx3 = (idx + 2) & 0x3ff;
+        // Left channel
+        const int16_t p0_l = sampleBuffer[(idx0 * 2) + 0];
+        const int16_t p1_l = sampleBuffer[(idx1 * 2) + 0];
+        const int16_t p2_l = sampleBuffer[(idx2 * 2) + 0];
+        const int16_t p3_l = sampleBuffer[(idx3 * 2) + 0];
+        sample_data[(i * 2) + 0] =
+            InterpolateCubic(p0_l, p1_l, p2_l, p3_l, frac);
+        // Right channel
+        const int16_t p0_r = sampleBuffer[(idx0 * 2) + 1];
+        const int16_t p1_r = sampleBuffer[(idx1 * 2) + 1];
+        const int16_t p2_r = sampleBuffer[(idx2 * 2) + 1];
+        const int16_t p3_r = sampleBuffer[(idx3 * 2) + 1];
+        sample_data[(i * 2) + 1] =
+            InterpolateCubic(p0_r, p1_r, p2_r, p3_r, frac);
+        break;
+      }
+    }
+    location += step;
   }
+}
+
+int Dsp::CopyNativeFrame(int16_t* sample_data, bool pal_timing) {
+  if (sample_data == nullptr) {
+    return 0;
+  }
+
+  const int native_per_frame = pal_timing ? 641 : 534;
+  const int total_samples = native_per_frame * 2;
+
+  int start_index = static_cast<int>(
+      (lastFrameBoundary + 0x400 - native_per_frame) & 0x3ff);
+
+  for (int i = 0; i < native_per_frame; ++i) {
+    const int idx = (start_index + i) & 0x3ff;
+    sample_data[(i * 2) + 0] = sampleBuffer[(idx * 2) + 0];
+    sample_data[(i * 2) + 1] = sampleBuffer[(idx * 2) + 1];
+  }
+
+  return total_samples / 2;  // return frames per channel
 }
 
 }  // namespace emu

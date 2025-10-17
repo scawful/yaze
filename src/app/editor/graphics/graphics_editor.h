@@ -5,13 +5,14 @@
 
 #include "absl/status/status.h"
 #include "app/editor/editor.h"
-#include "app/editor/graphics/palette_editor.h"
-#include "app/gfx/bitmap.h"
-#include "app/gfx/snes_tile.h"
-#include "app/gui/canvas.h"
-#include "app/gui/modules/asset_browser.h"
+#include "app/editor/palette/palette_editor.h"
+#include "app/gfx/core/bitmap.h"
+#include "app/gfx/types/snes_tile.h"
+#include "app/gui/canvas/canvas.h"
+#include "app/gui/app/editor_layout.h"
+#include "app/gui/widgets/asset_browser.h"
 #include "app/rom.h"
-#include "app/zelda3/overworld/overworld.h"
+#include "zelda3/overworld/overworld.h"
 #include "imgui/imgui.h"
 #include "imgui_memory_editor.h"
 
@@ -105,7 +106,6 @@ class GraphicsEditor : public Editor {
   absl::Status DrawTilemapImport();
 
   // Other Functions
-  absl::Status DrawToolset();
   absl::Status DrawPaletteControls();
   absl::Status DrawClipboardImport();
   absl::Status DrawExperimentalFeatures();
@@ -115,6 +115,8 @@ class GraphicsEditor : public Editor {
   absl::Status DecompressSuperDonkey();
 
   // Member Variables
+  // Card visibility managed by EditorCardManager
+
   ImVec4 current_color_;
   uint16_t current_sheet_ = 0;
   uint8_t tile_size_ = 0x01;

@@ -1,0 +1,435 @@
+commands:
+  palette export: |-
+    Export palette data to JSON file
+      --group <group>  Palette group (overworld, dungeon, sprite)
+      --id <id>        Palette ID (0-based index)
+      --to <file>      Output JSON file path
+  palette import: |-
+    Import palette data from JSON file
+      --group <group>  Palette group (overworld, dungeon, sprite)
+      --id <id>        Palette ID (0-based index)
+      --from <file>    Input JSON file path
+  palette set-color: |-
+    Modify a color in palette JSON file
+      --file <file>    Palette JSON file to modify
+      --index <index>  Color index (0-15 per palette)
+      --color <hex>    New color in hex (0xRRGGBB format)
+  overworld set-tile: |-
+    Place a tile in the overworld
+      --map <id>       Map ID (0-based)
+      --x <x>          X coordinate (0-63)
+      --y <y>          Y coordinate (0-63)
+      --tile <hex>     Tile ID in hex (e.g., 0x02E for tree)
+  sprite set-position: |-
+    Move a sprite to a new position
+      --id <id>        Sprite ID
+      --x <x>          X coordinate
+      --y <y>          Y coordinate
+  dungeon set-room-tile: |-
+    Place a tile in a dungeon room
+      --room <id>      Room ID
+      --x <x>          X coordinate
+      --y <y>          Y coordinate
+      --tile <hex>     Tile ID
+  rom validate: "Validate ROM integrity and structure"
+
+tools:
+  - name: resource-list
+    description: "List project-defined resource labels for the requested category."
+    usage_notes: "Use this whenever you need to reference project-specific labels or IDs from the ROM. Valid categories: dungeon, room, entrance, overworld, sprite, palette, item, tile16, or all."
+    arguments:
+      - name: type
+        description: "Resource category. Valid values: dungeon, room, entrance, overworld, sprite, palette, item, tile16, all."
+        required: true
+        example: dungeon
+      - name: format
+        description: "Response format (json or table). Defaults to JSON if omitted."
+        required: false
+        example: json
+  - name: resource-search
+    description: "Search resource labels by partial name or ID."
+    usage_notes: "Use to locate specific rooms, sprites, palettes, entrances, overworld maps, or tile16 entries based on fuzzy text."
+    arguments:
+      - name: query
+        description: "Search term to match against labels and IDs."
+        required: true
+        example: soldier
+      - name: type
+        description: "Optional category filter (dungeon, room, entrance, overworld, sprite, palette, item, tile16, all)."
+        required: false
+        example: sprite
+      - name: format
+        description: "Response format (json or text). Defaults to JSON."
+        required: false
+        example: json
+  - name: dungeon-list-sprites
+    description: "Inspect sprite placements for a specific dungeon room."
+    usage_notes: "Returns sprite IDs, positions, and metadata for the requested room."
+    arguments:
+      - name: room
+        description: "Room label or numeric ID (supports hex like 0x123)."
+        required: true
+        example: hyrule_castle_throne
+      - name: dungeon
+        description: "Optional dungeon ID when room names are ambiguous."
+        required: false
+        example: 0x00
+      - name: format
+        description: "Response format (json or table). Defaults to JSON if omitted."
+        required: false
+        example: json
+  - name: dungeon-describe-room
+    description: "Summarize dungeon room metadata, hazards, and object counts."
+    usage_notes: "Great for understanding room state before proposing edits. Includes lighting, effect flags, chests, staircases, and sample sprites."
+    arguments:
+      - name: room
+        description: "Room label or numeric ID (supports hex like 0x123)."
+        required: true
+        example: 0x012
+      - name: format
+        description: "Response format (json or text). Defaults to JSON if omitted."
+        required: false
+        example: json
+  - name: overworld-find-tile
+    description: "Search all overworld maps for occurrences of a specific tile16 ID."
+    usage_notes: "Ideal for tile lookup questions. Includes coordinates for each match."
+    arguments:
+      - name: tile
+        description: "Tile16 ID to search for (accepts hex or decimal)."
+        required: true
+        example: 0x02E
+      - name: map
+        description: "Optional map ID filter (0=Light World, 1=Dark World, etc.)."
+        required: false
+        example: 0
+      - name: format
+        description: "Response format (json or table). Defaults to JSON if omitted."
+        required: false
+        example: json
+  - name: overworld-describe-map
+    description: "Summarize metadata for an overworld map, including regions and labels."
+    usage_notes: "Use this before proposing edits to understand map properties and labels."
+    arguments:
+      - name: map
+        description: "Map ID or label to describe."
+        required: true
+        example: 0
+      - name: format
+        description: "Response format (json or table). Defaults to JSON if omitted."
+        required: false
+        example: json
+  - name: overworld-list-warps
+    description: "List warp entrances and exits for overworld maps, including destinations."
+    usage_notes: "Helpful for navigation questions and verifying warp destinations."
+    arguments:
+      - name: map
+        description: "Optional map filter. Defaults to all maps when omitted."
+        required: false
+        example: 1
+      - name: format
+        description: "Response format (json or table). Defaults to JSON if omitted."
+        required: false
+        example: json
+  - name: gui-place-tile
+    description: "Generate GUI automation script to place a tile in the overworld editor using mouse interactions."
+    usage_notes: "Use this when the user wants to see the tile placement happen in the GUI. Generates a test script that can be executed with agent test execute. Only works when YAZE GUI is running with --enable-test-harness flag."
+    arguments:
+      - name: tile
+        description: "Tile16 ID to place (accepts hex or decimal)."
+        required: true
+        example: 0x02E
+      - name: x
+        description: "X coordinate in the overworld map (0-63)."
+        required: true
+        example: 10
+      - name: y
+        description: "Y coordinate in the overworld map (0-63)."
+        required: true
+        example: 20
+  - name: gui-click
+    description: "Generate GUI automation script to click a button or widget in the YAZE interface."
+    usage_notes: "Use this to automate GUI interactions like opening editors, clicking toolbar buttons, or selecting tiles. Requires widget path from gui-discover."
+    arguments:
+      - name: target
+        description: "Widget path or label to click (e.g., 'ModeButton:Draw (2)' or 'ToolbarAction:Toggle Tile16 Selector')."
+        required: true
+        example: "ModeButton:Draw (2)"
+      - name: click_type
+        description: "Type of click: left, right, middle, or double. Defaults to left."
+        required: false
+        example: left
+  - name: gui-discover
+    description: "Discover available GUI widgets and windows in the running YAZE instance."
+    usage_notes: "Use this first to find widget paths before using gui-click. Helps identify what UI elements are available for automation."
+    arguments:
+      - name: window
+        description: "Optional window name filter (e.g., 'Overworld', 'Dungeon', 'Sprite')."
+        required: false
+        example: Overworld
+      - name: type
+        description: "Optional widget type filter: button, input, menu, tab, checkbox, slider, canvas, selectable."
+        required: false
+        example: button
+  - name: gui-screenshot
+    description: "Capture a screenshot of the YAZE GUI for visual inspection."
+    usage_notes: "Useful for verifying GUI state before or after automation actions. Returns the file path of the captured image."
+    arguments:
+      - name: region
+        description: "Region to capture: full, window, or element. Defaults to full."
+        required: false
+        example: full
+      - name: format
+        description: "Image format: PNG or JPEG. Defaults to PNG."
+        required: false
+        example: PNG
+  - name: dialogue-list
+    description: "List all dialogue messages in the ROM with IDs and previews."
+    usage_notes: "Use this to browse available dialogue messages. Returns message IDs and short previews."
+    arguments:
+      - name: format
+        description: "Output format: json or table. Defaults to json."
+        required: false
+        example: json
+      - name: limit
+        description: "Maximum number of messages to return. Defaults to 50."
+        required: false
+        example: 50
+  - name: dialogue-read
+    description: "Read the full text of a specific dialogue message."
+    usage_notes: "Use this to get the complete text of a dialogue message by its ID."
+    arguments:
+      - name: id
+        description: "Message ID to read (hex or decimal, e.g., 0x01 or 1)."
+        required: true
+        example: 0x01
+      - name: format
+        description: "Output format: json or text. Defaults to json."
+        required: false
+        example: json
+  - name: dialogue-search
+    description: "Search dialogue messages for specific text."
+    usage_notes: "Use this to find dialogue messages containing specific words or phrases."
+    arguments:
+      - name: query
+        description: "Search query text."
+        required: true
+        example: "Zelda"
+      - name: format
+        description: "Output format: json or text. Defaults to json."
+        required: false
+        example: json
+      - name: limit
+        description: "Maximum number of results to return. Defaults to 20."
+        required: false
+        example: 20
+  - name: music-list
+    description: "List all music tracks in the ROM with names and categories."
+    usage_notes: "Use this to see all available music tracks and their properties."
+    arguments:
+      - name: format
+        description: "Output format: json or table. Defaults to json."
+        required: false
+        example: json
+  - name: music-info
+    description: "Get detailed information about a specific music track."
+    usage_notes: "Use this to get properties of a music track like channels, tempo, and category."
+    arguments:
+      - name: id
+        description: "Track ID (hex or decimal, e.g., 0x03 or 3)."
+        required: true
+        example: 0x03
+      - name: format
+        description: "Output format: json or text. Defaults to json."
+        required: false
+        example: json
+  - name: music-tracks
+    description: "Get channel/track data for music tracks."
+    usage_notes: "Returns SPC700 music data by category. Advanced feature for music analysis."
+    arguments:
+      - name: category
+        description: "Optional category filter: Overworld, Dungeon, Boss, Town, Indoor, etc."
+        required: false
+        example: Overworld
+      - name: format
+        description: "Output format: json or table. Defaults to json."
+        required: false
+        example: json
+  - name: sprite-list
+    description: "List all sprites in the ROM with names, types, and basic properties."
+    usage_notes: "Use this to browse available sprites. Can filter by type (enemy, boss, npc, object)."
+    arguments:
+      - name: format
+        description: "Output format: json or table. Defaults to json."
+        required: false
+        example: json
+      - name: type
+        description: "Optional type filter: all, enemy, boss, npc, object. Defaults to all."
+        required: false
+        example: enemy
+      - name: limit
+        description: "Maximum number of sprites to return. Defaults to 50."
+        required: false
+        example: 50
+  - name: sprite-properties
+    description: "Get detailed properties of a specific sprite."
+    usage_notes: "Returns HP, damage, palette, type, and other properties for a sprite."
+    arguments:
+      - name: id
+        description: "Sprite ID (hex or decimal, e.g., 0x08 or 8)."
+        required: true
+        example: 0x08
+      - name: format
+        description: "Output format: json or text. Defaults to json."
+        required: false
+        example: json
+  - name: sprite-palette
+    description: "Get the color palette for a specific sprite."
+    usage_notes: "Returns the palette colors used by a sprite in hex format."
+    arguments:
+      - name: id
+        description: "Sprite ID (hex or decimal, e.g., 0x08 or 8)."
+        required: true
+        example: 0x08
+      - name: format
+        description: "Output format: json or text. Defaults to json."
+        required: false
+        example: json
+
+tile16_reference:
+  grass: 0x020
+  dirt: 0x022
+  tree: 0x02E
+  bush: 0x003
+  rock: 0x004
+  flower: 0x021
+  sand: 0x023
+  water_top: 0x14C
+  water_middle: 0x14D
+  water_bottom: 0x14E
+  deep_water: 0x14F
+  shallow_water: 0x150
+  water_single: 0x038
+  house_00: 0x0C0
+  house_01: 0x0C1
+  house_10: 0x0D0
+  house_11: 0x0D1
+
+examples:
+  - user_prompt: "Place a tree at position 10, 20 on the Light World map"
+    text_response: "Okay, I can place that tree for you. Here is the command:"
+    reasoning: "Single tile16 placement. Tree tile ID is 0x02E in vanilla ALTTP"
+    commands:
+      - "overworld set-tile --map 0 --x 10 --y 20 --tile 0x02E"
+  - user_prompt: "Create a 3x3 water pond at coordinates 15, 10"
+    text_response: "Creating a 3x3 pond requires nine `set-tile` commands. Here they are:"
+    reasoning: "Water areas use different edge tiles: 0x14C (top), 0x14D (middle), 0x14E (bottom)"
+    commands:
+      - "overworld set-tile --map 0 --x 15 --y 10 --tile 0x14C"
+      - "overworld set-tile --map 0 --x 16 --y 10 --tile 0x14D"
+      - "overworld set-tile --map 0 --x 17 --y 10 --tile 0x14C"
+      - "overworld set-tile --map 0 --x 15 --y 11 --tile 0x14D"
+      - "overworld set-tile --map 0 --x 16 --y 11 --tile 0x14D"
+      - "overworld set-tile --map 0 --x 17 --y 11 --tile 0x14D"
+      - "overworld set-tile --map 0 --x 15 --y 12 --tile 0x14E"
+      - "overworld set-tile --map 0 --x 16 --y 12 --tile 0x14E"
+      - "overworld set-tile --map 0 --x 17 --y 12 --tile 0x14E"
+  - user_prompt: "Add a dirt path from position 5,5 to 5,15"
+    text_response: "I will generate a `set-tile` command for each point along the path."
+    reasoning: "Linear paths are created by placing tiles sequentially. Dirt tile is 0x022"
+    commands:
+      - "overworld set-tile --map 0 --x 5 --y 5 --tile 0x022"
+      - "overworld set-tile --map 0 --x 5 --y 6 --tile 0x022"
+      - "overworld set-tile --map 0 --x 5 --y 7 --tile 0x022"
+      - "overworld set-tile --map 0 --x 5 --y 8 --tile 0x022"
+      - "overworld set-tile --map 0 --x 5 --y 9 --tile 0x022"
+      - "overworld set-tile --map 0 --x 5 --y 10 --tile 0x022"
+      - "overworld set-tile --map 0 --x 5 --y 11 --tile 0x022"
+      - "overworld set-tile --map 0 --x 5 --y 12 --tile 0x022"
+      - "overworld set-tile --map 0 --x 5 --y 13 --tile 0x022"
+      - "overworld set-tile --map 0 --x 5 --y 14 --tile 0x022"
+      - "overworld set-tile --map 0 --x 5 --y 15 --tile 0x022"
+  - user_prompt: "Plant a row of trees horizontally at y=8 from x=20 to x=25"
+    text_response: "Here are the commands to plant that row of trees:"
+    reasoning: "Tree rows create natural barriers and visual boundaries"
+    commands:
+      - "overworld set-tile --map 0 --x 20 --y 8 --tile 0x02E"
+      - "overworld set-tile --map 0 --x 21 --y 8 --tile 0x02E"
+      - "overworld set-tile --map 0 --x 22 --y 8 --tile 0x02E"
+      - "overworld set-tile --map 0 --x 23 --y 8 --tile 0x02E"
+      - "overworld set-tile --map 0 --x 24 --y 8 --tile 0x02E"
+      - "overworld set-tile --map 0 --x 25 --y 8 --tile 0x02E"
+  - user_prompt: "Add 3 soldiers to the Eastern Palace entrance room"
+    text_response: "I've identified the dungeon and sprite IDs from your project's labels. Here are the commands:"
+    reasoning: "Dungeon ID 0x02 is Eastern Palace. Sprite 0x41 is soldier. Spread placement for balance"
+    commands:
+      - "dungeon add-sprite --dungeon 0x02 --room 0x00 --sprite 0x41 --x 5 --y 3"
+      - "dungeon add-sprite --dungeon 0x02 --room 0x00 --sprite 0x41 --x 10 --y 3"
+      - "dungeon add-sprite --dungeon 0x02 --room 0x00 --sprite 0x41 --x 7 --y 8"
+  - user_prompt: "Place a chest in the Hyrule Castle treasure room"
+    text_response: "Certainly. I will place a chest containing a small key in the center of the room."
+    reasoning: "Dungeon 0x00 is Hyrule Castle. Item 0x12 is a small key. Position centered in room"
+    commands:
+      - "dungeon add-chest --dungeon 0x00 --room 0x60 --x 7 --y 5 --item 0x12 --big false"
+  - user_prompt: "Check if my overworld changes are valid"
+    text_response: "Yes, I can validate the ROM for you."
+    reasoning: "Validation ensures ROM integrity after tile modifications"
+    commands:
+      - "rom validate"
+  - user_prompt: "What rooms are in this project?"
+    reasoning: "The user is asking a question. I need to use the `resource-list` tool to find the answer."
+    tool_calls:
+      - tool_name: resource-list
+        args:
+          type: dungeon
+  - user_prompt: "Search for soldier sprites in the label database"
+    reasoning: "The user wants to find sprite labels. I should use the `resource-search` tool with a sprite filter."
+    tool_calls:
+      - tool_name: resource-search
+        args:
+          query: soldier
+          type: sprite
+  - user_prompt: "[TOOL RESULT] {\"resources\": [{\"id\": 0, \"label\": \"Ganon\"}, {\"id\": 1, \"label\": \"Hyrule Castle\"}, {\"id\": 2, \"label\": \"Eastern Palace\"}, {\"id\": 3, \"label\": \"Desert Palace\"}, {\"id\": 4, \"label\": \"Tower of Hera\"}, {\"id\": 5, \"label\": \"Palace of Darkness\"}]}"
+    text_response: "Based on the ROM data, this project contains 297 rooms. The first few include: Ganon's Room, Hyrule Castle, Eastern Palace, Desert Palace, Tower of Hera, and Palace of Darkness."
+    reasoning: "I received the tool results showing room labels. Now I provide a natural language summary of this information."
+  - user_prompt: "What sprites are in room 5?"
+    reasoning: "The user wants to know about sprites in a specific room. I should use the dungeon-list-sprites tool."
+    tool_calls:
+      - tool_name: dungeon-list-sprites
+        args:
+          room: "5"
+  - user_prompt: "Describe dungeon room 0x012"
+    reasoning: "The user wants overall room metadata. I should call `dungeon-describe-room` to gather the summary."
+    tool_calls:
+      - tool_name: dungeon-describe-room
+        args:
+          room: "0x012"
+  - user_prompt: "[TOOL RESULT] {\"sprites\": [{\"id\": 0x41, \"name\": \"soldier\", \"x\": 5, \"y\": 3}, {\"id\": 0x41, \"name\": \"soldier\", \"x\": 10, \"y\": 3}]}"
+    text_response: "Room 5 contains 2 sprites: two soldiers positioned at coordinates (5, 3) and (10, 3). Both are sprite ID 0x41."
+    reasoning: "The tool returned sprite data for room 5. I've formatted this into a readable response for the user."
+  - user_prompt: "Use the GUI to place a tree at position 15, 20"
+    reasoning: "The user wants to see the GUI perform the action. I should use gui-place-tile to generate the automation script."
+    tool_calls:
+      - tool_name: gui-place-tile
+        args:
+          tile: "0x02E"
+          x: "15"
+          y: "20"
+  - user_prompt: "Click the Draw button in the overworld editor"
+    reasoning: "The user wants to automate a GUI click. First I need to discover the widget path."
+    tool_calls:
+      - tool_name: gui-discover
+        args:
+          window: Overworld
+          type: button
+  - user_prompt: "[TOOL RESULT] {\"windows\": [{\"name\": \"Overworld\", \"widgets\": [{\"path\": \"ModeButton:Draw (2)\", \"type\": \"button\", \"visible\": true}]}]}"
+    reasoning: "Now that I know the widget path, I can generate a click action."
+    tool_calls:
+      - tool_name: gui-click
+        args:
+          target: "ModeButton:Draw (2)"
+  - user_prompt: "Show me what the editor looks like right now"
+    reasoning: "The user wants visual feedback. I should capture a screenshot."
+    tool_calls:
+      - tool_name: gui-screenshot
+        args:
+          region: full

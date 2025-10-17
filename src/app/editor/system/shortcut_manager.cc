@@ -1,9 +1,13 @@
 #include "shortcut_manager.h"
 
 #include <algorithm>
+#include <cstddef>
+#include <functional>
 #include <string>
+#include <utility>
+#include <vector>
 
-#include "app/gui/input.h"
+#include "app/gui/core/input.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -140,27 +144,124 @@ std::vector<ImGuiKey> ParseShortcut(const std::string& shortcut) {
 void ExecuteShortcuts(const ShortcutManager& shortcut_manager) {
   // Check for keyboard shortcuts using the shortcut manager
   for (const auto& shortcut : shortcut_manager.GetShortcuts()) {
-    bool keys_pressed = true;
-    // Check for all the keys in the shortcut
+    bool modifiers_held = true;
+    bool key_pressed = false;
+    ImGuiKey main_key = ImGuiKey_None;
+    
+    // Separate modifiers from main key
     for (const auto& key : shortcut.second.keys) {
-      if (key == ImGuiMod_Ctrl) {
-        keys_pressed &= ImGui::GetIO().KeyCtrl;
-      } else if (key == ImGuiMod_Alt) {
-        keys_pressed &= ImGui::GetIO().KeyAlt;
-      } else if (key == ImGuiMod_Shift) {
-        keys_pressed &= ImGui::GetIO().KeyShift;
-      } else if (key == ImGuiMod_Super) {
-        keys_pressed &= ImGui::GetIO().KeySuper;
+      if (key == ImGuiMod_Ctrl || key == ImGuiMod_Alt || 
+          key == ImGuiMod_Shift || key == ImGuiMod_Super) {
+        // Check if modifier is held
+        if (key == ImGuiMod_Ctrl) {
+          modifiers_held &= ImGui::GetIO().KeyCtrl;
+        } else if (key == ImGuiMod_Alt) {
+          modifiers_held &= ImGui::GetIO().KeyAlt;
+        } else if (key == ImGuiMod_Shift) {
+          modifiers_held &= ImGui::GetIO().KeyShift;
+        } else if (key == ImGuiMod_Super) {
+          modifiers_held &= ImGui::GetIO().KeySuper;
+        }
       } else {
-        keys_pressed &= ImGui::IsKeyDown(key);
-      }
-      if (!keys_pressed) {
-        break;
+        // This is the main key - use IsKeyPressed for single trigger
+        main_key = key;
       }
     }
-    if (keys_pressed) {
+    
+    // Check if main key was pressed (not just held)
+    if (main_key != ImGuiKey_None) {
+      key_pressed = ImGui::IsKeyPressed(main_key, false);  // false = no repeat
+    }
+    
+    // Execute if modifiers held and key pressed
+    if (modifiers_held && key_pressed && shortcut.second.callback) {
       shortcut.second.callback();
     }
+  }
+}
+
+}  // namespace editor
+}  // namespace yaze
+
+// Implementation in header file (inline methods)
+namespace yaze {
+namespace editor {
+
+void ShortcutManager::RegisterStandardShortcuts(
+    std::function<void()> save_callback,
+    std::function<void()> open_callback,
+    std::function<void()> close_callback,
+    std::function<void()> find_callback,
+    std::function<void()> settings_callback) {
+
+  // Ctrl+S - Save
+  if (save_callback) {
+    RegisterShortcut("save", {ImGuiMod_Ctrl, ImGuiKey_S}, save_callback);
+  }
+
+  // Ctrl+O - Open
+  if (open_callback) {
+    RegisterShortcut("open", {ImGuiMod_Ctrl, ImGuiKey_O}, open_callback);
+  }
+
+  // Ctrl+W - Close
+  if (close_callback) {
+    RegisterShortcut("close", {ImGuiMod_Ctrl, ImGuiKey_W}, close_callback);
+  }
+
+  // Ctrl+F - Find
+  if (find_callback) {
+    RegisterShortcut("find", {ImGuiMod_Ctrl, ImGuiKey_F}, find_callback);
+  }
+
+  // Ctrl+, - Settings
+  if (settings_callback) {
+    RegisterShortcut("settings", {ImGuiMod_Ctrl, ImGuiKey_Comma}, settings_callback);
+  }
+
+  // Ctrl+Tab - Next tab (placeholder for now)
+  // Ctrl+Shift+Tab - Previous tab (placeholder for now)
+}
+
+void ShortcutManager::RegisterWindowNavigationShortcuts(
+    std::function<void()> focus_left,
+    std::function<void()> focus_right,
+    std::function<void()> focus_up,
+    std::function<void()> focus_down,
+    std::function<void()> close_window,
+    std::function<void()> split_horizontal,
+    std::function<void()> split_vertical) {
+
+  // Ctrl+Arrow keys for window navigation
+  if (focus_left) {
+    RegisterShortcut("focus_left", {ImGuiMod_Ctrl, ImGuiKey_LeftArrow}, focus_left);
+  }
+
+  if (focus_right) {
+    RegisterShortcut("focus_right", {ImGuiMod_Ctrl, ImGuiKey_RightArrow}, focus_right);
+  }
+
+  if (focus_up) {
+    RegisterShortcut("focus_up", {ImGuiMod_Ctrl, ImGuiKey_UpArrow}, focus_up);
+  }
+
+  if (focus_down) {
+    RegisterShortcut("focus_down", {ImGuiMod_Ctrl, ImGuiKey_DownArrow}, focus_down);
+  }
+
+  // Ctrl+W, C - Close current window
+  if (close_window) {
+    RegisterShortcut("close_window", {ImGuiMod_Ctrl, ImGuiKey_W, ImGuiKey_C}, close_window);
+  }
+
+  // Ctrl+W, S - Split horizontal
+  if (split_horizontal) {
+    RegisterShortcut("split_horizontal", {ImGuiMod_Ctrl, ImGuiKey_W, ImGuiKey_S}, split_horizontal);
+  }
+
+  // Ctrl+W, V - Split vertical
+  if (split_vertical) {
+    RegisterShortcut("split_vertical", {ImGuiMod_Ctrl, ImGuiKey_W, ImGuiKey_V}, split_vertical);
   }
 }
 

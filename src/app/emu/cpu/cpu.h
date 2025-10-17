@@ -10,6 +10,11 @@
 namespace yaze {
 namespace emu {
 
+// Forward declarations
+namespace debug {
+class DisassemblyViewer;
+}
+
 class InstructionEntry {
  public:
   // Constructor
@@ -47,7 +52,33 @@ class Cpu {
   void Nmi() { nmi_wanted_ = true; }
 
   std::vector<uint32_t> breakpoints_;
-  std::vector<InstructionEntry> instruction_log_;
+  // REMOVED: instruction_log_ - replaced by efficient DisassemblyViewer
+  
+  // Disassembly viewer (always enabled, uses sparse address map)
+  debug::DisassemblyViewer& disassembly_viewer();
+  const debug::DisassemblyViewer& disassembly_viewer() const;
+  
+  // Breakpoint callback (set by Emulator)
+  std::function<bool(uint32_t pc)> on_breakpoint_hit_;
+  
+  // Instruction recording callback (for DisassemblyViewer)
+  std::function<void(uint32_t address, uint8_t opcode, const std::vector<uint8_t>& operands,
+                     const std::string& mnemonic, const std::string& operand_str)> on_instruction_executed_;
+
+  // Public register access for debugging and UI
+  uint16_t A = 0;               // Accumulator
+  uint16_t X = 0;               // X index register
+  uint16_t Y = 0;               // Y index register
+  uint16_t D = 0;               // Direct Page register
+  uint8_t DB = 0;               // Data Bank register
+  uint8_t PB = 0;               // Program Bank register
+  uint16_t PC = 0;              // Program Counter
+  uint8_t status = 0b00110000;  // Processor Status (P)
+
+  // Breakpoint management
+  void set_int_delay(bool delay) { int_delay_ = delay; }
+ 
+  debug::DisassemblyViewer* disassembly_viewer_ = nullptr;
 
   // ======================================================
   // Interrupt Vectors
@@ -62,17 +93,9 @@ class Cpu {
   void DoInterrupt();
 
   // ======================================================
-  // Registers
+  // Internal state
 
-  uint16_t A = 0;               // Accumulator
-  uint16_t X = 0;               // X index register
-  uint16_t Y = 0;               // Y index register
-  uint16_t D = 0;               // Direct Page register
-  uint8_t DB = 0;               // Data Bank register
-  uint8_t PB = 0;               // Program Bank register
-  uint16_t PC = 0;              // Program Counter
   uint8_t E = 1;                // Emulation mode flag
-  uint8_t status = 0b00110000;  // Processor Status (P)
 
   // Mnemonic 	Value 	Binary 	Description
   // N 	      #$80 	10000000 	Negative
@@ -147,6 +170,15 @@ class Cpu {
 
   // Memory access routines
   uint8_t ReadByte(uint32_t address) { return callbacks_.read_byte(address); }
+  
+  // Read 16-bit value from consecutive addresses (little-endian)
+  uint16_t ReadWord(uint32_t address) {
+    uint8_t low = ReadByte(address);
+    uint8_t high = ReadByte(address + 1);
+    return low | (high << 8);
+  }
+  
+  // Read 16-bit value from two separate addresses (for wrapping/crossing boundaries)
   uint16_t ReadWord(uint32_t address, uint32_t address_high,
                     bool int_check = false) {
     uint8_t value = ReadByte(address);
@@ -224,7 +256,6 @@ class Cpu {
     }
   }
 
-  void set_int_delay(bool delay) { int_delay_ = delay; }
 
   // Addressing Modes
 
@@ -742,7 +773,10 @@ class Cpu {
     int_delay_ = false;
   }
 
-  auto mutable_log_instructions() -> bool* { return &log_instructions_; }
+  bool stopped() const { return stopped_; }
+  
+  // REMOVED: SetInstructionLogging - DisassemblyViewer is always active
+  // Use disassembly_viewer().SetRecording(bool) for runtime control
 
  private:
   void compare(uint16_t register_value, uint16_t memory_value) {
@@ -772,7 +806,7 @@ class Cpu {
 
   bool GetFlag(uint8_t mask) const { return (status & mask) != 0; }
 
-  bool log_instructions_ = false;
+  // REMOVED: log_instructions_ flag - no longer needed
 
   bool waiting_ = false;
   bool stopped_ = false;

@@ -4,15 +4,19 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include "util/log.h"
+#include "core/features.h"
 
 #include "app/emu/audio/internal/opcodes.h"
+#include "app/emu/audio/internal/spc700_accurate_cycles.h"
 
 namespace yaze {
 namespace emu {
 
 void Spc700::Reset(bool hard) {
   if (hard) {
-    PC = 0;
+    // DON'T set PC = 0 here! The reset sequence in Step() will load PC from the reset vector.
+    // Setting PC = 0 here would overwrite the correct value loaded from $FFFE-$FFFF.
     A = 0;
     X = 0;
     Y = 0;
@@ -24,7 +28,55 @@ void Spc700::Reset(bool hard) {
   reset_wanted_ = true;
 }
 
+int Spc700::Step() {
+  // Handle reset sequence (based on 6502, brk without writes)
+  if (reset_wanted_) {
+    reset_wanted_ = false;
+    read(PC);
+    read(PC);
+    read(0x100 | SP--);
+    read(0x100 | SP--);
+    read(0x100 | SP--);
+    callbacks_.idle(false);
+    PSW.I = false;
+
+    // Load PC from reset vector ($FFFE-$FFFF)
+    uint8_t lo = read(0xfffe);
+    uint8_t hi = read(0xffff);
+    PC = lo | (hi << 8);
+
+    return 8;
+  }
+
+  // Handle stopped state (SLEEP/STOP instructions)
+  if (stopped_) {
+    callbacks_.idle(true);
+    return 2;
+  }
+
+  // Reset extra cycle counter for new instruction
+  extra_cycles_ = 0;
+
+  // Fetch and execute one complete instruction
+  uint8_t opcode = ReadOpcode();
+
+  // Get base cycle count from the new accurate lookup table
+  int cycles = spc700_accurate_cycles[opcode];
+
+  // Execute the instruction completely (atomic execution)
+  // This will set extra_cycles_ if a branch is taken
+  ExecuteInstructions(opcode);
+
+  // Return the base cycles plus any extra cycles from branching
+  return cycles + extra_cycles_;
+}
+
 void Spc700::RunOpcode() {
+  static int entry_log = 0;
+  if ((PC >= 0xFFF0 && PC <= 0xFFFF) && entry_log++ < 5) {
+    LOG_DEBUG("SPC", "RunOpcode ENTRY: PC=$%04X step=%d bstep=%d", PC, step, bstep);
+  }
+  
   if (reset_wanted_) {
     // based on 6502, brk without writes
     reset_wanted_ = false;
@@ -36,20 +88,73 @@ void Spc700::RunOpcode() {
     callbacks_.idle(false);
     PSW.I = false;
     PC = read_word(0xfffe);
+    last_opcode_cycles_ = 8;  // Reset sequence takes 8 cycles
     return;
   }
   if (stopped_) {
+    // Allow timers/DSP to continue advancing while SPC is stopped/sleeping.
     callbacks_.idle(true);
+    last_opcode_cycles_ = 2;  // Stopped state consumes minimal cycles
     return;
   }
   if (step == 0) {
-    bstep = 0;
-    opcode = ReadOpcode();
+    // Debug: Comprehensive IPL ROM tracing for transfer protocol debugging
+    // (Only enabled for first few iterations to avoid log spam)
+    static int spc_exec_count = 0;
+    bool in_critical_range = (PC >= 0xFFCF && PC <= 0xFFFF);
+    bool is_transfer_loop = (PC >= 0xFFD6 && PC <= 0xFFED);
+    
+    // Reduced logging limits - only log first few iterations
+    if (in_critical_range && spc_exec_count++ < 5) {
+      LOG_DEBUG("SPC", "Execute: PC=$%04X step=0 bstep=%d Y=%02X A=%02X", PC, bstep, Y, A);
+    }
+    if (is_transfer_loop && spc_exec_count < 10) {
+      // Read ports and RAM[$00] to track transfer state
+      uint8_t f4_val = callbacks_.read(0xF4);
+      uint8_t f5_val = callbacks_.read(0xF5);
+      uint8_t ram0_val = callbacks_.read(0x00);
+      LOG_DEBUG("SPC", "TRANSFER LOOP: PC=$%04X Y=%02X A=%02X F4=%02X F5=%02X RAM0=%02X bstep=%d", 
+               PC, Y, A, f4_val, f5_val, ram0_val, bstep);
+    }
+    
+    // Only read new opcode if previous instruction is complete
+    if (bstep == 0) {
+      opcode = ReadOpcode();
+      // Set base cycle count from lookup table
+      last_opcode_cycles_ = spc700_accurate_cycles[opcode];
+    } else {
+      if (spc_exec_count < 5) {
+        LOG_DEBUG("SPC", "Continuing multi-step: PC=$%04X bstep=%d opcode=$%02X", PC, bstep, opcode);
+      }
+    }
     step = 1;
     return;
   }
+  // TODO: Add SPC700 DisassemblyViewer similar to CPU
+  // For now, skip logging to avoid performance overhead
+  // SPC700 runs at ~1.024 MHz, logging every instruction would be expensive
+  // without the sparse address-map optimization
+  
+  static int exec_log = 0;
+  if ((PC >= 0xFFF0 && PC <= 0xFFFF) && exec_log++ < 5) {
+    LOG_DEBUG("SPC", "About to ExecuteInstructions: PC=$%04X step=%d bstep=%d opcode=$%02X", PC, step, bstep, opcode);
+  }
+  
   ExecuteInstructions(opcode);
-  if (step == 1) step = 0;  // reset step for non cycle-stepped opcodes.
+  // Only reset step if instruction is complete (bstep back to 0)
+  static int reset_log = 0;
+  if (step == 1) {
+    if (bstep == 0) {
+      if ((PC >= 0xFFF0 && PC <= 0xFFFF) && reset_log++ < 5) {
+        LOG_DEBUG("SPC", "Resetting step: PC=$%04X opcode=$%02X bstep=%d", PC, opcode, bstep);
+      }
+      step = 0;
+    } else {
+      if ((PC >= 0xFFF0 && PC <= 0xFFFF) && reset_log++ < 5) {
+        LOG_DEBUG("SPC", "NOT resetting step: PC=$%04X opcode=$%02X bstep=%d", PC, opcode, bstep);
+      }
+    }
+  }
 }
 
 void Spc700::ExecuteInstructions(uint8_t opcode) {
@@ -635,10 +740,16 @@ void Spc700::ExecuteInstructions(uint8_t opcode) {
       CMP(idy());
       break;
     }
-    case 0x78: {  // cmpm dp, imm
-      uint8_t src = 0;
-      uint16_t dst = dp_imm(&src);
-      CMPM(dst, src);
+    case 0x78: {  // cmp d, #i
+      uint8_t imm = ReadOpcode();
+      uint16_t adr = (PSW.P << 8) | ReadOpcode();
+      uint8_t val = read(adr);
+      callbacks_.idle(false); // Add missing cycle
+      callbacks_.idle(false); // Add missing cycle
+      int result = val - imm;
+      PSW.C = (val >= imm);
+      PSW.Z = (result == 0);
+      PSW.N = (result & 0x80);
       break;
     }
     case 0x79: {  // cmpm ind, ind
@@ -1010,7 +1121,8 @@ void Spc700::ExecuteInstructions(uint8_t opcode) {
       break;
     }
     case 0xc4: {  // movs dp
-      MOVS(dp());
+      uint16_t adr = dp();
+      MOVS(adr);
       break;
     }
     case 0xc5: {  // movs abs
@@ -1041,8 +1153,11 @@ void Spc700::ExecuteInstructions(uint8_t opcode) {
       write(adr, result);
       break;
     }
-    case 0xcb: {  // movsy dp
-      MOVSY(dp());
+    case 0xcb: {  // mov d, Y
+      uint16_t adr = (PSW.P << 8) | ReadOpcode();
+      read(adr);
+      callbacks_.idle(false); // Add one extra cycle delay
+      write(adr, Y);
       break;
     }
     case 0xcc: {  // movsy abs
@@ -1065,26 +1180,12 @@ void Spc700::ExecuteInstructions(uint8_t opcode) {
       uint16_t result = A * Y;
       A = result & 0xff;
       Y = result >> 8;
-      PSW.Z = ((Y & 0xFFFF) == 0);
-      PSW.N = (Y & 0x8000);
+      PSW.Z = (Y == 0);
+      PSW.N = (Y & 0x80);
       break;
     }
     case 0xd0: {  // bne rel
-      switch (step++) {
-        case 1:
-          dat = ReadOpcode();
-          if (PSW.Z) step = 0;
-          break;
-        case 2:
-          callbacks_.idle(false);
-          break;
-        case 3:
-          callbacks_.idle(false);
-          PC += (int8_t)dat;
-          step = 0;
-          break;
-      }
-      // DoBranch(ReadOpcode(), !PSW.Z);
+      DoBranch(ReadOpcode(), !PSW.Z);
       break;
     }
     case 0xd4: {  // movs dpx
@@ -1100,7 +1201,11 @@ void Spc700::ExecuteInstructions(uint8_t opcode) {
       break;
     }
     case 0xd7: {  // movs idy
-      MOVS(idy());
+      // CRITICAL: Only call idy() once in bstep=0, reuse saved address in bstep=1
+      if (bstep == 0) {
+        adr = idy();  // Save address for bstep=1
+      }
+      MOVS(adr);  // Use saved address
       break;
     }
     case 0xd8: {  // movsx dp
@@ -1126,8 +1231,8 @@ void Spc700::ExecuteInstructions(uint8_t opcode) {
     case 0xdc: {  // decy imp
       read(PC);
       Y--;
-      PSW.Z = ((Y & 0xFFFF) == 0);
-      PSW.N = (Y & 0x8000);
+      PSW.Z = (Y == 0);
+      PSW.N = (Y & 0x80);
       break;
     }
     case 0xdd: {  // movay imp
@@ -1164,43 +1269,62 @@ void Spc700::ExecuteInstructions(uint8_t opcode) {
       PSW.H = false;
       break;
     }
-    case 0xe4: {  // mov dp
-      MOV(dp());
+    case 0xe4: {  // mov A, dp
+      uint16_t adr = (PSW.P << 8) | ReadOpcode();
+      A = read(adr);
+      PSW.Z = (A == 0);
+      PSW.N = (A & 0x80);
       break;
     }
-    case 0xe5: {  // mov abs
-      MOV(abs());
+    case 0xe5: {  // mov A, abs
+      uint16_t adr = ReadOpcodeWord();
+      A = read(adr);
+      PSW.Z = (A == 0);
+      PSW.N = (A & 0x80);
       break;
     }
-    case 0xe6: {  // mov ind
-      MOV(ind());
+    case 0xe6: {  // mov A, (X)
+      uint16_t adr = X;
+      A = read(adr);
+      PSW.Z = (A == 0);
+      PSW.N = (A & 0x80);
       break;
     }
-    case 0xe7: {  // mov idx
-      MOV(idx());
+    case 0xe7: {  // mov A, [dp+X]
+      uint16_t dp_adr = (PSW.P << 8) | ReadOpcode();
+      callbacks_.idle(false);
+      uint16_t adr = read_word(dp_adr + X);
+      A = read(adr);
+      PSW.Z = (A == 0);
+      PSW.N = (A & 0x80);
       break;
     }
-    case 0xe8: {  // mov imm
-      MOV(imm());
+    case 0xe8: {  // mov A, #imm
+      A = ReadOpcode();
+      PSW.Z = (A == 0);
+      PSW.N = (A & 0x80);
       break;
     }
     case 0xe9: {  // movx abs
-      MOVX(abs());
-      break;
-    }
-    case 0xea: {  // not1 abs.bit
-      uint16_t adr = 0;
-      uint8_t bit = abs_bit(&adr);
-      uint8_t result = read(adr) ^ (1 << bit);
-      write(adr, result);
+      uint16_t adr = ReadOpcodeWord();
+      X = read(adr);
+      PSW.Z = (X == 0);
+      PSW.N = (X & 0x80);
       break;
     }
     case 0xeb: {  // movy dp
-      MOVY(dp());
+      uint16_t adr = (PSW.P << 8) | ReadOpcode();
+      callbacks_.idle(false); // Add missing cycle
+      Y = read(adr);
+      PSW.Z = (Y == 0);
+      PSW.N = (Y & 0x80);
       break;
     }
     case 0xec: {  // movy abs
-      MOVY(abs());
+      uint16_t adr = ReadOpcodeWord();
+      Y = read(adr);
+      PSW.Z = (Y == 0);
+      PSW.N = (Y & 0x80);
       break;
     }
     case 0xed: {  // notc imp
@@ -1216,9 +1340,14 @@ void Spc700::ExecuteInstructions(uint8_t opcode) {
       break;
     }
     case 0xef: {  // sleep imp
+      // Emulate low-power idle without halting the core permanently.
+      // Advance timers/DSP via idle callbacks, but do not set stopped_.
+      static int sleep_log = 0;
+      if (sleep_log++ < 5) {
+        LOG_DEBUG("SPC", "SLEEP executed at PC=$%04X - entering low power mode", PC - 1);
+      }
       read(PC);
-      callbacks_.idle(false);
-      stopped_ = true;  // no interrupts, so sleeping stops as well
+      for (int i = 0; i < 4; ++i) callbacks_.idle(true);
       break;
     }
     case 0xf0: {  // beq rel
@@ -1260,17 +1389,24 @@ void Spc700::ExecuteInstructions(uint8_t opcode) {
       break;
     }
     case 0xfc: {  // incy imp
+      uint8_t old_y = Y;
       read(PC);
       Y++;
-      PSW.Z = ((Y & 0xFFFF) == 0);
-      PSW.N = (Y & 0x8000);
+      PSW.Z = (Y == 0);
+      PSW.N = (Y & 0x80);
+      // Log Y increment in transfer loop for first few iterations only
+      static int incy_log = 0;
+      if (PC >= 0xFFE4 && PC <= 0xFFE6 && incy_log++ < 10) {
+        LOG_DEBUG("SPC", "INC Y executed at PC=$%04X: Y changed from $%02X to $%02X (Z=%d N=%d)",
+                  PC - 1, old_y, Y, PSW.Z, PSW.N);
+      }
       break;
     }
     case 0xfd: {  // movya imp
       read(PC);
       Y = A;
-      PSW.Z = ((Y & 0xFFFF) == 0);
-      PSW.N = (Y & 0x8000);
+      PSW.Z = (Y == 0);
+      PSW.N = (Y & 0x80);
       break;
     }
     case 0xfe: {  // dbnzy rel
@@ -1294,31 +1430,21 @@ void Spc700::ExecuteInstructions(uint8_t opcode) {
 }
 
 void Spc700::LogInstruction(uint16_t initial_pc, uint8_t opcode) {
-  std::string mnemonic = spc_opcode_map.at(opcode);
+  const std::string& mnemonic = spc_opcode_map.at(opcode);
 
-  std::stringstream log_entry_stream;
-  log_entry_stream << "\033[1;36m$" << std::hex << std::setw(4)
-                   << std::setfill('0') << initial_pc << "\033[0m";
-  log_entry_stream << " \033[1;32m" << std::hex << std::setw(2)
-                   << std::setfill('0') << static_cast<int>(opcode) << "\033[0m"
-                   << " \033[1;35m" << std::setw(18) << std::left
-                   << std::setfill(' ') << mnemonic << "\033[0m";
+  std::stringstream ss;
+  ss << "$" << std::hex << std::setw(4) << std::setfill('0') << initial_pc
+     << ": 0x" << std::setw(2) << std::setfill('0')
+     << static_cast<int>(opcode) << " " << mnemonic
+     << "  A:" << std::setw(2) << std::setfill('0') << std::hex
+     << static_cast<int>(A)
+     << " X:" << std::setw(2) << std::setfill('0') << std::hex
+     << static_cast<int>(X)
+     << " Y:" << std::setw(2) << std::setfill('0') << std::hex
+     << static_cast<int>(Y);
 
-  log_entry_stream << " \033[1;33mA: " << std::hex << std::setw(2)
-                   << std::setfill('0') << std::right << static_cast<int>(A)
-                   << "\033[0m";
-  log_entry_stream << " \033[1;33mX: " << std::hex << std::setw(2)
-                   << std::setfill('0') << std::right << static_cast<int>(X)
-                   << "\033[0m";
-  log_entry_stream << " \033[1;33mY: " << std::hex << std::setw(2)
-                   << std::setfill('0') << std::right << static_cast<int>(Y)
-                   << "\033[0m";
-  std::string log_entry = log_entry_stream.str();
-
-  std::cerr << log_entry << std::endl;
-
-  // Append the log entry to the log
-  // log_.push_back(log_entry);
+  util::LogManager::instance().log(util::LogLevel::YAZE_DEBUG, "SPC700",
+                                   ss.str());
 }
 
 }  // namespace emu

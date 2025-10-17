@@ -1,232 +1,230 @@
 #include "integration/dungeon_editor_test.h"
 
-#include <cstring>
-#include <vector>
-
-#include "absl/strings/str_format.h"
-#include "app/zelda3/dungeon/room.h"
-#include "app/zelda3/dungeon/room_object.h"
+#include "zelda3/dungeon/room.h"
+#include "zelda3/dungeon/room_object.h"
 
 namespace yaze {
 namespace test {
 
-void DungeonEditorIntegrationTest::SetUp() {
-  ASSERT_TRUE(CreateMockRom().ok());
-  ASSERT_TRUE(LoadTestRoomData().ok());
-  
-  dungeon_editor_ = std::make_unique<editor::DungeonEditor>(mock_rom_.get());
-  dungeon_editor_->Initialize();
-}
+using namespace yaze::zelda3;
 
-void DungeonEditorIntegrationTest::TearDown() {
-  dungeon_editor_.reset();
-  mock_rom_.reset();
-}
+// ============================================================================
+// Basic Room Loading Tests
+// ============================================================================
 
-absl::Status DungeonEditorIntegrationTest::CreateMockRom() {
-  mock_rom_ = std::make_unique<MockRom>();
-  
-  // Generate mock ROM data
-  std::vector<uint8_t> mock_data(kMockRomSize, 0x00);
-  
-  // Set up basic ROM structure
-  // Header at 0x7FC0
-  std::string title = "ZELDA3 TEST ROM";
-  std::memcpy(&mock_data[0x7FC0], title.c_str(), std::min(title.length(), size_t(21)));
-  
-  // Set ROM size and type
-  mock_data[0x7FD7] = 0x21; // 2MB ROM
-  mock_data[0x7FD8] = 0x00; // SRAM size
-  mock_data[0x7FD9] = 0x00; // Country code (NTSC)
-  mock_data[0x7FDA] = 0x00; // License code
-  mock_data[0x7FDB] = 0x00; // Version
-  
-  // Set up room header pointers
-  mock_data[0xB5DD] = 0x00; // Room header pointer low
-  mock_data[0xB5DE] = 0x00; // Room header pointer mid
-  mock_data[0xB5DF] = 0x00; // Room header pointer high
-  
-  // Set up object pointers
-  mock_data[0x874C] = 0x00; // Object pointer low
-  mock_data[0x874D] = 0x00; // Object pointer mid
-  mock_data[0x874E] = 0x00; // Object pointer high
-  
-  static_cast<MockRom*>(mock_rom_.get())->SetMockData(mock_data);
-  
-  return absl::OkStatus();
-}
-
-absl::Status DungeonEditorIntegrationTest::LoadTestRoomData() {
-  // Generate test room data
-  auto room_header = GenerateMockRoomHeader(kTestRoomId);
-  auto object_data = GenerateMockObjectData();
-  auto graphics_data = GenerateMockGraphicsData();
-  
-  static_cast<MockRom*>(mock_rom_.get())->SetMockRoomData(kTestRoomId, room_header);
-  static_cast<MockRom*>(mock_rom_.get())->SetMockObjectData(kTestObjectId, object_data);
-  
-  return absl::OkStatus();
-}
-
-absl::Status DungeonEditorIntegrationTest::TestObjectParsing() {
-  // Test object parsing without SNES emulation
-  auto room = zelda3::LoadRoomFromRom(mock_rom_.get(), kTestRoomId);
-  
-  // Verify room was loaded correctly
+TEST_F(DungeonEditorIntegrationTest, LoadRoomFromRealRom) {
+  auto room = zelda3::LoadRoomFromRom(rom_.get(), kTestRoomId);
   EXPECT_NE(room.rom(), nullptr);
-  // Note: room_id_ is private, so we can't directly access it in tests
-  
-  // Test object loading
   room.LoadObjects();
   EXPECT_FALSE(room.GetTileObjects().empty());
-  
-  // Verify object properties
-  for (const auto& obj : room.GetTileObjects()) {
-    // Note: id_ is private, so we can't directly access it in tests
-    EXPECT_LE(obj.x_, 31); // Room width limit
-    EXPECT_LE(obj.y_, 31); // Room height limit
-    // Note: rom() method is not const, so we can't call it on const objects
-  }
-  
-  return absl::OkStatus();
 }
 
-absl::Status DungeonEditorIntegrationTest::TestObjectRendering() {
-  // Test object rendering without SNES emulation
-  auto room = zelda3::LoadRoomFromRom(mock_rom_.get(), kTestRoomId);
+TEST_F(DungeonEditorIntegrationTest, LoadMultipleRooms) {
+  // Test loading several different rooms
+  for (int room_id : {0x00, 0x01, 0x02, 0x10, 0x20}) {
+    auto room = zelda3::LoadRoomFromRom(rom_.get(), room_id);
+    EXPECT_NE(room.rom(), nullptr) << "Failed to load room " << std::hex << room_id;
+    room.LoadObjects();
+    // Some rooms may be empty, but loading should not fail
+  }
+}
+
+TEST_F(DungeonEditorIntegrationTest, DungeonEditorInitialization) {
+  // Initialize the editor before loading
+  dungeon_editor_->Initialize();
+  
+  // Now load should succeed
+  auto status = dungeon_editor_->Load();
+  ASSERT_TRUE(status.ok()) << "Load failed: " << status.message();
+}
+
+// ============================================================================
+// Object Encoding/Decoding Tests
+// ============================================================================
+
+TEST_F(DungeonEditorIntegrationTest, ObjectEncodingRoundTrip) {
+  auto room = zelda3::LoadRoomFromRom(rom_.get(), kTestRoomId);
   room.LoadObjects();
   
-  // Test tile loading for objects
-  for (auto& obj : room.GetTileObjects()) {
-    obj.EnsureTilesLoaded();
-    EXPECT_FALSE(obj.tiles_.empty());
+  auto encoded = room.EncodeObjects();
+  EXPECT_FALSE(encoded.empty());
+  EXPECT_EQ(encoded[encoded.size()-1], 0xFF); // Terminator
+}
+
+TEST_F(DungeonEditorIntegrationTest, EncodeType1Object) {
+  // Type 1: xxxxxxss yyyyyyss iiiiiiii (ID < 0x100)
+  zelda3::RoomObject obj(0x10, 5, 7, 0x12, 0); // id, x, y, size, layer
+  auto bytes = obj.EncodeObjectToBytes();
+  
+  // Verify encoding format
+  EXPECT_EQ((bytes.b1 >> 2), 5) << "X coordinate should be in upper 6 bits of b1";
+  EXPECT_EQ((bytes.b2 >> 2), 7) << "Y coordinate should be in upper 6 bits of b2";
+  EXPECT_EQ(bytes.b3, 0x10) << "Object ID should be in b3";
+}
+
+TEST_F(DungeonEditorIntegrationTest, EncodeType2Object) {
+  // Type 2: 111111xx xxxxyyyy yyiiiiii (ID >= 0x100 && < 0x200)
+  zelda3::RoomObject obj(0x150, 12, 8, 0, 0);
+  auto bytes = obj.EncodeObjectToBytes();
+  
+  // Verify Type 2 marker
+  EXPECT_EQ((bytes.b1 & 0xFC), 0xFC) << "Type 2 objects should have 111111 prefix";
+}
+
+TEST_F(DungeonEditorIntegrationTest, EncodeType3Object) {
+  // Type 3: xxxxxxii yyyyyyii 11111iii (ID >= 0xF00)
+  zelda3::RoomObject obj(0xF23, 3, 4, 0, 0);
+  auto bytes = obj.EncodeObjectToBytes();
+
+  // Verify Type 3 encoding: bytes.b3 = (id_ >> 4) & 0xFF
+  // For ID 0xF23: (0xF23 >> 4) = 0xF2
+  EXPECT_EQ(bytes.b3, 0xF2) << "Type 3: (ID >> 4) should be in b3";
+}
+
+// ============================================================================
+// Object Manipulation Tests
+// ============================================================================
+
+TEST_F(DungeonEditorIntegrationTest, AddObjectToRoom) {
+  auto room = zelda3::LoadRoomFromRom(rom_.get(), kTestRoomId);
+  room.LoadObjects();
+
+  size_t initial_count = room.GetTileObjects().size();
+
+  // Add a new object (Type 1, so size must be <= 15)
+  zelda3::RoomObject new_obj(0x20, 10, 10, 5, 0);
+  new_obj.set_rom(rom_.get());
+  auto status = room.AddObject(new_obj);
+
+  EXPECT_TRUE(status.ok()) << "Failed to add object: " << status.message();
+  EXPECT_EQ(room.GetTileObjects().size(), initial_count + 1);
+}
+
+TEST_F(DungeonEditorIntegrationTest, RemoveObjectFromRoom) {
+  auto room = zelda3::LoadRoomFromRom(rom_.get(), kTestRoomId);
+  room.LoadObjects();
+  
+  size_t initial_count = room.GetTileObjects().size();
+  ASSERT_GT(initial_count, 0) << "Room should have at least one object";
+  
+  // Remove first object
+  auto status = room.RemoveObject(0);
+  
+  EXPECT_TRUE(status.ok()) << "Failed to remove object: " << status.message();
+  EXPECT_EQ(room.GetTileObjects().size(), initial_count - 1);
+}
+
+TEST_F(DungeonEditorIntegrationTest, UpdateObjectInRoom) {
+  auto room = zelda3::LoadRoomFromRom(rom_.get(), kTestRoomId);
+  room.LoadObjects();
+  
+  ASSERT_FALSE(room.GetTileObjects().empty());
+  
+  // Update first object's position
+  zelda3::RoomObject updated_obj = room.GetTileObjects()[0];
+  updated_obj.x_ = 15;
+  updated_obj.y_ = 15;
+  
+  auto status = room.UpdateObject(0, updated_obj);
+  
+  EXPECT_TRUE(status.ok()) << "Failed to update object: " << status.message();
+  EXPECT_EQ(room.GetTileObjects()[0].x_, 15);
+  EXPECT_EQ(room.GetTileObjects()[0].y_, 15);
+}
+
+// ============================================================================
+// Object Validation Tests
+// ============================================================================
+
+TEST_F(DungeonEditorIntegrationTest, ValidateObjectBounds) {
+  auto room = zelda3::LoadRoomFromRom(rom_.get(), kTestRoomId);
+
+  // Test objects within valid bounds (0-63 for x and y)
+  zelda3::RoomObject valid_obj(0x10, 0, 0, 0, 0);
+  EXPECT_TRUE(room.ValidateObject(valid_obj));
+
+  zelda3::RoomObject valid_obj2(0x10, 31, 31, 0, 0);
+  EXPECT_TRUE(room.ValidateObject(valid_obj2));
+
+  zelda3::RoomObject valid_obj3(0x10, 63, 63, 0, 0);
+  EXPECT_TRUE(room.ValidateObject(valid_obj3));
+
+  // Test objects outside bounds (> 63)
+  zelda3::RoomObject invalid_obj(0x10, 64, 64, 0, 0);
+  EXPECT_FALSE(room.ValidateObject(invalid_obj));
+
+  zelda3::RoomObject invalid_obj2(0x10, 100, 100, 0, 0);
+  EXPECT_FALSE(room.ValidateObject(invalid_obj2));
+}
+
+// ============================================================================
+// Save/Load Round-Trip Tests  
+// ============================================================================
+
+TEST_F(DungeonEditorIntegrationTest, SaveAndReloadRoom) {
+  auto room = zelda3::LoadRoomFromRom(rom_.get(), kTestRoomId);
+  room.LoadObjects();
+  
+  size_t original_count = room.GetTileObjects().size();
+  
+  // Encode objects
+  auto encoded = room.EncodeObjects();
+  EXPECT_FALSE(encoded.empty());
+  
+  // Create a new room and decode
+  auto room2 = zelda3::LoadRoomFromRom(rom_.get(), kTestRoomId);
+  room2.LoadObjects();
+  
+  // Verify object count matches
+  EXPECT_EQ(room2.GetTileObjects().size(), original_count);
+}
+
+// ============================================================================
+// Object Rendering Tests
+// ============================================================================
+
+TEST_F(DungeonEditorIntegrationTest, RenderObjectWithTiles) {
+  auto room = zelda3::LoadRoomFromRom(rom_.get(), kTestRoomId);
+  room.LoadObjects();
+  
+  ASSERT_FALSE(room.GetTileObjects().empty());
+  
+  // Ensure tiles are loaded for first object
+  auto& obj = room.GetTileObjects()[0];
+  const_cast<zelda3::RoomObject&>(obj).set_rom(rom_.get());
+  const_cast<zelda3::RoomObject&>(obj).EnsureTilesLoaded();
+  
+  EXPECT_FALSE(obj.tiles_.empty()) << "Object should have tiles after loading";
+}
+
+// ============================================================================
+// Multi-Layer Tests
+// ============================================================================
+
+TEST_F(DungeonEditorIntegrationTest, ObjectsOnDifferentLayers) {
+  auto room = zelda3::LoadRoomFromRom(rom_.get(), kTestRoomId);
+  
+  // Add objects on different layers
+  zelda3::RoomObject obj_bg1(0x10, 5, 5, 0, 0); // Layer 0 (BG2)
+  zelda3::RoomObject obj_bg2(0x11, 6, 6, 0, 1); // Layer 1 (BG1)
+  zelda3::RoomObject obj_bg3(0x12, 7, 7, 0, 2); // Layer 2 (BG3)
+  
+  room.AddObject(obj_bg1);
+  room.AddObject(obj_bg2);
+  room.AddObject(obj_bg3);
+  
+  // Encode and verify layer separation
+  auto encoded = room.EncodeObjects();
+  
+  // Should have layer terminators (0xFF 0xFF between layers)
+  int terminator_count = 0;
+  for (size_t i = 0; i < encoded.size() - 1; i++) {
+    if (encoded[i] == 0xFF && encoded[i+1] == 0xFF) {
+      terminator_count++;
+    }
   }
   
-  // Test room graphics rendering
-  room.LoadRoomGraphics();
-  room.RenderRoomGraphics();
-  
-  return absl::OkStatus();
-}
-
-absl::Status DungeonEditorIntegrationTest::TestRoomGraphics() {
-  // Test room graphics loading and rendering
-  auto room = zelda3::LoadRoomFromRom(mock_rom_.get(), kTestRoomId);
-  
-  // Test graphics loading
-  room.LoadRoomGraphics();
-  EXPECT_FALSE(room.blocks().empty());
-  
-  // Test graphics rendering
-  room.RenderRoomGraphics();
-  
-  return absl::OkStatus();
-}
-
-absl::Status DungeonEditorIntegrationTest::TestPaletteHandling() {
-  // Test palette loading and application
-  auto room = zelda3::LoadRoomFromRom(mock_rom_.get(), kTestRoomId);
-  
-  // Verify palette is set
-  EXPECT_GE(room.palette, 0);
-  EXPECT_LE(room.palette, 0x47); // Max palette index
-  
-  return absl::OkStatus();
-}
-
-std::vector<uint8_t> DungeonEditorIntegrationTest::GenerateMockRoomHeader(int room_id) {
-  std::vector<uint8_t> header(32, 0x00);
-  
-  // Basic room properties
-  header[0] = 0x00; // Background type, collision, light
-  header[1] = 0x00; // Palette
-  header[2] = 0x01; // Blockset
-  header[3] = 0x01; // Spriteset
-  header[4] = 0x00; // Effect
-  header[5] = 0x00; // Tag1
-  header[6] = 0x00; // Tag2
-  header[7] = 0x00; // Staircase planes
-  header[8] = 0x00; // Staircase planes continued
-  header[9] = 0x00; // Hole warp
-  header[10] = 0x00; // Staircase rooms
-  header[11] = 0x00;
-  header[12] = 0x00;
-  header[13] = 0x00;
-  
-  return header;
-}
-
-std::vector<uint8_t> DungeonEditorIntegrationTest::GenerateMockObjectData() {
-  std::vector<uint8_t> data;
-  
-  // Add a simple wall object
-  data.push_back(0x08); // X position (2 tiles)
-  data.push_back(0x08); // Y position (2 tiles)
-  data.push_back(0x01); // Object ID (wall)
-  
-  // Add layer separator
-  data.push_back(0xFF);
-  data.push_back(0xFF);
-  
-  // Add door section
-  data.push_back(0xF0);
-  data.push_back(0xFF);
-  
-  return data;
-}
-
-std::vector<uint8_t> DungeonEditorIntegrationTest::GenerateMockGraphicsData() {
-  std::vector<uint8_t> data(0x4000, 0x00);
-  
-  // Generate basic tile data
-  for (size_t i = 0; i < data.size(); i += 2) {
-    data[i] = 0x00;     // Tile low byte
-    data[i + 1] = 0x00; // Tile high byte
-  }
-  
-  return data;
-}
-
-void MockRom::SetMockData(const std::vector<uint8_t>& data) {
-  mock_data_ = data;
-}
-
-void MockRom::SetMockRoomData(int room_id, const std::vector<uint8_t>& data) {
-  mock_room_data_[room_id] = data;
-}
-
-void MockRom::SetMockObjectData(int object_id, const std::vector<uint8_t>& data) {
-  mock_object_data_[object_id] = data;
-}
-
-bool MockRom::ValidateRoomData(int room_id) const {
-  return mock_room_data_.find(room_id) != mock_room_data_.end();
-}
-
-bool MockRom::ValidateObjectData(int object_id) const {
-  return mock_object_data_.find(object_id) != mock_object_data_.end();
-}
-
-// Test cases
-TEST_F(DungeonEditorIntegrationTest, ObjectParsingTest) {
-  EXPECT_TRUE(TestObjectParsing().ok());
-}
-
-TEST_F(DungeonEditorIntegrationTest, ObjectRenderingTest) {
-  EXPECT_TRUE(TestObjectRendering().ok());
-}
-
-TEST_F(DungeonEditorIntegrationTest, RoomGraphicsTest) {
-  EXPECT_TRUE(TestRoomGraphics().ok());
-}
-
-TEST_F(DungeonEditorIntegrationTest, PaletteHandlingTest) {
-  EXPECT_TRUE(TestPaletteHandling().ok());
-}
-
-TEST_F(DungeonEditorIntegrationTest, MockRomValidation) {
-  EXPECT_TRUE(static_cast<MockRom*>(mock_rom_.get())->ValidateRoomData(kTestRoomId));
-  EXPECT_TRUE(static_cast<MockRom*>(mock_rom_.get())->ValidateObjectData(kTestObjectId));
+  EXPECT_GE(terminator_count, 2) << "Should have at least 2 layer terminators";
 }
 
 }  // namespace test

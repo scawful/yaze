@@ -5,11 +5,20 @@
 #include <vector>
 
 #include "app/emu/snes.h"
-#include "app/gui/zeml.h"
+#include "app/emu/audio/audio_backend.h"
+#include "app/emu/debug/breakpoint_manager.h"
+#include "app/emu/debug/disassembly_viewer.h"
+#include "app/emu/input/input_manager.h"
 #include "app/rom.h"
-#include "imgui/imgui.h"
 
 namespace yaze {
+namespace gfx {
+class IRenderer;
+} // namespace gfx
+
+namespace editor {
+class EditorCardRegistry;
+} // namespace editor
 
 /**
  * @namespace yaze::emu
@@ -17,20 +26,8 @@ namespace yaze {
  */
 namespace emu {
 
-struct EmulatorKeybindings {
-  ImGuiKey a_button = ImGuiKey_Z;
-  ImGuiKey b_button = ImGuiKey_A;
-  ImGuiKey x_button = ImGuiKey_S;
-  ImGuiKey y_button = ImGuiKey_X;
-  ImGuiKey l_button = ImGuiKey_Q;
-  ImGuiKey r_button = ImGuiKey_W;
-  ImGuiKey start_button = ImGuiKey_Enter;
-  ImGuiKey select_button = ImGuiKey_Backspace;
-  ImGuiKey up_button = ImGuiKey_UpArrow;
-  ImGuiKey down_button = ImGuiKey_DownArrow;
-  ImGuiKey left_button = ImGuiKey_LeftArrow;
-  ImGuiKey right_button = ImGuiKey_RightArrow;
-};
+// REMOVED: EmulatorKeybindings (ImGuiKey-based)
+// Now using ui::InputHandler with SDL_GetKeyboardState() for proper continuous polling
 
 /**
  * @class Emulator
@@ -38,93 +35,91 @@ struct EmulatorKeybindings {
  */
 class Emulator {
  public:
-  Emulator() {
-    std::string emulator_layout = R"(
-      Table id="Emulator" count="2" flags="Resizable|ScrollY" {
-        TableSetupColumn title="CPU",
-        TableSetupColumn title="PPU",
-
-        TableHeadersRow,
-        TableNextColumn,
-
-        CollapsingHeader id="cpuState" title="Register Values" flags="DefaultOpen" {
-          BeginChild id="##CpuState" size="0,100" flags="NoMove|NoScrollbar" {
-            Columns id="registersColumns" count="2" {
-              Text text="A: 0x%04X" data="cpu.A",
-              Text text="D: 0x%04X" data="cpu.D",
-              Text text="X: 0x%04X" data="cpu.X",
-              Text text="DB: 0x%02X" data="cpu.DB",
-              Text text="Y: 0x%04X" data="cpu.Y",
-              Text text="PB: 0x%02X" data="cpu.PB",
-              Text text="PC: 0x%04X" data="cpu.PC",
-              Text text="PS: 0x%02X" data="cpu.status",
-              Text text="SP: 0x%02X" data="cpu.SP",
-              Text text="Cycle: %d" data="snes.cycle_count",
-            }
-          }
-        }
-        CollapsingHeader id="spcState" title="SPC Registers" flags="DefaultOpen" {
-          BeginChild id="##SpcState" size="0,100" flags="NoMove|NoScrollbar" {
-            Columns id="spcRegistersColumns" count="2" {
-              Text text="A: 0x%02X" data="spc.A",
-              Text text="PC: 0x%04X" data="spc.PC",
-              Text text="X: 0x%02X" data="spc.X",
-              Text text="SP: 0x%02X" data="spc.SP",
-              Text text="Y: 0x%02X" data="spc.Y",
-              Text text="PSW: 0x%02X" data="spc.PSW",
-            }
-          }
-        }
-        Function id="CpuInstructionLog",
-
-        TableNextColumn,
-        Function id="SnesPpu",
-        Function id="BreakpointList"
-      }
-    )";
-    const std::map<std::string, void*> data_bindings = {
-        {"cpu.A", &snes_.cpu().A},
-        {"cpu.D", &snes_.cpu().D},
-        {"cpu.X", &snes_.cpu().X},
-        {"cpu.DB", &snes_.cpu().DB},
-        {"cpu.Y", &snes_.cpu().Y},
-        {"cpu.PB", &snes_.cpu().PB},
-        {"cpu.PC", &snes_.cpu().PC},
-        {"cpu.status", &snes_.cpu().status},
-        {"snes.cycle_count", &snes_.mutable_cycles()},
-        {"cpu.SP", &snes_.memory().mutable_sp()},
-        {"spc.A", &snes_.apu().spc700().A},
-        {"spc.X", &snes_.apu().spc700().X},
-        {"spc.Y", &snes_.apu().spc700().Y},
-        {"spc.PC", &snes_.apu().spc700().PC},
-        {"spc.SP", &snes_.apu().spc700().SP},
-        {"spc.PSW", &snes_.apu().spc700().PSW}};
-    emulator_node_ = gui::zeml::Parse(emulator_layout, data_bindings);
-    Bind(emulator_node_.GetNode("CpuInstructionLog"),
-         [&]() { RenderCpuInstructionLog(snes_.cpu().instruction_log_); });
-    Bind(emulator_node_.GetNode("SnesPpu"), [&]() { RenderSnesPpu(); });
-    Bind(emulator_node_.GetNode("BreakpointList"),
-         [&]() { RenderBreakpointList(); });
-  }
-  void Run();
+  Emulator() = default;
+  ~Emulator();
+  void Initialize(gfx::IRenderer* renderer, const std::vector<uint8_t>& rom_data);
+  void Run(Rom* rom);
+  void Cleanup();
+  
+  // Card visibility managed by EditorCardRegistry (dependency injection)
+  void set_card_registry(editor::EditorCardRegistry* registry) { card_registry_ = registry; }
 
   auto snes() -> Snes& { return snes_; }
   auto running() const -> bool { return running_; }
+  void set_running(bool running) { running_ = running; }
+  
+  // Audio backend access
+  audio::IAudioBackend* audio_backend() { return audio_backend_.get(); }
   void set_audio_buffer(int16_t* audio_buffer) { audio_buffer_ = audio_buffer; }
   auto set_audio_device_id(SDL_AudioDeviceID audio_device) {
     audio_device_ = audio_device;
   }
+  void set_use_sdl_audio_stream(bool enabled);
+  bool use_sdl_audio_stream() const { return use_sdl_audio_stream_; }
   auto wanted_samples() const -> int { return wanted_samples_; }
-  auto rom() { return rom_; }
-  auto mutable_rom() { return rom_; }
+  void set_renderer(gfx::IRenderer* renderer) { renderer_ = renderer; }
+  
+  // Render access
+  gfx::IRenderer* renderer() { return renderer_; }
+  void* ppu_texture() { return ppu_texture_; }
+  
+  // Turbo mode
+  bool is_turbo_mode() const { return turbo_mode_; }
+  void set_turbo_mode(bool turbo) { turbo_mode_ = turbo; }
+  
+  // Debugger access
+  BreakpointManager& breakpoint_manager() { return breakpoint_manager_; }
+  debug::DisassemblyViewer& disassembly_viewer() { return disassembly_viewer_; }
+  input::InputManager& input_manager() { return input_manager_; }
+  bool is_debugging() const { return debugging_; }
+  void set_debugging(bool debugging) { debugging_ = debugging; }
+  bool is_initialized() const { return initialized_; }
+  bool is_snes_initialized() const { return snes_initialized_; }
+  
+  // AI Agent Integration API
+  bool IsEmulatorReady() const { return snes_.running() && !rom_data_.empty(); }
+  double GetCurrentFPS() const { return current_fps_; }
+  uint64_t GetCurrentCycle() { return snes_.mutable_cycles(); }
+  uint16_t GetCPUPC() { return snes_.cpu().PC; }
+  uint8_t GetCPUB() { return snes_.cpu().DB; }
+  void StepSingleInstruction() { snes_.cpu().RunOpcode(); }
+  void SetBreakpoint(uint32_t address) { snes_.cpu().SetBreakpoint(address); }
+  void ClearAllBreakpoints() { snes_.cpu().ClearBreakpoints(); }
+  std::vector<uint32_t> GetBreakpoints() { return snes_.cpu().GetBreakpoints(); }
+  
+  // Performance monitoring for AI agents
+  struct EmulatorMetrics {
+    double fps;
+    uint64_t cycles;
+    uint32_t audio_frames_queued;
+    bool is_running;
+    uint16_t cpu_pc;
+    uint8_t cpu_pb;
+  };
+  EmulatorMetrics GetMetrics() {
+    return {
+      .fps = current_fps_,
+      .cycles = snes_.mutable_cycles(),
+      .audio_frames_queued = SDL_GetQueuedAudioSize(audio_device_) / (wanted_samples_ * 4),
+      .is_running = running_,
+      .cpu_pc = snes_.cpu().PC,
+      .cpu_pb = snes_.cpu().PB
+    };
+  }
 
  private:
   void RenderNavBar();
-  void HandleEvents();
+  void RenderEmulatorInterface();
 
   void RenderSnesPpu();
   void RenderBreakpointList();
   void RenderMemoryViewer();
+  void RenderModernCpuDebugger();
+  void RenderPerformanceMonitor();
+  void RenderAIAgentPanel();
+  void RenderSaveStates();
+  void RenderKeyboardConfig();
+  void RenderApuDebugger();
 
   struct Bookmark {
     std::string name;
@@ -150,20 +145,43 @@ class Emulator {
   // timing
   uint64_t count_frequency;
   uint64_t last_count;
-  float time_adder = 0.0;
+  double time_adder = 0.0;
+  
+  // FPS tracking
+  int frame_count_ = 0;
+  double fps_timer_ = 0.0;
+  double current_fps_ = 0.0;
 
   int16_t* audio_buffer_;
   SDL_AudioDeviceID audio_device_;
+  
+  // Audio backend abstraction
+  std::unique_ptr<audio::IAudioBackend> audio_backend_;
 
-  Rom* rom_;
   Snes snes_;
-  SDL_Texture* ppu_texture_;
+  bool initialized_ = false;
+  bool snes_initialized_ = false;
+  bool debugging_ = false;
+  gfx::IRenderer* renderer_ = nullptr;
+  void* ppu_texture_ = nullptr;
+  bool use_sdl_audio_stream_ = false;
+  bool audio_stream_config_dirty_ = false;
+  bool audio_stream_active_ = false;
+  bool audio_stream_env_checked_ = false;
+  
+  // Card visibility managed by EditorCardManager - no member variables needed!
+  
+  // Debugger infrastructure
+  BreakpointManager breakpoint_manager_;
+  debug::DisassemblyViewer disassembly_viewer_;
 
   std::vector<uint8_t> rom_data_;
 
-  EmulatorKeybindings keybindings_;
-
-  gui::zeml::Node emulator_node_;
+  // Input handling (abstracted for SDL2/SDL3/custom backends)
+  input::InputManager input_manager_;
+  
+  // Card registry for card visibility (injected)
+  editor::EditorCardRegistry* card_registry_ = nullptr;
 };
 
 }  // namespace emu

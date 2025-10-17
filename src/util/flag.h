@@ -48,6 +48,9 @@ class Flag : public IFlag {
     }
     value_ = parsed;
   }
+  
+  // Set the value directly (used by specializations)
+  void SetValue(const T& val) { value_ = val; }
 
   // Returns the current (parsed or default) value of the flag.
   const T& Get() const { return value_; }
@@ -58,6 +61,19 @@ class Flag : public IFlag {
   T default_;
   std::string help_;
 };
+
+// Specialization for bool to handle "true"/"false" strings
+template <>
+inline void Flag<bool>::ParseValue(const std::string& text) {
+  if (text == "true" || text == "1" || text == "yes" || text == "on") {
+    SetValue(true);
+  } else if (text == "false" || text == "0" || text == "no" || text == "off") {
+    SetValue(false);
+  } else {
+    throw std::runtime_error("Failed to parse boolean flag: " + name() + 
+                           " (expected true/false/1/0/yes/no/on/off, got: " + text + ")");
+  }
+}
 
 class FlagRegistry {
  public:

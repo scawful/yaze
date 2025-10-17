@@ -1,0 +1,65 @@
+# Default Zelda3 Project File
+# All resource names are embedded and always available to AI agents
+# This project uses embedded labels - no external labels file required
+
+[project]
+name = The Legend of Zelda: A Link to the Past
+description = Default Zelda3 project with all embedded resource labels
+author = Nintendo
+version = 1.0.0
+created_date = 2025-10-04
+last_modified = 2025-10-04
+yaze_version = 0.1.0
+tags = zelda3, reference, default
+
+[files]
+rom_filename = zelda3.sfc
+code_folder = 
+assets_folder = assets
+patches_folder = patches
+labels_filename = 
+symbols_filename = 
+output_folder = build
+rom_backup_folder = backups
+
+[feature_flags]
+log_instructions = false
+save_dungeon_maps = false
+save_graphics_sheet = false
+load_custom_overworld = false
+apply_zs_custom_overworld_asm = false
+
+[workspace]
+font_global_scale = 1.0
+dark_mode = true
+ui_theme = default
+autosave_enabled = true
+autosave_interval_secs = 300
+backup_on_save = true
+show_grid = true
+show_collision = false
+last_layout_preset = default
+
+[build]
+build_script = 
+output_folder = build
+git_repository = 
+track_changes = true
+build_configurations = debug, release
+
+# Embedded Labels Information
+# This project includes the following embedded resource names:
+# - 296 room names (dungeons, bosses, treasure rooms)
+# - 133 entrance names (dungeons, caves, houses, shops)
+# - 256 sprite names (enemies, NPCs, bosses, items)
+# - 26 overlord names (factories, traps, special objects)
+# - 160 overworld map names (Light World, Dark World, Special Areas)
+# - 100 item names (swords, shields, medallions, bottles)
+# - 48 music track names
+# - 32 graphics sheet names
+# - 8 room effect names
+# - 13 room tag names
+# - 60 tile type names (collision, slopes, water, ice, stairs)
+#
+# Use InitializeEmbeddedLabels() to load all default labels
+# Custom labels can be added in [labels_<type>] sections

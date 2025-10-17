@@ -1,8 +1,13 @@
+// Must define before any ImGui includes
+#ifndef IMGUI_DEFINE_MATH_OPERATORS
+#define IMGUI_DEFINE_MATH_OPERATORS
+#endif
+
 #include <gtest/gtest.h>
 #include <filesystem>
 #include <fstream>
 
-#include "app/core/asar_wrapper.h"
+#include "core/asar_wrapper.h"
 #include "app/rom.h"
 #include "test_utils.h"
 #include "testing.h"
@@ -19,14 +24,14 @@ class AsarRomIntegrationTest : public RomDependentTest {
  protected:
   void SetUp() override {
     RomDependentTest::SetUp();
-    
-    wrapper_ = std::make_unique<app::core::AsarWrapper>();
+
+    wrapper_ = std::make_unique<core::AsarWrapper>();
     ASSERT_OK(wrapper_->Initialize());
-    
+
     // Create test directory
     test_dir_ = std::filesystem::temp_directory_path() / "yaze_asar_rom_test";
     std::filesystem::create_directories(test_dir_);
-    
+
     CreateTestPatches();
   }
 
@@ -226,7 +231,7 @@ enemy_shell:
     symbols_file.close();
   }
 
-  std::unique_ptr<app::core::AsarWrapper> wrapper_;
+  std::unique_ptr<core::AsarWrapper> wrapper_;
   std::filesystem::path test_dir_;
   std::filesystem::path simple_patch_path_;
   std::filesystem::path gameplay_patch_path_;
@@ -239,15 +244,16 @@ TEST_F(AsarRomIntegrationTest, SimplePatchOnRealRom) {
   size_t original_size = rom_copy.size();
 
   // Apply simple patch
-  auto patch_result = wrapper_->ApplyPatch(simple_patch_path_.string(), rom_copy);
+  auto patch_result =
+      wrapper_->ApplyPatch(simple_patch_path_.string(), rom_copy);
   ASSERT_OK(patch_result.status());
 
   const auto& result = patch_result.value();
-  EXPECT_TRUE(result.success) << "Patch failed: " 
-                             << testing::PrintToString(result.errors);
+  EXPECT_TRUE(result.success)
+      << "Patch failed: " << testing::PrintToString(result.errors);
 
   // Verify ROM was modified
-  EXPECT_NE(rom_copy, test_rom_);  // Should be different
+  EXPECT_NE(rom_copy, test_rom_);             // Should be different
   EXPECT_GE(rom_copy.size(), original_size);  // Size may have grown
 
   // Check for expected symbols
@@ -277,17 +283,16 @@ TEST_F(AsarRomIntegrationTest, SymbolExtractionFromRealRom) {
 
   // Check for specific symbols we expect
   std::vector<std::string> expected_symbols = {
-    "main_routine", "init_player", "game_loop", "update_player",
-    "update_enemies", "update_graphics", "multiply_by_two", "divide_by_two"
-  };
+      "main_routine",   "init_player",     "game_loop",       "update_player",
+      "update_enemies", "update_graphics", "multiply_by_two", "divide_by_two"};
 
   for (const auto& expected_symbol : expected_symbols) {
     bool found = false;
     for (const auto& symbol : symbols) {
       if (symbol.name == expected_symbol) {
         found = true;
-        EXPECT_GT(symbol.address, 0) << "Symbol " << expected_symbol 
-                                    << " has invalid address";
+        EXPECT_GT(symbol.address, 0)
+            << "Symbol " << expected_symbol << " has invalid address";
         break;
       }
     }
@@ -311,19 +316,20 @@ TEST_F(AsarRomIntegrationTest, GameplayModificationPatch) {
   std::vector<uint8_t> rom_copy = test_rom_;
 
   // Apply gameplay modification patch
-  auto patch_result = wrapper_->ApplyPatch(gameplay_patch_path_.string(), rom_copy);
+  auto patch_result =
+      wrapper_->ApplyPatch(gameplay_patch_path_.string(), rom_copy);
   ASSERT_OK(patch_result.status());
 
   const auto& result = patch_result.value();
-  EXPECT_TRUE(result.success) << "Gameplay patch failed: " 
-                             << testing::PrintToString(result.errors);
+  EXPECT_TRUE(result.success)
+      << "Gameplay patch failed: " << testing::PrintToString(result.errors);
 
   // Verify specific memory locations were modified
   // Note: These addresses are based on the patch content
-  
+
   // Check health modification at 0x7EF36C -> ROM offset would need calculation
   // For a proper test, we'd need to convert SNES addresses to ROM offsets
-  
+
   // Check if custom routine was inserted at 0xC000 -> ROM offset 0x18000 (in LoROM)
   const uint32_t rom_offset = 0x18000;  // Bank $00:C000 in LoROM
   if (rom_offset < rom_copy.size()) {
@@ -369,40 +375,43 @@ broken_routine:
   broken_file.close();
 
   std::vector<uint8_t> rom_copy = test_rom_;
-  auto patch_result = wrapper_->ApplyPatch(broken_patch_path.string(), rom_copy);
+  auto patch_result =
+      wrapper_->ApplyPatch(broken_patch_path.string(), rom_copy);
 
   // Should fail with proper error messages
   EXPECT_FALSE(patch_result.ok());
-  EXPECT_THAT(patch_result.status().message(), 
-              testing::AnyOf(
-                  testing::HasSubstr("invalid"),
-                  testing::HasSubstr("unknown"),
-                  testing::HasSubstr("error")));
+  EXPECT_THAT(patch_result.status().message(),
+              testing::AnyOf(testing::HasSubstr("invalid"),
+                             testing::HasSubstr("unknown"),
+                             testing::HasSubstr("error")));
 }
 
 TEST_F(AsarRomIntegrationTest, PatchValidationWorkflow) {
   // Test the complete workflow: validate -> patch -> verify
-  
+
   // Step 1: Validate assembly
-  auto validation_result = wrapper_->ValidateAssembly(simple_patch_path_.string());
+  auto validation_result =
+      wrapper_->ValidateAssembly(simple_patch_path_.string());
   EXPECT_OK(validation_result);
 
   // Step 2: Apply patch
   std::vector<uint8_t> rom_copy = test_rom_;
-  auto patch_result = wrapper_->ApplyPatch(simple_patch_path_.string(), rom_copy);
+  auto patch_result =
+      wrapper_->ApplyPatch(simple_patch_path_.string(), rom_copy);
   ASSERT_OK(patch_result.status());
   EXPECT_TRUE(patch_result->success);
 
   // Step 3: Verify results
   EXPECT_GT(patch_result->symbols.size(), 0);
   EXPECT_GT(patch_result->rom_size, 0);
-  
+
   // Step 4: Test symbol operations
   auto entry_symbol = wrapper_->FindSymbol("yaze_test_entry");
   EXPECT_TRUE(entry_symbol.has_value());
-  
+
   if (entry_symbol) {
-    auto symbols_at_address = wrapper_->GetSymbolsAtAddress(entry_symbol->address);
+    auto symbols_at_address =
+        wrapper_->GetSymbolsAtAddress(entry_symbol->address);
     EXPECT_GT(symbols_at_address.size(), 0);
   }
 }

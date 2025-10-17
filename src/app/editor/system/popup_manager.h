@@ -13,11 +13,87 @@ namespace editor {
 // Forward declaration
 class EditorManager;
 
+/**
+ * @enum PopupType
+ * @brief Type classification for popups to enable future filtering and organization
+ */
+enum class PopupType {
+  kInfo,           // Information display (About, ROM Info, etc.)
+  kHelp,           // Help documentation (Getting Started, etc.)
+  kSettings,       // Settings dialogs (Display Settings, etc.)
+  kFileOperation,  // File operations (Save As, New Project, etc.)
+  kConfirmation,   // Confirmation dialogs (Layout Reset, etc.)
+  kWarning,        // Warning messages (Session Limit, etc.)
+  kEditor          // Editor-specific dialogs
+};
+
+/**
+ * @struct PopupDefinition
+ * @brief Complete definition of a popup including metadata
+ */
+struct PopupDefinition {
+  const char* id;                    // Unique constant identifier
+  const char* display_name;          // Human-readable name for UI
+  PopupType type;                    // Type classification
+  bool allow_resize;                 // Whether popup can be resized
+  std::function<void()> draw_function;  // Drawing callback (set at runtime)
+};
+
+/**
+ * @struct PopupParams
+ * @brief Runtime state for a registered popup
+ */
 struct PopupParams {
   std::string name;
+  PopupType type;
   bool is_visible = false;
+  bool allow_resize = false;
   std::function<void()> draw_function;
 };
+
+/**
+ * @namespace PopupID
+ * @brief String constants for all popup identifiers to prevent typos
+ */
+namespace PopupID {
+  // File Operations
+  constexpr const char* kSaveAs = "Save As..";
+  constexpr const char* kNewProject = "New Project";
+  constexpr const char* kManageProject = "Manage Project";
+  
+  // Information
+  constexpr const char* kAbout = "About";
+  constexpr const char* kRomInfo = "ROM Information";
+  constexpr const char* kSupportedFeatures = "Supported Features";
+  constexpr const char* kStatus = "Status";
+  
+  // Help Documentation
+  constexpr const char* kGettingStarted = "Getting Started";
+  constexpr const char* kAsarIntegration = "Asar Integration";
+  constexpr const char* kBuildInstructions = "Build Instructions";
+  constexpr const char* kCLIUsage = "CLI Usage";
+  constexpr const char* kTroubleshooting = "Troubleshooting";
+  constexpr const char* kContributing = "Contributing";
+  constexpr const char* kWhatsNew = "Whats New v03";
+  constexpr const char* kOpenRomHelp = "Open a ROM";
+  
+  // Settings
+  constexpr const char* kDisplaySettings = "Display Settings";
+  constexpr const char* kFeatureFlags = "Feature Flags";
+  
+  // Workspace
+  constexpr const char* kWorkspaceHelp = "Workspace Help";
+  constexpr const char* kSessionLimitWarning = "Session Limit Warning";
+  constexpr const char* kLayoutResetConfirm = "Reset Layout Confirmation";
+  
+  // Debug/Testing
+  constexpr const char* kDataIntegrity = "Data Integrity Check";
+  
+  // Future expansion
+  constexpr const char* kQuickExport = "Quick Export";
+  constexpr const char* kAssetImport = "Asset Import";
+  constexpr const char* kScriptGenerator = "Script Generator";
+}
 
 // ImGui popup manager.
 class PopupManager {
@@ -89,6 +165,10 @@ class PopupManager {
   
   // Settings popups (accessible without ROM)
   void DrawDisplaySettingsPopup();
+  void DrawFeatureFlagsPopup();
+  
+  // Debug/Testing popups
+  void DrawDataIntegrityPopup();
 
   EditorManager* editor_manager_;
   std::unordered_map<std::string, PopupParams> popups_;

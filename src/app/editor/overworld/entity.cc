@@ -1,8 +1,8 @@
 #include "app/editor/overworld/entity.h"
 
-#include "app/gui/icons.h"
-#include "app/gui/input.h"
-#include "app/gui/style.h"
+#include "app/gui/core/icons.h"
+#include "app/gui/core/input.h"
+#include "app/gui/core/style.h"
 #include "util/hex.h"
 
 namespace yaze {
@@ -53,54 +53,7 @@ void MoveEntityOnGrid(zelda3::GameEntity *entity, ImVec2 canvas_p0,
   entity->set_y(new_y);
 }
 
-void HandleEntityDragging(zelda3::GameEntity *entity, ImVec2 canvas_p0,
-                          ImVec2 scrolling, bool &is_dragging_entity,
-                          zelda3::GameEntity *&dragged_entity,
-                          zelda3::GameEntity *&current_entity,
-                          bool free_movement) {
-  std::string entity_type = "Entity";
-  if (entity->entity_type_ == zelda3::GameEntity::EntityType::kExit) {
-    entity_type = "Exit";
-  } else if (entity->entity_type_ ==
-             zelda3::GameEntity::EntityType::kEntrance) {
-    entity_type = "Entrance";
-  } else if (entity->entity_type_ == zelda3::GameEntity::EntityType::kSprite) {
-    entity_type = "Sprite";
-  } else if (entity->entity_type_ == zelda3::GameEntity::EntityType::kItem) {
-    entity_type = "Item";
-  }
-  const auto is_hovering =
-      IsMouseHoveringOverEntity(*entity, canvas_p0, scrolling);
 
-  const auto drag_or_clicked = ImGui::IsMouseDragging(ImGuiMouseButton_Left) ||
-                               ImGui::IsMouseClicked(ImGuiMouseButton_Left);
-
-  if (is_hovering && drag_or_clicked && !is_dragging_entity) {
-    dragged_entity = entity;
-    is_dragging_entity = true;
-  } else if (is_hovering && ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
-    current_entity = entity;
-    ImGui::OpenPopup(absl::StrFormat("%s editor", entity_type.c_str()).c_str());
-  } else if (is_dragging_entity && dragged_entity == entity &&
-             ImGui::IsMouseReleased(ImGuiMouseButton_Left)) {
-    MoveEntityOnGrid(dragged_entity, canvas_p0, scrolling, free_movement);
-    entity->UpdateMapProperties(entity->map_id_);
-    is_dragging_entity = false;
-    dragged_entity = nullptr;
-  } else if (is_dragging_entity && dragged_entity == entity) {
-    if (ImGui::BeginDragDropSource()) {
-      ImGui::SetDragDropPayload("ENTITY_PAYLOAD", &entity,
-                                sizeof(zelda3::GameEntity));
-      Text("Moving %s ID: %s", entity_type.c_str(),
-           util::HexByte(entity->entity_id_).c_str());
-      ImGui::EndDragDropSource();
-    }
-    MoveEntityOnGrid(dragged_entity, canvas_p0, scrolling, free_movement);
-    entity->x_ = dragged_entity->x_;
-    entity->y_ = dragged_entity->y_;
-    entity->UpdateMapProperties(entity->map_id_);
-  }
-}
 
 bool DrawEntranceInserterPopup() {
   bool set_done = false;
@@ -239,9 +192,9 @@ bool DrawExitEditorPopup(zelda3::OverworldExit &exit) {
     SameLine();
     gui::InputHex("Y Position", &exit.y_);
 
-    gui::InputHexByte("X Camera", &exit.x_camera_);
+    gui::InputHexWord("X Camera", &exit.x_camera_);
     SameLine();
-    gui::InputHexByte("Y Camera", &exit.y_camera_);
+    gui::InputHexWord("Y Camera", &exit.y_camera_);
 
     gui::InputHexWord("X Scroll", &exit.x_scroll_);
     SameLine();

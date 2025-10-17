@@ -7,224 +7,325 @@
   },
   "configurePresets": [
     {
-      "name": "default",
-      "displayName": "Default Config",
-      "description": "Default build configuration",
-      "generator": "Unix Makefiles",
+      "name": "_base",
+      "hidden": true,
+      "description": "Base preset with common settings",
       "binaryDir": "${sourceDir}/build",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
         "YAZE_BUILD_TESTS": "ON",
         "YAZE_BUILD_APP": "ON",
         "YAZE_BUILD_LIB": "ON",
-        "YAZE_BUILD_EMU": "ON",
-        "YAZE_BUILD_Z3ED": "ON"
+        "YAZE_BUILD_Z3ED": "ON",
+        "YAZE_BUILD_EMU": "ON"
       }
     },
     {
-      "name": "debug",
-      "displayName": "Debug",
-      "description": "Debug build with full debugging symbols",
-      "inherits": "default",
+      "name": "_unix",
+      "hidden": true,
+      "description": "Unix/macOS/Linux base with Makefiles",
+      "generator": "Unix Makefiles",
+      "binaryDir": "${sourceDir}/build",
+      "condition": {
+        "type": "notEquals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "_quiet",
+      "hidden": true,
+      "description": "Suppress warnings (default)",
+      "cacheVariables": {
+        "YAZE_SUPPRESS_WARNINGS": "ON"
+      }
+    },
+    {
+      "name": "_verbose",
+      "hidden": true,
+      "description": "Show all warnings and extra diagnostics",
+      "cacheVariables": {
+        "YAZE_SUPPRESS_WARNINGS": "OFF"
+      }
+    },
+    {
+      "name": "_mac",
+      "hidden": true,
+      "description": "macOS base configuration",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
+      },
+      "toolchainFile": "${sourceDir}/cmake/llvm-brew.toolchain.cmake",
+      "cacheVariables": {
+        "CMAKE_OSX_DEPLOYMENT_TARGET": "11.0",
+        "CMAKE_C_COMPILER": "/opt/homebrew/opt/llvm@18/bin/clang",
+        "CMAKE_CXX_COMPILER": "/opt/homebrew/opt/llvm@18/bin/clang++",
+        "CMAKE_CXX_FLAGS": "-isystem /opt/homebrew/opt/llvm@18/include/c++/v1"
+      }
+    },
+    {
+      "name": "_win",
+      "hidden": true,
+      "description": "Windows base configuration with vcpkg static triplet",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      },
+      "generator": "Visual Studio 17 2022",
+      "cacheVariables": {
+        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/vcpkg/scripts/buildsystems/vcpkg.cmake",
+        "VCPKG_MANIFEST_MODE": "ON",
+        "VCPKG_TARGET_TRIPLET": "x64-windows-static"
+      }
+    },
+    {
+      "name": "mac-dbg",
+      "displayName": "macOS Debug (ARM64)",
+      "description": "macOS ARM64 debug build (warnings off)",
+      "inherits": ["_base", "_unix", "_mac", "_quiet"],
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
-        "CMAKE_CXX_FLAGS_DEBUG": "-g -O0 -DDEBUG",
-        "CMAKE_C_FLAGS_DEBUG": "-g -O0 -DDEBUG",
-        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+        "CMAKE_OSX_ARCHITECTURES": "arm64"
       }
     },
     {
-      "name": "release",
-      "displayName": "Release",
-      "description": "Optimized release build",
-      "inherits": "default",
+      "name": "mac-dbg-v",
+      "displayName": "macOS Debug Verbose (ARM64)",
+      "description": "macOS ARM64 debug build with all warnings",
+      "inherits": ["_base", "_unix", "_mac", "_verbose"],
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_OSX_ARCHITECTURES": "arm64"
+      }
+    },
+    {
+      "name": "mac-rel",
+      "displayName": "macOS Release (ARM64)",
+      "description": "macOS ARM64 release build (warnings off)",
+      "inherits": ["_base", "_unix", "_mac", "_quiet"],
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_OSX_ARCHITECTURES": "arm64",
+        "YAZE_BUILD_TESTS": "OFF"
+      }
+    },
+    {
+      "name": "mac-x64",
+      "displayName": "macOS Debug (x86_64)",
+      "description": "macOS x86_64 debug build (warnings off)",
+      "inherits": ["_base", "_mac", "_quiet"],
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_OSX_ARCHITECTURES": "x86_64",
+        "CMAKE_OSX_DEPLOYMENT_TARGET": "10.15"
+      }
+    },
+    {
+      "name": "mac-uni",
+      "displayName": "macOS Universal",
+      "description": "macOS universal binary (ARM64 + x86_64)",
+      "inherits": ["_base", "_mac", "_quiet"],
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_OSX_ARCHITECTURES": "arm64;x86_64",
+        "CMAKE_OSX_DEPLOYMENT_TARGET": "10.15"
+      }
+    },
+    {
+      "name": "mac-dev",
+      "displayName": "macOS Dev",
+      "description": "macOS development with ROM tests",
+      "inherits": ["_base", "_unix", "_mac", "_quiet"],
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_OSX_ARCHITECTURES": "arm64",
+        "YAZE_ENABLE_ROM_TESTS": "ON",
+        "YAZE_TEST_ROM_PATH": "${sourceDir}/zelda3.sfc"
+      }
+    },
+    {
+      "name": "mac-ai",
+      "displayName": "macOS AI",
+      "description": "macOS with AI agent (z3ed + JSON + gRPC + networking)",
+      "inherits": "mac-dev",
+      "binaryDir": "${sourceDir}/build_ai",
+      "cacheVariables": {
+        "Z3ED_AI": "ON",
+        "YAZE_WITH_JSON": "ON",
+        "YAZE_WITH_GRPC": "ON",
+        "YAZE_BUILD_Z3ED": "ON",
+        "YAZE_BUILD_EMU": "ON",
+        "YAZE_BUILD_TESTS": "ON",
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "mac-z3ed",
+      "displayName": "macOS z3ed",
+      "description": "macOS z3ed CLI with agent support",
+      "inherits": "mac-ai",
+      "toolchainFile": "${sourceDir}/cmake/llvm-brew.toolchain.cmake",
+      "binaryDir": "${sourceDir}/build",
+      "cacheVariables": {
+        "Z3ED_AI": "ON",
+        "YAZE_WITH_JSON": "ON",
+        "YAZE_WITH_GRPC": "ON",
+        "YAZE_BUILD_Z3ED": "ON",
+        "YAZE_BUILD_EMU": "ON",
+        "YAZE_BUILD_TESTS": "ON",
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "mac-rooms",
+      "displayName": "macOS Rooms",
+      "description": "macOS dungeon editor development",
+      "binaryDir": "${sourceDir}/build_rooms",
+      "inherits": "mac-dev",
+      "cacheVariables": {
+        "YAZE_BUILD_EMU": "OFF",
+        "YAZE_BUILD_Z3ED": "OFF",
+        "YAZE_MINIMAL_BUILD": "ON"
+      }
+    },
+    {
+      "name": "win-dbg",
+      "displayName": "Windows Debug (x64)",
+      "description": "Windows x64 debug build with static vcpkg (warnings off)",
+      "inherits": ["_base", "_win", "_quiet"],
+      "architecture": "x64",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "win-dbg-v",
+      "displayName": "Windows Debug Verbose (x64)",
+      "description": "Windows x64 debug build with static vcpkg and all warnings",
+      "inherits": ["_base", "_win", "_verbose"],
+      "architecture": "x64",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "win-rel",
+      "displayName": "Windows Release (x64)",
+      "description": "Windows x64 release build with static vcpkg (warnings off)",
+      "inherits": ["_base", "_win", "_quiet"],
+      "architecture": "x64",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
         "YAZE_BUILD_TESTS": "OFF"
       }
     },
     {
-      "name": "dev",
-      "displayName": "Development",
-      "description": "Development build with ROM testing enabled",
-      "inherits": "debug",
+      "name": "win-arm",
+      "displayName": "Windows ARM64 Debug",
+      "description": "Windows ARM64 debug build (warnings off)",
+      "inherits": ["_base", "_win", "_quiet"],
+      "architecture": "arm64",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "VCPKG_TARGET_TRIPLET": "arm64-windows"
+      }
+    },
+    {
+      "name": "win-arm-rel",
+      "displayName": "Windows ARM64 Release",
+      "description": "Windows ARM64 release build (warnings off)",
+      "inherits": ["_base", "_win", "_quiet"],
+      "architecture": "arm64",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "VCPKG_TARGET_TRIPLET": "arm64-windows",
+        "YAZE_BUILD_TESTS": "OFF"
+      }
+    },
+    {
+      "name": "win-dev",
+      "displayName": "Windows Dev",
+      "description": "Windows development with ROM tests",
+      "inherits": "win-dbg",
       "cacheVariables": {
         "YAZE_ENABLE_ROM_TESTS": "ON",
-        "YAZE_TEST_ROM_PATH": "${sourceDir}/build/bin/zelda3.sfc"
+        "YAZE_TEST_ROM_PATH": "${sourceDir}/zelda3.sfc"
       }
     },
     {
-      "name": "macos-dev",
-      "displayName": "macOS Development (ARM64)",
-      "description": "macOS ARM64 development build with ROM testing",
-      "inherits": "macos-debug",
+      "name": "win-ai",
+      "displayName": "1. Windows AI + z3ed",
+      "description": "Windows with AI agent (z3ed + JSON + gRPC + networking)",
+      "inherits": "win-dev",
       "cacheVariables": {
-        "YAZE_ENABLE_ROM_TESTS": "ON",
-        "YAZE_TEST_ROM_PATH": "${sourceDir}/build/bin/zelda3.sfc"
+        "Z3ED_AI": "ON",
+        "YAZE_WITH_JSON": "ON",
+        "YAZE_WITH_GRPC": "ON",
+        "YAZE_BUILD_Z3ED": "ON",
+        "YAZE_BUILD_EMU": "ON",
+        "CMAKE_CXX_COMPILER": "cl",
+        "CMAKE_C_COMPILER": "cl"
       }
     },
     {
-      "name": "ci",
-      "displayName": "Continuous Integration",
-      "description": "CI build without ROM-dependent tests",
-      "inherits": "default",
-      "cacheVariables": {
-        "YAZE_ENABLE_ROM_TESTS": "OFF",
-        "YAZE_BUILD_TESTS": "ON"
-      }
+      "name": "win-z3ed",
+      "displayName": "2. Windows z3ed CLI",
+      "description": "Windows z3ed CLI with agent and networking support",
+      "inherits": "win-ai"
     },
     {
-      "name": "macos-debug",
-      "displayName": "macOS Debug (ARM64)",
-      "description": "macOS ARM64-specific debug configuration",
-      "inherits": "debug",
-      "condition": {
-        "type": "equals",
-        "lhs": "${hostSystemName}",
-        "rhs": "Darwin"
-      },
-      "cacheVariables": {
-        "CMAKE_OSX_DEPLOYMENT_TARGET": "11.0",
-        "CMAKE_OSX_ARCHITECTURES": "arm64"
-      }
-    },
-    {
-      "name": "macos-release",
-      "displayName": "macOS Release (ARM64)",
-      "description": "macOS ARM64-specific release configuration",
-      "inherits": "release",
-      "condition": {
-        "type": "equals",
-        "lhs": "${hostSystemName}",
-        "rhs": "Darwin"
-      },
-      "cacheVariables": {
-        "CMAKE_OSX_DEPLOYMENT_TARGET": "11.0",
-        "CMAKE_OSX_ARCHITECTURES": "arm64"
-      }
-    },
-    {
-      "name": "macos-debug-universal",
-      "displayName": "macOS Debug (Universal)",
-      "description": "macOS universal binary debug configuration",
-      "inherits": "debug",
-      "condition": {
-        "type": "equals",
-        "lhs": "${hostSystemName}",
-        "rhs": "Darwin"
-      },
-      "cacheVariables": {
-        "CMAKE_OSX_DEPLOYMENT_TARGET": "10.15",
-        "CMAKE_OSX_ARCHITECTURES": "x86_64;arm64"
-      }
-    },
-    {
-      "name": "macos-release-universal",
-      "displayName": "macOS Release (Universal)",
-      "description": "macOS universal binary release configuration",
-      "inherits": "release",
-      "condition": {
-        "type": "equals",
-        "lhs": "${hostSystemName}",
-        "rhs": "Darwin"
-      },
-      "cacheVariables": {
-        "CMAKE_OSX_DEPLOYMENT_TARGET": "10.15",
-        "CMAKE_OSX_ARCHITECTURES": "x86_64;arm64"
-      }
-    },
-    {
-      "name": "linux-debug",
+      "name": "lin-dbg",
       "displayName": "Linux Debug",
-      "description": "Linux-specific debug configuration",
-      "inherits": "debug",
+      "description": "Linux debug build with GCC (warnings off)",
+      "inherits": ["_base", "_unix", "_quiet"],
       "condition": {
         "type": "equals",
         "lhs": "${hostSystemName}",
         "rhs": "Linux"
       },
       "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
         "CMAKE_CXX_COMPILER": "g++",
         "CMAKE_C_COMPILER": "gcc"
       }
     },
     {
-      "name": "linux-clang",
+      "name": "lin-clang",
       "displayName": "Linux Clang",
-      "description": "Linux build with Clang",
-      "inherits": "debug",
+      "description": "Linux debug build with Clang (warnings off)",
+      "inherits": ["_base", "_unix", "_quiet"],
       "condition": {
         "type": "equals",
         "lhs": "${hostSystemName}",
         "rhs": "Linux"
       },
       "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
         "CMAKE_CXX_COMPILER": "clang++",
         "CMAKE_C_COMPILER": "clang"
       }
     },
     {
-      "name": "windows-debug",
-      "displayName": "Windows Debug",
-      "description": "Windows-specific debug configuration with vcpkg",
-      "inherits": "debug",
-      "condition": {
-        "type": "equals",
-        "lhs": "${hostSystemName}",
-        "rhs": "Windows"
-      },
-      "generator": "Visual Studio 17 2022",
-      "architecture": "x64",
+      "name": "ci",
+      "displayName": "9. CI Build",
+      "description": "Continuous integration build (no ROM tests)",
+      "inherits": ["_base", "_unix", "_quiet"],
       "cacheVariables": {
-        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/vcpkg/scripts/buildsystems/vcpkg.cmake",
-        "VCPKG_TARGET_TRIPLET": "x64-windows",
-        "VCPKG_MANIFEST_MODE": "ON"
-      }
-    },
-    {
-      "name": "windows-release",
-      "displayName": "Windows Release",
-      "description": "Windows-specific release configuration with vcpkg",
-      "inherits": "release",
-      "condition": {
-        "type": "equals",
-        "lhs": "${hostSystemName}",
-        "rhs": "Windows"
-      },
-      "generator": "Visual Studio 17 2022",
-      "architecture": "x64",
-      "cacheVariables": {
-        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/vcpkg/scripts/buildsystems/vcpkg.cmake",
-        "VCPKG_TARGET_TRIPLET": "x64-windows",
-        "VCPKG_MANIFEST_MODE": "ON"
-      }
-    },
-    {
-      "name": "windows-dev",
-      "displayName": "Windows Development",
-      "description": "Windows development build with vcpkg and testing enabled",
-      "inherits": "debug",
-      "condition": {
-        "type": "equals",
-        "lhs": "${hostSystemName}",
-        "rhs": "Windows"
-      },
-      "generator": "Visual Studio 17 2022",
-      "architecture": "x64",
-      "cacheVariables": {
-        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/vcpkg/scripts/buildsystems/vcpkg.cmake",
-        "VCPKG_TARGET_TRIPLET": "x64-windows",
-        "VCPKG_MANIFEST_MODE": "ON",
-        "YAZE_BUILD_TESTS": "ON",
-        "YAZE_ENABLE_ROM_TESTS": "ON"
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "YAZE_ENABLE_ROM_TESTS": "OFF",
+        "YAZE_BUILD_TESTS": "ON"
       }
     },
     {
       "name": "asan",
-      "displayName": "AddressSanitizer",
+      "displayName": "8. AddressSanitizer",
       "description": "Debug build with AddressSanitizer",
-      "inherits": "debug",
+      "inherits": ["_base", "_unix"],
       "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
         "CMAKE_CXX_FLAGS": "-fsanitize=address -fno-omit-frame-pointer -g",
         "CMAKE_C_FLAGS": "-fsanitize=address -fno-omit-frame-pointer -g",
         "CMAKE_EXE_LINKER_FLAGS": "-fsanitize=address",
@@ -233,10 +334,11 @@
     },
     {
       "name": "coverage",
-      "displayName": "Code Coverage",
+      "displayName": "7. Coverage",
       "description": "Debug build with code coverage",
-      "inherits": "debug",
+      "inherits": ["_base", "_unix"],
       "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
         "CMAKE_CXX_FLAGS": "--coverage -g -O0",
         "CMAKE_C_FLAGS": "--coverage -g -O0",
         "CMAKE_EXE_LINKER_FLAGS": "--coverage"
@@ -245,193 +347,252 @@
   ],
   "buildPresets": [
     {
-      "name": "default",
-      "configurePreset": "default",
-      "displayName": "Default Build"
+      "name": "mac-dbg",
+      "configurePreset": "mac-dbg",
+      "displayName": "macOS Debug",
+      "jobs": 12
     },
     {
-      "name": "debug",
-      "configurePreset": "debug",
-      "displayName": "Debug Build"
+      "name": "mac-dbg-v",
+      "configurePreset": "mac-dbg-v",
+      "displayName": "macOS Debug Verbose",
+      "jobs": 12
     },
     {
-      "name": "release",
-      "configurePreset": "release",
-      "displayName": "Release Build"
+      "name": "mac-rel",
+      "configurePreset": "mac-rel",
+      "displayName": "macOS Release",
+      "jobs": 12
     },
     {
-      "name": "dev",
-      "configurePreset": "dev",
-      "displayName": "Development Build"
+      "name": "mac-x64",
+      "configurePreset": "mac-x64",
+      "displayName": "macOS x86_64",
+      "jobs": 12
     },
     {
-      "name": "macos-dev",
-      "configurePreset": "macos-dev",
-      "displayName": "macOS Development Build (ARM64)"
+      "name": "mac-uni",
+      "configurePreset": "mac-uni",
+      "displayName": "macOS Universal",
+      "jobs": 12
+    },
+    {
+      "name": "mac-dev",
+      "configurePreset": "mac-dev",
+      "displayName": "macOS Dev",
+      "jobs": 12
+    },
+    {
+      "name": "mac-ai",
+      "configurePreset": "mac-ai",
+      "displayName": "macOS AI",
+      "jobs": 12
+    },
+    {
+      "name": "mac-z3ed",
+      "configurePreset": "mac-z3ed",
+      "displayName": "macOS z3ed",
+      "jobs": 12
+    },
+    {
+      "name": "mac-rooms",
+      "configurePreset": "mac-rooms",
+      "displayName": "macOS Rooms",
+      "jobs": 12
+    },
+    {
+      "name": "win-dbg",
+      "configurePreset": "win-dbg",
+      "displayName": "Windows Debug",
+      "configuration": "Debug",
+      "jobs": 12
+    },
+    {
+      "name": "win-dbg-v",
+      "configurePreset": "win-dbg-v",
+      "displayName": "Windows Debug Verbose",
+      "configuration": "Debug",
+      "jobs": 12
+    },
+    {
+      "name": "win-rel",
+      "configurePreset": "win-rel",
+      "displayName": "Windows Release",
+      "configuration": "Release",
+      "jobs": 12
+    },
+    {
+      "name": "win-arm",
+      "configurePreset": "win-arm",
+      "displayName": "Windows ARM64",
+      "configuration": "Debug",
+      "jobs": 12
+    },
+    {
+      "name": "win-arm-rel",
+      "configurePreset": "win-arm-rel",
+      "displayName": "Windows ARM64 Release",
+      "configuration": "Release",
+      "jobs": 12
+    },
+    {
+      "name": "win-dev",
+      "configurePreset": "win-dev",
+      "displayName": "Windows Dev",
+      "configuration": "Debug",
+      "jobs": 12
+    },
+    {
+      "name": "win-ai",
+      "configurePreset": "win-ai",
+      "displayName": "1. Windows AI + z3ed",
+      "configuration": "Debug",
+      "jobs": 12
+    },
+    {
+      "name": "win-z3ed",
+      "configurePreset": "win-z3ed",
+      "displayName": "2. Windows z3ed CLI",
+      "configuration": "Debug",
+      "jobs": 12
+    },
+    {
+      "name": "lin-dbg",
+      "configurePreset": "lin-dbg",
+      "displayName": "Linux Debug",
+      "jobs": 12
+    },
+    {
+      "name": "lin-clang",
+      "configurePreset": "lin-clang",
+      "displayName": "Linux Clang",
+      "jobs": 12
     },
     {
       "name": "ci",
       "configurePreset": "ci",
-      "displayName": "CI Build"
+      "displayName": "9. CI Build",
+      "jobs": 12
     },
     {
-      "name": "macos-debug",
-      "configurePreset": "macos-debug",
-      "displayName": "macOS Debug Build"
+      "name": "asan",
+      "configurePreset": "asan",
+      "displayName": "8. AddressSanitizer",
+      "jobs": 12
     },
     {
-      "name": "macos-release",
-      "configurePreset": "macos-release",
-      "displayName": "macOS Release Build (ARM64)"
-    },
-    {
-      "name": "macos-debug-universal",
-      "configurePreset": "macos-debug-universal",
-      "displayName": "macOS Debug Build (Universal)"
-    },
-    {
-      "name": "macos-release-universal",
-      "configurePreset": "macos-release-universal",
-      "displayName": "macOS Release Build (Universal)"
-    },
-    {
-      "name": "fast",
-      "configurePreset": "debug",
-      "displayName": "Fast Debug Build",
-      "jobs": 0
-    },
-    {
-      "name": "windows-debug",
-      "configurePreset": "windows-debug",
-      "displayName": "Windows Debug Build"
-    },
-    {
-      "name": "windows-release",
-      "configurePreset": "windows-release",
-      "displayName": "Windows Release Build"
-    },
-    {
-      "name": "windows-dev",
-      "configurePreset": "windows-dev",
-      "displayName": "Windows Development Build"
+      "name": "coverage",
+      "configurePreset": "coverage",
+      "displayName": "7. Coverage",
+      "jobs": 12
     }
   ],
   "testPresets": [
     {
+      "name": "all",
+      "configurePreset": "mac-dev",
+      "displayName": "Run all tests",
+      "description": "Runs all tests, including ROM-dependent and experimental tests."
+    },
+    {
       "name": "stable",
-      "configurePreset": "default",
-      "displayName": "Stable Tests (Release Ready)",
-      "execution": {
-        "noTestsAction": "error",
-        "stopOnFailure": true
-      },
-      "filter": {
-        "include": {
-          "label": "STABLE"
-        }
-      }
-    },
-    {
-      "name": "dev",
-      "configurePreset": "dev",
-      "displayName": "Development Tests (with ROM)",
-      "execution": {
-        "noTestsAction": "error",
-        "stopOnFailure": false
-      },
-      "filter": {
-        "exclude": {
-          "label": "EXPERIMENTAL"
-        }
-      }
-    },
-    {
-      "name": "ci",
       "configurePreset": "ci",
-      "displayName": "CI Tests (stable only)",
-      "execution": {
-        "noTestsAction": "error",
-        "stopOnFailure": true
-      },
+      "displayName": "Stable tests",
+      "description": "Runs tests marked with the 'stable' label.",
       "filter": {
         "include": {
-          "label": "STABLE"
+          "label": "stable"
+        }
+      }
+    },
+    {
+      "name": "rom-dependent",
+      "configurePreset": "mac-dev",
+      "displayName": "ROM-dependent tests",
+      "description": "Runs tests that require a ROM file.",
+      "filter": {
+        "include": {
+          "label": "rom_dependent"
+        }
+      }
+    },
+    {
+      "name": "gui",
+      "configurePreset": "mac-dev",
+      "displayName": "GUI tests",
+      "description": "Runs GUI-based tests.",
+      "filter": {
+        "include": {
+          "label": "gui"
         }
       }
     },
     {
       "name": "experimental",
-      "configurePreset": "debug",
-      "displayName": "Experimental Tests",
-      "execution": {
-        "noTestsAction": "ignore",
-        "stopOnFailure": false
-      },
+      "configurePreset": "mac-dev",
+      "displayName": "Experimental tests",
+      "description": "Runs tests marked as 'experimental'.",
       "filter": {
         "include": {
-          "label": "EXPERIMENTAL"
+          "label": "experimental"
         }
       }
     },
     {
-      "name": "asar-only",
-      "configurePreset": "default",
-      "displayName": "Asar Tests Only",
+      "name": "benchmark",
+      "configurePreset": "mac-rel",
+      "displayName": "Benchmark tests",
+      "description": "Runs performance benchmark tests.",
       "filter": {
         "include": {
-          "name": "*Asar*"
-        }
-      }
-    },
-    {
-      "name": "unit-only",
-      "configurePreset": "default",
-      "displayName": "Unit Tests Only",
-      "filter": {
-        "include": {
-          "label": "UNIT_TEST"
+          "label": "benchmark"
         }
       }
     }
   ],
   "packagePresets": [
     {
-      "name": "default",
-      "configurePreset": "release",
-      "displayName": "Default Package"
-    },
-    {
-      "name": "macos",
-      "configurePreset": "macos-release",
+      "name": "mac",
+      "configurePreset": "mac-rel",
       "displayName": "macOS Package (ARM64)"
     },
     {
-      "name": "macos-universal",
-      "configurePreset": "macos-release-universal",
+      "name": "mac-uni",
+      "configurePreset": "mac-uni",
       "displayName": "macOS Package (Universal)"
+    },
+    {
+      "name": "win",
+      "configurePreset": "win-rel",
+      "displayName": "Windows Package (x64)"
+    },
+    {
+      "name": "win-arm",
+      "configurePreset": "win-arm-rel",
+      "displayName": "Windows Package (ARM64)"
     }
   ],
   "workflowPresets": [
     {
-      "name": "dev-workflow",
+      "name": "dev",
       "displayName": "Development Workflow",
       "steps": [
         {
           "type": "configure",
-          "name": "dev"
+          "name": "mac-dev"
         },
         {
           "type": "build",
-          "name": "dev"
+          "name": "mac-dev"
         },
         {
           "type": "test",
-          "name": "dev"
+          "name": "all"
         }
       ]
     },
     {
-      "name": "ci-workflow",
+      "name": "ci",
       "displayName": "CI Workflow",
       "steps": [
         {
@@ -444,25 +605,39 @@
         },
         {
           "type": "test",
-          "name": "ci"
+          "name": "stable"
         }
       ]
     },
     {
-      "name": "release-workflow",
+      "name": "release",
       "displayName": "Release Workflow",
       "steps": [
         {
           "type": "configure",
-          "name": "macos-release"
+          "name": "mac-uni"
         },
         {
           "type": "build",
-          "name": "macos-release"
+          "name": "mac-uni"
         },
         {
           "type": "package",
-          "name": "macos"
+          "name": "mac-uni"
+        }
+      ]
+    },
+    {
+      "name": "format-check",
+      "displayName": "Check Code Formatting",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "mac-dev"
+        },
+        {
+          "type": "build",
+          "name": "mac-dev"
         }
       ]
     }

@@ -1,0 +1,75 @@
+# Example Agent Policy Configuration
+# Copy this file to agent.yaml and customize for your project
+#
+# Policy evaluation gates the acceptance of AI-generated ROM modifications
+# Policies can be: critical (blocks accept), warning (allows override), or info
+
+version: 1.0
+enabled: true
+
+policies:
+  # Policy 1: Limit Change Scope
+  # Prevents overly large or complex changes
+  - name: limit_changes
+    type: change_constraint
+    enabled: true
+    severity: warning
+    rules:
+      - max_bytes_changed: 5120  # 5KB - keep changes focused
+      - max_commands_executed: 15  # Limit command complexity
+    message: "Keep changes small and focused for easier review"
+
+  # Policy 2: Protect ROM Header
+  # Prevents corruption of critical ROM metadata
+  - name: protect_header
+    type: forbidden_range
+    enabled: true
+    severity: critical
+    ranges:
+      - start: 0xFFB0
+        end: 0xFFFF
+        reason: "ROM header contains critical metadata"
+    message: "Cannot modify ROM header region"
+
+  # Policy 3: Require Test Validation (Optional)
+  # Ensures changes pass automated tests
+  # Note: Disabled by default until test framework is integrated
+  - name: require_tests
+    type: test_requirement
+    enabled: false
+    severity: critical
+    rules:
+      - test_suite: "smoke_test"
+        min_pass_rate: 1.0  # All smoke tests must pass
+      - test_suite: "palette_regression"
+        min_pass_rate: 0.95  # 95% pass rate for palette tests
+    message: "All required test suites must pass before acceptance"
+
+  # Policy 4: Manual Review for Large Changes
+  # Triggers human review requirements based on change size
+  - name: review_requirements
+    type: review_requirement
+    enabled: true
+    severity: warning
+    conditions:
+      - if: bytes_changed > 1024
+        then: require_diff_review
+        message: "Large change (>1KB) requires diff review"
+      - if: commands_executed > 10
+        then: require_log_review
+        message: "Complex operation (>10 commands) requires log review"
+    message: "Manual review required for this proposal"
+
+# Tips for customization:
+#
+# 1. Start with permissive limits and tighten based on experience
+# 2. Use 'warning' severity for guidelines, 'critical' for hard limits
+# 3. Adjust max_bytes_changed based on your ROM's complexity
+# 4. Enable test_requirement once you have automated tests
+# 5. Add more forbidden_ranges to protect specific data (sprite tables, etc.)
+#
+# Example bank ranges for Zelda 3:
+#   0x00-0x07: Game code
+#   0x08-0x0D: Compressed graphics
+#   0x0E-0x0F: Uncompressed graphics
+#   0x10-0x1F: Maps and data tables

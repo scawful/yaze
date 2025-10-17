@@ -1,0 +1,11 @@
+# Test 2: Complex Command Generation
+
+# This requires knowledge of different water tiles for edges vs. center,
+# and the ability to generate a 4x4 grid of `overworld set-tile` commands.
+Create a 4x4 square of deep water on map 0 starting at coordinate 25, 30.
+
+# This tests generating a long sequence of commands for a path.
+Draw a vertical dirt path on map 1 from y=10 to y=25 at x=40.
+
+# This tests a combination of different, related tiles to form a structure.
+Build a small 2x2 house at 50, 50 on map 0 using the appropriate house tiles.

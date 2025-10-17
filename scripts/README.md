@@ -1,143 +1,117 @@
 # YAZE Build Scripts
 
-This directory contains build and setup scripts for YAZE development on different platforms.
+This directory contains build automation and maintenance scripts for the YAZE project.
 
-## Windows Scripts
+## build_cleaner.py
 
-### Setup Scripts
-- **`setup-windows-dev.ps1`** - Complete Windows development environment setup (PowerShell)
-- **`setup-vcpkg-windows.ps1`** - vcpkg setup only (PowerShell)
-- **`setup-vcpkg-windows.bat`** - vcpkg setup only (Batch)
+Automates CMake source list maintenance and header include management with IWYU-style analysis.
 
-### Build Scripts
-- **`build-windows.ps1`** - Build YAZE on Windows (PowerShell)
-- **`build-windows.bat`** - Build YAZE on Windows (Batch)
+### Features
 
-### Validation Scripts
-- **`validate-windows-build.ps1`** - Validate Windows build environment
+1. **CMake Source List Maintenance**: Automatically updates source file lists in CMake files
+2. **Self-Header Includes**: Ensures source files include their corresponding headers
+3. **IWYU-Style Analysis**: Suggests missing headers based on symbol usage
+4. **.gitignore Support**: Respects .gitignore patterns when scanning files
+5. **Auto-Discovery**: Can discover CMake libraries that opt-in to auto-maintenance
 
-### Project Generation
-- **`generate-vs-projects.py`** - Generate Visual Studio project files (Cross-platform Python)
-- **`generate-vs-projects.ps1`** - Generate Visual Studio project files (PowerShell)
-- **`generate-vs-projects.bat`** - Generate Visual Studio project files (Batch)
+### Usage
 
-## Quick Start (Windows)
+```bash
+# Dry-run to see what would change (recommended first step)
+python3 scripts/build_cleaner.py --dry-run
 
-### Option 1: Automated Setup (Recommended)
-```powershell
-.\scripts\setup-windows-dev.ps1
+# Update CMake source lists and header includes
+python3 scripts/build_cleaner.py
+
+# Run IWYU-style header analysis
+python3 scripts/build_cleaner.py --iwyu
+
+# Auto-discover CMake libraries marked for auto-maintenance
+python3 scripts/build_cleaner.py --auto-discover
+
+# Update only CMake source lists
+python3 scripts/build_cleaner.py --cmake-only
+
+# Update only header includes
+python3 scripts/build_cleaner.py --includes-only
 ```
 
-### Option 2: Manual Setup
-```powershell
-# 1. Setup vcpkg
-.\scripts\setup-vcpkg-windows.ps1
+### Opting-In to Auto-Maintenance
 
-# 2. Generate project files
-python scripts/generate-vs-projects.py
+By default, the script only auto-maintains source lists that are explicitly marked. To mark a CMake variable for auto-maintenance, add a comment above the `set()` statement:
 
-# 3. Build
-.\scripts\build-windows.ps1
+```cmake
+# This list is auto-maintained by scripts/build_cleaner.py
+set(
+  YAZE_APP_EMU_SRC
+  app/emu/audio/apu.cc
+  app/emu/cpu/cpu.cc
+  # ... more files
+)
 ```
 
-### Option 3: Using Batch Scripts
-```batch
-REM Setup vcpkg
-.\scripts\setup-vcpkg-windows.bat
+The script looks for comments containing "auto-maintain" (case-insensitive) within 3 lines above the `set()` statement.
 
-REM Generate project files
-python scripts/generate-vs-projects.py
+### Excluding Files from Processing
 
-REM Build
-.\scripts\build-windows.bat
+To exclude a specific file from all processing (CMake lists, header includes, IWYU), add this token near the top of the file:
+
+```cpp
+// build_cleaner:ignore
 ```
 
-## Script Options
+### .gitignore Support
 
-### setup-windows-dev.ps1
-- `-SkipVcpkg` - Skip vcpkg setup
-- `-SkipVS` - Skip Visual Studio check
-- `-SkipBuild` - Skip test build
+The script automatically respects `.gitignore` patterns. To enable this feature, install the `pathspec` dependency:
 
-### build-windows.ps1
-- `-Configuration` - Build configuration (Debug, Release, RelWithDebInfo, MinSizeRel)
-- `-Platform` - Target platform (x64, x86, ARM64)
-- `-Clean` - Clean build directories before building
-- `-Verbose` - Verbose build output
-
-### build-windows.bat
-- First argument: Configuration (Debug, Release, RelWithDebInfo, MinSizeRel)
-- Second argument: Platform (x64, x86, ARM64)
-- `clean` - Clean build directories
-- `verbose` - Verbose build output
-
-## Examples
-
-```powershell
-# Build Release x64 (default)
-.\scripts\build-windows.ps1
-
-# Build Debug x64
-.\scripts\build-windows.ps1 -Configuration Debug -Platform x64
-
-# Build Release x86
-.\scripts\build-windows.ps1 -Configuration Release -Platform x86
-
-# Clean build
-.\scripts\build-windows.ps1 -Clean
-
-# Verbose build
-.\scripts\build-windows.ps1 -Verbose
-
-# Validate environment
-.\scripts\validate-windows-build.ps1
+```bash
+pip3 install -r scripts/requirements.txt
+# or
+pip3 install pathspec
 ```
 
-```batch
-REM Build Release x64 (default)
-.\scripts\build-windows.bat
+### IWYU Configuration
 
-REM Build Debug x64
-.\scripts\build-windows.bat Debug x64
+The script includes basic IWYU-style analysis that suggests headers based on symbol prefixes. To customize which headers are suggested, edit the `COMMON_HEADERS` dictionary in the script:
 
-REM Build Release x86
-.\scripts\build-windows.bat Release x86
-
-REM Clean build
-.\scripts\build-windows.bat clean
+```python
+COMMON_HEADERS = {
+    'std::': ['<memory>', '<string>', '<vector>', ...],
+    'absl::': ['<absl/status/status.h>', ...],
+    'ImGui::': ['<imgui.h>'],
+    'SDL_': ['<SDL.h>'],
+}
 ```
 
-## Troubleshooting
+**Note**: The IWYU analysis is conservative and may suggest headers that are already transitively included. Use with care and review suggestions before applying.
 
-### Common Issues
+### Integration with CMake
 
-1. **PowerShell Execution Policy**
-   ```powershell
-   Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
-   ```
+The script is integrated into the CMake build system:
 
-2. **MSBuild Not Found**
-   - Install Visual Studio 2022 with C++ workload
-   - Or add MSBuild to PATH
+```bash
+# Run as a CMake target
+cmake --build build --target build_cleaner
+```
 
-3. **vcpkg Issues**
-   - Run `.\scripts\setup-vcpkg-windows.ps1` to reinstall
-   - Check internet connection for dependency downloads
+### Dependencies
 
-4. **Python Not Found**
-   - Install Python 3.8+ from python.org
-   - Make sure Python is in PATH
+- Python 3.7+
+- `pathspec` (optional, for .gitignore support): `pip3 install pathspec`
 
-### Getting Help
+### How It Works
 
-1. Run validation script: `.\scripts\validate-windows-build.ps1`
-2. Check the [Windows Development Guide](../docs/windows-development-guide.md)
-3. Review build output for specific error messages
+1. **CMake Maintenance**: Scans directories specified in the configuration and updates `set(VAR_NAME ...)` blocks with the current list of source files
+2. **Self-Headers**: For each `.cc`/`.cpp` file, ensures it includes its corresponding `.h` file
+3. **IWYU Analysis**: Scans source files for symbols and suggests appropriate headers based on prefix matching
 
-## Other Scripts
+### Current Auto-Maintained Variables
 
-- **`create_release.sh`** - Create GitHub releases (Linux/macOS)
-- **`extract_changelog.py`** - Extract changelog for releases
-- **`quality_check.sh`** - Code quality checks (Linux/macOS)
-- **`test_asar_integration.py`** - Test Asar integration
-- **`agent.sh`** - AI agent helper script (Linux/macOS)
+**All 20 library source lists are now auto-maintained by default:**
+
+- Core: `YAZE_APP_EMU_SRC`, `YAZE_APP_CORE_SRC`, `YAZE_APP_EDITOR_SRC`, `YAZE_APP_ZELDA3_SRC`, `YAZE_NET_SRC`, `YAZE_UTIL_SRC`
+- GFX: `GFX_TYPES_SRC`, `GFX_BACKEND_SRC`, `GFX_RESOURCE_SRC`, `GFX_CORE_SRC`, `GFX_UTIL_SRC`, `GFX_RENDER_SRC`, `GFX_DEBUG_SRC`
+- GUI: `GUI_CORE_SRC`, `CANVAS_SRC`, `GUI_WIDGETS_SRC`, `GUI_AUTOMATION_SRC`, `GUI_APP_SRC`
+- Other: `YAZE_AGENT_SOURCES`, `YAZE_TEST_SOURCES`
+
+The script intelligently preserves conditional blocks (if/endif) and excludes conditional files from the main source list.

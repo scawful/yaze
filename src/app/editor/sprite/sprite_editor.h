@@ -7,7 +7,8 @@
 #include "absl/status/status.h"
 #include "app/editor/editor.h"
 #include "app/editor/sprite/zsprite.h"
-#include "app/gui/canvas.h"
+#include "app/gui/canvas/canvas.h"
+#include "app/gui/app/editor_layout.h"
 #include "app/rom.h"
 
 namespace yaze {
@@ -35,8 +36,8 @@ constexpr ImGuiTableFlags kSpriteTableFlags =
  */
 class SpriteEditor : public Editor {
  public:
-  explicit SpriteEditor(Rom* rom = nullptr) : rom_(rom) { 
-    type_ = EditorType::kSprite; 
+  explicit SpriteEditor(Rom* rom = nullptr) : rom_(rom) {
+    type_ = EditorType::kSprite;
   }
 
   void Initialize() override;
@@ -49,10 +50,10 @@ class SpriteEditor : public Editor {
   absl::Status Paste() override { return absl::UnimplementedError("Paste"); }
   absl::Status Find() override { return absl::UnimplementedError("Find"); }
   absl::Status Save() override { return absl::UnimplementedError("Save"); }
-  
+
   // Set the ROM pointer
   void set_rom(Rom* rom) { rom_ = rom; }
-  
+
   // Get the ROM pointer
   Rom* rom() const { return rom_; }
 
@@ -80,6 +81,7 @@ class SpriteEditor : public Editor {
    * @brief Draws the animation frames manager.
    */
   void DrawAnimationFrames();
+  void DrawToolset();
 
   ImVector<int> active_sprites_; /**< Active sprites. */
 
