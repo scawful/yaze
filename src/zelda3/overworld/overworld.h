@@ -101,21 +101,12 @@ constexpr int overworldTilesType = 0x071459;
 constexpr int overworldMessages = 0x03F51D;
 constexpr int overworldMessagesExpanded = 0x1417F8;
 
-constexpr int overworldItemsPointers = 0x0DC2F9;
-constexpr int overworldItemsAddress = 0x0DC8B9; // 1BC2F9
-constexpr int overworldItemsAddressBank = 0x0DC8BF;
-constexpr int overworldItemsEndData = 0x0DC89C; // 0DC89E
-
-constexpr int overworldBombDoorItemLocationsNew = 0x012644;
-constexpr int overworldItemsPointersNew = 0x012784;
-constexpr int overworldItemsStartDataNew = 0x0DC2F9;
-
 constexpr int kOverworldCompressedMapPos = 0x058000;
 constexpr int kOverworldCompressedOverflowPos = 0x137FFF;
 
 constexpr int kNumTileTypes = 0x200;
 constexpr int kMap16Tiles = 0x78000;
-constexpr int kNumOverworldMaps = 160;
+
 constexpr int kNumTile16Individual = 4096;
 constexpr int Map32PerScreen = 256;
 constexpr int NumberOfMap16 = 3752;    // 4096
@@ -139,7 +130,7 @@ class Overworld {
   absl::Status LoadOverworldMaps();
   void LoadTileTypes();
 
-  absl::Status LoadItems();
+  // absl::Status LoadItems();
   absl::Status LoadSprites();
   absl::Status LoadSpritesFromMap(int sprite_start, int sprite_count,
                                   int sprite_index);

@@ -12,6 +12,7 @@ set(
   zelda3/overworld/overworld_map.cc
   zelda3/overworld/overworld_entrance.cc
   zelda3/overworld/overworld_exit.cc
+  zelda3/overworld/overworld_item.cc
   zelda3/palette_constants.cc
   zelda3/screen/dungeon_map.cc
   zelda3/screen/inventory.cc
