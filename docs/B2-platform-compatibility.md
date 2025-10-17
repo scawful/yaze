@@ -9,26 +9,40 @@
 ### Windows
 
 **Build System:**
-- Uses vcpkg for: SDL2, yaml-cpp, zlib (fast, pre-compiled)
-- Uses FetchContent for: gRPC v1.67.1, abseil, protobuf (slower first time)
+- Supported compilers: clang-cl (preferred), MSVC 2022 17.4+
+- Uses vcpkg for: SDL2, yaml-cpp (fast packages only)
+- Uses FetchContent for: gRPC v1.75.1, protobuf, abseil, zlib (better caching)
 
-**MSVC Flags Applied:**
-- `/bigobj` - Support large object files
-- `/permissive-` - Standards conformance
-- `/wd4267 /wd4244` - Suppress conversion warnings
-- `/constexpr:depth2048` - Deep template instantiation
+**Why FetchContent for gRPC?**
+- vcpkg gRPC v1.71.0 has no pre-built binaries (builds from source: 45-90 min)
+- FetchContent uses v1.75.1 with Windows compatibility fixes
+- BoringSSL ASM disabled on Windows (avoids NASM build conflicts with clang-cl)
+- Better caching in CI/CD (separate cache keys for vcpkg vs FetchContent)
+- First build: ~10-15 min, subsequent: <1 min (cached)
+- zlib bundled with gRPC (avoids vcpkg conflicts)
+
+**Compiler Flags (both clang-cl and MSVC):**
+- `/bigobj` - Support large object files (required for gRPC)
+- `/permissive-` - Standards conformance mode
+- `/wd4267 /wd4244` - Suppress harmless conversion warnings
+- `/constexpr:depth2048` - Deep template instantiation (MSVC 2019+)
 
 **Macro Definitions:**
 - `WIN32_LEAN_AND_MEAN` - Reduce Windows header pollution
 - `NOMINMAX` - Prevent min/max macro conflicts
 - `NOGDI` - Prevent GDI macro conflicts (DWORD, etc.)
-- `__PRFCHWINTRIN_H` - Work around Clang 20 `_m_prefetchw` linkage clash with
-  Windows SDK headers
+- `__PRFCHWINTRIN_H` - Work around Clang 20 `_m_prefetchw` linkage clash
 
 **Build Times:**
-- First build with FetchContent: ~45-60 minutes (compiles gRPC)
-- Subsequent builds: ~2-5 minutes
-- With vcpkg pre-compiled gRPC: ~5-10 minutes first time
+- First build (no cache): ~10-15 minutes
+- Incremental build (cached): ~3-5 minutes
+- CI/CD with full caching: ~5-8 minutes
+
+**CI/CD Configuration:**
+- Compiler matrix: clang-cl + MSVC
+- 3-tier caching: vcpkg packages, FetchContent deps, sccache objects
+- Binary caching via GitHub Actions for vcpkg
+- Parallel builds: 4 jobs
 
 ### macOS
 

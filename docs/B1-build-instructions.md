@@ -164,61 +164,69 @@ open build/yaze.xcodeproj
 
 ## 7. Windows Build Optimization
 
-### gRPC v1.67.1 and MSVC Compatibility
+### GitHub Actions / CI Builds
 
-**Recent Update (October 2025):** The project has been upgraded to gRPC v1.67.1 which includes critical MSVC template fixes. This version resolves previous template instantiation errors that occurred with v1.62.0.
+**Current Configuration (Optimized):**
+- **Compilers**: Both clang-cl and MSVC supported (matrix)
+- **vcpkg**: Only fast packages (SDL2, yaml-cpp) - 2 minutes
+- **gRPC**: Built via FetchContent (v1.67.1) - cached after first build
+- **Caching**: Aggressive multi-tier caching (vcpkg + FetchContent + sccache)
+- **Expected time**: 
+  - First build: ~10-15 minutes
+  - Cached build: ~3-5 minutes
 
-**MSVC-Specific Compiler Flags:**
-The build system now automatically applies these flags for Windows builds:
-- `/bigobj` - Allows large object files (gRPC generates many symbols)
-- `/permissive-` - Enables standards conformance mode
-- `/wd4267 /wd4244` - Suppresses harmless conversion warnings
-- `/constexpr:depth2048` - Handles deep template instantiations (MSVC 2019+)
+**Why Not vcpkg for gRPC?**
+- vcpkg's latest gRPC (v1.71.0) has no pre-built binaries
+- Building from source via vcpkg: 45-90 minutes
+- FetchContent with caching: 10-15 minutes first time, <1 min cached
+- Better control over gRPC version (v1.75.1 with Windows fixes)
+- BoringSSL ASM disabled on Windows for clang-cl compatibility
+- zlib conflict: gRPC's FetchContent builds its own zlib, conflicts with vcpkg's
 
-### The Problem: Slow gRPC Builds
-Building with gRPC on Windows (`-DYAZE_WITH_GRPC=ON`) can take **15-20 minutes** the first time, as it compiles gRPC v1.67.1 and its dependencies from source.
+### Local Development
 
-### Solution A: Use vcpkg for Pre-compiled Binaries (Recommended - FAST)
+#### Fast Build (Recommended)
 
-Using `vcpkg` to manage gRPC is the recommended approach for Windows developers who need GUI automation features.
-
-**Step 1: Install vcpkg and Dependencies**
+Use FetchContent for all dependencies (matches CI):
 ```powershell
-# This only needs to be done once
-# Use the setup script for convenience:
-.\scripts\setup-vcpkg-windows.ps1
-
-# Or manually:
-vcpkg install grpc:x64-windows protobuf:x64-windows abseil:x64-windows
-```
-
-**Step 2: Configure CMake to Use vcpkg**
-Pass the `vcpkg.cmake` toolchain file to your configure command.
-
-```powershell
-# Configure a build that uses vcpkg for gRPC
-cmake -B build -G "Visual Studio 17 2022" -A x64 `
-  -DCMAKE_TOOLCHAIN_FILE="vcpkg/scripts/buildsystems/vcpkg.cmake"
-
-# Build (will now be much faster: 5-10 minutes)
-cmake --build build --config RelWithDebInfo --parallel
-```
-
-**Build Time:** ~5-10 minutes (uses pre-compiled gRPC)
-
-### Solution B: FetchContent Build (Slow but Automatic)
-
-If you don't want to use vcpkg, CMake will automatically download and build gRPC from source.
-
-```powershell
-# Configure (will download and build gRPC v1.67.1 from source)
+# Configure (first time: ~15 min, subsequent: ~2 min)
 cmake -B build -G "Visual Studio 17 2022" -A x64
 
-# Build (first time: ~45-60 minutes, subsequent: ~2-5 minutes)
+# Build
 cmake --build build --config RelWithDebInfo --parallel
 ```
 
-**Build Time:** ~45-60 minutes first time, ~2-5 minutes subsequent builds (gRPC cached)
+#### Using vcpkg (Optional)
+
+If you prefer vcpkg for local development:
+```powershell
+# Install ONLY the fast packages
+vcpkg install sdl2:x64-windows yaml-cpp:x64-windows
+
+# Let CMake use FetchContent for gRPC
+cmake -B build -DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake
+```
+
+**DO NOT** install grpc or zlib via vcpkg:
+- gRPC v1.71.0 has no pre-built binaries (45-90 min build)
+- zlib conflicts with gRPC's bundled zlib
+
+### Compiler Support
+
+**clang-cl (Recommended):**
+- Used in both CI and release workflows
+- Better diagnostics than MSVC
+- Fully compatible with MSVC libraries
+
+**MSVC:**
+- Also tested in CI matrix
+- Fallback option if clang-cl issues occur
+
+**Compiler Flags (Applied Automatically):**
+- `/bigobj` - Large object files (required for gRPC)
+- `/permissive-` - Standards conformance
+- `/wd4267 /wd4244` - Suppress harmless conversion warnings
+- `/constexpr:depth2048` - Template instantiation depth
 
 ## 8. Troubleshooting
 

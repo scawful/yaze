@@ -118,12 +118,15 @@ endif()
 
 # Declare gRPC with platform-specific versions
 # - macOS/Linux: v1.75.1 (has ARM64 + modern Clang fixes)
-# - Windows MSVC: v1.67.1 (proven stable with MSVC, fewer UPB issues)
-if(WIN32 AND MSVC)
-  set(_GRPC_VERSION "v1.67.1")
-  set(_GRPC_VERSION_REASON "MSVC-compatible, avoids UPB compilation errors")
+# - Windows: v1.75.1 (better NASM/clang-cl support than v1.67.1)
+set(_GRPC_VERSION "v1.75.1")
+if(WIN32)
+  set(_GRPC_VERSION_REASON "Windows clang-cl + MSVC compatibility")
+  # Disable BoringSSL ASM to avoid NASM build issues on Windows
+  # ASM optimizations cause NASM flag conflicts with clang-cl
+  set(OPENSSL_NO_ASM ON CACHE BOOL "" FORCE)
+  message(STATUS "Disabling BoringSSL ASM optimizations for Windows build compatibility")
 else()
-  set(_GRPC_VERSION "v1.75.1")
   set(_GRPC_VERSION_REASON "ARM64 macOS + modern Clang compatibility")
 endif()
 
