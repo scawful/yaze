@@ -88,7 +88,6 @@ void CanvasContextMenu::Render(const std::string& context_id,
     // PRIORITY 0: Editor-specific items (from Canvas::editor_menu_)
     if (canvas && !canvas->editor_menu().sections.empty()) {
       RenderCanvasMenu(canvas->editor_menu(), popup_callback);
-      ImGui::Separator();
     }
     
     // Also render usage-specific items (legacy support)

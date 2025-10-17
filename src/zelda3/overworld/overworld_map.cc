@@ -46,7 +46,7 @@ absl::Status OverworldMap::BuildMap(int count, int game_state, int world,
 
   // For large maps in vanilla ROMs, we need to handle special world graphics
   // This ensures proper rendering of special overworld areas like Zora's Domain
-  if (large_map_ && asm_version == 0xFF) {
+  if (large_map_ && (asm_version == 0xFF || asm_version == 0x00)) {
     if (parent_ != index_ && !initialized_) {
       if (index_ >= kSpecialWorldMapIdStart && index_ <= 0x8A &&
           index_ != 0x88) {

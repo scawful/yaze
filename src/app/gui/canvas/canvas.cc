@@ -550,15 +550,6 @@ void Canvas::DrawContextMenu() {
       modals_->Render();
     }
 
-    // Phase 4: Render editor menu items using declarative menu system
-    if (!editor_menu_.sections.empty() && ImGui::BeginPopupContextItem(context_id_.c_str())) {
-      auto popup_callback = [this](const std::string& id, std::function<void()> callback) {
-        popup_registry_.Open(id, callback);
-      };
-      gui::RenderCanvasMenu(editor_menu_, popup_callback);
-      ImGui::EndPopup();
-    }
-
     return;
   }
 

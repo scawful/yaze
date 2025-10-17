@@ -4,13 +4,11 @@
 #include <cstdint>
 #include <string>
 
-namespace yaze {
-
 /**
  * @namespace yaze::zelda3
  * @brief Zelda 3 specific classes and functions.
  */
-namespace zelda3 {
+namespace yaze::zelda3{
 
 /**
  * @class GameEntity
@@ -40,6 +38,7 @@ class GameEntity {
   auto set_y(int y) { y_ = y; }
 
   GameEntity() = default;
+  virtual ~GameEntity() {}
 
   virtual void UpdateMapProperties(uint16_t map_id) = 0;
 };
@@ -443,7 +442,6 @@ static const std::string TileTypeNames[] = {
     "$FE Door X top? (unused?)",
     "$FF Door X top? (unused?)"};
 
-}  // namespace zelda3
-}  // namespace yaze
+}  // namespace yaze::zelda3
 
 #endif  // YAZE_APP_ZELDA3_COMMON_H
