@@ -139,7 +139,6 @@ class Overworld {
   absl::Status LoadOverworldMaps();
   void LoadTileTypes();
 
-  absl::Status LoadExits();
   absl::Status LoadItems();
   absl::Status LoadSprites();
   absl::Status LoadSpritesFromMap(int sprite_start, int sprite_count,
