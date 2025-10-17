@@ -192,9 +192,9 @@ bool DrawExitEditorPopup(zelda3::OverworldExit &exit) {
     SameLine();
     gui::InputHex("Y Position", &exit.y_);
 
-    gui::InputHexByte("X Camera", &exit.x_camera_);
+    gui::InputHexWord("X Camera", &exit.x_camera_);
     SameLine();
-    gui::InputHexByte("Y Camera", &exit.y_camera_);
+    gui::InputHexWord("Y Camera", &exit.y_camera_);
 
     gui::InputHexWord("X Scroll", &exit.x_scroll_);
     SameLine();

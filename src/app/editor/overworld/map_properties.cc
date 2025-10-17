@@ -540,6 +540,8 @@ void MapPropertiesSystem::SetupCanvasContextMenu(
 // Private method implementations
 void MapPropertiesSystem::DrawGraphicsPopup(int current_map, int game_state) {
   if (ImGui::BeginPopup("GraphicsPopup")) {
+    ImGui::PushID("GraphicsPopup");  // Fix ImGui duplicate ID warnings
+    
     // Use theme-aware spacing instead of hardcoded constants
     float spacing = gui::LayoutHelpers::GetStandardSpacing();
     float padding = gui::LayoutHelpers::GetButtonPadding();
@@ -639,6 +641,7 @@ void MapPropertiesSystem::DrawGraphicsPopup(int current_map, int game_state) {
     }
 
     ImGui::PopStyleVar(2);  // Pop the 2 style variables we pushed
+    ImGui::PopID();  // Pop GraphicsPopup ID scope
     ImGui::EndPopup();
   }
 }
@@ -646,6 +649,8 @@ void MapPropertiesSystem::DrawGraphicsPopup(int current_map, int game_state) {
 void MapPropertiesSystem::DrawPalettesPopup(int current_map, int game_state,
                                             bool& show_custom_bg_color_editor) {
   if (ImGui::BeginPopup("PalettesPopup")) {
+    ImGui::PushID("PalettesPopup");  // Fix ImGui duplicate ID warnings
+    
     // Use theme-aware spacing instead of hardcoded constants
     float spacing = gui::LayoutHelpers::GetStandardSpacing();
     float padding = gui::LayoutHelpers::GetButtonPadding();
@@ -700,6 +705,7 @@ void MapPropertiesSystem::DrawPalettesPopup(int current_map, int game_state,
     HOVER_HINT("Open custom background color editor (v2+)");
 
     ImGui::PopStyleVar(2);  // Pop the 2 style variables we pushed
+    ImGui::PopID();  // Pop PalettesPopup ID scope
     ImGui::EndPopup();
   }
 }
@@ -709,6 +715,8 @@ void MapPropertiesSystem::DrawPropertiesPopup(int current_map,
                                               bool& show_overlay_preview,
                                               int& game_state) {
   if (ImGui::BeginPopup("ConfigPopup")) {
+    ImGui::PushID("ConfigPopup");  // Fix ImGui duplicate ID warnings
+    
     // Use theme-aware spacing instead of hardcoded constants
     float spacing = gui::LayoutHelpers::GetStandardSpacing();
     float padding = gui::LayoutHelpers::GetButtonPadding();
@@ -811,6 +819,7 @@ void MapPropertiesSystem::DrawPropertiesPopup(int current_map,
     HOVER_HINT("Open detailed area configuration with all settings tabs");
 
     ImGui::PopStyleVar(2);  // Pop the 2 style variables we pushed
+    ImGui::PopID();  // Pop ConfigPopup ID scope
     ImGui::EndPopup();
   }
 }
@@ -1649,6 +1658,8 @@ void MapPropertiesSystem::DrawOverlayPreviewOnMap(int current_map,
 
 void MapPropertiesSystem::DrawViewPopup() {
   if (ImGui::BeginPopup("ViewPopup")) {
+    ImGui::PushID("ViewPopup");  // Fix ImGui duplicate ID warnings
+    
     // Use theme-aware spacing instead of hardcoded constants
     float spacing = gui::LayoutHelpers::GetStandardSpacing();
     float padding = gui::LayoutHelpers::GetButtonPadding();
@@ -1678,12 +1689,15 @@ void MapPropertiesSystem::DrawViewPopup() {
     HOVER_HINT("Toggle fullscreen canvas (F11)");
 
     ImGui::PopStyleVar(2);  // Pop the 2 style variables we pushed
+    ImGui::PopID();  // Pop ViewPopup ID scope
     ImGui::EndPopup();
   }
 }
 
 void MapPropertiesSystem::DrawQuickAccessPopup() {
   if (ImGui::BeginPopup("QuickPopup")) {
+    ImGui::PushID("QuickPopup");  // Fix ImGui duplicate ID warnings
+    
     // Use theme-aware spacing instead of hardcoded constants
     float spacing = gui::LayoutHelpers::GetStandardSpacing();
     float padding = gui::LayoutHelpers::GetButtonPadding();
@@ -1715,6 +1729,7 @@ void MapPropertiesSystem::DrawQuickAccessPopup() {
     HOVER_HINT("Lock/unlock current map (Ctrl+L)");
 
     ImGui::PopStyleVar(2);  // Pop the 2 style variables we pushed
+    ImGui::PopID();  // Pop QuickPopup ID scope
     ImGui::EndPopup();
   }
 }
