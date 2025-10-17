@@ -368,7 +368,7 @@ jobs:
           "-S", ".",
           "-B", "build",
           "-DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}",
-          "-DCMAKE_TOOLCHAIN_FILE=$toolchain",
+          "`"-DCMAKE_TOOLCHAIN_FILE=$toolchain`"",
           "-DVCPKG_TARGET_TRIPLET=x64-windows-static",
           "-DVCPKG_MANIFEST_MODE=ON",
           "-DYAZE_BUILD_TESTS=ON",
