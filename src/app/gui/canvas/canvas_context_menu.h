@@ -10,6 +10,7 @@
 #include "app/gfx/types/snes_palette.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/canvas/canvas_modals.h"
+#include "app/gui/canvas/canvas_menu.h"
 #include "canvas_usage_tracker.h"
 #include "imgui/imgui.h"
 
@@ -18,6 +19,7 @@ namespace gui {
 
 // Forward declarations
 class PaletteEditorWidget;
+class Canvas;
 
 class CanvasContextMenu {
  public:
@@ -41,36 +43,24 @@ class CanvasContextMenu {
 
   CanvasContextMenu() = default;
 
-  struct ContextMenuItem {
-    std::string label;
-    std::string shortcut;
-    std::string icon;
-    std::function<void()> callback;
-    std::function<bool()> enabled_condition = []() { return true; };
-    std::function<bool()> visible_condition = []() { return true; };
-    std::vector<ContextMenuItem> subitems;
-    ImVec4 color = ImVec4(1, 1, 1, 1);
-    bool separator_after = false;
-
-    ContextMenuItem() = default;
-    ContextMenuItem(const std::string& lbl, const std::string& ico,
-                    std::function<void()> cb, const std::string& sc = "")
-        : label(lbl), shortcut(sc), icon(ico), callback(std::move(cb)) {}
-  };
+  // Phase 4: Use unified CanvasMenuItem from canvas_menu.h
+  using CanvasMenuItem = gui::CanvasMenuItem;
 
   void Initialize(const std::string& canvas_id);
   void SetUsageMode(CanvasUsage usage);
-  void AddMenuItem(const ContextMenuItem& item);
-  void AddMenuItem(const ContextMenuItem& item, CanvasUsage usage);
+  void AddMenuItem(const CanvasMenuItem& item);
+  void AddMenuItem(const CanvasMenuItem& item, CanvasUsage usage);
   void ClearMenuItems();
 
+  // Phase 4: Render with editor menu integration and priority ordering
   void Render(const std::string& context_id,
               const ImVec2& mouse_pos,
               Rom* rom,
               const gfx::Bitmap* bitmap,
               const gfx::SnesPalette* palette,
               const std::function<void(Command, const CanvasConfig&)>& command_handler,
-              CanvasConfig current_config);
+              CanvasConfig current_config,
+              Canvas* canvas);
 
   bool ShouldShowContextMenu() const;
   void SetEnabled(bool enabled) { enabled_ = enabled; }
@@ -114,13 +104,15 @@ class CanvasContextMenu {
 
   void DrawROMPaletteSelector();
 
-  std::unordered_map<CanvasUsage, std::vector<ContextMenuItem>> usage_specific_items_;
-  std::vector<ContextMenuItem> global_items_;
+  std::unordered_map<CanvasUsage, std::vector<CanvasMenuItem>> usage_specific_items_;
+  std::vector<CanvasMenuItem> global_items_;
 
-  void RenderMenuItem(const ContextMenuItem& item);
+  void RenderMenuItem(const CanvasMenuItem& item,
+                     std::function<void(const std::string&, std::function<void()>)> popup_callback);
   void RenderMenuSection(const std::string& title,
-                         const std::vector<ContextMenuItem>& items);
-  void RenderUsageSpecificMenu();
+                         const std::vector<CanvasMenuItem>& items,
+                         std::function<void(const std::string&, std::function<void()>)> popup_callback);
+  void RenderUsageSpecificMenu(std::function<void(const std::string&, std::function<void()>)> popup_callback);
   void RenderViewControlsMenu(const std::function<void(Command, const CanvasConfig&)>& command_handler,
                               CanvasConfig current_config);
   void RenderCanvasPropertiesMenu(const std::function<void(Command, const CanvasConfig&)>& command_handler,
@@ -140,21 +132,21 @@ class CanvasContextMenu {
   ImVec4 GetUsageModeColor(CanvasUsage usage) const;
 
   void CreateDefaultMenuItems();
-  ContextMenuItem CreateViewMenuItem(const std::string& label,
+  CanvasMenuItem CreateViewMenuItem(const std::string& label,
+                                   const std::string& icon,
+                                   std::function<void()> callback);
+  CanvasMenuItem CreateBitmapMenuItem(const std::string& label,
                                      const std::string& icon,
                                      std::function<void()> callback);
-  ContextMenuItem CreateBitmapMenuItem(const std::string& label,
-                                       const std::string& icon,
-                                       std::function<void()> callback);
-  ContextMenuItem CreatePaletteMenuItem(const std::string& label,
-                                        const std::string& icon,
-                                        std::function<void()> callback);
-  ContextMenuItem CreateBppMenuItem(const std::string& label,
-                                    const std::string& icon,
-                                    std::function<void()> callback);
-  ContextMenuItem CreatePerformanceMenuItem(const std::string& label,
-                                            const std::string& icon,
-                                            std::function<void()> callback);
+  CanvasMenuItem CreatePaletteMenuItem(const std::string& label,
+                                      const std::string& icon,
+                                      std::function<void()> callback);
+  CanvasMenuItem CreateBppMenuItem(const std::string& label,
+                                  const std::string& icon,
+                                  std::function<void()> callback);
+  CanvasMenuItem CreatePerformanceMenuItem(const std::string& label,
+                                          const std::string& icon,
+                                          std::function<void()> callback);
 };
 
 }  // namespace gui

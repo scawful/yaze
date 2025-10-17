@@ -153,38 +153,8 @@ class Canvas {
   // This routine also handles the scrolling for the canvas.
   void DrawContextMenu();
   
-  // Context menu system for consumers to add their own menu elements
-  struct ContextMenuItem {
-    std::string label;
-    std::string shortcut;
-    std::function<void()> callback;
-    std::function<bool()> enabled_condition = []() { return true; };
-    std::vector<ContextMenuItem> subitems;
-    
-    // Helper constructor for simple items
-    ContextMenuItem() = default;
-    ContextMenuItem(const std::string& lbl, std::function<void()> cb, 
-                   const std::string& sc = "")
-        : label(lbl), shortcut(sc), callback(std::move(cb)) {}
-    
-    // Helper to create disabled item
-    static ContextMenuItem Disabled(const std::string& lbl) {
-      ContextMenuItem item;
-      item.label = lbl;
-      item.enabled_condition = []() { return false; };
-      return item;
-    }
-    
-    // Helper to create conditional item
-    static ContextMenuItem Conditional(const std::string& lbl, std::function<void()> cb,
-                                      std::function<bool()> condition) {
-      ContextMenuItem item;
-      item.label = lbl;
-      item.callback = std::move(cb);
-      item.enabled_condition = std::move(condition);
-      return item;
-    }
-  };
+  // Phase 4: Use unified menu item definition from canvas_menu.h
+  using CanvasMenuItem = gui::CanvasMenuItem;
   
   // BPP format UI components
   std::unique_ptr<gui::BppFormatUI> bpp_format_ui_;
@@ -198,8 +168,12 @@ class Canvas {
   std::shared_ptr<CanvasPerformanceIntegration> performance_integration_;
   CanvasInteractionHandler interaction_handler_;
   
-  void AddContextMenuItem(const ContextMenuItem& item);
+  void AddContextMenuItem(const gui::CanvasMenuItem& item);
   void ClearContextMenuItems();
+  
+  // Phase 4: Access to editor-provided menu definition
+  CanvasMenuDefinition& editor_menu() { return editor_menu_; }
+  const CanvasMenuDefinition& editor_menu() const { return editor_menu_; }
   void SetContextMenuEnabled(bool enabled) { context_menu_enabled_ = enabled; }
   
   // Persistent popup management for context menu actions
@@ -415,7 +389,7 @@ class Canvas {
   Rom *rom() const { return rom_; }
 
  private:
-  void DrawContextMenuItem(const ContextMenuItem& item);
+  void DrawContextMenuItem(const gui::CanvasMenuItem& item);
 
   // Modular configuration and state
   gfx::IRenderer* renderer_ = nullptr;
@@ -433,22 +407,12 @@ class Canvas {
   bool is_hovered_ = false;
   bool refresh_graphics_ = false;
 
-  // Context menu system
-  std::vector<ContextMenuItem> context_menu_items_;
+  // Phase 4: Context menu system (declarative menu definition)
+  CanvasMenuDefinition editor_menu_;
   bool context_menu_enabled_ = true;
   
-  // Persistent popup state for context menu actions
-  // Phase 3: New popup registry (preferred for new code)
+  // Phase 4: Persistent popup state for context menu actions (unified registry)
   PopupRegistry popup_registry_;
-  
-  // Legacy popup state (deprecated - kept for backward compatibility during migration)
-  // TODO(Phase 4): Remove once all editors use popup_registry_ directly
-  struct PopupState {
-    std::string popup_id;
-    bool is_open = false;
-    std::function<void()> render_callback;
-  };
-  std::vector<PopupState> active_popups_;
 
   // Legacy members (to be gradually replaced)
   int current_labels_ = 0;

@@ -218,158 +218,158 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     auto& layer_settings = GetRoomLayerSettings(room_id);
     
     // Add object placement option
-    canvas_.AddContextMenuItem({
-      ICON_MD_ADD " Place Object",
-      []() {
-        // TODO: Show object palette/selector
-      },
-      "Ctrl+P"
-    });
+    canvas_.AddContextMenuItem(
+      gui::CanvasMenuItem(ICON_MD_ADD " Place Object", ICON_MD_ADD,
+                          []() {
+                            // TODO: Show object palette/selector
+                          },
+                          "Ctrl+P")
+    );
     
     // Add object deletion for selected objects
-    canvas_.AddContextMenuItem({
-      ICON_MD_DELETE " Delete Selected",
-      [this]() {
-        object_interaction_.HandleDeleteSelected();
-      },
-      "Del"
-    });
+    canvas_.AddContextMenuItem(
+      gui::CanvasMenuItem(ICON_MD_DELETE " Delete Selected", ICON_MD_DELETE,
+                          [this]() {
+                            object_interaction_.HandleDeleteSelected();
+                          },
+                          "Del")
+    );
     
     // Add room property quick toggles
-    canvas_.AddContextMenuItem({
-      ICON_MD_LAYERS " Toggle BG1",
-      [this, room_id]() {
-        auto& settings = GetRoomLayerSettings(room_id);
-        settings.bg1_visible = !settings.bg1_visible;
-      },
-      "1"
-    });
+    canvas_.AddContextMenuItem(
+      gui::CanvasMenuItem(ICON_MD_LAYERS " Toggle BG1", ICON_MD_LAYERS,
+                          [this, room_id]() {
+                            auto& settings = GetRoomLayerSettings(room_id);
+                            settings.bg1_visible = !settings.bg1_visible;
+                          },
+                          "1")
+    );
     
-    canvas_.AddContextMenuItem({
-      ICON_MD_LAYERS " Toggle BG2",
-      [this, room_id]() {
-        auto& settings = GetRoomLayerSettings(room_id);
-        settings.bg2_visible = !settings.bg2_visible;
-      },
-      "2"
-    });
+    canvas_.AddContextMenuItem(
+      gui::CanvasMenuItem(ICON_MD_LAYERS " Toggle BG2", ICON_MD_LAYERS,
+                          [this, room_id]() {
+                            auto& settings = GetRoomLayerSettings(room_id);
+                            settings.bg2_visible = !settings.bg2_visible;
+                          },
+                          "2")
+    );
     
     // Add re-render option
-    canvas_.AddContextMenuItem({
-      ICON_MD_REFRESH " Re-render Room",
-      [&room]() {
-        room.RenderRoomGraphics();
-      },
-      "Ctrl+R"
-    });
+    canvas_.AddContextMenuItem(
+      gui::CanvasMenuItem(ICON_MD_REFRESH " Re-render Room", ICON_MD_REFRESH,
+                          [&room]() {
+                            room.RenderRoomGraphics();
+                          },
+                          "Ctrl+R")
+    );
     
     // === DEBUG MENU ===
-    gui::Canvas::ContextMenuItem debug_menu;
+    gui::CanvasMenuItem debug_menu;
     debug_menu.label = ICON_MD_BUG_REPORT " Debug";
     
     // Show room info
-    debug_menu.subitems.push_back({
-      ICON_MD_INFO " Show Room Info",
-      [this, room_id]() {
-        show_room_debug_info_ = !show_room_debug_info_;
-      }
-    });
+    debug_menu.subitems.push_back(
+      gui::CanvasMenuItem(ICON_MD_INFO " Show Room Info", ICON_MD_INFO,
+                          [this]() {
+                            show_room_debug_info_ = !show_room_debug_info_;
+                          })
+    );
     
     // Show texture info
-    debug_menu.subitems.push_back({
-      ICON_MD_IMAGE " Show Texture Debug",
-      [this]() {
-        show_texture_debug_ = !show_texture_debug_;
-      }
-    });
+    debug_menu.subitems.push_back(
+      gui::CanvasMenuItem(ICON_MD_IMAGE " Show Texture Debug", ICON_MD_IMAGE,
+                          [this]() {
+                            show_texture_debug_ = !show_texture_debug_;
+                          })
+    );
     
     // Show object bounds with sub-menu for categories
-    gui::Canvas::ContextMenuItem object_bounds_menu;
+    gui::CanvasMenuItem object_bounds_menu;
     object_bounds_menu.label = ICON_MD_CROP_SQUARE " Show Object Bounds";
     object_bounds_menu.callback = [this]() {
       show_object_bounds_ = !show_object_bounds_;
     };
     
     // Sub-menu for filtering by type
-    object_bounds_menu.subitems.push_back({
-      "Type 1 (0x00-0xFF)",
-      [this]() {
-        object_outline_toggles_.show_type1_objects = !object_outline_toggles_.show_type1_objects;
-      }
-    });
-    object_bounds_menu.subitems.push_back({
-      "Type 2 (0x100-0x1FF)",
-      [this]() {
-        object_outline_toggles_.show_type2_objects = !object_outline_toggles_.show_type2_objects;
-      }
-    });
-    object_bounds_menu.subitems.push_back({
-      "Type 3 (0xF00-0xFFF)",
-      [this]() {
-        object_outline_toggles_.show_type3_objects = !object_outline_toggles_.show_type3_objects;
-      }
-    });
+    object_bounds_menu.subitems.push_back(
+      gui::CanvasMenuItem("Type 1 (0x00-0xFF)",
+                          [this]() {
+                            object_outline_toggles_.show_type1_objects = !object_outline_toggles_.show_type1_objects;
+                          })
+    );
+    object_bounds_menu.subitems.push_back(
+      gui::CanvasMenuItem("Type 2 (0x100-0x1FF)",
+                          [this]() {
+                            object_outline_toggles_.show_type2_objects = !object_outline_toggles_.show_type2_objects;
+                          })
+    );
+    object_bounds_menu.subitems.push_back(
+      gui::CanvasMenuItem("Type 3 (0xF00-0xFFF)",
+                          [this]() {
+                            object_outline_toggles_.show_type3_objects = !object_outline_toggles_.show_type3_objects;
+                          })
+    );
     
     // Separator
-    gui::Canvas::ContextMenuItem sep;
+    gui::CanvasMenuItem sep;
     sep.label = "---";
     sep.enabled_condition = []() { return false; };
     object_bounds_menu.subitems.push_back(sep);
     
     // Sub-menu for filtering by layer
-    object_bounds_menu.subitems.push_back({
-      "Layer 0 (BG1)",
-      [this]() {
-        object_outline_toggles_.show_layer0_objects = !object_outline_toggles_.show_layer0_objects;
-      }
-    });
-    object_bounds_menu.subitems.push_back({
-      "Layer 1 (BG2)",
-      [this]() {
-        object_outline_toggles_.show_layer1_objects = !object_outline_toggles_.show_layer1_objects;
-      }
-    });
-    object_bounds_menu.subitems.push_back({
-      "Layer 2 (BG3)",
-      [this]() {
-        object_outline_toggles_.show_layer2_objects = !object_outline_toggles_.show_layer2_objects;
-      }
-    });
+    object_bounds_menu.subitems.push_back(
+      gui::CanvasMenuItem("Layer 0 (BG1)",
+                          [this]() {
+                            object_outline_toggles_.show_layer0_objects = !object_outline_toggles_.show_layer0_objects;
+                          })
+    );
+    object_bounds_menu.subitems.push_back(
+      gui::CanvasMenuItem("Layer 1 (BG2)",
+                          [this]() {
+                            object_outline_toggles_.show_layer1_objects = !object_outline_toggles_.show_layer1_objects;
+                          })
+    );
+    object_bounds_menu.subitems.push_back(
+      gui::CanvasMenuItem("Layer 2 (BG3)",
+                          [this]() {
+                            object_outline_toggles_.show_layer2_objects = !object_outline_toggles_.show_layer2_objects;
+                          })
+    );
     
     debug_menu.subitems.push_back(object_bounds_menu);
     
     // Show layer info
-    debug_menu.subitems.push_back({
-      ICON_MD_LAYERS " Show Layer Info",
-      [this]() {
-        show_layer_info_ = !show_layer_info_;
-      }
-    });
+    debug_menu.subitems.push_back(
+      gui::CanvasMenuItem(ICON_MD_LAYERS " Show Layer Info", ICON_MD_LAYERS,
+                          [this]() {
+                            show_layer_info_ = !show_layer_info_;
+                          })
+    );
     
     // Force reload room
-    debug_menu.subitems.push_back({
-      ICON_MD_REFRESH " Force Reload",
-      [&room, room_id]() {
-        room.LoadObjects();
-        room.LoadRoomGraphics(room.blockset);
-        room.RenderRoomGraphics();
-      }
-    });
+    debug_menu.subitems.push_back(
+      gui::CanvasMenuItem(ICON_MD_REFRESH " Force Reload", ICON_MD_REFRESH,
+                          [&room]() {
+                            room.LoadObjects();
+                            room.LoadRoomGraphics(room.blockset);
+                            room.RenderRoomGraphics();
+                          })
+    );
     
     // Log room state
-    debug_menu.subitems.push_back({
-      ICON_MD_PRINT " Log Room State",
-      [&room, room_id]() {
-        LOG_DEBUG("DungeonDebug", "=== Room %03X Debug ===", room_id);
-        LOG_DEBUG("DungeonDebug", "Blockset: %d, Palette: %d, Layout: %d", 
-                  room.blockset, room.palette, room.layout);
-        LOG_DEBUG("DungeonDebug", "Objects: %zu, Sprites: %zu", 
-                  room.GetTileObjects().size(), room.GetSprites().size());
-        LOG_DEBUG("DungeonDebug", "BG1: %dx%d, BG2: %dx%d",
-                  room.bg1_buffer().bitmap().width(), room.bg1_buffer().bitmap().height(),
-                  room.bg2_buffer().bitmap().width(), room.bg2_buffer().bitmap().height());
-      }
-    });
+    debug_menu.subitems.push_back(
+      gui::CanvasMenuItem(ICON_MD_PRINT " Log Room State", ICON_MD_PRINT,
+                          [&room, room_id]() {
+                            LOG_DEBUG("DungeonDebug", "=== Room %03X Debug ===", room_id);
+                            LOG_DEBUG("DungeonDebug", "Blockset: %d, Palette: %d, Layout: %d", 
+                                      room.blockset, room.palette, room.layout);
+                            LOG_DEBUG("DungeonDebug", "Objects: %zu, Sprites: %zu", 
+                                      room.GetTileObjects().size(), room.GetSprites().size());
+                            LOG_DEBUG("DungeonDebug", "BG1: %dx%d, BG2: %dx%d",
+                                      room.bg1_buffer().bitmap().width(), room.bg1_buffer().bitmap().height(),
+                                      room.bg2_buffer().bitmap().width(), room.bg2_buffer().bitmap().height());
+                          })
+    );
     
     canvas_.AddContextMenuItem(debug_menu);
   }
