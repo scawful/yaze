@@ -1,14 +1,18 @@
 #ifndef YAZE_APP_ZELDA3_OVERWORLD_ENTRANCE_H
 #define YAZE_APP_ZELDA3_OVERWORLD_ENTRANCE_H
 
+#include <array>
 #include <cstdint>
+#include <cstdlib>
+#include <vector>
 
+#include "absl/status/status.h"
+#include "absl/status/statusor.h"
 #include "app/rom.h"
-#include "zelda3/common.h"
 #include "util/macro.h"
+#include "zelda3/common.h"
 
-namespace yaze {
-namespace zelda3 {
+namespace yaze::zelda3 {
 
 // EXPANDED to 0x78000 to 0x7A000
 constexpr int kEntranceRoomEXP = 0x078000;
@@ -48,6 +52,8 @@ constexpr int kOverworldEntranceEntranceId = 0xDBB73;
 constexpr int kOverworldEntranceMapExpanded = 0x0DB55F;
 constexpr int kOverworldEntrancePosExpanded = 0x0DB35F;
 constexpr int kOverworldEntranceEntranceIdExpanded = 0x0DB75F;
+
+constexpr int kOverworldEntranceExpandedFlagPos = 0x0DB895;  // 0xB8
 
 // (0x13 entries, 2 bytes each) modified(less 0x400)
 // map16 coordinates for each hole
@@ -124,8 +130,17 @@ struct OverworldEntranceTileTypes {
   std::array<uint16_t, kNumEntranceTileTypes> high;
 };
 
+absl::StatusOr<std::vector<OverworldEntrance>> LoadEntrances(Rom* rom);
+absl::StatusOr<std::vector<OverworldEntrance>> LoadHoles(Rom* rom);
+
+absl::Status SaveEntrances(Rom* rom,
+                           const std::vector<OverworldEntrance>& entrances,
+                           bool expanded_entrances);
+absl::Status SaveHoles(Rom* rom,
+                       const std::vector<OverworldEntrance>& holes);
+
 inline absl::StatusOr<OverworldEntranceTileTypes> LoadEntranceTileTypes(
-    Rom *rom) {
+    Rom* rom) {
   OverworldEntranceTileTypes tiletypes;
   for (int i = 0; i < kNumEntranceTileTypes; i++) {
     ASSIGN_OR_RETURN(auto value_low,
@@ -138,7 +153,6 @@ inline absl::StatusOr<OverworldEntranceTileTypes> LoadEntranceTileTypes(
   return tiletypes;
 }
 
-}  // namespace zelda3
-}  // namespace yaze
+}  // namespace yaze::zelda3
 
 #endif

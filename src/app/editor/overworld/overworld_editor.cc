@@ -1692,10 +1692,6 @@ absl::Status OverworldEditor::DrawAreaGraphics() {
   return absl::OkStatus();
 }
 
-// DrawTileSelector() removed - replaced by individual card system in Update()
-// DrawOverworldEntrances(), DrawOverworldExits(), DrawOverworldItems(), DrawOverworldSprites()
-// removed - moved to OverworldEntityRenderer
-
 absl::Status OverworldEditor::Save() {
   if (core::FeatureFlags::get().overworld.kSaveOverworldMaps) {
     RETURN_IF_ERROR(overworld_.CreateTile32Tilemap());
