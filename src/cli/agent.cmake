@@ -171,4 +171,20 @@ if(YAZE_WITH_GRPC)
   message(STATUS "✓ gRPC GUI automation enabled for yaze_agent")
 endif()
 
+# Link test support when tests are enabled (agent uses test harness functions)
+if(YAZE_BUILD_TESTS AND TARGET yaze_test_support)
+  if(APPLE)
+    target_link_options(yaze_agent PUBLIC 
+      "LINKER:-force_load,$<TARGET_FILE:yaze_test_support>")
+    target_link_libraries(yaze_agent PUBLIC yaze_test_support)
+  elseif(UNIX)
+    target_link_libraries(yaze_agent PUBLIC 
+      -Wl,--whole-archive yaze_test_support -Wl,--no-whole-archive)
+  else()
+    # Windows: Normal linking
+    target_link_libraries(yaze_agent PUBLIC yaze_test_support)
+  endif()
+  message(STATUS "✓ yaze_agent linked to yaze_test_support")
+endif()
+
 set_target_properties(yaze_agent PROPERTIES POSITION_INDEPENDENT_CODE ON)
