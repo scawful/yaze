@@ -9,6 +9,7 @@
 #include "app/gui/core/input.h"
 #include "app/gui/core/layout_helpers.h"
 #include "zelda3/overworld/overworld_map.h"
+#include "zelda3/overworld/overworld_version_helper.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -60,15 +61,15 @@ void MapPropertiesSystem::DrawSimplifiedMapSettings(
     ImGui::Text("%d (0x%02X)", current_map, current_map);
 
     TableNextColumn();
-    // IMPORTANT: Don't cache - read fresh to reflect ROM upgrades
-    uint8_t asm_version = (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
+    // Use centralized version detection
+    auto rom_version = zelda3::OverworldVersionHelper::GetVersion(*rom_);
     
     // ALL ROMs support Small/Large. Only v3+ supports Wide/Tall.
     int current_area_size =
         static_cast<int>(overworld_->overworld_map(current_map)->area_size());
     ImGui::SetNextItemWidth(kComboAreaSizeWidth);
     
-    if (asm_version >= 3 && asm_version != 0xFF) {
+    if (zelda3::OverworldVersionHelper::SupportsAreaEnum(rom_version)) {
       // v3+ ROM: Show all 4 area size options
       if (ImGui::Combo("##AreaSize", &current_area_size, kAreaSizeNames, 4)) {
         auto status = overworld_->ConfigureMultiAreaMap(
@@ -95,7 +96,8 @@ void MapPropertiesSystem::DrawSimplifiedMapSettings(
         }
       }
       
-      if (asm_version == 0xFF || asm_version < 3) {
+      if (rom_version == zelda3::OverworldVersion::kVanilla || 
+          !zelda3::OverworldVersionHelper::SupportsAreaEnum(rom_version)) {
         HOVER_HINT("Small (1x1) and Large (2x2) maps. Wide/Tall require v3+");
       }
     }
@@ -223,9 +225,9 @@ void MapPropertiesSystem::DrawMapPropertiesPanel(
     }
 
     // Custom Overworld Features Tab
-    uint8_t asm_version =
-        (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
-    if (asm_version != 0xFF && ImGui::BeginTabItem("Custom Features")) {
+    auto rom_version = zelda3::OverworldVersionHelper::GetVersion(*rom_);
+    if (rom_version != zelda3::OverworldVersion::kVanilla && 
+        ImGui::BeginTabItem("Custom Features")) {
       DrawCustomFeaturesTab(current_map);
       ImGui::EndTabItem();
     }
@@ -254,9 +256,8 @@ void MapPropertiesSystem::DrawCustomBackgroundColorEditor(
     return;
   }
 
-  uint8_t asm_version =
-      (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
-  if (asm_version < 2) {
+  auto rom_version = zelda3::OverworldVersionHelper::GetVersion(*rom_);
+  if (!zelda3::OverworldVersionHelper::SupportsCustomBGColors(rom_version)) {
     Text("Custom background colors require ZSCustomOverworld v2+");
     return;
   }
@@ -309,15 +310,14 @@ void MapPropertiesSystem::DrawOverlayEditor(int current_map,
     return;
   }
 
-  uint8_t asm_version =
-      (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
+  auto rom_version = zelda3::OverworldVersionHelper::GetVersion(*rom_);
   
   ImGui::TextColored(ImVec4(0.4f, 0.8f, 1.0f, 1.0f),
                      ICON_MD_LAYERS " Visual Effects Configuration");
   ImGui::Text("Map: 0x%02X", current_map);
   Separator();
 
-  if (asm_version < 1) {
+  if (rom_version == zelda3::OverworldVersion::kVanilla) {
     ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.4f, 1.0f),
                        ICON_MD_WARNING " Subscreen overlays require ZSCustomOverworld v1+");
     ImGui::Separator();
@@ -491,9 +491,8 @@ void MapPropertiesSystem::SetupCanvasContextMenu(
   canvas.AddContextMenuItem(properties_item);
 
   // Custom overworld features (only show if v3+)
-  uint8_t asm_version =
-      (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
-  if (asm_version >= 3 && asm_version != 0xFF) {
+  auto rom_version = zelda3::OverworldVersionHelper::GetVersion(*rom_);
+  if (zelda3::OverworldVersionHelper::SupportsAreaEnum(rom_version)) {
     // Custom Background Color
     gui::CanvasMenuItem bg_color_item;
     bg_color_item.label = ICON_MD_FORMAT_COLOR_FILL " Custom Background Color";
@@ -589,9 +588,8 @@ void MapPropertiesSystem::DrawGraphicsPopup(int current_map, int game_state) {
     }
     HOVER_HINT("Sprite graphics sheet for current game state");
 
-    uint8_t asm_version =
-        (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
-    if (asm_version >= 3) {
+    auto rom_version_gfx = zelda3::OverworldVersionHelper::GetVersion(*rom_);
+    if (zelda3::OverworldVersionHelper::SupportsAnimatedGFX(rom_version_gfx)) {
       if (gui::InputHexByte(ICON_MD_ANIMATION " Animated GFX",
                                   overworld_->mutable_overworld_map(current_map)
                                       ->mutable_animated_gfx(),
@@ -605,7 +603,7 @@ void MapPropertiesSystem::DrawGraphicsPopup(int current_map, int game_state) {
     }
 
     // Custom Tile Graphics - Only available for v1+ ROMs
-    if (asm_version >= 1 && asm_version != 0xFF) {
+    if (zelda3::OverworldVersionHelper::SupportsExpandedSpace(rom_version_gfx)) {
       ImGui::Separator();
       ImGui::Text(ICON_MD_GRID_VIEW " Custom Tile Graphics");
       ImGui::Separator();
@@ -631,7 +629,7 @@ void MapPropertiesSystem::DrawGraphicsPopup(int current_map, int game_state) {
         }
         ImGui::EndTable();
       }
-    } else if (asm_version == 0xFF) {
+    } else if (rom_version_gfx == zelda3::OverworldVersion::kVanilla) {
       ImGui::Separator();
       ImGui::TextColored(ImVec4(0.6f, 0.6f, 0.6f, 1.0f), 
                          ICON_MD_INFO " Custom Tile Graphics");
@@ -672,8 +670,8 @@ void MapPropertiesSystem::DrawPalettesPopup(int current_map, int game_state,
     HOVER_HINT("Main color palette for background tiles");
 
     // Read fresh to reflect ROM upgrades
-    uint8_t asm_version = (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
-    if (asm_version >= 2) {
+    auto rom_version_pal = zelda3::OverworldVersionHelper::GetVersion(*rom_);
+    if (zelda3::OverworldVersionHelper::SupportsCustomBGColors(rom_version_pal)) {
       if (gui::InputHexByte(ICON_MD_COLOR_LENS " Main Palette",
                                   overworld_->mutable_overworld_map(current_map)
                                       ->mutable_main_palette(),
@@ -1037,14 +1035,13 @@ void MapPropertiesSystem::DrawCustomFeaturesTab(int current_map) {
     ImGui::Text(ICON_MD_PHOTO_SIZE_SELECT_LARGE " Area Size");
     TableNextColumn();
     // ALL ROMs support Small/Large. Only v3+ supports Wide/Tall.
-    uint8_t asm_version =
-        (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
+    auto rom_version_basic = zelda3::OverworldVersionHelper::GetVersion(*rom_);
     
     int current_area_size =
         static_cast<int>(overworld_->overworld_map(current_map)->area_size());
     ImGui::SetNextItemWidth(130.f);
     
-    if (asm_version >= 3 && asm_version != 0xFF) {
+    if (zelda3::OverworldVersionHelper::SupportsAreaEnum(rom_version_basic)) {
       // v3+ ROM: Show all 4 area size options
       static const char* all_sizes[] = {"Small (1x1)", "Large (2x2)",
                                         "Wide (2x1)", "Tall (1x2)"};
@@ -1079,7 +1076,7 @@ void MapPropertiesSystem::DrawCustomFeaturesTab(int current_map) {
       }
     }
 
-    if (asm_version >= 2) {
+    if (zelda3::OverworldVersionHelper::SupportsCustomBGColors(rom_version_basic)) {
       TableNextColumn();
       ImGui::Text(ICON_MD_COLOR_LENS " Main Palette");
       TableNextColumn();
@@ -1096,7 +1093,7 @@ void MapPropertiesSystem::DrawCustomFeaturesTab(int current_map) {
       }
     }
 
-    if (asm_version >= 3) {
+    if (zelda3::OverworldVersionHelper::SupportsAnimatedGFX(rom_version_basic)) {
       TableNextColumn();
       ImGui::Text(ICON_MD_ANIMATION " Animated GFX");
       TableNextColumn();
@@ -1131,10 +1128,10 @@ void MapPropertiesSystem::DrawCustomFeaturesTab(int current_map) {
 }
 
 void MapPropertiesSystem::DrawTileGraphicsTab(int current_map) {
-  uint8_t asm_version = (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
+  auto rom_version = zelda3::OverworldVersionHelper::GetVersion(*rom_);
   
   // Only show custom tile graphics for v1+ ROMs
-  if (asm_version >= 1 && asm_version != 0xFF) {
+  if (zelda3::OverworldVersionHelper::SupportsExpandedSpace(rom_version)) {
     ImGui::Text(ICON_MD_GRID_VIEW " Custom Tile Graphics (8 sheets)");
     Separator();
 
@@ -1350,9 +1347,8 @@ void MapPropertiesSystem::RefreshSiblingMapGraphics(int map_index, bool include_
 }
 
 void MapPropertiesSystem::DrawMosaicControls(int current_map) {
-  uint8_t asm_version =
-      (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
-  if (asm_version >= 2) {
+  auto rom_version = zelda3::OverworldVersionHelper::GetVersion(*rom_);
+  if (zelda3::OverworldVersionHelper::SupportsCustomBGColors(rom_version)) {
     ImGui::Separator();
     ImGui::Text("Mosaic Effects (per direction):");
 
@@ -1379,8 +1375,7 @@ void MapPropertiesSystem::DrawMosaicControls(int current_map) {
 
 void MapPropertiesSystem::DrawOverlayControls(int current_map,
                                               bool& show_overlay_preview) {
-  uint8_t asm_version =
-      (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
+  auto rom_version = zelda3::OverworldVersionHelper::GetVersion(*rom_);
 
   // Determine if this is a special overworld map (0x80-0x9F)
   bool is_special_overworld_map = (current_map >= 0x80 && current_map < 0xA0);
@@ -1491,7 +1486,7 @@ void MapPropertiesSystem::DrawOverlayControls(int current_map,
     ImGui::Separator();
 
     // Interactive/Dynamic Map Overlay Section (for vanilla ROMs)
-    if (asm_version == 0xFF) {
+    if (rom_version == zelda3::OverworldVersion::kVanilla) {
       ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.4f, 1.0f),
                          ICON_MD_EDIT_NOTE " Map Overlay (Interactive)");
       ImGui::SameLine();
@@ -1537,16 +1532,17 @@ void MapPropertiesSystem::DrawOverlayControls(int current_map,
 
     // Show version and capability info
     ImGui::Separator();
-    if (asm_version == 0xFF) {
+    if (rom_version == zelda3::OverworldVersion::kVanilla) {
       ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f),
                          ICON_MD_INFO " Vanilla ROM");
       ImGui::BulletText("Visual effects use maps 0x80-0x9F");
       ImGui::BulletText("Map overlays are read-only");
     } else {
+      const char* version_name = zelda3::OverworldVersionHelper::GetVersionName(rom_version);
       ImGui::TextColored(ImVec4(0.4f, 1.0f, 0.4f, 1.0f),
-                         ICON_MD_UPGRADE " ZSCustomOverworld v%d", asm_version);
+                         ICON_MD_UPGRADE " %s", version_name);
       ImGui::BulletText("Enhanced visual effect control");
-      if (asm_version >= 3) {
+      if (zelda3::OverworldVersionHelper::SupportsAreaEnum(rom_version)) {
         ImGui::BulletText("Extended overlay system");
         ImGui::BulletText("Custom area sizes support");
       }
@@ -1592,8 +1588,6 @@ void MapPropertiesSystem::DrawOverlayPreviewOnMap(int current_map,
   uint16_t overlay_id = 0x00FF;
   bool has_subscreen_overlay = false;
 
-  uint8_t asm_version =
-      (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
   bool is_special_overworld_map = (current_map >= 0x80 && current_map < 0xA0);
 
   if (is_special_overworld_map) {

@@ -6,7 +6,8 @@
 namespace yaze {
 namespace zelda3 {
 
-void Sprite::UpdateMapProperties(uint16_t map_id) {
+void Sprite::UpdateMapProperties(uint16_t map_id, const void* context) {
+  (void)context;  // Not used by sprites currently
   map_x_ = x_;
   map_y_ = y_;
   name_ = kSpriteDefaultNames[id_];

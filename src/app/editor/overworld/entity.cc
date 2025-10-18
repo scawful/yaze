@@ -3,7 +3,10 @@
 #include "app/gui/core/icons.h"
 #include "app/gui/core/input.h"
 #include "app/gui/core/style.h"
+#include "imgui.h"
 #include "util/hex.h"
+#include "zelda3/common.h"
+#include "zelda3/overworld/overworld_item.h"
 
 namespace yaze {
 namespace editor {
@@ -26,11 +29,8 @@ bool IsMouseHoveringOverEntity(const zelda3::GameEntity &entity,
   const ImVec2 mouse_pos(io.MousePos.x - origin.x, io.MousePos.y - origin.y);
 
   // Check if the mouse is hovering over the entity
-  if (mouse_pos.x >= entity.x_ && mouse_pos.x <= entity.x_ + 16 &&
-      mouse_pos.y >= entity.y_ && mouse_pos.y <= entity.y_ + 16) {
-    return true;
-  }
-  return false;
+  return mouse_pos.x >= entity.x_ && mouse_pos.x <= entity.x_ + 16 &&
+      mouse_pos.y >= entity.y_ && mouse_pos.y <= entity.y_ + 16;
 }
 
 void MoveEntityOnGrid(zelda3::GameEntity *entity, ImVec2 canvas_p0,
@@ -154,6 +154,7 @@ bool DrawExitEditorPopup(zelda3::OverworldExit &exit) {
   static bool set_done = false;
   if (set_done) {
     set_done = false;
+    return true;
   }
   if (ImGui::BeginPopupModal("Exit editor", NULL,
                              ImGuiWindowFlags_AlwaysAutoResize)) {
@@ -207,7 +208,9 @@ bool DrawExitEditorPopup(zelda3::OverworldExit &exit) {
     if (show_properties) {
       Text("Deleted? %s", exit.deleted_ ? "true" : "false");
       Text("Hole? %s", exit.is_hole_ ? "true" : "false");
-      Text("Large Map? %s", exit.large_map_ ? "true" : "false");
+      Text("Auto-calc scroll/camera? %s", exit.is_automatic_ ? "true" : "false");
+      Text("Map ID: 0x%02X", exit.map_id_);
+      Text("Game coords: (%d, %d)", exit.game_x_, exit.game_y_);
     }
 
     gui::TextWithSeparators("Unimplemented below");
@@ -260,19 +263,21 @@ bool DrawExitEditorPopup(zelda3::OverworldExit &exit) {
     }
 
     if (Button(ICON_MD_DONE)) {
+      set_done = true;  // FIX: Save changes when Done is clicked
       ImGui::CloseCurrentPopup();
     }
 
     SameLine();
 
     if (Button(ICON_MD_CANCEL)) {
-      set_done = true;
+      // FIX: Discard changes - don't set set_done
       ImGui::CloseCurrentPopup();
     }
 
     SameLine();
     if (Button(ICON_MD_DELETE)) {
       exit.deleted_ = true;
+      set_done = true;  // FIX: Save deletion when Delete is clicked
       ImGui::CloseCurrentPopup();
     }
 
@@ -316,6 +321,7 @@ bool DrawItemEditorPopup(zelda3::OverworldItem &item) {
   static bool set_done = false;
   if (set_done) {
     set_done = false;
+    return true;
   }
   if (ImGui::BeginPopupModal("Item editor", NULL,
                              ImGuiWindowFlags_AlwaysAutoResize)) {
@@ -325,20 +331,26 @@ bool DrawItemEditorPopup(zelda3::OverworldItem &item) {
     for (size_t i = 0; i < zelda3::kSecretItemNames.size(); i++) {
       if (Selectable(zelda3::kSecretItemNames[i].c_str(), item.id_ == i)) {
         item.id_ = i;
+        item.entity_id_ = i;
+        item.UpdateMapProperties(item.map_id_, nullptr);
       }
     }
     ImGui::EndGroup();
     EndChild();
 
-    if (Button(ICON_MD_DONE)) ImGui::CloseCurrentPopup();
+    if (Button(ICON_MD_DONE)) {
+      set_done = true;  // FIX: Save changes when Done is clicked
+      ImGui::CloseCurrentPopup();
+    }
     SameLine();
     if (Button(ICON_MD_CLOSE)) {
-      set_done = true;
+      // FIX: Discard changes - don't set set_done
       ImGui::CloseCurrentPopup();
     }
     SameLine();
     if (Button(ICON_MD_DELETE)) {
       item.deleted = true;
+      set_done = true;  // FIX: Save deletion when Delete is clicked
       ImGui::CloseCurrentPopup();
     }
 
@@ -437,6 +449,7 @@ bool DrawSpriteEditorPopup(zelda3::Sprite &sprite) {
   static bool set_done = false;
   if (set_done) {
     set_done = false;
+    return true;
   }
   if (ImGui::BeginPopupModal("Sprite editor", NULL,
                              ImGuiWindowFlags_AlwaysAutoResize)) {
@@ -447,20 +460,24 @@ bool DrawSpriteEditorPopup(zelda3::Sprite &sprite) {
 
     DrawSpriteTable([&sprite](int selected_id) {
       sprite.set_id(selected_id);
-      sprite.UpdateMapProperties(sprite.map_id());
+      sprite.UpdateMapProperties(sprite.map_id(), nullptr);
     });
     ImGui::EndGroup();
     EndChild();
 
-    if (Button(ICON_MD_DONE)) ImGui::CloseCurrentPopup();
+    if (Button(ICON_MD_DONE)) {
+      set_done = true;  // FIX: Save changes when Done is clicked
+      ImGui::CloseCurrentPopup();
+    }
     SameLine();
     if (Button(ICON_MD_CLOSE)) {
-      set_done = true;
+      // FIX: Discard changes - don't set set_done
       ImGui::CloseCurrentPopup();
     }
     SameLine();
     if (Button(ICON_MD_DELETE)) {
       sprite.set_deleted(true);
+      set_done = true;  // FIX: Save deletion when Delete is clicked
       ImGui::CloseCurrentPopup();
     }
 

@@ -9,6 +9,7 @@
 #include "absl/status/status.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/gfx/types/snes_tile.h"
+#include "zelda3/overworld/overworld_version_helper.h"
 #include "app/rom.h"
 
 namespace yaze {
@@ -83,12 +84,7 @@ typedef struct OverworldMapTiles {
   OverworldBlockset special_world;  // 32 maps
 } OverworldMapTiles;
 
-enum class AreaSizeEnum {
-  SmallArea = 0,
-  LargeArea = 1,
-  WideArea = 2,
-  TallArea = 3,
-};
+
 
 /**
  * @brief Represents a single Overworld map screen.

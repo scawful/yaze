@@ -1,4 +1,5 @@
 #include "overworld_entity_renderer.h"
+#include <string>
 
 #include "absl/strings/str_format.h"
 #include "core/features.h"
@@ -7,6 +8,7 @@
 #include "zelda3/common.h"
 #include "util/hex.h"
 #include "imgui/imgui.h"
+#include "zelda3/overworld/overworld_item.h"
 
 namespace yaze {
 namespace editor {
@@ -24,7 +26,7 @@ ImVec4 GetSpriteColor()  { return ImVec4{1.0f, 0.0f, 1.0f, 1.0f}; }        // So
 void OverworldEntityRenderer::DrawEntrances(ImVec2 canvas_p0, ImVec2 scrolling,
                                            int current_world,
                                            int current_mode) {
-  hovered_entity_ = nullptr;
+  // Don't reset hovered_entity_ here - DrawExits resets it (called first)
   int i = 0;
   for (auto& each : overworld_->entrances()) {
     if (each.map_id_ < 0x40 + (current_world * 0x40) &&
@@ -56,11 +58,15 @@ void OverworldEntityRenderer::DrawEntrances(ImVec2 canvas_p0, ImVec2 scrolling,
 void OverworldEntityRenderer::DrawExits(ImVec2 canvas_p0, ImVec2 scrolling,
                                        int current_world,
                                        int current_mode) {
+  // Reset hover state at the start of entity rendering (DrawExits is called first)
+  hovered_entity_ = nullptr;
+  
   int i = 0;
   for (auto& each : *overworld_->mutable_exits()) {
     if (each.map_id_ < 0x40 + (current_world * 0x40) &&
         each.map_id_ >= (current_world * 0x40) && !each.deleted_) {
       canvas_->DrawRect(each.x_, each.y_, 16, 16, GetExitColor());
+
       if (IsMouseHoveringOverEntity(each, canvas_p0, scrolling)) {
         hovered_entity_ = &each;
       }
@@ -91,7 +97,7 @@ void OverworldEntityRenderer::DrawItems(int current_world, int current_mode) {
       }
 
       
-            std::string item_name = "";
+      std::string item_name = "";
       if (item.id_ < zelda3::kSecretItemNames.size()) {
         item_name = zelda3::kSecretItemNames[item.id_];
       } else {
