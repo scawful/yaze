@@ -11,10 +11,10 @@
 
 cmake_minimum_required(VERSION 3.16)
 
-# Option to use vcpkg for gRPC on Windows
-option(YAZE_USE_VCPKG_GRPC "Use vcpkg pre-compiled gRPC packages (Windows only)" ON)
+# Option to use vcpkg for gRPC on Windows (default OFF for CI reliability)
+option(YAZE_USE_VCPKG_GRPC "Use vcpkg pre-compiled gRPC packages (Windows only)" OFF)
 
-if(WIN32 AND YAZE_USE_VCPKG_GRPC)
+if(WIN32 AND YAZE_USE_VCPKG_GRPC AND DEFINED CMAKE_TOOLCHAIN_FILE)
   message(STATUS "Attempting to use vcpkg gRPC packages for faster Windows builds...")
   message(STATUS "  Note: If gRPC not in vcpkg.json, will fallback to FetchContent (recommended)")
   
@@ -170,7 +170,6 @@ if(WIN32 AND YAZE_USE_VCPKG_GRPC)
     
     # Export protobuf targets (vcpkg uses protobuf:: namespace)
     set(YAZE_PROTOBUF_TARGETS protobuf::libprotobuf PARENT_SCOPE)
-    set(YAZE_PROTOBUF_WHOLEARCHIVE_TARGETS protobuf::libprotobuf PARENT_SCOPE)
     
     # Get protobuf include directories for proto generation
     get_target_property(_PROTOBUF_INCLUDE_DIRS protobuf::libprotobuf 

@@ -108,30 +108,8 @@ if(YAZE_WITH_GRPC)
     ${CMAKE_SOURCE_DIR}/third_party/json/include)
   target_compile_definitions(yaze_app_core_lib PRIVATE YAZE_WITH_JSON)
 
-  # Add proto definitions for ROM service, canvas automation, and test harness
-  # Test harness proto is needed because widget_discovery_service.h includes it
-  target_add_protobuf(yaze_app_core_lib
-    ${PROJECT_SOURCE_DIR}/src/protos/rom_service.proto)
-  target_add_protobuf(yaze_app_core_lib
-    ${PROJECT_SOURCE_DIR}/src/protos/canvas_automation.proto)
-  target_add_protobuf(yaze_app_core_lib
-    ${PROJECT_SOURCE_DIR}/src/protos/imgui_test_harness.proto)
-
-  # Add unified gRPC server (non-test services only)
-  target_sources(yaze_app_core_lib PRIVATE
-    ${CMAKE_SOURCE_DIR}/src/app/service/unified_grpc_server.cc
-    ${CMAKE_SOURCE_DIR}/src/app/service/unified_grpc_server.h
-  )
-
-  target_link_libraries(yaze_app_core_lib PUBLIC
-    grpc++
-    grpc++_reflection
-  )
-  # NOTE: Do NOT link protobuf at library level on Windows - causes LNK1241
-  # Executables will link it with /WHOLEARCHIVE to include internal symbols
-  if(NOT WIN32 AND YAZE_PROTOBUF_TARGETS)
-    target_link_libraries(yaze_app_core_lib PUBLIC ${YAZE_PROTOBUF_TARGETS})
-  endif()
+  # Link to consolidated gRPC support library
+  target_link_libraries(yaze_app_core_lib PUBLIC yaze_grpc_support)
   
   message(STATUS "  - gRPC ROM service + canvas automation enabled")
 endif()
@@ -202,22 +180,7 @@ target_link_libraries(yaze PRIVATE
   absl::flags
   absl::flags_parse
 )
-if(YAZE_WITH_GRPC AND YAZE_PROTOBUF_TARGETS)
-  # On Windows: Use /WHOLEARCHIVE instead of normal linking to include internal symbols
-  # On Unix: Use normal linking (symbols resolve correctly without whole-archive)
-  if(MSVC AND YAZE_PROTOBUF_WHOLEARCHIVE_TARGETS)
-    foreach(_yaze_proto_target IN LISTS YAZE_PROTOBUF_WHOLEARCHIVE_TARGETS)
-      if(TARGET ${_yaze_proto_target})
-        get_target_property(_target_type ${_yaze_proto_target} TYPE)
-        if(_target_type MATCHES ".*_LIBRARY")
-          target_link_options(yaze PRIVATE /WHOLEARCHIVE:$<TARGET_FILE:${_yaze_proto_target}>)
-        endif()
-      endif()
-    endforeach()
-  else()
-    target_link_libraries(yaze PRIVATE ${YAZE_PROTOBUF_TARGETS})
-  endif()
-endif()
+# gRPC/protobuf linking is now handled by yaze_grpc_support library
 
 # Link test support library (yaze_editor needs TestManager)
 if(TARGET yaze_test_support)

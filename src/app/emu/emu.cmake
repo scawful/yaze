@@ -34,19 +34,7 @@ if(YAZE_BUILD_EMU AND NOT YAZE_MINIMAL_BUILD)
     message(WARNING "yaze_emu needs yaze_test_support but TARGET not found")
   endif()
 
-  # Windows: Link protobuf with /WHOLEARCHIVE (not via libraries to avoid LNK1241)
-  if(WIN32 AND MSVC AND YAZE_WITH_GRPC AND YAZE_PROTOBUF_WHOLEARCHIVE_TARGETS)
-    foreach(_yaze_proto_target IN LISTS YAZE_PROTOBUF_WHOLEARCHIVE_TARGETS)
-      if(TARGET ${_yaze_proto_target})
-        get_target_property(_target_type ${_yaze_proto_target} TYPE)
-        if(_target_type MATCHES ".*_LIBRARY")
-          target_link_options(yaze_emu PRIVATE /WHOLEARCHIVE:$<TARGET_FILE:${_yaze_proto_target}>)
-        endif()
-      endif()
-    endforeach()
-  elseif(YAZE_WITH_GRPC AND YAZE_PROTOBUF_TARGETS)
-    target_link_libraries(yaze_emu PRIVATE ${YAZE_PROTOBUF_TARGETS})
-  endif()
+  # gRPC/protobuf linking is now handled by yaze_grpc_support library
 
   # Test engine is always available when tests are built
   # No need for conditional definitions
@@ -68,19 +56,7 @@ if(YAZE_BUILD_EMU AND NOT YAZE_MINIMAL_BUILD)
     absl::str_format
   )
   
-  # Windows: Link protobuf with /WHOLEARCHIVE (not via libraries to avoid LNK1241)
-  if(WIN32 AND MSVC AND YAZE_WITH_GRPC AND YAZE_PROTOBUF_WHOLEARCHIVE_TARGETS)
-    foreach(_yaze_proto_target IN LISTS YAZE_PROTOBUF_WHOLEARCHIVE_TARGETS)
-      if(TARGET ${_yaze_proto_target})
-        get_target_property(_target_type ${_yaze_proto_target} TYPE)
-        if(_target_type MATCHES ".*_LIBRARY")
-          target_link_options(yaze_emu_test PRIVATE /WHOLEARCHIVE:$<TARGET_FILE:${_yaze_proto_target}>)
-        endif()
-      endif()
-    endforeach()
-  elseif(YAZE_WITH_GRPC AND YAZE_PROTOBUF_TARGETS)
-    target_link_libraries(yaze_emu_test PRIVATE ${YAZE_PROTOBUF_TARGETS})
-  endif()
+  # gRPC/protobuf linking is now handled by yaze_grpc_support library
   
   message(STATUS "✓ yaze_emu_test: Headless emulator test harness configured")
   message(STATUS "✓ yaze_emu: Standalone emulator executable configured")

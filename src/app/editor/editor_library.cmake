@@ -163,15 +163,7 @@ endif()
 
 # Conditionally link gRPC if enabled
 if(YAZE_WITH_GRPC)
-  target_link_libraries(yaze_editor PRIVATE
-    grpc++
-    grpc++_reflection
-  )
-  # NOTE: Do NOT link protobuf at library level on Windows - causes LNK1241
-  # Executables will link it with /WHOLEARCHIVE to include internal symbols
-  if(NOT WIN32 AND YAZE_PROTOBUF_TARGETS)
-    target_link_libraries(yaze_editor PRIVATE ${YAZE_PROTOBUF_TARGETS})
-  endif()
+  target_link_libraries(yaze_editor PUBLIC yaze_grpc_support)
 endif()
 
 set_target_properties(yaze_editor PROPERTIES

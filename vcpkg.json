@@ -12,6 +12,11 @@
     {
       "name": "yaml-cpp",
       "platform": "windows"
+    },
+    {
+      "name": "grpc",
+      "platform": "windows",
+      "features": ["codegen"]
     }
   ]
 }

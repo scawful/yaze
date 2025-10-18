@@ -47,19 +47,7 @@ set(HELPER_TOOLS
 )
 
 foreach(TOOL ${HELPER_TOOLS})
-  # Windows: Link protobuf with /WHOLEARCHIVE (not via yaze_core to avoid LNK1241)
-  if(WIN32 AND MSVC AND YAZE_WITH_GRPC AND YAZE_PROTOBUF_WHOLEARCHIVE_TARGETS)
-    foreach(_yaze_proto_target IN LISTS YAZE_PROTOBUF_WHOLEARCHIVE_TARGETS)
-      if(TARGET ${_yaze_proto_target})
-        get_target_property(_target_type ${_yaze_proto_target} TYPE)
-        if(_target_type MATCHES ".*_LIBRARY")
-          target_link_options(${TOOL} PRIVATE /WHOLEARCHIVE:$<TARGET_FILE:${_yaze_proto_target}>)
-        endif()
-      endif()
-    endforeach()
-  elseif(YAZE_WITH_GRPC AND YAZE_PROTOBUF_TARGETS)
-    target_link_libraries(${TOOL} PRIVATE ${YAZE_PROTOBUF_TARGETS})
-  endif()
+  # gRPC/protobuf linking is now handled by yaze_grpc_support library
   
   if(WIN32)
     if(MSVC)

@@ -95,16 +95,7 @@ else()
   endif()
 endif()
 
-# Filter WHOLEARCHIVE targets to only include libraries (not executables like protoc)
-set(YAZE_PROTOBUF_WHOLEARCHIVE_TARGETS)
-foreach(_proto_target IN LISTS YAZE_PROTOBUF_TARGETS)
-  if(TARGET ${_proto_target})
-    get_target_property(_target_type ${_proto_target} TYPE)
-    if(_target_type MATCHES ".*_LIBRARY")
-      list(APPEND YAZE_PROTOBUF_WHOLEARCHIVE_TARGETS ${_proto_target})
-    endif()
-  endif()
-endforeach()
+# WHOLEARCHIVE logic removed - protobuf linking now handled by yaze_grpc_support library
 
 if(YAZE_PROTOBUF_TARGETS)
   list(GET YAZE_PROTOBUF_TARGETS 0 YAZE_PROTOBUF_TARGET)

@@ -67,6 +67,9 @@ set(YAZE_WITH_JSON ON)
 set(YAZE_WITH_GRPC ON)
 set(Z3ED_AI ON)
 
+# vcpkg option for desktop users (faster gRPC builds on Windows)
+option(YAZE_USE_VCPKG_GRPC "Use vcpkg for gRPC on Windows (faster for desktop)" OFF)
+
 # Minimal build override - disable only the most expensive features
 if(YAZE_MINIMAL_BUILD)
   set(YAZE_WITH_GRPC OFF)
