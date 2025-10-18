@@ -2,6 +2,23 @@ cmake_minimum_required(VERSION 3.16)
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 set(CMAKE_POLICY_DEFAULT_CMP0074 NEW)
 
+# Disable x86-specific optimizations for ARM64 macOS builds (must be set before FetchContent)
+if(APPLE AND CMAKE_OSX_ARCHITECTURES STREQUAL "arm64")
+  set(ABSL_USE_EXTERNAL_GOOGLETEST OFF CACHE BOOL "" FORCE)
+  set(ABSL_BUILD_TEST_HELPERS OFF CACHE BOOL "" FORCE)
+  # Disable problematic random targets that use x86-specific instructions
+  set(ABSL_RANDOM_HWAES_IMPL OFF CACHE BOOL "" FORCE)
+  set(ABSL_RANDOM_HWAES OFF CACHE BOOL "" FORCE)
+  # Disable all x86-specific random implementations
+  set(ABSL_RANDOM_INTERNAL_RANDEN_HWAES_IMPL OFF CACHE BOOL "" FORCE)
+  set(ABSL_RANDOM_INTERNAL_RANDEN_HWAES OFF CACHE BOOL "" FORCE)
+  # Force use of portable random implementation
+  set(ABSL_RANDOM_INTERNAL_PLATFORM_IMPL "portable" CACHE STRING "" FORCE)
+  # Disable x86-specific CRC optimizations
+  set(ABSL_CRC_INTERNAL_HAVE_X86_SSE42 OFF CACHE BOOL "" FORCE)
+  set(ABSL_CRC_INTERNAL_HAVE_X86_PCLMULQDQ OFF CACHE BOOL "" FORCE)
+endif()
+
 # Include FetchContent module
 include(FetchContent)
 
@@ -110,19 +127,6 @@ set(ABSL_BUILD_TESTING OFF CACHE BOOL "" FORCE)
 set(ABSL_MSVC_STATIC_RUNTIME ON CACHE BOOL "" FORCE)
 set(gRPC_MSVC_STATIC_RUNTIME ON CACHE BOOL "" FORCE)
 
-# Disable x86-specific optimizations for ARM64 macOS builds
-if(APPLE AND CMAKE_OSX_ARCHITECTURES STREQUAL "arm64")
-  set(ABSL_USE_EXTERNAL_GOOGLETEST OFF CACHE BOOL "" FORCE)
-  set(ABSL_BUILD_TEST_HELPERS OFF CACHE BOOL "" FORCE)
-  # Disable problematic random targets that use x86-specific instructions
-  set(ABSL_RANDOM_HWAES_IMPL OFF CACHE BOOL "" FORCE)
-  set(ABSL_RANDOM_HWAES OFF CACHE BOOL "" FORCE)
-  # Disable all x86-specific random implementations
-  set(ABSL_RANDOM_INTERNAL_RANDEN_HWAES_IMPL OFF CACHE BOOL "" FORCE)
-  set(ABSL_RANDOM_INTERNAL_RANDEN_HWAES OFF CACHE BOOL "" FORCE)
-  # Force use of portable random implementation
-  set(ABSL_RANDOM_INTERNAL_PLATFORM_IMPL "portable" CACHE STRING "" FORCE)
-endif()
 
 # Declare gRPC version - using stable version with better protobuf compatibility
 # v1.67.1 has good stability and protobuf compatibility
