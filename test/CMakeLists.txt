@@ -47,8 +47,12 @@ if(YAZE_BUILD_TESTS)
       message(STATUS "Configuring Windows stack size for ${suite_name} to 16MB")
       if(MSVC)
         target_link_options(${suite_name} PRIVATE /STACK:16777216)
-        # NOTE: Removed /WHOLEARCHIVE for protobuf - causes LNK1241 duplicate version.res
-        # Protobuf symbols are already linked transitively from yaze_test_support
+        # Apply /WHOLEARCHIVE only at executable level to prevent duplicate version.res
+        if(YAZE_WITH_GRPC AND YAZE_PROTOBUF_WHOLEARCHIVE_TARGETS)
+          foreach(_yaze_proto_target IN LISTS YAZE_PROTOBUF_WHOLEARCHIVE_TARGETS)
+            target_link_options(${suite_name} PRIVATE /WHOLEARCHIVE:$<TARGET_FILE:${_yaze_proto_target}>)
+          endforeach()
+        endif()
       else()
         target_link_options(${suite_name} PRIVATE -Wl,--stack,16777216)
       endif()

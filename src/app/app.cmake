@@ -203,7 +203,13 @@ target_link_libraries(yaze PRIVATE
 )
 if(YAZE_WITH_GRPC AND YAZE_PROTOBUF_TARGETS)
   target_link_libraries(yaze PRIVATE ${YAZE_PROTOBUF_TARGETS})
-  # NOTE: Removed /WHOLEARCHIVE - already linked transitively from libraries
+  # Apply /WHOLEARCHIVE only at executable level to avoid duplicate version.res
+  # This ensures protobuf internal symbols are included while preventing resource duplication
+  if(MSVC AND YAZE_PROTOBUF_WHOLEARCHIVE_TARGETS)
+    foreach(_yaze_proto_target IN LISTS YAZE_PROTOBUF_WHOLEARCHIVE_TARGETS)
+      target_link_options(yaze PRIVATE /WHOLEARCHIVE:$<TARGET_FILE:${_yaze_proto_target}>)
+    endforeach()
+  endif()
 endif()
 
 # Link test support library (yaze_editor needs TestManager)
