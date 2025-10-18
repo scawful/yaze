@@ -144,7 +144,19 @@ if(YAZE_BUILD_TESTS)
   endif()
   
   if(TARGET yaze_test_support)
-    target_link_libraries(yaze_editor PUBLIC yaze_test_support)
+    # Use whole-archive on Unix to ensure test symbols are included
+    # This is needed because editor_manager.cc calls test functions conditionally
+    if(APPLE)
+      target_link_options(yaze_editor PUBLIC 
+        "LINKER:-force_load,$<TARGET_FILE:yaze_test_support>")
+      target_link_libraries(yaze_editor PUBLIC yaze_test_support)
+    elseif(UNIX)
+      target_link_libraries(yaze_editor PUBLIC 
+        -Wl,--whole-archive yaze_test_support -Wl,--no-whole-archive)
+    else()
+      # Windows: Normal linking (no whole-archive needed, symbols resolve correctly)
+      target_link_libraries(yaze_editor PUBLIC yaze_test_support)
+    endif()
     message(STATUS "✓ yaze_editor linked to yaze_test_support")
   endif()
 endif()

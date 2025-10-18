@@ -78,9 +78,9 @@ jobs:
         with:
           path: |
             build/_deps
-          key: fetchcontent-release-${{ hashFiles('cmake/grpc*.cmake') }}-v2
+          key: fetchcontent-release-${{ hashFiles('cmake/grpc*.cmake') }}-v3
           restore-keys: |
-            fetchcontent-release-
+            fetchcontent-release-v3-
 
       - name: Configure sccache
         shell: pwsh

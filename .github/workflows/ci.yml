@@ -221,9 +221,9 @@ jobs:
       with:
         path: |
           build/_deps
-        key: fetchcontent-${{ runner.os }}-${{ matrix.cc }}-${{ hashFiles('cmake/grpc*.cmake') }}-v2
+        key: fetchcontent-${{ runner.os }}-${{ matrix.cc }}-${{ hashFiles('cmake/grpc*.cmake') }}-v3
         restore-keys: |
-          fetchcontent-${{ runner.os }}-${{ matrix.cc }}-
+          fetchcontent-${{ runner.os }}-${{ matrix.cc }}-v3-
 
     - name: Monitor build progress (Windows)
       if: runner.os == 'Windows'
