@@ -42,6 +42,12 @@ if(YAZE_WITH_GRPC)
   target_link_libraries(z3ed PRIVATE grpc++ grpc++_reflection)
   if(YAZE_PROTOBUF_TARGETS)
     target_link_libraries(z3ed PRIVATE ${YAZE_PROTOBUF_TARGETS})
-    # NOTE: Removed /WHOLEARCHIVE for protobuf - causes duplicate version.res in dependency chain
+    # Apply /WHOLEARCHIVE only at executable level to avoid duplicate version.res
+    # This ensures protobuf internal symbols are included while preventing resource duplication
+    if(MSVC AND YAZE_PROTOBUF_WHOLEARCHIVE_TARGETS)
+      foreach(_yaze_proto_target IN LISTS YAZE_PROTOBUF_WHOLEARCHIVE_TARGETS)
+        target_link_options(z3ed PRIVATE /WHOLEARCHIVE:$<TARGET_FILE:${_yaze_proto_target}>)
+      endforeach()
+    endif()
   endif()
 endif()
