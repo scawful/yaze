@@ -3,7 +3,7 @@ add_executable(overworld_golden_data_extractor
   overworld_golden_data_extractor.cc
 )
 
-target_link_libraries(overworld_golden_data_extractor
+target_link_libraries(overworld_golden_data_extractor PRIVATE
   yaze_core
   ${CMAKE_THREAD_LIBS_INIT}
 )
@@ -13,7 +13,7 @@ add_executable(extract_vanilla_values
   extract_vanilla_values.cc
 )
 
-target_link_libraries(extract_vanilla_values
+target_link_libraries(extract_vanilla_values PRIVATE
   yaze_core
   ${CMAKE_THREAD_LIBS_INIT}
 )
@@ -23,7 +23,7 @@ add_executable(rom_patch_utility
   rom_patch_utility.cc
 )
 
-target_link_libraries(rom_patch_utility
+target_link_libraries(rom_patch_utility PRIVATE
   yaze_core
   ${CMAKE_THREAD_LIBS_INIT}
 )
@@ -33,7 +33,7 @@ add_executable(dungeon_test_harness
   dungeon_test_harness.cc
 )
 
-target_link_libraries(dungeon_test_harness
+target_link_libraries(dungeon_test_harness PRIVATE
   yaze_core
   ${CMAKE_THREAD_LIBS_INIT}
 )
