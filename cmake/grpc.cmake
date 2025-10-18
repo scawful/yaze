@@ -116,19 +116,15 @@ if(APPLE AND CMAKE_OSX_ARCHITECTURES STREQUAL "arm64")
   set(ABSL_BUILD_TEST_HELPERS OFF CACHE BOOL "" FORCE)
 endif()
 
-# Declare gRPC with platform-specific versions
-# - macOS/Linux: v1.75.1 (has ARM64 + modern Clang fixes)
-# - Windows: v1.68.0 (stable, no protobuf resource file issues)
+# Declare gRPC version - using latest for all platforms
+# v1.75.1 has ARM64 + modern compiler fixes
+set(_GRPC_VERSION "v1.75.1")
+set(_GRPC_VERSION_REASON "Latest stable - ARM64 macOS + modern Clang/MSVC compatibility")
+
+# Windows-specific: Disable BoringSSL ASM to avoid NASM build issues
 if(WIN32)
-  set(_GRPC_VERSION "v1.68.0")
-  set(_GRPC_VERSION_REASON "Windows clang-cl + MSVC compatibility, no protobuf LNK1241 errors")
-  # Disable BoringSSL ASM to avoid NASM build issues on Windows
-  # ASM optimizations cause NASM flag conflicts with clang-cl
   set(OPENSSL_NO_ASM ON CACHE BOOL "" FORCE)
   message(STATUS "Disabling BoringSSL ASM optimizations for Windows build compatibility")
-else()
-  set(_GRPC_VERSION "v1.75.1")
-  set(_GRPC_VERSION_REASON "ARM64 macOS + modern Clang compatibility")
 endif()
 
 message(STATUS "FetchContent gRPC version: ${_GRPC_VERSION} (${_GRPC_VERSION_REASON})")

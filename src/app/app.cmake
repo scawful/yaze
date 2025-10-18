@@ -129,11 +129,7 @@ if(YAZE_WITH_GRPC)
   )
   if(YAZE_PROTOBUF_TARGETS)
     target_link_libraries(yaze_app_core_lib PUBLIC ${YAZE_PROTOBUF_TARGETS})
-    if(MSVC AND YAZE_PROTOBUF_WHOLEARCHIVE_TARGETS)
-      foreach(_yaze_proto_target IN LISTS YAZE_PROTOBUF_WHOLEARCHIVE_TARGETS)
-        target_link_options(yaze_app_core_lib PUBLIC /WHOLEARCHIVE:$<TARGET_FILE:${_yaze_proto_target}>)
-      endforeach()
-    endif()
+    # NOTE: Removed /WHOLEARCHIVE for protobuf - causes duplicate version.res in dependency chain
   endif()
   
   message(STATUS "  - gRPC ROM service + canvas automation enabled")
@@ -207,11 +203,7 @@ target_link_libraries(yaze PRIVATE
 )
 if(YAZE_WITH_GRPC AND YAZE_PROTOBUF_TARGETS)
   target_link_libraries(yaze PRIVATE ${YAZE_PROTOBUF_TARGETS})
-  if(MSVC AND YAZE_PROTOBUF_WHOLEARCHIVE_TARGETS)
-    foreach(_yaze_proto_target IN LISTS YAZE_PROTOBUF_WHOLEARCHIVE_TARGETS)
-      target_link_options(yaze PRIVATE /WHOLEARCHIVE:$<TARGET_FILE:${_yaze_proto_target}>)
-    endforeach()
-  endif()
+  # NOTE: Removed /WHOLEARCHIVE - already linked transitively from libraries
 endif()
 
 # Link test support library (yaze_editor needs TestManager)

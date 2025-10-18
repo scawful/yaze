@@ -86,11 +86,7 @@ if(YAZE_WITH_GRPC)
   )
   if(YAZE_PROTOBUF_TARGETS)
     target_link_libraries(yaze_net PUBLIC ${YAZE_PROTOBUF_TARGETS})
-    if(MSVC AND YAZE_PROTOBUF_WHOLEARCHIVE_TARGETS)
-      foreach(_yaze_proto_target IN LISTS YAZE_PROTOBUF_WHOLEARCHIVE_TARGETS)
-        target_link_options(yaze_net PUBLIC /WHOLEARCHIVE:$<TARGET_FILE:${_yaze_proto_target}>)
-      endforeach()
-    endif()
+    # NOTE: Removed /WHOLEARCHIVE for protobuf - causes duplicate version.res in dependency chain
   endif()
   
   message(STATUS "  - gRPC ROM service enabled")
