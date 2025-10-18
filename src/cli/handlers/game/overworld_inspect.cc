@@ -451,8 +451,8 @@ absl::StatusOr<EntranceDetails> GetEntranceDetails(
   
   details.x = entrance.x_;
   details.y = entrance.y_;
-  details.area_x = entrance.area_x_;
-  details.area_y = entrance.area_y_;
+  details.area_x = entrance.game_x_;
+  details.area_y = entrance.game_y_;
   details.map_pos = entrance.map_pos_;
   details.is_hole = entrance.is_hole_;
   

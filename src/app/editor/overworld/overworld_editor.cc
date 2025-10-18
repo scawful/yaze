@@ -56,6 +56,7 @@
 #include "zelda3/overworld/overworld_exit.h"
 #include "zelda3/overworld/overworld_item.h"
 #include "zelda3/overworld/overworld_map.h"
+#include "zelda3/overworld/overworld_version_helper.h"
 #include "zelda3/sprite/sprite.h"
 
 namespace yaze::editor {
@@ -491,8 +492,9 @@ void OverworldEditor::DrawToolset() {
   // Modern adaptive toolbar with inline mode switching and properties
   static gui::Toolset toolbar;
 
-  // IMPORTANT: Don't make asm_version static - it needs to update after ROM upgrade
-  uint8_t asm_version = (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
+  // IMPORTANT: Don't cache version - it needs to update after ROM upgrade
+  auto rom_version = zelda3::OverworldVersionHelper::GetVersion(*rom_);
+  uint8_t asm_version = (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];  // Still needed for badge display
 
   // Don't use WidgetIdScope here - it conflicts with ImGui::Begin/End ID stack in cards
   // Widgets register themselves individually instead
@@ -1256,9 +1258,9 @@ absl::Status OverworldEditor::CheckForCurrentMap() {
 
   const int current_highlighted_map = current_map_;
 
-  // Check if ZSCustomOverworld v3 is present
-  uint8_t asm_version = (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
-  bool use_v3_area_sizes = (asm_version >= 3);
+  // Use centralized version detection
+  auto rom_version = zelda3::OverworldVersionHelper::GetVersion(*rom_);
+  bool use_v3_area_sizes = zelda3::OverworldVersionHelper::SupportsAreaEnum(rom_version);
 
   // Get area size for v3+ ROMs, otherwise use legacy logic
   if (use_v3_area_sizes) {
@@ -1622,7 +1624,8 @@ void OverworldEditor::DrawOverworldCanvas() {
           MoveEntityOnGrid(dragged_entity_, ow_map_canvas_.zero_point(),
                            ow_map_canvas_.scrolling(),
                            dragged_entity_free_movement_);
-          dragged_entity_->UpdateMapProperties(dragged_entity_->map_id_);
+          // Pass overworld context for proper area size detection
+          dragged_entity_->UpdateMapProperties(dragged_entity_->map_id_, &overworld_);
           rom_->set_dirty(true);
         }
         is_dragging_entity_ = false;
@@ -2118,9 +2121,9 @@ void OverworldEditor::RefreshChildMapOnDemand(int map_index) {
   }
 
   // Handle multi-area maps (large, wide, tall) with safe coordination
-  // Check if ZSCustomOverworld v3 is present
-  uint8_t asm_version = (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
-  bool use_v3_area_sizes = (asm_version >= 3 && asm_version != 0xFF);
+  // Use centralized version detection
+  auto rom_version = zelda3::OverworldVersionHelper::GetVersion(*rom_);
+  bool use_v3_area_sizes = zelda3::OverworldVersionHelper::SupportsAreaEnum(rom_version);
 
   if (use_v3_area_sizes) {
     // Use v3 multi-area coordination
@@ -2302,9 +2305,9 @@ absl::Status OverworldEditor::RefreshMapPalette() {
       overworld_.mutable_overworld_map(current_map_)->LoadPalette());
   const auto current_map_palette = overworld_.current_area_palette();
 
-  // Check if ZSCustomOverworld v3 is present
-  uint8_t asm_version = (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
-  bool use_v3_area_sizes = (asm_version >= 3 && asm_version != 0xFF);
+  // Use centralized version detection
+  auto rom_version = zelda3::OverworldVersionHelper::GetVersion(*rom_);
+  bool use_v3_area_sizes = zelda3::OverworldVersionHelper::SupportsAreaEnum(rom_version);
 
   if (use_v3_area_sizes) {
     // Use v3 area size system
@@ -2444,9 +2447,9 @@ void OverworldEditor::RefreshSiblingMapGraphics(int map_index,
 void OverworldEditor::RefreshMapProperties() {
   const auto& current_ow_map = *overworld_.mutable_overworld_map(current_map_);
 
-  // Check if ZSCustomOverworld v3 is present
-  uint8_t asm_version = (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
-  bool use_v3_area_sizes = (asm_version >= 3);
+  // Use centralized version detection
+  auto rom_version = zelda3::OverworldVersionHelper::GetVersion(*rom_);
+  bool use_v3_area_sizes = zelda3::OverworldVersionHelper::SupportsAreaEnum(rom_version);
 
   if (use_v3_area_sizes) {
     // Use v3 area size system

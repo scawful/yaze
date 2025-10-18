@@ -34,33 +34,33 @@ absl::StatusOr<zelda3::OverworldEntrance*> InsertEntrance(
         holes[i].entrance_id_ = 0;  // Default, user configures in popup
         holes[i].is_hole_ = true;
         
-        // Update map properties (ZScream: EntranceMode.cs:90)
-        holes[i].UpdateMapProperties(map_id);
-        
-        LOG_DEBUG("EntityOps", "Inserted hole at slot %zu: pos=(%d,%d) map=0x%02X", 
-                 i, holes[i].x_, holes[i].y_, map_id);
-        
-        return &holes[i];
-      }
+      // Update map properties (ZScream: EntranceMode.cs:90)
+      holes[i].UpdateMapProperties(map_id, overworld);
+      
+      LOG_DEBUG("EntityOps", "Inserted hole at slot %zu: pos=(%d,%d) map=0x%02X", 
+               i, holes[i].x_, holes[i].y_, map_id);
+      
+      return &holes[i];
     }
-    return absl::ResourceExhaustedError(
-        "No space available for new hole. Delete one first.");
-    
-  } else {
-    // Search for first deleted entrance slot (ZScream: EntranceMode.cs:104-130)
-    auto* entrances = overworld->mutable_entrances();
-    for (size_t i = 0; i < entrances->size(); ++i) {
-      if (entrances->at(i).deleted) {
-        // Reuse deleted slot
-        entrances->at(i).deleted = false;
-        entrances->at(i).map_id_ = map_id;
-        entrances->at(i).x_ = static_cast<int>(snapped_pos.x);
-        entrances->at(i).y_ = static_cast<int>(snapped_pos.y);
-        entrances->at(i).entrance_id_ = 0;  // Default, user configures in popup
-        entrances->at(i).is_hole_ = false;
-        
-        // Update map properties (ZScream: EntranceMode.cs:120)
-        entrances->at(i).UpdateMapProperties(map_id);
+  }
+  return absl::ResourceExhaustedError(
+      "No space available for new hole. Delete one first.");
+  
+} else {
+  // Search for first deleted entrance slot (ZScream: EntranceMode.cs:104-130)
+  auto* entrances = overworld->mutable_entrances();
+  for (size_t i = 0; i < entrances->size(); ++i) {
+    if (entrances->at(i).deleted) {
+      // Reuse deleted slot
+      entrances->at(i).deleted = false;
+      entrances->at(i).map_id_ = map_id;
+      entrances->at(i).x_ = static_cast<int>(snapped_pos.x);
+      entrances->at(i).y_ = static_cast<int>(snapped_pos.y);
+      entrances->at(i).entrance_id_ = 0;  // Default, user configures in popup
+      entrances->at(i).is_hole_ = false;
+      
+      // Update map properties (ZScream: EntranceMode.cs:120)
+      entrances->at(i).UpdateMapProperties(map_id, overworld);
         
         LOG_DEBUG("EntityOps", "Inserted entrance at slot %zu: pos=(%d,%d) map=0x%02X", 
                  i, entrances->at(i).x_, entrances->at(i).y_, map_id);
@@ -111,8 +111,8 @@ absl::StatusOr<zelda3::OverworldExit*> InsertExit(
       exits[i].door_type_1_ = 0;
       exits[i].door_type_2_ = 0;
       
-      // Update map properties
-      exits[i].UpdateMapProperties(map_id);
+      // Update map properties with overworld context for area size detection
+      exits[i].UpdateMapProperties(map_id, overworld);
       
       LOG_DEBUG("EntityOps", "Inserted exit at slot %zu: pos=(%d,%d) map=0x%02X", 
                i, exits[i].x_, exits[i].y_, map_id);
