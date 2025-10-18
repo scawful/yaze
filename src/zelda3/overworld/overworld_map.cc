@@ -1,34 +1,41 @@
 #include "overworld_map.h"
 
+#include <algorithm>
+#include <array>
 #include <cstddef>
 #include <cstdint>
 #include <unordered_map>
 #include <vector>
 
+#include "absl/status/status.h"
+#include "absl/status/statusor.h"
+#include "app/gfx/types/snes_palette.h"
 #include "core/features.h"
 #include "app/gfx/types/snes_color.h"
 #include "app/gfx/types/snes_tile.h"
 #include "app/rom.h"
+#include "util/macro.h"
+#include "zelda3/common.h"
 #include "zelda3/overworld/overworld.h"
+#include "zelda3/overworld/overworld_version_helper.h"
 
-namespace yaze {
-namespace zelda3 {
+namespace yaze::zelda3 {
 
 OverworldMap::OverworldMap(int index, Rom* rom)
     : index_(index), parent_(index), rom_(rom) {
   LoadAreaInfo();
   // Load parent ID from ROM data if available (for custom ASM versions)
-  uint8_t asm_version = (*rom_)[OverworldCustomASMHasBeenApplied];
-  if (asm_version != 0xFF && asm_version >= 0x03) {
+  auto version = OverworldVersionHelper::GetVersion(*rom_);
+  if (version != OverworldVersion::kVanilla && version >= OverworldVersion::kZSCustomV3) {
     // For v3+, parent ID is stored in expanded table
     parent_ = (*rom_)[kOverworldMapParentIdExpanded + index_];
   }
 
-  if (asm_version != 0xFF) {
-    if (asm_version == 0x03) {
+  if (version != OverworldVersion::kVanilla) {
+    if (version == OverworldVersion::kZSCustomV3) {
       LoadCustomOverworldData();
     } else {
-      SetupCustomTileset(asm_version);
+      SetupCustomTileset(OverworldVersionHelper::GetAsmVersion(*rom_));
     }
   } else if (core::FeatureFlags::get().overworld.kLoadCustomOverworld) {
     // Pure vanilla ROM but flag enabled - set up custom data manually
@@ -42,11 +49,11 @@ absl::Status OverworldMap::BuildMap(int count, int game_state, int world,
                                     OverworldBlockset& world_blockset) {
   game_state_ = game_state;
   world_ = world;
-  uint8_t asm_version = (*rom_)[OverworldCustomASMHasBeenApplied];
+  auto version = OverworldVersionHelper::GetVersion(*rom_);
 
   // For large maps in vanilla ROMs, we need to handle special world graphics
   // This ensures proper rendering of special overworld areas like Zora's Domain
-  if (large_map_ && (asm_version == 0xFF || asm_version == 0x00)) {
+  if (large_map_ && (version == OverworldVersion::kVanilla)) {
     if (parent_ != index_ && !initialized_) {
       if (index_ >= kSpecialWorldMapIdStart && index_ <= 0x8A &&
           index_ != 0x88) {
@@ -79,7 +86,7 @@ absl::Status OverworldMap::BuildMap(int count, int game_state, int world,
 }
 
 void OverworldMap::LoadAreaInfo() {
-  uint8_t asm_version = (*rom_)[OverworldCustomASMHasBeenApplied];
+  auto version = OverworldVersionHelper::GetVersion(*rom_);
 
   // ZSCustomOverworld ASM Version System:
   // 0x00-0x02: Legacy versions with limited features
@@ -87,7 +94,7 @@ void OverworldMap::LoadAreaInfo() {
   // 0xFF: Pure vanilla ROM (no ASM applied)
 
   // Load message ID and area size based on ASM version
-  if (asm_version < 3 || asm_version == 0xFF) {
+  if (version < OverworldVersion::kZSCustomV2 || version == OverworldVersion::kVanilla) {
     // v2 and vanilla: use original message table
     message_id_ = (*rom_)[kOverworldMessageIds + (parent_ * 2)] |
                   ((*rom_)[kOverworldMessageIds + (parent_ * 2) + 1] << 8);
@@ -157,7 +164,7 @@ void OverworldMap::LoadAreaInfo() {
     area_music_[3] = (*rom_)[kOverworldMusicAgahnim + parent_];
 
     // For v2/vanilla, use original palette table
-    if (asm_version < 3 || asm_version == 0xFF) {
+    if (version < OverworldVersion::kZSCustomV2 || version == OverworldVersion::kVanilla) {
       area_palette_ = (*rom_)[kOverworldMapPaletteIds + parent_];
     }
   } else if (index_ < kSpecialWorldMapIdStart) {
@@ -183,7 +190,7 @@ void OverworldMap::LoadAreaInfo() {
         (*rom_)[kOverworldMusicDarkWorld + (parent_ - kDarkWorldMapIdStart)];
 
     // For v2/vanilla, use original palette table
-    if (asm_version < 3 || asm_version == 0xFF) {
+    if (version < OverworldVersion::kZSCustomV2 || version == OverworldVersion::kVanilla) {
       area_palette_ = (*rom_)[kOverworldMapPaletteIds + parent_];
     }
   } else {
@@ -191,7 +198,7 @@ void OverworldMap::LoadAreaInfo() {
     // Message ID already loaded above based on ASM version
 
     // For v3, use expanded sprite tables with full customization support
-    if (asm_version >= 3 && asm_version != 0xFF) {
+    if (version == OverworldVersion::kZSCustomV3) {
       sprite_graphics_[0] =
           (*rom_)[kOverworldSpecialSpriteGfxGroupExpandedTemp + parent_ -
                   kSpecialWorldMapIdStart];
@@ -230,7 +237,7 @@ void OverworldMap::LoadAreaInfo() {
 
     // For v2/vanilla, use original palette table and handle special cases
     // These hardcoded cases are needed for vanilla compatibility
-    if (asm_version < 3 || asm_version == 0xFF) {
+    if (version < OverworldVersion::kZSCustomV2 || version == OverworldVersion::kVanilla) {
       area_palette_ = (*rom_)[kOverworldMapPaletteIds + parent_];
 
       // Handle special world area cases based on ZScream documentation
@@ -862,19 +869,17 @@ absl::Status OverworldMap::LoadPalette() {
 }
 
 absl::Status OverworldMap::LoadOverlay() {
-  uint8_t asm_version = (*rom_)[OverworldCustomASMHasBeenApplied];
-
   // Load overlays based on ROM version
-  if (asm_version == 0xFF) {
+  if (OverworldVersionHelper::GetVersion(*rom_) == OverworldVersion::kVanilla) {
     // Vanilla ROM - load overlay from overlay pointers
     return LoadVanillaOverlayData();
-  } else {
-    // Custom overworld ROM - use overlay from custom data
-    overlay_id_ = subscreen_overlay_;
-    has_overlay_ = (overlay_id_ != 0x00FF);
-    overlay_data_.clear();
-    return absl::OkStatus();
   }
+
+  // Custom overworld ROM - use overlay from custom data
+  overlay_id_ = subscreen_overlay_;
+  has_overlay_ = (overlay_id_ != 0x00FF);
+  overlay_data_.clear();
+  return absl::OkStatus();
 }
 
 absl::Status OverworldMap::LoadVanillaOverlayData() {
@@ -1125,5 +1130,4 @@ absl::Status OverworldMap::BuildBitmap(OverworldBlockset& world_blockset) {
   return absl::OkStatus();
 }
 
-}  // namespace zelda3
-}  // namespace yaze
+}  // namespace yaze::zelda3

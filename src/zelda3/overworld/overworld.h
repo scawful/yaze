@@ -324,7 +324,6 @@ class Overworld {
   void OrganizeMapTiles(std::vector<uint8_t> &bytes,
                         std::vector<uint8_t> &bytes2, int i, int sx, int sy,
                         int &ttpos);
-  void DecompressAllMapTiles();
   absl::Status DecompressAllMapTilesParallel();
 
   Rom *rom_;

@@ -1,36 +1,41 @@
 #include "overworld.h"
 
 #include <algorithm>
+#include <array>
+#include <cstddef>
 #include <cstdint>
 #include <future>
-#include <mutex>
+#include <iostream>
+#include <ostream>
 #include <set>
-#include <thread>
+#include <string>
 #include <unordered_map>
 #include <vector>
 
 #include "absl/status/status.h"
-#include "core/features.h"
+#include "absl/status/statusor.h"
+#include "absl/strings/str_format.h"
 #include "app/gfx/debug/performance/performance_profiler.h"
-#include "app/gfx/util/compression.h"
 #include "app/gfx/types/snes_tile.h"
+#include "app/gfx/util/compression.h"
 #include "app/rom.h"
 #include "app/snes.h"
-#include "zelda3/common.h"
-#include "zelda3/overworld/overworld_entrance.h"
-#include "zelda3/overworld/overworld_exit.h"
+#include "core/features.h"
 #include "util/hex.h"
 #include "util/log.h"
 #include "util/macro.h"
+#include "zelda3/common.h"
+#include "zelda3/overworld/overworld_entrance.h"
+#include "zelda3/overworld/overworld_exit.h"
 #include "zelda3/overworld/overworld_item.h"
 #include "zelda3/overworld/overworld_map.h"
+#include "zelda3/overworld/overworld_version_helper.h"
 
-namespace yaze {
-namespace zelda3 {
+namespace yaze::zelda3 {
 
 absl::Status Overworld::Load(Rom* rom) {
   gfx::ScopedTimer timer("Overworld::Load");
-  
+
   if (rom->size() == 0) {
     return absl::InvalidArgumentError("ROM file not loaded");
   }
@@ -72,37 +77,37 @@ absl::Status Overworld::Load(Rom* rom) {
   // Phase 5: Data Loading (with individual timing)
   {
     gfx::ScopedTimer data_loading_timer("LoadOverworldData");
-    
+
     {
       gfx::ScopedTimer tile_types_timer("LoadTileTypes");
       LoadTileTypes();
     }
-    
+
     {
       gfx::ScopedTimer entrances_timer("LoadEntrances");
       ASSIGN_OR_RETURN(all_entrances_, LoadEntrances(rom_));
     }
-    
+
     {
       gfx::ScopedTimer holes_timer("LoadHoles");
       ASSIGN_OR_RETURN(all_holes_, LoadHoles(rom_));
     }
-    
+
     {
       gfx::ScopedTimer exits_timer("LoadExits");
       ASSIGN_OR_RETURN(all_exits_, LoadExits(rom_));
     }
-    
+
     {
       gfx::ScopedTimer items_timer("LoadItems");
       ASSIGN_OR_RETURN(all_items_, LoadItems(rom_, overworld_maps_));
     }
-    
+
     {
       gfx::ScopedTimer overworld_maps_timer("LoadOverworldMaps");
       RETURN_IF_ERROR(LoadOverworldMaps());
     }
-    
+
     {
       gfx::ScopedTimer sprites_timer("LoadSprites");
       RETURN_IF_ERROR(LoadSprites());
@@ -258,15 +263,16 @@ void Overworld::AssignMapSizes(std::vector<OverworldMap>& maps) {
   }
 }
 
-absl::Status Overworld::ConfigureMultiAreaMap(int parent_index, AreaSizeEnum size) {
+absl::Status Overworld::ConfigureMultiAreaMap(int parent_index,
+                                              AreaSizeEnum size) {
   if (parent_index < 0 || parent_index >= kNumOverworldMaps) {
     return absl::InvalidArgumentError(
         absl::StrFormat("Invalid parent index: %d", parent_index));
   }
-  
+
   // Check ROM version
   uint8_t asm_version = (*rom_)[OverworldCustomASMHasBeenApplied];
-  
+
   // Version requirements:
   // - Vanilla (0xFF): Supports Small and Large only
   // - v1-v2: Supports Small and Large only
@@ -276,19 +282,23 @@ absl::Status Overworld::ConfigureMultiAreaMap(int parent_index, AreaSizeEnum siz
     return absl::FailedPreconditionError(
         "Wide and Tall areas require ZSCustomOverworld v3+");
   }
-  
-  LOG_DEBUG("Overworld", "ConfigureMultiAreaMap: parent=%d, current_size=%d, new_size=%d, version=%d",
-           parent_index, static_cast<int>(overworld_maps_[parent_index].area_size()),
-           static_cast<int>(size), asm_version);
-  
+
+  LOG_DEBUG("Overworld",
+            "ConfigureMultiAreaMap: parent=%d, current_size=%d, new_size=%d, "
+            "version=%d",
+            parent_index,
+            static_cast<int>(overworld_maps_[parent_index].area_size()),
+            static_cast<int>(size), asm_version);
+
   // CRITICAL: First, get OLD siblings (before changing) so we can reset them
   std::vector<int> old_siblings;
   auto old_size = overworld_maps_[parent_index].area_size();
   int old_parent = overworld_maps_[parent_index].parent();
-  
+
   switch (old_size) {
     case AreaSizeEnum::LargeArea:
-      old_siblings = {old_parent, old_parent + 1, old_parent + 8, old_parent + 9};
+      old_siblings = {old_parent, old_parent + 1, old_parent + 8,
+                      old_parent + 9};
       break;
     case AreaSizeEnum::WideArea:
       old_siblings = {old_parent, old_parent + 1};
@@ -300,17 +310,17 @@ absl::Status Overworld::ConfigureMultiAreaMap(int parent_index, AreaSizeEnum siz
       old_siblings = {parent_index};  // Was small, just this map
       break;
   }
-  
+
   // Reset all old siblings to SmallArea first (clean slate)
   for (int old_sibling : old_siblings) {
     if (old_sibling >= 0 && old_sibling < kNumOverworldMaps) {
       overworld_maps_[old_sibling].SetAsSmallMap(old_sibling);
     }
   }
-  
+
   // Now configure NEW siblings based on requested size
   std::vector<int> new_siblings;
-  
+
   switch (size) {
     case AreaSizeEnum::SmallArea:
       // Just configure this single map as small
@@ -318,45 +328,54 @@ absl::Status Overworld::ConfigureMultiAreaMap(int parent_index, AreaSizeEnum siz
       overworld_maps_[parent_index].SetAreaSize(AreaSizeEnum::SmallArea);
       new_siblings = {parent_index};
       break;
-      
+
     case AreaSizeEnum::LargeArea:
-      new_siblings = {parent_index, parent_index + 1, parent_index + 8, parent_index + 9};
+      new_siblings = {parent_index, parent_index + 1, parent_index + 8,
+                      parent_index + 9};
       for (size_t i = 0; i < new_siblings.size(); ++i) {
         int sibling = new_siblings[i];
-        if (sibling < 0 || sibling >= kNumOverworldMaps) continue;
+        if (sibling < 0 || sibling >= kNumOverworldMaps)
+          continue;
         overworld_maps_[sibling].SetAsLargeMap(parent_index, i);
       }
       break;
-      
+
     case AreaSizeEnum::WideArea:
       new_siblings = {parent_index, parent_index + 1};
       for (int sibling : new_siblings) {
-        if (sibling < 0 || sibling >= kNumOverworldMaps) continue;
+        if (sibling < 0 || sibling >= kNumOverworldMaps)
+          continue;
         overworld_maps_[sibling].SetParent(parent_index);
         overworld_maps_[sibling].SetAreaSize(AreaSizeEnum::WideArea);
       }
       break;
-      
+
     case AreaSizeEnum::TallArea:
       new_siblings = {parent_index, parent_index + 8};
       for (int sibling : new_siblings) {
-        if (sibling < 0 || sibling >= kNumOverworldMaps) continue;
+        if (sibling < 0 || sibling >= kNumOverworldMaps)
+          continue;
         overworld_maps_[sibling].SetParent(parent_index);
         overworld_maps_[sibling].SetAreaSize(AreaSizeEnum::TallArea);
       }
       break;
   }
-  
+
   // Update ROM data for ALL affected siblings (old + new)
   std::set<int> all_affected;
-  for (int s : old_siblings) all_affected.insert(s);
-  for (int s : new_siblings) all_affected.insert(s);
-  
+  for (int sibling : old_siblings) {
+    all_affected.insert(sibling);
+  }
+  for (int sibling : new_siblings) {
+    all_affected.insert(sibling);
+  }
+
   if (asm_version >= 3 && asm_version != 0xFF) {
     // v3+: Update expanded tables
     for (int sibling : all_affected) {
-      if (sibling < 0 || sibling >= kNumOverworldMaps) continue;
-      
+      if (sibling < 0 || sibling >= kNumOverworldMaps)
+        continue;
+
       RETURN_IF_ERROR(rom()->WriteByte(kOverworldMapParentIdExpanded + sibling,
                                        overworld_maps_[sibling].parent()));
       RETURN_IF_ERROR(rom()->WriteByte(
@@ -366,8 +385,9 @@ absl::Status Overworld::ConfigureMultiAreaMap(int parent_index, AreaSizeEnum siz
   } else if (asm_version < 3 && asm_version != 0xFF) {
     // v1/v2: Update basic parent table
     for (int sibling : all_affected) {
-      if (sibling < 0 || sibling >= kNumOverworldMaps) continue;
-      
+      if (sibling < 0 || sibling >= kNumOverworldMaps)
+        continue;
+
       RETURN_IF_ERROR(rom()->WriteByte(kOverworldMapParentId + sibling,
                                        overworld_maps_[sibling].parent()));
       RETURN_IF_ERROR(rom()->WriteByte(
@@ -377,22 +397,27 @@ absl::Status Overworld::ConfigureMultiAreaMap(int parent_index, AreaSizeEnum siz
   } else {
     // Vanilla: Update parent and screen size tables
     for (int sibling : all_affected) {
-      if (sibling < 0 || sibling >= kNumOverworldMaps) continue;
-      
+      if (sibling < 0 || sibling >= kNumOverworldMaps)
+        continue;
+
       RETURN_IF_ERROR(rom()->WriteByte(kOverworldMapParentId + sibling,
                                        overworld_maps_[sibling].parent()));
       RETURN_IF_ERROR(rom()->WriteByte(
           kOverworldScreenSize + (sibling & 0x3F),
-          (overworld_maps_[sibling].area_size() == AreaSizeEnum::LargeArea) ? 0x00 : 0x01));
+          (overworld_maps_[sibling].area_size() == AreaSizeEnum::LargeArea)
+              ? 0x00
+              : 0x01));
     }
   }
-  
-  LOG_DEBUG("Overworld", "Configured %s area: parent=%d, old_siblings=%zu, new_siblings=%zu",
-           (size == AreaSizeEnum::LargeArea) ? "Large" :
-           (size == AreaSizeEnum::WideArea) ? "Wide" : 
-           (size == AreaSizeEnum::TallArea) ? "Tall" : "Small",
-           parent_index, old_siblings.size(), new_siblings.size());
-  
+
+  LOG_DEBUG("Overworld",
+            "Configured %s area: parent=%d, old_siblings=%zu, new_siblings=%zu",
+            (size == AreaSizeEnum::LargeArea)  ? "Large"
+            : (size == AreaSizeEnum::WideArea) ? "Wide"
+            : (size == AreaSizeEnum::TallArea) ? "Tall"
+                                               : "Small",
+            parent_index, old_siblings.size(), new_siblings.size());
+
   return absl::OkStatus();
 }
 
@@ -534,17 +559,8 @@ void Overworld::OrganizeMapTiles(std::vector<uint8_t>& bytes,
   }
 }
 
-void Overworld::DecompressAllMapTiles() {
-  // Keep original method for fallback/compatibility
-  // Note: This method is void, so we can't return status
-  // The parallel version will be called from Load()
-}
-
 absl::Status Overworld::DecompressAllMapTilesParallel() {
-  // For now, fall back to the original sequential implementation
-  // The parallel version has synchronization issues that cause data corruption
-  util::logf("Using sequential decompression (parallel version disabled due to data integrity issues)");
-  
+
   const auto get_ow_map_gfx_ptr = [this](int index, uint32_t map_ptr) {
     int p = (rom()->data()[map_ptr + 2 + (3 * index)] << 16) +
             (rom()->data()[map_ptr + 1 + (3 * index)] << 8) +
@@ -560,7 +576,7 @@ absl::Status Overworld::DecompressAllMapTilesParallel() {
   int sx = 0;
   int sy = 0;
   int c = 0;
-  
+
   for (int i = 0; i < kNumOverworldMaps; i++) {
     auto p1 = get_ow_map_gfx_ptr(
         i, rom()->version_constants().kCompressedAllMap32PointersHigh);
@@ -603,22 +619,27 @@ absl::Status Overworld::DecompressAllMapTilesParallel() {
 
 absl::Status Overworld::LoadOverworldMaps() {
   auto size = tiles16_.size();
-  
+
   // Performance optimization: Only build essential maps initially
   // Essential maps are the first few maps of each world that are commonly accessed
-  constexpr int kEssentialMapsPerWorld = 8;  // Build first 8 maps of each world
+  constexpr int kEssentialMapsPerWorld = 16;
   constexpr int kLightWorldEssential = kEssentialMapsPerWorld;
-  constexpr int kDarkWorldEssential = kDarkWorldMapIdStart + kEssentialMapsPerWorld;
-  constexpr int kSpecialWorldEssential = kSpecialWorldMapIdStart + kEssentialMapsPerWorld;
-  
-  util::logf("Building essential maps only (first %d maps per world) for faster loading", kEssentialMapsPerWorld);
-  
+  constexpr int kDarkWorldEssential =
+      kDarkWorldMapIdStart + kEssentialMapsPerWorld;
+  constexpr int kSpecialWorldEssential =
+      kSpecialWorldMapIdStart + kEssentialMapsPerWorld;
+
+  util::logf(
+      "Building essential maps only (first %d maps per world) for faster "
+      "loading",
+      kEssentialMapsPerWorld);
+
   std::vector<std::future<absl::Status>> futures;
-  
+
   // Build essential maps only
   for (int i = 0; i < kNumOverworldMaps; ++i) {
     bool is_essential = false;
-    
+
     // Check if this is an essential map
     if (i < kLightWorldEssential) {
       is_essential = true;
@@ -627,7 +648,7 @@ absl::Status Overworld::LoadOverworldMaps() {
     } else if (i >= kSpecialWorldMapIdStart && i < kSpecialWorldEssential) {
       is_essential = true;
     }
-    
+
     if (is_essential) {
       int world_type = 0;
       if (i >= kDarkWorldMapIdStart && i < kSpecialWorldMapIdStart) {
@@ -635,7 +656,7 @@ absl::Status Overworld::LoadOverworldMaps() {
       } else if (i >= kSpecialWorldMapIdStart) {
         world_type = 2;
       }
-      
+
       auto task_function = [this, i, size, world_type]() {
         return overworld_maps_[i].BuildMap(size, game_state_, world_type,
                                            tiles16_, GetMapTiles(world_type));
@@ -652,7 +673,7 @@ absl::Status Overworld::LoadOverworldMaps() {
     future.wait();
     RETURN_IF_ERROR(future.get());
   }
-  
+
   util::logf("Essential maps built. Remaining maps will be built on-demand.");
   return absl::OkStatus();
 }
@@ -661,21 +682,22 @@ absl::Status Overworld::EnsureMapBuilt(int map_index) {
   if (map_index < 0 || map_index >= kNumOverworldMaps) {
     return absl::InvalidArgumentError("Invalid map index");
   }
-  
+
   // Check if map is already built
   if (overworld_maps_[map_index].is_built()) {
     return absl::OkStatus();
   }
-  
+
   // Build the map on-demand
   auto size = tiles16_.size();
   int world_type = 0;
-  if (map_index >= kDarkWorldMapIdStart && map_index < kSpecialWorldMapIdStart) {
+  if (map_index >= kDarkWorldMapIdStart &&
+      map_index < kSpecialWorldMapIdStart) {
     world_type = 1;
   } else if (map_index >= kSpecialWorldMapIdStart) {
     world_type = 2;
   }
-  
+
   return overworld_maps_[map_index].BuildMap(size, game_state_, world_type,
                                              tiles16_, GetMapTiles(world_type));
 }
@@ -2402,7 +2424,8 @@ absl::Status Overworld::SaveMap16Tiles() {
 }
 
 absl::Status Overworld::SaveEntrances() {
-  RETURN_IF_ERROR(::yaze::zelda3::SaveEntrances(rom_, all_entrances_, expanded_entrances_));
+  RETURN_IF_ERROR(
+      ::yaze::zelda3::SaveEntrances(rom_, all_entrances_, expanded_entrances_));
   RETURN_IF_ERROR(SaveHoles(rom_, all_holes_));
   return absl::OkStatus();
 }
@@ -2687,5 +2710,4 @@ absl::Status Overworld::SaveAreaSizes() {
   return absl::OkStatus();
 }
 
-}  // namespace zelda3
-}  // namespace yaze
+}  // namespace yaze::zelda3
