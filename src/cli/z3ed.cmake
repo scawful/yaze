@@ -41,13 +41,14 @@ if(YAZE_WITH_GRPC)
   message(STATUS "Adding gRPC support to z3ed CLI")
   target_link_libraries(z3ed PRIVATE grpc++ grpc++_reflection)
   if(YAZE_PROTOBUF_TARGETS)
-    target_link_libraries(z3ed PRIVATE ${YAZE_PROTOBUF_TARGETS})
-    # Apply /WHOLEARCHIVE only at executable level to avoid duplicate version.res
-    # This ensures protobuf internal symbols are included while preventing resource duplication
+    # On Windows: Use /WHOLEARCHIVE instead of normal linking to include internal symbols
+    # On Unix: Use normal linking (symbols resolve correctly without whole-archive)
     if(MSVC AND YAZE_PROTOBUF_WHOLEARCHIVE_TARGETS)
       foreach(_yaze_proto_target IN LISTS YAZE_PROTOBUF_WHOLEARCHIVE_TARGETS)
         target_link_options(z3ed PRIVATE /WHOLEARCHIVE:$<TARGET_FILE:${_yaze_proto_target}>)
       endforeach()
+    else()
+      target_link_libraries(z3ed PRIVATE ${YAZE_PROTOBUF_TARGETS})
     endif()
   endif()
 endif()

@@ -161,9 +161,10 @@ if(YAZE_WITH_GRPC)
     grpc++
     grpc++_reflection
   )
-  if(YAZE_PROTOBUF_TARGETS)
+  # NOTE: Do NOT link protobuf at library level on Windows - causes LNK1241
+  # Executables will link it with /WHOLEARCHIVE to include internal symbols
+  if(NOT WIN32 AND YAZE_PROTOBUF_TARGETS)
     target_link_libraries(yaze_agent PUBLIC ${YAZE_PROTOBUF_TARGETS})
-    # NOTE: Removed /WHOLEARCHIVE for protobuf - causes duplicate version.res in dependency chain
   endif()
   
   # Note: YAZE_WITH_GRPC is defined globally via add_compile_definitions in root CMakeLists.txt
