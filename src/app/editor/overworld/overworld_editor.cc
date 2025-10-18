@@ -154,9 +154,7 @@ void OverworldEditor::Initialize() {
   entity_renderer_ = std::make_unique<OverworldEntityRenderer>(
       &overworld_, &ow_map_canvas_, &sprite_previews_);
 
-  // Setup Canvas Automation API callbacks (Phase 4)
   SetupCanvasAutomation();
-
 }
 
 absl::Status OverworldEditor::Load() {

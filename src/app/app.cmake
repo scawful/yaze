@@ -127,9 +127,10 @@ if(YAZE_WITH_GRPC)
     grpc++
     grpc++_reflection
   )
-  if(YAZE_PROTOBUF_TARGETS)
+  # NOTE: Do NOT link protobuf at library level on Windows - causes LNK1241
+  # Executables will link it with /WHOLEARCHIVE to include internal symbols
+  if(NOT WIN32 AND YAZE_PROTOBUF_TARGETS)
     target_link_libraries(yaze_app_core_lib PUBLIC ${YAZE_PROTOBUF_TARGETS})
-    # NOTE: Removed /WHOLEARCHIVE for protobuf - causes duplicate version.res in dependency chain
   endif()
   
   message(STATUS "  - gRPC ROM service + canvas automation enabled")
@@ -202,13 +203,14 @@ target_link_libraries(yaze PRIVATE
   absl::flags_parse
 )
 if(YAZE_WITH_GRPC AND YAZE_PROTOBUF_TARGETS)
-  target_link_libraries(yaze PRIVATE ${YAZE_PROTOBUF_TARGETS})
-  # Apply /WHOLEARCHIVE only at executable level to avoid duplicate version.res
-  # This ensures protobuf internal symbols are included while preventing resource duplication
+  # On Windows: Use /WHOLEARCHIVE instead of normal linking to include internal symbols
+  # On Unix: Use normal linking (symbols resolve correctly without whole-archive)
   if(MSVC AND YAZE_PROTOBUF_WHOLEARCHIVE_TARGETS)
     foreach(_yaze_proto_target IN LISTS YAZE_PROTOBUF_WHOLEARCHIVE_TARGETS)
       target_link_options(yaze PRIVATE /WHOLEARCHIVE:$<TARGET_FILE:${_yaze_proto_target}>)
     endforeach()
+  else()
+    target_link_libraries(yaze PRIVATE ${YAZE_PROTOBUF_TARGETS})
   endif()
 endif()
 

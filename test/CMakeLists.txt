@@ -43,16 +43,17 @@ if(YAZE_BUILD_TESTS)
         YAZE_GUI_TEST_TARGET=1)  # Mark this as a GUI test target
     endif()
 
+    # Link protobuf with /WHOLEARCHIVE on Windows (instead of via libraries)
+    if(WIN32 AND MSVC AND YAZE_WITH_GRPC AND YAZE_PROTOBUF_WHOLEARCHIVE_TARGETS)
+      foreach(_yaze_proto_target IN LISTS YAZE_PROTOBUF_WHOLEARCHIVE_TARGETS)
+        target_link_options(${suite_name} PRIVATE /WHOLEARCHIVE:$<TARGET_FILE:${_yaze_proto_target}>)
+      endforeach()
+    endif()
+
     if(WIN32)
       message(STATUS "Configuring Windows stack size for ${suite_name} to 16MB")
       if(MSVC)
         target_link_options(${suite_name} PRIVATE /STACK:16777216)
-        # Apply /WHOLEARCHIVE only at executable level to prevent duplicate version.res
-        if(YAZE_WITH_GRPC AND YAZE_PROTOBUF_WHOLEARCHIVE_TARGETS)
-          foreach(_yaze_proto_target IN LISTS YAZE_PROTOBUF_WHOLEARCHIVE_TARGETS)
-            target_link_options(${suite_name} PRIVATE /WHOLEARCHIVE:$<TARGET_FILE:${_yaze_proto_target}>)
-          endforeach()
-        endif()
       else()
         target_link_options(${suite_name} PRIVATE -Wl,--stack,16777216)
       endif()
