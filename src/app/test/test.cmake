@@ -15,16 +15,7 @@ set(YAZE_TEST_SOURCES
   app/test/z3ed_test_suite.cc
 )
 
-# Add gRPC test harness services if enabled (depend on TestManager)
-if(YAZE_WITH_GRPC)
-  list(APPEND YAZE_TEST_SOURCES
-    app/service/imgui_test_harness_service.cc
-    app/service/screenshot_utils.cc
-    app/service/widget_discovery_service.cc
-    app/test/test_recorder.cc
-    app/test/test_script_parser.cc
-  )
-endif()
+# gRPC test harness services are now in yaze_grpc_support library
 
 add_library(yaze_test_support STATIC ${YAZE_TEST_SOURCES})
 
@@ -55,14 +46,8 @@ if(YAZE_WITH_GRPC)
     ${CMAKE_SOURCE_DIR}/third_party/json/include)
   target_compile_definitions(yaze_test_support PRIVATE YAZE_WITH_JSON)
   
-  # Add test harness proto definition
-  target_add_protobuf(yaze_test_support
-    ${PROJECT_SOURCE_DIR}/src/protos/imgui_test_harness.proto)
-  
-  target_link_libraries(yaze_test_support PUBLIC
-    grpc++
-    grpc++_reflection
-  )
+  # Link to consolidated gRPC support library
+  target_link_libraries(yaze_test_support PUBLIC yaze_grpc_support)
   
   message(STATUS "  - gRPC test harness service enabled in yaze_test_support")
 endif()

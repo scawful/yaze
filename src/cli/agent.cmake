@@ -151,21 +151,8 @@ endif()
 
 # Add gRPC support for GUI automation
 if(YAZE_WITH_GRPC)
-  # Generate proto files for yaze_agent
-  target_add_protobuf(yaze_agent
-    ${PROJECT_SOURCE_DIR}/src/protos/imgui_test_harness.proto
-    ${PROJECT_SOURCE_DIR}/src/protos/canvas_automation.proto
-    ${PROJECT_SOURCE_DIR}/src/protos/emulator_service.proto)
-  
-  target_link_libraries(yaze_agent PUBLIC
-    grpc++
-    grpc++_reflection
-  )
-  # NOTE: Do NOT link protobuf at library level on Windows - causes LNK1241
-  # Executables will link it with /WHOLEARCHIVE to include internal symbols
-  if(NOT WIN32 AND YAZE_PROTOBUF_TARGETS)
-    target_link_libraries(yaze_agent PUBLIC ${YAZE_PROTOBUF_TARGETS})
-  endif()
+  # Link to consolidated gRPC support library
+  target_link_libraries(yaze_agent PUBLIC yaze_grpc_support)
   
   # Note: YAZE_WITH_GRPC is defined globally via add_compile_definitions in root CMakeLists.txt
   # This ensures #ifdef YAZE_WITH_GRPC works in all translation units

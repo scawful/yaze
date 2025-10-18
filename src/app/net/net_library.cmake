@@ -78,18 +78,7 @@ endif()
 
 # Add gRPC support for ROM service
 if(YAZE_WITH_GRPC)
-  target_add_protobuf(yaze_net ${PROJECT_SOURCE_DIR}/src/protos/rom_service.proto)
-  
-  target_link_libraries(yaze_net PUBLIC
-    grpc++
-    grpc++_reflection
-  )
-  # NOTE: Do NOT link protobuf at library level on Windows - causes LNK1241
-  # Executables will link it with /WHOLEARCHIVE to include internal symbols
-  if(NOT WIN32 AND YAZE_PROTOBUF_TARGETS)
-    target_link_libraries(yaze_net PUBLIC ${YAZE_PROTOBUF_TARGETS})
-  endif()
-  
+  target_link_libraries(yaze_net PUBLIC yaze_grpc_support)
   message(STATUS "  - gRPC ROM service enabled")
 endif()
 

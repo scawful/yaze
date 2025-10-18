@@ -76,6 +76,11 @@ if(YAZE_BUILD_TESTS OR NOT YAZE_MINIMAL_BUILD)
   include(app/test/test.cmake)
 endif()
 
+# Include gRPC support library (consolidates all protobuf/gRPC usage)
+if(YAZE_WITH_GRPC)
+  include(app/service/grpc_support.cmake)
+endif()
+
 # Include agent/CLI components (needed by yaze_editor for agent features)
 if(YAZE_BUILD_APP OR YAZE_BUILD_Z3ED OR YAZE_BUILD_TESTS)
   include(cli/agent.cmake)

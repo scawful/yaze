@@ -114,12 +114,20 @@ set(gRPC_MSVC_STATIC_RUNTIME ON CACHE BOOL "" FORCE)
 if(APPLE AND CMAKE_OSX_ARCHITECTURES STREQUAL "arm64")
   set(ABSL_USE_EXTERNAL_GOOGLETEST OFF CACHE BOOL "" FORCE)
   set(ABSL_BUILD_TEST_HELPERS OFF CACHE BOOL "" FORCE)
+  # Disable problematic random targets that use x86-specific instructions
+  set(ABSL_RANDOM_HWAES_IMPL OFF CACHE BOOL "" FORCE)
+  set(ABSL_RANDOM_HWAES OFF CACHE BOOL "" FORCE)
+  # Disable all x86-specific random implementations
+  set(ABSL_RANDOM_INTERNAL_RANDEN_HWAES_IMPL OFF CACHE BOOL "" FORCE)
+  set(ABSL_RANDOM_INTERNAL_RANDEN_HWAES OFF CACHE BOOL "" FORCE)
+  # Force use of portable random implementation
+  set(ABSL_RANDOM_INTERNAL_PLATFORM_IMPL "portable" CACHE STRING "" FORCE)
 endif()
 
-# Declare gRPC version - using latest for all platforms
-# v1.75.1 has ARM64 + modern compiler fixes
-set(_GRPC_VERSION "v1.75.1")
-set(_GRPC_VERSION_REASON "Latest stable - ARM64 macOS + modern Clang/MSVC compatibility")
+# Declare gRPC version - using stable version with better protobuf compatibility
+# v1.67.1 has good stability and protobuf compatibility
+set(_GRPC_VERSION "v1.67.1")
+set(_GRPC_VERSION_REASON "Stable version with good protobuf compatibility")
 
 # Windows-specific: Disable BoringSSL ASM to avoid NASM build issues
 if(WIN32)
@@ -212,7 +220,15 @@ endif()
 
 # Fix Abseil ARM64 macOS compile flags (remove x86-specific flags)
 if(APPLE AND DEFINED CMAKE_OSX_ARCHITECTURES AND CMAKE_OSX_ARCHITECTURES STREQUAL "arm64")
-  foreach(_absl_target IN ITEMS absl_random_internal_randen_hwaes absl_random_internal_randen_hwaes_impl)
+  # List of all Abseil targets that might have x86-specific flags
+  set(_absl_targets_with_x86_flags
+    absl_random_internal_randen_hwaes
+    absl_random_internal_randen_hwaes_impl
+    absl_random_internal_randen_hwaes_impl
+    absl_random_internal_randen_hwaes
+  )
+  
+  foreach(_absl_target IN LISTS _absl_targets_with_x86_flags)
     if(TARGET ${_absl_target})
       get_target_property(_absl_opts ${_absl_target} COMPILE_OPTIONS)
       if(_absl_opts AND NOT _absl_opts STREQUAL "NOTFOUND")
@@ -227,12 +243,13 @@ if(APPLE AND DEFINED CMAKE_OSX_ARCHITECTURES AND CMAKE_OSX_ARCHITECTURES STREQUA
             set(_absl_skip_next TRUE)
             continue()
           endif()
-          if(_absl_opt STREQUAL "-maes" OR _absl_opt STREQUAL "-msse4.1")
+          if(_absl_opt STREQUAL "-maes" OR _absl_opt STREQUAL "-msse4.1" OR _absl_opt STREQUAL "-msse2")
             continue()
           endif()
           list(APPEND _absl_filtered_opts ${_absl_opt})
         endforeach()
         set_property(TARGET ${_absl_target} PROPERTY COMPILE_OPTIONS ${_absl_filtered_opts})
+        message(STATUS "Fixed ARM64 flags for ${_absl_target}")
       endif()
     endif()
   endforeach()
