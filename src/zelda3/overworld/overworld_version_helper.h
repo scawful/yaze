@@ -55,17 +55,22 @@ class OverworldVersionHelper {
       return OverworldVersion::kVanilla;
     }
 
-    // Otherwise return version number directly
     if (asm_version == 1) {
       return OverworldVersion::kZSCustomV1;
-    } else if (asm_version == 2) {
+    }
+    if (asm_version == 2) {
       return OverworldVersion::kZSCustomV2;
-    } else if (asm_version >= 3) {
+    } 
+    if (asm_version >= 3) {
       return OverworldVersion::kZSCustomV3;
     }
 
     // Fallback for unknown values
     return OverworldVersion::kVanilla;
+  }
+
+  static uint8_t GetAsmVersion(const Rom& rom) {
+    return rom.data()[OverworldCustomASMHasBeenApplied];
   }
 
   /**
