@@ -90,8 +90,42 @@ if(Z3ED_AI)
   add_compile_definitions(Z3ED_AI)
 endif()
 
+# Optional gRPC support
+if(YAZE_WITH_GRPC)
+  message(STATUS "✓ gRPC support enabled (FetchContent will download and build from source)")
+  message(STATUS "  Note: First build takes 15-20 minutes to compile gRPC + Protobuf")
+  message(STATUS "  Versions: gRPC v1.75.1 (macOS/Linux) / v1.67.1 (Windows), bundled Protobuf & Abseil")
+  
+  # Include existing gRPC infrastructure
+  include(cmake/grpc.cmake)
+  
+  set(YAZE_HAS_GRPC TRUE)
+else()
+  message(STATUS "○ gRPC support disabled (temporarily disabled for testing)")
+  set(YAZE_HAS_GRPC FALSE)
+endif()
+
+# Dependencies are handled by dependencies.cmake
+
+# JSON library (nlohmann_json) - handled by third_party/json
+
+# FTXUI library for CLI
+find_package(ftxui QUIET)
+if(NOT ftxui_FOUND)
+  include(FetchContent)
+  FetchContent_Declare(
+    ftxui
+    GIT_REPOSITORY https://github.com/ArthurSonzogni/FTXUI.git
+    GIT_TAG v5.0.0
+  )
+  FetchContent_MakeAvailable(ftxui)
+endif()
+
 option(YAZE_SUPPRESS_WARNINGS "Suppress compiler warnings (use -v preset suffix for verbose)" ON)
 set(YAZE_TEST_ROM_PATH "${CMAKE_BINARY_DIR}/bin/zelda3.sfc" CACHE STRING "Path to test ROM file")
+
+# Include dependencies management
+include(cmake/dependencies.cmake)
 
 # Export compile commands for clangd/LSP
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -124,7 +158,6 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(BUILD_SHARED_LIBS OFF)
 
 # Handle dependencies
-include(cmake/dependencies.cmake)
 
 # Project Files
 add_subdirectory(src)
