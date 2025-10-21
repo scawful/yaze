@@ -18,16 +18,43 @@ env:
   BUILD_TYPE: Release
 
 jobs:
-  build-windows:
-    name: Windows x64
-    runs-on: windows-2022
+  build:
+    name: "${{ matrix.name }}"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: "Windows x64"
+            os: windows-2022
+            artifact: yaze-windows-x64.zip
+            configure_preset: win-rel
+            build_dir: build
+          - name: "macOS Universal"
+            os: macos-14
+            artifact: yaze-macos-universal.dmg
+            configure_preset: mac-uni
+            build_dir: build
+          - name: "Linux x64"
+            os: ubuntu-22.04
+            artifact: yaze-linux-x64.tar.gz
+            configure_preset: lin-rel
+            build_dir: build_release_linux
+
     steps:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
 
-      - name: Setup vcpkg
+      - name: Clean previous build outputs
+        shell: bash
+        run: |
+          rm -rf "${{ matrix.build_dir }}" build/_deps cmake_config.log build.log dist
+
+      - name: Setup vcpkg (Windows)
+        if: runner.os == 'Windows'
         uses: lukka/run-vcpkg@v11
+        id: vcpkg
         with:
           vcpkgDirectory: '${{ github.workspace }}/vcpkg'
           vcpkgGitCommitId: 'b2c74683ecfd6a8e7d27ffb0df077f66a9339509'
@@ -36,253 +63,25 @@ jobs:
           VCPKG_DEFAULT_TRIPLET: x64-windows-static
           VCPKG_BINARY_SOURCES: 'clear;x-gha,readwrite'
 
-      - name: Install build tools
+      - name: Resolve vcpkg toolchain (Windows)
+        if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          choco install --no-progress -y nasm
-          "C:\Program Files\NASM" | Out-File -FilePath $env:GITHUB_PATH -Append
-
-      - name: Setup MSVC environment for clang-cl
-        uses: ilammy/msvc-dev-cmd@v1
-        with:
-          arch: x64
-
-      - name: Configure clang-cl
-        shell: pwsh
-        run: |
-          Write-Host "Setting up clang-cl compiler"
-          echo "CC=clang-cl" >> $env:GITHUB_ENV
-          echo "CXX=clang-cl" >> $env:GITHUB_ENV
-
-      - name: Setup sccache
-        uses: hendrikmuhs/ccache-action@v1.2
-        with:
-          key: windows-x64-release-${{ github.run_id }}
-          restore-keys: |
-            windows-x64-release-
-          max-size: 500M
-          variant: sccache
-
-      - name: Restore vcpkg packages cache
-        uses: actions/cache@v4
-        with:
-          path: |
-            build/vcpkg_installed
-            ${{ github.workspace }}/vcpkg/packages
-          key: vcpkg-release-${{ hashFiles('vcpkg.json') }}
-          restore-keys: |
-            vcpkg-release-
-
-      - name: Restore FetchContent dependencies
-        uses: actions/cache@v4
-        with:
-          path: |
-            build/_deps
-          key: fetchcontent-release-${{ hashFiles('cmake/grpc*.cmake') }}-v3
-          restore-keys: |
-            fetchcontent-release-v3-
-
-      - name: Configure sccache
-        shell: pwsh
-        run: |
-          echo "CC=sccache clang-cl" >> $env:GITHUB_ENV
-          echo "CXX=sccache clang-cl" >> $env:GITHUB_ENV
-
-      - name: Configure
-        id: configure
-        shell: pwsh
-        run: |
-          Write-Host "=== Build Configuration ===" -ForegroundColor Cyan
-          Write-Host "Compiler: clang-cl"
-          Write-Host "Build Type: Release"
-          cmake --version
-          clang-cl --version
-          
-          $toolchain = "${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake"
-          cmake -S . -B build `
-            -DCMAKE_BUILD_TYPE=Release `
-            -DCMAKE_C_COMPILER=clang-cl `
-            -DCMAKE_CXX_COMPILER=clang-cl `
-            "-DCMAKE_TOOLCHAIN_FILE=$toolchain" `
-            -DVCPKG_TARGET_TRIPLET=x64-windows-static `
-            -DVCPKG_MANIFEST_MODE=ON `
-            -DYAZE_BUILD_TESTS=OFF `
-            -DYAZE_BUILD_EMU=ON `
-            -DYAZE_BUILD_Z3ED=ON `
-            -DYAZE_BUILD_TOOLS=ON 2>&1 | Tee-Object -FilePath cmake_config.log
-
-      - name: Report Configure Failure
-        if: always() && steps.configure.outcome == 'failure'
-        shell: pwsh
-        run: |
-          Write-Host "::error::CMake configuration failed. Check cmake_config.log for details." -ForegroundColor Red
-          if (Test-Path cmake_config.log) {
-            Write-Host "::group::CMake Configuration Log (last 50 lines)"
-            Get-Content cmake_config.log -Tail 50
-            Write-Host "::endgroup::"
+          $toolchain = Join-Path "${{ github.workspace }}" "vcpkg/scripts/buildsystems/vcpkg.cmake"
+          if (-not (Test-Path $toolchain)) {
+            Write-Host "::error::vcpkg toolchain file not found at $toolchain"
+            exit 1
           }
-          exit 1
+          "CMAKE_TOOLCHAIN_FILE=$toolchain" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "VCPKG_MANIFEST_MODE=ON" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "VCPKG_TARGET_TRIPLET=x64-windows-static" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
-      - name: Build
-        id: build
-        shell: pwsh
-        run: cmake --build build --config Release --parallel 4 -- /p:CL_MPcount=4 2>&1 | Tee-Object -FilePath build.log
+      - name: Install dependencies (macOS)
+        if: runner.os == 'macOS'
+        run: brew install ninja cmake || true
 
-      - name: Report Build Failure
-        if: always() && steps.build.outcome == 'failure'
-        shell: pwsh
-        run: |
-          Write-Host "::error::Build failed. Check build.log for details." -ForegroundColor Red
-          if (Test-Path build.log) {
-            Write-Host "::group::Build Log (last 100 lines)"
-            Get-Content build.log -Tail 100
-            Write-Host "::endgroup::"
-            
-            # Check for specific error patterns
-            if (Select-String -Path "build.log" -Pattern "vcpkg" -Quiet) {
-              Write-Host "`n::group::vcpkg-related errors" -ForegroundColor Yellow
-              Select-String -Path "build.log" -Pattern "vcpkg.*error" -CaseSensitive:$false | Select-Object -First 10
-              Write-Host "::endgroup::"
-            }
-            
-            if (Select-String -Path "build.log" -Pattern "LNK[0-9]{4}" -Quiet) {
-              Write-Host "`n::group::Linker errors" -ForegroundColor Yellow
-              Select-String -Path "build.log" -Pattern "LNK[0-9]{4}" | Select-Object -First 10
-              Write-Host "::endgroup::"
-            }
-            
-            if (Select-String -Path "build.log" -Pattern "fatal error" -Quiet) {
-              Write-Host "`n::group::Fatal errors" -ForegroundColor Yellow
-              Select-String -Path "build.log" -Pattern "fatal error" | Select-Object -First 10
-              Write-Host "::endgroup::"
-            }
-          }
-          
-          # List vcpkg installed packages
-          $vcpkgExe = "${{ github.workspace }}/vcpkg/vcpkg.exe"
-          if (Test-Path $vcpkgExe) {
-            Write-Host "`n::group::Installed vcpkg packages"
-            & $vcpkgExe list
-            Write-Host "::endgroup::"
-          }
-          exit 1
-
-      - name: Package
-        shell: pwsh
-        run: |
-          New-Item -ItemType Directory -Path release
-          Copy-Item -Path build/bin/Release/* -Destination release/ -Recurse
-          Copy-Item -Path assets -Destination release/ -Recurse
-          Copy-Item LICENSE, README.md -Destination release/
-          Compress-Archive -Path release/* -DestinationPath yaze-windows-x64.zip
-
-      - name: Upload Build Logs on Failure (Windows)
-        if: always() && (steps.configure.outcome == 'failure' || steps.build.outcome == 'failure')
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-logs-windows
-          path: |
-            cmake_config.log
-            build.log
-          if-no-files-found: ignore
-          retention-days: 7
-
-      - uses: actions/upload-artifact@v4
-        if: steps.build.outcome == 'success'
-        with:
-          name: yaze-windows-x64
-          path: yaze-windows-x64.zip
-
-  build-macos:
-    name: macOS Universal
-    runs-on: macos-14
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: recursive
-
-      - name: Install dependencies
-        run: brew install ninja cmake
-
-      - name: Configure arm64
-        id: configure_arm64
-        run: |
-          cmake -S . -B build-arm64 -G Ninja \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_OSX_ARCHITECTURES=arm64 \
-            -DYAZE_BUILD_TESTS=OFF \
-            -DYAZE_BUILD_EMU=ON \
-            -DYAZE_BUILD_Z3ED=ON \
-            -DYAZE_BUILD_TOOLS=ON 2>&1 | tee cmake_config_arm64.log
-
-      - name: Build arm64
-        id: build_arm64
-        run: cmake --build build-arm64 --config Release 2>&1 | tee build_arm64.log
-
-      - name: Configure x86_64
-        id: configure_x86_64
-        run: |
-          cmake -S . -B build-x86_64 -G Ninja \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_OSX_ARCHITECTURES=x86_64 \
-            -DYAZE_BUILD_TESTS=OFF \
-            -DYAZE_BUILD_EMU=ON \
-            -DYAZE_BUILD_Z3ED=ON \
-            -DYAZE_BUILD_TOOLS=ON 2>&1 | tee cmake_config_x86_64.log
-
-      - name: Build x86_64
-        id: build_x86_64
-        run: cmake --build build-x86_64 --config Release 2>&1 | tee build_x86_64.log
-
-      - name: Create Universal Binary
-        run: |
-          cp -R build-arm64/bin/yaze.app yaze.app
-          lipo -create \
-            build-arm64/bin/yaze.app/Contents/MacOS/yaze \
-            build-x86_64/bin/yaze.app/Contents/MacOS/yaze \
-            -output yaze.app/Contents/MacOS/yaze
-          lipo -info yaze.app/Contents/MacOS/yaze
-
-      - name: Create DMG
-        run: |
-          hdiutil create -fs HFS+ -srcfolder yaze.app \
-            -volname "yaze" yaze-macos-universal.dmg
-
-      - name: Upload Build Logs on Failure (macOS)
-        if: always() && (steps.configure_arm64.outcome == 'failure' || steps.build_arm64.outcome == 'failure' || steps.configure_x86_64.outcome == 'failure' || steps.build_x86_64.outcome == 'failure')
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-logs-macos
-          path: |
-            cmake_config_arm64.log
-            build_arm64.log
-            cmake_config_x86_64.log
-            build_x86_64.log
-          if-no-files-found: ignore
-          retention-days: 7
-
-      - uses: actions/upload-artifact@v4
-        if: steps.build_arm64.outcome == 'success' && steps.build_x86_64.outcome == 'success'
-        with:
-          name: yaze-macos-universal
-          path: yaze-macos-universal.dmg
-
-  build-linux:
-    name: Linux x64
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: recursive
-
-      - name: Free disk space
-        run: |
-          sudo rm -rf /usr/share/dotnet
-          sudo rm -rf /usr/local/lib/android
-          sudo rm -rf /opt/ghc
-          sudo apt-get clean
-
-      - name: Install dependencies
+      - name: Install dependencies (Linux)
+        if: runner.os == 'Linux'
         run: |
           sudo apt-get update
           sudo apt-get install -y \
@@ -294,51 +93,97 @@ jobs:
             libxss-dev libxxf86vm-dev libxkbcommon-dev libwayland-dev libdecor-0-dev \
             libgtk-3-dev libdbus-1-dev
 
-      - name: Configure
-        id: configure
+      - name: Configure (Windows)
+        if: runner.os == 'Windows'
+        id: configure_windows
+        shell: pwsh
         run: |
-          cmake -S . -B build -G Ninja \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DYAZE_BUILD_TESTS=OFF \
-            -DYAZE_BUILD_EMU=ON \
-            -DYAZE_BUILD_Z3ED=ON \
-            -DYAZE_BUILD_TOOLS=ON \
-            -DNFD_PORTAL=ON 2>&1 | tee cmake_config.log
+          cmake --preset "${{ matrix.configure_preset }}" 2>&1 | Tee-Object -FilePath cmake_config.log
 
-      - name: Build
-        id: build
-        run: cmake --build build --config Release 2>&1 | tee build.log
+      - name: Configure (Unix)
+        if: runner.os != 'Windows'
+        id: configure_unix
+        shell: bash
+        run: |
+          cmake --preset "${{ matrix.configure_preset }}" 2>&1 | tee cmake_config.log
+
+      - name: Report Configure Failure
+        if: failure() && (steps.configure_windows.outcome == 'failure' || steps.configure_unix.outcome == 'failure')
+        shell: bash
+        run: |
+          echo "::error::CMake configuration failed. Check cmake_config.log for details."
+          if [ -f cmake_config.log ]; then
+            echo "::group::CMake Configuration Log (last 100 lines)"
+            tail -n 100 cmake_config.log
+            echo "::endgroup::"
+          fi
+          if [ -f "${{ matrix.build_dir }}/CMakeFiles/CMakeError.log" ]; then
+            echo "::group::CMake Error Log"
+            cat "${{ matrix.build_dir }}/CMakeFiles/CMakeError.log"
+            echo "::endgroup::"
+          fi
+
+      - name: Build (Windows)
+        if: runner.os == 'Windows'
+        id: build_windows
+        shell: pwsh
+        run: |
+          cmake --build "${{ matrix.build_dir }}" --config Release --parallel 8 2>&1 | Tee-Object -FilePath build.log
+
+      - name: Build (Unix)
+        if: runner.os != 'Windows'
+        id: build_unix
+        shell: bash
+        run: |
+          if command -v nproc >/dev/null 2>&1; then
+            CORES=$(nproc)
+          else
+            CORES=$(sysctl -n hw.ncpu)
+          fi
+          cmake --build "${{ matrix.build_dir }}" --parallel "$CORES" 2>&1 | tee build.log
+
+      - name: Report Build Failure
+        if: failure() && (steps.build_windows.outcome == 'failure' || steps.build_unix.outcome == 'failure')
+        shell: bash
+        run: |
+          echo "::error::Build failed. Check build.log for details."
+          if [ -f build.log ]; then
+            echo "::group::Build Log (last 100 lines)"
+            tail -n 100 build.log
+            echo "::endgroup::"
+          fi
 
       - name: Package
+        shell: bash
         run: |
-          mkdir -p release
-          cp build/bin/yaze release/
-          cp -r assets release/
-          cp LICENSE README.md release/
-          tar -czf yaze-linux-x64.tar.gz -C release .
+          ./scripts/package/release.sh "${{ matrix.name }}" "${{ matrix.build_dir }}" "${{ matrix.artifact }}"
 
-      - name: Upload Build Logs on Failure (Linux)
-        if: always() && (steps.configure.outcome == 'failure' || steps.build.outcome == 'failure')
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: build-logs-linux
+          name: release-${{ matrix.name }}
+          path: |
+            dist/${{ matrix.artifact }}
+          if-no-files-found: error
+
+      - name: Upload logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs-${{ matrix.name }}
           path: |
             cmake_config.log
             build.log
+            ${{ matrix.build_dir }}/CMakeFiles/CMakeError.log
+            ${{ matrix.build_dir }}/CMakeFiles/CMakeOutput.log
           if-no-files-found: ignore
           retention-days: 7
 
-      - uses: actions/upload-artifact@v4
-        if: steps.build.outcome == 'success'
-        with:
-          name: yaze-linux-x64
-          path: yaze-linux-x64.tar.gz
-
   create-release:
     name: Create Release
-    needs: [build-windows, build-macos, build-linux]
+    needs: build
     runs-on: ubuntu-latest
-    if: always() && (needs.build-windows.result == 'success' || needs.build-macos.result == 'success' || needs.build-linux.result == 'success')
+    if: always() && needs.build.result == 'success'
     steps:
       - uses: actions/checkout@v4
 

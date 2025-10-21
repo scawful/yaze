@@ -309,6 +309,45 @@
       }
     },
     {
+      "name": "lin-rel",
+      "displayName": "Linux Release",
+      "description": "Linux release build with GCC (warnings off)",
+      "inherits": ["_base", "_unix", "_quiet"],
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      },
+      "binaryDir": "${sourceDir}/build_release_linux",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_CXX_COMPILER": "g++",
+        "CMAKE_C_COMPILER": "gcc",
+        "YAZE_BUILD_TESTS": "OFF"
+      }
+    },
+    {
+      "name": "lin-ai",
+      "displayName": "Linux AI",
+      "description": "Linux AI agent build (z3ed + gRPC + JSON)",
+      "inherits": "ci",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      },
+      "binaryDir": "${sourceDir}/build_ai_linux",
+      "cacheVariables": {
+        "CMAKE_CXX_COMPILER": "g++",
+        "CMAKE_C_COMPILER": "gcc",
+        "Z3ED_AI": "ON",
+        "YAZE_WITH_JSON": "ON",
+        "YAZE_WITH_GRPC": "ON",
+        "YAZE_BUILD_Z3ED": "ON",
+        "YAZE_BUILD_EMU": "ON"
+      }
+    },
+    {
       "name": "ci",
       "displayName": "9. CI Build",
       "description": "Continuous integration build (no ROM tests)",
@@ -469,6 +508,18 @@
       "jobs": 12
     },
     {
+      "name": "lin-rel",
+      "configurePreset": "lin-rel",
+      "displayName": "Linux Release",
+      "jobs": 12
+    },
+    {
+      "name": "lin-ai",
+      "configurePreset": "lin-ai",
+      "displayName": "Linux AI",
+      "jobs": 12
+    },
+    {
       "name": "ci",
       "configurePreset": "ci",
       "displayName": "9. CI Build",
@@ -570,6 +621,16 @@
       "name": "win-arm",
       "configurePreset": "win-arm-rel",
       "displayName": "Windows Package (ARM64)"
+    },
+    {
+      "name": "lin",
+      "configurePreset": "lin-rel",
+      "displayName": "Linux Package (x64)"
+    },
+    {
+      "name": "lin-ai",
+      "configurePreset": "lin-ai",
+      "displayName": "Linux Package (AI)"
     }
   ],
   "workflowPresets": [
