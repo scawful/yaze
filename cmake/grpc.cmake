@@ -91,8 +91,22 @@ FetchContent_Declare(
 set(_SAVED_CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH})
 set(CMAKE_PREFIX_PATH "")
 
+# Some toolchain presets set CMAKE_CROSSCOMPILING even when building for the
+# host (macOS arm64). gRPC treats that as a signal to locate host-side protoc
+# binaries via find_program, which fails since we rely on the bundled targets.
+# Suppress the flag when the host and target platforms match so the generator
+# expressions remain intact.
+set(_SAVED_CMAKE_CROSSCOMPILING ${CMAKE_CROSSCOMPILING})
+if(CMAKE_HOST_SYSTEM_NAME STREQUAL CMAKE_SYSTEM_NAME
+   AND CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL CMAKE_SYSTEM_PROCESSOR)
+  set(CMAKE_CROSSCOMPILING FALSE)
+endif()
+
 # Download and build in isolation
 FetchContent_MakeAvailable(grpc)
+
+# Restore cross-compiling flag
+set(CMAKE_CROSSCOMPILING ${_SAVED_CMAKE_CROSSCOMPILING})
 
 # Restore CMAKE_PREFIX_PATH
 set(CMAKE_PREFIX_PATH ${_SAVED_CMAKE_PREFIX_PATH})
@@ -108,8 +122,6 @@ if(NOT TARGET grpc_cpp_plugin)
     message(FATAL_ERROR "Can not find target grpc_cpp_plugin")
 endif()
 
-set(_gRPC_PROTOBUF_PROTOC_EXECUTABLE $<TARGET_FILE:protoc>)
-set(_gRPC_CPP_PLUGIN $<TARGET_FILE:grpc_cpp_plugin>)
 set(_gRPC_PROTO_GENS_DIR ${CMAKE_BINARY_DIR}/gens)
 file(REMOVE_RECURSE ${_gRPC_PROTO_GENS_DIR})
 file(MAKE_DIRECTORY ${_gRPC_PROTO_GENS_DIR})
@@ -188,10 +200,10 @@ function(target_add_protobuf target)
                 "${_gRPC_PROTO_GENS_DIR}/${RELFIL_WE}_mock.grpc.pb.h"
                 "${_gRPC_PROTO_GENS_DIR}/${RELFIL_WE}.pb.cc"
                 "${_gRPC_PROTO_GENS_DIR}/${RELFIL_WE}.pb.h"
-        COMMAND ${_gRPC_PROTOBUF_PROTOC_EXECUTABLE}
+        COMMAND $<TARGET_FILE:protoc>
         ARGS --grpc_out=generate_mock_code=true:${_gRPC_PROTO_GENS_DIR}
             --cpp_out=${_gRPC_PROTO_GENS_DIR}
-            --plugin=protoc-gen-grpc=${_gRPC_CPP_PLUGIN}
+            --plugin=protoc-gen-grpc=$<TARGET_FILE:grpc_cpp_plugin>
             ${_protobuf_include_path}
             ${REL_FIL}
         DEPENDS ${ABS_FIL} protoc grpc_cpp_plugin
@@ -206,7 +218,7 @@ function(target_add_protobuf target)
             "${_gRPC_PROTO_GENS_DIR}/${RELFIL_WE}.pb.cc"
             "${_gRPC_PROTO_GENS_DIR}/${RELFIL_WE}.pb.h"
         )
-        target_include_directories(${target} PRIVATE
+        target_include_directories(${target} PUBLIC
             $<BUILD_INTERFACE:${_gRPC_PROTO_GENS_DIR}>
             $<BUILD_INTERFACE:${_gRPC_PROTOBUF_WELLKNOWN_INCLUDE_DIR}>
         )

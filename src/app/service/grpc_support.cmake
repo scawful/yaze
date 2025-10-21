@@ -72,10 +72,29 @@ target_add_protobuf(yaze_grpc_support
   ${PROJECT_SOURCE_DIR}/src/protos/emulator_service.proto
 )
 
+# Resolve gRPC targets (FetchContent builds expose bare names, vcpkg uses
+# the gRPC:: namespace). Fallback gracefully.
+set(_YAZE_GRPCPP_TARGET grpc++)
+if(TARGET gRPC::grpc++)
+  set(_YAZE_GRPCPP_TARGET gRPC::grpc++)
+endif()
+
+set(_YAZE_GRPCPP_REFLECTION_TARGET grpc++_reflection)
+if(TARGET gRPC::grpc++_reflection)
+  set(_YAZE_GRPCPP_REFLECTION_TARGET gRPC::grpc++_reflection)
+endif()
+
+if(NOT TARGET ${_YAZE_GRPCPP_TARGET})
+  message(FATAL_ERROR "gRPC C++ target not available (checked ${_YAZE_GRPCPP_TARGET})")
+endif()
+if(NOT TARGET ${_YAZE_GRPCPP_REFLECTION_TARGET})
+  message(FATAL_ERROR "gRPC reflection target not available (checked ${_YAZE_GRPCPP_REFLECTION_TARGET})")
+endif()
+
 # Link gRPC and protobuf libraries (single point of linking)
 target_link_libraries(yaze_grpc_support PUBLIC
-  grpc++
-  grpc++_reflection
+  ${_YAZE_GRPCPP_TARGET}
+  ${_YAZE_GRPCPP_REFLECTION_TARGET}
   ${YAZE_PROTOBUF_TARGETS}
 )
 
