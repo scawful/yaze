@@ -378,7 +378,7 @@ jobs:
     - name: Clean CMake cache
       shell: bash
       run: |
-        rm -rf build build_ai cmake_config.log
+        rm -rf build build_ai build/_deps cmake_config.log
 
     - name: Configure (Unix)
       if: runner.os != 'Windows'
