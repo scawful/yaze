@@ -21,6 +21,7 @@ set(FTXUI_VERSION "5.0.0" CACHE STRING "FTXUI version")
 
 # ImGui
 set(IMGUI_VERSION "1.90.4" CACHE STRING "Dear ImGui version")
+# Cache revision: increment to force rebuild (current: 2)
 
 # ASAR
 set(ASAR_VERSION "main" CACHE STRING "ASAR version")
