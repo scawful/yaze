@@ -170,15 +170,21 @@ configure_ide() {
         cat > .vscode/settings.json << EOF
 {
     "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
-    "C_Cpp.default.compileCommands": "build/compile_commands.json",
+    "C_Cpp.default.compileCommands": "\${workspaceFolder}/build/compile_commands.json",
     "C_Cpp.default.intelliSenseMode": "macos-clang-x64",
     "files.associations": {
         "*.h": "c",
         "*.cc": "cpp"
     },
-    "cmake.buildDirectory": "build",
+    "cmake.buildDirectory": "\${workspaceFolder}/build",
     "cmake.configureOnOpen": true,
-    "cmake.generator": "Ninja"
+    "cmake.useCMakePresets": "always",
+    "cmake.generator": "Ninja Multi-Config",
+    "cmake.preferredGenerators": [
+        "Ninja Multi-Config",
+        "Ninja",
+        "Unix Makefiles"
+    ]
 }
 EOF
         
@@ -187,11 +193,12 @@ EOF
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "build",
+            "label": "CMake: Configure (dev)",
             "type": "shell",
             "command": "cmake",
-            "args": ["--build", "build"],
+            "args": ["--preset", "dev"],
             "group": "build",
+            "problemMatcher": [],
             "presentation": {
                 "echo": true,
                 "reveal": "always",
@@ -200,11 +207,37 @@ EOF
             }
         },
         {
-            "label": "configure",
+            "label": "CMake: Build (dev)",
             "type": "shell",
             "command": "cmake",
-            "args": ["--preset", "dev"],
-            "group": "build"
+            "args": ["--build", "--preset", "dev"],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": ["\$gcc"],
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "CMake: Clean Build",
+            "type": "shell",
+            "command": "cmake",
+            "args": ["--build", "--preset", "dev", "--target", "clean"],
+            "group": "build",
+            "problemMatcher": []
+        },
+        {
+            "label": "CMake: Run Tests",
+            "type": "shell",
+            "command": "ctest",
+            "args": ["--preset", "stable", "--output-on-failure"],
+            "group": "test",
+            "problemMatcher": []
         }
     ]
 }
@@ -286,3 +319,4 @@ main() {
 
 # Run main function
 main "$@"
+
