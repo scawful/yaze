@@ -21,6 +21,56 @@
       }
     },
     {
+      "name": "windows-base",
+      "hidden": true,
+      "description": "Base Windows preset with MSVC/clang-cl support",
+      "binaryDir": "${sourceDir}/build",
+      "generator": "Ninja Multi-Config",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      },
+      "cacheVariables": {
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "CMAKE_MSVC_RUNTIME_LIBRARY": "MultiThreaded$<$<CONFIG:Debug>:Debug>",
+        "YAZE_BUILD_APP": "ON",
+        "YAZE_BUILD_LIB": "ON",
+        "YAZE_BUILD_EMU": "ON",
+        "YAZE_BUILD_CLI": "ON",
+        "YAZE_SUPPRESS_WARNINGS": "ON"
+      },
+      "architecture": {
+        "value": "x64",
+        "strategy": "external"
+      }
+    },
+    {
+      "name": "windows-vs-base",
+      "hidden": true,
+      "description": "Base Windows preset for Visual Studio Generator",
+      "binaryDir": "${sourceDir}/build",
+      "generator": "Visual Studio 17 2022",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      },
+      "cacheVariables": {
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "CMAKE_MSVC_RUNTIME_LIBRARY": "MultiThreaded$<$<CONFIG:Debug>:Debug>",
+        "YAZE_BUILD_APP": "ON",
+        "YAZE_BUILD_LIB": "ON",
+        "YAZE_BUILD_EMU": "ON",
+        "YAZE_BUILD_CLI": "ON",
+        "YAZE_SUPPRESS_WARNINGS": "ON"
+      },
+      "architecture": {
+        "value": "x64",
+        "strategy": "set"
+      }
+    },
+    {
       "name": "dev",
       "inherits": "base",
       "displayName": "Developer Build",
@@ -109,6 +159,153 @@
       "cacheVariables": {
         "YAZE_SUPPRESS_WARNINGS": "OFF"
       }
+    },
+    {
+      "name": "win-dbg",
+      "inherits": "windows-base",
+      "displayName": "Windows Debug (Ninja)",
+      "description": "Debug build for Windows with Ninja generator",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "YAZE_BUILD_TESTS": "ON",
+        "YAZE_ENABLE_GRPC": "OFF",
+        "YAZE_ENABLE_JSON": "ON",
+        "YAZE_ENABLE_AI": "OFF"
+      }
+    },
+    {
+      "name": "win-dbg-v",
+      "inherits": "win-dbg",
+      "displayName": "Windows Debug Verbose",
+      "description": "Debug build with verbose warnings",
+      "cacheVariables": {
+        "YAZE_SUPPRESS_WARNINGS": "OFF"
+      }
+    },
+    {
+      "name": "win-rel",
+      "inherits": "windows-base",
+      "displayName": "Windows Release (Ninja)",
+      "description": "Release build for Windows with Ninja generator",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "YAZE_BUILD_TESTS": "OFF",
+        "YAZE_ENABLE_GRPC": "OFF",
+        "YAZE_ENABLE_JSON": "ON",
+        "YAZE_ENABLE_AI": "OFF",
+        "YAZE_ENABLE_LTO": "ON"
+      }
+    },
+    {
+      "name": "win-dev",
+      "inherits": "windows-base",
+      "displayName": "Windows Development",
+      "description": "Development build with ROM tests",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "YAZE_BUILD_TESTS": "ON",
+        "YAZE_ENABLE_GRPC": "OFF",
+        "YAZE_ENABLE_JSON": "ON",
+        "YAZE_ENABLE_AI": "OFF",
+        "YAZE_ENABLE_ROM_TESTS": "ON"
+      }
+    },
+    {
+      "name": "win-ai",
+      "inherits": "windows-base",
+      "displayName": "Windows AI Development",
+      "description": "Full development build with AI features and gRPC",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "YAZE_BUILD_TESTS": "ON",
+        "YAZE_ENABLE_GRPC": "ON",
+        "YAZE_ENABLE_JSON": "ON",
+        "YAZE_ENABLE_AI": "ON",
+        "YAZE_ENABLE_ROM_TESTS": "ON"
+      }
+    },
+    {
+      "name": "win-z3ed",
+      "inherits": "windows-base",
+      "displayName": "Windows z3ed CLI",
+      "description": "z3ed CLI with AI agent support",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "YAZE_BUILD_TESTS": "OFF",
+        "YAZE_BUILD_CLI": "ON",
+        "YAZE_ENABLE_GRPC": "ON",
+        "YAZE_ENABLE_JSON": "ON",
+        "YAZE_ENABLE_AI": "ON"
+      }
+    },
+    {
+      "name": "win-arm",
+      "inherits": "windows-base",
+      "displayName": "Windows ARM64 Debug",
+      "description": "Debug build for Windows ARM64",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "YAZE_BUILD_TESTS": "ON",
+        "YAZE_ENABLE_GRPC": "OFF",
+        "YAZE_ENABLE_JSON": "ON",
+        "YAZE_ENABLE_AI": "OFF"
+      },
+      "architecture": {
+        "value": "ARM64",
+        "strategy": "external"
+      }
+    },
+    {
+      "name": "win-arm-rel",
+      "inherits": "win-arm",
+      "displayName": "Windows ARM64 Release",
+      "description": "Release build for Windows ARM64",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "YAZE_BUILD_TESTS": "OFF",
+        "YAZE_ENABLE_LTO": "ON"
+      }
+    },
+    {
+      "name": "win-vs-dbg",
+      "inherits": "windows-vs-base",
+      "displayName": "Windows Debug (Visual Studio)",
+      "description": "Debug build for Visual Studio IDE",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "YAZE_BUILD_TESTS": "ON",
+        "YAZE_ENABLE_GRPC": "OFF",
+        "YAZE_ENABLE_JSON": "ON",
+        "YAZE_ENABLE_AI": "OFF"
+      }
+    },
+    {
+      "name": "win-vs-rel",
+      "inherits": "windows-vs-base",
+      "displayName": "Windows Release (Visual Studio)",
+      "description": "Release build for Visual Studio IDE",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "YAZE_BUILD_TESTS": "OFF",
+        "YAZE_ENABLE_GRPC": "OFF",
+        "YAZE_ENABLE_JSON": "ON",
+        "YAZE_ENABLE_AI": "OFF",
+        "YAZE_ENABLE_LTO": "ON"
+      }
+    },
+    {
+      "name": "win-vs-ai",
+      "inherits": "windows-vs-base",
+      "displayName": "Windows AI Development (Visual Studio)",
+      "description": "Full development build with AI features for Visual Studio",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "YAZE_BUILD_TESTS": "ON",
+        "YAZE_ENABLE_GRPC": "ON",
+        "YAZE_ENABLE_JSON": "ON",
+        "YAZE_ENABLE_AI": "ON",
+        "YAZE_ENABLE_ROM_TESTS": "ON"
+      }
     }
   ],
   "buildPresets": [
@@ -152,6 +349,83 @@
       "name": "verbose",
       "configurePreset": "verbose",
       "displayName": "Verbose Build",
+      "jobs": 12
+    },
+    {
+      "name": "win-dbg",
+      "configurePreset": "win-dbg",
+      "displayName": "Windows Debug Build",
+      "configuration": "Debug",
+      "jobs": 12
+    },
+    {
+      "name": "win-dbg-v",
+      "configurePreset": "win-dbg-v",
+      "displayName": "Windows Debug Verbose Build",
+      "configuration": "Debug",
+      "jobs": 12
+    },
+    {
+      "name": "win-rel",
+      "configurePreset": "win-rel",
+      "displayName": "Windows Release Build",
+      "configuration": "Release",
+      "jobs": 12
+    },
+    {
+      "name": "win-dev",
+      "configurePreset": "win-dev",
+      "displayName": "Windows Development Build",
+      "configuration": "Debug",
+      "jobs": 12
+    },
+    {
+      "name": "win-ai",
+      "configurePreset": "win-ai",
+      "displayName": "Windows AI Development Build",
+      "configuration": "Debug",
+      "jobs": 12
+    },
+    {
+      "name": "win-z3ed",
+      "configurePreset": "win-z3ed",
+      "displayName": "Windows z3ed CLI Build",
+      "configuration": "Release",
+      "jobs": 12
+    },
+    {
+      "name": "win-arm",
+      "configurePreset": "win-arm",
+      "displayName": "Windows ARM64 Debug Build",
+      "configuration": "Debug",
+      "jobs": 12
+    },
+    {
+      "name": "win-arm-rel",
+      "configurePreset": "win-arm-rel",
+      "displayName": "Windows ARM64 Release Build",
+      "configuration": "Release",
+      "jobs": 12
+    },
+    {
+      "name": "win-vs-dbg",
+      "configurePreset": "win-vs-dbg",
+      "displayName": "Windows Debug Build (Visual Studio)",
+      "configuration": "Debug",
+      "jobs": 12
+    },
+    {
+      "name": "win-vs-rel",
+      "configurePreset": "win-vs-rel",
+      "displayName": "Windows Release Build (Visual Studio)",
+      "configuration": "Release",
+      "jobs": 12
+    },
+    {
+      "name": "win-vs-ai",
+      "configurePreset": "win-vs-ai",
+      "displayName": "Windows AI Development Build (Visual Studio)",
+      "configuration": "Debug",
       "jobs": 12
     }
   ],
