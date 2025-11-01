@@ -85,7 +85,7 @@ jobs:
 
       - name: Upload build artifacts (Windows)
         if: matrix.platform == 'windows' && (github.event.inputs.upload_artifacts == 'true' || github.event_name == 'push')
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: yaze-windows-ci-${{ github.run_number }}
           path: |
