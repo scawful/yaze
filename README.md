@@ -1,9 +1,12 @@
-# yaze - Yet Another Zelda3 Editor
+# YAZE - Yet Another Zelda3 Editor
 
-A modern, cross-platform editor for The Legend of Zelda: A Link to the Past ROM hacking, built with C++23 and featuring complete Asar 65816 assembler integration.
+[![CI](https://github.com/scawful/yaze/workflows/CI%2FCD%20Pipeline/badge.svg)](https://github.com/scawful/yaze/actions)
+[![Code Quality](https://github.com/scawful/yaze/workflows/Code%20Quality/badge.svg)](https://github.com/scawful/yaze/actions)
+[![Security](https://github.com/scawful/yaze/workflows/Security%20Scanning/badge.svg)](https://github.com/scawful/yaze/actions)
+[![Release](https://github.com/scawful/yaze/workflows/Release/badge.svg)](https://github.com/scawful/yaze/actions)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-[![Build Status](https://github.com/scawful/yaze/workflows/CI/badge.svg)](https://github.com/scawful/yaze/actions)
-[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+A modern, cross-platform editor for The Legend of Zelda: A Link to the Past ROM hacking, built with C++20 and featuring complete Asar 65816 assembler integration.
 
 ## Version 0.3.2 - Release
 

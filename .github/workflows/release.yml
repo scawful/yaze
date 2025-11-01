@@ -6,245 +6,203 @@ on:
       - 'v*'
   workflow_dispatch:
     inputs:
-      tag:
-        description: 'Release tag (e.g., v0.3.2)'
+      version:
+        description: 'Version to release (e.g., v1.0.0)'
         required: true
         type: string
 
-permissions:
-  contents: write
-
 env:
-  BUILD_TYPE: Release
+  VERSION: ${{ github.event.inputs.version || github.ref_name }}
 
 jobs:
   build:
-    name: "${{ matrix.name }}"
+    name: "Build Release - ${{ matrix.name }}"
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         include:
-          - name: "Windows x64"
-            os: windows-2022
-            artifact: yaze-windows-x64.zip
-            configure_preset: win-rel
-            build_dir: build
-          - name: "macOS Universal"
-            os: macos-14
-            artifact: yaze-macos-universal.dmg
-            configure_preset: mac-uni
-            build_dir: build
-          - name: "Linux x64"
+          - name: "Ubuntu 22.04"
             os: ubuntu-22.04
-            artifact: yaze-linux-x64.tar.gz
-            configure_preset: lin-rel
-            build_dir: build_release_linux
+            platform: linux
+            preset: release
+          - name: "macOS 14"
+            os: macos-14
+            platform: macos
+            preset: release
+          - name: "Windows 2022"
+            os: windows-2022
+            platform: windows
+            preset: release
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
         with:
           submodules: recursive
 
-      - name: Clean previous build outputs
-        shell: bash
-        run: |
-          rm -rf "${{ matrix.build_dir }}" build/_deps cmake_config.log build.log dist
-
-      - name: Setup vcpkg (Windows)
-        if: runner.os == 'Windows'
-        uses: lukka/run-vcpkg@v11
-        id: vcpkg
+      - name: Setup build environment
+        uses: ./.github/actions/setup-build
         with:
-          vcpkgDirectory: '${{ github.workspace }}/vcpkg'
-          vcpkgGitCommitId: 'b2c74683ecfd6a8e7d27ffb0df077f66a9339509'
-          runVcpkgInstall: true
-        env:
-          VCPKG_DEFAULT_TRIPLET: x64-windows-static
-          VCPKG_BINARY_SOURCES: 'clear;x-gha,readwrite'
+          platform: ${{ matrix.platform }}
+          preset: ${{ matrix.preset }}
+          cache-key: ${{ hashFiles('cmake/dependencies.lock') }}
 
-      - name: Resolve vcpkg toolchain (Windows)
-        if: runner.os == 'Windows'
-        shell: pwsh
+      - name: Build project
+        uses: ./.github/actions/build-project
+        with:
+          platform: ${{ matrix.platform }}
+          preset: ${{ matrix.preset }}
+          build-type: Release
+
+      - name: Package artifacts (Linux)
+        if: matrix.platform == 'linux'
         run: |
-          $toolchain = Join-Path "${{ github.workspace }}" "vcpkg/scripts/buildsystems/vcpkg.cmake"
-          if (-not (Test-Path $toolchain)) {
-            Write-Host "::error::vcpkg toolchain file not found at $toolchain"
-            exit 1
-          }
-          "CMAKE_TOOLCHAIN_FILE=$toolchain" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          "VCPKG_MANIFEST_MODE=ON" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          "VCPKG_TARGET_TRIPLET=x64-windows-static" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          cd build
+          cpack -G DEB -G TGZ
+          ls -la _CPack_Packages/
 
-      - name: Install dependencies (macOS)
-        if: runner.os == 'macOS'
-        run: brew install ninja cmake || true
-
-      - name: Install dependencies (Linux)
-        if: runner.os == 'Linux'
+      - name: Package artifacts (macOS)
+        if: matrix.platform == 'macos'
         run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            build-essential ninja-build pkg-config \
-            libglew-dev libxext-dev libwavpack-dev libboost-all-dev \
-            libpng-dev python3-dev \
-            libasound2-dev libpulse-dev \
-            libx11-dev libxrandr-dev libxcursor-dev libxinerama-dev libxi-dev \
-            libxss-dev libxxf86vm-dev libxkbcommon-dev libwayland-dev libdecor-0-dev \
-            libgtk-3-dev libdbus-1-dev
+          cd build
+          cpack -G DragNDrop
+          ls -la _CPack_Packages/
 
-      - name: Configure (Windows)
-        if: runner.os == 'Windows'
-        id: configure_windows
-        shell: pwsh
+      - name: Package artifacts (Windows)
+        if: matrix.platform == 'windows'
         run: |
-          cmake --preset "${{ matrix.configure_preset }}" 2>&1 | Tee-Object -FilePath cmake_config.log
+          cd build
+          cpack -G NSIS -G ZIP
+          ls -la _CPack_Packages/
 
-      - name: Configure (Unix)
-        if: runner.os != 'Windows'
-        id: configure_unix
-        shell: bash
-        run: |
-          cmake --preset "${{ matrix.configure_preset }}" 2>&1 | tee cmake_config.log
-
-      - name: Report Configure Failure
-        if: failure() && (steps.configure_windows.outcome == 'failure' || steps.configure_unix.outcome == 'failure')
-        shell: bash
-        run: |
-          echo "::error::CMake configuration failed. Check cmake_config.log for details."
-          if [ -f cmake_config.log ]; then
-            echo "::group::CMake Configuration Log (last 100 lines)"
-            tail -n 100 cmake_config.log
-            echo "::endgroup::"
-          fi
-          if [ -f "${{ matrix.build_dir }}/CMakeFiles/CMakeError.log" ]; then
-            echo "::group::CMake Error Log"
-            cat "${{ matrix.build_dir }}/CMakeFiles/CMakeError.log"
-            echo "::endgroup::"
-          fi
-
-      - name: Build (Windows)
-        if: runner.os == 'Windows'
-        id: build_windows
-        shell: pwsh
-        run: |
-          cmake --build "${{ matrix.build_dir }}" --config Release --parallel 8 2>&1 | Tee-Object -FilePath build.log
-
-      - name: Build (Unix)
-        if: runner.os != 'Windows'
-        id: build_unix
-        shell: bash
-        run: |
-          if command -v nproc >/dev/null 2>&1; then
-            CORES=$(nproc)
-          else
-            CORES=$(sysctl -n hw.ncpu)
-          fi
-          cmake --build "${{ matrix.build_dir }}" --parallel "$CORES" 2>&1 | tee build.log
-
-      - name: Report Build Failure
-        if: failure() && (steps.build_windows.outcome == 'failure' || steps.build_unix.outcome == 'failure')
-        shell: bash
-        run: |
-          echo "::error::Build failed. Check build.log for details."
-          if [ -f build.log ]; then
-            echo "::group::Build Log (last 100 lines)"
-            tail -n 100 build.log
-            echo "::endgroup::"
-          fi
-
-      - name: Package
-        shell: bash
-        run: |
-          ./scripts/package/release.sh "${{ matrix.name }}" "${{ matrix.build_dir }}" "${{ matrix.artifact }}"
-
-      - name: Upload artifact
+      - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: release-${{ matrix.name }}
+          name: yaze-${{ matrix.platform }}-${{ env.VERSION }}
           path: |
-            dist/${{ matrix.artifact }}
-          if-no-files-found: error
+            build/_CPack_Packages/*/*.deb
+            build/_CPack_Packages/*/*.tar.gz
+            build/_CPack_Packages/*/*.dmg
+            build/_CPack_Packages/*/*.exe
+            build/_CPack_Packages/*/*.zip
+          if-no-files-found: warn
+          retention-days: 30
 
-      - name: Upload logs on failure
-        if: failure()
-        uses: actions/upload-artifact@v4
+  test:
+    name: "Test Release - ${{ matrix.name }}"
+    needs: build
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: "Ubuntu 22.04"
+            os: ubuntu-22.04
+            platform: linux
+            preset: release
+          - name: "macOS 14"
+            os: macos-14
+            platform: macos
+            preset: release
+          - name: "Windows 2022"
+            os: windows-2022
+            platform: windows
+            preset: release
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
         with:
-          name: build-logs-${{ matrix.name }}
-          path: |
-            cmake_config.log
-            build.log
-            ${{ matrix.build_dir }}/CMakeFiles/CMakeError.log
-            ${{ matrix.build_dir }}/CMakeFiles/CMakeOutput.log
-          if-no-files-found: ignore
-          retention-days: 7
+          submodules: recursive
+
+      - name: Setup build environment
+        uses: ./.github/actions/setup-build
+        with:
+          platform: ${{ matrix.platform }}
+          preset: ${{ matrix.preset }}
+          cache-key: ${{ hashFiles('cmake/dependencies.lock') }}
+
+      - name: Build project
+        uses: ./.github/actions/build-project
+        with:
+          platform: ${{ matrix.platform }}
+          preset: ${{ matrix.preset }}
+          build-type: Release
+
+      - name: Run tests
+        uses: ./.github/actions/run-tests
+        with:
+          test-type: stable
+          preset: ${{ matrix.preset }}
 
   create-release:
-    name: Create Release
-    needs: build
-    runs-on: ubuntu-latest
-    if: always() && needs.build.result == 'success'
+    name: "Create Release"
+    needs: [build, test]
+    runs-on: ubuntu-22.04
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - name: Determine tag
-        id: tag
-        run: |
-          if [ "${{ github.event_name }}" = "push" ]; then
-            echo "tag=${{ github.ref_name }}" >> $GITHUB_OUTPUT
-          else
-            echo "tag=${{ github.event.inputs.tag }}" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Download artifacts
+      - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
-          path: artifacts
+          path: ./artifacts
 
-      - name: Display structure
-        run: ls -R artifacts
-
-      - name: Create release notes
-        id: notes
-        run: |
-          TAG="${{ steps.tag.outputs.tag }}"
-          VERSION="${TAG#v}"
-          
-          cat > release_notes.md << 'EOF'
-          ## yaze ${{ steps.tag.outputs.tag }}
-          
-          ### Downloads
-          - **Windows**: `yaze-windows-x64.zip`
-          - **macOS**: `yaze-macos-universal.dmg` (Universal Binary)
-          - **Linux**: `yaze-linux-x64.tar.gz`
-          
-          ### Installation
-          
-          **Windows**: Extract the ZIP file and run `yaze.exe`
-          
-          **macOS**: Open the DMG and drag yaze.app to Applications
-          
-          **Linux**: Extract the tarball and run `./yaze`
-          
-          ### Changes
-          See the [changelog](https://github.com/${{ github.repository }}/blob/develop/docs/H1-changelog.md) for details.
-          EOF
-          
-          cat release_notes.md
-
-      - name: Create or Update Release
+      - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ steps.tag.outputs.tag }}
-          name: yaze ${{ steps.tag.outputs.tag }}
-          body_path: release_notes.md
-          draft: false
-          prerelease: ${{ contains(steps.tag.outputs.tag, '-') }}
-          make_latest: ${{ !contains(steps.tag.outputs.tag, '-') }}
+          tag_name: ${{ env.VERSION }}
+          name: "YAZE ${{ env.VERSION }}"
+          body: |
+            ## What's Changed
+            
+            This release includes:
+            - Cross-platform builds for Linux, macOS, and Windows
+            - Improved dependency management with CPM.cmake
+            - Enhanced CI/CD pipeline with parallel execution
+            - Automated packaging and release creation
+            
+            ## Downloads
+            
+            ### Linux
+            - **DEB Package**: `yaze-*.deb` (Ubuntu/Debian)
+            - **Tarball**: `yaze-*.tar.gz` (Generic Linux)
+            
+            ### macOS
+            - **DMG**: `yaze-*.dmg` (macOS 11.0+)
+            
+            ### Windows
+            - **Installer**: `yaze-*.exe` (Windows 10/11)
+            - **ZIP**: `yaze-*.zip` (Portable)
+            
+            ## Installation
+            
+            ### Linux (DEB)
+            ```bash
+            sudo dpkg -i yaze-*.deb
+            ```
+            
+            ### macOS
+            ```bash
+            # Mount the DMG and drag to Applications
+            open yaze-*.dmg
+            ```
+            
+            ### Windows
+            ```bash
+            # Run the installer
+            yaze-*.exe
+            ```
           files: |
-            artifacts/yaze-windows-x64/*
-            artifacts/yaze-macos-universal/*
-            artifacts/yaze-linux-x64/*
-          fail_on_unmatched_files: false
+            artifacts/yaze-linux-*/yaze-*.deb
+            artifacts/yaze-linux-*/yaze-*.tar.gz
+            artifacts/yaze-macos-*/yaze-*.dmg
+            artifacts/yaze-windows-*/yaze-*.exe
+            artifacts/yaze-windows-*/yaze-*.zip
+          draft: false
+          prerelease: ${{ contains(env.VERSION, 'alpha') || contains(env.VERSION, 'beta') || contains(env.VERSION, 'rc') }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

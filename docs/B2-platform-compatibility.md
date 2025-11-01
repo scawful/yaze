@@ -15,7 +15,7 @@
 
 **Why FetchContent for gRPC?**
 - vcpkg gRPC v1.71.0 has no pre-built binaries (builds from source: 45-90 min)
-- FetchContent uses v1.75.1 with Windows compatibility fixes
+- FetchContent uses v1.75.1 (latest stable with modern compiler support)
 - BoringSSL ASM disabled on Windows (avoids NASM build conflicts with clang-cl)
 - Better caching in CI/CD (separate cache keys for vcpkg vs FetchContent)
 - First build: ~10-15 min, subsequent: <1 min (cached)

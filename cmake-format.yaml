@@ -1,0 +1,11 @@
+# CMake format configuration
+line_width: 80
+tab_size: 2
+max_subargs_per_line: 3
+separate_ctrl_name_with_space: true
+separate_fn_name_with_space: true
+dangle_parens: true
+command_case: lower
+keyword_case: upper
+enable_sort: true
+autosort: true

@@ -1,0 +1,76 @@
+name: 'Setup Build Environment'
+description: 'Setup build environment with dependencies and caching'
+inputs:
+  platform:
+    description: 'Target platform (linux, macos, windows)'
+    required: true
+  preset:
+    description: 'CMake preset to use'
+    required: true
+  cache-key:
+    description: 'Cache key for dependencies'
+    required: false
+    default: ''
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Setup CPM cache
+      if: inputs.cache-key != ''
+      uses: actions/cache@v4
+      with:
+        path: ~/.cpm-cache
+        key: cpm-${{ inputs.platform }}-${{ inputs.cache-key }}
+        restore-keys: |
+          cpm-${{ inputs.platform }}-
+
+    - name: Setup build environment (Linux)
+      if: inputs.platform == 'linux'
+      shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y $(tr '\n' ' ' < .github/workflows/scripts/linux-ci-packages.txt) gcc-12 g++-12
+        sudo apt-get clean
+
+    - name: Setup build environment (macOS)
+      if: inputs.platform == 'macos'
+      shell: bash
+      run: |
+        brew install ninja pkg-config ccache
+        if ! command -v cmake &> /dev/null; then
+          brew install cmake
+        fi
+
+    - name: Setup build environment (Windows)
+      if: inputs.platform == 'windows'
+      shell: pwsh
+      run: |
+        choco install --no-progress -y nasm ccache
+        if ($env:ChocolateyInstall) {
+          $profilePath = Join-Path $env:ChocolateyInstall "helpers\chocolateyProfile.psm1"
+          if (Test-Path $profilePath) {
+            Import-Module $profilePath
+            refreshenv
+          }
+        }
+
+    - name: Setup sccache
+      uses: hendrikmuhs/ccache-action@v1.2
+      with:
+        key: ${{ inputs.platform }}-${{ github.sha }}
+        restore-keys: |
+          ${{ inputs.platform }}-
+        max-size: 500M
+        variant: sccache
+
+    - name: Configure sccache for clang-cl (Windows)
+      if: inputs.platform == 'windows'
+      shell: pwsh
+      run: |
+        echo "CC=sccache clang-cl" >> $env:GITHUB_ENV
+        echo "CXX=sccache clang-cl" >> $env:GITHUB_ENV
