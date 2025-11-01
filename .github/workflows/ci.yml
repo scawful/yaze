@@ -64,6 +64,11 @@ jobs:
             preset: ci
 
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
       - name: Setup build environment
         uses: ./.github/actions/setup-build
         with:
@@ -113,6 +118,11 @@ jobs:
             preset: ci
 
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
       - name: Setup build environment
         uses: ./.github/actions/setup-build
         with:
