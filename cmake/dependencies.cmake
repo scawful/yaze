@@ -76,4 +76,4 @@ endif()
 message(STATUS "=================================")
 
 # Export all dependency targets for use in other CMake files
-set(YAZE_ALL_DEPENDENCIES ${YAZE_ALL_DEPENDENCIES} PARENT_SCOPE)
+set(YAZE_ALL_DEPENDENCIES ${YAZE_ALL_DEPENDENCIES})

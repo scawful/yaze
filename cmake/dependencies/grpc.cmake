@@ -113,7 +113,6 @@ set(ABSL_TARGETS
   absl::str_format
   absl::synchronization
   absl::time
-  PARENT_SCOPE
 )
 
 # Export gRPC targets for use in other CMake files
@@ -123,7 +122,6 @@ set(YAZE_GRPC_TARGETS
   protobuf::libprotobuf
   protoc
   grpc_cpp_plugin
-  PARENT_SCOPE
 )
 
 message(STATUS "gRPC setup complete - targets available: ${YAZE_GRPC_TARGETS}")
@@ -152,7 +150,6 @@ message(STATUS "Protobuf include dir: ${_gRPC_PROTOBUF_WELLKNOWN_INCLUDE_DIR}")
 # Export protobuf targets
 set(YAZE_PROTOBUF_TARGETS
   protobuf::libprotobuf
-  PARENT_SCOPE
 )
 
 # Function to add protobuf/gRPC code generation to a target

@@ -67,7 +67,6 @@ if(YAZE_BUILD_TESTS)
 endif()
 
 # Export ImGui targets for use in other CMake files  
-set(YAZE_IMGUI_TARGETS ImGui PARENT_SCOPE)
 set(YAZE_IMGUI_TARGETS ImGui)
 
 message(STATUS "Dear ImGui setup complete - YAZE_IMGUI_TARGETS = ${YAZE_IMGUI_TARGETS}")
