@@ -202,7 +202,7 @@ function Clean-CMakeCache {
                 $cleaned = $true
                 Write-Status "  ✓ Removed '$dir'" "Success"
             } catch {
-                Write-Status "  ✗ Failed to remove '$dir`: $_" "Error"
+                Write-Status "  ✗ Failed to remove '$dir': $_" "Error"
                 $script:warnings += "Could not fully clean '$dir' (some files may be locked)"
             }
         }
