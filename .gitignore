@@ -1,8 +1,8 @@
-# Build directories - organized by platform
-build/
-build-*/
-out/
-build*/
+# Build directories - organized by platform (root level only)
+/build/
+/build-*/
+/build_*/
+/out/
 docs/html/
 docs/latex/
 

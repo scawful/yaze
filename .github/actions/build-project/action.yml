@@ -1,0 +1,58 @@
+name: 'Build Project'
+description: 'Build the project with CMake and caching'
+inputs:
+  platform:
+    description: 'Target platform (linux, macos, windows)'
+    required: true
+  preset:
+    description: 'CMake preset to use'
+    required: true
+  build-type:
+    description: 'Build type (Debug, Release, RelWithDebInfo)'
+    required: false
+    default: 'RelWithDebInfo'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Cache build artifacts
+      uses: actions/cache@v4
+      with:
+        path: build
+        key: build-${{ inputs.platform }}-${{ github.sha }}
+        restore-keys: |
+          build-${{ inputs.platform }}-
+
+    - name: Configure project
+      shell: bash
+      run: |
+        cmake --preset "${{ inputs.preset }}"
+
+    - name: Build project (Linux/macOS)
+      if: inputs.platform != 'windows'
+      shell: bash
+      run: |
+        if command -v nproc >/dev/null 2>&1; then
+          CORES=$(nproc)
+        elif command -v sysctl >/dev/null 2>&1; then
+          CORES=$(sysctl -n hw.ncpu)
+        else
+          CORES=2
+        fi
+        echo "Using $CORES parallel jobs"
+        cmake --build build --parallel "$CORES"
+
+    - name: Build project (Windows)
+      if: inputs.platform == 'windows'
+      shell: pwsh
+      run: |
+        $JOBS = ${env:CMAKE_BUILD_PARALLEL_LEVEL:-4}
+        echo "Using $JOBS parallel jobs"
+        cmake --build build --config "${{ inputs.build-type }}" --parallel "$JOBS"
+
+    - name: Show build artifacts
+      shell: bash
+      run: |
+        echo "Build artifacts:"
+        find build -name "*.exe" -o -name "yaze" -o -name "*.app" | head -10
+

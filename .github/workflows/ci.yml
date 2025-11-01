@@ -98,7 +98,6 @@ jobs:
 
   test:
     name: "Test - ${{ matrix.name }}"
-    needs: build
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
