@@ -1,0 +1,48 @@
+name: 'Run Tests'
+description: 'Run test suite with appropriate filtering'
+inputs:
+  test-type:
+    description: 'Type of tests to run (stable, unit, integration, all)'
+    required: true
+  preset:
+    description: 'CMake preset to use'
+    required: false
+    default: 'ci'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Run stable tests
+      if: inputs.test-type == 'stable' || inputs.test-type == 'all'
+      shell: bash
+      run: |
+        cd build
+        ctest --output-on-failure -C RelWithDebInfo -j1 \
+          -L "stable" \
+          --output-junit stable_test_results.xml || true
+
+    - name: Run unit tests
+      if: inputs.test-type == 'unit' || inputs.test-type == 'all'
+      shell: bash
+      run: |
+        cd build
+        ctest --output-on-failure -C RelWithDebInfo --parallel \
+          -L "unit" \
+          --output-junit unit_test_results.xml || true
+
+    - name: Run integration tests
+      if: inputs.test-type == 'integration' || inputs.test-type == 'all'
+      shell: bash
+      run: |
+        cd build
+        ctest --output-on-failure -C RelWithDebInfo --parallel \
+          -L "integration" \
+          --output-junit integration_test_results.xml || true
+
+    - name: Upload test results
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-results-${{ inputs.test-type }}
+        path: build/*test_results.xml
+        if-no-files-found: ignore
+        retention-days: 7

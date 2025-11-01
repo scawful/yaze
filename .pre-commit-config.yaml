@@ -1,0 +1,80 @@
+# Pre-commit hooks for YAZE
+# Install with: pip install pre-commit && pre-commit install
+
+repos:
+  # Clang format
+  - repo: https://github.com/pre-commit/mirrors-clang-format
+    rev: v18.1.0
+    hooks:
+      - id: clang-format
+        args: [--style=Google, -i]
+        files: \.(cc|cpp|h|hpp)$
+        exclude: ^(src/lib/|third_party/)
+
+  # Clang tidy
+  - repo: local
+    hooks:
+      - id: clang-tidy
+        name: clang-tidy
+        entry: clang-tidy
+        language: system
+        args: [--header-filter=src/.*\.(h|hpp)$]
+        files: \.(cc|cpp)$
+        exclude: ^(src/lib/|third_party/)
+
+  # Cppcheck
+  - repo: local
+    hooks:
+      - id: cppcheck
+        name: cppcheck
+        entry: cppcheck
+        language: system
+        args: [--enable=warning,style,performance, --inconclusive, --error-exitcode=0]
+        files: \.(cc|cpp|h|hpp)$
+        exclude: ^(src/lib/|third_party/)
+
+  # General hooks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-json
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: [--maxkb=1000]
+      - id: check-case-conflict
+      - id: check-merge-conflict
+      - id: mixed-line-ending
+        args: [--fix=lf]
+
+  # CMake formatting
+  - repo: https://github.com/cheshirekow/cmake-format-precommit
+    rev: v0.6.13
+    hooks:
+      - id: cmake-format
+        args: [--config-files=cmake-format.yaml]
+        files: CMakeLists\.txt$|\.cmake$
+
+  # Shell script linting
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.9.0.6
+    hooks:
+      - id: shellcheck
+        files: \.(sh|bash)$
+
+  # Python linting (for scripts)
+  - repo: https://github.com/psf/black
+    rev: 23.12.1
+    hooks:
+      - id: black
+        files: \.py$
+        exclude: ^(third_party/|build/)
+
+  - repo: https://github.com/pycqa/flake8
+    rev: 7.0.0
+    hooks:
+      - id: flake8
+        files: \.py$
+        exclude: ^(third_party/|build/)

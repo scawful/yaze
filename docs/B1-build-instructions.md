@@ -73,7 +73,7 @@ cmake --build --preset win-ai
 -   **Bundled**: All other dependencies (SDL2, ImGui, Abseil, Asar, GoogleTest, etc.) are included as Git submodules or managed by CMake's `FetchContent`. No external package manager is required for a basic build.
 -   **Optional**: 
     -   **gRPC**: For GUI test automation. Can be enabled with `-DYAZE_WITH_GRPC=ON`.
-    -   **vcpkg (Windows)**: Can be used for dependency management, but is not required.
+    -   **vcpkg (Windows)**: Can be used for faster gRPC builds on Windows (optional).
 
 ## 4. Platform Setup
 
@@ -169,19 +169,39 @@ open build/yaze.xcodeproj
 **Current Configuration (Optimized):**
 - **Compilers**: Both clang-cl and MSVC supported (matrix)
 - **vcpkg**: Only fast packages (SDL2, yaml-cpp) - 2 minutes
-- **gRPC**: Built via FetchContent (v1.67.1) - cached after first build
+- **gRPC**: Built via FetchContent (v1.75.1) - cached after first build
 - **Caching**: Aggressive multi-tier caching (vcpkg + FetchContent + sccache)
 - **Expected time**: 
   - First build: ~10-15 minutes
   - Cached build: ~3-5 minutes
 
-**Why Not vcpkg for gRPC?**
+**Why FetchContent for gRPC in CI?**
 - vcpkg's latest gRPC (v1.71.0) has no pre-built binaries
 - Building from source via vcpkg: 45-90 minutes
 - FetchContent with caching: 10-15 minutes first time, <1 min cached
-- Better control over gRPC version (v1.75.1 with Windows fixes)
+- Better control over gRPC version (v1.75.1 - latest stable)
 - BoringSSL ASM disabled on Windows for clang-cl compatibility
 - zlib conflict: gRPC's FetchContent builds its own zlib, conflicts with vcpkg's
+
+### Desktop Development: Faster builds with vcpkg (optional)
+
+For desktop development, you can use vcpkg for faster gRPC builds:
+
+```powershell
+# Install vcpkg
+git clone https://github.com/Microsoft/vcpkg.git
+cd vcpkg && .\bootstrap-vcpkg.bat
+
+# Configure with vcpkg
+cmake -B build -DYAZE_USE_VCPKG_GRPC=ON -DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake
+```
+
+**Benefits:**
+- Pre-compiled gRPC packages: ~5 minutes vs ~10-15 minutes
+- No need to build gRPC from source
+- Faster iteration during development
+
+**Note:** CI/CD workflows use FetchContent by default for reliability.
 
 ### Local Development
 

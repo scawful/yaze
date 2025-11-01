@@ -25,6 +25,9 @@ else()
                  LANGUAGES CXX C)
 endif()
 
+# Include build options first
+include(cmake/options.cmake)
+
 # Enable ccache for faster rebuilds if available
 find_program(CCACHE_FOUND ccache)
 if(CCACHE_FOUND)
@@ -47,85 +50,12 @@ set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
 # Include utility functions
 include(cmake/utils.cmake)
 
-# Build Flags
-set(YAZE_BUILD_APP ON)
-set(YAZE_BUILD_LIB ON)
-set(YAZE_BUILD_EMU ON)
-set(YAZE_BUILD_Z3ED ON)
-set(YAZE_BUILD_TESTS ON CACHE BOOL "Build test suite")
-set(YAZE_INSTALL_LIB OFF)
+# Set up dependencies using CPM.cmake
+include(cmake/dependencies.cmake)
 
-# Testing and CI Configuration
-option(YAZE_ENABLE_ROM_TESTS "Enable tests that require ROM files" OFF)
-option(YAZE_MINIMAL_BUILD "Minimal build for CI (disable optional features)" OFF)
-option(YAZE_UNITY_BUILD "Enable Unity (Jumbo) builds" OFF)
-
-# Feature Flags - Simplified: Always enabled by default (use wrapper classes to hide complexity)
-# JSON is header-only with minimal overhead
-# gRPC is only used in agent/cli tools, not in core editor runtime
-set(YAZE_WITH_JSON ON)
-set(YAZE_WITH_GRPC ON)
-set(Z3ED_AI ON)
-
-# vcpkg option for desktop users (faster gRPC builds on Windows)
-option(YAZE_USE_VCPKG_GRPC "Use vcpkg for gRPC on Windows (faster for desktop)" OFF)
-
-# Minimal build override - disable only the most expensive features
-if(YAZE_MINIMAL_BUILD)
-  set(YAZE_WITH_GRPC OFF)
-  set(Z3ED_AI OFF)
-  message(STATUS "✓ Minimal build: gRPC and AI disabled")
-else()
-  message(STATUS "✓ Full build: All features enabled (JSON, gRPC, AI)")
-endif()
-
-# Define preprocessor macros for feature flags (so #ifdef works in source code)
-if(YAZE_WITH_GRPC)
-  add_compile_definitions(YAZE_WITH_GRPC)
-endif()
-if(YAZE_WITH_JSON)
-  add_compile_definitions(YAZE_WITH_JSON)
-endif()
-if(Z3ED_AI)
-  add_compile_definitions(Z3ED_AI)
-endif()
-
-# Optional gRPC support
-if(YAZE_WITH_GRPC)
-  message(STATUS "✓ gRPC support enabled (FetchContent will download and build from source)")
-  message(STATUS "  Note: First build takes 15-20 minutes to compile gRPC + Protobuf")
-  message(STATUS "  Versions: gRPC v1.75.1 (macOS/Linux) / v1.67.1 (Windows), bundled Protobuf & Abseil")
-  
-  # Include existing gRPC infrastructure
-  include(cmake/grpc.cmake)
-  
-  set(YAZE_HAS_GRPC TRUE)
-else()
-  message(STATUS "○ gRPC support disabled (temporarily disabled for testing)")
-  set(YAZE_HAS_GRPC FALSE)
-endif()
-
-# Dependencies are handled by dependencies.cmake
-
-# JSON library (nlohmann_json) - handled by third_party/json
-
-# FTXUI library for CLI
-find_package(ftxui QUIET)
-if(NOT ftxui_FOUND)
-  include(FetchContent)
-  FetchContent_Declare(
-    ftxui
-    GIT_REPOSITORY https://github.com/ArthurSonzogni/FTXUI.git
-    GIT_TAG v5.0.0
-  )
-  FetchContent_MakeAvailable(ftxui)
-endif()
-
+# Additional configuration options
 option(YAZE_SUPPRESS_WARNINGS "Suppress compiler warnings (use -v preset suffix for verbose)" ON)
 set(YAZE_TEST_ROM_PATH "${CMAKE_BINARY_DIR}/bin/zelda3.sfc" CACHE STRING "Path to test ROM file")
-
-# Include dependencies management
-include(cmake/dependencies.cmake)
 
 # Export compile commands for clangd/LSP
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -183,19 +113,19 @@ if(CLANG_FORMAT)
        "${CMAKE_SOURCE_DIR}/test/*.cc"
        "${CMAKE_SOURCE_DIR}/test/*.h")
 
-  add_custom_target(format
+  add_custom_target(yaze-format
     COMMAND ${CLANG_FORMAT} -i --style=Google ${ALL_SOURCE_FILES}
     COMMENT "Running clang-format on source files"
   )
 
-  add_custom_target(format-check
+  add_custom_target(yaze-format-check
     COMMAND ${CLANG_FORMAT} --dry-run --Werror --style=Google ${ALL_SOURCE_FILES}
     COMMENT "Checking code format"
   )
 endif()
 
 # Packaging configuration
-include(cmake/packaging.cmake)
+include(cmake/packaging/cpack.cmake)
 
 add_custom_target(build_cleaner
   COMMAND ${CMAKE_COMMAND} -E echo "Running scripts/build_cleaner.py --dry-run"

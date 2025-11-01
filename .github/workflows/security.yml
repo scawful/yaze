@@ -1,0 +1,87 @@
+name: Security Scanning
+
+on:
+  push:
+    branches: [ "master", "develop" ]
+  pull_request:
+    branches: [ "master", "develop" ]
+  schedule:
+    - cron: '0 2 * * 1'  # Weekly on Monday at 2 AM
+  workflow_dispatch:
+
+jobs:
+  codeql:
+    name: "CodeQL Analysis"
+    runs-on: ubuntu-22.04
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [ 'cpp' ]
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v3
+      with:
+        languages: ${{ matrix.language }}
+        queries: security-and-quality
+
+    - name: Setup build environment
+      uses: ./.github/actions/setup-build
+      with:
+        platform: linux
+        preset: ci
+        cache-key: ${{ hashFiles('cmake/dependencies.lock') }}
+
+    - name: Build project
+      uses: ./.github/actions/build-project
+      with:
+        platform: linux
+        preset: ci
+        build-type: RelWithDebInfo
+
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v3
+      with:
+        category: "/language:${{matrix.language}}"
+
+  dependency-scan:
+    name: "Dependency Scan"
+    runs-on: ubuntu-22.04
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+    
+    - name: Upload Trivy scan results to GitHub Security tab
+      uses: github/codeql-action/upload-sarif@v3
+      if: always()
+      with:
+        sarif_file: 'trivy-results.sarif'
+
+  dependabot:
+    name: "Dependabot"
+    runs-on: ubuntu-22.04
+    if: github.event_name == 'schedule'
+    
+    steps:
+    - name: Dependabot metadata
+      run: |
+        echo "Dependabot is configured via .github/dependabot.yml"
+        echo "This job runs weekly to ensure dependencies are up to date"
