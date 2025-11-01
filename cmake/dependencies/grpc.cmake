@@ -58,11 +58,14 @@ set(utf8_range_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(utf8_range_INSTALL OFF CACHE BOOL "" FORCE)
 
 # Use CPM to fetch gRPC with bundled dependencies
+# GIT_SUBMODULES "" disables submodule recursion since gRPC handles its own deps via CMake
 CPMAddPackage(
   NAME grpc
   VERSION ${GRPC_VERSION}
   GITHUB_REPOSITORY grpc/grpc
   GIT_TAG v${GRPC_VERSION}
+  GIT_SUBMODULES ""
+  GIT_SHALLOW TRUE
 )
 
 # Check which target naming convention is used
