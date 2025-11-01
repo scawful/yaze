@@ -71,3 +71,4 @@ jobs:
         platform: linux
         preset: ci
         build-type: RelWithDebInfo
+

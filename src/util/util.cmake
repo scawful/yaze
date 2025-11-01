@@ -22,9 +22,10 @@ set(YAZE_UTIL_SRC
 
 add_library(yaze_util STATIC ${YAZE_UTIL_SRC})
 
-target_precompile_headers(yaze_util PRIVATE
-  "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_SOURCE_DIR}/src/yaze_pch.h>"
-)
+# Note: PCH disabled for yaze_util to avoid circular dependency with Abseil
+# The log.h header requires Abseil, but Abseil is built after yaze_util
+# in the dependency chain. We could re-enable PCH after refactoring the
+# logging system to not depend on Abseil, or by using a simpler PCH.
 
 target_include_directories(yaze_util PUBLIC
   ${CMAKE_SOURCE_DIR}/src
@@ -35,8 +36,13 @@ target_include_directories(yaze_util PUBLIC
 
 target_link_libraries(yaze_util PUBLIC
   yaze_common
-  ${ABSL_TARGETS}
 )
+
+# Add Abseil dependencies if gRPC is enabled
+# We link to grpc++ which transitively provides Abseil and ensures correct build order
+if(YAZE_ENABLE_GRPC)
+  target_link_libraries(yaze_util PUBLIC grpc++)
+endif()
 
 set_target_properties(yaze_util PROPERTIES
   POSITION_INDEPENDENT_CODE ON

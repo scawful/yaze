@@ -19,3 +19,4 @@ set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--as-needed")
 
 # Find packages
 find_package(PkgConfig REQUIRED)
+

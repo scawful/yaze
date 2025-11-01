@@ -31,7 +31,7 @@ if(YAZE_BUILD_TESTS)
       absl::flags
       absl::flags_parse
       ImGui
-      ${SDL_TARGETS}
+      ${YAZE_SDL2_TARGETS}
     )
 
     # Link ImGui Test Engine for GUI tests (always available when tests are built)

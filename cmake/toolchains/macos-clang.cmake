@@ -22,3 +22,4 @@ set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-dead_strip")
 
 # Find packages
 find_package(PkgConfig REQUIRED)
+

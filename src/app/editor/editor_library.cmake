@@ -57,7 +57,7 @@ set(
   app/editor/ui/workspace_manager.cc
 )
 
-if(YAZE_WITH_GRPC)
+if(YAZE_ENABLE_GRPC)
   list(APPEND YAZE_APP_EDITOR_SRC
     app/editor/agent/agent_editor.cc
     app/editor/agent/agent_chat_widget.cc

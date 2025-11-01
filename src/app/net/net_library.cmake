@@ -31,7 +31,8 @@ target_include_directories(yaze_net PUBLIC
   ${CMAKE_SOURCE_DIR}/src
   ${CMAKE_SOURCE_DIR}/src/lib
   ${CMAKE_SOURCE_DIR}/src/lib/imgui
-  ${SDL2_INCLUDE_DIR}
+  ${CMAKE_SOURCE_DIR}/third_party/json/include
+  ${CMAKE_SOURCE_DIR}/third_party/httplib
   ${PROJECT_BINARY_DIR}
 )
 
@@ -39,13 +40,14 @@ target_link_libraries(yaze_net PUBLIC
   yaze_util
   yaze_common
   ${ABSL_TARGETS}
+  ${YAZE_SDL2_TARGETS}
 )
 
 # Add JSON and httplib support if enabled
 if(YAZE_WITH_JSON)
-  target_include_directories(yaze_net PUBLIC
-    ${CMAKE_SOURCE_DIR}/third_party/json/include
-    ${CMAKE_SOURCE_DIR}/third_party/httplib)
+  # Link nlohmann_json which provides the include directories automatically
+  target_link_libraries(yaze_net PUBLIC nlohmann_json::nlohmann_json)
+  target_include_directories(yaze_net PUBLIC ${CMAKE_SOURCE_DIR}/third_party/httplib)
   target_compile_definitions(yaze_net PUBLIC YAZE_WITH_JSON)
   
   # Add threading support (cross-platform)

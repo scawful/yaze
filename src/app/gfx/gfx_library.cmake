@@ -21,13 +21,11 @@ macro(configure_gfx_library name)
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_SOURCE_DIR}/src/lib
     ${CMAKE_SOURCE_DIR}/incl
-    ${SDL2_INCLUDE_DIR}
     ${PROJECT_BINARY_DIR}
   )
   target_link_libraries(${name} PUBLIC
     yaze_util
     yaze_common
-    ${ABSL_TARGETS}
   )
   set_target_properties(${name} PROPERTIES
     POSITION_INDEPENDENT_CODE ON
@@ -102,13 +100,15 @@ set(GFX_DEBUG_SRC
 # Layer 1: Foundation types (no dependencies)
 add_library(yaze_gfx_types STATIC ${GFX_TYPES_SRC})
 configure_gfx_library(yaze_gfx_types)
+# Debug: message(STATUS "YAZE_SDL2_TARGETS for gfx_types: '${YAZE_SDL2_TARGETS}'")
+target_link_libraries(yaze_gfx_types PUBLIC ${YAZE_SDL2_TARGETS})
 
 # Layer 2: Backend (depends on types)
 add_library(yaze_gfx_backend STATIC ${GFX_BACKEND_SRC})
 configure_gfx_library(yaze_gfx_backend)
 target_link_libraries(yaze_gfx_backend PUBLIC 
   yaze_gfx_types 
-  ${SDL_TARGETS}
+  ${YAZE_SDL2_TARGETS}
 )
 
 # Layer 3a: Resource management (depends on backend)
@@ -122,6 +122,7 @@ configure_gfx_library(yaze_gfx_render)
 target_link_libraries(yaze_gfx_render PUBLIC 
   yaze_gfx_types
   yaze_gfx_backend
+  ${YAZE_SDL2_TARGETS}
 )
 
 # Layer 3c: Debug tools (depends on types only at this level)
@@ -131,6 +132,7 @@ target_link_libraries(yaze_gfx_debug PUBLIC
   yaze_gfx_types
   yaze_gfx_resource
   ImGui
+  ${YAZE_SDL2_TARGETS}
 )
 
 # Layer 4: Core bitmap (depends on render, debug)

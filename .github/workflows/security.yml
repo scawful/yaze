@@ -85,3 +85,4 @@ jobs:
       run: |
         echo "Dependabot is configured via .github/dependabot.yml"
         echo "This job runs weekly to ensure dependencies are up to date"
+

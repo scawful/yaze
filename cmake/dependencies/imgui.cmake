@@ -1,39 +1,69 @@
 # Dear ImGui dependency management
-# Uses CPM.cmake for consistent cross-platform builds
+# Uses the bundled ImGui in src/lib/imgui
 
-include(cmake/CPM.cmake)
-include(cmake/dependencies.lock)
+message(STATUS "Setting up Dear ImGui from bundled sources")
 
-message(STATUS "Setting up Dear ImGui ${IMGUI_VERSION} with CPM.cmake")
+# Use the bundled ImGui from src/lib/imgui
+set(IMGUI_DIR ${CMAKE_SOURCE_DIR}/src/lib/imgui)
 
-# Use CPM to fetch Dear ImGui
-CPMAddPackage(
-  NAME imgui
-  VERSION ${IMGUI_VERSION}
-  GITHUB_REPOSITORY ocornut/imgui
-  GIT_TAG v${IMGUI_VERSION}
-  OPTIONS
-    "IMGUI_BUILD_EXAMPLES OFF"
-    "IMGUI_BUILD_DEMO OFF"
+# Create ImGui library with core files from bundled source
+add_library(ImGui STATIC
+  ${IMGUI_DIR}/imgui.cpp
+  ${IMGUI_DIR}/imgui_demo.cpp
+  ${IMGUI_DIR}/imgui_draw.cpp
+  ${IMGUI_DIR}/imgui_tables.cpp
+  ${IMGUI_DIR}/imgui_widgets.cpp
+  # SDL2 backend
+  ${IMGUI_DIR}/backends/imgui_impl_sdl2.cpp
+  ${IMGUI_DIR}/backends/imgui_impl_sdlrenderer2.cpp
+  # C++ stdlib helpers (for std::string support)
+  ${IMGUI_DIR}/misc/cpp/imgui_stdlib.cpp
 )
 
-# ImGui doesn't create targets during CPM fetch, they're created during build
-# We'll create our own interface target and link to ImGui when it's available
-add_library(yaze_imgui INTERFACE)
+target_include_directories(ImGui PUBLIC
+  ${IMGUI_DIR}
+  ${IMGUI_DIR}/backends
+)
 
-# Note: ImGui targets will be available after the build phase
-# For now, we'll create a placeholder that can be linked later
+# Link to SDL2
+target_link_libraries(ImGui PUBLIC ${YAZE_SDL2_TARGETS})
 
-# Add platform-specific backends
-if(TARGET imgui_impl_sdl2)
-  target_link_libraries(yaze_imgui INTERFACE imgui_impl_sdl2)
+message(STATUS "Created ImGui target from bundled source at ${IMGUI_DIR}")
+
+# Create ImGui Test Engine for test automation (if tests are enabled)
+if(YAZE_BUILD_TESTS)
+  set(IMGUI_TEST_ENGINE_DIR ${CMAKE_SOURCE_DIR}/src/lib/imgui_test_engine/imgui_test_engine)
+  
+  if(EXISTS ${IMGUI_TEST_ENGINE_DIR})
+    set(IMGUI_TEST_ENGINE_SOURCES
+      ${IMGUI_TEST_ENGINE_DIR}/imgui_te_context.cpp
+      ${IMGUI_TEST_ENGINE_DIR}/imgui_te_coroutine.cpp
+      ${IMGUI_TEST_ENGINE_DIR}/imgui_te_engine.cpp
+      ${IMGUI_TEST_ENGINE_DIR}/imgui_te_exporters.cpp
+      ${IMGUI_TEST_ENGINE_DIR}/imgui_te_perftool.cpp
+      ${IMGUI_TEST_ENGINE_DIR}/imgui_te_ui.cpp
+      ${IMGUI_TEST_ENGINE_DIR}/imgui_te_utils.cpp
+      ${IMGUI_TEST_ENGINE_DIR}/imgui_capture_tool.cpp
+    )
+    
+    add_library(ImGuiTestEngine STATIC ${IMGUI_TEST_ENGINE_SOURCES})
+    target_include_directories(ImGuiTestEngine PUBLIC 
+      ${IMGUI_DIR}
+      ${IMGUI_TEST_ENGINE_DIR}
+      ${CMAKE_SOURCE_DIR}/src/lib
+    )
+    target_link_libraries(ImGuiTestEngine PUBLIC ImGui ${YAZE_SDL2_TARGETS})
+    target_compile_definitions(ImGuiTestEngine PUBLIC
+      IMGUI_ENABLE_TEST_ENGINE=1
+      IMGUI_TEST_ENGINE_ENABLE_COROUTINE_STDTHREAD_IMPL=1
+    )
+    
+    message(STATUS "Created ImGuiTestEngine target for test automation")
+  endif()
 endif()
 
-if(TARGET imgui_impl_opengl3)
-  target_link_libraries(yaze_imgui INTERFACE imgui_impl_opengl3)
-endif()
+# Export ImGui targets for use in other CMake files  
+set(YAZE_IMGUI_TARGETS ImGui PARENT_SCOPE)
+set(YAZE_IMGUI_TARGETS ImGui)
 
-# Export ImGui targets for use in other CMake files
-set(YAZE_IMGUI_TARGETS yaze_imgui)
-
-message(STATUS "Dear ImGui setup complete")
+message(STATUS "Dear ImGui setup complete - YAZE_IMGUI_TARGETS = ${YAZE_IMGUI_TARGETS}")

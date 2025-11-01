@@ -10,21 +10,25 @@ include(cmake/dependencies.lock)
 
 message(STATUS "Setting up testing dependencies with CPM.cmake")
 
-# Google Test
+# Google Test (includes GMock)
 CPMAddPackage(
   NAME googletest
   VERSION ${GTEST_VERSION}
   GITHUB_REPOSITORY google/googletest
   GIT_TAG v${GTEST_VERSION}
   OPTIONS
-    "BUILD_GMOCK OFF"
+    "BUILD_GMOCK ON"
     "INSTALL_GTEST OFF"
     "gtest_force_shared_crt ON"
 )
 
-# Verify GTest targets are available
+# Verify GTest and GMock targets are available
 if(NOT TARGET gtest)
   message(FATAL_ERROR "GTest target not found after CPM fetch")
+endif()
+
+if(NOT TARGET gmock)
+  message(FATAL_ERROR "GMock target not found after CPM fetch")
 endif()
 
 # Google Benchmark (optional, for performance tests)
@@ -48,13 +52,19 @@ endif()
 
 # Create convenience targets for the rest of the project
 add_library(yaze_testing INTERFACE)
-target_link_libraries(yaze_testing INTERFACE gtest)
+target_link_libraries(yaze_testing INTERFACE 
+  gtest 
+  gtest_main
+  gmock
+  gmock_main
+)
 
 if(TARGET benchmark::benchmark)
   target_link_libraries(yaze_testing INTERFACE benchmark::benchmark)
 endif()
 
 # Export testing targets for use in other CMake files
+set(YAZE_TESTING_TARGETS yaze_testing PARENT_SCOPE)
 set(YAZE_TESTING_TARGETS yaze_testing)
 
-message(STATUS "Testing dependencies setup complete")
+message(STATUS "Testing dependencies setup complete - GTest + GMock available")

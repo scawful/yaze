@@ -6,6 +6,7 @@
 #include "app/gfx/resource/arena.h"
 #include "app/rom.h"
 #include "app/snes.h"
+#include "util/log.h"
 
 namespace yaze {
 namespace zelda3 {
