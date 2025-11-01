@@ -260,6 +260,181 @@ function Sync-GitSubmodules {
     }
 }
 
+function Test-Ninja {
+    Write-Status "Checking Ninja build system..." "Step"
+    if (Test-Command "ninja") {
+        try {
+            $ninjaVersion = & ninja --version 2>&1
+            Write-Status "Ninja found: version $ninjaVersion" "Success"
+            $script:success += "Ninja build system available (required for win-dbg presets)"
+            return $true
+        } catch {
+            Write-Status "Ninja command exists but version check failed" "Warning"
+            return $true
+        }
+    } else {
+        Write-Status "Ninja not found in PATH" "Warning"
+        $script:warnings += "Ninja not installed. Required for win-dbg, win-rel, win-ai presets. Use win-vs-* presets instead or install Ninja."
+        return $false
+    }
+}
+
+function Test-NASM {
+    Write-Status "Checking NASM assembler..." "Step"
+    if (Test-Command "nasm") {
+        try {
+            $nasmVersion = & nasm -version 2>&1 | Select-Object -First 1
+            Write-Status "NASM found: $nasmVersion" "Success"
+            $script:success += "NASM assembler available (needed for BoringSSL in gRPC)"
+            return $true
+        } catch {
+            Write-Status "NASM command exists but version check failed" "Warning"
+            return $true
+        }
+    } else {
+        Write-Status "NASM not found in PATH (optional)" "Info"
+        Write-Status "NASM is required for gRPC builds with BoringSSL. Install via: choco install nasm" "Info"
+        return $false
+    }
+}
+
+function Test-VSCode {
+    Write-Status "Checking Visual Studio Code installation..." "Step"
+    
+    # Check for VSCode in common locations
+    $vscodeLocations = @(
+        "$env:LOCALAPPDATA\Programs\Microsoft VS Code\Code.exe",
+        "$env:ProgramFiles\Microsoft VS Code\Code.exe",
+        "$env:ProgramFiles(x86)\Microsoft VS Code\Code.exe"
+    )
+    
+    $vscodeFound = $false
+    $vscodePath = $null
+    
+    foreach ($location in $vscodeLocations) {
+        if (Test-Path $location) {
+            $vscodeFound = $true
+            $vscodePath = $location
+            break
+        }
+    }
+    
+    if (-not $vscodeFound) {
+        # Try to find it via command
+        if (Test-Command "code") {
+            $vscodeFound = $true
+            $vscodePath = (Get-Command code).Source
+        }
+    }
+    
+    if ($vscodeFound) {
+        Write-Status "VS Code found: $vscodePath" "Success"
+        
+        # Check for CMake Tools extension
+        $extensionsOutput = & code --list-extensions 2>&1
+        if ($extensionsOutput -match "ms-vscode.cmake-tools") {
+            Write-Status "VS Code CMake Tools extension installed" "Success"
+            $script:success += "VS Code with CMake Tools ready for development"
+        } else {
+            Write-Status "VS Code found but CMake Tools extension not installed" "Warning"
+            $script:warnings += "Install CMake Tools extension: code --install-extension ms-vscode.cmake-tools"
+        }
+        return $true
+    } else {
+        Write-Status "VS Code not found (optional)" "Info"
+        return $false
+    }
+}
+
+function Test-CMakePresets {
+    Write-Status "Validating CMakePresets.json..." "Step"
+    
+    $presetsPath = Join-Path $PSScriptRoot ".." "CMakePresets.json"
+    
+    if (-not (Test-Path $presetsPath)) {
+        Write-Status "CMakePresets.json not found!" "Error"
+        $script:issuesFound += "CMakePresets.json missing from repository"
+        return $false
+    }
+    
+    try {
+        $presets = Get-Content $presetsPath -Raw | ConvertFrom-Json
+        $configurePresets = $presets.configurePresets | Where-Object { $_.name -like "win-*" }
+        
+        if ($configurePresets.Count -eq 0) {
+            Write-Status "No Windows presets found in CMakePresets.json" "Error"
+            $script:issuesFound += "CMakePresets.json has no Windows presets (win-dbg, win-rel, etc.)"
+            return $false
+        }
+        
+        Write-Status "CMakePresets.json valid with $($configurePresets.Count) Windows presets" "Success"
+        
+        # List available presets if verbose
+        if ($Verbose) {
+            Write-Status "Available Windows presets:" "Info"
+            foreach ($preset in $configurePresets) {
+                Write-Host "    - $($preset.name): $($preset.description)" -ForegroundColor Gray
+            }
+        }
+        
+        $script:success += "CMakePresets.json contains Windows build configurations"
+        return $true
+        
+    } catch {
+        Write-Status "Failed to parse CMakePresets.json: $_" "Error"
+        $script:issuesFound += "CMakePresets.json is invalid or corrupted"
+        return $false
+    }
+}
+
+function Test-VisualStudioComponents {
+    Write-Status "Checking Visual Studio C++ components..." "Step"
+    
+    $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+    if (-not (Test-Path $vswhere)) {
+        return $false
+    }
+    
+    # Check for specific components needed for C++
+    $requiredComponents = @(
+        "Microsoft.VisualStudio.Component.VC.Tools.x86.x64",
+        "Microsoft.VisualStudio.Component.Windows10SDK"
+    )
+    
+    $recommendedComponents = @(
+        "Microsoft.VisualStudio.Component.VC.CMake.Project",
+        "Microsoft.VisualStudio.Component.VC.Llvm.Clang",
+        "Microsoft.VisualStudio.Component.VC.Llvm.ClangToolset"
+    )
+    
+    $allComponentsPresent = $true
+    
+    foreach ($component in $requiredComponents) {
+        $result = & $vswhere -latest -requires $component -format value -property instanceId 2>&1
+        if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($result)) {
+            Write-Status "Missing required component: $component" "Error"
+            $script:issuesFound += "Visual Studio component not installed: $component"
+            $allComponentsPresent = $false
+        } elseif ($Verbose) {
+            Write-Status "Component installed: $component" "Success"
+        }
+    }
+    
+    foreach ($component in $recommendedComponents) {
+        $result = & $vswhere -latest -requires $component -format value -property instanceId 2>&1
+        if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($result)) {
+            Write-Status "Recommended component not installed: $component" "Info"
+            if ($component -match "CMake") {
+                $script:warnings += "Visual Studio CMake support not installed (recommended for IDE integration)"
+            }
+        } elseif ($Verbose) {
+            Write-Status "Recommended component installed: $component" "Success"
+        }
+    }
+    
+    return $allComponentsPresent
+}
+
 # ============================================================================
 # Main Verification Process
 # ============================================================================
@@ -317,7 +492,11 @@ if (Test-Command "git") {
     $script:issuesFound += "Git not installed or not in PATH"
 }
 
-# Step 3: Check Visual Studio
+# Step 3: Check Build Tools (Ninja and NASM)
+Test-Ninja | Out-Null
+Test-NASM | Out-Null
+
+# Step 4: Check Visual Studio
 Write-Status "Checking Visual Studio installation..." "Step"
 $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
 if (Test-Path $vswhere) {
@@ -329,6 +508,9 @@ if (Test-Path $vswhere) {
         Write-Status "Visual Studio with C++ Desktop workload found: version $vsVersion" "Success"
         Write-Status "  Path: $vsPath" "Info"
         $script:success += "Visual Studio C++ workload detected (version $vsVersion)"
+        
+        # Check for detailed components
+        Test-VisualStudioComponents | Out-Null
     } else {
         Write-Status "Visual Studio found, but 'Desktop development with C++' workload is missing." "Error"
         $script:issuesFound += "Visual Studio 'Desktop development with C++' workload not installed."
@@ -338,10 +520,16 @@ if (Test-Path $vswhere) {
     $script:issuesFound += "Visual Studio installation not detected."
 }
 
-# Step 4: Check vcpkg
+# Step 5: Check VSCode (optional)
+Test-VSCode | Out-Null
+
+# Step 6: Check CMakePresets.json
+Test-CMakePresets | Out-Null
+
+# Step 7: Check vcpkg
 Test-Vcpkg | Out-Null
 
-# Step 5: Check Git Submodules
+# Step 8: Check Git Submodules
 Write-Status "Checking git submodules..." "Step"
 $submodulesOk = Test-GitSubmodules
 if ($submodulesOk) {
@@ -359,7 +547,7 @@ if ($submodulesOk) {
     }
 }
 
-# Step 6: Check CMake Cache
+# Step 9: Check CMake Cache
 Write-Status "Checking CMake cache..." "Step"
 if (Test-CMakeCache) {
     Write-Status "CMake cache appears up to date." "Success"
@@ -438,6 +626,24 @@ if ($script:issuesFound.Count -gt 0) {
         Write-Host "   git config --global core.longpaths true" -ForegroundColor Gray
         Write-Host "   Or, run this script again with the '-FixIssues' flag.`n"
     }
+    if ($script:warnings -join ' ' -match 'Ninja') {
+        Write-Host " • Ninja build system:" -ForegroundColor White
+        Write-Host "   Ninja is required for win-dbg, win-rel, and win-ai presets." -ForegroundColor Gray
+        Write-Host "   Install via Chocolatey: choco install ninja" -ForegroundColor Gray
+        Write-Host "   Or use win-vs-* presets which use Visual Studio generator instead.`n"
+    }
+    if ($script:warnings -join ' ' -match 'CMake Tools') {
+        Write-Host " • VS Code CMake Tools extension:" -ForegroundColor White
+        Write-Host "   For VS Code integration, install the CMake Tools extension:" -ForegroundColor Gray
+        Write-Host "   code --install-extension ms-vscode.cmake-tools" -ForegroundColor Gray
+        Write-Host "   Or install manually from the Extensions panel.`n"
+    }
+    if ($script:issuesFound -join ' ' -match 'CMakePresets') {
+        Write-Host " • CMakePresets.json missing or invalid:" -ForegroundColor White
+        Write-Host "   This file is required for preset-based builds." -ForegroundColor Gray
+        Write-Host "   Ensure you're in the yaze repository root and the file exists." -ForegroundColor Gray
+        Write-Host "   Pull latest changes from git to get the updated presets.`n"
+    }
     
     Write-Host "If problems persist, check the build instructions in 'docs/B1-build-instructions.md'`n" -ForegroundColor Cyan
     
@@ -447,16 +653,85 @@ if ($script:issuesFound.Count -gt 0) {
     Write-Host "║          ✓ Build Environment Ready for Development!           ║" -ForegroundColor Green
     Write-Host "╚════════════════════════════════════════════════════════════════╝`n" -ForegroundColor Green
     
-    Write-Host "Next Steps:" -ForegroundColor Cyan
-    Write-Host "  Visual Studio (Recommended):" -ForegroundColor White
-    Write-Host "    1. Open Visual Studio 2022." -ForegroundColor Gray
-    Write-Host "    2. Select 'File -> Open -> Folder...' and choose the 'yaze' directory." -ForegroundColor Gray
-    Write-Host "    3. Select a Windows preset (e.g., 'win-dbg') from the dropdown." -ForegroundColor Gray
-    Write-Host "    4. Press F5 to build and debug.`n" -ForegroundColor Gray
+    # Determine which IDE and preset to recommend
+    $hasVS = Test-Path "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+    $hasVSCode = Test-Command "code"
+    $hasNinja = Test-Command "ninja"
     
-    Write-Host "  Command Line:" -ForegroundColor White
-    Write-Host "    cmake --preset win-dbg" -ForegroundColor Gray
-    Write-Host "    cmake --build --preset win-dbg`n" -ForegroundColor Gray
+    Write-Host "Next Steps:" -ForegroundColor Cyan
+    Write-Host ""
+    
+    # Recommend presets based on available tools
+    if ($hasVS -and -not $hasNinja) {
+        Write-Host "  Recommended: Visual Studio Generator Presets" -ForegroundColor Yellow
+        Write-Host "  (Ninja not found - use win-vs-* presets)" -ForegroundColor Gray
+        Write-Host ""
+    } elseif ($hasNinja) {
+        Write-Host "  Recommended: Ninja Generator Presets (faster builds)" -ForegroundColor Yellow
+        Write-Host "  (Ninja detected - use win-* presets)" -ForegroundColor Gray
+        Write-Host ""
+    }
+    
+    # Visual Studio instructions
+    if ($hasVS) {
+        Write-Host "  Option 1: Visual Studio 2022 (Full IDE)" -ForegroundColor White
+        Write-Host "    1. Open Visual Studio 2022" -ForegroundColor Gray
+        Write-Host "    2. Select 'File -> Open -> Folder...' and choose the 'yaze' directory" -ForegroundColor Gray
+        if ($hasNinja) {
+            Write-Host "    3. Select preset: 'win-dbg' (Ninja) or 'win-vs-dbg' (VS Generator)" -ForegroundColor Gray
+        } else {
+            Write-Host "    3. Select preset: 'win-vs-dbg' (install Ninja for win-dbg option)" -ForegroundColor Gray
+        }
+        Write-Host "    4. Press F5 to build and debug" -ForegroundColor Gray
+        Write-Host ""
+    }
+    
+    # VSCode instructions
+    if ($hasVSCode) {
+        Write-Host "  Option 2: Visual Studio Code (Lightweight)" -ForegroundColor White
+        Write-Host "    1. Open folder in VS Code: code ." -ForegroundColor Gray
+        Write-Host "    2. Install CMake Tools extension (if not installed)" -ForegroundColor Gray
+        if ($hasNinja) {
+            Write-Host "    3. Select CMake preset: 'win-dbg' from status bar" -ForegroundColor Gray
+        } else {
+            Write-Host "    3. Install Ninja first: choco install ninja" -ForegroundColor Gray
+            Write-Host "       Then select preset: 'win-dbg'" -ForegroundColor Gray
+        }
+        Write-Host "    4. Press F7 to build, F5 to debug" -ForegroundColor Gray
+        Write-Host ""
+    }
+    
+    # Command line instructions
+    Write-Host "  Option 3: Command Line" -ForegroundColor White
+    if ($hasNinja) {
+        Write-Host "    # Basic build (Ninja generator - fast)" -ForegroundColor Gray
+        Write-Host "    cmake --preset win-dbg" -ForegroundColor Cyan
+        Write-Host "    cmake --build --preset win-dbg" -ForegroundColor Cyan
+        Write-Host "" 
+        Write-Host "    # With AI features (gRPC + JSON)" -ForegroundColor Gray
+        Write-Host "    cmake --preset win-ai" -ForegroundColor Cyan
+        Write-Host "    cmake --build --preset win-ai" -ForegroundColor Cyan
+    } else {
+        Write-Host "    # Visual Studio generator (install Ninja for faster builds)" -ForegroundColor Gray
+        Write-Host "    cmake --preset win-vs-dbg" -ForegroundColor Cyan
+        Write-Host "    cmake --build --preset win-vs-dbg" -ForegroundColor Cyan
+        Write-Host ""
+        Write-Host "    # Install Ninja for faster builds:" -ForegroundColor Yellow
+        Write-Host "    choco install ninja" -ForegroundColor Gray
+    }
+    Write-Host ""
+    
+    # Available presets summary
+    Write-Host "  Available Presets:" -ForegroundColor White
+    if ($hasNinja) {
+        Write-Host "    win-dbg      - Debug build (Ninja)" -ForegroundColor Gray
+        Write-Host "    win-rel      - Release build (Ninja)" -ForegroundColor Gray
+        Write-Host "    win-ai       - Debug with AI/gRPC features (Ninja)" -ForegroundColor Gray
+    }
+    Write-Host "    win-vs-dbg   - Debug build (Visual Studio)" -ForegroundColor Gray
+    Write-Host "    win-vs-rel   - Release build (Visual Studio)" -ForegroundColor Gray
+    Write-Host "    win-vs-ai    - Debug with AI/gRPC features (Visual Studio)" -ForegroundColor Gray
+    Write-Host ""
     
     exit 0
 }
