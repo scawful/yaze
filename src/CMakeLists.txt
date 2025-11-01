@@ -77,7 +77,7 @@ if(YAZE_BUILD_TESTS OR NOT YAZE_MINIMAL_BUILD)
 endif()
 
 # Include gRPC support library (consolidates all protobuf/gRPC usage)
-if(YAZE_WITH_GRPC)
+if(YAZE_ENABLE_GRPC)
   include(app/service/grpc_support.cmake)
 endif()
 

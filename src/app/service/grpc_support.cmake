@@ -54,7 +54,7 @@ target_link_libraries(yaze_grpc_support PUBLIC
   yaze_gui
   yaze_emulator
   ${ABSL_TARGETS}
-  ${SDL_TARGETS}
+  ${YAZE_SDL2_TARGETS}
 )
 
 # Add JSON support

@@ -7,6 +7,7 @@
 #include "app/gui/core/icons.h"
 #include "app/gui/core/theme_manager.h"
 #include "imgui/imgui.h"
+#include "util/log.h"
 
 namespace yaze {
 namespace editor {

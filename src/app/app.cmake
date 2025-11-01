@@ -50,10 +50,9 @@ if(APPLE)
       ${CMAKE_SOURCE_DIR}/src/lib
       ${CMAKE_SOURCE_DIR}/src/lib/imgui
       ${CMAKE_SOURCE_DIR}/incl
-      ${SDL2_INCLUDE_DIR}
       ${PROJECT_BINARY_DIR}
     )
-    target_link_libraries(yaze_app_objcxx PUBLIC ${ABSL_TARGETS} yaze_util)
+    target_link_libraries(yaze_app_objcxx PUBLIC ${ABSL_TARGETS} yaze_util ${YAZE_SDL2_TARGETS})
     target_compile_definitions(yaze_app_objcxx PUBLIC MACOS)
 
     find_library(COCOA_LIBRARY Cocoa)
@@ -91,7 +90,7 @@ target_link_libraries(yaze_app_core_lib PUBLIC
   yaze_common
   ImGui
   ${ABSL_TARGETS}
-  ${SDL_TARGETS}
+  ${YAZE_SDL2_TARGETS}
   ${CMAKE_DL_LIBS}
 )
 

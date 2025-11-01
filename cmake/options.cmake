@@ -59,3 +59,4 @@ message(STATUS "LTO: ${YAZE_ENABLE_LTO}")
 message(STATUS "Sanitizers: ${YAZE_ENABLE_SANITIZERS}")
 message(STATUS "Coverage: ${YAZE_ENABLE_COVERAGE}")
 message(STATUS "=================================")
+

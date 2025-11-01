@@ -71,7 +71,7 @@ set(YAZE_AGENT_SOURCES
 )
 
 # gRPC-dependent sources (only added when gRPC is enabled)
-if(YAZE_WITH_GRPC)
+if(YAZE_ENABLE_GRPC)
   list(APPEND YAZE_AGENT_SOURCES
     cli/service/agent/agent_control_server.cc
     cli/service/agent/emulator_service_impl.cc
@@ -79,7 +79,7 @@ if(YAZE_WITH_GRPC)
   )
 endif()
 
-if(YAZE_WITH_JSON)
+if(YAZE_ENABLE_JSON)
   list(APPEND YAZE_AGENT_SOURCES cli/service/ai/gemini_ai_service.cc)
 endif()
 
@@ -116,13 +116,13 @@ if(SDL2_INCLUDE_DIR)
   target_include_directories(yaze_agent PUBLIC ${SDL2_INCLUDE_DIR})
 endif()
 
-if(YAZE_WITH_JSON)
+if(YAZE_ENABLE_JSON)
   target_link_libraries(yaze_agent PUBLIC nlohmann_json::nlohmann_json)
   target_compile_definitions(yaze_agent PUBLIC YAZE_WITH_JSON)
 
   # Only link OpenSSL if gRPC is NOT enabled (to avoid duplicate symbol errors)
   # When gRPC is enabled, it brings its own OpenSSL which we'll use instead
-  if(NOT YAZE_WITH_GRPC)
+  if(NOT YAZE_ENABLE_GRPC)
     find_package(OpenSSL)
     if(OpenSSL_FOUND)
       target_compile_definitions(yaze_agent PUBLIC CPPHTTPLIB_OPENSSL_SUPPORT)
@@ -150,11 +150,11 @@ if(YAZE_WITH_JSON)
 endif()
 
 # Add gRPC support for GUI automation
-if(YAZE_WITH_GRPC)
+if(YAZE_ENABLE_GRPC)
   # Link to consolidated gRPC support library
   target_link_libraries(yaze_agent PUBLIC yaze_grpc_support)
   
-  # Note: YAZE_WITH_GRPC is defined globally via add_compile_definitions in root CMakeLists.txt
+  # Note: YAZE_WITH_GRPC is defined globally via add_compile_definitions in options.cmake
   # This ensures #ifdef YAZE_WITH_GRPC works in all translation units
   message(STATUS "✓ gRPC GUI automation enabled for yaze_agent")
 endif()

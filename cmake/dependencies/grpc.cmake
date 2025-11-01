@@ -27,45 +27,57 @@ if(YAZE_USE_SYSTEM_DEPS)
   endif()
 endif()
 
+# Set gRPC options before adding package
+set(gRPC_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(gRPC_BUILD_CODEGEN ON CACHE BOOL "" FORCE)
+set(gRPC_BUILD_GRPC_CPP_PLUGIN ON CACHE BOOL "" FORCE)
+set(gRPC_BUILD_CSHARP_EXT OFF CACHE BOOL "" FORCE)
+set(gRPC_BUILD_GRPC_CSHARP_PLUGIN OFF CACHE BOOL "" FORCE)
+set(gRPC_BUILD_GRPC_NODE_PLUGIN OFF CACHE BOOL "" FORCE)
+set(gRPC_BUILD_GRPC_OBJECTIVE_C_PLUGIN OFF CACHE BOOL "" FORCE)
+set(gRPC_BUILD_GRPC_PHP_PLUGIN OFF CACHE BOOL "" FORCE)
+set(gRPC_BUILD_GRPC_PYTHON_PLUGIN OFF CACHE BOOL "" FORCE)
+set(gRPC_BUILD_GRPC_RUBY_PLUGIN OFF CACHE BOOL "" FORCE)
+set(gRPC_BUILD_REFLECTION OFF CACHE BOOL "" FORCE)
+set(gRPC_BUILD_GRPC_REFLECTION OFF CACHE BOOL "" FORCE)
+set(gRPC_BUILD_GRPC_CPP_REFLECTION OFF CACHE BOOL "" FORCE)
+set(gRPC_BUILD_GRPCPP_REFLECTION OFF CACHE BOOL "" FORCE)
+set(gRPC_BENCHMARK_PROVIDER "none" CACHE STRING "" FORCE)
+set(gRPC_ZLIB_PROVIDER "package" CACHE STRING "" FORCE)
+set(gRPC_PROTOBUF_PROVIDER "module" CACHE STRING "" FORCE)
+set(gRPC_ABSL_PROVIDER "module" CACHE STRING "" FORCE)
+set(protobuf_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(protobuf_BUILD_CONFORMANCE OFF CACHE BOOL "" FORCE)
+set(protobuf_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(protobuf_BUILD_PROTOC_BINARIES ON CACHE BOOL "" FORCE)
+set(protobuf_WITH_ZLIB ON CACHE BOOL "" FORCE)
+set(ABSL_PROPAGATE_CXX_STD ON CACHE BOOL "" FORCE)
+set(ABSL_ENABLE_INSTALL ON CACHE BOOL "" FORCE)
+set(ABSL_BUILD_TESTING OFF CACHE BOOL "" FORCE)
+set(utf8_range_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(utf8_range_INSTALL OFF CACHE BOOL "" FORCE)
+
 # Use CPM to fetch gRPC with bundled dependencies
 CPMAddPackage(
   NAME grpc
   VERSION ${GRPC_VERSION}
   GITHUB_REPOSITORY grpc/grpc
   GIT_TAG v${GRPC_VERSION}
-  OPTIONS
-    "gRPC_BUILD_TESTS OFF"
-    "gRPC_BUILD_CODEGEN ON"
-    "gRPC_BUILD_GRPC_CPP_PLUGIN ON"
-    "gRPC_BUILD_CSHARP_EXT OFF"
-    "gRPC_BUILD_GRPC_CSHARP_PLUGIN OFF"
-    "gRPC_BUILD_GRPC_NODE_PLUGIN OFF"
-    "gRPC_BUILD_GRPC_OBJECTIVE_C_PLUGIN OFF"
-    "gRPC_BUILD_GRPC_PHP_PLUGIN OFF"
-    "gRPC_BUILD_GRPC_PYTHON_PLUGIN OFF"
-    "gRPC_BUILD_GRPC_RUBY_PLUGIN OFF"
-    "gRPC_BUILD_REFLECTION OFF"
-    "gRPC_BUILD_GRPC_REFLECTION OFF"
-    "gRPC_BUILD_GRPC_CPP_REFLECTION OFF"
-    "gRPC_BUILD_GRPCPP_REFLECTION OFF"
-    "gRPC_BENCHMARK_PROVIDER none"
-    "gRPC_ZLIB_PROVIDER package"
-    "gRPC_PROTOBUF_PROVIDER module"
-    "gRPC_ABSL_PROVIDER module"
-    "protobuf_BUILD_TESTS OFF"
-    "protobuf_BUILD_CONFORMANCE OFF"
-    "protobuf_BUILD_EXAMPLES OFF"
-    "protobuf_BUILD_PROTOC_BINARIES ON"
-    "protobuf_WITH_ZLIB ON"
-    "ABSL_PROPAGATE_CXX_STD ON"
-    "ABSL_ENABLE_INSTALL ON"
-    "ABSL_BUILD_TESTING OFF"
-    "utf8_range_BUILD_TESTS OFF"
-    "utf8_range_INSTALL OFF"
 )
 
+# Check which target naming convention is used
+if(TARGET grpc++)
+  message(STATUS "Found non-namespaced gRPC target grpc++")
+  if(NOT TARGET grpc::grpc++)
+    add_library(grpc::grpc++ ALIAS grpc++)
+  endif()
+  if(NOT TARGET grpc::grpc++_reflection AND TARGET grpc++_reflection)
+    add_library(grpc::grpc++_reflection ALIAS grpc++_reflection)
+  endif()
+endif()
+
 # Verify gRPC targets are available
-if(NOT TARGET grpc::grpc++)
+if(NOT TARGET grpc++ AND NOT TARGET grpc::grpc++)
   message(FATAL_ERROR "gRPC target not found after CPM fetch")
 endif()
 
@@ -77,12 +89,28 @@ if(NOT TARGET grpc_cpp_plugin)
   message(FATAL_ERROR "grpc_cpp_plugin target not found after gRPC setup")
 endif()
 
-# Create convenience targets for the rest of the project
-add_library(yaze_grpc_support INTERFACE)
-target_link_libraries(yaze_grpc_support INTERFACE
+# Create convenience interface for basic gRPC linking (renamed to avoid conflict with yaze_grpc_support STATIC library)
+add_library(yaze_grpc_deps INTERFACE)
+target_link_libraries(yaze_grpc_deps INTERFACE
   grpc::grpc++
   grpc::grpc++_reflection
   protobuf::libprotobuf
+)
+
+# Export Abseil targets that are commonly used
+set(ABSL_TARGETS
+  absl::base
+  absl::config
+  absl::core_headers
+  absl::flags
+  absl::flags_parse
+  absl::status
+  absl::statusor
+  absl::strings
+  absl::str_format
+  absl::synchronization
+  absl::time
+  PARENT_SCOPE
 )
 
 # Export gRPC targets for use in other CMake files
@@ -96,3 +124,91 @@ set(YAZE_GRPC_TARGETS
 )
 
 message(STATUS "gRPC setup complete - targets available: ${YAZE_GRPC_TARGETS}")
+
+# Setup protobuf generation directory (use CACHE so it's available in functions)
+set(_gRPC_PROTO_GENS_DIR ${CMAKE_BINARY_DIR}/gens CACHE INTERNAL "Protobuf generated files directory")
+file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/gens)
+
+# Get protobuf include directories (extract from generator expression or direct path)
+if(TARGET libprotobuf)
+  get_target_property(_PROTOBUF_INCLUDE_DIRS libprotobuf INTERFACE_INCLUDE_DIRECTORIES)
+  # Handle generator expressions
+  string(REGEX REPLACE "\\$<BUILD_INTERFACE:([^>]+)>" "\\1" _PROTOBUF_INCLUDE_DIR_CLEAN "${_PROTOBUF_INCLUDE_DIRS}")
+  list(GET _PROTOBUF_INCLUDE_DIR_CLEAN 0 _gRPC_PROTOBUF_WELLKNOWN_INCLUDE_DIR)
+  set(_gRPC_PROTOBUF_WELLKNOWN_INCLUDE_DIR ${_gRPC_PROTOBUF_WELLKNOWN_INCLUDE_DIR} CACHE INTERNAL "Protobuf include directory")
+elseif(TARGET protobuf::libprotobuf)
+  get_target_property(_PROTOBUF_INCLUDE_DIRS protobuf::libprotobuf INTERFACE_INCLUDE_DIRECTORIES)
+  string(REGEX REPLACE "\\$<BUILD_INTERFACE:([^>]+)>" "\\1" _PROTOBUF_INCLUDE_DIR_CLEAN "${_PROTOBUF_INCLUDE_DIRS}")
+  list(GET _PROTOBUF_INCLUDE_DIR_CLEAN 0 _gRPC_PROTOBUF_WELLKNOWN_INCLUDE_DIR)
+  set(_gRPC_PROTOBUF_WELLKNOWN_INCLUDE_DIR ${_gRPC_PROTOBUF_WELLKNOWN_INCLUDE_DIR} CACHE INTERNAL "Protobuf include directory")
+endif()
+
+message(STATUS "Protobuf gens dir: ${_gRPC_PROTO_GENS_DIR}")
+message(STATUS "Protobuf include dir: ${_gRPC_PROTOBUF_WELLKNOWN_INCLUDE_DIR}")
+
+# Export protobuf targets
+set(YAZE_PROTOBUF_TARGETS
+  protobuf::libprotobuf
+  PARENT_SCOPE
+)
+
+# Function to add protobuf/gRPC code generation to a target
+function(target_add_protobuf target)
+    if(NOT TARGET ${target})
+        message(FATAL_ERROR "Target ${target} doesn't exist")
+    endif()
+    if(NOT ARGN)
+        message(SEND_ERROR "Error: target_add_protobuf() called without any proto files")
+        return()
+    endif()
+
+    set(_protobuf_include_path -I ${CMAKE_SOURCE_DIR}/src -I ${_gRPC_PROTOBUF_WELLKNOWN_INCLUDE_DIR})
+    foreach(FIL ${ARGN})
+        get_filename_component(ABS_FIL ${FIL} ABSOLUTE)
+        get_filename_component(FIL_WE ${FIL} NAME_WE)
+        file(RELATIVE_PATH REL_FIL ${CMAKE_SOURCE_DIR}/src ${ABS_FIL})
+        get_filename_component(REL_DIR ${REL_FIL} DIRECTORY)
+        if(NOT REL_DIR OR REL_DIR STREQUAL ".")
+            set(RELFIL_WE "${FIL_WE}")
+        else()
+            set(RELFIL_WE "${REL_DIR}/${FIL_WE}")
+        endif()
+        
+        message(STATUS "  Proto file: ${FIL_WE}")
+        message(STATUS "    ABS_FIL = ${ABS_FIL}")
+        message(STATUS "    REL_FIL = ${REL_FIL}")
+        message(STATUS "    REL_DIR = ${REL_DIR}")
+        message(STATUS "    RELFIL_WE = ${RELFIL_WE}")
+        message(STATUS "    Output = ${_gRPC_PROTO_GENS_DIR}/${RELFIL_WE}.pb.h")
+
+        add_custom_command(
+        OUTPUT  "${_gRPC_PROTO_GENS_DIR}/${RELFIL_WE}.grpc.pb.cc"
+                "${_gRPC_PROTO_GENS_DIR}/${RELFIL_WE}.grpc.pb.h"
+                "${_gRPC_PROTO_GENS_DIR}/${RELFIL_WE}_mock.grpc.pb.h"
+                "${_gRPC_PROTO_GENS_DIR}/${RELFIL_WE}.pb.cc"
+                "${_gRPC_PROTO_GENS_DIR}/${RELFIL_WE}.pb.h"
+        COMMAND $<TARGET_FILE:protoc>
+        ARGS --grpc_out=generate_mock_code=true:${_gRPC_PROTO_GENS_DIR}
+            --cpp_out=${_gRPC_PROTO_GENS_DIR}
+            --plugin=protoc-gen-grpc=$<TARGET_FILE:grpc_cpp_plugin>
+            ${_protobuf_include_path}
+            ${ABS_FIL}
+        DEPENDS ${ABS_FIL} protoc grpc_cpp_plugin
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/src
+        COMMENT "Running gRPC C++ protocol buffer compiler on ${FIL}"
+        VERBATIM)
+
+        target_sources(${target} PRIVATE
+            "${_gRPC_PROTO_GENS_DIR}/${RELFIL_WE}.grpc.pb.cc"
+            "${_gRPC_PROTO_GENS_DIR}/${RELFIL_WE}.grpc.pb.h"
+            "${_gRPC_PROTO_GENS_DIR}/${RELFIL_WE}_mock.grpc.pb.h"
+            "${_gRPC_PROTO_GENS_DIR}/${RELFIL_WE}.pb.cc"
+            "${_gRPC_PROTO_GENS_DIR}/${RELFIL_WE}.pb.h"
+        )
+        target_include_directories(${target} PUBLIC
+            $<BUILD_INTERFACE:${_gRPC_PROTO_GENS_DIR}>
+            $<BUILD_INTERFACE:${_gRPC_PROTOBUF_WELLKNOWN_INCLUDE_DIR}>
+        )
+    endforeach()
+endfunction()
+

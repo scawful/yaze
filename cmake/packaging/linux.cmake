@@ -14,3 +14,4 @@ set(CPACK_RPM_PACKAGE_REQUIRES "glibc, libstdc++, SDL2")
 
 # Tarball
 set(CPACK_TGZ_PACKAGE_NAME "yaze-${CPACK_PACKAGE_VERSION}-linux-x64")
+
