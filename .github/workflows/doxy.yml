@@ -58,7 +58,7 @@ jobs:
 
     - name: Generate Doxygen documentation
       if: steps.changes.outputs.docs_changed == 'true'
-      uses: mattnotmitt/doxygen-action@v1.9.8
+      uses: mattnotmitt/doxygen-action@v1.12.0
       with:
         doxyfile-path: "./Doxyfile"
         working-directory: "."
