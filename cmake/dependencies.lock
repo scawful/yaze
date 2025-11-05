@@ -7,7 +7,8 @@ set(SDL2_VERSION "2.30.0" CACHE STRING "SDL2 version")
 set(YAML_CPP_VERSION "0.8.0" CACHE STRING "yaml-cpp version")
 
 # gRPC and related
-set(GRPC_VERSION "1.75.1" CACHE STRING "gRPC version")
+# Using v1.67.1 for MSVC compatibility (v1.75.1 has UPB compilation errors on Windows)
+set(GRPC_VERSION "1.67.1" CACHE STRING "gRPC version - MSVC compatible")
 set(PROTOBUF_VERSION "3.25.1" CACHE STRING "Protobuf version")
 set(ABSEIL_VERSION "20240116.0" CACHE STRING "Abseil version")
 # Cache revision: increment to force CPM cache invalidation (current: 2)

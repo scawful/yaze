@@ -128,6 +128,51 @@
       }
     },
     {
+      "name": "ci-linux",
+      "inherits": "base",
+      "displayName": "CI Build - Linux",
+      "description": "Fast, reliable Linux CI build without gRPC",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "YAZE_BUILD_TESTS": "ON",
+        "YAZE_ENABLE_GRPC": "OFF",
+        "YAZE_ENABLE_JSON": "ON",
+        "YAZE_ENABLE_AI": "OFF",
+        "YAZE_ENABLE_ROM_TESTS": "OFF",
+        "YAZE_MINIMAL_BUILD": "ON"
+      }
+    },
+    {
+      "name": "ci-macos",
+      "inherits": "base",
+      "displayName": "CI Build - macOS",
+      "description": "Fast, reliable macOS CI build without gRPC",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "YAZE_BUILD_TESTS": "ON",
+        "YAZE_ENABLE_GRPC": "OFF",
+        "YAZE_ENABLE_JSON": "ON",
+        "YAZE_ENABLE_AI": "OFF",
+        "YAZE_ENABLE_ROM_TESTS": "OFF",
+        "YAZE_MINIMAL_BUILD": "ON"
+      }
+    },
+    {
+      "name": "ci-windows",
+      "inherits": "windows-base",
+      "displayName": "CI Build - Windows",
+      "description": "Fast, reliable Windows CI build without gRPC",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "YAZE_BUILD_TESTS": "ON",
+        "YAZE_ENABLE_GRPC": "OFF",
+        "YAZE_ENABLE_JSON": "ON",
+        "YAZE_ENABLE_AI": "OFF",
+        "YAZE_ENABLE_ROM_TESTS": "OFF",
+        "YAZE_MINIMAL_BUILD": "ON"
+      }
+    },
+    {
       "name": "coverage",
       "inherits": "dev",
       "displayName": "Coverage Build",
@@ -334,6 +379,25 @@
       "jobs": 12
     },
     {
+      "name": "ci-linux",
+      "configurePreset": "ci-linux",
+      "displayName": "CI Build - Linux",
+      "jobs": 12
+    },
+    {
+      "name": "ci-macos",
+      "configurePreset": "ci-macos",
+      "displayName": "CI Build - macOS",
+      "jobs": 12
+    },
+    {
+      "name": "ci-windows",
+      "configurePreset": "ci-windows",
+      "displayName": "CI Build - Windows",
+      "configuration": "RelWithDebInfo",
+      "jobs": 12
+    },
+    {
       "name": "coverage",
       "configurePreset": "coverage",
       "displayName": "Coverage Build",
@@ -438,7 +502,7 @@
     },
     {
       "name": "stable",
-      "configurePreset": "ci",
+      "configurePreset": "minimal",
       "displayName": "Stable Tests",
       "description": "Run stable tests only (no ROM dependency)",
       "filter": {
@@ -449,7 +513,7 @@
     },
     {
       "name": "unit",
-      "configurePreset": "ci",
+      "configurePreset": "minimal",
       "displayName": "Unit Tests",
       "description": "Run unit tests only",
       "filter": {
@@ -460,7 +524,7 @@
     },
     {
       "name": "integration",
-      "configurePreset": "ci",
+      "configurePreset": "minimal",
       "displayName": "Integration Tests",
       "description": "Run integration tests only",
       "filter": {
