@@ -30,8 +30,9 @@ include(cmake/dependencies/imgui.cmake)
 # Debug: message(STATUS "After ImGui setup, YAZE_IMGUI_TARGETS = '${YAZE_IMGUI_TARGETS}'")
 list(APPEND YAZE_ALL_DEPENDENCIES ${YAZE_IMGUI_TARGETS})
 
-# Abseil is required for failure_signal_handler and other utilities
-# Include it always, not just when gRPC is enabled
+# Abseil is required for failure_signal_handler, status, and other utilities
+# Only include standalone Abseil when gRPC is disabled - when gRPC is enabled,
+# it provides its own bundled Abseil via CPM
 if(NOT YAZE_ENABLE_GRPC)
   include(cmake/absl.cmake)
 endif()

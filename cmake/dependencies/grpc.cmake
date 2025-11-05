@@ -100,20 +100,45 @@ target_link_libraries(yaze_grpc_deps INTERFACE
   protobuf::libprotobuf
 )
 
-# Export Abseil targets that are commonly used
+# Export Abseil targets from gRPC's bundled Abseil
+# When gRPC_ABSL_PROVIDER is "module", gRPC fetches and builds Abseil
+# All Abseil targets are available, we just need to list them
+# Note: All targets are available even if not listed here, but listing ensures consistency
 set(ABSL_TARGETS
   absl::base
   absl::config
   absl::core_headers
-  absl::flags
-  absl::flags_parse
-  absl::status
-  absl::statusor
+  absl::utility
+  absl::memory
+  absl::container_memory
   absl::strings
   absl::str_format
-  absl::synchronization
+  absl::cord
+  absl::hash
   absl::time
+  absl::status
+  absl::statusor
+  absl::flags
+  absl::flags_parse
+  absl::flags_usage
+  absl::flags_commandlineflag
+  absl::flags_marshalling
+  absl::flags_private_handle_accessor
+  absl::flags_program_name
+  absl::flags_config
+  absl::flags_reflection
+  absl::examine_stack
+  absl::stacktrace
+  absl::failure_signal_handler
+  absl::flat_hash_map
+  absl::synchronization
+  absl::symbolize
 )
+
+# Only expose absl::int128 when it's supported without warnings
+if(NOT WIN32)
+  list(APPEND ABSL_TARGETS absl::int128)
+endif()
 
 # Export gRPC targets for use in other CMake files
 set(YAZE_GRPC_TARGETS
