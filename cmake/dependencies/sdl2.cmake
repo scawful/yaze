@@ -96,9 +96,6 @@ elseif(UNIX)
 endif()
 
 # Export SDL2 targets for use in other CMake files
-# Use PARENT_SCOPE to set in the calling scope (dependencies.cmake)
-set(YAZE_SDL2_TARGETS yaze_sdl2 PARENT_SCOPE)
-# Also set locally for use in this file
 set(YAZE_SDL2_TARGETS yaze_sdl2)
 
 message(STATUS "SDL2 setup complete - YAZE_SDL2_TARGETS = ${YAZE_SDL2_TARGETS}")
