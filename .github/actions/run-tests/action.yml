@@ -5,9 +5,9 @@ inputs:
     description: 'Type of tests to run (stable, unit, integration, all)'
     required: true
   preset:
-    description: 'CMake preset to use'
+    description: 'CMake preset to use (for reference, tests use minimal preset)'
     required: false
-    default: 'ci'
+    default: 'minimal'
 
 runs:
   using: 'composite'
@@ -17,8 +17,8 @@ runs:
       shell: bash
       run: |
         cd build
-        ctest --output-on-failure -C RelWithDebInfo -j1 \
-          -L "stable" \
+        ctest --preset stable \
+          --output-on-failure \
           --output-junit stable_test_results.xml || true
 
     - name: Run unit tests
@@ -26,8 +26,8 @@ runs:
       shell: bash
       run: |
         cd build
-        ctest --output-on-failure -C RelWithDebInfo --parallel \
-          -L "unit" \
+        ctest --preset unit \
+          --output-on-failure \
           --output-junit unit_test_results.xml || true
 
     - name: Run integration tests
@@ -35,8 +35,8 @@ runs:
       shell: bash
       run: |
         cd build
-        ctest --output-on-failure -C RelWithDebInfo --parallel \
-          -L "integration" \
+        ctest --preset integration \
+          --output-on-failure \
           --output-junit integration_test_results.xml || true
 
     - name: Upload test results
