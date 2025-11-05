@@ -131,45 +131,45 @@
       "name": "ci-linux",
       "inherits": "base",
       "displayName": "CI Build - Linux",
-      "description": "Fast, reliable Linux CI build without gRPC",
+      "description": "CI build with gRPC enabled (uses caching for speed)",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "RelWithDebInfo",
         "YAZE_BUILD_TESTS": "ON",
-        "YAZE_ENABLE_GRPC": "OFF",
+        "YAZE_ENABLE_GRPC": "ON",
         "YAZE_ENABLE_JSON": "ON",
         "YAZE_ENABLE_AI": "OFF",
         "YAZE_ENABLE_ROM_TESTS": "OFF",
-        "YAZE_MINIMAL_BUILD": "ON"
+        "YAZE_MINIMAL_BUILD": "OFF"
       }
     },
     {
       "name": "ci-macos",
       "inherits": "base",
       "displayName": "CI Build - macOS",
-      "description": "Fast, reliable macOS CI build without gRPC",
+      "description": "CI build with gRPC enabled (uses caching for speed)",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "RelWithDebInfo",
         "YAZE_BUILD_TESTS": "ON",
-        "YAZE_ENABLE_GRPC": "OFF",
+        "YAZE_ENABLE_GRPC": "ON",
         "YAZE_ENABLE_JSON": "ON",
         "YAZE_ENABLE_AI": "OFF",
         "YAZE_ENABLE_ROM_TESTS": "OFF",
-        "YAZE_MINIMAL_BUILD": "ON"
+        "YAZE_MINIMAL_BUILD": "OFF"
       }
     },
     {
       "name": "ci-windows",
       "inherits": "windows-base",
       "displayName": "CI Build - Windows",
-      "description": "Fast, reliable Windows CI build without gRPC",
+      "description": "CI build with gRPC enabled (uses MSVC-compatible version 1.67.1)",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "RelWithDebInfo",
         "YAZE_BUILD_TESTS": "ON",
-        "YAZE_ENABLE_GRPC": "OFF",
+        "YAZE_ENABLE_GRPC": "ON",
         "YAZE_ENABLE_JSON": "ON",
         "YAZE_ENABLE_AI": "OFF",
         "YAZE_ENABLE_ROM_TESTS": "OFF",
-        "YAZE_MINIMAL_BUILD": "ON"
+        "YAZE_MINIMAL_BUILD": "OFF"
       }
     },
     {
