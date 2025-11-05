@@ -47,7 +47,7 @@ if(YAZE_ENABLE_COVERAGE OR DEFINED ENV{YAZE_ENABLE_BENCHMARKS})
     message(FATAL_ERROR "Benchmark target not found after CPM fetch")
   endif()
   
-  set(YAZE_BENCHMARK_TARGETS benchmark::benchmark PARENT_SCOPE)
+  set(YAZE_BENCHMARK_TARGETS benchmark::benchmark)
 endif()
 
 # Create convenience targets for the rest of the project
@@ -64,7 +64,6 @@ if(TARGET benchmark::benchmark)
 endif()
 
 # Export testing targets for use in other CMake files
-set(YAZE_TESTING_TARGETS yaze_testing PARENT_SCOPE)
 set(YAZE_TESTING_TARGETS yaze_testing)
 
 message(STATUS "Testing dependencies setup complete - GTest + GMock available")
