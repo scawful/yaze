@@ -58,7 +58,7 @@ set(protobuf_WITH_ZLIB ON CACHE BOOL "" FORCE)
 
 # Abseil configuration
 set(ABSL_PROPAGATE_CXX_STD ON CACHE BOOL "" FORCE)
-set(ABSL_ENABLE_INSTALL ON CACHE BOOL "" FORCE)
+set(ABSL_ENABLE_INSTALL OFF CACHE BOOL "" FORCE)
 set(ABSL_BUILD_TESTING OFF CACHE BOOL "" FORCE)
 
 # Additional protobuf settings to avoid export conflicts
