@@ -43,6 +43,14 @@ if(YAZE_ENABLE_JSON)
   list(APPEND YAZE_ALL_DEPENDENCIES ${YAZE_JSON_TARGETS})
 endif()
 
+# CRITICAL: Load testing dependencies BEFORE gRPC when both are enabled
+# This ensures gmock is available before Abseil (bundled with gRPC) tries to export test_allocator
+# which depends on gmock. This prevents CMake export errors.
+if(YAZE_BUILD_TESTS AND YAZE_ENABLE_GRPC)
+  include(cmake/dependencies/testing.cmake)
+  list(APPEND YAZE_ALL_DEPENDENCIES ${YAZE_TESTING_TARGETS})
+endif()
+
 if(YAZE_ENABLE_GRPC)
   include(cmake/dependencies/grpc.cmake)
   list(APPEND YAZE_ALL_DEPENDENCIES ${YAZE_GRPC_TARGETS})
@@ -53,7 +61,8 @@ if(YAZE_BUILD_CLI)
   list(APPEND YAZE_ALL_DEPENDENCIES ${YAZE_FTXUI_TARGETS})
 endif()
 
-if(YAZE_BUILD_TESTS)
+# Load testing dependencies after gRPC if tests are enabled but gRPC is not
+if(YAZE_BUILD_TESTS AND NOT YAZE_ENABLE_GRPC)
   include(cmake/dependencies/testing.cmake)
   list(APPEND YAZE_ALL_DEPENDENCIES ${YAZE_TESTING_TARGETS})
 endif()

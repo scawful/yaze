@@ -27,6 +27,54 @@ if(YAZE_USE_SYSTEM_DEPS)
   endif()
 endif()
 
+#-----------------------------------------------------------------------
+# Guard CMake's package lookup so CPM always downloads a consistent gRPC
+# toolchain instead of picking up partially-installed Homebrew/apt copies.
+#-----------------------------------------------------------------------
+if(DEFINED CPM_USE_LOCAL_PACKAGES)
+  set(_YAZE_GRPC_SAVED_CPM_USE_LOCAL_PACKAGES "${CPM_USE_LOCAL_PACKAGES}")
+else()
+  set(_YAZE_GRPC_SAVED_CPM_USE_LOCAL_PACKAGES "__YAZE_UNSET__")
+endif()
+set(CPM_USE_LOCAL_PACKAGES OFF)
+
+foreach(_yaze_pkg IN ITEMS gRPC Protobuf absl)
+  string(TOUPPER "CMAKE_DISABLE_FIND_PACKAGE_${_yaze_pkg}" _yaze_disable_var)
+  if(DEFINED ${_yaze_disable_var})
+    set("_YAZE_GRPC_SAVE_${_yaze_disable_var}" "${${_yaze_disable_var}}")
+  else()
+    set("_YAZE_GRPC_SAVE_${_yaze_disable_var}" "__YAZE_UNSET__")
+  endif()
+  set(${_yaze_disable_var} TRUE)
+endforeach()
+
+if(DEFINED PKG_CONFIG_USE_CMAKE_PREFIX_PATH)
+  set(_YAZE_GRPC_SAVED_PKG_CONFIG_USE_CMAKE_PREFIX_PATH "${PKG_CONFIG_USE_CMAKE_PREFIX_PATH}")
+else()
+  set(_YAZE_GRPC_SAVED_PKG_CONFIG_USE_CMAKE_PREFIX_PATH "__YAZE_UNSET__")
+endif()
+set(PKG_CONFIG_USE_CMAKE_PREFIX_PATH FALSE)
+
+set(_YAZE_GRPC_SAVED_PREFIX_PATH "${CMAKE_PREFIX_PATH}")
+set(CMAKE_PREFIX_PATH "")
+
+if(DEFINED CMAKE_CROSSCOMPILING)
+  set(_YAZE_GRPC_SAVED_CROSSCOMPILING "${CMAKE_CROSSCOMPILING}")
+else()
+  set(_YAZE_GRPC_SAVED_CROSSCOMPILING "__YAZE_UNSET__")
+endif()
+if(CMAKE_HOST_SYSTEM_NAME STREQUAL CMAKE_SYSTEM_NAME
+   AND CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL CMAKE_SYSTEM_PROCESSOR)
+  set(CMAKE_CROSSCOMPILING FALSE)
+endif()
+
+if(DEFINED CMAKE_CXX_STANDARD)
+  set(_YAZE_GRPC_SAVED_CXX_STANDARD "${CMAKE_CXX_STANDARD}")
+else()
+  set(_YAZE_GRPC_SAVED_CXX_STANDARD "__YAZE_UNSET__")
+endif()
+set(CMAKE_CXX_STANDARD 17)
+
 # Set gRPC options before adding package
 set(gRPC_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(gRPC_BUILD_CODEGEN ON CACHE BOOL "" FORCE)
@@ -69,6 +117,52 @@ CPMAddPackage(
   GIT_SHALLOW TRUE
 )
 
+# Restore CPM lookup behaviour and toolchain detection environment early so
+# subsequent dependency configuration isn't polluted even if we hit errors.
+if("${_YAZE_GRPC_SAVED_CPM_USE_LOCAL_PACKAGES}" STREQUAL "__YAZE_UNSET__")
+  unset(CPM_USE_LOCAL_PACKAGES)
+else()
+  set(CPM_USE_LOCAL_PACKAGES "${_YAZE_GRPC_SAVED_CPM_USE_LOCAL_PACKAGES}")
+endif()
+
+foreach(_yaze_pkg IN ITEMS gRPC Protobuf absl)
+  string(TOUPPER "CMAKE_DISABLE_FIND_PACKAGE_${_yaze_pkg}" _yaze_disable_var)
+  string(TOUPPER "_YAZE_GRPC_SAVE_${_yaze_disable_var}" _yaze_saved_key)
+  if(NOT DEFINED ${_yaze_saved_key})
+    continue()
+  endif()
+  if("${${_yaze_saved_key}}" STREQUAL "__YAZE_UNSET__")
+    unset(${_yaze_disable_var})
+  else()
+    set(${_yaze_disable_var} "${${_yaze_saved_key}}")
+  endif()
+  unset(${_yaze_saved_key})
+endforeach()
+
+if("${_YAZE_GRPC_SAVED_PKG_CONFIG_USE_CMAKE_PREFIX_PATH}" STREQUAL "__YAZE_UNSET__")
+  unset(PKG_CONFIG_USE_CMAKE_PREFIX_PATH)
+else()
+  set(PKG_CONFIG_USE_CMAKE_PREFIX_PATH "${_YAZE_GRPC_SAVED_PKG_CONFIG_USE_CMAKE_PREFIX_PATH}")
+endif()
+unset(_YAZE_GRPC_SAVED_PKG_CONFIG_USE_CMAKE_PREFIX_PATH)
+
+set(CMAKE_PREFIX_PATH "${_YAZE_GRPC_SAVED_PREFIX_PATH}")
+unset(_YAZE_GRPC_SAVED_PREFIX_PATH)
+
+if("${_YAZE_GRPC_SAVED_CROSSCOMPILING}" STREQUAL "__YAZE_UNSET__")
+  unset(CMAKE_CROSSCOMPILING)
+else()
+  set(CMAKE_CROSSCOMPILING "${_YAZE_GRPC_SAVED_CROSSCOMPILING}")
+endif()
+unset(_YAZE_GRPC_SAVED_CROSSCOMPILING)
+
+if("${_YAZE_GRPC_SAVED_CXX_STANDARD}" STREQUAL "__YAZE_UNSET__")
+  unset(CMAKE_CXX_STANDARD)
+else()
+  set(CMAKE_CXX_STANDARD "${_YAZE_GRPC_SAVED_CXX_STANDARD}")
+endif()
+unset(_YAZE_GRPC_SAVED_CXX_STANDARD)
+
 # Check which target naming convention is used
 if(TARGET grpc++)
   message(STATUS "Found non-namespaced gRPC target grpc++")
@@ -80,17 +174,23 @@ if(TARGET grpc++)
   endif()
 endif()
 
-# Verify gRPC targets are available
+set(_YAZE_GRPC_ERRORS "")
+
 if(NOT TARGET grpc++ AND NOT TARGET grpc::grpc++)
-  message(FATAL_ERROR "gRPC target not found after CPM fetch")
+  list(APPEND _YAZE_GRPC_ERRORS "gRPC target not found after CPM fetch")
 endif()
 
 if(NOT TARGET protoc)
-  message(FATAL_ERROR "protoc target not found after gRPC setup")
+  list(APPEND _YAZE_GRPC_ERRORS "protoc target not found after gRPC setup")
 endif()
 
 if(NOT TARGET grpc_cpp_plugin)
-  message(FATAL_ERROR "grpc_cpp_plugin target not found after gRPC setup")
+  list(APPEND _YAZE_GRPC_ERRORS "grpc_cpp_plugin target not found after gRPC setup")
+endif()
+
+if(_YAZE_GRPC_ERRORS)
+  list(JOIN _YAZE_GRPC_ERRORS "\n" _YAZE_GRPC_ERROR_MESSAGE)
+  message(FATAL_ERROR "${_YAZE_GRPC_ERROR_MESSAGE}")
 endif()
 
 # Create convenience interface for basic gRPC linking (renamed to avoid conflict with yaze_grpc_support STATIC library)
@@ -100,6 +200,15 @@ target_link_libraries(yaze_grpc_deps INTERFACE
   grpc::grpc++_reflection
   protobuf::libprotobuf
 )
+
+# Define Windows macro guards once so protobuf-generated headers stay clean
+if(WIN32)
+  add_compile_definitions(
+    WIN32_LEAN_AND_MEAN
+    NOMINMAX
+    NOGDI
+  )
+endif()
 
 # Export Abseil targets from gRPC's bundled Abseil
 # When gRPC_ABSL_PROVIDER is "module", gRPC fetches and builds Abseil
@@ -169,6 +278,57 @@ elseif(TARGET protobuf::libprotobuf)
   list(GET _PROTOBUF_INCLUDE_DIR_CLEAN 0 _gRPC_PROTOBUF_WELLKNOWN_INCLUDE_DIR)
   set(_gRPC_PROTOBUF_WELLKNOWN_INCLUDE_DIR ${_gRPC_PROTOBUF_WELLKNOWN_INCLUDE_DIR} CACHE INTERNAL "Protobuf include directory")
 endif()
+
+# Remove x86-only Abseil compile flags when building on ARM64 macOS runners
+set(_YAZE_PATCH_ABSL_FOR_APPLE FALSE)
+if(APPLE)
+  if(CMAKE_OSX_ARCHITECTURES)
+    string(TOLOWER "${CMAKE_OSX_ARCHITECTURES}" _yaze_osx_archs)
+    if(_yaze_osx_archs MATCHES "arm64")
+      set(_YAZE_PATCH_ABSL_FOR_APPLE TRUE)
+    endif()
+  else()
+    string(TOLOWER "${CMAKE_SYSTEM_PROCESSOR}" _yaze_proc)
+    if(_yaze_proc MATCHES "arm64" OR _yaze_proc MATCHES "aarch64")
+      set(_YAZE_PATCH_ABSL_FOR_APPLE TRUE)
+    endif()
+  endif()
+endif()
+
+if(_YAZE_PATCH_ABSL_FOR_APPLE)
+  set(_YAZE_ABSL_X86_TARGETS
+    absl_random_internal_randen_hwaes
+    absl_random_internal_randen_hwaes_impl
+    absl_crc_internal_cpu_detect
+  )
+
+  foreach(_yaze_absl_target IN LISTS _YAZE_ABSL_X86_TARGETS)
+    if(TARGET ${_yaze_absl_target})
+      get_target_property(_yaze_absl_opts ${_yaze_absl_target} COMPILE_OPTIONS)
+      if(_yaze_absl_opts AND NOT _yaze_absl_opts STREQUAL "NOTFOUND")
+        set(_yaze_filtered_opts)
+        foreach(_yaze_opt IN LISTS _yaze_absl_opts)
+          if(_yaze_opt STREQUAL "-Xarch_x86_64")
+            continue()
+          endif()
+          if(_yaze_opt MATCHES "^-m(sse|avx)")
+            continue()
+          endif()
+          if(_yaze_opt STREQUAL "-maes")
+            continue()
+          endif()
+          list(APPEND _yaze_filtered_opts "${_yaze_opt}")
+        endforeach()
+        set_property(TARGET ${_yaze_absl_target} PROPERTY COMPILE_OPTIONS ${_yaze_filtered_opts})
+        message(STATUS "Patched ${_yaze_absl_target} compile options for ARM64 macOS")
+      endif()
+    endif()
+  endforeach()
+endif()
+
+unset(_YAZE_GRPC_SAVED_CPM_USE_LOCAL_PACKAGES)
+unset(_YAZE_GRPC_ERRORS)
+unset(_YAZE_GRPC_ERROR_MESSAGE)
 
 message(STATUS "Protobuf gens dir: ${_gRPC_PROTO_GENS_DIR}")
 message(STATUS "Protobuf include dir: ${_gRPC_PROTOBUF_WELLKNOWN_INCLUDE_DIR}")
