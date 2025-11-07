@@ -1,7 +1,7 @@
 # F2: Dungeon Editor v2 - Complete Guide
 
 **Last Updated**: October 10, 2025  
-**Related**: [E2-development-guide.md](E2-development-guide.md), [E5-debugging-guide.md](E5-debugging-guide.md)
+**Related**: [Architecture Overview](../developer/architecture.md), [Debugging Guide](../developer/debugging-guide.md)
 
 ---
 
@@ -251,13 +251,12 @@ cmake --build build_ai --target yaze -j12
 
 ## Related Documentation
 
-- **E2-development-guide.md** - Core architectural patterns
-- **E5-debugging-guide.md** - Debugging workflows
-- **F1-dungeon-editor-guide.md** - Original dungeon guide (may be outdated)
+- **Architecture Overview** (`../developer/architecture.md`) - Core architectural patterns
+- **Debugging Guide** (`../developer/debugging-guide.md`) - Debugging workflows
+- **Legacy context** - This document supersedes the legacy `F1-dungeon-editor-guide.md`.
 
 ---
 
 **Last Updated**: October 10, 2025  
 **Contributors**: Dungeon Editor Refactoring Session
-
 

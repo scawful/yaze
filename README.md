@@ -4,139 +4,93 @@
 [![Code Quality](https://github.com/scawful/yaze/workflows/Code%20Quality/badge.svg)](https://github.com/scawful/yaze/actions)
 [![Security](https://github.com/scawful/yaze/workflows/Security%20Scanning/badge.svg)](https://github.com/scawful/yaze/actions)
 [![Release](https://github.com/scawful/yaze/workflows/Release/badge.svg)](https://github.com/scawful/yaze/actions)
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![License](https://img.shields.io/badge/license-GPLv3-blue.svg)](LICENSE)
 
-A modern, cross-platform editor for The Legend of Zelda: A Link to the Past ROM hacking, built with C++20 and featuring complete Asar 65816 assembler integration.
+A cross-platform Zelda 3 ROM editor with a modern C++ GUI, Asar 65816 assembler integration, and an automation-friendly CLI (`z3ed`). YAZE bundles its toolchain, offers AI-assisted editing flows, and targets reproducible builds on Windows, macOS, and Linux.
 
-## Version 0.3.2 - Release
+## Highlights
+- **All-in-one editing**: Overworld, dungeon, sprite, palette, and messaging tools with live previews.
+- **Assembler-first workflow**: Built-in Asar integration, symbol extraction, and patch validation.
+- **Automation & AI**: `z3ed` exposes CLI/TUI automation, proposal workflows, and optional AI agents.
+- **Testing & CI hooks**: CMake presets, ROM-less test fixtures, and gRPC-based GUI automation support.
+- **Cross-platform toolchains**: Single source tree targeting MSVC, Clang, and GCC with identical presets.
 
-#### z3ed agent - AI-powered CLI assistant
-- **AI-assisted ROM hacking** with ollama and Gemini support
-- **Natural language commands** for editing and querying ROM data
-- **Tool calling** for structured data extraction and modification
-- **Interactive chat** with conversation history and context
-
-#### ZSCustomOverworld v3
-- **Enhanced overworld editing** capabilities
-- **Advanced map properties** and metadata support
-- **Custom graphics support** and tile management
-- **Improved compatibility** with existing projects
-
-#### Asar 65816 Assembler Integration
-- **Cross-platform ROM patching** with assembly code support
-- **Symbol extraction** with addresses and opcodes from assembly files
-- **Assembly validation** with comprehensive error reporting
-- **Modern C++ API** with safe memory management
-
-#### Advanced Features
-- **Theme Management**: Complete theme system with 5+ built-in themes and custom theme editor
-- **Multi-Session Support**: Work with multiple ROMs simultaneously in docked workspace
-- **Enhanced Welcome Screen**: Themed interface with quick access to all editors
-- **Message Editing**: Enhanced text editing interface with real-time preview
-- **GUI Docking**: Flexible workspace management with customizable layouts
-- **Modern CLI**: Enhanced z3ed tool with interactive TUI and subcommands
-- **Cross-Platform**: Full support for Windows, macOS, and Linux
+## Project Status
+`0.3.x` builds are in active development. Release automation is being reworked, so packaged builds may lag behind main. Follow `develop` for the most accurate view of current functionality.
 
 ## Quick Start
 
-### Build
+### Clone & Bootstrap
 ```bash
-# Clone with submodules
 git clone --recursive https://github.com/scawful/yaze.git
 cd yaze
-
-# Build with CMake
-cmake --preset debug        # macOS
-cmake -B build && cmake --build build  # Linux/Windows
-
-# Windows-specific
-scripts\verify-build-environment.ps1   # Verify your setup
-cmake --preset windows-debug           # Basic build
-cmake --preset windows-ai-debug        # With AI features
-cmake --build build --config Debug     # Build
 ```
 
-### Applications
-- **yaze**: Complete GUI editor for Zelda 3 ROM hacking
-- **z3ed**: Command-line tool with interactive interface
-- **yaze_test**: Comprehensive test suite for development
-
-## Usage
-
-### GUI Editor
-Launch the main application to edit Zelda 3 ROMs:
-- Load ROM files using native file dialogs
-- Edit overworld maps, dungeons, sprites, and graphics
-- Apply assembly patches with integrated Asar support
-- Export modifications as patches or modified ROMs
-
-### Command Line Tool
+Run the environment verifier once per machine:
 ```bash
-# Apply assembly patch
-z3ed asar patch.asm --rom=zelda3.sfc
+# macOS / Linux
+./scripts/verify-build-environment.sh --fix
 
-# Extract symbols from assembly
-z3ed extract patch.asm
-
-# Interactive mode
-z3ed --tui
+# Windows (PowerShell)
+.\scripts\verify-build-environment.ps1 -FixIssues
 ```
 
-### C++ API
-```cpp
-#include "yaze.h"
+### Configure & Build
+```bash
+# macOS
+cmake --preset mac-dbg
+cmake --build --preset mac-dbg
 
-// Load ROM and apply patch
-yaze_project_t* project = yaze_load_project("zelda3.sfc");
-yaze_apply_asar_patch(project, "patch.asm");
-yaze_save_project(project, "modified.sfc");
+# Linux
+cmake --preset lin-dbg
+cmake --build --preset lin-dbg
+
+# Windows
+cmake --preset win-dbg
+cmake --build --preset win-dbg --target yaze
+
+# Enable AI + gRPC tooling (any platform)
+cmake --preset mac-ai
+cmake --build --preset mac-ai --target yaze z3ed
 ```
+
+## Applications & Workflows
+- **`./build/bin/yaze`** – full GUI editor with multi-session dockspace, theming, and ROM patching.
+- **`./build/bin/z3ed --tui`** – CLI/TUI companion for scripting, AI-assisted edits, and Asar workflows.
+- **`./build_ai/bin/yaze_test --unit|--integration|--e2e`** – structured test runner for quick regression checks.
+
+Typical commands:
+```bash
+# Launch GUI with a ROM
+./build/bin/yaze zelda3.sfc
+
+# Apply a patch via CLI
+./build/bin/z3ed asar patch.asm --rom zelda3.sfc
+
+# Run focused tests
+cmake --build --preset mac-ai --target yaze_test
+./build_ai/bin/yaze_test --unit
+```
+
+## Testing
+- `./build_ai/bin/yaze_test --unit` for fast checks; add `--integration` or `--e2e --show-gui` for broader coverage.
+- `ctest --preset dev` mirrors CI’s stable set; `ctest --preset all` runs the full matrix.
+- Set `YAZE_TEST_ROM_PATH` or pass `--rom-path` when a test needs a real ROM image.
 
 ## Documentation
+- Human-readable docs live under `docs/public/` with an entry point at [`docs/public/index.md`](docs/public/index.md).
+- Run `doxygen Doxyfile` to generate API + guide pages (`build/docs/html` and `build/docs/latex`).
+- Agent playbooks, architecture notes, and testing recipes now live in [`docs/internal/`](docs/internal/README.md).
 
-- [Getting Started](docs/01-getting-started.md) - Setup and basic usage
-- [Build Instructions](docs/02-build-instructions.md) - Building from source
-- [API Reference](docs/04-api-reference.md) - Programming interface
-- [Contributing](docs/B1-contributing.md) - Development guidelines
-
-**[Complete Documentation](docs/index.md)**
-
-## Supported Platforms
-
-- **Windows** (MSVC 2019+, MinGW)
-- **macOS** (Intel and Apple Silicon)  
-- **Linux** (GCC 13+, Clang 16+)
-## ROM Compatibility
-
-- Original Zelda 3 ROMs (US/Japan versions)
-- ZSCustomOverworld v2/v3 enhanced overworld features
-- Community ROM hacks and modifications
-
-## Contributing
-
-See [Contributing Guide](docs/B1-contributing.md) for development guidelines.
-
-**Community**: [Oracle of Secrets Discord](https://discord.gg/MBFkMTPEmk)
+## Contributing & Community
+- Review [`CONTRIBUTING.md`](CONTRIBUTING.md) and the build/test guides in `docs/public/`.
+- Conventional commit messages (`feat:`, `fix:`, etc.) keep history clean; use topic branches for larger work.
+- Chat with the team on [Oracle of Secrets Discord](https://discord.gg/MBFkMTPEmk).
 
 ## License
+YAZE is licensed under the GNU GPL v3. See [`LICENSE`](LICENSE) for details and third-party notices.
 
-GNU GPL v3 - See [LICENSE](LICENSE) for details.
-
-## 🙏 Acknowledgments
-
-Takes inspiration from:
-- [Hyrule Magic](https://www.romhacking.net/utilities/200/) - Original Zelda 3 editor
-- [ZScream](https://github.com/Zarby89/ZScreamDungeon) - Dungeon editing capabilities
-- [Asar](https://github.com/RPGHacker/asar) - 65816 assembler integration
-
-## 📸 Screenshots
-
+## Screenshots
 ![YAZE GUI Editor](https://github.com/scawful/yaze/assets/47263509/8b62b142-1de4-4ca4-8c49-d50c08ba4c8e)
-
 ![Dungeon Editor](https://github.com/scawful/yaze/assets/47263509/d8f0039d-d2e4-47d7-b420-554b20ac626f)
-
 ![Overworld Editor](https://github.com/scawful/yaze/assets/47263509/34b36666-cbea-420b-af90-626099470ae4)
-
----
-
-**Ready to hack Zelda 3? [Get started now!](docs/01-getting-started.md)**

@@ -3,7 +3,7 @@
 **Author**: Claude (Anthropic AI Assistant)
 **Date**: 2025-10-13
 **Status**: Reference Document
-**Related Docs**: [C4-z3ed-refactoring.md](C4-z3ed-refactoring.md), [B6-zelda3-library-refactoring.md](B6-zelda3-library-refactoring.md), [A2-test-dashboard-refactoring.md](A2-test-dashboard-refactoring.md)
+**Related Docs**: [../../internal/agents/z3ed-refactoring.md](../../internal/agents/z3ed-refactoring.md), [../../internal/blueprints/zelda3-library-refactor.md](../../internal/blueprints/zelda3-library-refactor.md), [../../internal/blueprints/test-dashboard-refactor.md](../../internal/blueprints/test-dashboard-refactor.md)
 
 ---
 
@@ -369,7 +369,7 @@ Result: Neither can be built first, causes linking issues
 - Test dashboard cannot be excluded from release builds cleanly
 - Changes to test infrastructure force editor rebuilds
 
-**Solution** (from A2-test-dashboard-refactoring.md):
+**Solution** (from ../../internal/blueprints/test-dashboard-refactor.md):
 ```
 test_framework (core logic only)
     ├─→ yaze_util, absl (no app dependencies)
@@ -526,7 +526,7 @@ Reality:  Used by both yaze app AND z3ed CLI
 Problem:  cli/ cannot depend on app/ (architectural violation)
 ```
 
-**Solution** (from B6-zelda3-library-refactoring.md):
+**Solution** (from ../../internal/blueprints/zelda3-library-refactor.md):
 - Move: `src/app/zelda3/` → `src/zelda3/`
 - Update all includes: `#include "app/zelda3/...` → `#include "zelda3/...`
 - Establish as proper shared core component
@@ -542,7 +542,7 @@ Problem:  Cannot exclude test dashboard from release builds
           Cannot build minimal test framework
 ```
 
-**Solution** (from A2-test-dashboard-refactoring.md):
+**Solution** (from ../../internal/blueprints/test-dashboard-refactor.md):
 - Move: `src/app/test/` → `src/test/framework/` + `src/test/suites/`
 - Separate: `TestManager` (core) from `TestDashboard` (GUI)
 - Make: `test_dashboard` conditionally compiled
@@ -1202,7 +1202,7 @@ yaze_editor (INTERFACE):
 
 **Timeline**: 1 week
 **Status**: Proposed
-**Reference**: A2-test-dashboard-refactoring.md
+**Reference**: ../../internal/blueprints/test-dashboard-refactor.md
 
 **Tasks**:
 1. Create `src/test/framework/` directory structure
@@ -1223,7 +1223,7 @@ yaze_editor (INTERFACE):
 
 **Timeline**: 1.5-2 weeks
 **Status**: Proposed
-**Reference**: B6-zelda3-library-refactoring.md
+**Reference**: ../../internal/blueprints/zelda3-library-refactor.md
 
 **Tasks**:
 1. **Week 1**: Physical move
@@ -1780,16 +1780,16 @@ Measured on Apple M1 Max, 32 GB RAM, macOS 14.0
 
 ### Primary Documents
 
-- **C4-z3ed-refactoring.md**: CLI command abstraction (COMPLETED )
-- **B6-zelda3-library-refactoring.md**: Zelda3 move & decomposition (PROPOSED 🔴)
-- **A2-test-dashboard-refactoring.md**: Test infrastructure separation (PROPOSED 🔴)
+- **../../internal/agents/z3ed-refactoring.md**: CLI command abstraction (COMPLETED )
+- **../../internal/blueprints/zelda3-library-refactor.md**: Zelda3 move & decomposition (PROPOSED 🔴)
+- **../../internal/blueprints/test-dashboard-refactor.md**: Test infrastructure separation (PROPOSED 🔴)
 - **This Document (A1)**: Comprehensive dependency analysis (NEW 📄)
 
 ### Related Refactoring Documents
 
 - **docs/gfx-refactor.md**: Graphics tier decomposition (COMPLETED )
 - **docs/gui-refactor.md**: GUI tier decomposition (COMPLETED )
-- **docs/G3-renderer-migration-complete.md**: Renderer abstraction (COMPLETED )
+- **../../internal/blueprints/renderer-migration-complete.md**: Renderer abstraction (COMPLETED )
 
 ### Build System Documentation
 
@@ -1801,9 +1801,9 @@ Measured on Apple M1 Max, 32 GB RAM, macOS 14.0
 ### Architecture Documentation
 
 - **docs/CLAUDE.md**: Project overview and guidelines
-- **docs/B2-platform-compatibility.md**: Platform notes, Windows Clang
+- **../build/platform-compatibility.md**: Platform notes, Windows Clang
   workarounds, and CI/CD guidance
-- **docs/B4-git-workflow.md**: Git workflow and branching
+- **git-workflow.md**: Git workflow and branching
 
 ### External Resources
 

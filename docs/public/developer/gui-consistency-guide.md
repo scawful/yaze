@@ -807,7 +807,7 @@ Use this checklist when converting an editor to the card-based architecture:
 
 ### Documentation Phase
 - [ ] Document keyboard shortcuts in header comment
-- [ ] Update E2-development-guide.md editor status if applicable
+- [ ] Update `architecture.md` editor status if applicable
 - [ ] Add example to this guide if pattern is novel
 - [ ] Update CLAUDE.md if editor behavior changed significantly
 

@@ -269,9 +269,9 @@ if (status.ok()) {
 
 ## Related Documentation
 
-- [C1: z3ed Agent Guide](C1-z3ed-agent-guide.md) - Main agent documentation
-- [A1: Testing Guide](A1-testing-guide.md) - General testing strategy
-- [E3: API Reference](E3-api-reference.md) - ROM API documentation
+- [z3ed CLI Guide](../usage/z3ed-cli.md) - Main agent and CLI documentation
+- [Testing Guide](testing-guide.md) - General testing strategy
+- [API Reference](api-reference.md) - ROM API documentation
 
 ---
 

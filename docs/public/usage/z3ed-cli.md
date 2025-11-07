@@ -149,7 +149,7 @@ Key benefits:
 - Cuts individual command implementations by about half.
 - Establishes consistent patterns across the CLI for easier testing and automation.
 
-See [Command Abstraction Guide](C5-z3ed-command-abstraction.md) for migration details.
+See [Command Abstraction Guide](../../internal/agents/z3ed-command-abstraction.md) for migration details.
 
 ## 4. Agentic & Generative Workflow (MCP)
 
@@ -998,7 +998,7 @@ The AI response appears in your chat history and can reference specific details 
 
 ###  Active & Next Steps
 
-1.  **CLI Command Refactoring (Phase 2)**: Complete migration of tool_commands.cc to use new abstraction layer. Refactor 15+ commands to eliminate ~1300 lines of duplication. Add comprehensive unit tests. (See [Command Abstraction Guide](C5-z3ed-command-abstraction.md))
+1.  **CLI Command Refactoring (Phase 2)**: Complete migration of tool_commands.cc to use new abstraction layer. Refactor 15+ commands to eliminate ~1300 lines of duplication. Add comprehensive unit tests. (See [Command Abstraction Guide](../../internal/agents/z3ed-command-abstraction.md))
 2.  **Harden Live LLM Tooling**: Finalize native function-calling loops with Ollama/Gemini and broaden safe read-only tool coverage for dialogue, sprite, and region introspection.
 3.  **Real-Time Transport Upgrade**: Replace HTTP polling with full WebSocket support across CLI/editor and expose ROM sync, snapshot, and proposal voting controls directly inside the AgentChat widget.
 4.  **Cross-Platform Certification**: Complete Windows validation for AI, gRPC, collaboration, and build presets leveraging the documented vcpkg workflow.
@@ -1033,7 +1033,7 @@ The AI response appears in your chat history and can reference specific details 
 -   **Command Abstraction Layer**: Three-tier abstraction system (`CommandContext`, `ArgumentParser`, `OutputFormatter`) to eliminate code duplication across CLI commands
 -   **CommandHandler Base Class**: Structured base class for consistent command implementation with automatic context management
 -   **Refactoring Framework**: Complete migration guide and examples showing 50-60% code reduction per command
--   **Documentation**: Comprehensive [Command Abstraction Guide](C5-z3ed-command-abstraction.md) with migration checklist and testing strategies
+-   **Documentation**: Comprehensive [Command Abstraction Guide](../../internal/agents/z3ed-command-abstraction.md) with migration checklist and testing strategies
 
 #### Code Quality & Maintainability
 -   **Duplication Elimination**: New abstraction layer removes ~1300 lines of duplicated code across tool commands
