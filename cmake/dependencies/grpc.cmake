@@ -105,6 +105,12 @@ set(ABSL_ENABLE_INSTALL OFF CACHE BOOL "" FORCE)
 set(ABSL_BUILD_TESTING OFF CACHE BOOL "" FORCE)
 set(utf8_range_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(utf8_range_INSTALL OFF CACHE BOOL "" FORCE)
+set(utf8_range_ENABLE_INSTALL OFF CACHE BOOL "" FORCE)
+
+# Temporarily disable installation to prevent utf8_range export errors
+# This is a workaround for gRPC 1.67.1 where utf8_range tries to install targets
+# that depend on Abseil, but we have ABSL_ENABLE_INSTALL=OFF
+set(CMAKE_SKIP_INSTALL_RULES TRUE)
 
 # Use CPM to fetch gRPC with bundled dependencies
 # GIT_SUBMODULES "" disables submodule recursion since gRPC handles its own deps via CMake
@@ -116,6 +122,9 @@ CPMAddPackage(
   GIT_SUBMODULES ""
   GIT_SHALLOW TRUE
 )
+
+# Re-enable installation rules after gRPC is loaded
+set(CMAKE_SKIP_INSTALL_RULES FALSE)
 
 # Restore CPM lookup behaviour and toolchain detection environment early so
 # subsequent dependency configuration isn't polluted even if we hit errors.
