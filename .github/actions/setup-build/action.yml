@@ -53,6 +53,9 @@ runs:
             refreshenv
           }
         }
+        # Ensure Git can handle long paths and cached directories when cloning gRPC dependencies
+        git config --global core.longpaths true
+        git config --global --add safe.directory '*'
 
     - name: Setup sccache
       uses: hendrikmuhs/ccache-action@v1.2
