@@ -213,7 +213,7 @@ The `--watch` flag streams results back to the CLI in real-time. The agent can p
 
 ## 4. Advanced Debugging Tools
 
-For more complex issues, especially within the emulator, `yaze` provides several advanced debugging windows. These are covered in detail in the [Emulator Development Guide](E4-Emulator-Development-Guide.md).
+For more complex issues, especially within the emulator, `yaze` provides several advanced debugging windows. These are covered in detail in the [Emulator Development Guide](emulator-development-guide.md).
 
 -   **Disassembly Viewer**: A live, interactive view of the 65816 and SPC700 CPU execution.
 -   **Breakpoint Manager**: Set breakpoints on code execution, memory reads, or memory writes.

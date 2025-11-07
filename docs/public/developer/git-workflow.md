@@ -332,7 +332,7 @@ Follow **Semantic Versioning (SemVer)**: `MAJOR.MINOR.PATCH`
 
 2. **Update version numbers**
    - `CMakeLists.txt`
-   - `docs/H1-changelog.md`
+   - `../reference/changelog.md`
    - `README.md`
 
 3. **Update documentation**
@@ -554,4 +554,3 @@ No need for release branches or complex merging until you have multiple contribu
 - [Git Flow](https://nvie.com/posts/a-successful-git-branching-model/)
 - [Conventional Commits](https://www.conventionalcommits.org/)
 - [Semantic Versioning](https://semver.org/)
-

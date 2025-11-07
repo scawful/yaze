@@ -164,7 +164,7 @@ See [debugging-startup-flags.md](debugging-startup-flags.md) for complete docume
 
 ### 5.2. Testing Strategies
 
-For a comprehensive overview of debugging tools and testing strategies, including how to use the logging framework, command-line test runners, and the GUI automation harness for AI agents, please refer to the [Debugging and Testing Guide](E5-debugging-guide.md).
+For a comprehensive overview of debugging tools and testing strategies, including how to use the logging framework, command-line test runners, and the GUI automation harness for AI agents, please refer to the [Debugging and Testing Guide](debugging-guide.md).
 
 
 ## 5. Command-Line Flag Standardization

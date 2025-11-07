@@ -385,7 +385,7 @@ at `+0x1000`.
 
 - Light World palette: `0x055B27` (128 colors)
 - Dark World palette: `0x055C27` (128 colors)
-- Conversion uses the shared helper discussed in [G3-palete-system-overview.md](G3-palete-system-overview.md).
+- Conversion uses the shared helper discussed in [Palette System Overview](../developer/palette-system-overview.md).
 
 ### Custom Map Import/Export
 

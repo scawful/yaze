@@ -26,7 +26,7 @@ The script checks for required tools like CMake, a C++23 compiler, and platform-
 
 ## 2. Quick Start: Building with Presets
 
-We use CMake Presets for simple, one-command builds. See the [CMake Presets Guide](B3-build-presets.md) for a full list.
+We use CMake Presets for simple, one-command builds. See the [CMake Presets Guide](presets.md) for a full list.
 
 ### macOS
 ```bash
@@ -100,7 +100,7 @@ sudo apt-get install -y build-essential cmake ninja-build pkg-config \
 
 ## 5. Testing
 
-The project uses CTest and GoogleTest. Tests are organized into categories using labels. See the [Testing Guide](A1-testing-guide.md) for details.
+The project uses CTest and GoogleTest. Tests are organized into categories using labels. See the [Testing Guide](../developer/testing-guide.md) for details.
 
 ### Running Tests with Presets
 
