@@ -57,6 +57,10 @@ runs:
         git config --global core.longpaths true
         git config --global --add safe.directory '*'
 
+    - name: Setup MSVC for Visual Studio builds
+      if: inputs.preset == 'ci-vs'
+      uses: ilammy/msvc-dev-cmd@v1
+
     - name: Setup sccache
       uses: hendrikmuhs/ccache-action@v1.2
       with:
@@ -66,10 +70,4 @@ runs:
         max-size: 500M
         variant: sccache
 
-    - name: Configure sccache for clang-cl (Windows)
-      if: inputs.platform == 'windows'
-      shell: pwsh
-      run: |
-        echo "CC=sccache clang-cl" >> $env:GITHUB_ENV
-        echo "CXX=sccache clang-cl" >> $env:GITHUB_ENV
 

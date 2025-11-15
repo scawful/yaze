@@ -158,10 +158,41 @@
       }
     },
     {
+      "name": "ci-xcode",
+      "inherits": "base",
+      "displayName": "CI Build - Xcode",
+      "description": "CI build with Xcode generator",
+      "generator": "Xcode",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "YAZE_BUILD_TESTS": "ON",
+        "YAZE_ENABLE_GRPC": "ON",
+        "YAZE_ENABLE_JSON": "ON",
+        "YAZE_ENABLE_AI": "OFF",
+        "YAZE_ENABLE_ROM_TESTS": "OFF",
+        "YAZE_MINIMAL_BUILD": "OFF"
+      }
+    },
+    {
       "name": "ci-windows",
       "inherits": "windows-base",
       "displayName": "CI Build - Windows",
       "description": "CI build with gRPC enabled (uses MSVC-compatible version 1.67.1)",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "YAZE_BUILD_TESTS": "ON",
+        "YAZE_ENABLE_GRPC": "ON",
+        "YAZE_ENABLE_JSON": "ON",
+        "YAZE_ENABLE_AI": "OFF",
+        "YAZE_ENABLE_ROM_TESTS": "OFF",
+        "YAZE_MINIMAL_BUILD": "OFF"
+      }
+    },
+    {
+      "name": "ci-vs",
+      "inherits": "windows-vs-base",
+      "displayName": "CI Build - Visual Studio",
+      "description": "CI build with Visual Studio generator",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "RelWithDebInfo",
         "YAZE_BUILD_TESTS": "ON",
@@ -394,6 +425,19 @@
       "name": "ci-windows",
       "configurePreset": "ci-windows",
       "displayName": "CI Build - Windows",
+      "configuration": "RelWithDebInfo",
+      "jobs": 12
+    },
+    {
+      "name": "ci-xcode",
+      "configurePreset": "ci-xcode",
+      "displayName": "CI Build - Xcode",
+      "jobs": 12
+    },
+    {
+      "name": "ci-vs",
+      "configurePreset": "ci-vs",
+      "displayName": "CI Build - Visual Studio",
       "configuration": "RelWithDebInfo",
       "jobs": 12
     },

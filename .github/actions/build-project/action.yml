@@ -28,8 +28,8 @@ runs:
       run: |
         cmake --preset "${{ inputs.preset }}"
 
-    - name: Build project (Linux/macOS)
-      if: inputs.platform != 'windows'
+    - name: Build project (Ninja/Makefile)
+      if: inputs.preset != 'ci-vs' && inputs.preset != 'ci-xcode'
       shell: bash
       run: |
         if command -v nproc >/dev/null 2>&1; then
@@ -42,13 +42,19 @@ runs:
         echo "Using $CORES parallel jobs"
         cmake --build build --parallel "$CORES"
 
-    - name: Build project (Windows)
-      if: inputs.platform == 'windows'
+    - name: Build project (Visual Studio)
+      if: inputs.preset == 'ci-vs'
       shell: pwsh
       run: |
         $JOBS = ${env:CMAKE_BUILD_PARALLEL_LEVEL:-4}
         echo "Using $JOBS parallel jobs"
         cmake --build build --config "${{ inputs.build-type }}" --parallel "$JOBS"
+
+    - name: Build project (Xcode)
+      if: inputs.preset == 'ci-xcode'
+      shell: bash
+      run: |
+        cmake --build build --config "${{ inputs.build-type }}"
 
     - name: Show build artifacts
       shell: bash

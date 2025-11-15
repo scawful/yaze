@@ -25,15 +25,23 @@ jobs:
           - name: "Ubuntu 22.04"
             os: ubuntu-22.04
             platform: linux
-            preset: release
+            preset: ci-linux
           - name: "macOS 14"
             os: macos-14
             platform: macos
-            preset: release
+            preset: ci-macos
           - name: "Windows 2022"
             os: windows-2022
             platform: windows
-            preset: release
+            preset: ci-windows
+          - name: "macOS 14 (Xcode)"
+            os: macos-14
+            platform: macos
+            preset: ci-xcode
+          - name: "Windows 2022 (Visual Studio)"
+            os: windows-2022
+            platform: windows
+            preset: ci-vs
 
     steps:
       - name: Checkout code
@@ -100,15 +108,15 @@ jobs:
           - name: "Ubuntu 22.04"
             os: ubuntu-22.04
             platform: linux
-            preset: release
+            preset: ci-linux
           - name: "macOS 14"
             os: macos-14
             platform: macos
-            preset: release
+            preset: ci-macos
           - name: "Windows 2022"
             os: windows-2022
             platform: windows
-            preset: release
+            preset: ci-windows
 
     steps:
       - name: Checkout code

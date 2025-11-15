@@ -62,6 +62,14 @@ jobs:
             os: windows-2022
             platform: windows
             preset: ci-windows
+          - name: "macOS 14 (Xcode)"
+            os: macos-14
+            platform: macos
+            preset: ci-xcode
+          - name: "Windows 2022 (Visual Studio)"
+            os: windows-2022
+            platform: windows
+            preset: ci-vs
 
     steps:
       - name: Checkout code
