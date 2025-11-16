@@ -6,6 +6,7 @@
 #include "absl/flags/declare.h"
 #include "absl/flags/flag.h"
 #include "absl/strings/ascii.h"
+#include "absl/strings/str_format.h"
 #include "cli/service/ai/ai_service.h"
 #include "cli/service/ai/ollama_ai_service.h"
 
@@ -45,40 +46,67 @@ std::unique_ptr<AIService> CreateAIService() {
 }
 
 std::unique_ptr<AIService> CreateAIService(const AIServiceConfig& config) {
-  std::string provider = config.provider;
-  
-  // Auto-detection: try gemini → ollama → mock
-  if (provider == "auto") {
-    // Try Gemini first if API key is available
+  AIServiceConfig effective_config = config;
+  if (effective_config.provider.empty()) {
+    effective_config.provider = "auto";
+  }
+
+  if (effective_config.provider == "auto") {
 #ifdef YAZE_WITH_JSON
-    if (!config.gemini_api_key.empty()) {
+    if (!effective_config.gemini_api_key.empty()) {
       std::cout << "🤖 Auto-detecting AI provider...\n";
       std::cout << "   Found Gemini API key, using Gemini\n";
-      provider = "gemini";
+      effective_config.provider = "gemini";
     } else
 #endif
     {
-      // Try Ollama next
       OllamaConfig test_config;
-      test_config.base_url = config.ollama_host;
-      auto test_service = std::make_unique<OllamaAIService>(test_config);
-      if (test_service->CheckAvailability().ok()) {
+      test_config.base_url = effective_config.ollama_host;
+      if (!effective_config.model.empty()) {
+        test_config.model = effective_config.model;
+      }
+      auto tester = std::make_unique<OllamaAIService>(test_config);
+      if (tester->CheckAvailability().ok()) {
         std::cout << "🤖 Auto-detecting AI provider...\n";
         std::cout << "   Ollama available, using Ollama\n";
-        provider = "ollama";
+        effective_config.provider = "ollama";
+        if (effective_config.model.empty()) {
+          effective_config.model = test_config.model;
+        }
       } else {
         std::cout << "🤖 No AI provider configured, using MockAIService\n";
         std::cout << "   Tip: Set GEMINI_API_KEY or start Ollama for real AI\n";
-        provider = "mock";
+        effective_config.provider = "mock";
       }
     }
   }
-  
-  if (provider != "mock") {
-    std::cout << "🤖 AI Provider: " << provider << "\n";
+
+  if (effective_config.provider != "mock") {
+    std::cout << "🤖 AI Provider: " << effective_config.provider << "\n";
   }
-  
-  // Ollama provider
+
+  auto service_or = CreateAIServiceStrict(effective_config);
+  if (service_or.ok()) {
+    return std::move(service_or.value());
+  }
+
+  std::cerr << "⚠️  " << service_or.status().message() << std::endl;
+  std::cerr << "   Falling back to MockAIService" << std::endl;
+  return std::make_unique<MockAIService>();
+}
+
+absl::StatusOr<std::unique_ptr<AIService>> CreateAIServiceStrict(
+    const AIServiceConfig& config) {
+  std::string provider = absl::AsciiStrToLower(config.provider);
+  if (provider.empty() || provider == "auto") {
+    return absl::InvalidArgumentError(
+        "CreateAIServiceStrict requires an explicit provider (not 'auto')");
+  }
+
+  if (provider == "mock") {
+    return std::make_unique<MockAIService>();
+  }
+
   if (provider == "ollama") {
     OllamaConfig ollama_config;
     ollama_config.base_url = config.ollama_host;
@@ -87,28 +115,19 @@ std::unique_ptr<AIService> CreateAIService(const AIServiceConfig& config) {
     }
 
     auto service = std::make_unique<OllamaAIService>(ollama_config);
-
-    // Health check
-    if (auto status = service->CheckAvailability(); !status.ok()) {
-      std::cerr << "⚠️  Ollama unavailable: " << status.message() << std::endl;
-      std::cerr << "   Falling back to MockAIService" << std::endl;
-      return std::make_unique<MockAIService>();
+    auto status = service->CheckAvailability();
+    if (!status.ok()) {
+      return status;
     }
-
-    std::cout << "   Using model: " << ollama_config.model << std::endl;
-    return std::unique_ptr<AIService>(std::move(service));
+    return service;
   }
 
-  // Gemini provider
 #ifdef YAZE_WITH_JSON
   if (provider == "gemini") {
     if (config.gemini_api_key.empty()) {
-      std::cerr << "⚠️  Gemini API key not provided" << std::endl;
-      std::cerr << "   Use --gemini_api_key=<key> or GEMINI_API_KEY environment variable" << std::endl;
-      std::cerr << "   Falling back to MockAIService" << std::endl;
-      return std::make_unique<MockAIService>();
+      return absl::FailedPreconditionError(
+          "Gemini API key not provided. Set --gemini_api_key or GEMINI_API_KEY.");
     }
-    
     GeminiConfig gemini_config(config.gemini_api_key);
     if (!config.model.empty()) {
       gemini_config.model = config.model;
@@ -116,37 +135,17 @@ std::unique_ptr<AIService> CreateAIService(const AIServiceConfig& config) {
     gemini_config.prompt_version = absl::GetFlag(FLAGS_prompt_version);
     gemini_config.use_function_calling = absl::GetFlag(FLAGS_use_function_calling);
     gemini_config.verbose = config.verbose;
-    
-    std::cout << "   Model: " << gemini_config.model << std::endl;
-    if (config.verbose) {
-      std::cerr << "   Prompt: " << gemini_config.prompt_version << std::endl;
-    }
-
-    auto service = std::make_unique<GeminiAIService>(gemini_config);
-    // Health check - DISABLED due to SSL issues
-    // if (auto status = service->CheckAvailability(); !status.ok()) {
-    //   std::cerr << "⚠️  Gemini unavailable: " << status.message() << std::endl;
-    //   std::cerr << "   Falling back to MockAIService" << std::endl;
-    //   return std::make_unique<MockAIService>();
-    // }
-
-    if (config.verbose) {
-      std::cerr << "[DEBUG] Gemini service ready" << std::endl;
-    }
-    return service;
+    return std::make_unique<GeminiAIService>(gemini_config);
   }
 #else
   if (provider == "gemini") {
-    std::cerr << "⚠️  Gemini support not available: rebuild with YAZE_WITH_JSON=ON" << std::endl;
-    std::cerr << "   Falling back to MockAIService" << std::endl;
+    return absl::FailedPreconditionError(
+        "Gemini support not available: rebuild with YAZE_WITH_JSON=ON");
   }
 #endif
 
-  // Default: Mock service
-  if (provider == "mock") {
-    std::cout << "   Using MockAIService (no real AI)\n";
-  }
-  return std::make_unique<MockAIService>();
+  return absl::InvalidArgumentError(
+      absl::StrFormat("Unknown AI provider: %s", config.provider));
 }
 
 }  // namespace cli

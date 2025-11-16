@@ -123,6 +123,23 @@ struct YazeProject {
     bool verbose = false;
     int max_tool_iterations = 4;
     int max_retry_attempts = 3;
+    float temperature = 0.25f;
+    float top_p = 0.95f;
+    int max_output_tokens = 2048;
+    bool stream_responses = false;
+    std::vector<std::string> favorite_models;
+    std::vector<std::string> model_chain;
+    int chain_mode = 0;
+    bool enable_tool_resources = true;
+    bool enable_tool_dungeon = true;
+    bool enable_tool_overworld = true;
+    bool enable_tool_messages = true;
+    bool enable_tool_dialogue = true;
+    bool enable_tool_gui = true;
+    bool enable_tool_music = true;
+    bool enable_tool_sprite = true;
+    bool enable_tool_emulator = true;
+    std::string builder_blueprint_path;  // Saved agent builder configuration
   } agent_settings;
   
   // ZScream compatibility (for importing existing projects)

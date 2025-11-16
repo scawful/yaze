@@ -102,6 +102,33 @@ class AgentEditor : public Editor {
     bool show_reasoning = true;
     int max_tool_iterations = 4;
   };
+
+  struct AgentBuilderState {
+    struct Stage {
+      std::string name;
+      std::string summary;
+      bool completed = false;
+    };
+    std::vector<Stage> stages;
+    int active_stage = 0;
+    std::vector<std::string> goals;
+    std::string persona_notes;
+    struct ToolPlan {
+      bool resources = true;
+      bool dungeon = true;
+      bool overworld = true;
+      bool dialogue = true;
+      bool gui = false;
+      bool music = false;
+      bool sprite = false;
+      bool emulator = false;
+    } tools;
+    bool auto_run_tests = false;
+    bool auto_sync_rom = true;
+    bool auto_focus_proposals = true;
+    std::string blueprint_path;
+    bool ready_for_e2e = false;
+  };
   
   // Retro hacker animation state
   float pulse_animation_ = 0.0f;
@@ -190,6 +217,7 @@ class AgentEditor : public Editor {
   void DrawAdvancedMetricsPanel();
   void DrawCommonTilesEditor();
   void DrawNewPromptCreator();
+  void DrawAgentBuilderPanel();
 
   // Setup callbacks
   void SetupChatWidgetCallbacks();
@@ -200,6 +228,8 @@ class AgentEditor : public Editor {
   absl::Status EnsureProfilesDirectory();
   std::string ProfileToJson(const BotProfile& profile) const;
   absl::StatusOr<BotProfile> JsonToProfile(const std::string& json) const;
+  absl::Status SaveBuilderBlueprint(const std::filesystem::path& path);
+  absl::Status LoadBuilderBlueprint(const std::filesystem::path& path);
 
   // Internal state
   std::unique_ptr<AgentChatWidget> chat_widget_;  // Owned by AgentEditor
@@ -218,6 +248,7 @@ class AgentEditor : public Editor {
   // Bot Profile System
   BotProfile current_profile_;
   std::vector<BotProfile> loaded_profiles_;
+  AgentBuilderState builder_state_;
   
   // System Prompt Editor
   std::unique_ptr<TextEditor> prompt_editor_;

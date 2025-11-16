@@ -12,6 +12,7 @@
 #include "absl/flags/declare.h"
 #include "absl/flags/flag.h"
 #include "absl/status/status.h"
+#include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_join.h"
@@ -181,7 +182,9 @@ ChatMessage CreateMessage(ChatMessage::Sender sender, const std::string& content
 }  // namespace
 
 ConversationalAgentService::ConversationalAgentService() {
+  provider_config_.provider = "auto";
   ai_service_ = CreateAIService();
+  tool_dispatcher_.SetToolPreferences(tool_preferences_);
   
 #ifdef Z3ED_AI
   // Initialize advanced features
@@ -201,7 +204,9 @@ ConversationalAgentService::ConversationalAgentService() {
 
 ConversationalAgentService::ConversationalAgentService(const AgentConfig& config)
     : config_(config) {
+  provider_config_.provider = "auto";
   ai_service_ = CreateAIService();
+  tool_dispatcher_.SetToolPreferences(tool_preferences_);
   
 #ifdef Z3ED_AI
   // Initialize advanced features
@@ -280,6 +285,7 @@ absl::StatusOr<ChatMessage> ConversationalAgentService::SendMessage(
   const int max_iterations = config_.max_tool_iterations;
   bool waiting_for_text_response = false;
   absl::Time turn_start = absl::Now();
+  std::vector<std::string> executed_tools;
   
   if (config_.verbose) {
     util::PrintInfo(absl::StrCat("Starting agent loop (max ", max_iterations, " iterations)"));
@@ -348,7 +354,7 @@ absl::StatusOr<ChatMessage> ConversationalAgentService::SendMessage(
         
         util::PrintToolCall(tool_call.tool_name, args_str);
         
-        auto tool_result_or = tool_dispatcher_.Dispatch(tool_call);
+      auto tool_result_or = tool_dispatcher_.Dispatch(tool_call);
         if (!tool_result_or.ok()) {
           util::PrintError(absl::StrCat(
               "Tool execution failed: ", tool_result_or.status().message()));
@@ -381,6 +387,7 @@ absl::StatusOr<ChatMessage> ConversationalAgentService::SendMessage(
           history_.push_back(tool_result_msg);
         }
         executed_tool = true;
+        executed_tools.push_back(tool_call.tool_name);
       }
 
       if (executed_tool) {
@@ -500,6 +507,23 @@ absl::StatusOr<ChatMessage> ConversationalAgentService::SendMessage(
     ++metrics_.turns_completed;
     metrics_.total_latency += absl::Now() - turn_start;
     chat_response.metrics = BuildMetricsSnapshot();
+    if (!agent_response.warnings.empty()) {
+      chat_response.warnings = agent_response.warnings;
+    }
+    ChatMessage::ModelMetadata meta;
+    meta.provider = !agent_response.provider.empty()
+                        ? agent_response.provider
+                        : provider_config_.provider;
+    meta.model = !agent_response.model.empty() ? agent_response.model
+                                               : provider_config_.model;
+    meta.latency_seconds =
+        agent_response.latency_seconds > 0.0
+            ? agent_response.latency_seconds
+            : absl::ToDoubleSeconds(absl::Now() - turn_start);
+    meta.tool_iterations = metrics_.tool_calls;
+    meta.tool_names = executed_tools;
+    meta.parameters = agent_response.parameters;
+    chat_response.model_metadata = meta;
     history_.push_back(chat_response);
     TrimHistoryIfNeeded();
     return chat_response;
@@ -507,6 +531,27 @@ absl::StatusOr<ChatMessage> ConversationalAgentService::SendMessage(
 
   return absl::InternalError(
       "Agent did not produce a response after executing tools.");
+}
+
+absl::Status ConversationalAgentService::ConfigureProvider(
+    const AIServiceConfig& config) {
+  auto service_or = CreateAIServiceStrict(config);
+  if (!service_or.ok()) {
+    return service_or.status();
+  }
+
+  ai_service_ = std::move(service_or.value());
+  provider_config_ = config;
+  if (rom_context_) {
+    ai_service_->SetRomContext(rom_context_);
+  }
+  return absl::OkStatus();
+}
+
+void ConversationalAgentService::SetToolPreferences(
+    const ToolDispatcher::ToolPreferences& prefs) {
+  tool_preferences_ = prefs;
+  tool_dispatcher_.SetToolPreferences(tool_preferences_);
 }
 
 const std::vector<ChatMessage>& ConversationalAgentService::GetHistory() const {

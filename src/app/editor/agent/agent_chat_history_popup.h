@@ -1,7 +1,9 @@
 #ifndef YAZE_APP_EDITOR_AGENT_AGENT_CHAT_HISTORY_POPUP_H
 #define YAZE_APP_EDITOR_AGENT_AGENT_CHAT_HISTORY_POPUP_H
 
+#include <functional>
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 #include "cli/service/agent/conversational_agent_service.h"
@@ -68,12 +70,16 @@ class AgentChatHistoryPopup {
     capture_snapshot_callback_ = std::move(callback);
   }
 
- private:
+private:
   void DrawHeader();
+  void DrawQuickActions();
+  void DrawInputSection();
   void DrawMessageList();
   void DrawMessage(const cli::agent::ChatMessage& msg, int index);
-  void DrawInputSection();
-  void DrawQuickActions();
+  bool MessagePassesFilters(const cli::agent::ChatMessage& msg,
+                            int index) const;
+  void RefreshProviderFilters();
+  void TogglePin(int index);
   
   void SendMessage(const std::string& message);
   void ClearHistory();
@@ -92,6 +98,7 @@ class AgentChatHistoryPopup {
   
   // Input state
   char input_buffer_[512] = {};
+  char search_buffer_[160] = {};
   bool focus_input_ = false;
   
   // UI state
@@ -107,6 +114,10 @@ class AgentChatHistoryPopup {
     kAgentOnly
   };
   MessageFilter message_filter_ = MessageFilter::kAll;
+  std::vector<std::string> provider_filters_;
+  int provider_filter_index_ = 0;
+  bool show_pinned_only_ = false;
+  std::unordered_set<int> pinned_messages_;
   
   // Visual state
   float header_pulse_ = 0.0f;

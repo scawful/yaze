@@ -187,6 +187,38 @@ absl::StatusOr<AgentChatHistoryCodec::Snapshot> AgentChatHistoryCodec::Load(
     if (item.contains("proposal")) {
       message.proposal = ParseProposal(item["proposal"]);
     }
+    if (item.contains("warnings") && item["warnings"].is_array()) {
+      for (const auto& warning : item["warnings"]) {
+        if (warning.is_string()) {
+          message.warnings.push_back(warning.get<std::string>());
+        }
+      }
+    }
+    if (item.contains("model_metadata") &&
+        item["model_metadata"].is_object()) {
+      const auto& meta_json = item["model_metadata"];
+      cli::agent::ChatMessage::ModelMetadata meta;
+      meta.provider = meta_json.value("provider", "");
+      meta.model = meta_json.value("model", "");
+      meta.latency_seconds = meta_json.value("latency_seconds", 0.0);
+      meta.tool_iterations = meta_json.value("tool_iterations", 0);
+      if (meta_json.contains("tool_names") && meta_json["tool_names"].is_array()) {
+        for (const auto& name : meta_json["tool_names"]) {
+          if (name.is_string()) {
+            meta.tool_names.push_back(name.get<std::string>());
+          }
+        }
+      }
+      if (meta_json.contains("parameters") &&
+          meta_json["parameters"].is_object()) {
+        for (const auto& [key, value] : meta_json["parameters"].items()) {
+          if (value.is_string()) {
+            meta.parameters[key] = value.get<std::string>();
+          }
+        }
+      }
+      message.model_metadata = meta;
+    }
 
     snapshot.history.push_back(std::move(message));
   }
@@ -237,6 +269,80 @@ absl::StatusOr<AgentChatHistoryCodec::Snapshot> AgentChatHistoryCodec::Load(
     }
   }
 
+  if (json.contains("agent_config") && json["agent_config"].is_object()) {
+    const auto& config_json = json["agent_config"];
+    AgentConfigSnapshot config;
+    config.provider = config_json.value("provider", "");
+    config.model = config_json.value("model", "");
+    config.ollama_host = config_json.value("ollama_host", "http://localhost:11434");
+    config.gemini_api_key = config_json.value("gemini_api_key", "");
+    config.verbose = config_json.value("verbose", false);
+    config.show_reasoning = config_json.value("show_reasoning", true);
+    config.max_tool_iterations = config_json.value("max_tool_iterations", 4);
+    config.max_retry_attempts = config_json.value("max_retry_attempts", 3);
+    config.temperature = config_json.value("temperature", 0.25f);
+    config.top_p = config_json.value("top_p", 0.95f);
+    config.max_output_tokens = config_json.value("max_output_tokens", 2048);
+    config.stream_responses = config_json.value("stream_responses", false);
+    config.chain_mode = config_json.value("chain_mode", 0);
+    if (config_json.contains("favorite_models") &&
+        config_json["favorite_models"].is_array()) {
+      for (const auto& fav : config_json["favorite_models"]) {
+        if (fav.is_string()) {
+          config.favorite_models.push_back(fav.get<std::string>());
+        }
+      }
+    }
+    if (config_json.contains("model_chain") &&
+        config_json["model_chain"].is_array()) {
+      for (const auto& chain : config_json["model_chain"]) {
+        if (chain.is_string()) {
+          config.model_chain.push_back(chain.get<std::string>());
+        }
+      }
+    }
+    if (config_json.contains("goals") && config_json["goals"].is_array()) {
+      for (const auto& goal : config_json["goals"]) {
+        if (goal.is_string()) {
+          config.goals.push_back(goal.get<std::string>());
+        }
+      }
+    }
+    if (config_json.contains("model_presets") &&
+        config_json["model_presets"].is_array()) {
+      for (const auto& preset_json : config_json["model_presets"]) {
+        if (!preset_json.is_object()) continue;
+        AgentConfigSnapshot::ModelPreset preset;
+        preset.name = preset_json.value("name", "");
+        preset.model = preset_json.value("model", "");
+        preset.host = preset_json.value("host", "");
+        preset.pinned = preset_json.value("pinned", false);
+        if (preset_json.contains("tags") && preset_json["tags"].is_array()) {
+          for (const auto& tag : preset_json["tags"]) {
+            if (tag.is_string()) {
+              preset.tags.push_back(tag.get<std::string>());
+            }
+          }
+        }
+        config.model_presets.push_back(std::move(preset));
+      }
+    }
+    if (config_json.contains("tools") && config_json["tools"].is_object()) {
+      const auto& tools_json = config_json["tools"];
+      config.tools.resources = tools_json.value("resources", true);
+      config.tools.dungeon = tools_json.value("dungeon", true);
+      config.tools.overworld = tools_json.value("overworld", true);
+      config.tools.dialogue = tools_json.value("dialogue", true);
+      config.tools.messages = tools_json.value("messages", true);
+      config.tools.gui = tools_json.value("gui", true);
+      config.tools.music = tools_json.value("music", true);
+      config.tools.sprite = tools_json.value("sprite", true);
+      config.tools.emulator = tools_json.value("emulator", true);
+    }
+    config.persona_notes = config_json.value("persona_notes", "");
+    snapshot.agent_config = config;
+  }
+
   return snapshot;
 #else
   (void)path;
@@ -249,7 +355,7 @@ absl::Status AgentChatHistoryCodec::Save(
     const std::filesystem::path& path, const Snapshot& snapshot) {
 #if defined(YAZE_WITH_JSON)
   Json json;
-  json["version"] = 3;
+  json["version"] = 4;
   json["messages"] = Json::array();
 
   for (const auto& message : snapshot.history) {
@@ -286,6 +392,24 @@ absl::Status AgentChatHistoryCodec::Save(
     if (message.proposal.has_value()) {
       entry["proposal"] = SerializeProposal(*message.proposal);
     }
+    if (!message.warnings.empty()) {
+      entry["warnings"] = message.warnings;
+    }
+    if (message.model_metadata.has_value()) {
+      const auto& meta = *message.model_metadata;
+      Json meta_json;
+      meta_json["provider"] = meta.provider;
+      meta_json["model"] = meta.model;
+      meta_json["latency_seconds"] = meta.latency_seconds;
+      meta_json["tool_iterations"] = meta.tool_iterations;
+      meta_json["tool_names"] = meta.tool_names;
+      Json params_json;
+      for (const auto& [key, value] : meta.parameters) {
+        params_json[key] = value;
+      }
+      meta_json["parameters"] = std::move(params_json);
+      entry["model_metadata"] = std::move(meta_json);
+    }
 
     json["messages"].push_back(std::move(entry));
   }
@@ -316,6 +440,54 @@ absl::Status AgentChatHistoryCodec::Save(
         absl::UTCTimeZone());
   }
   json["multimodal"] = std::move(multimodal_json);
+
+  if (snapshot.agent_config.has_value()) {
+    const auto& config = *snapshot.agent_config;
+    Json config_json;
+    config_json["provider"] = config.provider;
+    config_json["model"] = config.model;
+    config_json["ollama_host"] = config.ollama_host;
+    config_json["gemini_api_key"] = config.gemini_api_key;
+    config_json["verbose"] = config.verbose;
+    config_json["show_reasoning"] = config.show_reasoning;
+    config_json["max_tool_iterations"] = config.max_tool_iterations;
+    config_json["max_retry_attempts"] = config.max_retry_attempts;
+    config_json["temperature"] = config.temperature;
+    config_json["top_p"] = config.top_p;
+    config_json["max_output_tokens"] = config.max_output_tokens;
+    config_json["stream_responses"] = config.stream_responses;
+    config_json["chain_mode"] = config.chain_mode;
+    config_json["favorite_models"] = config.favorite_models;
+    config_json["model_chain"] = config.model_chain;
+    config_json["persona_notes"] = config.persona_notes;
+    config_json["goals"] = config.goals;
+
+    Json tools_json;
+    tools_json["resources"] = config.tools.resources;
+    tools_json["dungeon"] = config.tools.dungeon;
+    tools_json["overworld"] = config.tools.overworld;
+    tools_json["dialogue"] = config.tools.dialogue;
+    tools_json["messages"] = config.tools.messages;
+    tools_json["gui"] = config.tools.gui;
+    tools_json["music"] = config.tools.music;
+    tools_json["sprite"] = config.tools.sprite;
+    tools_json["emulator"] = config.tools.emulator;
+    config_json["tools"] = std::move(tools_json);
+
+    Json presets_json = Json::array();
+    for (const auto& preset : config.model_presets) {
+      Json preset_json;
+      preset_json["name"] = preset.name;
+      preset_json["model"] = preset.model;
+      preset_json["host"] = preset.host;
+      preset_json["tags"] = preset.tags;
+      preset_json["pinned"] = preset.pinned;
+      presets_json.push_back(std::move(preset_json));
+    }
+    config_json["model_presets"] = std::move(presets_json);
+
+    json["agent_config"] = std::move(config_json);
+  }
 
   std::error_code ec;
   auto directory = path.parent_path();

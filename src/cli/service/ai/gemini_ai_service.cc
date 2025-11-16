@@ -11,6 +11,8 @@
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_split.h"
 #include "absl/strings/strip.h"
+#include "absl/time/clock.h"
+#include "absl/time/time.h"
 #include "util/platform_paths.h"
 
 #ifdef YAZE_WITH_JSON
@@ -296,6 +298,8 @@ absl::StatusOr<AgentResponse> GeminiAIService::GenerateResponse(
     return absl::FailedPreconditionError("Gemini API key not configured");
   }
 
+  absl::Time request_start = absl::Now();
+
   try {
     if (config_.verbose) {
       std::cerr << "[DEBUG] Using curl for HTTPS request" << std::endl;
@@ -448,7 +452,23 @@ absl::StatusOr<AgentResponse> GeminiAIService::GenerateResponse(
     if (config_.verbose) {
       std::cerr << "[DEBUG] Parsing response..." << std::endl;
     }
-    return ParseGeminiResponse(response_str);
+    auto parsed_or = ParseGeminiResponse(response_str);
+    if (!parsed_or.ok()) {
+      return parsed_or.status();
+    }
+    AgentResponse agent_response = std::move(parsed_or.value());
+    agent_response.provider = "gemini";
+    agent_response.model = config_.model;
+    agent_response.latency_seconds =
+        absl::ToDoubleSeconds(absl::Now() - request_start);
+    agent_response.parameters["prompt_version"] = config_.prompt_version;
+    agent_response.parameters["temperature"] =
+        absl::StrFormat("%.2f", config_.temperature);
+    agent_response.parameters["max_output_tokens"] =
+        absl::StrFormat("%d", config_.max_output_tokens);
+    agent_response.parameters["function_calling"] =
+        function_calling_enabled_ ? "true" : "false";
+    return agent_response;
   
   } catch (const std::exception& e) {
     if (config_.verbose) {

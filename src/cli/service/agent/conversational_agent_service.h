@@ -2,6 +2,7 @@
 #define YAZE_SRC_CLI_SERVICE_AGENT_CONVERSATIONAL_AGENT_SERVICE_H_
 
 #include <filesystem>
+#include <map>
 #include <optional>
 #include <string>
 #include <vector>
@@ -10,6 +11,7 @@
 #include "absl/status/statusor.h"
 #include "absl/time/time.h"
 #include "cli/service/ai/ai_service.h"
+#include "cli/service/ai/service_factory.h"
 #include "cli/service/agent/proposal_executor.h"
 #include "cli/service/agent/tool_dispatcher.h"
 // Advanced features (only available when Z3ED_AI=ON)
@@ -50,6 +52,16 @@ struct ChatMessage {
   std::optional<std::string> json_pretty;
   std::optional<TableData> table_data;
   bool is_internal = false;  // True for tool results and other messages not meant for user display
+  std::vector<std::string> warnings;
+  struct ModelMetadata {
+    std::string provider;
+    std::string model;
+    double latency_seconds = 0.0;
+    int tool_iterations = 0;
+    std::vector<std::string> tool_names;
+    std::map<std::string, std::string> parameters;
+  };
+  std::optional<ModelMetadata> model_metadata;
   struct SessionMetrics {
     int turn_index = 0;
     int total_user_messages = 0;
@@ -102,6 +114,9 @@ class ConversationalAgentService {
   // Configuration
   void SetConfig(const AgentConfig& config) { config_ = config; }
   const AgentConfig& GetConfig() const { return config_; }
+  absl::Status ConfigureProvider(const AIServiceConfig& config);
+  const AIServiceConfig& provider_config() const { return provider_config_; }
+  void SetToolPreferences(const ToolDispatcher::ToolPreferences& prefs);
 
   ChatMessage::SessionMetrics GetMetrics() const;
 
@@ -145,6 +160,8 @@ class ConversationalAgentService {
   std::vector<ChatMessage> history_;
   std::unique_ptr<AIService> ai_service_;
   ToolDispatcher tool_dispatcher_;
+  ToolDispatcher::ToolPreferences tool_preferences_;
+  AIServiceConfig provider_config_;
   Rom* rom_context_ = nullptr;
   AgentConfig config_;
   InternalMetrics metrics_;

@@ -5,6 +5,8 @@
 
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
+#include "absl/time/clock.h"
+#include "absl/time/time.h"
 #include "cli/service/agent/conversational_agent_service.h"
 
 #ifdef YAZE_WITH_JSON
@@ -101,7 +103,7 @@ absl::Status OllamaAIService::CheckAvailability() {
 #endif
 }
 
-absl::StatusOr<std::vector<std::string>> OllamaAIService::ListAvailableModels() {
+absl::StatusOr<std::vector<OllamaAIService::ModelInfo>> OllamaAIService::ListAvailableModels() {
 #ifndef YAZE_WITH_JSON
   return absl::UnimplementedError("Requires httplib and JSON support");
 #else
@@ -117,16 +119,42 @@ absl::StatusOr<std::vector<std::string>> OllamaAIService::ListAvailableModels() 
     }
     
     nlohmann::json models_json = nlohmann::json::parse(res->body);
-    std::vector<std::string> models;
+    std::vector<ModelInfo> models;
     
     if (models_json.contains("models") && models_json["models"].is_array()) {
       for (const auto& model : models_json["models"]) {
-        if (model.contains("name")) {
-          models.push_back(model["name"].get<std::string>());
+        ModelInfo info;
+        if (model.contains("name") && model["name"].is_string()) {
+          info.name = model["name"].get<std::string>();
         }
+        if (model.contains("digest") && model["digest"].is_string()) {
+          info.digest = model["digest"].get<std::string>();
+        }
+        if (model.contains("size")) {
+          if (model["size"].is_string()) {
+            info.size_bytes = std::strtoull(model["size"].get<std::string>().c_str(), nullptr, 10);
+          } else if (model["size"].is_number_unsigned()) {
+            info.size_bytes = model["size"].get<uint64_t>();
+          }
+        }
+        if (model.contains("modified_at") && model["modified_at"].is_string()) {
+          absl::Time parsed_time;
+          if (absl::ParseTime(absl::RFC3339_full,
+                              model["modified_at"].get<std::string>(),
+                              &parsed_time, nullptr)) {
+            info.modified_at = parsed_time;
+          }
+        }
+        if (model.contains("details") && model["details"].is_object()) {
+          const auto& details = model["details"];
+          info.parameter_size = details.value("parameter_size", "");
+          info.quantization_level = details.value("quantization_level", "");
+          info.family = details.value("family", "");
+        }
+        models.push_back(std::move(info));
       }
     }
-    
+
     return models;
   } catch (const std::exception& e) {
     return absl::InternalError(absl::StrCat(
@@ -168,29 +196,62 @@ absl::StatusOr<AgentResponse> OllamaAIService::GenerateResponse(
       "Ollama service requires httplib and JSON support. "
       "Install vcpkg dependencies or use bundled libraries.");
 #else
-  // TODO: Implement history-aware prompting.
   if (history.empty()) {
     return absl::InvalidArgumentError("History cannot be empty.");
   }
-  std::string prompt = prompt_builder_.BuildPromptFromHistory(history);
 
-  // Build request payload
-  nlohmann::json request_body = {
-      {"model", config_.model},
-      {"system", config_.system_prompt},
-      {"prompt", prompt},
-      {"stream", false},
-      {"options",
-       {{"temperature", config_.temperature},
-        {"num_predict", config_.max_tokens}}},
-      {"format", "json"}  // Force JSON output
-  };
+  nlohmann::json messages = nlohmann::json::array();
+  for (const auto& chat_msg : history) {
+    if (chat_msg.is_internal) {
+      continue;
+    }
+    nlohmann::json entry;
+    entry["role"] =
+        chat_msg.sender == agent::ChatMessage::Sender::kUser ? "user"
+                                                             : "assistant";
+    entry["content"] = chat_msg.message;
+    messages.push_back(std::move(entry));
+  }
+
+  if (messages.empty()) {
+    return absl::InvalidArgumentError(
+        "History does not contain any user/assistant messages.");
+  }
+
+  std::string fallback_prompt =
+      prompt_builder_.BuildPromptFromHistory(history);
+
+  nlohmann::json request_body;
+  request_body["model"] = config_.model;
+  request_body["system"] = config_.system_prompt;
+  request_body["stream"] = config_.stream;
+  request_body["format"] = "json";
+
+  if (config_.use_chat_completions) {
+    request_body["messages"] = messages;
+  } else {
+    request_body["prompt"] = fallback_prompt;
+  }
+
+  nlohmann::json options = {
+      {"temperature", config_.temperature},
+      {"top_p", config_.top_p},
+      {"top_k", config_.top_k},
+      {"num_predict", config_.max_tokens},
+      {"num_ctx", config_.num_ctx}};
+  request_body["options"] = options;
+
+  AgentResponse agent_response;
+  agent_response.provider = "ollama";
   
   try {
     httplib::Client cli(config_.base_url);
     cli.set_read_timeout(60);  // Longer timeout for inference
-    
-    auto res = cli.Post("/api/generate", request_body.dump(), "application/json");
+
+    const char* endpoint = config_.use_chat_completions ? "/api/chat"
+                                                        : "/api/generate";
+    absl::Time request_start = absl::Now();
+    auto res = cli.Post(endpoint, request_body.dump(), "application/json");
     
     if (!res) {
       return absl::UnavailableError(
@@ -243,16 +304,34 @@ absl::StatusOr<AgentResponse> OllamaAIService::GenerateResponse(
         try {
           response_json = nlohmann::json::parse(json_only);
         } catch (const nlohmann::json::exception&) {
-          return absl::InvalidArgumentError(
-              "LLM did not return valid JSON. Response:\n" + llm_output);
+          agent_response.warnings.push_back(
+              "LLM response was not valid JSON; returning raw text.");
+          agent_response.text_response = llm_output;
+          return agent_response;
         }
       } else {
-        return absl::InvalidArgumentError(
-            "LLM did not return a JSON object. Response:\n" + llm_output);
+        agent_response.warnings.push_back(
+            "LLM response did not contain a JSON object; returning raw text.");
+        agent_response.text_response = llm_output;
+        return agent_response;
       }
     }
     
-    AgentResponse agent_response;
+    agent_response.model =
+        ollama_wrapper.value("model", config_.model);
+    agent_response.latency_seconds =
+        absl::ToDoubleSeconds(absl::Now() - request_start);
+    agent_response.parameters["temperature"] =
+        absl::StrFormat("%.2f", config_.temperature);
+    agent_response.parameters["top_p"] =
+        absl::StrFormat("%.2f", config_.top_p);
+    agent_response.parameters["top_k"] =
+        absl::StrFormat("%d", config_.top_k);
+    agent_response.parameters["num_predict"] =
+        absl::StrFormat("%d", config_.max_tokens);
+    agent_response.parameters["num_ctx"] =
+        absl::StrFormat("%d", config_.num_ctx);
+    agent_response.parameters["endpoint"] = endpoint;
     if (response_json.contains("text_response") &&
         response_json["text_response"].is_string()) {
       agent_response.text_response =

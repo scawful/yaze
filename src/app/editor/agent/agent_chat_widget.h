@@ -10,7 +10,9 @@
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/time/time.h"
+#include "app/editor/agent/agent_chat_history_codec.h"
 #include "app/gui/widgets/text_editor.h"
+#include "cli/service/ai/ollama_ai_service.h"
 #include "cli/service/agent/conversational_agent_service.h"
 #include "cli/service/agent/advanced_routing.h"
 #include "cli/service/agent/agent_pretraining.h"
@@ -20,6 +22,10 @@
 namespace yaze {
 
 class Rom;
+
+namespace cli {
+struct AIServiceConfig;
+}
 
 namespace editor {
 
@@ -122,6 +128,10 @@ class AgentChatWidget {
 
   void SetMultimodalCallbacks(const MultimodalCallbacks& callbacks);
   void SetAutomationCallbacks(const AutomationCallbacks& callbacks);
+  void ApplyBuilderPersona(const std::string& persona_notes,
+                           const std::vector<std::string>& goals);
+  void ApplyAutomationPlan(bool auto_run_tests, bool auto_sync_rom,
+                           bool auto_focus_proposals);
 
   void UpdateHarnessTelemetry(const AutomationTelemetry& telemetry);
   void SetLastPlanSummary(const std::string& summary);
@@ -141,8 +151,6 @@ class AgentChatWidget {
   bool* active() { return &active_; }
   bool is_active() const { return active_; }
   void set_active(bool active) { active_ = active; }
-
-public:
   enum class CollaborationMode {
     kLocal = 0,    // Filesystem-based collaboration
     kNetwork = 1   // WebSocket-based collaboration
@@ -205,6 +213,9 @@ public:
     int connection_attempts = 0;
     absl::Time last_connection_attempt = absl::InfinitePast();
     std::string grpc_server_address = "localhost:50052";
+    bool auto_run_plan = false;
+    bool auto_sync_rom = true;
+    bool auto_focus_proposals = true;
   };
 
   // Agent Configuration State
@@ -217,6 +228,38 @@ public:
     bool show_reasoning = true;
     int max_tool_iterations = 4;
     int max_retry_attempts = 3;
+    float temperature = 0.25f;
+    float top_p = 0.95f;
+    int max_output_tokens = 2048;
+    bool stream_responses = false;
+    std::vector<std::string> favorite_models;
+    std::vector<std::string> model_chain;
+    enum class ChainMode {
+      kDisabled = 0,
+      kRoundRobin = 1,
+      kConsensus = 2,
+    };
+    ChainMode chain_mode = ChainMode::kDisabled;
+    struct ModelPreset {
+      std::string name;
+      std::string model;
+      std::string host;
+      std::vector<std::string> tags;
+      bool pinned = false;
+      absl::Time last_used = absl::InfinitePast();
+    };
+    std::vector<ModelPreset> model_presets;
+    struct ToolConfig {
+      bool resources = true;
+      bool dungeon = true;
+      bool overworld = true;
+      bool dialogue = true;
+      bool messages = true;
+      bool gui = true;
+      bool music = true;
+      bool sprite = true;
+      bool emulator = true;
+    } tool_config;
     char provider_buffer[32] = "mock";
     char model_buffer[128] = {};
     char ollama_host_buffer[256] = "http://localhost:11434";
@@ -289,6 +332,12 @@ public:
   void RenderHarnessPanel();
   void RenderSystemPromptEditor();
   void RenderFileEditorTabs();
+  void RenderModelConfigControls();
+  void RenderModelDeck();
+  void RenderParameterControls();
+  void RenderToolingControls();
+  void RenderChainModeControls();
+  void RenderPersonaSummary();
   void RefreshCollaboration();
   void ApplyCollaborationSession(
       const CollaborationCallbacks::SessionContext& context,
@@ -298,6 +347,14 @@ public:
   void HandleRomSyncReceived(const std::string& diff_data, const std::string& rom_hash);
   void HandleSnapshotReceived(const std::string& snapshot_data, const std::string& snapshot_type);
   void HandleProposalReceived(const std::string& proposal_data);
+  void RefreshOllamaModels();
+  cli::AIServiceConfig BuildAIServiceConfig() const;
+  void ApplyToolPreferences();
+  void ApplyHistoryAgentConfig(
+      const AgentChatHistoryCodec::AgentConfigSnapshot& snapshot);
+  AgentChatHistoryCodec::AgentConfigSnapshot BuildHistoryAgentConfig() const;
+  void MarkPresetUsage(const std::string& model_name);
+  void ApplyModelPreset(const AgentConfigState::ModelPreset& preset);
   
   // History synchronization
   void SyncHistoryToPopup();
@@ -358,6 +415,14 @@ public:
   AgentConfigState agent_config_;
   RomSyncState rom_sync_state_;
   Z3EDCommandState z3ed_command_state_;
+  bool persist_agent_config_with_history_ = true;
+  struct PersonaProfile {
+    std::string notes;
+    std::vector<std::string> goals;
+    absl::Time applied_at = absl::InfinitePast();
+    bool active = false;
+  } persona_profile_;
+  bool persona_highlight_active_ = false;
   
   // Callbacks
   CollaborationCallbacks collaboration_callbacks_;
@@ -399,6 +464,18 @@ public:
   };
   std::vector<FileEditorTab> open_files_;
   int active_file_tab_ = -1;
+
+  // Model roster cache
+  std::vector<cli::OllamaAIService::ModelInfo> ollama_model_info_cache_;
+  std::vector<std::string> ollama_model_cache_;
+  absl::Time last_model_refresh_ = absl::InfinitePast();
+  bool ollama_models_loading_ = false;
+  char model_search_buffer_[64] = {};
+  char new_preset_name_[64] = {};
+  int active_model_preset_index_ = -1;
+  bool show_model_manager_popup_ = false;
+  bool show_tool_manager_popup_ = false;
+  bool auto_apply_agent_config_ = false;
 };
 
 }  // namespace editor

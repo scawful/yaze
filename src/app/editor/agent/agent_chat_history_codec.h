@@ -34,10 +34,52 @@ class AgentChatHistoryCodec {
     absl::Time last_updated = absl::InfinitePast();
   };
 
+  struct AgentConfigSnapshot {
+    struct ToolFlags {
+      bool resources = true;
+      bool dungeon = true;
+      bool overworld = true;
+      bool dialogue = true;
+      bool messages = true;
+      bool gui = true;
+      bool music = true;
+      bool sprite = true;
+      bool emulator = true;
+    };
+    struct ModelPreset {
+      std::string name;
+      std::string model;
+      std::string host;
+      std::vector<std::string> tags;
+      bool pinned = false;
+    };
+
+    std::string provider;
+    std::string model;
+    std::string ollama_host;
+    std::string gemini_api_key;
+    bool verbose = false;
+    bool show_reasoning = true;
+    int max_tool_iterations = 4;
+    int max_retry_attempts = 3;
+    float temperature = 0.25f;
+    float top_p = 0.95f;
+    int max_output_tokens = 2048;
+    bool stream_responses = false;
+    int chain_mode = 0;
+    std::vector<std::string> favorite_models;
+    std::vector<std::string> model_chain;
+    std::vector<ModelPreset> model_presets;
+    std::string persona_notes;
+    std::vector<std::string> goals;
+    ToolFlags tools;
+  };
+
   struct Snapshot {
     std::vector<cli::agent::ChatMessage> history;
     CollaborationState collaboration;
     MultimodalState multimodal;
+    std::optional<AgentConfigSnapshot> agent_config;
   };
 
   // Returns true when the codec can actually serialize / deserialize history.

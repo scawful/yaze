@@ -229,6 +229,75 @@ std::vector<std::string> ConvertArgsToVector(
 
 }  // namespace
 
+bool ToolDispatcher::IsToolEnabled(ToolCallType type) const {
+  switch (type) {
+    case ToolCallType::kResourceList:
+    case ToolCallType::kResourceSearch:
+      return preferences_.resources;
+
+    case ToolCallType::kDungeonListSprites:
+    case ToolCallType::kDungeonDescribeRoom:
+    case ToolCallType::kDungeonExportRoom:
+    case ToolCallType::kDungeonListObjects:
+    case ToolCallType::kDungeonGetRoomTiles:
+    case ToolCallType::kDungeonSetRoomProperty:
+      return preferences_.dungeon;
+
+    case ToolCallType::kOverworldFindTile:
+    case ToolCallType::kOverworldDescribeMap:
+    case ToolCallType::kOverworldListWarps:
+    case ToolCallType::kOverworldListSprites:
+    case ToolCallType::kOverworldGetEntrance:
+    case ToolCallType::kOverworldTileStats:
+      return preferences_.overworld;
+
+    case ToolCallType::kMessageList:
+    case ToolCallType::kMessageRead:
+    case ToolCallType::kMessageSearch:
+      return preferences_.messages;
+
+    case ToolCallType::kDialogueList:
+    case ToolCallType::kDialogueRead:
+    case ToolCallType::kDialogueSearch:
+      return preferences_.dialogue;
+
+    case ToolCallType::kGuiPlaceTile:
+    case ToolCallType::kGuiClick:
+    case ToolCallType::kGuiDiscover:
+    case ToolCallType::kGuiScreenshot:
+      return preferences_.gui;
+
+    case ToolCallType::kMusicList:
+    case ToolCallType::kMusicInfo:
+    case ToolCallType::kMusicTracks:
+      return preferences_.music;
+
+    case ToolCallType::kSpriteList:
+    case ToolCallType::kSpriteProperties:
+    case ToolCallType::kSpritePalette:
+      return preferences_.sprite;
+
+#ifdef YAZE_WITH_GRPC
+    case ToolCallType::kEmulatorStep:
+    case ToolCallType::kEmulatorRun:
+    case ToolCallType::kEmulatorPause:
+    case ToolCallType::kEmulatorReset:
+    case ToolCallType::kEmulatorGetState:
+    case ToolCallType::kEmulatorSetBreakpoint:
+    case ToolCallType::kEmulatorClearBreakpoint:
+    case ToolCallType::kEmulatorListBreakpoints:
+    case ToolCallType::kEmulatorReadMemory:
+    case ToolCallType::kEmulatorWriteMemory:
+    case ToolCallType::kEmulatorGetRegisters:
+    case ToolCallType::kEmulatorGetMetrics:
+      return preferences_.emulator;
+#endif
+
+    default:
+      return true;
+  }
+}
+
 absl::StatusOr<std::string> ToolDispatcher::Dispatch(const ToolCall& call) {
   // Determine tool call type
   ToolCallType type = GetToolCallType(call.tool_name);
@@ -238,6 +307,12 @@ absl::StatusOr<std::string> ToolDispatcher::Dispatch(const ToolCall& call) {
         absl::StrCat("Unknown tool: ", call.tool_name));
   }
   
+  if (!IsToolEnabled(type)) {
+    return absl::FailedPreconditionError(
+        absl::StrCat("Tool '", call.tool_name,
+                     "' disabled by current agent configuration"));
+  }
+
   // Create the appropriate command handler
   auto handler = CreateHandler(type);
   if (!handler) {
