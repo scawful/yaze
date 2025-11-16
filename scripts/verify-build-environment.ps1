@@ -56,12 +56,14 @@ function Get-CMakeVersion {
 
 function Test-GitSubmodules {
     $submodules = @(
-        "src/lib/SDL",
+        "ext/SDL",
         "src/lib/abseil-cpp",
-        "src/lib/asar",
-        "src/lib/imgui",
-        "third_party/json",
-        "third_party/httplib"
+        "ext/asar",
+        "ext/imgui",
+        "ext/json",
+        "ext/httplib",
+        "ext/imgui_test_engine",
+        "ext/nativefiledialog-extended"
     )
     
     $allPresent = $true
@@ -162,6 +164,36 @@ function Test-Vcpkg {
         Write-Status "vcpkg not found (optional, but recommended for gRPC)" "Info"
         $script:warnings += "vcpkg not installed. For faster builds with gRPC, consider running scripts\setup-vcpkg-windows.ps1"
         return $false
+    }
+}
+
+function Test-VcpkgCache {
+    $vcpkgPath = Join-Path $PSScriptRoot ".." "vcpkg"
+    $installedDir = Join-Path $vcpkgPath "installed"
+
+    if (-not (Test-Path $installedDir)) {
+        return
+    }
+
+    $triplets = @("x64-windows", "arm64-windows")
+    $hasPackages = $false
+
+    foreach ($triplet in $triplets) {
+        $tripletDir = Join-Path $installedDir $triplet
+        if (Test-Path $tripletDir) {
+            $count = (Get-ChildItem $tripletDir -Force | Measure-Object).Count
+            if ($count -gt 0) {
+                $hasPackages = $true
+                Write-Status "vcpkg cache populated for $triplet" "Success"
+            }
+        }
+    }
+
+    if (-not $hasPackages) {
+        Write-Status "vcpkg/installed is empty. Run scripts\\setup-vcpkg-windows.ps1 to prefetch dependencies." "Warning"
+        $script:warnings += "vcpkg cache empty - builds may spend extra time compiling dependencies."
+    } else {
+        $script:success += "vcpkg cache ready for Windows presets"
     }
 }
 
@@ -279,6 +311,25 @@ function Test-Ninja {
     }
 }
 
+function Test-ClangCL {
+    Write-Status "Checking clang-cl compiler..." "Step"
+    if (Test-Command "clang-cl") {
+        try {
+            $clangVersion = & clang-cl --version 2>&1 | Select-Object -First 1
+            Write-Status "clang-cl found: $clangVersion" "Success"
+            $script:success += "clang-cl available (recommended for win-* presets)"
+            return $true
+        } catch {
+            Write-Status "clang-cl command exists but version check failed" "Warning"
+            return $true
+        }
+    } else {
+        Write-Status "clang-cl not found (LLVM toolset for MSVC missing?)" "Warning"
+        $script:warnings += "Install the \"LLVM tools for Visual Studio\" component or enable clang-cl via Visual Studio Installer."
+        return $false
+    }
+}
+
 function Test-NASM {
     Write-Status "Checking NASM assembler..." "Step"
     if (Test-Command "nasm") {
@@ -344,6 +395,28 @@ function Test-VSCode {
         Write-Status "VS Code not found (optional)" "Info"
         return $false
     }
+}
+
+function Test-RomAssets {
+    Write-Status "Checking for local Zelda 3 ROM assets..." "Step"
+    $romPaths = @(
+        "zelda3.sfc",
+        "assets/zelda3.sfc",
+        "assets/zelda3.yaze",
+        "Roms/zelda3.sfc"
+    )
+
+    foreach ($relativePath in $romPaths) {
+        $fullPath = Join-Path $PSScriptRoot ".." $relativePath
+        if (Test-Path $fullPath) {
+            Write-Status "Found ROM asset at '$relativePath'" "Success"
+            $script:success += "ROM asset available for GUI/editor smoke tests"
+            return
+        }
+    }
+
+    Write-Status "No ROM asset detected. Place a clean 'zelda3.sfc' in the repo root or assets/ directory." "Warning"
+    $script:warnings += "ROM assets missing - GUI workflows that load ROMs will fail until one is provided."
 }
 
 function Test-CMakePresets {
@@ -492,8 +565,9 @@ if (Test-Command "git") {
     $script:issuesFound += "Git not installed or not in PATH"
 }
 
-# Step 3: Check Build Tools (Ninja and NASM)
+# Step 3: Check Build Tools (Ninja, clang-cl, NASM)
 Test-Ninja | Out-Null
+Test-ClangCL | Out-Null
 Test-NASM | Out-Null
 
 # Step 4: Check Visual Studio
@@ -528,6 +602,7 @@ Test-CMakePresets | Out-Null
 
 # Step 7: Check vcpkg
 Test-Vcpkg | Out-Null
+Test-VcpkgCache | Out-Null
 
 # Step 8: Check Git Submodules
 Write-Status "Checking git submodules..." "Step"
@@ -563,6 +638,9 @@ if (Test-CMakeCache) {
         }
     }
 }
+
+# Step 10: Check ROM assets
+Test-RomAssets | Out-Null
 
 # ============================================================================
 # Summary Report

@@ -108,7 +108,7 @@ Add `-v` suffix (e.g., `mac-dbg-v`) for verbose compiler warnings.
 **Problem**: Conflicting ImGui versions (bundled vs CPM download)
 
 **Fixes**:
-- Used bundled ImGui from `src/lib/imgui/` instead of downloading
+- Used bundled ImGui from `ext/imgui/` instead of downloading
 - Created proper ImGui static library target
 - Added `imgui_stdlib.cpp` for std::string support
 - Exported with `PARENT_SCOPE`
@@ -118,7 +118,7 @@ Add `-v` suffix (e.g., `mac-dbg-v`) for verbose compiler warnings.
 
 **Fixes**:
 - Created `cmake/dependencies/json.cmake`
-- Set up bundled `third_party/json/`
+- Set up bundled `ext/json/`
 - Added include directories to all targets that need JSON
 
 #### 7. GTest and GMock ✅

@@ -10,7 +10,9 @@ set(CMAKE_POLICY_VERSION_MINIMUM 3.5 CACHE STRING "Minimum policy version for su
 cmake_policy(SET CMP0091 NEW)
 
 # Ensure we consistently use the static MSVC runtime (/MT, /MTd) to match vcpkg static triplets
-set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>" CACHE STRING "" FORCE)
+if(MSVC)
+  set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>" CACHE STRING "" FORCE)
+endif()
 cmake_policy(SET CMP0048 NEW)
 cmake_policy(SET CMP0077 NEW)
 

@@ -1,10 +1,10 @@
 # Dear ImGui dependency management
-# Uses the bundled ImGui in src/lib/imgui
+# Uses the bundled ImGui in ext/imgui
 
 message(STATUS "Setting up Dear ImGui from bundled sources")
 
-# Use the bundled ImGui from src/lib/imgui
-set(IMGUI_DIR ${CMAKE_SOURCE_DIR}/src/lib/imgui)
+# Use the bundled ImGui from ext/imgui
+set(IMGUI_DIR ${CMAKE_SOURCE_DIR}/ext/imgui)
 
 # Create ImGui library with core files from bundled source
 add_library(ImGui STATIC
@@ -35,7 +35,7 @@ message(STATUS "Created ImGui target from bundled source at ${IMGUI_DIR}")
 
 # Create ImGui Test Engine for test automation (if tests are enabled)
 if(YAZE_BUILD_TESTS)
-  set(IMGUI_TEST_ENGINE_DIR ${CMAKE_SOURCE_DIR}/src/lib/imgui_test_engine/imgui_test_engine)
+  set(IMGUI_TEST_ENGINE_DIR ${CMAKE_SOURCE_DIR}/ext/imgui_test_engine/imgui_test_engine)
   
   if(EXISTS ${IMGUI_TEST_ENGINE_DIR})
     set(IMGUI_TEST_ENGINE_SOURCES
@@ -53,7 +53,7 @@ if(YAZE_BUILD_TESTS)
     target_include_directories(ImGuiTestEngine PUBLIC 
       ${IMGUI_DIR}
       ${IMGUI_TEST_ENGINE_DIR}
-      ${CMAKE_SOURCE_DIR}/src/lib
+      ${CMAKE_SOURCE_DIR}/ext
     )
     target_compile_features(ImGuiTestEngine PUBLIC cxx_std_17)
     target_link_libraries(ImGuiTestEngine PUBLIC ImGui ${YAZE_SDL2_TARGETS})

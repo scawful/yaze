@@ -169,7 +169,28 @@
         "YAZE_ENABLE_JSON": "ON",
         "YAZE_ENABLE_AI": "OFF",
         "YAZE_ENABLE_ROM_TESTS": "OFF",
-        "YAZE_MINIMAL_BUILD": "OFF"
+        "YAZE_MINIMAL_BUILD": "OFF",
+        "YAZE_BUILD_AGENT_UI": "OFF",
+        "YAZE_ENABLE_REMOTE_AUTOMATION": "OFF",
+        "YAZE_ENABLE_AI_RUNTIME": "OFF"
+      }
+    },
+    {
+      "name": "ci-windows-ai",
+      "inherits": "windows-base",
+      "displayName": "CI Build - Windows (Agent)",
+      "description": "Full agent build with gRPC + AI runtime (runs outside PRs)",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "YAZE_BUILD_TESTS": "ON",
+        "YAZE_ENABLE_GRPC": "ON",
+        "YAZE_ENABLE_JSON": "ON",
+        "YAZE_ENABLE_AI": "ON",
+        "YAZE_ENABLE_ROM_TESTS": "OFF",
+        "YAZE_MINIMAL_BUILD": "OFF",
+        "YAZE_BUILD_AGENT_UI": "ON",
+        "YAZE_ENABLE_REMOTE_AUTOMATION": "ON",
+        "YAZE_ENABLE_AI_RUNTIME": "ON"
       }
     },
     {
@@ -215,7 +236,10 @@
         "YAZE_BUILD_TESTS": "ON",
         "YAZE_ENABLE_GRPC": "OFF",
         "YAZE_ENABLE_JSON": "ON",
-        "YAZE_ENABLE_AI": "OFF"
+        "YAZE_ENABLE_AI": "OFF",
+        "YAZE_BUILD_AGENT_UI": "OFF",
+        "YAZE_ENABLE_REMOTE_AUTOMATION": "OFF",
+        "YAZE_ENABLE_AI_RUNTIME": "OFF"
       }
     },
     {
@@ -238,7 +262,10 @@
         "YAZE_ENABLE_GRPC": "OFF",
         "YAZE_ENABLE_JSON": "ON",
         "YAZE_ENABLE_AI": "OFF",
-        "YAZE_ENABLE_LTO": "ON"
+        "YAZE_ENABLE_LTO": "ON",
+        "YAZE_BUILD_AGENT_UI": "OFF",
+        "YAZE_ENABLE_REMOTE_AUTOMATION": "OFF",
+        "YAZE_ENABLE_AI_RUNTIME": "OFF"
       }
     },
     {
@@ -252,7 +279,10 @@
         "YAZE_ENABLE_GRPC": "OFF",
         "YAZE_ENABLE_JSON": "ON",
         "YAZE_ENABLE_AI": "OFF",
-        "YAZE_ENABLE_ROM_TESTS": "ON"
+        "YAZE_ENABLE_ROM_TESTS": "ON",
+        "YAZE_BUILD_AGENT_UI": "OFF",
+        "YAZE_ENABLE_REMOTE_AUTOMATION": "OFF",
+        "YAZE_ENABLE_AI_RUNTIME": "OFF"
       }
     },
     {
@@ -266,7 +296,10 @@
         "YAZE_ENABLE_GRPC": "ON",
         "YAZE_ENABLE_JSON": "ON",
         "YAZE_ENABLE_AI": "ON",
-        "YAZE_ENABLE_ROM_TESTS": "ON"
+        "YAZE_ENABLE_ROM_TESTS": "ON",
+        "YAZE_BUILD_AGENT_UI": "ON",
+        "YAZE_ENABLE_REMOTE_AUTOMATION": "ON",
+        "YAZE_ENABLE_AI_RUNTIME": "ON"
       }
     },
     {
@@ -280,7 +313,10 @@
         "YAZE_BUILD_CLI": "ON",
         "YAZE_ENABLE_GRPC": "ON",
         "YAZE_ENABLE_JSON": "ON",
-        "YAZE_ENABLE_AI": "ON"
+        "YAZE_ENABLE_AI": "ON",
+        "YAZE_BUILD_AGENT_UI": "OFF",
+        "YAZE_ENABLE_REMOTE_AUTOMATION": "ON",
+        "YAZE_ENABLE_AI_RUNTIME": "ON"
       }
     },
     {
@@ -293,7 +329,10 @@
         "YAZE_BUILD_TESTS": "ON",
         "YAZE_ENABLE_GRPC": "OFF",
         "YAZE_ENABLE_JSON": "ON",
-        "YAZE_ENABLE_AI": "OFF"
+        "YAZE_ENABLE_AI": "OFF",
+        "YAZE_BUILD_AGENT_UI": "OFF",
+        "YAZE_ENABLE_REMOTE_AUTOMATION": "OFF",
+        "YAZE_ENABLE_AI_RUNTIME": "OFF"
       },
       "architecture": {
         "value": "ARM64",
@@ -308,7 +347,10 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
         "YAZE_BUILD_TESTS": "OFF",
-        "YAZE_ENABLE_LTO": "ON"
+        "YAZE_ENABLE_LTO": "ON",
+        "YAZE_BUILD_AGENT_UI": "OFF",
+        "YAZE_ENABLE_REMOTE_AUTOMATION": "OFF",
+        "YAZE_ENABLE_AI_RUNTIME": "OFF"
       }
     },
     {
@@ -321,7 +363,10 @@
         "YAZE_BUILD_TESTS": "ON",
         "YAZE_ENABLE_GRPC": "OFF",
         "YAZE_ENABLE_JSON": "ON",
-        "YAZE_ENABLE_AI": "OFF"
+        "YAZE_ENABLE_AI": "OFF",
+        "YAZE_BUILD_AGENT_UI": "OFF",
+        "YAZE_ENABLE_REMOTE_AUTOMATION": "OFF",
+        "YAZE_ENABLE_AI_RUNTIME": "OFF"
       }
     },
     {
@@ -335,7 +380,10 @@
         "YAZE_ENABLE_GRPC": "OFF",
         "YAZE_ENABLE_JSON": "ON",
         "YAZE_ENABLE_AI": "OFF",
-        "YAZE_ENABLE_LTO": "ON"
+        "YAZE_ENABLE_LTO": "ON",
+        "YAZE_BUILD_AGENT_UI": "OFF",
+        "YAZE_ENABLE_REMOTE_AUTOMATION": "OFF",
+        "YAZE_ENABLE_AI_RUNTIME": "OFF"
       }
     },
     {
@@ -349,7 +397,10 @@
         "YAZE_ENABLE_GRPC": "ON",
         "YAZE_ENABLE_JSON": "ON",
         "YAZE_ENABLE_AI": "ON",
-        "YAZE_ENABLE_ROM_TESTS": "ON"
+        "YAZE_ENABLE_ROM_TESTS": "ON",
+        "YAZE_BUILD_AGENT_UI": "ON",
+        "YAZE_ENABLE_REMOTE_AUTOMATION": "ON",
+        "YAZE_ENABLE_AI_RUNTIME": "ON"
       }
     }
   ],
@@ -394,6 +445,13 @@
       "name": "ci-windows",
       "configurePreset": "ci-windows",
       "displayName": "CI Build - Windows",
+      "configuration": "RelWithDebInfo",
+      "jobs": 12
+    },
+    {
+      "name": "ci-windows-ai",
+      "configurePreset": "ci-windows-ai",
+      "displayName": "CI Build - Windows (AI)",
       "configuration": "RelWithDebInfo",
       "jobs": 12
     },
@@ -527,6 +585,39 @@
       "configurePreset": "minimal",
       "displayName": "Integration Tests",
       "description": "Run integration tests only",
+      "filter": {
+        "include": {
+          "label": "integration"
+        }
+      }
+    },
+    {
+      "name": "stable-ai",
+      "configurePreset": "ci-windows-ai",
+      "displayName": "Stable Tests (Agent Stack)",
+      "description": "Run stable tests against the ci-windows-ai preset",
+      "filter": {
+        "include": {
+          "label": "stable"
+        }
+      }
+    },
+    {
+      "name": "unit-ai",
+      "configurePreset": "ci-windows-ai",
+      "displayName": "Unit Tests (Agent Stack)",
+      "description": "Run unit tests against the ci-windows-ai preset",
+      "filter": {
+        "include": {
+          "label": "unit"
+        }
+      }
+    },
+    {
+      "name": "integration-ai",
+      "configurePreset": "ci-windows-ai",
+      "displayName": "Integration Tests (Agent Stack)",
+      "description": "Run integration tests against the ci-windows-ai preset",
       "filter": {
         "include": {
           "label": "integration"

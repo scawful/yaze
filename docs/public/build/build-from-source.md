@@ -13,6 +13,7 @@ yaze uses a modern CMake build system with presets for easy configuration. This 
 # With automatic fixes
 .\scripts\verify-build-environment.ps1 -FixIssues
 ```
+> Tip: After verification, run `.\scripts\setup-vcpkg-windows.ps1` to bootstrap vcpkg, ensure `clang-cl`/Ninja are installed, and cache the `x64-windows` triplet.
 
 ### macOS & Linux (Bash)
 ```bash
@@ -53,6 +54,10 @@ cmake --preset win-dbg
 
 # Build the project
 cmake --build --preset win-dbg
+
+# Enable the full AI/gRPC stack
+cmake --preset win-ai
+cmake --build --preset win-ai
 ```
 
 ### AI-Enabled Build (All Platforms)
@@ -67,10 +72,31 @@ cmake --preset win-ai
 cmake --build --preset win-ai
 ```
 
+## Feature Toggles & Windows Profiles
+
+### Windows Presets
+
+| Preset | Purpose |
+| --- | --- |
+| `win-dbg`, `win-rel`, `ci-windows` | Core builds without agent UI, gRPC, or AI runtimes. Fastest option for MSVC/clang-cl. |
+| `win-ai`, `win-vs-ai` | Full agent stack for local development (UI panels + remote automation + AI runtime). |
+| `ci-windows-ai` | Nightly/weekly CI preset that exercises the entire automation stack on Windows. |
+
+### Agent Feature Flags
+
+| Option | Default | Effect |
+| --- | --- | --- |
+| `YAZE_BUILD_AGENT_UI` | `ON` when `YAZE_BUILD_GUI=ON` | Builds the ImGui widgets used by the chat/agent panels. |
+| `YAZE_ENABLE_REMOTE_AUTOMATION` | `ON` for `*-ai` presets | Adds gRPC/protobuf services plus GUI automation clients. |
+| `YAZE_ENABLE_AI_RUNTIME` | `ON` for `*-ai` presets | Enables Gemini/Ollama transports, proposal planning, and advanced routing logic. |
+| `YAZE_ENABLE_AGENT_CLI` | `ON` when `YAZE_BUILD_CLI=ON` | Compiles the conversational agent stack consumed by `z3ed`. |
+
+Combine these switches to match your workflow: keep everything `OFF` for lightweight GUI hacking or turn them `ON` for automation-heavy work with sketchybar/yabai/skhd, tmux, or remote runners.
+
 ## 3. Dependencies
 
 -   **Required**: CMake 3.16+, C++23 Compiler (GCC 13+, Clang 16+, MSVC 2019+), Git.
--   **Bundled**: All other dependencies (SDL2, ImGui, Abseil, Asar, GoogleTest, etc.) are included as Git submodules or managed by CMake's `FetchContent`. No external package manager is required for a basic build.
+-   **Bundled**: All other dependencies (SDL2, ImGui, Asar, nlohmann/json, cpp-httplib, GoogleTest, etc.) live under the `ext/` directory or are managed by CMake's `FetchContent`. No external package manager is required for a basic build.
 -   **Optional**: 
     -   **gRPC**: For GUI test automation. Can be enabled with `-DYAZE_WITH_GRPC=ON`.
     -   **vcpkg (Windows)**: Can be used for faster gRPC builds on Windows (optional).
@@ -95,7 +121,8 @@ sudo apt-get install -y build-essential cmake ninja-build pkg-config \
 
 ### Windows
 -   **Visual Studio 2022** is required, with the "Desktop development with C++" workload.
--   The `verify-build-environment.ps1` script will help identify any missing components.
+-   The updated `verify-build-environment.ps1` script checks clang-cl, Ninja, vcpkg caches, and ROM assets.
+-   Run `.\scripts\setup-vcpkg-windows.ps1` once per machine to bootstrap vcpkg and prefetch SDL2/yaml-cpp.
 -   For building with gRPC, see the "Windows Build Optimization" section below.
 
 ## 5. Testing
@@ -171,6 +198,7 @@ open build/yaze.xcodeproj
 - **vcpkg**: Only fast packages (SDL2, yaml-cpp) - 2 minutes
 - **gRPC**: Built via FetchContent (v1.75.1) - cached after first build
 - **Caching**: Aggressive multi-tier caching (vcpkg + FetchContent + sccache)
+- **Agent matrix**: A dedicated `ci-windows-ai` job runs outside pull requests to exercise the full gRPC + AI runtime stack.
 - **Expected time**: 
   - First build: ~10-15 minutes
   - Cached build: ~3-5 minutes
@@ -188,9 +216,8 @@ open build/yaze.xcodeproj
 For desktop development, you can use vcpkg for faster gRPC builds:
 
 ```powershell
-# Install vcpkg
-git clone https://github.com/Microsoft/vcpkg.git
-cd vcpkg && .\bootstrap-vcpkg.bat
+# Bootstrap vcpkg and prefetch packages
+.\scripts\setup-vcpkg-windows.ps1
 
 # Configure with vcpkg
 cmake -B build -DYAZE_USE_VCPKG_GRPC=ON -DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake

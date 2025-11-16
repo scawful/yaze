@@ -27,14 +27,14 @@ if(WIN32)
   endif()
   
   # Fall back to bundled SDL if vcpkg not available or SDL2 not found
-  if(EXISTS "${CMAKE_SOURCE_DIR}/src/lib/SDL/CMakeLists.txt")
+  if(EXISTS "${CMAKE_SOURCE_DIR}/ext/SDL/CMakeLists.txt")
     message(STATUS "○ vcpkg SDL2 not found, using bundled SDL2")
-    add_subdirectory(src/lib/SDL)
+    add_subdirectory(ext/SDL)
     set(SDL_TARGETS SDL2-static)
     set(SDL2_INCLUDE_DIR 
-      ${CMAKE_SOURCE_DIR}/src/lib/SDL/include
-      ${CMAKE_BINARY_DIR}/src/lib/SDL/include
-      ${CMAKE_BINARY_DIR}/src/lib/SDL/include-config-${CMAKE_BUILD_TYPE}
+      ${CMAKE_SOURCE_DIR}/ext/SDL/include
+      ${CMAKE_BINARY_DIR}/ext/SDL/include
+      ${CMAKE_BINARY_DIR}/ext/SDL/include-config-${CMAKE_BUILD_TYPE}
     )
     set(SDL2_INCLUDE_DIRS ${SDL2_INCLUDE_DIR})
     if(TARGET SDL2main)
@@ -47,12 +47,12 @@ if(WIN32)
   endif()
 elseif(UNIX OR MINGW)
   # Non-Windows: use bundled SDL
-  add_subdirectory(src/lib/SDL)
+  add_subdirectory(ext/SDL)
   set(SDL_TARGETS SDL2-static)
   set(SDL2_INCLUDE_DIR 
-    ${CMAKE_SOURCE_DIR}/src/lib/SDL/include
-    ${CMAKE_BINARY_DIR}/src/lib/SDL/include
-    ${CMAKE_BINARY_DIR}/src/lib/SDL/include-config-${CMAKE_BUILD_TYPE}
+    ${CMAKE_SOURCE_DIR}/ext/SDL/include
+    ${CMAKE_BINARY_DIR}/ext/SDL/include
+    ${CMAKE_BINARY_DIR}/ext/SDL/include-config-${CMAKE_BUILD_TYPE}
   )
   set(SDL2_INCLUDE_DIRS ${SDL2_INCLUDE_DIR})
   message(STATUS "Using bundled SDL2")

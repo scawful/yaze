@@ -69,6 +69,15 @@ jobs:
           cpack -G DragNDrop
           ls -la _CPack_Packages/
 
+      - name: Create notarized bundle (macOS)
+        if: matrix.platform == 'macos'
+        shell: bash
+        run: |
+          chmod +x ./scripts/create-macos-bundle.sh
+          ./scripts/create-macos-bundle.sh ${{ env.VERSION }} yaze-${{ env.VERSION }}-bundle
+          mkdir -p build/_CPack_Packages/manual
+          mv yaze-${{ env.VERSION }}-bundle.dmg build/_CPack_Packages/manual/ || true
+
       - name: Package artifacts (Windows)
         if: matrix.platform == 'windows'
         run: |
@@ -151,6 +160,13 @@ jobs:
         with:
           path: ./artifacts
 
+      - name: Generate release checksums
+        run: |
+          cd artifacts
+          find . -type f \( -name "*.zip" -o -name "*.exe" -o -name "*.deb" -o -name "*.tar.gz" -o -name "*.dmg" \) -print0 \
+            | sort -z \
+            | xargs -0 sha256sum > checksums.txt
+
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
@@ -202,6 +218,7 @@ jobs:
             artifacts/yaze-macos-*/yaze-*.dmg
             artifacts/yaze-windows-*/yaze-*.exe
             artifacts/yaze-windows-*/yaze-*.zip
+            artifacts/checksums.txt
           draft: false
           prerelease: ${{ contains(env.VERSION, 'alpha') || contains(env.VERSION, 'beta') || contains(env.VERSION, 'rc') }}
         env:

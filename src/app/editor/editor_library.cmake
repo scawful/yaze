@@ -57,7 +57,7 @@ set(
   app/editor/ui/workspace_manager.cc
 )
 
-if(YAZE_ENABLE_GRPC)
+if(YAZE_BUILD_AGENT_UI)
   list(APPEND YAZE_APP_EDITOR_SRC
     app/editor/agent/agent_editor.cc
     app/editor/agent/agent_chat_widget.cc
@@ -95,9 +95,9 @@ target_precompile_headers(yaze_editor PRIVATE
 
 target_include_directories(yaze_editor PUBLIC
   ${CMAKE_SOURCE_DIR}/src
-  ${CMAKE_SOURCE_DIR}/src/lib
-  ${CMAKE_SOURCE_DIR}/src/lib/imgui
-  ${CMAKE_SOURCE_DIR}/src/lib/imgui_test_engine
+  ${CMAKE_SOURCE_DIR}/ext
+  ${CMAKE_SOURCE_DIR}/ext/imgui
+  ${CMAKE_SOURCE_DIR}/ext/imgui_test_engine
   ${CMAKE_SOURCE_DIR}/incl
   ${SDL2_INCLUDE_DIR}
   ${PROJECT_BINARY_DIR}
@@ -114,11 +114,13 @@ target_link_libraries(yaze_editor PUBLIC
   ImGui
 )
 
-# Link agent library for AI features (always available when not in minimal build)
-if(NOT YAZE_MINIMAL_BUILD)
+# Link agent runtime only when agent UI panels are enabled
+if(YAZE_BUILD_AGENT_UI AND NOT YAZE_MINIMAL_BUILD)
   if(TARGET yaze_agent)
     target_link_libraries(yaze_editor PUBLIC yaze_agent)
-    message(STATUS "✓ yaze_editor linked to yaze_agent")
+    message(STATUS "✓ yaze_editor linked to yaze_agent (UI panels)")
+  else()
+    message(WARNING "Agent UI requested but yaze_agent target not found")
   endif()
 endif()
 
@@ -126,7 +128,7 @@ endif()
 
 if(YAZE_WITH_JSON)
   target_include_directories(yaze_editor PUBLIC
-    ${CMAKE_SOURCE_DIR}/third_party/json/include)
+    ${CMAKE_SOURCE_DIR}/ext/json/include)
 
   if(TARGET nlohmann_json::nlohmann_json)
     target_link_libraries(yaze_editor PUBLIC nlohmann_json::nlohmann_json)

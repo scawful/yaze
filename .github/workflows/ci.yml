@@ -58,7 +58,7 @@ jobs:
             os: macos-14
             platform: macos
             preset: ci-macos
-          - name: "Windows 2022 (MSVC)"
+          - name: "Windows 2022 (Core)"
             os: windows-2022
             platform: windows
             preset: ci-windows
@@ -111,7 +111,7 @@ jobs:
             os: macos-14
             platform: macos
             preset: ci-macos
-          - name: "Windows 2022"
+          - name: "Windows 2022 (Core)"
             os: windows-2022
             platform: windows
             preset: ci-windows
@@ -147,6 +147,44 @@ jobs:
         with:
           test-type: unit
           preset: ${{ matrix.preset }}
+
+  windows-agent:
+    name: "Windows Agent (Full Stack)"
+    runs-on: windows-2022
+    needs: [build, test]
+    if: github.event_name != 'pull_request'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup build environment
+        uses: ./.github/actions/setup-build
+        with:
+          platform: windows
+          preset: ci-windows-ai
+          cache-key: ${{ hashFiles('cmake/dependencies.lock') }}
+
+      - name: Build project
+        uses: ./.github/actions/build-project
+        with:
+          platform: windows
+          preset: ci-windows-ai
+          build-type: ${{ env.BUILD_TYPE }}
+
+      - name: Run stable tests (agent stack)
+        uses: ./.github/actions/run-tests
+        with:
+          test-type: stable
+          preset: ci-windows-ai
+
+      - name: Run unit tests (agent stack)
+        uses: ./.github/actions/run-tests
+        with:
+          test-type: unit
+          preset: ci-windows-ai
 
   code-quality:
     name: "Code Quality"

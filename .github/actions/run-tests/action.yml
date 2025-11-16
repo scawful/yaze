@@ -12,12 +12,21 @@ inputs:
 runs:
   using: 'composite'
   steps:
+    - name: Select test preset suffix
+      shell: bash
+      run: |
+        if [ "${{ inputs.preset }}" = "ci-windows-ai" ]; then
+          echo "CTEST_SUFFIX=-ai" >> $GITHUB_ENV
+        else
+          echo "CTEST_SUFFIX=" >> $GITHUB_ENV
+        fi
+
     - name: Run stable tests
       if: inputs.test-type == 'stable' || inputs.test-type == 'all'
       shell: bash
       run: |
         cd build
-        ctest --preset stable \
+        ctest --preset stable${CTEST_SUFFIX} \
           --output-on-failure \
           --output-junit stable_test_results.xml || true
 
@@ -26,7 +35,7 @@ runs:
       shell: bash
       run: |
         cd build
-        ctest --preset unit \
+        ctest --preset unit${CTEST_SUFFIX} \
           --output-on-failure \
           --output-junit unit_test_results.xml || true
 
@@ -35,7 +44,7 @@ runs:
       shell: bash
       run: |
         cd build
-        ctest --preset integration \
+        ctest --preset integration${CTEST_SUFFIX} \
           --output-on-failure \
           --output-junit integration_test_results.xml || true
 

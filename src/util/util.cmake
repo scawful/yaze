@@ -31,6 +31,7 @@ target_include_directories(yaze_util PUBLIC
   ${CMAKE_SOURCE_DIR}/src
   ${CMAKE_SOURCE_DIR}/incl
   ${CMAKE_SOURCE_DIR}/src/lib
+  ${CMAKE_SOURCE_DIR}/ext
   ${PROJECT_BINARY_DIR}
 )
 

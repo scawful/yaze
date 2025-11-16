@@ -18,6 +18,10 @@ can treat it as a quick reference while editing.
 | `YAZE_ENABLE_GRPC` | `OFF` | Pulls in gRPC/protobuf for automation and remote control features. |
 | `YAZE_MINIMAL_BUILD` | `OFF` | Skips optional editors/assets. Useful for CI smoke builds. |
 | `YAZE_BUILD_LIB` | `OFF` | Produces the `yaze_core` INTERFACE target used by external tooling. |
+| `YAZE_BUILD_AGENT_UI` | `ON` when `YAZE_BUILD_GUI` is `ON` | Compiles ImGui chat widgets. Disable for lighter GUI builds. |
+| `YAZE_ENABLE_REMOTE_AUTOMATION` | `OFF` in `win-*` core presets | Builds gRPC servers/clients plus proto generation. |
+| `YAZE_ENABLE_AI_RUNTIME` | `OFF` in `win-*` core presets | Enables Gemini/Ollama transports, proposal planning, and advanced routing code. |
+| `YAZE_ENABLE_AGENT_CLI` | `ON` when `YAZE_BUILD_CLI` is `ON` | Compiles the conversational agent stack used by `z3ed`. |
 
 Use the canned presets from `CMakePresets.json` so these options stay consistent across
 platforms: `mac-dbg`, `mac-ai`, `lin-dbg`, `win-dbg`, etc. The `*-ai` presets enable both
@@ -58,12 +62,13 @@ alone. Touching editor UI code does **not** require rebuilding `yaze_emulator`.
 
 ### 4. Tooling & Export Targets
 - **`yaze_agent`** (`src/cli/agent`): shared logic behind the CLI and AI workflows. Built whenever
-  `YAZE_BUILD_Z3ED` is enabled.
+  `YAZE_ENABLE_AGENT_CLI` is enabled (automatically true when `YAZE_BUILD_Z3ED=ON`). When both the CLI and the agent UI are disabled, CMake now emits a lightweight stub target so GUI-only builds don't drag in unnecessary dependencies.
 - **`z3ed` binary** (`src/cli/z3ed.cmake`): links `yaze_agent`, `yaze_zelda3`, `yaze_gfx`, and
   Abseil/FTXUI.
 - **`yaze_core_lib`** (`src/core`): static library that exposes project management helpers and the
   Asar integration. When `YAZE_BUILD_LIB=ON` it can be consumed by external tools.
 - **`yaze_test_support`** (`src/app/test`): harness for the in-editor dashboard and `yaze_test`.
+- **`yaze_grpc_support`**: server-only aggregation of gRPC/protobuf code, gated by `YAZE_ENABLE_REMOTE_AUTOMATION`. CLI clients (`cli/service/gui/**`, `cli/service/planning/**`) now live solely in `yaze_agent` so GUI builds can opt out entirely.
 
 ### 5. Final Binaries
 - **`yaze`**: GUI editor. Links every layer plus `yaze_test_support` when tests are enabled.

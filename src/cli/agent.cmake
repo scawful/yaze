@@ -1,4 +1,21 @@
-set(YAZE_AGENT_SOURCES
+set(_YAZE_NEEDS_AGENT FALSE)
+if(YAZE_ENABLE_AGENT_CLI AND (YAZE_BUILD_CLI OR YAZE_BUILD_Z3ED))
+  set(_YAZE_NEEDS_AGENT TRUE)
+endif()
+if(YAZE_BUILD_AGENT_UI)
+  set(_YAZE_NEEDS_AGENT TRUE)
+endif()
+if(YAZE_BUILD_TESTS AND NOT YAZE_MINIMAL_BUILD)
+  set(_YAZE_NEEDS_AGENT TRUE)
+endif()
+
+if(NOT _YAZE_NEEDS_AGENT)
+  add_library(yaze_agent INTERFACE)
+  message(STATUS "yaze_agent stubbed out (agent CLI/UI disabled)")
+  return()
+endif()
+
+set(YAZE_AGENT_CORE_SOURCES
   # Core infrastructure
   cli/flags.cc
   cli/handlers/agent.cc
@@ -30,31 +47,19 @@ set(YAZE_AGENT_SOURCES
   cli/handlers/rom/rom_commands.cc
   cli/handlers/tools/gui_commands.cc
   cli/handlers/tools/resource_commands.cc
-  cli/service/agent/advanced_routing.cc
-  cli/service/agent/agent_pretraining.cc
   cli/service/agent/conversational_agent_service.cc
   cli/service/agent/enhanced_tui.cc
   cli/service/agent/learned_knowledge_service.cc
   cli/service/agent/prompt_manager.cc
-  cli/service/agent/proposal_executor.cc
   cli/service/agent/simple_chat_session.cc
   cli/service/agent/todo_manager.cc
   cli/service/agent/tool_dispatcher.cc
   cli/service/agent/vim_mode.cc
-  cli/service/ai/ai_action_parser.cc
-  cli/service/ai/ai_gui_controller.cc
-  cli/service/ai/ai_service.cc
-  cli/service/ai/ollama_ai_service.cc
-  cli/service/ai/prompt_builder.cc
-  cli/service/ai/service_factory.cc
-  cli/service/ai/vision_action_refiner.cc
   cli/service/command_registry.cc
   cli/service/gui/gui_action_generator.cc
-  cli/service/gui/gui_automation_client.cc
   cli/service/net/z3ed_network_client.cc
   cli/service/planning/policy_evaluator.cc
   cli/service/planning/proposal_registry.cc
-  cli/service/planning/tile16_proposal_generator.cc
   cli/service/resources/command_context.cc
   cli/service/resources/command_handler.cc
   cli/service/resources/resource_catalog.cc
@@ -70,16 +75,36 @@ set(YAZE_AGENT_SOURCES
   # ROM commands
 )
 
-# gRPC-dependent sources (only added when gRPC is enabled)
-if(YAZE_ENABLE_GRPC)
+# AI runtime sources
+if(YAZE_ENABLE_AI_RUNTIME)
+  list(APPEND YAZE_AGENT_CORE_SOURCES
+    cli/service/agent/advanced_routing.cc
+    cli/service/agent/agent_pretraining.cc
+    cli/service/agent/proposal_executor.cc
+    cli/service/ai/ai_action_parser.cc
+    cli/service/ai/ai_gui_controller.cc
+    cli/service/ai/ai_service.cc
+    cli/service/ai/ollama_ai_service.cc
+    cli/service/ai/prompt_builder.cc
+    cli/service/ai/service_factory.cc
+    cli/service/ai/vision_action_refiner.cc
+  )
+endif()
+
+set(YAZE_AGENT_SOURCES ${YAZE_AGENT_CORE_SOURCES})
+
+# gRPC-dependent sources (only added when remote automation is enabled)
+if(YAZE_ENABLE_REMOTE_AUTOMATION)
   list(APPEND YAZE_AGENT_SOURCES
     cli/service/agent/agent_control_server.cc
     cli/service/agent/emulator_service_impl.cc
     cli/handlers/tools/emulator_commands.cc
+    cli/service/gui/gui_automation_client.cc
+    cli/service/planning/tile16_proposal_generator.cc
   )
 endif()
 
-if(YAZE_ENABLE_JSON)
+if(YAZE_ENABLE_AI_RUNTIME AND YAZE_ENABLE_JSON)
   list(APPEND YAZE_AGENT_SOURCES cli/service/ai/gemini_ai_service.cc)
 endif()
 
@@ -106,23 +131,26 @@ target_include_directories(yaze_agent
   PUBLIC
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_SOURCE_DIR}/incl
-    ${CMAKE_SOURCE_DIR}/third_party/httplib
-    ${CMAKE_SOURCE_DIR}/third_party/json/include
+    ${CMAKE_SOURCE_DIR}/ext/httplib
     ${CMAKE_SOURCE_DIR}/src/lib
     ${CMAKE_SOURCE_DIR}/src/cli/handlers
 )
+
+if(YAZE_ENABLE_AI_RUNTIME AND YAZE_ENABLE_JSON)
+  target_include_directories(yaze_agent PUBLIC ${CMAKE_SOURCE_DIR}/ext/json/include)
+endif()
 
 if(SDL2_INCLUDE_DIR)
   target_include_directories(yaze_agent PUBLIC ${SDL2_INCLUDE_DIR})
 endif()
 
-if(YAZE_ENABLE_JSON)
+if(YAZE_ENABLE_AI_RUNTIME AND YAZE_ENABLE_JSON)
   target_link_libraries(yaze_agent PUBLIC nlohmann_json::nlohmann_json)
   target_compile_definitions(yaze_agent PUBLIC YAZE_WITH_JSON)
 
   # Only link OpenSSL if gRPC is NOT enabled (to avoid duplicate symbol errors)
   # When gRPC is enabled, it brings its own OpenSSL which we'll use instead
-  if(NOT YAZE_ENABLE_GRPC)
+  if(NOT YAZE_ENABLE_REMOTE_AUTOMATION)
     find_package(OpenSSL)
     if(OpenSSL_FOUND)
       target_compile_definitions(yaze_agent PUBLIC CPPHTTPLIB_OPENSSL_SUPPORT)
@@ -150,7 +178,7 @@ if(YAZE_ENABLE_JSON)
 endif()
 
 # Add gRPC support for GUI automation
-if(YAZE_ENABLE_GRPC)
+if(YAZE_ENABLE_REMOTE_AUTOMATION)
   # Link to consolidated gRPC support library
   target_link_libraries(yaze_agent PUBLIC yaze_grpc_support)
   

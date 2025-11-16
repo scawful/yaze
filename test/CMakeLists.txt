@@ -13,13 +13,13 @@ if(YAZE_BUILD_TESTS)
       ${CMAKE_SOURCE_DIR}/src
       ${CMAKE_SOURCE_DIR}/incl
       ${CMAKE_SOURCE_DIR}/test
-      ${CMAKE_SOURCE_DIR}/src/lib
-      ${CMAKE_SOURCE_DIR}/src/lib/imgui
-      ${CMAKE_SOURCE_DIR}/src/lib/imgui/backends
-      ${CMAKE_SOURCE_DIR}/src/lib/imgui_test_engine
-      ${CMAKE_SOURCE_DIR}/src/lib/SDL/include
-      ${CMAKE_SOURCE_DIR}/third_party/json/include
-      ${CMAKE_BINARY_DIR}/src/lib/SDL/include
+      ${CMAKE_SOURCE_DIR}/ext
+      ${CMAKE_SOURCE_DIR}/ext/imgui
+      ${CMAKE_SOURCE_DIR}/ext/imgui/backends
+      ${CMAKE_SOURCE_DIR}/ext/imgui_test_engine
+      ${CMAKE_SOURCE_DIR}/ext/SDL/include
+      ${CMAKE_SOURCE_DIR}/ext/json/include
+      ${CMAKE_BINARY_DIR}/ext/SDL/include
       ${PROJECT_BINARY_DIR}
     )
 
