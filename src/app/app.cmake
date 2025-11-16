@@ -47,8 +47,8 @@ if(APPLE)
     target_include_directories(yaze_app_objcxx PUBLIC
       ${CMAKE_SOURCE_DIR}/src
       ${CMAKE_SOURCE_DIR}/src/app
-      ${CMAKE_SOURCE_DIR}/src/lib
-      ${CMAKE_SOURCE_DIR}/src/lib/imgui
+      ${CMAKE_SOURCE_DIR}/ext
+      ${CMAKE_SOURCE_DIR}/ext/imgui
       ${CMAKE_SOURCE_DIR}/incl
       ${PROJECT_BINARY_DIR}
     )
@@ -75,8 +75,8 @@ target_precompile_headers(yaze_app_core_lib PRIVATE
 target_include_directories(yaze_app_core_lib PUBLIC
   ${CMAKE_SOURCE_DIR}/src
   ${CMAKE_SOURCE_DIR}/src/app
-  ${CMAKE_SOURCE_DIR}/src/lib
-  ${CMAKE_SOURCE_DIR}/src/lib/imgui
+  ${CMAKE_SOURCE_DIR}/ext
+  ${CMAKE_SOURCE_DIR}/ext/imgui
   ${CMAKE_SOURCE_DIR}/incl
   ${SDL2_INCLUDE_DIR}
   ${PROJECT_BINARY_DIR}
@@ -96,15 +96,15 @@ target_link_libraries(yaze_app_core_lib PUBLIC
 
 # Link nativefiledialog-extended for Windows/Linux file dialogs
 if(WIN32 OR (UNIX AND NOT APPLE))
-  add_subdirectory(${CMAKE_SOURCE_DIR}/src/lib/nativefiledialog-extended ${CMAKE_BINARY_DIR}/nfd EXCLUDE_FROM_ALL)
+  add_subdirectory(${CMAKE_SOURCE_DIR}/ext/nativefiledialog-extended ${CMAKE_BINARY_DIR}/nfd EXCLUDE_FROM_ALL)
   target_link_libraries(yaze_app_core_lib PUBLIC nfd)
-  target_include_directories(yaze_app_core_lib PUBLIC ${CMAKE_SOURCE_DIR}/src/lib/nativefiledialog-extended/src/include)
+  target_include_directories(yaze_app_core_lib PUBLIC ${CMAKE_SOURCE_DIR}/ext/nativefiledialog-extended/src/include)
 endif()
 
 # gRPC Services (Optional)
 if(YAZE_WITH_GRPC)
   target_include_directories(yaze_app_core_lib PRIVATE
-    ${CMAKE_SOURCE_DIR}/third_party/json/include)
+    ${CMAKE_SOURCE_DIR}/ext/json/include)
   target_compile_definitions(yaze_app_core_lib PRIVATE YAZE_WITH_JSON)
 
   # Link to consolidated gRPC support library

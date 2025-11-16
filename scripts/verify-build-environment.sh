@@ -90,12 +90,14 @@ function get_cmake_version() {
 
 function test_git_submodules() {
     local submodules=(
-        "src/lib/SDL"
-        "src/lib/abseil-cpp"
-        "src/lib/asar"
-        "src/lib/imgui"
-        "third_party/json"
-        "third_party/httplib"
+    "ext/SDL"
+    "src/lib/abseil-cpp"
+    "ext/asar"
+    "ext/imgui"
+    "ext/json"
+    "ext/httplib"
+    "ext/imgui_test_engine"
+    "ext/nativefiledialog-extended"
     )
     
     local all_present=1
@@ -242,14 +244,14 @@ function test_dependency_compatibility() {
     write_status "Testing dependency configuration..." "Step"
     
     # Check httplib configuration
-    if [[ -f "third_party/httplib/CMakeLists.txt" ]]; then
-        write_status "httplib found in third_party" "Success"
+    if [[ -f "ext/httplib/CMakeLists.txt" ]]; then
+        write_status "httplib found in ext/" "Success"
         SUCCESS+=("httplib header-only library available")
     fi
     
     # Check json library
-    if [[ -d "third_party/json/include" ]]; then
-        write_status "nlohmann/json found in third_party" "Success"
+    if [[ -d "ext/json/include" ]]; then
+        write_status "nlohmann/json found in ext/" "Success"
         SUCCESS+=("nlohmann/json header-only library available")
     fi
 }

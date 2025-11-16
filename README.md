@@ -14,6 +14,7 @@ A cross-platform Zelda 3 ROM editor with a modern C++ GUI, Asar 65816 assembler 
 - **Automation & AI**: `z3ed` exposes CLI/TUI automation, proposal workflows, and optional AI agents.
 - **Testing & CI hooks**: CMake presets, ROM-less test fixtures, and gRPC-based GUI automation support.
 - **Cross-platform toolchains**: Single source tree targeting MSVC, Clang, and GCC with identical presets.
+- **Modular AI stack**: Toggle agent UI (`YAZE_BUILD_AGENT_UI`), remote automation/gRPC (`YAZE_ENABLE_REMOTE_AUTOMATION`), and AI runtimes (`YAZE_ENABLE_AI_RUNTIME`) per preset.
 
 ## Project Status
 `0.3.x` builds are in active development. Release automation is being reworked, so packaged builds may lag behind main. Follow `develop` for the most accurate view of current functionality.
@@ -45,19 +46,37 @@ cmake --build --preset mac-dbg
 cmake --preset lin-dbg
 cmake --build --preset lin-dbg
 
-# Windows
+# Windows (core preset)
 cmake --preset win-dbg
 cmake --build --preset win-dbg --target yaze
 
 # Enable AI + gRPC tooling (any platform)
 cmake --preset mac-ai
 cmake --build --preset mac-ai --target yaze z3ed
+
+# Windows AI preset
+cmake --preset win-ai
+cmake --build --preset win-ai --target yaze z3ed
 ```
+
+### Agent Feature Flags
+
+| Option | Default | Effect |
+| --- | --- | --- |
+| `YAZE_BUILD_AGENT_UI` | `ON` when GUI builds are enabled | Compiles the chat/dialog widgets so the editor can host agent sessions. Turn this `OFF` when you want a lean GUI-only build. |
+| `YAZE_ENABLE_REMOTE_AUTOMATION` | `ON` for `*-ai` presets | Builds the gRPC servers/clients and protobufs that power GUI automation. |
+| `YAZE_ENABLE_AI_RUNTIME` | `ON` for `*-ai` presets | Enables Gemini/Ollama transports, proposal planning, and advanced routing logic. |
+| `YAZE_ENABLE_AGENT_CLI` | `ON` when CLI builds are enabled | Compiles the conversational agent stack consumed by `z3ed`. Disable to skip the CLI entirely. |
+
+Windows `win-*` presets keep every switch `OFF` by default (`win-dbg`, `win-rel`, `ci-windows`) so MSVC builds stay fast. Use `win-ai`, `win-vs-ai`, or the new `ci-windows-ai` preset whenever you need remote automation or AI runtime features.
+
+All bundled third-party code (SDL, ImGui, ImGui Test Engine, Asar, nlohmann/json, cpp-httplib, nativefiledialog-extended) now lives under `ext/` for easier vendoring and cleaner include paths.
 
 ## Applications & Workflows
 - **`./build/bin/yaze`** – full GUI editor with multi-session dockspace, theming, and ROM patching.
 - **`./build/bin/z3ed --tui`** – CLI/TUI companion for scripting, AI-assisted edits, and Asar workflows.
 - **`./build_ai/bin/yaze_test --unit|--integration|--e2e`** – structured test runner for quick regression checks.
+- **`z3ed` + macOS automation** – pair the CLI with sketchybar/yabai/skhd or Emacs/Spacemacs to drive ROM workflows without opening the GUI.
 
 Typical commands:
 ```bash

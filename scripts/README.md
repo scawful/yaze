@@ -115,3 +115,25 @@ cmake --build build --target build_cleaner
 - Other: `YAZE_AGENT_SOURCES`, `YAZE_TEST_SOURCES`
 
 The script intelligently preserves conditional blocks (if/endif) and excludes conditional files from the main source list.
+
+## verify-build-environment.\*
+
+`verify-build-environment.ps1` (Windows) and `verify-build-environment.sh` (macOS/Linux) are the primary diagnostics for contributors. They now:
+
+- Check for `clang-cl`, Ninja, NASM, Visual Studio workloads, and VS Code (optional).
+- Validate vcpkg bootstrap status plus `vcpkg/installed` cache contents.
+- Warn about missing ROM assets (`zelda3.sfc`, `assets/zelda3.sfc`, etc.).
+- Offer `-FixIssues` and `-CleanCache` switches to repair Git config, resync submodules, and wipe stale build directories.
+
+Run the script once per machine (and rerun after major toolchain updates) to ensure presets such as `win-dbg`, `win-ai`, `mac-ai`, and `ci-windows-ai` have everything they need.
+
+## setup-vcpkg-windows.ps1
+
+Automates the vcpkg bootstrap flow on Windows:
+
+1. Clones and bootstraps vcpkg (if not already present).
+2. Verifies that `git`, `clang-cl`, and Ninja are available, printing friendly instructions when they are missing.
+3. Installs the default triplet (`x64-windows` or `arm64-windows` when detected) and confirms that `vcpkg/installed/<triplet>` is populated.
+4. Reminds you to rerun `.\scripts\verify-build-environment.ps1 -FixIssues` to double-check the environment.
+
+Use it immediately after cloning the repository or whenever you need to refresh your local dependency cache before running `win-ai` or `ci-windows-ai` presets.

@@ -29,10 +29,10 @@ target_precompile_headers(yaze_net PRIVATE
 
 target_include_directories(yaze_net PUBLIC
   ${CMAKE_SOURCE_DIR}/src
-  ${CMAKE_SOURCE_DIR}/src/lib
-  ${CMAKE_SOURCE_DIR}/src/lib/imgui
-  ${CMAKE_SOURCE_DIR}/third_party/json/include
-  ${CMAKE_SOURCE_DIR}/third_party/httplib
+  ${CMAKE_SOURCE_DIR}/ext
+  ${CMAKE_SOURCE_DIR}/ext/imgui
+  ${CMAKE_SOURCE_DIR}/ext/json/include
+  ${CMAKE_SOURCE_DIR}/ext/httplib
   ${PROJECT_BINARY_DIR}
 )
 
@@ -47,7 +47,7 @@ target_link_libraries(yaze_net PUBLIC
 if(YAZE_WITH_JSON)
   # Link nlohmann_json which provides the include directories automatically
   target_link_libraries(yaze_net PUBLIC nlohmann_json::nlohmann_json)
-  target_include_directories(yaze_net PUBLIC ${CMAKE_SOURCE_DIR}/third_party/httplib)
+  target_include_directories(yaze_net PUBLIC ${CMAKE_SOURCE_DIR}/ext/httplib)
   target_compile_definitions(yaze_net PUBLIC YAZE_WITH_JSON)
   
   # Add threading support (cross-platform)
