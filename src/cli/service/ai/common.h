@@ -27,6 +27,17 @@ struct AgentResponse {
 
   // The AI's explanation of its thought process.
   std::string reasoning;
+
+  // Provider + model metadata so the UI can show badges / filters.
+  std::string provider;
+  std::string model;
+
+  // Basic timing + parameter telemetry.
+  double latency_seconds = 0.0;
+  std::map<std::string, std::string> parameters;
+
+  // Optional warnings surfaced by the backend (e.g. truncated context).
+  std::vector<std::string> warnings;
 };
 
 }  // namespace cli

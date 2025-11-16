@@ -239,6 +239,23 @@ absl::Status YazeProject::LoadFromYazeFormat(const std::string& project_path) {
       else if (key == "verbose") agent_settings.verbose = ParseBool(value);
       else if (key == "max_tool_iterations") agent_settings.max_tool_iterations = std::stoi(value);
       else if (key == "max_retry_attempts") agent_settings.max_retry_attempts = std::stoi(value);
+      else if (key == "temperature") agent_settings.temperature = ParseFloat(value);
+      else if (key == "top_p") agent_settings.top_p = ParseFloat(value);
+      else if (key == "max_output_tokens") agent_settings.max_output_tokens = std::stoi(value);
+      else if (key == "stream_responses") agent_settings.stream_responses = ParseBool(value);
+      else if (key == "favorite_models") agent_settings.favorite_models = ParseStringList(value);
+      else if (key == "model_chain") agent_settings.model_chain = ParseStringList(value);
+      else if (key == "chain_mode") agent_settings.chain_mode = std::stoi(value);
+      else if (key == "enable_tool_resources") agent_settings.enable_tool_resources = ParseBool(value);
+      else if (key == "enable_tool_dungeon") agent_settings.enable_tool_dungeon = ParseBool(value);
+      else if (key == "enable_tool_overworld") agent_settings.enable_tool_overworld = ParseBool(value);
+      else if (key == "enable_tool_messages") agent_settings.enable_tool_messages = ParseBool(value);
+      else if (key == "enable_tool_dialogue") agent_settings.enable_tool_dialogue = ParseBool(value);
+      else if (key == "enable_tool_gui") agent_settings.enable_tool_gui = ParseBool(value);
+      else if (key == "enable_tool_music") agent_settings.enable_tool_music = ParseBool(value);
+      else if (key == "enable_tool_sprite") agent_settings.enable_tool_sprite = ParseBool(value);
+      else if (key == "enable_tool_emulator") agent_settings.enable_tool_emulator = ParseBool(value);
+      else if (key == "builder_blueprint_path") agent_settings.builder_blueprint_path = value;
     }
     else if (current_section == "build") {
       if (key == "build_script") build_script = value;
@@ -345,6 +362,23 @@ absl::Status YazeProject::SaveToYazeFormat() {
   file << "verbose=" << (agent_settings.verbose ? "true" : "false") << "\n";
   file << "max_tool_iterations=" << agent_settings.max_tool_iterations << "\n";
   file << "max_retry_attempts=" << agent_settings.max_retry_attempts << "\n\n";
+  file << "temperature=" << agent_settings.temperature << "\n";
+  file << "top_p=" << agent_settings.top_p << "\n";
+  file << "max_output_tokens=" << agent_settings.max_output_tokens << "\n";
+  file << "stream_responses=" << (agent_settings.stream_responses ? "true" : "false") << "\n";
+  file << "favorite_models=" << absl::StrJoin(agent_settings.favorite_models, ",") << "\n";
+  file << "model_chain=" << absl::StrJoin(agent_settings.model_chain, ",") << "\n";
+  file << "chain_mode=" << agent_settings.chain_mode << "\n";
+  file << "enable_tool_resources=" << (agent_settings.enable_tool_resources ? "true" : "false") << "\n";
+  file << "enable_tool_dungeon=" << (agent_settings.enable_tool_dungeon ? "true" : "false") << "\n";
+  file << "enable_tool_overworld=" << (agent_settings.enable_tool_overworld ? "true" : "false") << "\n";
+  file << "enable_tool_messages=" << (agent_settings.enable_tool_messages ? "true" : "false") << "\n";
+  file << "enable_tool_dialogue=" << (agent_settings.enable_tool_dialogue ? "true" : "false") << "\n";
+  file << "enable_tool_gui=" << (agent_settings.enable_tool_gui ? "true" : "false") << "\n";
+  file << "enable_tool_music=" << (agent_settings.enable_tool_music ? "true" : "false") << "\n";
+  file << "enable_tool_sprite=" << (agent_settings.enable_tool_sprite ? "true" : "false") << "\n";
+  file << "enable_tool_emulator=" << (agent_settings.enable_tool_emulator ? "true" : "false") << "\n";
+  file << "builder_blueprint_path=" << agent_settings.builder_blueprint_path << "\n\n";
   
   // Custom keybindings section
   if (!workspace_settings.custom_keybindings.empty()) {
@@ -992,6 +1026,57 @@ absl::Status YazeProject::LoadFromJsonFormat(const std::string& project_path) {
           workspace_settings.autosave_interval_secs = ws["auto_save_interval"].get<float>();
       }
       
+      if (proj.contains("agent_settings") && proj["agent_settings"].is_object()) {
+        auto& agent = proj["agent_settings"];
+        agent_settings.ai_provider = agent.value("ai_provider", agent_settings.ai_provider);
+        agent_settings.ai_model = agent.value("ai_model", agent_settings.ai_model);
+        agent_settings.ollama_host = agent.value("ollama_host", agent_settings.ollama_host);
+        agent_settings.gemini_api_key = agent.value("gemini_api_key", agent_settings.gemini_api_key);
+        agent_settings.use_custom_prompt = agent.value("use_custom_prompt", agent_settings.use_custom_prompt);
+        agent_settings.custom_system_prompt = agent.value("custom_system_prompt", agent_settings.custom_system_prompt);
+        agent_settings.show_reasoning = agent.value("show_reasoning", agent_settings.show_reasoning);
+        agent_settings.verbose = agent.value("verbose", agent_settings.verbose);
+        agent_settings.max_tool_iterations = agent.value("max_tool_iterations", agent_settings.max_tool_iterations);
+        agent_settings.max_retry_attempts = agent.value("max_retry_attempts", agent_settings.max_retry_attempts);
+        agent_settings.temperature = agent.value("temperature", agent_settings.temperature);
+        agent_settings.top_p = agent.value("top_p", agent_settings.top_p);
+        agent_settings.max_output_tokens = agent.value("max_output_tokens", agent_settings.max_output_tokens);
+        agent_settings.stream_responses = agent.value("stream_responses", agent_settings.stream_responses);
+        if (agent.contains("favorite_models") && agent["favorite_models"].is_array()) {
+          agent_settings.favorite_models.clear();
+          for (const auto& model : agent["favorite_models"]) {
+            if (model.is_string()) agent_settings.favorite_models.push_back(model.get<std::string>());
+          }
+        }
+        if (agent.contains("model_chain") && agent["model_chain"].is_array()) {
+          agent_settings.model_chain.clear();
+          for (const auto& model : agent["model_chain"]) {
+            if (model.is_string()) agent_settings.model_chain.push_back(model.get<std::string>());
+          }
+        }
+        agent_settings.chain_mode = agent.value("chain_mode", agent_settings.chain_mode);
+        agent_settings.enable_tool_resources =
+            agent.value("enable_tool_resources", agent_settings.enable_tool_resources);
+        agent_settings.enable_tool_dungeon =
+            agent.value("enable_tool_dungeon", agent_settings.enable_tool_dungeon);
+        agent_settings.enable_tool_overworld =
+            agent.value("enable_tool_overworld", agent_settings.enable_tool_overworld);
+        agent_settings.enable_tool_messages =
+            agent.value("enable_tool_messages", agent_settings.enable_tool_messages);
+        agent_settings.enable_tool_dialogue =
+            agent.value("enable_tool_dialogue", agent_settings.enable_tool_dialogue);
+        agent_settings.enable_tool_gui =
+            agent.value("enable_tool_gui", agent_settings.enable_tool_gui);
+        agent_settings.enable_tool_music =
+            agent.value("enable_tool_music", agent_settings.enable_tool_music);
+        agent_settings.enable_tool_sprite =
+            agent.value("enable_tool_sprite", agent_settings.enable_tool_sprite);
+        agent_settings.enable_tool_emulator =
+            agent.value("enable_tool_emulator", agent_settings.enable_tool_emulator);
+        agent_settings.builder_blueprint_path =
+            agent.value("builder_blueprint_path", agent_settings.builder_blueprint_path);
+      }
+      
       // Build settings
       if (proj.contains("build_script")) build_script = proj["build_script"].get<std::string>();
       if (proj.contains("output_folder")) output_folder = proj["output_folder"].get<std::string>();
@@ -1038,6 +1123,35 @@ absl::Status YazeProject::SaveToJsonFormat() {
   // Workspace settings
   proj["workspace_settings"]["auto_save_enabled"] = workspace_settings.autosave_enabled;
   proj["workspace_settings"]["auto_save_interval"] = workspace_settings.autosave_interval_secs;
+  
+  auto& agent = proj["agent_settings"];
+  agent["ai_provider"] = agent_settings.ai_provider;
+  agent["ai_model"] = agent_settings.ai_model;
+  agent["ollama_host"] = agent_settings.ollama_host;
+  agent["gemini_api_key"] = agent_settings.gemini_api_key;
+  agent["use_custom_prompt"] = agent_settings.use_custom_prompt;
+  agent["custom_system_prompt"] = agent_settings.custom_system_prompt;
+  agent["show_reasoning"] = agent_settings.show_reasoning;
+  agent["verbose"] = agent_settings.verbose;
+  agent["max_tool_iterations"] = agent_settings.max_tool_iterations;
+  agent["max_retry_attempts"] = agent_settings.max_retry_attempts;
+  agent["temperature"] = agent_settings.temperature;
+  agent["top_p"] = agent_settings.top_p;
+  agent["max_output_tokens"] = agent_settings.max_output_tokens;
+  agent["stream_responses"] = agent_settings.stream_responses;
+  agent["favorite_models"] = agent_settings.favorite_models;
+  agent["model_chain"] = agent_settings.model_chain;
+  agent["chain_mode"] = agent_settings.chain_mode;
+  agent["enable_tool_resources"] = agent_settings.enable_tool_resources;
+  agent["enable_tool_dungeon"] = agent_settings.enable_tool_dungeon;
+  agent["enable_tool_overworld"] = agent_settings.enable_tool_overworld;
+  agent["enable_tool_messages"] = agent_settings.enable_tool_messages;
+  agent["enable_tool_dialogue"] = agent_settings.enable_tool_dialogue;
+  agent["enable_tool_gui"] = agent_settings.enable_tool_gui;
+  agent["enable_tool_music"] = agent_settings.enable_tool_music;
+  agent["enable_tool_sprite"] = agent_settings.enable_tool_sprite;
+  agent["enable_tool_emulator"] = agent_settings.enable_tool_emulator;
+  agent["builder_blueprint_path"] = agent_settings.builder_blueprint_path;
   
   // Build settings
   proj["build_script"] = build_script;

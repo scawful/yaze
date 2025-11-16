@@ -1,5 +1,6 @@
 #include "app/editor/agent/agent_editor.h"
 
+#include <algorithm>
 #include <filesystem>
 #include <fstream>
 #include <memory>
@@ -13,6 +14,7 @@
 #include "app/editor/system/proposal_drawer.h"
 #include "app/editor/system/toast_manager.h"
 #include "app/gui/core/icons.h"
+#include "imgui/misc/cpp/imgui_stdlib.h"
 #include "app/rom.h"
 #include "util/file_util.h"
 #include "util/platform_paths.h"
@@ -62,6 +64,15 @@ AgentEditor::AgentEditor() {
 
   // Ensure profiles directory exists
   EnsureProfilesDirectory();
+
+  builder_state_.stages = {
+      {"Persona", "Define persona and goals", false},
+      {"Tool Stack", "Select the agent's tools", false},
+      {"Automation", "Configure automation hooks", false},
+      {"Validation", "Describe E2E validation", false},
+      {"E2E Checklist", "Track readiness for end-to-end runs", false}};
+  builder_state_.persona_notes =
+      "Describe the persona, tone, and constraints for this agent.";
 }
 
 AgentEditor::~AgentEditor() = default;
@@ -301,6 +312,11 @@ void AgentEditor::DrawDashboard() {
         ImGui::EndTable();
       }
 
+      ImGui::EndTabItem();
+    }
+
+    if (ImGui::BeginTabItem(ICON_MD_AUTO_FIX_HIGH " Agent Builder")) {
+      DrawAgentBuilderPanel();
       ImGui::EndTabItem();
     }
 
@@ -1104,6 +1120,297 @@ void AgentEditor::DrawNewPromptCreator() {
   ImGui::TextWrapped(
       "Note: New prompts are saved to your project. Use 'System Prompt' tab to "
       "edit existing prompts.");
+}
+
+void AgentEditor::DrawAgentBuilderPanel() {
+  if (!chat_widget_) {
+    ImGui::TextDisabled("Chat widget not initialized.");
+    return;
+  }
+
+  ImGui::BeginChild("AgentBuilderPanel", ImVec2(0, 0), false);
+  ImGui::Columns(2, nullptr, false);
+  ImGui::TextColored(ImVec4(0.8f, 0.8f, 1.0f, 1.0f), "Stages");
+  ImGui::Separator();
+
+  for (size_t i = 0; i < builder_state_.stages.size(); ++i) {
+    auto& stage = builder_state_.stages[i];
+    ImGui::PushID(static_cast<int>(i));
+    bool selected = builder_state_.active_stage == static_cast<int>(i);
+    if (ImGui::Selectable(stage.name.c_str(), selected)) {
+      builder_state_.active_stage = static_cast<int>(i);
+    }
+    ImGui::SameLine(ImGui::GetContentRegionAvail().x - 24.0f);
+    ImGui::Checkbox("##stage_done", &stage.completed);
+    ImGui::PopID();
+  }
+
+  ImGui::NextColumn();
+  ImGui::TextColored(ImVec4(0.9f, 0.9f, 0.6f, 1.0f), "Stage Details");
+  ImGui::Separator();
+
+  int stage_index = std::clamp(builder_state_.active_stage, 0,
+                               static_cast<int>(builder_state_.stages.size()) -
+                                   1);
+  int completed_stages = 0;
+  for (const auto& stage : builder_state_.stages) {
+    if (stage.completed) {
+      ++completed_stages;
+    }
+  }
+  switch (stage_index) {
+    case 0: {
+      static std::string new_goal;
+      ImGui::Text("Persona + Goals");
+      ImGui::InputTextMultiline("##persona_notes",
+                                &builder_state_.persona_notes,
+                                ImVec2(-1, 120));
+      ImGui::Spacing();
+      ImGui::TextDisabled("Add Goal");
+      ImGui::InputTextWithHint("##goal_input", "e.g. Document dungeon plan",
+                               &new_goal);
+      ImGui::SameLine();
+      if (ImGui::Button(ICON_MD_ADD) && !new_goal.empty()) {
+        builder_state_.goals.push_back(new_goal);
+        new_goal.clear();
+      }
+      for (size_t i = 0; i < builder_state_.goals.size(); ++i) {
+        ImGui::BulletText("%s", builder_state_.goals[i].c_str());
+        ImGui::SameLine();
+        ImGui::PushID(static_cast<int>(i));
+        if (ImGui::SmallButton(ICON_MD_CLOSE)) {
+          builder_state_.goals.erase(builder_state_.goals.begin() + i);
+          ImGui::PopID();
+          break;
+        }
+        ImGui::PopID();
+      }
+      break;
+    }
+    case 1: {
+      ImGui::Text("Tool Stack");
+      auto tool_checkbox = [&](const char* label, bool* value) {
+        ImGui::Checkbox(label, value);
+      };
+      tool_checkbox("Resources", &builder_state_.tools.resources);
+      tool_checkbox("Dungeon", &builder_state_.tools.dungeon);
+      tool_checkbox("Overworld", &builder_state_.tools.overworld);
+      tool_checkbox("Dialogue", &builder_state_.tools.dialogue);
+      tool_checkbox("GUI Automation", &builder_state_.tools.gui);
+      tool_checkbox("Music", &builder_state_.tools.music);
+      tool_checkbox("Sprite", &builder_state_.tools.sprite);
+      tool_checkbox("Emulator", &builder_state_.tools.emulator);
+      break;
+    }
+    case 2: {
+      ImGui::Text("Automation");
+      ImGui::Checkbox("Auto-run harness plan", &builder_state_.auto_run_tests);
+      ImGui::Checkbox("Auto-sync ROM context", &builder_state_.auto_sync_rom);
+      ImGui::Checkbox("Auto-focus proposal drawer",
+                      &builder_state_.auto_focus_proposals);
+      ImGui::TextWrapped(
+          "Enable these options to push harness dashboards/test plans whenever "
+          "the builder executes a plan.");
+      break;
+    }
+    case 3: {
+      ImGui::Text("Validation Criteria");
+      ImGui::InputTextMultiline("##validation_notes",
+                                &builder_state_.stages[stage_index].summary,
+                                ImVec2(-1, 120));
+      break;
+    }
+    case 4: {
+      ImGui::Text("E2E Checklist");
+      float progress =
+          builder_state_.stages.empty()
+              ? 0.0f
+              : static_cast<float>(completed_stages) /
+                    static_cast<float>(builder_state_.stages.size());
+      ImGui::ProgressBar(progress, ImVec2(-1, 0),
+                         absl::StrFormat("%d/%zu complete", completed_stages,
+                                         builder_state_.stages.size())
+                             .c_str());
+      ImGui::Checkbox("Ready for automation handoff",
+                      &builder_state_.ready_for_e2e);
+      ImGui::TextDisabled("Harness auto-run: %s",
+                          builder_state_.auto_run_tests ? "ON" : "OFF");
+      ImGui::TextDisabled("Auto-sync ROM: %s",
+                          builder_state_.auto_sync_rom ? "ON" : "OFF");
+      ImGui::TextDisabled("Auto-focus proposals: %s",
+                          builder_state_.auto_focus_proposals ? "ON" : "OFF");
+      break;
+    }
+  }
+
+  ImGui::Columns(1);
+  ImGui::Separator();
+
+  float completion_ratio =
+      builder_state_.stages.empty()
+          ? 0.0f
+          : static_cast<float>(completed_stages) /
+                static_cast<float>(builder_state_.stages.size());
+  ImGui::TextDisabled("Overall Progress");
+  ImGui::ProgressBar(completion_ratio, ImVec2(-1, 0));
+  ImGui::TextDisabled("E2E Ready: %s",
+                      builder_state_.ready_for_e2e ? "Yes" : "No");
+
+  if (ImGui::Button(ICON_MD_LINK " Apply to Chat")) {
+    auto config = chat_widget_->GetAgentConfig();
+    config.tool_config.resources = builder_state_.tools.resources;
+    config.tool_config.dungeon = builder_state_.tools.dungeon;
+    config.tool_config.overworld = builder_state_.tools.overworld;
+    config.tool_config.dialogue = builder_state_.tools.dialogue;
+    config.tool_config.gui = builder_state_.tools.gui;
+    config.tool_config.music = builder_state_.tools.music;
+    config.tool_config.sprite = builder_state_.tools.sprite;
+    config.tool_config.emulator = builder_state_.tools.emulator;
+    chat_widget_->UpdateAgentConfig(config);
+    chat_widget_->ApplyBuilderPersona(builder_state_.persona_notes,
+                                      builder_state_.goals);
+    chat_widget_->ApplyAutomationPlan(builder_state_.auto_run_tests,
+                                      builder_state_.auto_sync_rom,
+                                      builder_state_.auto_focus_proposals);
+    if (toast_manager_) {
+      toast_manager_->Show("Builder tool plan synced to chat",
+                           ToastType::kSuccess, 2.0f);
+    }
+  }
+  ImGui::SameLine();
+
+  ImGui::InputTextWithHint("##blueprint_path", "Path to blueprint...",
+                           &builder_state_.blueprint_path);
+  std::filesystem::path blueprint_path =
+      builder_state_.blueprint_path.empty()
+          ? (std::filesystem::temp_directory_path() / "agent_builder.json")
+          : std::filesystem::path(builder_state_.blueprint_path);
+
+  if (ImGui::Button(ICON_MD_SAVE " Save Blueprint")) {
+    auto status = SaveBuilderBlueprint(blueprint_path);
+    if (toast_manager_) {
+      if (status.ok()) {
+        toast_manager_->Show("Builder blueprint saved", ToastType::kSuccess,
+                             2.0f);
+      } else {
+        toast_manager_->Show(std::string(status.message()),
+                             ToastType::kError, 3.5f);
+      }
+    }
+  }
+  ImGui::SameLine();
+  if (ImGui::Button(ICON_MD_FOLDER_OPEN " Load Blueprint")) {
+    auto status = LoadBuilderBlueprint(blueprint_path);
+    if (toast_manager_) {
+      if (status.ok()) {
+        toast_manager_->Show("Builder blueprint loaded", ToastType::kSuccess,
+                             2.0f);
+      } else {
+        toast_manager_->Show(std::string(status.message()),
+                             ToastType::kError, 3.5f);
+      }
+    }
+  }
+
+  ImGui::EndChild();
+}
+
+absl::Status AgentEditor::SaveBuilderBlueprint(
+    const std::filesystem::path& path) {
+#if defined(YAZE_WITH_JSON)
+  nlohmann::json json;
+  json["persona_notes"] = builder_state_.persona_notes;
+  json["goals"] = builder_state_.goals;
+  json["auto_run_tests"] = builder_state_.auto_run_tests;
+  json["auto_sync_rom"] = builder_state_.auto_sync_rom;
+  json["auto_focus_proposals"] = builder_state_.auto_focus_proposals;
+  json["ready_for_e2e"] = builder_state_.ready_for_e2e;
+  json["tools"] = {
+      {"resources", builder_state_.tools.resources},
+      {"dungeon", builder_state_.tools.dungeon},
+      {"overworld", builder_state_.tools.overworld},
+      {"dialogue", builder_state_.tools.dialogue},
+      {"gui", builder_state_.tools.gui},
+      {"music", builder_state_.tools.music},
+      {"sprite", builder_state_.tools.sprite},
+      {"emulator", builder_state_.tools.emulator},
+  };
+  json["stages"] = nlohmann::json::array();
+  for (const auto& stage : builder_state_.stages) {
+    json["stages"].push_back(
+        {{"name", stage.name}, {"summary", stage.summary},
+         {"completed", stage.completed}});
+  }
+
+  std::error_code ec;
+  std::filesystem::create_directories(path.parent_path(), ec);
+  std::ofstream file(path);
+  if (!file.is_open()) {
+    return absl::InternalError(
+        absl::StrFormat("Failed to open blueprint: %s", path.string()));
+  }
+  file << json.dump(2);
+  builder_state_.blueprint_path = path.string();
+  return absl::OkStatus();
+#else
+  (void)path;
+  return absl::UnimplementedError("Blueprint export requires JSON support");
+#endif
+}
+
+absl::Status AgentEditor::LoadBuilderBlueprint(
+    const std::filesystem::path& path) {
+#if defined(YAZE_WITH_JSON)
+  std::ifstream file(path);
+  if (!file.is_open()) {
+    return absl::NotFoundError(
+        absl::StrFormat("Blueprint not found: %s", path.string()));
+  }
+
+  nlohmann::json json;
+  file >> json;
+
+  builder_state_.persona_notes = json.value("persona_notes", "");
+  builder_state_.goals.clear();
+  if (json.contains("goals") && json["goals"].is_array()) {
+    for (const auto& goal : json["goals"]) {
+      if (goal.is_string()) {
+        builder_state_.goals.push_back(goal.get<std::string>());
+      }
+    }
+  }
+  if (json.contains("tools") && json["tools"].is_object()) {
+    auto tools = json["tools"];
+    builder_state_.tools.resources = tools.value("resources", true);
+    builder_state_.tools.dungeon = tools.value("dungeon", true);
+    builder_state_.tools.overworld = tools.value("overworld", true);
+    builder_state_.tools.dialogue = tools.value("dialogue", true);
+    builder_state_.tools.gui = tools.value("gui", false);
+    builder_state_.tools.music = tools.value("music", false);
+    builder_state_.tools.sprite = tools.value("sprite", false);
+    builder_state_.tools.emulator = tools.value("emulator", false);
+  }
+  builder_state_.auto_run_tests = json.value("auto_run_tests", false);
+  builder_state_.auto_sync_rom = json.value("auto_sync_rom", true);
+  builder_state_.auto_focus_proposals =
+      json.value("auto_focus_proposals", true);
+  builder_state_.ready_for_e2e = json.value("ready_for_e2e", false);
+  if (json.contains("stages") && json["stages"].is_array()) {
+    builder_state_.stages.clear();
+    for (const auto& stage : json["stages"]) {
+      AgentBuilderState::Stage builder_stage;
+      builder_stage.name = stage.value("name", std::string{});
+      builder_stage.summary = stage.value("summary", std::string{});
+      builder_stage.completed = stage.value("completed", false);
+      builder_state_.stages.push_back(builder_stage);
+    }
+  }
+  builder_state_.blueprint_path = path.string();
+  return absl::OkStatus();
+#else
+  (void)path;
+  return absl::UnimplementedError("Blueprint import requires JSON support");
+#endif
 }
 
 // Bot Profile Management Implementation

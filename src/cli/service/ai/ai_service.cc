@@ -89,6 +89,10 @@ std::string ExtractKeyword(const std::string& normalized_prompt) {
 absl::StatusOr<AgentResponse> MockAIService::GenerateResponse(
     const std::string& prompt) {
   AgentResponse response;
+  response.provider = "mock";
+  response.model = "mock";
+  response.parameters["mode"] = "scripted";
+  response.parameters["temperature"] = "0.0";
   const std::string normalized = absl::AsciiStrToLower(prompt);
 
   if (normalized.empty()) {
@@ -187,6 +191,10 @@ absl::StatusOr<AgentResponse> MockAIService::GenerateResponse(
          absl::StrContains(it->message, "\"id\"") ||
          absl::StrContains(it->message, "\n{"))) {
       AgentResponse response;
+      response.provider = "mock";
+      response.model = "mock";
+      response.parameters["mode"] = "scripted";
+      response.parameters["temperature"] = "0.0";
       response.text_response =
           "Here's what I found:\n" + it->message +
           "\nLet me know if you'd like to make a change.";

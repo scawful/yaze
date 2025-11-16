@@ -13,6 +13,7 @@
 #include <vector>
 
 #include "absl/status/status.h"
+#include "absl/strings/ascii.h"
 #include "absl/strings/match.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_join.h"
@@ -26,6 +27,8 @@
 #include "app/editor/system/toast_manager.h"
 #include "app/gui/core/icons.h"
 #include "app/rom.h"
+#include "cli/service/ai/ollama_ai_service.h"
+#include "cli/service/ai/service_factory.h"
 #include "imgui/imgui.h"
 #include "util/file_util.h"
 #include "util/platform_paths.h"
@@ -107,6 +110,36 @@ void RenderTable(const ChatMessage::TableData& table_data) {
     }
     ImGui::EndTable();
   }
+}
+
+std::string FormatByteSize(uint64_t bytes) {
+  static const char* kUnits[] = {"B", "KB", "MB", "GB", "TB"};
+  double size = static_cast<double>(bytes);
+  int unit = 0;
+  while (size >= 1024.0 && unit < 4) {
+    size /= 1024.0;
+    ++unit;
+  }
+  return absl::StrFormat("%.1f %s", size, kUnits[unit]);
+}
+
+std::string FormatRelativeTime(absl::Time timestamp) {
+  if (timestamp == absl::InfinitePast()) {
+    return "—";
+  }
+  absl::Duration delta = absl::Now() - timestamp;
+  if (delta < absl::Seconds(60)) {
+    return "just now";
+  }
+  if (delta < absl::Minutes(60)) {
+    return absl::StrFormat("%dm ago",
+                           static_cast<int>(delta / absl::Minutes(1)));
+  }
+  if (delta < absl::Hours(24)) {
+    return absl::StrFormat("%dh ago",
+                           static_cast<int>(delta / absl::Hours(1)));
+  }
+  return absl::FormatTime("%b %d", timestamp, absl::LocalTimeZone());
 }
 
 }  // namespace
@@ -291,6 +324,10 @@ void AgentChatWidget::EnsureHistoryLoaded() {
   multimodal_state_.last_capture_path = snapshot.multimodal.last_capture_path;
   multimodal_state_.status_message = snapshot.multimodal.status_message;
   multimodal_state_.last_updated = snapshot.multimodal.last_updated;
+
+  if (snapshot.agent_config.has_value() && persist_agent_config_with_history_) {
+    ApplyHistoryAgentConfig(*snapshot.agent_config);
+  }
 }
 
 void AgentChatWidget::PersistHistory() {
@@ -322,6 +359,10 @@ void AgentChatWidget::PersistHistory() {
   snapshot.multimodal.last_capture_path = multimodal_state_.last_capture_path;
   snapshot.multimodal.status_message = multimodal_state_.status_message;
   snapshot.multimodal.last_updated = multimodal_state_.last_updated;
+
+  if (persist_agent_config_with_history_) {
+    snapshot.agent_config = BuildHistoryAgentConfig();
+  }
 
   absl::Status status = AgentChatHistoryCodec::Save(history_path_, snapshot);
   if (!status.ok()) {
@@ -418,6 +459,7 @@ void AgentChatWidget::HandleAgentResponse(
   }
   last_proposal_count_ = std::max(last_proposal_count_, total);
 
+  MarkPresetUsage(agent_config_.ai_model);
   // Sync history to popup after response
   SyncHistoryToPopup();
 }
@@ -1068,6 +1110,7 @@ void AgentChatWidget::Draw() {
       ImGui::EndTable();
     }
 
+    RenderPersonaSummary();
     RenderAutomationPanel();
     RenderCollaborationPanel();
     RenderRomSyncPanel();
@@ -1617,6 +1660,14 @@ void AgentChatWidget::RenderAutomationPanel() {
       ImGui::SetTooltip("Auto-refresh interval");
     }
 
+    ImGui::Spacing();
+    ImGui::Separator();
+    ImGui::TextDisabled("Automation Hooks");
+    ImGui::Checkbox("Auto-run harness plan", &automation_state_.auto_run_plan);
+    ImGui::Checkbox("Auto-sync ROM context", &automation_state_.auto_sync_rom);
+    ImGui::Checkbox("Auto-focus proposal drawer",
+                    &automation_state_.auto_focus_proposals);
+
     // === RECENT AUTOMATION ACTIONS WITH SCROLLING ===
     ImGui::Spacing();
     ImGui::Separator();
@@ -1858,6 +1909,76 @@ void AgentChatWidget::PollSharedHistory() {
   }
 }
 
+cli::AIServiceConfig AgentChatWidget::BuildAIServiceConfig() const {
+  cli::AIServiceConfig cfg;
+  cfg.provider =
+      agent_config_.ai_provider.empty() ? "auto" : agent_config_.ai_provider;
+  cfg.model = agent_config_.ai_model;
+  cfg.ollama_host = agent_config_.ollama_host;
+  cfg.gemini_api_key = agent_config_.gemini_api_key;
+  cfg.verbose = agent_config_.verbose;
+  return cfg;
+}
+
+void AgentChatWidget::ApplyToolPreferences() {
+  cli::agent::ToolDispatcher::ToolPreferences prefs;
+  prefs.resources = agent_config_.tool_config.resources;
+  prefs.dungeon = agent_config_.tool_config.dungeon;
+  prefs.overworld = agent_config_.tool_config.overworld;
+  prefs.dialogue = agent_config_.tool_config.dialogue;
+  prefs.messages = agent_config_.tool_config.messages;
+  prefs.gui = agent_config_.tool_config.gui;
+  prefs.music = agent_config_.tool_config.music;
+  prefs.sprite = agent_config_.tool_config.sprite;
+  prefs.emulator = agent_config_.tool_config.emulator;
+  agent_service_.SetToolPreferences(prefs);
+}
+
+void AgentChatWidget::RefreshOllamaModels() {
+#if defined(YAZE_WITH_JSON)
+  ollama_models_loading_ = true;
+  cli::OllamaConfig config;
+  config.base_url = agent_config_.ollama_host;
+  if (!agent_config_.ai_model.empty()) {
+    config.model = agent_config_.ai_model;
+  }
+  cli::OllamaAIService ollama_service(config);
+  auto models_or = ollama_service.ListAvailableModels();
+  ollama_models_loading_ = false;
+  if (!models_or.ok()) {
+    if (toast_manager_) {
+      toast_manager_->Show(
+          absl::StrFormat("Model refresh failed: %s",
+                          models_or.status().message()),
+          ToastType::kWarning, 4.0f);
+    }
+    return;
+  }
+
+  ollama_model_info_cache_ = *models_or;
+  std::sort(ollama_model_info_cache_.begin(), ollama_model_info_cache_.end(),
+            [](const cli::OllamaAIService::ModelInfo& lhs,
+               const cli::OllamaAIService::ModelInfo& rhs) {
+              return lhs.name < rhs.name;
+            });
+  ollama_model_cache_.clear();
+  for (const auto& info : ollama_model_info_cache_) {
+    ollama_model_cache_.push_back(info.name);
+  }
+  last_model_refresh_ = absl::Now();
+  if (toast_manager_) {
+    toast_manager_->Show(
+        absl::StrFormat("Loaded %zu local models", ollama_model_cache_.size()),
+        ToastType::kSuccess, 2.0f);
+  }
+#else
+  if (toast_manager_) {
+    toast_manager_->Show("Model discovery requires JSON-enabled build",
+                         ToastType::kWarning, 3.5f);
+  }
+#endif
+}
+
 void AgentChatWidget::UpdateAgentConfig(const AgentConfigState& config) {
   agent_config_ = config;
 
@@ -1870,77 +1991,657 @@ void AgentChatWidget::UpdateAgentConfig(const AgentConfigState& config) {
 
   agent_service_.SetConfig(service_config);
 
+  auto provider_config = BuildAIServiceConfig();
+  absl::Status status = agent_service_.ConfigureProvider(provider_config);
+  if (!status.ok()) {
   if (toast_manager_) {
-    toast_manager_->Show("Agent configuration updated", ToastType::kSuccess,
-                         2.5f);
+      toast_manager_->Show(
+          absl::StrFormat("Provider init failed: %s", status.message()),
+          ToastType::kError, 4.0f);
+    }
+  } else {
+    ApplyToolPreferences();
+    if (toast_manager_) {
+      toast_manager_->Show("Agent configuration applied",
+                           ToastType::kSuccess, 2.0f);
+    }
   }
 }
 
 void AgentChatWidget::RenderAgentConfigPanel() {
   const auto& theme = AgentUI::GetTheme();
   
-  // Dense header (no collapsing)
   ImGui::PushStyleColor(ImGuiCol_ChildBg, theme.panel_bg_color);
-  ImGui::BeginChild("AgentConfig", ImVec2(0, 140), true);  // Reduced from 350
-  AgentUI::RenderSectionHeader(ICON_MD_SETTINGS, "Config", theme.command_text_color);
-  
+  ImGui::BeginChild("AgentConfig", ImVec2(0, 190), true);
+  AgentUI::RenderSectionHeader(ICON_MD_SETTINGS, "Agent Builder",
+                               theme.command_text_color);
 
-  // Compact provider selection
-  int provider_idx = 0;
-  if (agent_config_.ai_provider == "ollama")
-    provider_idx = 1;
-  else if (agent_config_.ai_provider == "gemini")
-    provider_idx = 2;
+  if (ImGui::BeginTabBar("AgentConfigTabs",
+                         ImGuiTabBarFlags_NoCloseWithMiddleMouseButton)) {
+    if (ImGui::BeginTabItem(ICON_MD_SMART_TOY " Models")) {
+      RenderModelConfigControls();
+      ImGui::Separator();
+      RenderModelDeck();
+      ImGui::EndTabItem();
+    }
+    if (ImGui::BeginTabItem(ICON_MD_TUNE " Parameters")) {
+      RenderParameterControls();
+      ImGui::EndTabItem();
+    }
+    if (ImGui::BeginTabItem(ICON_MD_CONSTRUCTION " Tools")) {
+      RenderToolingControls();
+      ImGui::EndTabItem();
+    }
+  }
+  ImGui::EndTabBar();
 
-  if (ImGui::RadioButton("Mock", &provider_idx, 0)) {
-    agent_config_.ai_provider = "mock";
-    std::snprintf(agent_config_.provider_buffer,
-                  sizeof(agent_config_.provider_buffer), "mock");
+  ImGui::Spacing();
+  if (ImGui::Checkbox("Sync agent config with chat history",
+                      &persist_agent_config_with_history_)) {
+    if (toast_manager_) {
+      toast_manager_->Show(
+          persist_agent_config_with_history_
+              ? "Chat histories now capture provider + tool settings"
+              : "Chat histories will no longer overwrite provider settings",
+          ToastType::kInfo, 3.0f);
+    }
   }
-  ImGui::SameLine();
-  if (ImGui::RadioButton("Ollama", &provider_idx, 1)) {
-    agent_config_.ai_provider = "ollama";
-    std::snprintf(agent_config_.provider_buffer,
-                  sizeof(agent_config_.provider_buffer), "ollama");
-  }
-  ImGui::SameLine();
-  if (ImGui::RadioButton("Gemini", &provider_idx, 2)) {
-    agent_config_.ai_provider = "gemini";
-    std::snprintf(agent_config_.provider_buffer,
-                  sizeof(agent_config_.provider_buffer), "gemini");
-  }
-
-  // Dense provider settings
-  if (agent_config_.ai_provider == "ollama") {
-    ImGui::InputText("##ollama_model", agent_config_.model_buffer,
-                     IM_ARRAYSIZE(agent_config_.model_buffer));
-    ImGui::InputText("##ollama_host", agent_config_.ollama_host_buffer,
-                     IM_ARRAYSIZE(agent_config_.ollama_host_buffer));
-  } else if (agent_config_.ai_provider == "gemini") {
-    ImGui::InputText("##gemini_model", agent_config_.model_buffer,
-                     IM_ARRAYSIZE(agent_config_.model_buffer));
-    ImGui::InputText("##gemini_key", agent_config_.gemini_key_buffer,
-                     IM_ARRAYSIZE(agent_config_.gemini_key_buffer),
-                     ImGuiInputTextFlags_Password);
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip(
+        "When enabled, provider, model, presets, and tool toggles reload with "
+        "each chat history file.");
   }
 
-  ImGui::Separator();
-  ImGui::Checkbox("Verbose", &agent_config_.verbose);
-  ImGui::SameLine();
-  ImGui::Checkbox("Reasoning", &agent_config_.show_reasoning);
-  ImGui::SetNextItemWidth(-1);
-  ImGui::SliderInt("##max_iter", &agent_config_.max_tool_iterations, 1, 10,
-                   "Iter: %d");
-
-  if (ImGui::Button(ICON_MD_CHECK " Apply", ImVec2(-1, 0))) {
-    agent_config_.ai_model = agent_config_.model_buffer;
-    agent_config_.ollama_host = agent_config_.ollama_host_buffer;
-    agent_config_.gemini_api_key = agent_config_.gemini_key_buffer;
+  ImGui::Spacing();
+  if (ImGui::Button(ICON_MD_CLOUD_SYNC " Apply Provider Settings",
+                    ImVec2(-1, 0))) {
     UpdateAgentConfig(agent_config_);
   }
 
   ImGui::EndChild();
-  ImGui::PopStyleColor();  // Pop the ChildBg color from line 1609
+  ImGui::PopStyleColor();
+}
+
+void AgentChatWidget::RenderModelConfigControls() {
+  auto provider_button = [&](const char* label, const char* value,
+                             const ImVec4& color) {
+    bool active = agent_config_.ai_provider == value;
+    if (active) {
+      ImGui::PushStyleColor(ImGuiCol_Button, color);
+    }
+    if (ImGui::Button(label, ImVec2(90, 28))) {
+      agent_config_.ai_provider = value;
+    std::snprintf(agent_config_.provider_buffer,
+                    sizeof(agent_config_.provider_buffer), "%s", value);
+    }
+    if (active) {
+      ImGui::PopStyleColor();
+  }
+  ImGui::SameLine();
+  };
+
+  const auto& theme = AgentUI::GetTheme();
+  provider_button(ICON_MD_SETTINGS " Mock", "mock", theme.provider_mock);
+  provider_button(ICON_MD_CLOUD " Ollama", "ollama", theme.provider_ollama);
+  provider_button(ICON_MD_SMART_TOY " Gemini", "gemini", theme.provider_gemini);
+  ImGui::NewLine();
+  ImGui::NewLine();
+
+  if (agent_config_.ai_provider == "ollama") {
+    if (ImGui::InputTextWithHint("##ollama_host", "http://localhost:11434",
+                                 agent_config_.ollama_host_buffer,
+                                 IM_ARRAYSIZE(agent_config_.ollama_host_buffer))) {
+      agent_config_.ollama_host = agent_config_.ollama_host_buffer;
+    }
+    if (ImGui::InputTextWithHint("##ollama_model", "qwen2.5-coder:7b",
+                                 agent_config_.model_buffer,
+                                 IM_ARRAYSIZE(agent_config_.model_buffer))) {
+      agent_config_.ai_model = agent_config_.model_buffer;
+    }
+
+    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - 60.0f);
+    ImGui::InputTextWithHint("##model_search", "Search local models...",
+                             model_search_buffer_,
+                             IM_ARRAYSIZE(model_search_buffer_));
+  ImGui::SameLine();
+    if (ImGui::Button(ollama_models_loading_ ? ICON_MD_SYNC
+                                             : ICON_MD_REFRESH)) {
+      RefreshOllamaModels();
+    }
+
+    ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.1f, 0.1f, 0.14f, 0.9f));
+    ImGui::BeginChild("OllamaModelList", ImVec2(0, 140), true);
+    std::string filter = absl::AsciiStrToLower(model_search_buffer_);
+    const bool has_metadata = !ollama_model_info_cache_.empty();
+    if (ollama_model_cache_.empty() && ollama_model_info_cache_.empty()) {
+      ImGui::TextDisabled("No cached models. Refresh to discover local models.");
+    } else if (has_metadata) {
+      for (const auto& info : ollama_model_info_cache_) {
+        std::string lower = absl::AsciiStrToLower(info.name);
+        if (!filter.empty() && lower.find(filter) == std::string::npos) {
+          std::string param = absl::AsciiStrToLower(info.parameter_size);
+          if (param.find(filter) == std::string::npos) {
+            continue;
+          }
+        }
+
+        bool is_selected = agent_config_.ai_model == info.name;
+        if (ImGui::Selectable(info.name.c_str(), is_selected)) {
+          agent_config_.ai_model = info.name;
+          std::snprintf(agent_config_.model_buffer,
+                        sizeof(agent_config_.model_buffer), "%s",
+                        info.name.c_str());
+        }
+
+        ImGui::SameLine();
+        bool is_favorite = std::find(agent_config_.favorite_models.begin(),
+                                     agent_config_.favorite_models.end(),
+                                     info.name) !=
+                           agent_config_.favorite_models.end();
+        std::string fav_id = absl::StrFormat("Fav##%s", info.name);
+        if (ImGui::SmallButton(is_favorite ? ICON_MD_STAR : ICON_MD_STAR_BORDER)) {
+          if (is_favorite) {
+            agent_config_.favorite_models.erase(std::remove(
+                agent_config_.favorite_models.begin(),
+                agent_config_.favorite_models.end(), info.name),
+                                                agent_config_.favorite_models.end());
+            agent_config_.model_chain.erase(std::remove(
+                agent_config_.model_chain.begin(), agent_config_.model_chain.end(),
+                info.name),
+                                            agent_config_.model_chain.end());
+          } else {
+            agent_config_.favorite_models.push_back(info.name);
+          }
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip(is_favorite ? "Remove from favorites"
+                                        : "Favorite model");
+        }
+
+        ImGui::SameLine();
+        std::string preset_id = absl::StrFormat("Preset##%s", info.name);
+        if (ImGui::SmallButton(ICON_MD_NOTE_ADD)) {
+          AgentConfigState::ModelPreset preset;
+          preset.name = info.name;
+          preset.model = info.name;
+          preset.host = agent_config_.ollama_host;
+          preset.tags = {"ollama"};
+          preset.last_used = absl::Now();
+          agent_config_.model_presets.push_back(std::move(preset));
+          if (toast_manager_) {
+            toast_manager_->Show("Preset captured from Ollama roster",
+                                 ToastType::kSuccess, 2.0f);
+          }
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("Capture preset from this model");
+        }
+
+        std::string size_label =
+            info.parameter_size.empty()
+                ? FormatByteSize(info.size_bytes)
+                : info.parameter_size;
+        ImGui::TextDisabled("%s • %s", size_label.c_str(),
+                            info.quantization_level.c_str());
+        if (!info.family.empty()) {
+          ImGui::TextDisabled("Family: %s", info.family.c_str());
+        }
+        if (info.modified_at != absl::InfinitePast()) {
+          ImGui::TextDisabled("Updated %s",
+                              FormatRelativeTime(info.modified_at).c_str());
+        }
+        ImGui::Separator();
+      }
+    } else {
+      for (const auto& model_name : ollama_model_cache_) {
+        std::string lower = absl::AsciiStrToLower(model_name);
+        if (!filter.empty() && lower.find(filter) == std::string::npos) {
+          continue;
+        }
+
+        bool is_selected = agent_config_.ai_model == model_name;
+        if (ImGui::Selectable(model_name.c_str(), is_selected)) {
+          agent_config_.ai_model = model_name;
+          std::snprintf(agent_config_.model_buffer,
+                        sizeof(agent_config_.model_buffer), "%s",
+                        model_name.c_str());
+        }
+        ImGui::SameLine();
+        bool is_favorite = std::find(agent_config_.favorite_models.begin(),
+                                     agent_config_.favorite_models.end(),
+                                     model_name) !=
+                           agent_config_.favorite_models.end();
+        if (ImGui::SmallButton(is_favorite ? ICON_MD_STAR : ICON_MD_STAR_BORDER)) {
+          if (is_favorite) {
+            agent_config_.favorite_models.erase(std::remove(
+                agent_config_.favorite_models.begin(),
+                agent_config_.favorite_models.end(), model_name),
+                                                agent_config_.favorite_models.end());
+            agent_config_.model_chain.erase(std::remove(
+                agent_config_.model_chain.begin(), agent_config_.model_chain.end(),
+                model_name),
+                                            agent_config_.model_chain.end());
+          } else {
+            agent_config_.favorite_models.push_back(model_name);
+          }
+        }
+        ImGui::Separator();
+      }
+    }
+    ImGui::EndChild();
+    ImGui::PopStyleColor();
+
+    if (last_model_refresh_ != absl::InfinitePast()) {
+      double seconds =
+          absl::ToDoubleSeconds(absl::Now() - last_model_refresh_);
+      ImGui::TextDisabled("Last refresh %.0fs ago", seconds);
+    } else {
+      ImGui::TextDisabled("Models not refreshed yet");
+    }
+
+    RenderChainModeControls();
+  } else if (agent_config_.ai_provider == "gemini") {
+    if (ImGui::InputTextWithHint("##gemini_model", "gemini-2.5-flash",
+                                 agent_config_.model_buffer,
+                                 IM_ARRAYSIZE(agent_config_.model_buffer))) {
+      agent_config_.ai_model = agent_config_.model_buffer;
+    }
+    if (ImGui::InputTextWithHint("##gemini_key", "API key...",
+                                 agent_config_.gemini_key_buffer,
+                     IM_ARRAYSIZE(agent_config_.gemini_key_buffer),
+                                 ImGuiInputTextFlags_Password)) {
+      agent_config_.gemini_api_key = agent_config_.gemini_key_buffer;
+    }
+    ImGui::SameLine();
+    if (ImGui::SmallButton(ICON_MD_SYNC " Env")) {
+      const char* env_key = std::getenv("GEMINI_API_KEY");
+      if (env_key) {
+        std::snprintf(agent_config_.gemini_key_buffer,
+                      sizeof(agent_config_.gemini_key_buffer), "%s", env_key);
+        agent_config_.gemini_api_key = env_key;
+        if (toast_manager_) {
+          toast_manager_->Show("Loaded GEMINI_API_KEY from environment",
+                               ToastType::kInfo, 2.0f);
+        }
+      } else if (toast_manager_) {
+        toast_manager_->Show("GEMINI_API_KEY not set", ToastType::kWarning,
+                             2.0f);
+      }
+    }
+  }
+
+  if (!agent_config_.favorite_models.empty()) {
+  ImGui::Separator();
+    ImGui::TextColored(ImVec4(1.0f, 0.843f, 0.0f, 1.0f), ICON_MD_STAR " Favorites");
+    for (size_t i = 0; i < agent_config_.favorite_models.size(); ++i) {
+      auto& favorite = agent_config_.favorite_models[i];
+      ImGui::PushID(static_cast<int>(i));
+      bool active = agent_config_.ai_model == favorite;
+      if (ImGui::Selectable(favorite.c_str(), active)) {
+        agent_config_.ai_model = favorite;
+        std::snprintf(agent_config_.model_buffer,
+                      sizeof(agent_config_.model_buffer), "%s",
+                      favorite.c_str());
+      }
+  ImGui::SameLine();
+      if (ImGui::SmallButton(ICON_MD_CLOSE)) {
+        agent_config_.model_chain.erase(std::remove(
+            agent_config_.model_chain.begin(), agent_config_.model_chain.end(),
+            favorite),
+                                        agent_config_.model_chain.end());
+        agent_config_.favorite_models.erase(
+            agent_config_.favorite_models.begin() + i);
+        ImGui::PopID();
+        break;
+      }
+      ImGui::PopID();
+    }
+  }
+}
+
+void AgentChatWidget::RenderModelDeck() {
+  ImGui::TextDisabled("Model Deck");
+  if (agent_config_.model_presets.empty()) {
+    ImGui::TextWrapped(
+        "Capture a preset to quickly swap between hosts/models with consistent "
+        "tool stacks.");
+  }
+  ImGui::InputTextWithHint("##new_preset_name", "Preset name...",
+                           new_preset_name_, IM_ARRAYSIZE(new_preset_name_));
+  ImGui::SameLine();
+  if (ImGui::SmallButton(ICON_MD_NOTE_ADD " Capture Current")) {
+    AgentConfigState::ModelPreset preset;
+    preset.name = new_preset_name_[0] ? std::string(new_preset_name_)
+                                      : agent_config_.ai_model;
+    preset.model = agent_config_.ai_model;
+    preset.host = agent_config_.ollama_host;
+    preset.tags = {"current"};
+    preset.last_used = absl::Now();
+    agent_config_.model_presets.push_back(std::move(preset));
+    new_preset_name_[0] = '\0';
+    if (toast_manager_) {
+      toast_manager_->Show("Captured chat preset", ToastType::kSuccess, 2.0f);
+    }
+  }
+
+  ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.09f, 0.09f, 0.11f, 0.9f));
+  ImGui::BeginChild("PresetList", ImVec2(0, 110), true);
+  if (agent_config_.model_presets.empty()) {
+    ImGui::TextDisabled("No presets yet");
+  } else {
+    for (int i = 0; i < static_cast<int>(agent_config_.model_presets.size());
+         ++i) {
+      auto& preset = agent_config_.model_presets[i];
+      ImGui::PushID(i);
+      bool selected = active_model_preset_index_ == i;
+      if (ImGui::Selectable(preset.name.c_str(), selected)) {
+        active_model_preset_index_ = i;
+        ApplyModelPreset(preset);
+      }
+      ImGui::SameLine();
+      if (ImGui::SmallButton(ICON_MD_PLAY_ARROW "##apply")) {
+        active_model_preset_index_ = i;
+        ApplyModelPreset(preset);
+      }
+      ImGui::SameLine();
+      if (ImGui::SmallButton(preset.pinned ? ICON_MD_STAR : ICON_MD_STAR_BORDER)) {
+        preset.pinned = !preset.pinned;
+      }
+      ImGui::SameLine();
+      if (ImGui::SmallButton(ICON_MD_DELETE)) {
+        agent_config_.model_presets.erase(
+            agent_config_.model_presets.begin() + i);
+        if (active_model_preset_index_ == i) {
+          active_model_preset_index_ = -1;
+        }
+        ImGui::PopID();
+        break;
+      }
+      if (!preset.host.empty()) {
+        ImGui::TextDisabled("%s", preset.host.c_str());
+      }
+      if (!preset.tags.empty()) {
+        ImGui::TextDisabled("Tags: %s",
+                            absl::StrJoin(preset.tags, ", ").c_str());
+      }
+      if (preset.last_used != absl::InfinitePast()) {
+        ImGui::TextDisabled("Last used %s",
+                            FormatRelativeTime(preset.last_used).c_str());
+      }
+      ImGui::Separator();
+      ImGui::PopID();
+    }
+  }
+  ImGui::EndChild();
+  ImGui::PopStyleColor();
+}
+
+void AgentChatWidget::RenderParameterControls() {
+  ImGui::SliderFloat("Temperature", &agent_config_.temperature, 0.0f, 1.5f);
+  ImGui::SliderFloat("Top P", &agent_config_.top_p, 0.0f, 1.0f);
+  ImGui::SliderInt("Max Output Tokens", &agent_config_.max_output_tokens, 256,
+                   8192);
+  ImGui::SliderInt("Max Tool Iterations", &agent_config_.max_tool_iterations, 1,
+                   10);
+  ImGui::SliderInt("Max Retry Attempts", &agent_config_.max_retry_attempts, 0,
+                   5);
+  ImGui::Checkbox("Stream responses", &agent_config_.stream_responses);
+  ImGui::SameLine();
+  ImGui::Checkbox("Show reasoning", &agent_config_.show_reasoning);
+  ImGui::SameLine();
+  ImGui::Checkbox("Verbose logs", &agent_config_.verbose);
+}
+
+void AgentChatWidget::RenderToolingControls() {
+  struct ToolToggleEntry {
+    const char* label;
+    bool* flag;
+    const char* hint;
+  } entries[] = {
+      {"Resources", &agent_config_.tool_config.resources,
+       "resource-list/search"},
+      {"Dungeon", &agent_config_.tool_config.dungeon,
+       "Room + sprite inspection"},
+      {"Overworld", &agent_config_.tool_config.overworld,
+       "Map + entrance analysis"},
+      {"Dialogue", &agent_config_.tool_config.dialogue,
+       "Dialogue list/search"},
+      {"Messages", &agent_config_.tool_config.messages,
+       "Message table + ROM text"},
+      {"GUI Automation", &agent_config_.tool_config.gui, "GUI automation tools"},
+      {"Music", &agent_config_.tool_config.music, "Music info & tracks"},
+      {"Sprite", &agent_config_.tool_config.sprite, "Sprite palette/properties"},
+      {"Emulator", &agent_config_.tool_config.emulator, "Emulator controls"}};
+
+  int columns = 2;
+  ImGui::Columns(columns, nullptr, false);
+  for (size_t i = 0; i < std::size(entries); ++i) {
+    if (ImGui::Checkbox(entries[i].label, entries[i].flag) &&
+        auto_apply_agent_config_) {
+      ApplyToolPreferences();
+    }
+    if (ImGui::IsItemHovered() && entries[i].hint) {
+      ImGui::SetTooltip("%s", entries[i].hint);
+    }
+    ImGui::NextColumn();
+  }
+  ImGui::Columns(1);
+  ImGui::Separator();
+  ImGui::Checkbox("Auto-apply", &auto_apply_agent_config_);
+}
+
+void AgentChatWidget::RenderPersonaSummary() {
+  if (!persona_profile_.active || persona_profile_.notes.empty()) {
+    return;
+  }
+
+  AgentUI::PushPanelStyle();
+  if (ImGui::BeginChild("PersonaSummaryPanel", ImVec2(0, 110), true)) {
+    ImVec4 accent = ImVec4(0.6f, 0.8f, 0.4f, 1.0f);
+    if (persona_highlight_active_) {
+      float pulse = 0.5f + 0.5f * std::sin(ImGui::GetTime() * 2.5f);
+      accent.x *= 0.7f + 0.3f * pulse;
+      accent.y *= 0.7f + 0.3f * pulse;
+    }
+    ImGui::TextColored(accent, "%s Active Persona", ICON_MD_PERSON);
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Applied from Agent Builder");
+    }
+    ImGui::SameLine();
+    if (ImGui::SmallButton(ICON_MD_CLOSE "##persona_clear")) {
+      persona_profile_.active = false;
+      persona_highlight_active_ = false;
+    }
+    ImGui::TextWrapped("%s", persona_profile_.notes.c_str());
+    if (!persona_profile_.goals.empty()) {
+      ImGui::TextDisabled("Goals");
+      for (const auto& goal : persona_profile_.goals) {
+        ImGui::BulletText("%s", goal.c_str());
+      }
+    }
+    ImGui::TextDisabled("Applied %s",
+                        FormatRelativeTime(persona_profile_.applied_at).c_str());
+  }
+  ImGui::EndChild();
+  AgentUI::PopPanelStyle();
+  persona_highlight_active_ = false;
+}
+
+void AgentChatWidget::ApplyModelPreset(
+    const AgentConfigState::ModelPreset& preset) {
+  agent_config_.ai_provider = "ollama";
+  agent_config_.ollama_host = preset.host.empty() ? agent_config_.ollama_host
+                                                  : preset.host;
+  agent_config_.ai_model = preset.model;
+  std::snprintf(agent_config_.model_buffer, sizeof(agent_config_.model_buffer),
+                "%s", agent_config_.ai_model.c_str());
+  std::snprintf(agent_config_.ollama_host_buffer,
+                sizeof(agent_config_.ollama_host_buffer), "%s",
+                agent_config_.ollama_host.c_str());
+  MarkPresetUsage(preset.name.empty() ? preset.model : preset.name);
+  UpdateAgentConfig(agent_config_);
+}
+
+void AgentChatWidget::ApplyBuilderPersona(
+    const std::string& persona_notes,
+    const std::vector<std::string>& goals) {
+  persona_profile_.notes = persona_notes;
+  persona_profile_.goals = goals;
+  persona_profile_.applied_at = absl::Now();
+  persona_profile_.active = !persona_profile_.notes.empty();
+  persona_highlight_active_ = persona_profile_.active;
+}
+
+void AgentChatWidget::ApplyAutomationPlan(bool auto_run_tests,
+                                          bool auto_sync_rom,
+                                          bool auto_focus_proposals) {
+  automation_state_.auto_run_plan = auto_run_tests;
+  automation_state_.auto_sync_rom = auto_sync_rom;
+  automation_state_.auto_focus_proposals = auto_focus_proposals;
+}
+
+AgentChatHistoryCodec::AgentConfigSnapshot
+AgentChatWidget::BuildHistoryAgentConfig() const {
+  AgentChatHistoryCodec::AgentConfigSnapshot snapshot;
+  snapshot.provider = agent_config_.ai_provider;
+  snapshot.model = agent_config_.ai_model;
+  snapshot.ollama_host = agent_config_.ollama_host;
+  snapshot.gemini_api_key = agent_config_.gemini_api_key;
+  snapshot.verbose = agent_config_.verbose;
+  snapshot.show_reasoning = agent_config_.show_reasoning;
+  snapshot.max_tool_iterations = agent_config_.max_tool_iterations;
+  snapshot.max_retry_attempts = agent_config_.max_retry_attempts;
+  snapshot.temperature = agent_config_.temperature;
+  snapshot.top_p = agent_config_.top_p;
+  snapshot.max_output_tokens = agent_config_.max_output_tokens;
+  snapshot.stream_responses = agent_config_.stream_responses;
+  snapshot.chain_mode = static_cast<int>(agent_config_.chain_mode);
+  snapshot.favorite_models = agent_config_.favorite_models;
+  snapshot.model_chain = agent_config_.model_chain;
+  snapshot.persona_notes = persona_profile_.notes;
+  snapshot.goals = persona_profile_.goals;
+  snapshot.tools.resources = agent_config_.tool_config.resources;
+  snapshot.tools.dungeon = agent_config_.tool_config.dungeon;
+  snapshot.tools.overworld = agent_config_.tool_config.overworld;
+  snapshot.tools.dialogue = agent_config_.tool_config.dialogue;
+  snapshot.tools.messages = agent_config_.tool_config.messages;
+  snapshot.tools.gui = agent_config_.tool_config.gui;
+  snapshot.tools.music = agent_config_.tool_config.music;
+  snapshot.tools.sprite = agent_config_.tool_config.sprite;
+  snapshot.tools.emulator = agent_config_.tool_config.emulator;
+  for (const auto& preset : agent_config_.model_presets) {
+    AgentChatHistoryCodec::AgentConfigSnapshot::ModelPreset stored;
+    stored.name = preset.name;
+    stored.model = preset.model;
+    stored.host = preset.host;
+    stored.tags = preset.tags;
+    stored.pinned = preset.pinned;
+    snapshot.model_presets.push_back(std::move(stored));
+  }
+  return snapshot;
+}
+
+void AgentChatWidget::ApplyHistoryAgentConfig(
+    const AgentChatHistoryCodec::AgentConfigSnapshot& snapshot) {
+  agent_config_.ai_provider = snapshot.provider;
+  agent_config_.ai_model = snapshot.model;
+  agent_config_.ollama_host = snapshot.ollama_host;
+  agent_config_.gemini_api_key = snapshot.gemini_api_key;
+  agent_config_.verbose = snapshot.verbose;
+  agent_config_.show_reasoning = snapshot.show_reasoning;
+  agent_config_.max_tool_iterations = snapshot.max_tool_iterations;
+  agent_config_.max_retry_attempts = snapshot.max_retry_attempts;
+  agent_config_.temperature = snapshot.temperature;
+  agent_config_.top_p = snapshot.top_p;
+  agent_config_.max_output_tokens = snapshot.max_output_tokens;
+  agent_config_.stream_responses = snapshot.stream_responses;
+  agent_config_.chain_mode = static_cast<AgentConfigState::ChainMode>(
+      std::clamp(snapshot.chain_mode, 0, 2));
+  agent_config_.favorite_models = snapshot.favorite_models;
+  agent_config_.model_chain = snapshot.model_chain;
+  agent_config_.tool_config.resources = snapshot.tools.resources;
+  agent_config_.tool_config.dungeon = snapshot.tools.dungeon;
+  agent_config_.tool_config.overworld = snapshot.tools.overworld;
+  agent_config_.tool_config.dialogue = snapshot.tools.dialogue;
+  agent_config_.tool_config.messages = snapshot.tools.messages;
+  agent_config_.tool_config.gui = snapshot.tools.gui;
+  agent_config_.tool_config.music = snapshot.tools.music;
+  agent_config_.tool_config.sprite = snapshot.tools.sprite;
+  agent_config_.tool_config.emulator = snapshot.tools.emulator;
+  agent_config_.model_presets.clear();
+  for (const auto& stored : snapshot.model_presets) {
+    AgentConfigState::ModelPreset preset;
+    preset.name = stored.name;
+    preset.model = stored.model;
+    preset.host = stored.host;
+    preset.tags = stored.tags;
+    preset.pinned = stored.pinned;
+    agent_config_.model_presets.push_back(std::move(preset));
+  }
+  persona_profile_.notes = snapshot.persona_notes;
+  persona_profile_.goals = snapshot.goals;
+  persona_profile_.active = !persona_profile_.notes.empty();
+  persona_profile_.applied_at = absl::Now();
+  persona_highlight_active_ = persona_profile_.active;
+
+  std::snprintf(agent_config_.model_buffer, sizeof(agent_config_.model_buffer),
+                "%s", agent_config_.ai_model.c_str());
+  std::snprintf(agent_config_.ollama_host_buffer,
+                sizeof(agent_config_.ollama_host_buffer),
+                "%s", agent_config_.ollama_host.c_str());
+  std::snprintf(agent_config_.gemini_key_buffer,
+                sizeof(agent_config_.gemini_key_buffer),
+                "%s", agent_config_.gemini_api_key.c_str());
+
+  UpdateAgentConfig(agent_config_);
+}
+
+void AgentChatWidget::MarkPresetUsage(const std::string& model_name) {
+  if (model_name.empty()) {
+    return;
+  }
+  for (auto& preset : agent_config_.model_presets) {
+    if (preset.name == model_name || preset.model == model_name) {
+      preset.last_used = absl::Now();
+      return;
+    }
+  }
+}
+
+void AgentChatWidget::RenderChainModeControls() {
+  const char* labels[] = {"Disabled", "Round Robin", "Consensus"};
+  int mode = static_cast<int>(agent_config_.chain_mode);
+  if (ImGui::Combo("Chain Mode", &mode, labels, IM_ARRAYSIZE(labels))) {
+    agent_config_.chain_mode =
+        static_cast<AgentConfigState::ChainMode>(mode);
+  }
+
+  if (agent_config_.chain_mode == AgentConfigState::ChainMode::kDisabled) {
+    return;
+  }
+
+  ImGui::TextDisabled("Model Chain");
+  if (agent_config_.favorite_models.empty()) {
+    ImGui::Text("Add favorites to build a chain.");
+    return;
+  }
+
+  for (const auto& favorite : agent_config_.favorite_models) {
+    bool selected = std::find(agent_config_.model_chain.begin(),
+                              agent_config_.model_chain.end(),
+                              favorite) != agent_config_.model_chain.end();
+    if (ImGui::Selectable(favorite.c_str(), selected)) {
+      if (selected) {
+        agent_config_.model_chain.erase(std::remove(
+            agent_config_.model_chain.begin(), agent_config_.model_chain.end(),
+            favorite),
+                                        agent_config_.model_chain.end());
+      } else {
+        agent_config_.model_chain.push_back(favorite);
+      }
+    }
+  }
+  ImGui::TextDisabled("Chain length: %zu", agent_config_.model_chain.size());
 }
 
 void AgentChatWidget::RenderZ3EDCommandPanel() {
@@ -2768,6 +3469,29 @@ void AgentChatWidget::LoadAgentSettingsFromProject(
   agent_config_.max_tool_iterations =
       project.agent_settings.max_tool_iterations;
   agent_config_.max_retry_attempts = project.agent_settings.max_retry_attempts;
+  agent_config_.temperature = project.agent_settings.temperature;
+  agent_config_.top_p = project.agent_settings.top_p;
+  agent_config_.max_output_tokens = project.agent_settings.max_output_tokens;
+  agent_config_.stream_responses = project.agent_settings.stream_responses;
+  agent_config_.favorite_models = project.agent_settings.favorite_models;
+  agent_config_.model_chain = project.agent_settings.model_chain;
+  agent_config_.chain_mode = static_cast<AgentConfigState::ChainMode>(
+      std::clamp(project.agent_settings.chain_mode, 0, 2));
+  agent_config_.tool_config.resources =
+      project.agent_settings.enable_tool_resources;
+  agent_config_.tool_config.dungeon =
+      project.agent_settings.enable_tool_dungeon;
+  agent_config_.tool_config.overworld =
+      project.agent_settings.enable_tool_overworld;
+  agent_config_.tool_config.dialogue =
+      project.agent_settings.enable_tool_dialogue;
+  agent_config_.tool_config.messages =
+      project.agent_settings.enable_tool_messages;
+  agent_config_.tool_config.gui = project.agent_settings.enable_tool_gui;
+  agent_config_.tool_config.music = project.agent_settings.enable_tool_music;
+  agent_config_.tool_config.sprite = project.agent_settings.enable_tool_sprite;
+  agent_config_.tool_config.emulator =
+      project.agent_settings.enable_tool_emulator;
 
   // Copy to buffer for ImGui
   strncpy(agent_config_.provider_buffer, agent_config_.ai_provider.c_str(),
@@ -2827,6 +3551,29 @@ void AgentChatWidget::SaveAgentSettingsToProject(project::YazeProject& project) 
   project.agent_settings.max_tool_iterations =
       agent_config_.max_tool_iterations;
   project.agent_settings.max_retry_attempts = agent_config_.max_retry_attempts;
+  project.agent_settings.temperature = agent_config_.temperature;
+  project.agent_settings.top_p = agent_config_.top_p;
+  project.agent_settings.max_output_tokens = agent_config_.max_output_tokens;
+  project.agent_settings.stream_responses = agent_config_.stream_responses;
+  project.agent_settings.favorite_models = agent_config_.favorite_models;
+  project.agent_settings.model_chain = agent_config_.model_chain;
+  project.agent_settings.chain_mode =
+      static_cast<int>(agent_config_.chain_mode);
+  project.agent_settings.enable_tool_resources =
+      agent_config_.tool_config.resources;
+  project.agent_settings.enable_tool_dungeon =
+      agent_config_.tool_config.dungeon;
+  project.agent_settings.enable_tool_overworld =
+      agent_config_.tool_config.overworld;
+  project.agent_settings.enable_tool_dialogue =
+      agent_config_.tool_config.dialogue;
+  project.agent_settings.enable_tool_messages =
+      agent_config_.tool_config.messages;
+  project.agent_settings.enable_tool_gui = agent_config_.tool_config.gui;
+  project.agent_settings.enable_tool_music = agent_config_.tool_config.music;
+  project.agent_settings.enable_tool_sprite = agent_config_.tool_config.sprite;
+  project.agent_settings.enable_tool_emulator =
+      agent_config_.tool_config.emulator;
 
   // Check if a custom system prompt is loaded
   for (const auto& tab : open_files_) {

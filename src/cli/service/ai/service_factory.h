@@ -4,6 +4,7 @@
 #include <memory>
 #include <string>
 
+#include "absl/status/statusor.h"
 #include "cli/service/ai/ai_service.h"
 
 namespace yaze {
@@ -22,6 +23,8 @@ std::unique_ptr<AIService> CreateAIService();
 
 // Create AI service with explicit configuration
 std::unique_ptr<AIService> CreateAIService(const AIServiceConfig& config);
+absl::StatusOr<std::unique_ptr<AIService>> CreateAIServiceStrict(
+    const AIServiceConfig& config);
 
 }  // namespace cli
 }  // namespace yaze

@@ -1,8 +1,13 @@
 #include "app/editor/agent/agent_chat_history_popup.h"
 
 #include <cstring>
+#include <set>
+#include <string>
 
+#include "absl/strings/ascii.h"
 #include "absl/strings/str_format.h"
+#include "absl/strings/str_join.h"
+#include "absl/strings/match.h"
 #include "absl/time/time.h"
 #include "app/editor/agent/agent_ui_theme.h"
 #include "app/editor/system/toast_manager.h"
@@ -14,8 +19,25 @@
 namespace yaze {
 namespace editor {
 
+namespace {
+
+std::string BuildProviderLabel(
+    const std::optional<cli::agent::ChatMessage::ModelMetadata>& meta) {
+  if (!meta.has_value()) {
+    return "";
+  }
+  if (meta->model.empty()) {
+    return meta->provider;
+  }
+  return absl::StrFormat("%s · %s", meta->provider, meta->model);
+}
+
+}  // namespace
+
 AgentChatHistoryPopup::AgentChatHistoryPopup() {
   std::memset(input_buffer_, 0, sizeof(input_buffer_));
+  std::memset(search_buffer_, 0, sizeof(search_buffer_));
+  provider_filters_.push_back("All providers");
 }
 
 void AgentChatHistoryPopup::Draw() {
@@ -129,12 +151,10 @@ void AgentChatHistoryPopup::DrawMessageList() {
     // Skip internal messages
     if (msg.is_internal) continue;
     
-    // Apply filter
-    if (message_filter_ == MessageFilter::kUserOnly && 
-        msg.sender != cli::agent::ChatMessage::Sender::kUser) continue;
-    if (message_filter_ == MessageFilter::kAgentOnly && 
-        msg.sender != cli::agent::ChatMessage::Sender::kAgent) continue;
-    
+    if (!MessagePassesFilters(msg, i)) {
+      continue;
+    }
+
     DrawMessage(msg, i);
   }
 }
@@ -157,6 +177,33 @@ void AgentChatHistoryPopup::DrawMessage(const cli::agent::ChatMessage& msg, int 
   ImGui::SameLine();
   ImGui::TextColored(ImVec4(0.5f, 0.5f, 0.5f, 1.0f), 
                     "[%s]", absl::FormatTime("%H:%M:%S", msg.timestamp, absl::LocalTimeZone()).c_str());
+  if (msg.model_metadata.has_value()) {
+    const auto& meta = *msg.model_metadata;
+    ImGui::SameLine();
+    ImGui::TextColored(ImVec4(0.3f, 0.8f, 1.0f, 1.0f), "[%s • %s]",
+                       meta.provider.c_str(), meta.model.c_str());
+  }
+
+  bool is_pinned = pinned_messages_.find(index) != pinned_messages_.end();
+  float pin_target =
+      ImGui::GetCursorPosX() + ImGui::GetContentRegionAvail().x - 24.0f;
+  if (pin_target > ImGui::GetCursorPosX()) {
+    ImGui::SameLine(pin_target);
+  } else {
+    ImGui::SameLine();
+  }
+  if (is_pinned) {
+    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.5f, 0.3f, 0.8f));
+  }
+  if (ImGui::SmallButton(ICON_MD_PUSH_PIN)) {
+    TogglePin(index);
+  }
+  if (is_pinned) {
+    ImGui::PopStyleColor();
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip(is_pinned ? "Unpin message" : "Pin message");
+  }
   
   // Message content with terminal styling
   ImGui::Indent(15.0f);
@@ -183,6 +230,21 @@ void AgentChatHistoryPopup::DrawMessage(const cli::agent::ChatMessage& msg, int 
     float proposal_pulse = 0.7f + 0.3f * std::sin(pulse_animation_ * 2.0f);
     ImGui::TextColored(ImVec4(0.2f, proposal_pulse, 0.4f, 1.0f), 
                       "  %s Proposal: [%s]", ICON_MD_PREVIEW, msg.proposal->id.c_str());
+  }
+
+  if (msg.model_metadata.has_value()) {
+    const auto& meta = *msg.model_metadata;
+    ImGui::TextDisabled("  Latency: %.2fs | Tools: %d",
+                        meta.latency_seconds, meta.tool_iterations);
+    if (!meta.tool_names.empty()) {
+      ImGui::TextDisabled("  Tool calls: %s",
+                          absl::StrJoin(meta.tool_names, ", ").c_str());
+    }
+  }
+
+  for (const auto& warning : msg.warnings) {
+    ImGui::TextColored(ImVec4(0.95f, 0.6f, 0.2f, 1.0f), "  %s %s",
+                       ICON_MD_WARNING, warning.c_str());
   }
   
   ImGui::Unindent(15.0f);
@@ -253,6 +315,49 @@ void AgentChatHistoryPopup::DrawHeader() {
   
   ImGui::SameLine();
   ImGui::TextDisabled("[v0.4.x]");
+
+  ImGui::Spacing();
+  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.55f);
+  if (ImGui::InputTextWithHint("##history_search", ICON_MD_SEARCH " Search...",
+                               search_buffer_, sizeof(search_buffer_))) {
+    needs_scroll_ = true;
+  }
+
+  if (provider_filters_.empty()) {
+    provider_filters_.push_back("All providers");
+    provider_filter_index_ = 0;
+  }
+
+  ImGui::SameLine();
+  ImGui::SetNextItemWidth(150.0f);
+  const char* provider_preview =
+      provider_filters_[std::min<int>(provider_filter_index_,
+                                      static_cast<int>(provider_filters_.size() - 1))]
+          .c_str();
+  if (ImGui::BeginCombo("##provider_filter", provider_preview)) {
+    for (int i = 0; i < static_cast<int>(provider_filters_.size()); ++i) {
+      bool selected = (provider_filter_index_ == i);
+      if (ImGui::Selectable(provider_filters_[i].c_str(), selected)) {
+        provider_filter_index_ = i;
+        needs_scroll_ = true;
+      }
+      if (selected) {
+        ImGui::SetItemDefaultFocus();
+      }
+    }
+    ImGui::EndCombo();
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("Filter messages by provider/model metadata");
+  }
+
+  ImGui::SameLine();
+  if (ImGui::Checkbox(ICON_MD_PUSH_PIN "##pin_filter", &show_pinned_only_)) {
+    needs_scroll_ = true;
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("Show pinned messages only");
+  }
   
   // Buttons properly spaced from right edge
   ImGui::SameLine(ImGui::GetCursorPosX() + ImGui::GetContentRegionAvail().x - 75.0f);
@@ -297,13 +402,13 @@ void AgentChatHistoryPopup::DrawHeader() {
   
   // Message count with retro styling
   int visible_count = 0;
-  for (const auto& msg : messages_) {
-    if (msg.is_internal) continue;
-    if (message_filter_ == MessageFilter::kUserOnly && 
-        msg.sender != cli::agent::ChatMessage::Sender::kUser) continue;
-    if (message_filter_ == MessageFilter::kAgentOnly && 
-        msg.sender != cli::agent::ChatMessage::Sender::kAgent) continue;
-    visible_count++;
+  for (int i = 0; i < static_cast<int>(messages_.size()); ++i) {
+    if (messages_[i].is_internal) {
+      continue;
+    }
+    if (MessagePassesFilters(messages_[i], i)) {
+      ++visible_count;
+    }
   }
   
   ImGui::Spacing();
@@ -385,6 +490,79 @@ void AgentChatHistoryPopup::DrawQuickActions() {
   }
 }
 
+bool AgentChatHistoryPopup::MessagePassesFilters(
+    const cli::agent::ChatMessage& msg, int index) const {
+  if (message_filter_ == MessageFilter::kUserOnly &&
+      msg.sender != cli::agent::ChatMessage::Sender::kUser) {
+    return false;
+  }
+  if (message_filter_ == MessageFilter::kAgentOnly &&
+      msg.sender != cli::agent::ChatMessage::Sender::kAgent) {
+    return false;
+  }
+  if (show_pinned_only_ &&
+      pinned_messages_.find(index) == pinned_messages_.end()) {
+    return false;
+  }
+  if (provider_filter_index_ > 0 &&
+      provider_filter_index_ < static_cast<int>(provider_filters_.size())) {
+    std::string label = BuildProviderLabel(msg.model_metadata);
+    if (label != provider_filters_[provider_filter_index_]) {
+      return false;
+    }
+  }
+  if (search_buffer_[0] != '\0') {
+    std::string needle = absl::AsciiStrToLower(std::string(search_buffer_));
+    auto contains = [&](const std::string& value) {
+      return absl::StrContains(absl::AsciiStrToLower(value), needle);
+    };
+    bool matched = contains(msg.message);
+    if (!matched && msg.json_pretty.has_value()) {
+      matched = contains(*msg.json_pretty);
+    }
+    if (!matched && msg.proposal.has_value()) {
+      matched = contains(msg.proposal->id);
+    }
+    if (!matched) {
+      for (const auto& warning : msg.warnings) {
+        if (contains(warning)) {
+          matched = true;
+          break;
+        }
+      }
+    }
+    if (!matched) {
+      return false;
+    }
+  }
+  return true;
+}
+
+void AgentChatHistoryPopup::RefreshProviderFilters() {
+  std::set<std::string> unique_labels;
+  for (const auto& msg : messages_) {
+    std::string label = BuildProviderLabel(msg.model_metadata);
+    if (!label.empty()) {
+      unique_labels.insert(label);
+    }
+  }
+  provider_filters_.clear();
+  provider_filters_.push_back("All providers");
+  provider_filters_.insert(provider_filters_.end(), unique_labels.begin(),
+                           unique_labels.end());
+  if (provider_filter_index_ >= static_cast<int>(provider_filters_.size())) {
+    provider_filter_index_ = 0;
+  }
+}
+
+void AgentChatHistoryPopup::TogglePin(int index) {
+  if (pinned_messages_.find(index) != pinned_messages_.end()) {
+    pinned_messages_.erase(index);
+  } else {
+    pinned_messages_.insert(index);
+  }
+}
+
 void AgentChatHistoryPopup::DrawInputSection() {
   ImGui::Separator();
   ImGui::Spacing();
@@ -440,6 +618,15 @@ void AgentChatHistoryPopup::UpdateHistory(const std::vector<cli::agent::ChatMess
   int old_size = messages_.size();
   
   messages_ = history;
+
+  std::unordered_set<int> updated_pins;
+  for (int pin : pinned_messages_) {
+    if (pin < static_cast<int>(messages_.size())) {
+      updated_pins.insert(pin);
+    }
+  }
+  pinned_messages_.swap(updated_pins);
+  RefreshProviderFilters();
   
   // Auto-scroll if new messages arrived
   if (auto_scroll_ && messages_.size() > old_size) {
@@ -460,6 +647,10 @@ void AgentChatHistoryPopup::NotifyNewMessage() {
 
 void AgentChatHistoryPopup::ClearHistory() {
   messages_.clear();
+  pinned_messages_.clear();
+  provider_filters_.clear();
+  provider_filters_.push_back("All providers");
+  provider_filter_index_ = 0;
   
   if (toast_manager_) {
     toast_manager_->Show("Chat history popup cleared", ToastType::kInfo, 2.0f);
