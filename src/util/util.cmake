@@ -35,6 +35,12 @@ target_include_directories(yaze_util PUBLIC
   ${PROJECT_BINARY_DIR}
 )
 
+if(YAZE_ENABLE_GRPC)
+  target_include_directories(yaze_util PRIVATE
+    ${CMAKE_BINARY_DIR}/_deps/grpc-src/third_party/abseil-cpp
+  )
+endif()
+
 target_link_libraries(yaze_util PUBLIC
   yaze_common
 )
