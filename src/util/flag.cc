@@ -1,11 +1,21 @@
 #include "flag.h"
 
+#include <cstdlib>
 #include <iostream>
 
 #include "yaze_config.h"
 
 namespace yaze {
 namespace util {
+
+namespace detail {
+
+[[noreturn]] void FlagParseFatal(const std::string& message) {
+  std::cerr << "[Flag Parser] " << message << std::endl;
+  std::exit(EXIT_FAILURE);
+}
+
+}  // namespace detail
 
 void FlagParser::Parse(std::vector<std::string>* tokens) {
   std::vector<std::string> leftover;
@@ -38,7 +48,7 @@ void FlagParser::Parse(std::vector<std::string>* tokens) {
       // Attempt to parse the flag (strip leading dashes in the registry).
       IFlag* flag_ptr = registry_->GetFlag(flag_name);
       if (!flag_ptr) {
-        throw std::runtime_error("Unrecognized flag: " + flag_name);
+        detail::FlagParseFatal("Unrecognized flag: " + flag_name);
       }
 
       // Set the parsed value on the matching flag.
@@ -62,7 +72,7 @@ void FlagParser::Parse(std::vector<std::string>* tokens) {
 
       std::string flag_name;
       if (!ExtractFlag(token, &flag_name)) {
-        throw std::runtime_error("Unrecognized flag: " + token);
+        detail::FlagParseFatal("Unrecognized flag: " + token);
       }
 
     } else {

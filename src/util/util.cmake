@@ -42,7 +42,13 @@ target_link_libraries(yaze_util PUBLIC
 # Add Abseil dependencies if gRPC is enabled
 # We link to grpc++ which transitively provides Abseil and ensures correct build order
 if(YAZE_ENABLE_GRPC)
-  target_link_libraries(yaze_util PUBLIC grpc++)
+  target_link_libraries(yaze_util PUBLIC
+    grpc++
+    absl::status
+    absl::statusor
+    absl::strings
+    absl::str_format
+  )
 endif()
 
 set_target_properties(yaze_util PROPERTIES
