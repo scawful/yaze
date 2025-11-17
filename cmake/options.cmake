@@ -80,6 +80,10 @@ if(YAZE_ENABLE_AI)
   add_compile_definitions(Z3ED_AI)
 endif()
 
+if(YAZE_ENABLE_AI_RUNTIME)
+  add_compile_definitions(YAZE_AI_RUNTIME_AVAILABLE)
+endif()
+
 # Print configuration summary
 message(STATUS "=== YAZE Build Configuration ===")
 message(STATUS "GUI Application: ${YAZE_BUILD_GUI}")
