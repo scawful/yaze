@@ -9,7 +9,10 @@
 #include "absl/status/statusor.h"
 #include "absl/time/time.h"
 #include "cli/service/ai/ai_service.h"
+
+#ifdef YAZE_AI_RUNTIME_AVAILABLE
 #include "cli/service/ai/prompt_builder.h"
+#endif
 
 namespace yaze {
 namespace cli {
@@ -17,7 +20,7 @@ namespace cli {
 // Ollama configuration for local LLM inference
 struct OllamaConfig {
   std::string base_url = "http://localhost:11434";  // Default Ollama endpoint
-  std::string model = "qwen2.5-coder:7b";           // Recommended for code generation
+  std::string model = "qwen2.5-coder:0.5b";         // Lightweight default with tool-calling
   float temperature = 0.1;                          // Low temp for deterministic commands
   int max_tokens = 2048;                            // Sufficient for command lists
   std::string system_prompt;                        // Injected from resource catalogue
@@ -29,6 +32,8 @@ struct OllamaConfig {
   bool use_chat_completions = true;
   std::vector<std::string> favorite_models;
 };
+
+#ifdef YAZE_AI_RUNTIME_AVAILABLE
 
 class OllamaAIService : public AIService {
  public:
@@ -68,6 +73,44 @@ class OllamaAIService : public AIService {
   // Parse JSON response from Ollama API
   absl::StatusOr<std::string> ParseOllamaResponse(const std::string& json_response);
 };
+
+#else  // !YAZE_AI_RUNTIME_AVAILABLE
+
+class OllamaAIService : public AIService {
+ public:
+  struct ModelInfo {
+    std::string name;
+    std::string digest;
+    std::string family;
+    std::string parameter_size;
+    std::string quantization_level;
+    uint64_t size_bytes = 0;
+    absl::Time modified_at = absl::InfinitePast();
+  };
+
+  explicit OllamaAIService(const OllamaConfig&) {}
+  void SetRomContext(Rom*) override {}
+  absl::StatusOr<AgentResponse> GenerateResponse(
+      const std::string&) override {
+    return absl::FailedPreconditionError(
+        "Ollama AI runtime is disabled");
+  }
+  absl::StatusOr<AgentResponse> GenerateResponse(
+      const std::vector<agent::ChatMessage>&) override {
+    return absl::FailedPreconditionError(
+        "Ollama AI runtime is disabled");
+  }
+  absl::Status CheckAvailability() {
+    return absl::FailedPreconditionError(
+        "Ollama AI runtime is disabled");
+  }
+  absl::StatusOr<std::vector<ModelInfo>> ListAvailableModels() {
+    return absl::FailedPreconditionError(
+        "Ollama AI runtime is disabled");
+  }
+};
+
+#endif  // YAZE_AI_RUNTIME_AVAILABLE
 
 }  // namespace cli
 }  // namespace yaze

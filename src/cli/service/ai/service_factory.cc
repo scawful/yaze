@@ -1,5 +1,6 @@
 #include "cli/service/ai/service_factory.h"
 
+#include <cstdlib>
 #include <cstring>
 #include <iostream>
 
@@ -112,6 +113,8 @@ absl::StatusOr<std::unique_ptr<AIService>> CreateAIServiceStrict(
     ollama_config.base_url = config.ollama_host;
     if (!config.model.empty()) {
       ollama_config.model = config.model;
+    } else if (const char* env_model = std::getenv("OLLAMA_MODEL")) {
+      ollama_config.model = env_model;
     }
 
     auto service = std::make_unique<OllamaAIService>(ollama_config);

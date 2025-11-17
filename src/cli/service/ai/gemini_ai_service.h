@@ -7,7 +7,10 @@
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "cli/service/ai/ai_service.h"
+
+#ifdef YAZE_AI_RUNTIME_AVAILABLE
 #include "cli/service/ai/prompt_builder.h"
+#endif
 
 namespace yaze {
 namespace cli {
@@ -26,6 +29,8 @@ struct GeminiConfig {
   GeminiConfig() = default;
   explicit GeminiConfig(const std::string& key) : api_key(key) {}
 };
+
+#ifdef YAZE_AI_RUNTIME_AVAILABLE
 
 class GeminiAIService : public AIService {
  public:
@@ -64,6 +69,37 @@ class GeminiAIService : public AIService {
   GeminiConfig config_;
   PromptBuilder prompt_builder_;
 };
+
+#else  // !YAZE_AI_RUNTIME_AVAILABLE
+
+class GeminiAIService : public AIService {
+ public:
+  explicit GeminiAIService(const GeminiConfig&) {}
+  void SetRomContext(Rom*) override {}
+  absl::StatusOr<AgentResponse> GenerateResponse(
+      const std::string& prompt) override {
+    return absl::FailedPreconditionError(
+        "Gemini AI runtime is disabled (prompt: " + prompt + ")");
+  }
+  absl::StatusOr<AgentResponse> GenerateResponse(
+      const std::vector<agent::ChatMessage>&) override {
+    return absl::FailedPreconditionError(
+        "Gemini AI runtime is disabled");
+  }
+  absl::Status CheckAvailability() {
+    return absl::FailedPreconditionError(
+        "Gemini AI runtime is disabled");
+  }
+  void EnableFunctionCalling(bool) {}
+  std::vector<std::string> GetAvailableTools() const { return {}; }
+  absl::StatusOr<AgentResponse> GenerateMultimodalResponse(
+      const std::string&, const std::string&) {
+    return absl::FailedPreconditionError(
+        "Gemini AI runtime is disabled");
+  }
+};
+
+#endif  // YAZE_AI_RUNTIME_AVAILABLE
 
 }  // namespace cli
 }  // namespace yaze
