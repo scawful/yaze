@@ -65,10 +65,12 @@ set(YAZE_AGENT_CORE_SOURCES
   cli/service/resources/resource_catalog.cc
   cli/service/resources/resource_context_builder.cc
   cli/service/rom/rom_sandbox_manager.cc
+  cli/service/agent/proposal_executor.cc
   cli/service/testing/test_suite_loader.cc
   cli/service/testing/test_suite_reporter.cc
   cli/service/testing/test_suite_writer.cc
   cli/service/testing/test_workflow_generator.cc
+  cli/service/ai/ai_service.cc
   
   # Advanced features
   # CommandHandler-based implementations
@@ -80,14 +82,16 @@ if(YAZE_ENABLE_AI_RUNTIME)
   list(APPEND YAZE_AGENT_CORE_SOURCES
     cli/service/agent/advanced_routing.cc
     cli/service/agent/agent_pretraining.cc
-    cli/service/agent/proposal_executor.cc
     cli/service/ai/ai_action_parser.cc
     cli/service/ai/ai_gui_controller.cc
-    cli/service/ai/ai_service.cc
     cli/service/ai/ollama_ai_service.cc
     cli/service/ai/prompt_builder.cc
     cli/service/ai/service_factory.cc
     cli/service/ai/vision_action_refiner.cc
+  )
+else()
+  list(APPEND YAZE_AGENT_CORE_SOURCES
+    cli/service/ai/service_factory_stub.cc
   )
 endif()
 
