@@ -139,7 +139,10 @@
         "YAZE_ENABLE_JSON": "ON",
         "YAZE_ENABLE_AI": "OFF",
         "YAZE_ENABLE_ROM_TESTS": "OFF",
-        "YAZE_MINIMAL_BUILD": "OFF"
+        "YAZE_MINIMAL_BUILD": "OFF",
+        "YAZE_BUILD_AGENT_UI": "ON",
+        "YAZE_ENABLE_REMOTE_AUTOMATION": "ON",
+        "YAZE_ENABLE_AI_RUNTIME": "OFF"
       }
     },
     {
@@ -154,7 +157,10 @@
         "YAZE_ENABLE_JSON": "ON",
         "YAZE_ENABLE_AI": "OFF",
         "YAZE_ENABLE_ROM_TESTS": "OFF",
-        "YAZE_MINIMAL_BUILD": "OFF"
+        "YAZE_MINIMAL_BUILD": "OFF",
+        "YAZE_BUILD_AGENT_UI": "ON",
+        "YAZE_ENABLE_REMOTE_AUTOMATION": "ON",
+        "YAZE_ENABLE_AI_RUNTIME": "OFF"
       }
     },
     {

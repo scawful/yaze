@@ -12,7 +12,7 @@ NC='\033[0m' # No Color
 Z3ED="./build_test/bin/z3ed"
 RESULTS_FILE="/tmp/z3ed_ai_test_results.txt"
 USE_MOCK_ROM=true  # Set to false if you want to test with a real ROM
-OLLAMA_MODEL="${OLLAMA_MODEL:-qwen2.5-coder:latest}"
+OLLAMA_MODEL="${OLLAMA_MODEL:-qwen2.5-coder:0.5b}"
 OLLAMA_PID=""
 
 echo "=========================================="
@@ -124,7 +124,7 @@ if [ -z "$1" ]; then
   echo "Usage: $0 <ollama|gemini|mock>"
   echo ""
   echo "Environment Variables:"
-  echo "  OLLAMA_MODEL - Ollama model to use (default: qwen2.5-coder:latest)"
+  echo "  OLLAMA_MODEL - Ollama model to use (default: qwen2.5-coder:0.5b)"
   echo "  GEMINI_API_KEY - Required for Gemini provider"
   echo ""
   echo "Examples:"
@@ -228,7 +228,11 @@ run_test() {
     echo "Query: $query"
     echo ""
     
-    local cmd="$Z3ED agent simple-chat \"$query\" $ROM_FLAGS --ai_provider=$provider $extra_args"
+    local provider_args="$extra_args"
+    if [ "$provider" == "ollama" ]; then
+        provider_args="--ai_model=\"$OLLAMA_MODEL\" $provider_args"
+    fi
+    local cmd="$Z3ED agent simple-chat \"$query\" $ROM_FLAGS --ai_provider=$provider $provider_args"
     echo "Running: $cmd"
     echo ""
     

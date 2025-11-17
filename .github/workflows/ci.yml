@@ -266,16 +266,23 @@ jobs:
         cmake -B build_test -G Ninja \
           -DCMAKE_BUILD_TYPE=Release \
           -DZ3ED_AI=ON \
-          -DYAZE_BUILD_Z3ED=ON
+          -DYAZE_BUILD_Z3ED=ON \
+          -DYAZE_ENABLE_AI_RUNTIME=ON \
+          -DYAZE_ENABLE_REMOTE_AUTOMATION=ON \
+          -DYAZE_BUILD_AGENT_UI=ON
         cmake --build build_test --target z3ed
     
     - name: Start Ollama
+      env:
+        OLLAMA_MODEL: qwen2.5-coder:0.5b
       run: |
         ollama serve & 
         sleep 10
-        ollama pull qwen2.5-coder:7b
+        ollama pull "$OLLAMA_MODEL"
     
     - name: Run Test Suite
+      env:
+        OLLAMA_MODEL: qwen2.5-coder:0.5b
       run: |
         chmod +x ./scripts/agent_test_suite.sh
         ./scripts/agent_test_suite.sh ollama
