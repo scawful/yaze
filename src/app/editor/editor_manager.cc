@@ -383,6 +383,7 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
     *output_path = result->file_path;
     return absl::OkStatus();
   };
+#ifdef YAZE_AI_RUNTIME_AVAILABLE
   multimodal_callbacks.send_to_gemini =
       [this](const std::filesystem::path& image_path,
              const std::string& prompt) -> absl::Status {
@@ -417,6 +418,14 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
 
     return absl::OkStatus();
   };
+#else
+  multimodal_callbacks.send_to_gemini =
+      [](const std::filesystem::path&, const std::string&) -> absl::Status {
+    return absl::FailedPreconditionError(
+        "Gemini AI runtime is disabled in this build");
+  };
+#endif
+
   agent_editor_.GetChatWidget()->SetMultimodalCallbacks(multimodal_callbacks);
 
   // Set up Z3ED command callbacks for proposal management

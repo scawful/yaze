@@ -1,5 +1,21 @@
 #include "cli/service/agent/proposal_executor.h"
 
+#ifndef YAZE_AI_RUNTIME_AVAILABLE
+
+#include "absl/status/status.h"
+
+namespace yaze::cli::agent {
+
+absl::StatusOr<ProposalCreationResult> CreateProposalFromAgentResponse(
+    const ProposalCreationRequest&) {
+  return absl::FailedPreconditionError(
+      "AI runtime features are disabled in this build");
+}
+
+}  // namespace yaze::cli::agent
+
+#else  // YAZE_AI_RUNTIME_AVAILABLE
+
 #include <filesystem>
 #include <sstream>
 #include <utility>
@@ -180,3 +196,5 @@ absl::StatusOr<ProposalCreationResult> CreateProposalFromAgentResponse(
 }  // namespace agent
 }  // namespace cli
 }  // namespace yaze
+
+#endif  // YAZE_AI_RUNTIME_AVAILABLE
