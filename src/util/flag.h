@@ -3,13 +3,16 @@
 
 #include <memory>
 #include <sstream>
-#include <stdexcept>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
 namespace yaze {
 namespace util {
+
+namespace detail {
+[[noreturn]] void FlagParseFatal(const std::string& message);
+}
 
 // Base interface for all flags.
 class IFlag {
@@ -44,7 +47,7 @@ class Flag : public IFlag {
     std::stringstream ss(text);
     T parsed;
     if (!(ss >> parsed)) {
-      throw std::runtime_error("Failed to parse flag: " + name_);
+      detail::FlagParseFatal("Failed to parse flag: " + name_);
     }
     value_ = parsed;
   }
@@ -70,8 +73,9 @@ inline void Flag<bool>::ParseValue(const std::string& text) {
   } else if (text == "false" || text == "0" || text == "no" || text == "off") {
     SetValue(false);
   } else {
-    throw std::runtime_error("Failed to parse boolean flag: " + name() + 
-                           " (expected true/false/1/0/yes/no/on/off, got: " + text + ")");
+    detail::FlagParseFatal("Failed to parse boolean flag: " + name() +
+                           " (expected true/false/1/0/yes/no/on/off, got: " +
+                           text + ")");
   }
 }
 
