@@ -54,9 +54,10 @@ target_link_libraries(yaze_grpc_support PUBLIC
 )
 
 # Add JSON support
-if(YAZE_WITH_JSON)
+if(YAZE_ENABLE_JSON)
+  target_link_libraries(yaze_grpc_support PUBLIC nlohmann_json::nlohmann_json)
   target_include_directories(yaze_grpc_support PUBLIC
-    ${CMAKE_SOURCE_DIR}/ext/json/include)
+    $<TARGET_PROPERTY:nlohmann_json::nlohmann_json,INTERFACE_INCLUDE_DIRECTORIES>)
   target_compile_definitions(yaze_grpc_support PUBLIC YAZE_WITH_JSON)
 endif()
 

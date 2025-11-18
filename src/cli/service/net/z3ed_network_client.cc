@@ -12,7 +12,6 @@
 
 #ifdef YAZE_WITH_JSON
 #include "nlohmann/json.hpp"
-#define CPPHTTPLIB_OPENSSL_SUPPORT
 #include "httplib.h"
 #endif
 

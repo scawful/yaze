@@ -1,14 +1,14 @@
-# ==============================================================================
+# ============================================================================
 # Yaze Utility Library
-# ==============================================================================
+# ============================================================================
 # This library contains low-level utilities used throughout the codebase:
 # - BPS patch handling
-# - Command-line flag parsing  
+# - Command-line flag parsing
 # - Hexadecimal utilities
 #
 # This library has no dependencies on GUI, graphics, or game-specific code,
 # making it the foundation of the dependency hierarchy.
-# ==============================================================================
+# ============================================================================
 
 set(YAZE_UTIL_SRC
   util/bps.cc
@@ -35,27 +35,20 @@ target_include_directories(yaze_util PUBLIC
   ${PROJECT_BINARY_DIR}
 )
 
-if(YAZE_ENABLE_GRPC)
-  target_include_directories(yaze_util PRIVATE
-    ${CMAKE_BINARY_DIR}/_deps/grpc-src/third_party/abseil-cpp
-  )
-endif()
-
 target_link_libraries(yaze_util PUBLIC
   yaze_common
 )
 
-# Add Abseil dependencies if gRPC is enabled
-# We link to grpc++ which transitively provides Abseil and ensures correct build order
-if(YAZE_ENABLE_GRPC)
-  target_link_libraries(yaze_util PUBLIC
-    grpc++
-    absl::status
-    absl::statusor
+# Abseil is required for logging/flags utilities regardless of whether gRPC is enabled.
+yaze_target_link_absl(
+  yaze_util
+  SCOPE PUBLIC
+  COMPONENTS
     absl::strings
     absl::str_format
-  )
-endif()
+    absl::status
+    absl::statusor
+)
 
 set_target_properties(yaze_util PROPERTIES
   POSITION_INDEPENDENT_CODE ON

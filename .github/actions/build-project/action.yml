@@ -15,6 +15,16 @@ inputs:
 runs:
   using: 'composite'
   steps:
+    - name: Prepare build directory (POSIX)
+      if: inputs.platform != 'windows'
+      shell: bash
+      run: cmake -E make_directory build
+
+    - name: Prepare build directory (Windows)
+      if: inputs.platform == 'windows'
+      shell: pwsh
+      run: cmake -E make_directory build
+
     - name: Cache build artifacts
       uses: actions/cache@v4
       with:

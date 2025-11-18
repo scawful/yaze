@@ -276,19 +276,19 @@
     },
     {
       "name": "win-dev",
-      "inherits": "windows-base",
-      "displayName": "Windows Development",
-      "description": "Development build with ROM tests",
+      "inherits": "windows-vs-base",
+      "displayName": "Windows Development (Visual Studio)",
+      "description": "Full development build with all features for Visual Studio",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
         "YAZE_BUILD_TESTS": "ON",
-        "YAZE_ENABLE_GRPC": "OFF",
+        "YAZE_ENABLE_GRPC": "ON",
         "YAZE_ENABLE_JSON": "ON",
-        "YAZE_ENABLE_AI": "OFF",
+        "YAZE_ENABLE_AI": "ON",
         "YAZE_ENABLE_ROM_TESTS": "ON",
-        "YAZE_BUILD_AGENT_UI": "OFF",
-        "YAZE_ENABLE_REMOTE_AUTOMATION": "OFF",
-        "YAZE_ENABLE_AI_RUNTIME": "OFF"
+        "YAZE_BUILD_AGENT_UI": "ON",
+        "YAZE_ENABLE_REMOTE_AUTOMATION": "ON",
+        "YAZE_ENABLE_AI_RUNTIME": "ON"
       }
     },
     {
