@@ -9,7 +9,6 @@
 
 // Cross-platform WebSocket support using httplib
 #ifdef YAZE_WITH_JSON
-#define CPPHTTPLIB_OPENSSL_SUPPORT
 #include "httplib.h"
 #endif
 

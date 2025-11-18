@@ -1,6 +1,7 @@
 # YAZE Dependencies Management
 # Centralized dependency management using CPM.cmake
 
+include(cmake/dependencies/grpc_stack.cmake)
 # Include CPM and options
 include(cmake/CPM.cmake)
 include(cmake/options.cmake)
@@ -26,6 +27,7 @@ list(APPEND YAZE_ALL_DEPENDENCIES ${YAZE_SDL2_TARGETS})
 include(cmake/dependencies/yaml.cmake)
 list(APPEND YAZE_ALL_DEPENDENCIES ${YAZE_YAML_TARGETS})
 
+message(NOTICE "Including ImGui dependency via cmake/dependencies/imgui.cmake")
 include(cmake/dependencies/imgui.cmake)
 # Debug: message(STATUS "After ImGui setup, YAZE_IMGUI_TARGETS = '${YAZE_IMGUI_TARGETS}'")
 list(APPEND YAZE_ALL_DEPENDENCIES ${YAZE_IMGUI_TARGETS})
@@ -38,9 +40,12 @@ if(NOT YAZE_ENABLE_GRPC)
 endif()
 
 # Optional dependencies based on feature flags
+message(NOTICE "YAZE_ENABLE_JSON=${YAZE_ENABLE_JSON}")
 if(YAZE_ENABLE_JSON)
   include(cmake/dependencies/json.cmake)
   list(APPEND YAZE_ALL_DEPENDENCIES ${YAZE_JSON_TARGETS})
+  include(cmake/dependencies/httplib.cmake)
+  list(APPEND YAZE_ALL_DEPENDENCIES ${YAZE_HTTPLIB_TARGETS})
 endif()
 
 # CRITICAL: Load testing dependencies BEFORE gRPC when both are enabled

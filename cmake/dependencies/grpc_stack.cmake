@@ -1,0 +1,217 @@
+# Helper functions to propagate gRPC/Abseil include directories alongside link targets.
+
+if(DEFINED YAZE_GRPC_STACK_CMAKE_INCLUDED)
+  return()
+endif()
+set(YAZE_GRPC_STACK_CMAKE_INCLUDED TRUE)
+
+function(_yaze_collect_interface_include_dirs out_var)
+  set(_include_dirs)
+  foreach(_dep IN LISTS ARGN)
+    if(TARGET ${_dep})
+      # Get interface include directories (may contain generator expressions)
+      get_target_property(_dep_include_dirs ${_dep} INTERFACE_INCLUDE_DIRECTORIES)
+      if(_dep_include_dirs AND NOT _dep_include_dirs STREQUAL "NOTFOUND")
+        # Process each include directory
+        foreach(_inc_dir IN LISTS _dep_include_dirs)
+          # Handle generator expressions by extracting BUILD_INTERFACE paths
+          if(_inc_dir MATCHES "\\$<BUILD_INTERFACE:([^>]+)>")
+            list(APPEND _include_dirs "${CMAKE_MATCH_1}")
+          elseif(_inc_dir MATCHES "\\$<INSTALL_INTERFACE:([^>]+)>")
+            # Skip install interface for now
+            continue()
+          elseif(NOT _inc_dir MATCHES "\\$<")
+            # Direct path, not a generator expression
+            list(APPEND _include_dirs "${_inc_dir}")
+          endif()
+        endforeach()
+      endif()
+      
+      # Fallback: try to get SOURCE_DIR for Abseil targets
+      if(_dep MATCHES "^absl::")
+        get_target_property(_dep_source_dir ${_dep} SOURCE_DIR)
+        if(_dep_source_dir AND NOT _dep_source_dir STREQUAL "NOTFOUND")
+          get_filename_component(_absl_base_dir "${_dep_source_dir}" DIRECTORY)
+          get_filename_component(_absl_root_dir "${_absl_base_dir}" DIRECTORY)
+          if(EXISTS "${_absl_root_dir}")
+            list(APPEND _include_dirs "${_absl_root_dir}")
+          endif()
+        endif()
+      endif()
+    endif()
+  endforeach()
+  
+  # Also check for gRPC-bundled Abseil if gRPC is enabled
+  if(YAZE_ENABLE_GRPC)
+    # First check cached include directory
+    if(DEFINED YAZE_ABSL_INCLUDE_DIR AND YAZE_ABSL_INCLUDE_DIR)
+      if(EXISTS "${YAZE_ABSL_INCLUDE_DIR}")
+        list(APPEND _include_dirs "${YAZE_ABSL_INCLUDE_DIR}")
+      endif()
+    endif()
+    
+    # Try common gRPC Abseil locations as fallback
+    set(_grpc_absl_paths
+      "${CMAKE_BINARY_DIR}/_deps/grpc-src/third_party/abseil-cpp"
+      "${CMAKE_SOURCE_DIR}/build/_deps/grpc-src/third_party/abseil-cpp"
+    )
+    foreach(_path IN LISTS _grpc_absl_paths)
+      if(EXISTS "${_path}")
+        list(APPEND _include_dirs "${_path}")
+        break()
+      endif()
+    endforeach()
+  endif()
+  
+  if(_include_dirs)
+    list(REMOVE_DUPLICATES _include_dirs)
+  endif()
+  set(${out_var} "${_include_dirs}" PARENT_SCOPE)
+endfunction()
+
+function(yaze_refresh_absl_usage_metadata)
+  if(NOT DEFINED ABSL_TARGETS OR NOT ABSL_TARGETS)
+    return()
+  endif()
+  _yaze_collect_interface_include_dirs(_absl_include_dirs ${ABSL_TARGETS})
+  if(_absl_include_dirs)
+    list(REMOVE_DUPLICATES _absl_include_dirs)
+    set(YAZE_ABSL_INCLUDE_DIRS "${_absl_include_dirs}" CACHE INTERNAL "Abseil include directories")
+  endif()
+endfunction()
+
+function(yaze_target_link_with_interface_includes target)
+  if(NOT TARGET ${target})
+    message(FATAL_ERROR "yaze_target_link_with_interface_includes: target ${target} not found")
+  endif()
+  set(options)
+  set(oneValueArgs SCOPE)
+  set(multiValueArgs LIBS)
+  cmake_parse_arguments(YAZE_LINK "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+  if(NOT YAZE_LINK_SCOPE)
+    set(YAZE_LINK_SCOPE PUBLIC)
+  endif()
+  if(NOT YAZE_LINK_LIBS)
+    message(FATAL_ERROR "yaze_target_link_with_interface_includes requires LIBS to be specified")
+  endif()
+  set(_valid_libs)
+  foreach(_lib IN LISTS YAZE_LINK_LIBS)
+    if(TARGET ${_lib})
+      list(APPEND _valid_libs ${_lib})
+    endif()
+  endforeach()
+  if(NOT _valid_libs)
+    message(WARNING "yaze_target_link_with_interface_includes: no valid libs were provided for ${target}")
+    return()
+  endif()
+  list(REMOVE_DUPLICATES _valid_libs)
+  target_link_libraries(${target} ${YAZE_LINK_SCOPE} ${_valid_libs})
+  
+  # Use generator expressions to get include directories at build time
+  # This handles both direct paths and generator expressions correctly
+  foreach(_lib IN LISTS _valid_libs)
+    target_include_directories(${target} ${YAZE_LINK_SCOPE}
+      $<TARGET_PROPERTY:${_lib},INTERFACE_INCLUDE_DIRECTORIES>
+    )
+  endforeach()
+  
+  # Also try to collect concrete paths as fallback for configure-time checks
+  _yaze_collect_interface_include_dirs(_include_dirs ${_valid_libs})
+  if(_include_dirs)
+    target_include_directories(${target} ${YAZE_LINK_SCOPE} ${_include_dirs})
+  endif()
+endfunction()
+
+function(yaze_get_grpc_stack_targets out_var)
+  set(_targets)
+  foreach(_candidate IN ITEMS grpc::grpc++ grpc++)
+    if(TARGET ${_candidate})
+      list(APPEND _targets ${_candidate})
+      break()
+    endif()
+  endforeach()
+  foreach(_candidate IN ITEMS grpc::grpc++_reflection grpc++_reflection)
+    if(TARGET ${_candidate})
+      list(APPEND _targets ${_candidate})
+      break()
+    endif()
+  endforeach()
+  foreach(_candidate IN ITEMS protobuf::libprotobuf libprotobuf)
+    if(TARGET ${_candidate})
+      list(APPEND _targets ${_candidate})
+      break()
+    endif()
+  endforeach()
+  if(DEFINED ABSL_TARGETS)
+    list(APPEND _targets ${ABSL_TARGETS})
+  endif()
+  if(_targets)
+    list(REMOVE_DUPLICATES _targets)
+  endif()
+  set(${out_var} "${_targets}" PARENT_SCOPE)
+endfunction()
+
+function(yaze_target_link_grpc_stack target)
+  set(options)
+  set(oneValueArgs SCOPE)
+  set(multiValueArgs EXTRA_LIBS)
+  cmake_parse_arguments(YAZE_GRPC "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+  if(NOT YAZE_GRPC_SCOPE)
+    set(YAZE_GRPC_SCOPE PUBLIC)
+  endif()
+  yaze_get_grpc_stack_targets(_stack_targets)
+  if(YAZE_GRPC_EXTRA_LIBS)
+    list(APPEND _stack_targets ${YAZE_GRPC_EXTRA_LIBS})
+    list(REMOVE_DUPLICATES _stack_targets)
+  endif()
+  if(NOT _stack_targets)
+    message(FATAL_ERROR "yaze_target_link_grpc_stack: gRPC stack requested but no targets exist. Enable YAZE_ENABLE_GRPC or include the dependency first.")
+  endif()
+  yaze_target_link_with_interface_includes(
+    ${target}
+    SCOPE ${YAZE_GRPC_SCOPE}
+    LIBS ${_stack_targets})
+endfunction()
+
+function(yaze_target_link_absl target)
+  set(options)
+  set(oneValueArgs SCOPE)
+  set(multiValueArgs COMPONENTS)
+  cmake_parse_arguments(YAZE_ABSL "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+  if(NOT YAZE_ABSL_SCOPE)
+    set(YAZE_ABSL_SCOPE PUBLIC)
+  endif()
+  if(NOT DEFINED ABSL_TARGETS OR NOT ABSL_TARGETS)
+    message(FATAL_ERROR "yaze_target_link_absl: ABSL_TARGETS is undefined. Ensure cmake/dependencies.cmake has been processed.")
+  endif()
+  set(_components ${YAZE_ABSL_COMPONENTS})
+  if(NOT _components)
+    set(_components
+      absl::strings
+      absl::str_format
+      absl::status
+      absl::statusor
+    )
+  endif()
+  set(_available_components)
+  foreach(_component IN LISTS _components)
+    if(TARGET ${_component})
+      list(APPEND _available_components ${_component})
+    endif()
+  endforeach()
+  if(NOT _available_components)
+    message(FATAL_ERROR "yaze_target_link_absl: none of the requested Abseil targets exist in the current configuration.")
+  endif()
+  yaze_target_link_with_interface_includes(
+    ${target}
+    SCOPE ${YAZE_ABSL_SCOPE}
+    LIBS ${_available_components})
+  
+  # Add cached Abseil include directory if available (from gRPC or standalone)
+  if(DEFINED YAZE_ABSL_INCLUDE_DIRS AND YAZE_ABSL_INCLUDE_DIRS)
+    target_include_directories(${target} ${YAZE_ABSL_SCOPE} ${YAZE_ABSL_INCLUDE_DIRS})
+  endif()
+  if(DEFINED YAZE_ABSL_INCLUDE_DIR AND YAZE_ABSL_INCLUDE_DIR)
+    target_include_directories(${target} ${YAZE_ABSL_SCOPE} ${YAZE_ABSL_INCLUDE_DIR})
+  endif()
+endfunction()

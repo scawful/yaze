@@ -31,8 +31,6 @@ target_include_directories(yaze_net PUBLIC
   ${CMAKE_SOURCE_DIR}/src
   ${CMAKE_SOURCE_DIR}/ext
   ${CMAKE_SOURCE_DIR}/ext/imgui
-  ${CMAKE_SOURCE_DIR}/ext/json/include
-  ${CMAKE_SOURCE_DIR}/ext/httplib
   ${PROJECT_BINARY_DIR}
 )
 
@@ -44,11 +42,17 @@ target_link_libraries(yaze_net PUBLIC
 )
 
 # Add JSON and httplib support if enabled
-if(YAZE_WITH_JSON)
-  # Link nlohmann_json which provides the include directories automatically
+if(YAZE_ENABLE_JSON)
   target_link_libraries(yaze_net PUBLIC nlohmann_json::nlohmann_json)
-  target_include_directories(yaze_net PUBLIC ${CMAKE_SOURCE_DIR}/ext/httplib)
+  target_include_directories(yaze_net PUBLIC
+    $<TARGET_PROPERTY:nlohmann_json::nlohmann_json,INTERFACE_INCLUDE_DIRECTORIES>)
   target_compile_definitions(yaze_net PUBLIC YAZE_WITH_JSON)
+
+  if(TARGET yaze_httplib)
+    target_link_libraries(yaze_net PUBLIC yaze_httplib)
+  else()
+    message(FATAL_ERROR "yaze_httplib target not found. Ensure cmake/dependencies/httplib.cmake has been included.")
+  endif()
   
   # Add threading support (cross-platform)
   find_package(Threads REQUIRED)
@@ -91,3 +95,5 @@ set_target_properties(yaze_net PROPERTIES
 )
 
 message(STATUS "✓ yaze_net library configured")
+
+

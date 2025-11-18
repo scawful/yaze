@@ -126,14 +126,10 @@ endif()
 
 # Note: yaze_test_support linking is deferred to test.cmake to ensure proper ordering
 
-if(YAZE_WITH_JSON)
+if(YAZE_ENABLE_JSON)
+  target_link_libraries(yaze_editor PUBLIC nlohmann_json::nlohmann_json)
   target_include_directories(yaze_editor PUBLIC
-    ${CMAKE_SOURCE_DIR}/ext/json/include)
-
-  if(TARGET nlohmann_json::nlohmann_json)
-    target_link_libraries(yaze_editor PUBLIC nlohmann_json::nlohmann_json)
-  endif()
-
+    $<TARGET_PROPERTY:nlohmann_json::nlohmann_json,INTERFACE_INCLUDE_DIRECTORIES>)
   target_compile_definitions(yaze_editor PUBLIC YAZE_WITH_JSON)
 endif()
 

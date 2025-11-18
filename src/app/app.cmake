@@ -96,16 +96,35 @@ target_link_libraries(yaze_app_core_lib PUBLIC
 
 # Link nativefiledialog-extended for Windows/Linux file dialogs
 if(WIN32 OR (UNIX AND NOT APPLE))
-  add_subdirectory(${CMAKE_SOURCE_DIR}/ext/nativefiledialog-extended ${CMAKE_BINARY_DIR}/nfd EXCLUDE_FROM_ALL)
+  set(_yaze_nfd_src "${CMAKE_SOURCE_DIR}/ext/nativefiledialog-extended")
+  set(_yaze_nfd_include_dir "${_yaze_nfd_src}/src/include")
+  if(EXISTS "${_yaze_nfd_src}/CMakeLists.txt")
+    message(NOTICE "Using bundled nativefiledialog-extended from ext/nativefiledialog-extended")
+    add_subdirectory(${_yaze_nfd_src} ${CMAKE_BINARY_DIR}/nfd EXCLUDE_FROM_ALL)
+  else()
+    message(NOTICE "nativefiledialog-extended bundle missing; fetching v1.1.1 via FetchContent")
+    include(FetchContent)
+    FetchContent_Declare(
+      nativefiledialog_ext
+      GIT_REPOSITORY https://github.com/btzy/nativefiledialog-extended.git
+      GIT_TAG        v1.1.1
+      GIT_SHALLOW    TRUE
+    )
+    FetchContent_MakeAvailable(nativefiledialog_ext)
+    set(_yaze_nfd_include_dir "${nativefiledialog_ext_SOURCE_DIR}/src/include")
+  endif()
   target_link_libraries(yaze_app_core_lib PUBLIC nfd)
-  target_include_directories(yaze_app_core_lib PUBLIC ${CMAKE_SOURCE_DIR}/ext/nativefiledialog-extended/src/include)
+  target_include_directories(yaze_app_core_lib PUBLIC ${_yaze_nfd_include_dir})
 endif()
 
 # gRPC Services (Optional)
-if(YAZE_WITH_GRPC)
-  target_include_directories(yaze_app_core_lib PRIVATE
-    ${CMAKE_SOURCE_DIR}/ext/json/include)
-  target_compile_definitions(yaze_app_core_lib PRIVATE YAZE_WITH_JSON)
+if(YAZE_ENABLE_GRPC)
+  if(YAZE_ENABLE_JSON)
+    target_link_libraries(yaze_app_core_lib PUBLIC nlohmann_json::nlohmann_json)
+    target_include_directories(yaze_app_core_lib PRIVATE
+      $<TARGET_PROPERTY:nlohmann_json::nlohmann_json,INTERFACE_INCLUDE_DIRECTORIES>)
+    target_compile_definitions(yaze_app_core_lib PRIVATE YAZE_WITH_JSON)
+  endif()
 
   # Link to consolidated gRPC support library
   target_link_libraries(yaze_app_core_lib PUBLIC yaze_grpc_support)

@@ -1,12 +1,28 @@
 # Dear ImGui dependency management
-# Uses the bundled ImGui in ext/imgui
+# Uses the bundled ImGui in ext/imgui when available, otherwise falls back to FetchContent.
 
-message(STATUS "Setting up Dear ImGui from bundled sources")
+message(NOTICE "Configuring Dear ImGui support")
 
-# Use the bundled ImGui from ext/imgui
-set(IMGUI_DIR ${CMAKE_SOURCE_DIR}/ext/imgui)
+set(_yaze_imgui_version "1.91.2")
+set(_yaze_imgui_ext_dir "${CMAKE_SOURCE_DIR}/ext/imgui")
+set(IMGUI_DIR ${_yaze_imgui_ext_dir})
 
-# Create ImGui library with core files from bundled source
+if(EXISTS "${_yaze_imgui_ext_dir}/imgui.cpp")
+  message(NOTICE "Setting up Dear ImGui from ext/imgui bundle")
+else()
+  message(NOTICE "ext/imgui missing; fetching Dear ImGui ${_yaze_imgui_version} via FetchContent")
+  include(FetchContent)
+  FetchContent_Declare(
+    imgui_external
+    GIT_REPOSITORY https://github.com/ocornut/imgui.git
+    GIT_TAG        v${_yaze_imgui_version}
+    GIT_SHALLOW    TRUE
+  )
+  FetchContent_MakeAvailable(imgui_external)
+  set(IMGUI_DIR ${imgui_external_SOURCE_DIR})
+endif()
+
+# Create ImGui library with core files from the resolved source directory
 add_library(ImGui STATIC
   ${IMGUI_DIR}/imgui.cpp
   ${IMGUI_DIR}/imgui_demo.cpp
@@ -31,9 +47,9 @@ target_compile_features(ImGui PUBLIC cxx_std_17)
 # Link to SDL2
 target_link_libraries(ImGui PUBLIC ${YAZE_SDL2_TARGETS})
 
-message(STATUS "Created ImGui target from bundled source at ${IMGUI_DIR}")
+message(STATUS "Created ImGui target from source at ${IMGUI_DIR}")
 
-# Create ImGui Test Engine for test automation (if tests are enabled)
+# Create ImGui Test Engine for test automation (if tests are enabled and source exists)
 if(YAZE_BUILD_TESTS)
   set(IMGUI_TEST_ENGINE_DIR ${CMAKE_SOURCE_DIR}/ext/imgui_test_engine/imgui_test_engine)
   
