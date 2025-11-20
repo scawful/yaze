@@ -129,7 +129,7 @@ elseif(WIN32)
   # CRITICAL FIX: Windows builds need /std:c++latest for std::filesystem support
   # clang-cl requires this flag to access std::filesystem from MSVC STL
   # (without it, only std::experimental::filesystem is available)
-  target_compile_options(yaze_util PUBLIC /std:c++latest)
+  target_compile_options(yaze_util PUBLIC /std:c++latest /EHsc)
   message(STATUS "Applied /std:c++latest to yaze_util for std::filesystem support on Windows")
 endif()
 
