@@ -4,19 +4,20 @@
 #include <iostream>
 #include <sstream>
 #include <string>
-#include "core/features.h"
-#include "util/log.h"
 
 #include "app/emu/audio/internal/opcodes.h"
 #include "app/emu/audio/internal/spc700_accurate_cycles.h"
+#include "core/features.h"
+#include "util/log.h"
 
 namespace yaze {
 namespace emu {
 
 void Spc700::Reset(bool hard) {
   if (hard) {
-    // DON'T set PC = 0 here! The reset sequence in Step() will load PC from the reset vector.
-    // Setting PC = 0 here would overwrite the correct value loaded from $FFFE-$FFFF.
+    // DON'T set PC = 0 here! The reset sequence in Step() will load PC from the
+    // reset vector. Setting PC = 0 here would overwrite the correct value
+    // loaded from $FFFE-$FFFF.
     A = 0;
     X = 0;
     Y = 0;
@@ -951,8 +952,7 @@ void Spc700::ExecuteInstructions(uint8_t opcode) {
     }
     case 0x9e: {  // div imp
       read(PC);
-      for (int i = 0; i < 10; i++)
-        callbacks_.idle(false);
+      for (int i = 0; i < 10; i++) callbacks_.idle(false);
       PSW.H = (X & 0xf) <= (Y & 0xf);
       int yva = (Y << 8) | A;
       int x = X << 9;
@@ -960,10 +960,8 @@ void Spc700::ExecuteInstructions(uint8_t opcode) {
         yva <<= 1;
         yva |= (yva & 0x20000) ? 1 : 0;
         yva &= 0x1ffff;
-        if (yva >= x)
-          yva ^= 1;
-        if (yva & 1)
-          yva -= x;
+        if (yva >= x) yva ^= 1;
+        if (yva & 1) yva -= x;
         yva &= 0x1ffff;
       }
       Y = yva >> 9;
@@ -1190,8 +1188,7 @@ void Spc700::ExecuteInstructions(uint8_t opcode) {
     }
     case 0xcf: {  // mul imp
       read(PC);
-      for (int i = 0; i < 7; i++)
-        callbacks_.idle(false);
+      for (int i = 0; i < 7; i++) callbacks_.idle(false);
       uint16_t result = A * Y;
       A = result & 0xff;
       Y = result >> 8;
@@ -1216,7 +1213,8 @@ void Spc700::ExecuteInstructions(uint8_t opcode) {
       break;
     }
     case 0xd7: {  // movs idy
-      // CRITICAL: Only call idy() once in bstep=0, reuse saved address in bstep=1
+      // CRITICAL: Only call idy() once in bstep=0, reuse saved address in
+      // bstep=1
       if (bstep == 0) {
         adr = idy();  // Save address for bstep=1
       }
@@ -1363,8 +1361,7 @@ void Spc700::ExecuteInstructions(uint8_t opcode) {
                   PC - 1);
       }
       read(PC);
-      for (int i = 0; i < 4; ++i)
-        callbacks_.idle(true);
+      for (int i = 0; i < 4; ++i) callbacks_.idle(true);
       break;
     }
     case 0xf0: {  // beq rel

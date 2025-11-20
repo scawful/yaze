@@ -1,6 +1,7 @@
 #include "editor_registry.h"
 
 #include <unordered_set>
+
 #include "absl/strings/str_format.h"
 #include "app/editor/editor.h"
 

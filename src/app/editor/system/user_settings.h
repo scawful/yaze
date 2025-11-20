@@ -2,6 +2,7 @@
 #define YAZE_APP_EDITOR_SYSTEM_USER_SETTINGS_H_
 
 #include <string>
+
 #include "absl/status/status.h"
 
 namespace yaze {

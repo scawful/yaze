@@ -1,4 +1,5 @@
 #include "overworld_entity_renderer.h"
+
 #include <string>
 
 #include "absl/strings/str_format.h"
@@ -59,7 +60,8 @@ void OverworldEntityRenderer::DrawEntrances(ImVec2 canvas_p0, ImVec2 scrolling,
 
 void OverworldEntityRenderer::DrawExits(ImVec2 canvas_p0, ImVec2 scrolling,
                                         int current_world, int current_mode) {
-  // Reset hover state at the start of entity rendering (DrawExits is called first)
+  // Reset hover state at the start of entity rendering (DrawExits is called
+  // first)
   hovered_entity_ = nullptr;
 
   int i = 0;

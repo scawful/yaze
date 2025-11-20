@@ -1,6 +1,7 @@
 #include <ftxui/component/component.hpp>
 #include <ftxui/component/screen_interactive.hpp>
 #include <ftxui/dom/elements.hpp>
+
 #include "cli/util/autocomplete.h"
 
 namespace yaze {
@@ -43,8 +44,8 @@ Component CreateAutocompleteInput(std::string* input_str,
 }
 
 Component CreateQuickActionMenu(ScreenInteractive& screen) {
-  // Note: This function is a placeholder for future quick action menu integration.
-  // Currently not used in the TUI, but kept for API compatibility.
+  // Note: This function is a placeholder for future quick action menu
+  // integration. Currently not used in the TUI, but kept for API compatibility.
   struct MenuState {
     int selected = 0;
     std::vector<std::string> actions = {

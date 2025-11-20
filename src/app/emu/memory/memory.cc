@@ -129,7 +129,8 @@ void MemoryImpl::cart_writeHirom(uint8_t bank, uint16_t adr, uint8_t val) {
 uint32_t MemoryImpl::GetMappedAddress(uint32_t address) const {
   // NOTE: This function is only used by ROM editor via Memory interface.
   // The emulator core uses cart_read/cart_write instead.
-  // Returns identity mapping for now - full implementation not needed for emulator.
+  // Returns identity mapping for now - full implementation not needed for
+  // emulator.
   return address;
 }
 

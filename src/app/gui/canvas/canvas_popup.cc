@@ -59,7 +59,8 @@ void PopupRegistry::RenderAll() {
       // Call the render callback which should handle BeginPopup/EndPopup
       it->render_callback();
 
-      // Check if popup was closed by user (clicking outside, pressing Escape, etc.)
+      // Check if popup was closed by user (clicking outside, pressing Escape,
+      // etc.)
       if (!ImGui::IsPopupOpen(it->popup_id.c_str())) {
         it->is_open = false;
       }

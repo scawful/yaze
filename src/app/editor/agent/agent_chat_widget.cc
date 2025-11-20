@@ -2,10 +2,13 @@
 
 #include "app/editor/agent/agent_chat_widget.h"
 
+#include <SDL.h>
+
 #include <algorithm>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <filesystem>
 #include <fstream>
 #include <optional>
 #include <string>
@@ -34,9 +37,6 @@
 #include "imgui/imgui.h"
 #include "util/file_util.h"
 #include "util/platform_paths.h"
-
-#include <SDL.h>
-#include <filesystem>
 
 #if defined(YAZE_WITH_GRPC)
 #include "app/test/test_manager.h"
@@ -212,8 +212,7 @@ void AgentChatWidget::SetProposalDrawer(ProposalDrawer* drawer) {
 void AgentChatWidget::SetChatHistoryPopup(AgentChatHistoryPopup* popup) {
   chat_history_popup_ = popup;
 
-  if (!chat_history_popup_)
-    return;
+  if (!chat_history_popup_) return;
 
   // Set up callback to open this chat window
   chat_history_popup_->SetOpenChatCallback(
@@ -1295,8 +1294,7 @@ void AgentChatWidget::RenderCollaborationPanel() {
                              session_name_buffer_,
                              IM_ARRAYSIZE(session_name_buffer_));
     ImGui::SameLine();
-    if (!can_host)
-      ImGui::BeginDisabled();
+    if (!can_host) ImGui::BeginDisabled();
     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.6f, 0.5f, 0.0f, 0.8f));
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
                           ImVec4(1.0f, 0.843f, 0.0f, 1.0f));
@@ -1347,8 +1345,7 @@ void AgentChatWidget::RenderCollaborationPanel() {
                              join_code_buffer_,
                              IM_ARRAYSIZE(join_code_buffer_));
     ImGui::SameLine();
-    if (!can_join)
-      ImGui::BeginDisabled();
+    if (!can_join) ImGui::BeginDisabled();
     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.1f, 0.4f, 0.1f, 0.8f));
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
                           ImVec4(0.133f, 0.545f, 0.133f, 1.0f));
@@ -1392,8 +1389,7 @@ void AgentChatWidget::RenderCollaborationPanel() {
 
     // Leave/Refresh
     if (collaboration_state_.active) {
-      if (!can_leave)
-        ImGui::BeginDisabled();
+      if (!can_leave) ImGui::BeginDisabled();
       ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.2f, 0.2f, 0.8f));
       ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
                             ImVec4(0.863f, 0.078f, 0.235f, 1.0f));
@@ -1416,12 +1412,10 @@ void AgentChatWidget::RenderCollaborationPanel() {
         }
       }
       ImGui::PopStyleColor(2);
-      if (!can_leave)
-        ImGui::EndDisabled();
+      if (!can_leave) ImGui::EndDisabled();
 
       ImGui::SameLine();
-      if (!can_refresh)
-        ImGui::BeginDisabled();
+      if (!can_refresh) ImGui::BeginDisabled();
       ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.4f, 0.4f, 0.6f, 0.8f));
       ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
                             ImVec4(0.416f, 0.353f, 0.804f, 1.0f));
@@ -1433,8 +1427,7 @@ void AgentChatWidget::RenderCollaborationPanel() {
           ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
         ImGui::SetTooltip("Provide refresh_session callback to enable");
       }
-      if (!can_refresh)
-        ImGui::EndDisabled();
+      if (!can_refresh) ImGui::EndDisabled();
     } else {
       ImGui::TextDisabled(ICON_MD_INFO
                           " Start or join a session to collaborate.");
@@ -1482,8 +1475,7 @@ void AgentChatWidget::RenderMultimodalPanel() {
                      reinterpret_cast<int*>(&multimodal_state_.capture_mode),
                      static_cast<int>(CaptureMode::kRegionSelect));
 
-  if (!can_capture)
-    ImGui::BeginDisabled();
+  if (!can_capture) ImGui::BeginDisabled();
   if (ImGui::SmallButton(ICON_MD_PHOTO_CAMERA " Capture##mm_cap")) {
     if (multimodal_state_.capture_mode == CaptureMode::kRegionSelect) {
       // Begin region selection mode
@@ -1513,8 +1505,7 @@ void AgentChatWidget::RenderMultimodalPanel() {
       }
     }
   }
-  if (!can_capture)
-    ImGui::EndDisabled();
+  if (!can_capture) ImGui::EndDisabled();
 
   ImGui::SameLine();
   if (multimodal_state_.last_capture_path.has_value()) {
@@ -1528,8 +1519,7 @@ void AgentChatWidget::RenderMultimodalPanel() {
         "%s", multimodal_state_.last_capture_path->filename().string().c_str());
   }
 
-  if (!can_send)
-    ImGui::BeginDisabled();
+  if (!can_send) ImGui::BeginDisabled();
   ImGui::SameLine();
   if (ImGui::SmallButton(ICON_MD_SEND " Analyze##mm_send")) {
     if (!multimodal_state_.last_capture_path.has_value()) {
@@ -1560,8 +1550,7 @@ void AgentChatWidget::RenderMultimodalPanel() {
       }
     }
   }
-  if (!can_send)
-    ImGui::EndDisabled();
+  if (!can_send) ImGui::EndDisabled();
 
   // Screenshot preview section
   if (multimodal_state_.preview.loaded &&
@@ -2229,8 +2218,7 @@ void AgentChatWidget::RenderModelConfigControls() {
             match = absl::AsciiStrToLower(info.parameter_size).find(filter) !=
                     std::string::npos;
           }
-          if (!match)
-            continue;
+          if (!match) continue;
         }
 
         bool is_selected = agent_config_.ai_model == info.name;
@@ -2774,34 +2762,29 @@ void AgentChatWidget::RenderZ3EDCommandPanel() {
       }
     }
   }
-  if (ImGui::IsItemHovered())
-    ImGui::SetTooltip("List");
+  if (ImGui::IsItemHovered()) ImGui::SetTooltip("List");
   ImGui::SameLine();
   if (ImGui::SmallButton(ICON_MD_DIFFERENCE)) {
     if (z3ed_callbacks_.diff_proposal) {
       auto result = z3ed_callbacks_.diff_proposal("");
-      if (result.ok())
-        z3ed_command_state_.command_output = *result;
+      if (result.ok()) z3ed_command_state_.command_output = *result;
     }
   }
-  if (ImGui::IsItemHovered())
-    ImGui::SetTooltip("Diff");
+  if (ImGui::IsItemHovered()) ImGui::SetTooltip("Diff");
   ImGui::SameLine();
   if (ImGui::SmallButton(ICON_MD_CHECK)) {
     if (z3ed_callbacks_.accept_proposal) {
       z3ed_callbacks_.accept_proposal("");
     }
   }
-  if (ImGui::IsItemHovered())
-    ImGui::SetTooltip("Accept");
+  if (ImGui::IsItemHovered()) ImGui::SetTooltip("Accept");
   ImGui::SameLine();
   if (ImGui::SmallButton(ICON_MD_CLOSE)) {
     if (z3ed_callbacks_.reject_proposal) {
       z3ed_callbacks_.reject_proposal("");
     }
   }
-  if (ImGui::IsItemHovered())
-    ImGui::SetTooltip("Reject");
+  if (ImGui::IsItemHovered()) ImGui::SetTooltip("Reject");
 
   if (!z3ed_command_state_.command_output.empty()) {
     ImGui::Separator();
@@ -2859,8 +2842,7 @@ void AgentChatWidget::RenderRomSyncPanel() {
                   collaboration_state_.active &&
                   collaboration_state_.mode == CollaborationMode::kNetwork;
 
-  if (!can_sync)
-    ImGui::BeginDisabled();
+  if (!can_sync) ImGui::BeginDisabled();
 
   if (ImGui::Button(ICON_MD_CLOUD_UPLOAD " Send ROM Sync", ImVec2(-1, 0))) {
     if (rom_sync_callbacks_.generate_rom_diff) {
@@ -2935,8 +2917,7 @@ void AgentChatWidget::RenderSnapshotPreviewPanel() {
     bool can_share = collaboration_state_.active &&
                      collaboration_state_.mode == CollaborationMode::kNetwork;
 
-    if (!can_share)
-      ImGui::BeginDisabled();
+    if (!can_share) ImGui::BeginDisabled();
 
     if (ImGui::Button(ICON_MD_SHARE " Share with Collaborators",
                       ImVec2(-1, 0))) {

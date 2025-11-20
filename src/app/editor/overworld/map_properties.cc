@@ -30,7 +30,8 @@ void MapPropertiesSystem::DrawSimplifiedMapSettings(
     int& current_mode) {
   (void)show_overlay_editor;  // Reserved for future use
   (void)current_mode;         // Reserved for future use
-  // Enhanced settings table with popup buttons for quick access and integrated toolset
+  // Enhanced settings table with popup buttons for quick access and integrated
+  // toolset
   if (BeginTable("SimplifiedMapSettings", 9,
                  ImGuiTableFlags_Borders | ImGuiTableFlags_SizingFixedFit,
                  ImVec2(0, 0), -1)) {
@@ -215,7 +216,6 @@ void MapPropertiesSystem::DrawMapPropertiesPanel(
   // Create tabs for different property categories
   if (ImGui::BeginTabBar("MapPropertiesTabs",
                          ImGuiTabBarFlags_FittingPolicyScroll)) {
-
     // Basic Properties Tab
     if (ImGui::BeginTabItem("Basic Properties")) {
       DrawBasicPropertiesTab(current_map);
@@ -563,7 +563,8 @@ void MapPropertiesSystem::DrawGraphicsPopup(int current_map, int game_state) {
                           kHexByteInputWidth)) {
       // CORRECT ORDER: Properties first, then graphics reload
 
-      // 1. Propagate properties to siblings FIRST (calls LoadAreaGraphics on siblings)
+      // 1. Propagate properties to siblings FIRST (calls LoadAreaGraphics on
+      // siblings)
       RefreshMapProperties();
 
       // 2. Force immediate refresh of current map
@@ -1358,7 +1359,8 @@ void MapPropertiesSystem::RefreshSiblingMapGraphics(int map_index,
       overworld_->mutable_overworld_map(sibling)->LoadAreaGraphics();
 
       // CRITICAL FIX: Force immediate refresh on the sibling
-      // This will trigger the callback to OverworldEditor's RefreshChildMapOnDemand
+      // This will trigger the callback to OverworldEditor's
+      // RefreshChildMapOnDemand
       ForceRefreshGraphics(sibling);
     }
   }
@@ -1417,7 +1419,8 @@ void MapPropertiesSystem::DrawOverlayControls(int current_map,
         "You can edit the tile16 data here to customize how the visual effects "
         "appear when referenced by other maps.");
   } else {
-    // Light World (0x00-0x3F) and Dark World (0x40-0x7F) maps support subscreen overlays
+    // Light World (0x00-0x3F) and Dark World (0x40-0x7F) maps support subscreen
+    // overlays
 
     // Comprehensive help section
     ImGui::TextColored(ImVec4(0.4f, 0.8f, 1.0f, 1.0f),
@@ -1604,8 +1607,7 @@ void MapPropertiesSystem::DrawOverlayPreviewOnMap(int current_map,
                                                   bool show_overlay_preview) {
   gfx::ScopedTimer timer("map_properties_draw_overlay_preview");
 
-  if (!show_overlay_preview || !maps_bmp_ || !canvas_)
-    return;
+  if (!show_overlay_preview || !maps_bmp_ || !canvas_) return;
 
   // Get subscreen overlay information based on ROM version and map type
   uint16_t overlay_id = 0x00FF;
@@ -1618,12 +1620,12 @@ void MapPropertiesSystem::DrawOverlayPreviewOnMap(int current_map,
     return;
   }
 
-  // Light World (0x00-0x3F) and Dark World (0x40-0x7F) maps support subscreen overlays for all versions
+  // Light World (0x00-0x3F) and Dark World (0x40-0x7F) maps support subscreen
+  // overlays for all versions
   overlay_id = overworld_->overworld_map(current_map)->subscreen_overlay();
   has_subscreen_overlay = (overlay_id != 0x00FF);
 
-  if (!has_subscreen_overlay)
-    return;
+  if (!has_subscreen_overlay) return;
 
   // Map subscreen overlay ID to special area map for bitmap
   int overlay_map_index = -1;
@@ -1636,8 +1638,7 @@ void MapPropertiesSystem::DrawOverlayPreviewOnMap(int current_map,
 
   // Get the subscreen overlay map's bitmap
   const auto& overlay_bitmap = (*maps_bmp_)[overlay_map_index];
-  if (!overlay_bitmap.is_active())
-    return;
+  if (!overlay_bitmap.is_active()) return;
 
   // Calculate position for subscreen overlay preview on the current map
   int current_map_x = current_map % 8;

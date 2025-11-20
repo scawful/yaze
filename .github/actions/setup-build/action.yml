@@ -66,10 +66,12 @@ runs:
         max-size: 500M
         variant: sccache
 
-    - name: Configure sccache for clang-cl (Windows)
+    - name: Configure compiler for Windows
       if: inputs.platform == 'windows'
       shell: pwsh
       run: |
-        echo "CC=sccache clang-cl" >> $env:GITHUB_ENV
-        echo "CXX=sccache clang-cl" >> $env:GITHUB_ENV
+        echo "CC=clang-cl" >> $env:GITHUB_ENV
+        echo "CXX=clang-cl" >> $env:GITHUB_ENV
+        echo "CMAKE_CXX_COMPILER_LAUNCHER=sccache" >> $env:GITHUB_ENV
+        echo "CMAKE_C_COMPILER_LAUNCHER=sccache" >> $env:GITHUB_ENV
 

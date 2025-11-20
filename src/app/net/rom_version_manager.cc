@@ -74,7 +74,6 @@ absl::Status RomVersionManager::Initialize(const Config& config) {
 absl::StatusOr<std::string> RomVersionManager::CreateSnapshot(
     const std::string& description, const std::string& creator,
     bool is_checkpoint) {
-
   if (!rom_ || !rom_->is_loaded()) {
     return absl::FailedPreconditionError("ROM not loaded");
   }
@@ -302,12 +301,9 @@ RomVersionManager::Stats RomVersionManager::GetStats() const {
   stats.total_snapshots = snapshots_.size();
 
   for (const auto& [id, snapshot] : snapshots_) {
-    if (snapshot.is_safe_point)
-      stats.safe_points++;
-    if (snapshot.is_checkpoint)
-      stats.manual_checkpoints++;
-    if (!snapshot.is_checkpoint)
-      stats.auto_backups++;
+    if (snapshot.is_safe_point) stats.safe_points++;
+    if (snapshot.is_checkpoint) stats.manual_checkpoints++;
+    if (!snapshot.is_checkpoint) stats.auto_backups++;
     stats.total_storage_bytes += snapshot.compressed_size;
 
     if (stats.oldest_snapshot_timestamp == 0 ||
@@ -393,7 +389,6 @@ void ProposalApprovalManager::SetHost(const std::string& host_username) {
 absl::Status ProposalApprovalManager::SubmitProposal(
     const std::string& proposal_id, const std::string& sender,
     const std::string& description, const nlohmann::json& proposal_data) {
-
   ApprovalStatus status;
   status.proposal_id = proposal_id;
   status.status = "pending";
@@ -418,7 +413,6 @@ absl::Status ProposalApprovalManager::SubmitProposal(
 absl::Status ProposalApprovalManager::VoteOnProposal(
     const std::string& proposal_id, const std::string& username,
     bool approved) {
-
   auto it = proposals_.find(proposal_id);
   if (it == proposals_.end()) {
     return absl::NotFoundError("Proposal not found");
@@ -441,8 +435,7 @@ absl::Status ProposalApprovalManager::VoteOnProposal(
     // Check if rejection threshold reached
     size_t rejection_count = 0;
     for (const auto& [user, vote] : status.votes) {
-      if (!vote)
-        rejection_count++;
+      if (!vote) rejection_count++;
     }
 
     // If host rejected (in host-only mode), reject immediately
@@ -458,7 +451,6 @@ absl::Status ProposalApprovalManager::VoteOnProposal(
 
 bool ProposalApprovalManager::CheckApprovalThreshold(
     const ApprovalStatus& status) const {
-
   switch (mode_) {
     case ApprovalMode::kHostOnly:
       // Only host vote matters
@@ -470,8 +462,7 @@ bool ProposalApprovalManager::CheckApprovalThreshold(
     case ApprovalMode::kMajorityVote: {
       size_t approval_count = 0;
       for (const auto& [user, approved] : status.votes) {
-        if (approved)
-          approval_count++;
+        if (approved) approval_count++;
       }
       return approval_count > participants_.size() / 2;
     }
@@ -481,8 +472,7 @@ bool ProposalApprovalManager::CheckApprovalThreshold(
         return false;  // Not everyone voted yet
       }
       for (const auto& [user, approved] : status.votes) {
-        if (!approved)
-          return false;
+        if (!approved) return false;
       }
       return true;
     }

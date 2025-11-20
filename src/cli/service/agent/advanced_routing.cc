@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <map>
 #include <sstream>
+
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_join.h"
 
@@ -13,7 +14,6 @@ namespace agent {
 AdvancedRouter::RoutedResponse AdvancedRouter::RouteHexAnalysis(
     const std::vector<uint8_t>& data, uint32_t address,
     const RouteContext& ctx) {
-
   RoutedResponse response;
 
   // Infer data type
@@ -67,7 +67,6 @@ AdvancedRouter::RoutedResponse AdvancedRouter::RouteHexAnalysis(
 
 AdvancedRouter::RoutedResponse AdvancedRouter::RouteMapEdit(
     const std::string& edit_intent, const RouteContext& ctx) {
-
   RoutedResponse response;
 
   // Parse intent and generate action sequence
@@ -93,7 +92,6 @@ AdvancedRouter::RoutedResponse AdvancedRouter::RouteMapEdit(
 
 AdvancedRouter::RoutedResponse AdvancedRouter::RoutePaletteAnalysis(
     const std::vector<uint16_t>& colors, const RouteContext& ctx) {
-
   RoutedResponse response;
 
   // Analyze color relationships
@@ -131,7 +129,6 @@ AdvancedRouter::RoutedResponse AdvancedRouter::RoutePaletteAnalysis(
 
 AdvancedRouter::RoutedResponse AdvancedRouter::SynthesizeMultiToolResponse(
     const std::vector<std::string>& tool_results, const RouteContext& ctx) {
-
   RoutedResponse response;
 
   // Combine results intelligently
@@ -158,14 +155,10 @@ std::string AdvancedRouter::GenerateGUIScript(
 }
 
 std::string AdvancedRouter::InferDataType(const std::vector<uint8_t>& data) {
-  if (data.size() == 8)
-    return "tile16 data";
-  if (data.size() % 3 == 0 && data.size() <= 48)
-    return "sprite data";
-  if (data.size() == 32)
-    return "palette data (16 colors)";
-  if (data.size() > 1000)
-    return "compressed data block";
+  if (data.size() == 8) return "tile16 data";
+  if (data.size() % 3 == 0 && data.size() <= 48) return "sprite data";
+  if (data.size() == 32) return "palette data (16 colors)";
+  if (data.size() > 1000) return "compressed data block";
   return "unknown data";
 }
 
@@ -191,15 +184,11 @@ std::vector<std::string> AdvancedRouter::ExtractPatterns(
   if (data.size() > 3) {
     bool ascending = true, descending = true;
     for (size_t i = 1; i < data.size(); ++i) {
-      if (data[i] != data[i - 1] + 1)
-        ascending = false;
-      if (data[i] != data[i - 1] - 1)
-        descending = false;
+      if (data[i] != data[i - 1] + 1) ascending = false;
+      if (data[i] != data[i - 1] - 1) descending = false;
     }
-    if (ascending)
-      patterns.push_back("Ascending sequence");
-    if (descending)
-      patterns.push_back("Descending sequence");
+    if (ascending) patterns.push_back("Ascending sequence");
+    if (descending) patterns.push_back("Descending sequence");
   }
 
   return patterns;

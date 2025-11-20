@@ -41,8 +41,7 @@ absl::Status Inventory::Create(Rom* rom) {
 
 absl::Status Inventory::BuildTileset(Rom* rom) {
   tilesheets_.reserve(6 * 0x2000);
-  for (int i = 0; i < 6 * 0x2000; i++)
-    tilesheets_.push_back(0xFF);
+  for (int i = 0; i < 6 * 0x2000; i++) tilesheets_.push_back(0xFF);
   ASSIGN_OR_RETURN(tilesheets_, Load2BppGraphics(*rom));
   std::vector<uint8_t> test;
   for (int i = 0; i < 0x4000; i++) {
@@ -127,7 +126,8 @@ absl::Status Inventory::LoadItemIcons(Rom* rom) {
   // - Flute (.flute)
   // - Bug net (.net)
   // - Book of Mudora (.book)
-  // - Bottles (.bottles) - Multiple variants (empty, red potion, green potion, etc.)
+  // - Bottles (.bottles) - Multiple variants (empty, red potion, green potion,
+  // etc.)
   // - Cane of Somaria (.canes)
   // - Cane of Byrna (.byrn)
   // - Magic cape (.cape)

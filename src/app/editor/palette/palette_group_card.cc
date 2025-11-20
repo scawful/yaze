@@ -24,9 +24,9 @@ using gui::ThemedIconButton;
 PaletteGroupCard::PaletteGroupCard(const std::string& group_name,
                                    const std::string& display_name, Rom* rom)
     : group_name_(group_name), display_name_(display_name), rom_(rom) {
-  // Note: We can't call GetPaletteGroup() here because it's a pure virtual function
-  // and the derived class isn't fully constructed yet. Original palettes will be
-  // loaded on first Draw() call instead.
+  // Note: We can't call GetPaletteGroup() here because it's a pure virtual
+  // function and the derived class isn't fully constructed yet. Original
+  // palettes will be loaded on first Draw() call instead.
 }
 
 void PaletteGroupCard::Draw() {
@@ -168,8 +168,7 @@ void PaletteGroupCard::DrawToolbar() {
 
 void PaletteGroupCard::DrawPaletteSelector() {
   auto* palette_group = GetPaletteGroup();
-  if (!palette_group)
-    return;
+  if (!palette_group) return;
 
   int num_palettes = palette_group->size();
 
@@ -210,12 +209,10 @@ void PaletteGroupCard::DrawPaletteSelector() {
 }
 
 void PaletteGroupCard::DrawColorPicker() {
-  if (selected_color_ < 0)
-    return;
+  if (selected_color_ < 0) return;
 
   auto* palette = GetMutablePalette(selected_palette_);
-  if (!palette)
-    return;
+  if (!palette) return;
 
   SectionHeader("Color Editor");
 
@@ -269,8 +266,7 @@ void PaletteGroupCard::DrawColorPicker() {
 }
 
 void PaletteGroupCard::DrawColorInfo() {
-  if (selected_color_ < 0)
-    return;
+  if (selected_color_ < 0) return;
 
   SectionHeader("Color Information");
 
@@ -308,8 +304,7 @@ void PaletteGroupCard::DrawColorInfo() {
 
 void PaletteGroupCard::DrawMetadataInfo() {
   const auto& metadata = GetMetadata();
-  if (selected_palette_ >= metadata.palettes.size())
-    return;
+  if (selected_palette_ >= metadata.palettes.size()) return;
 
   const auto& pal_meta = metadata.palettes[selected_palette_];
 
@@ -612,14 +607,14 @@ gfx::PaletteGroup* OverworldMainPaletteCard::GetPaletteGroup() {
 }
 
 const gfx::PaletteGroup* OverworldMainPaletteCard::GetPaletteGroup() const {
-  // Note: rom_->palette_group() returns by value, so we need to use the mutable version
+  // Note: rom_->palette_group() returns by value, so we need to use the mutable
+  // version
   return const_cast<Rom*>(rom_)->mutable_palette_group()->get_group("ow_main");
 }
 
 void OverworldMainPaletteCard::DrawPaletteGrid() {
   auto* palette = GetMutablePalette(selected_palette_);
-  if (!palette)
-    return;
+  if (!palette) return;
 
   const float button_size = 32.0f;
   const int colors_per_row = GetColorsPerRow();
@@ -690,8 +685,7 @@ const gfx::PaletteGroup* OverworldAnimatedPaletteCard::GetPaletteGroup() const {
 
 void OverworldAnimatedPaletteCard::DrawPaletteGrid() {
   auto* palette = GetMutablePalette(selected_palette_);
-  if (!palette)
-    return;
+  if (!palette) return;
 
   const float button_size = 32.0f;
   const int colors_per_row = GetColorsPerRow();
@@ -765,8 +759,7 @@ const gfx::PaletteGroup* DungeonMainPaletteCard::GetPaletteGroup() const {
 
 void DungeonMainPaletteCard::DrawPaletteGrid() {
   auto* palette = GetMutablePalette(selected_palette_);
-  if (!palette)
-    return;
+  if (!palette) return;
 
   const float button_size = 28.0f;
   const int colors_per_row = GetColorsPerRow();
@@ -841,8 +834,7 @@ const gfx::PaletteGroup* SpritePaletteCard::GetPaletteGroup() const {
 
 void SpritePaletteCard::DrawPaletteGrid() {
   auto* palette = GetMutablePalette(selected_palette_);
-  if (!palette)
-    return;
+  if (!palette) return;
 
   const float button_size = 28.0f;
   const int colors_per_row = GetColorsPerRow();
@@ -853,7 +845,8 @@ void SpritePaletteCard::DrawPaletteGrid() {
 
     ImGui::PushID(i);
 
-    // Draw transparent color indicator at start of each 16-color row (0, 16, 32, 48, ...)
+    // Draw transparent color indicator at start of each 16-color row (0, 16,
+    // 32, 48, ...)
     bool is_transparent_slot = (i % 16 == 0);
     if (is_transparent_slot) {
       ImGui::BeginGroup();
@@ -947,8 +940,7 @@ const gfx::PaletteGroup* EquipmentPaletteCard::GetPaletteGroup() const {
 
 void EquipmentPaletteCard::DrawPaletteGrid() {
   auto* palette = GetMutablePalette(selected_palette_);
-  if (!palette)
-    return;
+  if (!palette) return;
 
   const float button_size = 32.0f;
   const int colors_per_row = GetColorsPerRow();
@@ -1014,8 +1006,7 @@ const gfx::PaletteGroup* SpritesAux1PaletteCard::GetPaletteGroup() const {
 
 void SpritesAux1PaletteCard::DrawPaletteGrid() {
   auto* palette = GetMutablePalette(selected_palette_);
-  if (!palette)
-    return;
+  if (!palette) return;
 
   const float button_size = 32.0f;
   const int colors_per_row = GetColorsPerRow();
@@ -1081,8 +1072,7 @@ const gfx::PaletteGroup* SpritesAux2PaletteCard::GetPaletteGroup() const {
 
 void SpritesAux2PaletteCard::DrawPaletteGrid() {
   auto* palette = GetMutablePalette(selected_palette_);
-  if (!palette)
-    return;
+  if (!palette) return;
 
   const float button_size = 32.0f;
   const int colors_per_row = GetColorsPerRow();
@@ -1165,8 +1155,7 @@ const gfx::PaletteGroup* SpritesAux3PaletteCard::GetPaletteGroup() const {
 
 void SpritesAux3PaletteCard::DrawPaletteGrid() {
   auto* palette = GetMutablePalette(selected_palette_);
-  if (!palette)
-    return;
+  if (!palette) return;
 
   const float button_size = 32.0f;
   const int colors_per_row = GetColorsPerRow();

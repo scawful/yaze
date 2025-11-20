@@ -2,6 +2,7 @@
 #define YAZE_ZELDA3_OVERWORLD_VERSION_HELPER_H
 
 #include <cstdint>
+
 #include "app/rom.h"
 #include "zelda3/common.h"
 
@@ -16,7 +17,7 @@ enum class AreaSizeEnum {
 
 /**
  * @brief ROM version detection for overworld features
- * 
+ *
  * Centralizes version checks to distinguish between:
  * - Vanilla: No ZScream patches (uses parent system for large maps only)
  * - v1: Basic custom overworld features
@@ -32,11 +33,11 @@ enum class OverworldVersion {
 
 /**
  * @brief Helper for ROM version detection and feature gating
- * 
+ *
  * Provides consistent version checking across the codebase to replace
  * scattered inline checks like:
  *   if (asm_version >= 3 && asm_version != 0xFF) { ... }
- * 
+ *
  * With semantic helpers:
  *   if (OverworldVersionHelper::SupportsAreaEnum(version)) { ... }
  */
@@ -75,12 +76,12 @@ class OverworldVersionHelper {
 
   /**
    * @brief Check if ROM supports area enum system (v3+ only)
-   * 
+   *
    * Area enum system allows:
    * - Wide areas (2x1 screens)
    * - Tall areas (1x2 screens)
    * - Direct area size queries
-   * 
+   *
    * Vanilla/v1/v2 use parent system with large_map_ flag only.
    */
   static bool SupportsAreaEnum(OverworldVersion version) {
@@ -89,7 +90,7 @@ class OverworldVersionHelper {
 
   /**
    * @brief Check if ROM uses expanded space for overworld data
-   * 
+   *
    * v1+ ROMs use expanded pointers for:
    * - Map data (0x130000+)
    * - Sprite data (0x141438+)

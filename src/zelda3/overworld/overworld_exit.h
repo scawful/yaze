@@ -48,20 +48,22 @@ constexpr int OWWhirlpoolPosition = 0x16CF8;     //    JP = ;016F94
 
 /**
  * @class OverworldExit
- * @brief Represents an overworld exit that transitions from dungeon to overworld
- * 
+ * @brief Represents an overworld exit that transitions from dungeon to
+ * overworld
+ *
  * Coordinate System (inherited from GameEntity):
  * - x_, y_: World pixel coordinates (ZScream: PlayerX/PlayerY)
  * - game_x_, game_y_: Map-local tile coordinates (ZScream: AreaX/AreaY)
  * - map_id_: Parent map ID (ZScream: MapID)
- * 
+ *
  * Exit-Specific Properties:
  * - x_player_, y_player_: Player spawn position in world (saved to ROM)
  * - x_scroll_, y_scroll_: Camera scroll position
  * - x_camera_, y_camera_: Camera center position
  * - room_id_: Target dungeon room ID (ZScream: RoomID)
- * - is_automatic_: If true, scroll/camera auto-calculated from player position (ZScream: IsAutomatic)
- * 
+ * - is_automatic_: If true, scroll/camera auto-calculated from player position
+ * (ZScream: IsAutomatic)
+ *
  * ZScream Reference: ExitOW.cs, ExitMode.cs
  */
 class OverworldExit : public GameEntity {
@@ -87,9 +89,9 @@ class OverworldExit : public GameEntity {
 
   /**
    * @brief Constructor for loading exits from ROM
-   * 
+   *
    * Matches ZScream ExitOW.cs constructor (lines 129-167)
-   * 
+   *
    * CRITICAL: Does NOT modify map_id parameter (Bug 1 fix)
    * Uses temporary normalized_map_id for calculations only.
    */
@@ -138,14 +140,15 @@ class OverworldExit : public GameEntity {
   /**
    * @brief Update exit properties when moved or map changes
    * @param map_id Parent map ID to update to
-   * @param context Pointer to const Overworld for area size queries (can be nullptr for vanilla)
-   * 
+   * @param context Pointer to const Overworld for area size queries (can be
+   * nullptr for vanilla)
+   *
    * Recalculates:
    * - game_x_/game_y_ (map-local tile coords)
    * - x_scroll_/y_scroll_ (if is_automatic_ = true)
    * - x_camera_/y_camera_ (if is_automatic_ = true)
    * - map_pos_ (VRAM location)
-   * 
+   *
    * ZScream equivalent: ExitOW.cs:206-318 (UpdateMapStuff)
    */
   void UpdateMapProperties(uint16_t map_id, const void* context) override;

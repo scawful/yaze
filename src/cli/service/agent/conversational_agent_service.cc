@@ -348,7 +348,8 @@ absl::StatusOr<ChatMessage> ConversationalAgentService::SendMessage(
     }
 
     if (!agent_response.tool_calls.empty()) {
-      // Check if we were waiting for a text response but got more tool calls instead
+      // Check if we were waiting for a text response but got more tool calls
+      // instead
       if (waiting_for_text_response) {
         util::PrintWarning(
             absl::StrCat("LLM called tools again instead of providing final "
@@ -386,8 +387,7 @@ absl::StatusOr<ChatMessage> ConversationalAgentService::SendMessage(
                       << std::endl;
             std::string preview = tool_output.substr(
                 0, std::min(size_t(200), tool_output.size()));
-            if (tool_output.size() > 200)
-              preview += "...";
+            if (tool_output.size() > 200) preview += "...";
             std::cout << util::colors::kDim << preview << util::colors::kReset
                       << std::endl;
           }

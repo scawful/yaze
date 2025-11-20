@@ -27,7 +27,8 @@ class EditorCardRegistry;
 namespace emu {
 
 // REMOVED: EmulatorKeybindings (ImGuiKey-based)
-// Now using ui::InputHandler with SDL_GetKeyboardState() for proper continuous polling
+// Now using ui::InputHandler with SDL_GetKeyboardState() for proper continuous
+// polling
 
 /**
  * @class Emulator

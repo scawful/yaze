@@ -1,11 +1,12 @@
 #include "e2e/dungeon_editor_smoke_test.h"
+
 #include "app/controller.h"
 #include "imgui_test_engine/imgui_te_context.h"
 #include "test_utils.h"
 
 /**
  * @brief Quick smoke test for DungeonEditorV2
- * 
+ *
  * Tests the card-based architecture:
  * - Independent windows (cards) can be opened/closed
  * - Room cards function correctly

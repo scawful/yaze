@@ -21,9 +21,9 @@ namespace editor {
 /**
  * @class MenuBuilder
  * @brief Fluent interface for building ImGui menus with icons
- * 
+ *
  * Provides a cleaner, more maintainable way to construct menus:
- * 
+ *
  * MenuBuilder menu;
  * menu.BeginMenu("File", ICON_MD_FOLDER)
  *     .Item("Open", ICON_MD_FILE_OPEN, []() { OpenFile(); })

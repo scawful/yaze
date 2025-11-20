@@ -311,8 +311,7 @@ absl::StatusOr<AgentChatHistoryCodec::Snapshot> AgentChatHistoryCodec::Load(
     if (config_json.contains("model_presets") &&
         config_json["model_presets"].is_array()) {
       for (const auto& preset_json : config_json["model_presets"]) {
-        if (!preset_json.is_object())
-          continue;
+        if (!preset_json.is_object()) continue;
         AgentConfigSnapshot::ModelPreset preset;
         preset.name = preset_json.value("name", "");
         preset.model = preset_json.value("model", "");

@@ -38,8 +38,8 @@ struct ResourceSchema {
   std::vector<ResourceAction> actions;
 };
 
-// ResourceCatalog exposes a machine-readable description of CLI resources so that
-// both humans and AI agents can introspect capabilities at runtime.
+// ResourceCatalog exposes a machine-readable description of CLI resources so
+// that both humans and AI agents can introspect capabilities at runtime.
 class ResourceCatalog {
  public:
   static const ResourceCatalog& Instance();

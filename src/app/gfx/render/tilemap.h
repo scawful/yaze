@@ -1,13 +1,13 @@
 #ifndef YAZE_GFX_TILEMAP_H
 #define YAZE_GFX_TILEMAP_H
 
+#include <list>
+#include <unordered_map>
+
 #include "absl/container/flat_hash_map.h"
 #include "app/gfx/backend/irenderer.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/types/snes_tile.h"
-
-#include <list>
-#include <unordered_map>
 
 namespace yaze {
 namespace gfx {
@@ -22,7 +22,7 @@ struct Pair {
 
 /**
  * @brief Smart tile cache with LRU eviction for efficient memory management
- * 
+ *
  * Performance Optimizations:
  * - LRU eviction policy to keep frequently used tiles in memory
  * - Configurable cache size to balance memory usage and performance
@@ -84,22 +84,22 @@ struct TileCache {
 
 /**
  * @brief Tilemap structure for SNES tile-based graphics management
- * 
+ *
  * The Tilemap class provides comprehensive tile management for ROM hacking:
- * 
+ *
  * Key Features:
  * - Atlas bitmap containing all tiles in a single texture
  * - Smart tile cache with LRU eviction for optimal memory usage
  * - Tile metadata storage (mirroring, palette, etc.)
  * - Support for both 8x8 and 16x16 tile sizes
  * - Efficient tile lookup and rendering
- * 
+ *
  * Performance Optimizations:
  * - Hash map storage for O(1) tile access
  * - LRU tile caching to minimize memory usage
  * - Atlas-based rendering to minimize draw calls
  * - Tile metadata caching for fast property access
- * 
+ *
  * ROM Hacking Specific:
  * - SNES tile format support (4BPP, 8BPP)
  * - Tile mirroring and flipping support
@@ -147,7 +147,8 @@ std::vector<uint8_t> GetTilemapData(Tilemap& tilemap, int tile_id);
  * @param tilemap Tilemap containing tiles to render
  * @param tile_ids Vector of tile IDs to render
  * @param positions Vector of screen positions for each tile
- * @param scales Vector of scale factors for each tile (optional, defaults to 1.0)
+ * @param scales Vector of scale factors for each tile (optional, defaults
+ * to 1.0)
  * @note This function uses atlas rendering to reduce draw calls significantly
  */
 void RenderTilesBatch(IRenderer* renderer, Tilemap& tilemap,

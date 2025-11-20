@@ -240,16 +240,14 @@ absl::StatusOr<std::string> ResourceContextBuilder::ExportToJson() {
 
   bool first_category = true;
   for (const auto& [category, labels] : label_mgr->labels_) {
-    if (!first_category)
-      json << ",\n";
+    if (!first_category) json << ",\n";
     first_category = false;
 
     json << "  \"" << category << "\": {\n";
 
     bool first_label = true;
     for (const auto& [key, value] : labels) {
-      if (!first_label)
-        json << ",\n";
+      if (!first_label) json << ",\n";
       first_label = false;
 
       json << "    \"" << key << "\": \"" << value << "\"";

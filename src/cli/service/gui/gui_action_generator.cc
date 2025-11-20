@@ -57,7 +57,8 @@ nlohmann::json GuiActionGenerator::ActionToJSON(const ai::AIAction& action) {
       auto it = action.parameters.find("tile_id");
       if (it != action.parameters.end()) {
         int tile_id = std::stoi(it->second);
-        // Calculate position in tile selector (8 tiles per row, 16x16 pixels each)
+        // Calculate position in tile selector (8 tiles per row, 16x16 pixels
+        // each)
         int tile_x = (tile_id % 8) * 16 + 8;  // Center of tile
         int tile_y = (tile_id / 8) * 16 + 8;
 

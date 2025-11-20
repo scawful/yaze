@@ -113,7 +113,8 @@ void CanvasUsageTracker::UpdateCanvasState(const ImVec2& canvas_size,
   last_activity_ = std::chrono::steady_clock::now();
 }
 
-// These methods are already defined in the header as inline, removing duplicates
+// These methods are already defined in the header as inline, removing
+// duplicates
 
 std::string CanvasUsageTracker::GetUsageModeName(CanvasUsage usage) const {
   switch (usage) {

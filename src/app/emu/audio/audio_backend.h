@@ -1,5 +1,6 @@
 // audio_backend.h - Audio Backend Abstraction Layer
-// Provides interface for swapping audio implementations (SDL2, SDL3, other libs)
+// Provides interface for swapping audio implementations (SDL2, SDL3, other
+// libs)
 
 #ifndef YAZE_APP_EMU_AUDIO_AUDIO_BACKEND_H
 #define YAZE_APP_EMU_AUDIO_AUDIO_BACKEND_H
@@ -39,7 +40,7 @@ struct AudioStatus {
 
 /**
  * @brief Abstract audio backend interface
- * 
+ *
  * Allows swapping between SDL2, SDL3, or custom audio implementations
  * without changing emulator/music editor code.
  */

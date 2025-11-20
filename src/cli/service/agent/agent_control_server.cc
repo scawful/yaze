@@ -1,7 +1,10 @@
 #include "cli/service/agent/agent_control_server.h"
+
 #include <grpcpp/server.h>
 #include <grpcpp/server_builder.h>
+
 #include <iostream>
+
 #include "cli/service/agent/emulator_service_impl.h"
 
 namespace yaze::agent {
@@ -9,9 +12,7 @@ namespace yaze::agent {
 AgentControlServer::AgentControlServer(yaze::emu::Emulator* emulator)
     : emulator_(emulator) {}
 
-AgentControlServer::~AgentControlServer() {
-  Stop();
-}
+AgentControlServer::~AgentControlServer() { Stop(); }
 
 void AgentControlServer::Start() {
   server_thread_ = std::thread(&AgentControlServer::Run, this);

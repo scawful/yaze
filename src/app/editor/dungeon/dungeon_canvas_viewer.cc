@@ -12,11 +12,10 @@
 
 namespace yaze::editor {
 
-// DrawDungeonTabView() removed - DungeonEditorV2 uses EditorCard system for flexible docking
+// DrawDungeonTabView() removed - DungeonEditorV2 uses EditorCard system for
+// flexible docking
 
-void DungeonCanvasViewer::Draw(int room_id) {
-  DrawDungeonCanvas(room_id);
-}
+void DungeonCanvasViewer::Draw(int room_id) { DrawDungeonCanvas(room_id); }
 
 void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
   // Validate room_id and ROM
@@ -198,11 +197,11 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     // Check if critical properties changed and trigger reload
     if (prev_blockset != room.blockset || prev_palette != room.palette ||
         prev_layout != room.layout || prev_spriteset != room.spriteset) {
-
       // Only reload if ROM is properly loaded
       if (room.rom() && room.rom()->is_loaded()) {
         // Force reload of room graphics
-        // Room buffers are now self-contained - no need for separate palette operations
+        // Room buffers are now self-contained - no need for separate palette
+        // operations
         room.LoadRoomGraphics(room.blockset);
         room.RenderRoomGraphics();  // Applies palettes internally
       }
@@ -314,9 +313,7 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     // Separator
     gui::CanvasMenuItem sep;
     sep.label = "---";
-    sep.enabled_condition = []() {
-      return false;
-    };
+    sep.enabled_condition = []() { return false; };
     object_bounds_menu.subitems.push_back(sep);
 
     // Sub-menu for filtering by layer
@@ -524,14 +521,16 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
       room.LoadObjects();
     }
 
-    // CRITICAL: Process texture queue BEFORE drawing to ensure textures are ready
-    // This must happen before DrawRoomBackgroundLayers() attempts to draw bitmaps
+    // CRITICAL: Process texture queue BEFORE drawing to ensure textures are
+    // ready This must happen before DrawRoomBackgroundLayers() attempts to draw
+    // bitmaps
     if (rom_ && rom_->is_loaded()) {
       gfx::Arena::Get().ProcessTextureQueue(nullptr);
     }
 
     // Draw the room's background layers to canvas
-    // This already includes objects rendered by ObjectDrawer in Room::RenderObjectsToBackground()
+    // This already includes objects rendered by ObjectDrawer in
+    // Room::RenderObjectsToBackground()
     DrawRoomBackgroundLayers(room_id);
 
     // Render sprites as simple 16x16 squares with labels
@@ -642,8 +641,8 @@ std::pair<int, int> DungeonCanvasViewer::RoomToCanvasCoordinates(
     int room_x, int room_y) const {
   // Convert room coordinates (tile units) to UNSCALED canvas pixel coordinates
   // Dungeon tiles are 8x8 pixels (not 16x16!)
-  // IMPORTANT: Return UNSCALED coordinates - Canvas drawing functions apply scale internally
-  // Do NOT multiply by scale here or we get double-scaling!
+  // IMPORTANT: Return UNSCALED coordinates - Canvas drawing functions apply
+  // scale internally Do NOT multiply by scale here or we get double-scaling!
 
   // Simple conversion: tile units → pixel units (no scale, no offset)
   return {room_x * 8, room_y * 8};
@@ -657,8 +656,7 @@ std::pair<int, int> DungeonCanvasViewer::CanvasToRoomCoordinates(
 
   // IMPORTANT: Mouse coordinates are in screen space, must undo scale first
   float scale = canvas_.global_scale();
-  if (scale <= 0.0f)
-    scale = 1.0f;  // Prevent division by zero
+  if (scale <= 0.0f) scale = 1.0f;  // Prevent division by zero
 
   // Step 1: Convert screen space → logical pixel space
   int logical_x = static_cast<int>(canvas_x / scale);
@@ -720,7 +718,8 @@ void DungeonCanvasViewer::CalculateWallDimensions(
 // Object visualization methods
 void DungeonCanvasViewer::DrawObjectPositionOutlines(const zelda3::Room& room) {
   // Draw colored rectangles showing object positions
-  // This helps visualize object placement even if graphics don't render correctly
+  // This helps visualize object placement even if graphics don't render
+  // correctly
 
   const auto& objects = room.GetTileObjects();
 
@@ -752,10 +751,12 @@ void DungeonCanvasViewer::DrawObjectPositionOutlines(const zelda3::Room& room) {
       continue;
     }
 
-    // Convert object position (tile coordinates) to canvas pixel coordinates (UNSCALED)
+    // Convert object position (tile coordinates) to canvas pixel coordinates
+    // (UNSCALED)
     auto [canvas_x, canvas_y] = RoomToCanvasCoordinates(obj.x(), obj.y());
 
-    // Calculate object dimensions based on type and size (UNSCALED logical pixels)
+    // Calculate object dimensions based on type and size (UNSCALED logical
+    // pixels)
     int width = 8;  // Default 8x8 pixels
     int height = 8;
 
@@ -852,8 +853,7 @@ absl::Status DungeonCanvasViewer::LoadAndRenderRoomGraphics(int room_id) {
 }
 
 void DungeonCanvasViewer::DrawRoomBackgroundLayers(int room_id) {
-  if (room_id < 0 || room_id >= zelda3::NumberOfRooms || !rooms_)
-    return;
+  if (room_id < 0 || room_id >= zelda3::NumberOfRooms || !rooms_) return;
 
   auto& room = (*rooms_)[room_id];
   auto& layer_settings = GetRoomLayerSettings(room_id);
@@ -866,8 +866,9 @@ void DungeonCanvasViewer::DrawRoomBackgroundLayers(int room_id) {
   if (layer_settings.bg1_visible && bg1_bitmap.is_active() &&
       bg1_bitmap.width() > 0 && bg1_bitmap.height() > 0) {
     if (!bg1_bitmap.texture()) {
-      // Queue texture creation for background layer 1 via Arena's deferred system
-      // BATCHING FIX: Don't process immediately - let the main loop handle batching
+      // Queue texture creation for background layer 1 via Arena's deferred
+      // system BATCHING FIX: Don't process immediately - let the main loop
+      // handle batching
       gfx::Arena::Get().QueueTextureCommand(
           gfx::Arena::TextureCommandType::CREATE, &bg1_bitmap);
 
@@ -892,8 +893,9 @@ void DungeonCanvasViewer::DrawRoomBackgroundLayers(int room_id) {
   if (layer_settings.bg2_visible && bg2_bitmap.is_active() &&
       bg2_bitmap.width() > 0 && bg2_bitmap.height() > 0) {
     if (!bg2_bitmap.texture()) {
-      // Queue texture creation for background layer 2 via Arena's deferred system
-      // BATCHING FIX: Don't process immediately - let the main loop handle batching
+      // Queue texture creation for background layer 2 via Arena's deferred
+      // system BATCHING FIX: Don't process immediately - let the main loop
+      // handle batching
       gfx::Arena::Get().QueueTextureCommand(
           gfx::Arena::TextureCommandType::CREATE, &bg2_bitmap);
 
@@ -931,8 +933,7 @@ void DungeonCanvasViewer::DrawRoomBackgroundLayers(int room_id) {
     int non_zero_pixels = 0;
     for (size_t i = 0; i < bg1_data.size();
          i += 100) {  // Sample every 100th pixel
-      if (bg1_data[i] != 0)
-        non_zero_pixels++;
+      if (bg1_data[i] != 0) non_zero_pixels++;
     }
     LOG_DEBUG("DungeonCanvasViewer",
               "BG1 bitmap data: %zu pixels, ~%d non-zero samples",
@@ -951,8 +952,7 @@ void DungeonCanvasViewer::DrawRoomBackgroundLayers(int room_id) {
     int non_zero_pixels = 0;
     for (size_t i = 0; i < bg2_data.size();
          i += 100) {  // Sample every 100th pixel
-      if (bg2_data[i] != 0)
-        non_zero_pixels++;
+      if (bg2_data[i] != 0) non_zero_pixels++;
     }
     LOG_DEBUG("DungeonCanvasViewer",
               "BG2 bitmap data: %zu pixels, ~%d non-zero samples",

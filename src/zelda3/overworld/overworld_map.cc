@@ -131,7 +131,8 @@ void OverworldMap::LoadAreaInfo() {
     }
   } else {
     // v3: use expanded message table and area size table
-    // All area sizes are now stored in the expanded table, supporting all size types
+    // All area sizes are now stored in the expanded table, supporting all size
+    // types
     message_id_ =
         (*rom_)[kOverworldMessagesExpanded + (parent_ * 2)] |
         ((*rom_)[kOverworldMessagesExpanded + (parent_ * 2) + 1] << 8);
@@ -525,7 +526,8 @@ void OverworldMap::LoadMainBlocksetId() {
              parent_ < kSpecialWorldMapIdStart) {
     main_gfx_id_ = 0x21;
   } else if (parent_ >= kSpecialWorldMapIdStart) {
-    // Special world maps - use appropriate graphics ID based on the specific map
+    // Special world maps - use appropriate graphics ID based on the specific
+    // map
     if (parent_ == 0x88) {
       main_gfx_id_ = 0x24;
     } else {
@@ -888,8 +890,8 @@ absl::Status OverworldMap::LoadOverlay() {
 }
 
 absl::Status OverworldMap::LoadVanillaOverlayData() {
-
-  // Load vanilla overlay for this map (interactive overlays for revealing holes/changing elements)
+  // Load vanilla overlay for this map (interactive overlays for revealing
+  // holes/changing elements)
   int address = (kOverlayPointersBank << 16) +
                 ((*rom_)[kOverlayPointers + (index_ * 2) + 1] << 8) +
                 (*rom_)[kOverlayPointers + (index_ * 2)];
@@ -1037,8 +1039,7 @@ void OverworldMap::ProcessGraphicsBuffer(int index, int static_graphics_offset,
 }
 
 absl::Status OverworldMap::BuildTileset() {
-  if (current_gfx_.size() == 0)
-    current_gfx_.resize(0x10000, 0x00);
+  if (current_gfx_.size() == 0) current_gfx_.resize(0x10000, 0x00);
 
   // Process the 8 main graphics sheets (slots 0-7)
   for (int i = 0; i < 8; i++) {
@@ -1067,8 +1068,7 @@ absl::Status OverworldMap::BuildTileset() {
 
 absl::Status OverworldMap::BuildTiles16Gfx(std::vector<gfx::Tile16>& tiles16,
                                            int count) {
-  if (current_blockset_.size() == 0)
-    current_blockset_.resize(0x100000, 0x00);
+  if (current_blockset_.size() == 0) current_blockset_.resize(0x100000, 0x00);
 
   const int offsets[] = {0x00, 0x08, 0x400, 0x408};
   auto yy = 0;

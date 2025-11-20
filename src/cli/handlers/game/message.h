@@ -16,7 +16,8 @@ namespace message {
 
 /**
  * @brief List all messages in the ROM
- * @param arg_vec Command arguments: [--format <json|text>] [--range <start-end>]
+ * @param arg_vec Command arguments: [--format <json|text>] [--range
+ * <start-end>]
  * @param rom_context Optional ROM context to avoid reloading
  */
 absl::Status HandleMessageListCommand(const std::vector<std::string>& arg_vec,

@@ -67,7 +67,6 @@ void ObjectEditorCard::Draw(bool* p_open) {
 
     // Tabbed interface for Browser and Preview
     if (ImGui::BeginTabBar("##ObjectEditorTabs", ImGuiTabBarFlags_None)) {
-
       // Tab 1: Object Browser
       if (ImGui::BeginTabItem(ICON_MD_LIST " Browser")) {
         DrawObjectSelector();

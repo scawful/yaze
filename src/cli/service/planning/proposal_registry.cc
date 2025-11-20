@@ -13,7 +13,6 @@
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "absl/time/time.h"
-
 #include "nlohmann/json.hpp"
 #include "util/macro.h"
 
@@ -57,9 +56,7 @@ ProposalRegistry::ProposalStatus ParseStatus(absl::string_view value) {
   return ProposalRegistry::ProposalStatus::kPending;
 }
 
-int64_t TimeToMillis(absl::Time time) {
-  return absl::ToUnixMillis(time);
-}
+int64_t TimeToMillis(absl::Time time) { return absl::ToUnixMillis(time); }
 
 std::optional<absl::Time> OptionalTimeFromMillis(int64_t millis) {
   if (millis <= 0) {

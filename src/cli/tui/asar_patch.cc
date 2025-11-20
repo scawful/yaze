@@ -29,13 +29,13 @@ ftxui::Component AsarPatchComponent::Render() {
   auto apply_button = Button("Apply Asar Patch", [state] {
     if (state->patch_file.empty()) {
       app_context.error_message = "Please specify an assembly patch file";
-      //SwitchComponents(screen, LayoutID::kError);
+      // SwitchComponents(screen, LayoutID::kError);
       return;
     }
 
     if (!app_context.rom.is_loaded()) {
       app_context.error_message = "No ROM loaded. Please load a ROM first.";
-      //SwitchComponents(screen, LayoutID::kError);
+      // SwitchComponents(screen, LayoutID::kError);
       return;
     }
 
@@ -45,7 +45,7 @@ ftxui::Component AsarPatchComponent::Render() {
       if (!init_status.ok()) {
         app_context.error_message =
             absl::StrCat("Failed to initialize Asar: ", init_status.message());
-        //SwitchComponents(screen, LayoutID::kError);
+        // SwitchComponents(screen, LayoutID::kError);
         return;
       }
 
@@ -55,7 +55,7 @@ ftxui::Component AsarPatchComponent::Render() {
       if (!patch_result.ok()) {
         app_context.error_message =
             absl::StrCat("Patch failed: ", patch_result.status().message());
-        //SwitchComponents(screen, LayoutID::kError);
+        // SwitchComponents(screen, LayoutID::kError);
         return;
       }
 
@@ -63,7 +63,7 @@ ftxui::Component AsarPatchComponent::Render() {
       if (!result.success) {
         app_context.error_message =
             absl::StrCat("Patch failed: ", absl::StrJoin(result.errors, "; "));
-        //SwitchComponents(screen, LayoutID::kError);
+        // SwitchComponents(screen, LayoutID::kError);
         return;
       }
 
@@ -82,7 +82,7 @@ ftxui::Component AsarPatchComponent::Render() {
 
     } catch (const std::exception& e) {
       app_context.error_message = "Exception: " + std::string(e.what());
-      //SwitchComponents(screen, LayoutID::kError);
+      // SwitchComponents(screen, LayoutID::kError);
     }
   });
 
@@ -93,7 +93,7 @@ ftxui::Component AsarPatchComponent::Render() {
     state->output_message.clear();
     state->symbols_list.clear();
     state->show_symbols = false;
-    //SwitchComponents(screen, LayoutID::kMainMenu);
+    // SwitchComponents(screen, LayoutID::kMainMenu);
   });
 
   auto container = Container::Vertical({

@@ -1,6 +1,5 @@
-#include "zelda3/dungeon/object_parser.h"
-
 #include "gtest/gtest.h"
+#include "zelda3/dungeon/object_parser.h"
 
 namespace yaze {
 namespace test {

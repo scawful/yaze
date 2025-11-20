@@ -14,9 +14,7 @@ namespace yaze {
 namespace cli {
 namespace {
 
-std::string Indent(int count) {
-  return std::string(count, ' ');
-}
+std::string Indent(int count) { return std::string(count, ' '); }
 
 std::string QuoteYaml(absl::string_view value) {
   std::string escaped(value);
@@ -56,9 +54,7 @@ std::string FormatDuration(int seconds) {
   return absl::StrCat(seconds, "s");
 }
 
-std::string FormatBool(bool value) {
-  return value ? "true" : "false";
-}
+std::string FormatBool(bool value) { return value ? "true" : "false"; }
 
 std::string JoinQuotedList(const std::vector<std::string>& values) {
   if (values.empty()) {

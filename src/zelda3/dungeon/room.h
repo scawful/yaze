@@ -307,15 +307,14 @@ class Room {
     }
   }
   void SetStaircasePlane(int index, uint8_t plane) {
-    if (index >= 0 && index < 4)
-      staircase_plane_[index] = plane;
+    if (index >= 0 && index < 4) staircase_plane_[index] = plane;
   }
   void SetHolewarp(uint8_t holewarp) { this->holewarp = holewarp; }
   void SetStaircaseRoom(int index, uint8_t room) {
-    if (index >= 0 && index < 4)
-      staircase_rooms_[index] = room;
+    if (index >= 0 && index < 4) staircase_rooms_[index] = room;
   }
-  // SetFloor1/SetFloor2 removed - use set_floor1()/set_floor2() instead (defined above)
+  // SetFloor1/SetFloor2 removed - use set_floor1()/set_floor2() instead
+  // (defined above)
   void SetMessageId(uint16_t message_id) { message_id_ = message_id; }
 
   // Getters for LoadRoomFromRom function
@@ -417,7 +416,8 @@ class Room {
   bool is_dark_;
   bool is_floor_ = true;
 
-  // Performance optimization: Cache room properties to avoid unnecessary re-renders
+  // Performance optimization: Cache room properties to avoid unnecessary
+  // re-renders
   uint8_t cached_blockset_ = 0xFF;
   uint8_t cached_spriteset_ = 0xFF;
   uint8_t cached_palette_ = 0xFF;

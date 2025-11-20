@@ -56,8 +56,8 @@ absl::Status TextureAtlas::PackBitmap(const Bitmap& src,
     return absl::InvalidArgumentError("Region too small for bitmap");
   }
 
-  // TODO: Implement pixel copying from src to atlas_bitmap_ at region coordinates
-  // For now, just return OK (stub implementation)
+  // TODO: Implement pixel copying from src to atlas_bitmap_ at region
+  // coordinates For now, just return OK (stub implementation)
 
   LOG_DEBUG("[TextureAtlas]",
             "Packed %dx%d bitmap into region at (%d,%d) for source %d",

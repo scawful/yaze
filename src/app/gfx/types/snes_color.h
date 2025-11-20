@@ -103,7 +103,8 @@ constexpr float kColorByteMaxF = 255.f;
  *
  * When getting RGB for display:
  * - Use rgb() to get raw values (0-255 in ImVec4 - unusual!)
- * - Convert to standard ImVec4 (0-1) using: ImVec4(rgb.x/255, rgb.y/255, rgb.z/255, 1.0)
+ * - Convert to standard ImVec4 (0-1) using: ImVec4(rgb.x/255, rgb.y/255,
+ * rgb.z/255, 1.0)
  * - Or use the helper: ConvertSnesColorToImVec4() in color.cc
  */
 class SnesColor {

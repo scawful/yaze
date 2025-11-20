@@ -185,15 +185,12 @@ bool Toolset::AddAction(const char* icon, const char* tooltip) {
 bool Toolset::BeginCollapsibleSection(const char* label, bool* p_open) {
   ImGui::NewLine();  // Start on new line
   bool is_open = ImGui::CollapsingHeader(label, ImGuiTreeNodeFlags_None);
-  if (p_open)
-    *p_open = is_open;
+  if (p_open) *p_open = is_open;
   in_section_ = is_open;
   return is_open;
 }
 
-void Toolset::EndCollapsibleSection() {
-  in_section_ = false;
-}
+void Toolset::EndCollapsibleSection() { in_section_ = false; }
 
 void Toolset::AddV3StatusBadge(uint8_t version,
                                std::function<void()> on_settings) {
@@ -241,9 +238,7 @@ void EditorCard::SetDefaultSize(float width, float height) {
   default_size_ = ImVec2(width, height);
 }
 
-void EditorCard::SetPosition(Position pos) {
-  position_ = pos;
-}
+void EditorCard::SetPosition(Position pos) { position_ = pos; }
 
 bool EditorCard::Begin(bool* p_open) {
   // Check visibility flag first - if provided and false, don't show the card
@@ -404,13 +399,9 @@ void EditorLayout::BeginMainCanvas() {
   ImGui::BeginChild("##MainCanvas", ImVec2(0, 0), false);
 }
 
-void EditorLayout::EndMainCanvas() {
-  ImGui::EndChild();
-}
+void EditorLayout::EndMainCanvas() { ImGui::EndChild(); }
 
-void EditorLayout::RegisterCard(EditorCard* card) {
-  cards_.push_back(card);
-}
+void EditorLayout::RegisterCard(EditorCard* card) { cards_.push_back(card); }
 
 }  // namespace gui
 }  // namespace yaze

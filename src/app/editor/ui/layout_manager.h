@@ -13,11 +13,11 @@ namespace editor {
 /**
  * @class LayoutManager
  * @brief Manages ImGui DockBuilder layouts for each editor type
- * 
+ *
  * Provides professional default layouts using ImGui's DockBuilder API,
  * similar to VSCode's workspace layouts. Each editor type has a custom
  * layout optimized for its workflow.
- * 
+ *
  * Features:
  * - Per-editor default layouts (Overworld, Dungeon, Graphics, etc.)
  * - Layout persistence and restoration

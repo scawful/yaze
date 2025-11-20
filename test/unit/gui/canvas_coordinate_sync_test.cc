@@ -1,8 +1,7 @@
-#include "app/gui/canvas/canvas.h"
-
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include "app/gui/canvas/canvas.h"
 #include "testing.h"
 
 namespace yaze {
@@ -150,8 +149,8 @@ TEST_F(CanvasCoordinateSyncTest, MapCalculation_LargeMaps) {
 // ============================================================================
 
 TEST_F(CanvasCoordinateSyncTest, HoverPosition_ScaleInvariant) {
-  // REGRESSION TEST: Hover position should be in world space regardless of scale
-  // The bug was scale-dependent because it used screen coordinates
+  // REGRESSION TEST: Hover position should be in world space regardless of
+  // scale The bug was scale-dependent because it used screen coordinates
 
   auto test_hover_at_scale = [&](float scale) {
     canvas_->set_global_scale(scale);
@@ -184,7 +183,8 @@ TEST_F(CanvasCoordinateSyncTest, OverworldMapHighlight_UsesHoverNotDrawn) {
   // The pattern used in DrawOverworldEdits (line 664) for painting:
   auto drawn_pos = canvas_->drawn_tile_position();
 
-  // The pattern that SHOULD be used in CheckForCurrentMap (line 1041) for highlighting:
+  // The pattern that SHOULD be used in CheckForCurrentMap (line 1041) for
+  // highlighting:
   auto hover_pos = canvas_->hover_mouse_pos();
 
   // These are different methods for different purposes:

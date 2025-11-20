@@ -13,17 +13,19 @@ namespace yaze::zelda3 {
 /**
  * @class GameEntity
  * @brief Base class for all overworld and dungeon entities.
- * 
+ *
  * Coordinate System (matches ZScream naming conventions):
  * - x_, y_: World coordinates in pixels (0-4095 for overworld)
- *   ZScream equivalent: PlayerX/PlayerY (ExitOW.cs), GlobalX/GlobalY (EntranceOW.cs)
- * 
- * - game_x_, game_y_: Map-local tile coordinates (0-63 for normal, 0-31 for small areas)
- *   ZScream equivalent: AreaX/AreaY (ExitOW.cs), GameX/GameY (items/sprites)
- * 
+ *   ZScream equivalent: PlayerX/PlayerY (ExitOW.cs), GlobalX/GlobalY
+ * (EntranceOW.cs)
+ *
+ * - game_x_, game_y_: Map-local tile coordinates (0-63 for normal, 0-31 for
+ * small areas) ZScream equivalent: AreaX/AreaY (ExitOW.cs), GameX/GameY
+ * (items/sprites)
+ *
  * - map_id_: Parent map ID accounting for large/wide/tall multi-area maps
  *   ZScream equivalent: MapID property
- * 
+ *
  * - entity_id_: Index in entity array (for display/debugging)
  */
 class GameEntity {
@@ -66,10 +68,11 @@ class GameEntity {
   /**
    * @brief Update entity properties based on map position
    * @param map_id Parent map ID to update to
-   * @param context Optional context (typically const Overworld* for coordinate calculations)
-   * 
+   * @param context Optional context (typically const Overworld* for coordinate
+   * calculations)
+   *
    * ZScream equivalent: UpdateMapStuff() / UpdateMapProperties()
-   * 
+   *
    * This method recalculates derived properties like:
    * - game_x_/game_y_ from world x_/y_ coordinates
    * - Scroll/camera values for exits (if is_automatic_ = true)

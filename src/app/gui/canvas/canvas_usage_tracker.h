@@ -6,6 +6,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -23,7 +24,8 @@ enum class CanvasUsage {
   kPaletteEditing,      // Palette editing mode
   kBppConversion,       // BPP format conversion
   kPerformanceMode,     // Performance monitoring mode
-  kEntityManipulation,  // Generic entity manipulation (insertion/editing/deletion)
+  kEntityManipulation,  // Generic entity manipulation
+                        // (insertion/editing/deletion)
   kUnknown              // Unknown or mixed usage
 };
 

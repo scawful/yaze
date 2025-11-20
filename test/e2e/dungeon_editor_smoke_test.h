@@ -5,7 +5,7 @@
 
 /**
  * @brief Quick smoke test for DungeonEditorV2 card-based UI
- * 
+ *
  * Tests basic functionality:
  * - Opening dungeon editor
  * - Opening independent cards (Rooms, Matrix, Objects, etc.)

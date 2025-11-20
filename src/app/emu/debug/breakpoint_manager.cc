@@ -1,6 +1,7 @@
 #include "app/emu/debug/breakpoint_manager.h"
 
 #include <algorithm>
+
 #include "util/log.h"
 
 namespace yaze {

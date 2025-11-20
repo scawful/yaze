@@ -17,14 +17,14 @@ namespace editor {
 /**
  * @class ProposalDrawer
  * @brief ImGui drawer for displaying and managing agent proposals
- * 
+ *
  * Provides a UI for reviewing agent-generated ROM modification proposals,
  * including:
  * - List of all proposals with status indicators
  * - Detailed view of selected proposal (metadata, diff, logs)
  * - Accept/Reject controls
  * - Filtering by status (Pending/Accepted/Rejected)
- * 
+ *
  * Integrates with the CLI ProposalRegistry service to enable
  * human-in-the-loop review of agentic modifications.
  */

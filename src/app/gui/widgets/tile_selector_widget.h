@@ -59,7 +59,8 @@ class TileSelectorWidget {
   int total_tiles_ = 0;
   std::string widget_id_;
 
-  // Deferred scroll state (for when ScrollToTile is called outside render context)
+  // Deferred scroll state (for when ScrollToTile is called outside render
+  // context)
   mutable int pending_scroll_tile_id_ = -1;
   mutable bool pending_scroll_use_imgui_ = true;
 };

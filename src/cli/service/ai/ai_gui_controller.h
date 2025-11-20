@@ -50,10 +50,11 @@ struct ControlResult {
 
 /**
  * @class AIGUIController
- * @brief High-level controller for AI-driven GUI automation with vision feedback
- * 
+ * @brief High-level controller for AI-driven GUI automation with vision
+ * feedback
+ *
  * This class implements the complete vision-guided control loop:
- * 
+ *
  * 1. **Parse Command** → Natural language → AIActions
  * 2. **Take Screenshot** → Capture current GUI state
  * 3. **Analyze Vision** → Gemini analyzes screenshot
@@ -61,18 +62,18 @@ struct ControlResult {
  * 5. **Verify Success** → Compare before/after screenshots
  * 6. **Refine & Retry** → Adjust parameters if action failed
  * 7. **Repeat** → Until goal achieved or max iterations reached
- * 
+ *
  * Example usage:
  * ```cpp
  * AIGUIController controller(gemini_service, gui_client);
  * controller.Initialize(config);
- * 
+ *
  * auto result = controller.ExecuteCommand(
  *     "Place tile 0x42 at overworld position (5, 7)"
  * );
- * 
+ *
  * if (result->success) {
- *   std::cout << "Success! Took " << result->iterations_performed 
+ *   std::cout << "Success! Took " << result->iterations_performed
  *             << " iterations\n";
  * }
  * ```

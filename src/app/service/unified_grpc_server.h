@@ -34,21 +34,22 @@ class ImGuiTestHarnessServiceImpl;
 /**
  * @class YazeGRPCServer
  * @brief YAZE's unified gRPC server for Zelda3 editor automation
- * 
+ *
  * This server combines multiple automation services for the Zelda editor:
- * 1. ImGuiTestHarness - GUI test automation (widget discovery, screenshots, etc.)
+ * 1. ImGuiTestHarness - GUI test automation (widget discovery, screenshots,
+ * etc.)
  * 2. RomService - ROM manipulation (read/write, proposals, version management)
  * 3. CanvasAutomation - Canvas operations (tiles, selection, zoom, pan)
- * 
+ *
  * All services share the same gRPC server instance and port, allowing
- * clients (CLI, AI agents, remote scripts) to interact with GUI, ROM data, 
+ * clients (CLI, AI agents, remote scripts) to interact with GUI, ROM data,
  * and canvas operations simultaneously.
- * 
+ *
  * Example usage:
  * ```cpp
  * YazeGRPCServer server;
- * server.Initialize(50051, test_manager, rom, version_mgr, approval_mgr, canvas_service);
- * server.Start();
+ * server.Initialize(50051, test_manager, rom, version_mgr, approval_mgr,
+ * canvas_service); server.Start();
  * // ... do work ...
  * server.Shutdown();
  * ```
@@ -67,7 +68,8 @@ class YazeGRPCServer {
   };
 
   YazeGRPCServer();
-  // Destructor must be defined in .cc file to allow deletion of incomplete types
+  // Destructor must be defined in .cc file to allow deletion of incomplete
+  // types
   ~YazeGRPCServer();
 
   /**

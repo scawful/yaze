@@ -21,9 +21,8 @@ using uint = unsigned int;
   ImGui::EndTable(); \
   }
 
-#define HOVER_HINT(string)    \
-  if (ImGui::IsItemHovered()) \
-  ImGui::SetTooltip(string)
+#define HOVER_HINT(string) \
+  if (ImGui::IsItemHovered()) ImGui::SetTooltip(string)
 
 #define PRINT_IF_ERROR(expression)                \
   {                                               \

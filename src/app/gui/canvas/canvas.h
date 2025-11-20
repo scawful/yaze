@@ -51,7 +51,7 @@ enum class CanvasGridSize { k8x8, k16x16, k32x32, k64x64 };
  *
  * Following ImGui design patterns, this Canvas class provides:
  * - Modular configuration through CanvasConfig
- * - Separate selection state management  
+ * - Separate selection state management
  * - Enhanced palette management integration
  * - Performance-optimized rendering
  * - Comprehensive context menu system
@@ -106,14 +106,10 @@ class Canvas {
   void SetCanvasGridSize(CanvasGridSize grid_size) { SetGridSize(grid_size); }
 
   CanvasGridSize grid_size() const {
-    if (config_.grid_step == 8.0f)
-      return CanvasGridSize::k8x8;
-    if (config_.grid_step == 16.0f)
-      return CanvasGridSize::k16x16;
-    if (config_.grid_step == 32.0f)
-      return CanvasGridSize::k32x32;
-    if (config_.grid_step == 64.0f)
-      return CanvasGridSize::k64x64;
+    if (config_.grid_step == 8.0f) return CanvasGridSize::k8x8;
+    if (config_.grid_step == 16.0f) return CanvasGridSize::k16x16;
+    if (config_.grid_step == 32.0f) return CanvasGridSize::k32x32;
+    if (config_.grid_step == 64.0f) return CanvasGridSize::k64x64;
     return CanvasGridSize::k16x16;  // Default
   }
 
@@ -129,13 +125,13 @@ class Canvas {
 
   /**
    * @brief Begin canvas rendering (ImGui-style)
-   * 
+   *
    * Modern alternative to DrawBackground(). Handles:
    * - Background and border rendering
    * - Size calculation
    * - Scroll/drag setup
    * - Context menu
-   * 
+   *
    * Usage:
    * ```cpp
    * canvas.Begin();
@@ -148,13 +144,14 @@ class Canvas {
 
   /**
    * @brief End canvas rendering (ImGui-style)
-   * 
+   *
    * Modern alternative to manual DrawGrid() + DrawOverlay().
    * Automatically draws grid and overlay if enabled.
    */
   void End();
 
-  // ==================== Legacy Interface (Backward Compatible) ====================
+  // ==================== Legacy Interface (Backward Compatible)
+  // ====================
 
   // Background for the Canvas represents region without any content drawn to
   // it, but can be controlled by the user.
@@ -302,7 +299,8 @@ class Canvas {
   void ZoomIn() { global_scale_ += 0.25f; }
   void ZoomOut() { global_scale_ -= 0.25f; }
 
-  // Points accessors - points_ is maintained separately for custom overlay drawing
+  // Points accessors - points_ is maintained separately for custom overlay
+  // drawing
   const ImVector<ImVec2>& points() const { return points_; }
   ImVector<ImVec2>* mutable_points() { return &points_; }
   auto push_back(ImVec2 pos) { points_.push_back(pos); }
@@ -370,8 +368,10 @@ class Canvas {
    * @param tilemap Tilemap containing the tiles
    * @param tile_size Size of each tile (default 16)
    * @param scale Rendering scale (default 1.0)
-   * @param local_map_size Size of local map in pixels (default 512 for standard maps)
-   * @param total_map_size Total map size for boundary clamping (default 4096x4096)
+   * @param local_map_size Size of local map in pixels (default 512 for standard
+   * maps)
+   * @param total_map_size Total map size for boundary clamping (default
+   * 4096x4096)
    */
   void DrawBitmapGroup(std::vector<int>& group, gfx::Tilemap& tilemap,
                        int tile_size, float scale = 1.0f,
@@ -460,7 +460,8 @@ class Canvas {
   ImVec2 mouse_pos_in_canvas_;
 
   // Drawing and labeling
-  // NOTE: points_ synchronized from interaction_handler_ for backward compatibility
+  // NOTE: points_ synchronized from interaction_handler_ for backward
+  // compatibility
   ImVector<ImVec2> points_;
   ImVector<ImVector<std::string>> labels_;
 
@@ -502,10 +503,10 @@ void TableCanvasPipeline(gui::Canvas& canvas, gfx::Bitmap& bitmap,
 /**
  * @class ScopedCanvas
  * @brief RAII wrapper for Canvas (ImGui-style)
- * 
+ *
  * Automatically calls Begin() on construction and End() on destruction,
  * preventing forgotten End() calls and ensuring proper cleanup.
- * 
+ *
  * Usage:
  * ```cpp
  * {
@@ -516,7 +517,7 @@ void TableCanvasPipeline(gui::Canvas& canvas, gfx::Bitmap& bitmap,
  *   }
  * } // Automatic End() and cleanup
  * ```
- * 
+ *
  * Or wrap existing canvas:
  * ```cpp
  * Canvas my_canvas("Editor");
@@ -529,7 +530,8 @@ void TableCanvasPipeline(gui::Canvas& canvas, gfx::Bitmap& bitmap,
 class ScopedCanvas {
  public:
   /**
-   * @brief Construct and begin a new canvas (legacy constructor without renderer)
+   * @brief Construct and begin a new canvas (legacy constructor without
+   * renderer)
    */
   explicit ScopedCanvas(const std::string& id,
                         ImVec2 canvas_size = ImVec2(0, 0))

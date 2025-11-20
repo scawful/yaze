@@ -69,8 +69,7 @@ class LoadingIndicator {
   ~LoadingIndicator() { Stop(); }
 
   void Start() {
-    if (!show_ || running_)
-      return;
+    if (!show_ || running_) return;
     running_ = true;
 
     thread_ = std::thread([this]() {

@@ -1,6 +1,6 @@
-#include "testing.h"
-
 #include "util/hex.h"
+
+#include "testing.h"
 
 namespace yaze {
 namespace test {

@@ -21,12 +21,14 @@ namespace test {
 /**
  * @class EditorIntegrationTest
  * @brief Base class for editor integration tests
- * 
- * This class provides common functionality for testing editors in the application.
- * It sets up the test environment and provides helper methods for ROM operations.
- * 
- * For UI interaction testing, use the ImGui test engine API directly within your test functions:
- * 
+ *
+ * This class provides common functionality for testing editors in the
+ * application. It sets up the test environment and provides helper methods for
+ * ROM operations.
+ *
+ * For UI interaction testing, use the ImGui test engine API directly within
+ * your test functions:
+ *
  * ImGuiTest* test = IM_REGISTER_TEST(engine, "test_suite", "test_name");
  * test->TestFunc = [](ImGuiTestContext* ctx) {
  *   ctx->SetRef("Window Name");

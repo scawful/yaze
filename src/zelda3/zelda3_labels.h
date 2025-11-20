@@ -12,10 +12,11 @@ namespace zelda3 {
 /**
  * @struct Zelda3Labels
  * @brief Centralized default labels for all Zelda 3 resources
- * 
- * This structure contains all the default names/labels for various game resources.
- * These labels are embedded directly into the project file format and are always
- * available to the AI agents (Ollama/Gemini) without requiring external files.
+ *
+ * This structure contains all the default names/labels for various game
+ * resources. These labels are embedded directly into the project file format
+ * and are always available to the AI agents (Ollama/Gemini) without requiring
+ * external files.
  */
 struct Zelda3Labels {
   // Dungeon/Room names (296 rooms total)
@@ -66,7 +67,8 @@ struct Zelda3Labels {
 
   /**
    * @brief Get a label by resource type and ID
-   * @param resource_type The type of resource (e.g., "room", "entrance", "sprite")
+   * @param resource_type The type of resource (e.g., "room", "entrance",
+   * "sprite")
    * @param id The numeric ID of the resource
    * @param default_value Fallback value if label not found
    * @return The label string

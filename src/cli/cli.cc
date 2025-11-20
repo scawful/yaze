@@ -1,4 +1,5 @@
 #include "cli/cli.h"
+
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_join.h"
 #include "cli/handlers/command_handlers.h"
@@ -145,12 +146,9 @@ void ModernCLI::ShowCategoryHelp(const std::string& category) const {
     auto* metadata = registry.GetMetadata(cmd_name);
     if (metadata) {
       std::string requirements;
-      if (metadata->requires_rom)
-        requirements += "ROM ";
-      if (metadata->requires_grpc)
-        requirements += "gRPC ";
-      if (requirements.empty())
-        requirements = "—";
+      if (metadata->requires_rom) requirements += "ROM ";
+      if (metadata->requires_grpc) requirements += "gRPC ";
+      if (requirements.empty()) requirements = "—";
 
       rows.push_back({cmd_name, metadata->description, requirements});
     }

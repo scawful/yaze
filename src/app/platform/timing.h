@@ -2,6 +2,7 @@
 #define YAZE_APP_CORE_TIMING_H
 
 #include <SDL.h>
+
 #include <cstdint>
 
 namespace yaze {
@@ -9,7 +10,7 @@ namespace yaze {
 /**
  * @class TimingManager
  * @brief Provides accurate timing for animations and frame pacing
- * 
+ *
  * This class solves the issue where ImGui::GetIO().DeltaTime only updates
  * when events are processed (mouse movement, etc). It uses SDL's performance
  * counter to provide accurate timing regardless of input events.
@@ -67,8 +68,7 @@ class TimingManager {
    * @brief Get total elapsed time since first update
    */
   float GetElapsedTime() const {
-    if (last_time_ == 0)
-      return 0.0f;
+    if (last_time_ == 0) return 0.0f;
     uint64_t current_time = SDL_GetPerformanceCounter();
     return (current_time - first_time_) / static_cast<float>(frequency_);
   }

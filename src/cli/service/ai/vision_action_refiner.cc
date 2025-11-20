@@ -21,7 +21,6 @@ VisionActionRefiner::VisionActionRefiner(GeminiAIService* gemini_service)
 
 absl::StatusOr<VisionAnalysisResult> VisionActionRefiner::AnalyzeScreenshot(
     const std::filesystem::path& screenshot_path, const std::string& context) {
-
   if (!std::filesystem::exists(screenshot_path)) {
     return absl::NotFoundError(
         absl::StrCat("Screenshot not found: ", screenshot_path.string()));
@@ -42,7 +41,6 @@ absl::StatusOr<VisionAnalysisResult> VisionActionRefiner::AnalyzeScreenshot(
 absl::StatusOr<VisionAnalysisResult> VisionActionRefiner::VerifyAction(
     const AIAction& action, const std::filesystem::path& before_screenshot,
     const std::filesystem::path& after_screenshot) {
-
   if (!std::filesystem::exists(before_screenshot)) {
     return absl::NotFoundError("Before screenshot not found");
   }
@@ -66,7 +64,6 @@ absl::StatusOr<VisionAnalysisResult> VisionActionRefiner::VerifyAction(
 
 absl::StatusOr<ActionRefinement> VisionActionRefiner::RefineAction(
     const AIAction& original_action, const VisionAnalysisResult& analysis) {
-
   ActionRefinement refinement;
 
   // If action was successful, no refinement needed
@@ -124,7 +121,6 @@ absl::StatusOr<std::map<std::string, std::string>>
 VisionActionRefiner::LocateUIElement(
     const std::filesystem::path& screenshot_path,
     const std::string& element_name) {
-
   std::string prompt = BuildElementLocationPrompt(element_name);
 
   auto response = gemini_service_->GenerateMultimodalResponse(
@@ -171,7 +167,6 @@ VisionActionRefiner::LocateUIElement(
 absl::StatusOr<std::vector<std::string>>
 VisionActionRefiner::ExtractVisibleWidgets(
     const std::filesystem::path& screenshot_path) {
-
   std::string prompt = BuildWidgetExtractionPrompt();
 
   auto response = gemini_service_->GenerateMultimodalResponse(
@@ -266,7 +261,6 @@ std::string VisionActionRefiner::BuildWidgetExtractionPrompt() {
 
 VisionAnalysisResult VisionActionRefiner::ParseAnalysisResponse(
     const std::string& response) {
-
   VisionAnalysisResult result;
   result.description = response;
 
@@ -302,7 +296,6 @@ VisionAnalysisResult VisionActionRefiner::ParseAnalysisResponse(
 
 VisionAnalysisResult VisionActionRefiner::ParseVerificationResponse(
     const std::string& response, const AIAction& action) {
-
   VisionAnalysisResult result;
   result.description = response;
 
