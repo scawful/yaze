@@ -135,6 +135,7 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "RelWithDebInfo",
         "YAZE_BUILD_TESTS": "ON",
+        "YAZE_BUILD_EMU": "OFF",
         "YAZE_ENABLE_GRPC": "ON",
         "YAZE_ENABLE_JSON": "ON",
         "YAZE_ENABLE_AI": "OFF",
@@ -153,6 +154,7 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "RelWithDebInfo",
         "YAZE_BUILD_TESTS": "ON",
+        "YAZE_BUILD_EMU": "OFF",
         "YAZE_ENABLE_GRPC": "ON",
         "YAZE_ENABLE_JSON": "ON",
         "YAZE_ENABLE_AI": "OFF",
@@ -171,6 +173,7 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "RelWithDebInfo",
         "YAZE_BUILD_TESTS": "ON",
+        "YAZE_BUILD_EMU": "OFF",
         "YAZE_ENABLE_GRPC": "ON",
         "YAZE_ENABLE_JSON": "ON",
         "YAZE_ENABLE_AI": "OFF",
@@ -189,6 +192,7 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "RelWithDebInfo",
         "YAZE_BUILD_TESTS": "ON",
+        "YAZE_BUILD_EMU": "OFF",
         "YAZE_ENABLE_GRPC": "ON",
         "YAZE_ENABLE_JSON": "ON",
         "YAZE_ENABLE_AI": "ON",
