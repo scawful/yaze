@@ -40,12 +40,28 @@ function(yaze_add_compiler_flags)
 
     # Compiler-specific settings
     if(MSVC)
-        target_compile_options(yaze_common INTERFACE
-            /EHsc
-            /W4 /permissive-
-            /bigobj
-            /utf-8
-        )
+        # Check if we're using clang-cl (Clang with MSVC-compatible command line)
+        if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+            # clang-cl requires explicit /std:c++latest to access C++23 features including <filesystem>
+            # Without this, clang-cl only sees std::experimental::filesystem from older MSVC STL
+            target_compile_options(yaze_common INTERFACE
+                /EHsc
+                /W4 /permissive-
+                /bigobj
+                /utf-8
+                /std:c++latest
+            )
+            message(STATUS "Windows clang-cl: Added /std:c++latest for C++23 and std::filesystem support")
+        else()
+            # Regular MSVC compiler
+            target_compile_options(yaze_common INTERFACE
+                /EHsc
+                /W4 /permissive-
+                /bigobj
+                /utf-8
+            )
+        endif()
+
         target_compile_definitions(yaze_common INTERFACE
             _CRT_SECURE_NO_WARNINGS
             _CRT_NONSTDC_NO_WARNINGS
