@@ -161,20 +161,27 @@ if(YAZE_ENABLE_AI_RUNTIME AND YAZE_ENABLE_JSON)
   # Only link OpenSSL if gRPC is NOT enabled (to avoid duplicate symbol errors)
   # When gRPC is enabled, it brings its own OpenSSL which we'll use instead
   if(NOT YAZE_ENABLE_REMOTE_AUTOMATION)
-    find_package(OpenSSL)
-    if(OpenSSL_FOUND)
-      target_compile_definitions(yaze_agent PUBLIC CPPHTTPLIB_OPENSSL_SUPPORT)
-      target_link_libraries(yaze_agent PUBLIC OpenSSL::SSL OpenSSL::Crypto)
+    # CRITICAL FIX: Disable OpenSSL on Windows to avoid missing header errors
+    # Windows CI doesn't have OpenSSL headers properly configured
+    # HTTP API works fine without HTTPS for local development
+    if(NOT WIN32)
+      find_package(OpenSSL)
+      if(OpenSSL_FOUND)
+        target_compile_definitions(yaze_agent PUBLIC CPPHTTPLIB_OPENSSL_SUPPORT)
+        target_link_libraries(yaze_agent PUBLIC OpenSSL::SSL OpenSSL::Crypto)
 
-      if(APPLE)
-        target_compile_definitions(yaze_agent PUBLIC CPPHTTPLIB_USE_CERTS_FROM_MACOSX_KEYCHAIN)
-        target_link_libraries(yaze_agent PUBLIC "-framework CoreFoundation" "-framework Security")
+        if(APPLE)
+          target_compile_definitions(yaze_agent PUBLIC CPPHTTPLIB_USE_CERTS_FROM_MACOSX_KEYCHAIN)
+          target_link_libraries(yaze_agent PUBLIC "-framework CoreFoundation" "-framework Security")
+        endif()
+
+        message(STATUS "✓ SSL/HTTPS support enabled for yaze_agent (Gemini + HTTPS)")
+      else()
+        message(WARNING "OpenSSL not found - Gemini HTTPS features disabled (Ollama still works)")
+        message(STATUS "  Install OpenSSL to enable Gemini: brew install openssl (macOS) or apt-get install libssl-dev (Linux)")
       endif()
-
-      message(STATUS "✓ SSL/HTTPS support enabled for yaze_agent (Gemini + HTTPS)")
     else()
-      message(WARNING "OpenSSL not found - Gemini HTTPS features disabled (Ollama still works)")
-      message(STATUS "  Install OpenSSL to enable Gemini: brew install openssl (macOS) or apt-get install libssl-dev (Linux)")
+      message(STATUS "Windows: HTTP API using plain HTTP (no SSL) - OpenSSL headers not available in CI")
     endif()
   else()
     # When gRPC is enabled, still enable OpenSSL features but use gRPC's OpenSSL
