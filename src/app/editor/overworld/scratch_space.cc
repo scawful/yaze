@@ -42,14 +42,16 @@ absl::Status OverworldEditor::DrawScratchSpace() {
   // Slot selector
   Text("Scratch Space Slot:");
   for (int i = 0; i < 4; i++) {
-    if (i > 0) SameLine();
+    if (i > 0)
+      SameLine();
     bool is_current = (current_scratch_slot_ == i);
     if (is_current)
       PushStyleColor(ImGuiCol_Button, ImVec4(0.4f, 0.7f, 0.4f, 1.0f));
     if (Button(std::to_string(i + 1).c_str(), ImVec2(25, 25))) {
       current_scratch_slot_ = i;
     }
-    if (is_current) PopStyleColor();
+    if (is_current)
+      PopStyleColor();
   }
 
   SameLine();
@@ -230,7 +232,8 @@ void OverworldEditor::DrawScratchSpacePattern() {
   int pattern_width = dependencies_.shared_clipboard->overworld_width;
   int pattern_height = dependencies_.shared_clipboard->overworld_height;
 
-  if (tile_ids.empty()) return;
+  if (tile_ids.empty())
+    return;
 
   auto& current_slot = scratch_spaces_[current_scratch_slot_];
   int max_width = current_slot.width > 0 ? current_slot.width : 20;
@@ -271,11 +274,13 @@ void OverworldEditor::UpdateScratchBitmapTile(int tile_x, int tile_y,
   gfx::ScopedTimer timer("overworld_update_scratch_tile");
 
   // Use current slot if not specified
-  if (slot == -1) slot = current_scratch_slot_;
+  if (slot == -1)
+    slot = current_scratch_slot_;
 
   // Get the tile data from the tile16 blockset
   auto tile_data = gfx::GetTilemapData(tile16_blockset_, tile_id);
-  if (tile_data.empty()) return;
+  if (tile_data.empty())
+    return;
 
   auto& scratch_slot = scratch_spaces_[slot];
 

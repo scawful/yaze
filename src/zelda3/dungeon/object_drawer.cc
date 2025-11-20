@@ -295,7 +295,8 @@ void ObjectDrawer::DrawRightwards2x2_1to15or32(
   // Pattern: Draws 2x2 tiles rightward (object 0x00)
   // Size byte determines how many times to repeat (1-15 or 32)
   int size = obj.size_;
-  if (size == 0) size = 32;  // Special case for object 0x00
+  if (size == 0)
+    size = 32;  // Special case for object 0x00
 
   for (int s = 0; s < size; s++) {
     if (tiles.size() >= 4) {
@@ -314,7 +315,8 @@ void ObjectDrawer::DrawRightwards2x4_1to15or26(
     std::span<const gfx::TileInfo> tiles) {
   // Pattern: Draws 2x4 tiles rightward (objects 0x01-0x02)
   int size = obj.size_;
-  if (size == 0) size = 26;  // Special case
+  if (size == 0)
+    size = 26;  // Special case
 
   for (int s = 0; s < size; s++) {
     if (tiles.size() >= 4) {
@@ -680,7 +682,8 @@ void ObjectDrawer::DrawDownwards2x2_1to15or32(
   // Pattern: Draws 2x2 tiles downward (object 0x60)
   // Size byte determines how many times to repeat (1-15 or 32)
   int size = obj.size_;
-  if (size == 0) size = 32;  // Special case for object 0x60
+  if (size == 0)
+    size = 32;  // Special case for object 0x60
 
   for (int s = 0; s < size; s++) {
     if (tiles.size() >= 4) {
@@ -699,7 +702,8 @@ void ObjectDrawer::DrawDownwards4x2_1to15or26(
     std::span<const gfx::TileInfo> tiles) {
   // Pattern: Draws 4x2 tiles downward (objects 0x61-0x62)
   int size = obj.size_;
-  if (size == 0) size = 26;  // Special case
+  if (size == 0)
+    size = 26;  // Special case
 
   LOG_DEBUG("ObjectDrawer",
             "DrawDownwards4x2_1to15or26: obj=%04X tiles=%zu size=%d", obj.id_,
@@ -877,7 +881,8 @@ void ObjectDrawer::DrawTileToBitmap(gfx::Bitmap& bitmap,
                                     const gfx::TileInfo& tile_info, int pixel_x,
                                     int pixel_y, const uint8_t* tiledata) {
   // Draw an 8x8 tile directly to bitmap at pixel coordinates
-  if (!tiledata) return;
+  if (!tiledata)
+    return;
 
   // DEBUG: Check if bitmap is valid
   if (!bitmap.is_active() || bitmap.width() == 0 || bitmap.height() == 0) {

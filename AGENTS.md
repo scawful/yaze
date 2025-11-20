@@ -24,7 +24,7 @@ Use the following canonical identifiers in board entries and handoffs (see
 | `CLAUDE_CORE`   | Claude agent handling general editor/engine work |
 | `CLAUDE_AIINF`  | Claude agent focused on AI/agent infrastructure   |
 | `CLAUDE_DOCS`   | Claude agent dedicated to docs/product guidance   |
-| `GEMINI_AUTOM`  | Gemini agent focused on automation/CLI/test work  |
+| `GEMINI_FLASH_AUTOM` | Gemini agent focused on automation/CLI/test work |
 | `CODEX`         | This Codex CLI assistant                          |
 | `OTHER`         | Any future agent (define in entry)                |
 

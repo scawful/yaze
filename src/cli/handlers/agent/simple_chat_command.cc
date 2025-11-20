@@ -26,7 +26,8 @@ absl::Status SimpleChatCommandHandler::Execute(
 
   // Determine desired output format
   std::optional<std::string> format_arg = parser.GetString("format");
-  if (parser.HasFlag("json")) format_arg = "json";
+  if (parser.HasFlag("json"))
+    format_arg = "json";
   if (parser.HasFlag("markdown") || parser.HasFlag("md"))
     format_arg = "markdown";
   if (parser.HasFlag("compact") || parser.HasFlag("raw"))
@@ -35,7 +36,8 @@ absl::Status SimpleChatCommandHandler::Execute(
   auto select_format =
       [](absl::string_view value) -> std::optional<agent::AgentOutputFormat> {
     std::string normalized = absl::AsciiStrToLower(value);
-    if (normalized == "json") return agent::AgentOutputFormat::kJson;
+    if (normalized == "json")
+      return agent::AgentOutputFormat::kJson;
     if (normalized == "markdown" || normalized == "md")
       return agent::AgentOutputFormat::kMarkdown;
     if (normalized == "compact" || normalized == "raw")

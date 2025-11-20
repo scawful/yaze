@@ -70,7 +70,8 @@ ftxui::Component HexViewerComponent::Render() {
   });
 
   component_ = CatchEvent(renderer, [this](const Event& event) {
-    if (!rom_ || !rom_->is_loaded()) return false;
+    if (!rom_ || !rom_->is_loaded())
+      return false;
 
     bool handled = false;
     if (event == Event::ArrowUp) {
@@ -88,7 +89,8 @@ ftxui::Component HexViewerComponent::Render() {
                          offset_ + (lines_to_show_ * 16));
       handled = true;
     } else if (event == Event::Escape || event == Event::Character('b')) {
-      if (on_back_) on_back_();
+      if (on_back_)
+        on_back_();
       handled = true;
     }
 

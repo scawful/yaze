@@ -63,7 +63,8 @@ constexpr ImGuiTableFlags kMessageTableFlags = ImGuiTableFlags_Hideable |
 
 void MessageEditor::Initialize() {
   // Register cards with EditorCardRegistry (dependency injection)
-  if (!dependencies_.card_registry) return;
+  if (!dependencies_.card_registry)
+    return;
 
   auto* card_registry = dependencies_.card_registry;
 
@@ -138,7 +139,8 @@ absl::Status MessageEditor::Load() {
 }
 
 absl::Status MessageEditor::Update() {
-  if (!dependencies_.card_registry) return absl::OkStatus();
+  if (!dependencies_.card_registry)
+    return absl::OkStatus();
 
   auto* card_registry = dependencies_.card_registry;
 

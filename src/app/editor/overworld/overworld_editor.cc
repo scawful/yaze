@@ -1007,8 +1007,10 @@ void OverworldEditor::CheckForOverworldEdits() {
       int end_x = std::floor(end.x / kTile16Size) * kTile16Size;
       int end_y = std::floor(end.y / kTile16Size) * kTile16Size;
 
-      if (start_x > end_x) std::swap(start_x, end_x);
-      if (start_y > end_y) std::swap(start_y, end_y);
+      if (start_x > end_x)
+        std::swap(start_x, end_x);
+      if (start_y > end_y)
+        std::swap(start_y, end_y);
 
       constexpr int local_map_size = 512;  // Size of each local map
       // Number of tiles per local map (since each tile is 16x16)
@@ -1599,7 +1601,8 @@ void OverworldEditor::DrawOverworldCanvas() {
     // entities/overlay, not the canvas InvisibleButton.
     // ow_map_canvas_.IsMouseHovering() correctly tracks whether mouse is over
     // the canvas area.
-    if (ow_map_canvas_.IsMouseHovering()) status_ = CheckForCurrentMap();
+    if (ow_map_canvas_.IsMouseHovering())
+      status_ = CheckForCurrentMap();
 
     // --- BEGIN NEW DRAG/DROP LOGIC ---
     if (current_mode == EditingMode::MOUSE) {
@@ -2375,7 +2378,8 @@ absl::Status OverworldEditor::RefreshMapPalette() {
       for (int i = 1; i < 4; i++) {
         int sibling_index =
             overworld_.overworld_map(current_map_)->parent() + i;
-        if (i >= 2) sibling_index += 6;
+        if (i >= 2)
+          sibling_index += 6;
         RETURN_IF_ERROR(
             overworld_.mutable_overworld_map(sibling_index)->LoadPalette());
 

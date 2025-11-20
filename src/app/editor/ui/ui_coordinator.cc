@@ -118,11 +118,13 @@ void UICoordinator::DrawRomSelector() {
     ImGui::SetNextItemWidth(ImGui::GetWindowWidth() / 6);
     if (ImGui::BeginCombo("##ROMSelector", current_rom->short_name().c_str())) {
       for (size_t i = 0; i < session_coordinator_.GetTotalSessionCount(); ++i) {
-        if (session_coordinator_.IsSessionClosed(i)) continue;
+        if (session_coordinator_.IsSessionClosed(i))
+          continue;
 
         auto* session =
             static_cast<RomSession*>(session_coordinator_.GetSession(i));
-        if (!session) continue;
+        if (!session)
+          continue;
 
         Rom* rom = &session->rom;
         ImGui::PushID(static_cast<int>(i));
@@ -208,7 +210,8 @@ void UICoordinator::DrawContextSensitiveCardControl() {
   // Get the currently active editor directly from EditorManager
   // This ensures we show cards for the correct editor that has focus
   auto* active_editor = editor_manager_->GetCurrentEditor();
-  if (!active_editor) return;
+  if (!active_editor)
+    return;
 
   // Only show card control for card-based editors (not palette, not assembly in
   // legacy mode, etc.)
@@ -420,10 +423,12 @@ void UICoordinator::ShowDisplaySettings() {
 }
 
 void UICoordinator::HideCurrentEditorCards() {
-  if (!editor_manager_) return;
+  if (!editor_manager_)
+    return;
 
   auto* current_editor = editor_manager_->GetCurrentEditor();
-  if (!current_editor) return;
+  if (!current_editor)
+    return;
 
   std::string category =
       editor_registry_.GetEditorCategory(current_editor->type());
@@ -432,9 +437,13 @@ void UICoordinator::HideCurrentEditorCards() {
   LOG_INFO("UICoordinator", "Hid all cards in category: %s", category.c_str());
 }
 
-void UICoordinator::ShowAllWindows() { window_delegate_.ShowAllWindows(); }
+void UICoordinator::ShowAllWindows() {
+  window_delegate_.ShowAllWindows();
+}
 
-void UICoordinator::HideAllWindows() { window_delegate_.HideAllWindows(); }
+void UICoordinator::HideAllWindows() {
+  window_delegate_.HideAllWindows();
+}
 
 // Helper methods for drawing operations
 void UICoordinator::DrawSessionIndicator() {
@@ -534,7 +543,8 @@ void UICoordinator::ApplyEditorTheme(EditorType type) {
 }
 
 void UICoordinator::DrawCommandPalette() {
-  if (!show_command_palette_) return;
+  if (!show_command_palette_)
+    return;
 
   using namespace ImGui;
   auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
@@ -602,7 +612,8 @@ void UICoordinator::DrawCommandPalette() {
           }
           text_idx++;
         }
-        if (query_idx != query_lower.length()) score = 0;
+        if (query_idx != query_lower.length())
+          score = 0;
       }
 
       if (score > 0) {
@@ -706,7 +717,8 @@ void UICoordinator::DrawCommandPalette() {
 }
 
 void UICoordinator::DrawGlobalSearch() {
-  if (!show_global_search_) return;
+  if (!show_global_search_)
+    return;
 
   ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(),
                           ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
@@ -851,7 +863,8 @@ void UICoordinator::DrawGlobalSearch() {
                ++i) {
             std::string session_info =
                 session_coordinator_.GetSessionDisplayName(i);
-            if (session_info == "[CLOSED SESSION]") continue;
+            if (session_info == "[CLOSED SESSION]")
+              continue;
 
             if (global_search_query_[0] != '\0' &&
                 session_info.find(global_search_query_) == std::string::npos)

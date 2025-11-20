@@ -37,71 +37,102 @@ void PopupManager::Initialize() {
 
   // File Operations
   popups_[PopupID::kSaveAs] = {PopupID::kSaveAs, PopupType::kFileOperation,
-                               false, false, [this]() { DrawSaveAsPopup(); }};
-  popups_[PopupID::kNewProject] = {PopupID::kNewProject,
-                                   PopupType::kFileOperation, false, false,
-                                   [this]() { DrawNewProjectPopup(); }};
+                               false, false, [this]() {
+                                 DrawSaveAsPopup();
+                               }};
+  popups_[PopupID::kNewProject] = {
+      PopupID::kNewProject, PopupType::kFileOperation, false, false, [this]() {
+        DrawNewProjectPopup();
+      }};
   popups_[PopupID::kManageProject] = {PopupID::kManageProject,
                                       PopupType::kFileOperation, false, false,
-                                      [this]() { DrawManageProjectPopup(); }};
+                                      [this]() {
+                                        DrawManageProjectPopup();
+                                      }};
 
   // Information
   popups_[PopupID::kAbout] = {PopupID::kAbout, PopupType::kInfo, false, false,
-                              [this]() { DrawAboutPopup(); }};
+                              [this]() {
+                                DrawAboutPopup();
+                              }};
   popups_[PopupID::kRomInfo] = {PopupID::kRomInfo, PopupType::kInfo, false,
-                                false, [this]() { DrawRomInfoPopup(); }};
+                                false, [this]() {
+                                  DrawRomInfoPopup();
+                                }};
   popups_[PopupID::kSupportedFeatures] = {
-      PopupID::kSupportedFeatures, PopupType::kInfo, false, false,
-      [this]() { DrawSupportedFeaturesPopup(); }};
+      PopupID::kSupportedFeatures, PopupType::kInfo, false, false, [this]() {
+        DrawSupportedFeaturesPopup();
+      }};
   popups_[PopupID::kOpenRomHelp] = {PopupID::kOpenRomHelp, PopupType::kHelp,
-                                    false, false,
-                                    [this]() { DrawOpenRomHelpPopup(); }};
+                                    false, false, [this]() {
+                                      DrawOpenRomHelpPopup();
+                                    }};
 
   // Help Documentation
-  popups_[PopupID::kGettingStarted] = {PopupID::kGettingStarted,
-                                       PopupType::kHelp, false, false,
-                                       [this]() { DrawGettingStartedPopup(); }};
+  popups_[PopupID::kGettingStarted] = {
+      PopupID::kGettingStarted, PopupType::kHelp, false, false, [this]() {
+        DrawGettingStartedPopup();
+      }};
   popups_[PopupID::kAsarIntegration] = {
-      PopupID::kAsarIntegration, PopupType::kHelp, false, false,
-      [this]() { DrawAsarIntegrationPopup(); }};
+      PopupID::kAsarIntegration, PopupType::kHelp, false, false, [this]() {
+        DrawAsarIntegrationPopup();
+      }};
   popups_[PopupID::kBuildInstructions] = {
-      PopupID::kBuildInstructions, PopupType::kHelp, false, false,
-      [this]() { DrawBuildInstructionsPopup(); }};
+      PopupID::kBuildInstructions, PopupType::kHelp, false, false, [this]() {
+        DrawBuildInstructionsPopup();
+      }};
   popups_[PopupID::kCLIUsage] = {PopupID::kCLIUsage, PopupType::kHelp, false,
-                                 false, [this]() { DrawCLIUsagePopup(); }};
+                                 false, [this]() {
+                                   DrawCLIUsagePopup();
+                                 }};
   popups_[PopupID::kTroubleshooting] = {
-      PopupID::kTroubleshooting, PopupType::kHelp, false, false,
-      [this]() { DrawTroubleshootingPopup(); }};
+      PopupID::kTroubleshooting, PopupType::kHelp, false, false, [this]() {
+        DrawTroubleshootingPopup();
+      }};
   popups_[PopupID::kContributing] = {PopupID::kContributing, PopupType::kHelp,
-                                     false, false,
-                                     [this]() { DrawContributingPopup(); }};
+                                     false, false, [this]() {
+                                       DrawContributingPopup();
+                                     }};
   popups_[PopupID::kWhatsNew] = {PopupID::kWhatsNew, PopupType::kHelp, false,
-                                 false, [this]() { DrawWhatsNewPopup(); }};
+                                 false, [this]() {
+                                   DrawWhatsNewPopup();
+                                 }};
 
   // Settings
-  popups_[PopupID::kDisplaySettings] = {
-      PopupID::kDisplaySettings, PopupType::kSettings, false,
-      true,  // Resizable
-      [this]() { DrawDisplaySettingsPopup(); }};
+  popups_[PopupID::kDisplaySettings] = {PopupID::kDisplaySettings,
+                                        PopupType::kSettings, false,
+                                        true,  // Resizable
+                                        [this]() {
+                                          DrawDisplaySettingsPopup();
+                                        }};
   popups_[PopupID::kFeatureFlags] = {
       PopupID::kFeatureFlags, PopupType::kSettings, false, true,  // Resizable
-      [this]() { DrawFeatureFlagsPopup(); }};
+      [this]() {
+        DrawFeatureFlagsPopup();
+      }};
 
   // Workspace
   popups_[PopupID::kWorkspaceHelp] = {PopupID::kWorkspaceHelp, PopupType::kHelp,
-                                      false, false,
-                                      [this]() { DrawWorkspaceHelpPopup(); }};
-  popups_[PopupID::kSessionLimitWarning] = {
-      PopupID::kSessionLimitWarning, PopupType::kWarning, false, false,
-      [this]() { DrawSessionLimitWarningPopup(); }};
-  popups_[PopupID::kLayoutResetConfirm] = {
-      PopupID::kLayoutResetConfirm, PopupType::kConfirmation, false, false,
-      [this]() { DrawLayoutResetConfirmPopup(); }};
+                                      false, false, [this]() {
+                                        DrawWorkspaceHelpPopup();
+                                      }};
+  popups_[PopupID::kSessionLimitWarning] = {PopupID::kSessionLimitWarning,
+                                            PopupType::kWarning, false, false,
+                                            [this]() {
+                                              DrawSessionLimitWarningPopup();
+                                            }};
+  popups_[PopupID::kLayoutResetConfirm] = {PopupID::kLayoutResetConfirm,
+                                           PopupType::kConfirmation, false,
+                                           false, [this]() {
+                                             DrawLayoutResetConfirmPopup();
+                                           }};
 
   // Debug/Testing
   popups_[PopupID::kDataIntegrity] = {PopupID::kDataIntegrity, PopupType::kInfo,
                                       false, true,  // Resizable
-                                      [this]() { DrawDataIntegrityPopup(); }};
+                                      [this]() {
+                                        DrawDataIntegrityPopup();
+                                      }};
 }
 
 void PopupManager::DrawPopups() {
@@ -227,7 +258,8 @@ void PopupManager::DrawAboutPopup() {
 
 void PopupManager::DrawRomInfoPopup() {
   auto* current_rom = editor_manager_->GetCurrentRom();
-  if (!current_rom) return;
+  if (!current_rom)
+    return;
 
   Text("Title: %s", current_rom->title().c_str());
   Text("ROM Size: %s", util::HexLongLong(current_rom->size()).c_str());

@@ -14,7 +14,8 @@ namespace yaze {
 namespace editor {
 
 void MusicEditor::Initialize() {
-  if (!dependencies_.card_registry) return;
+  if (!dependencies_.card_registry)
+    return;
   auto* card_registry = dependencies_.card_registry;
 
   card_registry->RegisterCard({.card_id = "music.tracker",
@@ -46,7 +47,8 @@ absl::Status MusicEditor::Load() {
 }
 
 absl::Status MusicEditor::Update() {
-  if (!dependencies_.card_registry) return absl::OkStatus();
+  if (!dependencies_.card_registry)
+    return absl::OkStatus();
   auto* card_registry = dependencies_.card_registry;
 
   static gui::EditorCard tracker_card("Music Tracker", ICON_MD_MUSIC_NOTE);
@@ -121,7 +123,8 @@ static void DrawPianoStaff() {
     // Draw the ledger lines
     const int NUM_LEDGER_LINES = 3;
     for (int i = -NUM_LEDGER_LINES; i <= NUM_LINES + NUM_LEDGER_LINES; i++) {
-      if (i % 2 == 0) continue;  // skip every other line
+      if (i % 2 == 0)
+        continue;  // skip every other line
       auto line_start = ImVec2(canvas_p0.x, canvas_p0.y + i * LINE_SPACING / 2);
       auto line_end = ImVec2(canvas_p1.x + ImGui::GetContentRegionAvail().x,
                              canvas_p0.y + i * LINE_SPACING / 2);
@@ -315,7 +318,8 @@ void MusicEditor::PlaySong(int song_id) {
 }
 
 void MusicEditor::StopSong() {
-  if (!emulator_) return;
+  if (!emulator_)
+    return;
 
   // Write stop command to game memory
   try {
@@ -334,7 +338,8 @@ void MusicEditor::StopSong() {
 }
 
 void MusicEditor::SetVolume(float volume) {
-  if (!emulator_) return;
+  if (!emulator_)
+    return;
 
   // Clamp volume to valid range
   volume = std::clamp(volume, 0.0f, 1.0f);

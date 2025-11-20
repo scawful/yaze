@@ -24,7 +24,8 @@ void BackgroundRenderer::RenderDockingBackground(ImDrawList* draw_list,
                                                  const ImVec2& window_pos,
                                                  const ImVec2& window_size,
                                                  const Color& theme_color) {
-  if (!draw_list) return;
+  if (!draw_list)
+    return;
 
   UpdateAnimation(TimingManager::Get().GetDeltaTime());
 
@@ -77,7 +78,8 @@ void BackgroundRenderer::RenderGridBackground(ImDrawList* draw_list,
                                               const ImVec2& window_pos,
                                               const ImVec2& window_size,
                                               const Color& grid_color) {
-  if (!draw_list || grid_settings_.grid_size <= 0) return;
+  if (!draw_list || grid_settings_.grid_size <= 0)
+    return;
 
   // Grid parameters with optional animation
   float grid_size = grid_settings_.grid_size;
@@ -209,7 +211,8 @@ void BackgroundRenderer::RenderRadialGradient(ImDrawList* draw_list,
                                               float radius,
                                               const Color& inner_color,
                                               const Color& outer_color) {
-  if (!draw_list) return;
+  if (!draw_list)
+    return;
 
   const int segments = 32;
   const int rings = 8;

@@ -177,8 +177,10 @@ void DisassemblyViewer::RenderDisassemblyTable(
 
   // Calculate column count based on optional columns
   int column_count = 4;  // BP, Address, Mnemonic, Operand (always shown)
-  if (show_hex_dump_) column_count++;
-  if (show_execution_counts_) column_count++;
+  if (show_hex_dump_)
+    column_count++;
+  if (show_execution_counts_)
+    column_count++;
 
   if (!ImGui::BeginTable("##DisasmTable", column_count, flags,
                          ImVec2(0.0f, 0.0f))) {

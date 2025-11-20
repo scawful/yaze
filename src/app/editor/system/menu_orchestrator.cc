@@ -437,9 +437,13 @@ void MenuOrchestrator::AddHelpMenuItems() {
 }
 
 // Menu state management
-void MenuOrchestrator::ClearMenu() { menu_builder_.Clear(); }
+void MenuOrchestrator::ClearMenu() {
+  menu_builder_.Clear();
+}
 
-void MenuOrchestrator::RefreshMenu() { menu_needs_refresh_ = true; }
+void MenuOrchestrator::RefreshMenu() {
+  menu_needs_refresh_ = true;
+}
 
 // Menu item callbacks - delegate to appropriate managers
 void MenuOrchestrator::OnOpenRom() {
@@ -468,7 +472,9 @@ void MenuOrchestrator::OnSaveRom() {
   }
 }
 
-void MenuOrchestrator::OnSaveRomAs() { popup_manager_.Show(PopupID::kSaveAs); }
+void MenuOrchestrator::OnSaveRomAs() {
+  popup_manager_.Show(PopupID::kSaveAs);
+}
 
 void MenuOrchestrator::OnCreateProject() {
   // Delegate to EditorManager which handles the full project creation flow
@@ -849,7 +855,9 @@ void MenuOrchestrator::OnShowNetworkStatus() {
 #endif
 
 // Help menu actions
-void MenuOrchestrator::OnShowAbout() { popup_manager_.Show(PopupID::kAbout); }
+void MenuOrchestrator::OnShowAbout() {
+  popup_manager_.Show(PopupID::kAbout);
+}
 
 void MenuOrchestrator::OnShowGettingStarted() {
   popup_manager_.Show(PopupID::kGettingStarted);
@@ -993,9 +1001,11 @@ void MenuOrchestrator::RegisterGlobalShortcuts() {
 
 void MenuOrchestrator::OnRunDataIntegrityCheck() {
 #ifdef YAZE_ENABLE_TESTING
-  if (!editor_manager_) return;
+  if (!editor_manager_)
+    return;
   auto* rom = editor_manager_->GetCurrentRom();
-  if (!rom || !rom->is_loaded()) return;
+  if (!rom || !rom->is_loaded())
+    return;
 
   toast_manager_.Show("Running ROM integrity tests...", ToastType::kInfo);
   // This would integrate with the test system in master
@@ -1009,9 +1019,11 @@ void MenuOrchestrator::OnRunDataIntegrityCheck() {
 
 void MenuOrchestrator::OnTestSaveLoad() {
 #ifdef YAZE_ENABLE_TESTING
-  if (!editor_manager_) return;
+  if (!editor_manager_)
+    return;
   auto* rom = editor_manager_->GetCurrentRom();
-  if (!rom || !rom->is_loaded()) return;
+  if (!rom || !rom->is_loaded())
+    return;
 
   toast_manager_.Show("Running ROM save/load tests...", ToastType::kInfo);
   // This would integrate with the test system in master
@@ -1022,9 +1034,11 @@ void MenuOrchestrator::OnTestSaveLoad() {
 }
 
 void MenuOrchestrator::OnCheckRomVersion() {
-  if (!editor_manager_) return;
+  if (!editor_manager_)
+    return;
   auto* rom = editor_manager_->GetCurrentRom();
-  if (!rom || !rom->is_loaded()) return;
+  if (!rom || !rom->is_loaded())
+    return;
 
   // Check ZSCustomOverworld version
   uint8_t version = (*rom)[zelda3::OverworldCustomASMHasBeenApplied];
@@ -1038,9 +1052,11 @@ void MenuOrchestrator::OnCheckRomVersion() {
 }
 
 void MenuOrchestrator::OnUpgradeRom() {
-  if (!editor_manager_) return;
+  if (!editor_manager_)
+    return;
   auto* rom = editor_manager_->GetCurrentRom();
-  if (!rom || !rom->is_loaded()) return;
+  if (!rom || !rom->is_loaded())
+    return;
 
   toast_manager_.Show("Use Overworld Editor to upgrade ROM version",
                       ToastType::kInfo, 4.0f);
@@ -1058,9 +1074,11 @@ void MenuOrchestrator::OnToggleCustomLoading() {
 }
 
 void MenuOrchestrator::OnToggleAsarPatch() {
-  if (!editor_manager_) return;
+  if (!editor_manager_)
+    return;
   auto* rom = editor_manager_->GetCurrentRom();
-  if (!rom || !rom->is_loaded()) return;
+  if (!rom || !rom->is_loaded())
+    return;
 
   auto& flags = core::FeatureFlags::get();
   flags.overworld.kApplyZSCustomOverworldASM =

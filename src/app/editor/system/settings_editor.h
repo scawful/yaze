@@ -51,7 +51,8 @@ static ExampleTreeNode* ExampleTree_CreateNode(const char* name,
   snprintf(node->Name, IM_ARRAYSIZE(node->Name), "%s", name);
   node->UID = uid;
   node->Parent = parent;
-  if (parent) parent->Childs.push_back(node);
+  if (parent)
+    parent->Childs.push_back(node);
   return node;
 }
 
@@ -139,7 +140,8 @@ struct ExampleAppPropertyEditor {
 
     // Display child and data
     if (node_open)
-      for (ExampleTreeNode* child : node->Childs) DrawTreeNode(child);
+      for (ExampleTreeNode* child : node->Childs)
+        DrawTreeNode(child);
     if (node_open && node->HasData) {
       // In a typical application, the structure description would be derived
       // from a data-driven system.
@@ -186,7 +188,8 @@ struct ExampleAppPropertyEditor {
         ImGui::PopID();
       }
     }
-    if (node_open) ImGui::TreePop();
+    if (node_open)
+      ImGui::TreePop();
     ImGui::PopID();
   }
 };

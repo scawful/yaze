@@ -49,7 +49,9 @@ void Controller::SetStartupEditor(const std::string& editor_name,
   }
 }
 
-void Controller::OnInput() { PRINT_IF_ERROR(HandleEvents(window_)); }
+void Controller::OnInput() {
+  PRINT_IF_ERROR(HandleEvents(window_));
+}
 
 absl::Status Controller::OnLoad() {
   if (editor_manager_.quit() || !window_.active_) {

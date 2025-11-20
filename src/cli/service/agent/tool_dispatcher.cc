@@ -30,8 +30,10 @@ namespace {
 // Map tool name to handler type
 ToolCallType GetToolCallType(const std::string& tool_name) {
   // Resource commands
-  if (tool_name == "resource-list") return ToolCallType::kResourceList;
-  if (tool_name == "resource-search") return ToolCallType::kResourceSearch;
+  if (tool_name == "resource-list")
+    return ToolCallType::kResourceList;
+  if (tool_name == "resource-search")
+    return ToolCallType::kResourceSearch;
 
   // Dungeon commands
   if (tool_name == "dungeon-list-sprites")
@@ -62,35 +64,56 @@ ToolCallType GetToolCallType(const std::string& tool_name) {
     return ToolCallType::kOverworldTileStats;
 
   // Message & Dialogue commands
-  if (tool_name == "message-list") return ToolCallType::kMessageList;
-  if (tool_name == "message-read") return ToolCallType::kMessageRead;
-  if (tool_name == "message-search") return ToolCallType::kMessageSearch;
-  if (tool_name == "dialogue-list") return ToolCallType::kDialogueList;
-  if (tool_name == "dialogue-read") return ToolCallType::kDialogueRead;
-  if (tool_name == "dialogue-search") return ToolCallType::kDialogueSearch;
+  if (tool_name == "message-list")
+    return ToolCallType::kMessageList;
+  if (tool_name == "message-read")
+    return ToolCallType::kMessageRead;
+  if (tool_name == "message-search")
+    return ToolCallType::kMessageSearch;
+  if (tool_name == "dialogue-list")
+    return ToolCallType::kDialogueList;
+  if (tool_name == "dialogue-read")
+    return ToolCallType::kDialogueRead;
+  if (tool_name == "dialogue-search")
+    return ToolCallType::kDialogueSearch;
 
   // GUI Automation commands
-  if (tool_name == "gui-place-tile") return ToolCallType::kGuiPlaceTile;
-  if (tool_name == "gui-click") return ToolCallType::kGuiClick;
-  if (tool_name == "gui-discover-tool") return ToolCallType::kGuiDiscover;
-  if (tool_name == "gui-screenshot") return ToolCallType::kGuiScreenshot;
+  if (tool_name == "gui-place-tile")
+    return ToolCallType::kGuiPlaceTile;
+  if (tool_name == "gui-click")
+    return ToolCallType::kGuiClick;
+  if (tool_name == "gui-discover-tool")
+    return ToolCallType::kGuiDiscover;
+  if (tool_name == "gui-screenshot")
+    return ToolCallType::kGuiScreenshot;
 
   // Music commands
-  if (tool_name == "music-list") return ToolCallType::kMusicList;
-  if (tool_name == "music-info") return ToolCallType::kMusicInfo;
-  if (tool_name == "music-tracks") return ToolCallType::kMusicTracks;
+  if (tool_name == "music-list")
+    return ToolCallType::kMusicList;
+  if (tool_name == "music-info")
+    return ToolCallType::kMusicInfo;
+  if (tool_name == "music-tracks")
+    return ToolCallType::kMusicTracks;
 
   // Sprite commands
-  if (tool_name == "sprite-list") return ToolCallType::kSpriteList;
-  if (tool_name == "sprite-properties") return ToolCallType::kSpriteProperties;
-  if (tool_name == "sprite-palette") return ToolCallType::kSpritePalette;
+  if (tool_name == "sprite-list")
+    return ToolCallType::kSpriteList;
+  if (tool_name == "sprite-properties")
+    return ToolCallType::kSpriteProperties;
+  if (tool_name == "sprite-palette")
+    return ToolCallType::kSpritePalette;
 
   // Emulator & Debugger commands
-  if (tool_name == "emulator-step") return ToolCallType::kEmulatorStep;
-  if (tool_name == "emulator-run") return ToolCallType::kEmulatorRun;
-  if (tool_name == "emulator-pause") return ToolCallType::kEmulatorPause;
-  if (tool_name == "emulator-reset") return ToolCallType::kEmulatorReset;
-  if (tool_name == "emulator-get-state") return ToolCallType::kEmulatorGetState;
+  if (tool_name == "emulator-step")
+    return ToolCallType::kEmulatorStep;
+  if (tool_name == "emulator-run")
+    return ToolCallType::kEmulatorRun;
+  if (tool_name == "emulator-pause")
+    return ToolCallType::kEmulatorPause;
+  if (tool_name == "emulator-reset")
+    return ToolCallType::kEmulatorReset;
+  if (tool_name == "emulator-get-state")
+    return ToolCallType::kEmulatorGetState;
   if (tool_name == "emulator-set-breakpoint")
     return ToolCallType::kEmulatorSetBreakpoint;
   if (tool_name == "emulator-clear-breakpoint")

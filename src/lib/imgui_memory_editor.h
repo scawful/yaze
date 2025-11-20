@@ -82,7 +82,7 @@
 
 #ifdef _MSC_VER
 #pragma warning(push)
-#pragma warning(disable : 4996)  // warning C4996: 'sprintf': This function or
+#pragma warning(disable : 4996)  // warning C4996: 'sprintf': This function or \
                                  // variable may be unsafe.
 #endif
 
@@ -258,7 +258,8 @@ struct MemoryEditor {
   // Memory Editor contents only
   void DrawContents(void* mem_data_void, size_t mem_size,
                     size_t base_display_addr = 0x0000) {
-    if (Cols < 1) Cols = 1;
+    if (Cols < 1)
+      Cols = 1;
 
     ImU8* mem_data = (ImU8*)mem_data_void;
     Sizes s;
@@ -293,8 +294,10 @@ struct MemoryEditor {
 
     bool data_next = false;
 
-    if (ReadOnly || DataEditingAddr >= mem_size) DataEditingAddr = (size_t)-1;
-    if (DataPreviewAddr >= mem_size) DataPreviewAddr = (size_t)-1;
+    if (ReadOnly || DataEditingAddr >= mem_size)
+      DataEditingAddr = (size_t)-1;
+    if (DataPreviewAddr >= mem_size)
+      DataPreviewAddr = (size_t)-1;
 
     size_t preview_data_type_size =
         OptShowDataPreview ? DataTypeGetSize(PreviewDataType) : 0;
@@ -465,7 +468,8 @@ struct MemoryEditor {
             else if (!DataEditingTakeFocus && !ImGui::IsItemActive())
               DataEditingAddr = data_editing_addr_next = (size_t)-1;
             DataEditingTakeFocus = false;
-            if (user_data.CursorPos >= 2) data_write = data_next = true;
+            if (user_data.CursorPos >= 2)
+              data_write = data_next = true;
             if (data_editing_addr_next != (size_t)-1)
               data_write = data_next = false;
             unsigned int data_input_value = 0;
@@ -574,12 +578,14 @@ struct MemoryEditor {
                         : "Range %0*" _PRISizeT "x..%0*" _PRISizeT "x";
 
     // Options menu
-    if (ImGui::Button("Options")) ImGui::OpenPopup("context");
+    if (ImGui::Button("Options"))
+      ImGui::OpenPopup("context");
     if (ImGui::BeginPopup("context")) {
       ImGui::SetNextItemWidth(s.GlyphWidth * 7 + style.FramePadding.x * 2.0f);
       if (ImGui::DragInt("##cols", &Cols, 0.2f, 4, 32, "%d cols")) {
         ContentsWidthChanged = true;
-        if (Cols < 1) Cols = 1;
+        if (Cols < 1)
+          Cols = 1;
       }
       ImGui::Checkbox("Show Data Preview", &OptShowDataPreview);
       ImGui::Checkbox("Show HexII", &OptShowHexII);
@@ -704,7 +710,8 @@ struct MemoryEditor {
     if (is_little_endian) {
       uint8_t* dst = (uint8_t*)_dst;
       uint8_t* src = (uint8_t*)_src + s - 1;
-      for (int i = 0, n = (int)s; i < n; ++i) memcpy(dst++, src--, 1);
+      for (int i = 0, n = (int)s; i < n; ++i)
+        memcpy(dst++, src--, 1);
       return _dst;
     } else {
       return memcpy(_dst, _src, s);
@@ -718,7 +725,8 @@ struct MemoryEditor {
     } else {
       uint8_t* dst = (uint8_t*)_dst;
       uint8_t* src = (uint8_t*)_src + s - 1;
-      for (int i = 0, n = (int)s; i < n; ++i) memcpy(dst++, src--, 1);
+      for (int i = 0, n = (int)s; i < n; ++i)
+        memcpy(dst++, src--, 1);
       return _dst;
     }
   }

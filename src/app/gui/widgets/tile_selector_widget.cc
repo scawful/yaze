@@ -14,7 +14,9 @@ TileSelectorWidget::TileSelectorWidget(std::string widget_id, Config config)
       total_tiles_(config.total_tiles),
       widget_id_(std::move(widget_id)) {}
 
-void TileSelectorWidget::AttachCanvas(Canvas* canvas) { canvas_ = canvas; }
+void TileSelectorWidget::AttachCanvas(Canvas* canvas) {
+  canvas_ = canvas;
+}
 
 void TileSelectorWidget::SetTileCount(int total_tiles) {
   total_tiles_ = std::max(total_tiles, 0);

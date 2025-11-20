@@ -18,21 +18,26 @@ BackgroundBuffer::BackgroundBuffer(int width, int height)
 }
 
 void BackgroundBuffer::SetTileAt(int x, int y, uint16_t value) {
-  if (x < 0 || y < 0) return;
+  if (x < 0 || y < 0)
+    return;
   int tiles_w = width_ / 8;
   int tiles_h = height_ / 8;
-  if (x >= tiles_w || y >= tiles_h) return;
+  if (x >= tiles_w || y >= tiles_h)
+    return;
   buffer_[y * tiles_w + x] = value;
 }
 
 uint16_t BackgroundBuffer::GetTileAt(int x, int y) const {
   int tiles_w = width_ / 8;
   int tiles_h = height_ / 8;
-  if (x < 0 || y < 0 || x >= tiles_w || y >= tiles_h) return 0;
+  if (x < 0 || y < 0 || x >= tiles_w || y >= tiles_h)
+    return 0;
   return buffer_[y * tiles_w + x];
 }
 
-void BackgroundBuffer::ClearBuffer() { std::ranges::fill(buffer_, 0); }
+void BackgroundBuffer::ClearBuffer() {
+  std::ranges::fill(buffer_, 0);
+}
 
 void BackgroundBuffer::DrawTile(const TileInfo& tile, uint8_t* canvas,
                                 const uint8_t* tiledata, int indexoffset) {

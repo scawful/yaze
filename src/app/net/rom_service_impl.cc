@@ -19,7 +19,9 @@ RomServiceImpl::RomServiceImpl(Rom* rom, RomVersionManager* version_manager,
       version_mgr_(version_manager),
       approval_mgr_(approval_manager) {}
 
-void RomServiceImpl::SetConfig(const Config& config) { config_ = config; }
+void RomServiceImpl::SetConfig(const Config& config) {
+  config_ = config;
+}
 
 grpc::Status RomServiceImpl::ReadBytes(grpc::ServerContext* context,
                                        const rom_svc::ReadBytesRequest* request,
