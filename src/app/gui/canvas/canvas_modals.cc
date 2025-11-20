@@ -19,22 +19,19 @@ namespace {
 inline void DispatchConfig(
     const std::function<void(const CanvasConfig&)>& callback,
     const CanvasConfig& config) {
-  if (callback)
-    callback(config);
+  if (callback) callback(config);
 }
 
 inline void DispatchScale(
     const std::function<void(const CanvasConfig&)>& callback,
     const CanvasConfig& config) {
-  if (callback)
-    callback(config);
+  if (callback) callback(config);
 }
 }  // namespace
 
 void CanvasModals::ShowAdvancedProperties(const std::string& canvas_id,
                                           const CanvasConfig& config,
                                           const gfx::Bitmap* bitmap) {
-
   std::string modal_id = canvas_id + "_advanced_properties";
 
   auto render_func = [=]() mutable {
@@ -50,7 +47,6 @@ void CanvasModals::ShowAdvancedProperties(const std::string& canvas_id,
 void CanvasModals::ShowScalingControls(const std::string& canvas_id,
                                        const CanvasConfig& config,
                                        const gfx::Bitmap* bitmap) {
-
   std::string modal_id = canvas_id + "_scaling_controls";
 
   auto render_func = [=]() mutable {
@@ -65,48 +61,36 @@ void CanvasModals::ShowScalingControls(const std::string& canvas_id,
 
 void CanvasModals::ShowBppConversionDialog(
     const std::string& canvas_id, const BppConversionOptions& options) {
-
   std::string modal_id = canvas_id + "_bpp_conversion";
 
-  auto render_func = [=]() {
-    RenderBppConversionModal(modal_id, options);
-  };
+  auto render_func = [=]() { RenderBppConversionModal(modal_id, options); };
 
   OpenModal(modal_id, render_func);
 }
 
 void CanvasModals::ShowPaletteEditor(const std::string& canvas_id,
                                      const PaletteEditorOptions& options) {
-
   std::string modal_id = canvas_id + "_palette_editor";
 
-  auto render_func = [=]() {
-    RenderPaletteEditorModal(modal_id, options);
-  };
+  auto render_func = [=]() { RenderPaletteEditorModal(modal_id, options); };
 
   OpenModal(modal_id, render_func);
 }
 
 void CanvasModals::ShowColorAnalysis(const std::string& canvas_id,
                                      const ColorAnalysisOptions& options) {
-
   std::string modal_id = canvas_id + "_color_analysis";
 
-  auto render_func = [=]() {
-    RenderColorAnalysisModal(modal_id, options);
-  };
+  auto render_func = [=]() { RenderColorAnalysisModal(modal_id, options); };
 
   OpenModal(modal_id, render_func);
 }
 
 void CanvasModals::ShowPerformanceIntegration(
     const std::string& canvas_id, const PerformanceOptions& options) {
-
   std::string modal_id = canvas_id + "_performance";
 
-  auto render_func = [=]() {
-    RenderPerformanceModal(modal_id, options);
-  };
+  auto render_func = [=]() { RenderPerformanceModal(modal_id, options); };
 
   OpenModal(modal_id, render_func);
 }
@@ -133,13 +117,11 @@ bool CanvasModals::IsAnyModalOpen() const {
 void CanvasModals::RenderAdvancedPropertiesModal(const std::string& canvas_id,
                                                  CanvasConfig& config,
                                                  const gfx::Bitmap* bitmap) {
-
   std::string modal_title = "Advanced Canvas Properties";
   ImGui::SetNextWindowSize(ImVec2(600, 500), ImGuiCond_FirstUseEver);
 
   if (ImGui::BeginPopupModal(modal_title.c_str(), nullptr,
                              ImGuiWindowFlags_AlwaysAutoResize)) {
-
     // Header with icon
     ImGui::Text("%s %s", ICON_MD_SETTINGS, modal_title.c_str());
     ImGui::Separator();
@@ -220,8 +202,7 @@ void CanvasModals::RenderAdvancedPropertiesModal(const std::string& canvas_id,
       const float preset_values[] = {0.25f, 0.5f, 1.0f, 2.0f, 4.0f, 8.0f};
 
       for (int i = 0; i < 6; ++i) {
-        if (i > 0)
-          ImGui::SameLine();
+        if (i > 0) ImGui::SameLine();
         if (ImGui::Button(preset_labels[i])) {
           config.global_scale = preset_values[i];
           DispatchConfig(config.on_config_changed, config);
@@ -306,13 +287,11 @@ void CanvasModals::RenderAdvancedPropertiesModal(const std::string& canvas_id,
 void CanvasModals::RenderScalingControlsModal(const std::string& canvas_id,
                                               CanvasConfig& config,
                                               const gfx::Bitmap* bitmap) {
-
   std::string modal_title = "Canvas Scaling Controls";
   ImGui::SetNextWindowSize(ImVec2(500, 400), ImGuiCond_FirstUseEver);
 
   if (ImGui::BeginPopupModal(modal_title.c_str(), nullptr,
                              ImGuiWindowFlags_AlwaysAutoResize)) {
-
     // Header with icon
     ImGui::Text("%s %s", ICON_MD_ZOOM_IN, modal_title.c_str());
     ImGui::Separator();
@@ -328,8 +307,7 @@ void CanvasModals::RenderScalingControlsModal(const std::string& canvas_id,
     const float preset_values[] = {0.25f, 0.5f, 1.0f, 2.0f, 4.0f, 8.0f};
 
     for (int i = 0; i < 6; ++i) {
-      if (i > 0)
-        ImGui::SameLine();
+      if (i > 0) ImGui::SameLine();
       if (ImGui::Button(preset_labels[i])) {
         config.global_scale = preset_values[i];
         DispatchScale(config.on_scale_changed, config);
@@ -349,8 +327,7 @@ void CanvasModals::RenderScalingControlsModal(const std::string& canvas_id,
     const float grid_values[] = {8.0f, 16.0f, 32.0f, 64.0f};
 
     for (int i = 0; i < 4; ++i) {
-      if (i > 0)
-        ImGui::SameLine();
+      if (i > 0) ImGui::SameLine();
       if (ImGui::Button(grid_labels[i])) {
         config.grid_step = grid_values[i];
         DispatchScale(config.on_scale_changed, config);
@@ -395,13 +372,11 @@ void CanvasModals::RenderScalingControlsModal(const std::string& canvas_id,
 
 void CanvasModals::RenderBppConversionModal(
     const std::string& canvas_id, const BppConversionOptions& options) {
-
   std::string modal_title = "BPP Format Conversion";
   ImGui::SetNextWindowSize(ImVec2(600, 500), ImGuiCond_FirstUseEver);
 
   if (ImGui::BeginPopupModal(modal_title.c_str(), nullptr,
                              ImGuiWindowFlags_AlwaysAutoResize)) {
-
     // Header with icon
     ImGui::Text("%s %s", ICON_MD_SWAP_HORIZ, modal_title.c_str());
     ImGui::Separator();
@@ -430,14 +405,12 @@ void CanvasModals::RenderBppConversionModal(
 
 void CanvasModals::RenderPaletteEditorModal(
     const std::string& canvas_id, const PaletteEditorOptions& options) {
-
   std::string modal_title =
       options.title.empty() ? "Palette Editor" : options.title;
   ImGui::SetNextWindowSize(ImVec2(800, 600), ImGuiCond_FirstUseEver);
 
   if (ImGui::BeginPopupModal(modal_title.c_str(), nullptr,
                              ImGuiWindowFlags_AlwaysAutoResize)) {
-
     // Header with icon
     ImGui::Text("%s %s", ICON_MD_PALETTE, modal_title.c_str());
     ImGui::Separator();
@@ -464,13 +437,11 @@ void CanvasModals::RenderPaletteEditorModal(
 
 void CanvasModals::RenderColorAnalysisModal(
     const std::string& canvas_id, const ColorAnalysisOptions& options) {
-
   std::string modal_title = "Color Analysis";
   ImGui::SetNextWindowSize(ImVec2(700, 500), ImGuiCond_FirstUseEver);
 
   if (ImGui::BeginPopupModal(modal_title.c_str(), nullptr,
                              ImGuiWindowFlags_AlwaysAutoResize)) {
-
     // Header with icon
     ImGui::Text("%s %s", ICON_MD_ZOOM_IN, modal_title.c_str());
     ImGui::Separator();
@@ -497,13 +468,11 @@ void CanvasModals::RenderColorAnalysisModal(
 
 void CanvasModals::RenderPerformanceModal(const std::string& canvas_id,
                                           const PerformanceOptions& options) {
-
   std::string modal_title = "Canvas Performance";
   ImGui::SetNextWindowSize(ImVec2(500, 300), ImGuiCond_FirstUseEver);
 
   if (ImGui::BeginPopupModal(modal_title.c_str(), nullptr,
                              ImGuiWindowFlags_AlwaysAutoResize)) {
-
     // Header with icon
     ImGui::Text("%s %s", ICON_MD_TRENDING_UP, modal_title.c_str());
     ImGui::Separator();

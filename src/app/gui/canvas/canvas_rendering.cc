@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cmath>
+
 #include "app/gui/canvas/canvas_utils.h"
 
 namespace yaze {
@@ -15,7 +16,6 @@ constexpr uint32_t kWhiteColor = IM_COL32(255, 255, 255, 255);
 
 void RenderCanvasBackground(ImDrawList* draw_list,
                             const CanvasGeometry& geometry) {
-
   // Draw border and background color (extracted from Canvas::DrawBackground)
   draw_list->AddRectFilled(geometry.canvas_p0, geometry.canvas_p1,
                            kRectangleColor);
@@ -24,12 +24,12 @@ void RenderCanvasBackground(ImDrawList* draw_list,
 
 void RenderCanvasGrid(ImDrawList* draw_list, const CanvasGeometry& geometry,
                       const CanvasConfig& config, int highlight_tile_id) {
-
   if (!config.enable_grid) {
     return;
   }
 
-  // Create render context for utility functions (extracted from Canvas::DrawGrid)
+  // Create render context for utility functions (extracted from
+  // Canvas::DrawGrid)
   CanvasUtils::CanvasRenderContext ctx = {
       .draw_list = draw_list,
       .canvas_p0 = geometry.canvas_p0,
@@ -48,8 +48,8 @@ void RenderCanvasOverlay(ImDrawList* draw_list, const CanvasGeometry& geometry,
                          const CanvasConfig& config,
                          const ImVector<ImVec2>& points,
                          const ImVector<ImVec2>& selected_points) {
-
-  // Create render context for utility functions (extracted from Canvas::DrawOverlay)
+  // Create render context for utility functions (extracted from
+  // Canvas::DrawOverlay)
   CanvasUtils::CanvasRenderContext ctx = {
       .draw_list = draw_list,
       .canvas_p0 = geometry.canvas_p0,
@@ -68,7 +68,6 @@ void RenderCanvasLabels(ImDrawList* draw_list, const CanvasGeometry& geometry,
                         const CanvasConfig& config,
                         const ImVector<ImVector<std::string>>& labels,
                         int current_labels, int tile_id_offset) {
-
   if (!config.enable_custom_labels || current_labels >= labels.size()) {
     return;
   }
@@ -96,7 +95,6 @@ void RenderCanvasLabels(ImDrawList* draw_list, const CanvasGeometry& geometry,
 void RenderBitmapOnCanvas(ImDrawList* draw_list, const CanvasGeometry& geometry,
                           gfx::Bitmap& bitmap, int /*border_offset*/,
                           float scale) {
-
   if (!bitmap.is_active()) {
     return;
   }
@@ -112,7 +110,6 @@ void RenderBitmapOnCanvas(ImDrawList* draw_list, const CanvasGeometry& geometry,
 void RenderBitmapOnCanvas(ImDrawList* draw_list, const CanvasGeometry& geometry,
                           gfx::Bitmap& bitmap, int x_offset, int y_offset,
                           float scale, int alpha) {
-
   if (!bitmap.is_active()) {
     return;
   }
@@ -139,7 +136,6 @@ void RenderBitmapOnCanvas(ImDrawList* draw_list, const CanvasGeometry& geometry,
 void RenderBitmapOnCanvas(ImDrawList* draw_list, const CanvasGeometry& geometry,
                           gfx::Bitmap& bitmap, ImVec2 dest_pos,
                           ImVec2 dest_size, ImVec2 src_pos, ImVec2 src_size) {
-
   if (!bitmap.is_active()) {
     return;
   }
@@ -160,7 +156,6 @@ void RenderBitmapGroup(ImDrawList* draw_list, const CanvasGeometry& geometry,
                        std::vector<int>& group, gfx::Tilemap& tilemap,
                        int tile_size, float scale, int local_map_size,
                        ImVec2 total_map_size) {
-
   // Extracted from Canvas::DrawBitmapGroup (lines 1148-1264)
   // This is used for multi-tile selection preview in overworld editor
 
@@ -168,16 +163,17 @@ void RenderBitmapGroup(ImDrawList* draw_list, const CanvasGeometry& geometry,
     return;
   }
 
-  // OPTIMIZATION: Use optimized rendering for large groups to improve performance
+  // OPTIMIZATION: Use optimized rendering for large groups to improve
+  // performance
   bool use_optimized_rendering = group.size() > 128;
 
   // Pre-calculate common values to avoid repeated computation
   const float tile_scale = tile_size * scale;
   const int atlas_tiles_per_row = tilemap.atlas.width() / tilemap.tile_size.x;
 
-  // Get selected points (note: this assumes selected_points are available in context)
-  // For now, we'll just render tiles at their grid positions
-  // The full implementation would need the selected_points passed in
+  // Get selected points (note: this assumes selected_points are available in
+  // context) For now, we'll just render tiles at their grid positions The full
+  // implementation would need the selected_points passed in
 
   int i = 0;
   for (const auto tile_id : group) {
@@ -202,7 +198,6 @@ void RenderBitmapGroup(ImDrawList* draw_list, const CanvasGeometry& geometry,
         // Simple bounds check
         if (atlas_tile_x >= 0 && atlas_tile_x < tilemap.atlas.width() &&
             atlas_tile_y >= 0 && atlas_tile_y < tilemap.atlas.height()) {
-
           // Calculate UV coordinates once for efficiency
           const float atlas_width = static_cast<float>(tilemap.atlas.width());
           const float atlas_height = static_cast<float>(tilemap.atlas.height());

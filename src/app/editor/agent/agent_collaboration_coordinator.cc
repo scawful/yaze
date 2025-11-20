@@ -20,8 +20,6 @@
 #include "util/file_util.h"
 #include "util/macro.h"
 #include "util/platform_paths.h"
-
-#include <filesystem>
 namespace fs = std::filesystem;
 
 namespace yaze {

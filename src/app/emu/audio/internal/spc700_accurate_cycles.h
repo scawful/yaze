@@ -1,4 +1,5 @@
-// spc700_accurate_cycles.h - Cycle counts based on https://snes.nesdev.org/wiki/SPC-700_instruction_set
+// spc700_accurate_cycles.h - Cycle counts based on
+// https://snes.nesdev.org/wiki/SPC-700_instruction_set
 
 #pragma once
 

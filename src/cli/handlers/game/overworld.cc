@@ -1,6 +1,4 @@
 #include "zelda3/overworld/overworld.h"
-#include "cli/cli.h"
-#include "cli/handlers/game/overworld_inspect.h"
 
 #include <algorithm>
 #include <cctype>
@@ -20,6 +18,8 @@
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_join.h"
+#include "cli/cli.h"
+#include "cli/handlers/game/overworld_inspect.h"
 
 ABSL_DECLARE_FLAG(std::string, rom);
 
@@ -817,7 +817,8 @@ absl::Status HandleOverworldSetZoomLegacy(
   return absl::OkStatus();
 }
 
-// Legacy OverworldGetVisibleRegion class removed - using new CommandHandler system
+// Legacy OverworldGetVisibleRegion class removed - using new CommandHandler
+// system
 // TODO: Implement OverworldGetVisibleRegionCommandHandler
 absl::Status HandleOverworldGetVisibleRegionLegacy(
     const std::vector<std::string>& arg_vec) {

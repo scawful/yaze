@@ -2,9 +2,9 @@
 #define YAZE_GUI_COLOR_H
 
 #include <string>
-#include "absl/strings/str_format.h"
 
 #include "absl/status/status.h"
+#include "absl/strings/str_format.h"
 #include "app/gfx/types/snes_palette.h"
 #include "imgui/imgui.h"
 

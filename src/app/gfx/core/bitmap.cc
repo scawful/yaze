@@ -24,7 +24,7 @@ class BitmapError : public std::runtime_error {
  * @brief Convert bitmap format enum to SDL pixel format
  * @param format Bitmap format (0=indexed, 1=4BPP, 2=8BPP)
  * @return SDL pixel format constant
- * 
+ *
  * SNES Graphics Format Mapping:
  * - Format 0: Indexed 8-bit (most common for SNES graphics)
  * - Format 1: 4-bit per pixel (used for some SNES backgrounds)
@@ -175,7 +175,7 @@ void Bitmap::Create(int width, int height, int depth,
  * @param depth Color depth in bits per pixel
  * @param format Pixel format (0=indexed, 1=4BPP, 2=8BPP)
  * @param data Raw pixel data
- * 
+ *
  * Performance Notes:
  * - Uses Arena for efficient surface allocation
  * - Copies data to avoid external pointer dependencies
@@ -209,8 +209,9 @@ void Bitmap::Create(int width, int height, int depth, int format,
     return;
   }
 
-  // CRITICAL FIX: Use proper SDL surface operations instead of direct pointer assignment
-  // Direct assignment breaks SDL's memory management and causes malloc errors on shutdown
+  // CRITICAL FIX: Use proper SDL surface operations instead of direct pointer
+  // assignment Direct assignment breaks SDL's memory management and causes
+  // malloc errors on shutdown
   if (surface_ && data_.size() > 0) {
     SDL_LockSurface(surface_);
     memcpy(surface_->pixels, pixel_data_, data_.size());
@@ -228,7 +229,8 @@ void Bitmap::Reformat(int format) {
   surface_ = Arena::Get().AllocateSurface(width_, height_, depth_,
                                           GetSnesPixelFormat(format));
 
-  // CRITICAL FIX: Use proper SDL surface operations instead of direct pointer assignment
+  // CRITICAL FIX: Use proper SDL surface operations instead of direct pointer
+  // assignment
   if (surface_ && data_.size() > 0) {
     SDL_LockSurface(surface_);
     memcpy(surface_->pixels, pixel_data_, data_.size());
@@ -248,16 +250,16 @@ void Bitmap::UpdateTexture() {
 
 /**
  * @brief Apply the stored palette to the SDL surface
- * 
+ *
  * This method applies the palette_ member to the SDL surface's palette.
- * 
+ *
  * IMPORTANT: Transparency handling
  * - ROM palette data does NOT have transparency flags set
  * - Transparency is only applied if explicitly marked (via set_transparent)
- * - For SNES rendering, use SetPaletteWithTransparent which creates 
+ * - For SNES rendering, use SetPaletteWithTransparent which creates
  *   transparent color 0 automatically
  * - This method preserves the transparency state of each color
- * 
+ *
  * Color format notes:
  * - SnesColor.rgb() returns 0-255 values stored in ImVec4 (unconventional!)
  * - We cast these directly to Uint8 for SDL
@@ -344,18 +346,20 @@ void Bitmap::SetPalette(const SnesPalette& palette) {
 
 /**
  * @brief Apply palette using metadata-driven strategy
- * 
+ *
  * Uses bitmap metadata to determine the appropriate palette application method:
  * - palette_format == 0: Full palette (SetPalette)
- * - palette_format == 1: Sub-palette with transparent color 0 (SetPaletteWithTransparent)
- * 
+ * - palette_format == 1: Sub-palette with transparent color 0
+ * (SetPaletteWithTransparent)
+ *
  * This ensures correct rendering for different bitmap types:
  * - 3BPP graphics sheets → sub-palette with transparent
  * - 4BPP full palettes → full palette
  * - Mode 7 graphics → full palette
- * 
+ *
  * @param palette Source palette to apply
- * @param sub_palette_index Index within palette for sub-palette extraction (default 0)
+ * @param sub_palette_index Index within palette for sub-palette extraction
+ * (default 0)
  */
 void Bitmap::ApplyPaletteByMetadata(const SnesPalette& palette,
                                     int sub_palette_index) {
@@ -372,31 +376,31 @@ void Bitmap::ApplyPaletteByMetadata(const SnesPalette& palette,
 
 /**
  * @brief Apply a sub-palette with automatic transparency for SNES rendering
- * 
+ *
  * This method extracts a sub-palette from a larger palette and applies it
  * to the SDL surface with proper SNES transparency handling.
- * 
+ *
  * SNES Transparency Model:
  * - The SNES hardware automatically treats palette index 0 as transparent
  * - This is a hardware feature, not stored in ROM data
  * - This method creates a transparent color 0 for proper SNES emulation
- * 
+ *
  * Usage:
  * - Extract 8-color sub-palette from position 'index' in source palette
  * - Color 0: Always set to transparent black (0,0,0,0)
  * - Colors 1-7: Taken from palette[index] through palette[index+6]
  * - If palette has fewer than 7 colors, fills with opaque black
- * 
+ *
  * Example:
  *   palette has colors [c0, c1, c2, c3, c4, c5, c6, c7, c8, ...]
  *   SetPaletteWithTransparent(palette, 0, 7) creates:
  *     [transparent_black, c0, c1, c2, c3, c4, c5, c6]
- * 
+ *
  * IMPORTANT: Source palette data is NOT modified
  * - The full palette is stored in palette_ member for reference
  * - Only the SDL surface palette is updated with the 8-color subset
  * - This allows proper palette editing while maintaining SNES rendering
- * 
+ *
  * @param palette Source palette (can be 7, 8, 64, 128, or 256 colors)
  * @param index Start index in source palette (0-based)
  * @param length Number of colors to extract (default 7, max 7)
@@ -614,13 +618,13 @@ void Bitmap::Get16x16Tile(int tile_x, int tile_y,
  * @param x X coordinate (0 to width-1)
  * @param y Y coordinate (0 to height-1)
  * @param color SNES color (15-bit RGB format)
- * 
+ *
  * Performance Notes:
  * - Bounds checking for safety
  * - O(1) palette lookup using hash map cache (100x faster than linear search)
  * - Dirty region tracking for efficient texture updates
  * - Direct pixel data manipulation for speed
- * 
+ *
  * Optimizations Applied:
  * - Hash map palette lookup instead of linear search
  * - Dirty region tracking to minimize texture update area
@@ -697,7 +701,7 @@ void Bitmap::Resize(int new_width, int new_height) {
  * @brief Hash a color for cache lookup
  * @param color ImVec4 color to hash
  * @return 32-bit hash value
- * 
+ *
  * Performance Notes:
  * - Simple hash combining RGBA components
  * - Fast integer operations for cache key generation
@@ -716,8 +720,9 @@ uint32_t Bitmap::HashColor(const ImVec4& color) {
 
 /**
  * @brief Invalidate the palette lookup cache (call when palette changes)
- * @note This must be called whenever the palette is modified to maintain cache consistency
- * 
+ * @note This must be called whenever the palette is modified to maintain cache
+ * consistency
+ *
  * Performance Notes:
  * - Clears existing cache to force rebuild
  * - Rebuilds cache with current palette colors
@@ -738,7 +743,7 @@ void Bitmap::InvalidatePaletteCache() {
  * @param color SNES color to find index for
  * @return Palette index (0 if not found)
  * @note O(1) lookup time vs O(n) linear search
- * 
+ *
  * Performance Notes:
  * - Hash map lookup for O(1) performance
  * - 100x faster than linear search for large palettes
@@ -761,7 +766,8 @@ void Bitmap::set_data(const std::vector<uint8_t>& data) {
   data_ = data;
   pixel_data_ = data_.data();
 
-  // CRITICAL FIX: Use proper SDL surface operations instead of direct pointer assignment
+  // CRITICAL FIX: Use proper SDL surface operations instead of direct pointer
+  // assignment
   if (surface_ && !data_.empty()) {
     SDL_LockSurface(surface_);
     memcpy(surface_->pixels, pixel_data_, data_.size());

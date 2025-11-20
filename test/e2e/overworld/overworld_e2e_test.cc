@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+
 #include <filesystem>
 #include <memory>
 #include <string>
@@ -14,7 +15,7 @@ namespace test {
 
 /**
  * @brief Comprehensive End-to-End Overworld Test Suite
- * 
+ *
  * This test suite validates the complete overworld editing workflow:
  * 1. Load vanilla ROM and extract golden data
  * 2. Apply ZSCustomOverworld ASM patches
@@ -82,15 +83,12 @@ class OverworldE2ETest : public ::testing::Test {
     // For now, we'll do basic validation
 
     // Check basic ROM properties
-    if (rom.title().empty())
-      return false;
-    if (rom.size() < 1024 * 1024)
-      return false;  // At least 1MB
+    if (rom.title().empty()) return false;
+    if (rom.size() < 1024 * 1024) return false;  // At least 1MB
 
     // Check ASM version
     auto asm_version = rom.ReadByte(0x140145);
-    if (!asm_version.ok())
-      return false;
+    if (!asm_version.ok()) return false;
 
     return true;
   }
@@ -396,7 +394,8 @@ TEST_F(OverworldE2ETest, RomDependentTestSuiteIntegration) {
     EXPECT_LE(map.area_size(), zelda3::AreaSizeEnum::TallArea);
   }
 
-  // Test that sprite data is accessible (matches RomDependentTestSuite expectations)
+  // Test that sprite data is accessible (matches RomDependentTestSuite
+  // expectations)
   const auto& sprites = overworld.all_sprites();
   EXPECT_EQ(sprites.size(), 3);  // Three game states
 

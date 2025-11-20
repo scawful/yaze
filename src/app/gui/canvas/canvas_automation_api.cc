@@ -71,10 +71,8 @@ void CanvasAutomationAPI::SelectTile(int x, int y) {
 
 void CanvasAutomationAPI::SelectTileRect(int x1, int y1, int x2, int y2) {
   // Ensure x1 <= x2 and y1 <= y2
-  if (x1 > x2)
-    std::swap(x1, x2);
-  if (y1 > y2)
-    std::swap(y1, y2);
+  if (x1 > x2) std::swap(x1, x2);
+  if (y1 > y2) std::swap(y1, y2);
 
   if (!IsInBounds(x1, y1) || !IsInBounds(x2, y2)) {
     return;
@@ -181,9 +179,7 @@ void CanvasAutomationAPI::SetZoom(float zoom) {
   canvas_->set_global_scale(zoom);
 }
 
-float CanvasAutomationAPI::GetZoom() const {
-  return canvas_->global_scale();
-}
+float CanvasAutomationAPI::GetZoom() const { return canvas_->global_scale(); }
 
 // ============================================================================
 // Query Operations

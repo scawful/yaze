@@ -1,6 +1,7 @@
 #include "canvas_interaction_handler.h"
 
 #include <cmath>
+
 #include "app/gui/canvas/canvas_interaction.h"
 #include "imgui/imgui.h"
 
@@ -35,7 +36,6 @@ void CanvasInteractionHandler::ClearState() {
 TileInteractionResult CanvasInteractionHandler::Update(
     ImVec2 canvas_p0, ImVec2 scrolling, float /*global_scale*/,
     float /*tile_size*/, ImVec2 /*canvas_size*/, bool is_hovered) {
-
   TileInteractionResult result;
 
   if (!is_hovered) {
@@ -48,8 +48,8 @@ TileInteractionResult CanvasInteractionHandler::Update(
   mouse_pos_in_canvas_ =
       ImVec2(imgui_io.MousePos.x - origin.x, imgui_io.MousePos.y - origin.y);
 
-  // Update based on current mode - each mode is handled by its specific Draw method
-  // This method exists for future state updates if needed
+  // Update based on current mode - each mode is handled by its specific Draw
+  // method This method exists for future state updates if needed
   (void)current_mode_;  // Suppress unused warning
 
   return result;
@@ -58,7 +58,6 @@ TileInteractionResult CanvasInteractionHandler::Update(
 bool CanvasInteractionHandler::DrawTilePainter(
     const gfx::Bitmap& bitmap, ImDrawList* draw_list, ImVec2 canvas_p0,
     ImVec2 scrolling, float global_scale, float tile_size, bool is_hovered) {
-
   const ImGuiIO& imgui_io = ImGui::GetIO();
   const ImVec2 origin(canvas_p0.x + scrolling.x, canvas_p0.y + scrolling.y);
   const ImVec2 mouse_pos(imgui_io.MousePos.x - origin.x,
@@ -104,7 +103,6 @@ bool CanvasInteractionHandler::DrawTilePainter(
 bool CanvasInteractionHandler::DrawTilemapPainter(
     gfx::Tilemap& tilemap, int current_tile, ImDrawList* draw_list,
     ImVec2 canvas_p0, ImVec2 scrolling, float global_scale, bool is_hovered) {
-
   const ImGuiIO& imgui_io = ImGui::GetIO();
   const ImVec2 origin(canvas_p0.x + scrolling.x, canvas_p0.y + scrolling.y);
   const ImVec2 mouse_pos(imgui_io.MousePos.x - origin.x,
@@ -140,7 +138,6 @@ bool CanvasInteractionHandler::DrawTilemapPainter(
 
       if (tile_x >= 0 && tile_x < tilemap.atlas.width() && tile_y >= 0 &&
           tile_y < tilemap.atlas.height()) {
-
         ImVec2 uv0 =
             ImVec2(static_cast<float>(tile_x) / tilemap.atlas.width(),
                    static_cast<float>(tile_y) / tilemap.atlas.height());
@@ -171,7 +168,6 @@ bool CanvasInteractionHandler::DrawTilemapPainter(
 bool CanvasInteractionHandler::DrawSolidTilePainter(
     const ImVec4& color, ImDrawList* draw_list, ImVec2 canvas_p0,
     ImVec2 scrolling, float global_scale, float tile_size, bool is_hovered) {
-
   const ImGuiIO& imgui_io = ImGui::GetIO();
   const ImVec2 origin(canvas_p0.x + scrolling.x, canvas_p0.y + scrolling.y);
   const ImVec2 mouse_pos(imgui_io.MousePos.x - origin.x,
@@ -224,7 +220,6 @@ bool CanvasInteractionHandler::DrawTileSelector(ImDrawList* /*draw_list*/,
                                                 ImVec2 scrolling,
                                                 float tile_size,
                                                 bool is_hovered) {
-
   const ImGuiIO& imgui_io = ImGui::GetIO();
   const ImVec2 origin(canvas_p0.x + scrolling.x, canvas_p0.y + scrolling.y);
   const ImVec2 mouse_pos(imgui_io.MousePos.x - origin.x,
@@ -250,7 +245,6 @@ bool CanvasInteractionHandler::DrawTileSelector(ImDrawList* /*draw_list*/,
 bool CanvasInteractionHandler::DrawSelectRect(
     int current_map, ImDrawList* draw_list, ImVec2 canvas_p0, ImVec2 scrolling,
     float global_scale, float tile_size, bool is_hovered) {
-
   if (!is_hovered) {
     return false;
   }
@@ -290,8 +284,8 @@ bool CanvasInteractionHandler::DrawSelectRect(
   return false;
 }
 
-// Helper methods - these are thin wrappers that could be static but kept as instance
-// methods for potential future state access
+// Helper methods - these are thin wrappers that could be static but kept as
+// instance methods for potential future state access
 ImVec2 CanvasInteractionHandler::AlignPosToGrid(ImVec2 pos, float grid_step) {
   return AlignToGridLocal(pos, grid_step);
 }

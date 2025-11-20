@@ -242,7 +242,6 @@ void ComposeTile16(Tilemap& tilemap, const std::vector<uint8_t>& data,
 }
 
 std::vector<uint8_t> GetTilemapData(Tilemap& tilemap, int tile_id) {
-
   // Comprehensive validation to prevent crashes
   if (tile_id < 0) {
     SDL_Log("GetTilemapData: Invalid tile_id %d (negative)", tile_id);

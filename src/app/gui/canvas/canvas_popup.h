@@ -12,7 +12,7 @@ namespace gui {
 
 /**
  * @brief State for a single persistent popup
- * 
+ *
  * POD struct representing the state of a popup that persists across frames.
  * Popups remain open until explicitly closed or the user dismisses them.
  */
@@ -40,10 +40,10 @@ struct PopupState {
 
 /**
  * @brief Registry for managing persistent popups
- * 
+ *
  * Maintains a collection of popups and their lifecycle. Handles opening,
  * closing, and rendering popups across frames.
- * 
+ *
  * This class is designed to be embedded in Canvas or used standalone for
  * testing and custom UI components.
  */
@@ -53,10 +53,10 @@ class PopupRegistry {
 
   /**
    * @brief Open a persistent popup
-   * 
+   *
    * If the popup already exists, updates its callback and reopens it.
    * If the popup is new, adds it to the registry and opens it.
-   * 
+   *
    * @param popup_id Unique identifier for the popup
    * @param render_callback Function that renders the popup content
    */
@@ -64,17 +64,17 @@ class PopupRegistry {
 
   /**
    * @brief Close a persistent popup
-   * 
+   *
    * Marks the popup as closed. It will be removed from the registry on the
    * next render pass.
-   * 
+   *
    * @param popup_id Identifier of the popup to close
    */
   void Close(const std::string& popup_id);
 
   /**
    * @brief Check if a popup is currently open
-   * 
+   *
    * @param popup_id Identifier of the popup to check
    * @return true if popup is open, false otherwise
    */
@@ -82,10 +82,10 @@ class PopupRegistry {
 
   /**
    * @brief Render all active popups
-   * 
+   *
    * Iterates through all open popups and calls their render callbacks.
    * Automatically removes popups that have been closed by the user.
-   * 
+   *
    * This should be called once per frame, typically at the end of the
    * frame after all other rendering is complete.
    */
@@ -93,14 +93,14 @@ class PopupRegistry {
 
   /**
    * @brief Get the number of active popups
-   * 
+   *
    * @return Number of open popups in the registry
    */
   size_t GetActiveCount() const;
 
   /**
    * @brief Clear all popups from the registry
-   * 
+   *
    * Closes all popups and removes them from the registry.
    * Useful for cleanup or resetting state.
    */
@@ -108,7 +108,7 @@ class PopupRegistry {
 
   /**
    * @brief Get direct access to the popup list (for migration/debugging)
-   * 
+   *
    * @return Reference to the internal popup vector
    */
   std::vector<PopupState>& GetPopups() { return popups_; }

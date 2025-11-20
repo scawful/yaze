@@ -1,10 +1,12 @@
-// Windows and Linux implementation of FileDialogWrapper using nativefiledialog-extended
-#include "util/file_util.h"
-
+// Windows and Linux implementation of FileDialogWrapper using
+// nativefiledialog-extended
 #include <nfd.h>
+
 #include <filesystem>
 #include <string>
 #include <vector>
+
+#include "util/file_util.h"
 
 namespace yaze {
 namespace util {

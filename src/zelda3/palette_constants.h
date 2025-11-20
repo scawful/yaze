@@ -132,8 +132,8 @@ constexpr PaletteGroupMetadata kDungeonMain = {
     .category = "Dungeon",
     .base_address = PaletteAddress::kDungeonMain,
     .palette_count = PaletteCount::kDungeonMain,
-    .colors_per_palette =
-        90,  // 90 colors: 5 full rows (0-15, 16-31, 32-47, 48-63, 64-79) + 10 colors (80-89)
+    .colors_per_palette = 90,  // 90 colors: 5 full rows (0-15, 16-31, 32-47,
+                               // 48-63, 64-79) + 10 colors (80-89)
     .colors_per_row = 16,  // Display in 16-color rows for proper SNES alignment
     .bits_per_pixel = 4,
     .description =
@@ -146,9 +146,9 @@ constexpr PaletteGroupMetadata kGlobalSprites = {
     .display_name = "Global Sprites",
     .category = "Sprites",
     .base_address = PaletteAddress::kGlobalSpritesLW,
-    .palette_count = 2,  // 2 sets (LW and DW), each with 60 colors
-    .colors_per_palette =
-        60,  // 60 colors: 4 rows (0-15, 16-31, 32-47, 48-59) with transparent at 0, 16, 32, 48
+    .palette_count = 2,        // 2 sets (LW and DW), each with 60 colors
+    .colors_per_palette = 60,  // 60 colors: 4 rows (0-15, 16-31, 32-47, 48-59)
+                               // with transparent at 0, 16, 32, 48
     .colors_per_row = 16,  // Display in 16-color rows for proper SNES alignment
     .bits_per_pixel = 4,
     .description =
@@ -207,8 +207,8 @@ constexpr PaletteGroupMetadata kArmor = {
     .category = "Equipment",
     .base_address = PaletteAddress::kArmor,
     .palette_count = PaletteCount::kArmor,
-    .colors_per_palette =
-        15,  // 15 colors (ROM stores 15, transparent added in memory for full row)
+    .colors_per_palette = 15,  // 15 colors (ROM stores 15, transparent added in
+                               // memory for full row)
     .colors_per_row =
         16,  // Display as full 16-color rows (with transparent at index 0)
     .bits_per_pixel = 4,
@@ -304,9 +304,9 @@ constexpr PaletteGroupMetadata kOverworldMiniMap = {
     .category = "Interface",
     .base_address = PaletteAddress::kOverworldMiniMap,
     .palette_count = PaletteCount::kOverworldMiniMap,
-    .colors_per_palette =
-        128,  // 128 colors: 8 full rows (0-127) with transparent at 0, 16, 32, 48, 64, 80, 96, 112
-    .colors_per_row = 16,  // Display in 16-color rows
+    .colors_per_palette = 128,  // 128 colors: 8 full rows (0-127) with
+                                // transparent at 0, 16, 32, 48, 64, 80, 96, 112
+    .colors_per_row = 16,       // Display in 16-color rows
     .bits_per_pixel = 4,
     .description =
         "Overworld mini-map palettes: 128 colors per set (8 full rows)",

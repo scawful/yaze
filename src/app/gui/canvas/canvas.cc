@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include <string>
+
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/debug/performance/performance_profiler.h"
 #include "app/gfx/util/bpp_format_manager.h"
@@ -12,12 +13,11 @@
 
 namespace yaze::gui {
 
-// Define constructors and destructor in .cc to avoid incomplete type issues with unique_ptr
+// Define constructors and destructor in .cc to avoid incomplete type issues
+// with unique_ptr
 
 // Default constructor
-Canvas::Canvas() : renderer_(nullptr) {
-  InitializeDefaults();
-}
+Canvas::Canvas() : renderer_(nullptr) { InitializeDefaults(); }
 
 // Legacy constructors (renderer is optional for backward compatibility)
 Canvas::Canvas(const std::string& id)
@@ -307,9 +307,7 @@ bool Canvas::BeginTableCanvas(const std::string& label) {
   return result;
 }
 
-void Canvas::EndTableCanvas() {
-  ImGui::EndChild();
-}
+void Canvas::EndTableCanvas() { ImGui::EndChild(); }
 
 // Improved interaction detection methods
 bool Canvas::HasValidSelection() const {
@@ -599,9 +597,7 @@ void Canvas::AddContextMenuItem(const gui::CanvasMenuItem& item) {
   }
 }
 
-void Canvas::ClearContextMenuItems() {
-  editor_menu_.sections.clear();
-}
+void Canvas::ClearContextMenuItems() { editor_menu_.sections.clear(); }
 
 void Canvas::OpenPersistentPopup(const std::string& popup_id,
                                  std::function<void()> render_callback) {
@@ -620,8 +616,7 @@ void Canvas::RenderPersistentPopups() {
 }
 
 void Canvas::SetZoomToFit(const gfx::Bitmap& bitmap) {
-  if (!bitmap.is_active())
-    return;
+  if (!bitmap.is_active()) return;
 
   ImVec2 available = ImGui::GetContentRegionAvail();
   float scale_x = available.x / bitmap.width();
@@ -629,8 +624,7 @@ void Canvas::SetZoomToFit(const gfx::Bitmap& bitmap) {
   config_.global_scale = std::min(scale_x, scale_y);
 
   // Ensure minimum readable scale
-  if (config_.global_scale < 0.25f)
-    config_.global_scale = 0.25f;
+  if (config_.global_scale < 0.25f) config_.global_scale = 0.25f;
 
   global_scale_ = config_.global_scale;  // Legacy compatibility
 
@@ -762,7 +756,6 @@ bool Canvas::DrawTilemapPainter(gfx::Tilemap& tilemap, int current_tile) {
       // Simple bounds check
       if (tile_x >= 0 && tile_x < tilemap.atlas.width() && tile_y >= 0 &&
           tile_y < tilemap.atlas.height()) {
-
         // Draw directly from atlas texture
         ImVec2 uv0 =
             ImVec2(static_cast<float>(tile_x) / tilemap.atlas.width(),
@@ -970,10 +963,8 @@ void Canvas::DrawSelectRect(int current_map, int tile_size, float scale) {
     int end_y = std::floor(drag_end_pos.y / scaled_size) * tile16_size;
 
     // Swap the start and end positions if they are in the wrong order
-    if (start_x > end_x)
-      std::swap(start_x, end_x);
-    if (start_y > end_y)
-      std::swap(start_y, end_y);
+    if (start_x > end_x) std::swap(start_x, end_x);
+    if (start_y > end_y) std::swap(start_y, end_y);
 
     selected_tiles_.clear();
     selected_tiles_.reserve(((end_x - start_x) / tile16_size + 1) *
@@ -1030,7 +1021,8 @@ void Canvas::DrawBitmap(Bitmap& bitmap, int x_offset, int y_offset, float scale,
   bitmap_ = &bitmap;
 
   // Update content size for table integration
-  // CRITICAL: Store UNSCALED bitmap size as content - scale is applied during rendering
+  // CRITICAL: Store UNSCALED bitmap size as content - scale is applied during
+  // rendering
   config_.content_size = ImVec2(bitmap.width(), bitmap.height());
 
   // Phase 1: Use rendering helper
@@ -1094,7 +1086,8 @@ void Canvas::DrawBitmapGroup(std::vector<int>& group, gfx::Tilemap& tilemap,
     return;
   }
 
-  // OPTIMIZATION: Use optimized rendering for large groups to improve performance
+  // OPTIMIZATION: Use optimized rendering for large groups to improve
+  // performance
   bool use_optimized_rendering =
       group.size() > 128;  // Optimize for large selections
 
@@ -1121,10 +1114,8 @@ void Canvas::DrawBitmapGroup(std::vector<int>& group, gfx::Tilemap& tilemap,
   int end_tile_y =
       static_cast<int>(std::floor(rect_bottom_right.y / (tile_size * scale)));
 
-  if (start_tile_x > end_tile_x)
-    std::swap(start_tile_x, end_tile_x);
-  if (start_tile_y > end_tile_y)
-    std::swap(start_tile_y, end_tile_y);
+  if (start_tile_x > end_tile_x) std::swap(start_tile_x, end_tile_x);
+  if (start_tile_y > end_tile_y) std::swap(start_tile_y, end_tile_y);
 
   // Calculate the size of the rectangle in 16x16 grid form
   int rect_width = (end_tile_x - start_tile_x) * tile_size;
@@ -1150,7 +1141,8 @@ void Canvas::DrawBitmapGroup(std::vector<int>& group, gfx::Tilemap& tilemap,
         int tile_pos_x = (x + start_tile_x) * tile_size * scale;
         int tile_pos_y = (y + start_tile_y) * tile_size * scale;
 
-        // OPTIMIZATION: Use pre-calculated values for better performance with large selections
+        // OPTIMIZATION: Use pre-calculated values for better performance with
+        // large selections
         if (tilemap.atlas.is_active() && tilemap.atlas.texture() &&
             atlas_tiles_per_row > 0) {
           int atlas_tile_x =
@@ -1161,7 +1153,6 @@ void Canvas::DrawBitmapGroup(std::vector<int>& group, gfx::Tilemap& tilemap,
           // Simple bounds check
           if (atlas_tile_x >= 0 && atlas_tile_x < tilemap.atlas.width() &&
               atlas_tile_y >= 0 && atlas_tile_y < tilemap.atlas.height()) {
-
             // Calculate UV coordinates once for efficiency
             const float atlas_width = static_cast<float>(tilemap.atlas.width());
             const float atlas_height =
@@ -1200,15 +1191,18 @@ void Canvas::DrawBitmapGroup(std::vector<int>& group, gfx::Tilemap& tilemap,
     }
   }
 
-  // Performance optimization completed - tiles are now rendered with pre-calculated values
+  // Performance optimization completed - tiles are now rendered with
+  // pre-calculated values
 
-  // Reposition rectangle to follow mouse, but clamp to prevent wrapping across map boundaries
+  // Reposition rectangle to follow mouse, but clamp to prevent wrapping across
+  // map boundaries
   const ImGuiIO& io = GetIO();
   const ImVec2 origin(canvas_p0_.x + scrolling_.x, canvas_p0_.y + scrolling_.y);
   const ImVec2 mouse_pos(io.MousePos.x - origin.x, io.MousePos.y - origin.y);
 
   // CRITICAL FIX: Clamp BEFORE grid alignment for smoother dragging behavior
-  // This prevents the rectangle from even attempting to cross boundaries during drag
+  // This prevents the rectangle from even attempting to cross boundaries during
+  // drag
   ImVec2 clamped_mouse_pos = mouse_pos;
 
   if (config_.clamp_rect_to_local_maps) {
@@ -1216,7 +1210,8 @@ void Canvas::DrawBitmapGroup(std::vector<int>& group, gfx::Tilemap& tilemap,
     int mouse_local_map_x = static_cast<int>(mouse_pos.x) / small_map;
     int mouse_local_map_y = static_cast<int>(mouse_pos.y) / small_map;
 
-    // Calculate where the rectangle END would be if we place it at mouse position
+    // Calculate where the rectangle END would be if we place it at mouse
+    // position
     float potential_end_x = mouse_pos.x + rect_width;
     float potential_end_y = mouse_pos.y + rect_height;
 
@@ -1273,8 +1268,7 @@ void Canvas::DrawInfoGrid(float grid_step, int tile_id_offset, int label_id) {
   // Draw grid + all lines in the canvas
   draw_list_->PushClipRect(canvas_p0_, canvas_p1_, true);
   if (enable_grid_) {
-    if (custom_step_ != 0.f)
-      grid_step = custom_step_;
+    if (custom_step_ != 0.f) grid_step = custom_step_;
     grid_step *= global_scale_;  // Apply global scale to grid step
 
     DrawGridLines(grid_step);
@@ -1312,8 +1306,7 @@ void Canvas::DrawCustomHighlight(float grid_step) {
 }
 
 void Canvas::DrawGrid(float grid_step, int tile_id_offset) {
-  if (config_.grid_step != 0.f)
-    grid_step = config_.grid_step;
+  if (config_.grid_step != 0.f) grid_step = config_.grid_step;
 
   // Create render context for utilities
   CanvasUtils::CanvasRenderContext ctx = {
@@ -1350,7 +1343,8 @@ void Canvas::DrawOverlay() {
       .enable_hex_labels = config_.enable_hex_labels,
       .grid_step = config_.grid_step};
 
-  // Use high-level utility function with local points (synchronized from interaction handler)
+  // Use high-level utility function with local points (synchronized from
+  // interaction handler)
   CanvasUtils::DrawCanvasOverlay(ctx, points_, selected_points_);
 
   // Render any persistent popups from context menu actions
@@ -1815,8 +1809,7 @@ void Canvas::ShowBppConversionDialog() {
 }
 
 bool Canvas::ConvertBitmapFormat(gfx::BppFormat target_format) {
-  if (!bitmap_)
-    return false;
+  if (!bitmap_) return false;
 
   gfx::BppFormat current_format = GetCurrentBppFormat();
   if (current_format == target_format) {
@@ -1843,8 +1836,7 @@ bool Canvas::ConvertBitmapFormat(gfx::BppFormat target_format) {
 }
 
 gfx::BppFormat Canvas::GetCurrentBppFormat() const {
-  if (!bitmap_)
-    return gfx::BppFormat::kBpp8;
+  if (!bitmap_) return gfx::BppFormat::kBpp8;
 
   return gfx::BppFormatManager::Get().DetectFormat(
       bitmap_->vector(), bitmap_->width(), bitmap_->height());

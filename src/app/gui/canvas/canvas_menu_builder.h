@@ -12,9 +12,9 @@ namespace gui {
 
 /**
  * @brief Builder pattern for constructing canvas menus fluently
- * 
+ *
  * Phase 4: Simplifies menu construction with chainable methods.
- * 
+ *
  * Example usage:
  * @code
  * CanvasMenuBuilder builder;
@@ -22,7 +22,7 @@ namespace gui {
  *   .AddItem("Cut", ICON_MD_CONTENT_CUT, []() { DoCut(); })
  *   .AddItem("Copy", ICON_MD_CONTENT_COPY, []() { DoCopy(); })
  *   .AddSeparator()
- *   .AddPopupItem("Properties", ICON_MD_SETTINGS, "props_popup", 
+ *   .AddPopupItem("Properties", ICON_MD_SETTINGS, "props_popup",
  *                 []() { RenderPropertiesPopup(); })
  *   .Build();
  * @endcode

@@ -387,8 +387,8 @@ class PerformanceTestSuite : public TestSuite {
       size_t baseline_textures = arena.GetTextureCount();
       size_t baseline_surfaces = arena.GetSurfaceCount();
 
-      // Simulate some operations (this would be more comprehensive with actual workload)
-      // For now, just verify resource counts remain stable
+      // Simulate some operations (this would be more comprehensive with actual
+      // workload) For now, just verify resource counts remain stable
 
       size_t final_textures = arena.GetTextureCount();
       size_t final_surfaces = arena.GetSurfaceCount();

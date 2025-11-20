@@ -14,7 +14,7 @@ class ToastManager;
 /**
  * @class ProjectManager
  * @brief Handles all project file operations
- * 
+ *
  * Extracted from EditorManager to provide focused project management:
  * - Project creation and templates
  * - Project loading and saving

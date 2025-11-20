@@ -35,8 +35,7 @@ absl::Status UserSettings::Load() {
     std::string line;
     while (std::getline(ss, line)) {
       size_t eq_pos = line.find('=');
-      if (eq_pos == std::string::npos)
-        continue;
+      if (eq_pos == std::string::npos) continue;
 
       std::string key = line.substr(0, eq_pos);
       std::string val = line.substr(eq_pos + 1);

@@ -16,14 +16,11 @@ CollaborationService::CollaborationService(Rom* rom)
       client_(std::make_unique<WebSocketClient>()),
       sync_in_progress_(false) {}
 
-CollaborationService::~CollaborationService() {
-  Disconnect();
-}
+CollaborationService::~CollaborationService() { Disconnect(); }
 
 absl::Status CollaborationService::Initialize(
     const Config& config, RomVersionManager* version_mgr,
     ProposalApprovalManager* approval_mgr) {
-
   config_ = config;
   version_mgr_ = version_mgr;
   approval_mgr_ = approval_mgr;
@@ -82,7 +79,6 @@ void CollaborationService::Disconnect() {
 absl::Status CollaborationService::HostSession(const std::string& session_name,
                                                const std::string& username,
                                                bool ai_enabled) {
-
   if (!client_->IsConnected()) {
     return absl::FailedPreconditionError("Not connected to server");
   }
@@ -118,7 +114,6 @@ absl::Status CollaborationService::HostSession(const std::string& session_name,
 
 absl::Status CollaborationService::JoinSession(const std::string& session_code,
                                                const std::string& username) {
-
   if (!client_->IsConnected()) {
     return absl::FailedPreconditionError("Not connected to server");
   }
@@ -157,7 +152,6 @@ absl::Status CollaborationService::LeaveSession() {
 
 absl::Status CollaborationService::SubmitChangesAsProposal(
     const std::string& description, const std::string& username) {
-
   if (!client_->InSession()) {
     return absl::FailedPreconditionError("Not in a session");
   }
@@ -195,7 +189,6 @@ absl::Status CollaborationService::SubmitChangesAsProposal(
 absl::Status CollaborationService::ApplyRomSync(const std::string& diff_data,
                                                 const std::string& rom_hash,
                                                 const std::string& sender) {
-
   if (!rom_ || !rom_->is_loaded()) {
     return absl::FailedPreconditionError("ROM not loaded");
   }
@@ -239,7 +232,6 @@ absl::Status CollaborationService::ApplyRomSync(const std::string& diff_data,
 absl::Status CollaborationService::HandleIncomingProposal(
     const std::string& proposal_id, const nlohmann::json& proposal_data,
     const std::string& sender) {
-
   if (!approval_mgr_) {
     return absl::FailedPreconditionError("Approval manager not initialized");
   }
@@ -252,7 +244,6 @@ absl::Status CollaborationService::HandleIncomingProposal(
 absl::Status CollaborationService::VoteOnProposal(
     const std::string& proposal_id, bool approved,
     const std::string& username) {
-
   if (!client_->InSession()) {
     return absl::FailedPreconditionError("Not in a session");
   }
@@ -270,7 +261,6 @@ absl::Status CollaborationService::VoteOnProposal(
 
 absl::Status CollaborationService::ApplyApprovedProposal(
     const std::string& proposal_id) {
-
   if (!approval_mgr_->IsProposalApproved(proposal_id)) {
     return absl::FailedPreconditionError("Proposal not approved");
   }
@@ -361,7 +351,6 @@ void CollaborationService::OnParticipantLeft(const nlohmann::json& payload) {
 
 std::string CollaborationService::GenerateDiff(const std::string& from_hash,
                                                const std::string& to_hash) {
-
   // Simplified diff generation
   // In production, this would generate a binary diff
   // For now, just return placeholder

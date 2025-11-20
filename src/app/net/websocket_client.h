@@ -48,7 +48,7 @@ struct SessionInfo {
 /**
  * @class WebSocketClient
  * @brief WebSocket client for connecting to yaze-server
- * 
+ *
  * Provides:
  * - Connection management with auto-reconnect
  * - Session hosting and joining

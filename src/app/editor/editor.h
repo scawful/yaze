@@ -34,28 +34,28 @@ class UserSettings;
 /**
  * @struct EditorDependencies
  * @brief Unified dependency container for all editor types
- * 
+ *
  * This struct encapsulates all dependencies that editors might need,
  * providing a clean interface for dependency injection. It supports
  * both standard editors and specialized ones (emulator, dungeon) that
  * need additional dependencies like renderers.
- * 
+ *
  * Design Philosophy:
  * - Single point of dependency management
  * - Type-safe for common dependencies
  * - Extensible via custom_data for editor-specific needs
  * - Session-aware for multi-session support
- * 
+ *
  * Usage:
  * ```cpp
  * EditorDependencies deps;
  * deps.rom = current_rom;
  * deps.card_registry = &card_registry_;
  * deps.session_id = session_index;
- * 
+ *
  * // Standard editor
  * OverworldEditor editor(deps);
- * 
+ *
  * // Specialized editor with renderer
  * deps.renderer = renderer_;
  * DungeonEditor dungeon_editor(deps);

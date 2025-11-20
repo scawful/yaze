@@ -9,7 +9,7 @@ namespace editor {
 
 /**
  * @brief Tracks and analyzes usage statistics for dungeon resources
- * 
+ *
  * This component manages blockset, spriteset, and palette usage statistics
  * across all dungeon rooms, providing insights for optimization.
  */

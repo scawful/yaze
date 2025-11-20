@@ -34,16 +34,14 @@ void Cpu::Adc(uint32_t low, uint32_t high) {
     int result = 0;
     if (GetDecimalFlag()) {
       result = (A & 0xf) + (value & 0xf) + GetCarryFlag();
-      if (result > 0x9)
-        result = ((result + 0x6) & 0xf) + 0x10;
+      if (result > 0x9) result = ((result + 0x6) & 0xf) + 0x10;
       result = (A & 0xf0) + (value & 0xf0) + result;
     } else {
       result = (A & 0xff) + value + GetCarryFlag();
     }
     SetOverflowFlag((A & 0x80) == (value & 0x80) &&
                     (value & 0x80) != (result & 0x80));
-    if (GetDecimalFlag() && result > 0x9f)
-      result += 0x60;
+    if (GetDecimalFlag() && result > 0x9f) result += 0x60;
     SetCarryFlag(result > 0xff);
     A = (A & 0xff00) | (result & 0xff);
   } else {
@@ -51,22 +49,18 @@ void Cpu::Adc(uint32_t low, uint32_t high) {
     int result = 0;
     if (GetDecimalFlag()) {
       result = (A & 0xf) + (value & 0xf) + GetCarryFlag();
-      if (result > 0x9)
-        result = ((result + 0x6) & 0xf) + 0x10;
+      if (result > 0x9) result = ((result + 0x6) & 0xf) + 0x10;
       result = (A & 0xf0) + (value & 0xf0) + result;
-      if (result > 0x9f)
-        result = ((result + 0x60) & 0xff) + 0x100;
+      if (result > 0x9f) result = ((result + 0x60) & 0xff) + 0x100;
       result = (A & 0xf00) + (value & 0xf00) + result;
-      if (result > 0x9ff)
-        result = ((result + 0x600) & 0xfff) + 0x1000;
+      if (result > 0x9ff) result = ((result + 0x600) & 0xfff) + 0x1000;
       result = (A & 0xf000) + (value & 0xf000) + result;
     } else {
       result = A + value + GetCarryFlag();
     }
     SetOverflowFlag((A & 0x8000) == (value & 0x8000) &&
                     (value & 0x8000) != (result & 0x8000));
-    if (GetDecimalFlag() && result > 0x9fff)
-      result += 0x6000;
+    if (GetDecimalFlag() && result > 0x9fff) result += 0x6000;
     SetCarryFlag(result > 0xffff);
     A = result;
   }
@@ -88,8 +82,7 @@ void Cpu::Sbc(uint32_t low, uint32_t high) {
     }
     SetOverflowFlag((A & 0x80) == (value & 0x80) &&
                     (value & 0x80) != (result & 0x80));
-    if (GetDecimalFlag() && result < 0x100)
-      result -= 0x60;
+    if (GetDecimalFlag() && result < 0x100) result -= 0x60;
     SetCarryFlag(result > 0xff);
     A = (A & 0xff00) | (result & 0xff);
   } else {
@@ -111,8 +104,7 @@ void Cpu::Sbc(uint32_t low, uint32_t high) {
     }
     SetOverflowFlag((A & 0x8000) == (value & 0x8000) &&
                     (value & 0x8000) != (result & 0x8000));
-    if (GetDecimalFlag() && result < 0x10000)
-      result -= 0x6000;
+    if (GetDecimalFlag() && result < 0x10000) result -= 0x6000;
     SetCarryFlag(result > 0xffff);
     A = result;
   }

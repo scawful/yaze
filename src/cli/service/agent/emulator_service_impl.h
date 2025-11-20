@@ -1,6 +1,7 @@
 #pragma once
 
 #include <grpcpp/grpcpp.h>
+
 #include "protos/emulator_service.grpc.pb.h"
 
 // Forward declaration to avoid circular dependencies

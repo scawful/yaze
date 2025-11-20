@@ -13,7 +13,7 @@ namespace test {
 
 /**
  * @brief Integration test framework for DungeonEditorV2
- * 
+ *
  * Tests the simplified component delegation architecture
  */
 class DungeonEditorV2IntegrationTest : public ::testing::Test {

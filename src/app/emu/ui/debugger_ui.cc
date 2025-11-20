@@ -36,8 +36,7 @@ void AddSectionSpacing() {
 }  // namespace
 
 void RenderModernCpuDebugger(Emulator* emu) {
-  if (!emu)
-    return;
+  if (!emu) return;
 
   auto& theme_manager = ThemeManager::Get();
   const auto& theme = theme_manager.GetCurrentTheme();
@@ -231,8 +230,7 @@ void RenderModernCpuDebugger(Emulator* emu) {
 }
 
 void RenderBreakpointList(Emulator* emu) {
-  if (!emu)
-    return;
+  if (!emu) return;
 
   auto& theme_manager = ThemeManager::Get();
   const auto& theme = theme_manager.GetCurrentTheme();
@@ -288,8 +286,7 @@ void RenderBreakpointList(Emulator* emu) {
 }
 
 void RenderMemoryViewer(Emulator* emu) {
-  if (!emu)
-    return;
+  if (!emu) return;
 
   auto& theme_manager = ThemeManager::Get();
   const auto& theme = theme_manager.GetCurrentTheme();
@@ -327,8 +324,7 @@ void RenderMemoryViewer(Emulator* emu) {
 }
 
 void RenderCpuInstructionLog(Emulator* emu, uint32_t log_size) {
-  if (!emu)
-    return;
+  if (!emu) return;
 
   auto& theme_manager = ThemeManager::Get();
   const auto& theme = theme_manager.GetCurrentTheme();
@@ -362,8 +358,7 @@ void RenderCpuInstructionLog(Emulator* emu, uint32_t log_size) {
 }
 
 void RenderApuDebugger(Emulator* emu) {
-  if (!emu)
-    return;
+  if (!emu) return;
 
   auto& theme_manager = ThemeManager::Get();
   const auto& theme = theme_manager.GetCurrentTheme();
@@ -588,8 +583,7 @@ void RenderApuDebugger(Emulator* emu) {
 }
 
 void RenderAIAgentPanel(Emulator* emu) {
-  if (!emu)
-    return;
+  if (!emu) return;
 
   auto& theme_manager = ThemeManager::Get();
   const auto& theme = theme_manager.GetCurrentTheme();

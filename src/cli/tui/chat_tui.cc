@@ -81,9 +81,7 @@ ChatTUI::ChatTUI(Rom* rom_context) : rom_context_(rom_context) {
                     "Show ROM info"};
 }
 
-ChatTUI::~ChatTUI() {
-  CleanupWorkers();
-}
+ChatTUI::~ChatTUI() { CleanupWorkers(); }
 
 void ChatTUI::SetRomContext(Rom* rom_context) {
   rom_context_ = rom_context;
@@ -119,20 +117,15 @@ void ChatTUI::Run() {
   auto input_component =
       CreateAutocompleteInput(input_message.get(), &autocomplete_engine_);
 
-  auto todo_popup_toggle = [this] {
-    ToggleTodoPopup();
-  };
-  auto shortcut_palette_toggle = [this] {
-    ToggleShortcutPalette();
-  };
+  auto todo_popup_toggle = [this] { ToggleTodoPopup(); };
+  auto shortcut_palette_toggle = [this] { ToggleShortcutPalette(); };
 
   // Handle Enter key BEFORE adding to container
   input_component = CatchEvent(input_component,
                                [this, input_message, todo_popup_toggle,
                                 shortcut_palette_toggle](const Event& event) {
                                  if (event == Event::Return) {
-                                   if (input_message->empty())
-                                     return true;
+                                   if (input_message->empty()) return true;
                                    OnSubmit(*input_message);
                                    input_message->clear();
                                    return true;
@@ -149,8 +142,7 @@ void ChatTUI::Run() {
                                });
 
   auto send_button = Button("Send", [this, input_message] {
-    if (input_message->empty())
-      return;
+    if (input_message->empty()) return;
     OnSubmit(*input_message);
     input_message->clear();
   });

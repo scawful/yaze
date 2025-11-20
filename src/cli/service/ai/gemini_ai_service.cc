@@ -1,5 +1,4 @@
 #include "cli/service/ai/gemini_ai_service.h"
-#include "cli/service/agent/conversational_agent_service.h"
 
 #include <atomic>
 #include <cstdlib>
@@ -13,11 +12,13 @@
 #include "absl/strings/strip.h"
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
+#include "cli/service/agent/conversational_agent_service.h"
 #include "util/platform_paths.h"
 
 #ifdef YAZE_WITH_JSON
 #include <filesystem>
 #include <fstream>
+
 #include "httplib.h"
 #include "nlohmann/json.hpp"
 
@@ -142,7 +143,8 @@ std::string GeminiAIService::BuildFunctionCallSchemas() {
 #ifndef YAZE_WITH_JSON
   return "{}";  // Empty object if JSON not available
 #else
-  // Use the prompt builder's schema generation which reads from prompt_catalogue.yaml
+  // Use the prompt builder's schema generation which reads from
+  // prompt_catalogue.yaml
   std::string schemas = prompt_builder_.BuildFunctionCallSchemas();
   if (!schemas.empty() && schemas != "[]") {
     return schemas;
@@ -186,9 +188,7 @@ std::string GeminiAIService::BuildSystemInstruction() {
   return prompt_builder_.BuildSystemInstruction();
 }
 
-void GeminiAIService::SetRomContext(Rom* rom) {
-  prompt_builder_.SetRom(rom);
-}
+void GeminiAIService::SetRomContext(Rom* rom) { prompt_builder_.SetRom(rom); }
 
 absl::StatusOr<std::vector<ModelInfo>> GeminiAIService::ListAvailableModels() {
 #ifndef YAZE_WITH_JSON
@@ -480,7 +480,8 @@ absl::StatusOr<AgentResponse> GeminiAIService::GenerateResponse(
 
         nlohmann::json schemas = nlohmann::json::parse(schemas_str);
 
-        // Build tools array - schemas might be an array of tools or a function_declarations object
+        // Build tools array - schemas might be an array of tools or a
+        // function_declarations object
         if (schemas.is_array()) {
           // If it's already an array of tools, use it directly
           request_body["tools"] = {{{"function_declarations", schemas}}};
@@ -702,7 +703,8 @@ absl::StatusOr<AgentResponse> GeminiAIService::ParseGeminiResponse(
             }
           }
         } else {
-          // If parsing the full object fails, fallback to extracting commands from text
+          // If parsing the full object fails, fallback to extracting commands
+          // from text
           std::vector<std::string> lines = absl::StrSplit(text_content, '\n');
           for (const auto& line : lines) {
             std::string trimmed = std::string(absl::StripAsciiWhitespace(line));
@@ -797,15 +799,13 @@ absl::StatusOr<std::string> GeminiAIService::EncodeImageToBase64(
           ((char_array_3[1] & 0x0f) << 2) + ((char_array_3[2] & 0xc0) >> 6);
       char_array_4[3] = char_array_3[2] & 0x3f;
 
-      for (i = 0; i < 4; i++)
-        encoded += base64_chars[char_array_4[i]];
+      for (i = 0; i < 4; i++) encoded += base64_chars[char_array_4[i]];
       i = 0;
     }
   }
 
   if (i) {
-    for (j = i; j < 3; j++)
-      char_array_3[j] = '\0';
+    for (j = i; j < 3; j++) char_array_3[j] = '\0';
 
     char_array_4[0] = (char_array_3[0] & 0xfc) >> 2;
     char_array_4[1] =
@@ -813,11 +813,9 @@ absl::StatusOr<std::string> GeminiAIService::EncodeImageToBase64(
     char_array_4[2] =
         ((char_array_3[1] & 0x0f) << 2) + ((char_array_3[2] & 0xc0) >> 6);
 
-    for (j = 0; j < i + 1; j++)
-      encoded += base64_chars[char_array_4[j]];
+    for (j = 0; j < i + 1; j++) encoded += base64_chars[char_array_4[j]];
 
-    while (i++ < 3)
-      encoded += '=';
+    while (i++ < 3) encoded += '=';
   }
 
   return encoded;

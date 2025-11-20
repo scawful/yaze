@@ -24,19 +24,15 @@ void AutocompleteEngine::RegisterParameter(
 
 int AutocompleteEngine::FuzzyScore(const std::string& text,
                                    const std::string& query) {
-  if (query.empty())
-    return 0;
+  if (query.empty()) return 0;
 
   std::string t = text, q = query;
   std::transform(t.begin(), t.end(), t.begin(), ::tolower);
   std::transform(q.begin(), q.end(), q.begin(), ::tolower);
 
-  if (t == q)
-    return 1000;
-  if (t.find(q) == 0)
-    return 500;
-  if (t.find(q) != std::string::npos)
-    return 250;
+  if (t == q) return 1000;
+  if (t.find(q) == 0) return 500;
+  if (t.find(q) != std::string::npos) return 250;
 
   // Fuzzy char matching
   size_t ti = 0, qi = 0;

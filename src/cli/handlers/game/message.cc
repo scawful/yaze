@@ -132,8 +132,7 @@ absl::Status HandleMessageListCommand(const std::vector<std::string>& arg_vec,
     bool first = true;
     for (int i = start_id; i <= end_id; ++i) {
       const auto& msg = messages[i];
-      if (!first)
-        std::cout << ",\n";
+      if (!first) std::cout << ",\n";
       std::cout << "    {\n";
       std::cout << absl::StrFormat("      \"id\": %d,\n", msg.ID);
       std::cout << absl::StrFormat("      \"address\": \"0x%06X\",\n",
@@ -317,8 +316,7 @@ absl::Status HandleMessageSearchCommand(const std::vector<std::string>& arg_vec,
 
     for (size_t i = 0; i < matches.size(); ++i) {
       const auto& msg = messages[matches[i]];
-      if (i > 0)
-        std::cout << ",\n";
+      if (i > 0) std::cout << ",\n";
 
       std::string escaped_text = msg.ContentsParsed;
       size_t pos = 0;

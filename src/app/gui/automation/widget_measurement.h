@@ -14,7 +14,7 @@ namespace gui {
 /**
  * @class WidgetMeasurement
  * @brief Tracks widget dimensions for debugging and test automation
- * 
+ *
  * Integrates with ImGui Test Engine to provide accurate measurements
  * of UI elements, helping prevent layout issues and enabling automated
  * testing of widget sizes and positions.

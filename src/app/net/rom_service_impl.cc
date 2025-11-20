@@ -19,14 +19,11 @@ RomServiceImpl::RomServiceImpl(Rom* rom, RomVersionManager* version_manager,
       version_mgr_(version_manager),
       approval_mgr_(approval_manager) {}
 
-void RomServiceImpl::SetConfig(const Config& config) {
-  config_ = config;
-}
+void RomServiceImpl::SetConfig(const Config& config) { config_ = config; }
 
 grpc::Status RomServiceImpl::ReadBytes(grpc::ServerContext* context,
                                        const rom_svc::ReadBytesRequest* request,
                                        rom_svc::ReadBytesResponse* response) {
-
   if (!rom_ || !rom_->is_loaded()) {
     return grpc::Status(grpc::StatusCode::FAILED_PRECONDITION,
                         "ROM not loaded");
@@ -53,7 +50,6 @@ grpc::Status RomServiceImpl::ReadBytes(grpc::ServerContext* context,
 grpc::Status RomServiceImpl::WriteBytes(
     grpc::ServerContext* context, const rom_svc::WriteBytesRequest* request,
     rom_svc::WriteBytesResponse* response) {
-
   if (!rom_ || !rom_->is_loaded()) {
     return grpc::Status(grpc::StatusCode::FAILED_PRECONDITION,
                         "ROM not loaded");
@@ -111,7 +107,6 @@ grpc::Status RomServiceImpl::WriteBytes(
 grpc::Status RomServiceImpl::GetRomInfo(
     grpc::ServerContext* context, const rom_svc::GetRomInfoRequest* request,
     rom_svc::GetRomInfoResponse* response) {
-
   if (!rom_ || !rom_->is_loaded()) {
     return grpc::Status(grpc::StatusCode::FAILED_PRECONDITION,
                         "ROM not loaded");
@@ -129,7 +124,6 @@ grpc::Status RomServiceImpl::GetRomInfo(
 grpc::Status RomServiceImpl::GetTileData(
     grpc::ServerContext* context, const rom_svc::GetTileDataRequest* request,
     rom_svc::GetTileDataResponse* response) {
-
   return grpc::Status(grpc::StatusCode::UNIMPLEMENTED,
                       "GetTileData not yet implemented");
 }
@@ -137,7 +131,6 @@ grpc::Status RomServiceImpl::GetTileData(
 grpc::Status RomServiceImpl::SetTileData(
     grpc::ServerContext* context, const rom_svc::SetTileDataRequest* request,
     rom_svc::SetTileDataResponse* response) {
-
   return grpc::Status(grpc::StatusCode::UNIMPLEMENTED,
                       "SetTileData not yet implemented");
 }
@@ -145,7 +138,6 @@ grpc::Status RomServiceImpl::SetTileData(
 grpc::Status RomServiceImpl::GetMapData(
     grpc::ServerContext* context, const rom_svc::GetMapDataRequest* request,
     rom_svc::GetMapDataResponse* response) {
-
   return grpc::Status(grpc::StatusCode::UNIMPLEMENTED,
                       "GetMapData not yet implemented");
 }
@@ -153,7 +145,6 @@ grpc::Status RomServiceImpl::GetMapData(
 grpc::Status RomServiceImpl::SetMapData(
     grpc::ServerContext* context, const rom_svc::SetMapDataRequest* request,
     rom_svc::SetMapDataResponse* response) {
-
   return grpc::Status(grpc::StatusCode::UNIMPLEMENTED,
                       "SetMapData not yet implemented");
 }
@@ -161,7 +152,6 @@ grpc::Status RomServiceImpl::SetMapData(
 grpc::Status RomServiceImpl::GetSpriteData(
     grpc::ServerContext* context, const rom_svc::GetSpriteDataRequest* request,
     rom_svc::GetSpriteDataResponse* response) {
-
   return grpc::Status(grpc::StatusCode::UNIMPLEMENTED,
                       "GetSpriteData not yet implemented");
 }
@@ -169,7 +159,6 @@ grpc::Status RomServiceImpl::GetSpriteData(
 grpc::Status RomServiceImpl::SetSpriteData(
     grpc::ServerContext* context, const rom_svc::SetSpriteDataRequest* request,
     rom_svc::SetSpriteDataResponse* response) {
-
   return grpc::Status(grpc::StatusCode::UNIMPLEMENTED,
                       "SetSpriteData not yet implemented");
 }
@@ -177,7 +166,6 @@ grpc::Status RomServiceImpl::SetSpriteData(
 grpc::Status RomServiceImpl::GetDialogue(
     grpc::ServerContext* context, const rom_svc::GetDialogueRequest* request,
     rom_svc::GetDialogueResponse* response) {
-
   return grpc::Status(grpc::StatusCode::UNIMPLEMENTED,
                       "GetDialogue not yet implemented");
 }
@@ -185,7 +173,6 @@ grpc::Status RomServiceImpl::GetDialogue(
 grpc::Status RomServiceImpl::SetDialogue(
     grpc::ServerContext* context, const rom_svc::SetDialogueRequest* request,
     rom_svc::SetDialogueResponse* response) {
-
   return grpc::Status(grpc::StatusCode::UNIMPLEMENTED,
                       "SetDialogue not yet implemented");
 }

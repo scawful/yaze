@@ -1758,9 +1758,7 @@ ImGuiTestHarnessServer& ImGuiTestHarnessServer::Instance() {
   return *instance;
 }
 
-ImGuiTestHarnessServer::~ImGuiTestHarnessServer() {
-  Shutdown();
-}
+ImGuiTestHarnessServer::~ImGuiTestHarnessServer() { Shutdown(); }
 
 absl::Status ImGuiTestHarnessServer::Start(int port,
                                            TestManager* test_manager) {
@@ -1775,7 +1773,8 @@ absl::Status ImGuiTestHarnessServer::Start(int port,
   // Create the service implementation with TestManager reference
   service_ = std::make_unique<ImGuiTestHarnessServiceImpl>(test_manager);
 
-  // Create the gRPC service wrapper (store as member to prevent it from going out of scope)
+  // Create the gRPC service wrapper (store as member to prevent it from going
+  // out of scope)
   grpc_service_ = std::make_unique<ImGuiTestHarnessServiceGrpc>(service_.get());
 
   std::string server_address = absl::StrFormat("0.0.0.0:%d", port);

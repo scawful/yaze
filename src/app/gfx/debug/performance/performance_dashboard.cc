@@ -66,18 +66,12 @@ PerformanceSummary PerformanceDashboard::GetSummary() const {
 
   // Calculate optimization score (0-100)
   int score = 0;
-  if (optimization_status_.palette_lookup_optimized)
-    score += 20;
-  if (optimization_status_.dirty_region_tracking_enabled)
-    score += 20;
-  if (optimization_status_.resource_pooling_active)
-    score += 15;
-  if (optimization_status_.batch_operations_enabled)
-    score += 15;
-  if (optimization_status_.atlas_rendering_enabled)
-    score += 15;
-  if (optimization_status_.memory_pool_active)
-    score += 15;
+  if (optimization_status_.palette_lookup_optimized) score += 20;
+  if (optimization_status_.dirty_region_tracking_enabled) score += 20;
+  if (optimization_status_.resource_pooling_active) score += 15;
+  if (optimization_status_.batch_operations_enabled) score += 15;
+  if (optimization_status_.atlas_rendering_enabled) score += 15;
+  if (optimization_status_.memory_pool_active) score += 15;
 
   summary.optimization_score = score;
 
@@ -474,8 +468,7 @@ void PerformanceDashboard::AnalyzePerformance() {
 
 double PerformanceDashboard::CalculateAverage(
     const std::vector<double>& values) {
-  if (values.empty())
-    return 0.0;
+  if (values.empty()) return 0.0;
 
   double sum = 0.0;
   for (double value : values) {
@@ -486,8 +479,7 @@ double PerformanceDashboard::CalculateAverage(
 
 double PerformanceDashboard::CalculatePercentile(
     const std::vector<double>& values, double percentile) {
-  if (values.empty())
-    return 0.0;
+  if (values.empty()) return 0.0;
 
   std::vector<double> sorted_values = values;
   std::sort(sorted_values.begin(), sorted_values.end());

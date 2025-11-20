@@ -111,8 +111,7 @@ absl::Status AgentEditor::Save() {
 }
 
 absl::Status AgentEditor::Update() {
-  if (!active_)
-    return absl::OkStatus();
+  if (!active_) return absl::OkStatus();
 
   // Draw configuration dashboard
   DrawDashboard();
@@ -149,15 +148,13 @@ void AgentEditor::SetRomContext(Rom* rom) {
 }
 
 void AgentEditor::DrawDashboard() {
-  if (!active_)
-    return;
+  if (!active_) return;
 
   // Animate retro effects
   ImGuiIO& io = ImGui::GetIO();
   pulse_animation_ += io.DeltaTime * 2.0f;
   scanline_offset_ += io.DeltaTime * 0.4f;
-  if (scanline_offset_ > 1.0f)
-    scanline_offset_ -= 1.0f;
+  if (scanline_offset_ > 1.0f) scanline_offset_ -= 1.0f;
   glitch_timer_ += io.DeltaTime * 5.0f;
   blink_counter_ = static_cast<int>(pulse_animation_ * 2.0f) % 2;
 
@@ -328,7 +325,6 @@ void AgentEditor::DrawDashboard() {
 }
 
 void AgentEditor::DrawConfigurationPanel() {
-
   // AI Provider Configuration
   if (ImGui::CollapsingHeader(ICON_MD_SETTINGS " AI Provider",
                               ImGuiTreeNodeFlags_DefaultOpen)) {
@@ -348,8 +344,7 @@ void AgentEditor::DrawConfigurationPanel() {
     if (ImGui::Button(ICON_MD_SETTINGS " Mock", button_size)) {
       current_profile_.provider = "mock";
     }
-    if (is_mock)
-      ImGui::PopStyleColor();
+    if (is_mock) ImGui::PopStyleColor();
 
     ImGui::SameLine();
     if (is_ollama)
@@ -357,8 +352,7 @@ void AgentEditor::DrawConfigurationPanel() {
     if (ImGui::Button(ICON_MD_CLOUD " Ollama", button_size)) {
       current_profile_.provider = "ollama";
     }
-    if (is_ollama)
-      ImGui::PopStyleColor();
+    if (is_ollama) ImGui::PopStyleColor();
 
     ImGui::SameLine();
     if (is_gemini)
@@ -366,8 +360,7 @@ void AgentEditor::DrawConfigurationPanel() {
     if (ImGui::Button(ICON_MD_SMART_TOY " Gemini", button_size)) {
       current_profile_.provider = "gemini";
     }
-    if (is_gemini)
-      ImGui::PopStyleColor();
+    if (is_gemini) ImGui::PopStyleColor();
 
     ImGui::Separator();
     ImGui::Spacing();
@@ -488,8 +481,7 @@ void AgentEditor::DrawConfigurationPanel() {
     if (tags_buf[0] == '\0' && !current_profile_.tags.empty()) {
       std::string tags_str;
       for (size_t i = 0; i < current_profile_.tags.size(); ++i) {
-        if (i > 0)
-          tags_str += ", ";
+        if (i > 0) tags_str += ", ";
         tags_str += current_profile_.tags[i];
       }
       strncpy(tags_buf, tags_str.c_str(), sizeof(tags_buf) - 1);
@@ -1674,9 +1666,7 @@ void AgentEditor::SetChatActive(bool active) {
   }
 }
 
-void AgentEditor::ToggleChat() {
-  SetChatActive(!IsChatActive());
-}
+void AgentEditor::ToggleChat() { SetChatActive(!IsChatActive()); }
 
 void AgentEditor::OpenChatWindow() {
   if (chat_widget_) {
@@ -1938,9 +1928,7 @@ bool AgentEditor::IsConnectedToServer() const {
 }
 #endif
 
-bool AgentEditor::IsInSession() const {
-  return in_session_;
-}
+bool AgentEditor::IsInSession() const { return in_session_; }
 
 AgentEditor::CollaborationMode AgentEditor::GetCurrentMode() const {
   return current_mode_;
@@ -1991,9 +1979,7 @@ void AgentEditor::SetupChatWidgetCallbacks() {
     return context;
   };
 
-  collab_callbacks.leave_session = [this]() {
-    return this->LeaveSession();
-  };
+  collab_callbacks.leave_session = [this]() { return this->LeaveSession(); };
 
   collab_callbacks.refresh_session =
       [this]() -> absl::StatusOr<

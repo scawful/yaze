@@ -1,6 +1,7 @@
 #include "canvas_utils.h"
 
 #include <cmath>
+
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/types/snes_palette.h"
 #include "util/log.h"
@@ -16,8 +17,7 @@ ImVec2 AlignToGrid(ImVec2 pos, float grid_step) {
 
 float CalculateEffectiveScale(ImVec2 canvas_size, ImVec2 content_size,
                               float global_scale) {
-  if (content_size.x <= 0 || content_size.y <= 0)
-    return global_scale;
+  if (content_size.x <= 0 || content_size.y <= 0) return global_scale;
 
   float scale_x = (canvas_size.x * global_scale) / content_size.x;
   float scale_y = (canvas_size.y * global_scale) / content_size.y;
@@ -96,8 +96,7 @@ bool LoadROMPaletteGroups(Rom* rom, CanvasPaletteManager& palette_manager) {
 bool ApplyPaletteGroup(gfx::IRenderer* renderer, gfx::Bitmap* bitmap,
                        CanvasPaletteManager& palette_manager, int group_index,
                        int palette_index) {
-  if (!bitmap)
-    return false;
+  if (!bitmap) return false;
 
   if (group_index < 0 ||
       group_index >= palette_manager.rom_palette_groups.size()) {
@@ -106,7 +105,8 @@ bool ApplyPaletteGroup(gfx::IRenderer* renderer, gfx::Bitmap* bitmap,
 
   const auto& palette = palette_manager.rom_palette_groups[group_index];
 
-  // Apply the full palette or use SetPaletteWithTransparent if palette_index is specified
+  // Apply the full palette or use SetPaletteWithTransparent if palette_index is
+  // specified
   if (palette_index == 0) {
     bitmap->SetPalette(palette);
   } else {
@@ -208,8 +208,7 @@ void DrawCanvasGridLines(ImDrawList* draw_list, ImVec2 canvas_p0,
 void DrawCustomHighlight(ImDrawList* draw_list, ImVec2 canvas_p0,
                          ImVec2 scrolling, int highlight_tile_id,
                          float grid_step) {
-  if (highlight_tile_id == -1)
-    return;
+  if (highlight_tile_id == -1) return;
 
   int tile_x = highlight_tile_id % 8;
   int tile_y = highlight_tile_id / 8;
@@ -309,8 +308,7 @@ void SetNextCanvasSize(ImVec2 size, bool auto_resize) {
 
 // High-level composite operations
 void DrawCanvasGrid(const CanvasRenderContext& ctx, int highlight_tile_id) {
-  if (!ctx.enable_grid)
-    return;
+  if (!ctx.enable_grid) return;
 
   ctx.draw_list->PushClipRect(ctx.canvas_p0, ctx.canvas_p1, true);
 
@@ -364,8 +362,7 @@ void DrawCanvasOverlay(const CanvasRenderContext& ctx,
 void DrawCanvasLabels(const CanvasRenderContext& ctx,
                       const ImVector<ImVector<std::string>>& labels,
                       int current_labels, int tile_id_offset) {
-  if (current_labels >= labels.size())
-    return;
+  if (current_labels >= labels.size()) return;
 
   float scaled_grid_step = ctx.grid_step * ctx.global_scale;
 

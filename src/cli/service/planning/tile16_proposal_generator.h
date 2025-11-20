@@ -28,7 +28,7 @@ struct Tile16Change {
 
 /**
  * @brief Represents a proposal for tile16 edits on the overworld.
- * 
+ *
  * This is the core data structure for the accept/reject workflow.
  * AI generates proposals, which are then applied to a sandbox ROM
  * for preview before being committed to the main ROM.
@@ -56,7 +56,7 @@ struct Tile16Proposal {
 
 /**
  * @brief Generates and manages tile16 editing proposals.
- * 
+ *
  * This class bridges the AI service with the overworld editing system,
  * providing a safe sandbox workflow for reviewing and applying changes.
  */
@@ -69,7 +69,7 @@ class Tile16ProposalGenerator {
 
   /**
    * @brief Generate a tile16 proposal from an AI-generated command list.
-   * 
+   *
    * @param prompt The original user prompt
    * @param commands List of commands from AI (e.g., "overworld set-tile ...")
    * @param ai_service Name of the AI service used
@@ -82,10 +82,10 @@ class Tile16ProposalGenerator {
 
   /**
    * @brief Apply a proposal to a ROM (typically a sandbox).
-   * 
+   *
    * This modifies the ROM in memory but doesn't save to disk.
    * Used for preview and testing.
-   * 
+   *
    * @param proposal The proposal to apply
    * @param rom The ROM to modify
    * @return Status indicating success or failure
@@ -94,9 +94,9 @@ class Tile16ProposalGenerator {
 
   /**
    * @brief Generate a visual diff bitmap for a proposal.
-   * 
+   *
    * Creates a side-by-side or overlay comparison of before/after state.
-   * 
+   *
    * @param proposal The proposal to visualize
    * @param before_rom ROM in original state
    * @param after_rom ROM with proposal applied
@@ -107,7 +107,7 @@ class Tile16ProposalGenerator {
 
   /**
    * @brief Save a proposal to a JSON file for later review.
-   * 
+   *
    * @param proposal The proposal to save
    * @param path File path to save to
    * @return Status indicating success or failure
@@ -117,7 +117,7 @@ class Tile16ProposalGenerator {
 
   /**
    * @brief Load a proposal from a JSON file.
-   * 
+   *
    * @param path File path to load from
    * @return The loaded proposal or error
    */
@@ -126,7 +126,7 @@ class Tile16ProposalGenerator {
  private:
   /**
    * @brief Parse a single "overworld set-tile" command into a Tile16Change.
-   * 
+   *
    * Expected format: "overworld set-tile --map 0 --x 10 --y 20 --tile 0x02E"
    */
   absl::StatusOr<Tile16Change> ParseSetTileCommand(const std::string& command,
@@ -134,17 +134,20 @@ class Tile16ProposalGenerator {
 
   /**
    * @brief Parse a "overworld set-area" command into multiple Tile16Changes.
-   * 
-   * Expected format: "overworld set-area --map 0 --x 10 --y 20 --width 5 --height 3 --tile 0x02E"
+   *
+   * Expected format: "overworld set-area --map 0 --x 10 --y 20 --width 5
+   * --height 3 --tile 0x02E"
    */
   absl::StatusOr<std::vector<Tile16Change>> ParseSetAreaCommand(
       const std::string& command, Rom* rom);
 
   /**
-   * @brief Parse a "overworld replace-tile" command into multiple Tile16Changes.
-   * 
-   * Expected format: "overworld replace-tile --map 0 --old-tile 0x02E --new-tile 0x030"
-   * Can also specify optional bounds: --x-min 0 --y-min 0 --x-max 31 --y-max 31
+   * @brief Parse a "overworld replace-tile" command into multiple
+   * Tile16Changes.
+   *
+   * Expected format: "overworld replace-tile --map 0 --old-tile 0x02E
+   * --new-tile 0x030" Can also specify optional bounds: --x-min 0 --y-min 0
+   * --x-max 31 --y-max 31
    */
   absl::StatusOr<std::vector<Tile16Change>> ParseReplaceTileCommand(
       const std::string& command, Rom* rom);

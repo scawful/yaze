@@ -11,9 +11,10 @@ namespace editor {
 /**
  * @struct AgentUITheme
  * @brief Centralized theme colors for Agent UI components
- * 
- * All hardcoded colors from AgentChatWidget, AgentEditor, and AgentChatHistoryPopup
- * are consolidated here and derived from the current theme.
+ *
+ * All hardcoded colors from AgentChatWidget, AgentEditor, and
+ * AgentChatHistoryPopup are consolidated here and derived from the current
+ * theme.
  */
 struct AgentUITheme {
   // Message colors

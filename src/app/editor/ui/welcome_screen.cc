@@ -136,9 +136,7 @@ void DrawTriforceBackground(ImDrawList* draw_list, ImVec2 pos, float size,
 
 }  // namespace
 
-WelcomeScreen::WelcomeScreen() {
-  RefreshRecentProjects();
-}
+WelcomeScreen::WelcomeScreen() { RefreshRecentProjects(); }
 
 bool WelcomeScreen::Show(bool* p_open) {
   // Update theme colors each frame
@@ -446,7 +444,8 @@ void WelcomeScreen::UpdateAnimations() {
         (target - card_hover_scale_[i]) * ImGui::GetIO().DeltaTime * 10.0f;
   }
 
-  // Note: Triforce positions and particles are updated in Show() based on mouse position
+  // Note: Triforce positions and particles are updated in Show() based on mouse
+  // position
 }
 
 void WelcomeScreen::RefreshRecentProjects() {
@@ -457,8 +456,7 @@ void WelcomeScreen::RefreshRecentProjects() {
       project::RecentFilesManager::GetInstance().GetRecentFiles();
 
   for (const auto& filepath : recent_files) {
-    if (recent_projects_.size() >= kMaxRecentProjects)
-      break;
+    if (recent_projects_.size() >= kMaxRecentProjects) break;
 
     RecentProject project;
     project.filepath = filepath;
@@ -543,15 +541,13 @@ void WelcomeScreen::DrawQuickActions() {
         ImGuiCol_ButtonActive,
         ImVec4(color.x * 1.2f, color.y * 1.2f, color.z * 1.2f, 1.0f));
 
-    if (!enabled)
-      ImGui::BeginDisabled();
+    if (!enabled) ImGui::BeginDisabled();
 
     bool clicked =
         ImGui::Button(absl::StrFormat("%s %s", icon, text).c_str(),
                       ImVec2(button_width, 38));  // Reduced from 45 to 38
 
-    if (!enabled)
-      ImGui::EndDisabled();
+    if (!enabled) ImGui::EndDisabled();
 
     ImGui::PopStyleColor(3);
 
@@ -851,7 +847,8 @@ void WelcomeScreen::DrawTemplatesSection() {
 }
 
 void WelcomeScreen::DrawTipsSection() {
-  // Static tip (or could rotate based on session start time rather than animation)
+  // Static tip (or could rotate based on session start time rather than
+  // animation)
   const char* tips[] = {
       "Press Ctrl+Shift+P to open the command palette",
       "Use z3ed agent for AI-powered ROM editing (Ctrl+Shift+A)",

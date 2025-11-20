@@ -762,13 +762,9 @@ absl::Status DungeonEditorSystem::Redo() {
   return absl::OkStatus();
 }
 
-bool DungeonEditorSystem::CanUndo() const {
-  return !undo_history_.empty();
-}
+bool DungeonEditorSystem::CanUndo() const { return !undo_history_.empty(); }
 
-bool DungeonEditorSystem::CanRedo() const {
-  return !redo_history_.empty();
-}
+bool DungeonEditorSystem::CanRedo() const { return !redo_history_.empty(); }
 
 void DungeonEditorSystem::ClearHistory() {
   undo_history_.clear();
@@ -812,33 +808,19 @@ void DungeonEditorSystem::SetValidationCallback(ValidationCallback callback) {
 }
 
 // Helper methods
-int DungeonEditorSystem::GenerateSpriteId() {
-  return next_sprite_id_++;
-}
+int DungeonEditorSystem::GenerateSpriteId() { return next_sprite_id_++; }
 
-int DungeonEditorSystem::GenerateItemId() {
-  return next_item_id_++;
-}
+int DungeonEditorSystem::GenerateItemId() { return next_item_id_++; }
 
-int DungeonEditorSystem::GenerateEntranceId() {
-  return next_entrance_id_++;
-}
+int DungeonEditorSystem::GenerateEntranceId() { return next_entrance_id_++; }
 
-int DungeonEditorSystem::GenerateDoorId() {
-  return next_door_id_++;
-}
+int DungeonEditorSystem::GenerateDoorId() { return next_door_id_++; }
 
-int DungeonEditorSystem::GenerateChestId() {
-  return next_chest_id_++;
-}
+int DungeonEditorSystem::GenerateChestId() { return next_chest_id_++; }
 
-Rom* DungeonEditorSystem::GetROM() const {
-  return rom_;
-}
+Rom* DungeonEditorSystem::GetROM() const { return rom_; }
 
-bool DungeonEditorSystem::IsDirty() const {
-  return editor_state_.is_dirty;
-}
+bool DungeonEditorSystem::IsDirty() const { return editor_state_.is_dirty; }
 
 void DungeonEditorSystem::SetROM(Rom* rom) {
   rom_ = rom;

@@ -100,7 +100,8 @@ struct YazeProject {
   std::unordered_map<std::string, std::unordered_map<std::string, std::string>>
       resource_labels;
 
-  // Embedded labels flag - when true, resource_labels contains all default Zelda3 labels
+  // Embedded labels flag - when true, resource_labels contains all default
+  // Zelda3 labels
   bool use_embedded_labels = true;
 
   // Build and deployment

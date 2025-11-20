@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cmath>
+
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -9,7 +10,8 @@ namespace gui {
 
 namespace {
 
-// Static state for rectangle selection (temporary until we have proper state management)
+// Static state for rectangle selection (temporary until we have proper state
+// management)
 struct SelectRectState {
   ImVec2 drag_start_pos = ImVec2(-1, -1);
   bool is_dragging = false;
@@ -60,7 +62,6 @@ RectSelectionEvent HandleRectangleSelection(const CanvasGeometry& geometry,
                                             int current_map, float tile_size,
                                             ImDrawList* draw_list,
                                             ImGuiMouseButton mouse_button) {
-
   RectSelectionEvent event;
   event.current_map = current_map;
 
@@ -149,10 +150,8 @@ RectSelectionEvent HandleRectangleSelection(const CanvasGeometry& geometry,
     int end_y = static_cast<int>(std::floor(drag_end_pos.y / scaled_size)) *
                 kTile16Size;
 
-    if (start_x > end_x)
-      std::swap(start_x, end_x);
-    if (start_y > end_y)
-      std::swap(start_y, end_y);
+    if (start_x > end_x) std::swap(start_x, end_x);
+    if (start_y > end_y) std::swap(start_y, end_y);
 
     constexpr int kTilesPerLocalMap = kSmallMapSize / 16;
 
@@ -179,7 +178,6 @@ RectSelectionEvent HandleRectangleSelection(const CanvasGeometry& geometry,
 TileSelectionEvent HandleTileSelection(const CanvasGeometry& geometry,
                                        int current_map, float tile_size,
                                        ImGuiMouseButton mouse_button) {
-
   TileSelectionEvent event;
 
   if (!IsMouseInCanvas(geometry) || !ImGui::IsMouseClicked(mouse_button)) {
@@ -228,7 +226,6 @@ TileSelectionEvent HandleTileSelection(const CanvasGeometry& geometry,
 
 TilePaintEvent HandleTilePaint(const CanvasGeometry& geometry, int tile_id,
                                float tile_size, ImGuiMouseButton mouse_button) {
-
   TilePaintEvent event;
   event.tile_id = tile_id;
 
@@ -261,7 +258,6 @@ TilePaintEvent HandleTilePaintWithPreview(const CanvasGeometry& geometry,
                                           float tile_size,
                                           ImDrawList* draw_list,
                                           ImGuiMouseButton mouse_button) {
-
   TilePaintEvent event;
 
   if (!IsMouseInCanvas(geometry)) {
@@ -304,7 +300,6 @@ TilePaintEvent HandleTilemapPaint(const CanvasGeometry& geometry,
                                   const gfx::Tilemap& tilemap, int current_tile,
                                   ImDrawList* draw_list,
                                   ImGuiMouseButton mouse_button) {
-
   TilePaintEvent event;
   event.tile_id = current_tile;
 
@@ -361,7 +356,6 @@ HoverEvent HandleHover(const CanvasGeometry& geometry, float tile_size) {
 
 void RenderHoverPreview(const CanvasGeometry& geometry, const HoverEvent& hover,
                         float tile_size, ImDrawList* draw_list, ImU32 color) {
-
   if (!hover.is_valid || !draw_list) {
     return;
   }
@@ -386,7 +380,6 @@ void RenderHoverPreview(const CanvasGeometry& geometry, const HoverEvent& hover,
 EntityInteractionEvent HandleEntityInteraction(const CanvasGeometry& geometry,
                                                int entity_id,
                                                ImVec2 entity_position) {
-
   EntityInteractionEvent event;
   event.entity_id = entity_id;
   event.position = entity_position;

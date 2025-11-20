@@ -231,9 +231,7 @@ void LayoutHelpers::BeginPropertyGrid(const char* label) {
   }
 }
 
-void LayoutHelpers::EndPropertyGrid() {
-  ImGui::EndTable();
-}
+void LayoutHelpers::EndPropertyGrid() { ImGui::EndTable(); }
 
 bool LayoutHelpers::InputToolbarField(const char* label, char* buf,
                                       size_t buf_size) {

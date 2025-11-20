@@ -1,9 +1,8 @@
-#include "gtest/gtest.h"
-
 #include "absl/status/status.h"
 #include "app/gfx/background_buffer.h"
 #include "app/gfx/snes_palette.h"
 #include "app/rom.h"
+#include "gtest/gtest.h"
 #include "zelda3/dungeon/object_drawer.h"
 #include "zelda3/dungeon/object_parser.h"
 #include "zelda3/dungeon/room_object.h"

@@ -18,7 +18,7 @@ namespace net {
 /**
  * @class Z3edNetworkClient
  * @brief Simplified WebSocket client for z3ed CLI
- * 
+ *
  * Provides command-line friendly interface for:
  * - Connecting to yaze-server
  * - Submitting proposals from CLI

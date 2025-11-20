@@ -129,11 +129,11 @@ class CanvasAutomationServiceImpl {
 
 /**
  * @brief Factory function to create gRPC service wrapper
- * 
+ *
  * Creates the gRPC service wrapper for CanvasAutomationServiceImpl.
  * The wrapper handles the conversion between gRPC and absl::Status.
  * Returns as base grpc::Service to avoid incomplete type issues.
- * 
+ *
  * @param impl Pointer to implementation (not owned)
  * @return Unique pointer to gRPC service
  */

@@ -9,7 +9,8 @@
 
 /**
  * @file widget_auto_register.h
- * @brief Automatic widget registration helpers for ImGui Test Engine integration
+ * @brief Automatic widget registration helpers for ImGui Test Engine
+ * integration
  *
  * This file provides inline wrappers and RAII helpers that automatically
  * register ImGui widgets with the WidgetIdRegistry for test automation.
@@ -58,7 +59,8 @@ class AutoWidgetScope {
  * Captures widget type, bounds, visibility, and enabled state.
  *
  * @param widget_type Type of widget ("button", "input", "checkbox", etc.)
- * @param explicit_label Optional explicit label (uses ImGui::GetItemLabel() if empty)
+ * @param explicit_label Optional explicit label (uses ImGui::GetItemLabel() if
+ * empty)
  * @param description Optional description for the test harness
  */
 void AutoRegisterLastItem(const std::string& widget_type,

@@ -11,24 +11,24 @@ namespace gfx {
 
 /**
  * @brief High-performance memory pool allocator for graphics data
- * 
- * The MemoryPool class provides efficient memory management for graphics operations
- * in the YAZE ROM hacking editor. It reduces memory fragmentation and allocation
- * overhead through pre-allocated memory blocks.
- * 
+ *
+ * The MemoryPool class provides efficient memory management for graphics
+ * operations in the YAZE ROM hacking editor. It reduces memory fragmentation
+ * and allocation overhead through pre-allocated memory blocks.
+ *
  * Key Features:
  * - Pre-allocated memory blocks for common graphics sizes
  * - O(1) allocation and deallocation
  * - Automatic block size management
  * - Memory usage tracking and statistics
  * - Thread-safe operations
- * 
+ *
  * Performance Optimizations:
  * - Eliminates malloc/free overhead for graphics data
  * - Reduces memory fragmentation
  * - Fast allocation for common sizes (8x8, 16x16, 32x32 tiles)
  * - Automatic block reuse and recycling
- * 
+ *
  * ROM Hacking Specific:
  * - Optimized for SNES tile sizes (8x8, 16x16)
  * - Support for graphics sheet buffers (128x128, 256x256)

@@ -16,11 +16,10 @@ CommandHandler::Descriptor CommandHandler::Describe() const {
 }  // namespace cli
 }  // namespace yaze
 
-#include "cli/service/resources/command_handler.h"
-
 #include <iostream>
 
 #include "absl/strings/str_format.h"
+#include "cli/service/resources/command_handler.h"
 #include "util/macro.h"
 
 namespace yaze {

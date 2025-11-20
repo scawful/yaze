@@ -11,7 +11,6 @@ namespace handlers {
 absl::Status SpriteListCommandHandler::Execute(
     Rom* /*rom*/, const resources::ArgumentParser& parser,
     resources::OutputFormatter& formatter) {
-
   auto limit = parser.GetInt("limit").value_or(256);
   auto type = parser.GetString("type").value_or("all");
 
@@ -38,7 +37,6 @@ absl::Status SpriteListCommandHandler::Execute(
 absl::Status SpritePropertiesCommandHandler::Execute(
     Rom* /*rom*/, const resources::ArgumentParser& parser,
     resources::OutputFormatter& formatter) {
-
   auto id_str = parser.GetString("id").value();
 
   int sprite_id;
@@ -79,7 +77,6 @@ absl::Status SpritePropertiesCommandHandler::Execute(
 absl::Status SpritePaletteCommandHandler::Execute(
     Rom* /*rom*/, const resources::ArgumentParser& parser,
     resources::OutputFormatter& formatter) {
-
   auto id_str = parser.GetString("id").value();
 
   int sprite_id;

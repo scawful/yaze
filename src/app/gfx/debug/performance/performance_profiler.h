@@ -1,24 +1,24 @@
 #ifndef YAZE_APP_GFX_PERFORMANCE_PERFORMANCE_PROFILER_H
 #define YAZE_APP_GFX_PERFORMANCE_PERFORMANCE_PROFILER_H
 
+#include <SDL.h>
+
 #include <chrono>
 #include <string>
 #include <unordered_map>
 #include <vector>
-
-#include <SDL.h>
 
 namespace yaze {
 namespace gfx {
 
 /**
  * @brief Unified performance profiler for all YAZE operations
- * 
+ *
  * The PerformanceProfiler class provides comprehensive timing and performance
  * measurement capabilities for the entire YAZE application. It tracks operation
- * times, calculates statistics, provides detailed performance reports, and integrates
- * with the memory pool for efficient data storage.
- * 
+ * times, calculates statistics, provides detailed performance reports, and
+ * integrates with the memory pool for efficient data storage.
+ *
  * Key Features:
  * - High-resolution timing for microsecond precision
  * - Automatic statistics calculation (min, max, average, median)
@@ -27,14 +27,14 @@ namespace gfx {
  * - Performance regression detection
  * - Enable/disable functionality for zero-overhead when disabled
  * - Unified interface for both core and graphics operations
- * 
+ *
  * Performance Optimizations:
  * - Memory pool allocation for reduced fragmentation
  * - Minimal overhead timing measurements
  * - Efficient data structures for fast lookups
  * - Configurable sampling rates
  * - Automatic cleanup of old measurements
- * 
+ *
  * Usage Examples:
  * - Measure ROM loading performance
  * - Track graphics operation efficiency
@@ -47,7 +47,7 @@ class PerformanceProfiler {
 
   /**
    * @brief Enable or disable performance monitoring
-   * 
+   *
    * When disabled, ScopedTimer operations become no-ops for better performance
    * in production builds or when monitoring is not needed.
    */
@@ -178,7 +178,7 @@ class PerformanceProfiler {
 
 /**
  * @brief RAII timer for automatic timing management
- * 
+ *
  * Usage:
  * {
  *   ScopedTimer timer("operation_name");

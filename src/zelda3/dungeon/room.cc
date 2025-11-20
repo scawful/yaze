@@ -277,8 +277,7 @@ void Room::CopyRoomGraphicsToBuffer() {
         if (gfx_index >= 0 &&
             gfx_index < static_cast<int>(sizeof(current_gfx16_))) {
           current_gfx16_[gfx_index] = map_byte;
-          if (map_byte != 0)
-            bytes_copied++;
+          if (map_byte != 0) bytes_copied++;
         }
       }
       data++;
@@ -360,7 +359,8 @@ void Room::RenderRoomGraphics() {
   // LoadGraphicsSheetsIntoArena() removed - using per-room graphics instead
   // Arena sheets are optional and not needed for room rendering
 
-  // STEP 2: Draw floor tiles to bitmaps (base layer) - if graphics changed OR bitmaps not created yet
+  // STEP 2: Draw floor tiles to bitmaps (base layer) - if graphics changed OR
+  // bitmaps not created yet
   bool need_floor_draw = graphics_dirty_;
   auto& bg1_bmp = bg1_buffer_.bitmap();
   auto& bg2_bmp = bg2_buffer_.bitmap();
@@ -380,18 +380,21 @@ void Room::RenderRoomGraphics() {
                           floor2_graphics_);
   }
 
-  // STEP 3: Draw background tiles (walls/structure) to buffers - if graphics changed OR bitmaps just created
+  // STEP 3: Draw background tiles (walls/structure) to buffers - if graphics
+  // changed OR bitmaps just created
   bool need_bg_draw = graphics_dirty_ || need_floor_draw;
   if (need_bg_draw) {
     bg1_buffer_.DrawBackground(std::span<uint8_t>(current_gfx16_));
     bg2_buffer_.DrawBackground(std::span<uint8_t>(current_gfx16_));
   }
 
-  // Get and apply palette BEFORE rendering objects (so objects use correct colors)
+  // Get and apply palette BEFORE rendering objects (so objects use correct
+  // colors)
   auto& dungeon_pal_group = rom()->mutable_palette_group()->dungeon_main;
   int num_palettes = dungeon_pal_group.size();
 
-  // Use palette indirection table lookup (same as dungeon_canvas_viewer.cc line 854)
+  // Use palette indirection table lookup (same as dungeon_canvas_viewer.cc line
+  // 854)
   int palette_id = palette;  // Default fallback
   if (palette < rom()->paletteset_ids.size() &&
       !rom()->paletteset_ids[palette].empty()) {
@@ -420,12 +423,14 @@ void Room::RenderRoomGraphics() {
   }
 
   // Render objects ON TOP of background tiles (AFTER palette is set)
-  // ObjectDrawer will write indexed pixel data that uses the palette we just set
+  // ObjectDrawer will write indexed pixel data that uses the palette we just
+  // set
   RenderObjectsToBackground();
 
-  // PERFORMANCE OPTIMIZATION: Queue texture commands but DON'T process immediately
-  // This allows multiple rooms to batch their texture updates together
-  // The dungeon_canvas_viewer.cc:552 will process all queued textures once per frame
+  // PERFORMANCE OPTIMIZATION: Queue texture commands but DON'T process
+  // immediately This allows multiple rooms to batch their texture updates
+  // together The dungeon_canvas_viewer.cc:552 will process all queued textures
+  // once per frame
   if (bg1_bmp.texture()) {
     // Texture exists - UPDATE it with new object data
     LOG_DEBUG("[RenderRoomGraphics]",
@@ -509,8 +514,9 @@ void Room::RenderObjectsToBackground() {
     return;
   }
 
-  // PERFORMANCE OPTIMIZATION: Only render objects if they have changed or if graphics changed
-  // Also render if bitmaps were just created (need_floor_draw was true in RenderRoomGraphics)
+  // PERFORMANCE OPTIMIZATION: Only render objects if they have changed or if
+  // graphics changed Also render if bitmaps were just created (need_floor_draw
+  // was true in RenderRoomGraphics)
   auto& bg1_bmp = bg1_buffer_.bitmap();
   auto& bg2_bmp = bg2_buffer_.bitmap();
   bool bitmaps_exist = bg1_bmp.is_active() && bg1_bmp.width() > 0 &&
@@ -522,7 +528,8 @@ void Room::RenderObjectsToBackground() {
     return;
   }
 
-  // Get palette group for object rendering (use SAME lookup as RenderRoomGraphics)
+  // Get palette group for object rendering (use SAME lookup as
+  // RenderRoomGraphics)
   auto& dungeon_pal_group = rom()->mutable_palette_group()->dungeon_main;
   int num_palettes = dungeon_pal_group.size();
 
@@ -542,7 +549,8 @@ void Room::RenderObjectsToBackground() {
   }
 
   auto room_palette = dungeon_pal_group[palette_id];
-  // Dungeon palettes are 16-color sub-palettes. Split the 90-color palette into 16-color groups.
+  // Dungeon palettes are 16-color sub-palettes. Split the 90-color palette into
+  // 16-color groups.
   auto palette_group_result =
       gfx::CreatePaletteGroupFromLargePalette(room_palette, 16);
   if (!palette_group_result.ok()) {
@@ -556,7 +564,8 @@ void Room::RenderObjectsToBackground() {
 
   // Use ObjectDrawer for pattern-based object rendering
   // This provides proper wall/object drawing patterns
-  // Pass the room-specific graphics buffer (current_gfx16_) so objects use correct tiles
+  // Pass the room-specific graphics buffer (current_gfx16_) so objects use
+  // correct tiles
   ObjectDrawer drawer(rom_, current_gfx16_.data());
   auto status = drawer.DrawObjectList(tile_objects_, bg1_buffer_, bg2_buffer_,
                                       palette_group);
@@ -761,8 +770,10 @@ void Room::ParseObjectsFromLocation(int objects_location) {
       }
     } else {
       // Handle door objects (placeholder for future implementation)
-      // tile_objects_.push_back(z3_object_door(static_cast<short>((b2 << 8) + b1),
-      //                                        0, 0, 0, static_cast<uint8_t>(layer)));
+      // tile_objects_.push_back(z3_object_door(static_cast<short>((b2 << 8) +
+      // b1),
+      //                                        0, 0, 0,
+      //                                        static_cast<uint8_t>(layer)));
     }
   }
 }
@@ -922,22 +933,17 @@ absl::StatusOr<size_t> Room::FindObjectAt(int x, int y, int layer) const {
 
 bool Room::ValidateObject(const RoomObject& object) const {
   // Validate position (0-63 for both X and Y)
-  if (object.x() < 0 || object.x() > 63)
-    return false;
-  if (object.y() < 0 || object.y() > 63)
-    return false;
+  if (object.x() < 0 || object.x() > 63) return false;
+  if (object.y() < 0 || object.y() > 63) return false;
 
   // Validate layer (0-2)
-  if (object.GetLayerValue() < 0 || object.GetLayerValue() > 2)
-    return false;
+  if (object.GetLayerValue() < 0 || object.GetLayerValue() > 2) return false;
 
   // Validate object ID range
-  if (object.id_ < 0 || object.id_ > 0xFFF)
-    return false;
+  if (object.id_ < 0 || object.id_ > 0xFFF) return false;
 
   // Validate size for Type 1 objects
-  if (object.id_ < 0x100 && object.size() > 15)
-    return false;
+  if (object.id_ < 0x100 && object.size() > 15) return false;
 
   return true;
 }
@@ -1079,8 +1085,7 @@ void Room::LoadTorches() {
 
   // Iterate through torch data to find torches for this room
   for (int i = 0; i < bytes_count; i += 2) {
-    if (i + 1 >= bytes_count)
-      break;
+    if (i + 1 >= bytes_count) break;
 
     uint8_t b1 = rom_data[torch_data + i];
     uint8_t b2 = rom_data[torch_data + i + 1];
@@ -1096,8 +1101,7 @@ void Room::LoadTorches() {
       // Found torches for this room, read them
       i += 2;
       while (i < bytes_count) {
-        if (i + 1 >= bytes_count)
-          break;
+        if (i + 1 >= bytes_count) break;
 
         b1 = rom_data[torch_data + i];
         b2 = rom_data[torch_data + i + 1];
@@ -1132,8 +1136,7 @@ void Room::LoadTorches() {
       // Skip to next room's torches
       i += 2;
       while (i < bytes_count) {
-        if (i + 1 >= bytes_count)
-          break;
+        if (i + 1 >= bytes_count) break;
         b1 = rom_data[torch_data + i];
         b2 = rom_data[torch_data + i + 1];
         if (b1 == 0xFF && b2 == 0xFF) {
@@ -1180,8 +1183,7 @@ void Room::LoadBlocks() {
 
   // Parse blocks for this room (4 bytes per block entry)
   for (int i = 0; i < blocks_count; i += 4) {
-    if (i + 3 >= blocks_count)
-      break;
+    if (i + 3 >= blocks_count) break;
 
     uint8_t b1 = blocks_data[i];
     uint8_t b2 = blocks_data[i + 1];
@@ -1229,8 +1231,9 @@ void Room::LoadPits() {
             room_id_, pit_entries, pit_ptr);
 
   // Pit data is stored as: room_id (2 bytes), target info (2 bytes)
-  // This data is already loaded in LoadRoomFromRom() into pits_ destination struct
-  // The pit destination (where you go when you fall) is set via SetPitsTarget()
+  // This data is already loaded in LoadRoomFromRom() into pits_ destination
+  // struct The pit destination (where you go when you fall) is set via
+  // SetPitsTarget()
 
   // Pits are typically represented in the layout/collision data, not as objects
   // The pits_ member already contains the target room and layer

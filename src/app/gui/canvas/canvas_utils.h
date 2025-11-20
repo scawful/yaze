@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/gui/canvas/canvas_usage_tracker.h"
@@ -14,7 +15,7 @@ namespace gui {
 
 /**
  * @brief Unified configuration for canvas display and interaction
- * 
+ *
  * Consolidates all canvas configuration into a single struct, including
  * display settings, interaction state, and optional callbacks for updates.
  */
@@ -104,9 +105,7 @@ struct CanvasContextMenuItem {
   std::string label;
   std::string shortcut;
   std::function<void()> callback;
-  std::function<bool()> enabled_condition = []() {
-    return true;
-  };
+  std::function<bool()> enabled_condition = []() { return true; };
   std::vector<CanvasContextMenuItem> subitems;
 };
 

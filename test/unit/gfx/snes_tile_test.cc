@@ -43,8 +43,9 @@ TEST(SnesTileTest, UnpackBppTile) {
   EXPECT_EQ(tile2bpp.data[63], 3);  // Last pixel: 1|1<<1 = 3
 
   // Test 4bpp tile unpacking
-  // According to SnesLab: First planes 1&2 intertwined, then planes 3&4 intertwined
-  // 32 bytes total: 16 bytes for planes 1&2, then 16 bytes for planes 3&4
+  // According to SnesLab: First planes 1&2 intertwined, then planes 3&4
+  // intertwined 32 bytes total: 16 bytes for planes 1&2, then 16 bytes for
+  // planes 3&4
   std::vector<uint8_t> data4bpp = {
       // Planes 1&2 intertwined (rows 0-7)
       0x81, 0x80,  // Row 0: bp1=10000001, bp2=10000000

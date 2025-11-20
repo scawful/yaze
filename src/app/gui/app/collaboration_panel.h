@@ -52,7 +52,7 @@ struct SnapshotEntry {
 };
 
 /**
- * @struct ProposalEntry  
+ * @struct ProposalEntry
  * @brief Represents an AI-generated proposal
  */
 struct ProposalEntry {
@@ -71,7 +71,7 @@ struct ProposalEntry {
 /**
  * @class CollaborationPanel
  * @brief ImGui panel for collaboration features
- * 
+ *
  * Displays:
  * - ROM sync history and status
  * - Shared snapshots gallery

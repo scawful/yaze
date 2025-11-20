@@ -51,8 +51,8 @@ struct ChatMessage {
   absl::Time timestamp;
   std::optional<std::string> json_pretty;
   std::optional<TableData> table_data;
-  bool is_internal =
-      false;  // True for tool results and other messages not meant for user display
+  bool is_internal = false;  // True for tool results and other messages not
+                             // meant for user display
   std::vector<std::string> warnings;
   struct ModelMetadata {
     std::string provider;

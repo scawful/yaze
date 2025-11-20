@@ -13,7 +13,7 @@ namespace gui {
 
 /**
  * @brief Menu section priority for controlling rendering order
- * 
+ *
  * Lower values render first in the context menu:
  * - Editor-specific items (0) appear at the top
  * - Bitmap/palette operations (10) in the middle
@@ -29,7 +29,7 @@ enum class MenuSectionPriority {
 
 /**
  * @brief Declarative popup definition for menu items
- * 
+ *
  * Links a menu item to a persistent popup that should open when the menu
  * item is selected. This separates popup definition from popup rendering.
  */
@@ -37,7 +37,8 @@ struct CanvasPopupDefinition {
   // Unique popup identifier for ImGui
   std::string popup_id;
 
-  // Callback that renders the popup content (should call ImGui::BeginPopup/EndPopup)
+  // Callback that renders the popup content (should call
+  // ImGui::BeginPopup/EndPopup)
   std::function<void()> render_callback;
 
   // Whether to automatically open the popup when menu item is selected
@@ -56,7 +57,7 @@ struct CanvasPopupDefinition {
 
 /**
  * @brief Declarative menu item definition
- * 
+ *
  * Pure data structure representing a menu item with optional popup linkage.
  * Can be composed into hierarchical menus via subitems.
  */
@@ -77,14 +78,10 @@ struct CanvasMenuItem {
   std::optional<CanvasPopupDefinition> popup;
 
   // Condition to determine if menu item is enabled
-  std::function<bool()> enabled_condition = []() {
-    return true;
-  };
+  std::function<bool()> enabled_condition = []() { return true; };
 
   // Condition to determine if menu item is visible
-  std::function<bool()> visible_condition = []() {
-    return true;
-  };
+  std::function<bool()> visible_condition = []() { return true; };
 
   // Nested submenu items
   std::vector<CanvasMenuItem> subitems;
@@ -116,9 +113,7 @@ struct CanvasMenuItem {
   static CanvasMenuItem Disabled(const std::string& lbl) {
     CanvasMenuItem item;
     item.label = lbl;
-    item.enabled_condition = []() {
-      return false;
-    };
+    item.enabled_condition = []() { return false; };
     return item;
   }
 
@@ -146,7 +141,7 @@ struct CanvasMenuItem {
 
 /**
  * @brief Menu section grouping related menu items
- * 
+ *
  * Provides visual organization of menu items with optional section titles.
  * Sections are rendered in priority order.
  */
@@ -186,7 +181,7 @@ struct CanvasMenuSection {
 
 /**
  * @brief Complete menu definition
- * 
+ *
  * Aggregates menu sections for a complete context menu or popup menu.
  */
 struct CanvasMenuDefinition {
@@ -221,9 +216,9 @@ struct CanvasMenuDefinition {
 
 /**
  * @brief Render a single menu item
- * 
+ *
  * Handles visibility, enabled state, subitems, and popup linkage.
- * 
+ *
  * @param item Menu item to render
  * @param popup_opened_callback Optional callback invoked when popup is opened
  */
@@ -234,9 +229,9 @@ void RenderMenuItem(
 
 /**
  * @brief Render a menu section
- * 
+ *
  * Renders section title (if present), all items, and separator.
- * 
+ *
  * @param section Menu section to render
  * @param popup_opened_callback Optional callback invoked when popup is opened
  */
@@ -247,10 +242,10 @@ void RenderMenuSection(
 
 /**
  * @brief Render a complete menu definition
- * 
+ *
  * Renders all sections in order. Does not handle ImGui::BeginPopup/EndPopup -
  * caller is responsible for popup context.
- * 
+ *
  * @param menu Menu definition to render
  * @param popup_opened_callback Optional callback invoked when popup is opened
  */

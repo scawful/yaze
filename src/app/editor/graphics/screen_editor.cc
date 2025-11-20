@@ -1,11 +1,11 @@
 #include "screen_editor.h"
-#include "app/editor/system/editor_card_registry.h"
 
 #include <fstream>
 #include <iostream>
 #include <string>
 
 #include "absl/strings/str_format.h"
+#include "app/editor/system/editor_card_registry.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/debug/performance/performance_profiler.h"
 #include "app/gfx/resource/arena.h"
@@ -25,8 +25,7 @@ namespace editor {
 constexpr uint32_t kRedPen = 0xFF0000FF;
 
 void ScreenEditor::Initialize() {
-  if (!dependencies_.card_registry)
-    return;
+  if (!dependencies_.card_registry) return;
   auto* card_registry = dependencies_.card_registry;
 
   card_registry->RegisterCard({.card_id = "screen.dungeon_maps",
@@ -122,8 +121,7 @@ absl::Status ScreenEditor::Load() {
 }
 
 absl::Status ScreenEditor::Update() {
-  if (!dependencies_.card_registry)
-    return absl::OkStatus();
+  if (!dependencies_.card_registry) return absl::OkStatus();
   auto* card_registry = dependencies_.card_registry;
 
   static gui::EditorCard dungeon_maps_card("Dungeon Maps", ICON_MD_MAP);
@@ -140,7 +138,8 @@ absl::Status ScreenEditor::Update() {
   title_screen_card.SetDefaultSize(600, 500);
   naming_screen_card.SetDefaultSize(500, 400);
 
-  // Dungeon Maps Card - Check visibility flag exists and is true before rendering
+  // Dungeon Maps Card - Check visibility flag exists and is true before
+  // rendering
   bool* dungeon_maps_visible =
       card_registry->GetVisibilityFlag("screen.dungeon_maps");
   if (dungeon_maps_visible && *dungeon_maps_visible) {
@@ -150,7 +149,8 @@ absl::Status ScreenEditor::Update() {
     dungeon_maps_card.End();
   }
 
-  // Inventory Menu Card - Check visibility flag exists and is true before rendering
+  // Inventory Menu Card - Check visibility flag exists and is true before
+  // rendering
   bool* inventory_menu_visible =
       card_registry->GetVisibilityFlag("screen.inventory_menu");
   if (inventory_menu_visible && *inventory_menu_visible) {
@@ -160,7 +160,8 @@ absl::Status ScreenEditor::Update() {
     inventory_menu_card.End();
   }
 
-  // Overworld Map Card - Check visibility flag exists and is true before rendering
+  // Overworld Map Card - Check visibility flag exists and is true before
+  // rendering
   bool* overworld_map_visible =
       card_registry->GetVisibilityFlag("screen.overworld_map");
   if (overworld_map_visible && *overworld_map_visible) {
@@ -170,7 +171,8 @@ absl::Status ScreenEditor::Update() {
     overworld_map_card.End();
   }
 
-  // Title Screen Card - Check visibility flag exists and is true before rendering
+  // Title Screen Card - Check visibility flag exists and is true before
+  // rendering
   bool* title_screen_visible =
       card_registry->GetVisibilityFlag("screen.title_screen");
   if (title_screen_visible && *title_screen_visible) {
@@ -180,7 +182,8 @@ absl::Status ScreenEditor::Update() {
     title_screen_card.End();
   }
 
-  // Naming Screen Card - Check visibility flag exists and is true before rendering
+  // Naming Screen Card - Check visibility flag exists and is true before
+  // rendering
   bool* naming_screen_visible =
       card_registry->GetVisibilityFlag("screen.naming_screen");
   if (naming_screen_visible && *naming_screen_visible) {
@@ -513,14 +516,14 @@ void ScreenEditor::DrawDungeonMapsTabs() {
 
 /**
  * @brief Draw dungeon room graphics editor with enhanced tile16 editing
- * 
+ *
  * Enhanced Features:
  * - Interactive tile16 selector with visual feedback
  * - Real-time tile16 composition from 4x 8x8 tiles
  * - Tile metadata editing (mirroring, palette, etc.)
  * - Integration with ROM graphics buffer
  * - Undo/redo support for tile modifications
- * 
+ *
  * Performance Notes:
  * - Cached tile16 rendering to avoid repeated composition
  * - Efficient tile selector with grid-based snapping
@@ -602,7 +605,8 @@ void ScreenEditor::DrawDungeonMapsRoomGfx() {
         }
 
         if (current_tile_canvas_.DrawTilePainter(*cached_tile8, 16)) {
-          // Modify the tile16 based on the selected tile and current_tile16_info
+          // Modify the tile16 based on the selected tile and
+          // current_tile16_info
           gfx::ModifyTile16(tile16_blockset_, rom()->graphics_buffer(),
                             current_tile16_info[0], current_tile16_info[1],
                             current_tile16_info[2], current_tile16_info[3], 212,
@@ -645,14 +649,14 @@ void ScreenEditor::DrawDungeonMapsRoomGfx() {
 
 /**
  * @brief Draw dungeon maps editor with enhanced ROM hacking features
- * 
+ *
  * Enhanced Features:
  * - Multi-mode editing (DRAW, EDIT, SELECT)
  * - Real-time tile16 preview and editing
  * - Floor/basement management for complex dungeons
  * - Copy/paste operations for floor layouts
  * - Integration with ROM tile16 data
- * 
+ *
  * Performance Notes:
  * - Lazy loading of dungeon graphics
  * - Cached tile16 rendering for fast updates
@@ -720,8 +724,7 @@ void ScreenEditor::DrawDungeonMapsEditor() {
     ImGui::Text("Selected tile8: %d", selected_tile8_);
     ImGui::Separator();
     ImGui::Text("For use with custom inserted graphics assembly patches.");
-    if (ImGui::Button("Load GFX from BIN file"))
-      LoadBinaryGfx();
+    if (ImGui::Button("Load GFX from BIN file")) LoadBinaryGfx();
 
     ImGui::EndTable();
   }
@@ -857,10 +860,8 @@ void ScreenEditor::DrawTitleScreenCompositeCanvas() {
           // Create tile word: tile_id | (palette << 10) | h_flip | v_flip
           uint16_t tile_word = selected_title_tile16_ & 0x3FF;
           tile_word |= (title_palette_ & 0x07) << 10;
-          if (title_h_flip_)
-            tile_word |= 0x4000;
-          if (title_v_flip_)
-            tile_word |= 0x8000;
+          if (title_h_flip_) tile_word |= 0x4000;
+          if (title_v_flip_) tile_word |= 0x8000;
 
           // Update BG1 buffer and re-render both layers and composite
           title_screen_.mutable_bg1_buffer()[tilemap_index] = tile_word;
@@ -912,10 +913,8 @@ void ScreenEditor::DrawTitleScreenBG1Canvas() {
           // Create tile word: tile_id | (palette << 10) | h_flip | v_flip
           uint16_t tile_word = selected_title_tile16_ & 0x3FF;
           tile_word |= (title_palette_ & 0x07) << 10;
-          if (title_h_flip_)
-            tile_word |= 0x4000;
-          if (title_v_flip_)
-            tile_word |= 0x8000;
+          if (title_h_flip_) tile_word |= 0x4000;
+          if (title_v_flip_) tile_word |= 0x8000;
 
           // Update buffer and re-render
           title_screen_.mutable_bg1_buffer()[tilemap_index] = tile_word;
@@ -957,10 +956,8 @@ void ScreenEditor::DrawTitleScreenBG2Canvas() {
           // Create tile word: tile_id | (palette << 10) | h_flip | v_flip
           uint16_t tile_word = selected_title_tile16_ & 0x3FF;
           tile_word |= (title_palette_ & 0x07) << 10;
-          if (title_h_flip_)
-            tile_word |= 0x4000;
-          if (title_v_flip_)
-            tile_word |= 0x8000;
+          if (title_h_flip_) tile_word |= 0x4000;
+          if (title_v_flip_) tile_word |= 0x8000;
 
           // Update buffer and re-render
           title_screen_.mutable_bg2_buffer()[tilemap_index] = tile_word;

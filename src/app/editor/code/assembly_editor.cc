@@ -1,5 +1,4 @@
 #include "assembly_editor.h"
-#include "app/editor/system/editor_card_registry.h"
 
 #include <fstream>
 #include <string>
@@ -7,6 +6,7 @@
 
 #include "absl/strings/match.h"
 #include "absl/strings/str_cat.h"
+#include "app/editor/system/editor_card_registry.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/ui_helpers.h"
 #include "app/gui/widgets/text_editor.h"
@@ -42,8 +42,7 @@ static const char* const kIdentifiers[] = {
 
 TextEditor::LanguageDefinition GetAssemblyLanguageDef() {
   TextEditor::LanguageDefinition language_65816;
-  for (auto& k : kKeywords)
-    language_65816.mKeywords.emplace(k);
+  for (auto& k : kKeywords) language_65816.mKeywords.emplace(k);
 
   for (auto& k : kIdentifiers) {
     TextEditor::Identifier id;
@@ -178,8 +177,7 @@ void AssemblyEditor::Initialize() {
   text_editor_.SetLanguageDefinition(GetAssemblyLanguageDef());
 
   // Register cards with EditorCardManager
-  if (!dependencies_.card_registry)
-    return;
+  if (!dependencies_.card_registry) return;
   auto* card_registry = dependencies_.card_registry;
   card_registry->RegisterCard({.card_id = "assembly.editor",
                                .display_name = "Assembly Editor",
@@ -194,14 +192,15 @@ void AssemblyEditor::Initialize() {
                                .shortcut_hint = "",
                                .priority = 20});
 
-  // Don't show by default - only show when user explicitly opens Assembly Editor
+  // Don't show by default - only show when user explicitly opens Assembly
+  // Editor
 }
 
 absl::Status AssemblyEditor::Load() {
   // Register cards with EditorCardRegistry (dependency injection)
-  // Note: Assembly editor uses dynamic file tabs, so we register the main editor window
-  if (!dependencies_.card_registry)
-    return absl::OkStatus();
+  // Note: Assembly editor uses dynamic file tabs, so we register the main
+  // editor window
+  if (!dependencies_.card_registry) return absl::OkStatus();
   auto* card_registry = dependencies_.card_registry;
 
   return absl::OkStatus();
@@ -464,8 +463,6 @@ absl::Status AssemblyEditor::Redo() {
   return absl::OkStatus();
 }
 
-absl::Status AssemblyEditor::Update() {
-  return absl::OkStatus();
-}
+absl::Status AssemblyEditor::Update() { return absl::OkStatus(); }
 
 }  // namespace yaze::editor

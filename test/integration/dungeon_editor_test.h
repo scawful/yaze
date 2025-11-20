@@ -14,7 +14,7 @@ namespace test {
 
 /**
  * @brief Integration test framework using real ROM data
- * 
+ *
  * Updated for DungeonEditorV2 with card-based architecture
  */
 class DungeonEditorIntegrationTest : public ::testing::Test {

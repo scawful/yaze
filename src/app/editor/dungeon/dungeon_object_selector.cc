@@ -93,7 +93,8 @@ void DungeonObjectSelector::DrawObjectRenderer() {
       int preview_y = 128 - 16;  // Center vertically
 
       // TODO: Implement preview using ObjectDrawer + small BackgroundBuffer
-      // For now, use primitive shape rendering (shows object ID and rough dimensions)
+      // For now, use primitive shape rendering (shows object ID and rough
+      // dimensions)
       RenderObjectPrimitive(preview_object_, preview_x, preview_y);
     }
 
@@ -266,9 +267,8 @@ void DungeonObjectSelector::DrawObjectBrowser() {
             object_name = std::string(name_ptr);
           }
         }
-      } else if (
-          obj_id <
-          0x1C0) {  // Type3RoomObjectNames has 128 elements (0x140-0x1BF)
+      } else if (obj_id < 0x1C0) {  // Type3RoomObjectNames has 128 elements
+                                    // (0x140-0x1BF)
         int type3_index = obj_id - 0x140;
         if (type3_index >= 0 &&
             type3_index < std::size(zelda3::Type3RoomObjectNames)) {
@@ -362,14 +362,14 @@ void DungeonObjectSelector::DrawRoomGraphics() {
     const int block_height = 32;       // Reduced height
 
     for (int block : blocks) {
-      if (current_block >= 16)
-        break;  // Only show first 16 blocks
+      if (current_block >= 16) break;  // Only show first 16 blocks
 
       // Ensure the graphics sheet is loaded and has a valid texture
       if (block < gfx::Arena::Get().gfx_sheets().size()) {
         auto& gfx_sheet = gfx::Arena::Get().gfx_sheets()[block];
 
-        // Calculate position in a grid layout instead of horizontal concatenation
+        // Calculate position in a grid layout instead of horizontal
+        // concatenation
         int row = current_block / max_blocks_per_row;
         int col = current_block % max_blocks_per_row;
 
@@ -381,7 +381,6 @@ void DungeonObjectSelector::DrawRoomGraphics() {
                 room_gfx_canvas_.zero_point().x + room_gfx_canvas_.width() &&
             y + block_height <=
                 room_gfx_canvas_.zero_point().y + room_gfx_canvas_.height()) {
-
           // Only draw if the texture is valid
           if (gfx_sheet.texture() != 0) {
             room_gfx_canvas_.draw_list()->AddImage(

@@ -277,8 +277,7 @@ TEST_F(RoomIntegrationTest, BinaryDataExactMatch) {
           break;
         }
       }
-      if (might_be_final)
-        break;
+      if (might_be_final) break;
     }
   }
 
@@ -319,12 +318,9 @@ TEST_F(RoomIntegrationTest, KnownRoomData) {
   bool found_layer1 = false;
 
   for (const auto& obj : objects) {
-    if (obj.id_ < 0x100)
-      found_type1 = true;
-    if (obj.GetLayerValue() == 0)
-      found_layer0 = true;
-    if (obj.GetLayerValue() == 1)
-      found_layer1 = true;
+    if (obj.id_ < 0x100) found_type1 = true;
+    if (obj.GetLayerValue() == 0) found_layer0 = true;
+    if (obj.GetLayerValue() == 1) found_layer1 = true;
   }
 
   EXPECT_TRUE(found_type1) << "Should have Type 1 objects";

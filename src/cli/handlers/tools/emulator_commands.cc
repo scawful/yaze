@@ -1,6 +1,7 @@
 #include "cli/handlers/tools/emulator_commands.h"
 
 #include <grpcpp/grpcpp.h>
+
 #include "absl/status/statusor.h"
 #include "absl/strings/escaping.h"
 #include "absl/strings/str_split.h"
@@ -28,7 +29,6 @@ class EmulatorClient {
       grpc::Status (agent::EmulatorService::Stub::*rpc_method)(
           grpc::ClientContext*, const TRequest&, TResponse*),
       const TRequest& request) {
-
     TResponse response;
     grpc::ClientContext context;
 
@@ -51,30 +51,18 @@ class EmulatorClient {
 
 // Helper to parse button from string
 absl::StatusOr<agent::Button> StringToButton(absl::string_view s) {
-  if (s == "A")
-    return agent::Button::A;
-  if (s == "B")
-    return agent::Button::B;
-  if (s == "X")
-    return agent::Button::X;
-  if (s == "Y")
-    return agent::Button::Y;
-  if (s == "L")
-    return agent::Button::L;
-  if (s == "R")
-    return agent::Button::R;
-  if (s == "SELECT")
-    return agent::Button::SELECT;
-  if (s == "START")
-    return agent::Button::START;
-  if (s == "UP")
-    return agent::Button::UP;
-  if (s == "DOWN")
-    return agent::Button::DOWN;
-  if (s == "LEFT")
-    return agent::Button::LEFT;
-  if (s == "RIGHT")
-    return agent::Button::RIGHT;
+  if (s == "A") return agent::Button::A;
+  if (s == "B") return agent::Button::B;
+  if (s == "X") return agent::Button::X;
+  if (s == "Y") return agent::Button::Y;
+  if (s == "L") return agent::Button::L;
+  if (s == "R") return agent::Button::R;
+  if (s == "SELECT") return agent::Button::SELECT;
+  if (s == "START") return agent::Button::START;
+  if (s == "UP") return agent::Button::UP;
+  if (s == "DOWN") return agent::Button::DOWN;
+  if (s == "LEFT") return agent::Button::LEFT;
+  if (s == "RIGHT") return agent::Button::RIGHT;
   return absl::InvalidArgumentError(absl::StrCat("Unknown button: ", s));
 }
 
@@ -198,8 +186,7 @@ absl::Status EmulatorPressButtonsCommandHandler::Execute(
       absl::StrSplit(parser.GetString("buttons").value(), ',');
   for (const auto& btn_str : buttons) {
     auto button_or = StringToButton(btn_str);
-    if (!button_or.ok())
-      return button_or.status();
+    if (!button_or.ok()) return button_or.status();
     request.add_buttons(button_or.value());
   }
 
@@ -226,8 +213,7 @@ absl::Status EmulatorReleaseButtonsCommandHandler::Execute(
       absl::StrSplit(parser.GetString("buttons").value(), ',');
   for (const auto& btn_str : buttons) {
     auto button_or = StringToButton(btn_str);
-    if (!button_or.ok())
-      return button_or.status();
+    if (!button_or.ok()) return button_or.status();
     request.add_buttons(button_or.value());
   }
 
@@ -254,8 +240,7 @@ absl::Status EmulatorHoldButtonsCommandHandler::Execute(
       absl::StrSplit(parser.GetString("buttons").value(), ',');
   for (const auto& btn_str : buttons) {
     auto button_or = StringToButton(btn_str);
-    if (!button_or.ok())
-      return button_or.status();
+    if (!button_or.ok()) return button_or.status();
     request.add_buttons(button_or.value());
   }
   request.set_duration_ms(parser.GetInt("duration").value());

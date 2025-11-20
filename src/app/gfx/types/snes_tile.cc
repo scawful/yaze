@@ -83,8 +83,7 @@ std::vector<uint8_t> PackBppTile(const snes_tile8& tile, const uint32_t bpp) {
       }
 
       // 1bpp format
-      if (bpp == 1)
-        output[row] += (uint8_t)((color & 1) << (7 - col));
+      if (bpp == 1) output[row] += (uint8_t)((color & 1) << (7 - col));
 
       // 2bpp format
       if (bpp >= 2) {
@@ -93,8 +92,7 @@ std::vector<uint8_t> PackBppTile(const snes_tile8& tile, const uint32_t bpp) {
       }
 
       // 3bpp format
-      if (bpp == 3)
-        output[16 + row] += (((color & 4) == 4) << (7 - col));
+      if (bpp == 3) output[16 + row] += (((color & 4) == 4) << (7 - col));
 
       // 4bpp format
       if (bpp >= 4) {

@@ -492,12 +492,12 @@ void OverworldEditor::DrawToolset() {
 
   // IMPORTANT: Don't cache version - it needs to update after ROM upgrade
   auto rom_version = zelda3::OverworldVersionHelper::GetVersion(*rom_);
-  uint8_t asm_version = (*rom_)
-      [zelda3::
-           OverworldCustomASMHasBeenApplied];  // Still needed for badge display
+  uint8_t asm_version =
+      (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];  // Still needed for
+                                                          // badge display
 
-  // Don't use WidgetIdScope here - it conflicts with ImGui::Begin/End ID stack in cards
-  // Widgets register themselves individually instead
+  // Don't use WidgetIdScope here - it conflicts with ImGui::Begin/End ID stack
+  // in cards Widgets register themselves individually instead
 
   toolbar.Begin();
 
@@ -564,17 +564,21 @@ void OverworldEditor::DrawToolset() {
   toolbar.AddRomBadge(asm_version,
                       [this]() { ImGui::OpenPopup("UpgradeROMVersion"); });
 
-  // Inline map properties with icon labels - use toolbar methods for consistency
+  // Inline map properties with icon labels - use toolbar methods for
+  // consistency
   if (toolbar.AddProperty(ICON_MD_IMAGE, " Gfx",
                           overworld_.mutable_overworld_map(current_map_)
                               ->mutable_area_graphics(),
                           [this]() {
-                            // CORRECT ORDER: Properties first, then graphics reload
+                            // CORRECT ORDER: Properties first, then graphics
+                            // reload
 
-                            // 1. Propagate properties to siblings FIRST (this also calls LoadAreaGraphics on siblings)
+                            // 1. Propagate properties to siblings FIRST (this
+                            // also calls LoadAreaGraphics on siblings)
                             RefreshMapProperties();
 
-                            // 2. Force immediate refresh of current map and all siblings
+                            // 2. Force immediate refresh of current map and all
+                            // siblings
                             maps_bmp_[current_map_].set_modified(true);
                             RefreshChildMapOnDemand(current_map_);
                             RefreshSiblingMapGraphics(current_map_);
@@ -589,7 +593,8 @@ void OverworldEditor::DrawToolset() {
                           overworld_.mutable_overworld_map(current_map_)
                               ->mutable_area_palette(),
                           [this]() {
-                            // Palette changes also need to propagate to siblings
+                            // Palette changes also need to propagate to
+                            // siblings
                             RefreshSiblingMapGraphics(current_map_);
                             RefreshMapProperties();
                             status_ = RefreshMapPalette();
@@ -697,9 +702,9 @@ void OverworldEditor::DrawToolset() {
     ImGui::EndPopup();
   }
 
-  // All editor windows are now rendered in Update() using either EditorCard system
-  // or MapPropertiesSystem for map-specific panels. This keeps the toolset clean
-  // and prevents ImGui ID stack issues.
+  // All editor windows are now rendered in Update() using either EditorCard
+  // system or MapPropertiesSystem for map-specific panels. This keeps the
+  // toolset clean and prevents ImGui ID stack issues.
 
   // Legacy window code removed - windows rendered in Update() include:
   // - Graphics Groups (EditorCard)
@@ -893,7 +898,6 @@ void OverworldEditor::DrawOverworldEdits() {
 
 void OverworldEditor::RenderUpdatedMapBitmap(
     const ImVec2& click_position, const std::vector<uint8_t>& tile_data) {
-
   // Bounds checking to prevent crashes
   if (current_map_ < 0 || current_map_ >= static_cast<int>(maps_bmp_.size())) {
     LOG_ERROR("OverworldEditor",
@@ -975,7 +979,8 @@ void OverworldEditor::CheckForOverworldEdits() {
 
   // User has selected a tile they want to draw from the blockset
   // and clicked on the canvas.
-  // Note: With TileSelectorWidget, we check if a valid tile is selected instead of canvas points
+  // Note: With TileSelectorWidget, we check if a valid tile is selected instead
+  // of canvas points
   if (current_tile16_ >= 0 && !ow_map_canvas_.select_rect_active() &&
       ow_map_canvas_.DrawTilemapPainter(tile16_blockset_, current_tile16_)) {
     DrawOverworldEdits();
@@ -1002,10 +1007,8 @@ void OverworldEditor::CheckForOverworldEdits() {
       int end_x = std::floor(end.x / kTile16Size) * kTile16Size;
       int end_y = std::floor(end.y / kTile16Size) * kTile16Size;
 
-      if (start_x > end_x)
-        std::swap(start_x, end_x);
-      if (start_y > end_y)
-        std::swap(start_y, end_y);
+      if (start_x > end_x) std::swap(start_x, end_x);
+      if (start_y > end_y) std::swap(start_y, end_y);
 
       constexpr int local_map_size = 512;  // Size of each local map
       // Number of tiles per local map (since each tile is 16x16)
@@ -1017,8 +1020,9 @@ void OverworldEditor::CheckForOverworldEdits() {
                 current_tile16_);
 
       // Apply the selected tiles to each position in the rectangle
-      // CRITICAL FIX: Use pre-computed tile16_ids_ instead of recalculating from selected_tiles_
-      // This prevents wrapping issues when dragging near boundaries
+      // CRITICAL FIX: Use pre-computed tile16_ids_ instead of recalculating
+      // from selected_tiles_ This prevents wrapping issues when dragging near
+      // boundaries
       int i = 0;
       for (int y = start_y;
            y <= end_y && i < static_cast<int>(selected_tile16_ids_.size());
@@ -1026,7 +1030,6 @@ void OverworldEditor::CheckForOverworldEdits() {
         for (int x = start_x;
              x <= end_x && i < static_cast<int>(selected_tile16_ids_.size());
              x += kTile16Size, ++i) {
-
           // Determine which local map (512x512) the tile is in
           int local_map_x = x / local_map_size;
           int local_map_y = y / local_map_size;
@@ -1041,13 +1044,14 @@ void OverworldEditor::CheckForOverworldEdits() {
 
           // FIXED: Use pre-computed tile ID from the ORIGINAL selection
           int tile16_id = selected_tile16_ids_[i];
-          // Bounds check for the selected world array, accounting for rectangle size
-          // Ensure the entire rectangle fits within the world bounds
+          // Bounds check for the selected world array, accounting for rectangle
+          // size Ensure the entire rectangle fits within the world bounds
           int rect_width = ((end_x - start_x) / kTile16Size) + 1;
           int rect_height = ((end_y - start_y) / kTile16Size) + 1;
 
           // Prevent painting from wrapping around at the edges of large maps
-          // Only allow painting if the entire rectangle is within the same 512x512 local map
+          // Only allow painting if the entire rectangle is within the same
+          // 512x512 local map
           int start_local_map_x = start_x / local_map_size;
           int start_local_map_y = start_y / local_map_size;
           int end_local_map_x = end_x / local_map_size;
@@ -1061,7 +1065,8 @@ void OverworldEditor::CheckForOverworldEdits() {
               (index_y + rect_height - 1) < 0x200) {
             selected_world[index_x][index_y] = tile16_id;
 
-            // CRITICAL FIX: Also update the bitmap directly like single tile drawing
+            // CRITICAL FIX: Also update the bitmap directly like single tile
+            // drawing
             ImVec2 tile_position(x, y);
             auto tile_data = gfx::GetTilemapData(tile16_blockset_, tile16_id);
             if (!tile_data.empty()) {
@@ -1229,13 +1234,15 @@ absl::Status OverworldEditor::Paste() {
 
 absl::Status OverworldEditor::CheckForCurrentMap() {
   // 4096x4096, 512x512 maps and some are larges maps 1024x1024
-  // CRITICAL FIX: Use canvas hover position (not raw ImGui mouse) for proper coordinate sync
-  // hover_mouse_pos() already returns canvas-local coordinates (world space, not screen space)
+  // CRITICAL FIX: Use canvas hover position (not raw ImGui mouse) for proper
+  // coordinate sync hover_mouse_pos() already returns canvas-local coordinates
+  // (world space, not screen space)
   const auto mouse_position = ow_map_canvas_.hover_mouse_pos();
   const int large_map_size = 1024;
 
   // Calculate which small map the mouse is currently over
-  // No need to subtract canvas_zero_point - mouse_position is already in world coordinates
+  // No need to subtract canvas_zero_point - mouse_position is already in world
+  // coordinates
   int map_x = mouse_position.x / kOverworldMapSize;
   int map_y = mouse_position.y / kOverworldMapSize;
 
@@ -1322,10 +1329,11 @@ absl::Status OverworldEditor::CheckForCurrentMap() {
       const int highlight_parent =
           overworld_.overworld_map(current_highlighted_map)->parent();
 
-      // CRITICAL FIX: Account for world offset when calculating parent coordinates
-      // For Dark World (0x40-0x7F), parent IDs are in range 0x40-0x7F
-      // For Special World (0x80-0x9F), parent IDs are in range 0x80-0x9F
-      // We need to subtract the world offset to get display grid coordinates (0-7)
+      // CRITICAL FIX: Account for world offset when calculating parent
+      // coordinates For Dark World (0x40-0x7F), parent IDs are in range
+      // 0x40-0x7F For Special World (0x80-0x9F), parent IDs are in range
+      // 0x80-0x9F We need to subtract the world offset to get display grid
+      // coordinates (0-7)
       int parent_map_x;
       int parent_map_y;
       if (current_world_ == 0) {
@@ -1358,8 +1366,9 @@ absl::Status OverworldEditor::CheckForCurrentMap() {
         current_map_x = (current_highlighted_map - 0x40) % 8;
         current_map_y = (current_highlighted_map - 0x40) / 8;
       } else {
-        // Special World (0x80-0x9F) - use display coordinates based on current_world_
-        // The special world maps are displayed in the same 8x8 grid as LW/DW
+        // Special World (0x80-0x9F) - use display coordinates based on
+        // current_world_ The special world maps are displayed in the same 8x8
+        // grid as LW/DW
         current_map_x = (current_highlighted_map - 0x80) % 8;
         current_map_y = (current_highlighted_map - 0x80) / 8;
       }
@@ -1524,7 +1533,8 @@ void OverworldEditor::CheckForMousePan() {
 }
 
 void OverworldEditor::DrawOverworldCanvas() {
-  // Simplified map settings - compact row with popup panels for detailed editing
+  // Simplified map settings - compact row with popup panels for detailed
+  // editing
   if (rom_->is_loaded() && overworld_.is_loaded() && map_properties_system_) {
     map_properties_system_->DrawSimplifiedMapSettings(
         current_world_, current_map_, current_map_lock_,
@@ -1585,11 +1595,11 @@ void OverworldEditor::DrawOverworldCanvas() {
       CheckForOverworldEdits();
     }
     // CRITICAL FIX: Use canvas hover state, not ImGui::IsItemHovered()
-    // IsItemHovered() checks the LAST drawn item, which could be entities/overlay,
-    // not the canvas InvisibleButton. ow_map_canvas_.IsMouseHovering() correctly
-    // tracks whether mouse is over the canvas area.
-    if (ow_map_canvas_.IsMouseHovering())
-      status_ = CheckForCurrentMap();
+    // IsItemHovered() checks the LAST drawn item, which could be
+    // entities/overlay, not the canvas InvisibleButton.
+    // ow_map_canvas_.IsMouseHovering() correctly tracks whether mouse is over
+    // the canvas area.
+    if (ow_map_canvas_.IsMouseHovering()) status_ = CheckForCurrentMap();
 
     // --- BEGIN NEW DRAG/DROP LOGIC ---
     if (current_mode == EditingMode::MOUSE) {
@@ -1680,7 +1690,8 @@ absl::Status OverworldEditor::DrawTile16Selector() {
     }
     // Note: We do NOT auto-scroll here because it breaks user interaction.
     // The canvas should only scroll when explicitly requested (e.g., when
-    // selecting a tile from the overworld canvas via ScrollBlocksetCanvasToCurrentTile).
+    // selecting a tile from the overworld canvas via
+    // ScrollBlocksetCanvasToCurrentTile).
   }
 
   if (result.tile_double_clicked) {
@@ -1886,7 +1897,8 @@ absl::Status OverworldEditor::LoadGraphics() {
   {
     gfx::ScopedTimer initial_textures_timer("CreateInitialTextures");
     for (int i = 0; i < initial_texture_count; ++i) {
-      // Queue texture creation/update for initial maps via Arena's deferred system
+      // Queue texture creation/update for initial maps via Arena's deferred
+      // system
       gfx::Arena::Get().QueueTextureCommand(
           gfx::Arena::TextureCommandType::CREATE, maps_to_texture[i]);
     }
@@ -2035,7 +2047,7 @@ void OverworldEditor::RefreshOverworldMap() {
 
 /**
  * @brief On-demand map refresh that only updates what's actually needed
- * 
+ *
  * This method intelligently determines what needs to be refreshed based on
  * the type of change and only updates the necessary components, avoiding
  * expensive full rebuilds when possible.
@@ -2051,7 +2063,8 @@ void OverworldEditor::RefreshOverworldMapOnDemand(int map_index) {
 
   // For non-current maps in non-current worlds, defer the refresh
   if (!is_current_map && !is_current_world) {
-    // Mark for deferred refresh - will be processed when the map becomes visible
+    // Mark for deferred refresh - will be processed when the map becomes
+    // visible
     maps_bmp_[map_index].set_modified(true);
     return;
   }
@@ -2140,7 +2153,7 @@ void OverworldEditor::RefreshChildMapOnDemand(int map_index) {
 
 /**
  * @brief Safely refresh multi-area maps without recursion
- * 
+ *
  * This function handles the coordination of large, wide, and tall area maps
  * by using a non-recursive approach with explicit map list processing.
  * It respects the ZScream area size logic and prevents infinite recursion.
@@ -2177,7 +2190,8 @@ void OverworldEditor::RefreshMultiAreaMapsSafely(int map_index,
     case AreaSizeEnum::LargeArea: {
       // Large Area: 2x2 grid (4 maps total)
       // Parent is top-left (quadrant 0), siblings are:
-      // +1 (top-right, quadrant 1), +8 (bottom-left, quadrant 2), +9 (bottom-right, quadrant 3)
+      // +1 (top-right, quadrant 1), +8 (bottom-left, quadrant 2), +9
+      // (bottom-right, quadrant 3)
       sibling_maps = {parent_id, parent_id + 1, parent_id + 8, parent_id + 9};
       LOG_DEBUG(
           "OverworldEditor",
@@ -2243,7 +2257,8 @@ void OverworldEditor::RefreshMultiAreaMapsSafely(int map_index,
                                                         : "tall",
                 sibling, parent_id);
 
-      // Direct refresh without calling RefreshChildMapOnDemand to avoid recursion
+      // Direct refresh without calling RefreshChildMapOnDemand to avoid
+      // recursion
       auto* sibling_map = overworld_.mutable_overworld_map(sibling);
       if (sibling_map && maps_bmp_[sibling].modified()) {
         sibling_map->LoadAreaGraphics();
@@ -2360,8 +2375,7 @@ absl::Status OverworldEditor::RefreshMapPalette() {
       for (int i = 1; i < 4; i++) {
         int sibling_index =
             overworld_.overworld_map(current_map_)->parent() + i;
-        if (i >= 2)
-          sibling_index += 6;
+        if (i >= 2) sibling_index += 6;
         RETURN_IF_ERROR(
             overworld_.mutable_overworld_map(sibling_index)->LoadPalette());
 
@@ -2438,7 +2452,8 @@ void OverworldEditor::RefreshSiblingMapGraphics(int map_index,
       overworld_.mutable_overworld_map(sibling)->LoadAreaGraphics();
 
       // CRITICAL FIX: Bypass visibility check - force immediate refresh
-      // Call RefreshChildMapOnDemand() directly instead of RefreshOverworldMapOnDemand()
+      // Call RefreshChildMapOnDemand() directly instead of
+      // RefreshOverworldMapOnDemand()
       RefreshChildMapOnDemand(sibling);
 
       LOG_DEBUG("OverworldEditor",
@@ -2601,12 +2616,14 @@ void OverworldEditor::ScrollBlocksetCanvasToCurrentTile() {
   }
 
   // CRITICAL FIX: Do NOT use fallback scrolling from overworld canvas context!
-  // The fallback code uses ImGui::SetScrollX/Y which scrolls the CURRENT window,
-  // and when called from CheckForSelectRectangle() during overworld canvas rendering,
-  // it incorrectly scrolls the overworld canvas instead of the tile16 selector.
+  // The fallback code uses ImGui::SetScrollX/Y which scrolls the CURRENT
+  // window, and when called from CheckForSelectRectangle() during overworld
+  // canvas rendering, it incorrectly scrolls the overworld canvas instead of
+  // the tile16 selector.
   //
   // The blockset_selector_ should always be available in modern code paths.
-  // If it's not available, we skip scrolling rather than scroll the wrong window.
+  // If it's not available, we skip scrolling rather than scroll the wrong
+  // window.
   //
   // This fixes the bug where right-clicking to select tiles on the Dark World
   // causes the overworld canvas to scroll unexpectedly.
@@ -2885,12 +2902,14 @@ absl::Status OverworldEditor::ApplyZSCustomOverworldASM(int target_version) {
   std::vector<uint8_t> working_rom_data = original_rom_data;
 
   try {
-    // Determine which ASM file to apply and use GetResourcePath for proper resolution
+    // Determine which ASM file to apply and use GetResourcePath for proper
+    // resolution
     std::string asm_file_name =
         (target_version == 3) ? "asm/yaze.asm"  // Master file with v3
                               : "asm/ZSCustomOverworld.asm";  // v2 standalone
 
-    // Use GetResourcePath to handle app bundles and various deployment scenarios
+    // Use GetResourcePath to handle app bundles and various deployment
+    // scenarios
     std::string asm_file_path = util::GetResourcePath(asm_file_name);
 
     LOG_DEBUG("OverworldEditor", "Using ASM file: %s", asm_file_path.c_str());

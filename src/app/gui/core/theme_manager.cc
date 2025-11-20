@@ -153,7 +153,8 @@ void ThemeManager::InitializeBuiltInThemes() {
 }
 
 void ThemeManager::CreateFallbackYazeClassic() {
-  // Fallback theme that matches the original ColorsYaze() function colors but in theme format
+  // Fallback theme that matches the original ColorsYaze() function colors but
+  // in theme format
   EnhancedTheme theme;
   theme.name = "YAZE Tre";
   theme.description = "YAZE theme resource edition";
@@ -390,13 +391,11 @@ Color ThemeManager::GetWelcomeScreenAccent() const {
 }
 
 void ThemeManager::ShowThemeSelector(bool* p_open) {
-  if (!p_open || !*p_open)
-    return;
+  if (!p_open || !*p_open) return;
 
   if (ImGui::Begin(
           absl::StrFormat("%s Theme Selector", ICON_MD_PALETTE).c_str(),
           p_open)) {
-
     // Add subtle particle effects to theme selector
     static float theme_animation_time = 0.0f;
     theme_animation_time += ImGui::GetIO().DeltaTime;
@@ -478,8 +477,8 @@ void ThemeManager::ShowThemeSelector(bool* p_open) {
                               name.c_str())
                   .c_str(),
               ImVec2(-1, 40))) {
-        auto status = LoadTheme(
-            name);  // Use LoadTheme instead of ApplyTheme to ensure correct tracking
+        auto status = LoadTheme(name);  // Use LoadTheme instead of ApplyTheme
+                                        // to ensure correct tracking
         if (!status.ok()) {
           LOG_ERROR("Theme Manager", "Failed to load theme %s", name.c_str());
         }
@@ -563,8 +562,7 @@ absl::Status ThemeManager::ParseThemeFile(const std::string& content,
 
   while (std::getline(stream, line)) {
     // Skip empty lines and comments
-    if (line.empty() || line[0] == '#')
-      continue;
+    if (line.empty() || line[0] == '#') continue;
 
     // Check for section headers [section_name]
     if (line[0] == '[' && line.back() == ']') {
@@ -573,8 +571,7 @@ absl::Status ThemeManager::ParseThemeFile(const std::string& content,
     }
 
     size_t eq_pos = line.find('=');
-    if (eq_pos == std::string::npos)
-      continue;
+    if (eq_pos == std::string::npos) continue;
 
     std::string key = line.substr(0, eq_pos);
     std::string value = line.substr(eq_pos + 1);
@@ -1016,7 +1013,8 @@ void ThemeManager::ApplyClassicYazeTheme() {
       "Original YAZE theme (direct ColorsYaze() function)";
   classic_theme.author = "YAZE Team";
 
-  // Extract ALL the colors that ColorsYaze() sets (copy from CreateFallbackYazeClassic)
+  // Extract ALL the colors that ColorsYaze() sets (copy from
+  // CreateFallbackYazeClassic)
   classic_theme.primary = RGBA(92, 115, 92);   // allttpLightGreen
   classic_theme.secondary = RGBA(71, 92, 71);  // alttpMidGreen
   classic_theme.accent = RGBA(89, 119, 89);    // TabActive
@@ -1175,14 +1173,12 @@ void ThemeManager::ApplyClassicYazeTheme() {
 }
 
 void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
-  if (!p_open || !*p_open)
-    return;
+  if (!p_open || !*p_open) return;
 
   ImGui::SetNextWindowSize(ImVec2(800, 600), ImGuiCond_FirstUseEver);
 
   if (ImGui::Begin(absl::StrFormat("%s Theme Editor", ICON_MD_PALETTE).c_str(),
                    p_open, ImGuiWindowFlags_MenuBar)) {
-
     // Add gentle particle effects to theme editor background
     static float editor_animation_time = 0.0f;
     editor_animation_time += ImGui::GetIO().DeltaTime;
@@ -1305,7 +1301,8 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
           original_theme = current_theme_;
           theme_backup_made = true;
         }
-        // Apply the edit theme directly to ImGui without changing theme manager state
+        // Apply the edit theme directly to ImGui without changing theme manager
+        // state
         edit_theme.ApplyToImGui();
       }
     };
@@ -1368,7 +1365,6 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
 
     // Enhanced theme editing with tabs for better organization
     if (ImGui::BeginTabBar("ThemeEditorTabs", ImGuiTabBarFlags_None)) {
-
       // Apply live preview on first frame if enabled
       static bool first_frame = true;
       if (first_frame && live_preview) {
@@ -1569,28 +1565,23 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
 
         if (ImGui::SliderFloat("Window Rounding", &edit_theme.window_rounding,
                                0.0f, 20.0f)) {
-          if (live_preview)
-            ApplyTheme(edit_theme);
+          if (live_preview) ApplyTheme(edit_theme);
         }
         if (ImGui::SliderFloat("Frame Rounding", &edit_theme.frame_rounding,
                                0.0f, 20.0f)) {
-          if (live_preview)
-            ApplyTheme(edit_theme);
+          if (live_preview) ApplyTheme(edit_theme);
         }
         if (ImGui::SliderFloat("Scrollbar Rounding",
                                &edit_theme.scrollbar_rounding, 0.0f, 20.0f)) {
-          if (live_preview)
-            ApplyTheme(edit_theme);
+          if (live_preview) ApplyTheme(edit_theme);
         }
         if (ImGui::SliderFloat("Tab Rounding", &edit_theme.tab_rounding, 0.0f,
                                20.0f)) {
-          if (live_preview)
-            ApplyTheme(edit_theme);
+          if (live_preview) ApplyTheme(edit_theme);
         }
         if (ImGui::SliderFloat("Grab Rounding", &edit_theme.grab_rounding, 0.0f,
                                20.0f)) {
-          if (live_preview)
-            ApplyTheme(edit_theme);
+          if (live_preview) ApplyTheme(edit_theme);
         }
 
         ImGui::Separator();
@@ -1598,13 +1589,11 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
 
         if (ImGui::SliderFloat("Window Border Size",
                                &edit_theme.window_border_size, 0.0f, 3.0f)) {
-          if (live_preview)
-            ApplyTheme(edit_theme);
+          if (live_preview) ApplyTheme(edit_theme);
         }
         if (ImGui::SliderFloat("Frame Border Size",
                                &edit_theme.frame_border_size, 0.0f, 3.0f)) {
-          if (live_preview)
-            ApplyTheme(edit_theme);
+          if (live_preview) ApplyTheme(edit_theme);
         }
 
         ImGui::Separator();
@@ -1612,8 +1601,7 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
 
         if (ImGui::Checkbox("Enable Animations",
                             &edit_theme.enable_animations)) {
-          if (live_preview)
-            ApplyTheme(edit_theme);
+          if (live_preview) ApplyTheme(edit_theme);
         }
         if (edit_theme.enable_animations) {
           if (ImGui::SliderFloat("Animation Speed", &edit_theme.animation_speed,
@@ -1623,8 +1611,7 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
         }
         if (ImGui::Checkbox("Enable Glow Effects",
                             &edit_theme.enable_glow_effects)) {
-          if (live_preview)
-            ApplyTheme(edit_theme);
+          if (live_preview) ApplyTheme(edit_theme);
         }
 
         ImGui::EndTabItem();
@@ -2172,8 +2159,8 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
       // Reset backup state since we're back to current theme
       if (theme_backup_made) {
         theme_backup_made = false;
-        current_theme_
-            .ApplyToImGui();  // Apply current theme to clear any preview changes
+        current_theme_.ApplyToImGui();  // Apply current theme to clear any
+                                        // preview changes
       }
     }
 
@@ -2282,7 +2269,8 @@ std::vector<std::string> ThemeManager::GetThemeSearchPaths() const {
 
   // Platform-specific resource paths
 #ifdef __APPLE__
-  // macOS bundle resource path (this should be the primary path for bundled apps)
+  // macOS bundle resource path (this should be the primary path for bundled
+  // apps)
   std::string bundle_themes = util::GetResourcePath("assets/themes/");
   if (!bundle_themes.empty()) {
     search_paths.push_back(bundle_themes);
@@ -2342,7 +2330,6 @@ std::vector<std::string> ThemeManager::DiscoverAvailableThemeFiles() const {
   auto search_paths = GetThemeSearchPaths();
 
   for (const auto& search_path : search_paths) {
-
     try {
       // Use platform-specific file discovery instead of glob
 #ifdef __APPLE__

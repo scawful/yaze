@@ -196,7 +196,8 @@ TEST_F(RomTest, SaveTruncatesExistingFile) {
 #if defined(__linux__)
   GTEST_SKIP();
 #endif
-  // Prepare ROM data and save to a temp file twice; second save should overwrite, not append
+  // Prepare ROM data and save to a temp file twice; second save should
+  // overwrite, not append
   EXPECT_OK(rom_.LoadFromData(kMockRomData, /*z3_load=*/false));
 
   const char* tmp_name = "test_temp_rom.sfc";
@@ -211,7 +212,8 @@ TEST_F(RomTest, SaveTruncatesExistingFile) {
   EXPECT_OK(rom_.WriteByte(0, 0xEE));
   EXPECT_OK(rom_.SaveToFile(settings));
 
-  // Load the saved file and verify size equals original data size and first byte matches
+  // Load the saved file and verify size equals original data size and first
+  // byte matches
   Rom verify;
   EXPECT_OK(verify.LoadFromFile(tmp_name, /*z3_load=*/false));
   EXPECT_EQ(verify.size(), kMockRomData.size());

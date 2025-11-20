@@ -48,8 +48,7 @@ std::string SpriteBuilder::BuildProperties() const {
   // Build the properties
   for (int i = 0; i < 27; ++i) {
     std::string property = "00";
-    if (!properties[i].empty())
-      property = properties[i];
+    if (!properties[i].empty()) property = properties[i];
     ss << kSpriteProperties[i] << " = $" << property << std::endl;
   }
   return ss.str();
@@ -88,9 +87,7 @@ SpriteAction& SpriteAction::SetNextAction(const std::string& nextActionName) {
   return *this;
 }
 
-std::string SpriteAction::GetConfiguration() const {
-  return "";
-}
+std::string SpriteAction::GetConfiguration() const { return ""; }
 
 // ============================================================================
 

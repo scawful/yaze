@@ -19,10 +19,10 @@ namespace agent {
 /**
  * @class SimpleChatSession
  * @brief Simple text-based chat session for AI agent interaction
- * 
+ *
  * Provides a basic REPL-style interface without FTXUI dependencies,
  * suitable for automated testing and AI agent interactions.
- * 
+ *
  * Supports multiple input modes:
  * - Interactive REPL (default when stdin is a TTY)
  * - Piped input (reads lines from stdin)

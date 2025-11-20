@@ -29,15 +29,13 @@ void DungeonToolset::Draw() {
     // Undo button
     TableNextColumn();
     if (Button(ICON_MD_UNDO)) {
-      if (undo_callback_)
-        undo_callback_();
+      if (undo_callback_) undo_callback_();
     }
 
     // Redo button
     TableNextColumn();
     if (Button(ICON_MD_REDO)) {
-      if (redo_callback_)
-        redo_callback_();
+      if (redo_callback_) redo_callback_();
     }
 
     // Separator
@@ -141,8 +139,7 @@ void DungeonToolset::Draw() {
     // Palette button
     TableNextColumn();
     if (Button(ICON_MD_PALETTE)) {
-      if (palette_toggle_callback_)
-        palette_toggle_callback_();
+      if (palette_toggle_callback_) palette_toggle_callback_();
     }
 
     ImGui::EndTable();

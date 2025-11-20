@@ -16,7 +16,7 @@ class ToastManager;
 /**
  * @class AgentChatHistoryPopup
  * @brief ImGui popup drawer for displaying chat history on the left side
- * 
+ *
  * Provides a quick-access sidebar for viewing recent chat messages,
  * complementing the ProposalDrawer on the right. Features:
  * - Recent message list with timestamps
@@ -24,7 +24,7 @@ class ToastManager;
  * - Scroll to view older messages
  * - Quick actions (clear, export, open full chat)
  * - Syncs with AgentChatWidget and AgentEditor
- * 
+ *
  * Positioned on the LEFT side of the screen as a slide-out panel.
  */
 class AgentChatHistoryPopup {

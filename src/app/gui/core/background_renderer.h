@@ -3,10 +3,10 @@
 
 #include <memory>
 #include <vector>
-#include "imgui/imgui.h"
 
 #include "app/gui/core/color.h"
 #include "app/rom.h"
+#include "imgui/imgui.h"
 
 namespace yaze {
 namespace gui {

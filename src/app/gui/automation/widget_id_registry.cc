@@ -24,7 +24,8 @@ thread_local std::vector<std::string> WidgetIdScope::id_stack_;
 
 WidgetIdScope::WidgetIdScope(const std::string& name) : name_(name) {
   // Only push ID if we're in an active ImGui frame with a valid window
-  // This prevents crashes during editor initialization before ImGui begins its frame
+  // This prevents crashes during editor initialization before ImGui begins its
+  // frame
   ImGuiContext* ctx = ImGui::GetCurrentContext();
   if (ctx && ctx->CurrentWindow && !ctx->Windows.empty()) {
     ImGui::PushID(name.c_str());
@@ -292,8 +293,7 @@ std::string WidgetIdRegistry::ExportCatalog(const std::string& format) const {
 
     bool first = true;
     for (const auto& [path, info] : widgets_) {
-      if (!first)
-        ss << ",\n";
+      if (!first) ss << ",\n";
       first = false;
 
       ss << "    {\n";

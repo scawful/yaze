@@ -175,7 +175,8 @@ std::string AgentPretraining::GeneratePretrainingPrompt(Rom* rom) {
   if (rom && rom->is_loaded()) {
     prompt += absl::StrFormat("## Current ROM: %s\n", rom->title());
     prompt += absl::StrFormat("Size: %zu bytes\n", rom->size());
-    // prompt += absl::StrFormat("Type: %s\n\n", rom->is_expanded() ? "Expanded" : "Vanilla");
+    // prompt += absl::StrFormat("Type: %s\n\n", rom->is_expanded() ? "Expanded"
+    // : "Vanilla");
   }
 
   for (const auto& module : GetModules()) {

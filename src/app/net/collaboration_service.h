@@ -17,12 +17,12 @@ namespace net {
 /**
  * @class CollaborationService
  * @brief High-level service integrating version management with networking
- * 
+ *
  * Bridges the gap between:
  * - Local ROM version management
  * - Remote collaboration via WebSocket
  * - Proposal approval workflow
- * 
+ *
  * Features:
  * - Automatic ROM sync on changes
  * - Network-aware proposal approval

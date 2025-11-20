@@ -32,12 +32,14 @@ struct PerformanceSummary {
 };
 
 /**
- * @brief Comprehensive performance monitoring dashboard for YAZE graphics system
- * 
- * The PerformanceDashboard provides real-time monitoring and analysis of graphics
- * performance in the YAZE ROM hacking editor. It displays key metrics, optimization
- * status, and provides recommendations for performance improvements.
- * 
+ * @brief Comprehensive performance monitoring dashboard for YAZE graphics
+ * system
+ *
+ * The PerformanceDashboard provides real-time monitoring and analysis of
+ * graphics performance in the YAZE ROM hacking editor. It displays key metrics,
+ * optimization status, and provides recommendations for performance
+ * improvements.
+ *
  * Key Features:
  * - Real-time performance metrics display
  * - Optimization status monitoring
@@ -45,14 +47,14 @@ struct PerformanceSummary {
  * - Frame rate analysis
  * - Performance regression detection
  * - Optimization recommendations
- * 
+ *
  * Performance Metrics:
  * - Operation timing statistics
  * - Memory allocation patterns
  * - Cache hit/miss ratios
  * - Texture update efficiency
  * - Batch operation effectiveness
- * 
+ *
  * ROM Hacking Specific:
  * - Graphics editing performance analysis
  * - Palette operation efficiency

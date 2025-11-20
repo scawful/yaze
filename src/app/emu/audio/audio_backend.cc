@@ -3,8 +3,10 @@
 #include "app/emu/audio/audio_backend.h"
 
 #include <SDL.h>
+
 #include <algorithm>
 #include <vector>
+
 #include "util/log.h"
 
 namespace yaze {
@@ -15,9 +17,7 @@ namespace audio {
 // SDL2AudioBackend Implementation
 // ============================================================================
 
-SDL2AudioBackend::~SDL2AudioBackend() {
-  Shutdown();
-}
+SDL2AudioBackend::~SDL2AudioBackend() { Shutdown(); }
 
 bool SDL2AudioBackend::Initialize(const AudioConfig& config) {
   if (initialized_) {
@@ -78,8 +78,7 @@ bool SDL2AudioBackend::Initialize(const AudioConfig& config) {
 }
 
 void SDL2AudioBackend::Shutdown() {
-  if (!initialized_)
-    return;
+  if (!initialized_) return;
 
   if (audio_stream_) {
     SDL_FreeAudioStream(audio_stream_);
@@ -100,27 +99,23 @@ void SDL2AudioBackend::Shutdown() {
 }
 
 void SDL2AudioBackend::Play() {
-  if (!initialized_)
-    return;
+  if (!initialized_) return;
   SDL_PauseAudioDevice(device_id_, 0);
 }
 
 void SDL2AudioBackend::Pause() {
-  if (!initialized_)
-    return;
+  if (!initialized_) return;
   SDL_PauseAudioDevice(device_id_, 1);
 }
 
 void SDL2AudioBackend::Stop() {
-  if (!initialized_)
-    return;
+  if (!initialized_) return;
   Clear();
   SDL_PauseAudioDevice(device_id_, 1);
 }
 
 void SDL2AudioBackend::Clear() {
-  if (!initialized_)
-    return;
+  if (!initialized_) return;
   SDL_ClearQueuedAudio(device_id_);
   if (audio_stream_) {
     SDL_AudioStreamClear(audio_stream_);
@@ -128,8 +123,7 @@ void SDL2AudioBackend::Clear() {
 }
 
 bool SDL2AudioBackend::QueueSamples(const int16_t* samples, int num_samples) {
-  if (!initialized_ || !samples)
-    return false;
+  if (!initialized_ || !samples) return false;
 
   // OPTIMIZATION: Skip volume scaling if volume is 100% (common case)
   if (volume_ == 1.0f) {
@@ -174,8 +168,7 @@ bool SDL2AudioBackend::QueueSamples(const int16_t* samples, int num_samples) {
 }
 
 bool SDL2AudioBackend::QueueSamples(const float* samples, int num_samples) {
-  if (!initialized_ || !samples)
-    return false;
+  if (!initialized_ || !samples) return false;
 
   // Convert float to int16
   std::vector<int16_t> int_samples(num_samples);
@@ -242,8 +235,7 @@ bool SDL2AudioBackend::QueueSamplesNative(const int16_t* samples,
 AudioStatus SDL2AudioBackend::GetStatus() const {
   AudioStatus status;
 
-  if (!initialized_)
-    return status;
+  if (!initialized_) return status;
 
   status.is_playing =
       (SDL_GetAudioDeviceStatus(device_id_) == SDL_AUDIO_PLAYING);
@@ -262,18 +254,13 @@ AudioStatus SDL2AudioBackend::GetStatus() const {
   return status;
 }
 
-bool SDL2AudioBackend::IsInitialized() const {
-  return initialized_;
-}
+bool SDL2AudioBackend::IsInitialized() const { return initialized_; }
 
-AudioConfig SDL2AudioBackend::GetConfig() const {
-  return config_;
-}
+AudioConfig SDL2AudioBackend::GetConfig() const { return config_; }
 
 void SDL2AudioBackend::SetAudioStreamResampling(bool enable, int native_rate,
                                                 int channels) {
-  if (!initialized_)
-    return;
+  if (!initialized_) return;
 
   if (!enable) {
     if (audio_stream_) {
@@ -320,9 +307,7 @@ void SDL2AudioBackend::SetVolume(float volume) {
   volume_ = std::clamp(volume, 0.0f, 1.0f);
 }
 
-float SDL2AudioBackend::GetVolume() const {
-  return volume_;
-}
+float SDL2AudioBackend::GetVolume() const { return volume_; }
 
 // ============================================================================
 // AudioBackendFactory Implementation

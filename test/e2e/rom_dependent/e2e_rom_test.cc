@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+
 #include <filesystem>
 #include <fstream>
 #include <memory>
@@ -14,7 +15,7 @@ namespace test {
 
 /**
  * @brief Comprehensive End-to-End ROM testing suite
- * 
+ *
  * This test suite validates the complete ROM editing workflow:
  * 1. Load vanilla ROM
  * 2. Apply various edits (ROM data, graphics, etc.)

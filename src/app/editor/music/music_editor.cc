@@ -1,8 +1,8 @@
 #include "music_editor.h"
-#include "app/editor/system/editor_card_registry.h"
 
 #include "absl/strings/str_format.h"
 #include "app/editor/code/assembly_editor.h"
+#include "app/editor/system/editor_card_registry.h"
 #include "app/emu/emulator.h"
 #include "app/gfx/debug/performance/performance_profiler.h"
 #include "app/gui/core/icons.h"
@@ -14,8 +14,7 @@ namespace yaze {
 namespace editor {
 
 void MusicEditor::Initialize() {
-  if (!dependencies_.card_registry)
-    return;
+  if (!dependencies_.card_registry) return;
   auto* card_registry = dependencies_.card_registry;
 
   card_registry->RegisterCard({.card_id = "music.tracker",
@@ -47,8 +46,7 @@ absl::Status MusicEditor::Load() {
 }
 
 absl::Status MusicEditor::Update() {
-  if (!dependencies_.card_registry)
-    return absl::OkStatus();
+  if (!dependencies_.card_registry) return absl::OkStatus();
   auto* card_registry = dependencies_.card_registry;
 
   static gui::EditorCard tracker_card("Music Tracker", ICON_MD_MUSIC_NOTE);
@@ -59,7 +57,8 @@ absl::Status MusicEditor::Update() {
   instrument_card.SetDefaultSize(600, 500);
   assembly_card.SetDefaultSize(700, 600);
 
-  // Music Tracker Card - Check visibility flag exists and is true before rendering
+  // Music Tracker Card - Check visibility flag exists and is true before
+  // rendering
   bool* tracker_visible = card_registry->GetVisibilityFlag("music.tracker");
   if (tracker_visible && *tracker_visible) {
     if (tracker_card.Begin(tracker_visible)) {
@@ -68,7 +67,8 @@ absl::Status MusicEditor::Update() {
     tracker_card.End();
   }
 
-  // Instrument Editor Card - Check visibility flag exists and is true before rendering
+  // Instrument Editor Card - Check visibility flag exists and is true before
+  // rendering
   bool* instrument_visible =
       card_registry->GetVisibilityFlag("music.instrument_editor");
   if (instrument_visible && *instrument_visible) {
@@ -78,7 +78,8 @@ absl::Status MusicEditor::Update() {
     instrument_card.End();
   }
 
-  // Assembly View Card - Check visibility flag exists and is true before rendering
+  // Assembly View Card - Check visibility flag exists and is true before
+  // rendering
   bool* assembly_visible = card_registry->GetVisibilityFlag("music.assembly");
   if (assembly_visible && *assembly_visible) {
     if (assembly_card.Begin(assembly_visible)) {
@@ -120,8 +121,7 @@ static void DrawPianoStaff() {
     // Draw the ledger lines
     const int NUM_LEDGER_LINES = 3;
     for (int i = -NUM_LEDGER_LINES; i <= NUM_LINES + NUM_LEDGER_LINES; i++) {
-      if (i % 2 == 0)
-        continue;  // skip every other line
+      if (i % 2 == 0) continue;  // skip every other line
       auto line_start = ImVec2(canvas_p0.x, canvas_p0.y + i * LINE_SPACING / 2);
       auto line_end = ImVec2(canvas_p1.x + ImGui::GetContentRegionAvail().x,
                              canvas_p0.y + i * LINE_SPACING / 2);
@@ -315,8 +315,7 @@ void MusicEditor::PlaySong(int song_id) {
 }
 
 void MusicEditor::StopSong() {
-  if (!emulator_)
-    return;
+  if (!emulator_) return;
 
   // Write stop command to game memory
   try {
@@ -335,8 +334,7 @@ void MusicEditor::StopSong() {
 }
 
 void MusicEditor::SetVolume(float volume) {
-  if (!emulator_)
-    return;
+  if (!emulator_) return;
 
   // Clamp volume to valid range
   volume = std::clamp(volume, 0.0f, 1.0f);

@@ -738,7 +738,6 @@ void EditorCardRegistry::DrawCardBrowser(size_t session_id, bool* p_open) {
   if (ImGui::Begin(
           absl::StrFormat("%s Card Browser", ICON_MD_DASHBOARD).c_str(),
           p_open)) {
-
     static char search_filter[256] = "";
     static std::string category_filter = "All";
 
@@ -772,7 +771,6 @@ void EditorCardRegistry::DrawCardBrowser(size_t session_id, bool* p_open) {
     if (ImGui::BeginTable("##CardTable", 4,
                           ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg |
                               ImGuiTableFlags_Borders)) {
-
       ImGui::TableSetupColumn("Visible", ImGuiTableColumnFlags_WidthFixed, 60);
       ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch);
       ImGui::TableSetupColumn("Category", ImGuiTableColumnFlags_WidthFixed,
@@ -793,8 +791,7 @@ void EditorCardRegistry::DrawCardBrowser(size_t session_id, bool* p_open) {
 
       for (const auto& card_id : cards) {
         auto card_it = cards_.find(card_id);
-        if (card_it == cards_.end())
-          continue;
+        if (card_it == cards_.end()) continue;
 
         const auto& card = card_it->second;
 

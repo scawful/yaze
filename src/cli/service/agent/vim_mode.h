@@ -23,7 +23,7 @@ enum class VimModeType {
 /**
  * @class VimMode
  * @brief Vim-style line editing for z3ed CLI chat
- * 
+ *
  * Provides vim keybindings for enhanced terminal UX:
  * - Normal mode: hjkl navigation, dd, yy, p, u
  * - Insert mode: Regular text input

@@ -1,18 +1,17 @@
-#include "app/rom.h"
-#include "cli/handlers/rom/mock_rom.h"
-#include "core/project.h"
-
 #include <fstream>
 #include <iostream>
 #include <string>
 #include <vector>
+
 #include "absl/flags/declare.h"
 #include "absl/flags/flag.h"
-
 #include "absl/status/status.h"
 #include "absl/strings/str_cat.h"
+#include "app/rom.h"
 #include "cli/handlers/agent/common.h"
+#include "cli/handlers/rom/mock_rom.h"
 #include "cli/service/agent/conversational_agent_service.h"
+#include "core/project.h"
 #include "nlohmann/json.hpp"
 
 ABSL_DECLARE_FLAG(std::string, rom);

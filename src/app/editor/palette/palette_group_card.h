@@ -68,7 +68,8 @@ class PaletteGroupCard {
  public:
   /**
    * @brief Construct a new Palette Group Card
-   * @param group_name Internal palette group name (e.g., "ow_main", "dungeon_main")
+   * @param group_name Internal palette group name (e.g., "ow_main",
+   * "dungeon_main")
    * @param display_name Human-readable name for UI
    * @param rom ROM instance for reading/writing palettes
    */

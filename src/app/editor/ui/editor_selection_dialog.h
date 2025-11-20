@@ -29,7 +29,7 @@ struct EditorInfo {
 /**
  * @class EditorSelectionDialog
  * @brief Beautiful grid-based editor selection dialog
- * 
+ *
  * Displays when a ROM is loaded, showing all available editors
  * with icons, descriptions, and quick access.
  */

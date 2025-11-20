@@ -5,6 +5,8 @@
 #ifdef YAZE_WITH_GRPC
 #include "cli/handlers/tools/emulator_commands.h"
 #endif
+#include <memory>
+
 #include "cli/handlers/game/dialogue_commands.h"
 #include "cli/handlers/game/dungeon_commands.h"
 #include "cli/handlers/game/message_commands.h"
@@ -13,8 +15,6 @@
 #include "cli/handlers/graphics/hex_commands.h"
 #include "cli/handlers/graphics/palette_commands.h"
 #include "cli/handlers/graphics/sprite_commands.h"
-
-#include <memory>
 
 namespace yaze {
 namespace cli {

@@ -2,6 +2,7 @@
 #define YAZE_APP_EDITOR_OVERWORLDEDITOR_H
 
 #include <mutex>
+
 #include "absl/status/status.h"
 #include "app/editor/editor.h"
 #include "app/editor/graphics/gfx_group_editor.h"
@@ -65,7 +66,8 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   explicit OverworldEditor(Rom* rom) : rom_(rom) {
     type_ = EditorType::kOverworld;
     gfx_group_editor_.set_rom(rom);
-    // MapPropertiesSystem will be initialized after maps_bmp_ and canvas are ready
+    // MapPropertiesSystem will be initialized after maps_bmp_ and canvas are
+    // ready
   }
 
   explicit OverworldEditor(Rom* rom, const EditorDependencies& deps)
@@ -103,10 +105,8 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   // ROM state methods (from Editor base class)
   bool IsRomLoaded() const override { return rom_ && rom_->is_loaded(); }
   std::string GetRomStatus() const override {
-    if (!rom_)
-      return "No ROM loaded";
-    if (!rom_->is_loaded())
-      return "ROM failed to load";
+    if (!rom_) return "No ROM loaded";
+    if (!rom_->is_loaded()) return "ROM failed to load";
     return absl::StrFormat("ROM loaded: %s", rom_->title());
   }
 
@@ -132,11 +132,12 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
 
   /**
    * @brief Handle entity insertion from context menu
-   * 
+   *
    * Delegates to flat helper functions in entity_operations.cc
    * following ZScream's pattern for entity management.
-   * 
-   * @param entity_type Type of entity to insert ("entrance", "hole", "exit", "item", "sprite")
+   *
+   * @param entity_type Type of entity to insert ("entrance", "hole", "exit",
+   * "item", "sprite")
    */
   void HandleEntityInsertion(const std::string& entity_type);
 
@@ -196,7 +197,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
 
   /**
    * @brief Create textures for deferred map bitmaps on demand
-   * 
+   *
    * This method should be called periodically to create textures for maps
    * that are needed but haven't had their textures created yet. This allows
    * for smooth loading without blocking the main thread during ROM loading.
@@ -205,7 +206,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
 
   /**
    * @brief Ensure a specific map has its texture created
-   * 
+   *
    * Call this when a map becomes visible or is about to be rendered.
    * It will create the texture if it doesn't exist yet.
    */
@@ -213,7 +214,8 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
 
   void DrawOverworldProperties();
   void HandleMapInteraction();
-  // SetupOverworldCanvasContextMenu removed (Phase 3B) - now handled by MapPropertiesSystem
+  // SetupOverworldCanvasContextMenu removed (Phase 3B) - now handled by
+  // MapPropertiesSystem
 
   // Canvas pan/zoom helpers (Overworld Refactoring)
   void HandleOverworldPan();

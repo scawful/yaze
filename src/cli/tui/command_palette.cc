@@ -17,10 +17,8 @@ using namespace ftxui;
 namespace {
 // A simple fuzzy search implementation
 int fuzzy_match(const std::string& query, const std::string& target) {
-  if (query.empty())
-    return 1;
-  if (target.empty())
-    return 0;
+  if (query.empty()) return 1;
+  if (target.empty()) return 0;
 
   int score = 0;
   int query_idx = 0;
@@ -63,39 +61,23 @@ Component CommandPaletteComponent::Render() {
   static std::vector<Cmd> cmds = {
       {"hex-read", "🔢 Hex", "Read ROM bytes",
        "--address=0x1C800 --length=16 --format=both",
-       []() {
-         return absl::OkStatus();
-       }},
+       []() { return absl::OkStatus(); }},
 
       {"hex-write", "🔢 Hex", "Write ROM bytes",
-       "--address=0x1C800 --data=\"FF 00\"",
-       []() {
-         return absl::OkStatus();
-       }},
+       "--address=0x1C800 --data=\"FF 00\"", []() { return absl::OkStatus(); }},
 
       {"hex-search", "🔢 Hex", "Search byte pattern",
-       "--pattern=\"FF 00 ?? 12\"",
-       []() {
-         return absl::OkStatus();
-       }},
+       "--pattern=\"FF 00 ?? 12\"", []() { return absl::OkStatus(); }},
 
       {"palette-get", "🎨 Palette", "Get palette colors",
-       "--group=0 --palette=0 --format=hex",
-       []() {
-         return absl::OkStatus();
-       }},
+       "--group=0 --palette=0 --format=hex", []() { return absl::OkStatus(); }},
 
       {"palette-set", "🎨 Palette", "Set palette color",
        "--group=0 --palette=0 --index=5 --color=FF0000",
-       []() {
-         return absl::OkStatus();
-       }},
+       []() { return absl::OkStatus(); }},
 
       {"palette-analyze", "🎨 Palette", "Analyze palette",
-       "--type=palette --id=0/0",
-       []() {
-         return absl::OkStatus();
-       }},
+       "--type=palette --id=0/0", []() { return absl::OkStatus(); }},
   };
 
   auto search_input = Input(&state->query, "Search commands...");
@@ -230,8 +212,7 @@ Component CommandPaletteComponent::Render() {
              return true;
            }
            if (e == Event::ArrowUp) {
-             if (state->selected > 0)
-               state->selected--;
+             if (state->selected > 0) state->selected--;
              return true;
            }
            if (e == Event::ArrowDown) {

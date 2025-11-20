@@ -94,7 +94,8 @@ class DungeonObjectSelector {
   gui::Canvas room_gfx_canvas_{"##RoomGfxCanvas",
                                ImVec2(0x100 + 1, 0x10 * 0x40 + 1)};
   gui::Canvas object_canvas_;
-  // ObjectRenderer removed - using ObjectDrawer in Room::RenderObjectsToBackground()
+  // ObjectRenderer removed - using ObjectDrawer in
+  // Room::RenderObjectsToBackground()
 
   // Editor systems
   std::unique_ptr<zelda3::DungeonEditorSystem>* dungeon_editor_system_ =

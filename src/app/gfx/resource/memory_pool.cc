@@ -33,9 +33,7 @@ MemoryPool::MemoryPool()
                            (20 * kLargeBlockSize) + (10 * kHugeBlockSize);
 }
 
-MemoryPool::~MemoryPool() {
-  Clear();
-}
+MemoryPool::~MemoryPool() { Clear(); }
 
 void* MemoryPool::Allocate(size_t size) {
   total_allocations_++;
@@ -59,8 +57,7 @@ void* MemoryPool::Allocate(size_t size) {
 }
 
 void MemoryPool::Deallocate(void* ptr) {
-  if (!ptr)
-    return;
+  if (!ptr) return;
 
   total_deallocations_++;
 
@@ -156,14 +153,10 @@ void MemoryPool::InitializeBlockPool(std::vector<MemoryBlock>& pool,
 }
 
 size_t MemoryPool::GetPoolIndex(size_t size) const {
-  if (size <= kSmallBlockSize)
-    return 0;
-  if (size <= kMediumBlockSize)
-    return 1;
-  if (size <= kLargeBlockSize)
-    return 2;
-  if (size <= kHugeBlockSize)
-    return 3;
+  if (size <= kSmallBlockSize) return 0;
+  if (size <= kMediumBlockSize) return 1;
+  if (size <= kLargeBlockSize) return 2;
+  if (size <= kHugeBlockSize) return 3;
   return 4;  // Too large for any pool
 }
 

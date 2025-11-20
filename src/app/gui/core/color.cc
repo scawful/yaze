@@ -9,10 +9,10 @@ namespace gui {
 
 /**
  * @brief Convert SnesColor to standard ImVec4 for display
- * 
+ *
  * IMPORTANT: SnesColor.rgb() returns 0-255 values in ImVec4 (unconventional!)
  * This function converts them to standard ImGui format (0.0-1.0)
- * 
+ *
  * @param color SnesColor with internal 0-255 storage
  * @return ImVec4 with standard 0.0-1.0 RGBA values for ImGui
  */
@@ -25,7 +25,7 @@ ImVec4 ConvertSnesColorToImVec4(const gfx::SnesColor& color) {
 
 /**
  * @brief Convert standard ImVec4 to SnesColor
- * 
+ *
  * @param color ImVec4 with standard 0.0-1.0 RGBA values
  * @return SnesColor with converted values
  */
@@ -63,7 +63,8 @@ IMGUI_API bool SnesColorEdit4(absl::string_view label, gfx::SnesColor* color,
   // Only update if the user actually changed the color
   if (changed) {
     // set_rgb() handles conversion from 0-1 (ImGui) to 0-255 (internal)
-    // and automatically calculates snes_ value - no need to call set_snes separately
+    // and automatically calculates snes_ value - no need to call set_snes
+    // separately
     color->set_rgb(displayColor);
   }
 
@@ -273,8 +274,7 @@ IMGUI_API bool DisplayPalette(gfx::SnesPalette& palette, bool loaded) {
   ImGui::Text("Palette");
   for (int n = 0; n < IM_ARRAYSIZE(saved_palette); n++) {
     ImGui::PushID(n);
-    if ((n % 4) != 0)
-      ImGui::SameLine(0.0f, ImGui::GetStyle().ItemSpacing.y);
+    if ((n % 4) != 0) ImGui::SameLine(0.0f, ImGui::GetStyle().ItemSpacing.y);
 
     ImGuiColorEditFlags palette_button_flags = ImGuiColorEditFlags_NoAlpha |
                                                ImGuiColorEditFlags_NoPicker |

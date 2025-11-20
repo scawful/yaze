@@ -1,9 +1,8 @@
-#include "gtest/gtest.h"
-
 #include "absl/strings/str_format.h"
 #include "cli/service/ai/ai_action_parser.h"
 #include "cli/service/ai/ai_gui_controller.h"
 #include "cli/service/ai/vision_action_refiner.h"
+#include "gtest/gtest.h"
 
 #ifdef YAZE_WITH_GRPC
 #include "cli/service/ai/gemini_ai_service.h"
@@ -15,7 +14,7 @@ namespace test {
 
 /**
  * @brief Integration tests for AI-controlled tile placement
- * 
+ *
  * These tests verify the complete pipeline:
  * 1. Parse natural language commands
  * 2. Execute actions via gRPC

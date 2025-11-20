@@ -7,6 +7,7 @@
 
 #include <SDL.h>
 #include <gtest/gtest.h>
+
 #include <cstdlib>
 #include <iostream>
 #include <string>
@@ -219,8 +220,7 @@ void ConfigureTestFilters(const TestConfig& config) {
   if (!filters.empty()) {
     std::string filter_string;
     for (size_t i = 0; i < filters.size(); i++) {
-      if (i > 0)
-        filter_string += ":";
+      if (i > 0) filter_string += ":";
       filter_string += filters[i];
     }
 
@@ -284,12 +284,14 @@ int main(int argc, char* argv[]) {
         ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;  // Enable Docking
     io.ConfigFlags |=
-        ImGuiConfigFlags_ViewportsEnable;  // Enable Multi-Viewport / Platform Windows
+        ImGuiConfigFlags_ViewportsEnable;  // Enable Multi-Viewport / Platform
+                                           // Windows
 
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
 
-    // When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones.
+    // When viewports are enabled we tweak WindowRounding/WindowBg so platform
+    // windows can look identical to regular ones.
     ImGuiStyle& style = ImGui::GetStyle();
     if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
       style.WindowRounding = 0.0f;

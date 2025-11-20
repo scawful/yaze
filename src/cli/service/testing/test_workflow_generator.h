@@ -4,10 +4,10 @@
 #ifndef YAZE_CLI_SERVICE_TEST_WORKFLOW_GENERATOR_H
 #define YAZE_CLI_SERVICE_TEST_WORKFLOW_GENERATOR_H
 
-#include "absl/status/statusor.h"
-
 #include <string>
 #include <vector>
+
+#include "absl/status/statusor.h"
 
 namespace yaze {
 namespace cli {
@@ -49,21 +49,21 @@ struct TestWorkflow {
 
 /**
  * @brief Generates GUI test workflows from natural language prompts
- * 
+ *
  * This class uses pattern matching to convert user prompts into
  * structured test workflows that can be executed by GuiAutomationClient.
- * 
+ *
  * Example prompts:
  * - "Open Overworld editor" → Click button, Wait for window
  * - "Open Dungeon editor and verify it loads" → Click, Wait, Assert
  * - "Type 'zelda3.sfc' in filename input" → Click input, Type text
- * 
+ *
  * Usage:
  * @code
  *   TestWorkflowGenerator generator;
  *   auto workflow = generator.GenerateWorkflow("Open Overworld editor");
  *   if (!workflow.ok()) return workflow.status();
- *   
+ *
  *   for (const auto& step : workflow->steps) {
  *     std::cout << step.ToString() << "\n";
  *   }

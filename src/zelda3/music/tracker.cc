@@ -123,19 +123,16 @@ short Tracker::AllocSpcCommand() {
     spc_command = current_spc_command_ =
         (SpcCommand*)realloc(current_spc_command_, m_size * sizeof(SpcCommand));
     k = 1023;
-    while (k--)
-      spc_command[j].next = j + 1, j++;
+    while (k--) spc_command[j].next = j + 1, j++;
     spc_command[j].next = -1;
     k = 1023;
-    while (k--)
-      spc_command[j].prev = j - 1, j--;
+    while (k--) spc_command[j].prev = j - 1, j--;
     spc_command[j].prev = -1;
     i = j;
   } else
     spc_command = current_spc_command_;
   m_free = spc_command[m_free].next;
-  if (m_free != -1)
-    spc_command[m_free].prev = -1;
+  if (m_free != -1) spc_command[m_free].prev = -1;
   return i;
 }
 
@@ -160,8 +157,7 @@ short Tracker::GetBlockTime(Rom& rom, short num, short prevtime) {
   int n = prevtime;
   l = num;
 
-  if (l == -1)
-    return 0;
+  if (l == -1) return 0;
 
   for (;;) {
     if (spc_command[l].flag & 4) {
@@ -170,11 +166,9 @@ short Tracker::GetBlockTime(Rom& rom, short num, short prevtime) {
       k = 1;
     }
 
-    if (!k)
-      i = l;
+    if (!k) i = l;
 
-    if (spc_command[l].flag & 1)
-      n = spc_command[l].b1;
+    if (spc_command[l].flag & 1) n = spc_command[l].b1;
 
     l = spc_command[l].next;
 
@@ -224,8 +218,7 @@ short Tracker::GetBlockTime(Rom& rom, short num, short prevtime) {
             m += spc_command[k].tim2 * spc_command2->p3;
         }
       } else {
-        if (spc_command2->cmd < 0xe0)
-          m++;
+        if (spc_command2->cmd < 0xe0) m++;
         if (spc_command2->flag & 1) {
           j += m * spc_command[i].b1;
           m = 0;
@@ -235,8 +228,7 @@ short Tracker::GetBlockTime(Rom& rom, short num, short prevtime) {
       spc_command2->tim2 = m;
       spc_command2->flag |= 4;
 
-      if (i == num)
-        break;
+      if (i == num) break;
 
       i = spc_command2->prev;
     }
@@ -278,8 +270,7 @@ short Tracker::LoadSpcCommand(Rom& rom, unsigned short addr, short bank,
   SongRange* sr;
   SpcCommand* spc_command = current_spc_command_;
   SpcCommand* spc_command2;
-  if (!addr)
-    return -1;
+  if (!addr) return -1;
 
   a = GetSpcAddr(rom, addr, bank);
   d = spcbank;
@@ -294,8 +285,7 @@ short Tracker::LoadSpcCommand(Rom& rom, unsigned short addr, short bank,
   for (c = 0; c < e; c++) {
     if (sr[c].bank == d) {
       if (sr[c].start > addr) {
-        if (sr[c].start < f)
-          f = sr[c].start;
+        if (sr[c].start < f) f = sr[c].start;
         n = c;
       } else if (sr[c].end > addr) {
         for (f = sr[c].first; f != -1; f = spc_command[f].next) {
@@ -307,8 +297,7 @@ short Tracker::LoadSpcCommand(Rom& rom, unsigned short addr, short bank,
             lastsr = c;
             return f;
           }
-          if (spc_command[f].flag & 1)
-            k = spc_command[f].b1;
+          if (spc_command[f].flag & 1) k = spc_command[f].b1;
           if (spc_command[f].cmd < 0xca) {
             if (k) {
               m -= k;
@@ -338,29 +327,24 @@ short Tracker::LoadSpcCommand(Rom& rom, unsigned short addr, short bank,
           spc_command, sizeof(SpcCommand) * (m_size += 1024));
       spc_command2 = spc_command + i;
       n = l + 1023;
-      while (l < n)
-        spc_command[l].next = l + 1, l++;
+      while (l < n) spc_command[l].next = l + 1, l++;
       spc_command[l].next = -1;
       n -= 1023;
-      while (l > n)
-        spc_command[l].prev = l - 1, l--;
+      while (l > n) spc_command[l].prev = l - 1, l--;
       spc_command[l].prev = i;
       spc_command2->next = l;
     }
     spc_command2->addr = g;
     b = a[g];
-    if (!b)
-      break;
-    if (m >= t && b != 0xf9)
-      break;
+    if (!b) break;
+    if (m >= t && b != 0xf9) break;
     g++;
     j = 0;
     if (b < 128) {
       j = 1;
       k = spc_command2->b1 = b;
       b = a[g++];
-      if (b < 128)
-        j = 3, spc_command2->b2 = b, b = a[g++];
+      if (b < 128) j = 3, spc_command2->b2 = b, b = a[g++];
     }
     if (b < 0xe0) {
       if (k) {
@@ -373,12 +357,9 @@ short Tracker::LoadSpcCommand(Rom& rom, unsigned short addr, short bank,
     spc_command2->flag = j;
     if (b >= 0xe0) {
       b -= 0xe0;
-      if (op_len[b])
-        spc_command2->p1 = a[g++];
-      if (op_len[b] > 1)
-        spc_command2->p2 = a[g++];
-      if (op_len[b] > 2)
-        spc_command2->p3 = a[g++];
+      if (op_len[b]) spc_command2->p1 = a[g++];
+      if (op_len[b] > 1) spc_command2->p2 = a[g++];
+      if (op_len[b] > 2) spc_command2->p3 = a[g++];
       if (b == 15) {
         m_free = spc_command2->next;
         spc_command[spc_command2->next].prev = -1;
@@ -396,8 +377,7 @@ short Tracker::LoadSpcCommand(Rom& rom, unsigned short addr, short bank,
           i = spc_command2->next;
           break;
         }
-        if (song_range_[lastsr].endtime)
-          k = song_range_[lastsr].endtime;
+        if (song_range_[lastsr].endtime) k = song_range_[lastsr].endtime;
       }
     }
     i = spc_command2->next;
@@ -443,10 +423,10 @@ short Tracker::LoadSpcCommand(Rom& rom, unsigned short addr, short bank,
 
 /**
  * @brief High-level function to load all song data from the ROM.
- * (Currently commented out, but this would be the main entry point for parsing.)
- * It would iterate through the main song table in the ROM, and for each song,
- * recursively load all its parts and commands using LoadSpcCommand. It would
- * also load instrument and sample data.
+ * (Currently commented out, but this would be the main entry point for
+ * parsing.) It would iterate through the main song table in the ROM, and for
+ * each song, recursively load all its parts and commands using LoadSpcCommand.
+ * It would also load instrument and sample data.
  */
 void Tracker::LoadSongs(Rom& rom) {
   // unsigned char *b;
@@ -615,8 +595,8 @@ void Tracker::LoadSongs(Rom& rom) {
   // numsndinst = spclen / 9;
 
   // b = GetSpcAddr(rom, 0x3c00, 0);
-  // zelda_wave = waves = (ZeldaWave *)malloc(sizeof(ZeldaWave) * (spclen >> 2));
-  // p = spclen >> 1;
+  // zelda_wave = waves = (ZeldaWave *)malloc(sizeof(ZeldaWave) * (spclen >>
+  // 2)); p = spclen >> 1;
 
   // for (i = 0; i < p; i += 2) {
   //   j = ((unsigned short *)b)[i];
@@ -747,8 +727,7 @@ short Tracker::SaveSpcCommand(Rom& rom, short num, short songtime,
   int o = 0;
   int p = 0;
 
-  if (i == -1)
-    return 0;
+  if (i == -1) return 0;
 
   if (i >= m_size) {
     printf("Error.\n");
@@ -756,13 +735,11 @@ short Tracker::SaveSpcCommand(Rom& rom, short num, short songtime,
     return 0;
   }
 
-  if (spc_command[i].flag & 8)
-    return spc_command[i].addr;
+  if (spc_command[i].flag & 8) return spc_command[i].addr;
 
   for (;;) {
     j = spc_command[i].prev;
-    if (j == -1)
-      break;
+    if (j == -1) break;
     i = j;
   }
 
@@ -771,29 +748,23 @@ short Tracker::SaveSpcCommand(Rom& rom, short num, short songtime,
       l = GetBlockTime(rom, i, 0);
       m = i;
       for (;;) {
-        if (m == -1)
-          break;
+        if (m == -1) break;
         k++;
         spc_command2 = spc_command + m;
-        if (spc_command2->flag & 1)
-          k++, n = spc_command2->b1;
-        if (spc_command2->flag & 2)
-          k++;
-        if (spc_command2->cmd >= 0xe0)
-          k += op_len[spc_command2->cmd - 0xe0];
+        if (spc_command2->flag & 1) k++, n = spc_command2->b1;
+        if (spc_command2->flag & 2) k++;
+        if (spc_command2->cmd >= 0xe0) k += op_len[spc_command2->cmd - 0xe0];
         m = spc_command2->next;
       }
       songtime -= l;
 
       if (songtime > 0) {
         l = (songtime + 126) / 127;
-        if (songtime % l)
-          l += 2;
+        if (songtime % l) l += 2;
         l++;
         if (n && !songtime % n) {
           p = songtime / n;
-          if (p < l)
-            l = p;
+          if (p < l) l = p;
         } else
           p = -1;
         k += l;
@@ -803,32 +774,25 @@ short Tracker::SaveSpcCommand(Rom& rom, short num, short songtime,
       b = sbl->buf;
 
       for (;;) {
-        if (i == -1)
-          break;
+        if (i == -1) break;
         spc_command2 = spc_command + i;
         spc_command2->addr = b - sbl->buf + sbl->start;
         spc_command2->flag |= 8;
-        if (spc_command2->flag & 1)
-          *(b++) = spc_command2->b1;
-        if (spc_command2->flag & 2)
-          *(b++) = spc_command2->b2;
+        if (spc_command2->flag & 1) *(b++) = spc_command2->b1;
+        if (spc_command2->flag & 2) *(b++) = spc_command2->b2;
         *(b++) = spc_command2->cmd;
         if (spc_command2->cmd >= 0xe0) {
           o = op_len[spc_command2->cmd - 0xe0];
           if (spc_command2->cmd == 0xef) {
             *(short*)b =
                 SaveSpcCommand(rom, *(short*)&(spc_command2->p1), 0, 1);
-            if (b)
-              AddSpcReloc(sbl, b - sbl->buf);
+            if (b) AddSpcReloc(sbl, b - sbl->buf);
             b[2] = spc_command2->p3;
             b += 3;
           } else {
-            if (o)
-              *(b++) = spc_command2->p1;
-            if (o > 1)
-              *(b++) = spc_command2->p2;
-            if (o > 2)
-              *(b++) = spc_command2->p3;
+            if (o) *(b++) = spc_command2->p1;
+            if (o > 1) *(b++) = spc_command2->p2;
+            if (o > 2) *(b++) = spc_command2->p3;
           }
         }
         i = spc_command2->next;
@@ -844,8 +808,7 @@ short Tracker::SaveSpcCommand(Rom& rom, short num, short songtime,
           *(b++) = n;
         }
 
-        for (; songtime >= n; songtime -= n)
-          *(b++) = 0xc9;
+        for (; songtime >= n; songtime -= n) *(b++) = 0xc9;
 
         if (songtime) {
           *(b++) = (uint8_t)songtime;
@@ -882,12 +845,10 @@ int Tracker::WriteSpcData(Rom& rom, void* buf, int len, int addr, int spc,
                           int limit) {
   unsigned char* rom_data = rom.mutable_data();
 
-  if (!len)
-    return addr;
+  if (!len) return addr;
 
   if (((addr + len + 4) & 0x7fff) > 0x7ffb) {
-    if (addr + 5 > limit)
-      goto error;
+    if (addr + 5 > limit) goto error;
     *(int*)(rom_data + addr) = 0x00010140;
     rom_data[addr + 4] = 0xff;
     addr += 5;
@@ -910,11 +871,11 @@ int Tracker::WriteSpcData(Rom& rom, void* buf, int len, int addr, int spc,
 
 /**
  * @brief High-level function to save all modified song data back to the ROM.
- * (Currently commented out, but this would orchestrate the entire save process.)
- * This function would be responsible for taking all the edited, in-memory
- * SongSpcBlocks, arranging them into a final binary layout, patching all the
- * relocated pointers, and writing the result back into the ROM file using
- * WriteSpcData.
+ * (Currently commented out, but this would orchestrate the entire save
+ * process.) This function would be responsible for taking all the edited,
+ * in-memory SongSpcBlocks, arranging them into a final binary layout, patching
+ * all the relocated pointers, and writing the result back into the ROM file
+ * using WriteSpcData.
  */
 void Tracker::SaveSongs(Rom& rom) {
   // int i;
@@ -1115,8 +1076,8 @@ void Tracker::SaveSongs(Rom& rom) {
   //             (short *)realloc(zelda_wave->buf, (zelda_wave->end + 1) << 1);
   //         memcpy(zelda_wave->buf, c, zelda_wave->end << 1);
   //         free(c);
-  //         zelda_wave->buf[zelda_wave->end] = zelda_wave->buf[zelda_wave->lopst];
-  //         zelda_wave2 = waves;
+  //         zelda_wave->buf[zelda_wave->end] =
+  //         zelda_wave->buf[zelda_wave->lopst]; zelda_wave2 = waves;
 
   //         for (m = 0; m < numwave; m++, zelda_wave2++)
   //           if (zelda_wave2->copy == i)
@@ -1231,7 +1192,8 @@ void Tracker::SaveSongs(Rom& rom) {
   //   }
 
   //   // if (sed) {
-  //   //   SetDlgItemInt(sed->dlg, ID_Samp_SampleLengthEdit, sed->zelda_wave->end,
+  //   //   SetDlgItemInt(sed->dlg, ID_Samp_SampleLengthEdit,
+  //   sed->zelda_wave->end,
   //   //   0); SetDlgItemInt(sed->dlg, ID_Samp_LoopPointEdit,
   //   //   sed->zelda_wave->lopst, 0);
 
@@ -1304,7 +1266,8 @@ void Tracker::SaveSongs(Rom& rom) {
   //     return;
   //   noerror:
 
-  //     if (((!sptbl->bank) && stbl->bank < 3) || (sptbl->bank == stbl->bank)) {
+  //     if (((!sptbl->bank) && stbl->bank < 3) || (sptbl->bank == stbl->bank))
+  //     {
   //       *(unsigned short *)(stbl->buf + stbl->relocs[j]) =
   //           sptbl->addr + k - sptbl->start;
   //     } else {
@@ -1383,8 +1346,7 @@ void Tracker::EditTrack(Rom& rom, short i) {
 
   spc_command = current_spc_command_;
 
-  if (i == -1)
-    return;
+  if (i == -1) return;
 
   if (i >= m_size) {
     printf("Invalid address: %04X", i);

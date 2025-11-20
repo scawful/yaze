@@ -41,21 +41,22 @@ enum BitmapFormat {
  * @brief Represents a bitmap image optimized for SNES ROM hacking.
  *
  * The `Bitmap` class provides functionality to create, manipulate, and display
- * bitmap images specifically designed for Link to the Past ROM editing. It supports:
- * 
+ * bitmap images specifically designed for Link to the Past ROM editing. It
+ * supports:
+ *
  * Key Features:
  * - SNES-specific pixel formats (4BPP, 8BPP, indexed)
  * - Palette management with transparent color support
  * - Tile extraction (8x8, 16x16) for ROM tile editing
  * - Memory-efficient surface/texture management via Arena
  * - Real-time editing with immediate visual feedback
- * 
+ *
  * Performance Optimizations:
  * - Lazy texture creation (textures only created when needed)
  * - Modified flag tracking to avoid unnecessary updates
  * - Arena-based resource pooling to reduce allocation overhead
  * - Direct pixel data manipulation for fast editing operations
- * 
+ *
  * ROM Hacking Specific:
  * - SNES color format conversion (15-bit RGB to 8-bit indexed)
  * - Tile-based editing for 8x8 and 16x16 SNES tiles
@@ -68,8 +69,10 @@ class Bitmap {
 
   /**
    * @brief Create a bitmap with the given dimensions and raw pixel data
-   * @param width Width in pixels (typically 128, 256, or 512 for SNES tilesheets)
-   * @param height Height in pixels (typically 32, 64, or 128 for SNES tilesheets)
+   * @param width Width in pixels (typically 128, 256, or 512 for SNES
+   * tilesheets)
+   * @param height Height in pixels (typically 32, 64, or 128 for SNES
+   * tilesheets)
    * @param depth Color depth in bits per pixel (4, 8, or 16 for SNES)
    * @param data Raw pixel data (indexed color values for SNES graphics)
    */
@@ -78,7 +81,7 @@ class Bitmap {
   /**
    * @brief Create a bitmap with the given dimensions, data, and SNES palette
    * @param width Width in pixels
-   * @param height Height in pixels  
+   * @param height Height in pixels
    * @param depth Color depth in bits per pixel
    * @param data Raw pixel data (indexed color values)
    * @param palette SNES palette for color mapping (15-bit RGB format)
@@ -202,9 +205,10 @@ class Bitmap {
   /**
    * @brief Set a pixel at the given x,y coordinates with SNES color
    * @param x X coordinate (0 to width-1)
-   * @param y Y coordinate (0 to height-1) 
+   * @param y Y coordinate (0 to height-1)
    * @param color SNES color (15-bit RGB format)
-   * @note Automatically finds closest palette index and marks bitmap as modified
+   * @note Automatically finds closest palette index and marks bitmap as
+   * modified
    */
   void SetPixel(int x, int y, const SnesColor& color);
 
@@ -218,7 +222,8 @@ class Bitmap {
 
   /**
    * @brief Invalidate the palette lookup cache (call when palette changes)
-   * @note This must be called whenever the palette is modified to maintain cache consistency
+   * @note This must be called whenever the palette is modified to maintain
+   * cache consistency
    */
   void InvalidatePaletteCache();
 

@@ -67,11 +67,11 @@ struct SheetOptimizationData {
 
 /**
  * @brief Comprehensive graphics optimization system for YAZE ROM hacking
- * 
+ *
  * The GraphicsOptimizer provides intelligent optimization of graphics data
  * for Link to the Past ROM hacking workflows, balancing memory usage,
  * performance, and visual quality.
- * 
+ *
  * Key Features:
  * - Intelligent BPP format optimization based on actual color usage
  * - Graphics sheet analysis and conversion recommendations
@@ -79,13 +79,13 @@ struct SheetOptimizationData {
  * - Performance optimization through atlas rendering
  * - Batch processing for multiple graphics sheets
  * - Quality analysis and loss estimation
- * 
+ *
  * Optimization Strategies:
  * - Memory Optimized: Minimize ROM size by using optimal BPP formats
  * - Performance Optimized: Maximize rendering speed through atlas optimization
  * - Quality Optimized: Preserve visual fidelity while optimizing
  * - Balanced: Optimal balance of memory, performance, and quality
- * 
+ *
  * ROM Hacking Specific:
  * - SNES-specific optimization patterns
  * - Graphics sheet format analysis and conversion tracking

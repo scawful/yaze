@@ -1,5 +1,4 @@
 #include "cli/service/ai/ai_service.h"
-#include "cli/service/agent/conversational_agent_service.h"
 
 #include <algorithm>
 #include <cctype>
@@ -9,6 +8,7 @@
 #include "absl/strings/match.h"
 #include "absl/strings/numbers.h"
 #include "absl/strings/str_format.h"
+#include "cli/service/agent/conversational_agent_service.h"
 
 namespace yaze {
 namespace cli {

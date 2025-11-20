@@ -10,15 +10,17 @@ namespace gui {
 
 /**
  * @brief Calculate canvas geometry from configuration and ImGui context
- * 
+ *
  * Extracts the geometry calculation logic from Canvas::DrawBackground().
  * Computes screen-space positions, sizes, and scroll offsets for a canvas
  * based on its configuration and the current ImGui layout state.
- * 
+ *
  * @param config Canvas configuration (size, scale, custom size flag)
  * @param requested_size Explicitly requested canvas size (0,0 = use config)
- * @param cursor_screen_pos Current ImGui cursor position (from GetCursorScreenPos)
- * @param content_region_avail Available content region (from GetContentRegionAvail)
+ * @param cursor_screen_pos Current ImGui cursor position (from
+ * GetCursorScreenPos)
+ * @param content_region_avail Available content region (from
+ * GetContentRegionAvail)
  * @return Calculated geometry for this frame
  */
 CanvasGeometry CalculateCanvasGeometry(const CanvasConfig& config,
@@ -28,11 +30,11 @@ CanvasGeometry CalculateCanvasGeometry(const CanvasConfig& config,
 
 /**
  * @brief Calculate mouse position in canvas space
- * 
+ *
  * Converts screen-space mouse coordinates to canvas-space coordinates,
  * accounting for canvas position and scroll offset. This is the correct
  * coordinate system for tile/entity placement calculations.
- * 
+ *
  * @param geometry Canvas geometry (must be current frame)
  * @param mouse_screen_pos Mouse position in screen space
  * @return Mouse position in canvas space
@@ -42,10 +44,10 @@ ImVec2 CalculateMouseInCanvas(const CanvasGeometry& geometry,
 
 /**
  * @brief Check if a point is within canvas bounds
- * 
+ *
  * Tests whether a screen-space point lies within the canvas rectangle.
  * Useful for hit testing and hover detection.
- * 
+ *
  * @param geometry Canvas geometry (must be current frame)
  * @param point Point in screen space to test
  * @return True if point is within canvas bounds
@@ -54,9 +56,9 @@ bool IsPointInCanvasBounds(const CanvasGeometry& geometry, ImVec2 point);
 
 /**
  * @brief Apply scroll delta to geometry
- * 
+ *
  * Updates the scroll offset in the geometry. Used for pan operations.
- * 
+ *
  * @param geometry Canvas geometry to update
  * @param delta Scroll delta (typically ImGui::GetIO().MouseDelta)
  */
@@ -64,10 +66,10 @@ void ApplyScrollDelta(CanvasGeometry& geometry, ImVec2 delta);
 
 /**
  * @brief Get origin point (canvas top-left + scroll offset)
- * 
+ *
  * Computes the "locked scrolled origin" used throughout canvas rendering.
  * This is the reference point for all canvas-space to screen-space conversions.
- * 
+ *
  * @param geometry Canvas geometry
  * @return Origin point in screen space
  */

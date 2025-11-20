@@ -1,5 +1,7 @@
 #include "zelda3/overworld/overworld_entrance.h"
+
 #include <vector>
+
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "app/rom.h"
@@ -15,7 +17,8 @@ absl::StatusOr<std::vector<OverworldEntrance>> LoadEntrances(Rom* rom) {
   int num_entrances = 129;
 
   // Check if expanded entrance data is actually present in ROM
-  // The flag position should contain 0xB8 for vanilla, something else for expanded
+  // The flag position should contain 0xB8 for vanilla, something else for
+  // expanded
   if (rom->data()[kOverworldEntranceExpandedFlagPos] != 0xB8) {
     // ROM has expanded entrance data - use expanded addresses
     ow_entrance_map_ptr = kOverworldEntranceMapExpanded;
@@ -68,11 +71,11 @@ absl::StatusOr<std::vector<OverworldEntrance>> LoadHoles(Rom* rom) {
 absl::Status SaveEntrances(Rom* rom,
                            const std::vector<OverworldEntrance>& entrances,
                            bool expanded_entrances) {
-
   auto write_entrance = [&](int index, uint32_t map_addr, uint32_t pos_addr,
                             uint32_t id_addr) -> absl::Status {
     // Mirrors ZeldaFullEditor/Save.cs::SaveOWEntrances (see lines ~1081-1085)
-    // where MapID and MapPos are written as 16-bit words and EntranceID as a byte.
+    // where MapID and MapPos are written as 16-bit words and EntranceID as a
+    // byte.
     RETURN_IF_ERROR(rom->WriteShort(map_addr, entrances[index].map_id_));
     RETURN_IF_ERROR(rom->WriteShort(pos_addr, entrances[index].map_pos_));
     RETURN_IF_ERROR(rom->WriteByte(id_addr, entrances[index].entrance_id_));

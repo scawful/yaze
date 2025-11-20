@@ -1,5 +1,6 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include "e2e/canvas_selection_test.h"
+
 #include "app/controller.h"
 #include "test_utils.h"
 
@@ -50,8 +51,8 @@ void E2ETest_CanvasSelectionTest(ImGuiTestContext* ctx) {
   uint16_t new_tile3 = overworld->GetTile(75, 38);
   uint16_t new_tile4 = overworld->GetTile(76, 38);
 
-  // The bug is that the selection wraps around, so the pasted tiles are incorrect.
-  // We expect the new tiles to be different from the original tiles.
+  // The bug is that the selection wraps around, so the pasted tiles are
+  // incorrect. We expect the new tiles to be different from the original tiles.
   IM_CHECK_NE(orig_tile1, new_tile1);
   IM_CHECK_NE(orig_tile2, new_tile2);
   IM_CHECK_NE(orig_tile3, new_tile3);

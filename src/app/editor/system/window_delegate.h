@@ -13,13 +13,13 @@ namespace editor {
 /**
  * @class WindowDelegate
  * @brief Low-level window operations with minimal dependencies
- * 
+ *
  * Provides window management functionality extracted from EditorManager:
  * - Window visibility management
- * - Docking operations  
+ * - Docking operations
  * - Layout persistence
  * - Focus management
- * 
+ *
  * This class has minimal dependencies (only ImGui and absl) to avoid
  * linker issues and circular dependencies.
  */

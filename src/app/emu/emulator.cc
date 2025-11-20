@@ -181,7 +181,8 @@ void Emulator::Run(Rom* rom) {
       }
     }
 
-    // Initialize SNES with ROM data (either from Initialize() or from rom parameter)
+    // Initialize SNES with ROM data (either from Initialize() or from rom
+    // parameter)
     if (rom_data_.empty()) {
       rom_data_ = rom->vector();
     }
@@ -190,7 +191,8 @@ void Emulator::Run(Rom* rom) {
     // Note: DisassemblyViewer recording is always enabled via callback
     // No explicit setup needed - callback is set in Initialize()
 
-    // Note: PPU pixel format set to 1 (XBGR) in Init() which matches ARGB8888 texture
+    // Note: PPU pixel format set to 1 (XBGR) in Init() which matches ARGB8888
+    // texture
 
     wanted_frames_ = 1.0 / (snes_.memory().pal_timing() ? 50.0 : 60.0);
     wanted_samples_ = 48000 / (snes_.memory().pal_timing() ? 50 : 60);
@@ -255,7 +257,8 @@ void Emulator::Run(Rom* rom) {
     }
 
     if (snes_initialized_ && frames_to_process > 0) {
-      // Process frames (skip rendering for all but last frame if falling behind)
+      // Process frames (skip rendering for all but last frame if falling
+      // behind)
       for (int i = 0; i < frames_to_process; i++) {
         bool should_render = (i == frames_to_process - 1);
 
@@ -277,8 +280,9 @@ void Emulator::Run(Rom* rom) {
         // Only render and handle audio on the last frame
         if (should_render) {
           // SMOOTH AUDIO BUFFERING
-          // Strategy: Always queue samples, never drop. Use dynamic rate control
-          // to keep buffer at target level. This prevents pops and glitches.
+          // Strategy: Always queue samples, never drop. Use dynamic rate
+          // control to keep buffer at target level. This prevents pops and
+          // glitches.
 
           if (audio_backend_) {
             if (audio_stream_config_dirty_) {
@@ -357,9 +361,10 @@ void Emulator::Run(Rom* rom) {
             snes_.SetPixels(static_cast<uint8_t*>(ppu_pixels_));
             renderer_->UnlockTexture(ppu_texture_);
 
-            // WORKAROUND: Tiny delay after texture unlock to prevent macOS Metal crash
-            // macOS CoreAnimation/Metal driver bug in layer_presented() callback
-            // Without this, rapid texture updates corrupt Metal's frame tracking
+            // WORKAROUND: Tiny delay after texture unlock to prevent macOS
+            // Metal crash macOS CoreAnimation/Metal driver bug in
+            // layer_presented() callback Without this, rapid texture updates
+            // corrupt Metal's frame tracking
             SDL_Delay(1);
           }
         }
@@ -372,8 +377,7 @@ void Emulator::Run(Rom* rom) {
 
 void Emulator::RenderEmulatorInterface() {
   try {
-    if (!card_registry_)
-      return;  // Card registry must be injected
+    if (!card_registry_) return;  // Card registry must be injected
 
     static gui::EditorCard cpu_card("CPU Debugger", ICON_MD_MEMORY);
     static gui::EditorCard ppu_card("PPU Viewer", ICON_MD_VIDEOGAME_ASSET);
@@ -392,8 +396,9 @@ void Emulator::RenderEmulatorInterface() {
     breakpoints_card.SetDefaultSize(400, 350);
     performance_card.SetDefaultSize(350, 300);
 
-    // Get visibility flags from registry and pass them to Begin() for proper X button functionality
-    // This ensures each card window can be closed by the user via the window close button
+    // Get visibility flags from registry and pass them to Begin() for proper X
+    // button functionality This ensures each card window can be closed by the
+    // user via the window close button
     bool* cpu_visible =
         card_registry_->GetVisibilityFlag("emulator.cpu_debugger");
     if (cpu_visible && *cpu_visible) {
@@ -507,8 +512,9 @@ void Emulator::RenderNavBar() {
 }
 
 // REMOVED: HandleEvents() - replaced by ui::InputHandler::Poll()
-// The old ImGui::IsKeyPressed/Released approach was event-based and didn't work properly
-// for continuous game input. Now using SDL_GetKeyboardState() for proper polling.
+// The old ImGui::IsKeyPressed/Released approach was event-based and didn't work
+// properly for continuous game input. Now using SDL_GetKeyboardState() for
+// proper polling.
 
 void Emulator::RenderBreakpointList() {
   // Delegate to UI layer
@@ -535,8 +541,7 @@ void Emulator::RenderModernCpuDebugger() {
     }
     ImGui::SameLine();
     if (ImGui::Button(ICON_MD_SKIP_NEXT " Step")) {
-      if (!running_)
-        snes_.cpu().RunOpcode();
+      if (!running_) snes_.cpu().RunOpcode();
     }
     ImGui::SameLine();
     if (ImGui::Button(ICON_MD_REFRESH)) {

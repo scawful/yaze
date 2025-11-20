@@ -1,6 +1,7 @@
 #include "canvas_geometry.h"
 
 #include <algorithm>
+
 #include "app/gui/canvas/canvas_utils.h"
 
 namespace yaze {
@@ -10,7 +11,6 @@ CanvasGeometry CalculateCanvasGeometry(const CanvasConfig& config,
                                        ImVec2 requested_size,
                                        ImVec2 cursor_screen_pos,
                                        ImVec2 content_region_avail) {
-
   CanvasGeometry geometry;
 
   // Set canvas top-left position (screen space)
@@ -51,7 +51,6 @@ CanvasGeometry CalculateCanvasGeometry(const CanvasConfig& config,
 
 ImVec2 CalculateMouseInCanvas(const CanvasGeometry& geometry,
                               ImVec2 mouse_screen_pos) {
-
   // Calculate origin (locked scrolled origin as used throughout canvas.cc)
   ImVec2 origin = GetCanvasOrigin(geometry);
 
@@ -60,7 +59,6 @@ ImVec2 CalculateMouseInCanvas(const CanvasGeometry& geometry,
 }
 
 bool IsPointInCanvasBounds(const CanvasGeometry& geometry, ImVec2 point) {
-
   return point.x >= geometry.canvas_p0.x && point.x <= geometry.canvas_p1.x &&
          point.y >= geometry.canvas_p0.y && point.y <= geometry.canvas_p1.y;
 }

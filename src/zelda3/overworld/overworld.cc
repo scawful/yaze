@@ -334,8 +334,7 @@ absl::Status Overworld::ConfigureMultiAreaMap(int parent_index,
                       parent_index + 9};
       for (size_t i = 0; i < new_siblings.size(); ++i) {
         int sibling = new_siblings[i];
-        if (sibling < 0 || sibling >= kNumOverworldMaps)
-          continue;
+        if (sibling < 0 || sibling >= kNumOverworldMaps) continue;
         overworld_maps_[sibling].SetAsLargeMap(parent_index, i);
       }
       break;
@@ -343,8 +342,7 @@ absl::Status Overworld::ConfigureMultiAreaMap(int parent_index,
     case AreaSizeEnum::WideArea:
       new_siblings = {parent_index, parent_index + 1};
       for (int sibling : new_siblings) {
-        if (sibling < 0 || sibling >= kNumOverworldMaps)
-          continue;
+        if (sibling < 0 || sibling >= kNumOverworldMaps) continue;
         overworld_maps_[sibling].SetParent(parent_index);
         overworld_maps_[sibling].SetAreaSize(AreaSizeEnum::WideArea);
       }
@@ -353,8 +351,7 @@ absl::Status Overworld::ConfigureMultiAreaMap(int parent_index,
     case AreaSizeEnum::TallArea:
       new_siblings = {parent_index, parent_index + 8};
       for (int sibling : new_siblings) {
-        if (sibling < 0 || sibling >= kNumOverworldMaps)
-          continue;
+        if (sibling < 0 || sibling >= kNumOverworldMaps) continue;
         overworld_maps_[sibling].SetParent(parent_index);
         overworld_maps_[sibling].SetAreaSize(AreaSizeEnum::TallArea);
       }
@@ -373,8 +370,7 @@ absl::Status Overworld::ConfigureMultiAreaMap(int parent_index,
   if (asm_version >= 3 && asm_version != 0xFF) {
     // v3+: Update expanded tables
     for (int sibling : all_affected) {
-      if (sibling < 0 || sibling >= kNumOverworldMaps)
-        continue;
+      if (sibling < 0 || sibling >= kNumOverworldMaps) continue;
 
       RETURN_IF_ERROR(rom()->WriteByte(kOverworldMapParentIdExpanded + sibling,
                                        overworld_maps_[sibling].parent()));
@@ -385,8 +381,7 @@ absl::Status Overworld::ConfigureMultiAreaMap(int parent_index,
   } else if (asm_version < 3 && asm_version != 0xFF) {
     // v1/v2: Update basic parent table
     for (int sibling : all_affected) {
-      if (sibling < 0 || sibling >= kNumOverworldMaps)
-        continue;
+      if (sibling < 0 || sibling >= kNumOverworldMaps) continue;
 
       RETURN_IF_ERROR(rom()->WriteByte(kOverworldMapParentId + sibling,
                                        overworld_maps_[sibling].parent()));
@@ -397,8 +392,7 @@ absl::Status Overworld::ConfigureMultiAreaMap(int parent_index,
   } else {
     // Vanilla: Update parent and screen size tables
     for (int sibling : all_affected) {
-      if (sibling < 0 || sibling >= kNumOverworldMaps)
-        continue;
+      if (sibling < 0 || sibling >= kNumOverworldMaps) continue;
 
       RETURN_IF_ERROR(rom()->WriteByte(kOverworldMapParentId + sibling,
                                        overworld_maps_[sibling].parent()));
@@ -441,7 +435,8 @@ absl::Status Overworld::AssembleMap32Tiles() {
                               rom()->version_constants().kMap32TileBR};
 
   // Check if expanded tile32 data is actually present in ROM
-  // The flag position should contain 0x04 for vanilla, something else for expanded
+  // The flag position should contain 0x04 for vanilla, something else for
+  // expanded
   uint8_t asm_version = (*rom_)[OverworldCustomASMHasBeenApplied];
   uint8_t expanded_flag = rom()->data()[kMap32ExpandedFlagPos];
   util::logf("Expanded tile32 flag: %d", expanded_flag);
@@ -497,7 +492,8 @@ absl::Status Overworld::AssembleMap16Tiles() {
   int num_tile16 = kNumTile16Individual;
 
   // Check if expanded tile16 data is actually present in ROM
-  // The flag position should contain 0x0F for vanilla, something else for expanded
+  // The flag position should contain 0x0F for vanilla, something else for
+  // expanded
   uint8_t asm_version = (*rom_)[OverworldCustomASMHasBeenApplied];
   uint8_t expanded_flag = rom()->data()[kMap16ExpandedFlagPos];
   util::logf("Expanded tile16 flag: %d", expanded_flag);
@@ -560,7 +556,6 @@ void Overworld::OrganizeMapTiles(std::vector<uint8_t>& bytes,
 }
 
 absl::Status Overworld::DecompressAllMapTilesParallel() {
-
   const auto get_ow_map_gfx_ptr = [this](int index, uint32_t map_ptr) {
     int p = (rom()->data()[map_ptr + 2 + (3 * index)] << 16) +
             (rom()->data()[map_ptr + 1 + (3 * index)] << 8) +
@@ -585,15 +580,11 @@ absl::Status Overworld::DecompressAllMapTilesParallel() {
 
     int ttpos = 0;
 
-    if (p1 >= highest)
-      highest = p1;
-    if (p2 >= highest)
-      highest = p2;
+    if (p1 >= highest) highest = p1;
+    if (p2 >= highest) highest = p2;
 
-    if (p1 <= lowest && p1 > kBaseHighest)
-      lowest = p1;
-    if (p2 <= lowest && p2 > kBaseHighest)
-      lowest = p2;
+    if (p1 <= lowest && p1 > kBaseHighest) lowest = p1;
+    if (p2 <= lowest && p2 > kBaseHighest) lowest = p2;
 
     int size1, size2;
     auto bytes = gfx::HyruleMagicDecompress(rom()->data() + p2, &size1, 1);
@@ -621,7 +612,8 @@ absl::Status Overworld::LoadOverworldMaps() {
   auto size = tiles16_.size();
 
   // Performance optimization: Only build essential maps initially
-  // Essential maps are the first few maps of each world that are commonly accessed
+  // Essential maps are the first few maps of each world that are commonly
+  // accessed
   constexpr int kEssentialMapsPerWorld = 16;
   constexpr int kLightWorldEssential = kEssentialMapsPerWorld;
   constexpr int kDarkWorldEssential =
@@ -750,8 +742,7 @@ absl::Status Overworld::LoadSpritesFromMap(int sprites_per_gamestate_ptr,
                                            int num_maps_per_gamestate,
                                            int game_state) {
   for (int i = 0; i < num_maps_per_gamestate; i++) {
-    if (map_parent_[i] != i)
-      continue;
+    if (map_parent_[i] != i) continue;
 
     int current_spr_ptr = sprites_per_gamestate_ptr + (i * 2);
     ASSIGN_OR_RETURN(auto word_addr, rom()->ReadWord(current_spr_ptr));
@@ -760,8 +751,7 @@ absl::Status Overworld::LoadSpritesFromMap(int sprites_per_gamestate_ptr,
       ASSIGN_OR_RETURN(uint8_t b1, rom()->ReadByte(sprite_address));
       ASSIGN_OR_RETURN(uint8_t b2, rom()->ReadByte(sprite_address + 1));
       ASSIGN_OR_RETURN(uint8_t b3, rom()->ReadByte(sprite_address + 2));
-      if (b1 == 0xFF)
-        break;
+      if (b1 == 0xFF) break;
 
       int editor_map_index = i;
       if (game_state != 0) {

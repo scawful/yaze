@@ -1,6 +1,3 @@
-#include "cli/cli.h"
-#include "cli/handlers/agent/todo_commands.h"
-
 #include <algorithm>
 #include <sstream>
 #include <string>
@@ -11,6 +8,7 @@
 #include "absl/status/status.h"
 #include "absl/strings/str_cat.h"
 #include "app/rom.h"
+#include "cli/cli.h"
 #include "cli/handlers/agent/common.h"
 #include "cli/handlers/agent/simple_chat_command.h"
 #include "cli/handlers/agent/todo_commands.h"
@@ -73,8 +71,7 @@ std::string GenerateAgentHelp() {
     const auto& cmd = agent_commands[i];
     if (auto* meta = registry.GetMetadata(cmd); meta != nullptr) {
       help << "  " << cmd;
-      for (size_t pad = cmd.length(); pad < 24; ++pad)
-        help << " ";
+      for (size_t pad = cmd.length(); pad < 24; ++pad) help << " ";
       help << meta->description << "\n";
     }
   }
@@ -103,7 +100,7 @@ namespace handlers {
 
 /**
  * @brief Unified agent command handler using CommandRegistry
- * 
+ *
  * Routes commands in this order:
  * 1. Special agent commands (plan, test, learn, todo) - Not in registry
  * 2. Registry commands (resource-*, dungeon-*, overworld-*, emulator-*, etc.)

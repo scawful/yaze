@@ -42,30 +42,30 @@ struct ActionRefinement {
 /**
  * @class VisionActionRefiner
  * @brief Uses Gemini Vision to analyze GUI screenshots and refine AI actions
- * 
+ *
  * This class implements the vision-guided action loop:
  * 1. Take screenshot of current GUI state
  * 2. Send to Gemini Vision with contextual prompt
  * 3. Analyze response to determine next action
  * 4. Verify action success by comparing screenshots
- * 
+ *
  * Example usage:
  * ```cpp
  * VisionActionRefiner refiner(gemini_service);
- * 
+ *
  * // Analyze current state
  * auto analysis = refiner.AnalyzeCurrentState(
  *     "overworld_editor",
  *     "Looking for tile selector"
  * );
- * 
+ *
  * // Verify action was successful
  * auto verification = refiner.VerifyAction(
  *     AIAction(kPlaceTile, {{"x", "5"}, {"y", "7"}}),
  *     before_screenshot,
  *     after_screenshot
  * );
- * 
+ *
  * // Refine failed action
  * if (!verification->action_successful) {
  *   auto refinement = refiner.RefineAction(
@@ -94,7 +94,8 @@ class VisionActionRefiner {
       const std::string& context = "");
 
   /**
-   * @brief Verify an action was successful by comparing before/after screenshots
+   * @brief Verify an action was successful by comparing before/after
+   * screenshots
    * @param action The action that was performed
    * @param before_screenshot Screenshot before action
    * @param after_screenshot Screenshot after action

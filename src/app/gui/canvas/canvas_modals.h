@@ -4,6 +4,7 @@
 #include <functional>
 #include <string>
 #include <utility>
+
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/gfx/util/bpp_format_manager.h"

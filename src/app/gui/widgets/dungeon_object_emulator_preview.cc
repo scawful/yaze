@@ -1,7 +1,8 @@
 #include "app/gui/widgets/dungeon_object_emulator_preview.h"
-#include "app/gfx/backend/irenderer.h"
 
 #include <cstdio>
+
+#include "app/gfx/backend/irenderer.h"
 #include "app/gui/automation/widget_auto_register.h"
 #include "app/platform/window.h"
 #include "zelda3/dungeon/room.h"
@@ -32,8 +33,7 @@ void DungeonObjectEmulatorPreview::Initialize(gfx::IRenderer* renderer,
 }
 
 void DungeonObjectEmulatorPreview::Render() {
-  if (!show_window_)
-    return;
+  if (!show_window_) return;
 
   if (ImGui::Begin("Dungeon Object Emulator Preview", &show_window_,
                    ImGuiWindowFlags_AlwaysAutoResize)) {

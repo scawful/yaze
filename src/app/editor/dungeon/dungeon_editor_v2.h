@@ -26,16 +26,16 @@ namespace editor {
 
 /**
  * @brief DungeonEditorV2 - Simplified dungeon editor using component delegation
- * 
+ *
  * This is a drop-in replacement for DungeonEditor that properly delegates
  * to the component system instead of implementing everything inline.
- * 
+ *
  * Architecture:
  * - DungeonRoomLoader handles ROM data loading
  * - DungeonRoomSelector handles room selection UI
  * - DungeonCanvasViewer handles canvas rendering and display
  * - DungeonObjectSelector handles object selection and preview
- * 
+ *
  * The editor acts as a coordinator, not an implementer.
  */
 class DungeonEditorV2 : public Editor {
@@ -81,10 +81,8 @@ class DungeonEditorV2 : public Editor {
   // ROM state
   bool IsRomLoaded() const override { return rom_ && rom_->is_loaded(); }
   std::string GetRomStatus() const override {
-    if (!rom_)
-      return "No ROM loaded";
-    if (!rom_->is_loaded())
-      return "ROM failed to load";
+    if (!rom_) return "No ROM loaded";
+    if (!rom_->is_loaded()) return "ROM failed to load";
     return absl::StrFormat("ROM loaded: %s", rom_->title());
   }
 

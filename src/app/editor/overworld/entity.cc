@@ -135,7 +135,8 @@ void DrawExitInserterPopup() {
     gui::InputHex("Y Position", &y_pos);
 
     if (Button("Create Exit")) {
-      // This would need to be connected to the overworld editor to actually create the exit
+      // This would need to be connected to the overworld editor to actually
+      // create the exit
       ImGui::CloseCurrentPopup();
     }
 
@@ -428,7 +429,8 @@ void DrawSpriteInserterPopup() {
     gui::InputHex("Y Position", &y_pos);
 
     if (Button("Add Sprite")) {
-      // This would need to be connected to the overworld editor to actually create the sprite
+      // This would need to be connected to the overworld editor to actually
+      // create the sprite
       new_sprite_id = 0;
       x_pos = 0;
       y_pos = 0;

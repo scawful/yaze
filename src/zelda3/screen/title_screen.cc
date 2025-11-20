@@ -23,7 +23,8 @@ absl::Status TitleScreen::Create(Rom* rom) {
   oam_bg_bitmap_.Create(256, 256, 8, std::vector<uint8_t>(0x80000));
 
   // Set metadata for title screen bitmaps
-  // Title screen uses 3BPP graphics (like all LTTP data) with composite 64-color palette
+  // Title screen uses 3BPP graphics (like all LTTP data) with composite
+  // 64-color palette
   tiles8_bitmap_.metadata().source_bpp = 3;
   tiles8_bitmap_.metadata().palette_format = 0;  // Full 64-color palette
   tiles8_bitmap_.metadata().source_type = "graphics_sheet";
@@ -45,7 +46,8 @@ absl::Status TitleScreen::Create(Rom* rom) {
   oam_bg_bitmap_.metadata().source_type = "screen_buffer";
   oam_bg_bitmap_.metadata().palette_colors = 64;
 
-  // Initialize composite bitmap for stacked BG rendering (256x256 = 65536 bytes)
+  // Initialize composite bitmap for stacked BG rendering (256x256 = 65536
+  // bytes)
   title_composite_bitmap_.Create(256, 256, 8, std::vector<uint8_t>(256 * 256));
   title_composite_bitmap_.metadata().source_bpp = 3;
   title_composite_bitmap_.metadata().palette_format = 0;
@@ -56,16 +58,13 @@ absl::Status TitleScreen::Create(Rom* rom) {
   tiles_bg1_buffer_.fill(0x492);  // Default empty tile
   tiles_bg2_buffer_.fill(0x492);
 
-  // Load palette (title screen uses 3BPP graphics with 8 palettes of 8 colors each)
-  // Build composite palette from multiple sources (matches ZScream's SetColorsPalette)
-  // Palette 0: OverworldMainPalettes[5]
-  // Palette 1: OverworldAnimatedPalettes[0]
-  // Palette 2: OverworldAuxPalettes[3]
-  // Palette 3: OverworldAuxPalettes[3]
-  // Palette 4: HudPalettes[0]
-  // Palette 5: Transparent/black
-  // Palette 6: SpritesAux1Palettes[1]
-  // Palette 7: SpritesAux1Palettes[1]
+  // Load palette (title screen uses 3BPP graphics with 8 palettes of 8 colors
+  // each) Build composite palette from multiple sources (matches ZScream's
+  // SetColorsPalette) Palette 0: OverworldMainPalettes[5] Palette 1:
+  // OverworldAnimatedPalettes[0] Palette 2: OverworldAuxPalettes[3] Palette 3:
+  // OverworldAuxPalettes[3] Palette 4: HudPalettes[0] Palette 5:
+  // Transparent/black Palette 6: SpritesAux1Palettes[1] Palette 7:
+  // SpritesAux1Palettes[1]
 
   auto pal_group = rom->palette_group();
 
@@ -225,8 +224,8 @@ absl::Status TitleScreen::BuildTileset(Rom* rom) {
   staticgfx[14] = 112;            // UI graphics
   staticgfx[15] = 112;            // UI graphics
 
-  // Use pre-converted graphics from ROM buffer - simple and matches rest of yaze
-  // Title screen uses standard 3BPP graphics, no special offset needed
+  // Use pre-converted graphics from ROM buffer - simple and matches rest of
+  // yaze Title screen uses standard 3BPP graphics, no special offset needed
   const auto& gfx_buffer = rom->graphics_buffer();
   auto& tiles8_data = tiles8_bitmap_.mutable_data();
 
@@ -256,7 +255,6 @@ absl::Status TitleScreen::BuildTileset(Rom* rom) {
 
     if (source_offset + 0x1000 <= gfx_buffer.size() &&
         dest_offset + 0x1000 <= tiles8_data.size()) {
-
       std::copy(gfx_buffer.begin() + source_offset,
                 gfx_buffer.begin() + source_offset + 0x1000,
                 tiles8_data.begin() + dest_offset);
@@ -501,8 +499,9 @@ absl::Status TitleScreen::RenderBG1Layer() {
       }
 
       // Calculate source position in tiles8_bitmap_
-      // tiles8_bitmap_ is 128 pixels wide, 512 pixels tall (16 sheets × 32 pixels)
-      // Each sheet has 256 tiles (16×16 tiles, 128×32 pixels, 0x1000 bytes)
+      // tiles8_bitmap_ is 128 pixels wide, 512 pixels tall (16 sheets × 32
+      // pixels) Each sheet has 256 tiles (16×16 tiles, 128×32 pixels, 0x1000
+      // bytes)
       int sheet_index = tile_id / 256;    // Which sheet (0-15)
       int tile_in_sheet = tile_id % 256;  // Tile within sheet (0-255)
       int src_tile_x = (tile_in_sheet % 16) * 8;
@@ -526,12 +525,13 @@ absl::Status TitleScreen::RenderBG1Layer() {
           int dest_pos = dest_y * 256 + dest_x;  // BG1 is 256 pixels wide
 
           // Copy pixel with palette application
-          // Graphics are 3BPP in ROM, converted to 8BPP indexed with +0x88 offset
+          // Graphics are 3BPP in ROM, converted to 8BPP indexed with +0x88
+          // offset
           if (src_pos < tile8_bitmap_data.size() &&
               dest_pos < bg1_data.size()) {
             uint8_t pixel_value = tile8_bitmap_data[src_pos];
-            // Pixel values already include palette information from +0x88 offset
-            // Just copy directly (color index 0 = transparent)
+            // Pixel values already include palette information from +0x88
+            // offset Just copy directly (color index 0 = transparent)
             bg1_data[dest_pos] = pixel_value;
           }
         }
@@ -567,8 +567,9 @@ absl::Status TitleScreen::RenderBG2Layer() {
       bool v_flip = (tile_word & 0x8000) != 0;  // Bit 15: vertical flip
 
       // Calculate source position in tiles8_bitmap_
-      // tiles8_bitmap_ is 128 pixels wide, 512 pixels tall (16 sheets × 32 pixels)
-      // Each sheet has 256 tiles (16×16 tiles, 128×32 pixels, 0x1000 bytes)
+      // tiles8_bitmap_ is 128 pixels wide, 512 pixels tall (16 sheets × 32
+      // pixels) Each sheet has 256 tiles (16×16 tiles, 128×32 pixels, 0x1000
+      // bytes)
       int sheet_index = tile_id / 256;    // Which sheet (0-15)
       int tile_in_sheet = tile_id % 256;  // Tile within sheet (0-255)
       int src_tile_x = (tile_in_sheet % 16) * 8;
@@ -592,12 +593,13 @@ absl::Status TitleScreen::RenderBG2Layer() {
           int dest_pos = dest_y * 256 + dest_x;  // BG2 is 256 pixels wide
 
           // Copy pixel with palette application
-          // Graphics are 3BPP in ROM, converted to 8BPP indexed with +0x88 offset
+          // Graphics are 3BPP in ROM, converted to 8BPP indexed with +0x88
+          // offset
           if (src_pos < tile8_bitmap_data.size() &&
               dest_pos < bg2_data.size()) {
             uint8_t pixel_value = tile8_bitmap_data[src_pos];
-            // Pixel values already include palette information from +0x88 offset
-            // Just copy directly (color index 0 = transparent)
+            // Pixel values already include palette information from +0x88
+            // offset Just copy directly (color index 0 = transparent)
             bg2_data[dest_pos] = pixel_value;
           }
         }

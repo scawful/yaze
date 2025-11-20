@@ -18,26 +18,21 @@ BackgroundBuffer::BackgroundBuffer(int width, int height)
 }
 
 void BackgroundBuffer::SetTileAt(int x, int y, uint16_t value) {
-  if (x < 0 || y < 0)
-    return;
+  if (x < 0 || y < 0) return;
   int tiles_w = width_ / 8;
   int tiles_h = height_ / 8;
-  if (x >= tiles_w || y >= tiles_h)
-    return;
+  if (x >= tiles_w || y >= tiles_h) return;
   buffer_[y * tiles_w + x] = value;
 }
 
 uint16_t BackgroundBuffer::GetTileAt(int x, int y) const {
   int tiles_w = width_ / 8;
   int tiles_h = height_ / 8;
-  if (x < 0 || y < 0 || x >= tiles_w || y >= tiles_h)
-    return 0;
+  if (x < 0 || y < 0 || x >= tiles_w || y >= tiles_h) return 0;
   return buffer_[y * tiles_w + x];
 }
 
-void BackgroundBuffer::ClearBuffer() {
-  std::ranges::fill(buffer_, 0);
-}
+void BackgroundBuffer::ClearBuffer() { std::ranges::fill(buffer_, 0); }
 
 void BackgroundBuffer::DrawTile(const TileInfo& tile, uint8_t* canvas,
                                 const uint8_t* tiledata, int indexoffset) {
@@ -91,7 +86,8 @@ void BackgroundBuffer::DrawTile(const TileInfo& tile, uint8_t* canvas,
       uint8_t pixel_index = tiledata[src_index];
 
       // Apply palette offset and write to canvas
-      // For 3BPP: final color = base_pixel (0-7) + palette_offset (0, 8, 16, 24, ...)
+      // For 3BPP: final color = base_pixel (0-7) + palette_offset (0, 8, 16,
+      // 24, ...)
       if (pixel_index == 0) {
         continue;
       }
@@ -109,8 +105,8 @@ void BackgroundBuffer::DrawBackground(std::span<uint8_t> gfx16_data) {
     buffer_.resize(tiles_w * tiles_h);
   }
 
-  // NEVER recreate bitmap here - it should be created by DrawFloor or initialized earlier
-  // If bitmap doesn't exist, create it ONCE with zeros
+  // NEVER recreate bitmap here - it should be created by DrawFloor or
+  // initialized earlier If bitmap doesn't exist, create it ONCE with zeros
   if (!bitmap_.is_active() || bitmap_.width() == 0) {
     bitmap_.Create(width_, height_, 8,
                    std::vector<uint8_t>(width_ * height_, 0));
@@ -154,7 +150,8 @@ void BackgroundBuffer::DrawBackground(std::span<uint8_t> gfx16_data) {
     }
   }
   // CRITICAL: Sync bitmap data back to SDL surface!
-  // DrawTile() writes to bitmap_.mutable_data(), but the SDL surface needs updating
+  // DrawTile() writes to bitmap_.mutable_data(), but the SDL surface needs
+  // updating
   if (bitmap_.surface() && bitmap_.mutable_data().size() > 0) {
     SDL_LockSurface(bitmap_.surface());
     memcpy(bitmap_.surface()->pixels, bitmap_.mutable_data().data(),
@@ -201,8 +198,8 @@ void BackgroundBuffer::DrawFloor(const std::vector<uint8_t>& rom_data,
   gfx::TileInfo floorTile8(rom_data[tile_address_floor + f + 6],
                            rom_data[tile_address_floor + f + 7]);
 
-  // Floor tiles specify which 8-color sub-palette from the 90-color dungeon palette
-  // e.g., palette 6 = colors 48-55 (6 * 8 = 48)
+  // Floor tiles specify which 8-color sub-palette from the 90-color dungeon
+  // palette e.g., palette 6 = colors 48-55 (6 * 8 = 48)
 
   // Draw the floor tiles in a pattern
   // Convert TileInfo to 16-bit words with palette information

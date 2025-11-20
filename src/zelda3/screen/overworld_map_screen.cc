@@ -27,8 +27,8 @@ absl::Status OverworldMapScreen::Create(Rom* rom) {
   }
 
   // Mode 7 tiles are stored in tiled format (each tile's rows are consecutive)
-  // but we need linear bitmap format (all tiles' first rows, then all second rows)
-  // Convert from tiled to linear bitmap layout
+  // but we need linear bitmap format (all tiles' first rows, then all second
+  // rows) Convert from tiled to linear bitmap layout
   std::vector<uint8_t> mode7_gfx(0x4000);
   int pos = 0;
   for (int sy = 0; sy < 16 * 1024; sy += 1024) {  // 16 rows of tiles

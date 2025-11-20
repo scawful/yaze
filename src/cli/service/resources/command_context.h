@@ -16,7 +16,7 @@ namespace resources {
 /**
  * @class CommandContext
  * @brief Encapsulates common context for CLI command execution
- * 
+ *
  * Provides unified ROM loading, argument parsing, and common options
  * management to reduce duplication across command handlers.
  */

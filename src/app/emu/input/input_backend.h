@@ -77,7 +77,7 @@ struct InputConfig {
 
 /**
  * @brief Abstract input backend interface
- * 
+ *
  * Allows swapping between SDL2, SDL3, or custom input implementations
  * without changing emulator code.
  */

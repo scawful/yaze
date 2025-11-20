@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+
 #include <memory>
 
 // Test the individual components independently
@@ -10,7 +11,7 @@ namespace test {
 
 /**
  * @brief Unit tests for individual dungeon components
- * 
+ *
  * These tests validate component behavior without requiring ROM files
  * or complex graphics initialization.
  */

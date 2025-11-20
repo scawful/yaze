@@ -191,7 +191,6 @@ void ShortcutManager::RegisterStandardShortcuts(
     std::function<void()> save_callback, std::function<void()> open_callback,
     std::function<void()> close_callback, std::function<void()> find_callback,
     std::function<void()> settings_callback) {
-
   // Ctrl+S - Save
   if (save_callback) {
     RegisterShortcut("save", {ImGuiMod_Ctrl, ImGuiKey_S}, save_callback);
@@ -227,7 +226,6 @@ void ShortcutManager::RegisterWindowNavigationShortcuts(
     std::function<void()> focus_up, std::function<void()> focus_down,
     std::function<void()> close_window, std::function<void()> split_horizontal,
     std::function<void()> split_vertical) {
-
   // Ctrl+Arrow keys for window navigation
   if (focus_left) {
     RegisterShortcut("focus_left", {ImGuiMod_Ctrl, ImGuiKey_LeftArrow},

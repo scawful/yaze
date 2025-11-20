@@ -15,7 +15,7 @@ class ToastManager;
 /**
  * @class ProjectFileEditor
  * @brief Editor for .yaze project files with syntax highlighting and validation
- * 
+ *
  * Provides a rich text editing experience for yaze project files with:
  * - Syntax highlighting for INI-style format
  * - Real-time validation

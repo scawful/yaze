@@ -31,10 +31,10 @@ class NetworkCollaborationCoordinator;
 /**
  * @class AgentEditor
  * @brief Comprehensive AI Agent Platform & Bot Creator
- * 
+ *
  * A full-featured bot creation and management platform:
  * - Agent provider configuration (Ollama, Gemini, Mock)
- * - Model selection and parameters  
+ * - Model selection and parameters
  * - System prompt editing with live syntax highlighting
  * - Bot profile management (create, save, load custom bots)
  * - Chat history viewer and management
@@ -43,7 +43,7 @@ class NetworkCollaborationCoordinator;
  * - Z3ED command automation presets
  * - Multimodal/vision configuration
  * - Export/Import bot configurations
- * 
+ *
  * The chat widget is separate and managed by EditorManager, with
  * a dense/compact mode for focused conversations.
  */

@@ -15,14 +15,14 @@ namespace cli {
 /**
  * @class CommandRegistry
  * @brief Single source of truth for all z3ed commands
- * 
+ *
  * Serves as the central registry for:
  * - CLI command routing
  * - Agent tool calling
  * - Help text generation
  * - TUI menu generation
  * - Function schema export (for AI)
- * 
+ *
  * Ensures consistency: if a command exists, it's available to both
  * human users (CLI) and AI agents (tool calling).
  */

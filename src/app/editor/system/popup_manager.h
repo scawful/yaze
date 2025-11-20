@@ -15,7 +15,8 @@ class EditorManager;
 
 /**
  * @enum PopupType
- * @brief Type classification for popups to enable future filtering and organization
+ * @brief Type classification for popups to enable future filtering and
+ * organization
  */
 enum class PopupType {
   kInfo,           // Information display (About, ROM Info, etc.)

@@ -13,15 +13,16 @@ namespace gui {
 /**
  * @class Toolset
  * @brief Ultra-compact toolbar that merges mode buttons with settings
- * 
+ *
  * Design Philosophy:
  * - Single horizontal bar with everything inline
  * - Small icon-only buttons for modes
  * - Inline property editing (InputHex with scroll)
  * - No wasted vertical space
  * - Beautiful, modern appearance
- * 
- * Layout: [Mode Icons] | [ROM Badge] [World] [GFX] [Pal] [Spr] ... | [Quick Actions]
+ *
+ * Layout: [Mode Icons] | [ROM Badge] [World] [GFX] [Pal] [Spr] ... | [Quick
+ * Actions]
  */
 class Toolset {
  public:
@@ -84,20 +85,20 @@ class Toolset {
 /**
  * @class EditorCard
  * @brief Draggable, dockable card for editor sub-windows
- * 
+ *
  * Replaces traditional child windows with modern cards that can be:
  * - Dragged and positioned freely
  * - Docked to edges (optional)
  * - Minimized to title bar
  * - Resized responsively
  * - Themed beautifully
- * 
+ *
  * Usage:
  * ```cpp
  * EditorCard tile_card("Tile Selector", ICON_MD_GRID_VIEW);
  * tile_card.SetDefaultSize(300, 400);
  * tile_card.SetPosition(CardPosition::Right);
- * 
+ *
  * if (tile_card.Begin()) {
  *   // Draw tile selector content when visible
  * }
@@ -170,7 +171,7 @@ class EditorCard {
 /**
  * @class EditorLayout
  * @brief Modern layout manager for editor components
- * 
+ *
  * Manages the overall editor layout with:
  * - Compact toolbar at top
  * - Main canvas in center

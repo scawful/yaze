@@ -463,7 +463,6 @@ absl::StatusOr<EntranceDetails> GetEntranceDetails(
 absl::StatusOr<TileStatistics> AnalyzeTileUsage(
     zelda3::Overworld& overworld, uint16_t tile_id,
     const TileSearchOptions& options) {
-
   // Use FindTileMatches to get all occurrences
   ASSIGN_OR_RETURN(auto matches, FindTileMatches(overworld, tile_id, options));
 

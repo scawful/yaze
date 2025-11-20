@@ -14,7 +14,7 @@ namespace editor {
 
 /**
  * @brief Manages loading and saving of dungeon room data
- * 
+ *
  * This component handles all ROM-related operations for loading room data,
  * calculating room sizes, and managing room graphics.
  */

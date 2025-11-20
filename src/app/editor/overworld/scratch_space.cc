@@ -1,5 +1,3 @@
-#include "app/editor/overworld/overworld_editor.h"
-
 #include <algorithm>
 #include <cmath>
 #include <filesystem>
@@ -12,6 +10,7 @@
 #include "absl/strings/str_format.h"
 #include "app/editor/overworld/entity.h"
 #include "app/editor/overworld/map_properties.h"
+#include "app/editor/overworld/overworld_editor.h"
 #include "app/editor/overworld/tile16_editor.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/debug/performance/performance_profiler.h"
@@ -43,16 +42,14 @@ absl::Status OverworldEditor::DrawScratchSpace() {
   // Slot selector
   Text("Scratch Space Slot:");
   for (int i = 0; i < 4; i++) {
-    if (i > 0)
-      SameLine();
+    if (i > 0) SameLine();
     bool is_current = (current_scratch_slot_ == i);
     if (is_current)
       PushStyleColor(ImGuiCol_Button, ImVec4(0.4f, 0.7f, 0.4f, 1.0f));
     if (Button(std::to_string(i + 1).c_str(), ImVec2(25, 25))) {
       current_scratch_slot_ = i;
     }
-    if (is_current)
-      PopStyleColor();
+    if (is_current) PopStyleColor();
   }
 
   SameLine();
@@ -125,7 +122,8 @@ absl::Status OverworldEditor::DrawScratchSpace() {
       "Select tiles from Tile16 tab or make selections in overworld, then draw "
       "here!");
 
-  // Initialize scratch bitmap with proper size based on scratch space dimensions
+  // Initialize scratch bitmap with proper size based on scratch space
+  // dimensions
   auto& current_slot = scratch_spaces_[current_scratch_slot_];
   if (!current_slot.scratch_bitmap.is_active()) {
     // Create bitmap based on scratch space dimensions (each tile is 16x16)
@@ -232,8 +230,7 @@ void OverworldEditor::DrawScratchSpacePattern() {
   int pattern_width = dependencies_.shared_clipboard->overworld_width;
   int pattern_height = dependencies_.shared_clipboard->overworld_height;
 
-  if (tile_ids.empty())
-    return;
+  if (tile_ids.empty()) return;
 
   auto& current_slot = scratch_spaces_[current_scratch_slot_];
   int max_width = current_slot.width > 0 ? current_slot.width : 20;
@@ -274,13 +271,11 @@ void OverworldEditor::UpdateScratchBitmapTile(int tile_x, int tile_y,
   gfx::ScopedTimer timer("overworld_update_scratch_tile");
 
   // Use current slot if not specified
-  if (slot == -1)
-    slot = current_scratch_slot_;
+  if (slot == -1) slot = current_scratch_slot_;
 
   // Get the tile data from the tile16 blockset
   auto tile_data = gfx::GetTilemapData(tile16_blockset_, tile_id);
-  if (tile_data.empty())
-    return;
+  if (tile_data.empty()) return;
 
   auto& scratch_slot = scratch_spaces_[slot];
 
@@ -302,7 +297,6 @@ void OverworldEditor::UpdateScratchBitmapTile(int tile_x, int tile_y,
       if (dst_x >= 0 && dst_x < scratch_bitmap_width && dst_y >= 0 &&
           dst_y < scratch_bitmap_height &&
           src_index < static_cast<int>(tile_data.size())) {
-
         // Write 2x2 pixel blocks to fill the 32x32 grid space
         for (int py = 0; py < 2 && (dst_y + py) < scratch_bitmap_height; ++py) {
           for (int px = 0; px < 2 && (dst_x + px) < scratch_bitmap_width;

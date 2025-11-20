@@ -169,8 +169,9 @@ void Cpu::RunOpcode() {
       }
 
       // LoadSongBank routine ($8888-$88FF) - This is where handshake happens!
-      // LOGIC: Track CPU's journey through audio initialization to identify where it gets stuck.
-      // We log key waypoints to understand if CPU reaches handshake write instructions.
+      // LOGIC: Track CPU's journey through audio initialization to identify
+      // where it gets stuck. We log key waypoints to understand if CPU reaches
+      // handshake write instructions.
       if (cur_pc >= 0x8888 && cur_pc <= 0x88FF) {
         // Log entry
         if (cur_pc == 0x8888) {
@@ -179,8 +180,9 @@ void Cpu::RunOpcode() {
                    X);
         }
 
-        // DISCOVERY: Log every unique PC in this range to see the execution path
-        // This helps identify if CPU is looping, stuck, or simply not reaching write instructions
+        // DISCOVERY: Log every unique PC in this range to see the execution
+        // path This helps identify if CPU is looping, stuck, or simply not
+        // reaching write instructions
         static int exec_count_8888 = 0;
         if (exec_count_8888++ < 100 && !logged_routines[cur_pc]) {
           LOG_INFO("CPU_AUDIO",
@@ -221,7 +223,8 @@ void Cpu::RunOpcode() {
                 PB, PC - 1, opcode);
     }
 
-    // Debug: Log if stuck at same PC for extended period (after first 200 instructions)
+    // Debug: Log if stuck at same PC for extended period (after first 200
+    // instructions)
     static uint16_t last_stuck_pc = 0xFFFF;
     static int stuck_count = 0;
     if (instruction_count >= 200) {
@@ -273,8 +276,7 @@ void Cpu::ExecuteInstruction(uint8_t opcode) {
     case 0x00: {  // brk imm(s)
       uint32_t vector = (E) ? 0xfffe : 0xffe6;
       ReadOpcode();
-      if (!E)
-        PushByte(PB);
+      if (!E) PushByte(PB);
       PushWord(PC, false);
       PushByte(status);
       SetInterruptFlag(true);
@@ -292,8 +294,7 @@ void Cpu::ExecuteInstruction(uint8_t opcode) {
     case 0x02: {  // cop imm(s)
       uint32_t vector = (E) ? 0xfff4 : 0xffe4;
       ReadOpcode();
-      if (!E)
-        PushByte(PB);
+      if (!E) PushByte(PB);
       PushWord(PC, false);
       PushByte(status);
       SetInterruptFlag(true);
@@ -1977,8 +1978,9 @@ void Cpu::ExecuteInstruction(uint8_t opcode) {
       break;
     }
   }
-  // REMOVED: Old log_instructions_ check - now using on_instruction_executed_ callback
-  // which is more efficient and always active (records to DisassemblyViewer)
+  // REMOVED: Old log_instructions_ check - now using on_instruction_executed_
+  // callback which is more efficient and always active (records to
+  // DisassemblyViewer)
   LogInstructions(cache_pc, opcode, operand, immediate, accumulator_mode);
 }
 
@@ -2012,7 +2014,8 @@ void Cpu::LogInstructions(uint16_t PC, uint8_t opcode, uint16_t operand,
   const std::string& mnemonic = opcode_to_mnemonic.at(opcode);
 
   // ALWAYS record to DisassemblyViewer (sparse, Mesen-style, zero cost)
-  // The callback only fires if set, and DisassemblyViewer only stores unique addresses
+  // The callback only fires if set, and DisassemblyViewer only stores unique
+  // addresses
   // - First execution: Add to map (O(log n))
   // - Subsequent: Increment counter (O(log n))
   // - Total overhead: ~0.1% even with millions of instructions

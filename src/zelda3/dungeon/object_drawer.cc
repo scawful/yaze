@@ -71,13 +71,13 @@ absl::Status ObjectDrawer::DrawObject(const RoomObject& object,
 absl::Status ObjectDrawer::DrawObjectList(
     const std::vector<RoomObject>& objects, gfx::BackgroundBuffer& bg1,
     gfx::BackgroundBuffer& bg2, const gfx::PaletteGroup& palette_group) {
-
   for (const auto& object : objects) {
     DrawObject(object, bg1, bg2, palette_group);
   }
 
   // CRITICAL: Sync bitmap data to SDL surfaces after all objects are drawn
-  // ObjectDrawer writes directly to bitmap.mutable_data(), but textures are created from SDL surfaces
+  // ObjectDrawer writes directly to bitmap.mutable_data(), but textures are
+  // created from SDL surfaces
   auto& bg1_bmp = bg1.bitmap();
   auto& bg2_bmp = bg2.bitmap();
 
@@ -110,8 +110,9 @@ absl::Status ObjectDrawer::DrawObjectList(
 
 void ObjectDrawer::InitializeDrawRoutines() {
   // This function maps object IDs to their corresponding draw routines.
-  // The mapping is based on ZScream's DungeonObjectData.cs and the game's assembly code.
-  // The order of functions in draw_routines_ MUST match the indices used here.
+  // The mapping is based on ZScream's DungeonObjectData.cs and the game's
+  // assembly code. The order of functions in draw_routines_ MUST match the
+  // indices used here.
 
   object_to_routine_map_.clear();
   draw_routines_.clear();
@@ -294,8 +295,7 @@ void ObjectDrawer::DrawRightwards2x2_1to15or32(
   // Pattern: Draws 2x2 tiles rightward (object 0x00)
   // Size byte determines how many times to repeat (1-15 or 32)
   int size = obj.size_;
-  if (size == 0)
-    size = 32;  // Special case for object 0x00
+  if (size == 0) size = 32;  // Special case for object 0x00
 
   for (int s = 0; s < size; s++) {
     if (tiles.size() >= 4) {
@@ -314,8 +314,7 @@ void ObjectDrawer::DrawRightwards2x4_1to15or26(
     std::span<const gfx::TileInfo> tiles) {
   // Pattern: Draws 2x4 tiles rightward (objects 0x01-0x02)
   int size = obj.size_;
-  if (size == 0)
-    size = 26;  // Special case
+  if (size == 0) size = 26;  // Special case
 
   for (int s = 0; s < size; s++) {
     if (tiles.size() >= 4) {
@@ -681,8 +680,7 @@ void ObjectDrawer::DrawDownwards2x2_1to15or32(
   // Pattern: Draws 2x2 tiles downward (object 0x60)
   // Size byte determines how many times to repeat (1-15 or 32)
   int size = obj.size_;
-  if (size == 0)
-    size = 32;  // Special case for object 0x60
+  if (size == 0) size = 32;  // Special case for object 0x60
 
   for (int s = 0; s < size; s++) {
     if (tiles.size() >= 4) {
@@ -701,8 +699,7 @@ void ObjectDrawer::DrawDownwards4x2_1to15or26(
     std::span<const gfx::TileInfo> tiles) {
   // Pattern: Draws 4x2 tiles downward (objects 0x61-0x62)
   int size = obj.size_;
-  if (size == 0)
-    size = 26;  // Special case
+  if (size == 0) size = 26;  // Special case
 
   LOG_DEBUG("ObjectDrawer",
             "DrawDownwards4x2_1to15or26: obj=%04X tiles=%zu size=%d", obj.id_,
@@ -858,7 +855,8 @@ void ObjectDrawer::WriteTile8(gfx::BackgroundBuffer& bg, int tile_x, int tile_y,
   }
 
   // The room-specific graphics buffer (current_gfx16_) contains the assembled
-  // tile graphics for the current room. Object tile IDs are relative to this buffer.
+  // tile graphics for the current room. Object tile IDs are relative to this
+  // buffer.
   const uint8_t* gfx_data = room_gfx_buffer_;
 
   if (!gfx_data) {
@@ -879,8 +877,7 @@ void ObjectDrawer::DrawTileToBitmap(gfx::Bitmap& bitmap,
                                     const gfx::TileInfo& tile_info, int pixel_x,
                                     int pixel_y, const uint8_t* tiledata) {
   // Draw an 8x8 tile directly to bitmap at pixel coordinates
-  if (!tiledata)
-    return;
+  if (!tiledata) return;
 
   // DEBUG: Check if bitmap is valid
   if (!bitmap.is_active() || bitmap.width() == 0 || bitmap.height() == 0) {
@@ -889,7 +886,8 @@ void ObjectDrawer::DrawTileToBitmap(gfx::Bitmap& bitmap,
     return;
   }
 
-  // Calculate tile position in graphics sheet (128 pixels wide, 16 tiles per row)
+  // Calculate tile position in graphics sheet (128 pixels wide, 16 tiles per
+  // row)
   int tile_sheet_x = (tile_info.id_ % 16) * 8;  // 16 tiles per row
   int tile_sheet_y = (tile_info.id_ / 16) * 8;  // Each row is 16 tiles
 

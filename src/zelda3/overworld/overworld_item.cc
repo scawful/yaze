@@ -97,8 +97,7 @@ absl::Status SaveItems(Rom* rom, const std::vector<OverworldItem>& items) {
   }
 
   for (const OverworldItem& item : items) {
-    if (item.deleted)
-      continue;
+    if (item.deleted) continue;
 
     const int map_index = static_cast<int>(item.room_map_id_);
     if (map_index < 0 || map_index >= pointer_count) {
@@ -187,7 +186,8 @@ absl::Status SaveItems(Rom* rom, const std::vector<OverworldItem>& items) {
       static_cast<uint8_t>(
           (PcToSnes(zelda3::kOverworldItemsStartDataNew) >> 16) & 0xFF)));
 
-  // Clear pointer table (write zero) to avoid stale values when pointer count shrinks
+  // Clear pointer table (write zero) to avoid stale values when pointer count
+  // shrinks
   for (int i = 0; i < zelda3::kNumOverworldMaps; ++i) {
     RETURN_IF_ERROR(
         rom->WriteShort(zelda3::kOverworldItemsPointersNew + (i * 2), 0x0000));

@@ -190,8 +190,9 @@ class ThemeManager {
   absl::Status SaveThemeToFile(const EnhancedTheme& theme,
                                const std::string& filepath) const;
 
-  // Dynamic theme discovery - replaces hardcoded theme lists with automatic discovery
-  // This works across development builds, macOS app bundles, and other deployment scenarios
+  // Dynamic theme discovery - replaces hardcoded theme lists with automatic
+  // discovery This works across development builds, macOS app bundles, and
+  // other deployment scenarios
   std::vector<std::string> DiscoverAvailableThemeFiles() const;
   absl::Status LoadAllAvailableThemes();
   absl::Status RefreshAvailableThemes();  // Public method to refresh at runtime
@@ -272,21 +273,13 @@ inline ImVec4 GetThemeColorVec4(const std::string& color_name) {
 }
 
 // Material Design color accessors
-inline Color GetPrimary() {
-  return ThemeManager::Get().GetPrimary();
-}
-inline Color GetPrimaryHover() {
-  return ThemeManager::Get().GetPrimaryHover();
-}
+inline Color GetPrimary() { return ThemeManager::Get().GetPrimary(); }
+inline Color GetPrimaryHover() { return ThemeManager::Get().GetPrimaryHover(); }
 inline Color GetPrimaryActive() {
   return ThemeManager::Get().GetPrimaryActive();
 }
-inline Color GetSecondary() {
-  return ThemeManager::Get().GetSecondary();
-}
-inline Color GetSurface() {
-  return ThemeManager::Get().GetSurface();
-}
+inline Color GetSecondary() { return ThemeManager::Get().GetSecondary(); }
+inline Color GetSurface() { return ThemeManager::Get().GetSurface(); }
 inline Color GetSurfaceVariant() {
   return ThemeManager::Get().GetSurfaceVariant();
 }
@@ -299,41 +292,27 @@ inline Color GetSurfaceContainerHigh() {
 inline Color GetSurfaceContainerHighest() {
   return ThemeManager::Get().GetSurfaceContainerHighest();
 }
-inline Color GetOnSurface() {
-  return ThemeManager::Get().GetOnSurface();
-}
+inline Color GetOnSurface() { return ThemeManager::Get().GetOnSurface(); }
 inline Color GetOnSurfaceVariant() {
   return ThemeManager::Get().GetOnSurfaceVariant();
 }
-inline Color GetOnPrimary() {
-  return ThemeManager::Get().GetOnPrimary();
-}
-inline Color GetOutline() {
-  return ThemeManager::Get().GetOutline();
-}
+inline Color GetOnPrimary() { return ThemeManager::Get().GetOnPrimary(); }
+inline Color GetOutline() { return ThemeManager::Get().GetOutline(); }
 inline Color GetTextSecondary() {
   return ThemeManager::Get().GetTextSecondary();
 }
-inline Color GetTextDisabled() {
-  return ThemeManager::Get().GetTextDisabled();
-}
-inline Color GetShadow() {
-  return ThemeManager::Get().GetShadow();
-}
+inline Color GetTextDisabled() { return ThemeManager::Get().GetTextDisabled(); }
+inline Color GetShadow() { return ThemeManager::Get().GetShadow(); }
 
 // ImVec4 versions for direct ImGui usage
-inline ImVec4 GetPrimaryVec4() {
-  return ConvertColorToImVec4(GetPrimary());
-}
+inline ImVec4 GetPrimaryVec4() { return ConvertColorToImVec4(GetPrimary()); }
 inline ImVec4 GetPrimaryHoverVec4() {
   return ConvertColorToImVec4(GetPrimaryHover());
 }
 inline ImVec4 GetPrimaryActiveVec4() {
   return ConvertColorToImVec4(GetPrimaryActive());
 }
-inline ImVec4 GetSurfaceVec4() {
-  return ConvertColorToImVec4(GetSurface());
-}
+inline ImVec4 GetSurfaceVec4() { return ConvertColorToImVec4(GetSurface()); }
 inline ImVec4 GetSurfaceVariantVec4() {
   return ConvertColorToImVec4(GetSurfaceVariant());
 }
@@ -355,18 +334,14 @@ inline ImVec4 GetOnSurfaceVariantVec4() {
 inline ImVec4 GetOnPrimaryVec4() {
   return ConvertColorToImVec4(GetOnPrimary());
 }
-inline ImVec4 GetOutlineVec4() {
-  return ConvertColorToImVec4(GetOutline());
-}
+inline ImVec4 GetOutlineVec4() { return ConvertColorToImVec4(GetOutline()); }
 inline ImVec4 GetTextSecondaryVec4() {
   return ConvertColorToImVec4(GetTextSecondary());
 }
 inline ImVec4 GetTextDisabledVec4() {
   return ConvertColorToImVec4(GetTextDisabled());
 }
-inline ImVec4 GetShadowVec4() {
-  return ConvertColorToImVec4(GetShadow());
-}
+inline ImVec4 GetShadowVec4() { return ConvertColorToImVec4(GetShadow()); }
 }  // namespace gui
 
 }  // namespace yaze

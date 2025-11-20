@@ -14,9 +14,9 @@ namespace gui {
 
 /**
  * @brief BPP format selection and conversion UI component
- * 
- * Provides a comprehensive UI for BPP format management in the YAZE ROM hacking editor.
- * Includes format selection, conversion preview, and analysis tools.
+ *
+ * Provides a comprehensive UI for BPP format management in the YAZE ROM hacking
+ * editor. Includes format selection, conversion preview, and analysis tools.
  */
 class BppFormatUI {
  public:

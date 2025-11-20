@@ -48,16 +48,11 @@ std::string TodoItem::StatusToString() const {
 }
 
 TodoItem::Status TodoItem::StringToStatus(const std::string& str) {
-  if (str == "pending")
-    return Status::PENDING;
-  if (str == "in_progress")
-    return Status::IN_PROGRESS;
-  if (str == "completed")
-    return Status::COMPLETED;
-  if (str == "blocked")
-    return Status::BLOCKED;
-  if (str == "cancelled")
-    return Status::CANCELLED;
+  if (str == "pending") return Status::PENDING;
+  if (str == "in_progress") return Status::IN_PROGRESS;
+  if (str == "completed") return Status::COMPLETED;
+  if (str == "blocked") return Status::BLOCKED;
+  if (str == "cancelled") return Status::CANCELLED;
   return Status::PENDING;
 }
 
@@ -93,9 +88,7 @@ std::string TodoManager::GenerateId() {
   return absl::StrFormat("todo_%d", next_id_++);
 }
 
-std::string TodoManager::GetTimestamp() const {
-  return CurrentTimestamp();
-}
+std::string TodoManager::GetTimestamp() const { return CurrentTimestamp(); }
 
 absl::StatusOr<TodoItem> TodoManager::CreateTodo(const std::string& description,
                                                  const std::string& category,
@@ -166,9 +159,7 @@ absl::StatusOr<TodoItem> TodoManager::GetTodo(const std::string& id) const {
   return *it;
 }
 
-std::vector<TodoItem> TodoManager::GetAllTodos() const {
-  return todos_;
-}
+std::vector<TodoItem> TodoManager::GetAllTodos() const { return todos_; }
 
 std::vector<TodoItem> TodoManager::GetTodosByStatus(
     TodoItem::Status status) const {

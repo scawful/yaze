@@ -3,13 +3,6 @@
 
 #define IMGUI_DEFINE_MATH_OPERATORS
 
-#include "app/editor/editor.h"
-#include "app/editor/session_types.h"
-#include "app/editor/system/user_settings.h"
-#include "app/editor/ui/workspace_manager.h"
-
-#include "imgui/imgui.h"
-
 #include <cstddef>
 #include <deque>
 #include <memory>
@@ -18,6 +11,8 @@
 #include "absl/status/status.h"
 #include "app/editor/agent/agent_chat_history_popup.h"
 #include "app/editor/code/project_file_editor.h"
+#include "app/editor/editor.h"
+#include "app/editor/session_types.h"
 #include "app/editor/system/editor_card_registry.h"
 #include "app/editor/system/editor_registry.h"
 #include "app/editor/system/menu_orchestrator.h"
@@ -27,15 +22,18 @@
 #include "app/editor/system/rom_file_manager.h"
 #include "app/editor/system/session_coordinator.h"
 #include "app/editor/system/toast_manager.h"
+#include "app/editor/system/user_settings.h"
 #include "app/editor/system/window_delegate.h"
 #include "app/editor/ui/editor_selection_dialog.h"
 #include "app/editor/ui/layout_manager.h"
 #include "app/editor/ui/menu_builder.h"
 #include "app/editor/ui/ui_coordinator.h"
 #include "app/editor/ui/welcome_screen.h"
+#include "app/editor/ui/workspace_manager.h"
 #include "app/emu/emulator.h"
 #include "app/rom.h"
 #include "core/project.h"
+#include "imgui/imgui.h"
 #include "yaze_config.h"
 #include "zelda3/overworld/overworld.h"
 
@@ -65,7 +63,8 @@ namespace editor {
  */
 class EditorManager {
  public:
-  // Constructor and destructor must be defined in .cc file for std::unique_ptr with forward-declared types
+  // Constructor and destructor must be defined in .cc file for std::unique_ptr
+  // with forward-declared types
   EditorManager();
   ~EditorManager();
 
@@ -170,12 +169,10 @@ class EditorManager {
   void LoadWorkspaceLayout() { window_delegate_.LoadWorkspaceLayout(); }
   void ResetWorkspaceLayout() { window_delegate_.ResetWorkspaceLayout(); }
   void ShowAllWindows() {
-    if (ui_coordinator_)
-      ui_coordinator_->ShowAllWindows();
+    if (ui_coordinator_) ui_coordinator_->ShowAllWindows();
   }
   void HideAllWindows() {
-    if (ui_coordinator_)
-      ui_coordinator_->HideAllWindows();
+    if (ui_coordinator_) ui_coordinator_->HideAllWindows();
   }
 
   // Layout presets (inline delegation)
@@ -191,47 +188,38 @@ class EditorManager {
   void Quit() { quit_ = true; }
 
   // UI visibility controls (public for MenuOrchestrator)
-  // UI visibility controls - inline for performance (single-line wrappers delegating to UICoordinator)
+  // UI visibility controls - inline for performance (single-line wrappers
+  // delegating to UICoordinator)
   void ShowGlobalSearch() {
-    if (ui_coordinator_)
-      ui_coordinator_->ShowGlobalSearch();
+    if (ui_coordinator_) ui_coordinator_->ShowGlobalSearch();
   }
   void ShowCommandPalette() {
-    if (ui_coordinator_)
-      ui_coordinator_->ShowCommandPalette();
+    if (ui_coordinator_) ui_coordinator_->ShowCommandPalette();
   }
   void ShowPerformanceDashboard() {
-    if (ui_coordinator_)
-      ui_coordinator_->SetPerformanceDashboardVisible(true);
+    if (ui_coordinator_) ui_coordinator_->SetPerformanceDashboardVisible(true);
   }
   void ShowImGuiDemo() {
-    if (ui_coordinator_)
-      ui_coordinator_->SetImGuiDemoVisible(true);
+    if (ui_coordinator_) ui_coordinator_->SetImGuiDemoVisible(true);
   }
   void ShowImGuiMetrics() {
-    if (ui_coordinator_)
-      ui_coordinator_->SetImGuiMetricsVisible(true);
+    if (ui_coordinator_) ui_coordinator_->SetImGuiMetricsVisible(true);
   }
   void ShowHexEditor();
   void ShowEmulator() {
-    if (ui_coordinator_)
-      ui_coordinator_->SetEmulatorVisible(true);
+    if (ui_coordinator_) ui_coordinator_->SetEmulatorVisible(true);
   }
   void ShowMemoryEditor() {
-    if (ui_coordinator_)
-      ui_coordinator_->SetMemoryEditorVisible(true);
+    if (ui_coordinator_) ui_coordinator_->SetMemoryEditorVisible(true);
   }
   void ShowResourceLabelManager() {
-    if (ui_coordinator_)
-      ui_coordinator_->SetResourceLabelManagerVisible(true);
+    if (ui_coordinator_) ui_coordinator_->SetResourceLabelManagerVisible(true);
   }
   void ShowCardBrowser() {
-    if (ui_coordinator_)
-      ui_coordinator_->ShowCardBrowser();
+    if (ui_coordinator_) ui_coordinator_->ShowCardBrowser();
   }
   void ShowWelcomeScreen() {
-    if (ui_coordinator_)
-      ui_coordinator_->SetWelcomeScreenVisible(true);
+    if (ui_coordinator_) ui_coordinator_->SetWelcomeScreenVisible(true);
   }
 
 #ifdef YAZE_ENABLE_TESTING
@@ -294,8 +282,8 @@ class EditorManager {
   // Project file editor
   ProjectFileEditor project_file_editor_;
 
-  // Note: Editor selection dialog and welcome screen are now managed by UICoordinator
-  // Kept here for backward compatibility during transition
+  // Note: Editor selection dialog and welcome screen are now managed by
+  // UICoordinator Kept here for backward compatibility during transition
   EditorSelectionDialog editor_selection_dialog_;
   WelcomeScreen welcome_screen_;
 

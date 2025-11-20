@@ -14,7 +14,7 @@ namespace test {
 
 /**
  * @brief Simplified test framework for dungeon object rendering
- * 
+ *
  * This provides a clean, focused testing environment for dungeon object
  * functionality without the complexity of full integration tests.
  */

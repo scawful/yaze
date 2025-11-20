@@ -1,5 +1,4 @@
 #include "message_editor.h"
-#include "app/editor/system/editor_card_registry.h"
 
 #include <string>
 #include <vector>
@@ -7,6 +6,7 @@
 #include "absl/status/status.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
+#include "app/editor/system/editor_card_registry.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/debug/performance/performance_profiler.h"
 #include "app/gfx/resource/arena.h"
@@ -63,8 +63,7 @@ constexpr ImGuiTableFlags kMessageTableFlags = ImGuiTableFlags_Hideable |
 
 void MessageEditor::Initialize() {
   // Register cards with EditorCardRegistry (dependency injection)
-  if (!dependencies_.card_registry)
-    return;
+  if (!dependencies_.card_registry) return;
 
   auto* card_registry = dependencies_.card_registry;
 
@@ -139,12 +138,12 @@ absl::Status MessageEditor::Load() {
 }
 
 absl::Status MessageEditor::Update() {
-  if (!dependencies_.card_registry)
-    return absl::OkStatus();
+  if (!dependencies_.card_registry) return absl::OkStatus();
 
   auto* card_registry = dependencies_.card_registry;
 
-  // Message List Card - Get visibility flag and pass to Begin() for proper X button
+  // Message List Card - Get visibility flag and pass to Begin() for proper X
+  // button
   bool* list_visible =
       card_registry->GetVisibilityFlag(MakeCardId("message.message_list"));
   if (list_visible && *list_visible) {
@@ -156,7 +155,8 @@ absl::Status MessageEditor::Update() {
     list_card.End();
   }
 
-  // Message Editor Card - Get visibility flag and pass to Begin() for proper X button
+  // Message Editor Card - Get visibility flag and pass to Begin() for proper X
+  // button
   bool* editor_visible =
       card_registry->GetVisibilityFlag(MakeCardId("message.message_editor"));
   if (editor_visible && *editor_visible) {
@@ -168,7 +168,8 @@ absl::Status MessageEditor::Update() {
     editor_card.End();
   }
 
-  // Font Atlas Card - Get visibility flag and pass to Begin() for proper X button
+  // Font Atlas Card - Get visibility flag and pass to Begin() for proper X
+  // button
   bool* font_visible =
       card_registry->GetVisibilityFlag(MakeCardId("message.font_atlas"));
   if (font_visible && *font_visible) {
@@ -181,7 +182,8 @@ absl::Status MessageEditor::Update() {
     font_card.End();
   }
 
-  // Dictionary Card - Get visibility flag and pass to Begin() for proper X button
+  // Dictionary Card - Get visibility flag and pass to Begin() for proper X
+  // button
   bool* dict_visible =
       card_registry->GetVisibilityFlag(MakeCardId("message.dictionary"));
   if (dict_visible && *dict_visible) {

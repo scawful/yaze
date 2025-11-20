@@ -5,14 +5,14 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 #endif
 
+#include <gmock/gmock.h>
+#include <gtest/gtest.h>
+
 #include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <string>
 #include <vector>
-
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
 
 #include "absl/strings/str_format.h"
 #include "app/rom.h"

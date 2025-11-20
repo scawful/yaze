@@ -18,23 +18,23 @@ namespace gfx {
 
 /**
  * @brief Resource management arena for efficient graphics memory handling
- * 
+ *
  * The Arena class provides centralized management of SDL textures and surfaces
  * for the YAZE ROM hacking editor. It implements several key optimizations:
- * 
+ *
  * Key Features:
  * - Singleton pattern for global access across all graphics components
  * - Automatic resource cleanup with RAII-style management
  * - Memory pooling to reduce allocation overhead
  * - Support for 223 graphics sheets (YAZE's full graphics space)
  * - Background buffer management for SNES layer rendering
- * 
+ *
  * Performance Optimizations:
  * - Unique_ptr with custom deleters for automatic SDL resource cleanup
  * - Hash map storage for O(1) texture/surface lookup
  * - Batch resource management to minimize SDL calls
  * - Pre-allocated graphics sheet array for fast access
- * 
+ *
  * ROM Hacking Specific:
  * - Fixed-size graphics sheet array (223 sheets) matching YAZE's graphics space
  * - Background buffer support for SNES layer 1 and layer 2 rendering

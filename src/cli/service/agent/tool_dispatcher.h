@@ -2,6 +2,7 @@
 #define YAZE_SRC_CLI_SERVICE_AGENT_TOOL_DISPATCHER_H_
 
 #include <string>
+
 #include "absl/status/statusor.h"
 #include "cli/service/ai/common.h"
 

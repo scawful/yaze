@@ -92,8 +92,9 @@ std::string GetEditorName(EditorType type) {
 }  // namespace
 
 // Static registry of editors that use the card-based layout system
-// These editors register their cards with EditorCardManager and manage their own windows
-// They do NOT need the traditional ImGui::Begin/End wrapper - they create cards internally
+// These editors register their cards with EditorCardManager and manage their
+// own windows They do NOT need the traditional ImGui::Begin/End wrapper - they
+// create cards internally
 bool EditorManager::IsCardBasedEditor(EditorType type) {
   return EditorRegistry::IsCardBasedEditor(type);
 }
@@ -115,13 +116,9 @@ void EditorManager::ShowHexEditor() {
 }
 
 #ifdef YAZE_WITH_GRPC
-void EditorManager::ShowAIAgent() {
-  agent_editor_.set_active(true);
-}
+void EditorManager::ShowAIAgent() { agent_editor_.set_active(true); }
 
-void EditorManager::ShowChatHistory() {
-  agent_chat_history_popup_.Toggle();
-}
+void EditorManager::ShowChatHistory() { agent_chat_history_popup_.Toggle(); }
 #endif
 
 EditorManager::EditorManager()
@@ -154,7 +151,8 @@ EditorManager::EditorManager()
   // - Session ID tracking (current_session_id_)
   //
   // INITIALIZATION ORDER (CRITICAL):
-  // 1. PopupManager - MUST be first, MenuOrchestrator/UICoordinator take ref to it
+  // 1. PopupManager - MUST be first, MenuOrchestrator/UICoordinator take ref to
+  // it
   // 2. SessionCoordinator - Independent, can be early
   // 3. MenuOrchestrator - Depends on PopupManager, SessionCoordinator
   // 4. UICoordinator - Depends on PopupManager, SessionCoordinator
@@ -173,14 +171,16 @@ EditorManager::EditorManager()
       static_cast<void*>(&sessions_), &card_registry_, &toast_manager_,
       &user_settings_);
 
-  // STEP 3: Initialize MenuOrchestrator (depends on popup_manager_, session_coordinator_)
+  // STEP 3: Initialize MenuOrchestrator (depends on popup_manager_,
+  // session_coordinator_)
   menu_orchestrator_ = std::make_unique<MenuOrchestrator>(
       this, menu_builder_, rom_file_manager_, project_manager_,
       editor_registry_, *session_coordinator_, toast_manager_, *popup_manager_);
 
   session_coordinator_->SetEditorManager(this);
 
-  // STEP 4: Initialize UICoordinator (depends on popup_manager_, session_coordinator_, card_registry_)
+  // STEP 4: Initialize UICoordinator (depends on popup_manager_,
+  // session_coordinator_, card_registry_)
   ui_coordinator_ = std::make_unique<UICoordinator>(
       this, rom_file_manager_, project_manager_, editor_registry_,
       card_registry_, *session_coordinator_, window_delegate_, toast_manager_,
@@ -253,8 +253,9 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
     PRINT_IF_ERROR(OpenRomOrProject(filename));
   }
 
-  // Note: PopupManager is now initialized in constructor before MenuOrchestrator
-  // This ensures all menu callbacks can safely call popup_manager_.Show()
+  // Note: PopupManager is now initialized in constructor before
+  // MenuOrchestrator This ensures all menu callbacks can safely call
+  // popup_manager_.Show()
 
   // Register emulator cards early (emulator Initialize might not be called)
   // Using EditorCardRegistry directly
@@ -506,7 +507,8 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
   // Initialize welcome screen callbacks
   welcome_screen_.SetOpenRomCallback([this]() {
     status_ = LoadRom();
-    // LoadRom() already handles closing welcome screen and showing editor selection
+    // LoadRom() already handles closing welcome screen and showing editor
+    // selection
   });
 
   welcome_screen_.SetNewProjectCallback([this]() {
@@ -643,7 +645,7 @@ void EditorManager::OpenEditorAndCardsFromFlags(const std::string& editor_name,
 
 /**
  * @brief Main update loop for the editor application
- * 
+ *
  * DELEGATION FLOW:
  * 1. Update timing manager for accurate delta time
  * 2. Draw popups (PopupManager) - modal dialogs across all sessions
@@ -652,12 +654,12 @@ void EditorManager::OpenEditorAndCardsFromFlags(const std::string& editor_name,
  * 5. Iterate all sessions and update active editors
  * 6. Draw session UI (SessionCoordinator) - session switcher, manager
  * 7. Draw sidebar (EditorCardRegistry) - card-based editor UI
- * 
- * Note: EditorManager retains the main loop to coordinate multi-session updates,
- * but delegates specific drawing/state operations to specialized components.
+ *
+ * Note: EditorManager retains the main loop to coordinate multi-session
+ * updates, but delegates specific drawing/state operations to specialized
+ * components.
  */
 absl::Status EditorManager::Update() {
-
   // Update timing manager for accurate delta time across the application
   // This fixes animation timing issues that occur when mouse isn't moving
   TimingManager::Get().Update();
@@ -729,7 +731,8 @@ absl::Status EditorManager::Update() {
   }
 
   // CRITICAL: Draw UICoordinator UI components FIRST (before ROM checks)
-  // This ensures Welcome Screen, Command Palette, etc. work even without ROM loaded
+  // This ensures Welcome Screen, Command Palette, etc. work even without ROM
+  // loaded
   if (ui_coordinator_) {
     ui_coordinator_->DrawAllUI();
   }
@@ -774,8 +777,7 @@ absl::Status EditorManager::Update() {
   // Iterate through ALL sessions to support multi-session docking
   for (size_t session_idx = 0; session_idx < sessions_.size(); ++session_idx) {
     auto& session = sessions_[session_idx];
-    if (!session.rom.is_loaded())
-      continue;  // Skip sessions with invalid ROMs
+    if (!session.rom.is_loaded()) continue;  // Skip sessions with invalid ROMs
 
     // Use RAII SessionScope for clean context switching
     SessionScope scope(this, session_idx);
@@ -870,8 +872,7 @@ absl::Status EditorManager::Update() {
     for (size_t session_idx = 0; session_idx < sessions_.size();
          ++session_idx) {
       auto& session = sessions_[session_idx];
-      if (!session.rom.is_loaded())
-        continue;
+      if (!session.rom.is_loaded()) continue;
 
       for (auto editor : session.editors.active_editors_) {
         if (*editor->active() && IsCardBasedEditor(editor->type())) {
@@ -888,7 +889,8 @@ absl::Status EditorManager::Update() {
     // Determine which category to show in sidebar
     std::string sidebar_category;
 
-    // Priority 1: Use active_category from card manager (user's last interaction)
+    // Priority 1: Use active_category from card manager (user's last
+    // interaction)
     if (!card_registry_.GetActiveCategory().empty() &&
         std::find(active_categories.begin(), active_categories.end(),
                   card_registry_.GetActiveCategory()) !=
@@ -942,14 +944,17 @@ void EditorManager::DrawContextSensitiveCardControl() {
 
 /**
  * @brief Draw the main menu bar
- * 
+ *
  * DELEGATION:
  * - Menu items: MenuOrchestrator::BuildMainMenu()
- * - ROM selector: EditorManager::DrawRomSelector() (inline, needs current_rom_ access)
- * - Menu bar extras: UICoordinator::DrawMenuBarExtras() (session indicator, version)
- * 
- * Note: ROM selector stays in EditorManager because it needs direct access to sessions_
- * and current_rom_ for the combo box. Could be extracted to SessionCoordinator in future.
+ * - ROM selector: EditorManager::DrawRomSelector() (inline, needs current_rom_
+ * access)
+ * - Menu bar extras: UICoordinator::DrawMenuBarExtras() (session indicator,
+ * version)
+ *
+ * Note: ROM selector stays in EditorManager because it needs direct access to
+ * sessions_ and current_rom_ for the combo box. Could be extracted to
+ * SessionCoordinator in future.
  */
 void EditorManager::DrawMenuBar() {
   static bool show_display_settings = false;
@@ -965,7 +970,8 @@ void EditorManager::DrawMenuBar() {
       ui_coordinator_->DrawRomSelector();
     }
 
-    // Delegate menu bar extras to UICoordinator (session indicator, version display)
+    // Delegate menu bar extras to UICoordinator (session indicator, version
+    // display)
     if (ui_coordinator_) {
       ui_coordinator_->DrawMenuBarExtras();
     }
@@ -1090,7 +1096,8 @@ void EditorManager::DrawMenuBar() {
 
   // Workspace preset dialogs are now in UICoordinator
 
-  // Layout presets UI (session dialogs are drawn by SessionCoordinator at lines 907-915)
+  // Layout presets UI (session dialogs are drawn by SessionCoordinator at lines
+  // 907-915)
   if (ui_coordinator_) {
     ui_coordinator_->DrawLayoutPresets();
   }
@@ -1098,15 +1105,16 @@ void EditorManager::DrawMenuBar() {
 
 /**
  * @brief Load a ROM file into a new or existing session
- * 
+ *
  * DELEGATION:
  * - File dialog: util::FileDialogWrapper
  * - ROM loading: RomFileManager::LoadRom()
- * - Session management: EditorManager (searches for empty session or creates new)
+ * - Session management: EditorManager (searches for empty session or creates
+ * new)
  * - Dependency injection: ConfigureEditorDependencies()
  * - Asset loading: LoadAssets() (calls Initialize/Load on all editors)
  * - UI updates: UICoordinator (hides welcome, shows editor selection)
- * 
+ *
  * FLOW:
  * 1. Show file dialog and get filename
  * 2. Check for duplicate sessions (prevent opening same ROM twice)
@@ -1212,16 +1220,16 @@ absl::Status EditorManager::LoadAssets() {
 
 /**
  * @brief Save the current ROM file
- * 
+ *
  * DELEGATION:
  * - Editor data saving: Each editor's Save() method (overworld, dungeon, etc.)
  * - ROM file writing: RomFileManager::SaveRom()
- * 
+ *
  * RESPONSIBILITIES STILL IN EDITORMANAGER:
  * - Coordinating editor saves (dungeon maps, overworld maps, graphics sheets)
  * - Checking feature flags to determine what to save
  * - Accessing current session's editors
- * 
+ *
  * This stays in EditorManager because it requires knowledge of all editors
  * and the order in which they must be saved to maintain ROM integrity.
  */
@@ -1305,7 +1313,8 @@ absl::Status EditorManager::OpenRomOrProject(const std::string& filename) {
     // Apply project feature flags to the session
     session->feature_flags = current_project_.feature_flags;
 
-    // Update test manager with current ROM for ROM-dependent tests (only when tests are enabled)
+    // Update test manager with current ROM for ROM-dependent tests (only when
+    // tests are enabled)
 #ifdef YAZE_ENABLE_TESTING
     LOG_DEBUG("EditorManager", "Setting ROM in TestManager - %p ('%s')",
               (void*)GetCurrentRom(),
@@ -1380,7 +1389,8 @@ absl::Status EditorManager::OpenProject() {
     // Apply project feature flags to the session
     session->feature_flags = current_project_.feature_flags;
 
-    // Update test manager with current ROM for ROM-dependent tests (only when tests are enabled)
+    // Update test manager with current ROM for ROM-dependent tests (only when
+    // tests are enabled)
 #ifdef YAZE_ENABLE_TESTING
     LOG_DEBUG("EditorManager", "Setting ROM in TestManager - %p ('%s')",
               (void*)GetCurrentRom(),
@@ -1672,8 +1682,7 @@ std::string EditorManager::GenerateUniqueEditorTitle(
 // ============================================================================
 
 void EditorManager::JumpToDungeonRoom(int room_id) {
-  if (!GetCurrentEditorSet())
-    return;
+  if (!GetCurrentEditorSet()) return;
 
   // Switch to dungeon editor
   SwitchToEditor(EditorType::kDungeon);
@@ -1683,8 +1692,7 @@ void EditorManager::JumpToDungeonRoom(int room_id) {
 }
 
 void EditorManager::JumpToOverworldMap(int map_id) {
-  if (!GetCurrentEditorSet())
-    return;
+  if (!GetCurrentEditorSet()) return;
 
   // Switch to overworld editor
   SwitchToEditor(EditorType::kOverworld);
@@ -1695,8 +1703,7 @@ void EditorManager::JumpToOverworldMap(int map_id) {
 
 void EditorManager::SwitchToEditor(EditorType editor_type) {
   auto* editor_set = GetCurrentEditorSet();
-  if (!editor_set)
-    return;
+  if (!editor_set) return;
 
   // Toggle the editor
   for (auto* editor : editor_set->active_editors_) {
@@ -1756,7 +1763,6 @@ EditorManager::SessionScope::SessionScope(EditorManager* manager,
       prev_rom_(manager->GetCurrentRom()),
       prev_editor_set_(manager->GetCurrentEditorSet()),
       prev_session_id_(manager->GetCurrentSessionId()) {
-
   // Set new session context
   manager_->session_coordinator_->SwitchToSession(session_id);
 }
@@ -1777,16 +1783,16 @@ bool EditorManager::HasDuplicateSession(const std::string& filepath) {
 
 /**
  * @brief Injects dependencies into all editors within an EditorSet
- * 
+ *
  * This function is called whenever a new session is created or a ROM is loaded
  * into an existing session. It configures the EditorDependencies struct with
  * pointers to all the managers and services that editors need, then applies
  * them to the editor set.
- * 
+ *
  * @param editor_set The set of editors to configure
  * @param rom The ROM instance for this session
  * @param session_id The unique ID for this session
- * 
+ *
  * Dependencies injected:
  * - rom: The ROM data for this session
  * - session_id: For creating session-aware card IDs

@@ -1,10 +1,11 @@
 #include "app/editor/overworld/tile16_editor.h"
 
+#include <gtest/gtest.h>
+
 #include <iostream>
 #include <memory>
 #include <vector>
 
-#include <gtest/gtest.h>
 #include "app/gfx/backend/sdl2_renderer.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/render/tilemap.h"

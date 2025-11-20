@@ -1,10 +1,10 @@
 #include "dungeon_editor_v2.h"
-#include "app/editor/system/editor_card_registry.h"
 
 #include <algorithm>
 #include <cstdio>
 
 #include "absl/strings/str_format.h"
+#include "app/editor/system/editor_card_registry.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/gfx/util/palette_manager.h"
@@ -24,15 +24,15 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
   // Don't initialize emulator preview yet - ROM might not be loaded
   // Will be initialized in Load() instead
 
-  // Setup docking class for room windows (ImGui::GetID will be called in Update when ImGui is ready)
+  // Setup docking class for room windows (ImGui::GetID will be called in Update
+  // when ImGui is ready)
   room_window_class_.DockingAllowUnclassed =
       true;  // Room windows can dock with anything
   room_window_class_.DockingAlwaysTabBar =
       true;  // Always show tabs when multiple rooms
 
   // Register all cards with EditorCardRegistry (dependency injection)
-  if (!dependencies_.card_registry)
-    return;
+  if (!dependencies_.card_registry) return;
   auto* card_registry = dependencies_.card_registry;
 
   card_registry->RegisterCard({.card_id = MakeCardId("dungeon.control_panel"),
@@ -99,7 +99,8 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
                                .visibility_flag = &show_debug_controls_,
                                .priority = 80});
 
-  // Show control panel and room selector by default when Dungeon Editor is activated
+  // Show control panel and room selector by default when Dungeon Editor is
+  // activated
   show_control_panel_ = true;
   show_room_selector_ = true;
 }
@@ -187,7 +188,8 @@ absl::Status DungeonEditorV2::Update() {
   }
 
   // CARD-BASED EDITOR: All windows are independent top-level cards
-  // No parent wrapper - this allows closing control panel without affecting rooms
+  // No parent wrapper - this allows closing control panel without affecting
+  // rooms
 
   DrawLayout();
 
@@ -343,7 +345,8 @@ void DungeonEditorV2::DrawRoomTab(int room_id) {
   }
 
   // Initialize room graphics and objects in CORRECT ORDER
-  // Critical sequence: 1. Load data from ROM, 2. Load objects (sets floor graphics), 3. Render
+  // Critical sequence: 1. Load data from ROM, 2. Load objects (sets floor
+  // graphics), 3. Render
   if (room.IsLoaded()) {
     bool needs_render = false;
 
@@ -355,7 +358,8 @@ void DungeonEditorV2::DrawRoomTab(int room_id) {
                 room_id);
     }
 
-    // Step 2: Load objects from ROM (CRITICAL: sets floor1_graphics_, floor2_graphics_!)
+    // Step 2: Load objects from ROM (CRITICAL: sets floor1_graphics_,
+    // floor2_graphics_!)
     if (room.GetTileObjects().empty()) {
       room.LoadObjects();
       needs_render = true;
@@ -366,7 +370,8 @@ void DungeonEditorV2::DrawRoomTab(int room_id) {
     // Step 3: Render to bitmaps (now floor graphics are set correctly!)
     auto& bg1_bitmap = room.bg1_buffer().bitmap();
     if (needs_render || !bg1_bitmap.is_active() || bg1_bitmap.width() == 0) {
-      room.RenderRoomGraphics();  // Includes RenderObjectsToBackground() internally
+      room.RenderRoomGraphics();  // Includes RenderObjectsToBackground()
+                                  // internally
       LOG_DEBUG("[DungeonEditorV2]", "Rendered room %d to bitmaps", room_id);
     }
   }
@@ -417,9 +422,7 @@ void DungeonEditorV2::OnEntranceSelected(int entrance_id) {
   OnRoomSelected(room_id);
 }
 
-void DungeonEditorV2::add_room(int room_id) {
-  OnRoomSelected(room_id);
-}
+void DungeonEditorV2::add_room(int room_id) { OnRoomSelected(room_id); }
 
 void DungeonEditorV2::FocusRoom(int room_id) {
   // Focus the room card if it exists
@@ -782,8 +785,8 @@ void DungeonEditorV2::DrawRoomGraphicsCard() {
       ImGui::Text("Blockset: %02X", room.blockset);
       ImGui::Separator();
 
-      // Create a canvas for displaying room graphics (16 blocks, 2 columns, 8 rows)
-      // Each block is 128x32, so 2 cols = 256 wide, 8 rows = 256 tall
+      // Create a canvas for displaying room graphics (16 blocks, 2 columns, 8
+      // rows) Each block is 128x32, so 2 cols = 256 wide, 8 rows = 256 tall
       static gui::Canvas room_gfx_canvas("##RoomGfxCanvas",
                                          ImVec2(256 + 1, 256 + 1));
 
@@ -810,8 +813,7 @@ void DungeonEditorV2::DrawRoomGraphicsCard() {
       constexpr int block_height = 32;
 
       for (int block : blocks) {
-        if (current_block >= 16)
-          break;  // Show first 16 blocks
+        if (current_block >= 16) break;  // Show first 16 blocks
 
         // Ensure the graphics sheet is loaded
         if (block < static_cast<int>(gfx::Arena::Get().gfx_sheets().size())) {

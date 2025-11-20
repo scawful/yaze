@@ -1,5 +1,8 @@
 #include "app/editor/system/settings_editor.h"
 
+#include <filesystem>
+#include <set>
+
 #include "absl/status/status.h"
 #include "app/editor/system/editor_card_registry.h"
 #include "app/gfx/debug/performance/performance_profiler.h"
@@ -10,9 +13,6 @@
 #include "app/gui/core/theme_manager.h"
 #include "imgui/imgui.h"
 #include "util/log.h"
-
-#include <filesystem>
-#include <set>
 
 namespace yaze {
 namespace editor {
@@ -29,8 +29,7 @@ using ImGui::TableSetupColumn;
 
 void SettingsEditor::Initialize() {
   // Register cards with EditorCardRegistry (dependency injection)
-  if (!dependencies_.card_registry)
-    return;
+  if (!dependencies_.card_registry) return;
   auto* card_registry = dependencies_.card_registry;
 
   card_registry->RegisterCard({.card_id = MakeCardId("settings.general"),
@@ -80,11 +79,11 @@ absl::Status SettingsEditor::Load() {
 }
 
 absl::Status SettingsEditor::Update() {
-  if (!dependencies_.card_registry)
-    return absl::OkStatus();
+  if (!dependencies_.card_registry) return absl::OkStatus();
   auto* card_registry = dependencies_.card_registry;
 
-  // General Settings Card - Check visibility flag and pass to Begin() for proper X button
+  // General Settings Card - Check visibility flag and pass to Begin() for
+  // proper X button
   bool* general_visible =
       card_registry->GetVisibilityFlag(MakeCardId("settings.general"));
   if (general_visible && *general_visible) {
@@ -96,7 +95,8 @@ absl::Status SettingsEditor::Update() {
     general_card.End();
   }
 
-  // Appearance Card (Themes + Font Manager combined) - Check visibility and pass flag
+  // Appearance Card (Themes + Font Manager combined) - Check visibility and
+  // pass flag
   bool* appearance_visible =
       card_registry->GetVisibilityFlag(MakeCardId("settings.appearance"));
   if (appearance_visible && *appearance_visible) {
@@ -461,14 +461,10 @@ void SettingsEditor::DrawAIAgentSettings() {
 
       // Get current categories
       std::set<std::string> categories;
-      if (user_settings_->prefs().log_ai_requests)
-        categories.insert("AI");
-      if (user_settings_->prefs().log_rom_operations)
-        categories.insert("ROM");
-      if (user_settings_->prefs().log_gui_automation)
-        categories.insert("GUI");
-      if (user_settings_->prefs().log_proposals)
-        categories.insert("Proposals");
+      if (user_settings_->prefs().log_ai_requests) categories.insert("AI");
+      if (user_settings_->prefs().log_rom_operations) categories.insert("ROM");
+      if (user_settings_->prefs().log_gui_automation) categories.insert("GUI");
+      if (user_settings_->prefs().log_proposals) categories.insert("Proposals");
 
       // Reconfigure with new level
       util::LogManager::instance().configure(
@@ -551,14 +547,10 @@ void SettingsEditor::DrawAIAgentSettings() {
     if (categories_changed) {
       // Rebuild category set
       std::set<std::string> categories;
-      if (user_settings_->prefs().log_ai_requests)
-        categories.insert("AI");
-      if (user_settings_->prefs().log_rom_operations)
-        categories.insert("ROM");
-      if (user_settings_->prefs().log_gui_automation)
-        categories.insert("GUI");
-      if (user_settings_->prefs().log_proposals)
-        categories.insert("Proposals");
+      if (user_settings_->prefs().log_ai_requests) categories.insert("AI");
+      if (user_settings_->prefs().log_rom_operations) categories.insert("ROM");
+      if (user_settings_->prefs().log_gui_automation) categories.insert("GUI");
+      if (user_settings_->prefs().log_proposals) categories.insert("Proposals");
 
       // Reconfigure LogManager
       util::LogLevel level =

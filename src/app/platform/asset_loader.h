@@ -12,7 +12,7 @@ namespace yaze {
 /**
  * @class AssetLoader
  * @brief Cross-platform asset file loading utility
- * 
+ *
  * Handles platform-specific paths for loading assets from:
  * - macOS bundle resources
  * - Windows relative paths
@@ -23,7 +23,8 @@ class AssetLoader {
  public:
   /**
    * Load a text file from the assets directory
-   * @param relative_path Path relative to assets/ (e.g., "agent/system_prompt.txt")
+   * @param relative_path Path relative to assets/ (e.g.,
+   * "agent/system_prompt.txt")
    * @return File contents or error
    */
   static absl::StatusOr<std::string> LoadTextFile(

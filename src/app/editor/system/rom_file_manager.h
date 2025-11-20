@@ -14,7 +14,7 @@ class ToastManager;
 /**
  * @class RomFileManager
  * @brief Handles all ROM file I/O operations
- * 
+ *
  * Extracted from EditorManager to provide focused ROM file management:
  * - ROM loading and saving
  * - Asset loading

@@ -54,15 +54,15 @@ void LogManager::configure(LogLevel level, const std::string& file_path,
     // Log which categories are enabled for debugging
     std::string category_list;
     for (const auto& cat : categories) {
-      if (!category_list.empty())
-        category_list += ", ";
+      if (!category_list.empty()) category_list += ", ";
       category_list += cat;
     }
     std::cerr << "Log categories filter enabled: [" << category_list << "]"
               << std::endl;
   }
 
-  // If a file path is provided, close any existing stream and open the new file.
+  // If a file path is provided, close any existing stream and open the new
+  // file.
   if (!file_path.empty() && file_path != log_file_path_) {
     if (log_stream_.is_open()) {
       log_stream_.close();
