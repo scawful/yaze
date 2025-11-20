@@ -11,7 +11,9 @@
 namespace yaze {
 namespace gfx {
 
-void Arena::Initialize(IRenderer* renderer) { renderer_ = renderer; }
+void Arena::Initialize(IRenderer* renderer) {
+  renderer_ = renderer;
+}
 
 Arena& Arena::Get() {
   static Arena instance;
@@ -152,7 +154,8 @@ SDL_Surface* Arena::AllocateSurface(int width, int height, int depth,
 }
 
 void Arena::FreeSurface(SDL_Surface* surface) {
-  if (!surface) return;
+  if (!surface)
+    return;
 
   // Return surface to pool if space available
   if (surface_pool_.available_surfaces_.size() < surface_pool_.MAX_POOL_SIZE) {

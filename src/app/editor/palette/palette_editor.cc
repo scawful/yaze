@@ -64,8 +64,10 @@ int CustomFormatString(char* buf, size_t buf_size, const char* fmt, ...) {
   int w = vsnprintf(buf, buf_size, fmt, args);
 #endif
   va_end(args);
-  if (buf == nullptr) return w;
-  if (w == -1 || w >= (int)buf_size) w = (int)buf_size - 1;
+  if (buf == nullptr)
+    return w;
+  if (w == -1 || w >= (int)buf_size)
+    w = (int)buf_size - 1;
   buf[w] = 0;
   return w;
 }
@@ -137,8 +139,7 @@ absl::Status DisplayPalette(gfx::SnesPalette& palette, bool loaded) {
     SameLine();
     Text("Previous");
 
-    if (Button("Update Map Palette")) {
-    }
+    if (Button("Update Map Palette")) {}
 
     ColorButton(
         "##current", color,
@@ -157,7 +158,8 @@ absl::Status DisplayPalette(gfx::SnesPalette& palette, bool loaded) {
     Text("Palette");
     for (int n = 0; n < IM_ARRAYSIZE(current_palette); n++) {
       PushID(n);
-      if ((n % 8) != 0) SameLine(0.0f, GetStyle().ItemSpacing.y);
+      if ((n % 8) != 0)
+        SameLine(0.0f, GetStyle().ItemSpacing.y);
 
       if (ColorButton("##palette", current_palette[n], kPalButtonFlags,
                       ImVec2(20, 20)))
@@ -186,7 +188,8 @@ absl::Status DisplayPalette(gfx::SnesPalette& palette, bool loaded) {
 void PaletteEditor::Initialize() {
   // Register all cards with EditorCardRegistry (done once during
   // initialization)
-  if (!dependencies_.card_registry) return;
+  if (!dependencies_.card_registry)
+    return;
   auto* card_registry = dependencies_.card_registry;
 
   card_registry->RegisterCard({.card_id = "palette.control_panel",
@@ -358,52 +361,68 @@ absl::Status PaletteEditor::Update() {
   // Each card has its own show_ flag that needs to be synced with our
   // visibility flags
   if (show_ow_main_card_ && ow_main_card_) {
-    if (!ow_main_card_->IsVisible()) ow_main_card_->Show();
+    if (!ow_main_card_->IsVisible())
+      ow_main_card_->Show();
     ow_main_card_->Draw();
     // Sync back if user closed the card with X button
-    if (!ow_main_card_->IsVisible()) show_ow_main_card_ = false;
+    if (!ow_main_card_->IsVisible())
+      show_ow_main_card_ = false;
   }
 
   if (show_ow_animated_card_ && ow_animated_card_) {
-    if (!ow_animated_card_->IsVisible()) ow_animated_card_->Show();
+    if (!ow_animated_card_->IsVisible())
+      ow_animated_card_->Show();
     ow_animated_card_->Draw();
-    if (!ow_animated_card_->IsVisible()) show_ow_animated_card_ = false;
+    if (!ow_animated_card_->IsVisible())
+      show_ow_animated_card_ = false;
   }
 
   if (show_dungeon_main_card_ && dungeon_main_card_) {
-    if (!dungeon_main_card_->IsVisible()) dungeon_main_card_->Show();
+    if (!dungeon_main_card_->IsVisible())
+      dungeon_main_card_->Show();
     dungeon_main_card_->Draw();
-    if (!dungeon_main_card_->IsVisible()) show_dungeon_main_card_ = false;
+    if (!dungeon_main_card_->IsVisible())
+      show_dungeon_main_card_ = false;
   }
 
   if (show_sprite_card_ && sprite_card_) {
-    if (!sprite_card_->IsVisible()) sprite_card_->Show();
+    if (!sprite_card_->IsVisible())
+      sprite_card_->Show();
     sprite_card_->Draw();
-    if (!sprite_card_->IsVisible()) show_sprite_card_ = false;
+    if (!sprite_card_->IsVisible())
+      show_sprite_card_ = false;
   }
 
   if (show_sprites_aux1_card_ && sprites_aux1_card_) {
-    if (!sprites_aux1_card_->IsVisible()) sprites_aux1_card_->Show();
+    if (!sprites_aux1_card_->IsVisible())
+      sprites_aux1_card_->Show();
     sprites_aux1_card_->Draw();
-    if (!sprites_aux1_card_->IsVisible()) show_sprites_aux1_card_ = false;
+    if (!sprites_aux1_card_->IsVisible())
+      show_sprites_aux1_card_ = false;
   }
 
   if (show_sprites_aux2_card_ && sprites_aux2_card_) {
-    if (!sprites_aux2_card_->IsVisible()) sprites_aux2_card_->Show();
+    if (!sprites_aux2_card_->IsVisible())
+      sprites_aux2_card_->Show();
     sprites_aux2_card_->Draw();
-    if (!sprites_aux2_card_->IsVisible()) show_sprites_aux2_card_ = false;
+    if (!sprites_aux2_card_->IsVisible())
+      show_sprites_aux2_card_ = false;
   }
 
   if (show_sprites_aux3_card_ && sprites_aux3_card_) {
-    if (!sprites_aux3_card_->IsVisible()) sprites_aux3_card_->Show();
+    if (!sprites_aux3_card_->IsVisible())
+      sprites_aux3_card_->Show();
     sprites_aux3_card_->Draw();
-    if (!sprites_aux3_card_->IsVisible()) show_sprites_aux3_card_ = false;
+    if (!sprites_aux3_card_->IsVisible())
+      show_sprites_aux3_card_ = false;
   }
 
   if (show_equipment_card_ && equipment_card_) {
-    if (!equipment_card_->IsVisible()) equipment_card_->Show();
+    if (!equipment_card_->IsVisible())
+      equipment_card_->Show();
     equipment_card_->Draw();
-    if (!equipment_card_->IsVisible()) show_equipment_card_ = false;
+    if (!equipment_card_->IsVisible())
+      show_equipment_card_ = false;
   }
 
   // Draw quick access and custom palette cards
@@ -456,7 +475,8 @@ void PaletteEditor::DrawQuickAccessTab() {
   Text("Recently Used Colors");
   for (int i = 0; i < recently_used_colors_.size(); i++) {
     PushID(i);
-    if (i % 8 != 0) SameLine();
+    if (i % 8 != 0)
+      SameLine();
     ImVec4 displayColor =
         gui::ConvertSnesColorToImVec4(recently_used_colors_[i]);
     if (ImGui::ColorButton("##recent", displayColor)) {
@@ -489,7 +509,8 @@ void PaletteEditor::DrawCustomPalette() {
                  ImGuiWindowFlags_HorizontalScrollbar)) {
     for (int i = 0; i < custom_palette_.size(); i++) {
       PushID(i);
-      if (i > 0) SameLine(0.0f, GetStyle().ItemSpacing.y);
+      if (i > 0)
+        SameLine(0.0f, GetStyle().ItemSpacing.y);
 
       // Enhanced color button with context menu and drag-drop support
       ImVec4 displayColor = gui::ConvertSnesColorToImVec4(custom_palette_[i]);
@@ -595,7 +616,8 @@ absl::Status PaletteEditor::DrawPaletteGroup(int category,
 
     for (int n = 0; n < pal_size; n++) {
       PushID(n);
-      if (n > 0 && n % 8 != 0) SameLine(0.0f, 2.0f);
+      if (n > 0 && n % 8 != 0)
+        SameLine(0.0f, 2.0f);
 
       auto popup_id =
           absl::StrCat(kPaletteCategoryNames[category].data(), j, "_", n);
@@ -667,22 +689,27 @@ absl::Status PaletteEditor::HandleColorPopup(gfx::SnesPalette& palette, int i,
 
   Separator();
 
-  if (Button("Copy as..", ImVec2(-1, 0))) OpenPopup("Copy");
+  if (Button("Copy as..", ImVec2(-1, 0)))
+    OpenPopup("Copy");
   if (BeginPopup("Copy")) {
     CustomFormatString(buf, IM_ARRAYSIZE(buf), "(%.3ff, %.3ff, %.3ff)", col[0],
                        col[1], col[2]);
-    if (Selectable(buf)) SetClipboardText(buf);
+    if (Selectable(buf))
+      SetClipboardText(buf);
 
     CustomFormatString(buf, IM_ARRAYSIZE(buf), "(%d,%d,%d)", cr, cg, cb);
-    if (Selectable(buf)) SetClipboardText(buf);
+    if (Selectable(buf))
+      SetClipboardText(buf);
 
     CustomFormatString(buf, IM_ARRAYSIZE(buf), "#%02X%02X%02X", cr, cg, cb);
-    if (Selectable(buf)) SetClipboardText(buf);
+    if (Selectable(buf))
+      SetClipboardText(buf);
 
     // SNES Format
     CustomFormatString(buf, IM_ARRAYSIZE(buf), "$%04X",
                        ConvertRgbToSnes(ImVec4(col[0], col[1], col[2], 1.0f)));
-    if (Selectable(buf)) SetClipboardText(buf);
+    if (Selectable(buf))
+      SetClipboardText(buf);
 
     EndPopup();
   }
@@ -921,7 +948,8 @@ void PaletteEditor::DrawControlPanel() {
       ImGui::Separator();
 
       // View menu section now handled by EditorCardRegistry in EditorManager
-      if (!dependencies_.card_registry) return;
+      if (!dependencies_.card_registry)
+        return;
       auto* card_registry = dependencies_.card_registry;
 
       ImGui::EndPopup();
@@ -978,7 +1006,8 @@ void PaletteEditor::DrawQuickAccessCard() {
     } else {
       for (int i = 0; i < recently_used_colors_.size(); i++) {
         PushID(i);
-        if (i % 8 != 0) SameLine();
+        if (i % 8 != 0)
+          SameLine();
         ImVec4 displayColor =
             gui::ConvertSnesColorToImVec4(recently_used_colors_[i]);
         if (ImGui::ColorButton("##recent", displayColor, kPalButtonFlags,
@@ -1015,7 +1044,8 @@ void PaletteEditor::DrawCustomPaletteCard() {
     } else {
       for (int i = 0; i < custom_palette_.size(); i++) {
         PushID(i);
-        if (i > 0 && i % 16 != 0) SameLine(0.0f, 2.0f);
+        if (i > 0 && i % 16 != 0)
+          SameLine(0.0f, 2.0f);
 
         // Enhanced color button with context menu and drag-drop support
         ImVec4 displayColor = gui::ConvertSnesColorToImVec4(custom_palette_[i]);

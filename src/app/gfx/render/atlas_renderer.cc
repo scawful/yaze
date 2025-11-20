@@ -168,7 +168,8 @@ void AtlasRenderer::RenderBatch(
 
   // Render each atlas group
   for (const auto& [atlas_index, commands] : atlas_groups) {
-    if (commands.empty()) continue;
+    if (commands.empty())
+      continue;
 
     auto& atlas = *atlases_[atlas_index];
 
@@ -178,7 +179,8 @@ void AtlasRenderer::RenderBatch(
     // Render all commands for this atlas
     for (const auto* cmd : commands) {
       auto it = atlas_lookup_.find(cmd->atlas_id);
-      if (it == atlas_lookup_.end()) continue;
+      if (it == atlas_lookup_.end())
+        continue;
 
       AtlasEntry* entry = it->second;
 
@@ -210,7 +212,8 @@ void AtlasRenderer::RenderBatchWithBppOptimization(
 
   // Render each BPP group separately for optimal performance
   for (const auto& [bpp_format, command_indices] : bpp_groups) {
-    if (command_indices.empty()) continue;
+    if (command_indices.empty())
+      continue;
 
     // Group commands by atlas for this BPP format
     std::unordered_map<int, std::vector<const RenderCommand*>> atlas_groups;
@@ -237,7 +240,8 @@ void AtlasRenderer::RenderBatchWithBppOptimization(
 
     // Render each atlas group for this BPP format
     for (const auto& [atlas_index, commands] : atlas_groups) {
-      if (commands.empty()) continue;
+      if (commands.empty())
+        continue;
 
       auto& atlas = *atlases_[atlas_index];
 
@@ -247,7 +251,8 @@ void AtlasRenderer::RenderBatchWithBppOptimization(
       // Render all commands for this atlas and BPP format
       for (const auto* cmd : commands) {
         auto it = atlas_lookup_.find(cmd->atlas_id);
-        if (it == atlas_lookup_.end()) continue;
+        if (it == atlas_lookup_.end())
+          continue;
 
         AtlasEntry* entry = it->second;
 
@@ -320,7 +325,9 @@ void AtlasRenderer::Clear() {
   current_atlas_ = 0;
 }
 
-AtlasRenderer::~AtlasRenderer() { Clear(); }
+AtlasRenderer::~AtlasRenderer() {
+  Clear();
+}
 
 void AtlasRenderer::RenderBitmap(int atlas_id, float x, float y, float scale_x,
                                  float scale_y) {

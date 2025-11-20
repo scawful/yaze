@@ -31,7 +31,8 @@ struct ExampleSelectionWithDeletion : ImGuiSelectionBasicStorage {
   // FIXME-MULTISELECT: Doesn't take account of the possibility focus target
   // will be moved during deletion. Need refocus or scroll offset.
   int ApplyDeletionPreLoop(ImGuiMultiSelectIO* ms_io, int items_count) {
-    if (Size == 0) return -1;
+    if (Size == 0)
+      return -1;
 
     // If focused item is not selected...
     const int focused_idx =
@@ -50,12 +51,14 @@ struct ExampleSelectionWithDeletion : ImGuiSelectionBasicStorage {
     // If focused item is selected: land on first unselected item after focused
     // item.
     for (int idx = focused_idx + 1; idx < items_count; idx++)
-      if (!Contains(GetStorageIdFromIndex(idx))) return idx;
+      if (!Contains(GetStorageIdFromIndex(idx)))
+        return idx;
 
     // If focused item is selected: otherwise return last unselected item before
     // focused item.
     for (int idx = IM_MIN(focused_idx, items_count) - 1; idx >= 0; idx--)
-      if (!Contains(GetStorageIdFromIndex(idx))) return idx;
+      if (!Contains(GetStorageIdFromIndex(idx)))
+        return idx;
 
     return -1;
   }
@@ -195,7 +198,8 @@ struct GfxSheetAssetBrowser {
   }
 
   void AddItems(int count) {
-    if (Items.Size == 0) NextItemId = 0;
+    if (Items.Size == 0)
+      NextItemId = 0;
     Items.reserve(Items.Size + count);
     for (int n = 0; n < count; n++, NextItemId++)
       Items.push_back(AssetObject(NextItemId, (NextItemId % 20) < 15   ? 0

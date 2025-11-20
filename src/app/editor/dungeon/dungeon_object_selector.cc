@@ -362,7 +362,8 @@ void DungeonObjectSelector::DrawRoomGraphics() {
     const int block_height = 32;       // Reduced height
 
     for (int block : blocks) {
-      if (current_block >= 16) break;  // Only show first 16 blocks
+      if (current_block >= 16)
+        break;  // Only show first 16 blocks
 
       // Ensure the graphics sheet is loaded and has a valid texture
       if (block < gfx::Arena::Get().gfx_sheets().size()) {

@@ -357,9 +357,13 @@ absl::StatusOr<std::string> Z3edNetworkClient::QueryAI(
   return impl_->QueryAI(query, username);
 }
 
-void Z3edNetworkClient::Disconnect() { impl_->Disconnect(); }
+void Z3edNetworkClient::Disconnect() {
+  impl_->Disconnect();
+}
 
-bool Z3edNetworkClient::IsConnected() const { return impl_->IsConnected(); }
+bool Z3edNetworkClient::IsConnected() const {
+  return impl_->IsConnected();
+}
 
 }  // namespace net
 }  // namespace cli

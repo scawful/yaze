@@ -60,9 +60,13 @@ const char* yaze_status_to_string(yaze_status status) {
   }
 }
 
-const char* yaze_get_version_string() { return YAZE_VERSION_STRING; }
+const char* yaze_get_version_string() {
+  return YAZE_VERSION_STRING;
+}
 
-int yaze_get_version_number() { return YAZE_VERSION_NUMBER; }
+int yaze_get_version_number() {
+  return YAZE_VERSION_NUMBER;
+}
 
 bool yaze_check_version_compatibility(const char* expected_version) {
   if (expected_version == nullptr) {
@@ -310,9 +314,12 @@ snes_color yaze_rgb_to_snes_color(uint8_t r, uint8_t g, uint8_t b) {
 
 void yaze_snes_color_to_rgb(snes_color color, uint8_t* r, uint8_t* g,
                             uint8_t* b) {
-  if (r != nullptr) *r = static_cast<uint8_t>(color.red);
-  if (g != nullptr) *g = static_cast<uint8_t>(color.green);
-  if (b != nullptr) *b = static_cast<uint8_t>(color.blue);
+  if (r != nullptr)
+    *r = static_cast<uint8_t>(color.red);
+  if (g != nullptr)
+    *g = static_cast<uint8_t>(color.green);
+  if (b != nullptr)
+    *b = static_cast<uint8_t>(color.blue);
 }
 
 // Version detection functions

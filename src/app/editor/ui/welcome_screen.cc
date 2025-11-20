@@ -136,7 +136,9 @@ void DrawTriforceBackground(ImDrawList* draw_list, ImVec2 pos, float size,
 
 }  // namespace
 
-WelcomeScreen::WelcomeScreen() { RefreshRecentProjects(); }
+WelcomeScreen::WelcomeScreen() {
+  RefreshRecentProjects();
+}
 
 bool WelcomeScreen::Show(bool* p_open) {
   // Update theme colors each frame
@@ -456,7 +458,8 @@ void WelcomeScreen::RefreshRecentProjects() {
       project::RecentFilesManager::GetInstance().GetRecentFiles();
 
   for (const auto& filepath : recent_files) {
-    if (recent_projects_.size() >= kMaxRecentProjects) break;
+    if (recent_projects_.size() >= kMaxRecentProjects)
+      break;
 
     RecentProject project;
     project.filepath = filepath;
@@ -541,13 +544,15 @@ void WelcomeScreen::DrawQuickActions() {
         ImGuiCol_ButtonActive,
         ImVec4(color.x * 1.2f, color.y * 1.2f, color.z * 1.2f, 1.0f));
 
-    if (!enabled) ImGui::BeginDisabled();
+    if (!enabled)
+      ImGui::BeginDisabled();
 
     bool clicked =
         ImGui::Button(absl::StrFormat("%s %s", icon, text).c_str(),
                       ImVec2(button_width, 38));  // Reduced from 45 to 38
 
-    if (!enabled) ImGui::EndDisabled();
+    if (!enabled)
+      ImGui::EndDisabled();
 
     ImGui::PopStyleColor(3);
 

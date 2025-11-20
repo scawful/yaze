@@ -181,7 +181,8 @@ void CommandManager::ShowWhichKeyHierarchical() {
 
 // Handle keyboard input for WhichKey navigation
 void CommandManager::HandleWhichKeyInput() {
-  if (!whichkey_active_) return;
+  if (!whichkey_active_)
+    return;
 
   // Check for prefix keys (w, l, f, b, s, t, etc.)
   for (const auto& [shortcut, group] : commands_) {

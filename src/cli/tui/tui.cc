@@ -37,7 +37,8 @@ bool HandleInput(ftxui::ScreenInteractive& screen, ftxui::Event& event,
     return true;
   }
   if (event == Event::ArrowUp || event == Event::Character('k')) {
-    if (selected != 0) selected--;
+    if (selected != 0)
+      selected--;
     return true;
   }
   if (event == Event::Character('q')) {

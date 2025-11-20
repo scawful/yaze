@@ -377,7 +377,8 @@ void Emulator::Run(Rom* rom) {
 
 void Emulator::RenderEmulatorInterface() {
   try {
-    if (!card_registry_) return;  // Card registry must be injected
+    if (!card_registry_)
+      return;  // Card registry must be injected
 
     static gui::EditorCard cpu_card("CPU Debugger", ICON_MD_MEMORY);
     static gui::EditorCard ppu_card("PPU Viewer", ICON_MD_VIDEOGAME_ASSET);
@@ -541,7 +542,8 @@ void Emulator::RenderModernCpuDebugger() {
     }
     ImGui::SameLine();
     if (ImGui::Button(ICON_MD_SKIP_NEXT " Step")) {
-      if (!running_) snes_.cpu().RunOpcode();
+      if (!running_)
+        snes_.cpu().RunOpcode();
     }
     ImGui::SameLine();
     if (ImGui::Button(ICON_MD_REFRESH)) {

@@ -45,7 +45,8 @@ void InputManager::Shutdown() {
 }
 
 void InputManager::Poll(Snes* snes, int player) {
-  if (!snes || !backend_) return;
+  if (!snes || !backend_)
+    return;
 
   ControllerState physical_state = backend_->Poll(player);
 

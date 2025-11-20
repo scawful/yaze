@@ -39,7 +39,8 @@ absl::Status WorkspaceManager::ResetWorkspaceLayout() {
 }
 
 void WorkspaceManager::SaveWorkspacePreset(const std::string& name) {
-  if (name.empty()) return;
+  if (name.empty())
+    return;
   std::string ini_name = absl::StrFormat("yaze_workspace_%s.ini", name.c_str());
   ImGui::SaveIniSettingsToDisk(ini_name.c_str());
 
@@ -52,7 +53,8 @@ void WorkspaceManager::SaveWorkspacePreset(const std::string& name) {
     workspace_presets_.emplace_back(name);
     try {
       std::ostringstream ss;
-      for (const auto& n : workspace_presets_) ss << n << "\n";
+      for (const auto& n : workspace_presets_)
+        ss << n << "\n";
       // This should use a platform-agnostic path
       util::SaveFile("workspace_presets.txt", ss.str());
     } catch (const std::exception& e) {
@@ -67,7 +69,8 @@ void WorkspaceManager::SaveWorkspacePreset(const std::string& name) {
 }
 
 void WorkspaceManager::LoadWorkspacePreset(const std::string& name) {
-  if (name.empty()) return;
+  if (name.empty())
+    return;
   std::string ini_name = absl::StrFormat("yaze_workspace_%s.ini", name.c_str());
   ImGui::LoadIniSettingsFromDisk(ini_name.c_str());
   last_workspace_preset_ = name;
@@ -189,7 +192,8 @@ void WorkspaceManager::CloseAllFloatingWindows() {
 }
 
 size_t WorkspaceManager::GetActiveSessionCount() const {
-  if (!sessions_) return 0;
+  if (!sessions_)
+    return 0;
 
   size_t count = 0;
   for (const auto& session : *sessions_) {
@@ -201,7 +205,8 @@ size_t WorkspaceManager::GetActiveSessionCount() const {
 }
 
 bool WorkspaceManager::HasDuplicateSession(const std::string& filepath) const {
-  if (!sessions_) return false;
+  if (!sessions_)
+    return false;
 
   for (const auto& session : *sessions_) {
     if (session.filepath == filepath && session.rom &&

@@ -53,7 +53,8 @@ class SDL2InputBackend : public IInputBackend {
   }
 
   ControllerState Poll(int player) override {
-    if (!initialized_) return ControllerState{};
+    if (!initialized_)
+      return ControllerState{};
 
     ControllerState state;
 
@@ -117,7 +118,8 @@ class SDL2InputBackend : public IInputBackend {
   }
 
   void ProcessEvent(void* event) override {
-    if (!initialized_ || !event) return;
+    if (!initialized_ || !event)
+      return;
 
     SDL_Event* sdl_event = static_cast<SDL_Event*>(event);
 

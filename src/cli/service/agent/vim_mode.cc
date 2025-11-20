@@ -290,7 +290,8 @@ void VimMode::MoveWordForward() {
 }
 
 void VimMode::MoveWordBackward() {
-  if (cursor_pos_ > 0) cursor_pos_--;
+  if (cursor_pos_ > 0)
+    cursor_pos_--;
   while (cursor_pos_ > 0 && std::isspace(current_line_[cursor_pos_])) {
     cursor_pos_--;
   }
@@ -299,9 +300,13 @@ void VimMode::MoveWordBackward() {
   }
 }
 
-void VimMode::MoveToLineStart() { cursor_pos_ = 0; }
+void VimMode::MoveToLineStart() {
+  cursor_pos_ = 0;
+}
 
-void VimMode::MoveToLineEnd() { cursor_pos_ = current_line_.length(); }
+void VimMode::MoveToLineEnd() {
+  cursor_pos_ = current_line_.length();
+}
 
 // Editing implementations
 void VimMode::DeleteChar() {
@@ -318,7 +323,9 @@ void VimMode::DeleteLine() {
   cursor_pos_ = 0;
 }
 
-void VimMode::YankLine() { yank_buffer_ = current_line_; }
+void VimMode::YankLine() {
+  yank_buffer_ = current_line_;
+}
 
 void VimMode::PasteBefore() {
   if (!yank_buffer_.empty()) {
@@ -372,7 +379,9 @@ void VimMode::Backspace() {
   }
 }
 
-void VimMode::Delete() { DeleteChar(); }
+void VimMode::Delete() {
+  DeleteChar();
+}
 
 void VimMode::Complete() {
   if (autocomplete_callback_) {
@@ -389,7 +398,8 @@ void VimMode::Complete() {
 
 // History navigation
 void VimMode::HistoryPrev() {
-  if (history_.empty()) return;
+  if (history_.empty())
+    return;
 
   if (history_index_ == -1) {
     history_index_ = history_.size() - 1;
@@ -402,7 +412,8 @@ void VimMode::HistoryPrev() {
 }
 
 void VimMode::HistoryNext() {
-  if (history_.empty() || history_index_ == -1) return;
+  if (history_.empty() || history_index_ == -1)
+    return;
 
   if (history_index_ < static_cast<int>(history_.size()) - 1) {
     history_index_++;

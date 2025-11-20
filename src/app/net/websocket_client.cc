@@ -62,7 +62,8 @@ class WebSocketClient::Impl {
   void Disconnect() {
     std::lock_guard<std::mutex> lock(mutex_);
 
-    if (!connected_) return;
+    if (!connected_)
+      return;
 
     should_stop_ = true;
     connected_ = false;
@@ -174,7 +175,9 @@ class WebSocketClient::Impl {
 WebSocketClient::WebSocketClient()
     : impl_(std::make_unique<Impl>()), state_(ConnectionState::kDisconnected) {}
 
-WebSocketClient::~WebSocketClient() { Disconnect(); }
+WebSocketClient::~WebSocketClient() {
+  Disconnect();
+}
 
 absl::Status WebSocketClient::Connect(const std::string& host, int port) {
   auto status = impl_->Connect(host, port);

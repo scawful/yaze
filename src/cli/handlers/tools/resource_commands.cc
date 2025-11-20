@@ -52,7 +52,8 @@ absl::Status ResourceSearchCommandHandler::Execute(
 
   for (const auto& category : categories) {
     auto labels_or = builder.GetLabels(category);
-    if (!labels_or.ok()) continue;
+    if (!labels_or.ok())
+      continue;
 
     auto labels = labels_or.value();
     for (const auto& [key, value] : labels) {

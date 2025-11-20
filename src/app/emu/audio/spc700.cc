@@ -952,7 +952,8 @@ void Spc700::ExecuteInstructions(uint8_t opcode) {
     }
     case 0x9e: {  // div imp
       read(PC);
-      for (int i = 0; i < 10; i++) callbacks_.idle(false);
+      for (int i = 0; i < 10; i++)
+        callbacks_.idle(false);
       PSW.H = (X & 0xf) <= (Y & 0xf);
       int yva = (Y << 8) | A;
       int x = X << 9;
@@ -960,8 +961,10 @@ void Spc700::ExecuteInstructions(uint8_t opcode) {
         yva <<= 1;
         yva |= (yva & 0x20000) ? 1 : 0;
         yva &= 0x1ffff;
-        if (yva >= x) yva ^= 1;
-        if (yva & 1) yva -= x;
+        if (yva >= x)
+          yva ^= 1;
+        if (yva & 1)
+          yva -= x;
         yva &= 0x1ffff;
       }
       Y = yva >> 9;
@@ -1188,7 +1191,8 @@ void Spc700::ExecuteInstructions(uint8_t opcode) {
     }
     case 0xcf: {  // mul imp
       read(PC);
-      for (int i = 0; i < 7; i++) callbacks_.idle(false);
+      for (int i = 0; i < 7; i++)
+        callbacks_.idle(false);
       uint16_t result = A * Y;
       A = result & 0xff;
       Y = result >> 8;
@@ -1361,7 +1365,8 @@ void Spc700::ExecuteInstructions(uint8_t opcode) {
                   PC - 1);
       }
       read(PC);
-      for (int i = 0; i < 4; ++i) callbacks_.idle(true);
+      for (int i = 0; i < 4; ++i)
+        callbacks_.idle(true);
       break;
     }
     case 0xf0: {  // beq rel

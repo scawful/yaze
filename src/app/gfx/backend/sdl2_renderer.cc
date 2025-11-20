@@ -8,7 +8,9 @@ namespace gfx {
 
 SDL2Renderer::SDL2Renderer() = default;
 
-SDL2Renderer::~SDL2Renderer() { Shutdown(); }
+SDL2Renderer::~SDL2Renderer() {
+  Shutdown();
+}
 
 /**
  * @brief Initializes the SDL2 renderer.
@@ -36,7 +38,9 @@ bool SDL2Renderer::Initialize(SDL_Window* window) {
  * The underlying SDL_Renderer is managed by a unique_ptr, so its destruction is
  * handled automatically.
  */
-void SDL2Renderer::Shutdown() { renderer_.reset(); }
+void SDL2Renderer::Shutdown() {
+  renderer_.reset();
+}
 
 /**
  * @brief Creates an SDL_Texture.
@@ -116,12 +120,16 @@ void SDL2Renderer::UnlockTexture(TextureHandle texture) {
 /**
  * @brief Clears the screen with the current draw color.
  */
-void SDL2Renderer::Clear() { SDL_RenderClear(renderer_.get()); }
+void SDL2Renderer::Clear() {
+  SDL_RenderClear(renderer_.get());
+}
 
 /**
  * @brief Presents the rendered frame to the screen.
  */
-void SDL2Renderer::Present() { SDL_RenderPresent(renderer_.get()); }
+void SDL2Renderer::Present() {
+  SDL_RenderPresent(renderer_.get());
+}
 
 /**
  * @brief Copies a texture to the render target.

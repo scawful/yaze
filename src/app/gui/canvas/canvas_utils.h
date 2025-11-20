@@ -105,7 +105,9 @@ struct CanvasContextMenuItem {
   std::string label;
   std::string shortcut;
   std::function<void()> callback;
-  std::function<bool()> enabled_condition = []() { return true; };
+  std::function<bool()> enabled_condition = []() {
+    return true;
+  };
   std::vector<CanvasContextMenuItem> subitems;
 };
 

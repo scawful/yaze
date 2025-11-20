@@ -39,12 +39,14 @@ bool InputScalarLeft(const char* label, ImGuiDataType data_type, void* p_data,
                      const char* format, float input_width,
                      ImGuiInputTextFlags flags, bool no_step = false) {
   ImGuiWindow* window = ImGui::GetCurrentWindow();
-  if (window->SkipItems) return false;
+  if (window->SkipItems)
+    return false;
 
   ImGuiContext& g = *GImGui;
   ImGuiStyle& style = g.Style;
 
-  if (format == NULL) format = DataTypeGetInfo(data_type)->PrintFmt;
+  if (format == NULL)
+    format = DataTypeGetInfo(data_type)->PrintFmt;
 
   char buf[64];
   DataTypeFormatString(buf, IM_ARRAYSIZE(buf), data_type, p_data, format);
@@ -115,7 +117,8 @@ bool InputScalarLeft(const char* label, ImGuiDataType data_type, void* p_data,
     const ImVec2 backup_frame_padding = style.FramePadding;
     style.FramePadding.x = style.FramePadding.y;
     ImGuiButtonFlags button_flags = ImGuiButtonFlags_PressedOnClick;
-    if (flags & ImGuiInputTextFlags_ReadOnly) BeginDisabled();
+    if (flags & ImGuiInputTextFlags_ReadOnly)
+      BeginDisabled();
     SameLine(0, style.ItemInnerSpacing.x);
     if (ButtonEx("-", ImVec2(button_size, button_size), button_flags)) {
       DataTypeApplyOp(data_type, '-', p_data, p_data,
@@ -129,7 +132,8 @@ bool InputScalarLeft(const char* label, ImGuiDataType data_type, void* p_data,
       value_changed = true;
     }
 
-    if (flags & ImGuiInputTextFlags_ReadOnly) EndDisabled();
+    if (flags & ImGuiInputTextFlags_ReadOnly)
+      EndDisabled();
 
     style.FramePadding = backup_frame_padding;
   }
@@ -137,7 +141,8 @@ bool InputScalarLeft(const char* label, ImGuiDataType data_type, void* p_data,
   EndGroup();
   ImGui::PopStyleVar(2);
 
-  if (value_changed) MarkItemEdited(g.LastItemData.ID);
+  if (value_changed)
+    MarkItemEdited(g.LastItemData.ID);
 
   return value_changed;
 }
@@ -271,7 +276,8 @@ void ItemLabel(absl::string_view title, ItemLabelFlags flags) {
       ImGui::CalcTextSize(title.data(), title.data() + title.size());
   ImRect textRect;
   textRect.Min = ImGui::GetCursorScreenPos();
-  if (flags & ItemLabelFlag::Right) textRect.Min.x = textRect.Min.x + itemWidth;
+  if (flags & ItemLabelFlag::Right)
+    textRect.Min.x = textRect.Min.x + itemWidth;
   textRect.Max = textRect.Min;
   textRect.Max.x += fullWidth - itemWidth;
   textRect.Max.y += textSize.y;
@@ -331,7 +337,9 @@ bool InputTileInfo(const char* label, gfx::TileInfo* tile_info) {
   return changed;
 }
 
-ImGuiID GetID(const std::string& id) { return ImGui::GetID(id.c_str()); }
+ImGuiID GetID(const std::string& id) {
+  return ImGui::GetID(id.c_str());
+}
 
 ImGuiKey MapKeyToImGuiKey(char key) {
   switch (key) {
