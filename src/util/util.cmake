@@ -46,6 +46,7 @@ target_link_libraries(yaze_util PUBLIC
 # When gRPC is enabled, we link to grpc++ which transitively provides Abseil
 # When gRPC is disabled, we use the standalone Abseil from absl.cmake
 if(YAZE_ENABLE_GRPC)
+  # Link to gRPC which provides bundled Abseil
   target_link_libraries(yaze_util PUBLIC
     grpc++
     absl::status
@@ -53,6 +54,23 @@ if(YAZE_ENABLE_GRPC)
     absl::strings
     absl::str_format
   )
+
+  # CRITICAL FIX FOR WINDOWS: Explicitly add Abseil include directory
+  # When gRPC bundles Abseil, the include paths don't always propagate correctly
+  # on Windows with Ninja + clang-cl. We need to explicitly add the Abseil source
+  # directory where headers are located.
+  if(WIN32)
+    # Get Abseil source directory from CPM or gRPC fetch
+    if(DEFINED absl_SOURCE_DIR)
+      target_include_directories(yaze_util PUBLIC ${absl_SOURCE_DIR})
+      message(STATUS "Windows: Added explicit Abseil include path: ${absl_SOURCE_DIR}")
+    elseif(DEFINED grpc_SOURCE_DIR AND EXISTS "${grpc_SOURCE_DIR}/third_party/abseil-cpp")
+      target_include_directories(yaze_util PUBLIC "${grpc_SOURCE_DIR}/third_party/abseil-cpp")
+      message(STATUS "Windows: Added explicit Abseil include path from gRPC: ${grpc_SOURCE_DIR}/third_party/abseil-cpp")
+    else()
+      message(WARNING "Windows: Could not find Abseil source directory - build may fail")
+    endif()
+  endif()
 else()
   # Link standalone Abseil targets (configured in cmake/absl.cmake)
   target_link_libraries(yaze_util PUBLIC
