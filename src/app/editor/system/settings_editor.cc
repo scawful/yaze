@@ -451,7 +451,7 @@ void SettingsEditor::DrawAIAgentSettings() {
           level = util::LogLevel::WARNING;
           break;
         case 3:
-          level = util::LogLevel::ERROR;
+          level = util::LogLevel::ERR;
           break;
         case 4:
           level = util::LogLevel::FATAL;

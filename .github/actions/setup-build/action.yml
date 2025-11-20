@@ -24,6 +24,52 @@ runs:
         restore-keys: |
           cpm-${{ inputs.platform }}-
 
+    - name: Reclaim disk space (Linux) - BEFORE package install
+      if: inputs.platform == 'linux'
+      shell: bash
+      run: |
+        set -euxo pipefail
+
+        echo "=========================================="
+        echo "DISK SPACE BEFORE CLEANUP"
+        echo "=========================================="
+        df -h
+        echo ""
+
+        reclaim() {
+          if [ -d "$1" ]; then
+            echo "Removing $1..."
+            sudo rm -rf "$1"
+          fi
+        }
+
+        echo "Removing large pre-installed directories..."
+        reclaim /usr/share/dotnet
+        reclaim /usr/local/lib/android
+        reclaim /opt/ghc
+        reclaim /usr/local/share/boost
+        reclaim /usr/local/.ghcup
+        reclaim "${AGENT_TOOLSDIRECTORY:-/opt/hostedtoolcache}"
+
+        echo "Removing language runtime caches..."
+        sudo rm -rf /home/runner/.cache/pip /home/runner/.cache/npm /home/runner/.cache/yarn || true
+        sudo rm -rf /home/runner/.cargo || true
+        sudo rm -rf /home/runner/.rustup || true
+
+        echo "Pruning Docker images and containers..."
+        sudo docker system prune -af --volumes || true
+
+        echo "Cleaning apt cache..."
+        sudo apt-get clean
+        sudo rm -rf /var/lib/apt/lists/* || true
+
+        echo ""
+        echo "=========================================="
+        echo "DISK SPACE AFTER CLEANUP"
+        echo "=========================================="
+        df -h
+        echo ""
+
     - name: Setup build environment (Linux)
       if: inputs.platform == 'linux'
       shell: bash
@@ -58,6 +104,7 @@ runs:
         git config --global --add safe.directory '*'
 
     - name: Setup sccache
+      continue-on-error: true  # Skip hard failure if GitHub temporarily returns HTML instead of the tarball
       uses: hendrikmuhs/ccache-action@v1.2
       with:
         key: ${{ inputs.platform }}-${{ github.sha }}
@@ -74,4 +121,3 @@ runs:
         echo "CXX=clang-cl" >> $env:GITHUB_ENV
         echo "CMAKE_CXX_COMPILER_LAUNCHER=sccache" >> $env:GITHUB_ENV
         echo "CMAKE_C_COMPILER_LAUNCHER=sccache" >> $env:GITHUB_ENV
-
