@@ -35,21 +35,27 @@ target_include_directories(yaze_util PUBLIC
   ${PROJECT_BINARY_DIR}
 )
 
-if(YAZE_ENABLE_GRPC)
-  target_include_directories(yaze_util PRIVATE
-    ${CMAKE_BINARY_DIR}/_deps/grpc-src/third_party/abseil-cpp
-  )
-endif()
+# Note: Abseil include paths are provided automatically through target_link_libraries
+# No manual include_directories needed - linking to absl::* targets provides the paths
 
 target_link_libraries(yaze_util PUBLIC
   yaze_common
 )
 
-# Add Abseil dependencies if gRPC is enabled
-# We link to grpc++ which transitively provides Abseil and ensures correct build order
+# Add Abseil dependencies
+# When gRPC is enabled, we link to grpc++ which transitively provides Abseil
+# When gRPC is disabled, we use the standalone Abseil from absl.cmake
 if(YAZE_ENABLE_GRPC)
   target_link_libraries(yaze_util PUBLIC
     grpc++
+    absl::status
+    absl::statusor
+    absl::strings
+    absl::str_format
+  )
+else()
+  # Link standalone Abseil targets (configured in cmake/absl.cmake)
+  target_link_libraries(yaze_util PUBLIC
     absl::status
     absl::statusor
     absl::strings
