@@ -13,17 +13,19 @@ namespace gfx {
 
 /**
  * @class TextureAtlas
- * @brief Manages multiple textures packed into a single large texture for performance
- * 
- * Future-proof infrastructure for combining multiple room textures into one atlas.
- * This reduces GPU state changes and improves rendering performance when many rooms are open.
- * 
+ * @brief Manages multiple textures packed into a single large texture for
+ * performance
+ *
+ * Future-proof infrastructure for combining multiple room textures into one
+ * atlas. This reduces GPU state changes and improves rendering performance when
+ * many rooms are open.
+ *
  * Benefits:
  * - Fewer texture binds per frame
  * - Better memory locality
  * - Reduced VRAM fragmentation
  * - Easier batch rendering
- * 
+ *
  * Usage (Future):
  *   TextureAtlas atlas(2048, 2048);
  *   auto region = atlas.AllocateRegion(room_id, 512, 512);
@@ -57,8 +59,9 @@ class TextureAtlas {
    * @param width Required width in pixels
    * @param height Required height in pixels
    * @return Pointer to allocated region, or nullptr if no space
-   * 
-   * Uses simple rect packing algorithm. Future: implement more efficient packing.
+   *
+   * Uses simple rect packing algorithm. Future: implement more efficient
+   * packing.
    */
   AtlasRegion* AllocateRegion(int source_id, int width, int height);
 
@@ -67,7 +70,7 @@ class TextureAtlas {
    * @param src Source bitmap to pack
    * @param region Region to pack into (must be pre-allocated)
    * @return Status of packing operation
-   * 
+   *
    * Copies pixel data from source bitmap into atlas at region coordinates.
    */
   absl::Status PackBitmap(const Bitmap& src, const AtlasRegion& region);
@@ -78,7 +81,7 @@ class TextureAtlas {
    * @param dest_x Destination X coordinate
    * @param dest_y Destination Y coordinate
    * @return Status of drawing operation
-   * 
+   *
    * Future: Integrate with renderer to draw atlas regions.
    */
   absl::Status DrawRegion(int source_id, int dest_x, int dest_y);

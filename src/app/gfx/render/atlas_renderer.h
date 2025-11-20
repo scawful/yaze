@@ -2,6 +2,7 @@
 #define YAZE_APP_GFX_ATLAS_RENDERER_H
 
 #include <SDL.h>
+
 #include <memory>
 #include <unordered_map>
 #include <vector>
@@ -57,24 +58,24 @@ struct AtlasStats {
 
 /**
  * @brief Atlas-based rendering system for efficient graphics operations
- * 
+ *
  * The AtlasRenderer class provides efficient rendering by combining multiple
  * graphics elements into a single texture atlas, reducing draw calls and
  * improving performance for ROM hacking workflows.
- * 
+ *
  * Key Features:
  * - Single draw call for multiple tiles/graphics
  * - Automatic atlas management and packing
  * - Dynamic atlas resizing and reorganization
  * - UV coordinate mapping for efficient rendering
  * - Memory-efficient texture management
- * 
+ *
  * Performance Optimizations:
  * - Reduces draw calls from N to 1 for multiple elements
  * - Minimizes GPU state changes
  * - Efficient texture packing algorithm
  * - Automatic atlas defragmentation
- * 
+ *
  * ROM Hacking Specific:
  * - Optimized for SNES tile rendering (8x8, 16x16)
  * - Support for graphics sheet atlasing

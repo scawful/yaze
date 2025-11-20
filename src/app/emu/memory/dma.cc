@@ -163,8 +163,7 @@ void DoDma(Snes* snes, MemoryImpl* memory, int cpuCycles) {
   // full transfer overhead
   WaitCycle(snes, memory);
   for (int i = 0; i < 8; i++) {
-    if (!channel[i].dma_active)
-      continue;
+    if (!channel[i].dma_active) continue;
     // do channel i
     WaitCycle(snes, memory);  // overhead per channel
     int offIndex = 0;
@@ -208,10 +207,8 @@ void HandleDma(Snes* snes, MemoryImpl* memory, int cpu_cycles) {
 
 void WaitCycle(Snes* snes, MemoryImpl* memory) {
   // run hdma if requested, no sync (already sycned due to dma)
-  if (memory->hdma_init_requested())
-    InitHdma(snes, memory, false, 0);
-  if (memory->hdma_run_requested())
-    DoHdma(snes, memory, false, 0);
+  if (memory->hdma_init_requested()) InitHdma(snes, memory, false, 0);
+  if (memory->hdma_run_requested()) DoHdma(snes, memory, false, 0);
 
   snes->RunCycles(8);
 }
@@ -222,16 +219,13 @@ void InitHdma(Snes* snes, MemoryImpl* memory, bool do_sync, int cpu_cycles) {
   bool hdmaEnabled = false;
   // check if a channel is enabled, and do reset
   for (int i = 0; i < 8; i++) {
-    if (channel[i].hdma_active)
-      hdmaEnabled = true;
+    if (channel[i].hdma_active) hdmaEnabled = true;
     channel[i].do_transfer = false;
     channel[i].terminated = false;
   }
-  if (!hdmaEnabled)
-    return;
+  if (!hdmaEnabled) return;
   snes->cpu().set_int_delay(true);
-  if (do_sync)
-    snes->SyncCycles(true, 8);
+  if (do_sync) snes->SyncCycles(true, 8);
 
   // full transfer overhead
   snes->RunCycles(8);
@@ -244,8 +238,7 @@ void InitHdma(Snes* snes, MemoryImpl* memory, bool do_sync, int cpu_cycles) {
       channel[i].table_addr = channel[i].a_addr;
       channel[i].rep_count =
           snes->Read((channel[i].a_bank << 16) | channel[i].table_addr++);
-      if (channel[i].rep_count == 0)
-        channel[i].terminated = true;
+      if (channel[i].rep_count == 0) channel[i].terminated = true;
       if (channel[i].indirect) {
         snes->RunCycles(8);
         channel[i].size =
@@ -258,8 +251,7 @@ void InitHdma(Snes* snes, MemoryImpl* memory, bool do_sync, int cpu_cycles) {
       channel[i].do_transfer = true;
     }
   }
-  if (do_sync)
-    snes->SyncCycles(false, cpu_cycles);
+  if (do_sync) snes->SyncCycles(false, cpu_cycles);
 }
 
 void DoHdma(Snes* snes, MemoryImpl* memory, bool do_sync, int cycles) {
@@ -270,25 +262,21 @@ void DoHdma(Snes* snes, MemoryImpl* memory, bool do_sync, int cycles) {
   for (int i = 0; i < 8; i++) {
     if (channel[i].hdma_active) {
       hdmaActive = true;
-      if (!channel[i].terminated)
-        lastActive = i;
+      if (!channel[i].terminated) lastActive = i;
     }
   }
 
-  if (!hdmaActive)
-    return;
+  if (!hdmaActive) return;
   snes->cpu().set_int_delay(true);
 
-  if (do_sync)
-    snes->SyncCycles(true, 8);
+  if (do_sync) snes->SyncCycles(true, 8);
 
   // full transfer overhead
   snes->RunCycles(8);
   // do all copies
   for (int i = 0; i < 8; i++) {
     // terminate any dma
-    if (channel[i].hdma_active)
-      channel[i].dma_active = false;
+    if (channel[i].hdma_active) channel[i].dma_active = false;
     if (channel[i].hdma_active && !channel[i].terminated) {
       // do the hdma
       if (channel[i].do_transfer) {
@@ -334,15 +322,13 @@ void DoHdma(Snes* snes, MemoryImpl* memory, bool do_sync, int cycles) {
               snes->Read((channel[i].a_bank << 16) | channel[i].table_addr++)
               << 8;
         }
-        if (channel[i].rep_count == 0)
-          channel[i].terminated = true;
+        if (channel[i].rep_count == 0) channel[i].terminated = true;
         channel[i].do_transfer = true;
       }
     }
   }
 
-  if (do_sync)
-    snes->SyncCycles(false, cycles);
+  if (do_sync) snes->SyncCycles(false, cycles);
 }
 
 void TransferByte(Snes* snes, MemoryImpl* memory, uint16_t aAdr, uint8_t aBank,
@@ -359,13 +345,11 @@ void TransferByte(Snes* snes, MemoryImpl* memory, uint16_t aAdr, uint8_t aBank,
                    (aAdr >= 0x2100 && aAdr < 0x2200)));
   if (fromB) {
     uint8_t val = validB ? snes->ReadBBus(bAdr) : memory->open_bus();
-    if (validA)
-      snes->Write((aBank << 16) | aAdr, val);
+    if (validA) snes->Write((aBank << 16) | aAdr, val);
   } else {
     uint8_t val =
         validA ? snes->Read((aBank << 16) | aAdr) : memory->open_bus();
-    if (validB)
-      snes->WriteBBus(bAdr, val);
+    if (validB) snes->WriteBBus(bAdr, val);
   }
 }
 

@@ -63,7 +63,8 @@ absl::StatusOr<std::vector<OverworldExit>> LoadExits(Rom* rom) {
 
 void OverworldExit::UpdateMapProperties(uint16_t map_id, const void* context) {
   // Sync player position from drag system
-  // ZScream: ExitMode.cs:229-244 updates PlayerX/PlayerY, then calls UpdateMapStuff
+  // ZScream: ExitMode.cs:229-244 updates PlayerX/PlayerY, then calls
+  // UpdateMapStuff
   x_player_ = static_cast<uint16_t>(x_);
   y_player_ = static_cast<uint16_t>(y_);
   map_id_ = map_id;
@@ -172,11 +173,10 @@ void OverworldExit::UpdateMapProperties(uint16_t map_id, const void* context) {
 }
 
 absl::Status SaveExits(Rom* rom, const std::vector<OverworldExit>& exits) {
-
-  // ASM version 0x03 added SW support and the exit leading to Zora's Domain specifically
-  // needs to be updated because its camera values are incorrect.
-  // We only update it if it was a vanilla ROM though because we don't know if the
-  // user has already adjusted it or not.
+  // ASM version 0x03 added SW support and the exit leading to Zora's Domain
+  // specifically needs to be updated because its camera values are incorrect.
+  // We only update it if it was a vanilla ROM though because we don't know if
+  // the user has already adjusted it or not.
   uint8_t asm_version = (*rom)[OverworldCustomASMHasBeenApplied];
   if (asm_version == 0x00) {
     // Apply special fix for Zora's Domain exit (index 0x4D)

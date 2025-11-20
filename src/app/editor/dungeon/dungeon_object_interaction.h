@@ -13,10 +13,12 @@ namespace yaze {
 namespace editor {
 
 /**
- * @brief Handles object selection, placement, and interaction within the dungeon canvas
- * 
- * This component manages mouse interactions for object selection (similar to OverworldEditor),
- * object placement, drag operations, and multi-object selection.
+ * @brief Handles object selection, placement, and interaction within the
+ * dungeon canvas
+ *
+ * This component manages mouse interactions for object selection (similar to
+ * OverworldEditor), object placement, drag operations, and multi-object
+ * selection.
  */
 class DungeonObjectInteraction {
  public:

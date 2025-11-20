@@ -160,8 +160,7 @@ void PaletteEditorWidget::ShowPaletteEditor(gfx::SnesPalette& palette,
 }
 
 void PaletteEditorWidget::ShowROMPaletteManager() {
-  if (!show_rom_manager_)
-    return;
+  if (!show_rom_manager_) return;
 
   if (ImGui::Begin("ROM Palette Manager", &show_rom_manager_)) {
     if (!rom_) {
@@ -191,8 +190,7 @@ void PaletteEditorWidget::ShowROMPaletteManager() {
 
 void PaletteEditorWidget::ShowColorAnalysis(const gfx::Bitmap& bitmap,
                                             const std::string& title) {
-  if (!show_color_analysis_)
-    return;
+  if (!show_color_analysis_) return;
 
   if (ImGui::Begin(title.c_str(), &show_color_analysis_)) {
     ImGui::Text("Bitmap Color Analysis");
@@ -297,8 +295,7 @@ bool PaletteEditorWidget::RestorePaletteBackup(gfx::SnesPalette& palette) {
 // Unified grid drawing function
 void PaletteEditorWidget::DrawPaletteGrid(gfx::SnesPalette& palette, int cols) {
   for (int i = 0; i < static_cast<int>(palette.size()); i++) {
-    if (i % cols != 0)
-      ImGui::SameLine();
+    if (i % cols != 0) ImGui::SameLine();
 
     auto color = palette[i];
     ImVec4 display_color = color.rgb();
@@ -377,13 +374,13 @@ void PaletteEditorWidget::DrawROMPaletteSelector() {
           "##PaletteGroup", &current_group_index_,
           [](void* data, int idx, const char** out_text) -> bool {
             auto* names = static_cast<std::vector<std::string>*>(data);
-            if (idx < 0 || idx >= static_cast<int>(names->size()))
-              return false;
+            if (idx < 0 || idx >= static_cast<int>(names->size())) return false;
             *out_text = (*names)[idx].c_str();
             return true;
           },
           &palette_group_names_,
-          static_cast<int>(palette_group_names_.size()))) {}
+          static_cast<int>(palette_group_names_.size()))) {
+  }
 
   ImGui::Text("Palette Index:");
   ImGui::SliderInt("##PaletteIndex", &current_palette_index_, 0, 7, "%d");
@@ -393,8 +390,7 @@ void PaletteEditorWidget::DrawROMPaletteSelector() {
     const auto& preview_palette = rom_palette_groups_[current_group_index_];
     for (int i = 0; i < 8 && i < static_cast<int>(preview_palette.size());
          i++) {
-      if (i > 0)
-        ImGui::SameLine();
+      if (i > 0) ImGui::SameLine();
       auto color = preview_palette[i];
       ImVec4 display_color = color.rgb();
       ImGui::ColorButton(("##preview" + std::to_string(i)).c_str(),
@@ -491,8 +487,7 @@ void PaletteEditorWidget::DrawPaletteAnalysis(const gfx::SnesPalette& palette) {
 }
 
 void PaletteEditorWidget::LoadROMPalettes() {
-  if (!rom_ || rom_palettes_loaded_)
-    return;
+  if (!rom_ || rom_palettes_loaded_) return;
 
   try {
     const auto& palette_groups = rom_->palette_group();

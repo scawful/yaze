@@ -6,6 +6,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+
 #include "app/gfx/debug/performance/performance_dashboard.h"
 #include "app/gfx/debug/performance/performance_profiler.h"
 #include "canvas_usage_tracker.h"

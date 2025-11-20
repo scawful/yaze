@@ -66,8 +66,7 @@ uint64_t decode(const std::vector<uint8_t>& data, size_t& offset) {
   while (offset < data.size()) {
     uint8_t x = data[offset++];
     result |= (uint64_t)(x & 0x7f) << shift;
-    if (x & 0x80)
-      break;
+    if (x & 0x80) break;
     shift += 7;
   }
   return result;

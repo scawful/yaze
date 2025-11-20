@@ -4,6 +4,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+
 #include "absl/status/statusor.h"
 
 namespace yaze {
@@ -14,7 +15,7 @@ namespace agent {
 
 /**
  * @brief Advanced routing system for agent tool responses
- * 
+ *
  * Optimizes information flow back to agent for:
  * - Map editing with GUI automation
  * - Hex data analysis and pattern recognition

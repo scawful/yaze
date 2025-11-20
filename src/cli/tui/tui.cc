@@ -1,7 +1,6 @@
 #include "tui.h"
 
 #include <fstream>
-
 #include <ftxui/component/component.hpp>
 #include <ftxui/component/screen_interactive.hpp>
 #include <ftxui/dom/elements.hpp>
@@ -38,8 +37,7 @@ bool HandleInput(ftxui::ScreenInteractive& screen, ftxui::Event& event,
     return true;
   }
   if (event == Event::ArrowUp || event == Event::Character('k')) {
-    if (selected != 0)
-      selected--;
+    if (selected != 0) selected--;
     return true;
   }
   if (event == Event::Character('q')) {

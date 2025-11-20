@@ -17,13 +17,14 @@ namespace yaze {
 namespace editor {
 
 /**
- * @brief Unified card combining object selection, emulator preview, and canvas interaction
- * 
+ * @brief Unified card combining object selection, emulator preview, and canvas
+ * interaction
+ *
  * This card replaces three separate components:
  * - Object Selector (choosing which object to place)
  * - Emulator Preview (seeing how objects look in-game)
  * - Object Interaction Controls (placing, selecting, deleting objects)
- * 
+ *
  * It provides a complete workflow for managing dungeon objects in one place.
  */
 class ObjectEditorCard {

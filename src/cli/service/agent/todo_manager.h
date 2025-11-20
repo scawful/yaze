@@ -43,7 +43,7 @@ struct TodoItem {
 /**
  * @class TodoManager
  * @brief Manages TODO lists for z3ed agent task execution
- * 
+ *
  * Enables the AI agent to:
  * - Create and track TODO lists for complex tasks
  * - Break down goals into executable steps

@@ -2,6 +2,7 @@
 #define YAZE_APP_GFX_BPP_FORMAT_MANAGER_H
 
 #include <SDL.h>
+
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -80,11 +81,11 @@ struct GraphicsSheetAnalysis {
 
 /**
  * @brief Comprehensive BPP format management system for SNES ROM hacking
- * 
+ *
  * The BppFormatManager provides advanced BPP format handling, conversion,
  * and analysis capabilities specifically designed for Link to the Past
  * ROM hacking workflows.
- * 
+ *
  * Key Features:
  * - Multi-format BPP support (2BPP, 3BPP, 4BPP, 8BPP)
  * - Intelligent format detection and analysis
@@ -92,13 +93,13 @@ struct GraphicsSheetAnalysis {
  * - Graphics sheet analysis and conversion history tracking
  * - Palette depth analysis and optimization
  * - Memory-efficient conversion algorithms
- * 
+ *
  * Performance Optimizations:
  * - Cached conversion results to avoid redundant processing
  * - SIMD-optimized conversion algorithms where possible
  * - Lazy evaluation for expensive analysis operations
  * - Memory pool integration for efficient temporary allocations
- * 
+ *
  * ROM Hacking Specific:
  * - SNES-specific BPP format handling
  * - Graphics sheet format analysis and conversion tracking

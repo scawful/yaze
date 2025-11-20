@@ -16,7 +16,8 @@ class OverworldEditor;  // Forward declaration
 
 /**
  * @class OverworldEntityRenderer
- * @brief Handles visualization of all overworld entities (entrances, exits, items, sprites)
+ * @brief Handles visualization of all overworld entities (entrances, exits,
+ * items, sprites)
  *
  * This class separates entity rendering logic from the main OverworldEditor,
  * making it easier to maintain and test entity visualization independently.

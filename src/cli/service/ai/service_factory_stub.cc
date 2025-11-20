@@ -1,9 +1,8 @@
 #ifndef YAZE_AI_RUNTIME_AVAILABLE
 
-#include "cli/service/ai/service_factory.h"
-
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
+#include "cli/service/ai/service_factory.h"
 
 namespace yaze::cli {
 

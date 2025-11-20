@@ -147,7 +147,8 @@ class ImGuiTestHarnessServer {
 
  private:
   ImGuiTestHarnessServer() = default;
-  ~ImGuiTestHarnessServer();  // Defined in .cc file to allow incomplete type deletion
+  ~ImGuiTestHarnessServer();  // Defined in .cc file to allow incomplete type
+                              // deletion
 
   // Disable copy and move
   ImGuiTestHarnessServer(const ImGuiTestHarnessServer&) = delete;

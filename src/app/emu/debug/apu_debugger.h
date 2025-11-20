@@ -14,7 +14,7 @@ namespace debug {
 
 /**
  * @brief IPL ROM handshake tracker
- * 
+ *
  * Monitors CPU-APU communication during audio program upload to diagnose
  * handshake failures and transfer issues.
  */

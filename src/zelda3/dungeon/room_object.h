@@ -160,7 +160,8 @@ class RoomObject {
   std::vector<uint8_t> preview_object_data_;
 
   // Tile data storage - using Arena system for efficient memory management
-  // Instead of copying Tile16 vectors, we store references to Arena-managed data
+  // Instead of copying Tile16 vectors, we store references to Arena-managed
+  // data
   mutable std::vector<gfx::TileInfo> tiles_;  // Individual tiles like ZScream
   mutable bool tiles_loaded_ = false;
   mutable int tile_count_ = 0;

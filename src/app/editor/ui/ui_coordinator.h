@@ -26,14 +26,14 @@ class ShortcutManager;
 /**
  * @class UICoordinator
  * @brief Handles all UI drawing operations and state management
- * 
+ *
  * Extracted from EditorManager to provide focused UI coordination:
  * - Drawing operations (menus, dialogs, screens)
  * - UI state management (visibility, focus, layout)
  * - Popup and dialog coordination
  * - Welcome screen and session UI
  * - Material Design theming and icons
- * 
+ *
  * This class follows the Single Responsibility Principle by focusing solely
  * on UI presentation and user interaction, delegating business logic to
  * specialized managers.

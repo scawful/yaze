@@ -1,12 +1,9 @@
 // Integration tests for dungeon object rendering using ObjectDrawer
-// Updated for DungeonEditorV2 architecture - uses ObjectDrawer (production system)
-// instead of the obsolete ObjectRenderer
-
-#include "zelda3/dungeon/object_drawer.h"
-#include "zelda3/dungeon/room.h"
-#include "zelda3/dungeon/room_object.h"
+// Updated for DungeonEditorV2 architecture - uses ObjectDrawer (production
+// system) instead of the obsolete ObjectRenderer
 
 #include <gtest/gtest.h>
+
 #include <chrono>
 #include <memory>
 #include <vector>
@@ -16,13 +13,16 @@
 #include "app/rom.h"
 #include "test_utils.h"
 #include "testing.h"
+#include "zelda3/dungeon/object_drawer.h"
+#include "zelda3/dungeon/room.h"
+#include "zelda3/dungeon/room_object.h"
 
 namespace yaze {
 namespace test {
 
 /**
  * @brief Tests for ObjectDrawer with realistic dungeon scenarios
- * 
+ *
  * These tests validate that ObjectDrawer correctly renders dungeon objects
  * to BackgroundBuffers using pattern-based drawing routines.
  */

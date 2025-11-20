@@ -82,7 +82,7 @@ struct TUIConfig {
 /**
  * @class EnhancedTUI
  * @brief Enhanced Terminal User Interface for z3ed CLI
- * 
+ *
  * Provides a modern, feature-rich TUI with:
  * - Multi-panel layout with resizable components
  * - Syntax highlighting for code and JSON
@@ -227,7 +227,7 @@ class EnhancedTUI {
 /**
  * @class TUICommandHandler
  * @brief Base class for TUI-integrated command handlers
- * 
+ *
  * Extends CommandHandler with TUI-specific features:
  * - Rich output formatting
  * - Progress indicators

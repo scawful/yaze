@@ -24,8 +24,7 @@ class Transaction {
   explicit Transaction(Rom& rom) : rom_(rom) {}
 
   Transaction& WriteByte(int address, uint8_t value) {
-    if (!status_.ok())
-      return *this;
+    if (!status_.ok()) return *this;
     auto original = rom_.ReadByte(address);
     if (!original.ok()) {
       status_ = original.status();
@@ -40,8 +39,7 @@ class Transaction {
   }
 
   Transaction& WriteWord(int address, uint16_t value) {
-    if (!status_.ok())
-      return *this;
+    if (!status_.ok()) return *this;
     auto original = rom_.ReadWord(address);
     if (!original.ok()) {
       status_ = original.status();
@@ -56,8 +54,7 @@ class Transaction {
   }
 
   Transaction& WriteLong(int address, uint32_t value) {
-    if (!status_.ok())
-      return *this;
+    if (!status_.ok()) return *this;
     auto original = rom_.ReadLong(address);
     if (!original.ok()) {
       status_ = original.status();
@@ -72,8 +69,7 @@ class Transaction {
   }
 
   Transaction& WriteVector(int address, const std::vector<uint8_t>& data) {
-    if (!status_.ok())
-      return *this;
+    if (!status_.ok()) return *this;
     auto original =
         rom_.ReadByteVector(address, static_cast<uint32_t>(data.size()));
     if (!original.ok()) {
@@ -88,8 +84,7 @@ class Transaction {
   }
 
   Transaction& WriteColor(int address, const gfx::SnesColor& color) {
-    if (!status_.ok())
-      return *this;
+    if (!status_.ok()) return *this;
     // Store original raw 16-bit value for rollback via WriteWord.
     auto original_word = rom_.ReadWord(address);
     if (!original_word.ok()) {

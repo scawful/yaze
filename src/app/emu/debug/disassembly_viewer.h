@@ -42,8 +42,9 @@ struct DisassemblyEntry {
 };
 
 /**
- * @brief Advanced disassembly viewer with sparse storage and interactive features
- * 
+ * @brief Advanced disassembly viewer with sparse storage and interactive
+ * features
+ *
  * This viewer provides a professional disassembly interface similar to modern
  * debuggers and ROM hacking tools. Features include:
  * - Sparse address-based storage (only stores executed instructions)

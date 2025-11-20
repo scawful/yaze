@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/render/tilemap.h"
 #include "app/gui/canvas/canvas_state.h"
@@ -14,10 +15,11 @@ namespace gui {
 
 /**
  * @brief Render canvas background and border
- * 
+ *
  * Draws the canvas background rectangle (dark) and border (white)
- * at the calculated geometry positions. Extracted from Canvas::DrawBackground().
- * 
+ * at the calculated geometry positions. Extracted from
+ * Canvas::DrawBackground().
+ *
  * @param draw_list ImGui draw list for rendering
  * @param geometry Canvas geometry for this frame
  */
@@ -26,10 +28,10 @@ void RenderCanvasBackground(ImDrawList* draw_list,
 
 /**
  * @brief Render canvas grid with optional highlighting
- * 
+ *
  * Draws grid lines, hex labels, and optional tile highlighting.
  * Extracted from Canvas::DrawGrid().
- * 
+ *
  * @param draw_list ImGui draw list for rendering
  * @param geometry Canvas geometry
  * @param config Canvas configuration (grid settings)
@@ -40,10 +42,10 @@ void RenderCanvasGrid(ImDrawList* draw_list, const CanvasGeometry& geometry,
 
 /**
  * @brief Render canvas overlay (hover and selection points)
- * 
+ *
  * Draws hover preview points and selection rectangle points.
  * Extracted from Canvas::DrawOverlay().
- * 
+ *
  * @param draw_list ImGui draw list for rendering
  * @param geometry Canvas geometry
  * @param config Canvas configuration (scale)
@@ -57,10 +59,10 @@ void RenderCanvasOverlay(ImDrawList* draw_list, const CanvasGeometry& geometry,
 
 /**
  * @brief Render canvas labels on grid
- * 
+ *
  * Draws custom text labels on canvas tiles.
  * Extracted from Canvas::DrawInfoGrid().
- * 
+ *
  * @param draw_list ImGui draw list for rendering
  * @param geometry Canvas geometry
  * @param config Canvas configuration
@@ -75,10 +77,10 @@ void RenderCanvasLabels(ImDrawList* draw_list, const CanvasGeometry& geometry,
 
 /**
  * @brief Render bitmap on canvas (border offset variant)
- * 
+ *
  * Draws a bitmap with a border offset from canvas origin.
  * Extracted from Canvas::DrawBitmap().
- * 
+ *
  * @param draw_list ImGui draw list
  * @param geometry Canvas geometry
  * @param bitmap Bitmap to render
@@ -90,10 +92,10 @@ void RenderBitmapOnCanvas(ImDrawList* draw_list, const CanvasGeometry& geometry,
 
 /**
  * @brief Render bitmap on canvas (x/y offset variant)
- * 
+ *
  * Draws a bitmap at specified x/y offset with optional alpha.
  * Extracted from Canvas::DrawBitmap().
- * 
+ *
  * @param draw_list ImGui draw list
  * @param geometry Canvas geometry
  * @param bitmap Bitmap to render
@@ -108,10 +110,10 @@ void RenderBitmapOnCanvas(ImDrawList* draw_list, const CanvasGeometry& geometry,
 
 /**
  * @brief Render bitmap on canvas (custom source/dest regions)
- * 
+ *
  * Draws a bitmap with explicit source and destination rectangles.
  * Extracted from Canvas::DrawBitmap().
- * 
+ *
  * @param draw_list ImGui draw list
  * @param geometry Canvas geometry
  * @param bitmap Bitmap to render
@@ -126,10 +128,10 @@ void RenderBitmapOnCanvas(ImDrawList* draw_list, const CanvasGeometry& geometry,
 
 /**
  * @brief Render group of bitmaps from tilemap
- * 
+ *
  * Draws multiple tiles for multi-tile selection preview.
  * Extracted from Canvas::DrawBitmapGroup().
- * 
+ *
  * @param draw_list ImGui draw list
  * @param geometry Canvas geometry
  * @param group Vector of tile IDs to draw

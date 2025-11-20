@@ -114,8 +114,7 @@ void DungeonObjectInteraction::CheckForObjectSelection() {
 }
 
 void DungeonObjectInteraction::DrawObjectSelectRect() {
-  if (!canvas_->IsMouseHovering())
-    return;
+  if (!canvas_->IsMouseHovering()) return;
 
   const ImGuiIO& io = ImGui::GetIO();
   const ImVec2 canvas_pos = canvas_->zero_point();
@@ -160,8 +159,7 @@ void DungeonObjectInteraction::DrawObjectSelectRect() {
 }
 
 void DungeonObjectInteraction::SelectObjectsInRect() {
-  if (!rooms_ || current_room_id_ < 0 || current_room_id_ >= 296)
-    return;
+  if (!rooms_ || current_room_id_ < 0 || current_room_id_ >= 296) return;
 
   auto& room = (*rooms_)[current_room_id_];
   selected_object_indices_.clear();
@@ -186,8 +184,7 @@ void DungeonObjectInteraction::SelectObjectsInRect() {
 }
 
 void DungeonObjectInteraction::DrawSelectionHighlights() {
-  if (!rooms_ || current_room_id_ < 0 || current_room_id_ >= 296)
-    return;
+  if (!rooms_ || current_room_id_ < 0 || current_room_id_ >= 296) return;
 
   auto& room = (*rooms_)[current_room_id_];
   const auto& objects = room.GetTileObjects();
@@ -243,11 +240,9 @@ void DungeonObjectInteraction::DrawSelectionHighlights() {
 }
 
 void DungeonObjectInteraction::PlaceObjectAtPosition(int room_x, int room_y) {
-  if (!object_loaded_ || preview_object_.id_ < 0 || !rooms_)
-    return;
+  if (!object_loaded_ || preview_object_.id_ < 0 || !rooms_) return;
 
-  if (current_room_id_ < 0 || current_room_id_ >= 296)
-    return;
+  if (current_room_id_ < 0 || current_room_id_ >= 296) return;
 
   // Create new object at the specified position
   auto new_object = preview_object_;
@@ -270,8 +265,7 @@ void DungeonObjectInteraction::PlaceObjectAtPosition(int room_x, int room_y) {
 }
 
 void DungeonObjectInteraction::DrawSelectBox() {
-  if (!is_selecting_)
-    return;
+  if (!is_selecting_) return;
 
   ImDrawList* draw_list = ImGui::GetWindowDrawList();
   ImVec2 canvas_pos = canvas_->zero_point();
@@ -290,10 +284,8 @@ void DungeonObjectInteraction::DrawSelectBox() {
 }
 
 void DungeonObjectInteraction::DrawDragPreview() {
-  if (!is_dragging_ || selected_object_indices_.empty() || !rooms_)
-    return;
-  if (current_room_id_ < 0 || current_room_id_ >= 296)
-    return;
+  if (!is_dragging_ || selected_object_indices_.empty() || !rooms_) return;
+  if (current_room_id_ < 0 || current_room_id_ >= 296) return;
 
   // Draw drag preview for selected objects
   ImDrawList* draw_list = ImGui::GetWindowDrawList();
@@ -332,13 +324,11 @@ void DungeonObjectInteraction::DrawDragPreview() {
 }
 
 void DungeonObjectInteraction::UpdateSelectedObjects() {
-  if (!is_selecting_ || !rooms_)
-    return;
+  if (!is_selecting_ || !rooms_) return;
 
   selected_objects_.clear();
 
-  if (current_room_id_ < 0 || current_room_id_ >= 296)
-    return;
+  if (current_room_id_ < 0 || current_room_id_ >= 296) return;
 
   auto& room = (*rooms_)[current_room_id_];
 
@@ -352,8 +342,7 @@ void DungeonObjectInteraction::UpdateSelectedObjects() {
 
 bool DungeonObjectInteraction::IsObjectInSelectBox(
     const zelda3::RoomObject& object) const {
-  if (!is_selecting_)
-    return false;
+  if (!is_selecting_) return false;
 
   // Convert object position to canvas coordinates
   auto [canvas_x, canvas_y] = RoomToCanvasCoordinates(object.x_, object.y_);
@@ -413,8 +402,7 @@ void DungeonObjectInteraction::ClearSelection() {
 }
 
 void DungeonObjectInteraction::ShowContextMenu() {
-  if (!canvas_->IsMouseHovering())
-    return;
+  if (!canvas_->IsMouseHovering()) return;
 
   // Show context menu on right-click when not dragging
   if (ImGui::IsMouseClicked(ImGuiMouseButton_Right) && !is_dragging_) {
@@ -455,10 +443,8 @@ void DungeonObjectInteraction::ShowContextMenu() {
 }
 
 void DungeonObjectInteraction::HandleDeleteSelected() {
-  if (selected_object_indices_.empty() || !rooms_)
-    return;
-  if (current_room_id_ < 0 || current_room_id_ >= 296)
-    return;
+  if (selected_object_indices_.empty() || !rooms_) return;
+  if (current_room_id_ < 0 || current_room_id_ >= 296) return;
 
   auto& room = (*rooms_)[current_room_id_];
 
@@ -481,10 +467,8 @@ void DungeonObjectInteraction::HandleDeleteSelected() {
 }
 
 void DungeonObjectInteraction::HandleCopySelected() {
-  if (selected_object_indices_.empty() || !rooms_)
-    return;
-  if (current_room_id_ < 0 || current_room_id_ >= 296)
-    return;
+  if (selected_object_indices_.empty() || !rooms_) return;
+  if (current_room_id_ < 0 || current_room_id_ >= 296) return;
 
   auto& room = (*rooms_)[current_room_id_];
   const auto& objects = room.GetTileObjects();
@@ -501,10 +485,8 @@ void DungeonObjectInteraction::HandleCopySelected() {
 }
 
 void DungeonObjectInteraction::HandlePasteObjects() {
-  if (!has_clipboard_data_ || !rooms_)
-    return;
-  if (current_room_id_ < 0 || current_room_id_ >= 296)
-    return;
+  if (!has_clipboard_data_ || !rooms_) return;
+  if (current_room_id_ < 0 || current_room_id_ >= 296) return;
 
   auto& room = (*rooms_)[current_room_id_];
 

@@ -14,9 +14,7 @@ TileSelectorWidget::TileSelectorWidget(std::string widget_id, Config config)
       total_tiles_(config.total_tiles),
       widget_id_(std::move(widget_id)) {}
 
-void TileSelectorWidget::AttachCanvas(Canvas* canvas) {
-  canvas_ = canvas;
-}
+void TileSelectorWidget::AttachCanvas(Canvas* canvas) { canvas_ = canvas; }
 
 void TileSelectorWidget::SetTileCount(int total_tiles) {
   total_tiles_ = std::max(total_tiles, 0);
@@ -49,12 +47,14 @@ TileSelectorWidget::RenderResult TileSelectorWidget::Render(gfx::Bitmap& atlas,
       config_.tiles_per_row * tile_display_size + config_.draw_offset.x * 2,
       num_rows * tile_display_size + config_.draw_offset.y * 2);
 
-  // Set content size for ImGui child window (must be called before DrawBackground)
+  // Set content size for ImGui child window (must be called before
+  // DrawBackground)
   ImGui::SetCursorPos(ImVec2(0, 0));
   ImGui::Dummy(content_size);
   ImGui::SetCursorPos(ImVec2(0, 0));
 
-  // Handle pending scroll (deferred from ScrollToTile call outside render context)
+  // Handle pending scroll (deferred from ScrollToTile call outside render
+  // context)
   if (pending_scroll_tile_id_ >= 0) {
     if (IsValidTileId(pending_scroll_tile_id_)) {
       const ImVec2 target = TileOrigin(pending_scroll_tile_id_);
@@ -173,7 +173,8 @@ void TileSelectorWidget::ScrollToTile(int tile_id, bool use_imgui_scroll) {
     return;
   }
 
-  // Defer scroll until next render (when we're in the correct ImGui window context)
+  // Defer scroll until next render (when we're in the correct ImGui window
+  // context)
   pending_scroll_tile_id_ = tile_id;
   pending_scroll_use_imgui_ = use_imgui_scroll;
 }

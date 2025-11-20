@@ -2,6 +2,7 @@
 #define YAZE_APP_GUI_CANVAS_CANVAS_STATE_H
 
 #include <string>
+
 #include "app/gui/canvas/canvas_utils.h"
 #include "imgui/imgui.h"
 
@@ -10,7 +11,7 @@ namespace gui {
 
 /**
  * @brief Canvas geometry calculated per-frame
- * 
+ *
  * Represents the position, size, and scroll state of a canvas
  * in both screen space and scaled space. Used by rendering
  * functions to correctly position elements.
@@ -32,11 +33,11 @@ struct CanvasGeometry {
 
 /**
  * @brief Complete canvas state snapshot
- * 
+ *
  * Aggregates all canvas state into a single POD for easier
  * refactoring and testing. Designed to replace the scattered
  * state members in the Canvas class gradually.
- * 
+ *
  * Usage Pattern:
  * - Geometry recalculated every frame in DrawBackground()
  * - Configuration updated via user interaction

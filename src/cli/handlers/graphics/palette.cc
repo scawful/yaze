@@ -1,10 +1,9 @@
-#include "cli/cli.h"
-#include "cli/tui/palette_editor.h"
-
 #include "absl/flags/declare.h"
 #include "absl/flags/flag.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/gfx/util/scad_format.h"
+#include "cli/cli.h"
+#include "cli/tui/palette_editor.h"
 
 ABSL_DECLARE_FLAG(std::string, rom);
 

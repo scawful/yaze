@@ -55,8 +55,7 @@ class WebSocketClient {
   }
 
   bool Send(const std::string& message) {
-    if (!connected_ || !client_)
-      return false;
+    if (!connected_ || !client_) return false;
 
     // For HTTP fallback: POST message to server
     // A full WebSocket would send WebSocket frames
@@ -65,8 +64,7 @@ class WebSocketClient {
   }
 
   std::string Receive() {
-    if (!connected_ || !client_)
-      return "";
+    if (!connected_ || !client_) return "";
 
     // For HTTP fallback: Poll for messages
     // A full WebSocket would read frames from the socket
@@ -320,9 +318,7 @@ absl::Status NetworkCollaborationCoordinator::SendAIQuery(
   return absl::OkStatus();
 }
 
-bool NetworkCollaborationCoordinator::IsConnected() const {
-  return connected_;
-}
+bool NetworkCollaborationCoordinator::IsConnected() const { return connected_; }
 
 void NetworkCollaborationCoordinator::SetMessageCallback(
     MessageCallback callback) {
@@ -527,8 +523,7 @@ void NetworkCollaborationCoordinator::HandleWebSocketMessage(
 
 void NetworkCollaborationCoordinator::WebSocketReceiveLoop() {
   while (!should_stop_ && connected_) {
-    if (!ws_client_)
-      break;
+    if (!ws_client_) break;
 
     std::string message = ws_client_->Receive();
     if (!message.empty()) {
@@ -608,9 +603,7 @@ absl::Status NetworkCollaborationCoordinator::SendAIQuery(const std::string&,
       "Network collaboration requires JSON support");
 }
 
-bool NetworkCollaborationCoordinator::IsConnected() const {
-  return false;
-}
+bool NetworkCollaborationCoordinator::IsConnected() const { return false; }
 
 void NetworkCollaborationCoordinator::SetMessageCallback(MessageCallback) {}
 void NetworkCollaborationCoordinator::SetParticipantCallback(

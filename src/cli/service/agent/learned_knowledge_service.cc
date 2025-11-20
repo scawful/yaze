@@ -10,9 +10,8 @@
 #include "absl/strings/str_format.h"
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
-#include "util/platform_paths.h"
-
 #include "nlohmann/json.hpp"
+#include "util/platform_paths.h"
 
 namespace yaze {
 namespace cli {
@@ -20,9 +19,7 @@ namespace agent {
 
 namespace {
 
-int64_t CurrentTimestamp() {
-  return absl::ToUnixMillis(absl::Now());
-}
+int64_t CurrentTimestamp() { return absl::ToUnixMillis(absl::Now()); }
 
 std::string GenerateRandomID() {
   static int counter = 0;
@@ -83,20 +80,16 @@ absl::Status LearnedKnowledgeService::Initialize() {
 
 absl::Status LearnedKnowledgeService::SaveAll() {
   auto status = SavePreferences();
-  if (!status.ok())
-    return status;
+  if (!status.ok()) return status;
 
   status = SavePatterns();
-  if (!status.ok())
-    return status;
+  if (!status.ok()) return status;
 
   status = SaveProjects();
-  if (!status.ok())
-    return status;
+  if (!status.ok()) return status;
 
   status = SaveMemories();
-  if (!status.ok())
-    return status;
+  if (!status.ok()) return status;
 
   return absl::OkStatus();
 }

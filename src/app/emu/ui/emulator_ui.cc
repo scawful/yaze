@@ -39,8 +39,7 @@ void AddSectionSpacing() {
 }  // namespace
 
 void RenderNavBar(Emulator* emu) {
-  if (!emu)
-    return;
+  if (!emu) return;
 
   auto& theme_manager = ThemeManager::Get();
   const auto& theme = theme_manager.GetCurrentTheme();
@@ -176,7 +175,8 @@ void RenderNavBar(Emulator* emu) {
   //   emu->disassembly_viewer().SetRecording(recording);
   // }
   // if (ImGui::IsItemHovered()) {
-  //   ImGui::SetTooltip("Record instructions to Disassembly Viewer\n(Lightweight - uses sparse address map)");
+  //   ImGui::SetTooltip("Record instructions to Disassembly
+  //   Viewer\n(Lightweight - uses sparse address map)");
   // }
 
   ImGui::SameLine();
@@ -267,8 +267,7 @@ void RenderNavBar(Emulator* emu) {
 }
 
 void RenderSnesPpu(Emulator* emu) {
-  if (!emu)
-    return;
+  if (!emu) return;
 
   auto& theme_manager = ThemeManager::Get();
   const auto& theme = theme_manager.GetCurrentTheme();
@@ -337,8 +336,7 @@ void RenderSnesPpu(Emulator* emu) {
 }
 
 void RenderPerformanceMonitor(Emulator* emu) {
-  if (!emu)
-    return;
+  if (!emu) return;
 
   auto& theme_manager = ThemeManager::Get();
   const auto& theme = theme_manager.GetCurrentTheme();
@@ -388,8 +386,7 @@ void RenderPerformanceMonitor(Emulator* emu) {
 }
 
 void RenderKeyboardShortcuts(bool* show) {
-  if (!show || !*show)
-    return;
+  if (!show || !*show) return;
 
   auto& theme_manager = ThemeManager::Get();
   const auto& theme = theme_manager.GetCurrentTheme();
@@ -494,8 +491,7 @@ void RenderKeyboardShortcuts(bool* show) {
 }
 
 void RenderEmulatorInterface(Emulator* emu) {
-  if (!emu)
-    return;
+  if (!emu) return;
 
   auto& theme_manager = ThemeManager::Get();
   const auto& theme = theme_manager.GetCurrentTheme();

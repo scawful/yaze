@@ -15,7 +15,7 @@ namespace editor {
 
 /**
  * @brief Handles the main dungeon canvas rendering and interaction
- * 
+ *
  * In Link to the Past, dungeon "layers" are not separate visual layers
  * but a game concept where objects exist on different logical levels.
  * Players move between these levels using stair objects that act as

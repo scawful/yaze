@@ -32,8 +32,7 @@ SessionCoordinator::SessionCoordinator(void* sessions_ptr,
 
 void SessionCoordinator::CreateNewSession() {
   auto* sessions = GET_SESSIONS();
-  if (!sessions)
-    return;
+  if (!sessions) return;
 
   if (session_count_ >= kMaxSessions) {
     ShowSessionLimitWarning();
@@ -55,15 +54,15 @@ void SessionCoordinator::CreateNewSession() {
 
 void SessionCoordinator::DuplicateCurrentSession() {
   auto* sessions = GET_SESSIONS();
-  if (!sessions || sessions->empty())
-    return;
+  if (!sessions || sessions->empty()) return;
 
   if (session_count_ >= kMaxSessions) {
     ShowSessionLimitWarning();
     return;
   }
 
-  // Create new empty session (cannot actually duplicate due to non-movable editors)
+  // Create new empty session (cannot actually duplicate due to non-movable
+  // editors)
   // TODO: Implement proper duplication when editors become movable
   sessions->emplace_back();
   UpdateSessionCount();
@@ -83,8 +82,7 @@ void SessionCoordinator::CloseCurrentSession() {
 
 void SessionCoordinator::CloseSession(size_t index) {
   auto* sessions = GET_SESSIONS();
-  if (!sessions || !IsValidSessionIndex(index))
-    return;
+  if (!sessions || !IsValidSessionIndex(index)) return;
 
   if (session_count_ <= kMinSessions) {
     // Don't allow closing the last session
@@ -104,8 +102,9 @@ void SessionCoordinator::CloseSession(size_t index) {
   // TODO: Implement proper session removal when editors become movable
   sessions->at(index).custom_name = "[CLOSED SESSION]";
 
-  // Note: We don't actually remove from the deque because EditorSet is not movable
-  // This is a temporary solution until we refactor to use unique_ptr<EditorSet>
+  // Note: We don't actually remove from the deque because EditorSet is not
+  // movable This is a temporary solution until we refactor to use
+  // unique_ptr<EditorSet>
   UpdateSessionCount();
 
   // Adjust active session index
@@ -119,13 +118,10 @@ void SessionCoordinator::CloseSession(size_t index) {
   ShowSessionOperationResult("Close Session", true);
 }
 
-void SessionCoordinator::RemoveSession(size_t index) {
-  CloseSession(index);
-}
+void SessionCoordinator::RemoveSession(size_t index) { CloseSession(index); }
 
 void SessionCoordinator::SwitchToSession(size_t index) {
-  if (!IsValidSessionIndex(index))
-    return;
+  if (!IsValidSessionIndex(index)) return;
 
   active_session_index_ = index;
 
@@ -183,8 +179,7 @@ size_t SessionCoordinator::GetActiveSessionCount() const {
 bool SessionCoordinator::HasDuplicateSession(
     const std::string& filepath) const {
   auto* sessions = GET_SESSIONS();
-  if (!sessions || filepath.empty())
-    return false;
+  if (!sessions || filepath.empty()) return false;
 
   for (const auto& session : *sessions) {
     if (session.filepath == filepath) {
@@ -196,11 +191,9 @@ bool SessionCoordinator::HasDuplicateSession(
 
 void SessionCoordinator::DrawSessionSwitcher() {
   auto* sessions = GET_SESSIONS();
-  if (!sessions || sessions->empty())
-    return;
+  if (!sessions || sessions->empty()) return;
 
-  if (!show_session_switcher_)
-    return;
+  if (!show_session_switcher_) return;
 
   ImGui::SetNextWindowSize(ImVec2(400, 300), ImGuiCond_FirstUseEver);
   ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(),
@@ -262,11 +255,9 @@ void SessionCoordinator::DrawSessionSwitcher() {
 
 void SessionCoordinator::DrawSessionManager() {
   auto* sessions = GET_SESSIONS();
-  if (!sessions || sessions->empty())
-    return;
+  if (!sessions || sessions->empty()) return;
 
-  if (!show_session_manager_)
-    return;
+  if (!show_session_manager_) return;
 
   ImGui::SetNextWindowSize(ImVec2(600, 400), ImGuiCond_FirstUseEver);
   ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(),
@@ -291,7 +282,6 @@ void SessionCoordinator::DrawSessionManager() {
   if (ImGui::BeginTable("SessionTable", 4,
                         ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg |
                             ImGuiTableFlags_Resizable)) {
-
     ImGui::TableSetupColumn("Session", ImGuiTableColumnFlags_WidthStretch,
                             0.3f);
     ImGui::TableSetupColumn("ROM File", ImGuiTableColumnFlags_WidthStretch,
@@ -357,8 +347,7 @@ void SessionCoordinator::DrawSessionManager() {
 }
 
 void SessionCoordinator::DrawSessionRenameDialog() {
-  if (!show_session_rename_dialog_)
-    return;
+  if (!show_session_rename_dialog_) return;
 
   ImGui::SetNextWindowSize(ImVec2(300, 150), ImGuiCond_Always);
   ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(),
@@ -392,8 +381,7 @@ void SessionCoordinator::DrawSessionRenameDialog() {
 
 void SessionCoordinator::DrawSessionTabs() {
   auto* sessions = GET_SESSIONS();
-  if (!sessions || sessions->empty())
-    return;
+  if (!sessions || sessions->empty()) return;
 
   if (ImGui::BeginTabBar("SessionTabs")) {
     for (size_t i = 0; i < sessions->size(); ++i) {
@@ -429,8 +417,7 @@ void SessionCoordinator::DrawSessionTabs() {
 }
 
 void SessionCoordinator::DrawSessionIndicator() {
-  if (!HasMultipleSessions())
-    return;
+  if (!HasMultipleSessions()) return;
 
   const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
   ImVec4 accent_color = ConvertColorToImVec4(theme.accent);
@@ -477,8 +464,7 @@ std::string SessionCoordinator::GetActiveSessionDisplayName() const {
 void SessionCoordinator::RenameSession(size_t index,
                                        const std::string& new_name) {
   auto* sessions = GET_SESSIONS();
-  if (!sessions || !IsValidSessionIndex(index) || new_name.empty())
-    return;
+  if (!sessions || !IsValidSessionIndex(index) || new_name.empty()) return;
 
   sessions->at(index).custom_name = new_name;
   LOG_INFO("SessionCoordinator", "Renamed session %zu to '%s'", index,
@@ -570,8 +556,7 @@ size_t SessionCoordinator::GetTotalSessionCount() const {
 
 size_t SessionCoordinator::GetLoadedSessionCount() const {
   auto* sessions = GET_SESSIONS();
-  if (!sessions)
-    return 0;
+  if (!sessions) return 0;
 
   size_t count = 0;
   for (const auto& session : *sessions) {
@@ -637,8 +622,7 @@ absl::Status SessionCoordinator::SaveSessionAs(size_t session_index,
 absl::StatusOr<RomSession*> SessionCoordinator::CreateSessionFromRom(
     Rom&& rom, const std::string& filepath) {
   auto* sessions = GET_SESSIONS();
-  if (!sessions)
-    return absl::InternalError("Sessions not initialized");
+  if (!sessions) return absl::InternalError("Sessions not initialized");
 
   size_t new_session_id = sessions->size();
   sessions->emplace_back(std::move(rom), user_settings_, new_session_id);
@@ -653,8 +637,7 @@ absl::StatusOr<RomSession*> SessionCoordinator::CreateSessionFromRom(
 
 void SessionCoordinator::CleanupClosedSessions() {
   auto* sessions = GET_SESSIONS();
-  if (!sessions)
-    return;
+  if (!sessions) return;
 
   // Mark empty sessions as closed (except keep at least one)
   // TODO: Actually remove when editors become movable
@@ -680,8 +663,7 @@ void SessionCoordinator::CleanupClosedSessions() {
 
 void SessionCoordinator::ClearAllSessions() {
   auto* sessions = GET_SESSIONS();
-  if (!sessions)
-    return;
+  if (!sessions) return;
 
   // Unregister all session cards
   if (card_registry_) {
@@ -704,8 +686,7 @@ void SessionCoordinator::ClearAllSessions() {
 
 void SessionCoordinator::FocusNextSession() {
   auto* sessions = GET_SESSIONS();
-  if (!sessions || sessions->empty())
-    return;
+  if (!sessions || sessions->empty()) return;
 
   size_t next_index = (active_session_index_ + 1) % sessions->size();
   SwitchToSession(next_index);
@@ -713,8 +694,7 @@ void SessionCoordinator::FocusNextSession() {
 
 void SessionCoordinator::FocusPreviousSession() {
   auto* sessions = GET_SESSIONS();
-  if (!sessions || sessions->empty())
-    return;
+  if (!sessions || sessions->empty()) return;
 
   size_t prev_index = (active_session_index_ == 0) ? sessions->size() - 1
                                                    : active_session_index_ - 1;
@@ -723,15 +703,13 @@ void SessionCoordinator::FocusPreviousSession() {
 
 void SessionCoordinator::FocusFirstSession() {
   auto* sessions = GET_SESSIONS();
-  if (!sessions || sessions->empty())
-    return;
+  if (!sessions || sessions->empty()) return;
   SwitchToSession(0);
 }
 
 void SessionCoordinator::FocusLastSession() {
   auto* sessions = GET_SESSIONS();
-  if (!sessions || sessions->empty())
-    return;
+  if (!sessions || sessions->empty()) return;
   SwitchToSession(sessions->size() - 1);
 }
 
@@ -753,8 +731,7 @@ void SessionCoordinator::ValidateSessionIndex(size_t index) const {
 std::string SessionCoordinator::GenerateUniqueSessionName(
     const std::string& base_name) const {
   auto* sessions = GET_SESSIONS();
-  if (!sessions)
-    return base_name;
+  if (!sessions) return base_name;
 
   std::string name = base_name;
   int counter = 1;
@@ -768,8 +745,7 @@ std::string SessionCoordinator::GenerateUniqueSessionName(
       }
     }
 
-    if (!found)
-      break;
+    if (!found) break;
 
     name = absl::StrFormat("%s %d", base_name, counter++);
   }
@@ -797,8 +773,7 @@ void SessionCoordinator::ShowSessionOperationResult(
 
 void SessionCoordinator::DrawSessionTab(size_t index, bool is_active) {
   auto* sessions = GET_SESSIONS();
-  if (!sessions || index >= sessions->size())
-    return;
+  if (!sessions || index >= sessions->size()) return;
 
   const auto& session = sessions->at(index);
 
@@ -851,8 +826,7 @@ void SessionCoordinator::DrawSessionContextMenu(size_t index) {
 
 void SessionCoordinator::DrawSessionBadge(size_t index) {
   auto* sessions = GET_SESSIONS();
-  if (!sessions || index >= sessions->size())
-    return;
+  if (!sessions || index >= sessions->size()) return;
 
   const auto& session = sessions->at(index);
   ImVec4 color = GetSessionColor(index);

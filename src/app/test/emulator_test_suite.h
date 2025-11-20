@@ -21,7 +21,7 @@ namespace test {
 
 /**
  * @brief Test suite for core emulator components.
- * 
+ *
  * This suite validates the contracts outlined in the emulator enhancement
  * and APU timing fix roadmaps. It tests the functionality of the CPU, APU,
  * SPC700, and debugging components to ensure they meet the requirements
@@ -36,16 +36,11 @@ class EmulatorTestSuite : public TestSuite {
   TestCategory GetCategory() const override { return TestCategory::kUnit; }
 
   absl::Status RunTests(TestResults& results) override {
-    if (test_apu_handshake_)
-      RunApuHandshakeTest(results);
-    if (test_spc700_cycles_)
-      RunSpc700CycleAccuracyTest(results);
-    if (test_breakpoint_manager_)
-      RunBreakpointManagerTest(results);
-    if (test_watchpoint_manager_)
-      RunWatchpointManagerTest(results);
-    if (test_audio_backend_)
-      RunAudioBackendTest(results);
+    if (test_apu_handshake_) RunApuHandshakeTest(results);
+    if (test_spc700_cycles_) RunSpc700CycleAccuracyTest(results);
+    if (test_breakpoint_manager_) RunBreakpointManagerTest(results);
+    if (test_watchpoint_manager_) RunWatchpointManagerTest(results);
+    if (test_audio_backend_) RunAudioBackendTest(results);
 
     return absl::OkStatus();
   }
@@ -70,11 +65,12 @@ class EmulatorTestSuite : public TestSuite {
 
   /**
    * @brief Verifies the CPU-APU handshake protocol.
-   * 
+   *
    * **Contract:** Ensures the APU correctly signals its ready state and the
    * CPU can initiate the audio driver transfer. This is based on the protocol
-   * described in `APU_Timing_Fix_Plan.md`. A failure here indicates a fundamental
-   * timing or communication issue preventing audio from initializing.
+   * described in `APU_Timing_Fix_Plan.md`. A failure here indicates a
+   * fundamental timing or communication issue preventing audio from
+   * initializing.
    */
   void RunApuHandshakeTest(TestResults& results) {
     auto start_time = std::chrono::steady_clock::now();
@@ -144,12 +140,13 @@ class EmulatorTestSuite : public TestSuite {
 
   /**
    * @brief Validates the cycle counting for SPC700 opcodes.
-   * 
-   * **Contract:** Each SPC700 instruction must consume a precise number of cycles.
-   * This test verifies that the `Spc700::GetLastOpcodeCycles()` method returns
-   * the correct base cycle count from `spc700_cycles.h`. This is a prerequisite
-   * for the cycle-accurate refactoring proposed in `APU_Timing_Fix_Plan.md`.
-   * Note: This test does not yet account for variable cycle costs (page crossing, etc.).
+   *
+   * **Contract:** Each SPC700 instruction must consume a precise number of
+   * cycles. This test verifies that the `Spc700::GetLastOpcodeCycles()` method
+   * returns the correct base cycle count from `spc700_cycles.h`. This is a
+   * prerequisite for the cycle-accurate refactoring proposed in
+   * `APU_Timing_Fix_Plan.md`. Note: This test does not yet account for variable
+   * cycle costs (page crossing, etc.).
    */
   void RunSpc700CycleAccuracyTest(TestResults& results) {
     auto start_time = std::chrono::steady_clock::now();
@@ -162,13 +159,9 @@ class EmulatorTestSuite : public TestSuite {
     try {
       // Dummy callbacks for SPC700 instantiation
       emu::ApuCallbacks callbacks;
-      callbacks.read = [](uint16_t) {
-        return 0;
-      };
-      callbacks.write = [](uint16_t, uint8_t) {
-      };
-      callbacks.idle = [](bool) {
-      };
+      callbacks.read = [](uint16_t) { return 0; };
+      callbacks.write = [](uint16_t, uint8_t) {};
+      callbacks.idle = [](bool) {};
 
       emu::Spc700 spc(callbacks);
       spc.Reset(true);
@@ -209,10 +202,11 @@ class EmulatorTestSuite : public TestSuite {
 
   /**
    * @brief Tests the core functionality of the BreakpointManager.
-   * 
-   * **Contract:** The `BreakpointManager` must be able to add, remove, and correctly
-   * identify hit breakpoints of various types (Execute, Read, Write). This is a
-   * core feature of the "Advanced Debugger" goal in `E1-emulator-enhancement-roadmap.md`.
+   *
+   * **Contract:** The `BreakpointManager` must be able to add, remove, and
+   * correctly identify hit breakpoints of various types (Execute, Read, Write).
+   * This is a core feature of the "Advanced Debugger" goal in
+   * `E1-emulator-enhancement-roadmap.md`.
    */
   void RunBreakpointManagerTest(TestResults& results) {
     auto start_time = std::chrono::steady_clock::now();
@@ -270,7 +264,7 @@ class EmulatorTestSuite : public TestSuite {
 
   /**
    * @brief Tests the memory WatchpointManager.
-   * 
+   *
    * **Contract:** The `WatchpointManager` must correctly log memory accesses
    * and trigger breaks when configured to do so. This is a key feature for
    * debugging data corruption issues, as outlined in the emulator roadmap.
@@ -332,7 +326,7 @@ class EmulatorTestSuite : public TestSuite {
 
   /**
    * @brief Tests the audio backend abstraction layer.
-   * 
+   *
    * **Contract:** The audio backend must initialize correctly, manage its state
    * (playing/paused), and accept audio samples. This is critical for fixing the
    * audio output as described in `E1-emulator-enhancement-roadmap.md`.

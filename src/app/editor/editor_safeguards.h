@@ -27,10 +27,8 @@ namespace editor {
 
 // Helper function for generating consistent ROM status messages
 inline std::string GetRomStatusMessage(const Rom* rom) {
-  if (!rom)
-    return "No ROM loaded";
-  if (!rom->is_loaded())
-    return "ROM failed to load";
+  if (!rom) return "No ROM loaded";
+  if (!rom->is_loaded()) return "ROM failed to load";
   return absl::StrFormat("ROM loaded: %s", rom->title());
 }
 

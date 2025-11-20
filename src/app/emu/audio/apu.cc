@@ -28,7 +28,8 @@ static constexpr uint64_t kApuCyclesDenominatorPal =
 
 // Legacy floating-point ratios (deprecated, kept for reference)
 // static const double apuCyclesPerMaster = (32040 * 32) / (1364 * 262 * 60.0);
-// static const double apuCyclesPerMasterPal = (32040 * 32) / (1364 * 312 * 50.0);
+// static const double apuCyclesPerMasterPal = (32040 * 32) / (1364 * 312
+// * 50.0);
 
 // SNES IPL ROM - Anomie's official hardware dump (64 bytes)
 // With our critical fixes: CMP Z flag, multi-step bstep, address preservation
@@ -42,9 +43,7 @@ static const uint8_t bootRom[0x40] = {
 
 // Helper to reset the cycle tracking on emulator reset
 static uint64_t g_last_master_cycles = 0;
-static void ResetCycleTracking() {
-  g_last_master_cycles = 0;
-}
+static void ResetCycleTracking() { g_last_master_cycles = 0; }
 
 void Apu::Init() {
   ram.resize(0x10000);
@@ -90,8 +89,9 @@ void Apu::RunCycles(uint64_t master_cycles) {
   uint64_t master_delta = master_cycles - g_last_master_cycles;
   g_last_master_cycles = master_cycles;
 
-  // Convert CPU master cycles to APU cycles using fixed-point ratio (no floating-point drift)
-  // target_apu_cycles = cycles_ + (master_delta * numerator) / denominator
+  // Convert CPU master cycles to APU cycles using fixed-point ratio (no
+  // floating-point drift) target_apu_cycles = cycles_ + (master_delta *
+  // numerator) / denominator
   uint64_t numerator =
       memory_.pal_timing() ? kApuCyclesNumeratorPal : kApuCyclesNumerator;
   uint64_t denominator =
@@ -107,12 +107,14 @@ void Apu::RunCycles(uint64_t master_cycles) {
   static bool logged_transfer_state = false;
 
   while (cycles_ < target_apu_cycles) {
-    // Execute one SPC700 opcode (variable cycles) then advance APU cycles accordingly.
+    // Execute one SPC700 opcode (variable cycles) then advance APU cycles
+    // accordingly.
     uint16_t old_pc = spc700_.PC;
     uint16_t current_pc = spc700_.PC;
 
     // IPL ROM protocol analysis - let it run to see what happens
-    // Log IPL ROM transfer loop activity (every 1000 cycles when in critical range)
+    // Log IPL ROM transfer loop activity (every 1000 cycles when in critical
+    // range)
     static uint64_t last_ipl_log = 0;
     if (rom_readable_ && current_pc >= 0xFFD6 && current_pc <= 0xFFED) {
       if (cycles_ - last_ipl_log > 10000) {
@@ -164,7 +166,8 @@ void Apu::RunCycles(uint64_t master_cycles) {
     }
 
     // Advance APU cycles based on actual SPC700 instruction timing
-    // Each Cycle() call: ticks DSP every 32 cycles, updates timers, increments cycles_
+    // Each Cycle() call: ticks DSP every 32 cycles, updates timers, increments
+    // cycles_
     for (int i = 0; i < spc_cycles; ++i) {
       Cycle();
     }
@@ -293,8 +296,7 @@ void Apu::Write(uint16_t adr, uint8_t val) {
       break;
     }
     case 0xf3: {
-      if (dsp_adr_ < 0x80)
-        dsp_.Write(dsp_adr_, val);
+      if (dsp_adr_ < 0x80) dsp_.Write(dsp_adr_, val);
       break;
     }
     case 0xf4:
@@ -317,7 +319,8 @@ void Apu::Write(uint16_t adr, uint8_t val) {
       }
 
       // Track when SPC enters transfer loop (echoes counter back)
-      // PC is at $FFE2 when the MOVSY write completes (CB F4 is 2 bytes at $FFE0)
+      // PC is at $FFE2 when the MOVSY write completes (CB F4 is 2 bytes at
+      // $FFE0)
       if (adr == 0xf4 && spc700_.PC == 0xFFE2 && rom_readable_) {
         // SPC is echoing counter back - we're in data transfer phase
         if (!in_transfer_ && ram[0x00] != 0 && ram[0x01] == 0) {
@@ -359,9 +362,7 @@ void Apu::SpcWrite(uint16_t adr, uint8_t val) {
   Write(adr, val);
 }
 
-void Apu::SpcIdle(bool waiting) {
-  Cycle();
-}
+void Apu::SpcIdle(bool waiting) { Cycle(); }
 
 }  // namespace emu
 }  // namespace yaze

@@ -62,8 +62,7 @@ class WebSocketClient::Impl {
   void Disconnect() {
     std::lock_guard<std::mutex> lock(mutex_);
 
-    if (!connected_)
-      return;
+    if (!connected_) return;
 
     should_stop_ = true;
     connected_ = false;
@@ -175,9 +174,7 @@ class WebSocketClient::Impl {
 WebSocketClient::WebSocketClient()
     : impl_(std::make_unique<Impl>()), state_(ConnectionState::kDisconnected) {}
 
-WebSocketClient::~WebSocketClient() {
-  Disconnect();
-}
+WebSocketClient::~WebSocketClient() { Disconnect(); }
 
 absl::Status WebSocketClient::Connect(const std::string& host, int port) {
   auto status = impl_->Connect(host, port);
@@ -200,7 +197,6 @@ void WebSocketClient::Disconnect() {
 absl::StatusOr<SessionInfo> WebSocketClient::HostSession(
     const std::string& session_name, const std::string& username,
     const std::string& rom_hash, bool ai_enabled) {
-
 #ifdef YAZE_WITH_JSON
   if (!IsConnected()) {
     return absl::FailedPreconditionError("Not connected to server");
@@ -235,7 +231,6 @@ absl::StatusOr<SessionInfo> WebSocketClient::HostSession(
 
 absl::StatusOr<SessionInfo> WebSocketClient::JoinSession(
     const std::string& session_code, const std::string& username) {
-
 #ifdef YAZE_WITH_JSON
   if (!IsConnected()) {
     return absl::FailedPreconditionError("Not connected to server");
@@ -279,7 +274,6 @@ absl::Status WebSocketClient::LeaveSession() {
 
 absl::Status WebSocketClient::SendChatMessage(const std::string& message,
                                               const std::string& sender) {
-
 #ifdef YAZE_WITH_JSON
   nlohmann::json msg = {
       {"type", "chat_message"},
@@ -294,7 +288,6 @@ absl::Status WebSocketClient::SendChatMessage(const std::string& message,
 absl::Status WebSocketClient::SendRomSync(const std::string& diff_data,
                                           const std::string& rom_hash,
                                           const std::string& sender) {
-
 #ifdef YAZE_WITH_JSON
   nlohmann::json message = {
       {"type", "rom_sync"},
@@ -309,7 +302,6 @@ absl::Status WebSocketClient::SendRomSync(const std::string& diff_data,
 
 absl::Status WebSocketClient::ShareProposal(const nlohmann::json& proposal_data,
                                             const std::string& sender) {
-
 #ifdef YAZE_WITH_JSON
   nlohmann::json message = {
       {"type", "proposal_share"},
@@ -324,7 +316,6 @@ absl::Status WebSocketClient::ShareProposal(const nlohmann::json& proposal_data,
 absl::Status WebSocketClient::VoteOnProposal(const std::string& proposal_id,
                                              bool approved,
                                              const std::string& username) {
-
 #ifdef YAZE_WITH_JSON
   nlohmann::json message = {{"type", "proposal_vote"},
                             {"payload",
@@ -340,7 +331,6 @@ absl::Status WebSocketClient::VoteOnProposal(const std::string& proposal_id,
 
 absl::Status WebSocketClient::UpdateProposalStatus(
     const std::string& proposal_id, const std::string& status) {
-
 #ifdef YAZE_WITH_JSON
   nlohmann::json message = {
       {"type", "proposal_update"},

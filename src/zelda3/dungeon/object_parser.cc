@@ -181,7 +181,8 @@ absl::StatusOr<std::vector<gfx::TileInfo>> ObjectParser::ParseSubtype3(
 absl::StatusOr<std::vector<gfx::TileInfo>> ObjectParser::ReadTileData(
     int address, int tile_count) {
   // Each tile is stored as a 16-bit word (2 bytes), not 8 bytes!
-  // ZScream: tiles.Add(new Tile(ROM.DATA[pos + ((i * 2))], ROM.DATA[pos + ((i * 2)) + 1]));
+  // ZScream: tiles.Add(new Tile(ROM.DATA[pos + ((i * 2))], ROM.DATA[pos + ((i *
+  // 2)) + 1]));
   if (address < 0 || address + (tile_count * 2) >= (int)rom_->size()) {
     return absl::OutOfRangeError(
         absl::StrFormat("Tile data address out of range: %#06x", address));

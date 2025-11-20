@@ -31,9 +31,9 @@
 //    - Hieroglyphs
 //
 // 4. **Dictionary System** (`DictionaryEntry`):
-//    Compression system using byte values 0x88+ to reference common words/phrases
-//    stored separately in ROM. This saves space by replacing frequently-used
-//    text with single-byte references.
+//    Compression system using byte values 0x88+ to reference common
+//    words/phrases stored separately in ROM. This saves space by replacing
+//    frequently-used text with single-byte references.
 //
 // 5. **Message Data** (`MessageData`):
 //    Represents a single in-game message with both raw binary data and parsed
@@ -121,21 +121,22 @@ static const std::unordered_map<uint8_t, wchar_t> CharEncoder = {
     {0x65, ' '},  {0x66, '_'},
 };
 
-// Finds the ROM byte value for a given character (reverse lookup in CharEncoder)
-// Returns 0xFF if character is not found
+// Finds the ROM byte value for a given character (reverse lookup in
+// CharEncoder) Returns 0xFF if character is not found
 uint8_t FindMatchingCharacter(char value);
 
 // Checks if a byte value represents a dictionary entry
 // Returns dictionary index (0-96) or -1 if not a dictionary entry
 int8_t FindDictionaryEntry(uint8_t value);
 
-// Converts a human-readable message string (with [command] tokens) into ROM bytes
-// This is the inverse operation of ParseMessageData
+// Converts a human-readable message string (with [command] tokens) into ROM
+// bytes This is the inverse operation of ParseMessageData
 std::vector<uint8_t> ParseMessageToData(std::string str);
 
-// Represents a single dictionary entry (common word/phrase) used for text compression
-// Dictionary entries are stored separately in ROM and referenced by bytes 0x88-0xE8
-// Example: Dictionary entry 0x00 might contain "the" and be referenced as [D:00]
+// Represents a single dictionary entry (common word/phrase) used for text
+// compression Dictionary entries are stored separately in ROM and referenced by
+// bytes 0x88-0xE8 Example: Dictionary entry 0x00 might contain "the" and be
+// referenced as [D:00]
 struct DictionaryEntry {
   uint8_t ID = 0;             // Dictionary index (0-96)
   std::string Contents = "";  // The actual text this entry represents
@@ -152,7 +153,8 @@ struct DictionaryEntry {
 
   // Checks if this dictionary entry's text appears in the given string
   bool ContainedInString(std::string_view s) const {
-    // Convert to std::string to avoid Debian string_view bug with absl::StrContains
+    // Convert to std::string to avoid Debian string_view bug with
+    // absl::StrContains
     return absl::StrContains(std::string(s), Contents);
   }
 
@@ -190,12 +192,13 @@ std::string ReplaceAllDictionaryWords(
 DictionaryEntry FindRealDictionaryEntry(
     uint8_t value, const std::vector<DictionaryEntry>& dictionary);
 
-// Special marker inserted into commands to protect them from dictionary replacements
-// during optimization. Removed after dictionary replacement is complete.
+// Special marker inserted into commands to protect them from dictionary
+// replacements during optimization. Removed after dictionary replacement is
+// complete.
 const std::string CHEESE = "\uBEBE";
 
-// Represents a complete in-game message with both raw and parsed representations
-// Messages can exist in two forms:
+// Represents a complete in-game message with both raw and parsed
+// representations Messages can exist in two forms:
 // 1. Raw: Direct ROM bytes with dictionary references as [D:XX] tokens
 // 2. Parsed: Fully expanded with dictionary words replaced by actual text
 struct MessageData {
@@ -433,8 +436,8 @@ std::string ParseTextDataByte(uint8_t value);
 absl::StatusOr<MessageData> ParseSingleMessage(
     const std::vector<uint8_t>& rom_data, int* current_pos);
 
-// Converts MessageData objects into human-readable strings with [command] tokens
-// This is the main function for displaying messages in the editor
+// Converts MessageData objects into human-readable strings with [command]
+// tokens This is the main function for displaying messages in the editor
 // Properly handles commands with arguments to avoid parsing errors
 std::vector<std::string> ParseMessageData(
     std::vector<MessageData>& message_data,

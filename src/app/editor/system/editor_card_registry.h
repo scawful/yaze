@@ -18,7 +18,7 @@ class EditorCard;
 /**
  * @struct CardInfo
  * @brief Metadata for an editor card
- * 
+ *
  * Describes a registerable UI card that can be shown/hidden,
  * organized by category, and controlled programmatically.
  */
@@ -37,12 +37,13 @@ struct CardInfo {
 
 /**
  * @class EditorCardRegistry
- * @brief Central registry for all editor cards with session awareness and dependency injection
- * 
- * This class combines the functionality of EditorCardManager (global card management)
- * and SessionCardRegistry (session-aware prefixing) into a single, dependency-injected
- * component that can be passed to editors.
- * 
+ * @brief Central registry for all editor cards with session awareness and
+ * dependency injection
+ *
+ * This class combines the functionality of EditorCardManager (global card
+ * management) and SessionCardRegistry (session-aware prefixing) into a single,
+ * dependency-injected component that can be passed to editors.
+ *
  * Design Philosophy:
  * - Dependency injection (no singleton pattern)
  * - Session-aware card ID prefixing for multi-session support
@@ -50,18 +51,18 @@ struct CardInfo {
  * - View menu integration
  * - Workspace preset system
  * - No direct GUI dependency in registration logic
- * 
+ *
  * Session-Aware Card IDs:
  * - Single session: "dungeon.room_selector"
  * - Multiple sessions: "s0.dungeon.room_selector", "s1.dungeon.room_selector"
- * 
+ *
  * Usage:
  * ```cpp
  * // In EditorManager:
  * EditorCardRegistry card_registry;
  * EditorDependencies deps;
  * deps.card_registry = &card_registry;
- * 
+ *
  * // In Editor:
  * deps.card_registry->RegisterCard(deps.session_id, {
  *     .card_id = "dungeon.room_selector",
@@ -70,7 +71,7 @@ struct CardInfo {
  *     .category = "Dungeon",
  *     .on_show = []() {  }
  * });
- * 
+ *
  * // Programmatic control:
  * deps.card_registry->ShowCard(deps.session_id, "dungeon.room_selector");
  * ```
@@ -93,7 +94,7 @@ class EditorCardRegistry {
   /**
    * @brief Register a new session in the registry
    * @param session_id Unique session identifier
-   * 
+   *
    * Creates internal tracking structures for the session.
    * Must be called before registering cards for a session.
    */
@@ -102,7 +103,7 @@ class EditorCardRegistry {
   /**
    * @brief Unregister a session and all its cards
    * @param session_id Session identifier to remove
-   * 
+   *
    * Automatically unregisters all cards associated with the session.
    */
   void UnregisterSession(size_t session_id);
@@ -110,7 +111,7 @@ class EditorCardRegistry {
   /**
    * @brief Set the currently active session
    * @param session_id Session to make active
-   * 
+   *
    * Used for determining whether to apply card ID prefixing.
    */
   void SetActiveSession(size_t session_id);
@@ -122,8 +123,9 @@ class EditorCardRegistry {
   /**
    * @brief Register a card for a specific session
    * @param session_id Session this card belongs to
-   * @param base_info Card metadata (ID will be automatically prefixed if needed)
-   * 
+   * @param base_info Card metadata (ID will be automatically prefixed if
+   * needed)
+   *
    * The card_id in base_info should be the unprefixed ID. This method
    * automatically applies session prefixing when multiple sessions exist.
    */
@@ -150,7 +152,7 @@ class EditorCardRegistry {
   /**
    * @brief Unregister all cards with a given prefix
    * @param prefix Prefix to match (e.g., "s0" or "s1.dungeon")
-   * 
+   *
    * Useful for cleaning up session cards or category cards.
    */
   void UnregisterCardsWithPrefix(const std::string& prefix);
@@ -189,7 +191,8 @@ class EditorCardRegistry {
 
   /**
    * @brief Get visibility flag pointer for a card
-   * @return Pointer to bool controlling card visibility (for passing to EditorCard::Begin)
+   * @return Pointer to bool controlling card visibility (for passing to
+   * EditorCard::Begin)
    */
   bool* GetVisibilityFlag(size_t session_id, const std::string& base_card_id);
 
@@ -348,7 +351,7 @@ class EditorCardRegistry {
    * @param session_id Session identifier
    * @param base_id Unprefixed card ID
    * @return Prefixed ID if multiple sessions, otherwise base ID
-   * 
+   *
    * Examples:
    * - Single session: "dungeon.room_selector" → "dungeon.room_selector"
    * - Multi-session: "dungeon.room_selector" → "s0.dungeon.room_selector"

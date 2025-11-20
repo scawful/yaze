@@ -1,6 +1,7 @@
 // Tests for Room object manipulation methods (Phase 3)
 
 #include <gtest/gtest.h>
+
 #include "app/rom.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_object.h"

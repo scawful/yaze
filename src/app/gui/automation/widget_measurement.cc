@@ -55,8 +55,7 @@ void WidgetMeasurement::BeginToolbarMeasurement(const std::string& toolbar_id) {
 }
 
 void WidgetMeasurement::EndToolbarMeasurement() {
-  if (current_toolbar_id_.empty())
-    return;
+  if (current_toolbar_id_.empty()) return;
 
   // Calculate total width from cursor movement
   float end_x = ImGui::GetCursorPosX();
@@ -105,8 +104,7 @@ std::string WidgetMeasurement::ExportMetricsJSON() const {
 
   bool first_toolbar = true;
   for (const auto& [toolbar_id, metrics] : toolbar_metrics_) {
-    if (!first_toolbar)
-      json += ",\n";
+    if (!first_toolbar) json += ",\n";
     first_toolbar = false;
 
     json += absl::StrFormat("    \"%s\": {\n", toolbar_id);
@@ -116,8 +114,7 @@ std::string WidgetMeasurement::ExportMetricsJSON() const {
 
     bool first_widget = true;
     for (const auto& metric : metrics) {
-      if (!first_widget)
-        json += ",\n";
+      if (!first_widget) json += ",\n";
       first_widget = false;
 
       json += "        {\n";

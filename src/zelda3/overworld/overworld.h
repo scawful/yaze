@@ -139,7 +139,7 @@ class Overworld {
 
   /**
    * @brief Build a map on-demand if it hasn't been built yet
-   * 
+   *
    * This method checks if the specified map needs to be built and builds it
    * if necessary. Used for lazy loading optimization.
    */
@@ -198,7 +198,7 @@ class Overworld {
    * @param parent_index The parent map index
    * @param size The area size to configure
    * @return Status of the configuration
-   * 
+   *
    * Properly sets up sibling relationships and updates ROM data for v3+.
    */
   absl::Status ConfigureMultiAreaMap(int parent_index, AreaSizeEnum size);

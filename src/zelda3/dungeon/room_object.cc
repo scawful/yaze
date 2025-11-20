@@ -16,7 +16,8 @@ struct SubtypeTableInfo {
 };
 
 SubtypeTableInfo GetSubtypeTable(int object_id) {
-  // Heuristic: 0x00-0xFF => subtype1, 0x100-0x1FF => subtype2, >=0x200 => subtype3
+  // Heuristic: 0x00-0xFF => subtype1, 0x100-0x1FF => subtype2, >=0x200 =>
+  // subtype3
   if (object_id >= 0x200) {
     return SubtypeTableInfo(kRoomObjectSubtype3, 0xFF);
   } else if (object_id >= 0x100) {
@@ -47,7 +48,8 @@ ObjectOption operator~(ObjectOption option) {
 }
 
 // NOTE: DrawTile was legacy ZScream code that is no longer used.
-// Modern rendering uses ObjectDrawer which draws directly to BackgroundBuffer bitmaps.
+// Modern rendering uses ObjectDrawer which draws directly to BackgroundBuffer
+// bitmaps.
 
 void RoomObject::EnsureTilesLoaded() {
   if (tiles_loaded_) {
@@ -181,7 +183,8 @@ RoomObject RoomObject::DecodeObjectFromBytes(uint8_t b1, uint8_t b2, uint8_t b3,
   // Follow ZScream's parsing logic exactly
   if (b3 >= 0xF8) {
     // Type 3: xxxxxxii yyyyyyii 11111iii
-    // ZScream: oid = (ushort)((b3 << 4) | 0x80 + (((b2 & 0x03) << 2) + ((b1 & 0x03))));
+    // ZScream: oid = (ushort)((b3 << 4) | 0x80 + (((b2 & 0x03) << 2) + ((b1 &
+    // 0x03))));
     id = (static_cast<uint16_t>(b3) << 4) | 0x80 |
          ((static_cast<uint16_t>(b2 & 0x03) << 2) + (b1 & 0x03));
     x = (b1 & 0xFC) >> 2;

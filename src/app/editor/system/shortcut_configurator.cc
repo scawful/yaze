@@ -208,7 +208,8 @@ void ConfigureEditorShortcuts(const ShortcutDependencies& deps,
                   });
 
   if (card_registry) {
-    // Note: Using Ctrl+Alt for card shortcuts to avoid conflicts with Save As (Ctrl+Shift+S)
+    // Note: Using Ctrl+Alt for card shortcuts to avoid conflicts with Save As
+    // (Ctrl+Shift+S)
     RegisterIfValid(shortcut_manager, "Show Dungeon Cards",
                     {ImGuiMod_Ctrl, ImGuiMod_Alt, ImGuiKey_D},
                     [card_registry]() {
@@ -309,7 +310,8 @@ void ConfigureMenuShortcuts(const ShortcutDependencies& deps,
                     }
                   });
 
-  // Note: Changed from Ctrl+Shift+R to Ctrl+Alt+R to avoid conflict with Proposal Drawer
+  // Note: Changed from Ctrl+Shift+R to Ctrl+Alt+R to avoid conflict with
+  // Proposal Drawer
   RegisterIfValid(shortcut_manager, "Reset Layout",
                   {ImGuiMod_Ctrl, ImGuiMod_Alt, ImGuiKey_R},
                   [workspace_manager]() {

@@ -381,7 +381,6 @@ absl::Status DungeonObjectEditor::HandleScrollWheel(int delta, int x, int y,
   if (editing_state_.current_mode == Mode::kInsert ||
       (editing_state_.current_mode == Mode::kEdit &&
        !selection_state_.selected_objects.empty())) {
-
     return HandleSizeEdit(delta, room_x, room_y);
   }
 
@@ -874,13 +873,9 @@ absl::Status DungeonObjectEditor::ApplyUndoPoint(const UndoPoint& undo_point) {
   return absl::OkStatus();
 }
 
-bool DungeonObjectEditor::CanUndo() const {
-  return !undo_history_.empty();
-}
+bool DungeonObjectEditor::CanUndo() const { return !undo_history_.empty(); }
 
-bool DungeonObjectEditor::CanRedo() const {
-  return !redo_history_.empty();
-}
+bool DungeonObjectEditor::CanRedo() const { return !redo_history_.empty(); }
 
 void DungeonObjectEditor::ClearHistory() {
   undo_history_.clear();
@@ -894,8 +889,7 @@ void DungeonObjectEditor::ClearHistory() {
 // Helper for color blending
 static uint32_t BlendColors(uint32_t base, uint32_t tint) {
   uint8_t a_tint = (tint >> 24) & 0xFF;
-  if (a_tint == 0)
-    return base;
+  if (a_tint == 0) return base;
 
   uint8_t r_base = (base >> 16) & 0xFF;
   uint8_t g_base = (base >> 8) & 0xFF;
@@ -921,8 +915,7 @@ void DungeonObjectEditor::RenderSelectionHighlight(gfx::Bitmap& canvas) {
 
   // Draw highlight rectangles around selected objects
   for (size_t obj_idx : selection_state_.selected_objects) {
-    if (obj_idx >= current_room_->GetTileObjectCount())
-      continue;
+    if (obj_idx >= current_room_->GetTileObjectCount()) continue;
 
     const auto& obj = current_room_->GetTileObject(obj_idx);
     int x = obj.x() * 16;
@@ -952,7 +945,8 @@ void DungeonObjectEditor::RenderLayerVisualization(gfx::Bitmap& canvas) {
     return;
   }
 
-  // Apply subtle color tints based on layer (simplified - just mark with colored border)
+  // Apply subtle color tints based on layer (simplified - just mark with
+  // colored border)
   for (const auto& obj : current_room_->GetTileObjects()) {
     int x = obj.x() * 16;
     int y = obj.y() * 16;
@@ -1168,8 +1162,7 @@ absl::Status DungeonObjectEditor::HandleDragOperation(int current_x,
 
   // Move all selected objects
   for (size_t obj_idx : selection_state_.selected_objects) {
-    if (obj_idx >= current_room_->GetTileObjectCount())
-      continue;
+    if (obj_idx >= current_room_->GetTileObjectCount()) continue;
 
     auto& obj = current_room_->GetTileObject(obj_idx);
     int new_x = obj.x() + grid_dx;

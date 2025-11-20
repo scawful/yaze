@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+
 #include <fstream>
 #include <iomanip>
 #include <iostream>
@@ -125,7 +126,6 @@ TEST_F(SpritePositionTest, MapCoordinateCalculations) {
       if (!sprite.deleted() &&
           sprite.map_id() < 0x40 + (current_world * 0x40) &&
           sprite.map_id() >= (current_world * 0x40)) {
-
         // Calculate map position
         int sprite_map_id = sprite.map_id();
         int local_map_index = sprite_map_id - (current_world * 0x40);

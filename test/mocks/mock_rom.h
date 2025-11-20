@@ -4,16 +4,16 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include "testing.h"
-
 #include "app/rom.h"
+#include "testing.h"
 
 namespace yaze {
 namespace test {
 
 /**
- * @brief Enhanced ROM for testing that behaves like a real ROM but with test data
- * 
+ * @brief Enhanced ROM for testing that behaves like a real ROM but with test
+ * data
+ *
  * This class extends Rom to provide testing utilities while maintaining
  * all the real ROM functionality. Instead of mocking methods, it loads
  * real test data into the ROM.

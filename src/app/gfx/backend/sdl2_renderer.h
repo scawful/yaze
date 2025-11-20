@@ -10,10 +10,10 @@ namespace gfx {
  * @class SDL2Renderer
  * @brief A concrete implementation of the IRenderer interface using SDL2.
  *
- * This class encapsulates all rendering logic that is specific to the SDL2_render API.
- * It translates the abstract calls from the IRenderer interface into concrete SDL2 commands.
- * This is the first step in abstracting the renderer, allowing the rest of the application
- * to be independent of SDL2.
+ * This class encapsulates all rendering logic that is specific to the
+ * SDL2_render API. It translates the abstract calls from the IRenderer
+ * interface into concrete SDL2 commands. This is the first step in abstracting
+ * the renderer, allowing the rest of the application to be independent of SDL2.
  */
 class SDL2Renderer : public IRenderer {
  public:
@@ -45,13 +45,14 @@ class SDL2Renderer : public IRenderer {
   void SetDrawColor(SDL_Color color) override;
 
   /**
-     * @brief Provides access to the underlying SDL_Renderer*.
-     * @return A void pointer that can be safely cast to an SDL_Renderer*.
-     */
+   * @brief Provides access to the underlying SDL_Renderer*.
+   * @return A void pointer that can be safely cast to an SDL_Renderer*.
+   */
   void* GetBackendRenderer() override { return renderer_.get(); }
 
  private:
-  // The core SDL2 renderer object, managed by a unique_ptr with a custom deleter.
+  // The core SDL2 renderer object, managed by a unique_ptr with a custom
+  // deleter.
   std::unique_ptr<SDL_Renderer, util::SDL_Deleter> renderer_;
 };
 

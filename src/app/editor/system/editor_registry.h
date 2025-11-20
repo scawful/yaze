@@ -13,7 +13,7 @@ namespace editor {
 /**
  * @class EditorRegistry
  * @brief Manages editor types, categories, and lifecycle
- * 
+ *
  * Extracted from EditorManager to provide focused editor management:
  * - Editor type classification and categorization
  * - Editor activation and switching

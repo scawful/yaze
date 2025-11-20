@@ -5,9 +5,9 @@
 // correctly for all three object types (Type1, Type2, Type3) based on
 // ZScream's proven implementation.
 
-#include "zelda3/dungeon/room_object.h"
-
 #include <gtest/gtest.h>
+
+#include "zelda3/dungeon/room_object.h"
 
 namespace yaze {
 namespace zelda3 {

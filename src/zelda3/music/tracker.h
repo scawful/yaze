@@ -43,23 +43,23 @@ using text_buf_ty = char[512];
  * This is the intermediate format used before writing data back to the ROM.
  */
 struct SongSpcBlock {
-  unsigned short
-      start;  // The starting address of this block in the virtual SPC memory space.
-  unsigned short len;     // Length of the data buffer.
-  unsigned short relnum;  // Number of relocation entries.
-  unsigned short relsz;   // Allocated size of the relocation table.
-  unsigned short*
-      relocs;  // Table of offsets within 'buf' that are pointers and need to be relocated.
-  unsigned short bank;  // The target sound bank.
-  unsigned short addr;  // The final, relocated address of this block.
-  unsigned char* buf;   // The raw binary data for this block.
-  int flag;             // Flags for managing the block's state.
+  unsigned short start;    // The starting address of this block in the virtual
+                           // SPC memory space.
+  unsigned short len;      // Length of the data buffer.
+  unsigned short relnum;   // Number of relocation entries.
+  unsigned short relsz;    // Allocated size of the relocation table.
+  unsigned short* relocs;  // Table of offsets within 'buf' that are pointers
+                           // and need to be relocated.
+  unsigned short bank;     // The target sound bank.
+  unsigned short addr;     // The final, relocated address of this block.
+  unsigned char* buf;      // The raw binary data for this block.
+  int flag;                // Flags for managing the block's state.
 };
 
 /**
  * @struct SongRange
- * @brief A metadata structure to keep track of parsed sections of the song data.
- * Used to avoid re-parsing the same data from the ROM multiple times.
+ * @brief A metadata structure to keep track of parsed sections of the song
+ * data. Used to avoid re-parsing the same data from the ROM multiple times.
  */
 struct SongRange {
   unsigned short start;  // Start address of this range in the ROM.
@@ -141,7 +141,8 @@ struct SampleEdit {
 
 /**
  * @struct ZeldaInstrument
- * @brief Defines an instrument for a song, mapping to a sample and ADSR settings.
+ * @brief Defines an instrument for a song, mapping to a sample and ADSR
+ * settings.
  */
 struct ZeldaInstrument {
   unsigned char samp;    // Index of the sample (ZeldaWave) to use.
@@ -169,8 +170,8 @@ struct ZeldaSfxInstrument {
 
 /**
  * @struct SpcCommand
- * @brief The core data structure representing a single command in a music track.
- * A song track is a doubly-linked list of these commands.
+ * @brief The core data structure representing a single command in a music
+ * track. A song track is a doubly-linked list of these commands.
  */
 struct SpcCommand {
   unsigned short addr;  // The ROM address this command was loaded from.

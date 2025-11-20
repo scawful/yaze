@@ -24,8 +24,7 @@ BppFormatUI::BppFormatUI(const std::string& id)
 bool BppFormatUI::RenderFormatSelector(
     gfx::Bitmap* bitmap, const gfx::SnesPalette& palette,
     std::function<void(gfx::BppFormat)> on_format_changed) {
-  if (!bitmap)
-    return false;
+  if (!bitmap) return false;
 
   format_changed_ = false;
 
@@ -136,8 +135,7 @@ void BppFormatUI::RenderAnalysisPanel(const gfx::Bitmap& bitmap,
 
   int used_colors = 0;
   for (int count : color_usage) {
-    if (count > 0)
-      used_colors++;
+    if (count > 0) used_colors++;
   }
 
   ImGui::Text("Colors Used: %d / %d", used_colors,
@@ -175,8 +173,7 @@ void BppFormatUI::RenderAnalysisPanel(const gfx::Bitmap& bitmap,
                 current_bytes);
 
     for (auto format : gfx::BppFormatManager::Get().GetAvailableFormats()) {
-      if (format == detected_format)
-        continue;
+      if (format == detected_format) continue;
 
       const auto& info = gfx::BppFormatManager::Get().GetFormatInfo(format);
       int format_bytes =
@@ -276,8 +273,7 @@ void BppFormatUI::RenderSheetAnalysis(const std::vector<uint8_t>& sheet_data,
   }
 
   auto it = cached_analysis_.find(sheet_id);
-  if (it == cached_analysis_.end())
-    return;
+  if (it == cached_analysis_.end()) return;
 
   const auto& analysis = it->second;
 
@@ -357,8 +353,7 @@ bool BppFormatUI::IsConversionAvailable(gfx::BppFormat from_format,
 int BppFormatUI::GetConversionEfficiency(gfx::BppFormat from_format,
                                          gfx::BppFormat to_format) const {
   // Calculate efficiency based on format compatibility
-  if (from_format == to_format)
-    return 100;
+  if (from_format == to_format) return 100;
 
   // Higher BPP to lower BPP conversions may lose quality
   if (static_cast<int>(from_format) > static_cast<int>(to_format)) {
@@ -383,8 +378,7 @@ void BppFormatUI::RenderFormatInfo(const gfx::BppFormatInfo& info) {
 void BppFormatUI::RenderColorUsageChart(const std::vector<int>& color_usage) {
   // Find maximum usage for scaling
   int max_usage = *std::max_element(color_usage.begin(), color_usage.end());
-  if (max_usage == 0)
-    return;
+  if (max_usage == 0) return;
 
   // Render simple bar chart
   ImGui::Text("Color Usage Distribution:");
@@ -451,14 +445,12 @@ void BppConversionDialog::Show(
 }
 
 bool BppConversionDialog::Render() {
-  if (!is_open_)
-    return false;
+  if (!is_open_) return false;
 
   ImGui::OpenPopup("BPP Format Conversion");
 
   if (ImGui::BeginPopupModal("BPP Format Conversion", &is_open_,
                              ImGuiWindowFlags_AlwaysAutoResize)) {
-
     RenderFormatSelector();
     ImGui::Separator();
     RenderOptions();
@@ -478,8 +470,7 @@ bool BppConversionDialog::Render() {
 }
 
 void BppConversionDialog::UpdatePreview() {
-  if (preview_valid_)
-    return;
+  if (preview_valid_) return;
 
   gfx::BppFormat current_format = gfx::BppFormatManager::Get().DetectFormat(
       source_bitmap_.vector(), source_bitmap_.width(), source_bitmap_.height());
@@ -572,8 +563,7 @@ void BppComparisonTool::SetSource(const gfx::Bitmap& bitmap,
 }
 
 void BppComparisonTool::Render() {
-  if (!is_open_ || !has_source_)
-    return;
+  if (!is_open_ || !has_source_) return;
 
   ImGui::Begin("BPP Format Comparison", &is_open_);
 
@@ -625,8 +615,7 @@ void BppComparisonTool::RenderComparisonGrid() {
 
   for (auto format : gfx::BppFormatManager::Get().GetAvailableFormats()) {
     auto it = comparison_bitmaps_.find(format);
-    if (it == comparison_bitmaps_.end() || !comparison_valid_[format])
-      continue;
+    if (it == comparison_bitmaps_.end() || !comparison_valid_[format]) continue;
 
     const auto& bitmap = it->second;
     const auto& format_info =
@@ -649,8 +638,7 @@ void BppComparisonTool::RenderMetrics() {
   ImGui::Text("Format Metrics:");
 
   for (auto format : gfx::BppFormatManager::Get().GetAvailableFormats()) {
-    if (!comparison_valid_[format])
-      continue;
+    if (!comparison_valid_[format]) continue;
 
     const auto& format_info =
         gfx::BppFormatManager::Get().GetFormatInfo(format);

@@ -201,7 +201,6 @@ std::unordered_map<int, SheetOptimizationData>
 GraphicsOptimizer::GetOptimizationRecommendations(
     const std::unordered_map<int, std::vector<uint8_t>>& sheets,
     const std::unordered_map<int, SnesPalette>& palettes) {
-
   std::unordered_map<int, SheetOptimizationData> recommendations;
 
   for (const auto& [sheet_id, sheet_data] : sheets) {
@@ -221,7 +220,6 @@ OptimizationResult GraphicsOptimizer::ApplyOptimizations(
     const std::unordered_map<int, SheetOptimizationData>& recommendations,
     std::unordered_map<int, std::vector<uint8_t>>& sheets,
     std::unordered_map<int, SnesPalette>& palettes) {
-
   ScopedTimer timer("graphics_apply_optimizations");
 
   OptimizationResult result;
@@ -310,33 +308,25 @@ BppFormat GraphicsOptimizer::DetermineOptimalFormat(
   // Determine optimal format based on color usage and strategy
   switch (strategy) {
     case OptimizationStrategy::kMemoryOptimized:
-      if (colors_used <= 4)
-        return BppFormat::kBpp2;
-      if (colors_used <= 8)
-        return BppFormat::kBpp3;
-      if (colors_used <= 16)
-        return BppFormat::kBpp4;
+      if (colors_used <= 4) return BppFormat::kBpp2;
+      if (colors_used <= 8) return BppFormat::kBpp3;
+      if (colors_used <= 16) return BppFormat::kBpp4;
       break;
 
     case OptimizationStrategy::kPerformanceOptimized:
       // Prefer formats that work well with atlas rendering
-      if (colors_used <= 16)
-        return BppFormat::kBpp4;
+      if (colors_used <= 16) return BppFormat::kBpp4;
       break;
 
     case OptimizationStrategy::kQualityOptimized:
       // Only optimize if significant memory savings
-      if (colors_used <= 4)
-        return BppFormat::kBpp2;
+      if (colors_used <= 4) return BppFormat::kBpp2;
       break;
 
     case OptimizationStrategy::kBalanced:
-      if (colors_used <= 4)
-        return BppFormat::kBpp2;
-      if (colors_used <= 8)
-        return BppFormat::kBpp3;
-      if (colors_used <= 16)
-        return BppFormat::kBpp4;
+      if (colors_used <= 4) return BppFormat::kBpp2;
+      if (colors_used <= 8) return BppFormat::kBpp3;
+      if (colors_used <= 16) return BppFormat::kBpp4;
       break;
   }
 
@@ -346,8 +336,7 @@ BppFormat GraphicsOptimizer::DetermineOptimalFormat(
 float GraphicsOptimizer::CalculateQualityLoss(
     BppFormat from_format, BppFormat to_format,
     const std::vector<uint8_t>& data) {
-  if (from_format == to_format)
-    return 0.0f;
+  if (from_format == to_format) return 0.0f;
 
   // Higher BPP to lower BPP conversions may lose quality
   if (static_cast<int>(from_format) > static_cast<int>(to_format)) {
@@ -362,8 +351,7 @@ float GraphicsOptimizer::CalculateQualityLoss(
 size_t GraphicsOptimizer::CalculateMemorySavings(
     BppFormat from_format, BppFormat to_format,
     const std::vector<uint8_t>& data) {
-  if (from_format == to_format)
-    return 0;
+  if (from_format == to_format) return 0;
 
   const auto& from_info = BppFormatManager::Get().GetFormatInfo(from_format);
   const auto& to_info = BppFormatManager::Get().GetFormatInfo(to_format);
@@ -377,8 +365,7 @@ size_t GraphicsOptimizer::CalculateMemorySavings(
 
 float GraphicsOptimizer::CalculatePerformanceGain(BppFormat from_format,
                                                   BppFormat to_format) {
-  if (from_format == to_format)
-    return 0.0f;
+  if (from_format == to_format) return 0.0f;
 
   // Lower BPP formats generally render faster
   if (static_cast<int>(from_format) > static_cast<int>(to_format)) {
@@ -392,8 +379,7 @@ float GraphicsOptimizer::CalculatePerformanceGain(BppFormat from_format,
 
 bool GraphicsOptimizer::ShouldOptimize(const SheetOptimizationData& data,
                                        OptimizationStrategy strategy) {
-  if (!data.is_convertible)
-    return false;
+  if (!data.is_convertible) return false;
 
   switch (strategy) {
     case OptimizationStrategy::kMemoryOptimized:
@@ -439,8 +425,7 @@ int GraphicsOptimizer::CountUsedColors(const std::vector<uint8_t>& data,
 
   int count = 0;
   for (bool used : used_colors) {
-    if (used)
-      count++;
+    if (used) count++;
   }
 
   return count;

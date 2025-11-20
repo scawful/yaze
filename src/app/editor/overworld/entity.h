@@ -29,7 +29,7 @@ bool DrawItemEditorPopup(zelda3::OverworldItem& item);
 
 /**
  * @brief Column IDs for the sprite table.
- * 
+ *
  */
 enum SpriteItemColumnID {
   SpriteItemColumnID_ID,

@@ -24,14 +24,14 @@ class PopupManager;
 /**
  * @class MenuOrchestrator
  * @brief Handles all menu building and UI coordination logic
- * 
+ *
  * Extracted from EditorManager to provide focused menu management:
  * - Menu structure and organization
  * - Menu item callbacks and shortcuts
  * - Editor-specific menu items
  * - Session-aware menu updates
  * - Menu state management
- * 
+ *
  * This class follows the Single Responsibility Principle by focusing solely
  * on menu construction and coordination, delegating actual operations to
  * specialized managers.

@@ -76,12 +76,14 @@ std::string GetResourcePath(const std::string& resource_path) {
   return GetBundleResourcePath() + "Contents/Resources/" + resource_path;
 #endif
 #else
-  return resource_path;  // On Linux/Windows, resources are relative to executable
+  return resource_path;  // On Linux/Windows, resources are relative to
+                         // executable
 #endif
 }
 
-// Note: FileDialogWrapper implementations are in src/app/platform/file_dialog.mm
-// (platform-specific implementations to avoid duplicate symbols)
+// Note: FileDialogWrapper implementations are in
+// src/app/platform/file_dialog.mm (platform-specific implementations to avoid
+// duplicate symbols)
 
 }  // namespace util
 }  // namespace yaze

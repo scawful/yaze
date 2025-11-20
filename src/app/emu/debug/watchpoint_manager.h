@@ -13,14 +13,14 @@ namespace emu {
 /**
  * @class WatchpointManager
  * @brief Manages memory watchpoints for debugging
- * 
+ *
  * Watchpoints track memory accesses (reads/writes) and can break execution
  * when specific memory locations are accessed. This is crucial for:
  * - Finding where variables are modified
  * - Detecting buffer overflows
  * - Tracking down corruption bugs
  * - Understanding data flow
- * 
+ *
  * Inspired by Mesen2's memory debugging capabilities.
  */
 class WatchpointManager {
@@ -56,7 +56,8 @@ class WatchpointManager {
   /**
    * @brief Add a memory watchpoint
    * @param start_address Starting address of range to watch
-   * @param end_address Ending address (inclusive), or same as start for single byte
+   * @param end_address Ending address (inclusive), or same as start for single
+   * byte
    * @param track_reads Track read accesses
    * @param track_writes Track write accesses
    * @param break_on_access Pause emulation when accessed

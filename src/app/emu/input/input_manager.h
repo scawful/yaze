@@ -2,6 +2,7 @@
 #define YAZE_APP_EMU_INPUT_INPUT_MANAGER_H_
 
 #include <memory>
+
 #include "app/emu/input/input_backend.h"
 
 namespace yaze {

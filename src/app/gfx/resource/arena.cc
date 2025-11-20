@@ -1,6 +1,7 @@
 #include "app/gfx/resource/arena.h"
 
 #include <SDL.h>
+
 #include <algorithm>
 
 #include "app/gfx/backend/irenderer.h"
@@ -10,9 +11,7 @@
 namespace yaze {
 namespace gfx {
 
-void Arena::Initialize(IRenderer* renderer) {
-  renderer_ = renderer;
-}
+void Arena::Initialize(IRenderer* renderer) { renderer_ = renderer; }
 
 Arena& Arena::Get() {
   static Arena instance;
@@ -58,17 +57,17 @@ void Arena::ProcessTextureQueue(IRenderer* renderer) {
     bool should_remove = true;
 
     // CRITICAL: Replicate the exact short-circuit evaluation from working code
-    // We MUST check command.bitmap AND command.bitmap->surface() in one expression
-    // to avoid dereferencing invalid pointers
+    // We MUST check command.bitmap AND command.bitmap->surface() in one
+    // expression to avoid dereferencing invalid pointers
 
     switch (command.type) {
       case TextureCommandType::CREATE: {
         // Create a new texture and update it with bitmap data
-        // Use short-circuit evaluation - if bitmap is invalid, never call ->surface()
+        // Use short-circuit evaluation - if bitmap is invalid, never call
+        // ->surface()
         if (command.bitmap && command.bitmap->surface() &&
             command.bitmap->surface()->format && command.bitmap->is_active() &&
             command.bitmap->width() > 0 && command.bitmap->height() > 0) {
-
           try {
             auto texture = active_renderer->CreateTexture(
                 command.bitmap->width(), command.bitmap->height());
@@ -153,8 +152,7 @@ SDL_Surface* Arena::AllocateSurface(int width, int height, int depth,
 }
 
 void Arena::FreeSurface(SDL_Surface* surface) {
-  if (!surface)
-    return;
+  if (!surface) return;
 
   // Return surface to pool if space available
   if (surface_pool_.available_surfaces_.size() < surface_pool_.MAX_POOL_SIZE) {

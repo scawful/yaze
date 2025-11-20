@@ -12,8 +12,9 @@ namespace gui {
 /**
  * @brief Theme-aware widget library
  *
- * All widgets in this file automatically use the current theme from ThemeManager.
- * These are drop-in replacements for standard ImGui widgets with automatic theming.
+ * All widgets in this file automatically use the current theme from
+ * ThemeManager. These are drop-in replacements for standard ImGui widgets with
+ * automatic theming.
  *
  * Usage:
  * ```cpp
@@ -183,7 +184,8 @@ void ThemedProgressBar(float fraction, const ImVec2& size = ImVec2(-1, 0),
 // Palette Editor Widgets
 // ============================================================================
 
-// NOTE: PaletteColorButton moved to color.h for consistency with other color utilities
+// NOTE: PaletteColorButton moved to color.h for consistency with other color
+// utilities
 
 /**
  * @brief Display color information with copy-to-clipboard functionality

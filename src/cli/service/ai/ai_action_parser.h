@@ -44,7 +44,7 @@ struct AIAction {
 /**
  * @class AIActionParser
  * @brief Parses natural language commands into structured GUI actions
- * 
+ *
  * Understands commands like:
  * - "Place tile 0x42 at overworld position (5, 7)"
  * - "Open the overworld editor"
