@@ -114,11 +114,20 @@ set(CMAKE_SKIP_INSTALL_RULES TRUE)
 
 # Use CPM to fetch gRPC with bundled dependencies
 # GIT_SUBMODULES "" disables submodule recursion since gRPC handles its own deps via CMake
+
+if(WIN32)
+  set(GRPC_VERSION_TO_USE "1.67.1")
+else()
+  set(GRPC_VERSION_TO_USE "1.76.0")
+endif()
+
+message(STATUS "Selected gRPC version ${GRPC_VERSION_TO_USE} for platform ${CMAKE_SYSTEM_NAME}")
+
 CPMAddPackage(
   NAME grpc
-  VERSION ${GRPC_VERSION}
+  VERSION ${GRPC_VERSION_TO_USE}
   GITHUB_REPOSITORY grpc/grpc
-  GIT_TAG v${GRPC_VERSION}
+  GIT_TAG v${GRPC_VERSION_TO_USE}
   GIT_SUBMODULES ""
   GIT_SHALLOW TRUE
 )
