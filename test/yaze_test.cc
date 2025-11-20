@@ -5,27 +5,27 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 #endif
 
-#include <gtest/gtest.h>
 #include <SDL.h>
+#include <gtest/gtest.h>
+#include <cstdlib>
 #include <iostream>
 #include <string>
 #include <vector>
-#include <cstdlib>
 
 #include "absl/debugging/failure_signal_handler.h"
 #include "absl/debugging/symbolize.h"
-#include "imgui/imgui.h"
+#include "app/controller.h"
+#include "app/gfx/backend/sdl2_renderer.h"
+#include "app/platform/window.h"
+#include "e2e/canvas_selection_test.h"
+#include "e2e/dungeon_editor_smoke_test.h"
+#include "e2e/framework_smoke_test.h"
 #include "imgui/backends/imgui_impl_sdl2.h"
 #include "imgui/backends/imgui_impl_sdlrenderer2.h"
+#include "imgui/imgui.h"
 #include "imgui_test_engine/imgui_te_context.h"
 #include "imgui_test_engine/imgui_te_engine.h"
 #include "imgui_test_engine/imgui_te_ui.h"
-#include "app/platform/window.h"
-#include "app/controller.h"
-#include "app/gfx/backend/sdl2_renderer.h"
-#include "e2e/canvas_selection_test.h"
-#include "e2e/framework_smoke_test.h"
-#include "e2e/dungeon_editor_smoke_test.h"
 
 // #include "test_editor.h"  // Not used in main
 
@@ -34,17 +34,17 @@ namespace test {
 
 // Test execution modes for AI agents and developers
 enum class TestMode {
-  kAll,                    // Run all tests (default)
-  kUnit,                   // Run only unit tests
-  kIntegration,            // Run only integration tests
-  kE2E,                    // Run only end-to-end tests
-  kRomDependent,           // Run ROM-dependent tests only
-  kZSCustomOverworld,      // Run ZSCustomOverworld specific tests
-  kCore,                   // Run core functionality tests
-  kGraphics,               // Run graphics-related tests
-  kEditor,                 // Run editor tests
-  kDeprecated,             // Run deprecated tests (for cleanup)
-  kSpecific                // Run specific test pattern
+  kAll,                // Run all tests (default)
+  kUnit,               // Run only unit tests
+  kIntegration,        // Run only integration tests
+  kE2E,                // Run only end-to-end tests
+  kRomDependent,       // Run ROM-dependent tests only
+  kZSCustomOverworld,  // Run ZSCustomOverworld specific tests
+  kCore,               // Run core functionality tests
+  kGraphics,           // Run graphics-related tests
+  kEditor,             // Run editor tests
+  kDeprecated,         // Run deprecated tests (for cleanup)
+  kSpecific            // Run specific test pattern
 };
 
 struct TestConfig {
@@ -61,7 +61,7 @@ struct TestConfig {
 // Parse command line arguments for better AI agent testing support
 TestConfig ParseArguments(int argc, char* argv[]) {
   TestConfig config;
-  
+
   std::cout << "Available options:\n"
             << "  --ui            : Enable UI tests\n"
             << "  --show-gui      : Show GUI during tests\n"
@@ -71,10 +71,10 @@ TestConfig ParseArguments(int argc, char* argv[]) {
             << "  --rom=<path>    : Specify ROM file path\n"
             << "  --pattern=<pat> : Run tests matching pattern\n"
             << std::endl;
-  
+
   for (int i = 1; i < argc; i++) {
     std::string arg = argv[i];
-    
+
     if (arg == "--help" || arg == "-h") {
       std::cout << "YAZE Test Runner - Enhanced for AI Agent Testing\n\n";
       std::cout << "Usage: yaze_test [options] [test_pattern]\n\n";
@@ -144,7 +144,7 @@ TestConfig ParseArguments(int argc, char* argv[]) {
       config.test_pattern = arg;
     }
   }
-  
+
   return config;
 }
 
@@ -154,15 +154,15 @@ void SetupTestEnvironment(const TestConfig& config) {
   if (!config.rom_path.empty()) {
     SDL_setenv("YAZE_TEST_ROM_PATH", config.rom_path.c_str(), 1);
   }
-  
+
   if (config.skip_rom_tests) {
     SDL_setenv("YAZE_SKIP_ROM_TESTS", "1", 1);
   }
-  
+
   if (config.enable_ui_tests) {
     SDL_setenv("YAZE_ENABLE_UI_TESTS", "1", 1);
   }
-  
+
   if (config.verbose) {
     SDL_setenv("YAZE_VERBOSE_TESTS", "1", 1);
   }
@@ -171,7 +171,7 @@ void SetupTestEnvironment(const TestConfig& config) {
 // Configure Google Test filters based on test mode
 void ConfigureTestFilters(const TestConfig& config) {
   std::vector<std::string> filters;
-  
+
   switch (config.mode) {
     case TestMode::kUnit:
       filters.push_back("UnitTest.*");
@@ -215,16 +215,17 @@ void ConfigureTestFilters(const TestConfig& config) {
       // No filters - run all tests
       break;
   }
-  
+
   if (!filters.empty()) {
     std::string filter_string;
     for (size_t i = 0; i < filters.size(); i++) {
-      if (i > 0) filter_string += ":";
+      if (i > 0)
+        filter_string += ":";
       filter_string += filters[i];
     }
-    
+
     ::testing::GTEST_FLAG(filter) = filter_string;
-    
+
     if (config.verbose) {
       std::cout << "Test filter: " << filter_string << std::endl;
     }
@@ -254,32 +255,36 @@ int main(int argc, char* argv[]) {
 
   // Parse command line arguments
   auto config = yaze::test::ParseArguments(argc, argv);
-  
+
   // Set up test environment
   yaze::test::SetupTestEnvironment(config);
-  
+
   // Configure test filters
   yaze::test::ConfigureTestFilters(config);
 
   // Initialize Google Test
   ::testing::InitGoogleTest(&argc, argv);
-  
+
   if (config.enable_ui_tests) {
     // Create a window
     yaze::core::Window window;
     // Create renderer for test
     auto test_renderer = std::make_unique<yaze::gfx::SDL2Renderer>();
-    yaze::core::CreateWindow(window, test_renderer.get(), SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
+    yaze::core::CreateWindow(window, test_renderer.get(),
+                             SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
 
     // Renderer is now owned by test
 
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO(); (void)io;
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
-    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;     // Enable Docking
-    io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;   // Enable Multi-Viewport / Platform Windows
+    ImGuiIO& io = ImGui::GetIO();
+    (void)io;
+    io.ConfigFlags |=
+        ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
+    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;  // Enable Docking
+    io.ConfigFlags |=
+        ImGuiConfigFlags_ViewportsEnable;  // Enable Multi-Viewport / Platform Windows
 
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
@@ -287,12 +292,13 @@ int main(int argc, char* argv[]) {
     // When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones.
     ImGuiStyle& style = ImGui::GetStyle();
     if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
-        style.WindowRounding = 0.0f;
-        style.Colors[ImGuiCol_WindowBg].w = 1.0f;
+      style.WindowRounding = 0.0f;
+      style.Colors[ImGuiCol_WindowBg].w = 1.0f;
     }
 
     // Setup Platform/Renderer backends
-    SDL_Renderer* sdl_renderer = static_cast<SDL_Renderer*>(test_renderer->GetBackendRenderer());
+    SDL_Renderer* sdl_renderer =
+        static_cast<SDL_Renderer*>(test_renderer->GetBackendRenderer());
     ImGui_ImplSDL2_InitForSDLRenderer(window.window_.get(), sdl_renderer);
     ImGui_ImplSDLRenderer2_Init(sdl_renderer);
 
@@ -304,23 +310,28 @@ int main(int argc, char* argv[]) {
     test_io.ConfigRunSpeed = config.test_speed;  // Use configured speed
     test_io.ConfigVerboseLevel = ImGuiTestVerboseLevel_Info;
     test_io.ConfigVerboseLevelOnError = ImGuiTestVerboseLevel_Debug;
-    
+
     // Log test speed mode
     const char* speed_name = "Fast";
-    if (config.test_speed == ImGuiTestRunSpeed_Normal) speed_name = "Normal";
-    else if (config.test_speed == ImGuiTestRunSpeed_Cinematic) speed_name = "Cinematic";
+    if (config.test_speed == ImGuiTestRunSpeed_Normal)
+      speed_name = "Normal";
+    else if (config.test_speed == ImGuiTestRunSpeed_Cinematic)
+      speed_name = "Cinematic";
     std::cout << "Running tests in " << speed_name << " mode" << std::endl;
-    
+
     // Register E2E tests only for GUI test targets (they have the source files)
 #ifdef YAZE_GUI_TEST_TARGET
-    ImGuiTest* smoke_test = IM_REGISTER_TEST(engine, "E2ETest", "FrameworkSmokeTest");
+    ImGuiTest* smoke_test =
+        IM_REGISTER_TEST(engine, "E2ETest", "FrameworkSmokeTest");
     smoke_test->TestFunc = E2ETest_FrameworkSmokeTest;
 
-    ImGuiTest* canvas_test = IM_REGISTER_TEST(engine, "E2ETest", "CanvasSelectionTest");
+    ImGuiTest* canvas_test =
+        IM_REGISTER_TEST(engine, "E2ETest", "CanvasSelectionTest");
     canvas_test->TestFunc = E2ETest_CanvasSelectionTest;
     canvas_test->UserData = &controller;
-    
-    ImGuiTest* dungeon_test = IM_REGISTER_TEST(engine, "E2ETest", "DungeonEditorSmokeTest");
+
+    ImGuiTest* dungeon_test =
+        IM_REGISTER_TEST(engine, "E2ETest", "DungeonEditorSmokeTest");
     dungeon_test->TestFunc = E2ETest_DungeonEditorV2SmokeTest;
     dungeon_test->UserData = &controller;
 #endif
@@ -328,45 +339,47 @@ int main(int argc, char* argv[]) {
     // Main loop
     bool done = false;
     while (!done) {
-        SDL_Event event;
-        while (SDL_PollEvent(&event)) {
-            ImGui_ImplSDL2_ProcessEvent(&event);
-            if (event.type == SDL_QUIT) {
-                done = true;
-            }
-            if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_CLOSE && event.window.windowID == SDL_GetWindowID(window.window_.get())) {
-                done = true;
-            }
+      SDL_Event event;
+      while (SDL_PollEvent(&event)) {
+        ImGui_ImplSDL2_ProcessEvent(&event);
+        if (event.type == SDL_QUIT) {
+          done = true;
         }
-
-        // Start the Dear ImGui frame
-        ImGui_ImplSDLRenderer2_NewFrame();
-        ImGui_ImplSDL2_NewFrame();
-        ImGui::NewFrame();
-
-        // Render the UI
-        if (config.show_gui) {
-            ImGuiTestEngine_ShowTestEngineWindows(engine, &config.show_gui);
+        if (event.type == SDL_WINDOWEVENT &&
+            event.window.event == SDL_WINDOWEVENT_CLOSE &&
+            event.window.windowID == SDL_GetWindowID(window.window_.get())) {
+          done = true;
         }
-        controller.DoRender();
+      }
 
-        // End the Dear ImGui frame
-        ImGui::Render();
-        test_renderer->Clear();
-        ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), sdl_renderer);
-        test_renderer->Present();
+      // Start the Dear ImGui frame
+      ImGui_ImplSDLRenderer2_NewFrame();
+      ImGui_ImplSDL2_NewFrame();
+      ImGui::NewFrame();
 
-        // Update and Render additional Platform Windows
-        if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
-            SDL_Window* backup_current_window = SDL_GL_GetCurrentWindow();
-            SDL_GLContext backup_current_context = SDL_GL_GetCurrentContext();
-            ImGui::UpdatePlatformWindows();
-            ImGui::RenderPlatformWindowsDefault();
-            SDL_GL_MakeCurrent(backup_current_window, backup_current_context);
-        }
+      // Render the UI
+      if (config.show_gui) {
+        ImGuiTestEngine_ShowTestEngineWindows(engine, &config.show_gui);
+      }
+      controller.DoRender();
 
-        // Run test engine
-        ImGuiTestEngine_PostSwap(engine);
+      // End the Dear ImGui frame
+      ImGui::Render();
+      test_renderer->Clear();
+      ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), sdl_renderer);
+      test_renderer->Present();
+
+      // Update and Render additional Platform Windows
+      if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
+        SDL_Window* backup_current_window = SDL_GL_GetCurrentWindow();
+        SDL_GLContext backup_current_context = SDL_GL_GetCurrentContext();
+        ImGui::UpdatePlatformWindows();
+        ImGui::RenderPlatformWindowsDefault();
+        SDL_GL_MakeCurrent(backup_current_window, backup_current_context);
+      }
+
+      // Run test engine
+      ImGuiTestEngine_PostSwap(engine);
     }
 
     // Get test result
@@ -388,10 +401,10 @@ int main(int argc, char* argv[]) {
   } else {
     // Run tests
     int result = RUN_ALL_TESTS();
-    
+
     // Cleanup SDL
     SDL_Quit();
-    
+
     return result;
   }
 }
