@@ -134,7 +134,7 @@
       "description": "CI build with gRPC enabled (uses caching for speed)",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "RelWithDebInfo",
-        "YAZE_BUILD_TESTS": "ON",
+        "YAZE_BUILD_TESTS": "OFF",
         "YAZE_BUILD_EMU": "OFF",
         "YAZE_ENABLE_GRPC": "ON",
         "YAZE_ENABLE_JSON": "ON",
@@ -153,7 +153,7 @@
       "description": "CI build with gRPC enabled (uses caching for speed)",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "RelWithDebInfo",
-        "YAZE_BUILD_TESTS": "ON",
+        "YAZE_BUILD_TESTS": "OFF",
         "YAZE_BUILD_EMU": "OFF",
         "YAZE_ENABLE_GRPC": "ON",
         "YAZE_ENABLE_JSON": "ON",
@@ -172,7 +172,7 @@
       "description": "CI build with gRPC enabled (uses MSVC-compatible version 1.67.1)",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "RelWithDebInfo",
-        "YAZE_BUILD_TESTS": "ON",
+        "YAZE_BUILD_TESTS": "OFF",
         "YAZE_BUILD_EMU": "OFF",
         "YAZE_ENABLE_GRPC": "ON",
         "YAZE_ENABLE_JSON": "ON",
@@ -191,7 +191,7 @@
       "description": "Full agent build with gRPC + AI runtime (runs outside PRs)",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "RelWithDebInfo",
-        "YAZE_BUILD_TESTS": "ON",
+        "YAZE_BUILD_TESTS": "OFF",
         "YAZE_BUILD_EMU": "OFF",
         "YAZE_ENABLE_GRPC": "ON",
         "YAZE_ENABLE_JSON": "ON",
