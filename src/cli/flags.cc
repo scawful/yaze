@@ -6,6 +6,7 @@ ABSL_FLAG(std::string, rom, "", "Path to the ROM file");
 ABSL_FLAG(bool, mock_rom, false,
           "Use mock ROM mode for testing without requiring an actual ROM file. "
           "Loads all Zelda3 embedded labels but no actual ROM data.");
+ABSL_FLAG(bool, quiet, false, "Suppress non-essential output");
 
 // AI Service Configuration Flags
 ABSL_FLAG(std::string, ai_provider, "auto",

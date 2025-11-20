@@ -38,6 +38,9 @@ if(_yaze_use_fetched_absl)
     set(ABSL_ENABLE_INSTALL OFF CACHE BOOL "" FORCE)
     FetchContent_MakeAvailable(absl)
     message(STATUS "Fetched Abseil ${YAZE_ABSL_GIT_TAG}")
+
+    # NEW: Export source directory for Windows builds that need explicit include paths
+    set(YAZE_ABSL_SOURCE_DIR "${absl_SOURCE_DIR}" CACHE INTERNAL "Abseil source directory")
   endif()
 endif()
 

@@ -17,7 +17,7 @@
 #include "app/emu/snes.h"
 #include "util/log.h"
 
-ABSL_FLAG(std::string, rom, "", "Path to ROM file to test");
+ABSL_FLAG(std::string, emu_test_rom, "", "Path to ROM file to test");
 ABSL_FLAG(int, max_frames, 60, "Maximum frames to run (0 = infinite)");
 ABSL_FLAG(int, log_interval, 10, "Log APU state every N frames");
 ABSL_FLAG(bool, dump_audio, false, "Dump audio output to WAV file");
@@ -208,17 +208,17 @@ int main(int argc, char** argv) {
   absl::ParseCommandLine(argc, argv);
 
   // Configure logging
-  std::string rom_path = absl::GetFlag(FLAGS_rom);
+  std::string rom_path = absl::GetFlag(FLAGS_emu_test_rom);
   int max_frames = absl::GetFlag(FLAGS_max_frames);
   int log_interval = absl::GetFlag(FLAGS_log_interval);
   bool verbose = absl::GetFlag(FLAGS_verbose);
   bool trace_apu = absl::GetFlag(FLAGS_trace_apu);
 
   if (rom_path.empty()) {
-    std::cerr << "Error: --rom flag is required\n";
-    std::cerr << "Usage: yaze_emu_test --rom=zelda3.sfc [options]\n";
+    std::cerr << "Error: --emu_test_rom flag is required\n";
+    std::cerr << "Usage: yaze_emu_test --emu_test_rom=zelda3.sfc [options]\n";
     std::cerr << "\nOptions:\n";
-    std::cerr << "  --rom=PATH          Path to ROM file (required)\n";
+    std::cerr << "  --emu_test_rom=PATH Path to ROM file (required)\n";
     std::cerr << "  --max_frames=N      Run for N frames (0=infinite, "
                  "default=60)\n";
     std::cerr << "  --log_interval=N    Log APU state every N frames "

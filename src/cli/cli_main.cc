@@ -21,7 +21,7 @@
 
 // Define all CLI flags
 ABSL_FLAG(bool, tui, false, "Launch interactive Text User Interface");
-ABSL_FLAG(bool, quiet, false, "Suppress non-essential output");
+ABSL_DECLARE_FLAG(bool, quiet);
 ABSL_FLAG(bool, version, false, "Show version information");
 #ifdef YAZE_HTTP_API_ENABLED
 ABSL_FLAG(int, http_port, 0,
