@@ -193,7 +193,8 @@ class Rom {
   }
 
   uint8_t& operator[](unsigned long i) {
-    if (i >= size_) throw std::out_of_range("Rom index out of range");
+    if (i >= size_)
+      throw std::out_of_range("Rom index out of range");
     return rom_data_[i];
   }
 

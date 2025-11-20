@@ -146,7 +146,9 @@ class CommandHandler {
 #define DEFINE_COMMAND_HANDLER(name, usage_str, validate_body, execute_body) \
   class name##CommandHandler : public CommandHandler {                       \
    protected:                                                                \
-    std::string GetUsage() const override { return usage_str; }              \
+    std::string GetUsage() const override {                                  \
+      return usage_str;                                                      \
+    }                                                                        \
     absl::Status ValidateArgs(const ArgumentParser& parser) override         \
         validate_body absl::Status                                           \
         Execute(Rom* rom, const ArgumentParser& parser,                      \

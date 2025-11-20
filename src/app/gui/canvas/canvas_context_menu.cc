@@ -68,7 +68,8 @@ void CanvasContextMenu::Render(
     const gfx::Bitmap* bitmap, const gfx::SnesPalette* /* palette */,
     const std::function<void(Command, const CanvasConfig&)>& command_handler,
     CanvasConfig current_config, Canvas* canvas) {
-  if (!enabled_) return;
+  if (!enabled_)
+    return;
 
   // Context menu (under default mouse threshold)
   if (ImVec2 drag_delta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Right);
@@ -172,7 +173,8 @@ void CanvasContextMenu::RenderMenuSection(
     const std::string& title, const std::vector<CanvasMenuItem>& items,
     std::function<void(const std::string&, std::function<void()>)>
         popup_callback) {
-  if (items.empty()) return;
+  if (items.empty())
+    return;
 
   ImGui::TextColored(ImVec4(0.7F, 0.7F, 0.7F, 1.0F), "%s", title.c_str());
   for (const auto& item : items) {
@@ -271,7 +273,8 @@ void CanvasContextMenu::RenderCanvasPropertiesMenu(
 }
 
 void CanvasContextMenu::RenderBitmapOperationsMenu(gfx::Bitmap* bitmap) {
-  if (!bitmap) return;
+  if (!bitmap)
+    return;
 
   if (ImGui::BeginMenu(ICON_MD_IMAGE " Bitmap Properties")) {
     ImGui::Text("Size: %d x %d", bitmap->width(), bitmap->height());
@@ -306,7 +309,8 @@ void CanvasContextMenu::RenderBitmapOperationsMenu(gfx::Bitmap* bitmap) {
 
 void CanvasContextMenu::RenderPaletteOperationsMenu(Rom* rom,
                                                     gfx::Bitmap* bitmap) {
-  if (!bitmap) return;
+  if (!bitmap)
+    return;
 
   if (ImGui::BeginMenu(ICON_MD_PALETTE " Palette Operations")) {
     if (ImGui::MenuItem("Edit Palette...")) {
@@ -387,7 +391,8 @@ void CanvasContextMenu::RenderPaletteOperationsMenu(Rom* rom,
 }
 
 void CanvasContextMenu::DrawROMPaletteSelector() {
-  if (!palette_editor_) return;
+  if (!palette_editor_)
+    return;
 
   palette_editor_->DrawROMPaletteSelector();
 }

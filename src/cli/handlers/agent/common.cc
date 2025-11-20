@@ -121,12 +121,18 @@ bool IsTerminalStatus(TestRunStatus status) {
 
 std::optional<TestRunStatus> ParseStatusFilter(absl::string_view value) {
   std::string lower = std::string(absl::AsciiStrToLower(value));
-  if (lower == "queued") return TestRunStatus::kQueued;
-  if (lower == "running") return TestRunStatus::kRunning;
-  if (lower == "passed") return TestRunStatus::kPassed;
-  if (lower == "failed") return TestRunStatus::kFailed;
-  if (lower == "timeout") return TestRunStatus::kTimeout;
-  if (lower == "unknown") return TestRunStatus::kUnknown;
+  if (lower == "queued")
+    return TestRunStatus::kQueued;
+  if (lower == "running")
+    return TestRunStatus::kRunning;
+  if (lower == "passed")
+    return TestRunStatus::kPassed;
+  if (lower == "failed")
+    return TestRunStatus::kFailed;
+  if (lower == "timeout")
+    return TestRunStatus::kTimeout;
+  if (lower == "unknown")
+    return TestRunStatus::kUnknown;
   return std::nullopt;
 }
 

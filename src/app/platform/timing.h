@@ -68,7 +68,8 @@ class TimingManager {
    * @brief Get total elapsed time since first update
    */
   float GetElapsedTime() const {
-    if (last_time_ == 0) return 0.0f;
+    if (last_time_ == 0)
+      return 0.0f;
     uint64_t current_time = SDL_GetPerformanceCounter();
     return (current_time - first_time_) / static_cast<float>(frequency_);
   }

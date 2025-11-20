@@ -274,7 +274,8 @@ IMGUI_API bool DisplayPalette(gfx::SnesPalette& palette, bool loaded) {
   ImGui::Text("Palette");
   for (int n = 0; n < IM_ARRAYSIZE(saved_palette); n++) {
     ImGui::PushID(n);
-    if ((n % 4) != 0) ImGui::SameLine(0.0f, ImGui::GetStyle().ItemSpacing.y);
+    if ((n % 4) != 0)
+      ImGui::SameLine(0.0f, ImGui::GetStyle().ItemSpacing.y);
 
     ImGuiColorEditFlags palette_button_flags = ImGuiColorEditFlags_NoAlpha |
                                                ImGuiColorEditFlags_NoPicker |

@@ -152,8 +152,10 @@ absl::StatusOr<ScreenshotArtifact> CaptureHarnessScreenshotRegion(
     capture_height = region->height;
 
     // Clamp to renderer bounds
-    if (capture_x < 0) capture_x = 0;
-    if (capture_y < 0) capture_y = 0;
+    if (capture_x < 0)
+      capture_x = 0;
+    if (capture_y < 0)
+      capture_y = 0;
     if (capture_x + capture_width > full_width) {
       capture_width = full_width - capture_x;
     }

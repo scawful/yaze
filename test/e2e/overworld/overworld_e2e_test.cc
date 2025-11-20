@@ -83,12 +83,15 @@ class OverworldE2ETest : public ::testing::Test {
     // For now, we'll do basic validation
 
     // Check basic ROM properties
-    if (rom.title().empty()) return false;
-    if (rom.size() < 1024 * 1024) return false;  // At least 1MB
+    if (rom.title().empty())
+      return false;
+    if (rom.size() < 1024 * 1024)
+      return false;  // At least 1MB
 
     // Check ASM version
     auto asm_version = rom.ReadByte(0x140145);
-    if (!asm_version.ok()) return false;
+    if (!asm_version.ok())
+      return false;
 
     return true;
   }

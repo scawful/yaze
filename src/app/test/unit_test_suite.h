@@ -144,7 +144,8 @@ class UnitTestSuite : public TestSuite {
     ImGui::Checkbox("Run disabled tests", &run_disabled_tests_);
     ImGui::Checkbox("Shuffle tests", &shuffle_tests_);
     ImGui::InputInt("Repeat count", &repeat_count_);
-    if (repeat_count_ < 1) repeat_count_ = 1;
+    if (repeat_count_ < 1)
+      repeat_count_ = 1;
 
     ImGui::InputText("Test filter", test_filter_, sizeof(test_filter_));
     ImGui::SameLine();

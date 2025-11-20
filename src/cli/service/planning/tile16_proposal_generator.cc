@@ -57,7 +57,8 @@ std::string Tile16Proposal::ToJson() const {
          << "\",\n";
     json << "      \"new_tile\": \"0x" << std::hex << change.new_tile << "\"\n";
     json << "    }";
-    if (i < changes.size() - 1) json << ",";
+    if (i < changes.size() - 1)
+      json << ",";
     json << "\n";
   }
   json << "  ]\n";
@@ -265,7 +266,8 @@ absl::StatusOr<Tile16Change> Tile16ProposalGenerator::ParseSetTileCommand(
 
   // Parse arguments
   for (size_t i = 2; i < parts.size(); i += 2) {
-    if (i + 1 >= parts.size()) break;
+    if (i + 1 >= parts.size())
+      break;
 
     const std::string& flag = parts[i];
     const std::string& value = parts[i + 1];
@@ -329,7 +331,8 @@ Tile16ProposalGenerator::ParseSetAreaCommand(const std::string& command,
 
   // Parse arguments
   for (size_t i = 2; i < parts.size(); i += 2) {
-    if (i + 1 >= parts.size()) break;
+    if (i + 1 >= parts.size())
+      break;
 
     const std::string& flag = parts[i];
     const std::string& value = parts[i + 1];
@@ -421,7 +424,8 @@ Tile16ProposalGenerator::ParseReplaceTileCommand(const std::string& command,
 
   // Parse arguments
   for (size_t i = 2; i < parts.size(); i += 2) {
-    if (i + 1 >= parts.size()) break;
+    if (i + 1 >= parts.size())
+      break;
 
     const std::string& flag = parts[i];
     const std::string& value = parts[i + 1];
@@ -600,10 +604,14 @@ absl::StatusOr<gfx::Bitmap> Tile16ProposalGenerator::GenerateDiff(
   int map_id = proposal.changes[0].map_id;
 
   for (const auto& change : proposal.changes) {
-    if (change.x < min_x) min_x = change.x;
-    if (change.y < min_y) min_y = change.y;
-    if (change.x > max_x) max_x = change.x;
-    if (change.y > max_y) max_y = change.y;
+    if (change.x < min_x)
+      min_x = change.x;
+    if (change.y < min_y)
+      min_y = change.y;
+    if (change.x > max_x)
+      max_x = change.x;
+    if (change.y > max_y)
+      max_y = change.y;
   }
 
   // Add some padding around the changes

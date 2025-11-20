@@ -169,10 +169,12 @@ class EditorManager {
   void LoadWorkspaceLayout() { window_delegate_.LoadWorkspaceLayout(); }
   void ResetWorkspaceLayout() { window_delegate_.ResetWorkspaceLayout(); }
   void ShowAllWindows() {
-    if (ui_coordinator_) ui_coordinator_->ShowAllWindows();
+    if (ui_coordinator_)
+      ui_coordinator_->ShowAllWindows();
   }
   void HideAllWindows() {
-    if (ui_coordinator_) ui_coordinator_->HideAllWindows();
+    if (ui_coordinator_)
+      ui_coordinator_->HideAllWindows();
   }
 
   // Layout presets (inline delegation)
@@ -191,35 +193,45 @@ class EditorManager {
   // UI visibility controls - inline for performance (single-line wrappers
   // delegating to UICoordinator)
   void ShowGlobalSearch() {
-    if (ui_coordinator_) ui_coordinator_->ShowGlobalSearch();
+    if (ui_coordinator_)
+      ui_coordinator_->ShowGlobalSearch();
   }
   void ShowCommandPalette() {
-    if (ui_coordinator_) ui_coordinator_->ShowCommandPalette();
+    if (ui_coordinator_)
+      ui_coordinator_->ShowCommandPalette();
   }
   void ShowPerformanceDashboard() {
-    if (ui_coordinator_) ui_coordinator_->SetPerformanceDashboardVisible(true);
+    if (ui_coordinator_)
+      ui_coordinator_->SetPerformanceDashboardVisible(true);
   }
   void ShowImGuiDemo() {
-    if (ui_coordinator_) ui_coordinator_->SetImGuiDemoVisible(true);
+    if (ui_coordinator_)
+      ui_coordinator_->SetImGuiDemoVisible(true);
   }
   void ShowImGuiMetrics() {
-    if (ui_coordinator_) ui_coordinator_->SetImGuiMetricsVisible(true);
+    if (ui_coordinator_)
+      ui_coordinator_->SetImGuiMetricsVisible(true);
   }
   void ShowHexEditor();
   void ShowEmulator() {
-    if (ui_coordinator_) ui_coordinator_->SetEmulatorVisible(true);
+    if (ui_coordinator_)
+      ui_coordinator_->SetEmulatorVisible(true);
   }
   void ShowMemoryEditor() {
-    if (ui_coordinator_) ui_coordinator_->SetMemoryEditorVisible(true);
+    if (ui_coordinator_)
+      ui_coordinator_->SetMemoryEditorVisible(true);
   }
   void ShowResourceLabelManager() {
-    if (ui_coordinator_) ui_coordinator_->SetResourceLabelManagerVisible(true);
+    if (ui_coordinator_)
+      ui_coordinator_->SetResourceLabelManagerVisible(true);
   }
   void ShowCardBrowser() {
-    if (ui_coordinator_) ui_coordinator_->ShowCardBrowser();
+    if (ui_coordinator_)
+      ui_coordinator_->ShowCardBrowser();
   }
   void ShowWelcomeScreen() {
-    if (ui_coordinator_) ui_coordinator_->SetWelcomeScreenVisible(true);
+    if (ui_coordinator_)
+      ui_coordinator_->SetWelcomeScreenVisible(true);
   }
 
 #ifdef YAZE_ENABLE_TESTING

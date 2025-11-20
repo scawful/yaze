@@ -44,7 +44,8 @@ constexpr ImGuiTableFlags kGfxEditTableFlags =
     ImGuiTableFlags_SizingFixedFit;
 
 void GraphicsEditor::Initialize() {
-  if (!dependencies_.card_registry) return;
+  if (!dependencies_.card_registry)
+    return;
   auto* card_registry = dependencies_.card_registry;
 
   card_registry->RegisterCard({.card_id = "graphics.sheet_editor",
@@ -115,7 +116,8 @@ absl::Status GraphicsEditor::Load() {
 }
 
 absl::Status GraphicsEditor::Update() {
-  if (!dependencies_.card_registry) return absl::OkStatus();
+  if (!dependencies_.card_registry)
+    return absl::OkStatus();
   auto* card_registry = dependencies_.card_registry;
 
   static gui::EditorCard sheet_editor_card("Sheet Editor", ICON_MD_EDIT);
@@ -453,7 +455,8 @@ absl::Status GraphicsEditor::UpdateGfxTabView() {
         ImGui::EndTabItem();
       }
 
-      if (!open) release_queue_.push(sheet_id);
+      if (!open)
+        release_queue_.push(sheet_id);
     }
 
     ImGui::EndTabBar();
@@ -641,7 +644,9 @@ absl::Status GraphicsEditor::UpdateScadView() {
     status_ = DrawExperimentalFeatures();
   }
 
-  NEXT_COLUMN() { status_ = DrawPaletteControls(); }
+  NEXT_COLUMN() {
+    status_ = DrawPaletteControls();
+  }
 
   NEXT_COLUMN()
   gui::BitmapCanvasPipeline(scr_canvas_, scr_bitmap_, 0x200, 0x200, 0x20,

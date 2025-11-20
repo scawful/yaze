@@ -41,7 +41,8 @@ AgentChatHistoryPopup::AgentChatHistoryPopup() {
 }
 
 void AgentChatHistoryPopup::Draw() {
-  if (!visible_) return;
+  if (!visible_)
+    return;
 
   const auto& theme = AgentUI::GetTheme();
 
@@ -49,7 +50,8 @@ void AgentChatHistoryPopup::Draw() {
   ImGuiIO& io = ImGui::GetIO();
   pulse_animation_ += io.DeltaTime * 2.0f;
   scanline_offset_ += io.DeltaTime * 0.3f;
-  if (scanline_offset_ > 1.0f) scanline_offset_ -= 1.0f;
+  if (scanline_offset_ > 1.0f)
+    scanline_offset_ -= 1.0f;
   glitch_animation_ += io.DeltaTime * 5.0f;
   blink_counter_ = static_cast<int>(pulse_animation_ * 2.0f) % 2;
 
@@ -149,7 +151,8 @@ void AgentChatHistoryPopup::DrawMessageList() {
     const auto& msg = messages_[i];
 
     // Skip internal messages
-    if (msg.is_internal) continue;
+    if (msg.is_internal)
+      continue;
 
     if (!MessagePassesFilters(msg, i)) {
       continue;
@@ -674,7 +677,9 @@ void AgentChatHistoryPopup::ExportHistory() {
   }
 }
 
-void AgentChatHistoryPopup::ScrollToBottom() { needs_scroll_ = true; }
+void AgentChatHistoryPopup::ScrollToBottom() {
+  needs_scroll_ = true;
+}
 
 }  // namespace editor
 }  // namespace yaze

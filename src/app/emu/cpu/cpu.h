@@ -166,7 +166,8 @@ class Cpu {
 
   uint16_t ReadOpcodeWord(bool int_check = false) {
     uint8_t value = ReadOpcode();
-    if (int_check) CheckInt();
+    if (int_check)
+      CheckInt();
     return value | (ReadOpcode() << 8);
   }
 
@@ -185,7 +186,8 @@ class Cpu {
   uint16_t ReadWord(uint32_t address, uint32_t address_high,
                     bool int_check = false) {
     uint8_t value = ReadByte(address);
-    if (int_check) CheckInt();
+    if (int_check)
+      CheckInt();
     uint8_t value2 = ReadByte(address_high);
     return value | (value2 << 8);
   }
@@ -204,11 +206,13 @@ class Cpu {
                  bool reversed = false, bool int_check = false) {
     if (reversed) {
       callbacks_.write_byte(address_high, value >> 8);
-      if (int_check) CheckInt();
+      if (int_check)
+        CheckInt();
       callbacks_.write_byte(address, value & 0xFF);
     } else {
       callbacks_.write_byte(address, value & 0xFF);
-      if (int_check) CheckInt();
+      if (int_check)
+        CheckInt();
       callbacks_.write_byte(address_high, value >> 8);
     }
   }
@@ -221,11 +225,13 @@ class Cpu {
   void PushByte(uint8_t value) {
     callbacks_.write_byte(SP(), value);
     SetSP(SP() - 1);
-    if (E) SetSP((SP() & 0xff) | 0x100);
+    if (E)
+      SetSP((SP() & 0xff) | 0x100);
   }
   void PushWord(uint16_t value, bool int_check = false) {
     PushByte(value >> 8);
-    if (int_check) CheckInt();
+    if (int_check)
+      CheckInt();
     PushByte(value & 0xFF);
   }
   void PushLong(uint32_t value) {  // Push 24-bit value
@@ -235,12 +241,14 @@ class Cpu {
 
   uint8_t PopByte() {
     SetSP(SP() + 1);
-    if (E) SetSP((SP() & 0xff) | 0x100);
+    if (E)
+      SetSP((SP() & 0xff) | 0x100);
     return ReadByte(SP());
   }
   uint16_t PopWord(bool int_check = false) {
     uint8_t low = PopByte();
-    if (int_check) CheckInt();
+    if (int_check)
+      CheckInt();
     return low | (PopByte() << 8);
   }
   uint32_t PopLong() {  // Pop 24-bit value
@@ -250,7 +258,8 @@ class Cpu {
   }
 
   void DoBranch(bool check) {
-    if (!check) CheckInt();
+    if (!check)
+      CheckInt();
     uint8_t value = ReadOpcode();
     if (check) {
       CheckInt();

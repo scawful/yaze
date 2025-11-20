@@ -41,7 +41,9 @@ std::string OllamaAIService::BuildSystemPrompt() {
   return prompt_builder_.BuildSystemInstruction();
 }
 
-void OllamaAIService::SetRomContext(Rom* rom) { prompt_builder_.SetRom(rom); }
+void OllamaAIService::SetRomContext(Rom* rom) {
+  prompt_builder_.SetRom(rom);
+}
 
 absl::Status OllamaAIService::CheckAvailability() {
 #ifndef YAZE_WITH_JSON
@@ -149,9 +151,12 @@ absl::StatusOr<std::vector<ModelInfo>> OllamaAIService::ListAvailableModels() {
 
           // Build description
           std::string desc;
-          if (!info.family.empty()) desc += info.family + " ";
-          if (!info.parameter_size.empty()) desc += info.parameter_size + " ";
-          if (!info.quantization.empty()) desc += "(" + info.quantization + ")";
+          if (!info.family.empty())
+            desc += info.family + " ";
+          if (!info.parameter_size.empty())
+            desc += info.parameter_size + " ";
+          if (!info.quantization.empty())
+            desc += "(" + info.quantization + ")";
           info.description = desc;
         }
         models.push_back(std::move(info));
