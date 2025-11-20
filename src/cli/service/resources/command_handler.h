@@ -15,13 +15,13 @@ namespace resources {
 /**
  * @class CommandHandler
  * @brief Base class for CLI command handlers
- * 
+ *
  * Provides a consistent structure for implementing CLI commands with:
  * - Automatic argument parsing
  * - ROM context management
  * - Output formatting
  * - Error handling
- * 
+ *
  * Example usage:
  * ```cpp
  * class MyCommandHandler : public CommandHandler {
@@ -29,8 +29,8 @@ namespace resources {
  *   absl::Status ValidateArgs(const ArgumentParser& parser) override {
  *     return parser.RequireArgs({"required_arg"});
  *   }
- *   
- *   absl::Status Execute(Rom* rom, const ArgumentParser& parser, 
+ *
+ *   absl::Status Execute(Rom* rom, const ArgumentParser& parser,
  *                        OutputFormatter& formatter) override {
  *     auto value = parser.GetString("required_arg").value();
  *     // ... business logic ...
@@ -59,7 +59,7 @@ class CommandHandler {
 
   /**
    * @brief Execute the command
-   * 
+   *
    * This is the main entry point that orchestrates:
    * 1. Argument parsing
    * 2. Validation
@@ -71,7 +71,7 @@ class CommandHandler {
 
   /**
    * @brief Get the command name
-   * 
+   *
    * Override this to provide a unique identifier for the command.
    * This is used for command registration and lookup.
    */
@@ -90,7 +90,7 @@ class CommandHandler {
  protected:
   /**
    * @brief Validate command arguments
-   * 
+   *
    * Override this to check required arguments and perform custom validation.
    * Called before Execute().
    */
@@ -98,7 +98,7 @@ class CommandHandler {
 
   /**
    * @brief Execute the command business logic
-   * 
+   *
    * Override this to implement command-specific functionality.
    * The ROM is guaranteed to be loaded and labels initialized.
    */
@@ -107,7 +107,7 @@ class CommandHandler {
 
   /**
    * @brief Check if the command requires ROM labels
-   * 
+   *
    * Override to return false if labels are not needed.
    */
   virtual bool RequiresLabels() const { return false; }
@@ -125,7 +125,7 @@ class CommandHandler {
 
 /**
  * @brief Helper macro for creating simple command handlers
- * 
+ *
  * Usage:
  * ```cpp
  * DEFINE_COMMAND_HANDLER(ResourceList,
@@ -146,9 +146,7 @@ class CommandHandler {
 #define DEFINE_COMMAND_HANDLER(name, usage_str, validate_body, execute_body) \
   class name##CommandHandler : public CommandHandler {                       \
    protected:                                                                \
-    std::string GetUsage() const override {                                  \
-      return usage_str;                                                      \
-    }                                                                        \
+    std::string GetUsage() const override { return usage_str; }              \
     absl::Status ValidateArgs(const ArgumentParser& parser) override         \
         validate_body absl::Status                                           \
         Execute(Rom* rom, const ArgumentParser& parser,                      \

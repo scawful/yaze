@@ -1,6 +1,5 @@
-#include "core/asar_wrapper.h"
-
 #include "absl/strings/str_format.h"
+#include "core/asar_wrapper.h"
 
 // Temporary stub implementation until ASAR library build is fixed
 // All methods return UnimplementedError
@@ -17,21 +16,13 @@ absl::Status AsarWrapper::Initialize() {
       "ASAR library not available - build needs fixing");
 }
 
-void AsarWrapper::Shutdown() {
-  initialized_ = false;
-}
+void AsarWrapper::Shutdown() { initialized_ = false; }
 
-std::string AsarWrapper::GetVersion() const {
-  return "ASAR disabled";
-}
+std::string AsarWrapper::GetVersion() const { return "ASAR disabled"; }
 
-int AsarWrapper::GetApiVersion() const {
-  return 0;
-}
+int AsarWrapper::GetApiVersion() const { return 0; }
 
-void AsarWrapper::Reset() {
-  patches_applied_.clear();
-}
+void AsarWrapper::Reset() { patches_applied_.clear(); }
 
 absl::Status AsarWrapper::ApplyPatch(
     const std::string& patch_content, std::vector<uint8_t>& rom_data,

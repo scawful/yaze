@@ -36,11 +36,9 @@ std::vector<uint8_t> HyruleMagicCompress(uint8_t const* const src,
         m = oldsize - j;
 
         for (n = 0; n < m; n++)
-          if (src[n + j] != src[n + i])
-            break;
+          if (src[n + j] != src[n + i]) break;
 
-        if (n > k)
-          k = n, o = j;
+        if (n > k) k = n, o = j;
       }
     }
 
@@ -62,13 +60,11 @@ std::vector<uint8_t> HyruleMagicCompress(uint8_t const* const src,
       m = src[i + 1];
 
       for (n = i + 2; n < oldsize; n++) {
-        if (src[n] != l)
-          break;
+        if (src[n] != l) break;
 
         n++;
 
-        if (src[n] != m)
-          break;
+        if (src[n] != m) break;
       }
 
       n -= i;
@@ -79,8 +75,7 @@ std::vector<uint8_t> HyruleMagicCompress(uint8_t const* const src,
         m = oldsize - i;
 
         for (n = 1; n < m; n++)
-          if (src[i + n] != l + n)
-            break;
+          if (src[i + n] != l + n) break;
 
         if (n > 1 + r)
           p = 3;
@@ -89,8 +84,7 @@ std::vector<uint8_t> HyruleMagicCompress(uint8_t const* const src,
       }
     }
 
-    if (k > 3 + r && k > n + (p & 1))
-      p = 4, n = k;
+    if (k > 3 + r && k > n + (p & 1)) p = 4, n = k;
 
     if (!p)
       q++, i++;
@@ -185,8 +179,7 @@ std::vector<uint8_t> HyruleMagicDecompress(uint8_t const* src, int* const size,
     a = *(src++);
 
     // end the decompression routine if we encounter 0xff.
-    if (a == 0xff)
-      break;
+    if (a == 0xff) break;
 
     // examine the top 3 bits of a.
     b = (a >> 5);
@@ -298,8 +291,7 @@ std::vector<uint8_t> HyruleMagicDecompress(uint8_t const* src, int* const size,
 
   b2 = (unsigned char*)realloc(b2, bd);
 
-  if (size)
-    (*size) = bd;
+  if (size) (*size) = bd;
 
   // return the unsigned char* buffer b2, which contains the uncompressed data.
   std::vector<uint8_t> decompressed_data(b2, b2 + bd);
@@ -1373,8 +1365,7 @@ void memfill(const uint8_t* data, std::vector<uint8_t>& buffer, int buffer_pos,
   auto b = data[offset + 1];
   for (int i = 0; i < length; i = i + 2) {
     buffer[buffer_pos + i] = a;
-    if ((i + 1) < length)
-      buffer[buffer_pos + i + 1] = b;
+    if ((i + 1) < length) buffer[buffer_pos + i + 1] = b;
   }
 }
 

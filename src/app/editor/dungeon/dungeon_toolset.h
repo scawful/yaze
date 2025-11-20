@@ -11,7 +11,7 @@ namespace editor {
 
 /**
  * @brief Handles the dungeon editor toolset UI
- * 
+ *
  * This component manages the toolbar with placement modes, background layer
  * selection, and other editing tools.
  */

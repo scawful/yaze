@@ -16,9 +16,9 @@ namespace cli {
 namespace gui {
 
 /**
- * @class GuiActionGenerator  
+ * @class GuiActionGenerator
  * @brief Converts high-level AI actions into executable GUI test scripts
- * 
+ *
  * Takes parsed AI actions and generates gRPC test harness commands or
  * JSON test scripts that can be executed to control the GUI.
  */

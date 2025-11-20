@@ -75,10 +75,8 @@ bool DrawPaletteIdSelector(const char* label, int* palette_id,
   bool changed = ImGui::InputInt(label, palette_id);
 
   // Clamp to valid range (0-255 typically)
-  if (*palette_id < 0)
-    *palette_id = 0;
-  if (*palette_id > 255)
-    *palette_id = 255;
+  if (*palette_id < 0) *palette_id = 0;
+  if (*palette_id > 255) *palette_id = 255;
 
   // Draw jump button
   ImGui::SameLine();
@@ -118,8 +116,7 @@ void DrawPalettePreview(const std::string& group_name, int palette_index,
   // Draw colors in a row
   int preview_size = std::min(8, static_cast<int>(palette.size()));
   for (int i = 0; i < preview_size; i++) {
-    if (i > 0)
-      ImGui::SameLine();
+    if (i > 0) ImGui::SameLine();
 
     ImGui::PushID(i);
     ImVec4 col = gui::ConvertSnesColorToImVec4(palette[i]);

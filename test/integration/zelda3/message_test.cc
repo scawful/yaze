@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+
 #include <filesystem>
 
 #include "app/editor/message/message_data.h"
@@ -211,7 +212,8 @@ TEST_F(MessageRomTest, BuildDictionaryEntries_CorrectSize) {
 TEST_F(MessageRomTest, ParseMessageData_CommandWithArgument_NoExtraCharacters) {
   // This test specifically checks for the bug where command arguments
   // were being incorrectly parsed as characters (e.g., capital 'A' after [W])
-  // The bug was caused by using a range-based for loop while also tracking position
+  // The bug was caused by using a range-based for loop while also tracking
+  // position
 
   // Message: [W:01]ABC
   // Bytes: 0x6B (W command), 0x01 (argument), 0x00 (A), 0x01 (B), 0x02 (C)

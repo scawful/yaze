@@ -13,14 +13,14 @@ namespace emu {
 /**
  * @class BreakpointManager
  * @brief Manages CPU and SPC700 breakpoints for debugging
- * 
+ *
  * Provides comprehensive breakpoint support including:
  * - Execute breakpoints (break when PC reaches address)
  * - Read breakpoints (break when memory address is read)
  * - Write breakpoints (break when memory address is written)
  * - Access breakpoints (break on read OR write)
  * - Conditional breakpoints (break when expression is true)
- * 
+ *
  * Inspired by Mesen2's debugging capabilities.
  */
 class BreakpointManager {

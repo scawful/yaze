@@ -31,15 +31,13 @@ PerformanceProfiler::PerformanceProfiler()
 }
 
 void PerformanceProfiler::StartTimer(const std::string& operation_name) {
-  if (!enabled_ || is_shutting_down_)
-    return;
+  if (!enabled_ || is_shutting_down_) return;
 
   active_timers_[operation_name] = std::chrono::high_resolution_clock::now();
 }
 
 void PerformanceProfiler::EndTimer(const std::string& operation_name) {
-  if (!enabled_ || is_shutting_down_)
-    return;
+  if (!enabled_ || is_shutting_down_) return;
 
   auto timer_iter = active_timers_.find(operation_name);
   if (timer_iter == active_timers_.end()) {
@@ -110,8 +108,7 @@ std::string PerformanceProfiler::GenerateReport(bool log_to_sdl) const {
          << (total_bytes / (1024.0 * 1024.0)) << " MB\n\n";
 
   for (const auto& [operation, times] : operation_times_) {
-    if (times.empty())
-      continue;
+    if (times.empty()) continue;
 
     auto stats = GetStats(operation);
     report << "Operation: " << operation << "\n";
@@ -247,8 +244,7 @@ void PerformanceProfiler::PrintSummary() const {
   std::cout << std::string(72, '-') << "\n";
 
   for (const auto& [operation_name, times] : operation_times_) {
-    if (times.empty())
-      continue;
+    if (times.empty()) continue;
 
     auto total_it = operation_totals_.find(operation_name);
     auto count_it = operation_counts_.find(operation_name);

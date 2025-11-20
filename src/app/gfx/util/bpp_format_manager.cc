@@ -400,8 +400,7 @@ int BppFormatManager::CountUsedColors(const std::vector<uint8_t>& data,
 
   int count = 0;
   for (bool used : used_colors) {
-    if (used)
-      count++;
+    if (used) count++;
   }
 
   return count;
@@ -410,8 +409,7 @@ int BppFormatManager::CountUsedColors(const std::vector<uint8_t>& data,
 float BppFormatManager::CalculateCompressionRatio(
     const std::vector<uint8_t>& original,
     const std::vector<uint8_t>& compressed) {
-  if (compressed.empty())
-    return 1.0f;
+  if (compressed.empty()) return 1.0f;
   return static_cast<float>(original.size()) /
          static_cast<float>(compressed.size());
 }

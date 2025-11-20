@@ -20,7 +20,7 @@ namespace agent {
 /**
  * @class LearnedKnowledgeService
  * @brief Manages persistent learned information across agent sessions
- * 
+ *
  * Stores:
  * - User preferences (default palettes, favorite tools, etc.)
  * - ROM patterns (frequently accessed rooms, sprite placements, etc.)
@@ -77,7 +77,8 @@ class LearnedKnowledgeService {
 
   /**
    * Learn a pattern from the current ROM
-   * @param type Pattern type (e.g., "sprite_distribution", "room_access_frequency")
+   * @param type Pattern type (e.g., "sprite_distribution",
+   * "room_access_frequency")
    * @param rom_hash SHA256 hash of the ROM
    * @param data Pattern-specific data (JSON)
    */

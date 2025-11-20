@@ -23,7 +23,7 @@ namespace zelda3 {
 
 /**
  * @brief Comprehensive dungeon editing system
- * 
+ *
  * This class provides a complete dungeon editing solution including:
  * - Object editing (walls, floors, decorations)
  * - Sprite management (enemies, NPCs, interactive elements)

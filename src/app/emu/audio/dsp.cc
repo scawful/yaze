@@ -127,9 +127,7 @@ void Dsp::Reset() {
   lastFrameBoundary = 0;
 }
 
-void Dsp::NewFrame() {
-  lastFrameBoundary = sampleOffset;
-}
+void Dsp::NewFrame() { lastFrameBoundary = sampleOffset; }
 
 void Dsp::Cycle() {
   sampleOutL = 0;
@@ -158,13 +156,10 @@ static int clamp16(int val) {
   return val < -0x8000 ? -0x8000 : (val > 0x7fff ? 0x7fff : val);
 }
 
-static int clip16(int val) {
-  return (int16_t)(val & 0xffff);
-}
+static int clip16(int val) { return (int16_t)(val & 0xffff); }
 
 bool Dsp::CheckCounter(int rate) {
-  if (rate == 0)
-    return false;
+  if (rate == 0) return false;
   return ((counter + rateOffsets[rate]) % rateValues[rate]) == 0;
 }
 
@@ -225,8 +220,7 @@ void Dsp::CycleChannel(int ch) {
   // get current brr header and get sample address
   channel[ch].brrHeader = aram_[channel[ch].decodeOffset];
   uint16_t samplePointer = dirPage + 4 * channel[ch].srcn;
-  if (channel[ch].startDelay == 0)
-    samplePointer += 2;
+  if (channel[ch].startDelay == 0) samplePointer += 2;
   uint16_t sampleAdr =
       aram_[samplePointer] | (aram_[(samplePointer + 1) & 0xffff] << 8);
   // handle starting of sample
@@ -293,8 +287,7 @@ void Dsp::CycleChannel(int ch) {
   // update pitch counter
   channel[ch].pitchCounter &= 0x3fff;
   channel[ch].pitchCounter += pitch;
-  if (channel[ch].pitchCounter > 0x7fff)
-    channel[ch].pitchCounter = 0x7fff;
+  if (channel[ch].pitchCounter > 0x7fff) channel[ch].pitchCounter = 0x7fff;
   // set outputs
   ram[(ch << 4) | 8] = channel[ch].gain >> 4;
   ram[(ch << 4) | 9] = sample >> 8;
@@ -367,8 +360,7 @@ void Dsp::HandleGain(int ch) {
     }
   }
   // store new value
-  if (CheckCounter(rate))
-    channel[ch].gain = newGain;
+  if (CheckCounter(rate)) channel[ch].gain = newGain;
 }
 
 int16_t Dsp::GetSample(int ch) {
@@ -402,8 +394,7 @@ void Dsp::DecodeBrr(int ch) {
                       0xffff];
       s = curByte >> 4;
     }
-    if (s > 7)
-      s -= 16;
+    if (s > 7) s -= 16;
     if (shift <= 0xc) {
       s = (s << shift) >> 1;
     } else {
@@ -425,8 +416,7 @@ void Dsp::DecodeBrr(int ch) {
     old = channel[ch].decodeBuffer[bOff + i] >> 1;
   }
   channel[ch].bufferOffset += 4;
-  if (channel[ch].bufferOffset >= 12)
-    channel[ch].bufferOffset = 0;
+  if (channel[ch].bufferOffset >= 12) channel[ch].bufferOffset = 0;
 }
 
 void Dsp::HandleNoise() {
@@ -436,9 +426,7 @@ void Dsp::HandleNoise() {
   }
 }
 
-uint8_t Dsp::Read(uint8_t adr) {
-  return ram[adr];
-}
+uint8_t Dsp::Read(uint8_t adr) { return ram[adr]; }
 
 void Dsp::Write(uint8_t adr, uint8_t val) {
   int ch = adr >> 4;
@@ -686,8 +674,7 @@ void Dsp::GetSamples(int16_t* sample_data, int samples_per_frame,
   location -= native_per_frame;
 
   // Ensure location is within valid range
-  while (location < 0)
-    location += 0x400;
+  while (location < 0) location += 0x400;
 
   for (int i = 0; i < samples_per_frame; i++) {
     const int idx = static_cast<int>(location) & 0x3ff;

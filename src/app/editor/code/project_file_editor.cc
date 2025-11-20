@@ -22,8 +22,7 @@ ProjectFileEditor::ProjectFileEditor() {
 }
 
 void ProjectFileEditor::Draw() {
-  if (!active_)
-    return;
+  if (!active_) return;
 
   ImGui::SetNextWindowSize(ImVec2(900, 700), ImGuiCond_FirstUseEver);
   if (!ImGui::Begin(absl::StrFormat("%s Project Editor###ProjectFileEditor",
@@ -57,8 +56,7 @@ void ProjectFileEditor::Draw() {
 
     ImGui::TableNextColumn();
     bool can_save = !filepath_.empty() && IsModified();
-    if (!can_save)
-      ImGui::BeginDisabled();
+    if (!can_save) ImGui::BeginDisabled();
     if (ImGui::Button(absl::StrFormat("%s Save", ICON_MD_SAVE).c_str())) {
       auto status = SaveFile();
       if (status.ok() && toast_manager_) {
@@ -67,8 +65,7 @@ void ProjectFileEditor::Draw() {
         toast_manager_->Show(std::string(status.message()), ToastType::kError);
       }
     }
-    if (!can_save)
-      ImGui::EndDisabled();
+    if (!can_save) ImGui::EndDisabled();
 
     ImGui::TableNextColumn();
     if (ImGui::Button(absl::StrFormat("%s Save As", ICON_MD_SAVE_AS).c_str())) {
@@ -251,8 +248,7 @@ void ProjectFileEditor::ValidateContent() {
     std::string trimmed = std::string(absl::StripAsciiWhitespace(line));
 
     // Skip empty lines and comments
-    if (trimmed.empty() || trimmed[0] == '#')
-      continue;
+    if (trimmed.empty() || trimmed[0] == '#') continue;
 
     // Check for section headers
     if (trimmed[0] == '[' && trimmed[trimmed.size() - 1] == ']') {
@@ -284,8 +280,7 @@ void ProjectFileEditor::ValidateContent() {
 }
 
 void ProjectFileEditor::ShowValidationErrors() {
-  if (validation_errors_.empty())
-    return;
+  if (validation_errors_.empty()) return;
 
   ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f), "Validation Errors:");
   for (const auto& error : validation_errors_) {

@@ -14,8 +14,8 @@ class FeatureFlags {
  public:
   struct Flags {
     // REMOVED: kLogInstructions - DisassemblyViewer is now always enabled
-    // It uses sparse address-map recording (Mesen-style) with zero performance impact
-    // Recording can be disabled per-viewer via UI if needed
+    // It uses sparse address-map recording (Mesen-style) with zero performance
+    // impact Recording can be disabled per-viewer via UI if needed
 
     // Flag to enable the saving of all palettes to the Rom.
     bool kSaveAllPalettes = false;
@@ -43,7 +43,8 @@ class FeatureFlags {
     // Enable the new tiered graphics architecture.
     bool kEnableTieredGfxArchitecture = true;
 
-    // Use NFD (Native File Dialog) instead of bespoke file dialog implementation.
+    // Use NFD (Native File Dialog) instead of bespoke file dialog
+    // implementation.
 #if defined(YAZE_ENABLE_NFD) && YAZE_ENABLE_NFD
     bool kUseNativeFileDialog = true;
 #else
@@ -70,8 +71,9 @@ class FeatureFlags {
       // Save overworld properties to the Rom.
       bool kSaveOverworldProperties = true;
 
-      // Enable custom overworld features for vanilla ROMs or override detection.
-      // If ZSCustomOverworld ASM is already applied, features are auto-enabled.
+      // Enable custom overworld features for vanilla ROMs or override
+      // detection. If ZSCustomOverworld ASM is already applied, features are
+      // auto-enabled.
       bool kLoadCustomOverworld = false;
 
       // Apply ZSCustomOverworld ASM patches when upgrading ROM versions.

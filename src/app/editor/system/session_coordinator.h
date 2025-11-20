@@ -31,11 +31,13 @@ class ToastManager;
 /**
  * @class SessionCoordinator
  * @brief High-level orchestrator for multi-session UI
- * 
+ *
  * Manages session list UI, coordinates card visibility across sessions,
- * handles session activation/deactivation, and provides session-aware editor queries.
- * 
- * This class lives in the ui/ layer and can depend on both system and gui components.
+ * handles session activation/deactivation, and provides session-aware editor
+ * queries.
+ *
+ * This class lives in the ui/ layer and can depend on both system and gui
+ * components.
  */
 class SessionCoordinator {
  public:

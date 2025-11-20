@@ -277,23 +277,25 @@ uint32_t GetPaletteAddress(const std::string& group_name, size_t palette_index,
 
 /**
  * @brief Read a palette from ROM data
- * 
+ *
  * SNES ROM stores colors in 15-bit BGR format (2 bytes each):
  * - Byte 0: rrrrrggg (low byte)
  * - Byte 1: 0bbbbbgg (high byte)
  * - Full format: 0bbbbbgggggrrrrr
- * 
+ *
  * This function:
  * 1. Reads SNES 15-bit colors from ROM
  * 2. Converts to RGB 0-255 range (multiply by 8 to expand 5-bit to 8-bit)
  * 3. Creates SnesColor objects that store all formats
- * 
+ *
  * IMPORTANT: Transparency is NOT marked here!
- * - The SNES hardware automatically treats color index 0 of each sub-palette as transparent
+ * - The SNES hardware automatically treats color index 0 of each sub-palette as
+ * transparent
  * - This is a rendering concern, not a data property
  * - ROM palette data stores actual color values, including at index 0
- * - Transparency is applied later during rendering (in SetPaletteWithTransparent or SDL)
- * 
+ * - Transparency is applied later during rendering (in
+ * SetPaletteWithTransparent or SDL)
+ *
  * @param offset ROM offset to start reading
  * @param num_colors Number of colors to read
  * @param rom Pointer to ROM data
@@ -351,15 +353,15 @@ absl::StatusOr<PaletteGroup> CreatePaletteGroupFromColFile(
 
 /**
  * @brief Create a PaletteGroup by dividing a large palette into sub-palettes
- * 
+ *
  * Takes a large palette (e.g., 256 colors) and divides it into smaller
  * palettes of num_colors each (typically 8 colors for SNES).
- * 
+ *
  * IMPORTANT: Does NOT mark colors as transparent!
  * - Color data is preserved as-is from the source palette
  * - Transparency is a rendering concern handled by SetPaletteWithTransparent
  * - The SNES hardware handles color 0 transparency automatically
- * 
+ *
  * @param palette Source palette to divide
  * @param num_colors Number of colors per sub-palette (default 8)
  * @return PaletteGroup containing the sub-palettes

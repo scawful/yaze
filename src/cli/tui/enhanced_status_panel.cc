@@ -33,34 +33,24 @@ EnhancedStatusPanel::EnhancedStatusPanel(Rom* rom_context)
   };
 }
 
-Component EnhancedStatusPanel::GetComponent() {
-  return status_container_;
-}
+Component EnhancedStatusPanel::GetComponent() { return status_container_; }
 
 void EnhancedStatusPanel::SetRomContext(Rom* rom_context) {
   rom_context_ = rom_context;
   UpdateRomInfo();
 }
 
-void EnhancedStatusPanel::UpdateRomInfo() {
-  CollectRomInfo();
-}
+void EnhancedStatusPanel::UpdateRomInfo() { CollectRomInfo(); }
 
-void EnhancedStatusPanel::UpdateSystemInfo() {
-  CollectSystemInfo();
-}
+void EnhancedStatusPanel::UpdateSystemInfo() { CollectSystemInfo(); }
 
-void EnhancedStatusPanel::UpdateLayoutInfo() {
-  CollectLayoutInfo();
-}
+void EnhancedStatusPanel::UpdateLayoutInfo() { CollectLayoutInfo(); }
 
 void EnhancedStatusPanel::SetError(const std::string& error) {
   current_error_ = error;
 }
 
-void EnhancedStatusPanel::ClearError() {
-  current_error_.clear();
-}
+void EnhancedStatusPanel::ClearError() { current_error_.clear(); }
 
 Component EnhancedStatusPanel::CreateStatusContainer() {
   auto container = Container::Vertical({rom_info_section_, system_info_section_,
@@ -225,7 +215,8 @@ void EnhancedStatusPanel::CollectSystemInfo() {
 }
 
 void EnhancedStatusPanel::CollectLayoutInfo() {
-  // Placeholder layout info (in a real implementation, you'd get this from the layout manager)
+  // Placeholder layout info (in a real implementation, you'd get this from the
+  // layout manager)
   layout_info_.active_panel = "Main Menu";
   layout_info_.panel_count = "4";
   layout_info_.layout_mode = "Unified";

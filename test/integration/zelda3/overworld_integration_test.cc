@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+
 #include <filesystem>
 #include <memory>
 #include <string>
@@ -13,9 +14,10 @@ namespace yaze {
 namespace zelda3 {
 
 /**
- * @brief Comprehensive overworld integration test that validates YAZE C++ 
- *        implementation against ZScream C# logic and existing test infrastructure
- * 
+ * @brief Comprehensive overworld integration test that validates YAZE C++
+ *        implementation against ZScream C# logic and existing test
+ * infrastructure
+ *
  * This test suite:
  * 1. Validates overworld loading logic matches ZScream behavior
  * 2. Tests integration with ZSCustomOverworld versions (vanilla, v2, v3)
@@ -78,7 +80,8 @@ class OverworldIntegrationTest : public ::testing::Test {
       mock_rom_data_[0x012844 + i] = 0x00;  // Small areas
     }
 
-    // Setup entrance data (matches ZScream Constants.OWEntranceMap/Pos/EntranceId)
+    // Setup entrance data (matches ZScream
+    // Constants.OWEntranceMap/Pos/EntranceId)
     for (int i = 0; i < 129; i++) {
       mock_rom_data_[0x0DB96F + (i * 2)] = i & 0xFF;  // Map ID
       mock_rom_data_[0x0DB96F + (i * 2) + 1] = (i >> 8) & 0xFF;
@@ -267,7 +270,8 @@ TEST_F(OverworldIntegrationTest, RomDependentTestSuiteCompatibility) {
         << "Real ROM required for RomDependentTestSuite compatibility testing";
   }
 
-  // Test that our overworld loading works with the same patterns as RomDependentTestSuite
+  // Test that our overworld loading works with the same patterns as
+  // RomDependentTestSuite
   auto status = overworld_->Load(rom_.get());
   ASSERT_TRUE(status.ok());
 
@@ -288,7 +292,8 @@ TEST_F(OverworldIntegrationTest, RomDependentTestSuiteCompatibility) {
     EXPECT_LE(map.area_size(), AreaSizeEnum::TallArea);
   }
 
-  // Test that sprite data is accessible (matches RomDependentTestSuite expectations)
+  // Test that sprite data is accessible (matches RomDependentTestSuite
+  // expectations)
   const auto& sprites = overworld_->sprites(0);
   EXPECT_EQ(sprites.size(), 3);  // Three game states
 
@@ -359,8 +364,8 @@ TEST_F(OverworldIntegrationTest, ZScreamCoordinateCompatibility) {
     // int p = mapPos >> 1;
     // int x = p % 64;
     // int y = p >> 6;
-    // int real_x = (x * 16) + (((mapId % 64) - (((mapId % 64) / 8) * 8)) * 512);
-    // int real_y = (y * 16) + (((mapId % 64) / 8) * 512);
+    // int real_x = (x * 16) + (((mapId % 64) - (((mapId % 64) / 8) * 8)) *
+    // 512); int real_y = (y * 16) + (((mapId % 64) / 8) * 512);
 
     uint16_t map_pos = entrance.map_pos_;
     uint16_t map_id = entrance.map_id_;
@@ -387,8 +392,8 @@ TEST_F(OverworldIntegrationTest, ZScreamCoordinateCompatibility) {
     // int p = (mapPos + 0x400) >> 1;
     // int x = p % 64;
     // int y = p >> 6;
-    // int real_x = (x * 16) + (((mapId % 64) - (((mapId % 64) / 8) * 8)) * 512);
-    // int real_y = (y * 16) + (((mapId % 64) / 8) * 512);
+    // int real_x = (x * 16) + (((mapId % 64) - (((mapId % 64) / 8) * 8)) *
+    // 512); int real_y = (y * 16) + (((mapId % 64) / 8) * 512);
 
     uint16_t map_pos = hole.map_pos_;
     uint16_t map_id = hole.map_id_;

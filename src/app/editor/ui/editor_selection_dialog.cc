@@ -80,15 +80,15 @@ bool EditorSelectionDialog::Show(bool* p_open) {
   }
 
   if (!is_open_) {
-    if (p_open)
-      *p_open = false;
+    if (p_open) *p_open = false;
     return false;
   }
 
   bool editor_selected = false;
   bool* window_open = p_open ? p_open : &is_open_;
 
-  // Set window properties immediately before Begin to prevent them from affecting tooltips
+  // Set window properties immediately before Begin to prevent them from
+  // affecting tooltips
   ImVec2 center = ImGui::GetMainViewport()->GetCenter();
   ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
   ImGui::SetNextWindowSize(
@@ -146,8 +146,7 @@ bool EditorSelectionDialog::Show(bool* p_open) {
 
   if (editor_selected) {
     is_open_ = false;
-    if (p_open)
-      *p_open = false;
+    if (p_open) *p_open = false;
   }
 
   return editor_selected;

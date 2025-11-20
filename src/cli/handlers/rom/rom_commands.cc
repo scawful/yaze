@@ -1,6 +1,7 @@
 #include "cli/handlers/rom/rom_commands.h"
 
 #include <fstream>
+
 #include "absl/strings/str_format.h"
 #include "util/macro.h"
 
@@ -52,8 +53,7 @@ absl::Status RomValidateCommandHandler::Execute(
   formatter.AddField("validation_passed", all_ok);
   std::string results_str;
   for (const auto& result : validation_results) {
-    if (!results_str.empty())
-      results_str += "; ";
+    if (!results_str.empty()) results_str += "; ";
     results_str += result;
   }
   formatter.AddField("results", results_str);
@@ -115,8 +115,7 @@ absl::Status RomDiffCommandHandler::Execute(
   if (!diff_details.empty()) {
     std::string diff_str;
     for (const auto& diff : diff_details) {
-      if (!diff_str.empty())
-        diff_str += "; ";
+      if (!diff_str.empty()) diff_str += "; ";
       diff_str += diff;
     }
     formatter.AddField("differences", diff_str);

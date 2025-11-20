@@ -2,6 +2,7 @@
 #define YAZE_APP_GUI_CANVAS_CANVAS_EVENTS_H
 
 #include <vector>
+
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -9,7 +10,7 @@ namespace gui {
 
 /**
  * @brief Event payload for tile painting operations
- * 
+ *
  * Represents a single tile paint action, either from a click or drag operation.
  * Canvas-space coordinates are provided for positioning.
  */
@@ -31,9 +32,10 @@ struct TilePaintEvent {
 
 /**
  * @brief Event payload for rectangle selection operations
- * 
- * Represents a multi-tile rectangular selection, typically from right-click drag.
- * Provides both the rectangle bounds and the individual selected tile positions.
+ *
+ * Represents a multi-tile rectangular selection, typically from right-click
+ * drag. Provides both the rectangle bounds and the individual selected tile
+ * positions.
  */
 struct RectSelectionEvent {
   std::vector<ImVec2>
@@ -62,7 +64,7 @@ struct RectSelectionEvent {
 
 /**
  * @brief Event payload for single tile selection
- * 
+ *
  * Represents selecting a single tile, typically from a right-click.
  */
 struct TileSelectionEvent {
@@ -79,7 +81,7 @@ struct TileSelectionEvent {
 
 /**
  * @brief Event payload for entity interactions
- * 
+ *
  * Represents various entity interaction events (hover, click, drag).
  * Used for exits, entrances, sprites, items, etc.
  */
@@ -124,7 +126,7 @@ struct EntityInteractionEvent {
 
 /**
  * @brief Event payload for hover preview
- * 
+ *
  * Represents hover state for overlay rendering.
  */
 struct HoverEvent {
@@ -141,7 +143,7 @@ struct HoverEvent {
 
 /**
  * @brief Combined interaction result for a frame
- * 
+ *
  * Aggregates all possible interaction events for a single frame update.
  * Handlers populate relevant events, consumers check which events occurred.
  */

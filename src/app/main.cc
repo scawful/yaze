@@ -144,7 +144,8 @@ int main(int argc, char** argv) {
   auto controller = std::make_unique<Controller>();
   EXIT_IF_ERROR(controller->OnEntry(rom_filename))
 
-  // Set startup editor and cards from flags (after OnEntry initializes editor manager)
+  // Set startup editor and cards from flags (after OnEntry initializes editor
+  // manager)
   if (!FLAGS_editor->Get().empty()) {
     controller->SetStartupEditor(FLAGS_editor->Get(), FLAGS_cards->Get());
   }

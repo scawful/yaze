@@ -1,4 +1,6 @@
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
+
 #include <filesystem>
 #include <fstream>
 
@@ -6,9 +8,6 @@
 #include "app/rom.h"
 #include "core/asar_wrapper.h"
 #include "testing.h"
-
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
 
 namespace yaze {
 namespace test {

@@ -1,30 +1,32 @@
 /**
  * @file dungeon_object_rendering_e2e_tests.cc
- * @brief End-to-end tests for dungeon object rendering system using imgui test engine
- * 
- * These tests orchestrate complete user workflows for the dungeon editor, validating:
+ * @brief End-to-end tests for dungeon object rendering system using imgui test
+ * engine
+ *
+ * These tests orchestrate complete user workflows for the dungeon editor,
+ * validating:
  * - Object browser and selection
  * - Object placement on canvas
  * - Object manipulation (move, delete, edit)
  * - Layer management
  * - Save/load workflows
  * - Rendering quality across different scenarios
- * 
+ *
  * Created: October 4, 2025
  * Related: docs/dungeon_editing_implementation_plan.md
- * 
+ *
  * ============================================================================
  * UPDATE NOTICE (October 2025): Tests need rewrite for DungeonEditorV2
  * ============================================================================
- * 
+ *
  * These tests were written for the old monolithic DungeonEditor but need to be
  * updated for the new DungeonEditorV2 card-based architecture:
- * 
+ *
  * OLD ARCHITECTURE:
  * - Single "Dungeon Editor" window with tabs
  * - Object Selector, Canvas, Layers all in one window
  * - Monolithic UI structure
- * 
+ *
  * NEW ARCHITECTURE (DungeonEditorV2):
  * - Independent EditorCard windows:
  *   - "Dungeon Controls" - main control panel
@@ -35,14 +37,14 @@
  *   - Individual room cards (e.g., "Room 0x00###RoomCard0")
  * - Per-room layer visibility settings
  * - Dockable, closable independent windows
- * 
+ *
  * REQUIRED UPDATES:
  * 1. Change window references from "Dungeon Editor" to appropriate card names
  * 2. Update tab navigation to card window focus
  * 3. Update object placement workflow for new ObjectEditorCard
  * 4. Update layer controls for per-room settings
  * 5. Update room selection to work with new room cards
- * 
+ *
  * Current Status: Tests compile but may fail due to UI structure changes.
  * See: test/e2e/dungeon_editor_smoke_test.cc for updated test patterns.
  */
@@ -51,15 +53,14 @@
 
 #include <gtest/gtest.h>
 
-#include "imgui.h"
-#include "imgui_test_engine/imgui_te_context.h"
-#include "imgui_test_engine/imgui_te_engine.h"
-#include "imgui_test_engine/imgui_te_ui.h"
-
 #include "app/controller.h"
 #include "app/editor/dungeon/dungeon_editor_v2.h"
 #include "app/platform/window.h"
 #include "app/rom.h"
+#include "imgui.h"
+#include "imgui_test_engine/imgui_te_context.h"
+#include "imgui_test_engine/imgui_te_engine.h"
+#include "imgui_test_engine/imgui_te_ui.h"
 #include "test_utils.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_object.h"
@@ -129,7 +130,7 @@ class DungeonObjectRenderingE2ETests : public TestRomManager::BoundRomTest {
 
 /**
  * @brief Test: Navigate object browser categories
- * 
+ *
  * Validates:
  * - Tab navigation works
  * - Each category displays objects
@@ -173,7 +174,7 @@ void DungeonObjectRenderingE2ETests::RegisterObjectBrowserTests() {
 
 /**
  * @brief Test: Select object from browser
- * 
+ *
  * Validates:
  * - Object can be selected by clicking
  * - Preview updates when object selected
@@ -216,7 +217,7 @@ void RegisterObjectBrowserTests_SelectObject(
 
 /**
  * @brief Test: Search and filter objects
- * 
+ *
  * Validates:
  * - Search box filters object list
  * - Filtering by ID works
@@ -259,7 +260,7 @@ void RegisterObjectBrowserTests_SearchFilter(
 
 /**
  * @brief Test: Place object on canvas with mouse click
- * 
+ *
  * Validates:
  * - Object preview follows mouse cursor
  * - Click places object at correct position
@@ -314,7 +315,7 @@ void DungeonObjectRenderingE2ETests::RegisterObjectPlacementTests() {
 
 /**
  * @brief Test: Place object with snap to grid
- * 
+ *
  * Validates:
  * - Snap to grid option works
  * - Object positions align to grid
@@ -359,7 +360,7 @@ void RegisterObjectPlacementTests_SnapToGrid(
 
 /**
  * @brief Test: Place multiple objects sequentially
- * 
+ *
  * Validates:
  * - Multiple objects can be placed
  * - Each placement is independent
@@ -407,7 +408,7 @@ void RegisterObjectPlacementTests_MultipleObjects(
 
 /**
  * @brief Test: Select object by clicking on canvas
- * 
+ *
  * Validates:
  * - Click on object selects it
  * - Selection highlight appears
@@ -449,7 +450,7 @@ void DungeonObjectRenderingE2ETests::RegisterObjectSelectionTests() {
 
 /**
  * @brief Test: Multi-select objects with Ctrl+drag
- * 
+ *
  * Validates:
  * - Ctrl+drag creates selection box
  * - All objects in box are selected
@@ -498,7 +499,7 @@ void RegisterObjectSelectionTests_MultiSelect(
 
 /**
  * @brief Test: Move selected object with drag
- * 
+ *
  * Validates:
  * - Selected object can be dragged
  * - Object position updates during drag
@@ -545,7 +546,7 @@ void RegisterObjectSelectionTests_MoveObject(
 
 /**
  * @brief Test: Delete selected object
- * 
+ *
  * Validates:
  * - Delete key removes selected object
  * - Object no longer in room list
@@ -594,7 +595,7 @@ void RegisterObjectSelectionTests_DeleteObject(
 
 /**
  * @brief Test: Toggle layer visibility
- * 
+ *
  * Validates:
  * - Layer visibility checkboxes work
  * - Hidden layers don't render
@@ -632,7 +633,7 @@ void DungeonObjectRenderingE2ETests::RegisterLayerManagementTests() {
 
 /**
  * @brief Test: Place objects on different layers
- * 
+ *
  * Validates:
  * - Active layer can be changed
  * - Objects placed on correct layer
@@ -694,7 +695,7 @@ void RegisterLayerManagementTests_PlaceOnLayers(
 
 /**
  * @brief Test: Layer rendering order
- * 
+ *
  * Validates:
  * - Layers render in correct order (BG1 < BG2 < BG3)
  * - Overlapping objects render correctly
@@ -748,7 +749,7 @@ void RegisterLayerManagementTests_RenderingOrder(
 
 /**
  * @brief Test: Save room with objects
- * 
+ *
  * Validates:
  * - Objects can be saved to ROM
  * - Save operation succeeds
@@ -789,7 +790,7 @@ void DungeonObjectRenderingE2ETests::RegisterSaveWorkflowTests() {
 
 /**
  * @brief Test: Save and reload room (round-trip)
- * 
+ *
  * Validates:
  * - Objects persist after save/reload
  * - Object properties are preserved
@@ -844,7 +845,7 @@ void RegisterSaveWorkflowTests_RoundTrip(DungeonObjectRenderingE2ETests* self) {
 
 /**
  * @brief Test: Save with multiple object types
- * 
+ *
  * Validates:
  * - Type1, Type2, Type3 objects all save correctly
  * - Encoding is correct for each type
@@ -909,7 +910,7 @@ void RegisterSaveWorkflowTests_MultipleTypes(
 
 /**
  * @brief Test: Render all object types correctly
- * 
+ *
  * Validates:
  * - Type1 objects render
  * - Type2 objects render
@@ -959,7 +960,7 @@ void DungeonObjectRenderingE2ETests::RegisterRenderingQualityTests() {
 
 /**
  * @brief Test: Render with different palettes
- * 
+ *
  * Validates:
  * - Palette switching works
  * - Objects render with correct colors
@@ -1005,7 +1006,7 @@ void RegisterRenderingQualityTests_Palettes(
 
 /**
  * @brief Test: Complex room scenario rendering
- * 
+ *
  * Validates:
  * - Many objects render correctly
  * - Performance is acceptable
@@ -1073,7 +1074,7 @@ void RegisterRenderingQualityTests_ComplexRoom(
 
 /**
  * @brief Test: Large room with many objects performance
- * 
+ *
  * Validates:
  * - Rendering stays performant with 100+ objects
  * - Frame time stays below threshold

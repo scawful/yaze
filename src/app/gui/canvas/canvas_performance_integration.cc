@@ -27,8 +27,7 @@ void CanvasPerformanceIntegration::Initialize(const std::string& canvas_id) {
 }
 
 void CanvasPerformanceIntegration::StartMonitoring() {
-  if (!monitoring_enabled_)
-    return;
+  if (!monitoring_enabled_) return;
 
   // Start frame timer
   frame_timer_active_ = true;
@@ -65,8 +64,7 @@ void CanvasPerformanceIntegration::StopMonitoring() {
 }
 
 void CanvasPerformanceIntegration::UpdateMetrics() {
-  if (!monitoring_enabled_)
-    return;
+  if (!monitoring_enabled_) return;
 
   // Update frame time
   UpdateFrameTime();
@@ -95,8 +93,7 @@ void CanvasPerformanceIntegration::UpdateMetrics() {
 
 void CanvasPerformanceIntegration::RecordOperation(
     const std::string& operation_name, double time_ms, CanvasUsage usage_mode) {
-  if (!monitoring_enabled_)
-    return;
+  if (!monitoring_enabled_) return;
 
   // Update operation counts based on usage mode
   switch (usage_mode) {
@@ -120,7 +117,8 @@ void CanvasPerformanceIntegration::RecordOperation(
   }
 
   // Record operation timing in internal metrics
-  // Note: PerformanceProfiler uses StartTimer/EndTimer pattern, not RecordOperation
+  // Note: PerformanceProfiler uses StartTimer/EndTimer pattern, not
+  // RecordOperation
 
   // Update usage tracker if available
   if (usage_tracker_) {
@@ -143,7 +141,8 @@ void CanvasPerformanceIntegration::RecordCachePerformance(int hits,
   CalculateCacheHitRatio();
 }
 
-// These methods are already defined in the header as inline, removing duplicates
+// These methods are already defined in the header as inline, removing
+// duplicates
 
 std::string CanvasPerformanceIntegration::GetPerformanceSummary() const {
   std::ostringstream summary;
@@ -294,8 +293,7 @@ std::string CanvasPerformanceIntegration::ExportPerformanceReport() const {
 }
 
 void CanvasPerformanceIntegration::RenderPerformanceUI() {
-  if (!monitoring_enabled_)
-    return;
+  if (!monitoring_enabled_) return;
 
   if (ImGui::Begin("Canvas Performance", &show_performance_ui_)) {
     // Performance overview
@@ -384,8 +382,7 @@ void CanvasPerformanceIntegration::SaveCurrentMetrics() {
 
 void CanvasPerformanceIntegration::AnalyzePerformance() {
   // Analyze performance trends and patterns
-  if (performance_history_.size() < 2)
-    return;
+  if (performance_history_.size() < 2) return;
 
   // Calculate trends
   double frame_time_trend = 0.0;

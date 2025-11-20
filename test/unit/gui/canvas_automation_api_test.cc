@@ -316,7 +316,8 @@ TEST_F(CanvasAutomationAPITest, CenterOn_ValidTile) {
   api_->CenterOn(0, 0);
   api_->CenterOn(20, 20);
 
-  // Verify scroll position changed (should be non-zero after centering on non-origin)
+  // Verify scroll position changed (should be non-zero after centering on
+  // non-origin)
   ImVec2 scroll = canvas_->scrolling();
   // Scroll values will depend on canvas size, just verify they're set
 }

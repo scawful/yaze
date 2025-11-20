@@ -14,10 +14,10 @@ namespace editor {
 
 /**
  * @brief Flat helper functions for entity insertion/manipulation
- * 
- * Following ZScream's entity management pattern (EntranceMode.cs, ExitMode.cs, etc.)
- * but implemented as free functions to minimize state management.
- * 
+ *
+ * Following ZScream's entity management pattern (EntranceMode.cs, ExitMode.cs,
+ * etc.) but implemented as free functions to minimize state management.
+ *
  * Key concepts from ZScream:
  * - Find first deleted slot for insertion
  * - Calculate map position from mouse coordinates
@@ -27,13 +27,13 @@ namespace editor {
 
 /**
  * @brief Insert a new entrance at the specified position
- * 
+ *
  * Follows ZScream's EntranceMode.AddEntrance() logic (EntranceMode.cs:53-148):
  * - Finds first deleted entrance slot
  * - Snaps position to 16x16 grid
  * - Uses parent map ID for multi-area maps
  * - Calls UpdateMapProperties to calculate game coordinates
- * 
+ *
  * @param overworld Overworld data containing entrance arrays
  * @param mouse_pos Mouse position in canvas coordinates (world space)
  * @param current_map Current map index being edited
@@ -46,13 +46,13 @@ absl::StatusOr<zelda3::OverworldEntrance*> InsertEntrance(
 
 /**
  * @brief Insert a new exit at the specified position
- * 
+ *
  * Follows ZScream's ExitMode.AddExit() logic (ExitMode.cs:59-124):
  * - Finds first deleted exit slot
  * - Snaps position to 16x16 grid
  * - Initializes exit with default scroll/camera values
  * - Sets room ID to 0 (needs to be configured by user)
- * 
+ *
  * @param overworld Overworld data containing exit arrays
  * @param mouse_pos Mouse position in canvas coordinates
  * @param current_map Current map index being edited
@@ -64,12 +64,12 @@ absl::StatusOr<zelda3::OverworldExit*> InsertExit(zelda3::Overworld* overworld,
 
 /**
  * @brief Insert a new sprite at the specified position
- * 
+ *
  * Follows ZScream's SpriteMode sprite insertion (SpriteMode.cs:27-100):
  * - Adds new sprite to game state array
  * - Calculates map position and game coordinates
  * - Sets sprite ID (default 0, user configures in popup)
- * 
+ *
  * @param overworld Overworld data containing sprite arrays
  * @param mouse_pos Mouse position in canvas coordinates
  * @param current_map Current map index being edited
@@ -84,12 +84,12 @@ absl::StatusOr<zelda3::Sprite*> InsertSprite(zelda3::Overworld* overworld,
 
 /**
  * @brief Insert a new item at the specified position
- * 
+ *
  * Follows ZScream's ItemMode item insertion (ItemMode.cs:54-113):
  * - Adds new item to all_items array
  * - Calculates map position and game coordinates
  * - Sets item ID (default 0, user configures in popup)
- * 
+ *
  * @param overworld Overworld data containing item arrays
  * @param mouse_pos Mouse position in canvas coordinates
  * @param current_map Current map index being edited
@@ -103,7 +103,7 @@ absl::StatusOr<zelda3::OverworldItem*> InsertItem(zelda3::Overworld* overworld,
 
 /**
  * @brief Helper to get parent map ID for multi-area maps
- * 
+ *
  * Returns the parent map ID, handling the case where a map is its own parent.
  * Matches ZScream logic where ParentID == 255 means use current map.
  */

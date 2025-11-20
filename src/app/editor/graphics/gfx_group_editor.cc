@@ -221,14 +221,14 @@ void DrawPaletteFromPaletteGroup(gfx::SnesPalette& palette) {
   }
   for (size_t n = 0; n < palette.size(); n++) {
     PushID(n);
-    if ((n % 8) != 0)
-      SameLine(0.0f, GetStyle().ItemSpacing.y);
+    if ((n % 8) != 0) SameLine(0.0f, GetStyle().ItemSpacing.y);
 
     // Small icon of the color in the palette
     if (gui::SnesColorButton(absl::StrCat("Palette", n), palette[n],
                              ImGuiColorEditFlags_NoAlpha |
                                  ImGuiColorEditFlags_NoPicker |
-                                 ImGuiColorEditFlags_NoTooltip)) {}
+                                 ImGuiColorEditFlags_NoTooltip)) {
+    }
 
     PopID();
   }

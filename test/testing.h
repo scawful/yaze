@@ -23,9 +23,7 @@ namespace test {
 
 // StatusIs is a matcher that matches a status that has the same code and
 // message as the expected status.
-MATCHER_P(StatusIs, status, "") {
-  return arg.code() == status;
-}
+MATCHER_P(StatusIs, status, "") { return arg.code() == status; }
 
 // Support for testing absl::StatusOr.
 template <typename T>
@@ -42,9 +40,7 @@ template <typename T>
   return ::testing::AssertionSuccess();
 }
 
-MATCHER_P(IsOkAndHolds, value, "") {
-  return IsOkAndHolds(arg, value);
-}
+MATCHER_P(IsOkAndHolds, value, "") { return IsOkAndHolds(arg, value); }
 
 // Helper to test if a StatusOr contains an error with a specific message
 MATCHER_P(StatusIsWithMessage, message, "") {

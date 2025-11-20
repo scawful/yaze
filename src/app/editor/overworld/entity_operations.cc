@@ -9,7 +9,6 @@ namespace editor {
 absl::StatusOr<zelda3::OverworldEntrance*> InsertEntrance(
     zelda3::Overworld* overworld, ImVec2 mouse_pos, int current_map,
     bool is_hole) {
-
   if (!overworld || !overworld->is_loaded()) {
     return absl::FailedPreconditionError("Overworld not loaded");
   }
@@ -78,7 +77,6 @@ absl::StatusOr<zelda3::OverworldEntrance*> InsertEntrance(
 absl::StatusOr<zelda3::OverworldExit*> InsertExit(zelda3::Overworld* overworld,
                                                   ImVec2 mouse_pos,
                                                   int current_map) {
-
   if (!overworld || !overworld->is_loaded()) {
     return absl::FailedPreconditionError("Overworld not loaded");
   }
@@ -133,7 +131,6 @@ absl::StatusOr<zelda3::Sprite*> InsertSprite(zelda3::Overworld* overworld,
                                              ImVec2 mouse_pos, int current_map,
                                              int game_state,
                                              uint8_t sprite_id) {
-
   if (!overworld || !overworld->is_loaded()) {
     return absl::FailedPreconditionError("Overworld not loaded");
   }
@@ -142,7 +139,8 @@ absl::StatusOr<zelda3::Sprite*> InsertSprite(zelda3::Overworld* overworld,
     return absl::InvalidArgumentError("Invalid game state (must be 0-2)");
   }
 
-  // Snap to 16x16 grid and clamp to bounds (ZScream: SpriteMode.cs similar logic)
+  // Snap to 16x16 grid and clamp to bounds (ZScream: SpriteMode.cs similar
+  // logic)
   ImVec2 snapped_pos = ClampToOverworldBounds(SnapToEntityGrid(mouse_pos));
 
   // Get parent map ID (ZScream: SpriteMode.cs:90-95)
@@ -188,7 +186,6 @@ absl::StatusOr<zelda3::OverworldItem*> InsertItem(zelda3::Overworld* overworld,
                                                   ImVec2 mouse_pos,
                                                   int current_map,
                                                   uint8_t item_id) {
-
   if (!overworld || !overworld->is_loaded()) {
     return absl::FailedPreconditionError("Overworld not loaded");
   }

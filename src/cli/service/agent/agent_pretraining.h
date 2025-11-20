@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+
 #include "absl/status/status.h"
 
 namespace yaze {
@@ -13,7 +14,7 @@ namespace agent {
 
 /**
  * @brief Pre-training system for AI agents
- * 
+ *
  * Provides structured knowledge injection before interactive use.
  * Teaches agent about ROM structure, common patterns, and tool usage.
  */

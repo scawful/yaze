@@ -153,8 +153,8 @@ TestManager& TestManager::Get() {
 }
 
 TestManager::TestManager() {
-  // Note: UI test engine initialization is deferred until ImGui context is ready
-  // Call InitializeUITesting() explicitly after ImGui::CreateContext()
+  // Note: UI test engine initialization is deferred until ImGui context is
+  // ready Call InitializeUITesting() explicitly after ImGui::CreateContext()
 }
 
 TestManager::~TestManager() {
@@ -1289,8 +1289,8 @@ void TestManager::DrawTestDashboard(bool* show_dashboard) {
         // Initialize problematic tests as disabled by default
         static bool initialized_defaults = false;
         if (!initialized_defaults) {
-          DisableTest(
-              "Comprehensive_Save_Test");  // Disable crash-prone test by default
+          DisableTest("Comprehensive_Save_Test");  // Disable crash-prone test
+                                                   // by default
           initialized_defaults = true;
         }
 
@@ -1656,7 +1656,8 @@ absl::Status TestManager::TestRomDataIntegrity(Rom* rom) {
     return absl::FailedPreconditionError("No ROM loaded for testing");
   }
 
-  // Use TestRomWithCopy for integrity testing (read-only but uses copy for safety)
+  // Use TestRomWithCopy for integrity testing (read-only but uses copy for
+  // safety)
   return TestRomWithCopy(rom, [](Rom* test_rom) -> absl::Status {
     LOG_INFO("TestManager", "Testing ROM data integrity on copy: %s",
              test_rom->title().c_str());
@@ -1894,7 +1895,8 @@ absl::Status TestManager::ReplayLastPlan() {
 #endif
 
 absl::Status TestManager::ShowHarnessDashboard() {
-  // These methods are always available, but may return unimplemented without GRPC
+  // These methods are always available, but may return unimplemented without
+  // GRPC
 #if defined(YAZE_WITH_GRPC)
   return absl::OkStatus();
 #else

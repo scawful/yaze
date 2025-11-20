@@ -15,6 +15,7 @@
 #undef ERROR
 #endif  // _WIN32
 #include <grpcpp/grpcpp.h>
+
 #include "protos/rom_service.grpc.pb.h"
 #ifdef _WIN32
 #pragma pop_macro("DWORD")
@@ -34,13 +35,13 @@ namespace net {
 
 /**
  * @brief gRPC service implementation for remote ROM manipulation
- * 
+ *
  * Enables remote clients (like z3ed CLI) to:
  * - Read/write ROM data
  * - Submit proposals for collaborative editing
  * - Manage ROM versions and snapshots
  * - Query ROM structures (overworld, dungeons, sprites)
- * 
+ *
  * Thread-safe and designed for concurrent access.
  */
 class RomServiceImpl final : public proto::RomService::Service {

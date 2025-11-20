@@ -17,11 +17,11 @@ namespace zelda3 {
 
 /**
  * @brief Draws dungeon objects to background buffers using game patterns
- * 
+ *
  * This class interprets object IDs and draws them to BG1/BG2 buffers
  * using the patterns extracted from the game's drawing routines.
  * Based on ZScream's DungeonObjectData.cs and Subtype1_Draw.cs patterns.
- * 
+ *
  * Architecture:
  * 1. Load tile data from ROM for the object
  * 2. Look up draw routine ID from object ID mapping

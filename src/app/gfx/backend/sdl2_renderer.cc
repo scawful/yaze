@@ -1,4 +1,5 @@
 #include "app/gfx/backend/sdl2_renderer.h"
+
 #include "absl/strings/str_format.h"
 #include "app/gfx/core/bitmap.h"
 
@@ -7,13 +8,12 @@ namespace gfx {
 
 SDL2Renderer::SDL2Renderer() = default;
 
-SDL2Renderer::~SDL2Renderer() {
-  Shutdown();
-}
+SDL2Renderer::~SDL2Renderer() { Shutdown(); }
 
 /**
  * @brief Initializes the SDL2 renderer.
- * This function creates an accelerated SDL2 renderer and attaches it to the given window.
+ * This function creates an accelerated SDL2 renderer and attaches it to the
+ * given window.
  */
 bool SDL2Renderer::Initialize(SDL_Window* window) {
   // Create an SDL2 renderer with hardware acceleration.
@@ -33,15 +33,15 @@ bool SDL2Renderer::Initialize(SDL_Window* window) {
 
 /**
  * @brief Shuts down the renderer.
- * The underlying SDL_Renderer is managed by a unique_ptr, so its destruction is handled automatically.
+ * The underlying SDL_Renderer is managed by a unique_ptr, so its destruction is
+ * handled automatically.
  */
-void SDL2Renderer::Shutdown() {
-  renderer_.reset();
-}
+void SDL2Renderer::Shutdown() { renderer_.reset(); }
 
 /**
  * @brief Creates an SDL_Texture.
- * The texture is created with streaming access, which is suitable for textures that are updated frequently.
+ * The texture is created with streaming access, which is suitable for textures
+ * that are updated frequently.
  */
 TextureHandle SDL2Renderer::CreateTexture(int width, int height) {
   // The TextureHandle is a void*, so we cast the SDL_Texture* to it.
@@ -51,8 +51,8 @@ TextureHandle SDL2Renderer::CreateTexture(int width, int height) {
 }
 
 /**
- * @brief Creates an SDL_Texture with a specific pixel format and access pattern.
- * This is useful for specialized textures like emulator PPU output.
+ * @brief Creates an SDL_Texture with a specific pixel format and access
+ * pattern. This is useful for specialized textures like emulator PPU output.
  */
 TextureHandle SDL2Renderer::CreateTextureWithFormat(int width, int height,
                                                     uint32_t format,
@@ -63,7 +63,8 @@ TextureHandle SDL2Renderer::CreateTextureWithFormat(int width, int height,
 
 /**
  * @brief Updates an SDL_Texture with data from a Bitmap.
- * This involves converting the bitmap's surface to the correct format and updating the texture.
+ * This involves converting the bitmap's surface to the correct format and
+ * updating the texture.
  */
 void SDL2Renderer::UpdateTexture(TextureHandle texture, const Bitmap& bitmap) {
   SDL_Surface* surface = bitmap.surface();
@@ -78,7 +79,8 @@ void SDL2Renderer::UpdateTexture(TextureHandle texture, const Bitmap& bitmap) {
     return;
   }
 
-  // Convert the bitmap's surface to RGBA8888 format for compatibility with the texture.
+  // Convert the bitmap's surface to RGBA8888 format for compatibility with the
+  // texture.
   auto converted_surface =
       std::unique_ptr<SDL_Surface, util::SDL_Surface_Deleter>(
           SDL_ConvertSurfaceFormat(surface, SDL_PIXELFORMAT_RGBA8888, 0));
@@ -114,16 +116,12 @@ void SDL2Renderer::UnlockTexture(TextureHandle texture) {
 /**
  * @brief Clears the screen with the current draw color.
  */
-void SDL2Renderer::Clear() {
-  SDL_RenderClear(renderer_.get());
-}
+void SDL2Renderer::Clear() { SDL_RenderClear(renderer_.get()); }
 
 /**
  * @brief Presents the rendered frame to the screen.
  */
-void SDL2Renderer::Present() {
-  SDL_RenderPresent(renderer_.get());
-}
+void SDL2Renderer::Present() { SDL_RenderPresent(renderer_.get()); }
 
 /**
  * @brief Copies a texture to the render target.

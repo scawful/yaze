@@ -57,8 +57,7 @@ std::string Tile16Proposal::ToJson() const {
          << "\",\n";
     json << "      \"new_tile\": \"0x" << std::hex << change.new_tile << "\"\n";
     json << "    }";
-    if (i < changes.size() - 1)
-      json << ",";
+    if (i < changes.size() - 1) json << ",";
     json << "\n";
   }
   json << "  ]\n";
@@ -249,7 +248,6 @@ std::string Tile16ProposalGenerator::GenerateProposalId() const {
 
 absl::StatusOr<Tile16Change> Tile16ProposalGenerator::ParseSetTileCommand(
     const std::string& command, Rom* rom) {
-
   // Expected format: "overworld set-tile --map 0 --x 10 --y 20 --tile 0x02E"
   std::vector<std::string> parts = absl::StrSplit(command, ' ');
 
@@ -267,8 +265,7 @@ absl::StatusOr<Tile16Change> Tile16ProposalGenerator::ParseSetTileCommand(
 
   // Parse arguments
   for (size_t i = 2; i < parts.size(); i += 2) {
-    if (i + 1 >= parts.size())
-      break;
+    if (i + 1 >= parts.size()) break;
 
     const std::string& flag = parts[i];
     const std::string& value = parts[i + 1];
@@ -313,8 +310,8 @@ absl::StatusOr<Tile16Change> Tile16ProposalGenerator::ParseSetTileCommand(
 absl::StatusOr<std::vector<Tile16Change>>
 Tile16ProposalGenerator::ParseSetAreaCommand(const std::string& command,
                                              Rom* rom) {
-
-  // Expected format: "overworld set-area --map 0 --x 10 --y 20 --width 5 --height 3 --tile 0x02E"
+  // Expected format: "overworld set-area --map 0 --x 10 --y 20 --width 5
+  // --height 3 --tile 0x02E"
   std::vector<std::string> parts = absl::StrSplit(command, ' ');
 
   if (parts.size() < 12) {
@@ -332,8 +329,7 @@ Tile16ProposalGenerator::ParseSetAreaCommand(const std::string& command,
 
   // Parse arguments
   for (size_t i = 2; i < parts.size(); i += 2) {
-    if (i + 1 >= parts.size())
-      break;
+    if (i + 1 >= parts.size()) break;
 
     const std::string& flag = parts[i];
     const std::string& value = parts[i + 1];
@@ -404,9 +400,9 @@ Tile16ProposalGenerator::ParseSetAreaCommand(const std::string& command,
 absl::StatusOr<std::vector<Tile16Change>>
 Tile16ProposalGenerator::ParseReplaceTileCommand(const std::string& command,
                                                  Rom* rom) {
-
-  // Expected format: "overworld replace-tile --map 0 --old-tile 0x02E --new-tile 0x030"
-  // Optional bounds: --x-min 0 --y-min 0 --x-max 31 --y-max 31
+  // Expected format: "overworld replace-tile --map 0 --old-tile 0x02E
+  // --new-tile 0x030" Optional bounds: --x-min 0 --y-min 0 --x-max 31 --y-max
+  // 31
   std::vector<std::string> parts = absl::StrSplit(command, ' ');
 
   if (parts.size() < 8) {
@@ -425,8 +421,7 @@ Tile16ProposalGenerator::ParseReplaceTileCommand(const std::string& command,
 
   // Parse arguments
   for (size_t i = 2; i < parts.size(); i += 2) {
-    if (i + 1 >= parts.size())
-      break;
+    if (i + 1 >= parts.size()) break;
 
     const std::string& flag = parts[i];
     const std::string& value = parts[i + 1];
@@ -498,7 +493,6 @@ Tile16ProposalGenerator::ParseReplaceTileCommand(const std::string& command,
 absl::StatusOr<Tile16Proposal> Tile16ProposalGenerator::GenerateFromCommands(
     const std::string& prompt, const std::vector<std::string>& commands,
     const std::string& ai_service, Rom* rom) {
-
   Tile16Proposal proposal;
   proposal.id = GenerateProposalId();
   proposal.prompt = prompt;
@@ -555,7 +549,6 @@ absl::StatusOr<Tile16Proposal> Tile16ProposalGenerator::GenerateFromCommands(
 
 absl::Status Tile16ProposalGenerator::ApplyProposal(
     const Tile16Proposal& proposal, Rom* rom) {
-
   if (!rom || !rom->is_loaded()) {
     return absl::FailedPreconditionError("ROM not loaded");
   }
@@ -589,7 +582,6 @@ absl::Status Tile16ProposalGenerator::ApplyProposal(
 
 absl::StatusOr<gfx::Bitmap> Tile16ProposalGenerator::GenerateDiff(
     const Tile16Proposal& proposal, Rom* before_rom, Rom* after_rom) {
-
   if (!before_rom || !before_rom->is_loaded()) {
     return absl::FailedPreconditionError("Before ROM not loaded");
   }
@@ -608,14 +600,10 @@ absl::StatusOr<gfx::Bitmap> Tile16ProposalGenerator::GenerateDiff(
   int map_id = proposal.changes[0].map_id;
 
   for (const auto& change : proposal.changes) {
-    if (change.x < min_x)
-      min_x = change.x;
-    if (change.y < min_y)
-      min_y = change.y;
-    if (change.x > max_x)
-      max_x = change.x;
-    if (change.y > max_y)
-      max_y = change.y;
+    if (change.x < min_x) min_x = change.x;
+    if (change.y < min_y) min_y = change.y;
+    if (change.x > max_x) max_x = change.x;
+    if (change.y > max_y) max_y = change.y;
   }
 
   // Add some padding around the changes
@@ -710,7 +698,6 @@ absl::StatusOr<gfx::Bitmap> Tile16ProposalGenerator::GenerateDiff(
 
 absl::Status Tile16ProposalGenerator::SaveProposal(
     const Tile16Proposal& proposal, const std::string& path) {
-
   std::ofstream file(path);
   if (!file.is_open()) {
     return absl::InvalidArgumentError(
@@ -725,7 +712,6 @@ absl::Status Tile16ProposalGenerator::SaveProposal(
 
 absl::StatusOr<Tile16Proposal> Tile16ProposalGenerator::LoadProposal(
     const std::string& path) {
-
   std::ifstream file(path);
   if (!file.is_open()) {
     return absl::InvalidArgumentError(

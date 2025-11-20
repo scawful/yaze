@@ -73,7 +73,8 @@ class Z3edAIAgentTestSuite : public TestSuite {
         result.status = TestStatus::kSkipped;
         result.error_message = "GEMINI_API_KEY environment variable not set";
       } else {
-        // Test basic connectivity (would need actual API call in real implementation)
+        // Test basic connectivity (would need actual API call in real
+        // implementation)
         result.status = TestStatus::kPassed;
         result.error_message = "Gemini API key configured";
       }

@@ -1,11 +1,11 @@
 #include "graphics_editor.h"
-#include "app/editor/system/editor_card_registry.h"
 
 #include <filesystem>
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
+#include "app/editor/system/editor_card_registry.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/debug/performance/performance_profiler.h"
 #include "app/gfx/resource/arena.h"
@@ -44,8 +44,7 @@ constexpr ImGuiTableFlags kGfxEditTableFlags =
     ImGuiTableFlags_SizingFixedFit;
 
 void GraphicsEditor::Initialize() {
-  if (!dependencies_.card_registry)
-    return;
+  if (!dependencies_.card_registry) return;
   auto* card_registry = dependencies_.card_registry;
 
   card_registry->RegisterCard({.card_id = "graphics.sheet_editor",
@@ -116,8 +115,7 @@ absl::Status GraphicsEditor::Load() {
 }
 
 absl::Status GraphicsEditor::Update() {
-  if (!dependencies_.card_registry)
-    return absl::OkStatus();
+  if (!dependencies_.card_registry) return absl::OkStatus();
   auto* card_registry = dependencies_.card_registry;
 
   static gui::EditorCard sheet_editor_card("Sheet Editor", ICON_MD_EDIT);
@@ -131,7 +129,8 @@ absl::Status GraphicsEditor::Update() {
   player_anims_card.SetDefaultSize(500, 600);
   prototype_card.SetDefaultSize(600, 500);
 
-  // Sheet Editor Card - Check visibility flag exists and is true before rendering
+  // Sheet Editor Card - Check visibility flag exists and is true before
+  // rendering
   bool* sheet_editor_visible =
       card_registry->GetVisibilityFlag("graphics.sheet_editor");
   if (sheet_editor_visible && *sheet_editor_visible) {
@@ -141,7 +140,8 @@ absl::Status GraphicsEditor::Update() {
     sheet_editor_card.End();
   }
 
-  // Sheet Browser Card - Check visibility flag exists and is true before rendering
+  // Sheet Browser Card - Check visibility flag exists and is true before
+  // rendering
   bool* sheet_browser_visible =
       card_registry->GetVisibilityFlag("graphics.sheet_browser");
   if (sheet_browser_visible && *sheet_browser_visible) {
@@ -154,7 +154,8 @@ absl::Status GraphicsEditor::Update() {
     sheet_browser_card.End();
   }
 
-  // Player Animations Card - Check visibility flag exists and is true before rendering
+  // Player Animations Card - Check visibility flag exists and is true before
+  // rendering
   bool* player_anims_visible =
       card_registry->GetVisibilityFlag("graphics.player_animations");
   if (player_anims_visible && *player_anims_visible) {
@@ -164,7 +165,8 @@ absl::Status GraphicsEditor::Update() {
     player_anims_card.End();
   }
 
-  // Prototype Viewer Card - Check visibility flag exists and is true before rendering
+  // Prototype Viewer Card - Check visibility flag exists and is true before
+  // rendering
   bool* prototype_visible =
       card_registry->GetVisibilityFlag("graphics.prototype_viewer");
   if (prototype_visible && *prototype_visible) {
@@ -207,14 +209,14 @@ absl::Status GraphicsEditor::UpdateGfxEdit() {
 
 /**
  * @brief Draw the graphics editing toolset with enhanced ROM hacking features
- * 
+ *
  * Enhanced Features:
  * - Multi-tool selection for different editing modes
  * - Real-time zoom controls for precise pixel editing
  * - Sheet copy/paste operations for ROM graphics management
  * - Color picker integration with SNES palette system
  * - Tile size controls for 8x8 and 16x16 SNES tiles
- * 
+ *
  * Performance Notes:
  * - Toolset updates are batched to minimize ImGui overhead
  * - Color buttons use cached palette data for fast rendering
@@ -434,7 +436,8 @@ absl::Status GraphicsEditor::UpdateGfxTabView() {
         auto draw_tile_event = [&]() {
           current_sheet_canvas_.DrawTileOnBitmap(tile_size_, &current_bitmap,
                                                  current_color_);
-          // Notify Arena that this sheet has been modified for cross-editor synchronization
+          // Notify Arena that this sheet has been modified for cross-editor
+          // synchronization
           gfx::Arena::Get().NotifySheetModified(sheet_id);
         };
 
@@ -442,15 +445,15 @@ absl::Status GraphicsEditor::UpdateGfxTabView() {
             nullptr, gfx::Arena::Get().mutable_gfx_sheets()->at(sheet_id),
             current_color_, draw_tile_event, tile_size_, current_scale_);
 
-        // Notify Arena that this sheet has been modified for cross-editor synchronization
+        // Notify Arena that this sheet has been modified for cross-editor
+        // synchronization
         gfx::Arena::Get().NotifySheetModified(sheet_id);
 
         ImGui::EndChild();
         ImGui::EndTabItem();
       }
 
-      if (!open)
-        release_queue_.push(sheet_id);
+      if (!open) release_queue_.push(sheet_id);
     }
 
     ImGui::EndTabBar();
@@ -638,9 +641,7 @@ absl::Status GraphicsEditor::UpdateScadView() {
     status_ = DrawExperimentalFeatures();
   }
 
-  NEXT_COLUMN() {
-    status_ = DrawPaletteControls();
-  }
+  NEXT_COLUMN() { status_ = DrawPaletteControls(); }
 
   NEXT_COLUMN()
   gui::BitmapCanvasPipeline(scr_canvas_, scr_bitmap_, 0x200, 0x200, 0x20,

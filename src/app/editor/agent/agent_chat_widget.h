@@ -35,8 +35,9 @@ class AgentChatHistoryPopup;
 
 /**
  * @class AgentChatWidget
- * @brief Modern AI chat widget with comprehensive z3ed and yaze-server integration
- * 
+ * @brief Modern AI chat widget with comprehensive z3ed and yaze-server
+ * integration
+ *
  * Features:
  * - AI Provider Configuration (Ollama, Gemini, Mock)
  * - Z3ED Command Palette (run, plan, diff, accept, test)
@@ -452,8 +453,8 @@ class AgentChatWidget {
   size_t last_known_history_size_ = 0;
 
   // UI state
-  int active_tab_ =
-      0;  // 0=Chat, 1=Config, 2=Commands, 3=Collab, 4=ROM Sync, 5=Files, 6=Prompt
+  int active_tab_ = 0;  // 0=Chat, 1=Config, 2=Commands, 3=Collab, 4=ROM Sync,
+                        // 5=Files, 6=Prompt
   bool show_agent_config_ = false;
   cli::agent::PromptMode prompt_mode_ = cli::agent::PromptMode::kStandard;
   bool show_z3ed_commands_ = false;

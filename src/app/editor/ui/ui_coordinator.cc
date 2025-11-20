@@ -44,7 +44,6 @@ UICoordinator::UICoordinator(
       toast_manager_(toast_manager),
       popup_manager_(popup_manager),
       shortcut_manager_(shortcut_manager) {
-
   // Initialize welcome screen with proper callbacks
   welcome_screen_ = std::make_unique<WelcomeScreen>();
 
@@ -97,10 +96,12 @@ UICoordinator::UICoordinator(
 
 void UICoordinator::DrawAllUI() {
   // Note: Theme styling is applied by ThemeManager, not here
-  // This is called from EditorManager::Update() - don't call menu bar stuff here
+  // This is called from EditorManager::Update() - don't call menu bar stuff
+  // here
 
   // Draw UI windows and dialogs
-  // Session dialogs are drawn by SessionCoordinator separately to avoid duplication
+  // Session dialogs are drawn by SessionCoordinator separately to avoid
+  // duplication
   DrawCommandPalette();          // Ctrl+Shift+P
   DrawGlobalSearch();            // Ctrl+Shift+K
   DrawWorkspacePresetDialogs();  // Save/Load workspace dialogs
@@ -117,13 +118,11 @@ void UICoordinator::DrawRomSelector() {
     ImGui::SetNextItemWidth(ImGui::GetWindowWidth() / 6);
     if (ImGui::BeginCombo("##ROMSelector", current_rom->short_name().c_str())) {
       for (size_t i = 0; i < session_coordinator_.GetTotalSessionCount(); ++i) {
-        if (session_coordinator_.IsSessionClosed(i))
-          continue;
+        if (session_coordinator_.IsSessionClosed(i)) continue;
 
         auto* session =
             static_cast<RomSession*>(session_coordinator_.GetSession(i));
-        if (!session)
-          continue;
+        if (!session) continue;
 
         Rom* rom = &session->rom;
         ImGui::PushID(static_cast<int>(i));
@@ -209,10 +208,10 @@ void UICoordinator::DrawContextSensitiveCardControl() {
   // Get the currently active editor directly from EditorManager
   // This ensures we show cards for the correct editor that has focus
   auto* active_editor = editor_manager_->GetCurrentEditor();
-  if (!active_editor)
-    return;
+  if (!active_editor) return;
 
-  // Only show card control for card-based editors (not palette, not assembly in legacy mode, etc.)
+  // Only show card control for card-based editors (not palette, not assembly in
+  // legacy mode, etc.)
   if (!editor_registry_.IsCardBasedEditor(active_editor->type())) {
     return;
   }
@@ -284,8 +283,9 @@ void UICoordinator::SetSessionSwitcherVisible(bool visible) {
 // ============================================================================
 
 void UICoordinator::DrawLayoutPresets() {
-  // TODO: [EditorManagerRefactor] Implement full layout preset UI with save/load
-  // For now, this is accessed via Window menu items that call workspace_manager directly
+  // TODO: [EditorManagerRefactor] Implement full layout preset UI with
+  // save/load For now, this is accessed via Window menu items that call
+  // workspace_manager directly
 }
 
 void UICoordinator::DrawWelcomeScreen() {
@@ -342,8 +342,8 @@ void UICoordinator::DrawWelcomeScreen() {
     welcome_screen_manually_closed_ = true;
   }
 
-  // If an action was taken (ROM loaded, project opened), the welcome screen will auto-hide
-  // next frame when rom_is_loaded becomes true
+  // If an action was taken (ROM loaded, project opened), the welcome screen
+  // will auto-hide next frame when rom_is_loaded becomes true
 }
 
 void UICoordinator::DrawProjectHelp() {
@@ -420,12 +420,10 @@ void UICoordinator::ShowDisplaySettings() {
 }
 
 void UICoordinator::HideCurrentEditorCards() {
-  if (!editor_manager_)
-    return;
+  if (!editor_manager_) return;
 
   auto* current_editor = editor_manager_->GetCurrentEditor();
-  if (!current_editor)
-    return;
+  if (!current_editor) return;
 
   std::string category =
       editor_registry_.GetEditorCategory(current_editor->type());
@@ -434,13 +432,9 @@ void UICoordinator::HideCurrentEditorCards() {
   LOG_INFO("UICoordinator", "Hid all cards in category: %s", category.c_str());
 }
 
-void UICoordinator::ShowAllWindows() {
-  window_delegate_.ShowAllWindows();
-}
+void UICoordinator::ShowAllWindows() { window_delegate_.ShowAllWindows(); }
 
-void UICoordinator::HideAllWindows() {
-  window_delegate_.HideAllWindows();
-}
+void UICoordinator::HideAllWindows() { window_delegate_.HideAllWindows(); }
 
 // Helper methods for drawing operations
 void UICoordinator::DrawSessionIndicator() {
@@ -540,8 +534,7 @@ void UICoordinator::ApplyEditorTheme(EditorType type) {
 }
 
 void UICoordinator::DrawCommandPalette() {
-  if (!show_command_palette_)
-    return;
+  if (!show_command_palette_) return;
 
   using namespace ImGui;
   auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
@@ -553,7 +546,6 @@ void UICoordinator::DrawCommandPalette() {
   bool show_palette = true;
   if (Begin(absl::StrFormat("%s Command Palette", ICON_MD_SEARCH).c_str(),
             &show_palette, ImGuiWindowFlags_NoCollapse)) {
-
     // Search input with focus management
     SetNextItemWidth(-100);
     if (IsWindowAppearing()) {
@@ -610,8 +602,7 @@ void UICoordinator::DrawCommandPalette() {
           }
           text_idx++;
         }
-        if (query_idx != query_lower.length())
-          score = 0;
+        if (query_idx != query_lower.length()) score = 0;
       }
 
       if (score > 0) {
@@ -635,7 +626,6 @@ void UICoordinator::DrawCommandPalette() {
                 ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg |
                     ImGuiTableFlags_SizingStretchProp,
                 ImVec2(0, -30))) {
-
           TableSetupColumn("Command", ImGuiTableColumnFlags_WidthStretch, 0.5f);
           TableSetupColumn("Shortcut", ImGuiTableColumnFlags_WidthStretch,
                            0.3f);
@@ -716,8 +706,7 @@ void UICoordinator::DrawCommandPalette() {
 }
 
 void UICoordinator::DrawGlobalSearch() {
-  if (!show_global_search_)
-    return;
+  if (!show_global_search_) return;
 
   ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(),
                           ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
@@ -727,7 +716,6 @@ void UICoordinator::DrawGlobalSearch() {
   if (ImGui::Begin(
           absl::StrFormat("%s Global Search", ICON_MD_MANAGE_SEARCH).c_str(),
           &show_search, ImGuiWindowFlags_NoCollapse)) {
-
     // Enhanced search input with focus management
     ImGui::SetNextItemWidth(-100);
     if (ImGui::IsWindowAppearing()) {
@@ -749,7 +737,6 @@ void UICoordinator::DrawGlobalSearch() {
 
     // Tabbed search results for better organization
     if (ImGui::BeginTabBar("SearchResultTabs")) {
-
       // Recent Files Tab
       if (ImGui::BeginTabItem(
               absl::StrFormat("%s Recent Files", ICON_MD_HISTORY).c_str())) {
@@ -759,7 +746,6 @@ void UICoordinator::DrawGlobalSearch() {
         if (ImGui::BeginTable("RecentFilesTable", 3,
                               ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg |
                                   ImGuiTableFlags_SizingStretchProp)) {
-
           ImGui::TableSetupColumn("File", ImGuiTableColumnFlags_WidthStretch,
                                   0.6f);
           ImGui::TableSetupColumn("Type", ImGuiTableColumnFlags_WidthFixed,
@@ -819,7 +805,6 @@ void UICoordinator::DrawGlobalSearch() {
                                 ImGuiTableFlags_ScrollY |
                                     ImGuiTableFlags_RowBg |
                                     ImGuiTableFlags_SizingStretchProp)) {
-
             ImGui::TableSetupColumn("Type", ImGuiTableColumnFlags_WidthFixed,
                                     100.0f);
             ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthStretch,
@@ -866,8 +851,7 @@ void UICoordinator::DrawGlobalSearch() {
                ++i) {
             std::string session_info =
                 session_coordinator_.GetSessionDisplayName(i);
-            if (session_info == "[CLOSED SESSION]")
-              continue;
+            if (session_info == "[CLOSED SESSION]") continue;
 
             if (global_search_query_[0] != '\0' &&
                 session_info.find(global_search_query_) == std::string::npos)

@@ -114,7 +114,8 @@ void LayoutManager::BuildOverworldLayout(ImGuiID dockspace_id) {
   ImGui::DockBuilderDockWindow(" Scratch Pad", dock_right_bottom);
 
   // Note: Floating windows (Tile16 Editor, GFX Groups, etc.) are not docked
-  // They will appear as floating windows with their configured default positions
+  // They will appear as floating windows with their configured default
+  // positions
 }
 
 void LayoutManager::BuildDungeonLayout(ImGuiID dockspace_id) {

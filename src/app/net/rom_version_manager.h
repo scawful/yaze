@@ -55,7 +55,7 @@ struct VersionDiff {
 /**
  * @class RomVersionManager
  * @brief Manages ROM versioning, snapshots, and rollback capabilities
- * 
+ *
  * Provides:
  * - Automatic periodic snapshots
  * - Manual checkpoints
@@ -185,7 +185,7 @@ class RomVersionManager {
 /**
  * @class ProposalApprovalManager
  * @brief Manages proposal approval workflow for collaborative sessions
- * 
+ *
  * Features:
  * - Host approval required for all changes
  * - Participant voting system

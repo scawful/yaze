@@ -4,10 +4,6 @@
 #ifndef YAZE_CLI_SERVICE_GUI_AUTOMATION_CLIENT_H
 #define YAZE_CLI_SERVICE_GUI_AUTOMATION_CLIENT_H
 
-#include "absl/status/status.h"
-#include "absl/status/statusor.h"
-#include "absl/time/time.h"
-
 #include <chrono>
 #include <cstdint>
 #include <map>
@@ -15,6 +11,10 @@
 #include <optional>
 #include <string>
 #include <vector>
+
+#include "absl/status/status.h"
+#include "absl/status/statusor.h"
+#include "absl/time/time.h"
 
 #ifdef YAZE_WITH_GRPC
 // Undefine Windows macros that conflict with protobuf generated code
@@ -26,6 +26,7 @@
 #endif  // _WIN32
 
 #include <grpcpp/grpcpp.h>
+
 #include "protos/imgui_test_harness.grpc.pb.h"
 
 // Restore Windows macros
@@ -217,18 +218,18 @@ struct DiscoverWidgetsResult {
 
 /**
  * @brief Client for automating YAZE GUI through gRPC
- * 
+ *
  * This client wraps the ImGuiTestHarness gRPC service and provides
  * a C++ API for CLI commands to drive the YAZE GUI remotely.
- * 
+ *
  * Example usage:
  * @code
  *   GuiAutomationClient client("localhost:50052");
  *   RETURN_IF_ERROR(client.Connect());
- *   
+ *
  *   auto result = client.Click("button:Overworld", ClickType::kLeft);
  *   if (!result.ok()) return result.status();
- *   
+ *
  *   if (!result->success) {
  *     return absl::InternalError(result->message);
  *   }
@@ -238,7 +239,8 @@ class GuiAutomationClient {
  public:
   /**
    * @brief Construct a new GUI automation client
-   * @param server_address Address of the test harness server (e.g., "localhost:50052")
+   * @param server_address Address of the test harness server (e.g.,
+   * "localhost:50052")
    */
   explicit GuiAutomationClient(const std::string& server_address);
 

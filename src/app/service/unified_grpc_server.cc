@@ -2,6 +2,8 @@
 
 #ifdef YAZE_WITH_GRPC
 
+#include <grpcpp/grpcpp.h>
+
 #include <iostream>
 #include <thread>
 
@@ -10,8 +12,6 @@
 #include "app/rom.h"
 #include "app/service/canvas_automation_service.h"
 #include "app/service/imgui_test_harness_service.h"
-
-#include <grpcpp/grpcpp.h>
 #include "protos/canvas_automation.grpc.pb.h"
 
 namespace yaze {
@@ -19,16 +19,13 @@ namespace yaze {
 YazeGRPCServer::YazeGRPCServer() : is_running_(false) {}
 
 // Destructor defined here so CanvasAutomationServiceGrpc is a complete type
-YazeGRPCServer::~YazeGRPCServer() {
-  Shutdown();
-}
+YazeGRPCServer::~YazeGRPCServer() { Shutdown(); }
 
 absl::Status YazeGRPCServer::Initialize(
     int port, test::TestManager* test_manager, Rom* rom,
     net::RomVersionManager* version_mgr,
     net::ProposalApprovalManager* approval_mgr,
     CanvasAutomationServiceImpl* canvas_service) {
-
   if (is_running_) {
     return absl::FailedPreconditionError("Server is already running");
   }
@@ -127,9 +124,7 @@ void YazeGRPCServer::Shutdown() {
   }
 }
 
-bool YazeGRPCServer::IsRunning() const {
-  return is_running_;
-}
+bool YazeGRPCServer::IsRunning() const { return is_running_; }
 
 absl::Status YazeGRPCServer::BuildServer() {
   if (is_running_) {

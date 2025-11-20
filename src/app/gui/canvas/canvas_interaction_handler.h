@@ -2,6 +2,7 @@
 #define YAZE_APP_GUI_CANVAS_CANVAS_INTERACTION_HANDLER_H
 
 #include <vector>
+
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/render/tilemap.h"
 #include "imgui/imgui.h"
@@ -40,11 +41,11 @@ struct TileInteractionResult {
 
 /**
  * @brief Handles all tile-based interactions for Canvas
- * 
+ *
  * Consolidates tile painting, selection, and multi-selection logic
  * that was previously scattered across Canvas methods. Provides a
  * unified interface for common tile interaction patterns.
- * 
+ *
  * Key Features:
  * - Single tile painting with preview
  * - Drag painting for continuous tile placement

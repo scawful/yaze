@@ -3,6 +3,7 @@
 #ifdef YAZE_WITH_GRPC
 
 #include <grpcpp/grpcpp.h>
+
 #include "app/editor/overworld/overworld_editor.h"
 #include "app/gui/canvas/canvas_automation_api.h"
 #include "protos/canvas_automation.grpc.pb.h"
@@ -85,7 +86,6 @@ editor::OverworldEditor* CanvasAutomationServiceImpl::GetOverworldEditor(
 
 absl::Status CanvasAutomationServiceImpl::SetTile(
     const proto::SetTileRequest* request, proto::SetTileResponse* response) {
-
   auto* canvas = GetCanvas(request->canvas_id());
   if (!canvas) {
     response->set_success(false);
@@ -107,7 +107,6 @@ absl::Status CanvasAutomationServiceImpl::SetTile(
 
 absl::Status CanvasAutomationServiceImpl::GetTile(
     const proto::GetTileRequest* request, proto::GetTileResponse* response) {
-
   auto* canvas = GetCanvas(request->canvas_id());
   if (!canvas) {
     response->set_success(false);
@@ -131,7 +130,6 @@ absl::Status CanvasAutomationServiceImpl::GetTile(
 
 absl::Status CanvasAutomationServiceImpl::SetTiles(
     const proto::SetTilesRequest* request, proto::SetTilesResponse* response) {
-
   auto* canvas = GetCanvas(request->canvas_id());
   if (!canvas) {
     response->set_success(false);
@@ -160,7 +158,6 @@ absl::Status CanvasAutomationServiceImpl::SetTiles(
 absl::Status CanvasAutomationServiceImpl::SelectTile(
     const proto::SelectTileRequest* request,
     proto::SelectTileResponse* response) {
-
   auto* canvas = GetCanvas(request->canvas_id());
   if (!canvas) {
     response->set_success(false);
@@ -178,7 +175,6 @@ absl::Status CanvasAutomationServiceImpl::SelectTile(
 absl::Status CanvasAutomationServiceImpl::SelectTileRect(
     const proto::SelectTileRectRequest* request,
     proto::SelectTileRectResponse* response) {
-
   auto* canvas = GetCanvas(request->canvas_id());
   if (!canvas) {
     response->set_success(false);
@@ -200,7 +196,6 @@ absl::Status CanvasAutomationServiceImpl::SelectTileRect(
 absl::Status CanvasAutomationServiceImpl::GetSelection(
     const proto::GetSelectionRequest* request,
     proto::GetSelectionResponse* response) {
-
   auto* canvas = GetCanvas(request->canvas_id());
   if (!canvas) {
     return absl::NotFoundError("Canvas not found: " + request->canvas_id());
@@ -231,7 +226,6 @@ absl::Status CanvasAutomationServiceImpl::GetSelection(
 absl::Status CanvasAutomationServiceImpl::ClearSelection(
     const proto::ClearSelectionRequest* request,
     proto::ClearSelectionResponse* response) {
-
   auto* canvas = GetCanvas(request->canvas_id());
   if (!canvas) {
     response->set_success(false);
@@ -252,7 +246,6 @@ absl::Status CanvasAutomationServiceImpl::ClearSelection(
 absl::Status CanvasAutomationServiceImpl::ScrollToTile(
     const proto::ScrollToTileRequest* request,
     proto::ScrollToTileResponse* response) {
-
   auto* canvas = GetCanvas(request->canvas_id());
   if (!canvas) {
     response->set_success(false);
@@ -269,7 +262,6 @@ absl::Status CanvasAutomationServiceImpl::ScrollToTile(
 
 absl::Status CanvasAutomationServiceImpl::CenterOn(
     const proto::CenterOnRequest* request, proto::CenterOnResponse* response) {
-
   auto* canvas = GetCanvas(request->canvas_id());
   if (!canvas) {
     response->set_success(false);
@@ -286,7 +278,6 @@ absl::Status CanvasAutomationServiceImpl::CenterOn(
 
 absl::Status CanvasAutomationServiceImpl::SetZoom(
     const proto::SetZoomRequest* request, proto::SetZoomResponse* response) {
-
   auto* canvas = GetCanvas(request->canvas_id());
   if (!canvas) {
     response->set_success(false);
@@ -306,7 +297,6 @@ absl::Status CanvasAutomationServiceImpl::SetZoom(
 
 absl::Status CanvasAutomationServiceImpl::GetZoom(
     const proto::GetZoomRequest* request, proto::GetZoomResponse* response) {
-
   auto* canvas = GetCanvas(request->canvas_id());
   if (!canvas) {
     return absl::NotFoundError("Canvas not found: " + request->canvas_id());
@@ -325,7 +315,6 @@ absl::Status CanvasAutomationServiceImpl::GetZoom(
 absl::Status CanvasAutomationServiceImpl::GetDimensions(
     const proto::GetDimensionsRequest* request,
     proto::GetDimensionsResponse* response) {
-
   auto* canvas = GetCanvas(request->canvas_id());
   if (!canvas) {
     return absl::NotFoundError("Canvas not found: " + request->canvas_id());
@@ -345,7 +334,6 @@ absl::Status CanvasAutomationServiceImpl::GetDimensions(
 absl::Status CanvasAutomationServiceImpl::GetVisibleRegion(
     const proto::GetVisibleRegionRequest* request,
     proto::GetVisibleRegionResponse* response) {
-
   auto* canvas = GetCanvas(request->canvas_id());
   if (!canvas) {
     return absl::NotFoundError("Canvas not found: " + request->canvas_id());
@@ -366,7 +354,6 @@ absl::Status CanvasAutomationServiceImpl::GetVisibleRegion(
 absl::Status CanvasAutomationServiceImpl::IsTileVisible(
     const proto::IsTileVisibleRequest* request,
     proto::IsTileVisibleResponse* response) {
-
   auto* canvas = GetCanvas(request->canvas_id());
   if (!canvas) {
     return absl::NotFoundError("Canvas not found: " + request->canvas_id());
@@ -384,7 +371,7 @@ absl::Status CanvasAutomationServiceImpl::IsTileVisible(
 
 /**
  * @brief gRPC service wrapper that forwards to CanvasAutomationServiceImpl
- * 
+ *
  * This adapter implements the proto-generated Service interface and
  * forwards all calls to our implementation, converting between gRPC
  * and absl::Status types.

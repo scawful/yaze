@@ -23,7 +23,6 @@ AIGUIController::AIGUIController(GeminiAIService* gemini_service,
     : gemini_service_(gemini_service),
       gui_client_(gui_client),
       vision_refiner_(std::make_unique<VisionActionRefiner>(gemini_service)) {
-
   if (!gemini_service_) {
     throw std::invalid_argument("Gemini service cannot be null");
   }
@@ -44,7 +43,6 @@ absl::Status AIGUIController::Initialize(const ControlLoopConfig& config) {
 
 absl::StatusOr<ControlResult> AIGUIController::ExecuteCommand(
     const std::string& command) {
-
   // Parse natural language command into actions
   auto actions_result = AIActionParser::ParseCommand(command);
   if (!actions_result.ok()) {
@@ -56,7 +54,6 @@ absl::StatusOr<ControlResult> AIGUIController::ExecuteCommand(
 
 absl::StatusOr<ControlResult> AIGUIController::ExecuteActions(
     const std::vector<AIAction>& actions) {
-
   ControlResult result;
   result.success = false;
 
@@ -147,7 +144,6 @@ absl::StatusOr<ControlResult> AIGUIController::ExecuteActions(
 
 absl::StatusOr<VisionAnalysisResult> AIGUIController::ExecuteSingleAction(
     const AIAction& action, bool verify_with_vision) {
-
   VisionAnalysisResult result;
 
   // Capture before screenshot
@@ -197,7 +193,6 @@ absl::StatusOr<VisionAnalysisResult> AIGUIController::ExecuteSingleAction(
 
 absl::StatusOr<VisionAnalysisResult> AIGUIController::AnalyzeCurrentGUIState(
     const std::string& context) {
-
   auto screenshot = CaptureCurrentState("analysis");
   if (!screenshot.ok()) {
     return screenshot.status();
@@ -210,7 +205,6 @@ absl::StatusOr<VisionAnalysisResult> AIGUIController::AnalyzeCurrentGUIState(
 
 absl::StatusOr<std::filesystem::path> AIGUIController::CaptureCurrentState(
     const std::string& description) {
-
 #ifdef YAZE_WITH_GRPC
   std::filesystem::path path = GenerateScreenshotPath(description);
 
@@ -272,7 +266,8 @@ absl::Status AIGUIController::ExecuteGRPCAction(const AIAction& action) {
 
     return absl::OkStatus();
   } else if (action.type == AIActionType::kSelectTile) {
-    // Extract target and text from parameters (treating select as a type-like action)
+    // Extract target and text from parameters (treating select as a type-like
+    // action)
     std::string target = "input:Unknown";
     std::string text = "";
     bool clear_first = true;
@@ -401,14 +396,12 @@ absl::Status AIGUIController::ExecuteGRPCAction(const AIAction& action) {
 absl::StatusOr<VisionAnalysisResult> AIGUIController::VerifyActionSuccess(
     const AIAction& action, const std::filesystem::path& before_screenshot,
     const std::filesystem::path& after_screenshot) {
-
   return vision_refiner_->VerifyAction(action, before_screenshot,
                                        after_screenshot);
 }
 
 absl::StatusOr<AIAction> AIGUIController::RefineActionWithVision(
     const AIAction& original_action, const VisionAnalysisResult& analysis) {
-
   auto refinement = vision_refiner_->RefineAction(original_action, analysis);
   if (!refinement.ok()) {
     return refinement.status();
@@ -436,7 +429,6 @@ void AIGUIController::EnsureScreenshotsDirectory() {
 
 std::filesystem::path AIGUIController::GenerateScreenshotPath(
     const std::string& suffix) {
-
   int64_t timestamp = absl::ToUnixMillis(absl::Now());
 
   std::string filename = absl::StrFormat("ai_gui_%s_%lld.png", suffix,

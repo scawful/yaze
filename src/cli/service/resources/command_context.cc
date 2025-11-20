@@ -386,9 +386,7 @@ void OutputFormatter::AddArrayItem(const std::string& item) {
   array_item_count_++;
 }
 
-std::string OutputFormatter::GetOutput() const {
-  return buffer_;
-}
+std::string OutputFormatter::GetOutput() const { return buffer_; }
 
 void OutputFormatter::Print() const {
   std::cout << buffer_;

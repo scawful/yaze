@@ -16,7 +16,7 @@ namespace gui {
 /**
  * @class AgentChatWidget
  * @brief ImGui widget for conversational AI agent interaction
- * 
+ *
  * Provides a chat-like interface in the YAZE GUI for interacting with the
  * z3ed AI agent. Shares the same backend as the TUI chat interface.
  */

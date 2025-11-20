@@ -115,6 +115,9 @@ if(CLANG_FORMAT)
        "${CMAKE_SOURCE_DIR}/test/*.cc"
        "${CMAKE_SOURCE_DIR}/test/*.h")
 
+  # Exclude third-party library directories from formatting
+  list(FILTER ALL_SOURCE_FILES EXCLUDE REGEX "src/lib/.*")
+
   add_custom_target(yaze-format
     COMMAND ${CLANG_FORMAT} -i --style=Google ${ALL_SOURCE_FILES}
     COMMENT "Running clang-format on source files"

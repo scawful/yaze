@@ -1,5 +1,4 @@
 #include "cli/service/ai/prompt_builder.h"
-#include "cli/service/agent/conversational_agent_service.h"
 
 #include <cstdlib>
 #include <filesystem>
@@ -10,6 +9,7 @@
 #include "absl/strings/ascii.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_join.h"
+#include "cli/service/agent/conversational_agent_service.h"
 #include "nlohmann/json.hpp"
 #include "util/platform_paths.h"
 #include "yaml-cpp/yaml.h"

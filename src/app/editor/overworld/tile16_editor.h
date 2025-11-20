@@ -251,7 +251,8 @@ class Tile16Editor : public gfx::GfxContext {
       gui::CanvasGridSize::k32x32};
   gfx::Bitmap tile16_blockset_bmp_;
 
-  // Canvas for editing the selected tile - optimized for 2x2 grid of 8x8 tiles (16x16 total)
+  // Canvas for editing the selected tile - optimized for 2x2 grid of 8x8 tiles
+  // (16x16 total)
   gui::Canvas tile16_edit_canvas_{
       "Tile16EditCanvas",
       ImVec2(64, 64),  // Fixed 64x64 display size (16x16 pixels at 4x scale)

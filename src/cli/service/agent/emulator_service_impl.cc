@@ -1,6 +1,8 @@
 #include "cli/service/agent/emulator_service_impl.h"
+
 #include <fstream>
 #include <thread>
+
 #include "absl/strings/escaping.h"
 #include "absl/strings/str_format.h"
 #include "app/emu/debug/breakpoint_manager.h"
@@ -471,7 +473,8 @@ grpc::Status EmulatorServiceImpl::RunToBreakpoint(
                         "SNES is not initialized.");
   }
 
-  // Run emulator until breakpoint is hit (max 1 million instructions to prevent hangs)
+  // Run emulator until breakpoint is hit (max 1 million instructions to prevent
+  // hangs)
   const int kMaxInstructions = 1000000;
   int instruction_count = 0;
 
@@ -571,7 +574,8 @@ grpc::Status EmulatorServiceImpl::GetDisassembly(
     // Read opcode and disassemble
     uint8_t opcode = memory.ReadByte(current_address);
 
-    // Basic disassembly (simplified - real implementation would use CPU's disassembler)
+    // Basic disassembly (simplified - real implementation would use CPU's
+    // disassembler)
     auto* line = response->add_lines();
     line->set_address(current_address);
     line->set_opcode(opcode);
@@ -659,8 +663,7 @@ grpc::Status EmulatorServiceImpl::GetDebugStatus(
   auto breakpoints = emulator_->breakpoint_manager().GetAllBreakpoints();
   uint32_t active_bp_count = 0;
   for (const auto& bp : breakpoints) {
-    if (bp.enabled)
-      active_bp_count++;
+    if (bp.enabled) active_bp_count++;
   }
   response->set_active_breakpoints(active_bp_count);
   response->set_active_watchpoints(
