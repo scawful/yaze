@@ -1,5 +1,74 @@
 # Changelog
 
+## 0.3.3 (November 2025)
+
+### Build System Stability
+
+**Windows Platform Fixes**:
+- Fixed std::filesystem compilation errors with clang-cl (2+ week blocker resolved)
+- Added `/std:c++latest` flag for proper C++23 standard library access
+- Enabled exception handling with `/EHsc` flag
+- Fixed Abseil include path resolution with explicit directory configuration
+- Resolved gRPC ZLIB conflicts by using bundled ZLIB instead of system package
+
+**Linux Platform Fixes**:
+- Resolved FLAGS symbol conflicts across multiple compilation units
+- Fixed circular dependency in graphics libraries (atlas_renderer relocation)
+- Moved FLAGS_quiet to shared flags.cc to eliminate ODR violations
+- Removed unnecessary dependencies from yaze_emu_test
+
+**macOS Platform Fixes**:
+- Fixed z3ed linker error by ensuring yaze_app_core_lib is always available
+- Created separate app_core.cmake for library-only builds
+
+### Experimental Features
+
+**HTTP REST API (Experimental)**:
+- Added optional HTTP REST API server for external tool integration
+- Controlled via `YAZE_ENABLE_HTTP_API` CMake flag
+- Initial endpoints: health check and model listing
+- Secure localhost-only binding by default
+
+**AI Infrastructure (Experimental)**:
+- Unified ModelRegistry for cross-provider AI model management
+- Support for Ollama and Gemini providers
+- Enhanced agent configuration and chat history management
+- Improved flag parsing with better error handling
+
+### Infrastructure Improvements
+
+**Build System**:
+- 11 new CMake presets across macOS, Linux, and Windows
+- Platform-specific optimization flags and consistent build directory naming
+- Enhanced conditional compilation support
+- Submodule reorganization: unified `ext/` directory for all third-party libraries
+
+**Testing & CI/CD**:
+- Comprehensive testing documentation and infrastructure
+- New helper scripts: pre-push.sh, smoke-build.sh, test-http-api.sh
+- Platform matrix testing (Ubuntu 22.04, macOS 14, Windows Server 2022)
+- Enhanced workflow_dispatch with configurable options
+- Improved artifact uploads and failure diagnostics
+
+**Documentation**:
+- Reorganized agent collaboration framework (6+ new documents)
+- Enhanced testing guides and quick-start documentation
+- Platform-specific build guides with troubleshooting steps
+- Release process documentation and checklists
+
+### Code Quality
+
+- Applied clang-format to resolve 38+ formatting violations
+- Excluded third-party libraries from format checks
+- Consistent error handling with FlagParseFatal utility
+- Improved code organization and dependency management
+
+### Known Issues
+
+- gRPC builds require network access (not suitable for sandboxed environments)
+- Windows builds require Visual Studio 2022 with C++ workload
+- gRPC builds take 15-20 minutes on first build
+
 ## 0.3.2 (October 2025)
 
 ### AI Agent Infrastructure

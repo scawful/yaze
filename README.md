@@ -11,13 +11,26 @@ A cross-platform Zelda 3 ROM editor with a modern C++ GUI, Asar 65816 assembler 
 ## Highlights
 - **All-in-one editing**: Overworld, dungeon, sprite, palette, and messaging tools with live previews.
 - **Assembler-first workflow**: Built-in Asar integration, symbol extraction, and patch validation.
-- **Automation & AI**: `z3ed` exposes CLI/TUI automation, proposal workflows, and optional AI agents.
-- **Testing & CI hooks**: CMake presets, ROM-less test fixtures, and gRPC-based GUI automation support.
 - **Cross-platform toolchains**: Single source tree targeting MSVC, Clang, and GCC with identical presets.
-- **Modular AI stack**: Toggle agent UI (`YAZE_BUILD_AGENT_UI`), remote automation/gRPC (`YAZE_ENABLE_REMOTE_AUTOMATION`), and AI runtimes (`YAZE_ENABLE_AI_RUNTIME`) per preset.
+- **Testing & CI hooks**: CMake presets, ROM-less test fixtures, and comprehensive test infrastructure.
+
+### Experimental Features
+- **Automation & AI**: `z3ed` CLI/TUI with optional AI agent integration (Gemini/Ollama).
+- **Remote automation**: gRPC-based GUI automation and HTTP REST API for external tools.
+- **Agent UI**: In-editor chat interface for AI-assisted ROM hacking workflows.
 
 ## Project Status
-`0.3.x` builds are in active development. Release automation is being reworked, so packaged builds may lag behind main. Follow `develop` for the most accurate view of current functionality.
+**Current Version**: v0.3.3-dev (in active development)
+
+YAZE is in active development with stable core editing features and experimental AI/automation capabilities. The GUI editor, Asar integration, and basic ROM editing workflows are production-ready. AI features, remote automation, and the HTTP API are experimental and under active development.
+
+**Stability Notes**:
+- Core editing features (Overworld, Dungeon, Graphics, Palette editors): Stable
+- Asar integration and ROM patching: Stable
+- z3ed CLI tool: Stable for basic workflows
+- AI agents and automation features: Experimental
+- HTTP REST API: Experimental
+- gRPC remote automation: Experimental
 
 ## Quick Start
 
@@ -88,6 +101,7 @@ cmake --build --preset mac-ai --target yaze_test
 - Review [`CONTRIBUTING.md`](CONTRIBUTING.md) and the build/test guides in `docs/public/`.
 - Conventional commit messages (`feat:`, `fix:`, etc.) keep history clean; use topic branches for larger work.
 - Chat with the team on [Oracle of Secrets Discord](https://discord.gg/MBFkMTPEmk).
+- See [`AGENTS.md`](AGENTS.md) and [`docs/internal/agents/personas.md`](docs/internal/agents/personas.md) for multi-agent collaboration guidelines.
 
 ## License
 YAZE is licensed under the GNU GPL v3. See [`LICENSE`](LICENSE) for details and third-party notices.
