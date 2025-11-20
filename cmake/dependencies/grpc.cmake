@@ -240,10 +240,13 @@ set(ABSL_TARGETS
   absl::memory
   absl::container_memory
   absl::strings
+  absl::strings_internal
   absl::str_format
+  absl::str_format_internal
   absl::cord
   absl::hash
   absl::time
+  absl::time_zone
   absl::status
   absl::statusor
   absl::flags
@@ -261,6 +264,7 @@ set(ABSL_TARGETS
   absl::flat_hash_map
   absl::synchronization
   absl::symbolize
+  absl::strerror
 )
 
 # Only expose absl::int128 when it's supported without warnings
