@@ -24,7 +24,7 @@ namespace util {
  * @brief Defines the severity levels for log messages.
  * This allows for filtering messages based on their importance.
  */
-enum class LogLevel { YAZE_DEBUG, INFO, WARNING, ERROR, FATAL };
+enum class LogLevel { YAZE_DEBUG, INFO, WARNING, ERR, FATAL };
 
 /**
  * @class LogManager
@@ -110,7 +110,7 @@ class LogManager {
 #define LOG_WARN(category, format, ...) \
   LOG(yaze::util::LogLevel::WARNING, category, format, ##__VA_ARGS__)
 #define LOG_ERROR(category, format, ...) \
-  LOG(yaze::util::LogLevel::ERROR, category, format, ##__VA_ARGS__)
+  LOG(yaze::util::LogLevel::ERR, category, format, ##__VA_ARGS__)
 #define LOG_FATAL(category, format, ...) \
   LOG(yaze::util::LogLevel::FATAL, category, format, ##__VA_ARGS__)
 

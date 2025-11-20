@@ -16,7 +16,7 @@ static const char* LogLevelToString(LogLevel level) {
       return "INFO";
     case LogLevel::WARNING:
       return "WARN";
-    case LogLevel::ERROR:
+    case LogLevel::ERR:
       return "ERROR";
     case LogLevel::FATAL:
       return "FATAL";
