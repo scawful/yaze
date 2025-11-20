@@ -110,16 +110,35 @@ elseif(WIN32)
   # clang-cl uses Clang's compiler but must interface with MSVC STL. Without this flag,
   # it only finds std::experimental::filesystem (pre-C++17 version).
   #
-  # The CMAKE_CXX_COMPILER_FRONTEND_VARIANT check distinguishes:
-  # - "MSVC": clang-cl (Clang with MSVC-compatible command line)
-  # - "GNU": regular Clang on Windows
-  if(CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
-    # Use MSVC-style flag for clang-cl
-    target_compile_options(yaze_util PUBLIC /std:c++latest)
-    message(STATUS "Windows clang-cl detected: Added /std:c++latest for std::filesystem support")
-  elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    # Regular Clang on Windows - already has proper flags from parent
-    message(STATUS "Windows Clang (non-cl) detected: Using inherited C++23 flags")
+  # Detection strategy:
+  # 1. Check CMAKE_CXX_SIMULATE_ID == "MSVC" (set when compiler simulates MSVC)
+  # 2. Or check CMAKE_CXX_COMPILER_FRONTEND_VARIANT == "MSVC" (CMake 3.14+)
+  # 3. Or check compiler executable name contains "clang-cl"
+
+  set(IS_CLANG_CL FALSE)
+
+  if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    # Method 1: CMAKE_CXX_SIMULATE_ID is most reliable
+    if(CMAKE_CXX_SIMULATE_ID STREQUAL "MSVC")
+      set(IS_CLANG_CL TRUE)
+      message(STATUS "Detected clang-cl via CMAKE_CXX_SIMULATE_ID=MSVC")
+    # Method 2: CMAKE_CXX_COMPILER_FRONTEND_VARIANT (CMake 3.14+)
+    elseif(DEFINED CMAKE_CXX_COMPILER_FRONTEND_VARIANT AND CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
+      set(IS_CLANG_CL TRUE)
+      message(STATUS "Detected clang-cl via CMAKE_CXX_COMPILER_FRONTEND_VARIANT=MSVC")
+    # Method 3: Check executable name
+    elseif(CMAKE_CXX_COMPILER MATCHES "clang-cl")
+      set(IS_CLANG_CL TRUE)
+      message(STATUS "Detected clang-cl via compiler executable name")
+    endif()
+
+    if(IS_CLANG_CL)
+      # Use MSVC-style /std:c++latest flag for clang-cl
+      target_compile_options(yaze_util PUBLIC /std:c++latest)
+      message(STATUS "Applied /std:c++latest to yaze_util for std::filesystem support")
+    else()
+      message(STATUS "Regular Clang on Windows detected, using inherited C++23 flags")
+    endif()
   endif()
 endif()
 
