@@ -26,7 +26,8 @@ void input_latch(Input* input, bool value) {
 }
 
 uint8_t input_read(Input* input) {
-  if (input->latch_line_) input->latched_state_ = input->current_state_;
+  if (input->latch_line_)
+    input->latched_state_ = input->current_state_;
   uint8_t ret = input->latched_state_ & 1;
 
   input->latched_state_ >>= 1;
@@ -66,7 +67,8 @@ void Snes::Reset(bool hard) {
   input2.current_state_ = 0;  // Clear current button states
   input1.latched_state_ = 0;
   input2.latched_state_ = 0;
-  if (hard) memset(ram, 0, sizeof(ram));
+  if (hard)
+    memset(ram, 0, sizeof(ram));
   ram_adr_ = 0;
   memory_.set_h_pos(0);
   memory_.set_v_pos(0);
@@ -202,15 +204,18 @@ void Snes::RunCycle() {
     switch (memory_.h_pos()) {
       case 16: {
         next_horiz_event = 512;
-        if (memory_.v_pos() == 0) memory_.init_hdma_request();
+        if (memory_.v_pos() == 0)
+          memory_.init_hdma_request();
       } break;
       case 512: {
         next_horiz_event = 1104;
         // render the line halfway of the screen for better compatibility
-        if (!in_vblank_ && memory_.v_pos() > 0) ppu_.RunLine(memory_.v_pos());
+        if (!in_vblank_ && memory_.v_pos() > 0)
+          ppu_.RunLine(memory_.v_pos());
       } break;
       case 1104: {
-        if (!in_vblank_) memory_.run_hdma_request();
+        if (!in_vblank_)
+          memory_.run_hdma_request();
         if (!memory_.pal_timing()) {
           // line 240 of odd frame with no interlace is 4 cycles shorter
           next_horiz_event = (memory_.v_pos() == 240 && !ppu_.even_frame &&
@@ -271,7 +276,8 @@ void Snes::RunCycle() {
         } else if (memory_.v_pos() == 240) {
           // if we are not yet in vblank, we had an overscan frame, set
           // starting_vblank
-          if (!in_vblank_) starting_vblank = true;
+          if (!in_vblank_)
+            starting_vblank = true;
         }
         if (starting_vblank) {
           // catch up the apu at end of emulated frame (we end frame @ start of
@@ -323,7 +329,8 @@ void Snes::RunCycle() {
     }
   }
   // handle auto_joy_read_-timer
-  if (auto_joy_timer_ > 0) auto_joy_timer_ -= 2;
+  if (auto_joy_timer_ > 0)
+    auto_joy_timer_ -= 2;
 }
 
 void Snes::RunCycles(int cycles) {
@@ -365,8 +372,10 @@ uint8_t Snes::ReadBBus(uint8_t adr) {
                 "[AFTER CatchUp: APU_cycles=%llu CPU_cycles=%llu]",
                 0x40 + (adr & 0x3), (adr & 0x3) + 4, val, cpu_.PB, cpu_.PC,
                 apu_.GetCycles(), cycles_);
-      if ((adr & 0x3) == 0) last_f4 = val;
-      if ((adr & 0x3) == 1) last_f5 = val;
+      if ((adr & 0x3) == 0)
+        last_f4 = val;
+      if ((adr & 0x3) == 1)
+        last_f5 = val;
     }
     return val;
   }
@@ -558,7 +567,8 @@ void Snes::WriteReg(uint16_t adr, uint8_t val) {
       }
 
       auto_joy_read_ = val & 0x1;
-      if (!auto_joy_read_) auto_joy_timer_ = 0;
+      if (!auto_joy_read_)
+        auto_joy_timer_ = 0;
 
       // Debug: Log when auto-joy-read is enabled/disabled
       static int auto_joy_log = 0;
@@ -690,9 +700,11 @@ int Snes::GetAccessTime(uint32_t adr) {
   adr &= 0xffff;
   if ((bank < 0x40 || (bank >= 0x80 && bank < 0xc0)) && adr < 0x8000) {
     // 00-3f,80-bf:0-7fff
-    if (adr < 0x2000 || adr >= 0x6000) return 8;  // 0-1fff, 6000-7fff
-    if (adr < 0x4000 || adr >= 0x4200) return 6;  // 2000-3fff, 4200-5fff
-    return 12;                                    // 4000-41ff
+    if (adr < 0x2000 || adr >= 0x6000)
+      return 8;  // 0-1fff, 6000-7fff
+    if (adr < 0x4000 || adr >= 0x4200)
+      return 6;  // 2000-3fff, 4200-5fff
+    return 12;   // 4000-41ff
   }
   // 40-7f,co-ff:0000-ffff, 00-3f,80-bf:8000-ffff
   return (fast_mem_ && bank >= 0x80) ? 6
@@ -728,7 +740,9 @@ void Snes::SetSamples(int16_t* sample_data, int wanted_samples) {
   apu_.dsp().GetSamples(sample_data, wanted_samples, memory_.pal_timing());
 }
 
-void Snes::SetPixels(uint8_t* pixel_data) { ppu_.PutPixels(pixel_data); }
+void Snes::SetPixels(uint8_t* pixel_data) {
+  ppu_.PutPixels(pixel_data);
+}
 
 void Snes::SetButtonState(int player, int button, bool pressed) {
   // Select the appropriate input based on player number
@@ -739,7 +753,8 @@ void Snes::SetButtonState(int player, int button, bool pressed) {
   // Bit 4: Up, Bit 5: Down, Bit 6: Left, Bit 7: Right
   // Bit 8: A, Bit 9: X, Bit 10: L, Bit 11: R
 
-  if (button < 0 || button > 11) return;  // Validate button range
+  if (button < 0 || button > 11)
+    return;  // Validate button range
 
   uint16_t old_state = input->current_state_;
 

@@ -35,16 +35,24 @@ void stle3(uint8_t* const p_arr, unsigned const p_val) {
 }
 
 // Helper function to get the first byte in a little endian number
-uint32_t ldle0(uint8_t const* const p_arr) { return ldle(p_arr, 0); }
+uint32_t ldle0(uint8_t const* const p_arr) {
+  return ldle(p_arr, 0);
+}
 
 // Helper function to get the second byte in a little endian number
-uint32_t ldle1(uint8_t const* const p_arr) { return ldle(p_arr, 1); }
+uint32_t ldle1(uint8_t const* const p_arr) {
+  return ldle(p_arr, 1);
+}
 
 // Helper function to get the third byte in a little endian number
-uint32_t ldle2(uint8_t const* const p_arr) { return ldle(p_arr, 2); }
+uint32_t ldle2(uint8_t const* const p_arr) {
+  return ldle(p_arr, 2);
+}
 
 // Helper function to get the third byte in a little endian number
-uint32_t ldle3(uint8_t const* const p_arr) { return ldle(p_arr, 3); }
+uint32_t ldle3(uint8_t const* const p_arr) {
+  return ldle(p_arr, 3);
+}
 
 }  // namespace
 

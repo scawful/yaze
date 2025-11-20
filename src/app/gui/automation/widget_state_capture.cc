@@ -61,7 +61,9 @@ std::string EscapeJsonString(const std::string& value) {
   return escaped;
 }
 
-const char* BoolToJson(bool value) { return value ? "true" : "false"; }
+const char* BoolToJson(bool value) {
+  return value ? "true" : "false";
+}
 
 std::string FormatFloat(float value) {
   // Match typical JSON formatting without trailing zeros when possible.

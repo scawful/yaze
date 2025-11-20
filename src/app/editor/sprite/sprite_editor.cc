@@ -26,7 +26,8 @@ using ImGui::TableSetupColumn;
 using ImGui::Text;
 
 void SpriteEditor::Initialize() {
-  if (!dependencies_.card_registry) return;
+  if (!dependencies_.card_registry)
+    return;
   auto* card_registry = dependencies_.card_registry;
 
   card_registry->RegisterCard({.card_id = "sprite.vanilla_editor",
@@ -56,7 +57,8 @@ absl::Status SpriteEditor::Update() {
     sheets_loaded_ = true;
   }
 
-  if (!dependencies_.card_registry) return absl::OkStatus();
+  if (!dependencies_.card_registry)
+    return absl::OkStatus();
   auto* card_registry = dependencies_.card_registry;
 
   static gui::EditorCard vanilla_card("Vanilla Sprites", ICON_MD_SMART_TOY);
@@ -221,7 +223,8 @@ void SpriteEditor::DrawCurrentSheets() {
     for (int i = 0; i < 8; i++) {
       std::string sheet_label = absl::StrFormat("Sheet %d", i);
       gui::InputHexByte(sheet_label.c_str(), &current_sheets_[i]);
-      if (i % 2 == 0) ImGui::SameLine();
+      if (i % 2 == 0)
+        ImGui::SameLine();
     }
 
     graphics_sheet_canvas_.DrawBackground();

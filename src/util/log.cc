@@ -54,7 +54,8 @@ void LogManager::configure(LogLevel level, const std::string& file_path,
     // Log which categories are enabled for debugging
     std::string category_list;
     for (const auto& cat : categories) {
-      if (!category_list.empty()) category_list += ", ";
+      if (!category_list.empty())
+        category_list += ", ";
       category_list += cat;
     }
     std::cerr << "Log categories filter enabled: [" << category_list << "]"

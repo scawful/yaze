@@ -18,7 +18,8 @@ MenuBuilder& MenuBuilder::BeginMenu(const char* label, const char* icon) {
 
 MenuBuilder& MenuBuilder::BeginSubMenu(const char* label, const char* icon,
                                        EnabledCheck enabled) {
-  if (!current_menu_) return *this;
+  if (!current_menu_)
+    return *this;
 
   MenuItem item;
   item.type = MenuItem::Type::kSubMenuBegin;
@@ -32,7 +33,8 @@ MenuBuilder& MenuBuilder::BeginSubMenu(const char* label, const char* icon,
 }
 
 MenuBuilder& MenuBuilder::EndMenu() {
-  if (!current_menu_) return *this;
+  if (!current_menu_)
+    return *this;
 
   // Check if we're ending a submenu or top-level menu
   // We need to track nesting depth to handle nested submenus correctly
@@ -67,7 +69,8 @@ MenuBuilder& MenuBuilder::EndMenu() {
 MenuBuilder& MenuBuilder::Item(const char* label, const char* icon,
                                Callback callback, const char* shortcut,
                                EnabledCheck enabled, EnabledCheck checked) {
-  if (!current_menu_) return *this;
+  if (!current_menu_)
+    return *this;
 
   MenuItem item;
   item.type = MenuItem::Type::kItem;
@@ -91,7 +94,8 @@ MenuBuilder& MenuBuilder::Item(const char* label, Callback callback,
 }
 
 MenuBuilder& MenuBuilder::Separator() {
-  if (!current_menu_) return *this;
+  if (!current_menu_)
+    return *this;
 
   MenuItem item;
   item.type = MenuItem::Type::kSeparator;
@@ -100,7 +104,8 @@ MenuBuilder& MenuBuilder::Separator() {
 }
 
 MenuBuilder& MenuBuilder::DisabledItem(const char* label, const char* icon) {
-  if (!current_menu_) return *this;
+  if (!current_menu_)
+    return *this;
 
   MenuItem item;
   item.type = MenuItem::Type::kDisabled;

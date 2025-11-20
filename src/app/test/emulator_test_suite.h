@@ -36,11 +36,16 @@ class EmulatorTestSuite : public TestSuite {
   TestCategory GetCategory() const override { return TestCategory::kUnit; }
 
   absl::Status RunTests(TestResults& results) override {
-    if (test_apu_handshake_) RunApuHandshakeTest(results);
-    if (test_spc700_cycles_) RunSpc700CycleAccuracyTest(results);
-    if (test_breakpoint_manager_) RunBreakpointManagerTest(results);
-    if (test_watchpoint_manager_) RunWatchpointManagerTest(results);
-    if (test_audio_backend_) RunAudioBackendTest(results);
+    if (test_apu_handshake_)
+      RunApuHandshakeTest(results);
+    if (test_spc700_cycles_)
+      RunSpc700CycleAccuracyTest(results);
+    if (test_breakpoint_manager_)
+      RunBreakpointManagerTest(results);
+    if (test_watchpoint_manager_)
+      RunWatchpointManagerTest(results);
+    if (test_audio_backend_)
+      RunAudioBackendTest(results);
 
     return absl::OkStatus();
   }
@@ -159,9 +164,13 @@ class EmulatorTestSuite : public TestSuite {
     try {
       // Dummy callbacks for SPC700 instantiation
       emu::ApuCallbacks callbacks;
-      callbacks.read = [](uint16_t) { return 0; };
-      callbacks.write = [](uint16_t, uint8_t) {};
-      callbacks.idle = [](bool) {};
+      callbacks.read = [](uint16_t) {
+        return 0;
+      };
+      callbacks.write = [](uint16_t, uint8_t) {
+      };
+      callbacks.idle = [](bool) {
+      };
 
       emu::Spc700 spc(callbacks);
       spc.Reset(true);

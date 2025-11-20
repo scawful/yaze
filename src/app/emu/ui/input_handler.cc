@@ -10,7 +10,8 @@ namespace emu {
 namespace ui {
 
 void RenderKeyboardConfig(input::InputManager* manager) {
-  if (!manager || !manager->backend()) return;
+  if (!manager || !manager->backend())
+    return;
 
   auto config = manager->GetConfig();
 

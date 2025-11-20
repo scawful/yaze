@@ -12,7 +12,9 @@ namespace yaze::agent {
 AgentControlServer::AgentControlServer(yaze::emu::Emulator* emulator)
     : emulator_(emulator) {}
 
-AgentControlServer::~AgentControlServer() { Stop(); }
+AgentControlServer::~AgentControlServer() {
+  Stop();
+}
 
 void AgentControlServer::Start() {
   server_thread_ = std::thread(&AgentControlServer::Run, this);

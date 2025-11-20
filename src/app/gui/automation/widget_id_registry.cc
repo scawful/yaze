@@ -293,7 +293,8 @@ std::string WidgetIdRegistry::ExportCatalog(const std::string& format) const {
 
     bool first = true;
     for (const auto& [path, info] : widgets_) {
-      if (!first) ss << ",\n";
+      if (!first)
+        ss << ",\n";
       first = false;
 
       ss << "    {\n";

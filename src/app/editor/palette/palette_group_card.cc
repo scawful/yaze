@@ -168,7 +168,8 @@ void PaletteGroupCard::DrawToolbar() {
 
 void PaletteGroupCard::DrawPaletteSelector() {
   auto* palette_group = GetPaletteGroup();
-  if (!palette_group) return;
+  if (!palette_group)
+    return;
 
   int num_palettes = palette_group->size();
 
@@ -209,10 +210,12 @@ void PaletteGroupCard::DrawPaletteSelector() {
 }
 
 void PaletteGroupCard::DrawColorPicker() {
-  if (selected_color_ < 0) return;
+  if (selected_color_ < 0)
+    return;
 
   auto* palette = GetMutablePalette(selected_palette_);
-  if (!palette) return;
+  if (!palette)
+    return;
 
   SectionHeader("Color Editor");
 
@@ -266,7 +269,8 @@ void PaletteGroupCard::DrawColorPicker() {
 }
 
 void PaletteGroupCard::DrawColorInfo() {
-  if (selected_color_ < 0) return;
+  if (selected_color_ < 0)
+    return;
 
   SectionHeader("Color Information");
 
@@ -304,7 +308,8 @@ void PaletteGroupCard::DrawColorInfo() {
 
 void PaletteGroupCard::DrawMetadataInfo() {
   const auto& metadata = GetMetadata();
-  if (selected_palette_ >= metadata.palettes.size()) return;
+  if (selected_palette_ >= metadata.palettes.size())
+    return;
 
   const auto& pal_meta = metadata.palettes[selected_palette_];
 
@@ -614,7 +619,8 @@ const gfx::PaletteGroup* OverworldMainPaletteCard::GetPaletteGroup() const {
 
 void OverworldMainPaletteCard::DrawPaletteGrid() {
   auto* palette = GetMutablePalette(selected_palette_);
-  if (!palette) return;
+  if (!palette)
+    return;
 
   const float button_size = 32.0f;
   const int colors_per_row = GetColorsPerRow();
@@ -685,7 +691,8 @@ const gfx::PaletteGroup* OverworldAnimatedPaletteCard::GetPaletteGroup() const {
 
 void OverworldAnimatedPaletteCard::DrawPaletteGrid() {
   auto* palette = GetMutablePalette(selected_palette_);
-  if (!palette) return;
+  if (!palette)
+    return;
 
   const float button_size = 32.0f;
   const int colors_per_row = GetColorsPerRow();
@@ -759,7 +766,8 @@ const gfx::PaletteGroup* DungeonMainPaletteCard::GetPaletteGroup() const {
 
 void DungeonMainPaletteCard::DrawPaletteGrid() {
   auto* palette = GetMutablePalette(selected_palette_);
-  if (!palette) return;
+  if (!palette)
+    return;
 
   const float button_size = 28.0f;
   const int colors_per_row = GetColorsPerRow();
@@ -834,7 +842,8 @@ const gfx::PaletteGroup* SpritePaletteCard::GetPaletteGroup() const {
 
 void SpritePaletteCard::DrawPaletteGrid() {
   auto* palette = GetMutablePalette(selected_palette_);
-  if (!palette) return;
+  if (!palette)
+    return;
 
   const float button_size = 28.0f;
   const int colors_per_row = GetColorsPerRow();
@@ -940,7 +949,8 @@ const gfx::PaletteGroup* EquipmentPaletteCard::GetPaletteGroup() const {
 
 void EquipmentPaletteCard::DrawPaletteGrid() {
   auto* palette = GetMutablePalette(selected_palette_);
-  if (!palette) return;
+  if (!palette)
+    return;
 
   const float button_size = 32.0f;
   const int colors_per_row = GetColorsPerRow();
@@ -1006,7 +1016,8 @@ const gfx::PaletteGroup* SpritesAux1PaletteCard::GetPaletteGroup() const {
 
 void SpritesAux1PaletteCard::DrawPaletteGrid() {
   auto* palette = GetMutablePalette(selected_palette_);
-  if (!palette) return;
+  if (!palette)
+    return;
 
   const float button_size = 32.0f;
   const int colors_per_row = GetColorsPerRow();
@@ -1072,7 +1083,8 @@ const gfx::PaletteGroup* SpritesAux2PaletteCard::GetPaletteGroup() const {
 
 void SpritesAux2PaletteCard::DrawPaletteGrid() {
   auto* palette = GetMutablePalette(selected_palette_);
-  if (!palette) return;
+  if (!palette)
+    return;
 
   const float button_size = 32.0f;
   const int colors_per_row = GetColorsPerRow();
@@ -1155,7 +1167,8 @@ const gfx::PaletteGroup* SpritesAux3PaletteCard::GetPaletteGroup() const {
 
 void SpritesAux3PaletteCard::DrawPaletteGrid() {
   auto* palette = GetMutablePalette(selected_palette_);
-  if (!palette) return;
+  if (!palette)
+    return;
 
   const float button_size = 32.0f;
   const int colors_per_row = GetColorsPerRow();

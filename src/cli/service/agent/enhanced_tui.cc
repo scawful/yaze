@@ -116,7 +116,9 @@ int ReadChar() {
 }
 
 // Check if a key is a special key
-bool IsSpecialKey(int key) { return key >= 1000; }
+bool IsSpecialKey(int key) {
+  return key >= 1000;
+}
 
 }  // namespace
 
@@ -142,7 +144,9 @@ EnhancedTUI::EnhancedTUI(const TUIConfig& config) : config_(config) {
   LoadTheme(config_.theme);
 }
 
-EnhancedTUI::~EnhancedTUI() { Shutdown(); }
+EnhancedTUI::~EnhancedTUI() {
+  Shutdown();
+}
 
 absl::Status EnhancedTUI::Initialize() {
   if (terminal_initialized_) {
@@ -171,7 +175,9 @@ void EnhancedTUI::Shutdown() {
   terminal_initialized_ = false;
 }
 
-void EnhancedTUI::SetRomContext(Rom* rom) { rom_context_ = rom; }
+void EnhancedTUI::SetRomContext(Rom* rom) {
+  rom_context_ = rom;
+}
 
 absl::Status EnhancedTUI::Run() {
   RETURN_IF_ERROR(Initialize());

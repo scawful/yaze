@@ -14,7 +14,9 @@ namespace gui {
 // Theme and Semantic Colors
 // ============================================================================
 
-ImVec4 GetThemeColor(ImGuiCol idx) { return ImGui::GetStyle().Colors[idx]; }
+ImVec4 GetThemeColor(ImGuiCol idx) {
+  return ImGui::GetStyle().Colors[idx];
+}
 
 ImVec4 GetSuccessColor() {
   const auto& theme = ThemeManager::Get().GetCurrentTheme();
@@ -118,7 +120,9 @@ bool BeginPropertyTable(const char* id, int columns,
   return false;
 }
 
-void EndPropertyTable() { ImGui::EndTable(); }
+void EndPropertyTable() {
+  ImGui::EndTable();
+}
 
 void PropertyRow(const char* label, const char* value) {
   ImGui::TableNextColumn();
@@ -205,7 +209,8 @@ bool ToggleIconButton(const char* icon_on, const char* icon_off, bool* state,
   bool result = ImGui::SmallButton(icon);
   ImGui::PopStyleColor();
 
-  if (result) *state = !*state;
+  if (result)
+    *state = !*state;
 
   if (tooltip && ImGui::IsItemHovered()) {
     ImGui::SetTooltip("%s", tooltip);
@@ -225,7 +230,9 @@ void HelpMarker(const char* desc) {
   }
 }
 
-void SeparatorText(const char* label) { ImGui::SeparatorText(label); }
+void SeparatorText(const char* label) {
+  ImGui::SeparatorText(label);
+}
 
 void StatusBadge(const char* text, ButtonType type) {
   ImVec4 color;
@@ -278,7 +285,8 @@ void ToolsetButton(const char* icon, bool selected, const char* tooltip,
   }
 
   if (ImGui::Button(icon)) {
-    if (on_click) on_click();
+    if (on_click)
+      on_click();
   }
 
   if (selected) {
@@ -296,7 +304,9 @@ void BeginCanvasContainer(const char* id, bool scrollable) {
   ImGui::BeginChild(id, ImVec2(0, 0), true, flags);
 }
 
-void EndCanvasContainer() { ImGui::EndChild(); }
+void EndCanvasContainer() {
+  ImGui::EndChild();
+}
 
 bool EditorTabItem(const char* icon, const char* label, bool* p_open) {
   char tab_label[256];
@@ -376,7 +386,9 @@ void LockIndicator(bool locked, const char* label) {
 // Spacing and Alignment
 // ============================================================================
 
-void VerticalSpacing(float pixels) { ImGui::Dummy(ImVec2(0, pixels)); }
+void VerticalSpacing(float pixels) {
+  ImGui::Dummy(ImVec2(0, pixels));
+}
 
 void HorizontalSpacing(float pixels) {
   ImGui::Dummy(ImVec2(pixels, 0));
@@ -427,7 +439,9 @@ void PushPulseEffect(float speed) {
                       ImGui::GetStyle().Alpha * GetPulseAlpha(speed));
 }
 
-void PopPulseEffect() { ImGui::PopStyleVar(); }
+void PopPulseEffect() {
+  ImGui::PopStyleVar();
+}
 
 void LoadingSpinner(const char* label, float radius) {
   ImDrawList* draw_list = ImGui::GetWindowDrawList();
@@ -461,8 +475,10 @@ float GetResponsiveWidth(float min_width, float max_width, float ratio) {
   float available = ImGui::GetContentRegionAvail().x;
   float target = available * ratio;
 
-  if (target < min_width) return min_width;
-  if (target > max_width) return max_width;
+  if (target < min_width)
+    return min_width;
+  if (target > max_width)
+    return max_width;
   return target;
 }
 
@@ -499,7 +515,9 @@ void BeginTwoColumns(const char* id, float split_ratio) {
   }
 }
 
-void SwitchColumn() { ImGui::TableNextColumn(); }
+void SwitchColumn() {
+  ImGui::TableNextColumn();
+}
 
 void EndTwoColumns() {
   ImGui::EndTable();

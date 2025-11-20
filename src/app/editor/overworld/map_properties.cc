@@ -1607,7 +1607,8 @@ void MapPropertiesSystem::DrawOverlayPreviewOnMap(int current_map,
                                                   bool show_overlay_preview) {
   gfx::ScopedTimer timer("map_properties_draw_overlay_preview");
 
-  if (!show_overlay_preview || !maps_bmp_ || !canvas_) return;
+  if (!show_overlay_preview || !maps_bmp_ || !canvas_)
+    return;
 
   // Get subscreen overlay information based on ROM version and map type
   uint16_t overlay_id = 0x00FF;
@@ -1625,7 +1626,8 @@ void MapPropertiesSystem::DrawOverlayPreviewOnMap(int current_map,
   overlay_id = overworld_->overworld_map(current_map)->subscreen_overlay();
   has_subscreen_overlay = (overlay_id != 0x00FF);
 
-  if (!has_subscreen_overlay) return;
+  if (!has_subscreen_overlay)
+    return;
 
   // Map subscreen overlay ID to special area map for bitmap
   int overlay_map_index = -1;
@@ -1638,7 +1640,8 @@ void MapPropertiesSystem::DrawOverlayPreviewOnMap(int current_map,
 
   // Get the subscreen overlay map's bitmap
   const auto& overlay_bitmap = (*maps_bmp_)[overlay_map_index];
-  if (!overlay_bitmap.is_active()) return;
+  if (!overlay_bitmap.is_active())
+    return;
 
   // Calculate position for subscreen overlay preview on the current map
   int current_map_x = current_map % 8;

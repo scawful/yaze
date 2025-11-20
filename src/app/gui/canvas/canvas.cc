@@ -17,7 +17,9 @@ namespace yaze::gui {
 // with unique_ptr
 
 // Default constructor
-Canvas::Canvas() : renderer_(nullptr) { InitializeDefaults(); }
+Canvas::Canvas() : renderer_(nullptr) {
+  InitializeDefaults();
+}
 
 // Legacy constructors (renderer is optional for backward compatibility)
 Canvas::Canvas(const std::string& id)
@@ -307,7 +309,9 @@ bool Canvas::BeginTableCanvas(const std::string& label) {
   return result;
 }
 
-void Canvas::EndTableCanvas() { ImGui::EndChild(); }
+void Canvas::EndTableCanvas() {
+  ImGui::EndChild();
+}
 
 // Improved interaction detection methods
 bool Canvas::HasValidSelection() const {
@@ -597,7 +601,9 @@ void Canvas::AddContextMenuItem(const gui::CanvasMenuItem& item) {
   }
 }
 
-void Canvas::ClearContextMenuItems() { editor_menu_.sections.clear(); }
+void Canvas::ClearContextMenuItems() {
+  editor_menu_.sections.clear();
+}
 
 void Canvas::OpenPersistentPopup(const std::string& popup_id,
                                  std::function<void()> render_callback) {
@@ -616,7 +622,8 @@ void Canvas::RenderPersistentPopups() {
 }
 
 void Canvas::SetZoomToFit(const gfx::Bitmap& bitmap) {
-  if (!bitmap.is_active()) return;
+  if (!bitmap.is_active())
+    return;
 
   ImVec2 available = ImGui::GetContentRegionAvail();
   float scale_x = available.x / bitmap.width();
@@ -624,7 +631,8 @@ void Canvas::SetZoomToFit(const gfx::Bitmap& bitmap) {
   config_.global_scale = std::min(scale_x, scale_y);
 
   // Ensure minimum readable scale
-  if (config_.global_scale < 0.25f) config_.global_scale = 0.25f;
+  if (config_.global_scale < 0.25f)
+    config_.global_scale = 0.25f;
 
   global_scale_ = config_.global_scale;  // Legacy compatibility
 
@@ -963,8 +971,10 @@ void Canvas::DrawSelectRect(int current_map, int tile_size, float scale) {
     int end_y = std::floor(drag_end_pos.y / scaled_size) * tile16_size;
 
     // Swap the start and end positions if they are in the wrong order
-    if (start_x > end_x) std::swap(start_x, end_x);
-    if (start_y > end_y) std::swap(start_y, end_y);
+    if (start_x > end_x)
+      std::swap(start_x, end_x);
+    if (start_y > end_y)
+      std::swap(start_y, end_y);
 
     selected_tiles_.clear();
     selected_tiles_.reserve(((end_x - start_x) / tile16_size + 1) *
@@ -1114,8 +1124,10 @@ void Canvas::DrawBitmapGroup(std::vector<int>& group, gfx::Tilemap& tilemap,
   int end_tile_y =
       static_cast<int>(std::floor(rect_bottom_right.y / (tile_size * scale)));
 
-  if (start_tile_x > end_tile_x) std::swap(start_tile_x, end_tile_x);
-  if (start_tile_y > end_tile_y) std::swap(start_tile_y, end_tile_y);
+  if (start_tile_x > end_tile_x)
+    std::swap(start_tile_x, end_tile_x);
+  if (start_tile_y > end_tile_y)
+    std::swap(start_tile_y, end_tile_y);
 
   // Calculate the size of the rectangle in 16x16 grid form
   int rect_width = (end_tile_x - start_tile_x) * tile_size;
@@ -1268,7 +1280,8 @@ void Canvas::DrawInfoGrid(float grid_step, int tile_id_offset, int label_id) {
   // Draw grid + all lines in the canvas
   draw_list_->PushClipRect(canvas_p0_, canvas_p1_, true);
   if (enable_grid_) {
-    if (custom_step_ != 0.f) grid_step = custom_step_;
+    if (custom_step_ != 0.f)
+      grid_step = custom_step_;
     grid_step *= global_scale_;  // Apply global scale to grid step
 
     DrawGridLines(grid_step);
@@ -1306,7 +1319,8 @@ void Canvas::DrawCustomHighlight(float grid_step) {
 }
 
 void Canvas::DrawGrid(float grid_step, int tile_id_offset) {
-  if (config_.grid_step != 0.f) grid_step = config_.grid_step;
+  if (config_.grid_step != 0.f)
+    grid_step = config_.grid_step;
 
   // Create render context for utilities
   CanvasUtils::CanvasRenderContext ctx = {
@@ -1809,7 +1823,8 @@ void Canvas::ShowBppConversionDialog() {
 }
 
 bool Canvas::ConvertBitmapFormat(gfx::BppFormat target_format) {
-  if (!bitmap_) return false;
+  if (!bitmap_)
+    return false;
 
   gfx::BppFormat current_format = GetCurrentBppFormat();
   if (current_format == target_format) {
@@ -1836,7 +1851,8 @@ bool Canvas::ConvertBitmapFormat(gfx::BppFormat target_format) {
 }
 
 gfx::BppFormat Canvas::GetCurrentBppFormat() const {
-  if (!bitmap_) return gfx::BppFormat::kBpp8;
+  if (!bitmap_)
+    return gfx::BppFormat::kBpp8;
 
   return gfx::BppFormatManager::Get().DetectFormat(
       bitmap_->vector(), bitmap_->width(), bitmap_->height());

@@ -33,7 +33,8 @@ void DungeonObjectEmulatorPreview::Initialize(gfx::IRenderer* renderer,
 }
 
 void DungeonObjectEmulatorPreview::Render() {
-  if (!show_window_) return;
+  if (!show_window_)
+    return;
 
   if (ImGui::Begin("Dungeon Object Emulator Preview", &show_window_,
                    ImGuiWindowFlags_AlwaysAutoResize)) {

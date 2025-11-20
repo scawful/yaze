@@ -19,13 +19,15 @@ namespace {
 inline void DispatchConfig(
     const std::function<void(const CanvasConfig&)>& callback,
     const CanvasConfig& config) {
-  if (callback) callback(config);
+  if (callback)
+    callback(config);
 }
 
 inline void DispatchScale(
     const std::function<void(const CanvasConfig&)>& callback,
     const CanvasConfig& config) {
-  if (callback) callback(config);
+  if (callback)
+    callback(config);
 }
 }  // namespace
 
@@ -63,7 +65,9 @@ void CanvasModals::ShowBppConversionDialog(
     const std::string& canvas_id, const BppConversionOptions& options) {
   std::string modal_id = canvas_id + "_bpp_conversion";
 
-  auto render_func = [=]() { RenderBppConversionModal(modal_id, options); };
+  auto render_func = [=]() {
+    RenderBppConversionModal(modal_id, options);
+  };
 
   OpenModal(modal_id, render_func);
 }
@@ -72,7 +76,9 @@ void CanvasModals::ShowPaletteEditor(const std::string& canvas_id,
                                      const PaletteEditorOptions& options) {
   std::string modal_id = canvas_id + "_palette_editor";
 
-  auto render_func = [=]() { RenderPaletteEditorModal(modal_id, options); };
+  auto render_func = [=]() {
+    RenderPaletteEditorModal(modal_id, options);
+  };
 
   OpenModal(modal_id, render_func);
 }
@@ -81,7 +87,9 @@ void CanvasModals::ShowColorAnalysis(const std::string& canvas_id,
                                      const ColorAnalysisOptions& options) {
   std::string modal_id = canvas_id + "_color_analysis";
 
-  auto render_func = [=]() { RenderColorAnalysisModal(modal_id, options); };
+  auto render_func = [=]() {
+    RenderColorAnalysisModal(modal_id, options);
+  };
 
   OpenModal(modal_id, render_func);
 }
@@ -90,7 +98,9 @@ void CanvasModals::ShowPerformanceIntegration(
     const std::string& canvas_id, const PerformanceOptions& options) {
   std::string modal_id = canvas_id + "_performance";
 
-  auto render_func = [=]() { RenderPerformanceModal(modal_id, options); };
+  auto render_func = [=]() {
+    RenderPerformanceModal(modal_id, options);
+  };
 
   OpenModal(modal_id, render_func);
 }
@@ -202,7 +212,8 @@ void CanvasModals::RenderAdvancedPropertiesModal(const std::string& canvas_id,
       const float preset_values[] = {0.25f, 0.5f, 1.0f, 2.0f, 4.0f, 8.0f};
 
       for (int i = 0; i < 6; ++i) {
-        if (i > 0) ImGui::SameLine();
+        if (i > 0)
+          ImGui::SameLine();
         if (ImGui::Button(preset_labels[i])) {
           config.global_scale = preset_values[i];
           DispatchConfig(config.on_config_changed, config);
@@ -307,7 +318,8 @@ void CanvasModals::RenderScalingControlsModal(const std::string& canvas_id,
     const float preset_values[] = {0.25f, 0.5f, 1.0f, 2.0f, 4.0f, 8.0f};
 
     for (int i = 0; i < 6; ++i) {
-      if (i > 0) ImGui::SameLine();
+      if (i > 0)
+        ImGui::SameLine();
       if (ImGui::Button(preset_labels[i])) {
         config.global_scale = preset_values[i];
         DispatchScale(config.on_scale_changed, config);
@@ -327,7 +339,8 @@ void CanvasModals::RenderScalingControlsModal(const std::string& canvas_id,
     const float grid_values[] = {8.0f, 16.0f, 32.0f, 64.0f};
 
     for (int i = 0; i < 4; ++i) {
-      if (i > 0) ImGui::SameLine();
+      if (i > 0)
+        ImGui::SameLine();
       if (ImGui::Button(grid_labels[i])) {
         config.grid_step = grid_values[i];
         DispatchScale(config.on_scale_changed, config);

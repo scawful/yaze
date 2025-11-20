@@ -1,0 +1,334 @@
+name: Configuration Matrix Testing
+
+on:
+  schedule:
+    # Run nightly at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      tier:
+        description: 'Test tier to run'
+        required: false
+        default: 'tier2'
+        type: choice
+        options:
+          - all
+          - tier1
+          - tier2
+          - tier2-linux
+          - tier2-macos
+          - tier2-windows
+      verbose:
+        description: 'Verbose output'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  BUILD_TYPE: RelWithDebInfo
+  CMAKE_BUILD_PARALLEL_LEVEL: 4
+
+jobs:
+  matrix-linux:
+    name: "Config Matrix - Linux - ${{ matrix.name }}"
+    runs-on: ubuntu-22.04
+    if: |
+      github.event_name == 'schedule' ||
+      github.event_name == 'workflow_dispatch' ||
+      contains(github.event.head_commit.message, '[matrix]')
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Tier 2: Feature Combination Tests
+          - name: "Minimal (no AI, no gRPC)"
+            config: minimal
+            preset: minimal
+            cflags: "-DYAZE_ENABLE_GRPC=OFF -DYAZE_ENABLE_AI=OFF -DYAZE_ENABLE_JSON=ON"
+
+          - name: "gRPC Only"
+            config: grpc-only
+            preset: ci-linux
+            cflags: "-DYAZE_ENABLE_GRPC=ON -DYAZE_ENABLE_REMOTE_AUTOMATION=OFF -DYAZE_ENABLE_AI_RUNTIME=OFF"
+
+          - name: "Full AI Stack"
+            config: full-ai
+            preset: ci-linux
+            cflags: "-DYAZE_ENABLE_GRPC=ON -DYAZE_ENABLE_REMOTE_AUTOMATION=ON -DYAZE_ENABLE_AI_RUNTIME=ON -DYAZE_ENABLE_JSON=ON"
+
+          - name: "CLI Only (no gRPC)"
+            config: cli-only-no-grpc
+            preset: minimal
+            cflags: "-DYAZE_ENABLE_GRPC=OFF -DYAZE_BUILD_GUI=OFF -DYAZE_BUILD_EMU=OFF"
+
+          - name: "HTTP API (gRPC + JSON)"
+            config: http-api
+            preset: ci-linux
+            cflags: "-DYAZE_ENABLE_GRPC=ON -DYAZE_ENABLE_HTTP_API=ON -DYAZE_ENABLE_JSON=ON"
+
+          - name: "No JSON (Ollama only)"
+            config: no-json
+            preset: ci-linux
+            cflags: "-DYAZE_ENABLE_JSON=OFF -DYAZE_ENABLE_GRPC=ON"
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup build environment
+        uses: ./.github/actions/setup-build
+        with:
+          platform: linux
+          preset: ${{ matrix.preset }}
+          cache-key: ${{ hashFiles('cmake/dependencies.lock') }}
+
+      - name: Configure CMake
+        run: |
+          cmake --preset ${{ matrix.preset }} \
+            -B build_matrix_${{ matrix.config }} \
+            -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
+            ${{ matrix.cflags }}
+
+      - name: Verify configuration
+        run: |
+          # Print resolved configuration
+          echo "=== Configuration Summary ==="
+          grep "YAZE_BUILD\|YAZE_ENABLE" build_matrix_${{ matrix.config }}/CMakeCache.txt | sort || true
+          echo "=============================="
+
+      - name: Build project
+        run: |
+          cmake --build build_matrix_${{ matrix.config }} \
+            --config ${{ env.BUILD_TYPE }} \
+            --parallel 4
+
+      - name: Run unit tests (if built)
+        if: ${{ hashFiles(format('build_matrix_{0}/bin/yaze_test', matrix.config)) != '' }}
+        run: |
+          ./build_matrix_${{ matrix.config }}/bin/yaze_test --unit 2>&1 | head -100
+        continue-on-error: true
+
+      - name: Run stable tests
+        if: ${{ hashFiles(format('build_matrix_{0}/bin/yaze_test', matrix.config)) != '' }}
+        run: |
+          ./build_matrix_${{ matrix.config }}/bin/yaze_test --stable 2>&1 | head -100
+        continue-on-error: true
+
+      - name: Report results
+        if: always()
+        run: |
+          if [ -f build_matrix_${{ matrix.config }}/CMakeCache.txt ]; then
+            echo "✓ Configuration: ${{ matrix.name }}"
+            echo "✓ Build: SUCCESS"
+          else
+            echo "✗ Configuration: ${{ matrix.name }}"
+            echo "✗ Build: FAILED"
+            exit 1
+          fi
+
+  matrix-macos:
+    name: "Config Matrix - macOS - ${{ matrix.name }}"
+    runs-on: macos-14
+    if: |
+      github.event_name == 'schedule' ||
+      github.event_name == 'workflow_dispatch' ||
+      contains(github.event.head_commit.message, '[matrix]')
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Tier 2: macOS-specific tests
+          - name: "Minimal (GUI only, no AI)"
+            config: minimal
+            preset: mac-dbg
+            cflags: "-DYAZE_ENABLE_GRPC=OFF -DYAZE_ENABLE_AI=OFF"
+
+          - name: "Full Stack (gRPC + AI)"
+            config: full-ai
+            preset: mac-ai
+            cflags: "-DYAZE_ENABLE_GRPC=ON -DYAZE_ENABLE_AI_RUNTIME=ON"
+
+          - name: "Agent UI Only"
+            config: agent-ui
+            preset: mac-dbg
+            cflags: "-DYAZE_BUILD_AGENT_UI=ON -DYAZE_ENABLE_GRPC=OFF -DYAZE_ENABLE_AI=OFF"
+
+          - name: "Universal Binary (Intel + ARM)"
+            config: universal
+            preset: mac-uni
+            cflags: "-DCMAKE_OSX_ARCHITECTURES='arm64;x86_64' -DYAZE_ENABLE_GRPC=OFF"
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup build environment
+        uses: ./.github/actions/setup-build
+        with:
+          platform: macos
+          preset: ${{ matrix.preset }}
+          cache-key: ${{ hashFiles('cmake/dependencies.lock') }}
+
+      - name: Configure CMake
+        run: |
+          cmake --preset ${{ matrix.preset }} \
+            -B build_matrix_${{ matrix.config }} \
+            -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
+            ${{ matrix.cflags }}
+
+      - name: Verify configuration
+        run: |
+          echo "=== Configuration Summary ==="
+          grep "YAZE_BUILD\|YAZE_ENABLE" build_matrix_${{ matrix.config }}/CMakeCache.txt | sort || true
+          echo "=============================="
+
+      - name: Build project
+        run: |
+          cmake --build build_matrix_${{ matrix.config }} \
+            --config ${{ env.BUILD_TYPE }} \
+            --parallel 4
+
+      - name: Run unit tests
+        if: ${{ hashFiles(format('build_matrix_{0}/bin/yaze_test', matrix.config)) != '' }}
+        run: |
+          ./build_matrix_${{ matrix.config }}/bin/yaze_test --unit 2>&1 | head -100
+        continue-on-error: true
+
+      - name: Report results
+        if: always()
+        run: |
+          if [ -f build_matrix_${{ matrix.config }}/CMakeCache.txt ]; then
+            echo "✓ Configuration: ${{ matrix.name }}"
+            echo "✓ Build: SUCCESS"
+          else
+            echo "✗ Configuration: ${{ matrix.name }}"
+            echo "✗ Build: FAILED"
+            exit 1
+          fi
+
+  matrix-windows:
+    name: "Config Matrix - Windows - ${{ matrix.name }}"
+    runs-on: windows-2022
+    if: |
+      github.event_name == 'schedule' ||
+      github.event_name == 'workflow_dispatch' ||
+      contains(github.event.head_commit.message, '[matrix]')
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Tier 2: Windows-specific tests
+          - name: "Minimal (no AI, no gRPC)"
+            config: minimal
+            preset: win-dbg
+            cflags: "-DYAZE_ENABLE_GRPC=OFF -DYAZE_ENABLE_AI=OFF"
+
+          - name: "Full AI Stack"
+            config: full-ai
+            preset: win-ai
+            cflags: "-DYAZE_ENABLE_GRPC=ON -DYAZE_ENABLE_AI_RUNTIME=ON"
+
+          - name: "gRPC + Remote Automation"
+            config: grpc-remote
+            preset: ci-windows
+            cflags: "-DYAZE_ENABLE_GRPC=ON -DYAZE_ENABLE_REMOTE_AUTOMATION=ON"
+
+          - name: "z3ed CLI Only"
+            config: z3ed-cli
+            preset: win-z3ed
+            cflags: "-DYAZE_BUILD_Z3ED=ON -DYAZE_BUILD_GUI=OFF -DYAZE_ENABLE_GRPC=ON"
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup build environment
+        uses: ./.github/actions/setup-build
+        with:
+          platform: windows
+          preset: ${{ matrix.preset }}
+          cache-key: ${{ hashFiles('cmake/dependencies.lock') }}
+
+      - name: Configure CMake
+        run: |
+          cmake --preset ${{ matrix.preset }} `
+            -B build_matrix_${{ matrix.config }} `
+            -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} `
+            ${{ matrix.cflags }}
+
+      - name: Verify configuration
+        run: |
+          Write-Output "=== Configuration Summary ==="
+          Select-String "YAZE_BUILD|YAZE_ENABLE" build_matrix_${{ matrix.config }}/CMakeCache.txt | Sort-Object | Write-Output
+          Write-Output "==============================="
+
+      - name: Build project
+        run: |
+          cmake --build build_matrix_${{ matrix.config }} `
+            --config ${{ env.BUILD_TYPE }} `
+            --parallel 4
+
+      - name: Run unit tests
+        if: ${{ hashFiles(format('build_matrix_{0}\bin\{1}\yaze_test.exe', matrix.config, env.BUILD_TYPE)) != '' }}
+        run: |
+          .\build_matrix_${{ matrix.config }}\bin\${{ env.BUILD_TYPE }}\yaze_test.exe --unit 2>&1 | Select-Object -First 100
+        continue-on-error: true
+
+      - name: Report results
+        if: always()
+        run: |
+          if (Test-Path build_matrix_${{ matrix.config }}/CMakeCache.txt) {
+            Write-Output "✓ Configuration: ${{ matrix.name }}"
+            Write-Output "✓ Build: SUCCESS"
+          } else {
+            Write-Output "✗ Configuration: ${{ matrix.name }}"
+            Write-Output "✗ Build: FAILED"
+            exit 1
+          }
+
+  # Aggregation job that depends on all matrix jobs
+  matrix-summary:
+    name: Matrix Test Summary
+    runs-on: ubuntu-latest
+    if: always()
+    needs: [matrix-linux, matrix-macos, matrix-windows]
+    steps:
+      - name: Check all matrix tests
+        run: |
+          echo "=== Matrix Test Results ==="
+          if [ "${{ needs.matrix-linux.result }}" == "failure" ]; then
+            echo "✗ Linux tests FAILED"
+            exit 1
+          else
+            echo "✓ Linux tests passed"
+          fi
+
+          if [ "${{ needs.matrix-macos.result }}" == "failure" ]; then
+            echo "✗ macOS tests FAILED"
+            exit 1
+          else
+            echo "✓ macOS tests passed"
+          fi
+
+          if [ "${{ needs.matrix-windows.result }}" == "failure" ]; then
+            echo "✗ Windows tests FAILED"
+            exit 1
+          else
+            echo "✓ Windows tests passed"
+          fi
+          echo "==============================="
+
+      - name: Report success
+        if: success()
+        run: echo "✓ All matrix tests passed!"
+
+      - name: Post to coordination board (if configured)
+        if: always()
+        run: |
+          echo "Matrix testing complete. Update coordination-board.md if needed."

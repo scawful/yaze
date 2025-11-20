@@ -15,7 +15,9 @@ namespace api {
 
 HttpServer::HttpServer() : server_(std::make_unique<httplib::Server>()) {}
 
-HttpServer::~HttpServer() { Stop(); }
+HttpServer::~HttpServer() {
+  Stop();
+}
 
 absl::Status HttpServer::Start(int port) {
   if (is_running_) {
@@ -58,7 +60,9 @@ void HttpServer::Stop() {
   }
 }
 
-bool HttpServer::IsRunning() const { return is_running_; }
+bool HttpServer::IsRunning() const {
+  return is_running_;
+}
 
 void HttpServer::RegisterRoutes() {
   server_->Get("/api/v1/health", HandleHealth);

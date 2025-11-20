@@ -171,7 +171,9 @@ void StatusBadge(const char* text, ButtonColor color) {
   ImGui::PopStyleColor();
 }
 
-void VerticalSpacing(float amount) { ImGui::Dummy(ImVec2(0, amount)); }
+void VerticalSpacing(float amount) {
+  ImGui::Dummy(ImVec2(0, amount));
+}
 
 void HorizontalSpacing(float amount) {
   ImGui::Dummy(ImVec2(amount, 0));

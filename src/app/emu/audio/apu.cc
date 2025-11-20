@@ -43,7 +43,9 @@ static const uint8_t bootRom[0x40] = {
 
 // Helper to reset the cycle tracking on emulator reset
 static uint64_t g_last_master_cycles = 0;
-static void ResetCycleTracking() { g_last_master_cycles = 0; }
+static void ResetCycleTracking() {
+  g_last_master_cycles = 0;
+}
 
 void Apu::Init() {
   ram.resize(0x10000);
@@ -296,7 +298,8 @@ void Apu::Write(uint16_t adr, uint8_t val) {
       break;
     }
     case 0xf3: {
-      if (dsp_adr_ < 0x80) dsp_.Write(dsp_adr_, val);
+      if (dsp_adr_ < 0x80)
+        dsp_.Write(dsp_adr_, val);
       break;
     }
     case 0xf4:
@@ -362,7 +365,9 @@ void Apu::SpcWrite(uint16_t adr, uint8_t val) {
   Write(adr, val);
 }
 
-void Apu::SpcIdle(bool waiting) { Cycle(); }
+void Apu::SpcIdle(bool waiting) {
+  Cycle();
+}
 
 }  // namespace emu
 }  // namespace yaze

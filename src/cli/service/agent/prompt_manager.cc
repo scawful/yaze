@@ -12,7 +12,8 @@ namespace agent {
 std::string PromptManager::LoadPrompt(PromptMode mode) {
   std::string path = GetPromptPath(mode);
   std::ifstream file(path);
-  if (!file) return "";
+  if (!file)
+    return "";
 
   std::ostringstream ss;
   ss << file.rdbuf();

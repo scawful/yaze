@@ -134,7 +134,8 @@ absl::Status PolicyEvaluator::ParsePolicyFile(absl::string_view yaml_content) {
     std::string trimmed = std::string(absl::StripAsciiWhitespace(line));
 
     // Skip comments and empty lines
-    if (trimmed.empty() || trimmed[0] == '#') continue;
+    if (trimmed.empty() || trimmed[0] == '#')
+      continue;
 
     // Check for main keys
     if (absl::StartsWith(trimmed, "version:")) {
@@ -231,7 +232,8 @@ void PolicyEvaluator::EvaluateTestRequirements(absl::string_view proposal_id,
   // For now, all test requirements pass (no test framework yet)
   std::string proposal_id_str(proposal_id);
   for (const auto& policy : config_->test_requirements) {
-    if (!policy.enabled) continue;
+    if (!policy.enabled)
+      continue;
 
     // Placeholder: would check actual test results here
     // For now, we skip test validation
@@ -250,7 +252,8 @@ void PolicyEvaluator::EvaluateChangeConstraints(absl::string_view proposal_id,
   const auto& proposal = proposal_result.value();
 
   for (const auto& policy : config_->change_constraints) {
-    if (!policy.enabled) continue;
+    if (!policy.enabled)
+      continue;
 
     // Check max bytes changed
     if (policy.max_bytes_changed > 0 &&
@@ -288,7 +291,8 @@ void PolicyEvaluator::EvaluateForbiddenRanges(absl::string_view proposal_id,
   // Would need to parse diff or track ROM modifications
   // For now, we assume no forbidden range violations
   for (const auto& policy : config_->forbidden_ranges) {
-    if (!policy.enabled) continue;
+    if (!policy.enabled)
+      continue;
 
     // Placeholder: would check ROM modification ranges here
   }
@@ -306,7 +310,8 @@ void PolicyEvaluator::EvaluateReviewRequirements(absl::string_view proposal_id,
   const auto& proposal = proposal_result.value();
 
   for (const auto& policy : config_->review_requirements) {
-    if (!policy.enabled) continue;
+    if (!policy.enabled)
+      continue;
 
     // Evaluate conditions
     for (const auto& condition : policy.conditions) {

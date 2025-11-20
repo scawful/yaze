@@ -301,9 +301,12 @@ RomVersionManager::Stats RomVersionManager::GetStats() const {
   stats.total_snapshots = snapshots_.size();
 
   for (const auto& [id, snapshot] : snapshots_) {
-    if (snapshot.is_safe_point) stats.safe_points++;
-    if (snapshot.is_checkpoint) stats.manual_checkpoints++;
-    if (!snapshot.is_checkpoint) stats.auto_backups++;
+    if (snapshot.is_safe_point)
+      stats.safe_points++;
+    if (snapshot.is_checkpoint)
+      stats.manual_checkpoints++;
+    if (!snapshot.is_checkpoint)
+      stats.auto_backups++;
     stats.total_storage_bytes += snapshot.compressed_size;
 
     if (stats.oldest_snapshot_timestamp == 0 ||
@@ -435,7 +438,8 @@ absl::Status ProposalApprovalManager::VoteOnProposal(
     // Check if rejection threshold reached
     size_t rejection_count = 0;
     for (const auto& [user, vote] : status.votes) {
-      if (!vote) rejection_count++;
+      if (!vote)
+        rejection_count++;
     }
 
     // If host rejected (in host-only mode), reject immediately
@@ -462,7 +466,8 @@ bool ProposalApprovalManager::CheckApprovalThreshold(
     case ApprovalMode::kMajorityVote: {
       size_t approval_count = 0;
       for (const auto& [user, approved] : status.votes) {
-        if (approved) approval_count++;
+        if (approved)
+          approval_count++;
       }
       return approval_count > participants_.size() / 2;
     }
@@ -472,7 +477,8 @@ bool ProposalApprovalManager::CheckApprovalThreshold(
         return false;  // Not everyone voted yet
       }
       for (const auto& [user, approved] : status.votes) {
-        if (!approved) return false;
+        if (!approved)
+          return false;
       }
       return true;
     }

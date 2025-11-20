@@ -146,9 +146,11 @@ void Ppu::RunLine(int line) {
   // called for lines 1-224/239
   // evaluate sprites
   obj_pixel_buffer_.fill(0);
-  if (!forced_blank_) EvaluateSprites(line - 1);
+  if (!forced_blank_)
+    EvaluateSprites(line - 1);
   // actual line
-  if (mode == 7) CalculateMode7Starts(line);
+  if (mode == 7)
+    CalculateMode7Starts(line);
   for (int x = 0; x < 256; x++) {
     HandlePixel(x, line);
   }
@@ -193,12 +195,18 @@ void Ppu::HandlePixel(int x, int y) {
         g >>= 1;
         b >>= 1;
       }
-      if (r > 31) r = 31;
-      if (g > 31) g = 31;
-      if (b > 31) b = 31;
-      if (r < 0) r = 0;
-      if (g < 0) g = 0;
-      if (b < 0) b = 0;
+      if (r > 31)
+        r = 31;
+      if (g > 31)
+        g = 31;
+      if (b > 31)
+        b = 31;
+      if (r < 0)
+        r = 0;
+      if (g < 0)
+        g = 0;
+      if (b < 0)
+        b = 0;
     }
     if (!(pseudo_hires_ || mode == 5 || mode == 6)) {
       r2 = r;
@@ -327,13 +335,15 @@ int Ppu::GetPixelForMode7(int x, int layer, bool priority) {
   bool outsideMap = xPos < 0 || xPos >= 1024 || yPos < 0 || yPos >= 1024;
   xPos &= 0x3ff;
   yPos &= 0x3ff;
-  if (!m7largeField) outsideMap = false;
+  if (!m7largeField)
+    outsideMap = false;
   uint8_t tile = outsideMap ? 0 : vram[(yPos >> 3) * 128 + (xPos >> 3)] & 0xff;
   uint8_t pixel = outsideMap && !m7charFill
                       ? 0
                       : vram[tile * 64 + (yPos & 7) * 8 + (xPos & 7)] >> 8;
   if (layer == 1) {
-    if (((bool)(pixel & 0x80)) != priority) return 0;
+    if (((bool)(pixel & 0x80)) != priority)
+      return 0;
     return pixel & 0x7f;
   }
   return pixel;
@@ -354,8 +364,10 @@ bool Ppu::GetWindowState(int layer, int x) {
   }
   bool test1 = x >= window1left && x <= window1right;
   bool test2 = x >= window2left && x <= window2right;
-  if (windowLayer[layer].window1inversed) test1 = !test1;
-  if (windowLayer[layer].window2inversed) test2 = !test2;
+  if (windowLayer[layer].window1inversed)
+    test1 = !test1;
+  if (windowLayer[layer].window2inversed)
+    test2 = !test2;
   switch (windowLayer[layer].maskLogic) {
     case 0:
       return test1 || test2;
@@ -396,7 +408,8 @@ void Ppu::HandleOPT(int layer, int* lx, int* ly) {
       if (hOffset & valid)
         *lx = (((hOffset & 0x3f8) + (column * 8)) * 2) | (x & 0xf);
     } else {
-      if (hOffset & valid) *lx = ((hOffset & 0x3f8) + (column * 8)) | (x & 0x7);
+      if (hOffset & valid)
+        *lx = ((hOffset & 0x3f8) + (column * 8)) | (x & 0x7);
     }
     // TODO: not sure if correct for interlace
     if (vOffset & valid)
@@ -412,7 +425,8 @@ uint16_t Ppu::GetOffsetValue(int col, int row) {
   uint16_t tilemapAdr =
       bg_layer_[2].tilemapAdr +
       (((y >> tileBits) & 0x1f) << 5 | ((x >> tileBits) & 0x1f));
-  if ((x & tileHighBit) && bg_layer_[2].tilemapWider) tilemapAdr += 0x400;
+  if ((x & tileHighBit) && bg_layer_[2].tilemapWider)
+    tilemapAdr += 0x400;
   if ((y & tileHighBit) && bg_layer_[2].tilemapHigher)
     tilemapAdr += bg_layer_[2].tilemapWider ? 0x800 : 0x400;
   return vram[tilemapAdr & 0x7fff];
@@ -428,12 +442,14 @@ int Ppu::GetPixelForBgLayer(int x, int y, int layer, bool priority) {
   uint16_t tilemapAdr =
       bg_layer_[layer].tilemapAdr +
       (((y >> tileBitsY) & 0x1f) << 5 | ((x >> tileBitsX) & 0x1f));
-  if ((x & tileHighBitX) && bg_layer_[layer].tilemapWider) tilemapAdr += 0x400;
+  if ((x & tileHighBitX) && bg_layer_[layer].tilemapWider)
+    tilemapAdr += 0x400;
   if ((y & tileHighBitY) && bg_layer_[layer].tilemapHigher)
     tilemapAdr += bg_layer_[layer].tilemapWider ? 0x800 : 0x400;
   uint16_t tile = vram[tilemapAdr & 0x7fff];
   // check priority, get palette
-  if (((bool)(tile & 0x2000)) != priority) return 0;  // wrong priority
+  if (((bool)(tile & 0x2000)) != priority)
+    return 0;  // wrong priority
   int paletteNum = (tile & 0x1c00) >> 10;
   // figure out position within tile
   int row = (tile & 0x8000) ? 7 - (y & 0x7) : (y & 0x7);
@@ -441,15 +457,18 @@ int Ppu::GetPixelForBgLayer(int x, int y, int layer, bool priority) {
   int tileNum = tile & 0x3ff;
   if (wideTiles) {
     // if unflipped right half of tile, or flipped left half of tile
-    if (((bool)(x & 8)) ^ ((bool)(tile & 0x4000))) tileNum += 1;
+    if (((bool)(x & 8)) ^ ((bool)(tile & 0x4000)))
+      tileNum += 1;
   }
   if (bg_layer_[layer].bigTiles) {
     // if unflipped bottom half of tile, or flipped upper half of tile
-    if (((bool)(y & 8)) ^ ((bool)(tile & 0x8000))) tileNum += 0x10;
+    if (((bool)(y & 8)) ^ ((bool)(tile & 0x8000)))
+      tileNum += 0x10;
   }
   // read tiledata, ajust palette for mode 0
   int bitDepth = kBitDepthsPerMode[mode][layer];
-  if (mode == 0) paletteNum += 8 * layer;
+  if (mode == 0)
+    paletteNum += 8 * layer;
   // plane 1 (always)
   int paletteSize = 4;
   uint16_t plane1 = vram[(bg_layer_[layer].tileAdr +
@@ -504,7 +523,8 @@ void Ppu::EvaluateSprites(int line) {
       // in y-range, get the x location, using the high bit as well
       int x = oam[index] & 0xff;
       x |= ((high_oam_[index >> 3] >> (index & 7)) & 1) << 8;
-      if (x > 255) x -= 512;
+      if (x > 255)
+        x -= 512;
       // if in x-range, record
       if (x > -spriteSize) {
         // break if we found 32 sprites already
@@ -529,15 +549,18 @@ void Ppu::EvaluateSprites(int line) {
                     [(high_oam_[index >> 3] >> ((index & 7) + 1)) & 1];
     int x = oam[index] & 0xff;
     x |= ((high_oam_[index >> 3] >> (index & 7)) & 1) << 8;
-    if (x > 255) x -= 512;
+    if (x > 255)
+      x -= 512;
     if (x > -spriteSize) {
       // update row according to obj-interlace
-      if (obj_interlace_) row = row * 2 + (even_frame ? 0 : 1);
+      if (obj_interlace_)
+        row = row * 2 + (even_frame ? 0 : 1);
       // get some data for the sprite and y-flip row if needed
       int tile = oam[index + 1] & 0xff;
       int palette = (oam[index + 1] & 0xe00) >> 9;
       bool hFlipped = oam[index + 1] & 0x4000;
-      if (oam[index + 1] & 0x8000) row = spriteSize - 1 - row;
+      if (oam[index + 1] & 0x8000)
+        row = spriteSize - 1 - row;
       // fetch all tiles in x-range
       for (int col = 0; col < spriteSize; col += 8) {
         if (col + x > -8 && col + x < 256) {
@@ -653,14 +676,16 @@ uint8_t Ppu::Read(uint8_t adr, bool latch) {
         ret = high_oam_[((oam_adr_ & 0xf) << 1) | oam_second_write_];
         if (oam_second_write_) {
           oam_adr_++;
-          if (oam_adr_ == 0) oam_in_high_ = false;
+          if (oam_adr_ == 0)
+            oam_in_high_ = false;
         }
       } else {
         if (!oam_second_write_) {
           ret = oam[oam_adr_] & 0xff;
         } else {
           ret = oam[oam_adr_++] >> 8;
-          if (oam_adr_ == 0) oam_in_high_ = true;
+          if (oam_adr_ == 0)
+            oam_in_high_ = true;
         }
       }
       oam_second_write_ = !oam_second_write_;
@@ -781,14 +806,16 @@ void Ppu::Write(uint8_t adr, uint8_t val) {
         high_oam_[((oam_adr_ & 0xf) << 1) | oam_second_write_] = val;
         if (oam_second_write_) {
           oam_adr_++;
-          if (oam_adr_ == 0) oam_in_high_ = false;
+          if (oam_adr_ == 0)
+            oam_in_high_ = false;
         }
       } else {
         if (!oam_second_write_) {
           oam_buffer_ = val;
         } else {
           oam[oam_adr_++] = (val << 8) | oam_buffer_;
-          if (oam_adr_ == 0) oam_in_high_ = true;
+          if (oam_adr_ == 0)
+            oam_in_high_ = true;
         }
       }
       oam_second_write_ = !oam_second_write_;
@@ -884,13 +911,15 @@ void Ppu::Write(uint8_t adr, uint8_t val) {
       // TODO: vram access during rendering (also cgram and oam)
       uint16_t vramAdr = GetVramRemap();
       vram[vramAdr & 0x7fff] = (vram[vramAdr & 0x7fff] & 0xff00) | val;
-      if (!vram_increment_on_high_) vram_pointer += vram_increment_;
+      if (!vram_increment_on_high_)
+        vram_pointer += vram_increment_;
       break;
     }
     case 0x19: {
       uint16_t vramAdr = GetVramRemap();
       vram[vramAdr & 0x7fff] = (vram[vramAdr & 0x7fff] & 0x00ff) | (val << 8);
-      if (vram_increment_on_high_) vram_pointer += vram_increment_;
+      if (vram_increment_on_high_)
+        vram_pointer += vram_increment_;
       break;
     }
     case 0x1a: {
@@ -1017,9 +1046,12 @@ void Ppu::Write(uint8_t adr, uint8_t val) {
       break;
     }
     case 0x32: {
-      if (val & 0x80) fixed_color_b_ = val & 0x1f;
-      if (val & 0x40) fixed_color_g_ = val & 0x1f;
-      if (val & 0x20) fixed_color_r_ = val & 0x1f;
+      if (val & 0x80)
+        fixed_color_b_ = val & 0x1f;
+      if (val & 0x40)
+        fixed_color_g_ = val & 0x1f;
+      if (val & 0x20)
+        fixed_color_r_ = val & 0x1f;
       break;
     }
     case 0x33: {

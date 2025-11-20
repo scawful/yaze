@@ -78,10 +78,14 @@ struct CanvasMenuItem {
   std::optional<CanvasPopupDefinition> popup;
 
   // Condition to determine if menu item is enabled
-  std::function<bool()> enabled_condition = []() { return true; };
+  std::function<bool()> enabled_condition = []() {
+    return true;
+  };
 
   // Condition to determine if menu item is visible
-  std::function<bool()> visible_condition = []() { return true; };
+  std::function<bool()> visible_condition = []() {
+    return true;
+  };
 
   // Nested submenu items
   std::vector<CanvasMenuItem> subitems;
@@ -113,7 +117,9 @@ struct CanvasMenuItem {
   static CanvasMenuItem Disabled(const std::string& lbl) {
     CanvasMenuItem item;
     item.label = lbl;
-    item.enabled_condition = []() { return false; };
+    item.enabled_condition = []() {
+      return false;
+    };
     return item;
   }
 

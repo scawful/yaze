@@ -80,7 +80,8 @@ bool EditorSelectionDialog::Show(bool* p_open) {
   }
 
   if (!is_open_) {
-    if (p_open) *p_open = false;
+    if (p_open)
+      *p_open = false;
     return false;
   }
 
@@ -146,7 +147,8 @@ bool EditorSelectionDialog::Show(bool* p_open) {
 
   if (editor_selected) {
     is_open_ = false;
-    if (p_open) *p_open = false;
+    if (p_open)
+      *p_open = false;
   }
 
   return editor_selected;

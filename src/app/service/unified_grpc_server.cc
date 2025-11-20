@@ -19,7 +19,9 @@ namespace yaze {
 YazeGRPCServer::YazeGRPCServer() : is_running_(false) {}
 
 // Destructor defined here so CanvasAutomationServiceGrpc is a complete type
-YazeGRPCServer::~YazeGRPCServer() { Shutdown(); }
+YazeGRPCServer::~YazeGRPCServer() {
+  Shutdown();
+}
 
 absl::Status YazeGRPCServer::Initialize(
     int port, test::TestManager* test_manager, Rom* rom,
@@ -124,7 +126,9 @@ void YazeGRPCServer::Shutdown() {
   }
 }
 
-bool YazeGRPCServer::IsRunning() const { return is_running_; }
+bool YazeGRPCServer::IsRunning() const {
+  return is_running_;
+}
 
 absl::Status YazeGRPCServer::BuildServer() {
   if (is_running_) {

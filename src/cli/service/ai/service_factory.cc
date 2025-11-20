@@ -36,11 +36,13 @@ std::unique_ptr<AIService> CreateAIService() {
   // Fall back to environment variables if flags not set
   if (config.gemini_api_key.empty()) {
     const char* env_key = std::getenv("GEMINI_API_KEY");
-    if (env_key) config.gemini_api_key = env_key;
+    if (env_key)
+      config.gemini_api_key = env_key;
   }
   if (config.model.empty()) {
     const char* env_model = std::getenv("OLLAMA_MODEL");
-    if (env_model) config.model = env_model;
+    if (env_model)
+      config.model = env_model;
   }
 
   return CreateAIService(config);

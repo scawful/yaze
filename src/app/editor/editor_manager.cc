@@ -116,9 +116,13 @@ void EditorManager::ShowHexEditor() {
 }
 
 #ifdef YAZE_WITH_GRPC
-void EditorManager::ShowAIAgent() { agent_editor_.set_active(true); }
+void EditorManager::ShowAIAgent() {
+  agent_editor_.set_active(true);
+}
 
-void EditorManager::ShowChatHistory() { agent_chat_history_popup_.Toggle(); }
+void EditorManager::ShowChatHistory() {
+  agent_chat_history_popup_.Toggle();
+}
 #endif
 
 EditorManager::EditorManager()
@@ -777,7 +781,8 @@ absl::Status EditorManager::Update() {
   // Iterate through ALL sessions to support multi-session docking
   for (size_t session_idx = 0; session_idx < sessions_.size(); ++session_idx) {
     auto& session = sessions_[session_idx];
-    if (!session.rom.is_loaded()) continue;  // Skip sessions with invalid ROMs
+    if (!session.rom.is_loaded())
+      continue;  // Skip sessions with invalid ROMs
 
     // Use RAII SessionScope for clean context switching
     SessionScope scope(this, session_idx);
@@ -872,7 +877,8 @@ absl::Status EditorManager::Update() {
     for (size_t session_idx = 0; session_idx < sessions_.size();
          ++session_idx) {
       auto& session = sessions_[session_idx];
-      if (!session.rom.is_loaded()) continue;
+      if (!session.rom.is_loaded())
+        continue;
 
       for (auto editor : session.editors.active_editors_) {
         if (*editor->active() && IsCardBasedEditor(editor->type())) {
@@ -1682,7 +1688,8 @@ std::string EditorManager::GenerateUniqueEditorTitle(
 // ============================================================================
 
 void EditorManager::JumpToDungeonRoom(int room_id) {
-  if (!GetCurrentEditorSet()) return;
+  if (!GetCurrentEditorSet())
+    return;
 
   // Switch to dungeon editor
   SwitchToEditor(EditorType::kDungeon);
@@ -1692,7 +1699,8 @@ void EditorManager::JumpToDungeonRoom(int room_id) {
 }
 
 void EditorManager::JumpToOverworldMap(int map_id) {
-  if (!GetCurrentEditorSet()) return;
+  if (!GetCurrentEditorSet())
+    return;
 
   // Switch to overworld editor
   SwitchToEditor(EditorType::kOverworld);
@@ -1703,7 +1711,8 @@ void EditorManager::JumpToOverworldMap(int map_id) {
 
 void EditorManager::SwitchToEditor(EditorType editor_type) {
   auto* editor_set = GetCurrentEditorSet();
-  if (!editor_set) return;
+  if (!editor_set)
+    return;
 
   // Toggle the editor
   for (auto* editor : editor_set->active_editors_) {

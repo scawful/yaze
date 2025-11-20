@@ -276,7 +276,8 @@ void Cpu::ExecuteInstruction(uint8_t opcode) {
     case 0x00: {  // brk imm(s)
       uint32_t vector = (E) ? 0xfffe : 0xffe6;
       ReadOpcode();
-      if (!E) PushByte(PB);
+      if (!E)
+        PushByte(PB);
       PushWord(PC, false);
       PushByte(status);
       SetInterruptFlag(true);
@@ -294,7 +295,8 @@ void Cpu::ExecuteInstruction(uint8_t opcode) {
     case 0x02: {  // cop imm(s)
       uint32_t vector = (E) ? 0xfff4 : 0xffe4;
       ReadOpcode();
-      if (!E) PushByte(PB);
+      if (!E)
+        PushByte(PB);
       PushWord(PC, false);
       PushByte(status);
       SetInterruptFlag(true);

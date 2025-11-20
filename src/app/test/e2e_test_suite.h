@@ -89,8 +89,10 @@ class E2ETestSuite : public TestSuite {
     if (test_large_scale_editing_) {
       ImGui::Indent();
       ImGui::InputInt("Number of edits", &num_edits_);
-      if (num_edits_ < 1) num_edits_ = 1;
-      if (num_edits_ > 100) num_edits_ = 100;
+      if (num_edits_ < 1)
+        num_edits_ = 1;
+      if (num_edits_ > 100)
+        num_edits_ = 100;
       ImGui::Unindent();
     }
   }

@@ -76,7 +76,9 @@ absl::Status InitializeMockRom(Rom& rom) {
   return absl::OkStatus();
 }
 
-bool ShouldUseMockRom() { return absl::GetFlag(FLAGS_mock_rom); }
+bool ShouldUseMockRom() {
+  return absl::GetFlag(FLAGS_mock_rom);
+}
 
 }  // namespace cli
 }  // namespace yaze

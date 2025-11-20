@@ -307,11 +307,13 @@ class Room {
     }
   }
   void SetStaircasePlane(int index, uint8_t plane) {
-    if (index >= 0 && index < 4) staircase_plane_[index] = plane;
+    if (index >= 0 && index < 4)
+      staircase_plane_[index] = plane;
   }
   void SetHolewarp(uint8_t holewarp) { this->holewarp = holewarp; }
   void SetStaircaseRoom(int index, uint8_t room) {
-    if (index >= 0 && index < 4) staircase_rooms_[index] = room;
+    if (index >= 0 && index < 4)
+      staircase_rooms_[index] = room;
   }
   // SetFloor1/SetFloor2 removed - use set_floor1()/set_floor2() instead
   // (defined above)

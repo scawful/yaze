@@ -220,7 +220,8 @@ void ConfigureTestFilters(const TestConfig& config) {
   if (!filters.empty()) {
     std::string filter_string;
     for (size_t i = 0; i < filters.size(); i++) {
-      if (i > 0) filter_string += ":";
+      if (i > 0)
+        filter_string += ":";
       filter_string += filters[i];
     }
 

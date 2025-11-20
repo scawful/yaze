@@ -34,7 +34,8 @@ void CommandPalette::RecordUsage(const std::string& name) {
 
 int CommandPalette::FuzzyScore(const std::string& text,
                                const std::string& query) {
-  if (query.empty()) return 0;
+  if (query.empty())
+    return 0;
 
   int score = 0;
   size_t text_idx = 0;
@@ -48,13 +49,16 @@ int CommandPalette::FuzzyScore(const std::string& text,
                  ::tolower);
 
   // Exact match bonus
-  if (text_lower == query_lower) return 1000;
+  if (text_lower == query_lower)
+    return 1000;
 
   // Starts with bonus
-  if (text_lower.find(query_lower) == 0) return 500;
+  if (text_lower.find(query_lower) == 0)
+    return 500;
 
   // Contains bonus
-  if (text_lower.find(query_lower) != std::string::npos) return 250;
+  if (text_lower.find(query_lower) != std::string::npos)
+    return 250;
 
   // Fuzzy match - characters in order
   while (text_idx < text_lower.length() && query_idx < query_lower.length()) {
@@ -66,7 +70,8 @@ int CommandPalette::FuzzyScore(const std::string& text,
   }
 
   // Penalty if not all characters matched
-  if (query_idx != query_lower.length()) return 0;
+  if (query_idx != query_lower.length())
+    return 0;
 
   return score;
 }

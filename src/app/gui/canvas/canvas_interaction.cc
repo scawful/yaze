@@ -150,8 +150,10 @@ RectSelectionEvent HandleRectangleSelection(const CanvasGeometry& geometry,
     int end_y = static_cast<int>(std::floor(drag_end_pos.y / scaled_size)) *
                 kTile16Size;
 
-    if (start_x > end_x) std::swap(start_x, end_x);
-    if (start_y > end_y) std::swap(start_y, end_y);
+    if (start_x > end_x)
+      std::swap(start_x, end_x);
+    if (start_y > end_y)
+      std::swap(start_y, end_y);
 
     constexpr int kTilesPerLocalMap = kSmallMapSize / 16;
 

@@ -106,10 +106,14 @@ class Canvas {
   void SetCanvasGridSize(CanvasGridSize grid_size) { SetGridSize(grid_size); }
 
   CanvasGridSize grid_size() const {
-    if (config_.grid_step == 8.0f) return CanvasGridSize::k8x8;
-    if (config_.grid_step == 16.0f) return CanvasGridSize::k16x16;
-    if (config_.grid_step == 32.0f) return CanvasGridSize::k32x32;
-    if (config_.grid_step == 64.0f) return CanvasGridSize::k64x64;
+    if (config_.grid_step == 8.0f)
+      return CanvasGridSize::k8x8;
+    if (config_.grid_step == 16.0f)
+      return CanvasGridSize::k16x16;
+    if (config_.grid_step == 32.0f)
+      return CanvasGridSize::k32x32;
+    if (config_.grid_step == 64.0f)
+      return CanvasGridSize::k64x64;
     return CanvasGridSize::k16x16;  // Default
   }
 

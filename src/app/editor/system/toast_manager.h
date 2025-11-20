@@ -30,7 +30,8 @@ class ToastManager {
   }
 
   void Draw() {
-    if (toasts_.empty()) return;
+    if (toasts_.empty())
+      return;
     ImGuiIO& io = ImGui::GetIO();
     ImVec2 pos(io.DisplaySize.x - 10.f, 40.f);
 

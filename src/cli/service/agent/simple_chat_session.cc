@@ -202,7 +202,8 @@ std::string SessionMetricsToJson(const ChatMessage::SessionMetrics& metrics) {
 }  // namespace
 
 void SimpleChatSession::PrintTable(const ChatMessage::TableData& table) {
-  if (table.headers.empty()) return;
+  if (table.headers.empty())
+    return;
 
   // Calculate column widths
   std::vector<size_t> col_widths(table.headers.size(), 0);
@@ -368,8 +369,10 @@ absl::Status SimpleChatSession::RunInteractive() {
       }
     }
 
-    if (input.empty()) continue;
-    if (input == "quit" || input == "exit") break;
+    if (input.empty())
+      continue;
+    if (input == "quit" || input == "exit")
+      break;
 
     if (input == "reset") {
       Reset();
@@ -457,7 +460,8 @@ absl::Status SimpleChatSession::RunBatch(const std::string& input_file) {
     ++line_num;
 
     // Skip empty lines and comments
-    if (line.empty() || line[0] == '#') continue;
+    if (line.empty() || line[0] == '#')
+      continue;
 
     if (config_.output_format == AgentOutputFormat::kFriendly) {
       std::cout << "Input [" << line_num << "]: " << line << "\n";

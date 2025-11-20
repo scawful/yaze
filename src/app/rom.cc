@@ -47,7 +47,9 @@ void MaybeStripSmcHeader(std::vector<uint8_t>& rom_data, unsigned long& size) {
 
 }  // namespace
 
-RomLoadOptions RomLoadOptions::AppDefaults() { return RomLoadOptions{}; }
+RomLoadOptions RomLoadOptions::AppDefaults() {
+  return RomLoadOptions{};
+}
 
 RomLoadOptions RomLoadOptions::CliDefaults() {
   RomLoadOptions options;
@@ -626,7 +628,8 @@ absl::Status Rom::SaveToFile(const SaveSettings& settings) {
         absl::StrCat("Error while writing to ROM file: ", filename));
   }
 
-  if (non_firing_status.ok()) dirty_ = false;
+  if (non_firing_status.ok())
+    dirty_ = false;
   return non_firing_status.ok() ? absl::OkStatus() : non_firing_status;
 }
 
@@ -798,7 +801,8 @@ absl::Status Rom::WriteColor(uint32_t address, const gfx::SnesColor& color) {
   // Write the 16-bit color value to the ROM at the specified address
   LOG_DEBUG("Rom", "WriteColor: %#06X: %s", address, util::HexWord(bgr).data());
   auto st = WriteShort(address, bgr);
-  if (st.ok()) dirty_ = true;
+  if (st.ok())
+    dirty_ = true;
   return st;
 }
 

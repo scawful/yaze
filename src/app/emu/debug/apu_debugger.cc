@@ -9,7 +9,9 @@ namespace yaze {
 namespace emu {
 namespace debug {
 
-ApuHandshakeTracker::ApuHandshakeTracker() { Reset(); }
+ApuHandshakeTracker::ApuHandshakeTracker() {
+  Reset();
+}
 
 void ApuHandshakeTracker::Reset() {
   phase_ = Phase::RESET;
@@ -29,7 +31,8 @@ void ApuHandshakeTracker::Reset() {
 
 void ApuHandshakeTracker::OnCpuPortWrite(uint8_t port, uint8_t value,
                                          uint32_t pc) {
-  if (port > 3) return;
+  if (port > 3)
+    return;
 
   cpu_ports_[port] = value;
 
@@ -65,7 +68,8 @@ void ApuHandshakeTracker::OnCpuPortWrite(uint8_t port, uint8_t value,
 
 void ApuHandshakeTracker::OnSpcPortWrite(uint8_t port, uint8_t value,
                                          uint16_t pc) {
-  if (port > 3) return;
+  if (port > 3)
+    return;
 
   spc_ports_[port] = value;
 

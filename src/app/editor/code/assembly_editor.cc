@@ -42,7 +42,8 @@ static const char* const kIdentifiers[] = {
 
 TextEditor::LanguageDefinition GetAssemblyLanguageDef() {
   TextEditor::LanguageDefinition language_65816;
-  for (auto& k : kKeywords) language_65816.mKeywords.emplace(k);
+  for (auto& k : kKeywords)
+    language_65816.mKeywords.emplace(k);
 
   for (auto& k : kIdentifiers) {
     TextEditor::Identifier id;
@@ -177,7 +178,8 @@ void AssemblyEditor::Initialize() {
   text_editor_.SetLanguageDefinition(GetAssemblyLanguageDef());
 
   // Register cards with EditorCardManager
-  if (!dependencies_.card_registry) return;
+  if (!dependencies_.card_registry)
+    return;
   auto* card_registry = dependencies_.card_registry;
   card_registry->RegisterCard({.card_id = "assembly.editor",
                                .display_name = "Assembly Editor",
@@ -200,7 +202,8 @@ absl::Status AssemblyEditor::Load() {
   // Register cards with EditorCardRegistry (dependency injection)
   // Note: Assembly editor uses dynamic file tabs, so we register the main
   // editor window
-  if (!dependencies_.card_registry) return absl::OkStatus();
+  if (!dependencies_.card_registry)
+    return absl::OkStatus();
   auto* card_registry = dependencies_.card_registry;
 
   return absl::OkStatus();
@@ -463,6 +466,8 @@ absl::Status AssemblyEditor::Redo() {
   return absl::OkStatus();
 }
 
-absl::Status AssemblyEditor::Update() { return absl::OkStatus(); }
+absl::Status AssemblyEditor::Update() {
+  return absl::OkStatus();
+}
 
 }  // namespace yaze::editor

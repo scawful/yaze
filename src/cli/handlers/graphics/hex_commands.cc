@@ -47,7 +47,8 @@ absl::Status HexReadCommandHandler::Execute(
   std::string hex_data;
   for (int i = 0; i < length; ++i) {
     absl::StrAppendFormat(&hex_data, "%02X", data[i]);
-    if (i < length - 1) hex_data += " ";
+    if (i < length - 1)
+      hex_data += " ";
   }
   formatter.AddField("hex_data", hex_data);
 
@@ -87,7 +88,8 @@ absl::Status HexWriteCommandHandler::Execute(
   std::vector<uint8_t> bytes;
 
   for (const auto& byte_str : byte_strs) {
-    if (byte_str.empty()) continue;
+    if (byte_str.empty())
+      continue;
     try {
       uint8_t value = static_cast<uint8_t>(std::stoul(byte_str, nullptr, 16));
       bytes.push_back(value);
@@ -113,7 +115,8 @@ absl::Status HexWriteCommandHandler::Execute(
   std::string hex_data;
   for (size_t i = 0; i < bytes.size(); ++i) {
     absl::StrAppendFormat(&hex_data, "%02X", bytes[i]);
-    if (i < bytes.size() - 1) hex_data += " ";
+    if (i < bytes.size() - 1)
+      hex_data += " ";
   }
 
   formatter.BeginObject("Hex Write");
@@ -148,7 +151,8 @@ absl::Status HexSearchCommandHandler::Execute(
   std::vector<std::pair<uint8_t, bool>> pattern;  // (value, is_wildcard)
 
   for (const auto& byte_str : byte_strs) {
-    if (byte_str.empty()) continue;
+    if (byte_str.empty())
+      continue;
     if (byte_str == "??" || byte_str == "**") {
       pattern.push_back({0, true});  // Wildcard
     } else {

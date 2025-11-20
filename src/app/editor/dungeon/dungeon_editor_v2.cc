@@ -32,7 +32,8 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
       true;  // Always show tabs when multiple rooms
 
   // Register all cards with EditorCardRegistry (dependency injection)
-  if (!dependencies_.card_registry) return;
+  if (!dependencies_.card_registry)
+    return;
   auto* card_registry = dependencies_.card_registry;
 
   card_registry->RegisterCard({.card_id = MakeCardId("dungeon.control_panel"),
@@ -422,7 +423,9 @@ void DungeonEditorV2::OnEntranceSelected(int entrance_id) {
   OnRoomSelected(room_id);
 }
 
-void DungeonEditorV2::add_room(int room_id) { OnRoomSelected(room_id); }
+void DungeonEditorV2::add_room(int room_id) {
+  OnRoomSelected(room_id);
+}
 
 void DungeonEditorV2::FocusRoom(int room_id) {
   // Focus the room card if it exists
@@ -813,7 +816,8 @@ void DungeonEditorV2::DrawRoomGraphicsCard() {
       constexpr int block_height = 32;
 
       for (int block : blocks) {
-        if (current_block >= 16) break;  // Show first 16 blocks
+        if (current_block >= 16)
+          break;  // Show first 16 blocks
 
         // Ensure the graphics sheet is loaded
         if (block < static_cast<int>(gfx::Arena::Get().gfx_sheets().size())) {

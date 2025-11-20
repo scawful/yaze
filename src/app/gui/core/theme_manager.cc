@@ -391,7 +391,8 @@ Color ThemeManager::GetWelcomeScreenAccent() const {
 }
 
 void ThemeManager::ShowThemeSelector(bool* p_open) {
-  if (!p_open || !*p_open) return;
+  if (!p_open || !*p_open)
+    return;
 
   if (ImGui::Begin(
           absl::StrFormat("%s Theme Selector", ICON_MD_PALETTE).c_str(),
@@ -562,7 +563,8 @@ absl::Status ThemeManager::ParseThemeFile(const std::string& content,
 
   while (std::getline(stream, line)) {
     // Skip empty lines and comments
-    if (line.empty() || line[0] == '#') continue;
+    if (line.empty() || line[0] == '#')
+      continue;
 
     // Check for section headers [section_name]
     if (line[0] == '[' && line.back() == ']') {
@@ -571,7 +573,8 @@ absl::Status ThemeManager::ParseThemeFile(const std::string& content,
     }
 
     size_t eq_pos = line.find('=');
-    if (eq_pos == std::string::npos) continue;
+    if (eq_pos == std::string::npos)
+      continue;
 
     std::string key = line.substr(0, eq_pos);
     std::string value = line.substr(eq_pos + 1);
@@ -1173,7 +1176,8 @@ void ThemeManager::ApplyClassicYazeTheme() {
 }
 
 void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
-  if (!p_open || !*p_open) return;
+  if (!p_open || !*p_open)
+    return;
 
   ImGui::SetNextWindowSize(ImVec2(800, 600), ImGuiCond_FirstUseEver);
 
@@ -1565,23 +1569,28 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
 
         if (ImGui::SliderFloat("Window Rounding", &edit_theme.window_rounding,
                                0.0f, 20.0f)) {
-          if (live_preview) ApplyTheme(edit_theme);
+          if (live_preview)
+            ApplyTheme(edit_theme);
         }
         if (ImGui::SliderFloat("Frame Rounding", &edit_theme.frame_rounding,
                                0.0f, 20.0f)) {
-          if (live_preview) ApplyTheme(edit_theme);
+          if (live_preview)
+            ApplyTheme(edit_theme);
         }
         if (ImGui::SliderFloat("Scrollbar Rounding",
                                &edit_theme.scrollbar_rounding, 0.0f, 20.0f)) {
-          if (live_preview) ApplyTheme(edit_theme);
+          if (live_preview)
+            ApplyTheme(edit_theme);
         }
         if (ImGui::SliderFloat("Tab Rounding", &edit_theme.tab_rounding, 0.0f,
                                20.0f)) {
-          if (live_preview) ApplyTheme(edit_theme);
+          if (live_preview)
+            ApplyTheme(edit_theme);
         }
         if (ImGui::SliderFloat("Grab Rounding", &edit_theme.grab_rounding, 0.0f,
                                20.0f)) {
-          if (live_preview) ApplyTheme(edit_theme);
+          if (live_preview)
+            ApplyTheme(edit_theme);
         }
 
         ImGui::Separator();
@@ -1589,11 +1598,13 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
 
         if (ImGui::SliderFloat("Window Border Size",
                                &edit_theme.window_border_size, 0.0f, 3.0f)) {
-          if (live_preview) ApplyTheme(edit_theme);
+          if (live_preview)
+            ApplyTheme(edit_theme);
         }
         if (ImGui::SliderFloat("Frame Border Size",
                                &edit_theme.frame_border_size, 0.0f, 3.0f)) {
-          if (live_preview) ApplyTheme(edit_theme);
+          if (live_preview)
+            ApplyTheme(edit_theme);
         }
 
         ImGui::Separator();
@@ -1601,7 +1612,8 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
 
         if (ImGui::Checkbox("Enable Animations",
                             &edit_theme.enable_animations)) {
-          if (live_preview) ApplyTheme(edit_theme);
+          if (live_preview)
+            ApplyTheme(edit_theme);
         }
         if (edit_theme.enable_animations) {
           if (ImGui::SliderFloat("Animation Speed", &edit_theme.animation_speed,
@@ -1611,7 +1623,8 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
         }
         if (ImGui::Checkbox("Enable Glow Effects",
                             &edit_theme.enable_glow_effects)) {
-          if (live_preview) ApplyTheme(edit_theme);
+          if (live_preview)
+            ApplyTheme(edit_theme);
         }
 
         ImGui::EndTabItem();

@@ -1039,7 +1039,8 @@ void OverworldMap::ProcessGraphicsBuffer(int index, int static_graphics_offset,
 }
 
 absl::Status OverworldMap::BuildTileset() {
-  if (current_gfx_.size() == 0) current_gfx_.resize(0x10000, 0x00);
+  if (current_gfx_.size() == 0)
+    current_gfx_.resize(0x10000, 0x00);
 
   // Process the 8 main graphics sheets (slots 0-7)
   for (int i = 0; i < 8; i++) {
@@ -1068,7 +1069,8 @@ absl::Status OverworldMap::BuildTileset() {
 
 absl::Status OverworldMap::BuildTiles16Gfx(std::vector<gfx::Tile16>& tiles16,
                                            int count) {
-  if (current_blockset_.size() == 0) current_blockset_.resize(0x100000, 0x00);
+  if (current_blockset_.size() == 0)
+    current_blockset_.resize(0x100000, 0x00);
 
   const int offsets[] = {0x00, 0x08, 0x400, 0x408};
   auto yy = 0;

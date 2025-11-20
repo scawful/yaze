@@ -16,7 +16,9 @@ CollaborationService::CollaborationService(Rom* rom)
       client_(std::make_unique<WebSocketClient>()),
       sync_in_progress_(false) {}
 
-CollaborationService::~CollaborationService() { Disconnect(); }
+CollaborationService::~CollaborationService() {
+  Disconnect();
+}
 
 absl::Status CollaborationService::Initialize(
     const Config& config, RomVersionManager* version_mgr,

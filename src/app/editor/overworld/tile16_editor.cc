@@ -152,7 +152,8 @@ absl::Status Tile16Editor::Update() {
             RETURN_IF_ERROR(SaveTile16ToScratchSpace(i));
           }
         }
-        if (i < 3) Separator();
+        if (i < 3)
+          Separator();
       }
       EndMenu();
     }
@@ -459,7 +460,8 @@ absl::Status Tile16Editor::RegenerateTile16BitmapFromROM() {
         break;
     }
 
-    if (!tile_info) continue;
+    if (!tile_info)
+      continue;
 
     // Get the tile8 ID and properties
     int tile8_id = tile_info->id_;
@@ -989,7 +991,8 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
 
     for (int row = 0; row < 2; ++row) {
       for (int col = 0; col < 4; ++col) {
-        if (col > 0) ImGui::SameLine();
+        if (col > 0)
+          ImGui::SameLine();
 
         int i = row * 4 + col;
         bool is_current = (current_palette_ == i);
@@ -1090,11 +1093,13 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
     Separator();
 
     bool can_undo = !undo_stack_.empty();
-    if (!can_undo) BeginDisabled();
+    if (!can_undo)
+      BeginDisabled();
     if (Button("Undo", ImVec2(-1, 0))) {
       RETURN_IF_ERROR(Undo());
     }
-    if (!can_undo) EndDisabled();
+    if (!can_undo)
+      EndDisabled();
 
     // Advanced controls (collapsible)
     if (show_advanced_controls) {
@@ -1182,7 +1187,8 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
               ImGui::SetTooltip("%d:0x%04X", color_index, color.snes());
             }
 
-            if ((i + 1) % 4 != 0) ImGui::SameLine();
+            if ((i + 1) % 4 != 0)
+              ImGui::SameLine();
           }
         }
       }
@@ -2308,7 +2314,8 @@ void Tile16Editor::DrawPaletteSettings() {
               ImGui::SetTooltip("Index %d: 0x%04X (%d pixels)", value,
                                 color.snes(), count);
             }
-            if (value % 8 != 7) ImGui::SameLine();
+            if (value % 8 != 7)
+              ImGui::SameLine();
           }
         }
       }
@@ -2358,7 +2365,8 @@ void Tile16Editor::DrawPaletteSettings() {
 void Tile16Editor::DrawScratchSpace() {
   Text("Layout Scratch:");
   for (int i = 0; i < 4; i++) {
-    if (i > 0) SameLine();
+    if (i > 0)
+      SameLine();
     std::string slot_name = "S" + std::to_string(i + 1);
 
     if (layout_scratch_[i].in_use) {
@@ -2472,7 +2480,8 @@ void Tile16Editor::DrawManualTile8Inputs() {
           ImGui::PopID();
         }
 
-        if (q < 3) ImGui::Separator();
+        if (q < 3)
+          ImGui::Separator();
       }
 
       ImGui::Separator();

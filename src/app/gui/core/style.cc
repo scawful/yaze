@@ -192,7 +192,8 @@ static const char* const kIdentifiers[] = {
 
 TextEditor::LanguageDefinition GetAssemblyLanguageDef() {
   TextEditor::LanguageDefinition language_65816;
-  for (auto& k : kKeywords) language_65816.mKeywords.emplace(k);
+  for (auto& k : kKeywords)
+    language_65816.mKeywords.emplace(k);
 
   for (auto& k : kIdentifiers) {
     TextEditor::Identifier id;
@@ -274,19 +275,25 @@ void BeginPadding(int i) {
   ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(i, i));
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(i, i));
 }
-void EndPadding() { EndNoPadding(); }
+void EndPadding() {
+  EndNoPadding();
+}
 
 void BeginNoPadding() {
   ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
 }
-void EndNoPadding() { ImGui::PopStyleVar(2); }
+void EndNoPadding() {
+  ImGui::PopStyleVar(2);
+}
 
 void BeginChildWithScrollbar(const char* str_id) {
   // Get available region but ensure minimum size for proper scrolling
   ImVec2 available = ImGui::GetContentRegionAvail();
-  if (available.x < 64.0f) available.x = 64.0f;
-  if (available.y < 64.0f) available.y = 64.0f;
+  if (available.x < 64.0f)
+    available.x = 64.0f;
+  if (available.y < 64.0f)
+    available.y = 64.0f;
 
   ImGui::BeginChild(str_id, available, true,
                     ImGuiWindowFlags_AlwaysVerticalScrollbar);
@@ -300,8 +307,10 @@ void BeginChildWithScrollbar(const char* str_id, ImVec2 content_size) {
 
   // Get available region but ensure minimum size for proper scrolling
   ImVec2 available = ImGui::GetContentRegionAvail();
-  if (available.x < 64.0f) available.x = 64.0f;
-  if (available.y < 64.0f) available.y = 64.0f;
+  if (available.x < 64.0f)
+    available.x = 64.0f;
+  if (available.y < 64.0f)
+    available.y = 64.0f;
 
   ImGui::BeginChild(str_id, available, true,
                     ImGuiWindowFlags_AlwaysVerticalScrollbar);
@@ -331,7 +340,9 @@ void BeginTableCanvas(const char* table_id, int columns, ImVec2 canvas_size) {
   ImGui::BeginTable(table_id, columns, flags, outer_size);
 }
 
-void EndTableCanvas() { ImGui::EndTable(); }
+void EndTableCanvas() {
+  ImGui::EndTable();
+}
 
 void SetupCanvasTableColumn(const char* label, float width_ratio) {
   if (width_ratio > 0) {
@@ -367,9 +378,11 @@ void DrawDisplaySettings(ImGuiStyle* ref) {
 
   // Default to using internal storage as reference
   static bool init = true;
-  if (init && ref == NULL) ref_saved_style = style;
+  if (init && ref == NULL)
+    ref_saved_style = style;
   init = false;
-  if (ref == NULL) ref = &ref_saved_style;
+  if (ref == NULL)
+    ref = &ref_saved_style;
 
   ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.50f);
 
@@ -506,7 +519,8 @@ void DrawDisplaySettings(ImGuiStyle* ref) {
 
   ImGui::Separator();
 
-  if (ImGui::ShowStyleSelector("Colors##Selector")) ref_saved_style = style;
+  if (ImGui::ShowStyleSelector("Colors##Selector"))
+    ref_saved_style = style;
   ImGui::ShowFontSelector("Fonts##Selector");
 
   // Simplified Settings (expose floating-pointer border sizes as boolean
@@ -537,9 +551,11 @@ void DrawDisplaySettings(ImGuiStyle* ref) {
   }
 
   // Save/Revert button
-  if (ImGui::Button("Save Ref")) *ref = ref_saved_style = style;
+  if (ImGui::Button("Save Ref"))
+    *ref = ref_saved_style = style;
   ImGui::SameLine();
-  if (ImGui::Button("Revert Ref")) style = *ref;
+  if (ImGui::Button("Revert Ref"))
+    style = *ref;
   ImGui::SameLine();
 
   ImGui::Separator();
@@ -710,7 +726,8 @@ void DrawDisplaySettings(ImGuiStyle* ref) {
       ImGui::PushItemWidth(ImGui::GetFontSize() * -12);
       for (int i = 0; i < ImGuiCol_COUNT; i++) {
         const char* name = ImGui::GetStyleColorName(i);
-        if (!filter.PassFilter(name)) continue;
+        if (!filter.PassFilter(name))
+          continue;
         ImGui::PushID(i);
         ImGui::ColorEdit4("##color", (float*)&style.Colors[i],
                           ImGuiColorEditFlags_AlphaBar | alpha_flags);
@@ -787,7 +804,8 @@ void DrawDisplaySettings(ImGuiStyle* ref) {
                        &style.CircleTessellationMaxError, 0.005f, 0.10f, 5.0f,
                        "%.2f", ImGuiSliderFlags_AlwaysClamp);
       const bool show_samples = ImGui::IsItemActive();
-      if (show_samples) ImGui::SetNextWindowPos(ImGui::GetCursorScreenPos());
+      if (show_samples)
+        ImGui::SetNextWindowPos(ImGui::GetCursorScreenPos());
       if (show_samples && ImGui::BeginTooltip()) {
         ImGui::TextUnformatted("(R = radius, N = number of segments)");
         ImGui::Spacing();
@@ -854,9 +872,11 @@ void DrawDisplaySettingsForPopup(ImGuiStyle* ref) {
 
   // Default to using internal storage as reference
   static bool init = true;
-  if (init && ref == NULL) ref_saved_style = style;
+  if (init && ref == NULL)
+    ref_saved_style = style;
   init = false;
-  if (ref == NULL) ref = &ref_saved_style;
+  if (ref == NULL)
+    ref = &ref_saved_style;
 
   ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.50f);
 
@@ -959,7 +979,8 @@ void DrawDisplaySettingsForPopup(ImGuiStyle* ref) {
 
   ImGui::Separator();
 
-  if (ImGui::ShowStyleSelector("Colors##Selector")) ref_saved_style = style;
+  if (ImGui::ShowStyleSelector("Colors##Selector"))
+    ref_saved_style = style;
   ImGui::ShowFontSelector("Fonts##Selector");
 
   // Quick style controls before the tabbed section
@@ -986,9 +1007,11 @@ void DrawDisplaySettingsForPopup(ImGuiStyle* ref) {
   }
 
   // Save/Revert buttons
-  if (ImGui::Button("Save Ref")) *ref = ref_saved_style = style;
+  if (ImGui::Button("Save Ref"))
+    *ref = ref_saved_style = style;
   ImGui::SameLine();
-  if (ImGui::Button("Revert Ref")) style = *ref;
+  if (ImGui::Button("Revert Ref"))
+    style = *ref;
 
   ImGui::Separator();
 
@@ -1159,7 +1182,8 @@ void DrawDisplaySettingsForPopup(ImGuiStyle* ref) {
       ImGui::PushItemWidth(ImGui::GetFontSize() * -12);
       for (int i = 0; i < ImGuiCol_COUNT; i++) {
         const char* name = ImGui::GetStyleColorName(i);
-        if (!filter.PassFilter(name)) continue;
+        if (!filter.PassFilter(name))
+          continue;
         ImGui::PushID(i);
         ImGui::ColorEdit4("##color", (float*)&style.Colors[i],
                           ImGuiColorEditFlags_AlphaBar | alpha_flags);
@@ -1236,7 +1260,8 @@ void DrawDisplaySettingsForPopup(ImGuiStyle* ref) {
                        &style.CircleTessellationMaxError, 0.005f, 0.10f, 5.0f,
                        "%.2f", ImGuiSliderFlags_AlwaysClamp);
       const bool show_samples = ImGui::IsItemActive();
-      if (show_samples) ImGui::SetNextWindowPos(ImGui::GetCursorScreenPos());
+      if (show_samples)
+        ImGui::SetNextWindowPos(ImGui::GetCursorScreenPos());
       if (show_samples && ImGui::BeginTooltip()) {
         ImGui::TextUnformatted("(R = radius, N = number of segments)");
         ImGui::Spacing();

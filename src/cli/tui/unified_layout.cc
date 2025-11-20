@@ -283,7 +283,8 @@ Component UnifiedLayout::CreateChatPanel() {
   auto input_component = Input(input_message.get(), "Type your message...");
 
   auto send_button = Button("Send", [this, input_message] {
-    if (input_message->empty()) return;
+    if (input_message->empty())
+      return;
 
     // Handle chat commands
     if (*input_message == "/exit") {
@@ -298,7 +299,8 @@ Component UnifiedLayout::CreateChatPanel() {
   input_component =
       CatchEvent(input_component, [this, input_message](const Event& event) {
         if (event == Event::Return) {
-          if (input_message->empty()) return true;
+          if (input_message->empty())
+            return true;
 
           if (*input_message == "/exit") {
             screen_.Exit();

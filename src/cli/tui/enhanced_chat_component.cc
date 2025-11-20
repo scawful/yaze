@@ -41,7 +41,9 @@ EnhancedChatComponent::EnhancedChatComponent(Rom* rom_context)
   };
 }
 
-Component EnhancedChatComponent::GetComponent() { return chat_container_; }
+Component EnhancedChatComponent::GetComponent() {
+  return chat_container_;
+}
 
 void EnhancedChatComponent::SetRomContext(Rom* rom_context) {
   rom_context_ = rom_context;
@@ -51,7 +53,8 @@ void EnhancedChatComponent::SetRomContext(Rom* rom_context) {
 }
 
 void EnhancedChatComponent::SendMessage(const std::string& message) {
-  if (message.empty()) return;
+  if (message.empty())
+    return;
 
   ProcessMessage(message);
   input_message_.clear();
@@ -99,7 +102,8 @@ Component EnhancedChatComponent::CreateChatContainer() {
 
 bool EnhancedChatComponent::HandleInputEvents(const Event& event) {
   if (event == Event::Return) {
-    if (input_message_.empty()) return true;
+    if (input_message_.empty())
+      return true;
 
     SendMessage(input_message_);
     return true;

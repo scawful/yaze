@@ -1758,7 +1758,9 @@ ImGuiTestHarnessServer& ImGuiTestHarnessServer::Instance() {
   return *instance;
 }
 
-ImGuiTestHarnessServer::~ImGuiTestHarnessServer() { Shutdown(); }
+ImGuiTestHarnessServer::~ImGuiTestHarnessServer() {
+  Shutdown();
+}
 
 absl::Status ImGuiTestHarnessServer::Start(int port,
                                            TestManager* test_manager) {

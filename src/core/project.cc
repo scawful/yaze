@@ -29,7 +29,8 @@ namespace {
 // Helper functions for parsing key-value pairs
 std::pair<std::string, std::string> ParseKeyValue(const std::string& line) {
   size_t eq_pos = line.find('=');
-  if (eq_pos == std::string::npos) return {"", ""};
+  if (eq_pos == std::string::npos)
+    return {"", ""};
 
   std::string key = line.substr(0, eq_pos);
   std::string value = line.substr(eq_pos + 1);
@@ -57,7 +58,8 @@ float ParseFloat(const std::string& value) {
 
 std::vector<std::string> ParseStringList(const std::string& value) {
   std::vector<std::string> result;
-  if (value.empty()) return result;
+  if (value.empty())
+    return result;
 
   std::vector<std::string> parts = absl::StrSplit(value, ',');
   for (const auto& part : parts) {
@@ -148,7 +150,9 @@ absl::Status YazeProject::Open(const std::string& project_path) {
   return absl::InvalidArgumentError("Unsupported project file format");
 }
 
-absl::Status YazeProject::Save() { return SaveToYazeFormat(); }
+absl::Status YazeProject::Save() {
+  return SaveToYazeFormat();
+}
 
 absl::Status YazeProject::SaveAs(const std::string& new_path) {
   std::string old_filepath = filepath;
@@ -174,7 +178,8 @@ absl::Status YazeProject::LoadFromYazeFormat(const std::string& project_path) {
 
   while (std::getline(file, line)) {
     // Skip empty lines and comments
-    if (line.empty() || line[0] == '#') continue;
+    if (line.empty() || line[0] == '#')
+      continue;
 
     // Check for section headers [section_name]
     if (line[0] == '[' && line.back() == ']') {
@@ -183,7 +188,8 @@ absl::Status YazeProject::LoadFromYazeFormat(const std::string& project_path) {
     }
 
     auto [key, value] = ParseKeyValue(line);
-    if (key.empty()) continue;
+    if (key.empty())
+      continue;
 
     // Parse based on current section
     if (current_section == "project") {
@@ -591,9 +597,12 @@ absl::Status YazeProject::ResetToDefaults() {
 absl::Status YazeProject::Validate() const {
   std::vector<std::string> errors;
 
-  if (name.empty()) errors.push_back("Project name is required");
-  if (filepath.empty()) errors.push_back("Project file path is required");
-  if (rom_filename.empty()) errors.push_back("ROM file is required");
+  if (name.empty())
+    errors.push_back("Project name is required");
+  if (filepath.empty())
+    errors.push_back("Project file path is required");
+  if (rom_filename.empty())
+    errors.push_back("ROM file is required");
 
   // Check if files exist
   if (!rom_filename.empty() &&
@@ -675,7 +684,8 @@ std::string YazeProject::GetDisplayName() const {
 
 std::string YazeProject::GetRelativePath(
     const std::string& absolute_path) const {
-  if (absolute_path.empty() || filepath.empty()) return absolute_path;
+  if (absolute_path.empty() || filepath.empty())
+    return absolute_path;
 
   std::filesystem::path project_dir =
       std::filesystem::path(filepath).parent_path();
@@ -692,7 +702,8 @@ std::string YazeProject::GetRelativePath(
 
 std::string YazeProject::GetAbsolutePath(
     const std::string& relative_path) const {
-  if (relative_path.empty() || filepath.empty()) return relative_path;
+  if (relative_path.empty() || filepath.empty())
+    return relative_path;
 
   std::filesystem::path project_dir =
       std::filesystem::path(filepath).parent_path();
@@ -927,7 +938,8 @@ bool ResourceLabelManager::LoadLabels(const std::string& filename) {
   std::string current_type = "";
 
   while (std::getline(file, line)) {
-    if (line.empty() || line[0] == '#') continue;
+    if (line.empty() || line[0] == '#')
+      continue;
 
     // Check for type headers [type_name]
     if (line[0] == '[' && line.back() == ']') {
@@ -950,10 +962,12 @@ bool ResourceLabelManager::LoadLabels(const std::string& filename) {
 }
 
 bool ResourceLabelManager::SaveLabels() {
-  if (filename_.empty()) return false;
+  if (filename_.empty())
+    return false;
 
   std::ofstream file(filename_);
-  if (!file.is_open()) return false;
+  if (!file.is_open())
+    return false;
 
   file << "# yaze Resource Labels\n";
   file << "# Format: [type] followed by key=value pairs\n\n";
@@ -973,7 +987,8 @@ bool ResourceLabelManager::SaveLabels() {
 }
 
 void ResourceLabelManager::DisplayLabels(bool* p_open) {
-  if (!p_open || !*p_open) return;
+  if (!p_open || !*p_open)
+    return;
 
   // Basic implementation - can be enhanced later
   if (ImGui::Begin("Resource Labels", p_open)) {
@@ -1015,10 +1030,12 @@ void ResourceLabelManager::SelectableLabelWithNameEdit(
 std::string ResourceLabelManager::GetLabel(const std::string& type,
                                            const std::string& key) {
   auto type_it = labels_.find(type);
-  if (type_it == labels_.end()) return "";
+  if (type_it == labels_.end())
+    return "";
 
   auto label_it = type_it->second.find(key);
-  if (label_it == type_it->second.end()) return "";
+  if (label_it == type_it->second.end())
+    return "";
 
   return label_it->second;
 }
@@ -1027,7 +1044,8 @@ std::string ResourceLabelManager::CreateOrGetLabel(
     const std::string& type, const std::string& key,
     const std::string& defaultValue) {
   auto existing = GetLabel(type, key);
-  if (!existing.empty()) return existing;
+  if (!existing.empty())
+    return existing;
 
   labels_[type][key] = defaultValue;
   return defaultValue;
@@ -1114,7 +1132,8 @@ absl::Status YazeProject::LoadFromJsonFormat(const std::string& project_path) {
     if (j.contains("yaze_project")) {
       auto& proj = j["yaze_project"];
 
-      if (proj.contains("name")) name = proj["name"].get<std::string>();
+      if (proj.contains("name"))
+        name = proj["name"].get<std::string>();
       if (proj.contains("description"))
         metadata.description = proj["description"].get<std::string>();
       if (proj.contains("author"))

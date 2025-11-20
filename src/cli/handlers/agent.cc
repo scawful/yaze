@@ -71,7 +71,8 @@ std::string GenerateAgentHelp() {
     const auto& cmd = agent_commands[i];
     if (auto* meta = registry.GetMetadata(cmd); meta != nullptr) {
       help << "  " << cmd;
-      for (size_t pad = cmd.length(); pad < 24; ++pad) help << " ";
+      for (size_t pad = cmd.length(); pad < 24; ++pad)
+        help << " ";
       help << meta->description << "\n";
     }
   }

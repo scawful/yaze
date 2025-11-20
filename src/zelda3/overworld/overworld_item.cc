@@ -97,7 +97,8 @@ absl::Status SaveItems(Rom* rom, const std::vector<OverworldItem>& items) {
   }
 
   for (const OverworldItem& item : items) {
-    if (item.deleted) continue;
+    if (item.deleted)
+      continue;
 
     const int map_index = static_cast<int>(item.room_map_id_);
     if (map_index < 0 || map_index >= pointer_count) {

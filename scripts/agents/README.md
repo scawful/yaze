@@ -3,6 +3,7 @@
 | Script | Description |
 |--------|-------------|
 | `run-gh-workflow.sh` | Wrapper for `gh workflow run`, prints the run URL for easy tracking. |
+| `get-gh-workflow-status.sh` | Checks the status of a GitHub Actions workflow run using `gh run view`. |
 | `smoke-build.sh` | Runs `cmake --preset` configure/build in place and reports timing. |
 | `run-tests.sh` | Configures the preset (if needed), builds `yaze_test`, and runs `ctest` with optional args. |
 | `test-http-api.sh` | Polls the HTTP API `/api/v1/health` endpoint using curl (defaults to localhost:8080). |
@@ -12,6 +13,10 @@ Usage examples:
 ```bash
 # Trigger CI workflow with artifacts and HTTP API tests enabled
 scripts/agents/run-gh-workflow.sh ci.yml --ref develop upload_artifacts=true enable_http_api_tests=true
+
+# Get the status of a workflow run (using either a URL or just the ID)
+scripts/agents/get-gh-workflow-status.sh https://github.com/scawful/yaze/actions/runs/19529930066
+scripts/agents/get-gh-workflow-status.sh 19529930066
 
 # Smoke build mac-ai preset
 scripts/agents/smoke-build.sh mac-ai

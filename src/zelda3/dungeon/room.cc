@@ -277,7 +277,8 @@ void Room::CopyRoomGraphicsToBuffer() {
         if (gfx_index >= 0 &&
             gfx_index < static_cast<int>(sizeof(current_gfx16_))) {
           current_gfx16_[gfx_index] = map_byte;
-          if (map_byte != 0) bytes_copied++;
+          if (map_byte != 0)
+            bytes_copied++;
         }
       }
       data++;
@@ -933,17 +934,22 @@ absl::StatusOr<size_t> Room::FindObjectAt(int x, int y, int layer) const {
 
 bool Room::ValidateObject(const RoomObject& object) const {
   // Validate position (0-63 for both X and Y)
-  if (object.x() < 0 || object.x() > 63) return false;
-  if (object.y() < 0 || object.y() > 63) return false;
+  if (object.x() < 0 || object.x() > 63)
+    return false;
+  if (object.y() < 0 || object.y() > 63)
+    return false;
 
   // Validate layer (0-2)
-  if (object.GetLayerValue() < 0 || object.GetLayerValue() > 2) return false;
+  if (object.GetLayerValue() < 0 || object.GetLayerValue() > 2)
+    return false;
 
   // Validate object ID range
-  if (object.id_ < 0 || object.id_ > 0xFFF) return false;
+  if (object.id_ < 0 || object.id_ > 0xFFF)
+    return false;
 
   // Validate size for Type 1 objects
-  if (object.id_ < 0x100 && object.size() > 15) return false;
+  if (object.id_ < 0x100 && object.size() > 15)
+    return false;
 
   return true;
 }
@@ -1085,7 +1091,8 @@ void Room::LoadTorches() {
 
   // Iterate through torch data to find torches for this room
   for (int i = 0; i < bytes_count; i += 2) {
-    if (i + 1 >= bytes_count) break;
+    if (i + 1 >= bytes_count)
+      break;
 
     uint8_t b1 = rom_data[torch_data + i];
     uint8_t b2 = rom_data[torch_data + i + 1];
@@ -1101,7 +1108,8 @@ void Room::LoadTorches() {
       // Found torches for this room, read them
       i += 2;
       while (i < bytes_count) {
-        if (i + 1 >= bytes_count) break;
+        if (i + 1 >= bytes_count)
+          break;
 
         b1 = rom_data[torch_data + i];
         b2 = rom_data[torch_data + i + 1];
@@ -1136,7 +1144,8 @@ void Room::LoadTorches() {
       // Skip to next room's torches
       i += 2;
       while (i < bytes_count) {
-        if (i + 1 >= bytes_count) break;
+        if (i + 1 >= bytes_count)
+          break;
         b1 = rom_data[torch_data + i];
         b2 = rom_data[torch_data + i + 1];
         if (b1 == 0xFF && b2 == 0xFF) {
@@ -1183,7 +1192,8 @@ void Room::LoadBlocks() {
 
   // Parse blocks for this room (4 bytes per block entry)
   for (int i = 0; i < blocks_count; i += 4) {
-    if (i + 3 >= blocks_count) break;
+    if (i + 3 >= blocks_count)
+      break;
 
     uint8_t b1 = blocks_data[i];
     uint8_t b2 = blocks_data[i + 1];

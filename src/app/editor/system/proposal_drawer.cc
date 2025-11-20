@@ -18,10 +18,13 @@
 namespace yaze {
 namespace editor {
 
-ProposalDrawer::ProposalDrawer() { RefreshProposals(); }
+ProposalDrawer::ProposalDrawer() {
+  RefreshProposals();
+}
 
 void ProposalDrawer::Draw() {
-  if (!visible_) return;
+  if (!visible_)
+    return;
 
   // Set drawer position on the right side
   ImGuiIO& io = ImGui::GetIO();
@@ -186,7 +189,8 @@ void ProposalDrawer::DrawProposalList() {
 }
 
 void ProposalDrawer::DrawProposalDetail() {
-  if (!selected_proposal_) return;
+  if (!selected_proposal_)
+    return;
 
   const auto& p = *selected_proposal_;
 
@@ -279,7 +283,8 @@ void ProposalDrawer::DrawStatusFilter() {
 
 void ProposalDrawer::DrawPolicyStatus() {
 #ifdef YAZE_ENABLE_POLICY_FRAMEWORK
-  if (!selected_proposal_) return;
+  if (!selected_proposal_)
+    return;
 
   const auto& p = *selected_proposal_;
 
@@ -377,7 +382,8 @@ void ProposalDrawer::DrawPolicyStatus() {
 }
 
 void ProposalDrawer::DrawActionButtons() {
-  if (!selected_proposal_) return;
+  if (!selected_proposal_)
+    return;
 
   const auto& p = *selected_proposal_;
   bool is_pending = p.status == cli::ProposalRegistry::ProposalStatus::kPending;

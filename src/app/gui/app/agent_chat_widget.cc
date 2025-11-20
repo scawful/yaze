@@ -127,7 +127,8 @@ void AgentChatWidget::RenderToolbar() {
 
 void AgentChatWidget::RenderChatHistory() {
 #ifdef Z3ED_AI_AVAILABLE
-  if (!agent_service_) return;
+  if (!agent_service_)
+    return;
 
   const auto& history = agent_service_->GetHistory();
 
@@ -238,7 +239,8 @@ void AgentChatWidget::RenderInputArea() {
 
 void AgentChatWidget::SendMessage(const std::string& message) {
 #ifdef Z3ED_AI_AVAILABLE
-  if (!agent_service_) return;
+  if (!agent_service_)
+    return;
 
   // Send message through agent service
   auto result = agent_service_->SendMessage(message);
@@ -330,7 +332,9 @@ absl::Status AgentChatWidget::SaveHistory(const std::string& filepath) {
 #endif
 }
 
-void AgentChatWidget::ScrollToBottom() { scroll_to_bottom_ = true; }
+void AgentChatWidget::ScrollToBottom() {
+  scroll_to_bottom_ = true;
+}
 
 }  // namespace gui
 

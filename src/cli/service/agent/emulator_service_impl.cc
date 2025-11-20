@@ -663,7 +663,8 @@ grpc::Status EmulatorServiceImpl::GetDebugStatus(
   auto breakpoints = emulator_->breakpoint_manager().GetAllBreakpoints();
   uint32_t active_bp_count = 0;
   for (const auto& bp : breakpoints) {
-    if (bp.enabled) active_bp_count++;
+    if (bp.enabled)
+      active_bp_count++;
   }
   response->set_active_breakpoints(active_bp_count);
   response->set_active_watchpoints(

@@ -791,7 +791,8 @@ void EditorCardRegistry::DrawCardBrowser(size_t session_id, bool* p_open) {
 
       for (const auto& card_id : cards) {
         auto card_it = cards_.find(card_id);
-        if (card_it == cards_.end()) continue;
+        if (card_it == cards_.end())
+          continue;
 
         const auto& card = card_it->second;
 

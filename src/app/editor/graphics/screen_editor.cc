@@ -25,7 +25,8 @@ namespace editor {
 constexpr uint32_t kRedPen = 0xFF0000FF;
 
 void ScreenEditor::Initialize() {
-  if (!dependencies_.card_registry) return;
+  if (!dependencies_.card_registry)
+    return;
   auto* card_registry = dependencies_.card_registry;
 
   card_registry->RegisterCard({.card_id = "screen.dungeon_maps",
@@ -121,7 +122,8 @@ absl::Status ScreenEditor::Load() {
 }
 
 absl::Status ScreenEditor::Update() {
-  if (!dependencies_.card_registry) return absl::OkStatus();
+  if (!dependencies_.card_registry)
+    return absl::OkStatus();
   auto* card_registry = dependencies_.card_registry;
 
   static gui::EditorCard dungeon_maps_card("Dungeon Maps", ICON_MD_MAP);
@@ -724,7 +726,8 @@ void ScreenEditor::DrawDungeonMapsEditor() {
     ImGui::Text("Selected tile8: %d", selected_tile8_);
     ImGui::Separator();
     ImGui::Text("For use with custom inserted graphics assembly patches.");
-    if (ImGui::Button("Load GFX from BIN file")) LoadBinaryGfx();
+    if (ImGui::Button("Load GFX from BIN file"))
+      LoadBinaryGfx();
 
     ImGui::EndTable();
   }
@@ -860,8 +863,10 @@ void ScreenEditor::DrawTitleScreenCompositeCanvas() {
           // Create tile word: tile_id | (palette << 10) | h_flip | v_flip
           uint16_t tile_word = selected_title_tile16_ & 0x3FF;
           tile_word |= (title_palette_ & 0x07) << 10;
-          if (title_h_flip_) tile_word |= 0x4000;
-          if (title_v_flip_) tile_word |= 0x8000;
+          if (title_h_flip_)
+            tile_word |= 0x4000;
+          if (title_v_flip_)
+            tile_word |= 0x8000;
 
           // Update BG1 buffer and re-render both layers and composite
           title_screen_.mutable_bg1_buffer()[tilemap_index] = tile_word;
@@ -913,8 +918,10 @@ void ScreenEditor::DrawTitleScreenBG1Canvas() {
           // Create tile word: tile_id | (palette << 10) | h_flip | v_flip
           uint16_t tile_word = selected_title_tile16_ & 0x3FF;
           tile_word |= (title_palette_ & 0x07) << 10;
-          if (title_h_flip_) tile_word |= 0x4000;
-          if (title_v_flip_) tile_word |= 0x8000;
+          if (title_h_flip_)
+            tile_word |= 0x4000;
+          if (title_v_flip_)
+            tile_word |= 0x8000;
 
           // Update buffer and re-render
           title_screen_.mutable_bg1_buffer()[tilemap_index] = tile_word;
@@ -956,8 +963,10 @@ void ScreenEditor::DrawTitleScreenBG2Canvas() {
           // Create tile word: tile_id | (palette << 10) | h_flip | v_flip
           uint16_t tile_word = selected_title_tile16_ & 0x3FF;
           tile_word |= (title_palette_ & 0x07) << 10;
-          if (title_h_flip_) tile_word |= 0x4000;
-          if (title_v_flip_) tile_word |= 0x8000;
+          if (title_h_flip_)
+            tile_word |= 0x4000;
+          if (title_v_flip_)
+            tile_word |= 0x8000;
 
           // Update buffer and re-render
           title_screen_.mutable_bg2_buffer()[tilemap_index] = tile_word;

@@ -137,3 +137,269 @@ Automates the vcpkg bootstrap flow on Windows:
 4. Reminds you to rerun `.\scripts\verify-build-environment.ps1 -FixIssues` to double-check the environment.
 
 Use it immediately after cloning the repository or whenever you need to refresh your local dependency cache before running `win-ai` or `ci-windows-ai` presets.
+
+## CMake Validation Tools
+
+A comprehensive toolkit for validating CMake configuration and catching dependency issues early. These tools help prevent build failures by detecting configuration problems before compilation.
+
+### validate-cmake-config.cmake
+
+Validates CMake configuration by checking targets, flags, and platform-specific settings.
+
+```bash
+# Validate default build directory
+cmake -P scripts/validate-cmake-config.cmake
+
+# Validate specific build directory
+cmake -P scripts/validate-cmake-config.cmake build_ai
+```
+
+**What it checks:**
+- Required targets exist
+- Feature flag consistency (AI requires gRPC, etc.)
+- Compiler settings (C++23, MSVC runtime on Windows)
+- Abseil configuration on Windows (prevents missing include issues)
+- Output directories
+- Common configuration mistakes
+
+### check-include-paths.sh
+
+Validates include paths in compile_commands.json to catch missing includes before build.
+
+```bash
+# Check default build directory
+./scripts/check-include-paths.sh
+
+# Check specific build
+./scripts/check-include-paths.sh build_ai
+
+# Verbose mode (show all include dirs)
+VERBOSE=1 ./scripts/check-include-paths.sh build
+```
+
+**Requires:** `jq` for better parsing (optional but recommended): `brew install jq`
+
+**What it checks:**
+- Common dependencies (SDL2, ImGui, yaml-cpp)
+- Platform-specific includes
+- Abseil includes from gRPC build (critical on Windows)
+- Suspicious configurations (missing -I flags, relative paths)
+
+### visualize-deps.py
+
+Generates dependency graphs and detects circular dependencies.
+
+```bash
+# Generate GraphViz diagram
+python3 scripts/visualize-deps.py build --format graphviz -o deps.dot
+dot -Tpng deps.dot -o deps.png
+
+# Generate Mermaid diagram
+python3 scripts/visualize-deps.py build --format mermaid -o deps.mmd
+
+# Show statistics
+python3 scripts/visualize-deps.py build --stats
+```
+
+**Formats:**
+- **graphviz**: DOT format for rendering with `dot` command
+- **mermaid**: For embedding in Markdown/documentation
+- **text**: Simple text tree for quick overview
+
+**Features:**
+- Detects circular dependencies (highlighted in red)
+- Shows dependency statistics
+- Color-coded targets (executables, libraries, etc.)
+
+### test-cmake-presets.sh
+
+Tests that all CMake presets can configure successfully.
+
+```bash
+# Test all presets for current platform
+./scripts/test-cmake-presets.sh
+
+# Test specific preset
+./scripts/test-cmake-presets.sh --preset mac-ai
+
+# Test in parallel (faster)
+./scripts/test-cmake-presets.sh --platform mac --parallel 4
+
+# Quick mode (don't clean between tests)
+./scripts/test-cmake-presets.sh --quick
+```
+
+**Options:**
+- `--parallel N`: Test N presets in parallel (default: 4)
+- `--preset NAME`: Test only specific preset
+- `--platform PLATFORM`: Test only mac/win/lin presets
+- `--quick`: Skip cleaning between tests
+- `--verbose`: Show full CMake output
+
+### Usage in Development Workflow
+
+**After configuring CMake:**
+```bash
+cmake --preset mac-ai
+cmake -P scripts/validate-cmake-config.cmake build
+./scripts/check-include-paths.sh build
+```
+
+**Before committing:**
+```bash
+# Test all platform presets configure successfully
+./scripts/test-cmake-presets.sh --platform mac
+```
+
+**When adding new targets:**
+```bash
+# Check for circular dependencies
+python3 scripts/visualize-deps.py build --stats
+```
+
+**For full details**, see [docs/internal/testing/cmake-validation.md](../docs/internal/testing/cmake-validation.md)
+
+## Symbol Conflict Detection
+
+Tools to detect One Definition Rule (ODR) violations and duplicate symbol definitions **before linking fails**.
+
+### Quick Start
+
+```bash
+# Extract symbols from object files
+./scripts/extract-symbols.sh
+
+# Check for conflicts
+./scripts/check-duplicate-symbols.sh
+
+# Run tests
+./scripts/test-symbol-detection.sh
+```
+
+### Scripts
+
+#### extract-symbols.sh
+
+Scans compiled object files and creates a JSON database of all symbols and their locations.
+
+**Features:**
+- Cross-platform: macOS/Linux (nm), Windows (dumpbin)
+- Fast: ~2-3 seconds for typical builds
+- Identifies duplicate definitions across object files
+- Tracks symbol type (text, data, read-only, etc.)
+
+**Usage:**
+```bash
+# Extract from build directory
+./scripts/extract-symbols.sh build
+
+# Custom output file
+./scripts/extract-symbols.sh build symbols.json
+```
+
+**Output:** `build/symbol_database.json` - JSON with symbol conflicts listed
+
+#### check-duplicate-symbols.sh
+
+Analyzes symbol database and reports conflicts in developer-friendly format.
+
+**Usage:**
+```bash
+# Check default database
+./scripts/check-duplicate-symbols.sh
+
+# Verbose output
+./scripts/check-duplicate-symbols.sh --verbose
+
+# Include fix suggestions
+./scripts/check-duplicate-symbols.sh --fix-suggestions
+```
+
+**Exit codes:**
+- `0` = No conflicts found
+- `1` = Conflicts detected (fails in CI/pre-commit)
+
+#### test-symbol-detection.sh
+
+Integration test suite for symbol detection system.
+
+**Usage:**
+```bash
+./scripts/test-symbol-detection.sh
+```
+
+**Validates:**
+- Scripts are executable
+- Build directory and object files exist
+- Symbol extraction works correctly
+- JSON database is valid
+- Duplicate checker runs successfully
+- Pre-commit hook is configured
+
+### Git Hook Integration
+
+**First-time setup:**
+```bash
+git config core.hooksPath .githooks
+chmod +x .githooks/pre-commit
+```
+
+The pre-commit hook automatically runs symbol checks on changed files:
+- Fast: ~1-2 seconds
+- Only checks affected objects
+- Warns about conflicts
+- Can skip with `--no-verify` if needed
+
+### CI/CD Integration
+
+The `symbol-detection.yml` GitHub Actions workflow runs on:
+- All pushes to `master` and `develop`
+- All pull requests affecting C++ files
+- Workflows can be triggered manually
+
+**What it does:**
+1. Builds project
+2. Extracts symbols from all object files
+3. Checks for conflicts
+4. Uploads symbol database as artifact
+5. Fails job if conflicts found
+
+### Common Fixes
+
+**Duplicate global variable:**
+```cpp
+// Bad - defined in both files
+ABSL_FLAG(std::string, rom, "", "ROM path");
+
+// Fix 1: Use static (internal linkage)
+static ABSL_FLAG(std::string, rom, "", "ROM path");
+
+// Fix 2: Use anonymous namespace
+namespace {
+  ABSL_FLAG(std::string, rom, "", "ROM path");
+}
+```
+
+**Duplicate function:**
+```cpp
+// Bad - defined in both files
+void ProcessData() { /* ... */ }
+
+// Fix: Make inline or use static
+inline void ProcessData() { /* ... */ }
+```
+
+### Performance
+
+| Operation | Time |
+|-----------|------|
+| Extract (4000 objects, macOS) | ~3s |
+| Extract (4000 objects, Windows) | ~5-7s |
+| Check duplicates | <100ms |
+| Pre-commit hook | ~1-2s |
+
+### Documentation
+
+Full documentation available in:
+- [docs/internal/testing/symbol-conflict-detection.md](../docs/internal/testing/symbol-conflict-detection.md)
+- [docs/internal/testing/sample-symbol-database.json](../docs/internal/testing/sample-symbol-database.json)

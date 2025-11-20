@@ -387,7 +387,8 @@ absl::StatusOr<ChatMessage> ConversationalAgentService::SendMessage(
                       << std::endl;
             std::string preview = tool_output.substr(
                 0, std::min(size_t(200), tool_output.size()));
-            if (tool_output.size() > 200) preview += "...";
+            if (tool_output.size() > 200)
+              preview += "...";
             std::cout << util::colors::kDim << preview << util::colors::kReset
                       << std::endl;
           }

@@ -74,7 +74,9 @@ bool DangerButton(const char* label, const ImVec2& size) {
 // Headers & Sections
 // ============================================================================
 
-void SectionHeader(const char* label) { LayoutHelpers::SectionHeader(label); }
+void SectionHeader(const char* label) {
+  LayoutHelpers::SectionHeader(label);
+}
 
 bool ThemedCollapsingHeader(const char* label, ImGuiTreeNodeFlags flags) {
   const auto& theme = GetTheme();
@@ -210,13 +212,17 @@ bool BeginThemedTable(const char* str_id, int columns, ImGuiTableFlags flags,
                                               outer_size, inner_width);
 }
 
-void EndThemedTable() { LayoutHelpers::EndTable(); }
+void EndThemedTable() {
+  LayoutHelpers::EndTable();
+}
 
 // ============================================================================
 // Tooltips & Help
 // ============================================================================
 
-void ThemedHelpMarker(const char* desc) { LayoutHelpers::HelpMarker(desc); }
+void ThemedHelpMarker(const char* desc) {
+  LayoutHelpers::HelpMarker(desc);
+}
 
 void BeginThemedTooltip() {
   const auto& theme = GetTheme();
@@ -316,7 +322,8 @@ void ColorInfoPanel(const yaze::gfx::SnesColor& color, bool show_snes_format,
 }
 
 void ModifiedBadge(bool is_modified, const char* text) {
-  if (!is_modified) return;
+  if (!is_modified)
+    return;
 
   const auto& theme = GetTheme();
   ImVec4 color = ConvertColorToImVec4(theme.warning);
@@ -346,7 +353,9 @@ void PushThemedWidgetColors() {
                         ConvertColorToImVec4(theme.button_active));
 }
 
-void PopThemedWidgetColors() { ImGui::PopStyleColor(6); }
+void PopThemedWidgetColors() {
+  ImGui::PopStyleColor(6);
+}
 
 }  // namespace gui
 }  // namespace yaze

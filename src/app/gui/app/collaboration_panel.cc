@@ -465,18 +465,26 @@ std::string CollaborationPanel::FormatFileSize(size_t bytes) {
 
 const char* CollaborationPanel::GetProposalStatusIcon(
     const std::string& status) {
-  if (status == "pending") return "[◷]";
-  if (status == "approved") return "[✓]";
-  if (status == "rejected") return "[✗]";
-  if (status == "applied") return "[✦]";
+  if (status == "pending")
+    return "[◷]";
+  if (status == "approved")
+    return "[✓]";
+  if (status == "rejected")
+    return "[✗]";
+  if (status == "applied")
+    return "[✦]";
   return "[?]";
 }
 
 ImVec4 CollaborationPanel::GetProposalStatusColor(const std::string& status) {
-  if (status == "pending") return colors_.proposal_pending;
-  if (status == "approved") return colors_.proposal_approved;
-  if (status == "rejected") return colors_.proposal_rejected;
-  if (status == "applied") return colors_.proposal_applied;
+  if (status == "pending")
+    return colors_.proposal_pending;
+  if (status == "approved")
+    return colors_.proposal_approved;
+  if (status == "rejected")
+    return colors_.proposal_rejected;
+  if (status == "applied")
+    return colors_.proposal_applied;
   return ImVec4(0.7f, 0.7f, 0.7f, 1.0f);
 }
 

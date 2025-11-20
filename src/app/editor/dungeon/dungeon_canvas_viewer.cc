@@ -15,7 +15,9 @@ namespace yaze::editor {
 // DrawDungeonTabView() removed - DungeonEditorV2 uses EditorCard system for
 // flexible docking
 
-void DungeonCanvasViewer::Draw(int room_id) { DrawDungeonCanvas(room_id); }
+void DungeonCanvasViewer::Draw(int room_id) {
+  DrawDungeonCanvas(room_id);
+}
 
 void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
   // Validate room_id and ROM
@@ -313,7 +315,9 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     // Separator
     gui::CanvasMenuItem sep;
     sep.label = "---";
-    sep.enabled_condition = []() { return false; };
+    sep.enabled_condition = []() {
+      return false;
+    };
     object_bounds_menu.subitems.push_back(sep);
 
     // Sub-menu for filtering by layer
@@ -656,7 +660,8 @@ std::pair<int, int> DungeonCanvasViewer::CanvasToRoomCoordinates(
 
   // IMPORTANT: Mouse coordinates are in screen space, must undo scale first
   float scale = canvas_.global_scale();
-  if (scale <= 0.0f) scale = 1.0f;  // Prevent division by zero
+  if (scale <= 0.0f)
+    scale = 1.0f;  // Prevent division by zero
 
   // Step 1: Convert screen space → logical pixel space
   int logical_x = static_cast<int>(canvas_x / scale);
@@ -853,7 +858,8 @@ absl::Status DungeonCanvasViewer::LoadAndRenderRoomGraphics(int room_id) {
 }
 
 void DungeonCanvasViewer::DrawRoomBackgroundLayers(int room_id) {
-  if (room_id < 0 || room_id >= zelda3::NumberOfRooms || !rooms_) return;
+  if (room_id < 0 || room_id >= zelda3::NumberOfRooms || !rooms_)
+    return;
 
   auto& room = (*rooms_)[room_id];
   auto& layer_settings = GetRoomLayerSettings(room_id);
@@ -933,7 +939,8 @@ void DungeonCanvasViewer::DrawRoomBackgroundLayers(int room_id) {
     int non_zero_pixels = 0;
     for (size_t i = 0; i < bg1_data.size();
          i += 100) {  // Sample every 100th pixel
-      if (bg1_data[i] != 0) non_zero_pixels++;
+      if (bg1_data[i] != 0)
+        non_zero_pixels++;
     }
     LOG_DEBUG("DungeonCanvasViewer",
               "BG1 bitmap data: %zu pixels, ~%d non-zero samples",
@@ -952,7 +959,8 @@ void DungeonCanvasViewer::DrawRoomBackgroundLayers(int room_id) {
     int non_zero_pixels = 0;
     for (size_t i = 0; i < bg2_data.size();
          i += 100) {  // Sample every 100th pixel
-      if (bg2_data[i] != 0) non_zero_pixels++;
+      if (bg2_data[i] != 0)
+        non_zero_pixels++;
     }
     LOG_DEBUG("DungeonCanvasViewer",
               "BG2 bitmap data: %zu pixels, ~%d non-zero samples",
