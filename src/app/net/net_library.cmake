@@ -57,13 +57,20 @@ if(YAZE_WITH_JSON)
   # Only link OpenSSL if gRPC is NOT enabled (to avoid duplicate symbol errors)
   # When gRPC is enabled, it brings its own OpenSSL which we'll use instead
   if(NOT YAZE_WITH_GRPC)
-    find_package(OpenSSL QUIET)
-    if(OpenSSL_FOUND)
-      target_link_libraries(yaze_net PUBLIC OpenSSL::SSL OpenSSL::Crypto)
-      target_compile_definitions(yaze_net PUBLIC CPPHTTPLIB_OPENSSL_SUPPORT)
-      message(STATUS "  - WebSocket with SSL/TLS support enabled")
+    # CRITICAL FIX: Disable OpenSSL on Windows to avoid missing header errors
+    # Windows CI doesn't have OpenSSL headers properly configured
+    # WebSocket will work with plain HTTP (no SSL/TLS) on Windows
+    if(NOT WIN32)
+      find_package(OpenSSL QUIET)
+      if(OpenSSL_FOUND)
+        target_link_libraries(yaze_net PUBLIC OpenSSL::SSL OpenSSL::Crypto)
+        target_compile_definitions(yaze_net PUBLIC CPPHTTPLIB_OPENSSL_SUPPORT)
+        message(STATUS "  - WebSocket with SSL/TLS support enabled")
+      else()
+        message(STATUS "  - WebSocket without SSL/TLS (OpenSSL not found)")
+      endif()
     else()
-      message(STATUS "  - WebSocket without SSL/TLS (OpenSSL not found)")
+      message(STATUS "  - Windows: WebSocket using plain HTTP (no SSL) - OpenSSL headers not available in CI")
     endif()
   else()
     # When gRPC is enabled, still enable OpenSSL features but use gRPC's OpenSSL
