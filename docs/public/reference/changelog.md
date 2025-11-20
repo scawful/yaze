@@ -2,59 +2,91 @@
 
 ## 0.3.3 (November 2025)
 
-### Build System Stability
+### Major Features
 
-**Windows Platform Fixes**:
-- Fixed std::filesystem compilation errors with clang-cl (2+ week blocker resolved)
-- Added `/std:c++latest` flag for proper C++23 standard library access
-- Enabled exception handling with `/EHsc` flag
-- Fixed Abseil include path resolution with explicit directory configuration
-- Resolved gRPC ZLIB conflicts by using bundled ZLIB instead of system package
+**Dungeon Editor V2 Enhancements**:
+- **Layout Override System**: Directly modify room layouts with visual debugging tools
+- **Advanced Canvas Viewer**: Object outline filters, context menu improvements, debugging overlays
+- **Room Properties Panel**: Comprehensive property editing with layout visualization
+- **PaletteManager Integration**: Centralized color management for dungeon rendering
+- **Object Rendering**: Downwards drawing routines and enhanced tile management
+- **Debug Controls Card**: Real-time debugging with visual diagnostics
+- **Layer Visibility Controls**: Toggle individual layers and BG2 layer types
+- **Card Management System**: Dockable panels for modular editor layout
+- **TextureAtlas**: Efficient texture management for improved performance
 
-**Linux Platform Fixes**:
-- Resolved FLAGS symbol conflicts across multiple compilation units
-- Fixed circular dependency in graphics libraries (atlas_renderer relocation)
-- Moved FLAGS_quiet to shared flags.cc to eliminate ODR violations
-- Removed unnecessary dependencies from yaze_emu_test
-
-**macOS Platform Fixes**:
-- Fixed z3ed linker error by ensuring yaze_app_core_lib is always available
-- Created separate app_core.cmake for library-only builds
-
-### Experimental Features
+**Canvas & UI System**:
+- **Event-Driven Interaction**: New interaction handling system for canvas events
+- **Canvas Geometry Helpers**: Rendering utilities and coordinate transformations
+- **PopupRegistry**: Enhanced context menu management
+- **LayoutManager**: Flexible editor layout system
+- **Unified Context Menus**: CanvasMenuItem system for consistent menu behavior
 
 **HTTP REST API (Experimental)**:
-- Added optional HTTP REST API server for external tool integration
-- Controlled via `YAZE_ENABLE_HTTP_API` CMake flag
-- Initial endpoints: health check and model listing
-- Secure localhost-only binding by default
+- **External Tool Integration**: HTTP server for third-party tools and automation
+- **Health Check Endpoint**: Service status monitoring
+- **Model Listing API**: Query available AI models
+- **Localhost-Only Binding**: Secure by default configuration
+- **Controlled via CMake**: `YAZE_ENABLE_HTTP_API` flag for opt-in builds
 
 **AI Infrastructure (Experimental)**:
-- Unified ModelRegistry for cross-provider AI model management
-- Support for Ollama and Gemini providers
-- Enhanced agent configuration and chat history management
-- Improved flag parsing with better error handling
+- **Unified ModelRegistry**: Cross-provider AI model management (Ollama, Gemini)
+- **Enhanced Agent Configuration**: Improved chat history and session management
+- **Conditional AI Runtime**: Modular AI features with `YAZE_ENABLE_AI_RUNTIME`
+- **Improved Flag Parsing**: Detailed error handling with FlagParseFatal utility
+- **Mock ROM Mode**: Testing without actual ROM files for CI/development
 
-### Infrastructure Improvements
+### Testing & Development Experience
 
-**Build System**:
-- 11 new CMake presets across macOS, Linux, and Windows
-- Platform-specific optimization flags and consistent build directory naming
-- Enhanced conditional compilation support
-- Submodule reorganization: unified `ext/` directory for all third-party libraries
-
-**Testing & CI/CD**:
-- Comprehensive testing documentation and infrastructure
-- New helper scripts: pre-push.sh, smoke-build.sh, test-http-api.sh
+**Testing Infrastructure**:
+- Comprehensive testing documentation (matrix testing, symbol detection)
+- Helper scripts: `pre-push.sh`, `smoke-build.sh`, `test-http-api.sh`
 - Platform matrix testing (Ubuntu 22.04, macOS 14, Windows Server 2022)
-- Enhanced workflow_dispatch with configurable options
-- Improved artifact uploads and failure diagnostics
+- Mock ROM mode for ROM-independent testing
+- Enhanced test categorization and reporting
 
-**Documentation**:
-- Reorganized agent collaboration framework (6+ new documents)
-- Enhanced testing guides and quick-start documentation
-- Platform-specific build guides with troubleshooting steps
-- Release process documentation and checklists
+**Developer Tools**:
+- **z3ed Dungeon Commands**: CLI commands for dungeon manipulation
+- **Debugging Startup Options**: Jump directly to editors with `--editor` flag
+- **Enhanced Logging**: Log category filtering for targeted debugging
+- **Build Environment Verifier**: Enhanced Windows verification script
+- **Documentation**: Comprehensive dungeon editor technical guide (2000+ lines)
+
+### Build System Stability
+
+**Cross-Platform Build Fixes**:
+- **Windows**: Fixed std::filesystem with clang-cl (2+ week blocker resolved)
+  - Added `/std:c++latest` for proper C++23 library access
+  - Enabled exception handling with `/EHsc` flag
+  - Resolved gRPC ZLIB conflicts using bundled ZLIB
+  - Fixed Abseil include paths and ERROR macro conflicts
+- **Linux**: Resolved FLAGS symbol conflicts and circular dependencies
+  - Moved FLAGS_quiet to shared flags.cc (ODR violation fix)
+  - Fixed atlas_renderer circular dependency
+- **macOS**: Fixed z3ed linker errors with library-only builds
+  - Created separate app_core.cmake configuration
+
+**CMake Improvements**:
+- 11 new platform-specific presets (debug, release, AI-enabled variants)
+- Enhanced conditional compilation with modular AI feature flags
+- Submodule reorganization: unified `ext/` directory for third-party libraries
+- Consistent build directory naming across platforms
+- Fixed release preset: disabled tests and emulator for faster builds
+
+**CI/CD Enhancements**:
+- Platform-specific CMake configurations
+- Enhanced diagnostics and artifact management
+- Improved failure reporting with detailed logs
+- workflow_dispatch with configurable options
+
+### Documentation & Organization
+
+- **Agent Collaboration**: 6+ new coordination and engagement documents
+- **Testing Guides**: Matrix testing, symbol detection, quick-start guides
+- **Platform Build Guides**: Windows, Linux, macOS-specific troubleshooting
+- **Dungeon Editor Guide**: Comprehensive technical documentation
+- **Release Checklists**: Process documentation and validation steps
+- **File Organization**: Moved testing docs from root to `docs/internal/testing/`
 
 ### Code Quality
 
@@ -62,12 +94,14 @@
 - Excluded third-party libraries from format checks
 - Consistent error handling with FlagParseFatal utility
 - Improved code organization and dependency management
+- Enhanced CMake modularity and maintainability
 
 ### Known Issues
 
 - gRPC builds require network access (not suitable for sandboxed environments)
 - Windows builds require Visual Studio 2022 with C++ workload
 - gRPC builds take 15-20 minutes on first build
+- HTTP REST API and AI features are experimental (use at own risk)
 
 ## 0.3.2 (October 2025)
 
