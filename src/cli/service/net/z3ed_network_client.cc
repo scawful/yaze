@@ -12,7 +12,11 @@
 
 #ifdef YAZE_WITH_JSON
 #include "nlohmann/json.hpp"
+// CRITICAL: Windows CI doesn't have OpenSSL headers available
+// Skip SSL support on Windows even when gRPC is enabled
+#if !defined(_WIN32) && !defined(_WIN64)
 #define CPPHTTPLIB_OPENSSL_SUPPORT
+#endif
 #include "httplib.h"
 #endif
 
