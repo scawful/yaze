@@ -221,4 +221,3 @@ class CanvasAutomationAPI {
 }  // namespace yaze
 
 #endif  // YAZE_APP_GUI_CANVAS_CANVAS_AUTOMATION_API_H
-

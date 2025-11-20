@@ -10,8 +10,9 @@ namespace agent {
 std::string PromptManager::LoadPrompt(PromptMode mode) {
   std::string path = GetPromptPath(mode);
   std::ifstream file(path);
-  if (!file) return "";
-  
+  if (!file)
+    return "";
+
   std::ostringstream ss;
   ss << file.rdbuf();
   return ss.str();
@@ -35,9 +36,12 @@ std::vector<PromptMode> PromptManager::GetAvailableModes() {
 
 const char* PromptManager::ModeToString(PromptMode mode) {
   switch (mode) {
-    case PromptMode::kStandard: return "ALTTP Standard";
-    case PromptMode::kOracleOfSecrets: return "Oracle of Secrets";
-    case PromptMode::kCustom: return "Custom";
+    case PromptMode::kStandard:
+      return "ALTTP Standard";
+    case PromptMode::kOracleOfSecrets:
+      return "Oracle of Secrets";
+    case PromptMode::kCustom:
+      return "Custom";
   }
   return "Unknown";
 }

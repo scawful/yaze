@@ -4,9 +4,9 @@
 #include <iomanip>
 #include <sstream>
 
+#include "app/gfx/debug/performance/performance_profiler.h"
 #include "app/gfx/render/atlas_renderer.h"
 #include "app/gfx/resource/memory_pool.h"
-#include "app/gfx/debug/performance/performance_profiler.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -250,7 +250,7 @@ void PerformanceDashboard::RenderMemoryUsage() {
     for (double value : memory_usage_history_) {
       float_history.push_back(static_cast<float>(value));
     }
-    
+
     ImGui::PlotLines("Memory (MB)", float_history.data(),
                      static_cast<int>(float_history.size()));
   }
@@ -262,15 +262,18 @@ void PerformanceDashboard::RenderMemoryUsage() {
   float pool_usage =
       total_bytes > 0 ? static_cast<float>(used_bytes) / total_bytes : 0.0F;
   ImGui::ProgressBar(pool_usage, ImVec2(-1, 0), "Memory Pool Usage");
-  
+
   // Atlas renderer stats
   auto atlas_stats = AtlasRenderer::Get().GetStats();
-  ImGui::Text("Atlas Renderer: %d atlases, %d/%d entries used", 
-              atlas_stats.total_atlases, atlas_stats.used_entries, atlas_stats.total_entries);
-  ImGui::Text("Atlas Memory: %s", FormatMemory(atlas_stats.total_memory).c_str());
-  
+  ImGui::Text("Atlas Renderer: %d atlases, %d/%d entries used",
+              atlas_stats.total_atlases, atlas_stats.used_entries,
+              atlas_stats.total_entries);
+  ImGui::Text("Atlas Memory: %s",
+              FormatMemory(atlas_stats.total_memory).c_str());
+
   if (atlas_stats.total_entries > 0) {
-    float atlas_usage = static_cast<float>(atlas_stats.used_entries) / atlas_stats.total_entries;
+    float atlas_usage = static_cast<float>(atlas_stats.used_entries) /
+                        atlas_stats.total_entries;
     ImGui::ProgressBar(atlas_usage, ImVec2(-1, 0), "Atlas Utilization");
   }
 }
@@ -327,17 +330,17 @@ void PerformanceDashboard::RenderRecommendations() const {
   if (ImGui::Checkbox("Enable Performance Monitoring", &monitoring_enabled)) {
     PerformanceProfiler::SetEnabled(monitoring_enabled);
   }
-  
+
   ImGui::SameLine();
   if (ImGui::Button("Clear All Data")) {
     PerformanceProfiler::Get().Clear();
   }
-  
+
   ImGui::SameLine();
   if (ImGui::Button("Generate Report")) {
     std::string report = PerformanceProfiler::Get().GenerateReport(true);
   }
-  
+
   // Export button
   if (ImGui::Button("Export Performance Report")) {
     std::string report = ExportReport();
@@ -373,23 +376,23 @@ void PerformanceDashboard::CollectMetrics() {
   // Calculate cache hit ratio based on actual performance data
   double total_cache_operations = 0.0;
   double total_cache_time = 0.0;
-  
+
   // Look for cache-related operations
   for (const auto& op_name : profiler.GetOperationNames()) {
-    if (op_name.find("cache") != std::string::npos || 
+    if (op_name.find("cache") != std::string::npos ||
         op_name.find("tile_cache") != std::string::npos) {
       auto stats = profiler.GetStats(op_name);
       total_cache_operations += stats.sample_count;
       total_cache_time += stats.total_time_ms;
     }
   }
-  
+
   // Estimate cache hit ratio based on operation speed
   if (total_cache_operations > 0) {
     double avg_cache_time = total_cache_time / total_cache_operations;
     // Assume cache hits are < 10μs, misses are > 50μs
-    current_metrics_.cache_hit_ratio = std::max(0.0, std::min(1.0, 
-      1.0 - (avg_cache_time - 10.0) / 40.0));
+    current_metrics_.cache_hit_ratio =
+        std::max(0.0, std::min(1.0, 1.0 - (avg_cache_time - 10.0) / 40.0));
   } else {
     current_metrics_.cache_hit_ratio = 0.85;  // Default estimate
   }
@@ -397,18 +400,18 @@ void PerformanceDashboard::CollectMetrics() {
   // Count draw calls and texture updates from profiler data
   int draw_calls = 0;
   int texture_updates = 0;
-  
+
   for (const auto& op_name : profiler.GetOperationNames()) {
-    if (op_name.find("draw") != std::string::npos || 
+    if (op_name.find("draw") != std::string::npos ||
         op_name.find("render") != std::string::npos) {
       draw_calls += profiler.GetOperationCount(op_name);
     }
-    if (op_name.find("texture_update") != std::string::npos || 
+    if (op_name.find("texture_update") != std::string::npos ||
         op_name.find("texture") != std::string::npos) {
       texture_updates += profiler.GetOperationCount(op_name);
     }
   }
-  
+
   current_metrics_.draw_calls_per_frame = draw_calls;
   current_metrics_.texture_updates_per_frame = texture_updates;
 
@@ -427,27 +430,28 @@ void PerformanceDashboard::CollectMetrics() {
 void PerformanceDashboard::UpdateOptimizationStatus() {
   auto profiler = PerformanceProfiler::Get();
   auto [used_bytes, total_bytes] = MemoryPool::Get().GetMemoryStats();
-  
+
   // Check optimization status based on actual performance data
   optimization_status_.palette_lookup_optimized = false;
   optimization_status_.dirty_region_tracking_enabled = false;
   optimization_status_.resource_pooling_active = (total_bytes > 0);
   optimization_status_.batch_operations_enabled = false;
-  optimization_status_.atlas_rendering_enabled = true;  // AtlasRenderer is implemented
+  optimization_status_.atlas_rendering_enabled =
+      true;  // AtlasRenderer is implemented
   optimization_status_.memory_pool_active = (total_bytes > 0);
-  
+
   // Analyze palette lookup performance
   auto palette_stats = profiler.GetStats("palette_lookup_optimized");
   if (palette_stats.avg_time_us > 0 && palette_stats.avg_time_us < 5.0) {
     optimization_status_.palette_lookup_optimized = true;
   }
-  
+
   // Analyze texture update performance
   auto texture_stats = profiler.GetStats("texture_update_optimized");
   if (texture_stats.avg_time_us > 0 && texture_stats.avg_time_us < 200.0) {
     optimization_status_.dirty_region_tracking_enabled = true;
   }
-  
+
   // Check for batch operations
   auto batch_stats = profiler.GetStats("texture_batch_queue");
   if (batch_stats.sample_count > 0) {

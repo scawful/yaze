@@ -100,4 +100,4 @@ TEST(HexTest, HexLongLong) {
 }
 
 }  // namespace test
-}  // namespace yaze 
+}  // namespace yaze

@@ -8,18 +8,18 @@
 #include "absl/strings/str_format.h"
 #include "app/editor/editor.h"
 #include "app/gfx/types/snes_palette.h"
-#include "app/rom.h"
-#include "dungeon_room_selector.h"
-#include "dungeon_canvas_viewer.h"
-#include "dungeon_object_selector.h"
-#include "dungeon_room_loader.h"
-#include "object_editor_card.h"
-#include "zelda3/dungeon/room.h"
-#include "zelda3/dungeon/room_entrance.h"
 #include "app/gui/app/editor_layout.h"
 #include "app/gui/widgets/dungeon_object_emulator_preview.h"
 #include "app/gui/widgets/palette_editor_widget.h"
+#include "app/rom.h"
+#include "dungeon_canvas_viewer.h"
+#include "dungeon_object_selector.h"
+#include "dungeon_room_loader.h"
+#include "dungeon_room_selector.h"
 #include "imgui/imgui.h"
+#include "object_editor_card.h"
+#include "zelda3/dungeon/room.h"
+#include "zelda3/dungeon/room_entrance.h"
 
 namespace yaze {
 namespace editor {
@@ -81,20 +81,23 @@ class DungeonEditorV2 : public Editor {
   // ROM state
   bool IsRomLoaded() const override { return rom_ && rom_->is_loaded(); }
   std::string GetRomStatus() const override {
-    if (!rom_) return "No ROM loaded";
-    if (!rom_->is_loaded()) return "ROM failed to load";
+    if (!rom_)
+      return "No ROM loaded";
+    if (!rom_->is_loaded())
+      return "ROM failed to load";
     return absl::StrFormat("ROM loaded: %s", rom_->title());
   }
 
   // Card visibility flags - Public for command-line flag access
-  bool show_room_selector_ = false;    // Room selector/list card
-  bool show_room_matrix_ = false;      // Dungeon matrix layout
-  bool show_entrances_list_ = false;   // Entrance list card (renamed from entrances_matrix_)
-  bool show_room_graphics_ = false;    // Room graphics card
-  bool show_object_editor_ = false;    // Object editor card
-  bool show_palette_editor_ = false;   // Palette editor card
-  bool show_debug_controls_ = false;   // Debug controls card
-  bool show_control_panel_ = true;     // Control panel (visible by default)
+  bool show_room_selector_ = false;  // Room selector/list card
+  bool show_room_matrix_ = false;    // Dungeon matrix layout
+  bool show_entrances_list_ =
+      false;  // Entrance list card (renamed from entrances_matrix_)
+  bool show_room_graphics_ = false;   // Room graphics card
+  bool show_object_editor_ = false;   // Object editor card
+  bool show_palette_editor_ = false;  // Palette editor card
+  bool show_debug_controls_ = false;  // Debug controls card
+  bool show_control_panel_ = true;    // Control panel (visible by default)
 
  private:
   gfx::IRenderer* renderer_ = nullptr;
@@ -106,10 +109,10 @@ class DungeonEditorV2 : public Editor {
   void DrawEntrancesListCard();
   void DrawRoomGraphicsCard();
   void DrawDebugControlsCard();
-  
+
   // Texture processing (critical for rendering)
   void ProcessDeferredTextures();
-  
+
   // Room selection callback
   void OnRoomSelected(int room_id);
   void OnEntranceSelected(int entrance_id);
@@ -118,23 +121,23 @@ class DungeonEditorV2 : public Editor {
   Rom* rom_;
   std::array<zelda3::Room, 0x128> rooms_;
   std::array<zelda3::RoomEntrance, 0x8C> entrances_;
-  
+
   // Current selection state
   int current_entrance_id_ = 0;
-  
+
   // Active room tabs and card tracking for jump-to
   ImVector<int> active_rooms_;
   std::unordered_map<int, std::shared_ptr<gui::EditorCard>> room_cards_;
   int current_room_id_ = 0;
-  
+
   bool control_panel_minimized_ = false;
-  
+
   // Palette management
   gfx::SnesPalette current_palette_;
   gfx::PaletteGroup current_palette_group_;
   uint64_t current_palette_id_ = 0;
   uint64_t current_palette_group_id_ = 0;
-  
+
   // Components - these do all the work
   DungeonRoomLoader room_loader_;
   DungeonRoomSelector room_selector_;
@@ -142,10 +145,11 @@ class DungeonEditorV2 : public Editor {
   DungeonObjectSelector object_selector_;
   gui::DungeonObjectEmulatorPreview object_emulator_preview_;
   gui::PaletteEditorWidget palette_editor_;
-  std::unique_ptr<ObjectEditorCard> object_editor_card_;  // Unified object editor
-  
+  std::unique_ptr<ObjectEditorCard>
+      object_editor_card_;  // Unified object editor
+
   bool is_loaded_ = false;
-  
+
   // Docking class for room windows to dock together
   ImGuiWindowClass room_window_class_;
 };
@@ -154,4 +158,3 @@ class DungeonEditorV2 : public Editor {
 }  // namespace yaze
 
 #endif  // YAZE_APP_EDITOR_DUNGEON_EDITOR_V2_H
-

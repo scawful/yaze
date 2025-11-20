@@ -1,13 +1,13 @@
 #include "app/rom.h"
-#include "core/project.h"
 #include "cli/handlers/rom/mock_rom.h"
+#include "core/project.h"
 
-#include "absl/flags/declare.h"
-#include "absl/flags/flag.h"
 #include <fstream>
 #include <iostream>
 #include <string>
 #include <vector>
+#include "absl/flags/declare.h"
+#include "absl/flags/flag.h"
 
 #include "absl/status/status.h"
 #include "absl/strings/str_cat.h"
@@ -50,9 +50,8 @@ absl::Status LoadRomForAgent(Rom& rom) {
 
   auto status = rom.LoadFromFile(rom_path);
   if (!status.ok()) {
-    return ::absl::FailedPreconditionError(
-        ::absl::StrCat("Failed to load ROM from '", rom_path,
-                     "': ", status.message()));
+    return ::absl::FailedPreconditionError(::absl::StrCat(
+        "Failed to load ROM from '", rom_path, "': ", status.message()));
   }
 
   return ::absl::OkStatus();
@@ -62,7 +61,8 @@ struct ConversationTestCase {
   std::string name;
   std::string description;
   std::vector<std::string> user_prompts;
-  std::vector<std::string> expected_keywords;  // Keywords to look for in responses
+  std::vector<std::string>
+      expected_keywords;  // Keywords to look for in responses
   bool expect_tool_calls = false;
   bool expect_commands = false;
 };
@@ -120,10 +120,11 @@ std::vector<ConversationTestCase> GetDefaultTestCases() {
       {
           .name = "multi_step_query",
           .description = "Ask multiple questions in sequence",
-          .user_prompts = {
-              "What is the name of room 0?",
-              "What sprites are defined in the game?",
-          },
+          .user_prompts =
+              {
+                  "What is the name of room 0?",
+                  "What sprites are defined in the game?",
+              },
           .expected_keywords = {"Ganon", "sprite", "room"},
           .expect_tool_calls = true,
           .expect_commands = false,
@@ -160,7 +161,7 @@ void PrintAgentResponse(const ChatMessage& response, bool verbose) {
   if (response.table_data.has_value()) {
     std::cout << "📊 Table Output:\n";
     const auto& table = response.table_data.value();
-    
+
     // Print headers
     std::cout << "  ";
     for (size_t i = 0; i < table.headers.size(); ++i) {
@@ -177,7 +178,7 @@ void PrintAgentResponse(const ChatMessage& response, bool verbose) {
       }
     }
     std::cout << "\n";
-    
+
     // Print rows (limit to 10 for readability)
     const size_t max_rows = std::min<size_t>(10, table.rows.size());
     for (size_t i = 0; i < max_rows; ++i) {
@@ -190,9 +191,9 @@ void PrintAgentResponse(const ChatMessage& response, bool verbose) {
       }
       std::cout << "\n";
     }
-    
+
     if (!verbose && table.rows.size() > max_rows) {
-      std::cout << "  ... (" << (table.rows.size() - max_rows) 
+      std::cout << "  ... (" << (table.rows.size() - max_rows)
                 << " more rows)\n";
     }
 
@@ -215,65 +216,65 @@ void PrintAgentResponse(const ChatMessage& response, bool verbose) {
 bool ValidateResponse(const ChatMessage& response,
                       const ConversationTestCase& test_case) {
   bool passed = true;
-  
+
   // Check for expected keywords
   for (const auto& keyword : test_case.expected_keywords) {
     if (response.message.find(keyword) == std::string::npos) {
-      std::cout << "⚠️  Warning: Expected keyword '" << keyword 
+      std::cout << "⚠️  Warning: Expected keyword '" << keyword
                 << "' not found in response\n";
       // Don't fail test, just warn
     }
   }
-  
+
   // Check for tool calls (if we have table data, tools were likely called)
   if (test_case.expect_tool_calls && !response.table_data.has_value()) {
     std::cout << "⚠️  Warning: Expected tool calls but no table data found\n";
   }
-  
+
   // Check for commands
   if (test_case.expect_commands) {
-    bool has_commands = response.message.find("overworld") != std::string::npos ||
-                       response.message.find("dungeon") != std::string::npos ||
-                       response.message.find("set-tile") != std::string::npos;
+    bool has_commands =
+        response.message.find("overworld") != std::string::npos ||
+        response.message.find("dungeon") != std::string::npos ||
+        response.message.find("set-tile") != std::string::npos;
     if (!has_commands) {
       std::cout << "⚠️  Warning: Expected commands but none found\n";
     }
   }
-  
+
   return passed;
 }
 
 absl::Status RunTestCase(const ConversationTestCase& test_case,
-                         ConversationalAgentService& service,
-                         bool verbose) {
+                         ConversationalAgentService& service, bool verbose) {
   PrintTestHeader(test_case);
-  
+
   bool all_passed = true;
 
   service.ResetConversation();
-  
+
   for (const auto& prompt : test_case.user_prompts) {
     PrintUserPrompt(prompt);
-    
+
     auto response_or = service.SendMessage(prompt);
     if (!response_or.ok()) {
       std::cout << "❌ FAILED: " << response_or.status().message() << "\n\n";
       all_passed = false;
       continue;
     }
-    
+
     const auto& response = response_or.value();
     PrintAgentResponse(response, verbose);
-    
+
     if (!ValidateResponse(response, test_case)) {
       all_passed = false;
     }
   }
-  
+
   if (verbose) {
     const auto& history = service.GetHistory();
-    std::cout << "🗂  Conversation Summary (" << history.size()
-              << " message" << (history.size() == 1 ? "" : "s") << ")\n";
+    std::cout << "🗂  Conversation Summary (" << history.size() << " message"
+              << (history.size() == 1 ? "" : "s") << ")\n";
     for (const auto& message : history) {
       const char* sender =
           message.sender == ChatMessage::Sender::kUser ? "User" : "Agent";
@@ -292,14 +293,15 @@ absl::Status RunTestCase(const ConversationTestCase& test_case,
       absl::StrCat("Conversation test failed validation: ", test_case.name));
 }
 
-absl::Status LoadTestCasesFromFile(const std::string& file_path,
-                                  std::vector<ConversationTestCase>* test_cases) {
+absl::Status LoadTestCasesFromFile(
+    const std::string& file_path,
+    std::vector<ConversationTestCase>* test_cases) {
   std::ifstream file(file_path);
   if (!file.is_open()) {
     return absl::NotFoundError(
         absl::StrCat("Could not open test file: ", file_path));
   }
-  
+
   nlohmann::json test_json;
   try {
     file >> test_json;
@@ -307,17 +309,17 @@ absl::Status LoadTestCasesFromFile(const std::string& file_path,
     return absl::InvalidArgumentError(
         absl::StrCat("Failed to parse test file: ", e.what()));
   }
-  
+
   if (!test_json.is_array()) {
     return absl::InvalidArgumentError(
         "Test file must contain a JSON array of test cases");
   }
-  
+
   for (const auto& test_obj : test_json) {
     ConversationTestCase test_case;
     test_case.name = test_obj.value("name", "unnamed_test");
     test_case.description = test_obj.value("description", "");
-    
+
     if (test_obj.contains("prompts") && test_obj["prompts"].is_array()) {
       for (const auto& prompt : test_obj["prompts"]) {
         if (prompt.is_string()) {
@@ -325,8 +327,8 @@ absl::Status LoadTestCasesFromFile(const std::string& file_path,
         }
       }
     }
-    
-    if (test_obj.contains("expected_keywords") && 
+
+    if (test_obj.contains("expected_keywords") &&
         test_obj["expected_keywords"].is_array()) {
       for (const auto& keyword : test_obj["expected_keywords"]) {
         if (keyword.is_string()) {
@@ -334,13 +336,13 @@ absl::Status LoadTestCasesFromFile(const std::string& file_path,
         }
       }
     }
-    
+
     test_case.expect_tool_calls = test_obj.value("expect_tool_calls", false);
     test_case.expect_commands = test_obj.value("expect_commands", false);
-    
+
     test_cases->push_back(test_case);
   }
-  
+
   return absl::OkStatus();
 }
 
@@ -351,7 +353,7 @@ absl::Status HandleTestConversationCommand(
   std::string test_file;
   bool use_defaults = true;
   bool verbose = false;
-  
+
   for (size_t i = 0; i < arg_vec.size(); ++i) {
     const std::string& arg = arg_vec[i];
     if (arg == "--file" && i + 1 < arg_vec.size()) {
@@ -362,9 +364,9 @@ absl::Status HandleTestConversationCommand(
       verbose = true;
     }
   }
-  
+
   std::cout << "🔍 Debug: Starting test-conversation handler...\n";
-  
+
   // Load ROM context
   Rom rom;
   std::cout << "🔍 Debug: Loading ROM...\n";
@@ -373,20 +375,20 @@ absl::Status HandleTestConversationCommand(
     std::cerr << "❌ Error loading ROM: " << load_status.message() << "\n";
     return load_status;
   }
-  
+
   std::cout << "✅ ROM loaded: " << rom.title() << "\n";
-  
+
   // Load embedded labels for natural language queries
   std::cout << "🔍 Debug: Initializing embedded labels...\n";
   project::YazeProject project;
   auto labels_status = project.InitializeEmbeddedLabels();
   if (!labels_status.ok()) {
-    std::cerr << "⚠️  Warning: Could not initialize embedded labels: " 
+    std::cerr << "⚠️  Warning: Could not initialize embedded labels: "
               << labels_status.message() << "\n";
   } else {
     std::cout << "✅ Embedded labels initialized successfully\n";
   }
-  
+
   // Associate labels with ROM if it has a resource label manager
   std::cout << "🔍 Debug: Checking resource label manager...\n";
   if (rom.resource_label() && project.use_embedded_labels) {
@@ -397,51 +399,52 @@ absl::Status HandleTestConversationCommand(
   } else {
     std::cout << "⚠️  ROM has no resource label manager\n";
   }
-  
+
   // Create conversational agent service
   std::cout << "🔍 Debug: Creating conversational agent service...\n";
   std::cout << "🔍 Debug: About to construct service object...\n";
-  
+
   ConversationalAgentService service;
   std::cout << "✅ Service object created\n";
-  
+
   std::cout << "🔍 Debug: Setting ROM context...\n";
   service.SetRomContext(&rom);
   std::cout << "✅ Service initialized\n";
-  
+
   // Load test cases
   std::vector<ConversationTestCase> test_cases;
   if (use_defaults) {
     test_cases = GetDefaultTestCases();
-    std::cout << "Using default test cases (" << test_cases.size() << " tests)\n";
+    std::cout << "Using default test cases (" << test_cases.size()
+              << " tests)\n";
   } else {
     auto status = LoadTestCasesFromFile(test_file, &test_cases);
     if (!status.ok()) {
       return status;
     }
-    std::cout << "Loaded " << test_cases.size() << " test cases from " 
+    std::cout << "Loaded " << test_cases.size() << " test cases from "
               << test_file << "\n";
   }
-  
+
   if (test_cases.empty()) {
     return absl::InvalidArgumentError("No test cases to run");
   }
-  
+
   // Run all test cases
   int passed = 0;
   int failed = 0;
-  
+
   for (const auto& test_case : test_cases) {
     auto status = RunTestCase(test_case, service, verbose);
     if (status.ok()) {
       ++passed;
     } else {
       ++failed;
-      std::cerr << "Test case '" << test_case.name << "' failed: " 
-                << status.message() << "\n";
+      std::cerr << "Test case '" << test_case.name
+                << "' failed: " << status.message() << "\n";
     }
   }
-  
+
   // Print summary
   std::cout << "\n===========================================\n";
   std::cout << "Test Summary\n";
@@ -449,13 +452,13 @@ absl::Status HandleTestConversationCommand(
   std::cout << "Total tests: " << test_cases.size() << "\n";
   std::cout << "Passed: " << passed << "\n";
   std::cout << "Failed: " << failed << "\n";
-  
+
   if (failed == 0) {
     std::cout << "\n✅ All tests passed!\n";
   } else {
     std::cout << "\n⚠️  Some tests failed\n";
   }
-  
+
   if (failed == 0) {
     return absl::OkStatus();
   }

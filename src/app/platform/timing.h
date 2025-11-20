@@ -28,18 +28,18 @@ class TimingManager {
   float Update() {
     uint64_t current_time = SDL_GetPerformanceCounter();
     float delta_time = 0.0f;
-    
+
     if (last_time_ > 0) {
       delta_time = (current_time - last_time_) / static_cast<float>(frequency_);
-      
+
       // Clamp delta time to prevent huge jumps (e.g., when debugging)
       if (delta_time > 0.1f) {
         delta_time = 0.1f;
       }
-      
+
       accumulated_time_ += delta_time;
       frame_count_++;
-      
+
       // Update FPS counter once per second
       if (accumulated_time_ >= 1.0f) {
         fps_ = static_cast<float>(frame_count_) / accumulated_time_;
@@ -47,35 +47,32 @@ class TimingManager {
         accumulated_time_ = 0.0f;
       }
     }
-    
+
     last_time_ = current_time;
     last_delta_time_ = delta_time;
     return delta_time;
   }
-  
+
   /**
    * @brief Get the last frame's delta time in seconds
    */
-  float GetDeltaTime() const {
-    return last_delta_time_;
-  }
-  
+  float GetDeltaTime() const { return last_delta_time_; }
+
   /**
    * @brief Get current FPS
    */
-  float GetFPS() const {
-    return fps_;
-  }
-  
+  float GetFPS() const { return fps_; }
+
   /**
    * @brief Get total elapsed time since first update
    */
   float GetElapsedTime() const {
-    if (last_time_ == 0) return 0.0f;
+    if (last_time_ == 0)
+      return 0.0f;
     uint64_t current_time = SDL_GetPerformanceCounter();
     return (current_time - first_time_) / static_cast<float>(frequency_);
   }
-  
+
   /**
    * @brief Reset the timing state
    */
@@ -114,4 +111,3 @@ class TimingManager {
 }  // namespace yaze
 
 #endif  // YAZE_APP_CORE_TIMING_H
-

@@ -6,8 +6,8 @@
 #include "app/emu/audio/apu.h"
 #include "app/gui/app/editor_layout.h"
 #include "app/rom.h"
-#include "zelda3/music/tracker.h"
 #include "imgui/imgui.h"
+#include "zelda3/music/tracker.h"
 
 namespace yaze {
 
@@ -84,11 +84,11 @@ class MusicEditor : public Editor {
 
   // Get the ROM pointer
   Rom* rom() const { return rom_; }
-  
+
   // Emulator integration for live audio playback
   void set_emulator(emu::Emulator* emulator) { emulator_ = emulator; }
   emu::Emulator* emulator() const { return emulator_; }
-  
+
   // Audio control methods
   void PlaySong(int song_id);
   void StopSong();

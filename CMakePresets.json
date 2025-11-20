@@ -408,6 +408,221 @@
         "YAZE_ENABLE_REMOTE_AUTOMATION": "ON",
         "YAZE_ENABLE_AI_RUNTIME": "ON"
       }
+    },
+    {
+      "name": "mac-dbg",
+      "inherits": "base",
+      "displayName": "macOS Debug",
+      "description": "Debug build for macOS",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "YAZE_BUILD_TESTS": "ON",
+        "YAZE_ENABLE_GRPC": "OFF",
+        "YAZE_ENABLE_JSON": "ON",
+        "YAZE_ENABLE_AI": "OFF",
+        "YAZE_BUILD_AGENT_UI": "ON",
+        "YAZE_ENABLE_REMOTE_AUTOMATION": "ON",
+        "YAZE_ENABLE_AI_RUNTIME": "OFF"
+      }
+    },
+    {
+      "name": "mac-dbg-v",
+      "inherits": "mac-dbg",
+      "displayName": "macOS Debug Verbose",
+      "description": "Debug build with verbose warnings",
+      "cacheVariables": {
+        "YAZE_SUPPRESS_WARNINGS": "OFF"
+      }
+    },
+    {
+      "name": "mac-rel",
+      "inherits": "base",
+      "displayName": "macOS Release",
+      "description": "Release build for macOS",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "YAZE_BUILD_TESTS": "OFF",
+        "YAZE_ENABLE_GRPC": "OFF",
+        "YAZE_ENABLE_JSON": "ON",
+        "YAZE_ENABLE_AI": "OFF",
+        "YAZE_ENABLE_LTO": "ON",
+        "YAZE_BUILD_AGENT_UI": "OFF",
+        "YAZE_ENABLE_REMOTE_AUTOMATION": "OFF",
+        "YAZE_ENABLE_AI_RUNTIME": "OFF"
+      }
+    },
+    {
+      "name": "mac-dev",
+      "inherits": "base",
+      "displayName": "macOS Development",
+      "description": "Development build with ROM tests",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "YAZE_BUILD_TESTS": "ON",
+        "YAZE_ENABLE_GRPC": "OFF",
+        "YAZE_ENABLE_JSON": "ON",
+        "YAZE_ENABLE_AI": "OFF",
+        "YAZE_ENABLE_ROM_TESTS": "ON",
+        "YAZE_BUILD_AGENT_UI": "OFF",
+        "YAZE_ENABLE_REMOTE_AUTOMATION": "OFF",
+        "YAZE_ENABLE_AI_RUNTIME": "OFF"
+      }
+    },
+    {
+      "name": "mac-ai",
+      "inherits": "base",
+      "displayName": "macOS AI Development",
+      "description": "Full development build with AI features and gRPC",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "YAZE_BUILD_TESTS": "ON",
+        "YAZE_ENABLE_GRPC": "ON",
+        "YAZE_ENABLE_JSON": "ON",
+        "YAZE_ENABLE_AI": "ON",
+        "YAZE_ENABLE_ROM_TESTS": "ON",
+        "YAZE_BUILD_AGENT_UI": "ON",
+        "YAZE_ENABLE_REMOTE_AUTOMATION": "ON",
+        "YAZE_ENABLE_AI_RUNTIME": "ON"
+      }
+    },
+    {
+      "name": "mac-uni",
+      "inherits": "base",
+      "displayName": "macOS Universal Binary",
+      "description": "Universal binary for macOS (ARM64 + x86_64)",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_OSX_ARCHITECTURES": "arm64;x86_64",
+        "YAZE_BUILD_TESTS": "OFF",
+        "YAZE_ENABLE_GRPC": "OFF",
+        "YAZE_ENABLE_JSON": "ON",
+        "YAZE_ENABLE_AI": "OFF",
+        "YAZE_ENABLE_LTO": "ON",
+        "YAZE_BUILD_AGENT_UI": "OFF",
+        "YAZE_ENABLE_REMOTE_AUTOMATION": "OFF",
+        "YAZE_ENABLE_AI_RUNTIME": "OFF"
+      }
+    },
+    {
+      "name": "lin-dbg",
+      "inherits": "base",
+      "displayName": "Linux Debug",
+      "description": "Debug build for Linux",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "YAZE_BUILD_TESTS": "ON",
+        "YAZE_ENABLE_GRPC": "OFF",
+        "YAZE_ENABLE_JSON": "ON",
+        "YAZE_ENABLE_AI": "OFF",
+        "YAZE_BUILD_AGENT_UI": "OFF",
+        "YAZE_ENABLE_REMOTE_AUTOMATION": "OFF",
+        "YAZE_ENABLE_AI_RUNTIME": "OFF"
+      }
+    },
+    {
+      "name": "lin-dbg-v",
+      "inherits": "lin-dbg",
+      "displayName": "Linux Debug Verbose",
+      "description": "Debug build with verbose warnings",
+      "cacheVariables": {
+        "YAZE_SUPPRESS_WARNINGS": "OFF"
+      }
+    },
+    {
+      "name": "lin-rel",
+      "inherits": "base",
+      "displayName": "Linux Release",
+      "description": "Release build for Linux",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "YAZE_BUILD_TESTS": "OFF",
+        "YAZE_ENABLE_GRPC": "OFF",
+        "YAZE_ENABLE_JSON": "ON",
+        "YAZE_ENABLE_AI": "OFF",
+        "YAZE_ENABLE_LTO": "ON",
+        "YAZE_BUILD_AGENT_UI": "OFF",
+        "YAZE_ENABLE_REMOTE_AUTOMATION": "OFF",
+        "YAZE_ENABLE_AI_RUNTIME": "OFF"
+      }
+    },
+    {
+      "name": "lin-dev",
+      "inherits": "base",
+      "displayName": "Linux Development",
+      "description": "Development build with ROM tests",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "YAZE_BUILD_TESTS": "ON",
+        "YAZE_ENABLE_GRPC": "OFF",
+        "YAZE_ENABLE_JSON": "ON",
+        "YAZE_ENABLE_AI": "OFF",
+        "YAZE_ENABLE_ROM_TESTS": "ON",
+        "YAZE_BUILD_AGENT_UI": "OFF",
+        "YAZE_ENABLE_REMOTE_AUTOMATION": "OFF",
+        "YAZE_ENABLE_AI_RUNTIME": "OFF"
+      }
+    },
+    {
+      "name": "lin-ai",
+      "inherits": "base",
+      "displayName": "Linux AI Development",
+      "description": "Full development build with AI features and gRPC",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "YAZE_BUILD_TESTS": "ON",
+        "YAZE_ENABLE_GRPC": "ON",
+        "YAZE_ENABLE_JSON": "ON",
+        "YAZE_ENABLE_AI": "ON",
+        "YAZE_ENABLE_ROM_TESTS": "ON",
+        "YAZE_BUILD_AGENT_UI": "ON",
+        "YAZE_ENABLE_REMOTE_AUTOMATION": "ON",
+        "YAZE_ENABLE_AI_RUNTIME": "ON"
+      }
     }
   ],
   "buildPresets": [
@@ -553,6 +768,83 @@
       "name": "win-vs-ai",
       "configurePreset": "win-vs-ai",
       "displayName": "Windows AI Development Build (Visual Studio)",
+      "configuration": "Debug",
+      "jobs": 12
+    },
+    {
+      "name": "mac-dbg",
+      "configurePreset": "mac-dbg",
+      "displayName": "macOS Debug Build",
+      "configuration": "Debug",
+      "jobs": 12
+    },
+    {
+      "name": "mac-dbg-v",
+      "configurePreset": "mac-dbg-v",
+      "displayName": "macOS Debug Verbose Build",
+      "configuration": "Debug",
+      "jobs": 12
+    },
+    {
+      "name": "mac-rel",
+      "configurePreset": "mac-rel",
+      "displayName": "macOS Release Build",
+      "configuration": "Release",
+      "jobs": 12
+    },
+    {
+      "name": "mac-dev",
+      "configurePreset": "mac-dev",
+      "displayName": "macOS Development Build",
+      "configuration": "Debug",
+      "jobs": 12
+    },
+    {
+      "name": "mac-ai",
+      "configurePreset": "mac-ai",
+      "displayName": "macOS AI Development Build",
+      "configuration": "Debug",
+      "jobs": 12
+    },
+    {
+      "name": "mac-uni",
+      "configurePreset": "mac-uni",
+      "displayName": "macOS Universal Binary Build",
+      "configuration": "Release",
+      "jobs": 12
+    },
+    {
+      "name": "lin-dbg",
+      "configurePreset": "lin-dbg",
+      "displayName": "Linux Debug Build",
+      "configuration": "Debug",
+      "jobs": 12
+    },
+    {
+      "name": "lin-dbg-v",
+      "configurePreset": "lin-dbg-v",
+      "displayName": "Linux Debug Verbose Build",
+      "configuration": "Debug",
+      "jobs": 12
+    },
+    {
+      "name": "lin-rel",
+      "configurePreset": "lin-rel",
+      "displayName": "Linux Release Build",
+      "configuration": "Release",
+      "jobs": 12
+    },
+    {
+      "name": "lin-dev",
+      "configurePreset": "lin-dev",
+      "displayName": "Linux Development Build",
+      "configuration": "Debug",
+      "jobs": 12
+    },
+    {
+      "name": "lin-ai",
+      "configurePreset": "lin-ai",
+      "displayName": "Linux AI Development Build",
       "configuration": "Debug",
       "jobs": 12
     }

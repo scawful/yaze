@@ -93,4 +93,3 @@ class LayoutManager {
 }  // namespace yaze
 
 #endif  // YAZE_APP_EDITOR_UI_LAYOUT_MANAGER_H_
-

@@ -15,8 +15,8 @@ namespace cli {
  * @param engine Pointer to the autocomplete engine
  * @return ftxui::Component Input component with autocomplete dropdown
  */
-ftxui::Component CreateAutocompleteInput(std::string* input_str, 
-                                          AutocompleteEngine* engine);
+ftxui::Component CreateAutocompleteInput(std::string* input_str,
+                                         AutocompleteEngine* engine);
 
 /**
  * @brief Create a quick action menu for common ROM operations
@@ -30,4 +30,3 @@ ftxui::Component CreateQuickActionMenu(ftxui::ScreenInteractive& screen);
 }  // namespace yaze
 
 #endif  // YAZE_CLI_TUI_AUTOCOMPLETE_UI_H_
-

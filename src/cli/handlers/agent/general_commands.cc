@@ -10,32 +10,30 @@
 #include "absl/flags/declare.h"
 #include "absl/flags/flag.h"
 #include "absl/status/status.h"
-#include "absl/status/status.h"
 #include "absl/strings/ascii.h"
 #include "absl/strings/match.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_join.h"
+#include "absl/strings/string_view.h"
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
-#include "absl/strings/string_view.h"
-#include "core/project.h"
-#include "zelda3/dungeon/room.h"
-#include "cli/handlers/agent/common.h"
 #include "cli/cli.h"
+#include "cli/handlers/agent/common.h"
+#include "cli/service/agent/learned_knowledge_service.h"
+#include "cli/service/agent/proposal_executor.h"
 #include "cli/service/ai/ai_service.h"
 #include "cli/service/ai/gemini_ai_service.h"
 #include "cli/service/ai/ollama_ai_service.h"
 #include "cli/service/ai/service_factory.h"
-#include "cli/service/agent/learned_knowledge_service.h"
-#include "cli/service/agent/proposal_executor.h"
 #include "cli/service/planning/proposal_registry.h"
 #include "cli/service/planning/tile16_proposal_generator.h"
 #include "cli/service/resources/resource_catalog.h"
 #include "cli/service/resources/resource_context_builder.h"
 #include "cli/service/rom/rom_sandbox_manager.h"
-#include "cli/cli.h"
+#include "core/project.h"
 #include "util/macro.h"
+#include "zelda3/dungeon/room.h"
 
 ABSL_DECLARE_FLAG(std::string, rom);
 ABSL_DECLARE_FLAG(std::string, ai_provider);
@@ -54,43 +52,47 @@ struct DescribeOptions {
   std::optional<std::string> last_updated;
 };
 
-
 // Helper to load project and labels if available
 absl::Status TryLoadProjectAndLabels(Rom& rom) {
   // Try to find and load a project file in current directory
   project::YazeProject project;
   auto project_status = project.Open(".");
-  
+
   if (project_status.ok()) {
     std::cout << "📂 Loaded project: " << project.name << "\n";
-    
+
     // Initialize embedded labels (all default Zelda3 resource names)
     auto labels_status = project.InitializeEmbeddedLabels();
     if (labels_status.ok()) {
-      std::cout << "✅ Embedded labels initialized (all Zelda3 resources available)\n";
+      std::cout << "✅ Embedded labels initialized (all Zelda3 resources "
+                   "available)\n";
     }
-    
+
     // Load labels from project (either embedded or external)
     if (!project.labels_filename.empty()) {
       auto* label_mgr = rom.resource_label();
       if (label_mgr && label_mgr->LoadLabels(project.labels_filename)) {
-        std::cout << "🏷️  Loaded custom labels from: " << project.labels_filename << "\n";
+        std::cout << "🏷️  Loaded custom labels from: "
+                  << project.labels_filename << "\n";
       }
-    } else if (!project.resource_labels.empty() || project.use_embedded_labels) {
+    } else if (!project.resource_labels.empty() ||
+               project.use_embedded_labels) {
       // Use labels embedded in project or default Zelda3 labels
       auto* label_mgr = rom.resource_label();
       if (label_mgr) {
         label_mgr->labels_ = project.resource_labels;
         label_mgr->labels_loaded_ = true;
-        std::cout << "🏷️  Using embedded Zelda3 labels (rooms, sprites, entrances, items, etc.)\n";
+        std::cout << "🏷️  Using embedded Zelda3 labels (rooms, sprites, "
+                     "entrances, items, etc.)\n";
       }
     }
   } else {
     // No project found - use embedded defaults anyway
-    std::cout << "ℹ️  No project file found. Using embedded default Zelda3 labels.\n";
+    std::cout
+        << "ℹ️  No project file found. Using embedded default Zelda3 labels.\n";
     project.InitializeEmbeddedLabels();
   }
-  
+
   return absl::OkStatus();
 }
 
@@ -102,10 +104,9 @@ absl::Status EnsureRomLoaded(Rom& rom, const std::string& command) {
   std::string rom_path = absl::GetFlag(FLAGS_rom);
   if (rom_path.empty()) {
     return absl::FailedPreconditionError(
-        absl::StrFormat(
-            "No ROM loaded. Pass --rom=<path> when running %s.\n"
-            "Example: z3ed %s --rom=zelda3.sfc",
-            command, command));
+        absl::StrFormat("No ROM loaded. Pass --rom=<path> when running %s.\n"
+                        "Example: z3ed %s --rom=zelda3.sfc",
+                        command, command));
   }
 
   // Load the ROM
@@ -223,8 +224,8 @@ absl::Status HandleRunCommand(const std::vector<std::string>& arg_vec,
   std::cout << "   Log file: " << metadata.log_path << std::endl;
   std::cout << "   Proposal JSON: " << proposal_result.proposal_json_path
             << std::endl;
-  std::cout << "   Commands executed: "
-            << proposal_result.executed_commands << std::endl;
+  std::cout << "   Commands executed: " << proposal_result.executed_commands
+            << std::endl;
   std::cout << "   Tile16 changes: " << proposal_result.change_count
             << std::endl;
   std::cout << "\nTo review the changes, run:\n";
@@ -262,13 +263,14 @@ absl::Status HandlePlanCommand(const std::vector<std::string>& arg_vec) {
   std::error_code ec;
   std::filesystem::create_directories(plans_dir, ec);
   if (ec) {
-      return absl::InternalError(absl::StrCat("Failed to create plans directory: ", ec.message()));
+    return absl::InternalError(
+        absl::StrCat("Failed to create plans directory: ", ec.message()));
   }
 
   auto plan_path = plans_dir / (proposal.id + ".json");
   auto save_status = generator.SaveProposal(proposal, plan_path.string());
   if (!save_status.ok()) {
-      return save_status;
+    return save_status;
   }
 
   std::cout << "AI Agent Plan (Proposal ID: " << proposal.id << "):\n";
@@ -326,8 +328,8 @@ absl::Status HandleDiffCommand(Rom& rom, const std::vector<std::string>& args) {
     if (!proposal.sandbox_rom_path.empty()) {
       std::cout << "Sandbox ROM: " << proposal.sandbox_rom_path << "\n";
     }
-    std::cout << "Proposal directory: "
-              << proposal.log_path.parent_path() << "\n";
+    std::cout << "Proposal directory: " << proposal.log_path.parent_path()
+              << "\n";
     std::cout << "Diff file: " << proposal.diff_path << "\n";
     std::cout << "Log file: " << proposal.log_path << "\n\n";
 
@@ -385,7 +387,8 @@ absl::Status HandleDiffCommand(Rom& rom, const std::vector<std::string>& args) {
     }
     // TODO: Use new CommandHandler system for RomDiff
     // Reference: src/app/rom.cc (Rom comparison methods)
-    auto status = absl::UnimplementedError("RomDiff not yet implemented in new CommandHandler system");
+    auto status = absl::UnimplementedError(
+        "RomDiff not yet implemented in new CommandHandler system");
     if (!status.ok()) {
       return status;
     }
@@ -398,17 +401,17 @@ absl::Status HandleDiffCommand(Rom& rom, const std::vector<std::string>& args) {
 absl::Status HandleLearnCommand(const std::vector<std::string>& args) {
   static yaze::cli::agent::LearnedKnowledgeService learn_service;
   static bool initialized = false;
-  
+
   if (!initialized) {
     auto status = learn_service.Initialize();
     if (!status.ok()) {
-      std::cerr << "Failed to initialize learned knowledge service: " 
+      std::cerr << "Failed to initialize learned knowledge service: "
                 << status.message() << std::endl;
       return status;
     }
     initialized = true;
   }
-  
+
   if (args.empty()) {
     // Show usage
     std::cout << "\nUsage: z3ed agent learn [options]\n\n";
@@ -421,7 +424,8 @@ absl::Status HandleLearnCommand(const std::vector<std::string>& args) {
     std::cout << "  --project <name> --context <text>  Save project context\n";
     std::cout << "  --get-project <name>           Get project context\n";
     std::cout << "  --list-projects                List all projects\n";
-    std::cout << "  --memory <topic> --summary <text>  Store conversation memory\n";
+    std::cout
+        << "  --memory <topic> --summary <text>  Store conversation memory\n";
     std::cout << "  --search-memories <query>      Search memories\n";
     std::cout << "  --recent-memories [limit]      Show recent memories\n";
     std::cout << "  --export <file>                Export all data to JSON\n";
@@ -430,15 +434,16 @@ absl::Status HandleLearnCommand(const std::vector<std::string>& args) {
     std::cout << "  --clear                        Clear all learned data\n";
     return absl::OkStatus();
   }
-  
+
   // Parse arguments
   std::string command = args[0];
-  
+
   if (command == "--preference" && args.size() >= 2) {
     std::string pref = args[1];
     size_t eq_pos = pref.find('=');
     if (eq_pos == std::string::npos) {
-      return absl::InvalidArgumentError("Preference must be in format key=value");
+      return absl::InvalidArgumentError(
+          "Preference must be in format key=value");
     }
     std::string key = pref.substr(0, eq_pos);
     std::string value = pref.substr(eq_pos + 1);
@@ -448,7 +453,7 @@ absl::Status HandleLearnCommand(const std::vector<std::string>& args) {
     }
     return status;
   }
-  
+
   if (command == "--get-preference" && args.size() >= 2) {
     auto value = learn_service.GetPreference(args[1]);
     if (value) {
@@ -458,7 +463,7 @@ absl::Status HandleLearnCommand(const std::vector<std::string>& args) {
     }
     return absl::OkStatus();
   }
-  
+
   if (command == "--list-preferences") {
     auto prefs = learn_service.GetAllPreferences();
     if (prefs.empty()) {
@@ -471,7 +476,7 @@ absl::Status HandleLearnCommand(const std::vector<std::string>& args) {
     }
     return absl::OkStatus();
   }
-  
+
   if (command == "--stats") {
     auto stats = learn_service.GetStats();
     std::cout << "\n=== Learned Knowledge Statistics ===\n";
@@ -479,11 +484,15 @@ absl::Status HandleLearnCommand(const std::vector<std::string>& args) {
     std::cout << "  ROM Patterns: " << stats.pattern_count << "\n";
     std::cout << "  Projects: " << stats.project_count << "\n";
     std::cout << "  Memories: " << stats.memory_count << "\n";
-    std::cout << "  First learned: " << absl::FormatTime(absl::FromUnixMillis(stats.first_learned_at)) << "\n";
-    std::cout << "  Last updated: " << absl::FormatTime(absl::FromUnixMillis(stats.last_updated_at)) << "\n";
+    std::cout << "  First learned: "
+              << absl::FormatTime(absl::FromUnixMillis(stats.first_learned_at))
+              << "\n";
+    std::cout << "  Last updated: "
+              << absl::FormatTime(absl::FromUnixMillis(stats.last_updated_at))
+              << "\n";
     return absl::OkStatus();
   }
-  
+
   if (command == "--export" && args.size() >= 2) {
     auto json = learn_service.ExportToJSON();
     if (!json.ok()) {
@@ -497,7 +506,7 @@ absl::Status HandleLearnCommand(const std::vector<std::string>& args) {
     std::cout << "✓ Exported learned data to " << args[1] << "\n";
     return absl::OkStatus();
   }
-  
+
   if (command == "--import" && args.size() >= 2) {
     std::ifstream file(args[1]);
     if (!file.is_open()) {
@@ -511,7 +520,7 @@ absl::Status HandleLearnCommand(const std::vector<std::string>& args) {
     }
     return status;
   }
-  
+
   if (command == "--clear") {
     auto status = learn_service.ClearAll();
     if (status.ok()) {
@@ -519,7 +528,7 @@ absl::Status HandleLearnCommand(const std::vector<std::string>& args) {
     }
     return status;
   }
-  
+
   if (command == "--list-projects") {
     auto projects = learn_service.GetAllProjects();
     if (projects.empty()) {
@@ -529,12 +538,14 @@ absl::Status HandleLearnCommand(const std::vector<std::string>& args) {
       for (const auto& proj : projects) {
         std::cout << "  " << proj.project_name << "\n";
         std::cout << "    ROM Hash: " << proj.rom_hash.substr(0, 16) << "...\n";
-        std::cout << "    Last Accessed: " << absl::FormatTime(absl::FromUnixMillis(proj.last_accessed)) << "\n";
+        std::cout << "    Last Accessed: "
+                  << absl::FormatTime(absl::FromUnixMillis(proj.last_accessed))
+                  << "\n";
       }
     }
     return absl::OkStatus();
   }
-  
+
   if (command == "--recent-memories") {
     int limit = 10;
     if (args.size() >= 2) {
@@ -549,14 +560,17 @@ absl::Status HandleLearnCommand(const std::vector<std::string>& args) {
         std::cout << "  Topic: " << mem.topic << "\n";
         std::cout << "  Summary: " << mem.summary << "\n";
         std::cout << "  Facts: " << mem.key_facts.size() << " key facts\n";
-        std::cout << "  Created: " << absl::FormatTime(absl::FromUnixMillis(mem.created_at)) << "\n";
+        std::cout << "  Created: "
+                  << absl::FormatTime(absl::FromUnixMillis(mem.created_at))
+                  << "\n";
         std::cout << "\n";
       }
     }
-  return absl::OkStatus();
+    return absl::OkStatus();
   }
-  
-  return absl::InvalidArgumentError("Unknown learn command. Use 'z3ed agent learn' for usage.");
+
+  return absl::InvalidArgumentError(
+      "Unknown learn command. Use 'z3ed agent learn' for usage.");
 }
 
 absl::Status HandleListCommand() {
@@ -713,9 +727,9 @@ absl::Status HandleAcceptCommand(const std::vector<std::string>& arg_vec,
   }
 
   if (metadata.sandbox_rom_path.empty()) {
-    return absl::FailedPreconditionError(absl::StrCat(
-        "Proposal '", *proposal_id,
-        "' is missing sandbox ROM metadata. Cannot accept."));
+    return absl::FailedPreconditionError(
+        absl::StrCat("Proposal '", *proposal_id,
+                     "' is missing sandbox ROM metadata. Cannot accept."));
   }
 
   if (!std::filesystem::exists(metadata.sandbox_rom_path)) {
@@ -730,8 +744,8 @@ absl::Status HandleAcceptCommand(const std::vector<std::string>& arg_vec,
   auto sandbox_load_status = sandbox_rom.LoadFromFile(
       metadata.sandbox_rom_path.string(), RomLoadOptions::CliDefaults());
   if (!sandbox_load_status.ok()) {
-    return absl::InternalError(absl::StrCat(
-        "Failed to load sandbox ROM: ", sandbox_load_status.message()));
+    return absl::InternalError(absl::StrCat("Failed to load sandbox ROM: ",
+                                            sandbox_load_status.message()));
   }
 
   if (rom.size() != sandbox_rom.size()) {
@@ -740,8 +754,8 @@ absl::Status HandleAcceptCommand(const std::vector<std::string>& arg_vec,
 
   auto copy_status = rom.WriteVector(0, sandbox_rom.vector());
   if (!copy_status.ok()) {
-    return absl::InternalError(absl::StrCat(
-        "Failed to copy sandbox ROM data: ", copy_status.message()));
+    return absl::InternalError(absl::StrCat("Failed to copy sandbox ROM data: ",
+                                            copy_status.message()));
   }
 
   auto save_status = rom.SaveToFile({.save_new = false});

@@ -28,7 +28,7 @@ constexpr int spc700_cycles[256] = {
     4,  // 0D PUSH PSW
     6,  // 0E TSET1 abs
     8,  // 0F BRK
-    
+
     // 0x10-0x1F
     2,  // 10 BPL rel
     8,  // 11 TCALL 1
@@ -46,7 +46,7 @@ constexpr int spc700_cycles[256] = {
     2,  // 1D DEC X
     4,  // 1E CMP X, abs
     6,  // 1F JMP (abs+X)
-    
+
     // 0x20-0x2F
     2,  // 20 CLRP
     8,  // 21 TCALL 2
@@ -64,7 +64,7 @@ constexpr int spc700_cycles[256] = {
     4,  // 2D PUSH A
     5,  // 2E CBNE dp, rel
     4,  // 2F BRA rel
-    
+
     // 0x30-0x3F
     2,  // 30 BMI rel
     8,  // 31 TCALL 3
@@ -82,7 +82,7 @@ constexpr int spc700_cycles[256] = {
     2,  // 3D INC X
     3,  // 3E CMP X, dp
     8,  // 3F CALL abs
-    
+
     // 0x40-0x4F
     2,  // 40 SETP
     8,  // 41 TCALL 4
@@ -100,7 +100,7 @@ constexpr int spc700_cycles[256] = {
     4,  // 4D PUSH X
     6,  // 4E TCLR1 abs
     6,  // 4F PCALL dp
-    
+
     // 0x50-0x5F
     2,  // 50 BVC rel
     8,  // 51 TCALL 5
@@ -118,7 +118,7 @@ constexpr int spc700_cycles[256] = {
     2,  // 5D MOV X, A
     4,  // 5E CMP Y, abs
     3,  // 5F JMP abs
-    
+
     // 0x60-0x6F
     2,  // 60 CLRC
     8,  // 61 TCALL 6
@@ -136,7 +136,7 @@ constexpr int spc700_cycles[256] = {
     4,  // 6D PUSH Y
     5,  // 6E DBNZ dp, rel
     5,  // 6F RET
-    
+
     // 0x70-0x7F
     2,  // 70 BVS rel
     8,  // 71 TCALL 7
@@ -154,7 +154,7 @@ constexpr int spc700_cycles[256] = {
     2,  // 7D MOV A, X
     3,  // 7E CMP Y, dp
     6,  // 7F RETI
-    
+
     // 0x80-0x8F
     2,  // 80 SETC
     8,  // 81 TCALL 8
@@ -172,25 +172,25 @@ constexpr int spc700_cycles[256] = {
     2,  // 8D MOV Y, #imm
     4,  // 8E POP PSW
     5,  // 8F MOV dp, #imm
-    
+
     // 0x90-0x9F
-    2,  // 90 BCC rel
-    8,  // 91 TCALL 9
-    4,  // 92 CLR1 dp, 4
-    5,  // 93 BBC dp, 4, rel
-    4,  // 94 ADC A, dp+X
-    5,  // 95 ADC A, abs+X
-    5,  // 96 ADC A, abs+Y
-    6,  // 97 ADC A, (dp)+Y
-    5,  // 98 ADC dp, #imm
-    5,  // 99 ADC (X), (Y)
-    5,  // 9A SUBW YA, dp
-    5,  // 9B DEC dp+X
-    2,  // 9C DEC A
-    2,  // 9D MOV X, SP
-    12, // 9E DIV YA, X
-    5,  // 9F XCN A
-    
+    2,   // 90 BCC rel
+    8,   // 91 TCALL 9
+    4,   // 92 CLR1 dp, 4
+    5,   // 93 BBC dp, 4, rel
+    4,   // 94 ADC A, dp+X
+    5,   // 95 ADC A, abs+X
+    5,   // 96 ADC A, abs+Y
+    6,   // 97 ADC A, (dp)+Y
+    5,   // 98 ADC dp, #imm
+    5,   // 99 ADC (X), (Y)
+    5,   // 9A SUBW YA, dp
+    5,   // 9B DEC dp+X
+    2,   // 9C DEC A
+    2,   // 9D MOV X, SP
+    12,  // 9E DIV YA, X
+    5,   // 9F XCN A
+
     // 0xA0-0xAF
     3,  // A0 EI
     8,  // A1 TCALL 10
@@ -208,7 +208,7 @@ constexpr int spc700_cycles[256] = {
     2,  // AD CMP Y, #imm
     4,  // AE POP A
     4,  // AF MOV (X)+, A
-    
+
     // 0xB0-0xBF
     2,  // B0 BCS rel
     8,  // B1 TCALL 11
@@ -226,7 +226,7 @@ constexpr int spc700_cycles[256] = {
     2,  // BD MOV SP, X
     3,  // BE DAS A
     4,  // BF MOV A, (X)+
-    
+
     // 0xC0-0xCF
     3,  // C0 DI
     8,  // C1 TCALL 12
@@ -244,7 +244,7 @@ constexpr int spc700_cycles[256] = {
     2,  // CD MOV X, #imm
     4,  // CE POP X
     9,  // CF MUL YA
-    
+
     // 0xD0-0xDF
     2,  // D0 BNE rel
     8,  // D1 TCALL 13
@@ -262,7 +262,7 @@ constexpr int spc700_cycles[256] = {
     2,  // DD MOV A, Y
     6,  // DE CBNE dp+X, rel
     3,  // DF DAA A
-    
+
     // 0xE0-0xEF
     2,  // E0 CLRV
     8,  // E1 TCALL 14
@@ -280,7 +280,7 @@ constexpr int spc700_cycles[256] = {
     3,  // ED NOTC
     4,  // EE POP Y
     3,  // EF SLEEP
-    
+
     // 0xF0-0xFF
     2,  // F0 BEQ rel
     8,  // F1 TCALL 15
@@ -304,4 +304,3 @@ constexpr int spc700_cycles[256] = {
 }  // namespace yaze
 
 #endif  // YAZE_APP_EMU_AUDIO_INTERNAL_SPC700_CYCLES_H
-

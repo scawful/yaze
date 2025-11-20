@@ -92,9 +92,9 @@ absl::Status ProposalRegistry::EnsureRootExistsLocked() {
   std::error_code ec;
   if (!std::filesystem::exists(root_directory_, ec)) {
     if (!std::filesystem::create_directories(root_directory_, ec) && ec) {
-      return absl::InternalError(absl::StrCat(
-          "Failed to create proposal root at ", root_directory_.string(),
-          ": ", ec.message()));
+      return absl::InternalError(
+          absl::StrCat("Failed to create proposal root at ",
+                       root_directory_.string(), ": ", ec.message()));
     }
   }
   return absl::OkStatus();
@@ -107,7 +107,8 @@ absl::Status ProposalRegistry::LoadProposalsFromDiskLocked() {
     return absl::OkStatus();
   }
 
-  for (const auto& entry : std::filesystem::directory_iterator(root_directory_, ec)) {
+  for (const auto& entry :
+       std::filesystem::directory_iterator(root_directory_, ec)) {
     if (ec) {
       break;
     }
@@ -140,54 +141,59 @@ absl::Status ProposalRegistry::LoadProposalsFromDiskLocked() {
 
           if (metadata_json.contains("sandbox_directory") &&
               metadata_json["sandbox_directory"].is_string()) {
-            metadata.sandbox_directory =
-                std::filesystem::path(metadata_json["sandbox_directory"].get<std::string>());
+            metadata.sandbox_directory = std::filesystem::path(
+                metadata_json["sandbox_directory"].get<std::string>());
           } else {
             metadata.sandbox_directory.clear();
           }
 
           if (metadata_json.contains("sandbox_rom_path") &&
               metadata_json["sandbox_rom_path"].is_string()) {
-            metadata.sandbox_rom_path =
-                std::filesystem::path(metadata_json["sandbox_rom_path"].get<std::string>());
+            metadata.sandbox_rom_path = std::filesystem::path(
+                metadata_json["sandbox_rom_path"].get<std::string>());
           } else {
             metadata.sandbox_rom_path.clear();
           }
 
           metadata.description = metadata_json.value("description", "");
           metadata.prompt = metadata_json.value("prompt", "");
-          metadata.status = ParseStatus(metadata_json.value("status", "pending"));
+          metadata.status =
+              ParseStatus(metadata_json.value("status", "pending"));
 
           int64_t created_at_millis = metadata_json.value<int64_t>(
               "created_at_millis", TimeToMillis(absl::Now()));
           metadata.created_at = absl::FromUnixMillis(created_at_millis);
 
-          int64_t reviewed_at_millis = metadata_json.value<int64_t>(
-              "reviewed_at_millis", 0);
+          int64_t reviewed_at_millis =
+              metadata_json.value<int64_t>("reviewed_at_millis", 0);
           metadata.reviewed_at = OptionalTimeFromMillis(reviewed_at_millis);
 
-          std::string diff_path = metadata_json.value("diff_path", std::string("diff.txt"));
-          std::string log_path = metadata_json.value("log_path", std::string("execution.log"));
+          std::string diff_path =
+              metadata_json.value("diff_path", std::string("diff.txt"));
+          std::string log_path =
+              metadata_json.value("log_path", std::string("execution.log"));
           metadata.diff_path = entry.path() / diff_path;
           metadata.log_path = entry.path() / log_path;
 
           metadata.bytes_changed = metadata_json.value("bytes_changed", 0);
-          metadata.commands_executed = metadata_json.value("commands_executed", 0);
+          metadata.commands_executed =
+              metadata_json.value("commands_executed", 0);
 
           metadata.screenshots.clear();
           if (metadata_json.contains("screenshots") &&
               metadata_json["screenshots"].is_array()) {
             for (const auto& screenshot : metadata_json["screenshots"]) {
               if (screenshot.is_string()) {
-                metadata.screenshots.emplace_back(entry.path() /
-                                                  screenshot.get<std::string>());
+                metadata.screenshots.emplace_back(
+                    entry.path() / screenshot.get<std::string>());
               }
             }
           }
 
           if (metadata.sandbox_directory.empty() &&
               !metadata.sandbox_rom_path.empty()) {
-            metadata.sandbox_directory = metadata.sandbox_rom_path.parent_path();
+            metadata.sandbox_directory =
+                metadata.sandbox_rom_path.parent_path();
           }
 
           metadata_loaded = true;
@@ -217,18 +223,19 @@ absl::Status ProposalRegistry::LoadProposalsFromDiskLocked() {
 
       auto ftime = std::filesystem::last_write_time(log_path, ec);
       if (!ec) {
-        auto sctp = std::chrono::time_point_cast<std::chrono::system_clock::duration>(
-            ftime - std::filesystem::file_time_type::clock::now() +
-            std::chrono::system_clock::now());
+        auto sctp =
+            std::chrono::time_point_cast<std::chrono::system_clock::duration>(
+                ftime - std::filesystem::file_time_type::clock::now() +
+                std::chrono::system_clock::now());
         auto time_t_value = std::chrono::system_clock::to_time_t(sctp);
         created_at = absl::FromTimeT(time_t_value);
       }
 
-    metadata = ProposalMetadata{
-      .id = proposal_id,
-      .sandbox_id = "",
-      .sandbox_directory = std::filesystem::path(),
-      .sandbox_rom_path = std::filesystem::path(),
+      metadata = ProposalMetadata{
+          .id = proposal_id,
+          .sandbox_id = "",
+          .sandbox_directory = std::filesystem::path(),
+          .sandbox_rom_path = std::filesystem::path(),
           .description = "Loaded from disk",
           .prompt = "",
           .status = ProposalStatus::kPending,
@@ -242,15 +249,17 @@ absl::Status ProposalRegistry::LoadProposalsFromDiskLocked() {
       };
 
       if (std::filesystem::exists(diff_path, ec) && !ec) {
-        metadata.bytes_changed = static_cast<int>(
-            std::filesystem::file_size(diff_path, ec));
+        metadata.bytes_changed =
+            static_cast<int>(std::filesystem::file_size(diff_path, ec));
       }
 
-      for (const auto& file : std::filesystem::directory_iterator(entry.path(), ec)) {
+      for (const auto& file :
+           std::filesystem::directory_iterator(entry.path(), ec)) {
         if (ec) {
           break;
         }
-        if (file.path().extension() == ".png" || file.path().extension() == ".jpg" ||
+        if (file.path().extension() == ".png" ||
+            file.path().extension() == ".jpg" ||
             file.path().extension() == ".jpeg") {
           metadata.screenshots.push_back(file.path());
         }
@@ -272,8 +281,8 @@ absl::Status ProposalRegistry::LoadProposalsFromDiskLocked() {
 
 std::string ProposalRegistry::GenerateProposalIdLocked() {
   absl::Time now = absl::Now();
-  std::string time_component = absl::FormatTime("%Y%m%dT%H%M%S", now,
-                                                absl::LocalTimeZone());
+  std::string time_component =
+      absl::FormatTime("%Y%m%dT%H%M%S", now, absl::LocalTimeZone());
   ++sequence_;
   return absl::StrCat("proposal-", time_component, "-", sequence_);
 }
@@ -297,9 +306,9 @@ ProposalRegistry::CreateProposal(absl::string_view sandbox_id,
 
   std::error_code ec;
   if (!std::filesystem::create_directories(proposal_dir, ec) && ec) {
-    return absl::InternalError(absl::StrCat(
-        "Failed to create proposal directory at ", proposal_dir.string(),
-        ": ", ec.message()));
+    return absl::InternalError(
+        absl::StrCat("Failed to create proposal directory at ",
+                     proposal_dir.string(), ": ", ec.message()));
   }
 
   lock.lock();
@@ -328,7 +337,7 @@ ProposalRegistry::CreateProposal(absl::string_view sandbox_id,
 }
 
 absl::Status ProposalRegistry::RecordDiff(const std::string& proposal_id,
-                                         absl::string_view diff_content) {
+                                          absl::string_view diff_content) {
   std::lock_guard<std::mutex> lock(mutex_);
   auto it = proposals_.find(proposal_id);
   if (it == proposals_.end()) {
@@ -338,8 +347,8 @@ absl::Status ProposalRegistry::RecordDiff(const std::string& proposal_id,
 
   std::ofstream diff_file(it->second.diff_path, std::ios::out);
   if (!diff_file.is_open()) {
-    return absl::InternalError(absl::StrCat(
-        "Failed to open diff file: ", it->second.diff_path.string()));
+    return absl::InternalError(absl::StrCat("Failed to open diff file: ",
+                                            it->second.diff_path.string()));
   }
 
   diff_file << diff_content;
@@ -354,7 +363,7 @@ absl::Status ProposalRegistry::RecordDiff(const std::string& proposal_id,
 }
 
 absl::Status ProposalRegistry::AppendLog(const std::string& proposal_id,
-                                        absl::string_view log_entry) {
+                                         absl::string_view log_entry) {
   std::lock_guard<std::mutex> lock(mutex_);
   auto it = proposals_.find(proposal_id);
   if (it == proposals_.end()) {
@@ -362,11 +371,10 @@ absl::Status ProposalRegistry::AppendLog(const std::string& proposal_id,
         absl::StrCat("Proposal not found: ", proposal_id));
   }
 
-  std::ofstream log_file(it->second.log_path,
-                        std::ios::out | std::ios::app);
+  std::ofstream log_file(it->second.log_path, std::ios::out | std::ios::app);
   if (!log_file.is_open()) {
-    return absl::InternalError(absl::StrCat(
-        "Failed to open log file: ", it->second.log_path.string()));
+    return absl::InternalError(absl::StrCat("Failed to open log file: ",
+                                            it->second.log_path.string()));
   }
 
   log_file << absl::FormatTime("[%Y-%m-%d %H:%M:%S] ", absl::Now(),
@@ -399,8 +407,8 @@ absl::Status ProposalRegistry::AddScreenshot(
   return absl::OkStatus();
 }
 
-absl::Status ProposalRegistry::UpdateCommandStats(const std::string& proposal_id,
-                                                  int commands_executed) {
+absl::Status ProposalRegistry::UpdateCommandStats(
+    const std::string& proposal_id, int commands_executed) {
   std::lock_guard<std::mutex> lock(mutex_);
   auto it = proposals_.find(proposal_id);
   if (it == proposals_.end()) {
@@ -414,7 +422,7 @@ absl::Status ProposalRegistry::UpdateCommandStats(const std::string& proposal_id
 }
 
 absl::Status ProposalRegistry::UpdateStatus(const std::string& proposal_id,
-                                           ProposalStatus status) {
+                                            ProposalStatus status) {
   std::lock_guard<std::mutex> lock(mutex_);
   auto it = proposals_.find(proposal_id);
   if (it == proposals_.end()) {
@@ -439,10 +447,10 @@ ProposalRegistry::GetProposal(const std::string& proposal_id) const {
   return it->second;
 }
 
-std::vector<ProposalRegistry::ProposalMetadata>
-ProposalRegistry::ListProposals(std::optional<ProposalStatus> filter_status) const {
+std::vector<ProposalRegistry::ProposalMetadata> ProposalRegistry::ListProposals(
+    std::optional<ProposalStatus> filter_status) const {
   std::unique_lock<std::mutex> lock(mutex_);
-  
+
   // Load proposals from disk if we haven't already
   if (proposals_.empty()) {
     // Cast away const for loading - this is a lazy initialization pattern
@@ -450,13 +458,13 @@ ProposalRegistry::ListProposals(std::optional<ProposalStatus> filter_status) con
     auto status = self->LoadProposalsFromDiskLocked();
     if (!status.ok()) {
       // Log error but continue - return empty list if loading fails
-      std::cerr << "Warning: Failed to load proposals from disk: " 
+      std::cerr << "Warning: Failed to load proposals from disk: "
                 << status.message() << "\n";
     }
   }
-  
+
   std::vector<ProposalMetadata> result;
-  
+
   for (const auto& [id, metadata] : proposals_) {
     if (!filter_status.has_value() || metadata.status == *filter_status) {
       result.push_back(metadata);
@@ -475,7 +483,7 @@ ProposalRegistry::ListProposals(std::optional<ProposalStatus> filter_status) con
 absl::StatusOr<ProposalRegistry::ProposalMetadata>
 ProposalRegistry::GetLatestPendingProposal() const {
   std::lock_guard<std::mutex> lock(mutex_);
-  
+
   const ProposalMetadata* latest = nullptr;
   for (const auto& [id, metadata] : proposals_) {
     if (metadata.status == ProposalStatus::kPending) {
@@ -506,7 +514,8 @@ absl::Status ProposalRegistry::WriteMetadataLocked(
       return std::string();
     }
     std::error_code relative_error;
-    auto relative_path = std::filesystem::relative(path, proposal_dir, relative_error);
+    auto relative_path =
+        std::filesystem::relative(path, proposal_dir, relative_error);
     if (!relative_error) {
       return relative_path.generic_string();
     }
@@ -517,18 +526,20 @@ absl::Status ProposalRegistry::WriteMetadataLocked(
   metadata_json["id"] = metadata.id;
   metadata_json["sandbox_id"] = metadata.sandbox_id;
   if (!metadata.sandbox_directory.empty()) {
-    metadata_json["sandbox_directory"] = metadata.sandbox_directory.generic_string();
+    metadata_json["sandbox_directory"] =
+        metadata.sandbox_directory.generic_string();
   }
   if (!metadata.sandbox_rom_path.empty()) {
-    metadata_json["sandbox_rom_path"] = metadata.sandbox_rom_path.generic_string();
+    metadata_json["sandbox_rom_path"] =
+        metadata.sandbox_rom_path.generic_string();
   }
   metadata_json["description"] = metadata.description;
   metadata_json["prompt"] = metadata.prompt;
   metadata_json["status"] = StatusToString(metadata.status);
   metadata_json["created_at_millis"] = TimeToMillis(metadata.created_at);
-  metadata_json["reviewed_at_millis"] = metadata.reviewed_at.has_value()
-                                             ? TimeToMillis(*metadata.reviewed_at)
-                                             : int64_t{0};
+  metadata_json["reviewed_at_millis"] =
+      metadata.reviewed_at.has_value() ? TimeToMillis(*metadata.reviewed_at)
+                                       : int64_t{0};
   metadata_json["diff_path"] = relative_to_proposal(metadata.diff_path);
   metadata_json["log_path"] = relative_to_proposal(metadata.log_path);
   metadata_json["bytes_changed"] = metadata.bytes_changed;
@@ -568,8 +579,8 @@ absl::Status ProposalRegistry::RemoveProposal(const std::string& proposal_id) {
   std::error_code ec;
   std::filesystem::remove_all(proposal_dir, ec);
   if (ec) {
-    return absl::InternalError(absl::StrCat(
-        "Failed to remove proposal directory: ", ec.message()));
+    return absl::InternalError(
+        absl::StrCat("Failed to remove proposal directory: ", ec.message()));
   }
 
   proposals_.erase(it);

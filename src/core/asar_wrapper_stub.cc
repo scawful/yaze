@@ -13,7 +13,8 @@ AsarWrapper::AsarWrapper() : initialized_(false) {}
 AsarWrapper::~AsarWrapper() {}
 
 absl::Status AsarWrapper::Initialize() {
-  return absl::UnimplementedError("ASAR library not available - build needs fixing");
+  return absl::UnimplementedError(
+      "ASAR library not available - build needs fixing");
 }
 
 void AsarWrapper::Shutdown() {
@@ -33,16 +34,16 @@ void AsarWrapper::Reset() {
 }
 
 absl::Status AsarWrapper::ApplyPatch(
-    const std::string& patch_content,
-    std::vector<uint8_t>& rom_data,
+    const std::string& patch_content, std::vector<uint8_t>& rom_data,
     const std::vector<std::string>& include_paths) {
-  return absl::UnimplementedError("ASAR library not available - build needs fixing");
+  return absl::UnimplementedError(
+      "ASAR library not available - build needs fixing");
 }
 
-absl::Status AsarWrapper::ApplyPatchFromFile(
-    const std::string& patch_file,
-    std::vector<uint8_t>& rom_data) {
-  return absl::UnimplementedError("ASAR library not available - build needs fixing");
+absl::Status AsarWrapper::ApplyPatchFromFile(const std::string& patch_file,
+                                             std::vector<uint8_t>& rom_data) {
+  return absl::UnimplementedError(
+      "ASAR library not available - build needs fixing");
 }
 
 std::vector<AsarWrapper::AsarError> AsarWrapper::GetErrors() const {
@@ -63,4 +64,3 @@ const std::vector<std::string>& AsarWrapper::GetAppliedPatches() const {
 
 }  // namespace core
 }  // namespace yaze
-

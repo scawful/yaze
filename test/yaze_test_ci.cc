@@ -23,11 +23,11 @@ int main(int argc, char* argv[]) {
 
   // Initialize Google Test with minimal configuration
   ::testing::InitGoogleTest(&argc, argv);
-  
+
   // Set up basic test environment
   ::testing::FLAGS_gtest_color = "yes";
   ::testing::FLAGS_gtest_print_time = true;
-  
+
   // For CI builds, skip ROM-dependent tests by default
   // These tests require actual ROM files which aren't available in CI
   std::string filter = ::testing::GTEST_FLAG(filter);
@@ -35,12 +35,12 @@ int main(int argc, char* argv[]) {
     // Default filter for CI: exclude ROM-dependent and E2E tests
     ::testing::GTEST_FLAG(filter) = "-*RomTest*:-*E2E*:-*ZSCustomOverworld*";
   }
-  
+
   std::cout << "Running YAZE tests in CI mode..." << std::endl;
   std::cout << "Test filter: " << ::testing::GTEST_FLAG(filter) << std::endl;
-  
+
   // Run tests
   int result = RUN_ALL_TESTS();
-  
+
   return result;
 }

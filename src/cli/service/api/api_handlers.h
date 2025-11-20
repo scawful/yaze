@@ -7,7 +7,7 @@
 namespace httplib {
 struct Request;
 struct Response;
-}
+}  // namespace httplib
 
 namespace yaze {
 namespace cli {
@@ -24,4 +24,3 @@ void HandleListModels(const httplib::Request& req, httplib::Response& res);
 }  // namespace yaze
 
 #endif  // YAZE_SRC_CLI_SERVICE_API_API_HANDLERS_H_
-

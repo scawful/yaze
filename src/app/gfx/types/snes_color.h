@@ -16,7 +16,7 @@ constexpr int NumberOfColors = 3143;
 // ============================================================================
 // SNES Color Conversion Functions
 // ============================================================================
-// 
+//
 // Color Format Guide:
 // - SNES Color (uint16_t): 15-bit BGR format (0bbbbbgggggrrrrr)
 // - snes_color struct: RGB values in 0-255 range
@@ -55,8 +55,8 @@ uint16_t ConvertRgbToSnes(const ImVec4& color);
  * @return ImVec4 with RGBA values in 0.0-1.0 range
  */
 inline ImVec4 SnesColorToImVec4(const snes_color& color) {
-  return ImVec4(color.red / 255.0f, color.green / 255.0f, 
-                color.blue / 255.0f, 1.0f);
+  return ImVec4(color.red / 255.0f, color.green / 255.0f, color.blue / 255.0f,
+                1.0f);
 }
 
 /**
@@ -168,7 +168,7 @@ class SnesColor {
    * @param val ImVec4 with RGB in standard 0.0-1.0 range
    */
   void set_rgb(const ImVec4 val);
-  
+
   /**
    * @brief Set color from SNES 15-bit format
    * @param val SNES color in 15-bit BGR format
@@ -180,25 +180,25 @@ class SnesColor {
    * @return ImVec4 with RGB in 0-255 range (unconventional!)
    */
   constexpr ImVec4 rgb() const { return rgb_; }
-  
+
   /**
    * @brief Get snes_color struct (0-255 RGB)
    */
   constexpr snes_color rom_color() const { return rom_color_; }
-  
+
   /**
    * @brief Get SNES 15-bit color
    */
   constexpr uint16_t snes() const { return snes_; }
-  
+
   constexpr bool is_modified() const { return modified; }
   constexpr bool is_transparent() const { return transparent; }
   constexpr void set_transparent(bool t) { transparent = t; }
   constexpr void set_modified(bool m) { modified = m; }
 
  private:
-  ImVec4 rgb_;  // Stores 0-255 values (unconventional!)
-  uint16_t snes_;  // 15-bit SNES format
+  ImVec4 rgb_;            // Stores 0-255 values (unconventional!)
+  uint16_t snes_;         // 15-bit SNES format
   snes_color rom_color_;  // 0-255 RGB struct
   bool modified = false;
   bool transparent = false;

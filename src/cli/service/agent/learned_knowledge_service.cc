@@ -45,7 +45,7 @@ LearnedKnowledgeService::LearnedKnowledgeService() {
     // Fallback to current directory
     data_dir_ = std::filesystem::current_path() / ".yaze" / "agent";
   }
-  
+
   prefs_file_ = data_dir_ / "preferences.json";
   patterns_file_ = data_dir_ / "patterns.json";
   projects_file_ = data_dir_ / "projects.json";
@@ -64,36 +64,40 @@ absl::Status LearnedKnowledgeService::Initialize() {
   if (initialized_) {
     return absl::OkStatus();
   }
-  
+
   // Ensure data directory exists
   auto status = util::PlatformPaths::EnsureDirectoryExists(data_dir_);
   if (!status.ok()) {
     return status;
   }
-  
+
   // Load existing data
   LoadPreferences();  // Ignore errors for empty files
   LoadPatterns();
   LoadProjects();
   LoadMemories();
-  
+
   initialized_ = true;
   return absl::OkStatus();
 }
 
 absl::Status LearnedKnowledgeService::SaveAll() {
   auto status = SavePreferences();
-  if (!status.ok()) return status;
-  
+  if (!status.ok())
+    return status;
+
   status = SavePatterns();
-  if (!status.ok()) return status;
-  
+  if (!status.ok())
+    return status;
+
   status = SaveProjects();
-  if (!status.ok()) return status;
-  
+  if (!status.ok())
+    return status;
+
   status = SaveMemories();
-  if (!status.ok()) return status;
-  
+  if (!status.ok())
+    return status;
+
   return absl::OkStatus();
 }
 
@@ -104,7 +108,7 @@ absl::Status LearnedKnowledgeService::SetPreference(const std::string& key,
   if (!initialized_) {
     return absl::FailedPreconditionError("Service not initialized");
   }
-  
+
   preferences_[key] = value;
   return SavePreferences();
 }
@@ -118,7 +122,8 @@ std::optional<std::string> LearnedKnowledgeService::GetPreference(
   return std::nullopt;
 }
 
-std::map<std::string, std::string> LearnedKnowledgeService::GetAllPreferences() const {
+std::map<std::string, std::string> LearnedKnowledgeService::GetAllPreferences()
+    const {
   return preferences_;
 }
 
@@ -126,7 +131,7 @@ absl::Status LearnedKnowledgeService::RemovePreference(const std::string& key) {
   if (!initialized_) {
     return absl::FailedPreconditionError("Service not initialized");
   }
-  
+
   preferences_.erase(key);
   return SavePreferences();
 }
@@ -140,7 +145,7 @@ absl::Status LearnedKnowledgeService::LearnPattern(const std::string& type,
   if (!initialized_) {
     return absl::FailedPreconditionError("Service not initialized");
   }
-  
+
   ROMPattern pattern;
   pattern.pattern_type = type;
   pattern.rom_hash = rom_hash;
@@ -148,34 +153,33 @@ absl::Status LearnedKnowledgeService::LearnPattern(const std::string& type,
   pattern.confidence = confidence;
   pattern.learned_at = CurrentTimestamp();
   pattern.access_count = 1;
-  
+
   patterns_.push_back(pattern);
   return SavePatterns();
 }
 
 std::vector<LearnedKnowledgeService::ROMPattern>
 LearnedKnowledgeService::QueryPatterns(const std::string& type,
-                                      const std::string& rom_hash) const {
+                                       const std::string& rom_hash) const {
   std::vector<ROMPattern> results;
-  
+
   for (const auto& pattern : patterns_) {
     bool type_match = type.empty() || pattern.pattern_type == type;
     bool hash_match = rom_hash.empty() || pattern.rom_hash == rom_hash;
-    
+
     if (type_match && hash_match) {
       results.push_back(pattern);
     }
   }
-  
+
   return results;
 }
 
 absl::Status LearnedKnowledgeService::UpdatePatternConfidence(
-    const std::string& type,
-    const std::string& rom_hash,
+    const std::string& type, const std::string& rom_hash,
     float new_confidence) {
   bool found = false;
-  
+
   for (auto& pattern : patterns_) {
     if (pattern.pattern_type == type && pattern.rom_hash == rom_hash) {
       pattern.confidence = new_confidence;
@@ -183,24 +187,23 @@ absl::Status LearnedKnowledgeService::UpdatePatternConfidence(
       found = true;
     }
   }
-  
+
   if (!found) {
     return absl::NotFoundError("Pattern not found");
   }
-  
+
   return SavePatterns();
 }
 
 // === Project Context ===
 
 absl::Status LearnedKnowledgeService::SaveProjectContext(
-    const std::string& project_name,
-    const std::string& rom_hash,
+    const std::string& project_name, const std::string& rom_hash,
     const std::string& context) {
   if (!initialized_) {
     return absl::FailedPreconditionError("Service not initialized");
   }
-  
+
   // Update existing or create new
   bool found = false;
   for (auto& project : projects_) {
@@ -212,7 +215,7 @@ absl::Status LearnedKnowledgeService::SaveProjectContext(
       break;
     }
   }
-  
+
   if (!found) {
     ProjectContext project;
     project.project_name = project_name;
@@ -221,12 +224,13 @@ absl::Status LearnedKnowledgeService::SaveProjectContext(
     project.last_accessed = CurrentTimestamp();
     projects_.push_back(project);
   }
-  
+
   return SaveProjects();
 }
 
 std::optional<LearnedKnowledgeService::ProjectContext>
-LearnedKnowledgeService::GetProjectContext(const std::string& project_name) const {
+LearnedKnowledgeService::GetProjectContext(
+    const std::string& project_name) const {
   for (const auto& project : projects_) {
     if (project.project_name == project_name) {
       return project;
@@ -243,13 +247,12 @@ LearnedKnowledgeService::GetAllProjects() const {
 // === Conversation Memory ===
 
 absl::Status LearnedKnowledgeService::StoreConversationSummary(
-    const std::string& topic,
-    const std::string& summary,
+    const std::string& topic, const std::string& summary,
     const std::vector<std::string>& key_facts) {
   if (!initialized_) {
     return absl::FailedPreconditionError("Service not initialized");
   }
-  
+
   ConversationMemory memory;
   memory.id = GenerateRandomID();
   memory.topic = topic;
@@ -257,53 +260,56 @@ absl::Status LearnedKnowledgeService::StoreConversationSummary(
   memory.key_facts = key_facts;
   memory.created_at = CurrentTimestamp();
   memory.access_count = 1;
-  
+
   memories_.push_back(memory);
-  
+
   // Keep only last 100 memories
   if (memories_.size() > 100) {
     memories_.erase(memories_.begin());
   }
-  
+
   return SaveMemories();
 }
 
 std::vector<LearnedKnowledgeService::ConversationMemory>
 LearnedKnowledgeService::SearchMemories(const std::string& query) const {
   std::vector<ConversationMemory> results;
-  
+
   std::string query_lower = query;
-  std::transform(query_lower.begin(), query_lower.end(), query_lower.begin(), ::tolower);
-  
+  std::transform(query_lower.begin(), query_lower.end(), query_lower.begin(),
+                 ::tolower);
+
   for (const auto& memory : memories_) {
     std::string topic_lower = memory.topic;
     std::string summary_lower = memory.summary;
-    std::transform(topic_lower.begin(), topic_lower.end(), topic_lower.begin(), ::tolower);
-    std::transform(summary_lower.begin(), summary_lower.end(), summary_lower.begin(), ::tolower);
-    
+    std::transform(topic_lower.begin(), topic_lower.end(), topic_lower.begin(),
+                   ::tolower);
+    std::transform(summary_lower.begin(), summary_lower.end(),
+                   summary_lower.begin(), ::tolower);
+
     if (topic_lower.find(query_lower) != std::string::npos ||
         summary_lower.find(query_lower) != std::string::npos) {
       results.push_back(memory);
     }
   }
-  
+
   return results;
 }
 
 std::vector<LearnedKnowledgeService::ConversationMemory>
 LearnedKnowledgeService::GetRecentMemories(int limit) const {
   std::vector<ConversationMemory> recent = memories_;
-  
+
   // Sort by created_at descending
   std::sort(recent.begin(), recent.end(),
-           [](const ConversationMemory& a, const ConversationMemory& b) {
-             return a.created_at > b.created_at;
-           });
-  
+            [](const ConversationMemory& a, const ConversationMemory& b) {
+              return a.created_at > b.created_at;
+            });
+
   if (recent.size() > static_cast<size_t>(limit)) {
     recent.resize(limit);
   }
-  
+
   return recent;
 }
 
@@ -312,10 +318,10 @@ LearnedKnowledgeService::GetRecentMemories(int limit) const {
 #ifdef YAZE_WITH_JSON
 absl::StatusOr<std::string> LearnedKnowledgeService::ExportToJSON() const {
   nlohmann::json export_data;
-  
+
   // Export preferences
   export_data["preferences"] = preferences_;
-  
+
   // Export patterns
   export_data["patterns"] = nlohmann::json::array();
   for (const auto& pattern : patterns_) {
@@ -328,7 +334,7 @@ absl::StatusOr<std::string> LearnedKnowledgeService::ExportToJSON() const {
     p["access_count"] = pattern.access_count;
     export_data["patterns"].push_back(p);
   }
-  
+
   // Export projects
   export_data["projects"] = nlohmann::json::array();
   for (const auto& project : projects_) {
@@ -339,7 +345,7 @@ absl::StatusOr<std::string> LearnedKnowledgeService::ExportToJSON() const {
     p["last_accessed"] = project.last_accessed;
     export_data["projects"].push_back(p);
   }
-  
+
   // Export memories
   export_data["memories"] = nlohmann::json::array();
   for (const auto& memory : memories_) {
@@ -352,21 +358,22 @@ absl::StatusOr<std::string> LearnedKnowledgeService::ExportToJSON() const {
     m["access_count"] = memory.access_count;
     export_data["memories"].push_back(m);
   }
-  
+
   return export_data.dump(2);
 }
 
-absl::Status LearnedKnowledgeService::ImportFromJSON(const std::string& json_data) {
+absl::Status LearnedKnowledgeService::ImportFromJSON(
+    const std::string& json_data) {
   try {
     auto data = nlohmann::json::parse(json_data);
-    
+
     // Import preferences
     if (data.contains("preferences")) {
       for (const auto& [key, value] : data["preferences"].items()) {
         preferences_[key] = value.get<std::string>();
       }
     }
-    
+
     // Import patterns
     if (data.contains("patterns")) {
       for (const auto& p : data["patterns"]) {
@@ -380,7 +387,7 @@ absl::Status LearnedKnowledgeService::ImportFromJSON(const std::string& json_dat
         patterns_.push_back(pattern);
       }
     }
-    
+
     // Import projects
     if (data.contains("projects")) {
       for (const auto& p : data["projects"]) {
@@ -392,7 +399,7 @@ absl::Status LearnedKnowledgeService::ImportFromJSON(const std::string& json_dat
         projects_.push_back(project);
       }
     }
-    
+
     // Import memories
     if (data.contains("memories")) {
       for (const auto& m : data["memories"]) {
@@ -406,7 +413,7 @@ absl::Status LearnedKnowledgeService::ImportFromJSON(const std::string& json_dat
         memories_.push_back(memory);
       }
     }
-    
+
     return SaveAll();
   } catch (const std::exception& e) {
     return absl::InternalError(absl::StrCat("JSON parse error: ", e.what()));
@@ -414,11 +421,13 @@ absl::Status LearnedKnowledgeService::ImportFromJSON(const std::string& json_dat
 }
 #else
 absl::StatusOr<std::string> LearnedKnowledgeService::ExportToJSON() const {
-  return absl::UnimplementedError("JSON support not enabled. Build with -DYAZE_WITH_JSON=ON");
+  return absl::UnimplementedError(
+      "JSON support not enabled. Build with -DYAZE_WITH_JSON=ON");
 }
 
 absl::Status LearnedKnowledgeService::ImportFromJSON(const std::string&) {
-  return absl::UnimplementedError("JSON support not enabled. Build with -DYAZE_WITH_JSON=ON");
+  return absl::UnimplementedError(
+      "JSON support not enabled. Build with -DYAZE_WITH_JSON=ON");
 }
 #endif
 
@@ -438,7 +447,7 @@ LearnedKnowledgeService::Stats LearnedKnowledgeService::GetStats() const {
   stats.pattern_count = patterns_.size();
   stats.project_count = projects_.size();
   stats.memory_count = memories_.size();
-  
+
   // Find earliest learned_at
   int64_t earliest = CurrentTimestamp();
   for (const auto& pattern : patterns_) {
@@ -452,10 +461,10 @@ LearnedKnowledgeService::Stats LearnedKnowledgeService::GetStats() const {
     }
   }
   stats.first_learned_at = earliest;
-  
+
   // Last updated is now
   stats.last_updated_at = CurrentTimestamp();
-  
+
   return stats;
 }
 
@@ -466,39 +475,41 @@ absl::Status LearnedKnowledgeService::LoadPreferences() {
   if (!FileExists(prefs_file_)) {
     return absl::OkStatus();  // No file yet, empty preferences
   }
-  
+
   try {
     std::ifstream file(prefs_file_);
     if (!file.is_open()) {
       return absl::InternalError("Failed to open preferences file");
     }
-    
+
     nlohmann::json data;
     file >> data;
-    
+
     for (const auto& [key, value] : data.items()) {
       preferences_[key] = value.get<std::string>();
     }
-    
+
     return absl::OkStatus();
   } catch (const std::exception& e) {
-    return absl::InternalError(absl::StrCat("Failed to load preferences: ", e.what()));
+    return absl::InternalError(
+        absl::StrCat("Failed to load preferences: ", e.what()));
   }
 }
 
 absl::Status LearnedKnowledgeService::SavePreferences() {
   try {
     nlohmann::json data = preferences_;
-    
+
     std::ofstream file(prefs_file_);
     if (!file.is_open()) {
       return absl::InternalError("Failed to open preferences file for writing");
     }
-    
+
     file << data.dump(2);
     return absl::OkStatus();
   } catch (const std::exception& e) {
-    return absl::InternalError(absl::StrCat("Failed to save preferences: ", e.what()));
+    return absl::InternalError(
+        absl::StrCat("Failed to save preferences: ", e.what()));
   }
 }
 
@@ -506,12 +517,12 @@ absl::Status LearnedKnowledgeService::LoadPatterns() {
   if (!FileExists(patterns_file_)) {
     return absl::OkStatus();
   }
-  
+
   try {
     std::ifstream file(patterns_file_);
     nlohmann::json data;
     file >> data;
-    
+
     for (const auto& p : data) {
       ROMPattern pattern;
       pattern.pattern_type = p["type"];
@@ -522,17 +533,18 @@ absl::Status LearnedKnowledgeService::LoadPatterns() {
       pattern.access_count = p.value("access_count", 0);
       patterns_.push_back(pattern);
     }
-    
+
     return absl::OkStatus();
   } catch (const std::exception& e) {
-    return absl::InternalError(absl::StrCat("Failed to load patterns: ", e.what()));
+    return absl::InternalError(
+        absl::StrCat("Failed to load patterns: ", e.what()));
   }
 }
 
 absl::Status LearnedKnowledgeService::SavePatterns() {
   try {
     nlohmann::json data = nlohmann::json::array();
-    
+
     for (const auto& pattern : patterns_) {
       nlohmann::json p;
       p["type"] = pattern.pattern_type;
@@ -543,12 +555,13 @@ absl::Status LearnedKnowledgeService::SavePatterns() {
       p["access_count"] = pattern.access_count;
       data.push_back(p);
     }
-    
+
     std::ofstream file(patterns_file_);
     file << data.dump(2);
     return absl::OkStatus();
   } catch (const std::exception& e) {
-    return absl::InternalError(absl::StrCat("Failed to save patterns: ", e.what()));
+    return absl::InternalError(
+        absl::StrCat("Failed to save patterns: ", e.what()));
   }
 }
 
@@ -556,12 +569,12 @@ absl::Status LearnedKnowledgeService::LoadProjects() {
   if (!FileExists(projects_file_)) {
     return absl::OkStatus();
   }
-  
+
   try {
     std::ifstream file(projects_file_);
     nlohmann::json data;
     file >> data;
-    
+
     for (const auto& p : data) {
       ProjectContext project;
       project.project_name = p["name"];
@@ -570,17 +583,18 @@ absl::Status LearnedKnowledgeService::LoadProjects() {
       project.last_accessed = p["last_accessed"];
       projects_.push_back(project);
     }
-    
+
     return absl::OkStatus();
   } catch (const std::exception& e) {
-    return absl::InternalError(absl::StrCat("Failed to load projects: ", e.what()));
+    return absl::InternalError(
+        absl::StrCat("Failed to load projects: ", e.what()));
   }
 }
 
 absl::Status LearnedKnowledgeService::SaveProjects() {
   try {
     nlohmann::json data = nlohmann::json::array();
-    
+
     for (const auto& project : projects_) {
       nlohmann::json p;
       p["name"] = project.project_name;
@@ -589,19 +603,20 @@ absl::Status LearnedKnowledgeService::SaveProjects() {
       p["last_accessed"] = project.last_accessed;
       data.push_back(p);
     }
-    
+
     std::ofstream file(projects_file_);
     file << data.dump(2);
     return absl::OkStatus();
   } catch (const std::exception& e) {
-    return absl::InternalError(absl::StrCat("Failed to save projects: ", e.what()));
+    return absl::InternalError(
+        absl::StrCat("Failed to save projects: ", e.what()));
   }
 }
 
 absl::Status LearnedKnowledgeService::SaveMemories() {
   try {
     nlohmann::json data = nlohmann::json::array();
-    
+
     for (const auto& memory : memories_) {
       nlohmann::json m;
       m["id"] = memory.id;
@@ -612,12 +627,13 @@ absl::Status LearnedKnowledgeService::SaveMemories() {
       m["access_count"] = memory.access_count;
       data.push_back(m);
     }
-    
+
     std::ofstream file(memories_file_);
     file << data.dump(2);
     return absl::OkStatus();
   } catch (const std::exception& e) {
-    return absl::InternalError(absl::StrCat("Failed to save memories: ", e.what()));
+    return absl::InternalError(
+        absl::StrCat("Failed to save memories: ", e.what()));
   }
 }
 
@@ -625,12 +641,12 @@ absl::Status LearnedKnowledgeService::LoadMemories() {
   if (!FileExists(memories_file_)) {
     return absl::OkStatus();
   }
-  
+
   try {
     std::ifstream file(memories_file_);
     nlohmann::json data;
     file >> data;
-    
+
     for (const auto& m : data) {
       ConversationMemory memory;
       memory.id = m["id"];
@@ -641,23 +657,40 @@ absl::Status LearnedKnowledgeService::LoadMemories() {
       memory.access_count = m.value("access_count", 0);
       memories_.push_back(memory);
     }
-    
+
     return absl::OkStatus();
   } catch (const std::exception& e) {
-    return absl::InternalError(absl::StrCat("Failed to load memories: ", e.what()));
+    return absl::InternalError(
+        absl::StrCat("Failed to load memories: ", e.what()));
   }
 }
 
 #else
 // Stub implementations when JSON is not available
-absl::Status LearnedKnowledgeService::LoadPreferences() { return absl::OkStatus(); }
-absl::Status LearnedKnowledgeService::SavePreferences() { return absl::UnimplementedError("JSON support required"); }
-absl::Status LearnedKnowledgeService::LoadPatterns() { return absl::OkStatus(); }
-absl::Status LearnedKnowledgeService::SavePatterns() { return absl::UnimplementedError("JSON support required"); }
-absl::Status LearnedKnowledgeService::LoadProjects() { return absl::OkStatus(); }
-absl::Status LearnedKnowledgeService::SaveProjects() { return absl::UnimplementedError("JSON support required"); }
-absl::Status LearnedKnowledgeService::LoadMemories() { return absl::OkStatus(); }
-absl::Status LearnedKnowledgeService::SaveMemories() { return absl::UnimplementedError("JSON support required"); }
+absl::Status LearnedKnowledgeService::LoadPreferences() {
+  return absl::OkStatus();
+}
+absl::Status LearnedKnowledgeService::SavePreferences() {
+  return absl::UnimplementedError("JSON support required");
+}
+absl::Status LearnedKnowledgeService::LoadPatterns() {
+  return absl::OkStatus();
+}
+absl::Status LearnedKnowledgeService::SavePatterns() {
+  return absl::UnimplementedError("JSON support required");
+}
+absl::Status LearnedKnowledgeService::LoadProjects() {
+  return absl::OkStatus();
+}
+absl::Status LearnedKnowledgeService::SaveProjects() {
+  return absl::UnimplementedError("JSON support required");
+}
+absl::Status LearnedKnowledgeService::LoadMemories() {
+  return absl::OkStatus();
+}
+absl::Status LearnedKnowledgeService::SaveMemories() {
+  return absl::UnimplementedError("JSON support required");
+}
 #endif
 
 std::string LearnedKnowledgeService::GenerateID() const {

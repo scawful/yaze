@@ -23,12 +23,12 @@ namespace gfx {
  * @brief Represents a single color change operation
  */
 struct PaletteColorChange {
-  std::string group_name;        ///< Palette group name (e.g., "ow_main")
-  int palette_index;             ///< Index of palette within group
-  int color_index;               ///< Index of color within palette
-  SnesColor original_color;      ///< Original color before change
-  SnesColor new_color;           ///< New color after change
-  uint64_t timestamp_ms;         ///< Timestamp in milliseconds
+  std::string group_name;    ///< Palette group name (e.g., "ow_main")
+  int palette_index;         ///< Index of palette within group
+  int color_index;           ///< Index of color within palette
+  SnesColor original_color;  ///< Original color before change
+  SnesColor new_color;       ///< New color after change
+  uint64_t timestamp_ms;     ///< Timestamp in milliseconds
 };
 
 /**
@@ -36,12 +36,12 @@ struct PaletteColorChange {
  */
 struct PaletteChangeEvent {
   enum class Type {
-    kColorChanged,        ///< Single color was modified
-    kPaletteReset,        ///< Entire palette was reset
-    kGroupSaved,          ///< Palette group was saved to ROM
-    kGroupDiscarded,      ///< Palette group changes were discarded
-    kAllSaved,            ///< All changes saved to ROM
-    kAllDiscarded         ///< All changes discarded
+    kColorChanged,    ///< Single color was modified
+    kPaletteReset,    ///< Entire palette was reset
+    kGroupSaved,      ///< Palette group was saved to ROM
+    kGroupDiscarded,  ///< Palette group changes were discarded
+    kAllSaved,        ///< All changes saved to ROM
+    kAllDiscarded     ///< All changes discarded
   };
 
   Type type;
@@ -264,7 +264,7 @@ class PaletteManager {
 
   /// Helper: Get original color from snapshot
   SnesColor GetOriginalColor(const std::string& group_name, int palette_index,
-                              int color_index) const;
+                             int color_index) const;
 
   /// Helper: Record a change for undo
   void RecordChange(const PaletteColorChange& change);
@@ -286,13 +286,11 @@ class PaletteManager {
 
   /// Original palette snapshots (loaded from ROM for reset/comparison)
   /// Key: group_name, Value: vector of original palettes
-  std::unordered_map<std::string, std::vector<SnesPalette>>
-      original_palettes_;
+  std::unordered_map<std::string, std::vector<SnesPalette>> original_palettes_;
 
   /// Modified tracking
   /// Key: group_name, Value: set of modified palette indices
-  std::unordered_map<std::string, std::unordered_set<int>>
-      modified_palettes_;
+  std::unordered_map<std::string, std::unordered_set<int>> modified_palettes_;
 
   /// Detailed color modification tracking
   /// Key: group_name, Value: map of palette_index -> set of color indices

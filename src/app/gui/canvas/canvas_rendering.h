@@ -21,9 +21,8 @@ namespace gui {
  * @param draw_list ImGui draw list for rendering
  * @param geometry Canvas geometry for this frame
  */
-void RenderCanvasBackground(
-    ImDrawList* draw_list,
-    const CanvasGeometry& geometry);
+void RenderCanvasBackground(ImDrawList* draw_list,
+                            const CanvasGeometry& geometry);
 
 /**
  * @brief Render canvas grid with optional highlighting
@@ -36,11 +35,8 @@ void RenderCanvasBackground(
  * @param config Canvas configuration (grid settings)
  * @param highlight_tile_id Tile ID to highlight (-1 = no highlight)
  */
-void RenderCanvasGrid(
-    ImDrawList* draw_list,
-    const CanvasGeometry& geometry,
-    const CanvasConfig& config,
-    int highlight_tile_id = -1);
+void RenderCanvasGrid(ImDrawList* draw_list, const CanvasGeometry& geometry,
+                      const CanvasConfig& config, int highlight_tile_id = -1);
 
 /**
  * @brief Render canvas overlay (hover and selection points)
@@ -54,12 +50,10 @@ void RenderCanvasGrid(
  * @param points Hover preview points
  * @param selected_points Selection rectangle points
  */
-void RenderCanvasOverlay(
-    ImDrawList* draw_list,
-    const CanvasGeometry& geometry,
-    const CanvasConfig& config,
-    const ImVector<ImVec2>& points,
-    const ImVector<ImVec2>& selected_points);
+void RenderCanvasOverlay(ImDrawList* draw_list, const CanvasGeometry& geometry,
+                         const CanvasConfig& config,
+                         const ImVector<ImVec2>& points,
+                         const ImVector<ImVec2>& selected_points);
 
 /**
  * @brief Render canvas labels on grid
@@ -74,13 +68,10 @@ void RenderCanvasOverlay(
  * @param current_labels Active label set index
  * @param tile_id_offset Tile ID offset for calculation
  */
-void RenderCanvasLabels(
-    ImDrawList* draw_list,
-    const CanvasGeometry& geometry,
-    const CanvasConfig& config,
-    const ImVector<ImVector<std::string>>& labels,
-    int current_labels,
-    int tile_id_offset);
+void RenderCanvasLabels(ImDrawList* draw_list, const CanvasGeometry& geometry,
+                        const CanvasConfig& config,
+                        const ImVector<ImVector<std::string>>& labels,
+                        int current_labels, int tile_id_offset);
 
 /**
  * @brief Render bitmap on canvas (border offset variant)
@@ -94,12 +85,8 @@ void RenderCanvasLabels(
  * @param border_offset Offset from canvas edges
  * @param scale Rendering scale
  */
-void RenderBitmapOnCanvas(
-    ImDrawList* draw_list,
-    const CanvasGeometry& geometry,
-    gfx::Bitmap& bitmap,
-    int border_offset,
-    float scale);
+void RenderBitmapOnCanvas(ImDrawList* draw_list, const CanvasGeometry& geometry,
+                          gfx::Bitmap& bitmap, int border_offset, float scale);
 
 /**
  * @brief Render bitmap on canvas (x/y offset variant)
@@ -115,14 +102,9 @@ void RenderBitmapOnCanvas(
  * @param scale Rendering scale
  * @param alpha Alpha transparency (0-255)
  */
-void RenderBitmapOnCanvas(
-    ImDrawList* draw_list,
-    const CanvasGeometry& geometry,
-    gfx::Bitmap& bitmap,
-    int x_offset,
-    int y_offset,
-    float scale,
-    int alpha);
+void RenderBitmapOnCanvas(ImDrawList* draw_list, const CanvasGeometry& geometry,
+                          gfx::Bitmap& bitmap, int x_offset, int y_offset,
+                          float scale, int alpha);
 
 /**
  * @brief Render bitmap on canvas (custom source/dest regions)
@@ -138,14 +120,9 @@ void RenderBitmapOnCanvas(
  * @param src_pos Source position in bitmap
  * @param src_size Source size in bitmap
  */
-void RenderBitmapOnCanvas(
-    ImDrawList* draw_list,
-    const CanvasGeometry& geometry,
-    gfx::Bitmap& bitmap,
-    ImVec2 dest_pos,
-    ImVec2 dest_size,
-    ImVec2 src_pos,
-    ImVec2 src_size);
+void RenderBitmapOnCanvas(ImDrawList* draw_list, const CanvasGeometry& geometry,
+                          gfx::Bitmap& bitmap, ImVec2 dest_pos,
+                          ImVec2 dest_size, ImVec2 src_pos, ImVec2 src_size);
 
 /**
  * @brief Render group of bitmaps from tilemap
@@ -162,18 +139,12 @@ void RenderBitmapOnCanvas(
  * @param local_map_size Size of local map in pixels (default 512)
  * @param total_map_size Total map size for boundary clamping
  */
-void RenderBitmapGroup(
-    ImDrawList* draw_list,
-    const CanvasGeometry& geometry,
-    std::vector<int>& group,
-    gfx::Tilemap& tilemap,
-    int tile_size,
-    float scale,
-    int local_map_size,
-    ImVec2 total_map_size);
+void RenderBitmapGroup(ImDrawList* draw_list, const CanvasGeometry& geometry,
+                       std::vector<int>& group, gfx::Tilemap& tilemap,
+                       int tile_size, float scale, int local_map_size,
+                       ImVec2 total_map_size);
 
 }  // namespace gui
 }  // namespace yaze
 
 #endif  // YAZE_APP_GUI_CANVAS_CANVAS_RENDERING_H
-

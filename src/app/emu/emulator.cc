@@ -1,24 +1,24 @@
 #include "app/emu/emulator.h"
 
-#include <cstdlib>
 #include <cstdint>
+#include <cstdlib>
 #include <fstream>
 #include <vector>
 
-#include "app/platform/window.h"
 #include "app/editor/system/editor_card_registry.h"
+#include "app/platform/window.h"
 #include "util/log.h"
 
 namespace yaze::core {
-  extern bool g_window_is_resizing;
+extern bool g_window_is_resizing;
 }
 
 #include "app/emu/debug/disassembly_viewer.h"
 #include "app/emu/ui/debugger_ui.h"
 #include "app/emu/ui/emulator_ui.h"
 #include "app/emu/ui/input_handler.h"
-#include "app/gui/core/color.h"
 #include "app/gui/app/editor_layout.h"
+#include "app/gui/core/color.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/theme_manager.h"
 #include "imgui/imgui.h"
@@ -39,13 +39,13 @@ Emulator::~Emulator() {
 void Emulator::Cleanup() {
   // Stop emulation
   running_ = false;
-  
+
   // Don't try to destroy PPU texture during shutdown
   // The renderer is destroyed before the emulator, so attempting to
   // call renderer_->DestroyTexture() will crash
   // The texture will be cleaned up automatically when SDL quits
   ppu_texture_ = nullptr;
-  
+
   // Reset state
   snes_initialized_ = false;
   audio_stream_active_ = false;
@@ -58,7 +58,8 @@ void Emulator::set_use_sdl_audio_stream(bool enabled) {
   }
 }
 
-void Emulator::Initialize(gfx::IRenderer* renderer, const std::vector<uint8_t>& rom_data) {
+void Emulator::Initialize(gfx::IRenderer* renderer,
+                          const std::vector<uint8_t>& rom_data) {
   // This method is now optional - emulator can be initialized lazily in Run()
   renderer_ = renderer;
   rom_data_ = rom_data;
@@ -70,13 +71,13 @@ void Emulator::Initialize(gfx::IRenderer* renderer, const std::vector<uint8_t>& 
     }
     audio_stream_env_checked_ = true;
   }
-  
+
   // Cards are registered in EditorManager::Initialize() to avoid duplication
-  
+
   // Reset state for new ROM
   running_ = false;
   snes_initialized_ = false;
-  
+
   // Initialize audio backend if not already done
   if (!audio_backend_) {
     audio_backend_ = audio::AudioBackendFactory::Create(
@@ -98,20 +99,22 @@ void Emulator::Initialize(gfx::IRenderer* renderer, const std::vector<uint8_t>& 
       audio_stream_config_dirty_ = true;
     }
   }
-  
+
   // Set up CPU breakpoint callback
   snes_.cpu().on_breakpoint_hit_ = [this](uint32_t pc) -> bool {
-    return breakpoint_manager_.ShouldBreakOnExecute(pc, BreakpointManager::CpuType::CPU_65816);
+    return breakpoint_manager_.ShouldBreakOnExecute(
+        pc, BreakpointManager::CpuType::CPU_65816);
   };
-  
+
   // Set up instruction recording callback for DisassemblyViewer
-  snes_.cpu().on_instruction_executed_ = [this](uint32_t address, uint8_t opcode,
-                                                const std::vector<uint8_t>& operands,
-                                                const std::string& mnemonic,
-                                                const std::string& operand_str) {
-    disassembly_viewer_.RecordInstruction(address, opcode, operands, mnemonic, operand_str);
-  };
-  
+  snes_.cpu().on_instruction_executed_ =
+      [this](uint32_t address, uint8_t opcode,
+             const std::vector<uint8_t>& operands, const std::string& mnemonic,
+             const std::string& operand_str) {
+        disassembly_viewer_.RecordInstruction(address, opcode, operands,
+                                              mnemonic, operand_str);
+      };
+
   initialized_ = true;
 }
 
@@ -126,11 +129,11 @@ void Emulator::Run(Rom* rom) {
 
   // Lazy initialization: set renderer from Controller if not set yet
   if (!renderer_) {
-    ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f), 
+    ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f),
                        "Emulator renderer not initialized");
     return;
   }
-  
+
   // Initialize audio backend if not already done (lazy initialization)
   if (!audio_backend_) {
     audio_backend_ = audio::AudioBackendFactory::Create(
@@ -152,17 +155,18 @@ void Emulator::Run(Rom* rom) {
       audio_stream_config_dirty_ = true;
     }
   }
-  
+
   // Initialize input manager if not already done
   if (!input_manager_.IsInitialized()) {
-    if (!input_manager_.Initialize(input::InputBackendFactory::BackendType::SDL2)) {
+    if (!input_manager_.Initialize(
+            input::InputBackendFactory::BackendType::SDL2)) {
       LOG_ERROR("Emulator", "Failed to initialize input manager");
     } else {
       LOG_INFO("Emulator", "Input manager initialized: %s",
                input_manager_.backend()->GetBackendName().c_str());
     }
   }
-  
+
   // Initialize SNES and create PPU texture on first run
   // This happens lazily when user opens the emulator window
   if (!snes_initialized_ && rom->is_loaded()) {
@@ -182,7 +186,7 @@ void Emulator::Run(Rom* rom) {
       rom_data_ = rom->vector();
     }
     snes_.Init(rom_data_);
-    
+
     // Note: DisassemblyViewer recording is always enabled via callback
     // No explicit setup needed - callback is set in Initialize()
 
@@ -198,12 +202,11 @@ void Emulator::Run(Rom* rom) {
     frame_count_ = 0;
     fps_timer_ = 0.0;
     current_fps_ = 0.0;
-    
+
     // Start emulator in running state by default
     // User can press Space to pause if needed
     running_ = true;
   }
-
 
   // Auto-pause emulator during window resize to prevent crashes
   // MODERN APPROACH: Only pause on actual window resize, not focus loss
@@ -213,7 +216,8 @@ void Emulator::Run(Rom* rom) {
   if (yaze::core::g_window_is_resizing && running_) {
     was_running_before_resize = true;
     running_ = false;
-  } else if (!yaze::core::g_window_is_resizing && !running_ && was_running_before_resize) {
+  } else if (!yaze::core::g_window_is_resizing && !running_ &&
+             was_running_before_resize) {
     // Auto-resume after resize completes
     running_ = true;
     was_running_before_resize = false;
@@ -275,14 +279,17 @@ void Emulator::Run(Rom* rom) {
           // SMOOTH AUDIO BUFFERING
           // Strategy: Always queue samples, never drop. Use dynamic rate control
           // to keep buffer at target level. This prevents pops and glitches.
-          
+
           if (audio_backend_) {
             if (audio_stream_config_dirty_) {
-              if (use_sdl_audio_stream_ && audio_backend_->SupportsAudioStream()) {
-                audio_backend_->SetAudioStreamResampling(true, kNativeSampleRate, 2);
+              if (use_sdl_audio_stream_ &&
+                  audio_backend_->SupportsAudioStream()) {
+                audio_backend_->SetAudioStreamResampling(true,
+                                                         kNativeSampleRate, 2);
                 audio_stream_active_ = true;
               } else {
-                audio_backend_->SetAudioStreamResampling(false, kNativeSampleRate, 2);
+                audio_backend_->SetAudioStreamResampling(false,
+                                                         kNativeSampleRate, 2);
                 audio_stream_active_ = false;
               }
               audio_stream_config_dirty_ = false;
@@ -312,13 +319,15 @@ void Emulator::Run(Rom* rom) {
               } else {
                 snes_.SetSamples(audio_buffer_, wanted_samples_);
                 const int num_samples = wanted_samples_ * 2;  // Stereo
-                queue_ok = audio_backend_->QueueSamples(audio_buffer_, num_samples);
+                queue_ok =
+                    audio_backend_->QueueSamples(audio_buffer_, num_samples);
               }
 
               if (!queue_ok && use_native_stream) {
                 snes_.SetSamples(audio_buffer_, wanted_samples_);
                 const int num_samples = wanted_samples_ * 2;
-                queue_ok = audio_backend_->QueueSamples(audio_buffer_, num_samples);
+                queue_ok =
+                    audio_backend_->QueueSamples(audio_buffer_, num_samples);
               }
 
               if (!queue_ok) {
@@ -343,10 +352,11 @@ void Emulator::Run(Rom* rom) {
           // Update PPU texture only on rendered frames
           void* ppu_pixels_;
           int ppu_pitch_;
-          if (renderer_->LockTexture(ppu_texture_, NULL, &ppu_pixels_, &ppu_pitch_)) {
+          if (renderer_->LockTexture(ppu_texture_, NULL, &ppu_pixels_,
+                                     &ppu_pitch_)) {
             snes_.SetPixels(static_cast<uint8_t*>(ppu_pixels_));
             renderer_->UnlockTexture(ppu_texture_);
-            
+
             // WORKAROUND: Tiny delay after texture unlock to prevent macOS Metal crash
             // macOS CoreAnimation/Metal driver bug in layer_presented() callback
             // Without this, rapid texture updates corrupt Metal's frame tracking
@@ -362,7 +372,8 @@ void Emulator::Run(Rom* rom) {
 
 void Emulator::RenderEmulatorInterface() {
   try {
-    if (!card_registry_) return;  // Card registry must be injected
+    if (!card_registry_)
+      return;  // Card registry must be injected
 
     static gui::EditorCard cpu_card("CPU Debugger", ICON_MD_MEMORY);
     static gui::EditorCard ppu_card("PPU Viewer", ICON_MD_VIDEOGAME_ASSET);
@@ -383,7 +394,8 @@ void Emulator::RenderEmulatorInterface() {
 
     // Get visibility flags from registry and pass them to Begin() for proper X button functionality
     // This ensures each card window can be closed by the user via the window close button
-    bool* cpu_visible = card_registry_->GetVisibilityFlag("emulator.cpu_debugger");
+    bool* cpu_visible =
+        card_registry_->GetVisibilityFlag("emulator.cpu_debugger");
     if (cpu_visible && *cpu_visible) {
       if (cpu_card.Begin(cpu_visible)) {
         RenderModernCpuDebugger();
@@ -391,7 +403,8 @@ void Emulator::RenderEmulatorInterface() {
       cpu_card.End();
     }
 
-    bool* ppu_visible = card_registry_->GetVisibilityFlag("emulator.ppu_viewer");
+    bool* ppu_visible =
+        card_registry_->GetVisibilityFlag("emulator.ppu_viewer");
     if (ppu_visible && *ppu_visible) {
       if (ppu_card.Begin(ppu_visible)) {
         RenderNavBar();
@@ -400,7 +413,8 @@ void Emulator::RenderEmulatorInterface() {
       ppu_card.End();
     }
 
-    bool* memory_visible = card_registry_->GetVisibilityFlag("emulator.memory_viewer");
+    bool* memory_visible =
+        card_registry_->GetVisibilityFlag("emulator.memory_viewer");
     if (memory_visible && *memory_visible) {
       if (memory_card.Begin(memory_visible)) {
         RenderMemoryViewer();
@@ -408,7 +422,8 @@ void Emulator::RenderEmulatorInterface() {
       memory_card.End();
     }
 
-    bool* breakpoints_visible = card_registry_->GetVisibilityFlag("emulator.breakpoints");
+    bool* breakpoints_visible =
+        card_registry_->GetVisibilityFlag("emulator.breakpoints");
     if (breakpoints_visible && *breakpoints_visible) {
       if (breakpoints_card.Begin(breakpoints_visible)) {
         RenderBreakpointList();
@@ -416,7 +431,8 @@ void Emulator::RenderEmulatorInterface() {
       breakpoints_card.End();
     }
 
-    bool* performance_visible = card_registry_->GetVisibilityFlag("emulator.performance");
+    bool* performance_visible =
+        card_registry_->GetVisibilityFlag("emulator.performance");
     if (performance_visible && *performance_visible) {
       if (performance_card.Begin(performance_visible)) {
         RenderPerformanceMonitor();
@@ -424,7 +440,8 @@ void Emulator::RenderEmulatorInterface() {
       performance_card.End();
     }
 
-    bool* ai_agent_visible = card_registry_->GetVisibilityFlag("emulator.ai_agent");
+    bool* ai_agent_visible =
+        card_registry_->GetVisibilityFlag("emulator.ai_agent");
     if (ai_agent_visible && *ai_agent_visible) {
       if (ai_card.Begin(ai_agent_visible)) {
         RenderAIAgentPanel();
@@ -432,7 +449,8 @@ void Emulator::RenderEmulatorInterface() {
       ai_card.End();
     }
 
-    bool* save_states_visible = card_registry_->GetVisibilityFlag("emulator.save_states");
+    bool* save_states_visible =
+        card_registry_->GetVisibilityFlag("emulator.save_states");
     if (save_states_visible && *save_states_visible) {
       if (save_states_card.Begin(save_states_visible)) {
         RenderSaveStates();
@@ -440,7 +458,8 @@ void Emulator::RenderEmulatorInterface() {
       save_states_card.End();
     }
 
-    bool* keyboard_config_visible = card_registry_->GetVisibilityFlag("emulator.keyboard_config");
+    bool* keyboard_config_visible =
+        card_registry_->GetVisibilityFlag("emulator.keyboard_config");
     if (keyboard_config_visible && *keyboard_config_visible) {
       if (keyboard_card.Begin(keyboard_config_visible)) {
         RenderKeyboardConfig();
@@ -448,7 +467,8 @@ void Emulator::RenderEmulatorInterface() {
       keyboard_card.End();
     }
 
-    bool* apu_debugger_visible = card_registry_->GetVisibilityFlag("emulator.apu_debugger");
+    bool* apu_debugger_visible =
+        card_registry_->GetVisibilityFlag("emulator.apu_debugger");
     if (apu_debugger_visible && *apu_debugger_visible) {
       if (apu_card.Begin(apu_debugger_visible)) {
         RenderApuDebugger();
@@ -456,7 +476,8 @@ void Emulator::RenderEmulatorInterface() {
       apu_card.End();
     }
 
-    bool* audio_mixer_visible = card_registry_->GetVisibilityFlag("emulator.audio_mixer");
+    bool* audio_mixer_visible =
+        card_registry_->GetVisibilityFlag("emulator.audio_mixer");
     if (audio_mixer_visible && *audio_mixer_visible) {
       if (audio_card.Begin(audio_mixer_visible)) {
         // RenderAudioMixer();
@@ -503,41 +524,51 @@ void Emulator::RenderModernCpuDebugger() {
   try {
     auto& theme_manager = gui::ThemeManager::Get();
     const auto& theme = theme_manager.GetCurrentTheme();
-    
+
     // Debugger controls toolbar
-    if (ImGui::Button(ICON_MD_PLAY_ARROW)) { running_ = true; }
-    ImGui::SameLine();
-    if (ImGui::Button(ICON_MD_PAUSE)) { running_ = false; }
-    ImGui::SameLine();
-    if (ImGui::Button(ICON_MD_SKIP_NEXT " Step")) {
-      if (!running_) snes_.cpu().RunOpcode();
+    if (ImGui::Button(ICON_MD_PLAY_ARROW)) {
+      running_ = true;
     }
     ImGui::SameLine();
-    if (ImGui::Button(ICON_MD_REFRESH)) { snes_.Reset(true); }
-    
+    if (ImGui::Button(ICON_MD_PAUSE)) {
+      running_ = false;
+    }
+    ImGui::SameLine();
+    if (ImGui::Button(ICON_MD_SKIP_NEXT " Step")) {
+      if (!running_)
+        snes_.cpu().RunOpcode();
+    }
+    ImGui::SameLine();
+    if (ImGui::Button(ICON_MD_REFRESH)) {
+      snes_.Reset(true);
+    }
+
     ImGui::Separator();
-    
+
     // Breakpoint controls
     static char bp_addr[16] = "00FFD9";
     ImGui::Text(ICON_MD_BUG_REPORT " Breakpoints:");
     ImGui::PushItemWidth(100);
     ImGui::InputText("##BPAddr", bp_addr, IM_ARRAYSIZE(bp_addr),
-                    ImGuiInputTextFlags_CharsHexadecimal | ImGuiInputTextFlags_CharsUppercase);
+                     ImGuiInputTextFlags_CharsHexadecimal |
+                         ImGuiInputTextFlags_CharsUppercase);
     ImGui::PopItemWidth();
     ImGui::SameLine();
     if (ImGui::Button(ICON_MD_ADD " Add")) {
       uint32_t addr = std::strtoul(bp_addr, nullptr, 16);
       breakpoint_manager_.AddBreakpoint(addr, BreakpointManager::Type::EXECUTE,
-                                       BreakpointManager::CpuType::CPU_65816,
-                                       "", absl::StrFormat("BP at $%06X", addr));
+                                        BreakpointManager::CpuType::CPU_65816,
+                                        "",
+                                        absl::StrFormat("BP at $%06X", addr));
     }
-    
+
     // List breakpoints
     ImGui::BeginChild("##BPList", ImVec2(0, 100), true);
     for (const auto& bp : breakpoint_manager_.GetAllBreakpoints()) {
       if (bp.cpu == BreakpointManager::CpuType::CPU_65816) {
         bool enabled = bp.enabled;
-        if (ImGui::Checkbox(absl::StrFormat("##en%d", bp.id).c_str(), &enabled)) {
+        if (ImGui::Checkbox(absl::StrFormat("##en%d", bp.id).c_str(),
+                            &enabled)) {
           breakpoint_manager_.SetEnabled(bp.id, enabled);
         }
         ImGui::SameLine();
@@ -545,13 +576,14 @@ void Emulator::RenderModernCpuDebugger() {
         ImGui::SameLine();
         ImGui::TextDisabled("(hits: %d)", bp.hit_count);
         ImGui::SameLine();
-        if (ImGui::SmallButton(absl::StrFormat(ICON_MD_DELETE "##%d", bp.id).c_str())) {
+        if (ImGui::SmallButton(
+                absl::StrFormat(ICON_MD_DELETE "##%d", bp.id).c_str())) {
           breakpoint_manager_.RemoveBreakpoint(bp.id);
         }
       }
     }
     ImGui::EndChild();
-    
+
     ImGui::Separator();
 
     ImGui::TextColored(ConvertColorToImVec4(theme.accent), "CPU Status");
@@ -694,14 +726,16 @@ void Emulator::RenderModernCpuDebugger() {
     ImGui::PopStyleColor();
 
     // New Disassembly Viewer
-    if (ImGui::CollapsingHeader("Disassembly Viewer", 
+    if (ImGui::CollapsingHeader("Disassembly Viewer",
                                 ImGuiTreeNodeFlags_DefaultOpen)) {
-      uint32_t current_pc = (static_cast<uint32_t>(snes_.cpu().PB) << 16) | snes_.cpu().PC;
+      uint32_t current_pc =
+          (static_cast<uint32_t>(snes_.cpu().PB) << 16) | snes_.cpu().PC;
       auto& disasm = snes_.cpu().disassembly_viewer();
       if (disasm.IsAvailable()) {
         disasm.Render(current_pc, snes_.cpu().breakpoints_);
       } else {
-        ImGui::TextColored(ConvertColorToImVec4(theme.error), "Disassembly viewer unavailable.");
+        ImGui::TextColored(ConvertColorToImVec4(theme.error),
+                           "Disassembly viewer unavailable.");
       }
     }
   } catch (const std::exception& e) {
@@ -735,9 +769,9 @@ void Emulator::RenderSaveStates() {
   // TODO: Create ui::RenderSaveStates() when save state system is implemented
   auto& theme_manager = gui::ThemeManager::Get();
   const auto& theme = theme_manager.GetCurrentTheme();
-  
-  ImGui::TextColored(ConvertColorToImVec4(theme.warning), 
-                    ICON_MD_SAVE " Save States - Coming Soon");
+
+  ImGui::TextColored(ConvertColorToImVec4(theme.warning),
+                     ICON_MD_SAVE " Save States - Coming Soon");
   ImGui::TextWrapped("Save state functionality will be implemented here.");
 }
 

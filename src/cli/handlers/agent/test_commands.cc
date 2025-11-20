@@ -37,8 +37,7 @@ struct RecordingState {
 
 std::filesystem::path RecordingStateFilePath() {
   std::error_code ec;
-  std::filesystem::path base =
-      std::filesystem::temp_directory_path(ec);
+  std::filesystem::path base = std::filesystem::temp_directory_path(ec);
   if (ec) {
     base = std::filesystem::current_path();
   }
@@ -57,8 +56,8 @@ absl::Status SaveRecordingState(const RecordingState& state) {
 
   std::ofstream out(path, std::ios::out | std::ios::trunc);
   if (!out.is_open()) {
-    return absl::InternalError(absl::StrCat("Failed to write recording state to ",
-                                            path.string()));
+    return absl::InternalError(
+        absl::StrCat("Failed to write recording state to ", path.string()));
   }
   out << json.dump(2);
   if (!out.good()) {
@@ -72,7 +71,9 @@ absl::StatusOr<RecordingState> LoadRecordingState() {
   auto path = RecordingStateFilePath();
   std::ifstream in(path);
   if (!in.is_open()) {
-    return absl::NotFoundError("No active recording session found. Run 'z3ed agent test record start' first.");
+    return absl::NotFoundError(
+        "No active recording session found. Run 'z3ed agent test record start' "
+        "first.");
   }
 
   nlohmann::json json;
@@ -80,8 +81,8 @@ absl::StatusOr<RecordingState> LoadRecordingState() {
     in >> json;
   } catch (const nlohmann::json::parse_error& error) {
     return absl::InternalError(
-        absl::StrCat("Failed to parse recording state at ", path.string(),
-                     ": ", error.what()));
+        absl::StrCat("Failed to parse recording state at ", path.string(), ": ",
+                     error.what()));
   }
 
   RecordingState state;
@@ -91,9 +92,8 @@ absl::StatusOr<RecordingState> LoadRecordingState() {
   state.output_path = json.value("output_path", "");
 
   if (state.recording_id.empty()) {
-    return absl::InvalidArgumentError(
-        absl::StrCat("Recording state at ", path.string(),
-                     " is missing a recording_id"));
+    return absl::InvalidArgumentError(absl::StrCat(
+        "Recording state at ", path.string(), " is missing a recording_id"));
   }
 
   return state;
@@ -104,18 +104,17 @@ absl::Status ClearRecordingState() {
   std::error_code ec;
   std::filesystem::remove(path, ec);
   if (ec && ec != std::errc::no_such_file_or_directory) {
-    return absl::InternalError(absl::StrCat("Failed to clear recording state: ",
-                                            ec.message()));
+    return absl::InternalError(
+        absl::StrCat("Failed to clear recording state: ", ec.message()));
   }
   return absl::OkStatus();
 }
 
 std::string DefaultRecordingOutputPath() {
   absl::Time now = absl::Now();
-  return absl::StrCat("tests/gui/recording-",
-                      absl::FormatTime("%Y%m%dT%H%M%S", now,
-                                       absl::LocalTimeZone()),
-                      ".json");
+  return absl::StrCat(
+      "tests/gui/recording-",
+      absl::FormatTime("%Y%m%dT%H%M%S", now, absl::LocalTimeZone()), ".json");
 }
 
 }  // namespace
@@ -131,8 +130,10 @@ absl::Status HandleTestRecordCommand(const std::vector<std::string>& args);
 absl::Status HandleTestRunCommand(const std::vector<std::string>& args) {
   if (args.empty() || args[0] != "--prompt") {
     return absl::InvalidArgumentError(
-        "Usage: agent test run --prompt <description> [--host <host>] [--port <port>]\n"
-        "Example: agent test run --prompt \"Open the overworld editor and verify it loads\"");
+        "Usage: agent test run --prompt <description> [--host <host>] [--port "
+        "<port>]\n"
+        "Example: agent test run --prompt \"Open the overworld editor and "
+        "verify it loads\"");
   }
 
   std::string prompt = args.size() > 1 ? args[1] : "";
@@ -156,7 +157,8 @@ absl::Status HandleTestRunCommand(const std::vector<std::string>& args) {
   TestWorkflowGenerator generator;
   auto workflow_or = generator.GenerateWorkflow(prompt);
   if (!workflow_or.ok()) {
-    std::cerr << "Failed to generate workflow: " << workflow_or.status().message() << std::endl;
+    std::cerr << "Failed to generate workflow: "
+              << workflow_or.status().message() << std::endl;
     return workflow_or.status();
   }
 
@@ -167,7 +169,8 @@ absl::Status HandleTestRunCommand(const std::vector<std::string>& args) {
   GuiAutomationClient client(absl::StrCat(host, ":", port));
   auto status = client.Connect();
   if (!status.ok()) {
-    std::cerr << "Failed to connect to test harness: " << status.message() << std::endl;
+    std::cerr << "Failed to connect to test harness: " << status.message()
+              << std::endl;
     return status;
   }
 
@@ -175,10 +178,11 @@ absl::Status HandleTestRunCommand(const std::vector<std::string>& args) {
   for (size_t i = 0; i < workflow.steps.size(); ++i) {
     const auto& step = workflow.steps[i];
     std::cout << "Step " << (i + 1) << ": " << step.ToString() << "... ";
-    
+
     // Execute based on step type
-    absl::StatusOr<AutomationResult> result(absl::InternalError("Unknown step type"));
-    
+    absl::StatusOr<AutomationResult> result(
+        absl::InternalError("Unknown step type"));
+
     switch (step.type) {
       case TestStepType::kClick:
         result = client.Click(step.target);
@@ -196,7 +200,7 @@ absl::Status HandleTestRunCommand(const std::vector<std::string>& args) {
         std::cout << "✗ SKIPPED (unknown type)\n";
         continue;
     }
-    
+
     if (!result.ok()) {
       std::cout << "✗ FAILED\n";
       std::cerr << "  Error: " << result.status().message() << "\n";
@@ -219,7 +223,8 @@ absl::Status HandleTestRunCommand(const std::vector<std::string>& args) {
 absl::Status HandleTestReplayCommand(const std::vector<std::string>& args) {
   if (args.empty()) {
     return absl::InvalidArgumentError(
-        "Usage: agent test replay <script.json> [--host <host>] [--port <port>]\n"
+        "Usage: agent test replay <script.json> [--host <host>] [--port "
+        "<port>]\n"
         "Example: agent test replay tests/overworld_load.json");
   }
 
@@ -280,7 +285,8 @@ absl::Status HandleTestStatusCommand(const std::vector<std::string>& args) {
 
   if (test_id.empty()) {
     return absl::InvalidArgumentError(
-        "Usage: agent test status --test-id <id> [--host <host>] [--port <port>]");
+        "Usage: agent test status --test-id <id> [--host <host>] [--port "
+        "<port>]");
   }
 
   GuiAutomationClient client(absl::StrCat(host, ":", port));
@@ -296,10 +302,13 @@ absl::Status HandleTestStatusCommand(const std::vector<std::string>& args) {
 
   std::cout << "\n=== Test Status ===\n";
   std::cout << "Test ID: " << test_id << "\n";
-  std::cout << "Status: " << TestRunStatusToString(details.value().status) << "\n";
-  std::cout << "Started: " << FormatOptionalTime(details.value().started_at) << "\n";
-  std::cout << "Completed: " << FormatOptionalTime(details.value().completed_at) << "\n";
-  
+  std::cout << "Status: " << TestRunStatusToString(details.value().status)
+            << "\n";
+  std::cout << "Started: " << FormatOptionalTime(details.value().started_at)
+            << "\n";
+  std::cout << "Completed: " << FormatOptionalTime(details.value().completed_at)
+            << "\n";
+
   if (!details.value().error_message.empty()) {
     std::cout << "Error: " << details.value().error_message << "\n";
   }
@@ -337,7 +346,7 @@ absl::Status HandleTestListCommand(const std::vector<std::string>& args) {
     std::cout << "• " << test.name << "\n";
     std::cout << "  ID: " << test.test_id << "\n";
     std::cout << "  Category: " << test.category << "\n";
-    std::cout << "  Runs: " << test.total_runs << " (" << test.pass_count 
+    std::cout << "  Runs: " << test.total_runs << " (" << test.pass_count
               << " passed, " << test.fail_count << " failed)\n\n";
   }
 
@@ -364,7 +373,8 @@ absl::Status HandleTestResultsCommand(const std::vector<std::string>& args) {
 
   if (test_id.empty()) {
     return absl::InvalidArgumentError(
-        "Usage: agent test results --test-id <id> [--include-logs] [--host <host>] [--port <port>]");
+        "Usage: agent test results --test-id <id> [--include-logs] [--host "
+        "<host>] [--port <port>]");
   }
 
   GuiAutomationClient client(absl::StrCat(host, ":", port));
@@ -387,7 +397,7 @@ absl::Status HandleTestResultsCommand(const std::vector<std::string>& args) {
   if (!details.value().assertions.empty()) {
     std::cout << "Assertions:\n";
     for (const auto& assertion : details.value().assertions) {
-      std::cout << "  " << (assertion.passed ? "✓" : "✗") << " " 
+      std::cout << "  " << (assertion.passed ? "✓" : "✗") << " "
                 << assertion.description << "\n";
       if (!assertion.error_message.empty()) {
         std::cout << "    Error: " << assertion.error_message << "\n";
@@ -416,7 +426,8 @@ absl::Status HandleTestRecordCommand(const std::vector<std::string>& args) {
 
   std::string action = args[0];
   if (action != "start" && action != "stop") {
-    return absl::InvalidArgumentError("Record action must be 'start' or 'stop'");
+    return absl::InvalidArgumentError(
+        "Record action must be 'start' or 'stop'");
   }
 
   if (action == "start") {
@@ -465,11 +476,10 @@ absl::Status HandleTestRecordCommand(const std::vector<std::string>& args) {
 
     ASSIGN_OR_RETURN(auto start_result,
                      client.StartRecording(absolute_output.string(),
-                                            session_name, description));
+                                           session_name, description));
     if (!start_result.success) {
-      return absl::InternalError(
-          absl::StrCat("Harness rejected start-recording request: ",
-                       start_result.message));
+      return absl::InternalError(absl::StrCat(
+          "Harness rejected start-recording request: ", start_result.message));
     }
 
     RecordingState state;
@@ -489,8 +499,8 @@ absl::Status HandleTestRecordCommand(const std::vector<std::string>& args) {
     if (start_result.started_at.has_value()) {
       std::cout << "Started: "
                 << absl::FormatTime("%Y-%m-%d %H:%M:%S",
-                                   *start_result.started_at,
-                                   absl::LocalTimeZone())
+                                    *start_result.started_at,
+                                    absl::LocalTimeZone())
                 << "\n";
     }
     std::cout << "\nPress Ctrl+C to abort the recording session.\n";
@@ -560,7 +570,8 @@ absl::Status HandleTestRecordCommand(const std::vector<std::string>& args) {
   }
 
   if (discard) {
-    std::cout << "Recording discarded; no script file was produced." << std::endl;
+    std::cout << "Recording discarded; no script file was produced."
+              << std::endl;
     return absl::OkStatus();
   }
 
@@ -621,7 +632,7 @@ absl::Status HandleTestCommand(const std::vector<std::string>& args) {
     return HandleTestRecordCommand(tail);
   } else {
     return absl::InvalidArgumentError(
-        absl::StrCat("Unknown test subcommand: ", subcommand, 
+        absl::StrCat("Unknown test subcommand: ", subcommand,
                      "\nRun 'z3ed agent test' for usage."));
   }
 #endif

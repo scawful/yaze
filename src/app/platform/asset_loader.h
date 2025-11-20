@@ -9,7 +9,6 @@
 
 namespace yaze {
 
-
 /**
  * @class AssetLoader
  * @brief Cross-platform asset file loading utility
@@ -27,22 +26,25 @@ class AssetLoader {
    * @param relative_path Path relative to assets/ (e.g., "agent/system_prompt.txt")
    * @return File contents or error
    */
-  static absl::StatusOr<std::string> LoadTextFile(const std::string& relative_path);
-  
+  static absl::StatusOr<std::string> LoadTextFile(
+      const std::string& relative_path);
+
   /**
    * Find an asset file by trying multiple platform-specific paths
    * @param relative_path Path relative to assets/
    * @return Full path to file or error
    */
-  static absl::StatusOr<std::filesystem::path> FindAssetFile(const std::string& relative_path);
-  
+  static absl::StatusOr<std::filesystem::path> FindAssetFile(
+      const std::string& relative_path);
+
   /**
    * Get list of search paths for a given asset
    * @param relative_path Path relative to assets/
    * @return Vector of paths to try in order
    */
-  static std::vector<std::filesystem::path> GetSearchPaths(const std::string& relative_path);
-  
+  static std::vector<std::filesystem::path> GetSearchPaths(
+      const std::string& relative_path);
+
   /**
    * Check if an asset file exists
    * @param relative_path Path relative to assets/
@@ -50,7 +52,6 @@ class AssetLoader {
    */
   static bool AssetExists(const std::string& relative_path);
 };
-
 
 }  // namespace yaze
 

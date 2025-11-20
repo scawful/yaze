@@ -1,14 +1,14 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 
 #include "app/editor/ui/workspace_manager.h"
+#include "absl/strings/str_format.h"
 #include "app/editor/system/editor_card_registry.h"
 #include "app/editor/system/toast_manager.h"
 #include "app/rom.h"
-#include "absl/strings/str_format.h"
-#include "util/file_util.h"
-#include "util/platform_paths.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
+#include "util/file_util.h"
+#include "util/platform_paths.h"
 
 namespace yaze {
 namespace editor {
@@ -38,7 +38,8 @@ absl::Status WorkspaceManager::ResetWorkspaceLayout() {
 }
 
 void WorkspaceManager::SaveWorkspacePreset(const std::string& name) {
-  if (name.empty()) return;
+  if (name.empty())
+    return;
   std::string ini_name = absl::StrFormat("yaze_workspace_%s.ini", name.c_str());
   ImGui::SaveIniSettingsToDisk(ini_name.c_str());
 
@@ -61,19 +62,20 @@ void WorkspaceManager::SaveWorkspacePreset(const std::string& name) {
   }
   last_workspace_preset_ = name;
   if (toast_manager_) {
-    toast_manager_->Show(absl::StrFormat("Preset '%s' saved", name), 
-                        ToastType::kSuccess);
+    toast_manager_->Show(absl::StrFormat("Preset '%s' saved", name),
+                         ToastType::kSuccess);
   }
 }
 
 void WorkspaceManager::LoadWorkspacePreset(const std::string& name) {
-  if (name.empty()) return;
+  if (name.empty())
+    return;
   std::string ini_name = absl::StrFormat("yaze_workspace_%s.ini", name.c_str());
   ImGui::LoadIniSettingsFromDisk(ini_name.c_str());
   last_workspace_preset_ = name;
   if (toast_manager_) {
-    toast_manager_->Show(absl::StrFormat("Preset '%s' loaded", name), 
-                        ToastType::kSuccess);
+    toast_manager_->Show(absl::StrFormat("Preset '%s' loaded", name),
+                         ToastType::kSuccess);
   }
 }
 
@@ -82,7 +84,8 @@ void WorkspaceManager::RefreshPresets() {
     std::vector<std::string> new_presets;
     auto config_dir = util::PlatformPaths::GetConfigDirectory();
     if (config_dir.ok()) {
-      std::string presets_path = (*config_dir / "workspace_presets.txt").string();
+      std::string presets_path =
+          (*config_dir / "workspace_presets.txt").string();
       auto data = util::LoadFile(presets_path);
       if (!data.empty()) {
         std::istringstream ss(data);
@@ -148,8 +151,8 @@ void WorkspaceManager::MaximizeCurrentWindow() {
   // Use ImGui internal API to maximize current window
   ImGuiWindow* window = ImGui::GetCurrentWindowRead();
   if (window && window->DockNode) {
-    ImGuiID central_node_id = ImGui::DockBuilderGetCentralNode(
-        ImGui::GetID("MainDockSpace"))->ID;
+    ImGuiID central_node_id =
+        ImGui::DockBuilderGetCentralNode(ImGui::GetID("MainDockSpace"))->ID;
     ImGui::DockBuilderDockWindow(window->Name, central_node_id);
   }
   if (toast_manager_) {
@@ -163,7 +166,7 @@ void WorkspaceManager::RestoreAllWindows() {
   if (ctx) {
     for (ImGuiWindow* window : ctx->Windows) {
       if (window && !window->Collapsed) {
-        ImGui::SetWindowSize(window->Name, ImVec2(0, 0)); // Auto-size
+        ImGui::SetWindowSize(window->Name, ImVec2(0, 0));  // Auto-size
       }
     }
   }
@@ -188,8 +191,9 @@ void WorkspaceManager::CloseAllFloatingWindows() {
 }
 
 size_t WorkspaceManager::GetActiveSessionCount() const {
-  if (!sessions_) return 0;
-  
+  if (!sessions_)
+    return 0;
+
   size_t count = 0;
   for (const auto& session : *sessions_) {
     if (session.rom && session.rom->is_loaded()) {
@@ -200,10 +204,12 @@ size_t WorkspaceManager::GetActiveSessionCount() const {
 }
 
 bool WorkspaceManager::HasDuplicateSession(const std::string& filepath) const {
-  if (!sessions_) return false;
+  if (!sessions_)
+    return false;
 
   for (const auto& session : *sessions_) {
-    if (session.filepath == filepath && session.rom && session.rom->is_loaded()) {
+    if (session.filepath == filepath && session.rom &&
+        session.rom->is_loaded()) {
       return true;
     }
   }
@@ -229,8 +235,8 @@ void WorkspaceManager::SplitWindowHorizontal() {
     ImGuiID node_id = window->DockNode->ID;
     ImGuiID out_id_at_dir = 0;
     ImGuiID out_id_at_opposite_dir = 0;
-    ImGui::DockBuilderSplitNode(node_id, ImGuiDir_Down, 0.5f,
-                                &out_id_at_dir, &out_id_at_opposite_dir);
+    ImGui::DockBuilderSplitNode(node_id, ImGuiDir_Down, 0.5f, &out_id_at_dir,
+                                &out_id_at_opposite_dir);
   }
 }
 
@@ -240,8 +246,8 @@ void WorkspaceManager::SplitWindowVertical() {
     ImGuiID node_id = window->DockNode->ID;
     ImGuiID out_id_at_dir = 0;
     ImGuiID out_id_at_opposite_dir = 0;
-    ImGui::DockBuilderSplitNode(node_id, ImGuiDir_Right, 0.5f,
-                                &out_id_at_dir, &out_id_at_opposite_dir);
+    ImGui::DockBuilderSplitNode(node_id, ImGuiDir_Right, 0.5f, &out_id_at_dir,
+                                &out_id_at_opposite_dir);
   }
 }
 
@@ -255,27 +261,43 @@ void WorkspaceManager::CloseCurrentWindow() {
 // Command execution for WhichKey integration
 void WorkspaceManager::ExecuteWorkspaceCommand(const std::string& command_id) {
   // Window commands (Space + w)
-  if (command_id == "w.s") { ShowAllWindows(); }
-  else if (command_id == "w.h") { HideAllWindows(); }
-  else if (command_id == "w.m") { MaximizeCurrentWindow(); }
-  else if (command_id == "w.r") { RestoreAllWindows(); }
-  else if (command_id == "w.c") { CloseCurrentWindow(); }
-  else if (command_id == "w.f") { CloseAllFloatingWindows(); }
-  else if (command_id == "w.v") { SplitWindowVertical(); }
-  else if (command_id == "w.H") { SplitWindowHorizontal(); }
+  if (command_id == "w.s") {
+    ShowAllWindows();
+  } else if (command_id == "w.h") {
+    HideAllWindows();
+  } else if (command_id == "w.m") {
+    MaximizeCurrentWindow();
+  } else if (command_id == "w.r") {
+    RestoreAllWindows();
+  } else if (command_id == "w.c") {
+    CloseCurrentWindow();
+  } else if (command_id == "w.f") {
+    CloseAllFloatingWindows();
+  } else if (command_id == "w.v") {
+    SplitWindowVertical();
+  } else if (command_id == "w.H") {
+    SplitWindowHorizontal();
+  }
 
   // Layout commands (Space + l)
-  else if (command_id == "l.s") { SaveWorkspaceLayout(); }
-  else if (command_id == "l.l") { LoadWorkspaceLayout(); }
-  else if (command_id == "l.r") { ResetWorkspaceLayout(); }
-  else if (command_id == "l.d") { LoadDeveloperLayout(); }
-  else if (command_id == "l.g") { LoadDesignerLayout(); }
-  else if (command_id == "l.m") { LoadModderLayout(); }
+  else if (command_id == "l.s") {
+    SaveWorkspaceLayout();
+  } else if (command_id == "l.l") {
+    LoadWorkspaceLayout();
+  } else if (command_id == "l.r") {
+    ResetWorkspaceLayout();
+  } else if (command_id == "l.d") {
+    LoadDeveloperLayout();
+  } else if (command_id == "l.g") {
+    LoadDesignerLayout();
+  } else if (command_id == "l.m") {
+    LoadModderLayout();
+  }
 
   // Unknown command
   else if (toast_manager_) {
     toast_manager_->Show(absl::StrFormat("Unknown command: %s", command_id),
-                        ToastType::kWarning);
+                         ToastType::kWarning);
   }
 }
 

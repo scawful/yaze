@@ -19,20 +19,20 @@ namespace gui {
 struct PopupState {
   // Unique popup identifier (used with ImGui::OpenPopup/BeginPopup)
   std::string popup_id;
-  
+
   // Whether the popup is currently open
   bool is_open = false;
-  
+
   // Callback that renders the popup content
   // Should call ImGui::BeginPopup(popup_id) / ImGui::EndPopup()
   std::function<void()> render_callback;
-  
+
   // Whether the popup should persist across frames
   bool persist = true;
-  
+
   // Default constructor
   PopupState() = default;
-  
+
   // Constructor with id and callback
   PopupState(const std::string& id, std::function<void()> callback)
       : popup_id(id), is_open(false), render_callback(std::move(callback)) {}
@@ -50,7 +50,7 @@ struct PopupState {
 class PopupRegistry {
  public:
   PopupRegistry() = default;
-  
+
   /**
    * @brief Open a persistent popup
    * 
@@ -61,7 +61,7 @@ class PopupRegistry {
    * @param render_callback Function that renders the popup content
    */
   void Open(const std::string& popup_id, std::function<void()> render_callback);
-  
+
   /**
    * @brief Close a persistent popup
    * 
@@ -71,7 +71,7 @@ class PopupRegistry {
    * @param popup_id Identifier of the popup to close
    */
   void Close(const std::string& popup_id);
-  
+
   /**
    * @brief Check if a popup is currently open
    * 
@@ -79,7 +79,7 @@ class PopupRegistry {
    * @return true if popup is open, false otherwise
    */
   bool IsOpen(const std::string& popup_id) const;
-  
+
   /**
    * @brief Render all active popups
    * 
@@ -90,14 +90,14 @@ class PopupRegistry {
    * frame after all other rendering is complete.
    */
   void RenderAll();
-  
+
   /**
    * @brief Get the number of active popups
    * 
    * @return Number of open popups in the registry
    */
   size_t GetActiveCount() const;
-  
+
   /**
    * @brief Clear all popups from the registry
    * 
@@ -105,7 +105,7 @@ class PopupRegistry {
    * Useful for cleanup or resetting state.
    */
   void Clear();
-  
+
   /**
    * @brief Get direct access to the popup list (for migration/debugging)
    * 
@@ -117,14 +117,14 @@ class PopupRegistry {
  private:
   // Internal storage for popup states
   std::vector<PopupState> popups_;
-  
+
   // Helper to find a popup by ID
   std::vector<PopupState>::iterator FindPopup(const std::string& popup_id);
-  std::vector<PopupState>::const_iterator FindPopup(const std::string& popup_id) const;
+  std::vector<PopupState>::const_iterator FindPopup(
+      const std::string& popup_id) const;
 };
 
 }  // namespace gui
 }  // namespace yaze
 
 #endif  // YAZE_APP_GUI_CANVAS_CANVAS_POPUP_H
-

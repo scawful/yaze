@@ -78,21 +78,24 @@ class EmulatorGetMetricsCommandHandler;
  * 
  * @return Vector of unique pointers to command handler instances
  */
-std::vector<std::unique_ptr<resources::CommandHandler>> CreateCliCommandHandlers();
+std::vector<std::unique_ptr<resources::CommandHandler>>
+CreateCliCommandHandlers();
 
 /**
  * @brief Factory function to create all agent-specific command handlers
  * 
  * @return Vector of unique pointers to command handler instances
  */
-std::vector<std::unique_ptr<resources::CommandHandler>> CreateAgentCommandHandlers();
+std::vector<std::unique_ptr<resources::CommandHandler>>
+CreateAgentCommandHandlers();
 
 /**
  * @brief Factory function to create all command handlers (CLI + agent)
  * 
  * @return Vector of unique pointers to command handler instances
  */
-std::vector<std::unique_ptr<resources::CommandHandler>> CreateAllCommandHandlers();
+std::vector<std::unique_ptr<resources::CommandHandler>>
+CreateAllCommandHandlers();
 
 }  // namespace handlers
 }  // namespace cli

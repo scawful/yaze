@@ -26,7 +26,7 @@ namespace cli {
 class ResourceContextBuilder {
  public:
   explicit ResourceContextBuilder(Rom* rom) : rom_(rom) {}
-  
+
   /**
    * @brief Build a complete resource context string for AI prompts.
    * 
@@ -54,7 +54,7 @@ class ResourceContextBuilder {
    * @return Formatted resource context string
    */
   absl::StatusOr<std::string> BuildResourceContext();
-  
+
   /**
    * @brief Get labels for a specific resource category.
    * 
@@ -63,7 +63,7 @@ class ResourceContextBuilder {
    */
   absl::StatusOr<std::map<std::string, std::string>> GetLabels(
       const std::string& category);
-  
+
   /**
    * @brief Export all labels to JSON format.
    * 
@@ -73,10 +73,10 @@ class ResourceContextBuilder {
    * @return JSON string with all resource labels
    */
   absl::StatusOr<std::string> ExportToJson();
-  
+
  private:
   Rom* rom_;
-  
+
   /**
    * @brief Extract overworld map labels.
    * 
@@ -88,7 +88,7 @@ class ResourceContextBuilder {
    * ```
    */
   std::string ExtractOverworldLabels();
-  
+
   /**
    * @brief Extract dungeon labels.
    * 
@@ -100,7 +100,7 @@ class ResourceContextBuilder {
    * ```
    */
   std::string ExtractDungeonLabels();
-  
+
   /**
    * @brief Extract entrance labels.
    * 
@@ -112,7 +112,7 @@ class ResourceContextBuilder {
    * ```
    */
   std::string ExtractEntranceLabels();
-  
+
   /**
    * @brief Extract room labels.
    * 
@@ -124,7 +124,7 @@ class ResourceContextBuilder {
    * ```
    */
   std::string ExtractRoomLabels();
-  
+
   /**
    * @brief Extract sprite labels.
    * 
@@ -136,7 +136,7 @@ class ResourceContextBuilder {
    * ```
    */
   std::string ExtractSpriteLabels();
-  
+
   /**
    * @brief Add common tile16 reference for AI.
    * 
@@ -160,4 +160,3 @@ class ResourceContextBuilder {
 }  // namespace yaze
 
 #endif  // YAZE_CLI_SERVICE_RESOURCE_CONTEXT_BUILDER_H_
-

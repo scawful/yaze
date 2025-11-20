@@ -10,16 +10,16 @@
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/time/time.h"
-#include "cli/service/ai/ai_service.h"
-#include "cli/service/ai/service_factory.h"
 #include "cli/service/agent/proposal_executor.h"
 #include "cli/service/agent/tool_dispatcher.h"
+#include "cli/service/ai/ai_service.h"
+#include "cli/service/ai/service_factory.h"
 // Advanced features (only available when Z3ED_AI=ON)
 #ifdef Z3ED_AI
-#include "cli/service/agent/learned_knowledge_service.h"
-#include "cli/service/agent/todo_manager.h"
 #include "cli/service/agent/advanced_routing.h"
 #include "cli/service/agent/agent_pretraining.h"
+#include "cli/service/agent/learned_knowledge_service.h"
+#include "cli/service/agent/todo_manager.h"
 #endif
 
 #ifdef SendMessage
@@ -51,7 +51,8 @@ struct ChatMessage {
   absl::Time timestamp;
   std::optional<std::string> json_pretty;
   std::optional<TableData> table_data;
-  bool is_internal = false;  // True for tool results and other messages not meant for user display
+  bool is_internal =
+      false;  // True for tool results and other messages not meant for user display
   std::vector<std::string> warnings;
   struct ModelMetadata {
     std::string provider;
@@ -76,21 +77,17 @@ struct ChatMessage {
   std::optional<ProposalSummary> proposal;
 };
 
-enum class AgentOutputFormat {
-  kFriendly,
-  kCompact,
-  kMarkdown,
-  kJson
-};
+enum class AgentOutputFormat { kFriendly, kCompact, kMarkdown, kJson };
 
 struct AgentConfig {
   int max_tool_iterations = 4;  // Maximum number of tool calling iterations
   int max_retry_attempts = 3;   // Maximum retries on errors
-  bool verbose = false;          // Enable verbose diagnostic output
-  bool show_reasoning = true;    // Show LLM reasoning in output
-  size_t max_history_messages = 50;  // Maximum stored history messages per session
-  bool trim_history = true;          // Whether to trim history beyond the limit
-  bool enable_vim_mode = false;      // Enable vim-style line editing in simple-chat
+  bool verbose = false;         // Enable verbose diagnostic output
+  bool show_reasoning = true;   // Show LLM reasoning in output
+  size_t max_history_messages =
+      50;                        // Maximum stored history messages per session
+  bool trim_history = true;      // Whether to trim history beyond the limit
+  bool enable_vim_mode = false;  // Enable vim-style line editing in simple-chat
   AgentOutputFormat output_format = AgentOutputFormat::kFriendly;
 };
 
@@ -121,12 +118,12 @@ class ConversationalAgentService {
   ChatMessage::SessionMetrics GetMetrics() const;
 
   void ReplaceHistory(std::vector<ChatMessage> history);
-  
+
 #ifdef Z3ED_AI
   // Advanced Features Access (only when Z3ED_AI=ON)
   LearnedKnowledgeService& learned_knowledge() { return learned_knowledge_; }
   TodoManager& todo_manager() { return todo_manager_; }
-  
+
   // Inject learned context into next message
   void EnableContextInjection(bool enable) { inject_learned_context_ = enable; }
   void EnablePretraining(bool enable) { inject_pretraining_ = enable; }
@@ -146,15 +143,16 @@ class ConversationalAgentService {
   void TrimHistoryIfNeeded();
   ChatMessage::SessionMetrics BuildMetricsSnapshot() const;
   void RebuildMetricsFromHistory();
-  
+
 #ifdef Z3ED_AI
   // Context enhancement (only when Z3ED_AI=ON)
   std::string BuildEnhancedPrompt(const std::string& user_message);
   std::string InjectLearnedContext(const std::string& message);
   std::string InjectPretraining();
-  
+
   // Response enhancement
-  ChatMessage EnhanceResponse(const ChatMessage& response, const std::string& user_message);
+  ChatMessage EnhanceResponse(const ChatMessage& response,
+                              const std::string& user_message);
 #endif
 
   std::vector<ChatMessage> history_;
@@ -165,7 +163,7 @@ class ConversationalAgentService {
   Rom* rom_context_ = nullptr;
   AgentConfig config_;
   InternalMetrics metrics_;
-  
+
 #ifdef Z3ED_AI
   // Advanced features (only when Z3ED_AI=ON)
   LearnedKnowledgeService learned_knowledge_;

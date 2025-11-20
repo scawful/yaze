@@ -8,13 +8,13 @@
 #include <memory>
 #include <set>
 #include <string>
-#include <vector>
 #include <utility>
+#include <vector>
 
-#include "absl/strings/str_format.h"
 #include "absl/strings/str_cat.h"
-#include "core/features.h"
+#include "absl/strings/str_format.h"
 #include "absl/strings/string_view.h"
+#include "core/features.h"
 
 namespace yaze {
 namespace util {
@@ -67,13 +67,15 @@ class LogManager {
    */
   void SetLogLevel(LogLevel level) { min_level_.store(level); }
   LogLevel GetLogLevel() const { return min_level_.load(); }
-  
+
   /**
    * @brief Toggle debug logging on/off at runtime
    */
   void EnableDebugLogging() { min_level_.store(LogLevel::YAZE_DEBUG); }
   void DisableDebugLogging() { min_level_.store(LogLevel::INFO); }
-  bool IsDebugEnabled() const { return min_level_.load() == LogLevel::YAZE_DEBUG; }
+  bool IsDebugEnabled() const {
+    return min_level_.load() == LogLevel::YAZE_DEBUG;
+  }
 
  private:
   LogManager();
@@ -95,27 +97,28 @@ class LogManager {
 // The level check avoids the cost of string formatting if the message won't be
 // logged.
 
-#define LOG(level, category, format, ...)                                  \
-  do {                                                                     \
-    yaze::util::LogManager::instance().log(                                \
-        level, category, absl::StrFormat(format, ##__VA_ARGS__));           \
+#define LOG(level, category, format, ...)                         \
+  do {                                                            \
+    yaze::util::LogManager::instance().log(                       \
+        level, category, absl::StrFormat(format, ##__VA_ARGS__)); \
   } while (0)
 
-#define LOG_DEBUG(category, format, ...)                                   \
+#define LOG_DEBUG(category, format, ...) \
   LOG(yaze::util::LogLevel::YAZE_DEBUG, category, format, ##__VA_ARGS__)
-#define LOG_INFO(category, format, ...)                                    \
+#define LOG_INFO(category, format, ...) \
   LOG(yaze::util::LogLevel::INFO, category, format, ##__VA_ARGS__)
-#define LOG_WARN(category, format, ...)                                    \
+#define LOG_WARN(category, format, ...) \
   LOG(yaze::util::LogLevel::WARNING, category, format, ##__VA_ARGS__)
-#define LOG_ERROR(category, format, ...)                                   \
+#define LOG_ERROR(category, format, ...) \
   LOG(yaze::util::LogLevel::ERROR, category, format, ##__VA_ARGS__)
-#define LOG_FATAL(category, format, ...)                                   \
+#define LOG_FATAL(category, format, ...) \
   LOG(yaze::util::LogLevel::FATAL, category, format, ##__VA_ARGS__)
 
 template <typename... Args>
 inline void logf(const absl::FormatSpec<Args...>& format, Args&&... args) {
-  LogManager::instance().log(LogLevel::INFO, "General",
-                             absl::StrFormat(format, std::forward<Args>(args)...));
+  LogManager::instance().log(
+      LogLevel::INFO, "General",
+      absl::StrFormat(format, std::forward<Args>(args)...));
 }
 
 inline void logf(absl::string_view message) {

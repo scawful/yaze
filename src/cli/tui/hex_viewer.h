@@ -2,8 +2,8 @@
 #define YAZE_SRC_CLI_TUI_HEX_VIEWER_H_
 
 #include <functional>
-#include "cli/tui/tui_component.h"
 #include "app/rom.h"
+#include "cli/tui/tui_component.h"
 
 namespace yaze {
 namespace cli {

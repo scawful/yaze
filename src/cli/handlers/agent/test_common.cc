@@ -82,8 +82,7 @@ int PromptInt(const std::string& prompt, int default_value, int min_value) {
 
 bool PromptYesNo(const std::string& prompt, bool default_value) {
   while (true) {
-    std::cout << prompt << " [" << (default_value ? "Y/n" : "y/N")
-              << "]: ";
+    std::cout << prompt << " [" << (default_value ? "Y/n" : "y/N") << "]: ";
     std::cout.flush();
     std::string line;
     if (!std::getline(std::cin, line)) {
@@ -93,7 +92,8 @@ bool PromptYesNo(const std::string& prompt, bool default_value) {
     if (trimmed.empty()) {
       return default_value;
     }
-    char c = static_cast<char>(std::tolower(static_cast<unsigned char>(trimmed[0])));
+    char c =
+        static_cast<char>(std::tolower(static_cast<unsigned char>(trimmed[0])));
     if (c == 'y') {
       return true;
     }
@@ -122,12 +122,11 @@ bool ParseKeyValueEntry(const std::string& input, std::string* key,
     return false;
   }
   *key = TrimWhitespace(absl::string_view(input.data(), equals));
-  *value = TrimWhitespace(absl::string_view(input.data() + equals + 1,
-                                             input.size() - equals - 1));
+  *value = TrimWhitespace(
+      absl::string_view(input.data() + equals + 1, input.size() - equals - 1));
   return !key->empty();
 }
 
 }  // namespace agent
 }  // namespace cli
 }  // namespace yaze
-

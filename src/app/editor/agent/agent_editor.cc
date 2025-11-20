@@ -8,14 +8,14 @@
 #include "absl/strings/match.h"
 #include "absl/strings/str_format.h"
 #include "absl/time/clock.h"
-#include "app/platform/asset_loader.h"
 #include "app/editor/agent/agent_chat_widget.h"
 #include "app/editor/agent/agent_collaboration_coordinator.h"
 #include "app/editor/system/proposal_drawer.h"
 #include "app/editor/system/toast_manager.h"
 #include "app/gui/core/icons.h"
-#include "imgui/misc/cpp/imgui_stdlib.h"
+#include "app/platform/asset_loader.h"
 #include "app/rom.h"
+#include "imgui/misc/cpp/imgui_stdlib.h"
 #include "util/file_util.h"
 #include "util/platform_paths.h"
 
@@ -156,18 +156,16 @@ void AgentEditor::DrawDashboard() {
   ImGuiIO& io = ImGui::GetIO();
   pulse_animation_ += io.DeltaTime * 2.0f;
   scanline_offset_ += io.DeltaTime * 0.4f;
-  if (scanline_offset_ > 1.0f) scanline_offset_ -= 1.0f;
+  if (scanline_offset_ > 1.0f)
+    scanline_offset_ -= 1.0f;
   glitch_timer_ += io.DeltaTime * 5.0f;
   blink_counter_ = static_cast<int>(pulse_animation_ * 2.0f) % 2;
 
   // Pulsing glow for window
   float pulse = 0.5f + 0.5f * std::sin(pulse_animation_);
-  ImGui::PushStyleColor(ImGuiCol_TitleBgActive, ImVec4(
-    0.1f + 0.1f * pulse,
-    0.2f + 0.15f * pulse,
-    0.3f + 0.2f * pulse,
-    1.0f
-  ));
+  ImGui::PushStyleColor(ImGuiCol_TitleBgActive,
+                        ImVec4(0.1f + 0.1f * pulse, 0.2f + 0.15f * pulse,
+                               0.3f + 0.2f * pulse, 1.0f));
 
   ImGui::SetNextWindowSize(ImVec2(1200, 800), ImGuiCond_FirstUseEver);
   ImGui::Begin(ICON_MD_SMART_TOY " AI AGENT PLATFORM [v0.4.x]", &active_,
@@ -324,7 +322,7 @@ void AgentEditor::DrawDashboard() {
   }
 
   ImGui::End();
-  
+
   // Pop the TitleBgActive color pushed at the beginning of DrawDashboard
   ImGui::PopStyleColor();
 }
@@ -1040,8 +1038,7 @@ void AgentEditor::DrawNewPromptCreator() {
   }
 
   if (ImGui::Button(ICON_MD_FILE_COPY " v2 (Enhanced)", ImVec2(-1, 0))) {
-    auto content =
-        AssetLoader::LoadTextFile("agent/system_prompt_v2.txt");
+    auto content = AssetLoader::LoadTextFile("agent/system_prompt_v2.txt");
     if (content.ok() && prompt_editor_) {
       prompt_editor_->SetText(*content);
       if (toast_manager_) {
@@ -1051,8 +1048,7 @@ void AgentEditor::DrawNewPromptCreator() {
   }
 
   if (ImGui::Button(ICON_MD_FILE_COPY " v3 (Proactive)", ImVec2(-1, 0))) {
-    auto content =
-        AssetLoader::LoadTextFile("agent/system_prompt_v3.txt");
+    auto content = AssetLoader::LoadTextFile("agent/system_prompt_v3.txt");
     if (content.ok() && prompt_editor_) {
       prompt_editor_->SetText(*content);
       if (toast_manager_) {
@@ -1149,9 +1145,9 @@ void AgentEditor::DrawAgentBuilderPanel() {
   ImGui::TextColored(ImVec4(0.9f, 0.9f, 0.6f, 1.0f), "Stage Details");
   ImGui::Separator();
 
-  int stage_index = std::clamp(builder_state_.active_stage, 0,
-                               static_cast<int>(builder_state_.stages.size()) -
-                                   1);
+  int stage_index =
+      std::clamp(builder_state_.active_stage, 0,
+                 static_cast<int>(builder_state_.stages.size()) - 1);
   int completed_stages = 0;
   for (const auto& stage : builder_state_.stages) {
     if (stage.completed) {
@@ -1163,8 +1159,7 @@ void AgentEditor::DrawAgentBuilderPanel() {
       static std::string new_goal;
       ImGui::Text("Persona + Goals");
       ImGui::InputTextMultiline("##persona_notes",
-                                &builder_state_.persona_notes,
-                                ImVec2(-1, 120));
+                                &builder_state_.persona_notes, ImVec2(-1, 120));
       ImGui::Spacing();
       ImGui::TextDisabled("Add Goal");
       ImGui::InputTextWithHint("##goal_input", "e.g. Document dungeon plan",
@@ -1293,8 +1288,8 @@ void AgentEditor::DrawAgentBuilderPanel() {
         toast_manager_->Show("Builder blueprint saved", ToastType::kSuccess,
                              2.0f);
       } else {
-        toast_manager_->Show(std::string(status.message()),
-                             ToastType::kError, 3.5f);
+        toast_manager_->Show(std::string(status.message()), ToastType::kError,
+                             3.5f);
       }
     }
   }
@@ -1306,8 +1301,8 @@ void AgentEditor::DrawAgentBuilderPanel() {
         toast_manager_->Show("Builder blueprint loaded", ToastType::kSuccess,
                              2.0f);
       } else {
-        toast_manager_->Show(std::string(status.message()),
-                             ToastType::kError, 3.5f);
+        toast_manager_->Show(std::string(status.message()), ToastType::kError,
+                             3.5f);
       }
     }
   }
@@ -1337,9 +1332,9 @@ absl::Status AgentEditor::SaveBuilderBlueprint(
   };
   json["stages"] = nlohmann::json::array();
   for (const auto& stage : builder_state_.stages) {
-    json["stages"].push_back(
-        {{"name", stage.name}, {"summary", stage.summary},
-         {"completed", stage.completed}});
+    json["stages"].push_back({{"name", stage.name},
+                              {"summary", stage.summary},
+                              {"completed", stage.completed}});
   }
 
   std::error_code ec;

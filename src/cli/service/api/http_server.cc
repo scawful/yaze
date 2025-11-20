@@ -32,13 +32,14 @@ absl::Status HttpServer::Start(int port) {
 
   // Start server in a separate thread
   is_running_ = true;
-  
+
   // Capture server pointer to avoid race conditions if 'this' is destroyed (though HttpServer shouldn't be)
   server_thread_ = std::make_unique<std::thread>([this, port]() {
     LOG_INFO("HttpServer", "Starting API server on port %d", port);
     bool ret = server_->listen("0.0.0.0", port);
     if (!ret) {
-        LOG_ERROR("HttpServer", "Failed to listen on port %d. Port might be in use.", port);
+      LOG_ERROR("HttpServer",
+                "Failed to listen on port %d. Port might be in use.", port);
     }
     is_running_ = false;
   });
@@ -65,7 +66,7 @@ bool HttpServer::IsRunning() const {
 void HttpServer::RegisterRoutes() {
   server_->Get("/api/v1/health", HandleHealth);
   server_->Get("/api/v1/models", HandleListModels);
-  
+
   // Handle CORS options for all routes?
   // For now, we set CORS headers in individual handlers or via a middleware if httplib supported it easily.
 }
@@ -73,4 +74,3 @@ void HttpServer::RegisterRoutes() {
 }  // namespace api
 }  // namespace cli
 }  // namespace yaze
-

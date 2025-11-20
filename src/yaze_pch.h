@@ -26,4 +26,4 @@
 // Note: Project-specific headers are NOT included here to avoid dependency
 // issues. Each source file should include what it needs directly.
 
-#endif // YAZE_PCH_H
+#endif  // YAZE_PCH_H

@@ -10,30 +10,29 @@
 
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
-#include "core/asar_wrapper.h"
-#include "app/gfx/debug/performance/performance_profiler.h"
-#include "app/platform/window.h"
 #include "app/editor/overworld/entity.h"
 #include "app/editor/overworld/map_properties.h"
 #include "app/editor/overworld/tile16_editor.h"
-#include "app/gfx/resource/arena.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/debug/performance/performance_profiler.h"
-#include "app/gfx/types/snes_palette.h"
 #include "app/gfx/render/tilemap.h"
+#include "app/gfx/resource/arena.h"
+#include "app/gfx/types/snes_palette.h"
 #include "app/gui/canvas/canvas.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/input.h"
 #include "app/gui/core/style.h"
+#include "app/platform/window.h"
 #include "app/rom.h"
-#include "zelda3/common.h"
-#include "zelda3/overworld/overworld.h"
-#include "zelda3/overworld/overworld_map.h"
+#include "core/asar_wrapper.h"
 #include "imgui/imgui.h"
 #include "imgui_memory_editor.h"
 #include "util/hex.h"
 #include "util/log.h"
 #include "util/macro.h"
+#include "zelda3/common.h"
+#include "zelda3/overworld/overworld.h"
+#include "zelda3/overworld/overworld_map.h"
 
 namespace yaze::editor {
 
@@ -229,8 +228,7 @@ void OverworldEditor::DrawScratchSpacePattern() {
     return;
   }
 
-  const auto& tile_ids =
-      dependencies_.shared_clipboard->overworld_tile16_ids;
+  const auto& tile_ids = dependencies_.shared_clipboard->overworld_tile16_ids;
   int pattern_width = dependencies_.shared_clipboard->overworld_width;
   int pattern_height = dependencies_.shared_clipboard->overworld_height;
 
@@ -320,8 +318,8 @@ void OverworldEditor::UpdateScratchBitmapTile(int tile_x, int tile_y,
 
   scratch_slot.scratch_bitmap.set_modified(true);
   // Queue texture update via Arena's deferred system
-  gfx::Arena::Get().QueueTextureCommand(
-      gfx::Arena::TextureCommandType::UPDATE, &scratch_slot.scratch_bitmap);
+  gfx::Arena::Get().QueueTextureCommand(gfx::Arena::TextureCommandType::UPDATE,
+                                        &scratch_slot.scratch_bitmap);
   scratch_slot.in_use = true;
 }
 
@@ -366,7 +364,7 @@ absl::Status OverworldEditor::SaveCurrentSelectionToScratch(int slot) {
         scratch_spaces_[slot].scratch_bitmap.SetPalette(palette_);
         // Queue texture creation via Arena's deferred system
         gfx::Arena::Get().QueueTextureCommand(
-            gfx::Arena::TextureCommandType::CREATE, 
+            gfx::Arena::TextureCommandType::CREATE,
             &scratch_spaces_[slot].scratch_bitmap);
       }
 
@@ -404,7 +402,6 @@ absl::Status OverworldEditor::SaveCurrentSelectionToScratch(int slot) {
     scratch_spaces_[slot].in_use = true;
   }
 
-
   return absl::OkStatus();
 }
 
@@ -439,10 +436,11 @@ absl::Status OverworldEditor::ClearScratchSpace(int slot) {
     scratch_spaces_[slot].scratch_bitmap.set_modified(true);
     // Queue texture update via Arena's deferred system
     gfx::Arena::Get().QueueTextureCommand(
-        gfx::Arena::TextureCommandType::UPDATE, &scratch_spaces_[slot].scratch_bitmap);
+        gfx::Arena::TextureCommandType::UPDATE,
+        &scratch_spaces_[slot].scratch_bitmap);
   }
 
   return absl::OkStatus();
 }
 
-}
+}  // namespace yaze::editor

@@ -66,7 +66,8 @@ absl::StatusOr<std::vector<OverworldEntrance>> LoadHoles(Rom* rom) {
 }
 
 absl::Status SaveEntrances(Rom* rom,
-                           const std::vector<OverworldEntrance>& entrances, bool expanded_entrances) {
+                           const std::vector<OverworldEntrance>& entrances,
+                           bool expanded_entrances) {
 
   auto write_entrance = [&](int index, uint32_t map_addr, uint32_t pos_addr,
                             uint32_t id_addr) -> absl::Status {

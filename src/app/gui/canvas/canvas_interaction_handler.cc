@@ -33,34 +33,36 @@ void CanvasInteractionHandler::ClearState() {
 }
 
 TileInteractionResult CanvasInteractionHandler::Update(
-    ImVec2 canvas_p0, ImVec2 scrolling, float /*global_scale*/, float /*tile_size*/,
-    ImVec2 /*canvas_size*/, bool is_hovered) {
-  
+    ImVec2 canvas_p0, ImVec2 scrolling, float /*global_scale*/,
+    float /*tile_size*/, ImVec2 /*canvas_size*/, bool is_hovered) {
+
   TileInteractionResult result;
-  
+
   if (!is_hovered) {
     hover_points_.clear();
     return result;
   }
-  
+
   const ImGuiIO& imgui_io = ImGui::GetIO();
   const ImVec2 origin(canvas_p0.x + scrolling.x, canvas_p0.y + scrolling.y);
-  mouse_pos_in_canvas_ = ImVec2(imgui_io.MousePos.x - origin.x, imgui_io.MousePos.y - origin.y);
-  
+  mouse_pos_in_canvas_ =
+      ImVec2(imgui_io.MousePos.x - origin.x, imgui_io.MousePos.y - origin.y);
+
   // Update based on current mode - each mode is handled by its specific Draw method
   // This method exists for future state updates if needed
   (void)current_mode_;  // Suppress unused warning
-  
+
   return result;
 }
 
 bool CanvasInteractionHandler::DrawTilePainter(
     const gfx::Bitmap& bitmap, ImDrawList* draw_list, ImVec2 canvas_p0,
     ImVec2 scrolling, float global_scale, float tile_size, bool is_hovered) {
-  
+
   const ImGuiIO& imgui_io = ImGui::GetIO();
   const ImVec2 origin(canvas_p0.x + scrolling.x, canvas_p0.y + scrolling.y);
-  const ImVec2 mouse_pos(imgui_io.MousePos.x - origin.x, imgui_io.MousePos.y - origin.y);
+  const ImVec2 mouse_pos(imgui_io.MousePos.x - origin.x,
+                         imgui_io.MousePos.y - origin.y);
   const auto scaled_size = tile_size * global_scale;
 
   // Clear hover when not hovering
@@ -75,17 +77,18 @@ bool CanvasInteractionHandler::DrawTilePainter(
   // Calculate grid-aligned paint position
   ImVec2 paint_pos = AlignToGridLocal(mouse_pos, scaled_size);
   mouse_pos_in_canvas_ = paint_pos;
-  auto paint_pos_end = ImVec2(paint_pos.x + scaled_size, paint_pos.y + scaled_size);
-  
+  auto paint_pos_end =
+      ImVec2(paint_pos.x + scaled_size, paint_pos.y + scaled_size);
+
   hover_points_.push_back(paint_pos);
   hover_points_.push_back(paint_pos_end);
 
   // Draw preview of tile at hover position
   if (bitmap.is_active() && draw_list) {
-    draw_list->AddImage(
-        reinterpret_cast<ImTextureID>(bitmap.texture()),
-        ImVec2(origin.x + paint_pos.x, origin.y + paint_pos.y),
-        ImVec2(origin.x + paint_pos.x + scaled_size, origin.y + paint_pos.y + scaled_size));
+    draw_list->AddImage(reinterpret_cast<ImTextureID>(bitmap.texture()),
+                        ImVec2(origin.x + paint_pos.x, origin.y + paint_pos.y),
+                        ImVec2(origin.x + paint_pos.x + scaled_size,
+                               origin.y + paint_pos.y + scaled_size));
   }
 
   // Check for paint action
@@ -101,16 +104,17 @@ bool CanvasInteractionHandler::DrawTilePainter(
 bool CanvasInteractionHandler::DrawTilemapPainter(
     gfx::Tilemap& tilemap, int current_tile, ImDrawList* draw_list,
     ImVec2 canvas_p0, ImVec2 scrolling, float global_scale, bool is_hovered) {
-  
+
   const ImGuiIO& imgui_io = ImGui::GetIO();
   const ImVec2 origin(canvas_p0.x + scrolling.x, canvas_p0.y + scrolling.y);
-  const ImVec2 mouse_pos(imgui_io.MousePos.x - origin.x, imgui_io.MousePos.y - origin.y);
-  
+  const ImVec2 mouse_pos(imgui_io.MousePos.x - origin.x,
+                         imgui_io.MousePos.y - origin.y);
+
   // Safety check
   if (!tilemap.atlas.is_active() || tilemap.tile_size.x <= 0) {
     return false;
   }
-  
+
   const auto scaled_size = tilemap.tile_size.x * global_scale;
 
   if (!is_hovered) {
@@ -119,12 +123,13 @@ bool CanvasInteractionHandler::DrawTilemapPainter(
   }
 
   hover_points_.clear();
-  
+
   ImVec2 paint_pos = AlignToGrid(mouse_pos, scaled_size);
   mouse_pos_in_canvas_ = paint_pos;
 
   hover_points_.push_back(paint_pos);
-  hover_points_.push_back(ImVec2(paint_pos.x + scaled_size, paint_pos.y + scaled_size));
+  hover_points_.push_back(
+      ImVec2(paint_pos.x + scaled_size, paint_pos.y + scaled_size));
 
   // Draw tile preview from atlas
   if (tilemap.atlas.is_active() && tilemap.atlas.texture() && draw_list) {
@@ -132,19 +137,23 @@ bool CanvasInteractionHandler::DrawTilemapPainter(
     if (tiles_per_row > 0) {
       int tile_x = (current_tile % tiles_per_row) * tilemap.tile_size.x;
       int tile_y = (current_tile / tiles_per_row) * tilemap.tile_size.y;
-      
-      if (tile_x >= 0 && tile_x < tilemap.atlas.width() && 
-          tile_y >= 0 && tile_y < tilemap.atlas.height()) {
-        
-        ImVec2 uv0 = ImVec2(static_cast<float>(tile_x) / tilemap.atlas.width(), 
-                           static_cast<float>(tile_y) / tilemap.atlas.height());
-        ImVec2 uv1 = ImVec2(static_cast<float>(tile_x + tilemap.tile_size.x) / tilemap.atlas.width(),
-                           static_cast<float>(tile_y + tilemap.tile_size.y) / tilemap.atlas.height());
-        
+
+      if (tile_x >= 0 && tile_x < tilemap.atlas.width() && tile_y >= 0 &&
+          tile_y < tilemap.atlas.height()) {
+
+        ImVec2 uv0 =
+            ImVec2(static_cast<float>(tile_x) / tilemap.atlas.width(),
+                   static_cast<float>(tile_y) / tilemap.atlas.height());
+        ImVec2 uv1 = ImVec2(static_cast<float>(tile_x + tilemap.tile_size.x) /
+                                tilemap.atlas.width(),
+                            static_cast<float>(tile_y + tilemap.tile_size.y) /
+                                tilemap.atlas.height());
+
         draw_list->AddImage(
             reinterpret_cast<ImTextureID>(tilemap.atlas.texture()),
             ImVec2(origin.x + paint_pos.x, origin.y + paint_pos.y),
-            ImVec2(origin.x + paint_pos.x + scaled_size, origin.y + paint_pos.y + scaled_size),
+            ImVec2(origin.x + paint_pos.x + scaled_size,
+                   origin.y + paint_pos.y + scaled_size),
             uv0, uv1);
       }
     }
@@ -162,10 +171,11 @@ bool CanvasInteractionHandler::DrawTilemapPainter(
 bool CanvasInteractionHandler::DrawSolidTilePainter(
     const ImVec4& color, ImDrawList* draw_list, ImVec2 canvas_p0,
     ImVec2 scrolling, float global_scale, float tile_size, bool is_hovered) {
-  
+
   const ImGuiIO& imgui_io = ImGui::GetIO();
   const ImVec2 origin(canvas_p0.x + scrolling.x, canvas_p0.y + scrolling.y);
-  const ImVec2 mouse_pos(imgui_io.MousePos.x - origin.x, imgui_io.MousePos.y - origin.y);
+  const ImVec2 mouse_pos(imgui_io.MousePos.x - origin.x,
+                         imgui_io.MousePos.y - origin.y);
   auto scaled_tile_size = tile_size * global_scale;
   static bool is_dragging = false;
   static ImVec2 start_drag_pos;
@@ -184,7 +194,8 @@ bool CanvasInteractionHandler::DrawSolidTilePainter(
   // For now, skip clamping as we don't have canvas_size here
 
   hover_points_.push_back(paint_pos);
-  hover_points_.push_back(ImVec2(paint_pos.x + scaled_tile_size, paint_pos.y + scaled_tile_size));
+  hover_points_.push_back(
+      ImVec2(paint_pos.x + scaled_tile_size, paint_pos.y + scaled_tile_size));
 
   if (draw_list) {
     draw_list->AddRectFilled(
@@ -208,20 +219,24 @@ bool CanvasInteractionHandler::DrawSolidTilePainter(
   return false;
 }
 
-bool CanvasInteractionHandler::DrawTileSelector(
-    ImDrawList* /*draw_list*/, ImVec2 canvas_p0, ImVec2 scrolling, float tile_size,
-    bool is_hovered) {
-  
+bool CanvasInteractionHandler::DrawTileSelector(ImDrawList* /*draw_list*/,
+                                                ImVec2 canvas_p0,
+                                                ImVec2 scrolling,
+                                                float tile_size,
+                                                bool is_hovered) {
+
   const ImGuiIO& imgui_io = ImGui::GetIO();
   const ImVec2 origin(canvas_p0.x + scrolling.x, canvas_p0.y + scrolling.y);
-  const ImVec2 mouse_pos(imgui_io.MousePos.x - origin.x, imgui_io.MousePos.y - origin.y);
+  const ImVec2 mouse_pos(imgui_io.MousePos.x - origin.x,
+                         imgui_io.MousePos.y - origin.y);
 
   if (is_hovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
     hover_points_.clear();
     ImVec2 painter_pos = AlignToGridLocal(mouse_pos, tile_size);
 
     hover_points_.push_back(painter_pos);
-    hover_points_.push_back(ImVec2(painter_pos.x + tile_size, painter_pos.y + tile_size));
+    hover_points_.push_back(
+        ImVec2(painter_pos.x + tile_size, painter_pos.y + tile_size));
     mouse_pos_in_canvas_ = painter_pos;
   }
 
@@ -235,22 +250,24 @@ bool CanvasInteractionHandler::DrawTileSelector(
 bool CanvasInteractionHandler::DrawSelectRect(
     int current_map, ImDrawList* draw_list, ImVec2 canvas_p0, ImVec2 scrolling,
     float global_scale, float tile_size, bool is_hovered) {
-  
+
   if (!is_hovered) {
     return false;
   }
-  
+
   // Create CanvasGeometry from parameters
   CanvasGeometry geometry;
   geometry.canvas_p0 = canvas_p0;
   geometry.scrolling = scrolling;
-  geometry.scaled_size = ImVec2(tile_size * global_scale, tile_size * global_scale);
-  geometry.canvas_sz = ImVec2(tile_size, tile_size);  // Will be updated if needed
-  
+  geometry.scaled_size =
+      ImVec2(tile_size * global_scale, tile_size * global_scale);
+  geometry.canvas_sz =
+      ImVec2(tile_size, tile_size);  // Will be updated if needed
+
   // Call new event-based function
   RectSelectionEvent event = HandleRectangleSelection(
       geometry, current_map, tile_size, draw_list, ImGuiMouseButton_Right);
-  
+
   // Update internal state for backward compatibility
   if (event.is_complete) {
     selected_tiles_ = event.selected_tiles;
@@ -260,16 +277,16 @@ bool CanvasInteractionHandler::DrawSelectRect(
     rect_select_active_ = true;
     return true;
   }
-  
+
   if (!event.selected_tiles.empty() && !event.is_complete) {
     // Single tile selection
     selected_tile_pos_ = event.selected_tiles[0];
     selected_points_.clear();
     rect_select_active_ = false;
   }
-  
+
   rect_select_active_ = event.is_active;
-  
+
   return false;
 }
 
@@ -279,7 +296,8 @@ ImVec2 CanvasInteractionHandler::AlignPosToGrid(ImVec2 pos, float grid_step) {
   return AlignToGridLocal(pos, grid_step);
 }
 
-ImVec2 CanvasInteractionHandler::GetMousePosition(ImVec2 canvas_p0, ImVec2 scrolling) {
+ImVec2 CanvasInteractionHandler::GetMousePosition(ImVec2 canvas_p0,
+                                                  ImVec2 scrolling) {
   const ImGuiIO& imgui_io = ImGui::GetIO();
   const ImVec2 origin(canvas_p0.x + scrolling.x, canvas_p0.y + scrolling.y);
   return ImVec2(imgui_io.MousePos.x - origin.x, imgui_io.MousePos.y - origin.y);

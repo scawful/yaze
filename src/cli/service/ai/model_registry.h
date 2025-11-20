@@ -2,9 +2,9 @@
 #define YAZE_SRC_CLI_SERVICE_AI_MODEL_REGISTRY_H_
 
 #include <memory>
+#include <mutex>
 #include <string>
 #include <vector>
-#include <mutex>
 
 #include "absl/status/statusor.h"
 #include "cli/service/ai/ai_service.h"
@@ -19,7 +19,7 @@ class ModelRegistry {
 
   // Register a service instance to be queried for models
   void RegisterService(std::shared_ptr<AIService> service);
-  
+
   // Clear all registered services
   void ClearServices();
 
@@ -40,4 +40,3 @@ class ModelRegistry {
 }  // namespace yaze
 
 #endif  // YAZE_SRC_CLI_SERVICE_AI_MODEL_REGISTRY_H_
-

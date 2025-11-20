@@ -41,43 +41,45 @@ class WindowDelegate {
   void MaximizeWindow(const std::string& window_id);
   void RestoreWindow(const std::string& window_id);
   void CenterWindow(const std::string& window_id);
-  
+
   // Docking operations
   void DockWindow(const std::string& window_id, ImGuiDir dock_direction);
   void UndockWindow(const std::string& window_id);
-  void SetDockSpace(const std::string& dock_space_id, const ImVec2& size = ImVec2(0, 0));
-  
+  void SetDockSpace(const std::string& dock_space_id,
+                    const ImVec2& size = ImVec2(0, 0));
+
   // Layout management
   absl::Status SaveLayout(const std::string& preset_name);
   absl::Status LoadLayout(const std::string& preset_name);
   absl::Status ResetLayout();
   std::vector<std::string> GetAvailableLayouts() const;
-  
+
   // Workspace-specific layout methods (match EditorManager API)
   void SaveWorkspaceLayout();
   void LoadWorkspaceLayout();
   void ResetWorkspaceLayout();
-  
+
   // Layout presets
   void LoadDeveloperLayout();
   void LoadDesignerLayout();
   void LoadModderLayout();
-  
+
   // Window state queries
   std::vector<std::string> GetVisibleWindows() const;
   std::vector<std::string> GetHiddenWindows() const;
   ImVec2 GetWindowSize(const std::string& window_id) const;
   ImVec2 GetWindowPosition(const std::string& window_id) const;
-  
+
   // Batch operations
   void ShowWindowsInCategory(const std::string& category);
   void HideWindowsInCategory(const std::string& category);
   void ShowOnlyWindow(const std::string& window_id);  // Hide all others
-  
+
   // Window registration (for tracking)
-  void RegisterWindow(const std::string& window_id, const std::string& category = "");
+  void RegisterWindow(const std::string& window_id,
+                      const std::string& category = "");
   void UnregisterWindow(const std::string& window_id);
-  
+
   // Layout presets
   void LoadMinimalLayout();
 
@@ -88,13 +90,14 @@ class WindowDelegate {
     std::string category;
     bool is_registered = false;
   };
-  
+
   std::unordered_map<std::string, WindowInfo> registered_windows_;
-  
+
   // Helper methods
   bool IsWindowRegistered(const std::string& window_id) const;
   std::string GetLayoutFilePath(const std::string& preset_name) const;
-  void ApplyLayoutToWindow(const std::string& window_id, const std::string& layout_data);
+  void ApplyLayoutToWindow(const std::string& window_id,
+                           const std::string& layout_data);
 };
 
 }  // namespace editor

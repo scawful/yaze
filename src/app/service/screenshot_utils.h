@@ -44,8 +44,7 @@ absl::StatusOr<ScreenshotArtifact> CaptureActiveWindow(
 
 // Captures a specific ImGui window by name.
 absl::StatusOr<ScreenshotArtifact> CaptureWindowByName(
-    const std::string& window_name,
-    const std::string& preferred_path = "");
+    const std::string& window_name, const std::string& preferred_path = "");
 
 }  // namespace test
 }  // namespace yaze

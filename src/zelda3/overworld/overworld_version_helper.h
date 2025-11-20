@@ -60,7 +60,7 @@ class OverworldVersionHelper {
     }
     if (asm_version == 2) {
       return OverworldVersion::kZSCustomV2;
-    } 
+    }
     if (asm_version >= 3) {
       return OverworldVersion::kZSCustomV3;
     }

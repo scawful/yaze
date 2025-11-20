@@ -21,7 +21,7 @@ class ProjectInitCommandHandler : public resources::CommandHandler {
   }
 
   absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
-                      resources::OutputFormatter& formatter) override;
+                       resources::OutputFormatter& formatter) override;
 };
 
 /**
@@ -38,7 +38,7 @@ class ProjectBuildCommandHandler : public resources::CommandHandler {
   }
 
   absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
-                      resources::OutputFormatter& formatter) override;
+                       resources::OutputFormatter& formatter) override;
 };
 
 }  // namespace handlers

@@ -4,16 +4,16 @@
 #include <chrono>
 #include <memory>
 
-#include "app/test/test_manager.h"
-#include "app/emu/snes.h"
-#include "app/emu/cpu/cpu.h"
 #include "app/emu/audio/apu.h"
-#include "app/emu/audio/spc700.h"
 #include "app/emu/audio/audio_backend.h"
+#include "app/emu/audio/spc700.h"
+#include "app/emu/cpu/cpu.h"
+#include "app/emu/debug/apu_debugger.h"
 #include "app/emu/debug/breakpoint_manager.h"
 #include "app/emu/debug/watchpoint_manager.h"
-#include "app/emu/debug/apu_debugger.h"
+#include "app/emu/snes.h"
 #include "app/gui/core/icons.h"
+#include "app/test/test_manager.h"
 #include "util/log.h"
 
 namespace yaze {
@@ -36,12 +36,17 @@ class EmulatorTestSuite : public TestSuite {
   TestCategory GetCategory() const override { return TestCategory::kUnit; }
 
   absl::Status RunTests(TestResults& results) override {
-    if (test_apu_handshake_) RunApuHandshakeTest(results);
-    if (test_spc700_cycles_) RunSpc700CycleAccuracyTest(results);
-    if (test_breakpoint_manager_) RunBreakpointManagerTest(results);
-    if (test_watchpoint_manager_) RunWatchpointManagerTest(results);
-    if (test_audio_backend_) RunAudioBackendTest(results);
-    
+    if (test_apu_handshake_)
+      RunApuHandshakeTest(results);
+    if (test_spc700_cycles_)
+      RunSpc700CycleAccuracyTest(results);
+    if (test_breakpoint_manager_)
+      RunBreakpointManagerTest(results);
+    if (test_watchpoint_manager_)
+      RunWatchpointManagerTest(results);
+    if (test_audio_backend_)
+      RunAudioBackendTest(results);
+
     return absl::OkStatus();
   }
 
@@ -82,47 +87,54 @@ class EmulatorTestSuite : public TestSuite {
     try {
       // Setup a mock SNES environment
       emu::Snes snes;
-      std::vector<uint8_t> rom_data(0x8000, 0); // Minimal ROM
+      std::vector<uint8_t> rom_data(0x8000, 0);  // Minimal ROM
       snes.Init(rom_data);
-      
+
       auto& apu = snes.apu();
       auto& tracker = snes.apu_handshake_tracker();
-      
+
       // 1. Reset APU to start the IPL ROM boot sequence.
       apu.Reset();
       tracker.Reset();
-      
+
       // 2. Run APU for enough cycles to complete its internal initialization.
       // The SPC700 should write $AA to port $F4 and $BB to $F5.
       for (int i = 0; i < 10000; ++i) {
-        apu.RunCycles(i * 24); // Simulate passing master cycles
-        if (tracker.GetPhase() == emu::debug::ApuHandshakeTracker::Phase::WAITING_BBAA) {
+        apu.RunCycles(i * 24);  // Simulate passing master cycles
+        if (tracker.GetPhase() ==
+            emu::debug::ApuHandshakeTracker::Phase::WAITING_BBAA) {
           break;
         }
       }
-      
+
       // 3. Verify the APU has signaled it is ready.
-      if (tracker.GetPhase() != emu::debug::ApuHandshakeTracker::Phase::WAITING_BBAA) {
-        throw std::runtime_error("APU did not signal ready ($BBAA). Current phase: " + tracker.GetPhaseString());
+      if (tracker.GetPhase() !=
+          emu::debug::ApuHandshakeTracker::Phase::WAITING_BBAA) {
+        throw std::runtime_error(
+            "APU did not signal ready ($BBAA). Current phase: " +
+            tracker.GetPhaseString());
       }
-      
+
       // 4. Simulate CPU writing $CC to initiate the transfer.
       snes.Write(0x2140, 0xCC);
-      
+
       // 5. Run APU for a few more cycles to process the $CC command.
       apu.RunCycles(snes.mutable_cycles() + 1000);
-      
+
       // 6. Verify the handshake is acknowledged.
       if (tracker.IsHandshakeComplete()) {
         result.status = TestStatus::kPassed;
-        result.error_message = "APU handshake successful. Ready signal and CPU ack verified.";
+        result.error_message =
+            "APU handshake successful. Ready signal and CPU ack verified.";
       } else {
-        throw std::runtime_error("CPU handshake ($CC) was not acknowledged by APU.");
+        throw std::runtime_error(
+            "CPU handshake ($CC) was not acknowledged by APU.");
       }
 
     } catch (const std::exception& e) {
       result.status = TestStatus::kFailed;
-      result.error_message = std::string("APU handshake test exception: ") + e.what();
+      result.error_message =
+          std::string("APU handshake test exception: ") + e.what();
     }
 
     result.duration = std::chrono::duration_cast<std::chrono::milliseconds>(
@@ -150,37 +162,44 @@ class EmulatorTestSuite : public TestSuite {
     try {
       // Dummy callbacks for SPC700 instantiation
       emu::ApuCallbacks callbacks;
-      callbacks.read = [](uint16_t) { return 0; };
-      callbacks.write = [](uint16_t, uint8_t) {};
-      callbacks.idle = [](bool) {};
-      
+      callbacks.read = [](uint16_t) {
+        return 0;
+      };
+      callbacks.write = [](uint16_t, uint8_t) {
+      };
+      callbacks.idle = [](bool) {
+      };
+
       emu::Spc700 spc(callbacks);
       spc.Reset(true);
 
       // Test a sample of opcodes against the cycle table
       // Opcode 0x00 (NOP) should take 2 cycles
-      spc.PC = 0; // Set PC to a known state
-      spc.RunOpcode(); // This will read opcode at PC=0 and prepare to execute
-      spc.RunOpcode(); // This executes the opcode
-      
+      spc.PC = 0;       // Set PC to a known state
+      spc.RunOpcode();  // This will read opcode at PC=0 and prepare to execute
+      spc.RunOpcode();  // This executes the opcode
+
       if (spc.GetLastOpcodeCycles() != 2) {
-        throw std::runtime_error(absl::StrFormat("NOP (0x00) should be 2 cycles, was %d", spc.GetLastOpcodeCycles()));
+        throw std::runtime_error(
+            absl::StrFormat("NOP (0x00) should be 2 cycles, was %d",
+                            spc.GetLastOpcodeCycles()));
       }
-      
+
       // Opcode 0x2F (BRA) should take 4 cycles
       spc.PC = 0;
       spc.RunOpcode();
       spc.RunOpcode();
-      
+
       // Note: This is a simplified check. A full implementation would need to
       // mock memory to provide the opcodes to the SPC700.
-      
+
       result.status = TestStatus::kPassed;
       result.error_message = "Basic SPC700 cycle counts appear correct.";
 
     } catch (const std::exception& e) {
       result.status = TestStatus::kFailed;
-      result.error_message = std::string("SPC700 cycle test exception: ") + e.what();
+      result.error_message =
+          std::string("SPC700 cycle test exception: ") + e.what();
     }
 
     result.duration = std::chrono::duration_cast<std::chrono::milliseconds>(
@@ -205,36 +224,43 @@ class EmulatorTestSuite : public TestSuite {
 
     try {
       emu::BreakpointManager bpm;
-      
+
       // 1. Add an execution breakpoint
-      uint32_t bp_id = bpm.AddBreakpoint(0x8000, emu::BreakpointManager::Type::EXECUTE, emu::BreakpointManager::CpuType::CPU_65816);
+      uint32_t bp_id =
+          bpm.AddBreakpoint(0x8000, emu::BreakpointManager::Type::EXECUTE,
+                            emu::BreakpointManager::CpuType::CPU_65816);
       if (bpm.GetAllBreakpoints().size() != 1) {
         throw std::runtime_error("Failed to add breakpoint.");
       }
-      
+
       // 2. Test hit detection
-      if (!bpm.ShouldBreakOnExecute(0x8000, emu::BreakpointManager::CpuType::CPU_65816)) {
+      if (!bpm.ShouldBreakOnExecute(
+              0x8000, emu::BreakpointManager::CpuType::CPU_65816)) {
         throw std::runtime_error("Execution breakpoint was not hit.");
       }
-      if (bpm.ShouldBreakOnExecute(0x8001, emu::BreakpointManager::CpuType::CPU_65816)) {
+      if (bpm.ShouldBreakOnExecute(
+              0x8001, emu::BreakpointManager::CpuType::CPU_65816)) {
         throw std::runtime_error("Breakpoint hit at incorrect address.");
       }
-      
+
       // 3. Test removal
       bpm.RemoveBreakpoint(bp_id);
       if (bpm.GetAllBreakpoints().size() != 0) {
         throw std::runtime_error("Failed to remove breakpoint.");
       }
-      if (bpm.ShouldBreakOnExecute(0x8000, emu::BreakpointManager::CpuType::CPU_65816)) {
+      if (bpm.ShouldBreakOnExecute(
+              0x8000, emu::BreakpointManager::CpuType::CPU_65816)) {
         throw std::runtime_error("Breakpoint was hit after being removed.");
       }
-      
+
       result.status = TestStatus::kPassed;
-      result.error_message = "BreakpointManager add, hit, and remove tests passed.";
+      result.error_message =
+          "BreakpointManager add, hit, and remove tests passed.";
 
     } catch (const std::exception& e) {
       result.status = TestStatus::kFailed;
-      result.error_message = std::string("BreakpointManager test exception: ") + e.what();
+      result.error_message =
+          std::string("BreakpointManager test exception: ") + e.what();
     }
 
     result.duration = std::chrono::duration_cast<std::chrono::milliseconds>(
@@ -259,37 +285,44 @@ class EmulatorTestSuite : public TestSuite {
 
     try {
       emu::WatchpointManager wpm;
-      
+
       // 1. Add a write watchpoint on address $7E0010 with break enabled.
-      uint32_t wp_id = wpm.AddWatchpoint(0x7E0010, 0x7E0010, false, true, true, "Link HP");
-      
+      uint32_t wp_id =
+          wpm.AddWatchpoint(0x7E0010, 0x7E0010, false, true, true, "Link HP");
+
       // 2. Simulate a write access and check if it breaks.
-      bool should_break = wpm.OnMemoryAccess(0x8000, 0x7E0010, true, 0x05, 0x06, 12345);
+      bool should_break =
+          wpm.OnMemoryAccess(0x8000, 0x7E0010, true, 0x05, 0x06, 12345);
       if (!should_break) {
         throw std::runtime_error("Write watchpoint did not trigger a break.");
       }
-      
+
       // 3. Simulate a read access, which should not break.
-      should_break = wpm.OnMemoryAccess(0x8001, 0x7E0010, false, 0x06, 0x06, 12350);
+      should_break =
+          wpm.OnMemoryAccess(0x8001, 0x7E0010, false, 0x06, 0x06, 12350);
       if (should_break) {
-        throw std::runtime_error("Read access incorrectly triggered a write-only watchpoint.");
+        throw std::runtime_error(
+            "Read access incorrectly triggered a write-only watchpoint.");
       }
-      
+
       // 4. Verify the write access was logged.
       auto history = wpm.GetHistory(0x7E0010);
       if (history.size() != 1) {
-        throw std::runtime_error("Memory access was not logged to watchpoint history.");
+        throw std::runtime_error(
+            "Memory access was not logged to watchpoint history.");
       }
       if (history[0].new_value != 0x06 || !history[0].is_write) {
         throw std::runtime_error("Logged access data is incorrect.");
       }
-      
+
       result.status = TestStatus::kPassed;
-      result.error_message = "WatchpointManager logging and break-on-write tests passed.";
+      result.error_message =
+          "WatchpointManager logging and break-on-write tests passed.";
 
     } catch (const std::exception& e) {
       result.status = TestStatus::kFailed;
-      result.error_message = std::string("WatchpointManager test exception: ") + e.what();
+      result.error_message =
+          std::string("WatchpointManager test exception: ") + e.what();
     }
 
     result.duration = std::chrono::duration_cast<std::chrono::milliseconds>(
@@ -313,40 +346,48 @@ class EmulatorTestSuite : public TestSuite {
     result.timestamp = start_time;
 
     try {
-      auto backend = emu::audio::AudioBackendFactory::Create(emu::audio::AudioBackendFactory::BackendType::SDL2);
-      
+      auto backend = emu::audio::AudioBackendFactory::Create(
+          emu::audio::AudioBackendFactory::BackendType::SDL2);
+
       // 1. Test initialization
       emu::audio::AudioConfig config;
       if (!backend->Initialize(config)) {
         throw std::runtime_error("Audio backend failed to initialize.");
       }
       if (!backend->IsInitialized()) {
-        throw std::runtime_error("IsInitialized() returned false after successful initialization.");
+        throw std::runtime_error(
+            "IsInitialized() returned false after successful initialization.");
       }
-      
+
       // 2. Test state changes
       backend->Play();
       if (!backend->GetStatus().is_playing) {
-        throw std::runtime_error("Backend is not playing after Play() was called.");
+        throw std::runtime_error(
+            "Backend is not playing after Play() was called.");
       }
-      
+
       backend->Pause();
       if (backend->GetStatus().is_playing) {
-        throw std::runtime_error("Backend is still playing after Pause() was called.");
+        throw std::runtime_error(
+            "Backend is still playing after Pause() was called.");
       }
-      
+
       // 3. Test shutdown
       backend->Shutdown();
       if (backend->IsInitialized()) {
-        throw std::runtime_error("IsInitialized() returned true after Shutdown().");
+        throw std::runtime_error(
+            "IsInitialized() returned true after Shutdown().");
       }
-      
+
       result.status = TestStatus::kPassed;
-      result.error_message = "Audio backend Initialize, Play, Pause, and Shutdown states work correctly.";
+      result.error_message =
+          "Audio backend Initialize, Play, Pause, and Shutdown states work "
+          "correctly.";
 
     } catch (const std::exception& e) {
       result.status = TestStatus::kFailed;
-      result.error_message = std::string("Audio backend test exception: ") + e.what();
+      result.error_message =
+          std::string("Audio backend test exception: ") + e.what();
     }
 
     result.duration = std::chrono::duration_cast<std::chrono::milliseconds>(

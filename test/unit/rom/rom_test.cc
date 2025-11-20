@@ -5,9 +5,9 @@
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
+#include "app/transaction.h"
 #include "mocks/mock_rom.h"
 #include "testing.h"
-#include "app/transaction.h"
 
 namespace yaze {
 namespace test {
@@ -224,9 +224,10 @@ TEST_F(RomTest, TransactionRollbackRestoresOriginals) {
   EXPECT_OK(rom_.LoadFromData(kMockRomData, /*z3_load=*/false));
   // Force an out-of-range write to trigger failure after a successful write
   yaze::Transaction tx{rom_};
-  auto status = tx.WriteByte(0x01, 0xAA)  // valid
-                   .WriteWord(0xFFFF, 0xBBBB)  // invalid: should fail and rollback
-                   .Commit();
+  auto status =
+      tx.WriteByte(0x01, 0xAA)        // valid
+          .WriteWord(0xFFFF, 0xBBBB)  // invalid: should fail and rollback
+          .Commit();
   EXPECT_FALSE(status.ok());
   auto b1 = rom_.ReadByte(0x01);
   ASSERT_TRUE(b1.ok());

@@ -18,8 +18,8 @@
 #include "absl/strings/str_format.h"
 #include "absl/strings/strip.h"
 #include "util/file_util.h"
-#include "util/platform_paths.h"
 #include "util/macro.h"
+#include "util/platform_paths.h"
 
 #include <filesystem>
 namespace fs = std::filesystem;
@@ -213,7 +213,8 @@ absl::Status AgentCollaborationCoordinator::EnsureDirectory() const {
 
 std::string AgentCollaborationCoordinator::LocalUserName() const {
   const char* override_name = std::getenv("YAZE_USER_NAME");
-  const char* user = override_name != nullptr ? override_name : std::getenv("USER");
+  const char* user =
+      override_name != nullptr ? override_name : std::getenv("USER");
   if (user == nullptr) {
     user = std::getenv("USERNAME");
   }
@@ -236,17 +237,17 @@ std::string AgentCollaborationCoordinator::LocalUserName() const {
 std::string AgentCollaborationCoordinator::NormalizeSessionCode(
     const std::string& input) const {
   std::string normalized = Trimmed(input);
-  normalized.erase(std::remove_if(normalized.begin(), normalized.end(),
-                                  [](unsigned char c) {
-                                    return !std::isalnum(
-                                        static_cast<unsigned char>(c));
-                                  }),
-                   normalized.end());
-  std::transform(normalized.begin(), normalized.end(), normalized.begin(),
-                 [](unsigned char c) {
-                   return static_cast<char>(
-                       std::toupper(static_cast<unsigned char>(c)));
-                 });
+  normalized.erase(
+      std::remove_if(normalized.begin(), normalized.end(),
+                     [](unsigned char c) {
+                       return !std::isalnum(static_cast<unsigned char>(c));
+                     }),
+      normalized.end());
+  std::transform(
+      normalized.begin(), normalized.end(), normalized.begin(),
+      [](unsigned char c) {
+        return static_cast<char>(std::toupper(static_cast<unsigned char>(c)));
+      });
   return normalized;
 }
 
@@ -304,8 +305,8 @@ AgentCollaborationCoordinator::LoadSessionFile(
       data.host = value;
       data.participants.push_back(value);
     } else if (key == "participant") {
-      if (std::find(data.participants.begin(), data.participants.end(), value) ==
-          data.participants.end()) {
+      if (std::find(data.participants.begin(), data.participants.end(),
+                    value) == data.participants.end()) {
         data.participants.push_back(value);
       }
     }
@@ -320,8 +321,7 @@ AgentCollaborationCoordinator::LoadSessionFile(
     if (host_it == data.participants.end()) {
       data.participants.insert(data.participants.begin(), data.host);
     } else if (host_it != data.participants.begin()) {
-      std::rotate(data.participants.begin(), host_it,
-                  std::next(host_it));
+      std::rotate(data.participants.begin(), host_it, std::next(host_it));
     }
   }
 

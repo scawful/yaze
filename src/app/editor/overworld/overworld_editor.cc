@@ -492,7 +492,9 @@ void OverworldEditor::DrawToolset() {
 
   // IMPORTANT: Don't cache version - it needs to update after ROM upgrade
   auto rom_version = zelda3::OverworldVersionHelper::GetVersion(*rom_);
-  uint8_t asm_version = (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];  // Still needed for badge display
+  uint8_t asm_version = (*rom_)
+      [zelda3::
+           OverworldCustomASMHasBeenApplied];  // Still needed for badge display
 
   // Don't use WidgetIdScope here - it conflicts with ImGui::Begin/End ID stack in cards
   // Widgets register themselves individually instead
@@ -1258,7 +1260,8 @@ absl::Status OverworldEditor::CheckForCurrentMap() {
 
   // Use centralized version detection
   auto rom_version = zelda3::OverworldVersionHelper::GetVersion(*rom_);
-  bool use_v3_area_sizes = zelda3::OverworldVersionHelper::SupportsAreaEnum(rom_version);
+  bool use_v3_area_sizes =
+      zelda3::OverworldVersionHelper::SupportsAreaEnum(rom_version);
 
   // Get area size for v3+ ROMs, otherwise use legacy logic
   if (use_v3_area_sizes) {
@@ -1623,7 +1626,8 @@ void OverworldEditor::DrawOverworldCanvas() {
                            ow_map_canvas_.scrolling(),
                            dragged_entity_free_movement_);
           // Pass overworld context for proper area size detection
-          dragged_entity_->UpdateMapProperties(dragged_entity_->map_id_, &overworld_);
+          dragged_entity_->UpdateMapProperties(dragged_entity_->map_id_,
+                                               &overworld_);
           rom_->set_dirty(true);
         }
         is_dragging_entity_ = false;
@@ -1637,7 +1641,6 @@ void OverworldEditor::DrawOverworldCanvas() {
   ow_map_canvas_.DrawGrid();
   ow_map_canvas_.DrawOverlay();
   ImGui::EndChild();
-  
 }
 
 absl::Status OverworldEditor::DrawTile16Selector() {
@@ -2121,7 +2124,8 @@ void OverworldEditor::RefreshChildMapOnDemand(int map_index) {
   // Handle multi-area maps (large, wide, tall) with safe coordination
   // Use centralized version detection
   auto rom_version = zelda3::OverworldVersionHelper::GetVersion(*rom_);
-  bool use_v3_area_sizes = zelda3::OverworldVersionHelper::SupportsAreaEnum(rom_version);
+  bool use_v3_area_sizes =
+      zelda3::OverworldVersionHelper::SupportsAreaEnum(rom_version);
 
   if (use_v3_area_sizes) {
     // Use v3 multi-area coordination
@@ -2305,7 +2309,8 @@ absl::Status OverworldEditor::RefreshMapPalette() {
 
   // Use centralized version detection
   auto rom_version = zelda3::OverworldVersionHelper::GetVersion(*rom_);
-  bool use_v3_area_sizes = zelda3::OverworldVersionHelper::SupportsAreaEnum(rom_version);
+  bool use_v3_area_sizes =
+      zelda3::OverworldVersionHelper::SupportsAreaEnum(rom_version);
 
   if (use_v3_area_sizes) {
     // Use v3 area size system
@@ -2447,7 +2452,8 @@ void OverworldEditor::RefreshMapProperties() {
 
   // Use centralized version detection
   auto rom_version = zelda3::OverworldVersionHelper::GetVersion(*rom_);
-  bool use_v3_area_sizes = zelda3::OverworldVersionHelper::SupportsAreaEnum(rom_version);
+  bool use_v3_area_sizes =
+      zelda3::OverworldVersionHelper::SupportsAreaEnum(rom_version);
 
   if (use_v3_area_sizes) {
     // Use v3 area size system

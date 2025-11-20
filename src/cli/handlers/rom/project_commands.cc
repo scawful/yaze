@@ -1,27 +1,28 @@
 #include "cli/handlers/rom/project_commands.h"
 
-#include "core/project.h"
-#include "util/file_util.h"
-#include "util/bps.h"
-#include "util/macro.h"
 #include <filesystem>
 #include <iostream>
+#include "core/project.h"
+#include "util/bps.h"
+#include "util/file_util.h"
+#include "util/macro.h"
 
 namespace yaze {
 namespace cli {
 namespace handlers {
 
-absl::Status ProjectInitCommandHandler::Execute(Rom* rom, 
-                                               const resources::ArgumentParser& parser,
-                                               resources::OutputFormatter& formatter) {
+absl::Status ProjectInitCommandHandler::Execute(
+    Rom* rom, const resources::ArgumentParser& parser,
+    resources::OutputFormatter& formatter) {
   auto project_opt = parser.GetString("project_name");
-  
+
   if (!project_opt.has_value()) {
-    return absl::InvalidArgumentError("Missing required argument: project_name");
+    return absl::InvalidArgumentError(
+        "Missing required argument: project_name");
   }
-  
+
   std::string project_name = project_opt.value();
-  
+
   project::YazeProject project;
   auto status = project.Create(project_name, ".");
   if (!status.ok()) {
@@ -29,15 +30,16 @@ absl::Status ProjectInitCommandHandler::Execute(Rom* rom,
   }
 
   formatter.AddField("status", "success");
-  formatter.AddField("message", "Successfully initialized project: " + project_name);
+  formatter.AddField("message",
+                     "Successfully initialized project: " + project_name);
   formatter.AddField("project_name", project_name);
-  
+
   return absl::OkStatus();
 }
 
-absl::Status ProjectBuildCommandHandler::Execute(Rom* rom, 
-                                                const resources::ArgumentParser& parser,
-                                                resources::OutputFormatter& formatter) {
+absl::Status ProjectBuildCommandHandler::Execute(
+    Rom* rom, const resources::ArgumentParser& parser,
+    resources::OutputFormatter& formatter) {
   project::YazeProject project;
   auto status = project.Open(".");
   if (!status.ok()) {
@@ -53,7 +55,7 @@ absl::Status ProjectBuildCommandHandler::Execute(Rom* rom,
   // Apply BPS patches - cross-platform with std::filesystem
   namespace fs = std::filesystem;
   std::vector<std::string> bps_files;
-  
+
   try {
     for (const auto& entry : fs::directory_iterator(project.patches_folder)) {
       if (entry.path().extension() == ".bps") {
@@ -63,7 +65,7 @@ absl::Status ProjectBuildCommandHandler::Execute(Rom* rom,
   } catch (const fs::filesystem_error& e) {
     // Patches folder doesn't exist or not accessible
   }
-  
+
   for (const auto& patch_file : bps_files) {
     std::vector<uint8_t> patch_data;
     auto patch_contents = util::LoadFile(patch_file);
@@ -85,7 +87,7 @@ absl::Status ProjectBuildCommandHandler::Execute(Rom* rom,
   } catch (const fs::filesystem_error& e) {
     // No asm files
   }
-  
+
   // TODO: Implement ASM patching functionality
   // for (const auto& asm_file : asm_files) {
   //   // Apply ASM patches here
@@ -101,7 +103,7 @@ absl::Status ProjectBuildCommandHandler::Execute(Rom* rom,
   formatter.AddField("message", "Successfully built project: " + project.name);
   formatter.AddField("project_name", project.name);
   formatter.AddField("output_file", output_file);
-  
+
   return absl::OkStatus();
 }
 

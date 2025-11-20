@@ -37,27 +37,10 @@ Run the environment verifier once per machine:
 ```
 
 ### Configure & Build
-```bash
-# macOS
-cmake --preset mac-dbg
-cmake --build --preset mac-dbg
-
-# Linux
-cmake --preset lin-dbg
-cmake --build --preset lin-dbg
-
-# Windows (core preset)
-cmake --preset win-dbg
-cmake --build --preset win-dbg --target yaze
-
-# Enable AI + gRPC tooling (any platform)
-cmake --preset mac-ai
-cmake --build --preset mac-ai --target yaze z3ed
-
-# Windows AI preset
-cmake --preset win-ai
-cmake --build --preset win-ai --target yaze z3ed
-```
+- Use the CMake preset that matches your platform (`mac-dbg`, `lin-dbg`, `win-dbg`, etc.).
+- Build with `cmake --build --preset <name> [--target …]`.
+- See [`docs/public/build/quick-reference.md`](docs/public/build/quick-reference.md) for the canonical
+  list of presets, AI build policy, and testing commands.
 
 ### Agent Feature Flags
 

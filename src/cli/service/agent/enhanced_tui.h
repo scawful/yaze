@@ -1,10 +1,10 @@
 #ifndef YAZE_SRC_CLI_SERVICE_AGENT_ENHANCED_TUI_H_
 #define YAZE_SRC_CLI_SERVICE_AGENT_ENHANCED_TUI_H_
 
+#include <functional>
+#include <map>
 #include <string>
 #include <vector>
-#include <map>
-#include <functional>
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
@@ -22,11 +22,11 @@ namespace agent {
  * @brief Visual themes for the enhanced TUI
  */
 enum class TUITheme {
-  kDefault,     // Default terminal colors
-  kDark,        // Dark theme with bright accents
-  kLight,       // Light theme with dark text
-  kZelda,       // Zelda-themed colors (green/gold)
-  kCyberpunk    // Cyberpunk theme (neon colors)
+  kDefault,   // Default terminal colors
+  kDark,      // Dark theme with bright accents
+  kLight,     // Light theme with dark text
+  kZelda,     // Zelda-themed colors (green/gold)
+  kCyberpunk  // Cyberpunk theme (neon colors)
 };
 
 /**
@@ -34,14 +34,14 @@ enum class TUITheme {
  * @brief Different UI components in the enhanced TUI
  */
 enum class TUIComponent {
-  kHeader,           // Top header with title and status
-  kCommandPalette,   // Command palette with fuzzy search
-  kChatArea,         // Main chat conversation area
-  kToolOutput,       // Tool execution results
-  kStatusBar,        // Bottom status bar
-  kSidebar,          // Sidebar with ROM info and shortcuts
-  kHelpPanel,        // Context-sensitive help panel
-  kHistoryPanel      // Command history and suggestions
+  kHeader,          // Top header with title and status
+  kCommandPalette,  // Command palette with fuzzy search
+  kChatArea,        // Main chat conversation area
+  kToolOutput,      // Tool execution results
+  kStatusBar,       // Bottom status bar
+  kSidebar,         // Sidebar with ROM info and shortcuts
+  kHelpPanel,       // Context-sensitive help panel
+  kHistoryPanel     // Command history and suggestions
 };
 
 /**
@@ -103,7 +103,7 @@ class EnhancedTUI {
 
   // Initialize the TUI (setup terminal, colors, etc.)
   absl::Status Initialize();
-  
+
   // Cleanup and restore terminal state
   void Shutdown();
 
@@ -114,13 +114,13 @@ class EnhancedTUI {
   absl::Status Run();
 
   // Display a message in the chat area
-  void DisplayMessage(const std::string& message, 
-                     const std::string& sender = "User",
-                     bool is_error = false);
+  void DisplayMessage(const std::string& message,
+                      const std::string& sender = "User",
+                      bool is_error = false);
 
   // Display tool output in the tool area
-  void DisplayToolOutput(const std::string& output, 
-                        const std::string& tool_name);
+  void DisplayToolOutput(const std::string& output,
+                         const std::string& tool_name);
 
   // Display command suggestions
   void DisplaySuggestions(const std::vector<std::string>& suggestions);
@@ -132,9 +132,10 @@ class EnhancedTUI {
   void ShowHelp(const std::string& command);
 
   // Register a command handler
-  void RegisterCommand(const std::string& name,
-                      std::function<absl::Status(const std::vector<std::string>&)> handler,
-                      const std::string& description = "");
+  void RegisterCommand(
+      const std::string& name,
+      std::function<absl::Status(const std::vector<std::string>&)> handler,
+      const std::string& description = "");
 
   // Get current configuration
   const TUIConfig& GetConfig() const { return config_; }
@@ -170,7 +171,8 @@ class EnhancedTUI {
   // Command processing
   absl::Status ProcessCommand(const std::string& input);
   std::vector<std::string> GetCommandSuggestions(const std::string& partial);
-  void ExecuteCommand(const std::string& command, const std::vector<std::string>& args);
+  void ExecuteCommand(const std::string& command,
+                      const std::vector<std::string>& args);
 
   // Styling and theming
   TUIStyle GetStyle(TUIComponent component) const;
@@ -184,12 +186,12 @@ class EnhancedTUI {
 
   TUIConfig config_;
   Rom* rom_context_ = nullptr;
-  
+
   // Terminal state
   int terminal_width_ = 80;
   int terminal_height_ = 24;
   bool terminal_initialized_ = false;
-  
+
   // Layout state
   struct Layout {
     int header_height = 3;
@@ -204,9 +206,11 @@ class EnhancedTUI {
   std::string current_input_;
   std::vector<std::string> command_history_;
   std::vector<std::string> output_history_;
-  std::map<std::string, std::function<absl::Status(const std::vector<std::string>&)>> commands_;
+  std::map<std::string,
+           std::function<absl::Status(const std::vector<std::string>&)>>
+      commands_;
   std::map<std::string, std::string> command_descriptions_;
-  
+
   // Styling
   std::map<TUIComponent, TUIStyle> styles_;
   std::map<TUITheme, std::map<TUIComponent, TUIStyle>> themes_;
@@ -248,9 +252,11 @@ class TUICommandHandler : public resources::CommandHandler {
     }
   }
 
-  virtual absl::StatusOr<std::string> PromptUser(const std::string& /* prompt */) {
+  virtual absl::StatusOr<std::string> PromptUser(
+      const std::string& /* prompt */) {
     // TODO: Implement interactive prompting in TUI
-    return absl::UnimplementedError("Interactive prompting not yet implemented");
+    return absl::UnimplementedError(
+        "Interactive prompting not yet implemented");
   }
 
   virtual std::string GetCommandName() const = 0;

@@ -87,16 +87,18 @@ class ToolDispatcher {
 
   // Execute a tool call and return the result as a string.
   absl::StatusOr<std::string> Dispatch(const ToolCall& tool_call);
-   // Provide a ROM context for tool calls that require ROM access.
-   void SetRomContext(Rom* rom) { rom_context_ = rom; }
-   void SetToolPreferences(const ToolPreferences& prefs) { preferences_ = prefs; }
-   const ToolPreferences& preferences() const { return preferences_; }
+  // Provide a ROM context for tool calls that require ROM access.
+  void SetRomContext(Rom* rom) { rom_context_ = rom; }
+  void SetToolPreferences(const ToolPreferences& prefs) {
+    preferences_ = prefs;
+  }
+  const ToolPreferences& preferences() const { return preferences_; }
 
  private:
-   bool IsToolEnabled(ToolCallType type) const;
+  bool IsToolEnabled(ToolCallType type) const;
 
-   Rom* rom_context_ = nullptr;
-   ToolPreferences preferences_;
+  Rom* rom_context_ = nullptr;
+  ToolPreferences preferences_;
 };
 
 }  // namespace agent

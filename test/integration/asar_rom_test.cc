@@ -7,8 +7,8 @@
 #include <filesystem>
 #include <fstream>
 
-#include "core/asar_wrapper.h"
 #include "app/rom.h"
+#include "core/asar_wrapper.h"
 #include "test_utils.h"
 #include "testing.h"
 

@@ -17,8 +17,8 @@ std::string TrimWhitespace(absl::string_view value);
 bool IsInteractiveInput();
 
 std::string PromptWithDefault(const std::string& prompt,
-                               const std::string& default_value,
-                               bool allow_empty = true);
+                              const std::string& default_value,
+                              bool allow_empty = true);
 
 std::string PromptRequired(const std::string& prompt,
                            const std::string& default_value = std::string());
@@ -37,4 +37,3 @@ bool ParseKeyValueEntry(const std::string& input, std::string* key,
 }  // namespace yaze
 
 #endif  // YAZE_CLI_HANDLERS_AGENT_TEST_COMMON_H_
-

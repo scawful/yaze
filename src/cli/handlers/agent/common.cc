@@ -41,7 +41,8 @@ std::string JsonEscape(absl::string_view value) {
         break;
       default:
         if (c < 0x20) {
-          absl::StrAppend(&out, absl::StrFormat("\\u%04X", static_cast<int>(c)));
+          absl::StrAppend(&out,
+                          absl::StrFormat("\\u%04X", static_cast<int>(c)));
         } else {
           out.push_back(static_cast<char>(c));
         }
@@ -120,12 +121,18 @@ bool IsTerminalStatus(TestRunStatus status) {
 
 std::optional<TestRunStatus> ParseStatusFilter(absl::string_view value) {
   std::string lower = std::string(absl::AsciiStrToLower(value));
-  if (lower == "queued") return TestRunStatus::kQueued;
-  if (lower == "running") return TestRunStatus::kRunning;
-  if (lower == "passed") return TestRunStatus::kPassed;
-  if (lower == "failed") return TestRunStatus::kFailed;
-  if (lower == "timeout") return TestRunStatus::kTimeout;
-  if (lower == "unknown") return TestRunStatus::kUnknown;
+  if (lower == "queued")
+    return TestRunStatus::kQueued;
+  if (lower == "running")
+    return TestRunStatus::kRunning;
+  if (lower == "passed")
+    return TestRunStatus::kPassed;
+  if (lower == "failed")
+    return TestRunStatus::kFailed;
+  if (lower == "timeout")
+    return TestRunStatus::kTimeout;
+  if (lower == "unknown")
+    return TestRunStatus::kUnknown;
   return std::nullopt;
 }
 

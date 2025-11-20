@@ -2,9 +2,9 @@
 #include "app/editor/system/editor_card_registry.h"
 
 #include "absl/strings/str_format.h"
-#include "app/gfx/debug/performance/performance_profiler.h"
 #include "app/editor/code/assembly_editor.h"
 #include "app/emu/emulator.h"
+#include "app/gfx/debug/performance/performance_profiler.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/input.h"
 #include "imgui/imgui.h"
@@ -14,19 +14,29 @@ namespace yaze {
 namespace editor {
 
 void MusicEditor::Initialize() {
-  if (!dependencies_.card_registry) return;
+  if (!dependencies_.card_registry)
+    return;
   auto* card_registry = dependencies_.card_registry;
-  
-  card_registry->RegisterCard({.card_id = "music.tracker", .display_name = "Music Tracker",
-                            .icon = ICON_MD_MUSIC_NOTE, .category = "Music",
-                            .shortcut_hint = "Ctrl+Shift+M", .priority = 10});
-  card_registry->RegisterCard({.card_id = "music.instrument_editor", .display_name = "Instrument Editor",
-                            .icon = ICON_MD_PIANO, .category = "Music",
-                            .shortcut_hint = "Ctrl+Shift+I", .priority = 20});
-  card_registry->RegisterCard({.card_id = "music.assembly", .display_name = "Assembly View",
-                            .icon = ICON_MD_CODE, .category = "Music",
-                            .shortcut_hint = "Ctrl+Shift+A", .priority = 30});
-  
+
+  card_registry->RegisterCard({.card_id = "music.tracker",
+                               .display_name = "Music Tracker",
+                               .icon = ICON_MD_MUSIC_NOTE,
+                               .category = "Music",
+                               .shortcut_hint = "Ctrl+Shift+M",
+                               .priority = 10});
+  card_registry->RegisterCard({.card_id = "music.instrument_editor",
+                               .display_name = "Instrument Editor",
+                               .icon = ICON_MD_PIANO,
+                               .category = "Music",
+                               .shortcut_hint = "Ctrl+Shift+I",
+                               .priority = 20});
+  card_registry->RegisterCard({.card_id = "music.assembly",
+                               .display_name = "Assembly View",
+                               .icon = ICON_MD_CODE,
+                               .category = "Music",
+                               .shortcut_hint = "Ctrl+Shift+A",
+                               .priority = 30});
+
   // Show tracker by default
   card_registry->ShowCard("music.tracker");
 }
@@ -37,17 +47,18 @@ absl::Status MusicEditor::Load() {
 }
 
 absl::Status MusicEditor::Update() {
-  if (!dependencies_.card_registry) return absl::OkStatus();
+  if (!dependencies_.card_registry)
+    return absl::OkStatus();
   auto* card_registry = dependencies_.card_registry;
-  
+
   static gui::EditorCard tracker_card("Music Tracker", ICON_MD_MUSIC_NOTE);
   static gui::EditorCard instrument_card("Instrument Editor", ICON_MD_PIANO);
   static gui::EditorCard assembly_card("Assembly View", ICON_MD_CODE);
-  
+
   tracker_card.SetDefaultSize(900, 700);
   instrument_card.SetDefaultSize(600, 500);
   assembly_card.SetDefaultSize(700, 600);
-  
+
   // Music Tracker Card - Check visibility flag exists and is true before rendering
   bool* tracker_visible = card_registry->GetVisibilityFlag("music.tracker");
   if (tracker_visible && *tracker_visible) {
@@ -56,16 +67,17 @@ absl::Status MusicEditor::Update() {
     }
     tracker_card.End();
   }
-  
+
   // Instrument Editor Card - Check visibility flag exists and is true before rendering
-  bool* instrument_visible = card_registry->GetVisibilityFlag("music.instrument_editor");
+  bool* instrument_visible =
+      card_registry->GetVisibilityFlag("music.instrument_editor");
   if (instrument_visible && *instrument_visible) {
     if (instrument_card.Begin(instrument_visible)) {
       DrawInstrumentEditor();
     }
     instrument_card.End();
   }
-  
+
   // Assembly View Card - Check visibility flag exists and is true before rendering
   bool* assembly_visible = card_registry->GetVisibilityFlag("music.assembly");
   if (assembly_visible && *assembly_visible) {
@@ -108,7 +120,8 @@ static void DrawPianoStaff() {
     // Draw the ledger lines
     const int NUM_LEDGER_LINES = 3;
     for (int i = -NUM_LEDGER_LINES; i <= NUM_LINES + NUM_LEDGER_LINES; i++) {
-      if (i % 2 == 0) continue;  // skip every other line
+      if (i % 2 == 0)
+        continue;  // skip every other line
       auto line_start = ImVec2(canvas_p0.x, canvas_p0.y + i * LINE_SPACING / 2);
       auto line_end = ImVec2(canvas_p1.x + ImGui::GetContentRegionAvail().x,
                              canvas_p0.y + i * LINE_SPACING / 2);
@@ -273,19 +286,19 @@ void MusicEditor::PlaySong(int song_id) {
     LOG_WARN("MusicEditor", "No emulator instance - cannot play song");
     return;
   }
-  
+
   if (!emulator_->snes().running()) {
     LOG_WARN("MusicEditor", "Emulator not running - cannot play song");
     return;
   }
-  
+
   // Write song request to game memory ($7E012C)
   // This triggers the NMI handler to send the song to APU
   try {
     emulator_->snes().Write(0x7E012C, static_cast<uint8_t>(song_id));
-    LOG_INFO("MusicEditor", "Requested song %d (%s)", song_id, 
+    LOG_INFO("MusicEditor", "Requested song %d (%s)", song_id,
              song_id < 30 ? kGameSongs[song_id] : "Unknown");
-    
+
     // Ensure audio backend is playing
     if (auto* audio = emulator_->audio_backend()) {
       auto status = audio->GetStatus();
@@ -294,7 +307,7 @@ void MusicEditor::PlaySong(int song_id) {
         LOG_INFO("MusicEditor", "Started audio backend playback");
       }
     }
-    
+
     is_playing_ = true;
   } catch (const std::exception& e) {
     LOG_ERROR("MusicEditor", "Failed to play song: %s", e.what());
@@ -302,18 +315,19 @@ void MusicEditor::PlaySong(int song_id) {
 }
 
 void MusicEditor::StopSong() {
-  if (!emulator_) return;
-  
+  if (!emulator_)
+    return;
+
   // Write stop command to game memory
   try {
     emulator_->snes().Write(0x7E012C, 0xFF);  // 0xFF = stop music
     LOG_INFO("MusicEditor", "Stopped music playback");
-    
+
     // Optional: pause audio backend to save CPU
     if (auto* audio = emulator_->audio_backend()) {
       audio->Pause();
     }
-    
+
     is_playing_ = false;
   } catch (const std::exception& e) {
     LOG_ERROR("MusicEditor", "Failed to stop song: %s", e.what());
@@ -321,11 +335,12 @@ void MusicEditor::StopSong() {
 }
 
 void MusicEditor::SetVolume(float volume) {
-  if (!emulator_) return;
-  
+  if (!emulator_)
+    return;
+
   // Clamp volume to valid range
   volume = std::clamp(volume, 0.0f, 1.0f);
-  
+
   if (auto* audio = emulator_->audio_backend()) {
     audio->SetVolume(volume);
     LOG_DEBUG("MusicEditor", "Set volume to %.2f", volume);

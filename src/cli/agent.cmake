@@ -71,6 +71,9 @@ set(YAZE_AGENT_CORE_SOURCES
   cli/service/testing/test_suite_writer.cc
   cli/service/testing/test_workflow_generator.cc
   cli/service/ai/ai_service.cc
+  cli/service/ai/model_registry.cc
+  cli/service/api/http_server.cc
+  cli/service/api/api_handlers.cc
   
   # Advanced features
   # CommandHandler-based implementations
@@ -123,11 +126,14 @@ set(_yaze_agent_link_targets
   yaze_zelda3
   yaze_emulator
   ${ABSL_TARGETS}
-  yaml-cpp
   ftxui::screen
   ftxui::dom
   ftxui::component
 )
+
+if(YAZE_ENABLE_AI_RUNTIME)
+  list(APPEND _yaze_agent_link_targets yaml-cpp)
+endif()
 
 target_link_libraries(yaze_agent PUBLIC ${_yaze_agent_link_targets})
 

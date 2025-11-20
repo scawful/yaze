@@ -1,9 +1,9 @@
 #ifndef YAZE_APP_ZELDA3_OVERWORLD_EXIT_H
 #define YAZE_APP_ZELDA3_OVERWORLD_EXIT_H
 
+#include <algorithm>
 #include <cstdint>
 #include <cstdlib>
-#include <algorithm>
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
@@ -76,14 +76,15 @@ class OverworldExit : public GameEntity {
   uint8_t scroll_mod_x_;
   uint16_t door_type_1_;
   uint16_t door_type_2_;
-  uint16_t room_id_;   // ZScream: RoomID
-  uint16_t map_pos_;   // VRAM location (ZScream: VRAMLocation)
+  uint16_t room_id_;  // ZScream: RoomID
+  uint16_t map_pos_;  // VRAM location (ZScream: VRAMLocation)
   bool is_hole_ = false;
   bool deleted_ = false;
-  bool is_automatic_ = true;  // FIX: Default to true (matches ZScream ExitOW.cs:101)
+  bool is_automatic_ =
+      true;  // FIX: Default to true (matches ZScream ExitOW.cs:101)
 
   OverworldExit() = default;
-  
+
   /**
    * @brief Constructor for loading exits from ROM
    * 
@@ -128,7 +129,7 @@ class OverworldExit : public GameEntity {
     // ZScream: ExitOW.cs:162-163 (AreaX/AreaY)
     game_x_ = static_cast<int>((std::abs(x_ - (mapX * 512)) / 16));
     game_y_ = static_cast<int>((std::abs(y_ - (mapY * 512)) / 16));
-    
+
     // Door position calculations (used by door editor, not for coordinates)
     // ZScream: ExitOW.cs:145-157
     // These update DoorXEditor/DoorYEditor, NOT AreaX/AreaY

@@ -3,8 +3,8 @@
 
 #include <array>
 #include <cstdint>
-#include <vector>
 #include <mutex>
+#include <vector>
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
@@ -87,8 +87,8 @@ constexpr int kMap32TileTRExpanded = 0x020000;
 constexpr int kMap32TileBLExpanded = 0x1F0000;
 constexpr int kMap32TileBRExpanded = 0x1F8000;
 constexpr int kMap32TileCountExpanded = 0x0067E0;
-constexpr int kMap32ExpandedFlagPos = 0x01772E;              // 0x04
-constexpr int kMap16ExpandedFlagPos = 0x02FD28;              // 0x0F
+constexpr int kMap32ExpandedFlagPos = 0x01772E;  // 0x04
+constexpr int kMap16ExpandedFlagPos = 0x02FD28;  // 0x0F
 
 constexpr int overworldSpritesBeginingExpanded = 0x141438;
 constexpr int overworldSpritesZeldaExpanded = 0x141578;
@@ -127,16 +127,16 @@ constexpr int kNumMapsPerWorld = 0x40;
  */
 class Overworld {
  public:
-  Overworld(Rom *rom) : rom_(rom) {}
+  Overworld(Rom* rom) : rom_(rom) {}
 
-  absl::Status Load(Rom *rom);
+  absl::Status Load(Rom* rom);
   absl::Status LoadOverworldMaps();
   void LoadTileTypes();
 
   absl::Status LoadSprites();
   absl::Status LoadSpritesFromMap(int sprite_start, int sprite_count,
                                   int sprite_index);
-  
+
   /**
    * @brief Build a map on-demand if it hasn't been built yet
    * 
@@ -145,38 +145,41 @@ class Overworld {
    */
   absl::Status EnsureMapBuilt(int map_index);
 
-  absl::Status Save(Rom *rom);
+  absl::Status Save(Rom* rom);
   absl::Status SaveOverworldMaps();
   absl::Status SaveLargeMaps();
   absl::Status SaveLargeMapsExpanded();
-  absl::Status SaveSmallAreaTransitions(int i, int parent_x_pos, int parent_y_pos,
-                                       int transition_target_north, int transition_target_west,
-                                       int transition_pos_x, int transition_pos_y,
-                                       int screen_change_1, int screen_change_2,
-                                       int screen_change_3, int screen_change_4);
-  absl::Status SaveLargeAreaTransitions(int i, int parent_x_pos, int parent_y_pos,
-                                       int transition_target_north, int transition_target_west,
-                                       int transition_pos_x, int transition_pos_y,
-                                       int screen_change_1, int screen_change_2,
-                                       int screen_change_3, int screen_change_4);
-  absl::Status SaveWideAreaTransitions(int i, int parent_x_pos, int parent_y_pos,
-                                      int transition_target_north, int transition_target_west,
-                                      int transition_pos_x, int transition_pos_y,
-                                      int screen_change_1, int screen_change_2,
-                                      int screen_change_3, int screen_change_4);
-  absl::Status SaveTallAreaTransitions(int i, int parent_x_pos, int parent_y_pos,
-                                      int transition_target_north, int transition_target_west,
-                                      int transition_pos_x, int transition_pos_y,
-                                      int screen_change_1, int screen_change_2,
-                                      int screen_change_3, int screen_change_4);
+  absl::Status SaveSmallAreaTransitions(
+      int i, int parent_x_pos, int parent_y_pos, int transition_target_north,
+      int transition_target_west, int transition_pos_x, int transition_pos_y,
+      int screen_change_1, int screen_change_2, int screen_change_3,
+      int screen_change_4);
+  absl::Status SaveLargeAreaTransitions(
+      int i, int parent_x_pos, int parent_y_pos, int transition_target_north,
+      int transition_target_west, int transition_pos_x, int transition_pos_y,
+      int screen_change_1, int screen_change_2, int screen_change_3,
+      int screen_change_4);
+  absl::Status SaveWideAreaTransitions(
+      int i, int parent_x_pos, int parent_y_pos, int transition_target_north,
+      int transition_target_west, int transition_pos_x, int transition_pos_y,
+      int screen_change_1, int screen_change_2, int screen_change_3,
+      int screen_change_4);
+  absl::Status SaveTallAreaTransitions(
+      int i, int parent_x_pos, int parent_y_pos, int transition_target_north,
+      int transition_target_west, int transition_pos_x, int transition_pos_y,
+      int screen_change_1, int screen_change_2, int screen_change_3,
+      int screen_change_4);
   absl::Status SaveEntrances();
   absl::Status SaveExits();
   absl::Status SaveItems();
   absl::Status SaveMapOverlays();
   absl::Status SaveOverworldTilesType();
-  absl::Status SaveCustomOverworldASM(bool enable_bg_color, bool enable_main_palette,
-                                     bool enable_mosaic, bool enable_gfx_groups,
-                                     bool enable_subscreen_overlay, bool enable_animated);
+  absl::Status SaveCustomOverworldASM(bool enable_bg_color,
+                                      bool enable_main_palette,
+                                      bool enable_mosaic,
+                                      bool enable_gfx_groups,
+                                      bool enable_subscreen_overlay,
+                                      bool enable_animated);
   absl::Status SaveAreaSpecificBGColors();
 
   absl::Status CreateTile32Tilemap();
@@ -189,7 +192,7 @@ class Overworld {
   absl::Status SaveMusic();
   absl::Status SaveAreaSizes();
   void AssignMapSizes(std::vector<OverworldMap>& maps);
-  
+
   /**
    * @brief Configure a multi-area map structure (Large/Wide/Tall)
    * @param parent_index The parent map index
@@ -204,14 +207,14 @@ class Overworld {
   auto mutable_rom() { return rom_; }
 
   void Destroy() {
-    for (auto &map : overworld_maps_) {
+    for (auto& map : overworld_maps_) {
       map.Destroy();
     }
     overworld_maps_.clear();
     all_entrances_.clear();
     all_exits_.clear();
     all_items_.clear();
-    for (auto &sprites : all_sprites_) {
+    for (auto& sprites : all_sprites_) {
       sprites.clear();
     }
     tiles16_.clear();
@@ -230,7 +233,7 @@ class Overworld {
     }
   }
 
-  OverworldBlockset &GetMapTiles(int world_type) {
+  OverworldBlockset& GetMapTiles(int world_type) {
     switch (world_type) {
       case 0:
         return map_tiles_.light_world;
@@ -256,11 +259,13 @@ class Overworld {
   auto current_graphics() const {
     return overworld_maps_[current_map_].current_graphics();
   }
-  const std::vector<OverworldEntrance> &entrances() const { return all_entrances_; }
-  auto &entrances() { return all_entrances_; }
+  const std::vector<OverworldEntrance>& entrances() const {
+    return all_entrances_;
+  }
+  auto& entrances() { return all_entrances_; }
   auto mutable_entrances() { return &all_entrances_; }
-  const std::vector<OverworldEntrance> &holes() const { return all_holes_; }
-  auto &holes() { return all_holes_; }
+  const std::vector<OverworldEntrance>& holes() const { return all_holes_; }
+  auto& holes() { return all_holes_; }
   auto mutable_holes() { return &all_holes_; }
   auto deleted_entrances() const { return deleted_entrances_; }
   auto mutable_deleted_entrances() { return &deleted_entrances_; }
@@ -316,17 +321,17 @@ class Overworld {
   void FetchLargeMaps();
   absl::StatusOr<uint16_t> GetTile16ForTile32(int index, int quadrant,
                                               int dimension,
-                                              const uint32_t *map32address);
+                                              const uint32_t* map32address);
   absl::Status AssembleMap32Tiles();
   absl::Status AssembleMap16Tiles();
   void AssignWorldTiles(int x, int y, int sx, int sy, int tpos,
-                        OverworldBlockset &world);
-  void OrganizeMapTiles(std::vector<uint8_t> &bytes,
-                        std::vector<uint8_t> &bytes2, int i, int sx, int sy,
-                        int &ttpos);
+                        OverworldBlockset& world);
+  void OrganizeMapTiles(std::vector<uint8_t>& bytes,
+                        std::vector<uint8_t>& bytes2, int i, int sx, int sy,
+                        int& ttpos);
   absl::Status DecompressAllMapTilesParallel();
 
-  Rom *rom_;
+  Rom* rom_;
 
   bool is_loaded_ = false;
   bool expanded_tile16_ = false;

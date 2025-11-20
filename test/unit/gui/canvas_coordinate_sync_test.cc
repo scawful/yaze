@@ -27,8 +27,8 @@ class CanvasCoordinateSyncTest : public ::testing::Test {
  protected:
   void SetUp() override {
     // Create a test canvas with known dimensions (4096x4096 for overworld)
-    canvas_ = std::make_unique<gui::Canvas>("OverworldCanvas", ImVec2(4096, 4096),
-                                             gui::CanvasGridSize::k16x16);
+    canvas_ = std::make_unique<gui::Canvas>(
+        "OverworldCanvas", ImVec2(4096, 4096), gui::CanvasGridSize::k16x16);
     canvas_->set_global_scale(1.0f);
   }
 
@@ -100,16 +100,15 @@ TEST_F(CanvasCoordinateSyncTest, MapCalculation_SmallMaps) {
 
   // Simulate hover at different world positions
   std::vector<ImVec2> test_positions = {
-    ImVec2(0, 0),       // Map (0, 0)
-    ImVec2(512, 0),     // Map (1, 0)
-    ImVec2(0, 512),     // Map (0, 1)
-    ImVec2(512, 512),   // Map (1, 1)
-    ImVec2(1536, 1024), // Map (3, 2)
+      ImVec2(0, 0),        // Map (0, 0)
+      ImVec2(512, 0),      // Map (1, 0)
+      ImVec2(0, 512),      // Map (0, 1)
+      ImVec2(512, 512),    // Map (1, 1)
+      ImVec2(1536, 1024),  // Map (3, 2)
   };
 
   std::vector<std::pair<int, int>> expected_maps = {
-    {0, 0}, {1, 0}, {0, 1}, {1, 1}, {3, 2}
-  };
+      {0, 0}, {1, 0}, {0, 1}, {1, 1}, {3, 2}};
 
   for (size_t i = 0; i < test_positions.size(); ++i) {
     ImVec2 pos = test_positions[i];
@@ -127,15 +126,14 @@ TEST_F(CanvasCoordinateSyncTest, MapCalculation_LargeMaps) {
 
   // Large maps should span multiple standard map coordinates
   std::vector<ImVec2> test_positions = {
-    ImVec2(0, 0),         // Large map (0, 0)
-    ImVec2(1024, 0),      // Large map (1, 0)
-    ImVec2(0, 1024),      // Large map (0, 1)
-    ImVec2(2048, 2048),   // Large map (2, 2)
+      ImVec2(0, 0),        // Large map (0, 0)
+      ImVec2(1024, 0),     // Large map (1, 0)
+      ImVec2(0, 1024),     // Large map (0, 1)
+      ImVec2(2048, 2048),  // Large map (2, 2)
   };
 
   std::vector<std::pair<int, int>> expected_large_maps = {
-    {0, 0}, {1, 0}, {0, 1}, {2, 2}
-  };
+      {0, 0}, {1, 0}, {0, 1}, {2, 2}};
 
   for (size_t i = 0; i < test_positions.size(); ++i) {
     ImVec2 pos = test_positions[i];
@@ -210,19 +208,19 @@ TEST_F(CanvasCoordinateSyncTest, OverworldMapIndex_From8x8Grid) {
   };
 
   std::vector<TestCase> test_cases = {
-    // Light World (0x00 - 0x3F)
-    {ImVec2(0, 0), 0, 0},              // Map 0 (Light World)
-    {ImVec2(512, 0), 0, 1},            // Map 1
-    {ImVec2(1024, 512), 0, 10},        // Map 10 = 2 + 1*8
+      // Light World (0x00 - 0x3F)
+      {ImVec2(0, 0), 0, 0},        // Map 0 (Light World)
+      {ImVec2(512, 0), 0, 1},      // Map 1
+      {ImVec2(1024, 512), 0, 10},  // Map 10 = 2 + 1*8
 
-    // Dark World (0x40 - 0x7F)
-    {ImVec2(0, 0), 1, 0x40},           // Map 0x40 (Dark World)
-    {ImVec2(512, 0), 1, 0x41},         // Map 0x41
-    {ImVec2(1024, 512), 1, 0x4A},      // Map 0x4A = 0x40 + 10
+      // Dark World (0x40 - 0x7F)
+      {ImVec2(0, 0), 1, 0x40},       // Map 0x40 (Dark World)
+      {ImVec2(512, 0), 1, 0x41},     // Map 0x41
+      {ImVec2(1024, 512), 1, 0x4A},  // Map 0x4A = 0x40 + 10
 
-    // Special World (0x80+)
-    {ImVec2(0, 0), 2, 0x80},           // Map 0x80 (Special World)
-    {ImVec2(512, 512), 2, 0x89},       // Map 0x89 = 0x80 + 9
+      // Special World (0x80+)
+      {ImVec2(0, 0), 2, 0x80},      // Map 0x80 (Special World)
+      {ImVec2(512, 512), 2, 0x89},  // Map 0x89 = 0x80 + 9
   };
 
   for (const auto& tc : test_cases) {
@@ -237,8 +235,8 @@ TEST_F(CanvasCoordinateSyncTest, OverworldMapIndex_From8x8Grid) {
     }
 
     EXPECT_EQ(hovered_map, tc.expected_map_index)
-        << "Failed for world " << tc.current_world
-        << " at position (" << tc.hover_pos.x << ", " << tc.hover_pos.y << ")";
+        << "Failed for world " << tc.current_world << " at position ("
+        << tc.hover_pos.x << ", " << tc.hover_pos.y << ")";
   }
 }
 
@@ -252,12 +250,12 @@ TEST_F(CanvasCoordinateSyncTest, MapBoundaries_512x512) {
 
   // Boundary coordinates (edges of maps)
   std::vector<ImVec2> boundary_positions = {
-    ImVec2(511, 0),      // Right edge of map 0
-    ImVec2(512, 0),      // Left edge of map 1
-    ImVec2(0, 511),      // Bottom edge of map 0
-    ImVec2(0, 512),      // Top edge of map 8
-    ImVec2(511, 511),    // Corner of map 0
-    ImVec2(512, 512),    // Corner of map 9
+      ImVec2(511, 0),    // Right edge of map 0
+      ImVec2(512, 0),    // Left edge of map 1
+      ImVec2(0, 511),    // Bottom edge of map 0
+      ImVec2(0, 512),    // Top edge of map 8
+      ImVec2(511, 511),  // Corner of map 0
+      ImVec2(512, 512),  // Corner of map 9
   };
 
   for (const auto& pos : boundary_positions) {
@@ -276,10 +274,10 @@ TEST_F(CanvasCoordinateSyncTest, MapBoundaries_1024x1024) {
   const int kLargeMapSize = 1024;
 
   std::vector<ImVec2> boundary_positions = {
-    ImVec2(1023, 0),     // Right edge of large map 0
-    ImVec2(1024, 0),     // Left edge of large map 1
-    ImVec2(0, 1023),     // Bottom edge of large map 0
-    ImVec2(0, 1024),     // Top edge of large map 4 (0,1 in 4x4 grid)
+      ImVec2(1023, 0),  // Right edge of large map 0
+      ImVec2(1024, 0),  // Left edge of large map 1
+      ImVec2(0, 1023),  // Bottom edge of large map 0
+      ImVec2(0, 1024),  // Top edge of large map 4 (0,1 in 4x4 grid)
   };
 
   for (const auto& pos : boundary_positions) {

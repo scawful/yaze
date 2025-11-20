@@ -27,7 +27,7 @@ class PlatformPaths {
    * @return Path to user's home directory, or "." if not available
    */
   static std::filesystem::path GetHomeDirectory();
-  
+
   /**
    * @brief Get the user-specific application data directory for YAZE.
    *
@@ -53,7 +53,7 @@ class PlatformPaths {
    * @return StatusOr with path to the configuration directory.
    */
   static absl::StatusOr<std::filesystem::path> GetConfigDirectory();
-  
+
   /**
    * @brief Get a subdirectory within the app data folder
    * 
@@ -64,7 +64,7 @@ class PlatformPaths {
    */
   static absl::StatusOr<std::filesystem::path> GetAppDataSubdirectory(
       const std::string& subdir);
-  
+
   /**
    * @brief Ensure a directory exists, creating it if necessary
    * 
@@ -74,7 +74,7 @@ class PlatformPaths {
    * @return OK if directory exists or was created successfully
    */
   static absl::Status EnsureDirectoryExists(const std::filesystem::path& path);
-  
+
   /**
    * @brief Check if a file or directory exists
    * 
@@ -82,7 +82,7 @@ class PlatformPaths {
    * @return true if exists, false otherwise
    */
   static bool Exists(const std::filesystem::path& path);
-  
+
   /**
    * @brief Get a temporary directory for the application
    * 
@@ -92,7 +92,7 @@ class PlatformPaths {
    * @return StatusOr with path to temp directory
    */
   static absl::StatusOr<std::filesystem::path> GetTempDirectory();
-  
+
   /**
    * @brief Normalize path separators for display
    * 
@@ -103,7 +103,7 @@ class PlatformPaths {
    * @return Normalized path string
    */
   static std::string NormalizePathForDisplay(const std::filesystem::path& path);
-  
+
   /**
    * @brief Convert path to native format
    * 
@@ -113,7 +113,7 @@ class PlatformPaths {
    * @return Native path string
    */
   static std::string ToNativePath(const std::filesystem::path& path);
-  
+
   /**
    * @brief Find an asset file in multiple standard locations
    * 
