@@ -54,23 +54,6 @@ if(YAZE_ENABLE_GRPC)
     absl::strings
     absl::str_format
   )
-
-  # CRITICAL FIX FOR WINDOWS: Explicitly add Abseil include directory
-  # When gRPC bundles Abseil, the include paths don't always propagate correctly
-  # on Windows with Ninja + clang-cl. We need to explicitly add the Abseil source
-  # directory where headers are located.
-  if(WIN32)
-    # Get Abseil source directory from CPM or gRPC fetch
-    if(DEFINED absl_SOURCE_DIR)
-      target_include_directories(yaze_util PUBLIC ${absl_SOURCE_DIR})
-      message(STATUS "Windows: Added explicit Abseil include path: ${absl_SOURCE_DIR}")
-    elseif(DEFINED grpc_SOURCE_DIR AND EXISTS "${grpc_SOURCE_DIR}/third_party/abseil-cpp")
-      target_include_directories(yaze_util PUBLIC "${grpc_SOURCE_DIR}/third_party/abseil-cpp")
-      message(STATUS "Windows: Added explicit Abseil include path from gRPC: ${grpc_SOURCE_DIR}/third_party/abseil-cpp")
-    else()
-      message(WARNING "Windows: Could not find Abseil source directory - build may fail")
-    endif()
-  endif()
 else()
   # Link standalone Abseil targets (configured in cmake/absl.cmake)
   target_link_libraries(yaze_util PUBLIC
@@ -79,6 +62,43 @@ else()
     absl::strings
     absl::str_format
   )
+endif()
+
+# CRITICAL FIX FOR WINDOWS: Explicitly add Abseil include directory
+# Issue: Windows builds with Ninja + clang-cl fail to find Abseil headers even when
+# linking to absl::* targets. This affects BOTH standalone Abseil AND gRPC-bundled Abseil.
+#
+# Root cause: In ci-windows preset, YAZE_ENABLE_GRPC=ON but YAZE_ENABLE_REMOTE_AUTOMATION=OFF,
+# which causes options.cmake to forcibly disable gRPC. This means standalone Abseil is used,
+# but the previous fix only ran when YAZE_ENABLE_GRPC=ON, so it never applied.
+#
+# Solution: Apply include path fix unconditionally on Windows, with multi-source detection:
+# 1. Check YAZE_ABSL_SOURCE_DIR (exported from cmake/absl.cmake for standalone Abseil)
+# 2. Check absl_SOURCE_DIR (direct FetchContent variable)
+# 3. Check grpc_SOURCE_DIR/third_party/abseil-cpp (gRPC-bundled Abseil)
+if(WIN32)
+  set(_absl_include_found FALSE)
+
+  # Priority 1: Check YAZE_ABSL_SOURCE_DIR (exported by cmake/absl.cmake)
+  if(DEFINED YAZE_ABSL_SOURCE_DIR AND EXISTS "${YAZE_ABSL_SOURCE_DIR}")
+    target_include_directories(yaze_util PUBLIC ${YAZE_ABSL_SOURCE_DIR})
+    message(STATUS "Windows: Added explicit Abseil include path (standalone): ${YAZE_ABSL_SOURCE_DIR}")
+    set(_absl_include_found TRUE)
+  # Priority 2: Check absl_SOURCE_DIR (direct FetchContent variable)
+  elseif(DEFINED absl_SOURCE_DIR AND EXISTS "${absl_SOURCE_DIR}")
+    target_include_directories(yaze_util PUBLIC ${absl_SOURCE_DIR})
+    message(STATUS "Windows: Added explicit Abseil include path (FetchContent): ${absl_SOURCE_DIR}")
+    set(_absl_include_found TRUE)
+  # Priority 3: Check gRPC-bundled Abseil
+  elseif(DEFINED grpc_SOURCE_DIR AND EXISTS "${grpc_SOURCE_DIR}/third_party/abseil-cpp")
+    target_include_directories(yaze_util PUBLIC "${grpc_SOURCE_DIR}/third_party/abseil-cpp")
+    message(STATUS "Windows: Added explicit Abseil include path (gRPC-bundled): ${grpc_SOURCE_DIR}/third_party/abseil-cpp")
+    set(_absl_include_found TRUE)
+  endif()
+
+  if(NOT _absl_include_found)
+    message(WARNING "Windows: Could not find Abseil source directory - build may fail with 'absl/status/statusor.h' not found")
+  endif()
 endif()
 
 set_target_properties(yaze_util PROPERTIES
