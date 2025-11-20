@@ -27,8 +27,15 @@ option(YAZE_BUILD_AGENT_UI
 option(YAZE_ENABLE_AGENT_CLI
   "Build the conversational agent CLI stack (z3ed agent commands)"
   ${YAZE_BUILD_CLI})
+option(YAZE_ENABLE_HTTP_API
+  "Enable HTTP REST API server for external agent access"
+  ${YAZE_ENABLE_AGENT_CLI})
 
 if((YAZE_BUILD_CLI OR YAZE_BUILD_Z3ED) AND NOT YAZE_ENABLE_AGENT_CLI)
+  set(YAZE_ENABLE_AGENT_CLI ON CACHE BOOL "Build the conversational agent CLI stack (z3ed agent commands)" FORCE)
+endif()
+
+if(YAZE_ENABLE_HTTP_API AND NOT YAZE_ENABLE_AGENT_CLI)
   set(YAZE_ENABLE_AGENT_CLI ON CACHE BOOL "Build the conversational agent CLI stack (z3ed agent commands)" FORCE)
 endif()
 
@@ -84,6 +91,10 @@ if(YAZE_ENABLE_AI_RUNTIME)
   add_compile_definitions(YAZE_AI_RUNTIME_AVAILABLE)
 endif()
 
+if(YAZE_ENABLE_HTTP_API)
+  add_compile_definitions(YAZE_HTTP_API_ENABLED)
+endif()
+
 # Print configuration summary
 message(STATUS "=== YAZE Build Configuration ===")
 message(STATUS "GUI Application: ${YAZE_BUILD_GUI}")
@@ -99,6 +110,7 @@ message(STATUS "AI Runtime: ${YAZE_ENABLE_AI_RUNTIME}")
 message(STATUS "AI Features (legacy): ${YAZE_ENABLE_AI}")
 message(STATUS "Agent UI Panels: ${YAZE_BUILD_AGENT_UI}")
 message(STATUS "Agent CLI Stack: ${YAZE_ENABLE_AGENT_CLI}")
+message(STATUS "HTTP API Server: ${YAZE_ENABLE_HTTP_API}")
 message(STATUS "LTO: ${YAZE_ENABLE_LTO}")
 message(STATUS "Sanitizers: ${YAZE_ENABLE_SANITIZERS}")
 message(STATUS "Coverage: ${YAZE_ENABLE_COVERAGE}")

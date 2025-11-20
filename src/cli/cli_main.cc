@@ -14,10 +14,19 @@
 #include "cli/z3ed_ascii_logo.h"
 #include "yaze_config.h"
 
+#ifdef YAZE_HTTP_API_ENABLED
+#include "cli/service/api/http_server.h"
+#include "util/log.h"
+#endif
+
 // Define all CLI flags
 ABSL_FLAG(bool, tui, false, "Launch interactive Text User Interface");
 ABSL_FLAG(bool, quiet, false, "Suppress non-essential output");
 ABSL_FLAG(bool, version, false, "Show version information");
+#ifdef YAZE_HTTP_API_ENABLED
+ABSL_FLAG(int, http_port, 0, "HTTP API server port (0 = disabled, default: 8080 when enabled)");
+ABSL_FLAG(std::string, http_host, "localhost", "HTTP API server host (default: localhost)");
+#endif
 ABSL_DECLARE_FLAG(std::string, rom);
 ABSL_DECLARE_FLAG(std::string, ai_provider);
 ABSL_DECLARE_FLAG(std::string, ai_model);
@@ -64,7 +73,12 @@ void PrintCompactHelp() {
   std::cout << "  --tui                  Launch interactive TUI\n";
   std::cout << "  --quiet, -q            Suppress output\n";
   std::cout << "  --version              Show version\n";
-  std::cout << "  --help <category>      Show category help\n\n";
+  std::cout << "  --help <category>      Show category help\n";
+#ifdef YAZE_HTTP_API_ENABLED
+  std::cout << "  --http-port=<port>     HTTP API server port (0=disabled)\n";
+  std::cout << "  --http-host=<host>     HTTP API server host (default: localhost)\n";
+#endif
+  std::cout << "\n";
   
   std::cout << "\033[1;36mEXAMPLES:\033[0m\n";
   std::cout << "  z3ed agent test-conversation --rom=zelda3.sfc\n";
@@ -260,6 +274,51 @@ ParsedGlobals ParseGlobalFlags(int argc, char* argv[]) {
         absl::SetFlag(&FLAGS_use_function_calling, value == "true" || value == "1");
         continue;
       }
+
+#ifdef YAZE_HTTP_API_ENABLED
+      // HTTP server flags
+      if (absl::StartsWith(token, "--http-port=") ||
+          absl::StartsWith(token, "--http_port=")) {
+        size_t eq_pos = token.find('=');
+        try {
+          int port = std::stoi(std::string(token.substr(eq_pos + 1)));
+          absl::SetFlag(&FLAGS_http_port, port);
+        } catch (...) {
+          result.error = "--http-port requires an integer value";
+          return result;
+        }
+        continue;
+      }
+      if (token == "--http-port" || token == "--http_port") {
+        if (i + 1 >= argc) {
+          result.error = "--http-port flag requires a value";
+          return result;
+        }
+        try {
+          int port = std::stoi(std::string(argv[++i]));
+          absl::SetFlag(&FLAGS_http_port, port);
+        } catch (...) {
+          result.error = "--http-port requires an integer value";
+          return result;
+        }
+        continue;
+      }
+
+      if (absl::StartsWith(token, "--http-host=") ||
+          absl::StartsWith(token, "--http_host=")) {
+        size_t eq_pos = token.find('=');
+        absl::SetFlag(&FLAGS_http_host, std::string(token.substr(eq_pos + 1)));
+        continue;
+      }
+      if (token == "--http-host" || token == "--http_host") {
+        if (i + 1 >= argc) {
+          result.error = "--http-host flag requires a value";
+          return result;
+        }
+        absl::SetFlag(&FLAGS_http_host, std::string(argv[++i]));
+        continue;
+      }
+#endif
     }
 
     result.positional.push_back(current);
@@ -285,6 +344,34 @@ int main(int argc, char* argv[]) {
     PrintVersion();
     return EXIT_SUCCESS;
   }
+
+#ifdef YAZE_HTTP_API_ENABLED
+  // Start HTTP API server if requested
+  std::unique_ptr<yaze::cli::api::HttpServer> http_server;
+  int http_port = absl::GetFlag(FLAGS_http_port);
+
+  if (http_port > 0) {
+    std::string http_host = absl::GetFlag(FLAGS_http_host);
+    http_server = std::make_unique<yaze::cli::api::HttpServer>();
+
+    auto status = http_server->Start(http_port);
+    if (!status.ok()) {
+      std::cerr << "\n\033[1;31mWarning:\033[0m Failed to start HTTP API server: "
+                << status.message() << "\n";
+      std::cerr << "Continuing without HTTP API...\n\n";
+      http_server.reset();
+    } else if (!absl::GetFlag(FLAGS_quiet)) {
+      std::cout << "\033[1;32m✓\033[0m HTTP API server started on "
+                << http_host << ":" << http_port << "\n";
+      std::cout << "  Health check: http://" << http_host << ":" << http_port
+                << "/api/v1/health\n";
+      std::cout << "  Models list:  http://" << http_host << ":" << http_port
+                << "/api/v1/models\n\n";
+    }
+  } else if (http_port == 0 && !absl::GetFlag(FLAGS_quiet)) {
+    // Port 0 means explicitly disabled, only show message in verbose mode
+  }
+#endif
 
   // Handle TUI mode
   if (absl::GetFlag(FLAGS_tui)) {
