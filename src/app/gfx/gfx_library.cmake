@@ -66,6 +66,7 @@ set(GFX_RESOURCE_SRC
 # build_cleaner:auto-maintain
 set(GFX_CORE_SRC
   app/gfx/core/bitmap.cc
+  app/gfx/render/atlas_renderer.cc
   app/gfx/render/background_buffer.cc
   app/gfx/resource/arena.cc
 )
@@ -80,7 +81,6 @@ set(GFX_UTIL_SRC
 
 # build_cleaner:auto-maintain
 set(GFX_RENDER_SRC
-  app/gfx/render/atlas_renderer.cc
   app/gfx/render/texture_atlas.cc
   app/gfx/render/tilemap.cc
 )
@@ -125,13 +125,12 @@ target_link_libraries(yaze_gfx_render PUBLIC
   ${YAZE_SDL2_TARGETS}
 )
 
-# Layer 3c: Debug tools (depends on types, render, and resource)
+# Layer 3c: Debug tools (depends on types and resource)
 add_library(yaze_gfx_debug STATIC ${GFX_DEBUG_SRC})
 configure_gfx_library(yaze_gfx_debug)
 target_link_libraries(yaze_gfx_debug PUBLIC
   yaze_gfx_types
   yaze_gfx_resource
-  yaze_gfx_render
   ImGui
   ${YAZE_SDL2_TARGETS}
 )
