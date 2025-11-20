@@ -106,40 +106,11 @@ elseif(APPLE)
 elseif(WIN32)
   target_compile_definitions(yaze_util PRIVATE WINDOWS)
 
-  # CRITICAL FIX: clang-cl on Windows needs explicit /std:c++latest for std::filesystem
-  # clang-cl uses Clang's compiler but must interface with MSVC STL. Without this flag,
-  # it only finds std::experimental::filesystem (pre-C++17 version).
-  #
-  # Detection strategy:
-  # 1. Check CMAKE_CXX_SIMULATE_ID == "MSVC" (set when compiler simulates MSVC)
-  # 2. Or check CMAKE_CXX_COMPILER_FRONTEND_VARIANT == "MSVC" (CMake 3.14+)
-  # 3. Or check compiler executable name contains "clang-cl"
-
-  set(IS_CLANG_CL FALSE)
-
-  if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    # Method 1: CMAKE_CXX_SIMULATE_ID is most reliable
-    if(CMAKE_CXX_SIMULATE_ID STREQUAL "MSVC")
-      set(IS_CLANG_CL TRUE)
-      message(STATUS "Detected clang-cl via CMAKE_CXX_SIMULATE_ID=MSVC")
-    # Method 2: CMAKE_CXX_COMPILER_FRONTEND_VARIANT (CMake 3.14+)
-    elseif(DEFINED CMAKE_CXX_COMPILER_FRONTEND_VARIANT AND CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
-      set(IS_CLANG_CL TRUE)
-      message(STATUS "Detected clang-cl via CMAKE_CXX_COMPILER_FRONTEND_VARIANT=MSVC")
-    # Method 3: Check executable name
-    elseif(CMAKE_CXX_COMPILER MATCHES "clang-cl")
-      set(IS_CLANG_CL TRUE)
-      message(STATUS "Detected clang-cl via compiler executable name")
-    endif()
-
-    if(IS_CLANG_CL)
-      # Use MSVC-style /std:c++latest flag for clang-cl
-      target_compile_options(yaze_util PUBLIC /std:c++latest)
-      message(STATUS "Applied /std:c++latest to yaze_util for std::filesystem support")
-    else()
-      message(STATUS "Regular Clang on Windows detected, using inherited C++23 flags")
-    endif()
-  endif()
+  # CRITICAL FIX: Windows builds need /std:c++latest for std::filesystem support
+  # clang-cl requires this flag to access std::filesystem from MSVC STL
+  # (without it, only std::experimental::filesystem is available)
+  target_compile_options(yaze_util PUBLIC /std:c++latest)
+  message(STATUS "Applied /std:c++latest to yaze_util for std::filesystem support on Windows")
 endif()
 
 message(STATUS "✓ yaze_util library configured")
