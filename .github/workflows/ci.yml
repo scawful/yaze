@@ -38,6 +38,11 @@ on:
         required: false
         default: false
         type: boolean
+      enable_http_api_tests:
+        description: 'Enable HTTP API tests'
+        required: false
+        default: false
+        type: boolean
 
 env:
   BUILD_TYPE: ${{ github.event.inputs.build_type || 'RelWithDebInfo' }}
@@ -147,6 +152,10 @@ jobs:
         with:
           test-type: unit
           preset: ${{ matrix.preset }}
+
+      - name: Run HTTP API tests
+        if: github.event.inputs.enable_http_api_tests == 'true'
+        run: scripts/agents/test-http-api.sh
 
   windows-agent:
     name: "Windows Agent (Full Stack)"
