@@ -21,7 +21,7 @@ class RomInfoCommandHandler : public resources::CommandHandler {
   }
 
   absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
-                      resources::OutputFormatter& formatter) override;
+                       resources::OutputFormatter& formatter) override;
 };
 
 /**
@@ -38,7 +38,7 @@ class RomValidateCommandHandler : public resources::CommandHandler {
   }
 
   absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
-                      resources::OutputFormatter& formatter) override;
+                       resources::OutputFormatter& formatter) override;
 };
 
 /**
@@ -48,14 +48,16 @@ class RomDiffCommandHandler : public resources::CommandHandler {
  public:
   std::string GetName() const { return "rom-diff"; }
   std::string GetDescription() const { return "Compare two ROM files"; }
-  std::string GetUsage() const { return "rom-diff --rom_a <file> --rom_b <file>"; }
+  std::string GetUsage() const {
+    return "rom-diff --rom_a <file> --rom_b <file>";
+  }
 
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
     return parser.RequireArgs({"rom_a", "rom_b"});
   }
 
   absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
-                      resources::OutputFormatter& formatter) override;
+                       resources::OutputFormatter& formatter) override;
 };
 
 /**
@@ -64,15 +66,19 @@ class RomDiffCommandHandler : public resources::CommandHandler {
 class RomGenerateGoldenCommandHandler : public resources::CommandHandler {
  public:
   std::string GetName() const { return "rom-generate-golden"; }
-  std::string GetDescription() const { return "Generate golden ROM file for testing"; }
-  std::string GetUsage() const { return "rom-generate-golden --rom_file <file> --golden_file <file>"; }
+  std::string GetDescription() const {
+    return "Generate golden ROM file for testing";
+  }
+  std::string GetUsage() const {
+    return "rom-generate-golden --rom_file <file> --golden_file <file>";
+  }
 
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
     return parser.RequireArgs({"rom_file", "golden_file"});
   }
 
   absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
-                      resources::OutputFormatter& formatter) override;
+                       resources::OutputFormatter& formatter) override;
 };
 
 }  // namespace handlers

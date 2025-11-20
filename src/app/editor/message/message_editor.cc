@@ -7,19 +7,19 @@
 #include "absl/status/status.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
-#include "app/gfx/resource/arena.h"
-#include "app/gfx/debug/performance/performance_profiler.h"
-#include "util/file_util.h"
 #include "app/gfx/core/bitmap.h"
+#include "app/gfx/debug/performance/performance_profiler.h"
+#include "app/gfx/resource/arena.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/gfx/types/snes_tile.h"
 #include "app/gui/canvas/canvas.h"
-#include "app/gui/core/style.h"
 #include "app/gui/core/icons.h"
-#include "app/rom.h"
 #include "app/gui/core/input.h"
+#include "app/gui/core/style.h"
+#include "app/rom.h"
 #include "imgui.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
+#include "util/file_util.h"
 #include "util/hex.h"
 #include "util/log.h"
 
@@ -40,7 +40,6 @@ std::string DisplayTextOverflowError(int pos, bool bank) {
   return message;
 }
 }  // namespace
-
 
 using ImGui::BeginChild;
 using ImGui::BeginTable;
@@ -64,45 +63,38 @@ constexpr ImGuiTableFlags kMessageTableFlags = ImGuiTableFlags_Hideable |
 
 void MessageEditor::Initialize() {
   // Register cards with EditorCardRegistry (dependency injection)
-  if (!dependencies_.card_registry) return;
-  
+  if (!dependencies_.card_registry)
+    return;
+
   auto* card_registry = dependencies_.card_registry;
-  
-  card_registry->RegisterCard({
-      .card_id = MakeCardId("message.message_list"),
-      .display_name = "Message List",
-      .icon = ICON_MD_LIST,
-      .category = "Message",
-      .priority = 10
-  });
-  
-  card_registry->RegisterCard({
-      .card_id = MakeCardId("message.message_editor"),
-      .display_name = "Message Editor",
-      .icon = ICON_MD_EDIT,
-      .category = "Message",
-      .priority = 20
-  });
-  
-  card_registry->RegisterCard({
-      .card_id = MakeCardId("message.font_atlas"),
-      .display_name = "Font Atlas",
-      .icon = ICON_MD_FONT_DOWNLOAD,
-      .category = "Message",
-      .priority = 30
-  });
-  
-  card_registry->RegisterCard({
-      .card_id = MakeCardId("message.dictionary"),
-      .display_name = "Dictionary",
-      .icon = ICON_MD_BOOK,
-      .category = "Message",
-      .priority = 40
-  });
-  
+
+  card_registry->RegisterCard({.card_id = MakeCardId("message.message_list"),
+                               .display_name = "Message List",
+                               .icon = ICON_MD_LIST,
+                               .category = "Message",
+                               .priority = 10});
+
+  card_registry->RegisterCard({.card_id = MakeCardId("message.message_editor"),
+                               .display_name = "Message Editor",
+                               .icon = ICON_MD_EDIT,
+                               .category = "Message",
+                               .priority = 20});
+
+  card_registry->RegisterCard({.card_id = MakeCardId("message.font_atlas"),
+                               .display_name = "Font Atlas",
+                               .icon = ICON_MD_FONT_DOWNLOAD,
+                               .category = "Message",
+                               .priority = 30});
+
+  card_registry->RegisterCard({.card_id = MakeCardId("message.dictionary"),
+                               .display_name = "Dictionary",
+                               .icon = ICON_MD_BOOK,
+                               .category = "Message",
+                               .priority = 40});
+
   // Show message list by default
   card_registry->ShowCard(MakeCardId("message.message_list"));
-  
+
   for (int i = 0; i < kWidthArraySize; i++) {
     message_preview_.width_array[i] = rom()->data()[kCharactersWidth + i];
   }
@@ -116,16 +108,17 @@ void MessageEditor::Initialize() {
   }
   message_preview_.font_gfx16_data_ =
       gfx::SnesTo8bppSheet(raw_font_gfx_data_, /*bpp=*/2, /*num_sheets=*/2);
-  
+
   // Create bitmap for font graphics
-  font_gfx_bitmap_.Create(kFontGfxMessageSize, kFontGfxMessageSize, 
-                         kFontGfxMessageDepth, message_preview_.font_gfx16_data_);
+  font_gfx_bitmap_.Create(kFontGfxMessageSize, kFontGfxMessageSize,
+                          kFontGfxMessageDepth,
+                          message_preview_.font_gfx16_data_);
   font_gfx_bitmap_.SetPalette(font_preview_colors_);
-  
+
   // Queue texture creation - will be processed in render loop
-  gfx::Arena::Get().QueueTextureCommand(
-      gfx::Arena::TextureCommandType::CREATE, &font_gfx_bitmap_);
-  
+  gfx::Arena::Get().QueueTextureCommand(gfx::Arena::TextureCommandType::CREATE,
+                                        &font_gfx_bitmap_);
+
   LOG_INFO("MessageEditor", "Font bitmap created and texture queued");
   *current_font_gfx16_bitmap_.mutable_palette() = font_preview_colors_;
 
@@ -140,18 +133,20 @@ void MessageEditor::Initialize() {
   DrawMessagePreview();
 }
 
-absl::Status MessageEditor::Load() { 
+absl::Status MessageEditor::Load() {
   gfx::ScopedTimer timer("MessageEditor::Load");
-  return absl::OkStatus(); 
+  return absl::OkStatus();
 }
 
 absl::Status MessageEditor::Update() {
-  if (!dependencies_.card_registry) return absl::OkStatus();
-  
+  if (!dependencies_.card_registry)
+    return absl::OkStatus();
+
   auto* card_registry = dependencies_.card_registry;
-  
+
   // Message List Card - Get visibility flag and pass to Begin() for proper X button
-  bool* list_visible = card_registry->GetVisibilityFlag(MakeCardId("message.message_list"));
+  bool* list_visible =
+      card_registry->GetVisibilityFlag(MakeCardId("message.message_list"));
   if (list_visible && *list_visible) {
     static gui::EditorCard list_card("Message List", ICON_MD_LIST);
     list_card.SetDefaultSize(400, 600);
@@ -160,9 +155,10 @@ absl::Status MessageEditor::Update() {
     }
     list_card.End();
   }
-  
+
   // Message Editor Card - Get visibility flag and pass to Begin() for proper X button
-  bool* editor_visible = card_registry->GetVisibilityFlag(MakeCardId("message.message_editor"));
+  bool* editor_visible =
+      card_registry->GetVisibilityFlag(MakeCardId("message.message_editor"));
   if (editor_visible && *editor_visible) {
     static gui::EditorCard editor_card("Message Editor", ICON_MD_EDIT);
     editor_card.SetDefaultSize(500, 600);
@@ -171,9 +167,10 @@ absl::Status MessageEditor::Update() {
     }
     editor_card.End();
   }
-  
+
   // Font Atlas Card - Get visibility flag and pass to Begin() for proper X button
-  bool* font_visible = card_registry->GetVisibilityFlag(MakeCardId("message.font_atlas"));
+  bool* font_visible =
+      card_registry->GetVisibilityFlag(MakeCardId("message.font_atlas"));
   if (font_visible && *font_visible) {
     static gui::EditorCard font_card("Font Atlas", ICON_MD_FONT_DOWNLOAD);
     font_card.SetDefaultSize(400, 500);
@@ -183,9 +180,10 @@ absl::Status MessageEditor::Update() {
     }
     font_card.End();
   }
-  
+
   // Dictionary Card - Get visibility flag and pass to Begin() for proper X button
-  bool* dict_visible = card_registry->GetVisibilityFlag(MakeCardId("message.dictionary"));
+  bool* dict_visible =
+      card_registry->GetVisibilityFlag(MakeCardId("message.dictionary"));
   if (dict_visible && *dict_visible) {
     static gui::EditorCard dict_card("Dictionary", ICON_MD_BOOK);
     dict_card.SetDefaultSize(400, 500);
@@ -196,7 +194,7 @@ absl::Status MessageEditor::Update() {
     }
     dict_card.End();
   }
-  
+
   return absl::OkStatus();
 }
 
@@ -405,39 +403,44 @@ void MessageEditor::DrawDictionary() {
 void MessageEditor::DrawMessagePreview() {
   // Render the message to the preview bitmap
   message_preview_.DrawMessagePreview(current_message_);
-  
+
   // Validate preview data before updating
   if (message_preview_.current_preview_data_.empty()) {
     LOG_WARN("MessageEditor", "Preview data is empty, skipping bitmap update");
     return;
   }
-  
+
   if (current_font_gfx16_bitmap_.is_active()) {
     // CRITICAL: Use set_data() to properly update both data_ AND surface_
     // mutable_data() returns a reference but doesn't update the surface!
     current_font_gfx16_bitmap_.set_data(message_preview_.current_preview_data_);
-    
+
     // Validate surface was updated
     if (!current_font_gfx16_bitmap_.surface()) {
       LOG_ERROR("MessageEditor", "Bitmap surface is null after set_data()");
       return;
     }
-    
+
     // Queue texture update so changes are visible immediately
     gfx::Arena::Get().QueueTextureCommand(
         gfx::Arena::TextureCommandType::UPDATE, &current_font_gfx16_bitmap_);
-    
-    LOG_DEBUG("MessageEditor", "Updated message preview bitmap (size: %zu) and queued texture update",
-              message_preview_.current_preview_data_.size());
+
+    LOG_DEBUG(
+        "MessageEditor",
+        "Updated message preview bitmap (size: %zu) and queued texture update",
+        message_preview_.current_preview_data_.size());
   } else {
     // Create bitmap and queue texture creation with 8-bit indexed depth
-    current_font_gfx16_bitmap_.Create(kCurrentMessageWidth, kCurrentMessageHeight, 
-                                     8, message_preview_.current_preview_data_);
+    current_font_gfx16_bitmap_.Create(kCurrentMessageWidth,
+                                      kCurrentMessageHeight, 8,
+                                      message_preview_.current_preview_data_);
     current_font_gfx16_bitmap_.SetPalette(font_preview_colors_);
     gfx::Arena::Get().QueueTextureCommand(
         gfx::Arena::TextureCommandType::CREATE, &current_font_gfx16_bitmap_);
-    
-    LOG_INFO("MessageEditor", "Created message preview bitmap (%dx%d) with 8-bit depth and queued texture creation",
+
+    LOG_INFO("MessageEditor",
+             "Created message preview bitmap (%dx%d) with 8-bit depth and "
+             "queued texture creation",
              kCurrentMessageWidth, kCurrentMessageHeight);
   }
 }

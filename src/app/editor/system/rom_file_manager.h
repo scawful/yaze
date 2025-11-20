@@ -42,7 +42,8 @@ class RomFileManager {
   ToastManager* toast_manager_ = nullptr;
 
   absl::Status LoadRomFromFile(Rom* rom, const std::string& filename);
-  std::string GenerateBackupFilename(const std::string& original_filename) const;
+  std::string GenerateBackupFilename(
+      const std::string& original_filename) const;
   bool IsValidRomFile(const std::string& filename) const;
 };
 

@@ -3,20 +3,20 @@
 #include <array>
 
 #include "absl/status/status.h"
-#include "app/gfx/resource/arena.h"
-#include "app/gfx/core/bitmap.h"
 #include "app/gfx/backend/irenderer.h"
+#include "app/gfx/core/bitmap.h"
 #include "app/gfx/debug/performance/performance_profiler.h"
+#include "app/gfx/resource/arena.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/gui/canvas/canvas.h"
 #include "app/gui/core/input.h"
 #include "app/gui/core/style.h"
 #include "app/rom.h"
-#include "zelda3/overworld/overworld.h"
 #include "imgui/imgui.h"
 #include "util/hex.h"
 #include "util/log.h"
 #include "util/macro.h"
+#include "zelda3/overworld/overworld.h"
 
 namespace yaze {
 namespace editor {
@@ -347,8 +347,8 @@ absl::Status Tile16Editor::RefreshTile16Blockset() {
   tile16_blockset_->atlas.set_modified(true);
 
   // Queue texture update via Arena's deferred system
-  gfx::Arena::Get().QueueTextureCommand(
-      gfx::Arena::TextureCommandType::UPDATE, &tile16_blockset_->atlas);
+  gfx::Arena::Get().QueueTextureCommand(gfx::Arena::TextureCommandType::UPDATE,
+                                        &tile16_blockset_->atlas);
 
   util::logf("Tile16 blockset refreshed and regenerated");
   return absl::OkStatus();
@@ -517,8 +517,8 @@ absl::Status Tile16Editor::RegenerateTile16BitmapFromROM() {
   }
 
   // Queue texture creation via Arena's deferred system
-  gfx::Arena::Get().QueueTextureCommand(
-      gfx::Arena::TextureCommandType::CREATE, &current_tile16_bmp_);
+  gfx::Arena::Get().QueueTextureCommand(gfx::Arena::TextureCommandType::CREATE,
+                                        &current_tile16_bmp_);
 
   util::logf("Regenerated Tile16 bitmap for tile %d from ROM data",
              current_tile16_);
@@ -610,8 +610,8 @@ absl::Status Tile16Editor::DrawToCurrentTile16(ImVec2 pos,
 
   // Mark the bitmap as modified and queue texture update
   current_tile16_bmp_.set_modified(true);
-  gfx::Arena::Get().QueueTextureCommand(
-      gfx::Arena::TextureCommandType::UPDATE, &current_tile16_bmp_);
+  gfx::Arena::Get().QueueTextureCommand(gfx::Arena::TextureCommandType::UPDATE,
+                                        &current_tile16_bmp_);
 
   // Update ROM data when painting to tile16
   auto* tile_data = GetCurrentTile16Data();
@@ -902,8 +902,7 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
 
         // CRITICAL FIX: Handle tile painting with simple click instead of click+drag
         // Draw the preview first
-        tile16_edit_canvas_.DrawTilePainter(
-            display_tile, 8, 4);
+        tile16_edit_canvas_.DrawTilePainter(display_tile, 8, 4);
 
         // Check for simple click to paint tile8 to tile16
         if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
@@ -913,10 +912,8 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
                                     io.MousePos.y - canvas_pos.y);
 
           // Convert canvas coordinates to tile16 coordinates with dynamic zoom
-          int tile_x = static_cast<int>(mouse_pos.x /
-                                        4);
-          int tile_y = static_cast<int>(mouse_pos.y /
-                                        4);
+          int tile_x = static_cast<int>(mouse_pos.x / 4);
+          int tile_y = static_cast<int>(mouse_pos.y / 4);
 
           // Clamp to valid range
           tile_x = std::max(0, std::min(15, tile_x));
@@ -937,10 +934,8 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
                                     io.MousePos.y - canvas_pos.y);
 
           // Convert with dynamic zoom
-          int tile_x = static_cast<int>(mouse_pos.x /
-                                        4);
-          int tile_y = static_cast<int>(mouse_pos.y /
-                                        4);
+          int tile_x = static_cast<int>(mouse_pos.x / 4);
+          int tile_y = static_cast<int>(mouse_pos.y / 4);
 
           // Clamp to valid range
           tile_x = std::max(0, std::min(15, tile_x));
@@ -1369,8 +1364,8 @@ absl::Status Tile16Editor::SetCurrentTile(int tile_id) {
   }
 
   // Queue texture creation via Arena's deferred system
-  gfx::Arena::Get().QueueTextureCommand(
-      gfx::Arena::TextureCommandType::CREATE, &current_tile16_bmp_);
+  gfx::Arena::Get().QueueTextureCommand(gfx::Arena::TextureCommandType::CREATE,
+                                        &current_tile16_bmp_);
 
   // Simple success logging
   util::logf("SetCurrentTile: loaded tile %d successfully", tile_id);
@@ -1390,8 +1385,8 @@ absl::Status Tile16Editor::CopyTile16ToClipboard(int tile_id) {
     clipboard_tile16_.SetPalette(tile16_blockset_->atlas.palette());
   }
   // Queue texture creation via Arena's deferred system
-  gfx::Arena::Get().QueueTextureCommand(
-      gfx::Arena::TextureCommandType::CREATE, &clipboard_tile16_);
+  gfx::Arena::Get().QueueTextureCommand(gfx::Arena::TextureCommandType::CREATE,
+                                        &clipboard_tile16_);
 
   clipboard_has_data_ = true;
   return absl::OkStatus();
@@ -1406,8 +1401,8 @@ absl::Status Tile16Editor::PasteTile16FromClipboard() {
   current_tile16_bmp_.Create(16, 16, 8, clipboard_tile16_.vector());
   current_tile16_bmp_.SetPalette(clipboard_tile16_.palette());
   // Queue texture creation via Arena's deferred system
-  gfx::Arena::Get().QueueTextureCommand(
-      gfx::Arena::TextureCommandType::CREATE, &current_tile16_bmp_);
+  gfx::Arena::Get().QueueTextureCommand(gfx::Arena::TextureCommandType::CREATE,
+                                        &current_tile16_bmp_);
 
   return absl::OkStatus();
 }
@@ -1421,8 +1416,8 @@ absl::Status Tile16Editor::SaveTile16ToScratchSpace(int slot) {
   scratch_space_[slot].Create(16, 16, 8, current_tile16_bmp_.vector());
   scratch_space_[slot].SetPalette(current_tile16_bmp_.palette());
   // Queue texture creation via Arena's deferred system
-  gfx::Arena::Get().QueueTextureCommand(
-      gfx::Arena::TextureCommandType::CREATE, &scratch_space_[slot]);
+  gfx::Arena::Get().QueueTextureCommand(gfx::Arena::TextureCommandType::CREATE,
+                                        &scratch_space_[slot]);
 
   scratch_space_used_[slot] = true;
   return absl::OkStatus();
@@ -1441,8 +1436,8 @@ absl::Status Tile16Editor::LoadTile16FromScratchSpace(int slot) {
   current_tile16_bmp_.Create(16, 16, 8, scratch_space_[slot].vector());
   current_tile16_bmp_.SetPalette(scratch_space_[slot].palette());
   // Queue texture creation via Arena's deferred system
-  gfx::Arena::Get().QueueTextureCommand(
-      gfx::Arena::TextureCommandType::CREATE, &current_tile16_bmp_);
+  gfx::Arena::Get().QueueTextureCommand(gfx::Arena::TextureCommandType::CREATE,
+                                        &current_tile16_bmp_);
 
   return absl::OkStatus();
 }
@@ -1487,8 +1482,8 @@ absl::Status Tile16Editor::FlipTile16Horizontal() {
   current_tile16_bmp_.set_modified(true);
 
   // Queue texture update via Arena's deferred system
-  gfx::Arena::Get().QueueTextureCommand(
-      gfx::Arena::TextureCommandType::UPDATE, &current_tile16_bmp_);
+  gfx::Arena::Get().QueueTextureCommand(gfx::Arena::TextureCommandType::UPDATE,
+                                        &current_tile16_bmp_);
   return absl::OkStatus();
 }
 
@@ -1522,8 +1517,8 @@ absl::Status Tile16Editor::FlipTile16Vertical() {
   current_tile16_bmp_.set_modified(true);
 
   // Queue texture update via Arena's deferred system
-  gfx::Arena::Get().QueueTextureCommand(
-      gfx::Arena::TextureCommandType::UPDATE, &current_tile16_bmp_);
+  gfx::Arena::Get().QueueTextureCommand(gfx::Arena::TextureCommandType::UPDATE,
+                                        &current_tile16_bmp_);
   return absl::OkStatus();
 }
 
@@ -1557,8 +1552,8 @@ absl::Status Tile16Editor::RotateTile16() {
   current_tile16_bmp_.set_modified(true);
 
   // Queue texture update via Arena's deferred system
-  gfx::Arena::Get().QueueTextureCommand(
-      gfx::Arena::TextureCommandType::UPDATE, &current_tile16_bmp_);
+  gfx::Arena::Get().QueueTextureCommand(gfx::Arena::TextureCommandType::UPDATE,
+                                        &current_tile16_bmp_);
   return absl::OkStatus();
 }
 
@@ -1596,8 +1591,8 @@ absl::Status Tile16Editor::FillTile16WithTile8(int tile8_id) {
 
   current_tile16_bmp_.set_modified(true);
   // Queue texture update via Arena's deferred system
-  gfx::Arena::Get().QueueTextureCommand(
-      gfx::Arena::TextureCommandType::UPDATE, &current_tile16_bmp_);
+  gfx::Arena::Get().QueueTextureCommand(gfx::Arena::TextureCommandType::UPDATE,
+                                        &current_tile16_bmp_);
   return absl::OkStatus();
 }
 
@@ -1614,8 +1609,8 @@ absl::Status Tile16Editor::ClearTile16() {
 
   current_tile16_bmp_.set_modified(true);
   // Queue texture update via Arena's deferred system
-  gfx::Arena::Get().QueueTextureCommand(
-      gfx::Arena::TextureCommandType::UPDATE, &current_tile16_bmp_);
+  gfx::Arena::Get().QueueTextureCommand(gfx::Arena::TextureCommandType::UPDATE,
+                                        &current_tile16_bmp_);
   return absl::OkStatus();
 }
 
@@ -1719,8 +1714,8 @@ absl::Status Tile16Editor::Undo() {
   priority_tile = previous_state.priority;
 
   // Queue texture update via Arena's deferred system
-  gfx::Arena::Get().QueueTextureCommand(
-      gfx::Arena::TextureCommandType::UPDATE, &current_tile16_bmp_);
+  gfx::Arena::Get().QueueTextureCommand(gfx::Arena::TextureCommandType::UPDATE,
+                                        &current_tile16_bmp_);
   undo_stack_.pop_back();
 
   return absl::OkStatus();
@@ -1744,8 +1739,8 @@ absl::Status Tile16Editor::Redo() {
   priority_tile = next_state.priority;
 
   // Queue texture update via Arena's deferred system
-  gfx::Arena::Get().QueueTextureCommand(
-      gfx::Arena::TextureCommandType::UPDATE, &current_tile16_bmp_);
+  gfx::Arena::Get().QueueTextureCommand(gfx::Arena::TextureCommandType::UPDATE,
+                                        &current_tile16_bmp_);
   redo_stack_.pop_back();
 
   return absl::OkStatus();
@@ -2111,8 +2106,8 @@ absl::Status Tile16Editor::UpdateTile8Palette(int tile8_id) {
 
   current_gfx_individual_[tile8_id].set_modified(true);
   // Queue texture update via Arena's deferred system
-  gfx::Arena::Get().QueueTextureCommand(
-      gfx::Arena::TextureCommandType::UPDATE, &current_gfx_individual_[tile8_id]);
+  gfx::Arena::Get().QueueTextureCommand(gfx::Arena::TextureCommandType::UPDATE,
+                                        &current_gfx_individual_[tile8_id]);
 
   util::logf("Updated tile8 %d with palette slot %d (palette size: %zu colors)",
              tile8_id, current_palette_, display_palette.size());

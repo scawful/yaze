@@ -135,8 +135,7 @@ std::string BuildTextSummary(const TestSuiteRunSummary& summary) {
 
   absl::Duration duration = TotalDuration(summary);
   if (duration > absl::ZeroDuration()) {
-    oss << " in "
-        << absl::StrFormat("%.2fs", absl::ToDoubleSeconds(duration));
+    oss << " in " << absl::StrFormat("%.2fs", absl::ToDoubleSeconds(duration));
   }
   oss << "\n\n";
 
@@ -154,13 +153,12 @@ std::string BuildTextSummary(const TestSuiteRunSummary& summary) {
     }
     oss << test_name;
     if (result.duration > absl::ZeroDuration()) {
-      oss << " (" << absl::StrFormat("%.2fs",
-                                      absl::ToDoubleSeconds(result.duration))
+      oss << " ("
+          << absl::StrFormat("%.2fs", absl::ToDoubleSeconds(result.duration))
           << ")";
     }
     oss << "\n";
-    if (!result.message.empty() &&
-        result.outcome != TestCaseOutcome::kPassed) {
+    if (!result.message.empty() && result.outcome != TestCaseOutcome::kPassed) {
       oss << "    " << result.message << "\n";
     }
     if (!result.assertions.empty() &&
@@ -199,14 +197,13 @@ absl::StatusOr<std::string> BuildJUnitReport(
       summary.suite ? summary.suite->name : "YAZE GUI Test Suite";
 
   oss << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
-  oss << "<testsuite name=\"" << EscapeXml(suite_name) << "\" tests=\""
-      << total << "\" failures=\"" << failed << "\" errors=\"" << errors
+  oss << "<testsuite name=\"" << EscapeXml(suite_name) << "\" tests=\"" << total
+      << "\" failures=\"" << failed << "\" errors=\"" << errors
       << "\" skipped=\"" << skipped << "\" time=\""
       << absl::StrFormat("%.3f", absl::ToDoubleSeconds(duration))
       << "\" timestamp=\""
-      << EscapeXml(
-             absl::FormatTime("%Y-%m-%dT%H:%M:%SZ", timestamp,
-                               absl::UTCTimeZone()))
+      << EscapeXml(absl::FormatTime("%Y-%m-%dT%H:%M:%SZ", timestamp,
+                                    absl::UTCTimeZone()))
       << "\">\n";
 
   for (const auto& result : summary.results) {
@@ -217,8 +214,8 @@ absl::StatusOr<std::string> BuildJUnitReport(
       classname = result.test->group_name;
     }
     std::string test_name = result.test ? result.test->name : "Test";
-    oss << "  <testcase classname=\"" << EscapeXml(classname)
-        << "\" name=\"" << EscapeXml(test_name) << "\" time=\""
+    oss << "  <testcase classname=\"" << EscapeXml(classname) << "\" name=\""
+        << EscapeXml(test_name) << "\" time=\""
         << absl::StrFormat("%.3f", absl::ToDoubleSeconds(result.duration))
         << "\">";
 
@@ -231,11 +228,10 @@ absl::StatusOr<std::string> BuildJUnitReport(
               absl::StrCat(assertion.description, " => ",
                            assertion.passed ? "PASS" : "FAIL"));
         }
-        body = absl::StrCat(body, "\n",
-                            absl::StrJoin(assertion_lines, "\n"));
+        body = absl::StrCat(body, "\n", absl::StrJoin(assertion_lines, "\n"));
       }
-      oss << "\n    <failure message=\"" << EscapeXml(result.message)
-          << "\">" << EscapeXml(body) << "</failure>";
+      oss << "\n    <failure message=\"" << EscapeXml(result.message) << "\">"
+          << EscapeXml(body) << "</failure>";
       if (!result.logs.empty()) {
         oss << "\n    <system-out>" << EscapeXml(JoinLogs(result.logs))
             << "</system-out>";
@@ -249,8 +245,8 @@ absl::StatusOr<std::string> BuildJUnitReport(
       if (!result.logs.empty()) {
         detail = absl::StrCat(detail, "\n", JoinLogs(result.logs));
       }
-      oss << "\n    <error message=\"" << EscapeXml(result.message)
-          << "\">" << EscapeXml(detail) << "</error>";
+      oss << "\n    <error message=\"" << EscapeXml(result.message) << "\">"
+          << EscapeXml(detail) << "</error>";
       oss << "\n  </testcase>\n";
       continue;
     }
@@ -274,16 +270,14 @@ absl::Status WriteJUnitReport(const TestSuiteRunSummary& summary,
     std::error_code ec;
     std::filesystem::create_directories(path.parent_path(), ec);
     if (ec) {
-      return absl::InternalError(
-          absl::StrCat("Failed to create directory for JUnit report: ",
-                       ec.message()));
+      return absl::InternalError(absl::StrCat(
+          "Failed to create directory for JUnit report: ", ec.message()));
     }
   }
   std::ofstream out(path);
   if (!out.is_open()) {
     return absl::InternalError(
-        absl::StrCat("Unable to open JUnit output file '", output_path,
-                      "'"));
+        absl::StrCat("Unable to open JUnit output file '", output_path, "'"));
   }
   out << xml;
   return absl::OkStatus();

@@ -1,7 +1,7 @@
 #include "app/editor/session_types.h"
 
-#include "app/editor/editor.h" // For EditorDependencies, needed by ApplyDependencies
-#include "app/editor/system/user_settings.h" // For UserSettings forward decl in header
+#include "app/editor/editor.h"  // For EditorDependencies, needed by ApplyDependencies
+#include "app/editor/system/user_settings.h"  // For UserSettings forward decl in header
 
 namespace yaze::editor {
 

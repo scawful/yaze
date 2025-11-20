@@ -24,32 +24,32 @@ class AgentPretraining {
     std::string content;
     bool required;
   };
-  
+
   /**
    * @brief Load all pre-training modules
    */
   static std::vector<KnowledgeModule> GetModules();
-  
+
   /**
    * @brief Get ROM structure explanation
    */
   static std::string GetRomStructureKnowledge(Rom* rom);
-  
+
   /**
    * @brief Get hex data analysis patterns
    */
   static std::string GetHexAnalysisKnowledge();
-  
+
   /**
    * @brief Get map editing workflow
    */
   static std::string GetMapEditingKnowledge();
-  
+
   /**
    * @brief Get tool usage examples
    */
   static std::string GetToolUsageExamples();
-  
+
   /**
    * @brief Generate pre-training prompt for agent
    */

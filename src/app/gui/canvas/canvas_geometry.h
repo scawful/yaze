@@ -21,11 +21,10 @@ namespace gui {
  * @param content_region_avail Available content region (from GetContentRegionAvail)
  * @return Calculated geometry for this frame
  */
-CanvasGeometry CalculateCanvasGeometry(
-    const CanvasConfig& config,
-    ImVec2 requested_size,
-    ImVec2 cursor_screen_pos,
-    ImVec2 content_region_avail);
+CanvasGeometry CalculateCanvasGeometry(const CanvasConfig& config,
+                                       ImVec2 requested_size,
+                                       ImVec2 cursor_screen_pos,
+                                       ImVec2 content_region_avail);
 
 /**
  * @brief Calculate mouse position in canvas space
@@ -38,9 +37,8 @@ CanvasGeometry CalculateCanvasGeometry(
  * @param mouse_screen_pos Mouse position in screen space
  * @return Mouse position in canvas space
  */
-ImVec2 CalculateMouseInCanvas(
-    const CanvasGeometry& geometry,
-    ImVec2 mouse_screen_pos);
+ImVec2 CalculateMouseInCanvas(const CanvasGeometry& geometry,
+                              ImVec2 mouse_screen_pos);
 
 /**
  * @brief Check if a point is within canvas bounds
@@ -52,9 +50,7 @@ ImVec2 CalculateMouseInCanvas(
  * @param point Point in screen space to test
  * @return True if point is within canvas bounds
  */
-bool IsPointInCanvasBounds(
-    const CanvasGeometry& geometry,
-    ImVec2 point);
+bool IsPointInCanvasBounds(const CanvasGeometry& geometry, ImVec2 point);
 
 /**
  * @brief Apply scroll delta to geometry
@@ -84,4 +80,3 @@ inline ImVec2 GetCanvasOrigin(const CanvasGeometry& geometry) {
 }  // namespace yaze
 
 #endif  // YAZE_APP_GUI_CANVAS_CANVAS_GEOMETRY_H
-

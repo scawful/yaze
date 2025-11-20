@@ -13,19 +13,17 @@ namespace handlers {
 class PaletteGetColorsCommandHandler : public resources::CommandHandler {
  public:
   std::string GetName() const { return "palette-get-colors"; }
-  std::string GetDescription() const {
-    return "Get colors from a palette";
-  }
+  std::string GetDescription() const { return "Get colors from a palette"; }
   std::string GetUsage() const {
     return "palette-get-colors --palette <palette_id> [--format <json|text>]";
   }
-  
+
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
     return parser.RequireArgs({"palette"});
   }
-  
+
   absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
-                      resources::OutputFormatter& formatter) override;
+                       resources::OutputFormatter& formatter) override;
 };
 
 /**
@@ -34,19 +32,18 @@ class PaletteGetColorsCommandHandler : public resources::CommandHandler {
 class PaletteSetColorCommandHandler : public resources::CommandHandler {
  public:
   std::string GetName() const { return "palette-set-color"; }
-  std::string GetDescription() const {
-    return "Set a color in a palette";
-  }
+  std::string GetDescription() const { return "Set a color in a palette"; }
   std::string GetUsage() const {
-    return "palette-set-color --palette <palette_id> --index <index> --color <color> [--format <json|text>]";
+    return "palette-set-color --palette <palette_id> --index <index> --color "
+           "<color> [--format <json|text>]";
   }
-  
+
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
     return parser.RequireArgs({"palette", "index", "color"});
   }
-  
+
   absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
-                      resources::OutputFormatter& formatter) override;
+                       resources::OutputFormatter& formatter) override;
 };
 
 /**
@@ -61,13 +58,13 @@ class PaletteAnalyzeCommandHandler : public resources::CommandHandler {
   std::string GetUsage() const {
     return "palette-analyze [--palette <palette_id>] [--format <json|text>]";
   }
-  
+
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
     return absl::OkStatus();  // No required args
   }
-  
+
   absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
-                      resources::OutputFormatter& formatter) override;
+                       resources::OutputFormatter& formatter) override;
 };
 
 }  // namespace handlers

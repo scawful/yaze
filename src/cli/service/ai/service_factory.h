@@ -11,11 +11,12 @@ namespace yaze {
 namespace cli {
 
 struct AIServiceConfig {
-  std::string provider = "auto";  // "auto" (try gemini→ollama→mock), "gemini", "ollama", or "mock"
-  std::string model;              // Provider-specific model name
-  std::string gemini_api_key;     // For Gemini
+  std::string provider =
+      "auto";  // "auto" (try gemini→ollama→mock), "gemini", "ollama", or "mock"
+  std::string model;           // Provider-specific model name
+  std::string gemini_api_key;  // For Gemini
   std::string ollama_host = "http://localhost:11434";  // For Ollama
-  bool verbose = false;           // Enable debug logging
+  bool verbose = false;                                // Enable debug logging
 };
 
 // Create AI service using command-line flags

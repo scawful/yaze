@@ -114,7 +114,7 @@ function test_git_submodules() {
 }
 
 function test_cmake_cache() {
-    local build_dirs=("build" "build-test" "build-grpc-test" "build-rooms" "build-windows")
+    local build_dirs=("build" "build_test" "build-test" "build-grpc-test" "build-rooms" "build-windows" "build_ai" "build_ai_claude" "build_agent" "build_ci")
     local cache_issues=0
     
     for dir in "${build_dirs[@]}"; do
@@ -191,7 +191,7 @@ function test_agent_folder_structure() {
 function clean_cmake_cache() {
     write_status "Cleaning CMake cache and build directories..." "Step"
     
-    local build_dirs=("build" "build-test" "build-grpc-test" "build-rooms" "build-windows")
+    local build_dirs=("build" "build_test" "build-test" "build-grpc-test" "build-rooms" "build-windows" "build_ai" "build_ai_claude" "build_agent" "build_ci")
     local cleaned=0
     
     for dir in "${build_dirs[@]}"; do

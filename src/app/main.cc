@@ -6,6 +6,7 @@
 #include "absl/debugging/failure_signal_handler.h"
 #include "absl/debugging/symbolize.h"
 #include "app/controller.h"
+#include "cli/service/api/http_server.h"
 #include "core/features.h"
 #include "util/flag.h"
 #include "util/log.h"
@@ -25,20 +26,27 @@ using namespace yaze;
 DEFINE_FLAG(std::string, rom_file, "", "The ROM file to load.");
 DEFINE_FLAG(std::string, log_file, "", "Output log file path for debugging.");
 DEFINE_FLAG(bool, debug, false, "Enable debug logging and verbose output.");
-DEFINE_FLAG(std::string, log_categories, "", 
-            "Comma-separated list of log categories to enable. "
-            "If empty, all categories are logged. "
-            "Example: --log_categories=\"Room,DungeonEditor\" to filter noisy logs.");
-DEFINE_FLAG(std::string, editor, "", 
+DEFINE_FLAG(
+    std::string, log_categories, "",
+    "Comma-separated list of log categories to enable. "
+    "If empty, all categories are logged. "
+    "Example: --log_categories=\"Room,DungeonEditor\" to filter noisy logs.");
+DEFINE_FLAG(std::string, editor, "",
             "The editor to open on startup. "
             "Available editors: Assembly, Dungeon, Graphics, Music, Overworld, "
             "Palette, Screen, Sprite, Message, Hex, Agent, Settings. "
             "Example: --editor=Dungeon");
-DEFINE_FLAG(std::string, cards, "",
-            "A comma-separated list of cards to open within the specified editor. "
-            "For Dungeon editor: 'Rooms List', 'Room Matrix', 'Entrances List', "
-            "'Room Graphics', 'Object Editor', 'Palette Editor', or 'Room N' (where N is room ID). "
-            "Example: --cards=\"Rooms List,Room 0,Room 105\"");
+DEFINE_FLAG(
+    std::string, cards, "",
+    "A comma-separated list of cards to open within the specified editor. "
+    "For Dungeon editor: 'Rooms List', 'Room Matrix', 'Entrances List', "
+    "'Room Graphics', 'Object Editor', 'Palette Editor', or 'Room N' (where N "
+    "is room ID). "
+    "Example: --cards=\"Rooms List,Room 0,Room 105\"");
+
+// AI Agent API flags
+DEFINE_FLAG(bool, enable_api, false, "Enable the AI Agent API server.");
+DEFINE_FLAG(int, api_port, 8080, "Port for the AI Agent API server.");
 
 #ifdef YAZE_WITH_GRPC
 // gRPC test harness flags
@@ -48,7 +56,7 @@ DEFINE_FLAG(int, test_harness_port, 50051,
             "Port for gRPC test harness server (default: 50051).");
 #endif
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
   absl::InitializeSymbolizer(argv[0]);
 
   // Configure failure signal handler to be less aggressive
@@ -63,16 +71,16 @@ int main(int argc, char **argv) {
   options.writerfn =
       nullptr;  // Use default writer to avoid custom handling issues
   absl::InstallFailureSignalHandler(options);
-  
+
   // Parse command line flags with custom parser
   yaze::util::FlagParser parser(yaze::util::global_flag_registry());
   RETURN_IF_EXCEPTION(parser.Parse(argc, argv));
-  
+
   // Set up logging
   yaze::util::LogLevel log_level = FLAGS_debug->Get()
-                                     ? yaze::util::LogLevel::YAZE_DEBUG
-                                     : yaze::util::LogLevel::INFO;
-  
+                                       ? yaze::util::LogLevel::YAZE_DEBUG
+                                       : yaze::util::LogLevel::INFO;
+
   // Parse log categories from comma-separated string
   std::set<std::string> log_categories;
   std::string categories_str = FLAGS_log_categories->Get();
@@ -86,16 +94,16 @@ int main(int argc, char **argv) {
     }
     log_categories.insert(categories_str.substr(start));
   }
-  
+
   yaze::util::LogManager::instance().configure(log_level, FLAGS_log_file->Get(),
-                                             log_categories);
+                                               log_categories);
 
   // Enable console logging via feature flag if debug is enabled.
   if (FLAGS_debug->Get()) {
     yaze::core::FeatureFlags::get().kLogToConsole = true;
     LOG_INFO("Main", "🚀 YAZE started in debug mode");
   }
-  
+
   std::string rom_filename = "";
   if (!FLAGS_rom_file->Get().empty()) {
     rom_filename = FLAGS_rom_file->Get();
@@ -106,19 +114,23 @@ int main(int argc, char **argv) {
   if (FLAGS_enable_test_harness->Get()) {
     // Get TestManager instance (initializes UI testing if available)
     auto& test_manager = yaze::test::TestManager::Get();
-    
+
     auto& server = yaze::test::ImGuiTestHarnessServer::Instance();
     int port = FLAGS_test_harness_port->Get();
-    
-    std::cout << "\n🚀 Starting ImGui Test Harness on port " << port << "..." << std::endl;
+
+    std::cout << "\n🚀 Starting ImGui Test Harness on port " << port << "..."
+              << std::endl;
     auto status = server.Start(port, &test_manager);
     if (!status.ok()) {
-      std::cerr << "❌ ERROR: Failed to start test harness server on port " << port << std::endl;
+      std::cerr << "❌ ERROR: Failed to start test harness server on port "
+                << port << std::endl;
       std::cerr << "   " << status.message() << std::endl;
       return 1;
     }
     std::cout << "✅ Test harness ready on 127.0.0.1:" << port << std::endl;
-    std::cout << "   Available RPCs: Ping, Click, Type, Wait, Assert, Screenshot\n" << std::endl;
+    std::cout
+        << "   Available RPCs: Ping, Click, Type, Wait, Assert, Screenshot\n"
+        << std::endl;
   }
 #endif
 
@@ -131,10 +143,23 @@ int main(int argc, char **argv) {
 
   auto controller = std::make_unique<Controller>();
   EXIT_IF_ERROR(controller->OnEntry(rom_filename))
-  
+
   // Set startup editor and cards from flags (after OnEntry initializes editor manager)
   if (!FLAGS_editor->Get().empty()) {
     controller->SetStartupEditor(FLAGS_editor->Get(), FLAGS_cards->Get());
+  }
+
+  // Start API server if requested
+  std::unique_ptr<yaze::cli::api::HttpServer> api_server;
+  if (FLAGS_enable_api->Get()) {
+    api_server = std::make_unique<yaze::cli::api::HttpServer>();
+    auto status = api_server->Start(FLAGS_api_port->Get());
+    if (!status.ok()) {
+      LOG_ERROR("Main", "Failed to start API server: %s",
+                std::string(status.message()).c_str());
+    } else {
+      LOG_INFO("Main", "API Server started on port %d", FLAGS_api_port->Get());
+    }
   }
 
   while (controller->IsActive()) {
@@ -146,6 +171,10 @@ int main(int argc, char **argv) {
     controller->DoRender();
   }
   controller->OnExit();
+
+  if (api_server) {
+    api_server->Stop();
+  }
 
 #ifdef YAZE_WITH_GRPC
   // Shutdown gRPC server if running

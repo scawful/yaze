@@ -2,12 +2,12 @@
 #define YAZE_APP_EDITOR_OVERWORLD_ENTITY_OPERATIONS_H
 
 #include "absl/status/statusor.h"
+#include "imgui/imgui.h"
 #include "zelda3/overworld/overworld.h"
 #include "zelda3/overworld/overworld_entrance.h"
 #include "zelda3/overworld/overworld_exit.h"
 #include "zelda3/overworld/overworld_item.h"
 #include "zelda3/sprite/sprite.h"
-#include "imgui/imgui.h"
 
 namespace yaze {
 namespace editor {
@@ -41,7 +41,7 @@ namespace editor {
  * @return Pointer to newly inserted entrance, or error if no slots available
  */
 absl::StatusOr<zelda3::OverworldEntrance*> InsertEntrance(
-    zelda3::Overworld* overworld, ImVec2 mouse_pos, int current_map, 
+    zelda3::Overworld* overworld, ImVec2 mouse_pos, int current_map,
     bool is_hole = false);
 
 /**
@@ -58,8 +58,9 @@ absl::StatusOr<zelda3::OverworldEntrance*> InsertEntrance(
  * @param current_map Current map index being edited
  * @return Pointer to newly inserted exit, or error if no slots available
  */
-absl::StatusOr<zelda3::OverworldExit*> InsertExit(
-    zelda3::Overworld* overworld, ImVec2 mouse_pos, int current_map);
+absl::StatusOr<zelda3::OverworldExit*> InsertExit(zelda3::Overworld* overworld,
+                                                  ImVec2 mouse_pos,
+                                                  int current_map);
 
 /**
  * @brief Insert a new sprite at the specified position
@@ -76,9 +77,10 @@ absl::StatusOr<zelda3::OverworldExit*> InsertExit(
  * @param sprite_id Sprite ID to insert (default 0)
  * @return Pointer to newly inserted sprite
  */
-absl::StatusOr<zelda3::Sprite*> InsertSprite(
-    zelda3::Overworld* overworld, ImVec2 mouse_pos, int current_map, 
-    int game_state, uint8_t sprite_id = 0);
+absl::StatusOr<zelda3::Sprite*> InsertSprite(zelda3::Overworld* overworld,
+                                             ImVec2 mouse_pos, int current_map,
+                                             int game_state,
+                                             uint8_t sprite_id = 0);
 
 /**
  * @brief Insert a new item at the specified position
@@ -94,9 +96,10 @@ absl::StatusOr<zelda3::Sprite*> InsertSprite(
  * @param item_id Item ID to insert (default 0x00 - Nothing)
  * @return Pointer to newly inserted item
  */
-absl::StatusOr<zelda3::OverworldItem*> InsertItem(
-    zelda3::Overworld* overworld, ImVec2 mouse_pos, int current_map,
-    uint8_t item_id = 0);
+absl::StatusOr<zelda3::OverworldItem*> InsertItem(zelda3::Overworld* overworld,
+                                                  ImVec2 mouse_pos,
+                                                  int current_map,
+                                                  uint8_t item_id = 0);
 
 /**
  * @brief Helper to get parent map ID for multi-area maps
@@ -104,7 +107,8 @@ absl::StatusOr<zelda3::OverworldItem*> InsertItem(
  * Returns the parent map ID, handling the case where a map is its own parent.
  * Matches ZScream logic where ParentID == 255 means use current map.
  */
-inline uint8_t GetParentMapId(const zelda3::OverworldMap* map, int current_map) {
+inline uint8_t GetParentMapId(const zelda3::OverworldMap* map,
+                              int current_map) {
   uint8_t parent = map->parent();
   return (parent == 0xFF) ? static_cast<uint8_t>(current_map) : parent;
 }
@@ -113,24 +117,19 @@ inline uint8_t GetParentMapId(const zelda3::OverworldMap* map, int current_map) 
  * @brief Snap position to 16x16 grid (standard entity positioning)
  */
 inline ImVec2 SnapToEntityGrid(ImVec2 pos) {
-  return ImVec2(
-    static_cast<float>(static_cast<int>(pos.x / 16) * 16),
-    static_cast<float>(static_cast<int>(pos.y / 16) * 16)
-  );
+  return ImVec2(static_cast<float>(static_cast<int>(pos.x / 16) * 16),
+                static_cast<float>(static_cast<int>(pos.y / 16) * 16));
 }
 
 /**
  * @brief Clamp position to valid overworld bounds
  */
 inline ImVec2 ClampToOverworldBounds(ImVec2 pos) {
-  return ImVec2(
-    std::clamp(pos.x, 0.0f, 4080.0f),  // 4096 - 16
-    std::clamp(pos.y, 0.0f, 4080.0f)
-  );
+  return ImVec2(std::clamp(pos.x, 0.0f, 4080.0f),  // 4096 - 16
+                std::clamp(pos.y, 0.0f, 4080.0f));
 }
 
 }  // namespace editor
 }  // namespace yaze
 
 #endif  // YAZE_APP_EDITOR_OVERWORLD_ENTITY_OPERATIONS_H
-

@@ -9,8 +9,8 @@
 #include "absl/status/status.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/gfx/types/snes_tile.h"
-#include "zelda3/overworld/overworld_version_helper.h"
 #include "app/rom.h"
+#include "zelda3/overworld/overworld_version_helper.h"
 
 namespace yaze {
 namespace zelda3 {
@@ -24,27 +24,35 @@ constexpr int OverworldCustomAreaSpecificBGPalette = 0x140000;
 constexpr int OverworldCustomAreaSpecificBGEnabled = 0x140140;
 
 // Additional v3 constants
-constexpr int OverworldCustomSubscreenOverlayArray = 0x140340;  // 2 bytes for each overworld area (0x140)
-constexpr int OverworldCustomSubscreenOverlayEnabled = 0x140144;  // 1 byte, not 0 if enabled
-constexpr int OverworldCustomAnimatedGFXArray = 0x1402A0;  // 1 byte for each overworld area (0xA0)
-constexpr int OverworldCustomAnimatedGFXEnabled = 0x140143;  // 1 byte, not 0 if enabled
-constexpr int OverworldCustomTileGFXGroupArray = 0x140480;  // 8 bytes for each overworld area (0x500)
-constexpr int OverworldCustomTileGFXGroupEnabled = 0x140148;  // 1 byte, not 0 if enabled
-constexpr int OverworldCustomMosaicArray = 0x140200;  // 1 byte for each overworld area (0xA0)
-constexpr int OverworldCustomMosaicEnabled = 0x140142;  // 1 byte, not 0 if enabled
+constexpr int OverworldCustomSubscreenOverlayArray =
+    0x140340;  // 2 bytes for each overworld area (0x140)
+constexpr int OverworldCustomSubscreenOverlayEnabled =
+    0x140144;  // 1 byte, not 0 if enabled
+constexpr int OverworldCustomAnimatedGFXArray =
+    0x1402A0;  // 1 byte for each overworld area (0xA0)
+constexpr int OverworldCustomAnimatedGFXEnabled =
+    0x140143;  // 1 byte, not 0 if enabled
+constexpr int OverworldCustomTileGFXGroupArray =
+    0x140480;  // 8 bytes for each overworld area (0x500)
+constexpr int OverworldCustomTileGFXGroupEnabled =
+    0x140148;  // 1 byte, not 0 if enabled
+constexpr int OverworldCustomMosaicArray =
+    0x140200;  // 1 byte for each overworld area (0xA0)
+constexpr int OverworldCustomMosaicEnabled =
+    0x140142;  // 1 byte, not 0 if enabled
 
 // Vanilla overlay constants
-constexpr int kOverlayPointers = 0x77664;  // 2 bytes for each overworld area (0x100)
+constexpr int kOverlayPointers =
+    0x77664;  // 2 bytes for each overworld area (0x100)
 constexpr int kOverlayPointersBank = 0x0E;  // Bank for overlay pointers
-constexpr int kOverlayData1 = 0x77676;  // Check for custom overlay code
-constexpr int kOverlayData2 = 0x77677;  // Custom overlay data pointer
+constexpr int kOverlayData1 = 0x77676;      // Check for custom overlay code
+constexpr int kOverlayData2 = 0x77677;      // Custom overlay data pointer
 constexpr int kOverlayCodeStart = 0x77657;  // Start of overlay code
 
 // 1 byte for each overworld area (0xA0)
 constexpr int OverworldCustomMainPaletteArray = 0x140160;
 // 1 byte, not 0 if enabled
 constexpr int OverworldCustomMainPaletteEnabled = 0x140141;
-
 
 // v3 expanded constants
 constexpr int kOverworldMessagesExpanded = 0x1417F8;
@@ -84,8 +92,6 @@ typedef struct OverworldMapTiles {
   OverworldBlockset special_world;  // 32 maps
 } OverworldMapTiles;
 
-
-
 /**
  * @brief Represents a single Overworld map screen.
  */
@@ -118,7 +124,7 @@ class OverworldMap : public gfx::GfxContext {
   auto parent() const { return parent_; }
   auto mutable_mosaic() { return &mosaic_; }
   auto mutable_current_palette() { return &current_palette_; }
-  
+
   void SetNotBuilt() { built_ = false; }
 
   auto area_graphics() const { return area_graphics_; }
@@ -146,16 +152,22 @@ class OverworldMap : public gfx::GfxContext {
   void set_animated_gfx(uint8_t gfx) { animated_gfx_ = gfx; }
 
   auto custom_tileset(int index) const { return custom_gfx_ids_[index]; }
-  
+
   // Overlay accessors (interactive overlays)
   auto overlay_id() const { return overlay_id_; }
   auto has_overlay() const { return has_overlay_; }
   const auto& overlay_data() const { return overlay_data_; }
 
   // Mosaic expanded accessors
-  const std::array<bool, 4>& mosaic_expanded() const { return mosaic_expanded_; }
-  void set_mosaic_expanded(int index, bool value) { mosaic_expanded_[index] = value; }
-  void set_custom_tileset(int index, uint8_t value) { custom_gfx_ids_[index] = value; }
+  const std::array<bool, 4>& mosaic_expanded() const {
+    return mosaic_expanded_;
+  }
+  void set_mosaic_expanded(int index, bool value) {
+    mosaic_expanded_[index] = value;
+  }
+  void set_custom_tileset(int index, uint8_t value) {
+    custom_gfx_ids_[index] = value;
+  }
 
   auto mutable_current_graphics() { return &current_gfx_; }
   auto mutable_area_graphics() { return &area_graphics_; }
@@ -200,10 +212,8 @@ class OverworldMap : public gfx::GfxContext {
     area_size_ = size;
     large_map_ = (size == AreaSizeEnum::LargeArea);
   }
-  
-  void SetParent(int parent_index) {
-    parent_ = parent_index;
-  }
+
+  void SetParent(int parent_index) { parent_ = parent_index; }
 
   void Destroy() {
     current_blockset_.clear();

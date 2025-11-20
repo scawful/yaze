@@ -2,21 +2,21 @@
 
 #include <algorithm>
 
-#include "util/file_util.h"
-#include "app/gui/core/theme_manager.h"
 #include "app/gui/core/background_renderer.h"
-#include "app/platform/font_loader.h"
 #include "app/gui/core/color.h"
 #include "app/gui/core/icons.h"
+#include "app/gui/core/theme_manager.h"
+#include "app/platform/font_loader.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
+#include "util/file_util.h"
 #include "util/log.h"
 
 namespace yaze {
 namespace gui {
 
 namespace {
-Color ParseColor(const std::string &color) {
+Color ParseColor(const std::string& color) {
   Color result;
   if (color.size() == 7 && color[0] == '#') {
     result.red = std::stoi(color.substr(1, 2), nullptr, 16) / 255.0f;
@@ -30,8 +30,8 @@ Color ParseColor(const std::string &color) {
 }  // namespace
 
 void ColorsYaze() {
-  ImGuiStyle *style = &ImGui::GetStyle();
-  ImVec4 *colors = style->Colors;
+  ImGuiStyle* style = &ImGui::GetStyle();
+  ImVec4* colors = style->Colors;
 
   style->WindowPadding = ImVec2(10.f, 10.f);
   style->FramePadding = ImVec2(10.f, 2.f);
@@ -95,7 +95,8 @@ void ColorsYaze() {
   colors[ImGuiCol_FrameBgHovered] = ImVec4(0.28f, 0.36f, 0.28f, 0.40f);
   colors[ImGuiCol_FrameBgActive] = ImVec4(0.28f, 0.36f, 0.28f, 0.69f);
 
-  colors[ImGuiCol_CheckMark] = ImVec4(0.26f, 0.59f, 0.98f, 1.00f);  // Solid blue checkmark
+  colors[ImGuiCol_CheckMark] =
+      ImVec4(0.26f, 0.59f, 0.98f, 1.00f);  // Solid blue checkmark
   colors[ImGuiCol_SliderGrab] = ImVec4(1.00f, 1.00f, 1.00f, 0.30f);
   colors[ImGuiCol_SliderGrabActive] = ImVec4(0.36f, 0.45f, 0.36f, 0.60f);
 
@@ -128,8 +129,8 @@ void ColorsYaze() {
   colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.20f, 0.20f, 0.20f, 0.35f);
 }
 
-void DrawBitmapViewer(const std::vector<gfx::Bitmap> &bitmaps, float scale,
-                      int &current_bitmap_id) {
+void DrawBitmapViewer(const std::vector<gfx::Bitmap>& bitmaps, float scale,
+                      int& current_bitmap_id) {
   if (bitmaps.empty()) {
     ImGui::Text("No bitmaps available.");
     return;
@@ -152,7 +153,7 @@ void DrawBitmapViewer(const std::vector<gfx::Bitmap> &bitmaps, float scale,
   }
 
   // Display the current bitmap.
-  const gfx::Bitmap &current_bitmap = bitmaps[current_bitmap_id];
+  const gfx::Bitmap& current_bitmap = bitmaps[current_bitmap_id];
   // Assuming Bitmap has a function to get its texture ID, and width and
   // height.
   ImTextureID tex_id = (ImTextureID)(intptr_t)current_bitmap.texture();
@@ -167,7 +168,7 @@ void DrawBitmapViewer(const std::vector<gfx::Bitmap> &bitmaps, float scale,
   }
 }
 
-static const char *const kKeywords[] = {
+static const char* const kKeywords[] = {
     "ADC", "AND", "ASL", "BCC", "BCS", "BEQ", "BIT",   "BMI",  "BNE", "BPL",
     "BRA", "BRL", "BVC", "BVS", "CLC", "CLD", "CLI",   "CLV",  "CMP", "CPX",
     "CPY", "DEC", "DEX", "DEY", "EOR", "INC", "INX",   "INY",  "JMP", "JSR",
@@ -178,7 +179,7 @@ static const char *const kKeywords[] = {
     "TCS", "TDC", "TRB", "TSB", "TSC", "TSX", "TXA",   "TXS",  "TXY", "TYA",
     "TYX", "WAI", "WDM", "XBA", "XCE", "ORG", "LOROM", "HIROM"};
 
-static const char *const kIdentifiers[] = {
+static const char* const kIdentifiers[] = {
     "abort",   "abs",     "acos",    "asin",     "atan",    "atexit",
     "atof",    "atoi",    "atol",    "ceil",     "clock",   "cosh",
     "ctime",   "div",     "exit",    "fabs",     "floor",   "fmod",
@@ -191,9 +192,10 @@ static const char *const kIdentifiers[] = {
 
 TextEditor::LanguageDefinition GetAssemblyLanguageDef() {
   TextEditor::LanguageDefinition language_65816;
-  for (auto &k : kKeywords) language_65816.mKeywords.emplace(k);
+  for (auto& k : kKeywords)
+    language_65816.mKeywords.emplace(k);
 
-  for (auto &k : kIdentifiers) {
+  for (auto& k : kIdentifiers) {
     TextEditor::Identifier id;
     id.mDeclaration = "Built-in function";
     language_65816.mIdentifiers.insert(std::make_pair(std::string(k), id));
@@ -244,10 +246,10 @@ TextEditor::LanguageDefinition GetAssemblyLanguageDef() {
 }
 
 // TODO: Add more display settings to popup windows.
-void BeginWindowWithDisplaySettings(const char *id, bool *active,
-                                    const ImVec2 &size,
+void BeginWindowWithDisplaySettings(const char* id, bool* active,
+                                    const ImVec2& size,
                                     ImGuiWindowFlags flags) {
-  ImGuiStyle *ref = &ImGui::GetStyle();
+  ImGuiStyle* ref = &ImGui::GetStyle();
   static float childBgOpacity = 0.75f;
   auto color = ref->Colors[ImGuiCol_WindowBg];
 
@@ -273,41 +275,49 @@ void BeginPadding(int i) {
   ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(i, i));
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(i, i));
 }
-void EndPadding() { EndNoPadding(); }
+void EndPadding() {
+  EndNoPadding();
+}
 
 void BeginNoPadding() {
   ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
 }
-void EndNoPadding() { ImGui::PopStyleVar(2); }
+void EndNoPadding() {
+  ImGui::PopStyleVar(2);
+}
 
-void BeginChildWithScrollbar(const char *str_id) {
+void BeginChildWithScrollbar(const char* str_id) {
   // Get available region but ensure minimum size for proper scrolling
   ImVec2 available = ImGui::GetContentRegionAvail();
-  if (available.x < 64.0f) available.x = 64.0f;
-  if (available.y < 64.0f) available.y = 64.0f;
-  
+  if (available.x < 64.0f)
+    available.x = 64.0f;
+  if (available.y < 64.0f)
+    available.y = 64.0f;
+
   ImGui::BeginChild(str_id, available, true,
                     ImGuiWindowFlags_AlwaysVerticalScrollbar);
 }
 
-void BeginChildWithScrollbar(const char *str_id, ImVec2 content_size) {
+void BeginChildWithScrollbar(const char* str_id, ImVec2 content_size) {
   // Set content size before beginning child to enable proper scrolling
   if (content_size.x > 0 && content_size.y > 0) {
     ImGui::SetNextWindowContentSize(content_size);
   }
-  
+
   // Get available region but ensure minimum size for proper scrolling
   ImVec2 available = ImGui::GetContentRegionAvail();
-  if (available.x < 64.0f) available.x = 64.0f;
-  if (available.y < 64.0f) available.y = 64.0f;
-  
+  if (available.x < 64.0f)
+    available.x = 64.0f;
+  if (available.y < 64.0f)
+    available.y = 64.0f;
+
   ImGui::BeginChild(str_id, available, true,
                     ImGuiWindowFlags_AlwaysVerticalScrollbar);
 }
 
 void BeginChildBothScrollbars(int id) {
-  ImGuiID child_id = ImGui::GetID((void *)(intptr_t)id);
+  ImGuiID child_id = ImGui::GetID((void*)(intptr_t)id);
   ImGui::BeginChild(child_id, ImGui::GetContentRegionAvail(), true,
                     ImGuiWindowFlags_AlwaysVerticalScrollbar |
                         ImGuiWindowFlags_AlwaysHorizontalScrollbar);
@@ -316,15 +326,17 @@ void BeginChildBothScrollbars(int id) {
 // Helper functions for table canvas management
 void BeginTableCanvas(const char* table_id, int columns, ImVec2 canvas_size) {
   // Use proper sizing for tables containing canvas elements
-  ImGuiTableFlags flags = ImGuiTableFlags_Resizable | ImGuiTableFlags_SizingStretchProp;
-  
+  ImGuiTableFlags flags =
+      ImGuiTableFlags_Resizable | ImGuiTableFlags_SizingStretchProp;
+
   // If canvas size is specified, use it as minimum size
   ImVec2 outer_size = ImVec2(0, 0);
   if (canvas_size.x > 0 || canvas_size.y > 0) {
     outer_size = canvas_size;
-    flags |= ImGuiTableFlags_NoHostExtendY; // Prevent auto-extending past canvas size
+    flags |=
+        ImGuiTableFlags_NoHostExtendY;  // Prevent auto-extending past canvas size
   }
-  
+
   ImGui::BeginTable(table_id, columns, flags, outer_size);
 }
 
@@ -334,7 +346,8 @@ void EndTableCanvas() {
 
 void SetupCanvasTableColumn(const char* label, float width_ratio) {
   if (width_ratio > 0) {
-    ImGui::TableSetupColumn(label, ImGuiTableColumnFlags_WidthStretch, width_ratio);
+    ImGui::TableSetupColumn(label, ImGuiTableColumnFlags_WidthStretch,
+                            width_ratio);
   } else {
     ImGui::TableSetupColumn(label, ImGuiTableColumnFlags_WidthStretch);
   }
@@ -342,106 +355,115 @@ void SetupCanvasTableColumn(const char* label, float width_ratio) {
 
 void BeginCanvasTableCell(ImVec2 min_size) {
   ImGui::TableNextColumn();
-  
+
   // Ensure minimum size for canvas cells
   if (min_size.x > 0 || min_size.y > 0) {
     ImVec2 avail = ImGui::GetContentRegionAvail();
-    ImVec2 actual_size = ImVec2(
-      std::max(avail.x, min_size.x),
-      std::max(avail.y, min_size.y)
-    );
-    
+    ImVec2 actual_size =
+        ImVec2(std::max(avail.x, min_size.x), std::max(avail.y, min_size.y));
+
     // Reserve space for the canvas
     ImGui::Dummy(actual_size);
     // ImGui::SetCursorPos(ImGui::GetCursorPos() - actual_size); // Reset cursor for drawing
   }
 }
 
-void DrawDisplaySettings(ImGuiStyle *ref) {
+void DrawDisplaySettings(ImGuiStyle* ref) {
   // You can pass in a reference ImGuiStyle structure to compare to, revert to
   // and save to (without a reference style pointer, we will use one compared
   // locally as a reference)
-  ImGuiStyle &style = ImGui::GetStyle();
+  ImGuiStyle& style = ImGui::GetStyle();
   static ImGuiStyle ref_saved_style;
 
   // Default to using internal storage as reference
   static bool init = true;
-  if (init && ref == NULL) ref_saved_style = style;
+  if (init && ref == NULL)
+    ref_saved_style = style;
   init = false;
-  if (ref == NULL) ref = &ref_saved_style;
+  if (ref == NULL)
+    ref = &ref_saved_style;
 
   ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.50f);
 
   // Enhanced theme management section
-  if (ImGui::CollapsingHeader("Theme Management", ImGuiTreeNodeFlags_DefaultOpen)) {
+  if (ImGui::CollapsingHeader("Theme Management",
+                              ImGuiTreeNodeFlags_DefaultOpen)) {
     auto& theme_manager = ThemeManager::Get();
     static bool show_theme_selector = false;
     static bool show_theme_editor = false;
-    
+
     ImGui::Text("%s Current Theme:", ICON_MD_PALETTE);
     ImGui::SameLine();
-    
+
     std::string current_theme_name = theme_manager.GetCurrentThemeName();
     bool is_classic_active = (current_theme_name == "Classic YAZE");
-    
+
     // Current theme display with color preview
     if (is_classic_active) {
-      ImGui::TextColored(ImVec4(0.2f, 0.8f, 0.2f, 1.0f), "%s", current_theme_name.c_str());
+      ImGui::TextColored(ImVec4(0.2f, 0.8f, 0.2f, 1.0f), "%s",
+                         current_theme_name.c_str());
     } else {
       ImGui::Text("%s", current_theme_name.c_str());
     }
-    
+
     // Theme color preview
     auto current_theme = theme_manager.GetCurrentTheme();
     ImGui::SameLine();
-    ImGui::ColorButton("##primary_preview", gui::ConvertColorToImVec4(current_theme.primary), 
-                      ImGuiColorEditFlags_NoTooltip, ImVec2(20, 20));
+    ImGui::ColorButton("##primary_preview",
+                       gui::ConvertColorToImVec4(current_theme.primary),
+                       ImGuiColorEditFlags_NoTooltip, ImVec2(20, 20));
     ImGui::SameLine();
-    ImGui::ColorButton("##secondary_preview", gui::ConvertColorToImVec4(current_theme.secondary), 
-                      ImGuiColorEditFlags_NoTooltip, ImVec2(20, 20));
+    ImGui::ColorButton("##secondary_preview",
+                       gui::ConvertColorToImVec4(current_theme.secondary),
+                       ImGuiColorEditFlags_NoTooltip, ImVec2(20, 20));
     ImGui::SameLine();
-    ImGui::ColorButton("##accent_preview", gui::ConvertColorToImVec4(current_theme.accent), 
-                      ImGuiColorEditFlags_NoTooltip, ImVec2(20, 20));
-    
+    ImGui::ColorButton("##accent_preview",
+                       gui::ConvertColorToImVec4(current_theme.accent),
+                       ImGuiColorEditFlags_NoTooltip, ImVec2(20, 20));
+
     ImGui::Spacing();
-    
+
     // Theme selection table for better organization
-    if (ImGui::BeginTable("ThemeSelectionTable", 3, 
-                         ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_NoHostExtendY,
-                         ImVec2(0, 80))) {
-      
-      ImGui::TableSetupColumn("Built-in", ImGuiTableColumnFlags_WidthStretch, 0.3f);
-      ImGui::TableSetupColumn("File Themes", ImGuiTableColumnFlags_WidthStretch, 0.4f);
-      ImGui::TableSetupColumn("Actions", ImGuiTableColumnFlags_WidthStretch, 0.3f);
+    if (ImGui::BeginTable(
+            "ThemeSelectionTable", 3,
+            ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_NoHostExtendY,
+            ImVec2(0, 80))) {
+
+      ImGui::TableSetupColumn("Built-in", ImGuiTableColumnFlags_WidthStretch,
+                              0.3f);
+      ImGui::TableSetupColumn("File Themes", ImGuiTableColumnFlags_WidthStretch,
+                              0.4f);
+      ImGui::TableSetupColumn("Actions", ImGuiTableColumnFlags_WidthStretch,
+                              0.3f);
       ImGui::TableHeadersRow();
-      
+
       ImGui::TableNextRow();
-      
+
       // Built-in themes column
       ImGui::TableNextColumn();
       if (is_classic_active) {
         ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.6f, 0.2f, 1.0f));
       }
-      
+
       if (ImGui::Button("Classic YAZE", ImVec2(-1, 30))) {
         theme_manager.ApplyClassicYazeTheme();
         ref_saved_style = style;
       }
-      
+
       if (is_classic_active) {
         ImGui::PopStyleColor();
       }
-      
+
       if (ImGui::Button("Reset ColorsYaze", ImVec2(-1, 30))) {
         gui::ColorsYaze();
         ref_saved_style = style;
       }
-      
+
       // File themes column
       ImGui::TableNextColumn();
       auto available_themes = theme_manager.GetAvailableThemes();
       const char* current_file_theme = "";
-      
+
       // Find current file theme for display
       for (const auto& theme_name : available_themes) {
         if (theme_name == current_theme_name) {
@@ -449,7 +471,7 @@ void DrawDisplaySettings(ImGuiStyle *ref) {
           break;
         }
       }
-      
+
       ImGui::SetNextItemWidth(-1);
       if (ImGui::BeginCombo("##FileThemes", current_file_theme)) {
         for (const auto& theme_name : available_themes) {
@@ -461,43 +483,44 @@ void DrawDisplaySettings(ImGuiStyle *ref) {
         }
         ImGui::EndCombo();
       }
-      
+
       if (ImGui::Button("Refresh Themes", ImVec2(-1, 30))) {
         theme_manager.RefreshAvailableThemes();
       }
-      
+
       // Actions column
       ImGui::TableNextColumn();
       if (ImGui::Button("Theme Selector", ImVec2(-1, 30))) {
         show_theme_selector = true;
       }
-      
+
       if (ImGui::Button("Theme Editor", ImVec2(-1, 30))) {
         show_theme_editor = true;
       }
-      
+
       ImGui::EndTable();
     }
-    
+
     // Show theme dialogs
     if (show_theme_selector) {
       theme_manager.ShowThemeSelector(&show_theme_selector);
     }
-    
+
     if (show_theme_editor) {
       theme_manager.ShowSimpleThemeEditor(&show_theme_editor);
     }
   }
-  
+
   ImGui::Separator();
-  
+
   // Background effects settings
   auto& bg_renderer = gui::BackgroundRenderer::Get();
   bg_renderer.DrawSettingsUI();
-  
+
   ImGui::Separator();
-  
-  if (ImGui::ShowStyleSelector("Colors##Selector")) ref_saved_style = style;
+
+  if (ImGui::ShowStyleSelector("Colors##Selector"))
+    ref_saved_style = style;
   ImGui::ShowFontSelector("Fonts##Selector");
 
   // Simplified Settings (expose floating-pointer border sizes as boolean
@@ -528,9 +551,11 @@ void DrawDisplaySettings(ImGuiStyle *ref) {
   }
 
   // Save/Revert button
-  if (ImGui::Button("Save Ref")) *ref = ref_saved_style = style;
+  if (ImGui::Button("Save Ref"))
+    *ref = ref_saved_style = style;
   ImGui::SameLine();
-  if (ImGui::Button("Revert Ref")) style = *ref;
+  if (ImGui::Button("Revert Ref"))
+    style = *ref;
   ImGui::SameLine();
 
   ImGui::Separator();
@@ -538,17 +563,16 @@ void DrawDisplaySettings(ImGuiStyle *ref) {
   if (ImGui::BeginTabBar("##tabs", ImGuiTabBarFlags_None)) {
     if (ImGui::BeginTabItem("Sizes")) {
       ImGui::SeparatorText("Main");
-      ImGui::SliderFloat2("WindowPadding", (float *)&style.WindowPadding, 0.0f,
+      ImGui::SliderFloat2("WindowPadding", (float*)&style.WindowPadding, 0.0f,
                           20.0f, "%.0f");
-      ImGui::SliderFloat2("FramePadding", (float *)&style.FramePadding, 0.0f,
+      ImGui::SliderFloat2("FramePadding", (float*)&style.FramePadding, 0.0f,
                           20.0f, "%.0f");
-      ImGui::SliderFloat2("ItemSpacing", (float *)&style.ItemSpacing, 0.0f,
+      ImGui::SliderFloat2("ItemSpacing", (float*)&style.ItemSpacing, 0.0f,
                           20.0f, "%.0f");
-      ImGui::SliderFloat2("ItemInnerSpacing", (float *)&style.ItemInnerSpacing,
+      ImGui::SliderFloat2("ItemInnerSpacing", (float*)&style.ItemInnerSpacing,
                           0.0f, 20.0f, "%.0f");
-      ImGui::SliderFloat2("TouchExtraPadding",
-                          (float *)&style.TouchExtraPadding, 0.0f, 10.0f,
-                          "%.0f");
+      ImGui::SliderFloat2("TouchExtraPadding", (float*)&style.TouchExtraPadding,
+                          0.0f, 10.0f, "%.0f");
       ImGui::SliderFloat("IndentSpacing", &style.IndentSpacing, 0.0f, 30.0f,
                          "%.0f");
       ImGui::SliderFloat("ScrollbarSize", &style.ScrollbarSize, 1.0f, 20.0f,
@@ -587,32 +611,32 @@ void DrawDisplaySettings(ImGuiStyle *ref) {
                          "%.0f");
 
       ImGui::SeparatorText("Tables");
-      ImGui::SliderFloat2("CellPadding", (float *)&style.CellPadding, 0.0f,
+      ImGui::SliderFloat2("CellPadding", (float*)&style.CellPadding, 0.0f,
                           20.0f, "%.0f");
       ImGui::SliderAngle("TableAngledHeadersAngle",
                          &style.TableAngledHeadersAngle, -50.0f, +50.0f);
 
       ImGui::SeparatorText("Widgets");
-      ImGui::SliderFloat2("WindowTitleAlign", (float *)&style.WindowTitleAlign,
+      ImGui::SliderFloat2("WindowTitleAlign", (float*)&style.WindowTitleAlign,
                           0.0f, 1.0f, "%.2f");
-      ImGui::Combo("ColorButtonPosition", (int *)&style.ColorButtonPosition,
+      ImGui::Combo("ColorButtonPosition", (int*)&style.ColorButtonPosition,
                    "Left\0Right\0");
-      ImGui::SliderFloat2("ButtonTextAlign", (float *)&style.ButtonTextAlign,
+      ImGui::SliderFloat2("ButtonTextAlign", (float*)&style.ButtonTextAlign,
                           0.0f, 1.0f, "%.2f");
       ImGui::SameLine();
 
       ImGui::SliderFloat2("SelectableTextAlign",
-                          (float *)&style.SelectableTextAlign, 0.0f, 1.0f,
+                          (float*)&style.SelectableTextAlign, 0.0f, 1.0f,
                           "%.2f");
       ImGui::SameLine();
 
       ImGui::SliderFloat("SeparatorTextBorderSize",
                          &style.SeparatorTextBorderSize, 0.0f, 10.0f, "%.0f");
       ImGui::SliderFloat2("SeparatorTextAlign",
-                          (float *)&style.SeparatorTextAlign, 0.0f, 1.0f,
+                          (float*)&style.SeparatorTextAlign, 0.0f, 1.0f,
                           "%.2f");
       ImGui::SliderFloat2("SeparatorTextPadding",
-                          (float *)&style.SeparatorTextPadding, 0.0f, 40.0f,
+                          (float*)&style.SeparatorTextPadding, 0.0f, 40.0f,
                           "%.0f");
       ImGui::SliderFloat("LogSliderDeadzone", &style.LogSliderDeadzone, 0.0f,
                          12.0f, "%.0f");
@@ -621,7 +645,7 @@ void DrawDisplaySettings(ImGuiStyle *ref) {
       for (int n = 0; n < 2; n++)
         if (ImGui::TreeNodeEx(n == 0 ? "HoverFlagsForTooltipMouse"
                                      : "HoverFlagsForTooltipNav")) {
-          ImGuiHoveredFlags *p = (n == 0) ? &style.HoverFlagsForTooltipMouse
+          ImGuiHoveredFlags* p = (n == 0) ? &style.HoverFlagsForTooltipMouse
                                           : &style.HoverFlagsForTooltipNav;
           ImGui::CheckboxFlags("ImGuiHoveredFlags_DelayNone", p,
                                ImGuiHoveredFlags_DelayNone);
@@ -638,7 +662,7 @@ void DrawDisplaySettings(ImGuiStyle *ref) {
 
       ImGui::SeparatorText("Misc");
       ImGui::SliderFloat2("DisplaySafeAreaPadding",
-                          (float *)&style.DisplaySafeAreaPadding, 0.0f, 30.0f,
+                          (float*)&style.DisplaySafeAreaPadding, 0.0f, 30.0f,
                           "%.0f");
       ImGui::SameLine();
 
@@ -655,8 +679,8 @@ void DrawDisplaySettings(ImGuiStyle *ref) {
           ImGui::LogToTTY();
         ImGui::LogText("ImVec4* colors = ImGui::GetStyle().Colors;" IM_NEWLINE);
         for (int i = 0; i < ImGuiCol_COUNT; i++) {
-          const ImVec4 &col = style.Colors[i];
-          const char *name = ImGui::GetStyleColorName(i);
+          const ImVec4& col = style.Colors[i];
+          const char* name = ImGui::GetStyleColorName(i);
           if (!output_only_modified ||
               memcmp(&col, &ref->Colors[i], sizeof(ImVec4)) != 0)
             ImGui::LogText(
@@ -701,10 +725,11 @@ void DrawDisplaySettings(ImGuiStyle *ref) {
                             ImGuiWindowFlags_NavFlattened);
       ImGui::PushItemWidth(ImGui::GetFontSize() * -12);
       for (int i = 0; i < ImGuiCol_COUNT; i++) {
-        const char *name = ImGui::GetStyleColorName(i);
-        if (!filter.PassFilter(name)) continue;
+        const char* name = ImGui::GetStyleColorName(i);
+        if (!filter.PassFilter(name))
+          continue;
         ImGui::PushID(i);
-        ImGui::ColorEdit4("##color", (float *)&style.Colors[i],
+        ImGui::ColorEdit4("##color", (float*)&style.Colors[i],
                           ImGuiColorEditFlags_AlphaBar | alpha_flags);
         if (memcmp(&style.Colors[i], &ref->Colors[i], sizeof(ImVec4)) != 0) {
           // Tips: in a real user application, you may want to merge and use
@@ -731,8 +756,8 @@ void DrawDisplaySettings(ImGuiStyle *ref) {
     }
 
     if (ImGui::BeginTabItem("Fonts")) {
-      ImGuiIO &io = ImGui::GetIO();
-      ImFontAtlas *atlas = io.Fonts;
+      ImGuiIO& io = ImGui::GetIO();
+      ImFontAtlas* atlas = io.Fonts;
       ImGui::ShowFontAtlas(atlas);
 
       // Post-baking font scaling. Note that this is NOT the nice way of
@@ -779,11 +804,12 @@ void DrawDisplaySettings(ImGuiStyle *ref) {
                        &style.CircleTessellationMaxError, 0.005f, 0.10f, 5.0f,
                        "%.2f", ImGuiSliderFlags_AlwaysClamp);
       const bool show_samples = ImGui::IsItemActive();
-      if (show_samples) ImGui::SetNextWindowPos(ImGui::GetCursorScreenPos());
+      if (show_samples)
+        ImGui::SetNextWindowPos(ImGui::GetCursorScreenPos());
       if (show_samples && ImGui::BeginTooltip()) {
         ImGui::TextUnformatted("(R = radius, N = number of segments)");
         ImGui::Spacing();
-        ImDrawList *draw_list = ImGui::GetWindowDrawList();
+        ImDrawList* draw_list = ImGui::GetWindowDrawList();
         const float min_widget_width = ImGui::CalcTextSize("N: MMM\nR: MMM").x;
         for (int n = 0; n < 8; n++) {
           const float RAD_MIN = 5.0f;
@@ -839,74 +865,81 @@ void DrawDisplaySettings(ImGuiStyle *ref) {
   ImGui::PopItemWidth();
 }
 
-void DrawDisplaySettingsForPopup(ImGuiStyle *ref) {
+void DrawDisplaySettingsForPopup(ImGuiStyle* ref) {
   // Popup-safe version of DrawDisplaySettings without problematic tables
-  ImGuiStyle &style = ImGui::GetStyle();
+  ImGuiStyle& style = ImGui::GetStyle();
   static ImGuiStyle ref_saved_style;
 
   // Default to using internal storage as reference
   static bool init = true;
-  if (init && ref == NULL) ref_saved_style = style;
+  if (init && ref == NULL)
+    ref_saved_style = style;
   init = false;
-  if (ref == NULL) ref = &ref_saved_style;
+  if (ref == NULL)
+    ref = &ref_saved_style;
 
   ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.50f);
 
   // Enhanced theme management section (simplified for popup)
-  if (ImGui::CollapsingHeader("Theme Management", ImGuiTreeNodeFlags_DefaultOpen)) {
+  if (ImGui::CollapsingHeader("Theme Management",
+                              ImGuiTreeNodeFlags_DefaultOpen)) {
     auto& theme_manager = ThemeManager::Get();
-    
+
     ImGui::Text("%s Current Theme:", ICON_MD_PALETTE);
     ImGui::SameLine();
-    
+
     std::string current_theme_name = theme_manager.GetCurrentThemeName();
     bool is_classic_active = (current_theme_name == "Classic YAZE");
-    
+
     // Current theme display with color preview
     if (is_classic_active) {
-      ImGui::TextColored(ImVec4(0.2f, 0.8f, 0.2f, 1.0f), "%s", current_theme_name.c_str());
+      ImGui::TextColored(ImVec4(0.2f, 0.8f, 0.2f, 1.0f), "%s",
+                         current_theme_name.c_str());
     } else {
       ImGui::Text("%s", current_theme_name.c_str());
     }
-    
+
     // Theme color preview
     auto current_theme = theme_manager.GetCurrentTheme();
     ImGui::SameLine();
-    ImGui::ColorButton("##primary_preview", gui::ConvertColorToImVec4(current_theme.primary), 
-                      ImGuiColorEditFlags_NoTooltip, ImVec2(20, 20));
+    ImGui::ColorButton("##primary_preview",
+                       gui::ConvertColorToImVec4(current_theme.primary),
+                       ImGuiColorEditFlags_NoTooltip, ImVec2(20, 20));
     ImGui::SameLine();
-    ImGui::ColorButton("##secondary_preview", gui::ConvertColorToImVec4(current_theme.secondary), 
-                      ImGuiColorEditFlags_NoTooltip, ImVec2(20, 20));
+    ImGui::ColorButton("##secondary_preview",
+                       gui::ConvertColorToImVec4(current_theme.secondary),
+                       ImGuiColorEditFlags_NoTooltip, ImVec2(20, 20));
     ImGui::SameLine();
-    ImGui::ColorButton("##accent_preview", gui::ConvertColorToImVec4(current_theme.accent), 
-                      ImGuiColorEditFlags_NoTooltip, ImVec2(20, 20));
-    
+    ImGui::ColorButton("##accent_preview",
+                       gui::ConvertColorToImVec4(current_theme.accent),
+                       ImGuiColorEditFlags_NoTooltip, ImVec2(20, 20));
+
     ImGui::Spacing();
-    
+
     // Simplified theme selection (no table to avoid popup conflicts)
     if (is_classic_active) {
       ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.6f, 0.2f, 1.0f));
     }
-    
+
     if (ImGui::Button("Classic YAZE")) {
       theme_manager.ApplyClassicYazeTheme();
       ref_saved_style = style;
     }
-    
+
     if (is_classic_active) {
       ImGui::PopStyleColor();
     }
-    
+
     ImGui::SameLine();
     if (ImGui::Button("Reset ColorsYaze")) {
       gui::ColorsYaze();
       ref_saved_style = style;
     }
-    
+
     // File themes dropdown
     auto available_themes = theme_manager.GetAvailableThemes();
     const char* current_file_theme = "";
-    
+
     // Find current file theme for display
     for (const auto& theme_name : available_themes) {
       if (theme_name == current_theme_name) {
@@ -914,7 +947,7 @@ void DrawDisplaySettingsForPopup(ImGuiStyle *ref) {
         break;
       }
     }
-    
+
     ImGui::Text("File Themes:");
     ImGui::SetNextItemWidth(-1);
     if (ImGui::BeginCombo("##FileThemes", current_file_theme)) {
@@ -927,7 +960,7 @@ void DrawDisplaySettingsForPopup(ImGuiStyle *ref) {
       }
       ImGui::EndCombo();
     }
-    
+
     if (ImGui::Button("Refresh Themes")) {
       theme_manager.RefreshAvailableThemes();
     }
@@ -937,63 +970,66 @@ void DrawDisplaySettingsForPopup(ImGuiStyle *ref) {
       theme_manager.ShowSimpleThemeEditor(&show_theme_editor);
     }
   }
-  
+
   ImGui::Separator();
-  
+
   // Background effects settings
   auto& bg_renderer = gui::BackgroundRenderer::Get();
   bg_renderer.DrawSettingsUI();
-  
+
   ImGui::Separator();
-  
-  if (ImGui::ShowStyleSelector("Colors##Selector")) ref_saved_style = style;
+
+  if (ImGui::ShowStyleSelector("Colors##Selector"))
+    ref_saved_style = style;
   ImGui::ShowFontSelector("Fonts##Selector");
 
   // Quick style controls before the tabbed section
-  if (ImGui::SliderFloat("FrameRounding", &style.FrameRounding, 0.0f, 12.0f, "%.0f"))
+  if (ImGui::SliderFloat("FrameRounding", &style.FrameRounding, 0.0f, 12.0f,
+                         "%.0f"))
     style.GrabRounding = style.FrameRounding;
-    
+
   // Border checkboxes (simplified layout)
   bool window_border = (style.WindowBorderSize > 0.0f);
   if (ImGui::Checkbox("WindowBorder", &window_border)) {
     style.WindowBorderSize = window_border ? 1.0f : 0.0f;
   }
   ImGui::SameLine();
-  
+
   bool frame_border = (style.FrameBorderSize > 0.0f);
   if (ImGui::Checkbox("FrameBorder", &frame_border)) {
     style.FrameBorderSize = frame_border ? 1.0f : 0.0f;
   }
   ImGui::SameLine();
-  
+
   bool popup_border = (style.PopupBorderSize > 0.0f);
   if (ImGui::Checkbox("PopupBorder", &popup_border)) {
     style.PopupBorderSize = popup_border ? 1.0f : 0.0f;
   }
 
   // Save/Revert buttons
-  if (ImGui::Button("Save Ref")) *ref = ref_saved_style = style;
+  if (ImGui::Button("Save Ref"))
+    *ref = ref_saved_style = style;
   ImGui::SameLine();
-  if (ImGui::Button("Revert Ref")) style = *ref;
+  if (ImGui::Button("Revert Ref"))
+    style = *ref;
 
   ImGui::Separator();
 
   // Add the comprehensive tabbed settings from the original DrawDisplaySettings
   if (ImGui::BeginTabBar("DisplaySettingsTabs", ImGuiTabBarFlags_None)) {
-    
+
     if (ImGui::BeginTabItem("Sizes")) {
       ImGui::SeparatorText("Main");
-      ImGui::SliderFloat2("WindowPadding", (float *)&style.WindowPadding, 0.0f,
+      ImGui::SliderFloat2("WindowPadding", (float*)&style.WindowPadding, 0.0f,
                           20.0f, "%.0f");
-      ImGui::SliderFloat2("FramePadding", (float *)&style.FramePadding, 0.0f,
+      ImGui::SliderFloat2("FramePadding", (float*)&style.FramePadding, 0.0f,
                           20.0f, "%.0f");
-      ImGui::SliderFloat2("ItemSpacing", (float *)&style.ItemSpacing, 0.0f,
+      ImGui::SliderFloat2("ItemSpacing", (float*)&style.ItemSpacing, 0.0f,
                           20.0f, "%.0f");
-      ImGui::SliderFloat2("ItemInnerSpacing", (float *)&style.ItemInnerSpacing,
+      ImGui::SliderFloat2("ItemInnerSpacing", (float*)&style.ItemInnerSpacing,
                           0.0f, 20.0f, "%.0f");
-      ImGui::SliderFloat2("TouchExtraPadding",
-                          (float *)&style.TouchExtraPadding, 0.0f, 10.0f,
-                          "%.0f");
+      ImGui::SliderFloat2("TouchExtraPadding", (float*)&style.TouchExtraPadding,
+                          0.0f, 10.0f, "%.0f");
       ImGui::SliderFloat("IndentSpacing", &style.IndentSpacing, 0.0f, 30.0f,
                          "%.0f");
       ImGui::SliderFloat("ScrollbarSize", &style.ScrollbarSize, 1.0f, 20.0f,
@@ -1032,32 +1068,32 @@ void DrawDisplaySettingsForPopup(ImGuiStyle *ref) {
                          "%.0f");
 
       ImGui::SeparatorText("Tables");
-      ImGui::SliderFloat2("CellPadding", (float *)&style.CellPadding, 0.0f,
+      ImGui::SliderFloat2("CellPadding", (float*)&style.CellPadding, 0.0f,
                           20.0f, "%.0f");
       ImGui::SliderAngle("TableAngledHeadersAngle",
                          &style.TableAngledHeadersAngle, -50.0f, +50.0f);
 
       ImGui::SeparatorText("Widgets");
-      ImGui::SliderFloat2("WindowTitleAlign", (float *)&style.WindowTitleAlign,
+      ImGui::SliderFloat2("WindowTitleAlign", (float*)&style.WindowTitleAlign,
                           0.0f, 1.0f, "%.2f");
-      ImGui::Combo("ColorButtonPosition", (int *)&style.ColorButtonPosition,
+      ImGui::Combo("ColorButtonPosition", (int*)&style.ColorButtonPosition,
                    "Left\0Right\0");
-      ImGui::SliderFloat2("ButtonTextAlign", (float *)&style.ButtonTextAlign,
+      ImGui::SliderFloat2("ButtonTextAlign", (float*)&style.ButtonTextAlign,
                           0.0f, 1.0f, "%.2f");
       ImGui::SameLine();
 
       ImGui::SliderFloat2("SelectableTextAlign",
-                          (float *)&style.SelectableTextAlign, 0.0f, 1.0f,
+                          (float*)&style.SelectableTextAlign, 0.0f, 1.0f,
                           "%.2f");
       ImGui::SameLine();
 
       ImGui::SliderFloat("SeparatorTextBorderSize",
                          &style.SeparatorTextBorderSize, 0.0f, 10.0f, "%.0f");
       ImGui::SliderFloat2("SeparatorTextAlign",
-                          (float *)&style.SeparatorTextAlign, 0.0f, 1.0f,
+                          (float*)&style.SeparatorTextAlign, 0.0f, 1.0f,
                           "%.2f");
       ImGui::SliderFloat2("SeparatorTextPadding",
-                          (float *)&style.SeparatorTextPadding, 0.0f, 40.0f,
+                          (float*)&style.SeparatorTextPadding, 0.0f, 40.0f,
                           "%.0f");
       ImGui::SliderFloat("LogSliderDeadzone", &style.LogSliderDeadzone, 0.0f,
                          12.0f, "%.0f");
@@ -1066,7 +1102,7 @@ void DrawDisplaySettingsForPopup(ImGuiStyle *ref) {
       for (int n = 0; n < 2; n++)
         if (ImGui::TreeNodeEx(n == 0 ? "HoverFlagsForTooltipMouse"
                                      : "HoverFlagsForTooltipNav")) {
-          ImGuiHoveredFlags *p = (n == 0) ? &style.HoverFlagsForTooltipMouse
+          ImGuiHoveredFlags* p = (n == 0) ? &style.HoverFlagsForTooltipMouse
                                           : &style.HoverFlagsForTooltipNav;
           ImGui::CheckboxFlags("ImGuiHoveredFlags_DelayNone", p,
                                ImGuiHoveredFlags_DelayNone);
@@ -1083,7 +1119,7 @@ void DrawDisplaySettingsForPopup(ImGuiStyle *ref) {
 
       ImGui::SeparatorText("Misc");
       ImGui::SliderFloat2("DisplaySafeAreaPadding",
-                          (float *)&style.DisplaySafeAreaPadding, 0.0f, 30.0f,
+                          (float*)&style.DisplaySafeAreaPadding, 0.0f, 30.0f,
                           "%.0f");
       ImGui::SameLine();
 
@@ -1100,8 +1136,8 @@ void DrawDisplaySettingsForPopup(ImGuiStyle *ref) {
           ImGui::LogToTTY();
         ImGui::LogText("ImVec4* colors = ImGui::GetStyle().Colors;" IM_NEWLINE);
         for (int i = 0; i < ImGuiCol_COUNT; i++) {
-          const ImVec4 &col = style.Colors[i];
-          const char *name = ImGui::GetStyleColorName(i);
+          const ImVec4& col = style.Colors[i];
+          const char* name = ImGui::GetStyleColorName(i);
           if (!output_only_modified ||
               memcmp(&col, &ref->Colors[i], sizeof(ImVec4)) != 0)
             ImGui::LogText(
@@ -1146,10 +1182,11 @@ void DrawDisplaySettingsForPopup(ImGuiStyle *ref) {
                             ImGuiWindowFlags_NavFlattened);
       ImGui::PushItemWidth(ImGui::GetFontSize() * -12);
       for (int i = 0; i < ImGuiCol_COUNT; i++) {
-        const char *name = ImGui::GetStyleColorName(i);
-        if (!filter.PassFilter(name)) continue;
+        const char* name = ImGui::GetStyleColorName(i);
+        if (!filter.PassFilter(name))
+          continue;
         ImGui::PushID(i);
-        ImGui::ColorEdit4("##color", (float *)&style.Colors[i],
+        ImGui::ColorEdit4("##color", (float*)&style.Colors[i],
                           ImGuiColorEditFlags_AlphaBar | alpha_flags);
         if (memcmp(&style.Colors[i], &ref->Colors[i], sizeof(ImVec4)) != 0) {
           // Tips: in a real user application, you may want to merge and use
@@ -1176,8 +1213,8 @@ void DrawDisplaySettingsForPopup(ImGuiStyle *ref) {
     }
 
     if (ImGui::BeginTabItem("Fonts")) {
-      ImGuiIO &io = ImGui::GetIO();
-      ImFontAtlas *atlas = io.Fonts;
+      ImGuiIO& io = ImGui::GetIO();
+      ImFontAtlas* atlas = io.Fonts;
       ImGui::ShowFontAtlas(atlas);
 
       // Post-baking font scaling. Note that this is NOT the nice way of
@@ -1224,11 +1261,12 @@ void DrawDisplaySettingsForPopup(ImGuiStyle *ref) {
                        &style.CircleTessellationMaxError, 0.005f, 0.10f, 5.0f,
                        "%.2f", ImGuiSliderFlags_AlwaysClamp);
       const bool show_samples = ImGui::IsItemActive();
-      if (show_samples) ImGui::SetNextWindowPos(ImGui::GetCursorScreenPos());
+      if (show_samples)
+        ImGui::SetNextWindowPos(ImGui::GetCursorScreenPos());
       if (show_samples && ImGui::BeginTooltip()) {
         ImGui::TextUnformatted("(R = radius, N = number of segments)");
         ImGui::Spacing();
-        ImDrawList *draw_list = ImGui::GetWindowDrawList();
+        ImDrawList* draw_list = ImGui::GetWindowDrawList();
         const float min_widget_width = ImGui::CalcTextSize("N: MMM\nR: MMM").x;
         for (int n = 0; n < 8; n++) {
           const float RAD_MIN = 5.0f;
@@ -1277,23 +1315,23 @@ void DrawDisplaySettingsForPopup(ImGuiStyle *ref) {
   ImGui::PopItemWidth();
 }
 
-void TextWithSeparators(const absl::string_view &text) {
+void TextWithSeparators(const absl::string_view& text) {
   ImGui::Separator();
   ImGui::Text("%s", text.data());
   ImGui::Separator();
 }
 
 void DrawFontManager() {
-  ImGuiIO &io = ImGui::GetIO();
-  ImFontAtlas *atlas = io.Fonts;
+  ImGuiIO& io = ImGui::GetIO();
+  ImFontAtlas* atlas = io.Fonts;
 
-  static ImFont *current_font = atlas->Fonts[0];
+  static ImFont* current_font = atlas->Fonts[0];
   static int current_font_index = 0;
   static int font_size = 16;
   static bool font_selected = false;
 
   ImGui::Text("Loaded fonts");
-  for (const auto &loaded_font : font_registry.fonts) {
+  for (const auto& loaded_font : font_registry.fonts) {
     ImGui::Text("%s", loaded_font.font_path);
   }
   ImGui::Separator();

@@ -11,39 +11,27 @@ on:
   workflow_dispatch:
 
 jobs:
-  format-check:
-    name: "Format Check"
+  format-lint:
+    name: "Format & Lint"
     runs-on: ubuntu-22.04
-    
+
     steps:
     - uses: actions/checkout@v4
-    
-    - name: Install clang-format
+
+    - name: Install tooling
       run: |
         sudo apt-get update
-        sudo apt-get install -y clang-format-14
-    
+        sudo apt-get install -y clang-format-14 clang-tidy-14 cppcheck
+
     - name: Check Formatting
       run: |
         find src test -name "*.cc" -o -name "*.h" | xargs clang-format-14 --dry-run --Werror
 
-  lint-check:
-    name: "Lint Check"
-    runs-on: ubuntu-22.04
-    
-    steps:
-    - uses: actions/checkout@v4
-    
-    - name: Install Tools
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y clang-tidy-14 cppcheck
-    
     - name: Run cppcheck
       run: |
         cppcheck --enable=warning,style,performance --error-exitcode=0 \
           --suppress=missingIncludeSystem --suppress=unusedFunction --inconclusive src/
-    
+
     - name: Run clang-tidy
       run: |
         find src -name "*.cc" -not -path "*/lib/*" | head -20 | \
@@ -71,4 +59,3 @@ jobs:
         platform: linux
         preset: ci
         build-type: RelWithDebInfo
-

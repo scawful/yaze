@@ -79,7 +79,7 @@ class HeadlessEmulator {
     bool infinite = (max_frames == 0);
 
     printf("Starting emulation (max_frames=%d, log_interval=%d)\n", max_frames,
-             log_interval);
+           log_interval);
 
     while (infinite || frame < max_frames) {
       // Run one frame
@@ -106,9 +106,10 @@ class HeadlessEmulator {
         if (current_pc == last_pc_ && frame > 60) {
           stuck_counter_++;
           if (stuck_counter_ > 5) {
-            fprintf(stderr, "ERROR: APU stuck at PC=$%04X for %d frames\n", current_pc,
-                      stuck_counter_ * 60);
-            fprintf(stderr, "ERROR: This likely indicates a hang or infinite loop\n");
+            fprintf(stderr, "ERROR: APU stuck at PC=$%04X for %d frames\n",
+                    current_pc, stuck_counter_ * 60);
+            fprintf(stderr,
+                    "ERROR: This likely indicates a hang or infinite loop\n");
             return absl::InternalError("APU stuck in infinite loop");
           }
         } else {
@@ -135,17 +136,17 @@ class HeadlessEmulator {
     printf("  SPC700 Y:  $%02X\n", spc.Y);
     printf("  SPC700 SP: $%02X\n", spc.SP);
     printf("  SPC700 PSW: N=%d V=%d P=%d B=%d H=%d I=%d Z=%d C=%d\n", spc.PSW.N,
-             spc.PSW.V, spc.PSW.P, spc.PSW.B, spc.PSW.H, spc.PSW.I, spc.PSW.Z,
-             spc.PSW.C);
+           spc.PSW.V, spc.PSW.P, spc.PSW.B, spc.PSW.H, spc.PSW.I, spc.PSW.Z,
+           spc.PSW.C);
     printf("  APU Cycles: %llu\n", apu.GetCycles());
 
     // Port status
     printf("  Input Ports:  F4=$%02X F5=$%02X F6=$%02X F7=$%02X\n",
-             apu.in_ports_[0], apu.in_ports_[1], apu.in_ports_[2],
-             apu.in_ports_[3]);
+           apu.in_ports_[0], apu.in_ports_[1], apu.in_ports_[2],
+           apu.in_ports_[3]);
     printf("  Output Ports: F4=$%02X F5=$%02X F6=$%02X F7=$%02X\n",
-             apu.out_ports_[0], apu.out_ports_[1], apu.out_ports_[2],
-             apu.out_ports_[3]);
+           apu.out_ports_[0], apu.out_ports_[1], apu.out_ports_[2],
+           apu.out_ports_[3]);
 
     // Handshake phase
     const char* handshake_phase = "UNKNOWN";
@@ -177,7 +178,7 @@ class HeadlessEmulator {
     // Zero page (used by IPL ROM)
     auto& ram = apu.ram;
     printf("  Zero Page: $00=$%02X $01=$%02X $02=$%02X $03=$%02X\n", ram[0x00],
-             ram[0x01], ram[0x02], ram[0x03]);
+           ram[0x01], ram[0x02], ram[0x03]);
 
     // Check reset vector
     uint16_t reset_vector =

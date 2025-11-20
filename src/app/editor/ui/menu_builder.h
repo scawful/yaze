@@ -35,25 +35,25 @@ class MenuBuilder {
  public:
   using Callback = std::function<void()>;
   using EnabledCheck = std::function<bool()>;
-  
+
   MenuBuilder() = default;
-  
+
   /**
    * @brief Begin a top-level menu
    */
   MenuBuilder& BeginMenu(const char* label, const char* icon = nullptr);
-  
+
   /**
    * @brief Begin a submenu
    */
   MenuBuilder& BeginSubMenu(const char* label, const char* icon = nullptr,
                             EnabledCheck enabled = nullptr);
-  
+
   /**
    * @brief End the current menu/submenu
    */
   MenuBuilder& EndMenu();
-  
+
   /**
    * @brief Add a menu item
    */
@@ -61,34 +61,34 @@ class MenuBuilder {
                     const char* shortcut = nullptr,
                     EnabledCheck enabled = nullptr,
                     EnabledCheck checked = nullptr);
-  
+
   /**
    * @brief Add a menu item without icon (convenience)
    */
   MenuBuilder& Item(const char* label, Callback callback,
                     const char* shortcut = nullptr,
                     EnabledCheck enabled = nullptr);
-  
+
   /**
    * @brief Add a separator
    */
   MenuBuilder& Separator();
-  
+
   /**
    * @brief Add a disabled item (grayed out)
    */
   MenuBuilder& DisabledItem(const char* label, const char* icon = nullptr);
-  
+
   /**
    * @brief Draw the menu bar (call in main menu bar)
    */
   void Draw();
-  
+
   /**
    * @brief Clear all menus
    */
   void Clear();
-  
+
  private:
   struct MenuItem {
     enum class Type {
@@ -98,7 +98,7 @@ class MenuBuilder {
       kSeparator,
       kDisabled
     };
-    
+
     Type type;
     std::string label;
     std::string icon;
@@ -107,20 +107,21 @@ class MenuBuilder {
     EnabledCheck enabled;
     EnabledCheck checked;
   };
-  
+
   struct Menu {
     std::string label;
     std::string icon;
     std::vector<MenuItem> items;
   };
-  
+
   std::vector<Menu> menus_;
   Menu* current_menu_ = nullptr;
-  
+
   // Track which submenus are actually open during drawing
   mutable std::vector<bool> submenu_stack_;
-  mutable int skip_depth_ = 0;  // Track nesting depth when skipping closed submenus
-  
+  mutable int skip_depth_ =
+      0;  // Track nesting depth when skipping closed submenus
+
   void DrawMenuItem(const MenuItem& item);
 };
 

@@ -81,11 +81,11 @@ class CommandHandler {
    * @brief Provide metadata for TUI/help summaries.
    */
   virtual Descriptor Describe() const;
-  
+
   /**
    * @brief Get the command usage string
    */
-   virtual std::string GetUsage() const = 0;
+  virtual std::string GetUsage() const = 0;
 
  protected:
   /**
@@ -103,8 +103,7 @@ class CommandHandler {
    * The ROM is guaranteed to be loaded and labels initialized.
    */
   virtual absl::Status Execute(Rom* rom, const ArgumentParser& parser,
-                              OutputFormatter& formatter) = 0;
-
+                               OutputFormatter& formatter) = 0;
 
   /**
    * @brief Check if the command requires ROM labels
@@ -145,14 +144,15 @@ class CommandHandler {
  * ```
  */
 #define DEFINE_COMMAND_HANDLER(name, usage_str, validate_body, execute_body) \
-  class name##CommandHandler : public CommandHandler {                        \
-   protected:                                                                 \
-    std::string GetUsage() const override { return usage_str; }              \
+  class name##CommandHandler : public CommandHandler {                       \
+   protected:                                                                \
+    std::string GetUsage() const override {                                  \
+      return usage_str;                                                      \
+    }                                                                        \
     absl::Status ValidateArgs(const ArgumentParser& parser) override         \
-      validate_body                                                           \
-    absl::Status Execute(Rom* rom, const ArgumentParser& parser,             \
-                        OutputFormatter& formatter) override                  \
-      execute_body                                                            \
+        validate_body absl::Status                                           \
+        Execute(Rom* rom, const ArgumentParser& parser,                      \
+                OutputFormatter& formatter) override execute_body            \
   };
 
 }  // namespace resources
@@ -160,4 +160,3 @@ class CommandHandler {
 }  // namespace yaze
 
 #endif  // YAZE_SRC_CLI_SERVICE_RESOURCES_COMMAND_HANDLER_H_
-

@@ -1,10 +1,10 @@
 #include "inventory.h"
 
 #include "app/gfx/backend/irenderer.h"
-#include "app/platform/window.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/types/snes_tile.h"
+#include "app/platform/window.h"
 #include "app/rom.h"
 #include "app/snes.h"
 
@@ -33,15 +33,16 @@ absl::Status Inventory::Create(Rom* rom) {
   bitmap_.SetPalette(palette_);
 
   // Queue texture creation via Arena's deferred system
-  gfx::Arena::Get().QueueTextureCommand(
-      gfx::Arena::TextureCommandType::CREATE, &bitmap_);
+  gfx::Arena::Get().QueueTextureCommand(gfx::Arena::TextureCommandType::CREATE,
+                                        &bitmap_);
 
   return absl::OkStatus();
 }
 
 absl::Status Inventory::BuildTileset(Rom* rom) {
   tilesheets_.reserve(6 * 0x2000);
-  for (int i = 0; i < 6 * 0x2000; i++) tilesheets_.push_back(0xFF);
+  for (int i = 0; i < 6 * 0x2000; i++)
+    tilesheets_.push_back(0xFF);
   ASSIGN_OR_RETURN(tilesheets_, Load2BppGraphics(*rom));
   std::vector<uint8_t> test;
   for (int i = 0; i < 0x4000; i++) {
@@ -56,8 +57,8 @@ absl::Status Inventory::BuildTileset(Rom* rom) {
   tilesheets_bmp_.SetPalette(palette_);
 
   // Queue texture creation via Arena's deferred system
-  gfx::Arena::Get().QueueTextureCommand(
-      gfx::Arena::TextureCommandType::CREATE, &tilesheets_bmp_);
+  gfx::Arena::Get().QueueTextureCommand(gfx::Arena::TextureCommandType::CREATE,
+                                        &tilesheets_bmp_);
 
   return absl::OkStatus();
 }
@@ -74,32 +75,22 @@ absl::Status Inventory::LoadItemIcons(Rom* rom) {
   };
 
   // Bow icons (.bows section)
-  std::vector<IconDef> bow_icons = {
-      {0x00, "No bow"},
-      {0x08, "Empty bow"},
-      {0x10, "Bow and arrows"},
-      {0x18, "Empty silvers bow"},
-      {0x20, "Silver bow and arrows"}
-  };
+  std::vector<IconDef> bow_icons = {{0x00, "No bow"},
+                                    {0x08, "Empty bow"},
+                                    {0x10, "Bow and arrows"},
+                                    {0x18, "Empty silvers bow"},
+                                    {0x20, "Silver bow and arrows"}};
 
   // Boomerang icons (.booms section)
-  std::vector<IconDef> boom_icons = {
-      {0x28, "No boomerang"},
-      {0x30, "Blue boomerang"},
-      {0x38, "Red boomerang"}
-  };
+  std::vector<IconDef> boom_icons = {{0x28, "No boomerang"},
+                                     {0x30, "Blue boomerang"},
+                                     {0x38, "Red boomerang"}};
 
   // Hookshot icons (.hook section)
-  std::vector<IconDef> hook_icons = {
-      {0x40, "No hookshot"},
-      {0x48, "Hookshot"}
-  };
+  std::vector<IconDef> hook_icons = {{0x40, "No hookshot"}, {0x48, "Hookshot"}};
 
   // Bomb icons (.bombs section)
-  std::vector<IconDef> bomb_icons = {
-      {0x50, "No bombs"},
-      {0x58, "Bombs"}
-  };
+  std::vector<IconDef> bomb_icons = {{0x50, "No bombs"}, {0x58, "Bombs"}};
 
   // Load all icon categories
   auto load_icons = [&](const std::vector<IconDef>& icons) -> absl::Status {

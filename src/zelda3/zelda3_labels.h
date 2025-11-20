@@ -20,48 +20,50 @@ namespace zelda3 {
 struct Zelda3Labels {
   // Dungeon/Room names (296 rooms total)
   static const std::vector<std::string>& GetRoomNames();
-  
+
   // Entrance names (133 entrances)
   static const std::vector<std::string>& GetEntranceNames();
-  
+
   // Sprite names (256 sprites)
   static const std::vector<std::string>& GetSpriteNames();
-  
+
   // Overlord names (14 overlords)
   static const std::vector<std::string>& GetOverlordNames();
-  
+
   // Overworld map names (160 maps: 64 light world + 64 dark world + 32 special)
   static const std::vector<std::string>& GetOverworldMapNames();
-  
+
   // Item names (all collectible items)
   static const std::vector<std::string>& GetItemNames();
-  
+
   // Music track names
   static const std::vector<std::string>& GetMusicTrackNames();
-  
+
   // Graphics sheet names
   static const std::vector<std::string>& GetGraphicsSheetNames();
-  
+
   // Room object type names
   static const std::vector<std::string>& GetType1RoomObjectNames();
   static const std::vector<std::string>& GetType2RoomObjectNames();
   static const std::vector<std::string>& GetType3RoomObjectNames();
-  
+
   // Room effect names
   static const std::vector<std::string>& GetRoomEffectNames();
-  
+
   // Room tag names
   static const std::vector<std::string>& GetRoomTagNames();
-  
+
   // Tile type names
   static const std::vector<std::string>& GetTileTypeNames();
-  
+
   /**
    * @brief Convert all labels to a structured map for project embedding
    * @return Map of resource type -> (id -> name) for all resources
    */
-  static std::unordered_map<std::string, std::unordered_map<std::string, std::string>> ToResourceLabels();
-  
+  static std::unordered_map<std::string,
+                            std::unordered_map<std::string, std::string>>
+  ToResourceLabels();
+
   /**
    * @brief Get a label by resource type and ID
    * @param resource_type The type of resource (e.g., "room", "entrance", "sprite")
@@ -69,11 +71,11 @@ struct Zelda3Labels {
    * @param default_value Fallback value if label not found
    * @return The label string
    */
-  static std::string GetLabel(const std::string& resource_type, int id, 
-                               const std::string& default_value = "");
+  static std::string GetLabel(const std::string& resource_type, int id,
+                              const std::string& default_value = "");
 };
 
-} // namespace zelda3
-} // namespace yaze
+}  // namespace zelda3
+}  // namespace yaze
 
-#endif // YAZE_APP_ZELDA3_ZELDA3_LABELS_H
+#endif  // YAZE_APP_ZELDA3_ZELDA3_LABELS_H

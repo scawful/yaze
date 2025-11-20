@@ -3,8 +3,8 @@
 
 #include "absl/status/status.h"
 #include "app/editor/editor.h"
-#include "app/rom.h"
 #include "app/editor/system/user_settings.h"
+#include "app/rom.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -51,7 +51,8 @@ static ExampleTreeNode* ExampleTree_CreateNode(const char* name,
   snprintf(node->Name, IM_ARRAYSIZE(node->Name), "%s", name);
   node->UID = uid;
   node->Parent = parent;
-  if (parent) parent->Childs.push_back(node);
+  if (parent)
+    parent->Childs.push_back(node);
   return node;
 }
 
@@ -139,7 +140,8 @@ struct ExampleAppPropertyEditor {
 
     // Display child and data
     if (node_open)
-      for (ExampleTreeNode* child : node->Childs) DrawTreeNode(child);
+      for (ExampleTreeNode* child : node->Childs)
+        DrawTreeNode(child);
     if (node_open && node->HasData) {
       // In a typical application, the structure description would be derived
       // from a data-driven system.
@@ -186,7 +188,8 @@ struct ExampleAppPropertyEditor {
         ImGui::PopID();
       }
     }
-    if (node_open) ImGui::TreePop();
+    if (node_open)
+      ImGui::TreePop();
     ImGui::PopID();
   }
 };
@@ -208,16 +211,17 @@ static void ShowExampleAppPropertyEditor(bool* p_open) {
 
 class SettingsEditor : public Editor {
  public:
-  explicit SettingsEditor(Rom* rom = nullptr, UserSettings* user_settings = nullptr) 
-      : rom_(rom), user_settings_(user_settings) { 
-    type_ = EditorType::kSettings; 
+  explicit SettingsEditor(Rom* rom = nullptr,
+                          UserSettings* user_settings = nullptr)
+      : rom_(rom), user_settings_(user_settings) {
+    type_ = EditorType::kSettings;
   }
 
   void Initialize() override;
   absl::Status Load() override;
   absl::Status Save() override { return absl::UnimplementedError("Save"); }
   absl::Status Update() override;
-  
+
   void set_user_settings(UserSettings* settings) { user_settings_ = settings; }
   absl::Status Cut() override { return absl::UnimplementedError("Cut"); }
   absl::Status Copy() override { return absl::UnimplementedError("Copy"); }
@@ -225,14 +229,16 @@ class SettingsEditor : public Editor {
   absl::Status Undo() override { return absl::UnimplementedError("Undo"); }
   absl::Status Redo() override { return absl::UnimplementedError("Redo"); }
   absl::Status Find() override { return absl::UnimplementedError("Find"); }
-  
+
   // Set the ROM pointer
   void set_rom(Rom* rom) { rom_ = rom; }
-  
+
   // Get the ROM pointer
   Rom* rom() const { return rom_; }
 
-  bool IsRomLoaded() const override { return true; } // Allow access without ROM for global settings
+  bool IsRomLoaded() const override {
+    return true;
+  }  // Allow access without ROM for global settings
 
  private:
   Rom* rom_;

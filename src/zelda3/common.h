@@ -8,7 +8,7 @@
  * @namespace yaze::zelda3
  * @brief Zelda 3 specific classes and functions.
  */
-namespace yaze::zelda3{
+namespace yaze::zelda3 {
 
 /**
  * @class GameEntity
@@ -39,20 +39,20 @@ class GameEntity {
     kProperties = 7,
     kDungeonSprite = 8,
   } entity_type_;
-  
+
   // World coordinates (0-4095 for overworld)
   // ZScream: PlayerX/PlayerY (exits), GlobalX/GlobalY (entrances)
   int x_ = 0;
   int y_ = 0;
-  
+
   // Map-local game coordinates (0-63 tiles, or 0-31 for small areas)
   // ZScream: AreaX/AreaY (exits), GameX/GameY (items/sprites)
   int game_x_ = 0;
   int game_y_ = 0;
-  
+
   // Entity index in array (for display/debugging)
   int entity_id_ = 0;
-  
+
   // Parent map ID (accounting for large/wide/tall areas)
   // ZScream: MapID property
   uint16_t map_id_ = 0;
@@ -75,7 +75,8 @@ class GameEntity {
    * - Scroll/camera values for exits (if is_automatic_ = true)
    * - Map position encoding for saving
    */
-  virtual void UpdateMapProperties(uint16_t map_id, const void* context = nullptr) = 0;
+  virtual void UpdateMapProperties(uint16_t map_id,
+                                   const void* context = nullptr) = 0;
 };
 
 constexpr int kNumOverworldMaps = 160;

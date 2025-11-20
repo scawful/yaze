@@ -1,6 +1,6 @@
 # B5 - Architecture and Networking
 
-This document provides a comprehensive overview of the yaze application's architecture, focusing on its service-oriented design, gRPC integration, and real-time collaboration features.
+This document provides a comprehensive overview of the yaze application's architecture, focusing on its service-oriented design, gRPC integration, and real-time collaboration features. For build/preset instructions when enabling gRPC/automation presets, refer to the [Build & Test Quick Reference](../build/quick-reference.md).
 
 ## 1. High-Level Architecture
 

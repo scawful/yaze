@@ -29,9 +29,8 @@ std::filesystem::path DetermineDefaultRoot() {
   return temp_dir / "yaze" / "sandboxes";
 }
 
-std::filesystem::path ResolveUniqueDirectory(
-    const std::filesystem::path& root,
-    absl::string_view id) {
+std::filesystem::path ResolveUniqueDirectory(const std::filesystem::path& root,
+                                             absl::string_view id) {
   return root / std::string(id);
 }
 
@@ -59,9 +58,9 @@ absl::Status RomSandboxManager::EnsureRootExistsLocked() {
   std::error_code ec;
   if (!std::filesystem::exists(root_directory_, ec)) {
     if (!std::filesystem::create_directories(root_directory_, ec) && ec) {
-      return absl::InternalError(absl::StrCat(
-          "Failed to create sandbox root at ", root_directory_.string(),
-          ": ", ec.message()));
+      return absl::InternalError(
+          absl::StrCat("Failed to create sandbox root at ",
+                       root_directory_.string(), ": ", ec.message()));
     }
   }
   return absl::OkStatus();
@@ -69,8 +68,8 @@ absl::Status RomSandboxManager::EnsureRootExistsLocked() {
 
 std::string RomSandboxManager::GenerateSandboxIdLocked() {
   absl::Time now = absl::Now();
-  std::string time_component = absl::FormatTime("%Y%m%dT%H%M%S", now,
-                                                absl::LocalTimeZone());
+  std::string time_component =
+      absl::FormatTime("%Y%m%dT%H%M%S", now, absl::LocalTimeZone());
   ++sequence_;
   return absl::StrCat(time_component, "-", sequence_);
 }
@@ -98,9 +97,9 @@ RomSandboxManager::CreateSandbox(Rom& rom, absl::string_view description) {
 
   std::error_code ec;
   if (!std::filesystem::create_directories(sandbox_dir, ec) && ec) {
-    return absl::InternalError(absl::StrCat(
-        "Failed to create sandbox directory at ", sandbox_dir.string(),
-        ": ", ec.message()));
+    return absl::InternalError(
+        absl::StrCat("Failed to create sandbox directory at ",
+                     sandbox_dir.string(), ": ", ec.message()));
   }
 
   std::filesystem::path sandbox_rom_path = sandbox_dir / source_path.filename();
@@ -145,8 +144,8 @@ RomSandboxManager::ActiveSandbox() const {
   return it->second;
 }
 
-absl::StatusOr<std::filesystem::path>
-RomSandboxManager::ActiveSandboxRomPath() const {
+absl::StatusOr<std::filesystem::path> RomSandboxManager::ActiveSandboxRomPath()
+    const {
   ASSIGN_OR_RETURN(auto meta, ActiveSandbox());
   return meta.rom_path;
 }
@@ -175,8 +174,8 @@ absl::Status RomSandboxManager::RemoveSandbox(const std::string& id) {
   std::error_code ec;
   std::filesystem::remove_all(it->second.directory, ec);
   if (ec) {
-    return absl::InternalError(absl::StrCat(
-        "Failed to remove sandbox directory: ", ec.message()));
+    return absl::InternalError(
+        absl::StrCat("Failed to remove sandbox directory: ", ec.message()));
   }
   sandboxes_.erase(it);
   if (active_sandbox_id_.has_value() && *active_sandbox_id_ == id) {
@@ -185,7 +184,8 @@ absl::Status RomSandboxManager::RemoveSandbox(const std::string& id) {
   return absl::OkStatus();
 }
 
-absl::StatusOr<int> RomSandboxManager::CleanupOlderThan(absl::Duration max_age) {
+absl::StatusOr<int> RomSandboxManager::CleanupOlderThan(
+    absl::Duration max_age) {
   std::vector<std::string> to_remove;
   {
     std::lock_guard<std::mutex> lock(mutex_);

@@ -17,24 +17,24 @@ namespace core {
  * @brief Symbol information extracted from Asar assembly
  */
 struct AsarSymbol {
-  std::string name;           // Symbol name
-  uint32_t address;           // Memory address
-  std::string opcode;         // Associated opcode if available
-  std::string file;           // Source file
-  int line;                   // Line number in source
-  std::string comment;        // Optional comment
+  std::string name;     // Symbol name
+  uint32_t address;     // Memory address
+  std::string opcode;   // Associated opcode if available
+  std::string file;     // Source file
+  int line;             // Line number in source
+  std::string comment;  // Optional comment
 };
 
 /**
  * @brief Asar patch result information
  */
 struct AsarPatchResult {
-  bool success;                         // Whether patch was successful
-  std::vector<std::string> errors;      // Error messages if any
-  std::vector<std::string> warnings;    // Warning messages
-  std::vector<AsarSymbol> symbols;      // Extracted symbols
-  uint32_t rom_size;                    // Final ROM size after patching
-  uint32_t crc32;                       // CRC32 checksum of patched ROM
+  bool success;                       // Whether patch was successful
+  std::vector<std::string> errors;    // Error messages if any
+  std::vector<std::string> warnings;  // Warning messages
+  std::vector<AsarSymbol> symbols;    // Extracted symbols
+  uint32_t rom_size;                  // Final ROM size after patching
+  uint32_t crc32;                     // CRC32 checksum of patched ROM
 };
 
 /**

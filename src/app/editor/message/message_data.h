@@ -42,7 +42,7 @@
 // ## Data Flow
 //
 // ### Reading from ROM:
-// ROM bytes → ReadAllTextData() → MessageData (raw) → ParseMessageData() → 
+// ROM bytes → ReadAllTextData() → MessageData (raw) → ParseMessageData() →
 // Human-readable string with [command] tokens
 //
 // ### Writing to ROM:
@@ -64,7 +64,7 @@
 //
 // Messages are stored as byte sequences terminated by 0x7F:
 // Example: [0x00, 0x01, 0x02, 0x7F] = "ABC"
-// Example: [0x6A, 0x59, 0x2C, 0x61, 0x32, 0x28, 0x2B, 0x23, 0x7F] 
+// Example: [0x6A, 0x59, 0x2C, 0x61, 0x32, 0x28, 0x2B, 0x23, 0x7F]
 //          = "[L] saved Hyrule" (0x6A = player name command)
 //
 // ## Token Syntax (Human-Readable Format)
@@ -81,13 +81,13 @@
 #include <optional>
 #include <regex>
 #include <string>
+#include <string_view>
 #include <unordered_map>
 #include <vector>
-#include <string_view>
 
+#include "absl/strings/match.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_replace.h"
-#include "absl/strings/match.h"
 #include "app/rom.h"
 
 namespace yaze {
@@ -137,11 +137,11 @@ std::vector<uint8_t> ParseMessageToData(std::string str);
 // Dictionary entries are stored separately in ROM and referenced by bytes 0x88-0xE8
 // Example: Dictionary entry 0x00 might contain "the" and be referenced as [D:00]
 struct DictionaryEntry {
-  uint8_t ID = 0;            // Dictionary index (0-96)
-  std::string Contents = ""; // The actual text this entry represents
-  std::vector<uint8_t> Data; // Binary representation of Contents
-  int Length = 0;            // Character count
-  std::string Token = "";    // Human-readable token like "[D:00]"
+  uint8_t ID = 0;             // Dictionary index (0-96)
+  std::string Contents = "";  // The actual text this entry represents
+  std::vector<uint8_t> Data;  // Binary representation of Contents
+  int Length = 0;             // Character count
+  std::string Token = "";     // Human-readable token like "[D:00]"
 
   DictionaryEntry() = default;
   DictionaryEntry(uint8_t i, std::string_view s)
@@ -183,8 +183,8 @@ std::vector<DictionaryEntry> BuildDictionaryEntries(Rom* rom);
 
 // Replaces all dictionary words in a string with their [D:XX] tokens
 // Used for text compression when saving messages back to ROM
-std::string ReplaceAllDictionaryWords(std::string str,
-                                      const std::vector<DictionaryEntry>& dictionary);
+std::string ReplaceAllDictionaryWords(
+    std::string str, const std::vector<DictionaryEntry>& dictionary);
 
 // Looks up a dictionary entry by its ROM byte value
 DictionaryEntry FindRealDictionaryEntry(
@@ -199,12 +199,12 @@ const std::string CHEESE = "\uBEBE";
 // 1. Raw: Direct ROM bytes with dictionary references as [D:XX] tokens
 // 2. Parsed: Fully expanded with dictionary words replaced by actual text
 struct MessageData {
-  int ID = 0;                      // Message index in the ROM
-  int Address = 0;                 // ROM address where this message is stored
-  std::string RawString;           // Human-readable with [D:XX] dictionary tokens
-  std::string ContentsParsed;      // Fully expanded human-readable text
-  std::vector<uint8_t> Data;       // Raw ROM bytes (may contain dict references)
-  std::vector<uint8_t> DataParsed; // Expanded bytes (dict entries expanded)
+  int ID = 0;                  // Message index in the ROM
+  int Address = 0;             // ROM address where this message is stored
+  std::string RawString;       // Human-readable with [D:XX] dictionary tokens
+  std::string ContentsParsed;  // Fully expanded human-readable text
+  std::vector<uint8_t> Data;   // Raw ROM bytes (may contain dict references)
+  std::vector<uint8_t> DataParsed;  // Expanded bytes (dict entries expanded)
 
   MessageData() = default;
   MessageData(int id, int address, const std::string& rawString,
@@ -410,9 +410,9 @@ std::optional<TextElement> FindMatchingSpecial(uint8_t b);
 // Result of parsing a text token like "[W:02]"
 // Contains both the command definition and its argument value
 struct ParsedElement {
-  TextElement Parent;  // The command or special character definition
-  uint8_t Value;       // Argument value (if command has argument)
-  bool Active = false; // True if parsing was successful
+  TextElement Parent;   // The command or special character definition
+  uint8_t Value;        // Argument value (if command has argument)
+  bool Active = false;  // True if parsing was successful
 
   ParsedElement() = default;
   ParsedElement(const TextElement& textElement, uint8_t value)

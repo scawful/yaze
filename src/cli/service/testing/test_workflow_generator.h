@@ -16,11 +16,11 @@ namespace cli {
  * @brief Type of test step to execute
  */
 enum class TestStepType {
-  kClick,       // Click a button or element
-  kType,        // Type text into an input
-  kWait,        // Wait for a condition
-  kAssert,      // Assert a condition is true
-  kScreenshot   // Capture a screenshot
+  kClick,      // Click a button or element
+  kType,       // Type text into an input
+  kWait,       // Wait for a condition
+  kAssert,     // Assert a condition is true
+  kScreenshot  // Capture a screenshot
 };
 
 /**
@@ -28,12 +28,12 @@ enum class TestStepType {
  */
 struct TestStep {
   TestStepType type;
-  std::string target;      // Widget/element target (e.g., "button:Overworld")
-  std::string text;        // Text to type (for kType steps)
-  std::string condition;   // Condition to wait for or assert
-  int timeout_ms = 5000;   // Timeout for wait operations
-  bool clear_first = false; // Clear text before typing
-  
+  std::string target;        // Widget/element target (e.g., "button:Overworld")
+  std::string text;          // Text to type (for kType steps)
+  std::string condition;     // Condition to wait for or assert
+  int timeout_ms = 5000;     // Timeout for wait operations
+  bool clear_first = false;  // Clear text before typing
+
   std::string ToString() const;
 };
 
@@ -43,7 +43,7 @@ struct TestStep {
 struct TestWorkflow {
   std::string description;
   std::vector<TestStep> steps;
-  
+
   std::string ToString() const;
 };
 
@@ -72,30 +72,31 @@ struct TestWorkflow {
 class TestWorkflowGenerator {
  public:
   TestWorkflowGenerator() = default;
-  
+
   /**
    * @brief Generate a test workflow from a natural language prompt
    * @param prompt Natural language description of desired GUI actions
    * @return TestWorkflow or error if prompt is unsupported
    */
   absl::StatusOr<TestWorkflow> GenerateWorkflow(const std::string& prompt);
-  
+
  private:
   // Pattern matchers for different prompt types
   bool MatchesOpenEditor(const std::string& prompt, std::string* editor_name);
-  bool MatchesOpenAndVerify(const std::string& prompt, std::string* editor_name);
+  bool MatchesOpenAndVerify(const std::string& prompt,
+                            std::string* editor_name);
   bool MatchesTypeInput(const std::string& prompt, std::string* input_name,
                         std::string* text);
   bool MatchesClickButton(const std::string& prompt, std::string* button_name);
   bool MatchesMultiStep(const std::string& prompt);
-  
+
   // Workflow builders
   TestWorkflow BuildOpenEditorWorkflow(const std::string& editor_name);
   TestWorkflow BuildOpenAndVerifyWorkflow(const std::string& editor_name);
   TestWorkflow BuildTypeInputWorkflow(const std::string& input_name,
                                       const std::string& text);
   TestWorkflow BuildClickButtonWorkflow(const std::string& button_name);
-  
+
   // Helper to normalize editor names (e.g., "overworld" → "Overworld Editor")
   std::string NormalizeEditorName(const std::string& name);
 };

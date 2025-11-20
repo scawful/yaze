@@ -10,8 +10,8 @@
 #include "absl/strings/numbers.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_split.h"
-#include "absl/strings/strip.h"
 #include "absl/strings/string_view.h"
+#include "absl/strings/strip.h"
 #include "util/macro.h"
 
 namespace yaze {
@@ -174,9 +174,8 @@ absl::Status ParseScalarConfig(const std::string& key, const std::string& value,
   if (key == "parallel_execution") {
     bool enabled = false;
     if (!ParseBoolean(value, &enabled)) {
-      return absl::InvalidArgumentError(
-          absl::StrCat("Invalid boolean for parallel_execution: '", value,
-                        "'"));
+      return absl::InvalidArgumentError(absl::StrCat(
+          "Invalid boolean for parallel_execution: '", value, "'"));
     }
     config->parallel_execution = enabled;
     return absl::OkStatus();
@@ -200,11 +199,11 @@ absl::Status ParseStringListBlock(const std::vector<std::string>& lines,
       break;
     }
     if (indent != base_indent) {
-      return absl::InvalidArgumentError(
-          "Invalid indentation in list block");
+      return absl::InvalidArgumentError("Invalid indentation in list block");
     }
     if (trimmed.empty() || trimmed.front() != '-') {
-      return absl::InvalidArgumentError("Expected list entry starting with '-'");
+      return absl::InvalidArgumentError(
+          "Expected list entry starting with '-'");
     }
     std::string value = Trim(trimmed.substr(1));
     output->push_back(Unquote(value));
@@ -228,7 +227,8 @@ absl::Status ParseParametersBlock(const std::vector<std::string>& lines,
       break;
     }
     if (indent != base_indent) {
-      return absl::InvalidArgumentError("Invalid indentation in parameters block");
+      return absl::InvalidArgumentError(
+          "Invalid indentation in parameters block");
     }
     std::string key;
     std::string value;
@@ -249,7 +249,8 @@ absl::Status ParseTestCaseEntry(const std::vector<std::string>& lines,
   std::string stripped = StripComment(raw_line);
   int indent = CountIndent(stripped);
   if (indent != base_indent) {
-    return absl::InvalidArgumentError("Invalid indentation for test case entry");
+    return absl::InvalidArgumentError(
+        "Invalid indentation for test case entry");
   }
 
   size_t dash_pos = stripped.find('-');
@@ -334,8 +335,8 @@ absl::Status ParseTestCaseEntry(const std::vector<std::string>& lines,
         auto tags = ParseInlineList(value);
         if (tags.empty() && value.empty()) {
           ++(*index);
-          RETURN_IF_ERROR(ParseStringListBlock(lines, index, indent_next + 2,
-                                              &test.tags));
+          RETURN_IF_ERROR(
+              ParseStringListBlock(lines, index, indent_next + 2, &test.tags));
           continue;
         }
         test.tags.insert(test.tags.end(), tags.begin(), tags.end());
@@ -452,7 +453,7 @@ absl::Status ParseGroupEntry(const std::vector<std::string>& lines,
         } else {
           ++(*index);
           RETURN_IF_ERROR(ParseStringListBlock(lines, index, base_indent + 4,
-                                              &group.depends_on));
+                                               &group.depends_on));
         }
       } else if (key == "tests") {
         if (!value.empty()) {
@@ -460,12 +461,10 @@ absl::Status ParseGroupEntry(const std::vector<std::string>& lines,
               "tests block must be defined as indented list");
         }
         ++(*index);
-        RETURN_IF_ERROR(
-            ParseTestsBlock(lines, index, base_indent + 4, &group));
+        RETURN_IF_ERROR(ParseTestsBlock(lines, index, base_indent + 4, &group));
       } else {
         return absl::InvalidArgumentError(
-            absl::StrCat("Unknown attribute in group definition: '", key,
-                          "'"));
+            absl::StrCat("Unknown attribute in group definition: '", key, "'"));
       }
     } else {
       return absl::InvalidArgumentError(
@@ -474,8 +473,7 @@ absl::Status ParseGroupEntry(const std::vector<std::string>& lines,
   }
 
   if (group.name.empty()) {
-    return absl::InvalidArgumentError(
-        "Each test group must define a name");
+    return absl::InvalidArgumentError("Each test group must define a name");
   }
   suite->groups.push_back(std::move(group));
   return absl::OkStatus();

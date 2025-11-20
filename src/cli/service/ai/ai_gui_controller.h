@@ -26,11 +26,11 @@ namespace ai {
  * @brief Configuration for the AI GUI control loop
  */
 struct ControlLoopConfig {
-  int max_iterations = 10;              // Max attempts before giving up
-  int screenshot_delay_ms = 500;        // Delay before taking screenshots
-  bool enable_vision_verification = true; // Use vision to verify actions
-  bool enable_iterative_refinement = true; // Retry with refined actions
-  int max_retries_per_action = 3;       // Max retries for a single action
+  int max_iterations = 10;                  // Max attempts before giving up
+  int screenshot_delay_ms = 500;            // Delay before taking screenshots
+  bool enable_vision_verification = true;   // Use vision to verify actions
+  bool enable_iterative_refinement = true;  // Retry with refined actions
+  int max_retries_per_action = 3;           // Max retries for a single action
   std::string screenshots_dir = "/tmp/yaze/ai_gui_control";
 };
 
@@ -86,21 +86,21 @@ class AIGUIController {
    */
   AIGUIController(GeminiAIService* gemini_service,
                   GuiAutomationClient* gui_client);
-  
+
   ~AIGUIController() = default;
-  
+
   /**
    * @brief Initialize the controller with configuration
    */
   absl::Status Initialize(const ControlLoopConfig& config);
-  
+
   /**
    * @brief Execute a natural language command with AI vision guidance
    * @param command Natural language command (e.g., "Place tile 0x42 at (5, 7)")
    * @return Result including success status and execution details
    */
   absl::StatusOr<ControlResult> ExecuteCommand(const std::string& command);
-  
+
   /**
    * @brief Execute a sequence of pre-parsed actions
    * @param actions Vector of AI actions to execute
@@ -108,7 +108,7 @@ class AIGUIController {
    */
   absl::StatusOr<ControlResult> ExecuteActions(
       const std::vector<ai::AIAction>& actions);
-  
+
   /**
    * @brief Execute a single action with optional vision verification
    * @param action The action to execute
@@ -116,9 +116,8 @@ class AIGUIController {
    * @return Success status and vision analysis
    */
   absl::StatusOr<VisionAnalysisResult> ExecuteSingleAction(
-      const AIAction& action,
-      bool verify_with_vision = true);
-  
+      const AIAction& action, bool verify_with_vision = true);
+
   /**
    * @brief Analyze the current GUI state without executing actions
    * @param context What to look for in the GUI
@@ -126,17 +125,17 @@ class AIGUIController {
    */
   absl::StatusOr<VisionAnalysisResult> AnalyzeCurrentGUIState(
       const std::string& context = "");
-  
+
   /**
    * @brief Get the current configuration
    */
   const ControlLoopConfig& config() const { return config_; }
-  
+
   /**
    * @brief Update configuration
    */
   void SetConfig(const ControlLoopConfig& config) { config_ = config; }
-  
+
  private:
   GeminiAIService* gemini_service_;  // Not owned
   GuiAutomationClient* gui_client_;  // Not owned
@@ -144,22 +143,20 @@ class AIGUIController {
   gui::GuiActionGenerator action_generator_;
   ControlLoopConfig config_;
   std::filesystem::path screenshots_dir_;
-  
+
   // Helper methods
   absl::StatusOr<std::filesystem::path> CaptureCurrentState(
       const std::string& description);
-  
+
   absl::Status ExecuteGRPCAction(const AIAction& action);
-  
+
   absl::StatusOr<VisionAnalysisResult> VerifyActionSuccess(
-      const AIAction& action,
-      const std::filesystem::path& before_screenshot,
+      const AIAction& action, const std::filesystem::path& before_screenshot,
       const std::filesystem::path& after_screenshot);
-  
+
   absl::StatusOr<AIAction> RefineActionWithVision(
-      const AIAction& original_action,
-      const VisionAnalysisResult& analysis);
-  
+      const AIAction& original_action, const VisionAnalysisResult& analysis);
+
   void EnsureScreenshotsDirectory();
   std::filesystem::path GenerateScreenshotPath(const std::string& suffix);
 };

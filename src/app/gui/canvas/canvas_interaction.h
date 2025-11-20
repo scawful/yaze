@@ -1,10 +1,10 @@
 #ifndef YAZE_APP_GUI_CANVAS_CANVAS_INTERACTION_H
 #define YAZE_APP_GUI_CANVAS_CANVAS_INTERACTION_H
 
-#include "app/gui/canvas/canvas_events.h"
-#include "app/gui/canvas/canvas_state.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/render/tilemap.h"
+#include "app/gui/canvas/canvas_events.h"
+#include "app/gui/canvas/canvas_state.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -43,9 +43,7 @@ namespace gui {
  * @return RectSelectionEvent with selection results
  */
 RectSelectionEvent HandleRectangleSelection(
-    const CanvasGeometry& geometry,
-    int current_map,
-    float tile_size,
+    const CanvasGeometry& geometry, int current_map, float tile_size,
     ImDrawList* draw_list,
     ImGuiMouseButton mouse_button = ImGuiMouseButton_Right);
 
@@ -61,9 +59,7 @@ RectSelectionEvent HandleRectangleSelection(
  * @return TileSelectionEvent with selected tile
  */
 TileSelectionEvent HandleTileSelection(
-    const CanvasGeometry& geometry,
-    int current_map,
-    float tile_size,
+    const CanvasGeometry& geometry, int current_map, float tile_size,
     ImGuiMouseButton mouse_button = ImGuiMouseButton_Right);
 
 // ============================================================================
@@ -83,9 +79,7 @@ TileSelectionEvent HandleTileSelection(
  * @return TilePaintEvent with paint results
  */
 TilePaintEvent HandleTilePaint(
-    const CanvasGeometry& geometry,
-    int tile_id,
-    float tile_size,
+    const CanvasGeometry& geometry, int tile_id, float tile_size,
     ImGuiMouseButton mouse_button = ImGuiMouseButton_Left);
 
 /**
@@ -101,9 +95,7 @@ TilePaintEvent HandleTilePaint(
  * @return TilePaintEvent with paint results
  */
 TilePaintEvent HandleTilePaintWithPreview(
-    const CanvasGeometry& geometry,
-    const gfx::Bitmap& bitmap,
-    float tile_size,
+    const CanvasGeometry& geometry, const gfx::Bitmap& bitmap, float tile_size,
     ImDrawList* draw_list,
     ImGuiMouseButton mouse_button = ImGuiMouseButton_Left);
 
@@ -120,10 +112,8 @@ TilePaintEvent HandleTilePaintWithPreview(
  * @return TilePaintEvent with paint results
  */
 TilePaintEvent HandleTilemapPaint(
-    const CanvasGeometry& geometry,
-    const gfx::Tilemap& tilemap,
-    int current_tile,
-    ImDrawList* draw_list,
+    const CanvasGeometry& geometry, const gfx::Tilemap& tilemap,
+    int current_tile, ImDrawList* draw_list,
     ImGuiMouseButton mouse_button = ImGuiMouseButton_Left);
 
 // ============================================================================
@@ -152,12 +142,9 @@ HoverEvent HandleHover(const CanvasGeometry& geometry, float tile_size);
  * @param draw_list ImGui draw list
  * @param color Preview color (default: white with alpha)
  */
-void RenderHoverPreview(
-    const CanvasGeometry& geometry,
-    const HoverEvent& hover,
-    float tile_size,
-    ImDrawList* draw_list,
-    ImU32 color = IM_COL32(255, 255, 255, 80));
+void RenderHoverPreview(const CanvasGeometry& geometry, const HoverEvent& hover,
+                        float tile_size, ImDrawList* draw_list,
+                        ImU32 color = IM_COL32(255, 255, 255, 80));
 
 // ============================================================================
 // Entity Interaction (Phase 2.4 - Future)
@@ -173,10 +160,9 @@ void RenderHoverPreview(
  * @param entity_position Current entity position
  * @return EntityInteractionEvent with interaction results
  */
-EntityInteractionEvent HandleEntityInteraction(
-    const CanvasGeometry& geometry,
-    int entity_id,
-    ImVec2 entity_position);
+EntityInteractionEvent HandleEntityInteraction(const CanvasGeometry& geometry,
+                                               int entity_id,
+                                               ImVec2 entity_position);
 
 // ============================================================================
 // Helper Functions
@@ -225,4 +211,3 @@ ImVec2 CanvasToTileGrid(ImVec2 canvas_pos, float tile_size, float global_scale);
 }  // namespace yaze
 
 #endif  // YAZE_APP_GUI_CANVAS_CANVAS_INTERACTION_H
-

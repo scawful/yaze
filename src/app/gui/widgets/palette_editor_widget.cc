@@ -13,7 +13,7 @@ namespace gui {
 
 // Merged implementation from PaletteWidget and PaletteEditorWidget
 
-void PaletteEditorWidget::Initialize(Rom *rom) {
+void PaletteEditorWidget::Initialize(Rom* rom) {
   rom_ = rom;
   rom_palettes_loaded_ = false;
   if (rom_) {
@@ -35,7 +35,7 @@ void PaletteEditorWidget::Draw() {
   DrawPaletteSelector();
   ImGui::Separator();
 
-  auto &dungeon_pal_group = rom_->mutable_palette_group()->dungeon_main;
+  auto& dungeon_pal_group = rom_->mutable_palette_group()->dungeon_main;
   if (current_palette_id_ >= 0 &&
       current_palette_id_ < (int)dungeon_pal_group.size()) {
     auto palette = dungeon_pal_group[current_palette_id_];
@@ -55,7 +55,7 @@ void PaletteEditorWidget::Draw() {
 }
 
 void PaletteEditorWidget::DrawPaletteSelector() {
-  auto &dungeon_pal_group = rom_->mutable_palette_group()->dungeon_main;
+  auto& dungeon_pal_group = rom_->mutable_palette_group()->dungeon_main;
   int num_palettes = dungeon_pal_group.size();
 
   ImGui::Text("Dungeon Palette:");
@@ -83,13 +83,13 @@ void PaletteEditorWidget::DrawColorPicker() {
   ImGui::SeparatorText(
       absl::StrFormat("Edit Color %d", selected_color_index_).c_str());
 
-  auto &dungeon_pal_group = rom_->mutable_palette_group()->dungeon_main;
+  auto& dungeon_pal_group = rom_->mutable_palette_group()->dungeon_main;
   auto palette = dungeon_pal_group[current_palette_id_];
   auto original_color = palette[selected_color_index_];
 
-  if (ImGui::ColorEdit3("Color", &editing_color_.x,
-                       ImGuiColorEditFlags_NoAlpha |
-                           ImGuiColorEditFlags_PickerHueWheel)) {
+  if (ImGui::ColorEdit3(
+          "Color", &editing_color_.x,
+          ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_PickerHueWheel)) {
     int r = static_cast<int>(editing_color_.x * 31.0f);
     int g = static_cast<int>(editing_color_.y * 31.0f);
     int b = static_cast<int>(editing_color_.z * 31.0f);
@@ -108,16 +108,16 @@ void PaletteEditorWidget::DrawColorPicker() {
   ImGui::Text("SNES BGR555: 0x%04X", original_color.snes());
 
   if (ImGui::Button("Reset to Original")) {
-    editing_color_ = ImVec4(original_color.rgb().x / 255.0f,
-                            original_color.rgb().y / 255.0f,
-                            original_color.rgb().z / 255.0f, 1.0f);
+    editing_color_ =
+        ImVec4(original_color.rgb().x / 255.0f, original_color.rgb().y / 255.0f,
+               original_color.rgb().z / 255.0f, 1.0f);
   }
 }
 
 // --- Modal/Popup Methods (from feature-rich widget) ---
 
-void PaletteEditorWidget::ShowPaletteEditor(gfx::SnesPalette &palette,
-                                            const std::string &title) {
+void PaletteEditorWidget::ShowPaletteEditor(gfx::SnesPalette& palette,
+                                            const std::string& title) {
   if (ImGui::BeginPopupModal(title.c_str(), nullptr,
                              ImGuiWindowFlags_AlwaysAutoResize)) {
     ImGui::Text("Enhanced Palette Editor");
@@ -160,7 +160,8 @@ void PaletteEditorWidget::ShowPaletteEditor(gfx::SnesPalette &palette,
 }
 
 void PaletteEditorWidget::ShowROMPaletteManager() {
-  if (!show_rom_manager_) return;
+  if (!show_rom_manager_)
+    return;
 
   if (ImGui::Begin("ROM Palette Manager", &show_rom_manager_)) {
     if (!rom_) {
@@ -180,17 +181,18 @@ void PaletteEditorWidget::ShowROMPaletteManager() {
       ImGui::Text("Preview of %s:",
                   palette_group_names_[current_group_index_].c_str());
 
-      const auto &preview_palette = rom_palette_groups_[current_group_index_];
-      DrawPaletteGrid(const_cast<gfx::SnesPalette &>(preview_palette));
+      const auto& preview_palette = rom_palette_groups_[current_group_index_];
+      DrawPaletteGrid(const_cast<gfx::SnesPalette&>(preview_palette));
       DrawPaletteAnalysis(preview_palette);
     }
   }
   ImGui::End();
 }
 
-void PaletteEditorWidget::ShowColorAnalysis(const gfx::Bitmap &bitmap,
-                                            const std::string &title) {
-  if (!show_color_analysis_) return;
+void PaletteEditorWidget::ShowColorAnalysis(const gfx::Bitmap& bitmap,
+                                            const std::string& title) {
+  if (!show_color_analysis_)
+    return;
 
   if (ImGui::Begin(title.c_str(), &show_color_analysis_)) {
     ImGui::Text("Bitmap Color Analysis");
@@ -203,7 +205,7 @@ void PaletteEditorWidget::ShowColorAnalysis(const gfx::Bitmap &bitmap,
     }
 
     std::map<uint8_t, int> pixel_counts;
-    const auto &data = bitmap.vector();
+    const auto& data = bitmap.vector();
 
     for (uint8_t pixel : data) {
       uint8_t palette_index = pixel & 0x0F;
@@ -217,7 +219,7 @@ void PaletteEditorWidget::ShowColorAnalysis(const gfx::Bitmap &bitmap,
     ImGui::Text("Pixel Distribution:");
 
     int total_pixels = static_cast<int>(data.size());
-    for (const auto &[index, count] : pixel_counts) {
+    for (const auto& [index, count] : pixel_counts) {
       float percentage = (static_cast<float>(count) / total_pixels) * 100.0f;
       ImGui::Text("Index %d: %d pixels (%.1f%%)", index, count, percentage);
 
@@ -244,7 +246,7 @@ void PaletteEditorWidget::ShowColorAnalysis(const gfx::Bitmap &bitmap,
   ImGui::End();
 }
 
-bool PaletteEditorWidget::ApplyROMPalette(gfx::Bitmap *bitmap, int group_index,
+bool PaletteEditorWidget::ApplyROMPalette(gfx::Bitmap* bitmap, int group_index,
                                           int palette_index) {
   if (!bitmap || !rom_palettes_loaded_ || group_index < 0 ||
       group_index >= static_cast<int>(rom_palette_groups_.size())) {
@@ -252,7 +254,7 @@ bool PaletteEditorWidget::ApplyROMPalette(gfx::Bitmap *bitmap, int group_index,
   }
 
   try {
-    const auto &selected_palette = rom_palette_groups_[group_index];
+    const auto& selected_palette = rom_palette_groups_[group_index];
     SavePaletteBackup(bitmap->palette());
 
     if (palette_index >= 0 && palette_index < 8) {
@@ -267,12 +269,12 @@ bool PaletteEditorWidget::ApplyROMPalette(gfx::Bitmap *bitmap, int group_index,
     current_group_index_ = group_index;
     current_palette_index_ = palette_index;
     return true;
-  } catch (const std::exception &e) {
+  } catch (const std::exception& e) {
     return false;
   }
 }
 
-const gfx::SnesPalette *PaletteEditorWidget::GetSelectedROMPalette() const {
+const gfx::SnesPalette* PaletteEditorWidget::GetSelectedROMPalette() const {
   if (!rom_palettes_loaded_ || current_group_index_ < 0 ||
       current_group_index_ >= static_cast<int>(rom_palette_groups_.size())) {
     return nullptr;
@@ -280,11 +282,11 @@ const gfx::SnesPalette *PaletteEditorWidget::GetSelectedROMPalette() const {
   return &rom_palette_groups_[current_group_index_];
 }
 
-void PaletteEditorWidget::SavePaletteBackup(const gfx::SnesPalette &palette) {
+void PaletteEditorWidget::SavePaletteBackup(const gfx::SnesPalette& palette) {
   backup_palette_ = palette;
 }
 
-bool PaletteEditorWidget::RestorePaletteBackup(gfx::SnesPalette &palette) {
+bool PaletteEditorWidget::RestorePaletteBackup(gfx::SnesPalette& palette) {
   if (backup_palette_.size() == 0) {
     return false;
   }
@@ -293,9 +295,10 @@ bool PaletteEditorWidget::RestorePaletteBackup(gfx::SnesPalette &palette) {
 }
 
 // Unified grid drawing function
-void PaletteEditorWidget::DrawPaletteGrid(gfx::SnesPalette &palette, int cols) {
+void PaletteEditorWidget::DrawPaletteGrid(gfx::SnesPalette& palette, int cols) {
   for (int i = 0; i < static_cast<int>(palette.size()); i++) {
-    if (i % cols != 0) ImGui::SameLine();
+    if (i % cols != 0)
+      ImGui::SameLine();
 
     auto color = palette[i];
     ImVec4 display_color = color.rgb();
@@ -339,9 +342,9 @@ void PaletteEditorWidget::DrawPaletteGrid(gfx::SnesPalette &palette, int cols) {
     if (ImGui::BeginPopupModal("Edit Color", nullptr,
                                ImGuiWindowFlags_AlwaysAutoResize)) {
       ImGui::Text("Editing Color %d", editing_color_index_);
-      if (ImGui::ColorEdit4("Color", &temp_color_.x,
-                           ImGuiColorEditFlags_NoAlpha |
-                               ImGuiColorEditFlags_DisplayRGB)) {
+      if (ImGui::ColorEdit4(
+              "Color", &temp_color_.x,
+              ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_DisplayRGB)) {
         auto new_snes_color = gfx::SnesColor(temp_color_);
         palette[editing_color_index_] = new_snes_color;
       }
@@ -372,25 +375,26 @@ void PaletteEditorWidget::DrawROMPaletteSelector() {
   ImGui::Text("Palette Group:");
   if (ImGui::Combo(
           "##PaletteGroup", &current_group_index_,
-          [](void *data, int idx, const char **out_text) -> bool {
-            auto *names = static_cast<std::vector<std::string> *>(data);
-            if (idx < 0 || idx >= static_cast<int>(names->size())) return false;
+          [](void* data, int idx, const char** out_text) -> bool {
+            auto* names = static_cast<std::vector<std::string>*>(data);
+            if (idx < 0 || idx >= static_cast<int>(names->size()))
+              return false;
             *out_text = (*names)[idx].c_str();
             return true;
           },
           &palette_group_names_,
-          static_cast<int>(palette_group_names_.size()))) {
-  }
+          static_cast<int>(palette_group_names_.size()))) {}
 
   ImGui::Text("Palette Index:");
   ImGui::SliderInt("##PaletteIndex", &current_palette_index_, 0, 7, "%d");
 
   if (current_group_index_ < static_cast<int>(rom_palette_groups_.size())) {
     ImGui::Text("Preview:");
-    const auto &preview_palette = rom_palette_groups_[current_group_index_];
+    const auto& preview_palette = rom_palette_groups_[current_group_index_];
     for (int i = 0; i < 8 && i < static_cast<int>(preview_palette.size());
          i++) {
-      if (i > 0) ImGui::SameLine();
+      if (i > 0)
+        ImGui::SameLine();
       auto color = preview_palette[i];
       ImVec4 display_color = color.rgb();
       ImGui::ColorButton(("##preview" + std::to_string(i)).c_str(),
@@ -400,15 +404,15 @@ void PaletteEditorWidget::DrawROMPaletteSelector() {
   }
 }
 
-void PaletteEditorWidget::DrawColorEditControls(gfx::SnesColor &color,
+void PaletteEditorWidget::DrawColorEditControls(gfx::SnesColor& color,
                                                 int color_index) {
   ImVec4 rgba = color.rgb();
 
   ImGui::PushID(color_index);
 
-  if (ImGui::ColorEdit4("##color_edit", &rgba.x,
-                       ImGuiColorEditFlags_NoAlpha |
-                           ImGuiColorEditFlags_DisplayRGB)) {
+  if (ImGui::ColorEdit4(
+          "##color_edit", &rgba.x,
+          ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_DisplayRGB)) {
     color = gfx::SnesColor(rgba);
   }
 
@@ -434,8 +438,7 @@ void PaletteEditorWidget::DrawColorEditControls(gfx::SnesColor &color,
   ImGui::PopID();
 }
 
-void PaletteEditorWidget::DrawPaletteAnalysis(
-    const gfx::SnesPalette &palette) {
+void PaletteEditorWidget::DrawPaletteAnalysis(const gfx::SnesPalette& palette) {
   ImGui::Text("Palette Information:");
   ImGui::Text("Size: %zu colors", palette.size());
 
@@ -447,9 +450,10 @@ void PaletteEditorWidget::DrawPaletteAnalysis(
   ImGui::Text("Unique Colors: %zu", color_frequency.size());
 
   if (color_frequency.size() < palette.size()) {
-    ImGui::TextColored(ImVec4(1, 1, 0, 1), "Warning: Duplicate colors detected!");
+    ImGui::TextColored(ImVec4(1, 1, 0, 1),
+                       "Warning: Duplicate colors detected!");
     if (ImGui::TreeNode("Duplicate Colors")) {
-      for (const auto &[snes_color, count] : color_frequency) {
+      for (const auto& [snes_color, count] : color_frequency) {
         if (count > 1) {
           ImVec4 display_color = gfx::SnesColor(snes_color).rgb();
           ImGui::ColorButton(("##dup" + std::to_string(snes_color)).c_str(),
@@ -487,10 +491,11 @@ void PaletteEditorWidget::DrawPaletteAnalysis(
 }
 
 void PaletteEditorWidget::LoadROMPalettes() {
-  if (!rom_ || rom_palettes_loaded_) return;
+  if (!rom_ || rom_palettes_loaded_)
+    return;
 
   try {
-    const auto &palette_groups = rom_->palette_group();
+    const auto& palette_groups = rom_->palette_group();
     rom_palette_groups_.clear();
     palette_group_names_.clear();
 
@@ -524,11 +529,10 @@ void PaletteEditorWidget::LoadROMPalettes() {
     }
 
     rom_palettes_loaded_ = true;
-  } catch (const std::exception &e) {
+  } catch (const std::exception& e) {
     LOG_ERROR("Enhanced Palette Editor", "Failed to load ROM palettes");
   }
 }
 
 }  // namespace gui
 }  // namespace yaze
-

@@ -2,17 +2,17 @@
 
 #include "absl/status/status.h"
 #include "app/editor/system/editor_card_registry.h"
+#include "app/gfx/debug/performance/performance_profiler.h"
 #include "app/gui/app/editor_layout.h"
 #include "app/gui/app/feature_flags_menu.h"
-#include "app/gfx/debug/performance/performance_profiler.h"
-#include "app/gui/core/style.h"
 #include "app/gui/core/icons.h"
+#include "app/gui/core/style.h"
 #include "app/gui/core/theme_manager.h"
 #include "imgui/imgui.h"
 #include "util/log.h"
 
-#include <set>
 #include <filesystem>
+#include <set>
 
 namespace yaze {
 namespace editor {
@@ -29,72 +29,64 @@ using ImGui::TableSetupColumn;
 
 void SettingsEditor::Initialize() {
   // Register cards with EditorCardRegistry (dependency injection)
-  if (!dependencies_.card_registry) return;
+  if (!dependencies_.card_registry)
+    return;
   auto* card_registry = dependencies_.card_registry;
-  
-  card_registry->RegisterCard({
-      .card_id = MakeCardId("settings.general"),
-      .display_name = "General Settings",
-      .icon = ICON_MD_SETTINGS,
-      .category = "System",
-      .priority = 10
-  });
-  
-  card_registry->RegisterCard({
-      .card_id = MakeCardId("settings.appearance"),
-      .display_name = "Appearance",
-      .icon = ICON_MD_PALETTE,
-      .category = "System",
-      .priority = 20
-  });
-  
-  card_registry->RegisterCard({
-      .card_id = MakeCardId("settings.editor_behavior"),
-      .display_name = "Editor Behavior",
-      .icon = ICON_MD_TUNE,
-      .category = "System",
-      .priority = 30
-  });
-  
-  card_registry->RegisterCard({
-      .card_id = MakeCardId("settings.performance"),
-      .display_name = "Performance",
-      .icon = ICON_MD_SPEED,
-      .category = "System",
-      .priority = 40
-  });
-  
-  card_registry->RegisterCard({
-      .card_id = MakeCardId("settings.ai_agent"),
-      .display_name = "AI Agent",
-      .icon = ICON_MD_SMART_TOY,
-      .category = "System",
-      .priority = 50
-  });
-  
-  card_registry->RegisterCard({
-      .card_id = MakeCardId("settings.shortcuts"),
-      .display_name = "Keyboard Shortcuts",
-      .icon = ICON_MD_KEYBOARD,
-      .category = "System",
-      .priority = 60
-  });
-  
+
+  card_registry->RegisterCard({.card_id = MakeCardId("settings.general"),
+                               .display_name = "General Settings",
+                               .icon = ICON_MD_SETTINGS,
+                               .category = "System",
+                               .priority = 10});
+
+  card_registry->RegisterCard({.card_id = MakeCardId("settings.appearance"),
+                               .display_name = "Appearance",
+                               .icon = ICON_MD_PALETTE,
+                               .category = "System",
+                               .priority = 20});
+
+  card_registry->RegisterCard(
+      {.card_id = MakeCardId("settings.editor_behavior"),
+       .display_name = "Editor Behavior",
+       .icon = ICON_MD_TUNE,
+       .category = "System",
+       .priority = 30});
+
+  card_registry->RegisterCard({.card_id = MakeCardId("settings.performance"),
+                               .display_name = "Performance",
+                               .icon = ICON_MD_SPEED,
+                               .category = "System",
+                               .priority = 40});
+
+  card_registry->RegisterCard({.card_id = MakeCardId("settings.ai_agent"),
+                               .display_name = "AI Agent",
+                               .icon = ICON_MD_SMART_TOY,
+                               .category = "System",
+                               .priority = 50});
+
+  card_registry->RegisterCard({.card_id = MakeCardId("settings.shortcuts"),
+                               .display_name = "Keyboard Shortcuts",
+                               .icon = ICON_MD_KEYBOARD,
+                               .category = "System",
+                               .priority = 60});
+
   // Show general settings by default
   card_registry->ShowCard(MakeCardId("settings.general"));
 }
 
-absl::Status SettingsEditor::Load() { 
+absl::Status SettingsEditor::Load() {
   gfx::ScopedTimer timer("SettingsEditor::Load");
-  return absl::OkStatus(); 
+  return absl::OkStatus();
 }
 
 absl::Status SettingsEditor::Update() {
-  if (!dependencies_.card_registry) return absl::OkStatus();
+  if (!dependencies_.card_registry)
+    return absl::OkStatus();
   auto* card_registry = dependencies_.card_registry;
-  
+
   // General Settings Card - Check visibility flag and pass to Begin() for proper X button
-  bool* general_visible = card_registry->GetVisibilityFlag(MakeCardId("settings.general"));
+  bool* general_visible =
+      card_registry->GetVisibilityFlag(MakeCardId("settings.general"));
   if (general_visible && *general_visible) {
     static gui::EditorCard general_card("General Settings", ICON_MD_SETTINGS);
     general_card.SetDefaultSize(600, 500);
@@ -103,9 +95,10 @@ absl::Status SettingsEditor::Update() {
     }
     general_card.End();
   }
-  
+
   // Appearance Card (Themes + Font Manager combined) - Check visibility and pass flag
-  bool* appearance_visible = card_registry->GetVisibilityFlag(MakeCardId("settings.appearance"));
+  bool* appearance_visible =
+      card_registry->GetVisibilityFlag(MakeCardId("settings.appearance"));
   if (appearance_visible && *appearance_visible) {
     static gui::EditorCard appearance_card("Appearance", ICON_MD_PALETTE);
     appearance_card.SetDefaultSize(600, 600);
@@ -116,9 +109,10 @@ absl::Status SettingsEditor::Update() {
     }
     appearance_card.End();
   }
-  
+
   // Editor Behavior Card - Check visibility and pass flag
-  bool* behavior_visible = card_registry->GetVisibilityFlag(MakeCardId("settings.editor_behavior"));
+  bool* behavior_visible =
+      card_registry->GetVisibilityFlag(MakeCardId("settings.editor_behavior"));
   if (behavior_visible && *behavior_visible) {
     static gui::EditorCard behavior_card("Editor Behavior", ICON_MD_TUNE);
     behavior_card.SetDefaultSize(600, 500);
@@ -127,9 +121,10 @@ absl::Status SettingsEditor::Update() {
     }
     behavior_card.End();
   }
-  
+
   // Performance Card - Check visibility and pass flag
-  bool* perf_visible = card_registry->GetVisibilityFlag(MakeCardId("settings.performance"));
+  bool* perf_visible =
+      card_registry->GetVisibilityFlag(MakeCardId("settings.performance"));
   if (perf_visible && *perf_visible) {
     static gui::EditorCard perf_card("Performance", ICON_MD_SPEED);
     perf_card.SetDefaultSize(600, 450);
@@ -138,9 +133,10 @@ absl::Status SettingsEditor::Update() {
     }
     perf_card.End();
   }
-  
+
   // AI Agent Settings Card - Check visibility and pass flag
-  bool* ai_visible = card_registry->GetVisibilityFlag(MakeCardId("settings.ai_agent"));
+  bool* ai_visible =
+      card_registry->GetVisibilityFlag(MakeCardId("settings.ai_agent"));
   if (ai_visible && *ai_visible) {
     static gui::EditorCard ai_card("AI Agent", ICON_MD_SMART_TOY);
     ai_card.SetDefaultSize(600, 550);
@@ -149,11 +145,13 @@ absl::Status SettingsEditor::Update() {
     }
     ai_card.End();
   }
-  
+
   // Keyboard Shortcuts Card - Check visibility and pass flag
-  bool* shortcuts_visible = card_registry->GetVisibilityFlag(MakeCardId("settings.shortcuts"));
+  bool* shortcuts_visible =
+      card_registry->GetVisibilityFlag(MakeCardId("settings.shortcuts"));
   if (shortcuts_visible && *shortcuts_visible) {
-    static gui::EditorCard shortcuts_card("Keyboard Shortcuts", ICON_MD_KEYBOARD);
+    static gui::EditorCard shortcuts_card("Keyboard Shortcuts",
+                                          ICON_MD_KEYBOARD);
     shortcuts_card.SetDefaultSize(700, 600);
     if (shortcuts_card.Begin(shortcuts_visible)) {
       DrawKeyboardShortcuts();
@@ -197,7 +195,7 @@ void SettingsEditor::DrawGeneralSettings() {
 void SettingsEditor::DrawKeyboardShortcuts() {
   ImGui::Text("Keyboard shortcut customization coming soon...");
   ImGui::Separator();
-  
+
   // TODO: Implement keyboard shortcut editor with:
   // - Visual shortcut conflict detection
   // - Import/export shortcut profiles
@@ -207,95 +205,102 @@ void SettingsEditor::DrawKeyboardShortcuts() {
 
 void SettingsEditor::DrawThemeSettings() {
   using namespace ImGui;
-  
+
   auto& theme_manager = gui::ThemeManager::Get();
-  
+
   Text("%s Theme Management", ICON_MD_PALETTE);
   Separator();
-  
+
   // Current theme selection
   Text("Current Theme:");
   SameLine();
   auto current = theme_manager.GetCurrentThemeName();
   TextColored(ImVec4(0.4f, 0.8f, 1.0f, 1.0f), "%s", current.c_str());
-  
+
   Spacing();
-  
+
   // Available themes grid
   Text("Available Themes:");
   for (const auto& theme_name : theme_manager.GetAvailableThemes()) {
     PushID(theme_name.c_str());
     bool is_current = (theme_name == current);
-    
+
     if (is_current) {
       PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.6f, 0.8f, 1.0f));
     }
-    
+
     if (Button(theme_name.c_str(), ImVec2(180, 0))) {
       theme_manager.LoadTheme(theme_name);
     }
-    
+
     if (is_current) {
       PopStyleColor();
       SameLine();
       Text(ICON_MD_CHECK);
     }
-    
+
     PopID();
   }
-  
+
   Separator();
   Spacing();
-  
+
   // Theme operations
   if (CollapsingHeader(ICON_MD_EDIT " Theme Operations")) {
-    TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), 
+    TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f),
                 "Theme import/export coming soon");
   }
 }
 
 void SettingsEditor::DrawEditorBehavior() {
   using namespace ImGui;
-  
+
   if (!user_settings_) {
     Text("No user settings available");
     return;
   }
-  
+
   Text("%s Editor Behavior Settings", ICON_MD_TUNE);
   Separator();
-  
+
   // Autosave settings
-  if (CollapsingHeader(ICON_MD_SAVE " Auto-Save", ImGuiTreeNodeFlags_DefaultOpen)) {
-    if (Checkbox("Enable Auto-Save", &user_settings_->prefs().autosave_enabled)) {
+  if (CollapsingHeader(ICON_MD_SAVE " Auto-Save",
+                       ImGuiTreeNodeFlags_DefaultOpen)) {
+    if (Checkbox("Enable Auto-Save",
+                 &user_settings_->prefs().autosave_enabled)) {
       user_settings_->Save();
     }
-    
+
     if (user_settings_->prefs().autosave_enabled) {
-      int interval = static_cast<int>(user_settings_->prefs().autosave_interval);
+      int interval =
+          static_cast<int>(user_settings_->prefs().autosave_interval);
       if (SliderInt("Interval (seconds)", &interval, 60, 600)) {
-        user_settings_->prefs().autosave_interval = static_cast<float>(interval);
+        user_settings_->prefs().autosave_interval =
+            static_cast<float>(interval);
         user_settings_->Save();
       }
-      
-      if (Checkbox("Create Backup Before Save", &user_settings_->prefs().backup_before_save)) {
+
+      if (Checkbox("Create Backup Before Save",
+                   &user_settings_->prefs().backup_before_save)) {
         user_settings_->Save();
       }
     }
   }
-  
+
   // Recent files
   if (CollapsingHeader(ICON_MD_HISTORY " Recent Files")) {
-    if (SliderInt("Recent Files Limit", &user_settings_->prefs().recent_files_limit, 5, 50)) {
+    if (SliderInt("Recent Files Limit",
+                  &user_settings_->prefs().recent_files_limit, 5, 50)) {
       user_settings_->Save();
     }
   }
-  
+
   // Editor defaults
   if (CollapsingHeader(ICON_MD_EDIT " Default Editor")) {
     Text("Editor to open on ROM load:");
-    const char* editors[] = { "None", "Overworld", "Dungeon", "Graphics" };
-    if (Combo("##DefaultEditor", &user_settings_->prefs().default_editor, editors, IM_ARRAYSIZE(editors))) {
+    const char* editors[] = {"None", "Overworld", "Dungeon", "Graphics"};
+    if (Combo("##DefaultEditor", &user_settings_->prefs().default_editor,
+              editors, IM_ARRAYSIZE(editors))) {
       user_settings_->Save();
     }
   }
@@ -303,37 +308,40 @@ void SettingsEditor::DrawEditorBehavior() {
 
 void SettingsEditor::DrawPerformanceSettings() {
   using namespace ImGui;
-  
+
   if (!user_settings_) {
     Text("No user settings available");
     return;
   }
-  
+
   Text("%s Performance Settings", ICON_MD_SPEED);
   Separator();
-  
+
   // Graphics settings
-  if (CollapsingHeader(ICON_MD_IMAGE " Graphics", ImGuiTreeNodeFlags_DefaultOpen)) {
+  if (CollapsingHeader(ICON_MD_IMAGE " Graphics",
+                       ImGuiTreeNodeFlags_DefaultOpen)) {
     if (Checkbox("V-Sync", &user_settings_->prefs().vsync)) {
       user_settings_->Save();
     }
-    
+
     if (SliderInt("Target FPS", &user_settings_->prefs().target_fps, 30, 144)) {
       user_settings_->Save();
     }
   }
-  
+
   // Memory settings
   if (CollapsingHeader(ICON_MD_MEMORY " Memory")) {
-    if (SliderInt("Cache Size (MB)", &user_settings_->prefs().cache_size_mb, 128, 2048)) {
+    if (SliderInt("Cache Size (MB)", &user_settings_->prefs().cache_size_mb,
+                  128, 2048)) {
       user_settings_->Save();
     }
-    
-    if (SliderInt("Undo History", &user_settings_->prefs().undo_history_size, 10, 200)) {
+
+    if (SliderInt("Undo History", &user_settings_->prefs().undo_history_size,
+                  10, 200)) {
       user_settings_->Save();
     }
   }
-  
+
   Separator();
   Text("Current FPS: %.1f", ImGui::GetIO().Framerate);
   Text("Frame Time: %.3f ms", 1000.0f / ImGui::GetIO().Framerate);
@@ -341,27 +349,31 @@ void SettingsEditor::DrawPerformanceSettings() {
 
 void SettingsEditor::DrawAIAgentSettings() {
   using namespace ImGui;
-  
+
   if (!user_settings_) {
     Text("No user settings available");
     return;
   }
-  
+
   Text("%s AI Agent Configuration", ICON_MD_SMART_TOY);
   Separator();
-  
+
   // Provider selection
-  if (CollapsingHeader(ICON_MD_CLOUD " AI Provider", ImGuiTreeNodeFlags_DefaultOpen)) {
-    const char* providers[] = { "Ollama (Local)", "Gemini (Cloud)", "Mock (Testing)" };
-    if (Combo("Provider", &user_settings_->prefs().ai_provider, providers, IM_ARRAYSIZE(providers))) {
+  if (CollapsingHeader(ICON_MD_CLOUD " AI Provider",
+                       ImGuiTreeNodeFlags_DefaultOpen)) {
+    const char* providers[] = {"Ollama (Local)", "Gemini (Cloud)",
+                               "Mock (Testing)"};
+    if (Combo("Provider", &user_settings_->prefs().ai_provider, providers,
+              IM_ARRAYSIZE(providers))) {
       user_settings_->Save();
     }
-    
+
     Spacing();
-    
+
     if (user_settings_->prefs().ai_provider == 0) {  // Ollama
       char url_buffer[256];
-      strncpy(url_buffer, user_settings_->prefs().ollama_url.c_str(), sizeof(url_buffer) - 1);
+      strncpy(url_buffer, user_settings_->prefs().ollama_url.c_str(),
+              sizeof(url_buffer) - 1);
       url_buffer[sizeof(url_buffer) - 1] = '\0';
       if (InputText("URL", url_buffer, IM_ARRAYSIZE(url_buffer))) {
         user_settings_->prefs().ollama_url = url_buffer;
@@ -369,77 +381,105 @@ void SettingsEditor::DrawAIAgentSettings() {
       }
     } else if (user_settings_->prefs().ai_provider == 1) {  // Gemini
       char key_buffer[128];
-      strncpy(key_buffer, user_settings_->prefs().gemini_api_key.c_str(), sizeof(key_buffer) - 1);
+      strncpy(key_buffer, user_settings_->prefs().gemini_api_key.c_str(),
+              sizeof(key_buffer) - 1);
       key_buffer[sizeof(key_buffer) - 1] = '\0';
-      if (InputText("API Key", key_buffer, IM_ARRAYSIZE(key_buffer), ImGuiInputTextFlags_Password)) {
+      if (InputText("API Key", key_buffer, IM_ARRAYSIZE(key_buffer),
+                    ImGuiInputTextFlags_Password)) {
         user_settings_->prefs().gemini_api_key = key_buffer;
         user_settings_->Save();
       }
     }
   }
-  
+
   // Model parameters
   if (CollapsingHeader(ICON_MD_TUNE " Model Parameters")) {
-    if (SliderFloat("Temperature", &user_settings_->prefs().ai_temperature, 0.0f, 2.0f)) {
+    if (SliderFloat("Temperature", &user_settings_->prefs().ai_temperature,
+                    0.0f, 2.0f)) {
       user_settings_->Save();
     }
     TextDisabled("Higher = more creative");
-    
-    if (SliderInt("Max Tokens", &user_settings_->prefs().ai_max_tokens, 256, 8192)) {
+
+    if (SliderInt("Max Tokens", &user_settings_->prefs().ai_max_tokens, 256,
+                  8192)) {
       user_settings_->Save();
     }
   }
-  
+
   // Agent behavior
   if (CollapsingHeader(ICON_MD_PSYCHOLOGY " Behavior")) {
-    if (Checkbox("Proactive Suggestions", &user_settings_->prefs().ai_proactive)) {
+    if (Checkbox("Proactive Suggestions",
+                 &user_settings_->prefs().ai_proactive)) {
       user_settings_->Save();
     }
-    
-    if (Checkbox("Auto-Learn Preferences", &user_settings_->prefs().ai_auto_learn)) {
+
+    if (Checkbox("Auto-Learn Preferences",
+                 &user_settings_->prefs().ai_auto_learn)) {
       user_settings_->Save();
     }
-    
-    if (Checkbox("Enable Vision/Multimodal", &user_settings_->prefs().ai_multimodal)) {
+
+    if (Checkbox("Enable Vision/Multimodal",
+                 &user_settings_->prefs().ai_multimodal)) {
       user_settings_->Save();
     }
   }
-  
+
   // z3ed CLI logging settings
-  if (CollapsingHeader(ICON_MD_TERMINAL " CLI Logging", ImGuiTreeNodeFlags_DefaultOpen)) {
+  if (CollapsingHeader(ICON_MD_TERMINAL " CLI Logging",
+                       ImGuiTreeNodeFlags_DefaultOpen)) {
     Text("Configure z3ed command-line logging behavior");
     Spacing();
-    
+
     // Log level selection
-    const char* log_levels[] = { "Debug (Verbose)", "Info (Normal)", "Warning (Quiet)", "Error (Critical)", "Fatal Only" };
-    if (Combo("Log Level", &user_settings_->prefs().log_level, log_levels, IM_ARRAYSIZE(log_levels))) {
+    const char* log_levels[] = {"Debug (Verbose)", "Info (Normal)",
+                                "Warning (Quiet)", "Error (Critical)",
+                                "Fatal Only"};
+    if (Combo("Log Level", &user_settings_->prefs().log_level, log_levels,
+              IM_ARRAYSIZE(log_levels))) {
       // Apply log level immediately using existing LogManager
       util::LogLevel level;
       switch (user_settings_->prefs().log_level) {
-        case 0: level = util::LogLevel::YAZE_DEBUG; break;
-        case 1: level = util::LogLevel::INFO; break;
-        case 2: level = util::LogLevel::WARNING; break;
-        case 3: level = util::LogLevel::ERROR; break;
-        case 4: level = util::LogLevel::FATAL; break;
-        default: level = util::LogLevel::INFO; break;
+        case 0:
+          level = util::LogLevel::YAZE_DEBUG;
+          break;
+        case 1:
+          level = util::LogLevel::INFO;
+          break;
+        case 2:
+          level = util::LogLevel::WARNING;
+          break;
+        case 3:
+          level = util::LogLevel::ERROR;
+          break;
+        case 4:
+          level = util::LogLevel::FATAL;
+          break;
+        default:
+          level = util::LogLevel::INFO;
+          break;
       }
-      
+
       // Get current categories
       std::set<std::string> categories;
-      if (user_settings_->prefs().log_ai_requests) categories.insert("AI");
-      if (user_settings_->prefs().log_rom_operations) categories.insert("ROM");
-      if (user_settings_->prefs().log_gui_automation) categories.insert("GUI");
-      if (user_settings_->prefs().log_proposals) categories.insert("Proposals");
-      
+      if (user_settings_->prefs().log_ai_requests)
+        categories.insert("AI");
+      if (user_settings_->prefs().log_rom_operations)
+        categories.insert("ROM");
+      if (user_settings_->prefs().log_gui_automation)
+        categories.insert("GUI");
+      if (user_settings_->prefs().log_proposals)
+        categories.insert("Proposals");
+
       // Reconfigure with new level
-      util::LogManager::instance().configure(level, user_settings_->prefs().log_file_path, categories);
+      util::LogManager::instance().configure(
+          level, user_settings_->prefs().log_file_path, categories);
       user_settings_->Save();
       Text("✓ Log level applied");
     }
     TextDisabled("Controls verbosity of YAZE and z3ed output");
-    
+
     Spacing();
-    
+
     // Logging targets
     if (Checkbox("Log to File", &user_settings_->prefs().log_to_file)) {
       if (user_settings_->prefs().log_to_file) {
@@ -447,90 +487,112 @@ void SettingsEditor::DrawAIAgentSettings() {
         if (user_settings_->prefs().log_file_path.empty()) {
           const char* home = std::getenv("HOME");
           if (home) {
-            user_settings_->prefs().log_file_path = std::string(home) + "/.yaze/logs/yaze.log";
+            user_settings_->prefs().log_file_path =
+                std::string(home) + "/.yaze/logs/yaze.log";
           }
         }
-        
+
         // Enable file logging
         std::set<std::string> categories;
-        util::LogLevel level = static_cast<util::LogLevel>(user_settings_->prefs().log_level);
-        util::LogManager::instance().configure(level, user_settings_->prefs().log_file_path, categories);
+        util::LogLevel level =
+            static_cast<util::LogLevel>(user_settings_->prefs().log_level);
+        util::LogManager::instance().configure(
+            level, user_settings_->prefs().log_file_path, categories);
       } else {
         // Disable file logging
         std::set<std::string> categories;
-        util::LogLevel level = static_cast<util::LogLevel>(user_settings_->prefs().log_level);
+        util::LogLevel level =
+            static_cast<util::LogLevel>(user_settings_->prefs().log_level);
         util::LogManager::instance().configure(level, "", categories);
       }
       user_settings_->Save();
     }
-    
+
     if (user_settings_->prefs().log_to_file) {
       Indent();
       char path_buffer[512];
-      strncpy(path_buffer, user_settings_->prefs().log_file_path.c_str(), sizeof(path_buffer) - 1);
+      strncpy(path_buffer, user_settings_->prefs().log_file_path.c_str(),
+              sizeof(path_buffer) - 1);
       path_buffer[sizeof(path_buffer) - 1] = '\0';
       if (InputText("Log File", path_buffer, IM_ARRAYSIZE(path_buffer))) {
         // Update log file path
         user_settings_->prefs().log_file_path = path_buffer;
         std::set<std::string> categories;
-        util::LogLevel level = static_cast<util::LogLevel>(user_settings_->prefs().log_level);
-        util::LogManager::instance().configure(level, user_settings_->prefs().log_file_path, categories);
+        util::LogLevel level =
+            static_cast<util::LogLevel>(user_settings_->prefs().log_level);
+        util::LogManager::instance().configure(
+            level, user_settings_->prefs().log_file_path, categories);
         user_settings_->Save();
       }
-      
+
       TextDisabled("Log file path (supports ~ for home directory)");
       Unindent();
     }
-    
+
     Spacing();
-    
+
     // Log filtering
     Text(ICON_MD_FILTER_ALT " Category Filtering");
     Separator();
     TextDisabled("Enable/disable specific log categories");
     Spacing();
-    
+
     bool categories_changed = false;
-    
-    categories_changed |= Checkbox("AI API Requests", &user_settings_->prefs().log_ai_requests);
-    categories_changed |= Checkbox("ROM Operations", &user_settings_->prefs().log_rom_operations);
-    categories_changed |= Checkbox("GUI Automation", &user_settings_->prefs().log_gui_automation);
-    categories_changed |= Checkbox("Proposal Generation", &user_settings_->prefs().log_proposals);
-    
+
+    categories_changed |=
+        Checkbox("AI API Requests", &user_settings_->prefs().log_ai_requests);
+    categories_changed |=
+        Checkbox("ROM Operations", &user_settings_->prefs().log_rom_operations);
+    categories_changed |=
+        Checkbox("GUI Automation", &user_settings_->prefs().log_gui_automation);
+    categories_changed |=
+        Checkbox("Proposal Generation", &user_settings_->prefs().log_proposals);
+
     if (categories_changed) {
       // Rebuild category set
       std::set<std::string> categories;
-      if (user_settings_->prefs().log_ai_requests) categories.insert("AI");
-      if (user_settings_->prefs().log_rom_operations) categories.insert("ROM");
-      if (user_settings_->prefs().log_gui_automation) categories.insert("GUI");
-      if (user_settings_->prefs().log_proposals) categories.insert("Proposals");
-      
+      if (user_settings_->prefs().log_ai_requests)
+        categories.insert("AI");
+      if (user_settings_->prefs().log_rom_operations)
+        categories.insert("ROM");
+      if (user_settings_->prefs().log_gui_automation)
+        categories.insert("GUI");
+      if (user_settings_->prefs().log_proposals)
+        categories.insert("Proposals");
+
       // Reconfigure LogManager
-      util::LogLevel level = static_cast<util::LogLevel>(user_settings_->prefs().log_level);
-      util::LogManager::instance().configure(level, 
-          user_settings_->prefs().log_to_file ? user_settings_->prefs().log_file_path : "", 
+      util::LogLevel level =
+          static_cast<util::LogLevel>(user_settings_->prefs().log_level);
+      util::LogManager::instance().configure(
+          level,
+          user_settings_->prefs().log_to_file
+              ? user_settings_->prefs().log_file_path
+              : "",
           categories);
       user_settings_->Save();
     }
-    
+
     Spacing();
-    
+
     // Quick actions
     if (Button(ICON_MD_DELETE " Clear Logs")) {
-      if (user_settings_->prefs().log_to_file && !user_settings_->prefs().log_file_path.empty()) {
+      if (user_settings_->prefs().log_to_file &&
+          !user_settings_->prefs().log_file_path.empty()) {
         std::filesystem::path path(user_settings_->prefs().log_file_path);
         if (std::filesystem::exists(path)) {
           std::filesystem::remove(path);
-          LOG_DEBUG("Settings", "Log file cleared: %s", user_settings_->prefs().log_file_path.c_str());
+          LOG_DEBUG("Settings", "Log file cleared: %s",
+                    user_settings_->prefs().log_file_path.c_str());
         }
       }
     }
     SameLine();
     if (Button(ICON_MD_FOLDER_OPEN " Open Log Directory")) {
-      if (user_settings_->prefs().log_to_file && !user_settings_->prefs().log_file_path.empty()) {
+      if (user_settings_->prefs().log_to_file &&
+          !user_settings_->prefs().log_file_path.empty()) {
         std::filesystem::path path(user_settings_->prefs().log_file_path);
         std::filesystem::path dir = path.parent_path();
-        
+
         // Platform-specific command to open directory
 #ifdef _WIN32
         std::string cmd = "explorer " + dir.string();
@@ -542,10 +604,10 @@ void SettingsEditor::DrawAIAgentSettings() {
         system(cmd.c_str());
       }
     }
-    
+
     Spacing();
     Separator();
-    
+
     // Log test buttons
     Text(ICON_MD_BUG_REPORT " Test Logging");
     if (Button("Test Debug")) {

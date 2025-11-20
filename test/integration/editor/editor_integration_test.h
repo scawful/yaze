@@ -3,12 +3,12 @@
 
 #define IMGUI_DEFINE_MATH_OPERATORS
 
-#include "imgui/imgui.h"
-#include "app/editor/editor.h"
-#include "app/rom.h"
 #include "app/controller.h"
-#include "app/platform/window.h"
+#include "app/editor/editor.h"
 #include "app/gfx/backend/sdl2_renderer.h"
+#include "app/platform/window.h"
+#include "app/rom.h"
+#include "imgui/imgui.h"
 
 #ifdef YAZE_ENABLE_IMGUI_TEST_ENGINE
 #include "imgui_test_engine/imgui_te_context.h"
@@ -40,10 +40,10 @@ class EditorIntegrationTest {
 
   // Initialize the test environment
   absl::Status Initialize();
-  
+
   // Run the test
   int RunTest();
-  
+
 #ifdef YAZE_ENABLE_IMGUI_TEST_ENGINE
   // Register tests for a specific editor
   virtual void RegisterTests(ImGuiTestEngine* engine) = 0;
@@ -51,16 +51,15 @@ class EditorIntegrationTest {
   // Default implementation when ImGui Test Engine is disabled
   virtual void RegisterTests(void* engine) {}
 #endif
-  
+
   // Update the test environment
   virtual absl::Status Update();
 
  protected:
-  
   // Helper methods for testing with a ROM
   absl::Status LoadTestRom(const std::string& filename);
   absl::Status SaveTestRom(const std::string& filename);
-  
+
   // Helper methods for testing with a specific editor
   absl::Status TestEditorInitialize(editor::Editor* editor);
   absl::Status TestEditorLoad(editor::Editor* editor);
@@ -88,4 +87,4 @@ class EditorIntegrationTest {
 }  // namespace test
 }  // namespace yaze
 
-#endif  // YAZE_TEST_EDITOR_INTEGRATION_TEST_H 
+#endif  // YAZE_TEST_EDITOR_INTEGRATION_TEST_H

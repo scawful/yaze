@@ -42,4 +42,3 @@ void RenderKeyboardShortcuts(bool* show);
 }  // namespace yaze
 
 #endif  // YAZE_APP_EMU_UI_EMULATOR_UI_H_
-

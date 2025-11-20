@@ -1,10 +1,10 @@
 #ifndef YAZE_SRC_CLI_SERVICE_API_HTTP_SERVER_H_
 #define YAZE_SRC_CLI_SERVICE_API_HTTP_SERVER_H_
 
+#include <atomic>
 #include <memory>
 #include <string>
 #include <thread>
-#include <atomic>
 
 #include "absl/status/status.h"
 
@@ -45,4 +45,3 @@ class HttpServer {
 }  // namespace yaze
 
 #endif  // YAZE_SRC_CLI_SERVICE_API_HTTP_SERVER_H_
-

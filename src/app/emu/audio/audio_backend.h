@@ -60,8 +60,9 @@ class IAudioBackend {
   // Audio data
   virtual bool QueueSamples(const int16_t* samples, int num_samples) = 0;
   virtual bool QueueSamples(const float* samples, int num_samples) = 0;
-  virtual bool QueueSamplesNative(const int16_t* samples, int frames_per_channel,
-                                  int channels, int native_rate) {
+  virtual bool QueueSamplesNative(const int16_t* samples,
+                                  int frames_per_channel, int channels,
+                                  int native_rate) {
     return false;
   }
 
@@ -138,7 +139,7 @@ class AudioBackendFactory {
  public:
   enum class BackendType {
     SDL2,
-    SDL3,  // Future
+    SDL3,         // Future
     NULL_BACKEND  // For testing/headless
   };
 

@@ -17,7 +17,7 @@ class Overworld;
 class OverworldEntrance;
 class OverworldExit;
 class OverworldMap;
-}
+}  // namespace zelda3
 
 namespace cli {
 namespace overworld {
@@ -141,7 +141,7 @@ absl::StatusOr<MapSummary> BuildMapSummary(zelda3::Overworld& overworld,
                                            int map_id);
 
 absl::StatusOr<std::vector<WarpEntry>> CollectWarpEntries(
-  const zelda3::Overworld& overworld, const WarpQuery& query);
+    const zelda3::Overworld& overworld, const WarpQuery& query);
 
 absl::StatusOr<std::vector<TileMatch>> FindTileMatches(
     zelda3::Overworld& overworld, uint16_t tile_id,
@@ -154,7 +154,7 @@ absl::StatusOr<EntranceDetails> GetEntranceDetails(
     const zelda3::Overworld& overworld, uint8_t entrance_id);
 
 absl::StatusOr<TileStatistics> AnalyzeTileUsage(
-    zelda3::Overworld& overworld, uint16_t tile_id, 
+    zelda3::Overworld& overworld, uint16_t tile_id,
     const TileSearchOptions& options = {});
 
 }  // namespace overworld

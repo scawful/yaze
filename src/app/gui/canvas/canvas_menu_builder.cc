@@ -4,7 +4,7 @@ namespace yaze {
 namespace gui {
 
 CanvasMenuBuilder& CanvasMenuBuilder::AddItem(const std::string& label,
-                                               std::function<void()> callback) {
+                                              std::function<void()> callback) {
   CanvasMenuItem item;
   item.label = label;
   item.callback = std::move(callback);
@@ -13,8 +13,8 @@ CanvasMenuBuilder& CanvasMenuBuilder::AddItem(const std::string& label,
 }
 
 CanvasMenuBuilder& CanvasMenuBuilder::AddItem(const std::string& label,
-                                               const std::string& icon,
-                                               std::function<void()> callback) {
+                                              const std::string& icon,
+                                              std::function<void()> callback) {
   CanvasMenuItem item;
   item.label = label;
   item.icon = icon;
@@ -24,9 +24,9 @@ CanvasMenuBuilder& CanvasMenuBuilder::AddItem(const std::string& label,
 }
 
 CanvasMenuBuilder& CanvasMenuBuilder::AddItem(const std::string& label,
-                                               const std::string& icon,
-                                               const std::string& shortcut,
-                                               std::function<void()> callback) {
+                                              const std::string& icon,
+                                              const std::string& shortcut,
+                                              std::function<void()> callback) {
   CanvasMenuItem item;
   item.label = label;
   item.icon = icon;
@@ -39,15 +39,17 @@ CanvasMenuBuilder& CanvasMenuBuilder::AddItem(const std::string& label,
 CanvasMenuBuilder& CanvasMenuBuilder::AddPopupItem(
     const std::string& label, const std::string& popup_id,
     std::function<void()> render_callback) {
-  CanvasMenuItem item = CanvasMenuItem::WithPopup(label, popup_id, render_callback);
+  CanvasMenuItem item =
+      CanvasMenuItem::WithPopup(label, popup_id, render_callback);
   pending_items_.push_back(item);
   return *this;
 }
 
 CanvasMenuBuilder& CanvasMenuBuilder::AddPopupItem(
-    const std::string& label, const std::string& icon, 
+    const std::string& label, const std::string& icon,
     const std::string& popup_id, std::function<void()> render_callback) {
-  CanvasMenuItem item = CanvasMenuItem::WithPopup(label, popup_id, render_callback);
+  CanvasMenuItem item =
+      CanvasMenuItem::WithPopup(label, popup_id, render_callback);
   item.icon = icon;
   pending_items_.push_back(item);
   return *this;
@@ -81,17 +83,17 @@ CanvasMenuBuilder& CanvasMenuBuilder::BeginSection(
     const std::string& title, MenuSectionPriority priority) {
   // Flush any pending items to previous section
   FlushPendingItems();
-  
+
   // Create new section
   CanvasMenuSection section;
   section.title = title;
   section.priority = priority;
   section.separator_after = true;
   menu_.sections.push_back(section);
-  
+
   // Point current_section_ to the newly added section
   current_section_ = &menu_.sections.back();
-  
+
   return *this;
 }
 
@@ -117,7 +119,7 @@ void CanvasMenuBuilder::FlushPendingItems() {
   if (pending_items_.empty()) {
     return;
   }
-  
+
   // If no section exists yet, create a default one
   if (menu_.sections.empty()) {
     CanvasMenuSection section;
@@ -126,20 +128,21 @@ void CanvasMenuBuilder::FlushPendingItems() {
     menu_.sections.push_back(section);
     current_section_ = &menu_.sections.back();
   }
-  
+
   // Add pending items to current section
   if (current_section_) {
     current_section_->items.insert(current_section_->items.end(),
-                                  pending_items_.begin(), pending_items_.end());
+                                   pending_items_.begin(),
+                                   pending_items_.end());
   } else {
     // Add to last section if current_section_ is null
     menu_.sections.back().items.insert(menu_.sections.back().items.end(),
-                                       pending_items_.begin(), pending_items_.end());
+                                       pending_items_.begin(),
+                                       pending_items_.end());
   }
-  
+
   pending_items_.clear();
 }
 
 }  // namespace gui
 }  // namespace yaze
-

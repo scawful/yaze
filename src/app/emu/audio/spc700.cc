@@ -4,8 +4,8 @@
 #include <iostream>
 #include <sstream>
 #include <string>
-#include "util/log.h"
 #include "core/features.h"
+#include "util/log.h"
 
 #include "app/emu/audio/internal/opcodes.h"
 #include "app/emu/audio/internal/spc700_accurate_cycles.h"
@@ -74,9 +74,10 @@ int Spc700::Step() {
 void Spc700::RunOpcode() {
   static int entry_log = 0;
   if ((PC >= 0xFFF0 && PC <= 0xFFFF) && entry_log++ < 5) {
-    LOG_DEBUG("SPC", "RunOpcode ENTRY: PC=$%04X step=%d bstep=%d", PC, step, bstep);
+    LOG_DEBUG("SPC", "RunOpcode ENTRY: PC=$%04X step=%d bstep=%d", PC, step,
+              bstep);
   }
-  
+
   if (reset_wanted_) {
     // based on 6502, brk without writes
     reset_wanted_ = false;
@@ -103,20 +104,23 @@ void Spc700::RunOpcode() {
     static int spc_exec_count = 0;
     bool in_critical_range = (PC >= 0xFFCF && PC <= 0xFFFF);
     bool is_transfer_loop = (PC >= 0xFFD6 && PC <= 0xFFED);
-    
+
     // Reduced logging limits - only log first few iterations
     if (in_critical_range && spc_exec_count++ < 5) {
-      LOG_DEBUG("SPC", "Execute: PC=$%04X step=0 bstep=%d Y=%02X A=%02X", PC, bstep, Y, A);
+      LOG_DEBUG("SPC", "Execute: PC=$%04X step=0 bstep=%d Y=%02X A=%02X", PC,
+                bstep, Y, A);
     }
     if (is_transfer_loop && spc_exec_count < 10) {
       // Read ports and RAM[$00] to track transfer state
       uint8_t f4_val = callbacks_.read(0xF4);
       uint8_t f5_val = callbacks_.read(0xF5);
       uint8_t ram0_val = callbacks_.read(0x00);
-      LOG_DEBUG("SPC", "TRANSFER LOOP: PC=$%04X Y=%02X A=%02X F4=%02X F5=%02X RAM0=%02X bstep=%d", 
-               PC, Y, A, f4_val, f5_val, ram0_val, bstep);
+      LOG_DEBUG("SPC",
+                "TRANSFER LOOP: PC=$%04X Y=%02X A=%02X F4=%02X F5=%02X "
+                "RAM0=%02X bstep=%d",
+                PC, Y, A, f4_val, f5_val, ram0_val, bstep);
     }
-    
+
     // Only read new opcode if previous instruction is complete
     if (bstep == 0) {
       opcode = ReadOpcode();
@@ -124,7 +128,9 @@ void Spc700::RunOpcode() {
       last_opcode_cycles_ = spc700_accurate_cycles[opcode];
     } else {
       if (spc_exec_count < 5) {
-        LOG_DEBUG("SPC", "Continuing multi-step: PC=$%04X bstep=%d opcode=$%02X", PC, bstep, opcode);
+        LOG_DEBUG("SPC",
+                  "Continuing multi-step: PC=$%04X bstep=%d opcode=$%02X", PC,
+                  bstep, opcode);
       }
     }
     step = 1;
@@ -134,24 +140,29 @@ void Spc700::RunOpcode() {
   // For now, skip logging to avoid performance overhead
   // SPC700 runs at ~1.024 MHz, logging every instruction would be expensive
   // without the sparse address-map optimization
-  
+
   static int exec_log = 0;
   if ((PC >= 0xFFF0 && PC <= 0xFFFF) && exec_log++ < 5) {
-    LOG_DEBUG("SPC", "About to ExecuteInstructions: PC=$%04X step=%d bstep=%d opcode=$%02X", PC, step, bstep, opcode);
+    LOG_DEBUG(
+        "SPC",
+        "About to ExecuteInstructions: PC=$%04X step=%d bstep=%d opcode=$%02X",
+        PC, step, bstep, opcode);
   }
-  
+
   ExecuteInstructions(opcode);
   // Only reset step if instruction is complete (bstep back to 0)
   static int reset_log = 0;
   if (step == 1) {
     if (bstep == 0) {
       if ((PC >= 0xFFF0 && PC <= 0xFFFF) && reset_log++ < 5) {
-        LOG_DEBUG("SPC", "Resetting step: PC=$%04X opcode=$%02X bstep=%d", PC, opcode, bstep);
+        LOG_DEBUG("SPC", "Resetting step: PC=$%04X opcode=$%02X bstep=%d", PC,
+                  opcode, bstep);
       }
       step = 0;
     } else {
       if ((PC >= 0xFFF0 && PC <= 0xFFFF) && reset_log++ < 5) {
-        LOG_DEBUG("SPC", "NOT resetting step: PC=$%04X opcode=$%02X bstep=%d", PC, opcode, bstep);
+        LOG_DEBUG("SPC", "NOT resetting step: PC=$%04X opcode=$%02X bstep=%d",
+                  PC, opcode, bstep);
       }
     }
   }
@@ -744,8 +755,8 @@ void Spc700::ExecuteInstructions(uint8_t opcode) {
       uint8_t imm = ReadOpcode();
       uint16_t adr = (PSW.P << 8) | ReadOpcode();
       uint8_t val = read(adr);
-      callbacks_.idle(false); // Add missing cycle
-      callbacks_.idle(false); // Add missing cycle
+      callbacks_.idle(false);  // Add missing cycle
+      callbacks_.idle(false);  // Add missing cycle
       int result = val - imm;
       PSW.C = (val >= imm);
       PSW.Z = (result == 0);
@@ -940,7 +951,8 @@ void Spc700::ExecuteInstructions(uint8_t opcode) {
     }
     case 0x9e: {  // div imp
       read(PC);
-      for (int i = 0; i < 10; i++) callbacks_.idle(false);
+      for (int i = 0; i < 10; i++)
+        callbacks_.idle(false);
       PSW.H = (X & 0xf) <= (Y & 0xf);
       int yva = (Y << 8) | A;
       int x = X << 9;
@@ -948,8 +960,10 @@ void Spc700::ExecuteInstructions(uint8_t opcode) {
         yva <<= 1;
         yva |= (yva & 0x20000) ? 1 : 0;
         yva &= 0x1ffff;
-        if (yva >= x) yva ^= 1;
-        if (yva & 1) yva -= x;
+        if (yva >= x)
+          yva ^= 1;
+        if (yva & 1)
+          yva -= x;
         yva &= 0x1ffff;
       }
       Y = yva >> 9;
@@ -1156,7 +1170,7 @@ void Spc700::ExecuteInstructions(uint8_t opcode) {
     case 0xcb: {  // mov d, Y
       uint16_t adr = (PSW.P << 8) | ReadOpcode();
       read(adr);
-      callbacks_.idle(false); // Add one extra cycle delay
+      callbacks_.idle(false);  // Add one extra cycle delay
       write(adr, Y);
       break;
     }
@@ -1176,7 +1190,8 @@ void Spc700::ExecuteInstructions(uint8_t opcode) {
     }
     case 0xcf: {  // mul imp
       read(PC);
-      for (int i = 0; i < 7; i++) callbacks_.idle(false);
+      for (int i = 0; i < 7; i++)
+        callbacks_.idle(false);
       uint16_t result = A * Y;
       A = result & 0xff;
       Y = result >> 8;
@@ -1314,7 +1329,7 @@ void Spc700::ExecuteInstructions(uint8_t opcode) {
     }
     case 0xeb: {  // movy dp
       uint16_t adr = (PSW.P << 8) | ReadOpcode();
-      callbacks_.idle(false); // Add missing cycle
+      callbacks_.idle(false);  // Add missing cycle
       Y = read(adr);
       PSW.Z = (Y == 0);
       PSW.N = (Y & 0x80);
@@ -1344,10 +1359,12 @@ void Spc700::ExecuteInstructions(uint8_t opcode) {
       // Advance timers/DSP via idle callbacks, but do not set stopped_.
       static int sleep_log = 0;
       if (sleep_log++ < 5) {
-        LOG_DEBUG("SPC", "SLEEP executed at PC=$%04X - entering low power mode", PC - 1);
+        LOG_DEBUG("SPC", "SLEEP executed at PC=$%04X - entering low power mode",
+                  PC - 1);
       }
       read(PC);
-      for (int i = 0; i < 4; ++i) callbacks_.idle(true);
+      for (int i = 0; i < 4; ++i)
+        callbacks_.idle(true);
       break;
     }
     case 0xf0: {  // beq rel
@@ -1397,7 +1414,9 @@ void Spc700::ExecuteInstructions(uint8_t opcode) {
       // Log Y increment in transfer loop for first few iterations only
       static int incy_log = 0;
       if (PC >= 0xFFE4 && PC <= 0xFFE6 && incy_log++ < 10) {
-        LOG_DEBUG("SPC", "INC Y executed at PC=$%04X: Y changed from $%02X to $%02X (Z=%d N=%d)",
+        LOG_DEBUG("SPC",
+                  "INC Y executed at PC=$%04X: Y changed from $%02X to $%02X "
+                  "(Z=%d N=%d)",
                   PC - 1, old_y, Y, PSW.Z, PSW.N);
       }
       break;
@@ -1434,12 +1453,10 @@ void Spc700::LogInstruction(uint16_t initial_pc, uint8_t opcode) {
 
   std::stringstream ss;
   ss << "$" << std::hex << std::setw(4) << std::setfill('0') << initial_pc
-     << ": 0x" << std::setw(2) << std::setfill('0')
-     << static_cast<int>(opcode) << " " << mnemonic
-     << "  A:" << std::setw(2) << std::setfill('0') << std::hex
-     << static_cast<int>(A)
-     << " X:" << std::setw(2) << std::setfill('0') << std::hex
-     << static_cast<int>(X)
+     << ": 0x" << std::setw(2) << std::setfill('0') << static_cast<int>(opcode)
+     << " " << mnemonic << "  A:" << std::setw(2) << std::setfill('0')
+     << std::hex << static_cast<int>(A) << " X:" << std::setw(2)
+     << std::setfill('0') << std::hex << static_cast<int>(X)
      << " Y:" << std::setw(2) << std::setfill('0') << std::hex
      << static_cast<int>(Y);
 

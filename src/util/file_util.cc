@@ -12,15 +12,15 @@ namespace util {
 
 namespace fs = std::filesystem;
 
-std::string GetFileExtension(const std::string &filename) {
+std::string GetFileExtension(const std::string& filename) {
   return fs::path(filename).extension().string();
 }
 
-std::string GetFileName(const std::string &filename) {
+std::string GetFileName(const std::string& filename) {
   return fs::path(filename).filename().string();
 }
 
-std::string LoadFile(const std::string &filename) {
+std::string LoadFile(const std::string& filename) {
   std::string contents;
   std::ifstream file(filename);
   if (file.is_open()) {
@@ -35,10 +35,10 @@ std::string LoadFile(const std::string &filename) {
   return contents;
 }
 
-std::string LoadFileFromConfigDir(const std::string &filename) {
+std::string LoadFileFromConfigDir(const std::string& filename) {
   auto config_dir = PlatformPaths::GetConfigDirectory();
   if (!config_dir.ok()) {
-    return ""; // Or handle error appropriately
+    return "";  // Or handle error appropriately
   }
 
   fs::path filepath = *config_dir / filename;
@@ -53,7 +53,7 @@ std::string LoadFileFromConfigDir(const std::string &filename) {
   return contents;
 }
 
-void SaveFile(const std::string &filename, const std::string &contents) {
+void SaveFile(const std::string& filename, const std::string& contents) {
   auto config_dir = PlatformPaths::GetConfigDirectory();
   if (!config_dir.ok()) {
     // Or handle error appropriately
@@ -67,7 +67,7 @@ void SaveFile(const std::string &filename, const std::string &contents) {
   }
 }
 
-std::string GetResourcePath(const std::string &resource_path) {
+std::string GetResourcePath(const std::string& resource_path) {
 #ifdef __APPLE__
 #if TARGET_OS_IOS == 1
   const std::string kBundlePath = GetBundleResourcePath();

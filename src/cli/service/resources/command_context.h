@@ -30,7 +30,7 @@ class CommandContext {
     bool use_mock_rom = false;
     std::string format = "json";  // "json" or "text"
     bool verbose = false;
-    
+
     // ROM context can be provided externally (e.g., from Agent class)
     Rom* external_rom_context = nullptr;
   };
@@ -66,7 +66,8 @@ class CommandContext {
  private:
   Config config_;
   Rom rom_storage_;  // Owned ROM if loaded from file
-  Rom* active_rom_ = nullptr;  // Points to either rom_storage_ or external_rom_context
+  Rom* active_rom_ =
+      nullptr;  // Points to either rom_storage_ or external_rom_context
   bool initialized_ = false;
 };
 
@@ -110,7 +111,7 @@ class ArgumentParser {
 
  private:
   std::vector<std::string> args_;
-  
+
   std::optional<std::string> FindArgValue(const std::string& name) const;
 };
 
@@ -120,10 +121,7 @@ class ArgumentParser {
  */
 class OutputFormatter {
  public:
-  enum class Format {
-    kJson,
-    kText
-  };
+  enum class Format { kJson, kText };
 
   explicit OutputFormatter(Format format) : format_(format) {}
 
@@ -207,4 +205,3 @@ class OutputFormatter {
 }  // namespace yaze
 
 #endif  // YAZE_SRC_CLI_SERVICE_RESOURCES_COMMAND_CONTEXT_H_
-

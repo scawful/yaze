@@ -28,8 +28,7 @@ absl::Status InitializeMockRom(Rom& rom);
  */
 bool ShouldUseMockRom();
 
-} // namespace cli
-} // namespace yaze
+}  // namespace cli
+}  // namespace yaze
 
-#endif // YAZE_CLI_HANDLERS_MOCK_ROM_H
-
+#endif  // YAZE_CLI_HANDLERS_MOCK_ROM_H

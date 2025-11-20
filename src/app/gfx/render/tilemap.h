@@ -33,7 +33,7 @@ struct TileCache {
   static constexpr size_t MAX_CACHE_SIZE = 1024;
   std::unordered_map<int, Bitmap> cache_;
   std::list<int> access_order_;
-  
+
   /**
    * @brief Get a cached tile by ID
    * @param tile_id Tile identifier
@@ -49,7 +49,7 @@ struct TileCache {
     }
     return nullptr;
   }
-  
+
   /**
    * @brief Cache a tile bitmap
    * @param tile_id Tile identifier
@@ -62,11 +62,11 @@ struct TileCache {
       access_order_.pop_back();
       cache_.erase(lru_tile);
     }
-    
+
     cache_[tile_id] = std::move(bitmap);
     access_order_.push_front(tile_id);
   }
-  
+
   /**
    * @brief Clear the cache
    */
@@ -74,7 +74,7 @@ struct TileCache {
     cache_.clear();
     access_order_.clear();
   }
-  
+
   /**
    * @brief Get cache statistics
    * @return Number of cached tiles
@@ -107,37 +107,40 @@ struct TileCache {
  * - Integration with SNES graphics buffer format
  */
 struct Tilemap {
-  Bitmap atlas;                                    ///< Master bitmap containing all tiles
-  TileCache tile_cache;                            ///< Smart tile cache with LRU eviction
-  std::vector<std::array<gfx::TileInfo, 4>> tile_info;  ///< Tile metadata (4 tiles per 16x16)
-  Pair tile_size;                                  ///< Size of individual tiles (8x8 or 16x16)
-  Pair map_size;                                   ///< Size of tilemap in tiles
+  Bitmap atlas;          ///< Master bitmap containing all tiles
+  TileCache tile_cache;  ///< Smart tile cache with LRU eviction
+  std::vector<std::array<gfx::TileInfo, 4>>
+      tile_info;   ///< Tile metadata (4 tiles per 16x16)
+  Pair tile_size;  ///< Size of individual tiles (8x8 or 16x16)
+  Pair map_size;   ///< Size of tilemap in tiles
 };
 
 std::vector<uint8_t> FetchTileDataFromGraphicsBuffer(
-    const std::vector<uint8_t> &data, int tile_id, int sheet_offset);
+    const std::vector<uint8_t>& data, int tile_id, int sheet_offset);
 
-Tilemap CreateTilemap(IRenderer* renderer, std::vector<uint8_t> &data, int width, int height,
-                      int tile_size, int num_tiles, SnesPalette &palette);
+Tilemap CreateTilemap(IRenderer* renderer, std::vector<uint8_t>& data,
+                      int width, int height, int tile_size, int num_tiles,
+                      SnesPalette& palette);
 
-void UpdateTilemap(IRenderer* renderer, Tilemap &tilemap, const std::vector<uint8_t> &data);
+void UpdateTilemap(IRenderer* renderer, Tilemap& tilemap,
+                   const std::vector<uint8_t>& data);
 
-void RenderTile(IRenderer* renderer, Tilemap &tilemap, int tile_id);
+void RenderTile(IRenderer* renderer, Tilemap& tilemap, int tile_id);
 
-void RenderTile16(IRenderer* renderer, Tilemap &tilemap, int tile_id);
-void UpdateTile16(IRenderer* renderer, Tilemap &tilemap, int tile_id);
+void RenderTile16(IRenderer* renderer, Tilemap& tilemap, int tile_id);
+void UpdateTile16(IRenderer* renderer, Tilemap& tilemap, int tile_id);
 
-void ModifyTile16(Tilemap &tilemap, const std::vector<uint8_t> &data,
-                   const TileInfo &top_left, const TileInfo &top_right,
-                   const TileInfo &bottom_left, const TileInfo &bottom_right,
-                   int sheet_offset, int tile_id);
+void ModifyTile16(Tilemap& tilemap, const std::vector<uint8_t>& data,
+                  const TileInfo& top_left, const TileInfo& top_right,
+                  const TileInfo& bottom_left, const TileInfo& bottom_right,
+                  int sheet_offset, int tile_id);
 
-void ComposeTile16(Tilemap &tilemap, const std::vector<uint8_t> &data,
-                   const TileInfo &top_left, const TileInfo &top_right,
-                   const TileInfo &bottom_left, const TileInfo &bottom_right,
+void ComposeTile16(Tilemap& tilemap, const std::vector<uint8_t>& data,
+                   const TileInfo& top_left, const TileInfo& top_right,
+                   const TileInfo& bottom_left, const TileInfo& bottom_right,
                    int sheet_offset);
 
-std::vector<uint8_t> GetTilemapData(Tilemap &tilemap, int tile_id);
+std::vector<uint8_t> GetTilemapData(Tilemap& tilemap, int tile_id);
 
 /**
  * @brief Render multiple tiles using atlas rendering for improved performance
@@ -147,7 +150,8 @@ std::vector<uint8_t> GetTilemapData(Tilemap &tilemap, int tile_id);
  * @param scales Vector of scale factors for each tile (optional, defaults to 1.0)
  * @note This function uses atlas rendering to reduce draw calls significantly
  */
-void RenderTilesBatch(IRenderer* renderer, Tilemap& tilemap, const std::vector<int>& tile_ids, 
+void RenderTilesBatch(IRenderer* renderer, Tilemap& tilemap,
+                      const std::vector<int>& tile_ids,
                       const std::vector<std::pair<float, float>>& positions,
                       const std::vector<std::pair<float, float>>& scales = {});
 

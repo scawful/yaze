@@ -6,16 +6,16 @@
 #include "absl/status/status.h"
 #include "app/editor/editor.h"
 #include "app/gfx/core/bitmap.h"
-#include "app/gfx/types/snes_palette.h"
 #include "app/gfx/render/tilemap.h"
+#include "app/gfx/types/snes_palette.h"
+#include "app/gui/app/editor_layout.h"
 #include "app/gui/canvas/canvas.h"
 #include "app/rom.h"
+#include "imgui/imgui.h"
 #include "zelda3/screen/dungeon_map.h"
 #include "zelda3/screen/inventory.h"
-#include "zelda3/screen/title_screen.h"
 #include "zelda3/screen/overworld_map_screen.h"
-#include "app/gui/app/editor_layout.h"
-#include "imgui/imgui.h"
+#include "zelda3/screen/title_screen.h"
 
 namespace yaze {
 namespace editor {
@@ -120,8 +120,7 @@ class ScreenEditor : public Editor {
   gui::Canvas title_bg2_canvas_{"##TitleBG2Canvas", ImVec2(256, 256),
                                 gui::CanvasGridSize::k8x8, 2.0f};
   // Blockset is 128 pixels wide x 512 pixels tall (16x64 8x8 tiles)
-  gui::Canvas title_blockset_canvas_{"##TitleBlocksetCanvas",
-                                     ImVec2(128, 512),
+  gui::Canvas title_blockset_canvas_{"##TitleBlocksetCanvas", ImVec2(128, 512),
                                      gui::CanvasGridSize::k8x8, 2.0f};
 
   zelda3::Inventory inventory_;

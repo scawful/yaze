@@ -26,8 +26,8 @@ void AutomationBridge::OnHarnessTestUpdated(
   telemetry.message = execution.error_message;
   telemetry.updated_at = (execution.completed_at == absl::InfiniteFuture() ||
                           execution.completed_at == absl::InfinitePast())
-                            ? absl::Now()
-                            : execution.completed_at;
+                             ? absl::Now()
+                             : execution.completed_at;
 
   chat_widget_->UpdateHarnessTelemetry(telemetry);
 }

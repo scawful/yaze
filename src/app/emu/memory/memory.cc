@@ -17,19 +17,20 @@ void MemoryImpl::Initialize(const std::vector<uint8_t>& rom_data,
   auto location = 0x7FC0;  // LoROM header location
   rom_size_ = 0x400 << rom_data[location + 0x17];
   sram_size_ = 0x400 << rom_data[location + 0x18];
-  
+
   // Allocate ROM and SRAM storage
   rom_.resize(rom_size_);
   const size_t copy_size = std::min<size_t>(rom_size_, rom_data.size());
   std::copy(rom_data.begin(), rom_data.begin() + copy_size, rom_.begin());
-  
+
   ram_.resize(sram_size_);
   std::fill(ram_.begin(), ram_.end(), 0);
-  
-  LOG_DEBUG("Memory", "LoROM initialized: ROM size=$%06X (%zuKB) SRAM size=$%04X", 
-           rom_size_, rom_size_ / 1024, sram_size_);
-  LOG_DEBUG("Memory", "Reset vector at ROM offset $7FFC-$7FFD = $%02X%02X", 
-           rom_data[0x7FFD], rom_data[0x7FFC]);
+
+  LOG_DEBUG("Memory",
+            "LoROM initialized: ROM size=$%06X (%zuKB) SRAM size=$%04X",
+            rom_size_, rom_size_ / 1024, sram_size_);
+  LOG_DEBUG("Memory", "Reset vector at ROM offset $7FFC-$7FFD = $%02X%02X",
+            rom_data[0x7FFD], rom_data[0x7FFC]);
 }
 
 uint8_t MemoryImpl::cart_read(uint8_t bank, uint16_t adr) {
@@ -69,7 +70,7 @@ uint8_t MemoryImpl::cart_readLorom(uint8_t bank, uint16_t adr) {
       sram_size_ > 0) {
     return ram_[(((bank & 0xf) << 15) | adr) & (sram_size_ - 1)];
   }
-  
+
   // ROM access: banks 00-7f (mirrored to 80-ff), addresses 8000-ffff
   //             OR banks 40-7f, all addresses
   bank &= 0x7f;
@@ -77,7 +78,7 @@ uint8_t MemoryImpl::cart_readLorom(uint8_t bank, uint16_t adr) {
     uint32_t rom_offset = ((bank << 15) | (adr & 0x7fff)) & (rom_size_ - 1);
     return rom_[rom_offset];
   }
-  
+
   return open_bus_;
 }
 

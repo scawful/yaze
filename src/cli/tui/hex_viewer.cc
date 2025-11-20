@@ -19,76 +19,80 @@ ftxui::Component HexViewerComponent::Render() {
 
   auto renderer = Renderer([this] {
     if (!rom_ || !rom_->is_loaded()) {
-        return vbox({
-            text("Hex Viewer") | bold | center,
-            separator(),
-            text("No ROM loaded.") | center | color(Color::Red),
-        }) | border;
+      return vbox({
+                 text("Hex Viewer") | bold | center,
+                 separator(),
+                 text("No ROM loaded.") | center | color(Color::Red),
+             }) |
+             border;
     }
 
     std::vector<Element> rows;
     for (int i = 0; i < lines_to_show_; ++i) {
-        int current_offset = offset_ + (i * 16);
-        if (current_offset >= static_cast<int>(rom_->size())) {
-            break;
-        }
+      int current_offset = offset_ + (i * 16);
+      if (current_offset >= static_cast<int>(rom_->size())) {
+        break;
+      }
 
-        Elements row;
-        row.push_back(text(absl::StrFormat("0x%08X: ", current_offset)) | color(Color::Yellow));
+      Elements row;
+      row.push_back(text(absl::StrFormat("0x%08X: ", current_offset)) |
+                    color(Color::Yellow));
 
-        for (int j = 0; j < 16; ++j) {
-            if (current_offset + j < static_cast<int>(rom_->size())) {
-                row.push_back(text(absl::StrFormat("%02X ", rom_->vector()[current_offset + j])));
-            } else {
-                row.push_back(text("   "));
-            }
+      for (int j = 0; j < 16; ++j) {
+        if (current_offset + j < static_cast<int>(rom_->size())) {
+          row.push_back(text(
+              absl::StrFormat("%02X ", rom_->vector()[current_offset + j])));
+        } else {
+          row.push_back(text("   "));
         }
-        row.push_back(separator());
-        for (int j = 0; j < 16; ++j) {
-            if (current_offset + j < static_cast<int>(rom_->size())) {
-                char c = rom_->vector()[current_offset + j];
-                row.push_back(text(std::isprint(c) ? std::string(1, c) : "."));
-            } else {
-                row.push_back(text(" "));
-            }
+      }
+      row.push_back(separator());
+      for (int j = 0; j < 16; ++j) {
+        if (current_offset + j < static_cast<int>(rom_->size())) {
+          char c = rom_->vector()[current_offset + j];
+          row.push_back(text(std::isprint(c) ? std::string(1, c) : "."));
+        } else {
+          row.push_back(text(" "));
         }
-        rows.push_back(hbox(row));
+      }
+      rows.push_back(hbox(row));
     }
 
-    return vbox({
-        text("Hex Viewer") | center | bold,
-        separator(),
-        vbox(rows) | frame | flex,
-        separator(),
-        hbox({
-            text(absl::StrFormat("Offset: 0x%08X", offset_)),
-            filler(),
-            text("↑↓ PgUp/PgDn: Scroll | Esc/b: Back") | dim,
-        })
-    }) | border;
+    return vbox({text("Hex Viewer") | center | bold, separator(),
+                 vbox(rows) | frame | flex, separator(),
+                 hbox({
+                     text(absl::StrFormat("Offset: 0x%08X", offset_)),
+                     filler(),
+                     text("↑↓ PgUp/PgDn: Scroll | Esc/b: Back") | dim,
+                 })}) |
+           border;
   });
 
   component_ = CatchEvent(renderer, [this](const Event& event) {
-    if (!rom_ || !rom_->is_loaded()) return false;
+    if (!rom_ || !rom_->is_loaded())
+      return false;
 
     bool handled = false;
     if (event == Event::ArrowUp) {
-        offset_ = std::max(0, offset_ - 16);
-        handled = true;
+      offset_ = std::max(0, offset_ - 16);
+      handled = true;
     } else if (event == Event::ArrowDown) {
-        offset_ = std::min(static_cast<int>(rom_->size()) - (lines_to_show_ * 16), offset_ + 16);
-        handled = true;
+      offset_ = std::min(static_cast<int>(rom_->size()) - (lines_to_show_ * 16),
+                         offset_ + 16);
+      handled = true;
     } else if (event == Event::PageUp) {
-        offset_ = std::max(0, offset_ - (lines_to_show_ * 16));
-        handled = true;
+      offset_ = std::max(0, offset_ - (lines_to_show_ * 16));
+      handled = true;
     } else if (event == Event::PageDown) {
-        offset_ = std::min(static_cast<int>(rom_->size()) - (lines_to_show_ * 16), offset_ + (lines_to_show_ * 16));
-        handled = true;
+      offset_ = std::min(static_cast<int>(rom_->size()) - (lines_to_show_ * 16),
+                         offset_ + (lines_to_show_ * 16));
+      handled = true;
     } else if (event == Event::Escape || event == Event::Character('b')) {
-        if (on_back_) on_back_();
-        handled = true;
+      if (on_back_)
+        on_back_();
+      handled = true;
     }
-    
+
     return handled;
   });
 

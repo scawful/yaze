@@ -26,18 +26,18 @@ class TestDungeonObjects : public ::testing::Test {
   // Test helpers
   absl::Status CreateTestRom();
   absl::Status SetupObjectData();
-  
+
   // Mock data generators
   std::vector<uint8_t> CreateObjectSubtypeTable(int base_addr, int count);
   std::vector<uint8_t> CreateTileData(int base_addr, int tile_count);
   std::vector<uint8_t> CreateRoomHeader(int room_id);
 
   std::unique_ptr<MockRom> test_rom_;
-  
+
   // Test constants
   static constexpr int kTestObjectId = 0x01;
   static constexpr int kTestRoomId = 0x00;
-  static constexpr size_t kTestRomSize = 0x100000; // 1MB test ROM
+  static constexpr size_t kTestRomSize = 0x100000;  // 1MB test ROM
 };
 
 }  // namespace test

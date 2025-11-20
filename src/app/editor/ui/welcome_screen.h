@@ -30,60 +30,61 @@ struct RecentProject {
 class WelcomeScreen {
  public:
   WelcomeScreen();
-  
+
   /**
    * @brief Show the welcome screen
    * @param p_open Pointer to open state
    * @return True if an action was taken (ROM opened, etc.)
    */
   bool Show(bool* p_open);
-  
+
   /**
    * @brief Set callback for opening ROM
    */
   void SetOpenRomCallback(std::function<void()> callback) {
     open_rom_callback_ = callback;
   }
-  
+
   /**
    * @brief Set callback for creating new project
    */
   void SetNewProjectCallback(std::function<void()> callback) {
     new_project_callback_ = callback;
   }
-  
+
   /**
    * @brief Set callback for opening project
    */
-  void SetOpenProjectCallback(std::function<void(const std::string&)> callback) {
+  void SetOpenProjectCallback(
+      std::function<void(const std::string&)> callback) {
     open_project_callback_ = callback;
   }
-  
+
   /**
    * @brief Refresh recent projects list from the project manager
    */
   void RefreshRecentProjects();
-  
+
   /**
    * @brief Update animation time for dynamic effects
    */
   void UpdateAnimations();
-  
+
   /**
    * @brief Check if screen should be shown
    */
   bool ShouldShow() const { return !manually_closed_; }
-  
+
   /**
    * @brief Mark as manually closed (don't show again this session)
    */
   void MarkManuallyClosed() { manually_closed_ = true; }
-  
+
   /**
    * @brief Reset first show flag (for testing/forcing display)
    */
   void ResetFirstShow() { first_show_attempt_ = true; }
-  
+
  private:
   void DrawHeader();
   void DrawQuickActions();
@@ -92,31 +93,31 @@ class WelcomeScreen {
   void DrawTemplatesSection();
   void DrawTipsSection();
   void DrawWhatsNew();
-  
+
   std::vector<RecentProject> recent_projects_;
   bool manually_closed_ = false;
   bool first_show_attempt_ = true;  // Override ImGui ini state on first display
-  
+
   // Callbacks
   std::function<void()> open_rom_callback_;
   std::function<void()> new_project_callback_;
   std::function<void(const std::string&)> open_project_callback_;
-  
+
   // UI state
   int selected_template_ = 0;
   static constexpr int kMaxRecentProjects = 6;
-  
+
   // Animation state
   float animation_time_ = 0.0f;
   float card_hover_scale_[6] = {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f};
   int hovered_card_ = -1;
-  
+
   // Interactive triforce positions (smooth interpolation)
   static constexpr int kNumTriforces = 6;
   ImVec2 triforce_positions_[kNumTriforces] = {};
   ImVec2 triforce_base_positions_[kNumTriforces] = {};
   bool triforce_positions_initialized_ = false;
-  
+
   // Particle system
   static constexpr int kMaxParticles = 50;
   struct Particle {
@@ -129,7 +130,7 @@ class WelcomeScreen {
   };
   Particle particles_[kMaxParticles] = {};
   int active_particle_count_ = 0;
-  
+
   // Triforce animation settings
   bool show_triforce_settings_ = false;
   float triforce_alpha_multiplier_ = 1.0f;

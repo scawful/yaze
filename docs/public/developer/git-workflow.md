@@ -13,6 +13,8 @@
 -  **Solo work**: Push directly when you're the only one working
 - Warning: **Breaking changes**: Use feature branches and document in changelog
 - Warning: **Major refactors**: Use feature branches for safety (can always revert)
+- **Always keep local backups**: copy ROMs/assets before editing; never risk the only copy.
+- **Before rebasing/rewriting history**, stash or copy work elsewhere to prevent accidental loss.
 
 **Why relaxed?**
 - Small team / solo development
@@ -198,6 +200,14 @@ git branch -d release/v0.4.0
 **Examples:**
 - `experiment/vulkan-renderer`
 - `experiment/wasm-build`
+
+## Git Safety Crash Course
+
+- Run `git status` often and avoid staging ROMs or build artifacts; add ignore rules when necessary.
+- Never force-push shared branches (`develop`, `master`). PRs and feature branches are safer places
+  for rewrites.
+- Keep backups of any tools that mutate large files (scripts, automation) so you can revert quickly.
+- Before deleting branches that touched ROMs/assets, confirm those files were merged and backed up.
 
 **Rules:**
 - Branch from: `develop` or `master`

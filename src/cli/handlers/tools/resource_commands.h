@@ -19,13 +19,13 @@ class ResourceListCommandHandler : public resources::CommandHandler {
   std::string GetUsage() const {
     return "resource-list --type <type> [--format <json|text>]";
   }
-  
+
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
     return parser.RequireArgs({"type"});
   }
-  
+
   absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
-                      resources::OutputFormatter& formatter) override;
+                       resources::OutputFormatter& formatter) override;
 };
 
 /**
@@ -38,15 +38,16 @@ class ResourceSearchCommandHandler : public resources::CommandHandler {
     return "Search resource labels across all categories";
   }
   std::string GetUsage() const {
-    return "resource-search --query <query> [--type <type>] [--format <json|text>]";
+    return "resource-search --query <query> [--type <type>] [--format "
+           "<json|text>]";
   }
-  
+
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
     return parser.RequireArgs({"query"});
   }
-  
+
   absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
-                      resources::OutputFormatter& formatter) override;
+                       resources::OutputFormatter& formatter) override;
 };
 
 }  // namespace handlers

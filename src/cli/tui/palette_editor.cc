@@ -4,9 +4,9 @@
 #include <ftxui/component/screen_interactive.hpp>
 #include <ftxui/dom/elements.hpp>
 #include <ftxui/screen/screen.hpp>
-#include "cli/tui/tui.h"
-#include "app/gfx/snes_palette.h"
 #include "absl/strings/str_format.h"
+#include "app/gfx/snes_palette.h"
+#include "cli/tui/tui.h"
 
 namespace yaze {
 namespace cli {
@@ -53,7 +53,7 @@ ftxui::Component PaletteEditorComponent::Render() {
   //     // TODO: Implement saving the modified palette to the ROM
   // });
 
-  // auto back_button = Button("Back", [&] { 
+  // auto back_button = Button("Back", [&] {
   //   // TODO: This needs to be handled by the main TUI loop
   // });
 
@@ -71,16 +71,16 @@ ftxui::Component PaletteEditorComponent::Render() {
   //   }
   //   auto palette_menu = Menu(&palette_names, &selected_palette);
 
-    // auto& current_palette = current_palette_group[selected_palette];
-    // std::vector<Elements> color_boxes;
-    // for (int i = 0; i < current_palette.size(); ++i) {
-    //     auto& color = current_palette[i];
-    //     Element element = text("  ") | bgcolor(Color::RGB(color.rgb().x, color.rgb().y, color.rgb().z));
-    //     if (i == selected_color) {
-    //         element = element | border;
-    //     }
-    //     color_boxes.push_back(element);
-    // }
+  // auto& current_palette = current_palette_group[selected_palette];
+  // std::vector<Elements> color_boxes;
+  // for (int i = 0; i < current_palette.size(); ++i) {
+  //     auto& color = current_palette[i];
+  //     Element element = text("  ") | bgcolor(Color::RGB(color.rgb().x, color.rgb().y, color.rgb().z));
+  //     if (i == selected_color) {
+  //         element = element | border;
+  //     }
+  //     color_boxes.push_back(element);
+  // }
 
   //   auto color_grid = Wrap("color_grid", color_boxes);
 

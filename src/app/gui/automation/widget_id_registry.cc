@@ -156,8 +156,7 @@ WidgetIdRegistry::WidgetBounds BoundsFromImGui(const ImRect& rect) {
 }  // namespace
 
 void WidgetIdRegistry::RegisterWidget(const std::string& full_path,
-                                      const std::string& type,
-                                      ImGuiID imgui_id,
+                                      const std::string& type, ImGuiID imgui_id,
                                       const std::string& description,
                                       const WidgetMetadata& metadata) {
   WidgetInfo& info = widgets_[full_path];
@@ -240,7 +239,8 @@ std::vector<std::string> WidgetIdRegistry::FindWidgets(
     } else if (pattern.find('*') != std::string::npos) {
       // Wildcard pattern - convert to simple substring match for now
       std::string search = pattern;
-      search.erase(std::remove(search.begin(), search.end(), '*'), search.end());
+      search.erase(std::remove(search.begin(), search.end(), '*'),
+                   search.end());
       if (!search.empty() && path.find(search) != std::string::npos) {
         match = true;
       }
@@ -292,7 +292,8 @@ std::string WidgetIdRegistry::ExportCatalog(const std::string& format) const {
 
     bool first = true;
     for (const auto& [path, info] : widgets_) {
-      if (!first) ss << ",\n";
+      if (!first)
+        ss << ",\n";
       first = false;
 
       ss << "    {\n";
@@ -307,7 +308,8 @@ std::string WidgetIdRegistry::ExportCatalog(const std::string& format) const {
                             info.enabled ? "true" : "false");
       if (info.bounds.valid) {
         ss << absl::StrFormat(
-            "      \"bounds\": {\"min\": [%0.1f, %0.1f], \"max\": [%0.1f, %0.1f]},\n",
+            "      \"bounds\": {\"min\": [%0.1f, %0.1f], \"max\": [%0.1f, "
+            "%0.1f]},\n",
             info.bounds.min_x, info.bounds.min_y, info.bounds.max_x,
             info.bounds.max_y);
       } else {
@@ -315,15 +317,14 @@ std::string WidgetIdRegistry::ExportCatalog(const std::string& format) const {
       }
       ss << absl::StrFormat("      \"last_seen_frame\": %d,\n",
                             info.last_seen_frame);
-    std::string iso_timestamp = FormatTimestampUTC(info.last_seen_time);
-    ss << absl::StrFormat("      \"last_seen_at\": \"%s\",\n",
-               iso_timestamp);
+      std::string iso_timestamp = FormatTimestampUTC(info.last_seen_time);
+      ss << absl::StrFormat("      \"last_seen_at\": \"%s\",\n", iso_timestamp);
       ss << absl::StrFormat("      \"stale\": %s",
                             info.stale_frame_count > 0 ? "true" : "false");
       if (!info.description.empty()) {
         ss << ",\n";
         ss << absl::StrFormat("      \"description\": \"%s\"\n",
-                               info.description);
+                              info.description);
       } else {
         ss << "\n";
       }
@@ -342,20 +343,22 @@ std::string WidgetIdRegistry::ExportCatalog(const std::string& format) const {
       ss << absl::StrFormat("    imgui_id: %u\n", info.imgui_id);
       ss << absl::StrFormat("    label: \"%s\"\n", info.label);
       ss << absl::StrFormat("    window: \"%s\"\n", info.window_name);
-      ss << absl::StrFormat("    visible: %s\n", info.visible ? "true" : "false");
-      ss << absl::StrFormat("    enabled: %s\n", info.enabled ? "true" : "false");
+      ss << absl::StrFormat("    visible: %s\n",
+                            info.visible ? "true" : "false");
+      ss << absl::StrFormat("    enabled: %s\n",
+                            info.enabled ? "true" : "false");
       if (info.bounds.valid) {
         ss << "    bounds:\n";
         ss << absl::StrFormat("      min: [%0.1f, %0.1f]\n", info.bounds.min_x,
-                               info.bounds.min_y);
+                              info.bounds.min_y);
         ss << absl::StrFormat("      max: [%0.1f, %0.1f]\n", info.bounds.max_x,
-                               info.bounds.max_y);
+                              info.bounds.max_y);
       }
       ss << absl::StrFormat("    last_seen_frame: %d\n", info.last_seen_frame);
-  std::string iso_timestamp = FormatTimestampUTC(info.last_seen_time);
-  ss << absl::StrFormat("    last_seen_at: %s\n", iso_timestamp);
+      std::string iso_timestamp = FormatTimestampUTC(info.last_seen_time);
+      ss << absl::StrFormat("    last_seen_at: %s\n", iso_timestamp);
       ss << absl::StrFormat("    stale: %s\n",
-                             info.stale_frame_count > 0 ? "true" : "false");
+                            info.stale_frame_count > 0 ? "true" : "false");
 
       // Parse hierarchical context from path
       std::vector<std::string> segments = absl::StrSplit(path, '/');

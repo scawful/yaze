@@ -50,10 +50,10 @@ class ResourceCatalog {
   // Serialize helpers for `z3ed agent describe`. These return compact JSON
   // strings so we avoid introducing a hard dependency on nlohmann::json.
   std::string SerializeResource(const ResourceSchema& schema) const;
-  std::string SerializeResources(const std::vector<ResourceSchema>& schemas) const;
+  std::string SerializeResources(
+      const std::vector<ResourceSchema>& schemas) const;
   std::string SerializeResourcesAsYaml(
-      const std::vector<ResourceSchema>& schemas,
-      absl::string_view version,
+      const std::vector<ResourceSchema>& schemas, absl::string_view version,
       absl::string_view last_updated) const;
 
  private:

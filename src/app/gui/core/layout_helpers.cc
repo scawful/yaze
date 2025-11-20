@@ -3,11 +3,11 @@
 #include <vector>
 
 #include "absl/strings/str_format.h"
+#include "app/gui/core/color.h"
 #include "app/gui/core/icons.h"
+#include "app/gui/core/theme_manager.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
-#include "app/gui/core/theme_manager.h"
-#include "app/gui/core/color.h"
 
 namespace yaze {
 namespace gui {
@@ -15,42 +15,50 @@ namespace gui {
 // Core sizing functions
 float LayoutHelpers::GetStandardWidgetHeight() {
   const auto& theme = GetTheme();
-  return GetBaseFontSize() * theme.widget_height_multiplier * theme.compact_factor;
+  return GetBaseFontSize() * theme.widget_height_multiplier *
+         theme.compact_factor;
 }
 
 float LayoutHelpers::GetStandardSpacing() {
   const auto& theme = GetTheme();
-  return GetBaseFontSize() * 0.5f * theme.spacing_multiplier * theme.compact_factor;
+  return GetBaseFontSize() * 0.5f * theme.spacing_multiplier *
+         theme.compact_factor;
 }
 
 float LayoutHelpers::GetToolbarHeight() {
   const auto& theme = GetTheme();
-  return GetBaseFontSize() * theme.toolbar_height_multiplier * theme.compact_factor;
+  return GetBaseFontSize() * theme.toolbar_height_multiplier *
+         theme.compact_factor;
 }
 
 float LayoutHelpers::GetPanelPadding() {
   const auto& theme = GetTheme();
-  return GetBaseFontSize() * 0.5f * theme.panel_padding_multiplier * theme.compact_factor;
+  return GetBaseFontSize() * 0.5f * theme.panel_padding_multiplier *
+         theme.compact_factor;
 }
 
 float LayoutHelpers::GetStandardInputWidth() {
   const auto& theme = GetTheme();
-  return GetBaseFontSize() * 8.0f * theme.input_width_multiplier * theme.compact_factor;
+  return GetBaseFontSize() * 8.0f * theme.input_width_multiplier *
+         theme.compact_factor;
 }
 
 float LayoutHelpers::GetButtonPadding() {
   const auto& theme = GetTheme();
-  return GetBaseFontSize() * 0.3f * theme.button_padding_multiplier * theme.compact_factor;
+  return GetBaseFontSize() * 0.3f * theme.button_padding_multiplier *
+         theme.compact_factor;
 }
 
 float LayoutHelpers::GetTableRowHeight() {
   const auto& theme = GetTheme();
-  return GetBaseFontSize() * theme.table_row_height_multiplier * theme.compact_factor;
+  return GetBaseFontSize() * theme.table_row_height_multiplier *
+         theme.compact_factor;
 }
 
 float LayoutHelpers::GetCanvasToolbarHeight() {
   const auto& theme = GetTheme();
-  return GetBaseFontSize() * theme.canvas_toolbar_multiplier * theme.compact_factor;
+  return GetBaseFontSize() * theme.canvas_toolbar_multiplier *
+         theme.compact_factor;
 }
 
 // Layout utilities
@@ -74,22 +82,28 @@ void LayoutHelpers::EndPaddedPanel() {
 }
 
 bool LayoutHelpers::BeginTableWithTheming(const char* str_id, int columns,
-                                           ImGuiTableFlags flags,
-                                           const ImVec2& outer_size,
-                                           float inner_width) {
+                                          ImGuiTableFlags flags,
+                                          const ImVec2& outer_size,
+                                          float inner_width) {
   const auto& theme = GetTheme();
 
   // Apply theme colors to table
-  ImGui::PushStyleColor(ImGuiCol_TableHeaderBg, ConvertColorToImVec4(theme.table_header_bg));
-  ImGui::PushStyleColor(ImGuiCol_TableBorderStrong, ConvertColorToImVec4(theme.table_border_strong));
-  ImGui::PushStyleColor(ImGuiCol_TableBorderLight, ConvertColorToImVec4(theme.table_border_light));
-  ImGui::PushStyleColor(ImGuiCol_TableRowBg, ConvertColorToImVec4(theme.table_row_bg));
-  ImGui::PushStyleColor(ImGuiCol_TableRowBgAlt, ConvertColorToImVec4(theme.table_row_bg_alt));
+  ImGui::PushStyleColor(ImGuiCol_TableHeaderBg,
+                        ConvertColorToImVec4(theme.table_header_bg));
+  ImGui::PushStyleColor(ImGuiCol_TableBorderStrong,
+                        ConvertColorToImVec4(theme.table_border_strong));
+  ImGui::PushStyleColor(ImGuiCol_TableBorderLight,
+                        ConvertColorToImVec4(theme.table_border_light));
+  ImGui::PushStyleColor(ImGuiCol_TableRowBg,
+                        ConvertColorToImVec4(theme.table_row_bg));
+  ImGui::PushStyleColor(ImGuiCol_TableRowBgAlt,
+                        ConvertColorToImVec4(theme.table_row_bg_alt));
 
   // Set row height if not overridden by caller
   if (!(flags & ImGuiTableFlags_NoHostExtendY)) {
-    ImGui::PushStyleVar(ImGuiStyleVar_CellPadding,
-                       ImVec2(ImGui::GetStyle().CellPadding.x, GetTableRowHeight() * 0.25f));
+    ImGui::PushStyleVar(
+        ImGuiStyleVar_CellPadding,
+        ImVec2(ImGui::GetStyle().CellPadding.x, GetTableRowHeight() * 0.25f));
   }
 
   return ImGui::BeginTable(str_id, columns, flags, outer_size, inner_width);
@@ -107,7 +121,8 @@ void LayoutHelpers::BeginCanvasPanel(const char* label, ImVec2* canvas_size) {
   const auto& theme = GetTheme();
 
   // Apply theme to canvas container
-  ImGui::PushStyleColor(ImGuiCol_ChildBg, ConvertColorToImVec4(theme.editor_background));
+  ImGui::PushStyleColor(ImGuiCol_ChildBg,
+                        ConvertColorToImVec4(theme.editor_background));
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
 
   if (canvas_size) {
@@ -125,13 +140,15 @@ void LayoutHelpers::EndCanvasPanel() {
 
 // Input field helpers
 bool LayoutHelpers::AutoSizedInputField(const char* label, char* buf,
-                                        size_t buf_size, ImGuiInputTextFlags flags) {
+                                        size_t buf_size,
+                                        ImGuiInputTextFlags flags) {
   ImGui::SetNextItemWidth(GetStandardInputWidth());
   return ImGui::InputText(label, buf, buf_size, flags);
 }
 
 bool LayoutHelpers::AutoSizedInputInt(const char* label, int* v, int step,
-                                      int step_fast, ImGuiInputTextFlags flags) {
+                                      int step_fast,
+                                      ImGuiInputTextFlags flags) {
   ImGui::SetNextItemWidth(GetStandardInputWidth());
   return ImGui::InputInt(label, v, step, step_fast, flags);
 }
@@ -146,7 +163,7 @@ bool LayoutHelpers::AutoSizedInputFloat(const char* label, float* v, float step,
 // Input preset functions for common patterns
 bool LayoutHelpers::InputHexRow(const char* label, uint8_t* data) {
   const auto& theme = GetTheme();
-  float input_width = GetStandardInputWidth() * 0.5f; // Hex inputs are smaller
+  float input_width = GetStandardInputWidth() * 0.5f;  // Hex inputs are smaller
 
   ImGui::AlignTextToFramePadding();
   ImGui::Text("%s", label);
@@ -174,7 +191,8 @@ bool LayoutHelpers::InputHexRow(const char* label, uint8_t* data) {
 
 bool LayoutHelpers::InputHexRow(const char* label, uint16_t* data) {
   const auto& theme = GetTheme();
-  float input_width = GetStandardInputWidth() * 0.6f; // Hex word slightly wider
+  float input_width =
+      GetStandardInputWidth() * 0.6f;  // Hex word slightly wider
 
   ImGui::AlignTextToFramePadding();
   ImGui::Text("%s", label);
@@ -205,10 +223,10 @@ void LayoutHelpers::BeginPropertyGrid(const char* label) {
 
   // Create a 2-column table for property editing
   if (ImGui::BeginTable(label, 2,
-                       ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg)) {
+                        ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg)) {
     // Setup columns: label column (30%) and value column (70%)
     ImGui::TableSetupColumn("Property", ImGuiTableColumnFlags_WidthFixed,
-                           GetStandardInputWidth() * 1.5f);
+                            GetStandardInputWidth() * 1.5f);
     ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
   }
 }
@@ -217,23 +235,27 @@ void LayoutHelpers::EndPropertyGrid() {
   ImGui::EndTable();
 }
 
-bool LayoutHelpers::InputToolbarField(const char* label, char* buf, size_t buf_size) {
+bool LayoutHelpers::InputToolbarField(const char* label, char* buf,
+                                      size_t buf_size) {
   // Compact input field for toolbars
-  float compact_width = GetStandardInputWidth() * 0.8f * GetTheme().compact_factor;
+  float compact_width =
+      GetStandardInputWidth() * 0.8f * GetTheme().compact_factor;
   ImGui::SetNextItemWidth(compact_width);
 
   return ImGui::InputText(label, buf, buf_size,
-                         ImGuiInputTextFlags_AutoSelectAll);
+                          ImGuiInputTextFlags_AutoSelectAll);
 }
 
 // Toolbar helpers
 void LayoutHelpers::BeginToolbar(const char* label) {
   const auto& theme = GetTheme();
-  ImGui::PushStyleColor(ImGuiCol_ChildBg, ConvertColorToImVec4(theme.menu_bar_bg));
+  ImGui::PushStyleColor(ImGuiCol_ChildBg,
+                        ConvertColorToImVec4(theme.menu_bar_bg));
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding,
-                     ImVec2(GetButtonPadding(), GetButtonPadding()));
-  ImGui::BeginChild(label, ImVec2(0, GetToolbarHeight()), true,
-                   ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+                      ImVec2(GetButtonPadding(), GetButtonPadding()));
+  ImGui::BeginChild(
+      label, ImVec2(0, GetToolbarHeight()), true,
+      ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
 }
 
 void LayoutHelpers::EndToolbar() {
@@ -255,14 +277,15 @@ void LayoutHelpers::ToolbarSeparator() {
 bool LayoutHelpers::ToolbarButton(const char* label, const ImVec2& size) {
   const auto& theme = GetTheme();
   ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,
-                     ImVec2(GetButtonPadding(), GetButtonPadding()));
+                      ImVec2(GetButtonPadding(), GetButtonPadding()));
   bool result = ImGui::Button(label, size);
   ImGui::PopStyleVar(1);
   return result;
 }
 
 // Common layout patterns
-void LayoutHelpers::PropertyRow(const char* label, std::function<void()> widget_callback) {
+void LayoutHelpers::PropertyRow(const char* label,
+                                std::function<void()> widget_callback) {
   ImGui::TableNextRow();
   ImGui::TableSetColumnIndex(0);
   ImGui::AlignTextToFramePadding();
@@ -289,5 +312,5 @@ void LayoutHelpers::HelpMarker(const char* desc) {
   }
 }
 
-} // namespace gui
-} // namespace yaze
+}  // namespace gui
+}  // namespace yaze

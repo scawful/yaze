@@ -5,26 +5,16 @@ namespace yaze {
 namespace editor {
 
 // Game State Labels
-inline constexpr const char* kGameStateNames[] = {
-    "Rain & Rescue Zelda", 
-    "Pendants", 
-    "Crystals"
-};
+inline constexpr const char* kGameStateNames[] = {"Rain & Rescue Zelda",
+                                                  "Pendants", "Crystals"};
 
 // World Labels
-inline constexpr const char* kWorldNames[] = {
-    "Light World", 
-    "Dark World", 
-    "Special World"
-};
+inline constexpr const char* kWorldNames[] = {"Light World", "Dark World",
+                                              "Special World"};
 
 // Area Size Names
-inline constexpr const char* kAreaSizeNames[] = {
-    "Small (1x1)", 
-    "Large (2x2)", 
-    "Wide (2x1)", 
-    "Tall (1x2)"
-};
+inline constexpr const char* kAreaSizeNames[] = {"Small (1x1)", "Large (2x2)",
+                                                 "Wide (2x1)", "Tall (1x2)"};
 
 // UI Styling Constants
 inline constexpr float kInputFieldSize = 30.f;

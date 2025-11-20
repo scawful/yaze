@@ -1,9 +1,9 @@
 #ifndef YAZE_APP_GUI_UI_HELPERS_H
 #define YAZE_APP_GUI_UI_HELPERS_H
 
-#include "imgui/imgui.h"
-#include <string>
 #include <functional>
+#include <string>
+#include "imgui/imgui.h"
 
 namespace yaze {
 namespace gui {
@@ -47,8 +47,8 @@ void BeginField(const char* label, float label_width = 0.0f);
 void EndField();
 
 // Property table pattern (common in editors)
-bool BeginPropertyTable(const char* id, int columns = 2, 
-                       ImGuiTableFlags extra_flags = 0);
+bool BeginPropertyTable(const char* id, int columns = 2,
+                        ImGuiTableFlags extra_flags = 0);
 void EndPropertyTable();
 
 // Property row helpers
@@ -58,25 +58,25 @@ void PropertyRowHex(const char* label, uint8_t value);
 void PropertyRowHex(const char* label, uint16_t value);
 
 // Section headers with icons
-void SectionHeader(const char* icon, const char* label, 
-                  const ImVec4& color = ImVec4(1, 1, 1, 1));
+void SectionHeader(const char* icon, const char* label,
+                   const ImVec4& color = ImVec4(1, 1, 1, 1));
 
 // ============================================================================
 // Common Widget Patterns
 // ============================================================================
 
 // Button with icon
-bool IconButton(const char* icon, const char* label, 
-               const ImVec2& size = ImVec2(0, 0));
+bool IconButton(const char* icon, const char* label,
+                const ImVec2& size = ImVec2(0, 0));
 
 // Colored button for status actions
 enum class ButtonType { Default, Success, Warning, Error, Info };
 bool ColoredButton(const char* label, ButtonType type,
-                  const ImVec2& size = ImVec2(0, 0));
+                   const ImVec2& size = ImVec2(0, 0));
 
 // Toggle button with visual state
-bool ToggleIconButton(const char* icon_on, const char* icon_off,
-                     bool* state, const char* tooltip = nullptr);
+bool ToggleIconButton(const char* icon_on, const char* icon_off, bool* state,
+                      const char* tooltip = nullptr);
 
 // Help marker with tooltip
 void HelpMarker(const char* desc);
@@ -95,7 +95,7 @@ void StatusBadge(const char* text, ButtonType type = ButtonType::Default);
 void BeginToolset(const char* id);
 void EndToolset();
 void ToolsetButton(const char* icon, bool selected, const char* tooltip,
-                  std::function<void()> on_click);
+                   std::function<void()> on_click);
 
 // Canvas container patterns
 void BeginCanvasContainer(const char* id, bool scrollable = true);
@@ -106,8 +106,8 @@ bool EditorTabItem(const char* icon, const char* label, bool* p_open = nullptr);
 
 // Modal confirmation dialog
 bool ConfirmationDialog(const char* id, const char* title, const char* message,
-                       const char* confirm_text = "OK",
-                       const char* cancel_text = "Cancel");
+                        const char* confirm_text = "OK",
+                        const char* cancel_text = "Cancel");
 
 // ============================================================================
 // Visual Indicators
@@ -115,7 +115,7 @@ bool ConfirmationDialog(const char* id, const char* title, const char* message,
 
 // Status indicator dot + label
 void StatusIndicator(const char* label, bool active,
-                    const char* tooltip = nullptr);
+                     const char* tooltip = nullptr);
 
 // ROM version badge
 void RomVersionBadge(const char* version, bool is_vanilla);
@@ -174,9 +174,9 @@ bool LabeledInputHex(const char* label, uint16_t* value);
 
 // Combo with icon
 bool IconCombo(const char* icon, const char* label, int* current,
-              const char* const items[], int count);
+               const char* const items[], int count);
 
-} // namespace gui
-} // namespace yaze
+}  // namespace gui
+}  // namespace yaze
 
-#endif // YAZE_APP_GUI_UI_HELPERS_H
+#endif  // YAZE_APP_GUI_UI_HELPERS_H

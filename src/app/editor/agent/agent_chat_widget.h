@@ -12,11 +12,11 @@
 #include "absl/time/time.h"
 #include "app/editor/agent/agent_chat_history_codec.h"
 #include "app/gui/widgets/text_editor.h"
-#include "cli/service/ai/ollama_ai_service.h"
-#include "cli/service/agent/conversational_agent_service.h"
 #include "cli/service/agent/advanced_routing.h"
 #include "cli/service/agent/agent_pretraining.h"
+#include "cli/service/agent/conversational_agent_service.h"
 #include "cli/service/agent/prompt_manager.h"
+#include "cli/service/ai/ollama_ai_service.h"
 #include "core/project.h"
 
 namespace yaze {
@@ -50,7 +50,7 @@ class AgentChatHistoryPopup;
 class AgentChatWidget {
  public:
   AgentChatWidget();
- 
+
   void Draw();
 
   void SetRomContext(Rom* rom);
@@ -62,15 +62,19 @@ class AgentChatWidget {
       std::vector<std::string> participants;
     };
 
-    std::function<absl::StatusOr<SessionContext>(const std::string&)> host_session;
-    std::function<absl::StatusOr<SessionContext>(const std::string&)> join_session;
+    std::function<absl::StatusOr<SessionContext>(const std::string&)>
+        host_session;
+    std::function<absl::StatusOr<SessionContext>(const std::string&)>
+        join_session;
     std::function<absl::Status()> leave_session;
     std::function<absl::StatusOr<SessionContext>()> refresh_session;
   };
 
   struct MultimodalCallbacks {
     std::function<absl::Status(std::filesystem::path*)> capture_snapshot;
-    std::function<absl::Status(const std::filesystem::path&, const std::string&)> send_to_gemini;
+    std::function<absl::Status(const std::filesystem::path&,
+                               const std::string&)>
+        send_to_gemini;
   };
 
   struct AutomationCallbacks {
@@ -91,8 +95,10 @@ class AgentChatWidget {
   // Z3ED Command Callbacks
   struct Z3EDCommandCallbacks {
     std::function<absl::Status(const std::string&)> run_agent_task;
-    std::function<absl::StatusOr<std::string>(const std::string&)> plan_agent_task;
-    std::function<absl::StatusOr<std::string>(const std::string&)> diff_proposal;
+    std::function<absl::StatusOr<std::string>(const std::string&)>
+        plan_agent_task;
+    std::function<absl::StatusOr<std::string>(const std::string&)>
+        diff_proposal;
     std::function<absl::Status(const std::string&)> accept_proposal;
     std::function<absl::Status(const std::string&)> reject_proposal;
     std::function<absl::StatusOr<std::vector<std::string>>()> list_proposals;
@@ -101,12 +107,13 @@ class AgentChatWidget {
   // ROM Sync Callbacks
   struct RomSyncCallbacks {
     std::function<absl::StatusOr<std::string>()> generate_rom_diff;
-    std::function<absl::Status(const std::string&, const std::string&)> apply_rom_diff;
+    std::function<absl::Status(const std::string&, const std::string&)>
+        apply_rom_diff;
     std::function<std::string()> get_rom_hash;
   };
 
   void RenderSnapshotPreviewPanel();
-  
+
   // Screenshot preview and region selection
   void LoadScreenshotPreview(const std::filesystem::path& image_path);
   void UnloadScreenshotPreview();
@@ -119,7 +126,7 @@ class AgentChatWidget {
   void SetToastManager(ToastManager* toast_manager);
 
   void SetProposalDrawer(ProposalDrawer* drawer);
-  
+
   void SetChatHistoryPopup(AgentChatHistoryPopup* popup);
 
   void SetCollaborationCallbacks(const CollaborationCallbacks& callbacks) {
@@ -135,7 +142,7 @@ class AgentChatWidget {
 
   void UpdateHarnessTelemetry(const AutomationTelemetry& telemetry);
   void SetLastPlanSummary(const std::string& summary);
-  
+
   // Automation status polling
   void PollAutomationStatus();
   bool CheckHarnessConnection();
@@ -152,8 +159,8 @@ class AgentChatWidget {
   bool is_active() const { return active_; }
   void set_active(bool active) { active_ = active; }
   enum class CollaborationMode {
-    kLocal = 0,    // Filesystem-based collaboration
-    kNetwork = 1   // WebSocket-based collaboration
+    kLocal = 0,   // Filesystem-based collaboration
+    kNetwork = 1  // WebSocket-based collaboration
   };
 
   struct CollaborationState {
@@ -282,20 +289,20 @@ class AgentChatWidget {
     bool command_running = false;
     char command_input_buffer[512] = {};
   };
-  
+
   void SetPromptMode(cli::agent::PromptMode mode) { prompt_mode_ = mode; }
   cli::agent::PromptMode GetPromptMode() const { return prompt_mode_; }
 
   // Accessors for capture settings
   CaptureMode capture_mode() const { return multimodal_state_.capture_mode; }
-  const char* specific_window_name() const { 
-    return multimodal_state_.specific_window_buffer; 
+  const char* specific_window_name() const {
+    return multimodal_state_.specific_window_buffer;
   }
 
   // Agent configuration accessors
   const AgentConfigState& GetAgentConfig() const { return agent_config_; }
   void UpdateAgentConfig(const AgentConfigState& config);
-  
+
   // Load agent settings from project
   void LoadAgentSettingsFromProject(const project::YazeProject& project);
   void SaveAgentSettingsToProject(project::YazeProject& project);
@@ -303,7 +310,7 @@ class AgentChatWidget {
   // Collaboration history management (public so EditorManager can call them)
   void SwitchToSharedHistory(const std::string& session_id);
   void SwitchToLocalHistory();
-  
+
   // File editing
   void OpenFileInEditor(const std::string& filepath);
   void CreateNewFileInEditor(const std::string& filename);
@@ -344,10 +351,12 @@ class AgentChatWidget {
       bool update_action_timestamp);
   void MarkHistoryDirty();
   void PollSharedHistory();  // For real-time collaboration sync
-  void HandleRomSyncReceived(const std::string& diff_data, const std::string& rom_hash);
-  void HandleSnapshotReceived(const std::string& snapshot_data, const std::string& snapshot_type);
+  void HandleRomSyncReceived(const std::string& diff_data,
+                             const std::string& rom_hash);
+  void HandleSnapshotReceived(const std::string& snapshot_data,
+                              const std::string& snapshot_type);
   void HandleProposalReceived(const std::string& proposal_data);
-  void RefreshOllamaModels();
+  void RefreshModels();
   cli::AIServiceConfig BuildAIServiceConfig() const;
   void ApplyToolPreferences();
   void ApplyHistoryAgentConfig(
@@ -355,7 +364,7 @@ class AgentChatWidget {
   AgentChatHistoryCodec::AgentConfigSnapshot BuildHistoryAgentConfig() const;
   void MarkPresetUsage(const std::string& model_name);
   void ApplyModelPreset(const AgentConfigState::ModelPreset& preset);
-  
+
   // History synchronization
   void SyncHistoryToPopup();
 
@@ -363,7 +372,7 @@ class AgentChatWidget {
   bool waiting_for_response_ = false;
   float thinking_animation_ = 0.0f;
   std::string pending_message_;
-  
+
   // Chat session management
   struct ChatSession {
     std::string id;
@@ -376,20 +385,20 @@ class AgentChatWidget {
     std::filesystem::path history_path;
     absl::Time created_at = absl::Now();
     absl::Time last_persist_time = absl::InfinitePast();
-    
+
     ChatSession(const std::string& session_id, const std::string& session_name)
         : id(session_id), name(session_name) {}
   };
-  
+
   void SaveChatSession(const ChatSession& session);
   void LoadChatSession(const std::string& session_id);
   void DeleteChatSession(const std::string& session_id);
   std::vector<std::string> GetSavedSessions();
   std::filesystem::path GetSessionsDirectory();
-  
+
   std::vector<ChatSession> chat_sessions_;
   int active_session_index_ = 0;
-  
+
   // Legacy single session support (will migrate to sessions)
   cli::agent::ConversationalAgentService agent_service_;
   char input_buffer_[1024];
@@ -407,7 +416,7 @@ class AgentChatWidget {
   AgentChatHistoryPopup* chat_history_popup_ = nullptr;
   std::string pending_focus_proposal_id_;
   absl::Time last_persist_time_ = absl::InfinitePast();
-  
+
   // Main state
   CollaborationState collaboration_state_;
   MultimodalState multimodal_state_;
@@ -423,37 +432,38 @@ class AgentChatWidget {
     bool active = false;
   } persona_profile_;
   bool persona_highlight_active_ = false;
-  
+
   // Callbacks
   CollaborationCallbacks collaboration_callbacks_;
   MultimodalCallbacks multimodal_callbacks_;
   AutomationCallbacks automation_callbacks_;
   Z3EDCommandCallbacks z3ed_callbacks_;
   RomSyncCallbacks rom_sync_callbacks_;
-  
+
   // Input buffers
   char session_name_buffer_[64] = {};
   char join_code_buffer_[64] = {};
   char server_url_buffer_[256] = "ws://localhost:8765";
   char multimodal_prompt_buffer_[256] = {};
-  
+
   // Timing
   absl::Time last_collaboration_action_ = absl::InfinitePast();
   absl::Time last_shared_history_poll_ = absl::InfinitePast();
   size_t last_known_history_size_ = 0;
-  
+
   // UI state
-  int active_tab_ = 0;  // 0=Chat, 1=Config, 2=Commands, 3=Collab, 4=ROM Sync, 5=Files, 6=Prompt
+  int active_tab_ =
+      0;  // 0=Chat, 1=Config, 2=Commands, 3=Collab, 4=ROM Sync, 5=Files, 6=Prompt
   bool show_agent_config_ = false;
   cli::agent::PromptMode prompt_mode_ = cli::agent::PromptMode::kStandard;
   bool show_z3ed_commands_ = false;
   bool show_rom_sync_ = false;
   bool show_snapshot_preview_ = false;
   std::vector<uint8_t> snapshot_preview_data_;
-  
+
   // Reactive UI colors
   ImVec4 collaboration_status_color_ = ImVec4(0.6f, 0.6f, 0.6f, 1.0f);
-  
+
   // File editing state
   struct FileEditorTab {
     std::string filepath;
@@ -466,10 +476,10 @@ class AgentChatWidget {
   int active_file_tab_ = -1;
 
   // Model roster cache
-  std::vector<cli::OllamaAIService::ModelInfo> ollama_model_info_cache_;
-  std::vector<std::string> ollama_model_cache_;
+  std::vector<cli::ModelInfo> model_info_cache_;
+  std::vector<std::string> model_name_cache_;
   absl::Time last_model_refresh_ = absl::InfinitePast();
-  bool ollama_models_loading_ = false;
+  bool models_loading_ = false;
   char model_search_buffer_[64] = {};
   char new_preset_name_[64] = {};
   int active_model_preset_index_ = -1;

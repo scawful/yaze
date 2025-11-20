@@ -17,22 +17,22 @@ class PaletteEditorWidget {
  public:
   PaletteEditorWidget() = default;
 
-  void Initialize(Rom *rom);
+  void Initialize(Rom* rom);
 
   // Embedded drawing function, like the old PaletteEditorWidget
   void Draw();
 
   // Modal dialogs from the more feature-rich PaletteWidget
-  void ShowPaletteEditor(gfx::SnesPalette &palette,
-                         const std::string &title = "Palette Editor");
+  void ShowPaletteEditor(gfx::SnesPalette& palette,
+                         const std::string& title = "Palette Editor");
   void ShowROMPaletteManager();
-  void ShowColorAnalysis(const gfx::Bitmap &bitmap,
-                         const std::string &title = "Color Analysis");
+  void ShowColorAnalysis(const gfx::Bitmap& bitmap,
+                         const std::string& title = "Color Analysis");
 
-  bool ApplyROMPalette(gfx::Bitmap *bitmap, int group_index, int palette_index);
-  const gfx::SnesPalette *GetSelectedROMPalette() const;
-  void SavePaletteBackup(const gfx::SnesPalette &palette);
-  bool RestorePaletteBackup(gfx::SnesPalette &palette);
+  bool ApplyROMPalette(gfx::Bitmap* bitmap, int group_index, int palette_index);
+  const gfx::SnesPalette* GetSelectedROMPalette() const;
+  void SavePaletteBackup(const gfx::SnesPalette& palette);
+  bool RestorePaletteBackup(gfx::SnesPalette& palette);
 
   // Callback when palette is modified
   void SetOnPaletteChanged(std::function<void(int palette_id)> callback) {
@@ -48,16 +48,16 @@ class PaletteEditorWidget {
   void DrawROMPaletteSelector();
 
  private:
-  void DrawPaletteGrid(gfx::SnesPalette &palette, int cols = 15);
-  void DrawColorEditControls(gfx::SnesColor &color, int color_index);
-  void DrawPaletteAnalysis(const gfx::SnesPalette &palette);
+  void DrawPaletteGrid(gfx::SnesPalette& palette, int cols = 15);
+  void DrawColorEditControls(gfx::SnesColor& color, int color_index);
+  void DrawPaletteAnalysis(const gfx::SnesPalette& palette);
   void LoadROMPalettes();
 
   // For embedded view
   void DrawPaletteSelector();
   void DrawColorPicker();
 
-  Rom *rom_ = nullptr;
+  Rom* rom_ = nullptr;
   std::vector<gfx::SnesPalette> rom_palette_groups_;
   std::vector<std::string> palette_group_names_;
   gfx::SnesPalette backup_palette_;
@@ -85,4 +85,3 @@ class PaletteEditorWidget {
 }  // namespace yaze
 
 #endif  // YAZE_APP_GUI_WIDGETS_PALETTE_EDITOR_WIDGET_H
-

@@ -30,9 +30,9 @@ constexpr int kOverworldItemsPointersNew = 0x012784;
 constexpr int kOverworldItemsStartDataNew = 0x0DC2F9;
 
 constexpr int overworldItemsPointers = 0x0DC2F9;
-constexpr int overworldItemsAddress = 0x0DC8B9; // 1BC2F9
+constexpr int overworldItemsAddress = 0x0DC8B9;  // 1BC2F9
 constexpr int overworldItemsAddressBank = 0x0DC8BF;
-constexpr int overworldItemsEndData = 0x0DC89C; // 0DC89E
+constexpr int overworldItemsEndData = 0x0DC89C;  // 0DC89E
 
 constexpr int overworldBombDoorItemLocationsNew = 0x012644;
 constexpr int overworldItemsPointersNew = 0x012784;
@@ -58,7 +58,8 @@ class OverworldItem : public GameEntity {
     game_y_ = static_cast<uint8_t>(std::abs(y - (map_y * 512)) / 16);
   }
 
-  void UpdateMapProperties(uint16_t room_map_id, const void* context = nullptr) override {
+  void UpdateMapProperties(uint16_t room_map_id,
+                           const void* context = nullptr) override {
     (void)context;  // Not used by items currently
     room_map_id_ = room_map_id;
 
@@ -101,7 +102,7 @@ inline bool CompareOverworldItems(const std::vector<OverworldItem>& items1,
 }
 
 inline bool CompareItemsArrays(std::vector<OverworldItem> item_array1,
-                        std::vector<OverworldItem> item_array2) {
+                               std::vector<OverworldItem> item_array2) {
   if (item_array1.size() != item_array2.size()) {
     return false;
   }
@@ -127,7 +128,8 @@ inline bool CompareItemsArrays(std::vector<OverworldItem> item_array1,
   return true;
 }
 
-absl::StatusOr<std::vector<OverworldItem>> LoadItems(Rom* rom, std::vector<OverworldMap>& overworld_maps);
+absl::StatusOr<std::vector<OverworldItem>> LoadItems(
+    Rom* rom, std::vector<OverworldMap>& overworld_maps);
 absl::Status SaveItems(Rom* rom, const std::vector<OverworldItem>& items);
 
 const std::vector<std::string> kSecretItemNames = {

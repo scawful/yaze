@@ -69,7 +69,7 @@ class ImGuiTestHarnessServiceImpl {
  public:
   // Constructor now takes TestManager reference for ImGuiTestEngine access
   explicit ImGuiTestHarnessServiceImpl(TestManager* test_manager)
-    : test_manager_(test_manager), test_recorder_(test_manager) {}
+      : test_manager_(test_manager), test_recorder_(test_manager) {}
   ~ImGuiTestHarnessServiceImpl() = default;
 
   // Disable copy and move

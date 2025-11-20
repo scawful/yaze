@@ -1,33 +1,31 @@
 #ifndef YAZE_APP_EDITOR_OVERWORLD_ENTITY_H
 #define YAZE_APP_EDITOR_OVERWORLD_ENTITY_H
 
+#include "imgui/imgui.h"
 #include "zelda3/common.h"
 #include "zelda3/overworld/overworld_entrance.h"
 #include "zelda3/overworld/overworld_exit.h"
 #include "zelda3/overworld/overworld_item.h"
 #include "zelda3/sprite/sprite.h"
-#include "imgui/imgui.h"
 
 namespace yaze {
 namespace editor {
 
-bool IsMouseHoveringOverEntity(const zelda3::GameEntity &entity,
+bool IsMouseHoveringOverEntity(const zelda3::GameEntity& entity,
                                ImVec2 canvas_p0, ImVec2 scrolling);
 
-void MoveEntityOnGrid(zelda3::GameEntity *entity, ImVec2 canvas_p0,
+void MoveEntityOnGrid(zelda3::GameEntity* entity, ImVec2 canvas_p0,
                       ImVec2 scrolling, bool free_movement = false);
 
-
-
 bool DrawEntranceInserterPopup();
-bool DrawOverworldEntrancePopup(zelda3::OverworldEntrance &entrance);
+bool DrawOverworldEntrancePopup(zelda3::OverworldEntrance& entrance);
 
 void DrawExitInserterPopup();
-bool DrawExitEditorPopup(zelda3::OverworldExit &exit);
+bool DrawExitEditorPopup(zelda3::OverworldExit& exit);
 
 void DrawItemInsertPopup();
 
-bool DrawItemEditorPopup(zelda3::OverworldItem &item);
+bool DrawItemEditorPopup(zelda3::OverworldItem& item);
 
 /**
  * @brief Column IDs for the sprite table.
@@ -41,11 +39,11 @@ enum SpriteItemColumnID {
 
 struct SpriteItem {
   int id;
-  const char *name;
-  static const ImGuiTableSortSpecs *s_current_sort_specs;
+  const char* name;
+  static const ImGuiTableSortSpecs* s_current_sort_specs;
 
-  static void SortWithSortSpecs(ImGuiTableSortSpecs *sort_specs,
-                                std::vector<SpriteItem> &items) {
+  static void SortWithSortSpecs(ImGuiTableSortSpecs* sort_specs,
+                                std::vector<SpriteItem>& items) {
     s_current_sort_specs =
         sort_specs;  // Store for access by the compare function.
     if (items.size() > 1)
@@ -53,9 +51,9 @@ struct SpriteItem {
     s_current_sort_specs = nullptr;
   }
 
-  static bool CompareWithSortSpecs(const SpriteItem &a, const SpriteItem &b) {
+  static bool CompareWithSortSpecs(const SpriteItem& a, const SpriteItem& b) {
     for (int n = 0; n < s_current_sort_specs->SpecsCount; n++) {
-      const ImGuiTableColumnSortSpecs *sort_spec =
+      const ImGuiTableColumnSortSpecs* sort_spec =
           &s_current_sort_specs->Specs[n];
       int delta = 0;
       switch (sort_spec->ColumnUserID) {
@@ -77,7 +75,7 @@ struct SpriteItem {
 
 void DrawSpriteTable(std::function<void(int)> onSpriteSelect);
 void DrawSpriteInserterPopup();
-bool DrawSpriteEditorPopup(zelda3::Sprite &sprite);
+bool DrawSpriteEditorPopup(zelda3::Sprite& sprite);
 
 }  // namespace editor
 }  // namespace yaze

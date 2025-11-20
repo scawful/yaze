@@ -24,4 +24,3 @@ absl::StatusOr<std::unique_ptr<AIService>> CreateAIServiceStrict(
 }  // namespace yaze::cli
 
 #endif  // !YAZE_AI_RUNTIME_AVAILABLE
-

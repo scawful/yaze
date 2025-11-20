@@ -7,8 +7,8 @@
 namespace yaze {
 namespace gfx {
 class IRenderer;
-} // namespace gfx
-}
+}  // namespace gfx
+}  // namespace yaze
 
 namespace yaze {
 namespace gui {
@@ -35,7 +35,7 @@ class DungeonObjectEmulatorPreview {
   int object_x_ = 16;
   int object_y_ = 16;
   bool show_window_ = true;
-  
+
   // Debug info
   int last_cycle_count_ = 0;
   std::string last_error_;

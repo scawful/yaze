@@ -51,8 +51,8 @@ struct PolicyEvaluator::PolicyConfig {
     bool enabled = true;
     PolicySeverity severity = PolicySeverity::kWarning;
     struct Condition {
-      std::string if_clause;      // e.g., "bytes_changed > 1024"
-      std::string then_clause;    // e.g., "require_diff_review"
+      std::string if_clause;    // e.g., "bytes_changed > 1024"
+      std::string then_clause;  // e.g., "require_diff_review"
       std::string message;
     };
     std::vector<Condition> conditions;
@@ -107,10 +107,9 @@ std::string PolicyEvaluator::GetStatusString() const {
     return "Policies enabled but not loaded";
   }
 
-  int total_policies = config_->test_requirements.size() +
-                       config_->change_constraints.size() +
-                       config_->forbidden_ranges.size() +
-                       config_->review_requirements.size();
+  int total_policies =
+      config_->test_requirements.size() + config_->change_constraints.size() +
+      config_->forbidden_ranges.size() + config_->review_requirements.size();
 
   return absl::StrFormat("Policies enabled (%d policies loaded from %s)",
                          total_policies, policy_path_);
@@ -135,7 +134,8 @@ absl::Status PolicyEvaluator::ParsePolicyFile(absl::string_view yaml_content) {
     std::string trimmed = std::string(absl::StripAsciiWhitespace(line));
 
     // Skip comments and empty lines
-    if (trimmed.empty() || trimmed[0] == '#') continue;
+    if (trimmed.empty() || trimmed[0] == '#')
+      continue;
 
     // Check for main keys
     if (absl::StartsWith(trimmed, "version:")) {
@@ -173,8 +173,7 @@ absl::Status PolicyEvaluator::ParsePolicyFile(absl::string_view yaml_content) {
         } else if (current_policy_type == "forbidden_range") {
           PolicyConfig::ForbiddenRange range;
           range.name = current_policy_name;
-          range.ranges.push_back(
-              std::make_tuple(0xFFB0, 0xFFFF, "ROM header"));
+          range.ranges.push_back(std::make_tuple(0xFFB0, 0xFFFF, "ROM header"));
           range.message = "Cannot modify protected region";
           config_->forbidden_ranges.push_back(range);
         } else if (current_policy_type == "test_requirement") {
@@ -228,12 +227,13 @@ absl::StatusOr<PolicyResult> PolicyEvaluator::EvaluateProposal(
 }
 
 void PolicyEvaluator::EvaluateTestRequirements(absl::string_view proposal_id,
-                                                PolicyResult* result) {
+                                               PolicyResult* result) {
   // TODO: Implement test requirement evaluation
   // For now, all test requirements pass (no test framework yet)
   std::string proposal_id_str(proposal_id);
   for (const auto& policy : config_->test_requirements) {
-    if (!policy.enabled) continue;
+    if (!policy.enabled)
+      continue;
 
     // Placeholder: would check actual test results here
     // For now, we skip test validation
@@ -241,18 +241,19 @@ void PolicyEvaluator::EvaluateTestRequirements(absl::string_view proposal_id,
 }
 
 void PolicyEvaluator::EvaluateChangeConstraints(absl::string_view proposal_id,
-                                                 PolicyResult* result) {
+                                                PolicyResult* result) {
   auto& registry = ProposalRegistry::Instance();
   auto proposal_result = registry.GetProposal(std::string(proposal_id));
 
   if (!proposal_result.ok()) {
     return;  // Can't evaluate non-existent proposal
   }
-  
+
   const auto& proposal = proposal_result.value();
 
   for (const auto& policy : config_->change_constraints) {
-    if (!policy.enabled) continue;
+    if (!policy.enabled)
+      continue;
 
     // Check max bytes changed
     if (policy.max_bytes_changed > 0 &&
@@ -260,11 +261,11 @@ void PolicyEvaluator::EvaluateChangeConstraints(absl::string_view proposal_id,
       PolicyViolation violation;
       violation.policy_name = policy.name;
       violation.severity = policy.severity;
-      violation.message = absl::StrFormat(
-          "%s: %d bytes changed (limit: %d)", policy.message,
-          proposal.bytes_changed, policy.max_bytes_changed);
-      violation.details = absl::StrFormat("Proposal changed %d bytes",
-                                          proposal.bytes_changed);
+      violation.message =
+          absl::StrFormat("%s: %d bytes changed (limit: %d)", policy.message,
+                          proposal.bytes_changed, policy.max_bytes_changed);
+      violation.details =
+          absl::StrFormat("Proposal changed %d bytes", proposal.bytes_changed);
       result->violations.push_back(violation);
     }
 
@@ -285,30 +286,32 @@ void PolicyEvaluator::EvaluateChangeConstraints(absl::string_view proposal_id,
 }
 
 void PolicyEvaluator::EvaluateForbiddenRanges(absl::string_view proposal_id,
-                                               PolicyResult* result) {
+                                              PolicyResult* result) {
   // TODO: Implement forbidden range checking
   // Would need to parse diff or track ROM modifications
   // For now, we assume no forbidden range violations
   for (const auto& policy : config_->forbidden_ranges) {
-    if (!policy.enabled) continue;
+    if (!policy.enabled)
+      continue;
 
     // Placeholder: would check ROM modification ranges here
   }
 }
 
 void PolicyEvaluator::EvaluateReviewRequirements(absl::string_view proposal_id,
-                                                  PolicyResult* result) {
+                                                 PolicyResult* result) {
   auto& registry = ProposalRegistry::Instance();
   auto proposal_result = registry.GetProposal(std::string(proposal_id));
 
   if (!proposal_result.ok()) {
     return;
   }
-  
+
   const auto& proposal = proposal_result.value();
 
   for (const auto& policy : config_->review_requirements) {
-    if (!policy.enabled) continue;
+    if (!policy.enabled)
+      continue;
 
     // Evaluate conditions
     for (const auto& condition : policy.conditions) {
@@ -348,8 +351,9 @@ void PolicyEvaluator::EvaluateReviewRequirements(absl::string_view proposal_id,
         violation.severity = policy.severity;
         violation.message =
             condition.message.empty() ? policy.message : condition.message;
-        violation.details = absl::StrFormat(
-            "Condition met: %s → %s", condition.if_clause, condition.then_clause);
+        violation.details =
+            absl::StrFormat("Condition met: %s → %s", condition.if_clause,
+                            condition.then_clause);
         result->violations.push_back(violation);
       }
     }

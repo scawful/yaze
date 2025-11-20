@@ -84,7 +84,7 @@ bool LoadROMPaletteGroups(Rom* rom, CanvasPaletteManager& palette_manager) {
 
     palette_manager.palettes_loaded = true;
     LOG_DEBUG("Canvas", "Loaded %zu ROM palette groups",
-               palette_manager.rom_palette_groups.size());
+              palette_manager.rom_palette_groups.size());
     return true;
 
   } catch (const std::exception& e) {
@@ -93,16 +93,19 @@ bool LoadROMPaletteGroups(Rom* rom, CanvasPaletteManager& palette_manager) {
   }
 }
 
-bool ApplyPaletteGroup(gfx::IRenderer* renderer, gfx::Bitmap* bitmap, CanvasPaletteManager& palette_manager, 
-                       int group_index, int palette_index) {
-  if (!bitmap) return false;
+bool ApplyPaletteGroup(gfx::IRenderer* renderer, gfx::Bitmap* bitmap,
+                       CanvasPaletteManager& palette_manager, int group_index,
+                       int palette_index) {
+  if (!bitmap)
+    return false;
 
-  if (group_index < 0 || group_index >= palette_manager.rom_palette_groups.size()) {
+  if (group_index < 0 ||
+      group_index >= palette_manager.rom_palette_groups.size()) {
     return false;
   }
 
   const auto& palette = palette_manager.rom_palette_groups[group_index];
-  
+
   // Apply the full palette or use SetPaletteWithTransparent if palette_index is specified
   if (palette_index == 0) {
     bitmap->SetPalette(palette);
@@ -111,7 +114,7 @@ bool ApplyPaletteGroup(gfx::IRenderer* renderer, gfx::Bitmap* bitmap, CanvasPale
   }
   bitmap->set_modified(true);
   palette_manager.palette_dirty = true;
-  
+
   // Queue texture update only if live_update is enabled
   if (palette_manager.live_update_enabled && renderer) {
     gfx::Arena::Get().QueueTextureCommand(
@@ -136,7 +139,8 @@ void DrawCanvasRect(ImDrawList* draw_list, ImVec2 canvas_p0, ImVec2 scrolling,
   ImVec2 size(canvas_p0.x + scrolling.x + scaled_x + scaled_w,
               canvas_p0.y + scrolling.y + scaled_y + scaled_h);
 
-  uint32_t color_u32 = IM_COL32(color.x * 255, color.y * 255, color.z * 255, color.w * 255);
+  uint32_t color_u32 =
+      IM_COL32(color.x * 255, color.y * 255, color.z * 255, color.w * 255);
   draw_list->AddRectFilled(origin, size, color_u32);
 
   // Add a black outline
@@ -397,7 +401,8 @@ float CanvasConfig::GetToolbarHeight() const {
   // Use layout helpers for theme-aware sizing
   // We need to include layout_helpers.h in the implementation file
   // For now, return a reasonable default that respects ImGui font size
-  return ImGui::GetFontSize() * 0.75f;  // Will be replaced with LayoutHelpers call
+  return ImGui::GetFontSize() *
+         0.75f;  // Will be replaced with LayoutHelpers call
 }
 
 float CanvasConfig::GetGridSpacing() const {

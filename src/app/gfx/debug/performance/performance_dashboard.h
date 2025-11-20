@@ -1,14 +1,14 @@
 #ifndef YAZE_APP_GFX_PERFORMANCE_PERFORMANCE_DASHBOARD_H
 #define YAZE_APP_GFX_PERFORMANCE_PERFORMANCE_DASHBOARD_H
 
+#include <chrono>
+#include <memory>
 #include <string>
 #include <vector>
-#include <memory>
-#include <chrono>
 
 #include "app/gfx/debug/performance/performance_profiler.h"
-#include "app/gfx/resource/memory_pool.h"
 #include "app/gfx/render/atlas_renderer.h"
+#include "app/gfx/resource/memory_pool.h"
 
 namespace yaze {
 namespace gfx {
@@ -16,16 +16,19 @@ namespace gfx {
 /**
  * @brief Performance summary for external consumption
  */
- struct PerformanceSummary {
+struct PerformanceSummary {
   double average_frame_time_ms;
   double memory_usage_mb;
   double cache_hit_ratio;
   int optimization_score;  // 0-100
   std::string status_message;
   std::vector<std::string> recommendations;
-  
-  PerformanceSummary() : average_frame_time_ms(0.0), memory_usage_mb(0.0),
-                        cache_hit_ratio(0.0), optimization_score(0) {}
+
+  PerformanceSummary()
+      : average_frame_time_ms(0.0),
+        memory_usage_mb(0.0),
+        cache_hit_ratio(0.0),
+        optimization_score(0) {}
 };
 
 /**
@@ -104,11 +107,16 @@ class PerformanceDashboard {
     double cache_hit_ratio;
     int draw_calls_per_frame;
     int texture_updates_per_frame;
-    
-    PerformanceMetrics() : frame_time_ms(0.0), palette_lookup_time_us(0.0),
-                          texture_update_time_us(0.0), batch_operation_time_us(0.0),
-                          memory_usage_mb(0.0), cache_hit_ratio(0.0),
-                          draw_calls_per_frame(0), texture_updates_per_frame(0) {}
+
+    PerformanceMetrics()
+        : frame_time_ms(0.0),
+          palette_lookup_time_us(0.0),
+          texture_update_time_us(0.0),
+          batch_operation_time_us(0.0),
+          memory_usage_mb(0.0),
+          cache_hit_ratio(0.0),
+          draw_calls_per_frame(0),
+          texture_updates_per_frame(0) {}
   };
 
   struct OptimizationStatus {
@@ -118,23 +126,27 @@ class PerformanceDashboard {
     bool batch_operations_enabled;
     bool atlas_rendering_enabled;
     bool memory_pool_active;
-    
-    OptimizationStatus() : palette_lookup_optimized(false), dirty_region_tracking_enabled(false),
-                          resource_pooling_active(false), batch_operations_enabled(false),
-                          atlas_rendering_enabled(false), memory_pool_active(false) {}
+
+    OptimizationStatus()
+        : palette_lookup_optimized(false),
+          dirty_region_tracking_enabled(false),
+          resource_pooling_active(false),
+          batch_operations_enabled(false),
+          atlas_rendering_enabled(false),
+          memory_pool_active(false) {}
   };
 
   bool visible_;
   PerformanceMetrics current_metrics_;
   PerformanceMetrics previous_metrics_;
   OptimizationStatus optimization_status_;
-  
+
   std::chrono::high_resolution_clock::time_point last_update_time_;
   std::vector<double> frame_time_history_;
   std::vector<double> memory_usage_history_;
-  
+
   static constexpr size_t kHistorySize = 100;
-  static constexpr double kUpdateIntervalMs = 100.0; // Update every 100ms
+  static constexpr double kUpdateIntervalMs = 100.0;  // Update every 100ms
 
   // UI rendering methods
   void RenderMetricsPanel() const;
@@ -142,15 +154,16 @@ class PerformanceDashboard {
   void RenderMemoryUsage();
   void RenderFrameRateGraph();
   void RenderRecommendations() const;
-  
+
   // Data collection methods
   void CollectMetrics();
   void UpdateOptimizationStatus();
   void AnalyzePerformance();
-  
+
   // Helper methods
   static double CalculateAverage(const std::vector<double>& values);
-  static double CalculatePercentile(const std::vector<double>& values, double percentile);
+  static double CalculatePercentile(const std::vector<double>& values,
+                                    double percentile);
   static std::string FormatTime(double time_us);
   static std::string FormatMemory(size_t bytes);
   std::string GetOptimizationRecommendation() const;

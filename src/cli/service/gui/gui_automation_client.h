@@ -41,12 +41,7 @@ namespace cli {
 /**
  * @brief Type of click action to perform
  */
-enum class ClickType {
-  kLeft,
-  kRight,
-  kMiddle,
-  kDouble
-};
+enum class ClickType { kLeft, kRight, kMiddle, kDouble };
 
 /**
  * @brief Result of a GUI automation action
@@ -304,8 +299,8 @@ class GuiAutomationClient {
    * @param format Image format ("PNG", "JPEG")
    * @return Result with file path if successful
    */
-  absl::StatusOr<AutomationResult> Screenshot(const std::string& region = "full",
-                                               const std::string& format = "PNG");
+  absl::StatusOr<AutomationResult> Screenshot(
+      const std::string& region = "full", const std::string& format = "PNG");
 
   /**
    * @brief Fetch the current execution status for a harness test
@@ -315,9 +310,9 @@ class GuiAutomationClient {
   /**
    * @brief Enumerate harness tests with optional filtering
    */
-  absl::StatusOr<ListTestsResult> ListTests(const std::string& category_filter = "",
-                                            int page_size = 100,
-                                            const std::string& page_token = "");
+  absl::StatusOr<ListTestsResult> ListTests(
+      const std::string& category_filter = "", int page_size = 100,
+      const std::string& page_token = "");
 
   /**
    * @brief Retrieve detailed results for a harness test execution
@@ -329,17 +324,15 @@ class GuiAutomationClient {
       const DiscoverWidgetsQuery& query);
 
   absl::StatusOr<ReplayTestResult> ReplayTest(
-    const std::string& script_path, bool ci_mode,
-    const std::map<std::string, std::string>& parameter_overrides = {});
+      const std::string& script_path, bool ci_mode,
+      const std::map<std::string, std::string>& parameter_overrides = {});
 
   absl::StatusOr<StartRecordingResult> StartRecording(
-      const std::string& output_path,
-      const std::string& session_name,
+      const std::string& output_path, const std::string& session_name,
       const std::string& description);
 
   absl::StatusOr<StopRecordingResult> StopRecording(
-      const std::string& recording_id,
-      bool discard = false);
+      const std::string& recording_id, bool discard = false);
 
   /**
    * @brief Check if client is connected

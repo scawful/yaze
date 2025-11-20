@@ -80,7 +80,8 @@ std::optional<cli::agent::ChatMessage::TableData> ParseTableData(
   return table;
 }
 
-Json SerializeProposal(const cli::agent::ChatMessage::ProposalSummary& proposal) {
+Json SerializeProposal(
+    const cli::agent::ChatMessage::ProposalSummary& proposal) {
   Json json;
   json["id"] = proposal.id;
   json["change_count"] = proposal.change_count;
@@ -100,7 +101,8 @@ std::optional<cli::agent::ChatMessage::ProposalSummary> ParseProposal(
   summary.id = json.value("id", "");
   summary.change_count = json.value("change_count", 0);
   summary.executed_commands = json.value("executed_commands", 0);
-  if (json.contains("sandbox_rom_path") && json["sandbox_rom_path"].is_string()) {
+  if (json.contains("sandbox_rom_path") &&
+      json["sandbox_rom_path"].is_string()) {
     summary.sandbox_rom_path = json["sandbox_rom_path"].get<std::string>();
   }
   if (json.contains("proposal_json_path") &&
@@ -154,9 +156,8 @@ absl::StatusOr<AgentChatHistoryCodec::Snapshot> AgentChatHistoryCodec::Load(
 
     cli::agent::ChatMessage message;
     std::string sender = item.value("sender", "agent");
-    message.sender = sender == "user"
-                         ? cli::agent::ChatMessage::Sender::kUser
-                         : cli::agent::ChatMessage::Sender::kAgent;
+    message.sender = sender == "user" ? cli::agent::ChatMessage::Sender::kUser
+                                      : cli::agent::ChatMessage::Sender::kAgent;
     message.message = item.value("message", "");
     message.timestamp = ParseTimestamp(item["timestamp"]);
     message.is_internal = item.value("is_internal", false);
@@ -194,15 +195,15 @@ absl::StatusOr<AgentChatHistoryCodec::Snapshot> AgentChatHistoryCodec::Load(
         }
       }
     }
-    if (item.contains("model_metadata") &&
-        item["model_metadata"].is_object()) {
+    if (item.contains("model_metadata") && item["model_metadata"].is_object()) {
       const auto& meta_json = item["model_metadata"];
       cli::agent::ChatMessage::ModelMetadata meta;
       meta.provider = meta_json.value("provider", "");
       meta.model = meta_json.value("model", "");
       meta.latency_seconds = meta_json.value("latency_seconds", 0.0);
       meta.tool_iterations = meta_json.value("tool_iterations", 0);
-      if (meta_json.contains("tool_names") && meta_json["tool_names"].is_array()) {
+      if (meta_json.contains("tool_names") &&
+          meta_json["tool_names"].is_array()) {
         for (const auto& name : meta_json["tool_names"]) {
           if (name.is_string()) {
             meta.tool_names.push_back(name.get<std::string>());
@@ -227,8 +228,7 @@ absl::StatusOr<AgentChatHistoryCodec::Snapshot> AgentChatHistoryCodec::Load(
     const auto& collab_json = json["collaboration"];
     snapshot.collaboration.active = collab_json.value("active", false);
     snapshot.collaboration.session_id = collab_json.value("session_id", "");
-    snapshot.collaboration.session_name =
-        collab_json.value("session_name", "");
+    snapshot.collaboration.session_name = collab_json.value("session_name", "");
     snapshot.collaboration.participants.clear();
     if (collab_json.contains("participants") &&
         collab_json["participants"].is_array()) {
@@ -245,8 +245,7 @@ absl::StatusOr<AgentChatHistoryCodec::Snapshot> AgentChatHistoryCodec::Load(
     }
     if (snapshot.collaboration.session_name.empty() &&
         !snapshot.collaboration.session_id.empty()) {
-      snapshot.collaboration.session_name =
-          snapshot.collaboration.session_id;
+      snapshot.collaboration.session_name = snapshot.collaboration.session_id;
     }
   }
 
@@ -274,7 +273,8 @@ absl::StatusOr<AgentChatHistoryCodec::Snapshot> AgentChatHistoryCodec::Load(
     AgentConfigSnapshot config;
     config.provider = config_json.value("provider", "");
     config.model = config_json.value("model", "");
-    config.ollama_host = config_json.value("ollama_host", "http://localhost:11434");
+    config.ollama_host =
+        config_json.value("ollama_host", "http://localhost:11434");
     config.gemini_api_key = config_json.value("gemini_api_key", "");
     config.verbose = config_json.value("verbose", false);
     config.show_reasoning = config_json.value("show_reasoning", true);
@@ -311,7 +311,8 @@ absl::StatusOr<AgentChatHistoryCodec::Snapshot> AgentChatHistoryCodec::Load(
     if (config_json.contains("model_presets") &&
         config_json["model_presets"].is_array()) {
       for (const auto& preset_json : config_json["model_presets"]) {
-        if (!preset_json.is_object()) continue;
+        if (!preset_json.is_object())
+          continue;
         AgentConfigSnapshot::ModelPreset preset;
         preset.name = preset_json.value("name", "");
         preset.model = preset_json.value("model", "");
@@ -347,12 +348,12 @@ absl::StatusOr<AgentChatHistoryCodec::Snapshot> AgentChatHistoryCodec::Load(
 #else
   (void)path;
   return absl::UnimplementedError(
-    "Chat history persistence requires YAZE_WITH_GRPC=ON");
+      "Chat history persistence requires YAZE_WITH_GRPC=ON");
 #endif
 }
 
-absl::Status AgentChatHistoryCodec::Save(
-    const std::filesystem::path& path, const Snapshot& snapshot) {
+absl::Status AgentChatHistoryCodec::Save(const std::filesystem::path& path,
+                                         const Snapshot& snapshot) {
 #if defined(YAZE_WITH_JSON)
   Json json;
   json["version"] = 4;
@@ -360,13 +361,12 @@ absl::Status AgentChatHistoryCodec::Save(
 
   for (const auto& message : snapshot.history) {
     Json entry;
-    entry["sender"] =
-        message.sender == cli::agent::ChatMessage::Sender::kUser ? "user"
-                                                                  : "agent";
+    entry["sender"] = message.sender == cli::agent::ChatMessage::Sender::kUser
+                          ? "user"
+                          : "agent";
     entry["message"] = message.message;
-    entry["timestamp"] = absl::FormatTime(absl::RFC3339_full,
-                                           message.timestamp,
-                                           absl::UTCTimeZone());
+    entry["timestamp"] = absl::FormatTime(absl::RFC3339_full, message.timestamp,
+                                          absl::UTCTimeZone());
     entry["is_internal"] = message.is_internal;
 
     if (message.json_pretty.has_value()) {
@@ -385,8 +385,7 @@ absl::Status AgentChatHistoryCodec::Save(
       metrics_json["total_commands"] = metrics.total_commands;
       metrics_json["total_proposals"] = metrics.total_proposals;
       metrics_json["total_elapsed_seconds"] = metrics.total_elapsed_seconds;
-      metrics_json["average_latency_seconds"] =
-          metrics.average_latency_seconds;
+      metrics_json["average_latency_seconds"] = metrics.average_latency_seconds;
       entry["metrics"] = metrics_json;
     }
     if (message.proposal.has_value()) {
@@ -420,9 +419,9 @@ absl::Status AgentChatHistoryCodec::Save(
   collab_json["session_name"] = snapshot.collaboration.session_name;
   collab_json["participants"] = snapshot.collaboration.participants;
   if (snapshot.collaboration.last_synced != absl::InfinitePast()) {
-    collab_json["last_synced"] = absl::FormatTime(
-        absl::RFC3339_full, snapshot.collaboration.last_synced,
-        absl::UTCTimeZone());
+    collab_json["last_synced"] =
+        absl::FormatTime(absl::RFC3339_full, snapshot.collaboration.last_synced,
+                         absl::UTCTimeZone());
   }
   json["collaboration"] = std::move(collab_json);
 
@@ -435,9 +434,9 @@ absl::Status AgentChatHistoryCodec::Save(
   }
   multimodal_json["status_message"] = snapshot.multimodal.status_message;
   if (snapshot.multimodal.last_updated != absl::InfinitePast()) {
-    multimodal_json["last_updated"] = absl::FormatTime(
-        absl::RFC3339_full, snapshot.multimodal.last_updated,
-        absl::UTCTimeZone());
+    multimodal_json["last_updated"] =
+        absl::FormatTime(absl::RFC3339_full, snapshot.multimodal.last_updated,
+                         absl::UTCTimeZone());
   }
   json["multimodal"] = std::move(multimodal_json);
 
@@ -510,7 +509,7 @@ absl::Status AgentChatHistoryCodec::Save(
   (void)path;
   (void)snapshot;
   return absl::UnimplementedError(
-    "Chat history persistence requires YAZE_WITH_GRPC=ON");
+      "Chat history persistence requires YAZE_WITH_GRPC=ON");
 #endif
 }
 

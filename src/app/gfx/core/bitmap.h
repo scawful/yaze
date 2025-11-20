@@ -37,7 +37,6 @@ enum BitmapFormat {
   k8bpp = 2,
 };
 
-
 /**
  * @brief Represents a bitmap image optimized for SNES ROM hacking.
  *
@@ -74,7 +73,7 @@ class Bitmap {
    * @param depth Color depth in bits per pixel (4, 8, or 16 for SNES)
    * @param data Raw pixel data (indexed color values for SNES graphics)
    */
-  Bitmap(int width, int height, int depth, const std::vector<uint8_t> &data);
+  Bitmap(int width, int height, int depth, const std::vector<uint8_t>& data);
 
   /**
    * @brief Create a bitmap with the given dimensions, data, and SNES palette
@@ -84,8 +83,8 @@ class Bitmap {
    * @param data Raw pixel data (indexed color values)
    * @param palette SNES palette for color mapping (15-bit RGB format)
    */
-  Bitmap(int width, int height, int depth, const std::vector<uint8_t> &data,
-         const SnesPalette &palette);
+  Bitmap(int width, int height, int depth, const std::vector<uint8_t>& data,
+         const SnesPalette& palette);
 
   /**
    * @brief Copy constructor - creates a deep copy
@@ -121,13 +120,13 @@ class Bitmap {
    * @brief Create a bitmap with the given dimensions and data
    */
   void Create(int width, int height, int depth,
-              const std::vector<uint8_t> &data);
+              const std::vector<uint8_t>& data);
 
   /**
    * @brief Create a bitmap with the given dimensions, format, and data
    */
   void Create(int width, int height, int depth, int format,
-              const std::vector<uint8_t> &data);
+              const std::vector<uint8_t>& data);
 
   /**
    * @brief Reformat the bitmap to use a different pixel format
@@ -149,7 +148,7 @@ class Bitmap {
    * @param renderer SDL renderer for texture operations
    * @note Use this for better performance when multiple textures need updating
    */
-  void QueueTextureUpdate(IRenderer *renderer);
+  void QueueTextureUpdate(IRenderer* renderer);
 
   /**
    * @brief Updates the texture data from the surface
@@ -159,25 +158,26 @@ class Bitmap {
   /**
    * @brief Set the palette for the bitmap
    */
-  void SetPalette(const SnesPalette &palette);
+  void SetPalette(const SnesPalette& palette);
 
   /**
    * @brief Set the palette with a transparent color
    */
-  void SetPaletteWithTransparent(const SnesPalette &palette, size_t index,
+  void SetPaletteWithTransparent(const SnesPalette& palette, size_t index,
                                  int length = 7);
 
   /**
    * @brief Apply palette using metadata-driven strategy
    * Chooses between SetPalette and SetPaletteWithTransparent based on metadata
    */
-  void ApplyPaletteByMetadata(const SnesPalette& palette, int sub_palette_index = 0);
+  void ApplyPaletteByMetadata(const SnesPalette& palette,
+                              int sub_palette_index = 0);
 
   /**
    * @brief Apply the stored palette to the surface (internal helper)
    */
   void ApplyStoredPalette();
-  
+
   /**
    * @brief Update SDL surface with current pixel data from data_ vector
    * Call this after modifying pixel data via mutable_data()
@@ -187,7 +187,7 @@ class Bitmap {
   /**
    * @brief Set the palette using SDL colors
    */
-  void SetPalette(const std::vector<SDL_Color> &palette);
+  void SetPalette(const std::vector<SDL_Color>& palette);
 
   /**
    * @brief Write a value to a pixel at the given position
@@ -197,7 +197,7 @@ class Bitmap {
   /**
    * @brief Write a color to a pixel at the given position
    */
-  void WriteColor(int position, const ImVec4 &color);
+  void WriteColor(int position, const ImVec4& color);
 
   /**
    * @brief Set a pixel at the given x,y coordinates with SNES color
@@ -246,8 +246,8 @@ class Bitmap {
    * @param tile_data_offset Current offset in tile_data buffer
    * @note Used for ROM tile editing and tile extraction
    */
-  void Get8x8Tile(int tile_index, int x, int y, std::vector<uint8_t> &tile_data,
-                  int &tile_data_offset);
+  void Get8x8Tile(int tile_index, int x, int y, std::vector<uint8_t>& tile_data,
+                  int& tile_data_offset);
 
   /**
    * @brief Extract a 16x16 tile from the bitmap (SNES metatile size)
@@ -257,45 +257,49 @@ class Bitmap {
    * @param tile_data_offset Current offset in tile_data buffer
    * @note Used for ROM metatile editing and large tile extraction
    */
-  void Get16x16Tile(int tile_x, int tile_y, std::vector<uint8_t> &tile_data,
-                    int &tile_data_offset);
+  void Get16x16Tile(int tile_x, int tile_y, std::vector<uint8_t>& tile_data,
+                    int& tile_data_offset);
 
   /**
    * @brief Metadata for tracking bitmap source format and palette requirements
    */
   struct BitmapMetadata {
-    int source_bpp = 8;  // Original bits per pixel (3, 4, 8)
+    int source_bpp = 8;      // Original bits per pixel (3, 4, 8)
     int palette_format = 0;  // 0=full palette, 1=sub-palette with transparent
-    std::string source_type;  // "graphics_sheet", "tilemap", "screen_buffer", "mode7"
+    std::string
+        source_type;  // "graphics_sheet", "tilemap", "screen_buffer", "mode7"
     int palette_colors = 256;  // Expected palette size
-    
+
     BitmapMetadata() = default;
-    BitmapMetadata(int bpp, int format, const std::string& type, int colors = 256)
-        : source_bpp(bpp), palette_format(format), source_type(type), palette_colors(colors) {}
+    BitmapMetadata(int bpp, int format, const std::string& type,
+                   int colors = 256)
+        : source_bpp(bpp),
+          palette_format(format),
+          source_type(type),
+          palette_colors(colors) {}
   };
 
-  const SnesPalette &palette() const { return palette_; }
-  SnesPalette *mutable_palette() { return &palette_; }
+  const SnesPalette& palette() const { return palette_; }
+  SnesPalette* mutable_palette() { return &palette_; }
   BitmapMetadata& metadata() { return metadata_; }
   const BitmapMetadata& metadata() const { return metadata_; }
-  
+
   int width() const { return width_; }
   int height() const { return height_; }
   int depth() const { return depth_; }
   auto size() const { return data_.size(); }
-  const uint8_t *data() const { return data_.data(); }
-  std::vector<uint8_t> &mutable_data() { return data_; }
-  SDL_Surface *surface() const { return surface_; }
+  const uint8_t* data() const { return data_.data(); }
+  std::vector<uint8_t>& mutable_data() { return data_; }
+  SDL_Surface* surface() const { return surface_; }
   TextureHandle texture() const { return texture_; }
-  const std::vector<uint8_t> &vector() const { return data_; }
+  const std::vector<uint8_t>& vector() const { return data_; }
   uint8_t at(int i) const { return data_[i]; }
   bool modified() const { return modified_; }
   bool is_active() const { return active_; }
   void set_active(bool active) { active_ = active; }
-  void set_data(const std::vector<uint8_t> &data);
+  void set_data(const std::vector<uint8_t>& data);
   void set_modified(bool modified) { modified_ = modified; }
   void set_texture(TextureHandle texture) { texture_ = texture; }
-
 
  private:
   int width_ = 0;
@@ -306,10 +310,10 @@ class Bitmap {
   bool modified_ = false;
 
   // Pointer to the texture pixels
-  void *texture_pixels = nullptr;
+  void* texture_pixels = nullptr;
 
   // Pointer to the pixel data
-  uint8_t *pixel_data_ = nullptr;
+  uint8_t* pixel_data_ = nullptr;
 
   // Palette for the bitmap
   gfx::SnesPalette palette_;
@@ -321,7 +325,7 @@ class Bitmap {
   std::vector<uint8_t> data_;
 
   // Surface for the bitmap (managed by Arena)
-  SDL_Surface *surface_ = nullptr;
+  SDL_Surface* surface_ = nullptr;
 
   // Texture for the bitmap (managed by Arena)
   TextureHandle texture_ = nullptr;
@@ -333,12 +337,12 @@ class Bitmap {
   struct DirtyRegion {
     int min_x = 0, min_y = 0, max_x = 0, max_y = 0;
     bool is_dirty = false;
-    
+
     void Reset() {
       min_x = min_y = max_x = max_y = 0;
       is_dirty = false;
     }
-    
+
     void AddPoint(int x, int y) {
       if (!is_dirty) {
         min_x = max_x = x;

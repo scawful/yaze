@@ -10,8 +10,10 @@
 namespace yaze {
 namespace cli {
 
-absl::StatusOr<TestSuiteDefinition> ParseTestSuiteDefinition(absl::string_view content);
-absl::StatusOr<TestSuiteDefinition> LoadTestSuiteFromFile(const std::string& path);
+absl::StatusOr<TestSuiteDefinition> ParseTestSuiteDefinition(
+    absl::string_view content);
+absl::StatusOr<TestSuiteDefinition> LoadTestSuiteFromFile(
+    const std::string& path);
 
 }  // namespace cli
 }  // namespace yaze

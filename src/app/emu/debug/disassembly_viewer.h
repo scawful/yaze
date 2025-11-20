@@ -21,19 +21,24 @@ namespace debug {
  * @brief Represents a single disassembled instruction with metadata
  */
 struct DisassemblyEntry {
-  uint32_t address;           // Full 24-bit address (bank:offset)
-  uint8_t opcode;             // The opcode byte
+  uint32_t address;               // Full 24-bit address (bank:offset)
+  uint8_t opcode;                 // The opcode byte
   std::vector<uint8_t> operands;  // Operand bytes (0-2 bytes)
-  std::string mnemonic;       // Instruction mnemonic (e.g., "LDA", "STA")
-  std::string operand_str;    // Formatted operand string (e.g., "#$00", "($10),Y")
-  uint8_t size;               // Total instruction size in bytes
-  uint64_t execution_count;   // How many times this instruction was executed
-  bool is_breakpoint;         // Whether a breakpoint is set at this address
-  bool is_current_pc;         // Whether this is the current PC location
-  
-  DisassemblyEntry() 
-      : address(0), opcode(0), size(1), execution_count(0), 
-        is_breakpoint(false), is_current_pc(false) {}
+  std::string mnemonic;           // Instruction mnemonic (e.g., "LDA", "STA")
+  std::string
+      operand_str;  // Formatted operand string (e.g., "#$00", "($10),Y")
+  uint8_t size;     // Total instruction size in bytes
+  uint64_t execution_count;  // How many times this instruction was executed
+  bool is_breakpoint;        // Whether a breakpoint is set at this address
+  bool is_current_pc;        // Whether this is the current PC location
+
+  DisassemblyEntry()
+      : address(0),
+        opcode(0),
+        size(1),
+        execution_count(0),
+        is_breakpoint(false),
+        is_current_pc(false) {}
 };
 
 /**
@@ -63,9 +68,9 @@ class DisassemblyViewer {
    * @param operand_str Formatted operand string
    */
   void RecordInstruction(uint32_t address, uint8_t opcode,
-                        const std::vector<uint8_t>& operands,
-                        const std::string& mnemonic,
-                        const std::string& operand_str);
+                         const std::vector<uint8_t>& operands,
+                         const std::string& mnemonic,
+                         const std::string& operand_str);
 
   /**
    * @brief Render the disassembly viewer UI
@@ -111,18 +116,18 @@ class DisassemblyViewer {
    * @brief Check if the disassembly viewer is available
    */
   bool IsAvailable() const { return !instructions_.empty(); }
-  
+
   /**
    * @brief Enable/disable recording (for performance)
    */
   void SetRecording(bool enabled) { recording_enabled_ = enabled; }
   bool IsRecording() const { return recording_enabled_; }
-  
+
   /**
    * @brief Set maximum number of instructions to keep
    */
   void SetMaxInstructions(size_t max) { max_instructions_ = max; }
-  
+
   /**
    * @brief Clear old instructions to save memory
    */
@@ -131,11 +136,11 @@ class DisassemblyViewer {
  private:
   // Sparse storage: only store executed instructions
   std::map<uint32_t, DisassemblyEntry> instructions_;
-  
+
   // Performance limits
   bool recording_enabled_ = true;
   size_t max_instructions_ = 10000;  // Limit to prevent memory bloat
-  
+
   // UI state
   char search_filter_[256] = "";
   uint32_t selected_address_ = 0;
@@ -143,19 +148,20 @@ class DisassemblyViewer {
   bool auto_scroll_ = true;
   bool show_execution_counts_ = true;
   bool show_hex_dump_ = true;
-  
+
   // Rendering helpers
   void RenderToolbar();
-  void RenderDisassemblyTable(uint32_t current_pc, 
+  void RenderDisassemblyTable(uint32_t current_pc,
                               const std::vector<uint32_t>& breakpoints);
   void RenderContextMenu(uint32_t address);
   void RenderSearchBar();
-  
+
   // Formatting helpers
-  ImVec4 GetAddressColor(const DisassemblyEntry& entry, uint32_t current_pc) const;
+  ImVec4 GetAddressColor(const DisassemblyEntry& entry,
+                         uint32_t current_pc) const;
   ImVec4 GetMnemonicColor(const DisassemblyEntry& entry) const;
   std::string FormatHexDump(const DisassemblyEntry& entry) const;
-  
+
   // Filter helper
   bool PassesFilter(const DisassemblyEntry& entry) const;
 };
@@ -165,4 +171,3 @@ class DisassemblyViewer {
 }  // namespace yaze
 
 #endif  // YAZE_APP_EMU_DEBUG_DISASSEMBLY_VIEWER_H_
-

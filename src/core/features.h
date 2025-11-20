@@ -73,13 +73,13 @@ class FeatureFlags {
       // Enable custom overworld features for vanilla ROMs or override detection.
       // If ZSCustomOverworld ASM is already applied, features are auto-enabled.
       bool kLoadCustomOverworld = false;
-      
+
       // Apply ZSCustomOverworld ASM patches when upgrading ROM versions.
       bool kApplyZSCustomOverworldASM = false;
     } overworld;
   };
 
-  static Flags &get() {
+  static Flags& get() {
     static Flags instance;
     return instance;
   }
@@ -112,8 +112,9 @@ class FeatureFlags {
               std::to_string(get().overworld.kLoadCustomOverworld) + "\n";
     result += "kApplyZSCustomOverworldASM: " +
               std::to_string(get().overworld.kApplyZSCustomOverworldASM) + "\n";
-    result += "kUseNativeFileDialog: " +
-              std::to_string(get().kUseNativeFileDialog) + "\n";
+    result +=
+        "kUseNativeFileDialog: " + std::to_string(get().kUseNativeFileDialog) +
+        "\n";
     result += "kEnableTieredGfxArchitecture: " +
               std::to_string(get().kEnableTieredGfxArchitecture) + "\n";
     return result;
@@ -124,4 +125,3 @@ class FeatureFlags {
 }  // namespace yaze
 
 #endif  // YAZE_CORE_FEATURES_H
-

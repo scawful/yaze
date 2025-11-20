@@ -6,11 +6,11 @@
 #include "absl/strings/str_replace.h"
 
 #ifdef _WIN32
-#include <windows.h>
 #include <shlobj.h>
+#include <windows.h>
 #else
-#include <unistd.h>
 #include <pwd.h>
+#include <unistd.h>
 #include <climits>  // For PATH_MAX
 #ifdef __APPLE__
 #include <mach-o/dyld.h>  // For _NSGetExecutablePath
@@ -28,14 +28,15 @@ std::filesystem::path PlatformPaths::GetHomeDirectory() {
     if (userprofile && *userprofile) {
       return std::filesystem::path(userprofile);
     }
-    
+
     // Fallback to HOMEDRIVE + HOMEPATH
     const char* homedrive = std::getenv("HOMEDRIVE");
     const char* homepath = std::getenv("HOMEPATH");
     if (homedrive && homepath) {
-      return std::filesystem::path(std::string(homedrive) + std::string(homepath));
+      return std::filesystem::path(std::string(homedrive) +
+                                   std::string(homepath));
     }
-    
+
     // Last resort: use temp directory
     std::error_code ec;
     auto temp = std::filesystem::temp_directory_path(ec);
@@ -49,13 +50,13 @@ std::filesystem::path PlatformPaths::GetHomeDirectory() {
     if (home && *home) {
       return std::filesystem::path(home);
     }
-    
+
     // Fallback: try getpwuid
     struct passwd* pw = getpwuid(getuid());
     if (pw && pw->pw_dir) {
       return std::filesystem::path(pw->pw_dir);
     }
-    
+
     // Last resort: current directory (with error handling)
     std::error_code ec;
     auto cwd = std::filesystem::current_path(ec);
@@ -86,7 +87,7 @@ absl::StatusOr<std::filesystem::path> PlatformPaths::GetAppDataDirectory() {
   std::filesystem::path app_data = home / "yaze_data";
   auto status = EnsureDirectoryExists(app_data);
   if (!status.ok()) {
-      return status;
+    return status;
   }
   return app_data;
 #else
@@ -114,14 +115,14 @@ absl::StatusOr<std::filesystem::path> PlatformPaths::GetAppDataSubdirectory(
   if (!app_data_result.ok()) {
     return app_data_result.status();
   }
-  
+
   std::filesystem::path subdir_path = *app_data_result / subdir;
-  
+
   auto status = EnsureDirectoryExists(subdir_path);
   if (!status.ok()) {
     return status;
   }
-  
+
   return subdir_path;
 }
 
@@ -130,16 +131,16 @@ absl::Status PlatformPaths::EnsureDirectoryExists(
   if (Exists(path)) {
     return absl::OkStatus();
   }
-  
+
   std::error_code ec;
   if (!std::filesystem::create_directories(path, ec)) {
     if (ec) {
       return absl::InternalError(
           absl::StrCat("Failed to create directory: ", path.string(),
-                      " - Error: ", ec.message()));
+                       " - Error: ", ec.message()));
     }
   }
-  
+
   return absl::OkStatus();
 }
 
@@ -152,19 +153,19 @@ bool PlatformPaths::Exists(const std::filesystem::path& path) {
 absl::StatusOr<std::filesystem::path> PlatformPaths::GetTempDirectory() {
   std::error_code ec;
   std::filesystem::path temp_base = std::filesystem::temp_directory_path(ec);
-  
+
   if (ec) {
     return absl::InternalError(
         absl::StrCat("Failed to get temp directory: ", ec.message()));
   }
-  
+
   std::filesystem::path yaze_temp = temp_base / "yaze";
-  
+
   auto status = EnsureDirectoryExists(yaze_temp);
   if (!status.ok()) {
     return status;
   }
-  
+
   return yaze_temp;
 }
 
@@ -184,27 +185,28 @@ std::string PlatformPaths::ToNativePath(const std::filesystem::path& path) {
 absl::StatusOr<std::filesystem::path> PlatformPaths::FindAsset(
     const std::string& relative_path) {
   std::vector<std::filesystem::path> search_paths;
-  
+
   try {
     // 1. Check compile-time YAZE_ASSETS_PATH if defined
 #ifdef YAZE_ASSETS_PATH
     try {
-      search_paths.push_back(std::filesystem::path(YAZE_ASSETS_PATH) / relative_path);
+      search_paths.push_back(std::filesystem::path(YAZE_ASSETS_PATH) /
+                             relative_path);
     } catch (...) {
       // Skip if path construction fails
     }
 #endif
-    
+
     // 2. Current working directory + assets/ (cached to avoid repeated calls)
     static std::filesystem::path cached_cwd;
     static bool cwd_cached = false;
-    
+
     if (!cwd_cached) {
       std::error_code ec;
       cached_cwd = std::filesystem::current_path(ec);
       cwd_cached = true;  // Only try once to avoid repeated slow calls
     }
-    
+
     if (!cached_cwd.empty()) {
       try {
         search_paths.push_back(cached_cwd / "assets" / relative_path);
@@ -212,11 +214,11 @@ absl::StatusOr<std::filesystem::path> PlatformPaths::FindAsset(
         // Skip if path construction fails
       }
     }
-    
+
     // 3. Executable directory + assets/ (cached to avoid repeated OS calls)
     static std::filesystem::path cached_exe_dir;
     static bool exe_dir_cached = false;
-    
+
     if (!exe_dir_cached) {
       try {
 #ifdef __APPLE__
@@ -227,7 +229,8 @@ absl::StatusOr<std::filesystem::path> PlatformPaths::FindAsset(
         }
 #elif defined(__linux__)
         char exe_path[PATH_MAX];
-        ssize_t len = readlink("/proc/self/exe", exe_path, sizeof(exe_path) - 1);
+        ssize_t len =
+            readlink("/proc/self/exe", exe_path, sizeof(exe_path) - 1);
         if (len != -1) {
           exe_path[len] = '\0';
           cached_exe_dir = std::filesystem::path(exe_path).parent_path();
@@ -243,17 +246,18 @@ absl::StatusOr<std::filesystem::path> PlatformPaths::FindAsset(
       }
       exe_dir_cached = true;  // Only try once
     }
-    
+
     if (!cached_exe_dir.empty()) {
       try {
         search_paths.push_back(cached_exe_dir / "assets" / relative_path);
         // Also check parent (for build/bin/yaze case)
-        search_paths.push_back(cached_exe_dir.parent_path() / "assets" / relative_path);
+        search_paths.push_back(cached_exe_dir.parent_path() / "assets" /
+                               relative_path);
       } catch (...) {
         // Skip if path construction fails
       }
     }
-    
+
     // 4. Parent directories (for running from build subdirectories)
     if (!cached_cwd.empty()) {
       try {
@@ -269,11 +273,11 @@ absl::StatusOr<std::filesystem::path> PlatformPaths::FindAsset(
         // Skip if path operations fail
       }
     }
-    
+
     // 5. User directory ~/.yaze/assets/ (cached home directory)
     static std::filesystem::path cached_home;
     static bool home_cached = false;
-    
+
     if (!home_cached) {
       try {
         cached_home = GetHomeDirectory();
@@ -282,42 +286,47 @@ absl::StatusOr<std::filesystem::path> PlatformPaths::FindAsset(
       }
       home_cached = true;  // Only try once
     }
-    
+
     if (!cached_home.empty() && cached_home != ".") {
       try {
-        search_paths.push_back(cached_home / ".yaze" / "assets" / relative_path);
+        search_paths.push_back(cached_home / ".yaze" / "assets" /
+                               relative_path);
       } catch (...) {
         // Skip if path construction fails
       }
     }
-    
+
     // 6. System-wide installation (Unix only)
 #ifndef _WIN32
     try {
-      search_paths.push_back(std::filesystem::path("/usr/local/share/yaze/assets") / relative_path);
-      search_paths.push_back(std::filesystem::path("/usr/share/yaze/assets") / relative_path);
+      search_paths.push_back(
+          std::filesystem::path("/usr/local/share/yaze/assets") /
+          relative_path);
+      search_paths.push_back(std::filesystem::path("/usr/share/yaze/assets") /
+                             relative_path);
     } catch (...) {
       // Skip if path construction fails
     }
 #endif
-    
+
     // Search all paths and return the first one that exists
     // Limit search to prevent infinite loops on weird filesystems
     const size_t max_paths_to_check = 20;
     size_t checked = 0;
-    
+
     for (const auto& candidate : search_paths) {
       if (++checked > max_paths_to_check) {
         break;  // Safety limit
       }
-      
+
       try {
         // Use std::filesystem::exists with error code to avoid exceptions
         std::error_code exists_ec;
         if (std::filesystem::exists(candidate, exists_ec) && !exists_ec) {
           // Double-check it's a regular file or directory, not a broken symlink
           auto status = std::filesystem::status(candidate, exists_ec);
-          if (!exists_ec && status.type() != std::filesystem::file_type::not_found) {
+          if (!exists_ec &&
+              status.type() != std::filesystem::file_type::not_found) {
             return candidate;
           }
         }
@@ -326,11 +335,11 @@ absl::StatusOr<std::filesystem::path> PlatformPaths::FindAsset(
         continue;
       }
     }
-    
+
     // If not found, return a simple error
     return absl::NotFoundError(
         absl::StrCat("Asset not found: ", relative_path));
-        
+
   } catch (const std::exception& e) {
     return absl::InternalError(
         absl::StrCat("Exception while searching for asset: ", e.what()));

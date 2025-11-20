@@ -4,8 +4,8 @@
 #include <cstring>
 
 #include "absl/strings/str_format.h"
-#include "zelda3/dungeon/room_object.h"
 #include "util/log.h"
+#include "zelda3/dungeon/room_object.h"
 
 // ROM addresses for object data (PC addresses, not SNES)
 static constexpr int kRoomObjectSubtype1 = 0x0A8000;
@@ -16,13 +16,14 @@ static constexpr int kRoomObjectTileAddress = 0x0AB000;
 namespace yaze {
 namespace zelda3 {
 
-absl::StatusOr<std::vector<gfx::TileInfo>> ObjectParser::ParseObject(int16_t object_id) {
+absl::StatusOr<std::vector<gfx::TileInfo>> ObjectParser::ParseObject(
+    int16_t object_id) {
   if (rom_ == nullptr) {
     return absl::InvalidArgumentError("ROM is null");
   }
 
   int subtype = DetermineSubtype(object_id);
-  
+
   switch (subtype) {
     case 1:
       return ParseSubtype1(object_id);
@@ -36,7 +37,8 @@ absl::StatusOr<std::vector<gfx::TileInfo>> ObjectParser::ParseObject(int16_t obj
   }
 }
 
-absl::StatusOr<ObjectRoutineInfo> ObjectParser::ParseObjectRoutine(int16_t object_id) {
+absl::StatusOr<ObjectRoutineInfo> ObjectParser::ParseObjectRoutine(
+    int16_t object_id) {
   if (rom_ == nullptr) {
     return absl::InvalidArgumentError("ROM is null");
   }
@@ -56,7 +58,8 @@ absl::StatusOr<ObjectRoutineInfo> ObjectParser::ParseObjectRoutine(int16_t objec
   return routine_info;
 }
 
-absl::StatusOr<ObjectSubtypeInfo> ObjectParser::GetObjectSubtype(int16_t object_id) {
+absl::StatusOr<ObjectSubtypeInfo> ObjectParser::GetObjectSubtype(
+    int16_t object_id) {
   ObjectSubtypeInfo info;
   info.subtype = DetermineSubtype(object_id);
 
@@ -65,7 +68,7 @@ absl::StatusOr<ObjectSubtypeInfo> ObjectParser::GetObjectSubtype(int16_t object_
       int index = object_id & 0xFF;
       info.subtype_ptr = kRoomObjectSubtype1 + (index * 2);
       info.routine_ptr = kRoomObjectSubtype1 + 0x200 + (index * 2);
-      info.max_tile_count = 8; // Most subtype 1 objects use 8 tiles
+      info.max_tile_count = 8;  // Most subtype 1 objects use 8 tiles
       break;
     }
     case 2: {
@@ -90,16 +93,17 @@ absl::StatusOr<ObjectSubtypeInfo> ObjectParser::GetObjectSubtype(int16_t object_
   return info;
 }
 
-absl::StatusOr<ObjectSizeInfo> ObjectParser::ParseObjectSize(int16_t object_id, uint8_t size_byte) {
+absl::StatusOr<ObjectSizeInfo> ObjectParser::ParseObjectSize(
+    int16_t object_id, uint8_t size_byte) {
   ObjectSizeInfo info;
-  
+
   // Extract size bits (0-3 for X, 4-7 for Y)
   int size_x = size_byte & 0x03;
   int size_y = (size_byte >> 2) & 0x03;
-  
+
   info.width_tiles = (size_x + 1) * 2;  // Convert to tile count
   info.height_tiles = (size_y + 1) * 2;
-  
+
   // Determine orientation based on object ID and size
   // This is a heuristic based on the object naming patterns
   if (object_id >= 0x80 && object_id <= 0xFF) {
@@ -109,106 +113,115 @@ absl::StatusOr<ObjectSizeInfo> ObjectParser::ParseObjectSize(int16_t object_id, 
     // Objects 0x00-0x7F are typically horizontal
     info.is_horizontal = true;
   }
-  
+
   // Determine if object is repeatable
   info.is_repeatable = (size_byte != 0);
   info.repeat_count = size_byte == 0 ? 32 : size_byte;
-  
+
   return info;
 }
 
-absl::StatusOr<std::vector<gfx::TileInfo>> ObjectParser::ParseSubtype1(int16_t object_id) {
+absl::StatusOr<std::vector<gfx::TileInfo>> ObjectParser::ParseSubtype1(
+    int16_t object_id) {
   int index = object_id & 0xFF;
   int tile_ptr = kRoomObjectSubtype1 + (index * 2);
-  
+
   if (tile_ptr + 1 >= (int)rom_->size()) {
     return absl::OutOfRangeError(
         absl::StrFormat("Tile pointer out of range: %#06x", tile_ptr));
   }
-  
+
   // Read tile data pointer
   uint8_t low = rom_->data()[tile_ptr];
   uint8_t high = rom_->data()[tile_ptr + 1];
   int tile_data_ptr = kRoomObjectTileAddress + ((high << 8) | low);
-  
+
   // Read 8 tiles (most subtype 1 objects use 8 tiles)
   return ReadTileData(tile_data_ptr, 8);
 }
 
-absl::StatusOr<std::vector<gfx::TileInfo>> ObjectParser::ParseSubtype2(int16_t object_id) {
+absl::StatusOr<std::vector<gfx::TileInfo>> ObjectParser::ParseSubtype2(
+    int16_t object_id) {
   int index = object_id & 0x7F;
   int tile_ptr = kRoomObjectSubtype2 + (index * 2);
-  
+
   if (tile_ptr + 1 >= (int)rom_->size()) {
     return absl::OutOfRangeError(
         absl::StrFormat("Tile pointer out of range: %#06x", tile_ptr));
   }
-  
+
   // Read tile data pointer
   uint8_t low = rom_->data()[tile_ptr];
   uint8_t high = rom_->data()[tile_ptr + 1];
   int tile_data_ptr = kRoomObjectTileAddress + ((high << 8) | low);
-  
+
   // Read 8 tiles
   return ReadTileData(tile_data_ptr, 8);
 }
 
-absl::StatusOr<std::vector<gfx::TileInfo>> ObjectParser::ParseSubtype3(int16_t object_id) {
+absl::StatusOr<std::vector<gfx::TileInfo>> ObjectParser::ParseSubtype3(
+    int16_t object_id) {
   int index = object_id & 0xFF;
   int tile_ptr = kRoomObjectSubtype3 + (index * 2);
-  
+
   if (tile_ptr + 1 >= (int)rom_->size()) {
     return absl::OutOfRangeError(
         absl::StrFormat("Tile pointer out of range: %#06x", tile_ptr));
   }
-  
+
   // Read tile data pointer
   uint8_t low = rom_->data()[tile_ptr];
   uint8_t high = rom_->data()[tile_ptr + 1];
   int tile_data_ptr = kRoomObjectTileAddress + ((high << 8) | low);
-  
+
   // Read 8 tiles
   return ReadTileData(tile_data_ptr, 8);
 }
 
-absl::StatusOr<std::vector<gfx::TileInfo>> ObjectParser::ReadTileData(int address, int tile_count) {
+absl::StatusOr<std::vector<gfx::TileInfo>> ObjectParser::ReadTileData(
+    int address, int tile_count) {
   // Each tile is stored as a 16-bit word (2 bytes), not 8 bytes!
   // ZScream: tiles.Add(new Tile(ROM.DATA[pos + ((i * 2))], ROM.DATA[pos + ((i * 2)) + 1]));
   if (address < 0 || address + (tile_count * 2) >= (int)rom_->size()) {
     return absl::OutOfRangeError(
         absl::StrFormat("Tile data address out of range: %#06x", address));
   }
-  
+
   std::vector<gfx::TileInfo> tiles;
   tiles.reserve(tile_count);
-  
+
   // DEBUG: Log first tile read
   static int debug_read_count = 0;
   bool should_log = (debug_read_count < 3);
-  
+
   for (int i = 0; i < tile_count; i++) {
     int tile_offset = address + (i * 2);  // 2 bytes per tile word
-    
+
     // Read 1 word (2 bytes) per tile - this is the SNES tile format
-    uint16_t tile_word = rom_->data()[tile_offset] | (rom_->data()[tile_offset + 1] << 8);
-    
+    uint16_t tile_word =
+        rom_->data()[tile_offset] | (rom_->data()[tile_offset + 1] << 8);
+
     auto tile_info = gfx::WordToTileInfo(tile_word);
     tiles.push_back(tile_info);
-    
+
     // DEBUG: Log first few tiles
     if (should_log && i < 4) {
-      printf("[ObjectParser] ReadTile[%d]: addr=0x%06X word=0x%04X → id=0x%03X pal=%d mirror=(h:%d,v:%d)\n",
-               i, tile_offset, tile_word, tile_info.id_, tile_info.palette_,
-               tile_info.horizontal_mirror_, tile_info.vertical_mirror_);
+      printf(
+          "[ObjectParser] ReadTile[%d]: addr=0x%06X word=0x%04X → id=0x%03X "
+          "pal=%d mirror=(h:%d,v:%d)\n",
+          i, tile_offset, tile_word, tile_info.id_, tile_info.palette_,
+          tile_info.horizontal_mirror_, tile_info.vertical_mirror_);
     }
   }
-  
+
   if (should_log) {
-    printf("[ObjectParser] ReadTileData: addr=0x%06X count=%d → loaded %zu tiles\n", 
-             address, tile_count, tiles.size());
+    printf(
+        "[ObjectParser] ReadTileData: addr=0x%06X count=%d → loaded %zu "
+        "tiles\n",
+        address, tile_count, tiles.size());
     debug_read_count++;
   }
-  
+
   return tiles;
 }
 
@@ -224,169 +237,146 @@ int ObjectParser::DetermineSubtype(int16_t object_id) const {
 
 ObjectDrawInfo ObjectParser::GetObjectDrawInfo(int16_t object_id) const {
   ObjectDrawInfo info;
-  
+
   // Map object ID to draw routine based on ZScream's subtype1_routines table
   // This is based on the DungeonObjectData.cs mapping from ZScream
-  
+
   if (object_id == 0x00) {
     info.draw_routine_id = 0;  // RoomDraw_Rightwards2x2_1to15or32
     info.routine_name = "Rightwards2x2_1to15or32";
     info.tile_count = 4;
     info.is_horizontal = true;
-  }
-  else if (object_id >= 0x01 && object_id <= 0x02) {
+  } else if (object_id >= 0x01 && object_id <= 0x02) {
     info.draw_routine_id = 1;  // RoomDraw_Rightwards2x4_1to15or26
     info.routine_name = "Rightwards2x4_1to15or26";
     info.tile_count = 8;
     info.is_horizontal = true;
-  }
-  else if (object_id >= 0x03 && object_id <= 0x04) {
+  } else if (object_id >= 0x03 && object_id <= 0x04) {
     info.draw_routine_id = 2;  // RoomDraw_Rightwards2x4spaced4_1to16
     info.routine_name = "Rightwards2x4spaced4_1to16";
     info.tile_count = 8;
     info.is_horizontal = true;
-  }
-  else if (object_id >= 0x05 && object_id <= 0x06) {
+  } else if (object_id >= 0x05 && object_id <= 0x06) {
     info.draw_routine_id = 3;  // RoomDraw_Rightwards2x4spaced4_1to16_BothBG
     info.routine_name = "Rightwards2x4spaced4_1to16_BothBG";
     info.tile_count = 8;
     info.is_horizontal = true;
     info.both_layers = true;
-  }
-  else if (object_id >= 0x07 && object_id <= 0x08) {
+  } else if (object_id >= 0x07 && object_id <= 0x08) {
     info.draw_routine_id = 4;  // RoomDraw_Rightwards2x2_1to16
     info.routine_name = "Rightwards2x2_1to16";
     info.tile_count = 4;
     info.is_horizontal = true;
-  }
-  else if (object_id == 0x09) {
+  } else if (object_id == 0x09) {
     info.draw_routine_id = 5;  // RoomDraw_DiagonalAcute_1to16
     info.routine_name = "DiagonalAcute_1to16";
     info.tile_count = 5;
     info.is_horizontal = false;
-  }
-  else if (object_id >= 0x0A && object_id <= 0x0B) {
+  } else if (object_id >= 0x0A && object_id <= 0x0B) {
     info.draw_routine_id = 6;  // RoomDraw_DiagonalGrave_1to16
     info.routine_name = "DiagonalGrave_1to16";
     info.tile_count = 5;
     info.is_horizontal = false;
-  }
-  else if (object_id >= 0x15 && object_id <= 0x1F) {
+  } else if (object_id >= 0x15 && object_id <= 0x1F) {
     info.draw_routine_id = 7;  // RoomDraw_DiagonalAcute_1to16_BothBG
     info.routine_name = "DiagonalAcute_1to16_BothBG";
     info.tile_count = 5;
     info.is_horizontal = false;
     info.both_layers = true;
-  }
-  else if (object_id >= 0x16 && object_id <= 0x20) {
+  } else if (object_id >= 0x16 && object_id <= 0x20) {
     info.draw_routine_id = 8;  // RoomDraw_DiagonalGrave_1to16_BothBG
     info.routine_name = "DiagonalGrave_1to16_BothBG";
     info.tile_count = 5;
     info.is_horizontal = false;
     info.both_layers = true;
-  }
-  else if (object_id == 0x21) {
+  } else if (object_id == 0x21) {
     info.draw_routine_id = 9;  // RoomDraw_Rightwards1x2_1to16_plus2
     info.routine_name = "Rightwards1x2_1to16_plus2";
     info.tile_count = 2;
     info.is_horizontal = true;
-  }
-  else if (object_id == 0x22) {
-    info.draw_routine_id = 10; // RoomDraw_RightwardsHasEdge1x1_1to16_plus3
+  } else if (object_id == 0x22) {
+    info.draw_routine_id = 10;  // RoomDraw_RightwardsHasEdge1x1_1to16_plus3
     info.routine_name = "RightwardsHasEdge1x1_1to16_plus3";
     info.tile_count = 1;
     info.is_horizontal = true;
-  }
-  else if (object_id >= 0x23 && object_id <= 0x2E) {
-    info.draw_routine_id = 11; // RoomDraw_RightwardsHasEdge1x1_1to16_plus2
+  } else if (object_id >= 0x23 && object_id <= 0x2E) {
+    info.draw_routine_id = 11;  // RoomDraw_RightwardsHasEdge1x1_1to16_plus2
     info.routine_name = "RightwardsHasEdge1x1_1to16_plus2";
     info.tile_count = 1;
     info.is_horizontal = true;
-  }
-  else if (object_id == 0x2F) {
-    info.draw_routine_id = 12; // RoomDraw_RightwardsTopCorners1x2_1to16_plus13
+  } else if (object_id == 0x2F) {
+    info.draw_routine_id = 12;  // RoomDraw_RightwardsTopCorners1x2_1to16_plus13
     info.routine_name = "RightwardsTopCorners1x2_1to16_plus13";
     info.tile_count = 2;
     info.is_horizontal = true;
-  }
-  else if (object_id == 0x30) {
-    info.draw_routine_id = 13; // RoomDraw_RightwardsBottomCorners1x2_1to16_plus13
+  } else if (object_id == 0x30) {
+    info.draw_routine_id =
+        13;  // RoomDraw_RightwardsBottomCorners1x2_1to16_plus13
     info.routine_name = "RightwardsBottomCorners1x2_1to16_plus13";
     info.tile_count = 2;
     info.is_horizontal = true;
-  }
-  else if (object_id >= 0x31 && object_id <= 0x32) {
-    info.draw_routine_id = 14; // CustomDraw
+  } else if (object_id >= 0x31 && object_id <= 0x32) {
+    info.draw_routine_id = 14;  // CustomDraw
     info.routine_name = "CustomDraw";
     info.tile_count = 1;
-  }
-  else if (object_id == 0x33) {
-    info.draw_routine_id = 15; // RoomDraw_Rightwards4x4_1to16
+  } else if (object_id == 0x33) {
+    info.draw_routine_id = 15;  // RoomDraw_Rightwards4x4_1to16
     info.routine_name = "Rightwards4x4_1to16";
     info.tile_count = 16;
     info.is_horizontal = true;
-  }
-  else if (object_id == 0x34) {
-    info.draw_routine_id = 16; // RoomDraw_Rightwards1x1Solid_1to16_plus3
+  } else if (object_id == 0x34) {
+    info.draw_routine_id = 16;  // RoomDraw_Rightwards1x1Solid_1to16_plus3
     info.routine_name = "Rightwards1x1Solid_1to16_plus3";
     info.tile_count = 1;
     info.is_horizontal = true;
-  }
-  else if (object_id == 0x35) {
-    info.draw_routine_id = 17; // RoomDraw_DoorSwitcherer
+  } else if (object_id == 0x35) {
+    info.draw_routine_id = 17;  // RoomDraw_DoorSwitcherer
     info.routine_name = "DoorSwitcherer";
     info.tile_count = 1;
-  }
-  else if (object_id >= 0x36 && object_id <= 0x37) {
-    info.draw_routine_id = 18; // RoomDraw_RightwardsDecor4x4spaced2_1to16
+  } else if (object_id >= 0x36 && object_id <= 0x37) {
+    info.draw_routine_id = 18;  // RoomDraw_RightwardsDecor4x4spaced2_1to16
     info.routine_name = "RightwardsDecor4x4spaced2_1to16";
     info.tile_count = 16;
     info.is_horizontal = true;
-  }
-  else if (object_id == 0x38) {
-    info.draw_routine_id = 19; // RoomDraw_RightwardsStatue2x3spaced2_1to16
+  } else if (object_id == 0x38) {
+    info.draw_routine_id = 19;  // RoomDraw_RightwardsStatue2x3spaced2_1to16
     info.routine_name = "RightwardsStatue2x3spaced2_1to16";
     info.tile_count = 6;
     info.is_horizontal = true;
-  }
-  else if (object_id == 0x39 || object_id == 0x3D) {
-    info.draw_routine_id = 20; // RoomDraw_RightwardsPillar2x4spaced4_1to16
+  } else if (object_id == 0x39 || object_id == 0x3D) {
+    info.draw_routine_id = 20;  // RoomDraw_RightwardsPillar2x4spaced4_1to16
     info.routine_name = "RightwardsPillar2x4spaced4_1to16";
     info.tile_count = 8;
     info.is_horizontal = true;
-  }
-  else if (object_id >= 0x3A && object_id <= 0x3B) {
-    info.draw_routine_id = 21; // RoomDraw_RightwardsDecor4x3spaced4_1to16
+  } else if (object_id >= 0x3A && object_id <= 0x3B) {
+    info.draw_routine_id = 21;  // RoomDraw_RightwardsDecor4x3spaced4_1to16
     info.routine_name = "RightwardsDecor4x3spaced4_1to16";
     info.tile_count = 12;
     info.is_horizontal = true;
-  }
-  else if (object_id == 0x3C) {
-    info.draw_routine_id = 22; // RoomDraw_RightwardsDoubled2x2spaced2_1to16
+  } else if (object_id == 0x3C) {
+    info.draw_routine_id = 22;  // RoomDraw_RightwardsDoubled2x2spaced2_1to16
     info.routine_name = "RightwardsDoubled2x2spaced2_1to16";
     info.tile_count = 8;
     info.is_horizontal = true;
-  }
-  else if (object_id == 0x3E) {
-    info.draw_routine_id = 23; // RoomDraw_RightwardsDecor2x2spaced12_1to16
+  } else if (object_id == 0x3E) {
+    info.draw_routine_id = 23;  // RoomDraw_RightwardsDecor2x2spaced12_1to16
     info.routine_name = "RightwardsDecor2x2spaced12_1to16";
     info.tile_count = 4;
     info.is_horizontal = true;
-  }
-  else if (object_id >= 0x3F && object_id <= 0x40) {
-    info.draw_routine_id = 24; // RoomDraw_RightwardsHasEdge1x1_1to16_plus2 (variant)
+  } else if (object_id >= 0x3F && object_id <= 0x40) {
+    info.draw_routine_id =
+        24;  // RoomDraw_RightwardsHasEdge1x1_1to16_plus2 (variant)
     info.routine_name = "RightwardsHasEdge1x1_1to16_plus2_variant";
     info.tile_count = 1;
     info.is_horizontal = true;
-  }
-  else {
+  } else {
     // Default to simple 1x1 solid for unmapped objects
-    info.draw_routine_id = 16; // Use solid block routine
+    info.draw_routine_id = 16;  // Use solid block routine
     info.routine_name = "DefaultSolid";
     info.tile_count = 1;
     info.is_horizontal = true;
   }
-  
+
   return info;
 }
 

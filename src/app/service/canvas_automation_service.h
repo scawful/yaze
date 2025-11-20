@@ -68,53 +68,53 @@ class CanvasAutomationServiceImpl {
 
   // Register a canvas for automation
   void RegisterCanvas(const std::string& canvas_id, gui::Canvas* canvas);
-  
+
   // Register an overworld editor (for tile get/set callbacks)
   void RegisterOverworldEditor(const std::string& canvas_id,
                                editor::OverworldEditor* editor);
 
   // RPC method implementations
   absl::Status SetTile(const proto::SetTileRequest* request,
-                      proto::SetTileResponse* response);
-  
+                       proto::SetTileResponse* response);
+
   absl::Status GetTile(const proto::GetTileRequest* request,
-                      proto::GetTileResponse* response);
-  
+                       proto::GetTileResponse* response);
+
   absl::Status SetTiles(const proto::SetTilesRequest* request,
-                       proto::SetTilesResponse* response);
-  
+                        proto::SetTilesResponse* response);
+
   absl::Status SelectTile(const proto::SelectTileRequest* request,
-                         proto::SelectTileResponse* response);
-  
+                          proto::SelectTileResponse* response);
+
   absl::Status SelectTileRect(const proto::SelectTileRectRequest* request,
-                             proto::SelectTileRectResponse* response);
-  
+                              proto::SelectTileRectResponse* response);
+
   absl::Status GetSelection(const proto::GetSelectionRequest* request,
-                           proto::GetSelectionResponse* response);
-  
+                            proto::GetSelectionResponse* response);
+
   absl::Status ClearSelection(const proto::ClearSelectionRequest* request,
-                             proto::ClearSelectionResponse* response);
-  
+                              proto::ClearSelectionResponse* response);
+
   absl::Status ScrollToTile(const proto::ScrollToTileRequest* request,
-                           proto::ScrollToTileResponse* response);
-  
+                            proto::ScrollToTileResponse* response);
+
   absl::Status CenterOn(const proto::CenterOnRequest* request,
-                       proto::CenterOnResponse* response);
-  
+                        proto::CenterOnResponse* response);
+
   absl::Status SetZoom(const proto::SetZoomRequest* request,
-                      proto::SetZoomResponse* response);
-  
+                       proto::SetZoomResponse* response);
+
   absl::Status GetZoom(const proto::GetZoomRequest* request,
-                      proto::GetZoomResponse* response);
-  
+                       proto::GetZoomResponse* response);
+
   absl::Status GetDimensions(const proto::GetDimensionsRequest* request,
-                            proto::GetDimensionsResponse* response);
-  
+                             proto::GetDimensionsResponse* response);
+
   absl::Status GetVisibleRegion(const proto::GetVisibleRegionRequest* request,
-                               proto::GetVisibleRegionResponse* response);
-  
+                                proto::GetVisibleRegionResponse* response);
+
   absl::Status IsTileVisible(const proto::IsTileVisibleRequest* request,
-                            proto::IsTileVisibleResponse* response);
+                             proto::IsTileVisibleResponse* response);
 
  private:
   gui::Canvas* GetCanvas(const std::string& canvas_id);
@@ -122,7 +122,7 @@ class CanvasAutomationServiceImpl {
 
   // Canvas registry
   std::unordered_map<std::string, gui::Canvas*> canvases_;
-  
+
   // Editor registry (for tile callbacks)
   std::unordered_map<std::string, editor::OverworldEditor*> overworld_editors_;
 };
@@ -144,4 +144,3 @@ std::unique_ptr<grpc::Service> CreateCanvasAutomationServiceGrpc(
 
 #endif  // YAZE_WITH_GRPC
 #endif  // YAZE_APP_CORE_SERVICE_CANVAS_AUTOMATION_SERVICE_H_
-

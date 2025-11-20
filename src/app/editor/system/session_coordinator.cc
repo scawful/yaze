@@ -675,7 +675,7 @@ void SessionCoordinator::CleanupClosedSessions() {
 
   UpdateSessionCount();
   LOG_INFO("SessionCoordinator", "Cleaned up closed sessions (remaining: %zu)",
-         session_count_);
+           session_count_);
 }
 
 void SessionCoordinator::ClearAllSessions() {

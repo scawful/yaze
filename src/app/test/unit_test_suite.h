@@ -71,7 +71,8 @@ class TestResultCapture : public ::testing::TestEventListener {
   void OnEnvironmentsSetUpEnd(const ::testing::UnitTest&) override {}
   void OnTestCaseStart(const ::testing::TestCase&) override {}
   void OnTestCaseEnd(const ::testing::TestCase&) override {}
-  void OnTestPartResult(const ::testing::TestPartResult& test_part_result) override {
+  void OnTestPartResult(
+      const ::testing::TestPartResult& test_part_result) override {
     // Handle individual test part results (can be empty for our use case)
   }
   void OnEnvironmentsTearDownStart(const ::testing::UnitTest&) override {}
@@ -142,7 +143,8 @@ class UnitTestSuite : public TestSuite {
     ImGui::Checkbox("Run disabled tests", &run_disabled_tests_);
     ImGui::Checkbox("Shuffle tests", &shuffle_tests_);
     ImGui::InputInt("Repeat count", &repeat_count_);
-    if (repeat_count_ < 1) repeat_count_ = 1;
+    if (repeat_count_ < 1)
+      repeat_count_ = 1;
 
     ImGui::InputText("Test filter", test_filter_, sizeof(test_filter_));
     ImGui::SameLine();

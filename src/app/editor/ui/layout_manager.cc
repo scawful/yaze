@@ -8,7 +8,7 @@ namespace yaze {
 namespace editor {
 
 void LayoutManager::InitializeEditorLayout(EditorType type,
-                                            ImGuiID dockspace_id) {
+                                           ImGuiID dockspace_id) {
   // Don't reinitialize if already set up
   if (IsLayoutInitialized(type)) {
     LOG_INFO("LayoutManager",
@@ -22,8 +22,7 @@ void LayoutManager::InitializeEditorLayout(EditorType type,
 
   // Clear existing layout for this dockspace
   ImGui::DockBuilderRemoveNode(dockspace_id);
-  ImGui::DockBuilderAddNode(dockspace_id,
-                             ImGuiDockNodeFlags_DockSpace);
+  ImGui::DockBuilderAddNode(dockspace_id, ImGuiDockNodeFlags_DockSpace);
   ImGui::DockBuilderSetNodeSize(dockspace_id, ImGui::GetMainViewport()->Size);
 
   // Build layout based on editor type
@@ -92,9 +91,9 @@ void LayoutManager::BuildOverworldLayout(ImGuiID dockspace_id) {
 
   // Split dockspace: Left 25% | Center 60% | Right 15%
   dock_left_id = ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Left, 0.25f,
-                                              nullptr, &dockspace_id);
+                                             nullptr, &dockspace_id);
   dock_right_id = ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Right,
-                                               0.20f, nullptr, &dockspace_id);
+                                              0.20f, nullptr, &dockspace_id);
   dock_center_id = dockspace_id;  // Center is what remains
 
   // Split left panel: Tile16 (top) and Tile8 (bottom)
@@ -133,9 +132,9 @@ void LayoutManager::BuildDungeonLayout(ImGuiID dockspace_id) {
 
   // Split dockspace: Left 20% | Center 65% | Right 15%
   dock_left_id = ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Left, 0.20f,
-                                              nullptr, &dockspace_id);
+                                             nullptr, &dockspace_id);
   dock_right_id = ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Right,
-                                               0.19f, nullptr, &dockspace_id);
+                                              0.19f, nullptr, &dockspace_id);
   dock_center_id = dockspace_id;
 
   // Split left panel: Room Selector (top 60%) and Entrances (bottom 40%)
@@ -174,9 +173,9 @@ void LayoutManager::BuildGraphicsLayout(ImGuiID dockspace_id) {
 
   // Split dockspace: Left 30% | Center 50% | Right 20%
   dock_left_id = ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Left, 0.30f,
-                                              nullptr, &dockspace_id);
+                                             nullptr, &dockspace_id);
   dock_right_id = ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Right,
-                                               0.29f, nullptr, &dockspace_id);
+                                              0.29f, nullptr, &dockspace_id);
   dock_center_id = dockspace_id;
 
   // Split right panel: Animations (top) and Prototype (bottom)
@@ -206,9 +205,9 @@ void LayoutManager::BuildPaletteLayout(ImGuiID dockspace_id) {
 
   // Split dockspace: Left 25% | Center 50% | Right 25%
   dock_left_id = ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Left, 0.25f,
-                                              nullptr, &dockspace_id);
+                                             nullptr, &dockspace_id);
   dock_right_id = ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Right,
-                                               0.33f, nullptr, &dockspace_id);
+                                              0.33f, nullptr, &dockspace_id);
   dock_center_id = dockspace_id;
 
   // Split left panel: Group Manager (top) and ROM Browser (bottom)
@@ -238,8 +237,8 @@ void LayoutManager::BuildScreenLayout(ImGuiID dockspace_id) {
   // - Corners: Dungeon Maps, Title Screen, Inventory Menu, Naming Screen
 
   ImGuiID dock_top = 0;
-  ImGuiID dock_bottom = ImGui::DockBuilderSplitNode(
-      dockspace_id, ImGuiDir_Down, 0.50f, nullptr, &dock_top);
+  ImGuiID dock_bottom = ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Down,
+                                                    0.50f, nullptr, &dock_top);
 
   // Split top: left and right
   ImGuiID dock_top_left = 0;
@@ -274,9 +273,9 @@ void LayoutManager::BuildMusicLayout(ImGuiID dockspace_id) {
 
   // Split dockspace: Left 30% | Center 45% | Right 25%
   dock_left_id = ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Left, 0.30f,
-                                              nullptr, &dockspace_id);
+                                             nullptr, &dockspace_id);
   dock_right_id = ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Right,
-                                               0.36f, nullptr, &dockspace_id);
+                                              0.36f, nullptr, &dockspace_id);
   dock_center_id = dockspace_id;
 
   // Dock windows
@@ -317,9 +316,9 @@ void LayoutManager::BuildMessageLayout(ImGuiID dockspace_id) {
 
   // Split dockspace: Left 25% | Center 50% | Right 25%
   dock_left_id = ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Left, 0.25f,
-                                              nullptr, &dockspace_id);
+                                             nullptr, &dockspace_id);
   dock_right_id = ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Right,
-                                               0.33f, nullptr, &dockspace_id);
+                                              0.33f, nullptr, &dockspace_id);
   dock_center_id = dockspace_id;
 
   // Split right panel: Font Atlas (top) and Dictionary (bottom)
@@ -410,4 +409,3 @@ void LayoutManager::ClearInitializationFlags() {
 
 }  // namespace editor
 }  // namespace yaze
-

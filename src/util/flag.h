@@ -51,7 +51,7 @@ class Flag : public IFlag {
     }
     value_ = parsed;
   }
-  
+
   // Set the value directly (used by specializations)
   void SetValue(const T& val) { value_ = val; }
 
@@ -73,9 +73,9 @@ inline void Flag<bool>::ParseValue(const std::string& text) {
   } else if (text == "false" || text == "0" || text == "no" || text == "off") {
     SetValue(false);
   } else {
-    detail::FlagParseFatal("Failed to parse boolean flag: " + name() +
-                           " (expected true/false/1/0/yes/no/on/off, got: " +
-                           text + ")");
+    detail::FlagParseFatal(
+        "Failed to parse boolean flag: " + name() +
+        " (expected true/false/1/0/yes/no/on/off, got: " + text + ")");
   }
 }
 

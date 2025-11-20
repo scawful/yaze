@@ -112,7 +112,7 @@ void GfxGroupEditor::DrawBlocksetViewer(bool sheet_only) {
       BeginGroup();
       for (int i = 0; i < 8; i++) {
         int sheet_id = rom()->main_blockset_ids[selected_blockset_][i];
-        auto &sheet = gfx::Arena::Get().mutable_gfx_sheets()->at(sheet_id);
+        auto& sheet = gfx::Arena::Get().mutable_gfx_sheets()->at(sheet_id);
         gui::BitmapCanvasPipeline(blockset_canvas_, sheet, 256, 0x10 * 0x04,
                                   0x20, true, false, 22);
       }
@@ -165,7 +165,7 @@ void GfxGroupEditor::DrawRoomsetViewer() {
       BeginGroup();
       for (int i = 0; i < 4; i++) {
         int sheet_id = rom()->room_blockset_ids[selected_roomset_][i];
-        auto &sheet = gfx::Arena::Get().mutable_gfx_sheets()->at(sheet_id);
+        auto& sheet = gfx::Arena::Get().mutable_gfx_sheets()->at(sheet_id);
         gui::BitmapCanvasPipeline(roomset_canvas_, sheet, 256, 0x10 * 0x04,
                                   0x20, true, false, 23);
       }
@@ -203,7 +203,7 @@ void GfxGroupEditor::DrawSpritesetViewer(bool sheet_only) {
       BeginGroup();
       for (int i = 0; i < 4; i++) {
         int sheet_id = rom()->spriteset_ids[selected_spriteset_][i];
-        auto &sheet =
+        auto& sheet =
             gfx::Arena::Get().mutable_gfx_sheets()->at(115 + sheet_id);
         gui::BitmapCanvasPipeline(spriteset_canvas_, sheet, 256, 0x10 * 0x04,
                                   0x20, true, false, 24);
@@ -215,20 +215,20 @@ void GfxGroupEditor::DrawSpritesetViewer(bool sheet_only) {
 }
 
 namespace {
-void DrawPaletteFromPaletteGroup(gfx::SnesPalette &palette) {
+void DrawPaletteFromPaletteGroup(gfx::SnesPalette& palette) {
   if (palette.empty()) {
     return;
   }
   for (size_t n = 0; n < palette.size(); n++) {
     PushID(n);
-    if ((n % 8) != 0) SameLine(0.0f, GetStyle().ItemSpacing.y);
+    if ((n % 8) != 0)
+      SameLine(0.0f, GetStyle().ItemSpacing.y);
 
     // Small icon of the color in the palette
     if (gui::SnesColorButton(absl::StrCat("Palette", n), palette[n],
                              ImGuiColorEditFlags_NoAlpha |
                                  ImGuiColorEditFlags_NoPicker |
-                                 ImGuiColorEditFlags_NoTooltip)) {
-    }
+                                 ImGuiColorEditFlags_NoTooltip)) {}
 
     PopID();
   }
@@ -247,13 +247,13 @@ void GfxGroupEditor::DrawPaletteViewer() {
       false, "paletteset", "0x" + std::to_string(selected_paletteset_),
       "Paletteset " + std::to_string(selected_paletteset_));
 
-  uint8_t &dungeon_main_palette_val =
+  uint8_t& dungeon_main_palette_val =
       rom()->paletteset_ids[selected_paletteset_][0];
-  uint8_t &dungeon_spr_pal_1_val =
+  uint8_t& dungeon_spr_pal_1_val =
       rom()->paletteset_ids[selected_paletteset_][1];
-  uint8_t &dungeon_spr_pal_2_val =
+  uint8_t& dungeon_spr_pal_2_val =
       rom()->paletteset_ids[selected_paletteset_][2];
-  uint8_t &dungeon_spr_pal_3_val =
+  uint8_t& dungeon_spr_pal_3_val =
       rom()->paletteset_ids[selected_paletteset_][3];
 
   gui::InputHexByte("Dungeon Main", &dungeon_main_palette_val);
@@ -261,13 +261,13 @@ void GfxGroupEditor::DrawPaletteViewer() {
   rom()->resource_label()->SelectableLabelWithNameEdit(
       false, kPaletteGroupNames[PaletteCategory::kDungeons].data(),
       std::to_string(dungeon_main_palette_val), "Unnamed dungeon palette");
-  auto &palette = *rom()->mutable_palette_group()->dungeon_main.mutable_palette(
+  auto& palette = *rom()->mutable_palette_group()->dungeon_main.mutable_palette(
       rom()->paletteset_ids[selected_paletteset_][0]);
   DrawPaletteFromPaletteGroup(palette);
   Separator();
 
   gui::InputHexByte("Dungeon Spr Pal 1", &dungeon_spr_pal_1_val);
-  auto &spr_aux_pal1 =
+  auto& spr_aux_pal1 =
       *rom()->mutable_palette_group()->sprites_aux1.mutable_palette(
           rom()->paletteset_ids[selected_paletteset_][1]);
   DrawPaletteFromPaletteGroup(spr_aux_pal1);
@@ -278,7 +278,7 @@ void GfxGroupEditor::DrawPaletteViewer() {
   Separator();
 
   gui::InputHexByte("Dungeon Spr Pal 2", &dungeon_spr_pal_2_val);
-  auto &spr_aux_pal2 =
+  auto& spr_aux_pal2 =
       *rom()->mutable_palette_group()->sprites_aux2.mutable_palette(
           rom()->paletteset_ids[selected_paletteset_][2]);
   DrawPaletteFromPaletteGroup(spr_aux_pal2);
@@ -289,7 +289,7 @@ void GfxGroupEditor::DrawPaletteViewer() {
   Separator();
 
   gui::InputHexByte("Dungeon Spr Pal 3", &dungeon_spr_pal_3_val);
-  auto &spr_aux_pal3 =
+  auto& spr_aux_pal3 =
       *rom()->mutable_palette_group()->sprites_aux3.mutable_palette(
           rom()->paletteset_ids[selected_paletteset_][3]);
   DrawPaletteFromPaletteGroup(spr_aux_pal3);

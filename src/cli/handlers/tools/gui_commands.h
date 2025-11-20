@@ -17,15 +17,16 @@ class GuiPlaceTileCommandHandler : public resources::CommandHandler {
     return "Place a tile at specific coordinates using GUI automation";
   }
   std::string GetUsage() const {
-    return "gui-place-tile --tile <tile_id> --x <x> --y <y> [--format <json|text>]";
+    return "gui-place-tile --tile <tile_id> --x <x> --y <y> [--format "
+           "<json|text>]";
   }
-  
+
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
     return parser.RequireArgs({"tile", "x", "y"});
   }
-  
+
   absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
-                      resources::OutputFormatter& formatter) override;
+                       resources::OutputFormatter& formatter) override;
 };
 
 /**
@@ -38,15 +39,16 @@ class GuiClickCommandHandler : public resources::CommandHandler {
     return "Click on a GUI element using automation";
   }
   std::string GetUsage() const {
-    return "gui-click --target <target> [--click-type <left|right|middle>] [--format <json|text>]";
+    return "gui-click --target <target> [--click-type <left|right|middle>] "
+           "[--format <json|text>]";
   }
-  
+
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
     return parser.RequireArgs({"target"});
   }
-  
+
   absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
-                      resources::OutputFormatter& formatter) override;
+                       resources::OutputFormatter& formatter) override;
 };
 
 /**
@@ -59,15 +61,16 @@ class GuiDiscoverToolCommandHandler : public resources::CommandHandler {
     return "Discover available GUI tools and widgets";
   }
   std::string GetUsage() const {
-    return "gui-discover-tool [--window <window>] [--type <type>] [--format <json|text>]";
+    return "gui-discover-tool [--window <window>] [--type <type>] [--format "
+           "<json|text>]";
   }
-  
+
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
     return absl::OkStatus();  // No required args
   }
-  
+
   absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
-                      resources::OutputFormatter& formatter) override;
+                       resources::OutputFormatter& formatter) override;
 };
 
 /**
@@ -76,19 +79,18 @@ class GuiDiscoverToolCommandHandler : public resources::CommandHandler {
 class GuiScreenshotCommandHandler : public resources::CommandHandler {
  public:
   std::string GetName() const { return "gui-screenshot"; }
-  std::string GetDescription() const {
-    return "Take a screenshot of the GUI";
-  }
+  std::string GetDescription() const { return "Take a screenshot of the GUI"; }
   std::string GetUsage() const {
-    return "gui-screenshot [--region <region>] [--format <format>] [--format <json|text>]";
+    return "gui-screenshot [--region <region>] [--format <format>] [--format "
+           "<json|text>]";
   }
-  
+
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
     return absl::OkStatus();  // No required args
   }
-  
+
   absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
-                      resources::OutputFormatter& formatter) override;
+                       resources::OutputFormatter& formatter) override;
 };
 
 }  // namespace handlers

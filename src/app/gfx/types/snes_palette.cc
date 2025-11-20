@@ -16,7 +16,7 @@
 
 namespace yaze::gfx {
 
-SnesPalette::SnesPalette(char *data) {
+SnesPalette::SnesPalette(char* data) {
   assert((sizeof(data) % 4 == 0) && (sizeof(data) <= 32));
   for (unsigned i = 0; i < sizeof(data); i += 2) {
     SnesColor col;
@@ -28,7 +28,7 @@ SnesPalette::SnesPalette(char *data) {
   }
 }
 
-SnesPalette::SnesPalette(const unsigned char *snes_pal) {
+SnesPalette::SnesPalette(const unsigned char* snes_pal) {
   assert((sizeof(snes_pal) % 4 == 0) && (sizeof(snes_pal) <= 32));
   for (unsigned i = 0; i < sizeof(snes_pal); i += 2) {
     SnesColor col;
@@ -40,7 +40,7 @@ SnesPalette::SnesPalette(const unsigned char *snes_pal) {
   }
 }
 
-SnesPalette::SnesPalette(const char *data, size_t length) : size_(0) {
+SnesPalette::SnesPalette(const char* data, size_t length) : size_(0) {
   for (size_t i = 0; i < length && size_ < kMaxColors; i += 2) {
     uint16_t color = (static_cast<uint8_t>(data[i + 1]) << 8) |
                      static_cast<uint8_t>(data[i]);
@@ -48,24 +48,24 @@ SnesPalette::SnesPalette(const char *data, size_t length) : size_(0) {
   }
 }
 
-SnesPalette::SnesPalette(const std::vector<uint16_t> &colors) : size_(0) {
-  for (const auto &color : colors) {
+SnesPalette::SnesPalette(const std::vector<uint16_t>& colors) : size_(0) {
+  for (const auto& color : colors) {
     if (size_ < kMaxColors) {
       colors_[size_++] = SnesColor(color);
     }
   }
 }
 
-SnesPalette::SnesPalette(const std::vector<SnesColor> &colors) : size_(0) {
-  for (const auto &color : colors) {
+SnesPalette::SnesPalette(const std::vector<SnesColor>& colors) : size_(0) {
+  for (const auto& color : colors) {
     if (size_ < kMaxColors) {
       colors_[size_++] = color;
     }
   }
 }
 
-SnesPalette::SnesPalette(const std::vector<ImVec4> &colors) : size_(0) {
-  for (const auto &color : colors) {
+SnesPalette::SnesPalette(const std::vector<ImVec4>& colors) : size_(0) {
+  for (const auto& color : colors) {
     if (size_ < kMaxColors) {
       colors_[size_++] = SnesColor(color);
     }
@@ -77,8 +77,8 @@ SnesPalette::SnesPalette(const std::vector<ImVec4> &colors) : size_(0) {
  * @brief Internal functions for loading palettes by group.
  */
 namespace palette_group_internal {
-absl::Status LoadOverworldMainPalettes(const std::vector<uint8_t> &rom_data,
-                                       gfx::PaletteGroupMap &palette_groups) {
+absl::Status LoadOverworldMainPalettes(const std::vector<uint8_t>& rom_data,
+                                       gfx::PaletteGroupMap& palette_groups) {
   auto data = rom_data.data();
   for (int i = 0; i < 6; i++) {
     palette_groups.overworld_main.AddPalette(
@@ -89,8 +89,8 @@ absl::Status LoadOverworldMainPalettes(const std::vector<uint8_t> &rom_data,
 }
 
 absl::Status LoadOverworldAuxiliaryPalettes(
-    const std::vector<uint8_t> &rom_data,
-    gfx::PaletteGroupMap &palette_groups) {
+    const std::vector<uint8_t>& rom_data,
+    gfx::PaletteGroupMap& palette_groups) {
   auto data = rom_data.data();
   for (int i = 0; i < 20; i++) {
     palette_groups.overworld_aux.AddPalette(
@@ -101,8 +101,8 @@ absl::Status LoadOverworldAuxiliaryPalettes(
 }
 
 absl::Status LoadOverworldAnimatedPalettes(
-    const std::vector<uint8_t> &rom_data,
-    gfx::PaletteGroupMap &palette_groups) {
+    const std::vector<uint8_t>& rom_data,
+    gfx::PaletteGroupMap& palette_groups) {
   auto data = rom_data.data();
   for (int i = 0; i < 14; i++) {
     palette_groups.overworld_animated.AddPalette(gfx::ReadPaletteFromRom(
@@ -111,8 +111,8 @@ absl::Status LoadOverworldAnimatedPalettes(
   return absl::OkStatus();
 }
 
-absl::Status LoadHUDPalettes(const std::vector<uint8_t> &rom_data,
-                             gfx::PaletteGroupMap &palette_groups) {
+absl::Status LoadHUDPalettes(const std::vector<uint8_t>& rom_data,
+                             gfx::PaletteGroupMap& palette_groups) {
   auto data = rom_data.data();
   for (int i = 0; i < 2; i++) {
     palette_groups.hud.AddPalette(gfx::ReadPaletteFromRom(
@@ -121,8 +121,8 @@ absl::Status LoadHUDPalettes(const std::vector<uint8_t> &rom_data,
   return absl::OkStatus();
 }
 
-absl::Status LoadGlobalSpritePalettes(const std::vector<uint8_t> &rom_data,
-                                      gfx::PaletteGroupMap &palette_groups) {
+absl::Status LoadGlobalSpritePalettes(const std::vector<uint8_t>& rom_data,
+                                      gfx::PaletteGroupMap& palette_groups) {
   auto data = rom_data.data();
   palette_groups.global_sprites.AddPalette(
       gfx::ReadPaletteFromRom(kGlobalSpritesLW, /*num_colors=*/60, data));
@@ -131,8 +131,8 @@ absl::Status LoadGlobalSpritePalettes(const std::vector<uint8_t> &rom_data,
   return absl::OkStatus();
 }
 
-absl::Status LoadArmorPalettes(const std::vector<uint8_t> &rom_data,
-                               gfx::PaletteGroupMap &palette_groups) {
+absl::Status LoadArmorPalettes(const std::vector<uint8_t>& rom_data,
+                               gfx::PaletteGroupMap& palette_groups) {
   auto data = rom_data.data();
   for (int i = 0; i < 5; i++) {
     palette_groups.armors.AddPalette(gfx::ReadPaletteFromRom(
@@ -141,8 +141,8 @@ absl::Status LoadArmorPalettes(const std::vector<uint8_t> &rom_data,
   return absl::OkStatus();
 }
 
-absl::Status LoadSwordPalettes(const std::vector<uint8_t> &rom_data,
-                               gfx::PaletteGroupMap &palette_groups) {
+absl::Status LoadSwordPalettes(const std::vector<uint8_t>& rom_data,
+                               gfx::PaletteGroupMap& palette_groups) {
   auto data = rom_data.data();
   for (int i = 0; i < 4; i++) {
     palette_groups.swords.AddPalette(gfx::ReadPaletteFromRom(
@@ -151,8 +151,8 @@ absl::Status LoadSwordPalettes(const std::vector<uint8_t> &rom_data,
   return absl::OkStatus();
 }
 
-absl::Status LoadShieldPalettes(const std::vector<uint8_t> &rom_data,
-                                gfx::PaletteGroupMap &palette_groups) {
+absl::Status LoadShieldPalettes(const std::vector<uint8_t>& rom_data,
+                                gfx::PaletteGroupMap& palette_groups) {
   auto data = rom_data.data();
   for (int i = 0; i < 3; i++) {
     palette_groups.shields.AddPalette(gfx::ReadPaletteFromRom(
@@ -161,8 +161,8 @@ absl::Status LoadShieldPalettes(const std::vector<uint8_t> &rom_data,
   return absl::OkStatus();
 }
 
-absl::Status LoadSpriteAux1Palettes(const std::vector<uint8_t> &rom_data,
-                                    gfx::PaletteGroupMap &palette_groups) {
+absl::Status LoadSpriteAux1Palettes(const std::vector<uint8_t>& rom_data,
+                                    gfx::PaletteGroupMap& palette_groups) {
   auto data = rom_data.data();
   for (int i = 0; i < 12; i++) {
     palette_groups.sprites_aux1.AddPalette(gfx::ReadPaletteFromRom(
@@ -171,8 +171,8 @@ absl::Status LoadSpriteAux1Palettes(const std::vector<uint8_t> &rom_data,
   return absl::OkStatus();
 }
 
-absl::Status LoadSpriteAux2Palettes(const std::vector<uint8_t> &rom_data,
-                                    gfx::PaletteGroupMap &palette_groups) {
+absl::Status LoadSpriteAux2Palettes(const std::vector<uint8_t>& rom_data,
+                                    gfx::PaletteGroupMap& palette_groups) {
   auto data = rom_data.data();
   for (int i = 0; i < 11; i++) {
     palette_groups.sprites_aux2.AddPalette(gfx::ReadPaletteFromRom(
@@ -181,8 +181,8 @@ absl::Status LoadSpriteAux2Palettes(const std::vector<uint8_t> &rom_data,
   return absl::OkStatus();
 }
 
-absl::Status LoadSpriteAux3Palettes(const std::vector<uint8_t> &rom_data,
-                                    gfx::PaletteGroupMap &palette_groups) {
+absl::Status LoadSpriteAux3Palettes(const std::vector<uint8_t>& rom_data,
+                                    gfx::PaletteGroupMap& palette_groups) {
   auto data = rom_data.data();
   for (int i = 0; i < 24; i++) {
     palette_groups.sprites_aux3.AddPalette(gfx::ReadPaletteFromRom(
@@ -191,8 +191,8 @@ absl::Status LoadSpriteAux3Palettes(const std::vector<uint8_t> &rom_data,
   return absl::OkStatus();
 }
 
-absl::Status LoadDungeonMainPalettes(const std::vector<uint8_t> &rom_data,
-                                     gfx::PaletteGroupMap &palette_groups) {
+absl::Status LoadDungeonMainPalettes(const std::vector<uint8_t>& rom_data,
+                                     gfx::PaletteGroupMap& palette_groups) {
   auto data = rom_data.data();
   for (int i = 0; i < 20; i++) {
     palette_groups.dungeon_main.AddPalette(gfx::ReadPaletteFromRom(
@@ -201,8 +201,8 @@ absl::Status LoadDungeonMainPalettes(const std::vector<uint8_t> &rom_data,
   return absl::OkStatus();
 }
 
-absl::Status LoadGrassColors(const std::vector<uint8_t> &rom_data,
-                             gfx::PaletteGroupMap &palette_groups) {
+absl::Status LoadGrassColors(const std::vector<uint8_t>& rom_data,
+                             gfx::PaletteGroupMap& palette_groups) {
   palette_groups.grass.AddColor(
       gfx::ReadColorFromRom(kHardcodedGrassLW, rom_data.data()));
   palette_groups.grass.AddColor(
@@ -212,8 +212,8 @@ absl::Status LoadGrassColors(const std::vector<uint8_t> &rom_data,
   return absl::OkStatus();
 }
 
-absl::Status Load3DObjectPalettes(const std::vector<uint8_t> &rom_data,
-                                  gfx::PaletteGroupMap &palette_groups) {
+absl::Status Load3DObjectPalettes(const std::vector<uint8_t>& rom_data,
+                                  gfx::PaletteGroupMap& palette_groups) {
   auto data = rom_data.data();
   palette_groups.object_3d.AddPalette(
       gfx::ReadPaletteFromRom(kTriforcePalette, 8, data));
@@ -223,8 +223,8 @@ absl::Status Load3DObjectPalettes(const std::vector<uint8_t> &rom_data,
 }
 
 absl::Status LoadOverworldMiniMapPalettes(
-    const std::vector<uint8_t> &rom_data,
-    gfx::PaletteGroupMap &palette_groups) {
+    const std::vector<uint8_t>& rom_data,
+    gfx::PaletteGroupMap& palette_groups) {
   auto data = rom_data.data();
   for (int i = 0; i < 2; i++) {
     palette_groups.overworld_mini_map.AddPalette(gfx::ReadPaletteFromRom(
@@ -260,7 +260,7 @@ const absl::flat_hash_map<std::string, uint32_t> kPaletteGroupColorCounts = {
     {"grass", 1},        {"3d_object", 8},       {"ow_mini_map", 128},
 };
 
-uint32_t GetPaletteAddress(const std::string &group_name, size_t palette_index,
+uint32_t GetPaletteAddress(const std::string& group_name, size_t palette_index,
                            size_t color_index) {
   // Retrieve the base address for the palette group
   uint32_t base_address = kPaletteGroupAddressMap.at(group_name);
@@ -299,27 +299,27 @@ uint32_t GetPaletteAddress(const std::string &group_name, size_t palette_index,
  * @param rom Pointer to ROM data
  * @return SnesPalette containing the colors (no transparency flags set)
  */
-SnesPalette ReadPaletteFromRom(int offset, int num_colors, const uint8_t *rom) {
+SnesPalette ReadPaletteFromRom(int offset, int num_colors, const uint8_t* rom) {
   int color_offset = 0;
   std::vector<gfx::SnesColor> colors(num_colors);
 
   while (color_offset < num_colors) {
     // Read SNES 15-bit color (little endian)
     uint16_t snes_color_word = (uint16_t)((rom[offset + 1]) << 8) | rom[offset];
-    
+
     // Extract RGB components (5-bit each) and expand to 8-bit (0-255)
     snes_color new_color;
-    new_color.red = (snes_color_word & 0x1F) * 8;        // Bits 0-4
+    new_color.red = (snes_color_word & 0x1F) * 8;           // Bits 0-4
     new_color.green = ((snes_color_word >> 5) & 0x1F) * 8;  // Bits 5-9
-    new_color.blue = ((snes_color_word >> 10) & 0x1F) * 8; // Bits 10-14
-    
+    new_color.blue = ((snes_color_word >> 10) & 0x1F) * 8;  // Bits 10-14
+
     // Create SnesColor by converting RGB back to SNES format
     // (This ensures all internal representations are consistent)
     colors[color_offset].set_snes(ConvertRgbToSnes(new_color));
-    
+
     // DO NOT mark as transparent - preserve actual ROM color data!
     // Transparency is handled at render time, not in the data
-    
+
     color_offset++;
     offset += 2;  // SNES colors are 2 bytes each
   }
@@ -327,7 +327,7 @@ SnesPalette ReadPaletteFromRom(int offset, int num_colors, const uint8_t *rom) {
   return gfx::SnesPalette(colors);
 }
 
-std::array<float, 4> ToFloatArray(const SnesColor &color) {
+std::array<float, 4> ToFloatArray(const SnesColor& color) {
   std::array<float, 4> colorArray;
   colorArray[0] = color.rgb().x / 255.0f;
   colorArray[1] = color.rgb().y / 255.0f;
@@ -337,7 +337,7 @@ std::array<float, 4> ToFloatArray(const SnesColor &color) {
 }
 
 absl::StatusOr<PaletteGroup> CreatePaletteGroupFromColFile(
-    std::vector<SnesColor> &palette_rows) {
+    std::vector<SnesColor>& palette_rows) {
   PaletteGroup palette_group;
   for (int i = 0; i < palette_rows.size(); i += 8) {
     SnesPalette palette;
@@ -365,7 +365,7 @@ absl::StatusOr<PaletteGroup> CreatePaletteGroupFromColFile(
  * @return PaletteGroup containing the sub-palettes
  */
 absl::StatusOr<PaletteGroup> CreatePaletteGroupFromLargePalette(
-    SnesPalette &palette, int num_colors) {
+    SnesPalette& palette, int num_colors) {
   PaletteGroup palette_group;
   for (int i = 0; i < palette.size(); i += num_colors) {
     SnesPalette new_palette;
@@ -385,8 +385,8 @@ absl::StatusOr<PaletteGroup> CreatePaletteGroupFromLargePalette(
 using namespace palette_group_internal;
 
 // TODO: Refactor LoadAllPalettes to use group names, move to zelda3 namespace
-absl::Status LoadAllPalettes(const std::vector<uint8_t> &rom_data,
-                             PaletteGroupMap &groups) {
+absl::Status LoadAllPalettes(const std::vector<uint8_t>& rom_data,
+                             PaletteGroupMap& groups) {
   RETURN_IF_ERROR(LoadOverworldMainPalettes(rom_data, groups))
   RETURN_IF_ERROR(LoadOverworldAuxiliaryPalettes(rom_data, groups))
   RETURN_IF_ERROR(LoadOverworldAnimatedPalettes(rom_data, groups))

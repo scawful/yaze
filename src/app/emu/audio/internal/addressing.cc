@@ -76,7 +76,9 @@ uint16_t Spc700::ind_p() {
 }
 
 // Immediate
-uint16_t Spc700::imm() { return PC++; }
+uint16_t Spc700::imm() {
+  return PC++;
+}
 
 // Direct page
 uint8_t Spc700::dp() {
@@ -116,14 +118,18 @@ uint16_t Spc700::dp_dp(uint8_t* src) {
   return ReadOpcode() | (PSW.P << 8);
 }
 
-uint16_t Spc700::abs() { return ReadOpcodeWord(); }
+uint16_t Spc700::abs() {
+  return ReadOpcodeWord();
+}
 
 int8_t Spc700::rel() {
   PC++;
   return static_cast<int8_t>(read(PC));
 }
 
-uint8_t Spc700::i() { return read((PSW.P << 8) + X); }
+uint8_t Spc700::i() {
+  return read((PSW.P << 8) + X);
+}
 
 uint8_t Spc700::i_postinc() {
   uint8_t value = read((PSW.P << 8) + X);

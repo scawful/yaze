@@ -2,24 +2,25 @@
 
 #include <cmath>
 #include <string>
-#include "app/gfx/util/bpp_format_manager.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/debug/performance/performance_profiler.h"
-#include "app/gui/core/style.h"
-#include "app/gui/canvas/canvas_utils.h"
+#include "app/gfx/util/bpp_format_manager.h"
 #include "app/gui/canvas/canvas_automation_api.h"
+#include "app/gui/canvas/canvas_utils.h"
+#include "app/gui/core/style.h"
 #include "imgui/imgui.h"
 
 namespace yaze::gui {
 
-
 // Define constructors and destructor in .cc to avoid incomplete type issues with unique_ptr
 
 // Default constructor
-Canvas::Canvas() : renderer_(nullptr) { InitializeDefaults(); }
+Canvas::Canvas() : renderer_(nullptr) {
+  InitializeDefaults();
+}
 
 // Legacy constructors (renderer is optional for backward compatibility)
-Canvas::Canvas(const std::string& id) 
+Canvas::Canvas(const std::string& id)
     : renderer_(nullptr), canvas_id_(id), context_id_(id + "Context") {
   InitializeDefaults();
 }
@@ -31,7 +32,8 @@ Canvas::Canvas(const std::string& id, ImVec2 canvas_size)
   config_.custom_canvas_size = true;
 }
 
-Canvas::Canvas(const std::string& id, ImVec2 canvas_size, CanvasGridSize grid_size)
+Canvas::Canvas(const std::string& id, ImVec2 canvas_size,
+               CanvasGridSize grid_size)
     : renderer_(nullptr), canvas_id_(id), context_id_(id + "Context") {
   InitializeDefaults();
   config_.canvas_size = canvas_size;
@@ -39,7 +41,8 @@ Canvas::Canvas(const std::string& id, ImVec2 canvas_size, CanvasGridSize grid_si
   SetGridSize(grid_size);
 }
 
-Canvas::Canvas(const std::string& id, ImVec2 canvas_size, CanvasGridSize grid_size, float global_scale)
+Canvas::Canvas(const std::string& id, ImVec2 canvas_size,
+               CanvasGridSize grid_size, float global_scale)
     : renderer_(nullptr), canvas_id_(id), context_id_(id + "Context") {
   InitializeDefaults();
   config_.canvas_size = canvas_size;
@@ -49,21 +52,25 @@ Canvas::Canvas(const std::string& id, ImVec2 canvas_size, CanvasGridSize grid_si
 }
 
 // New constructors with renderer support (for migration to IRenderer pattern)
-Canvas::Canvas(gfx::IRenderer* renderer) : renderer_(renderer) { InitializeDefaults(); }
+Canvas::Canvas(gfx::IRenderer* renderer) : renderer_(renderer) {
+  InitializeDefaults();
+}
 
-Canvas::Canvas(gfx::IRenderer* renderer, const std::string& id) 
+Canvas::Canvas(gfx::IRenderer* renderer, const std::string& id)
     : renderer_(renderer), canvas_id_(id), context_id_(id + "Context") {
   InitializeDefaults();
 }
 
-Canvas::Canvas(gfx::IRenderer* renderer, const std::string& id, ImVec2 canvas_size)
+Canvas::Canvas(gfx::IRenderer* renderer, const std::string& id,
+               ImVec2 canvas_size)
     : renderer_(renderer), canvas_id_(id), context_id_(id + "Context") {
   InitializeDefaults();
   config_.canvas_size = canvas_size;
   config_.custom_canvas_size = true;
 }
 
-Canvas::Canvas(gfx::IRenderer* renderer, const std::string& id, ImVec2 canvas_size, CanvasGridSize grid_size)
+Canvas::Canvas(gfx::IRenderer* renderer, const std::string& id,
+               ImVec2 canvas_size, CanvasGridSize grid_size)
     : renderer_(renderer), canvas_id_(id), context_id_(id + "Context") {
   InitializeDefaults();
   config_.canvas_size = canvas_size;
@@ -71,7 +78,8 @@ Canvas::Canvas(gfx::IRenderer* renderer, const std::string& id, ImVec2 canvas_si
   SetGridSize(grid_size);
 }
 
-Canvas::Canvas(gfx::IRenderer* renderer, const std::string& id, ImVec2 canvas_size, CanvasGridSize grid_size, float global_scale)
+Canvas::Canvas(gfx::IRenderer* renderer, const std::string& id,
+               ImVec2 canvas_size, CanvasGridSize grid_size, float global_scale)
     : renderer_(renderer), canvas_id_(id), context_id_(id + "Context") {
   InitializeDefaults();
   config_.canvas_size = canvas_size;
@@ -176,8 +184,7 @@ void Canvas::InitializeEnhancedComponents() {
     usage_tracker_->StartSession();
 
     // Initialize performance integration
-    performance_integration_ =
-        std::make_shared<CanvasPerformanceIntegration>();
+    performance_integration_ = std::make_shared<CanvasPerformanceIntegration>();
     performance_integration_->Initialize(canvas_id_);
     performance_integration_->SetUsageTracker(usage_tracker_);
     performance_integration_->StartMonitoring();
@@ -256,7 +263,8 @@ void Canvas::ShowColorAnalysis() {
 
 bool Canvas::ApplyROMPalette(int group_index, int palette_index) {
   if (palette_editor_ && bitmap_) {
-    return palette_editor_->ApplyROMPalette(bitmap_, group_index, palette_index);
+    return palette_editor_->ApplyROMPalette(bitmap_, group_index,
+                                            palette_index);
   }
   return false;
 }
@@ -338,14 +346,15 @@ void Canvas::End() {
     DrawGrid();
   }
   DrawOverlay();
-  
+
   // Render any persistent popups from context menu actions
   RenderPersistentPopups();
 }
 
 // ==================== Legacy Interface ====================
 
-void Canvas::UpdateColorPainter(gfx::IRenderer* /*renderer*/, gfx::Bitmap& bitmap, const ImVec4& color,
+void Canvas::UpdateColorPainter(gfx::IRenderer* /*renderer*/,
+                                gfx::Bitmap& bitmap, const ImVec4& color,
                                 const std::function<void()>& event,
                                 int tile_size, float scale) {
   config_.global_scale = scale;
@@ -371,28 +380,27 @@ void Canvas::UpdateInfoGrid(ImVec2 bg_size, float grid_size, int label_id) {
 
 void Canvas::DrawBackground(ImVec2 canvas_size) {
   draw_list_ = GetWindowDrawList();
-  
+
   // Phase 1: Calculate geometry using new helper
   state_.geometry = CalculateCanvasGeometry(
-      config_, canvas_size, 
-      GetCursorScreenPos(),
-      GetContentRegionAvail());
-  
+      config_, canvas_size, GetCursorScreenPos(), GetContentRegionAvail());
+
   // Sync legacy fields for backward compatibility
   canvas_p0_ = state_.geometry.canvas_p0;
   canvas_p1_ = state_.geometry.canvas_p1;
   canvas_sz_ = state_.geometry.canvas_sz;
   scrolling_ = state_.geometry.scrolling;
-  
+
   // Update config if explicit size provided
   if (canvas_size.x != 0) {
     config_.canvas_size = canvas_size;
   }
-  
+
   // Phase 1: Render background using helper
   RenderCanvasBackground(draw_list_, state_.geometry);
 
-  ImGui::InvisibleButton(canvas_id_.c_str(), state_.geometry.scaled_size, kMouseFlags);
+  ImGui::InvisibleButton(canvas_id_.c_str(), state_.geometry.scaled_size,
+                         kMouseFlags);
 
   // CRITICAL FIX: Always update hover mouse position when hovering over canvas
   // This fixes the regression where CheckForCurrentMap() couldn't track hover
@@ -420,7 +428,7 @@ void Canvas::DrawBackground(ImVec2 canvas_size) {
         IsMouseDragging(ImGuiMouseButton_Right, mouse_threshold_for_pan)) {
       ApplyScrollDelta(state_.geometry, io.MouseDelta);
       scrolling_ = state_.geometry.scrolling;  // Sync legacy field
-      config_.scrolling = scrolling_;  // Sync config
+      config_.scrolling = scrolling_;          // Sync config
     }
   }
 }
@@ -553,8 +561,6 @@ void Canvas::DrawContextMenu() {
     return;
   }
 
-
-
   // Draw enhanced property dialogs
   ShowAdvancedCanvasProperties();
   ShowScalingControls();
@@ -562,10 +568,11 @@ void Canvas::DrawContextMenu() {
 
 void Canvas::DrawContextMenuItem(const gui::CanvasMenuItem& item) {
   // Phase 4: Use RenderMenuItem from canvas_menu.h for consistent rendering
-  auto popup_callback = [this](const std::string& id, std::function<void()> callback) {
+  auto popup_callback = [this](const std::string& id,
+                               std::function<void()> callback) {
     popup_registry_.Open(id, callback);
   };
-  
+
   gui::RenderMenuItem(item, popup_callback);
 }
 
@@ -578,7 +585,7 @@ void Canvas::AddContextMenuItem(const gui::CanvasMenuItem& item) {
     section.separator_after = true;
     editor_menu_.sections.push_back(section);
   }
-  
+
   // Add to the last section (or create new if the last isn't editor-specific)
   auto& last_section = editor_menu_.sections.back();
   if (last_section.priority != MenuSectionPriority::kEditorSpecific) {
@@ -596,8 +603,8 @@ void Canvas::ClearContextMenuItems() {
   editor_menu_.sections.clear();
 }
 
-void Canvas::OpenPersistentPopup(const std::string& popup_id, 
-                                std::function<void()> render_callback) {
+void Canvas::OpenPersistentPopup(const std::string& popup_id,
+                                 std::function<void()> render_callback) {
   // Phase 4: Simplified popup management (no legacy synchronization)
   popup_registry_.Open(popup_id, render_callback);
 }
@@ -943,8 +950,8 @@ void Canvas::DrawSelectRect(int current_map, int tile_size, float scale) {
   ImVec2 drag_end_pos = AlignPosToGrid(mouse_pos, scaled_size);
   if (ImGui::IsMouseDragging(ImGuiMouseButton_Right)) {
     // FIX: Origin used to be canvas_p0_, revert if there is regression.
-    auto start = ImVec2(origin.x + drag_start_pos.x,
-                        origin.y + drag_start_pos.y);
+    auto start =
+        ImVec2(origin.x + drag_start_pos.x, origin.y + drag_start_pos.y);
     auto end = ImVec2(origin.x + drag_end_pos.x + tile_size,
                       origin.y + drag_end_pos.y + tile_size);
     draw_list_->AddRect(start, end, kWhiteColor);
@@ -1011,7 +1018,8 @@ void Canvas::DrawBitmap(Bitmap& bitmap, int border_offset, float scale) {
   config_.content_size = ImVec2(bitmap.width(), bitmap.height());
 
   // Phase 1: Use rendering helper
-  RenderBitmapOnCanvas(draw_list_, state_.geometry, bitmap, border_offset, scale);
+  RenderBitmapOnCanvas(draw_list_, state_.geometry, bitmap, border_offset,
+                       scale);
 }
 
 void Canvas::DrawBitmap(Bitmap& bitmap, int x_offset, int y_offset, float scale,
@@ -1026,7 +1034,8 @@ void Canvas::DrawBitmap(Bitmap& bitmap, int x_offset, int y_offset, float scale,
   config_.content_size = ImVec2(bitmap.width(), bitmap.height());
 
   // Phase 1: Use rendering helper
-  RenderBitmapOnCanvas(draw_list_, state_.geometry, bitmap, x_offset, y_offset, scale, alpha);
+  RenderBitmapOnCanvas(draw_list_, state_.geometry, bitmap, x_offset, y_offset,
+                       scale, alpha);
 }
 
 void Canvas::DrawBitmap(Bitmap& bitmap, ImVec2 dest_pos, ImVec2 dest_size,
@@ -1040,7 +1049,8 @@ void Canvas::DrawBitmap(Bitmap& bitmap, ImVec2 dest_pos, ImVec2 dest_size,
   config_.content_size = ImVec2(bitmap.width(), bitmap.height());
 
   // Phase 1: Use rendering helper
-  RenderBitmapOnCanvas(draw_list_, state_.geometry, bitmap, dest_pos, dest_size, src_pos, src_size);
+  RenderBitmapOnCanvas(draw_list_, state_.geometry, bitmap, dest_pos, dest_size,
+                       src_pos, src_size);
 }
 
 // TODO: Add parameters for sizing and positioning
@@ -1342,7 +1352,7 @@ void Canvas::DrawOverlay() {
 
   // Use high-level utility function with local points (synchronized from interaction handler)
   CanvasUtils::DrawCanvasOverlay(ctx, points_, selected_points_);
-  
+
   // Render any persistent popups from context menu actions
   RenderPersistentPopups();
 }
@@ -1529,11 +1539,10 @@ void Canvas::ShowAdvancedCanvasProperties() {
           enable_hex_tile_labels_ = updated_config.enable_hex_labels;
           enable_custom_labels_ = updated_config.enable_custom_labels;
         };
-    modal_config.on_scale_changed =
-        [this](const CanvasConfig& updated_config) {
-          global_scale_ = updated_config.global_scale;
-          scrolling_ = updated_config.scrolling;
-        };
+    modal_config.on_scale_changed = [this](const CanvasConfig& updated_config) {
+      global_scale_ = updated_config.global_scale;
+      scrolling_ = updated_config.scrolling;
+    };
 
     modals_->ShowAdvancedProperties(canvas_id_, modal_config, bitmap_);
     return;
@@ -1653,13 +1662,12 @@ void Canvas::ShowScalingControls() {
           enable_custom_labels_ = updated_config.enable_custom_labels;
           enable_context_menu_ = updated_config.enable_context_menu;
         };
-    modal_config.on_scale_changed =
-        [this](const CanvasConfig& updated_config) {
-          draggable_ = updated_config.is_draggable;
-          custom_step_ = updated_config.grid_step;
-          global_scale_ = updated_config.global_scale;
-          scrolling_ = updated_config.scrolling;
-        };
+    modal_config.on_scale_changed = [this](const CanvasConfig& updated_config) {
+      draggable_ = updated_config.is_draggable;
+      custom_step_ = updated_config.grid_step;
+      global_scale_ = updated_config.global_scale;
+      scrolling_ = updated_config.scrolling;
+    };
 
     modals_->ShowScalingControls(canvas_id_, modal_config);
     return;
