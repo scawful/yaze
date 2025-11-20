@@ -69,13 +69,34 @@ set_target_properties(yaze_util PROPERTIES
   LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
 )
 
-# Platform-specific compile definitions
+# Ensure C++ standard is set (should be inherited from parent, but be explicit)
+set_target_properties(yaze_util PROPERTIES
+  CXX_STANDARD 23
+  CXX_STANDARD_REQUIRED ON
+  CXX_EXTENSIONS OFF
+)
+
+# Platform-specific compile definitions and libraries
 if(UNIX AND NOT APPLE)
   target_compile_definitions(yaze_util PRIVATE linux stricmp=strcasecmp)
+  # Link filesystem library for older GCC versions (< 9.0)
+  if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.0)
+    target_link_libraries(yaze_util PUBLIC stdc++fs)
+  endif()
 elseif(APPLE)
   target_compile_definitions(yaze_util PRIVATE MACOS)
 elseif(WIN32)
   target_compile_definitions(yaze_util PRIVATE WINDOWS)
+  # Windows-specific: Some clang-cl versions need help finding filesystem
+  # Ensure we're using the right C++ standard library headers
+  if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    # Verify clang-cl can find MSVC STL headers with filesystem support
+    include(CheckIncludeFileCXX)
+    check_include_file_cxx("filesystem" HAVE_FILESYSTEM)
+    if(NOT HAVE_FILESYSTEM)
+      message(WARNING "std::filesystem not found - this may cause build failures on Windows")
+    endif()
+  endif()
 endif()
 
 message(STATUS "✓ yaze_util library configured")
