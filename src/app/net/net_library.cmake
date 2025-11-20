@@ -67,8 +67,13 @@ if(YAZE_WITH_JSON)
     endif()
   else()
     # When gRPC is enabled, still enable OpenSSL features but use gRPC's OpenSSL
-    target_compile_definitions(yaze_net PUBLIC CPPHTTPLIB_OPENSSL_SUPPORT)
-    message(STATUS "  - WebSocket with SSL/TLS support enabled via gRPC's OpenSSL")
+    # CRITICAL: Skip on Windows - gRPC's OpenSSL headers aren't accessible in Windows CI
+    if(NOT WIN32)
+      target_compile_definitions(yaze_net PUBLIC CPPHTTPLIB_OPENSSL_SUPPORT)
+      message(STATUS "  - WebSocket with SSL/TLS support enabled via gRPC's OpenSSL")
+    else()
+      message(STATUS "  - Windows + gRPC: WebSocket using plain HTTP (no SSL) - OpenSSL headers not available")
+    endif()
   endif()
   
   # Windows-specific socket library
