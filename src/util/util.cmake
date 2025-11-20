@@ -105,15 +105,21 @@ elseif(APPLE)
   target_compile_definitions(yaze_util PRIVATE MACOS)
 elseif(WIN32)
   target_compile_definitions(yaze_util PRIVATE WINDOWS)
-  # Windows-specific: Some clang-cl versions need help finding filesystem
-  # Ensure we're using the right C++ standard library headers
-  if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    # Verify clang-cl can find MSVC STL headers with filesystem support
-    include(CheckIncludeFileCXX)
-    check_include_file_cxx("filesystem" HAVE_FILESYSTEM)
-    if(NOT HAVE_FILESYSTEM)
-      message(WARNING "std::filesystem not found - this may cause build failures on Windows")
-    endif()
+
+  # CRITICAL FIX: clang-cl on Windows needs explicit /std:c++latest for std::filesystem
+  # clang-cl uses Clang's compiler but must interface with MSVC STL. Without this flag,
+  # it only finds std::experimental::filesystem (pre-C++17 version).
+  #
+  # The CMAKE_CXX_COMPILER_FRONTEND_VARIANT check distinguishes:
+  # - "MSVC": clang-cl (Clang with MSVC-compatible command line)
+  # - "GNU": regular Clang on Windows
+  if(CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
+    # Use MSVC-style flag for clang-cl
+    target_compile_options(yaze_util PUBLIC /std:c++latest)
+    message(STATUS "Windows clang-cl detected: Added /std:c++latest for std::filesystem support")
+  elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    # Regular Clang on Windows - already has proper flags from parent
+    message(STATUS "Windows Clang (non-cl) detected: Using inherited C++23 flags")
   endif()
 endif()
 
