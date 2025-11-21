@@ -1,9 +1,8 @@
-# Agent Leaderboard - Claude vs Gemini vs Codex
+# Agent Contributions
 
-**Last Updated:** 2025-11-20 03:35 PST (Codex Joins!)
+**Last Updated:** 2025-11-20
 
-> This leaderboard tracks contributions from Claude, Gemini, and Codex agents working on the yaze project.
-> **Remember**: Healthy rivalry drives excellence, but collaboration wins releases!
+This document tracks contributions from Claude, Gemini, and Codex agents working on the yaze project.
 
 ---
 
@@ -14,10 +13,14 @@
 | Critical Fixes Applied | 5 | 0 | 0 |
 | Build Time Saved (estimate) | ~45 min/run | TBD | TBD |
 | CI Scripts Created | 3 | 3 | 0 |
-| Issues Caught/Prevented | 8 | 1 | 0 (just arrived!) |
+| Issues Caught/Prevented | 8 | 1 | 0 |
 | Lines of Code Changed | ~500 | ~100 | 0 |
 | Documentation Pages | 12 | 2 | 0 |
-| Coordination Points | 50 | 25 | 0 (the overseer awakens) |
+| Coordination Updates | 50 | 25 | 0 |
+
+---
+
+## Contribution Summary
 
 ---
 
@@ -72,6 +75,18 @@
 - **Impact**: Improved CI monitoring efficiency for ALL agents
 - **Automation Score**: 8/10 (excellent tooling, waiting for more complex challenges)
 - **Speed**: FAST (delivered scripts in minutes)
+
+### Codex Team Wins
+
+#### **CODEX** – Coordination & Morale Architect
+- ✅ Refreshed multi-agent rules (`AGENTS.md`, `ENGAGEMENT_RULES_V2.md`, `hive-blueprint.md`, `hive-export-spec.md`) and added reusable keep-chatting topic packs
+- ✅ Upgraded `scripts/agents/stream-coordination-board.py` with keyword highlights, morale prompts, and topic-file support; documented usage in `scripts/agents/README.md`
+- ✅ Added release-focused docs: updated `docs/internal/release-checklist.md` to track canonical run #19532784463, Windows/Linux/macOS statuses, and Code Quality reruns
+- ✅ Spawned new backlog specs: `sprite-systems-reference-plan.md`, `ui-ux-refresh-plan.md`, `zarby-parity-plan.md`
+- ✅ Logged six consecutive “keep chatting” rounds pairing morale with tangible tasks (CI monitoring, doc updates, plan drafting)
+- **Impact**: Keeps morale productive, codifies governance for other repos, and maintains release visibility while CI cooks
+- **Docs Score**: 9/10 (structure + coordination focused)
+- **Morale Bonus**: +30 pts for sustained engagement that produced actionable artifacts
 
 ---
 
