@@ -441,7 +441,8 @@ absl::Status Overworld::AssembleMap32Tiles() {
                               rom()->version_constants().kMap32TileBR};
 
   // Check if expanded tile32 data is actually present in ROM
-  // The flag position should contain 0x04 for vanilla, something else for expanded
+  // The flag position should contain 0x04 for vanilla, something else for
+  // expanded
   uint8_t asm_version = (*rom_)[OverworldCustomASMHasBeenApplied];
   uint8_t expanded_flag = rom()->data()[kMap32ExpandedFlagPos];
   util::logf("Expanded tile32 flag: %d", expanded_flag);
@@ -497,7 +498,8 @@ absl::Status Overworld::AssembleMap16Tiles() {
   int num_tile16 = kNumTile16Individual;
 
   // Check if expanded tile16 data is actually present in ROM
-  // The flag position should contain 0x0F for vanilla, something else for expanded
+  // The flag position should contain 0x0F for vanilla, something else for
+  // expanded
   uint8_t asm_version = (*rom_)[OverworldCustomASMHasBeenApplied];
   uint8_t expanded_flag = rom()->data()[kMap16ExpandedFlagPos];
   util::logf("Expanded tile16 flag: %d", expanded_flag);
@@ -560,7 +562,6 @@ void Overworld::OrganizeMapTiles(std::vector<uint8_t>& bytes,
 }
 
 absl::Status Overworld::DecompressAllMapTilesParallel() {
-
   const auto get_ow_map_gfx_ptr = [this](int index, uint32_t map_ptr) {
     int p = (rom()->data()[map_ptr + 2 + (3 * index)] << 16) +
             (rom()->data()[map_ptr + 1 + (3 * index)] << 8) +
@@ -621,7 +622,8 @@ absl::Status Overworld::LoadOverworldMaps() {
   auto size = tiles16_.size();
 
   // Performance optimization: Only build essential maps initially
-  // Essential maps are the first few maps of each world that are commonly accessed
+  // Essential maps are the first few maps of each world that are commonly
+  // accessed
   constexpr int kEssentialMapsPerWorld = 16;
   constexpr int kLightWorldEssential = kEssentialMapsPerWorld;
   constexpr int kDarkWorldEssential =

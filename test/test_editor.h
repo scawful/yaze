@@ -55,7 +55,7 @@ class TestEditor : public yaze::editor::Editor {
 #ifdef IMGUI_ENABLE_TEST_ENGINE
   ImGuiTestEngine* engine_;
 #else
-  void* engine_; // Placeholder when test engine is disabled
+  void* engine_;  // Placeholder when test engine is disabled
 #endif
 };
 

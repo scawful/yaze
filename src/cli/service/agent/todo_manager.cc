@@ -32,21 +32,32 @@ std::string CurrentTimestamp() {
 
 std::string TodoItem::StatusToString() const {
   switch (status) {
-    case Status::PENDING: return "pending";
-    case Status::IN_PROGRESS: return "in_progress";
-    case Status::COMPLETED: return "completed";
-    case Status::BLOCKED: return "blocked";
-    case Status::CANCELLED: return "cancelled";
-    default: return "unknown";
+    case Status::PENDING:
+      return "pending";
+    case Status::IN_PROGRESS:
+      return "in_progress";
+    case Status::COMPLETED:
+      return "completed";
+    case Status::BLOCKED:
+      return "blocked";
+    case Status::CANCELLED:
+      return "cancelled";
+    default:
+      return "unknown";
   }
 }
 
 TodoItem::Status TodoItem::StringToStatus(const std::string& str) {
-  if (str == "pending") return Status::PENDING;
-  if (str == "in_progress") return Status::IN_PROGRESS;
-  if (str == "completed") return Status::COMPLETED;
-  if (str == "blocked") return Status::BLOCKED;
-  if (str == "cancelled") return Status::CANCELLED;
+  if (str == "pending")
+    return Status::PENDING;
+  if (str == "in_progress")
+    return Status::IN_PROGRESS;
+  if (str == "completed")
+    return Status::COMPLETED;
+  if (str == "blocked")
+    return Status::BLOCKED;
+  if (str == "cancelled")
+    return Status::CANCELLED;
   return Status::PENDING;
 }
 
@@ -69,12 +80,12 @@ absl::Status TodoManager::Initialize() {
   if (!status.ok()) {
     return status;
   }
-  
+
   // Try to load existing TODOs
   if (util::PlatformPaths::Exists(todos_file_)) {
     return Load();
   }
-  
+
   return absl::OkStatus();
 }
 
@@ -86,10 +97,9 @@ std::string TodoManager::GetTimestamp() const {
   return CurrentTimestamp();
 }
 
-absl::StatusOr<TodoItem> TodoManager::CreateTodo(
-    const std::string& description,
-    const std::string& category,
-    int priority) {
+absl::StatusOr<TodoItem> TodoManager::CreateTodo(const std::string& description,
+                                                 const std::string& category,
+                                                 int priority) {
   TodoItem item;
   item.id = GenerateId();
   item.description = description;
@@ -98,56 +108,61 @@ absl::StatusOr<TodoItem> TodoManager::CreateTodo(
   item.status = TodoItem::Status::PENDING;
   item.created_at = GetTimestamp();
   item.updated_at = item.created_at;
-  
+
   todos_.push_back(item);
-  
+
   auto status = Save();
   if (!status.ok()) {
     todos_.pop_back();  // Rollback
     return status;
   }
-  
+
   return item;
 }
 
-absl::Status TodoManager::UpdateTodo(const std::string& id, const TodoItem& item) {
+absl::Status TodoManager::UpdateTodo(const std::string& id,
+                                     const TodoItem& item) {
   auto it = std::find_if(todos_.begin(), todos_.end(),
-                        [&id](const TodoItem& t) { return t.id == id; });
-  
+                         [&id](const TodoItem& t) { return t.id == id; });
+
   if (it == todos_.end()) {
-    return absl::NotFoundError(absl::StrFormat("TODO with ID %s not found", id));
+    return absl::NotFoundError(
+        absl::StrFormat("TODO with ID %s not found", id));
   }
-  
+
   TodoItem updated = item;
   updated.id = id;  // Preserve ID
   updated.updated_at = GetTimestamp();
-  
+
   *it = updated;
   return Save();
 }
 
-absl::Status TodoManager::UpdateStatus(const std::string& id, TodoItem::Status status) {
+absl::Status TodoManager::UpdateStatus(const std::string& id,
+                                       TodoItem::Status status) {
   auto it = std::find_if(todos_.begin(), todos_.end(),
-                        [&id](const TodoItem& t) { return t.id == id; });
-  
+                         [&id](const TodoItem& t) { return t.id == id; });
+
   if (it == todos_.end()) {
-    return absl::NotFoundError(absl::StrFormat("TODO with ID %s not found", id));
+    return absl::NotFoundError(
+        absl::StrFormat("TODO with ID %s not found", id));
   }
-  
+
   it->status = status;
   it->updated_at = GetTimestamp();
-  
+
   return Save();
 }
 
 absl::StatusOr<TodoItem> TodoManager::GetTodo(const std::string& id) const {
   auto it = std::find_if(todos_.begin(), todos_.end(),
-                        [&id](const TodoItem& t) { return t.id == id; });
-  
+                         [&id](const TodoItem& t) { return t.id == id; });
+
   if (it == todos_.end()) {
-    return absl::NotFoundError(absl::StrFormat("TODO with ID %s not found", id));
+    return absl::NotFoundError(
+        absl::StrFormat("TODO with ID %s not found", id));
   }
-  
+
   return *it;
 }
 
@@ -155,17 +170,20 @@ std::vector<TodoItem> TodoManager::GetAllTodos() const {
   return todos_;
 }
 
-std::vector<TodoItem> TodoManager::GetTodosByStatus(TodoItem::Status status) const {
+std::vector<TodoItem> TodoManager::GetTodosByStatus(
+    TodoItem::Status status) const {
   std::vector<TodoItem> result;
   std::copy_if(todos_.begin(), todos_.end(), std::back_inserter(result),
-              [status](const TodoItem& t) { return t.status == status; });
+               [status](const TodoItem& t) { return t.status == status; });
   return result;
 }
 
-std::vector<TodoItem> TodoManager::GetTodosByCategory(const std::string& category) const {
+std::vector<TodoItem> TodoManager::GetTodosByCategory(
+    const std::string& category) const {
   std::vector<TodoItem> result;
-  std::copy_if(todos_.begin(), todos_.end(), std::back_inserter(result),
-              [&category](const TodoItem& t) { return t.category == category; });
+  std::copy_if(
+      todos_.begin(), todos_.end(), std::back_inserter(result),
+      [&category](const TodoItem& t) { return t.category == category; });
   return result;
 }
 
@@ -193,60 +211,61 @@ absl::StatusOr<TodoItem> TodoManager::GetNextActionableTodo() const {
       actionable.push_back(item);
     }
   }
-  
+
   if (actionable.empty()) {
     return absl::NotFoundError("No actionable TODOs found");
   }
-  
+
   // Sort by priority (descending)
   std::sort(actionable.begin(), actionable.end(),
-           [](const TodoItem& a, const TodoItem& b) {
-             return a.priority > b.priority;
-           });
-  
+            [](const TodoItem& a, const TodoItem& b) {
+              return a.priority > b.priority;
+            });
+
   return actionable[0];
 }
 
 absl::Status TodoManager::DeleteTodo(const std::string& id) {
   auto it = std::find_if(todos_.begin(), todos_.end(),
-                        [&id](const TodoItem& t) { return t.id == id; });
-  
+                         [&id](const TodoItem& t) { return t.id == id; });
+
   if (it == todos_.end()) {
-    return absl::NotFoundError(absl::StrFormat("TODO with ID %s not found", id));
+    return absl::NotFoundError(
+        absl::StrFormat("TODO with ID %s not found", id));
   }
-  
+
   todos_.erase(it);
   return Save();
 }
 
 absl::Status TodoManager::ClearCompleted() {
-  auto it = std::remove_if(todos_.begin(), todos_.end(),
-                          [](const TodoItem& t) {
-                            return t.status == TodoItem::Status::COMPLETED;
-                          });
+  auto it = std::remove_if(todos_.begin(), todos_.end(), [](const TodoItem& t) {
+    return t.status == TodoItem::Status::COMPLETED;
+  });
   todos_.erase(it, todos_.end());
   return Save();
 }
 
-absl::StatusOr<std::vector<TodoItem>> TodoManager::GenerateExecutionPlan() const {
+absl::StatusOr<std::vector<TodoItem>> TodoManager::GenerateExecutionPlan()
+    const {
   std::vector<TodoItem> plan;
   std::vector<TodoItem> pending;
-  
+
   // Get all pending TODOs
   std::copy_if(todos_.begin(), todos_.end(), std::back_inserter(pending),
-              [](const TodoItem& t) {
-                return t.status == TodoItem::Status::PENDING ||
-                       t.status == TodoItem::Status::BLOCKED;
-              });
-  
+               [](const TodoItem& t) {
+                 return t.status == TodoItem::Status::PENDING ||
+                        t.status == TodoItem::Status::BLOCKED;
+               });
+
   // Topological sort based on dependencies
   std::vector<TodoItem> sorted;
   std::set<std::string> completed_ids;
-  
+
   while (!pending.empty()) {
     bool made_progress = false;
-    
-    for (auto it = pending.begin(); it != pending.end(); ) {
+
+    for (auto it = pending.begin(); it != pending.end();) {
       bool can_add = true;
       for (const auto& dep_id : it->dependencies) {
         if (completed_ids.find(dep_id) == completed_ids.end()) {
@@ -254,7 +273,7 @@ absl::StatusOr<std::vector<TodoItem>> TodoManager::GenerateExecutionPlan() const
           break;
         }
       }
-      
+
       if (can_add) {
         sorted.push_back(*it);
         completed_ids.insert(it->id);
@@ -264,26 +283,26 @@ absl::StatusOr<std::vector<TodoItem>> TodoManager::GenerateExecutionPlan() const
         ++it;
       }
     }
-    
+
     if (!made_progress && !pending.empty()) {
       return absl::FailedPreconditionError(
           "Circular dependency detected in TODOs");
     }
   }
-  
+
   // Sort by priority within dependency levels
   std::stable_sort(sorted.begin(), sorted.end(),
-                  [](const TodoItem& a, const TodoItem& b) {
-                    return a.priority > b.priority;
-                  });
-  
+                   [](const TodoItem& a, const TodoItem& b) {
+                     return a.priority > b.priority;
+                   });
+
   return sorted;
 }
 
 absl::Status TodoManager::Save() {
 #ifdef YAZE_WITH_JSON
   json j_todos = json::array();
-  
+
   for (const auto& item : todos_) {
     json j_item;
     j_item["id"] = item.id;
@@ -296,16 +315,16 @@ absl::Status TodoManager::Save() {
     j_item["created_at"] = item.created_at;
     j_item["updated_at"] = item.updated_at;
     j_item["notes"] = item.notes;
-    
+
     j_todos.push_back(j_item);
   }
-  
+
   std::ofstream file(todos_file_);
   if (!file.is_open()) {
     return absl::InternalError(
         absl::StrFormat("Failed to open file: %s", todos_file_));
   }
-  
+
   file << j_todos.dump(2);
   return absl::OkStatus();
 #else
@@ -320,7 +339,7 @@ absl::Status TodoManager::Load() {
     return absl::InternalError(
         absl::StrFormat("Failed to open file: %s", todos_file_));
   }
-  
+
   json j_todos;
   try {
     file >> j_todos;
@@ -328,7 +347,7 @@ absl::Status TodoManager::Load() {
     return absl::InternalError(
         absl::StrFormat("Failed to parse JSON: %s", e.what()));
   }
-  
+
   todos_.clear();
   for (const auto& j_item : j_todos) {
     TodoItem item;
@@ -337,14 +356,16 @@ absl::Status TodoManager::Load() {
     item.status = TodoItem::StringToStatus(j_item.value("status", "pending"));
     item.category = j_item.value("category", "");
     item.priority = j_item.value("priority", 0);
-    item.dependencies = j_item.value("dependencies", std::vector<std::string>{});
-    item.tools_needed = j_item.value("tools_needed", std::vector<std::string>{});
+    item.dependencies =
+        j_item.value("dependencies", std::vector<std::string>{});
+    item.tools_needed =
+        j_item.value("tools_needed", std::vector<std::string>{});
     item.created_at = j_item.value("created_at", "");
     item.updated_at = j_item.value("updated_at", "");
     item.notes = j_item.value("notes", "");
-    
+
     todos_.push_back(item);
-    
+
     // Update next_id_
     if (item.id.find("todo_") == 0) {
       int id_num = std::stoi(item.id.substr(5));
@@ -353,7 +374,7 @@ absl::Status TodoManager::Load() {
       }
     }
   }
-  
+
   return absl::OkStatus();
 #else
   return absl::UnimplementedError("JSON support required for TODO persistence");
@@ -363,7 +384,7 @@ absl::Status TodoManager::Load() {
 std::string TodoManager::ExportAsJson() const {
 #ifdef YAZE_WITH_JSON
   json j_todos = json::array();
-  
+
   for (const auto& item : todos_) {
     json j_item;
     j_item["id"] = item.id;
@@ -376,10 +397,10 @@ std::string TodoManager::ExportAsJson() const {
     j_item["created_at"] = item.created_at;
     j_item["updated_at"] = item.updated_at;
     j_item["notes"] = item.notes;
-    
+
     j_todos.push_back(j_item);
   }
-  
+
   return j_todos.dump(2);
 #else
   return "{}";
@@ -390,7 +411,7 @@ absl::Status TodoManager::ImportFromJson(const std::string& json_str) {
 #ifdef YAZE_WITH_JSON
   try {
     json j_todos = json::parse(json_str);
-    
+
     todos_.clear();
     for (const auto& j_item : j_todos) {
       TodoItem item;
@@ -399,15 +420,17 @@ absl::Status TodoManager::ImportFromJson(const std::string& json_str) {
       item.status = TodoItem::StringToStatus(j_item.value("status", "pending"));
       item.category = j_item.value("category", "");
       item.priority = j_item.value("priority", 0);
-      item.dependencies = j_item.value("dependencies", std::vector<std::string>{});
-      item.tools_needed = j_item.value("tools_needed", std::vector<std::string>{});
+      item.dependencies =
+          j_item.value("dependencies", std::vector<std::string>{});
+      item.tools_needed =
+          j_item.value("tools_needed", std::vector<std::string>{});
       item.created_at = j_item.value("created_at", "");
       item.updated_at = j_item.value("updated_at", "");
       item.notes = j_item.value("notes", "");
-      
+
       todos_.push_back(item);
     }
-    
+
     return Save();
   } catch (const std::exception& e) {
     return absl::InternalError(

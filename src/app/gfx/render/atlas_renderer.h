@@ -2,9 +2,10 @@
 #define YAZE_APP_GFX_ATLAS_RENDERER_H
 
 #include <SDL.h>
-#include <vector>
-#include <unordered_map>
+
 #include <memory>
+#include <unordered_map>
+#include <vector>
 
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/debug/performance/performance_profiler.h"
@@ -16,18 +17,23 @@ namespace gfx {
 /**
  * @brief Render command for batch rendering
  */
- struct RenderCommand {
-  int atlas_id;      ///< Atlas ID of bitmap to render
-  float x, y;        ///< Screen coordinates
+struct RenderCommand {
+  int atlas_id;            ///< Atlas ID of bitmap to render
+  float x, y;              ///< Screen coordinates
   float scale_x, scale_y;  ///< Scale factors
-  float rotation;    ///< Rotation angle in degrees
-  SDL_Color tint;    ///< Color tint
-  
-  RenderCommand(int id, float x_pos, float y_pos, 
-                float sx = 1.0f, float sy = 1.0f, 
-                float rot = 0.0f, SDL_Color color = {255, 255, 255, 255})
-      : atlas_id(id), x(x_pos), y(y_pos), 
-        scale_x(sx), scale_y(sy), rotation(rot), tint(color) {}
+  float rotation;          ///< Rotation angle in degrees
+  SDL_Color tint;          ///< Color tint
+
+  RenderCommand(int id, float x_pos, float y_pos, float sx = 1.0f,
+                float sy = 1.0f, float rot = 0.0f,
+                SDL_Color color = {255, 255, 255, 255})
+      : atlas_id(id),
+        x(x_pos),
+        y(y_pos),
+        scale_x(sx),
+        scale_y(sy),
+        rotation(rot),
+        tint(color) {}
 };
 
 /**
@@ -40,31 +46,36 @@ struct AtlasStats {
   size_t total_memory;
   size_t used_memory;
   float utilization_percent;
-  
-  AtlasStats() : total_atlases(0), total_entries(0), used_entries(0),
-                 total_memory(0), used_memory(0), utilization_percent(0.0f) {}
+
+  AtlasStats()
+      : total_atlases(0),
+        total_entries(0),
+        used_entries(0),
+        total_memory(0),
+        used_memory(0),
+        utilization_percent(0.0f) {}
 };
 
 /**
  * @brief Atlas-based rendering system for efficient graphics operations
- * 
+ *
  * The AtlasRenderer class provides efficient rendering by combining multiple
  * graphics elements into a single texture atlas, reducing draw calls and
  * improving performance for ROM hacking workflows.
- * 
+ *
  * Key Features:
  * - Single draw call for multiple tiles/graphics
  * - Automatic atlas management and packing
  * - Dynamic atlas resizing and reorganization
  * - UV coordinate mapping for efficient rendering
  * - Memory-efficient texture management
- * 
+ *
  * Performance Optimizations:
  * - Reduces draw calls from N to 1 for multiple elements
  * - Minimizes GPU state changes
  * - Efficient texture packing algorithm
  * - Automatic atlas defragmentation
- * 
+ *
  * ROM Hacking Specific:
  * - Optimized for SNES tile rendering (8x8, 16x16)
  * - Support for graphics sheet atlasing
@@ -121,8 +132,9 @@ class AtlasRenderer {
    * @param render_commands Vector of render commands
    * @param bpp_groups Map of BPP format to command groups for optimization
    */
-  void RenderBatchWithBppOptimization(const std::vector<RenderCommand>& render_commands,
-                                     const std::unordered_map<BppFormat, std::vector<int>>& bpp_groups);
+  void RenderBatchWithBppOptimization(
+      const std::vector<RenderCommand>& render_commands,
+      const std::unordered_map<BppFormat, std::vector<int>>& bpp_groups);
 
   /**
    * @brief Get atlas statistics
@@ -148,7 +160,8 @@ class AtlasRenderer {
    * @param scale_x Horizontal scale factor
    * @param scale_y Vertical scale factor
    */
-  void RenderBitmap(int atlas_id, float x, float y, float scale_x = 1.0f, float scale_y = 1.0f);
+  void RenderBitmap(int atlas_id, float x, float y, float scale_x = 1.0f,
+                    float scale_y = 1.0f);
 
   /**
    * @brief Get UV coordinates for a bitmap in the atlas
@@ -169,11 +182,16 @@ class AtlasRenderer {
     BppFormat bpp_format;  // BPP format of this entry
     int original_width;
     int original_height;
-    
-    AtlasEntry(int id, const SDL_Rect& rect, TextureHandle tex, BppFormat bpp = BppFormat::kBpp8, 
-               int width = 0, int height = 0)
-        : atlas_id(id), uv_rect(rect), texture(tex), in_use(true), 
-          bpp_format(bpp), original_width(width), original_height(height) {}
+
+    AtlasEntry(int id, const SDL_Rect& rect, TextureHandle tex,
+               BppFormat bpp = BppFormat::kBpp8, int width = 0, int height = 0)
+        : atlas_id(id),
+          uv_rect(rect),
+          texture(tex),
+          in_use(true),
+          bpp_format(bpp),
+          original_width(width),
+          original_height(height) {}
   };
 
   struct Atlas {
@@ -181,7 +199,7 @@ class AtlasRenderer {
     int size;
     std::vector<AtlasEntry> entries;
     std::vector<bool> used_regions;  // Track used regions for packing
-    
+
     Atlas(int s) : size(s), used_regions(s * s, false) {}
   };
 
@@ -198,7 +216,6 @@ class AtlasRenderer {
   SDL_Rect FindFreeRegion(Atlas& atlas, int width, int height);
   void MarkRegionUsed(Atlas& atlas, const SDL_Rect& rect, bool used);
 };
-
 
 }  // namespace gfx
 }  // namespace yaze

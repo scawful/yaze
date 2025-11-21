@@ -20,7 +20,8 @@ cmake --build --preset mac-ai --target z3ed
 
 The AI features require at least one provider:
 - **Ollama (local)** – install via `brew install ollama`, run `ollama serve`, then set
-  `Z3ED_OLLAMA_MODEL=qwen2.5-coder:7b` (or any supported model).
+  `OLLAMA_MODEL=qwen2.5-coder:0.5b` (the lightweight default used in CI) or any other supported
+  model. Pass `--ai_model "$OLLAMA_MODEL"` on the CLI to override per-run.
 - **Gemini (cloud)** – export `GEMINI_API_KEY` before launching `z3ed`.
 
 If no provider is configured the CLI still works, but agent subcommands will fall back to manual

@@ -22,6 +22,7 @@ The main manager class that coordinates all agent-related functionality:
 - Mode switching between local and network collaboration
 - ROM context management for agent queries
 - Integration with toast notifications and proposal drawer
+- Agent Builder workspace for persona, tool-stack, automation, and validation planning
 
 #### AgentChatWidget (`agent_chat_widget.h/cc`)
 ImGui-based chat interface for interacting with AI agents:
@@ -37,6 +38,11 @@ ImGui-based chat interface for interacting with AI agents:
 - JSON response formatting
 - Table data visualization
 - Proposal metadata display
+- Provider/model telemetry badges with latency + tool counts
+- Built-in Ollama model roster with favorites, filtering, and chain modes
+- Model Deck with persistent presets (host/model/tags) synced via chat history
+- Persona summary + automation hooks surfaced directly in the chat controls
+- Tool configuration matrix (resources/dungeon/overworld/dialogue/etc.) akin to OpenWebUI
 
 #### AgentChatHistoryCodec (`agent_chat_history_codec.h/cc`)
 Serialization/deserialization for chat history:
@@ -136,6 +142,18 @@ network_coordinator->SendProposal(username, proposal_json);
 // Send AI query
 network_coordinator->SendAIQuery(username, "What enemies are in room 5?");
 ```
+
+### Agent Builder Workflow
+
+The `Agent Builder` tab inside AgentEditor walks you through five phases:
+
+1. **Persona & Goals** – capture the agent’s tone, guardrails, and explicit objectives.
+2. **Tool Stack** – toggle dispatcher categories (resources, dungeon, overworld, dialogue, GUI, music, sprite, emulator) and sync the plan to the chat widget.
+3. **Automation Hooks** – configure automatic harness execution, ROM syncing, and proposal focus behaviour for full E2E runs.
+4. **Validation** – document success criteria and testing notes.
+5. **E2E Checklist** – track readiness (automation toggles, persona, ROM sync) before triggering full end-to-end harness runs. Builder stages can be exported/imported as JSON blueprints (`~/.yaze/agent/blueprints/*.json`) for reuse across projects.
+
+Builder plans can be applied directly to `AgentChatWidget::AgentConfigState` so that UI and CLI automation stay in sync.
 
 ## File Structure
 
@@ -256,6 +274,7 @@ Server health and metrics:
 4. **Session replay** - Record and playback editing sessions
 5. **Agent memory** - Persistent context across sessions
 6. **Real-time cursor tracking** - See where collaborators are working
+7. **Blueprint templates** - Share agent personas/tool stacks between teams
 
 ## Server Protocol
 

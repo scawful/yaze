@@ -29,10 +29,10 @@ target_precompile_headers(yaze_net PRIVATE
 
 target_include_directories(yaze_net PUBLIC
   ${CMAKE_SOURCE_DIR}/src
-  ${CMAKE_SOURCE_DIR}/src/lib
-  ${CMAKE_SOURCE_DIR}/src/lib/imgui
-  ${CMAKE_SOURCE_DIR}/third_party/json/include
-  ${CMAKE_SOURCE_DIR}/third_party/httplib
+  ${CMAKE_SOURCE_DIR}/ext
+  ${CMAKE_SOURCE_DIR}/ext/imgui
+  ${CMAKE_SOURCE_DIR}/ext/json/include
+  ${CMAKE_SOURCE_DIR}/ext/httplib
   ${PROJECT_BINARY_DIR}
 )
 
@@ -47,7 +47,7 @@ target_link_libraries(yaze_net PUBLIC
 if(YAZE_WITH_JSON)
   # Link nlohmann_json which provides the include directories automatically
   target_link_libraries(yaze_net PUBLIC nlohmann_json::nlohmann_json)
-  target_include_directories(yaze_net PUBLIC ${CMAKE_SOURCE_DIR}/third_party/httplib)
+  target_include_directories(yaze_net PUBLIC ${CMAKE_SOURCE_DIR}/ext/httplib)
   target_compile_definitions(yaze_net PUBLIC YAZE_WITH_JSON)
   
   # Add threading support (cross-platform)
@@ -57,18 +57,30 @@ if(YAZE_WITH_JSON)
   # Only link OpenSSL if gRPC is NOT enabled (to avoid duplicate symbol errors)
   # When gRPC is enabled, it brings its own OpenSSL which we'll use instead
   if(NOT YAZE_WITH_GRPC)
-    find_package(OpenSSL QUIET)
-    if(OpenSSL_FOUND)
-      target_link_libraries(yaze_net PUBLIC OpenSSL::SSL OpenSSL::Crypto)
-      target_compile_definitions(yaze_net PUBLIC CPPHTTPLIB_OPENSSL_SUPPORT)
-      message(STATUS "  - WebSocket with SSL/TLS support enabled")
+    # CRITICAL FIX: Disable OpenSSL on Windows to avoid missing header errors
+    # Windows CI doesn't have OpenSSL headers properly configured
+    # WebSocket will work with plain HTTP (no SSL/TLS) on Windows
+    if(NOT WIN32)
+      find_package(OpenSSL QUIET)
+      if(OpenSSL_FOUND)
+        target_link_libraries(yaze_net PUBLIC OpenSSL::SSL OpenSSL::Crypto)
+        target_compile_definitions(yaze_net PUBLIC CPPHTTPLIB_OPENSSL_SUPPORT)
+        message(STATUS "  - WebSocket with SSL/TLS support enabled")
+      else()
+        message(STATUS "  - WebSocket without SSL/TLS (OpenSSL not found)")
+      endif()
     else()
-      message(STATUS "  - WebSocket without SSL/TLS (OpenSSL not found)")
+      message(STATUS "  - Windows: WebSocket using plain HTTP (no SSL) - OpenSSL headers not available in CI")
     endif()
   else()
     # When gRPC is enabled, still enable OpenSSL features but use gRPC's OpenSSL
-    target_compile_definitions(yaze_net PUBLIC CPPHTTPLIB_OPENSSL_SUPPORT)
-    message(STATUS "  - WebSocket with SSL/TLS support enabled via gRPC's OpenSSL")
+    # CRITICAL: Skip on Windows - gRPC's OpenSSL headers aren't accessible in Windows CI
+    if(NOT WIN32)
+      target_compile_definitions(yaze_net PUBLIC CPPHTTPLIB_OPENSSL_SUPPORT)
+      message(STATUS "  - WebSocket with SSL/TLS support enabled via gRPC's OpenSSL")
+    else()
+      message(STATUS "  - Windows + gRPC: WebSocket using plain HTTP (no SSL) - OpenSSL headers not available")
+    endif()
   endif()
   
   # Windows-specific socket library

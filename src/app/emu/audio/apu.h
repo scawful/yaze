@@ -1,9 +1,9 @@
 #ifndef YAZE_APP_EMU_APU_H_
 #define YAZE_APP_EMU_APU_H_
 
+#include <array>
 #include <cstdint>
 #include <vector>
-#include <array>
 
 #include "app/emu/audio/dsp.h"
 #include "app/emu/audio/spc700.h"
@@ -52,7 +52,7 @@ typedef struct Timer {
  */
 class Apu {
  public:
-  Apu(MemoryImpl &memory) : memory_(memory) {}
+  Apu(MemoryImpl& memory) : memory_(memory) {}
 
   void Init();
   void Reset();
@@ -67,21 +67,21 @@ class Apu {
   uint8_t Read(uint16_t address);
   void Write(uint16_t address, uint8_t data);
 
-  auto dsp() -> Dsp & { return dsp_; }
-  auto spc700() -> Spc700 & { return spc700_; }
+  auto dsp() -> Dsp& { return dsp_; }
+  auto spc700() -> Spc700& { return spc700_; }
 
   uint64_t GetCycles() const { return cycles_; }
-  
+
   // Audio debugging
   void set_handshake_tracker(debug::ApuHandshakeTracker* tracker) {
     handshake_tracker_ = tracker;
   }
   uint8_t GetStatus() const { return ram[0x00]; }
   uint8_t GetControl() const { return ram[0x01]; }
-  void GetSamples(int16_t *buffer, int count, bool loop = false) {
+  void GetSamples(int16_t* buffer, int count, bool loop = false) {
     dsp_.GetSamples(buffer, count, loop);
   }
-  void WriteDma(uint16_t address, const uint8_t *data, int count) {
+  void WriteDma(uint16_t address, const uint8_t* data, int count) {
     for (int i = 0; i < count; i++) {
       ram[address + i] = data[i];
     }
@@ -97,14 +97,14 @@ class Apu {
 
   uint8_t dsp_adr_ = 0;
   uint32_t cycles_ = 0;
-  
+
   // IPL ROM transfer tracking for proper termination
   uint8_t transfer_size_ = 0;
   bool in_transfer_ = false;
 
-  MemoryImpl &memory_;
+  MemoryImpl& memory_;
   std::array<Timer, 3> timer_;
-  
+
   // Audio debugging
   debug::ApuHandshakeTracker* handshake_tracker_ = nullptr;
 

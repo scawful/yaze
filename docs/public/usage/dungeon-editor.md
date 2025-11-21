@@ -1,262 +1,116 @@
-# F2: Dungeon Editor v2 - Complete Guide
+# F2: Dungeon Editor v2 Guide
 
-**Last Updated**: October 10, 2025  
-**Related**: [Architecture Overview](../developer/architecture.md), [Debugging Guide](../developer/debugging-guide.md)
+**Scope**: DungeonEditorV2 (card-based UI), DungeonEditorSystem, dungeon canvases  
+**Related**: [Architecture Overview](../developer/architecture.md), [Canvas System](../developer/canvas-system.md)
 
 ---
 
-## Overview
+## 1. Overview
 
-The Dungeon Editor uses a modern card-based architecture (DungeonEditorV2) with self-contained room rendering. This guide covers the architecture, recent refactoring work, and next development steps.
+The Dungeon Editor ships with the multi-card workspace introduced in the 0.3.x releases.
+Self-contained room buffers keep graphics, objects, and palettes isolated so you can switch between
+rooms without invalidating the entire renderer.
 
 ### Key Features
--  **Visual room editing** with 512x512 canvas per room
--  **Object position visualization** - Colored outlines by layer (Red/Green/Blue)
--  **Per-room settings** - Independent BG1/BG2 visibility and layer types
--  **Flexible docking** - EditorCard system for custom workspace layouts
--  **Self-contained rooms** - Each room owns its bitmaps and palettes
--  **Overworld integration** - Double-click entrances to open dungeon rooms
+- 512×512 canvas per room with pan/zoom, grid, and collision overlays.
+- Layer-specific visualization (BG1/BG2 toggles, colored object outlines, slot labels).
+- Modular cards for rooms, objects, palettes, entrances, and toolsets.
+- Undo/Redo shared across cards via `DungeonEditorSystem`.
+- Tight overworld integration: double-click an entrance to open the linked dungeon room.
 
 ---
 
-### Architecture Improvements 
-1. **Room Buffers Decoupled** - No dependency on Arena graphics sheets
-2. **ObjectRenderer Removed** - Standardized on ObjectDrawer (~1000 lines deleted)
-3. **LoadGraphicsSheetsIntoArena Removed** - Using per-room graphics (~66 lines)
-4. **Old Tab System Removed** - EditorCard is the standard
-5. **Texture Atlas Infrastructure** - Future-proof stub created
-6. **Test Suite Cleaned** - Deleted 1270 lines of redundant tests
-
-### UI Improvements 
-- Room ID in card title: `[003] Room Name`
-- Properties reorganized into clean 4-column table
-- Compact layer controls (1 row instead of 3)
-- Room graphics canvas height fixed (1025px → 257px)
-- Object count in status bar
-
----
-
-## Architecture
-
-### Component Overview
+## 2. Architecture Snapshot
 
 ```
-DungeonEditorV2 (UI Layer)
-├─ Card-based UI system
-├─ Room window management  
-├─ Component coordination
-└─ Lazy loading
+DungeonEditorV2 (UI)
+├─ Cards & docking
+├─ Canvas presenter
+└─ Menu + toolbar actions
 
-DungeonEditorSystem (Backend Layer)
-├─ Sprite/Item/Entrance/Door/Chest management
-├─ Undo/Redo functionality
-├─ Room properties management
-└─ Dungeon-wide operations
+DungeonEditorSystem (Backend)
+├─ Room/session state
+├─ Undo/Redo stack
+├─ Sprite/entrance/item helpers
+└─ Persistence + ROM writes
 
-Room (Data Layer)
-├─ Self-contained buffers (bg1_buffer_, bg2_buffer_)
-├─ Object storage (tile_objects_)
-├─ Graphics loading
-└─ Rendering pipeline
+Room Model (Data)
+├─ bg1_buffer_, bg2_buffer_
+├─ tile_objects_, door data, metadata
+└─ Palette + blockset caches
 ```
 
 ### Room Rendering Pipeline
+1. **Load** – `DungeonRoomLoader` reads the room header, blockset pointers, and door/entrance
+   metadata, producing a `Room` instance with immutable layout info.
+2. **Decode** – The requested blockset is converted into `current_gfx16_` bitmaps; objects are parsed
+   into `tile_objects_` grouped by layer and palette slot.
+3. **Draw** – `DungeonCanvasViewer` builds BG1/BG2 bitmaps, then overlays each object layer via
+   `ObjectDrawer`. Palette state comes from the room’s 90-color dungeon palette.
+4. **Queue** – The finished bitmaps are pushed into the graphics `Arena`, which uploads a bounded
+   number of textures per frame so UI latency stays flat.
+5. **Present** – When textures become available, the canvas displays the layers, draws interaction
+   widgets (selection rectangles, door gizmos, entity labels), and applies zoom/grid settings.
 
-TODO: Update this to latest code.
-
-```
-1. LoadRoomGraphics(blockset)
-   └─> Reads blocks[] from ROM
-   └─> Loads blockset data → current_gfx16_
-
-2. LoadObjects()
-   └─> Parses object data from ROM
-   └─> Creates tile_objects_[]
-   └─> SETS floor1_graphics_, floor2_graphics_ ← CRITICAL!
-
-3. RenderRoomGraphics() [SELF-CONTAINED]
-   ├─> DrawFloor(floor1_graphics_, floor2_graphics_)
-   ├─> DrawBackground(current_gfx16_)
-   ├─> SetPalette(full_90_color_dungeon_palette)
-   ├─> RenderObjectsToBackground()
-   │   └─> ObjectDrawer::DrawObjectList()
-   └─> QueueTextureCommand(UPDATE/CREATE)
-
-4. DrawRoomBackgroundLayers(room_id)
-   └─> ProcessTextureQueue() → GPU textures
-   └─> canvas_.DrawBitmap(bg1, bg2)
-
-5. DrawObjectPositionOutlines(room)
-   └─> Colored rectangles by layer
-   └─> Object ID labels
-```
-
-### Room Structure (Bottom to Top)
-
-Understanding ALTTP dungeon composition is critical:
-
-```
-Room Composition:
-├─ Room Layout (BASE LAYER - immovable)
-│  ├─ Walls (structural boundaries, 7 configurations of squares in 2x2 grid)
-│  ├─ Floors (walkable areas, repeated tile pattern set to BG1/BG2)
-├─ Layer 0 Objects (floor decorations, some walls)
-├─ Layer 1 Objects (chests, decorations)
-└─ Layer 2 Objects (stairs, transitions)
-
-Doors: Positioned at room edges to connect rooms
-```
-
-**Key Insight**: Layouts are immovable base structure. Objects are placed ON TOP and can be moved/edited. This allows for large rooms, 4-quadrant rooms, tall/wide rooms, etc.
+Changing tiles, palettes, or objects invalidates the affected room cache so steps 2–5 rerun only for
+that room.
 
 ---
 
-## Next Development Steps
+## 3. Editing Workflow
 
-### High Priority (Must Do)
+### Opening Rooms
+1. Launch `yaze` with a ROM (`./build/bin/yaze --rom_file=zelda3.sfc`).
+2. Use the **Room Matrix** or **Rooms List** card to choose a room. The toolbar “+” button also opens
+   the selector.
+3. Pin multiple rooms by opening them in separate cards; each card maintains its own canvas state.
 
-#### 1. Door Rendering at Room Edges
-**What**: Render doors with proper patterns at room connections
+### Working with Cards
 
-**Pattern Reference**: ZScream's door drawing patterns
+| Card | Purpose |
+|------|---------|
+| **Room Graphics** | Primary canvas, BG toggles, collision/grid switches. |
+| **Object Editor** | Filter by type/layer, edit coordinates, duplicate/delete objects. |
+| **Palette Editor** | Adjust per-room palette slots and preview results immediately. |
+| **Entrances List** | Jump between overworld entrances and their mapped rooms. |
+| **Room Matrix** | Visual grid of all rooms grouped per dungeon for quick navigation. |
 
-**Implementation**:
-```cpp
-void DungeonCanvasViewer::DrawDoors(const zelda3::Room& room) {
-  // Doors stored in room data
-  // Position at room edges (North/South/East/West)
-  // Use current_gfx16_ graphics data
-  
-  // TODO: Get door data from room.GetDoors() or similar
-  // TODO: Use ObjectDrawer patterns for door graphics
-  // TODO: Draw at interpolation points between rooms
-}
-```
+Cards can be docked, detached, or saved as workspace presets; use the sidebar to store favorite
+layouts (e.g., Room Graphics + Object Editor + Palette).
 
----
+### Canvas Interactions
+- Left-click to select an object; Shift-click to add to the selection.
+- Drag handles to move objects or use the property grid for precise coordinates.
+- Right-click to open the context menu, which includes quick inserts for common objects and a “jump
+  to entrance” helper.
+- Hold Space to pan, use mouse wheel (or trackpad pinch) to zoom. The status footer shows current
+  zoom and cursor coordinates.
+- Enable **Object Labels** from the toolbar to show layer-colored labels (e.g., `L1 Chest 0x23`).
 
-#### 2. Object Name Labels from String Array
-**File**: `dungeon_canvas_viewer.cc:416` (DrawObjectPositionOutlines)
-
-**What**: Show real object names instead of just IDs
-
-**Implementation**:
-```cpp
-// Instead of:
-std::string label = absl::StrFormat("0x%02X", obj.id_);
-
-// Use:
-std::string object_name = GetObjectName(obj.id_);
-std::string label = absl::StrFormat("%s\n0x%02X", object_name.c_str(), obj.id_);
-
-// Helper function:
-std::string GetObjectName(int16_t object_id) {
-  // TODO: Reference ZScream's object name arrays
-  // TODO: Map object ID → name string
-  // Example: 0x10 → "Wall (North)"
-  return "Object";
-}
-```
+### Saving & Undo
+- The editor queues every change through `DungeonEditorSystem`. Use `Cmd/Ctrl+Z` and `Cmd/Ctrl+Shift+Z`
+  to undo/redo across cards.
+- Saving writes back the room buffers, door metadata, and palettes for the active session. Keep
+  backups enabled (`File → Options → Experiment Flags`) for safety.
 
 ---
 
-#### 4. Fix Plus Button to Select Any Room
-**File**: `dungeon_editor_v2.cc:228` (DrawToolset)
+## 4. Tips & Troubleshooting
 
-**Current Issue**: Opens Room 0x00 (Ganon) always
-
-**Fix**:
-```cpp
-if (toolbar.AddAction(ICON_MD_ADD, "Open Room")) {
-  // Show room selector dialog instead of opening room 0
-  show_room_selector_ = true;
-  // Or: show room picker popup
-  ImGui::OpenPopup("SelectRoomToOpen");
-}
-
-// Add popup:
-if (ImGui::BeginPopup("SelectRoomToOpen")) {
-  static int selected_room = 0;
-  ImGui::InputInt("Room ID", &selected_room);
-  if (ImGui::Button("Open")) {
-    OnRoomSelected(selected_room);
-    ImGui::CloseCurrentPopup();
-  }
-  ImGui::EndPopup();
-}
-```
+- **Layer sanity**: If objects appear on the wrong layer, check the BG toggles in Room Graphics and
+  the layer filter in Object Editor—they operate independently.
+- **Palette issues**: Palettes are per room. After editing, ensure `Palette Editor` writes the new
+  values before switching rooms; the status footer confirms pending writes.
+- **Door alignment**: Use the entrance/door inspector popup (right-click a door marker) to verify
+  leads-to IDs without leaving the canvas.
+- **Performance**: Large ROMs with many rooms can accumulate textures. If the editor feels sluggish,
+  close unused room cards; each card releases its textures when closed.
 
 ---
 
-### Medium Priority (Should Do)
-
-#### 6. Fix InputHexByte +/- Button Events
-**File**: `src/app/gui/input.cc` (likely)
-
-**Issue**: Buttons don't respond to clicks
-
-**Investigation Needed**:
-- Check if button click events are being captured
-- Verify event logic matches working examples
-- Keep existing event style if it works elsewhere
-
-
-### Lower Priority (Nice to Have)
-
-#### 9. Move Backend Logic to DungeonEditorSystem
-**What**: Separate UI (V2) from data operations (System)
-
-**Migration**:
-- Sprite management → DungeonEditorSystem
-- Item management → DungeonEditorSystem
-- Entrance/Door/Chest → DungeonEditorSystem
-- Undo/Redo → DungeonEditorSystem
-
-**Result**: DungeonEditorV2 becomes pure UI coordinator
-
----
-
-## Quick Start
-
-### Build & Run
-```bash
-cd /Users/scawful/Code/yaze
-cmake --preset mac-ai -B build_ai
-cmake --build build_ai --target yaze -j12
-
-# Run dungeon editor
-./build_ai/bin/yaze.app/Contents/MacOS/yaze --rom_file=zelda3.sfc --editor=Dungeon
-
-# Open specific room
-./build_ai/bin/yaze.app/Contents/MacOS/yaze --rom_file=zelda3.sfc --editor=Dungeon --cards="Room 0x00"
-```
-
----
-
-## Testing & Verification
-
-### Debug Commands
-```bash
-# Verify floor values load correctly
-./build_ai/bin/yaze.app/Contents/MacOS/yaze --rom_file=zelda3.sfc --editor=Dungeon 2>&1 | grep "floor1="
-
-# Expected: floor1=4, floor2=8 (NOT 0!)
-
-# Check object rendering
-./build_ai/bin/yaze.app/Contents/MacOS/yaze --rom_file=zelda3.sfc --editor=Dungeon 2>&1 | grep "Drawing.*objects"
-
-# Check object drawing details
-./build_ai/bin/yaze.app/Contents/MacOS/yaze --rom_file=zelda3.sfc --editor=Dungeon 2>&1 | grep "Writing Tile16"
-```
-
-## Related Documentation
-
-- **Architecture Overview** (`../developer/architecture.md`) - Core architectural patterns
-- **Debugging Guide** (`../developer/debugging-guide.md`) - Debugging workflows
-- **Legacy context** - This document supersedes the legacy `F1-dungeon-editor-guide.md`.
-
----
-
-**Last Updated**: October 10, 2025  
-**Contributors**: Dungeon Editor Refactoring Session
-
+## 5. Related Docs
+- [Developer Architecture Overview](../developer/architecture.md) – patterns shared across editors.
+- [Canvas System Guide](../developer/canvas-system.md) – detailed explanation of canvas usage,
+  context menus, and popups.
+- [Debugging Guide](../developer/debugging-guide.md) – startup flags and logging tips (e.g.,
+  `--editor=Dungeon --cards="Room 0"` for focused debugging).

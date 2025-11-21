@@ -5,9 +5,11 @@
 // If you see linker errors, enable Z3ED_AI or YAZE_WITH_JSON in CMake
 #if !defined(YAZE_WITH_JSON)
 #ifdef _MSC_VER
-  #pragma message("PromptBuilder requires JSON support. Build with -DZ3ED_AI=ON or -DYAZE_WITH_JSON=ON")
+#pragma message( \
+    "PromptBuilder requires JSON support. Build with -DZ3ED_AI=ON or -DYAZE_WITH_JSON=ON")
 #else
-  #warning "PromptBuilder requires JSON support. Build with -DZ3ED_AI=ON or -DYAZE_WITH_JSON=ON"
+#warning \
+    "PromptBuilder requires JSON support. Build with -DZ3ED_AI=ON or -DYAZE_WITH_JSON=ON"
 #endif
 #endif
 
@@ -17,10 +19,10 @@
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
-#include "nlohmann/json_fwd.hpp"
+#include "app/rom.h"
 #include "cli/service/ai/common.h"
 #include "cli/service/resources/resource_context_builder.h"
-#include "app/rom.h"
+#include "nlohmann/json_fwd.hpp"
 
 namespace yaze {
 namespace cli {
@@ -64,30 +66,29 @@ struct RomContext {
 class PromptBuilder {
  public:
   PromptBuilder();
-  
+
   void SetRom(Rom* rom) { rom_ = rom; }
 
   // Load z3ed command documentation from resources
   absl::Status LoadResourceCatalogue(const std::string& yaml_path);
-  
+
   // Build system instruction with full command reference
   std::string BuildSystemInstruction();
-  
+
   // Build system instruction with few-shot examples
   std::string BuildSystemInstructionWithExamples();
-  
+
   // Build user prompt with ROM context
-  std::string BuildContextualPrompt(
-      const std::string& user_prompt,
-      const RomContext& context);
-      
+  std::string BuildContextualPrompt(const std::string& user_prompt,
+                                    const RomContext& context);
+
   // Build a full prompt from a conversation history
   std::string BuildPromptFromHistory(
       const std::vector<agent::ChatMessage>& history);
-  
+
   // Add custom few-shot examples
   void AddFewShotExample(const FewShotExample& example);
-  
+
   // Get few-shot examples for specific category
   std::vector<FewShotExample> GetExamplesForCategory(
       const std::string& category);
@@ -95,13 +96,13 @@ class PromptBuilder {
   const std::map<std::string, std::string>& tile_reference() const {
     return tile_reference_;
   }
-  
+
   // Generate OpenAI-compatible function call schemas (JSON format)
   std::string BuildFunctionCallSchemas() const;
-  
+
   // Set verbosity level (0=minimal, 1=standard, 2=verbose)
   void SetVerbosity(int level) { verbosity_ = level; }
-  
+
  private:
   std::string BuildCommandReference() const;
   std::string BuildFewShotExamplesSection() const;
@@ -109,13 +110,14 @@ class PromptBuilder {
   std::string BuildContextSection(const RomContext& context);
   std::string BuildConstraintsSection() const;
   std::string BuildTileReferenceSection() const;
-  absl::StatusOr<std::string> ResolveCataloguePath(const std::string& yaml_path) const;
+  absl::StatusOr<std::string> ResolveCataloguePath(
+      const std::string& yaml_path) const;
   void ClearCatalogData();
   absl::Status ParseCommands(const nlohmann::json& commands);
   absl::Status ParseTools(const nlohmann::json& tools);
   absl::Status ParseExamples(const nlohmann::json& examples);
   void ParseTileReference(const nlohmann::json& tile_reference);
-  
+
   Rom* rom_ = nullptr;
   std::unique_ptr<ResourceContextBuilder> resource_context_builder_;
   std::map<std::string, std::string> command_docs_;  // Command name -> docs

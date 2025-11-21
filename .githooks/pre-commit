@@ -1,0 +1,126 @@
+#!/bin/bash
+# Pre-commit Hook - Quick symbol conflict detection
+#
+# This hook runs on staged changes and warns if duplicate symbol definitions
+# are detected in affected object files.
+#
+# Bypass with: git commit --no-verify
+
+set -euo pipefail
+
+# Colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+CYAN='\033[0;36m'
+NC='\033[0m'
+
+echo -e "${BLUE}[Pre-Commit]${NC} Checking for symbol conflicts..."
+
+# Get the repository root
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+SCRIPTS_DIR="${REPO_ROOT}/scripts"
+BUILD_DIR="${REPO_ROOT}/build"
+
+# Check if build directory exists
+if [[ ! -d "${BUILD_DIR}" ]]; then
+    echo -e "${YELLOW}[Pre-Commit]${NC} Build directory not found - skipping symbol check"
+    exit 0
+fi
+
+# Get list of changed .cc and .h files
+CHANGED_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(cc|h)$' || echo "")
+
+if [[ -z "${CHANGED_FILES}" ]]; then
+    echo -e "${YELLOW}[Pre-Commit]${NC} No C++ source changes detected"
+    exit 0
+fi
+
+echo -e "${CYAN}Changed files:${NC}"
+echo "${CHANGED_FILES}" | sed 's/^/  /'
+echo ""
+
+# Quick symbol database check (only on changed files)
+# Find object files that might be affected by the changes
+AFFECTED_OBJ_FILES=""
+for file in ${CHANGED_FILES}; do
+    # Convert source file path to likely object file names
+    # e.g., src/cli/flags.cc -> *flags.cc.o
+    filename=$(basename "${file}" | sed 's/\.[ch]$//')
+
+    # Find matching object files in build directory
+    matching=$(find "${BUILD_DIR}" -name "*${filename}*.o" -o -name "*${filename}*.obj" 2>/dev/null | head -5)
+    if [[ -n "${matching}" ]]; then
+        AFFECTED_OBJ_FILES+=$'\n'"${matching}"
+    fi
+done
+
+if [[ -z "${AFFECTED_OBJ_FILES}" ]]; then
+    echo -e "${YELLOW}[Pre-Commit]${NC} No compiled objects found for changed files (might not be built yet)"
+    exit 0
+fi
+
+echo -e "${CYAN}Affected object files:${NC}"
+echo "${AFFECTED_OBJ_FILES}" | grep -v '^$' | sed 's/^/  /' || echo "  (none found)"
+echo ""
+
+# Extract symbols from affected files
+echo -e "${CYAN}Analyzing symbols...${NC}"
+
+TEMP_SYMBOLS="/tmp/yaze_precommit_symbols_$$.txt"
+trap "rm -f ${TEMP_SYMBOLS}" EXIT
+
+: > "${TEMP_SYMBOLS}"
+
+# Platform detection
+UNAME_S=$(uname -s)
+SYMBOL_CONFLICTS=0
+
+while IFS= read -r obj_file; do
+    [[ -z "${obj_file}" ]] && continue
+    [[ ! -f "${obj_file}" ]] && continue
+
+    # Extract symbols using nm (Unix/macOS)
+    if [[ "${UNAME_S}" == "Darwin"* ]] || [[ "${UNAME_S}" == "Linux"* ]]; then
+        nm -P "${obj_file}" 2>/dev/null | while read -r sym rest; do
+            [[ -z "${sym}" ]] && continue
+            # Skip undefined symbols (contain 'U')
+            [[ "${rest}" == *"U"* ]] && continue
+            echo "${sym}|${obj_file##*/}"
+        done >> "${TEMP_SYMBOLS}" || true
+    fi
+done < <(echo "${AFFECTED_OBJ_FILES}" | grep -v '^$')
+
+# Check for duplicates
+if [[ -f "${TEMP_SYMBOLS}" ]]; then
+    SYMBOL_CONFLICTS=$(cut -d'|' -f1 "${TEMP_SYMBOLS}" | sort | uniq -d | wc -l)
+fi
+
+# Report results
+if [[ ${SYMBOL_CONFLICTS} -gt 0 ]]; then
+    echo -e "${RED}WARNING: Symbol conflicts detected!${NC}\n"
+    echo "Duplicate symbols in affected files:"
+
+    cut -d'|' -f1 "${TEMP_SYMBOLS}" | sort | uniq -d | while read -r symbol; do
+        echo -e "  ${CYAN}${symbol}${NC}"
+        grep "^${symbol}|" "${TEMP_SYMBOLS}" | cut -d'|' -f2 | sort | uniq | sed 's/^/    - /'
+    done
+
+    echo ""
+    echo -e "${YELLOW}You can:${NC}"
+    echo "  1. Fix the conflicts before committing"
+    echo "  2. Skip this check: git commit --no-verify"
+    echo "  3. Run full analysis: ./scripts/extract-symbols.sh && ./scripts/check-duplicate-symbols.sh"
+    echo ""
+    echo -e "${YELLOW}Common fixes:${NC}"
+    echo "  - Add 'static' keyword to make it internal linkage"
+    echo "  - Use anonymous namespace in .cc files"
+    echo "  - Use 'inline' keyword for function/variable definitions"
+    echo ""
+
+    exit 1
+else
+    echo -e "${GREEN}No symbol conflicts in changed files${NC}"
+    exit 0
+fi

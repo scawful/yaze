@@ -159,8 +159,8 @@ void WidgetDiscoveryService::CollectWidgets(
   response->set_total_widgets(total_widgets);
 }
 
-bool WidgetDiscoveryService::MatchesWindow(absl::string_view window_name,
-                                           absl::string_view filter_lower) const {
+bool WidgetDiscoveryService::MatchesWindow(
+    absl::string_view window_name, absl::string_view filter_lower) const {
   if (filter_lower.empty()) {
     return true;
   }
@@ -168,8 +168,8 @@ bool WidgetDiscoveryService::MatchesWindow(absl::string_view window_name,
   return absl::StrContains(name_lower, filter_lower);
 }
 
-bool WidgetDiscoveryService::MatchesPathPrefix(absl::string_view path,
-                                               absl::string_view prefix_lower) const {
+bool WidgetDiscoveryService::MatchesPathPrefix(
+    absl::string_view path, absl::string_view prefix_lower) const {
   if (prefix_lower.empty()) {
     return true;
   }
@@ -230,8 +230,8 @@ std::string WidgetDiscoveryService::ExtractLabel(absl::string_view path) const {
   return std::string(path.substr(colon + 1));
 }
 
-std::string WidgetDiscoveryService::SuggestedAction(absl::string_view type,
-                                                    absl::string_view label) const {
+std::string WidgetDiscoveryService::SuggestedAction(
+    absl::string_view type, absl::string_view label) const {
   std::string type_lower = absl::AsciiStrToLower(std::string(type));
   if (type_lower == "button" || type_lower == "menuitem") {
     return absl::StrCat("Click button:", label);

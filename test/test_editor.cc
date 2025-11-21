@@ -3,12 +3,12 @@
 #include <SDL.h>
 
 #include "app/controller.h"
-#include "app/platform/window.h"
 #include "app/gfx/backend/sdl2_renderer.h"
 #include "app/gui/core/style.h"
+#include "app/platform/window.h"
+#include "imgui.h"
 #include "imgui/backends/imgui_impl_sdl2.h"
 #include "imgui/backends/imgui_impl_sdlrenderer2.h"
-#include "imgui.h"
 
 #ifdef IMGUI_ENABLE_TEST_ENGINE
 #include "imgui_test_engine/imgui_te_context.h"
@@ -33,7 +33,7 @@ absl::Status TestEditor::Update() {
   ImGuiTestEngine_ShowTestEngineWindows(engine_, &show_demo_window);
 #else
   ImGui::Text("ImGui Test Engine not available in this build");
-  (void)show_demo_window; // Suppress unused variable warning
+  (void)show_demo_window;  // Suppress unused variable warning
 #endif
 
   ImGui::End();
@@ -70,14 +70,15 @@ int RunIntegrationTest() {
   test_io.ConfigVerboseLevel = ImGuiTestVerboseLevel_Info;
   test_io.ConfigVerboseLevelOnError = ImGuiTestVerboseLevel_Debug;
 #else
-  void* engine = nullptr; // Placeholder when test engine is disabled
+  void* engine = nullptr;  // Placeholder when test engine is disabled
 #endif
 
   ImGuiIO& io = ImGui::GetIO();
   io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 
   // Initialize ImGui for SDL
-  SDL_Renderer* sdl_renderer = static_cast<SDL_Renderer*>(test_renderer->GetBackendRenderer());
+  SDL_Renderer* sdl_renderer =
+      static_cast<SDL_Renderer*>(test_renderer->GetBackendRenderer());
   ImGui_ImplSDL2_InitForSDLRenderer(controller.window(), sdl_renderer);
   ImGui_ImplSDLRenderer2_Init(sdl_renderer);
 

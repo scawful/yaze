@@ -10,7 +10,7 @@
 
 # Add ASAR library subdirectory
 # TODO: Fix ASAR CMakeLists.txt macro errors
-# add_subdirectory(${CMAKE_SOURCE_DIR}/src/lib/asar/src/asar ${CMAKE_BINARY_DIR}/asar)
+# add_subdirectory(${CMAKE_SOURCE_DIR}/ext/asar/src/asar ${CMAKE_BINARY_DIR}/asar)
 
 # Core library sources
 set(YAZE_CORE_LIB_SOURCES
@@ -28,10 +28,10 @@ target_compile_features(yaze_core_lib PUBLIC cxx_std_20)
 target_include_directories(yaze_core_lib PUBLIC
   ${CMAKE_SOURCE_DIR}/src
   ${CMAKE_SOURCE_DIR}/src/app  # Needed for app/gui/core/icons.h temporarily
-  ${CMAKE_SOURCE_DIR}/src/lib/asar/src
-  ${CMAKE_SOURCE_DIR}/src/lib/asar/src/asar
-  ${CMAKE_SOURCE_DIR}/src/lib/asar/src/asar-dll-bindings/c
-  ${CMAKE_SOURCE_DIR}/src/lib/imgui  # Needed for ImGui in project.cc temporarily
+  ${CMAKE_SOURCE_DIR}/ext/asar/src
+  ${CMAKE_SOURCE_DIR}/ext/asar/src/asar
+  ${CMAKE_SOURCE_DIR}/ext/asar/src/asar-dll-bindings/c
+  ${CMAKE_SOURCE_DIR}/ext/imgui  # Needed for ImGui in project.cc temporarily
   ${CMAKE_SOURCE_DIR}/incl
   ${PROJECT_BINARY_DIR}
 )

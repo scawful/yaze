@@ -4,14 +4,14 @@ if(NOT YAZE_ENABLE_JSON)
   return()
 endif()
 
-message(STATUS "Setting up nlohmann_json with local third_party")
+message(STATUS "Setting up nlohmann_json with local ext directory")
 
-# Use the bundled nlohmann_json from third_party
+# Use the bundled nlohmann_json from ext/json
 set(JSON_BuildTests OFF CACHE BOOL "" FORCE)
 set(JSON_Install OFF CACHE BOOL "" FORCE)
 set(JSON_MultipleHeaders OFF CACHE BOOL "" FORCE)
 
-add_subdirectory(${CMAKE_SOURCE_DIR}/third_party/json EXCLUDE_FROM_ALL)
+add_subdirectory(${CMAKE_SOURCE_DIR}/ext/json EXCLUDE_FROM_ALL)
 
 # Verify target is available
 if(TARGET nlohmann_json::nlohmann_json)
@@ -25,10 +25,7 @@ else()
 endif()
 
 # Export for use in other CMake files
-set(YAZE_JSON_TARGETS
-  nlohmann_json::nlohmann_json
-  PARENT_SCOPE
-)
+set(YAZE_JSON_TARGETS nlohmann_json::nlohmann_json CACHE INTERNAL "nlohmann_json targets")
 
 message(STATUS "nlohmann_json setup complete")
 

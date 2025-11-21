@@ -69,8 +69,8 @@ struct ObjectDrawInfo {
   int tile_count;       // How many tiles this object has
   bool is_horizontal;   // Orientation
   bool is_vertical;
-  bool both_layers;     // Draw to both BG1 and BG2
-  std::string routine_name; // Human-readable routine name
+  bool both_layers;          // Draw to both BG1 and BG2
+  std::string routine_name;  // Human-readable routine name
 
   ObjectDrawInfo()
       : draw_routine_id(0),
@@ -129,7 +129,7 @@ class ObjectParser {
    * @brief Determine object subtype from ID
    */
   int DetermineSubtype(int16_t object_id) const;
-  
+
   /**
    * @brief Get draw routine information for an object
    * @param object_id The object ID to look up
@@ -161,7 +161,7 @@ class ObjectParser {
    * @return StatusOr containing tile data
    */
   absl::StatusOr<std::vector<gfx::TileInfo>> ReadTileData(int address,
-                                                        int tile_count);
+                                                          int tile_count);
 
   Rom* rom_;
 };

@@ -124,17 +124,18 @@ void CompressionCommandAlternative(const uint8_t* rom_data,
 
 // Compression V2
 
-void CheckByteRepeatV2(const uint8_t* data, uint& src_pos, const unsigned int last_pos,
-                       CompressionCommand& cmd);
+void CheckByteRepeatV2(const uint8_t* data, uint& src_pos,
+                       const unsigned int last_pos, CompressionCommand& cmd);
 
-void CheckWordRepeatV2(const uint8_t* data, uint& src_pos, const unsigned int last_pos,
-                       CompressionCommand& cmd);
+void CheckWordRepeatV2(const uint8_t* data, uint& src_pos,
+                       const unsigned int last_pos, CompressionCommand& cmd);
 
-void CheckIncByteV2(const uint8_t* data, uint& src_pos, const unsigned int last_pos,
-                    CompressionCommand& cmd);
+void CheckIncByteV2(const uint8_t* data, uint& src_pos,
+                    const unsigned int last_pos, CompressionCommand& cmd);
 
-void CheckIntraCopyV2(const uint8_t* data, uint& src_pos, const unsigned int last_pos,
-                      unsigned int start, CompressionCommand& cmd);
+void CheckIntraCopyV2(const uint8_t* data, uint& src_pos,
+                      const unsigned int last_pos, unsigned int start,
+                      CompressionCommand& cmd);
 
 void ValidateForByteGainV2(const CompressionCommand& cmd, uint& max_win,
                            uint& cmd_with_max);

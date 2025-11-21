@@ -525,8 +525,9 @@ void Snes::WriteBBus(uint8_t adr, uint8_t val) {
                 0x40 + (adr & 0x3), (adr & 0x3) + 4, val, cpu_.PB, cpu_.PC);
     }
 
-    // NOTE: Auto-reset disabled - relying on complete IPL ROM with counter protocol
-    // The IPL ROM will handle multi-upload sequences via its transfer loop
+    // NOTE: Auto-reset disabled - relying on complete IPL ROM with counter
+    // protocol The IPL ROM will handle multi-upload sequences via its transfer
+    // loop
 
     return;
   }

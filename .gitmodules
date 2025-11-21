@@ -1,27 +1,27 @@
-[submodule "src/lib/imgui"]
-	path = src/lib/imgui
+[submodule "ext/imgui"]
+	path = ext/imgui
 	url = https://github.com/ocornut/imgui.git
 [submodule "assets/asm/alttp-hacker-workspace"]
 	path = assets/asm/alttp-hacker-workspace
 	url = https://github.com/scawful/alttp-hacker-workspace.git
-[submodule "src/lib/SDL"]
-	path = src/lib/SDL
+[submodule "ext/SDL"]
+	path = ext/SDL
 	url = https://github.com/libsdl-org/SDL.git
-[submodule "src/lib/asar"]
-	path = src/lib/asar
+[submodule "ext/asar"]
+	path = ext/asar
 	url = https://github.com/RPGHacker/asar.git
-[submodule "src/lib/imgui_test_engine"]
-	path = src/lib/imgui_test_engine
+[submodule "ext/imgui_test_engine"]
+	path = ext/imgui_test_engine
 	url = https://github.com/ocornut/imgui_test_engine.git
-[submodule "src/lib/nativefiledialog-extended"]
-	path = src/lib/nativefiledialog-extended
+[submodule "ext/nativefiledialog-extended"]
+	path = ext/nativefiledialog-extended
 	url = https://github.com/btzy/nativefiledialog-extended.git
 [submodule "assets/asm/usdasm"]
 	path = assets/asm/usdasm
 	url = https://github.com/spannerisms/usdasm.git
-[submodule "third_party/json"]
-	path = third_party/json
+[submodule "ext/json"]
+	path = ext/json
 	url = https://github.com/nlohmann/json.git
-[submodule "third_party/httplib"]
-	path = third_party/httplib
+[submodule "ext/httplib"]
+	path = ext/httplib
 	url = https://github.com/yhirose/cpp-httplib.git

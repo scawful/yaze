@@ -53,6 +53,9 @@ The `agent_test_suite.sh` script now defaults to mock ROM mode:
 
 # Or with Gemini
 ./scripts/agent_test_suite.sh gemini
+
+# Override the Ollama model (CI uses qwen2.5-coder:0.5b)
+OLLAMA_MODEL=qwen2.5-coder:0.5b ./scripts/agent_test_suite.sh ollama
 ```
 
 To use a real ROM instead, edit the script:
