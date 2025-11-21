@@ -31,6 +31,33 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     return;
   }
 
+  // Handle pending scroll request
+  if (pending_scroll_target_.has_value()) {
+    auto [target_x, target_y] = pending_scroll_target_.value();
+    
+    // Convert tile coordinates to pixels
+    float scale = canvas_.global_scale();
+    if (scale <= 0.0f) scale = 1.0f;
+    
+    float pixel_x = target_x * 8 * scale;
+    float pixel_y = target_y * 8 * scale;
+    
+    // Center in view
+    ImVec2 view_size = ImGui::GetWindowSize();
+    float scroll_x = pixel_x - (view_size.x * 0.5f);
+    float scroll_y = pixel_y - (view_size.y * 0.5f);
+    
+    // Account for canvas position offset if possible, but roughly centering is usually enough
+    // Ideally we'd add the cursor position y-offset to scroll_y to account for the UI above canvas
+    // but GetCursorPosY() might not be accurate before content is laid out.
+    // For X, canvas usually starts at left, so it's fine.
+    
+    ImGui::SetScrollX(scroll_x);
+    ImGui::SetScrollY(scroll_y);
+    
+    pending_scroll_target_.reset();
+  }
+
   ImGui::BeginGroup();
 
   // CRITICAL: Canvas coordinate system for dungeons
@@ -45,7 +72,7 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
 
   // Configure canvas for dungeon display
   canvas_.SetCanvasSize(ImVec2(kRoomPixelWidth, kRoomPixelHeight));
-  canvas_.SetGridSize(gui::CanvasGridSize::k8x8);  // Match dungeon tile size
+  canvas_.SetCustomGridStep(static_cast<float>(custom_grid_size_));
 
   // DEBUG: Log canvas configuration
   static int debug_frame_count = 0;
@@ -273,6 +300,16 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     canvas_.AddContextMenuItem(gui::CanvasMenuItem(
         ICON_MD_REFRESH " Re-render Room", ICON_MD_REFRESH,
         [&room]() { room.RenderRoomGraphics(); }, "Ctrl+R"));
+
+    // Grid Options
+    gui::CanvasMenuItem grid_menu;
+    grid_menu.label = ICON_MD_GRID_ON " Grid Options";
+    
+    grid_menu.subitems.push_back(gui::CanvasMenuItem("8x8", [this]() { custom_grid_size_ = 8; }));
+    grid_menu.subitems.push_back(gui::CanvasMenuItem("16x16", [this]() { custom_grid_size_ = 16; }));
+    grid_menu.subitems.push_back(gui::CanvasMenuItem("32x32", [this]() { custom_grid_size_ = 32; }));
+    
+    canvas_.AddContextMenuItem(grid_menu);
 
     // === DEBUG MENU ===
     gui::CanvasMenuItem debug_menu;

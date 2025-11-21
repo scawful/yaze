@@ -49,6 +49,9 @@ class ObjectEditorCard {
 
  private:
   void DrawObjectSelector();
+  void DrawObjectTemplates();
+  void DrawTemplateCreationModal();
+  void DrawDeleteConfirmationModal();
   void DrawEmulatorPreview();
   void DrawInteractionControls();
   void DrawSelectedObjectInfo();
@@ -59,6 +62,7 @@ class ObjectEditorCard {
   void SelectAllObjects();
   void DeselectAllObjects();
   void DeleteSelectedObjects();
+  void PerformDelete(); // Helper for actual deletion
   void DuplicateSelectedObjects();
   void CopySelectedObjects();
   void PasteObjects();
@@ -84,6 +88,8 @@ class ObjectEditorCard {
   bool show_interaction_controls_ = true;
   bool show_grid_ = true;
   bool show_object_ids_ = false;
+  bool show_template_creation_modal_ = false;
+  bool show_delete_confirmation_modal_ = false;
 
   // Object interaction mode
   enum class InteractionMode { None, Place, Select, Delete };
