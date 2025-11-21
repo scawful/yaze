@@ -117,6 +117,32 @@ TEST_F(DungeonObjectRenderingTests, MultiLayerRendering) {
   EXPECT_TRUE(bg2_->bitmap().is_active());
 }
 
+// Test that a compact buffer (preview-sized) receives pixels
+TEST_F(DungeonObjectRenderingTests, PreviewBufferRendersContent) {
+  std::vector<zelda3::RoomObject> objects;
+  objects.push_back(CreateTestObject(0x10, 1, 1, 0x12, 0));  // Small wall
+
+  gfx::BackgroundBuffer preview_bg(64, 64);
+  gfx::BackgroundBuffer preview_bg2(64, 64);
+  preview_bg.ClearBuffer();
+  preview_bg2.ClearBuffer();
+
+  auto status =
+      drawer_->DrawObjectList(objects, preview_bg, preview_bg2, palette_group_);
+  ASSERT_TRUE(status.ok());
+
+  auto& bitmap = preview_bg.bitmap();
+  EXPECT_TRUE(bitmap.is_active());
+  const auto& data = bitmap.data();
+  size_t non_zero = 0;
+  for (size_t i = 0; i < data.size(); i += 16) {
+    if (data[i] != 0) {
+      non_zero++;
+    }
+  }
+  EXPECT_GT(non_zero, 0u);
+}
+
 // Test empty object list
 TEST_F(DungeonObjectRenderingTests, EmptyObjectList) {
   std::vector<zelda3::RoomObject> objects;  // Empty
