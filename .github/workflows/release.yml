@@ -87,14 +87,16 @@ jobs:
           cpack -G DragNDrop
           ls -la _CPack_Packages/
 
-      - name: Create notarized bundle (macOS)
-        if: matrix.platform == 'macos'
-        shell: bash
-        run: |
-          chmod +x ./scripts/create-macos-bundle.sh
-          ./scripts/create-macos-bundle.sh ${{ env.VERSION }} yaze-${{ env.VERSION }}-bundle
-          mkdir -p build/_CPack_Packages/manual
-          mv yaze-${{ env.VERSION }}-bundle.dmg build/_CPack_Packages/manual/ || true
+      # Optional: Create notarized bundle (macOS)
+      # Disabled for release builds - CPack DMG is sufficient
+      # - name: Create notarized bundle (macOS)
+      #   if: matrix.platform == 'macos'
+      #   shell: bash
+      #   run: |
+      #     chmod +x ./scripts/create-macos-bundle.sh
+      #     ./scripts/create-macos-bundle.sh ${{ env.VERSION }} yaze-${{ env.VERSION }}-bundle
+      #     mkdir -p build/_CPack_Packages/manual
+      #     mv yaze-${{ env.VERSION }}-bundle.dmg build/_CPack_Packages/manual/ || true
 
       - name: Patch cmake_install.cmake (Windows)
         if: matrix.platform == 'windows'
