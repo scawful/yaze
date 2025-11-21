@@ -283,6 +283,7 @@ When the project reaches v1.0 or has multiple active contributors, we'll transit
 - Main application: `src/yaze.cc`
 - CLI tool: `src/cli/z3ed.cc`
 - Test runner: `test/yaze_test.cc`
+- Real-time State Sync Protocol: `docs/public/developer/realtime-state-sync-protocol.md`
 
 ## Common Pitfalls
 
