@@ -8,6 +8,7 @@
 | `run-tests.sh` | Configures the preset (if needed), builds `yaze_test`, and runs `ctest` with optional args. |
 | `test-http-api.sh` | Polls the HTTP API `/api/v1/health` endpoint using curl (defaults to localhost:8080). |
 | `windows-smoke-build.ps1` | PowerShell variant of the smoke build helper for Visual Studio/Ninja presets on Windows. |
+| `cancel-ci-runs.sh` | Cancels queued/in-progress GitHub Actions runs for a branch so a fresh run isn’t stuck behind older ones. |
 
 Usage examples:
 ```bash
@@ -26,6 +27,9 @@ scripts/agents/run-tests.sh mac-dbg --output-on-failure
 
 # Check HTTP API health (defaults to localhost:8080)
 scripts/agents/test-http-api.sh
+
+# Cancel queued/in-progress runs for feat/http-api-phase2 (dry run)
+DRY_RUN=true scripts/agents/cancel-ci-runs.sh
 
 # Windows smoke build using PowerShell
 pwsh -File scripts/agents/windows-smoke-build.ps1 -Preset win-ai -Target z3ed
