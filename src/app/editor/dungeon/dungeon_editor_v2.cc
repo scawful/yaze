@@ -381,6 +381,7 @@ void DungeonEditorV2::DrawLayout() {
 }
 
 void DungeonEditorV2::DrawRoomTab(int room_id) {
+  const auto& theme = AgentUI::GetTheme();
   if (room_id < 0 || room_id >= 0x128) {
     ImGui::Text("Invalid room ID: %d", room_id);
     return;
@@ -667,6 +668,7 @@ void DungeonEditorV2::DrawEntrancesListCard() {
 }
 
 void DungeonEditorV2::DrawRoomMatrixCard() {
+  const auto& theme = AgentUI::GetTheme();
   gui::EditorCard matrix_card(MakeCardTitle("Room Matrix").c_str(),
                               ICON_MD_GRID_VIEW, &show_room_matrix_);
 
@@ -825,6 +827,7 @@ void DungeonEditorV2::DrawRoomMatrixCard() {
 }
 
 void DungeonEditorV2::DrawRoomGraphicsCard() {
+  const auto& theme = AgentUI::GetTheme();
   gui::EditorCard graphics_card(MakeCardTitle("Room Graphics").c_str(),
                                 ICON_MD_IMAGE, &show_room_graphics_);
 
