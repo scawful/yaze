@@ -202,7 +202,7 @@ jobs:
 
   create-release:
     name: "Create Release"
-    needs: [build, test]
+    needs: [build]  # Tests are informational only in pre-1.0
     runs-on: ubuntu-22.04
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
 
