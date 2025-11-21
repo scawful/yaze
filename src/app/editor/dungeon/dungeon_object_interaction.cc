@@ -313,6 +313,7 @@ void DungeonObjectInteraction::DrawSelectBox() {
 }
 
 void DungeonObjectInteraction::DrawDragPreview() {
+  const auto& theme = AgentUI::GetTheme();
   if (!is_dragging_ || selected_object_indices_.empty() || !rooms_)
     return;
   if (current_room_id_ < 0 || current_room_id_ >= 296)
