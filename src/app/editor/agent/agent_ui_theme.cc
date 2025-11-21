@@ -69,6 +69,57 @@ AgentUITheme AgentUITheme::FromCurrentTheme() {
   theme.gradient_top = ImVec4(0.18f, 0.22f, 0.28f, 1.0f);
   theme.gradient_bottom = ImVec4(0.12f, 0.16f, 0.22f, 1.0f);
 
+  // Dungeon editor colors - high-contrast entity colors at 0.85f alpha
+  theme.dungeon_selection_primary = ImVec4(1.0f, 1.0f, 0.0f, 1.0f);  // Yellow
+  theme.dungeon_selection_secondary = ImVec4(0.0f, 1.0f, 1.0f, 1.0f);  // Cyan
+  theme.dungeon_selection_pulsing = ImVec4(0.0f, 1.0f, 1.0f, 1.0f);  // Cyan (animated)
+  theme.dungeon_selection_handle = ImVec4(0.0f, 1.0f, 1.0f, 1.0f);  // Cyan handles
+  theme.dungeon_drag_preview = ImVec4(0.0f, 1.0f, 1.0f, 0.25f);  // Semi-transparent cyan
+  theme.dungeon_drag_preview_outline = ImVec4(0.0f, 1.0f, 1.0f, 1.0f);  // Cyan outline
+
+  // Object type colors
+  theme.dungeon_object_wall = ImVec4(0.5f, 0.5f, 0.5f, 1.0f);  // Gray
+  theme.dungeon_object_floor = ImVec4(0.545f, 0.271f, 0.075f, 1.0f);  // Brown
+  theme.dungeon_object_chest = ImVec4(1.0f, 0.843f, 0.0f, 1.0f);  // Gold
+  theme.dungeon_object_door = ImVec4(0.545f, 0.271f, 0.075f, 1.0f);  // Brown
+  theme.dungeon_object_pot = ImVec4(0.627f, 0.322f, 0.176f, 1.0f);  // Saddle brown
+  theme.dungeon_object_stairs = ImVec4(1.0f, 1.0f, 0.0f, 1.0f);  // Yellow (high-contrast)
+  theme.dungeon_object_decoration = ImVec4(0.412f, 0.412f, 0.412f, 1.0f);  // Dim gray
+  theme.dungeon_object_default = ImVec4(0.376f, 0.376f, 0.376f, 1.0f);  // Default gray
+
+  // Grid colors
+  theme.dungeon_grid_cell_highlight = ImVec4(0.565f, 0.933f, 0.565f, 1.0f);  // Light green
+  theme.dungeon_grid_cell_selected = ImVec4(0.0f, 0.784f, 0.0f, 1.0f);  // Green
+  theme.dungeon_grid_cell_border = ImVec4(0.314f, 0.314f, 0.314f, 0.784f);  // Gray border
+  theme.dungeon_grid_text = ImVec4(0.863f, 0.863f, 0.863f, 1.0f);  // Light gray text
+
+  // Room colors
+  theme.dungeon_room_border = ImVec4(0.118f, 0.118f, 0.118f, 1.0f);  // Dark border
+  theme.dungeon_room_border_dark = ImVec4(0.196f, 0.196f, 0.196f, 1.0f);  // Border
+
+  // Sprite layer colors at 0.85f alpha for visibility
+  theme.dungeon_sprite_layer0 = ImVec4(0.2f, 0.8f, 0.2f, 0.85f);  // Green
+  theme.dungeon_sprite_layer1 = ImVec4(0.2f, 0.2f, 0.8f, 0.85f);  // Blue
+  theme.dungeon_sprite_layer2 = ImVec4(0.2f, 0.2f, 0.8f, 0.85f);  // Blue
+
+  // Outline layer colors at 0.5f alpha
+  theme.dungeon_outline_layer0 = ImVec4(1.0f, 0.0f, 0.0f, 0.5f);  // Red
+  theme.dungeon_outline_layer1 = ImVec4(0.0f, 1.0f, 0.0f, 0.5f);  // Green
+  theme.dungeon_outline_layer2 = ImVec4(0.0f, 0.0f, 1.0f, 0.5f);  // Blue
+
+  // Text colors
+  theme.text_primary = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);  // White
+  theme.text_secondary_gray = ImVec4(0.5f, 0.5f, 0.5f, 1.0f);  // Gray
+  theme.text_info = ImVec4(0.4f, 0.8f, 1.0f, 1.0f);  // Info blue
+  theme.text_warning_yellow = ImVec4(1.0f, 0.8f, 0.4f, 1.0f);  // Warning yellow
+  theme.text_error_red = ImVec4(1.0f, 0.0f, 0.0f, 1.0f);  // Error red
+  theme.text_success_green = ImVec4(0.4f, 0.8f, 0.4f, 1.0f);  // Success green
+
+  // Box colors
+  theme.box_bg_dark = ImVec4(0.157f, 0.157f, 0.176f, 1.0f);  // Dark background
+  theme.box_border = ImVec4(0.392f, 0.392f, 0.392f, 1.0f);  // Border gray
+  theme.box_text = ImVec4(0.706f, 0.706f, 0.706f, 1.0f);  // Text gray
+
   return theme;
 }
 

@@ -3,6 +3,7 @@
 
 #include <functional>
 #include <vector>
+#include <utility>
 
 #include "app/gui/canvas/canvas.h"
 #include "imgui/imgui.h"
@@ -37,6 +38,7 @@ class DungeonObjectInteraction {
   // Drag and select box functionality
   void DrawSelectBox();
   void DrawDragPreview();
+  void DrawGhostPreview();  // Draw ghost preview for object placement
   void UpdateSelectedObjects();
   bool IsObjectInSelectBox(const zelda3::RoomObject& object) const;
 
@@ -70,6 +72,9 @@ class DungeonObjectInteraction {
   void SetCacheInvalidationCallback(std::function<void()> callback) {
     cache_invalidation_callback_ = callback;
   }
+  void SetMutationHook(std::function<void()> callback) {
+    mutation_hook_ = std::move(callback);
+  }
 
  private:
   gui::Canvas* canvas_;
@@ -98,6 +103,7 @@ class DungeonObjectInteraction {
   // Callbacks
   std::function<void(const zelda3::RoomObject&)> object_placed_callback_;
   std::function<void()> cache_invalidation_callback_;
+  std::function<void()> mutation_hook_;
 
   // Clipboard for copy/paste
   std::vector<zelda3::RoomObject> clipboard_;

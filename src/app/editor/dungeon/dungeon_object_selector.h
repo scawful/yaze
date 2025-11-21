@@ -1,13 +1,18 @@
 #ifndef YAZE_APP_EDITOR_DUNGEON_DUNGEON_OBJECT_SELECTOR_H
 #define YAZE_APP_EDITOR_DUNGEON_DUNGEON_OBJECT_SELECTOR_H
 
+#include "app/editor/agent/agent_ui_theme.h"
+#include "app/gfx/types/snes_palette.h"
 #include "app/gui/canvas/canvas.h"
+#include "app/gui/widgets/asset_browser.h"
+#include "app/platform/window.h"
 #include "app/rom.h"
 // object_renderer.h removed - using ObjectDrawer for production rendering
-#include "app/gfx/types/snes_palette.h"
 #include "imgui/imgui.h"
 #include "zelda3/dungeon/dungeon_editor_system.h"
 #include "zelda3/dungeon/dungeon_object_editor.h"
+#include "zelda3/dungeon/dungeon_object_registry.h"
+#include "zelda3/dungeon/object_drawer.h"
 
 namespace yaze {
 namespace editor {
@@ -89,6 +94,10 @@ class DungeonObjectSelector {
   void DrawCompactDoorEditor();
   void DrawCompactChestEditor();
   void DrawCompactPropertiesEditor();
+  bool DrawObjectPreview(const zelda3::RoomObject& object, ImVec2 top_left,
+                         float size);
+  zelda3::RoomObject MakePreviewObject(int obj_id) const;
+  void EnsureRegistryInitialized();
 
   Rom* rom_ = nullptr;
   gui::Canvas room_gfx_canvas_{"##RoomGfxCanvas",
@@ -110,6 +119,8 @@ class DungeonObjectSelector {
   uint64_t current_palette_group_id_ = 0;
   uint64_t current_palette_id_ = 0;
   gfx::PaletteGroup current_palette_group_;
+
+  zelda3::DungeonObjectRegistry object_registry_;
 
   // Object preview system
   zelda3::RoomObject preview_object_{0, 0, 0, 0, 0};
