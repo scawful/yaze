@@ -108,6 +108,14 @@ set(utf8_range_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(utf8_range_INSTALL OFF CACHE BOOL "" FORCE)
 set(utf8_range_ENABLE_INSTALL OFF CACHE BOOL "" FORCE)
 
+# Force consistent MSVC runtime library across all gRPC components (Windows only)
+# This ensures gRPC, protobuf, and Abseil all use the same CRT linking mode
+if(WIN32 AND MSVC)
+  # Use static CRT (/MT for Release, /MTd for Debug) to match Windows preset
+  set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>" CACHE STRING "" FORCE)
+  message(STATUS "Forcing static MSVC runtime for gRPC dependencies: ${CMAKE_MSVC_RUNTIME_LIBRARY}")
+endif()
+
 # Temporarily disable installation to prevent utf8_range export errors
 # This is a workaround for gRPC 1.67.1 where utf8_range tries to install targets
 # that depend on Abseil, but we have ABSL_ENABLE_INSTALL=OFF
