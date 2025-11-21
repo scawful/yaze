@@ -97,6 +97,9 @@ class DungeonCanvasViewer {
                                          false);
   }
 
+  // Object manipulation
+  void DeleteSelectedObjects() { object_interaction_.HandleDeleteSelected(); }
+
  private:
   void DisplayObjectInfo(const zelda3::RoomObject& object, int canvas_x,
                          int canvas_y);

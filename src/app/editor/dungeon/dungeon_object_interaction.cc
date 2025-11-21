@@ -2,6 +2,7 @@
 
 #include <algorithm>
 
+#include "app/editor/agent/agent_ui_theme.h"
 #include "imgui/imgui.h"
 
 namespace yaze::editor {
@@ -71,6 +72,9 @@ void DungeonObjectInteraction::HandleCanvasMouseInput() {
       // Apply drag transformation to selected objects
       if (!selected_object_indices_.empty() && rooms_ &&
           current_room_id_ >= 0 && current_room_id_ < 296) {
+        if (mutation_hook_) {
+          mutation_hook_();
+        }
         auto& room = (*rooms_)[current_room_id_];
         ImVec2 drag_delta = ImVec2(drag_current_pos_.x - drag_start_pos_.x,
                                    drag_current_pos_.y - drag_start_pos_.y);
@@ -139,7 +143,8 @@ void DungeonObjectInteraction::DrawObjectSelectRect() {
     object_select_end_ = mouse_pos;
     dragging = true;
 
-    // Draw selection rectangle
+    // Draw selection rectangle with theme colors
+    const auto& theme = AgentUI::GetTheme();
     ImVec2 start =
         ImVec2(canvas_pos.x + std::min(drag_start_pos.x, mouse_pos.x),
                canvas_pos.y + std::min(drag_start_pos.y, mouse_pos.y));
@@ -147,8 +152,13 @@ void DungeonObjectInteraction::DrawObjectSelectRect() {
                         canvas_pos.y + std::max(drag_start_pos.y, mouse_pos.y));
 
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
-    draw_list->AddRect(start, end, IM_COL32(255, 255, 0, 255), 0.0f, 0, 2.0f);
-    draw_list->AddRectFilled(start, end, IM_COL32(255, 255, 0, 32));
+    // Use accent color for selection box (high visibility at 0.85f alpha)
+    ImU32 selection_color = ImGui::ColorConvertFloat4ToU32(
+        ImVec4(theme.accent_color.x, theme.accent_color.y, theme.accent_color.z, 0.85f));
+    ImU32 selection_fill = ImGui::ColorConvertFloat4ToU32(
+        ImVec4(theme.accent_color.x, theme.accent_color.y, theme.accent_color.z, 0.15f));
+    draw_list->AddRect(start, end, selection_color, 0.0f, 0, 2.0f);
+    draw_list->AddRectFilled(start, end, selection_fill);
   }
 
   // Complete selection on mouse release
@@ -192,7 +202,8 @@ void DungeonObjectInteraction::DrawSelectionHighlights() {
   auto& room = (*rooms_)[current_room_id_];
   const auto& objects = room.GetTileObjects();
 
-  // Draw highlights for all selected objects
+  // Draw highlights for all selected objects with theme colors
+  const auto& theme = AgentUI::GetTheme();
   ImDrawList* draw_list = ImGui::GetWindowDrawList();
   ImVec2 canvas_pos = canvas_->zero_point();
 
@@ -207,37 +218,40 @@ void DungeonObjectInteraction::DrawSelectionHighlights() {
       obj_width = std::min(obj_width, 64);
       obj_height = std::min(obj_height, 64);
 
-      // Draw cyan selection highlight
+      // Draw selection highlight using accent color
       ImVec2 obj_start(canvas_pos.x + canvas_x - 2,
                        canvas_pos.y + canvas_y - 2);
       ImVec2 obj_end(canvas_pos.x + canvas_x + obj_width + 2,
                      canvas_pos.y + canvas_y + obj_height + 2);
 
-      // Animated selection (pulsing effect)
+      // Animated selection (pulsing effect) with theme accent color
       float pulse =
           0.7f + 0.3f * std::sin(static_cast<float>(ImGui::GetTime()) * 4.0f);
-      draw_list->AddRect(obj_start, obj_end,
-                         IM_COL32(0, static_cast<int>(255 * pulse), 255, 255),
-                         0.0f, 0, 2.5f);
+      ImU32 selection_color = ImGui::ColorConvertFloat4ToU32(
+          ImVec4(theme.accent_color.x * pulse, theme.accent_color.y * pulse,
+                 theme.accent_color.z * pulse, 0.85f));
+      draw_list->AddRect(obj_start, obj_end, selection_color, 0.0f, 0, 2.5f);
 
-      // Draw corner handles for selected objects
+      // Draw corner handles for selected objects (high-contrast cyan-white)
       constexpr float handle_size = 4.0f;
+      // Entity visibility standard: Cyan-white at 0.85f alpha for high contrast
+      ImU32 handle_color = ImGui::GetColorU32(theme.dungeon_selection_handle);
       draw_list->AddRectFilled(
           ImVec2(obj_start.x - handle_size / 2, obj_start.y - handle_size / 2),
           ImVec2(obj_start.x + handle_size / 2, obj_start.y + handle_size / 2),
-          IM_COL32(0, 255, 255, 255));
+          handle_color);
       draw_list->AddRectFilled(
           ImVec2(obj_end.x - handle_size / 2, obj_start.y - handle_size / 2),
           ImVec2(obj_end.x + handle_size / 2, obj_start.y + handle_size / 2),
-          IM_COL32(0, 255, 255, 255));
+          handle_color);
       draw_list->AddRectFilled(
           ImVec2(obj_start.x - handle_size / 2, obj_end.y - handle_size / 2),
           ImVec2(obj_start.x + handle_size / 2, obj_end.y + handle_size / 2),
-          IM_COL32(0, 255, 255, 255));
+          handle_color);
       draw_list->AddRectFilled(
           ImVec2(obj_end.x - handle_size / 2, obj_end.y - handle_size / 2),
           ImVec2(obj_end.x + handle_size / 2, obj_end.y + handle_size / 2),
-          IM_COL32(0, 255, 255, 255));
+          handle_color);
     }
   }
 }
@@ -248,6 +262,10 @@ void DungeonObjectInteraction::PlaceObjectAtPosition(int room_x, int room_y) {
 
   if (current_room_id_ < 0 || current_room_id_ >= 296)
     return;
+
+  if (mutation_hook_) {
+    mutation_hook_();
+  }
 
   // Create new object at the specified position
   auto new_object = preview_object_;
@@ -273,6 +291,7 @@ void DungeonObjectInteraction::DrawSelectBox() {
   if (!is_selecting_)
     return;
 
+  const auto& theme = AgentUI::GetTheme();
   ImDrawList* draw_list = ImGui::GetWindowDrawList();
   ImVec2 canvas_pos = canvas_->zero_point();
 
@@ -284,9 +303,13 @@ void DungeonObjectInteraction::DrawSelectBox() {
       canvas_pos.x + std::max(select_start_pos_.x, select_current_pos_.x),
       canvas_pos.y + std::max(select_start_pos_.y, select_current_pos_.y));
 
-  // Draw selection box
-  draw_list->AddRect(start, end, IM_COL32(255, 255, 0, 255), 0.0f, 0, 2.0f);
-  draw_list->AddRectFilled(start, end, IM_COL32(255, 255, 0, 32));
+  // Draw selection box with theme colors
+  ImU32 selection_color = ImGui::ColorConvertFloat4ToU32(
+      ImVec4(theme.accent_color.x, theme.accent_color.y, theme.accent_color.z, 0.85f));
+  ImU32 selection_fill = ImGui::ColorConvertFloat4ToU32(
+      ImVec4(theme.accent_color.x, theme.accent_color.y, theme.accent_color.z, 0.15f));
+  draw_list->AddRect(start, end, selection_color, 0.0f, 0, 2.0f);
+  draw_list->AddRectFilled(start, end, selection_fill);
 }
 
 void DungeonObjectInteraction::DrawDragPreview() {
@@ -324,8 +347,8 @@ void DungeonObjectInteraction::DrawDragPreview() {
 
       // Draw ghosted object
       draw_list->AddRectFilled(preview_start, preview_end,
-                               IM_COL32(0, 255, 255, 64));
-      draw_list->AddRect(preview_start, preview_end, IM_COL32(0, 255, 255, 255),
+                               ImGui::GetColorU32(theme.dungeon_drag_preview));
+      draw_list->AddRect(preview_start, preview_end, ImGui::GetColorU32(theme.dungeon_selection_secondary),
                          0.0f, 0, 1.5f);
     }
   }
@@ -460,6 +483,10 @@ void DungeonObjectInteraction::HandleDeleteSelected() {
   if (current_room_id_ < 0 || current_room_id_ >= 296)
     return;
 
+  if (mutation_hook_) {
+    mutation_hook_();
+  }
+
   auto& room = (*rooms_)[current_room_id_];
 
   // Sort indices in descending order to avoid index shifts during deletion
@@ -506,6 +533,10 @@ void DungeonObjectInteraction::HandlePasteObjects() {
   if (current_room_id_ < 0 || current_room_id_ >= 296)
     return;
 
+  if (mutation_hook_) {
+    mutation_hook_();
+  }
+
   auto& room = (*rooms_)[current_room_id_];
 
   // Get mouse position for paste location
@@ -541,6 +572,95 @@ void DungeonObjectInteraction::HandlePasteObjects() {
       cache_invalidation_callback_();
     }
   }
+}
+
+void DungeonObjectInteraction::DrawGhostPreview() {
+  // Only draw ghost preview when an object is loaded for placement
+  if (!object_loaded_ || preview_object_.id_ < 0)
+    return;
+
+  // Check if mouse is over the canvas
+  if (!canvas_->IsMouseHovering())
+    return;
+
+  const ImGuiIO& io = ImGui::GetIO();
+  ImVec2 canvas_pos = canvas_->zero_point();
+  ImVec2 mouse_pos = io.MousePos;
+
+  // Convert mouse position to canvas coordinates
+  ImVec2 canvas_mouse_pos =
+      ImVec2(mouse_pos.x - canvas_pos.x, mouse_pos.y - canvas_pos.y);
+
+  // Convert to room tile coordinates
+  auto [room_x, room_y] =
+      CanvasToRoomCoordinates(static_cast<int>(canvas_mouse_pos.x),
+                              static_cast<int>(canvas_mouse_pos.y));
+
+  // Validate position is within room bounds (64x64 tiles)
+  if (room_x < 0 || room_x >= 64 || room_y < 0 || room_y >= 64)
+    return;
+
+  // Convert back to canvas pixel coordinates (for snapped position)
+  auto [snap_canvas_x, snap_canvas_y] = RoomToCanvasCoordinates(room_x, room_y);
+
+  // Calculate object dimensions
+  int obj_width = 8 + (preview_object_.size_ & 0x0F) * 4;
+  int obj_height = 8 + ((preview_object_.size_ >> 4) & 0x0F) * 4;
+  obj_width = std::min(obj_width, 256);
+  obj_height = std::min(obj_height, 256);
+
+  // Draw ghost preview at snapped position
+  ImDrawList* draw_list = ImGui::GetWindowDrawList();
+  float scale = canvas_->global_scale();
+
+  // Apply canvas scale and offset
+  ImVec2 preview_start(canvas_pos.x + snap_canvas_x * scale,
+                       canvas_pos.y + snap_canvas_y * scale);
+  ImVec2 preview_end(preview_start.x + obj_width * scale,
+                     preview_start.y + obj_height * scale);
+
+  const auto& theme = AgentUI::GetTheme();
+
+  // Draw semi-transparent filled rectangle (ghost effect)
+  ImVec4 preview_fill = ImVec4(
+      theme.dungeon_selection_primary.x,
+      theme.dungeon_selection_primary.y,
+      theme.dungeon_selection_primary.z,
+      0.25f);  // Semi-transparent
+  draw_list->AddRectFilled(preview_start, preview_end,
+                           ImGui::GetColorU32(preview_fill));
+
+  // Draw solid outline for visibility
+  ImVec4 preview_outline = ImVec4(
+      theme.dungeon_selection_primary.x,
+      theme.dungeon_selection_primary.y,
+      theme.dungeon_selection_primary.z,
+      0.78f);  // More visible
+  draw_list->AddRect(preview_start, preview_end,
+                     ImGui::GetColorU32(preview_outline),
+                     0.0f, 0, 2.0f);
+
+  // Draw object ID text at corner
+  std::string id_text = absl::StrFormat("0x%02X", preview_object_.id_);
+  ImVec2 text_pos(preview_start.x + 2, preview_start.y + 2);
+  draw_list->AddText(text_pos, ImGui::GetColorU32(theme.text_primary), id_text.c_str());
+
+  // Draw crosshair at placement position
+  constexpr float crosshair_size = 8.0f;
+  ImVec2 center(preview_start.x + (obj_width * scale) / 2,
+                preview_start.y + (obj_height * scale) / 2);
+  ImVec4 crosshair_color = ImVec4(
+      theme.text_primary.x,
+      theme.text_primary.y,
+      theme.text_primary.z,
+      0.78f);  // Slightly transparent
+  ImU32 crosshair = ImGui::GetColorU32(crosshair_color);
+  draw_list->AddLine(ImVec2(center.x - crosshair_size, center.y),
+                     ImVec2(center.x + crosshair_size, center.y),
+                     crosshair, 1.5f);
+  draw_list->AddLine(ImVec2(center.x, center.y - crosshair_size),
+                     ImVec2(center.x, center.y + crosshair_size),
+                     crosshair, 1.5f);
 }
 
 }  // namespace yaze::editor

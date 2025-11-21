@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <unordered_map>
+#include <vector>
 
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
@@ -20,6 +21,7 @@
 #include "object_editor_card.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_entrance.h"
+#include "zelda3/dungeon/dungeon_editor_system.h"
 
 namespace yaze {
 namespace editor {
@@ -55,11 +57,11 @@ class DungeonEditorV2 : public Editor {
   void Initialize() override;
   absl::Status Load();
   absl::Status Update() override;
-  absl::Status Undo() override { return absl::UnimplementedError("Undo"); }
-  absl::Status Redo() override { return absl::UnimplementedError("Redo"); }
-  absl::Status Cut() override { return absl::UnimplementedError("Cut"); }
-  absl::Status Copy() override { return absl::UnimplementedError("Copy"); }
-  absl::Status Paste() override { return absl::UnimplementedError("Paste"); }
+  absl::Status Undo() override;
+  absl::Status Redo() override;
+  absl::Status Cut() override;
+  absl::Status Copy() override;
+  absl::Status Paste() override;
   absl::Status Find() override { return absl::UnimplementedError("Find"); }
   absl::Status Save() override;
 
@@ -117,6 +119,9 @@ class DungeonEditorV2 : public Editor {
   void OnRoomSelected(int room_id);
   void OnEntranceSelected(int entrance_id);
 
+  // Object placement callback
+  void HandleObjectPlaced(const zelda3::RoomObject& obj);
+
   // Data
   Rom* rom_;
   std::array<zelda3::Room, 0x128> rooms_;
@@ -147,11 +152,23 @@ class DungeonEditorV2 : public Editor {
   gui::PaletteEditorWidget palette_editor_;
   std::unique_ptr<ObjectEditorCard>
       object_editor_card_;  // Unified object editor
+  std::unique_ptr<zelda3::DungeonEditorSystem> dungeon_editor_system_;
 
   bool is_loaded_ = false;
 
   // Docking class for room windows to dock together
   ImGuiWindowClass room_window_class_;
+
+  // Undo/Redo history: store snapshots of room objects
+  std::unordered_map<int, std::vector<std::vector<zelda3::RoomObject>>>
+      undo_history_;
+  std::unordered_map<int, std::vector<std::vector<zelda3::RoomObject>>>
+      redo_history_;
+
+  void PushUndoSnapshot(int room_id);
+  absl::Status RestoreFromSnapshot(int room_id,
+                                   std::vector<zelda3::RoomObject> snapshot);
+  void ClearRedo(int room_id);
 };
 
 }  // namespace editor

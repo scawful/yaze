@@ -10,6 +10,7 @@
 #include "app/gfx/util/palette_manager.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/input.h"
+#include "app/editor/agent/agent_ui_theme.h"
 #include "imgui/imgui.h"
 #include "util/log.h"
 #include "zelda3/dungeon/room.h"
@@ -138,6 +139,36 @@ absl::Status DungeonEditorV2::Load() {
   object_selector_.SetCurrentPaletteId(current_palette_id_);
   object_selector_.set_rooms(&rooms_);
 
+  // Wire up object placement callback from selector to canvas interaction
+  object_selector_.SetObjectSelectedCallback(
+      [this](const zelda3::RoomObject& obj) {
+        // When object is selected in selector, set it as preview in canvas
+        canvas_viewer_.SetPreviewObject(obj);
+      });
+
+  object_selector_.SetObjectPlacementCallback(
+      [this](const zelda3::RoomObject& obj) {
+        // When object is placed via selector UI, handle it
+        HandleObjectPlaced(obj);
+      });
+
+  // Capture mutations for undo/redo snapshots
+  canvas_viewer_.object_interaction().SetMutationHook(
+      [this]() { PushUndoSnapshot(current_room_id_); });
+
+  // Wire up cache invalidation callback for object interaction
+  canvas_viewer_.object_interaction().SetCacheInvalidationCallback([this]() {
+    // Trigger room re-render after object changes
+    if (current_room_id_ >= 0 &&
+        current_room_id_ < static_cast<int>(rooms_.size())) {
+      rooms_[current_room_id_].RenderRoomGraphics();
+    }
+  });
+
+  // Wire up object placed callback for canvas interaction
+  canvas_viewer_.object_interaction().SetObjectPlacedCallback(
+      [this](const zelda3::RoomObject& obj) { HandleObjectPlaced(obj); });
+
   // NOW initialize emulator preview with loaded ROM
   object_emulator_preview_.Initialize(renderer_, rom_);
 
@@ -151,6 +182,12 @@ absl::Status DungeonEditorV2::Load() {
   // Initialize unified object editor card
   object_editor_card_ =
       std::make_unique<ObjectEditorCard>(renderer_, rom_, &canvas_viewer_);
+
+  // Initialize DungeonEditorSystem (currently scaffolding for persistence and metadata)
+  dungeon_editor_system_ = std::make_unique<zelda3::DungeonEditorSystem>(rom_);
+  (void)dungeon_editor_system_->Initialize();
+  dungeon_editor_system_->SetCurrentRoom(current_room_id_);
+  object_selector_.set_dungeon_editor_system(&dungeon_editor_system_);
 
   // Wire palette changes to trigger room re-renders
   // PaletteManager now tracks all modifications globally
@@ -179,7 +216,7 @@ absl::Status DungeonEditorV2::Update() {
     gui::EditorCard loading_card("Dungeon Editor Loading", ICON_MD_CASTLE);
     loading_card.SetDefaultSize(400, 200);
     if (loading_card.Begin()) {
-      ImGui::TextColored(ImVec4(0.5f, 0.5f, 0.5f, 1.0f),
+      ImGui::TextColored(theme.text_secondary_gray,
                          "Loading dungeon data...");
       ImGui::TextWrapped(
           "Independent editor cards will appear once ROM data is loaded.");
@@ -193,6 +230,12 @@ absl::Status DungeonEditorV2::Update() {
   // rooms
 
   DrawLayout();
+
+  // Handle keyboard shortcuts for object manipulation
+  // Delete key - remove selected objects
+  if (ImGui::IsKeyPressed(ImGuiKey_Delete)) {
+    canvas_viewer_.DeleteSelectedObjects();
+  }
 
   return absl::OkStatus();
 }
@@ -221,6 +264,16 @@ absl::Status DungeonEditorV2::Save() {
       // Log error but continue with other rooms
       LOG_ERROR("DungeonEditorV2", "Failed to save room: %s",
                 status.message().data());
+    }
+  }
+
+  // Save additional dungeon state (stubbed) via DungeonEditorSystem when present
+  if (dungeon_editor_system_) {
+    auto status = dungeon_editor_system_->SaveDungeon();
+    if (!status.ok()) {
+      LOG_ERROR("DungeonEditorV2", "DungeonEditorSystem save failed: %s",
+                status.message().data());
+      return status;
     }
   }
 
@@ -339,7 +392,7 @@ void DungeonEditorV2::DrawRoomTab(int room_id) {
   if (!room.IsLoaded()) {
     auto status = room_loader_.LoadRoom(room_id, room);
     if (!status.ok()) {
-      ImGui::TextColored(ImVec4(1, 0, 0, 1), "Failed to load room: %s",
+      ImGui::TextColored(theme.text_error_red, "Failed to load room: %s",
                          status.message().data());
       return;
     }
@@ -379,9 +432,9 @@ void DungeonEditorV2::DrawRoomTab(int room_id) {
 
   // Room ID moved to card title - just show load status now
   if (room.IsLoaded()) {
-    ImGui::TextColored(ImVec4(0.4f, 0.8f, 0.4f, 1.0f), ICON_MD_CHECK " Loaded");
+    ImGui::TextColored(theme.text_success_green, ICON_MD_CHECK " Loaded");
   } else {
-    ImGui::TextColored(ImVec4(0.8f, 0.4f, 0.4f, 1.0f),
+    ImGui::TextColored(theme.text_error_red,
                        ICON_MD_PENDING " Not Loaded");
   }
   ImGui::SameLine();
@@ -682,9 +735,11 @@ void DungeonEditorV2::DrawRoomMatrixCard() {
             case 5:
               bg_color = IM_COL32(val, p, q, 255);
               break;
-            default:
-              bg_color = IM_COL32(60, 60, 70, 255);
+            default: {
+              const auto& theme = AgentUI::GetTheme();
+              bg_color = ImGui::GetColorU32(theme.panel_bg_darker);
               break;
+            }
           }
 
           // Check if room is currently selected
@@ -705,15 +760,15 @@ void DungeonEditorV2::DrawRoomMatrixCard() {
           // Draw outline ONLY for current/open rooms
           if (is_current) {
             // Light green for current room
-            draw_list->AddRect(cell_min, cell_max, IM_COL32(144, 238, 144, 255),
+            draw_list->AddRect(cell_min, cell_max, ImGui::GetColorU32(theme.dungeon_grid_cell_highlight),
                                0.0f, 0, 2.5f);
           } else if (is_open) {
             // Green for open rooms
-            draw_list->AddRect(cell_min, cell_max, IM_COL32(0, 200, 0, 255),
+            draw_list->AddRect(cell_min, cell_max, ImGui::GetColorU32(theme.dungeon_grid_cell_selected),
                                0.0f, 0, 2.0f);
           } else {
             // Subtle gray border for all rooms
-            draw_list->AddRect(cell_min, cell_max, IM_COL32(80, 80, 80, 200),
+            draw_list->AddRect(cell_min, cell_max, ImGui::GetColorU32(theme.dungeon_grid_cell_border),
                                0.0f, 0, 1.0f);
           }
 
@@ -725,7 +780,7 @@ void DungeonEditorV2::DrawRoomMatrixCard() {
                      cell_min.y + (kRoomCellSize - text_size.y) * 0.5f);
 
           // Use smaller font if available
-          draw_list->AddText(text_pos, IM_COL32(220, 220, 220, 255),
+          draw_list->AddText(text_pos, ImGui::GetColorU32(theme.dungeon_grid_text),
                              room_label.c_str());
 
           // Handle clicks
@@ -754,8 +809,8 @@ void DungeonEditorV2::DrawRoomMatrixCard() {
         } else {
           // Empty cell
           draw_list->AddRectFilled(cell_min, cell_max,
-                                   IM_COL32(30, 30, 30, 255));
-          draw_list->AddRect(cell_min, cell_max, IM_COL32(50, 50, 50, 255));
+                                   ImGui::GetColorU32(theme.dungeon_room_border));
+          draw_list->AddRect(cell_min, cell_max, ImGui::GetColorU32(theme.dungeon_room_border_dark));
         }
 
         room_index++;
@@ -847,9 +902,9 @@ void DungeonEditorV2::DrawRoomGraphicsCard() {
             // Draw placeholder for missing graphics
             room_gfx_canvas.draw_list()->AddRectFilled(
                 ImVec2(x, y), ImVec2(x + block_width, y + block_height),
-                IM_COL32(64, 64, 64, 255));
+                ImGui::GetColorU32(theme.panel_bg_darker));
             room_gfx_canvas.draw_list()->AddText(ImVec2(x + 10, y + 10),
-                                                 IM_COL32(255, 255, 255, 255),
+                                                 ImGui::GetColorU32(theme.text_primary),
                                                  "No Graphics");
           }
         }
@@ -1022,6 +1077,109 @@ void DungeonEditorV2::ProcessDeferredTextures() {
   // Process queued texture commands via Arena's deferred system
   // This is critical for ensuring textures are actually created and updated
   gfx::Arena::Get().ProcessTextureQueue(renderer_);
+}
+
+void DungeonEditorV2::HandleObjectPlaced(const zelda3::RoomObject& obj) {
+  // Validate current room context
+  if (current_room_id_ < 0 ||
+      current_room_id_ >= static_cast<int>(rooms_.size())) {
+    LOG_ERROR("DungeonEditorV2", "Cannot place object: Invalid room ID %d",
+              current_room_id_);
+    return;
+  }
+
+  auto& room = rooms_[current_room_id_];
+
+  // Log the placement for debugging
+  LOG_INFO("DungeonEditorV2",
+           "Placing object ID=0x%02X at position (%d,%d) in room %03X", obj.id_,
+           obj.x_, obj.y_, current_room_id_);
+
+  // Object is already added to room by PlaceObjectAtPosition in
+  // DungeonObjectInteraction, so we just need to trigger re-render
+  room.RenderRoomGraphics();
+
+  LOG_DEBUG("DungeonEditorV2", "Object placed and room re-rendered successfully");
+}
+
+absl::Status DungeonEditorV2::Undo() {
+  if (current_room_id_ < 0 ||
+      current_room_id_ >= static_cast<int>(rooms_.size())) {
+    return absl::FailedPreconditionError("No active room");
+  }
+
+  auto& undo_stack = undo_history_[current_room_id_];
+  if (undo_stack.empty()) {
+    return absl::FailedPreconditionError("Nothing to undo");
+  }
+
+  // Save current state for redo
+  redo_history_[current_room_id_].push_back(
+      rooms_[current_room_id_].GetTileObjects());
+
+  auto snapshot = std::move(undo_stack.back());
+  undo_stack.pop_back();
+  return RestoreFromSnapshot(current_room_id_, std::move(snapshot));
+}
+
+absl::Status DungeonEditorV2::Redo() {
+  if (current_room_id_ < 0 ||
+      current_room_id_ >= static_cast<int>(rooms_.size())) {
+    return absl::FailedPreconditionError("No active room");
+  }
+
+  auto& redo_stack = redo_history_[current_room_id_];
+  if (redo_stack.empty()) {
+    return absl::FailedPreconditionError("Nothing to redo");
+  }
+
+  // Save current state for undo before applying redo snapshot
+  undo_history_[current_room_id_].push_back(
+      rooms_[current_room_id_].GetTileObjects());
+
+  auto snapshot = std::move(redo_stack.back());
+  redo_stack.pop_back();
+  return RestoreFromSnapshot(current_room_id_, std::move(snapshot));
+}
+
+absl::Status DungeonEditorV2::Cut() {
+  canvas_viewer_.object_interaction().HandleCopySelected();
+  canvas_viewer_.object_interaction().HandleDeleteSelected();
+  return absl::OkStatus();
+}
+
+absl::Status DungeonEditorV2::Copy() {
+  canvas_viewer_.object_interaction().HandleCopySelected();
+  return absl::OkStatus();
+}
+
+absl::Status DungeonEditorV2::Paste() {
+  canvas_viewer_.object_interaction().HandlePasteObjects();
+  return absl::OkStatus();
+}
+
+void DungeonEditorV2::PushUndoSnapshot(int room_id) {
+  if (room_id < 0 || room_id >= static_cast<int>(rooms_.size()))
+    return;
+
+  undo_history_[room_id].push_back(rooms_[room_id].GetTileObjects());
+  ClearRedo(room_id);
+}
+
+absl::Status DungeonEditorV2::RestoreFromSnapshot(
+    int room_id, std::vector<zelda3::RoomObject> snapshot) {
+  if (room_id < 0 || room_id >= static_cast<int>(rooms_.size())) {
+    return absl::InvalidArgumentError("Invalid room ID");
+  }
+
+  auto& room = rooms_[room_id];
+  room.GetTileObjects() = std::move(snapshot);
+  room.RenderRoomGraphics();
+  return absl::OkStatus();
+}
+
+void DungeonEditorV2::ClearRedo(int room_id) {
+  redo_history_[room_id].clear();
 }
 
 }  // namespace yaze::editor

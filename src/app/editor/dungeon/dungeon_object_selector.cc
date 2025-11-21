@@ -5,6 +5,7 @@
 #include <iterator>
 
 #include "app/gfx/resource/arena.h"
+#include "app/gfx/render/background_buffer.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/gui/canvas/canvas.h"
 #include "app/gui/widgets/asset_browser.h"
@@ -14,6 +15,8 @@
 #include "imgui/imgui.h"
 #include "zelda3/dungeon/dungeon_editor_system.h"
 #include "zelda3/dungeon/dungeon_object_editor.h"
+#include "zelda3/dungeon/dungeon_object_registry.h"
+#include "zelda3/dungeon/object_drawer.h"
 #include "zelda3/dungeon/room.h"
 
 namespace yaze::editor {
@@ -25,6 +28,7 @@ using ImGui::EndTabItem;
 using ImGui::Separator;
 
 void DungeonObjectSelector::DrawTileSelector() {
+  EnsureRegistryInitialized();
   if (ImGui::BeginTabBar("##TabBar", ImGuiTabBarFlags_FittingPolicyScroll)) {
     if (ImGui::BeginTabItem("Room Graphics")) {
       if (ImGuiID child_id = ImGui::GetID((void*)(intptr_t)3);
@@ -45,6 +49,7 @@ void DungeonObjectSelector::DrawTileSelector() {
 }
 
 void DungeonObjectSelector::DrawObjectRenderer() {
+  EnsureRegistryInitialized();
   // Use AssetBrowser for better object selection
   if (ImGui::BeginTable(
           "DungeonObjectEditorTable", 2,
@@ -650,36 +655,34 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
       }
     }
 
-    // Draw object preview on the button
+    // Draw object preview on the button; fall back to primitive if needed
     ImVec2 button_pos = ImGui::GetItemRectMin();
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
-
-    // Draw object as colored rectangle with symbol
-    ImU32 obj_color = GetObjectTypeColor(obj_id);
-    draw_list->AddRectFilled(
-        button_pos, ImVec2(button_pos.x + item_size, button_pos.y + item_size),
-        obj_color);
+    bool rendered = DrawObjectPreview(MakePreviewObject(obj_id), button_pos,
+                                      item_size);
+    if (!rendered) {
+      ImU32 obj_color = GetObjectTypeColor(obj_id);
+      draw_list->AddRectFilled(
+          button_pos,
+          ImVec2(button_pos.x + item_size, button_pos.y + item_size),
+          obj_color);
+    }
 
     // Draw border
     ImU32 border_color =
-        is_selected ? ImGui::GetColorU32(theme.dungeon_selection_primary) : ImGui::GetColorU32(theme.panel_border);
+        is_selected ? ImGui::GetColorU32(theme.dungeon_selection_primary)
+                    : ImGui::GetColorU32(theme.panel_border);
     draw_list->AddRect(
         button_pos, ImVec2(button_pos.x + item_size, button_pos.y + item_size),
         border_color, 0.0f, 0, is_selected ? 3.0f : 1.0f);
-
-    // Draw object symbol
-    std::string symbol = GetObjectTypeSymbol(obj_id);
-    ImVec2 text_size = ImGui::CalcTextSize(symbol.c_str());
-    ImVec2 text_pos = ImVec2(button_pos.x + (item_size - text_size.x) / 2,
-                             button_pos.y + (item_size - text_size.y) / 2);
-    draw_list->AddText(text_pos, ImGui::GetColorU32(theme.text_primary), symbol.c_str());
 
     // Draw object ID at bottom
     std::string id_text = absl::StrFormat("%02X", obj_id);
     ImVec2 id_size = ImGui::CalcTextSize(id_text.c_str());
     ImVec2 id_pos = ImVec2(button_pos.x + (item_size - id_size.x) / 2,
                            button_pos.y + item_size - id_size.y - 2);
-    draw_list->AddText(id_pos, ImGui::GetColorU32(theme.text_primary), id_text.c_str());
+    draw_list->AddText(id_pos, ImGui::GetColorU32(theme.text_primary),
+                       id_text.c_str());
 
     ImGui::PopID();
 
@@ -1130,6 +1133,57 @@ void DungeonObjectSelector::DrawCompactPropertiesEditor() {
     ImGui::Text("Start: %d", settings.starting_room_id);
     ImGui::Text("Boss: %d", settings.boss_room_id);
   }
+}
+
+void DungeonObjectSelector::EnsureRegistryInitialized() {
+  static bool initialized = false;
+  if (initialized)
+    return;
+  object_registry_.RegisterVanillaRange(0x000, 0x1FF);
+  initialized = true;
+}
+
+zelda3::RoomObject DungeonObjectSelector::MakePreviewObject(int obj_id) const {
+  zelda3::RoomObject obj(obj_id, 0, 0, 0x12, 0);
+  obj.set_rom(rom_);
+  obj.EnsureTilesLoaded();
+  return obj;
+}
+
+bool DungeonObjectSelector::DrawObjectPreview(
+    const zelda3::RoomObject& object, ImVec2 top_left, float size) {
+  if (!rom_) {
+    return false;
+  }
+
+  gfx::BackgroundBuffer preview_bg(static_cast<int>(size),
+                                   static_cast<int>(size));
+  zelda3::ObjectDrawer drawer(
+      rom_, rooms_ ? (*rooms_)[current_room_id_].get_gfx_buffer().data()
+                   : nullptr);
+  drawer.InitializeDrawRoutines();
+  auto status =
+      drawer.DrawObject(object, preview_bg, preview_bg, current_palette_group_);
+  if (!status.ok()) {
+    return false;
+  }
+
+  auto& bitmap = preview_bg.bitmap();
+  if (!bitmap.texture()) {
+    gfx::Arena::Get().QueueTextureCommand(
+        gfx::Arena::TextureCommandType::CREATE, &bitmap);
+    gfx::Arena::Get().ProcessTextureQueue(nullptr);
+  }
+
+  if (!bitmap.texture()) {
+    return false;
+  }
+
+  ImDrawList* draw_list = ImGui::GetWindowDrawList();
+  ImVec2 bottom_right(top_left.x + size, top_left.y + size);
+  draw_list->AddImage((ImTextureID)(intptr_t)bitmap.texture(), top_left,
+                      bottom_right);
+  return true;
 }
 
 }  // namespace yaze::editor
