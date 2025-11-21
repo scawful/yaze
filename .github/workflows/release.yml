@@ -60,32 +60,64 @@ jobs:
         run: |
           cd build
           cpack -G DEB -G TGZ
-          ls -la _CPack_Packages/
+          echo "=== Contents of build directory ==="
+          ls -la
+          echo "=== Package files created ==="
+          ls -la *.deb *.tar.gz 2>/dev/null || echo "No packages found in build/"
 
       - name: Package artifacts (macOS)
         if: matrix.platform == 'macos'
         run: |
           cd build
           cpack -G DragNDrop
-          ls -la _CPack_Packages/
+          echo "=== Contents of build directory ==="
+          ls -la
+          echo "=== Package files created ==="
+          ls -la *.dmg 2>/dev/null || echo "No packages found in build/"
+
+      - name: Create notarized bundle (macOS)
+        if: matrix.platform == 'macos'
+        shell: bash
+        run: |
+          chmod +x ./scripts/create-macos-bundle.sh
+          ./scripts/create-macos-bundle.sh ${{ env.VERSION }} yaze-${{ env.VERSION }}-bundle || true
+          if [ -f "yaze-${{ env.VERSION }}-bundle.dmg" ]; then
+            mv yaze-${{ env.VERSION }}-bundle.dmg build/
+          fi
+
+      - name: Patch cmake_install.cmake (Windows)
+        if: matrix.platform == 'windows'
+        shell: pwsh
+        run: |
+          cd build
+          # Wrap include() statements with if(EXISTS) to handle missing dependency install scripts
+          $nl = [Environment]::NewLine
+          $content = Get-Content cmake_install.cmake -Raw
+          $content = $content -replace '(\s+)include\("(.*)/_deps/([^"]+)/cmake_install\.cmake"\)', "`$1if(EXISTS `"`$2/_deps/`$3/cmake_install.cmake`")$nl`$1  include(`"`$2/_deps/`$3/cmake_install.cmake`")$nl`$1endif()"
+          Set-Content cmake_install.cmake $content
+          Write-Host "Patched cmake_install.cmake to handle missing dependency install scripts"
 
       - name: Package artifacts (Windows)
         if: matrix.platform == 'windows'
+        shell: pwsh
         run: |
           cd build
           cpack -G NSIS -G ZIP
-          ls -la _CPack_Packages/
+          Write-Host "=== Contents of build directory ==="
+          Get-ChildItem
+          Write-Host "=== Package files created ==="
+          Get-ChildItem *.exe, *.zip -ErrorAction SilentlyContinue
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
           name: yaze-${{ matrix.platform }}-${{ env.VERSION }}
           path: |
-            build/_CPack_Packages/*/*.deb
-            build/_CPack_Packages/*/*.tar.gz
-            build/_CPack_Packages/*/*.dmg
-            build/_CPack_Packages/*/*.exe
-            build/_CPack_Packages/*/*.zip
+            build/*.deb
+            build/*.tar.gz
+            build/*.dmg
+            build/*.exe
+            build/*.zip
           if-no-files-found: warn
           retention-days: 30
 
@@ -141,7 +173,7 @@ jobs:
     needs: [build, test]
     runs-on: ubuntu-22.04
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -150,6 +182,27 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: ./artifacts
+
+      - name: Display downloaded artifacts
+        run: |
+          echo "=== Downloaded artifacts structure ==="
+          ls -laR artifacts/
+          echo "=== Package files found ==="
+          find artifacts -type f \( -name "*.zip" -o -name "*.exe" -o -name "*.deb" -o -name "*.tar.gz" -o -name "*.dmg" \)
+
+      - name: Reorganize artifacts
+        run: |
+          # Flatten the artifact directory structure
+          mkdir -p release-files
+          find artifacts -type f \( -name "*.zip" -o -name "*.exe" -o -name "*.deb" -o -name "*.tar.gz" -o -name "*.dmg" \) -exec cp {} release-files/ \;
+          echo "=== Files in release-files ==="
+          ls -la release-files/
+
+      - name: Generate release checksums
+        run: |
+          cd release-files
+          sha256sum * > checksums.txt
+          cat checksums.txt
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
@@ -197,11 +250,7 @@ jobs:
             yaze-*.exe
             ```
           files: |
-            artifacts/yaze-linux-*/yaze-*.deb
-            artifacts/yaze-linux-*/yaze-*.tar.gz
-            artifacts/yaze-macos-*/yaze-*.dmg
-            artifacts/yaze-windows-*/yaze-*.exe
-            artifacts/yaze-windows-*/yaze-*.zip
+            release-files/*
           draft: false
           prerelease: ${{ contains(env.VERSION, 'alpha') || contains(env.VERSION, 'beta') || contains(env.VERSION, 'rc') }}
         env:
