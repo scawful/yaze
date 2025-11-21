@@ -33,7 +33,7 @@
       },
       "cacheVariables": {
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
-        "CMAKE_MSVC_RUNTIME_LIBRARY": "MultiThreaded$<$<CONFIG:Debug>:Debug>",
+        "CMAKE_MSVC_RUNTIME_LIBRARY": "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL",
         "YAZE_BUILD_APP": "ON",
         "YAZE_BUILD_LIB": "ON",
         "YAZE_BUILD_EMU": "ON",
@@ -58,7 +58,7 @@
       },
       "cacheVariables": {
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
-        "CMAKE_MSVC_RUNTIME_LIBRARY": "MultiThreaded$<$<CONFIG:Debug>:Debug>",
+        "CMAKE_MSVC_RUNTIME_LIBRARY": "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL",
         "YAZE_BUILD_APP": "ON",
         "YAZE_BUILD_LIB": "ON",
         "YAZE_BUILD_EMU": "ON",
