@@ -113,6 +113,14 @@ class DungeonObjectEditor {
   absl::Status ChangeObjectType(size_t object_index, int new_type);
   absl::Status ChangeObjectLayer(size_t object_index, int new_layer);
 
+  // Batch operations
+  absl::Status BatchMoveObjects(const std::vector<size_t>& indices, int dx,
+                                int dy);
+  absl::Status BatchChangeObjectLayer(const std::vector<size_t>& indices,
+                                      int new_layer);
+  absl::Status BatchResizeObjects(const std::vector<size_t>& indices,
+                                  int new_size);
+
   // Selection management
   absl::Status SelectObject(int screen_x, int screen_y);
   absl::Status SelectObjects(int start_x, int start_y, int end_x, int end_y);
@@ -170,6 +178,7 @@ class DungeonObjectEditor {
 
   // Configuration
   void SetROM(Rom* rom);
+  void SetExternalRoom(Room* room);
   void SetConfig(const EditorConfig& config);
   EditorConfig GetConfig() const { return config_; }
   void SetSnapToGrid(bool enabled);
@@ -191,9 +200,11 @@ class DungeonObjectEditor {
   void SetRoomChangedCallback(RoomChangedCallback callback);
   void SetSelectionChangedCallback(SelectionChangedCallback callback);
 
+  absl::Status InitializeEditor();
+
   // Getters
   const Room& GetRoom() const { return *current_room_; }
-  Room* GetMutableRoom() { return current_room_.get(); }
+  Room* GetMutableRoom() { return current_room_; }
   const SelectionState& GetSelection() const { return selection_state_; }
   const EditingState& GetEditingState() const { return editing_state_; }
   size_t GetObjectCount() const {
@@ -205,7 +216,6 @@ class DungeonObjectEditor {
 
  private:
   // Internal helper methods
-  absl::Status InitializeEditor();
   absl::Status CreateUndoPoint();
   absl::Status ApplyUndoPoint(const UndoPoint& undo_point);
 
@@ -235,7 +245,8 @@ class DungeonObjectEditor {
 
   // Member variables
   Rom* rom_;
-  std::unique_ptr<Room> current_room_;
+  Room* current_room_ = nullptr;
+  std::unique_ptr<Room> owned_room_;
 
   SelectionState selection_state_;
   EditingState editing_state_;

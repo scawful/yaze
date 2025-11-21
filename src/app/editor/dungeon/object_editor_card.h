@@ -13,6 +13,8 @@
 #include "app/rom.h"
 #include "zelda3/dungeon/room_object.h"
 
+#include "zelda3/dungeon/dungeon_object_editor.h"
+
 namespace yaze {
 namespace editor {
 
@@ -29,8 +31,9 @@ namespace editor {
  */
 class ObjectEditorCard {
  public:
-  ObjectEditorCard(gfx::IRenderer* renderer, Rom* rom,
-                   DungeonCanvasViewer* canvas_viewer);
+  ObjectEditorCard(
+      gfx::IRenderer* renderer, Rom* rom, DungeonCanvasViewer* canvas_viewer,
+      std::shared_ptr<zelda3::DungeonObjectEditor> object_editor = nullptr);
 
   // Main update function
   void Draw(bool* p_open);
@@ -51,6 +54,18 @@ class ObjectEditorCard {
   void DrawSelectedObjectInfo();
   void DrawObjectPreviewIcon(int object_id, const ImVec2& size);
 
+  // Keyboard shortcuts
+  void HandleKeyboardShortcuts();
+  void SelectAllObjects();
+  void DeselectAllObjects();
+  void DeleteSelectedObjects();
+  void DuplicateSelectedObjects();
+  void CopySelectedObjects();
+  void PasteObjects();
+  void NudgeSelectedObjects(int dx, int dy);
+  void CycleObjectSelection(int direction);
+  void ScrollToObject(size_t index);
+
   Rom* rom_;
   DungeonCanvasViewer* canvas_viewer_;
   int current_room_id_ = 0;
@@ -67,6 +82,8 @@ class ObjectEditorCard {
   bool show_emulator_preview_ = false;  // Disabled by default for performance
   bool show_object_list_ = true;
   bool show_interaction_controls_ = true;
+  bool show_grid_ = true;
+  bool show_object_ids_ = false;
 
   // Object interaction mode
   enum class InteractionMode { None, Place, Select, Delete };
@@ -76,6 +93,7 @@ class ObjectEditorCard {
   zelda3::RoomObject preview_object_{0, 0, 0, 0, 0};
   bool has_preview_object_ = false;
   gfx::IRenderer* renderer_;
+  std::shared_ptr<zelda3::DungeonObjectEditor> object_editor_;
 };
 
 }  // namespace editor

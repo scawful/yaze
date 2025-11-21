@@ -37,7 +37,8 @@ absl::Status DungeonObjectEditor::InitializeEditor() {
   editing_state_.preview_size = kDefaultObjectSize;
 
   // Initialize empty room
-  current_room_ = std::make_unique<Room>(0, rom_);
+  owned_room_ = std::make_unique<Room>(0, rom_);
+  current_room_ = owned_room_.get();
 
   return absl::OkStatus();
 }
@@ -58,7 +59,8 @@ absl::Status DungeonObjectEditor::LoadRoom(int room_id) {
   }
 
   // Load room from ROM
-  current_room_ = std::make_unique<Room>(room_id, rom_);
+  owned_room_ = std::make_unique<Room>(room_id, rom_);
+  current_room_ = owned_room_.get();
 
   // Clear selection
   ClearSelection();
@@ -368,8 +370,121 @@ absl::Status DungeonObjectEditor::ResizeObject(size_t object_index,
   return absl::OkStatus();
 }
 
-absl::Status DungeonObjectEditor::HandleScrollWheel(int delta, int x, int y,
-                                                    bool ctrl_pressed) {
+absl::Status DungeonObjectEditor::BatchMoveObjects(
+    const std::vector<size_t>& indices, int dx, int dy) {
+  if (current_room_ == nullptr) {
+    return absl::FailedPreconditionError("No room loaded");
+  }
+
+  if (indices.empty()) {
+    return absl::OkStatus();
+  }
+
+  // Create single undo point for the batch operation
+  auto status = CreateUndoPoint();
+  if (!status.ok()) {
+    return status;
+  }
+
+  // Apply moves
+  for (size_t index : indices) {
+    if (index >= current_room_->GetTileObjectCount()) continue;
+
+    auto& object = current_room_->GetTileObject(index);
+    int new_x = object.x() + dx;
+    int new_y = object.y() + dy;
+
+    // Clamp to room bounds
+    new_x = std::max(0, std::min(63, new_x));
+    new_y = std::max(0, std::min(63, new_y));
+
+    object.set_x(new_x);
+    object.set_y(new_y);
+
+    if (object_changed_callback_) {
+      object_changed_callback_(index, object);
+    }
+  }
+
+  if (room_changed_callback_) {
+    room_changed_callback_();
+  }
+
+  return absl::OkStatus();
+}
+
+absl::Status DungeonObjectEditor::BatchChangeObjectLayer(
+    const std::vector<size_t>& indices, int new_layer) {
+  if (current_room_ == nullptr) {
+    return absl::FailedPreconditionError("No room loaded");
+  }
+
+  if (new_layer < kMinLayer || new_layer > kMaxLayer) {
+    return absl::InvalidArgumentError("Invalid layer");
+  }
+
+  // Create undo point
+  auto status = CreateUndoPoint();
+  if (!status.ok()) {
+    return status;
+  }
+
+  for (size_t index : indices) {
+    if (index >= current_room_->GetTileObjectCount()) continue;
+
+    auto& object = current_room_->GetTileObject(index);
+    object.layer_ = static_cast<RoomObject::LayerType>(new_layer);
+
+    if (object_changed_callback_) {
+      object_changed_callback_(index, object);
+    }
+  }
+
+  if (room_changed_callback_) {
+    room_changed_callback_();
+  }
+
+  return absl::OkStatus();
+}
+
+absl::Status DungeonObjectEditor::BatchResizeObjects(
+    const std::vector<size_t>& indices, int new_size) {
+  if (current_room_ == nullptr) {
+    return absl::FailedPreconditionError("No room loaded");
+  }
+
+  if (new_size < kMinObjectSize || new_size > kMaxObjectSize) {
+    return absl::InvalidArgumentError("Invalid object size");
+  }
+
+  // Create undo point
+  auto status = CreateUndoPoint();
+  if (!status.ok()) {
+    return status;
+  }
+
+  for (size_t index : indices) {
+    if (index >= current_room_->GetTileObjectCount()) continue;
+
+    auto& object = current_room_->GetTileObject(index);
+    // Only Type 1 objects typically support arbitrary sizing, but we allow it
+    // for all here as the validation logic might vary.
+    object.set_size(new_size);
+
+    if (object_changed_callback_) {
+      object_changed_callback_(index, object);
+    }
+  }
+
+  if (room_changed_callback_) {
+    room_changed_callback_();
+  }
+
+  return absl::OkStatus();
+}
+
+absl::Status DungeonObjectEditor::ChangeObjectType(size_t object_index,
+                                                   int new_type) {
   if (current_room_ == nullptr) {
     return absl::FailedPreconditionError("No room loaded");
   }
@@ -1237,6 +1352,27 @@ void DungeonObjectEditor::SetROM(Rom* rom) {
   rom_ = rom;
   // Reinitialize editor with new ROM
   InitializeEditor();
+}
+
+void DungeonObjectEditor::SetExternalRoom(Room* room) {
+  // Set the current room pointer to the external room
+  current_room_ = room;
+
+  // Reset editing state for new room
+  editing_state_.current_layer = 0;
+  editing_state_.is_editing_size = false;
+  editing_state_.is_editing_position = false;
+
+  // Clear selection as it's invalid for the new room
+  ClearSelection();
+
+  // Clear undo history as it applies to the previous room
+  ClearHistory();
+
+  // Notify callbacks
+  if (room_changed_callback_) {
+    room_changed_callback_();
+  }
 }
 
 // Factory function

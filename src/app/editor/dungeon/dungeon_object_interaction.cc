@@ -71,26 +71,65 @@ void DungeonObjectInteraction::HandleCanvasMouseInput() {
       // Apply drag transformation to selected objects
       if (!selected_object_indices_.empty() && rooms_ &&
           current_room_id_ >= 0 && current_room_id_ < 296) {
-        auto& room = (*rooms_)[current_room_id_];
-        ImVec2 drag_delta = ImVec2(drag_current_pos_.x - drag_start_pos_.x,
-                                   drag_current_pos_.y - drag_start_pos_.y);
+        
+        if (editor_system_ && editor_system_->GetObjectEditor()) {
+          // Use editor system for drag operation (handles undo/redo)
+          // The actual move logic is handled via HandleDragOperation/HandleMouseDrag
+          // This just finalizes it if needed, or we rely on the drag updates.
+          // Actually, ObjectEditor handles drag state internally if we pass inputs.
+          // But here we are handling inputs in Interaction class.
+          // Let's manually apply the move via MoveObject for each selected object?
+          // Or better: Rely on the visual preview during drag, and commit on release.
+          
+          // Calculate final delta
+          ImVec2 drag_delta = ImVec2(drag_current_pos_.x - drag_start_pos_.x,
+                                     drag_current_pos_.y - drag_start_pos_.y);
+          int tile_delta_x = static_cast<int>(drag_delta.x) / 8;
+          int tile_delta_y = static_cast<int>(drag_delta.y) / 8;
+          
+          if (tile_delta_x != 0 || tile_delta_y != 0) {
+             auto object_editor = editor_system_->GetObjectEditor();
+             auto& room = (*rooms_)[current_room_id_];
+             auto& objects = room.GetTileObjects();
+             
+             // We need to move objects one by one or use a batch move if available.
+             // Since we don't have batch move, we iterate.
+             // Note: Undo granularity will be per object unless we group them.
+             // For now, let's just do it.
+             
+             for (size_t index : selected_object_indices_) {
+               if (index < objects.size()) {
+                 int new_x = objects[index].x_ + tile_delta_x;
+                 int new_y = objects[index].y_ + tile_delta_y;
+                 // Clamp handled by MoveObject or manually here if using direct setter?
+                 // MoveObject handles bounds and undo.
+                 object_editor->MoveObject(index, new_x, new_y);
+               }
+             }
+          }
+        } else {
+          // Legacy direct manipulation
+          auto& room = (*rooms_)[current_room_id_];
+          ImVec2 drag_delta = ImVec2(drag_current_pos_.x - drag_start_pos_.x,
+                                     drag_current_pos_.y - drag_start_pos_.y);
 
-        // Convert pixel delta to tile delta
-        int tile_delta_x = static_cast<int>(drag_delta.x) / 8;
-        int tile_delta_y = static_cast<int>(drag_delta.y) / 8;
+          // Convert pixel delta to tile delta
+          int tile_delta_x = static_cast<int>(drag_delta.x) / 8;
+          int tile_delta_y = static_cast<int>(drag_delta.y) / 8;
 
-        // Move all selected objects
-        auto& objects = room.GetTileObjects();
-        for (size_t index : selected_object_indices_) {
-          if (index < objects.size()) {
-            objects[index].x_ += tile_delta_x;
-            objects[index].y_ += tile_delta_y;
+          // Move all selected objects
+          auto& objects = room.GetTileObjects();
+          for (size_t index : selected_object_indices_) {
+            if (index < objects.size()) {
+              objects[index].x_ += tile_delta_x;
+              objects[index].y_ += tile_delta_y;
 
-            // Clamp to room bounds (64x64 tiles)
-            objects[index].x_ =
-                std::clamp(static_cast<int>(objects[index].x_), 0, 63);
-            objects[index].y_ =
-                std::clamp(static_cast<int>(objects[index].y_), 0, 63);
+              // Clamp to room bounds (64x64 tiles)
+              objects[index].x_ =
+                  std::clamp(static_cast<int>(objects[index].x_), 0, 63);
+              objects[index].y_ =
+                  std::clamp(static_cast<int>(objects[index].y_), 0, 63);
+            }
           }
         }
 
@@ -249,18 +288,26 @@ void DungeonObjectInteraction::PlaceObjectAtPosition(int room_x, int room_y) {
   if (current_room_id_ < 0 || current_room_id_ >= 296)
     return;
 
-  // Create new object at the specified position
-  auto new_object = preview_object_;
-  new_object.x_ = room_x;
-  new_object.y_ = room_y;
+  // If we have an editor system, use it for object placement (handles undo/redo)
+  if (editor_system_ && editor_system_->GetObjectEditor()) {
+    editor_system_->GetObjectEditor()->InsertObject(
+        room_x, room_y, preview_object_.id_, preview_object_.size_,
+        preview_object_.GetLayerValue());
+  } else {
+    // Fallback to direct manipulation (legacy)
+    // Create new object at the specified position
+    auto new_object = preview_object_;
+    new_object.x_ = room_x;
+    new_object.y_ = room_y;
 
-  // Add object to room
-  auto& room = (*rooms_)[current_room_id_];
-  room.AddTileObject(new_object);
+    // Add object to room
+    auto& room = (*rooms_)[current_room_id_];
+    room.AddTileObject(new_object);
+  }
 
   // Notify callback if set
   if (object_placed_callback_) {
-    object_placed_callback_(new_object);
+    object_placed_callback_(preview_object_);
   }
 
   // Trigger cache invalidation
@@ -460,15 +507,34 @@ void DungeonObjectInteraction::HandleDeleteSelected() {
   if (current_room_id_ < 0 || current_room_id_ >= 296)
     return;
 
-  auto& room = (*rooms_)[current_room_id_];
+  // If we have an editor system, use it for object deletion (handles undo/redo)
+  if (editor_system_ && editor_system_->GetObjectEditor()) {
+    // Pass the selection state to the editor system
+    auto object_editor = editor_system_->GetObjectEditor();
+    
+    // We need to sync the selection state first
+    // Clear existing selection in object editor
+    object_editor->ClearSelection();
+    
+    // Add our selected indices
+    for (size_t index : selected_object_indices_) {
+      object_editor->AddToSelection(index);
+    }
+    
+    // Perform deletion
+    object_editor->DeleteSelectedObjects();
+  } else {
+    // Fallback to direct manipulation (legacy)
+    auto& room = (*rooms_)[current_room_id_];
 
-  // Sort indices in descending order to avoid index shifts during deletion
-  std::vector<size_t> sorted_indices = selected_object_indices_;
-  std::sort(sorted_indices.rbegin(), sorted_indices.rend());
+    // Sort indices in descending order to avoid index shifts during deletion
+    std::vector<size_t> sorted_indices = selected_object_indices_;
+    std::sort(sorted_indices.rbegin(), sorted_indices.rend());
 
-  // Delete selected objects using Room's RemoveTileObject method
-  for (size_t index : sorted_indices) {
-    room.RemoveTileObject(index);
+    // Delete selected objects using Room's RemoveTileObject method
+    for (size_t index : sorted_indices) {
+      room.RemoveTileObject(index);
+    }
   }
 
   // Clear selection
