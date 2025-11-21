@@ -33,3 +33,37 @@ set(CPACK_COMPONENTS_ALL yaze)
 set(CPACK_COMPONENT_YAZE_DISPLAY_NAME "YAZE Editor")
 set(CPACK_COMPONENT_YAZE_DESCRIPTION "Main YAZE application and libraries")
 
+# Install rules - these define what CPack packages
+include(GNUInstallDirs)
+
+# Install main executable
+if(APPLE)
+    install(TARGETS yaze
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+        BUNDLE DESTINATION .
+        COMPONENT yaze
+    )
+else()
+    install(TARGETS yaze
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+        COMPONENT yaze
+    )
+endif()
+
+# Install assets
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/assets/
+    DESTINATION ${CMAKE_INSTALL_DATADIR}/yaze/assets
+    COMPONENT yaze
+    PATTERN "*.png"
+    PATTERN "*.ttf"
+    PATTERN "*.asm"
+)
+
+# Install documentation
+install(FILES
+    ${CMAKE_SOURCE_DIR}/README.md
+    ${CMAKE_SOURCE_DIR}/LICENSE
+    DESTINATION ${CMAKE_INSTALL_DOCDIR}
+    COMPONENT yaze
+)
+
