@@ -326,3 +326,63 @@ Use the following structure for every update:
   - INFO → NEXT_AGENT: Check CI results first, then proceed with release or fixes
   - ACTION → NEXT_AGENT: Kill background processes 8a8ba0, 4f7ea7 if still running
 
+
+### 2025-11-20 23:50 PST CLAUDE_CORE – v0.3.3_release_prep
+- TASK: Prepare and Create v0.3.3 Release
+- SCOPE: README.md, docs/public/reference/changelog.md, CMakePresets.json, GitHub release, documentation organization
+- STATUS: COMPLETE (draft release created)
+- NOTES:
+  - **Phase 1: Multi-Agent Analysis**
+    - Launched 3 parallel agents:
+      - Explore agent: Analyzed codebase for working vs experimental features
+      - General-purpose agent: Reviewed 95 commits since v0.3.2 for accurate history
+      - Docs-janitor agent: Updated README, CHANGELOG, organized documentation
+    - **Key Finding:** Release is 85% build fixes BUT that's misleading - significant feature work happened BEFORE Windows blocked development
+  
+  - **Phase 2: Documentation Updates**
+    - README.md: Added "Project Status" section with honest stability assessment
+      - Separated stable features from experimental (AI, HTTP API)
+      - Clear version indicator: v0.3.3-dev
+    - CHANGELOG.md: **Completely revised** to lead with features:
+      - Dungeon Editor V2 (Layout Override, Canvas Viewer, Room Properties, Debug Controls)
+      - Canvas & UI System (Event-driven interaction, LayoutManager, PopupRegistry)
+      - HTTP REST API and AI Infrastructure (experimental)
+      - Build fixes repositioned as necessary but not the headline
+    - File organization: Moved 4 testing docs from root to docs/internal/testing/
+    - Added 7 valuable internal docs to git tracking
+  
+  - **Phase 3: Build System Fixes**
+    - Fixed release preset: Added YAZE_BUILD_EMU=OFF (was inheriting ON from base)
+    - Aligned release preset with working CI presets (ci-windows, ci-linux, ci-macos)
+    - Windows release build still failing (LTO or other release-specific issue)
+  
+  - **Phase 4: Release Creation**
+    - Created v0.3.3 git tag
+    - Created draft GitHub release with comprehensive notes:
+      - Highlights major features (Dungeon Editor V2, Canvas/UI, HTTP API)
+      - Notes binary artifacts coming soon (release preset debugging)
+      - Links to CI artifacts and build-from-source instructions
+    - Release URL: https://github.com/scawful/yaze/releases/tag/v0.3.3
+  
+  - **Commits Created:**
+    - 55b962a07b: Initial docs update + release preset fix
+    - 3fce4f232c: Enhanced CHANGELOG to properly highlight features
+  
+  - **Deliverables:**
+    - ✅ README with honest project status
+    - ✅ CHANGELOG leading with actual feature work (not build crisis)
+    - ✅ Clean root directory (testing docs moved)
+    - ✅ Fixed release preset (emulator disabled)
+    - ✅ Draft release created (v0.3.3)
+    - ⏳ Binary artifacts pending (release preset debugging needed)
+
+- NEXT:
+  - Debug release preset failure (LTO-related linking issues)
+  - Generate packaged artifacts (DMG, ZIP, installers)
+  - Publish v0.3.3 release (remove draft status)
+  - Consider release preset → ci-windows preset migration for reliability
+
+- REQUESTS:
+  - INFO → CLAUDE_AIINF: Release preset fails where ci-windows succeeds - investigate LTO or Release build type differences
+  - INFO → ALL: v0.3.3 draft release ready for review, artifacts coming soon
+
