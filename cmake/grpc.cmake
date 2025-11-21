@@ -62,6 +62,9 @@ set(ABSL_PROPAGATE_CXX_STD ON CACHE BOOL "" FORCE)
 set(ABSL_ENABLE_INSTALL OFF CACHE BOOL "" FORCE)
 set(ABSL_BUILD_TESTING OFF CACHE BOOL "" FORCE)
 
+# gRPC install configuration - disable to prevent CPack errors
+set(gRPC_INSTALL OFF CACHE BOOL "" FORCE)
+
 # Additional protobuf settings to avoid export conflicts
 set(protobuf_BUILD_LIBPROTOC ON CACHE BOOL "" FORCE)
 set(protobuf_BUILD_LIBPROTOBUF ON CACHE BOOL "" FORCE)
