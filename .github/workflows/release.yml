@@ -151,6 +151,18 @@ jobs:
         with:
           path: ./artifacts
 
+      - name: Reorganize artifacts for release
+        run: |
+          # Create a flat directory structure for release assets
+          mkdir -p release-assets
+
+          # Find and move all package files to release-assets directory
+          find artifacts -type f \( -name "*.deb" -o -name "*.tar.gz" -o -name "*.dmg" -o -name "*.exe" -o -name "*.zip" \) -exec cp {} release-assets/ \;
+
+          # List the reorganized files for verification
+          echo "Release assets:"
+          ls -lah release-assets/
+
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
@@ -197,11 +209,13 @@ jobs:
             yaze-*.exe
             ```
           files: |
-            artifacts/yaze-linux-*/yaze-*.deb
-            artifacts/yaze-linux-*/yaze-*.tar.gz
-            artifacts/yaze-macos-*/yaze-*.dmg
-            artifacts/yaze-windows-*/yaze-*.exe
-            artifacts/yaze-windows-*/yaze-*.zip
+            release-assets/*.deb
+            release-assets/*.tar.gz
+            release-assets/*.dmg
+            release-assets/*.exe
+            release-assets/*.zip
+          generate_release_notes: false
+          fail_on_unmatched_files: true
           draft: false
           prerelease: ${{ contains(env.VERSION, 'alpha') || contains(env.VERSION, 'beta') || contains(env.VERSION, 'rc') }}
         env:
