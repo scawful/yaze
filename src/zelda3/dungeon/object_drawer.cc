@@ -75,12 +75,22 @@ absl::Status ObjectDrawer::DrawObjectList(
     DrawObject(object, bg1, bg2, palette_group);
   }
 
-  // CRITICAL: Sync bitmap data to SDL surfaces after all objects are drawn
-  // ObjectDrawer writes directly to bitmap.mutable_data(), but textures are
-  // created from SDL surfaces
+  // CRITICAL: Apply dungeon palette to background buffers BEFORE syncing to SDL
+  // ObjectDrawer writes palette index values (0-255) to the bitmap, but these
+  // need to be converted to RGB colors using the dungeon palette
   auto& bg1_bmp = bg1.bitmap();
   auto& bg2_bmp = bg2.bitmap();
 
+  // Apply dungeon palette (main palette from palette group)
+  if (!palette_group.empty()) {
+    const auto& dungeon_palette = palette_group[0];  // Main dungeon palette (90 colors)
+    bg1_bmp.SetPalette(dungeon_palette);
+    bg2_bmp.SetPalette(dungeon_palette);
+    printf("[ObjectDrawer] Applied dungeon palette: %zu colors\n",
+           dungeon_palette.size());
+  }
+
+  // Sync bitmap data to SDL surfaces after palette is applied
   if (bg1_bmp.modified() && bg1_bmp.surface() &&
       bg1_bmp.mutable_data().size() > 0) {
     SDL_LockSurface(bg1_bmp.surface());
@@ -897,7 +907,8 @@ void ObjectDrawer::DrawTileToBitmap(gfx::Bitmap& bitmap,
   int tile_sheet_y = (tile_info.id_ / 16) * 8;  // Each row is 16 tiles
 
   // Palettes are 3bpp (8 colors). Convert palette index to base color offset.
-  uint8_t palette_offset = (tile_info.palette_ & 0x0F) * 8;
+  // Use 3 bits for palette index (0-7) since dungeon graphics are 3BPP
+  uint8_t palette_offset = (tile_info.palette_ & 0x07) * 8;
 
   // DEBUG: Log tile info for first few tiles
   static int debug_tile_count = 0;
