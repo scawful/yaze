@@ -549,7 +549,6 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
       object_interaction_.DrawSelectBox();
       object_interaction_
           .DrawSelectionHighlights();  // Draw selection highlights on top
-      object_interaction_.DrawGhostPreview();  // Draw ghost preview for object placement
       object_interaction_.ShowContextMenu();  // Show dungeon-aware context menu
     }
   }
@@ -594,6 +593,8 @@ void DungeonCanvasViewer::DisplayObjectInfo(const zelda3::RoomObject& object,
 }
 
 void DungeonCanvasViewer::RenderSprites(const zelda3::Room& room) {
+  const auto& theme = AgentUI::GetTheme();
+
   // Render sprites as simple 8x8 squares with sprite name/ID
   for (const auto& sprite : room.GetSprites()) {
     auto [canvas_x, canvas_y] = RoomToCanvasCoordinates(sprite.x(), sprite.y());
@@ -612,8 +613,7 @@ void DungeonCanvasViewer::RenderSprites(const zelda3::Room& room) {
       canvas_.DrawRect(canvas_x, canvas_y, 8, 8, sprite_color);
 
       // Draw sprite border
-      const auto& theme = AgentUI::GetTheme();
-      canvas_.DrawRect(canvas_x, canvas_y, 8, 8, theme.panel_border);
+      canvas_.DrawRect(canvas_x, canvas_y, 8, 8, theme.panel_border_color);
 
       // Draw sprite ID and name
       std::string sprite_text;
@@ -728,6 +728,7 @@ void DungeonCanvasViewer::DrawObjectPositionOutlines(const zelda3::Room& room) {
   // This helps visualize object placement even if graphics don't render
   // correctly
 
+  const auto& theme = AgentUI::GetTheme();
   const auto& objects = room.GetTileObjects();
 
   for (const auto& obj : objects) {
