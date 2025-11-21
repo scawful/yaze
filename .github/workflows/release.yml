@@ -68,13 +68,24 @@ jobs:
           preset: ${{ matrix.preset }}
           build-type: Release
 
-      - name: Patch cmake_install.cmake (Linux)
-        if: matrix.platform == 'linux'
+      - name: Patch cmake_install.cmake (Unix)
+        if: matrix.platform == 'linux' || matrix.platform == 'macos'
+        shell: bash
         run: |
           cd build
-          # Wrap include() statements with if(EXISTS) to handle missing dependency install scripts
-          sed -i 's|^\(\s*\)include("\(.*\)/_deps/\([^"]*\)/cmake_install\.cmake")|\1if(EXISTS "\2/_deps/\3/cmake_install.cmake")\n\1  include("\2/_deps/\3/cmake_install.cmake")\n\1endif()|g' cmake_install.cmake
-          echo "Patched cmake_install.cmake to handle missing dependency install scripts"
+          # Create a Python script to patch cmake_install.cmake
+          python3 << 'EOF'
+          import re
+          with open('cmake_install.cmake', 'r') as f:
+              content = f.read()
+          # Wrap include() statements with if(EXISTS)
+          pattern = r'(\s*)include\("(.*)/_deps/([^"]+)/cmake_install\.cmake"\)'
+          replacement = r'\1if(EXISTS "\2/_deps/\3/cmake_install.cmake")\n\1  include("\2/_deps/\3/cmake_install.cmake")\n\1endif()'
+          content = re.sub(pattern, replacement, content)
+          with open('cmake_install.cmake', 'w') as f:
+              f.write(content)
+          print("Patched cmake_install.cmake to handle missing dependency install scripts")
+          EOF
 
       - name: Package artifacts (Linux)
         if: matrix.platform == 'linux'
@@ -85,17 +96,6 @@ jobs:
           ls -la
           echo "=== Package files created ==="
           ls -la *.deb *.tar.gz 2>/dev/null || echo "No packages found in build/"
-
-      - name: Patch cmake_install.cmake (macOS)
-        if: matrix.platform == 'macos'
-        shell: bash
-        run: |
-          cd build
-          # Wrap include() statements with if(EXISTS) to handle missing dependency install scripts
-          sed -i '' 's|^\(\s*\)include("\(.*\)/_deps/\([^"]*\)/cmake_install\.cmake")|\1if(EXISTS "\2/_deps/\3/cmake_install.cmake")\
-\1  include("\2/_deps/\3/cmake_install.cmake")\
-\1endif()|g' cmake_install.cmake
-          echo "Patched cmake_install.cmake to handle missing dependency install scripts"
 
       - name: Package artifacts (macOS)
         if: matrix.platform == 'macos'
