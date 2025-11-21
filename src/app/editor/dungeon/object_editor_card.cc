@@ -19,6 +19,7 @@ ObjectEditorCard::ObjectEditorCard(gfx::IRenderer* renderer, Rom* rom,
 }
 
 void ObjectEditorCard::Draw(bool* p_open) {
+  const auto& theme = AgentUI::GetTheme();
   gui::EditorCard card("Object Editor", ICON_MD_CONSTRUCTION, p_open);
   card.SetDefaultSize(450, 750);
   card.SetPosition(gui::EditorCard::Position::Right);
@@ -207,6 +208,7 @@ void ObjectEditorCard::DrawObjectSelector() {
 }
 
 void ObjectEditorCard::DrawEmulatorPreview() {
+  const auto& theme = AgentUI::GetTheme();
   ImGui::TextColored(theme.text_secondary_gray,
                      ICON_MD_INFO " Real-time object rendering preview");
   ImGui::Separator();
@@ -240,6 +242,7 @@ void ObjectEditorCard::DrawEmulatorPreview() {
 
 void ObjectEditorCard::DrawObjectPreviewIcon(int object_id,
                                              const ImVec2& size) {
+  const auto& theme = AgentUI::GetTheme();
   // Create a small preview box for the object
   ImDrawList* draw_list = ImGui::GetWindowDrawList();
   ImVec2 cursor_pos = ImGui::GetCursorScreenPos();
@@ -281,6 +284,7 @@ void ObjectEditorCard::DrawObjectPreviewIcon(int object_id,
 }
 
 void ObjectEditorCard::DrawSelectedObjectInfo() {
+  const auto& theme = AgentUI::GetTheme();
   ImGui::BeginGroup();
 
   // Show current object for placement

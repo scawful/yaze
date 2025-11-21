@@ -235,7 +235,7 @@ void DungeonObjectSelector::DrawObjectBrowser() {
       ImGui::GetWindowDrawList()->AddRect(
           preview_pos,
           ImVec2(preview_pos.x + preview_size, preview_pos.y + preview_size),
-          ImGui::GetColorU32(theme.panel_border), 0.0f, 0, 2.0f);
+          ImGui::GetColorU32(theme.panel_bg_darker), 0.0f, 0, 2.0f);
 
       // Draw object type symbol in center
       std::string symbol = GetObjectTypeSymbol(obj_id);
@@ -584,7 +584,7 @@ void DungeonObjectSelector::RenderObjectPrimitive(
   // Draw object rectangle
   ImVec4 color_vec = ImGui::ColorConvertU32ToFloat4(color);
   object_canvas_.DrawRect(x, y, obj_width, obj_height, color_vec);
-  object_canvas_.DrawRect(x, y, obj_width, obj_height, theme.panel_border);
+  object_canvas_.DrawRect(x, y, obj_width, obj_height, theme.panel_bg_darker);
 
   // Draw object ID as text
   std::string obj_text = absl::StrFormat("0x%X", object.id_);
@@ -675,7 +675,7 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
     // Draw border
     ImU32 border_color =
         is_selected ? ImGui::GetColorU32(theme.dungeon_selection_primary)
-                    : ImGui::GetColorU32(theme.panel_border);
+                    : ImGui::GetColorU32(theme.panel_bg_darker);
     draw_list->AddRect(
         button_pos, ImVec2(button_pos.x + item_size, button_pos.y + item_size),
         border_color, 0.0f, 0, is_selected ? 3.0f : 1.0f);

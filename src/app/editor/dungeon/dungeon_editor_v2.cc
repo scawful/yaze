@@ -206,6 +206,7 @@ absl::Status DungeonEditorV2::Load() {
 }
 
 absl::Status DungeonEditorV2::Update() {
+  const auto& theme = AgentUI::GetTheme();
   // Initialize docking class ID on first Update (when ImGui is ready)
   if (room_window_class_.ClassId == 0) {
     room_window_class_.ClassId = ImGui::GetID("DungeonRoomClass");
