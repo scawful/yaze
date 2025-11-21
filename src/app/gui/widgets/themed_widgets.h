@@ -12,8 +12,9 @@ namespace gui {
 /**
  * @brief Theme-aware widget library
  *
- * All widgets in this file automatically use the current theme from ThemeManager.
- * These are drop-in replacements for standard ImGui widgets with automatic theming.
+ * All widgets in this file automatically use the current theme from
+ * ThemeManager. These are drop-in replacements for standard ImGui widgets with
+ * automatic theming.
  *
  * Usage:
  * ```cpp
@@ -105,8 +106,8 @@ bool ThemedInputText(const char* label, char* buf, size_t buf_size,
 /**
  * @brief Themed integer input
  */
-bool ThemedInputInt(const char* label, int* v, int step = 1, int step_fast = 100,
-                    ImGuiInputTextFlags flags = 0);
+bool ThemedInputInt(const char* label, int* v, int step = 1,
+                    int step_fast = 100, ImGuiInputTextFlags flags = 0);
 
 /**
  * @brief Themed float input
@@ -123,8 +124,9 @@ bool ThemedCheckbox(const char* label, bool* v);
 /**
  * @brief Themed combo box
  */
-bool ThemedCombo(const char* label, int* current_item, const char* const items[],
-                 int items_count, int popup_max_height_in_items = -1);
+bool ThemedCombo(const char* label, int* current_item,
+                 const char* const items[], int items_count,
+                 int popup_max_height_in_items = -1);
 
 // ============================================================================
 // Tables
@@ -133,7 +135,8 @@ bool ThemedCombo(const char* label, int* current_item, const char* const items[]
 /**
  * @brief Begin themed table with automatic styling
  */
-bool BeginThemedTable(const char* str_id, int columns, ImGuiTableFlags flags = 0,
+bool BeginThemedTable(const char* str_id, int columns,
+                      ImGuiTableFlags flags = 0,
                       const ImVec2& outer_size = ImVec2(0, 0),
                       float inner_width = 0.0f);
 
@@ -181,7 +184,8 @@ void ThemedProgressBar(float fraction, const ImVec2& size = ImVec2(-1, 0),
 // Palette Editor Widgets
 // ============================================================================
 
-// NOTE: PaletteColorButton moved to color.h for consistency with other color utilities
+// NOTE: PaletteColorButton moved to color.h for consistency with other color
+// utilities
 
 /**
  * @brief Display color information with copy-to-clipboard functionality
@@ -190,8 +194,7 @@ void ThemedProgressBar(float fraction, const ImVec2& size = ImVec2(-1, 0),
  * @param show_hex_format Show #xxxxxx hex format
  */
 void ColorInfoPanel(const yaze::gfx::SnesColor& color,
-                   bool show_snes_format = true,
-                   bool show_hex_format = true);
+                    bool show_snes_format = true, bool show_hex_format = true);
 
 /**
  * @brief Modified indicator badge (displayed as text with icon)

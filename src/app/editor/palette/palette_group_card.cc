@@ -3,8 +3,8 @@
 #include <chrono>
 
 #include "absl/strings/str_format.h"
-#include "app/gfx/util/palette_manager.h"
 #include "app/gfx/types/snes_palette.h"
+#include "app/gfx/util/palette_manager.h"
 #include "app/gui/core/color.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/layout_helpers.h"
@@ -15,21 +15,18 @@ namespace yaze {
 namespace editor {
 
 using namespace yaze::gui;
+using gui::DangerButton;
+using gui::PrimaryButton;
+using gui::SectionHeader;
 using gui::ThemedButton;
 using gui::ThemedIconButton;
-using gui::PrimaryButton;
-using gui::DangerButton;
-using gui::SectionHeader;
 
 PaletteGroupCard::PaletteGroupCard(const std::string& group_name,
-                                   const std::string& display_name,
-                                   Rom* rom)
-    : group_name_(group_name),
-      display_name_(display_name),
-      rom_(rom) {
-  // Note: We can't call GetPaletteGroup() here because it's a pure virtual function
-  // and the derived class isn't fully constructed yet. Original palettes will be
-  // loaded on first Draw() call instead.
+                                   const std::string& display_name, Rom* rom)
+    : group_name_(group_name), display_name_(display_name), rom_(rom) {
+  // Note: We can't call GetPaletteGroup() here because it's a pure virtual
+  // function and the derived class isn't fully constructed yet. Original
+  // palettes will be loaded on first Draw() call instead.
 }
 
 void PaletteGroupCard::Draw() {
@@ -46,10 +43,12 @@ void PaletteGroupCard::Draw() {
     ImGui::Separator();
 
     // Two-column layout: Grid on left, picker on right
-    if (ImGui::BeginTable("##PaletteCardLayout", 2,
-                          ImGuiTableFlags_Resizable | ImGuiTableFlags_BordersInnerV)) {
+    if (ImGui::BeginTable(
+            "##PaletteCardLayout", 2,
+            ImGuiTableFlags_Resizable | ImGuiTableFlags_BordersInnerV)) {
       ImGui::TableSetupColumn("Grid", ImGuiTableColumnFlags_WidthStretch, 0.6f);
-      ImGui::TableSetupColumn("Editor", ImGuiTableColumnFlags_WidthStretch, 0.4f);
+      ImGui::TableSetupColumn("Editor", ImGuiTableColumnFlags_WidthStretch,
+                              0.4f);
 
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
@@ -123,7 +122,7 @@ void PaletteGroupCard::DrawToolbar() {
       }
     }
     ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.0f, 1.0f), "%s %zu modified",
-                      ICON_MD_EDIT, modified_count);
+                       ICON_MD_EDIT, modified_count);
   }
 
   ImGui::SameLine();
@@ -169,7 +168,8 @@ void PaletteGroupCard::DrawToolbar() {
 
 void PaletteGroupCard::DrawPaletteSelector() {
   auto* palette_group = GetPaletteGroup();
-  if (!palette_group) return;
+  if (!palette_group)
+    return;
 
   int num_palettes = palette_group->size();
 
@@ -177,8 +177,9 @@ void PaletteGroupCard::DrawPaletteSelector() {
   ImGui::SameLine();
 
   ImGui::SetNextItemWidth(LayoutHelpers::GetStandardInputWidth());
-  if (ImGui::BeginCombo("##PaletteSelect",
-                        absl::StrFormat("Palette %d", selected_palette_).c_str())) {
+  if (ImGui::BeginCombo(
+          "##PaletteSelect",
+          absl::StrFormat("Palette %d", selected_palette_).c_str())) {
     for (int i = 0; i < num_palettes; i++) {
       bool is_selected = (selected_palette_ == i);
       bool is_modified = IsPaletteModified(i);
@@ -209,10 +210,12 @@ void PaletteGroupCard::DrawPaletteSelector() {
 }
 
 void PaletteGroupCard::DrawColorPicker() {
-  if (selected_color_ < 0) return;
+  if (selected_color_ < 0)
+    return;
 
   auto* palette = GetMutablePalette(selected_palette_);
-  if (!palette) return;
+  if (!palette)
+    return;
 
   SectionHeader("Color Editor");
 
@@ -223,9 +226,9 @@ void PaletteGroupCard::DrawColorPicker() {
   ImVec4 col = ConvertSnesColorToImVec4(editing_color_);
   if (ImGui::ColorPicker4("##picker", &col.x,
                           ImGuiColorEditFlags_NoAlpha |
-                          ImGuiColorEditFlags_PickerHueWheel |
-                          ImGuiColorEditFlags_DisplayRGB |
-                          ImGuiColorEditFlags_DisplayHSV)) {
+                              ImGuiColorEditFlags_PickerHueWheel |
+                              ImGuiColorEditFlags_DisplayRGB |
+                              ImGuiColorEditFlags_DisplayHSV)) {
     editing_color_ = ConvertImVec4ToSnesColor(col);
     SetColor(selected_palette_, selected_color_, editing_color_);
   }
@@ -235,17 +238,18 @@ void PaletteGroupCard::DrawColorPicker() {
   ImGui::Text("Current vs Original");
 
   ImGui::ColorButton("##current", col,
-                    ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_NoPicker,
-                    ImVec2(60, 40));
+                     ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_NoPicker,
+                     ImVec2(60, 40));
 
   LayoutHelpers::HelpMarker("Current color being edited");
 
   ImGui::SameLine();
 
   ImVec4 orig_col = ConvertSnesColorToImVec4(original);
-  if (ImGui::ColorButton("##original", orig_col,
-                        ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_NoPicker,
-                        ImVec2(60, 40))) {
+  if (ImGui::ColorButton(
+          "##original", orig_col,
+          ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_NoPicker,
+          ImVec2(60, 40))) {
     // Click to restore original
     editing_color_ = original;
     SetColor(selected_palette_, selected_color_, original);
@@ -265,7 +269,8 @@ void PaletteGroupCard::DrawColorPicker() {
 }
 
 void PaletteGroupCard::DrawColorInfo() {
-  if (selected_color_ < 0) return;
+  if (selected_color_ < 0)
+    return;
 
   SectionHeader("Color Information");
 
@@ -284,7 +289,8 @@ void PaletteGroupCard::DrawColorInfo() {
   if (show_snes_format_) {
     ImGui::Text("SNES BGR555: $%04X", editing_color_.snes());
     if (ImGui::IsItemClicked()) {
-      ImGui::SetClipboardText(absl::StrFormat("$%04X", editing_color_.snes()).c_str());
+      ImGui::SetClipboardText(
+          absl::StrFormat("$%04X", editing_color_.snes()).c_str());
     }
   }
 
@@ -292,7 +298,8 @@ void PaletteGroupCard::DrawColorInfo() {
   if (show_hex_format_) {
     ImGui::Text("Hex: #%02X%02X%02X", r, g, b);
     if (ImGui::IsItemClicked()) {
-      ImGui::SetClipboardText(absl::StrFormat("#%02X%02X%02X", r, g, b).c_str());
+      ImGui::SetClipboardText(
+          absl::StrFormat("#%02X%02X%02X", r, g, b).c_str());
     }
   }
 
@@ -301,7 +308,8 @@ void PaletteGroupCard::DrawColorInfo() {
 
 void PaletteGroupCard::DrawMetadataInfo() {
   const auto& metadata = GetMetadata();
-  if (selected_palette_ >= metadata.palettes.size()) return;
+  if (selected_palette_ >= metadata.palettes.size())
+    return;
 
   const auto& pal_meta = metadata.palettes[selected_palette_];
 
@@ -323,11 +331,11 @@ void PaletteGroupCard::DrawMetadataInfo() {
   ImGui::Separator();
 
   // Palette dimensions and color depth
-  ImGui::Text("Dimensions: %d colors (%dx%d)", 
-              metadata.colors_per_palette,
+  ImGui::Text("Dimensions: %d colors (%dx%d)", metadata.colors_per_palette,
               metadata.colors_per_row,
-              (metadata.colors_per_palette + metadata.colors_per_row - 1) / metadata.colors_per_row);
-  
+              (metadata.colors_per_palette + metadata.colors_per_row - 1) /
+                  metadata.colors_per_row);
+
   ImGui::Text("Color Depth: %d BPP (4-bit SNES)", 4);
   ImGui::TextDisabled("(16 colors per palette possible)");
 
@@ -336,7 +344,8 @@ void PaletteGroupCard::DrawMetadataInfo() {
   // ROM Address
   ImGui::Text("ROM Address: $%06X", pal_meta.rom_address);
   if (ImGui::IsItemClicked()) {
-    ImGui::SetClipboardText(absl::StrFormat("$%06X", pal_meta.rom_address).c_str());
+    ImGui::SetClipboardText(
+        absl::StrFormat("$%06X", pal_meta.rom_address).c_str());
   }
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip("Click to copy address");
@@ -346,7 +355,8 @@ void PaletteGroupCard::DrawMetadataInfo() {
   if (pal_meta.vram_address > 0) {
     ImGui::Text("VRAM Address: $%04X", pal_meta.vram_address);
     if (ImGui::IsItemClicked()) {
-      ImGui::SetClipboardText(absl::StrFormat("$%04X", pal_meta.vram_address).c_str());
+      ImGui::SetClipboardText(
+          absl::StrFormat("$%04X", pal_meta.vram_address).c_str());
     }
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("Click to copy VRAM address");
@@ -389,10 +399,10 @@ void PaletteGroupCard::DrawBatchOperationsPopup() {
 // ========== Palette Operations ==========
 
 void PaletteGroupCard::SetColor(int palette_index, int color_index,
-                                 const gfx::SnesColor& new_color) {
+                                const gfx::SnesColor& new_color) {
   // Delegate to PaletteManager for centralized tracking and undo/redo
   auto status = gfx::PaletteManager::Get().SetColor(group_name_, palette_index,
-                                                     color_index, new_color);
+                                                    color_index, new_color);
   if (!status.ok()) {
     // TODO: Show error notification
     return;
@@ -425,7 +435,7 @@ void PaletteGroupCard::ResetPalette(int palette_index) {
 void PaletteGroupCard::ResetColor(int palette_index, int color_index) {
   // Delegate to PaletteManager for centralized reset operation
   gfx::PaletteManager::Get().ResetColor(group_name_, palette_index,
-                                         color_index);
+                                        color_index);
 }
 
 // ========== History Management ==========
@@ -450,14 +460,14 @@ void PaletteGroupCard::ClearHistory() {
 bool PaletteGroupCard::IsPaletteModified(int palette_index) const {
   // Query PaletteManager for modification status
   return gfx::PaletteManager::Get().IsPaletteModified(group_name_,
-                                                       palette_index);
+                                                      palette_index);
 }
 
 bool PaletteGroupCard::IsColorModified(int palette_index,
-                                        int color_index) const {
+                                       int color_index) const {
   // Query PaletteManager for modification status
   return gfx::PaletteManager::Get().IsColorModified(group_name_, palette_index,
-                                                     color_index);
+                                                    color_index);
 }
 
 bool PaletteGroupCard::HasUnsavedChanges() const {
@@ -486,15 +496,17 @@ gfx::SnesPalette* PaletteGroupCard::GetMutablePalette(int index) {
 }
 
 gfx::SnesColor PaletteGroupCard::GetOriginalColor(int palette_index,
-                                                   int color_index) const {
+                                                  int color_index) const {
   // Get original color from PaletteManager's snapshots
   return gfx::PaletteManager::Get().GetColor(group_name_, palette_index,
-                                              color_index);
+                                             color_index);
 }
 
-absl::Status PaletteGroupCard::WriteColorToRom(int palette_index, int color_index,
-                                                const gfx::SnesColor& color) {
-  uint32_t address = gfx::GetPaletteAddress(group_name_, palette_index, color_index);
+absl::Status PaletteGroupCard::WriteColorToRom(int palette_index,
+                                               int color_index,
+                                               const gfx::SnesColor& color) {
+  uint32_t address =
+      gfx::GetPaletteAddress(group_name_, palette_index, color_index);
   return rom_->WriteColor(address, color);
 }
 
@@ -600,13 +612,15 @@ gfx::PaletteGroup* OverworldMainPaletteCard::GetPaletteGroup() {
 }
 
 const gfx::PaletteGroup* OverworldMainPaletteCard::GetPaletteGroup() const {
-  // Note: rom_->palette_group() returns by value, so we need to use the mutable version
+  // Note: rom_->palette_group() returns by value, so we need to use the mutable
+  // version
   return const_cast<Rom*>(rom_)->mutable_palette_group()->get_group("ow_main");
 }
 
 void OverworldMainPaletteCard::DrawPaletteGrid() {
   auto* palette = GetMutablePalette(selected_palette_);
-  if (!palette) return;
+  if (!palette)
+    return;
 
   const float button_size = 32.0f;
   const int colors_per_row = GetColorsPerRow();
@@ -618,8 +632,8 @@ void OverworldMainPaletteCard::DrawPaletteGrid() {
     ImGui::PushID(i);
 
     if (yaze::gui::PaletteColorButton(absl::StrFormat("##color%d", i).c_str(),
-                          (*palette)[i], is_selected, is_modified,
-                          ImVec2(button_size, button_size))) {
+                                      (*palette)[i], is_selected, is_modified,
+                                      ImVec2(button_size, button_size))) {
       selected_color_ = i;
       editing_color_ = (*palette)[i];
     }
@@ -654,10 +668,12 @@ PaletteGroupMetadata OverworldAnimatedPaletteCard::InitializeMetadata() {
     PaletteMetadata pal;
     pal.palette_id = i;
     pal.name = anim_names[i];
-    pal.description = absl::StrFormat("%s animated palette cycle", anim_names[i]);
+    pal.description =
+        absl::StrFormat("%s animated palette cycle", anim_names[i]);
     pal.rom_address = 0xDE86C + (i * 16);
     pal.vram_address = 0;
-    pal.usage_notes = "These palettes cycle through multiple frames for animation";
+    pal.usage_notes =
+        "These palettes cycle through multiple frames for animation";
     metadata.palettes.push_back(pal);
   }
 
@@ -669,12 +685,14 @@ gfx::PaletteGroup* OverworldAnimatedPaletteCard::GetPaletteGroup() {
 }
 
 const gfx::PaletteGroup* OverworldAnimatedPaletteCard::GetPaletteGroup() const {
-  return const_cast<Rom*>(rom_)->mutable_palette_group()->get_group("ow_animated");
+  return const_cast<Rom*>(rom_)->mutable_palette_group()->get_group(
+      "ow_animated");
 }
 
 void OverworldAnimatedPaletteCard::DrawPaletteGrid() {
   auto* palette = GetMutablePalette(selected_palette_);
-  if (!palette) return;
+  if (!palette)
+    return;
 
   const float button_size = 32.0f;
   const int colors_per_row = GetColorsPerRow();
@@ -686,8 +704,8 @@ void OverworldAnimatedPaletteCard::DrawPaletteGrid() {
     ImGui::PushID(i);
 
     if (yaze::gui::PaletteColorButton(absl::StrFormat("##color%d", i).c_str(),
-                          (*palette)[i], is_selected, is_modified,
-                          ImVec2(button_size, button_size))) {
+                                      (*palette)[i], is_selected, is_modified,
+                                      ImVec2(button_size, button_size))) {
       selected_color_ = i;
       editing_color_ = (*palette)[i];
     }
@@ -717,12 +735,11 @@ PaletteGroupMetadata DungeonMainPaletteCard::InitializeMetadata() {
 
   // Dungeon palettes (0-19)
   const char* dungeon_names[] = {
-      "Sewers", "Hyrule Castle", "Eastern Palace", "Desert Palace",
-      "Agahnim's Tower", "Swamp Palace", "Palace of Darkness", "Misery Mire",
-      "Skull Woods", "Ice Palace", "Tower of Hera", "Thieves' Town",
-      "Turtle Rock", "Ganon's Tower", "Generic 1", "Generic 2",
-      "Generic 3", "Generic 4", "Generic 5", "Generic 6"
-  };
+      "Sewers",          "Hyrule Castle", "Eastern Palace",     "Desert Palace",
+      "Agahnim's Tower", "Swamp Palace",  "Palace of Darkness", "Misery Mire",
+      "Skull Woods",     "Ice Palace",    "Tower of Hera",      "Thieves' Town",
+      "Turtle Rock",     "Ganon's Tower", "Generic 1",          "Generic 2",
+      "Generic 3",       "Generic 4",     "Generic 5",          "Generic 6"};
 
   for (int i = 0; i < 20; i++) {
     PaletteMetadata pal;
@@ -743,12 +760,14 @@ gfx::PaletteGroup* DungeonMainPaletteCard::GetPaletteGroup() {
 }
 
 const gfx::PaletteGroup* DungeonMainPaletteCard::GetPaletteGroup() const {
-  return const_cast<Rom*>(rom_)->mutable_palette_group()->get_group("dungeon_main");
+  return const_cast<Rom*>(rom_)->mutable_palette_group()->get_group(
+      "dungeon_main");
 }
 
 void DungeonMainPaletteCard::DrawPaletteGrid() {
   auto* palette = GetMutablePalette(selected_palette_);
-  if (!palette) return;
+  if (!palette)
+    return;
 
   const float button_size = 28.0f;
   const int colors_per_row = GetColorsPerRow();
@@ -760,8 +779,8 @@ void DungeonMainPaletteCard::DrawPaletteGrid() {
     ImGui::PushID(i);
 
     if (yaze::gui::PaletteColorButton(absl::StrFormat("##color%d", i).c_str(),
-                          (*palette)[i], is_selected, is_modified,
-                          ImVec2(button_size, button_size))) {
+                                      (*palette)[i], is_selected, is_modified,
+                                      ImVec2(button_size, button_size))) {
       selected_color_ = i;
       editing_color_ = (*palette)[i];
     }
@@ -786,24 +805,26 @@ PaletteGroupMetadata SpritePaletteCard::InitializeMetadata() {
   PaletteGroupMetadata metadata;
   metadata.group_name = "global_sprites";
   metadata.display_name = "Global Sprite Palettes";
-  metadata.colors_per_palette = 60;  // 60 colors: 4 rows of 16 colors (with transparent at 0, 16, 32, 48)
-  metadata.colors_per_row = 16;       // Display in 16-color rows
+  metadata.colors_per_palette =
+      60;  // 60 colors: 4 rows of 16 colors (with transparent at 0, 16, 32, 48)
+  metadata.colors_per_row = 16;  // Display in 16-color rows
 
   // 2 palette sets: Light World and Dark World
-  const char* sprite_names[] = {
-      "Global Sprites (Light World)",
-      "Global Sprites (Dark World)"
-  };
+  const char* sprite_names[] = {"Global Sprites (Light World)",
+                                "Global Sprites (Dark World)"};
 
   for (int i = 0; i < 2; i++) {
     PaletteMetadata pal;
     pal.palette_id = i;
     pal.name = sprite_names[i];
-    pal.description = "60 colors = 4 sprite sub-palettes (rows) with transparent at 0, 16, 32, 48";
+    pal.description =
+        "60 colors = 4 sprite sub-palettes (rows) with transparent at 0, 16, "
+        "32, 48";
     pal.rom_address = (i == 0) ? 0xDD218 : 0xDD290;  // LW or DW address
-    pal.vram_address = 0;  // Loaded dynamically
-    pal.usage_notes = "4 sprite sub-palettes of 15 colors + transparent each. "
-                      "Row 0: colors 0-15, Row 1: 16-31, Row 2: 32-47, Row 3: 48-59";
+    pal.vram_address = 0;                            // Loaded dynamically
+    pal.usage_notes =
+        "4 sprite sub-palettes of 15 colors + transparent each. "
+        "Row 0: colors 0-15, Row 1: 16-31, Row 2: 32-47, Row 3: 48-59";
     metadata.palettes.push_back(pal);
   }
 
@@ -815,12 +836,14 @@ gfx::PaletteGroup* SpritePaletteCard::GetPaletteGroup() {
 }
 
 const gfx::PaletteGroup* SpritePaletteCard::GetPaletteGroup() const {
-  return const_cast<Rom*>(rom_)->mutable_palette_group()->get_group("global_sprites");
+  return const_cast<Rom*>(rom_)->mutable_palette_group()->get_group(
+      "global_sprites");
 }
 
 void SpritePaletteCard::DrawPaletteGrid() {
   auto* palette = GetMutablePalette(selected_palette_);
-  if (!palette) return;
+  if (!palette)
+    return;
 
   const float button_size = 28.0f;
   const int colors_per_row = GetColorsPerRow();
@@ -831,13 +854,14 @@ void SpritePaletteCard::DrawPaletteGrid() {
 
     ImGui::PushID(i);
 
-    // Draw transparent color indicator at start of each 16-color row (0, 16, 32, 48, ...)
+    // Draw transparent color indicator at start of each 16-color row (0, 16,
+    // 32, 48, ...)
     bool is_transparent_slot = (i % 16 == 0);
     if (is_transparent_slot) {
       ImGui::BeginGroup();
       if (yaze::gui::PaletteColorButton(absl::StrFormat("##color%d", i).c_str(),
-                            (*palette)[i], is_selected, is_modified,
-                            ImVec2(button_size, button_size))) {
+                                        (*palette)[i], is_selected, is_modified,
+                                        ImVec2(button_size, button_size))) {
         selected_color_ = i;
         editing_color_ = (*palette)[i];
       }
@@ -847,14 +871,15 @@ void SpritePaletteCard::DrawPaletteGrid() {
           ImVec2(pos.x + button_size / 2 - 4, pos.y + button_size / 2 - 8),
           IM_COL32(255, 255, 255, 200), "T");
       ImGui::EndGroup();
-      
+
       if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Transparent color slot for sprite sub-palette %d", i / 16);
+        ImGui::SetTooltip("Transparent color slot for sprite sub-palette %d",
+                          i / 16);
       }
     } else {
       if (yaze::gui::PaletteColorButton(absl::StrFormat("##color%d", i).c_str(),
-                            (*palette)[i], is_selected, is_modified,
-                            ImVec2(button_size, button_size))) {
+                                        (*palette)[i], is_selected, is_modified,
+                                        ImVec2(button_size, button_size))) {
         selected_color_ = i;
         editing_color_ = (*palette)[i];
       }
@@ -877,8 +902,9 @@ void SpritePaletteCard::DrawCustomPanels() {
     const auto& pal_meta = metadata.palettes[selected_palette_];
 
     ImGui::TextWrapped("This sprite palette is loaded to VRAM address $%04X",
-                      pal_meta.vram_address);
-    ImGui::TextDisabled("VRAM palettes are used by the SNES PPU for sprite rendering");
+                       pal_meta.vram_address);
+    ImGui::TextDisabled(
+        "VRAM palettes are used by the SNES PPU for sprite rendering");
   }
 }
 
@@ -923,7 +949,8 @@ const gfx::PaletteGroup* EquipmentPaletteCard::GetPaletteGroup() const {
 
 void EquipmentPaletteCard::DrawPaletteGrid() {
   auto* palette = GetMutablePalette(selected_palette_);
-  if (!palette) return;
+  if (!palette)
+    return;
 
   const float button_size = 32.0f;
   const int colors_per_row = GetColorsPerRow();
@@ -935,8 +962,8 @@ void EquipmentPaletteCard::DrawPaletteGrid() {
     ImGui::PushID(i);
 
     if (yaze::gui::PaletteColorButton(absl::StrFormat("##color%d", i).c_str(),
-                          (*palette)[i], is_selected, is_modified,
-                          ImVec2(button_size, button_size))) {
+                                      (*palette)[i], is_selected, is_modified,
+                                      ImVec2(button_size, button_size))) {
       selected_color_ = i;
       editing_color_ = (*palette)[i];
     }
@@ -983,12 +1010,14 @@ gfx::PaletteGroup* SpritesAux1PaletteCard::GetPaletteGroup() {
 }
 
 const gfx::PaletteGroup* SpritesAux1PaletteCard::GetPaletteGroup() const {
-  return const_cast<Rom*>(rom_)->mutable_palette_group()->get_group("sprites_aux1");
+  return const_cast<Rom*>(rom_)->mutable_palette_group()->get_group(
+      "sprites_aux1");
 }
 
 void SpritesAux1PaletteCard::DrawPaletteGrid() {
   auto* palette = GetMutablePalette(selected_palette_);
-  if (!palette) return;
+  if (!palette)
+    return;
 
   const float button_size = 32.0f;
   const int colors_per_row = GetColorsPerRow();
@@ -999,12 +1028,12 @@ void SpritesAux1PaletteCard::DrawPaletteGrid() {
 
     ImGui::PushID(i);
 
-      if (yaze::gui::PaletteColorButton(absl::StrFormat("##color%d", i).c_str(),
-                            (*palette)[i], is_selected, is_modified,
-                            ImVec2(button_size, button_size))) {
-        selected_color_ = i;
-        editing_color_ = (*palette)[i];
-      }
+    if (yaze::gui::PaletteColorButton(absl::StrFormat("##color%d", i).c_str(),
+                                      (*palette)[i], is_selected, is_modified,
+                                      ImVec2(button_size, button_size))) {
+      selected_color_ = i;
+      editing_color_ = (*palette)[i];
+    }
 
     ImGui::PopID();
 
@@ -1048,12 +1077,14 @@ gfx::PaletteGroup* SpritesAux2PaletteCard::GetPaletteGroup() {
 }
 
 const gfx::PaletteGroup* SpritesAux2PaletteCard::GetPaletteGroup() const {
-  return const_cast<Rom*>(rom_)->mutable_palette_group()->get_group("sprites_aux2");
+  return const_cast<Rom*>(rom_)->mutable_palette_group()->get_group(
+      "sprites_aux2");
 }
 
 void SpritesAux2PaletteCard::DrawPaletteGrid() {
   auto* palette = GetMutablePalette(selected_palette_);
-  if (!palette) return;
+  if (!palette)
+    return;
 
   const float button_size = 32.0f;
   const int colors_per_row = GetColorsPerRow();
@@ -1068,8 +1099,8 @@ void SpritesAux2PaletteCard::DrawPaletteGrid() {
     if (i == 0) {
       ImGui::BeginGroup();
       if (yaze::gui::PaletteColorButton(absl::StrFormat("##color%d", i).c_str(),
-                            (*palette)[i], is_selected, is_modified,
-                            ImVec2(button_size, button_size))) {
+                                        (*palette)[i], is_selected, is_modified,
+                                        ImVec2(button_size, button_size))) {
         selected_color_ = i;
         editing_color_ = (*palette)[i];
       }
@@ -1081,8 +1112,8 @@ void SpritesAux2PaletteCard::DrawPaletteGrid() {
       ImGui::EndGroup();
     } else {
       if (yaze::gui::PaletteColorButton(absl::StrFormat("##color%d", i).c_str(),
-                            (*palette)[i], is_selected, is_modified,
-                            ImVec2(button_size, button_size))) {
+                                        (*palette)[i], is_selected, is_modified,
+                                        ImVec2(button_size, button_size))) {
         selected_color_ = i;
         editing_color_ = (*palette)[i];
       }
@@ -1130,12 +1161,14 @@ gfx::PaletteGroup* SpritesAux3PaletteCard::GetPaletteGroup() {
 }
 
 const gfx::PaletteGroup* SpritesAux3PaletteCard::GetPaletteGroup() const {
-  return const_cast<Rom*>(rom_)->mutable_palette_group()->get_group("sprites_aux3");
+  return const_cast<Rom*>(rom_)->mutable_palette_group()->get_group(
+      "sprites_aux3");
 }
 
 void SpritesAux3PaletteCard::DrawPaletteGrid() {
   auto* palette = GetMutablePalette(selected_palette_);
-  if (!palette) return;
+  if (!palette)
+    return;
 
   const float button_size = 32.0f;
   const int colors_per_row = GetColorsPerRow();
@@ -1150,8 +1183,8 @@ void SpritesAux3PaletteCard::DrawPaletteGrid() {
     if (i == 0) {
       ImGui::BeginGroup();
       if (yaze::gui::PaletteColorButton(absl::StrFormat("##color%d", i).c_str(),
-                            (*palette)[i], is_selected, is_modified,
-                            ImVec2(button_size, button_size))) {
+                                        (*palette)[i], is_selected, is_modified,
+                                        ImVec2(button_size, button_size))) {
         selected_color_ = i;
         editing_color_ = (*palette)[i];
       }
@@ -1163,8 +1196,8 @@ void SpritesAux3PaletteCard::DrawPaletteGrid() {
       ImGui::EndGroup();
     } else {
       if (yaze::gui::PaletteColorButton(absl::StrFormat("##color%d", i).c_str(),
-                            (*palette)[i], is_selected, is_modified,
-                            ImVec2(button_size, button_size))) {
+                                        (*palette)[i], is_selected, is_modified,
+                                        ImVec2(button_size, button_size))) {
         selected_color_ = i;
         editing_color_ = (*palette)[i];
       }

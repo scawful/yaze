@@ -4,8 +4,8 @@
 
 #include <SDL.h>
 
-#include "app/platform/window.h"
 #include "app/gui/core/style.h"
+#include "app/platform/window.h"
 #include "imgui/backends/imgui_impl_sdl2.h"
 #include "imgui/backends/imgui_impl_sdlrenderer2.h"
 #include "imgui/imgui.h"
@@ -20,13 +20,15 @@
 namespace yaze {
 namespace test {
 
-EditorIntegrationTest::EditorIntegrationTest() 
+EditorIntegrationTest::EditorIntegrationTest()
 #ifdef YAZE_ENABLE_IMGUI_TEST_ENGINE
-    : engine_(nullptr), show_demo_window_(true) 
+    : engine_(nullptr),
+      show_demo_window_(true)
 #else
-    
+
 #endif
-{}
+{
+}
 
 EditorIntegrationTest::~EditorIntegrationTest() {
 #ifdef YAZE_ENABLE_IMGUI_TEST_ENGINE
@@ -40,7 +42,8 @@ EditorIntegrationTest::~EditorIntegrationTest() {
 absl::Status EditorIntegrationTest::Initialize() {
   // Create renderer for test
   test_renderer_ = std::make_unique<gfx::SDL2Renderer>();
-  RETURN_IF_ERROR(core::CreateWindow(window_, test_renderer_.get(), SDL_WINDOW_RESIZABLE));
+  RETURN_IF_ERROR(
+      core::CreateWindow(window_, test_renderer_.get(), SDL_WINDOW_RESIZABLE));
 
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
@@ -57,7 +60,8 @@ absl::Status EditorIntegrationTest::Initialize() {
   io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 
   // Initialize ImGui for SDL
-  SDL_Renderer* sdl_renderer = static_cast<SDL_Renderer*>(test_renderer_->GetBackendRenderer());
+  SDL_Renderer* sdl_renderer =
+      static_cast<SDL_Renderer*>(test_renderer_->GetBackendRenderer());
   ImGui_ImplSDL2_InitForSDLRenderer(controller_.window(), sdl_renderer);
   ImGui_ImplSDLRenderer2_Init(sdl_renderer);
 
@@ -98,15 +102,14 @@ int EditorIntegrationTest::RunTest() {
 
 absl::Status EditorIntegrationTest::Update() {
   ImGui::NewFrame();
-  
+
 #ifdef YAZE_ENABLE_IMGUI_TEST_ENGINE
   // Show test engine windows
   ImGuiTestEngine_ShowTestEngineWindows(engine_, &show_demo_window_);
 #endif
-  
+
   return absl::OkStatus();
 }
-
 
 // Helper methods for testing with a ROM
 absl::Status EditorIntegrationTest::LoadTestRom(const std::string& filename) {
@@ -125,7 +128,8 @@ absl::Status EditorIntegrationTest::SaveTestRom(const std::string& filename) {
   return test_rom_->SaveToFile(settings);
 }
 
-absl::Status EditorIntegrationTest::TestEditorInitialize(editor::Editor* editor) {
+absl::Status EditorIntegrationTest::TestEditorInitialize(
+    editor::Editor* editor) {
   if (!editor) {
     return absl::InternalError("Editor is null");
   }
@@ -204,4 +208,4 @@ absl::Status EditorIntegrationTest::TestEditorClear(editor::Editor* editor) {
 }
 
 }  // namespace test
-}  // namespace yaze 
+}  // namespace yaze

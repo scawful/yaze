@@ -20,11 +20,11 @@ void PaletteManager::Initialize(Rom* rom) {
   auto* palette_groups = rom_->mutable_palette_group();
 
   // Snapshot all palette groups
-  const char* group_names[] = {
-      "ow_main", "ow_aux", "ow_animated", "hud", "global_sprites",
-      "armors", "swords", "shields", "sprites_aux1", "sprites_aux2",
-      "sprites_aux3", "dungeon_main", "grass", "3d_object", "ow_mini_map"
-  };
+  const char* group_names[] = {"ow_main",      "ow_aux",         "ow_animated",
+                               "hud",          "global_sprites", "armors",
+                               "swords",       "shields",        "sprites_aux1",
+                               "sprites_aux2", "sprites_aux3",   "dungeon_main",
+                               "grass",        "3d_object",      "ow_mini_map"};
 
   for (const auto& group_name : group_names) {
     try {
@@ -51,8 +51,7 @@ void PaletteManager::Initialize(Rom* rom) {
 // ========== Color Operations ==========
 
 SnesColor PaletteManager::GetColor(const std::string& group_name,
-                                    int palette_index,
-                                    int color_index) const {
+                                   int palette_index, int color_index) const {
   const auto* group = GetGroup(group_name);
   if (!group || palette_index < 0 || palette_index >= group->size()) {
     return SnesColor();
@@ -67,8 +66,8 @@ SnesColor PaletteManager::GetColor(const std::string& group_name,
 }
 
 absl::Status PaletteManager::SetColor(const std::string& group_name,
-                                       int palette_index, int color_index,
-                                       const SnesColor& new_color) {
+                                      int palette_index, int color_index,
+                                      const SnesColor& new_color) {
   if (!IsInitialized()) {
     return absl::FailedPreconditionError("PaletteManager not initialized");
   }
@@ -80,16 +79,14 @@ absl::Status PaletteManager::SetColor(const std::string& group_name,
   }
 
   if (palette_index < 0 || palette_index >= group->size()) {
-    return absl::InvalidArgumentError(
-        absl::StrFormat("Palette index %d out of range [0, %d)", palette_index,
-                        group->size()));
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "Palette index %d out of range [0, %d)", palette_index, group->size()));
   }
 
   auto* palette = group->mutable_palette(palette_index);
   if (color_index < 0 || color_index >= palette->size()) {
-    return absl::InvalidArgumentError(
-        absl::StrFormat("Color index %d out of range [0, %d)", color_index,
-                        palette->size()));
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "Color index %d out of range [0, %d)", color_index, palette->size()));
   }
 
   // Get original color
@@ -108,9 +105,9 @@ absl::Status PaletteManager::SetColor(const std::string& group_name,
                             now.time_since_epoch())
                             .count();
 
-    PaletteColorChange change{group_name,      palette_index, color_index,
-                              original_color,  new_color,
-                              static_cast<uint64_t>(timestamp_ms)};
+    PaletteColorChange change{group_name,  palette_index,
+                              color_index, original_color,
+                              new_color,   static_cast<uint64_t>(timestamp_ms)};
     RecordChange(change);
 
     // Notify listeners
@@ -123,30 +120,29 @@ absl::Status PaletteManager::SetColor(const std::string& group_name,
     auto timestamp_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
                             now.time_since_epoch())
                             .count();
-    batch_changes_.push_back(
-        {group_name, palette_index, color_index, original_color, new_color,
-         static_cast<uint64_t>(timestamp_ms)});
+    batch_changes_.push_back({group_name, palette_index, color_index,
+                              original_color, new_color,
+                              static_cast<uint64_t>(timestamp_ms)});
   }
 
   return absl::OkStatus();
 }
 
 absl::Status PaletteManager::ResetColor(const std::string& group_name,
-                                         int palette_index, int color_index) {
+                                        int palette_index, int color_index) {
   SnesColor original = GetOriginalColor(group_name, palette_index, color_index);
   return SetColor(group_name, palette_index, color_index, original);
 }
 
 absl::Status PaletteManager::ResetPalette(const std::string& group_name,
-                                           int palette_index) {
+                                          int palette_index) {
   if (!IsInitialized()) {
     return absl::FailedPreconditionError("PaletteManager not initialized");
   }
 
   // Check if original snapshot exists
   auto it = original_palettes_.find(group_name);
-  if (it == original_palettes_.end() ||
-      palette_index >= it->second.size()) {
+  if (it == original_palettes_.end() || palette_index >= it->second.size()) {
     return absl::NotFoundError("Original palette not found");
   }
 
@@ -163,8 +159,8 @@ absl::Status PaletteManager::ResetPalette(const std::string& group_name,
   modified_colors_[group_name].erase(palette_index);
 
   // Notify listeners
-  PaletteChangeEvent event{PaletteChangeEvent::Type::kPaletteReset,
-                           group_name, palette_index, -1};
+  PaletteChangeEvent event{PaletteChangeEvent::Type::kPaletteReset, group_name,
+                           palette_index, -1};
   NotifyListeners(event);
 
   return absl::OkStatus();
@@ -190,7 +186,7 @@ bool PaletteManager::IsGroupModified(const std::string& group_name) const {
 }
 
 bool PaletteManager::IsPaletteModified(const std::string& group_name,
-                                        int palette_index) const {
+                                       int palette_index) const {
   auto it = modified_palettes_.find(group_name);
   if (it == modified_palettes_.end()) {
     return false;
@@ -199,8 +195,7 @@ bool PaletteManager::IsPaletteModified(const std::string& group_name,
 }
 
 bool PaletteManager::IsColorModified(const std::string& group_name,
-                                      int palette_index,
-                                      int color_index) const {
+                                     int palette_index, int color_index) const {
   auto group_it = modified_colors_.find(group_name);
   if (group_it == modified_colors_.end()) {
     return false;
@@ -253,7 +248,8 @@ absl::Status PaletteManager::SaveGroup(const std::string& group_name) {
     if (color_it != modified_colors_[group_name].end()) {
       for (int color_idx : color_it->second) {
         // Calculate ROM address using the helper function
-        uint32_t address = GetPaletteAddress(group_name, palette_idx, color_idx);
+        uint32_t address =
+            GetPaletteAddress(group_name, palette_idx, color_idx);
 
         // Write color to ROM - write the 16-bit SNES color value
         rom_->WriteShort(address, (*palette)[color_idx].snes());
@@ -347,8 +343,7 @@ void PaletteManager::DiscardAllChanges() {
   ClearHistory();
 
   // Notify listeners
-  PaletteChangeEvent event{PaletteChangeEvent::Type::kAllDiscarded, "", -1,
-                           -1};
+  PaletteChangeEvent event{PaletteChangeEvent::Type::kAllDiscarded, "", -1, -1};
   NotifyListeners(event);
 }
 
@@ -485,8 +480,8 @@ const PaletteGroup* PaletteManager::GetGroup(
 }
 
 SnesColor PaletteManager::GetOriginalColor(const std::string& group_name,
-                                            int palette_index,
-                                            int color_index) const {
+                                           int palette_index,
+                                           int color_index) const {
   auto it = original_palettes_.find(group_name);
   if (it == original_palettes_.end() || palette_index >= it->second.size()) {
     return SnesColor();
@@ -519,7 +514,7 @@ void PaletteManager::NotifyListeners(const PaletteChangeEvent& event) {
 }
 
 void PaletteManager::MarkModified(const std::string& group_name,
-                                   int palette_index, int color_index) {
+                                  int palette_index, int color_index) {
   modified_palettes_[group_name].insert(palette_index);
   modified_colors_[group_name][palette_index].insert(color_index);
 }

@@ -28,8 +28,8 @@ class CommandManager {
     char mnemonic;
     std::string name;
     std::string desc;
-    CommandInfo(Command command, char mnemonic, const std::string &name,
-                const std::string &desc)
+    CommandInfo(Command command, char mnemonic, const std::string& name,
+                const std::string& desc)
         : command(std::move(command)),
           mnemonic(mnemonic),
           name(name),
@@ -41,30 +41,32 @@ class CommandManager {
   struct CommandGroup {
     CommandInfo main_command;
     std::unordered_map<std::string, CommandInfo> subcommands;
-    
+
     CommandGroup() = default;
     CommandGroup(CommandInfo main) : main_command(std::move(main)) {}
   };
 
-  void RegisterPrefix(const std::string &group_name, const char prefix,
-                      const std::string &name, const std::string &desc) {
+  void RegisterPrefix(const std::string& group_name, const char prefix,
+                      const std::string& name, const std::string& desc) {
     commands_[group_name].main_command = {nullptr, prefix, name, desc};
   }
 
-  void RegisterSubcommand(const std::string &group_name,
-                          const std::string &shortcut, const char mnemonic,
-                          const std::string &name, const std::string &desc,
+  void RegisterSubcommand(const std::string& group_name,
+                          const std::string& shortcut, const char mnemonic,
+                          const std::string& name, const std::string& desc,
                           Command command) {
-    commands_[group_name].subcommands[shortcut] = {command, mnemonic, name, desc};
+    commands_[group_name].subcommands[shortcut] = {command, mnemonic, name,
+                                                   desc};
   }
 
-  void RegisterCommand(const std::string &shortcut, Command command,
-                       char mnemonic, const std::string &name,
-                       const std::string &desc) {
-    commands_[shortcut].main_command = {std::move(command), mnemonic, name, desc};
+  void RegisterCommand(const std::string& shortcut, Command command,
+                       char mnemonic, const std::string& name,
+                       const std::string& desc) {
+    commands_[shortcut].main_command = {std::move(command), mnemonic, name,
+                                        desc};
   }
 
-  void ExecuteCommand(const std::string &shortcut) {
+  void ExecuteCommand(const std::string& shortcut) {
     if (commands_.find(shortcut) != commands_.end()) {
       commands_[shortcut].main_command.command();
     }
@@ -76,8 +78,8 @@ class CommandManager {
   void ShowWhichKeyHierarchical();
   void HandleWhichKeyInput();
 
-  void SaveKeybindings(const std::string &filepath);
-  void LoadKeybindings(const std::string &filepath);
+  void SaveKeybindings(const std::string& filepath);
+  void LoadKeybindings(const std::string& filepath);
 
   // Navigation state
   bool IsWhichKeyActive() const { return whichkey_active_; }
@@ -88,7 +90,8 @@ class CommandManager {
 
   // WhichKey state
   bool whichkey_active_ = false;
-  std::string current_prefix_;  // Current navigation prefix (e.g., "w", "l", "f")
+  std::string
+      current_prefix_;  // Current navigation prefix (e.g., "w", "l", "f")
   float whichkey_timer_ = 0.0f;  // Auto-close timer
 };
 

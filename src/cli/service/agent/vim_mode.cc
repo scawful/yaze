@@ -36,17 +36,17 @@ const char* RESTORE_CURSOR = "\033[u";
 void SetRawMode(bool enable) {
   static struct termios orig_termios;
   static bool has_orig = false;
-  
+
   if (enable) {
     if (!has_orig) {
       tcgetattr(STDIN_FILENO, &orig_termios);
       has_orig = true;
     }
-    
+
     struct termios raw = orig_termios;
     raw.c_lflag &= ~(ECHO | ICANON);  // Disable echo and canonical mode
-    raw.c_cc[VMIN] = 1;   // Read at least 1 character
-    raw.c_cc[VTIME] = 0;  // No timeout
+    raw.c_cc[VMIN] = 1;               // Read at least 1 character
+    raw.c_cc[VTIME] = 0;              // No timeout
     tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
   } else {
     if (has_orig) {
@@ -94,7 +94,7 @@ void VimMode::AddToHistory(const std::string& line) {
 
 bool VimMode::ProcessKey(int ch) {
   line_complete_ = false;
-  
+
   switch (mode_) {
     case VimModeType::NORMAL:
       HandleNormalMode(ch);
@@ -113,7 +113,7 @@ bool VimMode::ProcessKey(int ch) {
       }
       break;
   }
-  
+
   return line_complete_;
 }
 
@@ -144,7 +144,7 @@ void VimMode::HandleNormalMode(int ch) {
       MoveToLineStart();
       SwitchMode(VimModeType::INSERT);
       break;
-    
+
     // Movement
     case 'h':
       MoveLeft();
@@ -164,7 +164,7 @@ void VimMode::HandleNormalMode(int ch) {
     case '$':
       MoveToLineEnd();
       break;
-    
+
     // Editing
     case 'x':
       DeleteChar();
@@ -214,18 +214,18 @@ void VimMode::HandleNormalMode(int ch) {
     case 'j':
       HistoryNext();
       break;
-    
+
     // Accept line (Enter in normal mode)
     case KEY_ENTER:
       line_complete_ = true;
       break;
-    
+
     // Command mode
     case ':':
       SwitchMode(VimModeType::COMMAND_LINE);
       break;
   }
-  
+
   Render();
 }
 
@@ -259,7 +259,7 @@ void VimMode::HandleInsertMode(int ch) {
       }
       break;
   }
-  
+
   if (!line_complete_) {
     Render();
   }
@@ -290,7 +290,8 @@ void VimMode::MoveWordForward() {
 }
 
 void VimMode::MoveWordBackward() {
-  if (cursor_pos_ > 0) cursor_pos_--;
+  if (cursor_pos_ > 0)
+    cursor_pos_--;
   while (cursor_pos_ > 0 && std::isspace(current_line_[cursor_pos_])) {
     cursor_pos_--;
   }
@@ -349,7 +350,8 @@ void VimMode::Undo() {
     redo_stack_.push_back(current_line_);
     current_line_ = undo_stack_.back();
     undo_stack_.pop_back();
-    cursor_pos_ = std::min(cursor_pos_, static_cast<int>(current_line_.length()));
+    cursor_pos_ =
+        std::min(cursor_pos_, static_cast<int>(current_line_.length()));
   }
 }
 
@@ -358,7 +360,8 @@ void VimMode::Redo() {
     undo_stack_.push_back(current_line_);
     current_line_ = redo_stack_.back();
     redo_stack_.pop_back();
-    cursor_pos_ = std::min(cursor_pos_, static_cast<int>(current_line_.length()));
+    cursor_pos_ =
+        std::min(cursor_pos_, static_cast<int>(current_line_.length()));
   }
 }
 
@@ -395,21 +398,23 @@ void VimMode::Complete() {
 
 // History navigation
 void VimMode::HistoryPrev() {
-  if (history_.empty()) return;
-  
+  if (history_.empty())
+    return;
+
   if (history_index_ == -1) {
     history_index_ = history_.size() - 1;
   } else if (history_index_ > 0) {
     history_index_--;
   }
-  
+
   current_line_ = history_[history_index_];
   cursor_pos_ = current_line_.length();
 }
 
 void VimMode::HistoryNext() {
-  if (history_.empty() || history_index_ == -1) return;
-  
+  if (history_.empty() || history_index_ == -1)
+    return;
+
   if (history_index_ < static_cast<int>(history_.size()) - 1) {
     history_index_++;
     current_line_ = history_[history_index_];
@@ -417,14 +422,14 @@ void VimMode::HistoryNext() {
     history_index_ = -1;
     current_line_.clear();
   }
-  
+
   cursor_pos_ = current_line_.length();
 }
 
 void VimMode::Render() const {
   // Clear line and redraw
   std::cout << CLEAR_LINE;
-  
+
   // Show mode indicator
   if (mode_ == VimModeType::INSERT) {
     std::cout << "-- INSERT -- ";
@@ -433,17 +438,18 @@ void VimMode::Render() const {
   } else if (mode_ == VimModeType::COMMAND_LINE) {
     std::cout << ":";
   }
-  
+
   // Show prompt and line
   std::cout << current_line_;
-  
+
   // Move cursor to correct position
-  int display_offset = (mode_ == VimModeType::INSERT ? 13 : 13);  // Length of "-- INSERT -- "
+  int display_offset =
+      (mode_ == VimModeType::INSERT ? 13 : 13);  // Length of "-- INSERT -- "
   std::cout << "\r";
   for (int i = 0; i < display_offset + cursor_pos_; ++i) {
     std::cout << "\033[C";  // Move cursor right
   }
-  
+
   std::cout.flush();
 }
 

@@ -47,8 +47,6 @@ if(YAZE_BUILD_EMU AND NOT YAZE_MINIMAL_BUILD)
     ${PROJECT_BINARY_DIR}
   )
   target_link_libraries(yaze_emu_test PRIVATE
-    yaze_app_core_lib
-    yaze_editor
     yaze_emulator
     yaze_util
     absl::flags

@@ -1,17 +1,16 @@
 #include "app/platform/font_loader.h"
 
+#include <cstring>
 #include <filesystem>
 #include <string>
 #include <vector>
-#include <cstring>
-
 
 #include "absl/status/status.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
-#include "util/file_util.h"
 #include "app/gui/core/icons.h"
 #include "imgui/imgui.h"
+#include "util/file_util.h"
 #include "util/macro.h"
 
 namespace yaze {
@@ -54,7 +53,7 @@ absl::Status LoadFont(const FontConfig& font_config) {
   }
 
   if (!imgui_io.Fonts->AddFontFromFileTTF(actual_font_path.data(),
-                                    font_config.font_size)) {
+                                          font_config.font_size)) {
     return absl::InternalError(
         absl::StrFormat("Failed to load font from %s", actual_font_path));
   }
@@ -70,8 +69,9 @@ absl::Status AddIconFont(const FontConfig& /*config*/) {
   icons_config.PixelSnapH = true;
   std::string icon_font_path = SetFontPath(FONT_ICON_FILE_NAME_MD);
   ImGuiIO& imgui_io = ImGui::GetIO();
-  if (!imgui_io.Fonts->AddFontFromFileTTF(icon_font_path.c_str(), ICON_FONT_SIZE,
-                                    &icons_config, icons_ranges)) {
+  if (!imgui_io.Fonts->AddFontFromFileTTF(icon_font_path.c_str(),
+                                          ICON_FONT_SIZE, &icons_config,
+                                          icons_ranges)) {
     return absl::InternalError("Failed to add icon fonts");
   }
   return absl::OkStatus();
@@ -85,9 +85,9 @@ absl::Status AddJapaneseFont(const FontConfig& /*config*/) {
   japanese_font_config.PixelSnapH = true;
   std::string japanese_font_path = SetFontPath(NOTO_SANS_JP);
   ImGuiIO& imgui_io = ImGui::GetIO();
-  if (!imgui_io.Fonts->AddFontFromFileTTF(japanese_font_path.data(), ICON_FONT_SIZE,
-                                    &japanese_font_config,
-                                    imgui_io.Fonts->GetGlyphRangesJapanese())) {
+  if (!imgui_io.Fonts->AddFontFromFileTTF(
+          japanese_font_path.data(), ICON_FONT_SIZE, &japanese_font_config,
+          imgui_io.Fonts->GetGlyphRangesJapanese())) {
     return absl::InternalError("Failed to add Japanese fonts");
   }
   return absl::OkStatus();
@@ -97,7 +97,8 @@ absl::Status AddJapaneseFont(const FontConfig& /*config*/) {
 
 absl::Status LoadPackageFonts() {
   if (font_registry.fonts.empty()) {
-    // Initialize the font names and sizes with proper ImFontConfig initialization
+    // Initialize the font names and sizes with proper ImFontConfig
+    // initialization
     font_registry.fonts = {
         FontConfig{KARLA_REGULAR, FONT_SIZE_DEFAULT, {}, {}},
         FontConfig{ROBOTO_MEDIUM, FONT_SIZE_DEFAULT, {}, {}},
@@ -120,7 +121,7 @@ absl::Status ReloadPackageFont(const FontConfig& config) {
   ImGuiIO& imgui_io = ImGui::GetIO();
   std::string actual_font_path = SetFontPath(config.font_path);
   if (!imgui_io.Fonts->AddFontFromFileTTF(actual_font_path.data(),
-                                    config.font_size)) {
+                                          config.font_size)) {
     return absl::InternalError(
         absl::StrFormat("Failed to load font from %s", actual_font_path));
   }

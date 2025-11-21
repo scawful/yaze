@@ -17,7 +17,8 @@ using ImGui::TableSetupColumn;
 using ImGui::Text;
 
 void DungeonToolset::Draw() {
-  if (BeginTable("DWToolset", 16, ImGuiTableFlags_SizingFixedFit, ImVec2(0, 0))) {
+  if (BeginTable("DWToolset", 16, ImGuiTableFlags_SizingFixedFit,
+                 ImVec2(0, 0))) {
     static std::array<const char*, 16> tool_names = {
         "Undo", "Redo",      "Separator", "All",    "BG1",  "BG2",
         "BG3",  "Separator", "Object",    "Sprite", "Item", "Entrance",
@@ -28,13 +29,15 @@ void DungeonToolset::Draw() {
     // Undo button
     TableNextColumn();
     if (Button(ICON_MD_UNDO)) {
-      if (undo_callback_) undo_callback_();
+      if (undo_callback_)
+        undo_callback_();
     }
 
     // Redo button
     TableNextColumn();
     if (Button(ICON_MD_REDO)) {
-      if (redo_callback_) redo_callback_();
+      if (redo_callback_)
+        redo_callback_();
     }
 
     // Separator
@@ -138,14 +141,17 @@ void DungeonToolset::Draw() {
     // Palette button
     TableNextColumn();
     if (Button(ICON_MD_PALETTE)) {
-      if (palette_toggle_callback_) palette_toggle_callback_();
+      if (palette_toggle_callback_)
+        palette_toggle_callback_();
     }
 
     ImGui::EndTable();
   }
-  
+
   ImGui::Separator();
-  ImGui::Text("Instructions: Click to place objects, Ctrl+Click to select, drag to move");
+  ImGui::Text(
+      "Instructions: Click to place objects, Ctrl+Click to select, drag to "
+      "move");
 }
 
 }  // namespace yaze::editor

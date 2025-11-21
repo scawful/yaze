@@ -62,6 +62,9 @@ Based on the directory structure, tests fall into the following categories:
 
 ## 3. Running Tests
 
+> 💡 Need a refresher on presets/commands? See the [Build & Test Quick Reference](../build/quick-reference.md)
+> for the canonical `cmake`, `ctest`, and helper script usage before running the commands below.
+
 ### Using the Enhanced Test Runner (`yaze_test`)
 
 The most flexible way to run tests is by using the `yaze_test` executable directly. It provides flags to filter tests by category, which is ideal for development and AI agent workflows.

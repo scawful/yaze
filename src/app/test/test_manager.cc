@@ -2,8 +2,8 @@
 
 #include <algorithm>
 #include <filesystem>
-#include <random>
 #include <optional>
+#include <random>
 
 #include "absl/status/statusor.h"
 #include "absl/strings/match.h"
@@ -13,12 +13,12 @@
 #include "absl/synchronization/mutex.h"
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
-#include "app/service/screenshot_utils.h"
+#include "app/gfx/resource/arena.h"
 #include "app/gui/automation/widget_state_capture.h"
+#include "app/gui/core/icons.h"
+#include "app/service/screenshot_utils.h"
 #include "core/features.h"
 #include "util/file_util.h"
-#include "app/gfx/resource/arena.h"
-#include "app/gui/core/icons.h"
 #if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) && YAZE_ENABLE_IMGUI_TEST_ENGINE
 #include "imgui.h"
 #include "imgui_internal.h"
@@ -44,17 +44,15 @@ namespace test {
 namespace {
 
 std::string GenerateFailureScreenshotPath(const std::string& test_id) {
-  std::filesystem::path base_dir =
-      std::filesystem::temp_directory_path() / "yaze" / "test-results" /
-      test_id;
+  std::filesystem::path base_dir = std::filesystem::temp_directory_path() /
+                                   "yaze" / "test-results" / test_id;
   std::error_code ec;
   std::filesystem::create_directories(base_dir, ec);
 
   const int64_t timestamp_ms = absl::ToUnixMillis(absl::Now());
   std::filesystem::path file_path =
-      base_dir /
-      std::filesystem::path(absl::StrFormat(
-          "failure_%lld.bmp", static_cast<long long>(timestamp_ms)));
+      base_dir / std::filesystem::path(absl::StrFormat(
+                     "failure_%lld.bmp", static_cast<long long>(timestamp_ms)));
   return file_path.string();
 }
 
@@ -155,8 +153,8 @@ TestManager& TestManager::Get() {
 }
 
 TestManager::TestManager() {
-  // Note: UI test engine initialization is deferred until ImGui context is ready
-  // Call InitializeUITesting() explicitly after ImGui::CreateContext()
+  // Note: UI test engine initialization is deferred until ImGui context is
+  // ready Call InitializeUITesting() explicitly after ImGui::CreateContext()
 }
 
 TestManager::~TestManager() {
@@ -490,7 +488,8 @@ void TestManager::DrawTestDashboard(bool* show_dashboard) {
       ImGui::SameLine();
       if (ImGui::Button("Debug ROM State")) {
         LOG_INFO("TestManager", "=== ROM DEBUG INFO ===");
-        LOG_INFO("TestManager", "current_rom_ pointer: %p", (void*)current_rom_);
+        LOG_INFO("TestManager", "current_rom_ pointer: %p",
+                 (void*)current_rom_);
         if (current_rom_) {
           LOG_INFO("TestManager", "ROM title: '%s'",
                    current_rom_->title().c_str());
@@ -777,92 +776,94 @@ void TestManager::DrawTestDashboard(bool* show_dashboard) {
     if (ImGui::BeginTabItem("Test Results")) {
       if (ImGui::BeginChild("TestResults", ImVec2(0, 0), true)) {
         if (last_results_.individual_results.empty()) {
-          ImGui::TextColored(
-              ImVec4(0.6f, 0.6f, 0.6f, 1.0f),
-              "No test results to display. Run some tests to see results here.");
+          ImGui::TextColored(ImVec4(0.6f, 0.6f, 0.6f, 1.0f),
+                             "No test results to display. Run some tests to "
+                             "see results here.");
         } else {
-      for (const auto& result : last_results_.individual_results) {
-        // Apply filters
-        bool category_match =
-            (selected_category == 0) || (result.category == category_filter_);
-        bool text_match =
-            test_filter_.empty() ||
-            result.name.find(test_filter_) != std::string::npos ||
-            result.suite_name.find(test_filter_) != std::string::npos;
+          for (const auto& result : last_results_.individual_results) {
+            // Apply filters
+            bool category_match = (selected_category == 0) ||
+                                  (result.category == category_filter_);
+            bool text_match =
+                test_filter_.empty() ||
+                result.name.find(test_filter_) != std::string::npos ||
+                result.suite_name.find(test_filter_) != std::string::npos;
 
-        if (!category_match || !text_match) {
-          continue;
+            if (!category_match || !text_match) {
+              continue;
+            }
+
+            ImGui::PushID(&result);
+
+            // Status icon and test name
+            const char* status_icon = ICON_MD_HELP;
+            switch (result.status) {
+              case TestStatus::kPassed:
+                status_icon = ICON_MD_CHECK_CIRCLE;
+                break;
+              case TestStatus::kFailed:
+                status_icon = ICON_MD_ERROR;
+                break;
+              case TestStatus::kSkipped:
+                status_icon = ICON_MD_SKIP_NEXT;
+                break;
+              case TestStatus::kRunning:
+                status_icon = ICON_MD_PLAY_CIRCLE_FILLED;
+                break;
+              default:
+                break;
+            }
+
+            ImGui::TextColored(GetTestStatusColor(result.status), "%s %s::%s",
+                               status_icon, result.suite_name.c_str(),
+                               result.name.c_str());
+
+            // Show duration and timestamp on same line if space allows
+            if (ImGui::GetContentRegionAvail().x > 200) {
+              ImGui::SameLine();
+              ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f), "(%lld ms)",
+                                 result.duration.count());
+            }
+
+            // Show detailed information for failed tests
+            if (result.status == TestStatus::kFailed &&
+                !result.error_message.empty()) {
+              ImGui::Indent();
+              ImGui::PushStyleColor(ImGuiCol_Text,
+                                    ImVec4(1.0f, 0.8f, 0.8f, 1.0f));
+              ImGui::TextWrapped("%s %s", ICON_MD_ERROR_OUTLINE,
+                                 result.error_message.c_str());
+              ImGui::PopStyleColor();
+              ImGui::Unindent();
+            }
+
+            // Show additional info for passed tests if they have messages
+            if (result.status == TestStatus::kPassed &&
+                !result.error_message.empty()) {
+              ImGui::Indent();
+              ImGui::PushStyleColor(ImGuiCol_Text,
+                                    ImVec4(0.8f, 1.0f, 0.8f, 1.0f));
+              ImGui::TextWrapped("%s %s", ICON_MD_INFO,
+                                 result.error_message.c_str());
+              ImGui::PopStyleColor();
+              ImGui::Unindent();
+            }
+
+            ImGui::PopID();
+          }
         }
-
-        ImGui::PushID(&result);
-
-        // Status icon and test name
-        const char* status_icon = ICON_MD_HELP;
-        switch (result.status) {
-          case TestStatus::kPassed:
-            status_icon = ICON_MD_CHECK_CIRCLE;
-            break;
-          case TestStatus::kFailed:
-            status_icon = ICON_MD_ERROR;
-            break;
-          case TestStatus::kSkipped:
-            status_icon = ICON_MD_SKIP_NEXT;
-            break;
-          case TestStatus::kRunning:
-            status_icon = ICON_MD_PLAY_CIRCLE_FILLED;
-            break;
-          default:
-            break;
-        }
-
-        ImGui::TextColored(GetTestStatusColor(result.status), "%s %s::%s",
-                           status_icon, result.suite_name.c_str(),
-                           result.name.c_str());
-
-        // Show duration and timestamp on same line if space allows
-        if (ImGui::GetContentRegionAvail().x > 200) {
-          ImGui::SameLine();
-          ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f), "(%lld ms)",
-                             result.duration.count());
-        }
-
-        // Show detailed information for failed tests
-        if (result.status == TestStatus::kFailed &&
-            !result.error_message.empty()) {
-          ImGui::Indent();
-          ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.8f, 0.8f, 1.0f));
-          ImGui::TextWrapped("%s %s", ICON_MD_ERROR_OUTLINE,
-                             result.error_message.c_str());
-          ImGui::PopStyleColor();
-          ImGui::Unindent();
-        }
-
-        // Show additional info for passed tests if they have messages
-        if (result.status == TestStatus::kPassed &&
-            !result.error_message.empty()) {
-          ImGui::Indent();
-          ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.8f, 1.0f, 0.8f, 1.0f));
-          ImGui::TextWrapped("%s %s", ICON_MD_INFO,
-                             result.error_message.c_str());
-          ImGui::PopStyleColor();
-          ImGui::Unindent();
-        }
-
-        ImGui::PopID();
       }
-    }
-  }
-  ImGui::EndChild();
+      ImGui::EndChild();
       ImGui::EndTabItem();
     }
-    
+
     // Harness Test Results tab (for gRPC GUI automation tests)
 #if defined(YAZE_WITH_GRPC)
     if (ImGui::BeginTabItem("GUI Automation Tests")) {
       if (ImGui::BeginChild("HarnessTests", ImVec2(0, 0), true)) {
         // Display harness test summaries
         auto summaries = ListHarnessTestSummaries();
-        
+
         if (summaries.empty()) {
           ImGui::TextColored(
               ImVec4(0.6f, 0.6f, 0.6f, 1.0f),
@@ -873,31 +874,37 @@ void TestManager::DrawTestDashboard(bool* show_dashboard) {
           ImGui::Text("%s GUI Automation Test History", ICON_MD_HISTORY);
           ImGui::Text("Total Tests: %zu", summaries.size());
           ImGui::Separator();
-          
+
           // Table of harness test results
-          if (ImGui::BeginTable("HarnessTestTable", 6, 
-                                ImGuiTableFlags_Borders | 
-                                ImGuiTableFlags_RowBg |
-                                ImGuiTableFlags_Resizable)) {
-            ImGui::TableSetupColumn("Status", ImGuiTableColumnFlags_WidthFixed, 80);
-            ImGui::TableSetupColumn("Test Name", ImGuiTableColumnFlags_WidthStretch);
-            ImGui::TableSetupColumn("Category", ImGuiTableColumnFlags_WidthFixed, 100);
-            ImGui::TableSetupColumn("Runs", ImGuiTableColumnFlags_WidthFixed, 60);
-            ImGui::TableSetupColumn("Pass Rate", ImGuiTableColumnFlags_WidthFixed, 80);
-            ImGui::TableSetupColumn("Duration", ImGuiTableColumnFlags_WidthFixed, 80);
+          if (ImGui::BeginTable("HarnessTestTable", 6,
+                                ImGuiTableFlags_Borders |
+                                    ImGuiTableFlags_RowBg |
+                                    ImGuiTableFlags_Resizable)) {
+            ImGui::TableSetupColumn("Status", ImGuiTableColumnFlags_WidthFixed,
+                                    80);
+            ImGui::TableSetupColumn("Test Name",
+                                    ImGuiTableColumnFlags_WidthStretch);
+            ImGui::TableSetupColumn("Category",
+                                    ImGuiTableColumnFlags_WidthFixed, 100);
+            ImGui::TableSetupColumn("Runs", ImGuiTableColumnFlags_WidthFixed,
+                                    60);
+            ImGui::TableSetupColumn("Pass Rate",
+                                    ImGuiTableColumnFlags_WidthFixed, 80);
+            ImGui::TableSetupColumn("Duration",
+                                    ImGuiTableColumnFlags_WidthFixed, 80);
             ImGui::TableHeadersRow();
-            
+
             for (const auto& summary : summaries) {
               const auto& exec = summary.latest_execution;
-              
+
               ImGui::TableNextRow();
               ImGui::TableNextColumn();
-              
+
               // Status indicator
               ImVec4 status_color;
               const char* status_icon;
               const char* status_text;
-              
+
               switch (exec.status) {
                 case HarnessTestStatus::kPassed:
                   status_color = ImVec4(0.0f, 1.0f, 0.0f, 1.0f);
@@ -930,52 +937,56 @@ void TestManager::DrawTestDashboard(bool* show_dashboard) {
                   status_text = "Unknown";
                   break;
               }
-              
-              ImGui::TextColored(status_color, "%s %s", status_icon, status_text);
-              
+
+              ImGui::TextColored(status_color, "%s %s", status_icon,
+                                 status_text);
+
               ImGui::TableNextColumn();
               ImGui::Text("%s", exec.name.c_str());
-              
+
               // Show error message if failed
-              if (exec.status == HarnessTestStatus::kFailed && 
+              if (exec.status == HarnessTestStatus::kFailed &&
                   !exec.error_message.empty()) {
                 ImGui::SameLine();
-                ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.5f, 1.0f), 
-                                 "(%s)", exec.error_message.c_str());
+                ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.5f, 1.0f), "(%s)",
+                                   exec.error_message.c_str());
               }
-              
+
               ImGui::TableNextColumn();
               ImGui::Text("%s", exec.category.c_str());
-              
+
               ImGui::TableNextColumn();
               ImGui::Text("%d", summary.total_runs);
-              
+
               ImGui::TableNextColumn();
               if (summary.total_runs > 0) {
-                float pass_rate = static_cast<float>(summary.pass_count) / 
-                                summary.total_runs;
-                ImVec4 rate_color = pass_rate >= 0.9f ? ImVec4(0.0f, 1.0f, 0.0f, 1.0f)
-                                  : pass_rate >= 0.7f ? ImVec4(1.0f, 1.0f, 0.0f, 1.0f)
-                                  : ImVec4(1.0f, 0.0f, 0.0f, 1.0f);
+                float pass_rate =
+                    static_cast<float>(summary.pass_count) / summary.total_runs;
+                ImVec4 rate_color =
+                    pass_rate >= 0.9f   ? ImVec4(0.0f, 1.0f, 0.0f, 1.0f)
+                    : pass_rate >= 0.7f ? ImVec4(1.0f, 1.0f, 0.0f, 1.0f)
+                                        : ImVec4(1.0f, 0.0f, 0.0f, 1.0f);
                 ImGui::TextColored(rate_color, "%.0f%%", pass_rate * 100.0f);
               } else {
                 ImGui::Text("-");
               }
-              
+
               ImGui::TableNextColumn();
-              double duration_ms = absl::ToDoubleMilliseconds(summary.total_duration);
+              double duration_ms =
+                  absl::ToDoubleMilliseconds(summary.total_duration);
               if (summary.total_runs > 0) {
                 ImGui::Text("%.0f ms", duration_ms / summary.total_runs);
               } else {
                 ImGui::Text("-");
               }
-              
+
               // Expandable details
               if (ImGui::TreeNode(("Details##" + exec.test_id).c_str())) {
                 ImGui::Text("Test ID: %s", exec.test_id.c_str());
-                ImGui::Text("Total Runs: %d (Pass: %d, Fail: %d)", 
-                           summary.total_runs, summary.pass_count, summary.fail_count);
-                
+                ImGui::Text("Total Runs: %d (Pass: %d, Fail: %d)",
+                            summary.total_runs, summary.pass_count,
+                            summary.fail_count);
+
                 if (!exec.logs.empty()) {
                   ImGui::Separator();
                   ImGui::Text("%s Logs:", ICON_MD_DESCRIPTION);
@@ -983,28 +994,28 @@ void TestManager::DrawTestDashboard(bool* show_dashboard) {
                     ImGui::BulletText("%s", log.c_str());
                   }
                 }
-                
+
                 if (!exec.assertion_failures.empty()) {
                   ImGui::Separator();
-                  ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f), 
-                                   "%s Assertion Failures:", ICON_MD_ERROR);
+                  ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f),
+                                     "%s Assertion Failures:", ICON_MD_ERROR);
                   for (const auto& failure : exec.assertion_failures) {
                     ImGui::BulletText("%s", failure.c_str());
                   }
                 }
-                
+
                 if (!exec.screenshot_path.empty()) {
                   ImGui::Separator();
-                  ImGui::Text("%s Screenshot: %s", 
-                             ICON_MD_CAMERA_ALT, exec.screenshot_path.c_str());
-                  ImGui::Text("Size: %.2f KB", 
-                             exec.screenshot_size_bytes / 1024.0);
+                  ImGui::Text("%s Screenshot: %s", ICON_MD_CAMERA_ALT,
+                              exec.screenshot_path.c_str());
+                  ImGui::Text("Size: %.2f KB",
+                              exec.screenshot_size_bytes / 1024.0);
                 }
-                
+
                 ImGui::TreePop();
               }
             }
-            
+
             ImGui::EndTable();
           }
         }
@@ -1013,7 +1024,7 @@ void TestManager::DrawTestDashboard(bool* show_dashboard) {
       ImGui::EndTabItem();
     }
 #endif  // defined(YAZE_WITH_GRPC)
-    
+
     ImGui::EndTabBar();
   }
 
@@ -1213,9 +1224,8 @@ void TestManager::DrawTestDashboard(bool* show_dashboard) {
         if (ImGui::Button("Test Current File Dialog")) {
           // Test the current file dialog implementation
           LOG_INFO("TestManager", "Testing global file dialog mode: %s",
-                   core::FeatureFlags::get().kUseNativeFileDialog
-                       ? "NFD"
-                       : "Bespoke");
+                   core::FeatureFlags::get().kUseNativeFileDialog ? "NFD"
+                                                                  : "Bespoke");
 
           // Actually test the file dialog
           auto result = util::FileDialogWrapper::ShowOpenFileDialog();
@@ -1234,9 +1244,8 @@ void TestManager::DrawTestDashboard(bool* show_dashboard) {
           if (!result.empty()) {
             LOG_INFO("TestManager", "NFD test successful: %s", result.c_str());
           } else {
-            LOG_INFO(
-                "TestManager",
-                "NFD test: No file selected, canceled, or error occurred");
+            LOG_INFO("TestManager",
+                     "NFD test: No file selected, canceled, or error occurred");
           }
         }
 
@@ -1280,8 +1289,8 @@ void TestManager::DrawTestDashboard(bool* show_dashboard) {
         // Initialize problematic tests as disabled by default
         static bool initialized_defaults = false;
         if (!initialized_defaults) {
-          DisableTest(
-              "Comprehensive_Save_Test");  // Disable crash-prone test by default
+          DisableTest("Comprehensive_Save_Test");  // Disable crash-prone test
+                                                   // by default
           initialized_defaults = true;
         }
 
@@ -1365,7 +1374,8 @@ void TestManager::DrawTestDashboard(bool* show_dashboard) {
           for (const auto& [test_name, description] : known_tests) {
             EnableTest(test_name);
           }
-          LOG_INFO("TestManager", "Enabled all tests (including dangerous ones)");
+          LOG_INFO("TestManager",
+                   "Enabled all tests (including dangerous ones)");
         }
         ImGui::SameLine();
 
@@ -1475,8 +1485,7 @@ void TestManager::RefreshCurrentRom() {
     LOG_INFO("TestManager", "ROM is_loaded(): %s",
              current_rom_->is_loaded() ? "true" : "false");
     if (current_rom_->is_loaded()) {
-      LOG_INFO("TestManager", "ROM title: '%s'",
-               current_rom_->title().c_str());
+      LOG_INFO("TestManager", "ROM title: '%s'", current_rom_->title().c_str());
       LOG_INFO("TestManager", "ROM size: %.2f MB",
                current_rom_->size() / 1048576.0f);
       LOG_INFO("TestManager", "ROM dirty: %s",
@@ -1484,15 +1493,14 @@ void TestManager::RefreshCurrentRom() {
     }
   } else {
     LOG_INFO("TestManager", "TestManager ROM pointer is null");
-    LOG_INFO(
-        "TestManager",
-        "Note: ROM should be set by EditorManager when ROM is loaded");
+    LOG_INFO("TestManager",
+             "Note: ROM should be set by EditorManager when ROM is loaded");
   }
   LOG_INFO("TestManager", "===============================");
 }
 
-absl::Status TestManager::CreateTestRomCopy(
-    Rom* source_rom, std::unique_ptr<Rom>& test_rom) {
+absl::Status TestManager::CreateTestRomCopy(Rom* source_rom,
+                                            std::unique_ptr<Rom>& test_rom) {
   if (!source_rom || !source_rom->is_loaded()) {
     return absl::FailedPreconditionError("Source ROM not loaded");
   }
@@ -1515,8 +1523,7 @@ absl::Status TestManager::CreateTestRomCopy(
   return absl::OkStatus();
 }
 
-std::string TestManager::GenerateTestRomFilename(
-    const std::string& base_name) {
+std::string TestManager::GenerateTestRomFilename(const std::string& base_name) {
   // Generate filename with timestamp
   auto now = std::chrono::system_clock::now();
   auto time_t = std::chrono::system_clock::to_time_t(now);
@@ -1649,7 +1656,8 @@ absl::Status TestManager::TestRomDataIntegrity(Rom* rom) {
     return absl::FailedPreconditionError("No ROM loaded for testing");
   }
 
-  // Use TestRomWithCopy for integrity testing (read-only but uses copy for safety)
+  // Use TestRomWithCopy for integrity testing (read-only but uses copy for
+  // safety)
   return TestRomWithCopy(rom, [](Rom* test_rom) -> absl::Status {
     LOG_INFO("TestManager", "Testing ROM data integrity on copy: %s",
              test_rom->title().c_str());
@@ -1679,7 +1687,9 @@ absl::Status TestManager::TestRomDataIntegrity(Rom* rom) {
 std::string TestManager::RegisterHarnessTest(const std::string& name,
                                              const std::string& category) {
   absl::MutexLock lock(&harness_history_mutex_);
-  std::string test_id = absl::StrCat("harness_", absl::ToUnixMicros(absl::Now()), "_", harness_history_.size());
+  std::string test_id =
+      absl::StrCat("harness_", absl::ToUnixMicros(absl::Now()), "_",
+                   harness_history_.size());
   HarnessTestExecution execution;
   execution.test_id = test_id;
   execution.name = name;
@@ -1737,9 +1747,8 @@ void TestManager::MarkHarnessTestCompleted(
   execution.assertion_failures = assertion_failures;
   execution.logs.insert(execution.logs.end(), logs.begin(), logs.end());
 
-  bool capture_failure_context =
-      status == HarnessTestStatus::kFailed ||
-      status == HarnessTestStatus::kTimeout;
+  bool capture_failure_context = status == HarnessTestStatus::kFailed ||
+                                 status == HarnessTestStatus::kTimeout;
 
   harness_aggregates_[execution.name].latest_execution = execution;
   harness_aggregates_[execution.name].total_runs += 1;
@@ -1886,7 +1895,8 @@ absl::Status TestManager::ReplayLastPlan() {
 #endif
 
 absl::Status TestManager::ShowHarnessDashboard() {
-  // These methods are always available, but may return unimplemented without GRPC
+  // These methods are always available, but may return unimplemented without
+  // GRPC
 #if defined(YAZE_WITH_GRPC)
   return absl::OkStatus();
 #else

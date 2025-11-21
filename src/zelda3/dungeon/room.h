@@ -7,11 +7,11 @@
 #include <string_view>
 #include <vector>
 
-#include "app/rom.h"
 #include "app/gfx/render/background_buffer.h"
+#include "app/rom.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
-#include "zelda3/dungeon/room_object.h"
 #include "zelda3/dungeon/room_layout.h"
+#include "zelda3/dungeon/room_object.h"
 #include "zelda3/sprite/sprite.h"
 
 namespace yaze {
@@ -23,7 +23,8 @@ namespace zelda3 {
 // Legacy aliases for backward compatibility (gradual migration)
 constexpr int room_object_layout_pointer = kRoomObjectLayoutPointer;
 constexpr int room_object_pointer = kRoomObjectPointer;
-constexpr int dungeons_main_bg_palette_pointers = kDungeonsMainBgPalettePointers;
+constexpr int dungeons_main_bg_palette_pointers =
+    kDungeonsMainBgPalettePointers;
 constexpr int dungeons_palettes = kDungeonsPalettes;
 constexpr int room_items_pointers = kRoomItemsPointers;
 constexpr int rooms_sprite_pointer = kRoomsSpritePointer;
@@ -200,7 +201,6 @@ class Room {
   void LoadRoomLayout();
   void LoadLayoutTilesToBuffer();
 
-
   // Public getters and manipulators for sprites
   const std::vector<zelda3::Sprite>& GetSprites() const { return sprites_; }
   std::vector<zelda3::Sprite>& GetSprites() { return sprites_; }
@@ -215,7 +215,6 @@ class Room {
 
   const RoomLayout& GetLayout() const { return layout_; }
 
-
   // Public getters and manipulators for tile objects
   const std::vector<RoomObject>& GetTileObjects() const {
     return tile_objects_;
@@ -228,7 +227,7 @@ class Room {
     tile_objects_.push_back(object);
     MarkObjectsDirty();
   }
-  
+
   // Enhanced object manipulation (Phase 3)
   absl::Status AddObject(const RoomObject& object);
   absl::Status RemoveObject(size_t index);
@@ -237,9 +236,18 @@ class Room {
   bool ValidateObject(const RoomObject& object) const;
 
   // Performance optimization: Mark objects as dirty when modified
-  void MarkObjectsDirty() { objects_dirty_ = true; textures_dirty_ = true; }
-  void MarkGraphicsDirty() { graphics_dirty_ = true; textures_dirty_ = true; }
-  void MarkLayoutDirty() { layout_dirty_ = true; textures_dirty_ = true; }
+  void MarkObjectsDirty() {
+    objects_dirty_ = true;
+    textures_dirty_ = true;
+  }
+  void MarkGraphicsDirty() {
+    graphics_dirty_ = true;
+    textures_dirty_ = true;
+  }
+  void MarkLayoutDirty() {
+    layout_dirty_ = true;
+    textures_dirty_ = true;
+  }
   void RemoveTileObject(size_t index) {
     if (index < tile_objects_.size()) {
       tile_objects_.erase(tile_objects_.begin() + index);
@@ -299,13 +307,16 @@ class Room {
     }
   }
   void SetStaircasePlane(int index, uint8_t plane) {
-    if (index >= 0 && index < 4) staircase_plane_[index] = plane;
+    if (index >= 0 && index < 4)
+      staircase_plane_[index] = plane;
   }
   void SetHolewarp(uint8_t holewarp) { this->holewarp = holewarp; }
   void SetStaircaseRoom(int index, uint8_t room) {
-    if (index >= 0 && index < 4) staircase_rooms_[index] = room;
+    if (index >= 0 && index < 4)
+      staircase_rooms_[index] = room;
   }
-  // SetFloor1/SetFloor2 removed - use set_floor1()/set_floor2() instead (defined above)
+  // SetFloor1/SetFloor2 removed - use set_floor1()/set_floor2() instead
+  // (defined above)
   void SetMessageId(uint16_t message_id) { message_id_ = message_id; }
 
   // Getters for LoadRoomFromRom function
@@ -332,7 +343,7 @@ class Room {
   void SetStair2Target(uint8_t target) { stair2_.target = target; }
   void SetStair3Target(uint8_t target) { stair3_.target = target; }
   void SetStair4Target(uint8_t target) { stair4_.target = target; }
-  
+
   // Loaded state
   bool IsLoaded() const { return is_loaded_; }
   void SetLoaded(bool loaded) { is_loaded_ = loaded; }
@@ -354,7 +365,7 @@ class Room {
   // NOTE: floor1/floor2 removed - use floor1() and floor2() accessors instead
   // Floor graphics are now private (floor1_graphics_, floor2_graphics_)
   uint16_t message_id_ = 0;
-  
+
   // Floor graphics accessors (use these instead of direct members!)
   uint8_t floor1() const { return floor1_graphics_; }
   uint8_t floor2() const { return floor2_graphics_; }
@@ -374,7 +385,7 @@ class Room {
   void ParseObjectsFromLocation(int objects_location);
   void HandleSpecialObjects(short oid, uint8_t posX, uint8_t posY,
                             int& nbr_of_staircase);
-  
+
   // Object saving (Phase 1, Task 1.3)
   absl::Status SaveObjects();
   std::vector<uint8_t> EncodeObjects() const;
@@ -383,8 +394,10 @@ class Room {
   auto& mutable_blocks() { return blocks_; }
   auto rom() { return rom_; }
   auto mutable_rom() { return rom_; }
-  const std::array<uint8_t, 0x4000>& get_gfx_buffer() const { return current_gfx16_; }
-  
+  const std::array<uint8_t, 0x4000>& get_gfx_buffer() const {
+    return current_gfx16_;
+  }
+
   // Per-room background buffers (not shared via arena!)
   auto& bg1_buffer() { return bg1_buffer_; }
   auto& bg2_buffer() { return bg2_buffer_; }
@@ -395,7 +408,7 @@ class Room {
   Rom* rom_;
 
   std::array<uint8_t, 0x4000> current_gfx16_;
-  
+
   // Each room has its OWN background buffers and bitmaps
   gfx::BackgroundBuffer bg1_buffer_{512, 512};
   gfx::BackgroundBuffer bg2_buffer_{512, 512};
@@ -405,7 +418,8 @@ class Room {
   bool is_dark_;
   bool is_floor_ = true;
 
-  // Performance optimization: Cache room properties to avoid unnecessary re-renders
+  // Performance optimization: Cache room properties to avoid unnecessary
+  // re-renders
   uint8_t cached_blockset_ = 0xFF;
   uint8_t cached_spriteset_ = 0xFF;
   uint8_t cached_palette_ = 0xFF;
@@ -445,7 +459,6 @@ class Room {
   std::vector<staircase> z3_staircases_;
   std::vector<chest_data> chests_in_room_;
   RoomLayout layout_;
-
 
   LayerMergeType layer_merging_;
   CollisionKey collision_;

@@ -9,11 +9,11 @@
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
-#include "app/gfx/types/snes_palette.h"
-#include "core/features.h"
 #include "app/gfx/types/snes_color.h"
+#include "app/gfx/types/snes_palette.h"
 #include "app/gfx/types/snes_tile.h"
 #include "app/rom.h"
+#include "core/features.h"
 #include "util/macro.h"
 #include "zelda3/common.h"
 #include "zelda3/overworld/overworld.h"
@@ -26,7 +26,8 @@ OverworldMap::OverworldMap(int index, Rom* rom)
   LoadAreaInfo();
   // Load parent ID from ROM data if available (for custom ASM versions)
   auto version = OverworldVersionHelper::GetVersion(*rom_);
-  if (version != OverworldVersion::kVanilla && version >= OverworldVersion::kZSCustomV3) {
+  if (version != OverworldVersion::kVanilla &&
+      version >= OverworldVersion::kZSCustomV3) {
     // For v3+, parent ID is stored in expanded table
     parent_ = (*rom_)[kOverworldMapParentIdExpanded + index_];
   }
@@ -94,7 +95,8 @@ void OverworldMap::LoadAreaInfo() {
   // 0xFF: Pure vanilla ROM (no ASM applied)
 
   // Load message ID and area size based on ASM version
-  if (version < OverworldVersion::kZSCustomV2 || version == OverworldVersion::kVanilla) {
+  if (version < OverworldVersion::kZSCustomV2 ||
+      version == OverworldVersion::kVanilla) {
     // v2 and vanilla: use original message table
     message_id_ = (*rom_)[kOverworldMessageIds + (parent_ * 2)] |
                   ((*rom_)[kOverworldMessageIds + (parent_ * 2) + 1] << 8);
@@ -129,7 +131,8 @@ void OverworldMap::LoadAreaInfo() {
     }
   } else {
     // v3: use expanded message table and area size table
-    // All area sizes are now stored in the expanded table, supporting all size types
+    // All area sizes are now stored in the expanded table, supporting all size
+    // types
     message_id_ =
         (*rom_)[kOverworldMessagesExpanded + (parent_ * 2)] |
         ((*rom_)[kOverworldMessagesExpanded + (parent_ * 2) + 1] << 8);
@@ -164,7 +167,8 @@ void OverworldMap::LoadAreaInfo() {
     area_music_[3] = (*rom_)[kOverworldMusicAgahnim + parent_];
 
     // For v2/vanilla, use original palette table
-    if (version < OverworldVersion::kZSCustomV2 || version == OverworldVersion::kVanilla) {
+    if (version < OverworldVersion::kZSCustomV2 ||
+        version == OverworldVersion::kVanilla) {
       area_palette_ = (*rom_)[kOverworldMapPaletteIds + parent_];
     }
   } else if (index_ < kSpecialWorldMapIdStart) {
@@ -190,7 +194,8 @@ void OverworldMap::LoadAreaInfo() {
         (*rom_)[kOverworldMusicDarkWorld + (parent_ - kDarkWorldMapIdStart)];
 
     // For v2/vanilla, use original palette table
-    if (version < OverworldVersion::kZSCustomV2 || version == OverworldVersion::kVanilla) {
+    if (version < OverworldVersion::kZSCustomV2 ||
+        version == OverworldVersion::kVanilla) {
       area_palette_ = (*rom_)[kOverworldMapPaletteIds + parent_];
     }
   } else {
@@ -237,7 +242,8 @@ void OverworldMap::LoadAreaInfo() {
 
     // For v2/vanilla, use original palette table and handle special cases
     // These hardcoded cases are needed for vanilla compatibility
-    if (version < OverworldVersion::kZSCustomV2 || version == OverworldVersion::kVanilla) {
+    if (version < OverworldVersion::kZSCustomV2 ||
+        version == OverworldVersion::kVanilla) {
       area_palette_ = (*rom_)[kOverworldMapPaletteIds + parent_];
 
       // Handle special world area cases based on ZScream documentation
@@ -520,7 +526,8 @@ void OverworldMap::LoadMainBlocksetId() {
              parent_ < kSpecialWorldMapIdStart) {
     main_gfx_id_ = 0x21;
   } else if (parent_ >= kSpecialWorldMapIdStart) {
-    // Special world maps - use appropriate graphics ID based on the specific map
+    // Special world maps - use appropriate graphics ID based on the specific
+    // map
     if (parent_ == 0x88) {
       main_gfx_id_ = 0x24;
     } else {
@@ -883,8 +890,8 @@ absl::Status OverworldMap::LoadOverlay() {
 }
 
 absl::Status OverworldMap::LoadVanillaOverlayData() {
-
-  // Load vanilla overlay for this map (interactive overlays for revealing holes/changing elements)
+  // Load vanilla overlay for this map (interactive overlays for revealing
+  // holes/changing elements)
   int address = (kOverlayPointersBank << 16) +
                 ((*rom_)[kOverlayPointers + (index_ * 2) + 1] << 8) +
                 (*rom_)[kOverlayPointers + (index_ * 2)];
