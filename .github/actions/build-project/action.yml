@@ -40,7 +40,7 @@ runs:
           CORES=2
         fi
         echo "Using $CORES parallel jobs"
-        cmake --build build --parallel "$CORES"
+        cmake --build build --config "${{ inputs.build-type }}" --parallel "$CORES"
 
     - name: Build project (Windows)
       if: inputs.platform == 'windows'
