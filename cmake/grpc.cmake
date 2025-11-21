@@ -23,7 +23,8 @@ set(PKG_CONFIG_USE_CMAKE_PREFIX_PATH FALSE)
 set(_SAVED_CMAKE_CXX_STANDARD ${CMAKE_CXX_STANDARD})
 set(CMAKE_CXX_STANDARD 17)
 
-find_package(ZLIB REQUIRED)
+# ZLIB is provided by gRPC module (gRPC_ZLIB_PROVIDER="module")
+# find_package(ZLIB REQUIRED) not needed - gRPC bundles its own ZLIB
 
 # Configure gRPC build options before fetching
 set(gRPC_BUILD_TESTS OFF CACHE BOOL "" FORCE)
@@ -43,7 +44,7 @@ set(gRPC_BUILD_GRPC_CPP_REFLECTION OFF CACHE BOOL "" FORCE)
 set(gRPC_BUILD_GRPCPP_REFLECTION OFF CACHE BOOL "" FORCE)
 
 set(gRPC_BENCHMARK_PROVIDER "none" CACHE STRING "" FORCE)
-set(gRPC_ZLIB_PROVIDER "package" CACHE STRING "" FORCE)
+set(gRPC_ZLIB_PROVIDER "module" CACHE STRING "" FORCE)
 
 # Let gRPC fetch and build its own protobuf and abseil
 set(gRPC_PROTOBUF_PROVIDER "module" CACHE STRING "" FORCE)

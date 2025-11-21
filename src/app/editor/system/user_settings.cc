@@ -18,7 +18,8 @@ UserSettings::UserSettings() {
   if (config_dir_status.ok()) {
     settings_file_path_ = (*config_dir_status / "yaze_settings.ini").string();
   } else {
-    LOG_WARN("UserSettings", "Could not determine config directory. Using local.");
+    LOG_WARN("UserSettings",
+             "Could not determine config directory. Using local.");
     settings_file_path_ = "yaze_settings.ini";
   }
 }
@@ -27,14 +28,15 @@ absl::Status UserSettings::Load() {
   try {
     auto data = util::LoadFile(settings_file_path_);
     if (data.empty()) {
-      return absl::OkStatus(); // No settings file yet, use defaults.
+      return absl::OkStatus();  // No settings file yet, use defaults.
     }
 
     std::istringstream ss(data);
     std::string line;
     while (std::getline(ss, line)) {
       size_t eq_pos = line.find('=');
-      if (eq_pos == std::string::npos) continue;
+      if (eq_pos == std::string::npos)
+        continue;
 
       std::string key = line.substr(0, eq_pos);
       std::string val = line.substr(eq_pos + 1);
@@ -132,19 +134,21 @@ absl::Status UserSettings::Save() {
     ss << "recent_files_limit=" << prefs_.recent_files_limit << "\n";
     ss << "last_rom_path=" << prefs_.last_rom_path << "\n";
     ss << "last_project_path=" << prefs_.last_project_path << "\n";
-    ss << "show_welcome_on_startup=" << (prefs_.show_welcome_on_startup ? 1 : 0) << "\n";
-    ss << "restore_last_session=" << (prefs_.restore_last_session ? 1 : 0) << "\n";
-    
+    ss << "show_welcome_on_startup=" << (prefs_.show_welcome_on_startup ? 1 : 0)
+       << "\n";
+    ss << "restore_last_session=" << (prefs_.restore_last_session ? 1 : 0)
+       << "\n";
+
     // Editor Behavior
     ss << "backup_before_save=" << (prefs_.backup_before_save ? 1 : 0) << "\n";
     ss << "default_editor=" << prefs_.default_editor << "\n";
-    
+
     // Performance
     ss << "vsync=" << (prefs_.vsync ? 1 : 0) << "\n";
     ss << "target_fps=" << prefs_.target_fps << "\n";
     ss << "cache_size_mb=" << prefs_.cache_size_mb << "\n";
     ss << "undo_history_size=" << prefs_.undo_history_size << "\n";
-    
+
     // AI Agent
     ss << "ai_provider=" << prefs_.ai_provider << "\n";
     ss << "ollama_url=" << prefs_.ollama_url << "\n";
@@ -154,7 +158,7 @@ absl::Status UserSettings::Save() {
     ss << "ai_proactive=" << (prefs_.ai_proactive ? 1 : 0) << "\n";
     ss << "ai_auto_learn=" << (prefs_.ai_auto_learn ? 1 : 0) << "\n";
     ss << "ai_multimodal=" << (prefs_.ai_multimodal ? 1 : 0) << "\n";
-    
+
     // CLI Logging
     ss << "log_level=" << prefs_.log_level << "\n";
     ss << "log_to_file=" << (prefs_.log_to_file ? 1 : 0) << "\n";
@@ -163,7 +167,7 @@ absl::Status UserSettings::Save() {
     ss << "log_rom_operations=" << (prefs_.log_rom_operations ? 1 : 0) << "\n";
     ss << "log_gui_automation=" << (prefs_.log_gui_automation ? 1 : 0) << "\n";
     ss << "log_proposals=" << (prefs_.log_proposals ? 1 : 0) << "\n";
-    
+
     util::SaveFile(settings_file_path_, ss.str());
   } catch (const std::exception& e) {
     return absl::InternalError(
@@ -174,4 +178,3 @@ absl::Status UserSettings::Save() {
 
 }  // namespace editor
 }  // namespace yaze
-

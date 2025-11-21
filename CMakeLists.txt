@@ -8,19 +8,18 @@ set(CMAKE_POLICY_VERSION_MINIMUM 3.5 CACHE STRING "Minimum policy version for su
 
 # Set policies for compatibility
 cmake_policy(SET CMP0091 NEW)
-
-# Ensure we consistently use the static MSVC runtime (/MT, /MTd) to match vcpkg static triplets
-set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>" CACHE STRING "" FORCE)
+# CMP0091 allows CMAKE_MSVC_RUNTIME_LIBRARY to be set by presets
+# Windows presets specify dynamic CRT (/MD) to avoid linking issues
 cmake_policy(SET CMP0048 NEW)
 cmake_policy(SET CMP0077 NEW)
 
 # Enable Objective-C only on macOS where it's actually used
 if(CMAKE_SYSTEM_NAME MATCHES "Darwin")
-    project(yaze VERSION 0.3.2
+    project(yaze VERSION 0.3.3
                  DESCRIPTION "Yet Another Zelda3 Editor"
                  LANGUAGES CXX C OBJC OBJCXX)
 else()
-    project(yaze VERSION 0.3.2
+    project(yaze VERSION 0.3.3
                  DESCRIPTION "Yet Another Zelda3 Editor"
                  LANGUAGES CXX C)
 endif()
@@ -39,7 +38,7 @@ endif()
 # Set project metadata
 set(YAZE_VERSION_MAJOR 0)
 set(YAZE_VERSION_MINOR 3)
-set(YAZE_VERSION_PATCH 2)
+set(YAZE_VERSION_PATCH 3)
 
 # Suppress deprecation warnings from submodules
 set(CMAKE_WARN_DEPRECATED OFF CACHE BOOL "Suppress deprecation warnings")
@@ -112,6 +111,9 @@ if(CLANG_FORMAT)
        "${CMAKE_SOURCE_DIR}/src/*.h"
        "${CMAKE_SOURCE_DIR}/test/*.cc"
        "${CMAKE_SOURCE_DIR}/test/*.h")
+
+  # Exclude third-party library directories from formatting
+  list(FILTER ALL_SOURCE_FILES EXCLUDE REGEX "src/lib/.*")
 
   add_custom_target(yaze-format
     COMMAND ${CLANG_FORMAT} -i --style=Google ${ALL_SOURCE_FILES}

@@ -52,11 +52,13 @@ struct FlagsMenu {
   void DrawResourceFlags() {
     Checkbox("Save All Palettes", &core::FeatureFlags::get().kSaveAllPalettes);
     Checkbox("Save Gfx Groups", &core::FeatureFlags::get().kSaveGfxGroups);
-    Checkbox("Save Graphics Sheets", &core::FeatureFlags::get().kSaveGraphicsSheet);
+    Checkbox("Save Graphics Sheets",
+             &core::FeatureFlags::get().kSaveGraphicsSheet);
   }
 
   void DrawSystemFlags() {
-    Checkbox("Enable Console Logging", &core::FeatureFlags::get().kLogToConsole);
+    Checkbox("Enable Console Logging",
+             &core::FeatureFlags::get().kLogToConsole);
     Checkbox("Enable Performance Monitoring",
              &core::FeatureFlags::get().kEnablePerformanceMonitoring);
     Checkbox("Enable Tiered GFX Architecture",

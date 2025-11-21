@@ -4,8 +4,8 @@
 #include <algorithm>
 #include <map>
 #include <string>
-#include <vector>
 #include <unordered_map>
+#include <vector>
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
@@ -37,7 +37,7 @@ struct ProjectMetadata {
   std::vector<std::string> tags;
   std::string author;
   std::string license;
-  
+
   // ZScream compatibility
   bool zscream_compatible = false;
   std::string zscream_version;
@@ -52,19 +52,19 @@ struct WorkspaceSettings {
   float font_global_scale = 1.0f;
   bool dark_mode = true;
   std::string ui_theme = "default";
-  
+
   // Layout settings
   std::string last_layout_preset;
   std::vector<std::string> saved_layouts;
-  std::string window_layout_data; // ImGui .ini data
-  
+  std::string window_layout_data;  // ImGui .ini data
+
   // Editor preferences
   bool autosave_enabled = true;
-  float autosave_interval_secs = 300.0f; // 5 minutes
+  float autosave_interval_secs = 300.0f;  // 5 minutes
   bool backup_on_save = true;
   bool show_grid = true;
   bool show_collision = false;
-  
+
   // Advanced settings
   std::map<std::string, std::string> custom_keybindings;
   std::vector<std::string> recent_files;
@@ -81,96 +81,117 @@ struct YazeProject {
   std::string name;
   std::string filepath;
   ProjectFormat format = ProjectFormat::kYazeNative;
-  
+
   // ROM and resources
   std::string rom_filename;
   std::string rom_backup_folder;
-  std::vector<std::string> additional_roms; // For multi-ROM projects
-  
+  std::vector<std::string> additional_roms;  // For multi-ROM projects
+
   // Code and assets
   std::string code_folder;
   std::string assets_folder;
   std::string patches_folder;
   std::string labels_filename;
   std::string symbols_filename;
-  
+
   // Consolidated settings (previously scattered across multiple files)
   core::FeatureFlags::Flags feature_flags;
   WorkspaceSettings workspace_settings;
-  std::unordered_map<std::string, std::unordered_map<std::string, std::string>> resource_labels;
-  
-  // Embedded labels flag - when true, resource_labels contains all default Zelda3 labels
+  std::unordered_map<std::string, std::unordered_map<std::string, std::string>>
+      resource_labels;
+
+  // Embedded labels flag - when true, resource_labels contains all default
+  // Zelda3 labels
   bool use_embedded_labels = true;
-  
+
   // Build and deployment
   std::string build_script;
   std::string output_folder;
   std::vector<std::string> build_configurations;
-  
+
   // Version control integration
   std::string git_repository;
   bool track_changes = true;
-  
+
   // AI Agent Settings
   struct AgentSettings {
     std::string ai_provider = "auto";  // auto, gemini, ollama, mock
-    std::string ai_model;              // e.g., "gemini-2.5-flash", "llama3:latest"
+    std::string ai_model;  // e.g., "gemini-2.5-flash", "llama3:latest"
     std::string ollama_host = "http://localhost:11434";
-    std::string gemini_api_key;        // Optional, can use env var
-    std::string custom_system_prompt;  // Path to custom prompt (relative to project)
+    std::string gemini_api_key;  // Optional, can use env var
+    std::string
+        custom_system_prompt;  // Path to custom prompt (relative to project)
     bool use_custom_prompt = false;
     bool show_reasoning = true;
     bool verbose = false;
     int max_tool_iterations = 4;
     int max_retry_attempts = 3;
+    float temperature = 0.25f;
+    float top_p = 0.95f;
+    int max_output_tokens = 2048;
+    bool stream_responses = false;
+    std::vector<std::string> favorite_models;
+    std::vector<std::string> model_chain;
+    int chain_mode = 0;
+    bool enable_tool_resources = true;
+    bool enable_tool_dungeon = true;
+    bool enable_tool_overworld = true;
+    bool enable_tool_messages = true;
+    bool enable_tool_dialogue = true;
+    bool enable_tool_gui = true;
+    bool enable_tool_music = true;
+    bool enable_tool_sprite = true;
+    bool enable_tool_emulator = true;
+    std::string builder_blueprint_path;  // Saved agent builder configuration
   } agent_settings;
-  
+
   // ZScream compatibility (for importing existing projects)
-  std::string zscream_project_file; // Path to original .zsproj if importing
-  std::map<std::string, std::string> zscream_mappings; // Field mappings
-  
+  std::string zscream_project_file;  // Path to original .zsproj if importing
+  std::map<std::string, std::string> zscream_mappings;  // Field mappings
+
   // Methods
-  absl::Status Create(const std::string& project_name, const std::string& base_path);
+  absl::Status Create(const std::string& project_name,
+                      const std::string& base_path);
   absl::Status Open(const std::string& project_path);
   absl::Status Save();
   absl::Status SaveAs(const std::string& new_path);
   absl::Status ImportZScreamProject(const std::string& zscream_project_path);
   absl::Status ExportForZScream(const std::string& target_path);
-  
+
   // Settings management
   absl::Status LoadAllSettings();
   absl::Status SaveAllSettings();
   absl::Status ResetToDefaults();
-  
+
   // Labels management
   absl::Status InitializeEmbeddedLabels();  // Load all default Zelda3 labels
-  std::string GetLabel(const std::string& resource_type, int id, 
+  std::string GetLabel(const std::string& resource_type, int id,
                        const std::string& default_value = "") const;
-  
+
   // Validation and integrity
   absl::Status Validate() const;
   std::vector<std::string> GetMissingFiles() const;
   absl::Status RepairProject();
-  
+
   // Utilities
   std::string GetDisplayName() const;
   std::string GetRelativePath(const std::string& absolute_path) const;
   std::string GetAbsolutePath(const std::string& relative_path) const;
   bool IsEmpty() const;
-  
+
   // Project state
   bool project_opened() const { return !name.empty() && !filepath.empty(); }
-  
-private:
+
+ private:
   absl::Status LoadFromYazeFormat(const std::string& project_path);
   absl::Status SaveToYazeFormat();
   absl::Status ImportFromZScreamFormat(const std::string& project_path);
-  
+
 #ifdef YAZE_ENABLE_JSON_PROJECT_FORMAT
   absl::Status LoadFromJsonFormat(const std::string& project_path);
   absl::Status SaveToJsonFormat();
 #endif
-  
+
   void InitializeDefaults();
   std::string GenerateProjectId() const;
 };
@@ -180,7 +201,7 @@ private:
  * @brief Enhanced project management with templates and validation
  */
 class ProjectManager {
-public:
+ public:
   // Project templates
   struct ProjectTemplate {
     std::string name;
@@ -188,26 +209,27 @@ public:
     std::string icon;
     YazeProject template_project;
   };
-  
+
   static std::vector<ProjectTemplate> GetProjectTemplates();
   static absl::StatusOr<YazeProject> CreateFromTemplate(
-      const std::string& template_name, 
-      const std::string& project_name,
+      const std::string& template_name, const std::string& project_name,
       const std::string& base_path);
-  
+
   // Project discovery and management
-  static std::vector<std::string> FindProjectsInDirectory(const std::string& directory);
+  static std::vector<std::string> FindProjectsInDirectory(
+      const std::string& directory);
   static absl::Status BackupProject(const YazeProject& project);
   static absl::Status RestoreProject(const std::string& backup_path);
-  
+
   // Format conversion utilities
-  static absl::Status ConvertProject(const std::string& source_path, 
-                                   const std::string& target_path,
-                                   ProjectFormat target_format);
-  
+  static absl::Status ConvertProject(const std::string& source_path,
+                                     const std::string& target_path,
+                                     ProjectFormat target_format);
+
   // Validation and repair
   static absl::Status ValidateProjectStructure(const YazeProject& project);
-  static std::vector<std::string> GetRecommendedFixesForProject(const YazeProject& project);
+  static std::vector<std::string> GetRecommendedFixesForProject(
+      const YazeProject& project);
 };
 
 // Compatibility - ResourceLabelManager (still used by ROM class)
@@ -258,7 +280,7 @@ class RecentFilesManager {
       recent_files_.erase(it);
     }
     recent_files_.insert(recent_files_.begin(), file_path);
-    
+
     // Limit to 20 most recent files
     if (recent_files_.size() > 20) {
       recent_files_.resize(20);
@@ -273,22 +295,19 @@ class RecentFilesManager {
     return recent_files_;
   }
 
-  void Clear() {
-    recent_files_.clear();
-  }
+  void Clear() { recent_files_.clear(); }
 
  private:
   RecentFilesManager() {
     Load();  // Load on construction
   }
-  
+
   std::string GetFilePath() const;
-  
+
   std::vector<std::string> recent_files_;
 };
 
-} // namespace project
-} // namespace yaze
+}  // namespace project
+}  // namespace yaze
 
-#endif // YAZE_CORE_PROJECT_H
-
+#endif  // YAZE_CORE_PROJECT_H

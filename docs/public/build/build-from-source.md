@@ -1,6 +1,8 @@
 # Build Instructions
 
-yaze uses a modern CMake build system with presets for easy configuration. This guide covers how to build yaze on macOS, Linux, and Windows.
+yaze uses a modern CMake build system with presets for easy configuration. This guide explains the
+environment checks, dependencies, and platform-specific considerations. For concise per-platform
+commands, always start with the [Build & Test Quick Reference](quick-reference.md).
 
 ## 1. Environment Verification
 
@@ -13,6 +15,7 @@ yaze uses a modern CMake build system with presets for easy configuration. This 
 # With automatic fixes
 .\scripts\verify-build-environment.ps1 -FixIssues
 ```
+> Tip: After verification, run `.\scripts\setup-vcpkg-windows.ps1` to bootstrap vcpkg, ensure `clang-cl`/Ninja are installed, and cache the `x64-windows` triplet.
 
 ### macOS & Linux (Bash)
 ```bash
@@ -24,53 +27,40 @@ yaze uses a modern CMake build system with presets for easy configuration. This 
 
 The script checks for required tools like CMake, a C++23 compiler, and platform-specific dependencies.
 
-## 2. Quick Start: Building with Presets
+## 2. Using Presets
 
-We use CMake Presets for simple, one-command builds. See the [CMake Presets Guide](presets.md) for a full list.
+- Pick the preset that matches your platform/workflow (debug: `mac-dbg` / `lin-dbg` / `win-dbg`,
+  AI-enabled: `mac-ai` / `win-ai`, release: `*-rel`, etc.).
+- Configure with `cmake --preset <name>` and build with `cmake --build --preset <name> [--target …]`.
+- Add `-v` to a preset name (e.g., `mac-dbg-v`) to surface compiler warnings.
+- Need a full matrix? See the [CMake Presets Guide](presets.md) for every preset and the quick
+  reference for ready-to-run command snippets.
 
-### macOS
-```bash
-# Configure a debug build (Apple Silicon)
-cmake --preset mac-dbg
+## Feature Toggles & Windows Profiles
 
-# Build the project
-cmake --build --preset mac-dbg
-```
+### Windows Presets
 
-### Linux
-```bash
-# Configure a debug build
-cmake --preset lin-dbg
+| Preset | Purpose |
+| --- | --- |
+| `win-dbg`, `win-rel`, `ci-windows` | Core builds without agent UI, gRPC, or AI runtimes. Fastest option for MSVC/clang-cl. |
+| `win-ai`, `win-vs-ai` | Full agent stack for local development (UI panels + remote automation + AI runtime). |
+| `ci-windows-ai` | Nightly/weekly CI preset that exercises the entire automation stack on Windows. |
 
-# Build the project
-cmake --build --preset lin-dbg
-```
+### Agent Feature Flags
 
-### Windows
-```bash
-# Configure a debug build for Visual Studio (x64)
-cmake --preset win-dbg
+| Option | Default | Effect |
+| --- | --- | --- |
+| `YAZE_BUILD_AGENT_UI` | `ON` when `YAZE_BUILD_GUI=ON` | Builds the ImGui widgets used by the chat/agent panels. |
+| `YAZE_ENABLE_REMOTE_AUTOMATION` | `ON` for `*-ai` presets | Adds gRPC/protobuf services plus GUI automation clients. |
+| `YAZE_ENABLE_AI_RUNTIME` | `ON` for `*-ai` presets | Enables Gemini/Ollama transports, proposal planning, and advanced routing logic. |
+| `YAZE_ENABLE_AGENT_CLI` | `ON` when `YAZE_BUILD_CLI=ON` | Compiles the conversational agent stack consumed by `z3ed`. |
 
-# Build the project
-cmake --build --preset win-dbg
-```
-
-### AI-Enabled Build (All Platforms)
-To build with the `z3ed` AI agent features:
-```bash
-# macOS
-cmake --preset mac-ai
-cmake --build --preset mac-ai
-
-# Windows
-cmake --preset win-ai
-cmake --build --preset win-ai
-```
+Combine these switches to match your workflow: keep everything `OFF` for lightweight GUI hacking or turn them `ON` for automation-heavy work with sketchybar/yabai/skhd, tmux, or remote runners.
 
 ## 3. Dependencies
 
 -   **Required**: CMake 3.16+, C++23 Compiler (GCC 13+, Clang 16+, MSVC 2019+), Git.
--   **Bundled**: All other dependencies (SDL2, ImGui, Abseil, Asar, GoogleTest, etc.) are included as Git submodules or managed by CMake's `FetchContent`. No external package manager is required for a basic build.
+-   **Bundled**: All other dependencies (SDL2, ImGui, Asar, nlohmann/json, cpp-httplib, GoogleTest, etc.) live under the `ext/` directory or are managed by CMake's `FetchContent`. No external package manager is required for a basic build.
 -   **Optional**: 
     -   **gRPC**: For GUI test automation. Can be enabled with `-DYAZE_WITH_GRPC=ON`.
     -   **vcpkg (Windows)**: Can be used for faster gRPC builds on Windows (optional).
@@ -84,7 +74,14 @@ xcode-select --install
 
 # Recommended: Install build tools via Homebrew
 brew install cmake pkg-config
+
+# For sandboxed/offline builds: Install dependencies to avoid network fetch
+brew install yaml-cpp googletest
 ```
+
+**Note**: When building in sandboxed/offline environments (e.g., via Claude Code or restricted networks), install `yaml-cpp` and `googletest` via Homebrew to avoid GitHub fetch failures. The build system automatically detects Homebrew installations and uses them as fallback:
+- yaml-cpp: `/opt/homebrew/opt/yaml-cpp`, `/usr/local/opt/yaml-cpp`
+- googletest: `/opt/homebrew/opt/googletest`, `/usr/local/opt/googletest`
 
 ### Linux (Ubuntu/Debian)
 ```bash
@@ -94,9 +91,15 @@ sudo apt-get install -y build-essential cmake ninja-build pkg-config \
 ```
 
 ### Windows
--   **Visual Studio 2022** is required, with the "Desktop development with C++" workload.
--   The `verify-build-environment.ps1` script will help identify any missing components.
--   For building with gRPC, see the "Windows Build Optimization" section below.
+1. **Install Visual Studio 2022** with the “Desktop development with C++” workload (requires MSVC + MSBuild).  
+2. **Install Ninja** (recommended): `choco install ninja` or enable the “CMake tools for Windows” optional component.  
+3. Run the verifier: `.\scripts\verify-build-environment.ps1 -FixIssues` – this checks Visual Studio workloads, Ninja, clang-cl, Git settings, and vcpkg cache.  
+4. Bootstrap vcpkg once: `.\scripts\setup-vcpkg-windows.ps1` (prefetches SDL2, yaml-cpp, etc.).  
+5. Use the `win-*` presets (Ninja) or `win-vs-*` presets (Visual Studio generator) as needed. For AI/gRPC features, prefer `win-ai` / `win-vs-ai`.  
+6. For quick validation, run the PowerShell helper:  
+   ```powershell
+   pwsh -File scripts/agents/windows-smoke-build.ps1 -Preset win-ai -Target z3ed
+   ```
 
 ## 5. Testing
 
@@ -143,7 +146,7 @@ ctest --test-dir build --label-exclude "ROM_DEPENDENT"
 ### VS Code (Recommended)
 1.  Install the **CMake Tools** extension.
 2.  Open the project folder.
-3.  Select a preset from the status bar (e.g., `mac-ai`).
+3.  Select a preset from the status bar (e.g., `mac-ai`). On Windows, choose the desired kit (e.g., “Visual Studio Build Tools 2022”) so the generator matches your preset (`win-*` uses Ninja, `win-vs-*` uses Visual Studio).
 4.  Press F5 to build and debug.
 5.  After changing presets, run `cp build/compile_commands.json .` to update IntelliSense.
 
@@ -171,6 +174,7 @@ open build/yaze.xcodeproj
 - **vcpkg**: Only fast packages (SDL2, yaml-cpp) - 2 minutes
 - **gRPC**: Built via FetchContent (v1.75.1) - cached after first build
 - **Caching**: Aggressive multi-tier caching (vcpkg + FetchContent + sccache)
+- **Agent matrix**: A dedicated `ci-windows-ai` job runs outside pull requests to exercise the full gRPC + AI runtime stack.
 - **Expected time**: 
   - First build: ~10-15 minutes
   - Cached build: ~3-5 minutes
@@ -188,9 +192,8 @@ open build/yaze.xcodeproj
 For desktop development, you can use vcpkg for faster gRPC builds:
 
 ```powershell
-# Install vcpkg
-git clone https://github.com/Microsoft/vcpkg.git
-cd vcpkg && .\bootstrap-vcpkg.bat
+# Bootstrap vcpkg and prefetch packages
+.\scripts\setup-vcpkg-windows.ps1
 
 # Configure with vcpkg
 cmake -B build -DYAZE_USE_VCPKG_GRPC=ON -DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake

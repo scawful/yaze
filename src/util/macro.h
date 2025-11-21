@@ -21,8 +21,9 @@ using uint = unsigned int;
   ImGui::EndTable(); \
   }
 
-#define HOVER_HINT(string) \
-  if (ImGui::IsItemHovered()) ImGui::SetTooltip(string)
+#define HOVER_HINT(string)    \
+  if (ImGui::IsItemHovered()) \
+  ImGui::SetTooltip(string)
 
 #define PRINT_IF_ERROR(expression)                \
   {                                               \
@@ -103,7 +104,7 @@ using uint = unsigned int;
 #define RETURN_IF_EXCEPTION(expression) \
   try {                                 \
     expression;                         \
-  } catch (const std::exception &e) {   \
+  } catch (const std::exception& e) {   \
     std::cerr << e.what() << std::endl; \
     return EXIT_FAILURE;                \
   }

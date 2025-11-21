@@ -119,18 +119,20 @@ target_link_libraries(yaze_gfx_resource PUBLIC yaze_gfx_backend)
 # Layer 3b: Rendering (depends on types, NOT on core to avoid circular dep)
 add_library(yaze_gfx_render STATIC ${GFX_RENDER_SRC})
 configure_gfx_library(yaze_gfx_render)
-target_link_libraries(yaze_gfx_render PUBLIC 
+target_link_libraries(yaze_gfx_render PUBLIC
   yaze_gfx_types
   yaze_gfx_backend
+  yaze_gfx_util
   ${YAZE_SDL2_TARGETS}
 )
 
-# Layer 3c: Debug tools (depends on types only at this level)
+# Layer 3c: Debug tools (depends on types, resource, and render for AtlasRenderer)
 add_library(yaze_gfx_debug STATIC ${GFX_DEBUG_SRC})
 configure_gfx_library(yaze_gfx_debug)
-target_link_libraries(yaze_gfx_debug PUBLIC 
+target_link_libraries(yaze_gfx_debug PUBLIC
   yaze_gfx_types
   yaze_gfx_resource
+  yaze_gfx_render
   ImGui
   ${YAZE_SDL2_TARGETS}
 )

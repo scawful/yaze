@@ -28,10 +28,16 @@ class Snes {
     // Initialize input controllers to clean state
     input1 = {};
     input2 = {};
-    
-    cpu_.callbacks().read_byte = [this](uint32_t adr) { return CpuRead(adr); };
-    cpu_.callbacks().write_byte = [this](uint32_t adr, uint8_t val) { CpuWrite(adr, val); };
-    cpu_.callbacks().idle = [this](bool waiting) { CpuIdle(waiting); };
+
+    cpu_.callbacks().read_byte = [this](uint32_t adr) {
+      return CpuRead(adr);
+    };
+    cpu_.callbacks().write_byte = [this](uint32_t adr, uint8_t val) {
+      CpuWrite(adr, val);
+    };
+    cpu_.callbacks().idle = [this](bool waiting) {
+      CpuIdle(waiting);
+    };
   }
   ~Snes() = default;
 
@@ -74,9 +80,11 @@ class Snes {
   auto memory() -> MemoryImpl& { return memory_; }
   auto get_ram() -> uint8_t* { return ram; }
   auto mutable_cycles() -> uint64_t& { return cycles_; }
-  
+
   // Audio debugging
-  auto apu_handshake_tracker() -> debug::ApuHandshakeTracker& { return apu_handshake_tracker_; }
+  auto apu_handshake_tracker() -> debug::ApuHandshakeTracker& {
+    return apu_handshake_tracker_;
+  }
 
   bool fast_mem_ = false;
 
@@ -125,7 +133,7 @@ class Snes {
   bool auto_joy_read_ = false;
   uint16_t auto_joy_timer_ = 0;
   bool ppu_latch_;
-  
+
   // Audio debugging
   debug::ApuHandshakeTracker apu_handshake_tracker_;
 };

@@ -48,8 +48,8 @@ std::filesystem::path DefaultScreenshotPath() {
 
   const int64_t timestamp_ms = absl::ToUnixMillis(absl::Now());
   return base_dir /
-         std::filesystem::path(
-             absl::StrFormat("harness_%lld.bmp", static_cast<long long>(timestamp_ms)));
+         std::filesystem::path(absl::StrFormat(
+             "harness_%lld.bmp", static_cast<long long>(timestamp_ms)));
 }
 
 }  // namespace
@@ -72,17 +72,16 @@ absl::StatusOr<ScreenshotArtifact> CaptureHarnessScreenshot(
         absl::StrFormat("Failed to get renderer size: %s", SDL_GetError()));
   }
 
-  std::filesystem::path output_path = preferred_path.empty()
-                                         ? DefaultScreenshotPath()
-                                         : std::filesystem::path(preferred_path);
+  std::filesystem::path output_path =
+      preferred_path.empty() ? DefaultScreenshotPath()
+                             : std::filesystem::path(preferred_path);
   if (output_path.has_parent_path()) {
     std::error_code ec;
     std::filesystem::create_directories(output_path.parent_path(), ec);
   }
 
-  SDL_Surface* surface = SDL_CreateRGBSurface(0, width, height, 32, 0x00FF0000,
-                                              0x0000FF00, 0x000000FF,
-                                              0xFF000000);
+  SDL_Surface* surface = SDL_CreateRGBSurface(
+      0, width, height, 32, 0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000);
   if (!surface) {
     return absl::InternalError(
         absl::StrFormat("Failed to create SDL surface: %s", SDL_GetError()));
@@ -104,8 +103,7 @@ absl::StatusOr<ScreenshotArtifact> CaptureHarnessScreenshot(
   SDL_FreeSurface(surface);
 
   std::error_code ec;
-  const int64_t file_size =
-      std::filesystem::file_size(output_path, ec);
+  const int64_t file_size = std::filesystem::file_size(output_path, ec);
   if (ec) {
     return absl::InternalError(
         absl::StrFormat("Failed to stat screenshot %s: %s",
@@ -132,7 +130,7 @@ absl::StatusOr<ScreenshotArtifact> CaptureHarnessScreenshotRegion(
   }
 
   SDL_Renderer* renderer = backend_data->Renderer;
-  
+
   // Get full renderer size
   int full_width = 0;
   int full_height = 0;
@@ -146,40 +144,42 @@ absl::StatusOr<ScreenshotArtifact> CaptureHarnessScreenshotRegion(
   int capture_y = 0;
   int capture_width = full_width;
   int capture_height = full_height;
-  
+
   if (region.has_value()) {
     capture_x = region->x;
     capture_y = region->y;
     capture_width = region->width;
     capture_height = region->height;
-    
+
     // Clamp to renderer bounds
-    if (capture_x < 0) capture_x = 0;
-    if (capture_y < 0) capture_y = 0;
+    if (capture_x < 0)
+      capture_x = 0;
+    if (capture_y < 0)
+      capture_y = 0;
     if (capture_x + capture_width > full_width) {
       capture_width = full_width - capture_x;
     }
     if (capture_y + capture_height > full_height) {
       capture_height = full_height - capture_y;
     }
-    
+
     if (capture_width <= 0 || capture_height <= 0) {
       return absl::InvalidArgumentError("Invalid capture region");
     }
   }
 
-  std::filesystem::path output_path = preferred_path.empty()
-                                         ? DefaultScreenshotPath()
-                                         : std::filesystem::path(preferred_path);
+  std::filesystem::path output_path =
+      preferred_path.empty() ? DefaultScreenshotPath()
+                             : std::filesystem::path(preferred_path);
   if (output_path.has_parent_path()) {
     std::error_code ec;
     std::filesystem::create_directories(output_path.parent_path(), ec);
   }
 
   // Create surface for the capture region
-  SDL_Surface* surface = SDL_CreateRGBSurface(0, capture_width, capture_height, 
-                                              32, 0x00FF0000, 0x0000FF00, 
-                                              0x000000FF, 0xFF000000);
+  SDL_Surface* surface =
+      SDL_CreateRGBSurface(0, capture_width, capture_height, 32, 0x00FF0000,
+                           0x0000FF00, 0x000000FF, 0xFF000000);
   if (!surface) {
     return absl::InternalError(
         absl::StrFormat("Failed to create SDL surface: %s", SDL_GetError()));
@@ -236,8 +236,7 @@ absl::StatusOr<ScreenshotArtifact> CaptureActiveWindow(
 }
 
 absl::StatusOr<ScreenshotArtifact> CaptureWindowByName(
-    const std::string& window_name,
-    const std::string& preferred_path) {
+    const std::string& window_name, const std::string& preferred_path) {
   ImGuiContext* ctx = ImGui::GetCurrentContext();
   if (!ctx) {
     return absl::FailedPreconditionError("No ImGui context");

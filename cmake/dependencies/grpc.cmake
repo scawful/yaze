@@ -91,7 +91,7 @@ set(gRPC_BUILD_GRPC_REFLECTION OFF CACHE BOOL "" FORCE)
 set(gRPC_BUILD_GRPC_CPP_REFLECTION OFF CACHE BOOL "" FORCE)
 set(gRPC_BUILD_GRPCPP_REFLECTION OFF CACHE BOOL "" FORCE)
 set(gRPC_BENCHMARK_PROVIDER "none" CACHE STRING "" FORCE)
-set(gRPC_ZLIB_PROVIDER "package" CACHE STRING "" FORCE)
+set(gRPC_ZLIB_PROVIDER "module" CACHE STRING "" FORCE)
 set(gRPC_PROTOBUF_PROVIDER "module" CACHE STRING "" FORCE)
 set(gRPC_ABSL_PROVIDER "module" CACHE STRING "" FORCE)
 set(protobuf_BUILD_TESTS OFF CACHE BOOL "" FORCE)
@@ -100,12 +100,23 @@ set(protobuf_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(protobuf_BUILD_PROTOC_BINARIES ON CACHE BOOL "" FORCE)
 set(protobuf_WITH_ZLIB ON CACHE BOOL "" FORCE)
 set(protobuf_INSTALL OFF CACHE BOOL "" FORCE)
+set(protobuf_MSVC_STATIC_RUNTIME OFF CACHE BOOL "" FORCE)
 set(ABSL_PROPAGATE_CXX_STD ON CACHE BOOL "" FORCE)
 set(ABSL_ENABLE_INSTALL OFF CACHE BOOL "" FORCE)
 set(ABSL_BUILD_TESTING OFF CACHE BOOL "" FORCE)
 set(utf8_range_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(utf8_range_INSTALL OFF CACHE BOOL "" FORCE)
 set(utf8_range_ENABLE_INSTALL OFF CACHE BOOL "" FORCE)
+
+# Force consistent MSVC runtime library across all gRPC components (Windows only)
+# This ensures gRPC, protobuf, and Abseil all use the same CRT linking mode
+if(WIN32 AND MSVC)
+  # Use dynamic CRT (/MD for Release, /MDd for Debug) to avoid undefined math symbols
+  set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL" CACHE STRING "" FORCE)
+  # Also ensure protobuf doesn't try to use static runtime
+  set(protobuf_MSVC_STATIC_RUNTIME OFF CACHE BOOL "" FORCE)
+  message(STATUS "Forcing dynamic MSVC runtime for gRPC dependencies: ${CMAKE_MSVC_RUNTIME_LIBRARY}")
+endif()
 
 # Temporarily disable installation to prevent utf8_range export errors
 # This is a workaround for gRPC 1.67.1 where utf8_range tries to install targets
@@ -114,11 +125,20 @@ set(CMAKE_SKIP_INSTALL_RULES TRUE)
 
 # Use CPM to fetch gRPC with bundled dependencies
 # GIT_SUBMODULES "" disables submodule recursion since gRPC handles its own deps via CMake
+
+if(WIN32)
+  set(GRPC_VERSION_TO_USE "1.67.1")
+else()
+  set(GRPC_VERSION_TO_USE "1.76.0")
+endif()
+
+message(STATUS "Selected gRPC version ${GRPC_VERSION_TO_USE} for platform ${CMAKE_SYSTEM_NAME}")
+
 CPMAddPackage(
   NAME grpc
-  VERSION ${GRPC_VERSION}
+  VERSION ${GRPC_VERSION_TO_USE}
   GITHUB_REPOSITORY grpc/grpc
-  GIT_TAG v${GRPC_VERSION}
+  GIT_TAG v${GRPC_VERSION_TO_USE}
   GIT_SUBMODULES ""
   GIT_SHALLOW TRUE
 )
@@ -231,10 +251,13 @@ set(ABSL_TARGETS
   absl::memory
   absl::container_memory
   absl::strings
+  absl::strings_internal
   absl::str_format
+  absl::str_format_internal
   absl::cord
   absl::hash
   absl::time
+  absl::time_zone
   absl::status
   absl::statusor
   absl::flags
@@ -252,6 +275,7 @@ set(ABSL_TARGETS
   absl::flat_hash_map
   absl::synchronization
   absl::symbolize
+  absl::strerror
 )
 
 # Only expose absl::int128 when it's supported without warnings

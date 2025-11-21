@@ -101,13 +101,14 @@ class OverworldEntrance : public GameEntity {
     uint8_t normalized_map_id = map_id % 0x40;
     int mapX = normalized_map_id % 8;
     int mapY = normalized_map_id / 8;
-    
+
     // Use base game_x_/game_y_ instead of duplicated area_x_/area_y_
     game_x_ = static_cast<int>((std::abs(x - (mapX * 512)) / 16));
     game_y_ = static_cast<int>((std::abs(y - (mapY * 512)) / 16));
   }
 
-  void UpdateMapProperties(uint16_t map_id, const void* context = nullptr) override {
+  void UpdateMapProperties(uint16_t map_id,
+                           const void* context = nullptr) override {
     (void)context;  // Not used by entrances currently
     map_id_ = map_id;
 
@@ -139,8 +140,7 @@ absl::StatusOr<std::vector<OverworldEntrance>> LoadHoles(Rom* rom);
 absl::Status SaveEntrances(Rom* rom,
                            const std::vector<OverworldEntrance>& entrances,
                            bool expanded_entrances);
-absl::Status SaveHoles(Rom* rom,
-                       const std::vector<OverworldEntrance>& holes);
+absl::Status SaveHoles(Rom* rom, const std::vector<OverworldEntrance>& holes);
 
 inline absl::StatusOr<OverworldEntranceTileTypes> LoadEntranceTileTypes(
     Rom* rom) {

@@ -5,8 +5,8 @@
 
 #include "app/gfx/types/snes_color.h"
 #include "app/gui/core/color.h"
-#include "imgui/imgui.h"
 #include "app/rom.h"
+#include "imgui/imgui.h"
 
 namespace yaze {
 namespace editor {
@@ -68,7 +68,7 @@ void DrawColorInfoTooltip(const gfx::SnesColor& color);
  * @param rom ROM instance to read palette from
  */
 void DrawPalettePreview(const std::string& group_name, int palette_index,
-                       class Rom* rom);
+                        class Rom* rom);
 
 }  // namespace palette_utility
 
@@ -76,4 +76,3 @@ void DrawPalettePreview(const std::string& group_name, int palette_index,
 }  // namespace yaze
 
 #endif  // YAZE_APP_EDITOR_PALETTE_UTILITY_H
-

@@ -13,19 +13,18 @@ namespace handlers {
 class SpriteListCommandHandler : public resources::CommandHandler {
  public:
   std::string GetName() const { return "sprite-list"; }
-  std::string GetDescription() const {
-    return "List available sprites";
-  }
+  std::string GetDescription() const { return "List available sprites"; }
   std::string GetUsage() const {
-    return "sprite-list [--type <type>] [--limit <limit>] [--format <json|text>]";
+    return "sprite-list [--type <type>] [--limit <limit>] [--format "
+           "<json|text>]";
   }
-  
+
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
     return absl::OkStatus();  // No required args
   }
-  
+
   absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
-                      resources::OutputFormatter& formatter) override;
+                       resources::OutputFormatter& formatter) override;
 };
 
 /**
@@ -40,13 +39,13 @@ class SpritePropertiesCommandHandler : public resources::CommandHandler {
   std::string GetUsage() const {
     return "sprite-properties --id <sprite_id> [--format <json|text>]";
   }
-  
+
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
     return parser.RequireArgs({"id"});
   }
-  
+
   absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
-                      resources::OutputFormatter& formatter) override;
+                       resources::OutputFormatter& formatter) override;
 };
 
 /**
@@ -61,13 +60,13 @@ class SpritePaletteCommandHandler : public resources::CommandHandler {
   std::string GetUsage() const {
     return "sprite-palette --id <sprite_id> [--format <json|text>]";
   }
-  
+
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
     return parser.RequireArgs({"id"});
   }
-  
+
   absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
-                      resources::OutputFormatter& formatter) override;
+                       resources::OutputFormatter& formatter) override;
 };
 
 }  // namespace handlers

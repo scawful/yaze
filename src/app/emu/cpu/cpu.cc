@@ -7,9 +7,9 @@
 #include <vector>
 
 #include "absl/strings/str_format.h"
-#include "core/features.h"
 #include "app/emu/cpu/internal/opcodes.h"
 #include "app/emu/debug/disassembly_viewer.h"
+#include "core/features.h"
 #include "util/log.h"
 
 namespace yaze {
@@ -24,7 +24,8 @@ debug::DisassemblyViewer& Cpu::disassembly_viewer() {
 
 const debug::DisassemblyViewer& Cpu::disassembly_viewer() const {
   if (disassembly_viewer_ == nullptr) {
-    const_cast<Cpu*>(this)->disassembly_viewer_ = new debug::DisassemblyViewer();
+    const_cast<Cpu*>(this)->disassembly_viewer_ =
+        new debug::DisassemblyViewer();
   }
   return *disassembly_viewer_;
 }
@@ -60,7 +61,7 @@ void Cpu::RunOpcode() {
       return;  // Don't run this opcode yet
     }
   }
-  
+
   if (reset_wanted_) {
     reset_wanted_ = false;
     // reset: brk/interrupt without writes
@@ -81,19 +82,21 @@ void Cpu::RunOpcode() {
     SetFlags(status);  // updates x and m flags, clears
                        // upper half of x and y if needed
     PB = 0;
-    
+
     // Debug: Log reset vector read
     uint8_t low_byte = ReadByte(0xfffc);
     uint8_t high_byte = ReadByte(0xfffd);
     PC = low_byte | (high_byte << 8);
-    LOG_DEBUG("CPU", "Reset vector: $FFFC=$%02X $FFFD=$%02X -> PC=$%04X", 
-             low_byte, high_byte, PC);
+    LOG_DEBUG("CPU", "Reset vector: $FFFC=$%02X $FFFD=$%02X -> PC=$%04X",
+              low_byte, high_byte, PC);
     return;
   }
   if (stopped_) {
     static int stopped_log_count = 0;
     if (stopped_log_count++ < 5) {
-      LOG_DEBUG("CPU", "CPU is STOPPED at $%02X:%04X (STP instruction executed)", PB, PC);
+      LOG_DEBUG("CPU",
+                "CPU is STOPPED at $%02X:%04X (STP instruction executed)", PB,
+                PC);
     }
     callbacks_.idle(true);
     return;
@@ -101,11 +104,14 @@ void Cpu::RunOpcode() {
   if (waiting_) {
     static int waiting_log_count = 0;
     if (waiting_log_count++ < 5) {
-      LOG_DEBUG("CPU", "CPU is WAITING at $%02X:%04X - irq_wanted=%d nmi_wanted=%d int_flag=%d", 
-               PB, PC, irq_wanted_, nmi_wanted_, GetInterruptFlag());
+      LOG_DEBUG("CPU",
+                "CPU is WAITING at $%02X:%04X - irq_wanted=%d nmi_wanted=%d "
+                "int_flag=%d",
+                PB, PC, irq_wanted_, nmi_wanted_, GetInterruptFlag());
     }
     if (irq_wanted_ || nmi_wanted_) {
-      LOG_DEBUG("CPU", "CPU waking from WAIT - irq=%d nmi=%d", irq_wanted_, nmi_wanted_);
+      LOG_DEBUG("CPU", "CPU waking from WAIT - irq=%d nmi=%d", irq_wanted_,
+                nmi_wanted_);
       waiting_ = false;
       callbacks_.idle(false);
       CheckInt();
@@ -122,58 +128,66 @@ void Cpu::RunOpcode() {
     DoInterrupt();
   } else {
     uint8_t opcode = ReadOpcode();
-    
+
     // AUDIO DEBUG: Enhanced logging for audio initialization tracking
     static int instruction_count = 0;
     instruction_count++;
     uint16_t cur_pc = PC - 1;
-    
+
     // Track entry into Bank $00 (where all audio code lives)
     static bool entered_bank00 = false;
     static bool logged_first_nmi = false;
-    
+
     if (PB == 0x00 && !entered_bank00) {
-      LOG_INFO("CPU_AUDIO", "=== ENTERED BANK $00 at PC=$%04X (instruction #%d) ===", 
-               cur_pc, instruction_count);
+      LOG_INFO("CPU_AUDIO",
+               "=== ENTERED BANK $00 at PC=$%04X (instruction #%d) ===", cur_pc,
+               instruction_count);
       entered_bank00 = true;
     }
-    
+
     // Monitor NMI interrupts (audio init usually happens in NMI)
     if (nmi_wanted_ && !logged_first_nmi) {
-      LOG_INFO("CPU_AUDIO", "=== FIRST NMI TRIGGERED at PC=$%02X:%04X ===", PB, cur_pc);
+      LOG_INFO("CPU_AUDIO", "=== FIRST NMI TRIGGERED at PC=$%02X:%04X ===", PB,
+               cur_pc);
       logged_first_nmi = true;
     }
-    
+
     // Track key audio routines in Bank $00
     if (PB == 0x00) {
       static bool logged_routines[0x10000] = {false};
-      
+
       // NMI handler entry ($0080-$00FF region)
       if (cur_pc >= 0x0080 && cur_pc <= 0x00FF) {
         if (cur_pc == 0x0080 || cur_pc == 0x0090 || cur_pc == 0x00A0) {
           if (!logged_routines[cur_pc]) {
-            LOG_INFO("CPU_AUDIO", "NMI code: PC=$00:%04X A=$%02X X=$%04X Y=$%04X", 
-                     cur_pc, A & 0xFF, X, Y);
+            LOG_INFO("CPU_AUDIO",
+                     "NMI code: PC=$00:%04X A=$%02X X=$%04X Y=$%04X", cur_pc,
+                     A & 0xFF, X, Y);
             logged_routines[cur_pc] = true;
           }
         }
       }
-      
+
       // LoadSongBank routine ($8888-$88FF) - This is where handshake happens!
-      // LOGIC: Track CPU's journey through audio initialization to identify where it gets stuck.
-      // We log key waypoints to understand if CPU reaches handshake write instructions.
+      // LOGIC: Track CPU's journey through audio initialization to identify
+      // where it gets stuck. We log key waypoints to understand if CPU reaches
+      // handshake write instructions.
       if (cur_pc >= 0x8888 && cur_pc <= 0x88FF) {
         // Log entry
         if (cur_pc == 0x8888) {
-          LOG_INFO("CPU_AUDIO", ">>> LoadSongBank ENTRY at $8888! A=$%02X X=$%04X",
-                   A & 0xFF, X);
+          LOG_INFO("CPU_AUDIO",
+                   ">>> LoadSongBank ENTRY at $8888! A=$%02X X=$%04X", A & 0xFF,
+                   X);
         }
 
-        // DISCOVERY: Log every unique PC in this range to see the execution path
-        // This helps identify if CPU is looping, stuck, or simply not reaching write instructions
+        // DISCOVERY: Log every unique PC in this range to see the execution
+        // path This helps identify if CPU is looping, stuck, or simply not
+        // reaching write instructions
         static int exec_count_8888 = 0;
         if (exec_count_8888++ < 100 && !logged_routines[cur_pc]) {
-          LOG_INFO("CPU_AUDIO", "  LoadSongBank: PC=$%04X A=$%02X X=$%04X Y=$%04X SP=$%04X [exec #%d]",
+          LOG_INFO("CPU_AUDIO",
+                   "  LoadSongBank: PC=$%04X A=$%02X X=$%04X Y=$%04X SP=$%04X "
+                   "[exec #%d]",
                    cur_pc, A & 0xFF, X, Y, SP(), exec_count_8888);
           logged_routines[cur_pc] = true;
         }
@@ -182,7 +196,8 @@ void Cpu::RunOpcode() {
         if (cur_pc >= 0x88A0 && cur_pc <= 0x88B0) {
           static int setup_count = 0;
           if (setup_count++ < 20) {
-            LOG_INFO("CPU_AUDIO", "Handshake setup area: PC=$%04X A=$%02X", cur_pc, A & 0xFF);
+            LOG_INFO("CPU_AUDIO", "Handshake setup area: PC=$%04X A=$%02X",
+                     cur_pc, A & 0xFF);
           }
         }
 
@@ -192,21 +207,24 @@ void Cpu::RunOpcode() {
         if (cur_pc == 0x88B3 || cur_pc == 0x88B6) {
           if (handshake_log_count++ < 20 || handshake_log_count % 500 == 0) {
             uint8_t f4_val = callbacks_.read_byte(0x2140);
-            LOG_INFO("CPU_AUDIO", "Handshake wait: PC=$%04X A=$%02X F4=$%02X X=$%04X [loop #%d]",
-                     cur_pc, A & 0xFF, f4_val, X, handshake_log_count);
+            LOG_INFO(
+                "CPU_AUDIO",
+                "Handshake wait: PC=$%04X A=$%02X F4=$%02X X=$%04X [loop #%d]",
+                cur_pc, A & 0xFF, f4_val, X, handshake_log_count);
           }
         }
       }
     }
-    
+
     // Log first 50 instructions for boot tracking
     bool should_log = instruction_count < 50;
     if (should_log) {
-      LOG_DEBUG("CPU", "Boot #%d: $%02X:%04X opcode=$%02X", 
-               instruction_count, PB, PC - 1, opcode);
+      LOG_DEBUG("CPU", "Boot #%d: $%02X:%04X opcode=$%02X", instruction_count,
+                PB, PC - 1, opcode);
     }
-    
-    // Debug: Log if stuck at same PC for extended period (after first 200 instructions)
+
+    // Debug: Log if stuck at same PC for extended period (after first 200
+    // instructions)
     static uint16_t last_stuck_pc = 0xFFFF;
     static int stuck_count = 0;
     if (instruction_count >= 200) {
@@ -214,18 +232,19 @@ void Cpu::RunOpcode() {
         stuck_count++;
         if (stuck_count == 100 || stuck_count == 1000 || stuck_count == 10000) {
           LOG_DEBUG("CPU", "Stuck at $%02X:%04X opcode=$%02X for %d iterations",
-                   PB, PC - 1, opcode, stuck_count);
+                    PB, PC - 1, opcode, stuck_count);
         }
       } else {
         if (stuck_count > 50) {
-          LOG_DEBUG("CPU", "Moved from $%02X:%04X (was stuck %d times) to $%02X:%04X",
-                   PB, last_stuck_pc, stuck_count, PB, PC - 1);
+          LOG_DEBUG("CPU",
+                    "Moved from $%02X:%04X (was stuck %d times) to $%02X:%04X",
+                    PB, last_stuck_pc, stuck_count, PB, PC - 1);
         }
         stuck_count = 0;
         last_stuck_pc = PC - 1;
       }
     }
-    
+
     ExecuteInstruction(opcode);
   }
 }
@@ -257,7 +276,8 @@ void Cpu::ExecuteInstruction(uint8_t opcode) {
     case 0x00: {  // brk imm(s)
       uint32_t vector = (E) ? 0xfffe : 0xffe6;
       ReadOpcode();
-      if (!E) PushByte(PB);
+      if (!E)
+        PushByte(PB);
       PushWord(PC, false);
       PushByte(status);
       SetInterruptFlag(true);
@@ -275,7 +295,8 @@ void Cpu::ExecuteInstruction(uint8_t opcode) {
     case 0x02: {  // cop imm(s)
       uint32_t vector = (E) ? 0xfff4 : 0xffe4;
       ReadOpcode();
-      if (!E) PushByte(PB);
+      if (!E)
+        PushByte(PB);
       PushWord(PC, false);
       PushByte(status);
       SetInterruptFlag(true);
@@ -1476,9 +1497,12 @@ void Cpu::ExecuteInstruction(uint8_t opcode) {
         uint8_t dp1 = ReadByte(D + 0x01);
         uint8_t dp2 = ReadByte(D + 0x02);
         uint32_t ptr = dp0 | (dp1 << 8) | (dp2 << 16);
-        LOG_DEBUG("CPU", "LDA [$00],Y at PC=$%04X: DP=$%04X, [$00]=$%02X:$%04X, Y=$%04X",
-                 cur_pc, D, dp2, (uint16_t)(dp0 | (dp1 << 8)), Y);
-        LOG_DEBUG("CPU", "  -> Reading 16-bit value from address $%06X", ptr + Y);
+        LOG_DEBUG(
+            "CPU",
+            "LDA [$00],Y at PC=$%04X: DP=$%04X, [$00]=$%02X:$%04X, Y=$%04X",
+            cur_pc, D, dp2, (uint16_t)(dp0 | (dp1 << 8)), Y);
+        LOG_DEBUG("CPU", "  -> Reading 16-bit value from address $%06X",
+                  ptr + Y);
       }
       uint32_t low = 0;
       uint32_t high = AdrIly(&low);
@@ -1956,25 +1980,26 @@ void Cpu::ExecuteInstruction(uint8_t opcode) {
       break;
     }
   }
-  // REMOVED: Old log_instructions_ check - now using on_instruction_executed_ callback
-  // which is more efficient and always active (records to DisassemblyViewer)
+  // REMOVED: Old log_instructions_ check - now using on_instruction_executed_
+  // callback which is more efficient and always active (records to
+  // DisassemblyViewer)
   LogInstructions(cache_pc, opcode, operand, immediate, accumulator_mode);
 }
 
 void Cpu::LogInstructions(uint16_t PC, uint8_t opcode, uint16_t operand,
-bool immediate, bool accumulator_mode) {
+                          bool immediate, bool accumulator_mode) {
   // Build full 24-bit address
   uint32_t full_address = (PB << 16) | PC;
-  
+
   // Extract operand bytes based on instruction size
   std::vector<uint8_t> operand_bytes;
   std::string operand_str;
-  
+
   if (operand) {
     if (immediate) {
       operand_str += "#";
     }
-    
+
     if (accumulator_mode) {
       // 8-bit operand
       operand_bytes.push_back(operand & 0xFF);
@@ -1986,17 +2011,19 @@ bool immediate, bool accumulator_mode) {
       operand_str += absl::StrFormat("$%04X", operand);
     }
   }
-  
+
   // Get mnemonic
   const std::string& mnemonic = opcode_to_mnemonic.at(opcode);
-  
+
   // ALWAYS record to DisassemblyViewer (sparse, Mesen-style, zero cost)
-  // The callback only fires if set, and DisassemblyViewer only stores unique addresses
+  // The callback only fires if set, and DisassemblyViewer only stores unique
+  // addresses
   // - First execution: Add to map (O(log n))
   // - Subsequent: Increment counter (O(log n))
   // - Total overhead: ~0.1% even with millions of instructions
   if (on_instruction_executed_) {
-    on_instruction_executed_(full_address, opcode, operand_bytes, mnemonic, operand_str);
+    on_instruction_executed_(full_address, opcode, operand_bytes, mnemonic,
+                             operand_str);
   }
 }
 

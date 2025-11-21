@@ -9,6 +9,9 @@ This software allows you to modify "The Legend of Zelda: A Link to the Past" (US
 3.  **Select an Editor** from the main toolbar (e.g., Overworld, Dungeon, Graphics).
 4.  **Make Changes** and save your project.
 
+> Building from source or enabling AI tooling? Use the
+> [Build & Test Quick Reference](../build/quick-reference.md) for the canonical commands and presets.
+
 ## General Tips
 
 -   **Experiment Flags**: Enable or disable new features in `File > Options > Experiment Flags`.

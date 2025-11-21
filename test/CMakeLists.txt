@@ -13,13 +13,13 @@ if(YAZE_BUILD_TESTS)
       ${CMAKE_SOURCE_DIR}/src
       ${CMAKE_SOURCE_DIR}/incl
       ${CMAKE_SOURCE_DIR}/test
-      ${CMAKE_SOURCE_DIR}/src/lib
-      ${CMAKE_SOURCE_DIR}/src/lib/imgui
-      ${CMAKE_SOURCE_DIR}/src/lib/imgui/backends
-      ${CMAKE_SOURCE_DIR}/src/lib/imgui_test_engine
-      ${CMAKE_SOURCE_DIR}/src/lib/SDL/include
-      ${CMAKE_SOURCE_DIR}/third_party/json/include
-      ${CMAKE_BINARY_DIR}/src/lib/SDL/include
+      ${CMAKE_SOURCE_DIR}/ext
+      ${CMAKE_SOURCE_DIR}/ext/imgui
+      ${CMAKE_SOURCE_DIR}/ext/imgui/backends
+      ${CMAKE_SOURCE_DIR}/ext/imgui_test_engine
+      ${CMAKE_SOURCE_DIR}/ext/SDL/include
+      ${CMAKE_SOURCE_DIR}/ext/json/include
+      ${CMAKE_BINARY_DIR}/ext/SDL/include
       ${PROJECT_BINARY_DIR}
     )
 
@@ -141,8 +141,14 @@ if(YAZE_BUILD_TESTS)
     e2e/framework_smoke_test.cc
     e2e/dungeon_editor_smoke_test.cc
     e2e/canvas_selection_test.cc
-    integration/ai/ai_gui_controller_test.cc
   )
+
+  if(YAZE_ENABLE_AI_RUNTIME)
+    list(APPEND GUI_TEST_SOURCES integration/ai/ai_gui_controller_test.cc)
+  else()
+    message(STATUS "Skipping AI GUI controller tests (YAZE_ENABLE_AI_RUNTIME=OFF)")
+  endif()
+
   yaze_add_test_suite(yaze_test_gui "gui;experimental" ON ${GUI_TEST_SOURCES})
 
   # Add a single test entry to run the entire GUI suite headlessly
@@ -153,12 +159,16 @@ if(YAZE_BUILD_TESTS)
   )
   set_tests_properties(headless_gui_suite PROPERTIES LABELS "headless_gui;experimental")
 
-  set(EXPERIMENTAL_TEST_SOURCES
-    test_utils.cc
-    integration/ai/test_ai_tile_placement.cc
-    integration/ai/test_gemini_vision.cc
-  )
-  yaze_add_test_suite(yaze_test_experimental "experimental" OFF ${EXPERIMENTAL_TEST_SOURCES})
+  if(YAZE_ENABLE_AI_RUNTIME)
+    set(EXPERIMENTAL_TEST_SOURCES
+      test_utils.cc
+      integration/ai/test_ai_tile_placement.cc
+      integration/ai/test_gemini_vision.cc
+    )
+    yaze_add_test_suite(yaze_test_experimental "experimental" OFF ${EXPERIMENTAL_TEST_SOURCES})
+  else()
+    message(STATUS "Skipping experimental AI suites (YAZE_ENABLE_AI_RUNTIME=OFF)")
+  endif()
 
   # --- Benchmark Test Suite ---
   set(BENCHMARK_TEST_SOURCES

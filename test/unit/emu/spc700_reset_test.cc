@@ -27,4 +27,3 @@ TEST(Spc700ResetTest, ResetVectorExecutesIplSequence) {
 
 }  // namespace emu
 }  // namespace yaze
-

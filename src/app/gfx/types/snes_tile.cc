@@ -24,8 +24,8 @@ snes_tile8 UnpackBppTile(std::span<uint8_t> data, const uint32_t offset,
                          const uint32_t bpp) {
   snes_tile8 tile = {};  // Initialize to zero
   assert(bpp >= 1 && bpp <= 8);
-  unsigned int bpp_pos[8];  // More for conveniance and readibility
-  for (int row = 0; row < 8; row++) {  // Process rows first (Y coordinate)
+  unsigned int bpp_pos[8];               // More for conveniance and readibility
+  for (int row = 0; row < 8; row++) {    // Process rows first (Y coordinate)
     for (int col = 0; col < 8; col++) {  // Then columns (X coordinate)
       if (bpp == 1) {
         tile.data[row * 8 + col] = (data[offset + row] >> (7 - col)) & 0x01;
@@ -83,7 +83,8 @@ std::vector<uint8_t> PackBppTile(const snes_tile8& tile, const uint32_t bpp) {
       }
 
       // 1bpp format
-      if (bpp == 1) output[row] += (uint8_t)((color & 1) << (7 - col));
+      if (bpp == 1)
+        output[row] += (uint8_t)((color & 1) << (7 - col));
 
       // 2bpp format
       if (bpp >= 2) {
@@ -92,7 +93,8 @@ std::vector<uint8_t> PackBppTile(const snes_tile8& tile, const uint32_t bpp) {
       }
 
       // 3bpp format
-      if (bpp == 3) output[16 + row] += (((color & 4) == 4) << (7 - col));
+      if (bpp == 3)
+        output[16 + row] += (((color & 4) == 4) << (7 - col));
 
       // 4bpp format
       if (bpp >= 4) {

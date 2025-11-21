@@ -1,10 +1,12 @@
 #include "core/asar_wrapper.h"
-#include "test_utils.h"
 
-#include <gtest/gtest.h>
 #include <gmock/gmock.h>
-#include <fstream>
+#include <gtest/gtest.h>
+
 #include <filesystem>
+#include <fstream>
+
+#include "test_utils.h"
 
 namespace yaze {
 namespace core {
@@ -17,9 +19,7 @@ class AsarWrapperTest : public ::testing::Test {
     CreateTestFiles();
   }
 
-  void TearDown() override {
-    CleanupTestFiles();
-  }
+  void TearDown() override { CleanupTestFiles(); }
 
   void CreateTestFiles() {
     // Create test directory
@@ -79,7 +79,7 @@ LDA unknown_operand
 TEST_F(AsarWrapperTest, InitializationAndShutdown) {
   // Test initialization
   ASSERT_FALSE(wrapper_->IsInitialized());
-  
+
   auto status = wrapper_->Initialize();
   EXPECT_TRUE(status.ok()) << status.message();
   EXPECT_TRUE(wrapper_->IsInitialized());
@@ -113,7 +113,7 @@ TEST_F(AsarWrapperTest, OperationsWithoutInitialization) {
   std::vector<uint8_t> rom_copy = test_rom_;
   auto patch_result = wrapper_->ApplyPatch(test_asm_path_.string(), rom_copy);
   EXPECT_FALSE(patch_result.ok());
-  EXPECT_THAT(patch_result.status().message(), 
+  EXPECT_THAT(patch_result.status().message(),
               testing::HasSubstr("not initialized"));
 
   auto symbols_result = wrapper_->ExtractSymbols(test_asm_path_.string());
@@ -132,8 +132,8 @@ TEST_F(AsarWrapperTest, ValidPatchApplication) {
   ASSERT_TRUE(patch_result.ok()) << patch_result.status().message();
 
   const auto& result = patch_result.value();
-  EXPECT_TRUE(result.success) << "Patch failed: " 
-                             << testing::PrintToString(result.errors);
+  EXPECT_TRUE(result.success)
+      << "Patch failed: " << testing::PrintToString(result.errors);
   EXPECT_GT(result.rom_size, 0);
   EXPECT_EQ(rom_copy.size(), result.rom_size);
 
@@ -146,9 +146,10 @@ TEST_F(AsarWrapperTest, InvalidPatchHandling) {
 
   std::vector<uint8_t> rom_copy = test_rom_;
 
-  auto patch_result = wrapper_->ApplyPatch(invalid_asm_path_.string(), rom_copy);
+  auto patch_result =
+      wrapper_->ApplyPatch(invalid_asm_path_.string(), rom_copy);
   EXPECT_FALSE(patch_result.ok());
-  EXPECT_THAT(patch_result.status().message(), 
+  EXPECT_THAT(patch_result.status().message(),
               testing::HasSubstr("Patch failed"));
 }
 
@@ -181,7 +182,8 @@ TEST_F(AsarWrapperTest, SymbolExtraction) {
 
     if (symbol.name == "testlabel") {
       found_testlabel = true;
-      EXPECT_EQ(symbol.address, 0x008000);  // Expected address from org directive
+      EXPECT_EQ(symbol.address,
+                0x008000);  // Expected address from org directive
     } else if (symbol.name == "anotherlabel") {
       found_anotherlabel = true;
     }
@@ -216,9 +218,10 @@ TEST_F(AsarWrapperTest, SymbolTableOperations) {
 
   // Test symbols at address lookup
   if (testlabel_symbol) {
-    auto symbols_at_addr = wrapper_->GetSymbolsAtAddress(testlabel_symbol->address);
+    auto symbols_at_addr =
+        wrapper_->GetSymbolsAtAddress(testlabel_symbol->address);
     EXPECT_GT(symbols_at_addr.size(), 0);
-    
+
     bool found = false;
     for (const auto& symbol : symbols_at_addr) {
       if (symbol.name == "testlabel") {
@@ -242,9 +245,9 @@ stringpatchlabel:
 )";
 
   std::vector<uint8_t> rom_copy = test_rom_;
-  auto patch_result = wrapper_->ApplyPatchFromString(
-      patch_content, rom_copy, test_dir_.string());
-  
+  auto patch_result = wrapper_->ApplyPatchFromString(patch_content, rom_copy,
+                                                     test_dir_.string());
+
   ASSERT_TRUE(patch_result.ok()) << patch_result.status().message();
 
   const auto& result = patch_result.value();
@@ -273,11 +276,11 @@ TEST_F(AsarWrapperTest, AssemblyValidation) {
   // Test invalid assembly
   auto invalid_status = wrapper_->ValidateAssembly(invalid_asm_path_.string());
   EXPECT_FALSE(invalid_status.ok());
-  EXPECT_THAT(invalid_status.message(), 
+  EXPECT_THAT(invalid_status.message(),
               testing::AnyOf(testing::HasSubstr("validation failed"),
-                           testing::HasSubstr("Patch failed"),
-                           testing::HasSubstr("Unknown command"),
-                           testing::HasSubstr("Label")));
+                             testing::HasSubstr("Patch failed"),
+                             testing::HasSubstr("Unknown command"),
+                             testing::HasSubstr("Label")));
 }
 
 TEST_F(AsarWrapperTest, ResetFunctionality) {
@@ -294,10 +297,10 @@ TEST_F(AsarWrapperTest, ResetFunctionality) {
 
   // Reset and verify state is cleared
   wrapper_->Reset();
-  
+
   auto symbol_table_after = wrapper_->GetSymbolTable();
   EXPECT_EQ(symbol_table_after.size(), 0);
-  
+
   auto errors = wrapper_->GetLastErrors();
   auto warnings = wrapper_->GetLastWarnings();
   EXPECT_EQ(errors.size(), 0);
@@ -313,7 +316,7 @@ TEST_F(AsarWrapperTest, CreatePatchNotImplemented) {
 
   std::string patch_path = test_dir_.string() + "/generated.asm";
   auto status = wrapper_->CreatePatch(original_rom, modified_rom, patch_path);
-  
+
   EXPECT_FALSE(status.ok());
   EXPECT_THAT(status.message(), testing::HasSubstr("not yet implemented"));
 }
