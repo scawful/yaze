@@ -33,3 +33,69 @@ pwsh -File scripts/agents/windows-smoke-build.ps1 -Preset win-ai -Target z3ed
 
 When invoking these scripts, log the results on the coordination board so other agents know which
 workflows/builds were triggered and where to find artifacts/logs.
+
+## Reducing Build Times
+
+Local builds can take 10-15+ minutes from scratch. Follow these practices to minimize rebuild time:
+
+### Use Dedicated Build Directories
+Always use a dedicated build directory like `build_ai` or `build_agent` to avoid interfering with the user's `build` directory:
+```bash
+cmake --preset mac-dbg -B build_ai
+cmake --build build_ai -j8 --target yaze
+```
+
+### Incremental Builds
+Once configured, only rebuild—don't reconfigure unless CMakeLists.txt changed:
+```bash
+# GOOD: Just rebuild (fast, only recompiles changed files)
+cmake --build build_ai -j8 --target yaze
+
+# AVOID: Reconfiguring when unnecessary (triggers full dependency resolution)
+cmake --preset mac-dbg -B build_ai && cmake --build build_ai
+```
+
+### Build Specific Targets
+Don't build everything when you only need to verify a specific component:
+```bash
+# Build only the main editor (skips CLI, tests, etc.)
+cmake --build build_ai -j8 --target yaze
+
+# Build only the CLI tool
+cmake --build build_ai -j8 --target z3ed
+
+# Build only tests
+cmake --build build_ai -j8 --target yaze_test
+```
+
+### Parallel Compilation
+Always use `-j8` or higher based on CPU cores:
+```bash
+cmake --build build_ai -j$(sysctl -n hw.ncpu)  # macOS
+cmake --build build_ai -j$(nproc)              # Linux
+```
+
+### Quick Syntax Check
+For rapid iteration on compile errors, build just the affected library:
+```bash
+# If fixing errors in src/app/editor/dungeon/, build just the editor lib
+cmake --build build_ai -j8 --target yaze_editor
+```
+
+### Verifying Changes Before CI
+Before pushing to trigger CI builds (which take 15-20 minutes each):
+1. Run an incremental local build to catch obvious errors
+2. If you modified a specific component, build just that target
+3. Only push when local build succeeds
+
+### ccache/sccache (Advanced)
+If available, these tools cache compilation results across rebuilds:
+```bash
+# Check if ccache is installed
+which ccache
+
+# View cache statistics
+ccache -s
+```
+
+The project's CMake configuration automatically uses ccache when available.

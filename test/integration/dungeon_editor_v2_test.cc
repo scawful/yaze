@@ -174,17 +174,19 @@ TEST_F(DungeonEditorV2IntegrationTest, SetRomAndLoad) {
 // Unimplemented Methods Tests
 // ============================================================================
 
-TEST_F(DungeonEditorV2IntegrationTest, UnimplementedMethods) {
-  // These should return UnimplementedError
+TEST_F(DungeonEditorV2IntegrationTest, EditingCommandsFallback) {
+  // Undo/Redo should report precondition when history is empty
   EXPECT_EQ(dungeon_editor_v2_->Undo().code(),
-            absl::StatusCode::kUnimplemented);
+            absl::StatusCode::kFailedPrecondition);
   EXPECT_EQ(dungeon_editor_v2_->Redo().code(),
-            absl::StatusCode::kUnimplemented);
-  EXPECT_EQ(dungeon_editor_v2_->Cut().code(), absl::StatusCode::kUnimplemented);
-  EXPECT_EQ(dungeon_editor_v2_->Copy().code(),
-            absl::StatusCode::kUnimplemented);
-  EXPECT_EQ(dungeon_editor_v2_->Paste().code(),
-            absl::StatusCode::kUnimplemented);
+            absl::StatusCode::kFailedPrecondition);
+
+  // Cut/Copy/Paste should be callable even without a selection
+  EXPECT_EQ(dungeon_editor_v2_->Cut().code(), absl::StatusCode::kOk);
+  EXPECT_EQ(dungeon_editor_v2_->Copy().code(), absl::StatusCode::kOk);
+  EXPECT_EQ(dungeon_editor_v2_->Paste().code(), absl::StatusCode::kOk);
+
+  // Find remains unimplemented
   EXPECT_EQ(dungeon_editor_v2_->Find().code(),
             absl::StatusCode::kUnimplemented);
 }
