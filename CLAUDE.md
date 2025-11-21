@@ -273,12 +273,25 @@ When the project reaches v1.0 or has multiple active contributors, we'll transit
 - Use `absl::Status` and `absl::StatusOr<T>` for error handling
 - Macros: `RETURN_IF_ERROR()`, `ASSIGN_OR_RETURN()` for status propagation
 
+## Architecture Documentation
+
+Detailed architectural guides are available in `docs/internal/architecture/`:
+
+- **[Graphics System](docs/internal/architecture/graphics_system_architecture.md)** - Arena, Bitmap, compression pipeline, rendering workflow
+- **[Dungeon Editor System](docs/internal/architecture/dungeon_editor_system.md)** - Component-based editor design, object editing, best practices
+- **[Room Data Persistence](docs/internal/architecture/room_data_persistence.md)** - ROM loading/saving, pointer tables, room size calculations
+- **[Overworld Editor System](docs/internal/architecture/overworld_editor_system.md)** - Map editing, entity handling, deferred loading
+- **[Overworld Map Data](docs/internal/architecture/overworld_map_data.md)** - Map structure, ZSCustomOverworld properties, overlays
+- **[Undo/Redo System](docs/internal/architecture/undo_redo_system.md)** - Snapshot-based undo implementation, state management
+- **[ZSCustomOverworld Integration](docs/internal/architecture/zscustomoverworld_integration.md)** - v3 support, multi-area maps, ROM versioning
+- **[Architecture Index](docs/internal/architecture/README.md)** - Navigation hub for all architecture documents
+
 ## Important File Locations
 
 - ROM loading: `src/app/rom.cc:Rom::LoadFromFile()`
 - Overworld editor: `src/app/editor/overworld/overworld_editor.cc`
-- Dungeon editor: `src/app/editor/dungeon/dungeon_editor.cc`
-- Graphics arena: `src/app/gfx/snes_tile.cc` and `src/app/gfx/bitmap.cc`
+- Dungeon editor: `src/app/editor/dungeon/dungeon_editor_v2.cc`
+- Graphics arena: `src/app/gfx/resource/arena.h` and `src/app/gfx/core/bitmap.cc`
 - Asar wrapper: `src/core/asar_wrapper.cc`
 - Main application: `src/yaze.cc`
 - CLI tool: `src/cli/z3ed.cc`

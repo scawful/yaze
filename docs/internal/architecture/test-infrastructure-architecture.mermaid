@@ -1,0 +1,140 @@
+graph TB
+    subgraph "Development Environment"
+        DE[Developer Machine]
+        PC[Pre-commit Hooks]
+        PP[Pre-push Validation]
+        TC[Test Cache]
+
+        DE --> PC
+        PC --> PP
+        PP --> TC
+    end
+
+    subgraph "Test Build System"
+        PCH[Precompiled Headers]
+        INC[Incremental Build]
+        DEP[Dependency Tracking]
+        MOC[Mock Libraries]
+
+        PCH --> INC
+        INC --> DEP
+        DEP --> MOC
+    end
+
+    subgraph "Test Execution Engine"
+        TS[Test Selector]
+        TP[Test Parser]
+        TSH[Test Sharding]
+        PE[Parallel Executor]
+        RA[Result Aggregator]
+
+        TS --> TP
+        TP --> TSH
+        TSH --> PE
+        PE --> RA
+    end
+
+    subgraph "CI/CD Pipeline"
+        S1[Stage 1: Smoke<br/>2 min]
+        S2[Stage 2: Unit<br/>5 min]
+        S3[Stage 3: Integration<br/>15 min]
+        S4[Stage 4: Nightly<br/>60 min]
+
+        S1 --> S2
+        S2 --> S3
+        S3 -.-> S4
+    end
+
+    subgraph "Test Categories"
+        SMK[Smoke Tests<br/>Critical Path]
+        UNT[Unit Tests<br/>Fast Isolated]
+        INT[Integration Tests<br/>Multi-Component]
+        E2E[E2E Tests<br/>Full Workflows]
+        BEN[Benchmarks<br/>Performance]
+        FUZ[Fuzz Tests<br/>Security]
+
+        SMK --> UNT
+        UNT --> INT
+        INT --> E2E
+        E2E --> BEN
+        BEN --> FUZ
+    end
+
+    subgraph "Platform Testing"
+        MAC[macOS<br/>Metal/GPU]
+        WIN[Windows<br/>DirectX]
+        LIN[Linux<br/>Vulkan]
+
+        MAC -.-> GPU1[GPU Tests]
+        WIN -.-> GPU2[Rendering Tests]
+        LIN -.-> GPU3[Graphics Tests]
+    end
+
+    subgraph "Test Data Management"
+        ROM[ROM Files]
+        FIX[Fixtures]
+        MOK[Mocks]
+        GEN[Generated Data]
+
+        ROM --> TDC[Test Data Cache]
+        FIX --> TDC
+        MOK --> TDC
+        GEN --> TDC
+    end
+
+    subgraph "Monitoring & Analytics"
+        COL[Metrics Collector]
+        DB[Metrics Database]
+        DASH[Dashboard]
+        ALT[Alerting]
+        REP[Reports]
+
+        COL --> DB
+        DB --> DASH
+        DB --> ALT
+        DB --> REP
+    end
+
+    subgraph "Result Processing"
+        XML[JUnit XML]
+        JSON[JSON Output]
+        COV[Coverage Data]
+        PROF[Profile Data]
+
+        XML --> AGG[Aggregator]
+        JSON --> AGG
+        COV --> AGG
+        PROF --> AGG
+        AGG --> DB
+    end
+
+    subgraph "Caching Layer"
+        BIN[Binary Cache]
+        RES[Result Cache]
+        CCOV[Coverage Cache]
+        DEP2[Dependency Cache]
+
+        BIN --> CACHE[Distributed Cache]
+        RES --> CACHE
+        CCOV --> CACHE
+        DEP2 --> CACHE
+    end
+
+    %% Connections
+    DE --> TS
+    PP --> S1
+    TSH --> MAC
+    TSH --> WIN
+    TSH --> LIN
+    PE --> XML
+    RA --> COL
+    S3 --> COL
+    CACHE --> S1
+    TDC --> INT
+
+    style S1 fill:#90EE90
+    style S2 fill:#87CEEB
+    style S3 fill:#FFB6C1
+    style S4 fill:#DDA0DD
+    style DASH fill:#FFD700
+    style PE fill:#FF6347

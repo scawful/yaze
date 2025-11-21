@@ -75,7 +75,13 @@ void ObjectEditorCard::Draw(bool* p_open) {
         ImGui::EndTabItem();
       }
 
-      // Tab 2: Emulator Preview (enhanced)
+      // Tab 2: Templates
+      if (ImGui::BeginTabItem(ICON_MD_DASHBOARD " Templates")) {
+        DrawObjectTemplates();
+        ImGui::EndTabItem();
+      }
+
+      // Tab 3: Emulator Preview (enhanced)
       if (ImGui::BeginTabItem(ICON_MD_MONITOR " Preview")) {
         DrawEmulatorPreview();
         ImGui::EndTabItem();
@@ -83,6 +89,10 @@ void ObjectEditorCard::Draw(bool* p_open) {
 
       ImGui::EndTabBar();
     }
+
+    // Draw modals
+    DrawTemplateCreationModal();
+    DrawDeleteConfirmationModal();
 
     // Handle keyboard shortcuts
     HandleKeyboardShortcuts();
@@ -287,13 +297,124 @@ void ObjectEditorCard::DrawObjectPreviewIcon(int object_id,
   ImGui::Dummy(size);
 }
 
+void ObjectEditorCard::DrawObjectTemplates() {
+  if (!object_editor_) {
+    ImGui::TextDisabled("Template system unavailable");
+    return;
+  }
+
+  ImGui::Text(ICON_MD_INFO " Select a template to place");
+  ImGui::Separator();
+
+  const auto& templates = object_editor_->GetTemplates();
+
+  if (templates.empty()) {
+    ImGui::TextDisabled("No templates found.");
+    ImGui::TextWrapped(
+        "Select objects in the canvas and click 'Create Template' to make one.");
+    return;
+  }
+
+  if (ImGui::BeginChild("##TemplateList", ImVec2(0, 0), true)) {
+    for (size_t i = 0; i < templates.size(); ++i) {
+      const auto& tmpl = templates[i];
+      
+      ImGui::PushID(static_cast<int>(i));
+      
+      if (ImGui::Selectable(tmpl.name.c_str(), false, 0, ImVec2(0, 40))) {
+        // Place template
+        // For now, place at center of screen or a default location
+        // Ideally, we'd enter a "placement mode" with a ghost preview
+        // But for MVP, let's just insert at (8, 8)
+        object_editor_->InsertTemplate(tmpl, 8, 8);
+      }
+      
+      // Tooltip with description and object count
+      if (ImGui::IsItemHovered()) {
+        ImGui::BeginTooltip();
+        ImGui::Text("%s", tmpl.name.c_str());
+        ImGui::Separator();
+        ImGui::Text("%s", tmpl.description.c_str());
+        ImGui::TextDisabled("%zu objects", tmpl.objects.size());
+        ImGui::EndTooltip();
+      }
+
+      ImGui::SameLine();
+      ImGui::TextDisabled("%zu obj", tmpl.objects.size());
+
+      ImGui::PopID();
+    }
+    ImGui::EndChild();
+  }
+}
+
+void ObjectEditorCard::DrawTemplateCreationModal() {
+  if (show_template_creation_modal_) {
+    ImGui::OpenPopup("Create Template");
+    show_template_creation_modal_ = false;
+  }
+
+  if (ImGui::BeginPopupModal("Create Template", nullptr,
+                             ImGuiWindowFlags_AlwaysAutoResize)) {
+    static char name[128] = "";
+    static char description[256] = "";
+
+    ImGui::InputText("Name", name, IM_ARRAYSIZE(name));
+    ImGui::InputText("Description", description, IM_ARRAYSIZE(description));
+
+    ImGui::Separator();
+
+    if (ImGui::Button("Create", ImVec2(120, 0))) {
+      if (object_editor_ && strlen(name) > 0) {
+        object_editor_->CreateTemplateFromSelection(name, description);
+        // Reset fields
+        name[0] = '\0';
+        description[0] = '\0';
+        ImGui::CloseCurrentPopup();
+      }
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Cancel", ImVec2(120, 0))) {
+      ImGui::CloseCurrentPopup();
+    }
+
+    ImGui::EndPopup();
+  }
+}
+
+void ObjectEditorCard::DrawDeleteConfirmationModal() {
+  if (show_delete_confirmation_modal_) {
+    ImGui::OpenPopup("Delete Objects?");
+    show_delete_confirmation_modal_ = false;
+  }
+
+  if (ImGui::BeginPopupModal("Delete Objects?", nullptr,
+                             ImGuiWindowFlags_AlwaysAutoResize)) {
+    auto& interaction = canvas_viewer_->object_interaction();
+    const auto& selected = interaction.GetSelectedObjectIndices();
+
+    ImGui::Text("%s Are you sure you want to delete %zu objects?",
+                ICON_MD_WARNING, selected.size());
+    ImGui::Separator();
+
+    if (ImGui::Button("Delete", ImVec2(120, 0))) {
+      PerformDelete();
+      ImGui::CloseCurrentPopup();
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Cancel", ImVec2(120, 0))) {
+      ImGui::CloseCurrentPopup();
+    }
+
+    ImGui::EndPopup();
+  }
+}
+
 void ObjectEditorCard::DrawSelectedObjectInfo() {
-  ImGui::BeginGroup();
-
-  // Show current object for placement
-  ImGui::TextColored(ImVec4(0.4f, 0.8f, 1.0f, 1.0f), ICON_MD_INFO " Current:");
-
-  if (has_preview_object_) {
+  // Draw placement preview if in placement mode
+  if (interaction_mode_ == InteractionMode::Place && has_preview_object_) {
+    ImGui::BeginGroup();
+    ImGui::TextColored(ImVec4(0.4f, 0.8f, 1.0f, 1.0f), ICON_MD_ADD " Placing:");
     ImGui::SameLine();
     ImGui::Text("ID: 0x%02X", preview_object_.id_);
     ImGui::SameLine();
@@ -301,41 +422,23 @@ void ObjectEditorCard::DrawSelectedObjectInfo() {
                 preview_object_.layer_ == zelda3::RoomObject::BG1   ? "BG1"
                 : preview_object_.layer_ == zelda3::RoomObject::BG2 ? "BG2"
                                                                     : "BG3");
-  } else {
-    ImGui::SameLine();
-    ImGui::TextDisabled("None");
+    ImGui::EndGroup();
+    ImGui::Separator();
   }
 
-  // Show selection count
-  auto& interaction = canvas_viewer_->object_interaction();
-  const auto& selected = interaction.GetSelectedObjectIndices();
+  // Delegate property editing to the backend
+  if (object_editor_) {
+    object_editor_->DrawPropertyUI();
 
-  ImGui::SameLine();
-  ImGui::Text("|");
-  ImGui::SameLine();
-  ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.4f, 1.0f),
-                     ICON_MD_CHECKLIST " Selected: %zu", selected.size());
-
-  ImGui::SameLine();
-  ImGui::Text("|");
-  ImGui::SameLine();
-  ImGui::Text("Mode: %s", interaction_mode_ == InteractionMode::Place
-                              ? ICON_MD_ADD_BOX " Place"
-                          : interaction_mode_ == InteractionMode::Select
-                              ? ICON_MD_CHECK_BOX " Select"
-                          : interaction_mode_ == InteractionMode::Delete
-                              ? ICON_MD_DELETE " Delete"
-                              : "None");
-
-  // Show quick actions for selections
-  if (!selected.empty()) {
-    ImGui::SameLine();
-    if (ImGui::SmallButton(ICON_MD_CLEAR " Clear")) {
-      interaction.ClearSelection();
+    // Add template creation button if objects are selected
+    auto& interaction = canvas_viewer_->object_interaction();
+    if (!interaction.GetSelectedObjectIndices().empty()) {
+       ImGui::Separator();
+       if (ImGui::Button(ICON_MD_SAVE " Create Template from Selection")) {
+         show_template_creation_modal_ = true;
+       }
     }
   }
-
-  ImGui::EndGroup();
 }
 
 // ============================================================================
@@ -436,7 +539,7 @@ void ObjectEditorCard::SelectAllObjects() {
   if (!canvas_viewer_ || !object_editor_) return;
 
   auto& interaction = canvas_viewer_->object_interaction();
-  const auto& objects = object_editor_->GetCurrentRoomObjects();
+  const auto& objects = object_editor_->GetObjects();
   std::vector<size_t> all_indices;
 
   for (size_t i = 0; i < objects.size(); ++i) {
@@ -461,9 +564,20 @@ void ObjectEditorCard::DeleteSelectedObjects() {
 
   // Show confirmation for bulk delete (more than 5 objects)
   if (selected.size() > 5) {
-    // TODO: Add modal confirmation dialog
-    // For now, just proceed with deletion
+    show_delete_confirmation_modal_ = true;
+    return;
   }
+
+  PerformDelete();
+}
+
+void ObjectEditorCard::PerformDelete() {
+  if (!object_editor_ || !canvas_viewer_) return;
+
+  auto& interaction = canvas_viewer_->object_interaction();
+  const auto& selected = interaction.GetSelectedObjectIndices();
+
+  if (selected.empty()) return;
 
   // Delete in reverse order to maintain indices
   std::vector<size_t> sorted_indices(selected.begin(), selected.end());
@@ -540,7 +654,7 @@ void ObjectEditorCard::CycleObjectSelection(int direction) {
 
   auto& interaction = canvas_viewer_->object_interaction();
   const auto& selected = interaction.GetSelectedObjectIndices();
-  const auto& objects = object_editor_->GetCurrentRoomObjects();
+  const auto& objects = object_editor_->GetObjects();
 
   size_t total_objects = objects.size();
   if (total_objects == 0) return;
@@ -555,8 +669,13 @@ void ObjectEditorCard::CycleObjectSelection(int direction) {
 }
 
 void ObjectEditorCard::ScrollToObject(size_t index) {
-  // TODO: Implement scrolling canvas to show object at index
-  // This would require canvas viewer API to scroll to specific coordinates
+  if (!canvas_viewer_ || !object_editor_) return;
+
+  const auto& objects = object_editor_->GetObjects();
+  if (index >= objects.size()) return;
+
+  const auto& obj = objects[index];
+  canvas_viewer_->ScrollTo(obj.x(), obj.y());
 }
 
 }  // namespace yaze::editor

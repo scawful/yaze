@@ -102,6 +102,10 @@ class Canvas {
     }
   }
 
+  void SetCustomGridStep(float step) {
+    config_.grid_step = step;
+  }
+
   // Legacy compatibility
   void SetCanvasGridSize(CanvasGridSize grid_size) { SetGridSize(grid_size); }
 

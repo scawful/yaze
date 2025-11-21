@@ -102,6 +102,11 @@ class DungeonCanvasViewer {
                                          false);
   }
 
+  // Scroll to specific room coordinates (in tile units)
+  void ScrollTo(int room_x, int room_y) {
+    pending_scroll_target_ = std::make_pair(room_x, room_y);
+  }
+
  private:
   void DisplayObjectInfo(const zelda3::RoomObject& object, int canvas_x,
                          int canvas_y);
@@ -128,6 +133,9 @@ class DungeonCanvasViewer {
   gui::Canvas canvas_{"##DungeonCanvas", ImVec2(0x200, 0x200)};
   // ObjectRenderer removed - use ObjectDrawer for rendering (production system)
   DungeonObjectInteraction object_interaction_;
+
+  // Scroll target
+  std::optional<std::pair<int, int>> pending_scroll_target_;
 
   // Room data
   std::array<zelda3::Room, 0x128>* rooms_ = nullptr;
@@ -173,6 +181,7 @@ class DungeonCanvasViewer {
   bool show_object_bounds_ = false;
   bool show_layer_info_ = false;
   int layout_override_ = -1;  // -1 for no override
+  int custom_grid_size_ = 8;
 
   // Object outline filtering toggles
   struct ObjectOutlineToggles {
