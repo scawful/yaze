@@ -4,45 +4,47 @@
 
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
-#include "app/platform/font_loader.h"
-#include "util/sdl_deleter.h"
-#include "util/log.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gui/core/style.h"
+#include "app/platform/font_loader.h"
 #include "imgui/backends/imgui_impl_sdl2.h"
 #include "imgui/backends/imgui_impl_sdlrenderer2.h"
 #include "imgui/imgui.h"
+#include "util/log.h"
+#include "util/sdl_deleter.h"
 
 namespace {
 // Custom ImGui assertion handler to prevent crashes
 void ImGuiAssertionHandler(const char* expr, const char* file, int line,
                            const char* msg) {
   // Log the assertion instead of crashing
-  LOG_ERROR("ImGui", "Assertion failed: %s\nFile: %s:%d\nMessage: %s",
-            expr, file, line, msg ? msg : "");
-  
+  LOG_ERROR("ImGui", "Assertion failed: %s\nFile: %s:%d\nMessage: %s", expr,
+            file, line, msg ? msg : "");
+
   // Try to recover by resetting ImGui state
   static int error_count = 0;
   error_count++;
-  
+
   if (error_count > 5) {
     LOG_ERROR("ImGui", "Too many assertions, resetting workspace settings...");
-    
+
     // Backup and reset imgui.ini
     try {
       if (std::filesystem::exists("imgui.ini")) {
-        std::filesystem::copy("imgui.ini", "imgui.ini.backup",
-                            std::filesystem::copy_options::overwrite_existing);
+        std::filesystem::copy(
+            "imgui.ini", "imgui.ini.backup",
+            std::filesystem::copy_options::overwrite_existing);
         std::filesystem::remove("imgui.ini");
-        LOG_INFO("ImGui", "Workspace settings reset. Backup saved to imgui.ini.backup");
+        LOG_INFO("ImGui",
+                 "Workspace settings reset. Backup saved to imgui.ini.backup");
       }
     } catch (const std::exception& e) {
       LOG_ERROR("ImGui", "Failed to reset workspace: %s", e.what());
     }
-    
+
     error_count = 0;  // Reset counter
   }
-  
+
   // Don't abort - let the program continue
   // The assertion is logged and workspace can be reset if needed
 }
@@ -87,7 +89,7 @@ absl::Status CreateWindow(Window& window, gfx::IRenderer* renderer, int flags) {
   ImGuiIO& io = ImGui::GetIO();
   io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
   io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-  
+
   // Set custom assertion handler to prevent crashes
 #ifdef IMGUI_DISABLE_DEFAULT_ASSERT_HANDLER
   ImGui::SetAssertHandler(ImGuiAssertionHandler);
@@ -103,7 +105,8 @@ absl::Status CreateWindow(Window& window, gfx::IRenderer* renderer, int flags) {
 
   // Initialize ImGui backends if renderer is provided
   if (renderer) {
-    SDL_Renderer* sdl_renderer = static_cast<SDL_Renderer*>(renderer->GetBackendRenderer());
+    SDL_Renderer* sdl_renderer =
+        static_cast<SDL_Renderer*>(renderer->GetBackendRenderer());
     ImGui_ImplSDL2_InitForSDLRenderer(window.window_.get(), sdl_renderer);
     ImGui_ImplSDLRenderer2_Init(sdl_renderer);
   }
@@ -112,23 +115,25 @@ absl::Status CreateWindow(Window& window, gfx::IRenderer* renderer, int flags) {
 
   // Apply original YAZE colors as fallback, then try to load theme system
   gui::ColorsYaze();
-  
+
   // Audio is now handled by IAudioBackend in Emulator class
   // Keep legacy buffer allocation for backwards compatibility
   if (window.audio_device_ == 0) {
     const int audio_frequency = 48000;
-    const size_t buffer_size = (audio_frequency / 50) * 2; // 1920 int16_t for stereo PAL
-    
+    const size_t buffer_size =
+        (audio_frequency / 50) * 2;  // 1920 int16_t for stereo PAL
+
     // CRITICAL FIX: Allocate buffer as ARRAY, not single value
     // Use new[] with shared_ptr custom deleter for proper array allocation
     window.audio_buffer_ = std::shared_ptr<int16_t>(
-        new int16_t[buffer_size],
-        std::default_delete<int16_t[]>());
-    
+        new int16_t[buffer_size], std::default_delete<int16_t[]>());
+
     // Note: Actual audio device is created by Emulator's IAudioBackend
     // This maintains compatibility with existing code paths
-    LOG_INFO("Window", "Audio buffer allocated: %zu int16_t samples (backend in Emulator)",
-             buffer_size);
+    LOG_INFO(
+        "Window",
+        "Audio buffer allocated: %zu int16_t samples (backend in Emulator)",
+        buffer_size);
   }
 
   return absl::OkStatus();
@@ -137,39 +142,39 @@ absl::Status CreateWindow(Window& window, gfx::IRenderer* renderer, int flags) {
 absl::Status ShutdownWindow(Window& window) {
   SDL_PauseAudioDevice(window.audio_device_, 1);
   SDL_CloseAudioDevice(window.audio_device_);
-  
+
   // Stop test engine WHILE ImGui context is still valid
 #ifdef YAZE_ENABLE_IMGUI_TEST_ENGINE
   test::TestManager::Get().StopUITesting();
 #endif
- 
+
   //  TODO: BAD FIX, SLOW SHUTDOWN TAKES TOO LONG NOW
   // CRITICAL FIX: Shutdown graphics arena FIRST
   // This ensures all textures are destroyed while renderer is still valid
   LOG_INFO("Window", "Shutting down graphics arena...");
   gfx::Arena::Get().Shutdown();
-  
+
   // Shutdown ImGui implementations (after Arena but before context)
   LOG_INFO("Window", "Shutting down ImGui implementations...");
   ImGui_ImplSDL2_Shutdown();
   ImGui_ImplSDLRenderer2_Shutdown();
-  
+
   // Destroy ImGui context
   LOG_INFO("Window", "Destroying ImGui context...");
   ImGui::DestroyContext();
-  
+
   // NOW destroy test engine context (after ImGui context is destroyed)
 #ifdef YAZE_ENABLE_IMGUI_TEST_ENGINE
   test::TestManager::Get().DestroyUITestingContext();
 #endif
-  
+
   // Finally destroy window
   LOG_INFO("Window", "Destroying window...");
   SDL_DestroyWindow(window.window_.get());
-  
+
   LOG_INFO("Window", "Shutting down SDL...");
   SDL_Quit();
-  
+
   LOG_INFO("Window", "Shutdown complete");
   return absl::OkStatus();
 }
@@ -177,7 +182,7 @@ absl::Status ShutdownWindow(Window& window) {
 absl::Status HandleEvents(Window& window) {
   SDL_Event event;
   ImGuiIO& io = ImGui::GetIO();
-  
+
   // Protect SDL_PollEvent from crashing the app
   // macOS NSPersistentUIManager corruption can crash during event polling
   while (SDL_PollEvent(&event)) {

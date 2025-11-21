@@ -13,6 +13,7 @@ and research notes were moved to `docs/internal/` so the public docs stay focuse
 - [Getting Started](overview/getting-started.md)
 
 ## Build & Tooling
+- [Build Quick Reference](build/quick-reference.md)
 - [Build From Source](build/build-from-source.md)
 - [Platform Compatibility](build/platform-compatibility.md)
 - [CMake Presets](build/presets.md)

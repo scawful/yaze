@@ -179,8 +179,9 @@ absl::Status TestScriptParser::WriteToFile(const TestScript& script,
   auto parent = output_path.parent_path();
   if (!parent.empty() && !std::filesystem::exists(parent)) {
     if (!std::filesystem::create_directories(parent, ec)) {
-      return absl::InternalError(absl::StrFormat(
-          "Failed to create directory '%s': %s", parent.string(), ec.message()));
+      return absl::InternalError(
+          absl::StrFormat("Failed to create directory '%s': %s",
+                          parent.string(), ec.message()));
     }
   }
 
@@ -228,8 +229,7 @@ absl::StatusOr<TestScript> TestScriptParser::ParseFromFile(
     script.description = root["description"].get<std::string>();
   }
 
-  ASSIGN_OR_RETURN(script.created_at,
-                   ParseIsoTimestamp(root, "created_at"));
+  ASSIGN_OR_RETURN(script.created_at, ParseIsoTimestamp(root, "created_at"));
   if (root.contains("duration_ms")) {
     script.duration = absl::Milliseconds(root["duration_ms"].get<int64_t>());
   }
@@ -240,7 +240,7 @@ absl::StatusOr<TestScript> TestScriptParser::ParseFromFile(
   }
 
   for (const auto& step_node : root["steps"]) {
-  ASSIGN_OR_RETURN(auto step, ParseStep(step_node));
+    ASSIGN_OR_RETURN(auto step, ParseStep(step_node));
     script.steps.push_back(std::move(step));
   }
 

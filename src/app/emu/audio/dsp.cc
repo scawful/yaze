@@ -158,10 +158,13 @@ static int clamp16(int val) {
   return val < -0x8000 ? -0x8000 : (val > 0x7fff ? 0x7fff : val);
 }
 
-static int clip16(int val) { return (int16_t)(val & 0xffff); }
+static int clip16(int val) {
+  return (int16_t)(val & 0xffff);
+}
 
 bool Dsp::CheckCounter(int rate) {
-  if (rate == 0) return false;
+  if (rate == 0)
+    return false;
   return ((counter + rateOffsets[rate]) % rateValues[rate]) == 0;
 }
 
@@ -222,7 +225,8 @@ void Dsp::CycleChannel(int ch) {
   // get current brr header and get sample address
   channel[ch].brrHeader = aram_[channel[ch].decodeOffset];
   uint16_t samplePointer = dirPage + 4 * channel[ch].srcn;
-  if (channel[ch].startDelay == 0) samplePointer += 2;
+  if (channel[ch].startDelay == 0)
+    samplePointer += 2;
   uint16_t sampleAdr =
       aram_[samplePointer] | (aram_[(samplePointer + 1) & 0xffff] << 8);
   // handle starting of sample
@@ -289,7 +293,8 @@ void Dsp::CycleChannel(int ch) {
   // update pitch counter
   channel[ch].pitchCounter &= 0x3fff;
   channel[ch].pitchCounter += pitch;
-  if (channel[ch].pitchCounter > 0x7fff) channel[ch].pitchCounter = 0x7fff;
+  if (channel[ch].pitchCounter > 0x7fff)
+    channel[ch].pitchCounter = 0x7fff;
   // set outputs
   ram[(ch << 4) | 8] = channel[ch].gain >> 4;
   ram[(ch << 4) | 9] = sample >> 8;
@@ -362,7 +367,8 @@ void Dsp::HandleGain(int ch) {
     }
   }
   // store new value
-  if (CheckCounter(rate)) channel[ch].gain = newGain;
+  if (CheckCounter(rate))
+    channel[ch].gain = newGain;
 }
 
 int16_t Dsp::GetSample(int ch) {
@@ -396,7 +402,8 @@ void Dsp::DecodeBrr(int ch) {
                       0xffff];
       s = curByte >> 4;
     }
-    if (s > 7) s -= 16;
+    if (s > 7)
+      s -= 16;
     if (shift <= 0xc) {
       s = (s << shift) >> 1;
     } else {
@@ -418,7 +425,8 @@ void Dsp::DecodeBrr(int ch) {
     old = channel[ch].decodeBuffer[bOff + i] >> 1;
   }
   channel[ch].bufferOffset += 4;
-  if (channel[ch].bufferOffset >= 12) channel[ch].bufferOffset = 0;
+  if (channel[ch].bufferOffset >= 12)
+    channel[ch].bufferOffset = 0;
 }
 
 void Dsp::HandleNoise() {
@@ -428,7 +436,9 @@ void Dsp::HandleNoise() {
   }
 }
 
-uint8_t Dsp::Read(uint8_t adr) { return ram[adr]; }
+uint8_t Dsp::Read(uint8_t adr) {
+  return ram[adr];
+}
 
 void Dsp::Write(uint8_t adr, uint8_t val) {
   int ch = adr >> 4;
@@ -650,18 +660,19 @@ inline int16_t InterpolateLinear(int16_t s0, int16_t s1, double frac) {
 
 // Helper for Hermite interpolation (used by bsnes/Snes9x)
 // Provides smoother interpolation than linear with minimal overhead
-inline int16_t InterpolateHermite(int16_t p0, int16_t p1, int16_t p2, int16_t p3, double t) {
+inline int16_t InterpolateHermite(int16_t p0, int16_t p1, int16_t p2,
+                                  int16_t p3, double t) {
   const double c0 = p1;
   const double c1 = (p2 - p0) * 0.5;
   const double c2 = p0 - 2.5 * p1 + 2.0 * p2 - 0.5 * p3;
   const double c3 = (p3 - p0) * 0.5 + 1.5 * (p1 - p2);
-  
+
   const double result = c0 + c1 * t + c2 * t * t + c3 * t * t * t;
-  
+
   // Clamp to 16-bit range
-  return result > 32767.0 ? 32767 
-       : (result < -32768.0 ? -32768 
-       : static_cast<int16_t>(result));
+  return result > 32767.0
+             ? 32767
+             : (result < -32768.0 ? -32768 : static_cast<int16_t>(result));
 }
 
 void Dsp::GetSamples(int16_t* sample_data, int samples_per_frame,
@@ -669,13 +680,14 @@ void Dsp::GetSamples(int16_t* sample_data, int samples_per_frame,
   // Resample from native samples-per-frame (NTSC: ~534, PAL: ~641)
   const double native_per_frame = pal_timing ? 641.0 : 534.0;
   const double step = native_per_frame / static_cast<double>(samples_per_frame);
-  
+
   // Start reading one native frame behind the frame boundary
   double location = static_cast<double>((lastFrameBoundary + 0x400) & 0x3ff);
   location -= native_per_frame;
-  
+
   // Ensure location is within valid range
-  while (location < 0) location += 0x400;
+  while (location < 0)
+    location += 0x400;
 
   for (int i = 0; i < samples_per_frame; i++) {
     const int idx = static_cast<int>(location) & 0x3ff;
@@ -684,18 +696,18 @@ void Dsp::GetSamples(int16_t* sample_data, int samples_per_frame,
     switch (interpolation_type) {
       case InterpolationType::Linear: {
         const int next_idx = (idx + 1) & 0x3ff;
-        
+
         // Linear interpolation for left channel
         const int16_t s0_l = sampleBuffer[(idx * 2) + 0];
         const int16_t s1_l = sampleBuffer[(next_idx * 2) + 0];
-        sample_data[(i * 2) + 0] = static_cast<int16_t>(
-            s0_l + frac * (s1_l - s0_l));
-        
+        sample_data[(i * 2) + 0] =
+            static_cast<int16_t>(s0_l + frac * (s1_l - s0_l));
+
         // Linear interpolation for right channel
         const int16_t s0_r = sampleBuffer[(idx * 2) + 1];
         const int16_t s1_r = sampleBuffer[(next_idx * 2) + 1];
-        sample_data[(i * 2) + 1] = static_cast<int16_t>(
-            s0_r + frac * (s1_r - s0_r));
+        sample_data[(i * 2) + 1] =
+            static_cast<int16_t>(s0_r + frac * (s1_r - s0_r));
         break;
       }
       case InterpolationType::Hermite: {
@@ -708,13 +720,15 @@ void Dsp::GetSamples(int16_t* sample_data, int samples_per_frame,
         const int16_t p1_l = sampleBuffer[(idx1 * 2) + 0];
         const int16_t p2_l = sampleBuffer[(idx2 * 2) + 0];
         const int16_t p3_l = sampleBuffer[(idx3 * 2) + 0];
-        sample_data[(i * 2) + 0] = InterpolateHermite(p0_l, p1_l, p2_l, p3_l, frac);
+        sample_data[(i * 2) + 0] =
+            InterpolateHermite(p0_l, p1_l, p2_l, p3_l, frac);
         // Right channel
         const int16_t p0_r = sampleBuffer[(idx0 * 2) + 1];
         const int16_t p1_r = sampleBuffer[(idx1 * 2) + 1];
         const int16_t p2_r = sampleBuffer[(idx2 * 2) + 1];
         const int16_t p3_r = sampleBuffer[(idx3 * 2) + 1];
-        sample_data[(i * 2) + 1] = InterpolateHermite(p0_r, p1_r, p2_r, p3_r, frac);
+        sample_data[(i * 2) + 1] =
+            InterpolateHermite(p0_r, p1_r, p2_r, p3_r, frac);
         break;
       }
       case InterpolationType::Cosine: {
@@ -761,8 +775,8 @@ int Dsp::CopyNativeFrame(int16_t* sample_data, bool pal_timing) {
   const int native_per_frame = pal_timing ? 641 : 534;
   const int total_samples = native_per_frame * 2;
 
-  int start_index = static_cast<int>(
-      (lastFrameBoundary + 0x400 - native_per_frame) & 0x3ff);
+  int start_index =
+      static_cast<int>((lastFrameBoundary + 0x400 - native_per_frame) & 0x3ff);
 
   for (int i = 0; i < native_per_frame; ++i) {
     const int idx = (start_index + i) & 0x3ff;

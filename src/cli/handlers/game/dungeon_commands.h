@@ -19,13 +19,13 @@ class DungeonListSpritesCommandHandler : public resources::CommandHandler {
   std::string GetUsage() const {
     return "dungeon-list-sprites --room <room_id> [--format <json|text>]";
   }
-  
+
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
     return parser.RequireArgs({"room"});
   }
-  
+
   absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
-                      resources::OutputFormatter& formatter) override;
+                       resources::OutputFormatter& formatter) override;
 };
 
 /**
@@ -40,13 +40,13 @@ class DungeonDescribeRoomCommandHandler : public resources::CommandHandler {
   std::string GetUsage() const {
     return "dungeon-describe-room --room <room_id> [--format <json|text>]";
   }
-  
+
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
     return parser.RequireArgs({"room"});
   }
-  
+
   absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
-                      resources::OutputFormatter& formatter) override;
+                       resources::OutputFormatter& formatter) override;
 };
 
 /**
@@ -61,13 +61,13 @@ class DungeonExportRoomCommandHandler : public resources::CommandHandler {
   std::string GetUsage() const {
     return "dungeon-export-room --room <room_id> [--format <json|text>]";
   }
-  
+
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
     return parser.RequireArgs({"room"});
   }
-  
+
   absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
-                      resources::OutputFormatter& formatter) override;
+                       resources::OutputFormatter& formatter) override;
 };
 
 /**
@@ -82,13 +82,13 @@ class DungeonListObjectsCommandHandler : public resources::CommandHandler {
   std::string GetUsage() const {
     return "dungeon-list-objects --room <room_id> [--format <json|text>]";
   }
-  
+
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
     return parser.RequireArgs({"room"});
   }
-  
+
   absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
-                      resources::OutputFormatter& formatter) override;
+                       resources::OutputFormatter& formatter) override;
 };
 
 /**
@@ -103,13 +103,13 @@ class DungeonGetRoomTilesCommandHandler : public resources::CommandHandler {
   std::string GetUsage() const {
     return "dungeon-get-room-tiles --room <room_id> [--format <json|text>]";
   }
-  
+
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
     return parser.RequireArgs({"room"});
   }
-  
+
   absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
-                      resources::OutputFormatter& formatter) override;
+                       resources::OutputFormatter& formatter) override;
 };
 
 /**
@@ -122,15 +122,16 @@ class DungeonSetRoomPropertyCommandHandler : public resources::CommandHandler {
     return "Set a property on a dungeon room";
   }
   std::string GetUsage() const {
-    return "dungeon-set-room-property --room <room_id> --property <property> --value <value> [--format <json|text>]";
+    return "dungeon-set-room-property --room <room_id> --property <property> "
+           "--value <value> [--format <json|text>]";
   }
-  
+
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
     return parser.RequireArgs({"room", "property", "value"});
   }
-  
+
   absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
-                      resources::OutputFormatter& formatter) override;
+                       resources::OutputFormatter& formatter) override;
 };
 
 }  // namespace handlers

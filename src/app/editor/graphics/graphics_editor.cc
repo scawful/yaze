@@ -1,31 +1,31 @@
 #include "graphics_editor.h"
-#include "app/editor/system/editor_card_registry.h"
 
 #include <filesystem>
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
-#include "app/gui/core/ui_helpers.h"
-#include "util/file_util.h"
-#include "app/platform/window.h"
-#include "app/gfx/resource/arena.h"
+#include "app/editor/system/editor_card_registry.h"
 #include "app/gfx/core/bitmap.h"
-#include "app/gfx/util/compression.h"
-#include "app/gfx/util/scad_format.h"
+#include "app/gfx/debug/performance/performance_profiler.h"
+#include "app/gfx/resource/arena.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/gfx/types/snes_tile.h"
+#include "app/gfx/util/compression.h"
+#include "app/gfx/util/scad_format.h"
 #include "app/gui/canvas/canvas.h"
 #include "app/gui/core/color.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/input.h"
-#include "app/gui/widgets/asset_browser.h"
 #include "app/gui/core/style.h"
+#include "app/gui/core/ui_helpers.h"
+#include "app/gui/widgets/asset_browser.h"
+#include "app/platform/window.h"
 #include "app/rom.h"
-#include "app/gfx/debug/performance/performance_profiler.h"
 #include "imgui/imgui.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
 #include "imgui_memory_editor.h"
+#include "util/file_util.h"
 #include "util/log.h"
 
 namespace yaze {
@@ -44,47 +44,61 @@ constexpr ImGuiTableFlags kGfxEditTableFlags =
     ImGuiTableFlags_SizingFixedFit;
 
 void GraphicsEditor::Initialize() {
-  if (!dependencies_.card_registry) return;
+  if (!dependencies_.card_registry)
+    return;
   auto* card_registry = dependencies_.card_registry;
-  
-  card_registry->RegisterCard({.card_id = "graphics.sheet_editor", .display_name = "Sheet Editor",
-                            .icon = ICON_MD_EDIT, .category = "Graphics", 
-                            .shortcut_hint = "Ctrl+Shift+1", .priority = 10});
-  card_registry->RegisterCard({.card_id = "graphics.sheet_browser", .display_name = "Sheet Browser",
-                            .icon = ICON_MD_VIEW_LIST, .category = "Graphics",
-                            .shortcut_hint = "Ctrl+Shift+2", .priority = 20});
-  card_registry->RegisterCard({.card_id = "graphics.player_animations", .display_name = "Player Animations",
-                            .icon = ICON_MD_PERSON, .category = "Graphics",
-                            .shortcut_hint = "Ctrl+Shift+3", .priority = 30});
-  card_registry->RegisterCard({.card_id = "graphics.prototype_viewer", .display_name = "Prototype Viewer",
-                            .icon = ICON_MD_CONSTRUCTION, .category = "Graphics",
-                            .shortcut_hint = "Ctrl+Shift+4", .priority = 40});
-  
+
+  card_registry->RegisterCard({.card_id = "graphics.sheet_editor",
+                               .display_name = "Sheet Editor",
+                               .icon = ICON_MD_EDIT,
+                               .category = "Graphics",
+                               .shortcut_hint = "Ctrl+Shift+1",
+                               .priority = 10});
+  card_registry->RegisterCard({.card_id = "graphics.sheet_browser",
+                               .display_name = "Sheet Browser",
+                               .icon = ICON_MD_VIEW_LIST,
+                               .category = "Graphics",
+                               .shortcut_hint = "Ctrl+Shift+2",
+                               .priority = 20});
+  card_registry->RegisterCard({.card_id = "graphics.player_animations",
+                               .display_name = "Player Animations",
+                               .icon = ICON_MD_PERSON,
+                               .category = "Graphics",
+                               .shortcut_hint = "Ctrl+Shift+3",
+                               .priority = 30});
+  card_registry->RegisterCard({.card_id = "graphics.prototype_viewer",
+                               .display_name = "Prototype Viewer",
+                               .icon = ICON_MD_CONSTRUCTION,
+                               .category = "Graphics",
+                               .shortcut_hint = "Ctrl+Shift+4",
+                               .priority = 40});
+
   // Show sheet editor by default when Graphics Editor is activated
   card_registry->ShowCard("graphics.sheet_editor");
 }
 
-absl::Status GraphicsEditor::Load() { 
+absl::Status GraphicsEditor::Load() {
   gfx::ScopedTimer timer("GraphicsEditor::Load");
-  
+
   // Initialize all graphics sheets with appropriate palettes from ROM
   // This ensures textures are created for editing
   if (rom()->is_loaded()) {
     auto& sheets = gfx::Arena::Get().gfx_sheets();
-    
+
     // Apply default palettes to all sheets based on common SNES ROM structure
     // Sheets 0-112: Use overworld/dungeon palettes
     // Sheets 113-127: Use sprite palettes
     // Sheets 128-222: Use auxiliary/menu palettes
-    
-    LOG_INFO("GraphicsEditor", "Initializing textures for %d graphics sheets", kNumGfxSheets);
-    
+
+    LOG_INFO("GraphicsEditor", "Initializing textures for %d graphics sheets",
+             kNumGfxSheets);
+
     int sheets_queued = 0;
     for (int i = 0; i < kNumGfxSheets; i++) {
       if (!sheets[i].is_active() || !sheets[i].surface()) {
         continue;  // Skip inactive or surface-less sheets
       }
-      
+
       // Palettes are now applied during ROM loading in LoadAllGraphicsData()
       // Just queue texture creation for sheets that don't have textures yet
       if (!sheets[i].texture()) {
@@ -93,29 +107,34 @@ absl::Status GraphicsEditor::Load() {
         sheets_queued++;
       }
     }
-    
-    LOG_INFO("GraphicsEditor", "Queued texture creation for %d graphics sheets", sheets_queued);
+
+    LOG_INFO("GraphicsEditor", "Queued texture creation for %d graphics sheets",
+             sheets_queued);
   }
-  
-  return absl::OkStatus(); 
+
+  return absl::OkStatus();
 }
 
 absl::Status GraphicsEditor::Update() {
-  if (!dependencies_.card_registry) return absl::OkStatus();
+  if (!dependencies_.card_registry)
+    return absl::OkStatus();
   auto* card_registry = dependencies_.card_registry;
-  
+
   static gui::EditorCard sheet_editor_card("Sheet Editor", ICON_MD_EDIT);
   static gui::EditorCard sheet_browser_card("Sheet Browser", ICON_MD_VIEW_LIST);
   static gui::EditorCard player_anims_card("Player Animations", ICON_MD_PERSON);
-  static gui::EditorCard prototype_card("Prototype Viewer", ICON_MD_CONSTRUCTION);
+  static gui::EditorCard prototype_card("Prototype Viewer",
+                                        ICON_MD_CONSTRUCTION);
 
   sheet_editor_card.SetDefaultSize(900, 700);
   sheet_browser_card.SetDefaultSize(400, 600);
   player_anims_card.SetDefaultSize(500, 600);
   prototype_card.SetDefaultSize(600, 500);
 
-  // Sheet Editor Card - Check visibility flag exists and is true before rendering
-  bool* sheet_editor_visible = card_registry->GetVisibilityFlag("graphics.sheet_editor");
+  // Sheet Editor Card - Check visibility flag exists and is true before
+  // rendering
+  bool* sheet_editor_visible =
+      card_registry->GetVisibilityFlag("graphics.sheet_editor");
   if (sheet_editor_visible && *sheet_editor_visible) {
     if (sheet_editor_card.Begin(sheet_editor_visible)) {
       status_ = UpdateGfxEdit();
@@ -123,8 +142,10 @@ absl::Status GraphicsEditor::Update() {
     sheet_editor_card.End();
   }
 
-  // Sheet Browser Card - Check visibility flag exists and is true before rendering
-  bool* sheet_browser_visible = card_registry->GetVisibilityFlag("graphics.sheet_browser");
+  // Sheet Browser Card - Check visibility flag exists and is true before
+  // rendering
+  bool* sheet_browser_visible =
+      card_registry->GetVisibilityFlag("graphics.sheet_browser");
   if (sheet_browser_visible && *sheet_browser_visible) {
     if (sheet_browser_card.Begin(sheet_browser_visible)) {
       if (asset_browser_.Initialized == false) {
@@ -135,8 +156,10 @@ absl::Status GraphicsEditor::Update() {
     sheet_browser_card.End();
   }
 
-  // Player Animations Card - Check visibility flag exists and is true before rendering
-  bool* player_anims_visible = card_registry->GetVisibilityFlag("graphics.player_animations");
+  // Player Animations Card - Check visibility flag exists and is true before
+  // rendering
+  bool* player_anims_visible =
+      card_registry->GetVisibilityFlag("graphics.player_animations");
   if (player_anims_visible && *player_anims_visible) {
     if (player_anims_card.Begin(player_anims_visible)) {
       status_ = UpdateLinkGfxView();
@@ -144,8 +167,10 @@ absl::Status GraphicsEditor::Update() {
     player_anims_card.End();
   }
 
-  // Prototype Viewer Card - Check visibility flag exists and is true before rendering
-  bool* prototype_visible = card_registry->GetVisibilityFlag("graphics.prototype_viewer");
+  // Prototype Viewer Card - Check visibility flag exists and is true before
+  // rendering
+  bool* prototype_visible =
+      card_registry->GetVisibilityFlag("graphics.prototype_viewer");
   if (prototype_visible && *prototype_visible) {
     if (prototype_card.Begin(prototype_visible)) {
       status_ = UpdateScadView();
@@ -158,42 +183,42 @@ absl::Status GraphicsEditor::Update() {
 }
 
 absl::Status GraphicsEditor::UpdateGfxEdit() {
-    if (ImGui::BeginTable("##GfxEditTable", 3, kGfxEditTableFlags,
-                          ImVec2(0, 0))) {
-      for (const auto& name :
-           {"Tilesheets", "Current Graphics", "Palette Controls"})
-        ImGui::TableSetupColumn(name);
+  if (ImGui::BeginTable("##GfxEditTable", 3, kGfxEditTableFlags,
+                        ImVec2(0, 0))) {
+    for (const auto& name :
+         {"Tilesheets", "Current Graphics", "Palette Controls"})
+      ImGui::TableSetupColumn(name);
 
-      ImGui::TableHeadersRow();
-      ImGui::TableNextColumn();
-      status_ = UpdateGfxSheetList();
+    ImGui::TableHeadersRow();
+    ImGui::TableNextColumn();
+    status_ = UpdateGfxSheetList();
 
-      ImGui::TableNextColumn();
-      if (rom()->is_loaded()) {
-        DrawGfxEditToolset();
-        status_ = UpdateGfxTabView();
-      }
-
-      ImGui::TableNextColumn();
-      if (rom()->is_loaded()) {
-        status_ = UpdatePaletteColumn();
-      }
+    ImGui::TableNextColumn();
+    if (rom()->is_loaded()) {
+      DrawGfxEditToolset();
+      status_ = UpdateGfxTabView();
     }
-    ImGui::EndTable();
+
+    ImGui::TableNextColumn();
+    if (rom()->is_loaded()) {
+      status_ = UpdatePaletteColumn();
+    }
+  }
+  ImGui::EndTable();
 
   return absl::OkStatus();
 }
 
 /**
  * @brief Draw the graphics editing toolset with enhanced ROM hacking features
- * 
+ *
  * Enhanced Features:
  * - Multi-tool selection for different editing modes
  * - Real-time zoom controls for precise pixel editing
  * - Sheet copy/paste operations for ROM graphics management
  * - Color picker integration with SNES palette system
  * - Tile size controls for 8x8 and 16x16 SNES tiles
- * 
+ *
  * Performance Notes:
  * - Toolset updates are batched to minimize ImGui overhead
  * - Color buttons use cached palette data for fast rendering
@@ -254,31 +279,32 @@ void GraphicsEditor::DrawGfxEditToolset() {
     // Enhanced palette color picker with SNES-specific features
     auto bitmap = gfx::Arena::Get().gfx_sheets()[current_sheet_];
     auto palette = bitmap.palette();
-    
+
     // Display palette colors in a grid layout for better ROM hacking workflow
     for (int i = 0; i < palette.size(); i++) {
       if (i > 0 && i % 8 == 0) {
-        ImGui::NewLine(); // New row every 8 colors (SNES palette standard)
+        ImGui::NewLine();  // New row every 8 colors (SNES palette standard)
       }
       ImGui::SameLine();
-      
+
       // Convert SNES color to ImGui format with proper scaling
-      auto color = ImVec4(palette[i].rgb().x / 255.0f, palette[i].rgb().y / 255.0f,
-                          palette[i].rgb().z / 255.0f, 1.0f);
-      
+      auto color =
+          ImVec4(palette[i].rgb().x / 255.0f, palette[i].rgb().y / 255.0f,
+                 palette[i].rgb().z / 255.0f, 1.0f);
+
       // Enhanced color button with tooltip showing SNES color value
       if (ImGui::ColorButton(absl::StrFormat("Palette Color %d", i).c_str(),
                              color, ImGuiColorEditFlags_NoTooltip)) {
         current_color_ = color;
       }
-      
+
       // Add tooltip with SNES color information
       if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("SNES Color: $%04X\nRGB: (%d, %d, %d)", 
-                         palette[i].snes(),
-                         static_cast<int>(palette[i].rgb().x),
-                         static_cast<int>(palette[i].rgb().y),
-                         static_cast<int>(palette[i].rgb().z));
+        ImGui::SetTooltip("SNES Color: $%04X\nRGB: (%d, %d, %d)",
+                          palette[i].snes(),
+                          static_cast<int>(palette[i].rgb().x),
+                          static_cast<int>(palette[i].rgb().y),
+                          static_cast<int>(palette[i].rgb().z));
       }
     }
 
@@ -322,7 +348,7 @@ absl::Status GraphicsEditor::UpdateGfxSheetList() {
         gfx::Arena::Get().QueueTextureCommand(
             gfx::Arena::TextureCommandType::CREATE, &value);
       }
-      
+
       auto texture = value.texture();
       if (texture) {
         graphics_bin_canvas_.draw_list()->AddImage(
@@ -347,8 +373,8 @@ absl::Status GraphicsEditor::UpdateGfxSheetList() {
         ImVec2 rect_min(text_pos.x, text_pos.y);
         ImVec2 rect_max(text_pos.x + text_size.x, text_pos.y + text_size.y);
 
-        graphics_bin_canvas_.draw_list()->AddRectFilled(rect_min, rect_max,
-                                                        IM_COL32(0, 125, 0, 128));
+        graphics_bin_canvas_.draw_list()->AddRectFilled(
+            rect_min, rect_max, IM_COL32(0, 125, 0, 128));
 
         graphics_bin_canvas_.draw_list()->AddText(
             text_pos, IM_COL32(125, 255, 125, 255),
@@ -371,7 +397,7 @@ absl::Status GraphicsEditor::UpdateGfxSheetList() {
 
 absl::Status GraphicsEditor::UpdateGfxTabView() {
   gfx::ScopedTimer timer("graphics_editor_update_gfx_tab_view");
-  
+
   static int next_tab_id = 0;
   constexpr ImGuiTabBarFlags kGfxEditTabBarFlags =
       ImGuiTabBarFlags_AutoSelectNewTabs | ImGuiTabBarFlags_Reorderable |
@@ -412,22 +438,25 @@ absl::Status GraphicsEditor::UpdateGfxTabView() {
         auto draw_tile_event = [&]() {
           current_sheet_canvas_.DrawTileOnBitmap(tile_size_, &current_bitmap,
                                                  current_color_);
-        // Notify Arena that this sheet has been modified for cross-editor synchronization
-        gfx::Arena::Get().NotifySheetModified(sheet_id);
+          // Notify Arena that this sheet has been modified for cross-editor
+          // synchronization
+          gfx::Arena::Get().NotifySheetModified(sheet_id);
         };
 
         current_sheet_canvas_.UpdateColorPainter(
             nullptr, gfx::Arena::Get().mutable_gfx_sheets()->at(sheet_id),
             current_color_, draw_tile_event, tile_size_, current_scale_);
 
-        // Notify Arena that this sheet has been modified for cross-editor synchronization
+        // Notify Arena that this sheet has been modified for cross-editor
+        // synchronization
         gfx::Arena::Get().NotifySheetModified(sheet_id);
 
         ImGui::EndChild();
         ImGui::EndTabItem();
       }
 
-      if (!open) release_queue_.push(sheet_id);
+      if (!open)
+        release_queue_.push(sheet_id);
     }
 
     ImGui::EndTabBar();
@@ -453,7 +482,8 @@ absl::Status GraphicsEditor::UpdateGfxTabView() {
       current_sheet_ = id;
       //  ImVec2(0x100, 0x40),
       current_sheet_canvas_.UpdateColorPainter(
-          nullptr, gfx::Arena::Get().mutable_gfx_sheets()->at(id), current_color_,
+          nullptr, gfx::Arena::Get().mutable_gfx_sheets()->at(id),
+          current_color_,
           [&]() {
 
           },
@@ -478,7 +508,7 @@ absl::Status GraphicsEditor::UpdatePaletteColumn() {
         kPaletteGroupAddressesKeys[edit_palette_group_name_index_]);
     auto palette = palette_group.palette(edit_palette_index_);
     gui::TextWithSeparators("ROM Palette Management");
-    
+
     // Quick palette presets for common SNES graphics types
     ImGui::Text("Quick Presets:");
     if (ImGui::Button("Overworld")) {
@@ -499,7 +529,7 @@ absl::Status GraphicsEditor::UpdatePaletteColumn() {
       refresh_graphics_ = true;
     }
     ImGui::Separator();
-    
+
     // Apply current palette to current sheet
     if (ImGui::Button("Apply to Current Sheet") && !open_sheets_.empty()) {
       refresh_graphics_ = true;
@@ -517,7 +547,7 @@ absl::Status GraphicsEditor::UpdatePaletteColumn() {
       }
     }
     ImGui::Separator();
-    
+
     ImGui::SetNextItemWidth(150.f);
     ImGui::Combo("Palette Group", (int*)&edit_palette_group_name_index_,
                  kPaletteGroupAddressesKeys,
@@ -531,7 +561,8 @@ absl::Status GraphicsEditor::UpdatePaletteColumn() {
                                    palette);
 
     if (refresh_graphics_ && !open_sheets_.empty()) {
-      auto& current = gfx::Arena::Get().mutable_gfx_sheets()->data()[current_sheet_];
+      auto& current =
+          gfx::Arena::Get().mutable_gfx_sheets()->data()[current_sheet_];
       if (current.is_active() && current.surface()) {
         current.SetPaletteWithTransparent(palette, edit_palette_sub_index_);
         // Notify Arena that this sheet has been modified
@@ -613,7 +644,9 @@ absl::Status GraphicsEditor::UpdateScadView() {
     status_ = DrawExperimentalFeatures();
   }
 
-  NEXT_COLUMN() { status_ = DrawPaletteControls(); }
+  NEXT_COLUMN() {
+    status_ = DrawPaletteControls();
+  }
 
   NEXT_COLUMN()
   gui::BitmapCanvasPipeline(scr_canvas_, scr_bitmap_, 0x200, 0x200, 0x20,
@@ -908,8 +941,8 @@ absl::Status GraphicsEditor::DecompressImportData(int size) {
     }
   }
 
-  gfx::Arena::Get().QueueTextureCommand(
-      gfx::Arena::TextureCommandType::UPDATE, &bin_bitmap_);
+  gfx::Arena::Get().QueueTextureCommand(gfx::Arena::TextureCommandType::UPDATE,
+                                        &bin_bitmap_);
   gfx_loaded_ = true;
 
   return absl::OkStatus();

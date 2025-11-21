@@ -1,4 +1,5 @@
 #include "test_utils.h"
+
 #include "app/controller.h"
 
 namespace yaze {
@@ -6,14 +7,14 @@ namespace test {
 namespace gui {
 
 void LoadRomInTest(ImGuiTestContext* ctx, const std::string& rom_path) {
-    yaze::Controller* controller = (yaze::Controller*)ctx->Test->UserData;
-    controller->OnEntry(rom_path);
+  yaze::Controller* controller = (yaze::Controller*)ctx->Test->UserData;
+  controller->OnEntry(rom_path);
 }
 
 void OpenEditorInTest(ImGuiTestContext* ctx, const std::string& editor_name) {
-    ctx->MenuClick(absl::StrFormat("Editors/%s", editor_name).c_str());
+  ctx->MenuClick(absl::StrFormat("Editors/%s", editor_name).c_str());
 }
 
-} // namespace gui
-} // namespace test
-} // namespace yaze
+}  // namespace gui
+}  // namespace test
+}  // namespace yaze

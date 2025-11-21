@@ -144,10 +144,13 @@ if(WIN32 AND YAZE_USE_VCPKG_GRPC AND DEFINED CMAKE_TOOLCHAIN_FILE)
       absl::memory
       absl::container_memory
       absl::strings
+      absl::strings_internal
       absl::str_format
+      absl::str_format_internal
       absl::cord
       absl::hash
       absl::time
+      absl::time_zone
       absl::status
       absl::statusor
       absl::flags
@@ -165,6 +168,7 @@ if(WIN32 AND YAZE_USE_VCPKG_GRPC AND DEFINED CMAKE_TOOLCHAIN_FILE)
       absl::flat_hash_map
       absl::synchronization
       absl::symbolize
+      absl::strerror
       PARENT_SCOPE
     )
     

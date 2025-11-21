@@ -4,16 +4,16 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include "testing.h"
-
 #include "app/rom.h"
+#include "testing.h"
 
 namespace yaze {
 namespace test {
 
 /**
- * @brief Enhanced ROM for testing that behaves like a real ROM but with test data
- * 
+ * @brief Enhanced ROM for testing that behaves like a real ROM but with test
+ * data
+ *
  * This class extends Rom to provide testing utilities while maintaining
  * all the real ROM functionality. Instead of mocking methods, it loads
  * real test data into the ROM.
@@ -37,28 +37,28 @@ class MockRom : public Rom {
     }
     return status;
   }
-  
+
   /**
    * @brief Store object-specific test data for validation
    */
   void SetObjectData(int object_id, const std::vector<uint8_t>& data) {
     object_data_[object_id] = data;
   }
-  
+
   /**
    * @brief Store room-specific test data for validation
    */
   void SetRoomData(int room_id, const std::vector<uint8_t>& data) {
     room_data_[room_id] = data;
   }
-  
+
   /**
    * @brief Check if object data has been set for testing
    */
   bool HasObjectData(int object_id) const {
     return object_data_.find(object_id) != object_data_.end();
   }
-  
+
   /**
    * @brief Check if room data has been set for testing
    */

@@ -19,13 +19,13 @@ class OverworldFindTileCommandHandler : public resources::CommandHandler {
   std::string GetUsage() const {
     return "overworld-find-tile --tile <tile_id> [--format <json|text>]";
   }
-  
+
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
     return parser.RequireArgs({"tile"});
   }
-  
+
   absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
-                      resources::OutputFormatter& formatter) override;
+                       resources::OutputFormatter& formatter) override;
 };
 
 /**
@@ -40,13 +40,13 @@ class OverworldDescribeMapCommandHandler : public resources::CommandHandler {
   std::string GetUsage() const {
     return "overworld-describe-map --screen <screen_id> [--format <json|text>]";
   }
-  
+
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
     return parser.RequireArgs({"screen"});
   }
-  
+
   absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
-                      resources::OutputFormatter& formatter) override;
+                       resources::OutputFormatter& formatter) override;
 };
 
 /**
@@ -61,13 +61,13 @@ class OverworldListWarpsCommandHandler : public resources::CommandHandler {
   std::string GetUsage() const {
     return "overworld-list-warps [--screen <screen_id>] [--format <json|text>]";
   }
-  
+
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
     return absl::OkStatus();  // No required args
   }
-  
+
   absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
-                      resources::OutputFormatter& formatter) override;
+                       resources::OutputFormatter& formatter) override;
 };
 
 /**
@@ -80,15 +80,16 @@ class OverworldListSpritesCommandHandler : public resources::CommandHandler {
     return "List all sprites in overworld maps";
   }
   std::string GetUsage() const {
-    return "overworld-list-sprites [--screen <screen_id>] [--format <json|text>]";
+    return "overworld-list-sprites [--screen <screen_id>] [--format "
+           "<json|text>]";
   }
-  
+
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
     return absl::OkStatus();  // No required args
   }
-  
+
   absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
-                      resources::OutputFormatter& formatter) override;
+                       resources::OutputFormatter& formatter) override;
 };
 
 /**
@@ -101,15 +102,16 @@ class OverworldGetEntranceCommandHandler : public resources::CommandHandler {
     return "Get entrance information from overworld";
   }
   std::string GetUsage() const {
-    return "overworld-get-entrance --entrance <entrance_id> [--format <json|text>]";
+    return "overworld-get-entrance --entrance <entrance_id> [--format "
+           "<json|text>]";
   }
-  
+
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
     return parser.RequireArgs({"entrance"});
   }
-  
+
   absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
-                      resources::OutputFormatter& formatter) override;
+                       resources::OutputFormatter& formatter) override;
 };
 
 /**
@@ -124,13 +126,13 @@ class OverworldTileStatsCommandHandler : public resources::CommandHandler {
   std::string GetUsage() const {
     return "overworld-tile-stats [--screen <screen_id>] [--format <json|text>]";
   }
-  
+
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
     return absl::OkStatus();  // No required args
   }
-  
+
   absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
-                      resources::OutputFormatter& formatter) override;
+                       resources::OutputFormatter& formatter) override;
 };
 
 }  // namespace handlers

@@ -10,7 +10,7 @@ namespace util {
 
 namespace {
 
-void HandleHexStringParams(std::string &hex, const HexStringParams &params) {
+void HandleHexStringParams(std::string& hex, const HexStringParams& params) {
   switch (params.prefix) {
     case HexStringParams::Prefix::kDollar:
       hex = absl::StrCat("$", hex);

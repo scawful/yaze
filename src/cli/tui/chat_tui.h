@@ -9,12 +9,11 @@
 #include <thread>
 #include <vector>
 
-#include "ftxui/component/component.hpp"
-#include "ftxui/component/screen_interactive.hpp"
 #include "cli/service/agent/conversational_agent_service.h"
 #include "cli/service/agent/todo_manager.h"
-
 #include "cli/util/autocomplete.h"
+#include "ftxui/component/component.hpp"
+#include "ftxui/component/screen_interactive.hpp"
 
 namespace yaze {
 

@@ -54,13 +54,12 @@ inline std::string GetColoredLogo() {
          "    ╚══════╝╚═════╝ ╚══════╝╚═════╝ \n"
          "\033[1;33m" +  // Yellow for triforce
          "          \n"
-         "       ▲      " + "\033[1;37m" + "Zelda 3 Editor\n" +  // White
-         "\033[1;33m" +
-         "      ▲ ▲     " + "\033[0;37m" + "AI-Powered CLI\n" +  // Gray
-         "\033[1;33m" +
-         "     ▲▲▲▲▲    \n" +
-         "\033[1;32m" + "  FTXUI ✦ Animations ✦ Command TODOs" + "\n" +
-         "\033[0m";  // Reset
+         "       ▲      " +
+         "\033[1;37m" + "Zelda 3 Editor\n" +  // White
+         "\033[1;33m" + "      ▲ ▲     " + "\033[0;37m" +
+         "AI-Powered CLI\n" +  // Gray
+         "\033[1;33m" + "     ▲▲▲▲▲    \n" + "\033[1;32m" +
+         "  FTXUI ✦ Animations ✦ Command TODOs" + "\n" + "\033[0m";  // Reset
 }
 
 }  // namespace cli

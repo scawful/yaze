@@ -21,10 +21,6 @@ set(
   # Test infrastructure
   app/test/test_recorder.cc
   app/test/test_script_parser.cc
-  
-  # CLI agent gRPC client code (only files that actually exist)
-  cli/service/planning/tile16_proposal_generator.cc
-  cli/service/gui/gui_automation_client.cc
 )
 
 add_library(yaze_grpc_support STATIC ${YAZE_GRPC_SOURCES})
@@ -36,9 +32,9 @@ target_precompile_headers(yaze_grpc_support PRIVATE
 target_include_directories(yaze_grpc_support PUBLIC
   ${CMAKE_SOURCE_DIR}/src
   ${CMAKE_SOURCE_DIR}/src/app
-  ${CMAKE_SOURCE_DIR}/src/lib
-  ${CMAKE_SOURCE_DIR}/src/lib/imgui
-  ${CMAKE_SOURCE_DIR}/src/lib/imgui_test_engine
+  ${CMAKE_SOURCE_DIR}/ext
+  ${CMAKE_SOURCE_DIR}/ext/imgui
+  ${CMAKE_SOURCE_DIR}/ext/imgui_test_engine
   ${CMAKE_SOURCE_DIR}/incl
   ${SDL2_INCLUDE_DIR}
   ${PROJECT_BINARY_DIR}
@@ -60,7 +56,7 @@ target_link_libraries(yaze_grpc_support PUBLIC
 # Add JSON support
 if(YAZE_WITH_JSON)
   target_include_directories(yaze_grpc_support PUBLIC
-    ${CMAKE_SOURCE_DIR}/third_party/json/include)
+    ${CMAKE_SOURCE_DIR}/ext/json/include)
   target_compile_definitions(yaze_grpc_support PUBLIC YAZE_WITH_JSON)
 endif()
 

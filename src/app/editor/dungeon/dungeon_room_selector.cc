@@ -1,10 +1,10 @@
 #include "dungeon_room_selector.h"
 
 #include "app/gui/core/input.h"
-#include "zelda3/dungeon/room.h"
-#include "zelda3/dungeon/room_entrance.h"
 #include "imgui/imgui.h"
 #include "util/hex.h"
+#include "zelda3/dungeon/room.h"
+#include "zelda3/dungeon/room_entrance.h"
 
 namespace yaze::editor {
 
@@ -34,7 +34,7 @@ void DungeonRoomSelector::DrawRoomSelector() {
 
   gui::InputHexWord("Room ID", &current_room_id_, 50.f, true);
 
-  if (ImGuiID child_id = ImGui::GetID((void *)(intptr_t)9);
+  if (ImGuiID child_id = ImGui::GetID((void*)(intptr_t)9);
       BeginChild(child_id, ImGui::GetContentRegionAvail(), true,
                  ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
     int i = 0;
@@ -125,8 +125,8 @@ void DungeonRoomSelector::DrawEntranceSelector() {
         entrance_name = std::string(zelda3::kEntranceNames[i]);
       }
       rom_->resource_label()->SelectableLabelWithNameEdit(
-          current_entrance_id_ == i, "Dungeon Entrance Names",
-          util::HexByte(i), entrance_name);
+          current_entrance_id_ == i, "Dungeon Entrance Names", util::HexByte(i),
+          entrance_name);
 
       if (ImGui::IsItemClicked()) {
         current_entrance_id_ = i;

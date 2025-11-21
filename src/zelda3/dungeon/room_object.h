@@ -67,7 +67,7 @@ class RoomObject {
   void set_rom(Rom* rom) { rom_ = rom; }
   auto rom() { return rom_; }
   auto mutable_rom() { return rom_; }
-  
+
   // Position setters and getters
   void set_x(uint8_t x) { x_ = x; }
   void set_y(uint8_t y) { y_ = y; }
@@ -79,7 +79,7 @@ class RoomObject {
   // Ensures tiles_ is populated with a basic set based on ROM tables so we can
   // preview/draw objects without needing full emulator execution.
   void EnsureTilesLoaded();
-  
+
   // Load tiles using the new ObjectParser
   absl::Status LoadTilesWithParser();
 
@@ -89,40 +89,40 @@ class RoomObject {
 
   // Get tile data through Arena system - returns references, not copies
   absl::StatusOr<std::span<const gfx::TileInfo>> GetTiles() const;
-  
+
   // Get individual tile by index - uses Arena lookup
   absl::StatusOr<const gfx::TileInfo*> GetTile(int index) const;
-  
+
   // Get tile count without loading all tiles
   int GetTileCount() const;
 
   // ============================================================================
   // Object Encoding/Decoding (Phase 1, Task 1.1)
   // ============================================================================
-  
+
   // 3-byte object encoding structure
   struct ObjectBytes {
     uint8_t b1;
     uint8_t b2;
     uint8_t b3;
   };
-  
+
   // Decode object from 3-byte ROM format
   // Type1: xxxxxxss yyyyyyss iiiiiiii (ID 0x00-0xFF)
   // Type2: 111111xx xxxxyyyy yyiiiiii (ID 0x100-0x1FF)
   // Type3: xxxxxxii yyyyyyii 11111iii (ID 0xF00-0xFFF)
   static RoomObject DecodeObjectFromBytes(uint8_t b1, uint8_t b2, uint8_t b3,
                                           uint8_t layer);
-  
+
   // Encode object to 3-byte ROM format
   ObjectBytes EncodeObjectToBytes() const;
-  
+
   // Determine object type from bytes (1, 2, or 3)
   static int DetermineObjectType(uint8_t b1, uint8_t b3);
-  
+
   // Get layer from LayerType enum
   uint8_t GetLayerValue() const { return static_cast<uint8_t>(layer_); }
-  
+
   // ============================================================================
 
   // NOTE: Legacy ZScream methods removed. Modern rendering uses:
@@ -158,13 +158,14 @@ class RoomObject {
   std::string name_;
 
   std::vector<uint8_t> preview_object_data_;
-  
+
   // Tile data storage - using Arena system for efficient memory management
-  // Instead of copying Tile16 vectors, we store references to Arena-managed data
-  mutable std::vector<gfx::TileInfo> tiles_; // Individual tiles like ZScream
+  // Instead of copying Tile16 vectors, we store references to Arena-managed
+  // data
+  mutable std::vector<gfx::TileInfo> tiles_;  // Individual tiles like ZScream
   mutable bool tiles_loaded_ = false;
   mutable int tile_count_ = 0;
-  mutable int tile_data_ptr_ = -1; // Pointer to tile data in ROM
+  mutable int tile_data_ptr_ = -1;  // Pointer to tile data in ROM
 
   LayerType layer_;
   ObjectOption options_ = ObjectOption::Nothing;

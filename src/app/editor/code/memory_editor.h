@@ -1,7 +1,6 @@
 #ifndef YAZE_APP_EDITOR_CODE_MEMORY_EDITOR_H
 #define YAZE_APP_EDITOR_CODE_MEMORY_EDITOR_H
 
-#include "util/file_util.h"
 #include "absl/container/flat_hash_map.h"
 #include "app/editor/editor.h"
 #include "app/gui/core/input.h"
@@ -9,6 +8,7 @@
 #include "app/snes.h"
 #include "imgui/imgui.h"
 #include "imgui_memory_editor.h"
+#include "util/file_util.h"
 #include "util/macro.h"
 
 namespace yaze {
@@ -19,8 +19,8 @@ using ImGui::Text;
 
 struct MemoryEditorWithDiffChecker {
   explicit MemoryEditorWithDiffChecker(Rom* rom = nullptr) : rom_(rom) {}
-  
-  void Update(bool &show_memory_editor) {
+
+  void Update(bool& show_memory_editor) {
     DrawToolbar();
     ImGui::Separator();
     static MemoryEditor mem_edit;
@@ -35,7 +35,7 @@ struct MemoryEditorWithDiffChecker {
     }
 
     static uint64_t convert_address = 0;
-    gui::InputHex("SNES to PC", (int *)&convert_address, 6, 200.f);
+    gui::InputHex("SNES to PC", (int*)&convert_address, 6, 200.f);
     SameLine();
     Text("%x", SnesToPc(convert_address));
 
@@ -46,15 +46,15 @@ struct MemoryEditorWithDiffChecker {
 
     NEXT_COLUMN()
     Text("%s", rom()->filename().data());
-    mem_edit.DrawContents((void *)&(*rom()), rom()->size());
+    mem_edit.DrawContents((void*)&(*rom()), rom()->size());
 
     NEXT_COLUMN()
     if (show_compare_rom) {
-      comp_edit.SetComparisonData((void *)&(*rom()));
+      comp_edit.SetComparisonData((void*)&(*rom()));
       ImGui::BeginGroup();
       ImGui::BeginChild("Comparison ROM");
       Text("%s", comparison_rom.filename().data());
-      comp_edit.DrawContents((void *)&(comparison_rom), comparison_rom.size());
+      comp_edit.DrawContents((void*)&(comparison_rom), comparison_rom.size());
       ImGui::EndChild();
       ImGui::EndGroup();
     }
@@ -65,7 +65,7 @@ struct MemoryEditorWithDiffChecker {
 
   // Set the ROM pointer
   void set_rom(Rom* rom) { rom_ = rom; }
-  
+
   // Get the ROM pointer
   Rom* rom() const { return rom_; }
 
@@ -74,14 +74,14 @@ struct MemoryEditorWithDiffChecker {
   void DrawJumpToAddressPopup();
   void DrawSearchPopup();
   void DrawBookmarksPopup();
-  
+
   Rom* rom_;
-  
+
   // Toolbar state
   char jump_address_[16] = "0x000000";
   char search_pattern_[256] = "";
   uint32_t current_address_ = 0;
-  
+
   struct Bookmark {
     uint32_t address;
     std::string name;

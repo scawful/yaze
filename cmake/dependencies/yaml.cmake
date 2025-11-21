@@ -4,10 +4,51 @@
 include(cmake/CPM.cmake)
 include(cmake/dependencies.lock)
 
+if(NOT YAZE_ENABLE_AI AND NOT YAZE_ENABLE_AI_RUNTIME)
+  message(STATUS "Skipping yaml-cpp (AI runtime and CLI agent features disabled)")
+  set(YAZE_YAML_TARGETS "")
+  return()
+endif()
+
 message(STATUS "Setting up yaml-cpp ${YAML_CPP_VERSION} with CPM.cmake")
 
-# Try to use system packages first if requested
-if(YAZE_USE_SYSTEM_DEPS)
+set(_YAZE_USE_SYSTEM_YAML ${YAZE_USE_SYSTEM_DEPS})
+
+# Detect Homebrew installation automatically (helps offline builds)
+if(APPLE AND NOT _YAZE_USE_SYSTEM_YAML)
+  set(_YAZE_YAML_PREFIX_CANDIDATES
+    /opt/homebrew/opt/yaml-cpp
+    /usr/local/opt/yaml-cpp)
+
+  foreach(_prefix IN LISTS _YAZE_YAML_PREFIX_CANDIDATES)
+    if(EXISTS "${_prefix}")
+      list(APPEND CMAKE_PREFIX_PATH "${_prefix}")
+      message(STATUS "Added Homebrew yaml-cpp prefix: ${_prefix}")
+      set(_YAZE_USE_SYSTEM_YAML ON)
+      break()
+    endif()
+  endforeach()
+
+  if(NOT _YAZE_USE_SYSTEM_YAML)
+    find_program(HOMEBREW_EXECUTABLE brew)
+    if(HOMEBREW_EXECUTABLE)
+      execute_process(
+        COMMAND "${HOMEBREW_EXECUTABLE}" --prefix yaml-cpp
+        OUTPUT_VARIABLE HOMEBREW_YAML_PREFIX
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+        RESULT_VARIABLE HOMEBREW_YAML_RESULT
+        ERROR_QUIET)
+      if(HOMEBREW_YAML_RESULT EQUAL 0 AND EXISTS "${HOMEBREW_YAML_PREFIX}")
+        list(APPEND CMAKE_PREFIX_PATH "${HOMEBREW_YAML_PREFIX}")
+        message(STATUS "Added Homebrew yaml-cpp prefix: ${HOMEBREW_YAML_PREFIX}")
+        set(_YAZE_USE_SYSTEM_YAML ON)
+      endif()
+    endif()
+  endif()
+endif()
+
+# Try to use system packages first
+if(_YAZE_USE_SYSTEM_YAML)
   find_package(yaml-cpp QUIET)
   if(yaml-cpp_FOUND)
     message(STATUS "Using system yaml-cpp")
@@ -15,6 +56,8 @@ if(YAZE_USE_SYSTEM_DEPS)
     target_link_libraries(yaze_yaml INTERFACE yaml-cpp)
     set(YAZE_YAML_TARGETS yaze_yaml)
     return()
+  elseif(YAZE_USE_SYSTEM_DEPS)
+    message(WARNING "System yaml-cpp not found despite YAZE_USE_SYSTEM_DEPS=ON; falling back to CPM download")
   endif()
 endif()
 

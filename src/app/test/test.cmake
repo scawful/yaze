@@ -26,7 +26,7 @@ target_precompile_headers(yaze_test_support PRIVATE
 target_include_directories(yaze_test_support PUBLIC
   ${CMAKE_SOURCE_DIR}/src
   ${CMAKE_SOURCE_DIR}/incl
-  ${CMAKE_SOURCE_DIR}/src/lib
+  ${CMAKE_SOURCE_DIR}/ext
   ${PROJECT_BINARY_DIR}
 )
 
@@ -43,7 +43,7 @@ target_link_libraries(yaze_test_support PUBLIC
 # Add gRPC dependencies if test harness is enabled
 if(YAZE_WITH_GRPC)
   target_include_directories(yaze_test_support PRIVATE
-    ${CMAKE_SOURCE_DIR}/third_party/json/include)
+    ${CMAKE_SOURCE_DIR}/ext/json/include)
   target_compile_definitions(yaze_test_support PRIVATE YAZE_WITH_JSON)
   
   # Link to consolidated gRPC support library
