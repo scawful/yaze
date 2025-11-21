@@ -134,6 +134,7 @@ void DungeonObjectSelector::DrawObjectRenderer() {
 }
 
 void DungeonObjectSelector::DrawObjectBrowser() {
+  const auto& theme = AgentUI::GetTheme();
   static int selected_object_type = 0;
   static int selected_object_id = 0;
 
@@ -528,6 +529,7 @@ void DungeonObjectSelector::DrawCompactObjectEditor() {
 }
 
 ImU32 DungeonObjectSelector::GetObjectTypeColor(int object_id) {
+  const auto& theme = AgentUI::GetTheme();
   // Color-code objects based on their type and function
   if (object_id >= 0x10 && object_id <= 0x1F) {
     return ImGui::GetColorU32(theme.dungeon_object_wall);  // Gray for walls
@@ -571,6 +573,7 @@ std::string DungeonObjectSelector::GetObjectTypeSymbol(int object_id) {
 
 void DungeonObjectSelector::RenderObjectPrimitive(
     const zelda3::RoomObject& object, int x, int y) {
+  const auto& theme = AgentUI::GetTheme();
   // Render object as primitive shape on canvas
   ImU32 color = GetObjectTypeColor(object.id_);
 
@@ -589,6 +592,7 @@ void DungeonObjectSelector::RenderObjectPrimitive(
 }
 
 void DungeonObjectSelector::DrawObjectAssetBrowser() {
+  const auto& theme = AgentUI::GetTheme();
   ImGui::SeparatorText("Dungeon Objects");
 
   // Debug info
