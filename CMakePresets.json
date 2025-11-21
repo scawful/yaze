@@ -100,13 +100,52 @@
       }
     },
     {
-      "name": "release",
-      "inherits": "base",
-      "displayName": "Release Build",
-      "description": "Optimized release build (GUI + CLI only, no tests/emulator)",
+      "name": "release-windows",
+      "inherits": "windows-base",
+      "displayName": "Release Build - Windows",
+      "description": "Optimized release build for Windows (GUI + CLI only, no tests/emulator)",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
-        "CMAKE_MSVC_RUNTIME_LIBRARY": "MultiThreaded$<$<CONFIG:Debug>:Debug>",
+        "YAZE_BUILD_TESTS": "OFF",
+        "YAZE_BUILD_EMU": "OFF",
+        "YAZE_ENABLE_GRPC": "ON",
+        "YAZE_ENABLE_JSON": "ON",
+        "YAZE_ENABLE_AI": "ON",
+        "YAZE_ENABLE_LTO": "OFF"
+      }
+    },
+    {
+      "name": "release-macos",
+      "inherits": "base",
+      "displayName": "Release Build - macOS",
+      "description": "Optimized release build for macOS (GUI + CLI only, no tests/emulator)",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "YAZE_BUILD_TESTS": "OFF",
+        "YAZE_BUILD_EMU": "OFF",
+        "YAZE_ENABLE_GRPC": "ON",
+        "YAZE_ENABLE_JSON": "ON",
+        "YAZE_ENABLE_AI": "ON",
+        "YAZE_ENABLE_LTO": "OFF"
+      }
+    },
+    {
+      "name": "release-linux",
+      "inherits": "base",
+      "displayName": "Release Build - Linux",
+      "description": "Optimized release build for Linux (GUI + CLI only, no tests/emulator)",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
         "YAZE_BUILD_TESTS": "OFF",
         "YAZE_BUILD_EMU": "OFF",
         "YAZE_ENABLE_GRPC": "ON",
@@ -645,9 +684,24 @@
       "jobs": 12
     },
     {
-      "name": "release",
-      "configurePreset": "release",
-      "displayName": "Release Build",
+      "name": "release-windows",
+      "configurePreset": "release-windows",
+      "displayName": "Release Build - Windows",
+      "configuration": "Release",
+      "jobs": 12
+    },
+    {
+      "name": "release-macos",
+      "configurePreset": "release-macos",
+      "displayName": "Release Build - macOS",
+      "configuration": "Release",
+      "jobs": 12
+    },
+    {
+      "name": "release-linux",
+      "configurePreset": "release-linux",
+      "displayName": "Release Build - Linux",
+      "configuration": "Release",
       "jobs": 12
     },
     {
@@ -931,9 +985,19 @@
   ],
   "packagePresets": [
     {
-      "name": "release",
-      "configurePreset": "release",
-      "displayName": "Release Package"
+      "name": "release-windows",
+      "configurePreset": "release-windows",
+      "displayName": "Release Package - Windows"
+    },
+    {
+      "name": "release-macos",
+      "configurePreset": "release-macos",
+      "displayName": "Release Package - macOS"
+    },
+    {
+      "name": "release-linux",
+      "configurePreset": "release-linux",
+      "displayName": "Release Package - Linux"
     },
     {
       "name": "minimal",
