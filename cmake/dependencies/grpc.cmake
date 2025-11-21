@@ -100,7 +100,7 @@ set(protobuf_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(protobuf_BUILD_PROTOC_BINARIES ON CACHE BOOL "" FORCE)
 set(protobuf_WITH_ZLIB ON CACHE BOOL "" FORCE)
 set(protobuf_INSTALL OFF CACHE BOOL "" FORCE)
-set(protobuf_MSVC_STATIC_RUNTIME ON CACHE BOOL "" FORCE)
+set(protobuf_MSVC_STATIC_RUNTIME OFF CACHE BOOL "" FORCE)
 set(ABSL_PROPAGATE_CXX_STD ON CACHE BOOL "" FORCE)
 set(ABSL_ENABLE_INSTALL OFF CACHE BOOL "" FORCE)
 set(ABSL_BUILD_TESTING OFF CACHE BOOL "" FORCE)
@@ -111,9 +111,11 @@ set(utf8_range_ENABLE_INSTALL OFF CACHE BOOL "" FORCE)
 # Force consistent MSVC runtime library across all gRPC components (Windows only)
 # This ensures gRPC, protobuf, and Abseil all use the same CRT linking mode
 if(WIN32 AND MSVC)
-  # Use static CRT (/MT for Release, /MTd for Debug) to match Windows preset
-  set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>" CACHE STRING "" FORCE)
-  message(STATUS "Forcing static MSVC runtime for gRPC dependencies: ${CMAKE_MSVC_RUNTIME_LIBRARY}")
+  # Use dynamic CRT (/MD for Release, /MDd for Debug) to avoid undefined math symbols
+  set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL" CACHE STRING "" FORCE)
+  # Also ensure protobuf doesn't try to use static runtime
+  set(protobuf_MSVC_STATIC_RUNTIME OFF CACHE BOOL "" FORCE)
+  message(STATUS "Forcing dynamic MSVC runtime for gRPC dependencies: ${CMAKE_MSVC_RUNTIME_LIBRARY}")
 endif()
 
 # Temporarily disable installation to prevent utf8_range export errors
