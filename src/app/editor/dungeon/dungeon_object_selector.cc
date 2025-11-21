@@ -10,6 +10,7 @@
 #include "app/gui/widgets/asset_browser.h"
 #include "app/platform/window.h"
 #include "app/rom.h"
+#include "app/editor/agent/agent_ui_theme.h"
 #include "imgui/imgui.h"
 #include "zelda3/dungeon/dungeon_editor_system.h"
 #include "zelda3/dungeon/dungeon_object_editor.h"
@@ -228,7 +229,7 @@ void DungeonObjectSelector::DrawObjectBrowser() {
       ImGui::GetWindowDrawList()->AddRect(
           preview_pos,
           ImVec2(preview_pos.x + preview_size, preview_pos.y + preview_size),
-          IM_COL32(0, 0, 0, 255), 0.0f, 0, 2.0f);
+          ImGui::GetColorU32(theme.panel_border), 0.0f, 0, 2.0f);
 
       // Draw object type symbol in center
       std::string symbol = GetObjectTypeSymbol(obj_id);
@@ -238,12 +239,12 @@ void DungeonObjectSelector::DrawObjectBrowser() {
                  preview_pos.y + (preview_size - text_size.y) / 2);
 
       ImGui::GetWindowDrawList()->AddText(
-          text_pos, IM_COL32(255, 255, 255, 255), symbol.c_str());
+          text_pos, ImGui::GetColorU32(theme.text_primary), symbol.c_str());
 
       // Draw object ID below preview
       ImGui::SetCursorScreenPos(
           ImVec2(preview_pos.x, preview_pos.y + preview_size + 2));
-      ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 255, 255, 255));
+      ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetColorU32(theme.text_primary));
       ImGui::Text("0x%02X", obj_id);
       ImGui::PopStyleColor();
 
@@ -281,7 +282,7 @@ void DungeonObjectSelector::DrawObjectBrowser() {
 
       // Draw object name with better sizing
       ImGui::SetCursorScreenPos(ImVec2(cursor_pos.x + 2, cursor_pos.y - 8));
-      ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(200, 200, 200, 255));
+      ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetColorU32(theme.text_secondary_gray));
       // Truncate long names to fit
       if (object_name.length() > 8) {
         object_name = object_name.substr(0, 8) + "...";
@@ -524,21 +525,21 @@ void DungeonObjectSelector::DrawCompactObjectEditor() {
 ImU32 DungeonObjectSelector::GetObjectTypeColor(int object_id) {
   // Color-code objects based on their type and function
   if (object_id >= 0x10 && object_id <= 0x1F) {
-    return IM_COL32(128, 128, 128, 255);  // Gray for walls
+    return ImGui::GetColorU32(theme.dungeon_object_wall);  // Gray for walls
   } else if (object_id >= 0x20 && object_id <= 0x2F) {
-    return IM_COL32(139, 69, 19, 255);  // Brown for floors
+    return ImGui::GetColorU32(theme.dungeon_object_floor);  // Brown for floors
   } else if (object_id == 0xF9 || object_id == 0xFA) {
-    return IM_COL32(255, 215, 0, 255);  // Gold for chests
+    return ImGui::GetColorU32(theme.dungeon_object_chest);  // Gold for chests
   } else if (object_id >= 0x17 && object_id <= 0x1E) {
-    return IM_COL32(139, 69, 19, 255);  // Brown for doors
+    return ImGui::GetColorU32(theme.dungeon_object_floor);  // Brown for doors
   } else if (object_id == 0x2F || object_id == 0x2B) {
-    return IM_COL32(160, 82, 45, 255);  // Saddle brown for pots
+    return ImGui::GetColorU32(theme.dungeon_object_pot);  // Saddle brown for pots
   } else if (object_id >= 0x138 && object_id <= 0x13B) {
-    return IM_COL32(255, 255, 0, 255);  // Yellow for stairs
+    return ImGui::GetColorU32(theme.dungeon_selection_primary);  // Yellow for stairs
   } else if (object_id >= 0x30 && object_id <= 0x3F) {
-    return IM_COL32(105, 105, 105, 255);  // Dim gray for decorations
+    return ImGui::GetColorU32(theme.dungeon_object_decoration);  // Dim gray for decorations
   } else {
-    return IM_COL32(96, 96, 96, 255);  // Default gray
+    return ImGui::GetColorU32(theme.dungeon_object_default);  // Default gray
   }
 }
 
@@ -575,8 +576,7 @@ void DungeonObjectSelector::RenderObjectPrimitive(
   // Draw object rectangle
   ImVec4 color_vec = ImGui::ColorConvertU32ToFloat4(color);
   object_canvas_.DrawRect(x, y, obj_width, obj_height, color_vec);
-  object_canvas_.DrawRect(x, y, obj_width, obj_height,
-                          ImVec4(0.0f, 0.0f, 0.0f, 1.0f));
+  object_canvas_.DrawRect(x, y, obj_width, obj_height, theme.panel_border);
 
   // Draw object ID as text
   std::string obj_text = absl::StrFormat("0x%X", object.id_);
@@ -662,7 +662,7 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
 
     // Draw border
     ImU32 border_color =
-        is_selected ? IM_COL32(255, 255, 0, 255) : IM_COL32(0, 0, 0, 255);
+        is_selected ? ImGui::GetColorU32(theme.dungeon_selection_primary) : ImGui::GetColorU32(theme.panel_border);
     draw_list->AddRect(
         button_pos, ImVec2(button_pos.x + item_size, button_pos.y + item_size),
         border_color, 0.0f, 0, is_selected ? 3.0f : 1.0f);
@@ -672,14 +672,14 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
     ImVec2 text_size = ImGui::CalcTextSize(symbol.c_str());
     ImVec2 text_pos = ImVec2(button_pos.x + (item_size - text_size.x) / 2,
                              button_pos.y + (item_size - text_size.y) / 2);
-    draw_list->AddText(text_pos, IM_COL32(255, 255, 255, 255), symbol.c_str());
+    draw_list->AddText(text_pos, ImGui::GetColorU32(theme.text_primary), symbol.c_str());
 
     // Draw object ID at bottom
     std::string id_text = absl::StrFormat("%02X", obj_id);
     ImVec2 id_size = ImGui::CalcTextSize(id_text.c_str());
     ImVec2 id_pos = ImVec2(button_pos.x + (item_size - id_size.x) / 2,
                            button_pos.y + item_size - id_size.y - 2);
-    draw_list->AddText(id_pos, IM_COL32(255, 255, 255, 255), id_text.c_str());
+    draw_list->AddText(id_pos, ImGui::GetColorU32(theme.text_primary), id_text.c_str());
 
     ImGui::PopID();
 
