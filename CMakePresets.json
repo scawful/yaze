@@ -106,12 +106,13 @@
       "description": "Optimized release build (GUI + CLI only, no tests/emulator)",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_MSVC_RUNTIME_LIBRARY": "MultiThreaded$<$<CONFIG:Debug>:Debug>",
         "YAZE_BUILD_TESTS": "OFF",
         "YAZE_BUILD_EMU": "OFF",
         "YAZE_ENABLE_GRPC": "ON",
         "YAZE_ENABLE_JSON": "ON",
         "YAZE_ENABLE_AI": "ON",
-        "YAZE_ENABLE_LTO": "ON"
+        "YAZE_ENABLE_LTO": "OFF"
       }
     },
     {
