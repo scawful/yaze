@@ -12,9 +12,13 @@
 
 #ifdef YAZE_WITH_JSON
 #include "nlohmann/json.hpp"
-// CRITICAL: Windows CI doesn't have OpenSSL headers available
-// Skip SSL support on Windows even when gRPC is enabled
-#if !defined(_WIN32) && !defined(_WIN64)
+// CRITICAL: Windows CI doesn't have OpenSSL headers available.
+// Force-disable CPPHTTPLIB_OPENSSL_SUPPORT on Windows even if build flags try to set it.
+#if defined(_WIN32) || defined(_WIN64)
+#ifdef CPPHTTPLIB_OPENSSL_SUPPORT
+#undef CPPHTTPLIB_OPENSSL_SUPPORT
+#endif
+#else
 #define CPPHTTPLIB_OPENSSL_SUPPORT
 #endif
 #include "httplib.h"
@@ -361,9 +365,13 @@ absl::StatusOr<std::string> Z3edNetworkClient::QueryAI(
   return impl_->QueryAI(query, username);
 }
 
-void Z3edNetworkClient::Disconnect() { impl_->Disconnect(); }
+void Z3edNetworkClient::Disconnect() {
+  impl_->Disconnect();
+}
 
-bool Z3edNetworkClient::IsConnected() const { return impl_->IsConnected(); }
+bool Z3edNetworkClient::IsConnected() const {
+  return impl_->IsConnected();
+}
 
 }  // namespace net
 }  // namespace cli

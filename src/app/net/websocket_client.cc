@@ -9,9 +9,13 @@
 
 // Cross-platform WebSocket support using httplib
 #ifdef YAZE_WITH_JSON
-// CRITICAL: Windows CI doesn't have OpenSSL headers available
-// Skip SSL support on Windows even when gRPC is enabled
-#if !defined(_WIN32) && !defined(_WIN64)
+// CRITICAL: Windows CI doesn't have OpenSSL headers available.
+// Force-disable CPPHTTPLIB_OPENSSL_SUPPORT on Windows even if build flags try to set it.
+#if defined(_WIN32) || defined(_WIN64)
+#ifdef CPPHTTPLIB_OPENSSL_SUPPORT
+#undef CPPHTTPLIB_OPENSSL_SUPPORT
+#endif
+#else
 #define CPPHTTPLIB_OPENSSL_SUPPORT
 #endif
 #include "httplib.h"
