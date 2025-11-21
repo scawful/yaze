@@ -321,6 +321,7 @@ class DungeonEditorSystem {
 
   // ROM management
   void SetROM(Rom* rom);
+  void SetExternalRoom(Room* room);
 
  private:
   // Internal helper methods
