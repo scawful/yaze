@@ -68,6 +68,14 @@ jobs:
           preset: ${{ matrix.preset }}
           build-type: Release
 
+      - name: Patch cmake_install.cmake (Linux)
+        if: matrix.platform == 'linux'
+        run: |
+          cd build
+          # Wrap include() statements with if(EXISTS) to handle missing dependency install scripts
+          sed -i 's|^\(\s*\)include("\(.*\)/_deps/\([^"]*\)/cmake_install\.cmake")|\1if(EXISTS "\2/_deps/\3/cmake_install.cmake")\n\1  include("\2/_deps/\3/cmake_install.cmake")\n\1endif()|g' cmake_install.cmake
+          echo "Patched cmake_install.cmake to handle missing dependency install scripts"
+
       - name: Package artifacts (Linux)
         if: matrix.platform == 'linux'
         run: |
@@ -77,6 +85,17 @@ jobs:
           ls -la
           echo "=== Package files created ==="
           ls -la *.deb *.tar.gz 2>/dev/null || echo "No packages found in build/"
+
+      - name: Patch cmake_install.cmake (macOS)
+        if: matrix.platform == 'macos'
+        shell: bash
+        run: |
+          cd build
+          # Wrap include() statements with if(EXISTS) to handle missing dependency install scripts
+          sed -i '' 's|^\(\s*\)include("\(.*\)/_deps/\([^"]*\)/cmake_install\.cmake")|\1if(EXISTS "\2/_deps/\3/cmake_install.cmake")\
+\1  include("\2/_deps/\3/cmake_install.cmake")\
+\1endif()|g' cmake_install.cmake
+          echo "Patched cmake_install.cmake to handle missing dependency install scripts"
 
       - name: Package artifacts (macOS)
         if: matrix.platform == 'macos'
