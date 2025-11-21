@@ -55,12 +55,30 @@ jobs:
           preset: ${{ matrix.preset }}
           build-type: Release
 
+      - name: Patch cmake_install.cmake (Linux)
+        if: matrix.platform == 'linux'
+        shell: bash
+        run: |
+          cd build
+          # Wrap include() statements with if(EXISTS) to handle missing dependency install scripts
+          sed -i 's|^\( *\)include("\(.*\)/_deps/\(.*\)/cmake_install\.cmake")|\1if(EXISTS "\2/_deps/\3/cmake_install.cmake")\n\1  include("\2/_deps/\3/cmake_install.cmake")\n\1endif()|g' cmake_install.cmake
+          echo "Patched cmake_install.cmake to handle missing dependency install scripts"
+
       - name: Package artifacts (Linux)
         if: matrix.platform == 'linux'
         run: |
           cd build
           cpack -G DEB -G TGZ
           ls -la _CPack_Packages/
+
+      - name: Patch cmake_install.cmake (macOS)
+        if: matrix.platform == 'macos'
+        shell: bash
+        run: |
+          cd build
+          # Wrap include() statements with if(EXISTS) to handle missing dependency install scripts
+          sed -i '' 's|^\( *\)include("\(.*\)/_deps/\(.*\)/cmake_install\.cmake")|\1if(EXISTS "\2/_deps/\3/cmake_install.cmake")\n\1  include("\2/_deps/\3/cmake_install.cmake")\n\1endif()|g' cmake_install.cmake
+          echo "Patched cmake_install.cmake to handle missing dependency install scripts"
 
       - name: Package artifacts (macOS)
         if: matrix.platform == 'macos'
@@ -77,6 +95,17 @@ jobs:
           ./scripts/create-macos-bundle.sh ${{ env.VERSION }} yaze-${{ env.VERSION }}-bundle
           mkdir -p build/_CPack_Packages/manual
           mv yaze-${{ env.VERSION }}-bundle.dmg build/_CPack_Packages/manual/ || true
+
+      - name: Patch cmake_install.cmake (Windows)
+        if: matrix.platform == 'windows'
+        shell: pwsh
+        run: |
+          cd build
+          # Wrap include() statements with if(EXISTS) to handle missing dependency install scripts
+          $content = Get-Content cmake_install.cmake -Raw
+          $content = $content -replace '(\s+)include\("(.*)/_deps/([^"]+)/cmake_install\.cmake"\)', '$1if(EXISTS "$2/_deps/$3/cmake_install.cmake")`n$1  include("$2/_deps/$3/cmake_install.cmake")`n$1endif()'
+          Set-Content cmake_install.cmake $content
+          Write-Host "Patched cmake_install.cmake to handle missing dependency install scripts"
 
       - name: Package artifacts (Windows)
         if: matrix.platform == 'windows'
