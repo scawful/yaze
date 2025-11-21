@@ -18,6 +18,7 @@
 #include "dungeon_room_selector.h"
 #include "imgui/imgui.h"
 #include "object_editor_card.h"
+#include "zelda3/dungeon/dungeon_editor_system.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_entrance.h"
 
@@ -48,6 +49,9 @@ class DungeonEditorV2 : public Editor {
         object_selector_(rom),
         object_emulator_preview_() {
     type_ = EditorType::kDungeon;
+    if (rom) {
+        editor_system_ = zelda3::CreateDungeonEditorSystem(rom);
+    }
   }
 
   // Editor interface
@@ -55,8 +59,8 @@ class DungeonEditorV2 : public Editor {
   void Initialize() override;
   absl::Status Load();
   absl::Status Update() override;
-  absl::Status Undo() override { return absl::UnimplementedError("Undo"); }
-  absl::Status Redo() override { return absl::UnimplementedError("Redo"); }
+  absl::Status Undo() override;
+  absl::Status Redo() override;
   absl::Status Cut() override { return absl::UnimplementedError("Cut"); }
   absl::Status Copy() override { return absl::UnimplementedError("Copy"); }
   absl::Status Paste() override { return absl::UnimplementedError("Paste"); }
@@ -147,6 +151,7 @@ class DungeonEditorV2 : public Editor {
   gui::PaletteEditorWidget palette_editor_;
   std::unique_ptr<ObjectEditorCard>
       object_editor_card_;  // Unified object editor
+  std::unique_ptr<zelda3::DungeonEditorSystem> editor_system_;
 
   bool is_loaded_ = false;
 

@@ -8,12 +8,14 @@
 
 namespace yaze::editor {
 
-ObjectEditorCard::ObjectEditorCard(gfx::IRenderer* renderer, Rom* rom,
-                                   DungeonCanvasViewer* canvas_viewer)
+ObjectEditorCard::ObjectEditorCard(
+    gfx::IRenderer* renderer, Rom* rom, DungeonCanvasViewer* canvas_viewer,
+    std::shared_ptr<zelda3::DungeonObjectEditor> object_editor)
     : renderer_(renderer),
       rom_(rom),
       canvas_viewer_(canvas_viewer),
-      object_selector_(rom) {
+      object_selector_(rom),
+      object_editor_(object_editor) {
   emulator_preview_.Initialize(renderer, rom);
 }
 
@@ -81,6 +83,9 @@ void ObjectEditorCard::Draw(bool* p_open) {
 
       ImGui::EndTabBar();
     }
+
+    // Handle keyboard shortcuts
+    HandleKeyboardShortcuts();
   }
   card.End();
 }
@@ -139,6 +144,13 @@ void ObjectEditorCard::DrawObjectSelector() {
           canvas_viewer_->SetPreviewObject(preview_object_);
           canvas_viewer_->SetObjectInteractionEnabled(true);
           interaction_mode_ = InteractionMode::Place;
+
+          // Update ObjectEditor state if available
+          if (object_editor_) {
+            object_editor_->SetMode(zelda3::DungeonObjectEditor::Mode::kInsert);
+            object_editor_->SetCurrentObjectType(i);
+            // Note: Size and layer would ideally be set here too
+          }
         }
 
         ImGui::EndGroup();
@@ -324,6 +336,227 @@ void ObjectEditorCard::DrawSelectedObjectInfo() {
   }
 
   ImGui::EndGroup();
+}
+
+// ============================================================================
+// Keyboard Shortcuts Implementation
+// ============================================================================
+
+void ObjectEditorCard::HandleKeyboardShortcuts() {
+  // Only process shortcuts when editor window has focus
+  if (!ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows)) {
+    return;
+  }
+
+  const ImGuiIO& io = ImGui::GetIO();
+
+  // Ctrl+A: Select all objects
+  if (ImGui::IsKeyPressed(ImGuiKey_A) && io.KeyCtrl && !io.KeyShift) {
+    SelectAllObjects();
+  }
+
+  // Ctrl+Shift+A: Deselect all
+  if (ImGui::IsKeyPressed(ImGuiKey_A) && io.KeyCtrl && io.KeyShift) {
+    DeselectAllObjects();
+  }
+
+  // Delete: Remove selected objects
+  if (ImGui::IsKeyPressed(ImGuiKey_Delete)) {
+    DeleteSelectedObjects();
+  }
+
+  // Ctrl+D: Duplicate selected objects
+  if (ImGui::IsKeyPressed(ImGuiKey_D) && io.KeyCtrl) {
+    DuplicateSelectedObjects();
+  }
+
+  // Ctrl+C: Copy selected objects
+  if (ImGui::IsKeyPressed(ImGuiKey_C) && io.KeyCtrl) {
+    CopySelectedObjects();
+  }
+
+  // Ctrl+V: Paste objects
+  if (ImGui::IsKeyPressed(ImGuiKey_V) && io.KeyCtrl) {
+    PasteObjects();
+  }
+
+  // Ctrl+Z: Undo
+  if (ImGui::IsKeyPressed(ImGuiKey_Z) && io.KeyCtrl && !io.KeyShift) {
+    if (object_editor_) {
+      object_editor_->Undo();
+    }
+  }
+
+  // Ctrl+Shift+Z or Ctrl+Y: Redo
+  if ((ImGui::IsKeyPressed(ImGuiKey_Z) && io.KeyCtrl && io.KeyShift) ||
+      (ImGui::IsKeyPressed(ImGuiKey_Y) && io.KeyCtrl)) {
+    if (object_editor_) {
+      object_editor_->Redo();
+    }
+  }
+
+  // G: Toggle grid
+  if (ImGui::IsKeyPressed(ImGuiKey_G) && !io.KeyCtrl) {
+    show_grid_ = !show_grid_;
+  }
+
+  // I: Toggle object ID labels
+  if (ImGui::IsKeyPressed(ImGuiKey_I) && !io.KeyCtrl) {
+    show_object_ids_ = !show_object_ids_;
+    if (canvas_viewer_) {
+      canvas_viewer_->object_interaction().SetShowObjectIDs(show_object_ids_);
+    }
+  }
+
+  // Arrow keys: Nudge selected objects
+  if (!io.KeyCtrl) {
+    int dx = 0, dy = 0;
+    if (ImGui::IsKeyPressed(ImGuiKey_LeftArrow)) dx = -1;
+    if (ImGui::IsKeyPressed(ImGuiKey_RightArrow)) dx = 1;
+    if (ImGui::IsKeyPressed(ImGuiKey_UpArrow)) dy = -1;
+    if (ImGui::IsKeyPressed(ImGuiKey_DownArrow)) dy = 1;
+
+    if (dx != 0 || dy != 0) {
+      NudgeSelectedObjects(dx, dy);
+    }
+  }
+
+  // Tab: Cycle through objects
+  if (ImGui::IsKeyPressed(ImGuiKey_Tab) && !io.KeyCtrl) {
+    CycleObjectSelection(io.KeyShift ? -1 : 1);
+  }
+
+  // Escape: Deselect all
+  if (ImGui::IsKeyPressed(ImGuiKey_Escape)) {
+    DeselectAllObjects();
+  }
+}
+
+void ObjectEditorCard::SelectAllObjects() {
+  if (!canvas_viewer_ || !object_editor_) return;
+
+  auto& interaction = canvas_viewer_->object_interaction();
+  const auto& objects = object_editor_->GetCurrentRoomObjects();
+  std::vector<size_t> all_indices;
+
+  for (size_t i = 0; i < objects.size(); ++i) {
+    all_indices.push_back(i);
+  }
+
+  interaction.SetSelectedObjects(all_indices);
+}
+
+void ObjectEditorCard::DeselectAllObjects() {
+  if (!canvas_viewer_) return;
+  canvas_viewer_->object_interaction().ClearSelection();
+}
+
+void ObjectEditorCard::DeleteSelectedObjects() {
+  if (!object_editor_ || !canvas_viewer_) return;
+
+  auto& interaction = canvas_viewer_->object_interaction();
+  const auto& selected = interaction.GetSelectedObjectIndices();
+
+  if (selected.empty()) return;
+
+  // Show confirmation for bulk delete (more than 5 objects)
+  if (selected.size() > 5) {
+    // TODO: Add modal confirmation dialog
+    // For now, just proceed with deletion
+  }
+
+  // Delete in reverse order to maintain indices
+  std::vector<size_t> sorted_indices(selected.begin(), selected.end());
+  std::sort(sorted_indices.rbegin(), sorted_indices.rend());
+
+  for (size_t idx : sorted_indices) {
+    object_editor_->DeleteObject(idx);
+  }
+
+  interaction.ClearSelection();
+}
+
+void ObjectEditorCard::DuplicateSelectedObjects() {
+  if (!object_editor_ || !canvas_viewer_) return;
+
+  auto& interaction = canvas_viewer_->object_interaction();
+  const auto& selected = interaction.GetSelectedObjectIndices();
+
+  if (selected.empty()) return;
+
+  std::vector<size_t> new_indices;
+
+  for (size_t idx : selected) {
+    // Duplicate with small offset (1 tile right, 1 tile down)
+    auto new_idx = object_editor_->DuplicateObject(idx, 1, 1);
+    if (new_idx.has_value()) {
+      new_indices.push_back(*new_idx);
+    }
+  }
+
+  // Select the new objects
+  interaction.SetSelectedObjects(new_indices);
+}
+
+void ObjectEditorCard::CopySelectedObjects() {
+  if (!object_editor_ || !canvas_viewer_) return;
+
+  auto& interaction = canvas_viewer_->object_interaction();
+  const auto& selected = interaction.GetSelectedObjectIndices();
+
+  if (selected.empty()) return;
+
+  // Copy selected objects to clipboard (via object editor)
+  object_editor_->CopySelectedObjects(selected);
+}
+
+void ObjectEditorCard::PasteObjects() {
+  if (!object_editor_ || !canvas_viewer_) return;
+
+  // Paste objects from clipboard
+  auto new_indices = object_editor_->PasteObjects();
+
+  if (!new_indices.empty()) {
+    // Select the pasted objects
+    canvas_viewer_->object_interaction().SetSelectedObjects(new_indices);
+  }
+}
+
+void ObjectEditorCard::NudgeSelectedObjects(int dx, int dy) {
+  if (!object_editor_ || !canvas_viewer_) return;
+
+  auto& interaction = canvas_viewer_->object_interaction();
+  const auto& selected = interaction.GetSelectedObjectIndices();
+
+  if (selected.empty()) return;
+
+  for (size_t idx : selected) {
+    object_editor_->MoveObject(idx, dx, dy);
+  }
+}
+
+void ObjectEditorCard::CycleObjectSelection(int direction) {
+  if (!canvas_viewer_ || !object_editor_) return;
+
+  auto& interaction = canvas_viewer_->object_interaction();
+  const auto& selected = interaction.GetSelectedObjectIndices();
+  const auto& objects = object_editor_->GetCurrentRoomObjects();
+
+  size_t total_objects = objects.size();
+  if (total_objects == 0) return;
+
+  size_t current_idx = selected.empty() ? 0 : selected.front();
+  size_t next_idx = (current_idx + direction + total_objects) % total_objects;
+
+  interaction.SetSelectedObjects({next_idx});
+
+  // Scroll to selected object
+  ScrollToObject(next_idx);
+}
+
+void ObjectEditorCard::ScrollToObject(size_t index) {
+  // TODO: Implement scrolling canvas to show object at index
+  // This would require canvas viewer API to scroll to specific coordinates
 }
 
 }  // namespace yaze::editor

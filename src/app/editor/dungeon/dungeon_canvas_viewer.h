@@ -8,6 +8,7 @@
 #include "app/rom.h"
 #include "dungeon_object_interaction.h"
 #include "imgui/imgui.h"
+#include "zelda3/dungeon/dungeon_editor_system.h"
 #include "zelda3/dungeon/room.h"
 
 namespace yaze {
@@ -54,6 +55,10 @@ class DungeonCanvasViewer {
 
   // Object interaction access
   DungeonObjectInteraction& object_interaction() { return object_interaction_; }
+
+  void SetEditorSystem(zelda3::DungeonEditorSystem* system) {
+    object_interaction_.SetEditorSystem(system);
+  }
 
   // Enable/disable object interaction mode
   void SetObjectInteractionEnabled(bool enabled) {
