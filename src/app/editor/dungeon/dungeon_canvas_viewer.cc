@@ -5,6 +5,7 @@
 #include "app/gfx/types/snes_palette.h"
 #include "app/gui/core/input.h"
 #include "app/rom.h"
+#include "app/editor/agent/agent_ui_theme.h"
 #include "imgui/imgui.h"
 #include "util/log.h"
 #include "zelda3/dungeon/room.h"
@@ -548,6 +549,7 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
       object_interaction_.DrawSelectBox();
       object_interaction_
           .DrawSelectionHighlights();  // Draw selection highlights on top
+      object_interaction_.DrawGhostPreview();  // Draw ghost preview for object placement
       object_interaction_.ShowContextMenu();  // Show dungeon-aware context menu
     }
   }
@@ -602,16 +604,16 @@ void DungeonCanvasViewer::RenderSprites(const zelda3::Room& room) {
 
       // Color-code sprites based on layer
       if (sprite.layer() == 0) {
-        sprite_color = ImVec4(0.2f, 0.8f, 0.2f, 0.8f);  // Green for layer 0
+        sprite_color = theme.dungeon_sprite_layer0;  // Green for layer 0
       } else {
-        sprite_color = ImVec4(0.2f, 0.2f, 0.8f, 0.8f);  // Blue for layer 1
+        sprite_color = theme.dungeon_sprite_layer1;  // Blue for layer 1
       }
 
       canvas_.DrawRect(canvas_x, canvas_y, 8, 8, sprite_color);
 
       // Draw sprite border
-      canvas_.DrawRect(canvas_x, canvas_y, 8, 8,
-                       ImVec4(0.0f, 0.0f, 0.0f, 1.0f));
+      const auto& theme = AgentUI::GetTheme();
+      canvas_.DrawRect(canvas_x, canvas_y, 8, 8, theme.panel_border);
 
       // Draw sprite ID and name
       std::string sprite_text;
@@ -782,11 +784,11 @@ void DungeonCanvasViewer::DrawObjectPositionOutlines(const zelda3::Room& room) {
     // Color-code by layer
     ImVec4 outline_color;
     if (obj.GetLayerValue() == 0) {
-      outline_color = ImVec4(1.0f, 0.0f, 0.0f, 0.5f);  // Red for layer 0
+      outline_color = theme.dungeon_outline_layer0;  // Red for layer 0
     } else if (obj.GetLayerValue() == 1) {
-      outline_color = ImVec4(0.0f, 1.0f, 0.0f, 0.5f);  // Green for layer 1
+      outline_color = theme.dungeon_outline_layer1;  // Green for layer 1
     } else {
-      outline_color = ImVec4(0.0f, 0.0f, 1.0f, 0.5f);  // Blue for layer 2
+      outline_color = theme.dungeon_outline_layer2;  // Blue for layer 2
     }
 
     // Draw outline rectangle

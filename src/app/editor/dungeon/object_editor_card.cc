@@ -4,6 +4,7 @@
 #include "app/gfx/backend/irenderer.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/ui_helpers.h"
+#include "app/editor/agent/agent_ui_theme.h"
 #include "imgui/imgui.h"
 
 namespace yaze::editor {
@@ -24,7 +25,7 @@ void ObjectEditorCard::Draw(bool* p_open) {
 
   if (card.Begin(p_open)) {
     // Interaction mode controls at top (moved from tab)
-    ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f), "Mode:");
+    ImGui::TextColored(theme.text_secondary_gray, "Mode:");
     ImGui::SameLine();
 
     if (ImGui::RadioButton("None",
@@ -206,7 +207,7 @@ void ObjectEditorCard::DrawObjectSelector() {
 }
 
 void ObjectEditorCard::DrawEmulatorPreview() {
-  ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f),
+  ImGui::TextColored(theme.text_secondary_gray,
                      ICON_MD_INFO " Real-time object rendering preview");
   ImGui::Separator();
 
@@ -246,30 +247,34 @@ void ObjectEditorCard::DrawObjectPreviewIcon(int object_id,
   ImVec2 box_max = ImVec2(cursor_pos.x + size.x, cursor_pos.y + size.y);
 
   // Draw background
-  draw_list->AddRectFilled(box_min, box_max, IM_COL32(40, 40, 45, 255));
-  draw_list->AddRect(box_min, box_max, IM_COL32(100, 100, 100, 255));
+  draw_list->AddRectFilled(box_min, box_max, ImGui::GetColorU32(theme.box_bg_dark));
+  draw_list->AddRect(box_min, box_max, ImGui::GetColorU32(theme.box_border));
 
   // Draw a simple representation based on object ID
   // For now, use colored squares and icons as placeholders
   // Later this can be replaced with actual object bitmaps
 
-  // Color based on object ID for visual variety
+  // Color based on object ID for visual variety, using theme accent as base
   float hue = (object_id % 16) / 16.0f;
+  ImVec4 base_color = theme.accent_color;
   ImU32 obj_color = ImGui::ColorConvertFloat4ToU32(
-      ImVec4(0.5f + hue * 0.3f, 0.4f, 0.6f - hue * 0.2f, 1.0f));
+      ImVec4(base_color.x * (0.7f + hue * 0.3f),
+             base_color.y * (0.7f + hue * 0.3f),
+             base_color.z * (0.7f + hue * 0.3f),
+             1.0f));
 
   // Draw inner colored square (16x16 in the center)
   ImVec2 inner_min = ImVec2(cursor_pos.x + 8, cursor_pos.y + 8);
   ImVec2 inner_max = ImVec2(cursor_pos.x + 24, cursor_pos.y + 24);
   draw_list->AddRectFilled(inner_min, inner_max, obj_color);
-  draw_list->AddRect(inner_min, inner_max, IM_COL32(200, 200, 200, 255));
+  draw_list->AddRect(inner_min, inner_max, ImGui::GetColorU32(theme.text_secondary_gray));
 
   // Draw object ID text (very small)
   std::string id_text = absl::StrFormat("%02X", object_id);
   ImVec2 text_size = ImGui::CalcTextSize(id_text.c_str());
   ImVec2 text_pos = ImVec2(cursor_pos.x + (size.x - text_size.x) * 0.5f,
                            cursor_pos.y + size.y - text_size.y - 2);
-  draw_list->AddText(text_pos, IM_COL32(180, 180, 180, 255), id_text.c_str());
+  draw_list->AddText(text_pos, ImGui::GetColorU32(theme.box_text), id_text.c_str());
 
   // Advance cursor
   ImGui::Dummy(size);
@@ -279,7 +284,7 @@ void ObjectEditorCard::DrawSelectedObjectInfo() {
   ImGui::BeginGroup();
 
   // Show current object for placement
-  ImGui::TextColored(ImVec4(0.4f, 0.8f, 1.0f, 1.0f), ICON_MD_INFO " Current:");
+  ImGui::TextColored(theme.text_info, ICON_MD_INFO " Current:");
 
   if (has_preview_object_) {
     ImGui::SameLine();
@@ -301,7 +306,7 @@ void ObjectEditorCard::DrawSelectedObjectInfo() {
   ImGui::SameLine();
   ImGui::Text("|");
   ImGui::SameLine();
-  ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.4f, 1.0f),
+  ImGui::TextColored(theme.text_warning_yellow,
                      ICON_MD_CHECKLIST " Selected: %zu", selected.size());
 
   ImGui::SameLine();
