@@ -106,7 +106,6 @@
       "description": "Optimized release build for Windows (GUI + CLI only, no tests/emulator)",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
-        "CMAKE_SKIP_INSTALL_RULES": "ON",
         "YAZE_BUILD_TESTS": "OFF",
         "YAZE_BUILD_EMU": "OFF",
         "YAZE_ENABLE_GRPC": "ON",
@@ -127,7 +126,6 @@
       },
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
-        "CMAKE_SKIP_INSTALL_RULES": "ON",
         "YAZE_BUILD_TESTS": "OFF",
         "YAZE_BUILD_EMU": "OFF",
         "YAZE_ENABLE_GRPC": "ON",
@@ -148,7 +146,6 @@
       },
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
-        "CMAKE_SKIP_INSTALL_RULES": "ON",
         "YAZE_BUILD_TESTS": "OFF",
         "YAZE_BUILD_EMU": "OFF",
         "YAZE_ENABLE_GRPC": "ON",
