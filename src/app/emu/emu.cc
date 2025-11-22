@@ -28,6 +28,9 @@ ABSL_FLAG(int, emu_max_frames, 180,
           "seconds).");
 ABSL_FLAG(bool, emu_debug_apu, false, "Enable detailed APU/SPC700 logging.");
 ABSL_FLAG(bool, emu_debug_cpu, false, "Enable detailed CPU execution logging.");
+ABSL_FLAG(bool, emu_audio_off, false, "Disable audio playback (debug runs).");
+ABSL_FLAG(int, emu_quit_after_secs, 0,
+          "Force-quit after N seconds (0=disabled). Helpful for CI/smoke.");
 
 using yaze::util::SDL_Deleter;
 
@@ -97,28 +100,33 @@ int main(int argc, char** argv) {
     return EXIT_FAILURE;
   }
 
-  // Initialize audio system
+  // Initialize audio system (optional)
   constexpr int kAudioFrequency = 48000;
-  SDL_AudioSpec want = {};
-  want.freq = kAudioFrequency;
-  want.format = AUDIO_S16;
-  want.channels = 2;
-  want.samples = 2048;
-  want.callback = nullptr;  // Use audio queue
+  const bool audio_enabled = !absl::GetFlag(FLAGS_emu_audio_off);
+  SDL_AudioDeviceID audio_device = 0;
+  std::unique_ptr<int16_t[]> audio_buffer;
+  if (audio_enabled) {
+    SDL_AudioSpec want = {};
+    want.freq = kAudioFrequency;
+    want.format = AUDIO_S16;
+    want.channels = 2;
+    want.samples = 2048;
+    want.callback = nullptr;  // Use audio queue
 
-  SDL_AudioSpec have;
-  SDL_AudioDeviceID audio_device =
-      SDL_OpenAudioDevice(nullptr, 0, &want, &have, 0);
-  if (audio_device == 0) {
-    printf("SDL_OpenAudioDevice failed: %s\n", SDL_GetError());
-    SDL_Quit();
-    return EXIT_FAILURE;
+    SDL_AudioSpec have;
+    audio_device = SDL_OpenAudioDevice(nullptr, 0, &want, &have, 0);
+    if (audio_device == 0) {
+      printf("SDL_OpenAudioDevice failed: %s\n", SDL_GetError());
+      SDL_Quit();
+      return EXIT_FAILURE;
+    }
+
+    // Allocate audio buffer using unique_ptr for automatic cleanup
+    audio_buffer.reset(new int16_t[kAudioFrequency / 50 * 4]);
+    SDL_PauseAudioDevice(audio_device, 0);
+  } else {
+    printf("[EMULATOR] Audio disabled (--emu_audio_off)\n");
   }
-
-  // Allocate audio buffer using unique_ptr for automatic cleanup
-  std::unique_ptr<int16_t[]> audio_buffer(
-      new int16_t[kAudioFrequency / 50 * 4]);
-  SDL_PauseAudioDevice(audio_device, 0);
 
   // Create PPU texture for rendering
   void* ppu_texture = renderer->CreateTexture(512, 480);
@@ -145,6 +153,7 @@ int main(int argc, char** argv) {
   double time_adder = 0.0;
   double wanted_frame_time = 0.0;
   int wanted_samples = 0;
+  double runtime_seconds = 0.0;
   SDL_Event event;
 
   // Load ROM from command-line argument or default
@@ -219,6 +228,15 @@ int main(int argc, char** argv) {
     const double seconds =
         static_cast<double>(delta) / static_cast<double>(count_frequency);
     time_adder += seconds;
+    runtime_seconds += seconds;
+
+    const int quit_after_secs = absl::GetFlag(FLAGS_emu_quit_after_secs);
+    if (quit_after_secs > 0 && runtime_seconds >= quit_after_secs) {
+      printf("\n[EMULATOR] Reached runtime limit (%d s), shutting down...\n",
+             quit_after_secs);
+      running = false;
+      break;
+    }
 
     // Run frame if enough time has elapsed (allow 2ms grace period)
     while (time_adder >= wanted_frame_time - 0.002) {
@@ -265,12 +283,15 @@ int main(int argc, char** argv) {
         }
 
         // Generate audio samples and queue them
-        snes_.SetSamples(audio_buffer.get(), wanted_samples);
-        const uint32_t queued_size = SDL_GetQueuedAudioSize(audio_device);
-        const uint32_t max_queued =
-            wanted_samples * 4 * 6;  // Keep up to 6 frames queued
-        if (queued_size <= max_queued) {
-          SDL_QueueAudio(audio_device, audio_buffer.get(), wanted_samples * 4);
+        if (audio_enabled && audio_device != 0) {
+          snes_.SetSamples(audio_buffer.get(), wanted_samples);
+          const uint32_t queued_size = SDL_GetQueuedAudioSize(audio_device);
+          const uint32_t max_queued =
+              wanted_samples * 4 * 6;  // Keep up to 6 frames queued
+          if (queued_size <= max_queued) {
+            SDL_QueueAudio(audio_device, audio_buffer.get(),
+                           wanted_samples * 4);
+          }
         }
 
         // Render PPU output to texture
@@ -300,9 +321,11 @@ int main(int argc, char** argv) {
   }
 
   // Clean up audio (audio_buffer cleaned up automatically by unique_ptr)
-  SDL_PauseAudioDevice(audio_device, 1);
-  SDL_ClearQueuedAudio(audio_device);
-  SDL_CloseAudioDevice(audio_device);
+  if (audio_device != 0) {
+    SDL_PauseAudioDevice(audio_device, 1);
+    SDL_ClearQueuedAudio(audio_device);
+    SDL_CloseAudioDevice(audio_device);
+  }
 
   // Clean up renderer and window (done automatically by unique_ptr destructors)
   renderer->Shutdown();

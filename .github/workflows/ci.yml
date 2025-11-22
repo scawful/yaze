@@ -195,6 +195,42 @@ jobs:
           test-type: unit
           preset: ci-windows-ai
 
+  ai-smoke:
+    name: "AI Smoke - ${{ matrix.name }}"
+    runs-on: ${{ matrix.os }}
+    needs: [build]
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: "Ubuntu 22.04 AI"
+            os: ubuntu-22.04
+            platform: linux
+            preset: lin-ai
+          - name: "macOS 14 AI"
+            os: macos-14
+            platform: macos
+            preset: mac-ai
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup build environment
+        uses: ./.github/actions/setup-build
+        with:
+          platform: ${{ matrix.platform }}
+          preset: ${{ matrix.preset }}
+          cache-key: ${{ hashFiles('cmake/dependencies.lock') }}
+
+      - name: Run AI smoke
+        shell: bash
+        run: |
+          chmod +x ./scripts/ai_smoke.sh
+          ./scripts/ai_smoke.sh ${{ matrix.preset }} Release
+
   code-quality:
     name: "Code Quality"
     runs-on: ubuntu-22.04

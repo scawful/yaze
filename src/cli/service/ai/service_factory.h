@@ -21,11 +21,19 @@ struct AIServiceConfig {
 
 // Create AI service using command-line flags
 std::unique_ptr<AIService> CreateAIService();
+// Create AI service using flags with explicit status reporting (fails when a
+// chosen provider is misconfigured instead of silently falling back).
+absl::StatusOr<std::unique_ptr<AIService>> CreateAIServiceForCli();
 
 // Create AI service with explicit configuration
 std::unique_ptr<AIService> CreateAIService(const AIServiceConfig& config);
 absl::StatusOr<std::unique_ptr<AIService>> CreateAIServiceStrict(
     const AIServiceConfig& config);
+
+// Resolve provider/model/API key from flags/env with auto-detection (gemini →
+// ollama → mock). Returns an error if the user explicitly requests a provider
+// that is misconfigured.
+absl::StatusOr<AIServiceConfig> ResolveAIConfigFromFlags();
 
 }  // namespace cli
 }  // namespace yaze

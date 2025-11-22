@@ -14,8 +14,17 @@ std::unique_ptr<AIService> CreateAIService(const AIServiceConfig&) {
   return std::make_unique<MockAIService>();
 }
 
+absl::StatusOr<std::unique_ptr<AIService>> CreateAIServiceForCli() {
+  return CreateAIServiceStrict(AIServiceConfig{});
+}
+
 absl::StatusOr<std::unique_ptr<AIService>> CreateAIServiceStrict(
     const AIServiceConfig&) {
+  return absl::FailedPreconditionError(
+      "AI runtime features are disabled in this build");
+}
+
+absl::StatusOr<AIServiceConfig> ResolveAIConfigFromFlags() {
   return absl::FailedPreconditionError(
       "AI runtime features are disabled in this build");
 }

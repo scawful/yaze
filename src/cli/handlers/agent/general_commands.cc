@@ -2,6 +2,7 @@
 #include <filesystem>
 #include <fstream>
 #include <optional>
+#include <iostream>
 #include <sstream>
 #include <string>
 #include <utility>
@@ -119,6 +120,43 @@ absl::Status EnsureRomLoaded(Rom& rom, const std::string& command) {
   return absl::OkStatus();
 }
 
+absl::Status HandleDoctorCommand() {
+  std::cout << "🔍 Running agent doctor...\n";
+  auto config_or = ResolveAIConfigFromFlags();
+  if (!config_or.ok()) {
+    std::cout << "✗ Provider configuration error: " << config_or.status().message()
+              << "\n";
+    return config_or.status();
+  }
+
+  const auto& config = *config_or;
+  std::cout << "   Provider: " << config.provider << "\n";
+  if (config.provider == "gemini") {
+    if (config.gemini_api_key.empty()) {
+      std::cout << "✗ GEMINI_API_KEY missing\n";
+      return absl::FailedPreconditionError("GEMINI_API_KEY missing");
+    }
+    std::cout << "   Gemini API key detected\n";
+  } else if (config.provider == "ollama") {
+    std::cout << "   Ollama host: " << config.ollama_host << "\n";
+    if (!config.model.empty()) {
+      std::cout << "   Model: " << config.model << "\n";
+    }
+  } else if (config.provider == "mock") {
+    std::cout << "   Using mock AI provider (no external calls)\n";
+  }
+
+  auto service_or = CreateAIServiceStrict(config);
+  if (!service_or.ok()) {
+    std::cout << "✗ Provider failed health check: "
+              << service_or.status().message() << "\n";
+    return service_or.status();
+  }
+
+  std::cout << "✅ Agent provider ready\n";
+  return absl::OkStatus();
+}
+
 absl::StatusOr<DescribeOptions> ParseDescribeArgs(
     const std::vector<std::string>& args) {
   DescribeOptions options;
@@ -188,7 +226,7 @@ absl::Status HandleRunCommand(const std::vector<std::string>& arg_vec,
   RETURN_IF_ERROR(EnsureRomLoaded(rom, "agent run --prompt \"<prompt>\""));
 
   // Get commands from the AI service
-  auto ai_service = CreateAIService();  // Use service factory
+  ASSIGN_OR_RETURN(auto ai_service, CreateAIServiceForCli());
   auto response_or = ai_service->GenerateResponse(prompt);
   if (!response_or.ok()) {
     return response_or.status();
@@ -242,7 +280,7 @@ absl::Status HandlePlanCommand(const std::vector<std::string>& arg_vec) {
   }
   std::string prompt = arg_vec[1];
 
-  auto ai_service = CreateAIService();  // Use service factory
+  ASSIGN_OR_RETURN(auto ai_service, CreateAIServiceForCli());
   auto response_or = ai_service->GenerateResponse(prompt);
   if (!response_or.ok()) {
     return response_or.status();

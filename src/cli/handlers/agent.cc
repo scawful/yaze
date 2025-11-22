@@ -26,6 +26,7 @@ absl::Status HandlePlanCommand(const std::vector<std::string>& args);
 absl::Status HandleTestCommand(const std::vector<std::string>& args);
 absl::Status HandleTestConversationCommand(
     const std::vector<std::string>& args);
+absl::Status HandleDoctorCommand();
 absl::Status HandleLearnCommand(const std::vector<std::string>& args);
 absl::Status HandleListCommand();
 absl::Status HandleDiffCommand(Rom& rom, const std::vector<std::string>& args);
@@ -61,6 +62,7 @@ std::string GenerateAgentHelp() {
   help << "  learn                    Manage learned knowledge\n";
   help << "  todo                     Task management\n";
   help << "  test                     Run tests\n";
+  help << "  doctor                   Validate AI provider configuration\n";
   help << "  list/describe            List/describe proposals\n\n";
 
   // Auto-list available tool commands from registry
@@ -167,6 +169,10 @@ absl::Status HandleAgentCommand(const std::vector<std::string>& arg_vec) {
 
   if (subcommand == "learn") {
     return agent::HandleLearnCommand(subcommand_args);
+  }
+
+  if (subcommand == "doctor") {
+    return agent::HandleDoctorCommand();
   }
 
   if (subcommand == "todo") {
