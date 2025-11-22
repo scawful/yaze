@@ -88,6 +88,8 @@ target_link_libraries(yaze_app_core_lib PUBLIC
   yaze_gfx
   yaze_zelda3
   yaze_common
+  yaze_editor      # Controller uses EditorManager
+  yaze_gui         # Controller uses DockSpaceRenderer, WidgetIdRegistry
   ImGui
   ${ABSL_TARGETS}
   ${YAZE_SDL2_TARGETS}
