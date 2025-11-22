@@ -9,32 +9,32 @@
 #include <unordered_map>
 #include <vector>
 
-#include "util/sdl_deleter.h"
-#include "app/gfx/render/background_buffer.h"
 #include "app/gfx/core/bitmap.h"
+#include "app/gfx/render/background_buffer.h"
+#include "util/sdl_deleter.h"
 
 namespace yaze {
 namespace gfx {
 
 /**
  * @brief Resource management arena for efficient graphics memory handling
- * 
+ *
  * The Arena class provides centralized management of SDL textures and surfaces
  * for the YAZE ROM hacking editor. It implements several key optimizations:
- * 
+ *
  * Key Features:
  * - Singleton pattern for global access across all graphics components
  * - Automatic resource cleanup with RAII-style management
  * - Memory pooling to reduce allocation overhead
  * - Support for 223 graphics sheets (YAZE's full graphics space)
  * - Background buffer management for SNES layer rendering
- * 
+ *
  * Performance Optimizations:
  * - Unique_ptr with custom deleters for automatic SDL resource cleanup
  * - Hash map storage for O(1) texture/surface lookup
  * - Batch resource management to minimize SDL calls
  * - Pre-allocated graphics sheet array for fast access
- * 
+ *
  * ROM Hacking Specific:
  * - Fixed-size graphics sheet array (223 sheets) matching YAZE's graphics space
  * - Background buffer support for SNES layer 1 and layer 2 rendering
@@ -52,7 +52,7 @@ class Arena {
   enum class TextureCommandType { CREATE, UPDATE, DESTROY };
   struct TextureCommand {
     TextureCommandType type;
-    Bitmap* bitmap; // The bitmap that needs a texture operation
+    Bitmap* bitmap;  // The bitmap that needs a texture operation
   };
 
   void QueueTextureCommand(TextureCommandType type, Bitmap* bitmap);
@@ -61,14 +61,18 @@ class Arena {
   // --- Surface Management (unchanged) ---
   SDL_Surface* AllocateSurface(int width, int height, int depth, int format);
   void FreeSurface(SDL_Surface* surface);
-  
+
   void Shutdown();
-  
+
   // Resource tracking for debugging
   size_t GetTextureCount() const { return textures_.size(); }
   size_t GetSurfaceCount() const { return surfaces_.size(); }
-  size_t GetPooledTextureCount() const { return texture_pool_.available_textures_.size(); }
-  size_t GetPooledSurfaceCount() const { return surface_pool_.available_surfaces_.size(); }
+  size_t GetPooledTextureCount() const {
+    return texture_pool_.available_textures_.size();
+  }
+  size_t GetPooledSurfaceCount() const {
+    return surface_pool_.available_surfaces_.size();
+  }
 
   // Graphics sheet access (223 total sheets in YAZE)
   /**
@@ -76,27 +80,27 @@ class Arena {
    * @return Reference to array of 223 Bitmap objects
    */
   std::array<gfx::Bitmap, 223>& gfx_sheets() { return gfx_sheets_; }
-  
+
   /**
    * @brief Get a specific graphics sheet by index
    * @param i Sheet index (0-222)
    * @return Copy of the Bitmap at index i
    */
   auto gfx_sheet(int i) { return gfx_sheets_[i]; }
-  
+
   /**
    * @brief Get mutable reference to a specific graphics sheet
    * @param i Sheet index (0-222)
    * @return Pointer to mutable Bitmap at index i
    */
   auto mutable_gfx_sheet(int i) { return &gfx_sheets_[i]; }
-  
+
   /**
    * @brief Get mutable reference to all graphics sheets
    * @return Pointer to mutable array of 223 Bitmap objects
    */
   auto mutable_gfx_sheets() { return &gfx_sheets_; }
-  
+
   /**
    * @brief Notify Arena that a graphics sheet has been modified
    * @param sheet_index Index of the modified sheet (0-222)
@@ -110,7 +114,7 @@ class Arena {
    * @return Reference to BackgroundBuffer for layer 1
    */
   auto& bg1() { return bg1_; }
-  
+
   /**
    * @brief Get reference to background layer 2 buffer
    * @return Reference to BackgroundBuffer for layer 2
@@ -149,7 +153,8 @@ class Arena {
 
   struct SurfacePool {
     std::vector<SDL_Surface*> available_surfaces_;
-    std::unordered_map<SDL_Surface*, std::tuple<int, int, int, int>> surface_info_;
+    std::unordered_map<SDL_Surface*, std::tuple<int, int, int, int>>
+        surface_info_;
     static constexpr size_t MAX_POOL_SIZE = 100;
   } surface_pool_;
 

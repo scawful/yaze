@@ -19,13 +19,13 @@ class DialogueListCommandHandler : public resources::CommandHandler {
   std::string GetUsage() const {
     return "dialogue-list [--limit <limit>] [--format <json|text>]";
   }
-  
+
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
     return absl::OkStatus();  // No required args
   }
-  
+
   absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
-                      resources::OutputFormatter& formatter) override;
+                       resources::OutputFormatter& formatter) override;
 };
 
 /**
@@ -40,13 +40,13 @@ class DialogueReadCommandHandler : public resources::CommandHandler {
   std::string GetUsage() const {
     return "dialogue-read --id <message_id> [--format <json|text>]";
   }
-  
+
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
     return parser.RequireArgs({"id"});
   }
-  
+
   absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
-                      resources::OutputFormatter& formatter) override;
+                       resources::OutputFormatter& formatter) override;
 };
 
 /**
@@ -59,15 +59,16 @@ class DialogueSearchCommandHandler : public resources::CommandHandler {
     return "Search dialogue messages by text content";
   }
   std::string GetUsage() const {
-    return "dialogue-search --query <query> [--limit <limit>] [--format <json|text>]";
+    return "dialogue-search --query <query> [--limit <limit>] [--format "
+           "<json|text>]";
   }
-  
+
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
     return parser.RequireArgs({"query"});
   }
-  
+
   absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
-                      resources::OutputFormatter& formatter) override;
+                       resources::OutputFormatter& formatter) override;
 };
 
 }  // namespace handlers

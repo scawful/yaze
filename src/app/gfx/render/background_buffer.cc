@@ -18,21 +18,26 @@ BackgroundBuffer::BackgroundBuffer(int width, int height)
 }
 
 void BackgroundBuffer::SetTileAt(int x, int y, uint16_t value) {
-  if (x < 0 || y < 0) return;
+  if (x < 0 || y < 0)
+    return;
   int tiles_w = width_ / 8;
   int tiles_h = height_ / 8;
-  if (x >= tiles_w || y >= tiles_h) return;
+  if (x >= tiles_w || y >= tiles_h)
+    return;
   buffer_[y * tiles_w + x] = value;
 }
 
 uint16_t BackgroundBuffer::GetTileAt(int x, int y) const {
   int tiles_w = width_ / 8;
   int tiles_h = height_ / 8;
-  if (x < 0 || y < 0 || x >= tiles_w || y >= tiles_h) return 0;
+  if (x < 0 || y < 0 || x >= tiles_w || y >= tiles_h)
+    return 0;
   return buffer_[y * tiles_w + x];
 }
 
-void BackgroundBuffer::ClearBuffer() { std::ranges::fill(buffer_, 0); }
+void BackgroundBuffer::ClearBuffer() {
+  std::ranges::fill(buffer_, 0);
+}
 
 void BackgroundBuffer::DrawTile(const TileInfo& tile, uint8_t* canvas,
                                 const uint8_t* tiledata, int indexoffset) {
@@ -40,12 +45,16 @@ void BackgroundBuffer::DrawTile(const TileInfo& tile, uint8_t* canvas,
   // Calculate tile position in the tilesheet
   int tile_x = (tile.id_ % 16) * 8;  // 16 tiles per row, 8 pixels per tile
   int tile_y = (tile.id_ / 16) * 8;  // Each row is 16 tiles
-  
+
   // DEBUG: For floor tiles, check what we're actually reading
   static int debug_count = 0;
-  if (debug_count < 4 && (tile.id_ == 0xEC || tile.id_ == 0xED || tile.id_ == 0xFC || tile.id_ == 0xFD)) {
-    LOG_DEBUG("[DrawTile]", "Floor tile 0x%02X at sheet pos (%d,%d), palette=%d, mirror=(%d,%d)",
-           tile.id_, tile_x, tile_y, tile.palette_, tile.horizontal_mirror_, tile.vertical_mirror_);
+  if (debug_count < 4 && (tile.id_ == 0xEC || tile.id_ == 0xED ||
+                          tile.id_ == 0xFC || tile.id_ == 0xFD)) {
+    LOG_DEBUG(
+        "[DrawTile]",
+        "Floor tile 0x%02X at sheet pos (%d,%d), palette=%d, mirror=(%d,%d)",
+        tile.id_, tile_x, tile_y, tile.palette_, tile.horizontal_mirror_,
+        tile.vertical_mirror_);
     LOG_DEBUG("[DrawTile]", "First row (8 pixels): ");
     for (int i = 0; i < 8; i++) {
       int src_index = tile_y * 128 + (tile_x + i);
@@ -58,7 +67,7 @@ void BackgroundBuffer::DrawTile(const TileInfo& tile, uint8_t* canvas,
     }
     debug_count++;
   }
-  
+
   // Dungeon graphics are 3BPP: 8 colors per palette (0-7, 8-15, 16-23, etc.)
   // NOT 4BPP which would be 16 colors per palette!
   // Clamp palette to 0-10 (90 colors / 8 = 11.25, so max palette is 10)
@@ -66,7 +75,7 @@ void BackgroundBuffer::DrawTile(const TileInfo& tile, uint8_t* canvas,
   if (clamped_palette > 10) {
     clamped_palette = clamped_palette % 11;
   }
-  
+
   // For 3BPP: palette offset = palette * 8 (not * 16!)
   uint8_t palette_offset = (uint8_t)(clamped_palette * 8);
 
@@ -76,13 +85,14 @@ void BackgroundBuffer::DrawTile(const TileInfo& tile, uint8_t* canvas,
       // Apply mirroring
       int src_x = tile.horizontal_mirror_ ? (7 - px) : px;
       int src_y = tile.vertical_mirror_ ? (7 - py) : py;
-      
+
       // Read pixel from tiledata (128-pixel-wide bitmap)
       int src_index = (tile_y + src_y) * 128 + (tile_x + src_x);
       uint8_t pixel_index = tiledata[src_index];
-      
+
       // Apply palette offset and write to canvas
-      // For 3BPP: final color = base_pixel (0-7) + palette_offset (0, 8, 16, 24, ...)
+      // For 3BPP: final color = base_pixel (0-7) + palette_offset (0, 8, 16,
+      // 24, ...)
       if (pixel_index == 0) {
         continue;
       }
@@ -99,11 +109,12 @@ void BackgroundBuffer::DrawBackground(std::span<uint8_t> gfx16_data) {
   if ((int)buffer_.size() < tiles_w * tiles_h) {
     buffer_.resize(tiles_w * tiles_h);
   }
-  
-  // NEVER recreate bitmap here - it should be created by DrawFloor or initialized earlier
-  // If bitmap doesn't exist, create it ONCE with zeros
+
+  // NEVER recreate bitmap here - it should be created by DrawFloor or
+  // initialized earlier If bitmap doesn't exist, create it ONCE with zeros
   if (!bitmap_.is_active() || bitmap_.width() == 0) {
-    bitmap_.Create(width_, height_, 8, std::vector<uint8_t>(width_ * height_, 0));
+    bitmap_.Create(width_, height_, 8,
+                   std::vector<uint8_t>(width_ * height_, 0));
   }
 
   // For each tile on the tile buffer
@@ -112,41 +123,44 @@ void BackgroundBuffer::DrawBackground(std::span<uint8_t> gfx16_data) {
   for (int yy = 0; yy < tiles_h; yy++) {
     for (int xx = 0; xx < tiles_w; xx++) {
       uint16_t word = buffer_[xx + yy * tiles_w];
-      
+
       // Skip empty tiles (0xFFFF) - these show the floor
       if (word == 0xFFFF) {
         skipped_count++;
         continue;
       }
-      
+
       // Skip zero tiles - also show the floor
       if (word == 0) {
         skipped_count++;
         continue;
       }
-      
+
       auto tile = gfx::WordToTileInfo(word);
-      
+
       // Skip floor tiles (0xEC-0xFD) - don't overwrite DrawFloor's work
       // These are the animated floor tiles, already drawn by DrawFloor
       if (tile.id_ >= 0xEC && tile.id_ <= 0xFD) {
         skipped_count++;
         continue;
       }
-      
+
       // Calculate pixel offset for tile position (xx, yy) in the 512x512 bitmap
       // Each tile is 8x8, so pixel Y = yy * 8, pixel X = xx * 8
       // Linear offset = (pixel_y * width) + pixel_x = (yy * 8 * 512) + (xx * 8)
       int tile_offset = (yy * 8 * width_) + (xx * 8);
-      DrawTile(tile, bitmap_.mutable_data().data(), gfx16_data.data(), tile_offset);
+      DrawTile(tile, bitmap_.mutable_data().data(), gfx16_data.data(),
+               tile_offset);
       drawn_count++;
     }
   }
   // CRITICAL: Sync bitmap data back to SDL surface!
-  // DrawTile() writes to bitmap_.mutable_data(), but the SDL surface needs updating
+  // DrawTile() writes to bitmap_.mutable_data(), but the SDL surface needs
+  // updating
   if (bitmap_.surface() && bitmap_.mutable_data().size() > 0) {
     SDL_LockSurface(bitmap_.surface());
-    memcpy(bitmap_.surface()->pixels, bitmap_.mutable_data().data(), bitmap_.mutable_data().size());
+    memcpy(bitmap_.surface()->pixels, bitmap_.mutable_data().data(),
+           bitmap_.mutable_data().size());
     SDL_UnlockSurface(bitmap_.surface());
   }
 }
@@ -156,16 +170,18 @@ void BackgroundBuffer::DrawFloor(const std::vector<uint8_t>& rom_data,
                                  uint8_t floor_graphics) {
   // Create bitmap ONCE at the start if it doesn't exist
   if (!bitmap_.is_active() || bitmap_.width() == 0) {
-    LOG_DEBUG("[DrawFloor]", "Creating bitmap: %dx%d, active=%d, width=%d", 
-           width_, height_, bitmap_.is_active(), bitmap_.width());
-    bitmap_.Create(width_, height_, 8, std::vector<uint8_t>(width_ * height_, 0));
-    LOG_DEBUG("[DrawFloor]", "After Create: active=%d, width=%d, height=%d", 
-           bitmap_.is_active(), bitmap_.width(), bitmap_.height());
+    LOG_DEBUG("[DrawFloor]", "Creating bitmap: %dx%d, active=%d, width=%d",
+              width_, height_, bitmap_.is_active(), bitmap_.width());
+    bitmap_.Create(width_, height_, 8,
+                   std::vector<uint8_t>(width_ * height_, 0));
+    LOG_DEBUG("[DrawFloor]", "After Create: active=%d, width=%d, height=%d",
+              bitmap_.is_active(), bitmap_.width(), bitmap_.height());
   } else {
-    LOG_DEBUG("[DrawFloor]", "Bitmap already exists: active=%d, width=%d, height=%d", 
-           bitmap_.is_active(), bitmap_.width(), bitmap_.height());
+    LOG_DEBUG("[DrawFloor]",
+              "Bitmap already exists: active=%d, width=%d, height=%d",
+              bitmap_.is_active(), bitmap_.width(), bitmap_.height());
   }
-  
+
   auto f = (uint8_t)(floor_graphics << 4);
 
   // Create floor tiles from ROM data
@@ -186,9 +202,9 @@ void BackgroundBuffer::DrawFloor(const std::vector<uint8_t>& rom_data,
                            rom_data[tile_address_floor + f + 5]);
   gfx::TileInfo floorTile8(rom_data[tile_address_floor + f + 6],
                            rom_data[tile_address_floor + f + 7]);
-  
-  // Floor tiles specify which 8-color sub-palette from the 90-color dungeon palette
-  // e.g., palette 6 = colors 48-55 (6 * 8 = 48)
+
+  // Floor tiles specify which 8-color sub-palette from the 90-color dungeon
+  // palette e.g., palette 6 = colors 48-55 (6 * 8 = 48)
 
   // Draw the floor tiles in a pattern
   // Convert TileInfo to 16-bit words with palette information

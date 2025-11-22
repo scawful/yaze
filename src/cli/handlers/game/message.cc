@@ -44,13 +44,14 @@ absl::StatusOr<Rom> LoadRomFromFlag() {
 
 std::vector<editor::MessageData> LoadMessages(Rom* rom) {
   // Fix: Cast away constness for ReadAllTextData, which expects uint8_t*
-  return editor::ReadAllTextData(const_cast<uint8_t*>(rom->data()), editor::kTextData);
+  return editor::ReadAllTextData(const_cast<uint8_t*>(rom->data()),
+                                 editor::kTextData);
 }
 
 }  // namespace
 
 absl::Status HandleMessageListCommand(const std::vector<std::string>& arg_vec,
-                                     Rom* rom_context) {
+                                      Rom* rom_context) {
   std::string format = "json";
   int start_id = 0;
   int end_id = -1;  // -1 means all
@@ -66,12 +67,14 @@ absl::Status HandleMessageListCommand(const std::vector<std::string>& arg_vec,
       format = absl::AsciiStrToLower(token.substr(9));
     } else if (token == "--range") {
       if (i + 1 >= arg_vec.size()) {
-        return absl::InvalidArgumentError("--range requires a value (start-end).");
+        return absl::InvalidArgumentError(
+            "--range requires a value (start-end).");
       }
       std::string range = arg_vec[++i];
       size_t dash_pos = range.find('-');
       if (dash_pos == std::string::npos) {
-        return absl::InvalidArgumentError("--range format must be start-end (e.g. 0-100)");
+        return absl::InvalidArgumentError(
+            "--range format must be start-end (e.g. 0-100)");
       }
       if (!absl::SimpleAtoi(range.substr(0, dash_pos), &start_id) ||
           !absl::SimpleAtoi(range.substr(dash_pos + 1), &end_id)) {
@@ -81,7 +84,8 @@ absl::Status HandleMessageListCommand(const std::vector<std::string>& arg_vec,
       std::string range = token.substr(8);
       size_t dash_pos = range.find('-');
       if (dash_pos == std::string::npos) {
-        return absl::InvalidArgumentError("--range format must be start-end (e.g. 0-100)");
+        return absl::InvalidArgumentError(
+            "--range format must be start-end (e.g. 0-100)");
       }
       if (!absl::SimpleAtoi(range.substr(0, dash_pos), &start_id) ||
           !absl::SimpleAtoi(range.substr(dash_pos + 1), &end_id)) {
@@ -108,28 +112,33 @@ absl::Status HandleMessageListCommand(const std::vector<std::string>& arg_vec,
   }
 
   auto messages = LoadMessages(rom);
-  
+
   if (end_id < 0) {
     end_id = static_cast<int>(messages.size()) - 1;
   }
 
-  start_id = std::max(0, std::min(start_id, static_cast<int>(messages.size()) - 1));
-  end_id = std::max(start_id, std::min(end_id, static_cast<int>(messages.size()) - 1));
+  start_id =
+      std::max(0, std::min(start_id, static_cast<int>(messages.size()) - 1));
+  end_id = std::max(start_id,
+                    std::min(end_id, static_cast<int>(messages.size()) - 1));
 
   if (format == "json") {
     std::cout << "{\n";
-    std::cout << absl::StrFormat("  \"total_messages\": %zu,\n", messages.size());
+    std::cout << absl::StrFormat("  \"total_messages\": %zu,\n",
+                                 messages.size());
     std::cout << absl::StrFormat("  \"range\": [%d, %d],\n", start_id, end_id);
     std::cout << "  \"messages\": [\n";
-    
+
     bool first = true;
     for (int i = start_id; i <= end_id; ++i) {
       const auto& msg = messages[i];
-      if (!first) std::cout << ",\n";
+      if (!first)
+        std::cout << ",\n";
       std::cout << "    {\n";
       std::cout << absl::StrFormat("      \"id\": %d,\n", msg.ID);
-      std::cout << absl::StrFormat("      \"address\": \"0x%06X\",\n", msg.Address);
-      
+      std::cout << absl::StrFormat("      \"address\": \"0x%06X\",\n",
+                                   msg.Address);
+
       // Escape quotes in the text
       std::string escaped_text = msg.ContentsParsed;
       size_t pos = 0;
@@ -144,8 +153,8 @@ absl::Status HandleMessageListCommand(const std::vector<std::string>& arg_vec,
     std::cout << "\n  ]\n";
     std::cout << "}\n";
   } else {
-    std::cout << absl::StrFormat("📝 Messages %d-%d (Total: %zu)\n",
-                                start_id, end_id, messages.size());
+    std::cout << absl::StrFormat("📝 Messages %d-%d (Total: %zu)\n", start_id,
+                                 end_id, messages.size());
     std::cout << std::string(60, '=') << "\n";
     for (int i = start_id; i <= end_id; ++i) {
       const auto& msg = messages[i];
@@ -159,7 +168,7 @@ absl::Status HandleMessageListCommand(const std::vector<std::string>& arg_vec,
 }
 
 absl::Status HandleMessageReadCommand(const std::vector<std::string>& arg_vec,
-                                     Rom* rom_context) {
+                                      Rom* rom_context) {
   int message_id = -1;
   std::string format = "json";
 
@@ -211,9 +220,8 @@ absl::Status HandleMessageReadCommand(const std::vector<std::string>& arg_vec,
   auto messages = LoadMessages(rom);
 
   if (message_id >= static_cast<int>(messages.size())) {
-    return absl::NotFoundError(
-        absl::StrFormat("Message ID %d not found (max: %d)", 
-                       message_id, messages.size() - 1));
+    return absl::NotFoundError(absl::StrFormat(
+        "Message ID %d not found (max: %d)", message_id, messages.size() - 1));
   }
 
   const auto& msg = messages[message_id];
@@ -222,7 +230,7 @@ absl::Status HandleMessageReadCommand(const std::vector<std::string>& arg_vec,
     std::cout << "{\n";
     std::cout << absl::StrFormat("  \"id\": %d,\n", msg.ID);
     std::cout << absl::StrFormat("  \"address\": \"0x%06X\",\n", msg.Address);
-    
+
     // Escape quotes
     std::string escaped_text = msg.ContentsParsed;
     size_t pos = 0;
@@ -245,7 +253,7 @@ absl::Status HandleMessageReadCommand(const std::vector<std::string>& arg_vec,
 }
 
 absl::Status HandleMessageSearchCommand(const std::vector<std::string>& arg_vec,
-                                       Rom* rom_context) {
+                                        Rom* rom_context) {
   std::string query;
   std::string format = "json";
 
@@ -306,31 +314,33 @@ absl::Status HandleMessageSearchCommand(const std::vector<std::string>& arg_vec,
     std::cout << absl::StrFormat("  \"query\": \"%s\",\n", query);
     std::cout << absl::StrFormat("  \"match_count\": %zu,\n", matches.size());
     std::cout << "  \"matches\": [\n";
-    
+
     for (size_t i = 0; i < matches.size(); ++i) {
       const auto& msg = messages[matches[i]];
-      if (i > 0) std::cout << ",\n";
-      
+      if (i > 0)
+        std::cout << ",\n";
+
       std::string escaped_text = msg.ContentsParsed;
       size_t pos = 0;
       while ((pos = escaped_text.find('"', pos)) != std::string::npos) {
         escaped_text.insert(pos, "\\");
         pos += 2;
       }
-      
+
       std::cout << "    {\n";
       std::cout << absl::StrFormat("      \"id\": %d,\n", msg.ID);
-      std::cout << absl::StrFormat("      \"address\": \"0x%06X\",\n", msg.Address);
+      std::cout << absl::StrFormat("      \"address\": \"0x%06X\",\n",
+                                   msg.Address);
       std::cout << absl::StrFormat("      \"text\": \"%s\"\n", escaped_text);
       std::cout << "    }";
     }
     std::cout << "\n  ]\n";
     std::cout << "}\n";
   } else {
-    std::cout << absl::StrFormat("🔍 Search: \"%s\" → %zu match(es)\n", 
-                                query, matches.size());
+    std::cout << absl::StrFormat("🔍 Search: \"%s\" → %zu match(es)\n", query,
+                                 matches.size());
     std::cout << std::string(60, '=') << "\n";
-    
+
     for (int match_id : matches) {
       const auto& msg = messages[match_id];
       std::cout << absl::StrFormat("[%03d] @ 0x%06X\n", msg.ID, msg.Address);
@@ -343,7 +353,7 @@ absl::Status HandleMessageSearchCommand(const std::vector<std::string>& arg_vec,
 }
 
 absl::Status HandleMessageStatsCommand(const std::vector<std::string>& arg_vec,
-                                      Rom* rom_context) {
+                                       Rom* rom_context) {
   std::string format = "json";
 
   for (size_t i = 0; i < arg_vec.size(); ++i) {
@@ -380,7 +390,7 @@ absl::Status HandleMessageStatsCommand(const std::vector<std::string>& arg_vec,
   size_t total_bytes = 0;
   size_t max_length = 0;
   size_t min_length = SIZE_MAX;
-  
+
   for (const auto& msg : messages) {
     size_t len = msg.Data.size();
     total_bytes += len;
@@ -388,12 +398,14 @@ absl::Status HandleMessageStatsCommand(const std::vector<std::string>& arg_vec,
     min_length = std::min(min_length, len);
   }
 
-  double avg_length = messages.empty() ? 0.0 : 
-                      static_cast<double>(total_bytes) / messages.size();
+  double avg_length = messages.empty()
+                          ? 0.0
+                          : static_cast<double>(total_bytes) / messages.size();
 
   if (format == "json") {
     std::cout << "{\n";
-    std::cout << absl::StrFormat("  \"total_messages\": %zu,\n", messages.size());
+    std::cout << absl::StrFormat("  \"total_messages\": %zu,\n",
+                                 messages.size());
     std::cout << absl::StrFormat("  \"total_bytes\": %zu,\n", total_bytes);
     std::cout << absl::StrFormat("  \"average_length\": %.2f,\n", avg_length);
     std::cout << absl::StrFormat("  \"min_length\": %zu,\n", min_length);

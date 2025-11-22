@@ -13,19 +13,15 @@ namespace handlers {
 class MusicListCommandHandler : public resources::CommandHandler {
  public:
   std::string GetName() const { return "music-list"; }
-  std::string GetDescription() const {
-    return "List available music tracks";
-  }
-  std::string GetUsage() const {
-    return "music-list [--format <json|text>]";
-  }
-  
+  std::string GetDescription() const { return "List available music tracks"; }
+  std::string GetUsage() const { return "music-list [--format <json|text>]"; }
+
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
     return absl::OkStatus();  // No required args
   }
-  
+
   absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
-                      resources::OutputFormatter& formatter) override;
+                       resources::OutputFormatter& formatter) override;
 };
 
 /**
@@ -40,13 +36,13 @@ class MusicInfoCommandHandler : public resources::CommandHandler {
   std::string GetUsage() const {
     return "music-info --id <track_id> [--format <json|text>]";
   }
-  
+
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
     return parser.RequireArgs({"id"});
   }
-  
+
   absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
-                      resources::OutputFormatter& formatter) override;
+                       resources::OutputFormatter& formatter) override;
 };
 
 /**
@@ -61,13 +57,13 @@ class MusicTracksCommandHandler : public resources::CommandHandler {
   std::string GetUsage() const {
     return "music-tracks [--category <category>] [--format <json|text>]";
   }
-  
+
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
     return absl::OkStatus();  // No required args
   }
-  
+
   absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
-                      resources::OutputFormatter& formatter) override;
+                       resources::OutputFormatter& formatter) override;
 };
 
 }  // namespace handlers

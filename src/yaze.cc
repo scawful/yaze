@@ -9,8 +9,8 @@
 
 #include "app/editor/message/message_data.h"
 #include "app/rom.h"
-#include "zelda3/overworld/overworld.h"
 #include "yaze_config.h"
+#include "zelda3/overworld/overworld.h"
 
 // Static variables for library state
 static bool g_library_initialized = false;
@@ -261,7 +261,8 @@ yaze_status yaze_load_messages(const zelda3_rom* rom, zelda3_message** messages,
 
       (*messages)[i].parsed_text = new char[msg.ContentsParsed.length() + 1];
       // Safe string copy with bounds checking
-      std::memcpy((*messages)[i].parsed_text, msg.ContentsParsed.c_str(), msg.ContentsParsed.length());
+      std::memcpy((*messages)[i].parsed_text, msg.ContentsParsed.c_str(),
+                  msg.ContentsParsed.length());
       (*messages)[i].parsed_text[msg.ContentsParsed.length()] = '\0';
 
       (*messages)[i].is_compressed = false;  // TODO: Detect compression

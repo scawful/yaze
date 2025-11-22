@@ -4,11 +4,12 @@
 #endif
 
 #include <gtest/gtest.h>
+
 #include <filesystem>
 #include <fstream>
 
-#include "core/asar_wrapper.h"
 #include "app/rom.h"
+#include "core/asar_wrapper.h"
 #include "test_utils.h"
 #include "testing.h"
 
@@ -330,7 +331,8 @@ TEST_F(AsarRomIntegrationTest, GameplayModificationPatch) {
   // Check health modification at 0x7EF36C -> ROM offset would need calculation
   // For a proper test, we'd need to convert SNES addresses to ROM offsets
 
-  // Check if custom routine was inserted at 0xC000 -> ROM offset 0x18000 (in LoROM)
+  // Check if custom routine was inserted at 0xC000 -> ROM offset 0x18000 (in
+  // LoROM)
   const uint32_t rom_offset = 0x18000;  // Bank $00:C000 in LoROM
   if (rom_offset < rom_copy.size()) {
     // Check for SEP #$20 instruction (0xE2 0x20)

@@ -1,12 +1,15 @@
 #include "overworld_entity_renderer.h"
 
+#include <string>
+
 #include "absl/strings/str_format.h"
-#include "core/features.h"
 #include "app/editor/overworld/entity.h"
 #include "app/gui/canvas/canvas.h"
-#include "zelda3/common.h"
-#include "util/hex.h"
+#include "core/features.h"
 #include "imgui/imgui.h"
+#include "util/hex.h"
+#include "zelda3/common.h"
+#include "zelda3/overworld/overworld_item.h"
 
 namespace yaze {
 namespace editor {
@@ -15,16 +18,24 @@ using namespace ImGui;
 
 // Entity colors - solid with good visibility
 namespace {
-ImVec4 GetEntranceColor() { return ImVec4{1.0f, 1.0f, 0.0f, 1.0f}; }      // Solid yellow (#FFFF00FF, fully opaque)
-ImVec4 GetExitColor()    { return ImVec4{1.0f, 1.0f, 1.0f, 1.0f}; }        // Solid white (#FFFFFFFF, fully opaque)
-ImVec4 GetItemColor()    { return ImVec4{1.0f, 0.0f, 0.0f, 1.0f}; }        // Solid red (#FF0000FF, fully opaque)
-ImVec4 GetSpriteColor()  { return ImVec4{1.0f, 0.0f, 1.0f, 1.0f}; }        // Solid magenta (#FF00FFFF, fully opaque)
+ImVec4 GetEntranceColor() {
+  return ImVec4{1.0f, 1.0f, 0.0f, 1.0f};
+}  // Solid yellow (#FFFF00FF, fully opaque)
+ImVec4 GetExitColor() {
+  return ImVec4{1.0f, 1.0f, 1.0f, 1.0f};
+}  // Solid white (#FFFFFFFF, fully opaque)
+ImVec4 GetItemColor() {
+  return ImVec4{1.0f, 0.0f, 0.0f, 1.0f};
+}  // Solid red (#FF0000FF, fully opaque)
+ImVec4 GetSpriteColor() {
+  return ImVec4{1.0f, 0.0f, 1.0f, 1.0f};
+}  // Solid magenta (#FF00FFFF, fully opaque)
 }  // namespace
 
 void OverworldEntityRenderer::DrawEntrances(ImVec2 canvas_p0, ImVec2 scrolling,
-                                           int current_world,
-                                           int current_mode) {
-  hovered_entity_ = nullptr;
+                                            int current_world,
+                                            int current_mode) {
+  // Don't reset hovered_entity_ here - DrawExits resets it (called first)
   int i = 0;
   for (auto& each : overworld_->entrances()) {
     if (each.map_id_ < 0x40 + (current_world * 0x40) &&
@@ -41,40 +52,34 @@ void OverworldEntityRenderer::DrawEntrances(ImVec2 canvas_p0, ImVec2 scrolling,
       }
       std::string str = util::HexByte(each.entrance_id_);
 
-
-
-
-
       canvas_->DrawText(str, each.x_, each.y_);
     }
     i++;
   }
-
-
 }
 
 void OverworldEntityRenderer::DrawExits(ImVec2 canvas_p0, ImVec2 scrolling,
-                                       int current_world,
-                                       int current_mode) {
+                                        int current_world, int current_mode) {
+  // Reset hover state at the start of entity rendering (DrawExits is called
+  // first)
+  hovered_entity_ = nullptr;
+
   int i = 0;
   for (auto& each : *overworld_->mutable_exits()) {
     if (each.map_id_ < 0x40 + (current_world * 0x40) &&
         each.map_id_ >= (current_world * 0x40) && !each.deleted_) {
       canvas_->DrawRect(each.x_, each.y_, 16, 16, GetExitColor());
+
       if (IsMouseHoveringOverEntity(each, canvas_p0, scrolling)) {
         hovered_entity_ = &each;
       }
       each.entity_id_ = i;
-      
-
 
       std::string str = util::HexByte(i);
       canvas_->DrawText(str, each.x_, each.y_);
     }
     i++;
   }
-
-
 }
 
 void OverworldEntityRenderer::DrawItems(int current_world, int current_mode) {
@@ -86,12 +91,11 @@ void OverworldEntityRenderer::DrawItems(int current_world, int current_mode) {
       canvas_->DrawRect(item.x_, item.y_, 16, 16, GetItemColor());
 
       if (IsMouseHoveringOverEntity(item, canvas_->zero_point(),
-                                     canvas_->scrolling())) {
+                                    canvas_->scrolling())) {
         hovered_entity_ = &item;
       }
 
-      
-            std::string item_name = "";
+      std::string item_name = "";
       if (item.id_ < zelda3::kSecretItemNames.size()) {
         item_name = zelda3::kSecretItemNames[item.id_];
       } else {
@@ -101,12 +105,10 @@ void OverworldEntityRenderer::DrawItems(int current_world, int current_mode) {
     }
     i++;
   }
-
-
 }
 
 void OverworldEntityRenderer::DrawSprites(int current_world, int game_state,
-                                         int current_mode) {
+                                          int current_mode) {
   int i = 0;
   for (auto& sprite : *overworld_->mutable_sprites(game_state)) {
     // Filter sprites by current world - only show sprites for the current world
@@ -123,20 +125,19 @@ void OverworldEntityRenderer::DrawSprites(int current_world, int game_state,
 
       canvas_->DrawRect(sprite_x, sprite_y, 16, 16, GetSpriteColor());
       if (IsMouseHoveringOverEntity(sprite, canvas_->zero_point(),
-                                      canvas_->scrolling())) {
+                                    canvas_->scrolling())) {
         hovered_entity_ = &sprite;
       }
-
 
       if (core::FeatureFlags::get().overworld.kDrawOverworldSprites) {
         if ((*sprite_previews_)[sprite.id()].is_active()) {
           canvas_->DrawBitmap((*sprite_previews_)[sprite.id()], sprite_x,
-                             sprite_y, 2.0f);
+                              sprite_y, 2.0f);
         }
       }
 
       canvas_->DrawText(absl::StrFormat("%s", sprite.name()), sprite_x,
-                       sprite_y);
+                        sprite_y);
 
       // Restore original coordinates
       sprite.x_ = original_x;
@@ -144,10 +145,7 @@ void OverworldEntityRenderer::DrawSprites(int current_world, int game_state,
     }
     i++;
   }
-
-
 }
 
 }  // namespace editor
 }  // namespace yaze
-

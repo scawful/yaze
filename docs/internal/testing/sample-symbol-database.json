@@ -1,0 +1,62 @@
+{
+  "metadata": {
+    "platform": "Darwin",
+    "build_dir": "build",
+    "timestamp": "2025-11-20T10:30:45.123456Z",
+    "object_files_scanned": 145,
+    "total_symbols": 8923,
+    "total_conflicts": 2
+  },
+  "conflicts": [
+    {
+      "symbol": "FLAGS_rom",
+      "count": 2,
+      "definitions": [
+        {
+          "object_file": "flags.cc.o",
+          "type": "D"
+        },
+        {
+          "object_file": "emu_test.cc.o",
+          "type": "D"
+        }
+      ]
+    },
+    {
+      "symbol": "g_global_counter",
+      "count": 2,
+      "definitions": [
+        {
+          "object_file": "utils.cc.o",
+          "type": "D"
+        },
+        {
+          "object_file": "utils_test.cc.o",
+          "type": "D"
+        }
+      ]
+    }
+  ],
+  "symbols": {
+    "FLAGS_rom": [
+      {
+        "object_file": "flags.cc.o",
+        "type": "D"
+      },
+      {
+        "object_file": "emu_test.cc.o",
+        "type": "D"
+      }
+    ],
+    "g_global_counter": [
+      {
+        "object_file": "utils.cc.o",
+        "type": "D"
+      },
+      {
+        "object_file": "utils_test.cc.o",
+        "type": "D"
+      }
+    ]
+  }
+}

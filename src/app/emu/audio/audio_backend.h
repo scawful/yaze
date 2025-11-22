@@ -1,5 +1,6 @@
 // audio_backend.h - Audio Backend Abstraction Layer
-// Provides interface for swapping audio implementations (SDL2, SDL3, other libs)
+// Provides interface for swapping audio implementations (SDL2, SDL3, other
+// libs)
 
 #ifndef YAZE_APP_EMU_AUDIO_AUDIO_BACKEND_H
 #define YAZE_APP_EMU_AUDIO_AUDIO_BACKEND_H
@@ -39,7 +40,7 @@ struct AudioStatus {
 
 /**
  * @brief Abstract audio backend interface
- * 
+ *
  * Allows swapping between SDL2, SDL3, or custom audio implementations
  * without changing emulator/music editor code.
  */
@@ -60,8 +61,9 @@ class IAudioBackend {
   // Audio data
   virtual bool QueueSamples(const int16_t* samples, int num_samples) = 0;
   virtual bool QueueSamples(const float* samples, int num_samples) = 0;
-  virtual bool QueueSamplesNative(const int16_t* samples, int frames_per_channel,
-                                  int channels, int native_rate) {
+  virtual bool QueueSamplesNative(const int16_t* samples,
+                                  int frames_per_channel, int channels,
+                                  int native_rate) {
     return false;
   }
 
@@ -138,7 +140,7 @@ class AudioBackendFactory {
  public:
   enum class BackendType {
     SDL2,
-    SDL3,  // Future
+    SDL3,         // Future
     NULL_BACKEND  // For testing/headless
   };
 

@@ -8,22 +8,24 @@ set(CMAKE_POLICY_VERSION_MINIMUM 3.5 CACHE STRING "Minimum policy version for su
 
 # Set policies for compatibility
 cmake_policy(SET CMP0091 NEW)
-
-# Ensure we consistently use the static MSVC runtime (/MT, /MTd) to match vcpkg static triplets
-set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>" CACHE STRING "" FORCE)
+# CMP0091 allows CMAKE_MSVC_RUNTIME_LIBRARY to be set by presets
+# Windows presets specify dynamic CRT (/MD) to avoid linking issues
 cmake_policy(SET CMP0048 NEW)
 cmake_policy(SET CMP0077 NEW)
 
 # Enable Objective-C only on macOS where it's actually used
 if(CMAKE_SYSTEM_NAME MATCHES "Darwin")
-    project(yaze VERSION 0.3.2
+    project(yaze VERSION 0.3.3
                  DESCRIPTION "Yet Another Zelda3 Editor"
                  LANGUAGES CXX C OBJC OBJCXX)
 else()
-    project(yaze VERSION 0.3.2
+    project(yaze VERSION 0.3.3
                  DESCRIPTION "Yet Another Zelda3 Editor"
                  LANGUAGES CXX C)
 endif()
+
+# Include build options first
+include(cmake/options.cmake)
 
 # Enable ccache for faster rebuilds if available
 find_program(CCACHE_FOUND ccache)
@@ -36,7 +38,7 @@ endif()
 # Set project metadata
 set(YAZE_VERSION_MAJOR 0)
 set(YAZE_VERSION_MINOR 3)
-set(YAZE_VERSION_PATCH 2)
+set(YAZE_VERSION_PATCH 3)
 
 # Suppress deprecation warnings from submodules
 set(CMAKE_WARN_DEPRECATED OFF CACHE BOOL "Suppress deprecation warnings")
@@ -47,46 +49,10 @@ set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
 # Include utility functions
 include(cmake/utils.cmake)
 
-# Build Flags
-set(YAZE_BUILD_APP ON)
-set(YAZE_BUILD_LIB ON)
-set(YAZE_BUILD_EMU ON)
-set(YAZE_BUILD_Z3ED ON)
-set(YAZE_BUILD_TESTS ON CACHE BOOL "Build test suite")
-set(YAZE_INSTALL_LIB OFF)
+# Set up dependencies using CPM.cmake
+include(cmake/dependencies.cmake)
 
-# Testing and CI Configuration
-option(YAZE_ENABLE_ROM_TESTS "Enable tests that require ROM files" OFF)
-option(YAZE_MINIMAL_BUILD "Minimal build for CI (disable optional features)" OFF)
-option(YAZE_UNITY_BUILD "Enable Unity (Jumbo) builds" OFF)
-
-# Feature Flags - Simplified: Always enabled by default (use wrapper classes to hide complexity)
-# JSON is header-only with minimal overhead
-# gRPC is only used in agent/cli tools, not in core editor runtime
-set(YAZE_WITH_JSON ON)
-set(YAZE_WITH_GRPC ON)
-set(Z3ED_AI ON)
-
-# Minimal build override - disable only the most expensive features
-if(YAZE_MINIMAL_BUILD)
-  set(YAZE_WITH_GRPC OFF)
-  set(Z3ED_AI OFF)
-  message(STATUS "✓ Minimal build: gRPC and AI disabled")
-else()
-  message(STATUS "✓ Full build: All features enabled (JSON, gRPC, AI)")
-endif()
-
-# Define preprocessor macros for feature flags (so #ifdef works in source code)
-if(YAZE_WITH_GRPC)
-  add_compile_definitions(YAZE_WITH_GRPC)
-endif()
-if(YAZE_WITH_JSON)
-  add_compile_definitions(YAZE_WITH_JSON)
-endif()
-if(Z3ED_AI)
-  add_compile_definitions(Z3ED_AI)
-endif()
-
+# Additional configuration options
 option(YAZE_SUPPRESS_WARNINGS "Suppress compiler warnings (use -v preset suffix for verbose)" ON)
 set(YAZE_TEST_ROM_PATH "${CMAKE_BINARY_DIR}/bin/zelda3.sfc" CACHE STRING "Path to test ROM file")
 
@@ -121,7 +87,6 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(BUILD_SHARED_LIBS OFF)
 
 # Handle dependencies
-include(cmake/dependencies.cmake)
 
 # Project Files
 add_subdirectory(src)
@@ -147,19 +112,22 @@ if(CLANG_FORMAT)
        "${CMAKE_SOURCE_DIR}/test/*.cc"
        "${CMAKE_SOURCE_DIR}/test/*.h")
 
-  add_custom_target(format
+  # Exclude third-party library directories from formatting
+  list(FILTER ALL_SOURCE_FILES EXCLUDE REGEX "src/lib/.*")
+
+  add_custom_target(yaze-format
     COMMAND ${CLANG_FORMAT} -i --style=Google ${ALL_SOURCE_FILES}
     COMMENT "Running clang-format on source files"
   )
 
-  add_custom_target(format-check
+  add_custom_target(yaze-format-check
     COMMAND ${CLANG_FORMAT} --dry-run --Werror --style=Google ${ALL_SOURCE_FILES}
     COMMENT "Checking code format"
   )
 endif()
 
 # Packaging configuration
-include(cmake/packaging.cmake)
+include(cmake/packaging/cpack.cmake)
 
 add_custom_target(build_cleaner
   COMMAND ${CMAKE_COMMAND} -E echo "Running scripts/build_cleaner.py --dry-run"

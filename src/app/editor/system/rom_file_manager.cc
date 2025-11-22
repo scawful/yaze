@@ -1,8 +1,8 @@
 #include "rom_file_manager.h"
 
+#include <chrono>
 #include <filesystem>
 #include <fstream>
-#include <chrono>
 
 #include "absl/strings/str_format.h"
 #include "app/editor/system/toast_manager.h"
@@ -50,8 +50,7 @@ absl::Status RomFileManager::SaveRomAs(Rom* rom, const std::string& filename) {
     return absl::FailedPreconditionError("No ROM loaded to save");
   }
   if (filename.empty()) {
-    return absl::InvalidArgumentError(
-        "No filename provided for save as");
+    return absl::InvalidArgumentError("No filename provided for save as");
   }
 
   Rom::SaveSettings settings;
@@ -66,9 +65,8 @@ absl::Status RomFileManager::SaveRomAs(Rom* rom, const std::string& filename) {
         absl::StrFormat("Failed to save ROM as: %s", status.message()),
         ToastType::kError);
   } else if (toast_manager_) {
-    toast_manager_->Show(
-        absl::StrFormat("ROM saved as: %s", filename),
-        ToastType::kSuccess);
+    toast_manager_->Show(absl::StrFormat("ROM saved as: %s", filename),
+                         ToastType::kSuccess);
   }
   return status;
 }
@@ -82,12 +80,10 @@ absl::Status RomFileManager::OpenRomOrProject(Rom* rom,
     return absl::InvalidArgumentError("No filename provided");
   }
 
-  std::string extension =
-      std::filesystem::path(filename).extension().string();
+  std::string extension = std::filesystem::path(filename).extension().string();
 
   if (extension == ".yaze" || extension == ".json") {
-    return absl::UnimplementedError(
-        "Project file loading not yet implemented");
+    return absl::UnimplementedError("Project file loading not yet implemented");
   }
 
   return LoadRom(rom, filename);
@@ -111,9 +107,8 @@ absl::Status RomFileManager::CreateBackup(Rom* rom) {
         absl::StrFormat("Failed to create backup: %s", status.message()),
         ToastType::kError);
   } else if (toast_manager_) {
-    toast_manager_->Show(
-        absl::StrFormat("Backup created: %s", backup_filename),
-        ToastType::kSuccess);
+    toast_manager_->Show(absl::StrFormat("Backup created: %s", backup_filename),
+                         ToastType::kSuccess);
   }
   return status;
 }
@@ -147,8 +142,8 @@ std::string RomFileManager::GetRomFilename(Rom* rom) const {
   return rom->filename();
 }
 
-absl::Status RomFileManager::LoadRomFromFile(
-    Rom* rom, const std::string& filename) {
+absl::Status RomFileManager::LoadRomFromFile(Rom* rom,
+                                             const std::string& filename) {
   if (!rom) {
     return absl::InvalidArgumentError("ROM pointer cannot be null");
   }

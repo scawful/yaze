@@ -14,8 +14,8 @@ class FeatureFlags {
  public:
   struct Flags {
     // REMOVED: kLogInstructions - DisassemblyViewer is now always enabled
-    // It uses sparse address-map recording (Mesen-style) with zero performance impact
-    // Recording can be disabled per-viewer via UI if needed
+    // It uses sparse address-map recording (Mesen-style) with zero performance
+    // impact Recording can be disabled per-viewer via UI if needed
 
     // Flag to enable the saving of all palettes to the Rom.
     bool kSaveAllPalettes = false;
@@ -43,7 +43,8 @@ class FeatureFlags {
     // Enable the new tiered graphics architecture.
     bool kEnableTieredGfxArchitecture = true;
 
-    // Use NFD (Native File Dialog) instead of bespoke file dialog implementation.
+    // Use NFD (Native File Dialog) instead of bespoke file dialog
+    // implementation.
 #if defined(YAZE_ENABLE_NFD) && YAZE_ENABLE_NFD
     bool kUseNativeFileDialog = true;
 #else
@@ -70,16 +71,17 @@ class FeatureFlags {
       // Save overworld properties to the Rom.
       bool kSaveOverworldProperties = true;
 
-      // Enable custom overworld features for vanilla ROMs or override detection.
-      // If ZSCustomOverworld ASM is already applied, features are auto-enabled.
+      // Enable custom overworld features for vanilla ROMs or override
+      // detection. If ZSCustomOverworld ASM is already applied, features are
+      // auto-enabled.
       bool kLoadCustomOverworld = false;
-      
+
       // Apply ZSCustomOverworld ASM patches when upgrading ROM versions.
       bool kApplyZSCustomOverworldASM = false;
     } overworld;
   };
 
-  static Flags &get() {
+  static Flags& get() {
     static Flags instance;
     return instance;
   }
@@ -112,8 +114,9 @@ class FeatureFlags {
               std::to_string(get().overworld.kLoadCustomOverworld) + "\n";
     result += "kApplyZSCustomOverworldASM: " +
               std::to_string(get().overworld.kApplyZSCustomOverworldASM) + "\n";
-    result += "kUseNativeFileDialog: " +
-              std::to_string(get().kUseNativeFileDialog) + "\n";
+    result +=
+        "kUseNativeFileDialog: " + std::to_string(get().kUseNativeFileDialog) +
+        "\n";
     result += "kEnableTieredGfxArchitecture: " +
               std::to_string(get().kEnableTieredGfxArchitecture) + "\n";
     return result;
@@ -124,4 +127,3 @@ class FeatureFlags {
 }  // namespace yaze
 
 #endif  // YAZE_CORE_FEATURES_H
-

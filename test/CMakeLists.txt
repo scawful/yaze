@@ -13,13 +13,13 @@ if(YAZE_BUILD_TESTS)
       ${CMAKE_SOURCE_DIR}/src
       ${CMAKE_SOURCE_DIR}/incl
       ${CMAKE_SOURCE_DIR}/test
-      ${CMAKE_SOURCE_DIR}/src/lib
-      ${CMAKE_SOURCE_DIR}/src/lib/imgui
-      ${CMAKE_SOURCE_DIR}/src/lib/imgui/backends
-      ${CMAKE_SOURCE_DIR}/src/lib/imgui_test_engine
-      ${CMAKE_SOURCE_DIR}/src/lib/SDL/include
-      ${CMAKE_SOURCE_DIR}/third_party/json/include
-      ${CMAKE_BINARY_DIR}/src/lib/SDL/include
+      ${CMAKE_SOURCE_DIR}/ext
+      ${CMAKE_SOURCE_DIR}/ext/imgui
+      ${CMAKE_SOURCE_DIR}/ext/imgui/backends
+      ${CMAKE_SOURCE_DIR}/ext/imgui_test_engine
+      ${CMAKE_SOURCE_DIR}/ext/SDL/include
+      ${CMAKE_SOURCE_DIR}/ext/json/include
+      ${CMAKE_BINARY_DIR}/ext/SDL/include
       ${PROJECT_BINARY_DIR}
     )
 
@@ -31,7 +31,7 @@ if(YAZE_BUILD_TESTS)
       absl::flags
       absl::flags_parse
       ImGui
-      ${SDL_TARGETS}
+      ${YAZE_SDL2_TARGETS}
     )
 
     # Link ImGui Test Engine for GUI tests (always available when tests are built)
@@ -43,16 +43,22 @@ if(YAZE_BUILD_TESTS)
         YAZE_GUI_TEST_TARGET=1)  # Mark this as a GUI test target
     endif()
 
+    # Link protobuf with /WHOLEARCHIVE on Windows (instead of via libraries)
+    if(WIN32 AND MSVC AND YAZE_WITH_GRPC AND YAZE_PROTOBUF_WHOLEARCHIVE_TARGETS)
+      foreach(_yaze_proto_target IN LISTS YAZE_PROTOBUF_WHOLEARCHIVE_TARGETS)
+        if(TARGET ${_yaze_proto_target})
+          get_target_property(_target_type ${_yaze_proto_target} TYPE)
+          if(_target_type MATCHES ".*_LIBRARY")
+            target_link_options(${suite_name} PRIVATE /WHOLEARCHIVE:$<TARGET_FILE:${_yaze_proto_target}>)
+          endif()
+        endif()
+      endforeach()
+    endif()
+
     if(WIN32)
       message(STATUS "Configuring Windows stack size for ${suite_name} to 16MB")
       if(MSVC)
         target_link_options(${suite_name} PRIVATE /STACK:16777216)
-        # Force whole-archive linking for protobuf to ensure all symbols are included
-        if(YAZE_WITH_GRPC AND MSVC AND YAZE_PROTOBUF_WHOLEARCHIVE_TARGETS)
-          foreach(_yaze_proto_target IN LISTS YAZE_PROTOBUF_WHOLEARCHIVE_TARGETS)
-            target_link_options(${suite_name} PRIVATE /WHOLEARCHIVE:$<TARGET_FILE:${_yaze_proto_target}>)
-          endforeach()
-        endif()
       else()
         target_link_options(${suite_name} PRIVATE -Wl,--stack,16777216)
       endif()
@@ -135,8 +141,14 @@ if(YAZE_BUILD_TESTS)
     e2e/framework_smoke_test.cc
     e2e/dungeon_editor_smoke_test.cc
     e2e/canvas_selection_test.cc
-    integration/ai/ai_gui_controller_test.cc
   )
+
+  if(YAZE_ENABLE_AI_RUNTIME)
+    list(APPEND GUI_TEST_SOURCES integration/ai/ai_gui_controller_test.cc)
+  else()
+    message(STATUS "Skipping AI GUI controller tests (YAZE_ENABLE_AI_RUNTIME=OFF)")
+  endif()
+
   yaze_add_test_suite(yaze_test_gui "gui;experimental" ON ${GUI_TEST_SOURCES})
 
   # Add a single test entry to run the entire GUI suite headlessly
@@ -147,12 +159,16 @@ if(YAZE_BUILD_TESTS)
   )
   set_tests_properties(headless_gui_suite PROPERTIES LABELS "headless_gui;experimental")
 
-  set(EXPERIMENTAL_TEST_SOURCES
-    test_utils.cc
-    integration/ai/test_ai_tile_placement.cc
-    integration/ai/test_gemini_vision.cc
-  )
-  yaze_add_test_suite(yaze_test_experimental "experimental" OFF ${EXPERIMENTAL_TEST_SOURCES})
+  if(YAZE_ENABLE_AI_RUNTIME)
+    set(EXPERIMENTAL_TEST_SOURCES
+      test_utils.cc
+      integration/ai/test_ai_tile_placement.cc
+      integration/ai/test_gemini_vision.cc
+    )
+    yaze_add_test_suite(yaze_test_experimental "experimental" OFF ${EXPERIMENTAL_TEST_SOURCES})
+  else()
+    message(STATUS "Skipping experimental AI suites (YAZE_ENABLE_AI_RUNTIME=OFF)")
+  endif()
 
   # --- Benchmark Test Suite ---
   set(BENCHMARK_TEST_SOURCES

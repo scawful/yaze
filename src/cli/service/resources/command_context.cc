@@ -9,8 +9,8 @@
 #include "absl/strings/numbers.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_join.h"
-#include "core/project.h"
 #include "cli/handlers/rom/mock_rom.h"
+#include "core/project.h"
 
 ABSL_DECLARE_FLAG(std::string, rom);
 ABSL_DECLARE_FLAG(bool, mock_rom);
@@ -31,7 +31,7 @@ absl::Status CommandContext::Initialize() {
   }
 
   // If external ROM context is provided, use it
-  if (config_.external_rom_context != nullptr && 
+  if (config_.external_rom_context != nullptr &&
       config_.external_rom_context->is_loaded()) {
     active_rom_ = config_.external_rom_context;
     initialized_ = true;
@@ -54,8 +54,8 @@ absl::Status CommandContext::Initialize() {
     auto status = rom_storage_.LoadFromFile(*config_.rom_path);
     if (!status.ok()) {
       return absl::FailedPreconditionError(
-          absl::StrFormat("Failed to load ROM from '%s': %s",
-                         *config_.rom_path, status.message()));
+          absl::StrFormat("Failed to load ROM from '%s': %s", *config_.rom_path,
+                          status.message()));
     }
     active_rom_ = &rom_storage_;
     initialized_ = true;
@@ -67,9 +67,8 @@ absl::Status CommandContext::Initialize() {
   if (!rom_path.empty()) {
     auto status = rom_storage_.LoadFromFile(rom_path);
     if (!status.ok()) {
-      return absl::FailedPreconditionError(
-          absl::StrFormat("Failed to load ROM from '%s': %s",
-                         rom_path, status.message()));
+      return absl::FailedPreconditionError(absl::StrFormat(
+          "Failed to load ROM from '%s': %s", rom_path, status.message()));
     }
     active_rom_ = &rom_storage_;
     initialized_ = true;
@@ -100,7 +99,7 @@ absl::Status CommandContext::EnsureLabelsLoaded(Rom* rom) {
     return absl::FailedPreconditionError("ROM has no resource label manager");
   }
 
-  if (!rom->resource_label()->labels_loaded_ || 
+  if (!rom->resource_label()->labels_loaded_ ||
       rom->resource_label()->labels_.empty()) {
     project::YazeProject project;
     project.use_embedded_labels = true;
@@ -233,9 +232,8 @@ absl::Status ArgumentParser::RequireArgs(
   }
 
   if (!missing.empty()) {
-    return absl::InvalidArgumentError(
-        absl::StrFormat("Missing required arguments: %s",
-                       absl::StrJoin(missing, ", ")));
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "Missing required arguments: %s", absl::StrJoin(missing, ", ")));
   }
 
   return absl::OkStatus();
@@ -253,9 +251,8 @@ absl::StatusOr<OutputFormatter> OutputFormatter::FromString(
   } else if (lower == "text") {
     return OutputFormatter(Format::kText);
   } else {
-    return absl::InvalidArgumentError(
-        absl::StrFormat("Unknown format: %s (expected 'json' or 'text')",
-                       format));
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "Unknown format: %s (expected 'json' or 'text')", format));
   }
 }
 
@@ -278,14 +275,16 @@ void OutputFormatter::EndObject() {
   }
 }
 
-void OutputFormatter::AddField(const std::string& key, const std::string& value) {
+void OutputFormatter::AddField(const std::string& key,
+                               const std::string& value) {
   if (IsJson()) {
     if (!first_field_) {
       buffer_ += ",\n";
     }
     first_field_ = false;
     AddIndent();
-    buffer_ += absl::StrFormat("\"%s\": \"%s\"", EscapeJson(key), EscapeJson(value));
+    buffer_ +=
+        absl::StrFormat("\"%s\": \"%s\"", EscapeJson(key), EscapeJson(value));
   } else {
     buffer_ += absl::StrFormat("  %-20s : %s\n", key, value);
   }
@@ -324,22 +323,23 @@ void OutputFormatter::AddField(const std::string& key, bool value) {
     }
     first_field_ = false;
     AddIndent();
-    buffer_ += absl::StrFormat("\"%s\": %s", EscapeJson(key), 
+    buffer_ += absl::StrFormat("\"%s\": %s", EscapeJson(key),
                                value ? "true" : "false");
   } else {
     buffer_ += absl::StrFormat("  %-20s : %s\n", key, value ? "yes" : "no");
   }
 }
 
-void OutputFormatter::AddHexField(const std::string& key, uint64_t value, 
-                                 int width) {
+void OutputFormatter::AddHexField(const std::string& key, uint64_t value,
+                                  int width) {
   if (IsJson()) {
     if (!first_field_) {
       buffer_ += ",\n";
     }
     first_field_ = false;
     AddIndent();
-    buffer_ += absl::StrFormat("\"%s\": \"0x%0*X\"", EscapeJson(key), width, value);
+    buffer_ +=
+        absl::StrFormat("\"%s\": \"0x%0*X\"", EscapeJson(key), width, value);
   } else {
     buffer_ += absl::StrFormat("  %-20s : 0x%0*X\n", key, width, value);
   }
@@ -406,16 +406,30 @@ void OutputFormatter::AddIndent() {
 std::string OutputFormatter::EscapeJson(const std::string& str) const {
   std::string result;
   result.reserve(str.size() + 10);
-  
+
   for (char c : str) {
     switch (c) {
-      case '"':  result += "\\\""; break;
-      case '\\': result += "\\\\"; break;
-      case '\b': result += "\\b";  break;
-      case '\f': result += "\\f";  break;
-      case '\n': result += "\\n";  break;
-      case '\r': result += "\\r";  break;
-      case '\t': result += "\\t";  break;
+      case '"':
+        result += "\\\"";
+        break;
+      case '\\':
+        result += "\\\\";
+        break;
+      case '\b':
+        result += "\\b";
+        break;
+      case '\f':
+        result += "\\f";
+        break;
+      case '\n':
+        result += "\\n";
+        break;
+      case '\r':
+        result += "\\r";
+        break;
+      case '\t':
+        result += "\\t";
+        break;
       default:
         if (c < 0x20) {
           result += absl::StrFormat("\\u%04x", static_cast<int>(c));
@@ -424,11 +438,10 @@ std::string OutputFormatter::EscapeJson(const std::string& str) const {
         }
     }
   }
-  
+
   return result;
 }
 
 }  // namespace resources
 }  // namespace cli
 }  // namespace yaze
-

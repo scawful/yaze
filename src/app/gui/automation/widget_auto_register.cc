@@ -2,9 +2,9 @@
 
 #include <vector>
 
-#include "imgui/imgui_internal.h"
 #include "absl/strings/str_join.h"
 #include "absl/strings/string_view.h"
+#include "imgui/imgui_internal.h"
 
 namespace yaze {
 namespace gui {
@@ -49,7 +49,7 @@ void AutoRegisterLastItem(const std::string& widget_type,
     full_path = absl::StrJoin(g_auto_scope_stack_, "/");
     full_path += "/";
   }
-  
+
   // Add widget type and normalized label
   std::string normalized_label = WidgetIdRegistry::NormalizeLabel(label);
   full_path += absl::StrCat(widget_type, ":", normalized_label);
@@ -57,7 +57,7 @@ void AutoRegisterLastItem(const std::string& widget_type,
   // Capture metadata from ImGui's last item
   WidgetIdRegistry::WidgetMetadata metadata;
   metadata.label = label;
-  
+
   // Get window name
   if (ctx->CurrentWindow) {
     metadata.window_name = std::string(ctx->CurrentWindow->Name);
@@ -78,10 +78,9 @@ void AutoRegisterLastItem(const std::string& widget_type,
   metadata.bounds = bounds;
 
   // Register with the global registry
-  WidgetIdRegistry::Instance().RegisterWidget(
-      full_path, widget_type, imgui_id, description, metadata);
+  WidgetIdRegistry::Instance().RegisterWidget(full_path, widget_type, imgui_id,
+                                              description, metadata);
 }
 
 }  // namespace gui
 }  // namespace yaze
-

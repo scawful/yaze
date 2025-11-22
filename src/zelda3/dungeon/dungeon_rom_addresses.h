@@ -1,8 +1,8 @@
 #ifndef YAZE_APP_ZELDA3_DUNGEON_ROM_ADDRESSES_H
 #define YAZE_APP_ZELDA3_DUNGEON_ROM_ADDRESSES_H
 
+#include <array>  // Added for std::array
 #include <cstdint>
-#include <array> // Added for std::array
 
 namespace yaze {
 namespace zelda3 {
@@ -34,15 +34,15 @@ constexpr int kTileAddress = 0x001B52;       // Main tile graphics
 constexpr int kTileAddressFloor = 0x001B5A;  // Floor tile graphics
 
 // === Block Data ===
-constexpr int kBlocksLength = 0x8896;      // Word value
-constexpr int kBlocksPointer1 = 0x15AFA;   // Block data pointer 1
-constexpr int kBlocksPointer2 = 0x15B01;   // Block data pointer 2
-constexpr int kBlocksPointer3 = 0x15B08;   // Block data pointer 3
-constexpr int kBlocksPointer4 = 0x15B0F;   // Block data pointer 4
+constexpr int kBlocksLength = 0x8896;     // Word value
+constexpr int kBlocksPointer1 = 0x15AFA;  // Block data pointer 1
+constexpr int kBlocksPointer2 = 0x15B01;  // Block data pointer 2
+constexpr int kBlocksPointer3 = 0x15B08;  // Block data pointer 3
+constexpr int kBlocksPointer4 = 0x15B0F;  // Block data pointer 4
 
 // === Chests ===
-constexpr int kChestsLengthPointer = 0xEBF6;    // Chest count pointer
-constexpr int kChestsDataPointer1 = 0xEBFB;     // Chest data start
+constexpr int kChestsLengthPointer = 0xEBF6;  // Chest count pointer
+constexpr int kChestsDataPointer1 = 0xEBFB;   // Chest data start
 
 // === Torches ===
 constexpr int kTorchData = 0x2736A;            // JP 0x2704A
@@ -53,22 +53,23 @@ constexpr int kPitPointer = 0x394AB;  // Pit/hole data
 constexpr int kPitCount = 0x394A6;    // Number of pits
 
 // === Doors ===
-constexpr int kDoorPointers = 0xF83C0;    // Door data table
-constexpr int kDoorGfxUp = 0x4D9E;        // Door graphics (up)
-constexpr int kDoorGfxDown = 0x4E06;      // Door graphics (down)
+constexpr int kDoorPointers = 0xF83C0;        // Door data table
+constexpr int kDoorGfxUp = 0x4D9E;            // Door graphics (up)
+constexpr int kDoorGfxDown = 0x4E06;          // Door graphics (down)
 constexpr int kDoorGfxCaveExitDown = 0x4E06;  // Cave exit door
-constexpr int kDoorGfxLeft = 0x4E66;      // Door graphics (left)
-constexpr int kDoorGfxRight = 0x4EC6;     // Door graphics (right)
-constexpr int kDoorPosUp = 0x197E;        // Door position (up)
-constexpr int kDoorPosDown = 0x1996;      // Door position (down)
-constexpr int kDoorPosLeft = 0x19AE;      // Door position (left)
-constexpr int kDoorPosRight = 0x19C6;     // Door position (right)
+constexpr int kDoorGfxLeft = 0x4E66;          // Door graphics (left)
+constexpr int kDoorGfxRight = 0x4EC6;         // Door graphics (right)
+constexpr int kDoorPosUp = 0x197E;            // Door position (up)
+constexpr int kDoorPosDown = 0x1996;          // Door position (down)
+constexpr int kDoorPosLeft = 0x19AE;          // Door position (left)
+constexpr int kDoorPosRight = 0x19C6;         // Door position (right)
 
 // === Sprites ===
 constexpr int kSpritesData = 0x4D8B0;           // Sprite data start
 constexpr int kSpritesDataEmptyRoom = 0x4D8AE;  // Empty room sprite marker
 constexpr int kSpritesEndData = 0x4EC9E;        // Sprite data end
-constexpr int kDungeonSpritePointers = 0x090000;  // Dungeon sprite pointer table
+constexpr int kDungeonSpritePointers =
+    0x090000;  // Dungeon sprite pointer table
 
 // === Messages ===
 constexpr int kMessagesIdDungeon = 0x3F61D;  // Dungeon message IDs
@@ -104,4 +105,3 @@ static const std::array<int, 8> kRoomLayoutPointers = {
 }  // namespace yaze
 
 #endif  // YAZE_APP_ZELDA3_DUNGEON_ROM_ADDRESSES_H
-

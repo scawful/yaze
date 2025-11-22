@@ -1,59 +1,59 @@
 #include "editor_registry.h"
 
+#include <unordered_set>
+
 #include "absl/strings/str_format.h"
 #include "app/editor/editor.h"
-#include <unordered_set>
 
 namespace yaze {
 namespace editor {
 
 // Static mappings for editor types
-const std::unordered_map<EditorType, std::string> EditorRegistry::kEditorCategories = {
-  {EditorType::kDungeon, "Dungeon"},
-  {EditorType::kOverworld, "Overworld"},
-  {EditorType::kGraphics, "Graphics"},
-  {EditorType::kPalette, "Palette"},
-  {EditorType::kSprite, "Sprite"},
-  {EditorType::kScreen, "Screen"},
-  {EditorType::kMessage, "Message"},
-  {EditorType::kMusic, "Music"},
-  {EditorType::kAssembly, "Assembly"},
-  {EditorType::kEmulator, "Emulator"},
-  {EditorType::kHex, "Hex"},
-  {EditorType::kAgent, "Agent"},
-  {EditorType::kSettings, "System"}
-};
+const std::unordered_map<EditorType, std::string>
+    EditorRegistry::kEditorCategories = {{EditorType::kDungeon, "Dungeon"},
+                                         {EditorType::kOverworld, "Overworld"},
+                                         {EditorType::kGraphics, "Graphics"},
+                                         {EditorType::kPalette, "Palette"},
+                                         {EditorType::kSprite, "Sprite"},
+                                         {EditorType::kScreen, "Screen"},
+                                         {EditorType::kMessage, "Message"},
+                                         {EditorType::kMusic, "Music"},
+                                         {EditorType::kAssembly, "Assembly"},
+                                         {EditorType::kEmulator, "Emulator"},
+                                         {EditorType::kHex, "Hex"},
+                                         {EditorType::kAgent, "Agent"},
+                                         {EditorType::kSettings, "System"}};
 
-const std::unordered_map<EditorType, std::string> EditorRegistry::kEditorNames = {
-  {EditorType::kDungeon, "Dungeon Editor"},
-  {EditorType::kOverworld, "Overworld Editor"},
-  {EditorType::kGraphics, "Graphics Editor"},
-  {EditorType::kPalette, "Palette Editor"},
-  {EditorType::kSprite, "Sprite Editor"},
-  {EditorType::kScreen, "Screen Editor"},
-  {EditorType::kMessage, "Message Editor"},
-  {EditorType::kMusic, "Music Editor"},
-  {EditorType::kAssembly, "Assembly Editor"},
-  {EditorType::kEmulator, "Emulator Editor"},
-  {EditorType::kHex, "Hex Editor"},
-  {EditorType::kAgent, "Agent Editor"},
-  {EditorType::kSettings, "Settings Editor"}
-};
+const std::unordered_map<EditorType, std::string> EditorRegistry::kEditorNames =
+    {{EditorType::kDungeon, "Dungeon Editor"},
+     {EditorType::kOverworld, "Overworld Editor"},
+     {EditorType::kGraphics, "Graphics Editor"},
+     {EditorType::kPalette, "Palette Editor"},
+     {EditorType::kSprite, "Sprite Editor"},
+     {EditorType::kScreen, "Screen Editor"},
+     {EditorType::kMessage, "Message Editor"},
+     {EditorType::kMusic, "Music Editor"},
+     {EditorType::kAssembly, "Assembly Editor"},
+     {EditorType::kEmulator, "Emulator Editor"},
+     {EditorType::kHex, "Hex Editor"},
+     {EditorType::kAgent, "Agent Editor"},
+     {EditorType::kSettings, "Settings Editor"}};
 
 const std::unordered_map<EditorType, bool> EditorRegistry::kCardBasedEditors = {
-  {EditorType::kDungeon, true},
-  {EditorType::kOverworld, true},
-  {EditorType::kGraphics, true},
-  {EditorType::kPalette, true},
-  {EditorType::kSprite, true},
-  {EditorType::kScreen, true},
-  {EditorType::kMessage, true},
-  {EditorType::kMusic, true},
-  {EditorType::kAssembly, true},
-  {EditorType::kEmulator, true},
-  {EditorType::kHex, true},
-  {EditorType::kAgent, false},      // Agent: Traditional UI
-  {EditorType::kSettings, true}     // Settings: Now card-based for better organization
+    {EditorType::kDungeon, true},
+    {EditorType::kOverworld, true},
+    {EditorType::kGraphics, true},
+    {EditorType::kPalette, true},
+    {EditorType::kSprite, true},
+    {EditorType::kScreen, true},
+    {EditorType::kMessage, true},
+    {EditorType::kMusic, true},
+    {EditorType::kAssembly, true},
+    {EditorType::kEmulator, true},
+    {EditorType::kHex, true},
+    {EditorType::kAgent, false},  // Agent: Traditional UI
+    {EditorType::kSettings,
+     true}  // Settings: Now card-based for better organization
 };
 
 bool EditorRegistry::IsCardBasedEditor(EditorType type) {
@@ -69,7 +69,8 @@ std::string EditorRegistry::GetEditorCategory(EditorType type) {
   return "Unknown";
 }
 
-EditorType EditorRegistry::GetEditorTypeFromCategory(const std::string& category) {
+EditorType EditorRegistry::GetEditorTypeFromCategory(
+    const std::string& category) {
   for (const auto& [type, cat] : kEditorCategories) {
     if (cat == category) {
       return type;  // Return first match
@@ -98,7 +99,7 @@ void EditorRegistry::JumpToOverworldMap(int map_id) {
 
 void EditorRegistry::SwitchToEditor(EditorType editor_type) {
   ValidateEditorType(editor_type);
-  
+
   auto it = registered_editors_.find(editor_type);
   if (it != registered_editors_.end() && it->second) {
     // Deactivate all other editors
@@ -107,10 +108,11 @@ void EditorRegistry::SwitchToEditor(EditorType editor_type) {
         editor->set_active(false);
       }
     }
-    
+
     // Activate the target editor
     it->second->set_active(true);
-    printf("[EditorRegistry] Switched to %s\n", GetEditorDisplayName(editor_type).c_str());
+    printf("[EditorRegistry] Switched to %s\n",
+           GetEditorDisplayName(editor_type).c_str());
   }
 }
 
@@ -118,52 +120,56 @@ void EditorRegistry::HideCurrentEditorCards() {
   for (auto& [type, editor] : registered_editors_) {
     if (editor && IsCardBasedEditor(type)) {
       // TODO: Hide cards for this editor
-      printf("[EditorRegistry] Hiding cards for %s\n", GetEditorDisplayName(type).c_str());
+      printf("[EditorRegistry] Hiding cards for %s\n",
+             GetEditorDisplayName(type).c_str());
     }
   }
 }
 
 void EditorRegistry::ShowEditorCards(EditorType editor_type) {
   ValidateEditorType(editor_type);
-  
+
   if (IsCardBasedEditor(editor_type)) {
     // TODO: Show cards for this editor
-    printf("[EditorRegistry] Showing cards for %s\n", GetEditorDisplayName(editor_type).c_str());
+    printf("[EditorRegistry] Showing cards for %s\n",
+           GetEditorDisplayName(editor_type).c_str());
   }
 }
 
 void EditorRegistry::ToggleEditorCards(EditorType editor_type) {
   ValidateEditorType(editor_type);
-  
+
   if (IsCardBasedEditor(editor_type)) {
     // TODO: Toggle cards for this editor
-    printf("[EditorRegistry] Toggling cards for %s\n", GetEditorDisplayName(editor_type).c_str());
+    printf("[EditorRegistry] Toggling cards for %s\n",
+           GetEditorDisplayName(editor_type).c_str());
   }
 }
 
-std::vector<EditorType> EditorRegistry::GetEditorsInCategory(const std::string& category) const {
+std::vector<EditorType> EditorRegistry::GetEditorsInCategory(
+    const std::string& category) const {
   std::vector<EditorType> editors;
-  
+
   for (const auto& [type, cat] : kEditorCategories) {
     if (cat == category) {
       editors.push_back(type);
     }
   }
-  
+
   return editors;
 }
 
 std::vector<std::string> EditorRegistry::GetAvailableCategories() const {
   std::vector<std::string> categories;
   std::unordered_set<std::string> seen;
-  
+
   for (const auto& [type, category] : kEditorCategories) {
     if (seen.find(category) == seen.end()) {
       categories.push_back(category);
       seen.insert(category);
     }
   }
-  
+
   return categories;
 }
 
@@ -177,28 +183,30 @@ std::string EditorRegistry::GetEditorDisplayName(EditorType type) const {
 
 void EditorRegistry::RegisterEditor(EditorType type, Editor* editor) {
   ValidateEditorType(type);
-  
+
   if (!editor) {
     throw std::invalid_argument("Editor pointer cannot be null");
   }
-  
+
   registered_editors_[type] = editor;
-  printf("[EditorRegistry] Registered %s\n", GetEditorDisplayName(type).c_str());
+  printf("[EditorRegistry] Registered %s\n",
+         GetEditorDisplayName(type).c_str());
 }
 
 void EditorRegistry::UnregisterEditor(EditorType type) {
   ValidateEditorType(type);
-  
+
   auto it = registered_editors_.find(type);
   if (it != registered_editors_.end()) {
     registered_editors_.erase(it);
-    printf("[EditorRegistry] Unregistered %s\n", GetEditorDisplayName(type).c_str());
+    printf("[EditorRegistry] Unregistered %s\n",
+           GetEditorDisplayName(type).c_str());
   }
 }
 
 Editor* EditorRegistry::GetEditor(EditorType type) const {
   ValidateEditorType(type);
-  
+
   auto it = registered_editors_.find(type);
   if (it != registered_editors_.end()) {
     return it->second;
@@ -208,7 +216,7 @@ Editor* EditorRegistry::GetEditor(EditorType type) const {
 
 bool EditorRegistry::IsEditorActive(EditorType type) const {
   ValidateEditorType(type);
-  
+
   auto it = registered_editors_.find(type);
   if (it != registered_editors_.end() && it->second) {
     return it->second->active();
@@ -218,7 +226,7 @@ bool EditorRegistry::IsEditorActive(EditorType type) const {
 
 bool EditorRegistry::IsEditorVisible(EditorType type) const {
   ValidateEditorType(type);
-  
+
   auto it = registered_editors_.find(type);
   if (it != registered_editors_.end() && it->second) {
     return it->second->active();
@@ -228,7 +236,7 @@ bool EditorRegistry::IsEditorVisible(EditorType type) const {
 
 void EditorRegistry::SetEditorActive(EditorType type, bool active) {
   ValidateEditorType(type);
-  
+
   auto it = registered_editors_.find(type);
   if (it != registered_editors_.end() && it->second) {
     it->second->set_active(active);

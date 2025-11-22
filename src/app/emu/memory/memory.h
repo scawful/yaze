@@ -117,7 +117,7 @@ class Memory {
  */
 class MemoryImpl : public Memory {
  public:
-  void Initialize(const std::vector<uint8_t> &romData, bool verbose = false);
+  void Initialize(const std::vector<uint8_t>& romData, bool verbose = false);
 
   uint16_t GetHeaderOffset() {
     uint16_t offset;
@@ -237,7 +237,7 @@ class MemoryImpl : public Memory {
 
   // Stack Pointer access.
   uint16_t SP() const override { return SP_; }
-  auto mutable_sp() -> uint16_t & { return SP_; }
+  auto mutable_sp() -> uint16_t& { return SP_; }
   void SetSP(uint16_t value) override { SP_ = value; }
   void ClearMemory() override { std::fill(memory_.begin(), memory_.end(), 0); }
 
@@ -277,9 +277,9 @@ class MemoryImpl : public Memory {
   auto v_pos() const -> uint16_t override { return v_pos_; }
   auto pal_timing() const -> bool override { return pal_timing_; }
 
-  auto dma_state() -> uint8_t & { return dma_state_; }
+  auto dma_state() -> uint8_t& { return dma_state_; }
   void set_dma_state(uint8_t value) { dma_state_ = value; }
-  auto dma_channels() -> DmaChannel * { return channel; }
+  auto dma_channels() -> DmaChannel* { return channel; }
 
   // Define memory regions
   std::vector<uint8_t> rom_;

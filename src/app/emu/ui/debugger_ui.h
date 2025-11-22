@@ -2,6 +2,7 @@
 #define YAZE_APP_EMU_UI_DEBUGGER_UI_H_
 
 #include <cstdint>
+
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -47,4 +48,3 @@ void RenderAIAgentPanel(Emulator* emu);
 }  // namespace yaze
 
 #endif  // YAZE_APP_EMU_UI_DEBUGGER_UI_H_
-

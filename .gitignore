@@ -1,8 +1,8 @@
-# Build directories - organized by platform
-build/
-build-*/
-out/
-build*/
+# Build directories - organized by platform (root level only)
+/build/
+/build-*/
+/build_*/
+/out/
 docs/html/
 docs/latex/
 
@@ -14,7 +14,6 @@ compile_commands.json
 CPackConfig.cmake
 CPackSourceConfig.cmake
 CTestTestfile.cmake
-Testing/
 
 # Build artifacts
 *.o
@@ -93,3 +92,4 @@ recent_files.txt
 .gitignore
 .genkit
 .claude
+scripts/__pycache__/

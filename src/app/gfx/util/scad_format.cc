@@ -175,13 +175,12 @@ absl::Status SaveCgx(uint8_t bpp, std::string_view filename,
 
   file.write(reinterpret_cast<const char*>(&header), sizeof(CgxHeader));
   file.write(reinterpret_cast<const char*>(cgx_data.data()), cgx_data.size());
-  file.write(reinterpret_cast<const char*>(cgx_header.data()), cgx_header.size());
+  file.write(reinterpret_cast<const char*>(cgx_header.data()),
+             cgx_header.size());
 
   file.close();
   return absl::OkStatus();
 }
-
-
 
 std::vector<SDL_Color> DecodeColFile(const std::string_view filename) {
   std::vector<SDL_Color> decoded_col;
@@ -218,16 +217,16 @@ std::vector<SDL_Color> DecodeColFile(const std::string_view filename) {
   return decoded_col;
 }
 
-absl::Status SaveCol(std::string_view filename, const std::vector<SDL_Color>& palette) {
+absl::Status SaveCol(std::string_view filename,
+                     const std::vector<SDL_Color>& palette) {
   std::ofstream file(filename.data(), std::ios::binary);
   if (!file.is_open()) {
     return absl::NotFoundError("Could not open file for writing.");
   }
 
   for (const auto& color : palette) {
-    uint16_t snes_color = ((color.b >> 3) << 10) |
-                          ((color.g >> 3) << 5) |
-                          (color.r >> 3);
+    uint16_t snes_color =
+        ((color.b >> 3) << 10) | ((color.g >> 3) << 5) | (color.r >> 3);
     file.write(reinterpret_cast<const char*>(&snes_color), sizeof(snes_color));
   }
 

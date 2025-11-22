@@ -14,7 +14,7 @@ if(MSVC)
 endif()
 
 # Set Asar source directory
-set(ASAR_SRC_DIR "${CMAKE_SOURCE_DIR}/src/lib/asar/src")
+set(ASAR_SRC_DIR "${CMAKE_SOURCE_DIR}/ext/asar/src")
 
 # Add Asar as subdirectory
 add_subdirectory(${ASAR_SRC_DIR} EXCLUDE_FROM_ALL)

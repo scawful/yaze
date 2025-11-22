@@ -17,15 +17,16 @@ class HexReadCommandHandler : public resources::CommandHandler {
     return "Read hex data from ROM at specified address";
   }
   std::string GetUsage() const {
-    return "hex-read --address <address> [--length <length>] [--format <format>]";
+    return "hex-read --address <address> [--length <length>] [--format "
+           "<format>]";
   }
-  
+
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
     return parser.RequireArgs({"address"});
   }
-  
+
   absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
-                      resources::OutputFormatter& formatter) override;
+                       resources::OutputFormatter& formatter) override;
 };
 
 /**
@@ -40,13 +41,13 @@ class HexWriteCommandHandler : public resources::CommandHandler {
   std::string GetUsage() const {
     return "hex-write --address <address> --data <data>";
   }
-  
+
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
     return parser.RequireArgs({"address", "data"});
   }
-  
+
   absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
-                      resources::OutputFormatter& formatter) override;
+                       resources::OutputFormatter& formatter) override;
 };
 
 /**
@@ -61,13 +62,13 @@ class HexSearchCommandHandler : public resources::CommandHandler {
   std::string GetUsage() const {
     return "hex-search --pattern <pattern> [--start <start>] [--end <end>]";
   }
-  
+
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
     return parser.RequireArgs({"pattern"});
   }
-  
+
   absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
-                      resources::OutputFormatter& formatter) override;
+                       resources::OutputFormatter& formatter) override;
 };
 
 }  // namespace handlers

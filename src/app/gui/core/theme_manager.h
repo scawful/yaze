@@ -21,7 +21,7 @@ struct EnhancedTheme {
   std::string name;
   std::string description;
   std::string author;
-  
+
   // Primary colors
   Color primary;
   Color secondary;
@@ -32,18 +32,18 @@ struct EnhancedTheme {
   Color warning;
   Color success;
   Color info;
-  
+
   // Text colors
   Color text_primary;
   Color text_secondary;
   Color text_disabled;
-  
+
   // Window colors
   Color window_bg;
   Color child_bg;
   Color popup_bg;
   Color modal_bg;
-  
+
   // Interactive elements
   Color button;
   Color button_hovered;
@@ -51,7 +51,7 @@ struct EnhancedTheme {
   Color frame_bg;
   Color frame_bg_hovered;
   Color frame_bg_active;
-  
+
   // Navigation and selection
   Color header;
   Color header_hovered;
@@ -63,27 +63,27 @@ struct EnhancedTheme {
   Color title_bg;
   Color title_bg_active;
   Color title_bg_collapsed;
-  
+
   // Borders and separators
   Color border;
   Color border_shadow;
   Color separator;
   Color separator_hovered;
   Color separator_active;
-  
+
   // Scrollbars and controls
   Color scrollbar_bg;
   Color scrollbar_grab;
   Color scrollbar_grab_hovered;
   Color scrollbar_grab_active;
-  
+
   // Special elements
   Color resize_grip;
   Color resize_grip_hovered;
   Color resize_grip_active;
   Color docking_preview;
   Color docking_empty_bg;
-  
+
   // Complete ImGui color support
   Color check_mark;
   Color slider_grab;
@@ -106,7 +106,7 @@ struct EnhancedTheme {
   Color plot_histogram;
   Color plot_histogram_hovered;
   Color tree_lines;
-  
+
   // Additional ImGui colors for complete coverage
   Color tab_unfocused;
   Color tab_unfocused_active;
@@ -114,34 +114,34 @@ struct EnhancedTheme {
   Color tab_dimmed_selected;
   Color tab_dimmed_selected_overline;
   Color tab_selected_overline;
-  
+
   // Enhanced theme system - semantic colors
-  Color text_highlight;     // For selected text, highlighted items
-  Color link_hover;        // For hover state of links 
-  Color code_background;   // For code blocks, monospace text backgrounds
-  Color success_light;     // Lighter variant of success color
-  Color warning_light;     // Lighter variant of warning color  
-  Color error_light;       // Lighter variant of error color
-  Color info_light;        // Lighter variant of info color
-  
+  Color text_highlight;   // For selected text, highlighted items
+  Color link_hover;       // For hover state of links
+  Color code_background;  // For code blocks, monospace text backgrounds
+  Color success_light;    // Lighter variant of success color
+  Color warning_light;    // Lighter variant of warning color
+  Color error_light;      // Lighter variant of error color
+  Color info_light;       // Lighter variant of info color
+
   // UI state colors
   Color active_selection;  // For active/selected UI elements
   Color hover_highlight;   // General hover state
   Color focus_border;      // For focused input elements
   Color disabled_overlay;  // Semi-transparent overlay for disabled elements
-  
+
   // Editor-specific colors
-  Color editor_background; // Main editor canvas background
-  Color editor_grid;       // Grid lines in editors
-  Color editor_cursor;     // Cursor/selection in editors
-  Color editor_selection;  // Selected area in editors
+  Color editor_background;  // Main editor canvas background
+  Color editor_grid;        // Grid lines in editors
+  Color editor_cursor;      // Cursor/selection in editors
+  Color editor_selection;   // Selected area in editors
 
   Color entrance_color;
   Color hole_color;
   Color exit_color;
   Color item_color;
   Color sprite_color;
-  
+
   // Style parameters
   float window_rounding = 0.0f;
   float frame_rounding = 5.0f;
@@ -161,15 +161,15 @@ struct EnhancedTheme {
   float compact_factor = 1.0f;
 
   // Semantic sizing multipliers (applied on top of compact_factor)
-  float widget_height_multiplier = 1.0f;      // Standard widget height
-  float spacing_multiplier = 1.0f;            // Padding/margins between elements
-  float toolbar_height_multiplier = 0.8f;     // Compact toolbars
-  float panel_padding_multiplier = 1.0f;      // Panel interior padding
-  float input_width_multiplier = 1.0f;        // Standard input field width
-  float button_padding_multiplier = 1.0f;     // Button interior padding
-  float table_row_height_multiplier = 1.0f;   // Table row height
-  float canvas_toolbar_multiplier = 0.75f;    // Canvas overlay toolbars
-  
+  float widget_height_multiplier = 1.0f;     // Standard widget height
+  float spacing_multiplier = 1.0f;           // Padding/margins between elements
+  float toolbar_height_multiplier = 0.8f;    // Compact toolbars
+  float panel_padding_multiplier = 1.0f;     // Panel interior padding
+  float input_width_multiplier = 1.0f;       // Standard input field width
+  float button_padding_multiplier = 1.0f;    // Button interior padding
+  float table_row_height_multiplier = 1.0f;  // Table row height
+  float canvas_toolbar_multiplier = 0.75f;   // Canvas overlay toolbars
+
   // Helper methods
   void ApplyToImGui() const;
 };
@@ -179,48 +179,51 @@ struct EnhancedTheme {
  * @brief Manages themes, loading, saving, and switching
  */
 class ThemeManager {
-public:
+ public:
   static ThemeManager& Get();
-  
+
   // Theme management
   absl::Status LoadTheme(const std::string& theme_name);
-  absl::Status SaveTheme(const EnhancedTheme& theme, const std::string& filename);
+  absl::Status SaveTheme(const EnhancedTheme& theme,
+                         const std::string& filename);
   absl::Status LoadThemeFromFile(const std::string& filepath);
-  absl::Status SaveThemeToFile(const EnhancedTheme& theme, const std::string& filepath) const;
-  
-  // Dynamic theme discovery - replaces hardcoded theme lists with automatic discovery
-  // This works across development builds, macOS app bundles, and other deployment scenarios
+  absl::Status SaveThemeToFile(const EnhancedTheme& theme,
+                               const std::string& filepath) const;
+
+  // Dynamic theme discovery - replaces hardcoded theme lists with automatic
+  // discovery This works across development builds, macOS app bundles, and
+  // other deployment scenarios
   std::vector<std::string> DiscoverAvailableThemeFiles() const;
   absl::Status LoadAllAvailableThemes();
-  absl::Status RefreshAvailableThemes(); // Public method to refresh at runtime
-  
+  absl::Status RefreshAvailableThemes();  // Public method to refresh at runtime
+
   // Built-in themes
   void InitializeBuiltInThemes();
   std::vector<std::string> GetAvailableThemes() const;
   const EnhancedTheme* GetTheme(const std::string& name) const;
   const EnhancedTheme& GetCurrentTheme() const { return current_theme_; }
   const std::string& GetCurrentThemeName() const { return current_theme_name_; }
-  
+
   // Theme application
   void ApplyTheme(const std::string& theme_name);
   void ApplyTheme(const EnhancedTheme& theme);
-  void ApplyClassicYazeTheme(); // Apply original ColorsYaze() function
-  
+  void ApplyClassicYazeTheme();  // Apply original ColorsYaze() function
+
   // Theme creation and editing
   EnhancedTheme CreateCustomTheme(const std::string& name);
   void ShowThemeEditor(bool* p_open);
   void ShowThemeSelector(bool* p_open);
   void ShowSimpleThemeEditor(bool* p_open);
-  
+
   // Integration with welcome screen
   Color GetWelcomeScreenBackground() const;
   Color GetWelcomeScreenBorder() const;
   Color GetWelcomeScreenAccent() const;
-  
+
   // Convenient theme color access interface
   Color GetThemeColor(const std::string& color_name) const;
   ImVec4 GetThemeColorVec4(const std::string& color_name) const;
-  
+
   // Material Design color accessors
   Color GetPrimary() const { return current_theme_.primary; }
   Color GetPrimaryHover() const { return current_theme_.button_hovered; }
@@ -230,7 +233,9 @@ public:
   Color GetSurfaceVariant() const { return current_theme_.child_bg; }
   Color GetSurfaceContainer() const { return current_theme_.popup_bg; }
   Color GetSurfaceContainerHigh() const { return current_theme_.header; }
-  Color GetSurfaceContainerHighest() const { return current_theme_.header_hovered; }
+  Color GetSurfaceContainerHighest() const {
+    return current_theme_.header_hovered;
+  }
   Color GetOnSurface() const { return current_theme_.text_primary; }
   Color GetOnSurfaceVariant() const { return current_theme_.text_secondary; }
   Color GetOnPrimary() const { return current_theme_.text_primary; }
@@ -238,19 +243,19 @@ public:
   Color GetTextSecondary() const { return current_theme_.text_secondary; }
   Color GetTextDisabled() const { return current_theme_.text_disabled; }
   Color GetShadow() const { return current_theme_.border_shadow; }
-  
-private:
+
+ private:
   ThemeManager() { InitializeBuiltInThemes(); }
-  
+
   std::map<std::string, EnhancedTheme> themes_;
   EnhancedTheme current_theme_;
   std::string current_theme_name_ = "Classic YAZE";
-  
+
   void CreateFallbackYazeClassic();
   absl::Status ParseThemeFile(const std::string& content, EnhancedTheme& theme);
   Color ParseColorFromString(const std::string& color_str) const;
   std::string SerializeTheme(const EnhancedTheme& theme) const;
-  
+
   // Helper methods for path resolution
   std::vector<std::string> GetThemeSearchPaths() const;
   std::string GetThemesDirectory() const;
@@ -258,51 +263,113 @@ private:
 };
 
 // Global convenience functions for easy theme color access
-  // Material Design color accessors - global convenience functions
-  inline Color GetThemeColor(const std::string& color_name) {
-    return ThemeManager::Get().GetThemeColor(color_name);
-  }
-  
-  inline ImVec4 GetThemeColorVec4(const std::string& color_name) {
-    return ThemeManager::Get().GetThemeColorVec4(color_name);
-  }
-  
-  // Material Design color accessors
-  inline Color GetPrimary() { return ThemeManager::Get().GetPrimary(); }
-  inline Color GetPrimaryHover() { return ThemeManager::Get().GetPrimaryHover(); }
-  inline Color GetPrimaryActive() { return ThemeManager::Get().GetPrimaryActive(); }
-  inline Color GetSecondary() { return ThemeManager::Get().GetSecondary(); }
-  inline Color GetSurface() { return ThemeManager::Get().GetSurface(); }
-  inline Color GetSurfaceVariant() { return ThemeManager::Get().GetSurfaceVariant(); }
-  inline Color GetSurfaceContainer() { return ThemeManager::Get().GetSurfaceContainer(); }
-  inline Color GetSurfaceContainerHigh() { return ThemeManager::Get().GetSurfaceContainerHigh(); }
-  inline Color GetSurfaceContainerHighest() { return ThemeManager::Get().GetSurfaceContainerHighest(); }
-  inline Color GetOnSurface() { return ThemeManager::Get().GetOnSurface(); }
-  inline Color GetOnSurfaceVariant() { return ThemeManager::Get().GetOnSurfaceVariant(); }
-  inline Color GetOnPrimary() { return ThemeManager::Get().GetOnPrimary(); }
-  inline Color GetOutline() { return ThemeManager::Get().GetOutline(); }
-  inline Color GetTextSecondary() { return ThemeManager::Get().GetTextSecondary(); }
-  inline Color GetTextDisabled() { return ThemeManager::Get().GetTextDisabled(); }
-  inline Color GetShadow() { return ThemeManager::Get().GetShadow(); }
-  
-  // ImVec4 versions for direct ImGui usage
-  inline ImVec4 GetPrimaryVec4() { return ConvertColorToImVec4(GetPrimary()); }
-  inline ImVec4 GetPrimaryHoverVec4() { return ConvertColorToImVec4(GetPrimaryHover()); }
-  inline ImVec4 GetPrimaryActiveVec4() { return ConvertColorToImVec4(GetPrimaryActive()); }
-  inline ImVec4 GetSurfaceVec4() { return ConvertColorToImVec4(GetSurface()); }
-  inline ImVec4 GetSurfaceVariantVec4() { return ConvertColorToImVec4(GetSurfaceVariant()); }
-  inline ImVec4 GetSurfaceContainerVec4() { return ConvertColorToImVec4(GetSurfaceContainer()); }
-  inline ImVec4 GetSurfaceContainerHighVec4() { return ConvertColorToImVec4(GetSurfaceContainerHigh()); }
-  inline ImVec4 GetSurfaceContainerHighestVec4() { return ConvertColorToImVec4(GetSurfaceContainerHighest()); }
-  inline ImVec4 GetOnSurfaceVec4() { return ConvertColorToImVec4(GetOnSurface()); }
-  inline ImVec4 GetOnSurfaceVariantVec4() { return ConvertColorToImVec4(GetOnSurfaceVariant()); }
-  inline ImVec4 GetOnPrimaryVec4() { return ConvertColorToImVec4(GetOnPrimary()); }
-  inline ImVec4 GetOutlineVec4() { return ConvertColorToImVec4(GetOutline()); }
-  inline ImVec4 GetTextSecondaryVec4() { return ConvertColorToImVec4(GetTextSecondary()); }
-  inline ImVec4 GetTextDisabledVec4() { return ConvertColorToImVec4(GetTextDisabled()); }
-  inline ImVec4 GetShadowVec4() { return ConvertColorToImVec4(GetShadow()); }
-} // namespace gui
+// Material Design color accessors - global convenience functions
+inline Color GetThemeColor(const std::string& color_name) {
+  return ThemeManager::Get().GetThemeColor(color_name);
+}
 
-} // namespace yaze
+inline ImVec4 GetThemeColorVec4(const std::string& color_name) {
+  return ThemeManager::Get().GetThemeColorVec4(color_name);
+}
 
-#endif // YAZE_APP_GUI_THEME_MANAGER_H
+// Material Design color accessors
+inline Color GetPrimary() {
+  return ThemeManager::Get().GetPrimary();
+}
+inline Color GetPrimaryHover() {
+  return ThemeManager::Get().GetPrimaryHover();
+}
+inline Color GetPrimaryActive() {
+  return ThemeManager::Get().GetPrimaryActive();
+}
+inline Color GetSecondary() {
+  return ThemeManager::Get().GetSecondary();
+}
+inline Color GetSurface() {
+  return ThemeManager::Get().GetSurface();
+}
+inline Color GetSurfaceVariant() {
+  return ThemeManager::Get().GetSurfaceVariant();
+}
+inline Color GetSurfaceContainer() {
+  return ThemeManager::Get().GetSurfaceContainer();
+}
+inline Color GetSurfaceContainerHigh() {
+  return ThemeManager::Get().GetSurfaceContainerHigh();
+}
+inline Color GetSurfaceContainerHighest() {
+  return ThemeManager::Get().GetSurfaceContainerHighest();
+}
+inline Color GetOnSurface() {
+  return ThemeManager::Get().GetOnSurface();
+}
+inline Color GetOnSurfaceVariant() {
+  return ThemeManager::Get().GetOnSurfaceVariant();
+}
+inline Color GetOnPrimary() {
+  return ThemeManager::Get().GetOnPrimary();
+}
+inline Color GetOutline() {
+  return ThemeManager::Get().GetOutline();
+}
+inline Color GetTextSecondary() {
+  return ThemeManager::Get().GetTextSecondary();
+}
+inline Color GetTextDisabled() {
+  return ThemeManager::Get().GetTextDisabled();
+}
+inline Color GetShadow() {
+  return ThemeManager::Get().GetShadow();
+}
+
+// ImVec4 versions for direct ImGui usage
+inline ImVec4 GetPrimaryVec4() {
+  return ConvertColorToImVec4(GetPrimary());
+}
+inline ImVec4 GetPrimaryHoverVec4() {
+  return ConvertColorToImVec4(GetPrimaryHover());
+}
+inline ImVec4 GetPrimaryActiveVec4() {
+  return ConvertColorToImVec4(GetPrimaryActive());
+}
+inline ImVec4 GetSurfaceVec4() {
+  return ConvertColorToImVec4(GetSurface());
+}
+inline ImVec4 GetSurfaceVariantVec4() {
+  return ConvertColorToImVec4(GetSurfaceVariant());
+}
+inline ImVec4 GetSurfaceContainerVec4() {
+  return ConvertColorToImVec4(GetSurfaceContainer());
+}
+inline ImVec4 GetSurfaceContainerHighVec4() {
+  return ConvertColorToImVec4(GetSurfaceContainerHigh());
+}
+inline ImVec4 GetSurfaceContainerHighestVec4() {
+  return ConvertColorToImVec4(GetSurfaceContainerHighest());
+}
+inline ImVec4 GetOnSurfaceVec4() {
+  return ConvertColorToImVec4(GetOnSurface());
+}
+inline ImVec4 GetOnSurfaceVariantVec4() {
+  return ConvertColorToImVec4(GetOnSurfaceVariant());
+}
+inline ImVec4 GetOnPrimaryVec4() {
+  return ConvertColorToImVec4(GetOnPrimary());
+}
+inline ImVec4 GetOutlineVec4() {
+  return ConvertColorToImVec4(GetOutline());
+}
+inline ImVec4 GetTextSecondaryVec4() {
+  return ConvertColorToImVec4(GetTextSecondary());
+}
+inline ImVec4 GetTextDisabledVec4() {
+  return ConvertColorToImVec4(GetTextDisabled());
+}
+inline ImVec4 GetShadowVec4() {
+  return ConvertColorToImVec4(GetShadow());
+}
+}  // namespace gui
+
+}  // namespace yaze
+
+#endif  // YAZE_APP_GUI_THEME_MANAGER_H

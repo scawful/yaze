@@ -1,5 +1,4 @@
 #include "cli/service/ai/ai_service.h"
-#include "cli/service/agent/conversational_agent_service.h"
 
 #include <algorithm>
 #include <cctype>
@@ -9,6 +8,7 @@
 #include "absl/strings/match.h"
 #include "absl/strings/numbers.h"
 #include "absl/strings/str_format.h"
+#include "cli/service/agent/conversational_agent_service.h"
 
 namespace yaze {
 namespace cli {
@@ -54,8 +54,8 @@ std::string ExtractRoomId(const std::string& normalized_prompt) {
 
 std::string ExtractKeyword(const std::string& normalized_prompt) {
   static const char* kStopwords[] = {
-      "search", "for", "resource", "resources", "label", "labels",
-      "please", "the", "a", "an", "list", "of", "in", "find"};
+      "search", "for", "resource", "resources", "label", "labels", "please",
+      "the",    "a",   "an",       "list",      "of",    "in",     "find"};
 
   auto is_stopword = [](const std::string& word) {
     for (const char* stop : kStopwords) {
@@ -69,9 +69,11 @@ std::string ExtractKeyword(const std::string& normalized_prompt) {
   std::istringstream stream(normalized_prompt);
   std::string token;
   while (stream >> token) {
-    token.erase(std::remove_if(token.begin(), token.end(), [](unsigned char c) {
-                    return !std::isalnum(c) && c != '_' && c != '-';
-                  }),
+    token.erase(std::remove_if(token.begin(), token.end(),
+                               [](unsigned char c) {
+                                 return !std::isalnum(c) && c != '_' &&
+                                        c != '-';
+                               }),
                 token.end());
     if (token.empty()) {
       continue;
@@ -89,6 +91,10 @@ std::string ExtractKeyword(const std::string& normalized_prompt) {
 absl::StatusOr<AgentResponse> MockAIService::GenerateResponse(
     const std::string& prompt) {
   AgentResponse response;
+  response.provider = "mock";
+  response.model = "mock";
+  response.parameters["mode"] = "scripted";
+  response.parameters["temperature"] = "0.0";
   const std::string normalized = absl::AsciiStrToLower(prompt);
 
   if (normalized.empty()) {
@@ -101,9 +107,11 @@ absl::StatusOr<AgentResponse> MockAIService::GenerateResponse(
       absl::StrContains(normalized, "tree")) {
     response.text_response =
         "Sure, I can do that. Here's the command to place a tree.";
-    response.commands.push_back("overworld set-tile --map 0 --x 10 --y 20 --tile 0x02E");
+    response.commands.push_back(
+        "overworld set-tile --map 0 --x 10 --y 20 --tile 0x02E");
     response.reasoning =
-        "The user asked to place a tree tile16, so I generated the matching set-tile command.";
+        "The user asked to place a tree tile16, so I generated the matching "
+        "set-tile command.";
     return response;
   }
 
@@ -124,7 +132,8 @@ absl::StatusOr<AgentResponse> MockAIService::GenerateResponse(
     response.text_response =
         absl::StrFormat("Fetching %s labels from the ROM...", resource_type);
     response.reasoning =
-        "Using the resource-list tool keeps the LLM in sync with project labels.";
+        "Using the resource-list tool keeps the LLM in sync with project "
+        "labels.";
     response.tool_calls.push_back(call);
     return response;
   }
@@ -138,7 +147,8 @@ absl::StatusOr<AgentResponse> MockAIService::GenerateResponse(
     response.text_response =
         "Let me look through the labelled resources for matches.";
     response.reasoning =
-        "Resource search provides fuzzy matching against the ROM label catalogue.";
+        "Resource search provides fuzzy matching against the ROM label "
+        "catalogue.";
     response.tool_calls.push_back(call);
     return response;
   }
@@ -148,10 +158,10 @@ absl::StatusOr<AgentResponse> MockAIService::GenerateResponse(
     ToolCall call;
     call.tool_name = "dungeon-list-sprites";
     call.args.emplace("room", ExtractRoomId(normalized));
-    response.text_response =
-        "Let me inspect the dungeon room sprites for you.";
+    response.text_response = "Let me inspect the dungeon room sprites for you.";
     response.reasoning =
-        "Calling the sprite inspection tool provides precise coordinates for the agent.";
+        "Calling the sprite inspection tool provides precise coordinates for "
+        "the agent.";
     response.tool_calls.push_back(call);
     return response;
   }
@@ -161,10 +171,10 @@ absl::StatusOr<AgentResponse> MockAIService::GenerateResponse(
     ToolCall call;
     call.tool_name = "dungeon-describe-room";
     call.args.emplace("room", ExtractRoomId(normalized));
-    response.text_response =
-        "I'll summarize the room's metadata and hazards.";
+    response.text_response = "I'll summarize the room's metadata and hazards.";
     response.reasoning =
-        "Room description tool surfaces lighting, effects, and object counts before planning edits.";
+        "Room description tool surfaces lighting, effects, and object counts "
+        "before planning edits.";
     response.tool_calls.push_back(call);
     return response;
   }
@@ -187,20 +197,21 @@ absl::StatusOr<AgentResponse> MockAIService::GenerateResponse(
          absl::StrContains(it->message, "\"id\"") ||
          absl::StrContains(it->message, "\n{"))) {
       AgentResponse response;
-      response.text_response =
-          "Here's what I found:\n" + it->message +
-          "\nLet me know if you'd like to make a change.";
-      response.reasoning =
-          "Summarized the latest tool output for the user.";
+      response.provider = "mock";
+      response.model = "mock";
+      response.parameters["mode"] = "scripted";
+      response.parameters["temperature"] = "0.0";
+      response.text_response = "Here's what I found:\n" + it->message +
+                               "\nLet me know if you'd like to make a change.";
+      response.reasoning = "Summarized the latest tool output for the user.";
       return response;
     }
   }
 
-  auto user_it = std::find_if(history.rbegin(), history.rend(),
-                               [](const agent::ChatMessage& message) {
-                                 return message.sender ==
-                                        agent::ChatMessage::Sender::kUser;
-                               });
+  auto user_it = std::find_if(
+      history.rbegin(), history.rend(), [](const agent::ChatMessage& message) {
+        return message.sender == agent::ChatMessage::Sender::kUser;
+      });
   if (user_it == history.rend()) {
     return absl::InvalidArgumentError(
         "History does not contain a user message.");
@@ -211,4 +222,3 @@ absl::StatusOr<AgentResponse> MockAIService::GenerateResponse(
 
 }  // namespace cli
 }  // namespace yaze
-

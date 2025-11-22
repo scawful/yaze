@@ -54,7 +54,7 @@ jobs:
 
     - name: Clean previous build
       if: steps.changes.outputs.docs_changed == 'true'
-      run: rm -rf html
+      run: rm -rf build/docs
 
     - name: Generate Doxygen documentation
       if: steps.changes.outputs.docs_changed == 'true'
@@ -68,7 +68,7 @@ jobs:
       uses: peaceiris/actions-gh-pages@v3
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./html
+        publish_dir: ./build/docs/html
         commit_message: 'docs: update API documentation'
         
     - name: Summary

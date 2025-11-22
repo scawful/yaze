@@ -3,11 +3,11 @@
 
 #include "cli/service/gui/gui_automation_client.h"
 
+#include <utility>
+
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "absl/time/time.h"
-
-#include <utility>
 
 namespace yaze {
 namespace cli {

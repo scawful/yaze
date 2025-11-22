@@ -84,8 +84,6 @@ class OverworldEntrance : public GameEntity {
  public:
   uint16_t map_pos_;
   uint8_t entrance_id_;
-  uint8_t area_x_;
-  uint8_t area_y_;
   bool is_hole_ = false;
   bool deleted = false;
 
@@ -95,30 +93,36 @@ class OverworldEntrance : public GameEntity {
       : map_pos_(map_pos), entrance_id_(entrance_id), is_hole_(hole) {
     x_ = x;
     y_ = y;
-    map_id_ = map_id;
+    map_id_ = map_id;  // Store original map_id (no corruption)
     entity_id_ = entrance_id;
     entity_type_ = kEntrance;
 
-    int mapX = (map_id_ - ((map_id_ / 8) * 8));
-    int mapY = (map_id_ / 8);
-    area_x_ = (uint8_t)((std::abs(x - (mapX * 512)) / 16));
-    area_y_ = (uint8_t)((std::abs(y - (mapY * 512)) / 16));
+    // Use normalized map_id for coordinate calculations
+    uint8_t normalized_map_id = map_id % 0x40;
+    int mapX = normalized_map_id % 8;
+    int mapY = normalized_map_id / 8;
+
+    // Use base game_x_/game_y_ instead of duplicated area_x_/area_y_
+    game_x_ = static_cast<int>((std::abs(x - (mapX * 512)) / 16));
+    game_y_ = static_cast<int>((std::abs(y - (mapY * 512)) / 16));
   }
 
-  void UpdateMapProperties(uint16_t map_id) override {
+  void UpdateMapProperties(uint16_t map_id,
+                           const void* context = nullptr) override {
+    (void)context;  // Not used by entrances currently
     map_id_ = map_id;
 
-    if (map_id_ >= 64) {
-      map_id_ -= 64;
-    }
+    // Use normalized map_id for calculations (don't corrupt stored value)
+    uint8_t normalized_map_id = map_id % 0x40;
+    int mapX = normalized_map_id % 8;
+    int mapY = normalized_map_id / 8;
 
-    int mapX = (map_id_ - ((map_id_ / 8) * 8));
-    int mapY = (map_id_ / 8);
+    // Update game coordinates from world coordinates
+    game_x_ = static_cast<int>((std::abs(x_ - (mapX * 512)) / 16));
+    game_y_ = static_cast<int>((std::abs(y_ - (mapY * 512)) / 16));
 
-    area_x_ = (uint8_t)((std::abs(x_ - (mapX * 512)) / 16));
-    area_y_ = (uint8_t)((std::abs(y_ - (mapY * 512)) / 16));
-
-    map_pos_ = (uint16_t)((((area_y_) << 6) | (area_x_ & 0x3F)) << 1);
+    // Calculate map position encoding for ROM save
+    map_pos_ = (uint16_t)((((game_y_) << 6) | (game_x_ & 0x3F)) << 1);
   }
 };
 constexpr int kEntranceTileTypePtrLow = 0xDB8BF;
@@ -136,8 +140,7 @@ absl::StatusOr<std::vector<OverworldEntrance>> LoadHoles(Rom* rom);
 absl::Status SaveEntrances(Rom* rom,
                            const std::vector<OverworldEntrance>& entrances,
                            bool expanded_entrances);
-absl::Status SaveHoles(Rom* rom,
-                       const std::vector<OverworldEntrance>& holes);
+absl::Status SaveHoles(Rom* rom, const std::vector<OverworldEntrance>& holes);
 
 inline absl::StatusOr<OverworldEntranceTileTypes> LoadEntranceTileTypes(
     Rom* rom) {

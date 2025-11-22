@@ -10,10 +10,10 @@ namespace agent {
 
 std::vector<AgentPretraining::KnowledgeModule> AgentPretraining::GetModules() {
   return {
-    {"rom_structure", GetRomStructureKnowledge(nullptr), true},
-    {"hex_analysis", GetHexAnalysisKnowledge(), true},
-    {"map_editing", GetMapEditingKnowledge(), true},
-    {"tool_usage", GetToolUsageExamples(), true},
+      {"rom_structure", GetRomStructureKnowledge(nullptr), true},
+      {"hex_analysis", GetHexAnalysisKnowledge(), true},
+      {"map_editing", GetMapEditingKnowledge(), true},
+      {"tool_usage", GetToolUsageExamples(), true},
   };
 }
 
@@ -171,19 +171,20 @@ Steps:
 std::string AgentPretraining::GeneratePretrainingPrompt(Rom* rom) {
   std::string prompt = "# Agent Pre-Training Session\n\n";
   prompt += "You are being initialized with deep knowledge about this ROM.\n\n";
-  
+
   if (rom && rom->is_loaded()) {
     prompt += absl::StrFormat("## Current ROM: %s\n", rom->title());
     prompt += absl::StrFormat("Size: %zu bytes\n", rom->size());
-    // prompt += absl::StrFormat("Type: %s\n\n", rom->is_expanded() ? "Expanded" : "Vanilla");
+    // prompt += absl::StrFormat("Type: %s\n\n", rom->is_expanded() ? "Expanded"
+    // : "Vanilla");
   }
-  
+
   for (const auto& module : GetModules()) {
     prompt += absl::StrFormat("## Module: %s\n", module.name);
     prompt += module.content;
     prompt += "\n---\n\n";
   }
-  
+
   prompt += R"(
 ## Your Capabilities After Training
 
@@ -197,7 +198,7 @@ You now understand:
 **Test your knowledge**: When I ask about sprites, dungeons, or tiles, 
 use multiple tools in one response to give comprehensive answers.
 )";
-  
+
   return prompt;
 }
 

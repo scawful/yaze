@@ -5,12 +5,18 @@
 namespace yaze::gui {
 
 TileSelectorWidget::TileSelectorWidget(std::string widget_id)
-    : config_(), total_tiles_(config_.total_tiles), widget_id_(std::move(widget_id)) {}
+    : config_(),
+      total_tiles_(config_.total_tiles),
+      widget_id_(std::move(widget_id)) {}
 
 TileSelectorWidget::TileSelectorWidget(std::string widget_id, Config config)
-    : config_(config), total_tiles_(config.total_tiles), widget_id_(std::move(widget_id)) {}
+    : config_(config),
+      total_tiles_(config.total_tiles),
+      widget_id_(std::move(widget_id)) {}
 
-void TileSelectorWidget::AttachCanvas(Canvas* canvas) { canvas_ = canvas; }
+void TileSelectorWidget::AttachCanvas(Canvas* canvas) {
+  canvas_ = canvas;
+}
 
 void TileSelectorWidget::SetTileCount(int total_tiles) {
   total_tiles_ = std::max(total_tiles, 0);
@@ -26,7 +32,7 @@ void TileSelectorWidget::SetSelectedTile(int tile_id) {
 }
 
 TileSelectorWidget::RenderResult TileSelectorWidget::Render(gfx::Bitmap& atlas,
-                                                           bool atlas_ready) {
+                                                            bool atlas_ready) {
   RenderResult result;
 
   if (!canvas_) {
@@ -37,25 +43,29 @@ TileSelectorWidget::RenderResult TileSelectorWidget::Render(gfx::Bitmap& atlas,
       static_cast<int>(config_.tile_size * config_.display_scale);
 
   // Calculate total content size for ImGui child window scrolling
-  const int num_rows = (total_tiles_ + config_.tiles_per_row - 1) / config_.tiles_per_row;
+  const int num_rows =
+      (total_tiles_ + config_.tiles_per_row - 1) / config_.tiles_per_row;
   const ImVec2 content_size(
       config_.tiles_per_row * tile_display_size + config_.draw_offset.x * 2,
-      num_rows * tile_display_size + config_.draw_offset.y * 2
-  );
-  
-  // Set content size for ImGui child window (must be called before DrawBackground)
+      num_rows * tile_display_size + config_.draw_offset.y * 2);
+
+  // Set content size for ImGui child window (must be called before
+  // DrawBackground)
   ImGui::SetCursorPos(ImVec2(0, 0));
   ImGui::Dummy(content_size);
   ImGui::SetCursorPos(ImVec2(0, 0));
-  
-  // Handle pending scroll (deferred from ScrollToTile call outside render context)
+
+  // Handle pending scroll (deferred from ScrollToTile call outside render
+  // context)
   if (pending_scroll_tile_id_ >= 0) {
     if (IsValidTileId(pending_scroll_tile_id_)) {
       const ImVec2 target = TileOrigin(pending_scroll_tile_id_);
       if (pending_scroll_use_imgui_) {
         const ImVec2 window_size = ImGui::GetWindowSize();
-        float scroll_x = target.x - (window_size.x / 2.0f) + (tile_display_size / 2.0f);
-        float scroll_y = target.y - (window_size.y / 2.0f) + (tile_display_size / 2.0f);
+        float scroll_x =
+            target.x - (window_size.x / 2.0f) + (tile_display_size / 2.0f);
+        float scroll_y =
+            target.y - (window_size.y / 2.0f) + (tile_display_size / 2.0f);
         scroll_x = std::max(0.0f, scroll_x);
         scroll_y = std::max(0.0f, scroll_y);
         ImGui::SetScrollX(scroll_x);
@@ -126,8 +136,9 @@ int TileSelectorWidget::ResolveTileAtCursor(int tile_display_size) const {
   const ImVec2 scroll = canvas_->scrolling();
 
   // Convert screen position to canvas content position (accounting for scroll)
-  ImVec2 local = ImVec2(screen_pos.x - origin.x - config_.draw_offset.x - scroll.x,
-                        screen_pos.y - origin.y - config_.draw_offset.y - scroll.y);
+  ImVec2 local =
+      ImVec2(screen_pos.x - origin.x - config_.draw_offset.x - scroll.x,
+             screen_pos.y - origin.y - config_.draw_offset.y - scroll.y);
 
   if (local.x < 0.0f || local.y < 0.0f) {
     return -1;
@@ -164,7 +175,8 @@ void TileSelectorWidget::ScrollToTile(int tile_id, bool use_imgui_scroll) {
     return;
   }
 
-  // Defer scroll until next render (when we're in the correct ImGui window context)
+  // Defer scroll until next render (when we're in the correct ImGui window
+  // context)
   pending_scroll_tile_id_ = tile_id;
   pending_scroll_use_imgui_ = use_imgui_scroll;
 }
@@ -186,5 +198,3 @@ bool TileSelectorWidget::IsValidTileId(int tile_id) const {
 }
 
 }  // namespace yaze::gui
-
-

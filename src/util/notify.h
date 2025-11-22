@@ -13,29 +13,29 @@ template <typename T>
 class NotifyValue {
  public:
   NotifyValue() : value_(), modified_(false), temp_value_() {}
-  NotifyValue(const T &value)
+  NotifyValue(const T& value)
       : value_(value), modified_(false), temp_value_() {}
 
-  void set(const T &value) {
+  void set(const T& value) {
     if (value != value_) {
       value_ = value;
       modified_ = true;
     }
   }
 
-  void set(T &&value) {
+  void set(T&& value) {
     if (value != value_) {
       value_ = std::move(value);
       modified_ = true;
     }
   }
 
-  const T &get() {
+  const T& get() {
     modified_ = false;
     return value_;
   }
 
-  T &edit() {
+  T& edit() {
     modified_ = false;
     temp_value_ = value_;
     return temp_value_;
@@ -55,7 +55,7 @@ class NotifyValue {
   }
 
   operator T() { return get(); }
-  void operator=(const T &value) { set(value); }
+  void operator=(const T& value) { set(value); }
   bool modified() const { return modified_; }
 
  private:

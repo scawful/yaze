@@ -34,6 +34,8 @@ if(YAZE_BUILD_EMU AND NOT YAZE_MINIMAL_BUILD)
     message(WARNING "yaze_emu needs yaze_test_support but TARGET not found")
   endif()
 
+  # gRPC/protobuf linking is now handled by yaze_grpc_support library
+
   # Test engine is always available when tests are built
   # No need for conditional definitions
 
@@ -53,6 +55,9 @@ if(YAZE_BUILD_EMU AND NOT YAZE_MINIMAL_BUILD)
     absl::strings
     absl::str_format
   )
+  
+  # gRPC/protobuf linking is now handled by yaze_grpc_support library
+  
   message(STATUS "✓ yaze_emu_test: Headless emulator test harness configured")
   message(STATUS "✓ yaze_emu: Standalone emulator executable configured")
 else()

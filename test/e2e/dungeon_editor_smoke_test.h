@@ -5,7 +5,7 @@
 
 /**
  * @brief Quick smoke test for DungeonEditorV2 card-based UI
- * 
+ *
  * Tests basic functionality:
  * - Opening dungeon editor
  * - Opening independent cards (Rooms, Matrix, Objects, etc.)
@@ -15,4 +15,3 @@
 void E2ETest_DungeonEditorV2SmokeTest(ImGuiTestContext* ctx);
 
 #endif  // YAZE_TEST_E2E_DUNGEON_EDITOR_SMOKE_TEST_H
-

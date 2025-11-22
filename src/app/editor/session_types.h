@@ -1,7 +1,9 @@
 #ifndef YAZE_APP_EDITOR_SESSION_TYPES_H_
 #define YAZE_APP_EDITOR_SESSION_TYPES_H_
 
-#include "core/features.h"
+#include <string>
+#include <vector>
+
 #include "app/editor/code/assembly_editor.h"
 #include "app/editor/code/memory_editor.h"
 #include "app/editor/dungeon/dungeon_editor_v2.h"
@@ -14,9 +16,7 @@
 #include "app/editor/sprite/sprite_editor.h"
 #include "app/editor/system/settings_editor.h"
 #include "app/rom.h"
-
-#include <string>
-#include <vector>
+#include "core/features.h"
 
 namespace yaze::editor {
 
@@ -57,7 +57,8 @@ class EditorSet {
 
 /**
  * @struct RomSession
- * @brief Represents a single session, containing a ROM and its associated editors.
+ * @brief Represents a single session, containing a ROM and its associated
+ * editors.
  */
 struct RomSession {
   Rom rom;

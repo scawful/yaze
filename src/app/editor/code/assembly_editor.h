@@ -6,9 +6,9 @@
 
 #include "absl/container/flat_hash_map.h"
 #include "app/editor/editor.h"
-#include "app/gui/widgets/text_editor.h"
 #include "app/gui/app/editor_layout.h"
 #include "app/gui/core/style.h"
+#include "app/gui/widgets/text_editor.h"
 #include "app/rom.h"
 
 namespace yaze {
@@ -31,11 +31,11 @@ class AssemblyEditor : public Editor {
     text_editor_.SetShowWhitespaces(false);
     type_ = EditorType::kAssembly;
   }
-  void ChangeActiveFile(const std::string_view &filename);
+  void ChangeActiveFile(const std::string_view& filename);
 
   void Initialize() override;
   absl::Status Load() override;
-  void Update(bool &is_loaded);
+  void Update(bool& is_loaded);
   void InlineUpdate();
 
   void UpdateCodeView();
@@ -52,7 +52,7 @@ class AssemblyEditor : public Editor {
 
   absl::Status Save() override;
 
-  void OpenFolder(const std::string &folder_path);
+  void OpenFolder(const std::string& folder_path);
 
   void set_rom(Rom* rom) { rom_ = rom; }
   Rom* rom() const { return rom_; }

@@ -8,9 +8,13 @@
 # Dependencies: yaze_util, yaze_zelda3, asar, absl
 # ==============================================================================
 
+# Add ASAR library subdirectory
+# TODO: Fix ASAR CMakeLists.txt macro errors
+# add_subdirectory(${CMAKE_SOURCE_DIR}/ext/asar/src/asar ${CMAKE_BINARY_DIR}/asar)
+
 # Core library sources
 set(YAZE_CORE_LIB_SOURCES
-  asar_wrapper.cc
+  asar_wrapper.cc  # Has stub implementations until ASAR build is fixed
   project.cc
 )
 
@@ -24,10 +28,10 @@ target_compile_features(yaze_core_lib PUBLIC cxx_std_20)
 target_include_directories(yaze_core_lib PUBLIC
   ${CMAKE_SOURCE_DIR}/src
   ${CMAKE_SOURCE_DIR}/src/app  # Needed for app/gui/core/icons.h temporarily
-  ${CMAKE_SOURCE_DIR}/src/lib/asar/src
-  ${CMAKE_SOURCE_DIR}/src/lib/asar/src/asar
-  ${CMAKE_SOURCE_DIR}/src/lib/asar/src/asar-dll-bindings/c
-  ${CMAKE_SOURCE_DIR}/src/lib/imgui  # Needed for ImGui in project.cc temporarily
+  ${CMAKE_SOURCE_DIR}/ext/asar/src
+  ${CMAKE_SOURCE_DIR}/ext/asar/src/asar
+  ${CMAKE_SOURCE_DIR}/ext/asar/src/asar-dll-bindings/c
+  ${CMAKE_SOURCE_DIR}/ext/imgui  # Needed for ImGui in project.cc temporarily
   ${CMAKE_SOURCE_DIR}/incl
   ${PROJECT_BINARY_DIR}
 )
@@ -36,7 +40,7 @@ target_include_directories(yaze_core_lib PUBLIC
 target_link_libraries(yaze_core_lib PUBLIC
   yaze_util          # Logging, file I/O, platform paths
   yaze_zelda3        # Zelda3 labels for embedded project labels
-  asar-static        # Assembly patching
+  # asar-static      # Assembly patching - TODO: Fix ASAR build
   ${ABSL_TARGETS}    # Abseil for Status/StatusOr
   ${CMAKE_DL_LIBS}   # Dynamic library loading
 )

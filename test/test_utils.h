@@ -5,18 +5,18 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 #endif
 
-#include <string>
-#include <vector>
+#include <gmock/gmock.h>
+#include <gtest/gtest.h>
+
 #include <filesystem>
 #include <fstream>
 #include <iostream>
-
-#include <gtest/gtest.h>
-#include <gmock/gmock.h>
+#include <string>
+#include <vector>
 
 #include "absl/strings/str_format.h"
-#include "imgui_test_engine/imgui_te_context.h"
 #include "app/rom.h"
+#include "imgui_test_engine/imgui_te_context.h"
 
 namespace yaze {
 namespace test {
@@ -76,7 +76,7 @@ class TestRomManager {
     // Read file
     std::vector<uint8_t> rom_data(file_size);
     file.read(reinterpret_cast<char*>(rom_data.data()), file_size);
-    
+
     if (!file) {
       std::cerr << "Failed to read test ROM: " << rom_path << std::endl;
       return {};
@@ -92,20 +92,20 @@ class TestRomManager {
    */
   static std::vector<uint8_t> CreateMinimalTestRom(size_t size = 1024 * 1024) {
     std::vector<uint8_t> rom_data(size, 0);
-    
+
     // Add minimal SNES header at 0x7FC0 (LoROM)
     const size_t header_offset = 0x7FC0;
     if (size > header_offset + 32) {
       // ROM title
       std::string title = "YAZE TEST ROM       ";
       std::copy(title.begin(), title.end(), rom_data.begin() + header_offset);
-      
+
       // Map mode (LoROM)
       rom_data[header_offset + 21] = 0x20;
-      
+
       // ROM size (1MB)
       rom_data[header_offset + 23] = 0x0A;
-      
+
       // Calculate and set checksum
       uint16_t checksum = 0;
       for (size_t i = 0; i < size; ++i) {
@@ -113,14 +113,14 @@ class TestRomManager {
           checksum += rom_data[i];
         }
       }
-      
+
       uint16_t checksum_complement = checksum ^ 0xFFFF;
       rom_data[header_offset + 28] = checksum_complement & 0xFF;
       rom_data[header_offset + 29] = (checksum_complement >> 8) & 0xFF;
       rom_data[header_offset + 30] = checksum & 0xFF;
       rom_data[header_offset + 31] = (checksum >> 8) & 0xFF;
     }
-    
+
     return rom_data;
   }
 
@@ -131,26 +131,30 @@ class TestRomManager {
   static void SkipIfRomTestingDisabled(const std::string& test_name) {
     if (!IsRomTestingEnabled()) {
       GTEST_SKIP() << "ROM testing disabled or ROM file not found. "
-                   << "Test: " << test_name << " requires: " << GetTestRomPath();
+                   << "Test: " << test_name
+                   << " requires: " << GetTestRomPath();
     }
   }
 };
 
 class TestRomManager::BoundRomTest : public ::testing::Test {
  protected:
-  void SetUp() override {
-    rom_instance_ = std::make_unique<Rom>();
-  }
+  void SetUp() override { rom_instance_ = std::make_unique<Rom>(); }
 
   void TearDown() override {
     rom_instance_.reset();
     rom_loaded_ = false;
   }
 
-  Rom* rom() { EnsureRomLoaded(); return rom_instance_.get(); }
+  Rom* rom() {
+    EnsureRomLoaded();
+    return rom_instance_.get();
+  }
   const Rom* rom() const { return rom_instance_.get(); }
 
-  std::string GetBoundRomPath() const { return TestRomManager::GetTestRomPath(); }
+  std::string GetBoundRomPath() const {
+    return TestRomManager::GetTestRomPath();
+  }
 
  private:
   std::unique_ptr<Rom> rom_instance_;
@@ -170,11 +174,12 @@ class TestRomManager::BoundRomTest : public ::testing::Test {
 /**
  * @brief Test macro for ROM-dependent tests
  */
-#define YAZE_ROM_TEST(test_case_name, test_name) \
-  TEST(test_case_name, test_name) { \
-    yaze::test::TestRomManager::SkipIfRomTestingDisabled(#test_case_name "." #test_name); \
-    YAZE_ROM_TEST_BODY_##test_case_name##_##test_name(); \
-  } \
+#define YAZE_ROM_TEST(test_case_name, test_name)                          \
+  TEST(test_case_name, test_name) {                                       \
+    yaze::test::TestRomManager::SkipIfRomTestingDisabled(#test_case_name  \
+                                                         "." #test_name); \
+    YAZE_ROM_TEST_BODY_##test_case_name##_##test_name();                  \
+  }                                                                       \
   void YAZE_ROM_TEST_BODY_##test_case_name##_##test_name()
 
 /**
@@ -196,7 +201,7 @@ namespace gui {
 void LoadRomInTest(ImGuiTestContext* ctx, const std::string& rom_path);
 void OpenEditorInTest(ImGuiTestContext* ctx, const std::string& editor_name);
 
-} // namespace gui
+}  // namespace gui
 
 }  // namespace test
 }  // namespace yaze

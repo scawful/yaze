@@ -6,399 +6,284 @@ on:
       - 'v*'
   workflow_dispatch:
     inputs:
-      tag:
-        description: 'Release tag (e.g., v0.3.2)'
+      version:
+        description: 'Version to release (e.g., v1.0.0)'
         required: true
         type: string
 
-permissions:
-  contents: write
-
 env:
-  BUILD_TYPE: Release
+  VERSION: ${{ github.event.inputs.version || github.ref_name }}
 
 jobs:
-  build-windows:
-    name: Windows x64
-    runs-on: windows-2022
+  build:
+    name: "Build Release - ${{ matrix.name }}"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: "Ubuntu 22.04"
+            os: ubuntu-22.04
+            platform: linux
+            preset: release
+          - name: "macOS 14"
+            os: macos-14
+            platform: macos
+            preset: release
+          - name: "Windows 2022"
+            os: windows-2022
+            platform: windows
+            preset: release
+
     steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: recursive
-
-      - name: Setup vcpkg
-        uses: lukka/run-vcpkg@v11
-        with:
-          vcpkgDirectory: '${{ github.workspace }}/vcpkg'
-          vcpkgGitCommitId: 'b2c74683ecfd6a8e7d27ffb0df077f66a9339509'
-          runVcpkgInstall: true
-        env:
-          VCPKG_DEFAULT_TRIPLET: x64-windows-static
-          VCPKG_BINARY_SOURCES: 'clear;x-gha,readwrite'
-
-      - name: Install build tools
-        shell: pwsh
+      - name: Free up disk space (Linux)
+        if: matrix.platform == 'linux'
         run: |
-          choco install --no-progress -y nasm
-          "C:\Program Files\NASM" | Out-File -FilePath $env:GITHUB_PATH -Append
-
-      - name: Setup MSVC environment for clang-cl
-        uses: ilammy/msvc-dev-cmd@v1
-        with:
-          arch: x64
-
-      - name: Configure clang-cl
-        shell: pwsh
-        run: |
-          Write-Host "Setting up clang-cl compiler"
-          echo "CC=clang-cl" >> $env:GITHUB_ENV
-          echo "CXX=clang-cl" >> $env:GITHUB_ENV
-
-      - name: Setup sccache
-        uses: hendrikmuhs/ccache-action@v1.2
-        with:
-          key: windows-x64-release-${{ github.run_id }}
-          restore-keys: |
-            windows-x64-release-
-          max-size: 500M
-          variant: sccache
-
-      - name: Restore vcpkg packages cache
-        uses: actions/cache@v4
-        with:
-          path: |
-            build/vcpkg_installed
-            ${{ github.workspace }}/vcpkg/packages
-          key: vcpkg-release-${{ hashFiles('vcpkg.json') }}
-          restore-keys: |
-            vcpkg-release-
-
-      - name: Restore FetchContent dependencies
-        uses: actions/cache@v4
-        with:
-          path: |
-            build/_deps
-          key: fetchcontent-release-${{ hashFiles('cmake/grpc*.cmake') }}-v2
-          restore-keys: |
-            fetchcontent-release-
-
-      - name: Configure sccache
-        shell: pwsh
-        run: |
-          echo "CC=sccache clang-cl" >> $env:GITHUB_ENV
-          echo "CXX=sccache clang-cl" >> $env:GITHUB_ENV
-
-      - name: Configure
-        id: configure
-        shell: pwsh
-        run: |
-          Write-Host "=== Build Configuration ===" -ForegroundColor Cyan
-          Write-Host "Compiler: clang-cl"
-          Write-Host "Build Type: Release"
-          cmake --version
-          clang-cl --version
-          
-          $toolchain = "${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake"
-          cmake -S . -B build `
-            -DCMAKE_BUILD_TYPE=Release `
-            -DCMAKE_C_COMPILER=clang-cl `
-            -DCMAKE_CXX_COMPILER=clang-cl `
-            -DCMAKE_TOOLCHAIN_FILE=$toolchain `
-            -DVCPKG_TARGET_TRIPLET=x64-windows-static `
-            -DVCPKG_MANIFEST_MODE=ON `
-            -DYAZE_BUILD_TESTS=OFF `
-            -DYAZE_BUILD_EMU=ON `
-            -DYAZE_BUILD_Z3ED=ON `
-            -DYAZE_BUILD_TOOLS=ON 2>&1 | Tee-Object -FilePath cmake_config.log
-
-      - name: Report Configure Failure
-        if: always() && steps.configure.outcome == 'failure'
-        shell: pwsh
-        run: |
-          Write-Host "::error::CMake configuration failed. Check cmake_config.log for details." -ForegroundColor Red
-          if (Test-Path cmake_config.log) {
-            Write-Host "::group::CMake Configuration Log (last 50 lines)"
-            Get-Content cmake_config.log -Tail 50
-            Write-Host "::endgroup::"
-          }
-          exit 1
-
-      - name: Build
-        id: build
-        shell: pwsh
-        run: cmake --build build --config Release --parallel 4 -- /p:CL_MPcount=4 2>&1 | Tee-Object -FilePath build.log
-
-      - name: Report Build Failure
-        if: always() && steps.build.outcome == 'failure'
-        shell: pwsh
-        run: |
-          Write-Host "::error::Build failed. Check build.log for details." -ForegroundColor Red
-          if (Test-Path build.log) {
-            Write-Host "::group::Build Log (last 100 lines)"
-            Get-Content build.log -Tail 100
-            Write-Host "::endgroup::"
-            
-            # Check for specific error patterns
-            if (Select-String -Path "build.log" -Pattern "vcpkg" -Quiet) {
-              Write-Host "`n::group::vcpkg-related errors" -ForegroundColor Yellow
-              Select-String -Path "build.log" -Pattern "vcpkg.*error" -CaseSensitive:$false | Select-Object -First 10
-              Write-Host "::endgroup::"
-            }
-            
-            if (Select-String -Path "build.log" -Pattern "LNK[0-9]{4}" -Quiet) {
-              Write-Host "`n::group::Linker errors" -ForegroundColor Yellow
-              Select-String -Path "build.log" -Pattern "LNK[0-9]{4}" | Select-Object -First 10
-              Write-Host "::endgroup::"
-            }
-            
-            if (Select-String -Path "build.log" -Pattern "fatal error" -Quiet) {
-              Write-Host "`n::group::Fatal errors" -ForegroundColor Yellow
-              Select-String -Path "build.log" -Pattern "fatal error" | Select-Object -First 10
-              Write-Host "::endgroup::"
-            }
-          }
-          
-          # List vcpkg installed packages
-          $vcpkgExe = "${{ github.workspace }}/vcpkg/vcpkg.exe"
-          if (Test-Path $vcpkgExe) {
-            Write-Host "`n::group::Installed vcpkg packages"
-            & $vcpkgExe list
-            Write-Host "::endgroup::"
-          }
-          exit 1
-
-      - name: Package
-        shell: pwsh
-        run: |
-          New-Item -ItemType Directory -Path release
-          Copy-Item -Path build/bin/Release/* -Destination release/ -Recurse
-          Copy-Item -Path assets -Destination release/ -Recurse
-          Copy-Item LICENSE, README.md -Destination release/
-          Compress-Archive -Path release/* -DestinationPath yaze-windows-x64.zip
-
-      - name: Upload Build Logs on Failure (Windows)
-        if: always() && (steps.configure.outcome == 'failure' || steps.build.outcome == 'failure')
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-logs-windows
-          path: |
-            cmake_config.log
-            build.log
-          if-no-files-found: ignore
-          retention-days: 7
-
-      - uses: actions/upload-artifact@v4
-        if: steps.build.outcome == 'success'
-        with:
-          name: yaze-windows-x64
-          path: yaze-windows-x64.zip
-
-  build-macos:
-    name: macOS Universal
-    runs-on: macos-14
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: recursive
-
-      - name: Install dependencies
-        run: brew install ninja cmake
-
-      - name: Configure arm64
-        id: configure_arm64
-        run: |
-          cmake -S . -B build-arm64 -G Ninja \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_OSX_ARCHITECTURES=arm64 \
-            -DYAZE_BUILD_TESTS=OFF \
-            -DYAZE_BUILD_EMU=ON \
-            -DYAZE_BUILD_Z3ED=ON \
-            -DYAZE_BUILD_TOOLS=ON 2>&1 | tee cmake_config_arm64.log
-
-      - name: Build arm64
-        id: build_arm64
-        run: cmake --build build-arm64 --config Release 2>&1 | tee build_arm64.log
-
-      - name: Configure x86_64
-        id: configure_x86_64
-        run: |
-          cmake -S . -B build-x86_64 -G Ninja \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_OSX_ARCHITECTURES=x86_64 \
-            -DYAZE_BUILD_TESTS=OFF \
-            -DYAZE_BUILD_EMU=ON \
-            -DYAZE_BUILD_Z3ED=ON \
-            -DYAZE_BUILD_TOOLS=ON 2>&1 | tee cmake_config_x86_64.log
-
-      - name: Build x86_64
-        id: build_x86_64
-        run: cmake --build build-x86_64 --config Release 2>&1 | tee build_x86_64.log
-
-      - name: Create Universal Binary
-        run: |
-          cp -R build-arm64/bin/yaze.app yaze.app
-          lipo -create \
-            build-arm64/bin/yaze.app/Contents/MacOS/yaze \
-            build-x86_64/bin/yaze.app/Contents/MacOS/yaze \
-            -output yaze.app/Contents/MacOS/yaze
-          lipo -info yaze.app/Contents/MacOS/yaze
-
-      - name: Create DMG
-        run: |
-          hdiutil create -fs HFS+ -srcfolder yaze.app \
-            -volname "yaze" yaze-macos-universal.dmg
-
-      - name: Upload Build Logs on Failure (macOS)
-        if: always() && (steps.configure_arm64.outcome == 'failure' || steps.build_arm64.outcome == 'failure' || steps.configure_x86_64.outcome == 'failure' || steps.build_x86_64.outcome == 'failure')
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-logs-macos
-          path: |
-            cmake_config_arm64.log
-            build_arm64.log
-            cmake_config_x86_64.log
-            build_x86_64.log
-          if-no-files-found: ignore
-          retention-days: 7
-
-      - uses: actions/upload-artifact@v4
-        if: steps.build_arm64.outcome == 'success' && steps.build_x86_64.outcome == 'success'
-        with:
-          name: yaze-macos-universal
-          path: yaze-macos-universal.dmg
-
-  build-linux:
-    name: Linux x64
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: recursive
-
-      - name: Free disk space
-        run: |
+          echo "=== Disk space before cleanup ==="
+          df -h
           sudo rm -rf /usr/share/dotnet
           sudo rm -rf /usr/local/lib/android
           sudo rm -rf /opt/ghc
-          sudo apt-get clean
+          sudo rm -rf /opt/hostedtoolcache/CodeQL
+          sudo docker image prune --all --force
+          echo "=== Disk space after cleanup ==="
+          df -h
 
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            build-essential ninja-build pkg-config \
-            libglew-dev libxext-dev libwavpack-dev libboost-all-dev \
-            libpng-dev python3-dev \
-            libasound2-dev libpulse-dev \
-            libx11-dev libxrandr-dev libxcursor-dev libxinerama-dev libxi-dev \
-            libxss-dev libxxf86vm-dev libxkbcommon-dev libwayland-dev libdecor-0-dev \
-            libgtk-3-dev libdbus-1-dev
-
-      - name: Configure
-        id: configure
-        run: |
-          cmake -S . -B build -G Ninja \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DYAZE_BUILD_TESTS=OFF \
-            -DYAZE_BUILD_EMU=ON \
-            -DYAZE_BUILD_Z3ED=ON \
-            -DYAZE_BUILD_TOOLS=ON \
-            -DNFD_PORTAL=ON 2>&1 | tee cmake_config.log
-
-      - name: Build
-        id: build
-        run: cmake --build build --config Release 2>&1 | tee build.log
-
-      - name: Package
-        run: |
-          mkdir -p release
-          cp build/bin/yaze release/
-          cp -r assets release/
-          cp LICENSE README.md release/
-          tar -czf yaze-linux-x64.tar.gz -C release .
-
-      - name: Upload Build Logs on Failure (Linux)
-        if: always() && (steps.configure.outcome == 'failure' || steps.build.outcome == 'failure')
-        uses: actions/upload-artifact@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
         with:
-          name: build-logs-linux
-          path: |
-            cmake_config.log
-            build.log
-          if-no-files-found: ignore
-          retention-days: 7
+          submodules: recursive
 
-      - uses: actions/upload-artifact@v4
-        if: steps.build.outcome == 'success'
+      - name: Setup build environment
+        uses: ./.github/actions/setup-build
         with:
-          name: yaze-linux-x64
-          path: yaze-linux-x64.tar.gz
+          platform: ${{ matrix.platform }}
+          preset: ${{ matrix.preset }}
+          cache-key: ${{ hashFiles('cmake/dependencies.lock') }}
 
-  create-release:
-    name: Create Release
-    needs: [build-windows, build-macos, build-linux]
-    runs-on: ubuntu-latest
-    if: always() && (needs.build-windows.result == 'success' || needs.build-macos.result == 'success' || needs.build-linux.result == 'success')
-    steps:
-      - uses: actions/checkout@v4
+      - name: Build project
+        uses: ./.github/actions/build-project
+        with:
+          platform: ${{ matrix.platform }}
+          preset: ${{ matrix.preset }}
+          build-type: Release
 
-      - name: Determine tag
-        id: tag
+      - name: Patch cmake_install.cmake (Unix)
+        if: matrix.platform == 'linux' || matrix.platform == 'macos'
+        shell: bash
         run: |
-          if [ "${{ github.event_name }}" = "push" ]; then
-            echo "tag=${{ github.ref_name }}" >> $GITHUB_OUTPUT
-          else
-            echo "tag=${{ github.event.inputs.tag }}" >> $GITHUB_OUTPUT
+          cd build
+          # Create a Python script to patch cmake_install.cmake
+          python3 << 'EOF'
+          import re
+          with open('cmake_install.cmake', 'r') as f:
+              content = f.read()
+          # Wrap include() statements with if(EXISTS)
+          pattern = r'(\s*)include\("(.*)/_deps/([^"]+)/cmake_install\.cmake"\)'
+          replacement = r'\1if(EXISTS "\2/_deps/\3/cmake_install.cmake")\n\1  include("\2/_deps/\3/cmake_install.cmake")\n\1endif()'
+          content = re.sub(pattern, replacement, content)
+          with open('cmake_install.cmake', 'w') as f:
+              f.write(content)
+          print("Patched cmake_install.cmake to handle missing dependency install scripts")
+          EOF
+
+      - name: Package artifacts (Linux)
+        if: matrix.platform == 'linux'
+        run: |
+          cd build
+          cpack -G DEB -G TGZ
+          echo "=== Contents of build directory ==="
+          ls -la
+          echo "=== Package files created ==="
+          ls -la *.deb *.tar.gz 2>/dev/null || echo "No packages found in build/"
+
+      - name: Package artifacts (macOS)
+        if: matrix.platform == 'macos'
+        run: |
+          cd build
+          cpack -G DragNDrop
+          echo "=== Contents of build directory ==="
+          ls -la
+          echo "=== Package files created ==="
+          ls -la *.dmg 2>/dev/null || echo "No packages found in build/"
+
+      - name: Create notarized bundle (macOS)
+        if: matrix.platform == 'macos'
+        shell: bash
+        run: |
+          chmod +x ./scripts/create-macos-bundle.sh
+          ./scripts/create-macos-bundle.sh ${{ env.VERSION }} yaze-${{ env.VERSION }}-bundle || true
+          if [ -f "yaze-${{ env.VERSION }}-bundle.dmg" ]; then
+            mv yaze-${{ env.VERSION }}-bundle.dmg build/
           fi
 
-      - name: Download artifacts
+      - name: Patch cmake_install.cmake (Windows)
+        if: matrix.platform == 'windows'
+        shell: pwsh
+        run: |
+          cd build
+          # Wrap include() statements with if(EXISTS) to handle missing dependency install scripts
+          $nl = [Environment]::NewLine
+          $content = Get-Content cmake_install.cmake -Raw
+          $content = $content -replace '(\s+)include\("(.*)/_deps/([^"]+)/cmake_install\.cmake"\)', "`$1if(EXISTS `"`$2/_deps/`$3/cmake_install.cmake`")$nl`$1  include(`"`$2/_deps/`$3/cmake_install.cmake`")$nl`$1endif()"
+          Set-Content cmake_install.cmake $content
+          Write-Host "Patched cmake_install.cmake to handle missing dependency install scripts"
+
+      - name: Package artifacts (Windows)
+        if: matrix.platform == 'windows'
+        shell: pwsh
+        run: |
+          cd build
+          cpack -G NSIS -G ZIP
+          Write-Host "=== Contents of build directory ==="
+          Get-ChildItem
+          Write-Host "=== Package files created ==="
+          Get-ChildItem *.exe, *.zip -ErrorAction SilentlyContinue
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: yaze-${{ matrix.platform }}-${{ env.VERSION }}
+          path: |
+            build/*.deb
+            build/*.tar.gz
+            build/*.dmg
+            build/*.exe
+            build/*.zip
+          if-no-files-found: warn
+          retention-days: 30
+
+  test:
+    name: "Test Release - ${{ matrix.name }}"
+    needs: build
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: "Ubuntu 22.04"
+            os: ubuntu-22.04
+            platform: linux
+            preset: release
+          - name: "macOS 14"
+            os: macos-14
+            platform: macos
+            preset: release
+          - name: "Windows 2022"
+            os: windows-2022
+            platform: windows
+            preset: release
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup build environment
+        uses: ./.github/actions/setup-build
+        with:
+          platform: ${{ matrix.platform }}
+          preset: ${{ matrix.preset }}
+          cache-key: ${{ hashFiles('cmake/dependencies.lock') }}
+
+      - name: Build project
+        uses: ./.github/actions/build-project
+        with:
+          platform: ${{ matrix.platform }}
+          preset: ${{ matrix.preset }}
+          build-type: Release
+
+      - name: Run tests
+        uses: ./.github/actions/run-tests
+        with:
+          test-type: stable
+          preset: ${{ matrix.preset }}
+
+  create-release:
+    name: "Create Release"
+    needs: [build]  # Tests are informational only in pre-1.0
+    runs-on: ubuntu-22.04
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
-          path: artifacts
+          path: ./artifacts
 
-      - name: Display structure
-        run: ls -R artifacts
-
-      - name: Create release notes
-        id: notes
+      - name: Display downloaded artifacts
         run: |
-          TAG="${{ steps.tag.outputs.tag }}"
-          VERSION="${TAG#v}"
-          
-          cat > release_notes.md << 'EOF'
-          ## yaze ${{ steps.tag.outputs.tag }}
-          
-          ### Downloads
-          - **Windows**: `yaze-windows-x64.zip`
-          - **macOS**: `yaze-macos-universal.dmg` (Universal Binary)
-          - **Linux**: `yaze-linux-x64.tar.gz`
-          
-          ### Installation
-          
-          **Windows**: Extract the ZIP file and run `yaze.exe`
-          
-          **macOS**: Open the DMG and drag yaze.app to Applications
-          
-          **Linux**: Extract the tarball and run `./yaze`
-          
-          ### Changes
-          See the [changelog](https://github.com/${{ github.repository }}/blob/develop/docs/H1-changelog.md) for details.
-          EOF
-          
-          cat release_notes.md
+          echo "=== Downloaded artifacts structure ==="
+          ls -laR artifacts/
+          echo "=== Package files found ==="
+          find artifacts -type f \( -name "*.zip" -o -name "*.exe" -o -name "*.deb" -o -name "*.tar.gz" -o -name "*.dmg" \)
+
+      - name: Reorganize artifacts
+        run: |
+          # Flatten the artifact directory structure
+          mkdir -p release-files
+          find artifacts -type f \( -name "*.zip" -o -name "*.exe" -o -name "*.deb" -o -name "*.tar.gz" -o -name "*.dmg" \) -exec cp {} release-files/ \;
+          echo "=== Files in release-files ==="
+          ls -la release-files/
+
+      - name: Generate release checksums
+        run: |
+          cd release-files
+          sha256sum * > checksums.txt
+          cat checksums.txt
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ steps.tag.outputs.tag }}
-          name: yaze ${{ steps.tag.outputs.tag }}
-          body_path: release_notes.md
-          draft: false
-          prerelease: ${{ contains(steps.tag.outputs.tag, '-') }}
+          tag_name: ${{ env.VERSION }}
+          name: "YAZE ${{ env.VERSION }}"
+          body: |
+            ## What's Changed
+            
+            This release includes:
+            - Cross-platform builds for Linux, macOS, and Windows
+            - Improved dependency management with CPM.cmake
+            - Enhanced CI/CD pipeline with parallel execution
+            - Automated packaging and release creation
+            
+            ## Downloads
+            
+            ### Linux
+            - **DEB Package**: `yaze-*.deb` (Ubuntu/Debian)
+            - **Tarball**: `yaze-*.tar.gz` (Generic Linux)
+            
+            ### macOS
+            - **DMG**: `yaze-*.dmg` (macOS 11.0+)
+            
+            ### Windows
+            - **Installer**: `yaze-*.exe` (Windows 10/11)
+            - **ZIP**: `yaze-*.zip` (Portable)
+            
+            ## Installation
+            
+            ### Linux (DEB)
+            ```bash
+            sudo dpkg -i yaze-*.deb
+            ```
+            
+            ### macOS
+            ```bash
+            # Mount the DMG and drag to Applications
+            open yaze-*.dmg
+            ```
+            
+            ### Windows
+            ```bash
+            # Run the installer
+            yaze-*.exe
+            ```
           files: |
-            artifacts/yaze-windows-x64/*
-            artifacts/yaze-macos-universal/*
-            artifacts/yaze-linux-x64/*
-          fail_on_unmatched_files: false
+            release-files/*
+          draft: false
+          prerelease: ${{ contains(env.VERSION, 'alpha') || contains(env.VERSION, 'beta') || contains(env.VERSION, 'rc') }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

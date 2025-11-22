@@ -8,7 +8,6 @@
 namespace yaze {
 namespace editor {
 
-
 // When the player presses Space, a popup will appear fixed to the bottom of the
 // ImGui window with a list of the available key commands which can be used.
 void CommandManager::ShowWhichKey() {
@@ -39,23 +38,23 @@ void CommandManager::ShowWhichKey() {
 
     if (ImGui::BeginTable("CommandsTable", commands_.size(),
                           ImGuiTableFlags_SizingStretchProp)) {
-    for (const auto &[shortcut, group] : commands_) {
-      ImGui::TableNextColumn();
-      ImGui::TextColored(colors[colorIndex], "%c: %s",
-                         group.main_command.mnemonic,
-                         group.main_command.name.c_str());
-      colorIndex = (colorIndex + 1) % numColors;
-    }
+      for (const auto& [shortcut, group] : commands_) {
+        ImGui::TableNextColumn();
+        ImGui::TextColored(colors[colorIndex], "%c: %s",
+                           group.main_command.mnemonic,
+                           group.main_command.name.c_str());
+        colorIndex = (colorIndex + 1) % numColors;
+      }
       ImGui::EndTable();
     }
     ImGui::EndPopup();
   }
 }
 
-void CommandManager::SaveKeybindings(const std::string &filepath) {
+void CommandManager::SaveKeybindings(const std::string& filepath) {
   std::ofstream out(filepath);
   if (out.is_open()) {
-    for (const auto &[shortcut, group] : commands_) {
+    for (const auto& [shortcut, group] : commands_) {
       out << shortcut << " " << group.main_command.mnemonic << " "
           << group.main_command.name << " " << group.main_command.desc << "\n";
     }
@@ -63,7 +62,7 @@ void CommandManager::SaveKeybindings(const std::string &filepath) {
   }
 }
 
-void CommandManager::LoadKeybindings(const std::string &filepath) {
+void CommandManager::LoadKeybindings(const std::string& filepath) {
   std::ifstream in(filepath);
   if (in.is_open()) {
     commands_.clear();
@@ -116,8 +115,8 @@ void CommandManager::ShowWhichKeyHierarchical() {
 
     // Show breadcrumb navigation
     if (!current_prefix_.empty()) {
-      ImGui::TextColored(ImVec4(0.5f, 0.8f, 1.0f, 1.0f),
-                        "Space > %s", current_prefix_.c_str());
+      ImGui::TextColored(ImVec4(0.5f, 0.8f, 1.0f, 1.0f), "Space > %s",
+                         current_prefix_.c_str());
       ImGui::Separator();
     } else {
       ImGui::TextColored(ImVec4(0.5f, 0.8f, 1.0f, 1.0f), "Space > ...");
@@ -137,14 +136,14 @@ void CommandManager::ShowWhichKeyHierarchical() {
     // Show commands based on current navigation level
     if (current_prefix_.empty()) {
       // Root level - show main groups
-      if (ImGui::BeginTable("RootCommands", 6, ImGuiTableFlags_SizingStretchProp)) {
+      if (ImGui::BeginTable("RootCommands", 6,
+                            ImGuiTableFlags_SizingStretchProp)) {
         int colorIndex = 0;
-        for (const auto &[shortcut, group] : commands_) {
+        for (const auto& [shortcut, group] : commands_) {
           ImGui::TableNextColumn();
-          ImGui::TextColored(colors[colorIndex % 6],
-                            "%c: %s",
-                            group.main_command.mnemonic,
-                            group.main_command.name.c_str());
+          ImGui::TextColored(colors[colorIndex % 6], "%c: %s",
+                             group.main_command.mnemonic,
+                             group.main_command.name.c_str());
           colorIndex++;
         }
         ImGui::EndTable();
@@ -156,15 +155,13 @@ void CommandManager::ShowWhichKeyHierarchical() {
         const auto& group = it->second;
         if (!group.subcommands.empty()) {
           if (ImGui::BeginTable("Subcommands",
-                               std::min(6, (int)group.subcommands.size()),
-                               ImGuiTableFlags_SizingStretchProp)) {
+                                std::min(6, (int)group.subcommands.size()),
+                                ImGuiTableFlags_SizingStretchProp)) {
             int colorIndex = 0;
             for (const auto& [key, cmd] : group.subcommands) {
               ImGui::TableNextColumn();
-              ImGui::TextColored(colors[colorIndex % 6],
-                                "%c: %s",
-                                cmd.mnemonic,
-                                cmd.name.c_str());
+              ImGui::TextColored(colors[colorIndex % 6], "%c: %s", cmd.mnemonic,
+                                 cmd.name.c_str());
               colorIndex++;
             }
             ImGui::EndTable();
@@ -184,7 +181,8 @@ void CommandManager::ShowWhichKeyHierarchical() {
 
 // Handle keyboard input for WhichKey navigation
 void CommandManager::HandleWhichKeyInput() {
-  if (!whichkey_active_) return;
+  if (!whichkey_active_)
+    return;
 
   // Check for prefix keys (w, l, f, b, s, t, etc.)
   for (const auto& [shortcut, group] : commands_) {

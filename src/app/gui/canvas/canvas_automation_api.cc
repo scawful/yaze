@@ -71,8 +71,10 @@ void CanvasAutomationAPI::SelectTile(int x, int y) {
 
 void CanvasAutomationAPI::SelectTileRect(int x1, int y1, int x2, int y2) {
   // Ensure x1 <= x2 and y1 <= y2
-  if (x1 > x2) std::swap(x1, x2);
-  if (y1 > y2) std::swap(y1, y2);
+  if (x1 > x2)
+    std::swap(x1, x2);
+  if (y1 > y2)
+    std::swap(y1, y2);
 
   if (!IsInBounds(x1, y1) || !IsInBounds(x2, y2)) {
     return;
@@ -100,20 +102,20 @@ CanvasAutomationAPI::SelectionState CanvasAutomationAPI::GetSelection() const {
     ImVec2 tile_end = CanvasToTile(state.selection_end);
 
     // Ensure proper ordering
-    int min_x = std::min(static_cast<int>(tile_start.x), 
-                         static_cast<int>(tile_end.x));
-    int max_x = std::max(static_cast<int>(tile_start.x), 
-                         static_cast<int>(tile_end.x));
-    int min_y = std::min(static_cast<int>(tile_start.y), 
-                         static_cast<int>(tile_end.y));
-    int max_y = std::max(static_cast<int>(tile_start.y), 
-                         static_cast<int>(tile_end.y));
+    int min_x =
+        std::min(static_cast<int>(tile_start.x), static_cast<int>(tile_end.x));
+    int max_x =
+        std::max(static_cast<int>(tile_start.x), static_cast<int>(tile_end.x));
+    int min_y =
+        std::min(static_cast<int>(tile_start.y), static_cast<int>(tile_end.y));
+    int max_y =
+        std::max(static_cast<int>(tile_start.y), static_cast<int>(tile_end.y));
 
     // Generate all tiles in selection rectangle
     for (int y = min_y; y <= max_y; ++y) {
       for (int x = min_x; x <= max_x; ++x) {
-        state.selected_tiles.push_back(ImVec2(static_cast<float>(x), 
-                                              static_cast<float>(y)));
+        state.selected_tiles.push_back(
+            ImVec2(static_cast<float>(x), static_cast<float>(y)));
       }
     }
   }
@@ -146,7 +148,7 @@ void CanvasAutomationAPI::ScrollToTile(int x, int y, bool center) {
 
   // Scroll to make tile visible
   ImVec2 tile_canvas_pos = TileToCanvas(x, y);
-  
+
   // Get current scroll and canvas size
   ImVec2 current_scroll = canvas_->scrolling();
   ImVec2 canvas_size = canvas_->canvas_size();
@@ -189,11 +191,11 @@ float CanvasAutomationAPI::GetZoom() const {
 
 CanvasAutomationAPI::Dimensions CanvasAutomationAPI::GetDimensions() const {
   Dimensions dims;
-  
+
   // Get canvas size in pixels
   ImVec2 canvas_size = canvas_->canvas_size();
   float scale = canvas_->global_scale();
-  
+
   // Determine tile size from canvas grid size
   int tile_size = 16;  // Default
   switch (canvas_->grid_size()) {
@@ -210,36 +212,39 @@ CanvasAutomationAPI::Dimensions CanvasAutomationAPI::GetDimensions() const {
       tile_size = 64;
       break;
   }
-  
+
   dims.tile_size = tile_size;
   dims.width_tiles = static_cast<int>(canvas_size.x / (tile_size * scale));
   dims.height_tiles = static_cast<int>(canvas_size.y / (tile_size * scale));
-  
+
   return dims;
 }
 
-CanvasAutomationAPI::VisibleRegion CanvasAutomationAPI::GetVisibleRegion() const {
+CanvasAutomationAPI::VisibleRegion CanvasAutomationAPI::GetVisibleRegion()
+    const {
   VisibleRegion region;
-  
+
   ImVec2 scroll = canvas_->scrolling();
   ImVec2 canvas_size = canvas_->canvas_size();
   float scale = canvas_->global_scale();
   int tile_size = GetDimensions().tile_size;
-  
+
   // Top-left corner of visible region
   ImVec2 top_left = CanvasToTile(ImVec2(-scroll.x, -scroll.y));
-  
+
   // Bottom-right corner of visible region
-  ImVec2 bottom_right = CanvasToTile(ImVec2(-scroll.x + canvas_size.x, 
-                                            -scroll.y + canvas_size.y));
-  
+  ImVec2 bottom_right = CanvasToTile(
+      ImVec2(-scroll.x + canvas_size.x, -scroll.y + canvas_size.y));
+
   region.min_x = std::max(0, static_cast<int>(top_left.x));
   region.min_y = std::max(0, static_cast<int>(top_left.y));
-  
+
   Dimensions dims = GetDimensions();
-  region.max_x = std::min(dims.width_tiles - 1, static_cast<int>(bottom_right.x));
-  region.max_y = std::min(dims.height_tiles - 1, static_cast<int>(bottom_right.y));
-  
+  region.max_x =
+      std::min(dims.width_tiles - 1, static_cast<int>(bottom_right.x));
+  region.max_y =
+      std::min(dims.height_tiles - 1, static_cast<int>(bottom_right.y));
+
   return region;
 }
 
@@ -247,17 +252,17 @@ bool CanvasAutomationAPI::IsTileVisible(int x, int y) const {
   if (!IsInBounds(x, y)) {
     return false;
   }
-  
+
   VisibleRegion region = GetVisibleRegion();
-  return x >= region.min_x && x <= region.max_x &&
-         y >= region.min_y && y <= region.max_y;
+  return x >= region.min_x && x <= region.max_x && y >= region.min_y &&
+         y <= region.max_y;
 }
 
 bool CanvasAutomationAPI::IsInBounds(int x, int y) const {
   if (x < 0 || y < 0) {
     return false;
   }
-  
+
   Dimensions dims = GetDimensions();
   return x < dims.width_tiles && y < dims.height_tiles;
 }
@@ -269,20 +274,20 @@ bool CanvasAutomationAPI::IsInBounds(int x, int y) const {
 ImVec2 CanvasAutomationAPI::TileToCanvas(int x, int y) const {
   int tile_size = GetDimensions().tile_size;
   float scale = canvas_->global_scale();
-  
+
   float canvas_x = x * tile_size * scale;
   float canvas_y = y * tile_size * scale;
-  
+
   return ImVec2(canvas_x, canvas_y);
 }
 
 ImVec2 CanvasAutomationAPI::CanvasToTile(ImVec2 canvas_pos) const {
   int tile_size = GetDimensions().tile_size;
   float scale = canvas_->global_scale();
-  
+
   float tile_x = canvas_pos.x / (tile_size * scale);
   float tile_y = canvas_pos.y / (tile_size * scale);
-  
+
   return ImVec2(std::floor(tile_x), std::floor(tile_y));
 }
 
@@ -300,4 +305,3 @@ void CanvasAutomationAPI::SetTileQueryCallback(TileQueryCallback callback) {
 
 }  // namespace gui
 }  // namespace yaze
-

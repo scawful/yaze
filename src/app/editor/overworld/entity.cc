@@ -3,7 +3,10 @@
 #include "app/gui/core/icons.h"
 #include "app/gui/core/input.h"
 #include "app/gui/core/style.h"
+#include "imgui.h"
 #include "util/hex.h"
+#include "zelda3/common.h"
+#include "zelda3/overworld/overworld_item.h"
 
 namespace yaze {
 namespace editor {
@@ -18,25 +21,22 @@ using ImGui::Text;
 
 constexpr float kInputFieldSize = 30.f;
 
-bool IsMouseHoveringOverEntity(const zelda3::GameEntity &entity,
+bool IsMouseHoveringOverEntity(const zelda3::GameEntity& entity,
                                ImVec2 canvas_p0, ImVec2 scrolling) {
   // Get the mouse position relative to the canvas
-  const ImGuiIO &io = ImGui::GetIO();
+  const ImGuiIO& io = ImGui::GetIO();
   const ImVec2 origin(canvas_p0.x + scrolling.x, canvas_p0.y + scrolling.y);
   const ImVec2 mouse_pos(io.MousePos.x - origin.x, io.MousePos.y - origin.y);
 
   // Check if the mouse is hovering over the entity
-  if (mouse_pos.x >= entity.x_ && mouse_pos.x <= entity.x_ + 16 &&
-      mouse_pos.y >= entity.y_ && mouse_pos.y <= entity.y_ + 16) {
-    return true;
-  }
-  return false;
+  return mouse_pos.x >= entity.x_ && mouse_pos.x <= entity.x_ + 16 &&
+         mouse_pos.y >= entity.y_ && mouse_pos.y <= entity.y_ + 16;
 }
 
-void MoveEntityOnGrid(zelda3::GameEntity *entity, ImVec2 canvas_p0,
+void MoveEntityOnGrid(zelda3::GameEntity* entity, ImVec2 canvas_p0,
                       ImVec2 scrolling, bool free_movement) {
   // Get the mouse position relative to the canvas
-  const ImGuiIO &io = ImGui::GetIO();
+  const ImGuiIO& io = ImGui::GetIO();
   const ImVec2 origin(canvas_p0.x + scrolling.x, canvas_p0.y + scrolling.y);
   const ImVec2 mouse_pos(io.MousePos.x - origin.x, io.MousePos.y - origin.y);
 
@@ -52,8 +52,6 @@ void MoveEntityOnGrid(zelda3::GameEntity *entity, ImVec2 canvas_p0,
   entity->set_x(new_x);
   entity->set_y(new_y);
 }
-
-
 
 bool DrawEntranceInserterPopup() {
   bool set_done = false;
@@ -79,28 +77,28 @@ bool DrawEntranceInserterPopup() {
   return set_done;
 }
 
-bool DrawOverworldEntrancePopup(zelda3::OverworldEntrance &entrance) {
+bool DrawOverworldEntrancePopup(zelda3::OverworldEntrance& entrance) {
   static bool set_done = false;
   if (set_done) {
     set_done = false;
     return true;
   }
-  
+
   if (ImGui::BeginPopupModal("Entrance Editor", NULL,
                              ImGuiWindowFlags_AlwaysAutoResize)) {
     ImGui::Text("Entrance ID: %d", entrance.entrance_id_);
     ImGui::Separator();
-    
+
     gui::InputHexWord("Map ID", &entrance.map_id_);
     gui::InputHexByte("Entrance ID", &entrance.entrance_id_,
                       kInputFieldSize + 20);
     gui::InputHex("X Position", &entrance.x_);
     gui::InputHex("Y Position", &entrance.y_);
-    
+
     ImGui::Checkbox("Is Hole", &entrance.is_hole_);
-    
+
     ImGui::Separator();
-    
+
     if (Button("Save")) {
       set_done = true;
       ImGui::CloseCurrentPopup();
@@ -115,7 +113,7 @@ bool DrawOverworldEntrancePopup(zelda3::OverworldEntrance &entrance) {
     if (Button("Cancel")) {
       ImGui::CloseCurrentPopup();
     }
-    
+
     ImGui::EndPopup();
   }
   return set_done;
@@ -127,17 +125,18 @@ void DrawExitInserterPopup() {
     static int room_id = 0;
     static int x_pos = 0;
     static int y_pos = 0;
-    
+
     ImGui::Text("Insert New Exit");
     ImGui::Separator();
-    
+
     gui::InputHex("Exit ID", &exit_id);
     gui::InputHex("Room ID", &room_id);
     gui::InputHex("X Position", &x_pos);
     gui::InputHex("Y Position", &y_pos);
 
     if (Button("Create Exit")) {
-      // This would need to be connected to the overworld editor to actually create the exit
+      // This would need to be connected to the overworld editor to actually
+      // create the exit
       ImGui::CloseCurrentPopup();
     }
 
@@ -150,10 +149,11 @@ void DrawExitInserterPopup() {
   }
 }
 
-bool DrawExitEditorPopup(zelda3::OverworldExit &exit) {
+bool DrawExitEditorPopup(zelda3::OverworldExit& exit) {
   static bool set_done = false;
   if (set_done) {
     set_done = false;
+    return true;
   }
   if (ImGui::BeginPopupModal("Exit editor", NULL,
                              ImGuiWindowFlags_AlwaysAutoResize)) {
@@ -207,7 +207,10 @@ bool DrawExitEditorPopup(zelda3::OverworldExit &exit) {
     if (show_properties) {
       Text("Deleted? %s", exit.deleted_ ? "true" : "false");
       Text("Hole? %s", exit.is_hole_ ? "true" : "false");
-      Text("Large Map? %s", exit.large_map_ ? "true" : "false");
+      Text("Auto-calc scroll/camera? %s",
+           exit.is_automatic_ ? "true" : "false");
+      Text("Map ID: 0x%02X", exit.map_id_);
+      Text("Game coords: (%d, %d)", exit.game_x_, exit.game_y_);
     }
 
     gui::TextWithSeparators("Unimplemented below");
@@ -260,19 +263,21 @@ bool DrawExitEditorPopup(zelda3::OverworldExit &exit) {
     }
 
     if (Button(ICON_MD_DONE)) {
+      set_done = true;  // FIX: Save changes when Done is clicked
       ImGui::CloseCurrentPopup();
     }
 
     SameLine();
 
     if (Button(ICON_MD_CANCEL)) {
-      set_done = true;
+      // FIX: Discard changes - don't set set_done
       ImGui::CloseCurrentPopup();
     }
 
     SameLine();
     if (Button(ICON_MD_DELETE)) {
       exit.deleted_ = true;
+      set_done = true;  // FIX: Save deletion when Delete is clicked
       ImGui::CloseCurrentPopup();
     }
 
@@ -312,10 +317,11 @@ void DrawItemInsertPopup() {
 }
 
 // TODO: Implement deleting OverworldItem objects, currently only hides them
-bool DrawItemEditorPopup(zelda3::OverworldItem &item) {
+bool DrawItemEditorPopup(zelda3::OverworldItem& item) {
   static bool set_done = false;
   if (set_done) {
     set_done = false;
+    return true;
   }
   if (ImGui::BeginPopupModal("Item editor", NULL,
                              ImGuiWindowFlags_AlwaysAutoResize)) {
@@ -325,20 +331,26 @@ bool DrawItemEditorPopup(zelda3::OverworldItem &item) {
     for (size_t i = 0; i < zelda3::kSecretItemNames.size(); i++) {
       if (Selectable(zelda3::kSecretItemNames[i].c_str(), item.id_ == i)) {
         item.id_ = i;
+        item.entity_id_ = i;
+        item.UpdateMapProperties(item.map_id_, nullptr);
       }
     }
     ImGui::EndGroup();
     EndChild();
 
-    if (Button(ICON_MD_DONE)) ImGui::CloseCurrentPopup();
+    if (Button(ICON_MD_DONE)) {
+      set_done = true;  // FIX: Save changes when Done is clicked
+      ImGui::CloseCurrentPopup();
+    }
     SameLine();
     if (Button(ICON_MD_CLOSE)) {
-      set_done = true;
+      // FIX: Discard changes - don't set set_done
       ImGui::CloseCurrentPopup();
     }
     SameLine();
     if (Button(ICON_MD_DELETE)) {
       item.deleted = true;
+      set_done = true;  // FIX: Save deletion when Delete is clicked
       ImGui::CloseCurrentPopup();
     }
 
@@ -347,7 +359,7 @@ bool DrawItemEditorPopup(zelda3::OverworldItem &item) {
   return set_done;
 }
 
-const ImGuiTableSortSpecs *SpriteItem::s_current_sort_specs = nullptr;
+const ImGuiTableSortSpecs* SpriteItem::s_current_sort_specs = nullptr;
 
 void DrawSpriteTable(std::function<void(int)> onSpriteSelect) {
   static ImGuiTextFilter filter;
@@ -371,7 +383,7 @@ void DrawSpriteTable(std::function<void(int)> onSpriteSelect) {
     ImGui::TableHeadersRow();
 
     // Handle sorting
-    if (ImGuiTableSortSpecs *sort_specs = ImGui::TableGetSortSpecs()) {
+    if (ImGuiTableSortSpecs* sort_specs = ImGui::TableGetSortSpecs()) {
       if (sort_specs->SpecsDirty) {
         SpriteItem::SortWithSortSpecs(sort_specs, items);
         sort_specs->SpecsDirty = false;
@@ -379,7 +391,7 @@ void DrawSpriteTable(std::function<void(int)> onSpriteSelect) {
     }
 
     // Display filtered and sorted items
-    for (const auto &item : items) {
+    for (const auto& item : items) {
       if (filter.PassFilter(item.name)) {
         ImGui::TableNextRow();
         ImGui::TableSetColumnIndex(0);
@@ -402,22 +414,23 @@ void DrawSpriteInserterPopup() {
     static int new_sprite_id = 0;
     static int x_pos = 0;
     static int y_pos = 0;
-    
+
     ImGui::Text("Add New Sprite");
     ImGui::Separator();
-    
+
     BeginChild("ScrollRegion", ImVec2(250, 200), true,
                ImGuiWindowFlags_AlwaysVerticalScrollbar);
     DrawSpriteTable([](int selected_id) { new_sprite_id = selected_id; });
     EndChild();
-    
+
     ImGui::Separator();
     ImGui::Text("Position:");
     gui::InputHex("X Position", &x_pos);
     gui::InputHex("Y Position", &y_pos);
 
     if (Button("Add Sprite")) {
-      // This would need to be connected to the overworld editor to actually create the sprite
+      // This would need to be connected to the overworld editor to actually
+      // create the sprite
       new_sprite_id = 0;
       x_pos = 0;
       y_pos = 0;
@@ -433,10 +446,11 @@ void DrawSpriteInserterPopup() {
   }
 }
 
-bool DrawSpriteEditorPopup(zelda3::Sprite &sprite) {
+bool DrawSpriteEditorPopup(zelda3::Sprite& sprite) {
   static bool set_done = false;
   if (set_done) {
     set_done = false;
+    return true;
   }
   if (ImGui::BeginPopupModal("Sprite editor", NULL,
                              ImGuiWindowFlags_AlwaysAutoResize)) {
@@ -447,20 +461,24 @@ bool DrawSpriteEditorPopup(zelda3::Sprite &sprite) {
 
     DrawSpriteTable([&sprite](int selected_id) {
       sprite.set_id(selected_id);
-      sprite.UpdateMapProperties(sprite.map_id());
+      sprite.UpdateMapProperties(sprite.map_id(), nullptr);
     });
     ImGui::EndGroup();
     EndChild();
 
-    if (Button(ICON_MD_DONE)) ImGui::CloseCurrentPopup();
+    if (Button(ICON_MD_DONE)) {
+      set_done = true;  // FIX: Save changes when Done is clicked
+      ImGui::CloseCurrentPopup();
+    }
     SameLine();
     if (Button(ICON_MD_CLOSE)) {
-      set_done = true;
+      // FIX: Discard changes - don't set set_done
       ImGui::CloseCurrentPopup();
     }
     SameLine();
     if (Button(ICON_MD_DELETE)) {
       sprite.set_deleted(true);
+      set_done = true;  // FIX: Save deletion when Delete is clicked
       ImGui::CloseCurrentPopup();
     }
 

@@ -6,8 +6,8 @@
 #include <vector>
 
 #include "absl/status/status.h"
-#include "cli/service/agent/conversational_agent_service.h"
 #include "app/rom.h"
+#include "cli/service/agent/conversational_agent_service.h"
 
 namespace yaze {
 
@@ -16,7 +16,7 @@ namespace gui {
 /**
  * @class AgentChatWidget
  * @brief ImGui widget for conversational AI agent interaction
- * 
+ *
  * Provides a chat-like interface in the YAZE GUI for interacting with the
  * z3ed AI agent. Shares the same backend as the TUI chat interface.
  */
@@ -34,7 +34,7 @@ class AgentChatWidget {
   // Load/save chat history
   absl::Status LoadHistory(const std::string& filepath);
   absl::Status SaveHistory(const std::string& filepath);
-  
+
   // Clear conversation history
   void ClearHistory();
 
@@ -49,7 +49,7 @@ class AgentChatWidget {
   void RenderToolbar();
   void RenderMessageBubble(const cli::agent::ChatMessage& msg, int index);
   void RenderTableData(const cli::agent::ChatMessage::TableData& table);
-  
+
   void SendMessage(const std::string& message);
   void ScrollToBottom();
 
@@ -60,11 +60,11 @@ class AgentChatWidget {
   bool show_timestamps_;
   bool show_reasoning_;
   float message_spacing_;
-  
+
   // Agent service
   std::unique_ptr<cli::agent::ConversationalAgentService> agent_service_;
   Rom* rom_;
-  
+
   // UI colors
   struct Colors {
     ImVec4 user_bubble;

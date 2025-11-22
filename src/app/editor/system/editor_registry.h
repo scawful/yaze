@@ -13,7 +13,7 @@ namespace editor {
 /**
  * @class EditorRegistry
  * @brief Manages editor types, categories, and lifecycle
- * 
+ *
  * Extracted from EditorManager to provide focused editor management:
  * - Editor type classification and categorization
  * - Editor activation and switching
@@ -29,27 +29,28 @@ class EditorRegistry {
   static bool IsCardBasedEditor(EditorType type);
   static std::string GetEditorCategory(EditorType type);
   static EditorType GetEditorTypeFromCategory(const std::string& category);
-  
+
   // Editor navigation
   void JumpToDungeonRoom(int room_id);
   void JumpToOverworldMap(int map_id);
   void SwitchToEditor(EditorType editor_type);
-  
+
   // Editor card management
   void HideCurrentEditorCards();
   void ShowEditorCards(EditorType editor_type);
   void ToggleEditorCards(EditorType editor_type);
-  
+
   // Editor information
-  std::vector<EditorType> GetEditorsInCategory(const std::string& category) const;
+  std::vector<EditorType> GetEditorsInCategory(
+      const std::string& category) const;
   std::vector<std::string> GetAvailableCategories() const;
   std::string GetEditorDisplayName(EditorType type) const;
-  
+
   // Editor lifecycle
   void RegisterEditor(EditorType type, Editor* editor);
   void UnregisterEditor(EditorType type);
   Editor* GetEditor(EditorType type) const;
-  
+
   // Editor state queries
   bool IsEditorActive(EditorType type) const;
   bool IsEditorVisible(EditorType type) const;
@@ -60,10 +61,10 @@ class EditorRegistry {
   static const std::unordered_map<EditorType, std::string> kEditorCategories;
   static const std::unordered_map<EditorType, std::string> kEditorNames;
   static const std::unordered_map<EditorType, bool> kCardBasedEditors;
-  
+
   // Registered editors
   std::unordered_map<EditorType, Editor*> registered_editors_;
-  
+
   // Helper methods
   bool IsValidEditorType(EditorType type) const;
   void ValidateEditorType(EditorType type) const;

@@ -5,9 +5,8 @@
 #include <string>
 #include <vector>
 
-#include "cli/service/resources/command_handler.h"
-
 #include "cli/handlers/agent/simple_chat_command.h"
+#include "cli/service/resources/command_handler.h"
 
 namespace yaze {
 namespace cli {
@@ -75,24 +74,27 @@ class EmulatorGetMetricsCommandHandler;
 
 /**
  * @brief Factory function to create all CLI-level command handlers
- * 
+ *
  * @return Vector of unique pointers to command handler instances
  */
-std::vector<std::unique_ptr<resources::CommandHandler>> CreateCliCommandHandlers();
+std::vector<std::unique_ptr<resources::CommandHandler>>
+CreateCliCommandHandlers();
 
 /**
  * @brief Factory function to create all agent-specific command handlers
- * 
+ *
  * @return Vector of unique pointers to command handler instances
  */
-std::vector<std::unique_ptr<resources::CommandHandler>> CreateAgentCommandHandlers();
+std::vector<std::unique_ptr<resources::CommandHandler>>
+CreateAgentCommandHandlers();
 
 /**
  * @brief Factory function to create all command handlers (CLI + agent)
- * 
+ *
  * @return Vector of unique pointers to command handler instances
  */
-std::vector<std::unique_ptr<resources::CommandHandler>> CreateAllCommandHandlers();
+std::vector<std::unique_ptr<resources::CommandHandler>>
+CreateAllCommandHandlers();
 
 }  // namespace handlers
 }  // namespace cli

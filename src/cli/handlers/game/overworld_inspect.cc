@@ -10,12 +10,12 @@
 #include "absl/strings/numbers.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
+#include "util/macro.h"
 #include "zelda3/common.h"
 #include "zelda3/overworld/overworld.h"
 #include "zelda3/overworld/overworld_entrance.h"
 #include "zelda3/overworld/overworld_exit.h"
 #include "zelda3/overworld/overworld_map.h"
-#include "util/macro.h"
 
 namespace yaze {
 namespace cli {
@@ -102,17 +102,17 @@ void PopulateCommonWarpFields(WarpEntry& entry, uint16_t raw_map_id,
 
 absl::StatusOr<int> ParseNumeric(std::string_view value, int base) {
   try {
-  size_t processed = 0;
-  int result = std::stoi(std::string(value), &processed, base);
-  if (processed != value.size()) {
+    size_t processed = 0;
+    int result = std::stoi(std::string(value), &processed, base);
+    if (processed != value.size()) {
+      return absl::InvalidArgumentError(
+          absl::StrCat("Invalid numeric value: ", std::string(value)));
+    }
+    return result;
+  } catch (const std::exception&) {
     return absl::InvalidArgumentError(
         absl::StrCat("Invalid numeric value: ", std::string(value)));
   }
-  return result;
-} catch (const std::exception&) {
-  return absl::InvalidArgumentError(
-      absl::StrCat("Invalid numeric value: ", std::string(value)));
-}
 }
 
 absl::StatusOr<int> ParseWorldSpecifier(std::string_view value) {
@@ -224,7 +224,7 @@ absl::StatusOr<MapSummary> BuildMapSummary(zelda3::Overworld& overworld,
 }
 
 absl::StatusOr<std::vector<WarpEntry>> CollectWarpEntries(
-  const zelda3::Overworld& overworld, const WarpQuery& query) {
+    const zelda3::Overworld& overworld, const WarpQuery& query) {
   std::vector<WarpEntry> entries;
 
   const auto& entrances = overworld.entrances();
@@ -275,22 +275,22 @@ absl::StatusOr<std::vector<WarpEntry>> CollectWarpEntries(
     entries.push_back(std::move(entry));
   }
 
-  std::sort(entries.begin(), entries.end(), [](const WarpEntry& a,
-                                              const WarpEntry& b) {
-    if (a.world != b.world) {
-      return a.world < b.world;
-    }
-    if (a.map_id != b.map_id) {
-      return a.map_id < b.map_id;
-    }
-    if (a.tile16_y != b.tile16_y) {
-      return a.tile16_y < b.tile16_y;
-    }
-    if (a.tile16_x != b.tile16_x) {
-      return a.tile16_x < b.tile16_x;
-    }
-    return static_cast<int>(a.type) < static_cast<int>(b.type);
-  });
+  std::sort(entries.begin(), entries.end(),
+            [](const WarpEntry& a, const WarpEntry& b) {
+              if (a.world != b.world) {
+                return a.world < b.world;
+              }
+              if (a.map_id != b.map_id) {
+                return a.map_id < b.map_id;
+              }
+              if (a.tile16_y != b.tile16_y) {
+                return a.tile16_y < b.tile16_y;
+              }
+              if (a.tile16_x != b.tile16_x) {
+                return a.tile16_x < b.tile16_x;
+              }
+              return static_cast<int>(a.type) < static_cast<int>(b.type);
+            });
 
   return entries;
 }
@@ -309,14 +309,12 @@ absl::StatusOr<std::vector<TileMatch>> FindTileMatches(
   }
 
   if (options.map_id.has_value() && options.world.has_value()) {
-    ASSIGN_OR_RETURN(int inferred_world,
-                     InferWorldFromMapId(*options.map_id));
+    ASSIGN_OR_RETURN(int inferred_world, InferWorldFromMapId(*options.map_id));
     if (inferred_world != *options.world) {
-      return absl::InvalidArgumentError(
-          absl::StrFormat(
-              "Map 0x%02X belongs to the %s World but --world requested %s",
-              *options.map_id, WorldName(inferred_world),
-              WorldName(*options.world)));
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "Map 0x%02X belongs to the %s World but --world requested %s",
+          *options.map_id, WorldName(inferred_world),
+          WorldName(*options.world)));
     }
   }
 
@@ -324,8 +322,7 @@ absl::StatusOr<std::vector<TileMatch>> FindTileMatches(
   if (options.world.has_value()) {
     worlds.push_back(*options.world);
   } else if (options.map_id.has_value()) {
-    ASSIGN_OR_RETURN(int inferred_world,
-                     InferWorldFromMapId(*options.map_id));
+    ASSIGN_OR_RETURN(int inferred_world, InferWorldFromMapId(*options.map_id));
     worlds.push_back(inferred_world);
   } else {
     worlds = {0, 1, 2};
@@ -375,8 +372,8 @@ absl::StatusOr<std::vector<TileMatch>> FindTileMatches(
 
           uint16_t current_tile = overworld.GetTile(global_x, global_y);
           if (current_tile == tile_id) {
-            matches.push_back({map_id, world, local_x, local_y, global_x,
-                               global_y});
+            matches.push_back(
+                {map_id, world, local_x, local_y, global_x, global_y});
           }
         }
       }
@@ -393,26 +390,27 @@ absl::StatusOr<std::vector<OverworldSprite>> CollectOverworldSprites(
   // Iterate through all 3 game states (beginning, zelda, agahnim)
   for (int game_state = 0; game_state < 3; ++game_state) {
     const auto& sprites = overworld.sprites(game_state);
-    
+
     for (const auto& sprite : sprites) {
       // Apply filters
       if (query.sprite_id.has_value() && sprite.id() != *query.sprite_id) {
         continue;
       }
-      
+
       int map_id = sprite.map_id();
       if (query.map_id.has_value() && map_id != *query.map_id) {
         continue;
       }
-      
+
       // Determine world from map_id
-      int world = (map_id >= kSpecialWorldOffset) ? 2
-                  : (map_id >= kDarkWorldOffset ? 1 : 0);
-      
+      int world = (map_id >= kSpecialWorldOffset)
+                      ? 2
+                      : (map_id >= kDarkWorldOffset ? 1 : 0);
+
       if (query.world.has_value() && world != *query.world) {
         continue;
       }
-      
+
       OverworldSprite entry;
       entry.sprite_id = sprite.id();
       entry.map_id = map_id;
@@ -421,7 +419,7 @@ absl::StatusOr<std::vector<OverworldSprite>> CollectOverworldSprites(
       entry.y = sprite.y();
       // Sprite names would come from a label system if available
       // entry.sprite_name = GetSpriteName(sprite.id());
-      
+
       results.push_back(entry);
     }
   }
@@ -432,47 +430,46 @@ absl::StatusOr<std::vector<OverworldSprite>> CollectOverworldSprites(
 absl::StatusOr<EntranceDetails> GetEntranceDetails(
     const zelda3::Overworld& overworld, uint8_t entrance_id) {
   const auto& entrances = overworld.entrances();
-  
+
   if (entrance_id >= entrances.size()) {
-    return absl::NotFoundError(
-        absl::StrFormat("Entrance %d not found (max: %d)", 
-                       entrance_id, entrances.size() - 1));
+    return absl::NotFoundError(absl::StrFormat(
+        "Entrance %d not found (max: %d)", entrance_id, entrances.size() - 1));
   }
-  
+
   const auto& entrance = entrances[entrance_id];
-  
+
   EntranceDetails details;
   details.entrance_id = entrance_id;
   details.map_id = entrance.map_id_;
-  
+
   // Determine world from map_id
-  details.world = (details.map_id >= kSpecialWorldOffset) ? 2
-                  : (details.map_id >= kDarkWorldOffset ? 1 : 0);
-  
+  details.world = (details.map_id >= kSpecialWorldOffset)
+                      ? 2
+                      : (details.map_id >= kDarkWorldOffset ? 1 : 0);
+
   details.x = entrance.x_;
   details.y = entrance.y_;
-  details.area_x = entrance.area_x_;
-  details.area_y = entrance.area_y_;
+  details.area_x = entrance.game_x_;
+  details.area_y = entrance.game_y_;
   details.map_pos = entrance.map_pos_;
   details.is_hole = entrance.is_hole_;
-  
+
   // Get entrance name if available
   details.entrance_name = EntranceLabel(entrance_id);
-  
+
   return details;
 }
 
 absl::StatusOr<TileStatistics> AnalyzeTileUsage(
     zelda3::Overworld& overworld, uint16_t tile_id,
     const TileSearchOptions& options) {
-  
   // Use FindTileMatches to get all occurrences
   ASSIGN_OR_RETURN(auto matches, FindTileMatches(overworld, tile_id, options));
-  
+
   TileStatistics stats;
   stats.tile_id = tile_id;
   stats.count = static_cast<int>(matches.size());
-  
+
   // If scoped to a specific map, store that info
   if (options.map_id.has_value()) {
     stats.map_id = *options.map_id;
@@ -485,13 +482,13 @@ absl::StatusOr<TileStatistics> AnalyzeTileUsage(
     stats.map_id = -1;  // Indicates all maps
     stats.world = -1;
   }
-  
+
   // Store positions (convert from TileMatch to pair)
   stats.positions.reserve(matches.size());
   for (const auto& match : matches) {
     stats.positions.emplace_back(match.local_x, match.local_y);
   }
-  
+
   return stats;
 }
 

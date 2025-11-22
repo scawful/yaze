@@ -18,7 +18,7 @@ class TileSelectorWidgetTest : public ::testing::Test {
   void SetUp() override {
     // Create a test canvas
     canvas_ = std::make_unique<gui::Canvas>("TestCanvas", ImVec2(512, 512),
-                                             gui::CanvasGridSize::k16x16);
+                                            gui::CanvasGridSize::k16x16);
 
     // Create a test config
     config_.tile_size = 16;
@@ -97,16 +97,16 @@ TEST_F(TileSelectorWidgetTest, TileOrigin) {
 
   // Test tile at (1,0)
   origin = widget.TileOrigin(1);
-  float expected_x = config_.draw_offset.x +
-                     (config_.tile_size * config_.display_scale);
+  float expected_x =
+      config_.draw_offset.x + (config_.tile_size * config_.display_scale);
   EXPECT_FLOAT_EQ(origin.x, expected_x);
   EXPECT_FLOAT_EQ(origin.y, config_.draw_offset.y);
 
   // Test tile at (0,1) - first tile of second row
   origin = widget.TileOrigin(8);
   expected_x = config_.draw_offset.x;
-  float expected_y = config_.draw_offset.y +
-                     (config_.tile_size * config_.display_scale);
+  float expected_y =
+      config_.draw_offset.y + (config_.tile_size * config_.display_scale);
   EXPECT_FLOAT_EQ(origin.x, expected_x);
   EXPECT_FLOAT_EQ(origin.y, expected_y);
 
@@ -191,4 +191,3 @@ TEST_F(TileSelectorWidgetTest, DifferentConfigs) {
 
 }  // namespace test
 }  // namespace yaze
-

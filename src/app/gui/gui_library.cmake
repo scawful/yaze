@@ -134,7 +134,7 @@ target_link_libraries(yaze_gui INTERFACE
   yaze_common
   yaze_net
   ImGui
-  ${SDL_TARGETS}
+  ${YAZE_SDL2_TARGETS}
 )
 
 message(STATUS "✓ yaze_gui library refactored and configured")

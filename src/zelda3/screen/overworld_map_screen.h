@@ -38,7 +38,7 @@ class OverworldMapScreen {
   // Accessors for tile data
   auto& lw_tiles() { return lw_map_tiles_; }
   auto& dw_tiles() { return dw_map_tiles_; }
-  
+
   // Mutable accessors for editing
   auto& mutable_lw_tiles() { return lw_map_tiles_; }
   auto& mutable_dw_tiles() { return dw_map_tiles_; }
@@ -46,7 +46,7 @@ class OverworldMapScreen {
   // Bitmap accessors
   auto& tiles8_bitmap() { return tiles8_bitmap_; }
   auto& map_bitmap() { return map_bitmap_; }
-  
+
   // Palette accessors
   auto& lw_palette() { return lw_palette_; }
   auto& dw_palette() { return dw_palette_; }
@@ -79,10 +79,10 @@ class OverworldMapScreen {
 
   std::array<uint8_t, 64 * 64> lw_map_tiles_;  // Light World tile indices
   std::array<uint8_t, 64 * 64> dw_map_tiles_;  // Dark World tile indices
-  
+
   gfx::Bitmap tiles8_bitmap_;  // 128x128 tileset (mode 7 graphics)
   gfx::Bitmap map_bitmap_;     // 512x512 rendered map (64 tiles × 8 pixels)
-  
+
   gfx::SnesPalette lw_palette_;  // Light World palette
   gfx::SnesPalette dw_palette_;  // Dark World palette
 };
@@ -91,4 +91,3 @@ class OverworldMapScreen {
 }  // namespace yaze
 
 #endif  // YAZE_APP_ZELDA3_OVERWORLD_MAP_SCREEN_H
-

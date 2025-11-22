@@ -5,6 +5,8 @@
 
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
+#include "absl/time/clock.h"
+#include "absl/time/time.h"
 #include "cli/service/agent/conversational_agent_service.h"
 
 #ifdef YAZE_WITH_JSON
@@ -21,11 +23,12 @@ OllamaAIService::OllamaAIService(const OllamaConfig& config) : config_(config) {
     std::cerr << "⚠️  Failed to load agent prompt catalogue: "
               << status.message() << std::endl;
   }
-  
+
   if (config_.system_prompt.empty()) {
     // Use enhanced prompting by default
     if (config_.use_enhanced_prompting) {
-      config_.system_prompt = prompt_builder_.BuildSystemInstructionWithExamples();
+      config_.system_prompt =
+          prompt_builder_.BuildSystemInstructionWithExamples();
     } else {
       config_.system_prompt = BuildSystemPrompt();
     }
@@ -51,28 +54,29 @@ absl::Status OllamaAIService::CheckAvailability() {
   try {
     httplib::Client cli(config_.base_url);
     cli.set_connection_timeout(5);  // 5 second timeout
-    
+
     auto res = cli.Get("/api/tags");
     if (!res) {
-      return absl::UnavailableError(absl::StrFormat(
-          "Cannot connect to Ollama server at %s.\n"
-          "Make sure Ollama is installed and running:\n"
-          "  1. Install: brew install ollama (macOS) or https://ollama.com/download\n"
-          "  2. Start: ollama serve\n"
-          "  3. Verify: curl http://localhost:11434/api/tags",
-          config_.base_url));
+      return absl::UnavailableError(
+          absl::StrFormat("Cannot connect to Ollama server at %s.\n"
+                          "Make sure Ollama is installed and running:\n"
+                          "  1. Install: brew install ollama (macOS) or "
+                          "https://ollama.com/download\n"
+                          "  2. Start: ollama serve\n"
+                          "  3. Verify: curl http://localhost:11434/api/tags",
+                          config_.base_url));
     }
-    
+
     if (res->status != 200) {
-      return absl::InternalError(absl::StrFormat(
-          "Ollama server error: HTTP %d\nResponse: %s", 
-          res->status, res->body));
+      return absl::InternalError(
+          absl::StrFormat("Ollama server error: HTTP %d\nResponse: %s",
+                          res->status, res->body));
     }
-    
+
     // Check if requested model is available
     nlohmann::json models_json = nlohmann::json::parse(res->body);
     bool model_found = false;
-    
+
     if (models_json.contains("models") && models_json["models"].is_array()) {
       for (const auto& model : models_json["models"]) {
         if (model.contains("name")) {
@@ -84,53 +88,85 @@ absl::Status OllamaAIService::CheckAvailability() {
         }
       }
     }
-    
+
     if (!model_found) {
-      return absl::NotFoundError(absl::StrFormat(
-          "Model '%s' not found on Ollama server.\n"
-          "Pull it with: ollama pull %s\n"
-          "Available models: ollama list",
-          config_.model, config_.model));
+      return absl::NotFoundError(
+          absl::StrFormat("Model '%s' not found on Ollama server.\n"
+                          "Pull it with: ollama pull %s\n"
+                          "Available models: ollama list",
+                          config_.model, config_.model));
     }
-    
+
     return absl::OkStatus();
   } catch (const std::exception& e) {
-    return absl::InternalError(absl::StrCat(
-        "Ollama health check failed: ", e.what()));
+    return absl::InternalError(
+        absl::StrCat("Ollama health check failed: ", e.what()));
   }
 #endif
 }
 
-absl::StatusOr<std::vector<std::string>> OllamaAIService::ListAvailableModels() {
+absl::StatusOr<std::vector<ModelInfo>> OllamaAIService::ListAvailableModels() {
 #ifndef YAZE_WITH_JSON
   return absl::UnimplementedError("Requires httplib and JSON support");
 #else
   try {
     httplib::Client cli(config_.base_url);
     cli.set_connection_timeout(5);
-    
+
     auto res = cli.Get("/api/tags");
-    
+
     if (!res || res->status != 200) {
       return absl::UnavailableError(
           "Cannot list Ollama models. Is the server running?");
     }
-    
+
     nlohmann::json models_json = nlohmann::json::parse(res->body);
-    std::vector<std::string> models;
-    
+    std::vector<ModelInfo> models;
+
     if (models_json.contains("models") && models_json["models"].is_array()) {
       for (const auto& model : models_json["models"]) {
-        if (model.contains("name")) {
-          models.push_back(model["name"].get<std::string>());
+        ModelInfo info;
+        info.provider = "ollama";
+        info.is_local = true;
+
+        if (model.contains("name") && model["name"].is_string()) {
+          info.name = model["name"].get<std::string>();
+          info.display_name = info.name;
         }
+
+        if (model.contains("size")) {
+          if (model["size"].is_string()) {
+            info.size_bytes = std::strtoull(
+                model["size"].get<std::string>().c_str(), nullptr, 10);
+          } else if (model["size"].is_number_unsigned()) {
+            info.size_bytes = model["size"].get<uint64_t>();
+          }
+        }
+
+        if (model.contains("details") && model["details"].is_object()) {
+          const auto& details = model["details"];
+          info.parameter_size = details.value("parameter_size", "");
+          info.quantization = details.value("quantization_level", "");
+          info.family = details.value("family", "");
+
+          // Build description
+          std::string desc;
+          if (!info.family.empty())
+            desc += info.family + " ";
+          if (!info.parameter_size.empty())
+            desc += info.parameter_size + " ";
+          if (!info.quantization.empty())
+            desc += "(" + info.quantization + ")";
+          info.description = desc;
+        }
+        models.push_back(std::move(info));
       }
     }
-    
+
     return models;
   } catch (const std::exception& e) {
-    return absl::InternalError(absl::StrCat(
-        "Failed to list models: ", e.what()));
+    return absl::InternalError(
+        absl::StrCat("Failed to list models: ", e.what()));
   }
 #endif
 }
@@ -142,23 +178,24 @@ absl::StatusOr<std::string> OllamaAIService::ParseOllamaResponse(
 #else
   try {
     nlohmann::json response_json = nlohmann::json::parse(json_response);
-    
+
     if (!response_json.contains("response")) {
       return absl::InvalidArgumentError(
           "Ollama response missing 'response' field");
     }
-    
+
     return response_json["response"].get<std::string>();
   } catch (const nlohmann::json::exception& e) {
-    return absl::InternalError(absl::StrCat(
-        "Failed to parse Ollama response: ", e.what()));
+    return absl::InternalError(
+        absl::StrCat("Failed to parse Ollama response: ", e.what()));
   }
 #endif
 }
 
 absl::StatusOr<AgentResponse> OllamaAIService::GenerateResponse(
     const std::string& prompt) {
-  return GenerateResponse({{{agent::ChatMessage::Sender::kUser, prompt, absl::Now()}}});
+  return GenerateResponse(
+      {{{agent::ChatMessage::Sender::kUser, prompt, absl::Now()}}});
 }
 
 absl::StatusOr<AgentResponse> OllamaAIService::GenerateResponse(
@@ -168,67 +205,112 @@ absl::StatusOr<AgentResponse> OllamaAIService::GenerateResponse(
       "Ollama service requires httplib and JSON support. "
       "Install vcpkg dependencies or use bundled libraries.");
 #else
-  // TODO: Implement history-aware prompting.
   if (history.empty()) {
     return absl::InvalidArgumentError("History cannot be empty.");
   }
-  std::string prompt = prompt_builder_.BuildPromptFromHistory(history);
 
-  // Build request payload
-  nlohmann::json request_body = {
-      {"model", config_.model},
-      {"system", config_.system_prompt},
-      {"prompt", prompt},
-      {"stream", false},
-      {"options",
-       {{"temperature", config_.temperature},
-        {"num_predict", config_.max_tokens}}},
-      {"format", "json"}  // Force JSON output
-  };
-  
+  nlohmann::json messages = nlohmann::json::array();
+  for (const auto& chat_msg : history) {
+    if (chat_msg.is_internal) {
+      continue;
+    }
+    nlohmann::json entry;
+    entry["role"] = chat_msg.sender == agent::ChatMessage::Sender::kUser
+                        ? "user"
+                        : "assistant";
+    entry["content"] = chat_msg.message;
+    messages.push_back(std::move(entry));
+  }
+
+  if (messages.empty()) {
+    return absl::InvalidArgumentError(
+        "History does not contain any user/assistant messages.");
+  }
+
+  std::string fallback_prompt = prompt_builder_.BuildPromptFromHistory(history);
+
+  nlohmann::json request_body;
+  request_body["model"] = config_.model;
+  request_body["system"] = config_.system_prompt;
+  request_body["stream"] = config_.stream;
+  request_body["format"] = "json";
+
+  if (config_.use_chat_completions) {
+    request_body["messages"] = messages;
+  } else {
+    request_body["prompt"] = fallback_prompt;
+  }
+
+  nlohmann::json options = {{"temperature", config_.temperature},
+                            {"top_p", config_.top_p},
+                            {"top_k", config_.top_k},
+                            {"num_predict", config_.max_tokens},
+                            {"num_ctx", config_.num_ctx}};
+  request_body["options"] = options;
+
+  AgentResponse agent_response;
+  agent_response.provider = "ollama";
+
   try {
     httplib::Client cli(config_.base_url);
     cli.set_read_timeout(60);  // Longer timeout for inference
-    
-    auto res = cli.Post("/api/generate", request_body.dump(), "application/json");
-    
+
+    const char* endpoint =
+        config_.use_chat_completions ? "/api/chat" : "/api/generate";
+    absl::Time request_start = absl::Now();
+    auto res = cli.Post(endpoint, request_body.dump(), "application/json");
+
     if (!res) {
       return absl::UnavailableError(
           "Failed to connect to Ollama. Is 'ollama serve' running?\n"
           "Start with: ollama serve");
     }
-    
+
     if (res->status != 200) {
       return absl::InternalError(absl::StrFormat(
-          "Ollama API error: HTTP %d\nResponse: %s", 
-          res->status, res->body));
+          "Ollama API error: HTTP %d\nResponse: %s", res->status, res->body));
     }
-    
+
     // Parse Ollama's wrapper JSON
     nlohmann::json ollama_wrapper;
     try {
       ollama_wrapper = nlohmann::json::parse(res->body);
     } catch (const nlohmann::json::exception& e) {
-      return absl::InternalError(absl::StrFormat(
-          "Failed to parse Ollama response: %s\nBody: %s", 
-          e.what(), res->body));
+      return absl::InternalError(
+          absl::StrFormat("Failed to parse Ollama response: %s\nBody: %s",
+                          e.what(), res->body));
     }
-    
+
     // Extract the LLM's response from Ollama's "response" field
-    if (!ollama_wrapper.contains("response") || !ollama_wrapper["response"].is_string()) {
-      return absl::InvalidArgumentError(
-          "Ollama response missing 'response' field");
+    // For chat completions API, it's inside "message" -> "content"
+    std::string llm_output;
+    if (config_.use_chat_completions) {
+      if (ollama_wrapper.contains("message") &&
+          ollama_wrapper["message"].is_object() &&
+          ollama_wrapper["message"].contains("content")) {
+        llm_output = ollama_wrapper["message"]["content"].get<std::string>();
+      } else {
+        return absl::InvalidArgumentError(
+            "Ollama chat response missing 'message.content'");
+      }
+    } else {
+      if (ollama_wrapper.contains("response") &&
+          ollama_wrapper["response"].is_string()) {
+        llm_output = ollama_wrapper["response"].get<std::string>();
+      } else {
+        return absl::InvalidArgumentError(
+            "Ollama response missing 'response' field");
+      }
     }
-    
-    std::string llm_output = ollama_wrapper["response"].get<std::string>();
-    
+
     // Debug: Print raw LLM output when verbose mode is enabled
     const char* verbose_env = std::getenv("Z3ED_VERBOSE");
     if (verbose_env && std::string(verbose_env) == "1") {
-      std::cout << "\n" << "\033[35m" << "🔍 Raw LLM Response:" << "\033[0m" << "\n"
+      std::cout << "\n"
+                << "\033[35m" << "🔍 Raw LLM Response:" << "\033[0m" << "\n"
                 << "\033[2m" << llm_output << "\033[0m" << "\n\n";
     }
-    
+
     // Parse the LLM's JSON response (the agent structure)
     nlohmann::json response_json;
     try {
@@ -237,22 +319,38 @@ absl::StatusOr<AgentResponse> OllamaAIService::GenerateResponse(
       // Sometimes the LLM includes extra text - try to extract JSON object
       size_t start = llm_output.find('{');
       size_t end = llm_output.rfind('}');
-      
-      if (start != std::string::npos && end != std::string::npos && end > start) {
+
+      if (start != std::string::npos && end != std::string::npos &&
+          end > start) {
         std::string json_only = llm_output.substr(start, end - start + 1);
         try {
           response_json = nlohmann::json::parse(json_only);
         } catch (const nlohmann::json::exception&) {
-          return absl::InvalidArgumentError(
-              "LLM did not return valid JSON. Response:\n" + llm_output);
+          agent_response.warnings.push_back(
+              "LLM response was not valid JSON; returning raw text.");
+          agent_response.text_response = llm_output;
+          return agent_response;
         }
       } else {
-        return absl::InvalidArgumentError(
-            "LLM did not return a JSON object. Response:\n" + llm_output);
+        agent_response.warnings.push_back(
+            "LLM response did not contain a JSON object; returning raw text.");
+        agent_response.text_response = llm_output;
+        return agent_response;
       }
     }
-    
-    AgentResponse agent_response;
+
+    agent_response.model = ollama_wrapper.value("model", config_.model);
+    agent_response.latency_seconds =
+        absl::ToDoubleSeconds(absl::Now() - request_start);
+    agent_response.parameters["temperature"] =
+        absl::StrFormat("%.2f", config_.temperature);
+    agent_response.parameters["top_p"] = absl::StrFormat("%.2f", config_.top_p);
+    agent_response.parameters["top_k"] = absl::StrFormat("%d", config_.top_k);
+    agent_response.parameters["num_predict"] =
+        absl::StrFormat("%d", config_.max_tokens);
+    agent_response.parameters["num_ctx"] =
+        absl::StrFormat("%d", config_.num_ctx);
+    agent_response.parameters["endpoint"] = endpoint;
     if (response_json.contains("text_response") &&
         response_json["text_response"].is_string()) {
       agent_response.text_response =

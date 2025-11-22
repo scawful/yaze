@@ -83,7 +83,7 @@ class Spc700 {
   uint16_t dat16;
   uint8_t param;
   int extra_cycles_ = 0;
-  
+
   // Cycle tracking for accurate APU synchronization
   int last_opcode_cycles_ = 0;
 
@@ -140,8 +140,8 @@ class Spc700 {
 
   void RunOpcode();
 
-  // New atomic step function - executes one complete instruction and returns cycles consumed
-  // This is the preferred method for cycle-accurate emulation
+  // New atomic step function - executes one complete instruction and returns
+  // cycles consumed This is the preferred method for cycle-accurate emulation
   int Step();
 
   // Get the number of cycles consumed by the last opcode execution
@@ -172,7 +172,7 @@ class Spc700 {
   }
 
   void DoBranch(uint8_t value, bool check) {
-    callbacks_.idle(false); // Add missing base cycle for all branches
+    callbacks_.idle(false);  // Add missing base cycle for all branches
     if (check) {
       // taken branch: 2 extra cycles
       callbacks_.idle(false);

@@ -7,9 +7,9 @@
 
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
-#include "util/sdl_deleter.h"
-#include "app/gfx/core/bitmap.h"
 #include "app/gfx/backend/irenderer.h"
+#include "app/gfx/core/bitmap.h"
+#include "util/sdl_deleter.h"
 
 namespace yaze {
 namespace core {
@@ -23,10 +23,10 @@ struct Window {
 
 // Legacy CreateWindow (deprecated - use Controller::OnEntry instead)
 // Kept for backward compatibility with test code
-absl::Status CreateWindow(Window& window, gfx::IRenderer* renderer = nullptr, 
-                         int flags = SDL_WINDOW_RESIZABLE);
-absl::Status HandleEvents(Window &window);
-absl::Status ShutdownWindow(Window &window);
+absl::Status CreateWindow(Window& window, gfx::IRenderer* renderer = nullptr,
+                          int flags = SDL_WINDOW_RESIZABLE);
+absl::Status HandleEvents(Window& window);
+absl::Status ShutdownWindow(Window& window);
 
 }  // namespace core
 }  // namespace yaze

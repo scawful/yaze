@@ -95,14 +95,13 @@ class TestRecorder {
  private:
   absl::StatusOr<std::string> StartLocked(const RecordingOptions& options)
       ABSL_EXCLUSIVE_LOCKS_REQUIRED(mu_);
-  absl::StatusOr<StopRecordingSummary> StopLocked(const std::string& recording_id,
-                                                  bool discard)
+  absl::StatusOr<StopRecordingSummary> StopLocked(
+      const std::string& recording_id, bool discard)
       ABSL_EXCLUSIVE_LOCKS_REQUIRED(mu_);
   void RecordStepLocked(const RecordedStep& step)
       ABSL_EXCLUSIVE_LOCKS_REQUIRED(mu_);
 
-  absl::Status PopulateFinalStatusLocked()
-      ABSL_EXCLUSIVE_LOCKS_REQUIRED(mu_);
+  absl::Status PopulateFinalStatusLocked() ABSL_EXCLUSIVE_LOCKS_REQUIRED(mu_);
 
   static std::string GenerateRecordingId();
   static const char* ActionTypeToString(ActionType type);

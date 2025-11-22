@@ -9,8 +9,8 @@
 #include "app/editor/editor.h"
 #include "app/editor/message/message_data.h"
 #include "app/editor/message/message_preview.h"
-#include "app/gui/app/editor_layout.h"
 #include "app/gfx/core/bitmap.h"
+#include "app/gui/app/editor_layout.h"
 #include "app/gui/canvas/canvas.h"
 #include "app/gui/core/style.h"
 #include "app/rom.h"
@@ -22,7 +22,8 @@ constexpr int kGfxFont = 0x70000;  // 2bpp format
 constexpr int kCharactersWidth = 0x74ADF;
 constexpr int kNumMessages = 396;
 constexpr int kFontGfxMessageSize = 128;
-constexpr int kFontGfxMessageDepth = 8;  // Fixed: Must be 8 for indexed palette mode
+constexpr int kFontGfxMessageDepth =
+    8;  // Fixed: Must be 8 for indexed palette mode
 constexpr int kFontGfx16Size = 172 * 4096;
 
 constexpr uint8_t kBlockTerminator = 0x80;
@@ -90,7 +91,7 @@ class MessageEditor : public Editor {
   gui::TextBox message_text_box_;
   Rom* rom_;
   Rom expanded_message_bin_;
-  
+
   // Card visibility states
   bool show_message_list_ = false;
   bool show_message_editor_ = false;

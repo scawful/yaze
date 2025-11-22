@@ -29,9 +29,9 @@ namespace cli {
 class ProposalRegistry {
  public:
   enum class ProposalStatus {
-    kPending,    // Created but not yet reviewed
-    kAccepted,   // User accepted the changes
-    kRejected,   // User rejected the changes
+    kPending,   // Created but not yet reviewed
+    kAccepted,  // User accepted the changes
+    kRejected,  // User rejected the changes
   };
 
   struct ProposalMetadata {
@@ -44,12 +44,12 @@ class ProposalRegistry {
     ProposalStatus status;
     absl::Time created_at;
     std::optional<absl::Time> reviewed_at;
-    
+
     // File paths relative to proposal directory
     std::filesystem::path diff_path;
     std::filesystem::path log_path;
     std::vector<std::filesystem::path> screenshots;
-    
+
     // Statistics
     int bytes_changed;
     int commands_executed;
@@ -67,18 +67,17 @@ class ProposalRegistry {
   // is created under the root, and metadata is initialized.
   absl::StatusOr<ProposalMetadata> CreateProposal(
       absl::string_view sandbox_id,
-      const std::filesystem::path& sandbox_rom_path,
-      absl::string_view prompt,
+      const std::filesystem::path& sandbox_rom_path, absl::string_view prompt,
       absl::string_view description);
 
   // Records a diff between original and modified ROM for the proposal.
   // The diff content is written to a file within the proposal directory.
   absl::Status RecordDiff(const std::string& proposal_id,
-                         absl::string_view diff_content);
+                          absl::string_view diff_content);
 
   // Appends log output from command execution to the proposal's log file.
   absl::Status AppendLog(const std::string& proposal_id,
-                        absl::string_view log_entry);
+                         absl::string_view log_entry);
 
   // Adds a screenshot path to the proposal metadata. Screenshots should
   // be copied into the proposal directory before calling this.
@@ -93,7 +92,7 @@ class ProposalRegistry {
   // Updates the proposal status (pending -> accepted/rejected) and sets
   // the review timestamp.
   absl::Status UpdateStatus(const std::string& proposal_id,
-                           ProposalStatus status);
+                            ProposalStatus status);
 
   // Returns the metadata for a specific proposal.
   absl::StatusOr<ProposalMetadata> GetProposal(

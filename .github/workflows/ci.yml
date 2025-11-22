@@ -38,13 +38,18 @@ on:
         required: false
         default: false
         type: boolean
+      enable_http_api_tests:
+        description: 'Enable HTTP API tests'
+        required: false
+        default: false
+        type: boolean
 
 env:
   BUILD_TYPE: ${{ github.event.inputs.build_type || 'RelWithDebInfo' }}
 
 jobs:
-  build-and-test:
-    name: "${{ matrix.name }}"
+  build:
+    name: "Build - ${{ matrix.name }}"
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -52,653 +57,146 @@ jobs:
         include:
           - name: "Ubuntu 22.04 (GCC-12)"
             os: ubuntu-22.04
-            cc: gcc-12
-            cxx: g++-12
+            platform: linux
+            preset: ci-linux
           - name: "macOS 14 (Clang)"
             os: macos-14
-            cc: clang
-            cxx: clang++
-          - name: "Windows 2022 (Clang-CL)"
+            platform: macos
+            preset: ci-macos
+          - name: "Windows 2022 (Core)"
             os: windows-2022
-            cc: clang-cl
-            cxx: clang-cl
-          - name: "Windows 2022 (MSVC)"
-            os: windows-2022
-            cc: cl
-            cxx: cl
+            platform: windows
+            preset: ci-windows
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-      with:
-        submodules: recursive
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
-    - name: Set up vcpkg (Windows)
-      if: runner.os == 'Windows'
-      uses: lukka/run-vcpkg@v11
-      id: vcpkg
-      continue-on-error: true
-      env:
-        VCPKG_DEFAULT_TRIPLET: x64-windows-static
-        VCPKG_BINARY_SOURCES: 'clear;x-gha,readwrite'
-      with:
-        vcpkgDirectory: '${{ github.workspace }}/vcpkg'
-        vcpkgGitCommitId: 'b2c74683ecfd6a8e7d27ffb0df077f66a9339509'  # 2025.01.20 release
-        runVcpkgInstall: true  # Pre-install SDL2, yaml-cpp (fast packages only)
-    
-    - name: Retry vcpkg setup (Windows)
-      if: runner.os == 'Windows' && steps.vcpkg.outcome == 'failure'
-      uses: lukka/run-vcpkg@v11
-      id: vcpkg_retry
-      env:
-        VCPKG_DEFAULT_TRIPLET: x64-windows-static
-        VCPKG_BINARY_SOURCES: 'clear;x-gha,readwrite'
-      with:
-        vcpkgDirectory: '${{ github.workspace }}/vcpkg'
-        vcpkgGitCommitId: 'b2c74683ecfd6a8e7d27ffb0df077f66a9339509'
-        runVcpkgInstall: true
-    
-    - name: Resolve vcpkg toolchain (Windows)
-      if: runner.os == 'Windows'
-      shell: pwsh
-      run: |
-        # Try to get vcpkg root from either initial setup or retry
-        $vcpkgRoot = "${{ steps.vcpkg.outputs.vcpkgRoot }}"
-        if (-not $vcpkgRoot) {
-          $vcpkgRoot = "${{ steps.vcpkg_retry.outputs.vcpkgRoot }}"
-        }
-        if (-not $vcpkgRoot) {
-          $vcpkgRoot = Join-Path "${{ github.workspace }}" "vcpkg"
-        }
-        
-        Write-Host "Checking vcpkg root: $vcpkgRoot"
-        if (-not (Test-Path $vcpkgRoot)) {
-          Write-Host "::error::vcpkg root not found at $vcpkgRoot"
-          Write-Host "vcpkg setup status: ${{ steps.vcpkg.outcome }}"
-          Write-Host "vcpkg retry status: ${{ steps.vcpkg_retry.outcome }}"
-          exit 1
-        }
+      - name: Setup build environment
+        uses: ./.github/actions/setup-build
+        with:
+          platform: ${{ matrix.platform }}
+          preset: ${{ matrix.preset }}
+          cache-key: ${{ hashFiles('cmake/dependencies.lock') }}
 
-        $toolchain = Join-Path $vcpkgRoot "scripts/buildsystems/vcpkg.cmake"
-        if (-not (Test-Path $toolchain)) {
-          Write-Host "::error::vcpkg toolchain file missing at $toolchain"
-          exit 1
-        }
+      - name: Build project
+        uses: ./.github/actions/build-project
+        with:
+          platform: ${{ matrix.platform }}
+          preset: ${{ matrix.preset }}
+          build-type: ${{ env.BUILD_TYPE }}
 
-        $normalizedRoot = $vcpkgRoot -replace '\\', '/'
-        $normalizedToolchain = $toolchain -replace '\\', '/'
+      - name: Upload build artifacts (Windows)
+        if: matrix.platform == 'windows' && (github.event.inputs.upload_artifacts == 'true' || github.event_name == 'push')
+        uses: actions/upload-artifact@v4
+        with:
+          name: yaze-windows-ci-${{ github.run_number }}
+          path: |
+            build/bin/*.exe
+            build/bin/*.dll
+            build/bin/${{ env.BUILD_TYPE }}/*.exe
+            build/bin/${{ env.BUILD_TYPE }}/*.dll
+          if-no-files-found: warn
+          retention-days: 3
 
-        Write-Host "✓ vcpkg root: $normalizedRoot"
-        Write-Host "✓ Toolchain: $normalizedToolchain"
-        
-        "VCPKG_ROOT=$normalizedRoot" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-        "CMAKE_TOOLCHAIN_FILE=$normalizedToolchain" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+  test:
+    name: "Test - ${{ matrix.name }}"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: "Ubuntu 22.04"
+            os: ubuntu-22.04
+            platform: linux
+            preset: ci-linux
+          - name: "macOS 14"
+            os: macos-14
+            platform: macos
+            preset: ci-macos
+          - name: "Windows 2022 (Core)"
+            os: windows-2022
+            platform: windows
+            preset: ci-windows
 
-    - name: Install Windows build tools
-      if: runner.os == 'Windows'
-      shell: pwsh
-      run: |
-        choco install --no-progress -y nasm ccache
-        if ($env:ChocolateyInstall) {
-          $profilePath = Join-Path $env:ChocolateyInstall "helpers\chocolateyProfile.psm1"
-          if (Test-Path $profilePath) {
-            Import-Module $profilePath
-            refreshenv
-          }
-        }
-        if (Test-Path "C:\Program Files\NASM") {
-          "C:\Program Files\NASM" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-        }
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
-    - name: Ensure MSVC Dev Cmd (Windows)
-      if: runner.os == 'Windows'
-      uses: ilammy/msvc-dev-cmd@v1
-      with:
-        arch: x64
-    
-    - name: Diagnose vcpkg (Windows)
-      if: runner.os == 'Windows'
-      shell: pwsh
-      run: |
-        Write-Host "=== vcpkg Diagnostics ===" -ForegroundColor Cyan
-        Write-Host "Initial setup: ${{ steps.vcpkg.outcome }}"
-        Write-Host "Retry setup: ${{ steps.vcpkg_retry.outcome }}"
-        Write-Host "vcpkg directory: ${{ github.workspace }}/vcpkg"
-        
-        if (Test-Path "${{ github.workspace }}/vcpkg/vcpkg.exe") {
-          Write-Host "✅ vcpkg.exe found" -ForegroundColor Green
-          & "${{ github.workspace }}/vcpkg/vcpkg.exe" version
-          Write-Host "`nvcpkg installed packages:" -ForegroundColor Cyan
-          & "${{ github.workspace }}/vcpkg/vcpkg.exe" list | Select-Object -First 20
-        } else {
-          Write-Host "❌ vcpkg.exe not found" -ForegroundColor Red
-        }
-        
-        Write-Host "`nEnvironment:" -ForegroundColor Cyan
-        Write-Host "CMAKE_TOOLCHAIN_FILE: $env:CMAKE_TOOLCHAIN_FILE"
-        Write-Host "VCPKG_DEFAULT_TRIPLET: $env:VCPKG_DEFAULT_TRIPLET"
-        Write-Host "VCPKG_ROOT: $env:VCPKG_ROOT"
-        Write-Host "Workspace: ${{ github.workspace }}"
-        
-        Write-Host "`nManifest files:" -ForegroundColor Cyan
-        if (Test-Path "vcpkg.json") {
-          Write-Host "✅ vcpkg.json found"
-          Get-Content "vcpkg.json" | Write-Host
-        }
-        if (Test-Path "vcpkg-configuration.json") {
-          Write-Host "✅ vcpkg-configuration.json found"
-        }
+      - name: Setup build environment
+        uses: ./.github/actions/setup-build
+        with:
+          platform: ${{ matrix.platform }}
+          preset: ${{ matrix.preset }}
+          cache-key: ${{ hashFiles('cmake/dependencies.lock') }}
 
-    - name: Setup sccache
-      uses: hendrikmuhs/ccache-action@v1.2
-      with:
-        key: ${{ runner.os }}-${{ matrix.cc }}-${{ github.sha }}
-        restore-keys: |
-          ${{ runner.os }}-${{ matrix.cc }}-
-        max-size: 500M
-        variant: sccache
+      - name: Build project
+        uses: ./.github/actions/build-project
+        with:
+          platform: ${{ matrix.platform }}
+          preset: ${{ matrix.preset }}
+          build-type: ${{ env.BUILD_TYPE }}
 
-    - name: Configure sccache for clang-cl
-      if: runner.os == 'Windows' && matrix.cc == 'clang-cl'
-      shell: pwsh
-      run: |
-        echo "CC=sccache clang-cl" >> $env:GITHUB_ENV
-        echo "CXX=sccache clang-cl" >> $env:GITHUB_ENV
+      - name: Run stable tests
+        uses: ./.github/actions/run-tests
+        with:
+          test-type: stable
+          preset: ${{ matrix.preset }}
 
-    - name: Restore vcpkg packages cache
-      uses: actions/cache@v4
-      with:
-        path: |
-          build/vcpkg_installed
-          ${{ github.workspace }}/vcpkg/packages
-          ${{ github.workspace }}/vcpkg/buildtrees
-        key: vcpkg-${{ runner.os }}-${{ hashFiles('vcpkg.json') }}
-        restore-keys: |
-          vcpkg-${{ runner.os }}-
+      - name: Run unit tests
+        uses: ./.github/actions/run-tests
+        with:
+          test-type: unit
+          preset: ${{ matrix.preset }}
 
-    - name: Restore FetchContent dependencies (gRPC)
-      uses: actions/cache@v4
-      with:
-        path: |
-          build/_deps
-        key: fetchcontent-${{ runner.os }}-${{ matrix.cc }}-${{ hashFiles('cmake/grpc*.cmake') }}-v2
-        restore-keys: |
-          fetchcontent-${{ runner.os }}-${{ matrix.cc }}-
+      - name: Run HTTP API tests
+        if: github.event.inputs.enable_http_api_tests == 'true'
+        run: scripts/agents/test-http-api.sh
 
-    - name: Monitor build progress (Windows)
-      if: runner.os == 'Windows'
-      shell: pwsh
-      run: |
-        Write-Host "=== Pre-Build Status ===" -ForegroundColor Cyan
-        
-        # Check if gRPC is cached
-        if (Test-Path "build/_deps/grpc-subbuild") {
-          Write-Host "✅ gRPC FetchContent cache found" -ForegroundColor Green
-        } else {
-          Write-Host "⚠️  gRPC will be built from source (~10-15 min first time)" -ForegroundColor Yellow
-        }
-        
-        # Check vcpkg packages
-        if (Test-Path "build/vcpkg_installed") {
-          Write-Host "✅ vcpkg packages cache found" -ForegroundColor Green
-          if (Test-Path "${{ github.workspace }}/vcpkg/vcpkg.exe") {
-            & "${{ github.workspace }}/vcpkg/vcpkg.exe" list
-          }
-        } else {
-          Write-Host "⚠️  vcpkg packages will be installed (~2-3 min)" -ForegroundColor Yellow
-        }
+  windows-agent:
+    name: "Windows Agent (Full Stack)"
+    runs-on: windows-2022
+    needs: [build, test]
+    if: github.event_name != 'pull_request'
 
-    - name: Install Dependencies (Unix)
-      id: deps
-      shell: bash
-      continue-on-error: true
-      run: |
-        if [[ "${{ runner.os }}" == "Linux" ]]; then
-          sudo apt-get update
-          sudo apt-get install -y \
-            build-essential ninja-build pkg-config ccache \
-            libglew-dev libxext-dev libwavpack-dev libboost-all-dev \
-            libpng-dev python3-dev libpython3-dev \
-            libasound2-dev libpulse-dev libaudio-dev \
-            libx11-dev libxrandr-dev libxcursor-dev libxinerama-dev libxi-dev \
-            libxss-dev libxxf86vm-dev libxkbcommon-dev libwayland-dev libdecor-0-dev \
-            libgtk-3-dev libdbus-1-dev \
-            ${{ matrix.cc }} ${{ matrix.cxx }}
-          # Note: libabsl-dev removed - gRPC uses bundled Abseil via FetchContent when enabled
-        elif [[ "${{ runner.os }}" == "macOS" ]]; then
-          brew install ninja pkg-config ccache
-        fi
-    
-    - name: Retry Dependencies (Unix)
-      if: steps.deps.outcome == 'failure'
-      shell: bash
-      run: |
-        echo "::warning::First dependency install failed, retrying..."
-        if [[ "${{ runner.os }}" == "Linux" ]]; then
-          sudo apt-get clean
-          sudo apt-get update --fix-missing
-          sudo apt-get install -y \
-            build-essential ninja-build pkg-config ccache \
-            libglew-dev libxext-dev libwavpack-dev libboost-all-dev \
-            libpng-dev python3-dev libpython3-dev \
-            libasound2-dev libpulse-dev libaudio-dev \
-            libx11-dev libxrandr-dev libxcursor-dev libxinerama-dev libxi-dev \
-            libxss-dev libxxf86vm-dev libxkbcommon-dev libwayland-dev libdecor-0-dev \
-            libgtk-3-dev libdbus-1-dev \
-            ${{ matrix.cc }} ${{ matrix.cxx }}
-        elif [[ "${{ runner.os }}" == "macOS" ]]; then
-          brew update
-          brew install ninja pkg-config ccache
-        fi
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
-    - name: Free Disk Space (Linux)
-      if: runner.os == 'Linux'
-      shell: bash
-      run: |
-        echo "=== Freeing Disk Space ==="
-        df -h
-        echo ""
-        echo "Removing unnecessary software..."
-        sudo rm -rf /usr/share/dotnet
-        sudo rm -rf /usr/local/lib/android
-        sudo rm -rf /opt/ghc
-        sudo rm -rf /opt/hostedtoolcache/CodeQL
-        sudo apt-get clean
-        echo ""
-        echo "Disk space after cleanup:"
-        df -h
-    
-    - name: Pre-configure Diagnostics (Windows)
-      if: runner.os == 'Windows'
-      shell: pwsh
-      run: |
-        Write-Host "=== Pre-configure Diagnostics ===" -ForegroundColor Cyan
-        Write-Host "Build Type: ${{ env.BUILD_TYPE }}"
-        Write-Host "Workspace: ${{ github.workspace }}"
-        
-        # Check Visual Studio installation
-        $vsWhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
-        if (Test-Path $vsWhere) {
-          Write-Host "`nVisual Studio Installation:" -ForegroundColor Cyan
-          & $vsWhere -latest -property displayName
-          & $vsWhere -latest -property installationVersion
-        }
-        
-        # Check CMake
-        Write-Host "`nCMake Version:" -ForegroundColor Cyan
-        cmake --version
-        
-        # Verify vcpkg toolchain
-        $toolchain = "${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake"
-        if (Test-Path $toolchain) {
-          Write-Host "✅ vcpkg toolchain found at: $toolchain" -ForegroundColor Green
-        } else {
-          Write-Host "⚠️ vcpkg toolchain not found at: $toolchain" -ForegroundColor Yellow
-        }
-        
-        # Show vcpkg manifest
-        if (Test-Path "vcpkg.json") {
-          Write-Host "`nvcpkg.json contents:" -ForegroundColor Cyan
-          Get-Content "vcpkg.json" | Write-Host
-        }
-        
-        # Show available disk space
-        Write-Host "`nDisk Space:" -ForegroundColor Cyan
-        Get-PSDrive C | Select-Object Used,Free | Format-Table -AutoSize
-    
-    - name: Configure (Windows)
-      if: runner.os == 'Windows'
-      id: configure_windows
-      shell: pwsh
-      run: |
-        Write-Host "::group::CMake Configuration (Windows)" -ForegroundColor Cyan
-        if (Get-Command ccache -ErrorAction SilentlyContinue) {
-          $env:CCACHE_BASEDIR = "${{ github.workspace }}"
-          $env:CCACHE_DIR = Join-Path $env:USERPROFILE ".ccache"
-          ccache --zero-stats
-        }
+      - name: Setup build environment
+        uses: ./.github/actions/setup-build
+        with:
+          platform: windows
+          preset: ci-windows-ai
+          cache-key: ${{ hashFiles('cmake/dependencies.lock') }}
 
-        $toolchain = "${env:CMAKE_TOOLCHAIN_FILE}"
-        if (-not $toolchain -or -not (Test-Path $toolchain)) {
-          Write-Host "::error::CMAKE_TOOLCHAIN_FILE is missing or invalid: '$toolchain'"
-          exit 1
-        }
+      - name: Build project
+        uses: ./.github/actions/build-project
+        with:
+          platform: windows
+          preset: ci-windows-ai
+          build-type: ${{ env.BUILD_TYPE }}
 
-        $cmakeArgs = @(
-          "-S", ".",
-          "-B", "build",
-          "-DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}",
-          "-DCMAKE_TOOLCHAIN_FILE=$toolchain",
-          "-DVCPKG_TARGET_TRIPLET=x64-windows-static",
-          "-DVCPKG_MANIFEST_MODE=ON",
-          "-DYAZE_BUILD_TESTS=ON",
-          "-DYAZE_BUILD_EMU=ON",
-          "-DYAZE_BUILD_Z3ED=ON",
-          "-DYAZE_BUILD_TOOLS=ON",
-          "-DYAZE_ENABLE_ROM_TESTS=OFF"
-        )
+      - name: Run stable tests (agent stack)
+        uses: ./.github/actions/run-tests
+        with:
+          test-type: stable
+          preset: ci-windows-ai
 
-        cmake @cmakeArgs 2>&1 | Tee-Object -FilePath cmake_config.log
-        $exit = $LASTEXITCODE
-        Write-Host "::endgroup::"
-
-        if ($exit -ne 0) {
-          exit $exit
-        }
-
-        if (Get-Command ccache -ErrorAction SilentlyContinue) {
-          ccache --show-stats
-        }
-    
-    - name: Configure (Unix)
-      if: runner.os != 'Windows'
-      id: configure_unix
-      shell: bash
-      run: |
-        set -e
-        echo "::group::CMake Configuration"
-        if command -v ccache >/dev/null 2>&1; then
-          export CCACHE_BASEDIR=${GITHUB_WORKSPACE}
-          export CCACHE_DIR=${HOME}/.ccache
-          ccache --zero-stats
-        fi
-        if [[ "${{ runner.os }}" == "Linux" ]]; then
-          # Linux: Use portal backend for file dialogs (more reliable in CI)
-          cmake -B build -G Ninja \
-            -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
-            -DCMAKE_C_COMPILER=${{ matrix.cc }} \
-            -DCMAKE_CXX_COMPILER=${{ matrix.cxx }} \
-            -DYAZE_BUILD_TESTS=ON \
-            -DYAZE_BUILD_EMU=ON \
-            -DYAZE_ENABLE_ROM_TESTS=OFF \
-            -DYAZE_BUILD_Z3ED=ON \
-            -DYAZE_BUILD_TOOLS=ON \
-            -DNFD_PORTAL=ON 2>&1 | tee cmake_config.log
-        else
-          # macOS: Use default GTK backend
-          cmake -B build -G Ninja \
-            -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
-            -DCMAKE_C_COMPILER=${{ matrix.cc }} \
-            -DCMAKE_CXX_COMPILER=${{ matrix.cxx }} \
-            -DYAZE_BUILD_TESTS=ON \
-            -DYAZE_BUILD_EMU=ON \
-            -DYAZE_ENABLE_ROM_TESTS=OFF \
-            -DYAZE_BUILD_Z3ED=ON \
-            -DYAZE_BUILD_TOOLS=ON 2>&1 | tee cmake_config.log
-        fi
-        echo "::endgroup::"
-        if command -v ccache >/dev/null 2>&1; then
-          ccache --show-stats
-        fi
-        # Note: Full-featured build to match release configuration
-        # Note: YAZE_BUILD_EMU=OFF disables standalone emulator executable
-        #       but yaze_emulator library is still built for main app/tests
-        # Note: NFD_PORTAL=ON uses D-Bus portal instead of GTK on Linux (more reliable in CI)
-    
-    - name: Report Configure Failure
-      if: always() && (steps.configure_windows.outcome == 'failure' || steps.configure_unix.outcome == 'failure')
-      shell: bash
-      run: |
-        echo "::error::CMake configuration failed. Check cmake_config.log for details."
-        if [ -f cmake_config.log ]; then
-          echo "::group::CMake Configuration Log (last 50 lines)"
-          tail -50 cmake_config.log
-          echo "::endgroup::"
-        fi
-        if [ -f build/CMakeFiles/CMakeError.log ]; then
-          echo "::group::CMake Error Log"
-          cat build/CMakeFiles/CMakeError.log
-          echo "::endgroup::"
-        fi
-    
-    - name: Build
-      id: build
-      shell: bash
-      run: |
-        BUILD_TYPE=${BUILD_TYPE:-${{ env.BUILD_TYPE }}}
-        echo "Building with ${BUILD_TYPE} configuration..."
-        if [[ "${{ runner.os }}" == "Windows" ]]; then
-          JOBS=${CMAKE_BUILD_PARALLEL_LEVEL:-4}
-          echo "Using $JOBS parallel jobs"
-          cmake --build build --config "${BUILD_TYPE}" --parallel "${JOBS}" 2>&1 | tee build.log
-        else
-          # Determine number of parallel jobs based on platform
-          if command -v nproc >/dev/null 2>&1; then
-            CORES=$(nproc)
-          elif command -v sysctl >/dev/null 2>&1; then
-            CORES=$(sysctl -n hw.ncpu)
-          else
-            CORES=2
-          fi
-          echo "Using $CORES parallel jobs"
-          cmake --build build --parallel $CORES 2>&1 | tee build.log
-        fi
-        if command -v ccache >/dev/null 2>&1; then
-          ccache --show-stats
-        fi
-    
-    - name: Report Build Failure
-      if: always() && steps.build.outcome == 'failure'
-      shell: bash
-      run: |
-        echo "::error::Build failed. Check build.log for details."
-        if [ -f build.log ]; then
-          echo "::group::Build Log (last 100 lines)"
-          tail -100 build.log
-          echo "::endgroup::"
-          
-          # Extract and highlight actual errors
-          echo "::group::Build Errors"
-          grep -i "error" build.log | head -20 || true
-          echo "::endgroup::"
-        fi
-    
-    - name: Windows Build Diagnostics
-      if: always() && runner.os == 'Windows' && steps.build.outcome == 'failure'
-      shell: pwsh
-      run: |
-        Write-Host "=== Windows Build Diagnostics ===" -ForegroundColor Red
-        
-        # Check for vcpkg-related errors
-        if (Select-String -Path "build.log" -Pattern "vcpkg" -Quiet) {
-          Write-Host "`nvcpkg-related errors found:" -ForegroundColor Yellow
-          Select-String -Path "build.log" -Pattern "vcpkg.*error" -CaseSensitive:$false | Select-Object -First 10
-        }
-        
-        # Check for linker errors
-        if (Select-String -Path "build.log" -Pattern "LNK[0-9]{4}" -Quiet) {
-          Write-Host "`nLinker errors found:" -ForegroundColor Yellow
-          Select-String -Path "build.log" -Pattern "LNK[0-9]{4}" | Select-Object -First 10
-        }
-        
-        # Check for missing dependencies
-        if (Select-String -Path "build.log" -Pattern "fatal error.*No such file" -Quiet) {
-          Write-Host "`nMissing file errors found:" -ForegroundColor Yellow
-          Select-String -Path "build.log" -Pattern "fatal error.*No such file" | Select-Object -First 10
-        }
-        
-        # List vcpkg installed packages if available
-        $vcpkgExe = "${{ github.workspace }}/vcpkg/vcpkg.exe"
-        if (Test-Path $vcpkgExe) {
-          Write-Host "`nInstalled vcpkg packages:" -ForegroundColor Cyan
-          & $vcpkgExe list
-        }
-    
-    - name: Post-Build Diagnostics (Windows)
-      if: always() && runner.os == 'Windows' && steps.build.outcome == 'success'
-      shell: pwsh
-      run: |
-        Write-Host "=== Post-Build Diagnostics ===" -ForegroundColor Green
-        
-        $binCandidates = @("build/bin", "build/bin/${{ env.BUILD_TYPE }}")
-        $found = $false
-        foreach ($candidate in $binCandidates) {
-          if (-not (Test-Path $candidate)) { continue }
-          $found = $true
-          Write-Host "`nArtifacts under $candidate:" -ForegroundColor Cyan
-          Get-ChildItem -Path $candidate -Include *.exe,*.dll -Recurse | ForEach-Object {
-            $size = [math]::Round($_.Length / 1MB, 2)
-            Write-Host "  $($_.FullName.Replace($PWD.Path + '\', '')) - ${size} MB"
-          }
-        }
-        if (-not $found) {
-          Write-Host "⚠️ Build output directories not found." -ForegroundColor Yellow
-        } else {
-          $yazeExe = Get-ChildItem -Path build -Filter yaze.exe -Recurse | Select-Object -First 1
-          if ($yazeExe) {
-            Write-Host "`n✅ yaze.exe located at $($yazeExe.FullName)" -ForegroundColor Green
-            $yazeSize = [math]::Round($yazeExe.Length / 1MB, 2)
-            Write-Host "   Size: ${yazeSize} MB"
-          } else {
-            Write-Host "`n⚠️ yaze.exe not found in build output" -ForegroundColor Yellow
-          }
-        }
-    
-    - name: Upload Build Artifacts (Windows)
-      if: |
-        runner.os == 'Windows' && 
-        steps.build.outcome == 'success' && 
-        (github.event.inputs.upload_artifacts == 'true' || github.event_name == 'push')
-      uses: actions/upload-artifact@v4
-      with:
-        name: yaze-windows-ci-${{ github.run_number }}
-        path: |
-          build/bin/*.exe
-          build/bin/*.dll
-          build/bin/${{ env.BUILD_TYPE }}/*.exe
-          build/bin/${{ env.BUILD_TYPE }}/*.dll
-        if-no-files-found: warn
-        retention-days: 3
-
-    - name: Test (Stable)
-      id: test_stable
-      working-directory: build
-      shell: bash
-      run: |
-        BUILD_TYPE=${BUILD_TYPE:-${{ env.BUILD_TYPE }}}
-        echo "Running stable test suite..."
-        ctest --output-on-failure -C "$BUILD_TYPE" -j1 \
-          -L "stable" \
-          --output-junit stable_test_results.xml 2>&1 | tee ../stable_test.log || true
-
-    - name: Test (Experimental - Informational)
-      id: test_experimental
-      working-directory: build
-      continue-on-error: true
-      shell: bash
-      run: |
-        BUILD_TYPE=${BUILD_TYPE:-${{ env.BUILD_TYPE }}}
-        echo "Running experimental test suite (informational only)..."
-        ctest --output-on-failure -C "$BUILD_TYPE" --parallel \
-          -L "experimental" \
-          --output-junit experimental_test_results.xml 2>&1 | tee ../experimental_test.log
-    
-    - name: Upload Test Results
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: test-results-${{ matrix.name }}
-        path: |
-          build/*test_results.xml
-          stable_test.log
-          experimental_test.log
-        retention-days: 7
-        if-no-files-found: ignore
-    
-    - name: Upload Build Logs on Failure
-      if: failure()
-      uses: actions/upload-artifact@v4
-      with:
-        name: build-logs-${{ matrix.name }}
-        path: |
-          cmake_config.log
-          build.log
-          build/CMakeFiles/CMakeError.log
-          build/CMakeFiles/CMakeOutput.log
-        if-no-files-found: ignore
-        retention-days: 7
-    
-    - name: Generate Job Summary
-      if: always()
-      shell: bash
-      run: |
-        echo "## Build Summary - ${{ matrix.name }}" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        
-        # Workflow trigger info
-        echo "### Workflow Information" >> $GITHUB_STEP_SUMMARY
-        echo "- **Trigger**: ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
-        if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-          echo "- **Manual Build Type**: ${{ github.event.inputs.build_type }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Upload Artifacts**: ${{ github.event.inputs.upload_artifacts }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Run Sanitizers**: ${{ github.event.inputs.run_sanitizers }}" >> $GITHUB_STEP_SUMMARY
-        fi
-        echo "" >> $GITHUB_STEP_SUMMARY
-        
-        # Configuration info
-        echo "### Configuration" >> $GITHUB_STEP_SUMMARY
-        echo "- **Platform**: ${{ matrix.os }}" >> $GITHUB_STEP_SUMMARY
-        echo "- **Compiler**: ${{ matrix.cc }}/${{ matrix.cxx }}" >> $GITHUB_STEP_SUMMARY
-        echo "- **Build Type**: ${{ env.BUILD_TYPE }}" >> $GITHUB_STEP_SUMMARY
-        echo "- **Build Mode**: Full (matches release)" >> $GITHUB_STEP_SUMMARY
-        echo "- **Features**: gRPC, JSON, AI, ImGui Test Engine" >> $GITHUB_STEP_SUMMARY
-        if [[ "${{ runner.os }}" == "Windows" ]]; then
-          echo "- **vcpkg Triplet**: x64-windows-static" >> $GITHUB_STEP_SUMMARY
-          if [[ "${{ steps.vcpkg.outcome }}" != "" ]]; then
-            echo "- **vcpkg Setup**: ${{ steps.vcpkg.outcome }}" >> $GITHUB_STEP_SUMMARY
-          fi
-        fi
-        echo "" >> $GITHUB_STEP_SUMMARY
-        
-        # Build status
-        echo "### Build Status" >> $GITHUB_STEP_SUMMARY
-        CONFIGURE_OUTCOME="${{ steps.configure_windows.outcome || steps.configure_unix.outcome }}"
-        if [[ "$CONFIGURE_OUTCOME" == "success" ]]; then
-          echo "- ✅ Configure: Success" >> $GITHUB_STEP_SUMMARY
-        else
-          echo "- ❌ Configure: Failed" >> $GITHUB_STEP_SUMMARY
-        fi
-        
-        if [[ "${{ steps.build.outcome }}" == "success" ]]; then
-          echo "- ✅ Build: Success" >> $GITHUB_STEP_SUMMARY
-        else
-          echo "- ❌ Build: Failed" >> $GITHUB_STEP_SUMMARY
-        fi
-        
-        if [[ "${{ steps.test_stable.outcome }}" == "success" ]]; then
-          echo "- ✅ Stable Tests: Passed" >> $GITHUB_STEP_SUMMARY
-        else
-          echo "- ❌ Stable Tests: Failed" >> $GITHUB_STEP_SUMMARY
-        fi
-        
-        if [[ "${{ steps.test_experimental.outcome }}" == "success" ]]; then
-          echo "- ✅ Experimental Tests: Passed" >> $GITHUB_STEP_SUMMARY
-        elif [[ "${{ steps.test_experimental.outcome }}" == "failure" ]]; then
-          echo "- ⚠️ Experimental Tests: Failed (informational)" >> $GITHUB_STEP_SUMMARY
-        else
-          echo "- ⏭️ Experimental Tests: Skipped" >> $GITHUB_STEP_SUMMARY
-        fi
-        echo "" >> $GITHUB_STEP_SUMMARY
-        
-        # Artifacts info
-        if [[ "${{ runner.os }}" == "Windows" && "${{ steps.build.outcome }}" == "success" ]]; then
-          if [[ "${{ github.event.inputs.upload_artifacts }}" == "true" || "${{ github.event_name }}" == "push" ]]; then
-            echo "### Artifacts" >> $GITHUB_STEP_SUMMARY
-            echo "- 📦 Windows build artifacts uploaded: yaze-windows-ci-${{ github.run_number }}" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-          fi
-        fi
-        
-        # Test results
-        if [ -f build/stable_test_results.xml ]; then
-          echo "### Test Results" >> $GITHUB_STEP_SUMMARY
-          echo '```' >> $GITHUB_STEP_SUMMARY
-          grep -E "tests=|failures=|errors=" build/stable_test_results.xml | head -1 || echo "Test summary not available"
-          echo '```' >> $GITHUB_STEP_SUMMARY
-        fi
+      - name: Run unit tests (agent stack)
+        uses: ./.github/actions/run-tests
+        with:
+          test-type: unit
+          preset: ci-windows-ai
 
   code-quality:
-    name: "✨ Code Quality"
+    name: "Code Quality"
     runs-on: ubuntu-22.04
     continue-on-error: ${{ github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/') }}
     
@@ -724,7 +222,7 @@ jobs:
           xargs clang-tidy-14 --header-filter='src/.*\.(h|hpp)$'
 
   memory-sanitizer:
-    name: "🔬 Memory Sanitizer"
+    name: "Memory Sanitizer"
     runs-on: ubuntu-22.04
     if: |
       github.event_name == 'pull_request' || 
@@ -761,7 +259,7 @@ jobs:
       run: ctest --output-on-failure
 
   z3ed-agent-test:
-    name: "🤖 z3ed Agent"
+    name: "z3ed Agent"
     runs-on: macos-14
     
     steps:
@@ -777,16 +275,23 @@ jobs:
         cmake -B build_test -G Ninja \
           -DCMAKE_BUILD_TYPE=Release \
           -DZ3ED_AI=ON \
-          -DYAZE_BUILD_Z3ED=ON
+          -DYAZE_BUILD_Z3ED=ON \
+          -DYAZE_ENABLE_AI_RUNTIME=ON \
+          -DYAZE_ENABLE_REMOTE_AUTOMATION=ON \
+          -DYAZE_BUILD_AGENT_UI=ON
         cmake --build build_test --target z3ed
     
     - name: Start Ollama
+      env:
+        OLLAMA_MODEL: qwen2.5-coder:0.5b
       run: |
         ollama serve & 
         sleep 10
-        ollama pull qwen2.5-coder:7b
+        ollama pull "$OLLAMA_MODEL"
     
     - name: Run Test Suite
+      env:
+        OLLAMA_MODEL: qwen2.5-coder:0.5b
       run: |
         chmod +x ./scripts/agent_test_suite.sh
         ./scripts/agent_test_suite.sh ollama

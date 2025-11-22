@@ -40,10 +40,10 @@ class Inventory {
    */
   absl::Status Create(Rom* rom);
 
-  auto &bitmap() { return bitmap_; }
-  auto &tilesheet() { return tilesheets_bmp_; }
-  auto &palette() { return palette_; }
-  auto &item_icons() { return item_icons_; }
+  auto& bitmap() { return bitmap_; }
+  auto& tilesheet() { return tilesheets_bmp_; }
+  auto& palette() { return palette_; }
+  auto& item_icons() { return item_icons_; }
 
  private:
   /**

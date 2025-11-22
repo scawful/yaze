@@ -3,22 +3,16 @@
 
 #define IMGUI_DEFINE_MATH_OPERATORS
 
-#include "app/editor/editor.h"
-#include "app/editor/system/user_settings.h"
-#include "app/editor/ui/workspace_manager.h"
-#include "app/editor/session_types.h"
-
-#include "imgui/imgui.h"
-
 #include <cstddef>
 #include <deque>
 #include <memory>
 #include <string>
 
 #include "absl/status/status.h"
-#include "core/project.h"
 #include "app/editor/agent/agent_chat_history_popup.h"
 #include "app/editor/code/project_file_editor.h"
+#include "app/editor/editor.h"
+#include "app/editor/session_types.h"
 #include "app/editor/system/editor_card_registry.h"
 #include "app/editor/system/editor_registry.h"
 #include "app/editor/system/menu_orchestrator.h"
@@ -28,16 +22,20 @@
 #include "app/editor/system/rom_file_manager.h"
 #include "app/editor/system/session_coordinator.h"
 #include "app/editor/system/toast_manager.h"
+#include "app/editor/system/user_settings.h"
 #include "app/editor/system/window_delegate.h"
 #include "app/editor/ui/editor_selection_dialog.h"
 #include "app/editor/ui/layout_manager.h"
 #include "app/editor/ui/menu_builder.h"
 #include "app/editor/ui/ui_coordinator.h"
 #include "app/editor/ui/welcome_screen.h"
+#include "app/editor/ui/workspace_manager.h"
 #include "app/emu/emulator.h"
-#include "zelda3/overworld/overworld.h"
 #include "app/rom.h"
+#include "core/project.h"
+#include "imgui/imgui.h"
 #include "yaze_config.h"
+#include "zelda3/overworld/overworld.h"
 
 #ifdef YAZE_WITH_GRPC
 #include "app/editor/agent/agent_editor.h"
@@ -65,7 +63,8 @@ namespace editor {
  */
 class EditorManager {
  public:
-  // Constructor and destructor must be defined in .cc file for std::unique_ptr with forward-declared types
+  // Constructor and destructor must be defined in .cc file for std::unique_ptr
+  // with forward-declared types
   EditorManager();
   ~EditorManager();
 
@@ -85,14 +84,23 @@ class EditorManager {
   WorkspaceManager* workspace_manager() { return &workspace_manager_; }
 
   absl::Status SetCurrentRom(Rom* rom);
-  auto GetCurrentRom() const -> Rom* { return session_coordinator_ ? session_coordinator_->GetCurrentRom() : nullptr; }
-  auto GetCurrentEditorSet() const -> EditorSet* { return session_coordinator_ ? session_coordinator_->GetCurrentEditorSet() : nullptr; }
+  auto GetCurrentRom() const -> Rom* {
+    return session_coordinator_ ? session_coordinator_->GetCurrentRom()
+                                : nullptr;
+  }
+  auto GetCurrentEditorSet() const -> EditorSet* {
+    return session_coordinator_ ? session_coordinator_->GetCurrentEditorSet()
+                                : nullptr;
+  }
   auto GetCurrentEditor() const -> Editor* { return current_editor_; }
-  size_t GetCurrentSessionId() const { return session_coordinator_ ? session_coordinator_->GetActiveSessionIndex() : 0; }
+  size_t GetCurrentSessionId() const {
+    return session_coordinator_ ? session_coordinator_->GetActiveSessionIndex()
+                                : 0;
+  }
   UICoordinator* ui_coordinator() { return ui_coordinator_.get(); }
   auto overworld() const -> yaze::zelda3::Overworld* {
     if (auto* editor_set = GetCurrentEditorSet()) {
-        return &editor_set->overworld_editor_.overworld();
+      return &editor_set->overworld_editor_.overworld();
     }
     return nullptr;
   }
@@ -182,7 +190,8 @@ class EditorManager {
   void Quit() { quit_ = true; }
 
   // UI visibility controls (public for MenuOrchestrator)
-  // UI visibility controls - inline for performance (single-line wrappers delegating to UICoordinator)
+  // UI visibility controls - inline for performance (single-line wrappers
+  // delegating to UICoordinator)
   void ShowGlobalSearch() {
     if (ui_coordinator_)
       ui_coordinator_->ShowGlobalSearch();
@@ -204,9 +213,18 @@ class EditorManager {
       ui_coordinator_->SetImGuiMetricsVisible(true);
   }
   void ShowHexEditor();
-  void ShowEmulator() { if (ui_coordinator_) ui_coordinator_->SetEmulatorVisible(true); }
-  void ShowMemoryEditor() { if (ui_coordinator_) ui_coordinator_->SetMemoryEditorVisible(true); }
-  void ShowResourceLabelManager() { if (ui_coordinator_) ui_coordinator_->SetResourceLabelManagerVisible(true); }
+  void ShowEmulator() {
+    if (ui_coordinator_)
+      ui_coordinator_->SetEmulatorVisible(true);
+  }
+  void ShowMemoryEditor() {
+    if (ui_coordinator_)
+      ui_coordinator_->SetMemoryEditorVisible(true);
+  }
+  void ShowResourceLabelManager() {
+    if (ui_coordinator_)
+      ui_coordinator_->SetResourceLabelManagerVisible(true);
+  }
   void ShowCardBrowser() {
     if (ui_coordinator_)
       ui_coordinator_->ShowCardBrowser();
@@ -240,8 +258,8 @@ class EditorManager {
   absl::Status RepairCurrentProject();
 
  private:
-  absl::Status DrawRomSelector() = delete; // Moved to UICoordinator
-  void DrawContextSensitiveCardControl();  // Card control for current editor
+  absl::Status DrawRomSelector() = delete;  // Moved to UICoordinator
+  void DrawContextSensitiveCardControl();   // Card control for current editor
 
   absl::Status LoadAssets();
 
@@ -252,7 +270,7 @@ class EditorManager {
 
   // Note: All show_* flags are being moved to UICoordinator
   // Access via ui_coordinator_->IsXxxVisible() or SetXxxVisible()
-  
+
   // Workspace dialog flags (managed by EditorManager, not UI)
   bool show_workspace_layout = false;
   size_t session_to_rename_ = 0;
@@ -276,8 +294,8 @@ class EditorManager {
   // Project file editor
   ProjectFileEditor project_file_editor_;
 
-  // Note: Editor selection dialog and welcome screen are now managed by UICoordinator
-  // Kept here for backward compatibility during transition
+  // Note: Editor selection dialog and welcome screen are now managed by
+  // UICoordinator Kept here for backward compatibility during transition
   EditorSelectionDialog editor_selection_dialog_;
   WelcomeScreen welcome_screen_;
 
@@ -292,7 +310,6 @@ class EditorManager {
   emu::Emulator emulator_;
 
  public:
-
  private:
   std::deque<RomSession> sessions_;
   Editor* current_editor_ = nullptr;
@@ -319,7 +336,8 @@ class EditorManager {
   std::unique_ptr<UICoordinator> ui_coordinator_;
   WindowDelegate window_delegate_;
   std::unique_ptr<SessionCoordinator> session_coordinator_;
-  std::unique_ptr<LayoutManager> layout_manager_;  // DockBuilder layout management
+  std::unique_ptr<LayoutManager>
+      layout_manager_;  // DockBuilder layout management
   WorkspaceManager workspace_manager_{&toast_manager_};
 
   float autosave_timer_ = 0.0f;

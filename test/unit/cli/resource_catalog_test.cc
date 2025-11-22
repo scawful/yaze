@@ -53,14 +53,14 @@ TEST(ResourceCatalogTest, PatchSchemaIncludesAsarAndCreateActions) {
   EXPECT_EQ(actions[0].name, "apply");
   EXPECT_FALSE(actions[0].returns.empty());
 
-  auto has_asar = std::find_if(actions.begin(), actions.end(), [](const auto& action) {
-                     return action.name == "apply-asar";
-                   });
+  auto has_asar = std::find_if(
+      actions.begin(), actions.end(),
+      [](const auto& action) { return action.name == "apply-asar"; });
   EXPECT_NE(has_asar, actions.end());
 
-  auto has_create = std::find_if(actions.begin(), actions.end(), [](const auto& action) {
-                       return action.name == "create";
-                     });
+  auto has_create =
+      std::find_if(actions.begin(), actions.end(),
+                   [](const auto& action) { return action.name == "create"; });
   EXPECT_NE(has_create, actions.end());
 }
 
@@ -79,8 +79,8 @@ TEST(ResourceCatalogTest, DungeonSchemaListsMetadataAndObjectsReturns) {
 
 TEST(ResourceCatalogTest, YamlSerializationIncludesMetadataAndActions) {
   const auto& catalog = ResourceCatalog::Instance();
-  std::string yaml = catalog.SerializeResourcesAsYaml(
-      catalog.AllResources(), "0.1.0", "2025-10-01");
+  std::string yaml = catalog.SerializeResourcesAsYaml(catalog.AllResources(),
+                                                      "0.1.0", "2025-10-01");
 
   EXPECT_NE(yaml.find("version: \"0.1.0\""), std::string::npos);
   EXPECT_NE(yaml.find("name: \"patch\""), std::string::npos);

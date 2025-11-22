@@ -317,7 +317,7 @@ class Ppu {
 
   // Returns the pixel data for the current frame
   const std::vector<uint8_t>& GetFrameBuffer() const { return frame_buffer_; }
-  
+
   // Set pixel output format (0 = BGRX, 1 = XBGR)
   void SetPixelFormat(uint8_t format) { pixelOutputFormat = format; }
 
@@ -344,7 +344,6 @@ class Ppu {
   uint16_t cgram[0x100];
 
  private:
-
   uint8_t cgram_pointer_;
   bool cgram_second_write_;
   uint8_t cgram_buffer_;

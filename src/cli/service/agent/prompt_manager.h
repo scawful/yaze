@@ -9,9 +9,9 @@ namespace cli {
 namespace agent {
 
 enum class PromptMode {
-  kStandard,        // Standard ALTTP
-  kOracleOfSecrets, // Oracle of Secrets hack
-  kCustom           // User-defined
+  kStandard,         // Standard ALTTP
+  kOracleOfSecrets,  // Oracle of Secrets hack
+  kCustom            // User-defined
 };
 
 class PromptManager {

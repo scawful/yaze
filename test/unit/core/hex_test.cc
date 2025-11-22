@@ -1,6 +1,6 @@
-#include "testing.h"
-
 #include "util/hex.h"
+
+#include "testing.h"
 
 namespace yaze {
 namespace test {
@@ -100,4 +100,4 @@ TEST(HexTest, HexLongLong) {
 }
 
 }  // namespace test
-}  // namespace yaze 
+}  // namespace yaze

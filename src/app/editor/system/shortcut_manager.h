@@ -3,8 +3,8 @@
 
 #include <functional>
 #include <string>
-#include <vector>
 #include <unordered_map>
+#include <vector>
 
 // Must define before including imgui.h
 #ifndef IMGUI_DEFINE_MATH_OPERATORS
@@ -22,69 +22,67 @@ struct Shortcut {
   std::function<void()> callback;
 };
 
-std::vector<ImGuiKey> ParseShortcut(const std::string &shortcut);
+std::vector<ImGuiKey> ParseShortcut(const std::string& shortcut);
 
-std::string PrintShortcut(const std::vector<ImGuiKey> &keys);
+std::string PrintShortcut(const std::vector<ImGuiKey>& keys);
 
 class ShortcutManager {
  public:
-  void RegisterShortcut(const std::string &name,
-                        const std::vector<ImGuiKey> &keys) {
+  void RegisterShortcut(const std::string& name,
+                        const std::vector<ImGuiKey>& keys) {
     shortcuts_[name] = {name, keys};
   }
-  void RegisterShortcut(const std::string &name,
-                        const std::vector<ImGuiKey> &keys,
+  void RegisterShortcut(const std::string& name,
+                        const std::vector<ImGuiKey>& keys,
                         std::function<void()> callback) {
     shortcuts_[name] = {name, keys, callback};
   }
 
-  void RegisterShortcut(const std::string &name, ImGuiKey key,
+  void RegisterShortcut(const std::string& name, ImGuiKey key,
                         std::function<void()> callback) {
     shortcuts_[name] = {name, {key}, callback};
   }
 
-  void ExecuteShortcut(const std::string &name) const {
+  void ExecuteShortcut(const std::string& name) const {
     shortcuts_.at(name).callback();
   }
 
   // Access the shortcut and print the readable name of the shortcut for menus
-  const Shortcut &GetShortcut(const std::string &name) const {
+  const Shortcut& GetShortcut(const std::string& name) const {
     return shortcuts_.at(name);
   }
 
   // Get shortcut callback function
-  std::function<void()> GetCallback(const std::string &name) const {
+  std::function<void()> GetCallback(const std::string& name) const {
     return shortcuts_.at(name).callback;
   }
 
-  const std::string GetKeys(const std::string &name) const {
+  const std::string GetKeys(const std::string& name) const {
     return PrintShortcut(shortcuts_.at(name).keys);
   }
 
   auto GetShortcuts() const { return shortcuts_; }
 
   // Convenience methods for registering common shortcuts
-  void RegisterStandardShortcuts(
-      std::function<void()> save_callback,
-      std::function<void()> open_callback,
-      std::function<void()> close_callback,
-      std::function<void()> find_callback,
-      std::function<void()> settings_callback);
+  void RegisterStandardShortcuts(std::function<void()> save_callback,
+                                 std::function<void()> open_callback,
+                                 std::function<void()> close_callback,
+                                 std::function<void()> find_callback,
+                                 std::function<void()> settings_callback);
 
-  void RegisterWindowNavigationShortcuts(
-      std::function<void()> focus_left,
-      std::function<void()> focus_right,
-      std::function<void()> focus_up,
-      std::function<void()> focus_down,
-      std::function<void()> close_window,
-      std::function<void()> split_horizontal,
-      std::function<void()> split_vertical);
+  void RegisterWindowNavigationShortcuts(std::function<void()> focus_left,
+                                         std::function<void()> focus_right,
+                                         std::function<void()> focus_up,
+                                         std::function<void()> focus_down,
+                                         std::function<void()> close_window,
+                                         std::function<void()> split_horizontal,
+                                         std::function<void()> split_vertical);
 
  private:
   std::unordered_map<std::string, Shortcut> shortcuts_;
 };
 
-void ExecuteShortcuts(const ShortcutManager &shortcut_manager);
+void ExecuteShortcuts(const ShortcutManager& shortcut_manager);
 
 }  // namespace editor
 }  // namespace yaze

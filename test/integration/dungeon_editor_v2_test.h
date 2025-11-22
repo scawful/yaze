@@ -13,7 +13,7 @@ namespace test {
 
 /**
  * @brief Integration test framework for DungeonEditorV2
- * 
+ *
  * Tests the simplified component delegation architecture
  */
 class DungeonEditorV2IntegrationTest : public ::testing::Test {
@@ -29,7 +29,7 @@ class DungeonEditorV2IntegrationTest : public ::testing::Test {
       status = rom_->LoadFromFile("zelda3.sfc");
     }
     ASSERT_TRUE(status.ok()) << "Could not load zelda3.sfc from any location";
-    
+
     // Create V2 editor with ROM
     dungeon_editor_v2_ = std::make_unique<editor::DungeonEditorV2>(rom_.get());
   }
@@ -41,7 +41,7 @@ class DungeonEditorV2IntegrationTest : public ::testing::Test {
 
   std::unique_ptr<Rom> rom_;
   std::unique_ptr<editor::DungeonEditorV2> dungeon_editor_v2_;
-  
+
   static constexpr int kTestRoomId = 0x01;
 };
 
@@ -49,4 +49,3 @@ class DungeonEditorV2IntegrationTest : public ::testing::Test {
 }  // namespace yaze
 
 #endif  // YAZE_TEST_INTEGRATION_DUNGEON_EDITOR_V2_TEST_H
-

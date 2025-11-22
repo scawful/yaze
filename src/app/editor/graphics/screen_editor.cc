@@ -1,50 +1,65 @@
 #include "screen_editor.h"
-#include "app/editor/system/editor_card_registry.h"
 
 #include <fstream>
 #include <iostream>
 #include <string>
 
 #include "absl/strings/str_format.h"
-#include "app/gfx/debug/performance/performance_profiler.h"
-#include "util/file_util.h"
-#include "app/gfx/resource/arena.h"
+#include "app/editor/system/editor_card_registry.h"
 #include "app/gfx/core/bitmap.h"
+#include "app/gfx/debug/performance/performance_profiler.h"
+#include "app/gfx/resource/arena.h"
 #include "app/gfx/types/snes_tile.h"
 #include "app/gui/canvas/canvas.h"
 #include "app/gui/core/color.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/input.h"
 #include "imgui/imgui.h"
+#include "util/file_util.h"
 #include "util/hex.h"
 #include "util/macro.h"
 
 namespace yaze {
 namespace editor {
 
-
 constexpr uint32_t kRedPen = 0xFF0000FF;
 
 void ScreenEditor::Initialize() {
-  if (!dependencies_.card_registry) return;
+  if (!dependencies_.card_registry)
+    return;
   auto* card_registry = dependencies_.card_registry;
-  
-  card_registry->RegisterCard({.card_id = "screen.dungeon_maps", .display_name = "Dungeon Maps",
-                            .icon = ICON_MD_MAP, .category = "Screen",
-                            .shortcut_hint = "Alt+1", .priority = 10});
-  card_registry->RegisterCard({.card_id = "screen.inventory_menu", .display_name = "Inventory Menu",
-                            .icon = ICON_MD_INVENTORY, .category = "Screen",
-                            .shortcut_hint = "Alt+2", .priority = 20});
-  card_registry->RegisterCard({.card_id = "screen.overworld_map", .display_name = "Overworld Map",
-                            .icon = ICON_MD_PUBLIC, .category = "Screen",
-                            .shortcut_hint = "Alt+3", .priority = 30});
-  card_registry->RegisterCard({.card_id = "screen.title_screen", .display_name = "Title Screen",
-                            .icon = ICON_MD_TITLE, .category = "Screen",
-                            .shortcut_hint = "Alt+4", .priority = 40});
-  card_registry->RegisterCard({.card_id = "screen.naming_screen", .display_name = "Naming Screen",
-                            .icon = ICON_MD_EDIT, .category = "Screen",
-                            .shortcut_hint = "Alt+5", .priority = 50});
-  
+
+  card_registry->RegisterCard({.card_id = "screen.dungeon_maps",
+                               .display_name = "Dungeon Maps",
+                               .icon = ICON_MD_MAP,
+                               .category = "Screen",
+                               .shortcut_hint = "Alt+1",
+                               .priority = 10});
+  card_registry->RegisterCard({.card_id = "screen.inventory_menu",
+                               .display_name = "Inventory Menu",
+                               .icon = ICON_MD_INVENTORY,
+                               .category = "Screen",
+                               .shortcut_hint = "Alt+2",
+                               .priority = 20});
+  card_registry->RegisterCard({.card_id = "screen.overworld_map",
+                               .display_name = "Overworld Map",
+                               .icon = ICON_MD_PUBLIC,
+                               .category = "Screen",
+                               .shortcut_hint = "Alt+3",
+                               .priority = 30});
+  card_registry->RegisterCard({.card_id = "screen.title_screen",
+                               .display_name = "Title Screen",
+                               .icon = ICON_MD_TITLE,
+                               .category = "Screen",
+                               .shortcut_hint = "Alt+4",
+                               .priority = 40});
+  card_registry->RegisterCard({.card_id = "screen.naming_screen",
+                               .display_name = "Naming Screen",
+                               .icon = ICON_MD_EDIT,
+                               .category = "Screen",
+                               .shortcut_hint = "Alt+5",
+                               .priority = 50});
+
   // Show title screen by default
   card_registry->ShowCard("screen.title_screen");
 }
@@ -76,45 +91,48 @@ absl::Status ScreenEditor::Load() {
   const int tile8_width = 128;
   const int tile8_height = 128;  // 4 sheets × 32 pixels each
   std::vector<uint8_t> tile8_data(tile8_width * tile8_height);
-  
+
   // Copy data from all 4 sheets into the combined bitmap
   for (int sheet_idx = 0; sheet_idx < 4; sheet_idx++) {
     const auto& sheet = sheets_[sheet_idx];
     int dest_y_offset = sheet_idx * 32;  // Each sheet is 32 pixels tall
-    
+
     for (int y = 0; y < 32; y++) {
       for (int x = 0; x < 128; x++) {
         int src_index = y * 128 + x;
         int dest_index = (dest_y_offset + y) * 128 + x;
-        
+
         if (src_index < sheet.size() && dest_index < tile8_data.size()) {
           tile8_data[dest_index] = sheet.data()[src_index];
         }
       }
     }
   }
-  
+
   // Create tilemap with 8x8 tile size
   tile8_tilemap_.tile_size = {8, 8};
   tile8_tilemap_.map_size = {256, 256};  // Logical size for tile count
   tile8_tilemap_.atlas.Create(tile8_width, tile8_height, 8, tile8_data);
   tile8_tilemap_.atlas.SetPalette(*rom()->mutable_dungeon_palette(3));
-  
+
   // Queue single texture creation for the atlas (not individual tiles)
-  gfx::Arena::Get().QueueTextureCommand(
-      gfx::Arena::TextureCommandType::CREATE, &tile8_tilemap_.atlas);
+  gfx::Arena::Get().QueueTextureCommand(gfx::Arena::TextureCommandType::CREATE,
+                                        &tile8_tilemap_.atlas);
   return absl::OkStatus();
 }
 
 absl::Status ScreenEditor::Update() {
-  if (!dependencies_.card_registry) return absl::OkStatus();
+  if (!dependencies_.card_registry)
+    return absl::OkStatus();
   auto* card_registry = dependencies_.card_registry;
 
   static gui::EditorCard dungeon_maps_card("Dungeon Maps", ICON_MD_MAP);
-  static gui::EditorCard inventory_menu_card("Inventory Menu", ICON_MD_INVENTORY);
+  static gui::EditorCard inventory_menu_card("Inventory Menu",
+                                             ICON_MD_INVENTORY);
   static gui::EditorCard overworld_map_card("Overworld Map", ICON_MD_PUBLIC);
   static gui::EditorCard title_screen_card("Title Screen", ICON_MD_TITLE);
-  static gui::EditorCard naming_screen_card("Naming Screen", ICON_MD_EDIT_ATTRIBUTES);
+  static gui::EditorCard naming_screen_card("Naming Screen",
+                                            ICON_MD_EDIT_ATTRIBUTES);
 
   dungeon_maps_card.SetDefaultSize(800, 600);
   inventory_menu_card.SetDefaultSize(800, 600);
@@ -122,44 +140,54 @@ absl::Status ScreenEditor::Update() {
   title_screen_card.SetDefaultSize(600, 500);
   naming_screen_card.SetDefaultSize(500, 400);
 
-  // Dungeon Maps Card - Check visibility flag exists and is true before rendering
-  bool* dungeon_maps_visible = card_registry->GetVisibilityFlag("screen.dungeon_maps");
+  // Dungeon Maps Card - Check visibility flag exists and is true before
+  // rendering
+  bool* dungeon_maps_visible =
+      card_registry->GetVisibilityFlag("screen.dungeon_maps");
   if (dungeon_maps_visible && *dungeon_maps_visible) {
     if (dungeon_maps_card.Begin(dungeon_maps_visible)) {
       DrawDungeonMapsEditor();
     }
     dungeon_maps_card.End();
   }
-  
-  // Inventory Menu Card - Check visibility flag exists and is true before rendering
-  bool* inventory_menu_visible = card_registry->GetVisibilityFlag("screen.inventory_menu");
+
+  // Inventory Menu Card - Check visibility flag exists and is true before
+  // rendering
+  bool* inventory_menu_visible =
+      card_registry->GetVisibilityFlag("screen.inventory_menu");
   if (inventory_menu_visible && *inventory_menu_visible) {
     if (inventory_menu_card.Begin(inventory_menu_visible)) {
       DrawInventoryMenuEditor();
     }
     inventory_menu_card.End();
   }
-  
-  // Overworld Map Card - Check visibility flag exists and is true before rendering
-  bool* overworld_map_visible = card_registry->GetVisibilityFlag("screen.overworld_map");
+
+  // Overworld Map Card - Check visibility flag exists and is true before
+  // rendering
+  bool* overworld_map_visible =
+      card_registry->GetVisibilityFlag("screen.overworld_map");
   if (overworld_map_visible && *overworld_map_visible) {
     if (overworld_map_card.Begin(overworld_map_visible)) {
       DrawOverworldMapEditor();
     }
     overworld_map_card.End();
   }
-  
-  // Title Screen Card - Check visibility flag exists and is true before rendering
-  bool* title_screen_visible = card_registry->GetVisibilityFlag("screen.title_screen");
+
+  // Title Screen Card - Check visibility flag exists and is true before
+  // rendering
+  bool* title_screen_visible =
+      card_registry->GetVisibilityFlag("screen.title_screen");
   if (title_screen_visible && *title_screen_visible) {
     if (title_screen_card.Begin(title_screen_visible)) {
       DrawTitleScreenEditor();
     }
     title_screen_card.End();
   }
-  
-  // Naming Screen Card - Check visibility flag exists and is true before rendering
-  bool* naming_screen_visible = card_registry->GetVisibilityFlag("screen.naming_screen");
+
+  // Naming Screen Card - Check visibility flag exists and is true before
+  // rendering
+  bool* naming_screen_visible =
+      card_registry->GetVisibilityFlag("screen.naming_screen");
   if (naming_screen_visible && *naming_screen_visible) {
     if (naming_screen_card.Begin(naming_screen_visible)) {
       DrawNamingScreenEditor();
@@ -176,58 +204,58 @@ void ScreenEditor::DrawToolset() {
 }
 
 void ScreenEditor::DrawInventoryMenuEditor() {
-    static bool create = false;
-    if (!create && rom()->is_loaded()) {
-      status_ = inventory_.Create(rom());
-      if (status_.ok()) {
-        palette_ = inventory_.palette();
-        create = true;
-      } else {
-        ImGui::TextColored(ImVec4(1, 0, 0, 1), "Error loading inventory: %s",
-                          status_.message().data());
-        return;
-      }
+  static bool create = false;
+  if (!create && rom()->is_loaded()) {
+    status_ = inventory_.Create(rom());
+    if (status_.ok()) {
+      palette_ = inventory_.palette();
+      create = true;
+    } else {
+      ImGui::TextColored(ImVec4(1, 0, 0, 1), "Error loading inventory: %s",
+                         status_.message().data());
+      return;
     }
+  }
 
-    DrawInventoryToolset();
+  DrawInventoryToolset();
 
-    if (ImGui::BeginTable("InventoryScreen", 4, ImGuiTableFlags_Resizable)) {
-      ImGui::TableSetupColumn("Canvas");
-      ImGui::TableSetupColumn("Tilesheet");
-      ImGui::TableSetupColumn("Item Icons");
-      ImGui::TableSetupColumn("Palette");
-      ImGui::TableHeadersRow();
+  if (ImGui::BeginTable("InventoryScreen", 4, ImGuiTableFlags_Resizable)) {
+    ImGui::TableSetupColumn("Canvas");
+    ImGui::TableSetupColumn("Tilesheet");
+    ImGui::TableSetupColumn("Item Icons");
+    ImGui::TableSetupColumn("Palette");
+    ImGui::TableHeadersRow();
 
-      ImGui::TableNextColumn();
-      screen_canvas_.DrawBackground();
-      screen_canvas_.DrawContextMenu();
-      screen_canvas_.DrawBitmap(inventory_.bitmap(), 2, create);
-      screen_canvas_.DrawGrid(32.0f);
-      screen_canvas_.DrawOverlay();
+    ImGui::TableNextColumn();
+    screen_canvas_.DrawBackground();
+    screen_canvas_.DrawContextMenu();
+    screen_canvas_.DrawBitmap(inventory_.bitmap(), 2, create);
+    screen_canvas_.DrawGrid(32.0f);
+    screen_canvas_.DrawOverlay();
 
-      ImGui::TableNextColumn();
-      tilesheet_canvas_.DrawBackground(ImVec2(128 * 2 + 2, (192 * 2) + 4));
-      tilesheet_canvas_.DrawContextMenu();
-      tilesheet_canvas_.DrawBitmap(inventory_.tilesheet(), 2, create);
-      tilesheet_canvas_.DrawGrid(16.0f);
-      tilesheet_canvas_.DrawOverlay();
+    ImGui::TableNextColumn();
+    tilesheet_canvas_.DrawBackground(ImVec2(128 * 2 + 2, (192 * 2) + 4));
+    tilesheet_canvas_.DrawContextMenu();
+    tilesheet_canvas_.DrawBitmap(inventory_.tilesheet(), 2, create);
+    tilesheet_canvas_.DrawGrid(16.0f);
+    tilesheet_canvas_.DrawOverlay();
 
-      ImGui::TableNextColumn();
-      DrawInventoryItemIcons();
+    ImGui::TableNextColumn();
+    DrawInventoryItemIcons();
 
-      ImGui::TableNextColumn();
-      gui::DisplayPalette(palette_, create);
+    ImGui::TableNextColumn();
+    gui::DisplayPalette(palette_, create);
 
-      ImGui::EndTable();
-    }
-    ImGui::Separator();
+    ImGui::EndTable();
+  }
+  ImGui::Separator();
 
-    // TODO(scawful): Future Oracle of Secrets menu editor integration
-    // - Full inventory screen layout editor
-    // - Item slot assignment and positioning
-    // - Heart container and magic meter editor
-    // - Equipment display customization
-    // - A/B button equipment quick-select editor
+  // TODO(scawful): Future Oracle of Secrets menu editor integration
+  // - Full inventory screen layout editor
+  // - Item slot assignment and positioning
+  // - Heart container and magic meter editor
+  // - Equipment display customization
+  // - A/B button equipment quick-select editor
 }
 
 void ScreenEditor::DrawInventoryToolset() {
@@ -283,8 +311,9 @@ void ScreenEditor::DrawInventoryItemIcons() {
 
     auto& icons = inventory_.item_icons();
     if (icons.empty()) {
-      ImGui::TextWrapped("No item icons loaded. Icons will be loaded when the "
-                        "inventory is initialized.");
+      ImGui::TextWrapped(
+          "No item icons loaded. Icons will be loaded when the "
+          "inventory is initialized.");
       ImGui::EndChild();
       return;
     }
@@ -366,11 +395,12 @@ void ScreenEditor::DrawDungeonMapScreen(int i) {
     const int tiles_per_row = tile16_blockset_.atlas.width() / 16;
     const int tile_x = (tile16_id % tiles_per_row) * 16;
     const int tile_y = (tile16_id / tiles_per_row) * 16;
-    
+
     std::vector<uint8_t> tile_data(16 * 16);
     int tile_data_offset = 0;
-    tile16_blockset_.atlas.Get16x16Tile(tile_x, tile_y, tile_data, tile_data_offset);
-    
+    tile16_blockset_.atlas.Get16x16Tile(tile_x, tile_y, tile_data,
+                                        tile_data_offset);
+
     // Create or update cached tile
     auto* cached_tile = tile16_blockset_.tile_cache.GetTile(tile16_id);
     if (!cached_tile) {
@@ -383,7 +413,7 @@ void ScreenEditor::DrawDungeonMapScreen(int i) {
       // Update existing cached tile data
       cached_tile->set_data(tile_data);
     }
-    
+
     if (cached_tile && cached_tile->is_active()) {
       // Ensure the cached tile has a valid texture
       if (!cached_tile->texture()) {
@@ -488,14 +518,14 @@ void ScreenEditor::DrawDungeonMapsTabs() {
 
 /**
  * @brief Draw dungeon room graphics editor with enhanced tile16 editing
- * 
+ *
  * Enhanced Features:
  * - Interactive tile16 selector with visual feedback
  * - Real-time tile16 composition from 4x 8x8 tiles
  * - Tile metadata editing (mirroring, palette, etc.)
  * - Integration with ROM graphics buffer
  * - Undo/redo support for tile modifications
- * 
+ *
  * Performance Notes:
  * - Cached tile16 rendering to avoid repeated composition
  * - Efficient tile selector with grid-based snapping
@@ -535,17 +565,18 @@ void ScreenEditor::DrawDungeonMapsRoomGfx() {
     ImGui::Separator();
     current_tile_canvas_.DrawBackground();  // ImVec2(64 * 2 + 2, 64 * 2 + 4));
     current_tile_canvas_.DrawContextMenu();
-    
+
     // Get tile8 from cache on-demand (only create texture when needed)
     if (selected_tile8_ >= 0 && selected_tile8_ < 256) {
       auto* cached_tile8 = tile8_tilemap_.tile_cache.GetTile(selected_tile8_);
-      
+
       if (!cached_tile8) {
         // Extract tile from atlas and cache it
-        const int tiles_per_row = tile8_tilemap_.atlas.width() / 8;  // 128 / 8 = 16
+        const int tiles_per_row =
+            tile8_tilemap_.atlas.width() / 8;  // 128 / 8 = 16
         const int tile_x = (selected_tile8_ % tiles_per_row) * 8;
         const int tile_y = (selected_tile8_ / tiles_per_row) * 8;
-        
+
         // Extract 8x8 tile data from atlas
         std::vector<uint8_t> tile_data(64);
         for (int py = 0; py < 8; py++) {
@@ -554,28 +585,30 @@ void ScreenEditor::DrawDungeonMapsRoomGfx() {
             int src_y = tile_y + py;
             int src_index = src_y * tile8_tilemap_.atlas.width() + src_x;
             int dst_index = py * 8 + px;
-            
+
             if (src_index < tile8_tilemap_.atlas.size() && dst_index < 64) {
               tile_data[dst_index] = tile8_tilemap_.atlas.data()[src_index];
             }
           }
         }
-        
+
         gfx::Bitmap new_tile8(8, 8, 8, tile_data);
         new_tile8.SetPalette(tile8_tilemap_.atlas.palette());
-        tile8_tilemap_.tile_cache.CacheTile(selected_tile8_, std::move(new_tile8));
+        tile8_tilemap_.tile_cache.CacheTile(selected_tile8_,
+                                            std::move(new_tile8));
         cached_tile8 = tile8_tilemap_.tile_cache.GetTile(selected_tile8_);
       }
-      
+
       if (cached_tile8 && cached_tile8->is_active()) {
         // Create texture on-demand only when needed
         if (!cached_tile8->texture()) {
           gfx::Arena::Get().QueueTextureCommand(
               gfx::Arena::TextureCommandType::CREATE, cached_tile8);
         }
-        
+
         if (current_tile_canvas_.DrawTilePainter(*cached_tile8, 16)) {
-          // Modify the tile16 based on the selected tile and current_tile16_info
+          // Modify the tile16 based on the selected tile and
+          // current_tile16_info
           gfx::ModifyTile16(tile16_blockset_, rom()->graphics_buffer(),
                             current_tile16_info[0], current_tile16_info[1],
                             current_tile16_info[2], current_tile16_info[3], 212,
@@ -618,14 +651,14 @@ void ScreenEditor::DrawDungeonMapsRoomGfx() {
 
 /**
  * @brief Draw dungeon maps editor with enhanced ROM hacking features
- * 
+ *
  * Enhanced Features:
  * - Multi-mode editing (DRAW, EDIT, SELECT)
  * - Real-time tile16 preview and editing
  * - Floor/basement management for complex dungeons
  * - Copy/paste operations for floor layouts
  * - Integration with ROM tile16 data
- * 
+ *
  * Performance Notes:
  * - Lazy loading of dungeon graphics
  * - Cached tile16 rendering for fast updates
@@ -775,13 +808,14 @@ void ScreenEditor::DrawTitleScreenEditor() {
   ImGui::Checkbox("Show BG1", &show_title_bg1_);
   ImGui::SameLine();
   ImGui::Checkbox("Show BG2", &show_title_bg2_);
-  
+
   // Re-render composite if visibility changed
   if (prev_bg1 != show_title_bg1_ || prev_bg2 != show_title_bg2_) {
-    status_ = title_screen_.RenderCompositeLayer(show_title_bg1_, show_title_bg2_);
+    status_ =
+        title_screen_.RenderCompositeLayer(show_title_bg1_, show_title_bg2_);
     if (status_.ok()) {
       gfx::Arena::Get().QueueTextureCommand(
-          gfx::Arena::TextureCommandType::UPDATE, 
+          gfx::Arena::TextureCommandType::UPDATE,
           &title_screen_.composite_bitmap());
     }
   }
@@ -822,27 +856,30 @@ void ScreenEditor::DrawTitleScreenCompositeCanvas() {
         auto click_pos = title_bg1_canvas_.points().front();
         int tile_x = static_cast<int>(click_pos.x) / 8;
         int tile_y = static_cast<int>(click_pos.y) / 8;
-        
+
         if (tile_x >= 0 && tile_x < 32 && tile_y >= 0 && tile_y < 32) {
           int tilemap_index = tile_y * 32 + tile_x;
-          
+
           // Create tile word: tile_id | (palette << 10) | h_flip | v_flip
           uint16_t tile_word = selected_title_tile16_ & 0x3FF;
           tile_word |= (title_palette_ & 0x07) << 10;
-          if (title_h_flip_) tile_word |= 0x4000;
-          if (title_v_flip_) tile_word |= 0x8000;
-          
+          if (title_h_flip_)
+            tile_word |= 0x4000;
+          if (title_v_flip_)
+            tile_word |= 0x8000;
+
           // Update BG1 buffer and re-render both layers and composite
           title_screen_.mutable_bg1_buffer()[tilemap_index] = tile_word;
           status_ = title_screen_.RenderBG1Layer();
           if (status_.ok()) {
             // Update BG1 texture
             gfx::Arena::Get().QueueTextureCommand(
-                gfx::Arena::TextureCommandType::UPDATE, 
+                gfx::Arena::TextureCommandType::UPDATE,
                 &title_screen_.bg1_bitmap());
-            
+
             // Re-render and update composite
-            status_ = title_screen_.RenderCompositeLayer(show_title_bg1_, show_title_bg2_);
+            status_ = title_screen_.RenderCompositeLayer(show_title_bg1_,
+                                                         show_title_bg2_);
             if (status_.ok()) {
               gfx::Arena::Get().QueueTextureCommand(
                   gfx::Arena::TextureCommandType::UPDATE, &composite_bitmap);
@@ -874,16 +911,18 @@ void ScreenEditor::DrawTitleScreenBG1Canvas() {
         auto click_pos = title_bg1_canvas_.points().front();
         int tile_x = static_cast<int>(click_pos.x) / 8;
         int tile_y = static_cast<int>(click_pos.y) / 8;
-        
+
         if (tile_x >= 0 && tile_x < 32 && tile_y >= 0 && tile_y < 32) {
           int tilemap_index = tile_y * 32 + tile_x;
-          
+
           // Create tile word: tile_id | (palette << 10) | h_flip | v_flip
           uint16_t tile_word = selected_title_tile16_ & 0x3FF;
           tile_word |= (title_palette_ & 0x07) << 10;
-          if (title_h_flip_) tile_word |= 0x4000;
-          if (title_v_flip_) tile_word |= 0x8000;
-          
+          if (title_h_flip_)
+            tile_word |= 0x4000;
+          if (title_v_flip_)
+            tile_word |= 0x8000;
+
           // Update buffer and re-render
           title_screen_.mutable_bg1_buffer()[tilemap_index] = tile_word;
           status_ = title_screen_.RenderBG1Layer();
@@ -917,16 +956,18 @@ void ScreenEditor::DrawTitleScreenBG2Canvas() {
         auto click_pos = title_bg2_canvas_.points().front();
         int tile_x = static_cast<int>(click_pos.x) / 8;
         int tile_y = static_cast<int>(click_pos.y) / 8;
-        
+
         if (tile_x >= 0 && tile_x < 32 && tile_y >= 0 && tile_y < 32) {
           int tilemap_index = tile_y * 32 + tile_x;
-          
+
           // Create tile word: tile_id | (palette << 10) | h_flip | v_flip
           uint16_t tile_word = selected_title_tile16_ & 0x3FF;
           tile_word |= (title_palette_ & 0x07) << 10;
-          if (title_h_flip_) tile_word |= 0x4000;
-          if (title_v_flip_) tile_word |= 0x8000;
-          
+          if (title_h_flip_)
+            tile_word |= 0x4000;
+          if (title_v_flip_)
+            tile_word |= 0x8000;
+
           // Update buffer and re-render
           title_screen_.mutable_bg2_buffer()[tilemap_index] = tile_word;
           status_ = title_screen_.RenderBG2Layer();
@@ -971,20 +1012,19 @@ void ScreenEditor::DrawTitleScreenBlocksetSelector() {
   // Show selected tile preview and controls
   if (selected_title_tile16_ >= 0) {
     ImGui::Text("Selected Tile: %d", selected_title_tile16_);
-    
+
     // Flip controls
     ImGui::Checkbox("H Flip", &title_h_flip_);
     ImGui::SameLine();
     ImGui::Checkbox("V Flip", &title_v_flip_);
-    
+
     // Palette selector (0-7 for 3BPP graphics)
     ImGui::SetNextItemWidth(100);
     ImGui::SliderInt("Palette", &title_palette_, 0, 7);
   }
 }
 
-void ScreenEditor::DrawNamingScreenEditor() {
-}
+void ScreenEditor::DrawNamingScreenEditor() {}
 
 void ScreenEditor::DrawOverworldMapEditor() {
   // Initialize overworld map on first draw
@@ -1015,7 +1055,7 @@ void ScreenEditor::DrawOverworldMapEditor() {
     }
   }
   ImGui::SameLine();
-  
+
   // World toggle
   if (ImGui::Button(ow_show_dark_world_ ? "Dark World" : "Light World")) {
     ow_show_dark_world_ = !ow_show_dark_world_;
@@ -1027,7 +1067,7 @@ void ScreenEditor::DrawOverworldMapEditor() {
     }
   }
   ImGui::SameLine();
-  
+
   // Custom map load/save buttons
   if (ImGui::Button("Load Custom Map...")) {
     std::string path = util::FileDialogWrapper::ShowOpenFileDialog();
@@ -1048,10 +1088,10 @@ void ScreenEditor::DrawOverworldMapEditor() {
       }
     }
   }
-  
+
   ImGui::SameLine();
   ImGui::Text("Selected Tile: %d", selected_ow_tile_);
-  
+
   // Custom map error/success popups
   if (ImGui::BeginPopup("CustomMapLoadError")) {
     ImGui::Text("Error loading custom map: %s", status_.message().data());
@@ -1093,17 +1133,17 @@ void ScreenEditor::DrawOverworldMapEditor() {
           auto click_pos = ow_map_canvas_.points().front();
           int tile_x = static_cast<int>(click_pos.x) / 8;
           int tile_y = static_cast<int>(click_pos.y) / 8;
-          
+
           if (tile_x >= 0 && tile_x < 64 && tile_y >= 0 && tile_y < 64) {
             int tile_index = tile_x + (tile_y * 64);
-            
+
             // Update appropriate world's tile data
             if (ow_show_dark_world_) {
               ow_map_screen_.mutable_dw_tiles()[tile_index] = selected_ow_tile_;
             } else {
               ow_map_screen_.mutable_lw_tiles()[tile_index] = selected_ow_tile_;
             }
-            
+
             // Re-render map
             status_ = ow_map_screen_.RenderMapLayer(ow_show_dark_world_);
             if (status_.ok()) {
@@ -1143,7 +1183,7 @@ void ScreenEditor::DrawOverworldMapEditor() {
 
     // Column 3: Palette Display
     ImGui::TableNextColumn();
-    auto& palette = ow_show_dark_world_ ? ow_map_screen_.dw_palette() 
+    auto& palette = ow_show_dark_world_ ? ow_map_screen_.dw_palette()
                                         : ow_map_screen_.lw_palette();
     // Use inline palette editor for full 128-color palette
     gui::InlinePaletteEditor(palette, "Overworld Map Palette");

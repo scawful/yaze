@@ -33,7 +33,7 @@ class TitleScreen {
   auto& bg1_buffer() { return tiles_bg1_buffer_; }
   auto& bg2_buffer() { return tiles_bg2_buffer_; }
   auto& oam_buffer() { return oam_data_; }
-  
+
   // Mutable accessors for editing
   auto& mutable_bg1_buffer() { return tiles_bg1_buffer_; }
   auto& mutable_bg2_buffer() { return tiles_bg2_buffer_; }

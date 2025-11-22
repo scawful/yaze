@@ -51,12 +51,10 @@ class PolicyEvaluator {
   static PolicyEvaluator& GetInstance();
 
   // Load policies from disk (.yaze/policies/agent.yaml)
-  absl::Status LoadPolicies(
-      absl::string_view policy_dir = ".yaze/policies");
+  absl::Status LoadPolicies(absl::string_view policy_dir = ".yaze/policies");
 
   // Evaluate a proposal against all loaded policies
-  absl::StatusOr<PolicyResult> EvaluateProposal(
-      absl::string_view proposal_id);
+  absl::StatusOr<PolicyResult> EvaluateProposal(absl::string_view proposal_id);
 
   // Reload policies from disk (for live editing)
   absl::Status ReloadPolicies();
@@ -83,13 +81,13 @@ class PolicyEvaluator {
 
   // Evaluate individual policy types
   void EvaluateTestRequirements(absl::string_view proposal_id,
-                                 PolicyResult* result);
-  void EvaluateChangeConstraints(absl::string_view proposal_id,
-                                  PolicyResult* result);
-  void EvaluateForbiddenRanges(absl::string_view proposal_id,
                                 PolicyResult* result);
+  void EvaluateChangeConstraints(absl::string_view proposal_id,
+                                 PolicyResult* result);
+  void EvaluateForbiddenRanges(absl::string_view proposal_id,
+                               PolicyResult* result);
   void EvaluateReviewRequirements(absl::string_view proposal_id,
-                                   PolicyResult* result);
+                                  PolicyResult* result);
 
   // Helper to categorize violations by severity
   void CategorizeViolations(PolicyResult* result);

@@ -14,26 +14,27 @@ namespace gui {
 /**
  * @class WidgetMeasurement
  * @brief Tracks widget dimensions for debugging and test automation
- * 
+ *
  * Integrates with ImGui Test Engine to provide accurate measurements
  * of UI elements, helping prevent layout issues and enabling automated
  * testing of widget sizes and positions.
  */
 struct WidgetMetrics {
-  ImVec2 size;           // Width and height
-  ImVec2 position;       // Screen position
-  ImVec2 content_size;   // Available content region
-  ImVec2 rect_min;       // Bounding box min
-  ImVec2 rect_max;       // Bounding box max
-  float cursor_pos_x;    // Cursor X after rendering
-  std::string widget_id; // Widget identifier
-  std::string type;      // Widget type (button, input, combo, etc.)
-  
+  ImVec2 size;            // Width and height
+  ImVec2 position;        // Screen position
+  ImVec2 content_size;    // Available content region
+  ImVec2 rect_min;        // Bounding box min
+  ImVec2 rect_max;        // Bounding box max
+  float cursor_pos_x;     // Cursor X after rendering
+  std::string widget_id;  // Widget identifier
+  std::string type;       // Widget type (button, input, combo, etc.)
+
   std::string ToString() const {
     return absl::StrFormat(
-        "Widget '%s' (%s): size=(%.1f,%.1f) pos=(%.1f,%.1f) content=(%.1f,%.1f) cursor_x=%.1f",
-        widget_id, type, size.x, size.y, position.x, position.y,
-        content_size.x, content_size.y, cursor_pos_x);
+        "Widget '%s' (%s): size=(%.1f,%.1f) pos=(%.1f,%.1f) "
+        "content=(%.1f,%.1f) cursor_x=%.1f",
+        widget_id, type, size.x, size.y, position.x, position.y, content_size.x,
+        content_size.y, cursor_pos_x);
   }
 };
 
@@ -116,4 +117,3 @@ class WidgetMeasurement {
 }  // namespace yaze
 
 #endif  // YAZE_APP_GUI_WIDGET_MEASUREMENT_H
-

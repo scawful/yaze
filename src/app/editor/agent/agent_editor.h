@@ -1,10 +1,10 @@
 #ifndef YAZE_APP_EDITOR_AGENT_AGENT_EDITOR_H_
 #define YAZE_APP_EDITOR_AGENT_AGENT_EDITOR_H_
 
+#include <filesystem>
 #include <memory>
 #include <optional>
 #include <string>
-#include <filesystem>
 #include <vector>
 
 #include "absl/status/status.h"
@@ -31,10 +31,10 @@ class NetworkCollaborationCoordinator;
 /**
  * @class AgentEditor
  * @brief Comprehensive AI Agent Platform & Bot Creator
- * 
+ *
  * A full-featured bot creation and management platform:
  * - Agent provider configuration (Ollama, Gemini, Mock)
- * - Model selection and parameters  
+ * - Model selection and parameters
  * - System prompt editing with live syntax highlighting
  * - Bot profile management (create, save, load custom bots)
  * - Chat history viewer and management
@@ -43,7 +43,7 @@ class NetworkCollaborationCoordinator;
  * - Z3ED command automation presets
  * - Multimodal/vision configuration
  * - Export/Import bot configurations
- * 
+ *
  * The chat widget is separate and managed by EditorManager, with
  * a dense/compact mode for focused conversations.
  */
@@ -57,19 +57,29 @@ class AgentEditor : public Editor {
   absl::Status Load() override;
   absl::Status Save() override;
   absl::Status Update() override;
-  absl::Status Cut() override { return absl::UnimplementedError("Not applicable"); }
-  absl::Status Copy() override { return absl::UnimplementedError("Not applicable"); }
-  absl::Status Paste() override { return absl::UnimplementedError("Not applicable"); }
-  absl::Status Undo() override { return absl::UnimplementedError("Not applicable"); }
-  absl::Status Redo() override { return absl::UnimplementedError("Not applicable"); }
-  absl::Status Find() override { return absl::UnimplementedError("Not applicable"); }
+  absl::Status Cut() override {
+    return absl::UnimplementedError("Not applicable");
+  }
+  absl::Status Copy() override {
+    return absl::UnimplementedError("Not applicable");
+  }
+  absl::Status Paste() override {
+    return absl::UnimplementedError("Not applicable");
+  }
+  absl::Status Undo() override {
+    return absl::UnimplementedError("Not applicable");
+  }
+  absl::Status Redo() override {
+    return absl::UnimplementedError("Not applicable");
+  }
+  absl::Status Find() override {
+    return absl::UnimplementedError("Not applicable");
+  }
 
   // Initialization with dependencies
-  void InitializeWithDependencies(ToastManager* toast_manager, 
-                                   ProposalDrawer* proposal_drawer,
-                                   Rom* rom);
+  void InitializeWithDependencies(ToastManager* toast_manager,
+                                  ProposalDrawer* proposal_drawer, Rom* rom);
   void SetRomContext(Rom* rom);
-
 
   // Main rendering (called by Update())
   void DrawDashboard();
@@ -102,13 +112,40 @@ class AgentEditor : public Editor {
     bool show_reasoning = true;
     int max_tool_iterations = 4;
   };
-  
+
+  struct AgentBuilderState {
+    struct Stage {
+      std::string name;
+      std::string summary;
+      bool completed = false;
+    };
+    std::vector<Stage> stages;
+    int active_stage = 0;
+    std::vector<std::string> goals;
+    std::string persona_notes;
+    struct ToolPlan {
+      bool resources = true;
+      bool dungeon = true;
+      bool overworld = true;
+      bool dialogue = true;
+      bool gui = false;
+      bool music = false;
+      bool sprite = false;
+      bool emulator = false;
+    } tools;
+    bool auto_run_tests = false;
+    bool auto_sync_rom = true;
+    bool auto_focus_proposals = true;
+    std::string blueprint_path;
+    bool ready_for_e2e = false;
+  };
+
   // Retro hacker animation state
   float pulse_animation_ = 0.0f;
   float scanline_offset_ = 0.0f;
   float glitch_timer_ = 0.0f;
   int blink_counter_ = 0;
-  
+
   AgentConfig GetCurrentConfig() const;
   void ApplyConfig(const AgentConfig& config);
 
@@ -119,7 +156,8 @@ class AgentEditor : public Editor {
   std::vector<BotProfile> GetAllProfiles() const;
   BotProfile GetCurrentProfile() const { return current_profile_; }
   void SetCurrentProfile(const BotProfile& profile);
-  absl::Status ExportProfile(const BotProfile& profile, const std::filesystem::path& path);
+  absl::Status ExportProfile(const BotProfile& profile,
+                             const std::filesystem::path& path);
   absl::Status ImportProfile(const std::filesystem::path& path);
 
   // Chat widget access (for EditorManager)
@@ -128,8 +166,8 @@ class AgentEditor : public Editor {
   void SetChatActive(bool active);
   void ToggleChat();
   void OpenChatWindow();
-  
-  // Collaboration and session management  
+
+  // Collaboration and session management
   enum class CollaborationMode {
     kLocal,   // Filesystem-based collaboration
     kNetwork  // WebSocket-based collaboration
@@ -141,25 +179,23 @@ class AgentEditor : public Editor {
     std::vector<std::string> participants;
   };
 
-  absl::StatusOr<SessionInfo> HostSession(const std::string& session_name,
-                                          CollaborationMode mode = CollaborationMode::kLocal);
-  absl::StatusOr<SessionInfo> JoinSession(const std::string& session_code,
-                                          CollaborationMode mode = CollaborationMode::kLocal);
+  absl::StatusOr<SessionInfo> HostSession(
+      const std::string& session_name,
+      CollaborationMode mode = CollaborationMode::kLocal);
+  absl::StatusOr<SessionInfo> JoinSession(
+      const std::string& session_code,
+      CollaborationMode mode = CollaborationMode::kLocal);
   absl::Status LeaveSession();
   absl::StatusOr<SessionInfo> RefreshSession();
-  
+
   struct CaptureConfig {
-    enum class CaptureMode {
-      kFullWindow,
-      kActiveEditor,
-      kSpecificWindow
-    };
+    enum class CaptureMode { kFullWindow, kActiveEditor, kSpecificWindow };
     CaptureMode mode = CaptureMode::kActiveEditor;
     std::string specific_window_name;
   };
 
   absl::Status CaptureSnapshot(std::filesystem::path* output_path,
-                                const CaptureConfig& config);
+                               const CaptureConfig& config);
   absl::Status SendToGemini(const std::filesystem::path& image_path,
                             const std::string& prompt);
 
@@ -174,9 +210,13 @@ class AgentEditor : public Editor {
   std::optional<SessionInfo> GetCurrentSession() const;
 
   // Access to underlying components
-  AgentCollaborationCoordinator* GetLocalCoordinator() { return local_coordinator_.get(); }
+  AgentCollaborationCoordinator* GetLocalCoordinator() {
+    return local_coordinator_.get();
+  }
 #ifdef YAZE_WITH_GRPC
-  NetworkCollaborationCoordinator* GetNetworkCoordinator() { return network_coordinator_.get(); }
+  NetworkCollaborationCoordinator* GetNetworkCoordinator() {
+    return network_coordinator_.get();
+  }
 #endif
 
  private:
@@ -190,6 +230,7 @@ class AgentEditor : public Editor {
   void DrawAdvancedMetricsPanel();
   void DrawCommonTilesEditor();
   void DrawNewPromptCreator();
+  void DrawAgentBuilderPanel();
 
   // Setup callbacks
   void SetupChatWidgetCallbacks();
@@ -200,6 +241,8 @@ class AgentEditor : public Editor {
   absl::Status EnsureProfilesDirectory();
   std::string ProfileToJson(const BotProfile& profile) const;
   absl::StatusOr<BotProfile> JsonToProfile(const std::string& json) const;
+  absl::Status SaveBuilderBlueprint(const std::filesystem::path& path);
+  absl::Status LoadBuilderBlueprint(const std::filesystem::path& path);
 
   // Internal state
   std::unique_ptr<AgentChatWidget> chat_widget_;  // Owned by AgentEditor
@@ -214,11 +257,12 @@ class AgentEditor : public Editor {
 
   // Configuration state (legacy)
   AgentConfig current_config_;
-  
+
   // Bot Profile System
   BotProfile current_profile_;
   std::vector<BotProfile> loaded_profiles_;
-  
+  AgentBuilderState builder_state_;
+
   // System Prompt Editor
   std::unique_ptr<TextEditor> prompt_editor_;
   std::unique_ptr<TextEditor> common_tiles_editor_;
@@ -226,14 +270,14 @@ class AgentEditor : public Editor {
   bool common_tiles_initialized_ = false;
   std::string active_prompt_file_ = "system_prompt_v3.txt";
   char new_prompt_name_[128] = {};
-  
+
   // Collaboration state
   CollaborationMode current_mode_ = CollaborationMode::kLocal;
   bool in_session_ = false;
   std::string current_session_id_;
   std::string current_session_name_;
   std::vector<std::string> current_participants_;
-  
+
   // UI state
   bool show_advanced_settings_ = false;
   bool show_prompt_editor_ = false;
@@ -241,7 +285,7 @@ class AgentEditor : public Editor {
   bool show_chat_history_ = false;
   bool show_metrics_dashboard_ = false;
   int selected_tab_ = 0;  // 0=Config, 1=Prompts, 2=Bots, 3=History, 4=Metrics
-  
+
   // Chat history viewer state
   std::vector<cli::agent::ChatMessage> cached_history_;
   bool history_needs_refresh_ = true;

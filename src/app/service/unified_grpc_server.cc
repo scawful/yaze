@@ -2,23 +2,21 @@
 
 #ifdef YAZE_WITH_GRPC
 
+#include <grpcpp/grpcpp.h>
+
 #include <iostream>
 #include <thread>
 
 #include "absl/strings/str_format.h"
-#include "app/service/imgui_test_harness_service.h"
-#include "app/service/canvas_automation_service.h"
 #include "app/net/rom_service_impl.h"
 #include "app/rom.h"
-
-#include <grpcpp/grpcpp.h>
+#include "app/service/canvas_automation_service.h"
+#include "app/service/imgui_test_harness_service.h"
 #include "protos/canvas_automation.grpc.pb.h"
 
 namespace yaze {
 
-YazeGRPCServer::YazeGRPCServer()
-    : is_running_(false) {
-}
+YazeGRPCServer::YazeGRPCServer() : is_running_(false) {}
 
 // Destructor defined here so CanvasAutomationServiceGrpc is a complete type
 YazeGRPCServer::~YazeGRPCServer() {
@@ -26,57 +24,56 @@ YazeGRPCServer::~YazeGRPCServer() {
 }
 
 absl::Status YazeGRPCServer::Initialize(
-    int port,
-    test::TestManager* test_manager,
-    Rom* rom,
+    int port, test::TestManager* test_manager, Rom* rom,
     net::RomVersionManager* version_mgr,
     net::ProposalApprovalManager* approval_mgr,
     CanvasAutomationServiceImpl* canvas_service) {
-  
   if (is_running_) {
     return absl::FailedPreconditionError("Server is already running");
   }
-  
+
   config_.port = port;
-  
+
   // Create ImGuiTestHarness service if test_manager provided
   if (config_.enable_test_harness && test_manager) {
-    test_harness_service_ = 
+    test_harness_service_ =
         std::make_unique<test::ImGuiTestHarnessServiceImpl>(test_manager);
     std::cout << "✓ ImGuiTestHarness service initialized\n";
   } else if (config_.enable_test_harness) {
     std::cout << "⚠ ImGuiTestHarness requested but no TestManager provided\n";
   }
-  
+
   // Create ROM service if rom provided
   if (config_.enable_rom_service && rom) {
-    rom_service_ = std::make_unique<net::RomServiceImpl>(
-        rom, version_mgr, approval_mgr);
-    
+    rom_service_ =
+        std::make_unique<net::RomServiceImpl>(rom, version_mgr, approval_mgr);
+
     // Configure ROM service
     net::RomServiceImpl::Config rom_config;
-    rom_config.require_approval_for_writes = config_.require_approval_for_rom_writes;
+    rom_config.require_approval_for_writes =
+        config_.require_approval_for_rom_writes;
     rom_service_->SetConfig(rom_config);
-    
+
     std::cout << "✓ ROM service initialized\n";
   } else if (config_.enable_rom_service) {
     std::cout << "⚠ ROM service requested but no ROM provided\n";
   }
-  
+
   // Create Canvas Automation service if canvas_service provided
   if (config_.enable_canvas_automation && canvas_service) {
     // Store the provided service (not owned by us)
-    canvas_service_ = std::unique_ptr<CanvasAutomationServiceImpl>(canvas_service);
+    canvas_service_ =
+        std::unique_ptr<CanvasAutomationServiceImpl>(canvas_service);
     std::cout << "✓ Canvas Automation service initialized\n";
   } else if (config_.enable_canvas_automation) {
     std::cout << "⚠ Canvas Automation requested but no service provided\n";
   }
-  
+
   if (!test_harness_service_ && !rom_service_ && !canvas_service_) {
     return absl::InvalidArgumentError(
         "At least one service must be enabled and initialized");
   }
-  
+
   return absl::OkStatus();
 }
 
@@ -85,9 +82,10 @@ absl::Status YazeGRPCServer::Start() {
   if (!status.ok()) {
     return status;
   }
-  
-  std::cout << "✓ YAZE gRPC automation server listening on 0.0.0.0:" << config_.port << "\n";
-  
+
+  std::cout << "✓ YAZE gRPC automation server listening on 0.0.0.0:"
+            << config_.port << "\n";
+
   if (test_harness_service_) {
     std::cout << "  ✓ ImGuiTestHarness available\n";
   }
@@ -97,12 +95,12 @@ absl::Status YazeGRPCServer::Start() {
   if (canvas_service_) {
     std::cout << "  ✓ Canvas Automation available\n";
   }
-  
+
   std::cout << "\nServer is ready to accept requests...\n";
-  
+
   // Block until server is shut down
   server_->Wait();
-  
+
   return absl::OkStatus();
 }
 
@@ -111,9 +109,9 @@ absl::Status YazeGRPCServer::StartAsync() {
   if (!status.ok()) {
     return status;
   }
-  
+
   std::cout << "✓ Unified gRPC server started on port " << config_.port << "\n";
-  
+
   // Server runs in background, doesn't block
   return absl::OkStatus();
 }
@@ -136,14 +134,14 @@ absl::Status YazeGRPCServer::BuildServer() {
   if (is_running_) {
     return absl::FailedPreconditionError("Server already running");
   }
-  
+
   std::string server_address = absl::StrFormat("0.0.0.0:%d", config_.port);
-  
+
   grpc::ServerBuilder builder;
-  
+
   // Listen on all interfaces
   builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
-  
+
   // Register services
   if (test_harness_service_) {
     // Note: The actual registration requires the gRPC service wrapper
@@ -152,29 +150,30 @@ absl::Status YazeGRPCServer::BuildServer() {
     std::cout << "  Registering ImGuiTestHarness service...\n";
     // builder.RegisterService(test_harness_grpc_wrapper_.get());
   }
-  
+
   if (rom_service_) {
     std::cout << "  Registering ROM service...\n";
     builder.RegisterService(rom_service_.get());
   }
-  
+
   if (canvas_service_) {
     std::cout << "  Registering Canvas Automation service...\n";
     // Create gRPC wrapper using factory function
-    canvas_grpc_service_ = CreateCanvasAutomationServiceGrpc(canvas_service_.get());
+    canvas_grpc_service_ =
+        CreateCanvasAutomationServiceGrpc(canvas_service_.get());
     builder.RegisterService(canvas_grpc_service_.get());
   }
-  
+
   // Build and start
   server_ = builder.BuildAndStart();
-  
+
   if (!server_) {
     return absl::InternalError(
         absl::StrFormat("Failed to start server on %s", server_address));
   }
-  
+
   is_running_ = true;
-  
+
   return absl::OkStatus();
 }
 

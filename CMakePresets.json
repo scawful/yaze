@@ -7,280 +7,532 @@
   },
   "configurePresets": [
     {
-      "name": "_base",
+      "name": "base",
       "hidden": true,
       "description": "Base preset with common settings",
       "binaryDir": "${sourceDir}/build",
+      "generator": "Ninja Multi-Config",
       "cacheVariables": {
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
-        "YAZE_BUILD_TESTS": "ON",
         "YAZE_BUILD_APP": "ON",
         "YAZE_BUILD_LIB": "ON",
-        "YAZE_BUILD_Z3ED": "ON",
-        "YAZE_BUILD_EMU": "ON"
+        "YAZE_BUILD_EMU": "ON",
+        "YAZE_BUILD_CLI": "ON"
       }
     },
     {
-      "name": "_unix",
+      "name": "windows-base",
       "hidden": true,
-      "description": "Unix/macOS/Linux base with Makefiles",
-      "generator": "Unix Makefiles",
+      "description": "Base Windows preset with MSVC/clang-cl support",
       "binaryDir": "${sourceDir}/build",
+      "generator": "Ninja Multi-Config",
       "condition": {
-        "type": "notEquals",
+        "type": "equals",
         "lhs": "${hostSystemName}",
         "rhs": "Windows"
-      }
-    },
-    {
-      "name": "_quiet",
-      "hidden": true,
-      "description": "Suppress warnings (default)",
+      },
       "cacheVariables": {
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "CMAKE_MSVC_RUNTIME_LIBRARY": "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL",
+        "YAZE_BUILD_APP": "ON",
+        "YAZE_BUILD_LIB": "ON",
+        "YAZE_BUILD_EMU": "ON",
+        "YAZE_BUILD_CLI": "ON",
         "YAZE_SUPPRESS_WARNINGS": "ON"
+      },
+      "architecture": {
+        "value": "x64",
+        "strategy": "external"
       }
     },
     {
-      "name": "_verbose",
+      "name": "windows-vs-base",
       "hidden": true,
-      "description": "Show all warnings and extra diagnostics",
+      "description": "Base Windows preset for Visual Studio Generator",
+      "binaryDir": "${sourceDir}/build",
+      "generator": "Visual Studio 17 2022",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      },
+      "cacheVariables": {
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "CMAKE_MSVC_RUNTIME_LIBRARY": "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL",
+        "YAZE_BUILD_APP": "ON",
+        "YAZE_BUILD_LIB": "ON",
+        "YAZE_BUILD_EMU": "ON",
+        "YAZE_BUILD_CLI": "ON",
+        "YAZE_SUPPRESS_WARNINGS": "ON"
+      },
+      "architecture": {
+        "value": "x64",
+        "strategy": "set"
+      }
+    },
+    {
+      "name": "dev",
+      "inherits": "base",
+      "displayName": "Developer Build",
+      "description": "Full development build with all features",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "YAZE_BUILD_TESTS": "ON",
+        "YAZE_ENABLE_GRPC": "ON",
+        "YAZE_ENABLE_JSON": "ON",
+        "YAZE_ENABLE_AI": "ON",
+        "YAZE_ENABLE_ROM_TESTS": "ON"
+      }
+    },
+    {
+      "name": "ci",
+      "inherits": "base",
+      "displayName": "CI Build",
+      "description": "Continuous integration build",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "YAZE_BUILD_TESTS": "ON",
+        "YAZE_ENABLE_GRPC": "ON",
+        "YAZE_ENABLE_JSON": "ON",
+        "YAZE_ENABLE_AI": "ON",
+        "YAZE_ENABLE_ROM_TESTS": "OFF",
+        "YAZE_MINIMAL_BUILD": "OFF"
+      }
+    },
+    {
+      "name": "release",
+      "inherits": "base",
+      "displayName": "Release Build",
+      "description": "Optimized release build",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "YAZE_BUILD_TESTS": "OFF",
+        "YAZE_ENABLE_GRPC": "ON",
+        "YAZE_ENABLE_JSON": "ON",
+        "YAZE_ENABLE_AI": "ON",
+        "YAZE_ENABLE_LTO": "ON"
+      }
+    },
+    {
+      "name": "minimal",
+      "inherits": "base",
+      "displayName": "Minimal Build",
+      "description": "Minimal build for CI (no gRPC/AI)",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "YAZE_BUILD_TESTS": "ON",
+        "YAZE_ENABLE_GRPC": "OFF",
+        "YAZE_ENABLE_JSON": "ON",
+        "YAZE_ENABLE_AI": "OFF",
+        "YAZE_MINIMAL_BUILD": "ON"
+      }
+    },
+    {
+      "name": "ci-linux",
+      "inherits": "base",
+      "displayName": "CI Build - Linux",
+      "description": "CI build with gRPC enabled (uses caching for speed)",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "YAZE_BUILD_TESTS": "ON",
+        "YAZE_ENABLE_GRPC": "ON",
+        "YAZE_ENABLE_JSON": "ON",
+        "YAZE_ENABLE_AI": "OFF",
+        "YAZE_ENABLE_ROM_TESTS": "OFF",
+        "YAZE_MINIMAL_BUILD": "OFF",
+        "YAZE_BUILD_AGENT_UI": "ON",
+        "YAZE_ENABLE_REMOTE_AUTOMATION": "ON",
+        "YAZE_ENABLE_AI_RUNTIME": "OFF"
+      }
+    },
+    {
+      "name": "ci-macos",
+      "inherits": "base",
+      "displayName": "CI Build - macOS",
+      "description": "CI build with gRPC enabled (uses caching for speed)",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "YAZE_BUILD_TESTS": "ON",
+        "YAZE_ENABLE_GRPC": "ON",
+        "YAZE_ENABLE_JSON": "ON",
+        "YAZE_ENABLE_AI": "OFF",
+        "YAZE_ENABLE_ROM_TESTS": "OFF",
+        "YAZE_MINIMAL_BUILD": "OFF",
+        "YAZE_BUILD_AGENT_UI": "ON",
+        "YAZE_ENABLE_REMOTE_AUTOMATION": "ON",
+        "YAZE_ENABLE_AI_RUNTIME": "OFF"
+      }
+    },
+    {
+      "name": "ci-windows",
+      "inherits": "windows-base",
+      "displayName": "CI Build - Windows",
+      "description": "CI build with gRPC enabled (uses MSVC-compatible version 1.67.1)",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "YAZE_BUILD_TESTS": "ON",
+        "YAZE_ENABLE_GRPC": "ON",
+        "YAZE_ENABLE_JSON": "ON",
+        "YAZE_ENABLE_AI": "OFF",
+        "YAZE_ENABLE_ROM_TESTS": "OFF",
+        "YAZE_MINIMAL_BUILD": "OFF",
+        "YAZE_BUILD_AGENT_UI": "ON",
+        "YAZE_ENABLE_REMOTE_AUTOMATION": "ON",
+        "YAZE_ENABLE_AI_RUNTIME": "OFF"
+      }
+    },
+    {
+      "name": "ci-windows-ai",
+      "inherits": "windows-base",
+      "displayName": "CI Build - Windows (Agent)",
+      "description": "Full agent build with gRPC + AI runtime (runs outside PRs)",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "YAZE_BUILD_TESTS": "ON",
+        "YAZE_ENABLE_GRPC": "ON",
+        "YAZE_ENABLE_JSON": "ON",
+        "YAZE_ENABLE_AI": "ON",
+        "YAZE_ENABLE_ROM_TESTS": "OFF",
+        "YAZE_MINIMAL_BUILD": "OFF",
+        "YAZE_BUILD_AGENT_UI": "ON",
+        "YAZE_ENABLE_REMOTE_AUTOMATION": "ON",
+        "YAZE_ENABLE_AI_RUNTIME": "ON"
+      }
+    },
+    {
+      "name": "coverage",
+      "inherits": "dev",
+      "displayName": "Coverage Build",
+      "description": "Debug build with code coverage",
+      "cacheVariables": {
+        "YAZE_ENABLE_COVERAGE": "ON",
+        "CMAKE_CXX_FLAGS": "--coverage -g -O0",
+        "CMAKE_C_FLAGS": "--coverage -g -O0",
+        "CMAKE_EXE_LINKER_FLAGS": "--coverage"
+      }
+    },
+    {
+      "name": "sanitizer",
+      "inherits": "dev",
+      "displayName": "Sanitizer Build",
+      "description": "Debug build with AddressSanitizer",
+      "cacheVariables": {
+        "YAZE_ENABLE_SANITIZERS": "ON",
+        "CMAKE_CXX_FLAGS": "-fsanitize=address -fno-omit-frame-pointer -g",
+        "CMAKE_C_FLAGS": "-fsanitize=address -fno-omit-frame-pointer -g",
+        "CMAKE_EXE_LINKER_FLAGS": "-fsanitize=address"
+      }
+    },
+    {
+      "name": "verbose",
+      "inherits": "dev",
+      "displayName": "Verbose Build",
+      "description": "Development build with all warnings",
       "cacheVariables": {
         "YAZE_SUPPRESS_WARNINGS": "OFF"
       }
     },
     {
-      "name": "_mac",
-      "hidden": true,
-      "description": "macOS base configuration",
+      "name": "win-dbg",
+      "inherits": "windows-base",
+      "displayName": "Windows Debug (Ninja)",
+      "description": "Debug build for Windows with Ninja generator",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "YAZE_BUILD_TESTS": "ON",
+        "YAZE_ENABLE_GRPC": "OFF",
+        "YAZE_ENABLE_JSON": "ON",
+        "YAZE_ENABLE_AI": "OFF",
+        "YAZE_BUILD_AGENT_UI": "OFF",
+        "YAZE_ENABLE_REMOTE_AUTOMATION": "OFF",
+        "YAZE_ENABLE_AI_RUNTIME": "OFF"
+      }
+    },
+    {
+      "name": "win-dbg-v",
+      "inherits": "win-dbg",
+      "displayName": "Windows Debug Verbose",
+      "description": "Debug build with verbose warnings",
+      "cacheVariables": {
+        "YAZE_SUPPRESS_WARNINGS": "OFF"
+      }
+    },
+    {
+      "name": "win-rel",
+      "inherits": "windows-base",
+      "displayName": "Windows Release (Ninja)",
+      "description": "Release build for Windows with Ninja generator",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "YAZE_BUILD_TESTS": "OFF",
+        "YAZE_ENABLE_GRPC": "OFF",
+        "YAZE_ENABLE_JSON": "ON",
+        "YAZE_ENABLE_AI": "OFF",
+        "YAZE_ENABLE_LTO": "ON",
+        "YAZE_BUILD_AGENT_UI": "OFF",
+        "YAZE_ENABLE_REMOTE_AUTOMATION": "OFF",
+        "YAZE_ENABLE_AI_RUNTIME": "OFF"
+      }
+    },
+    {
+      "name": "win-dev",
+      "inherits": "windows-base",
+      "displayName": "Windows Development",
+      "description": "Development build with ROM tests",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "YAZE_BUILD_TESTS": "ON",
+        "YAZE_ENABLE_GRPC": "OFF",
+        "YAZE_ENABLE_JSON": "ON",
+        "YAZE_ENABLE_AI": "OFF",
+        "YAZE_ENABLE_ROM_TESTS": "ON",
+        "YAZE_BUILD_AGENT_UI": "OFF",
+        "YAZE_ENABLE_REMOTE_AUTOMATION": "OFF",
+        "YAZE_ENABLE_AI_RUNTIME": "OFF"
+      }
+    },
+    {
+      "name": "win-ai",
+      "inherits": "windows-base",
+      "displayName": "Windows AI Development",
+      "description": "Full development build with AI features and gRPC",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "YAZE_BUILD_TESTS": "ON",
+        "YAZE_ENABLE_GRPC": "ON",
+        "YAZE_ENABLE_JSON": "ON",
+        "YAZE_ENABLE_AI": "ON",
+        "YAZE_ENABLE_ROM_TESTS": "ON",
+        "YAZE_BUILD_AGENT_UI": "ON",
+        "YAZE_ENABLE_REMOTE_AUTOMATION": "ON",
+        "YAZE_ENABLE_AI_RUNTIME": "ON"
+      }
+    },
+    {
+      "name": "win-z3ed",
+      "inherits": "windows-base",
+      "displayName": "Windows z3ed CLI",
+      "description": "z3ed CLI with AI agent support",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "YAZE_BUILD_TESTS": "OFF",
+        "YAZE_BUILD_CLI": "ON",
+        "YAZE_ENABLE_GRPC": "ON",
+        "YAZE_ENABLE_JSON": "ON",
+        "YAZE_ENABLE_AI": "ON",
+        "YAZE_BUILD_AGENT_UI": "OFF",
+        "YAZE_ENABLE_REMOTE_AUTOMATION": "ON",
+        "YAZE_ENABLE_AI_RUNTIME": "ON"
+      }
+    },
+    {
+      "name": "win-arm",
+      "inherits": "windows-base",
+      "displayName": "Windows ARM64 Debug",
+      "description": "Debug build for Windows ARM64",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "YAZE_BUILD_TESTS": "ON",
+        "YAZE_ENABLE_GRPC": "OFF",
+        "YAZE_ENABLE_JSON": "ON",
+        "YAZE_ENABLE_AI": "OFF",
+        "YAZE_BUILD_AGENT_UI": "OFF",
+        "YAZE_ENABLE_REMOTE_AUTOMATION": "OFF",
+        "YAZE_ENABLE_AI_RUNTIME": "OFF"
+      },
+      "architecture": {
+        "value": "ARM64",
+        "strategy": "external"
+      }
+    },
+    {
+      "name": "win-arm-rel",
+      "inherits": "win-arm",
+      "displayName": "Windows ARM64 Release",
+      "description": "Release build for Windows ARM64",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "YAZE_BUILD_TESTS": "OFF",
+        "YAZE_ENABLE_LTO": "ON",
+        "YAZE_BUILD_AGENT_UI": "OFF",
+        "YAZE_ENABLE_REMOTE_AUTOMATION": "OFF",
+        "YAZE_ENABLE_AI_RUNTIME": "OFF"
+      }
+    },
+    {
+      "name": "win-vs-dbg",
+      "inherits": "windows-vs-base",
+      "displayName": "Windows Debug (Visual Studio)",
+      "description": "Debug build for Visual Studio IDE",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "YAZE_BUILD_TESTS": "ON",
+        "YAZE_ENABLE_GRPC": "OFF",
+        "YAZE_ENABLE_JSON": "ON",
+        "YAZE_ENABLE_AI": "OFF",
+        "YAZE_BUILD_AGENT_UI": "OFF",
+        "YAZE_ENABLE_REMOTE_AUTOMATION": "OFF",
+        "YAZE_ENABLE_AI_RUNTIME": "OFF"
+      }
+    },
+    {
+      "name": "win-vs-rel",
+      "inherits": "windows-vs-base",
+      "displayName": "Windows Release (Visual Studio)",
+      "description": "Release build for Visual Studio IDE",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "YAZE_BUILD_TESTS": "OFF",
+        "YAZE_ENABLE_GRPC": "OFF",
+        "YAZE_ENABLE_JSON": "ON",
+        "YAZE_ENABLE_AI": "OFF",
+        "YAZE_ENABLE_LTO": "ON",
+        "YAZE_BUILD_AGENT_UI": "OFF",
+        "YAZE_ENABLE_REMOTE_AUTOMATION": "OFF",
+        "YAZE_ENABLE_AI_RUNTIME": "OFF"
+      }
+    },
+    {
+      "name": "win-vs-ai",
+      "inherits": "windows-vs-base",
+      "displayName": "Windows AI Development (Visual Studio)",
+      "description": "Full development build with AI features for Visual Studio",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "YAZE_BUILD_TESTS": "ON",
+        "YAZE_ENABLE_GRPC": "ON",
+        "YAZE_ENABLE_JSON": "ON",
+        "YAZE_ENABLE_AI": "ON",
+        "YAZE_ENABLE_ROM_TESTS": "ON",
+        "YAZE_BUILD_AGENT_UI": "ON",
+        "YAZE_ENABLE_REMOTE_AUTOMATION": "ON",
+        "YAZE_ENABLE_AI_RUNTIME": "ON"
+      }
+    },
+    {
+      "name": "mac-dbg",
+      "inherits": "base",
+      "displayName": "macOS Debug",
+      "description": "Debug build for macOS",
       "condition": {
         "type": "equals",
         "lhs": "${hostSystemName}",
         "rhs": "Darwin"
       },
-      "toolchainFile": "${sourceDir}/cmake/llvm-brew.toolchain.cmake",
-      "cacheVariables": {
-        "CMAKE_OSX_DEPLOYMENT_TARGET": "11.0",
-        "CMAKE_C_COMPILER": "/opt/homebrew/opt/llvm@18/bin/clang",
-        "CMAKE_CXX_COMPILER": "/opt/homebrew/opt/llvm@18/bin/clang++",
-        "CMAKE_CXX_FLAGS": "-isystem /opt/homebrew/opt/llvm@18/include/c++/v1"
-      }
-    },
-    {
-      "name": "_win",
-      "hidden": true,
-      "description": "Windows base configuration with vcpkg static triplet",
-      "condition": {
-        "type": "equals",
-        "lhs": "${hostSystemName}",
-        "rhs": "Windows"
-      },
-      "generator": "Visual Studio 17 2022",
-      "cacheVariables": {
-        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/vcpkg/scripts/buildsystems/vcpkg.cmake",
-        "VCPKG_MANIFEST_MODE": "ON",
-        "VCPKG_TARGET_TRIPLET": "x64-windows-static"
-      }
-    },
-    {
-      "name": "mac-dbg",
-      "displayName": "macOS Debug (ARM64)",
-      "description": "macOS ARM64 debug build (warnings off)",
-      "inherits": ["_base", "_unix", "_mac", "_quiet"],
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
-        "CMAKE_OSX_ARCHITECTURES": "arm64"
+        "YAZE_BUILD_TESTS": "ON",
+        "YAZE_ENABLE_GRPC": "OFF",
+        "YAZE_ENABLE_JSON": "ON",
+        "YAZE_ENABLE_AI": "OFF",
+        "YAZE_BUILD_AGENT_UI": "ON",
+        "YAZE_ENABLE_REMOTE_AUTOMATION": "ON",
+        "YAZE_ENABLE_AI_RUNTIME": "OFF"
       }
     },
     {
       "name": "mac-dbg-v",
-      "displayName": "macOS Debug Verbose (ARM64)",
-      "description": "macOS ARM64 debug build with all warnings",
-      "inherits": ["_base", "_unix", "_mac", "_verbose"],
+      "inherits": "mac-dbg",
+      "displayName": "macOS Debug Verbose",
+      "description": "Debug build with verbose warnings",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug",
-        "CMAKE_OSX_ARCHITECTURES": "arm64"
+        "YAZE_SUPPRESS_WARNINGS": "OFF"
       }
     },
     {
       "name": "mac-rel",
-      "displayName": "macOS Release (ARM64)",
-      "description": "macOS ARM64 release build (warnings off)",
-      "inherits": ["_base", "_unix", "_mac", "_quiet"],
+      "inherits": "base",
+      "displayName": "macOS Release",
+      "description": "Release build for macOS",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
+      },
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
-        "CMAKE_OSX_ARCHITECTURES": "arm64",
-        "YAZE_BUILD_TESTS": "OFF"
-      }
-    },
-    {
-      "name": "mac-x64",
-      "displayName": "macOS Debug (x86_64)",
-      "description": "macOS x86_64 debug build (warnings off)",
-      "inherits": ["_base", "_mac", "_quiet"],
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug",
-        "CMAKE_OSX_ARCHITECTURES": "x86_64",
-        "CMAKE_OSX_DEPLOYMENT_TARGET": "10.15"
-      }
-    },
-    {
-      "name": "mac-uni",
-      "displayName": "macOS Universal",
-      "description": "macOS universal binary (ARM64 + x86_64)",
-      "inherits": ["_base", "_mac", "_quiet"],
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release",
-        "CMAKE_OSX_ARCHITECTURES": "arm64;x86_64",
-        "CMAKE_OSX_DEPLOYMENT_TARGET": "10.15"
+        "YAZE_BUILD_TESTS": "OFF",
+        "YAZE_ENABLE_GRPC": "OFF",
+        "YAZE_ENABLE_JSON": "ON",
+        "YAZE_ENABLE_AI": "OFF",
+        "YAZE_ENABLE_LTO": "ON",
+        "YAZE_BUILD_AGENT_UI": "OFF",
+        "YAZE_ENABLE_REMOTE_AUTOMATION": "OFF",
+        "YAZE_ENABLE_AI_RUNTIME": "OFF"
       }
     },
     {
       "name": "mac-dev",
-      "displayName": "macOS Dev",
-      "description": "macOS development with ROM tests",
-      "inherits": ["_base", "_unix", "_mac", "_quiet"],
+      "inherits": "base",
+      "displayName": "macOS Development",
+      "description": "Development build with ROM tests",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
+      },
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
-        "CMAKE_OSX_ARCHITECTURES": "arm64",
+        "YAZE_BUILD_TESTS": "ON",
+        "YAZE_ENABLE_GRPC": "OFF",
+        "YAZE_ENABLE_JSON": "ON",
+        "YAZE_ENABLE_AI": "OFF",
         "YAZE_ENABLE_ROM_TESTS": "ON",
-        "YAZE_TEST_ROM_PATH": "${sourceDir}/zelda3.sfc"
+        "YAZE_BUILD_AGENT_UI": "OFF",
+        "YAZE_ENABLE_REMOTE_AUTOMATION": "OFF",
+        "YAZE_ENABLE_AI_RUNTIME": "OFF"
       }
     },
     {
       "name": "mac-ai",
-      "displayName": "macOS AI",
-      "description": "macOS with AI agent (z3ed + JSON + gRPC + networking)",
-      "inherits": "mac-dev",
-      "binaryDir": "${sourceDir}/build_ai",
-      "cacheVariables": {
-        "Z3ED_AI": "ON",
-        "YAZE_WITH_JSON": "ON",
-        "YAZE_WITH_GRPC": "ON",
-        "YAZE_BUILD_Z3ED": "ON",
-        "YAZE_BUILD_EMU": "ON",
-        "YAZE_BUILD_TESTS": "ON",
-        "CMAKE_BUILD_TYPE": "Debug"
-      }
-    },
-    {
-      "name": "mac-z3ed",
-      "displayName": "macOS z3ed",
-      "description": "macOS z3ed CLI with agent support",
-      "inherits": "mac-ai",
-      "toolchainFile": "${sourceDir}/cmake/llvm-brew.toolchain.cmake",
-      "binaryDir": "${sourceDir}/build",
-      "cacheVariables": {
-        "Z3ED_AI": "ON",
-        "YAZE_WITH_JSON": "ON",
-        "YAZE_WITH_GRPC": "ON",
-        "YAZE_BUILD_Z3ED": "ON",
-        "YAZE_BUILD_EMU": "ON",
-        "YAZE_BUILD_TESTS": "ON",
-        "CMAKE_BUILD_TYPE": "Debug"
-      }
-    },
-    {
-      "name": "mac-rooms",
-      "displayName": "macOS Rooms",
-      "description": "macOS dungeon editor development",
-      "binaryDir": "${sourceDir}/build_rooms",
-      "inherits": "mac-dev",
-      "cacheVariables": {
-        "YAZE_BUILD_EMU": "OFF",
-        "YAZE_BUILD_Z3ED": "OFF",
-        "YAZE_MINIMAL_BUILD": "ON"
-      }
-    },
-    {
-      "name": "win-dbg",
-      "displayName": "Windows Debug (x64)",
-      "description": "Windows x64 debug build with static vcpkg (warnings off)",
-      "inherits": ["_base", "_win", "_quiet"],
-      "architecture": "x64",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug"
-      }
-    },
-    {
-      "name": "win-dbg-v",
-      "displayName": "Windows Debug Verbose (x64)",
-      "description": "Windows x64 debug build with static vcpkg and all warnings",
-      "inherits": ["_base", "_win", "_verbose"],
-      "architecture": "x64",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug"
-      }
-    },
-    {
-      "name": "win-rel",
-      "displayName": "Windows Release (x64)",
-      "description": "Windows x64 release build with static vcpkg (warnings off)",
-      "inherits": ["_base", "_win", "_quiet"],
-      "architecture": "x64",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release",
-        "YAZE_BUILD_TESTS": "OFF"
-      }
-    },
-    {
-      "name": "win-arm",
-      "displayName": "Windows ARM64 Debug",
-      "description": "Windows ARM64 debug build (warnings off)",
-      "inherits": ["_base", "_win", "_quiet"],
-      "architecture": "arm64",
+      "inherits": "base",
+      "displayName": "macOS AI Development",
+      "description": "Full development build with AI features and gRPC",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
+      },
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
-        "VCPKG_TARGET_TRIPLET": "arm64-windows"
+        "YAZE_BUILD_TESTS": "ON",
+        "YAZE_ENABLE_GRPC": "ON",
+        "YAZE_ENABLE_JSON": "ON",
+        "YAZE_ENABLE_AI": "ON",
+        "YAZE_ENABLE_ROM_TESTS": "ON",
+        "YAZE_BUILD_AGENT_UI": "ON",
+        "YAZE_ENABLE_REMOTE_AUTOMATION": "ON",
+        "YAZE_ENABLE_AI_RUNTIME": "ON"
       }
     },
     {
-      "name": "win-arm-rel",
-      "displayName": "Windows ARM64 Release",
-      "description": "Windows ARM64 release build (warnings off)",
-      "inherits": ["_base", "_win", "_quiet"],
-      "architecture": "arm64",
+      "name": "mac-uni",
+      "inherits": "base",
+      "displayName": "macOS Universal Binary",
+      "description": "Universal binary for macOS (ARM64 + x86_64)",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
+      },
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
-        "VCPKG_TARGET_TRIPLET": "arm64-windows",
-        "YAZE_BUILD_TESTS": "OFF"
+        "CMAKE_OSX_ARCHITECTURES": "arm64;x86_64",
+        "YAZE_BUILD_TESTS": "OFF",
+        "YAZE_ENABLE_GRPC": "OFF",
+        "YAZE_ENABLE_JSON": "ON",
+        "YAZE_ENABLE_AI": "OFF",
+        "YAZE_ENABLE_LTO": "ON",
+        "YAZE_BUILD_AGENT_UI": "OFF",
+        "YAZE_ENABLE_REMOTE_AUTOMATION": "OFF",
+        "YAZE_ENABLE_AI_RUNTIME": "OFF"
       }
-    },
-    {
-      "name": "win-dev",
-      "displayName": "Windows Dev",
-      "description": "Windows development with ROM tests",
-      "inherits": "win-dbg",
-      "cacheVariables": {
-        "YAZE_ENABLE_ROM_TESTS": "ON",
-        "YAZE_TEST_ROM_PATH": "${sourceDir}/zelda3.sfc"
-      }
-    },
-    {
-      "name": "win-ai",
-      "displayName": "1. Windows AI + z3ed",
-      "description": "Windows with AI agent (z3ed + JSON + gRPC + networking)",
-      "inherits": "win-dev",
-      "cacheVariables": {
-        "Z3ED_AI": "ON",
-        "YAZE_WITH_JSON": "ON",
-        "YAZE_WITH_GRPC": "ON",
-        "YAZE_BUILD_Z3ED": "ON",
-        "YAZE_BUILD_EMU": "ON",
-        "CMAKE_CXX_COMPILER": "cl",
-        "CMAKE_C_COMPILER": "cl"
-      }
-    },
-    {
-      "name": "win-z3ed",
-      "displayName": "2. Windows z3ed CLI",
-      "description": "Windows z3ed CLI with agent and networking support",
-      "inherits": "win-ai"
     },
     {
       "name": "lin-dbg",
+      "inherits": "base",
       "displayName": "Linux Debug",
-      "description": "Linux debug build with GCC (warnings off)",
-      "inherits": ["_base", "_unix", "_quiet"],
+      "description": "Debug build for Linux",
       "condition": {
         "type": "equals",
         "lhs": "${hostSystemName}",
@@ -288,15 +540,51 @@
       },
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
-        "CMAKE_CXX_COMPILER": "g++",
-        "CMAKE_C_COMPILER": "gcc"
+        "YAZE_BUILD_TESTS": "ON",
+        "YAZE_ENABLE_GRPC": "OFF",
+        "YAZE_ENABLE_JSON": "ON",
+        "YAZE_ENABLE_AI": "OFF",
+        "YAZE_BUILD_AGENT_UI": "OFF",
+        "YAZE_ENABLE_REMOTE_AUTOMATION": "OFF",
+        "YAZE_ENABLE_AI_RUNTIME": "OFF"
       }
     },
     {
-      "name": "lin-clang",
-      "displayName": "Linux Clang",
-      "description": "Linux debug build with Clang (warnings off)",
-      "inherits": ["_base", "_unix", "_quiet"],
+      "name": "lin-dbg-v",
+      "inherits": "lin-dbg",
+      "displayName": "Linux Debug Verbose",
+      "description": "Debug build with verbose warnings",
+      "cacheVariables": {
+        "YAZE_SUPPRESS_WARNINGS": "OFF"
+      }
+    },
+    {
+      "name": "lin-rel",
+      "inherits": "base",
+      "displayName": "Linux Release",
+      "description": "Release build for Linux",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "YAZE_BUILD_TESTS": "OFF",
+        "YAZE_ENABLE_GRPC": "OFF",
+        "YAZE_ENABLE_JSON": "ON",
+        "YAZE_ENABLE_AI": "OFF",
+        "YAZE_ENABLE_LTO": "ON",
+        "YAZE_BUILD_AGENT_UI": "OFF",
+        "YAZE_ENABLE_REMOTE_AUTOMATION": "OFF",
+        "YAZE_ENABLE_AI_RUNTIME": "OFF"
+      }
+    },
+    {
+      "name": "lin-dev",
+      "inherits": "base",
+      "displayName": "Linux Development",
+      "description": "Development build with ROM tests",
       "condition": {
         "type": "equals",
         "lhs": "${hostSystemName}",
@@ -304,201 +592,275 @@
       },
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
-        "CMAKE_CXX_COMPILER": "clang++",
-        "CMAKE_C_COMPILER": "clang"
+        "YAZE_BUILD_TESTS": "ON",
+        "YAZE_ENABLE_GRPC": "OFF",
+        "YAZE_ENABLE_JSON": "ON",
+        "YAZE_ENABLE_AI": "OFF",
+        "YAZE_ENABLE_ROM_TESTS": "ON",
+        "YAZE_BUILD_AGENT_UI": "OFF",
+        "YAZE_ENABLE_REMOTE_AUTOMATION": "OFF",
+        "YAZE_ENABLE_AI_RUNTIME": "OFF"
       }
     },
     {
-      "name": "ci",
-      "displayName": "9. CI Build",
-      "description": "Continuous integration build (no ROM tests)",
-      "inherits": ["_base", "_unix", "_quiet"],
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
-        "YAZE_ENABLE_ROM_TESTS": "OFF",
-        "YAZE_BUILD_TESTS": "ON"
-      }
-    },
-    {
-      "name": "asan",
-      "displayName": "8. AddressSanitizer",
-      "description": "Debug build with AddressSanitizer",
-      "inherits": ["_base", "_unix"],
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug",
-        "CMAKE_CXX_FLAGS": "-fsanitize=address -fno-omit-frame-pointer -g",
-        "CMAKE_C_FLAGS": "-fsanitize=address -fno-omit-frame-pointer -g",
-        "CMAKE_EXE_LINKER_FLAGS": "-fsanitize=address",
-        "CMAKE_SHARED_LINKER_FLAGS": "-fsanitize=address"
-      }
-    },
-    {
-      "name": "coverage",
-      "displayName": "7. Coverage",
-      "description": "Debug build with code coverage",
-      "inherits": ["_base", "_unix"],
+      "name": "lin-ai",
+      "inherits": "base",
+      "displayName": "Linux AI Development",
+      "description": "Full development build with AI features and gRPC",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      },
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
-        "CMAKE_CXX_FLAGS": "--coverage -g -O0",
-        "CMAKE_C_FLAGS": "--coverage -g -O0",
-        "CMAKE_EXE_LINKER_FLAGS": "--coverage"
+        "YAZE_BUILD_TESTS": "ON",
+        "YAZE_ENABLE_GRPC": "ON",
+        "YAZE_ENABLE_JSON": "ON",
+        "YAZE_ENABLE_AI": "ON",
+        "YAZE_ENABLE_ROM_TESTS": "ON",
+        "YAZE_BUILD_AGENT_UI": "ON",
+        "YAZE_ENABLE_REMOTE_AUTOMATION": "ON",
+        "YAZE_ENABLE_AI_RUNTIME": "ON"
       }
     }
   ],
   "buildPresets": [
     {
-      "name": "mac-dbg",
-      "configurePreset": "mac-dbg",
-      "displayName": "macOS Debug",
+      "name": "dev",
+      "configurePreset": "dev",
+      "displayName": "Developer Build",
       "jobs": 12
     },
     {
-      "name": "mac-dbg-v",
-      "configurePreset": "mac-dbg-v",
-      "displayName": "macOS Debug Verbose",
+      "name": "ci",
+      "configurePreset": "ci",
+      "displayName": "CI Build",
       "jobs": 12
     },
     {
-      "name": "mac-rel",
-      "configurePreset": "mac-rel",
-      "displayName": "macOS Release",
+      "name": "release",
+      "configurePreset": "release",
+      "displayName": "Release Build",
       "jobs": 12
     },
     {
-      "name": "mac-x64",
-      "configurePreset": "mac-x64",
-      "displayName": "macOS x86_64",
+      "name": "minimal",
+      "configurePreset": "minimal",
+      "displayName": "Minimal Build",
       "jobs": 12
     },
     {
-      "name": "mac-uni",
-      "configurePreset": "mac-uni",
-      "displayName": "macOS Universal",
+      "name": "ci-linux",
+      "configurePreset": "ci-linux",
+      "displayName": "CI Build - Linux",
       "jobs": 12
     },
     {
-      "name": "mac-dev",
-      "configurePreset": "mac-dev",
-      "displayName": "macOS Dev",
+      "name": "ci-macos",
+      "configurePreset": "ci-macos",
+      "displayName": "CI Build - macOS",
       "jobs": 12
     },
     {
-      "name": "mac-ai",
-      "configurePreset": "mac-ai",
-      "displayName": "macOS AI",
+      "name": "ci-windows",
+      "configurePreset": "ci-windows",
+      "displayName": "CI Build - Windows",
+      "configuration": "RelWithDebInfo",
       "jobs": 12
     },
     {
-      "name": "mac-z3ed",
-      "configurePreset": "mac-z3ed",
-      "displayName": "macOS z3ed",
+      "name": "ci-windows-ai",
+      "configurePreset": "ci-windows-ai",
+      "displayName": "CI Build - Windows (AI)",
+      "configuration": "RelWithDebInfo",
       "jobs": 12
     },
     {
-      "name": "mac-rooms",
-      "configurePreset": "mac-rooms",
-      "displayName": "macOS Rooms",
+      "name": "coverage",
+      "configurePreset": "coverage",
+      "displayName": "Coverage Build",
+      "jobs": 12
+    },
+    {
+      "name": "sanitizer",
+      "configurePreset": "sanitizer",
+      "displayName": "Sanitizer Build",
+      "jobs": 12
+    },
+    {
+      "name": "verbose",
+      "configurePreset": "verbose",
+      "displayName": "Verbose Build",
       "jobs": 12
     },
     {
       "name": "win-dbg",
       "configurePreset": "win-dbg",
-      "displayName": "Windows Debug",
+      "displayName": "Windows Debug Build",
       "configuration": "Debug",
       "jobs": 12
     },
     {
       "name": "win-dbg-v",
       "configurePreset": "win-dbg-v",
-      "displayName": "Windows Debug Verbose",
+      "displayName": "Windows Debug Verbose Build",
       "configuration": "Debug",
       "jobs": 12
     },
     {
       "name": "win-rel",
       "configurePreset": "win-rel",
-      "displayName": "Windows Release",
-      "configuration": "Release",
-      "jobs": 12
-    },
-    {
-      "name": "win-arm",
-      "configurePreset": "win-arm",
-      "displayName": "Windows ARM64",
-      "configuration": "Debug",
-      "jobs": 12
-    },
-    {
-      "name": "win-arm-rel",
-      "configurePreset": "win-arm-rel",
-      "displayName": "Windows ARM64 Release",
+      "displayName": "Windows Release Build",
       "configuration": "Release",
       "jobs": 12
     },
     {
       "name": "win-dev",
       "configurePreset": "win-dev",
-      "displayName": "Windows Dev",
+      "displayName": "Windows Development Build",
       "configuration": "Debug",
       "jobs": 12
     },
     {
       "name": "win-ai",
       "configurePreset": "win-ai",
-      "displayName": "1. Windows AI + z3ed",
+      "displayName": "Windows AI Development Build",
       "configuration": "Debug",
       "jobs": 12
     },
     {
       "name": "win-z3ed",
       "configurePreset": "win-z3ed",
-      "displayName": "2. Windows z3ed CLI",
+      "displayName": "Windows z3ed CLI Build",
+      "configuration": "Release",
+      "jobs": 12
+    },
+    {
+      "name": "win-arm",
+      "configurePreset": "win-arm",
+      "displayName": "Windows ARM64 Debug Build",
       "configuration": "Debug",
+      "jobs": 12
+    },
+    {
+      "name": "win-arm-rel",
+      "configurePreset": "win-arm-rel",
+      "displayName": "Windows ARM64 Release Build",
+      "configuration": "Release",
+      "jobs": 12
+    },
+    {
+      "name": "win-vs-dbg",
+      "configurePreset": "win-vs-dbg",
+      "displayName": "Windows Debug Build (Visual Studio)",
+      "configuration": "Debug",
+      "jobs": 12
+    },
+    {
+      "name": "win-vs-rel",
+      "configurePreset": "win-vs-rel",
+      "displayName": "Windows Release Build (Visual Studio)",
+      "configuration": "Release",
+      "jobs": 12
+    },
+    {
+      "name": "win-vs-ai",
+      "configurePreset": "win-vs-ai",
+      "displayName": "Windows AI Development Build (Visual Studio)",
+      "configuration": "Debug",
+      "jobs": 12
+    },
+    {
+      "name": "mac-dbg",
+      "configurePreset": "mac-dbg",
+      "displayName": "macOS Debug Build",
+      "configuration": "Debug",
+      "jobs": 12
+    },
+    {
+      "name": "mac-dbg-v",
+      "configurePreset": "mac-dbg-v",
+      "displayName": "macOS Debug Verbose Build",
+      "configuration": "Debug",
+      "jobs": 12
+    },
+    {
+      "name": "mac-rel",
+      "configurePreset": "mac-rel",
+      "displayName": "macOS Release Build",
+      "configuration": "Release",
+      "jobs": 12
+    },
+    {
+      "name": "mac-dev",
+      "configurePreset": "mac-dev",
+      "displayName": "macOS Development Build",
+      "configuration": "Debug",
+      "jobs": 12
+    },
+    {
+      "name": "mac-ai",
+      "configurePreset": "mac-ai",
+      "displayName": "macOS AI Development Build",
+      "configuration": "Debug",
+      "jobs": 12
+    },
+    {
+      "name": "mac-uni",
+      "configurePreset": "mac-uni",
+      "displayName": "macOS Universal Binary Build",
+      "configuration": "Release",
       "jobs": 12
     },
     {
       "name": "lin-dbg",
       "configurePreset": "lin-dbg",
-      "displayName": "Linux Debug",
+      "displayName": "Linux Debug Build",
+      "configuration": "Debug",
       "jobs": 12
     },
     {
-      "name": "lin-clang",
-      "configurePreset": "lin-clang",
-      "displayName": "Linux Clang",
+      "name": "lin-dbg-v",
+      "configurePreset": "lin-dbg-v",
+      "displayName": "Linux Debug Verbose Build",
+      "configuration": "Debug",
       "jobs": 12
     },
     {
-      "name": "ci",
-      "configurePreset": "ci",
-      "displayName": "9. CI Build",
+      "name": "lin-rel",
+      "configurePreset": "lin-rel",
+      "displayName": "Linux Release Build",
+      "configuration": "Release",
       "jobs": 12
     },
     {
-      "name": "asan",
-      "configurePreset": "asan",
-      "displayName": "8. AddressSanitizer",
+      "name": "lin-dev",
+      "configurePreset": "lin-dev",
+      "displayName": "Linux Development Build",
+      "configuration": "Debug",
       "jobs": 12
     },
     {
-      "name": "coverage",
-      "configurePreset": "coverage",
-      "displayName": "7. Coverage",
+      "name": "lin-ai",
+      "configurePreset": "lin-ai",
+      "displayName": "Linux AI Development Build",
+      "configuration": "Debug",
       "jobs": 12
     }
   ],
   "testPresets": [
     {
       "name": "all",
-      "configurePreset": "mac-dev",
-      "displayName": "Run all tests",
-      "description": "Runs all tests, including ROM-dependent and experimental tests."
+      "configurePreset": "dev",
+      "displayName": "All Tests",
+      "description": "Run all tests including ROM-dependent tests"
     },
     {
       "name": "stable",
-      "configurePreset": "ci",
-      "displayName": "Stable tests",
-      "description": "Runs tests marked with the 'stable' label.",
+      "configurePreset": "minimal",
+      "displayName": "Stable Tests",
+      "description": "Run stable tests only (no ROM dependency)",
       "filter": {
         "include": {
           "label": "stable"
@@ -506,140 +868,71 @@
       }
     },
     {
-      "name": "rom-dependent",
-      "configurePreset": "mac-dev",
-      "displayName": "ROM-dependent tests",
-      "description": "Runs tests that require a ROM file.",
+      "name": "unit",
+      "configurePreset": "minimal",
+      "displayName": "Unit Tests",
+      "description": "Run unit tests only",
       "filter": {
         "include": {
-          "label": "rom_dependent"
+          "label": "unit"
         }
       }
     },
     {
-      "name": "gui",
-      "configurePreset": "mac-dev",
-      "displayName": "GUI tests",
-      "description": "Runs GUI-based tests.",
+      "name": "integration",
+      "configurePreset": "minimal",
+      "displayName": "Integration Tests",
+      "description": "Run integration tests only",
       "filter": {
         "include": {
-          "label": "gui"
+          "label": "integration"
         }
       }
     },
     {
-      "name": "experimental",
-      "configurePreset": "mac-dev",
-      "displayName": "Experimental tests",
-      "description": "Runs tests marked as 'experimental'.",
+      "name": "stable-ai",
+      "configurePreset": "ci-windows-ai",
+      "displayName": "Stable Tests (Agent Stack)",
+      "description": "Run stable tests against the ci-windows-ai preset",
       "filter": {
         "include": {
-          "label": "experimental"
+          "label": "stable"
         }
       }
     },
     {
-      "name": "benchmark",
-      "configurePreset": "mac-rel",
-      "displayName": "Benchmark tests",
-      "description": "Runs performance benchmark tests.",
+      "name": "unit-ai",
+      "configurePreset": "ci-windows-ai",
+      "displayName": "Unit Tests (Agent Stack)",
+      "description": "Run unit tests against the ci-windows-ai preset",
       "filter": {
         "include": {
-          "label": "benchmark"
+          "label": "unit"
+        }
+      }
+    },
+    {
+      "name": "integration-ai",
+      "configurePreset": "ci-windows-ai",
+      "displayName": "Integration Tests (Agent Stack)",
+      "description": "Run integration tests against the ci-windows-ai preset",
+      "filter": {
+        "include": {
+          "label": "integration"
         }
       }
     }
   ],
   "packagePresets": [
     {
-      "name": "mac",
-      "configurePreset": "mac-rel",
-      "displayName": "macOS Package (ARM64)"
-    },
-    {
-      "name": "mac-uni",
-      "configurePreset": "mac-uni",
-      "displayName": "macOS Package (Universal)"
-    },
-    {
-      "name": "win",
-      "configurePreset": "win-rel",
-      "displayName": "Windows Package (x64)"
-    },
-    {
-      "name": "win-arm",
-      "configurePreset": "win-arm-rel",
-      "displayName": "Windows Package (ARM64)"
-    }
-  ],
-  "workflowPresets": [
-    {
-      "name": "dev",
-      "displayName": "Development Workflow",
-      "steps": [
-        {
-          "type": "configure",
-          "name": "mac-dev"
-        },
-        {
-          "type": "build",
-          "name": "mac-dev"
-        },
-        {
-          "type": "test",
-          "name": "all"
-        }
-      ]
-    },
-    {
-      "name": "ci",
-      "displayName": "CI Workflow",
-      "steps": [
-        {
-          "type": "configure",
-          "name": "ci"
-        },
-        {
-          "type": "build",
-          "name": "ci"
-        },
-        {
-          "type": "test",
-          "name": "stable"
-        }
-      ]
-    },
-    {
       "name": "release",
-      "displayName": "Release Workflow",
-      "steps": [
-        {
-          "type": "configure",
-          "name": "mac-uni"
-        },
-        {
-          "type": "build",
-          "name": "mac-uni"
-        },
-        {
-          "type": "package",
-          "name": "mac-uni"
-        }
-      ]
+      "configurePreset": "release",
+      "displayName": "Release Package"
     },
     {
-      "name": "format-check",
-      "displayName": "Check Code Formatting",
-      "steps": [
-        {
-          "type": "configure",
-          "name": "mac-dev"
-        },
-        {
-          "type": "build",
-          "name": "mac-dev"
-        }
-      ]
+      "name": "minimal",
+      "configurePreset": "minimal",
+      "displayName": "Minimal Package"
     }
   ]
 }

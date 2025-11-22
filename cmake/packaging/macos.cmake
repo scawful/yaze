@@ -1,0 +1,24 @@
+# macOS Packaging Configuration
+
+# Create .dmg package
+set(CPACK_GENERATOR "DragNDrop")
+set(CPACK_DMG_VOLUME_NAME "yaze")
+set(CPACK_DMG_FORMAT "UDZO")
+set(CPACK_DMG_BACKGROUND_IMAGE "${CMAKE_SOURCE_DIR}/assets/yaze.png")
+
+# App bundle configuration
+set(CPACK_BUNDLE_NAME "yaze")
+set(CPACK_BUNDLE_PACKAGE_TYPE "APPL")
+set(CPACK_BUNDLE_ICON "${CMAKE_SOURCE_DIR}/assets/yaze.icns")
+
+# Code signing (if available)
+if(DEFINED ENV{CODESIGN_IDENTITY})
+  set(CPACK_BUNDLE_APPLE_CERT_APP "$ENV{CODESIGN_IDENTITY}")
+  set(CPACK_BUNDLE_APPLE_CODESIGN_FORCE "ON")
+endif()
+
+# Notarization (if available)
+if(DEFINED ENV{NOTARIZATION_CREDENTIALS})
+  set(CPACK_BUNDLE_APPLE_NOTARIZATION_CREDENTIALS "$ENV{NOTARIZATION_CREDENTIALS}")
+endif()
+

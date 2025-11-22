@@ -3,8 +3,8 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include <cstdint>
 #include <array>
+#include <cstdint>
 
 #include "absl/status/statusor.h"
 #include "app/rom.h"
@@ -172,7 +172,8 @@ TEST(LC_LZ2_CompressionTest, CompressionSingleSet) {
 TEST(LC_LZ2_CompressionTest, CompressionSingleWord) {
   Rom rom;
   uint8_t single_word[6] = {0x2A, 0x01, 0x2A, 0x01, 0x2A, 0x01};
-  uint8_t single_word_expected[4] = {BUILD_HEADER(0x02, 0x06), 0x2A, 0x01, 0xFF};
+  uint8_t single_word_expected[4] = {BUILD_HEADER(0x02, 0x06), 0x2A, 0x01,
+                                     0xFF};
 
   auto comp_result = ExpectCompressOk(rom, single_word, 6);
   EXPECT_THAT(single_word_expected, ElementsAreArray(comp_result.data(), 4));
@@ -412,16 +413,16 @@ TEST(LC_LZ2_CompressionTest, DecompressionValidCommand) {
 TEST(LC_LZ2_CompressionTest, DecompressionMixingCommand) {
   Rom rom;
   uint8_t random1_i[11] = {BUILD_HEADER(0x01, 0x03),
-                         0x2A,
-                         BUILD_HEADER(0x00, 0x04),
-                         0x01,
-                         0x02,
-                         0x03,
-                         0x04,
-                         BUILD_HEADER(0x02, 0x02),
-                         0x0B,
-                         0x16,
-                         0xFF};
+                           0x2A,
+                           BUILD_HEADER(0x00, 0x04),
+                           0x01,
+                           0x02,
+                           0x03,
+                           0x04,
+                           BUILD_HEADER(0x02, 0x02),
+                           0x0B,
+                           0x16,
+                           0xFF};
   uint8_t random1_o[9] = {42, 42, 42, 1, 2, 3, 4, 11, 22};
   auto decomp_result = ExpectDecompressOk(rom, random1_i, 11);
   EXPECT_THAT(random1_o, ElementsAreArray(decomp_result.data(), 9));

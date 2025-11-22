@@ -4,10 +4,6 @@
 #ifndef YAZE_CLI_SERVICE_GUI_AUTOMATION_CLIENT_H
 #define YAZE_CLI_SERVICE_GUI_AUTOMATION_CLIENT_H
 
-#include "absl/status/status.h"
-#include "absl/status/statusor.h"
-#include "absl/time/time.h"
-
 #include <chrono>
 #include <cstdint>
 #include <map>
@@ -15,6 +11,10 @@
 #include <optional>
 #include <string>
 #include <vector>
+
+#include "absl/status/status.h"
+#include "absl/status/statusor.h"
+#include "absl/time/time.h"
 
 #ifdef YAZE_WITH_GRPC
 // Undefine Windows macros that conflict with protobuf generated code
@@ -26,6 +26,7 @@
 #endif  // _WIN32
 
 #include <grpcpp/grpcpp.h>
+
 #include "protos/imgui_test_harness.grpc.pb.h"
 
 // Restore Windows macros
@@ -41,12 +42,7 @@ namespace cli {
 /**
  * @brief Type of click action to perform
  */
-enum class ClickType {
-  kLeft,
-  kRight,
-  kMiddle,
-  kDouble
-};
+enum class ClickType { kLeft, kRight, kMiddle, kDouble };
 
 /**
  * @brief Result of a GUI automation action
@@ -222,18 +218,18 @@ struct DiscoverWidgetsResult {
 
 /**
  * @brief Client for automating YAZE GUI through gRPC
- * 
+ *
  * This client wraps the ImGuiTestHarness gRPC service and provides
  * a C++ API for CLI commands to drive the YAZE GUI remotely.
- * 
+ *
  * Example usage:
  * @code
  *   GuiAutomationClient client("localhost:50052");
  *   RETURN_IF_ERROR(client.Connect());
- *   
+ *
  *   auto result = client.Click("button:Overworld", ClickType::kLeft);
  *   if (!result.ok()) return result.status();
- *   
+ *
  *   if (!result->success) {
  *     return absl::InternalError(result->message);
  *   }
@@ -243,7 +239,8 @@ class GuiAutomationClient {
  public:
   /**
    * @brief Construct a new GUI automation client
-   * @param server_address Address of the test harness server (e.g., "localhost:50052")
+   * @param server_address Address of the test harness server (e.g.,
+   * "localhost:50052")
    */
   explicit GuiAutomationClient(const std::string& server_address);
 
@@ -304,8 +301,8 @@ class GuiAutomationClient {
    * @param format Image format ("PNG", "JPEG")
    * @return Result with file path if successful
    */
-  absl::StatusOr<AutomationResult> Screenshot(const std::string& region = "full",
-                                               const std::string& format = "PNG");
+  absl::StatusOr<AutomationResult> Screenshot(
+      const std::string& region = "full", const std::string& format = "PNG");
 
   /**
    * @brief Fetch the current execution status for a harness test
@@ -315,9 +312,9 @@ class GuiAutomationClient {
   /**
    * @brief Enumerate harness tests with optional filtering
    */
-  absl::StatusOr<ListTestsResult> ListTests(const std::string& category_filter = "",
-                                            int page_size = 100,
-                                            const std::string& page_token = "");
+  absl::StatusOr<ListTestsResult> ListTests(
+      const std::string& category_filter = "", int page_size = 100,
+      const std::string& page_token = "");
 
   /**
    * @brief Retrieve detailed results for a harness test execution
@@ -329,17 +326,15 @@ class GuiAutomationClient {
       const DiscoverWidgetsQuery& query);
 
   absl::StatusOr<ReplayTestResult> ReplayTest(
-    const std::string& script_path, bool ci_mode,
-    const std::map<std::string, std::string>& parameter_overrides = {});
+      const std::string& script_path, bool ci_mode,
+      const std::map<std::string, std::string>& parameter_overrides = {});
 
   absl::StatusOr<StartRecordingResult> StartRecording(
-      const std::string& output_path,
-      const std::string& session_name,
+      const std::string& output_path, const std::string& session_name,
       const std::string& description);
 
   absl::StatusOr<StopRecordingResult> StopRecording(
-      const std::string& recording_id,
-      bool discard = false);
+      const std::string& recording_id, bool discard = false);
 
   /**
    * @brief Check if client is connected
