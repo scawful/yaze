@@ -141,15 +141,23 @@ set(CPACK_COMPONENT_DOCUMENTATION_DISPLAY_NAME "Documentation")
 set(CPACK_COMPONENT_DOCUMENTATION_DESCRIPTION "User and developer documentation")
 set(CPACK_COMPONENT_DOCUMENTATION_REQUIRED FALSE)
 
-# Windows uses a flat structure (no bin/, share/ subdirectories)
+# Platform-specific install paths
+# The asset paths must match what platform_paths.cc FindAsset() searches for
 if(WIN32)
+    # Windows: flat structure (exe and assets/ at same level)
+    set(YAZE_INSTALL_BINDIR ".")
+    set(YAZE_INSTALL_DATADIR ".")
+    set(YAZE_INSTALL_DOCDIR ".")
+elseif(APPLE)
+    # macOS: flat structure for DMG (app bundle handles its own resources)
     set(YAZE_INSTALL_BINDIR ".")
     set(YAZE_INSTALL_DATADIR ".")
     set(YAZE_INSTALL_DOCDIR ".")
 else()
+    # Linux: FHS structure - assets at share/yaze/assets (matches FindAsset search)
     set(YAZE_INSTALL_BINDIR ${CMAKE_INSTALL_BINDIR})
-    set(YAZE_INSTALL_DATADIR ${CMAKE_INSTALL_DATADIR})
-    set(YAZE_INSTALL_DOCDIR ${CMAKE_INSTALL_DOCDIR})
+    set(YAZE_INSTALL_DATADIR "${CMAKE_INSTALL_DATADIR}/yaze")
+    set(YAZE_INSTALL_DOCDIR "${CMAKE_INSTALL_DOCDIR}")
 endif()
 
 # Installation components

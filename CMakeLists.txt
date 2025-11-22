@@ -38,7 +38,7 @@ endif()
 # Set project metadata
 set(YAZE_VERSION_MAJOR 0)
 set(YAZE_VERSION_MINOR 3)
-set(YAZE_VERSION_PATCH 4)
+set(YAZE_VERSION_PATCH 5)
 
 # Suppress deprecation warnings from submodules
 set(CMAKE_WARN_DEPRECATED OFF CACHE BOOL "Suppress deprecation warnings")
