@@ -18,8 +18,17 @@ endif()
 # Yaze Application Executable
 # ==============================================================================
 
+# controller.cc is built here (not in yaze_app_core_lib) because it uses
+# EditorManager, DockSpaceRenderer, and WidgetIdRegistry from yaze_editor/yaze_gui.
+# Including it in yaze_app_core_lib would create a dependency cycle:
+# yaze_agent -> yaze_app_core_lib -> yaze_editor -> yaze_agent
+set(YAZE_APP_EXECUTABLE_SRC
+  app/main.cc
+  app/controller.cc
+)
+
 if (APPLE)
-  add_executable(yaze MACOSX_BUNDLE app/main.cc ${YAZE_RESOURCE_FILES})
+  add_executable(yaze MACOSX_BUNDLE ${YAZE_APP_EXECUTABLE_SRC} ${YAZE_RESOURCE_FILES})
 
   set(ICON_FILE "${CMAKE_SOURCE_DIR}/assets/yaze.icns")
   target_sources(yaze PRIVATE ${ICON_FILE})
@@ -34,7 +43,7 @@ if (APPLE)
     MACOSX_BUNDLE_SHORT_VERSION_STRING "${PROJECT_VERSION}"
   )
 else()
-  add_executable(yaze app/main.cc)
+  add_executable(yaze ${YAZE_APP_EXECUTABLE_SRC})
   if(WIN32 OR UNIX)
     target_sources(yaze PRIVATE ${YAZE_RESOURCE_FILES})
   endif()

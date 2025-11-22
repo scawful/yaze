@@ -254,6 +254,17 @@ absl::StatusOr<std::filesystem::path> PlatformPaths::FindAsset(
         // Also check parent (for build/bin/yaze case)
         search_paths.push_back(cached_exe_dir.parent_path() / "assets" /
                                relative_path);
+#ifdef __APPLE__
+        // macOS app bundle: exe is at yaze.app/Contents/MacOS/yaze
+        // Assets may be at yaze.app/Contents/Resources/assets/ (inside bundle)
+        // or at ../../../assets/ (same level as .app bundle in DMG)
+        auto contents_dir = cached_exe_dir.parent_path();  // Contents/
+        auto bundle_dir = contents_dir.parent_path();       // yaze.app/
+        auto bundle_parent = bundle_dir.parent_path();      // DMG root
+        search_paths.push_back(contents_dir / "Resources" / "assets" /
+                               relative_path);
+        search_paths.push_back(bundle_parent / "assets" / relative_path);
+#endif
       } catch (...) {
         // Skip if path construction fails
       }

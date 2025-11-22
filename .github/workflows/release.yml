@@ -87,25 +87,31 @@ jobs:
           print("Patched cmake_install.cmake to handle missing dependency install scripts")
           EOF
 
+      - name: Clean old packages before CPack
+        shell: bash
+        run: |
+          echo "Cleaning old package files to ensure fresh generation"
+          rm -f build/*.deb build/*.tar.gz build/*.dmg build/*.zip build/*.exe build/packages/*
+
       - name: Package artifacts (Linux)
         if: matrix.platform == 'linux'
         run: |
           cd build
           cpack -G DEB -G TGZ
-          echo "=== Contents of build directory ==="
-          ls -la
+          echo "=== Contents of packages directory ==="
+          ls -la packages/ 2>/dev/null || echo "No packages directory"
           echo "=== Package files created ==="
-          ls -la *.deb *.tar.gz 2>/dev/null || echo "No packages found in build/"
+          ls -la packages/*.deb packages/*.tar.gz 2>/dev/null || echo "No packages found"
 
       - name: Package artifacts (macOS)
         if: matrix.platform == 'macos'
         run: |
           cd build
           cpack -G DragNDrop
-          echo "=== Contents of build directory ==="
-          ls -la
+          echo "=== Contents of packages directory ==="
+          ls -la packages/ 2>/dev/null || echo "No packages directory"
           echo "=== Package files created ==="
-          ls -la *.dmg 2>/dev/null || echo "No packages found in build/"
+          ls -la packages/*.dmg 2>/dev/null || echo "No packages found"
 
       - name: Create notarized bundle (macOS)
         if: matrix.platform == 'macos'
@@ -114,7 +120,8 @@ jobs:
           chmod +x ./scripts/create-macos-bundle.sh
           ./scripts/create-macos-bundle.sh ${{ env.VERSION }} yaze-${{ env.VERSION }}-bundle || true
           if [ -f "yaze-${{ env.VERSION }}-bundle.dmg" ]; then
-            mv yaze-${{ env.VERSION }}-bundle.dmg build/
+            mkdir -p build/packages
+            mv yaze-${{ env.VERSION }}-bundle.dmg build/packages/
           fi
 
       - name: Patch cmake_install.cmake (Windows)
@@ -135,21 +142,21 @@ jobs:
         run: |
           cd build
           cpack -G NSIS -G ZIP
-          Write-Host "=== Contents of build directory ==="
-          Get-ChildItem
+          Write-Host "=== Contents of packages directory ==="
+          Get-ChildItem packages -ErrorAction SilentlyContinue
           Write-Host "=== Package files created ==="
-          Get-ChildItem *.exe, *.zip -ErrorAction SilentlyContinue
+          Get-ChildItem packages/*.exe, packages/*.zip -ErrorAction SilentlyContinue
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
           name: yaze-${{ matrix.platform }}-${{ env.VERSION }}
           path: |
-            build/*.deb
-            build/*.tar.gz
-            build/*.dmg
-            build/*.exe
-            build/*.zip
+            build/packages/*.deb
+            build/packages/*.tar.gz
+            build/packages/*.dmg
+            build/packages/*.exe
+            build/packages/*.zip
           if-no-files-found: warn
           retention-days: 30
 
