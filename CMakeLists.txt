@@ -15,11 +15,11 @@ cmake_policy(SET CMP0077 NEW)
 
 # Enable Objective-C only on macOS where it's actually used
 if(CMAKE_SYSTEM_NAME MATCHES "Darwin")
-    project(yaze VERSION 0.3.6
+    project(yaze VERSION 0.3.7
                  DESCRIPTION "Yet Another Zelda3 Editor"
                  LANGUAGES CXX C OBJC OBJCXX)
 else()
-    project(yaze VERSION 0.3.6
+    project(yaze VERSION 0.3.7
                  DESCRIPTION "Yet Another Zelda3 Editor"
                  LANGUAGES CXX C)
 endif()
@@ -38,7 +38,7 @@ endif()
 # Set project metadata
 set(YAZE_VERSION_MAJOR 0)
 set(YAZE_VERSION_MINOR 3)
-set(YAZE_VERSION_PATCH 6)
+set(YAZE_VERSION_PATCH 7)
 
 # Suppress deprecation warnings from submodules
 set(CMAKE_WARN_DEPRECATED OFF CACHE BOOL "Suppress deprecation warnings")

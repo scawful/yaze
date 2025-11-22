@@ -87,6 +87,12 @@ jobs:
           print("Patched cmake_install.cmake to handle missing dependency install scripts")
           EOF
 
+      - name: Clean old packages before CPack
+        shell: bash
+        run: |
+          echo "Cleaning old package files to ensure fresh generation"
+          rm -f build/*.deb build/*.tar.gz build/*.dmg build/*.zip build/*.exe build/packages/*
+
       - name: Package artifacts (Linux)
         if: matrix.platform == 'linux'
         run: |
