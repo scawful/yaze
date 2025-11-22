@@ -1,7 +1,7 @@
 # CPack Configuration
 # Cross-platform packaging using CPack
-
-include(CPack)
+# NOTE: include(CPack) MUST be called at the END of this file,
+# after all CPACK_ variables and install() rules are defined.
 
 # Set package information
 set(CPACK_PACKAGE_NAME "yaze")
@@ -85,4 +85,8 @@ install(FILES
     DESTINATION ${YAZE_INSTALL_DOCDIR}
     COMPONENT yaze
 )
+
+# IMPORTANT: include(CPack) must be called LAST, after all CPACK_ variables
+# and install() rules are defined. This is a CPack requirement.
+include(CPack)
 
