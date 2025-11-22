@@ -7,6 +7,7 @@
 #include "absl/strings/str_format.h"
 #include "app/emu/debug/breakpoint_manager.h"
 #include "app/emu/debug/disassembly_viewer.h"
+#include "app/emu/debug/step_controller.h"
 #include "app/emu/debug/watchpoint_manager.h"
 #include "app/emu/emulator.h"
 #include "app/emu/input/input_backend.h"  // Required for SnesButton enum
@@ -534,17 +535,105 @@ grpc::Status EmulatorServiceImpl::RunToBreakpoint(
 grpc::Status EmulatorServiceImpl::StepOver(grpc::ServerContext* context,
                                            const Empty* request,
                                            StepResponse* response) {
-  // TODO: Implement step-over (step, but skip over JSR/JSL calls)
-  return grpc::Status(grpc::StatusCode::UNIMPLEMENTED,
-                      "StepOver not yet implemented");
+  if (!emulator_ || !emulator_->is_snes_initialized()) {
+    return grpc::Status(grpc::StatusCode::UNAVAILABLE,
+                        "SNES is not initialized.");
+  }
+
+  // Use StepController for step-over functionality
+  emu::StepController controller(&emulator_->snes());
+
+  // Configure stepping
+  emu::StepConfig config;
+  config.max_instructions = 100000;  // Safety limit
+  config.track_call_stack = true;
+  controller.SetConfig(config);
+
+  auto result = controller.StepOver();
+  if (!result.ok()) {
+    return grpc::Status(grpc::StatusCode::INTERNAL,
+                        std::string(result.status().message()));
+  }
+
+  // Populate response with step results
+  response->set_pc(result->final_pc);
+  response->set_cycles_executed(result->cycles_executed);
+  response->set_instruction_count(result->instructions_executed);
+  response->set_stop_reason(result->stop_reason);
+
+  // Include CPU state
+  auto* cpu_state = response->mutable_cpu_state();
+  auto& cpu = emulator_->snes().cpu();
+  cpu_state->set_a(cpu.A);
+  cpu_state->set_x(cpu.X);
+  cpu_state->set_y(cpu.Y);
+  cpu_state->set_sp(cpu.SP);
+  cpu_state->set_db(cpu.DB);
+  cpu_state->set_dp(cpu.DP);
+  cpu_state->set_pb(cpu.PB);
+  cpu_state->set_pc(cpu.PC);
+  cpu_state->set_status(cpu.status);
+  cpu_state->set_emulation_mode(cpu.E);
+
+  response->set_success(result->completed);
+  response->set_message(
+      absl::StrFormat("Step-over completed: PC=$%06X, %d instructions, %llu cycles",
+                      result->final_pc, result->instructions_executed,
+                      result->cycles_executed));
+
+  return grpc::Status::OK;
 }
 
 grpc::Status EmulatorServiceImpl::StepOut(grpc::ServerContext* context,
                                           const Empty* request,
                                           StepResponse* response) {
-  // TODO: Implement step-out (run until RTS/RTL)
-  return grpc::Status(grpc::StatusCode::UNIMPLEMENTED,
-                      "StepOut not yet implemented");
+  if (!emulator_ || !emulator_->is_snes_initialized()) {
+    return grpc::Status(grpc::StatusCode::UNAVAILABLE,
+                        "SNES is not initialized.");
+  }
+
+  // Use StepController for step-out functionality
+  emu::StepController controller(&emulator_->snes());
+
+  // Configure stepping
+  emu::StepConfig config;
+  config.max_instructions = 1000000;  // Higher limit for step-out
+  config.track_call_stack = true;
+  controller.SetConfig(config);
+
+  auto result = controller.StepOut();
+  if (!result.ok()) {
+    return grpc::Status(grpc::StatusCode::INTERNAL,
+                        std::string(result.status().message()));
+  }
+
+  // Populate response with step results
+  response->set_pc(result->final_pc);
+  response->set_cycles_executed(result->cycles_executed);
+  response->set_instruction_count(result->instructions_executed);
+  response->set_stop_reason(result->stop_reason);
+
+  // Include CPU state
+  auto* cpu_state = response->mutable_cpu_state();
+  auto& cpu = emulator_->snes().cpu();
+  cpu_state->set_a(cpu.A);
+  cpu_state->set_x(cpu.X);
+  cpu_state->set_y(cpu.Y);
+  cpu_state->set_sp(cpu.SP);
+  cpu_state->set_db(cpu.DB);
+  cpu_state->set_dp(cpu.DP);
+  cpu_state->set_pb(cpu.PB);
+  cpu_state->set_pc(cpu.PC);
+  cpu_state->set_status(cpu.status);
+  cpu_state->set_emulation_mode(cpu.E);
+
+  response->set_success(result->completed);
+  response->set_message(
+      absl::StrFormat("Step-out completed: PC=$%06X, %d instructions, %llu cycles",
+                      result->final_pc, result->instructions_executed,
+                      result->cycles_executed));
+
+  return grpc::Status::OK;
 }
 
 // Disassembly
