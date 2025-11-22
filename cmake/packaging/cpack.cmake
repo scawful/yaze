@@ -36,23 +36,34 @@ set(CPACK_COMPONENT_YAZE_DESCRIPTION "Main YAZE application and libraries")
 # Install rules - these define what CPack packages
 include(GNUInstallDirs)
 
+# Windows uses a flat structure (no bin/, share/ subdirectories)
+if(WIN32)
+    set(YAZE_INSTALL_BINDIR ".")
+    set(YAZE_INSTALL_DATADIR ".")
+    set(YAZE_INSTALL_DOCDIR ".")
+else()
+    set(YAZE_INSTALL_BINDIR ${CMAKE_INSTALL_BINDIR})
+    set(YAZE_INSTALL_DATADIR ${CMAKE_INSTALL_DATADIR})
+    set(YAZE_INSTALL_DOCDIR ${CMAKE_INSTALL_DOCDIR})
+endif()
+
 # Install main executable
 if(APPLE)
     install(TARGETS yaze
-        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+        RUNTIME DESTINATION ${YAZE_INSTALL_BINDIR}
         BUNDLE DESTINATION .
         COMPONENT yaze
     )
 else()
     install(TARGETS yaze
-        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+        RUNTIME DESTINATION ${YAZE_INSTALL_BINDIR}
         COMPONENT yaze
     )
 endif()
 
 # Install assets
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/assets/
-    DESTINATION ${CMAKE_INSTALL_DATADIR}/yaze/assets
+    DESTINATION ${YAZE_INSTALL_DATADIR}/assets
     COMPONENT yaze
     PATTERN "*.png"
     PATTERN "*.ttf"
@@ -63,7 +74,7 @@ install(DIRECTORY ${CMAKE_SOURCE_DIR}/assets/
 install(FILES
     ${CMAKE_SOURCE_DIR}/README.md
     ${CMAKE_SOURCE_DIR}/LICENSE
-    DESTINATION ${CMAKE_INSTALL_DOCDIR}
+    DESTINATION ${YAZE_INSTALL_DOCDIR}
     COMPONENT yaze
 )
 
