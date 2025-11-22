@@ -68,6 +68,36 @@ jobs:
           preset: ${{ matrix.preset }}
           build-type: Release
 
+      - name: Code sign & notarize macOS app (optional)
+        if: matrix.platform == 'macos' && secrets.MACOS_SIGNING_IDENTITY != ''
+        env:
+          MACOS_SIGNING_IDENTITY: ${{ secrets.MACOS_SIGNING_IDENTITY }}
+          MACOS_NOTARIZE_APPLE_ID: ${{ secrets.MACOS_NOTARIZE_APPLE_ID }}
+          MACOS_NOTARIZE_TEAM_ID: ${{ secrets.MACOS_NOTARIZE_TEAM_ID }}
+          MACOS_NOTARIZE_PASSWORD: ${{ secrets.MACOS_NOTARIZE_PASSWORD }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          APP="build/bin/yaze.app"
+          if [[ ! -d "$APP" ]]; then
+            echo "::error::yaze.app not found at $APP"
+            exit 1
+          fi
+          echo "Signing $APP with identity: $MACOS_SIGNING_IDENTITY"
+          codesign --deep --force --options runtime --timestamp --sign "$MACOS_SIGNING_IDENTITY" "$APP"
+          if [[ -n "${MACOS_NOTARIZE_APPLE_ID:-}" && -n "${MACOS_NOTARIZE_TEAM_ID:-}" && -n "${MACOS_NOTARIZE_PASSWORD:-}" ]]; then
+            echo "Submitting $APP for notarization..."
+            xcrun notarytool submit "$APP" \
+              --apple-id "$MACOS_NOTARIZE_APPLE_ID" \
+              --team-id "$MACOS_NOTARIZE_TEAM_ID" \
+              --password "$MACOS_NOTARIZE_PASSWORD" \
+              --wait
+            echo "Stapling notarization ticket..."
+            xcrun stapler staple "$APP"
+          else
+            echo "Notarization credentials not provided; skipping notarization"
+          fi
+
       - name: Patch cmake_install.cmake (Unix)
         if: matrix.platform == 'linux' || matrix.platform == 'macos'
         shell: bash
