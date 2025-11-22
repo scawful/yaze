@@ -35,10 +35,12 @@ if(CCACHE_FOUND)
     set(CMAKE_C_COMPILER_LAUNCHER ccache)
 endif()
 
-# Set project metadata
-set(YAZE_VERSION_MAJOR 0)
-set(YAZE_VERSION_MINOR 3)
-set(YAZE_VERSION_PATCH 7)
+# Version is defined in project() above - use those variables
+# CMake automatically sets: yaze_VERSION, yaze_VERSION_MAJOR, yaze_VERSION_MINOR, yaze_VERSION_PATCH
+# These YAZE_VERSION_* aliases are for compatibility with existing code
+set(YAZE_VERSION_MAJOR ${yaze_VERSION_MAJOR})
+set(YAZE_VERSION_MINOR ${yaze_VERSION_MINOR})
+set(YAZE_VERSION_PATCH ${yaze_VERSION_PATCH})
 
 # Suppress deprecation warnings from submodules
 set(CMAKE_WARN_DEPRECATED OFF CACHE BOOL "Suppress deprecation warnings")
