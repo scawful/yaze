@@ -5,9 +5,9 @@
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
+#include "app/transaction.h"
 #include "mocks/mock_rom.h"
 #include "testing.h"
-#include "app/transaction.h"
 
 namespace yaze {
 namespace test {
@@ -196,7 +196,8 @@ TEST_F(RomTest, SaveTruncatesExistingFile) {
 #if defined(__linux__)
   GTEST_SKIP();
 #endif
-  // Prepare ROM data and save to a temp file twice; second save should overwrite, not append
+  // Prepare ROM data and save to a temp file twice; second save should
+  // overwrite, not append
   EXPECT_OK(rom_.LoadFromData(kMockRomData, /*z3_load=*/false));
 
   const char* tmp_name = "test_temp_rom.sfc";
@@ -211,7 +212,8 @@ TEST_F(RomTest, SaveTruncatesExistingFile) {
   EXPECT_OK(rom_.WriteByte(0, 0xEE));
   EXPECT_OK(rom_.SaveToFile(settings));
 
-  // Load the saved file and verify size equals original data size and first byte matches
+  // Load the saved file and verify size equals original data size and first
+  // byte matches
   Rom verify;
   EXPECT_OK(verify.LoadFromFile(tmp_name, /*z3_load=*/false));
   EXPECT_EQ(verify.size(), kMockRomData.size());
@@ -224,9 +226,10 @@ TEST_F(RomTest, TransactionRollbackRestoresOriginals) {
   EXPECT_OK(rom_.LoadFromData(kMockRomData, /*z3_load=*/false));
   // Force an out-of-range write to trigger failure after a successful write
   yaze::Transaction tx{rom_};
-  auto status = tx.WriteByte(0x01, 0xAA)  // valid
-                   .WriteWord(0xFFFF, 0xBBBB)  // invalid: should fail and rollback
-                   .Commit();
+  auto status =
+      tx.WriteByte(0x01, 0xAA)        // valid
+          .WriteWord(0xFFFF, 0xBBBB)  // invalid: should fail and rollback
+          .Commit();
   EXPECT_FALSE(status.ok());
   auto b1 = rom_.ReadByte(0x01);
   ASSERT_TRUE(b1.ok());

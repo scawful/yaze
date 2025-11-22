@@ -23,16 +23,16 @@ struct WidgetState {
   std::vector<std::string> open_popups;
   int frame_count = 0;
   float frame_rate = 0.0f;
-  
+
   // Navigation state
   ImGuiID nav_id = 0;
   bool nav_active = false;
-  
+
   // Input state
   bool mouse_down[5] = {false};
   float mouse_pos_x = 0.0f;
   float mouse_pos_y = 0.0f;
-  
+
   // Keyboard state
   bool ctrl_pressed = false;
   bool shift_pressed = false;

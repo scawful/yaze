@@ -12,14 +12,13 @@
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
-#include "absl/synchronization/mutex.h"
 #include "absl/strings/string_view.h"
+#include "absl/synchronization/mutex.h"
 #include "absl/time/time.h"
 #include "app/rom.h"
 
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include "imgui.h"
-
 #include "util/log.h"
 
 // Forward declarations
@@ -147,7 +146,7 @@ struct HarnessTestExecution {
   std::vector<std::string> assertion_failures;
   std::vector<std::string> logs;
   std::map<std::string, int32_t> metrics;
-  
+
   // IT-08b: Failure diagnostics
   std::string screenshot_path;
   int64_t screenshot_size_bytes = 0;
@@ -292,7 +291,7 @@ class TestManager {
   std::vector<HarnessTestSummary> ListHarnessTestSummaries(
       const std::string& category_filter = "") const
       ABSL_LOCKS_EXCLUDED(harness_history_mutex_);
-  
+
   // IT-08b: Capture failure diagnostics
   void CaptureFailureContext(const std::string& test_id)
       ABSL_LOCKS_EXCLUDED(harness_history_mutex_);
@@ -307,7 +306,7 @@ class TestManager {
   void CaptureFailureContext(const std::string& test_id);
   absl::Status ReplayLastPlan();
 #endif
-  
+
   // These methods are always available
   absl::Status ShowHarnessDashboard();
   absl::Status ShowHarnessActiveTests();
@@ -371,19 +370,19 @@ class TestManager {
   // Harness test tracking
 #if defined(YAZE_WITH_GRPC)
   struct HarnessAggregate {
-  int total_runs = 0;
-  int pass_count = 0;
-  int fail_count = 0;
-  absl::Duration total_duration = absl::ZeroDuration();
+    int total_runs = 0;
+    int pass_count = 0;
+    int fail_count = 0;
+    absl::Duration total_duration = absl::ZeroDuration();
     std::string category;
     absl::Time last_run;
     HarnessTestExecution latest_execution;
   };
 
   std::unordered_map<std::string, HarnessTestExecution> harness_history_
-    ABSL_GUARDED_BY(harness_history_mutex_);
+      ABSL_GUARDED_BY(harness_history_mutex_);
   std::unordered_map<std::string, HarnessAggregate> harness_aggregates_
-    ABSL_GUARDED_BY(harness_history_mutex_);
+      ABSL_GUARDED_BY(harness_history_mutex_);
   std::deque<std::string> harness_history_order_;
   size_t harness_history_limit_ = 200;
   mutable absl::Mutex harness_history_mutex_;
@@ -400,7 +399,6 @@ class TestManager {
 #endif
 
   absl::Mutex mutex_;
-
 };
 
 // Utility functions for test result formatting

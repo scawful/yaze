@@ -9,26 +9,28 @@ namespace yaze {
 namespace editor {
 
 // Macro for checking ROM loading state in editor methods
-#define REQUIRE_ROM_LOADED(rom_ptr, operation) \
-  do { \
-    if (!(rom_ptr) || !(rom_ptr)->is_loaded()) { \
-      return absl::FailedPreconditionError( \
+#define REQUIRE_ROM_LOADED(rom_ptr, operation)                 \
+  do {                                                         \
+    if (!(rom_ptr) || !(rom_ptr)->is_loaded()) {               \
+      return absl::FailedPreconditionError(                    \
           absl::StrFormat("%s: ROM not loaded", (operation))); \
-    } \
+    }                                                          \
   } while (0)
 
 // Macro for ROM state checking with custom error message
-#define CHECK_ROM_STATE(rom_ptr, message) \
-  do { \
-    if (!(rom_ptr) || !(rom_ptr)->is_loaded()) { \
+#define CHECK_ROM_STATE(rom_ptr, message)            \
+  do {                                               \
+    if (!(rom_ptr) || !(rom_ptr)->is_loaded()) {     \
       return absl::FailedPreconditionError(message); \
-    } \
+    }                                                \
   } while (0)
 
 // Helper function for generating consistent ROM status messages
 inline std::string GetRomStatusMessage(const Rom* rom) {
-  if (!rom) return "No ROM loaded";
-  if (!rom->is_loaded()) return "ROM failed to load";
+  if (!rom)
+    return "No ROM loaded";
+  if (!rom->is_loaded())
+    return "ROM failed to load";
   return absl::StrFormat("ROM loaded: %s", rom->title());
 }
 

@@ -99,7 +99,7 @@ constexpr int bedSheetPositionY = 0x0480B8;  // short value
 class RoomEntrance {
  public:
   RoomEntrance() = default;
-  RoomEntrance(Rom *rom, uint8_t entrance_id, bool is_spawn_point = false)
+  RoomEntrance(Rom* rom, uint8_t entrance_id, bool is_spawn_point = false)
       : entrance_id_(entrance_id) {
     room_ = static_cast<short>(
         (rom->data()[kEntranceRoom + (entrance_id * 2) + 1] << 8) +
@@ -219,7 +219,7 @@ class RoomEntrance {
     }
   }
 
-  absl::Status Save(Rom *rom, int entrance_id, bool is_spawn_point = false) {
+  absl::Status Save(Rom* rom, int entrance_id, bool is_spawn_point = false) {
     if (!is_spawn_point) {
       RETURN_IF_ERROR(
           rom->WriteShort(kEntranceYPosition + (entrance_id * 2), y_position_));

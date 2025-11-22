@@ -42,8 +42,7 @@ class WidgetDiscoveryService {
                      absl::string_view filter) const;
   bool MatchesPathPrefix(absl::string_view path,
                          absl::string_view prefix) const;
-  bool MatchesType(absl::string_view type,
-                   WidgetType filter) const;
+  bool MatchesType(absl::string_view type, WidgetType filter) const;
 
   std::string ExtractWindowName(absl::string_view path) const;
   std::string ExtractLabel(absl::string_view path) const;

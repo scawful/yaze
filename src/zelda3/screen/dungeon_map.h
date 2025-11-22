@@ -47,8 +47,8 @@ struct DungeonMap {
 
   DungeonMap(unsigned short boss_room, unsigned char nbr_of_floor,
              unsigned char nbr_of_basement,
-             const std::vector<std::array<uint8_t, kNumRooms>> &floor_rooms,
-             const std::vector<std::array<uint8_t, kNumRooms>> &floor_gfx)
+             const std::vector<std::array<uint8_t, kNumRooms>>& floor_rooms,
+             const std::vector<std::array<uint8_t, kNumRooms>>& floor_gfx)
       : boss_room(boss_room),
         nbr_of_floor(nbr_of_floor),
         nbr_of_basement(nbr_of_basement),
@@ -67,7 +67,7 @@ using DungeonMapLabels =
  * @return absl::StatusOr<std::vector<DungeonMap>>
  */
 absl::StatusOr<std::vector<DungeonMap>> LoadDungeonMaps(
-    Rom &rom, DungeonMapLabels &dungeon_map_labels);
+    Rom& rom, DungeonMapLabels& dungeon_map_labels);
 
 /**
  * @brief Save the dungeon maps to the ROM.
@@ -75,7 +75,7 @@ absl::StatusOr<std::vector<DungeonMap>> LoadDungeonMaps(
  * @param rom
  * @param dungeon_maps
  */
-absl::Status SaveDungeonMaps(Rom &rom, std::vector<DungeonMap> &dungeon_maps);
+absl::Status SaveDungeonMaps(Rom& rom, std::vector<DungeonMap>& dungeon_maps);
 
 /**
  * @brief Load the dungeon map tile16 from the ROM.
@@ -85,8 +85,8 @@ absl::Status SaveDungeonMaps(Rom &rom, std::vector<DungeonMap> &dungeon_maps);
  * @param gfx_data
  * @param bin_mode
  */
-absl::Status LoadDungeonMapTile16(gfx::Tilemap &tile16_blockset, Rom &rom,
-                                  const std::vector<uint8_t> &gfx_data,
+absl::Status LoadDungeonMapTile16(gfx::Tilemap& tile16_blockset, Rom& rom,
+                                  const std::vector<uint8_t>& gfx_data,
                                   bool bin_mode);
 
 /**
@@ -95,7 +95,7 @@ absl::Status LoadDungeonMapTile16(gfx::Tilemap &tile16_blockset, Rom &rom,
  * @param tile16_blockset
  * @param rom
  */
-absl::Status SaveDungeonMapTile16(gfx::Tilemap &tile16_blockset, Rom &rom);
+absl::Status SaveDungeonMapTile16(gfx::Tilemap& tile16_blockset, Rom& rom);
 
 /**
  * @brief Load the dungeon map gfx from binary.
@@ -105,10 +105,10 @@ absl::Status SaveDungeonMapTile16(gfx::Tilemap &tile16_blockset, Rom &rom);
  * @param sheets
  * @param gfx_bin_data
  */
-absl::Status LoadDungeonMapGfxFromBinary(Rom &rom,
-                                         gfx::Tilemap &tile16_blockset,
-                                         std::array<gfx::Bitmap, 4> &sheets,
-                                         std::vector<uint8_t> &gfx_bin_data);
+absl::Status LoadDungeonMapGfxFromBinary(Rom& rom,
+                                         gfx::Tilemap& tile16_blockset,
+                                         std::array<gfx::Bitmap, 4>& sheets,
+                                         std::vector<uint8_t>& gfx_bin_data);
 }  // namespace yaze::zelda3
 
 #endif  // YAZE_APP_ZELDA3_SCREEN_DUNGEON_MAP_H

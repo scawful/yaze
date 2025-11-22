@@ -1,6 +1,4 @@
-#include "cli/cli.h"
 #include "zelda3/overworld/overworld.h"
-#include "cli/handlers/game/overworld_inspect.h"
 
 #include <algorithm>
 #include <cctype>
@@ -12,14 +10,16 @@
 #include <utility>
 #include <vector>
 
-#include "absl/flags/flag.h"
 #include "absl/flags/declare.h"
+#include "absl/flags/flag.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/ascii.h"
 #include "absl/strings/match.h"
 #include "absl/strings/str_cat.h"
-#include "absl/strings/str_join.h"
 #include "absl/strings/str_format.h"
+#include "absl/strings/str_join.h"
+#include "cli/cli.h"
+#include "cli/handlers/game/overworld_inspect.h"
 
 ABSL_DECLARE_FLAG(std::string, rom);
 
@@ -31,7 +31,8 @@ namespace cli {
 
 // Legacy OverworldGetTile class removed - using new CommandHandler system
 // TODO: Implement OverworldGetTileCommandHandler
-absl::Status HandleOverworldGetTileLegacy(const std::vector<std::string>& arg_vec) {
+absl::Status HandleOverworldGetTileLegacy(
+    const std::vector<std::string>& arg_vec) {
   int map_id = -1, x = -1, y = -1;
 
   for (size_t i = 0; i < arg_vec.size(); ++i) {
@@ -46,12 +47,14 @@ absl::Status HandleOverworldGetTileLegacy(const std::vector<std::string>& arg_ve
   }
 
   if (map_id == -1 || x == -1 || y == -1) {
-    return absl::InvalidArgumentError("Usage: overworld get-tile --map <map_id> --x <x> --y <y>");
+    return absl::InvalidArgumentError(
+        "Usage: overworld get-tile --map <map_id> --x <x> --y <y>");
   }
 
   std::string rom_file = absl::GetFlag(FLAGS_rom);
   if (rom_file.empty()) {
-      return absl::InvalidArgumentError("ROM file must be provided via --rom flag.");
+    return absl::InvalidArgumentError(
+        "ROM file must be provided via --rom flag.");
   }
 
   Rom rom;
@@ -60,7 +63,7 @@ absl::Status HandleOverworldGetTileLegacy(const std::vector<std::string>& arg_ve
     return load_status;
   }
   if (!rom.is_loaded()) {
-      return absl::AbortedError("Failed to load ROM.");
+    return absl::AbortedError("Failed to load ROM.");
   }
 
   zelda3::Overworld overworld(&rom);
@@ -71,14 +74,16 @@ absl::Status HandleOverworldGetTileLegacy(const std::vector<std::string>& arg_ve
 
   uint16_t tile = overworld.GetTile(x, y);
 
-  std::cout << "Tile at (" << x << ", " << y << ") on map " << map_id << " is: 0x" << std::hex << tile << std::endl;
+  std::cout << "Tile at (" << x << ", " << y << ") on map " << map_id
+            << " is: 0x" << std::hex << tile << std::endl;
 
   return absl::OkStatus();
 }
 
 // Legacy OverworldSetTile class removed - using new CommandHandler system
 // TODO: Implement OverworldSetTileCommandHandler
-absl::Status HandleOverworldSetTileLegacy(const std::vector<std::string>& arg_vec) {
+absl::Status HandleOverworldSetTileLegacy(
+    const std::vector<std::string>& arg_vec) {
   int map_id = -1, x = -1, y = -1, tile_id = -1;
 
   for (size_t i = 0; i < arg_vec.size(); ++i) {
@@ -95,12 +100,15 @@ absl::Status HandleOverworldSetTileLegacy(const std::vector<std::string>& arg_ve
   }
 
   if (map_id == -1 || x == -1 || y == -1 || tile_id == -1) {
-    return absl::InvalidArgumentError("Usage: overworld set-tile --map <map_id> --x <x> --y <y> --tile <tile_id>");
+    return absl::InvalidArgumentError(
+        "Usage: overworld set-tile --map <map_id> --x <x> --y <y> --tile "
+        "<tile_id>");
   }
 
   std::string rom_file = absl::GetFlag(FLAGS_rom);
   if (rom_file.empty()) {
-      return absl::InvalidArgumentError("ROM file must be provided via --rom flag.");
+    return absl::InvalidArgumentError(
+        "ROM file must be provided via --rom flag.");
   }
 
   Rom rom;
@@ -109,7 +117,7 @@ absl::Status HandleOverworldSetTileLegacy(const std::vector<std::string>& arg_ve
     return load_status;
   }
   if (!rom.is_loaded()) {
-      return absl::AbortedError("Failed to load ROM.");
+    return absl::AbortedError("Failed to load ROM.");
   }
 
   zelda3::Overworld overworld(&rom);
@@ -136,7 +144,7 @@ absl::Status HandleOverworldSetTileLegacy(const std::vector<std::string>& arg_ve
     return save_status;
   }
 
-  std::cout << "✅ Set tile at (" << x << ", " << y << ") on map " << map_id 
+  std::cout << "✅ Set tile at (" << x << ", " << y << ") on map " << map_id
             << " to: 0x" << std::hex << tile_id << std::dec << std::endl;
 
   return absl::OkStatus();
@@ -145,13 +153,15 @@ absl::Status HandleOverworldSetTileLegacy(const std::vector<std::string>& arg_ve
 namespace {
 
 constexpr absl::string_view kFindTileUsage =
-    "Usage: overworld find-tile --tile <tile_id> [--map <map_id>] [--world <light|dark|special|0|1|2>] [--format <json|text>]";
+    "Usage: overworld find-tile --tile <tile_id> [--map <map_id>] [--world "
+    "<light|dark|special|0|1|2>] [--format <json|text>]";
 
 }  // namespace
 
 // Legacy OverworldFindTile class removed - using new CommandHandler system
 // TODO: Implement OverworldFindTileCommandHandler
-absl::Status HandleOverworldFindTileLegacy(const std::vector<std::string>& arg_vec) {
+absl::Status HandleOverworldFindTileLegacy(
+    const std::vector<std::string>& arg_vec) {
   std::unordered_map<std::string, std::string> options;
   std::vector<std::string> positional;
   options.reserve(arg_vec.size());
@@ -184,9 +194,9 @@ absl::Status HandleOverworldFindTileLegacy(const std::vector<std::string>& arg_v
   }
 
   if (!positional.empty()) {
-    return absl::InvalidArgumentError(
-        absl::StrCat("Unexpected positional arguments: ",
-                     absl::StrJoin(positional, ", "), "\n", kFindTileUsage));
+    return absl::InvalidArgumentError(absl::StrCat(
+        "Unexpected positional arguments: ", absl::StrJoin(positional, ", "),
+        "\n", kFindTileUsage));
   }
 
   auto tile_it = options.find("tile");
@@ -195,8 +205,7 @@ absl::Status HandleOverworldFindTileLegacy(const std::vector<std::string>& arg_v
         absl::StrCat("Missing required --tile argument\n", kFindTileUsage));
   }
 
-  ASSIGN_OR_RETURN(int tile_value,
-                   overworld::ParseNumeric(tile_it->second));
+  ASSIGN_OR_RETURN(int tile_value, overworld::ParseNumeric(tile_it->second));
   if (tile_value < 0 || tile_value > 0xFFFF) {
     return absl::InvalidArgumentError(
         absl::StrCat("Tile ID must be between 0x0000 and 0xFFFF (got ",
@@ -206,8 +215,7 @@ absl::Status HandleOverworldFindTileLegacy(const std::vector<std::string>& arg_v
 
   std::optional<int> map_filter;
   if (auto map_it = options.find("map"); map_it != options.end()) {
-  ASSIGN_OR_RETURN(int map_value,
-           overworld::ParseNumeric(map_it->second));
+    ASSIGN_OR_RETURN(int map_value, overworld::ParseNumeric(map_it->second));
     if (map_value < 0 || map_value >= 0xA0) {
       return absl::InvalidArgumentError(
           absl::StrCat("Map ID out of range: ", map_it->second));
@@ -217,22 +225,19 @@ absl::Status HandleOverworldFindTileLegacy(const std::vector<std::string>& arg_v
 
   std::optional<int> world_filter;
   if (auto world_it = options.find("world"); world_it != options.end()) {
-  ASSIGN_OR_RETURN(int parsed_world,
-           overworld::ParseWorldSpecifier(world_it->second));
+    ASSIGN_OR_RETURN(int parsed_world,
+                     overworld::ParseWorldSpecifier(world_it->second));
     world_filter = parsed_world;
   }
 
   if (map_filter.has_value()) {
-  ASSIGN_OR_RETURN(int inferred_world,
-           overworld::InferWorldFromMapId(*map_filter));
+    ASSIGN_OR_RETURN(int inferred_world,
+                     overworld::InferWorldFromMapId(*map_filter));
     if (world_filter.has_value() && inferred_world != *world_filter) {
-      return absl::InvalidArgumentError(
-          absl::StrCat("Map 0x",
-                       absl::StrFormat("%02X", *map_filter),
-                       " belongs to the ",
-                       overworld::WorldName(inferred_world),
-                       " World but --world requested ",
-                       overworld::WorldName(*world_filter)));
+      return absl::InvalidArgumentError(absl::StrCat(
+          "Map 0x", absl::StrFormat("%02X", *map_filter), " belongs to the ",
+          overworld::WorldName(inferred_world), " World but --world requested ",
+          overworld::WorldName(*world_filter)));
     }
     if (!world_filter.has_value()) {
       world_filter = inferred_world;
@@ -277,16 +282,13 @@ absl::Status HandleOverworldFindTileLegacy(const std::vector<std::string>& arg_v
   search_options.map_id = map_filter;
   search_options.world = world_filter;
 
-  ASSIGN_OR_RETURN(auto matches,
-                   overworld::FindTileMatches(overworld, tile_id,
-                                              search_options));
+  ASSIGN_OR_RETURN(auto matches, overworld::FindTileMatches(overworld, tile_id,
+                                                            search_options));
 
   if (format == "json") {
     std::cout << "{\n";
-    std::cout << absl::StrFormat(
-        "  \"tile\": \"0x%04X\",\n", tile_id);
-    std::cout << absl::StrFormat(
-        "  \"match_count\": %zu,\n", matches.size());
+    std::cout << absl::StrFormat("  \"tile\": \"0x%04X\",\n", tile_id);
+    std::cout << absl::StrFormat("  \"match_count\": %zu,\n", matches.size());
     std::cout << "  \"matches\": [\n";
     for (size_t i = 0; i < matches.size(); ++i) {
       const auto& match = matches[i];
@@ -295,15 +297,14 @@ absl::Status HandleOverworldFindTileLegacy(const std::vector<std::string>& arg_v
           "\"local\": {\"x\": %d, \"y\": %d}, "
           "\"global\": {\"x\": %d, \"y\": %d}}%s\n",
           match.map_id, overworld::WorldName(match.world), match.local_x,
-          match.local_y,
-          match.global_x, match.global_y,
+          match.local_y, match.global_x, match.global_y,
           (i + 1 == matches.size()) ? "" : ",");
     }
     std::cout << "  ]\n";
     std::cout << "}\n";
   } else {
-    std::cout << absl::StrFormat(
-        "🔎 Tile 0x%04X → %zu match(es)\n", tile_id, matches.size());
+    std::cout << absl::StrFormat("🔎 Tile 0x%04X → %zu match(es)\n", tile_id,
+                                 matches.size());
     if (matches.empty()) {
       std::cout << "  No matches found." << std::endl;
       return absl::OkStatus();
@@ -313,8 +314,7 @@ absl::Status HandleOverworldFindTileLegacy(const std::vector<std::string>& arg_v
       std::cout << absl::StrFormat(
           "  • Map 0x%02X (%s World) local(%2d,%2d) global(%3d,%3d)\n",
           match.map_id, overworld::WorldName(match.world), match.local_x,
-          match.local_y,
-          match.global_x, match.global_y);
+          match.local_y, match.global_x, match.global_y);
     }
   }
 
@@ -360,9 +360,9 @@ absl::Status HandleOverworldDescribeMapLegacy(
   }
 
   if (!positional.empty()) {
-    return absl::InvalidArgumentError(
-        absl::StrCat("Unexpected positional arguments: ",
-                     absl::StrJoin(positional, ", "), "\n", kUsage));
+    return absl::InvalidArgumentError(absl::StrCat(
+        "Unexpected positional arguments: ", absl::StrJoin(positional, ", "),
+        "\n", kUsage));
   }
 
   auto map_it = options.find("map");
@@ -370,8 +370,7 @@ absl::Status HandleOverworldDescribeMapLegacy(
     return absl::InvalidArgumentError(std::string(kUsage));
   }
 
-  ASSIGN_OR_RETURN(int map_value,
-                   overworld::ParseNumeric(map_it->second));
+  ASSIGN_OR_RETURN(int map_value, overworld::ParseNumeric(map_it->second));
   if (map_value < 0 || map_value >= zelda3::kNumOverworldMaps) {
     return absl::InvalidArgumentError(
         absl::StrCat("Map ID out of range: ", map_it->second));
@@ -438,37 +437,35 @@ absl::Status HandleOverworldDescribeMapLegacy(
     std::cout << absl::StrFormat("  \"world\": \"%s\",\n",
                                  overworld::WorldName(summary.world));
     std::cout << absl::StrFormat(
-        "  \"grid\": {\"x\": %d, \"y\": %d, \"index\": %d},\n",
-        summary.map_x, summary.map_y, summary.local_index);
+        "  \"grid\": {\"x\": %d, \"y\": %d, \"index\": %d},\n", summary.map_x,
+        summary.map_y, summary.local_index);
     std::cout << absl::StrFormat(
-        "  \"size\": {\"label\": \"%s\", \"is_large\": %s, \"parent\": \"0x%02X\", \"quadrant\": %d},\n",
+        "  \"size\": {\"label\": \"%s\", \"is_large\": %s, \"parent\": "
+        "\"0x%02X\", \"quadrant\": %d},\n",
         summary.area_size, summary.is_large_map ? "true" : "false",
         summary.parent_map, summary.large_quadrant);
-    std::cout << absl::StrFormat(
-        "  \"message\": \"0x%04X\",\n", summary.message_id);
-    std::cout << absl::StrFormat(
-        "  \"area_graphics\": \"0x%02X\",\n", summary.area_graphics);
-    std::cout << absl::StrFormat(
-        "  \"area_palette\": \"0x%02X\",\n", summary.area_palette);
-    std::cout << absl::StrFormat(
-        "  \"main_palette\": \"0x%02X\",\n", summary.main_palette);
-    std::cout << absl::StrFormat(
-        "  \"animated_gfx\": \"0x%02X\",\n", summary.animated_gfx);
-    std::cout << absl::StrFormat(
-        "  \"subscreen_overlay\": \"0x%04X\",\n",
-        summary.subscreen_overlay);
-    std::cout << absl::StrFormat(
-        "  \"area_specific_bg_color\": \"0x%04X\",\n",
-        summary.area_specific_bg_color);
-    std::cout << absl::StrFormat(
-        "  \"sprite_graphics\": %s,\n", join_hex_json(summary.sprite_graphics));
-    std::cout << absl::StrFormat(
-        "  \"sprite_palettes\": %s,\n", join_hex_json(summary.sprite_palettes));
-    std::cout << absl::StrFormat(
-        "  \"area_music\": %s,\n", join_hex_json(summary.area_music));
-    std::cout << absl::StrFormat(
-        "  \"static_graphics\": %s,\n",
-        join_hex_json(summary.static_graphics));
+    std::cout << absl::StrFormat("  \"message\": \"0x%04X\",\n",
+                                 summary.message_id);
+    std::cout << absl::StrFormat("  \"area_graphics\": \"0x%02X\",\n",
+                                 summary.area_graphics);
+    std::cout << absl::StrFormat("  \"area_palette\": \"0x%02X\",\n",
+                                 summary.area_palette);
+    std::cout << absl::StrFormat("  \"main_palette\": \"0x%02X\",\n",
+                                 summary.main_palette);
+    std::cout << absl::StrFormat("  \"animated_gfx\": \"0x%02X\",\n",
+                                 summary.animated_gfx);
+    std::cout << absl::StrFormat("  \"subscreen_overlay\": \"0x%04X\",\n",
+                                 summary.subscreen_overlay);
+    std::cout << absl::StrFormat("  \"area_specific_bg_color\": \"0x%04X\",\n",
+                                 summary.area_specific_bg_color);
+    std::cout << absl::StrFormat("  \"sprite_graphics\": %s,\n",
+                                 join_hex_json(summary.sprite_graphics));
+    std::cout << absl::StrFormat("  \"sprite_palettes\": %s,\n",
+                                 join_hex_json(summary.sprite_palettes));
+    std::cout << absl::StrFormat("  \"area_music\": %s,\n",
+                                 join_hex_json(summary.area_music));
+    std::cout << absl::StrFormat("  \"static_graphics\": %s,\n",
+                                 join_hex_json(summary.static_graphics));
     std::cout << absl::StrFormat(
         "  \"overlay\": {\"enabled\": %s, \"id\": \"0x%04X\"}\n",
         summary.has_overlay ? "true" : "false", summary.overlay_id);
@@ -480,14 +477,15 @@ absl::Status HandleOverworldDescribeMapLegacy(
                                  summary.map_x, summary.map_y,
                                  summary.local_index);
     std::cout << absl::StrFormat(
-        "  Size: %s%s | Parent: 0x%02X | Quadrant: %d\n",
-        summary.area_size, summary.is_large_map ? " (large)" : "",
-        summary.parent_map, summary.large_quadrant);
+        "  Size: %s%s | Parent: 0x%02X | Quadrant: %d\n", summary.area_size,
+        summary.is_large_map ? " (large)" : "", summary.parent_map,
+        summary.large_quadrant);
     std::cout << absl::StrFormat(
         "  Message: 0x%04X | Area GFX: 0x%02X | Area Palette: 0x%02X\n",
         summary.message_id, summary.area_graphics, summary.area_palette);
     std::cout << absl::StrFormat(
-        "  Main Palette: 0x%02X | Animated GFX: 0x%02X | Overlay: %s (0x%04X)\n",
+        "  Main Palette: 0x%02X | Animated GFX: 0x%02X | Overlay: %s "
+        "(0x%04X)\n",
         summary.main_palette, summary.animated_gfx,
         summary.has_overlay ? "yes" : "no", summary.overlay_id);
     std::cout << absl::StrFormat(
@@ -511,7 +509,8 @@ absl::Status HandleOverworldDescribeMapLegacy(
 absl::Status HandleOverworldListWarpsLegacy(
     const std::vector<std::string>& arg_vec) {
   constexpr absl::string_view kUsage =
-      "Usage: overworld list-warps [--map <map_id>] [--world <light|dark|special>] "
+      "Usage: overworld list-warps [--map <map_id>] [--world "
+      "<light|dark|special>] "
       "[--type <entrance|hole|exit|all>] [--format <json|text>]";
 
   std::unordered_map<std::string, std::string> options;
@@ -546,15 +545,14 @@ absl::Status HandleOverworldListWarpsLegacy(
   }
 
   if (!positional.empty()) {
-    return absl::InvalidArgumentError(
-        absl::StrCat("Unexpected positional arguments: ",
-                     absl::StrJoin(positional, ", "), "\n", kUsage));
+    return absl::InvalidArgumentError(absl::StrCat(
+        "Unexpected positional arguments: ", absl::StrJoin(positional, ", "),
+        "\n", kUsage));
   }
 
   std::optional<int> map_filter;
   if (auto it = options.find("map"); it != options.end()) {
-    ASSIGN_OR_RETURN(int map_value,
-                     overworld::ParseNumeric(it->second));
+    ASSIGN_OR_RETURN(int map_value, overworld::ParseNumeric(it->second));
     if (map_value < 0 || map_value >= zelda3::kNumOverworldMaps) {
       return absl::InvalidArgumentError(
           absl::StrCat("Map ID out of range: ", it->second));
@@ -590,13 +588,10 @@ absl::Status HandleOverworldListWarpsLegacy(
     ASSIGN_OR_RETURN(int inferred_world,
                      overworld::InferWorldFromMapId(*map_filter));
     if (world_filter.has_value() && inferred_world != *world_filter) {
-      return absl::InvalidArgumentError(
-          absl::StrCat("Map 0x",
-                       absl::StrFormat("%02X", *map_filter),
-                       " belongs to the ",
-                       overworld::WorldName(inferred_world),
-                       " World but --world requested ",
-                       overworld::WorldName(*world_filter)));
+      return absl::InvalidArgumentError(absl::StrCat(
+          "Map 0x", absl::StrFormat("%02X", *map_filter), " belongs to the ",
+          overworld::WorldName(inferred_world), " World but --world requested ",
+          overworld::WorldName(*world_filter)));
     }
     if (!world_filter.has_value()) {
       world_filter = inferred_world;
@@ -652,39 +647,33 @@ absl::Status HandleOverworldListWarpsLegacy(
     for (size_t i = 0; i < entries.size(); ++i) {
       const auto& entry = entries[i];
       std::cout << "    {\n";
-      std::cout << absl::StrFormat(
-          "      \"type\": \"%s\",\n",
-          overworld::WarpTypeName(entry.type));
-      std::cout << absl::StrFormat(
-          "      \"map\": \"0x%02X\",\n", entry.map_id);
-      std::cout << absl::StrFormat(
-          "      \"world\": \"%s\",\n",
-          overworld::WorldName(entry.world));
+      std::cout << absl::StrFormat("      \"type\": \"%s\",\n",
+                                   overworld::WarpTypeName(entry.type));
+      std::cout << absl::StrFormat("      \"map\": \"0x%02X\",\n",
+                                   entry.map_id);
+      std::cout << absl::StrFormat("      \"world\": \"%s\",\n",
+                                   overworld::WorldName(entry.world));
       std::cout << absl::StrFormat(
           "      \"grid\": {\"x\": %d, \"y\": %d, \"index\": %d},\n",
           entry.map_x, entry.map_y, entry.local_index);
       std::cout << absl::StrFormat(
-          "      \"tile16\": {\"x\": %d, \"y\": %d},\n",
-          entry.tile16_x, entry.tile16_y);
-      std::cout << absl::StrFormat(
-          "      \"pixel\": {\"x\": %d, \"y\": %d},\n",
-          entry.pixel_x, entry.pixel_y);
-      std::cout << absl::StrFormat(
-          "      \"map_pos\": \"0x%04X\",\n", entry.map_pos);
-      std::cout << absl::StrFormat(
-          "      \"deleted\": %s,\n", entry.deleted ? "true" : "false");
-      std::cout << absl::StrFormat(
-          "      \"is_hole\": %s",
-          entry.is_hole ? "true" : "false");
+          "      \"tile16\": {\"x\": %d, \"y\": %d},\n", entry.tile16_x,
+          entry.tile16_y);
+      std::cout << absl::StrFormat("      \"pixel\": {\"x\": %d, \"y\": %d},\n",
+                                   entry.pixel_x, entry.pixel_y);
+      std::cout << absl::StrFormat("      \"map_pos\": \"0x%04X\",\n",
+                                   entry.map_pos);
+      std::cout << absl::StrFormat("      \"deleted\": %s,\n",
+                                   entry.deleted ? "true" : "false");
+      std::cout << absl::StrFormat("      \"is_hole\": %s",
+                                   entry.is_hole ? "true" : "false");
       if (entry.entrance_id.has_value()) {
-        std::cout << absl::StrFormat(
-            ",\n      \"entrance_id\": \"0x%02X\"",
-            *entry.entrance_id);
+        std::cout << absl::StrFormat(",\n      \"entrance_id\": \"0x%02X\"",
+                                     *entry.entrance_id);
       }
       if (entry.entrance_name.has_value()) {
-        std::cout << absl::StrFormat(
-            ",\n      \"entrance_name\": \"%s\"",
-            *entry.entrance_name);
+        std::cout << absl::StrFormat(",\n      \"entrance_name\": \"%s\"",
+                                     *entry.entrance_name);
       }
       std::cout << "\n    }" << (i + 1 == entries.size() ? "" : ",") << "\n";
     }
@@ -692,7 +681,8 @@ absl::Status HandleOverworldListWarpsLegacy(
     std::cout << "}\n";
   } else {
     if (entries.empty()) {
-      std::cout << "No overworld warps match the specified filters." << std::endl;
+      std::cout << "No overworld warps match the specified filters."
+                << std::endl;
       return absl::OkStatus();
     }
 
@@ -705,7 +695,7 @@ absl::Status HandleOverworldListWarpsLegacy(
           entry.pixel_x, entry.pixel_y);
       if (entry.entrance_id.has_value()) {
         line = absl::StrCat(line,
-                             absl::StrFormat(" id=0x%02X", *entry.entrance_id));
+                            absl::StrFormat(" id=0x%02X", *entry.entrance_id));
       }
       if (entry.entrance_name.has_value()) {
         line = absl::StrCat(line, " (", *entry.entrance_name, ")");
@@ -729,7 +719,8 @@ absl::Status HandleOverworldListWarpsLegacy(
 
 // Legacy OverworldSelectRect class removed - using new CommandHandler system
 // TODO: Implement OverworldSelectRectCommandHandler
-absl::Status HandleOverworldSelectRectLegacy(const std::vector<std::string>& arg_vec) {
+absl::Status HandleOverworldSelectRectLegacy(
+    const std::vector<std::string>& arg_vec) {
   int map_id = -1, x1 = -1, y1 = -1, x2 = -1, y2 = -1;
 
   for (size_t i = 0; i < arg_vec.size(); ++i) {
@@ -749,15 +740,16 @@ absl::Status HandleOverworldSelectRectLegacy(const std::vector<std::string>& arg
 
   if (map_id == -1 || x1 == -1 || y1 == -1 || x2 == -1 || y2 == -1) {
     return absl::InvalidArgumentError(
-        "Usage: overworld select-rect --map <map_id> --x1 <x1> --y1 <y1> --x2 <x2> --y2 <y2>");
+        "Usage: overworld select-rect --map <map_id> --x1 <x1> --y1 <y1> --x2 "
+        "<x2> --y2 <y2>");
   }
 
-  std::cout << "✅ Selected rectangle on map " << map_id 
-            << " from (" << x1 << "," << y1 << ") to (" << x2 << "," << y2 << ")" << std::endl;
-  
+  std::cout << "✅ Selected rectangle on map " << map_id << " from (" << x1
+            << "," << y1 << ") to (" << x2 << "," << y2 << ")" << std::endl;
+
   int width = std::abs(x2 - x1) + 1;
   int height = std::abs(y2 - y1) + 1;
-  std::cout << "   Selection size: " << width << "x" << height << " tiles (" 
+  std::cout << "   Selection size: " << width << "x" << height << " tiles ("
             << (width * height) << " total)" << std::endl;
 
   return absl::OkStatus();
@@ -765,7 +757,8 @@ absl::Status HandleOverworldSelectRectLegacy(const std::vector<std::string>& arg
 
 // Legacy OverworldScrollTo class removed - using new CommandHandler system
 // TODO: Implement OverworldScrollToCommandHandler
-absl::Status HandleOverworldScrollToLegacy(const std::vector<std::string>& arg_vec) {
+absl::Status HandleOverworldScrollToLegacy(
+    const std::vector<std::string>& arg_vec) {
   int map_id = -1, x = -1, y = -1;
   bool center = false;
 
@@ -787,7 +780,8 @@ absl::Status HandleOverworldScrollToLegacy(const std::vector<std::string>& arg_v
         "Usage: overworld scroll-to --map <map_id> --x <x> --y <y> [--center]");
   }
 
-  std::cout << "✅ Scrolled to tile (" << x << "," << y << ") on map " << map_id;
+  std::cout << "✅ Scrolled to tile (" << x << "," << y << ") on map "
+            << map_id;
   if (center) {
     std::cout << " (centered)";
   }
@@ -798,7 +792,8 @@ absl::Status HandleOverworldScrollToLegacy(const std::vector<std::string>& arg_v
 
 // Legacy OverworldSetZoom class removed - using new CommandHandler system
 // TODO: Implement OverworldSetZoomCommandHandler
-absl::Status HandleOverworldSetZoomLegacy(const std::vector<std::string>& arg_vec) {
+absl::Status HandleOverworldSetZoomLegacy(
+    const std::vector<std::string>& arg_vec) {
   float zoom = -1.0f;
 
   for (size_t i = 0; i < arg_vec.size(); ++i) {
@@ -822,9 +817,11 @@ absl::Status HandleOverworldSetZoomLegacy(const std::vector<std::string>& arg_ve
   return absl::OkStatus();
 }
 
-// Legacy OverworldGetVisibleRegion class removed - using new CommandHandler system
+// Legacy OverworldGetVisibleRegion class removed - using new CommandHandler
+// system
 // TODO: Implement OverworldGetVisibleRegionCommandHandler
-absl::Status HandleOverworldGetVisibleRegionLegacy(const std::vector<std::string>& arg_vec) {
+absl::Status HandleOverworldGetVisibleRegionLegacy(
+    const std::vector<std::string>& arg_vec) {
   int map_id = -1;
   std::string format = "text";
 
@@ -839,14 +836,16 @@ absl::Status HandleOverworldGetVisibleRegionLegacy(const std::vector<std::string
 
   if (map_id == -1) {
     return absl::InvalidArgumentError(
-        "Usage: overworld get-visible-region --map <map_id> [--format json|text]");
+        "Usage: overworld get-visible-region --map <map_id> [--format "
+        "json|text]");
   }
 
   // Note: This would query the canvas automation API in a live GUI context
   // For now, return placeholder data
   if (format == "json") {
     std::cout << R"({
-  "map_id": )" << map_id << R"(,
+  "map_id": )" << map_id
+              << R"(,
   "visible_region": {
     "min_x": 0,
     "min_y": 0,
@@ -865,5 +864,5 @@ absl::Status HandleOverworldGetVisibleRegionLegacy(const std::vector<std::string
   return absl::OkStatus();
 }
 
-} // namespace cli
-} // namespace yaze
+}  // namespace cli
+}  // namespace yaze

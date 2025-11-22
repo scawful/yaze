@@ -83,15 +83,15 @@ class WidgetIdRegistry {
   };
 
   struct WidgetInfo {
-    std::string full_path;   // e.g. "Overworld/Canvas/canvas:Map"
-    std::string type;        // e.g. "button", "input", "canvas", "table"
-    ImGuiID imgui_id;        // ImGui's internal ID
-    std::string description; // Optional human-readable description
-    std::string label;       // Sanitized display label (without IDs/icons)
-    std::string window_name; // Window this widget was last seen in
-    bool visible = true;     // Visibility in the most recent frame
-    bool enabled = true;     // Enabled state in the most recent frame
-    WidgetBounds bounds;     // Bounding box in screen space
+    std::string full_path;    // e.g. "Overworld/Canvas/canvas:Map"
+    std::string type;         // e.g. "button", "input", "canvas", "table"
+    ImGuiID imgui_id;         // ImGui's internal ID
+    std::string description;  // Optional human-readable description
+    std::string label;        // Sanitized display label (without IDs/icons)
+    std::string window_name;  // Window this widget was last seen in
+    bool visible = true;      // Visibility in the most recent frame
+    bool enabled = true;      // Enabled state in the most recent frame
+    WidgetBounds bounds;      // Bounding box in screen space
     int last_seen_frame = -1;
     absl::Time last_seen_time;
     bool seen_in_current_frame = false;
@@ -107,8 +107,7 @@ class WidgetIdRegistry {
   // Register a widget for discovery
   // Should be called after widget is created (when ImGui::GetItemID() is valid)
   void RegisterWidget(const std::string& full_path, const std::string& type,
-                      ImGuiID imgui_id,
-                      const std::string& description = "",
+                      ImGuiID imgui_id, const std::string& description = "",
                       const WidgetMetadata& metadata = WidgetMetadata());
 
   // Query widgets for test automation
@@ -146,28 +145,29 @@ class WidgetIdRegistry {
 };
 
 // RAII helper macros for convenient scoping
-#define YAZE_WIDGET_SCOPE(name) yaze::gui::WidgetIdScope _yaze_scope_##__LINE__(name)
+#define YAZE_WIDGET_SCOPE(name) \
+  yaze::gui::WidgetIdScope _yaze_scope_##__LINE__(name)
 
 // Register a widget after creation (when GetItemID() is valid)
-#define YAZE_REGISTER_WIDGET(widget_type, widget_name)                        \
-  do {                                                                         \
-    if (ImGui::GetItemID() != 0) {                                            \
-      yaze::gui::WidgetIdRegistry::Instance().RegisterWidget(                 \
-          _yaze_scope_##__LINE__.GetWidgetPath(#widget_type, widget_name),   \
-          #widget_type, ImGui::GetItemID());                                  \
-    }                                                                          \
+#define YAZE_REGISTER_WIDGET(widget_type, widget_name)                     \
+  do {                                                                     \
+    if (ImGui::GetItemID() != 0) {                                         \
+      yaze::gui::WidgetIdRegistry::Instance().RegisterWidget(              \
+          _yaze_scope_##__LINE__.GetWidgetPath(#widget_type, widget_name), \
+          #widget_type, ImGui::GetItemID());                               \
+    }                                                                      \
   } while (0)
 
 // Convenience macro for registering with automatic name extraction
 // Usage: YAZE_REGISTER_CURRENT_WIDGET("button")
-#define YAZE_REGISTER_CURRENT_WIDGET(widget_type)                             \
-  do {                                                                         \
-    if (ImGui::GetItemID() != 0) {                                            \
-      yaze::gui::WidgetIdRegistry::Instance().RegisterWidget(                 \
-          _yaze_scope_##__LINE__.GetWidgetPath(widget_type,                  \
-                                                ImGui::GetLastItemLabel()),   \
-          widget_type, ImGui::GetItemID());                                   \
-    }                                                                          \
+#define YAZE_REGISTER_CURRENT_WIDGET(widget_type)                          \
+  do {                                                                     \
+    if (ImGui::GetItemID() != 0) {                                         \
+      yaze::gui::WidgetIdRegistry::Instance().RegisterWidget(              \
+          _yaze_scope_##__LINE__.GetWidgetPath(widget_type,                \
+                                               ImGui::GetLastItemLabel()), \
+          widget_type, ImGui::GetItemID());                                \
+    }                                                                      \
   } while (0)
 
 }  // namespace gui

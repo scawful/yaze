@@ -55,12 +55,7 @@ inline const TestGroupDefinition* TestSuiteDefinition::FindGroup(
   return nullptr;
 }
 
-enum class TestCaseOutcome {
-  kPassed,
-  kFailed,
-  kError,
-  kSkipped
-};
+enum class TestCaseOutcome { kPassed, kFailed, kError, kSkipped };
 
 struct TestCaseRunResult {
   const TestCaseDefinition* test = nullptr;

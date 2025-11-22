@@ -3,20 +3,20 @@
 #include <fstream>
 #include <vector>
 
-#include "util/file_util.h"
-#include "app/platform/window.h"
+#include "app/gfx/backend/irenderer.h"
 #include "app/gfx/core/bitmap.h"
+#include "app/gfx/render/tilemap.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/types/snes_tile.h"
-#include "app/gfx/render/tilemap.h"
-#include "app/gfx/backend/irenderer.h"
+#include "app/platform/window.h"
 #include "app/snes.h"
+#include "util/file_util.h"
 #include "util/hex.h"
 
 namespace yaze::zelda3 {
 
 absl::StatusOr<std::vector<DungeonMap>> LoadDungeonMaps(
-    Rom &rom, DungeonMapLabels &dungeon_map_labels) {
+    Rom& rom, DungeonMapLabels& dungeon_map_labels) {
   std::vector<DungeonMap> dungeon_maps;
   std::vector<std::array<uint8_t, kNumRooms>> current_floor_rooms_d;
   std::vector<std::array<uint8_t, kNumRooms>> current_floor_gfx_d;
@@ -75,7 +75,7 @@ absl::StatusOr<std::vector<DungeonMap>> LoadDungeonMaps(
   return dungeon_maps;
 }
 
-absl::Status SaveDungeonMaps(Rom &rom, std::vector<DungeonMap> &dungeon_maps) {
+absl::Status SaveDungeonMaps(Rom& rom, std::vector<DungeonMap>& dungeon_maps) {
   for (int d = 0; d < kNumDungeons; d++) {
     int ptr = kDungeonMapRoomsPtr + (d * 2);
     int ptr_gfx = kDungeonMapGfxPtr + (d * 2);
@@ -98,8 +98,8 @@ absl::Status SaveDungeonMaps(Rom &rom, std::vector<DungeonMap> &dungeon_maps) {
   return absl::OkStatus();
 }
 
-absl::Status LoadDungeonMapTile16(gfx::Tilemap &tile16_blockset, Rom &rom,
-                                  const std::vector<uint8_t> &gfx_data,
+absl::Status LoadDungeonMapTile16(gfx::Tilemap& tile16_blockset, Rom& rom,
+                                  const std::vector<uint8_t>& gfx_data,
                                   bool bin_mode) {
   tile16_blockset.tile_size = {16, 16};
   tile16_blockset.map_size = {186, 186};
@@ -140,7 +140,7 @@ absl::Status LoadDungeonMapTile16(gfx::Tilemap &tile16_blockset, Rom &rom,
   return absl::OkStatus();
 }
 
-absl::Status SaveDungeonMapTile16(gfx::Tilemap &tile16_blockset, Rom &rom) {
+absl::Status SaveDungeonMapTile16(gfx::Tilemap& tile16_blockset, Rom& rom) {
   for (int i = 0; i < kNumDungeonMapTile16; i++) {
     int addr = kDungeonMapTile16;
     if (rom.data()[kDungeonMapExpCheck] != 0xB9) {
@@ -167,10 +167,10 @@ absl::Status SaveDungeonMapTile16(gfx::Tilemap &tile16_blockset, Rom &rom) {
   return absl::OkStatus();
 }
 
-absl::Status LoadDungeonMapGfxFromBinary(Rom &rom,
-                                         gfx::Tilemap &tile16_blockset,
-                                         std::array<gfx::Bitmap, 4> &sheets,
-                                         std::vector<uint8_t> &gfx_bin_data) {
+absl::Status LoadDungeonMapGfxFromBinary(Rom& rom,
+                                         gfx::Tilemap& tile16_blockset,
+                                         std::array<gfx::Bitmap, 4>& sheets,
+                                         std::vector<uint8_t>& gfx_bin_data) {
   std::string bin_file = util::FileDialogWrapper::ShowOpenFileDialog();
   if (bin_file.empty()) {
     return absl::InternalError("No file selected");
@@ -195,8 +195,8 @@ absl::Status LoadDungeonMapGfxFromBinary(Rom &rom,
       sheets[i].SetPalette(*rom.mutable_dungeon_palette(3));
 
       // Queue texture creation via Arena's deferred system
-      gfx::Arena::Get().QueueTextureCommand(gfx::Arena::TextureCommandType::CREATE,
-                                            &sheets[i]);
+      gfx::Arena::Get().QueueTextureCommand(
+          gfx::Arena::TextureCommandType::CREATE, &sheets[i]);
     }
   }
   file.close();

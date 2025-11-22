@@ -1,11 +1,12 @@
 #include "app/gui/widgets/dungeon_object_emulator_preview.h"
-#include "app/gfx/backend/irenderer.h"
 
-#include "zelda3/dungeon/room.h"
-#include "zelda3/dungeon/room_object.h"
+#include <cstdio>
+
+#include "app/gfx/backend/irenderer.h"
 #include "app/gui/automation/widget_auto_register.h"
 #include "app/platform/window.h"
-#include <cstdio>
+#include "zelda3/dungeon/room.h"
+#include "zelda3/dungeon/room_object.h"
 
 namespace yaze {
 namespace gui {
@@ -20,7 +21,8 @@ DungeonObjectEmulatorPreview::~DungeonObjectEmulatorPreview() {
   // }
 }
 
-void DungeonObjectEmulatorPreview::Initialize(gfx::IRenderer* renderer, Rom* rom) {
+void DungeonObjectEmulatorPreview::Initialize(gfx::IRenderer* renderer,
+                                              Rom* rom) {
   renderer_ = renderer;
   rom_ = rom;
   snes_instance_ = std::make_unique<emu::Snes>();
@@ -31,9 +33,11 @@ void DungeonObjectEmulatorPreview::Initialize(gfx::IRenderer* renderer, Rom* rom
 }
 
 void DungeonObjectEmulatorPreview::Render() {
-  if (!show_window_) return;
+  if (!show_window_)
+    return;
 
-  if (ImGui::Begin("Dungeon Object Emulator Preview", &show_window_, ImGuiWindowFlags_AlwaysAutoResize)) {
+  if (ImGui::Begin("Dungeon Object Emulator Preview", &show_window_,
+                   ImGuiWindowFlags_AlwaysAutoResize)) {
     AutoWidgetScope scope("DungeonEditor/EmulatorPreview");
 
     // ROM status indicator
@@ -42,42 +46,46 @@ void DungeonObjectEmulatorPreview::Render() {
     } else {
       ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "ROM: Not loaded ✗");
     }
-    
+
     ImGui::Separator();
     RenderControls();
     ImGui::Separator();
 
     // Preview image with border
     if (object_texture_) {
-      ImGui::BeginChild("PreviewRegion", ImVec2(260, 260), true, ImGuiWindowFlags_NoScrollbar);
+      ImGui::BeginChild("PreviewRegion", ImVec2(260, 260), true,
+                        ImGuiWindowFlags_NoScrollbar);
       ImGui::Image((ImTextureID)object_texture_, ImVec2(256, 256));
       ImGui::EndChild();
     } else {
-      ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "No texture available");
+      ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f),
+                         "No texture available");
     }
-    
+
     // Debug info section
     ImGui::Separator();
     ImGui::Text("Execution:");
     ImGui::Indent();
-    ImGui::Text("Cycles: %d %s", last_cycle_count_, 
+    ImGui::Text("Cycles: %d %s", last_cycle_count_,
                 last_cycle_count_ >= 100000 ? "(TIMEOUT)" : "");
     ImGui::Unindent();
-    
+
     // Status with color coding
     ImGui::Text("Status:");
     ImGui::Indent();
     if (last_error_.empty()) {
       ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "✓ OK");
     } else {
-      ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "✗ %s", last_error_.c_str());
+      ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "✗ %s",
+                         last_error_.c_str());
     }
     ImGui::Unindent();
-    
+
     // Help text
     ImGui::Separator();
-    ImGui::TextWrapped("This tool uses the SNES emulator to render objects by "
-                      "executing the game's native drawing routines from bank $01.");
+    ImGui::TextWrapped(
+        "This tool uses the SNES emulator to render objects by "
+        "executing the game's native drawing routines from bank $01.");
   }
   ImGui::End();
 }
@@ -85,34 +93,44 @@ void DungeonObjectEmulatorPreview::Render() {
 void DungeonObjectEmulatorPreview::RenderControls() {
   ImGui::Text("Object Configuration:");
   ImGui::Indent();
-  
+
   // Object ID with hex display
-  AutoInputInt("Object ID", &object_id_, 1, 10, ImGuiInputTextFlags_CharsHexadecimal);
+  AutoInputInt("Object ID", &object_id_, 1, 10,
+               ImGuiInputTextFlags_CharsHexadecimal);
   ImGui::SameLine();
   ImGui::TextDisabled("($%03X)", object_id_);
-  
+
   // Room context
   AutoInputInt("Room Context", &room_id_, 1, 10);
   ImGui::SameLine();
   ImGui::TextDisabled("(for graphics/palette)");
-  
+
   // Position controls
   AutoSliderInt("X Position", &object_x_, 0, 63);
   AutoSliderInt("Y Position", &object_y_, 0, 63);
-  
+
   ImGui::Unindent();
-  
+
   // Render button - large and prominent
   ImGui::Separator();
   if (ImGui::Button("Render Object", ImVec2(-1, 0))) {
     TriggerEmulatedRender();
   }
-  
+
   // Quick test buttons
   if (ImGui::BeginPopup("QuickTests")) {
-    if (ImGui::MenuItem("Floor tile (0x00)")) { object_id_ = 0x00; TriggerEmulatedRender(); }
-    if (ImGui::MenuItem("Wall N (0x60)")) { object_id_ = 0x60; TriggerEmulatedRender(); }
-    if (ImGui::MenuItem("Door (0xF0)")) { object_id_ = 0xF0; TriggerEmulatedRender(); }
+    if (ImGui::MenuItem("Floor tile (0x00)")) {
+      object_id_ = 0x00;
+      TriggerEmulatedRender();
+    }
+    if (ImGui::MenuItem("Wall N (0x60)")) {
+      object_id_ = 0x60;
+      TriggerEmulatedRender();
+    }
+    if (ImGui::MenuItem("Door (0xF0)")) {
+      object_id_ = 0xF0;
+      TriggerEmulatedRender();
+    }
     ImGui::EndPopup();
   }
   if (ImGui::Button("Quick Tests...", ImVec2(-1, 0))) {
@@ -140,14 +158,16 @@ void DungeonObjectEmulatorPreview::TriggerEmulatedRender() {
 
   // 3. Load palette into CGRAM
   auto dungeon_main_pal_group = rom_->palette_group().dungeon_main;
-  
+
   // Validate and clamp palette ID
   int palette_id = default_room.palette;
-  if (palette_id < 0 || palette_id >= static_cast<int>(dungeon_main_pal_group.size())) {
-    printf("[EMU] Warning: Room palette %d out of bounds, using palette 0\n", palette_id);
+  if (palette_id < 0 ||
+      palette_id >= static_cast<int>(dungeon_main_pal_group.size())) {
+    printf("[EMU] Warning: Room palette %d out of bounds, using palette 0\n",
+           palette_id);
     palette_id = 0;
   }
-  
+
   auto palette = dungeon_main_pal_group[palette_id];
   for (size_t i = 0; i < palette.size() && i < 256; ++i) {
     ppu.cgram[i] = palette[i].snes();
@@ -223,17 +243,18 @@ void DungeonObjectEmulatorPreview::TriggerEmulatedRender() {
   }
 
   if (table_addr < rom_->size() - 1) {
-      uint8_t lo = rom_data[table_addr];
-      uint8_t hi = rom_data[table_addr + 1];
-      handler_offset = lo | (hi << 8);
+    uint8_t lo = rom_data[table_addr];
+    uint8_t hi = rom_data[table_addr + 1];
+    handler_offset = lo | (hi << 8);
   } else {
-      last_error_ = "Object ID out of bounds for handler lookup";
-      return;
+    last_error_ = "Object ID out of bounds for handler lookup";
+    return;
   }
 
   if (handler_offset == 0x0000) {
     char buf[256];
-    snprintf(buf, sizeof(buf), "Object $%04X has no drawing routine", object_id_);
+    snprintf(buf, sizeof(buf), "Object $%04X has no drawing routine",
+             object_id_);
     last_error_ = buf;
     return;
   }
@@ -244,7 +265,7 @@ void DungeonObjectEmulatorPreview::TriggerEmulatedRender() {
 
   // Push return address for RTL (3 bytes: bank, high, low)
   uint16_t sp = cpu.SP();
-  snes_instance_->Write(0x010000 | sp--, 0x01);  // Bank byte
+  snes_instance_->Write(0x010000 | sp--, 0x01);                    // Bank byte
   snes_instance_->Write(0x010000 | sp--, (return_addr - 1) >> 8);  // High
   snes_instance_->Write(0x010000 | sp--, (return_addr - 1) & 0xFF);  // Low
   cpu.SetSP(sp);
@@ -252,8 +273,8 @@ void DungeonObjectEmulatorPreview::TriggerEmulatedRender() {
   // Jump to handler (offset is relative to RoomDrawObjectData base)
   cpu.PC = handler_offset;
 
-  printf("[EMU] Rendering object $%04X at (%d,%d), handler=$%04X\n",
-         object_id_, object_x_, object_y_, handler_offset);
+  printf("[EMU] Rendering object $%04X at (%d,%d), handler=$%04X\n", object_id_,
+         object_x_, object_y_, handler_offset);
 
   // 13. Run emulator with timeout
   int max_cycles = 100000;
@@ -268,8 +289,8 @@ void DungeonObjectEmulatorPreview::TriggerEmulatedRender() {
 
   last_cycle_count_ = cycles;
 
-  printf("[EMU] Completed after %d cycles, PC=$%02X:%04X\n", 
-         cycles, cpu.PB, cpu.PC);
+  printf("[EMU] Completed after %d cycles, PC=$%02X:%04X\n", cycles, cpu.PB,
+         cpu.PC);
 
   if (cycles >= max_cycles) {
     last_error_ = "Timeout: exceeded max cycles";

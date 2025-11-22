@@ -19,11 +19,11 @@
 #include "absl/status/statusor.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/string_view.h"
-#include "core/project.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/types/snes_color.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/gfx/types/snes_tile.h"
+#include "core/project.h"
 #include "util/macro.h"
 
 namespace yaze {
@@ -82,7 +82,7 @@ class Rom {
 
   absl::Status LoadFromFile(const std::string& filename, bool z3_load = true);
   absl::Status LoadFromFile(const std::string& filename,
-                           const RomLoadOptions& options);
+                            const RomLoadOptions& options);
   absl::Status LoadFromData(const std::vector<uint8_t>& data,
                             bool z3_load = true);
   absl::Status LoadFromData(const std::vector<uint8_t>& data,
@@ -193,7 +193,8 @@ class Rom {
   }
 
   uint8_t& operator[](unsigned long i) {
-    if (i >= size_) throw std::out_of_range("Rom index out of range");
+    if (i >= size_)
+      throw std::out_of_range("Rom index out of range");
     return rom_data_[i];
   }
 
@@ -220,7 +221,9 @@ class Rom {
     return palette_groups_.dungeon_main.mutable_palette(i);
   }
 
-  project::ResourceLabelManager* resource_label() { return &resource_label_manager_; }
+  project::ResourceLabelManager* resource_label() {
+    return &resource_label_manager_;
+  }
   zelda3_version_pointers version_constants() const {
     return kVersionConstantsMap.at(version_);
   }

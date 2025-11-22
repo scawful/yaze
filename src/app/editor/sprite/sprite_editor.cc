@@ -1,15 +1,15 @@
 #include "sprite_editor.h"
-#include "app/editor/system/editor_card_registry.h"
 
-#include "app/gfx/debug/performance/performance_profiler.h"
-#include "app/gui/core/ui_helpers.h"
-#include "util/file_util.h"
 #include "app/editor/sprite/zsprite.h"
+#include "app/editor/system/editor_card_registry.h"
+#include "app/gfx/debug/performance/performance_profiler.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/input.h"
-#include "zelda3/sprite/sprite.h"
+#include "app/gui/core/ui_helpers.h"
+#include "util/file_util.h"
 #include "util/hex.h"
+#include "zelda3/sprite/sprite.h"
 
 namespace yaze {
 namespace editor {
@@ -26,23 +26,30 @@ using ImGui::TableSetupColumn;
 using ImGui::Text;
 
 void SpriteEditor::Initialize() {
-  if (!dependencies_.card_registry) return;
+  if (!dependencies_.card_registry)
+    return;
   auto* card_registry = dependencies_.card_registry;
-  
-  card_registry->RegisterCard({.card_id = "sprite.vanilla_editor", .display_name = "Vanilla Sprites",
-                            .icon = ICON_MD_SMART_TOY, .category = "Sprite",
-                            .shortcut_hint = "Alt+Shift+1", .priority = 10});
-  card_registry->RegisterCard({.card_id = "sprite.custom_editor", .display_name = "Custom Sprites",
-                            .icon = ICON_MD_ADD_CIRCLE, .category = "Sprite",
-                            .shortcut_hint = "Alt+Shift+2", .priority = 20});
-  
+
+  card_registry->RegisterCard({.card_id = "sprite.vanilla_editor",
+                               .display_name = "Vanilla Sprites",
+                               .icon = ICON_MD_SMART_TOY,
+                               .category = "Sprite",
+                               .shortcut_hint = "Alt+Shift+1",
+                               .priority = 10});
+  card_registry->RegisterCard({.card_id = "sprite.custom_editor",
+                               .display_name = "Custom Sprites",
+                               .icon = ICON_MD_ADD_CIRCLE,
+                               .category = "Sprite",
+                               .shortcut_hint = "Alt+Shift+2",
+                               .priority = 20});
+
   // Show vanilla editor by default
   card_registry->ShowCard("sprite.vanilla_editor");
 }
 
-absl::Status SpriteEditor::Load() { 
+absl::Status SpriteEditor::Load() {
   gfx::ScopedTimer timer("SpriteEditor::Load");
-  return absl::OkStatus(); 
+  return absl::OkStatus();
 }
 
 absl::Status SpriteEditor::Update() {
@@ -50,7 +57,8 @@ absl::Status SpriteEditor::Update() {
     sheets_loaded_ = true;
   }
 
-  if (!dependencies_.card_registry) return absl::OkStatus();
+  if (!dependencies_.card_registry)
+    return absl::OkStatus();
   auto* card_registry = dependencies_.card_registry;
 
   static gui::EditorCard vanilla_card("Vanilla Sprites", ICON_MD_SMART_TOY);
@@ -59,8 +67,10 @@ absl::Status SpriteEditor::Update() {
   vanilla_card.SetDefaultSize(900, 700);
   custom_card.SetDefaultSize(800, 600);
 
-  // Vanilla Sprites Card - Check visibility flag exists and is true before rendering
-  bool* vanilla_visible = card_registry->GetVisibilityFlag("sprite.vanilla_editor");
+  // Vanilla Sprites Card - Check visibility flag exists and is true before
+  // rendering
+  bool* vanilla_visible =
+      card_registry->GetVisibilityFlag("sprite.vanilla_editor");
   if (vanilla_visible && *vanilla_visible) {
     if (vanilla_card.Begin(vanilla_visible)) {
       DrawVanillaSpriteEditor();
@@ -68,8 +78,10 @@ absl::Status SpriteEditor::Update() {
     vanilla_card.End();
   }
 
-  // Custom Sprites Card - Check visibility flag exists and is true before rendering
-  bool* custom_visible = card_registry->GetVisibilityFlag("sprite.custom_editor");
+  // Custom Sprites Card - Check visibility flag exists and is true before
+  // rendering
+  bool* custom_visible =
+      card_registry->GetVisibilityFlag("sprite.custom_editor");
   if (custom_visible && *custom_visible) {
     if (custom_card.Begin(custom_visible)) {
       DrawCustomSprites();
@@ -84,7 +96,6 @@ void SpriteEditor::DrawToolset() {
   // Sidebar is now drawn by EditorManager for card-based editors
   // This method kept for compatibility but sidebar handles card toggles
 }
-
 
 void SpriteEditor::DrawVanillaSpriteEditor() {
   if (ImGui::BeginTable("##SpriteCanvasTable", 3, ImGuiTableFlags_Resizable,
@@ -212,7 +223,8 @@ void SpriteEditor::DrawCurrentSheets() {
     for (int i = 0; i < 8; i++) {
       std::string sheet_label = absl::StrFormat("Sheet %d", i);
       gui::InputHexByte(sheet_label.c_str(), &current_sheets_[i]);
-      if (i % 2 == 0) ImGui::SameLine();
+      if (i % 2 == 0)
+        ImGui::SameLine();
     }
 
     graphics_sheet_canvas_.DrawBackground();

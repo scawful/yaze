@@ -1,7 +1,6 @@
 #include "menu_orchestrator.h"
 
 #include "absl/strings/str_format.h"
-#include "core/features.h"
 #include "app/editor/editor.h"
 #include "app/editor/editor_manager.h"
 #include "app/editor/system/editor_registry.h"
@@ -13,20 +12,17 @@
 #include "app/editor/ui/menu_builder.h"
 #include "app/gui/core/icons.h"
 #include "app/rom.h"
+#include "core/features.h"
 #include "zelda3/overworld/overworld_map.h"
 
 namespace yaze {
 namespace editor {
 
 MenuOrchestrator::MenuOrchestrator(
-    EditorManager* editor_manager,
-    MenuBuilder& menu_builder,
-    RomFileManager& rom_manager,
-    ProjectManager& project_manager,
-    EditorRegistry& editor_registry,
-    SessionCoordinator& session_coordinator,
-    ToastManager& toast_manager,
-    PopupManager& popup_manager)
+    EditorManager* editor_manager, MenuBuilder& menu_builder,
+    RomFileManager& rom_manager, ProjectManager& project_manager,
+    EditorRegistry& editor_registry, SessionCoordinator& session_coordinator,
+    ToastManager& toast_manager, PopupManager& popup_manager)
     : editor_manager_(editor_manager),
       menu_builder_(menu_builder),
       rom_manager_(rom_manager),
@@ -34,12 +30,11 @@ MenuOrchestrator::MenuOrchestrator(
       editor_registry_(editor_registry),
       session_coordinator_(session_coordinator),
       toast_manager_(toast_manager),
-      popup_manager_(popup_manager) {
-}
+      popup_manager_(popup_manager) {}
 
 void MenuOrchestrator::BuildMainMenu() {
   ClearMenu();
-  
+
   // Build all menu sections in order
   BuildFileMenu();
   BuildEditMenu();
@@ -48,10 +43,10 @@ void MenuOrchestrator::BuildMainMenu() {
   BuildDebugMenu();  // Add Debug menu between Tools and Window
   BuildWindowMenu();
   BuildHelpMenu();
-  
+
   // Draw the constructed menu
   menu_builder_.Draw();
-  
+
   menu_needs_refresh_ = false;
 }
 
@@ -64,50 +59,48 @@ void MenuOrchestrator::BuildFileMenu() {
 void MenuOrchestrator::AddFileMenuItems() {
   // ROM Operations
   menu_builder_
-      .Item("Open ROM", ICON_MD_FILE_OPEN, 
-            [this]() { OnOpenRom(); }, "Ctrl+O")
-      .Item("Save ROM", ICON_MD_SAVE, 
-            [this]() { OnSaveRom(); }, "Ctrl+S",
-            [this]() { return CanSaveRom(); })
-      .Item("Save As...", ICON_MD_SAVE_AS,
-            [this]() { OnSaveRomAs(); }, nullptr,
-            [this]() { return CanSaveRom(); })
+      .Item(
+          "Open ROM", ICON_MD_FILE_OPEN, [this]() { OnOpenRom(); }, "Ctrl+O")
+      .Item(
+          "Save ROM", ICON_MD_SAVE, [this]() { OnSaveRom(); }, "Ctrl+S",
+          [this]() { return CanSaveRom(); })
+      .Item(
+          "Save As...", ICON_MD_SAVE_AS, [this]() { OnSaveRomAs(); }, nullptr,
+          [this]() { return CanSaveRom(); })
       .Separator();
-  
+
   // Project Operations
   menu_builder_
       .Item("New Project", ICON_MD_CREATE_NEW_FOLDER,
             [this]() { OnCreateProject(); })
-      .Item("Open Project", ICON_MD_FOLDER_OPEN,
-            [this]() { OnOpenProject(); })
-      .Item("Save Project", ICON_MD_SAVE, 
-            [this]() { OnSaveProject(); }, nullptr,
-            [this]() { return CanSaveProject(); })
-      .Item("Save Project As...", ICON_MD_SAVE_AS,
-            [this]() { OnSaveProjectAs(); }, nullptr,
-            [this]() { return CanSaveProject(); })
+      .Item("Open Project", ICON_MD_FOLDER_OPEN, [this]() { OnOpenProject(); })
+      .Item(
+          "Save Project", ICON_MD_SAVE, [this]() { OnSaveProject(); }, nullptr,
+          [this]() { return CanSaveProject(); })
+      .Item(
+          "Save Project As...", ICON_MD_SAVE_AS,
+          [this]() { OnSaveProjectAs(); }, nullptr,
+          [this]() { return CanSaveProject(); })
       .Separator();
-  
+
   // ROM Information and Validation
   menu_builder_
-      .Item("ROM Information", ICON_MD_INFO,
-            [this]() { OnShowRomInfo(); }, nullptr,
-            [this]() { return HasActiveRom(); })
-      .Item("Create Backup", ICON_MD_BACKUP,
-            [this]() { OnCreateBackup(); }, nullptr,
-            [this]() { return HasActiveRom(); })
-      .Item("Validate ROM", ICON_MD_CHECK_CIRCLE,
-            [this]() { OnValidateRom(); }, nullptr,
-            [this]() { return HasActiveRom(); })
+      .Item(
+          "ROM Information", ICON_MD_INFO, [this]() { OnShowRomInfo(); },
+          nullptr, [this]() { return HasActiveRom(); })
+      .Item(
+          "Create Backup", ICON_MD_BACKUP, [this]() { OnCreateBackup(); },
+          nullptr, [this]() { return HasActiveRom(); })
+      .Item(
+          "Validate ROM", ICON_MD_CHECK_CIRCLE, [this]() { OnValidateRom(); },
+          nullptr, [this]() { return HasActiveRom(); })
       .Separator();
-  
+
   // Settings and Quit
   menu_builder_
-      .Item("Settings", ICON_MD_SETTINGS,
-            [this]() { OnShowSettings(); })
+      .Item("Settings", ICON_MD_SETTINGS, [this]() { OnShowSettings(); })
       .Separator()
-      .Item("Quit", ICON_MD_EXIT_TO_APP, 
-            [this]() { OnQuit(); }, "Ctrl+Q");
+      .Item("Quit", ICON_MD_EXIT_TO_APP, [this]() { OnQuit(); }, "Ctrl+Q");
 }
 
 void MenuOrchestrator::BuildEditMenu() {
@@ -119,34 +112,35 @@ void MenuOrchestrator::BuildEditMenu() {
 void MenuOrchestrator::AddEditMenuItems() {
   // Undo/Redo operations - delegate to current editor
   menu_builder_
-      .Item("Undo", ICON_MD_UNDO,
-            [this]() { OnUndo(); }, "Ctrl+Z",
-            [this]() { return HasCurrentEditor(); })
-      .Item("Redo", ICON_MD_REDO,
-            [this]() { OnRedo(); }, "Ctrl+Y",
-            [this]() { return HasCurrentEditor(); })
+      .Item(
+          "Undo", ICON_MD_UNDO, [this]() { OnUndo(); }, "Ctrl+Z",
+          [this]() { return HasCurrentEditor(); })
+      .Item(
+          "Redo", ICON_MD_REDO, [this]() { OnRedo(); }, "Ctrl+Y",
+          [this]() { return HasCurrentEditor(); })
       .Separator();
-  
+
   // Clipboard operations - delegate to current editor
   menu_builder_
-      .Item("Cut", ICON_MD_CONTENT_CUT,
-            [this]() { OnCut(); }, "Ctrl+X",
-            [this]() { return HasCurrentEditor(); })
-      .Item("Copy", ICON_MD_CONTENT_COPY,
-            [this]() { OnCopy(); }, "Ctrl+C",
-            [this]() { return HasCurrentEditor(); })
-      .Item("Paste", ICON_MD_CONTENT_PASTE,
-            [this]() { OnPaste(); }, "Ctrl+V",
-            [this]() { return HasCurrentEditor(); })
+      .Item(
+          "Cut", ICON_MD_CONTENT_CUT, [this]() { OnCut(); }, "Ctrl+X",
+          [this]() { return HasCurrentEditor(); })
+      .Item(
+          "Copy", ICON_MD_CONTENT_COPY, [this]() { OnCopy(); }, "Ctrl+C",
+          [this]() { return HasCurrentEditor(); })
+      .Item(
+          "Paste", ICON_MD_CONTENT_PASTE, [this]() { OnPaste(); }, "Ctrl+V",
+          [this]() { return HasCurrentEditor(); })
       .Separator();
-  
+
   // Search operations
   menu_builder_
-      .Item("Find", ICON_MD_SEARCH,
-            [this]() { OnFind(); }, "Ctrl+F",
-            [this]() { return HasCurrentEditor(); })
-      .Item("Find in Files", ICON_MD_SEARCH,
-            [this]() { OnShowGlobalSearch(); }, "Ctrl+Shift+F");
+      .Item(
+          "Find", ICON_MD_SEARCH, [this]() { OnFind(); }, "Ctrl+F",
+          [this]() { return HasCurrentEditor(); })
+      .Item(
+          "Find in Files", ICON_MD_SEARCH, [this]() { OnShowGlobalSearch(); },
+          "Ctrl+Shift+F");
 }
 
 void MenuOrchestrator::BuildViewMenu() {
@@ -158,60 +152,76 @@ void MenuOrchestrator::BuildViewMenu() {
 void MenuOrchestrator::AddViewMenuItems() {
   // Editor Selection
   menu_builder_
-      .Item("Editor Selection", ICON_MD_DASHBOARD,
-            [this]() { OnShowEditorSelection(); }, "Ctrl+E")
+      .Item(
+          "Editor Selection", ICON_MD_DASHBOARD,
+          [this]() { OnShowEditorSelection(); }, "Ctrl+E")
       .Separator();
-  
+
   // Individual Editor Shortcuts
   menu_builder_
-      .Item("Overworld", ICON_MD_MAP,
-            [this]() { OnSwitchToEditor(EditorType::kOverworld); }, "Ctrl+1")
-      .Item("Dungeon", ICON_MD_CASTLE,
-            [this]() { OnSwitchToEditor(EditorType::kDungeon); }, "Ctrl+2")
-      .Item("Graphics", ICON_MD_IMAGE,
-            [this]() { OnSwitchToEditor(EditorType::kGraphics); }, "Ctrl+3")
-      .Item("Sprites", ICON_MD_TOYS,
-            [this]() { OnSwitchToEditor(EditorType::kSprite); }, "Ctrl+4")
-      .Item("Messages", ICON_MD_CHAT_BUBBLE,
-            [this]() { OnSwitchToEditor(EditorType::kMessage); }, "Ctrl+5")
-      .Item("Music", ICON_MD_MUSIC_NOTE,
-            [this]() { OnSwitchToEditor(EditorType::kMusic); }, "Ctrl+6")
-      .Item("Palettes", ICON_MD_PALETTE,
-            [this]() { OnSwitchToEditor(EditorType::kPalette); }, "Ctrl+7")
-      .Item("Screens", ICON_MD_TV,
-            [this]() { OnSwitchToEditor(EditorType::kScreen); }, "Ctrl+8")
-      .Item("Assembly", ICON_MD_CODE,
-            [this]() { OnSwitchToEditor(EditorType::kAssembly); }, "Ctrl+9")
-      .Item("Hex Editor", ICON_MD_DATA_ARRAY,
-            [this]() { OnShowHexEditor(); }, "Ctrl+0")
+      .Item(
+          "Overworld", ICON_MD_MAP,
+          [this]() { OnSwitchToEditor(EditorType::kOverworld); }, "Ctrl+1")
+      .Item(
+          "Dungeon", ICON_MD_CASTLE,
+          [this]() { OnSwitchToEditor(EditorType::kDungeon); }, "Ctrl+2")
+      .Item(
+          "Graphics", ICON_MD_IMAGE,
+          [this]() { OnSwitchToEditor(EditorType::kGraphics); }, "Ctrl+3")
+      .Item(
+          "Sprites", ICON_MD_TOYS,
+          [this]() { OnSwitchToEditor(EditorType::kSprite); }, "Ctrl+4")
+      .Item(
+          "Messages", ICON_MD_CHAT_BUBBLE,
+          [this]() { OnSwitchToEditor(EditorType::kMessage); }, "Ctrl+5")
+      .Item(
+          "Music", ICON_MD_MUSIC_NOTE,
+          [this]() { OnSwitchToEditor(EditorType::kMusic); }, "Ctrl+6")
+      .Item(
+          "Palettes", ICON_MD_PALETTE,
+          [this]() { OnSwitchToEditor(EditorType::kPalette); }, "Ctrl+7")
+      .Item(
+          "Screens", ICON_MD_TV,
+          [this]() { OnSwitchToEditor(EditorType::kScreen); }, "Ctrl+8")
+      .Item(
+          "Assembly", ICON_MD_CODE,
+          [this]() { OnSwitchToEditor(EditorType::kAssembly); }, "Ctrl+9")
+      .Item(
+          "Hex Editor", ICON_MD_DATA_ARRAY, [this]() { OnShowHexEditor(); },
+          "Ctrl+0")
       .Separator();
-  
+
   // Special Editors
 #ifdef YAZE_WITH_GRPC
   menu_builder_
-      .Item("AI Agent", ICON_MD_SMART_TOY,
-            [this]() { OnShowAIAgent(); }, "Ctrl+Shift+A")
-      .Item("Chat History", ICON_MD_CHAT,
-            [this]() { OnShowChatHistory(); }, "Ctrl+H")
-      .Item("Proposal Drawer", ICON_MD_PREVIEW,
-            [this]() { OnShowProposalDrawer(); }, "Ctrl+Shift+R");
+      .Item(
+          "AI Agent", ICON_MD_SMART_TOY, [this]() { OnShowAIAgent(); },
+          "Ctrl+Shift+A")
+      .Item(
+          "Chat History", ICON_MD_CHAT, [this]() { OnShowChatHistory(); },
+          "Ctrl+H")
+      .Item(
+          "Proposal Drawer", ICON_MD_PREVIEW,
+          [this]() { OnShowProposalDrawer(); }, "Ctrl+Shift+R");
 #endif
-  
+
   menu_builder_
-      .Item("Emulator", ICON_MD_VIDEOGAME_ASSET,
-            [this]() { OnShowEmulator(); }, "Ctrl+Shift+E")
+      .Item(
+          "Emulator", ICON_MD_VIDEOGAME_ASSET, [this]() { OnShowEmulator(); },
+          "Ctrl+Shift+E")
       .Separator();
-  
+
   // Settings and UI
   menu_builder_
       .Item("Display Settings", ICON_MD_DISPLAY_SETTINGS,
             [this]() { OnShowDisplaySettings(); })
       .Separator();
-  
+
   // Additional UI Elements
   menu_builder_
-      .Item("Card Browser", ICON_MD_DASHBOARD,
-            [this]() { OnShowCardBrowser(); }, "Ctrl+Shift+B")
+      .Item(
+          "Card Browser", ICON_MD_DASHBOARD, [this]() { OnShowCardBrowser(); },
+          "Ctrl+Shift+B")
       .Item("Welcome Screen", ICON_MD_HOME,
             [this]() { OnShowWelcomeScreen(); });
 }
@@ -225,22 +235,23 @@ void MenuOrchestrator::BuildToolsMenu() {
 void MenuOrchestrator::AddToolsMenuItems() {
   // Core Tools - keep these in Tools menu
   menu_builder_
-      .Item("Global Search", ICON_MD_SEARCH,
-            [this]() { OnShowGlobalSearch(); }, "Ctrl+Shift+F")
-      .Item("Command Palette", ICON_MD_SEARCH,
-            [this]() { OnShowCommandPalette(); }, "Ctrl+Shift+P")
+      .Item(
+          "Global Search", ICON_MD_SEARCH, [this]() { OnShowGlobalSearch(); },
+          "Ctrl+Shift+F")
+      .Item(
+          "Command Palette", ICON_MD_SEARCH,
+          [this]() { OnShowCommandPalette(); }, "Ctrl+Shift+P")
       .Separator();
-  
+
   // Resource Management
   menu_builder_
       .Item("Resource Label Manager", ICON_MD_LABEL,
             [this]() { OnShowResourceLabelManager(); })
       .Separator();
-  
+
   // Collaboration (GRPC builds only)
 #ifdef YAZE_WITH_GRPC
-  menu_builder_
-      .BeginSubMenu("Collaborate", ICON_MD_PEOPLE)
+  menu_builder_.BeginSubMenu("Collaborate", ICON_MD_PEOPLE)
       .Item("Start Collaboration Session", ICON_MD_PLAY_CIRCLE,
             [this]() { OnStartCollaboration(); })
       .Item("Join Collaboration Session", ICON_MD_GROUP_ADD,
@@ -260,67 +271,60 @@ void MenuOrchestrator::BuildDebugMenu() {
 void MenuOrchestrator::AddDebugMenuItems() {
   // Testing section (move from Tools if present)
 #ifdef YAZE_ENABLE_TESTING
-  menu_builder_
-      .BeginSubMenu("Testing", ICON_MD_SCIENCE)
-      .Item("Test Dashboard", ICON_MD_DASHBOARD,
-            [this]() { OnShowTestDashboard(); }, "Ctrl+T")
-      .Item("Run All Tests", ICON_MD_PLAY_ARROW,
-            [this]() { OnRunAllTests(); })
-      .Item("Run Unit Tests", ICON_MD_CHECK_BOX,
-            [this]() { OnRunUnitTests(); })
+  menu_builder_.BeginSubMenu("Testing", ICON_MD_SCIENCE)
+      .Item(
+          "Test Dashboard", ICON_MD_DASHBOARD,
+          [this]() { OnShowTestDashboard(); }, "Ctrl+T")
+      .Item("Run All Tests", ICON_MD_PLAY_ARROW, [this]() { OnRunAllTests(); })
+      .Item("Run Unit Tests", ICON_MD_CHECK_BOX, [this]() { OnRunUnitTests(); })
       .Item("Run Integration Tests", ICON_MD_INTEGRATION_INSTRUCTIONS,
             [this]() { OnRunIntegrationTests(); })
-      .Item("Run E2E Tests", ICON_MD_VISIBILITY,
-            [this]() { OnRunE2ETests(); })
+      .Item("Run E2E Tests", ICON_MD_VISIBILITY, [this]() { OnRunE2ETests(); })
       .EndMenu()
       .Separator();
 #endif
-  
+
   // ROM Analysis submenu
-  menu_builder_
-      .BeginSubMenu("ROM Analysis", ICON_MD_STORAGE)
-      .Item("ROM Information", ICON_MD_INFO,
-            [this]() { OnShowRomInfo(); }, nullptr,
-            [this]() { return HasActiveRom(); })
-      .Item("Data Integrity Check", ICON_MD_ANALYTICS,
-            [this]() { OnRunDataIntegrityCheck(); }, nullptr,
-            [this]() { return HasActiveRom(); })
-      .Item("Test Save/Load", ICON_MD_SAVE_ALT,
-            [this]() { OnTestSaveLoad(); }, nullptr,
-            [this]() { return HasActiveRom(); })
+  menu_builder_.BeginSubMenu("ROM Analysis", ICON_MD_STORAGE)
+      .Item(
+          "ROM Information", ICON_MD_INFO, [this]() { OnShowRomInfo(); },
+          nullptr, [this]() { return HasActiveRom(); })
+      .Item(
+          "Data Integrity Check", ICON_MD_ANALYTICS,
+          [this]() { OnRunDataIntegrityCheck(); }, nullptr,
+          [this]() { return HasActiveRom(); })
+      .Item(
+          "Test Save/Load", ICON_MD_SAVE_ALT, [this]() { OnTestSaveLoad(); },
+          nullptr, [this]() { return HasActiveRom(); })
       .EndMenu();
-  
+
   // ZSCustomOverworld submenu
-  menu_builder_
-      .BeginSubMenu("ZSCustomOverworld", ICON_MD_CODE)
-      .Item("Check ROM Version", ICON_MD_INFO,
-            [this]() { OnCheckRomVersion(); }, nullptr,
-            [this]() { return HasActiveRom(); })
-      .Item("Upgrade ROM", ICON_MD_UPGRADE,
-            [this]() { OnUpgradeRom(); }, nullptr,
-            [this]() { return HasActiveRom(); })
+  menu_builder_.BeginSubMenu("ZSCustomOverworld", ICON_MD_CODE)
+      .Item(
+          "Check ROM Version", ICON_MD_INFO, [this]() { OnCheckRomVersion(); },
+          nullptr, [this]() { return HasActiveRom(); })
+      .Item(
+          "Upgrade ROM", ICON_MD_UPGRADE, [this]() { OnUpgradeRom(); }, nullptr,
+          [this]() { return HasActiveRom(); })
       .Item("Toggle Custom Loading", ICON_MD_SETTINGS,
             [this]() { OnToggleCustomLoading(); })
       .EndMenu();
-  
+
   // Asar Integration submenu
-  menu_builder_
-      .BeginSubMenu("Asar Integration", ICON_MD_BUILD)
+  menu_builder_.BeginSubMenu("Asar Integration", ICON_MD_BUILD)
       .Item("Asar Status", ICON_MD_INFO,
             [this]() { popup_manager_.Show(PopupID::kAsarIntegration); })
-      .Item("Toggle ASM Patch", ICON_MD_CODE,
-            [this]() { OnToggleAsarPatch(); }, nullptr,
-            [this]() { return HasActiveRom(); })
-      .Item("Load ASM File", ICON_MD_FOLDER_OPEN,
-            [this]() { OnLoadAsmFile(); })
+      .Item(
+          "Toggle ASM Patch", ICON_MD_CODE, [this]() { OnToggleAsarPatch(); },
+          nullptr, [this]() { return HasActiveRom(); })
+      .Item("Load ASM File", ICON_MD_FOLDER_OPEN, [this]() { OnLoadAsmFile(); })
       .EndMenu();
-  
+
   menu_builder_.Separator();
-  
+
   // Development Tools
   menu_builder_
-      .Item("Memory Editor", ICON_MD_MEMORY,
-            [this]() { OnShowMemoryEditor(); })
+      .Item("Memory Editor", ICON_MD_MEMORY, [this]() { OnShowMemoryEditor(); })
       .Item("Assembly Editor", ICON_MD_CODE,
             [this]() { OnShowAssemblyEditor(); })
       .Item("Feature Flags", ICON_MD_FLAG,
@@ -328,19 +332,17 @@ void MenuOrchestrator::AddDebugMenuItems() {
       .Separator()
       .Item("Performance Dashboard", ICON_MD_SPEED,
             [this]() { OnShowPerformanceDashboard(); });
-  
+
 #ifdef YAZE_WITH_GRPC
-  menu_builder_
-      .Item("Agent Proposals", ICON_MD_PREVIEW,
-            [this]() { OnShowProposalDrawer(); });
+  menu_builder_.Item("Agent Proposals", ICON_MD_PREVIEW,
+                     [this]() { OnShowProposalDrawer(); });
 #endif
-  
+
   menu_builder_.Separator();
-  
+
   // ImGui Debug Windows
   menu_builder_
-      .Item("ImGui Demo", ICON_MD_HELP,
-            [this]() { OnShowImGuiDemo(); })
+      .Item("ImGui Demo", ICON_MD_HELP, [this]() { OnShowImGuiDemo(); })
       .Item("ImGui Metrics", ICON_MD_ANALYTICS,
             [this]() { OnShowImGuiMetrics(); });
 }
@@ -353,37 +355,41 @@ void MenuOrchestrator::BuildWindowMenu() {
 
 void MenuOrchestrator::AddWindowMenuItems() {
   // Sessions Submenu
-  menu_builder_
-      .BeginSubMenu("Sessions", ICON_MD_TAB)
-      .Item("New Session", ICON_MD_ADD, 
-            [this]() { OnCreateNewSession(); }, "Ctrl+Shift+N")
-      .Item("Duplicate Session", ICON_MD_CONTENT_COPY,
-            [this]() { OnDuplicateCurrentSession(); }, nullptr,
-            [this]() { return HasActiveRom(); })
-      .Item("Close Session", ICON_MD_CLOSE, 
-            [this]() { OnCloseCurrentSession(); }, "Ctrl+Shift+W",
-            [this]() { return HasMultipleSessions(); })
+  menu_builder_.BeginSubMenu("Sessions", ICON_MD_TAB)
+      .Item(
+          "New Session", ICON_MD_ADD, [this]() { OnCreateNewSession(); },
+          "Ctrl+Shift+N")
+      .Item(
+          "Duplicate Session", ICON_MD_CONTENT_COPY,
+          [this]() { OnDuplicateCurrentSession(); }, nullptr,
+          [this]() { return HasActiveRom(); })
+      .Item(
+          "Close Session", ICON_MD_CLOSE, [this]() { OnCloseCurrentSession(); },
+          "Ctrl+Shift+W", [this]() { return HasMultipleSessions(); })
       .Separator()
-      .Item("Session Switcher", ICON_MD_SWITCH_ACCOUNT,
-            [this]() { OnShowSessionSwitcher(); }, "Ctrl+Tab",
-            [this]() { return HasMultipleSessions(); })
+      .Item(
+          "Session Switcher", ICON_MD_SWITCH_ACCOUNT,
+          [this]() { OnShowSessionSwitcher(); }, "Ctrl+Tab",
+          [this]() { return HasMultipleSessions(); })
       .Item("Session Manager", ICON_MD_VIEW_LIST,
             [this]() { OnShowSessionManager(); })
       .EndMenu()
       .Separator();
-  
+
   // Layout Management
   menu_builder_
-      .Item("Save Layout", ICON_MD_SAVE,
-            [this]() { OnSaveWorkspaceLayout(); }, "Ctrl+Shift+S")
-      .Item("Load Layout", ICON_MD_FOLDER_OPEN,
-            [this]() { OnLoadWorkspaceLayout(); }, "Ctrl+Shift+O")
+      .Item(
+          "Save Layout", ICON_MD_SAVE, [this]() { OnSaveWorkspaceLayout(); },
+          "Ctrl+Shift+S")
+      .Item(
+          "Load Layout", ICON_MD_FOLDER_OPEN,
+          [this]() { OnLoadWorkspaceLayout(); }, "Ctrl+Shift+O")
       .Item("Reset Layout", ICON_MD_RESET_TV,
             [this]() { OnResetWorkspaceLayout(); })
       .Item("Layout Presets", ICON_MD_BOOKMARK,
             [this]() { OnShowLayoutPresets(); })
       .Separator();
-  
+
   // Window Visibility
   menu_builder_
       .Item("Show All Windows", ICON_MD_VISIBILITY,
@@ -391,7 +397,7 @@ void MenuOrchestrator::AddWindowMenuItems() {
       .Item("Hide All Windows", ICON_MD_VISIBILITY_OFF,
             [this]() { OnHideAllWindows(); })
       .Separator();
-  
+
   // Workspace Presets
   menu_builder_
       .Item("Developer Layout", ICON_MD_DEVELOPER_MODE,
@@ -416,21 +422,18 @@ void MenuOrchestrator::AddHelpMenuItems() {
             [this]() { OnShowAsarIntegration(); })
       .Item("Build Instructions", ICON_MD_BUILD,
             [this]() { OnShowBuildInstructions(); })
-      .Item("CLI Usage", ICON_MD_TERMINAL,
-            [this]() { OnShowCLIUsage(); })
+      .Item("CLI Usage", ICON_MD_TERMINAL, [this]() { OnShowCLIUsage(); })
       .Separator()
       .Item("Supported Features", ICON_MD_CHECK_CIRCLE,
             [this]() { OnShowSupportedFeatures(); })
-      .Item("What's New", ICON_MD_NEW_RELEASES,
-            [this]() { OnShowWhatsNew(); })
+      .Item("What's New", ICON_MD_NEW_RELEASES, [this]() { OnShowWhatsNew(); })
       .Separator()
       .Item("Troubleshooting", ICON_MD_BUILD_CIRCLE,
             [this]() { OnShowTroubleshooting(); })
       .Item("Contributing", ICON_MD_VOLUNTEER_ACTIVISM,
             [this]() { OnShowContributing(); })
       .Separator()
-      .Item("About", ICON_MD_INFO,
-            [this]() { OnShowAbout(); }, "F1");
+      .Item("About", ICON_MD_INFO, [this]() { OnShowAbout(); }, "F1");
 }
 
 // Menu state management
@@ -530,8 +533,9 @@ void MenuOrchestrator::OnUndo() {
     if (current_editor) {
       auto status = current_editor->Undo();
       if (!status.ok()) {
-        toast_manager_.Show(absl::StrFormat("Undo failed: %s", status.message()),
-                           ToastType::kError);
+        toast_manager_.Show(
+            absl::StrFormat("Undo failed: %s", status.message()),
+            ToastType::kError);
       }
     }
   }
@@ -543,8 +547,9 @@ void MenuOrchestrator::OnRedo() {
     if (current_editor) {
       auto status = current_editor->Redo();
       if (!status.ok()) {
-        toast_manager_.Show(absl::StrFormat("Redo failed: %s", status.message()),
-                           ToastType::kError);
+        toast_manager_.Show(
+            absl::StrFormat("Redo failed: %s", status.message()),
+            ToastType::kError);
       }
     }
   }
@@ -557,7 +562,7 @@ void MenuOrchestrator::OnCut() {
       auto status = current_editor->Cut();
       if (!status.ok()) {
         toast_manager_.Show(absl::StrFormat("Cut failed: %s", status.message()),
-                           ToastType::kError);
+                            ToastType::kError);
       }
     }
   }
@@ -569,8 +574,9 @@ void MenuOrchestrator::OnCopy() {
     if (current_editor) {
       auto status = current_editor->Copy();
       if (!status.ok()) {
-        toast_manager_.Show(absl::StrFormat("Copy failed: %s", status.message()),
-                           ToastType::kError);
+        toast_manager_.Show(
+            absl::StrFormat("Copy failed: %s", status.message()),
+            ToastType::kError);
       }
     }
   }
@@ -582,8 +588,9 @@ void MenuOrchestrator::OnPaste() {
     if (current_editor) {
       auto status = current_editor->Paste();
       if (!status.ok()) {
-        toast_manager_.Show(absl::StrFormat("Paste failed: %s", status.message()),
-                           ToastType::kError);
+        toast_manager_.Show(
+            absl::StrFormat("Paste failed: %s", status.message()),
+            ToastType::kError);
       }
     }
   }
@@ -595,8 +602,9 @@ void MenuOrchestrator::OnFind() {
     if (current_editor) {
       auto status = current_editor->Find();
       if (!status.ok()) {
-        toast_manager_.Show(absl::StrFormat("Find failed: %s", status.message()),
-                           ToastType::kError);
+        toast_manager_.Show(
+            absl::StrFormat("Find failed: %s", status.message()),
+            ToastType::kError);
       }
     }
   }
@@ -977,7 +985,8 @@ std::string MenuOrchestrator::GetCurrentEditorName() const {
 }
 
 // Shortcut key management
-std::string MenuOrchestrator::GetShortcutForAction(const std::string& action) const {
+std::string MenuOrchestrator::GetShortcutForAction(
+    const std::string& action) const {
   // TODO: Implement shortcut mapping
   return "";
 }
@@ -992,14 +1001,17 @@ void MenuOrchestrator::RegisterGlobalShortcuts() {
 
 void MenuOrchestrator::OnRunDataIntegrityCheck() {
 #ifdef YAZE_ENABLE_TESTING
-  if (!editor_manager_) return;
+  if (!editor_manager_)
+    return;
   auto* rom = editor_manager_->GetCurrentRom();
-  if (!rom || !rom->is_loaded()) return;
-  
+  if (!rom || !rom->is_loaded())
+    return;
+
   toast_manager_.Show("Running ROM integrity tests...", ToastType::kInfo);
   // This would integrate with the test system in master
   // For now, just show a placeholder
-  toast_manager_.Show("Data integrity check completed", ToastType::kSuccess, 3.0f);
+  toast_manager_.Show("Data integrity check completed", ToastType::kSuccess,
+                      3.0f);
 #else
   toast_manager_.Show("Testing not enabled in this build", ToastType::kWarning);
 #endif
@@ -1007,10 +1019,12 @@ void MenuOrchestrator::OnRunDataIntegrityCheck() {
 
 void MenuOrchestrator::OnTestSaveLoad() {
 #ifdef YAZE_ENABLE_TESTING
-  if (!editor_manager_) return;
+  if (!editor_manager_)
+    return;
   auto* rom = editor_manager_->GetCurrentRom();
-  if (!rom || !rom->is_loaded()) return;
-  
+  if (!rom || !rom->is_loaded())
+    return;
+
   toast_manager_.Show("Running ROM save/load tests...", ToastType::kInfo);
   // This would integrate with the test system in master
   toast_manager_.Show("Save/load test completed", ToastType::kSuccess, 3.0f);
@@ -1020,58 +1034,66 @@ void MenuOrchestrator::OnTestSaveLoad() {
 }
 
 void MenuOrchestrator::OnCheckRomVersion() {
-  if (!editor_manager_) return;
+  if (!editor_manager_)
+    return;
   auto* rom = editor_manager_->GetCurrentRom();
-  if (!rom || !rom->is_loaded()) return;
-  
+  if (!rom || !rom->is_loaded())
+    return;
+
   // Check ZSCustomOverworld version
   uint8_t version = (*rom)[zelda3::OverworldCustomASMHasBeenApplied];
-  std::string version_str = (version == 0xFF) 
-      ? "Vanilla" 
-      : absl::StrFormat("v%d", version);
-  
+  std::string version_str =
+      (version == 0xFF) ? "Vanilla" : absl::StrFormat("v%d", version);
+
   toast_manager_.Show(
-      absl::StrFormat("ROM: %s | ZSCustomOverworld: %s",
-                      rom->title().c_str(), version_str.c_str()),
+      absl::StrFormat("ROM: %s | ZSCustomOverworld: %s", rom->title().c_str(),
+                      version_str.c_str()),
       ToastType::kInfo, 5.0f);
 }
 
 void MenuOrchestrator::OnUpgradeRom() {
-  if (!editor_manager_) return;
+  if (!editor_manager_)
+    return;
   auto* rom = editor_manager_->GetCurrentRom();
-  if (!rom || !rom->is_loaded()) return;
-  
-  toast_manager_.Show(
-      "Use Overworld Editor to upgrade ROM version",
-      ToastType::kInfo, 4.0f);
+  if (!rom || !rom->is_loaded())
+    return;
+
+  toast_manager_.Show("Use Overworld Editor to upgrade ROM version",
+                      ToastType::kInfo, 4.0f);
 }
 
 void MenuOrchestrator::OnToggleCustomLoading() {
   auto& flags = core::FeatureFlags::get();
   flags.overworld.kLoadCustomOverworld = !flags.overworld.kLoadCustomOverworld;
-  
+
   toast_manager_.Show(
-      absl::StrFormat("Custom Overworld Loading: %s",
-                      flags.overworld.kLoadCustomOverworld ? "Enabled" : "Disabled"),
+      absl::StrFormat(
+          "Custom Overworld Loading: %s",
+          flags.overworld.kLoadCustomOverworld ? "Enabled" : "Disabled"),
       ToastType::kInfo);
 }
 
 void MenuOrchestrator::OnToggleAsarPatch() {
-  if (!editor_manager_) return;
+  if (!editor_manager_)
+    return;
   auto* rom = editor_manager_->GetCurrentRom();
-  if (!rom || !rom->is_loaded()) return;
-  
+  if (!rom || !rom->is_loaded())
+    return;
+
   auto& flags = core::FeatureFlags::get();
-  flags.overworld.kApplyZSCustomOverworldASM = !flags.overworld.kApplyZSCustomOverworldASM;
-  
+  flags.overworld.kApplyZSCustomOverworldASM =
+      !flags.overworld.kApplyZSCustomOverworldASM;
+
   toast_manager_.Show(
-      absl::StrFormat("ZSCustomOverworld ASM Application: %s",
-                      flags.overworld.kApplyZSCustomOverworldASM ? "Enabled" : "Disabled"),
+      absl::StrFormat(
+          "ZSCustomOverworld ASM Application: %s",
+          flags.overworld.kApplyZSCustomOverworldASM ? "Enabled" : "Disabled"),
       ToastType::kInfo);
 }
 
 void MenuOrchestrator::OnLoadAsmFile() {
-  toast_manager_.Show("ASM file loading not yet implemented", ToastType::kWarning);
+  toast_manager_.Show("ASM file loading not yet implemented",
+                      ToastType::kWarning);
 }
 
 void MenuOrchestrator::OnShowAssemblyEditor() {

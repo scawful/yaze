@@ -1,14 +1,13 @@
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
+
 #include <filesystem>
 #include <fstream>
 
-#include "core/asar_wrapper.h"
-#include "app/rom.h"
 #include "absl/status/status.h"
+#include "app/rom.h"
+#include "core/asar_wrapper.h"
 #include "testing.h"
-
-#include <gtest/gtest.h>
-#include <gmock/gmock.h>
 
 namespace yaze {
 namespace test {
@@ -18,11 +17,12 @@ class AsarIntegrationTest : public ::testing::Test {
  protected:
   void SetUp() override {
     wrapper_ = std::make_unique<core::AsarWrapper>();
-    
+
     // Create test directory
-    test_dir_ = std::filesystem::temp_directory_path() / "yaze_asar_integration";
+    test_dir_ =
+        std::filesystem::temp_directory_path() / "yaze_asar_integration";
     std::filesystem::create_directories(test_dir_);
-    
+
     CreateTestRom();
     CreateTestAssemblyFiles();
   }
@@ -40,35 +40,35 @@ class AsarIntegrationTest : public ::testing::Test {
   void CreateTestRom() {
     // Create a minimal SNES ROM structure
     test_rom_.resize(1024 * 1024, 0);  // 1MB ROM
-    
+
     // Add SNES header at 0x7FC0 (LoROM)
     const uint32_t header_offset = 0x7FC0;
-    
+
     // ROM title (21 bytes)
     std::string title = "YAZE TEST ROM       ";
     std::copy(title.begin(), title.end(), test_rom_.begin() + header_offset);
-    
+
     // Map mode (byte 21) - LoROM
     test_rom_[header_offset + 21] = 0x20;
-    
+
     // Cartridge type (byte 22)
     test_rom_[header_offset + 22] = 0x00;
-    
+
     // ROM size (byte 23) - 1MB
     test_rom_[header_offset + 23] = 0x0A;
-    
+
     // SRAM size (byte 24)
     test_rom_[header_offset + 24] = 0x00;
-    
+
     // Country code (byte 25)
     test_rom_[header_offset + 25] = 0x01;
-    
+
     // Developer ID (byte 26)
     test_rom_[header_offset + 26] = 0x00;
-    
+
     // Version (byte 27)
     test_rom_[header_offset + 27] = 0x00;
-    
+
     // Calculate and set checksum complement and checksum
     uint16_t checksum = 0;
     for (size_t i = 0; i < test_rom_.size(); ++i) {
@@ -77,13 +77,13 @@ class AsarIntegrationTest : public ::testing::Test {
         checksum += test_rom_[i];
       }
     }
-    
+
     uint16_t checksum_complement = checksum ^ 0xFFFF;
     test_rom_[header_offset + 28] = checksum_complement & 0xFF;
     test_rom_[header_offset + 29] = (checksum_complement >> 8) & 0xFF;
     test_rom_[header_offset + 30] = checksum & 0xFF;
     test_rom_[header_offset + 31] = (checksum >> 8) & 0xFF;
-    
+
     // Add some code at the reset vector location
     const uint32_t reset_vector_offset = 0x8000;
     test_rom_[reset_vector_offset] = 0x18;      // CLC
@@ -246,8 +246,9 @@ org $00FFE0
 
     // Create test graphics binary
     std::ofstream gfx_file(test_dir_ / "test_graphics.bin", std::ios::binary);
-    std::vector<uint8_t> graphics_data(2048, 0x55); // Test pattern
-    gfx_file.write(reinterpret_cast<char*>(graphics_data.data()), graphics_data.size());
+    std::vector<uint8_t> graphics_data(2048, 0x55);  // Test pattern
+    gfx_file.write(reinterpret_cast<char*>(graphics_data.data()),
+                   graphics_data.size());
     gfx_file.close();
 
     // Create advanced assembly with macros and includes
@@ -339,12 +340,13 @@ TEST_F(AsarIntegrationTest, FullWorkflowIntegration) {
   size_t original_size = rom_copy.size();
 
   // Apply comprehensive patch
-  auto patch_result = wrapper_->ApplyPatch(comprehensive_asm_path_.string(), rom_copy);
+  auto patch_result =
+      wrapper_->ApplyPatch(comprehensive_asm_path_.string(), rom_copy);
   ASSERT_TRUE(patch_result.ok()) << patch_result.status().message();
 
   const auto& result = patch_result.value();
-  EXPECT_TRUE(result.success) << "Patch failed with errors: " 
-                             << testing::PrintToString(result.errors);
+  EXPECT_TRUE(result.success)
+      << "Patch failed with errors: " << testing::PrintToString(result.errors);
 
   // Verify ROM was modified correctly
   EXPECT_NE(rom_copy, test_rom_);
@@ -352,7 +354,7 @@ TEST_F(AsarIntegrationTest, FullWorkflowIntegration) {
 
   // Verify symbols were extracted
   EXPECT_GT(result.symbols.size(), 0);
-  
+
   // Check for specific expected symbols
   bool found_main_entry = false;
   bool found_init_graphics = false;
@@ -379,13 +381,14 @@ TEST_F(AsarIntegrationTest, AdvancedFeaturesIntegration) {
 
   // Test advanced assembly features (macros, conditionals, etc.)
   std::vector<uint8_t> rom_copy = test_rom_;
-  
-  auto patch_result = wrapper_->ApplyPatch(advanced_asm_path_.string(), rom_copy);
+
+  auto patch_result =
+      wrapper_->ApplyPatch(advanced_asm_path_.string(), rom_copy);
   ASSERT_TRUE(patch_result.ok()) << patch_result.status().message();
 
   const auto& result = patch_result.value();
-  EXPECT_TRUE(result.success) << "Advanced patch failed: " 
-                             << testing::PrintToString(result.errors);
+  EXPECT_TRUE(result.success)
+      << "Advanced patch failed: " << testing::PrintToString(result.errors);
 
   // Verify symbols from advanced assembly
   bool found_advanced_entry = false;
@@ -408,25 +411,25 @@ TEST_F(AsarIntegrationTest, ErrorHandlingIntegration) {
 
   // Test error handling with intentionally broken assembly
   std::vector<uint8_t> rom_copy = test_rom_;
-  
+
   auto patch_result = wrapper_->ApplyPatch(error_asm_path_.string(), rom_copy);
-  
+
   // Should fail due to errors in assembly
   EXPECT_FALSE(patch_result.ok());
-  
+
   // Verify error message contains useful information
-  EXPECT_THAT(patch_result.status().message(), 
-              testing::AnyOf(
-                  testing::HasSubstr("invalid"),
-                  testing::HasSubstr("unknown"),
-                  testing::HasSubstr("error")));
+  EXPECT_THAT(patch_result.status().message(),
+              testing::AnyOf(testing::HasSubstr("invalid"),
+                             testing::HasSubstr("unknown"),
+                             testing::HasSubstr("error")));
 }
 
 TEST_F(AsarIntegrationTest, SymbolExtractionWorkflow) {
   ASSERT_TRUE(wrapper_->Initialize().ok());
 
   // Extract symbols without applying patch
-  auto symbols_result = wrapper_->ExtractSymbols(comprehensive_asm_path_.string());
+  auto symbols_result =
+      wrapper_->ExtractSymbols(comprehensive_asm_path_.string());
   ASSERT_TRUE(symbols_result.ok()) << symbols_result.status().message();
 
   const auto& symbols = symbols_result.value();
@@ -434,7 +437,8 @@ TEST_F(AsarIntegrationTest, SymbolExtractionWorkflow) {
 
   // Test symbol table operations
   std::vector<uint8_t> rom_copy = test_rom_;
-  auto patch_result = wrapper_->ApplyPatch(comprehensive_asm_path_.string(), rom_copy);
+  auto patch_result =
+      wrapper_->ApplyPatch(comprehensive_asm_path_.string(), rom_copy);
   ASSERT_TRUE(patch_result.ok());
 
   // Test symbol lookup by name
@@ -465,7 +469,8 @@ TEST_F(AsarIntegrationTest, MultipleOperationsIntegration) {
   std::vector<uint8_t> rom_copy2 = test_rom_;
 
   // First patch
-  auto result1 = wrapper_->ApplyPatch(comprehensive_asm_path_.string(), rom_copy1);
+  auto result1 =
+      wrapper_->ApplyPatch(comprehensive_asm_path_.string(), rom_copy1);
   ASSERT_TRUE(result1.ok());
   EXPECT_TRUE(result1->success);
 
@@ -497,8 +502,9 @@ subroutine_test:
 )";
 
   std::vector<uint8_t> rom_copy = test_rom_;
-  auto result = wrapper_->ApplyPatchFromString(patch_content, rom_copy, test_dir_.string());
-  
+  auto result = wrapper_->ApplyPatchFromString(patch_content, rom_copy,
+                                               test_dir_.string());
+
   ASSERT_TRUE(result.ok()) << result.status().message();
   EXPECT_TRUE(result->success);
   EXPECT_GT(result->symbols.size(), 0);
@@ -524,16 +530,17 @@ TEST_F(AsarIntegrationTest, LargeRomHandling) {
   ASSERT_TRUE(wrapper_->Initialize().ok());
 
   // Create a larger ROM for testing
-  std::vector<uint8_t> large_rom(4 * 1024 * 1024, 0); // 4MB ROM
-  
+  std::vector<uint8_t> large_rom(4 * 1024 * 1024, 0);  // 4MB ROM
+
   // Set up basic SNES header
   const uint32_t header_offset = 0x7FC0;
   std::string title = "LARGE ROM TEST      ";
   std::copy(title.begin(), title.end(), large_rom.begin() + header_offset);
-  large_rom[header_offset + 21] = 0x20; // LoROM
-  large_rom[header_offset + 23] = 0x0C; // 4MB
+  large_rom[header_offset + 21] = 0x20;  // LoROM
+  large_rom[header_offset + 23] = 0x0C;  // 4MB
 
-  auto result = wrapper_->ApplyPatch(comprehensive_asm_path_.string(), large_rom);
+  auto result =
+      wrapper_->ApplyPatch(comprehensive_asm_path_.string(), large_rom);
   ASSERT_TRUE(result.ok());
   EXPECT_TRUE(result->success);
   EXPECT_EQ(large_rom.size(), result->rom_size);

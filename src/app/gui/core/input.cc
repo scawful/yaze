@@ -60,7 +60,8 @@ bool InputScalarLeft(const char* label, ImGuiDataType data_type, void* p_data,
   bool value_changed = false;
   const float button_size = GetFrameHeight();
 
-  // Support invisible labels (##) by not rendering the label, but still using it for ID
+  // Support invisible labels (##) by not rendering the label, but still using
+  // it for ID
   bool invisible_label = IsInvisibleLabel(label);
 
   if (!invisible_label) {
@@ -434,7 +435,7 @@ bool OpenUrl(const std::string& url) {
   // if iOS
 #ifdef __APPLE__
 #if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
-// no system call on iOS
+  // no system call on iOS
   return false;
 #else
   return system(("open " + url).c_str()) == 0;

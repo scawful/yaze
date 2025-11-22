@@ -24,14 +24,14 @@ class PopupManager;
 /**
  * @class MenuOrchestrator
  * @brief Handles all menu building and UI coordination logic
- * 
+ *
  * Extracted from EditorManager to provide focused menu management:
  * - Menu structure and organization
  * - Menu item callbacks and shortcuts
  * - Editor-specific menu items
  * - Session-aware menu updates
  * - Menu state management
- * 
+ *
  * This class follows the Single Responsibility Principle by focusing solely
  * on menu construction and coordination, delegating actual operations to
  * specialized managers.
@@ -39,16 +39,13 @@ class PopupManager;
 class MenuOrchestrator {
  public:
   // Constructor takes references to the managers it coordinates with
-  MenuOrchestrator(EditorManager* editor_manager,
-                   MenuBuilder& menu_builder,
-                   RomFileManager& rom_manager,
-                   ProjectManager& project_manager,
+  MenuOrchestrator(EditorManager* editor_manager, MenuBuilder& menu_builder,
+                   RomFileManager& rom_manager, ProjectManager& project_manager,
                    EditorRegistry& editor_registry,
                    SessionCoordinator& session_coordinator,
-                   ToastManager& toast_manager,
-                   PopupManager& popup_manager);
+                   ToastManager& toast_manager, PopupManager& popup_manager);
   ~MenuOrchestrator() = default;
-  
+
   // Non-copyable due to reference members
   MenuOrchestrator(const MenuOrchestrator&) = delete;
   MenuOrchestrator& operator=(const MenuOrchestrator&) = delete;
@@ -66,7 +63,7 @@ class MenuOrchestrator {
   // Menu state management
   void ClearMenu();
   void RefreshMenu();
-  
+
   // Menu item callbacks (delegated to appropriate managers)
   void OnOpenRom();
   void OnSaveRom();
@@ -75,7 +72,7 @@ class MenuOrchestrator {
   void OnOpenProject();
   void OnSaveProject();
   void OnSaveProjectAs();
-  
+
   // Edit menu actions (delegate to current editor)
   void OnUndo();
   void OnRedo();
@@ -83,7 +80,7 @@ class MenuOrchestrator {
   void OnCopy();
   void OnPaste();
   void OnFind();
-  
+
   // Editor-specific menu actions
   void OnSwitchToEditor(EditorType editor_type);
   void OnShowEditorSelection();
@@ -92,13 +89,13 @@ class MenuOrchestrator {
   void OnShowEmulator();
   void OnShowCardBrowser();
   void OnShowWelcomeScreen();
-  
+
 #ifdef YAZE_WITH_GRPC
   void OnShowAIAgent();
   void OnShowChatHistory();
   void OnShowProposalDrawer();
 #endif
-  
+
   // Session management menu actions
   void OnCreateNewSession();
   void OnDuplicateCurrentSession();
@@ -106,7 +103,7 @@ class MenuOrchestrator {
   void OnSwitchToSession(size_t session_index);
   void OnShowSessionSwitcher();
   void OnShowSessionManager();
-  
+
   // Window management menu actions
   void OnShowAllWindows();
   void OnHideAllWindows();
@@ -117,7 +114,7 @@ class MenuOrchestrator {
   void OnLoadDeveloperLayout();
   void OnLoadDesignerLayout();
   void OnLoadModderLayout();
-  
+
   // Tool menu actions
   void OnShowGlobalSearch();
   void OnShowCommandPalette();
@@ -126,26 +123,26 @@ class MenuOrchestrator {
   void OnShowImGuiMetrics();
   void OnShowMemoryEditor();
   void OnShowResourceLabelManager();
-  
+
   // ROM Analysis menu actions
   void OnShowRomInfo();
   void OnCreateBackup();
   void OnValidateRom();
   void OnRunDataIntegrityCheck();
   void OnTestSaveLoad();
-  
+
   // ZSCustomOverworld menu actions
   void OnCheckRomVersion();
   void OnUpgradeRom();
   void OnToggleCustomLoading();
-  
+
   // Asar Integration menu actions
   void OnToggleAsarPatch();
   void OnLoadAsmFile();
-  
+
   // Editor launch actions
   void OnShowAssemblyEditor();
-  
+
 #ifdef YAZE_ENABLE_TESTING
   void OnShowTestDashboard();
   void OnRunAllTests();
@@ -153,13 +150,13 @@ class MenuOrchestrator {
   void OnRunIntegrationTests();
   void OnRunE2ETests();
 #endif
-  
+
 #ifdef YAZE_WITH_GRPC
   void OnStartCollaboration();
   void OnJoinCollaboration();
   void OnShowNetworkStatus();
 #endif
-  
+
   // Help menu actions
   void OnShowAbout();
   void OnShowKeyboardShortcuts();
@@ -172,7 +169,7 @@ class MenuOrchestrator {
   void OnShowContributing();
   void OnShowWhatsNew();
   void OnShowSupportedFeatures();
-  
+
   // Additional File menu actions
   void OnShowSettings();
   void OnQuit();
@@ -187,10 +184,10 @@ class MenuOrchestrator {
   SessionCoordinator& session_coordinator_;
   ToastManager& toast_manager_;
   PopupManager& popup_manager_;
-  
+
   // Menu state
   bool menu_needs_refresh_ = false;
-  
+
   // Helper methods for menu construction
   void AddFileMenuItems();
   void AddEditMenuItems();
@@ -199,7 +196,7 @@ class MenuOrchestrator {
   void AddDebugMenuItems();
   void AddWindowMenuItems();
   void AddHelpMenuItems();
-  
+
   // Menu item validation helpers
   bool CanSaveRom() const;
   bool CanSaveProject() const;
@@ -207,12 +204,12 @@ class MenuOrchestrator {
   bool HasActiveProject() const;
   bool HasCurrentEditor() const;
   bool HasMultipleSessions() const;
-  
+
   // Menu item text generation
   std::string GetRomFilename() const;
   std::string GetProjectName() const;
   std::string GetCurrentEditorName() const;
-  
+
   // Shortcut key management
   std::string GetShortcutForAction(const std::string& action) const;
   void RegisterGlobalShortcuts();

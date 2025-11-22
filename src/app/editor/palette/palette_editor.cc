@@ -1,13 +1,13 @@
 #include "palette_editor.h"
-#include "app/editor/system/editor_card_registry.h"
 
 #include "absl/status/status.h"
 #include "absl/strings/str_cat.h"
-#include "app/gfx/util/palette_manager.h"
+#include "app/editor/system/editor_card_registry.h"
 #include "app/gfx/debug/performance/performance_profiler.h"
 #include "app/gfx/types/snes_palette.h"
-#include "app/gui/core/color.h"
+#include "app/gfx/util/palette_manager.h"
 #include "app/gui/app/editor_layout.h"
+#include "app/gui/core/color.h"
 #include "app/gui/core/icons.h"
 #include "imgui/imgui.h"
 
@@ -64,8 +64,10 @@ int CustomFormatString(char* buf, size_t buf_size, const char* fmt, ...) {
   int w = vsnprintf(buf, buf_size, fmt, args);
 #endif
   va_end(args);
-  if (buf == nullptr) return w;
-  if (w == -1 || w >= (int)buf_size) w = (int)buf_size - 1;
+  if (buf == nullptr)
+    return w;
+  if (w == -1 || w >= (int)buf_size)
+    w = (int)buf_size - 1;
   buf[w] = 0;
   return w;
 }
@@ -83,14 +85,14 @@ static inline float color_saturate(float f) {
  * @brief Display SNES palette with enhanced ROM hacking features
  * @param palette SNES palette to display
  * @param loaded Whether the palette has been loaded from ROM
- * 
+ *
  * Enhanced Features:
  * - Real-time color preview with SNES format conversion
  * - Drag-and-drop color swapping for palette editing
  * - Color picker integration with ROM palette system
  * - Undo/redo support for palette modifications
  * - Export functionality for palette sharing
- * 
+ *
  * Performance Notes:
  * - Static color arrays to avoid repeated allocations
  * - Cached color conversions for fast rendering
@@ -137,8 +139,7 @@ absl::Status DisplayPalette(gfx::SnesPalette& palette, bool loaded) {
     SameLine();
     Text("Previous");
 
-    if (Button("Update Map Palette")) {
-    }
+    if (Button("Update Map Palette")) {}
 
     ColorButton(
         "##current", color,
@@ -157,7 +158,8 @@ absl::Status DisplayPalette(gfx::SnesPalette& palette, bool loaded) {
     Text("Palette");
     for (int n = 0; n < IM_ARRAYSIZE(current_palette); n++) {
       PushID(n);
-      if ((n % 8) != 0) SameLine(0.0f, GetStyle().ItemSpacing.y);
+      if ((n % 8) != 0)
+        SameLine(0.0f, GetStyle().ItemSpacing.y);
 
       if (ColorButton("##palette", current_palette[n], kPalButtonFlags,
                       ImVec2(20, 20)))
@@ -184,120 +186,100 @@ absl::Status DisplayPalette(gfx::SnesPalette& palette, bool loaded) {
 }
 
 void PaletteEditor::Initialize() {
-  // Register all cards with EditorCardRegistry (done once during initialization)
-  if (!dependencies_.card_registry) return;
+  // Register all cards with EditorCardRegistry (done once during
+  // initialization)
+  if (!dependencies_.card_registry)
+    return;
   auto* card_registry = dependencies_.card_registry;
 
-  card_registry->RegisterCard({
-      .card_id = "palette.control_panel",
-      .display_name = "Palette Controls",
-      .icon = ICON_MD_PALETTE,
-      .category = "Palette",
-      .shortcut_hint = "Ctrl+Shift+P",
-      .visibility_flag = &show_control_panel_,
-      .priority = 10
-  });
+  card_registry->RegisterCard({.card_id = "palette.control_panel",
+                               .display_name = "Palette Controls",
+                               .icon = ICON_MD_PALETTE,
+                               .category = "Palette",
+                               .shortcut_hint = "Ctrl+Shift+P",
+                               .visibility_flag = &show_control_panel_,
+                               .priority = 10});
 
-  card_registry->RegisterCard({
-      .card_id = "palette.ow_main",
-      .display_name = "Overworld Main",
-      .icon = ICON_MD_LANDSCAPE,
-      .category = "Palette",
-      .shortcut_hint = "Ctrl+Alt+1",
-      .visibility_flag = &show_ow_main_card_,
-      .priority = 20
-  });
+  card_registry->RegisterCard({.card_id = "palette.ow_main",
+                               .display_name = "Overworld Main",
+                               .icon = ICON_MD_LANDSCAPE,
+                               .category = "Palette",
+                               .shortcut_hint = "Ctrl+Alt+1",
+                               .visibility_flag = &show_ow_main_card_,
+                               .priority = 20});
 
-  card_registry->RegisterCard({
-      .card_id = "palette.ow_animated",
-      .display_name = "Overworld Animated",
-      .icon = ICON_MD_WATER,
-      .category = "Palette",
-      .shortcut_hint = "Ctrl+Alt+2",
-      .visibility_flag = &show_ow_animated_card_,
-      .priority = 30
-  });
+  card_registry->RegisterCard({.card_id = "palette.ow_animated",
+                               .display_name = "Overworld Animated",
+                               .icon = ICON_MD_WATER,
+                               .category = "Palette",
+                               .shortcut_hint = "Ctrl+Alt+2",
+                               .visibility_flag = &show_ow_animated_card_,
+                               .priority = 30});
 
-  card_registry->RegisterCard({
-      .card_id = "palette.dungeon_main",
-      .display_name = "Dungeon Main",
-      .icon = ICON_MD_CASTLE,
-      .category = "Palette",
-      .shortcut_hint = "Ctrl+Alt+3",
-      .visibility_flag = &show_dungeon_main_card_,
-      .priority = 40
-  });
+  card_registry->RegisterCard({.card_id = "palette.dungeon_main",
+                               .display_name = "Dungeon Main",
+                               .icon = ICON_MD_CASTLE,
+                               .category = "Palette",
+                               .shortcut_hint = "Ctrl+Alt+3",
+                               .visibility_flag = &show_dungeon_main_card_,
+                               .priority = 40});
 
-  card_registry->RegisterCard({
-      .card_id = "palette.sprites",
-      .display_name = "Global Sprite Palettes",
-      .icon = ICON_MD_PETS,
-      .category = "Palette",
-      .shortcut_hint = "Ctrl+Alt+4",
-      .visibility_flag = &show_sprite_card_,
-      .priority = 50
-  });
+  card_registry->RegisterCard({.card_id = "palette.sprites",
+                               .display_name = "Global Sprite Palettes",
+                               .icon = ICON_MD_PETS,
+                               .category = "Palette",
+                               .shortcut_hint = "Ctrl+Alt+4",
+                               .visibility_flag = &show_sprite_card_,
+                               .priority = 50});
 
-  card_registry->RegisterCard({
-      .card_id = "palette.sprites_aux1",
-      .display_name = "Sprites Aux 1",
-      .icon = ICON_MD_FILTER_1,
-      .category = "Palette",
-      .shortcut_hint = "Ctrl+Alt+7",
-      .visibility_flag = &show_sprites_aux1_card_,
-      .priority = 51
-  });
+  card_registry->RegisterCard({.card_id = "palette.sprites_aux1",
+                               .display_name = "Sprites Aux 1",
+                               .icon = ICON_MD_FILTER_1,
+                               .category = "Palette",
+                               .shortcut_hint = "Ctrl+Alt+7",
+                               .visibility_flag = &show_sprites_aux1_card_,
+                               .priority = 51});
 
-  card_registry->RegisterCard({
-      .card_id = "palette.sprites_aux2",
-      .display_name = "Sprites Aux 2",
-      .icon = ICON_MD_FILTER_2,
-      .category = "Palette",
-      .shortcut_hint = "Ctrl+Alt+8",
-      .visibility_flag = &show_sprites_aux2_card_,
-      .priority = 52
-  });
+  card_registry->RegisterCard({.card_id = "palette.sprites_aux2",
+                               .display_name = "Sprites Aux 2",
+                               .icon = ICON_MD_FILTER_2,
+                               .category = "Palette",
+                               .shortcut_hint = "Ctrl+Alt+8",
+                               .visibility_flag = &show_sprites_aux2_card_,
+                               .priority = 52});
 
-  card_registry->RegisterCard({
-      .card_id = "palette.sprites_aux3",
-      .display_name = "Sprites Aux 3",
-      .icon = ICON_MD_FILTER_3,
-      .category = "Palette",
-      .shortcut_hint = "Ctrl+Alt+9",
-      .visibility_flag = &show_sprites_aux3_card_,
-      .priority = 53
-  });
+  card_registry->RegisterCard({.card_id = "palette.sprites_aux3",
+                               .display_name = "Sprites Aux 3",
+                               .icon = ICON_MD_FILTER_3,
+                               .category = "Palette",
+                               .shortcut_hint = "Ctrl+Alt+9",
+                               .visibility_flag = &show_sprites_aux3_card_,
+                               .priority = 53});
 
-  card_registry->RegisterCard({
-      .card_id = "palette.equipment",
-      .display_name = "Equipment Palettes",
-      .icon = ICON_MD_SHIELD,
-      .category = "Palette",
-      .shortcut_hint = "Ctrl+Alt+5",
-      .visibility_flag = &show_equipment_card_,
-      .priority = 60
-  });
+  card_registry->RegisterCard({.card_id = "palette.equipment",
+                               .display_name = "Equipment Palettes",
+                               .icon = ICON_MD_SHIELD,
+                               .category = "Palette",
+                               .shortcut_hint = "Ctrl+Alt+5",
+                               .visibility_flag = &show_equipment_card_,
+                               .priority = 60});
 
-  card_registry->RegisterCard({
-      .card_id = "palette.quick_access",
-      .display_name = "Quick Access",
-      .icon = ICON_MD_COLOR_LENS,
-      .category = "Palette",
-      .shortcut_hint = "Ctrl+Alt+Q",
-      .visibility_flag = &show_quick_access_,
-      .priority = 70
-  });
+  card_registry->RegisterCard({.card_id = "palette.quick_access",
+                               .display_name = "Quick Access",
+                               .icon = ICON_MD_COLOR_LENS,
+                               .category = "Palette",
+                               .shortcut_hint = "Ctrl+Alt+Q",
+                               .visibility_flag = &show_quick_access_,
+                               .priority = 70});
 
-  card_registry->RegisterCard({
-      .card_id = "palette.custom",
-      .display_name = "Custom Palette",
-      .icon = ICON_MD_BRUSH,
-      .category = "Palette",
-      .shortcut_hint = "Ctrl+Alt+C",
-      .visibility_flag = &show_custom_palette_,
-      .priority = 80
-  });
-  
+  card_registry->RegisterCard({.card_id = "palette.custom",
+                               .display_name = "Custom Palette",
+                               .icon = ICON_MD_BRUSH,
+                               .category = "Palette",
+                               .shortcut_hint = "Ctrl+Alt+C",
+                               .visibility_flag = &show_custom_palette_,
+                               .priority = 80});
+
   // Show control panel by default when Palette Editor is activated
   show_control_panel_ = true;
 }
@@ -339,7 +321,8 @@ absl::Status PaletteEditor::Update() {
     gui::EditorCard loading_card("Palette Editor Loading", ICON_MD_PALETTE);
     loading_card.SetDefaultSize(400, 200);
     if (loading_card.Begin()) {
-      ImGui::TextColored(ImVec4(0.5f, 0.5f, 0.5f, 1.0f), "Loading palette data...");
+      ImGui::TextColored(ImVec4(0.5f, 0.5f, 0.5f, 1.0f),
+                         "Loading palette data...");
       ImGui::TextWrapped("Palette cards will appear once ROM data is loaded.");
     }
     loading_card.End();
@@ -347,7 +330,8 @@ absl::Status PaletteEditor::Update() {
   }
 
   // CARD-BASED EDITOR: All windows are independent top-level cards
-  // No parent wrapper - this allows closing control panel without affecting palettes
+  // No parent wrapper - this allows closing control panel without affecting
+  // palettes
 
   // Optional control panel (can be hidden/minimized)
   if (show_control_panel_) {
@@ -356,11 +340,10 @@ absl::Status PaletteEditor::Update() {
     // Draw floating icon button to reopen
     ImGui::SetNextWindowPos(ImVec2(10, 100));
     ImGui::SetNextWindowSize(ImVec2(50, 50));
-    ImGuiWindowFlags icon_flags = ImGuiWindowFlags_NoTitleBar |
-                                  ImGuiWindowFlags_NoResize |
-                                  ImGuiWindowFlags_NoScrollbar |
-                                  ImGuiWindowFlags_NoCollapse |
-                                  ImGuiWindowFlags_NoDocking;
+    ImGuiWindowFlags icon_flags =
+        ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
+        ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoCollapse |
+        ImGuiWindowFlags_NoDocking;
 
     if (ImGui::Begin("##PaletteControlIcon", nullptr, icon_flags)) {
       if (ImGui::Button(ICON_MD_PALETTE, ImVec2(40, 40))) {
@@ -375,54 +358,71 @@ absl::Status PaletteEditor::Update() {
   }
 
   // Draw all independent palette cards
-  // Each card has its own show_ flag that needs to be synced with our visibility flags
+  // Each card has its own show_ flag that needs to be synced with our
+  // visibility flags
   if (show_ow_main_card_ && ow_main_card_) {
-    if (!ow_main_card_->IsVisible()) ow_main_card_->Show();
+    if (!ow_main_card_->IsVisible())
+      ow_main_card_->Show();
     ow_main_card_->Draw();
     // Sync back if user closed the card with X button
-    if (!ow_main_card_->IsVisible()) show_ow_main_card_ = false;
+    if (!ow_main_card_->IsVisible())
+      show_ow_main_card_ = false;
   }
 
   if (show_ow_animated_card_ && ow_animated_card_) {
-    if (!ow_animated_card_->IsVisible()) ow_animated_card_->Show();
+    if (!ow_animated_card_->IsVisible())
+      ow_animated_card_->Show();
     ow_animated_card_->Draw();
-    if (!ow_animated_card_->IsVisible()) show_ow_animated_card_ = false;
+    if (!ow_animated_card_->IsVisible())
+      show_ow_animated_card_ = false;
   }
 
   if (show_dungeon_main_card_ && dungeon_main_card_) {
-    if (!dungeon_main_card_->IsVisible()) dungeon_main_card_->Show();
+    if (!dungeon_main_card_->IsVisible())
+      dungeon_main_card_->Show();
     dungeon_main_card_->Draw();
-    if (!dungeon_main_card_->IsVisible()) show_dungeon_main_card_ = false;
+    if (!dungeon_main_card_->IsVisible())
+      show_dungeon_main_card_ = false;
   }
 
   if (show_sprite_card_ && sprite_card_) {
-    if (!sprite_card_->IsVisible()) sprite_card_->Show();
+    if (!sprite_card_->IsVisible())
+      sprite_card_->Show();
     sprite_card_->Draw();
-    if (!sprite_card_->IsVisible()) show_sprite_card_ = false;
+    if (!sprite_card_->IsVisible())
+      show_sprite_card_ = false;
   }
 
   if (show_sprites_aux1_card_ && sprites_aux1_card_) {
-    if (!sprites_aux1_card_->IsVisible()) sprites_aux1_card_->Show();
+    if (!sprites_aux1_card_->IsVisible())
+      sprites_aux1_card_->Show();
     sprites_aux1_card_->Draw();
-    if (!sprites_aux1_card_->IsVisible()) show_sprites_aux1_card_ = false;
+    if (!sprites_aux1_card_->IsVisible())
+      show_sprites_aux1_card_ = false;
   }
 
   if (show_sprites_aux2_card_ && sprites_aux2_card_) {
-    if (!sprites_aux2_card_->IsVisible()) sprites_aux2_card_->Show();
+    if (!sprites_aux2_card_->IsVisible())
+      sprites_aux2_card_->Show();
     sprites_aux2_card_->Draw();
-    if (!sprites_aux2_card_->IsVisible()) show_sprites_aux2_card_ = false;
+    if (!sprites_aux2_card_->IsVisible())
+      show_sprites_aux2_card_ = false;
   }
 
   if (show_sprites_aux3_card_ && sprites_aux3_card_) {
-    if (!sprites_aux3_card_->IsVisible()) sprites_aux3_card_->Show();
+    if (!sprites_aux3_card_->IsVisible())
+      sprites_aux3_card_->Show();
     sprites_aux3_card_->Draw();
-    if (!sprites_aux3_card_->IsVisible()) show_sprites_aux3_card_ = false;
+    if (!sprites_aux3_card_->IsVisible())
+      show_sprites_aux3_card_ = false;
   }
 
   if (show_equipment_card_ && equipment_card_) {
-    if (!equipment_card_->IsVisible()) equipment_card_->Show();
+    if (!equipment_card_->IsVisible())
+      equipment_card_->Show();
     equipment_card_->Draw();
-    if (!equipment_card_->IsVisible()) show_equipment_card_ = false;
+    if (!equipment_card_->IsVisible())
+      show_equipment_card_ = false;
   }
 
   // Draw quick access and custom palette cards
@@ -475,7 +475,8 @@ void PaletteEditor::DrawQuickAccessTab() {
   Text("Recently Used Colors");
   for (int i = 0; i < recently_used_colors_.size(); i++) {
     PushID(i);
-    if (i % 8 != 0) SameLine();
+    if (i % 8 != 0)
+      SameLine();
     ImVec4 displayColor =
         gui::ConvertSnesColorToImVec4(recently_used_colors_[i]);
     if (ImGui::ColorButton("##recent", displayColor)) {
@@ -490,14 +491,14 @@ void PaletteEditor::DrawQuickAccessTab() {
 
 /**
  * @brief Draw custom palette editor with enhanced ROM hacking features
- * 
+ *
  * Enhanced Features:
  * - Drag-and-drop color reordering
  * - Context menu for each color with advanced options
  * - Export/import functionality for palette sharing
  * - Integration with recently used colors
  * - Undo/redo support for palette modifications
- * 
+ *
  * Performance Notes:
  * - Efficient color conversion caching
  * - Minimal redraws with dirty region tracking
@@ -508,7 +509,8 @@ void PaletteEditor::DrawCustomPalette() {
                  ImGuiWindowFlags_HorizontalScrollbar)) {
     for (int i = 0; i < custom_palette_.size(); i++) {
       PushID(i);
-      if (i > 0) SameLine(0.0f, GetStyle().ItemSpacing.y);
+      if (i > 0)
+        SameLine(0.0f, GetStyle().ItemSpacing.y);
 
       // Enhanced color button with context menu and drag-drop support
       ImVec4 displayColor = gui::ConvertSnesColorToImVec4(custom_palette_[i]);
@@ -588,7 +590,8 @@ void PaletteEditor::DrawCustomPalette() {
   }
 }
 
-absl::Status PaletteEditor::DrawPaletteGroup(int category, bool /*right_side*/) {
+absl::Status PaletteEditor::DrawPaletteGroup(int category,
+                                             bool /*right_side*/) {
   if (!rom()->is_loaded()) {
     return absl::NotFoundError("ROM not open, no palettes to display");
   }
@@ -613,7 +616,8 @@ absl::Status PaletteEditor::DrawPaletteGroup(int category, bool /*right_side*/) 
 
     for (int n = 0; n < pal_size; n++) {
       PushID(n);
-      if (n > 0 && n % 8 != 0) SameLine(0.0f, 2.0f);
+      if (n > 0 && n % 8 != 0)
+        SameLine(0.0f, 2.0f);
 
       auto popup_id =
           absl::StrCat(kPaletteCategoryNames[category].data(), j, "_", n);
@@ -685,22 +689,27 @@ absl::Status PaletteEditor::HandleColorPopup(gfx::SnesPalette& palette, int i,
 
   Separator();
 
-  if (Button("Copy as..", ImVec2(-1, 0))) OpenPopup("Copy");
+  if (Button("Copy as..", ImVec2(-1, 0)))
+    OpenPopup("Copy");
   if (BeginPopup("Copy")) {
     CustomFormatString(buf, IM_ARRAYSIZE(buf), "(%.3ff, %.3ff, %.3ff)", col[0],
                        col[1], col[2]);
-    if (Selectable(buf)) SetClipboardText(buf);
+    if (Selectable(buf))
+      SetClipboardText(buf);
 
     CustomFormatString(buf, IM_ARRAYSIZE(buf), "(%d,%d,%d)", cr, cg, cb);
-    if (Selectable(buf)) SetClipboardText(buf);
+    if (Selectable(buf))
+      SetClipboardText(buf);
 
     CustomFormatString(buf, IM_ARRAYSIZE(buf), "#%02X%02X%02X", cr, cg, cb);
-    if (Selectable(buf)) SetClipboardText(buf);
+    if (Selectable(buf))
+      SetClipboardText(buf);
 
     // SNES Format
     CustomFormatString(buf, IM_ARRAYSIZE(buf), "$%04X",
                        ConvertRgbToSnes(ImVec4(col[0], col[1], col[2], 1.0f)));
-    if (Selectable(buf)) SetClipboardText(buf);
+    if (Selectable(buf))
+      SetClipboardText(buf);
 
     EndPopup();
   }
@@ -760,7 +769,8 @@ void PaletteEditor::DrawControlPanel() {
 
   ImGuiWindowFlags flags = ImGuiWindowFlags_None;
 
-  if (ImGui::Begin(ICON_MD_PALETTE " Palette Controls", &show_control_panel_, flags)) {
+  if (ImGui::Begin(ICON_MD_PALETTE " Palette Controls", &show_control_panel_,
+                   flags)) {
     // Toolbar with quick toggles
     DrawToolset();
 
@@ -858,8 +868,9 @@ void PaletteEditor::DrawControlPanel() {
     size_t modified_count = gfx::PaletteManager::Get().GetModifiedColorCount();
 
     ImGui::BeginDisabled(!has_unsaved);
-    if (ImGui::Button(absl::StrFormat("Save All (%zu colors)", modified_count).c_str(),
-                     ImVec2(-1, 0))) {
+    if (ImGui::Button(
+            absl::StrFormat("Save All (%zu colors)", modified_count).c_str(),
+            ImVec2(-1, 0))) {
       auto status = gfx::PaletteManager::Get().SaveAllToRom();
       if (!status.ok()) {
         // TODO: Show error toast/notification
@@ -895,7 +906,8 @@ void PaletteEditor::DrawControlPanel() {
                                ImGuiWindowFlags_AlwaysAutoResize)) {
       ImGui::Text("Discard all unsaved changes?");
       ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.0f, 1.0f),
-                        "This will revert %zu modified colors.", modified_count);
+                         "This will revert %zu modified colors.",
+                         modified_count);
       ImGui::Separator();
 
       if (ImGui::Button("Discard", ImVec2(120, 0))) {
@@ -912,7 +924,8 @@ void PaletteEditor::DrawControlPanel() {
     // Error popup for save failures
     if (ImGui::BeginPopupModal("SaveError", nullptr,
                                ImGuiWindowFlags_AlwaysAutoResize)) {
-      ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f), "Failed to save changes");
+      ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f),
+                         "Failed to save changes");
       ImGui::Text("An error occurred while saving to ROM.");
       ImGui::Separator();
 
@@ -930,14 +943,15 @@ void PaletteEditor::DrawControlPanel() {
     }
 
     if (ImGui::BeginPopup("PaletteCardManager")) {
-      ImGui::TextColored(ImVec4(0.7f, 0.9f, 1.0f, 1.0f), 
-                        "%s Palette Card Manager", ICON_MD_PALETTE);
+      ImGui::TextColored(ImVec4(0.7f, 0.9f, 1.0f, 1.0f),
+                         "%s Palette Card Manager", ICON_MD_PALETTE);
       ImGui::Separator();
-      
+
       // View menu section now handled by EditorCardRegistry in EditorManager
-      if (!dependencies_.card_registry) return;
+      if (!dependencies_.card_registry)
+        return;
       auto* card_registry = dependencies_.card_registry;
-      
+
       ImGui::EndPopup();
     }
 
@@ -992,7 +1006,8 @@ void PaletteEditor::DrawQuickAccessCard() {
     } else {
       for (int i = 0; i < recently_used_colors_.size(); i++) {
         PushID(i);
-        if (i % 8 != 0) SameLine();
+        if (i % 8 != 0)
+          SameLine();
         ImVec4 displayColor =
             gui::ConvertSnesColorToImVec4(recently_used_colors_[i]);
         if (ImGui::ColorButton("##recent", displayColor, kPalButtonFlags,
@@ -1011,8 +1026,7 @@ void PaletteEditor::DrawQuickAccessCard() {
 }
 
 void PaletteEditor::DrawCustomPaletteCard() {
-  gui::EditorCard card("Custom Palette", ICON_MD_BRUSH,
-                       &show_custom_palette_);
+  gui::EditorCard card("Custom Palette", ICON_MD_BRUSH, &show_custom_palette_);
   card.SetDefaultSize(420, 200);
   card.SetPosition(gui::EditorCard::Position::Bottom);
 
@@ -1030,13 +1044,14 @@ void PaletteEditor::DrawCustomPaletteCard() {
     } else {
       for (int i = 0; i < custom_palette_.size(); i++) {
         PushID(i);
-        if (i > 0 && i % 16 != 0) SameLine(0.0f, 2.0f);
+        if (i > 0 && i % 16 != 0)
+          SameLine(0.0f, 2.0f);
 
         // Enhanced color button with context menu and drag-drop support
         ImVec4 displayColor = gui::ConvertSnesColorToImVec4(custom_palette_[i]);
-        bool open_color_picker = ImGui::ColorButton(
-            absl::StrFormat("##customPal%d", i).c_str(), displayColor,
-            kPalButtonFlags, ImVec2(28, 28));
+        bool open_color_picker =
+            ImGui::ColorButton(absl::StrFormat("##customPal%d", i).c_str(),
+                               displayColor, kPalButtonFlags, ImVec2(28, 28));
 
         if (open_color_picker) {
           current_color_ = custom_palette_[i];
@@ -1122,7 +1137,8 @@ void PaletteEditor::DrawCustomPaletteCard() {
   }
 }
 
-void PaletteEditor::JumpToPalette(const std::string& group_name, int palette_index) {
+void PaletteEditor::JumpToPalette(const std::string& group_name,
+                                  int palette_index) {
   // Hide all cards first
   show_ow_main_card_ = false;
   show_ow_animated_card_ = false;

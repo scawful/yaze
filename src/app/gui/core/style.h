@@ -18,11 +18,11 @@ void ColorsYaze();
 
 TextEditor::LanguageDefinition GetAssemblyLanguageDef();
 
-void DrawBitmapViewer(const std::vector<gfx::Bitmap> &bitmaps, float scale,
-                      int &current_bitmap);
+void DrawBitmapViewer(const std::vector<gfx::Bitmap>& bitmaps, float scale,
+                      int& current_bitmap);
 
-void BeginWindowWithDisplaySettings(const char *id, bool *active,
-                                    const ImVec2 &size = ImVec2(0, 0),
+void BeginWindowWithDisplaySettings(const char* id, bool* active,
+                                    const ImVec2& size = ImVec2(0, 0),
                                     ImGuiWindowFlags flags = 0);
 
 void EndWindowWithDisplaySettings();
@@ -33,21 +33,23 @@ void EndPadding();
 void BeginNoPadding();
 void EndNoPadding();
 
-void BeginChildWithScrollbar(const char *str_id);
-void BeginChildWithScrollbar(const char *str_id, ImVec2 content_size);
+void BeginChildWithScrollbar(const char* str_id);
+void BeginChildWithScrollbar(const char* str_id, ImVec2 content_size);
 
 void BeginChildBothScrollbars(int id);
 
 // Table canvas management helpers for GUI elements that need proper sizing
-void BeginTableCanvas(const char* table_id, int columns, ImVec2 canvas_size = ImVec2(0, 0));
+void BeginTableCanvas(const char* table_id, int columns,
+                      ImVec2 canvas_size = ImVec2(0, 0));
 void EndTableCanvas();
 void SetupCanvasTableColumn(const char* label, float width_ratio = 0.0f);
 void BeginCanvasTableCell(ImVec2 min_size = ImVec2(0, 0));
 
-void DrawDisplaySettings(ImGuiStyle *ref = nullptr);
-void DrawDisplaySettingsForPopup(ImGuiStyle *ref = nullptr); // Popup-safe version
+void DrawDisplaySettings(ImGuiStyle* ref = nullptr);
+void DrawDisplaySettingsForPopup(
+    ImGuiStyle* ref = nullptr);  // Popup-safe version
 
-void TextWithSeparators(const absl::string_view &text);
+void TextWithSeparators(const absl::string_view& text);
 
 void DrawFontManager();
 
@@ -112,17 +114,17 @@ class MultiSelect {
  public:
   // Callback function type for rendering an item
   using ItemRenderer =
-      std::function<void(int index, const T &item, bool is_selected)>;
+      std::function<void(int index, const T& item, bool is_selected)>;
 
   // Constructor with optional title and default flags
   MultiSelect(
-      const char *title = "Selection",
+      const char* title = "Selection",
       ImGuiMultiSelectFlags flags = ImGuiMultiSelectFlags_ClearOnEscape |
                                     ImGuiMultiSelectFlags_BoxSelect1d)
       : title_(title), flags_(flags), selection_() {}
 
   // Set the items to display
-  void SetItems(const std::vector<T> &items) { items_ = items; }
+  void SetItems(const std::vector<T>& items) { items_ = items; }
 
   // Set the renderer function for items
   void SetItemRenderer(ItemRenderer renderer) { item_renderer_ = renderer; }
@@ -143,7 +145,7 @@ class MultiSelect {
             "##MultiSelectChild",
             ImVec2(-FLT_MIN, ImGui::GetFontSize() * height_in_font_units_),
             child_flags_)) {
-      ImGuiMultiSelectIO *ms_io =
+      ImGuiMultiSelectIO* ms_io =
           ImGui::BeginMultiSelect(flags_, selection_.Size, items_.size());
       selection_.ApplyRequests(ms_io);
 
@@ -189,7 +191,7 @@ class MultiSelect {
   void ClearSelection() { selection_.Clear(); }
 
  private:
-  const char *title_;
+  const char* title_;
   ImGuiMultiSelectFlags flags_;
   ImGuiSelectionBasicStorage selection_;
   std::vector<T> items_;

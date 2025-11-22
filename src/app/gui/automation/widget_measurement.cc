@@ -8,7 +8,7 @@ namespace yaze {
 namespace gui {
 
 WidgetMetrics WidgetMeasurement::MeasureLastItem(const std::string& widget_id,
-                                                  const std::string& type) {
+                                                 const std::string& type) {
   if (!enabled_) {
     return WidgetMetrics{};
   }
@@ -55,7 +55,8 @@ void WidgetMeasurement::BeginToolbarMeasurement(const std::string& toolbar_id) {
 }
 
 void WidgetMeasurement::EndToolbarMeasurement() {
-  if (current_toolbar_id_.empty()) return;
+  if (current_toolbar_id_.empty())
+    return;
 
   // Calculate total width from cursor movement
   float end_x = ImGui::GetCursorPosX();
@@ -79,7 +80,7 @@ float WidgetMeasurement::GetToolbarWidth(const std::string& toolbar_id) const {
 }
 
 bool WidgetMeasurement::WouldToolbarOverflow(const std::string& toolbar_id,
-                                              float available_width) const {
+                                             float available_width) const {
   float toolbar_width = GetToolbarWidth(toolbar_id);
   return toolbar_width > available_width;
 }
@@ -104,17 +105,19 @@ std::string WidgetMeasurement::ExportMetricsJSON() const {
 
   bool first_toolbar = true;
   for (const auto& [toolbar_id, metrics] : toolbar_metrics_) {
-    if (!first_toolbar) json += ",\n";
+    if (!first_toolbar)
+      json += ",\n";
     first_toolbar = false;
 
     json += absl::StrFormat("    \"%s\": {\n", toolbar_id);
     json += absl::StrFormat("      \"total_width\": %.1f,\n",
-                           GetToolbarWidth(toolbar_id));
+                            GetToolbarWidth(toolbar_id));
     json += "      \"widgets\": [\n";
 
     bool first_widget = true;
     for (const auto& metric : metrics) {
-      if (!first_widget) json += ",\n";
+      if (!first_widget)
+        json += ",\n";
       first_widget = false;
 
       json += "        {\n";
@@ -137,4 +140,3 @@ std::string WidgetMeasurement::ExportMetricsJSON() const {
 
 }  // namespace gui
 }  // namespace yaze
-

@@ -69,7 +69,7 @@ class ImGuiTestHarnessServiceImpl {
  public:
   // Constructor now takes TestManager reference for ImGuiTestEngine access
   explicit ImGuiTestHarnessServiceImpl(TestManager* test_manager)
-    : test_manager_(test_manager), test_recorder_(test_manager) {}
+      : test_manager_(test_manager), test_recorder_(test_manager) {}
   ~ImGuiTestHarnessServiceImpl() = default;
 
   // Disable copy and move
@@ -147,7 +147,8 @@ class ImGuiTestHarnessServer {
 
  private:
   ImGuiTestHarnessServer() = default;
-  ~ImGuiTestHarnessServer();  // Defined in .cc file to allow incomplete type deletion
+  ~ImGuiTestHarnessServer();  // Defined in .cc file to allow incomplete type
+                              // deletion
 
   // Disable copy and move
   ImGuiTestHarnessServer(const ImGuiTestHarnessServer&) = delete;

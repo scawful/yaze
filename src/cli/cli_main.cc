@@ -14,10 +14,21 @@
 #include "cli/z3ed_ascii_logo.h"
 #include "yaze_config.h"
 
+#ifdef YAZE_HTTP_API_ENABLED
+#include "cli/service/api/http_server.h"
+#include "util/log.h"
+#endif
+
 // Define all CLI flags
 ABSL_FLAG(bool, tui, false, "Launch interactive Text User Interface");
-ABSL_FLAG(bool, quiet, false, "Suppress non-essential output");
+ABSL_DECLARE_FLAG(bool, quiet);
 ABSL_FLAG(bool, version, false, "Show version information");
+#ifdef YAZE_HTTP_API_ENABLED
+ABSL_FLAG(int, http_port, 0,
+          "HTTP API server port (0 = disabled, default: 8080 when enabled)");
+ABSL_FLAG(std::string, http_host, "localhost",
+          "HTTP API server host (default: localhost)");
+#endif
 ABSL_DECLARE_FLAG(std::string, rom);
 ABSL_DECLARE_FLAG(std::string, ai_provider);
 ABSL_DECLARE_FLAG(std::string, ai_model);
@@ -30,48 +41,60 @@ namespace {
 
 void PrintVersion() {
   std::cout << yaze::cli::GetColoredLogo() << "\n";
-  std::cout << absl::StrFormat("  Version %d.%d.%d\n", 
-                               YAZE_VERSION_MAJOR,
-                               YAZE_VERSION_MINOR, 
-                               YAZE_VERSION_PATCH);
+  std::cout << absl::StrFormat("  Version %d.%d.%d\n", YAZE_VERSION_MAJOR,
+                               YAZE_VERSION_MINOR, YAZE_VERSION_PATCH);
   std::cout << "  Yet Another Zelda3 Editor - Command Line Interface\n";
   std::cout << "  https://github.com/scawful/yaze\n\n";
 }
 
 void PrintCompactHelp() {
   std::cout << yaze::cli::GetColoredLogo() << "\n";
-  std::cout << "  \033[1;37mYet Another Zelda3 Editor - AI-Powered CLI\033[0m\n\n";
-  
+  std::cout
+      << "  \033[1;37mYet Another Zelda3 Editor - AI-Powered CLI\033[0m\n\n";
+
   std::cout << "\033[1;36mUSAGE:\033[0m\n";
   std::cout << "  z3ed [command] [flags]\n";
   std::cout << "  z3ed --tui              # Interactive TUI mode\n";
   std::cout << "  z3ed --version          # Show version\n";
   std::cout << "  z3ed --help <category>  # Category help\n\n";
-  
+
   std::cout << "\033[1;36mCOMMANDS:\033[0m\n";
-  std::cout << "  \033[1;33magent\033[0m       AI conversational agent for ROM inspection\n";
-  std::cout << "  \033[1;33mrom\033[0m         ROM operations (info, validate, diff)\n";
-  std::cout << "  \033[1;33mdungeon\033[0m     Dungeon inspection and editing\n";
-  std::cout << "  \033[1;33moverworld\033[0m   Overworld inspection and editing\n";
+  std::cout << "  \033[1;33magent\033[0m       AI conversational agent for ROM "
+               "inspection\n";
+  std::cout << "  \033[1;33mrom\033[0m         ROM operations (info, validate, "
+               "diff)\n";
+  std::cout
+      << "  \033[1;33mdungeon\033[0m     Dungeon inspection and editing\n";
+  std::cout
+      << "  \033[1;33moverworld\033[0m   Overworld inspection and editing\n";
   std::cout << "  \033[1;33mmessage\033[0m     Message/dialogue inspection\n";
-  std::cout << "  \033[1;33mgfx\033[0m         Graphics operations (export, import)\n";
+  std::cout << "  \033[1;33mgfx\033[0m         Graphics operations (export, "
+               "import)\n";
   std::cout << "  \033[1;33mpalette\033[0m     Palette operations\n";
   std::cout << "  \033[1;33mpatch\033[0m       Apply patches (BPS, Asar)\n";
-  std::cout << "  \033[1;33mproject\033[0m     Project management (init, build)\n\n";
-  
+  std::cout
+      << "  \033[1;33mproject\033[0m     Project management (init, build)\n\n";
+
   std::cout << "\033[1;36mCOMMON FLAGS:\033[0m\n";
   std::cout << "  --rom=<path>           Path to ROM file\n";
   std::cout << "  --tui                  Launch interactive TUI\n";
   std::cout << "  --quiet, -q            Suppress output\n";
   std::cout << "  --version              Show version\n";
-  std::cout << "  --help <category>      Show category help\n\n";
-  
+  std::cout << "  --help <category>      Show category help\n";
+#ifdef YAZE_HTTP_API_ENABLED
+  std::cout << "  --http-port=<port>     HTTP API server port (0=disabled)\n";
+  std::cout
+      << "  --http-host=<host>     HTTP API server host (default: localhost)\n";
+#endif
+  std::cout << "\n";
+
   std::cout << "\033[1;36mEXAMPLES:\033[0m\n";
   std::cout << "  z3ed agent test-conversation --rom=zelda3.sfc\n";
   std::cout << "  z3ed rom info --rom=zelda3.sfc\n";
-  std::cout << "  z3ed agent message-search --rom=zelda3.sfc --query=\"Master Sword\"\n";
+  std::cout << "  z3ed agent message-search --rom=zelda3.sfc --query=\"Master "
+               "Sword\"\n";
   std::cout << "  z3ed dungeon export --rom=zelda3.sfc --id=1\n\n";
-  
+
   std::cout << "For detailed help: z3ed --help <command>\n";
   std::cout << "For all commands:  z3ed --list-commands\n\n";
 }
@@ -169,10 +192,11 @@ ParsedGlobals ParseGlobalFlags(int argc, char* argv[]) {
       }
 
       // AI provider flags
-      if (absl::StartsWith(token, "--ai_provider=") || 
+      if (absl::StartsWith(token, "--ai_provider=") ||
           absl::StartsWith(token, "--ai-provider=")) {
         size_t eq_pos = token.find('=');
-        absl::SetFlag(&FLAGS_ai_provider, std::string(token.substr(eq_pos + 1)));
+        absl::SetFlag(&FLAGS_ai_provider,
+                      std::string(token.substr(eq_pos + 1)));
         continue;
       }
       if (token == "--ai_provider" || token == "--ai-provider") {
@@ -184,7 +208,7 @@ ParsedGlobals ParseGlobalFlags(int argc, char* argv[]) {
         continue;
       }
 
-      if (absl::StartsWith(token, "--ai_model=") || 
+      if (absl::StartsWith(token, "--ai_model=") ||
           absl::StartsWith(token, "--ai-model=")) {
         size_t eq_pos = token.find('=');
         absl::SetFlag(&FLAGS_ai_model, std::string(token.substr(eq_pos + 1)));
@@ -199,10 +223,11 @@ ParsedGlobals ParseGlobalFlags(int argc, char* argv[]) {
         continue;
       }
 
-      if (absl::StartsWith(token, "--gemini_api_key=") || 
+      if (absl::StartsWith(token, "--gemini_api_key=") ||
           absl::StartsWith(token, "--gemini-api-key=")) {
         size_t eq_pos = token.find('=');
-        absl::SetFlag(&FLAGS_gemini_api_key, std::string(token.substr(eq_pos + 1)));
+        absl::SetFlag(&FLAGS_gemini_api_key,
+                      std::string(token.substr(eq_pos + 1)));
         continue;
       }
       if (token == "--gemini_api_key" || token == "--gemini-api-key") {
@@ -214,10 +239,11 @@ ParsedGlobals ParseGlobalFlags(int argc, char* argv[]) {
         continue;
       }
 
-      if (absl::StartsWith(token, "--ollama_host=") || 
+      if (absl::StartsWith(token, "--ollama_host=") ||
           absl::StartsWith(token, "--ollama-host=")) {
         size_t eq_pos = token.find('=');
-        absl::SetFlag(&FLAGS_ollama_host, std::string(token.substr(eq_pos + 1)));
+        absl::SetFlag(&FLAGS_ollama_host,
+                      std::string(token.substr(eq_pos + 1)));
         continue;
       }
       if (token == "--ollama_host" || token == "--ollama-host") {
@@ -229,10 +255,11 @@ ParsedGlobals ParseGlobalFlags(int argc, char* argv[]) {
         continue;
       }
 
-      if (absl::StartsWith(token, "--prompt_version=") || 
+      if (absl::StartsWith(token, "--prompt_version=") ||
           absl::StartsWith(token, "--prompt-version=")) {
         size_t eq_pos = token.find('=');
-        absl::SetFlag(&FLAGS_prompt_version, std::string(token.substr(eq_pos + 1)));
+        absl::SetFlag(&FLAGS_prompt_version,
+                      std::string(token.substr(eq_pos + 1)));
         continue;
       }
       if (token == "--prompt_version" || token == "--prompt-version") {
@@ -244,22 +271,70 @@ ParsedGlobals ParseGlobalFlags(int argc, char* argv[]) {
         continue;
       }
 
-      if (absl::StartsWith(token, "--use_function_calling=") || 
+      if (absl::StartsWith(token, "--use_function_calling=") ||
           absl::StartsWith(token, "--use-function-calling=")) {
         size_t eq_pos = token.find('=');
         std::string value(token.substr(eq_pos + 1));
-        absl::SetFlag(&FLAGS_use_function_calling, value == "true" || value == "1");
+        absl::SetFlag(&FLAGS_use_function_calling,
+                      value == "true" || value == "1");
         continue;
       }
-      if (token == "--use_function_calling" || token == "--use-function-calling") {
+      if (token == "--use_function_calling" ||
+          token == "--use-function-calling") {
         if (i + 1 >= argc) {
           result.error = "--use-function-calling flag requires a value";
           return result;
         }
         std::string value(argv[++i]);
-        absl::SetFlag(&FLAGS_use_function_calling, value == "true" || value == "1");
+        absl::SetFlag(&FLAGS_use_function_calling,
+                      value == "true" || value == "1");
         continue;
       }
+
+#ifdef YAZE_HTTP_API_ENABLED
+      // HTTP server flags
+      if (absl::StartsWith(token, "--http-port=") ||
+          absl::StartsWith(token, "--http_port=")) {
+        size_t eq_pos = token.find('=');
+        try {
+          int port = std::stoi(std::string(token.substr(eq_pos + 1)));
+          absl::SetFlag(&FLAGS_http_port, port);
+        } catch (...) {
+          result.error = "--http-port requires an integer value";
+          return result;
+        }
+        continue;
+      }
+      if (token == "--http-port" || token == "--http_port") {
+        if (i + 1 >= argc) {
+          result.error = "--http-port flag requires a value";
+          return result;
+        }
+        try {
+          int port = std::stoi(std::string(argv[++i]));
+          absl::SetFlag(&FLAGS_http_port, port);
+        } catch (...) {
+          result.error = "--http-port requires an integer value";
+          return result;
+        }
+        continue;
+      }
+
+      if (absl::StartsWith(token, "--http-host=") ||
+          absl::StartsWith(token, "--http_host=")) {
+        size_t eq_pos = token.find('=');
+        absl::SetFlag(&FLAGS_http_host, std::string(token.substr(eq_pos + 1)));
+        continue;
+      }
+      if (token == "--http-host" || token == "--http_host") {
+        if (i + 1 >= argc) {
+          result.error = "--http-host flag requires a value";
+          return result;
+        }
+        absl::SetFlag(&FLAGS_http_host, std::string(argv[++i]));
+        continue;
+      }
+#endif
     }
 
     result.positional.push_back(current);
@@ -286,6 +361,35 @@ int main(int argc, char* argv[]) {
     return EXIT_SUCCESS;
   }
 
+#ifdef YAZE_HTTP_API_ENABLED
+  // Start HTTP API server if requested
+  std::unique_ptr<yaze::cli::api::HttpServer> http_server;
+  int http_port = absl::GetFlag(FLAGS_http_port);
+
+  if (http_port > 0) {
+    std::string http_host = absl::GetFlag(FLAGS_http_host);
+    http_server = std::make_unique<yaze::cli::api::HttpServer>();
+
+    auto status = http_server->Start(http_port);
+    if (!status.ok()) {
+      std::cerr
+          << "\n\033[1;31mWarning:\033[0m Failed to start HTTP API server: "
+          << status.message() << "\n";
+      std::cerr << "Continuing without HTTP API...\n\n";
+      http_server.reset();
+    } else if (!absl::GetFlag(FLAGS_quiet)) {
+      std::cout << "\033[1;32m✓\033[0m HTTP API server started on " << http_host
+                << ":" << http_port << "\n";
+      std::cout << "  Health check: http://" << http_host << ":" << http_port
+                << "/api/v1/health\n";
+      std::cout << "  Models list:  http://" << http_host << ":" << http_port
+                << "/api/v1/models\n\n";
+    }
+  } else if (http_port == 0 && !absl::GetFlag(FLAGS_quiet)) {
+    // Port 0 means explicitly disabled, only show message in verbose mode
+  }
+#endif
+
   // Handle TUI mode
   if (absl::GetFlag(FLAGS_tui)) {
     // Load ROM if specified before launching TUI
@@ -293,7 +397,7 @@ int main(int argc, char* argv[]) {
     if (!rom_path.empty()) {
       auto status = yaze::cli::app_context.rom.LoadFromFile(rom_path);
       if (!status.ok()) {
-        std::cerr << "\n\033[1;31mError:\033[0m Failed to load ROM: " 
+        std::cerr << "\n\033[1;31mError:\033[0m Failed to load ROM: "
                   << status.message() << "\n";
         // Continue to TUI anyway, user can load ROM from there
       }

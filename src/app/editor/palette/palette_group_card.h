@@ -32,23 +32,23 @@ struct ColorChange {
  * @brief Metadata for a single palette in a group
  */
 struct PaletteMetadata {
-  int palette_id;              // Palette ID in ROM
-  std::string name;            // Display name (e.g., "Light World Main")
-  std::string description;     // Usage description
-  uint32_t rom_address;        // Base ROM address for this palette
-  uint32_t vram_address;       // VRAM address (for sprite palettes, 0 if N/A)
-  std::string usage_notes;     // Additional usage information
+  int palette_id;           // Palette ID in ROM
+  std::string name;         // Display name (e.g., "Light World Main")
+  std::string description;  // Usage description
+  uint32_t rom_address;     // Base ROM address for this palette
+  uint32_t vram_address;    // VRAM address (for sprite palettes, 0 if N/A)
+  std::string usage_notes;  // Additional usage information
 };
 
 /**
  * @brief Metadata for an entire palette group
  */
 struct PaletteGroupMetadata {
-  std::string group_name;              // Internal group name
-  std::string display_name;            // Display name for UI
+  std::string group_name;                 // Internal group name
+  std::string display_name;               // Display name for UI
   std::vector<PaletteMetadata> palettes;  // Metadata for each palette
-  int colors_per_palette;              // Number of colors per palette (usually 8 or 16)
-  int colors_per_row;                  // Colors per row for grid layout
+  int colors_per_palette;  // Number of colors per palette (usually 8 or 16)
+  int colors_per_row;      // Colors per row for grid layout
 };
 
 /**
@@ -68,13 +68,13 @@ class PaletteGroupCard {
  public:
   /**
    * @brief Construct a new Palette Group Card
-   * @param group_name Internal palette group name (e.g., "ow_main", "dungeon_main")
+   * @param group_name Internal palette group name (e.g., "ow_main",
+   * "dungeon_main")
    * @param display_name Human-readable name for UI
    * @param rom ROM instance for reading/writing palettes
    */
   PaletteGroupCard(const std::string& group_name,
-                   const std::string& display_name,
-                   Rom* rom);
+                   const std::string& display_name, Rom* rom);
 
   virtual ~PaletteGroupCard() = default;
 
@@ -117,7 +117,8 @@ class PaletteGroupCard {
   /**
    * @brief Set a color value (records change for undo)
    */
-  void SetColor(int palette_index, int color_index, const gfx::SnesColor& new_color);
+  void SetColor(int palette_index, int color_index,
+                const gfx::SnesColor& new_color);
 
   // ========== History Management ==========
 
@@ -231,7 +232,7 @@ class PaletteGroupCard {
    * @brief Write a single color to ROM
    */
   absl::Status WriteColorToRom(int palette_index, int color_index,
-                                const gfx::SnesColor& color);
+                               const gfx::SnesColor& color);
 
   /**
    * @brief Mark palette as modified
@@ -245,15 +246,15 @@ class PaletteGroupCard {
 
   // ========== Member Variables ==========
 
-  std::string group_name_;       // Internal name (e.g., "ow_main")
-  std::string display_name_;     // Display name (e.g., "Overworld Main")
-  Rom* rom_;                     // ROM instance
-  bool show_ = false;            // Visibility flag
+  std::string group_name_;    // Internal name (e.g., "ow_main")
+  std::string display_name_;  // Display name (e.g., "Overworld Main")
+  Rom* rom_;                  // ROM instance
+  bool show_ = false;         // Visibility flag
 
   // Selection state
-  int selected_palette_ = 0;     // Currently selected palette index
-  int selected_color_ = -1;      // Currently selected color (-1 = none)
-  gfx::SnesColor editing_color_; // Color being edited in picker
+  int selected_palette_ = 0;      // Currently selected palette index
+  int selected_color_ = -1;       // Currently selected color (-1 = none)
+  gfx::SnesColor editing_color_;  // Color being edited in picker
 
   // Settings
   bool auto_save_enabled_ = false;  // Auto-save to ROM on every change

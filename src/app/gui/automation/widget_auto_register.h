@@ -3,13 +3,14 @@
 
 #include <string>
 
-#include "imgui/imgui.h"
-#include "app/gui/automation/widget_id_registry.h"
 #include "absl/strings/str_cat.h"
+#include "app/gui/automation/widget_id_registry.h"
+#include "imgui/imgui.h"
 
 /**
  * @file widget_auto_register.h
- * @brief Automatic widget registration helpers for ImGui Test Engine integration
+ * @brief Automatic widget registration helpers for ImGui Test Engine
+ * integration
  *
  * This file provides inline wrappers and RAII helpers that automatically
  * register ImGui widgets with the WidgetIdRegistry for test automation.
@@ -41,7 +42,7 @@ namespace gui {
 class AutoWidgetScope {
  public:
   explicit AutoWidgetScope(const std::string& name);
-    ~AutoWidgetScope();
+  ~AutoWidgetScope();
 
   // Get current scope path
   std::string GetPath() const { return scope_.GetFullPath(); }
@@ -58,7 +59,8 @@ class AutoWidgetScope {
  * Captures widget type, bounds, visibility, and enabled state.
  *
  * @param widget_type Type of widget ("button", "input", "checkbox", etc.)
- * @param explicit_label Optional explicit label (uses ImGui::GetItemLabel() if empty)
+ * @param explicit_label Optional explicit label (uses ImGui::GetItemLabel() if
+ * empty)
  * @param description Optional description for the test harness
  */
 void AutoRegisterLastItem(const std::string& widget_type,
@@ -108,23 +110,26 @@ inline bool AutoInputText(const char* label, char* buf, size_t buf_size,
                           ImGuiInputTextFlags flags = 0,
                           ImGuiInputTextCallback callback = nullptr,
                           void* user_data = nullptr) {
-  bool changed = ImGui::InputText(label, buf, buf_size, flags, callback, user_data);
+  bool changed =
+      ImGui::InputText(label, buf, buf_size, flags, callback, user_data);
   AutoRegisterLastItem("input", label);
   return changed;
 }
 
-inline bool AutoInputTextMultiline(const char* label, char* buf, size_t buf_size,
+inline bool AutoInputTextMultiline(const char* label, char* buf,
+                                   size_t buf_size,
                                    const ImVec2& size = ImVec2(0, 0),
                                    ImGuiInputTextFlags flags = 0,
                                    ImGuiInputTextCallback callback = nullptr,
                                    void* user_data = nullptr) {
-  bool changed = ImGui::InputTextMultiline(label, buf, buf_size, size, flags, callback, user_data);
+  bool changed = ImGui::InputTextMultiline(label, buf, buf_size, size, flags,
+                                           callback, user_data);
   AutoRegisterLastItem("textarea", label);
   return changed;
 }
 
-inline bool AutoInputInt(const char* label, int* v, int step = 1, int step_fast = 100,
-                         ImGuiInputTextFlags flags = 0) {
+inline bool AutoInputInt(const char* label, int* v, int step = 1,
+                         int step_fast = 100, ImGuiInputTextFlags flags = 0) {
   bool changed = ImGui::InputInt(label, v, step, step_fast, flags);
   AutoRegisterLastItem("input_int", label);
   return changed;
@@ -139,22 +144,26 @@ inline bool AutoInputFloat(const char* label, float* v, float step = 0.0f,
 }
 
 inline bool AutoSliderInt(const char* label, int* v, int v_min, int v_max,
-                          const char* format = "%d", ImGuiSliderFlags flags = 0) {
+                          const char* format = "%d",
+                          ImGuiSliderFlags flags = 0) {
   bool changed = ImGui::SliderInt(label, v, v_min, v_max, format, flags);
   AutoRegisterLastItem("slider", label);
   return changed;
 }
 
-inline bool AutoSliderFloat(const char* label, float* v, float v_min, float v_max,
-                            const char* format = "%.3f", ImGuiSliderFlags flags = 0) {
+inline bool AutoSliderFloat(const char* label, float* v, float v_min,
+                            float v_max, const char* format = "%.3f",
+                            ImGuiSliderFlags flags = 0) {
   bool changed = ImGui::SliderFloat(label, v, v_min, v_max, format, flags);
   AutoRegisterLastItem("slider", label);
   return changed;
 }
 
-inline bool AutoCombo(const char* label, int* current_item, const char* const items[],
-                      int items_count, int popup_max_height_in_items = -1) {
-  bool changed = ImGui::Combo(label, current_item, items, items_count, popup_max_height_in_items);
+inline bool AutoCombo(const char* label, int* current_item,
+                      const char* const items[], int items_count,
+                      int popup_max_height_in_items = -1) {
+  bool changed = ImGui::Combo(label, current_item, items, items_count,
+                              popup_max_height_in_items);
   AutoRegisterLastItem("combo", label);
   return changed;
 }
@@ -182,8 +191,8 @@ inline bool AutoMenuItem(const char* label, const char* shortcut = nullptr,
   return activated;
 }
 
-inline bool AutoMenuItem(const char* label, const char* shortcut, bool* p_selected,
-                         bool enabled = true) {
+inline bool AutoMenuItem(const char* label, const char* shortcut,
+                         bool* p_selected, bool enabled = true) {
   bool activated = ImGui::MenuItem(label, shortcut, p_selected, enabled);
   AutoRegisterLastItem("menuitem", label);
   return activated;
@@ -198,7 +207,7 @@ inline bool AutoBeginMenu(const char* label, bool enabled = true) {
 }
 
 inline bool AutoBeginTabItem(const char* label, bool* p_open = nullptr,
-                              ImGuiTabItemFlags flags = 0) {
+                             ImGuiTabItemFlags flags = 0) {
   bool selected = ImGui::BeginTabItem(label, p_open, flags);
   if (selected) {
     AutoRegisterLastItem("tab", label);
@@ -222,7 +231,8 @@ inline bool AutoTreeNodeEx(const char* label, ImGuiTreeNodeFlags flags = 0) {
   return opened;
 }
 
-inline bool AutoCollapsingHeader(const char* label, ImGuiTreeNodeFlags flags = 0) {
+inline bool AutoCollapsingHeader(const char* label,
+                                 ImGuiTreeNodeFlags flags = 0) {
   bool opened = ImGui::CollapsingHeader(label, flags);
   if (opened) {
     AutoRegisterLastItem("collapsing", label);
@@ -243,7 +253,8 @@ inline bool AutoCollapsingHeader(const char* label, ImGuiTreeNodeFlags flags = 0
  * @param canvas_name Name of the canvas (should match BeginChild name)
  * @param description Optional description of the canvas purpose
  */
-inline void RegisterCanvas(const char* canvas_name, const std::string& description = "") {
+inline void RegisterCanvas(const char* canvas_name,
+                           const std::string& description = "") {
   AutoRegisterLastItem("canvas", canvas_name, description);
 }
 
@@ -253,7 +264,8 @@ inline void RegisterCanvas(const char* canvas_name, const std::string& descripti
  * @param table_name Name of the table (should match BeginTable name)
  * @param description Optional description
  */
-inline void RegisterTable(const char* table_name, const std::string& description = "") {
+inline void RegisterTable(const char* table_name,
+                          const std::string& description = "") {
   AutoRegisterLastItem("table", table_name, description);
 }
 
@@ -261,4 +273,3 @@ inline void RegisterTable(const char* table_name, const std::string& description
 }  // namespace yaze
 
 #endif  // YAZE_APP_GUI_AUTOMATION_WIDGET_AUTO_REGISTER_H_
-

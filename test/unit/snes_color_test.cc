@@ -29,7 +29,7 @@ TEST_F(SnesColorTest, SetRgbFromImGuiNormalizedValues) {
 
   // Internal storage should be in 0-255 range
   auto rgb = color.rgb();
-  EXPECT_FLOAT_EQ(rgb.x, 127.5f);  // 0.5 * 255
+  EXPECT_FLOAT_EQ(rgb.x, 127.5f);   // 0.5 * 255
   EXPECT_FLOAT_EQ(rgb.y, 191.25f);  // 0.75 * 255
   EXPECT_FLOAT_EQ(rgb.z, 255.0f);   // 1.0 * 255
   EXPECT_FLOAT_EQ(rgb.w, 255.0f);   // Alpha always 255

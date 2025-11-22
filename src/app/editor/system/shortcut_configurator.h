@@ -45,4 +45,3 @@ void ConfigureMenuShortcuts(const ShortcutDependencies& deps,
 }  // namespace yaze
 
 #endif  // YAZE_APP_EDITOR_SYSTEM_SHORTCUT_CONFIGURATOR_H_
-

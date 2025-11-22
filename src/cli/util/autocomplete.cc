@@ -6,8 +6,9 @@
 namespace yaze {
 namespace cli {
 
-void AutocompleteEngine::RegisterCommand(const std::string& cmd, const std::string& desc,
-                                          const std::vector<std::string>& examples) {
+void AutocompleteEngine::RegisterCommand(
+    const std::string& cmd, const std::string& desc,
+    const std::vector<std::string>& examples) {
   CommandDef def;
   def.name = cmd;
   def.description = desc;
@@ -15,22 +16,28 @@ void AutocompleteEngine::RegisterCommand(const std::string& cmd, const std::stri
   commands_.push_back(def);
 }
 
-void AutocompleteEngine::RegisterParameter(const std::string& param, const std::string& desc,
-                                            const std::vector<std::string>& values) {
+void AutocompleteEngine::RegisterParameter(
+    const std::string& param, const std::string& desc,
+    const std::vector<std::string>& values) {
   // TODO: Store parameter definitions
 }
 
-int AutocompleteEngine::FuzzyScore(const std::string& text, const std::string& query) {
-  if (query.empty()) return 0;
-  
+int AutocompleteEngine::FuzzyScore(const std::string& text,
+                                   const std::string& query) {
+  if (query.empty())
+    return 0;
+
   std::string t = text, q = query;
   std::transform(t.begin(), t.end(), t.begin(), ::tolower);
   std::transform(q.begin(), q.end(), q.begin(), ::tolower);
-  
-  if (t == q) return 1000;
-  if (t.find(q) == 0) return 500;
-  if (t.find(q) != std::string::npos) return 250;
-  
+
+  if (t == q)
+    return 1000;
+  if (t.find(q) == 0)
+    return 500;
+  if (t.find(q) != std::string::npos)
+    return 250;
+
   // Fuzzy char matching
   size_t ti = 0, qi = 0;
   int score = 0;
@@ -41,13 +48,14 @@ int AutocompleteEngine::FuzzyScore(const std::string& text, const std::string& q
     }
     ti++;
   }
-  
+
   return (qi == q.length()) ? score : 0;
 }
 
-std::vector<Suggestion> AutocompleteEngine::GetSuggestions(const std::string& input) {
+std::vector<Suggestion> AutocompleteEngine::GetSuggestions(
+    const std::string& input) {
   std::vector<Suggestion> results;
-  
+
   for (const auto& cmd : commands_) {
     int score = FuzzyScore(cmd.name, input);
     if (score > 0) {
@@ -59,18 +67,19 @@ std::vector<Suggestion> AutocompleteEngine::GetSuggestions(const std::string& in
       results.push_back(s);
     }
   }
-  
+
   std::sort(results.begin(), results.end(),
             [](const Suggestion& a, const Suggestion& b) {
               return a.score > b.score;
             });
-  
+
   return results;
 }
 
-std::vector<Suggestion> AutocompleteEngine::GetContextualHelp(const std::string& partial_cmd) {
+std::vector<Suggestion> AutocompleteEngine::GetContextualHelp(
+    const std::string& partial_cmd) {
   std::vector<Suggestion> help;
-  
+
   // Parse command and suggest parameters
   if (partial_cmd.find("hex-") == 0) {
     help.push_back({"--address=0xXXXXXX", "ROM address in hex", ""});
@@ -84,7 +93,7 @@ std::vector<Suggestion> AutocompleteEngine::GetContextualHelp(const std::string&
     help.push_back({"--room_id=5", "Room ID (0-296)", ""});
     help.push_back({"--include_sprites=true", "Include sprite data", ""});
   }
-  
+
   return help;
 }
 

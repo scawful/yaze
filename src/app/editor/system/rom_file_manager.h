@@ -14,7 +14,7 @@ class ToastManager;
 /**
  * @class RomFileManager
  * @brief Handles all ROM file I/O operations
- * 
+ *
  * Extracted from EditorManager to provide focused ROM file management:
  * - ROM loading and saving
  * - Asset loading
@@ -42,7 +42,8 @@ class RomFileManager {
   ToastManager* toast_manager_ = nullptr;
 
   absl::Status LoadRomFromFile(Rom* rom, const std::string& filename);
-  std::string GenerateBackupFilename(const std::string& original_filename) const;
+  std::string GenerateBackupFilename(
+      const std::string& original_filename) const;
   bool IsValidRomFile(const std::string& filename) const;
 };
 

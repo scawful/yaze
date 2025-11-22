@@ -120,16 +120,14 @@ void SnesColor::set_rgb(const ImVec4 val) {
 void SnesColor::set_snes(uint16_t val) {
   // Store SNES 15-bit color
   snes_ = val;
-  
+
   // Convert SNES to RGB (0-255)
   snes_color col = ConvertSnesToRgb(val);
-  
+
   // Store 0-255 values in ImVec4 (unconventional but our internal format)
-  rgb_ = ImVec4(static_cast<float>(col.red), 
-                static_cast<float>(col.green), 
-                static_cast<float>(col.blue), 
-                kColorByteMaxF);
-  
+  rgb_ = ImVec4(static_cast<float>(col.red), static_cast<float>(col.green),
+                static_cast<float>(col.blue), kColorByteMaxF);
+
   rom_color_ = col;
   modified = true;
 }

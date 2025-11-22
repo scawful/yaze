@@ -1,9 +1,9 @@
 #ifndef YAZE_SRC_CLI_SERVICE_AI_COMMON_H_
 #define YAZE_SRC_CLI_SERVICE_AI_COMMON_H_
 
+#include <map>
 #include <string>
 #include <vector>
-#include <map>
 
 namespace yaze {
 namespace cli {
@@ -27,6 +27,30 @@ struct AgentResponse {
 
   // The AI's explanation of its thought process.
   std::string reasoning;
+
+  // Provider + model metadata so the UI can show badges / filters.
+  std::string provider;
+  std::string model;
+
+  // Basic timing + parameter telemetry.
+  double latency_seconds = 0.0;
+  std::map<std::string, std::string> parameters;
+
+  // Optional warnings surfaced by the backend (e.g. truncated context).
+  std::vector<std::string> warnings;
+};
+
+// Represents a model available for use
+struct ModelInfo {
+  std::string name;            // Unique identifier / name to use in API calls
+  std::string display_name;    // User-friendly name
+  std::string provider;        // "ollama", "gemini", etc.
+  std::string description;     // Short description or family
+  std::string family;          // Model family (e.g. "llama", "gemini")
+  std::string parameter_size;  // Size string (e.g. "7B")
+  std::string quantization;    // e.g. "Q4_K_M"
+  uint64_t size_bytes = 0;
+  bool is_local = false;  // true if running locally
 };
 
 }  // namespace cli

@@ -93,7 +93,7 @@ Key methods available:
 - `ctx->LogError("message", ...)` - Log error
 - `ctx->Yield()` - Yield to allow UI to update
 
-Full API: `src/lib/imgui_test_engine/imgui_te_engine.h`
+Full API: `ext/imgui_test_engine/imgui_te_engine.h`
 
 ## Test Logging
 
@@ -163,7 +163,7 @@ Potential tests to add:
 
 ## References
 
-- **ImGui Test Engine**: `src/lib/imgui_test_engine/`
+- **ImGui Test Engine**: `ext/imgui_test_engine/`
 - **Test Registration**: `test/yaze_test.cc`
 - **Test Utilities**: `test/test_utils.h`
 - **Working Examples**: See existing tests in this directory

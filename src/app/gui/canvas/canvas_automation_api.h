@@ -17,7 +17,8 @@ class Canvas;
  * @brief Programmatic interface for controlling canvas operations.
  *
  * Enables z3ed CLI, AI agents, GUI automation, and remote control via gRPC.
- * All operations work with logical tile coordinates, independent of zoom/scroll.
+ * All operations work with logical tile coordinates, independent of
+ * zoom/scroll.
  */
 class CanvasAutomationAPI {
  public:
@@ -221,4 +222,3 @@ class CanvasAutomationAPI {
 }  // namespace yaze
 
 #endif  // YAZE_APP_GUI_CANVAS_CANVAS_AUTOMATION_API_H
-

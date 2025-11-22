@@ -63,7 +63,8 @@ void SessionCoordinator::DuplicateCurrentSession() {
     return;
   }
 
-  // Create new empty session (cannot actually duplicate due to non-movable editors)
+  // Create new empty session (cannot actually duplicate due to non-movable
+  // editors)
   // TODO: Implement proper duplication when editors become movable
   sessions->emplace_back();
   UpdateSessionCount();
@@ -104,8 +105,9 @@ void SessionCoordinator::CloseSession(size_t index) {
   // TODO: Implement proper session removal when editors become movable
   sessions->at(index).custom_name = "[CLOSED SESSION]";
 
-  // Note: We don't actually remove from the deque because EditorSet is not movable
-  // This is a temporary solution until we refactor to use unique_ptr<EditorSet>
+  // Note: We don't actually remove from the deque because EditorSet is not
+  // movable This is a temporary solution until we refactor to use
+  // unique_ptr<EditorSet>
   UpdateSessionCount();
 
   // Adjust active session index
@@ -291,7 +293,6 @@ void SessionCoordinator::DrawSessionManager() {
   if (ImGui::BeginTable("SessionTable", 4,
                         ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg |
                             ImGuiTableFlags_Resizable)) {
-
     ImGui::TableSetupColumn("Session", ImGuiTableColumnFlags_WidthStretch,
                             0.3f);
     ImGui::TableSetupColumn("ROM File", ImGuiTableColumnFlags_WidthStretch,
@@ -675,7 +676,7 @@ void SessionCoordinator::CleanupClosedSessions() {
 
   UpdateSessionCount();
   LOG_INFO("SessionCoordinator", "Cleaned up closed sessions (remaining: %zu)",
-         session_count_);
+           session_count_);
 }
 
 void SessionCoordinator::ClearAllSessions() {

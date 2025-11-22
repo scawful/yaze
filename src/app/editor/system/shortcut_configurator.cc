@@ -5,21 +5,20 @@
 #include "app/editor/editor_manager.h"
 #include "app/editor/system/editor_card_registry.h"
 #include "app/editor/system/menu_orchestrator.h"
+#include "app/editor/system/popup_manager.h"
 #include "app/editor/system/proposal_drawer.h"
 #include "app/editor/system/rom_file_manager.h"
 #include "app/editor/system/session_coordinator.h"
 #include "app/editor/system/toast_manager.h"
 #include "app/editor/ui/ui_coordinator.h"
 #include "app/editor/ui/workspace_manager.h"
-#include "app/editor/system/popup_manager.h"
 #include "core/project.h"
 
 namespace yaze::editor {
 
 namespace {
 
-void RegisterIfValid(ShortcutManager* shortcut_manager,
-                     const std::string& name,
+void RegisterIfValid(ShortcutManager* shortcut_manager, const std::string& name,
                      const std::vector<ImGuiKey>& keys,
                      std::function<void()> callback) {
   if (!shortcut_manager || !callback) {
@@ -28,10 +27,8 @@ void RegisterIfValid(ShortcutManager* shortcut_manager,
   shortcut_manager->RegisterShortcut(name, keys, std::move(callback));
 }
 
-void RegisterIfValid(ShortcutManager* shortcut_manager,
-                     const std::string& name,
-                     ImGuiKey key,
-                     std::function<void()> callback) {
+void RegisterIfValid(ShortcutManager* shortcut_manager, const std::string& name,
+                     ImGuiKey key, std::function<void()> callback) {
   if (!shortcut_manager || !callback) {
     return;
   }
@@ -51,14 +48,12 @@ void ConfigureEditorShortcuts(const ShortcutDependencies& deps,
   auto* popup_manager = deps.popup_manager;
   auto* card_registry = deps.card_registry;
 
-  RegisterIfValid(
-      shortcut_manager, "global.toggle_sidebar",
-      {ImGuiKey_LeftCtrl, ImGuiKey_B},
-      [ui_coordinator]() {
-        if (ui_coordinator) {
-          ui_coordinator->ToggleCardSidebar();
-        }
-      });
+  RegisterIfValid(shortcut_manager, "global.toggle_sidebar",
+                  {ImGuiKey_LeftCtrl, ImGuiKey_B}, [ui_coordinator]() {
+                    if (ui_coordinator) {
+                      ui_coordinator->ToggleCardSidebar();
+                    }
+                  });
 
   RegisterIfValid(shortcut_manager, "Open", {ImGuiMod_Ctrl, ImGuiKey_O},
                   [editor_manager]() {
@@ -79,9 +74,10 @@ void ConfigureEditorShortcuts(const ShortcutDependencies& deps,
                   [editor_manager]() {
                     if (editor_manager) {
                       // Use project-aware default filename when possible
-                      std::string filename = editor_manager->GetCurrentRom()
-                                                 ? editor_manager->GetCurrentRom()->filename()
-                                                 : "";
+                      std::string filename =
+                          editor_manager->GetCurrentRom()
+                              ? editor_manager->GetCurrentRom()->filename()
+                              : "";
                       editor_manager->SaveRomAs(filename);
                     }
                   });
@@ -143,33 +139,30 @@ void ConfigureEditorShortcuts(const ShortcutDependencies& deps,
                     }
                   });
 
-  RegisterIfValid(
-      shortcut_manager, "Command Palette",
-      {ImGuiMod_Ctrl, ImGuiMod_Shift, ImGuiKey_P},
-      [ui_coordinator]() {
-        if (ui_coordinator) {
-          ui_coordinator->ShowCommandPalette();
-        }
-      });
-
-  RegisterIfValid(
-      shortcut_manager, "Global Search",
-      {ImGuiMod_Ctrl, ImGuiMod_Shift, ImGuiKey_K},
-      [ui_coordinator]() {
-        if (ui_coordinator) {
-          ui_coordinator->ShowGlobalSearch();
-        }
-      });
-
-  RegisterIfValid(shortcut_manager, "Load Last ROM",
-                  {ImGuiMod_Ctrl, ImGuiKey_R},
-                  [editor_manager]() {
-                    auto& recent = project::RecentFilesManager::GetInstance();
-                    if (!recent.GetRecentFiles().empty() && editor_manager) {
-                      editor_manager->OpenRomOrProject(
-                          recent.GetRecentFiles().front());
+  RegisterIfValid(shortcut_manager, "Command Palette",
+                  {ImGuiMod_Ctrl, ImGuiMod_Shift, ImGuiKey_P},
+                  [ui_coordinator]() {
+                    if (ui_coordinator) {
+                      ui_coordinator->ShowCommandPalette();
                     }
                   });
+
+  RegisterIfValid(shortcut_manager, "Global Search",
+                  {ImGuiMod_Ctrl, ImGuiMod_Shift, ImGuiKey_K},
+                  [ui_coordinator]() {
+                    if (ui_coordinator) {
+                      ui_coordinator->ShowGlobalSearch();
+                    }
+                  });
+
+  RegisterIfValid(
+      shortcut_manager, "Load Last ROM", {ImGuiMod_Ctrl, ImGuiKey_R},
+      [editor_manager]() {
+        auto& recent = project::RecentFilesManager::GetInstance();
+        if (!recent.GetRecentFiles().empty() && editor_manager) {
+          editor_manager->OpenRomOrProject(recent.GetRecentFiles().front());
+        }
+      });
 
   RegisterIfValid(shortcut_manager, "Show About", ImGuiKey_F1,
                   [popup_manager]() {
@@ -181,8 +174,7 @@ void ConfigureEditorShortcuts(const ShortcutDependencies& deps,
   auto register_editor_shortcut = [&](EditorType type, ImGuiKey key) {
     RegisterIfValid(shortcut_manager,
                     absl::StrFormat("switch.%d", static_cast<int>(type)),
-                    {ImGuiMod_Ctrl, key},
-                    [editor_manager, type]() {
+                    {ImGuiMod_Ctrl, key}, [editor_manager, type]() {
                       if (editor_manager) {
                         editor_manager->SwitchToEditor(type);
                       }
@@ -201,24 +193,23 @@ void ConfigureEditorShortcuts(const ShortcutDependencies& deps,
   register_editor_shortcut(EditorType::kSettings, ImGuiKey_0);
 
   RegisterIfValid(shortcut_manager, "Editor Selection",
-                  {ImGuiMod_Ctrl, ImGuiKey_E},
-                  [ui_coordinator]() {
+                  {ImGuiMod_Ctrl, ImGuiKey_E}, [ui_coordinator]() {
                     if (ui_coordinator) {
                       ui_coordinator->ShowEditorSelection();
                     }
                   });
 
-  RegisterIfValid(
-      shortcut_manager, "Card Browser",
-      {ImGuiMod_Ctrl, ImGuiMod_Shift, ImGuiKey_B},
-      [ui_coordinator]() {
-        if (ui_coordinator) {
-          ui_coordinator->ShowCardBrowser();
-        }
-      });
+  RegisterIfValid(shortcut_manager, "Card Browser",
+                  {ImGuiMod_Ctrl, ImGuiMod_Shift, ImGuiKey_B},
+                  [ui_coordinator]() {
+                    if (ui_coordinator) {
+                      ui_coordinator->ShowCardBrowser();
+                    }
+                  });
 
   if (card_registry) {
-    // Note: Using Ctrl+Alt for card shortcuts to avoid conflicts with Save As (Ctrl+Shift+S)
+    // Note: Using Ctrl+Alt for card shortcuts to avoid conflicts with Save As
+    // (Ctrl+Shift+S)
     RegisterIfValid(shortcut_manager, "Show Dungeon Cards",
                     {ImGuiMod_Ctrl, ImGuiMod_Alt, ImGuiKey_D},
                     [card_registry]() {
@@ -229,11 +220,10 @@ void ConfigureEditorShortcuts(const ShortcutDependencies& deps,
                     [card_registry]() {
                       card_registry->ShowAllCardsInCategory("Graphics");
                     });
-    RegisterIfValid(shortcut_manager, "Show Screen Cards",
-                    {ImGuiMod_Ctrl, ImGuiMod_Alt, ImGuiKey_S},
-                    [card_registry]() {
-                      card_registry->ShowAllCardsInCategory("Screen");
-                    });
+    RegisterIfValid(
+        shortcut_manager, "Show Screen Cards",
+        {ImGuiMod_Ctrl, ImGuiMod_Alt, ImGuiKey_S},
+        [card_registry]() { card_registry->ShowAllCardsInCategory("Screen"); });
   }
 
 #ifdef YAZE_WITH_GRPC
@@ -246,15 +236,15 @@ void ConfigureEditorShortcuts(const ShortcutDependencies& deps,
                   });
 
   RegisterIfValid(shortcut_manager, "Agent Chat History",
-                  {ImGuiMod_Ctrl, ImGuiKey_H},
-                  [editor_manager]() {
+                  {ImGuiMod_Ctrl, ImGuiKey_H}, [editor_manager]() {
                     if (editor_manager) {
                       editor_manager->ShowChatHistory();
                     }
                   });
 
   RegisterIfValid(shortcut_manager, "Proposal Drawer",
-                  {ImGuiMod_Ctrl | ImGuiMod_Shift, ImGuiKey_R},  // Changed from Ctrl+P to Ctrl+Shift+R
+                  {ImGuiMod_Ctrl | ImGuiMod_Shift,
+                   ImGuiKey_R},  // Changed from Ctrl+P to Ctrl+Shift+R
                   [editor_manager]() {
                     if (editor_manager) {
                       editor_manager->ShowProposalDrawer();
@@ -298,8 +288,7 @@ void ConfigureMenuShortcuts(const ShortcutDependencies& deps,
                   });
 
   RegisterIfValid(shortcut_manager, "Session Switcher",
-                  {ImGuiMod_Ctrl, ImGuiKey_Tab},
-                  [session_coordinator]() {
+                  {ImGuiMod_Ctrl, ImGuiKey_Tab}, [session_coordinator]() {
                     if (session_coordinator) {
                       session_coordinator->ShowSessionSwitcher();
                     }
@@ -321,7 +310,8 @@ void ConfigureMenuShortcuts(const ShortcutDependencies& deps,
                     }
                   });
 
-  // Note: Changed from Ctrl+Shift+R to Ctrl+Alt+R to avoid conflict with Proposal Drawer
+  // Note: Changed from Ctrl+Shift+R to Ctrl+Alt+R to avoid conflict with
+  // Proposal Drawer
   RegisterIfValid(shortcut_manager, "Reset Layout",
                   {ImGuiMod_Ctrl, ImGuiMod_Alt, ImGuiKey_R},
                   [workspace_manager]() {
@@ -339,8 +329,7 @@ void ConfigureMenuShortcuts(const ShortcutDependencies& deps,
 
 #ifdef YAZE_ENABLE_TESTING
   RegisterIfValid(shortcut_manager, "Test Dashboard",
-                  {ImGuiMod_Ctrl, ImGuiKey_T},
-                  [menu_orchestrator]() {
+                  {ImGuiMod_Ctrl, ImGuiKey_T}, [menu_orchestrator]() {
                     if (menu_orchestrator) {
                       menu_orchestrator->OnShowTestDashboard();
                     }
@@ -349,4 +338,3 @@ void ConfigureMenuShortcuts(const ShortcutDependencies& deps,
 }
 
 }  // namespace yaze::editor
-

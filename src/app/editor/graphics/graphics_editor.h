@@ -8,13 +8,13 @@
 #include "app/editor/palette/palette_editor.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/types/snes_tile.h"
-#include "app/gui/canvas/canvas.h"
 #include "app/gui/app/editor_layout.h"
+#include "app/gui/canvas/canvas.h"
 #include "app/gui/widgets/asset_browser.h"
 #include "app/rom.h"
-#include "zelda3/overworld/overworld.h"
 #include "imgui/imgui.h"
 #include "imgui_memory_editor.h"
+#include "zelda3/overworld/overworld.h"
 
 namespace yaze {
 namespace editor {
@@ -57,8 +57,8 @@ const std::string kSuperDonkeySprites[] = {
  */
 class GraphicsEditor : public Editor {
  public:
-  explicit GraphicsEditor(Rom* rom = nullptr) : rom_(rom) { 
-    type_ = EditorType::kGraphics; 
+  explicit GraphicsEditor(Rom* rom = nullptr) : rom_(rom) {
+    type_ = EditorType::kGraphics;
   }
 
   void Initialize() override;
@@ -71,10 +71,10 @@ class GraphicsEditor : public Editor {
   absl::Status Undo() override { return absl::UnimplementedError("Undo"); }
   absl::Status Redo() override { return absl::UnimplementedError("Redo"); }
   absl::Status Find() override { return absl::UnimplementedError("Find"); }
-  
+
   // Set the ROM pointer
   void set_rom(Rom* rom) { rom_ = rom; }
-  
+
   // Get the ROM pointer
   Rom* rom() const { return rom_; }
 

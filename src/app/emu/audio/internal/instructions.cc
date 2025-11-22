@@ -44,25 +44,25 @@ void Spc700::MOVY(uint16_t adr) {
 
 void Spc700::MOVS(uint16_t address) {
   // MOV (address), A - Write A to memory (with dummy read)
-  read(address);   // Dummy read (documented behavior)
+  read(address);  // Dummy read (documented behavior)
   write(address, A);
 }
 
 void Spc700::MOVSX(uint16_t address) {
   // MOV (address), X - Write X to memory (with dummy read)
-  read(address);   // Dummy read (documented behavior)
+  read(address);  // Dummy read (documented behavior)
   write(address, X);
 }
 
 void Spc700::MOVSY(uint16_t address) {
   // MOV (address), Y - Write Y to memory (with dummy read)
-  read(address);   // Dummy read (documented behavior)
+  read(address);  // Dummy read (documented behavior)
   write(address, Y);
 }
 
 void Spc700::MOV_ADDR(uint16_t address, uint8_t operand) {
   // MOV (address), #imm - Write immediate to memory (with dummy read)
-  read(address);   // Dummy read (documented behavior)
+  read(address);  // Dummy read (documented behavior)
   write(address, operand);
 }
 
@@ -99,8 +99,7 @@ void Spc700::SBC(uint16_t adr) {
   // SBC A, (adr) - Subtract with carry (borrow)
   uint8_t value = read(adr) ^ 0xff;
   int result = A + value + PSW.C;
-  PSW.V = ((A & 0x80) == (value & 0x80)) && 
-          ((value & 0x80) != (result & 0x80));
+  PSW.V = ((A & 0x80) == (value & 0x80)) && ((value & 0x80) != (result & 0x80));
   PSW.H = ((A & 0xf) + (value & 0xf) + PSW.C) > 0xf;
   PSW.C = result > 0xff;
   A = result & 0xFF;
@@ -383,30 +382,58 @@ void Spc700::DIV(uint8_t operand) {
 // Note: Branch timing is handled in DoBranch() in spc700.cc
 // These helpers are only used by old code paths
 
-void Spc700::BRA(int8_t offset) { PC += offset; }
-void Spc700::BEQ(int8_t offset) { if (PSW.Z) PC += offset; }
-void Spc700::BNE(int8_t offset) { if (!PSW.Z) PC += offset; }
-void Spc700::BCS(int8_t offset) { if (PSW.C) PC += offset; }
-void Spc700::BCC(int8_t offset) { if (!PSW.C) PC += offset; }
-void Spc700::BVS(int8_t offset) { if (PSW.V) PC += offset; }
-void Spc700::BVC(int8_t offset) { if (!PSW.V) PC += offset; }
-void Spc700::BMI(int8_t offset) { if (PSW.N) PC += offset; }
-void Spc700::BPL(int8_t offset) { if (!PSW.N) PC += offset; }
+void Spc700::BRA(int8_t offset) {
+  PC += offset;
+}
+void Spc700::BEQ(int8_t offset) {
+  if (PSW.Z)
+    PC += offset;
+}
+void Spc700::BNE(int8_t offset) {
+  if (!PSW.Z)
+    PC += offset;
+}
+void Spc700::BCS(int8_t offset) {
+  if (PSW.C)
+    PC += offset;
+}
+void Spc700::BCC(int8_t offset) {
+  if (!PSW.C)
+    PC += offset;
+}
+void Spc700::BVS(int8_t offset) {
+  if (PSW.V)
+    PC += offset;
+}
+void Spc700::BVC(int8_t offset) {
+  if (!PSW.V)
+    PC += offset;
+}
+void Spc700::BMI(int8_t offset) {
+  if (PSW.N)
+    PC += offset;
+}
+void Spc700::BPL(int8_t offset) {
+  if (!PSW.N)
+    PC += offset;
+}
 
 void Spc700::BBS(uint8_t bit, uint8_t operand) {
-  if (operand & (1 << bit)) PC += rel();
+  if (operand & (1 << bit))
+    PC += rel();
 }
 
 void Spc700::BBC(uint8_t bit, uint8_t operand) {
-  if (!(operand & (1 << bit))) PC += rel();
+  if (!(operand & (1 << bit)))
+    PC += rel();
 }
 
 // ---------------------------------------------------------------------------
 // Jump and Call Instructions
 // ---------------------------------------------------------------------------
 
-void Spc700::JMP(uint16_t address) { 
-  PC = address; 
+void Spc700::JMP(uint16_t address) {
+  PC = address;
 }
 
 void Spc700::CALL(uint16_t address) {
@@ -463,12 +490,12 @@ void Spc700::POP(uint8_t& operand) {
 // Bit Manipulation Instructions
 // ---------------------------------------------------------------------------
 
-void Spc700::SET1(uint8_t bit, uint8_t& operand) { 
-  operand |= (1 << bit); 
+void Spc700::SET1(uint8_t bit, uint8_t& operand) {
+  operand |= (1 << bit);
 }
 
-void Spc700::CLR1(uint8_t bit, uint8_t& operand) { 
-  operand &= ~(1 << bit); 
+void Spc700::CLR1(uint8_t bit, uint8_t& operand) {
+  operand &= ~(1 << bit);
 }
 
 void Spc700::TSET1(uint8_t bit, uint8_t& operand) {
@@ -514,20 +541,37 @@ void Spc700::MOV1(uint8_t bit, uint8_t& operand) {
 // Flag Instructions
 // ---------------------------------------------------------------------------
 
-void Spc700::CLRC() { PSW.C = false; }
-void Spc700::SETC() { PSW.C = true; }
-void Spc700::NOTC() { PSW.C = !PSW.C; }
-void Spc700::CLRV() { PSW.V = false; PSW.H = false; }
-void Spc700::CLRP() { PSW.P = false; }
-void Spc700::SETP() { PSW.P = true; }
-void Spc700::EI() { PSW.I = true; }
-void Spc700::DI() { PSW.I = false; }
+void Spc700::CLRC() {
+  PSW.C = false;
+}
+void Spc700::SETC() {
+  PSW.C = true;
+}
+void Spc700::NOTC() {
+  PSW.C = !PSW.C;
+}
+void Spc700::CLRV() {
+  PSW.V = false;
+  PSW.H = false;
+}
+void Spc700::CLRP() {
+  PSW.P = false;
+}
+void Spc700::SETP() {
+  PSW.P = true;
+}
+void Spc700::EI() {
+  PSW.I = true;
+}
+void Spc700::DI() {
+  PSW.I = false;
+}
 
 // ---------------------------------------------------------------------------
 // Special Instructions
 // ---------------------------------------------------------------------------
 
-void Spc700::NOP() { 
+void Spc700::NOP() {
   // No operation - PC already advanced by ReadOpcode()
 }
 

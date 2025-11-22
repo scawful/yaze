@@ -1,5 +1,21 @@
 #include "cli/service/agent/proposal_executor.h"
 
+#ifndef YAZE_AI_RUNTIME_AVAILABLE
+
+#include "absl/status/status.h"
+
+namespace yaze::cli::agent {
+
+absl::StatusOr<ProposalCreationResult> CreateProposalFromAgentResponse(
+    const ProposalCreationRequest&) {
+  return absl::FailedPreconditionError(
+      "AI runtime features are disabled in this build");
+}
+
+}  // namespace yaze::cli::agent
+
+#else  // YAZE_AI_RUNTIME_AVAILABLE
+
 #include <filesystem>
 #include <sstream>
 #include <utility>
@@ -51,9 +67,8 @@ absl::StatusOr<ProposalCreationResult> CreateProposalFromAgentResponse(
         "Agent response did not contain any commands to execute");
   }
 
-  auto sandbox_or =
-      RomSandboxManager::Instance().CreateSandbox(*request.rom,
-                                                  request.sandbox_label);
+  auto sandbox_or = RomSandboxManager::Instance().CreateSandbox(
+      *request.rom, request.sandbox_label);
   if (!sandbox_or.ok()) {
     return sandbox_or.status();
   }
@@ -66,8 +81,7 @@ absl::StatusOr<ProposalCreationResult> CreateProposalFromAgentResponse(
                        InferProvider(request.ai_provider), request.rom));
 
   Rom sandbox_rom;
-  RETURN_IF_ERROR(
-      sandbox_rom.LoadFromFile(sandbox.rom_path.string()));
+  RETURN_IF_ERROR(sandbox_rom.LoadFromFile(sandbox.rom_path.string()));
 
   RETURN_IF_ERROR(generator.ApplyProposal(proposal, &sandbox_rom));
 
@@ -103,8 +117,8 @@ absl::StatusOr<ProposalCreationResult> CreateProposalFromAgentResponse(
 
   RETURN_IF_ERROR(registry.RecordDiff(metadata.id, diff_stream.str()));
 
-  RETURN_IF_ERROR(registry.AppendLog(
-      metadata.id, absl::StrCat("Prompt: ", request.prompt)));
+  RETURN_IF_ERROR(registry.AppendLog(metadata.id,
+                                     absl::StrCat("Prompt: ", request.prompt)));
 
   if (!request.response->text_response.empty()) {
     RETURN_IF_ERROR(registry.AppendLog(
@@ -114,8 +128,7 @@ absl::StatusOr<ProposalCreationResult> CreateProposalFromAgentResponse(
 
   if (!request.response->reasoning.empty()) {
     RETURN_IF_ERROR(registry.AppendLog(
-        metadata.id,
-        absl::StrCat("Reasoning: ", request.response->reasoning)));
+        metadata.id, absl::StrCat("Reasoning: ", request.response->reasoning)));
   }
 
   if (!request.response->tool_calls.empty()) {
@@ -126,32 +139,29 @@ absl::StatusOr<ProposalCreationResult> CreateProposalFromAgentResponse(
       for (const auto& [key, value] : tool_call.args) {
         args.push_back(absl::StrCat(key, "=", value));
       }
-      call_summaries.push_back(absl::StrCat(
-          tool_call.tool_name, "(", absl::StrJoin(args, ", "), ")"));
+      call_summaries.push_back(absl::StrCat(tool_call.tool_name, "(",
+                                            absl::StrJoin(args, ", "), ")"));
     }
     RETURN_IF_ERROR(registry.AppendLog(
-        metadata.id,
-        absl::StrCat("Tool Calls (", call_summaries.size(), "): ",
-                     absl::StrJoin(call_summaries, "; "))));
+        metadata.id, absl::StrCat("Tool Calls (", call_summaries.size(),
+                                  "): ", absl::StrJoin(call_summaries, "; "))));
   }
 
   for (const auto& command : request.response->commands) {
     if (!IsExecutableCommand(command)) {
       continue;
     }
-    RETURN_IF_ERROR(registry.AppendLog(
-        metadata.id, absl::StrCat("Command: ", command)));
+    RETURN_IF_ERROR(
+        registry.AppendLog(metadata.id, absl::StrCat("Command: ", command)));
   }
 
   RETURN_IF_ERROR(registry.AppendLog(
       metadata.id,
       absl::StrCat("Sandbox ROM saved to ", sandbox.rom_path.string())));
 
-  RETURN_IF_ERROR(
-      registry.UpdateCommandStats(metadata.id, executed_commands));
+  RETURN_IF_ERROR(registry.UpdateCommandStats(metadata.id, executed_commands));
   RETURN_IF_ERROR(registry.AppendLog(
-      metadata.id,
-      absl::StrCat("Commands executed: ", executed_commands)));
+      metadata.id, absl::StrCat("Commands executed: ", executed_commands)));
 
   std::filesystem::path proposal_dir = metadata.log_path.parent_path();
   std::filesystem::path proposal_path = proposal_dir / "proposal.json";
@@ -166,8 +176,7 @@ absl::StatusOr<ProposalCreationResult> CreateProposalFromAgentResponse(
         metadata.id, absl::StrCat("AI Provider: ", request.ai_provider)));
   }
 
-  ASSIGN_OR_RETURN(auto refreshed_metadata,
-                   registry.GetProposal(metadata.id));
+  ASSIGN_OR_RETURN(auto refreshed_metadata, registry.GetProposal(metadata.id));
 
   ProposalCreationResult result;
   result.metadata = std::move(refreshed_metadata);
@@ -180,3 +189,5 @@ absl::StatusOr<ProposalCreationResult> CreateProposalFromAgentResponse(
 }  // namespace agent
 }  // namespace cli
 }  // namespace yaze
+
+#endif  // YAZE_AI_RUNTIME_AVAILABLE

@@ -13,9 +13,9 @@
 #include "app/gfx/types/snes_tile.h"
 #include "app/gui/canvas/canvas.h"
 #include "app/gui/core/input.h"
-#include "util/log.h"
 #include "app/rom.h"
 #include "imgui/imgui.h"
+#include "util/log.h"
 #include "util/notify.h"
 
 namespace yaze {
@@ -54,7 +54,8 @@ class Tile16Editor : public gfx::GfxContext {
   absl::Status SaveLayoutToScratch(int slot);
   absl::Status LoadLayoutFromScratch(int slot);
 
-  absl::Status DrawToCurrentTile16(ImVec2 pos, const gfx::Bitmap* source_tile = nullptr);
+  absl::Status DrawToCurrentTile16(ImVec2 pos,
+                                   const gfx::Bitmap* source_tile = nullptr);
 
   absl::Status UpdateTile16Edit();
 
@@ -111,16 +112,15 @@ class Tile16Editor : public gfx::GfxContext {
   absl::Status UpdateTile8Palette(int tile8_id);
   absl::Status RefreshAllPalettes();
   void DrawPaletteSettings();
-  
+
   // Get the appropriate palette slot for current graphics sheet
   int GetPaletteSlotForSheet(int sheet_index) const;
-  
+
   // NEW: Core palette mapping methods for fixing color alignment
   int GetActualPaletteSlot(int palette_button, int sheet_index) const;
   int GetSheetIndexForTile8(int tile8_id) const;
   int GetActualPaletteSlotForCurrentTile16() const;
-  
-  
+
   // ROM data access and modification
   absl::Status UpdateROMTile16Data();
   absl::Status RefreshTile16Blockset();
@@ -128,39 +128,45 @@ class Tile16Editor : public gfx::GfxContext {
   absl::Status RegenerateTile16BitmapFromROM();
   absl::Status UpdateBlocksetBitmap();
   absl::Status PickTile8FromTile16(const ImVec2& position);
-  
+
   // Manual tile8 input controls
   void DrawManualTile8Inputs();
 
   void set_rom(Rom* rom) { rom_ = rom; }
   Rom* rom() const { return rom_; }
-  
+
   // Set the palette from overworld to ensure color consistency
-  void set_palette(const gfx::SnesPalette& palette) { 
+  void set_palette(const gfx::SnesPalette& palette) {
     palette_ = palette;
-    
+
     // Store the complete 256-color overworld palette
     if (palette.size() >= 256) {
       overworld_palette_ = palette;
-      util::logf("Tile16 editor received complete overworld palette with %zu colors", palette.size());
+      util::logf(
+          "Tile16 editor received complete overworld palette with %zu colors",
+          palette.size());
     } else {
-      util::logf("Warning: Received incomplete palette with %zu colors", palette.size());
+      util::logf("Warning: Received incomplete palette with %zu colors",
+                 palette.size());
       overworld_palette_ = palette;
     }
-    
+
     // CRITICAL FIX: Load tile8 graphics now that we have the proper palette
     if (rom_ && current_gfx_bmp_.is_active()) {
       auto status = LoadTile8();
       if (!status.ok()) {
-        util::logf("Failed to load tile8 graphics with new palette: %s", status.message().data());
+        util::logf("Failed to load tile8 graphics with new palette: %s",
+                   status.message().data());
       } else {
-        util::logf("Successfully loaded tile8 graphics with complete overworld palette");
+        util::logf(
+            "Successfully loaded tile8 graphics with complete overworld "
+            "palette");
       }
     }
-    
+
     util::logf("Tile16 editor palette coordination complete");
   }
-  
+
   // Callback for when changes are committed to notify parent editor
   void set_on_changes_committed(std::function<absl::Status()> callback) {
     on_changes_committed_ = callback;
@@ -225,8 +231,10 @@ class Tile16Editor : public gfx::GfxContext {
   // Palette management settings
   bool show_palette_settings_ = false;
   int current_palette_group_ = 0;  // 0=overworld_main, 1=aux1, 2=aux2, etc.
-  uint8_t palette_normalization_mask_ = 0xFF;  // Default 8-bit mask (preserve full palette index)
-  bool auto_normalize_pixels_ = false;  // Disabled by default to preserve palette offsets
+  uint8_t palette_normalization_mask_ =
+      0xFF;  // Default 8-bit mask (preserve full palette index)
+  bool auto_normalize_pixels_ =
+      false;  // Disabled by default to preserve palette offsets
 
   // Performance tracking
   std::chrono::steady_clock::time_point last_edit_time_;
@@ -243,10 +251,12 @@ class Tile16Editor : public gfx::GfxContext {
       gui::CanvasGridSize::k32x32};
   gfx::Bitmap tile16_blockset_bmp_;
 
-  // Canvas for editing the selected tile - optimized for 2x2 grid of 8x8 tiles (16x16 total)
-  gui::Canvas tile16_edit_canvas_{"Tile16EditCanvas",
-                                  ImVec2(64, 64),   // Fixed 64x64 display size (16x16 pixels at 4x scale)
-                                  gui::CanvasGridSize::k8x8, 8.0F};   // 8x8 grid with 4x scale for clarity
+  // Canvas for editing the selected tile - optimized for 2x2 grid of 8x8 tiles
+  // (16x16 total)
+  gui::Canvas tile16_edit_canvas_{
+      "Tile16EditCanvas",
+      ImVec2(64, 64),  // Fixed 64x64 display size (16x16 pixels at 4x scale)
+      gui::CanvasGridSize::k8x8, 8.0F};  // 8x8 grid with 4x scale for clarity
   gfx::Bitmap current_tile16_bmp_;
 
   // Tile8 canvas to get the tile to drawing in the tile16_edit_canvas_
@@ -256,7 +266,8 @@ class Tile16Editor : public gfx::GfxContext {
       gui::CanvasGridSize::k32x32};
   gfx::Bitmap current_gfx_bmp_;
 
-  gui::Table tile_edit_table_{"##TileEditTable", 3, ImGuiTableFlags_Borders, ImVec2(0, 0)};
+  gui::Table tile_edit_table_{"##TileEditTable", 3, ImGuiTableFlags_Borders,
+                              ImVec2(0, 0)};
 
   gfx::Tilemap* tile16_blockset_ = nullptr;
   std::vector<gfx::Bitmap> current_gfx_individual_;
@@ -266,10 +277,10 @@ class Tile16Editor : public gfx::GfxContext {
   gfx::SnesPalette overworld_palette_;  // Complete 256-color overworld palette
 
   absl::Status status_;
-  
+
   // Callback to notify parent editor when changes are committed
   std::function<absl::Status()> on_changes_committed_;
-  
+
   // Instance variable to store current tile16 data for proper persistence
   gfx::Tile16 current_tile16_data_;
 };

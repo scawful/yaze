@@ -201,7 +201,6 @@ std::unordered_map<int, SheetOptimizationData>
 GraphicsOptimizer::GetOptimizationRecommendations(
     const std::unordered_map<int, std::vector<uint8_t>>& sheets,
     const std::unordered_map<int, SnesPalette>& palettes) {
-
   std::unordered_map<int, SheetOptimizationData> recommendations;
 
   for (const auto& [sheet_id, sheet_data] : sheets) {
@@ -221,7 +220,6 @@ OptimizationResult GraphicsOptimizer::ApplyOptimizations(
     const std::unordered_map<int, SheetOptimizationData>& recommendations,
     std::unordered_map<int, std::vector<uint8_t>>& sheets,
     std::unordered_map<int, SnesPalette>& palettes) {
-
   ScopedTimer timer("graphics_apply_optimizations");
 
   OptimizationResult result;

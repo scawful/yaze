@@ -10,7 +10,8 @@ namespace yaze {
 namespace cli {
 
 std::string BuildTextSummary(const TestSuiteRunSummary& summary);
-absl::StatusOr<std::string> BuildJUnitReport(const TestSuiteRunSummary& summary);
+absl::StatusOr<std::string> BuildJUnitReport(
+    const TestSuiteRunSummary& summary);
 absl::Status WriteJUnitReport(const TestSuiteRunSummary& summary,
                               const std::string& output_path);
 

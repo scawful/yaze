@@ -3,6 +3,7 @@
 
 #include <deque>
 #include <string>
+
 #include "absl/status/status.h"
 
 namespace yaze {
@@ -25,18 +26,20 @@ class WorkspaceManager {
     std::string custom_name;
     std::string filepath;
   };
-  
+
   explicit WorkspaceManager(ToastManager* toast_manager)
       : toast_manager_(toast_manager) {}
-  
+
   // Set card registry for window visibility management
-  void set_card_registry(EditorCardRegistry* registry) { card_registry_ = registry; }
-  
+  void set_card_registry(EditorCardRegistry* registry) {
+    card_registry_ = registry;
+  }
+
   // Layout management
   absl::Status SaveWorkspaceLayout(const std::string& name = "");
   absl::Status LoadWorkspaceLayout(const std::string& name = "");
   absl::Status ResetWorkspaceLayout();
-  
+
   // Preset management
   void SaveWorkspacePreset(const std::string& name);
   void LoadWorkspacePreset(const std::string& name);
@@ -44,7 +47,7 @@ class WorkspaceManager {
   void LoadDeveloperLayout();
   void LoadDesignerLayout();
   void LoadModderLayout();
-  
+
   // Window management
   void ShowAllWindows();
   void HideAllWindows();
@@ -61,16 +64,18 @@ class WorkspaceManager {
 
   // Command execution (for WhichKey integration)
   void ExecuteWorkspaceCommand(const std::string& command_id);
-  
+
   // Session queries
   size_t GetActiveSessionCount() const;
   bool HasDuplicateSession(const std::string& filepath) const;
-  
+
   void set_sessions(std::deque<SessionInfo>* sessions) { sessions_ = sessions; }
-  
-  const std::vector<std::string>& workspace_presets() const { return workspace_presets_; }
+
+  const std::vector<std::string>& workspace_presets() const {
+    return workspace_presets_;
+  }
   bool workspace_presets_loaded() const { return workspace_presets_loaded_; }
-  
+
  private:
   ToastManager* toast_manager_;
   EditorCardRegistry* card_registry_ = nullptr;

@@ -31,7 +31,7 @@ target_link_libraries(yaze_emulator PUBLIC
   yaze_common
   yaze_app_core_lib
   ${ABSL_TARGETS}
-  ${SDL_TARGETS}
+  ${YAZE_SDL2_TARGETS}
 )
 
 set_target_properties(yaze_emulator PROPERTIES

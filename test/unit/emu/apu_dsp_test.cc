@@ -71,4 +71,3 @@ TEST_F(ApuDspTest, GetSamplesReturnsSilenceAfterReset) {
 
 }  // namespace emu
 }  // namespace yaze
-

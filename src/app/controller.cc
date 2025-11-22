@@ -5,14 +5,14 @@
 #include <string>
 
 #include "absl/status/status.h"
+#include "app/editor/editor_manager.h"
+#include "app/gfx/backend/sdl2_renderer.h"  // Add include for new renderer
+#include "app/gfx/resource/arena.h"         // Add include for Arena
+#include "app/gui/automation/widget_id_registry.h"
+#include "app/gui/core/background_renderer.h"
+#include "app/gui/core/theme_manager.h"
 #include "app/platform/timing.h"
 #include "app/platform/window.h"
-#include "app/editor/editor_manager.h"
-#include "app/gui/core/background_renderer.h"
-#include "app/gfx/resource/arena.h"                  // Add include for Arena
-#include "app/gfx/backend/sdl2_renderer.h"  // Add include for new renderer
-#include "app/gui/core/theme_manager.h"
-#include "app/gui/automation/widget_id_registry.h"
 #include "imgui/backends/imgui_impl_sdl2.h"
 #include "imgui/backends/imgui_impl_sdlrenderer2.h"
 #include "imgui/imgui.h"
@@ -41,7 +41,7 @@ absl::Status Controller::OnEntry(std::string filename) {
 }
 
 void Controller::SetStartupEditor(const std::string& editor_name,
-                                   const std::string& cards) {
+                                  const std::string& cards) {
   // Process command-line flags for editor and cards
   // Example: --editor=Dungeon --cards="Rooms List,Room 0,Room 105"
   if (!editor_name.empty()) {

@@ -331,7 +331,8 @@ class Sprite : public GameEntity {
                       bool mirror_x = false, bool mirror_y = false,
                       int sizex = 2, int sizey = 2);
 
-  void UpdateMapProperties(uint16_t map_id) override;
+  void UpdateMapProperties(uint16_t map_id,
+                           const void* context = nullptr) override;
   void UpdateCoordinates(int map_x, int map_y);
 
   auto preview_graphics() const { return &preview_gfx_; }

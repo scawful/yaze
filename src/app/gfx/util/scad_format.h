@@ -97,7 +97,8 @@ absl::Status DecodeObjFile(
 /**
  * @brief Save Col file (palette data)
  */
-absl::Status SaveCol(std::string_view filename, const std::vector<SDL_Color>& palette);
+absl::Status SaveCol(std::string_view filename,
+                     const std::vector<SDL_Color>& palette);
 
 }  // namespace gfx
 }  // namespace yaze

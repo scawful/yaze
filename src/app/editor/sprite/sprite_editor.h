@@ -7,8 +7,8 @@
 #include "absl/status/status.h"
 #include "app/editor/editor.h"
 #include "app/editor/sprite/zsprite.h"
-#include "app/gui/canvas/canvas.h"
 #include "app/gui/app/editor_layout.h"
+#include "app/gui/canvas/canvas.h"
 #include "app/rom.h"
 
 namespace yaze {

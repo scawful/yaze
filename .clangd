@@ -1,9 +1,35 @@
+# YAZE ROM Editor - clangd configuration
+# Optimized for C++23, Google style, Abseil/gRPC, and ROM hacking workflows
+
 CompileFlags:
   CompilationDatabase: build
+  Add:
+    # Additional include paths for better IntelliSense
+    - -I/Users/scawful/Code/yaze/src
+    - -I/Users/scawful/Code/yaze/src/lib
+    - -I/Users/scawful/Code/yaze/src/lib/imgui
+    - -I/Users/scawful/Code/yaze/src/lib/imgui/backends
+    - -I/Users/scawful/Code/yaze/src/lib/SDL/include
+    - -I/Users/scawful/Code/yaze/incl
+    - -I/Users/scawful/Code/yaze/third_party
+    - -I/Users/scawful/Code/yaze/third_party/json/include
+    - -I/Users/scawful/Code/yaze/third_party/httplib
+    - -I/Users/scawful/Code/yaze/build
+    - -I/Users/scawful/Code/yaze/build/src/lib/SDL/include
+    - -I/Users/scawful/Code/yaze/build/src/lib/SDL/include-config-Debug
+    # Feature flags
+    - -DYAZE_WITH_GRPC
+    - -DYAZE_WITH_JSON
+    - -DZ3ED_AI
+    # Standard library
+    - -std=c++23
+    # Platform detection
+    - -DMACOS
   Remove:
     - -mllvm
     - -xclang
-    
+    - -w  # Remove warning suppression for better diagnostics
+
 Index:
   Background: Build
   StandardLibrary: Yes
@@ -18,20 +44,44 @@ Hover:
 
 Diagnostics:
   MissingIncludes: Strict
+  UnusedIncludes: Strict
   ClangTidy:
     Add: 
+      # Core checks for ROM hacking software
       - performance-*
       - bugprone-*
       - readability-*
       - modernize-*
+      - misc-*
+      - clang-analyzer-*
+      # Abseil-specific checks
+      - abseil-*
+      # Google C++ style enforcement
+      - google-*
     Remove:
-      # - readability-*
-      # - modernize-*
+      # Disable overly strict checks for ROM hacking workflow
       - modernize-use-trailing-return-type
       - readability-braces-around-statements
-      - readability-magic-numbers
+      - readability-magic-numbers  # ROM hacking uses many magic numbers
       - readability-implicit-bool-conversion
-      - readability-identifier-naming
+      - readability-identifier-naming  # Allow ROM-specific naming
       - readability-function-cognitive-complexity
       - readability-function-size
       - readability-uppercase-literal-suffix
+      # Disable checks that conflict with ROM data structures
+      - modernize-use-auto  # ROM hacking needs explicit types
+      - modernize-avoid-c-arrays  # ROM data often uses C arrays
+      - bugprone-easily-swappable-parameters
+      - bugprone-exception-escape
+      - bugprone-narrowing-conversions  # ROM data often requires narrowing
+      - bugprone-implicit-widening-of-multiplication-result
+      - misc-no-recursion
+      - misc-non-private-member-variables-in-classes
+      - misc-const-correctness
+
+Completion:
+  AllScopes: Yes
+
+SemanticTokens:
+  DisabledKinds: []
+  DisabledModifiers: []

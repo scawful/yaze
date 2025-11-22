@@ -1,5 +1,4 @@
 #include "cli/service/ai/prompt_builder.h"
-#include "cli/service/agent/conversational_agent_service.h"
 
 #include <cstdlib>
 #include <filesystem>
@@ -10,6 +9,7 @@
 #include "absl/strings/ascii.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_join.h"
+#include "cli/service/agent/conversational_agent_service.h"
 #include "nlohmann/json.hpp"
 #include "util/platform_paths.h"
 #include "yaml-cpp/yaml.h"
@@ -84,7 +84,7 @@ absl::StatusOr<std::string> PromptBuilder::ResolveCataloguePath(
       return yaml_path;
     }
   }
-  
+
   // Check environment variable override
   if (const char* env_path = std::getenv("YAZE_AGENT_CATALOGUE")) {
     if (*env_path != '\0') {
@@ -94,26 +94,28 @@ absl::StatusOr<std::string> PromptBuilder::ResolveCataloguePath(
       }
     }
   }
-  
+
   // Use PlatformPaths to find the asset in standard locations
   // Try the requested path (default is prompt_catalogue.yaml)
-  std::string relative_path = yaml_path.empty() ? 
-      "agent/prompt_catalogue.yaml" : yaml_path;
-  
+  std::string relative_path =
+      yaml_path.empty() ? "agent/prompt_catalogue.yaml" : yaml_path;
+
   auto result = util::PlatformPaths::FindAsset(relative_path);
   if (result.ok()) {
     return result->string();
   }
-  
+
   return result.status();
 }
 
-absl::Status PromptBuilder::LoadResourceCatalogue(const std::string& yaml_path) {
+absl::Status PromptBuilder::LoadResourceCatalogue(
+    const std::string& yaml_path) {
 #ifndef YAZE_WITH_JSON
   // Gracefully degrade if JSON support not available
-  std::cerr << "⚠️  PromptBuilder requires JSON support for catalogue loading\n"
-            << "   Build with -DZ3ED_AI=ON or -DYAZE_WITH_JSON=ON\n"
-            << "   AI features will use basic prompts without tool definitions\n";
+  std::cerr
+      << "⚠️  PromptBuilder requires JSON support for catalogue loading\n"
+      << "   Build with -DZ3ED_AI=ON or -DYAZE_WITH_JSON=ON\n"
+      << "   AI features will use basic prompts without tool definitions\n";
   return absl::OkStatus();  // Don't fail, just skip catalogue loading
 #else
   auto resolved_or = ResolveCataloguePath(yaml_path);
@@ -129,14 +131,12 @@ absl::Status PromptBuilder::LoadResourceCatalogue(const std::string& yaml_path) 
     root = YAML::LoadFile(resolved_path);
   } catch (const YAML::BadFile& e) {
     ClearCatalogData();
-    return absl::NotFoundError(
-        absl::StrCat("Unable to open prompt catalogue at ", resolved_path,
-                     ": ", e.what()));
+    return absl::NotFoundError(absl::StrCat(
+        "Unable to open prompt catalogue at ", resolved_path, ": ", e.what()));
   } catch (const YAML::ParserException& e) {
     ClearCatalogData();
-    return absl::InvalidArgumentError(
-        absl::StrCat("Failed to parse prompt catalogue at ", resolved_path,
-                     ": ", e.what()));
+    return absl::InvalidArgumentError(absl::StrCat(
+        "Failed to parse prompt catalogue at ", resolved_path, ": ", e.what()));
   }
 
   nlohmann::json catalogue = YamlToJson(root);
@@ -204,35 +204,36 @@ absl::Status PromptBuilder::ParseTools(const nlohmann::json& tools) {
       return absl::InvalidArgumentError("Tool entry missing name");
     }
 
-    if (tool_json.contains("description") && tool_json["description"].is_string()) {
+    if (tool_json.contains("description") &&
+        tool_json["description"].is_string()) {
       spec.description = tool_json["description"].get<std::string>();
     }
 
-    if (tool_json.contains("usage_notes") && tool_json["usage_notes"].is_string()) {
+    if (tool_json.contains("usage_notes") &&
+        tool_json["usage_notes"].is_string()) {
       spec.usage_notes = tool_json["usage_notes"].get<std::string>();
     }
 
     if (tool_json.contains("arguments")) {
       const auto& args = tool_json["arguments"];
       if (!args.is_array()) {
-        return absl::InvalidArgumentError(
-            absl::StrCat("Tool arguments for ", spec.name, " must be an array"));
+        return absl::InvalidArgumentError(absl::StrCat(
+            "Tool arguments for ", spec.name, " must be an array"));
       }
       for (const auto& arg_json : args) {
         if (!arg_json.is_object()) {
-          return absl::InvalidArgumentError(
-              absl::StrCat("Argument entries for ", spec.name,
-                           " must be objects"));
+          return absl::InvalidArgumentError(absl::StrCat(
+              "Argument entries for ", spec.name, " must be objects"));
         }
         ToolArgument arg;
         if (arg_json.contains("name") && arg_json["name"].is_string()) {
           arg.name = arg_json["name"].get<std::string>();
         } else {
-          return absl::InvalidArgumentError(
-              absl::StrCat("Argument entry for ", spec.name,
-                           " is missing a name"));
+          return absl::InvalidArgumentError(absl::StrCat(
+              "Argument entry for ", spec.name, " is missing a name"));
         }
-        if (arg_json.contains("description") && arg_json["description"].is_string()) {
+        if (arg_json.contains("description") &&
+            arg_json["description"].is_string()) {
           arg.description = arg_json["description"].get<std::string>();
         }
         if (arg_json.contains("required")) {
@@ -287,15 +288,13 @@ absl::Status PromptBuilder::ParseExamples(const nlohmann::json& examples) {
     if (example_json.contains("commands")) {
       const auto& commands = example_json["commands"];
       if (!commands.is_array()) {
-        return absl::InvalidArgumentError(
-            absl::StrCat("Example commands for ", example.user_prompt,
-                         " must be an array"));
+        return absl::InvalidArgumentError(absl::StrCat(
+            "Example commands for ", example.user_prompt, " must be an array"));
       }
       for (const auto& cmd : commands) {
         if (!cmd.is_string()) {
-          return absl::InvalidArgumentError(
-              absl::StrCat("Command entries for ", example.user_prompt,
-                           " must be strings"));
+          return absl::InvalidArgumentError(absl::StrCat(
+              "Command entries for ", example.user_prompt, " must be strings"));
         }
         example.expected_commands.push_back(cmd.get<std::string>());
       }
@@ -304,9 +303,8 @@ absl::Status PromptBuilder::ParseExamples(const nlohmann::json& examples) {
     if (example_json.contains("tool_calls")) {
       const auto& calls = example_json["tool_calls"];
       if (!calls.is_array()) {
-        return absl::InvalidArgumentError(
-            absl::StrCat("Tool calls for ", example.user_prompt,
-                         " must be an array"));
+        return absl::InvalidArgumentError(absl::StrCat(
+            "Tool calls for ", example.user_prompt, " must be an array"));
       }
       for (const auto& call_json : calls) {
         if (!call_json.is_object()) {
@@ -315,12 +313,12 @@ absl::Status PromptBuilder::ParseExamples(const nlohmann::json& examples) {
                            " must be objects"));
         }
         ToolCall call;
-        if (call_json.contains("tool_name") && call_json["tool_name"].is_string()) {
+        if (call_json.contains("tool_name") &&
+            call_json["tool_name"].is_string()) {
           call.tool_name = call_json["tool_name"].get<std::string>();
         } else {
-          return absl::InvalidArgumentError(
-              absl::StrCat("Tool call missing tool_name in example: ",
-                           example.user_prompt));
+          return absl::InvalidArgumentError(absl::StrCat(
+              "Tool call missing tool_name in example: ", example.user_prompt));
         }
         if (call_json.contains("args")) {
           const auto& args = call_json["args"];
@@ -342,7 +340,8 @@ absl::Status PromptBuilder::ParseExamples(const nlohmann::json& examples) {
       }
     }
 
-    example.explanation = example_json.value("explanation", example.explanation);
+    example.explanation =
+        example_json.value("explanation", example.explanation);
     examples_.push_back(std::move(example));
   }
 
@@ -371,14 +370,14 @@ std::string PromptBuilder::LookupTileId(const std::string& alias) const {
 
 std::string PromptBuilder::BuildCommandReference() const {
   std::ostringstream oss;
-  
+
   oss << "# Available z3ed Commands\n\n";
-  
+
   for (const auto& [cmd, docs] : command_docs_) {
     oss << "## " << cmd << "\n";
     oss << docs << "\n\n";
   }
-  
+
   return oss.str();
 }
 
@@ -402,8 +401,7 @@ std::string PromptBuilder::BuildToolReference() const {
       for (const auto& arg : spec.arguments) {
         oss << "| `" << arg.name << "` | " << (arg.required ? "yes" : "no")
             << " | " << arg.description << " | "
-            << (arg.example.empty() ? "" : "`" + arg.example + "`")
-            << " |\n";
+            << (arg.example.empty() ? "" : "`" + arg.example + "`") << " |\n";
       }
       oss << "\n";
     }
@@ -426,7 +424,7 @@ std::string PromptBuilder::BuildFunctionCallSchemas() const {
   for (const auto& spec : tool_specs_) {
     nlohmann::json tool;
     tool["type"] = "function";
-    
+
     nlohmann::json function;
     function["name"] = spec.name;
     function["description"] = spec.description;
@@ -436,7 +434,7 @@ std::string PromptBuilder::BuildFunctionCallSchemas() const {
 
     nlohmann::json parameters;
     parameters["type"] = "object";
-    
+
     nlohmann::json properties = nlohmann::json::object();
     nlohmann::json required = nlohmann::json::array();
 
@@ -448,7 +446,7 @@ std::string PromptBuilder::BuildFunctionCallSchemas() const {
         arg_schema["example"] = arg.example;
       }
       properties[arg.name] = arg_schema;
-      
+
       if (arg.required) {
         required.push_back(arg.name);
       }
@@ -510,7 +508,8 @@ std::string PromptBuilder::BuildFewShotExamplesSection() const {
 
 std::string PromptBuilder::BuildConstraintsSection() const {
   // Try to load from file first using FindAsset
-  auto file_path = util::PlatformPaths::FindAsset("agent/tool_calling_instructions.txt");
+  auto file_path =
+      util::PlatformPaths::FindAsset("agent/tool_calling_instructions.txt");
   if (file_path.ok()) {
     std::ifstream file(file_path->string());
     if (file.is_open()) {
@@ -519,11 +518,12 @@ std::string PromptBuilder::BuildConstraintsSection() const {
       if (!content.empty()) {
         std::ostringstream oss;
         oss << content;
-        
+
         // Add tool schemas if available
         if (!tool_specs_.empty()) {
           oss << "\n\n# Available Tools for ROM Inspection\n\n";
-          oss << "You have access to the following tools to answer questions:\n\n";
+          oss << "You have access to the following tools to answer "
+                 "questions:\n\n";
           oss << "```json\n";
           oss << BuildFunctionCallSchemas();
           oss << "\n```\n\n";
@@ -553,12 +553,12 @@ std::string PromptBuilder::BuildConstraintsSection() const {
         if (!tile_reference_.empty()) {
           oss << "\n" << BuildTileReferenceSection();
         }
-        
+
         return oss.str();
       }
     }
   }
-  
+
   // Fallback to embedded version if file not found
   std::ostringstream oss;
   oss << R"(
@@ -643,7 +643,7 @@ std::string PromptBuilder::BuildConstraintsSection() const {
   }
 
   if (!tile_reference_.empty()) {
-   oss << "\n" << BuildTileReferenceSection();
+    oss << "\n" << BuildTileReferenceSection();
   }
 
   return oss.str();
@@ -669,9 +669,11 @@ std::string PromptBuilder::BuildContextSection(const RomContext& context) {
   // Use ResourceContextBuilder if a ROM is available
   if (rom_ && rom_->is_loaded()) {
     if (!resource_context_builder_) {
-      resource_context_builder_ = std::make_unique<ResourceContextBuilder>(rom_);
+      resource_context_builder_ =
+          std::make_unique<ResourceContextBuilder>(rom_);
     }
-    auto resource_context_or = resource_context_builder_->BuildResourceContext();
+    auto resource_context_or =
+        resource_context_builder_->BuildResourceContext();
     if (resource_context_or.ok()) {
       oss << resource_context_or.value();
     }
@@ -682,18 +684,18 @@ std::string PromptBuilder::BuildContextSection(const RomContext& context) {
   } else {
     oss << "- **ROM Loaded:** No\n";
   }
-  
+
   if (!context.current_editor.empty()) {
     oss << "- **Active Editor:** " << context.current_editor << "\n";
   }
-  
+
   if (!context.editor_state.empty()) {
     oss << "- **Editor State:**\n";
     for (const auto& [key, value] : context.editor_state) {
       oss << "  - " << key << ": " << value << "\n";
     }
   }
-  
+
   oss << "\n";
   return oss.str();
 }
@@ -709,31 +711,31 @@ std::string PromptBuilder::BuildSystemInstruction() {
       if (!content.empty()) {
         std::ostringstream oss;
         oss << content;
-        
+
         // Add command reference if available
         if (catalogue_loaded_ && !command_docs_.empty()) {
           oss << "\n\n" << BuildCommandReference();
         }
-        
+
         // Add tool reference if available
         if (!tool_specs_.empty()) {
           oss << "\n\n" << BuildToolReference();
         }
-        
+
         return oss.str();
       }
     }
   }
-  
+
   // Fallback to embedded version if file not found
   std::ostringstream oss;
-  
+
   oss << "You are an expert ROM hacking assistant for The Legend of Zelda: "
       << "A Link to the Past (ALTTP).\n\n";
-  
+
   oss << "Your task is to generate a sequence of z3ed CLI commands to achieve "
       << "the user's request.\n\n";
-  
+
   if (catalogue_loaded_) {
     if (!command_docs_.empty()) {
       oss << BuildCommandReference();
@@ -742,40 +744,39 @@ std::string PromptBuilder::BuildSystemInstruction() {
       oss << BuildToolReference();
     }
   }
-  
+
   oss << BuildConstraintsSection();
-  
+
   oss << "\n**Response Format:**\n";
   oss << "```json\n";
   oss << "[\"command1 --flag value\", \"command2 --flag value\"]\n";
   oss << "```\n";
-  
+
   return oss.str();
 }
 
 std::string PromptBuilder::BuildSystemInstructionWithExamples() {
   std::ostringstream oss;
-  
+
   oss << BuildSystemInstruction();
   oss << "\n---\n\n";
   oss << BuildFewShotExamplesSection();
-  
+
   return oss.str();
 }
 
-std::string PromptBuilder::BuildContextualPrompt(
-    const std::string& user_prompt,
-    const RomContext& context) {
+std::string PromptBuilder::BuildContextualPrompt(const std::string& user_prompt,
+                                                 const RomContext& context) {
   std::ostringstream oss;
-  
+
   if (context.rom_loaded || !context.current_editor.empty()) {
     oss << BuildContextSection(context);
     oss << "---\n\n";
   }
-  
+
   oss << "**User Request:** " << user_prompt << "\n\n";
   oss << "Generate the appropriate z3ed commands as a JSON array.";
-  
+
   return oss.str();
 }
 
@@ -792,7 +793,8 @@ std::string PromptBuilder::BuildPromptFromHistory(
       oss << "Agent: " << msg.message << "\n";
     }
   }
-  oss << "\nBased on this conversation, provide a response in the required JSON "
+  oss << "\nBased on this conversation, provide a response in the required "
+         "JSON "
          "format.";
   return oss.str();
 }
@@ -804,27 +806,26 @@ void PromptBuilder::AddFewShotExample(const FewShotExample& example) {
 std::vector<FewShotExample> PromptBuilder::GetExamplesForCategory(
     const std::string& category) {
   std::vector<FewShotExample> result;
-  
+
   for (const auto& example : examples_) {
     // Simple category matching based on keywords
-    if (category == "palette" && 
+    if (category == "palette" &&
         (example.user_prompt.find("palette") != std::string::npos ||
          example.user_prompt.find("color") != std::string::npos)) {
       result.push_back(example);
-    } else if (category == "overworld" && 
+    } else if (category == "overworld" &&
                (example.user_prompt.find("place") != std::string::npos ||
                 example.user_prompt.find("tree") != std::string::npos ||
                 example.user_prompt.find("house") != std::string::npos)) {
       result.push_back(example);
-    } else if (category == "validation" && 
+    } else if (category == "validation" &&
                example.user_prompt.find("validate") != std::string::npos) {
       result.push_back(example);
     }
   }
-  
+
   return result;
 }
 
 }  // namespace cli
 }  // namespace yaze
-

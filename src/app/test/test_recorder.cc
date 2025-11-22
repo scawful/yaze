@@ -7,8 +7,8 @@
 #include "absl/strings/str_format.h"
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
-#include "app/test/test_script_parser.h"
 #include "app/test/test_manager.h"
+#include "app/test/test_script_parser.h"
 
 namespace yaze {
 namespace test {
@@ -40,8 +40,8 @@ const char* HarnessStatusToString(test::HarnessTestStatus status) {
 }  // namespace
 
 TestRecorder::ScopedSuspension::ScopedSuspension(TestRecorder* recorder,
-                         bool active)
-  : recorder_(recorder), active_(active) {}
+                                                 bool active)
+    : recorder_(recorder), active_(active) {}
 
 TestRecorder::ScopedSuspension::~ScopedSuspension() {
   if (!recorder_ || !active_) {
@@ -155,7 +155,8 @@ absl::StatusOr<TestRecorder::StopRecordingSummary> TestRecorder::StopLocked(
       script_step.format = step.format;
       script_step.expect_success = step.success;
 #if defined(YAZE_WITH_GRPC)
-      script_step.expect_status = ::yaze::test::HarnessStatusToString(step.final_status);
+      script_step.expect_status =
+          ::yaze::test::HarnessStatusToString(step.final_status);
 #else
       script_step.expect_status.clear();
 #endif
@@ -237,8 +238,8 @@ absl::Status TestRecorder::PopulateFinalStatusLocked() {
 
 std::string TestRecorder::GenerateRecordingId() {
   return absl::StrFormat(
-      "rec_%s", absl::FormatTime("%Y%m%dT%H%M%S", absl::Now(),
-                                     absl::UTCTimeZone()));
+      "rec_%s",
+      absl::FormatTime("%Y%m%dT%H%M%S", absl::Now(), absl::UTCTimeZone()));
 }
 
 const char* TestRecorder::ActionTypeToString(ActionType type) {

@@ -30,9 +30,9 @@ constexpr int kOverworldItemsPointersNew = 0x012784;
 constexpr int kOverworldItemsStartDataNew = 0x0DC2F9;
 
 constexpr int overworldItemsPointers = 0x0DC2F9;
-constexpr int overworldItemsAddress = 0x0DC8B9; // 1BC2F9
+constexpr int overworldItemsAddress = 0x0DC8B9;  // 1BC2F9
 constexpr int overworldItemsAddressBank = 0x0DC8BF;
-constexpr int overworldItemsEndData = 0x0DC89C; // 0DC89E
+constexpr int overworldItemsEndData = 0x0DC89C;  // 0DC89E
 
 constexpr int overworldBombDoorItemLocationsNew = 0x012644;
 constexpr int overworldItemsPointersNew = 0x012784;
@@ -45,27 +45,30 @@ class OverworldItem : public GameEntity {
       : bg2_(bg2), id_(id), room_map_id_(room_map_id) {
     x_ = x;
     y_ = y;
-    map_id_ = room_map_id;
+    map_id_ = room_map_id;  // Store original map_id
     entity_id_ = id;
     entity_type_ = kItem;
 
-    int map_x = room_map_id - ((room_map_id / 8) * 8);
-    int map_y = room_map_id / 8;
+    // Use normalized map_id for coordinate calculations
+    uint8_t normalized_map_id = room_map_id % 0x40;
+    int map_x = normalized_map_id % 8;
+    int map_y = normalized_map_id / 8;
 
     game_x_ = static_cast<uint8_t>(std::abs(x - (map_x * 512)) / 16);
     game_y_ = static_cast<uint8_t>(std::abs(y - (map_y * 512)) / 16);
   }
 
-  void UpdateMapProperties(uint16_t room_map_id) override {
+  void UpdateMapProperties(uint16_t room_map_id,
+                           const void* context = nullptr) override {
+    (void)context;  // Not used by items currently
     room_map_id_ = room_map_id;
 
-    if (room_map_id_ >= 64) {
-      room_map_id_ -= 64;
-    }
+    // Use normalized map_id for calculations (don't corrupt stored value)
+    uint8_t normalized_map_id = room_map_id % 0x40;
+    int map_x = normalized_map_id % 8;
+    int map_y = normalized_map_id / 8;
 
-    int map_x = room_map_id_ - ((room_map_id_ / 8) * 8);
-    int map_y = room_map_id_ / 8;
-
+    // Update game coordinates from world coordinates
     game_x_ = static_cast<uint8_t>(std::abs(x_ - (map_x * 512)) / 16);
     game_y_ = static_cast<uint8_t>(std::abs(y_ - (map_y * 512)) / 16);
   }
@@ -99,7 +102,7 @@ inline bool CompareOverworldItems(const std::vector<OverworldItem>& items1,
 }
 
 inline bool CompareItemsArrays(std::vector<OverworldItem> item_array1,
-                        std::vector<OverworldItem> item_array2) {
+                               std::vector<OverworldItem> item_array2) {
   if (item_array1.size() != item_array2.size()) {
     return false;
   }
@@ -125,7 +128,8 @@ inline bool CompareItemsArrays(std::vector<OverworldItem> item_array1,
   return true;
 }
 
-absl::StatusOr<std::vector<OverworldItem>> LoadItems(Rom* rom, std::vector<OverworldMap>& overworld_maps);
+absl::StatusOr<std::vector<OverworldItem>> LoadItems(
+    Rom* rom, std::vector<OverworldMap>& overworld_maps);
 absl::Status SaveItems(Rom* rom, const std::vector<OverworldItem>& items);
 
 const std::vector<std::string> kSecretItemNames = {

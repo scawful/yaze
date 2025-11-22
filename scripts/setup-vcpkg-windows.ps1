@@ -65,6 +65,22 @@ if (-not (Test-Command "git")) {
 
 Write-Status "✓ Git found" "Success"
 
+# Check for clang-cl
+if (Test-Command "clang-cl") {
+    $clangVersion = & clang-cl --version 2>&1 | Select-Object -First 1
+    Write-Status "✓ clang-cl detected: $clangVersion" "Success"
+} else {
+    Write-Status "⚠ clang-cl not found. Install the \"LLVM tools for Visual Studio\" component for faster builds." "Warning"
+}
+
+# Check for Ninja
+if (Test-Command "ninja") {
+    $ninjaVersion = & ninja --version 2>&1
+    Write-Status "✓ Ninja detected: version $ninjaVersion" "Success"
+} else {
+    Write-Status "⚠ Ninja not found. Install via: choco install ninja (required for win-dbg/win-ai presets)" "Warning"
+}
+
 # Clone vcpkg if needed
 if (-not (Test-Path "vcpkg")) {
     Write-Status "Cloning vcpkg..." "Warning"
@@ -102,6 +118,12 @@ Write-Status "Installing dependencies for triplet: $Triplet" "Warning"
 & $vcpkgExe install --triplet $Triplet
 if ($LASTEXITCODE -eq 0) {
     Write-Status "✓ Dependencies installed successfully" "Success"
+    $installedPath = "vcpkg\installed\$Triplet"
+    if (Test-Path $installedPath) {
+        Write-Status "✓ Cached packages under $installedPath" "Success"
+    } else {
+        Write-Status "⚠ vcpkg install folder missing (expected $installedPath). Builds may rebuild dependencies on first run." "Warning"
+    }
 } else {
     Write-Status "⚠ Some dependencies may not have installed correctly" "Warning"
 }
@@ -112,4 +134,6 @@ Write-Status "========================================" "Info"
 Write-Status ""
 Write-Status "You can now build YAZE using:" "Warning"
 Write-Status "  .\scripts\build-windows.ps1" "White"
+Write-Status ""
+Write-Status "For ongoing diagnostics run: .\scripts\verify-build-environment.ps1 -FixIssues" "Info"
 Write-Status ""

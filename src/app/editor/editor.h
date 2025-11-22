@@ -3,8 +3,8 @@
 
 #include <array>
 #include <cstddef>
-#include <vector>
 #include <functional>
+#include <vector>
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
@@ -34,28 +34,28 @@ class UserSettings;
 /**
  * @struct EditorDependencies
  * @brief Unified dependency container for all editor types
- * 
+ *
  * This struct encapsulates all dependencies that editors might need,
  * providing a clean interface for dependency injection. It supports
  * both standard editors and specialized ones (emulator, dungeon) that
  * need additional dependencies like renderers.
- * 
+ *
  * Design Philosophy:
  * - Single point of dependency management
  * - Type-safe for common dependencies
  * - Extensible via custom_data for editor-specific needs
  * - Session-aware for multi-session support
- * 
+ *
  * Usage:
  * ```cpp
  * EditorDependencies deps;
  * deps.rom = current_rom;
  * deps.card_registry = &card_registry_;
  * deps.session_id = session_index;
- * 
+ *
  * // Standard editor
  * OverworldEditor editor(deps);
- * 
+ *
  * // Specialized editor with renderer
  * deps.renderer = renderer_;
  * DungeonEditor dungeon_editor(deps);
@@ -108,9 +108,9 @@ enum class EditorType {
 };
 
 constexpr std::array<const char*, 14> kEditorNames = {
-    "Unknown",
-    "Assembly", "Dungeon", "Emulator", "Graphics", "Music", "Overworld",
-    "Palette",  "Screen",  "Sprite",   "Message",  "Hex",   "Agent", "Settings",
+    "Unknown", "Assembly",  "Dungeon", "Emulator", "Graphics",
+    "Music",   "Overworld", "Palette", "Screen",   "Sprite",
+    "Message", "Hex",       "Agent",   "Settings",
 };
 
 /**
@@ -157,7 +157,9 @@ class Editor {
 
   // ROM loading state helpers (default implementations)
   virtual bool IsRomLoaded() const { return false; }
-  virtual std::string GetRomStatus() const { return "ROM state not implemented"; }
+  virtual std::string GetRomStatus() const {
+    return "ROM state not implemented";
+  }
 
  protected:
   bool active_ = false;
@@ -171,7 +173,7 @@ class Editor {
     }
     return base_title;
   }
-  
+
   // Helper method to create session-aware card IDs for multi-session support
   std::string MakeCardId(const std::string& base_id) const {
     if (dependencies_.session_id > 0) {
@@ -181,18 +183,20 @@ class Editor {
   }
 
   // Helper method for ROM access with safety check
-  template<typename T>
-  absl::StatusOr<T> SafeRomAccess(std::function<T()> accessor, const std::string& operation = "") const {
+  template <typename T>
+  absl::StatusOr<T> SafeRomAccess(std::function<T()> accessor,
+                                  const std::string& operation = "") const {
     if (!IsRomLoaded()) {
       return absl::FailedPreconditionError(
-          operation.empty() ? "ROM not loaded" : 
-          absl::StrFormat("%s: ROM not loaded", operation));
+          operation.empty() ? "ROM not loaded"
+                            : absl::StrFormat("%s: ROM not loaded", operation));
     }
     try {
       return accessor();
     } catch (const std::exception& e) {
       return absl::InternalError(absl::StrFormat(
-          "%s: %s", operation.empty() ? "ROM access failed" : operation, e.what()));
+          "%s: %s", operation.empty() ? "ROM access failed" : operation,
+          e.what()));
     }
   }
 };

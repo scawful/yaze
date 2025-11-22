@@ -12,7 +12,7 @@ namespace handlers {
 
 /**
  * @brief Handle z3ed agent todo commands
- * 
+ *
  * Commands:
  *   agent todo create <description> [--category=<cat>] [--priority=<n>]
  *   agent todo list [--status=<status>] [--category=<cat>]

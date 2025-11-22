@@ -1,8 +1,8 @@
-#include "cli/cli.h"
-#include "app/gfx/util/scad_format.h"
-#include "app/gfx/resource/arena.h"
-#include "absl/flags/flag.h"
 #include "absl/flags/declare.h"
+#include "absl/flags/flag.h"
+#include "app/gfx/resource/arena.h"
+#include "app/gfx/util/scad_format.h"
+#include "cli/cli.h"
 
 ABSL_DECLARE_FLAG(std::string, rom);
 
@@ -13,7 +13,8 @@ namespace cli {
 // TODO: Implement GfxExportCommandHandler
 absl::Status HandleGfxExportLegacy(const std::vector<std::string>& arg_vec) {
   if (arg_vec.size() < 2) {
-    return absl::InvalidArgumentError("Usage: gfx export-sheet <sheet_id> --to <file>");
+    return absl::InvalidArgumentError(
+        "Usage: gfx export-sheet <sheet_id> --to <file>");
   }
 
   int sheet_id = std::stoi(arg_vec[0]);
@@ -21,30 +22,33 @@ absl::Status HandleGfxExportLegacy(const std::vector<std::string>& arg_vec) {
 
   std::string rom_file = absl::GetFlag(FLAGS_rom);
   if (rom_file.empty()) {
-      return absl::InvalidArgumentError("ROM file must be provided via --rom flag.");
+    return absl::InvalidArgumentError(
+        "ROM file must be provided via --rom flag.");
   }
 
   Rom rom;
   rom.LoadFromFile(rom_file);
   if (!rom.is_loaded()) {
-      return absl::AbortedError("Failed to load ROM.");
+    return absl::AbortedError("Failed to load ROM.");
   }
 
   auto& arena = gfx::Arena::Get();
   auto sheet = arena.gfx_sheet(sheet_id);
   if (!sheet.is_active()) {
-      return absl::NotFoundError("Graphics sheet not found.");
+    return absl::NotFoundError("Graphics sheet not found.");
   }
 
   // For now, we will just save the raw 8bpp data.
   // TODO: Convert the 8bpp data to the correct SNES bpp format.
-  std::vector<uint8_t> header; // Empty header for now
-  auto status = gfx::SaveCgx(sheet.depth(), output_file, sheet.vector(), header);
+  std::vector<uint8_t> header;  // Empty header for now
+  auto status =
+      gfx::SaveCgx(sheet.depth(), output_file, sheet.vector(), header);
   if (!status.ok()) {
-      return status;
+    return status;
   }
 
-  std::cout << "Successfully exported graphics sheet " << sheet_id << " to " << output_file << std::endl;
+  std::cout << "Successfully exported graphics sheet " << sheet_id << " to "
+            << output_file << std::endl;
 
   return absl::OkStatus();
 }
@@ -53,7 +57,8 @@ absl::Status HandleGfxExportLegacy(const std::vector<std::string>& arg_vec) {
 // TODO: Implement GfxImportCommandHandler
 absl::Status HandleGfxImportLegacy(const std::vector<std::string>& arg_vec) {
   if (arg_vec.size() < 2) {
-    return absl::InvalidArgumentError("Usage: gfx import-sheet <sheet_id> --from <file>");
+    return absl::InvalidArgumentError(
+        "Usage: gfx import-sheet <sheet_id> --from <file>");
   }
 
   int sheet_id = std::stoi(arg_vec[0]);
@@ -61,25 +66,26 @@ absl::Status HandleGfxImportLegacy(const std::vector<std::string>& arg_vec) {
 
   std::string rom_file = absl::GetFlag(FLAGS_rom);
   if (rom_file.empty()) {
-      return absl::InvalidArgumentError("ROM file must be provided via --rom flag.");
+    return absl::InvalidArgumentError(
+        "ROM file must be provided via --rom flag.");
   }
 
   Rom rom;
   rom.LoadFromFile(rom_file);
   if (!rom.is_loaded()) {
-      return absl::AbortedError("Failed to load ROM.");
+    return absl::AbortedError("Failed to load ROM.");
   }
 
   std::vector<uint8_t> cgx_data, cgx_loaded, cgx_header;
   auto status = gfx::LoadCgx(8, input_file, cgx_data, cgx_loaded, cgx_header);
   if (!status.ok()) {
-      return status;
+    return status;
   }
 
   auto& arena = gfx::Arena::Get();
   auto sheet = arena.gfx_sheet(sheet_id);
   if (!sheet.is_active()) {
-      return absl::NotFoundError("Graphics sheet not found.");
+    return absl::NotFoundError("Graphics sheet not found.");
   }
 
   // TODO: Convert the 8bpp data to the correct SNES bpp format before writing.
@@ -92,11 +98,12 @@ absl::Status HandleGfxImportLegacy(const std::vector<std::string>& arg_vec) {
     return save_status;
   }
 
-  std::cout << "Successfully imported graphics sheet " << sheet_id << " from " << input_file << std::endl;
+  std::cout << "Successfully imported graphics sheet " << sheet_id << " from "
+            << input_file << std::endl;
   std::cout << "✅ ROM saved to: " << rom.filename() << std::endl;
 
   return absl::OkStatus();
 }
 
-} // namespace cli
-} // namespace yaze
+}  // namespace cli
+}  // namespace yaze

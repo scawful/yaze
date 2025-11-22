@@ -10,9 +10,12 @@ namespace handlers {
 class SimpleChatCommandHandler : public resources::CommandHandler {
  public:
   std::string GetName() const { return "simple-chat"; }
-  std::string GetDescription() const { return "Simple text-based chat with the AI agent."; }
+  std::string GetDescription() const {
+    return "Simple text-based chat with the AI agent.";
+  }
   std::string GetUsage() const override {
-    return "simple-chat [--prompt <message>] [--file <path>] [--format <format>]";
+    return "simple-chat [--prompt <message>] [--file <path>] [--format "
+           "<format>]";
   }
 
  protected:

@@ -18,4 +18,3 @@ void RenderKeyboardConfig(input::InputManager* manager);
 }  // namespace yaze
 
 #endif  // YAZE_APP_EMU_UI_INPUT_HANDLER_H_
-

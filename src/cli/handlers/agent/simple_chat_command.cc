@@ -26,24 +26,32 @@ absl::Status SimpleChatCommandHandler::Execute(
 
   // Determine desired output format
   std::optional<std::string> format_arg = parser.GetString("format");
-  if (parser.HasFlag("json")) format_arg = "json";
-  if (parser.HasFlag("markdown") || parser.HasFlag("md")) format_arg = "markdown";
-  if (parser.HasFlag("compact") || parser.HasFlag("raw")) format_arg = "compact";
+  if (parser.HasFlag("json"))
+    format_arg = "json";
+  if (parser.HasFlag("markdown") || parser.HasFlag("md"))
+    format_arg = "markdown";
+  if (parser.HasFlag("compact") || parser.HasFlag("raw"))
+    format_arg = "compact";
 
-  auto select_format = [](absl::string_view value)
-      -> std::optional<agent::AgentOutputFormat> {
+  auto select_format =
+      [](absl::string_view value) -> std::optional<agent::AgentOutputFormat> {
     std::string normalized = absl::AsciiStrToLower(value);
-    if (normalized == "json") return agent::AgentOutputFormat::kJson;
-    if (normalized == "markdown" || normalized == "md") return agent::AgentOutputFormat::kMarkdown;
-    if (normalized == "compact" || normalized == "raw") return agent::AgentOutputFormat::kCompact;
-    if (normalized == "text" || normalized == "friendly" || normalized == "pretty") {
+    if (normalized == "json")
+      return agent::AgentOutputFormat::kJson;
+    if (normalized == "markdown" || normalized == "md")
+      return agent::AgentOutputFormat::kMarkdown;
+    if (normalized == "compact" || normalized == "raw")
+      return agent::AgentOutputFormat::kCompact;
+    if (normalized == "text" || normalized == "friendly" ||
+        normalized == "pretty") {
       return agent::AgentOutputFormat::kFriendly;
     }
     return std::nullopt;
   };
 
   if (format_arg.has_value()) {
-    if (auto output_format = select_format(*format_arg); output_format.has_value()) {
+    if (auto output_format = select_format(*format_arg);
+        output_format.has_value()) {
       config.output_format = *output_format;
     } else {
       return absl::InvalidArgumentError(

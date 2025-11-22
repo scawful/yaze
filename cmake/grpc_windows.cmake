@@ -11,10 +11,10 @@
 
 cmake_minimum_required(VERSION 3.16)
 
-# Option to use vcpkg for gRPC on Windows
-option(YAZE_USE_VCPKG_GRPC "Use vcpkg pre-compiled gRPC packages (Windows only)" ON)
+# Option to use vcpkg for gRPC on Windows (default OFF for CI reliability)
+option(YAZE_USE_VCPKG_GRPC "Use vcpkg pre-compiled gRPC packages (Windows only)" OFF)
 
-if(WIN32 AND YAZE_USE_VCPKG_GRPC)
+if(WIN32 AND YAZE_USE_VCPKG_GRPC AND DEFINED CMAKE_TOOLCHAIN_FILE)
   message(STATUS "Attempting to use vcpkg gRPC packages for faster Windows builds...")
   message(STATUS "  Note: If gRPC not in vcpkg.json, will fallback to FetchContent (recommended)")
   
@@ -144,10 +144,13 @@ if(WIN32 AND YAZE_USE_VCPKG_GRPC)
       absl::memory
       absl::container_memory
       absl::strings
+      absl::strings_internal
       absl::str_format
+      absl::str_format_internal
       absl::cord
       absl::hash
       absl::time
+      absl::time_zone
       absl::status
       absl::statusor
       absl::flags
@@ -165,12 +168,12 @@ if(WIN32 AND YAZE_USE_VCPKG_GRPC)
       absl::flat_hash_map
       absl::synchronization
       absl::symbolize
+      absl::strerror
       PARENT_SCOPE
     )
     
     # Export protobuf targets (vcpkg uses protobuf:: namespace)
     set(YAZE_PROTOBUF_TARGETS protobuf::libprotobuf PARENT_SCOPE)
-    set(YAZE_PROTOBUF_WHOLEARCHIVE_TARGETS protobuf::libprotobuf PARENT_SCOPE)
     
     # Get protobuf include directories for proto generation
     get_target_property(_PROTOBUF_INCLUDE_DIRS protobuf::libprotobuf 
@@ -242,7 +245,7 @@ if(WIN32 AND YAZE_USE_VCPKG_GRPC)
     message(STATUS "  vcpkg gRPC not found (expected if removed from vcpkg.json)")
     message(STATUS "  Using FetchContent build (faster with caching)")
     message(STATUS "  First build: ~10-15 min, subsequent: <1 min (cached)")
-    message(STATUS "  Using gRPC v1.75.1 with Windows compatibility fixes")
+    message(STATUS "  Using gRPC v1.75.1 (latest stable)")
     message(STATUS "  Note: BoringSSL ASM disabled for clang-cl compatibility")
     message(STATUS "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
   endif()

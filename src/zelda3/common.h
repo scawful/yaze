@@ -8,11 +8,25 @@
  * @namespace yaze::zelda3
  * @brief Zelda 3 specific classes and functions.
  */
-namespace yaze::zelda3{
+namespace yaze::zelda3 {
 
 /**
  * @class GameEntity
  * @brief Base class for all overworld and dungeon entities.
+ *
+ * Coordinate System (matches ZScream naming conventions):
+ * - x_, y_: World coordinates in pixels (0-4095 for overworld)
+ *   ZScream equivalent: PlayerX/PlayerY (ExitOW.cs), GlobalX/GlobalY
+ * (EntranceOW.cs)
+ *
+ * - game_x_, game_y_: Map-local tile coordinates (0-63 for normal, 0-31 for
+ * small areas) ZScream equivalent: AreaX/AreaY (ExitOW.cs), GameX/GameY
+ * (items/sprites)
+ *
+ * - map_id_: Parent map ID accounting for large/wide/tall multi-area maps
+ *   ZScream equivalent: MapID property
+ *
+ * - entity_id_: Index in entity array (for display/debugging)
  */
 class GameEntity {
  public:
@@ -27,11 +41,22 @@ class GameEntity {
     kProperties = 7,
     kDungeonSprite = 8,
   } entity_type_;
+
+  // World coordinates (0-4095 for overworld)
+  // ZScream: PlayerX/PlayerY (exits), GlobalX/GlobalY (entrances)
   int x_ = 0;
   int y_ = 0;
+
+  // Map-local game coordinates (0-63 tiles, or 0-31 for small areas)
+  // ZScream: AreaX/AreaY (exits), GameX/GameY (items/sprites)
   int game_x_ = 0;
   int game_y_ = 0;
+
+  // Entity index in array (for display/debugging)
   int entity_id_ = 0;
+
+  // Parent map ID (accounting for large/wide/tall areas)
+  // ZScream: MapID property
   uint16_t map_id_ = 0;
 
   auto set_x(int x) { x_ = x; }
@@ -40,7 +65,21 @@ class GameEntity {
   GameEntity() = default;
   virtual ~GameEntity() {}
 
-  virtual void UpdateMapProperties(uint16_t map_id) = 0;
+  /**
+   * @brief Update entity properties based on map position
+   * @param map_id Parent map ID to update to
+   * @param context Optional context (typically const Overworld* for coordinate
+   * calculations)
+   *
+   * ZScream equivalent: UpdateMapStuff() / UpdateMapProperties()
+   *
+   * This method recalculates derived properties like:
+   * - game_x_/game_y_ from world x_/y_ coordinates
+   * - Scroll/camera values for exits (if is_automatic_ = true)
+   * - Map position encoding for saving
+   */
+  virtual void UpdateMapProperties(uint16_t map_id,
+                                   const void* context = nullptr) = 0;
 };
 
 constexpr int kNumOverworldMaps = 160;

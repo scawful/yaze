@@ -6,8 +6,8 @@
 #include <iostream>
 
 #ifdef _WIN32
-#include <io.h>
 #include <conio.h>
+#include <io.h>
 #define isatty _isatty
 #define fileno _fileno
 #else
@@ -97,34 +97,45 @@ std::string TableToJson(const ChatMessage::TableData& table) {
   }
 
   return absl::StrCat("{\"headers\":[", absl::StrJoin(header_entries, ","),
-                       "],\"rows\":[", absl::StrJoin(row_entries, ","),
-                       "]}");
+                      "],\"rows\":[", absl::StrJoin(row_entries, ","), "]}");
 }
 
 std::string MetricsToJson(const ChatMessage::SessionMetrics& metrics) {
-  return absl::StrCat(
-      "{\"turn_index\":", metrics.turn_index, ","
-      "\"total_user_messages\":", metrics.total_user_messages, ","
-      "\"total_agent_messages\":", metrics.total_agent_messages, ","
-      "\"total_tool_calls\":", metrics.total_tool_calls, ","
-      "\"total_commands\":", metrics.total_commands, ","
-      "\"total_proposals\":", metrics.total_proposals, ","
-      "\"total_elapsed_seconds\":", metrics.total_elapsed_seconds, ","
-      "\"average_latency_seconds\":", metrics.average_latency_seconds, "}");
+  return absl::StrCat("{\"turn_index\":", metrics.turn_index,
+                      ","
+                      "\"total_user_messages\":",
+                      metrics.total_user_messages,
+                      ","
+                      "\"total_agent_messages\":",
+                      metrics.total_agent_messages,
+                      ","
+                      "\"total_tool_calls\":",
+                      metrics.total_tool_calls,
+                      ","
+                      "\"total_commands\":",
+                      metrics.total_commands,
+                      ","
+                      "\"total_proposals\":",
+                      metrics.total_proposals,
+                      ","
+                      "\"total_elapsed_seconds\":",
+                      metrics.total_elapsed_seconds,
+                      ","
+                      "\"average_latency_seconds\":",
+                      metrics.average_latency_seconds, "}");
 }
 
 std::string MessageToJson(const ChatMessage& msg, bool show_timestamp) {
   std::string json = "{";
   absl::StrAppend(&json, "\"sender\":\"",
-                  msg.sender == ChatMessage::Sender::kUser ? "user"
-                                                         : "agent",
+                  msg.sender == ChatMessage::Sender::kUser ? "user" : "agent",
                   "\"");
 
   absl::StrAppend(&json, ",\"message\":", QuoteJson(msg.message));
 
   if (msg.json_pretty.has_value()) {
-    absl::StrAppend(&json, ",\"structured\":",
-                    QuoteJson(msg.json_pretty.value()));
+    absl::StrAppend(&json,
+                    ",\"structured\":", QuoteJson(msg.json_pretty.value()));
   }
 
   if (msg.table_data.has_value()) {
@@ -132,14 +143,12 @@ std::string MessageToJson(const ChatMessage& msg, bool show_timestamp) {
   }
 
   if (msg.metrics.has_value()) {
-    absl::StrAppend(&json, ",\"metrics\":",
-                    MetricsToJson(*msg.metrics));
+    absl::StrAppend(&json, ",\"metrics\":", MetricsToJson(*msg.metrics));
   }
 
   if (show_timestamp) {
-    std::string timestamp =
-        absl::FormatTime("%Y-%m-%dT%H:%M:%S%z", msg.timestamp,
-                          absl::LocalTimeZone());
+    std::string timestamp = absl::FormatTime(
+        "%Y-%m-%dT%H:%M:%S%z", msg.timestamp, absl::LocalTimeZone());
     absl::StrAppend(&json, ",\"timestamp\":", QuoteJson(timestamp));
   }
 
@@ -180,11 +189,9 @@ void PrintMarkdownMetrics(const ChatMessage::SessionMetrics& metrics) {
             << ", agents=" << metrics.total_agent_messages
             << ", tool-calls=" << metrics.total_tool_calls
             << ", commands=" << metrics.total_commands
-            << ", proposals=" << metrics.total_proposals
-            << ", elapsed="
-            << absl::StrFormat("%.2fs avg %.2fs",
-                                metrics.total_elapsed_seconds,
-                                metrics.average_latency_seconds)
+            << ", proposals=" << metrics.total_proposals << ", elapsed="
+            << absl::StrFormat("%.2fs avg %.2fs", metrics.total_elapsed_seconds,
+                               metrics.average_latency_seconds)
             << "_\n";
 }
 
@@ -195,20 +202,21 @@ std::string SessionMetricsToJson(const ChatMessage::SessionMetrics& metrics) {
 }  // namespace
 
 void SimpleChatSession::PrintTable(const ChatMessage::TableData& table) {
-  if (table.headers.empty()) return;
-  
+  if (table.headers.empty())
+    return;
+
   // Calculate column widths
   std::vector<size_t> col_widths(table.headers.size(), 0);
   for (size_t i = 0; i < table.headers.size(); ++i) {
     col_widths[i] = table.headers[i].length();
   }
-  
+
   for (const auto& row : table.rows) {
     for (size_t i = 0; i < std::min(row.size(), col_widths.size()); ++i) {
       col_widths[i] = std::max(col_widths[i], row[i].length());
     }
   }
-  
+
   // Print header
   std::cout << "  ";
   for (size_t i = 0; i < table.headers.size(); ++i) {
@@ -219,7 +227,7 @@ void SimpleChatSession::PrintTable(const ChatMessage::TableData& table) {
     std::cout << std::string(col_widths[i] + 2, '-');
   }
   std::cout << "\n";
-  
+
   // Print rows
   for (const auto& row : table.rows) {
     std::cout << "  ";
@@ -238,8 +246,8 @@ void SimpleChatSession::PrintMessage(const ChatMessage& msg,
           (msg.sender == ChatMessage::Sender::kUser) ? "You" : "Agent";
 
       if (show_timestamp) {
-        std::string timestamp = absl::FormatTime(
-            "%H:%M:%S", msg.timestamp, absl::LocalTimeZone());
+        std::string timestamp =
+            absl::FormatTime("%H:%M:%S", msg.timestamp, absl::LocalTimeZone());
         std::cout << "[" << timestamp << "] ";
       }
 
@@ -261,11 +269,10 @@ void SimpleChatSession::PrintMessage(const ChatMessage& msg,
                   << ", agents: " << metrics.total_agent_messages
                   << ", tools: " << metrics.total_tool_calls
                   << ", commands: " << metrics.total_commands
-                  << ", proposals: " << metrics.total_proposals
-                  << ", elapsed: "
+                  << ", proposals: " << metrics.total_proposals << ", elapsed: "
                   << absl::StrFormat("%.2fs avg %.2fs",
-                                      metrics.total_elapsed_seconds,
-                                      metrics.average_latency_seconds)
+                                     metrics.total_elapsed_seconds,
+                                     metrics.average_latency_seconds)
                   << "\n";
       }
       break;
@@ -286,8 +293,7 @@ void SimpleChatSession::PrintMessage(const ChatMessage& msg,
       if (msg.table_data.has_value()) {
         PrintMarkdownTable(msg.table_data.value());
       } else if (msg.json_pretty.has_value()) {
-        std::cout << "\n```json\n" << msg.json_pretty.value()
-                  << "\n```\n";
+        std::cout << "\n```json\n" << msg.json_pretty.value() << "\n```\n";
       } else {
         std::cout << msg.message << "\n";
       }
@@ -310,30 +316,31 @@ absl::Status SimpleChatSession::SendAndWaitForResponse(
   if (!result.ok()) {
     return result.status();
   }
-  
+
   const auto& response_msg = result.value();
-  
+
   if (response_out != nullptr) {
     *response_out = response_msg.message;
   }
-  
+
   return absl::OkStatus();
 }
 
 absl::Status SimpleChatSession::RunInteractive() {
   // Check if stdin is a TTY (interactive) or a pipe/file
   bool is_interactive = isatty(fileno(stdin));
-  
+
   if (is_interactive && config_.output_format == AgentOutputFormat::kFriendly) {
     std::cout << "Z3ED Agent Chat (Simple Mode)\n";
     if (config_.enable_vim_mode) {
-      std::cout << "Vim mode enabled! Use hjkl to move, i for insert, ESC for normal mode.\n";
+      std::cout << "Vim mode enabled! Use hjkl to move, i for insert, ESC for "
+                   "normal mode.\n";
     }
     std::cout << "Type 'quit' or 'exit' to end the session.\n";
     std::cout << "Type 'reset' to clear conversation history.\n";
     std::cout << "----------------------------------------\n\n";
   }
-  
+
   std::string input;
   while (true) {
     // Read input with or without vim mode
@@ -351,19 +358,22 @@ absl::Status SimpleChatSession::RunInteractive() {
         std::cout << "You: ";
         std::cout.flush();  // Ensure prompt is displayed before reading
       }
-      
+
       if (!std::getline(std::cin, input)) {
         // EOF reached (piped input exhausted or Ctrl+D)
-        if (is_interactive && config_.output_format != AgentOutputFormat::kJson) {
+        if (is_interactive &&
+            config_.output_format != AgentOutputFormat::kJson) {
           std::cout << "\n";
         }
         break;
       }
     }
-    
-    if (input.empty()) continue;
-    if (input == "quit" || input == "exit") break;
-    
+
+    if (input.empty())
+      continue;
+    if (input == "quit" || input == "exit")
+      break;
+
     if (input == "reset") {
       Reset();
       if (config_.output_format == AgentOutputFormat::kJson) {
@@ -375,13 +385,12 @@ absl::Status SimpleChatSession::RunInteractive() {
       }
       continue;
     }
-    
+
     auto result = agent_service_.SendMessage(input);
     if (!result.ok()) {
       if (config_.output_format == AgentOutputFormat::kJson) {
-        std::cout << absl::StrCat(
-                         "{\"event\":\"error\",\"message\":",
-                         QuoteJson(result.status().message()), "}")
+        std::cout << absl::StrCat("{\"event\":\"error\",\"message\":",
+                                  QuoteJson(result.status().message()), "}")
                   << std::endl;
       } else if (config_.output_format == AgentOutputFormat::kMarkdown) {
         std::cout << "> **Error:** " << result.status().message() << "\n\n";
@@ -392,7 +401,7 @@ absl::Status SimpleChatSession::RunInteractive() {
       }
       continue;
     }
-    
+
     PrintMessage(result.value(), false);
     if (config_.output_format != AgentOutputFormat::kJson) {
       std::cout << "\n";
@@ -402,19 +411,19 @@ absl::Status SimpleChatSession::RunInteractive() {
   const auto metrics = agent_service_.GetMetrics();
   if (config_.output_format == AgentOutputFormat::kJson) {
     std::cout << absl::StrCat("{\"event\":\"session_summary\",\"metrics\":",
-                               SessionMetricsToJson(metrics), "}")
+                              SessionMetricsToJson(metrics), "}")
               << std::endl;
   } else if (config_.output_format == AgentOutputFormat::kMarkdown) {
     std::cout << "\n> **Session totals**  ";
-    std::cout << "turns=" << metrics.turn_index << ", users="
-              << metrics.total_user_messages << ", agents="
-              << metrics.total_agent_messages << ", tools="
-              << metrics.total_tool_calls << ", commands="
-              << metrics.total_commands << ", proposals="
-              << metrics.total_proposals << ", elapsed="
+    std::cout << "turns=" << metrics.turn_index
+              << ", users=" << metrics.total_user_messages
+              << ", agents=" << metrics.total_agent_messages
+              << ", tools=" << metrics.total_tool_calls
+              << ", commands=" << metrics.total_commands
+              << ", proposals=" << metrics.total_proposals << ", elapsed="
               << absl::StrFormat("%.2fs avg %.2fs",
-                                  metrics.total_elapsed_seconds,
-                                  metrics.average_latency_seconds)
+                                 metrics.total_elapsed_seconds,
+                                 metrics.average_latency_seconds)
               << "\n\n";
   } else {
     std::cout << "Session totals — turns: " << metrics.turn_index
@@ -422,13 +431,12 @@ absl::Status SimpleChatSession::RunInteractive() {
               << ", agent messages: " << metrics.total_agent_messages
               << ", tool calls: " << metrics.total_tool_calls
               << ", commands: " << metrics.total_commands
-              << ", proposals: " << metrics.total_proposals
-              << ", elapsed: "
+              << ", proposals: " << metrics.total_proposals << ", elapsed: "
               << absl::StrFormat("%.2fs avg %.2fs\n\n",
                                  metrics.total_elapsed_seconds,
                                  metrics.average_latency_seconds);
   }
-  
+
   return absl::OkStatus();
 }
 
@@ -438,52 +446,51 @@ absl::Status SimpleChatSession::RunBatch(const std::string& input_file) {
     return absl::NotFoundError(
         absl::StrFormat("Could not open file: %s", input_file));
   }
-  
+
   if (config_.output_format == AgentOutputFormat::kFriendly) {
     std::cout << "Running batch session from: " << input_file << "\n";
     std::cout << "----------------------------------------\n\n";
   } else if (config_.output_format == AgentOutputFormat::kMarkdown) {
     std::cout << "### Batch session: " << input_file << "\n\n";
   }
-  
+
   std::string line;
   int line_num = 0;
   while (std::getline(file, line)) {
     ++line_num;
-    
+
     // Skip empty lines and comments
-    if (line.empty() || line[0] == '#') continue;
-    
+    if (line.empty() || line[0] == '#')
+      continue;
+
     if (config_.output_format == AgentOutputFormat::kFriendly) {
       std::cout << "Input [" << line_num << "]: " << line << "\n";
     } else if (config_.output_format == AgentOutputFormat::kMarkdown) {
       std::cout << "- **Input " << line_num << "**: " << line << "\n";
     } else if (config_.output_format == AgentOutputFormat::kJson) {
-      std::cout << absl::StrCat(
-                       "{\"event\":\"batch_input\",\"index\":",
-                       line_num, ",\"prompt\":", QuoteJson(line), "}")
+      std::cout << absl::StrCat("{\"event\":\"batch_input\",\"index\":",
+                                line_num, ",\"prompt\":", QuoteJson(line), "}")
                 << std::endl;
     }
-    
+
     auto result = agent_service_.SendMessage(line);
     if (!result.ok()) {
       if (config_.output_format == AgentOutputFormat::kJson) {
-        std::cout << absl::StrCat(
-                         "{\"event\":\"error\",\"index\":", line_num,
-                         ",\"message\":",
-                         QuoteJson(result.status().message()), "}")
+        std::cout << absl::StrCat("{\"event\":\"error\",\"index\":", line_num,
+                                  ",\"message\":",
+                                  QuoteJson(result.status().message()), "}")
                   << std::endl;
       } else if (config_.output_format == AgentOutputFormat::kMarkdown) {
         std::cout << "  - ⚠️ " << result.status().message() << "\n";
       } else if (config_.output_format == AgentOutputFormat::kCompact) {
-        std::cout << "error@" << line_num << ": "
-                  << result.status().message() << "\n";
+        std::cout << "error@" << line_num << ": " << result.status().message()
+                  << "\n";
       } else {
         std::cerr << "Error: " << result.status().message() << "\n\n";
       }
       continue;
     }
-    
+
     PrintMessage(result.value(), false);
     if (config_.output_format != AgentOutputFormat::kJson) {
       std::cout << "\n";
@@ -493,18 +500,18 @@ absl::Status SimpleChatSession::RunBatch(const std::string& input_file) {
   const auto metrics = agent_service_.GetMetrics();
   if (config_.output_format == AgentOutputFormat::kJson) {
     std::cout << absl::StrCat("{\"event\":\"session_summary\",\"metrics\":",
-                               SessionMetricsToJson(metrics), "}")
+                              SessionMetricsToJson(metrics), "}")
               << std::endl;
   } else if (config_.output_format == AgentOutputFormat::kMarkdown) {
     std::cout << "\n> **Batch totals**  turns=" << metrics.turn_index
-              << ", users=" << metrics.total_user_messages << ", agents="
-              << metrics.total_agent_messages << ", tools="
-              << metrics.total_tool_calls << ", commands="
-              << metrics.total_commands << ", proposals="
-              << metrics.total_proposals << ", elapsed="
+              << ", users=" << metrics.total_user_messages
+              << ", agents=" << metrics.total_agent_messages
+              << ", tools=" << metrics.total_tool_calls
+              << ", commands=" << metrics.total_commands
+              << ", proposals=" << metrics.total_proposals << ", elapsed="
               << absl::StrFormat("%.2fs avg %.2fs",
-                                  metrics.total_elapsed_seconds,
-                                  metrics.average_latency_seconds)
+                                 metrics.total_elapsed_seconds,
+                                 metrics.average_latency_seconds)
               << "\n\n";
   } else {
     std::cout << "Batch session totals — turns: " << metrics.turn_index
@@ -512,30 +519,28 @@ absl::Status SimpleChatSession::RunBatch(const std::string& input_file) {
               << ", agent messages: " << metrics.total_agent_messages
               << ", tool calls: " << metrics.total_tool_calls
               << ", commands: " << metrics.total_commands
-              << ", proposals: " << metrics.total_proposals
-              << ", elapsed: "
+              << ", proposals: " << metrics.total_proposals << ", elapsed: "
               << absl::StrFormat("%.2fs avg %.2fs\n\n",
                                  metrics.total_elapsed_seconds,
                                  metrics.average_latency_seconds);
   }
-  
+
   return absl::OkStatus();
 }
 
 std::string SimpleChatSession::ReadLineWithVim() {
   if (!vim_mode_) {
     vim_mode_ = std::make_unique<VimMode>();
-    vim_mode_->SetAutoCompleteCallback(
-        [this](const std::string& partial) {
-          return GetAutocompleteOptions(partial);
-        });
+    vim_mode_->SetAutoCompleteCallback([this](const std::string& partial) {
+      return GetAutocompleteOptions(partial);
+    });
   }
-  
+
   vim_mode_->Reset();
-  
+
   // Show initial prompt
   std::cout << "You [" << vim_mode_->GetModeString() << "]: " << std::flush;
-  
+
   while (true) {
     int ch;
 #ifdef _WIN32
@@ -548,7 +553,7 @@ std::string SimpleChatSession::ReadLineWithVim() {
       break;  // EOF
     }
 #endif
-    
+
     if (vim_mode_->ProcessKey(ch)) {
       // Line complete
       std::string line = vim_mode_->GetLine();
@@ -557,7 +562,7 @@ std::string SimpleChatSession::ReadLineWithVim() {
       return line;
     }
   }
-  
+
   return "";  // EOF
 }
 
@@ -565,18 +570,17 @@ std::vector<std::string> SimpleChatSession::GetAutocompleteOptions(
     const std::string& partial) {
   // Simple autocomplete with common commands
   std::vector<std::string> all_commands = {
-      "/help", "/exit", "/quit", "/reset", "/history",
-      "list rooms", "list sprites", "list palettes",
-      "show room ", "describe ", "analyze "
-  };
-  
+      "/help",      "/exit",      "/quit",        "/reset",
+      "/history",   "list rooms", "list sprites", "list palettes",
+      "show room ", "describe ",  "analyze "};
+
   std::vector<std::string> matches;
   for (const auto& cmd : all_commands) {
     if (cmd.find(partial) == 0) {
       matches.push_back(cmd);
     }
   }
-  
+
   return matches;
 }
 

@@ -1,7 +1,9 @@
 #ifndef YAZE_APP_EDITOR_AGENT_AGENT_CHAT_HISTORY_POPUP_H
 #define YAZE_APP_EDITOR_AGENT_AGENT_CHAT_HISTORY_POPUP_H
 
+#include <functional>
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 #include "cli/service/agent/conversational_agent_service.h"
@@ -14,7 +16,7 @@ class ToastManager;
 /**
  * @class AgentChatHistoryPopup
  * @brief ImGui popup drawer for displaying chat history on the left side
- * 
+ *
  * Provides a quick-access sidebar for viewing recent chat messages,
  * complementing the ProposalDrawer on the right. Features:
  * - Recent message list with timestamps
@@ -22,7 +24,7 @@ class ToastManager;
  * - Scroll to view older messages
  * - Quick actions (clear, export, open full chat)
  * - Syncs with AgentChatWidget and AgentEditor
- * 
+ *
  * Positioned on the LEFT side of the screen as a slide-out panel.
  */
 class AgentChatHistoryPopup {
@@ -46,7 +48,7 @@ class AgentChatHistoryPopup {
 
   // Update history from service
   void UpdateHistory(const std::vector<cli::agent::ChatMessage>& history);
-  
+
   // Notify of new message (triggers auto-scroll)
   void NotifyNewMessage();
 
@@ -55,13 +57,13 @@ class AgentChatHistoryPopup {
   void SetOpenChatCallback(OpenChatCallback callback) {
     open_chat_callback_ = std::move(callback);
   }
-  
+
   // Set callback for sending messages
   using SendMessageCallback = std::function<void(const std::string&)>;
   void SetSendMessageCallback(SendMessageCallback callback) {
     send_message_callback_ = std::move(callback);
   }
-  
+
   // Set callback for capturing snapshots
   using CaptureSnapshotCallback = std::function<void()>;
   void SetCaptureSnapshotCallback(CaptureSnapshotCallback callback) {
@@ -70,54 +72,59 @@ class AgentChatHistoryPopup {
 
  private:
   void DrawHeader();
+  void DrawQuickActions();
+  void DrawInputSection();
   void DrawMessageList();
   void DrawMessage(const cli::agent::ChatMessage& msg, int index);
-  void DrawInputSection();
-  void DrawQuickActions();
-  
+  bool MessagePassesFilters(const cli::agent::ChatMessage& msg,
+                            int index) const;
+  void RefreshProviderFilters();
+  void TogglePin(int index);
+
   void SendMessage(const std::string& message);
   void ClearHistory();
   void ExportHistory();
   void ScrollToBottom();
-  
+
   bool visible_ = false;
   bool needs_scroll_ = false;
   bool auto_scroll_ = true;
   bool compact_mode_ = true;
   bool show_quick_actions_ = true;
-  
+
   // History state
   std::vector<cli::agent::ChatMessage> messages_;
   int display_limit_ = 50;  // Show last 50 messages
-  
+
   // Input state
   char input_buffer_[512] = {};
+  char search_buffer_[160] = {};
   bool focus_input_ = false;
-  
+
   // UI state
   float drawer_width_ = 420.0f;
   float min_drawer_width_ = 300.0f;
   float max_drawer_width_ = 700.0f;
   bool is_resizing_ = false;
-  
+
   // Filter state
-  enum class MessageFilter {
-    kAll,
-    kUserOnly,
-    kAgentOnly
-  };
+  enum class MessageFilter { kAll, kUserOnly, kAgentOnly };
   MessageFilter message_filter_ = MessageFilter::kAll;
-  
+  std::vector<std::string> provider_filters_;
+  int provider_filter_index_ = 0;
+  bool show_pinned_only_ = false;
+  std::unordered_set<int> pinned_messages_;
+
   // Visual state
   float header_pulse_ = 0.0f;
   int unread_count_ = 0;
-  
+
   // Retro hacker aesthetic animations
   float pulse_animation_ = 0.0f;
   float scanline_offset_ = 0.0f;
   float glitch_animation_ = 0.0f;
   int blink_counter_ = 0;
-  
+
   // Dependencies
   ToastManager* toast_manager_ = nullptr;
   OpenChatCallback open_chat_callback_;

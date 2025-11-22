@@ -33,23 +33,26 @@ class LayoutHelpers {
   static void EndPaddedPanel();
 
   static bool BeginTableWithTheming(const char* str_id, int columns,
-                                     ImGuiTableFlags flags = 0,
-                                     const ImVec2& outer_size = ImVec2(0, 0),
-                                     float inner_width = 0.0f);
+                                    ImGuiTableFlags flags = 0,
+                                    const ImVec2& outer_size = ImVec2(0, 0),
+                                    float inner_width = 0.0f);
   static void EndTableWithTheming();
   static void EndTable() { ImGui::EndTable(); }
 
-  static void BeginCanvasPanel(const char* label, ImVec2* canvas_size = nullptr);
+  static void BeginCanvasPanel(const char* label,
+                               ImVec2* canvas_size = nullptr);
   static void EndCanvasPanel();
 
   // Input field helpers
   static bool AutoSizedInputField(const char* label, char* buf, size_t buf_size,
-                                   ImGuiInputTextFlags flags = 0);
+                                  ImGuiInputTextFlags flags = 0);
   static bool AutoSizedInputInt(const char* label, int* v, int step = 1,
-                                 int step_fast = 100, ImGuiInputTextFlags flags = 0);
-  static bool AutoSizedInputFloat(const char* label, float* v, float step = 0.0f,
-                                   float step_fast = 0.0f, const char* format = "%.3f",
-                                   ImGuiInputTextFlags flags = 0);
+                                int step_fast = 100,
+                                ImGuiInputTextFlags flags = 0);
+  static bool AutoSizedInputFloat(const char* label, float* v,
+                                  float step = 0.0f, float step_fast = 0.0f,
+                                  const char* format = "%.3f",
+                                  ImGuiInputTextFlags flags = 0);
 
   // Input preset functions for common patterns
   static bool InputHexRow(const char* label, uint8_t* data);
@@ -62,10 +65,12 @@ class LayoutHelpers {
   static void BeginToolbar(const char* label);
   static void EndToolbar();
   static void ToolbarSeparator();
-  static bool ToolbarButton(const char* label, const ImVec2& size = ImVec2(0, 0));
+  static bool ToolbarButton(const char* label,
+                            const ImVec2& size = ImVec2(0, 0));
 
   // Common layout patterns
-  static void PropertyRow(const char* label, std::function<void()> widget_callback);
+  static void PropertyRow(const char* label,
+                          std::function<void()> widget_callback);
   static void SectionHeader(const char* label);
   static void HelpMarker(const char* desc);
 
@@ -81,7 +86,7 @@ class LayoutHelpers {
   }
 };
 
-} // namespace gui
-} // namespace yaze
+}  // namespace gui
+}  // namespace yaze
 
-#endif // YAZE_APP_GUI_LAYOUT_HELPERS_H
+#endif  // YAZE_APP_GUI_LAYOUT_HELPERS_H

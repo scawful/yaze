@@ -87,7 +87,8 @@ void GfxSheetAssetBrowser::Draw(
 
     // - Enable box-select (in 2D mode, so that changing box-select rectangle
     // X1/X2 boundaries will affect clipped items)
-    if (AllowBoxSelect) ms_flags |= ImGuiMultiSelectFlags_BoxSelect2d;
+    if (AllowBoxSelect)
+      ms_flags |= ImGuiMultiSelectFlags_BoxSelect2d;
 
     // - This feature allows dragging an unselected item without selecting it
     // (rarely used)
@@ -180,10 +181,12 @@ void GfxSheetAssetBrowser::Draw(
           // Update our selection state immediately (without waiting for
           // EndMultiSelect() requests) because we use this to alter the color
           // of our text/icon.
-          if (IsItemToggledSelection()) item_is_selected = !item_is_selected;
+          if (IsItemToggledSelection())
+            item_is_selected = !item_is_selected;
 
           // Focus (for after deletion)
-          if (item_curr_idx_to_focus == item_idx) SetKeyboardFocusHere(-1);
+          if (item_curr_idx_to_focus == item_idx)
+            SetKeyboardFocusHere(-1);
 
           // Drag and drop
           if (BeginDragDropSource()) {
@@ -263,22 +266,26 @@ void GfxSheetAssetBrowser::Draw(
         if (MenuItem("Unsorted")) {
           void* it = NULL;
           ImGuiID id = 0;
-          while (Selection.GetNextSelectedItem(&it, &id)) Items[id].Type = 0;
+          while (Selection.GetNextSelectedItem(&it, &id))
+            Items[id].Type = 0;
         }
         if (MenuItem("Dungeon")) {
           void* it = NULL;
           ImGuiID id = 0;
-          while (Selection.GetNextSelectedItem(&it, &id)) Items[id].Type = 1;
+          while (Selection.GetNextSelectedItem(&it, &id))
+            Items[id].Type = 1;
         }
         if (MenuItem("Overworld")) {
           void* it = NULL;
           ImGuiID id = 0;
-          while (Selection.GetNextSelectedItem(&it, &id)) Items[id].Type = 2;
+          while (Selection.GetNextSelectedItem(&it, &id))
+            Items[id].Type = 2;
         }
         if (MenuItem("Sprite")) {
           void* it = NULL;
           ImGuiID id = 0;
-          while (Selection.GetNextSelectedItem(&it, &id)) Items[id].Type = 3;
+          while (Selection.GetNextSelectedItem(&it, &id))
+            Items[id].Type = 3;
         }
         EndMenu();
       }
@@ -294,7 +301,8 @@ void GfxSheetAssetBrowser::Draw(
       Selection.ApplyDeletionPostLoop(ms_io, Items, item_curr_idx_to_focus);
 
     // Zooming with CTRL+Wheel
-    if (IsWindowAppearing()) ZoomWheelAccum = 0.0f;
+    if (IsWindowAppearing())
+      ZoomWheelAccum = 0.0f;
     if (IsWindowHovered() && io.MouseWheel != 0.0f &&
         IsKeyDown(ImGuiMod_Ctrl) && IsAnyItemActive() == false) {
       ZoomWheelAccum += io.MouseWheel;

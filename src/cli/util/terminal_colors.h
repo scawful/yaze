@@ -63,33 +63,34 @@ constexpr const char* kArrow = "→";
 // Simple loading indicator
 class LoadingIndicator {
  public:
-  LoadingIndicator(const std::string& message, bool show = true) 
+  LoadingIndicator(const std::string& message, bool show = true)
       : message_(message), show_(show), running_(false) {}
-  
-  ~LoadingIndicator() {
-    Stop();
-  }
-  
+
+  ~LoadingIndicator() { Stop(); }
+
   void Start() {
-    if (!show_ || running_) return;
+    if (!show_ || running_)
+      return;
     running_ = true;
-    
+
     thread_ = std::thread([this]() {
-      const char* spinner[] = {"⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"};
+      const char* spinner[] = {"⠋", "⠙", "⠹", "⠸", "⠼",
+                               "⠴", "⠦", "⠧", "⠇", "⠏"};
       int idx = 0;
-      
+
       while (running_) {
-        std::cout << "\r" << colors::kCyan << spinner[idx] << " " 
+        std::cout << "\r" << colors::kCyan << spinner[idx] << " "
                   << colors::kBold << message_ << colors::kReset << std::flush;
         idx = (idx + 1) % 10;
         std::this_thread::sleep_for(std::chrono::milliseconds(80));
       }
-      
+
       // Clear the line
-      std::cout << "\r" << std::string(message_.length() + 10, ' ') << "\r" << std::flush;
+      std::cout << "\r" << std::string(message_.length() + 10, ' ') << "\r"
+                << std::flush;
     });
   }
-  
+
   void Stop() {
     if (running_) {
       running_ = false;
@@ -98,11 +99,9 @@ class LoadingIndicator {
       }
     }
   }
-  
-  void UpdateMessage(const std::string& message) {
-    message_ = message;
-  }
-  
+
+  void UpdateMessage(const std::string& message) { message_ = message; }
+
  private:
   std::string message_;
   bool show_;
@@ -112,24 +111,29 @@ class LoadingIndicator {
 
 // Utility functions for colored output
 inline void PrintSuccess(const std::string& message) {
-  std::cout << colors::kGreen << icons::kSuccess << " " << message << colors::kReset << std::endl;
+  std::cout << colors::kGreen << icons::kSuccess << " " << message
+            << colors::kReset << std::endl;
 }
 
 inline void PrintError(const std::string& message) {
-  std::cerr << colors::kRed << icons::kError << " " << message << colors::kReset << std::endl;
+  std::cerr << colors::kRed << icons::kError << " " << message << colors::kReset
+            << std::endl;
 }
 
 inline void PrintWarning(const std::string& message) {
-  std::cerr << colors::kYellow << icons::kWarning << " " << message << colors::kReset << std::endl;
+  std::cerr << colors::kYellow << icons::kWarning << " " << message
+            << colors::kReset << std::endl;
 }
 
 inline void PrintInfo(const std::string& message) {
-  std::cout << colors::kBlue << icons::kInfo << " " << message << colors::kReset << std::endl;
+  std::cout << colors::kBlue << icons::kInfo << " " << message << colors::kReset
+            << std::endl;
 }
 
-inline void PrintToolCall(const std::string& tool_name, const std::string& details = "") {
-  std::cout << colors::kMagenta << icons::kTool << " " << colors::kBold 
-            << "Calling tool: " << colors::kReset << colors::kCyan << tool_name 
+inline void PrintToolCall(const std::string& tool_name,
+                          const std::string& details = "") {
+  std::cout << colors::kMagenta << icons::kTool << " " << colors::kBold
+            << "Calling tool: " << colors::kReset << colors::kCyan << tool_name
             << colors::kReset;
   if (!details.empty()) {
     std::cout << colors::kDim << " (" << details << ")" << colors::kReset;
@@ -138,12 +142,12 @@ inline void PrintToolCall(const std::string& tool_name, const std::string& detai
 }
 
 inline void PrintThinking(const std::string& message = "Processing...") {
-  std::cout << colors::kYellow << icons::kThinking << " " << colors::kDim 
+  std::cout << colors::kYellow << icons::kThinking << " " << colors::kDim
             << message << colors::kReset << std::endl;
 }
 
 inline void PrintSeparator() {
-  std::cout << colors::kDim << "─────────────────────────────────────────" 
+  std::cout << colors::kDim << "─────────────────────────────────────────"
             << colors::kReset << std::endl;
 }
 

@@ -15,16 +15,7 @@ set(YAZE_TEST_SOURCES
   app/test/z3ed_test_suite.cc
 )
 
-# Add gRPC test harness services if enabled (depend on TestManager)
-if(YAZE_WITH_GRPC)
-  list(APPEND YAZE_TEST_SOURCES
-    app/service/imgui_test_harness_service.cc
-    app/service/screenshot_utils.cc
-    app/service/widget_discovery_service.cc
-    app/test/test_recorder.cc
-    app/test/test_script_parser.cc
-  )
-endif()
+# gRPC test harness services are now in yaze_grpc_support library
 
 add_library(yaze_test_support STATIC ${YAZE_TEST_SOURCES})
 
@@ -35,7 +26,7 @@ target_precompile_headers(yaze_test_support PRIVATE
 target_include_directories(yaze_test_support PUBLIC
   ${CMAKE_SOURCE_DIR}/src
   ${CMAKE_SOURCE_DIR}/incl
-  ${CMAKE_SOURCE_DIR}/src/lib
+  ${CMAKE_SOURCE_DIR}/ext
   ${PROJECT_BINARY_DIR}
 )
 
@@ -52,17 +43,11 @@ target_link_libraries(yaze_test_support PUBLIC
 # Add gRPC dependencies if test harness is enabled
 if(YAZE_WITH_GRPC)
   target_include_directories(yaze_test_support PRIVATE
-    ${CMAKE_SOURCE_DIR}/third_party/json/include)
+    ${CMAKE_SOURCE_DIR}/ext/json/include)
   target_compile_definitions(yaze_test_support PRIVATE YAZE_WITH_JSON)
   
-  # Add test harness proto definition
-  target_add_protobuf(yaze_test_support
-    ${PROJECT_SOURCE_DIR}/src/protos/imgui_test_harness.proto)
-  
-  target_link_libraries(yaze_test_support PUBLIC
-    grpc++
-    grpc++_reflection
-  )
+  # Link to consolidated gRPC support library
+  target_link_libraries(yaze_test_support PUBLIC yaze_grpc_support)
   
   message(STATUS "  - gRPC test harness service enabled in yaze_test_support")
 endif()
@@ -70,7 +55,19 @@ endif()
 # Link agent library if available (for z3ed test suites)
 # yaze_agent contains all the CLI service code (tile16_proposal_generator, gui_automation_client, etc.)
 if(TARGET yaze_agent)
-  target_link_libraries(yaze_test_support PUBLIC yaze_agent)
+  # Use whole-archive on Unix to ensure agent symbols (GuiAutomationClient etc) are included
+  if(APPLE)
+    target_link_options(yaze_test_support PUBLIC 
+      "LINKER:-force_load,$<TARGET_FILE:yaze_agent>")
+    target_link_libraries(yaze_test_support PUBLIC yaze_agent)
+  elseif(UNIX)
+    target_link_libraries(yaze_test_support PUBLIC 
+      -Wl,--whole-archive yaze_agent -Wl,--no-whole-archive)
+  else()
+    # Windows: Normal linking
+    target_link_libraries(yaze_test_support PUBLIC yaze_agent)
+  endif()
+  
   if(YAZE_WITH_GRPC)
     message(STATUS "✓ z3ed test suites enabled with gRPC support")
   else()
