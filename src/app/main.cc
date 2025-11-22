@@ -8,8 +8,10 @@
 #include "app/controller.h"
 #include "cli/service/api/http_server.h"
 #include "core/features.h"
+#include "util/crash_handler.h"
 #include "util/flag.h"
 #include "util/log.h"
+#include "yaze.h"  // For YAZE_VERSION_STRING
 
 #ifdef YAZE_WITH_GRPC
 #include "app/service/imgui_test_harness_service.h"
@@ -59,18 +61,13 @@ DEFINE_FLAG(int, test_harness_port, 50051,
 int main(int argc, char** argv) {
   absl::InitializeSymbolizer(argv[0]);
 
-  // Configure failure signal handler to be less aggressive
-  // This prevents false positives during SDL/graphics cleanup
-  absl::FailureSignalHandlerOptions options;
-  options.symbolize_stacktrace = true;
-  options.use_alternate_stack =
-      false;  // Avoid conflicts with normal stack during cleanup
-  options.alarm_on_failure_secs =
-      false;  // Don't set alarms that can trigger on natural leaks
-  options.call_previous_handler = true;  // Allow system handlers to also run
-  options.writerfn =
-      nullptr;  // Use default writer to avoid custom handling issues
-  absl::InstallFailureSignalHandler(options);
+  // Initialize crash handler for release builds
+  // This writes crash reports to ~/.yaze/crash_logs/ (or equivalent)
+  // In debug builds, crashes are also printed to stderr
+  yaze::util::CrashHandler::Initialize(YAZE_VERSION_STRING);
+
+  // Clean up old crash logs (keep last 5)
+  yaze::util::CrashHandler::CleanupOldLogs(5);
 
   // Parse command line flags with custom parser
   yaze::util::FlagParser parser(yaze::util::global_flag_registry());
