@@ -9,7 +9,7 @@
  * The Legend of Zelda: A Link to the Past. This API allows external
  * applications to interact with YAZE's functionality.
  * 
- * @version 0.3.7
+ * @version 0.3.8
  * @author YAZE Team
  */
 
@@ -32,16 +32,16 @@ extern "C" {
  *   - YAZE_VERSION_MAJOR
  *   - YAZE_VERSION_MINOR
  *   - YAZE_VERSION_PATCH
- *   - YAZE_VERSION_STRING (e.g., "0.3.7")
- *   - YAZE_VERSION_NUMBER (e.g., 307)
+ *   - YAZE_VERSION_STRING (e.g., "0.3.8")
+ *   - YAZE_VERSION_NUMBER (e.g., 308)
  *
  * Single source of truth: project(yaze VERSION X.Y.Z) in CMakeLists.txt
  */
 
 #ifndef YAZE_VERSION_STRING
 /* Fallback if yaze_config.h not included - will be overridden by build */
-#define YAZE_VERSION_STRING "0.3.7"
-#define YAZE_VERSION_NUMBER 307
+#define YAZE_VERSION_STRING "0.3.8"
+#define YAZE_VERSION_NUMBER 308
 #endif
 
 /** @} */
