@@ -36,15 +36,23 @@ set(CPACK_COMPONENT_YAZE_DESCRIPTION "Main YAZE application and libraries")
 # Install rules - these define what CPack packages
 include(GNUInstallDirs)
 
-# Windows uses a flat structure (no bin/, share/ subdirectories)
+# Platform-specific install paths
+# The asset paths must match what platform_paths.cc FindAsset() searches for
 if(WIN32)
+    # Windows: flat structure (exe and assets/ at same level)
+    set(YAZE_INSTALL_BINDIR ".")
+    set(YAZE_INSTALL_DATADIR ".")
+    set(YAZE_INSTALL_DOCDIR ".")
+elseif(APPLE)
+    # macOS: flat structure for DMG (app bundle handles its own resources)
     set(YAZE_INSTALL_BINDIR ".")
     set(YAZE_INSTALL_DATADIR ".")
     set(YAZE_INSTALL_DOCDIR ".")
 else()
+    # Linux: FHS structure - assets at share/yaze/assets (matches FindAsset search)
     set(YAZE_INSTALL_BINDIR ${CMAKE_INSTALL_BINDIR})
-    set(YAZE_INSTALL_DATADIR ${CMAKE_INSTALL_DATADIR})
-    set(YAZE_INSTALL_DOCDIR ${CMAKE_INSTALL_DOCDIR})
+    set(YAZE_INSTALL_DATADIR "${CMAKE_INSTALL_DATADIR}/yaze")
+    set(YAZE_INSTALL_DOCDIR "${CMAKE_INSTALL_DOCDIR}")
 endif()
 
 # Install main executable
