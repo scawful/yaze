@@ -141,23 +141,34 @@ set(CPACK_COMPONENT_DOCUMENTATION_DISPLAY_NAME "Documentation")
 set(CPACK_COMPONENT_DOCUMENTATION_DESCRIPTION "User and developer documentation")
 set(CPACK_COMPONENT_DOCUMENTATION_REQUIRED FALSE)
 
+# Windows uses a flat structure (no bin/, share/ subdirectories)
+if(WIN32)
+    set(YAZE_INSTALL_BINDIR ".")
+    set(YAZE_INSTALL_DATADIR ".")
+    set(YAZE_INSTALL_DOCDIR ".")
+else()
+    set(YAZE_INSTALL_BINDIR ${CMAKE_INSTALL_BINDIR})
+    set(YAZE_INSTALL_DATADIR ${CMAKE_INSTALL_DATADIR})
+    set(YAZE_INSTALL_DOCDIR ${CMAKE_INSTALL_DOCDIR})
+endif()
+
 # Installation components
 if(APPLE)
     install(TARGETS yaze
-        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-        BUNDLE DESTINATION ${CMAKE_INSTALL_BINDIR}
+        RUNTIME DESTINATION ${YAZE_INSTALL_BINDIR}
+        BUNDLE DESTINATION ${YAZE_INSTALL_BINDIR}
         COMPONENT applications
     )
 else()
     install(TARGETS yaze
-        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+        RUNTIME DESTINATION ${YAZE_INSTALL_BINDIR}
         COMPONENT applications
     )
 endif()
 
 # Install assets
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/assets/
-    DESTINATION ${CMAKE_INSTALL_DATADIR}/yaze/assets
+    DESTINATION ${YAZE_INSTALL_DATADIR}/assets
     COMPONENT applications
     PATTERN "*.png"
     PATTERN "*.ttf"
@@ -165,15 +176,15 @@ install(DIRECTORY ${CMAKE_SOURCE_DIR}/assets/
 )
 
 # Install documentation
-install(FILES 
+install(FILES
     ${CMAKE_SOURCE_DIR}/README.md
     ${CMAKE_SOURCE_DIR}/LICENSE
-    DESTINATION ${CMAKE_INSTALL_DOCDIR}
+    DESTINATION ${YAZE_INSTALL_DOCDIR}
     COMPONENT documentation
 )
 
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/docs/
-    DESTINATION ${CMAKE_INSTALL_DOCDIR}
+    DESTINATION ${YAZE_INSTALL_DOCDIR}
     COMPONENT documentation
     PATTERN "*.md"
     PATTERN "*.html"
