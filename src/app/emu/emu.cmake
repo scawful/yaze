@@ -5,7 +5,14 @@
 
 if(YAZE_BUILD_EMU AND NOT YAZE_MINIMAL_BUILD)
   if(APPLE)
-    add_executable(yaze_emu MACOSX_BUNDLE app/emu/emu.cc app/platform/app_delegate.mm)
+    # Note: controller.cc is included here (not via library) because it depends on
+    # yaze_editor and yaze_gui. Including it in yaze_app_core_lib would create a cycle:
+    # yaze_agent -> yaze_app_core_lib -> yaze_editor -> yaze_agent
+    add_executable(yaze_emu MACOSX_BUNDLE
+      app/emu/emu.cc
+      app/platform/app_delegate.mm
+      app/controller.cc
+    )
     target_link_libraries(yaze_emu PUBLIC "-framework Cocoa")
   else()
     add_executable(yaze_emu app/emu/emu.cc)
