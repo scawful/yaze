@@ -1,12 +1,18 @@
 #include "app/test/ai_vision_verifier.h"
 
 #include <chrono>
+#include <filesystem>
 #include <fstream>
 #include <sstream>
 
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "util/log.h"
+
+// Include GeminiAIService when AI runtime is available
+#ifdef YAZE_AI_RUNTIME_AVAILABLE
+#include "cli/service/ai/gemini_ai_service.h"
+#endif
 
 namespace yaze {
 namespace test {
@@ -285,17 +291,64 @@ absl::StatusOr<std::string> AIVisionVerifier::CaptureAndEncodeScreenshot() {
 
 absl::StatusOr<std::string> AIVisionVerifier::CallVisionModel(
     const std::string& prompt, const std::string& image_base64) {
-  // TODO: Implement actual API calls to Gemini/Ollama/OpenAI
-  // This is a placeholder that returns a simulated response
-
   LOG_DEBUG("AIVisionVerifier", "Calling vision model: %s",
             config_.model_name.c_str());
 
-  // For now, return a placeholder response
+#ifdef YAZE_AI_RUNTIME_AVAILABLE
+  // Use the AI service if available
+  if (ai_service_) {
+    // Save screenshot to temp file for multimodal request
+    std::string temp_image_path =
+        absl::StrCat(config_.screenshot_dir, "/temp_verification.png");
+
+    // Ensure directory exists
+    std::filesystem::create_directories(config_.screenshot_dir);
+
+    // If we have screenshot data, write it to file
+    if (!last_screenshot_data_.empty() && last_width_ > 0 && last_height_ > 0) {
+      std::ofstream temp_file(temp_image_path, std::ios::binary);
+      if (temp_file) {
+        // Write raw RGBA data (simple format)
+        temp_file.write(reinterpret_cast<const char*>(&last_width_),
+                        sizeof(int));
+        temp_file.write(reinterpret_cast<const char*>(&last_height_),
+                        sizeof(int));
+        temp_file.write(
+            reinterpret_cast<const char*>(last_screenshot_data_.data()),
+            last_screenshot_data_.size());
+        temp_file.close();
+      }
+    }
+
+    // Try GeminiAIService for multimodal request
+    auto* gemini_service =
+        dynamic_cast<cli::GeminiAIService*>(ai_service_);
+    if (gemini_service) {
+      auto response =
+          gemini_service->GenerateMultimodalResponse(temp_image_path, prompt);
+      if (response.ok()) {
+        return response->response;
+      }
+      LOG_DEBUG("AIVisionVerifier", "Gemini multimodal failed: %s",
+                response.status().message().data());
+    }
+
+    // Fallback to text-only generation
+    auto response = ai_service_->GenerateResponse(prompt);
+    if (response.ok()) {
+      return response->response;
+    }
+    return response.status();
+  }
+#endif
+
+  // Placeholder response when no AI service is configured
+  LOG_DEBUG("AIVisionVerifier", "No AI service configured, using placeholder");
   return absl::StrFormat(
       "RESULT: PASS\n"
       "CONFIDENCE: 0.85\n"
-      "OBSERVATIONS: Placeholder response - vision API not implemented\n"
+      "OBSERVATIONS: Placeholder response - no AI service configured. "
+      "Set AI service with SetAIService() for real vision verification.\n"
       "DISCREPANCIES: None");
 }
 

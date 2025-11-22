@@ -10,6 +10,13 @@
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 
+// Forward declare AI service types (avoid circular dependency)
+namespace yaze {
+namespace cli {
+class AIService;
+}
+}  // namespace yaze
+
 namespace yaze {
 namespace test {
 
@@ -106,6 +113,16 @@ class AIVisionVerifier {
   void SetScreenshotCallback(ScreenshotCaptureCallback callback) {
     screenshot_callback_ = std::move(callback);
   }
+
+  /**
+   * @brief Set the AI service to use for vision verification.
+   *
+   * When set, uses the provided AIService (e.g., GeminiAIService) for
+   * multimodal requests. When not set, uses placeholder responses.
+   *
+   * @param service Pointer to an AIService instance (caller owns memory)
+   */
+  void SetAIService(cli::AIService* service) { ai_service_ = service; }
 
   // --- Core Verification Methods ---
 
@@ -217,6 +234,7 @@ class AIVisionVerifier {
 
   VisionVerifierConfig config_;
   ScreenshotCaptureCallback screenshot_callback_;
+  cli::AIService* ai_service_ = nullptr;  // Optional AI service for real API calls
   std::vector<uint8_t> last_screenshot_data_;
   int last_width_ = 0;
   int last_height_ = 0;
