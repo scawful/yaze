@@ -12,6 +12,7 @@
 
 set(YAZE_UTIL_SRC
   util/bps.cc
+  util/crash_handler.cc
   util/flag.cc
   util/hex.cc
   util/log.cc
@@ -53,6 +54,8 @@ if(YAZE_ENABLE_GRPC)
     absl::statusor
     absl::strings
     absl::str_format
+    absl::failure_signal_handler
+    absl::symbolize
   )
 else()
   # Link standalone Abseil targets (configured in cmake/absl.cmake)
@@ -61,6 +64,8 @@ else()
     absl::statusor
     absl::strings
     absl::str_format
+    absl::failure_signal_handler
+    absl::symbolize
   )
 endif()
 
