@@ -27,17 +27,20 @@
 #include "cli/service/ai/gemini_ai_service.h"
 #include "cli/service/ai/ollama_ai_service.h"
 #include "cli/service/ai/service_factory.h"
+#include "cli/service/ai/vision_action_refiner.h"
 #include "cli/service/planning/proposal_registry.h"
 #include "cli/service/planning/tile16_proposal_generator.h"
 #include "cli/service/resources/resource_catalog.h"
 #include "cli/service/resources/resource_context_builder.h"
 #include "cli/service/rom/rom_sandbox_manager.h"
 #include "core/project.h"
+#include "app/service/screenshot_utils.h"
 #include "util/macro.h"
 #include "zelda3/dungeon/room.h"
 
 ABSL_DECLARE_FLAG(std::string, rom);
 ABSL_DECLARE_FLAG(std::string, ai_provider);
+ABSL_DECLARE_FLAG(std::string, ai_model);
 
 namespace yaze {
 namespace cli {
@@ -118,6 +121,103 @@ absl::Status EnsureRomLoaded(Rom& rom, const std::string& command) {
   }
 
   return absl::OkStatus();
+}
+
+absl::Status HandleVisionAnalyzeCommand(
+    const std::vector<std::string>& arg_vec) {
+#ifndef YAZE_WITH_JSON
+  return absl::FailedPreconditionError(
+      "Vision analysis requires JSON/Gemini build (rebuild with YAZE_WITH_JSON=ON)");
+#else
+  std::string prompt;
+  std::optional<std::filesystem::path> screenshot_path;
+
+  for (size_t i = 0; i < arg_vec.size(); ++i) {
+    const std::string& tok = arg_vec[i];
+    auto expect_value = [&](const char* flag)
+        -> absl::StatusOr<std::string> {
+      if (i + 1 >= arg_vec.size()) {
+        return absl::InvalidArgumentError(
+            absl::StrFormat("%s requires a value", flag));
+      }
+      return arg_vec[++i];
+    };
+
+    if (tok == "--prompt") {
+      ASSIGN_OR_RETURN(prompt, expect_value("--prompt"));
+    } else if (tok == "--screenshot") {
+      ASSIGN_OR_RETURN(auto path_str, expect_value("--screenshot"));
+      screenshot_path = std::filesystem::path(path_str);
+    } else {
+      return absl::InvalidArgumentError(
+          absl::StrFormat("Unknown flag for vision-analyze: %s", tok));
+    }
+  }
+
+  auto config_or = ResolveAIConfigFromFlags();
+  if (!config_or.ok()) {
+    return config_or.status();
+  }
+  if (config_or->provider != "gemini") {
+    return absl::FailedPreconditionError(
+        "Vision analysis requires Gemini provider. Set --ai_provider=gemini and GEMINI_API_KEY.");
+  }
+
+  auto ai_service_or = CreateAIServiceStrict(*config_or);
+  if (!ai_service_or.ok()) {
+    return ai_service_or.status();
+  }
+
+  auto* gemini = dynamic_cast<GeminiAIService*>(ai_service_or->get());
+  if (gemini == nullptr) {
+    return absl::FailedPreconditionError(
+        "Gemini vision service unavailable (provider mismatch).");
+  }
+
+  std::filesystem::path screenshot_file;
+  if (screenshot_path.has_value()) {
+    screenshot_file = *screenshot_path;
+    if (!std::filesystem::exists(screenshot_file)) {
+      return absl::NotFoundError(
+          absl::StrFormat("Screenshot file not found: %s",
+                          screenshot_file.string()));
+    }
+  } else {
+    auto artifact_or = yaze::test::CaptureHarnessScreenshot();
+    if (!artifact_or.ok()) {
+      return artifact_or.status();
+    }
+    screenshot_file = artifact_or->file_path;
+    std::cout << "📸 Captured screenshot: " << screenshot_file << "\n";
+  }
+
+  ai::VisionActionRefiner refiner(gemini);
+  auto analysis_or = refiner.AnalyzeScreenshot(screenshot_file, prompt);
+  if (!analysis_or.ok()) {
+    return analysis_or.status();
+  }
+
+  const auto& result = *analysis_or;
+  std::cout << "=== Vision Analysis ===\n";
+  if (!result.description.empty()) {
+    std::cout << "Description:\n" << result.description << "\n\n";
+  }
+  if (!result.widgets.empty()) {
+    std::cout << "Widgets (" << result.widgets.size() << "):\n";
+    for (const auto& w : result.widgets) {
+      std::cout << " - " << w << "\n";
+    }
+    std::cout << "\n";
+  }
+  if (!result.suggestions.empty()) {
+    std::cout << "Suggestions (" << result.suggestions.size() << "):\n";
+    for (const auto& s : result.suggestions) {
+      std::cout << " - " << s << "\n";
+    }
+    std::cout << "\n";
+  }
+  return absl::OkStatus();
+#endif
 }
 
 absl::Status HandleDoctorCommand() {
