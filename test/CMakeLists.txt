@@ -144,6 +144,8 @@ if(YAZE_BUILD_TESTS)
     # AI Multimodal Testing Framework
     e2e/ai_multimodal_test.cc
     e2e/emulator_stepping_test.cc
+    # ImGui Test Engine feature demos
+    e2e/imgui_test_engine_demo.cc
   )
 
   if(YAZE_ENABLE_AI_RUNTIME)
