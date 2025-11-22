@@ -9,7 +9,7 @@
  * The Legend of Zelda: A Link to the Past. This API allows external
  * applications to interact with YAZE's functionality.
  * 
- * @version 0.3.2
+ * @version 0.3.3
  * @author YAZE Team
  */
 
@@ -29,10 +29,10 @@ extern "C" {
  */
 
 /** Combined version as a string */
-#define YAZE_VERSION_STRING "0.3.2"
+#define YAZE_VERSION_STRING "0.3.3"
 
 /** Combined version as a number (major * 10000 + minor * 100 + patch) */
-#define YAZE_VERSION_NUMBER 302
+#define YAZE_VERSION_NUMBER 303
 
 /** @} */
 
