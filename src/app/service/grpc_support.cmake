@@ -6,7 +6,8 @@
 # service implementations are contained here, with other libraries linking
 # to this single source of truth.
 #
-# Dependencies: yaze_util, yaze_common, yaze_app_core_lib, yaze_zelda3, yaze_gfx, yaze_gui
+# Dependencies: yaze_util, yaze_common, yaze_zelda3, yaze_gfx, yaze_gui, yaze_emulator
+# Note: yaze_app_core_lib is NOT a dependency to avoid dependency cycles
 # ==============================================================================
 
 set(
@@ -40,9 +41,9 @@ target_include_directories(yaze_grpc_support PUBLIC
   ${PROJECT_BINARY_DIR}
 )
 
-# Link all required yaze libraries
+# Link required yaze libraries (avoid yaze_app_core_lib to break dependency cycle)
+# The cycle was: yaze_agent -> yaze_grpc_support -> yaze_app_core_lib -> yaze_editor -> yaze_agent
 target_link_libraries(yaze_grpc_support PUBLIC
-  yaze_app_core_lib
   yaze_util
   yaze_common
   yaze_zelda3
