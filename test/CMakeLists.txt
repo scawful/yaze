@@ -141,6 +141,9 @@ if(YAZE_BUILD_TESTS)
     e2e/framework_smoke_test.cc
     e2e/dungeon_editor_smoke_test.cc
     e2e/canvas_selection_test.cc
+    # AI Multimodal Testing Framework
+    e2e/ai_multimodal_test.cc
+    e2e/emulator_stepping_test.cc
   )
 
   if(YAZE_ENABLE_AI_RUNTIME)
