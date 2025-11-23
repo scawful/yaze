@@ -79,33 +79,33 @@ void DungeonObjectInteraction::HandleCanvasMouseInput() {
         ImVec2 drag_delta = ImVec2(drag_current_pos_.x - drag_start_pos_.x,
                                    drag_current_pos_.y - drag_start_pos_.y);
 
-          // Convert pixel delta to tile delta
-          int tile_delta_x = static_cast<int>(drag_delta.x) / 8;
-          int tile_delta_y = static_cast<int>(drag_delta.y) / 8;
+        // Convert pixel delta to tile delta
+        int tile_delta_x = static_cast<int>(drag_delta.x) / 8;
+        int tile_delta_y = static_cast<int>(drag_delta.y) / 8;
 
-          // Move all selected objects
-          auto& objects = room.GetTileObjects();
-          for (size_t index : selected_object_indices_) {
-            if (index < objects.size()) {
-              objects[index].x_ += tile_delta_x;
-              objects[index].y_ += tile_delta_y;
+        // Move all selected objects
+        auto& objects = room.GetTileObjects();
+        for (size_t index : selected_object_indices_) {
+          if (index < objects.size()) {
+            objects[index].x_ += tile_delta_x;
+            objects[index].y_ += tile_delta_y;
 
-              // Clamp to room bounds (64x64 tiles)
-              objects[index].x_ =
-                  std::clamp(static_cast<int>(objects[index].x_), 0, 63);
-              objects[index].y_ =
-                  std::clamp(static_cast<int>(objects[index].y_), 0, 63);
-            }
+            // Clamp to room bounds (64x64 tiles)
+            objects[index].x_ =
+                std::clamp(static_cast<int>(objects[index].x_), 0, 63);
+            objects[index].y_ =
+                std::clamp(static_cast<int>(objects[index].y_), 0, 63);
           }
+        }
 
-          // Trigger cache invalidation and re-render
-          if (cache_invalidation_callback_) {
-            cache_invalidation_callback_();
-          }
+        // Trigger cache invalidation and re-render
+        if (cache_invalidation_callback_) {
+          cache_invalidation_callback_();
         }
       }
     }
   }
+}
 }
 
 void DungeonObjectInteraction::CheckForObjectSelection() {
@@ -155,9 +155,11 @@ void DungeonObjectInteraction::DrawObjectSelectRect() {
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
     // Use accent color for selection box (high visibility at 0.85f alpha)
     ImU32 selection_color = ImGui::ColorConvertFloat4ToU32(
-        ImVec4(theme.accent_color.x, theme.accent_color.y, theme.accent_color.z, 0.85f));
+        ImVec4(theme.accent_color.x, theme.accent_color.y, theme.accent_color.z,
+               0.85f));
     ImU32 selection_fill = ImGui::ColorConvertFloat4ToU32(
-        ImVec4(theme.accent_color.x, theme.accent_color.y, theme.accent_color.z, 0.15f));
+        ImVec4(theme.accent_color.x, theme.accent_color.y, theme.accent_color.z,
+               0.15f));
     draw_list->AddRect(start, end, selection_color, 0.0f, 0, 2.0f);
     draw_list->AddRectFilled(start, end, selection_fill);
   }
@@ -305,10 +307,10 @@ void DungeonObjectInteraction::DrawSelectBox() {
       canvas_pos.y + std::max(select_start_pos_.y, select_current_pos_.y));
 
   // Draw selection box with theme colors
-  ImU32 selection_color = ImGui::ColorConvertFloat4ToU32(
-      ImVec4(theme.accent_color.x, theme.accent_color.y, theme.accent_color.z, 0.85f));
-  ImU32 selection_fill = ImGui::ColorConvertFloat4ToU32(
-      ImVec4(theme.accent_color.x, theme.accent_color.y, theme.accent_color.z, 0.15f));
+  ImU32 selection_color = ImGui::ColorConvertFloat4ToU32(ImVec4(
+      theme.accent_color.x, theme.accent_color.y, theme.accent_color.z, 0.85f));
+  ImU32 selection_fill = ImGui::ColorConvertFloat4ToU32(ImVec4(
+      theme.accent_color.x, theme.accent_color.y, theme.accent_color.z, 0.15f));
   draw_list->AddRect(start, end, selection_color, 0.0f, 0, 2.0f);
   draw_list->AddRectFilled(start, end, selection_fill);
 }
@@ -350,7 +352,8 @@ void DungeonObjectInteraction::DrawDragPreview() {
       // Draw ghosted object
       draw_list->AddRectFilled(preview_start, preview_end,
                                ImGui::GetColorU32(theme.dungeon_drag_preview));
-      draw_list->AddRect(preview_start, preview_end, ImGui::GetColorU32(theme.dungeon_selection_secondary),
+      draw_list->AddRect(preview_start, preview_end,
+                         ImGui::GetColorU32(theme.dungeon_selection_secondary),
                          0.0f, 0, 1.5f);
     }
   }
@@ -624,45 +627,41 @@ void DungeonObjectInteraction::DrawGhostPreview() {
   const auto& theme = AgentUI::GetTheme();
 
   // Draw semi-transparent filled rectangle (ghost effect)
-  ImVec4 preview_fill = ImVec4(
-      theme.dungeon_selection_primary.x,
-      theme.dungeon_selection_primary.y,
-      theme.dungeon_selection_primary.z,
-      0.25f);  // Semi-transparent
+  ImVec4 preview_fill = ImVec4(theme.dungeon_selection_primary.x,
+                               theme.dungeon_selection_primary.y,
+                               theme.dungeon_selection_primary.z,
+                               0.25f);  // Semi-transparent
   draw_list->AddRectFilled(preview_start, preview_end,
                            ImGui::GetColorU32(preview_fill));
 
   // Draw solid outline for visibility
-  ImVec4 preview_outline = ImVec4(
-      theme.dungeon_selection_primary.x,
-      theme.dungeon_selection_primary.y,
-      theme.dungeon_selection_primary.z,
-      0.78f);  // More visible
+  ImVec4 preview_outline = ImVec4(theme.dungeon_selection_primary.x,
+                                  theme.dungeon_selection_primary.y,
+                                  theme.dungeon_selection_primary.z,
+                                  0.78f);  // More visible
   draw_list->AddRect(preview_start, preview_end,
-                     ImGui::GetColorU32(preview_outline),
-                     0.0f, 0, 2.0f);
+                     ImGui::GetColorU32(preview_outline), 0.0f, 0, 2.0f);
 
   // Draw object ID text at corner
   std::string id_text = absl::StrFormat("0x%02X", preview_object_.id_);
   ImVec2 text_pos(preview_start.x + 2, preview_start.y + 2);
-  draw_list->AddText(text_pos, ImGui::GetColorU32(theme.text_primary), id_text.c_str());
+  draw_list->AddText(text_pos, ImGui::GetColorU32(theme.text_primary),
+                     id_text.c_str());
 
   // Draw crosshair at placement position
   constexpr float crosshair_size = 8.0f;
   ImVec2 center(preview_start.x + (obj_width * scale) / 2,
                 preview_start.y + (obj_height * scale) / 2);
-  ImVec4 crosshair_color = ImVec4(
-      theme.text_primary.x,
-      theme.text_primary.y,
-      theme.text_primary.z,
-      0.78f);  // Slightly transparent
+  ImVec4 crosshair_color =
+      ImVec4(theme.text_primary.x, theme.text_primary.y, theme.text_primary.z,
+             0.78f);  // Slightly transparent
   ImU32 crosshair = ImGui::GetColorU32(crosshair_color);
   draw_list->AddLine(ImVec2(center.x - crosshair_size, center.y),
-                     ImVec2(center.x + crosshair_size, center.y),
-                     crosshair, 1.5f);
+                     ImVec2(center.x + crosshair_size, center.y), crosshair,
+                     1.5f);
   draw_list->AddLine(ImVec2(center.x, center.y - crosshair_size),
-                     ImVec2(center.x, center.y + crosshair_size),
-                     crosshair, 1.5f);
+                     ImVec2(center.x, center.y + crosshair_size), crosshair,
+                     1.5f);
 }
 
 }  // namespace yaze::editor
