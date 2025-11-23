@@ -1,8 +1,12 @@
 # AI Infrastructure Improvements Plan
 
-**Branch:** `feature/ai-infra-improvements`
-**Created:** 2025-11-21
-**Status:** Planning
+**Status:** Active  
+**Owner (Agent ID):** ai-infra-architect  
+**Branch:** `feature/ai-infra-improvements`  
+**Created:** 2025-11-21  
+**Last Updated:** 2025-11-25  
+**Next Review:** 2025-12-02  
+**Coordination Board Entry:** link when claimed
 
 ## Overview
 

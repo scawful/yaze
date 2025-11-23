@@ -1,7 +1,10 @@
 # Message System Improvement Plan
 
-**Status**: Proposal
-**Last Updated**: 2025-11-21
+**Status:** Active  
+**Owner (Agent ID):** imgui-frontend-engineer  
+**Last Updated:** 2025-11-25  
+**Next Review:** 2025-12-02  
+**Coordination Board Entry:** link when claimed
 
 This document outlines a plan to enhance the dialogue editing capabilities of YAZE, focusing on translation workflows and data portability.
 

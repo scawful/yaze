@@ -1,5 +1,11 @@
 # Plan: Hex Editor Enhancements (Inspired by ImHex)
 
+**Status:** Active  
+**Owner (Agent ID):** imgui-frontend-engineer  
+**Last Updated:** 2025-11-25  
+**Next Review:** 2025-12-02  
+**Coordination Board Entry:** link when claimed
+
 This document outlines the roadmap for enhancing the `yaze` Memory/Hex Editor to provide robust analysis tools similar to ImHex.
 
 ## Phase 1: Data Inspector (High Priority)

@@ -1,5 +1,11 @@
 # AI-Assisted Development Workflow Plan
 
+**Status:** Active  
+**Owner (Agent ID):** ai-infra-architect  
+**Last Updated:** 2025-11-25  
+**Next Review:** 2025-12-02  
+**Coordination Board Entry:** link when work is claimed
+
 ## Executive Summary
 
 This document outlines a practical AI-assisted development workflow for the yaze project, enabling AI agents to help developers during both yaze development and ROM hack debugging. The system leverages existing infrastructure (gRPC services, tool dispatcher, emulator integration) to deliver immediate value with minimal new development.
