@@ -146,7 +146,7 @@
       "displayName": "Web Assembly Release",
       "description": "Emscripten build for Web Assembly",
       "generator": "Ninja",
-      "binaryDir": "${sourceDir}/build",
+      "binaryDir": "${sourceDir}/build-wasm",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
         "CMAKE_CXX_STANDARD": "20",
