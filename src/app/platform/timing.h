@@ -1,7 +1,7 @@
 #ifndef YAZE_APP_CORE_TIMING_H
 #define YAZE_APP_CORE_TIMING_H
 
-#include <SDL.h>
+#include "app/platform/sdl_compat.h"
 
 #include <cstdint>
 

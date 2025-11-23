@@ -4,7 +4,7 @@
 #ifdef YAZE_USE_SDL3
 #include <SDL3/SDL.h>
 #else
-#include <SDL.h>
+#include "app/platform/sdl_compat.h"
 #endif
 
 namespace yaze {

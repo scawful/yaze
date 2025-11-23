@@ -3,7 +3,7 @@
 #ifndef YAZE_APP_PLATFORM_SDL2_WINDOW_BACKEND_H_
 #define YAZE_APP_PLATFORM_SDL2_WINDOW_BACKEND_H_
 
-#include <SDL.h>
+#include "app/platform/sdl_compat.h"
 
 #include <memory>
 #include <string>
