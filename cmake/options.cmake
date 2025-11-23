@@ -12,7 +12,7 @@ option(YAZE_BUILD_TESTS "Build test suite" ON)
 # Feature flags
 option(YAZE_ENABLE_GRPC "Enable gRPC agent support" ON)
 option(YAZE_ENABLE_JSON "Enable JSON support" ON)
-option(YAZE_ENABLE_AI "Enable AI agent features" ON)
+option(YAZE_ENABLE_AI "Enable AI agent features" OFF)
 
 # Advanced feature toggles
 option(YAZE_ENABLE_REMOTE_AUTOMATION
@@ -51,6 +51,7 @@ option(YAZE_USE_SYSTEM_DEPS "Use system package manager for dependencies" OFF)
 
 # Development options
 option(YAZE_ENABLE_ROM_TESTS "Enable tests that require ROM files" OFF)
+option(YAZE_ENABLE_BENCHMARK_TESTS "Enable benchmark/performance tests" OFF)
 option(YAZE_MINIMAL_BUILD "Minimal build for CI (disable optional features)" OFF)
 option(YAZE_VERBOSE_BUILD "Verbose build output" OFF)
 
