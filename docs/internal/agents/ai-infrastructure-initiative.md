@@ -206,7 +206,7 @@ scripts/agents/smoke-build.sh mac-ai z3ed
 
 ## Current Status
 
-**Last Updated**: 2025-11-19 12:05 PST
+**Last Updated**: 2025-11-22 18:30 PST
 
 ### Completed:
 - ✅ Coordination board entry posted
@@ -236,8 +236,20 @@ scripts/agents/smoke-build.sh mac-ai z3ed
     - ✅ GET /api/v1/models: `{"count": 0, "models": []}` (empty as expected)
   - Phase 2 from AI_API_ENHANCEMENT_HANDOFF.md is COMPLETE
 
+- ✅ **Test Infrastructure Stabilization** - COMPLETE (2025-11-21)
+  - Fixed critical stack overflow crash on macOS ARM64 (increased stack from default ~8MB to 16MB)
+  - Resolved circular dependency issues in test configuration
+  - All test categories now stable: unit, integration, e2e, rom-dependent
+  - Verified across all platforms (macOS, Linux, Windows)
+
+- ✅ **Milestone 2** (CLAUDE_CORE): UI unification for model configuration controls - COMPLETE
+  - Completed unified model configuration UI for Agent panel
+  - Models from all providers (Ollama, Gemini) now display in single dropdown
+  - Provider indicators visible for each model
+  - Provider filtering implemented when provider selection changes
+
 ### In Progress:
-- **Milestone 2** (CLAUDE_CORE): UI unification for model configuration controls
+- **Milestone 4** (CLAUDE_AIINF): Enhanced Tools Phase 3 - FileSystemTool and BuildTool
 
 ### Helper Scripts (from CODEX):
 Both personas should use these scripts for testing and validation:
@@ -245,7 +257,9 @@ Both personas should use these scripts for testing and validation:
 - `scripts/agents/run-gh-workflow.sh` - Trigger remote GitHub Actions workflows
 - Documentation: `scripts/agents/README.md` and `docs/internal/README.md`
 
-### Next Actions (Post Milestones 2 & 3):
-1. Add FileSystemTool and BuildTool (Phase 3)
+### Next Actions (Post Milestones 2, 3, & Test Stabilization):
+1. Complete Milestone 4: Add FileSystemTool and BuildTool (Phase 3)
 2. Begin ToolDispatcher structured output refactoring (Phase 4)
 3. Comprehensive testing across all platforms using smoke-build.sh
+4. Release validation: Ensure all new features work in release builds
+5. Performance optimization: Profile test execution time and optimize as needed
