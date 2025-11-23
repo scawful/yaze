@@ -17,8 +17,7 @@ EmscriptenHttpClient::~EmscriptenHttpClient() {
   // Destructor
 }
 
-void EmscriptenHttpClient::OnFetchSuccess(void* fetch_handle) {
-  emscripten_fetch_t* fetch = static_cast<emscripten_fetch_t*>(fetch_handle);
+void EmscriptenHttpClient::OnFetchSuccess(emscripten_fetch_t* fetch) {
   FetchResult* result = static_cast<FetchResult*>(fetch->userData);
 
   {
@@ -38,8 +37,7 @@ void EmscriptenHttpClient::OnFetchSuccess(void* fetch_handle) {
   emscripten_fetch_close(fetch);
 }
 
-void EmscriptenHttpClient::OnFetchError(void* fetch_handle) {
-  emscripten_fetch_t* fetch = static_cast<emscripten_fetch_t*>(fetch_handle);
+void EmscriptenHttpClient::OnFetchError(emscripten_fetch_t* fetch) {
   FetchResult* result = static_cast<FetchResult*>(fetch->userData);
 
   {
@@ -60,9 +58,10 @@ void EmscriptenHttpClient::OnFetchError(void* fetch_handle) {
   emscripten_fetch_close(fetch);
 }
 
-void EmscriptenHttpClient::OnFetchProgress(void* fetch_handle) {
+void EmscriptenHttpClient::OnFetchProgress(emscripten_fetch_t* fetch) {
   // Progress callback - can be used for download progress
   // Not implemented for now
+  (void)fetch;  // Suppress unused parameter warning
 }
 
 absl::StatusOr<HttpResponse> EmscriptenHttpClient::PerformFetch(

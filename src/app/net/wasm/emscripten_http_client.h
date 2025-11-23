@@ -6,6 +6,8 @@
 #include <mutex>
 #include <condition_variable>
 
+#include <emscripten/fetch.h>
+
 #include "app/net/http_client.h"
 
 namespace yaze {
@@ -99,17 +101,17 @@ class EmscriptenHttpClient : public IHttpClient {
   /**
    * @brief Success callback for fetch operations
    */
-  static void OnFetchSuccess(void* fetch_handle);
+  static void OnFetchSuccess(emscripten_fetch_t* fetch);
 
   /**
    * @brief Error callback for fetch operations
    */
-  static void OnFetchError(void* fetch_handle);
+  static void OnFetchError(emscripten_fetch_t* fetch);
 
   /**
    * @brief Progress callback for fetch operations
    */
-  static void OnFetchProgress(void* fetch_handle);
+  static void OnFetchProgress(emscripten_fetch_t* fetch);
 };
 
 }  // namespace net
