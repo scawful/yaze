@@ -285,11 +285,11 @@ class EditorManager {
 
 #ifdef YAZE_WITH_GRPC
   AutomationBridge harness_telemetry_bridge_;
-#endif
 
   // Agent chat history popup
   AgentChatHistoryPopup agent_chat_history_popup_;
   bool show_chat_history_popup_ = false;
+#endif
 
   // Project file editor
   ProjectFileEditor project_file_editor_;

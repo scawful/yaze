@@ -79,22 +79,23 @@ void DungeonObjectInteraction::HandleCanvasMouseInput() {
         ImVec2 drag_delta = ImVec2(drag_current_pos_.x - drag_start_pos_.x,
                                    drag_current_pos_.y - drag_start_pos_.y);
 
-        // Convert pixel delta to tile delta
-        int tile_delta_x = static_cast<int>(drag_delta.x) / 8;
-        int tile_delta_y = static_cast<int>(drag_delta.y) / 8;
+          // Convert pixel delta to tile delta
+          int tile_delta_x = static_cast<int>(drag_delta.x) / 8;
+          int tile_delta_y = static_cast<int>(drag_delta.y) / 8;
 
-        // Move all selected objects
-        auto& objects = room.GetTileObjects();
-        for (size_t index : selected_object_indices_) {
-          if (index < objects.size()) {
-            objects[index].x_ += tile_delta_x;
-            objects[index].y_ += tile_delta_y;
+          // Move all selected objects
+          auto& objects = room.GetTileObjects();
+          for (size_t index : selected_object_indices_) {
+            if (index < objects.size()) {
+              objects[index].x_ += tile_delta_x;
+              objects[index].y_ += tile_delta_y;
 
-            // Clamp to room bounds (64x64 tiles)
-            objects[index].x_ =
-                std::clamp(static_cast<int>(objects[index].x_), 0, 63);
-            objects[index].y_ =
-                std::clamp(static_cast<int>(objects[index].y_), 0, 63);
+              // Clamp to room bounds (64x64 tiles)
+              objects[index].x_ =
+                  std::clamp(static_cast<int>(objects[index].x_), 0, 63);
+              objects[index].y_ =
+                  std::clamp(static_cast<int>(objects[index].y_), 0, 63);
+            }
           }
         }
 
@@ -272,13 +273,14 @@ void DungeonObjectInteraction::PlaceObjectAtPosition(int room_x, int room_y) {
   new_object.x_ = room_x;
   new_object.y_ = room_y;
 
-  // Add object to room
-  auto& room = (*rooms_)[current_room_id_];
-  room.AddTileObject(new_object);
+    // Add object to room
+    auto& room = (*rooms_)[current_room_id_];
+    room.AddTileObject(new_object);
+  }
 
   // Notify callback if set
   if (object_placed_callback_) {
-    object_placed_callback_(new_object);
+    object_placed_callback_(preview_object_);
   }
 
   // Trigger cache invalidation
@@ -490,13 +492,14 @@ void DungeonObjectInteraction::HandleDeleteSelected() {
 
   auto& room = (*rooms_)[current_room_id_];
 
-  // Sort indices in descending order to avoid index shifts during deletion
-  std::vector<size_t> sorted_indices = selected_object_indices_;
-  std::sort(sorted_indices.rbegin(), sorted_indices.rend());
+    // Sort indices in descending order to avoid index shifts during deletion
+    std::vector<size_t> sorted_indices = selected_object_indices_;
+    std::sort(sorted_indices.rbegin(), sorted_indices.rend());
 
-  // Delete selected objects using Room's RemoveTileObject method
-  for (size_t index : sorted_indices) {
-    room.RemoveTileObject(index);
+    // Delete selected objects using Room's RemoveTileObject method
+    for (size_t index : sorted_indices) {
+      room.RemoveTileObject(index);
+    }
   }
 
   // Clear selection

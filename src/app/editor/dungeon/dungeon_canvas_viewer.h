@@ -8,6 +8,7 @@
 #include "app/rom.h"
 #include "dungeon_object_interaction.h"
 #include "imgui/imgui.h"
+#include "zelda3/dungeon/dungeon_editor_system.h"
 #include "zelda3/dungeon/room.h"
 
 namespace yaze {
@@ -54,6 +55,10 @@ class DungeonCanvasViewer {
 
   // Object interaction access
   DungeonObjectInteraction& object_interaction() { return object_interaction_; }
+
+  void SetEditorSystem(zelda3::DungeonEditorSystem* system) {
+    object_interaction_.SetEditorSystem(system);
+  }
 
   // Enable/disable object interaction mode
   void SetObjectInteractionEnabled(bool enabled) {
@@ -127,6 +132,9 @@ class DungeonCanvasViewer {
   // ObjectRenderer removed - use ObjectDrawer for rendering (production system)
   DungeonObjectInteraction object_interaction_;
 
+  // Scroll target
+  std::optional<std::pair<int, int>> pending_scroll_target_;
+
   // Room data
   std::array<zelda3::Room, 0x128>* rooms_ = nullptr;
   // Used by overworld editor for double-click entrance → open dungeon room
@@ -171,6 +179,7 @@ class DungeonCanvasViewer {
   bool show_object_bounds_ = false;
   bool show_layer_info_ = false;
   int layout_override_ = -1;  // -1 for no override
+  int custom_grid_size_ = 8;
 
   // Object outline filtering toggles
   struct ObjectOutlineToggles {

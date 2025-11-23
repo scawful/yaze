@@ -1050,8 +1050,10 @@ void EditorManager::DrawMenuBar() {
   proposal_drawer_.SetRom(GetCurrentRom());
   proposal_drawer_.Draw();
 
+#ifdef YAZE_WITH_GRPC
   // Agent chat history popup (left side)
   agent_chat_history_popup_.Draw();
+#endif
 
   // Welcome screen is now drawn by UICoordinator::DrawAllUI()
   // Removed duplicate call to avoid showing welcome screen twice
