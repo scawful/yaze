@@ -267,6 +267,7 @@ int main(int argc, char* argv[]) {
   ::testing::InitGoogleTest(&argc, argv);
 
   if (config.enable_ui_tests) {
+#ifdef YAZE_GUI_TEST_TARGET
     // Use the Controller to create window and initialize everything
     // This ensures the yaze UI is properly set up for testing
     yaze::Controller controller;
@@ -301,7 +302,7 @@ int main(int argc, char* argv[]) {
     std::cout << "Running tests in " << speed_name << " mode" << std::endl;
 
     // Register E2E tests only for GUI test targets (they have the source files)
-#ifdef YAZE_GUI_TEST_TARGET
+
     // Framework smoke tests
     ImGuiTest* smoke_test =
         IM_REGISTER_TEST(engine, "E2ETest", "FrameworkSmokeTest");
@@ -316,7 +317,7 @@ int main(int argc, char* argv[]) {
     // This includes: smoke tests, visual verification, object drawing,
     // canvas interaction, and layer rendering tests (18 total)
     yaze::test::e2e::RegisterDungeonE2ETests(engine, &controller);
-#endif
+
 
     // Queue all registered tests to run automatically
     ImGuiTestEngine_QueueTests(engine, ImGuiTestGroup_Tests, nullptr, 0);
@@ -365,6 +366,10 @@ int main(int argc, char* argv[]) {
     controller.OnExit();
 
     return result;
+#else
+    std::cerr << "UI tests are not supported in this build configuration." << std::endl;
+    return 1;
+#endif
   } else {
     // Run tests
     int result = RUN_ALL_TESTS();

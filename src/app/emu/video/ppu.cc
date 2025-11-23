@@ -132,6 +132,7 @@ void Ppu::Reset() {
   ppu1_open_bus_ = 0;
   ppu2_open_bus_ = 0;
   memset(pixelBuffer, 0, sizeof(pixelBuffer));
+  last_rendered_x_ = 0;
 }
 
 void Ppu::HandleFrameStart() {
@@ -142,8 +143,10 @@ void Ppu::HandleFrameStart() {
   even_frame = !even_frame;
 }
 
-void Ppu::RunLine(int line) {
-  // called for lines 1-224/239
+void Ppu::StartLine(int line) {
+  current_scanline_ = line;
+  last_rendered_x_ = 0;
+
   // evaluate sprites
   obj_pixel_buffer_.fill(0);
   if (!forced_blank_)
@@ -151,9 +154,27 @@ void Ppu::RunLine(int line) {
   // actual line
   if (mode == 7)
     CalculateMode7Starts(line);
-  for (int x = 0; x < 256; x++) {
-    HandlePixel(x, line);
+}
+
+void Ppu::CatchUp(int h_pos) {
+  // h_pos is in master cycles. 1 pixel = 4 cycles.
+  // Visible pixels are 0-255, corresponding to h_pos 0-1024 roughly.
+  int target_x = h_pos / 4;
+
+  // Clamp to screen width
+  if (target_x > 256) target_x = 256;
+  if (target_x <= last_rendered_x_) return;
+
+  for (int x = last_rendered_x_; x < target_x; x++) {
+    HandlePixel(x, current_scanline_);
   }
+  last_rendered_x_ = target_x;
+}
+
+void Ppu::RunLine(int line) {
+  // Legacy wrapper - renders the whole line at once
+  StartLine(line);
+  CatchUp(2000); // Ensure full line (256 pixels * 4 = 1024)
 }
 
 void Ppu::HandlePixel(int x, int y) {
