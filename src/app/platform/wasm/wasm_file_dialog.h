@@ -116,6 +116,8 @@ class WasmFileDialog {
    */
   static std::unique_ptr<PendingOperation> GetPendingOperation(int callback_id);
 
+ public:
+  // These must be public to be called from extern "C" functions
   /**
    * @brief Handle file load completion (called from JavaScript)
    * @param callback_id The callback ID
@@ -141,13 +143,6 @@ class WasmFileDialog {
    * @param error_message Error description
    */
   static void HandleFileError(int callback_id, const char* error_message);
-
-  // Friend functions for C callbacks from JavaScript
-  friend void yazeHandleFileLoaded(int callback_id, const char* filename,
-                                   const uint8_t* data, size_t size);
-  friend void yazeHandleTextFileLoaded(int callback_id, const char* filename,
-                                       const char* content);
-  friend void yazeHandleFileError(int callback_id, const char* error_message);
 };
 
 }  // namespace platform
