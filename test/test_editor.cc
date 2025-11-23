@@ -3,7 +3,7 @@
 #include <SDL.h>
 
 #include "app/controller.h"
-#include "app/gfx/backend/sdl2_renderer.h"
+#include "app/gfx/backend/renderer_factory.h"
 #include "app/gui/core/style.h"
 #include "app/platform/window.h"
 #include "imgui.h"
@@ -62,8 +62,8 @@ void TestEditor::RegisterTests(ImGuiTestEngine* engine) {
 int RunIntegrationTest() {
   yaze::Controller controller;
   yaze::core::Window window;
-  // Create renderer for test
-  auto test_renderer = std::make_unique<yaze::gfx::SDL2Renderer>();
+  // Create renderer for test (uses factory for SDL2/SDL3 selection)
+  auto test_renderer = yaze::gfx::RendererFactory::Create();
   yaze::core::CreateWindow(window, test_renderer.get(), SDL_WINDOW_RESIZABLE);
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
