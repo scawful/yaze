@@ -53,7 +53,12 @@ void TestEditor::RegisterTests(ImGuiTestEngine* engine) {
 }
 #endif
 
-// TODO: Fix the window/controller management
+// NOTE: Window/controller lifecycle management needs refactoring.
+// Current issues:
+// 1. Window created via CreateWindow but controller.window() used for ImGui init
+// 2. Window and controller have separate SDL window handles
+// 3. Test engine cleanup order may cause issues
+// TODO(integration): Unify window management between core::Window and Controller
 int RunIntegrationTest() {
   yaze::Controller controller;
   yaze::core::Window window;
