@@ -9,7 +9,6 @@
 #include <string>
 
 #include "absl/status/status.h"
-#include "app/editor/agent/agent_chat_history_popup.h"
 #include "app/editor/code/project_file_editor.h"
 #include "app/editor/editor.h"
 #include "app/editor/session_types.h"
@@ -38,6 +37,7 @@
 #include "zelda3/overworld/overworld.h"
 
 #ifdef YAZE_WITH_GRPC
+#include "app/editor/agent/agent_chat_history_popup.h"
 #include "app/editor/agent/agent_editor.h"
 #include "app/editor/agent/automation_bridge.h"
 
