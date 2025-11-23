@@ -2,7 +2,7 @@
 
 #include "app/editor/agent/agent_chat_widget.h"
 
-#include <SDL.h>
+#include "app/platform/sdl_compat.h"
 
 #include <algorithm>
 #include <cstdio>

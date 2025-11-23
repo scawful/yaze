@@ -1,7 +1,7 @@
 #ifndef YAZE_APP_GFX_BPP_FORMAT_MANAGER_H
 #define YAZE_APP_GFX_BPP_FORMAT_MANAGER_H
 
-#include <SDL.h>
+#include "app/platform/sdl_compat.h"
 
 #include <memory>
 #include <string>

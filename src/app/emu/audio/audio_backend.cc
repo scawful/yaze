@@ -2,7 +2,7 @@
 
 #include "app/emu/audio/audio_backend.h"
 
-#include <SDL.h>
+#include "app/platform/sdl_compat.h"
 
 #include <algorithm>
 #include <vector>

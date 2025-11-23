@@ -2,7 +2,7 @@
 
 #include "app/platform/sdl2_window_backend.h"
 
-#include <SDL.h>
+#include "app/platform/sdl_compat.h"
 
 #include <filesystem>
 
