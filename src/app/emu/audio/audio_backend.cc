@@ -13,6 +13,10 @@
 #include "app/emu/audio/sdl3_audio_backend.h"
 #endif
 
+#ifdef __EMSCRIPTEN__
+#include "app/emu/platform/wasm/wasm_audio.h"
+#endif
+
 namespace yaze {
 namespace emu {
 namespace audio {
@@ -344,6 +348,14 @@ std::unique_ptr<IAudioBackend> AudioBackendFactory::Create(BackendType type) {
       return std::make_unique<SDL3AudioBackend>();
 #else
       LOG_ERROR("AudioBackend", "SDL3 backend requested but not compiled with SDL3 support");
+      return std::make_unique<SDL2AudioBackend>();
+#endif
+
+    case BackendType::WASM:
+#ifdef __EMSCRIPTEN__
+      return std::make_unique<WasmAudioBackend>();
+#else
+      LOG_ERROR("AudioBackend", "WASM backend requested but not compiled for Emscripten");
       return std::make_unique<SDL2AudioBackend>();
 #endif
 
