@@ -64,6 +64,22 @@ enum class ToolCallType {
   kEmulatorWriteMemory,
   kEmulatorGetRegisters,
   kEmulatorGetMetrics,
+  // Filesystem
+  kFilesystemList,
+  kFilesystemRead,
+  kFilesystemExists,
+  kFilesystemInfo,
+  // Build Tools
+  kBuildConfigure,
+  kBuildCompile,
+  kBuildTest,
+  kBuildStatus,
+  // Memory Inspector Tools
+  kMemoryAnalyze,
+  kMemorySearch,
+  kMemoryCompare,
+  kMemoryCheck,
+  kMemoryRegions,
 };
 
 class ToolDispatcher {
@@ -82,12 +98,15 @@ class ToolDispatcher {
 #else
     bool emulator = false;
 #endif
+    bool filesystem = true;
+    bool build = true;
+    bool memory_inspector = true;
   };
 
   ToolDispatcher() = default;
 
   // Execute a tool call and return the result as a string.
-  absl::StatusOr<std::string> Dispatch(const ToolCall& tool_call);
+  absl::StatusOr<std::string> Dispatch(const ::yaze::cli::ToolCall& tool_call);
   // Provide a ROM context for tool calls that require ROM access.
   void SetRomContext(Rom* rom) { rom_context_ = rom; }
   void SetToolPreferences(const ToolPreferences& prefs) {
