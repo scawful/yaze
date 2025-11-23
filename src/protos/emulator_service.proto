@@ -303,6 +303,7 @@ message TraceEntry {
   string instruction = 2;
   CPUState cpu_state_before = 3;
   uint64 cycle_count = 4;
+  uint32 opcode = 5;
 }
 
 message TraceResponse {

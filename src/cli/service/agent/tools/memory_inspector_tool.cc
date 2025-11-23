@@ -238,43 +238,44 @@ absl::Status MemoryAnalyzeTool::ValidateArgs(
 absl::Status MemoryAnalyzeTool::Execute(
     Rom* rom, const resources::ArgumentParser& parser,
     resources::OutputFormatter& formatter) {
-  auto addr_result = ParseAddress(parser.GetArg("address"));
+  auto addr_str = parser.GetString("address");
+  if (!addr_str.has_value()) {
+    return absl::InvalidArgumentError("Missing required argument: address");
+  }
+  auto addr_result = ParseAddress(*addr_str);
   if (!addr_result.ok())
     return addr_result.status();
   uint32_t address = *addr_result;
 
-  int length = std::stoi(parser.GetArg("length", "16"));
+  int length = std::stoi(parser.GetString("length").value_or("16"));
   if (length <= 0 || length > 0x10000) {
     return absl::InvalidArgumentError("Length must be between 1 and 65536");
   }
 
   // Build analysis result
-  std::map<std::string, std::string> result;
-  result["address"] = absl::StrFormat("$%06X", address);
-  result["length"] = std::to_string(length);
-  result["region"] = DescribeAddress(address);
-  result["data_type"] = IdentifyDataType(address);
-
-  // Note: In a real implementation, this would read from the emulator
-  // via gRPC. For now, we provide the structure for analysis.
-  result["note"] = "Connect to emulator via gRPC to read actual memory data";
+  formatter.BeginObject("MemoryAnalysis");
+  formatter.AddField("address", absl::StrFormat("$%06X", address));
+  formatter.AddField("length", length);
+  formatter.AddField("region", DescribeAddress(address));
+  formatter.AddField("data_type", IdentifyDataType(address));
+  formatter.AddField("note", "Connect to emulator via gRPC to read actual memory data");
 
   // Provide context-specific analysis hints
   if (ALTTPMemoryMap::IsSpriteTable(address)) {
-    result["analysis_hint"] =
+    formatter.AddField("analysis_hint",
         "Sprite table: Check sprite_state ($DD0), sprite_type ($E20), "
-        "sprite_health ($E50) for each sprite (0-15)";
+        "sprite_health ($E50) for each sprite (0-15)");
   } else if (address >= ALTTPMemoryMap::kLinkYLow &&
              address <= ALTTPMemoryMap::kLinkDirection) {
-    result["analysis_hint"] =
-        "Player state: Position at $20-$23, state at $5D, direction at $2F";
+    formatter.AddField("analysis_hint",
+        "Player state: Position at $20-$23, state at $5D, direction at $2F");
   } else if (address == ALTTPMemoryMap::kGameMode) {
-    result["analysis_hint"] =
+    formatter.AddField("analysis_hint",
         "Game mode: 0x07=Dungeon, 0x09=Overworld, 0x19=Inventory, "
-        "0x0D=Dialogue";
+        "0x0D=Dialogue");
   }
 
-  formatter.OutputMap(result);
+  formatter.EndObject();
   return absl::OkStatus();
 }
 
@@ -370,8 +371,12 @@ absl::Status MemorySearchTool::ValidateArgs(
 absl::Status MemorySearchTool::Execute(
     Rom* rom, const resources::ArgumentParser& parser,
     resources::OutputFormatter& formatter) {
-  std::string pattern_str = parser.GetArg("pattern");
-  int max_results = std::stoi(parser.GetArg("max-results", "10"));
+  auto pattern_opt = parser.GetString("pattern");
+  if (!pattern_opt.has_value()) {
+    return absl::InvalidArgumentError("Missing required argument: pattern");
+  }
+  std::string pattern_str = *pattern_opt;
+  int max_results = std::stoi(parser.GetString("max-results").value_or("10"));
 
   auto pattern_result = ParsePattern(pattern_str);
   if (!pattern_result.ok())
@@ -379,11 +384,11 @@ absl::Status MemorySearchTool::Execute(
 
   auto [pattern, mask] = *pattern_result;
 
-  std::map<std::string, std::string> result;
-  result["pattern"] = pattern_str;
-  result["pattern_length"] = std::to_string(pattern.size());
-  result["max_results"] = std::to_string(max_results);
-  result["note"] = "Connect to emulator via gRPC to search actual memory";
+  formatter.BeginObject("MemorySearch");
+  formatter.AddField("pattern", pattern_str);
+  formatter.AddField("pattern_length", static_cast<int>(pattern.size()));
+  formatter.AddField("max_results", max_results);
+  formatter.AddField("note", "Connect to emulator via gRPC to search actual memory");
 
   // Show parsed pattern
   std::ostringstream parsed;
@@ -396,9 +401,9 @@ absl::Status MemorySearchTool::Execute(
       parsed << "??";
     }
   }
-  result["parsed_pattern"] = parsed.str();
+  formatter.AddField("parsed_pattern", parsed.str());
 
-  formatter.OutputMap(result);
+  formatter.EndObject();
   return absl::OkStatus();
 }
 
@@ -486,25 +491,25 @@ absl::Status MemoryCompareTool::ValidateArgs(
 absl::Status MemoryCompareTool::Execute(
     Rom* rom, const resources::ArgumentParser& parser,
     resources::OutputFormatter& formatter) {
-  auto addr_result = ParseAddress(parser.GetArg("address"));
+  auto addr_result = ParseAddress(parser.GetString("address").value_or(""));
   if (!addr_result.ok())
     return addr_result.status();
   uint32_t address = *addr_result;
 
-  std::string expected_str = parser.GetArg("expected", "");
+  std::string expected_str = parser.GetString("expected").value_or("");
 
-  std::map<std::string, std::string> result;
-  result["address"] = absl::StrFormat("$%06X", address);
-  result["region"] = DescribeAddress(address);
+  formatter.BeginObject();
+  formatter.AddField("address", absl::StrFormat("$%06X", address));
+  formatter.AddField("region", DescribeAddress(address));
 
   if (!expected_str.empty()) {
-    result["expected"] = expected_str;
-    result["note"] = "Connect to emulator via gRPC to compare actual memory";
+    formatter.AddField("expected", expected_str);
+    formatter.AddField("note", "Connect to emulator via gRPC to compare actual memory");
   } else {
-    result["note"] = "Provide --expected <hex> to compare against expected values";
+    formatter.AddField("note", "Provide --expected <hex> to compare against expected values");
   }
 
-  formatter.OutputMap(result);
+  formatter.EndObject();
   return absl::OkStatus();
 }
 
@@ -520,11 +525,7 @@ absl::Status MemoryCheckTool::ValidateArgs(
 absl::Status MemoryCheckTool::Execute(
     Rom* rom, const resources::ArgumentParser& parser,
     resources::OutputFormatter& formatter) {
-  std::string region = parser.GetArg("region", "all");
-
-  std::map<std::string, std::string> result;
-  result["region"] = region;
-  result["note"] = "Connect to emulator via gRPC to check actual memory";
+  std::string region = parser.GetString("region").value_or("all");
 
   // Provide check descriptions
   std::vector<std::string> checks;
@@ -542,9 +543,12 @@ absl::Status MemoryCheckTool::Execute(
   for (const auto& check : checks) {
     checks_str << "- " << check << "\n";
   }
-  result["available_checks"] = checks_str.str();
 
-  formatter.OutputMap(result);
+  formatter.BeginObject();
+  formatter.AddField("region", region);
+  formatter.AddField("note", "Connect to emulator via gRPC to check actual memory");
+  formatter.AddField("available_checks", checks_str.str());
+  formatter.EndObject();
   return absl::OkStatus();
 }
 
@@ -640,7 +644,7 @@ absl::Status MemoryRegionsTool::ValidateArgs(
 absl::Status MemoryRegionsTool::Execute(
     Rom* rom, const resources::ArgumentParser& parser,
     resources::OutputFormatter& formatter) {
-  std::string filter = parser.GetArg("filter", "");
+  std::string filter = parser.GetString("filter").value_or("");
 
   auto regions = GetKnownRegions();
 
@@ -656,19 +660,20 @@ absl::Status MemoryRegionsTool::Execute(
     regions = filtered;
   }
 
-  // Build output table
-  std::vector<std::vector<std::string>> rows;
+  // Build output as object with regions array
+  formatter.BeginObject();
+  formatter.BeginArray("regions");
   for (const auto& region : regions) {
-    rows.push_back({
-        region.name,
-        absl::StrFormat("$%06X", region.start_address),
-        absl::StrFormat("$%06X", region.end_address),
-        region.data_type,
-        region.description,
-    });
+    formatter.BeginObject();
+    formatter.AddField("name", region.name);
+    formatter.AddField("start", absl::StrFormat("$%06X", region.start_address));
+    formatter.AddField("end", absl::StrFormat("$%06X", region.end_address));
+    formatter.AddField("type", region.data_type);
+    formatter.AddField("description", region.description);
+    formatter.EndObject();
   }
-
-  formatter.OutputTable({"Name", "Start", "End", "Type", "Description"}, rows);
+  formatter.EndArray();
+  formatter.EndObject();
   return absl::OkStatus();
 }
 

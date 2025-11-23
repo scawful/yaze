@@ -13,6 +13,8 @@ namespace yaze {
 namespace cli {
 namespace agent {
 
+using namespace yaze::agent;
+
 namespace {
 
 // Helper to format a 24-bit SNES address
@@ -156,7 +158,7 @@ absl::StatusOr<RomDebugAgent::MemoryAnalysis> RomDebugAgent::AnalyzeMemory(
   analysis.length = length;
 
   // Read the memory
-  grpc::ClientContext context;
+  grpc::ServerContext context;
   MemoryRequest mem_req;
   mem_req.set_address(address);
   mem_req.set_size(length);
@@ -419,7 +421,7 @@ absl::StatusOr<RomDebugAgent::PatchComparisonResult> RomDebugAgent::ComparePatch
   result.is_safe = true;  // Assume safe until proven otherwise
 
   // Read the patched code from emulator
-  grpc::ClientContext context;
+  grpc::ServerContext context;
   MemoryRequest mem_req;
   mem_req.set_address(address);
   mem_req.set_size(length);
@@ -545,7 +547,7 @@ std::vector<RomDebugAgent::DetectedIssue> RomDebugAgent::ScanForIssues(
   std::vector<DetectedIssue> issues;
 
   // Read the code region
-  grpc::ClientContext context;
+  grpc::ServerContext context;
   MemoryRequest mem_req;
   mem_req.set_address(start_address);
   mem_req.set_size(end_address - start_address);
@@ -615,7 +617,7 @@ bool RomDebugAgent::IsValidJumpTarget(uint32_t address) const {
 
 bool RomDebugAgent::HasStackImbalance(uint32_t routine_start, uint32_t routine_end) {
   // Read the routine
-  grpc::ClientContext context;
+  grpc::ServerContext context;
   MemoryRequest mem_req;
   mem_req.set_address(routine_start);
   mem_req.set_size(routine_end - routine_start);
@@ -954,9 +956,9 @@ std::vector<std::string> RomDebugAgent::GetDisassemblyContext(
   std::vector<std::string> context_lines;
 
   // Get disassembly from emulator service
-  grpc::ClientContext ctx;
+  grpc::ServerContext ctx;
   DisassemblyRequest req;
-  req.set_address(address - (before_lines * 3));  // Estimate 3 bytes per instruction
+  req.set_start_address(address - (before_lines * 3));  // Estimate 3 bytes per instruction
   req.set_count(before_lines + after_lines + 1);
   DisassemblyResponse resp;
 
@@ -965,11 +967,11 @@ std::vector<std::string> RomDebugAgent::GetDisassemblyContext(
     return context_lines;
   }
 
-  for (const auto& inst : resp.instructions()) {
+  for (const auto& inst : resp.lines()) {
     std::string line = absl::StrFormat("%s: %s %s",
                                        FormatSnesAddress(inst.address()),
                                        inst.mnemonic(),
-                                       inst.operand());
+                                       inst.operand_str());
     if (inst.address() == address) {
       line = ">>> " + line + " <<<";  // Highlight current instruction
     }
@@ -983,10 +985,10 @@ std::vector<std::string> RomDebugAgent::BuildCallStack(uint32_t current_pc) {
   std::vector<std::string> stack;
 
   // Get execution trace to build call stack
-  grpc::ClientContext ctx;
-  TraceRequest req;
-  req.set_count(100);  // Get last 100 instructions
-  TraceResponse resp;
+  grpc::ServerContext ctx;
+  yaze::agent::TraceRequest req;
+  req.set_max_entries(100);  // Get last 100 instructions
+  yaze::agent::TraceResponse resp;
 
   auto status = emulator_service_->GetExecutionTrace(&ctx, &req, &resp);
   if (!status.ok()) {
