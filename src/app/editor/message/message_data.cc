@@ -450,5 +450,33 @@ absl::Status LoadExpandedMessages(std::string& expanded_message_path,
   return absl::OkStatus();
 }
 
+nlohmann::json SerializeMessagesToJson(const std::vector<MessageData>& messages) {
+  nlohmann::json j = nlohmann::json::array();
+  for (const auto& msg : messages) {
+    j.push_back({
+        {"id", msg.ID},
+        {"address", msg.Address},
+        {"raw_string", msg.RawString},
+        {"parsed_string", msg.ContentsParsed}
+    });
+  }
+  return j;
+}
+
+absl::Status ExportMessagesToJson(const std::string& path,
+                                  const std::vector<MessageData>& messages) {
+  try {
+    nlohmann::json j = SerializeMessagesToJson(messages);
+    std::ofstream file(path);
+    if (!file.is_open()) {
+      return absl::InternalError(absl::StrFormat("Failed to open file for writing: %s", path));
+    }
+    file << j.dump(2); // Pretty print with 2-space indent
+    return absl::OkStatus();
+  } catch (const std::exception& e) {
+    return absl::InternalError(absl::StrFormat("JSON export failed: %s", e.what()));
+  }
+}
+
 }  // namespace editor
 }  // namespace yaze

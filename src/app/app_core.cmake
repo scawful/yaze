@@ -52,6 +52,13 @@ if(APPLE)
       ${CMAKE_SOURCE_DIR}/incl
       ${PROJECT_BINARY_DIR}
     )
+
+    if(YAZE_ENABLE_JSON)
+      target_include_directories(yaze_app_objcxx PUBLIC
+        ${CMAKE_SOURCE_DIR}/ext/json/include)
+      target_compile_definitions(yaze_app_objcxx PUBLIC YAZE_WITH_JSON)
+    endif()
+
     target_link_libraries(yaze_app_objcxx PUBLIC ${ABSL_TARGETS} yaze_util ${YAZE_SDL2_TARGETS})
     target_compile_definitions(yaze_app_objcxx PUBLIC MACOS)
 
@@ -77,10 +84,15 @@ target_include_directories(yaze_app_core_lib PUBLIC
   ${CMAKE_SOURCE_DIR}/src/app
   ${CMAKE_SOURCE_DIR}/ext
   ${CMAKE_SOURCE_DIR}/ext/imgui
+  ${CMAKE_SOURCE_DIR}/ext/json/include
   ${CMAKE_SOURCE_DIR}/incl
   ${SDL2_INCLUDE_DIR}
   ${PROJECT_BINARY_DIR}
 )
+
+if(YAZE_ENABLE_JSON)
+  target_compile_definitions(yaze_app_core_lib PUBLIC YAZE_WITH_JSON)
+endif()
 
 target_link_libraries(yaze_app_core_lib PUBLIC
   yaze_core_lib    # Foundational core library with project management
@@ -106,7 +118,6 @@ if(YAZE_WITH_GRPC)
   target_include_directories(yaze_app_core_lib PRIVATE
     ${CMAKE_SOURCE_DIR}/ext/json/include)
   target_compile_definitions(yaze_app_core_lib PRIVATE YAZE_WITH_JSON)
-
   # Link to consolidated gRPC support library
   target_link_libraries(yaze_app_core_lib PUBLIC yaze_grpc_support)
   
