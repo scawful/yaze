@@ -64,15 +64,15 @@ jobs:
             exit 0
           fi
           hash=$("$python_cmd" - <<'PY'
-import hashlib
-import pathlib
-path = pathlib.Path("cmake/dependencies.lock")
-if path.is_file():
-    print(hashlib.sha256(path.read_bytes()).hexdigest())
-else:
-    print("none")
-PY
-)
+          import hashlib
+          import pathlib
+          path = pathlib.Path("cmake/dependencies.lock")
+          if path.is_file():
+              print(hashlib.sha256(path.read_bytes()).hexdigest())
+          else:
+              print("none")
+          PY
+          )
           echo "hash=$hash" >> "$GITHUB_OUTPUT"
 
       - name: Setup build environment
@@ -220,15 +220,15 @@ PY
             exit 0
           fi
           hash=$("$python_cmd" - <<'PY'
-import hashlib
-import pathlib
-path = pathlib.Path("cmake/dependencies.lock")
-if path.is_file():
-    print(hashlib.sha256(path.read_bytes()).hexdigest())
-else:
-    print("none")
-PY
-)
+          import hashlib
+          import pathlib
+          path = pathlib.Path("cmake/dependencies.lock")
+          if path.is_file():
+              print(hashlib.sha256(path.read_bytes()).hexdigest())
+          else:
+              print("none")
+          PY
+          )
           echo "hash=$hash" >> "$GITHUB_OUTPUT"
 
       - name: Setup build environment
