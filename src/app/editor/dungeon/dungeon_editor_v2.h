@@ -52,7 +52,7 @@ class DungeonEditorV2 : public Editor {
         object_emulator_preview_() {
     type_ = EditorType::kDungeon;
     if (rom) {
-        editor_system_ = zelda3::CreateDungeonEditorSystem(rom);
+        dungeon_editor_system_ = zelda3::CreateDungeonEditorSystem(rom);
     }
   }
 
