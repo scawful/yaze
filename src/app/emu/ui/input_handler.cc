@@ -1,8 +1,7 @@
 #include "app/emu/ui/input_handler.h"
 
-#include <SDL.h>
-
 #include "app/gui/core/icons.h"
+#include "app/platform/sdl_compat.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -42,12 +41,13 @@ void RenderKeyboardConfig(input::InputManager* manager) {
       ImGui::Text("Press any key...");
       ImGui::Separator();
 
-      // Poll for key press (SDL2-specific for now)
+      // Poll for key press (cross-version compatible)
       SDL_Event event;
-      if (SDL_PollEvent(&event) && event.type == SDL_KEYDOWN) {
-        if (event.key.keysym.sym != SDLK_UNKNOWN &&
-            event.key.keysym.sym != SDLK_ESCAPE) {
-          *key = event.key.keysym.sym;
+      if (SDL_PollEvent(&event) &&
+          event.type == platform::kEventKeyDown) {
+        SDL_Keycode keycode = platform::GetKeyFromEvent(event);
+        if (keycode != SDLK_UNKNOWN && keycode != SDLK_ESCAPE) {
+          *key = keycode;
           ImGui::CloseCurrentPopup();
         }
       }

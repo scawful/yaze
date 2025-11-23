@@ -1,12 +1,12 @@
 #include "controller.h"
 
-#include <SDL.h>
+#include "app/platform/sdl_compat.h"
 
 #include <string>
 
 #include "absl/status/status.h"
 #include "app/editor/editor_manager.h"
-#include "app/gfx/backend/sdl2_renderer.h"  // Add include for new renderer
+#include "app/gfx/backend/renderer_factory.h"  // Use renderer factory for SDL2/SDL3 selection
 #include "app/gfx/resource/arena.h"         // Add include for Arena
 #include "app/gui/automation/widget_id_registry.h"
 #include "app/gui/core/background_renderer.h"
@@ -20,8 +20,8 @@
 namespace yaze {
 
 absl::Status Controller::OnEntry(std::string filename) {
-  // Create renderer FIRST
-  renderer_ = std::make_unique<gfx::SDL2Renderer>();
+  // Create renderer FIRST (uses factory for SDL2/SDL3 selection)
+  renderer_ = gfx::RendererFactory::Create();
 
   // Call CreateWindow with our renderer
   RETURN_IF_ERROR(CreateWindow(window_, renderer_.get(), SDL_WINDOW_RESIZABLE));
@@ -74,7 +74,8 @@ absl::Status Controller::OnLoad() {
   window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse |
                   ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
   window_flags |=
-      ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
+      ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus |
+      ImGuiWindowFlags_NoBackground;
 
   ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
   ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
@@ -89,6 +90,7 @@ absl::Status Controller::OnLoad() {
 
   editor_manager_.DrawMenuBar();  // Draw the fixed menu bar at the top
 
+  gui::DockSpaceRenderer::EndEnhancedDockSpace();
   ImGui::End();
 #endif
   gui::WidgetIdRegistry::Instance().BeginFrame();

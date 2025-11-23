@@ -28,6 +28,7 @@ runs:
         cd build
         ctest --preset stable${CTEST_SUFFIX} \
           --output-on-failure \
+          --timeout 300 \
           --output-junit stable_test_results.xml || true
 
     - name: Run unit tests
@@ -37,6 +38,7 @@ runs:
         cd build
         ctest --preset unit${CTEST_SUFFIX} \
           --output-on-failure \
+          --timeout 300 \
           --output-junit unit_test_results.xml || true
 
     - name: Run integration tests
@@ -46,6 +48,7 @@ runs:
         cd build
         ctest --preset integration${CTEST_SUFFIX} \
           --output-on-failure \
+          --timeout 300 \
           --output-junit integration_test_results.xml || true
 
     - name: Upload test results

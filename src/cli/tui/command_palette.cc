@@ -154,7 +154,7 @@ Component CommandPaletteComponent::Render() {
       auto status = cmds[cmd_idx].exec();
       state->status_msg = status.ok()
                               ? "✓ Success: Command executed."
-                              : "✗ Error: " + std::string(status.message());
+                              : "✗ Error: " + std::string(status.message().data(), status.message().size());
     }
   };
 

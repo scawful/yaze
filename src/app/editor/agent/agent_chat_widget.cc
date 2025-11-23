@@ -2,7 +2,7 @@
 
 #include "app/editor/agent/agent_chat_widget.h"
 
-#include <SDL.h>
+#include "app/platform/sdl_compat.h"
 
 #include <algorithm>
 #include <cstdio>
@@ -478,21 +478,46 @@ void AgentChatWidget::RenderMessage(const ChatMessage& msg, int index) {
   const auto& theme = AgentUI::GetTheme();
 
   const bool from_user = (msg.sender == ChatMessage::Sender::kUser);
-  const ImVec4 header_color =
-      from_user ? theme.user_message_color : theme.agent_message_color;
+  
+  // Message Bubble Styling
+  float window_width = ImGui::GetContentRegionAvail().x;
+  float bubble_max_width = window_width * 0.85f;
+  
+  // Align user messages to right, agent to left
+  if (from_user) {
+    ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (window_width - bubble_max_width) - 20.0f);
+  } else {
+    ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10.0f);
+  }
+
+  ImVec4 bg_color = from_user ? ImVec4(0.2f, 0.4f, 0.8f, 0.2f) : ImVec4(0.3f, 0.3f, 0.3f, 0.2f);
+  ImVec4 border_color = from_user ? ImVec4(0.3f, 0.5f, 0.9f, 0.5f) : ImVec4(0.4f, 0.4f, 0.4f, 0.5f);
+
+  ImGui::PushStyleColor(ImGuiCol_ChildBg, bg_color);
+  ImGui::PushStyleColor(ImGuiCol_Border, border_color);
+  ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 8.0f);
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(12, 8));
+
+  // Calculate height based on content (approximate)
+  // For a real robust solution we'd need to calculate text size, but auto-resize child is tricky.
+  // We'll use a group and a background rect instead of a child for dynamic height.
+  ImGui::PopStyleColor(2);
+  ImGui::PopStyleVar(2);
+
+  // Using Group + Rect approach for dynamic height bubbles
+  ImGui::BeginGroup();
+  
+  // Header
+  const ImVec4 header_color = from_user ? theme.user_message_color : theme.agent_message_color;
   const char* header_label = from_user ? "You" : "Agent";
-
+  
   ImGui::TextColored(header_color, "%s", header_label);
-
   ImGui::SameLine();
-  ImGui::TextDisabled(
-      "%s", absl::FormatTime("%H:%M:%S", msg.timestamp, absl::LocalTimeZone())
-                .c_str());
+  ImGui::TextDisabled("%s", absl::FormatTime("%H:%M", msg.timestamp, absl::LocalTimeZone()).c_str());
 
-  // Add copy button for all messages
+  // Copy Button (small and subtle)
   ImGui::SameLine();
-  ImGui::PushStyleColor(ImGuiCol_Button, theme.button_copy);
-  ImGui::PushStyleColor(ImGuiCol_ButtonHovered, theme.button_copy_hover);
+  ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0,0,0,0));
   if (ImGui::SmallButton(ICON_MD_CONTENT_COPY)) {
     std::string copy_text = msg.message;
     if (copy_text.empty() && msg.json_pretty.has_value()) {
@@ -500,23 +525,17 @@ void AgentChatWidget::RenderMessage(const ChatMessage& msg, int index) {
     }
     ImGui::SetClipboardText(copy_text.c_str());
     if (toast_manager_) {
-      toast_manager_->Show("Message copied", ToastType::kSuccess, 2.0f);
+      toast_manager_->Show("Copied", ToastType::kSuccess, 1.0f);
     }
   }
-  ImGui::PopStyleColor(2);
-  if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("Copy to clipboard");
-  }
+  ImGui::PopStyleColor();
 
-  ImGui::Indent();
-
+  // Content
   if (msg.table_data.has_value()) {
     RenderTable(*msg.table_data);
   } else if (msg.json_pretty.has_value()) {
-    // Don't show JSON as a message - it's internal structure
-    const auto& theme = AgentUI::GetTheme();
     ImGui::PushStyleColor(ImGuiCol_Text, theme.json_text_color);
-    ImGui::TextDisabled(ICON_MD_DATA_OBJECT " (Structured response)");
+    ImGui::TextDisabled(ICON_MD_DATA_OBJECT " (Structured Data)");
     ImGui::PopStyleColor();
   } else {
     ImGui::TextWrapped("%s", msg.message.c_str());
@@ -526,9 +545,19 @@ void AgentChatWidget::RenderMessage(const ChatMessage& msg, int index) {
     RenderProposalQuickActions(msg, index);
   }
 
-  ImGui::Unindent();
+  ImGui::EndGroup();
+
+  // Draw background rect
+  ImVec2 p_min = ImGui::GetItemRectMin();
+  ImVec2 p_max = ImGui::GetItemRectMax();
+  p_min.x -= 8; p_min.y -= 4;
+  p_max.x += 8; p_max.y += 4;
+  
+  ImGui::GetWindowDrawList()->AddRectFilled(p_min, p_max, ImGui::GetColorU32(bg_color), 8.0f);
+  ImGui::GetWindowDrawList()->AddRect(p_min, p_max, ImGui::GetColorU32(border_color), 8.0f);
+
   ImGui::Spacing();
-  ImGui::Separator();
+  ImGui::Spacing(); // Extra spacing between messages
   ImGui::PopID();
 }
 
@@ -2136,11 +2165,17 @@ void AgentChatWidget::RenderAgentConfigPanel() {
 }
 
 void AgentChatWidget::RenderModelConfigControls() {
+  const auto& theme = AgentUI::GetTheme();
+
+  // Provider selection buttons using theme colors
   auto provider_button = [&](const char* label, const char* value,
                              const ImVec4& color) {
     bool active = agent_config_.ai_provider == value;
     if (active) {
       ImGui::PushStyleColor(ImGuiCol_Button, color);
+      ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
+                            ImVec4(color.x * 1.15f, color.y * 1.15f,
+                                   color.z * 1.15f, color.w));
     }
     if (ImGui::Button(label, ImVec2(90, 28))) {
       agent_config_.ai_provider = value;
@@ -2148,50 +2183,53 @@ void AgentChatWidget::RenderModelConfigControls() {
                     sizeof(agent_config_.provider_buffer), "%s", value);
     }
     if (active) {
-      ImGui::PopStyleColor();
+      ImGui::PopStyleColor(2);
     }
     ImGui::SameLine();
   };
 
-  const auto& theme = AgentUI::GetTheme();
   provider_button(ICON_MD_SETTINGS " Mock", "mock", theme.provider_mock);
   provider_button(ICON_MD_CLOUD " Ollama", "ollama", theme.provider_ollama);
   provider_button(ICON_MD_SMART_TOY " Gemini", "gemini", theme.provider_gemini);
   ImGui::NewLine();
   ImGui::NewLine();
 
-  // Provider-specific configuration
-  if (agent_config_.ai_provider == "ollama") {
-    if (ImGui::InputTextWithHint(
-            "##ollama_host", "http://localhost:11434",
-            agent_config_.ollama_host_buffer,
-            IM_ARRAYSIZE(agent_config_.ollama_host_buffer))) {
-      agent_config_.ollama_host = agent_config_.ollama_host_buffer;
-    }
-  } else if (agent_config_.ai_provider == "gemini") {
-    if (ImGui::InputTextWithHint("##gemini_key", "API key...",
-                                 agent_config_.gemini_key_buffer,
-                                 IM_ARRAYSIZE(agent_config_.gemini_key_buffer),
-                                 ImGuiInputTextFlags_Password)) {
-      agent_config_.gemini_api_key = agent_config_.gemini_key_buffer;
-    }
-    ImGui::SameLine();
-    if (ImGui::SmallButton(ICON_MD_SYNC " Env")) {
-      const char* env_key = std::getenv("GEMINI_API_KEY");
-      if (env_key) {
-        std::snprintf(agent_config_.gemini_key_buffer,
-                      sizeof(agent_config_.gemini_key_buffer), "%s", env_key);
-        agent_config_.gemini_api_key = env_key;
-        if (toast_manager_) {
-          toast_manager_->Show("Loaded GEMINI_API_KEY from environment",
-                               ToastType::kInfo, 2.0f);
-        }
-      } else if (toast_manager_) {
-        toast_manager_->Show("GEMINI_API_KEY not set", ToastType::kWarning,
-                             2.0f);
+  // Provider-specific configuration (always show both for unified access)
+  ImGui::Text("Ollama Host:");
+  ImGui::SameLine();
+  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+  if (ImGui::InputTextWithHint("##ollama_host", "http://localhost:11434",
+                               agent_config_.ollama_host_buffer,
+                               IM_ARRAYSIZE(agent_config_.ollama_host_buffer))) {
+    agent_config_.ollama_host = agent_config_.ollama_host_buffer;
+  }
+
+  ImGui::Text("Gemini Key:");
+  ImGui::SameLine();
+  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - 60.0f);
+  if (ImGui::InputTextWithHint("##gemini_key", "API key...",
+                               agent_config_.gemini_key_buffer,
+                               IM_ARRAYSIZE(agent_config_.gemini_key_buffer),
+                               ImGuiInputTextFlags_Password)) {
+    agent_config_.gemini_api_key = agent_config_.gemini_key_buffer;
+  }
+  ImGui::SameLine();
+  if (ImGui::SmallButton(ICON_MD_SYNC " Env")) {
+    const char* env_key = std::getenv("GEMINI_API_KEY");
+    if (env_key) {
+      std::snprintf(agent_config_.gemini_key_buffer,
+                    sizeof(agent_config_.gemini_key_buffer), "%s", env_key);
+      agent_config_.gemini_api_key = env_key;
+      if (toast_manager_) {
+        toast_manager_->Show("Loaded GEMINI_API_KEY from environment",
+                             ToastType::kInfo, 2.0f);
       }
+    } else if (toast_manager_) {
+      toast_manager_->Show("GEMINI_API_KEY not set", ToastType::kWarning, 2.0f);
     }
   }
+
+  ImGui::Spacing();
 
   // Unified Model Selection
   if (ImGui::InputTextWithHint("##ai_model", "Model name...",
@@ -2199,6 +2237,13 @@ void AgentChatWidget::RenderModelConfigControls() {
                                IM_ARRAYSIZE(agent_config_.model_buffer))) {
     agent_config_.ai_model = agent_config_.model_buffer;
   }
+
+  // Provider filter checkbox for unified model list
+  static bool filter_by_provider = false;
+  ImGui::Checkbox("Filter by selected provider", &filter_by_provider);
+  ImGui::SameLine();
+  AgentUI::HorizontalSpacing(8.0f);
+  ImGui::SameLine();
 
   ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - 60.0f);
   ImGui::InputTextWithHint("##model_search", "Search all models...",
@@ -2209,19 +2254,38 @@ void AgentChatWidget::RenderModelConfigControls() {
     RefreshModels();
   }
 
-  ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.1f, 0.1f, 0.14f, 0.9f));
+  // Use theme color for model list background
+  ImGui::PushStyleColor(ImGuiCol_ChildBg, theme.panel_bg_darker);
   ImGui::BeginChild("UnifiedModelList", ImVec2(0, 140), true);
   std::string filter = absl::AsciiStrToLower(model_search_buffer_);
 
   if (model_info_cache_.empty() && model_name_cache_.empty()) {
     ImGui::TextDisabled("No cached models. Refresh to discover.");
   } else {
+    // Helper lambda to get provider color
+    auto get_provider_color = [&theme](const std::string& provider) -> ImVec4 {
+      if (provider == "ollama") {
+        return theme.provider_ollama;
+      } else if (provider == "gemini") {
+        return theme.provider_gemini;
+      }
+      return theme.provider_mock;
+    };
+
     // Prefer rich metadata if available
     if (!model_info_cache_.empty()) {
+      int model_index = 0;
       for (const auto& info : model_info_cache_) {
         std::string lower_name = absl::AsciiStrToLower(info.name);
         std::string lower_provider = absl::AsciiStrToLower(info.provider);
 
+        // Provider filtering
+        if (filter_by_provider &&
+            info.provider != agent_config_.ai_provider) {
+          continue;
+        }
+
+        // Text search filtering
         if (!filter.empty()) {
           bool match = lower_name.find(filter) != std::string::npos ||
                        lower_provider.find(filter) != std::string::npos;
@@ -2229,16 +2293,32 @@ void AgentChatWidget::RenderModelConfigControls() {
             match = absl::AsciiStrToLower(info.parameter_size).find(filter) !=
                     std::string::npos;
           }
+          if (!match && !info.family.empty()) {
+            match = absl::AsciiStrToLower(info.family).find(filter) !=
+                    std::string::npos;
+          }
           if (!match)
             continue;
         }
 
-        bool is_selected = agent_config_.ai_model == info.name;
-        // Display provider badge
-        std::string label =
-            absl::StrFormat("%s [%s]", info.name, info.provider);
+        ImGui::PushID(model_index++);
 
-        if (ImGui::Selectable(label.c_str(), is_selected)) {
+        bool is_selected = agent_config_.ai_model == info.name;
+
+        // Colored provider badge
+        ImVec4 provider_color = get_provider_color(info.provider);
+        ImGui::PushStyleColor(ImGuiCol_Button, provider_color);
+        ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 8.0f);
+        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4, 2));
+        ImGui::SmallButton(info.provider.c_str());
+        ImGui::PopStyleVar(2);
+        ImGui::PopStyleColor();
+        ImGui::SameLine();
+
+        // Model name as selectable
+        if (ImGui::Selectable(info.name.c_str(), is_selected,
+                              ImGuiSelectableFlags_None,
+                              ImVec2(ImGui::GetContentRegionAvail().x - 60, 0))) {
           agent_config_.ai_model = info.name;
           agent_config_.ai_provider = info.provider;
           std::snprintf(agent_config_.model_buffer,
@@ -2255,6 +2335,9 @@ void AgentChatWidget::RenderModelConfigControls() {
             std::find(agent_config_.favorite_models.begin(),
                       agent_config_.favorite_models.end(),
                       info.name) != agent_config_.favorite_models.end();
+        ImGui::PushStyleColor(ImGuiCol_Text,
+                              is_favorite ? theme.status_warning
+                                          : theme.text_secondary_color);
         if (ImGui::SmallButton(is_favorite ? ICON_MD_STAR
                                            : ICON_MD_STAR_BORDER)) {
           if (is_favorite) {
@@ -2270,6 +2353,7 @@ void AgentChatWidget::RenderModelConfigControls() {
             agent_config_.favorite_models.push_back(info.name);
           }
         }
+        ImGui::PopStyleColor();
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip(is_favorite ? "Remove from favorites"
                                         : "Favorite model");
@@ -2294,25 +2378,41 @@ void AgentChatWidget::RenderModelConfigControls() {
           ImGui::SetTooltip("Capture preset from this model");
         }
 
-        // Metadata
+        // Metadata display with theme colors
         std::string size_label = info.parameter_size.empty()
                                      ? FormatByteSize(info.size_bytes)
                                      : info.parameter_size;
-        ImGui::TextDisabled("%s • %s", size_label.c_str(),
-                            info.quantization.c_str());
-        if (!info.family.empty()) {
-          ImGui::TextDisabled("Family: %s", info.family.c_str());
+        ImGui::TextColored(theme.text_secondary_color, "  %s",
+                           size_label.c_str());
+        if (!info.quantization.empty()) {
+          ImGui::SameLine();
+          ImGui::TextColored(theme.text_info, "  %s", info.quantization.c_str());
         }
-        // ModifiedAt not available in ModelInfo yet
+        if (!info.family.empty()) {
+          ImGui::SameLine();
+          ImGui::TextColored(theme.text_secondary_gray, "  Family: %s",
+                             info.family.c_str());
+        }
+        if (info.is_local) {
+          ImGui::SameLine();
+          ImGui::TextColored(theme.status_success, "  " ICON_MD_COMPUTER);
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("Running locally");
+          }
+        }
         ImGui::Separator();
+        ImGui::PopID();
       }
     } else {
-      // Fallback to just names
+      // Fallback to just names (no rich metadata)
+      int model_index = 0;
       for (const auto& model_name : model_name_cache_) {
         std::string lower = absl::AsciiStrToLower(model_name);
         if (!filter.empty() && lower.find(filter) == std::string::npos) {
           continue;
         }
+
+        ImGui::PushID(model_index++);
 
         bool is_selected = agent_config_.ai_model == model_name;
         if (ImGui::Selectable(model_name.c_str(), is_selected)) {
@@ -2327,6 +2427,9 @@ void AgentChatWidget::RenderModelConfigControls() {
             std::find(agent_config_.favorite_models.begin(),
                       agent_config_.favorite_models.end(),
                       model_name) != agent_config_.favorite_models.end();
+        ImGui::PushStyleColor(ImGuiCol_Text,
+                              is_favorite ? theme.status_warning
+                                          : theme.text_secondary_color);
         if (ImGui::SmallButton(is_favorite ? ICON_MD_STAR
                                            : ICON_MD_STAR_BORDER)) {
           if (is_favorite) {
@@ -2338,7 +2441,9 @@ void AgentChatWidget::RenderModelConfigControls() {
             agent_config_.favorite_models.push_back(model_name);
           }
         }
+        ImGui::PopStyleColor();
         ImGui::Separator();
+        ImGui::PopID();
       }
     }
   }
@@ -2358,19 +2463,53 @@ void AgentChatWidget::RenderModelConfigControls() {
 
   if (!agent_config_.favorite_models.empty()) {
     ImGui::Separator();
-    ImGui::TextColored(ImVec4(1.0f, 0.843f, 0.0f, 1.0f),
-                       ICON_MD_STAR " Favorites");
+    ImGui::TextColored(theme.status_warning, ICON_MD_STAR " Favorites");
     for (size_t i = 0; i < agent_config_.favorite_models.size(); ++i) {
       auto& favorite = agent_config_.favorite_models[i];
       ImGui::PushID(static_cast<int>(i));
       bool active = agent_config_.ai_model == favorite;
+
+      // Find provider info for this favorite if available
+      std::string provider_name;
+      for (const auto& info : model_info_cache_) {
+        if (info.name == favorite) {
+          provider_name = info.provider;
+          break;
+        }
+      }
+
+      // Show provider badge if known
+      if (!provider_name.empty()) {
+        ImVec4 badge_color = theme.provider_mock;
+        if (provider_name == "ollama") {
+          badge_color = theme.provider_ollama;
+        } else if (provider_name == "gemini") {
+          badge_color = theme.provider_gemini;
+        }
+        ImGui::PushStyleColor(ImGuiCol_Button, badge_color);
+        ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 6.0f);
+        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(3, 1));
+        ImGui::SmallButton(provider_name.c_str());
+        ImGui::PopStyleVar(2);
+        ImGui::PopStyleColor();
+        ImGui::SameLine();
+      }
+
       if (ImGui::Selectable(favorite.c_str(), active)) {
         agent_config_.ai_model = favorite;
         std::snprintf(agent_config_.model_buffer,
                       sizeof(agent_config_.model_buffer), "%s",
                       favorite.c_str());
+        // Also set provider if known
+        if (!provider_name.empty()) {
+          agent_config_.ai_provider = provider_name;
+          std::snprintf(agent_config_.provider_buffer,
+                        sizeof(agent_config_.provider_buffer), "%s",
+                        provider_name.c_str());
+        }
       }
       ImGui::SameLine();
+      ImGui::PushStyleColor(ImGuiCol_Text, theme.status_error);
       if (ImGui::SmallButton(ICON_MD_CLOSE)) {
         agent_config_.model_chain.erase(
             std::remove(agent_config_.model_chain.begin(),
@@ -2378,15 +2517,19 @@ void AgentChatWidget::RenderModelConfigControls() {
             agent_config_.model_chain.end());
         agent_config_.favorite_models.erase(
             agent_config_.favorite_models.begin() + i);
+        ImGui::PopStyleColor();
         ImGui::PopID();
         break;
       }
+      ImGui::PopStyleColor();
       ImGui::PopID();
     }
   }
 }
 
 void AgentChatWidget::RenderModelDeck() {
+  const auto& theme = AgentUI::GetTheme();
+
   ImGui::TextDisabled("Model Deck");
   if (agent_config_.model_presets.empty()) {
     ImGui::TextWrapped(
@@ -2402,7 +2545,7 @@ void AgentChatWidget::RenderModelDeck() {
                                       : agent_config_.ai_model;
     preset.model = agent_config_.ai_model;
     preset.host = agent_config_.ollama_host;
-    preset.tags = {"current"};
+    preset.tags = {agent_config_.ai_provider};  // Use current provider as tag
     preset.last_used = absl::Now();
     agent_config_.model_presets.push_back(std::move(preset));
     new_preset_name_[0] = '\0';
@@ -2411,7 +2554,8 @@ void AgentChatWidget::RenderModelDeck() {
     }
   }
 
-  ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.09f, 0.09f, 0.11f, 0.9f));
+  // Use theme color for preset list background
+  ImGui::PushStyleColor(ImGuiCol_ChildBg, theme.panel_bg_darker);
   ImGui::BeginChild("PresetList", ImVec2(0, 110), true);
   if (agent_config_.model_presets.empty()) {
     ImGui::TextDisabled("No presets yet");

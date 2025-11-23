@@ -12,13 +12,18 @@
 #include "cli/service/agent/conversational_agent_service.h"
 #include "nlohmann/json.hpp"
 #include "util/platform_paths.h"
+
+// yaml-cpp is optional - only include if available
+#ifdef YAZE_HAS_YAML_CPP
 #include "yaml-cpp/yaml.h"
+#endif
 
 namespace yaze {
 namespace cli {
 
 namespace {
 
+#ifdef YAZE_HAS_YAML_CPP
 bool IsYamlBool(const std::string& value) {
   const std::string lower = absl::AsciiStrToLower(value);
   return lower == "true" || lower == "false" || lower == "yes" ||
@@ -62,6 +67,7 @@ nlohmann::json YamlToJson(const YAML::Node& node) {
       return nlohmann::json();
   }
 }
+#endif  // YAZE_HAS_YAML_CPP
 
 }  // namespace
 
@@ -110,11 +116,12 @@ absl::StatusOr<std::string> PromptBuilder::ResolveCataloguePath(
 
 absl::Status PromptBuilder::LoadResourceCatalogue(
     const std::string& yaml_path) {
-#ifndef YAZE_WITH_JSON
-  // Gracefully degrade if JSON support not available
+#if !defined(YAZE_WITH_JSON) || !defined(YAZE_HAS_YAML_CPP)
+  // Gracefully degrade if JSON or yaml-cpp support not available
+  (void)yaml_path;  // Suppress unused parameter warning
   std::cerr
-      << "⚠️  PromptBuilder requires JSON support for catalogue loading\n"
-      << "   Build with -DZ3ED_AI=ON or -DYAZE_WITH_JSON=ON\n"
+      << "⚠️  PromptBuilder requires JSON and yaml-cpp support for catalogue loading\n"
+      << "   Build with -DZ3ED_AI=ON and install yaml-cpp\n"
       << "   AI features will use basic prompts without tool definitions\n";
   return absl::OkStatus();  // Don't fail, just skip catalogue loading
 #else

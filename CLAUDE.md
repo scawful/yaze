@@ -30,24 +30,25 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Test Execution
 
+See [`docs/public/build/quick-reference.md`](docs/public/build/quick-reference.md#5-testing) for complete test commands. Quick reference:
+
 ```bash
-# Build tests
-cmake --build build --target yaze_test
+# Stable tests only (recommended for development)
+ctest --test-dir build -L stable -j4
 
-# Run all tests
-./build/bin/yaze_test
+# All tests (respects preset configuration)
+ctest --test-dir build --output-on-failure
 
-# Run specific categories
-./build/bin/yaze_test --unit              # Unit tests only
-./build/bin/yaze_test --integration       # Integration tests
-./build/bin/yaze_test --e2e --show-gui    # End-to-end GUI tests
+# ROM-dependent tests (requires setup)
+cmake --preset mac-dbg -DYAZE_ENABLE_ROM_TESTS=ON -DYAZE_TEST_ROM_PATH=~/zelda3.sfc
+ctest --test-dir build -L rom_dependent
 
-# Run with ROM-dependent tests
-./build/bin/yaze_test --rom-dependent --rom-path zelda3.sfc
-
-# Run specific test by name
-./build/bin/yaze_test "*Asar*"
+# Experimental AI tests (with AI preset)
+cmake --preset mac-ai
+ctest --test-dir build -L experimental
 ```
+
+See `test/README.md` for detailed test organization, presets, and troubleshooting.
 
 ## Architecture
 
@@ -181,6 +182,11 @@ Available editors: Assembly, Dungeon, Graphics, Music, Overworld, Palette, Scree
 
 ## Testing Strategy
 
+**For comprehensive testing documentation, see**:
+- [`test/README.md`](test/README.md) - Test structure, organization, default vs optional suites
+- [`docs/internal/ci-and-testing.md`](docs/internal/ci-and-testing.md) - CI pipeline and test infrastructure
+- [`docs/public/build/quick-reference.md`](docs/public/build/quick-reference.md#5-testing) - Test execution quick reference
+
 ### Test Organization
 ```
 test/
@@ -192,15 +198,37 @@ test/
 ```
 
 ### Test Categories
-- **Unit Tests**: Fast, self-contained, no external dependencies (primary CI validation)
-- **Integration Tests**: Test component interactions, may require ROM files
-- **E2E Tests**: Full user workflows driven by ImGui Test Engine (requires GUI)
-- **ROM-Dependent Tests**: Any test requiring an actual Zelda3 ROM file
+- **Default/Stable Tests** (always enabled): Unit/integration tests, GUI smoke tests - no external dependencies
+- **ROM-Dependent Tests** (optional): Full ROM workflows, version upgrades, data integrity validation
+- **Experimental AI Tests** (optional): AI-powered features, vision models, agent automation
+- **Benchmark Tests**: Performance profiling and optimization validation
+
+### Running Tests
+
+**Quick start** (stable tests only):
+```bash
+ctest --test-dir build -L stable
+```
+
+**With ROM tests**:
+```bash
+cmake --preset mac-dbg -DYAZE_ENABLE_ROM_TESTS=ON -DYAZE_TEST_ROM_PATH=~/zelda3.sfc
+ctest --test-dir build -L rom_dependent
+```
+
+**All tests** (uses preset configuration):
+```bash
+ctest --test-dir build
+```
+
+See `test/README.md` for complete test organization, presets, and command reference.
 
 ### Writing New Tests
 - New class `MyClass`? → Add `test/unit/my_class_test.cc`
-- Testing with ROM? → Add `test/integration/my_class_rom_test.cc`
-- Testing UI workflow? → Add `test/e2e/my_class_workflow_test.cc`
+- Integration test? → Add `test/integration/my_class_test.cc`
+- GUI workflow? → Add `test/e2e/my_class_test.cc`
+- ROM-dependent? → Add `test/e2e/rom_dependent/my_rom_test.cc` (requires flag)
+- AI features? → Add `test/integration/ai/my_ai_test.cc` (requires flag)
 
 ### GUI Test Automation
 - E2E framework uses `ImGuiTestEngine` for UI automation

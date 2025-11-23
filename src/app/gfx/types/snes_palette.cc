@@ -1,6 +1,6 @@
 #include "app/gfx/types/snes_palette.h"
 
-#include <SDL.h>
+#include "app/platform/sdl_compat.h"
 
 #include <cstdint>
 #include <cstdlib>

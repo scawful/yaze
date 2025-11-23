@@ -19,7 +19,7 @@
 #include "app/gfx/backend/sdl2_renderer.h"
 #include "app/platform/window.h"
 #include "e2e/canvas_selection_test.h"
-#include "e2e/dungeon_editor_smoke_test.h"
+#include "e2e/dungeon_e2e_tests.h"
 #include "e2e/framework_smoke_test.h"
 #include "imgui/backends/imgui_impl_sdl2.h"
 #include "imgui/backends/imgui_impl_sdlrenderer2.h"
@@ -267,45 +267,24 @@ int main(int argc, char* argv[]) {
   ::testing::InitGoogleTest(&argc, argv);
 
   if (config.enable_ui_tests) {
-    // Create a window
-    yaze::core::Window window;
-    // Create renderer for test
-    auto test_renderer = std::make_unique<yaze::gfx::SDL2Renderer>();
-    yaze::core::CreateWindow(window, test_renderer.get(),
-                             SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
+#ifdef YAZE_GUI_TEST_TARGET
+    // Use the Controller to create window and initialize everything
+    // This ensures the yaze UI is properly set up for testing
+    yaze::Controller controller;
 
-    // Renderer is now owned by test
-
-    // Setup Dear ImGui context
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO();
-    (void)io;
-    io.ConfigFlags |=
-        ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
-    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;  // Enable Docking
-    io.ConfigFlags |=
-        ImGuiConfigFlags_ViewportsEnable;  // Enable Multi-Viewport / Platform
-                                           // Windows
-
-    // Setup Dear ImGui style
-    ImGui::StyleColorsDark();
-
-    // When viewports are enabled we tweak WindowRounding/WindowBg so platform
-    // windows can look identical to regular ones.
-    ImGuiStyle& style = ImGui::GetStyle();
-    if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
-      style.WindowRounding = 0.0f;
-      style.Colors[ImGuiCol_WindowBg].w = 1.0f;
+    // Initialize the controller - this creates window, renderer, ImGui context
+    auto init_status = controller.OnEntry();
+    if (!init_status.ok()) {
+      std::cerr << "Failed to initialize controller: " << init_status.message() << std::endl;
+      return 1;
     }
 
-    // Setup Platform/Renderer backends
-    SDL_Renderer* sdl_renderer =
-        static_cast<SDL_Renderer*>(test_renderer->GetBackendRenderer());
-    ImGui_ImplSDL2_InitForSDLRenderer(window.window_.get(), sdl_renderer);
-    ImGui_ImplSDLRenderer2_Init(sdl_renderer);
+    // Get ImGui IO for additional test-specific configuration
+    ImGuiIO& io = ImGui::GetIO();
 
-    yaze::Controller controller;
+    // Get SDL renderer for test engine setup
+    SDL_Renderer* sdl_renderer =
+        static_cast<SDL_Renderer*>(controller.renderer()->GetBackendRenderer());
 
     // Setup test engine
     ImGuiTestEngine* engine = ImGuiTestEngine_CreateContext();
@@ -323,7 +302,8 @@ int main(int argc, char* argv[]) {
     std::cout << "Running tests in " << speed_name << " mode" << std::endl;
 
     // Register E2E tests only for GUI test targets (they have the source files)
-#ifdef YAZE_GUI_TEST_TARGET
+
+    // Framework smoke tests
     ImGuiTest* smoke_test =
         IM_REGISTER_TEST(engine, "E2ETest", "FrameworkSmokeTest");
     smoke_test->TestFunc = E2ETest_FrameworkSmokeTest;
@@ -333,56 +313,44 @@ int main(int argc, char* argv[]) {
     canvas_test->TestFunc = E2ETest_CanvasSelectionTest;
     canvas_test->UserData = &controller;
 
-    ImGuiTest* dungeon_test =
-        IM_REGISTER_TEST(engine, "E2ETest", "DungeonEditorSmokeTest");
-    dungeon_test->TestFunc = E2ETest_DungeonEditorV2SmokeTest;
-    dungeon_test->UserData = &controller;
-#endif
+    // Register all dungeon E2E tests via unified registration function
+    // This includes: smoke tests, visual verification, object drawing,
+    // canvas interaction, and layer rendering tests (18 total)
+    yaze::test::e2e::RegisterDungeonE2ETests(engine, &controller);
 
-    // Main loop
-    bool done = false;
-    while (!done) {
-      SDL_Event event;
-      while (SDL_PollEvent(&event)) {
-        ImGui_ImplSDL2_ProcessEvent(&event);
-        if (event.type == SDL_QUIT) {
-          done = true;
-        }
-        if (event.type == SDL_WINDOWEVENT &&
-            event.window.event == SDL_WINDOWEVENT_CLOSE &&
-            event.window.windowID == SDL_GetWindowID(window.window_.get())) {
-          done = true;
-        }
+
+    // Queue all registered tests to run automatically
+    ImGuiTestEngine_QueueTests(engine, ImGuiTestGroup_Tests, nullptr, 0);
+
+    // Main loop - runs the full yaze UI with test engine overlay
+    while (controller.IsActive()) {
+      // Process input events via controller
+      controller.OnInput();
+
+      // Load/update the yaze UI (draws menus, editors, etc.)
+      // This is where the actual application UI gets rendered
+      auto load_status = controller.OnLoad();
+      if (!load_status.ok()) {
+        std::cerr << "OnLoad error: " << load_status.message() << std::endl;
+        break;
       }
 
-      // Start the Dear ImGui frame
-      ImGui_ImplSDLRenderer2_NewFrame();
-      ImGui_ImplSDL2_NewFrame();
-      ImGui::NewFrame();
-
-      // Render the UI
+      // Show the test engine windows as overlay (if requested)
       if (config.show_gui) {
         ImGuiTestEngine_ShowTestEngineWindows(engine, &config.show_gui);
       }
+
+      // Render everything
       controller.DoRender();
 
-      // End the Dear ImGui frame
-      ImGui::Render();
-      test_renderer->Clear();
-      ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), sdl_renderer);
-      test_renderer->Present();
-
-      // Update and Render additional Platform Windows
-      if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
-        SDL_Window* backup_current_window = SDL_GL_GetCurrentWindow();
-        SDL_GLContext backup_current_context = SDL_GL_GetCurrentContext();
-        ImGui::UpdatePlatformWindows();
-        ImGui::RenderPlatformWindowsDefault();
-        SDL_GL_MakeCurrent(backup_current_window, backup_current_context);
-      }
-
-      // Run test engine
+      // Run test engine post-swap processing
       ImGuiTestEngine_PostSwap(engine);
+
+      // Check if all tests have completed (auto-exit when done)
+      if (ImGuiTestEngine_IsTestQueueEmpty(engine)) {
+        // All tests finished, exit
+        break;
+      }
     }
 
     // Get test result
@@ -390,17 +358,18 @@ int main(int argc, char* argv[]) {
     ImGuiTestEngine_GetResultSummary(engine, &summary);
     int result = (summary.CountSuccess == summary.CountTested) ? 0 : 1;
 
-    // Cleanup
-    controller.OnExit();
-    ImGuiTestEngine_DestroyContext(engine);
-    ImGui_ImplSDLRenderer2_Shutdown();
-    ImGui_ImplSDL2_Shutdown();
-    ImGui::DestroyContext();
+    std::cout << "Test Results: " << summary.CountSuccess << "/"
+              << summary.CountTested << " passed" << std::endl;
 
-    yaze::core::ShutdownWindow(window);
-    SDL_Quit();
+    // Cleanup
+    ImGuiTestEngine_DestroyContext(engine);
+    controller.OnExit();
 
     return result;
+#else
+    std::cerr << "UI tests are not supported in this build configuration." << std::endl;
+    return 1;
+#endif
   } else {
     // Run tests
     int result = RUN_ALL_TESTS();

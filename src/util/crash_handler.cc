@@ -2,10 +2,12 @@
 
 #include <algorithm>
 #include <chrono>
+#include <cstdio>
 #include <ctime>
 #include <fstream>
 #include <iomanip>
 #include <sstream>
+#include <cstring>
 #include <vector>
 
 #include "absl/debugging/failure_signal_handler.h"
@@ -15,11 +17,14 @@
 #ifdef _WIN32
 #include <fcntl.h>
 #include <io.h>
-#include <stdio.h>
+#include <sys/stat.h>
+#define STDERR_FILENO _fileno(stderr)
 #define write _write
 #define close _close
 #define open _open
-#define STDERR_FILENO 2
+#define O_WRONLY _O_WRONLY
+#define O_CREAT _O_CREAT
+#define O_TRUNC _O_TRUNC
 #else
 #include <fcntl.h>
 #include <unistd.h>
@@ -34,14 +39,15 @@ std::filesystem::path CrashHandler::crash_log_path_;
 int CrashHandler::crash_log_fd_ = -1;
 
 void CrashHandler::CrashLogWriter(const char* data) {
+  // Compute length manually (async-signal-safe)
+  size_t len = 0;
+  while (data[len] != '\0') ++len;
+
   if (crash_log_fd_ >= 0) {
-    // Write to crash log file
-    size_t len = 0;
-    while (data[len] != '\0') ++len;
     write(crash_log_fd_, data, len);
   }
   // Also write to stderr for immediate visibility
-  write(STDERR_FILENO, data, strlen(data));
+  write(STDERR_FILENO, data, len);
 }
 
 void CrashHandler::Initialize(const std::string& version) {

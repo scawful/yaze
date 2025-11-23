@@ -26,8 +26,28 @@ CPMAddPackage(
 # We'll create our own interface target and link when available
 add_library(yaze_ftxui INTERFACE)
 
-# Note: FTXUI targets will be available after the build phase
-# For now, we'll create a placeholder that can be linked later
+# Link to the actual FTXUI targets
+if(TARGET ftxui::screen AND TARGET ftxui::dom AND TARGET ftxui::component)
+  target_link_libraries(yaze_ftxui INTERFACE
+    ftxui::screen
+    ftxui::dom
+    ftxui::component
+  )
+else()
+  # Fallback for when targets aren't namespaced
+  target_link_libraries(yaze_ftxui INTERFACE
+    screen
+    dom
+    component
+  )
+endif()
+
+# Add include path with compile options for Ninja Multi-Config compatibility
+# The -isystem-after flag doesn't work properly with some generator/compiler combinations
+if(ftxui_SOURCE_DIR)
+  add_compile_options(-I${ftxui_SOURCE_DIR}/include)
+  message(STATUS "  Added FTXUI include: ${ftxui_SOURCE_DIR}/include")
+endif()
 
 # Export FTXUI targets for use in other CMake files
 set(YAZE_FTXUI_TARGETS yaze_ftxui)

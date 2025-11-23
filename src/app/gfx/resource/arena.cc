@@ -1,6 +1,6 @@
 #include "app/gfx/resource/arena.h"
 
-#include <SDL.h>
+#include "app/platform/sdl_compat.h"
 
 #include <algorithm>
 

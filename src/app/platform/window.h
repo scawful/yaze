@@ -1,7 +1,7 @@
 #ifndef YAZE_CORE_WINDOW_H_
 #define YAZE_CORE_WINDOW_H_
 
-#include <SDL.h>
+#include "app/platform/sdl_compat.h"
 
 #include <memory>
 

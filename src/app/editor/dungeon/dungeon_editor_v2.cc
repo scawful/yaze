@@ -263,8 +263,17 @@ absl::Status DungeonEditorV2::Save() {
     auto status = room.SaveObjects();
     if (!status.ok()) {
       // Log error but continue with other rooms
-      LOG_ERROR("DungeonEditorV2", "Failed to save room: %s",
+      LOG_ERROR("DungeonEditorV2", "Failed to save room objects: %s",
                 status.message().data());
+    }
+
+    // Save sprites and other entities via system
+    if (dungeon_editor_system_) {
+      auto sys_status = dungeon_editor_system_->SaveRoom(room.id());
+      if (!sys_status.ok()) {
+        LOG_ERROR("DungeonEditorV2", "Failed to save room system data: %s",
+                  sys_status.message().data());
+      }
     }
   }
 
@@ -397,6 +406,15 @@ void DungeonEditorV2::DrawRoomTab(int room_id) {
       ImGui::TextColored(theme.text_error_red, "Failed to load room: %s",
                          status.message().data());
       return;
+    }
+    
+    // Load system data for this room (sprites, etc.)
+    if (dungeon_editor_system_) {
+      auto sys_status = dungeon_editor_system_->ReloadRoom(room_id);
+      if (!sys_status.ok()) {
+        LOG_ERROR("DungeonEditorV2", "Failed to load system data: %s", 
+                  sys_status.message().data());
+      }
     }
   }
 

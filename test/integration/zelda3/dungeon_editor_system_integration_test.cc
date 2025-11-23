@@ -16,9 +16,9 @@ namespace zelda3 {
 class DungeonEditorSystemIntegrationTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    // Skip tests on Linux for automated github builds
+    // Skip on Linux CI - requires ROM file and graphics context
 #if defined(__linux__)
-    GTEST_SKIP();
+    GTEST_SKIP() << "Dungeon editor tests require ROM file (unavailable on Linux CI)";
 #endif
 
     // Use the real ROM from build directory

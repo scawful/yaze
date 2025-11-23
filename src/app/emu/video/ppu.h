@@ -265,6 +265,8 @@ class Ppu {
 
   void Reset();
   void HandleFrameStart();
+  void StartLine(int line);
+  void CatchUp(int h_pos);
   void RunLine(int line);
   void HandlePixel(int x, int y);
 
@@ -344,6 +346,8 @@ class Ppu {
   uint16_t cgram[0x100];
 
  private:
+  int last_rendered_x_ = 0;
+
   uint8_t cgram_pointer_;
   bool cgram_second_write_;
   uint8_t cgram_buffer_;

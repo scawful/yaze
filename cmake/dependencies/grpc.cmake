@@ -1,5 +1,5 @@
 # gRPC and Protobuf dependency management
-# Uses CPM.cmake for consistent cross-platform builds
+# Uses CPM.cmake for consistent cross-platform builds, with optional system package fallback
 
 if(NOT YAZE_ENABLE_GRPC)
   return()
@@ -9,23 +9,146 @@ endif()
 include(cmake/CPM.cmake)
 include(cmake/dependencies.lock)
 
-message(STATUS "Setting up gRPC ${GRPC_VERSION} with CPM.cmake")
+message(STATUS "Setting up gRPC ${GRPC_VERSION}")
 
-# Try to use system packages first if requested
-if(YAZE_USE_SYSTEM_DEPS)
-  find_package(PkgConfig QUIET)
-  if(PkgConfig_FOUND)
-    pkg_check_modules(GRPC_PC grpc++)
-    if(GRPC_PC_FOUND)
-      message(STATUS "Using system gRPC via pkg-config")
-      add_library(grpc::grpc++ INTERFACE IMPORTED)
-      target_include_directories(grpc::grpc++ INTERFACE ${GRPC_PC_INCLUDE_DIRS})
-      target_link_libraries(grpc::grpc++ INTERFACE ${GRPC_PC_LIBRARIES})
-      target_compile_options(grpc::grpc++ INTERFACE ${GRPC_PC_CFLAGS_OTHER})
-      return()
+#-----------------------------------------------------------------------
+# Option: YAZE_PREFER_SYSTEM_GRPC - Use system-installed gRPC/protobuf/abseil
+# when available (e.g., from Homebrew, apt, vcpkg).
+#
+# Benefits: Much faster configure/build times for local development
+# Trade-off: May have version mismatches between system packages
+#
+# Example: cmake --preset mac-ai-fast (uses system packages)
+#-----------------------------------------------------------------------
+option(YAZE_PREFER_SYSTEM_GRPC "Prefer system-installed gRPC/protobuf over CPM" OFF)
+
+if(YAZE_PREFER_SYSTEM_GRPC OR YAZE_USE_SYSTEM_DEPS)
+  message(STATUS "Attempting to use system gRPC/protobuf packages...")
+
+  # Try CMake's find_package first (works with Homebrew on macOS)
+  find_package(gRPC CONFIG QUIET)
+  find_package(Protobuf CONFIG QUIET)
+  find_package(absl CONFIG QUIET)
+
+  if(gRPC_FOUND AND Protobuf_FOUND AND absl_FOUND)
+    message(STATUS "✓ Found system gRPC: ${gRPC_VERSION}")
+    message(STATUS "✓ Found system Protobuf: ${Protobuf_VERSION}")
+    message(STATUS "✓ Found system Abseil")
+
+    # Find protoc and grpc_cpp_plugin executables
+    find_program(PROTOC_EXECUTABLE protoc)
+    find_program(GRPC_CPP_PLUGIN grpc_cpp_plugin)
+
+    if(PROTOC_EXECUTABLE AND GRPC_CPP_PLUGIN)
+      message(STATUS "✓ Found protoc: ${PROTOC_EXECUTABLE}")
+      message(STATUS "✓ Found grpc_cpp_plugin: ${GRPC_CPP_PLUGIN}")
+
+      # Create imported targets for the executables if they don't exist
+      if(NOT TARGET protoc)
+        add_executable(protoc IMPORTED)
+        set_target_properties(protoc PROPERTIES IMPORTED_LOCATION "${PROTOC_EXECUTABLE}")
+      endif()
+
+      if(NOT TARGET grpc_cpp_plugin)
+        add_executable(grpc_cpp_plugin IMPORTED)
+        set_target_properties(grpc_cpp_plugin PROPERTIES IMPORTED_LOCATION "${GRPC_CPP_PLUGIN}")
+      endif()
+
+      # Create convenience interface for basic gRPC linking
+      add_library(yaze_grpc_deps INTERFACE)
+      target_link_libraries(yaze_grpc_deps INTERFACE
+        gRPC::grpc++
+        gRPC::grpc++_reflection
+        protobuf::libprotobuf
+      )
+
+      # Ensure Abseil include directories are available
+      # Homebrew's abseil may not properly export include dirs
+      get_target_property(_ABSL_BASE_INCLUDE absl::base INTERFACE_INCLUDE_DIRECTORIES)
+      if(_ABSL_BASE_INCLUDE)
+        target_include_directories(yaze_grpc_deps INTERFACE ${_ABSL_BASE_INCLUDE})
+        message(STATUS "  Added Abseil include: ${_ABSL_BASE_INCLUDE}")
+      elseif(APPLE)
+        # Fallback for Homebrew on macOS
+        target_include_directories(yaze_grpc_deps INTERFACE /opt/homebrew/include)
+        message(STATUS "  Added Homebrew Abseil include: /opt/homebrew/include")
+      endif()
+
+      # Create interface libraries for compatibility with CPM target names
+      # CPM gRPC creates lowercase 'grpc++' targets
+      # System gRPC (Homebrew) creates namespaced 'gRPC::grpc++' targets
+      # We create interface libs (not aliases) so we can add include directories
+      if(NOT TARGET grpc++)
+        add_library(grpc++ INTERFACE)
+        target_link_libraries(grpc++ INTERFACE gRPC::grpc++)
+        # Add abseil includes for targets linking to grpc++
+        if(_ABSL_BASE_INCLUDE)
+          target_include_directories(grpc++ INTERFACE ${_ABSL_BASE_INCLUDE})
+        elseif(APPLE)
+          target_include_directories(grpc++ INTERFACE /opt/homebrew/include)
+        endif()
+      endif()
+      if(NOT TARGET grpc++_reflection)
+        add_library(grpc++_reflection INTERFACE)
+        target_link_libraries(grpc++_reflection INTERFACE gRPC::grpc++_reflection)
+      endif()
+      if(NOT TARGET grpc::grpc++)
+        add_library(grpc::grpc++ ALIAS gRPC::grpc++)
+      endif()
+      if(NOT TARGET grpc::grpc++_reflection)
+        add_library(grpc::grpc++_reflection ALIAS gRPC::grpc++_reflection)
+      endif()
+
+      # Export targets
+      set(YAZE_GRPC_TARGETS
+        gRPC::grpc++
+        gRPC::grpc++_reflection
+        protobuf::libprotobuf
+      )
+
+      # Setup protobuf generation directory
+      set(_gRPC_PROTO_GENS_DIR ${CMAKE_BINARY_DIR}/gens CACHE INTERNAL "Protobuf generated files directory")
+      file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/gens)
+
+      # Get protobuf include directory from package
+      get_target_property(_PROTOBUF_INCLUDE_DIRS protobuf::libprotobuf INTERFACE_INCLUDE_DIRECTORIES)
+      if(_PROTOBUF_INCLUDE_DIRS)
+        list(GET _PROTOBUF_INCLUDE_DIRS 0 _gRPC_PROTOBUF_WELLKNOWN_INCLUDE_DIR)
+        set(_gRPC_PROTOBUF_WELLKNOWN_INCLUDE_DIR ${_gRPC_PROTOBUF_WELLKNOWN_INCLUDE_DIR} CACHE INTERNAL "Protobuf include directory")
+      endif()
+
+      # Add global include directories for system packages
+      # This ensures all targets can find abseil headers even if target propagation fails
+      # Use add_compile_options for reliable include path propagation with Ninja Multi-Config
+      if(_ABSL_BASE_INCLUDE)
+        add_compile_options(-I${_ABSL_BASE_INCLUDE})
+        message(STATUS "  Added Abseil include via compile options: ${_ABSL_BASE_INCLUDE}")
+      elseif(APPLE)
+        add_compile_options(-I/opt/homebrew/include)
+        message(STATUS "  Added Homebrew include via compile options: /opt/homebrew/include")
+      endif()
+
+      message(STATUS "✓ Using SYSTEM gRPC stack - fast configure!")
+      message(STATUS "  Protobuf gens dir: ${_gRPC_PROTO_GENS_DIR}")
+      message(STATUS "  Protobuf include dir: ${_gRPC_PROTOBUF_WELLKNOWN_INCLUDE_DIR}")
+      set(_YAZE_USING_SYSTEM_GRPC TRUE)
+    else()
+      message(STATUS "○ System gRPC found but protoc/grpc_cpp_plugin missing, falling back to CPM")
+      set(_YAZE_USING_SYSTEM_GRPC FALSE)
     endif()
+  else()
+    message(STATUS "○ System gRPC/protobuf not found, falling back to CPM")
+    set(_YAZE_USING_SYSTEM_GRPC FALSE)
   endif()
 endif()
+
+# If we're using system gRPC, skip CPM entirely and jump to function definition
+if(_YAZE_USING_SYSTEM_GRPC)
+  message(STATUS "Skipping CPM gRPC build - using system packages")
+else()
+  # CPM build path
+  message(STATUS "Building gRPC from source via CPM (this takes 15-20 minutes on first build)")
+  message(STATUS "  Tip: Install gRPC via Homebrew and use -DYAZE_PREFER_SYSTEM_GRPC=ON for faster builds")
 
 #-----------------------------------------------------------------------
 # Guard CMake's package lookup so CPM always downloads a consistent gRPC
@@ -371,7 +494,10 @@ set(YAZE_PROTOBUF_TARGETS
   protobuf::libprotobuf
 )
 
+endif() # End of CPM build path (if NOT _YAZE_USING_SYSTEM_GRPC)
+
 # Function to add protobuf/gRPC code generation to a target
+# This function works with both system and CPM-built gRPC
 function(target_add_protobuf target)
     if(NOT TARGET ${target})
         message(FATAL_ERROR "Target ${target} doesn't exist")
@@ -379,6 +505,28 @@ function(target_add_protobuf target)
     if(NOT ARGN)
         message(SEND_ERROR "Error: target_add_protobuf() called without any proto files")
         return()
+    endif()
+
+    # Determine protoc and grpc_cpp_plugin paths
+    # For IMPORTED targets (system gRPC), use IMPORTED_LOCATION
+    # For built targets (CPM gRPC), use TARGET_FILE generator expression
+    get_target_property(_PROTOC_IMPORTED protoc IMPORTED)
+    get_target_property(_GRPC_PLUGIN_IMPORTED grpc_cpp_plugin IMPORTED)
+
+    if(_PROTOC_IMPORTED)
+        get_target_property(_PROTOC_EXECUTABLE protoc IMPORTED_LOCATION)
+        set(_PROTOC_DEPENDS "")  # No build dependency for system protoc
+    else()
+        set(_PROTOC_EXECUTABLE "$<TARGET_FILE:protoc>")
+        set(_PROTOC_DEPENDS "protoc")
+    endif()
+
+    if(_GRPC_PLUGIN_IMPORTED)
+        get_target_property(_GRPC_PLUGIN_EXECUTABLE grpc_cpp_plugin IMPORTED_LOCATION)
+        set(_GRPC_PLUGIN_DEPENDS "")  # No build dependency for system plugin
+    else()
+        set(_GRPC_PLUGIN_EXECUTABLE "$<TARGET_FILE:grpc_cpp_plugin>")
+        set(_GRPC_PLUGIN_DEPENDS "grpc_cpp_plugin")
     endif()
 
     set(_protobuf_include_path -I ${CMAKE_SOURCE_DIR}/src -I ${_gRPC_PROTOBUF_WELLKNOWN_INCLUDE_DIR})
@@ -392,7 +540,7 @@ function(target_add_protobuf target)
         else()
             set(RELFIL_WE "${REL_DIR}/${FIL_WE}")
         endif()
-        
+
         message(STATUS "  Proto file: ${FIL_WE}")
         message(STATUS "    ABS_FIL = ${ABS_FIL}")
         message(STATUS "    REL_FIL = ${REL_FIL}")
@@ -406,13 +554,13 @@ function(target_add_protobuf target)
                 "${_gRPC_PROTO_GENS_DIR}/${RELFIL_WE}_mock.grpc.pb.h"
                 "${_gRPC_PROTO_GENS_DIR}/${RELFIL_WE}.pb.cc"
                 "${_gRPC_PROTO_GENS_DIR}/${RELFIL_WE}.pb.h"
-        COMMAND $<TARGET_FILE:protoc>
+        COMMAND ${_PROTOC_EXECUTABLE}
         ARGS --grpc_out=generate_mock_code=true:${_gRPC_PROTO_GENS_DIR}
             --cpp_out=${_gRPC_PROTO_GENS_DIR}
-            --plugin=protoc-gen-grpc=$<TARGET_FILE:grpc_cpp_plugin>
+            --plugin=protoc-gen-grpc=${_GRPC_PLUGIN_EXECUTABLE}
             ${_protobuf_include_path}
             ${ABS_FIL}
-        DEPENDS ${ABS_FIL} protoc grpc_cpp_plugin
+        DEPENDS ${ABS_FIL} ${_PROTOC_DEPENDS} ${_GRPC_PLUGIN_DEPENDS}
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/src
         COMMENT "Running gRPC C++ protocol buffer compiler on ${FIL}"
         VERBATIM)

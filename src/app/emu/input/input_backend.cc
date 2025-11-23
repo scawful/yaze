@@ -1,8 +1,12 @@
 #include "app/emu/input/input_backend.h"
 
-#include "SDL.h"
+#include "app/platform/sdl_compat.h"
 #include "imgui/imgui.h"
 #include "util/log.h"
+
+#ifdef YAZE_USE_SDL3
+#include "app/emu/input/sdl3_input_backend.h"
+#endif
 
 namespace yaze {
 namespace emu {
@@ -204,19 +208,34 @@ class NullInputBackend : public IInputBackend {
 std::unique_ptr<IInputBackend> InputBackendFactory::Create(BackendType type) {
   switch (type) {
     case BackendType::SDL2:
+#ifdef YAZE_USE_SDL3
+      LOG_WARN("InputBackend",
+               "SDL2 backend requested but SDL3 build enabled, using SDL3");
+      return std::make_unique<SDL3InputBackend>();
+#else
       return std::make_unique<SDL2InputBackend>();
+#endif
 
     case BackendType::SDL3:
-      // TODO: Implement SDL3 backend when SDL3 is stable
-      LOG_WARN("InputBackend", "SDL3 backend not yet implemented, using SDL2");
+#ifdef YAZE_USE_SDL3
+      return std::make_unique<SDL3InputBackend>();
+#else
+      LOG_WARN("InputBackend",
+               "SDL3 backend requested but not available, using SDL2");
       return std::make_unique<SDL2InputBackend>();
+#endif
 
     case BackendType::NULL_BACKEND:
       return std::make_unique<NullInputBackend>();
 
     default:
+#ifdef YAZE_USE_SDL3
+      LOG_ERROR("InputBackend", "Unknown backend type, using SDL3");
+      return std::make_unique<SDL3InputBackend>();
+#else
       LOG_ERROR("InputBackend", "Unknown backend type, using SDL2");
       return std::make_unique<SDL2InputBackend>();
+#endif
   }
 }
 

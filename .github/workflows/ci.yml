@@ -1,5 +1,19 @@
 name: CI/CD Pipeline
 
+# Test Strategy:
+# - PR/Push: Run lean test set (stable tests + smoke tests) for fast feedback
+# - Nightly: Run comprehensive suite including ROM-dependent, experimental, benchmarks
+# - See .github/workflows/nightly.yml for extended test coverage
+#
+# Test Labels:
+# - stable: Core functionality tests that should always pass
+# - unit: Fast isolated component tests (subset of stable)
+# - integration: Multi-component tests (subset of stable)
+# - rom_dependent: Tests requiring Zelda3 ROM file (nightly only)
+# - experimental: AI and experimental feature tests (nightly only)
+# - gui: GUI/E2E tests with ImGuiTestEngine (nightly only)
+# - benchmark: Performance benchmarks (nightly only)
+
 on:
   push:
     branches: [ "master", "develop" ]
@@ -79,7 +93,7 @@ jobs:
         with:
           platform: ${{ matrix.platform }}
           preset: ${{ matrix.preset }}
-          cache-key: ${{ hashFiles('cmake/dependencies.lock') }}
+          cache-key: ${{ github.sha }}
 
       - name: Build project
         uses: ./.github/actions/build-project
@@ -132,7 +146,7 @@ jobs:
         with:
           platform: ${{ matrix.platform }}
           preset: ${{ matrix.preset }}
-          cache-key: ${{ hashFiles('cmake/dependencies.lock') }}
+          cache-key: ${{ github.sha }}
 
       - name: Build project
         uses: ./.github/actions/build-project
@@ -141,17 +155,19 @@ jobs:
           preset: ${{ matrix.preset }}
           build-type: ${{ env.BUILD_TYPE }}
 
-      - name: Run stable tests
+      - name: Run stable tests only
         uses: ./.github/actions/run-tests
         with:
           test-type: stable
           preset: ${{ matrix.preset }}
 
-      - name: Run unit tests
-        uses: ./.github/actions/run-tests
-        with:
-          test-type: unit
-          preset: ${{ matrix.preset }}
+      - name: Run smoke tests (GUI framework validation)
+        if: matrix.platform == 'linux'
+        run: |
+          cd build
+          # Run just the smoke tests to validate GUI framework is working
+          ./bin/yaze_test_gui -nogui --gtest_filter="*Smoke*" || true
+        continue-on-error: true
 
       - name: Run HTTP API tests
         if: github.event.inputs.enable_http_api_tests == 'true'
@@ -174,7 +190,7 @@ jobs:
         with:
           platform: windows
           preset: ci-windows-ai
-          cache-key: ${{ hashFiles('cmake/dependencies.lock') }}
+          cache-key: ${{ github.sha }}
 
       - name: Build project
         uses: ./.github/actions/build-project
@@ -183,16 +199,10 @@ jobs:
           preset: ci-windows-ai
           build-type: ${{ env.BUILD_TYPE }}
 
-      - name: Run stable tests (agent stack)
+      - name: Run stable tests only (agent stack)
         uses: ./.github/actions/run-tests
         with:
           test-type: stable
-          preset: ci-windows-ai
-
-      - name: Run unit tests (agent stack)
-        uses: ./.github/actions/run-tests
-        with:
-          test-type: unit
           preset: ci-windows-ai
 
   code-quality:
@@ -261,7 +271,9 @@ jobs:
   z3ed-agent-test:
     name: "z3ed Agent"
     runs-on: macos-14
-    
+    # Only run on master/develop push, not on PRs (moved to nightly for PRs)
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/develop')
+
     steps:
     - uses: actions/checkout@v4
       with:

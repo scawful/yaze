@@ -5,6 +5,9 @@
 #include <fstream>
 #include <memory>
 
+// Centralized UI theme
+#include "app/gui/style/theme.h"
+
 #include "absl/strings/match.h"
 #include "absl/strings/str_format.h"
 #include "absl/time/clock.h"
@@ -163,9 +166,14 @@ void AgentEditor::DrawDashboard() {
 
   // Pulsing glow for window
   float pulse = 0.5f + 0.5f * std::sin(pulse_animation_);
-  ImGui::PushStyleColor(ImGuiCol_TitleBgActive,
-                        ImVec4(0.1f + 0.1f * pulse, 0.2f + 0.15f * pulse,
-                               0.3f + 0.2f * pulse, 1.0f));
+  // Apply theme primary color with pulsing effect
+const auto& theme = yaze::gui::style::DefaultTheme();
+ImGui::PushStyleColor(ImGuiCol_TitleBgActive,
+    ImVec4(theme.primary.x + 0.1f * pulse,
+            theme.primary.y + 0.15f * pulse,
+            theme.primary.z + 0.2f * pulse,
+            1.0f));
+ImGui::PopStyleColor();
 
   ImGui::SetNextWindowSize(ImVec2(1200, 800), ImGuiCond_FirstUseEver);
   ImGui::Begin(ICON_MD_SMART_TOY " AI AGENT PLATFORM [v0.4.x]", &active_,
@@ -328,6 +336,7 @@ void AgentEditor::DrawDashboard() {
 }
 
 void AgentEditor::DrawConfigurationPanel() {
+  const auto& theme = yaze::gui::style::DefaultTheme();
   // AI Provider Configuration
   if (ImGui::CollapsingHeader(ICON_MD_SETTINGS " AI Provider",
                               ImGuiTreeNodeFlags_DefaultOpen)) {
@@ -343,7 +352,7 @@ void AgentEditor::DrawConfigurationPanel() {
     bool is_gemini = (current_profile_.provider == "gemini");
 
     if (is_mock)
-      ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.6f, 0.6f, 0.6f, 0.8f));
+      ImGui::PushStyleColor(ImGuiCol_Button, theme.secondary);
     if (ImGui::Button(ICON_MD_SETTINGS " Mock", button_size)) {
       current_profile_.provider = "mock";
     }
@@ -352,7 +361,9 @@ void AgentEditor::DrawConfigurationPanel() {
 
     ImGui::SameLine();
     if (is_ollama)
-      ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.8f, 0.4f, 0.8f));
+      ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(theme.secondary.x * 1.2f,
+                                                theme.secondary.y * 1.2f,
+                                                theme.secondary.z * 1.2f, 1.0f));
     if (ImGui::Button(ICON_MD_CLOUD " Ollama", button_size)) {
       current_profile_.provider = "ollama";
     }
@@ -361,7 +372,7 @@ void AgentEditor::DrawConfigurationPanel() {
 
     ImGui::SameLine();
     if (is_gemini)
-      ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.196f, 0.6f, 0.8f, 0.8f));
+      ImGui::PushStyleColor(ImGuiCol_Button, theme.primary);
     if (ImGui::Button(ICON_MD_SMART_TOY " Gemini", button_size)) {
       current_profile_.provider = "gemini";
     }
@@ -443,7 +454,7 @@ void AgentEditor::DrawConfigurationPanel() {
         current_profile_.gemini_api_key = key_buf;
       }
       if (!current_profile_.gemini_api_key.empty()) {
-        ImGui::TextColored(ImVec4(0.133f, 0.545f, 0.133f, 1.0f),
+        ImGui::TextColored(theme.success,
                            ICON_MD_CHECK_CIRCLE " API key configured");
       }
     } else {
@@ -520,9 +531,9 @@ void AgentEditor::DrawConfigurationPanel() {
 
   // Apply button
   ImGui::Spacing();
-  ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.133f, 0.545f, 0.133f, 0.8f));
+  ImGui::PushStyleColor(ImGuiCol_Button, theme.success);
   ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
-                        ImVec4(0.133f, 0.545f, 0.133f, 1.0f));
+                        ImVec4(theme.success.x * 1.2f, theme.success.y * 1.2f, theme.success.z * 1.2f, 1.0f));
   if (ImGui::Button(ICON_MD_CHECK " Apply & Save Configuration",
                     ImVec2(-1, 40))) {
     // Update legacy config
@@ -637,7 +648,7 @@ void AgentEditor::DrawPromptEditorPanel() {
       prompt_editor_initialized_ = false;
     }
     if (ImGui::Selectable("system_prompt_v3.txt",
-                          active_prompt_file_ == "system_prompt_v3.txt")) {
+                          active_prompt_file_ == "system_prompt_v3.2.txt")) {
       active_prompt_file_ = "system_prompt_v3.txt";
       prompt_editor_initialized_ = false;
     }
@@ -715,6 +726,7 @@ void AgentEditor::DrawPromptEditorPanel() {
 }
 
 void AgentEditor::DrawBotProfilesPanel() {
+  const auto& theme = yaze::gui::style::DefaultTheme();
   ImGui::TextColored(ImVec4(1.0f, 0.843f, 0.0f, 1.0f),
                      ICON_MD_FOLDER " Bot Profile Manager");
   ImGui::Separator();
@@ -771,8 +783,7 @@ void AgentEditor::DrawBotProfilesPanel() {
 
       bool is_current = (profile.name == current_profile_.name);
       if (is_current) {
-        ImGui::PushStyleColor(ImGuiCol_Button,
-                              ImVec4(0.196f, 0.6f, 0.8f, 0.6f));
+        ImGui::PushStyleColor(ImGuiCol_Button, theme.primary); // Use theme.primary for current
       }
 
       if (ImGui::Button(profile.name.c_str(),
@@ -790,7 +801,7 @@ void AgentEditor::DrawBotProfilesPanel() {
       }
 
       ImGui::SameLine();
-      ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.8f, 0.2f, 0.2f, 0.6f));
+      ImGui::PushStyleColor(ImGuiCol_Button, theme.warning);
       if (ImGui::SmallButton(ICON_MD_DELETE)) {
         DeleteBotProfile(profile.name);
         if (toast_manager_) {
@@ -1287,7 +1298,7 @@ void AgentEditor::DrawAgentBuilderPanel() {
         toast_manager_->Show("Builder blueprint saved", ToastType::kSuccess,
                              2.0f);
       } else {
-        toast_manager_->Show(std::string(status.message()), ToastType::kError,
+        toast_manager_->Show(std::string(status.message().data(), status.message().size()), ToastType::kError,
                              3.5f);
       }
     }
@@ -1300,7 +1311,7 @@ void AgentEditor::DrawAgentBuilderPanel() {
         toast_manager_->Show("Builder blueprint loaded", ToastType::kSuccess,
                              2.0f);
       } else {
-        toast_manager_->Show(std::string(status.message()), ToastType::kError,
+        toast_manager_->Show(std::string(status.message().data(), status.message().size()), ToastType::kError,
                              3.5f);
       }
     }

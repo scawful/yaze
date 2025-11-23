@@ -1,195 +1,407 @@
 # yaze Test Suite
 
-This directory contains the comprehensive test suite for YAZE, organized for optimal AI agent testing and development workflow.
+This directory contains the comprehensive test suite for YAZE, organized into **default (stable) tests** and **optional test suites**. Tests are managed through CMake presets and run via `ctest` labels.
+
+## Testing Strategy: Tiered Approach
+
+YAZE uses a **tiered testing strategy** to balance CI speed with comprehensive coverage:
+
+1. **PR/Push CI (Fast Feedback)** - Runs stable tests + GUI smoke tests (~5 minutes)
+   - Label: `stable` (unit + integration tests)
+   - Label: `gui` (framework validation, headless mode)
+   - Must pass before merging
+
+2. **Nightly CI (Comprehensive)** - Full suite including heavy/flaky tests (~30-60 minutes)
+   - All of the above PLUS
+   - Label: `rom_dependent` (requires Zelda3 ROM)
+   - Label: `experimental` (AI features, unstable)
+   - Label: `benchmark` (performance tests)
+   - Non-blocking but alerts on failure
+
+3. **Local Development** - Mix and match based on your changes
+   - Stable tests for quick iteration
+   - Add ROM tests when modifying editors
+   - Add AI tests when touching agent features
+
+See `docs/internal/CI-TEST-STRATEGY.md` for detailed CI configuration.
+
+## Quick Start
+
+```bash
+# Run default tests (what PR CI runs - ~5 minutes)
+ctest --test-dir build -L stable
+
+# Run all available tests (respects your preset configuration)
+ctest --test-dir build --output-on-failure
+
+# Run with ROM path for full coverage
+cmake --preset mac-dbg -DYAZE_ENABLE_ROM_TESTS=ON -DYAZE_TEST_ROM_PATH=~/zelda3.sfc
+ctest --test-dir build
+```
+
+## Test Structure
+
+### Default Test Suite (Always Enabled)
+
+The **default/stable test suite** runs automatically in CI and when you build without special flags. It includes:
+
+- **Unit Tests (Fast)**: Core, ROM, Graphics, Zelda3 functionality tests
+- **Integration Tests (Medium)**: Editor, Asar, Dungeon integration
+- **GUI Smoke Tests (Experimental)**: Basic framework, dungeon editor, canvas workflows
+
+When built with `YAZE_BUILD_TESTS=ON` (default in debug presets), the stable suite is always available:
+```
+cmake --preset mac-dbg      # Includes stable tests
+cmake --preset lin-dbg      # Includes stable tests
+cmake --preset win-dbg      # Includes stable tests
+```
+
+### Optional Test Suites
+
+#### 1. ROM-Dependent Tests
+Tests that require an actual Zelda3 ROM file. Disabled by default to avoid distribution issues.
+
+**Enable with**:
+```bash
+cmake --preset mac-dbg -DYAZE_ENABLE_ROM_TESTS=ON -DYAZE_TEST_ROM_PATH=/path/to/zelda3.sfc
+cmake --build --preset mac-dbg --target yaze_test_rom_dependent
+```
+
+**Includes**:
+- ASAR ROM patching tests (`integration/asar_rom_test.cc`)
+- Complete ROM editing workflows (`e2e/rom_dependent/e2e_rom_test.cc`)
+- ZSCustomOverworld upgrade validation (`e2e/zscustomoverworld/zscustomoverworld_upgrade_test.cc`)
+
+**Run with**:
+```bash
+ctest --test-dir build -L rom_dependent
+```
+
+#### 2. Experimental AI Tests
+Tests for AI-powered features and runtime. Requires `YAZE_ENABLE_AI_RUNTIME=ON`.
+
+**Enable with**:
+```bash
+cmake --preset mac-ai
+cmake --build --preset mac-ai --target yaze_test_experimental
+```
+
+**Includes**:
+- AI tile placement tests
+- Gemini Vision integration tests
+- AI GUI controller workflows
+
+**Run with**:
+```bash
+ctest --test-dir build -L experimental
+```
+
+#### 3. Benchmark Tests
+Performance and optimization benchmarks.
+
+**Enable with** (always enabled when tests are built):
+```bash
+ctest --test-dir build -L benchmark
+```
 
 ## Directory Structure
 
 ```
 test/
-├── unit/                    # Unit tests for individual components
-│   ├── core/               # Core functionality tests
-│   ├── rom/                # ROM handling tests
-│   ├── gfx/                # Graphics system tests
-│   └── zelda3/             # Zelda 3 specific tests
-├── integration/            # Integration tests
-│   ├── editor/             # Editor integration tests
+├── unit/                           # Fast unit tests (no ROM required)
+│   ├── core/                      # Core utilities, ASAR, hex
+│   ├── rom/                       # ROM loading/saving
+│   ├── gfx/                       # Graphics system
+│   ├── zelda3/                    # Zelda3 data structures
+│   └── gui/                       # GUI components
+├── integration/                    # Integration tests (may require ROM)
+│   ├── editor/                    # Editor integration
+│   ├── ai/                        # AI runtime integration
+│   ├── zelda3/                    # Zelda3 system integration
 │   ├── asar_integration_test.cc
-│   ├── asar_rom_test.cc
+│   ├── asar_rom_test.cc          # ROM-dependent ASAR tests
 │   └── dungeon_editor_test.cc
-├── e2e/                    # End-to-end tests
-│   ├── rom_dependent/      # ROM-dependent E2E tests
-│   └── zscustomoverworld/  # ZSCustomOverworld upgrade tests
-├── deprecated/             # Outdated tests (for cleanup)
-│   └── emu/                # Deprecated emulator tests
-├── mocks/                  # Mock objects for testing
-├── assets/                 # Test assets and patches
-└── yaze_test.cc           # Enhanced test runner
+├── e2e/                            # End-to-end UI tests
+│   ├── framework_smoke_test.cc     # Basic framework validation
+│   ├── dungeon_editor_smoke_test.cc
+│   ├── canvas_selection_test.cc
+│   ├── rom_dependent/             # ROM-dependent E2E tests
+│   └── zscustomoverworld/         # Version upgrade tests
+├── benchmarks/                     # Performance tests
+├── mocks/                          # Test helpers and mocks
+├── assets/                         # Test data and patches
+├── test_utils.cc/h                 # Shared test utilities
+└── CMakeLists.txt                  # Test configuration
 ```
 
-## Test Categories
+## Test Categories & Labels
 
-### Unit Tests (`unit/`)
-- **Core**: ASAR wrapper, hex utilities, core functionality
-- **ROM**: ROM loading, saving, validation
-- **Graphics**: SNES tiles, palettes, compression
-- **Zelda3**: Message system, overworld, objects, sprites
+Tests are organized by ctest labels for flexible execution. Labels determine which tests run in PR/push CI vs nightly builds:
 
-### Integration Tests (`integration/`)
-- **Editor**: Tile editor, dungeon editor integration
-- **ASAR**: ASAR integration and ROM patching
-- **Dungeon**: Dungeon editor system integration
+| Label | Description | PR/Push CI? | Nightly? | Requirements |
+|-------|-------------|-----------|----------|--------------|
+| `stable` | Core unit and integration tests (fast, reliable) | Yes | Yes | None |
+| `gui` | GUI smoke tests (ImGui framework validation) | Yes | Yes | SDL display or headless |
+| `rom_dependent` | Tests requiring actual Zelda3 ROM | No | Yes | `YAZE_ENABLE_ROM_TESTS=ON` + ROM path |
+| `experimental` | AI runtime features and experiments | No | Yes | `YAZE_ENABLE_AI_RUNTIME=ON` |
+| `benchmark` | Performance and optimization tests | No | Yes | None |
+| `headless_gui` | GUI tests in headless mode (CI-safe) | Yes | Yes | None |
 
-### End-to-End Tests (`e2e/`)
-- **ROM Dependent**: Complete ROM editing workflow validation
-- **ZSCustomOverworld**: Version upgrade testing (vanilla → v2 → v3)
+## Running Tests
 
-## Enhanced Test Runner
-
-The `yaze_test` executable now supports comprehensive argument handling for AI agents:
-
-### Usage Examples
-
+### Stable Tests Only (Default)
 ```bash
-# Run all tests
-./yaze_test
-
-# Run specific test categories
-./yaze_test --unit --verbose
-./yaze_test --integration
-./yaze_test --e2e --rom-path my_rom.sfc
-./yaze_test --zscustomoverworld --verbose
-
-# Run specific test patterns
-./yaze_test RomTest.*
-./yaze_test *ZSCustomOverworld*
-
-# Skip ROM-dependent tests
-./yaze_test --skip-rom-tests
-
-# Enable UI tests
-./yaze_test --enable-ui-tests
+ctest --preset default -L stable
+# or
+ctest --test-dir build -L stable
 ```
 
-### Test Modes
+### GUI Smoke Tests
+```bash
+# Run all GUI tests
+ctest --preset default -L gui
 
-- `--unit`: Unit tests only
-- `--integration`: Integration tests only
-- `--e2e`: End-to-end tests only
-- `--rom-dependent`: ROM-dependent tests only
-- `--zscustomoverworld`: ZSCustomOverworld tests only
-- `--core`: Core functionality tests
-- `--graphics`: Graphics tests
-- `--editor`: Editor tests
-- `--deprecated`: Deprecated tests (for cleanup)
+# Run headlessly (CI mode)
+ctest --test-dir build -L headless_gui
+```
 
-### Options
+### ROM-Dependent Tests
+```bash
+# Must configure with ROM path first
+cmake --preset mac-dbg \
+  -DYAZE_ENABLE_ROM_TESTS=ON \
+  -DYAZE_TEST_ROM_PATH=~/zelda3.sfc
 
-- `--rom-path PATH`: Specify ROM path for testing
-- `--skip-rom-tests`: Skip tests requiring ROM files
-- `--enable-ui-tests`: Enable UI tests (requires display)
-- `--verbose`: Enable verbose output
-- `--help`: Show help message
+# Build ROM-dependent test suite
+cmake --build --preset mac-dbg --target yaze_test_rom_dependent
 
-## E2E ROM Testing
+# Run ROM tests
+ctest --test-dir build -L rom_dependent
+```
 
-The E2E ROM test suite (`e2e/rom_dependent/e2e_rom_test.cc`) provides comprehensive validation of the complete ROM editing workflow:
+### Experimental AI Tests
+```bash
+cmake --preset mac-ai
+cmake --build --preset mac-ai --target yaze_test_experimental
+ctest --test-dir build -L experimental
+```
 
-1. **Load vanilla ROM**
-2. **Apply various edits** (overworld, dungeon, graphics, etc.)
-3. **Save changes**
-4. **Reload ROM and verify edits persist**
-5. **Verify no data corruption occurred**
+### All Available Tests
+```bash
+ctest --test-dir build
+```
 
-### Test Cases
+## Test Suites by Build Preset
 
-- `BasicROMLoadSave`: Basic ROM loading and saving
-- `OverworldEditWorkflow`: Complete overworld editing workflow
-- `DungeonEditWorkflow`: Complete dungeon editing workflow
-- `TransactionSystem`: Multi-edit transaction validation
-- `CorruptionDetection`: ROM corruption detection
-- `LargeScaleEditing`: Large-scale editing without corruption
-
-## ZSCustomOverworld Upgrade Testing
-
-The ZSCustomOverworld test suite (`e2e/zscustomoverworld/zscustomoverworld_upgrade_test.cc`) validates version upgrades:
-
-### Supported Upgrades
-
-- **Vanilla → v2**: Basic upgrade with main palettes
-- **v2 → v3**: Advanced upgrade with expanded features
-- **Vanilla → v3**: Direct upgrade to latest version
-
-### Test Cases
-
-- `VanillaBaseline`: Validate vanilla ROM baseline
-- `VanillaToV2Upgrade`: Test vanilla to v2 upgrade
-- `V2ToV3Upgrade`: Test v2 to v3 upgrade
-- `VanillaToV3Upgrade`: Test direct vanilla to v3 upgrade
-- `AddressValidation`: Validate version-specific addresses
-- `SaveCompatibility`: Test save compatibility between versions
-- `FeatureToggle`: Test feature enablement/disablement
-- `DataIntegrity`: Test data integrity during upgrades
-
-### Version-Specific Features
-
-#### Vanilla
-- Basic overworld functionality
-- Standard message IDs, area graphics, palettes
-
-#### v2
-- Main palettes support
-- Expanded message ID table
-
-#### v3
-- Area-specific background colors
-- Subscreen overlays
-- Animated GFX
-- Custom tile GFX groups
-- Mosaic effects
+| Preset | Stable | GUI | ROM-Dep | Experimental | Benchmark | Use Case |
+|--------|--------|-----|---------|--------------|-----------|----------|
+| `mac-dbg`, `lin-dbg`, `win-dbg` | ✓ | ✓ | ✗ | ✗ | ✓ | Default development builds |
+| `mac-rel`, `lin-rel`, `win-rel` | ✗ | ✗ | ✗ | ✗ | ✗ | Release binaries (no tests) |
+| `mac-ai`, `lin-ai`, `win-ai` | ✓ | ✓ | ✗ | ✓ | ✓ | AI/agent development with experiments |
+| `mac-dev`, `lin-dev`, `win-dev` | ✓ | ✓ | ✓ | ✗ | ✓ | Full development with ROM testing |
+| `ci-*` | ✓ | ✓ | ✗ | ✗ | ✓ | GitHub Actions CI builds |
 
 ## Environment Variables
 
-- `YAZE_TEST_ROM_PATH`: Path to test ROM file
-- `YAZE_SKIP_ROM_TESTS`: Skip ROM-dependent tests
-- `YAZE_ENABLE_UI_TESTS`: Enable UI tests
-- `YAZE_VERBOSE_TESTS`: Enable verbose test output
+These variables control test behavior:
 
-## CI/CD Integration
+```bash
+# Specify ROM for tests (if YAZE_ENABLE_ROM_TESTS=ON)
+export YAZE_TEST_ROM_PATH=/path/to/zelda3.sfc
 
-Tests are automatically labeled for CI/CD:
+# Skip ROM tests (useful for CI without ROM)
+export YAZE_SKIP_ROM_TESTS=1
 
-- `unit`: Fast unit tests
-- `integration`: Medium-speed integration tests
-- `e2e`: Slow end-to-end tests
-- `rom`: ROM-dependent tests
-- `zscustomoverworld`: ZSCustomOverworld specific tests
-- `core`: Core functionality tests
-- `graphics`: Graphics tests
-- `editor`: Editor tests
-- `deprecated`: Deprecated tests
+# Enable GUI tests (default if display available)
+export YAZE_ENABLE_UI_TESTS=1
+```
 
-## Deprecated Tests
+## Running Tests from Command Line
 
-The `deprecated/` directory contains outdated tests that no longer pass after the large refactor:
+### Traditional Approach (Single Binary)
+```bash
+# Build single unified test binary
+cmake --build build --target yaze_test
 
-- **EMU tests**: CPU, PPU, SPC700, APU tests that are no longer compatible
-- These tests are kept for reference but should not be run in CI/CD
+# Run with gtest filters
+./build/bin/yaze_test --gtest_filter="*Rom*"
+./build/bin/yaze_test --gtest_filter="*GUI*" --show-gui
+```
 
-## Best Practices
+### CMake/CTest Approach (Recommended)
+```bash
+# Run all tests
+ctest --test-dir build
 
-1. **Use appropriate test categories** for new tests
-2. **Add comprehensive E2E tests** for new features
-3. **Test upgrade paths** for ZSCustomOverworld features
-4. **Validate data integrity** in all ROM operations
-5. **Use descriptive test names** for AI agent clarity
-6. **Include verbose output** for debugging
+# Run specific label
+ctest --test-dir build -L stable
 
-## AI Agent Testing
+# Run with output
+ctest --test-dir build --output-on-failure
 
-The enhanced test runner is specifically designed for AI agent testing:
+# Run tests matching pattern
+ctest --test-dir build -R "RomTest"
 
-- **Clear argument structure** for easy automation
-- **Comprehensive help system** for understanding capabilities
-- **Verbose output** for debugging and validation
-- **Flexible test filtering** for targeted testing
-- **Environment variable support** for configuration
+# Run verbose
+ctest --test-dir build --verbose
+```
+
+## AI Agent Testing Notes
+
+The test suite is optimized for AI agent automation:
+
+### Key Guidelines for AI Agents
+
+1. **Always use ctest labels** for filtering (more robust than gtest filters)
+   - `ctest --test-dir build -L stable` (recommended for most tasks)
+   - `ctest --test-dir build -L "stable|gui"` (if GUI validation needed)
+
+2. **Check CMake configuration before assuming optional tests**
+   ```bash
+   cmake . -DYAZE_ENABLE_ROM_TESTS=ON  # Check if this flag was used
+   ```
+
+3. **Use build presets to control test suites automatically**
+   - `mac-dbg` / `lin-dbg` / `win-dbg` - Includes stable tests only
+   - `mac-ai` / `lin-ai` / `win-ai` - Includes stable + experimental tests
+   - `mac-dev` / `lin-dev` / `win-dev` - Includes stable + ROM-dependent tests
+
+4. **Provide ROM path explicitly when needed**
+   ```bash
+   cmake . -DYAZE_ENABLE_ROM_TESTS=ON -DYAZE_TEST_ROM_PATH=/path/to/rom
+   ```
+
+5. **Use headless mode for CI-safe GUI tests**
+   ```bash
+   ctest --test-dir build -L headless_gui  # GUI tests without display
+   ```
+
+6. **Build separate test binaries for isolation**
+   ```bash
+   cmake --build build --target yaze_test_stable       # Stable tests only
+   cmake --build build --target yaze_test_rom_dependent  # ROM tests
+   cmake --build build --target yaze_test_experimental   # AI tests
+   ```
+
+## Understanding Test Organization
+
+### Default Tests (Always Safe to Run)
+These tests have no external dependencies and run fast. They're enabled by default in all debug presets.
+
+**Stable Unit Tests**
+- ROM loading/saving
+- Graphics system (tiles, palettes, compression)
+- Zelda3 data structures
+- ASAR wrapper functionality
+- CLI utilities
+
+**Stable Integration Tests**
+- Tile editor workflows
+- Dungeon editor integration
+- Overworld system integration
+- Message system
+
+**GUI Smoke Tests**
+- Framework validation
+- Canvas selection workflow
+- Dungeon editor UI
+
+### Optional Tests (Require Configuration)
+
+**ROM-Dependent Suite**
+- Full ROM patching with actual ROM data
+- Complete edit workflows
+- ZSCustomOverworld version upgrades
+- Data integrity validation
+
+Disabled by default because they require a Zelda3 ROM file. Enable only when needed:
+```bash
+cmake ... -DYAZE_ENABLE_ROM_TESTS=ON -DYAZE_TEST_ROM_PATH=/path/to/rom
+```
+
+**Experimental AI Suite**
+- AI tile placement
+- Vision model integration
+- AI-powered automation
+
+Requires `-DYAZE_ENABLE_AI_RUNTIME=ON` (included in `*-ai` presets).
+
+## Common Test Workflows
+
+### Local Development
+```bash
+# Fast iteration - stable tests only
+ctest --test-dir build -L stable -j4
+
+# With GUI validation
+ctest --test-dir build -L "stable|gui" -j4
+```
+
+### Before Committing Code
+```bash
+# Stable tests must pass
+ctest --test-dir build -L stable --output-on-failure
+
+# Add ROM tests if modifying ROM/editor code
+cmake . -DYAZE_ENABLE_ROM_TESTS=ON -DYAZE_TEST_ROM_PATH=~/zelda3.sfc
+ctest --test-dir build -L rom_dependent --output-on-failure
+```
+
+### Full Test Coverage (With All Features)
+```bash
+# AI features + ROM tests
+cmake --preset mac-dev -DYAZE_TEST_ROM_PATH=~/zelda3.sfc
+cmake --build --preset mac-dev --target yaze_test_rom_dependent yaze_test_experimental
+ctest --test-dir build --output-on-failure
+```
+
+### CI/CD Pipeline
+The CI pipeline runs:
+1. **Stable tests**: Always, must pass
+2. **GUI tests**: Always (headless mode), must pass
+3. **ROM tests**: Only on `develop` branch with ROM
+4. **Experimental**: Only on feature branches if enabled
+
+See `.github/workflows/ci.yml` for details.
+
+## Troubleshooting
+
+### ROM Tests Not Found
+```bash
+# Ensure ROM tests are enabled
+cmake . -DYAZE_ENABLE_ROM_TESTS=ON -DYAZE_TEST_ROM_PATH=/path/to/rom
+cmake --build . --target yaze_test_rom_dependent
+```
+
+### GUI Tests Crash
+- Ensure SDL display available: `export DISPLAY=:0` on Linux
+- Check `assets/zelda3.sfc` exists if no ROM path specified
+- Run headlessly: `ctest -L headless_gui`
+
+### Tests Not Discovered
+```bash
+# Rebuild test targets
+cmake --build build --target yaze_test_stable
+ctest --test-dir build --verbose
+```
+
+### Performance Issues
+- Use `-j4` to parallelize: `ctest --test-dir build -j4`
+- Skip benchmarks: `ctest --test-dir build -L "^(?!benchmark)"`
+
+## Adding New Tests
+
+1. **Unit test**: Add to `unit/` subdirectory, auto-included in stable suite
+2. **Integration test**: Add to `integration/`, auto-included in stable suite
+3. **GUI test**: Add to `e2e/`, auto-included in GUI suite
+4. **ROM-dependent**: Add to `e2e/rom_dependent/`, requires `YAZE_ENABLE_ROM_TESTS=ON`
+5. **Experimental**: Add to `integration/ai/`, requires `YAZE_ENABLE_AI_RUNTIME=ON`
+
+All files are automatically discovered by CMake's `add_executable()` and `gtest_discover_tests()`.
+
+## References
+
+- **CMakePresets.json**: Build configurations and preset definitions
+- **test/CMakeLists.txt**: Test suite setup and labels
+- **docs/public/build/quick-reference.md**: Quick build command reference
+- **docs/internal/ci-and-testing.md**: CI pipeline documentation

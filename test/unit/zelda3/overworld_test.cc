@@ -13,9 +13,10 @@ namespace zelda3 {
 class OverworldTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    // Skip tests on Linux for automated github builds
+    // Skip tests on Linux CI - these require SDL/graphics system initialization
+    // that is not available in headless CI environments
 #if defined(__linux__)
-    GTEST_SKIP();
+    GTEST_SKIP() << "Overworld tests require graphics context (unavailable on Linux CI)";
 #endif
     // Create a mock ROM for testing
     rom_ = std::make_unique<Rom>();
