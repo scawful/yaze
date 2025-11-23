@@ -10,12 +10,12 @@ namespace test {
 class DungeonRoomTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    // Skip tests on Linux for automated github builds
+    // Skip on Linux CI - requires ROM file
 #if defined(__linux__)
-    GTEST_SKIP();
+    GTEST_SKIP() << "Dungeon room tests require ROM file (unavailable on Linux CI)";
 #else
     if (!rom_.LoadFromFile("./zelda3.sfc").ok()) {
-      GTEST_SKIP_("Failed to load test ROM");
+      GTEST_SKIP() << "Failed to load test ROM (zelda3.sfc)";
     }
 #endif
   }

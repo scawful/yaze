@@ -133,9 +133,9 @@ TEST_F(DungeonObjectRenderingTests, PreviewBufferRendersContent) {
 
   auto& bitmap = preview_bg.bitmap();
   EXPECT_TRUE(bitmap.is_active());
-  const auto& data = bitmap.data();
+  const auto data = bitmap.data();
   size_t non_zero = 0;
-  for (size_t i = 0; i < data.size(); i += 16) {
+  for (size_t i = 0; i < bitmap.size(); i += 16) {
     if (data[i] != 0) {
       non_zero++;
     }
