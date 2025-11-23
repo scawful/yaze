@@ -907,7 +907,8 @@ void ObjectDrawer::DrawTileToBitmap(gfx::Bitmap& bitmap,
   int tile_sheet_y = (tile_info.id_ / 16) * 8;  // Each row is 16 tiles
 
   // Palettes are 3bpp (8 colors). Convert palette index to base color offset.
-  uint8_t palette_offset = (tile_info.palette_ & 0x0F) * 8;
+  // Use 3 bits for palette index (0-7) since dungeon graphics are 3BPP
+  uint8_t palette_offset = (tile_info.palette_ & 0x07) * 8;
 
   // DEBUG: Log tile info for first few tiles
   static int debug_tile_count = 0;

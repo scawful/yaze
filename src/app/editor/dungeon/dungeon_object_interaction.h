@@ -7,6 +7,7 @@
 
 #include "app/gui/canvas/canvas.h"
 #include "imgui/imgui.h"
+#include "zelda3/dungeon/dungeon_editor_system.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_object.h"
 
@@ -76,8 +77,13 @@ class DungeonObjectInteraction {
     mutation_hook_ = std::move(callback);
   }
 
+  void SetEditorSystem(zelda3::DungeonEditorSystem* system) {
+    editor_system_ = system;
+  }
+
  private:
   gui::Canvas* canvas_;
+  zelda3::DungeonEditorSystem* editor_system_ = nullptr;
   std::array<zelda3::Room, 0x128>* rooms_ = nullptr;
   int current_room_id_ = 0;
 

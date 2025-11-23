@@ -28,6 +28,10 @@ absl::Status DungeonEditorSystem::Initialize() {
   dungeon_settings_.has_compass = true;
   dungeon_settings_.has_big_key = true;
 
+  // Initialize object editor
+  object_editor_ = std::make_shared<DungeonObjectEditor>(rom_);
+  RETURN_IF_ERROR(object_editor_->InitializeEditor());
+
   return absl::OkStatus();
 }
 
@@ -752,20 +756,32 @@ absl::Status DungeonEditorSystem::ExportDungeonToFile(
 
 // Undo/Redo system
 absl::Status DungeonEditorSystem::Undo() {
+  if (editor_state_.current_mode == EditorMode::kObjects) {
+    if (object_editor_) {
+      return object_editor_->Undo();
+    }
+  }
+
   if (!CanUndo()) {
     return absl::FailedPreconditionError("Nothing to undo");
   }
 
-  // TODO: Implement undo functionality
+  // TODO: Implement undo functionality for other modes
   return absl::OkStatus();
 }
 
 absl::Status DungeonEditorSystem::Redo() {
+  if (editor_state_.current_mode == EditorMode::kObjects) {
+    if (object_editor_) {
+      return object_editor_->Redo();
+    }
+  }
+
   if (!CanRedo()) {
     return absl::FailedPreconditionError("Nothing to redo");
   }
 
-  // TODO: Implement redo functionality
+  // TODO: Implement redo functionality for other modes
   return absl::OkStatus();
 }
 

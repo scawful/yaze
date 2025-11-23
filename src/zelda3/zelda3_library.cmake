@@ -5,6 +5,7 @@ set(
   zelda3/dungeon/dungeon_object_registry.cc
   zelda3/dungeon/object_drawer.cc
   zelda3/dungeon/object_parser.cc
+  zelda3/dungeon/object_templates.cc
   zelda3/dungeon/room.cc
   zelda3/dungeon/room_layout.cc
   zelda3/dungeon/room_object.cc
@@ -47,6 +48,7 @@ target_include_directories(yaze_zelda3 PUBLIC
   ${CMAKE_SOURCE_DIR}/src
   ${CMAKE_SOURCE_DIR}/src/lib
   ${CMAKE_SOURCE_DIR}/incl
+  ${CMAKE_SOURCE_DIR}/ext/json/include
   ${PROJECT_BINARY_DIR}
 )
 
@@ -55,6 +57,7 @@ target_link_libraries(yaze_zelda3 PUBLIC
   yaze_util
   yaze_common
   ${ABSL_TARGETS}
+  nlohmann_json::nlohmann_json
 )
 
 set_target_properties(yaze_zelda3 PROPERTIES

@@ -19,6 +19,7 @@
 #include "dungeon_room_selector.h"
 #include "imgui/imgui.h"
 #include "object_editor_card.h"
+#include "zelda3/dungeon/dungeon_editor_system.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_entrance.h"
 #include "zelda3/dungeon/dungeon_editor_system.h"
@@ -50,6 +51,9 @@ class DungeonEditorV2 : public Editor {
         object_selector_(rom),
         object_emulator_preview_() {
     type_ = EditorType::kDungeon;
+    if (rom) {
+        editor_system_ = zelda3::CreateDungeonEditorSystem(rom);
+    }
   }
 
   // Editor interface

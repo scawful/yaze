@@ -180,8 +180,13 @@ absl::Status DungeonEditorV2::Load() {
   palette_editor_.Initialize(rom_);
 
   // Initialize unified object editor card
-  object_editor_card_ =
-      std::make_unique<ObjectEditorCard>(renderer_, rom_, &canvas_viewer_);
+  object_editor_card_ = std::make_unique<ObjectEditorCard>(
+      renderer_, rom_, &canvas_viewer_, editor_system_->GetObjectEditor());
+
+  // Link editor system to canvas viewer for interactions
+  if (editor_system_) {
+    canvas_viewer_.SetEditorSystem(editor_system_.get());
+  }
 
   // Initialize DungeonEditorSystem (currently scaffolding for persistence and metadata)
   dungeon_editor_system_ = std::make_unique<zelda3::DungeonEditorSystem>(rom_);
@@ -239,6 +244,20 @@ absl::Status DungeonEditorV2::Update() {
   }
 
   return absl::OkStatus();
+}
+
+absl::Status DungeonEditorV2::Undo() {
+  if (editor_system_) {
+    return editor_system_->Undo();
+  }
+  return absl::UnimplementedError("Undo not available");
+}
+
+absl::Status DungeonEditorV2::Redo() {
+  if (editor_system_) {
+    return editor_system_->Redo();
+  }
+  return absl::UnimplementedError("Redo not available");
 }
 
 absl::Status DungeonEditorV2::Save() {
@@ -469,6 +488,11 @@ void DungeonEditorV2::DrawRoomTab(int room_id) {
 
 void DungeonEditorV2::OnRoomSelected(int room_id) {
   current_room_id_ = room_id;
+
+  // Update editor system with new room
+  if (editor_system_) {
+    editor_system_->SetExternalRoom(&rooms_[room_id]);
+  }
 
   // Check if already open
   for (int i = 0; i < active_rooms_.Size; i++) {
