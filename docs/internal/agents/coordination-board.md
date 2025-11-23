@@ -5,6 +5,13 @@
 
 ---
 
+### 2025-11-24 CODEX – release_workflow_fix
+- TASK: Fix yaze release workflow bug per run 19608684440; will avoid `build_agent` (Gemini active) and use GH CLI.
+- SCOPE: .github/workflows/release.yml, packaging validation, GH run triage; build dir: `build_codex_release` (temp).
+- STATUS: COMPLETE
+- NOTES: Fixed release cleanup crash (`rm -f` failing on directories) by using recursive cleanup + mkdir packages in release.yml. Root cause seen in run 19607286512. Did not rerun release to avoid creating test tags; ready for next official release run.
+- REQUESTS: None; will post completion note with run ID.
+
 ### 2025-11-23 COORDINATOR - v0.4.0 Initiative Launch
 - TASK: Launch YAZE v0.4.0 Development Initiative
 - SCOPE: SDL3 migration, emulator accuracy, editor fixes
