@@ -86,7 +86,6 @@ class ObjectDrawer {
   // Draw routine function type
   using DrawRoutine = std::function<void(ObjectDrawer*, const RoomObject&,
                                          gfx::BackgroundBuffer&,
-                                         gfx::BackgroundBuffer&,
                                          std::span<const gfx::TileInfo>)>;
 
   // Core draw routines (based on ZScream's subtype1_routines table)
@@ -100,8 +99,8 @@ class ObjectDrawer {
                                       gfx::BackgroundBuffer& bg,
                                       std::span<const gfx::TileInfo> tiles);
   void DrawRightwards2x4spaced4_1to16_BothBG(
-      const RoomObject& obj, gfx::BackgroundBuffer& bg1,
-      gfx::BackgroundBuffer& bg2, std::span<const gfx::TileInfo> tiles);
+      const RoomObject& obj, gfx::BackgroundBuffer& bg,
+      std::span<const gfx::TileInfo> tiles);
   void DrawRightwards2x2_1to16(const RoomObject& obj, gfx::BackgroundBuffer& bg,
                                std::span<const gfx::TileInfo> tiles);
   void DrawDiagonalAcute_1to16(const RoomObject& obj, gfx::BackgroundBuffer& bg,
@@ -109,12 +108,10 @@ class ObjectDrawer {
   void DrawDiagonalGrave_1to16(const RoomObject& obj, gfx::BackgroundBuffer& bg,
                                std::span<const gfx::TileInfo> tiles);
   void DrawDiagonalAcute_1to16_BothBG(const RoomObject& obj,
-                                      gfx::BackgroundBuffer& bg1,
-                                      gfx::BackgroundBuffer& bg2,
+                                      gfx::BackgroundBuffer& bg,
                                       std::span<const gfx::TileInfo> tiles);
   void DrawDiagonalGrave_1to16_BothBG(const RoomObject& obj,
-                                      gfx::BackgroundBuffer& bg1,
-                                      gfx::BackgroundBuffer& bg2,
+                                      gfx::BackgroundBuffer& bg,
                                       std::span<const gfx::TileInfo> tiles);
   void DrawRightwards1x2_1to16_plus2(const RoomObject& obj,
                                      gfx::BackgroundBuffer& bg,
@@ -167,8 +164,7 @@ class ObjectDrawer {
                                   gfx::BackgroundBuffer& bg,
                                   std::span<const gfx::TileInfo> tiles);
   void DrawDownwards4x2_1to16_BothBG(const RoomObject& obj,
-                                     gfx::BackgroundBuffer& bg1,
-                                     gfx::BackgroundBuffer& bg2,
+                                     gfx::BackgroundBuffer& bg,
                                      std::span<const gfx::TileInfo> tiles);
   void DrawDownwardsDecor4x2spaced4_1to16(const RoomObject& obj,
                                           gfx::BackgroundBuffer& bg,
