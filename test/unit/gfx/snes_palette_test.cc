@@ -23,8 +23,10 @@ unsigned int test_convert(snes_color col) {
 }
 }  // namespace
 
-// SnesColor Tests
-TEST(SnesColorTest, DefaultConstructor) {
+// SnesColor Conversion Tests
+// NOTE: These tests focus on color conversion utilities (ConvertRgbToSnes, etc.)
+// The SnesColor class itself is tested in test/unit/snes_color_test.cc
+TEST(SnesColorConversionTest, DefaultConstructor) {
   yaze::gfx::SnesColor color;
   EXPECT_EQ(color.rgb().x, 0.0f);
   EXPECT_EQ(color.rgb().y, 0.0f);
@@ -33,7 +35,7 @@ TEST(SnesColorTest, DefaultConstructor) {
   EXPECT_EQ(color.snes(), 0);
 }
 
-TEST(SnesColorTest, RGBConstructor) {
+TEST(SnesColorConversionTest, RGBConstructor) {
   ImVec4 rgb(1.0f, 0.5f, 0.25f, 1.0f);
   yaze::gfx::SnesColor color(rgb);
   EXPECT_EQ(color.rgb().x, rgb.x);
@@ -42,19 +44,19 @@ TEST(SnesColorTest, RGBConstructor) {
   EXPECT_EQ(color.rgb().w, rgb.w);
 }
 
-TEST(SnesColorTest, SNESConstructor) {
+TEST(SnesColorConversionTest, SNESConstructor) {
   uint16_t snes = 0x4210;
   yaze::gfx::SnesColor color(snes);
   EXPECT_EQ(color.snes(), snes);
 }
 
-TEST(SnesColorTest, ConvertRgbToSnes) {
+TEST(SnesColorConversionTest, ConvertRgbToSnes) {
   snes_color color = {132, 132, 132};
   uint16_t snes = ConvertRgbToSnes(color);
   ASSERT_EQ(snes, 0x4210);
 }
 
-TEST(SnesColorTest, ConvertSnestoRGB) {
+TEST(SnesColorConversionTest, ConvertSnestoRGB) {
   uint16_t snes = 0x4210;
   snes_color color = ConvertSnesToRgb(snes);
   ASSERT_EQ(color.red, 132);
@@ -62,7 +64,7 @@ TEST(SnesColorTest, ConvertSnestoRGB) {
   ASSERT_EQ(color.blue, 132);
 }
 
-TEST(SnesColorTest, ConvertSnesToRGB_Binary) {
+TEST(SnesColorConversionTest, ConvertSnesToRGB_Binary) {
   uint16_t red = 0b0000000000011111;
   uint16_t blue = 0b0111110000000000;
   uint16_t green = 0b0000001111100000;
@@ -79,7 +81,7 @@ TEST(SnesColorTest, ConvertSnesToRGB_Binary) {
   ASSERT_EQ(0xFF00FF, test_convert(testcolor));
 }
 
-TEST(SnesColorTest, Extraction) {
+TEST(SnesColorConversionTest, Extraction) {
   // red, blue, green, purple
   char data[8] = {0x1F, 0x00, 0x00, 0x7C, static_cast<char>(0xE0),
                   0x03, 0x1F, 0x7C};
@@ -91,7 +93,7 @@ TEST(SnesColorTest, Extraction) {
   ASSERT_EQ(0xFF00FF, test_convert(pal[3]));
 }
 
-TEST(SnesColorTest, Convert) {
+TEST(SnesColorConversionTest, Convert) {
   // red, blue, green, purple white
   char data[10] = {0x1F,
                    0x00,

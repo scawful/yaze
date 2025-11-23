@@ -425,7 +425,7 @@ class ImGuiTestHarnessServiceGrpc final : public ImGuiTestHarness::Service {
         break;
     }
 
-    return grpc::Status(code, std::string(status.message()));
+    return grpc::Status(code, std::string(status.message().data(), status.message().size()));
   }
 
   ImGuiTestHarnessServiceImpl* impl_;
@@ -1644,7 +1644,7 @@ absl::Status ImGuiTestHarnessServiceImpl::ReplayTest(
     } else {
       status = absl::InvalidArgumentError(
           absl::StrFormat("Unsupported action '%s'", step.action));
-      step_message = std::string(status.message());
+      step_message = std::string(status.message().data(), status.message().size());
     }
 
     auto* assertion = response->add_assertions();
@@ -1653,7 +1653,7 @@ absl::Status ImGuiTestHarnessServiceImpl::ReplayTest(
 
     if (!status.ok()) {
       assertion->set_passed(false);
-      assertion->set_error_message(std::string(status.message()));
+      assertion->set_error_message(std::string(status.message().data(), status.message().size()));
       overall_success = false;
       overall_message = step_message;
       logs.push_back(absl::StrFormat("  Error: %s", status.message()));

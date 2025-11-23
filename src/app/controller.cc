@@ -74,7 +74,8 @@ absl::Status Controller::OnLoad() {
   window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse |
                   ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
   window_flags |=
-      ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
+      ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus |
+      ImGuiWindowFlags_NoBackground;
 
   ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
   ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
@@ -89,6 +90,7 @@ absl::Status Controller::OnLoad() {
 
   editor_manager_.DrawMenuBar();  // Draw the fixed menu bar at the top
 
+  gui::DockSpaceRenderer::EndEnhancedDockSpace();
   ImGui::End();
 #endif
   gui::WidgetIdRegistry::Instance().BeginFrame();
