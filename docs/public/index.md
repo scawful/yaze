@@ -42,6 +42,7 @@ and research notes were moved to `docs/internal/` so the public docs stay focuse
 - [Tile16 Palette System](developer/tile16-palette-system.md)
 - [Overworld Entity System](developer/overworld-entity-system.md)
 - [GUI Consistency Guide](developer/gui-consistency-guide.md)
+- [AI-Assisted Development](developer/ai-assisted-development.md)
 
 ## Reference
 - [ROM Reference](reference/rom-reference.md)
