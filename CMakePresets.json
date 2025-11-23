@@ -166,11 +166,9 @@
         "YAZE_ENABLE_HTTP_API": "OFF",
         "YAZE_WITH_IMGUI": "ON",
         "YAZE_WITH_SDL": "ON",
-        "THREADS_PREFER_PTHREAD_FLAG": "OFF",
-        "CMAKE_THREAD_LIBS_INIT": "",
-        "CMAKE_USE_PTHREADS_INIT": "OFF",
-        "CMAKE_CXX_FLAGS": "-s USE_SDL=2 -s USE_FREETYPE=1 -s ALLOW_MEMORY_GROWTH=1 -s NO_DISABLE_EXCEPTION_CATCHING --preload-file assets@/assets --shell-file src/web/shell.html",
-        "CMAKE_EXE_LINKER_FLAGS": "-s USE_SDL=2 -s USE_FREETYPE=1 -s ALLOW_MEMORY_GROWTH=1 -s NO_DISABLE_EXCEPTION_CATCHING --preload-file assets@/assets --shell-file src/web/shell.html"
+        "CMAKE_CXX_FLAGS": "-pthread -s USE_SDL=2 -s USE_FREETYPE=1 -s USE_PTHREADS=1 -s ALLOW_MEMORY_GROWTH=1 -s NO_DISABLE_EXCEPTION_CATCHING --preload-file assets@/assets --shell-file src/web/shell.html",
+        "CMAKE_C_FLAGS": "-pthread -s USE_PTHREADS=1",
+        "CMAKE_EXE_LINKER_FLAGS": "-pthread -s USE_SDL=2 -s USE_FREETYPE=1 -s USE_PTHREADS=1 -s PTHREAD_POOL_SIZE=4 -s ALLOW_MEMORY_GROWTH=1 -s NO_DISABLE_EXCEPTION_CATCHING --preload-file assets@/assets --shell-file src/web/shell.html"
       }
     },
     {
