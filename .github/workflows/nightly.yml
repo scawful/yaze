@@ -79,7 +79,7 @@ jobs:
             --parallel
 
       - name: Download test ROM (if available)
-        if: secrets.TEST_ROM_URL != ''
+        if: ${{ vars.TEST_ROM_URL != '' }}
         run: |
           # This would download a test ROM from a secure location
           # For now, this is a placeholder for ROM acquisition
@@ -87,7 +87,7 @@ jobs:
         continue-on-error: true
 
       - name: Run ROM-dependent tests
-        if: hashFiles('test_rom.sfc') != '' || github.event.inputs.rom_path != ''
+        if: ${{ github.event.inputs.rom_path != '' }}
         run: |
           cd build_nightly
           ctest -L rom_dependent \
@@ -303,7 +303,7 @@ jobs:
           retention-days: 90
 
       - name: Compare with baseline (if exists)
-        if: hashFiles('benchmark_baseline.json') != ''
+        if: ${{ hashFiles('benchmark_baseline.json') != '' }}
         run: |
           # Compare current results with baseline
           # This would use a tool like google/benchmark's compare.py
@@ -354,7 +354,7 @@ jobs:
             --output-junit extended_integration_results.xml
 
       - name: Run HTTP API tests
-        if: hashFiles('scripts/agents/test-http-api.sh') != ''
+        if: ${{ hashFiles('scripts/agents/test-http-api.sh') != '' }}
         run: |
           chmod +x scripts/agents/test-http-api.sh
           scripts/agents/test-http-api.sh
@@ -436,7 +436,7 @@ jobs:
           echo "*Nightly tests include comprehensive suites not run during PR/push CI.*" >> $GITHUB_STEP_SUMMARY
 
       - name: Send notification (if configured)
-        if: failure() && vars.SLACK_WEBHOOK_URL != ''
+        if: ${{ failure() && vars.SLACK_WEBHOOK_URL != '' }}
         run: |
           # Send notification about nightly test failures
           echo "Notification would be sent here"
