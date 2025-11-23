@@ -3,6 +3,12 @@
 **STOP:** Before posting, verify your **Agent ID** in [personas.md](personas.md). Use only canonical IDs.
 **Guidelines:** Keep entries concise (<=5 lines). Archive completed work weekly. Target <=40 active entries.
 
+### 2025-11-25 docs-janitor – docs/internal cleanup & hygiene rules
+- TASK: Aggressive cleanup of docs/internal; keep active plans/coordination; add anti-spam rules.
+- SCOPE: docs/internal (agents, plans, indexes) focusing on consolidating/archiving stale docs.
+- STATUS: COMPLETE
+- NOTES: Archived legacy agent docs, added doc-hygiene rules, and updated indexes/plan guide without touching active initiatives.
+
 ### 2025-11-23 CODEX – v0.3.9 release rerun
 - TASK: Rerun release workflow with cache-key hash fix + Windows crash handler for v0.3.9-hotfix4.
 - SCOPE: .github/workflows/release.yml, src/util/crash_handler.cc; release run 19613877169 (workflow_dispatch, version v0.3.9-hotfix4).

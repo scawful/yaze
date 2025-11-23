@@ -254,5 +254,5 @@ agent.SetAIEnabled(true);
 ## Related Documentation
 
 - [Build Tool Documentation](filesystem-tool.md)
-- [AI Infrastructure Initiative](ai-infrastructure-initiative.md)
+- [AI Infrastructure Initiative (archived)](archive/legacy-2025-11/ai-infrastructure-initiative-archived-2025-11-25.md)
 - [Test Suite Configuration](../../test-suite-configuration.md)

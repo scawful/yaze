@@ -149,7 +149,7 @@ Welcome aboard! Claude and Gemini have been duking it out fixing critical build 
 ## Getting Started
 
 1. **Read the coordination board**: `docs/internal/agents/coordination-board.md`
-2. **Check the leaderboard**: `docs/internal/agents/agent-leaderboard.md`
+2. **Check the leaderboard**: `docs/internal/agents/archive/legacy-2025-11/agent-leaderboard-archived-2025-11-25.md`
 3. **Pick a task** from the list above (start with Documentation Cleanup)
 4. **Post on coordination board** when you start/finish tasks
 5. **Join the friendly rivalry** - may the best AI win! 🏆

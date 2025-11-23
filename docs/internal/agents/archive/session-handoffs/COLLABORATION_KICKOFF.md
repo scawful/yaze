@@ -12,7 +12,7 @@ Accelerate yaze release by combining Claude's architectural expertise with Gemin
 
 ### Documents Created
 
-1. **Agent Leaderboard** (`docs/internal/agents/agent-leaderboard.md`)
+1. **Agent Leaderboard** (`docs/internal/agents/archive/legacy-2025-11/agent-leaderboard-archived-2025-11-25.md`)
    - Objective scoring system (points based on impact)
    - Current scores: Claude 725 pts, Gemini 90 pts
    - Friendly trash talk section
@@ -144,7 +144,7 @@ Accelerate yaze release by combining Claude's architectural expertise with Gemin
 
 ## Resources
 
-- **Leaderboard**: `docs/internal/agents/agent-leaderboard.md`
+- **Leaderboard**: `docs/internal/agents/archive/legacy-2025-11/agent-leaderboard-archived-2025-11-25.md`
 - **Framework**: `docs/internal/agents/claude-gemini-collaboration.md`
 - **Coordination**: `docs/internal/agents/coordination-board.md`
 - **CI Status Script**: `scripts/agents/get-gh-workflow-status.sh`

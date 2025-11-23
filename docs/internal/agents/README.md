@@ -6,6 +6,7 @@ Welcome to the `yaze` internal agent workspace. This directory contains the rule
 1.  **Identify Your Role**: Check [personas.md](./personas.md) to choose the correct Agent ID for your current session context.
 2.  **Follow the Protocol**: Read [AGENTS.md](../../../AGENTS.md) for rules on communication, task logging, and handoffs.
 3.  **Check Status**: Review the [coordination-board.md](./coordination-board.md) for active tasks and blockers.
+4.  **Keep docs lean**: Use [doc-hygiene.md](./doc-hygiene.md) and avoid creating duplicate specs; archive idle docs.
 
 ## Documentation Index
 
@@ -16,6 +17,7 @@ Welcome to the `yaze` internal agent workspace. This directory contains the rule
 | [coordination-board.md](./coordination-board.md) | **The Live Board.** Shared state, active tasks, and requests. |
 | [agent-architecture.md](./agent-architecture.md) | **The Technical Manual.** How the agent tools (`z3ed agent`) work. |
 | [initiative-template.md](./initiative-template.md) | Template for tracking large, multi-day features. |
+| [doc-hygiene.md](./doc-hygiene.md) | Rules to keep specs/notes lean and archived on time. |
 
 ## Tools
 Agents have built-in CLI capabilities to assist with this workflow:
@@ -28,3 +30,6 @@ Agents have built-in CLI capabilities to assist with this workflow:
 *   **Build**: `./scripts/agent_build.sh [target]` (Default target: `yaze`)
 *   **Test**: `./scripts/agent_build.sh yaze_test && ./build_ai/bin/yaze_test`
 *   **Directory**: All artifacts go to `build_ai/`.
+
+## Archive
+- Legacy docs (leaderboard, ai-infrastructure-initiative, coordination-improvements) now live under `archive/legacy-2025-11/`. Keep only active specs in this directory.
