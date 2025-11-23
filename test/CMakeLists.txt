@@ -107,6 +107,8 @@ if(YAZE_BUILD_TESTS)
     unit/zelda3/dungeon_component_unit_test.cc
     unit/zelda3/dungeon/room_object_encoding_test.cc
     unit/zelda3/dungeon/room_manipulation_test.cc
+    # Emulator Unit Tests
+    unit/emu/ppu_catchup_test.cc
     ../src/cli/service/resources/resource_catalog.cc
     cli/service/resources/command_context_test.cc
     # Integration Tests

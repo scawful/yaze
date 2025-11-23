@@ -18,6 +18,7 @@ set(
   app/emu/debug/breakpoint_manager.cc
   app/emu/debug/disassembler.cc
   app/emu/debug/disassembly_viewer.cc
+  app/emu/debug/semantic_introspection.cc
   app/emu/debug/step_controller.cc
   app/emu/debug/symbol_provider.cc
   app/emu/debug/watchpoint_manager.cc
