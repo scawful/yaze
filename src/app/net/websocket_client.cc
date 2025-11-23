@@ -8,7 +8,8 @@
 #include "absl/strings/str_format.h"
 
 // Cross-platform WebSocket support using httplib
-#ifdef YAZE_WITH_JSON
+// Skip httplib in WASM builds - use Emscripten WebSocket API instead
+#if defined(YAZE_WITH_JSON) && !defined(__EMSCRIPTEN__)
 #ifndef _WIN32
 #define CPPHTTPLIB_OPENSSL_SUPPORT
 #endif
@@ -19,7 +20,8 @@ namespace yaze {
 
 namespace net {
 
-#ifdef YAZE_WITH_JSON
+// Native (non-WASM) implementation using httplib
+#if defined(YAZE_WITH_JSON) && !defined(__EMSCRIPTEN__)
 
 // Platform-independent WebSocket implementation using httplib
 class WebSocketClient::Impl {
@@ -151,6 +153,25 @@ class WebSocketClient::Impl {
   std::function<void(const std::string&)> error_callback_;
 };
 
+#elif defined(__EMSCRIPTEN__)
+
+// WASM stub - uses EmscriptenWebSocket from wasm/ directory instead
+class WebSocketClient::Impl {
+ public:
+  absl::Status Connect(const std::string&, int) {
+    return absl::UnimplementedError(
+        "Use EmscriptenWebSocket for WASM WebSocket connections");
+  }
+  void Disconnect() {}
+  absl::Status Send(const std::string&) {
+    return absl::UnimplementedError(
+        "Use EmscriptenWebSocket for WASM WebSocket connections");
+  }
+  void SetMessageCallback(std::function<void(const std::string&)>) {}
+  void SetErrorCallback(std::function<void(const std::string&)>) {}
+  bool IsConnected() const { return false; }
+};
+
 #else
 
 // Stub implementation when JSON is not available
@@ -168,7 +189,7 @@ class WebSocketClient::Impl {
   bool IsConnected() const { return false; }
 };
 
-#endif  // YAZE_WITH_JSON
+#endif  // YAZE_WITH_JSON && !__EMSCRIPTEN__
 
 // ============================================================================
 // WebSocketClient Implementation
