@@ -31,6 +31,11 @@
 #include "util/macro.h"
 #include "zelda.h"
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#include "app/platform/wasm/wasm_loading_manager.h"
+#endif
+
 namespace yaze {
 constexpr int Uncompressed3BPPSize = 0x0600;
 
@@ -186,7 +191,33 @@ absl::StatusOr<std::array<gfx::Bitmap, kNumGfxSheets>> LoadAllGraphicsData(
   LOG_DEBUG("Graphics", "Cleared graphics buffer, loading %d sheets",
             kNumGfxSheets);
 
+#ifdef __EMSCRIPTEN__
+  // Start progress tracking for WASM builds
+  auto loading_handle =
+      app::platform::WasmLoadingManager::BeginLoading("Loading Graphics");
+  app::platform::WasmLoadingManager::SetArenaHandle(loading_handle);
+#endif
+
   for (uint32_t i = 0; i < kNumGfxSheets; i++) {
+#ifdef __EMSCRIPTEN__
+    // Update progress and check for cancellation
+    float progress = static_cast<float>(i) / static_cast<float>(kNumGfxSheets);
+    app::platform::WasmLoadingManager::UpdateProgress(loading_handle, progress);
+    app::platform::WasmLoadingManager::UpdateMessage(
+        loading_handle, absl::StrFormat("Sheet %d/%d", i + 1, kNumGfxSheets));
+
+    // Yield to browser event loop periodically
+    if (i % 10 == 0) {
+      emscripten_sleep(0);
+    }
+
+    // Check for user cancellation
+    if (app::platform::WasmLoadingManager::IsCancelled(loading_handle)) {
+      app::platform::WasmLoadingManager::EndLoading(loading_handle);
+      app::platform::WasmLoadingManager::ClearArenaHandle();
+      return absl::CancelledError("Graphics loading cancelled by user");
+    }
+#endif
     if (i >= 115 && i <= 126) {  // uncompressed sheets
       sheet.resize(Uncompressed3BPPSize);
       auto offset = GetGraphicsAddress(
@@ -254,6 +285,14 @@ absl::StatusOr<std::array<gfx::Bitmap, kNumGfxSheets>> LoadAllGraphicsData(
       }
     }
   }
+
+#ifdef __EMSCRIPTEN__
+  // Complete progress tracking for WASM builds
+  app::platform::WasmLoadingManager::UpdateProgress(loading_handle, 1.0f);
+  app::platform::WasmLoadingManager::EndLoading(loading_handle);
+  app::platform::WasmLoadingManager::ClearArenaHandle();
+#endif
+
   return graphics_sheets;
 }
 
