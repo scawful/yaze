@@ -97,11 +97,11 @@ void DungeonObjectInteraction::HandleCanvasMouseInput() {
                   std::clamp(static_cast<int>(objects[index].y_), 0, 63);
             }
           }
-        }
 
-        // Trigger cache invalidation and re-render
-        if (cache_invalidation_callback_) {
-          cache_invalidation_callback_();
+          // Trigger cache invalidation and re-render
+          if (cache_invalidation_callback_) {
+            cache_invalidation_callback_();
+          }
         }
       }
     }
@@ -273,10 +273,9 @@ void DungeonObjectInteraction::PlaceObjectAtPosition(int room_x, int room_y) {
   new_object.x_ = room_x;
   new_object.y_ = room_y;
 
-    // Add object to room
-    auto& room = (*rooms_)[current_room_id_];
-    room.AddTileObject(new_object);
-  }
+  // Add object to room
+  auto& room = (*rooms_)[current_room_id_];
+  room.AddTileObject(new_object);
 
   // Notify callback if set
   if (object_placed_callback_) {
@@ -492,14 +491,13 @@ void DungeonObjectInteraction::HandleDeleteSelected() {
 
   auto& room = (*rooms_)[current_room_id_];
 
-    // Sort indices in descending order to avoid index shifts during deletion
-    std::vector<size_t> sorted_indices = selected_object_indices_;
-    std::sort(sorted_indices.rbegin(), sorted_indices.rend());
+  // Sort indices in descending order to avoid index shifts during deletion
+  std::vector<size_t> sorted_indices = selected_object_indices_;
+  std::sort(sorted_indices.rbegin(), sorted_indices.rend());
 
-    // Delete selected objects using Room's RemoveTileObject method
-    for (size_t index : sorted_indices) {
-      room.RemoveTileObject(index);
-    }
+  // Delete selected objects using Room's RemoveTileObject method
+  for (size_t index : sorted_indices) {
+    room.RemoveTileObject(index);
   }
 
   // Clear selection
