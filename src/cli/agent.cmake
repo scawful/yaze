@@ -1,4 +1,15 @@
 set(_YAZE_NEEDS_AGENT FALSE)
+
+# Agent library is not compatible with Emscripten/WASM due to dependencies on:
+# - OpenSSL for HTTPS support
+# - Threading libraries that aren't fully compatible with WASM
+# - Network libraries that require native sockets
+if(EMSCRIPTEN)
+  add_library(yaze_agent INTERFACE)
+  message(STATUS "yaze_agent stubbed out (not compatible with Emscripten/WASM)")
+  return()
+endif()
+
 if(YAZE_ENABLE_AGENT_CLI AND (YAZE_BUILD_CLI OR YAZE_BUILD_Z3ED))
   set(_YAZE_NEEDS_AGENT TRUE)
 endif()
@@ -132,10 +143,17 @@ set(_yaze_agent_link_targets
   yaze_zelda3
   yaze_emulator
   ${ABSL_TARGETS}
-  ftxui::screen
-  ftxui::dom
-  ftxui::component
 )
+
+# Only include ftxui targets if CLI is being built
+# ftxui is not available in WASM/Emscripten builds
+if(YAZE_BUILD_CLI AND NOT EMSCRIPTEN)
+  list(APPEND _yaze_agent_link_targets
+    ftxui::screen
+    ftxui::dom
+    ftxui::component
+  )
+endif()
 
 if(YAZE_ENABLE_AI_RUNTIME)
   # Prefer the consolidated yaml target so include paths propagate consistently

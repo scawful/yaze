@@ -118,13 +118,13 @@ class Tile16Editor : public gfx::GfxContext {
 
   // NEW: Core palette mapping methods for fixing color alignment
   int GetActualPaletteSlot(int palette_button, int sheet_index) const;
-  int GetPaletteBaseForSheet(int sheet_index) const;
-  int GetSheetIndexForTile8(int tile8_id) const;
-  int GetActualPaletteSlotForCurrentTile16() const;
 
   // Get palette base row for a graphics sheet (0-7 range for 256-color palette)
   // Returns the base row index in the 16-row palette structure
   int GetPaletteBaseForSheet(int sheet_index) const;
+
+  int GetSheetIndexForTile8(int tile8_id) const;
+  int GetActualPaletteSlotForCurrentTile16() const;
 
   // ROM data access and modification
   absl::Status UpdateROMTile16Data();
