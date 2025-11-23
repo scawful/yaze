@@ -141,6 +141,7 @@ class AudioBackendFactory {
   enum class BackendType {
     SDL2,
     SDL3,         // Future
+    WASM,         // WebAudio for Emscripten
     NULL_BACKEND  // For testing/headless
   };
 

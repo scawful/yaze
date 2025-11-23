@@ -41,6 +41,11 @@ if(YAZE_USE_SDL3)
   list(APPEND YAZE_APP_EMU_SRC app/emu/audio/sdl3_audio_backend.cc)
 endif()
 
+# Add WASM-specific backends when building for Emscripten
+if(EMSCRIPTEN)
+  list(APPEND YAZE_APP_EMU_SRC app/emu/platform/wasm/wasm_audio.cc)
+endif()
+
 # Define resource files for bundling
 set(YAZE_RESOURCE_FILES
   ${CMAKE_SOURCE_DIR}/assets/font/Karla-Regular.ttf
