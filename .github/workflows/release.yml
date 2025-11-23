@@ -147,6 +147,78 @@ jobs:
           Write-Host "=== Package files created ==="
           Get-ChildItem packages/*.exe, packages/*.zip -ErrorAction SilentlyContinue
 
+      - name: Verify packaged contents (Linux)
+        if: matrix.platform == 'linux'
+        shell: bash
+        run: |
+          set -e
+          PKG=$(ls build/packages/*.tar.gz | head -1)
+          if [ -z "$PKG" ]; then
+            echo "::error::No tar.gz package found"
+            exit 1
+          fi
+          tar -tzf "$PKG" | grep -q "bin/yaze" || { echo "::error::yaze missing from package"; exit 1; }
+          tar -tzf "$PKG" | grep -q "bin/z3ed" || { echo "::error::z3ed missing from package"; exit 1; }
+          BIN=$(find build -type f -name z3ed | head -1)
+          if [ -z "$BIN" ]; then
+            echo "::error::z3ed binary not built"
+            exit 1
+          fi
+          "$BIN" --version || { echo "::error::z3ed --version failed"; exit 1; }
+
+      - name: Verify packaged contents (macOS)
+        if: matrix.platform == 'macos'
+        shell: bash
+        run: |
+          set -e
+          DMG=$(ls build/packages/*.dmg | head -1)
+          if [ -z "$DMG" ]; then
+            echo "::error::No DMG produced"
+            exit 1
+          fi
+          BIN=$(find build -type f -name z3ed | head -1)
+          if [ -z "$BIN" ]; then
+            echo "::error::z3ed binary not built"
+            exit 1
+          fi
+          "$BIN" --version || { echo "::error::z3ed --version failed"; exit 1; }
+
+      - name: Verify packaged contents (Windows)
+        if: matrix.platform == 'windows'
+        shell: pwsh
+        run: |
+          $pkg = Get-ChildItem build/packages/*.zip | Select-Object -First 1
+          if (-not $pkg) {
+            Write-Error "No ZIP package produced"
+            exit 1
+          }
+          $dest = Join-Path $env:RUNNER_TEMP "yaze_pkg"
+          Remove-Item -Recurse -Force $dest -ErrorAction SilentlyContinue
+          Expand-Archive $pkg.FullName -DestinationPath $dest -Force
+          $z3ed = Get-ChildItem -Recurse -Filter z3ed.exe -Path $dest | Select-Object -First 1
+          if (-not $z3ed) {
+            Write-Error "z3ed.exe missing from package"
+            exit 1
+          }
+          $yaze = Get-ChildItem -Recurse -Filter yaze.exe -Path $dest | Select-Object -First 1
+          if (-not $yaze) {
+            Write-Error "yaze.exe missing from package"
+            exit 1
+          }
+          $required = @("msvcp140.dll","vcruntime140.dll","vcruntime140_1.dll","api-ms-win-crt-runtime-l1-1-0.dll")
+          foreach ($dll in $required) {
+            if (-not (Get-ChildItem -Recurse -Filter $dll -Path $dest)) {
+              Write-Error "Missing runtime DLL: $dll"
+              exit 1
+            }
+          }
+          $bin = Get-ChildItem build -Recurse -Filter z3ed.exe | Select-Object -First 1
+          if ($bin) {
+            & $bin.FullName --version
+          } else {
+            Write-Warning "z3ed.exe not built; skipping version check"
+          }
+
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
