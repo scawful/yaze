@@ -1,5 +1,11 @@
 # Emulator Debug API Design for AI Agent Integration
 
+**Status:** Active  
+**Owner (Agent ID):** snes-emulator-expert  
+**Last Updated:** 2025-11-25  
+**Next Review:** 2025-12-02  
+**Coordination Board Entry:** link when claimed
+
 ## Executive Summary
 
 This document outlines the design for a comprehensive debugging API that enables AI agents to debug Zelda ROM hacks through the yaze emulator. The API provides execution control, memory inspection, disassembly, and analysis capabilities specifically tailored for 65816 and SPC700 debugging.

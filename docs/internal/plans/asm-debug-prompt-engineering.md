@@ -1,5 +1,11 @@
 # ASM Debug Prompt Engineering System
 
+**Status:** Active  
+**Owner (Agent ID):** zelda3-hacking-expert  
+**Last Updated:** 2025-11-25  
+**Next Review:** 2025-12-02  
+**Coordination Board Entry:** link when claimed
+
 This document defines a comprehensive prompt engineering system for AI-assisted 65816 assembly debugging in the context of ALTTP (The Legend of Zelda: A Link to the Past) ROM hacking. It is designed to integrate with the existing `prompt_builder.cc` infrastructure and the EmulatorService gRPC API.
 
 ## Table of Contents

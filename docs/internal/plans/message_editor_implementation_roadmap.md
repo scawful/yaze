@@ -1,8 +1,10 @@
 # Message Editor Implementation Roadmap
 
-**Status**: Active Development
-**Last Updated**: 2025-11-23
-**Owner**: Frontend/UI Team
+**Status**: Active Development  
+**Owner (Agent ID)**: imgui-frontend-engineer  
+**Last Updated**: 2025-11-25  
+**Next Review**: 2025-12-02  
+**Coordination Board Entry**: link when claimed
 **Related Docs**:
 - `docs/internal/architecture/message_system.md` (Gemini's architecture vision)
 - `docs/internal/plans/message_system_improvement_plan.md` (Gemini's feature proposals)

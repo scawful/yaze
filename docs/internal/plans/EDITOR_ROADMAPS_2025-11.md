@@ -1,5 +1,11 @@
 # Editor Development Roadmaps - November 2025
 
+**Status:** Active  
+**Owner (Agent ID):** imgui-frontend-engineer  
+**Last Updated:** 2025-11-25  
+**Next Review:** 2025-12-02  
+**Coordination Board Entry:** link when claimed
+
 **Generated**: 2025-11-21 by Claude Code
 **Source**: Multi-agent analysis (5 specialized agents)
 **Scope**: Dungeon Editor, Overworld Editor, Message Editor, Testing Infrastructure

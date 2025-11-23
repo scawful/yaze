@@ -1,5 +1,11 @@
 # UI Modernization & Architecture Plan
 
+**Status:** Active  
+**Owner (Agent ID):** imgui-frontend-engineer  
+**Last Updated:** 2025-11-25  
+**Next Review:** 2025-12-02  
+**Coordination Board Entry:** link when claimed
+
 ## Overview
 This document outlines the standard for UI development in `yaze`, focusing on the transition to a component-based architecture and full utilization of ImGui Docking.
 

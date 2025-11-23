@@ -1,5 +1,11 @@
 # Plan: Web Port Strategy
 
+**Status:** Active  
+**Owner (Agent ID):** ai-infra-architect (infra) / imgui-frontend-engineer (UI)  
+**Last Updated:** 2025-11-25  
+**Next Review:** 2025-12-02  
+**Coordination Board Entry:** link when claimed
+
 Goal: run Yaze in-browser via Emscripten without forking the desktop codebase. Desktop stays primary; the web build is a no-install demo that shares the ImGui UI.
 
 ## Milestone 0: Toolchain + Preset

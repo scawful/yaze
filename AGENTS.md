@@ -7,6 +7,7 @@ This document defines the standard operating procedures for AI agents contributi
 *   **Source of Truth:** [docs/internal/agents/personas.md](docs/internal/agents/personas.md)
 *   **Requirement:** Use the exact `Agent ID` from that list in all logs, commits, and board updates.
 *   **Legacy IDs:** Do not use `CLAUDE_CORE`, `CLAUDE_AIINF`, etc. Use the role-based IDs (e.g., `ai-infra-architect`).
+*   **System Prompts:** Load the matching persona prompt from `.claude/agents/<agent-id>.md` (accessible to all agents) before starting work.
 
 ## 2. Workflows & Coordination
 
@@ -30,6 +31,12 @@ This document defines the standard operating procedures for AI agents contributi
 *   Create a dedicated document using [docs/internal/agents/initiative-template.md](docs/internal/agents/initiative-template.md).
 *   Link to this document from the Coordination Board.
 
+### Specs & Docs
+*   Keep one canonical spec per initiative (link it from the board entry and back).
+*   Add a header with Status/Owner/Created/Last Reviewed/Next Review (≤14 days) and validation/exit criteria.
+*   Use existing templates (`initiative-template.md`, `release-checklist-template.md`) instead of creating ad-hoc files.
+*   Archive idle or completed specs to `docs/internal/agents/archive/` with the date; do not open duplicate status pages.
+
 ## 3. The Coordination Board
 **Location:** `docs/internal/agents/coordination-board.md`
 
@@ -44,3 +51,8 @@ Located in `scripts/agents/`:
 *   `test-http-api.sh`: Validate the agent API.
 
 **Log results:** When running these scripts for significant validation, paste the run ID or result summary to the Board.
+
+## 5. Documentation Hygiene
+- Follow [docs/internal/agents/doc-hygiene.md](docs/internal/agents/doc-hygiene.md) to avoid doc sprawl.
+- Keep specs short, template-driven, and linked to the coordination board; prefer edits over new files.
+- Archive completed/idle docs (>=14 days) under `docs/internal/agents/archive/` with dates to keep the root clean.

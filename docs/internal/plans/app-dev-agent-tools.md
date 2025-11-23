@@ -1,7 +1,12 @@
 # App Development Agent Tools Specification
 
-**Document Version**: 1.0
-**Date**: 2025-11-22
+**Status:** Active  
+**Owner (Agent ID):** ai-infra-architect  
+**Last Updated:** 2025-11-25  
+**Next Review:** 2025-12-02  
+**Coordination Board Entry:** link when claimed  
+**Document Version**: 1.0  
+**Date**: 2025-11-22  
 **Author**: CLAUDE_AIINF
 **Purpose**: Define tools that enable AI agents to assist with yaze C++ development
 

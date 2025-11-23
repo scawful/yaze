@@ -4,9 +4,10 @@ This guide provides **explicit, step-by-step** instructions for building and tes
 
 ## ⚠️ CRITICAL AGENT RULES ⚠️
 
-**1. STRICT SEPARATION:** You must **NEVER** use the default `build/` directory or the standard `*-dbg` presets for your own tasks. These are reserved for the user.
-**2. USE YOUR DIRECTORY:** Always use the `build_ai` directory. The `*-ai` presets in `CMakePresets.json` have been configured to enforce this.
-**3. USE THE SCRIPT:** The most robust way to build is to use the helper script:
+**1. LOAD YOUR PROMPT:** Open `.claude/agents/<agent-id>.md` (e.g., `ai-infra-architect.md`, `imgui-frontend-engineer.md`) before starting—this is your system prompt and is available to all agents.
+**2. STRICT SEPARATION:** You must **NEVER** use the default `build/` directory or the standard `*-dbg` presets for your own tasks. These are reserved for the user.
+**3. USE YOUR DIRECTORY:** Always use the `build_ai` directory. The `*-ai` presets in `CMakePresets.json` have been configured to enforce this.
+**4. USE THE SCRIPT:** The most robust way to build is to use the helper script:
    ```bash
    ./scripts/agent_build.sh [target]
    ```
