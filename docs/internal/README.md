@@ -17,6 +17,7 @@ speculative without impacting the published docs.
 - Keep a single canonical spec per initiative and link it from the coordination board.
 - Use `docs/internal/agents/doc-hygiene.md` for templates, review cadence, and archiving rules to avoid doc sprawl.
 - Archive completed/idle specs into the relevant `archive/` folder instead of leaving drafts at the root.
+- Plans are curated via `docs/internal/plans/README.md`; older plans are consolidated under `docs/internal/plans/archive/`.
 
 When adding new internal docs, place them under the appropriate subdirectory here instead of
 `docs/`.
