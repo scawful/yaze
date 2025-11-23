@@ -74,6 +74,38 @@ if(APPLE)
         COMPONENT yaze
     )
 
+    # Bundle MSVC/UCRT runtime dependencies if available
+    if(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS)
+        install(FILES ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS}
+            DESTINATION .
+            COMPONENT yaze
+        )
+    endif()
+
+    # Bundle MSVC/UCRT runtime dependencies if available
+    if(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS)
+        install(FILES ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS}
+            DESTINATION .
+            COMPONENT yaze
+        )
+    endif()
+
+    # Bundle MSVC/UCRT runtime dependencies if available
+    if(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS)
+        install(FILES ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS}
+            DESTINATION .
+            COMPONENT yaze
+        )
+    endif()
+
+    # Bundle MSVC/UCRT runtime dependencies if available
+    if(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS)
+        install(FILES ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS}
+            DESTINATION .
+            COMPONENT yaze
+        )
+    endif()
+
 elseif(WIN32)
     # -------------------------------------------------------------------------
     # Windows: Flat structure with executables at root
@@ -149,4 +181,3 @@ endif()
 
 # Include CPack module AFTER all configuration
 include(CPack)
-
