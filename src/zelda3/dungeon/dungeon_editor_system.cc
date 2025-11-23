@@ -50,13 +50,11 @@ absl::Status DungeonEditorSystem::SaveDungeon() {
 }
 
 absl::Status DungeonEditorSystem::SaveRoom(int room_id) {
-  // TODO: Implement actual room saving to ROM
-  return absl::OkStatus();
+  return SaveRoomData(room_id);
 }
 
 absl::Status DungeonEditorSystem::ReloadRoom(int room_id) {
-  // TODO: Implement actual room reloading from ROM
-  return absl::OkStatus();
+  return LoadRoomData(room_id);
 }
 
 void DungeonEditorSystem::SetEditorMode(EditorMode mode) {
@@ -846,6 +844,133 @@ void DungeonEditorSystem::SetROM(Rom* rom) {
   if (object_editor_) {
     object_editor_->SetROM(rom);
   }
+}
+
+// Data management
+absl::Status DungeonEditorSystem::LoadRoomData(int room_id) {
+  if (!rom_) return absl::InvalidArgumentError("ROM is null");
+
+  // Load the room from ROM to get current data
+  Room room = LoadRoomFromRom(rom_, room_id);
+  
+  // 1. Load Sprites
+  // Clear existing sprites for this room to avoid duplicates on reload
+  for (auto it = sprites_.begin(); it != sprites_.end();) {
+    if (it->second.properties.count("room_id") && std::stoi(it->second.properties.at("room_id")) == room_id) {
+      it = sprites_.erase(it);
+    } else {
+      ++it;
+    }
+  }
+  
+  const auto& room_sprites = room.GetSprites();
+  for (const auto& spr : room_sprites) {
+    SpriteData data;
+    data.sprite_id = GenerateSpriteId();
+    data.x = spr.x();
+    data.y = spr.y();
+    data.layer = spr.layer();
+    data.type = SpriteType::kEnemy; // Default, should map from spr.id()
+    data.name = absl::StrFormat("Sprite %02X", spr.id());
+    data.properties["id"] = absl::StrFormat("%d", spr.id());
+    data.properties["subtype"] = absl::StrFormat("%d", spr.subtype());
+    data.properties["room_id"] = absl::StrFormat("%d", room_id);
+    
+    sprites_[data.sprite_id] = data;
+  }
+
+  // 2. Load Chests
+  // Clear existing chests for this room
+  for (auto it = chests_.begin(); it != chests_.end();) {
+    if (it->second.room_id == room_id) {
+      it = chests_.erase(it);
+    } else {
+      ++it;
+    }
+  }
+
+  const auto& room_chests = room.GetChests();
+  for (const auto& chest : room_chests) {
+    ChestData data;
+    data.chest_id = GenerateChestId();
+    data.room_id = room_id;
+    data.item_id = chest.id; // Raw item ID
+    data.is_big_chest = chest.size;
+    chests_[data.chest_id] = data;
+  }
+
+  return absl::OkStatus();
+}
+
+absl::Status DungeonEditorSystem::SaveRoomData(int room_id) {
+  if (!rom_) return absl::InvalidArgumentError("ROM is null");
+
+  // Load room first to get pointers/metadata correct
+  Room room = LoadRoomFromRom(rom_, room_id);
+  
+  // 1. Save Sprites
+  room.GetSprites().clear();
+  for (const auto& [id, sprite_data] : sprites_) {
+    auto room_id_it = sprite_data.properties.find("room_id");
+    if (room_id_it != sprite_data.properties.end()) {
+      if (std::stoi(room_id_it->second) != room_id) continue;
+    } else {
+      continue; 
+    }
+
+    int raw_id = 0;
+    int subtype = 0;
+    if (sprite_data.properties.count("id")) raw_id = std::stoi(sprite_data.properties.at("id"));
+    if (sprite_data.properties.count("subtype")) subtype = std::stoi(sprite_data.properties.at("subtype"));
+
+    zelda3::Sprite z3_sprite(raw_id, sprite_data.x, sprite_data.y, subtype, sprite_data.layer);
+    room.GetSprites().push_back(z3_sprite);
+  }
+  
+  auto status = room.SaveSprites();
+  if (!status.ok()) return status;
+
+  return absl::OkStatus();
+}
+
+absl::Status DungeonEditorSystem::LoadSpriteData() {
+  return absl::OkStatus();
+}
+
+absl::Status DungeonEditorSystem::SaveSpriteData() {
+  return absl::OkStatus();
+}
+
+absl::Status DungeonEditorSystem::LoadItemData() {
+  return absl::OkStatus();
+}
+
+absl::Status DungeonEditorSystem::SaveItemData() {
+  return absl::OkStatus();
+}
+
+absl::Status DungeonEditorSystem::LoadEntranceData() {
+  return absl::OkStatus();
+}
+
+absl::Status DungeonEditorSystem::SaveEntranceData() {
+  return absl::OkStatus();
+}
+
+absl::Status DungeonEditorSystem::LoadDoorData() {
+  return absl::OkStatus();
+}
+
+absl::Status DungeonEditorSystem::SaveDoorData() {
+  return absl::OkStatus();
+}
+
+absl::Status DungeonEditorSystem::LoadChestData() {
+  return absl::OkStatus();
+}
+
+absl::Status DungeonEditorSystem::SaveChestData() {
+  return absl::OkStatus();
 }
 
 // Factory function

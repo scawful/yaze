@@ -206,14 +206,23 @@ void Snes::RunCycle() {
         next_horiz_event = 512;
         if (memory_.v_pos() == 0)
           memory_.init_hdma_request();
+
+        // Start PPU line rendering (setup for JIT rendering)
+        if (!in_vblank_ && memory_.v_pos() > 0)
+          ppu_.StartLine(memory_.v_pos());
       } break;
       case 512: {
         next_horiz_event = 1104;
-        // render the line halfway of the screen for better compatibility
+        // Render the line halfway of the screen for better compatibility
+        // Using CatchUp instead of RunLine for progressive rendering
         if (!in_vblank_ && memory_.v_pos() > 0)
-          ppu_.RunLine(memory_.v_pos());
+          ppu_.CatchUp(512);
       } break;
       case 1104: {
+        // Finish rendering the visible line
+        if (!in_vblank_ && memory_.v_pos() > 0)
+          ppu_.CatchUp(1104);
+
         if (!in_vblank_)
           memory_.run_hdma_request();
         if (!memory_.pal_timing()) {
@@ -507,6 +516,11 @@ uint8_t Snes::Read(uint32_t adr) {
 
 void Snes::WriteBBus(uint8_t adr, uint8_t val) {
   if (adr < 0x40) {
+    // PPU Register write - catch up rendering first to ensure mid-scanline effects work
+    // Only needed if we are in the visible portion of a visible scanline
+    if (!in_vblank_ && memory_.v_pos() > 0 && memory_.h_pos() < 1100) {
+      ppu_.CatchUp(memory_.h_pos());
+    }
     ppu_.Write(adr, val);
     return;
   }

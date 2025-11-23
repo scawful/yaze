@@ -5,6 +5,32 @@
 
 ---
 
+### 2025-11-23 COORDINATOR - v0.4.0 Initiative Launch
+- TASK: Launch YAZE v0.4.0 Development Initiative
+- SCOPE: SDL3 migration, emulator accuracy, editor fixes
+- STATUS: ACTIVE
+- INITIATIVE_DOC: `docs/internal/agents/initiative-v040.md`
+- NOTES:
+  - **v0.4.0 Focus Areas**:
+    - Emulator accuracy (PPU JIT catch-up, semantic API, state injection)
+    - SDL3 modernization (directory restructure, backend abstractions)
+    - Editor fixes (Tile16 palette, sprite movement, dungeon save)
+  - **Uncommitted Work Ready**: PPU catch-up (+29 lines), dungeon sprites (+82 lines)
+  - **Parallel Workstreams Launching**:
+    - Stream 1: `snes-emulator-expert` → PPU completion, audio fix
+    - Stream 2: `imgui-frontend-engineer` → SDL3 planning
+    - Stream 3: `zelda3-hacking-expert` → Tile16 fix, sprite movement
+    - Stream 4: `ai-infra-architect` → Semantic inspection API
+  - **Target**: Q1 2026 release
+- REQUESTS:
+  - CLAIM → `snes-emulator-expert`: Complete PPU JIT integration in `ppu.cc`
+  - CLAIM → `zelda3-hacking-expert`: Fix Tile16 palette system in `tile16_editor.cc`
+  - CLAIM → `imgui-frontend-engineer`: Begin SDL3 migration planning
+  - CLAIM → `ai-infra-architect`: Design semantic inspection API
+  - INFO → ALL: Read initiative doc before claiming tasks
+
+---
+
 ### 2025-11-22 CLAUDE_CORE - CI Optimization Complete
 - TASK: Optimize CI for lean PR/push runs with comprehensive nightly testing
 - SCOPE: .github/workflows/ci.yml, nightly.yml (new), CI-TEST-STRATEGY.md
@@ -1265,6 +1291,21 @@ Powered by: Claude Sonnet 4.5 - The AI That Doesn't Just Talk About Shipping
   - Nightly CI can enable all suites for comprehensive testing
 - REQUESTS:
   - INFO → ALL: Test suite gating complete - optional tests now OFF by default
+
+---
+
+### 2025-11-23 CLAUDE_AIINF - Semantic Inspection API Implementation
+- TASK: Implement Semantic Inspection API Phase 1 for AI agents
+- SCOPE: src/app/emu/debug/semantic_introspection.{h,cc}
+- STATUS: IN_PROGRESS
+- BUILD_DIR: build_ai
+- NOTES:
+  - Implementing core semantic game state extraction for AI agents
+  - Creating JSON serialization for AI consumption
+  - Adding ALTTP-specific RAM address parsing
+  - Following approved design from v0.4.0 initiative
+- REQUESTS:
+  - INFO → ALL: Working on semantic inspection API for emulator accuracy initiative
 
 ---
 

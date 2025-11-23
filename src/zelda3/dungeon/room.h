@@ -388,7 +388,9 @@ class Room {
 
   // Object saving (Phase 1, Task 1.3)
   absl::Status SaveObjects();
+  absl::Status SaveSprites();  // New: Sprite saving
   std::vector<uint8_t> EncodeObjects() const;
+  std::vector<uint8_t> EncodeSprites() const; // New: Sprite encoding
 
   auto blocks() const { return blocks_; }
   auto& mutable_blocks() { return blocks_; }
