@@ -154,7 +154,7 @@ int main(int argc, char** argv) {
     auto status = api_server->Start(FLAGS_api_port->Get());
     if (!status.ok()) {
       LOG_ERROR("Main", "Failed to start API server: %s",
-                std::string(status.message()).c_str());
+                std::string(status.message().data(), status.message().size()).c_str());
     } else {
       LOG_INFO("Main", "API Server started on port %d", FLAGS_api_port->Get());
     }
