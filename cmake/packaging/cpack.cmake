@@ -3,6 +3,10 @@
 # NOTE: include(CPack) MUST be called at the END of this file,
 # after all CPACK_ variables and install() rules are defined.
 
+# Ensure required runtimes (MSVC/UCRT) are collected on Windows zips/NSIS
+set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_NO_WARNINGS ON)
+include(InstallRequiredSystemLibraries)
+
 # Set package information
 set(CPACK_PACKAGE_NAME "yaze")
 set(CPACK_PACKAGE_VENDOR "scawful")
@@ -69,6 +73,14 @@ else()
     )
 endif()
 
+# Install z3ed CLI when it is built
+if(TARGET z3ed)
+    install(TARGETS z3ed
+        RUNTIME DESTINATION ${YAZE_INSTALL_BINDIR}
+        COMPONENT yaze
+    )
+endif()
+
 # Install assets
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/assets/
     DESTINATION ${YAZE_INSTALL_DATADIR}/assets
@@ -86,7 +98,14 @@ install(FILES
     COMPONENT yaze
 )
 
+# Bundle MSVC/UCRT runtime DLLs into the installer/zip on Windows
+if(WIN32 AND CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS)
+    install(FILES ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS}
+        DESTINATION ${YAZE_INSTALL_BINDIR}
+        COMPONENT yaze
+    )
+endif()
+
 # IMPORTANT: include(CPack) must be called LAST, after all CPACK_ variables
 # and install() rules are defined. This is a CPack requirement.
 include(CPack)
-

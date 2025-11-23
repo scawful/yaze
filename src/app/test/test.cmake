@@ -55,18 +55,13 @@ endif()
 # Link agent library if available (for z3ed test suites)
 # yaze_agent contains all the CLI service code (tile16_proposal_generator, gui_automation_client, etc.)
 if(TARGET yaze_agent)
-  # Use whole-archive on Unix to ensure agent symbols (GuiAutomationClient etc) are included
-  if(APPLE)
-    target_link_options(yaze_test_support PUBLIC 
-      "LINKER:-force_load,$<TARGET_FILE:yaze_agent>")
-    target_link_libraries(yaze_test_support PUBLIC yaze_agent)
-  elseif(UNIX)
-    target_link_libraries(yaze_test_support PUBLIC 
-      -Wl,--whole-archive yaze_agent -Wl,--no-whole-archive)
-  else()
-    # Windows: Normal linking
-    target_link_libraries(yaze_test_support PUBLIC yaze_agent)
-  endif()
+  # Use normal linking to avoid circular dependencies
+  # The previous force_load/whole-archive approach created a circular dependency:
+  # yaze_test_support -> force_load(yaze_agent) -> yaze_test_support
+  # This caused SIGSEGV during static initialization.
+  # If specific agent symbols are not being pulled in, they should be explicitly
+  # referenced in the test code or restructured into a separate test library.
+  target_link_libraries(yaze_test_support PUBLIC yaze_agent)
   
   if(YAZE_WITH_GRPC)
     message(STATUS "✓ z3ed test suites enabled with gRPC support")
