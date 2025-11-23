@@ -43,6 +43,12 @@ if (EMSCRIPTEN)
     app/platform/font_loader.cc
     app/platform/asset_loader.cc
     app/platform/file_dialog_web.cc
+    app/platform/wasm/wasm_error_handler.cc
+    # WASM File System Layer (Phase 1)
+    app/platform/wasm/wasm_storage.cc
+    app/platform/wasm/wasm_file_dialog.cc
+    # WASM Loading Manager (Phase 3)
+    app/platform/wasm/wasm_loading_manager.cc
   )
 endif()
 
@@ -165,6 +171,32 @@ elseif(APPLE)
   target_compile_definitions(yaze_app_core_lib PRIVATE MACOS)
 elseif(WIN32)
   target_compile_definitions(yaze_app_core_lib PRIVATE WINDOWS)
+endif()
+
+# Copy web resources for WASM builds
+if(EMSCRIPTEN)
+  # Copy JavaScript and CSS files for loading indicators
+  configure_file(
+    ${CMAKE_SOURCE_DIR}/src/web/loading_indicator.js
+    ${CMAKE_BINARY_DIR}/loading_indicator.js
+    COPYONLY
+  )
+  configure_file(
+    ${CMAKE_SOURCE_DIR}/src/web/loading_indicator.css
+    ${CMAKE_BINARY_DIR}/loading_indicator.css
+    COPYONLY
+  )
+  configure_file(
+    ${CMAKE_SOURCE_DIR}/src/web/error_handler.js
+    ${CMAKE_BINARY_DIR}/error_handler.js
+    COPYONLY
+  )
+  configure_file(
+    ${CMAKE_SOURCE_DIR}/src/web/error_handler.css
+    ${CMAKE_BINARY_DIR}/error_handler.css
+    COPYONLY
+  )
+  message(STATUS "  - WASM web resources copied (loading_indicator, error_handler)")
 endif()
 
 message(STATUS "✓ yaze_app_core_lib library configured (application layer)")
