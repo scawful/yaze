@@ -35,6 +35,8 @@ if (WIN32 OR MINGW OR (UNIX AND NOT APPLE AND NOT EMSCRIPTEN))
     app/platform/font_loader.cc
     app/platform/asset_loader.cc
     app/platform/file_dialog_nfd.cc  # NFD file dialog for Windows/Linux
+    # Stub implementation for WASM worker pool
+    app/platform/wasm/wasm_worker_pool.cc
   )
 endif()
 
@@ -54,6 +56,8 @@ if (EMSCRIPTEN)
     # WASM Local Storage Persistence (Phase 6)
     app/platform/wasm/wasm_settings.cc
     app/platform/wasm/wasm_autosave.cc
+    # WASM Web Workers for Heavy Processing (Phase 7)
+    app/platform/wasm/wasm_worker_pool.cc
   )
 endif()
 
@@ -61,6 +65,8 @@ if(APPLE)
     list(APPEND YAZE_APP_CORE_SRC
       app/platform/font_loader.cc
       app/platform/asset_loader.cc
+      # Stub implementation for WASM worker pool
+      app/platform/wasm/wasm_worker_pool.cc
     )
 
     set(YAZE_APPLE_OBJCXX_SRC
