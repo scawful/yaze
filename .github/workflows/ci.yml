@@ -93,7 +93,7 @@ jobs:
         with:
           platform: ${{ matrix.platform }}
           preset: ${{ matrix.preset }}
-          cache-key: ${{ hashFiles('cmake/dependencies.lock') }}
+          cache-key: ${{ github.sha }}
 
       - name: Build project
         uses: ./.github/actions/build-project
@@ -146,7 +146,7 @@ jobs:
         with:
           platform: ${{ matrix.platform }}
           preset: ${{ matrix.preset }}
-          cache-key: ${{ hashFiles('cmake/dependencies.lock') }}
+          cache-key: ${{ github.sha }}
 
       - name: Build project
         uses: ./.github/actions/build-project
@@ -190,7 +190,7 @@ jobs:
         with:
           platform: windows
           preset: ci-windows-ai
-          cache-key: ${{ hashFiles('cmake/dependencies.lock') }}
+          cache-key: ${{ github.sha }}
 
       - name: Build project
         uses: ./.github/actions/build-project
