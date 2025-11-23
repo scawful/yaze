@@ -6,7 +6,7 @@
 #include <memory>
 
 // Centralized UI theme
-+#include "app/gui/style/theme.h"
+#include "app/gui/style/theme.h"
 
 #include "absl/strings/match.h"
 #include "absl/strings/str_format.h"
@@ -336,6 +336,7 @@ ImGui::PopStyleColor();
 }
 
 void AgentEditor::DrawConfigurationPanel() {
+  const auto& theme = yaze::gui::style::DefaultTheme();
   // AI Provider Configuration
   if (ImGui::CollapsingHeader(ICON_MD_SETTINGS " AI Provider",
                               ImGuiTreeNodeFlags_DefaultOpen)) {
@@ -725,6 +726,7 @@ void AgentEditor::DrawPromptEditorPanel() {
 }
 
 void AgentEditor::DrawBotProfilesPanel() {
+  const auto& theme = yaze::gui::style::DefaultTheme();
   ImGui::TextColored(ImVec4(1.0f, 0.843f, 0.0f, 1.0f),
                      ICON_MD_FOLDER " Bot Profile Manager");
   ImGui::Separator();
