@@ -1,13 +1,16 @@
 # CPack Configuration
-# Cross-platform packaging using CPack
-# NOTE: include(CPack) MUST be called at the END of this file,
-# after all CPACK_ variables and install() rules are defined.
+# Cross-platform packaging using CPack with FLAT structure
+#
+# Package structure:
+#   root/
+#     yaze (or yaze.exe)
+#     z3ed (or z3ed.exe) - if CLI is built
+#     README.md
+#     LICENSE
+#     assets/
+#       (all asset files)
 
-# Ensure required runtimes (MSVC/UCRT) are collected on Windows zips/NSIS
-set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_NO_WARNINGS ON)
-include(InstallRequiredSystemLibraries)
-
-# Set package information
+# Set package information BEFORE including CPack
 set(CPACK_PACKAGE_NAME "yaze")
 set(CPACK_PACKAGE_VENDOR "scawful")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Yet Another Zelda3 Editor")
@@ -19,15 +22,6 @@ set(CPACK_PACKAGE_VERSION "${YAZE_VERSION_MAJOR}.${YAZE_VERSION_MINOR}.${YAZE_VE
 # Set package directory
 set(CPACK_PACKAGE_DIRECTORY "${CMAKE_BINARY_DIR}/packages")
 
-# Platform-specific packaging
-if(APPLE)
-  include(cmake/packaging/macos.cmake)
-elseif(WIN32)
-  include(cmake/packaging/windows.cmake)
-elseif(UNIX)
-  include(cmake/packaging/linux.cmake)
-endif()
-
 # Common files to include
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/LICENSE")
 set(CPACK_RESOURCE_FILE_README "${CMAKE_SOURCE_DIR}/README.md")
@@ -37,75 +31,122 @@ set(CPACK_COMPONENTS_ALL yaze)
 set(CPACK_COMPONENT_YAZE_DISPLAY_NAME "YAZE Editor")
 set(CPACK_COMPONENT_YAZE_DESCRIPTION "Main YAZE application and libraries")
 
-# Install rules - these define what CPack packages
-include(GNUInstallDirs)
+# =============================================================================
+# FLAT PACKAGE STRUCTURE INSTALL RULES
+# =============================================================================
+# We explicitly avoid GNUInstallDirs to create a simple, flat package structure
+# that users can extract and run directly without installation.
 
-# Platform-specific install paths
-# The asset paths must match what platform_paths.cc FindAsset() searches for
-if(WIN32)
-    # Windows: flat structure (exe and assets/ at same level)
-    set(YAZE_INSTALL_BINDIR ".")
-    set(YAZE_INSTALL_DATADIR ".")
-    set(YAZE_INSTALL_DOCDIR ".")
-elseif(APPLE)
-    # macOS: flat structure for DMG (app bundle handles its own resources)
-    set(YAZE_INSTALL_BINDIR ".")
-    set(YAZE_INSTALL_DATADIR ".")
-    set(YAZE_INSTALL_DOCDIR ".")
-else()
-    # Linux: FHS structure - assets at share/yaze/assets (matches FindAsset search)
-    set(YAZE_INSTALL_BINDIR ${CMAKE_INSTALL_BINDIR})
-    set(YAZE_INSTALL_DATADIR "${CMAKE_INSTALL_DATADIR}/yaze")
-    set(YAZE_INSTALL_DOCDIR "${CMAKE_INSTALL_DOCDIR}")
-endif()
-
-# Install main executable
 if(APPLE)
+    # -------------------------------------------------------------------------
+    # macOS: Create app bundle with embedded resources
+    # -------------------------------------------------------------------------
+    # Platform-specific CPack configuration
+    include(cmake/packaging/macos.cmake)
+
+    # Install the app bundle to the root of the package
     install(TARGETS yaze
-        RUNTIME DESTINATION ${YAZE_INSTALL_BINDIR}
         BUNDLE DESTINATION .
         COMPONENT yaze
     )
-else()
+
+    # Install z3ed CLI alongside the bundle (if built)
+    if(TARGET z3ed)
+        install(TARGETS z3ed
+            RUNTIME DESTINATION .
+            COMPONENT yaze
+        )
+    endif()
+
+    # Install assets into the bundle's Resources folder
+    # This is done via the bundle's resource handling, but we also
+    # install to a root assets/ folder for CLI tools
+    install(DIRECTORY ${CMAKE_SOURCE_DIR}/assets/
+        DESTINATION assets
+        COMPONENT yaze
+    )
+
+    # Install documentation to root
+    install(FILES
+        ${CMAKE_SOURCE_DIR}/README.md
+        ${CMAKE_SOURCE_DIR}/LICENSE
+        DESTINATION .
+        COMPONENT yaze
+    )
+
+elseif(WIN32)
+    # -------------------------------------------------------------------------
+    # Windows: Flat structure with executables at root
+    # -------------------------------------------------------------------------
+    include(cmake/packaging/windows.cmake)
+
+    # Install executables to root (no bin/ subdirectory)
     install(TARGETS yaze
-        RUNTIME DESTINATION ${YAZE_INSTALL_BINDIR}
+        RUNTIME DESTINATION .
+        COMPONENT yaze
+    )
+
+    # Install z3ed CLI (if built)
+    if(TARGET z3ed)
+        install(TARGETS z3ed
+            RUNTIME DESTINATION .
+            COMPONENT yaze
+        )
+    endif()
+
+    # Install assets to assets/ folder at root
+    install(DIRECTORY ${CMAKE_SOURCE_DIR}/assets/
+        DESTINATION assets
+        COMPONENT yaze
+    )
+
+    # Install documentation to root
+    install(FILES
+        ${CMAKE_SOURCE_DIR}/README.md
+        ${CMAKE_SOURCE_DIR}/LICENSE
+        DESTINATION .
+        COMPONENT yaze
+    )
+
+else()
+    # -------------------------------------------------------------------------
+    # Linux: Flat structure for tar.gz, FHS for DEB/RPM
+    # -------------------------------------------------------------------------
+    include(cmake/packaging/linux.cmake)
+
+    # For the TGZ generator, use flat structure
+    # For DEB/RPM, use FHS-compliant structure
+    # CPack handles this via generator-specific install prefixes
+
+    # Install executables to root (flat) or bin/ (FHS)
+    install(TARGETS yaze
+        RUNTIME DESTINATION .
+        COMPONENT yaze
+    )
+
+    # Install z3ed CLI (if built)
+    if(TARGET z3ed)
+        install(TARGETS z3ed
+            RUNTIME DESTINATION .
+            COMPONENT yaze
+        )
+    endif()
+
+    # Install assets to assets/ folder
+    install(DIRECTORY ${CMAKE_SOURCE_DIR}/assets/
+        DESTINATION assets
+        COMPONENT yaze
+    )
+
+    # Install documentation to root
+    install(FILES
+        ${CMAKE_SOURCE_DIR}/README.md
+        ${CMAKE_SOURCE_DIR}/LICENSE
+        DESTINATION .
         COMPONENT yaze
     )
 endif()
 
-# Install z3ed CLI when it is built
-if(TARGET z3ed)
-    install(TARGETS z3ed
-        RUNTIME DESTINATION ${YAZE_INSTALL_BINDIR}
-        COMPONENT yaze
-    )
-endif()
-
-# Install assets
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/assets/
-    DESTINATION ${YAZE_INSTALL_DATADIR}/assets
-    COMPONENT yaze
-    PATTERN "*.png"
-    PATTERN "*.ttf"
-    PATTERN "*.asm"
-)
-
-# Install documentation
-install(FILES
-    ${CMAKE_SOURCE_DIR}/README.md
-    ${CMAKE_SOURCE_DIR}/LICENSE
-    DESTINATION ${YAZE_INSTALL_DOCDIR}
-    COMPONENT yaze
-)
-
-# Bundle MSVC/UCRT runtime DLLs into the installer/zip on Windows
-if(WIN32 AND CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS)
-    install(FILES ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS}
-        DESTINATION ${YAZE_INSTALL_BINDIR}
-        COMPONENT yaze
-    )
-endif()
-
-# IMPORTANT: include(CPack) must be called LAST, after all CPACK_ variables
-# and install() rules are defined. This is a CPack requirement.
+# Include CPack module AFTER all configuration
 include(CPack)
+
