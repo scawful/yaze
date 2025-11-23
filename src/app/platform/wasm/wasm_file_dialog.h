@@ -143,11 +143,11 @@ class WasmFileDialog {
   static void HandleFileError(int callback_id, const char* error_message);
 
   // Friend functions for C callbacks from JavaScript
-  friend void _handleFileLoaded(int callback_id, const char* filename,
-                                const uint8_t* data, size_t size);
-  friend void _handleTextFileLoaded(int callback_id, const char* filename,
-                                    const char* content);
-  friend void _handleFileError(int callback_id, const char* error_message);
+  friend void yazeHandleFileLoaded(int callback_id, const char* filename,
+                                   const uint8_t* data, size_t size);
+  friend void yazeHandleTextFileLoaded(int callback_id, const char* filename,
+                                       const char* content);
+  friend void yazeHandleFileError(int callback_id, const char* error_message);
 };
 
 }  // namespace platform
@@ -155,11 +155,11 @@ class WasmFileDialog {
 
 // C-style callbacks for JavaScript interop
 extern "C" {
-void _handleFileLoaded(int callback_id, const char* filename,
-                       const uint8_t* data, size_t size);
-void _handleTextFileLoaded(int callback_id, const char* filename,
-                           const char* content);
-void _handleFileError(int callback_id, const char* error_message);
+void yazeHandleFileLoaded(int callback_id, const char* filename,
+                          const uint8_t* data, size_t size);
+void yazeHandleTextFileLoaded(int callback_id, const char* filename,
+                              const char* content);
+void yazeHandleFileError(int callback_id, const char* error_message);
 }
 
 #endif  // __EMSCRIPTEN__

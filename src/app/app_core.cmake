@@ -49,6 +49,11 @@ if (EMSCRIPTEN)
     app/platform/wasm/wasm_file_dialog.cc
     # WASM Loading Manager (Phase 3)
     app/platform/wasm/wasm_loading_manager.cc
+    # WASM AI Service Integration (Phase 5)
+    app/platform/wasm/wasm_secure_storage.cc
+    # WASM Local Storage Persistence (Phase 6)
+    app/platform/wasm/wasm_settings.cc
+    app/platform/wasm/wasm_autosave.cc
   )
 endif()
 

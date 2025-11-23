@@ -3,6 +3,22 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="A modern, cross-platform ROM editor for The Legend of Zelda: A Link to the Past">
+
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#0e639c">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="YAZE">
+
+    <!-- Link to manifest for PWA -->
+    <link rel="manifest" href="/manifest.json">
+
+    <!-- iOS Icon (placeholder) -->
+    <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
+
     <title>YAZE - Yet Another Zelda3 Editor (Web)</title>
     <style>
       body {
@@ -105,6 +121,55 @@
         pointer-events: none;
       }
 
+      /* Offline indicator */
+      #offline-indicator {
+        position: fixed;
+        top: 60px;
+        right: 20px;
+        background: #d32f2f;
+        color: white;
+        padding: 8px 16px;
+        border-radius: 4px;
+        font-size: 14px;
+        display: none;
+        z-index: 1000;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+      }
+
+      #offline-indicator.show {
+        display: block;
+      }
+
+      /* Update available notification */
+      #update-notification {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: #0e639c;
+        color: white;
+        padding: 12px 20px;
+        border-radius: 4px;
+        font-size: 14px;
+        display: none;
+        z-index: 1000;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+      }
+
+      #update-notification.show {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      #update-notification button {
+        background: rgba(255,255,255,0.2);
+        margin-left: 10px;
+      }
+
+      #update-notification button:hover {
+        background: rgba(255,255,255,0.3);
+      }
+
       /* Spinner from Emscripten template */
       .spinner {
         height: 50px;
@@ -137,6 +202,16 @@
         <button id="download-save-btn" onclick="downloadSaves()">Download Saves</button>
         <button id="fullscreen-btn" onclick="Module.requestFullscreen(false, false)">Fullscreen</button>
       </div>
+    </div>
+
+    <!-- Offline indicator -->
+    <div id="offline-indicator">Offline Mode - Working from cache</div>
+
+    <!-- Update notification -->
+    <div id="update-notification">
+      <span>A new version of YAZE is available!</span>
+      <button onclick="updateServiceWorker()">Update</button>
+      <button onclick="dismissUpdate()">Dismiss</button>
     </div>
 
     <div id="canvas-container">
@@ -298,6 +373,96 @@
           }
         });
       };
+
+      // Service Worker Registration
+      let newServiceWorker;
+
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/service-worker.js')
+            .then((registration) => {
+              console.log('ServiceWorker registration successful:', registration.scope);
+
+              // Check for updates periodically (every hour)
+              setInterval(() => {
+                registration.update();
+              }, 3600000);
+
+              // Listen for new service worker waiting
+              registration.addEventListener('updatefound', () => {
+                const installingWorker = registration.installing;
+                installingWorker.addEventListener('statechange', () => {
+                  if (installingWorker.state === 'installed' &&
+                      navigator.serviceWorker.controller) {
+                    // New service worker is ready to activate
+                    newServiceWorker = installingWorker;
+                    showUpdateNotification();
+                  }
+                });
+              });
+            })
+            .catch((error) => {
+              console.error('ServiceWorker registration failed:', error);
+            });
+
+          // Listen for service worker controller changes
+          navigator.serviceWorker.addEventListener('controllerchange', () => {
+            // Service worker has been updated, reload the page
+            window.location.reload();
+          });
+        });
+      }
+
+      // Online/Offline detection
+      function updateOnlineStatus() {
+        const offlineIndicator = document.getElementById('offline-indicator');
+        if (navigator.onLine) {
+          offlineIndicator.classList.remove('show');
+          console.log('Online: Connected to network');
+        } else {
+          offlineIndicator.classList.add('show');
+          console.log('Offline: Working from cache');
+        }
+      }
+
+      window.addEventListener('online', updateOnlineStatus);
+      window.addEventListener('offline', updateOnlineStatus);
+
+      // Check initial online status
+      document.addEventListener('DOMContentLoaded', updateOnlineStatus);
+
+      // Update notification functions
+      function showUpdateNotification() {
+        const notification = document.getElementById('update-notification');
+        notification.classList.add('show');
+      }
+
+      function dismissUpdate() {
+        const notification = document.getElementById('update-notification');
+        notification.classList.remove('show');
+      }
+
+      function updateServiceWorker() {
+        if (newServiceWorker) {
+          // Tell the waiting service worker to activate
+          newServiceWorker.postMessage({ type: 'SKIP_WAITING' });
+          dismissUpdate();
+        }
+      }
+
+      // Cache status check (optional - for debugging)
+      function checkCacheStatus() {
+        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+          const messageChannel = new MessageChannel();
+          messageChannel.port1.onmessage = (event) => {
+            console.log('Cache version:', event.data.version);
+          };
+          navigator.serviceWorker.controller.postMessage(
+            { type: 'CACHE_VERSION' },
+            [messageChannel.port2]
+          );
+        }
+      }
 
     </script>
     {{{ SCRIPT }}}

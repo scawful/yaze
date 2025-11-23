@@ -4,9 +4,43 @@ set(_YAZE_NEEDS_AGENT FALSE)
 # - OpenSSL for HTTPS support
 # - Threading libraries that aren't fully compatible with WASM
 # - Network libraries that require native sockets
+# However, we can provide browser-based AI services using the Fetch API
 if(EMSCRIPTEN)
-  add_library(yaze_agent INTERFACE)
-  message(STATUS "yaze_agent stubbed out (not compatible with Emscripten/WASM)")
+  # Create a minimal browser-based AI service library for WASM
+  set(YAZE_BROWSER_AI_SOURCES
+    cli/service/ai/browser_ai_service.cc
+    cli/service/ai/ai_service.cc
+    cli/service/ai/common.h
+  )
+
+  add_library(yaze_agent STATIC ${YAZE_BROWSER_AI_SOURCES})
+
+  target_link_libraries(yaze_agent PUBLIC
+    yaze_common
+    yaze_util
+    ${ABSL_TARGETS}
+  )
+
+  # Link with the network abstraction layer for HTTP client
+  if(TARGET yaze_net)
+    target_link_libraries(yaze_agent PUBLIC yaze_net)
+  endif()
+
+  # Add JSON support for API communication
+  if(YAZE_ENABLE_JSON)
+    target_include_directories(yaze_agent PUBLIC ${CMAKE_SOURCE_DIR}/ext/json/include)
+    target_link_libraries(yaze_agent PUBLIC nlohmann_json::nlohmann_json)
+    target_compile_definitions(yaze_agent PUBLIC YAZE_WITH_JSON)
+  endif()
+
+  target_include_directories(yaze_agent PUBLIC
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/incl
+  )
+
+  set_target_properties(yaze_agent PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
+  message(STATUS "yaze_agent configured for WASM with browser-based AI services")
   return()
 endif()
 
