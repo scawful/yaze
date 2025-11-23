@@ -6,6 +6,21 @@ message(STATUS "Setting up Dear ImGui from bundled sources")
 # Use the bundled ImGui from ext/imgui
 set(IMGUI_DIR ${CMAKE_SOURCE_DIR}/ext/imgui)
 
+# Select ImGui backend sources based on SDL version
+if(YAZE_USE_SDL3)
+  set(IMGUI_BACKEND_SOURCES
+    ${IMGUI_DIR}/backends/imgui_impl_sdl3.cpp
+    ${IMGUI_DIR}/backends/imgui_impl_sdlrenderer3.cpp
+  )
+  message(STATUS "Using ImGui SDL3 backend")
+else()
+  set(IMGUI_BACKEND_SOURCES
+    ${IMGUI_DIR}/backends/imgui_impl_sdl2.cpp
+    ${IMGUI_DIR}/backends/imgui_impl_sdlrenderer2.cpp
+  )
+  message(STATUS "Using ImGui SDL2 backend")
+endif()
+
 # Create ImGui library with core files from bundled source
 add_library(ImGui STATIC
   ${IMGUI_DIR}/imgui.cpp
@@ -13,9 +28,8 @@ add_library(ImGui STATIC
   ${IMGUI_DIR}/imgui_draw.cpp
   ${IMGUI_DIR}/imgui_tables.cpp
   ${IMGUI_DIR}/imgui_widgets.cpp
-  # SDL2 backend
-  ${IMGUI_DIR}/backends/imgui_impl_sdl2.cpp
-  ${IMGUI_DIR}/backends/imgui_impl_sdlrenderer2.cpp
+  # SDL backend (version-dependent)
+  ${IMGUI_BACKEND_SOURCES}
   # C++ stdlib helpers (for std::string support)
   ${IMGUI_DIR}/misc/cpp/imgui_stdlib.cpp
 )
@@ -28,8 +42,12 @@ target_include_directories(ImGui PUBLIC
 # Set C++ standard requirement (ImGui 1.90+ requires C++11, we use C++17 for consistency)
 target_compile_features(ImGui PUBLIC cxx_std_17)
 
-# Link to SDL2
-target_link_libraries(ImGui PUBLIC ${YAZE_SDL2_TARGETS})
+# Link to SDL (version-dependent)
+if(YAZE_USE_SDL3)
+  target_link_libraries(ImGui PUBLIC ${YAZE_SDL3_TARGETS})
+else()
+  target_link_libraries(ImGui PUBLIC ${YAZE_SDL2_TARGETS})
+endif()
 
 message(STATUS "Created ImGui target from bundled source at ${IMGUI_DIR}")
 
@@ -56,7 +74,11 @@ if(YAZE_BUILD_TESTS)
       ${CMAKE_SOURCE_DIR}/ext
     )
     target_compile_features(ImGuiTestEngine PUBLIC cxx_std_17)
-    target_link_libraries(ImGuiTestEngine PUBLIC ImGui ${YAZE_SDL2_TARGETS})
+    if(YAZE_USE_SDL3)
+      target_link_libraries(ImGuiTestEngine PUBLIC ImGui ${YAZE_SDL3_TARGETS})
+    else()
+      target_link_libraries(ImGuiTestEngine PUBLIC ImGui ${YAZE_SDL2_TARGETS})
+    endif()
     target_compile_definitions(ImGuiTestEngine PUBLIC
       IMGUI_ENABLE_TEST_ENGINE=1
       IMGUI_TEST_ENGINE_ENABLE_COROUTINE_STDTHREAD_IMPL=1

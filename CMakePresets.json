@@ -553,6 +553,48 @@
       }
     },
     {
+      "name": "mac-sdl3",
+      "inherits": "mac-dbg",
+      "displayName": "macOS SDL3 (Experimental)",
+      "description": "Debug build with experimental SDL3 support",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
+      },
+      "cacheVariables": {
+        "YAZE_USE_SDL3": "ON"
+      }
+    },
+    {
+      "name": "win-sdl3",
+      "inherits": "win-dbg",
+      "displayName": "Windows SDL3 (Experimental)",
+      "description": "Debug build with experimental SDL3 support",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      },
+      "cacheVariables": {
+        "YAZE_USE_SDL3": "ON"
+      }
+    },
+    {
+      "name": "lin-sdl3",
+      "inherits": "lin-dbg",
+      "displayName": "Linux SDL3 (Experimental)",
+      "description": "Debug build with experimental SDL3 support",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      },
+      "cacheVariables": {
+        "YAZE_USE_SDL3": "ON"
+      }
+    },
+    {
       "name": "lin-dbg",
       "inherits": "base",
       "displayName": "Linux Debug",
@@ -842,6 +884,27 @@
       "configurePreset": "mac-uni",
       "displayName": "macOS Universal Binary Build",
       "configuration": "Release",
+      "jobs": 12
+    },
+    {
+      "name": "mac-sdl3",
+      "configurePreset": "mac-sdl3",
+      "displayName": "macOS SDL3 Build",
+      "configuration": "Debug",
+      "jobs": 12
+    },
+    {
+      "name": "win-sdl3",
+      "configurePreset": "win-sdl3",
+      "displayName": "Windows SDL3 Build",
+      "configuration": "Debug",
+      "jobs": 12
+    },
+    {
+      "name": "lin-sdl3",
+      "configurePreset": "lin-sdl3",
+      "displayName": "Linux SDL3 Build",
+      "configuration": "Debug",
       "jobs": 12
     },
     {

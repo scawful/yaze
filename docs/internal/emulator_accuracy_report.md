@@ -104,6 +104,32 @@ For automated verification (e.g., "Does entering this room crash?"), rendering o
         *   `RunUntil(Memory[0x10] == 0x01)` (Game mode change)
         *   `RunUntil(FrameCount == Target + 60)` (Time duration)
 
+## Recent Improvements
+
+### SDL3 Audio Backend (2025-11-23)
+
+A new SDL3 audio backend has been implemented to modernize the emulator's audio subsystem:
+
+**Implementation Details:**
+- **Stream-based architecture**: Replaces SDL2's queue-based approach with SDL3's `SDL_AudioStream` API
+- **Files added**:
+  - `src/app/emu/audio/sdl3_audio_backend.h/cc` - Complete SDL3 backend implementation
+  - `src/app/platform/sdl_compat.h` - Cross-version compatibility layer
+- **Factory integration**: `AudioBackendFactory` now supports `BackendType::SDL3`
+- **Resampling support**: Native handling of SPC700's 32kHz output to device rate
+- **Volume control**: Optimized fast-path for unity gain (common case)
+
+**Benefits:**
+- Lower audio latency potential with stream-based processing
+- Better synchronization between audio and video subsystems
+- Native resampling reduces CPU overhead for rate conversion
+- Future-proof architecture aligned with SDL3's design philosophy
+
+**Testing:**
+- Unit tests added in `test/unit/sdl3_audio_backend_test.cc`
+- Conditional compilation via `YAZE_USE_SDL3` flag ensures backward compatibility
+- Seamless fallback to SDL2 when SDL3 unavailable
+
 ## Action Plan
 
 To upgrade `yaze` for both accuracy and AI integration, follow this implementation order:

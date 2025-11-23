@@ -40,8 +40,8 @@ EditorIntegrationTest::~EditorIntegrationTest() {
 }
 
 absl::Status EditorIntegrationTest::Initialize() {
-  // Create renderer for test
-  test_renderer_ = std::make_unique<gfx::SDL2Renderer>();
+  // Create renderer for test (uses factory for SDL2/SDL3 selection)
+  test_renderer_ = gfx::RendererFactory::Create();
   RETURN_IF_ERROR(
       core::CreateWindow(window_, test_renderer_.get(), SDL_WINDOW_RESIZABLE));
 

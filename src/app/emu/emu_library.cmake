@@ -26,12 +26,19 @@ target_include_directories(yaze_emulator PUBLIC
   ${PROJECT_BINARY_DIR}
 )
 
+# Link to SDL (version-dependent)
+if(YAZE_USE_SDL3)
+  set(SDL_TARGETS ${YAZE_SDL3_TARGETS})
+else()
+  set(SDL_TARGETS ${YAZE_SDL2_TARGETS})
+endif()
+
 target_link_libraries(yaze_emulator PUBLIC
   yaze_util
   yaze_common
   yaze_app_core_lib
   ${ABSL_TARGETS}
-  ${YAZE_SDL2_TARGETS}
+  ${SDL_TARGETS}
 )
 
 set_target_properties(yaze_emulator PROPERTIES
@@ -47,6 +54,13 @@ elseif(APPLE)
   target_compile_definitions(yaze_emulator PRIVATE MACOS)
 elseif(WIN32)
   target_compile_definitions(yaze_emulator PRIVATE WINDOWS)
+endif()
+
+# SDL version compile definitions
+if(YAZE_USE_SDL3)
+  target_compile_definitions(yaze_emulator PRIVATE YAZE_USE_SDL3=1 YAZE_SDL3=1)
+else()
+  target_compile_definitions(yaze_emulator PRIVATE YAZE_SDL2=1)
 endif()
 
 message(STATUS "✓ yaze_emulator library configured")

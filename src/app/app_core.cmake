@@ -17,7 +17,17 @@ set(
   # because it depends on yaze_editor and yaze_gui, which would create a cycle:
   # yaze_agent -> yaze_app_core_lib -> yaze_editor -> yaze_agent
   app/platform/window.cc
+  # Window backend abstraction (SDL2/SDL3 support)
+  app/platform/sdl2_window_backend.cc
+  app/platform/window_backend_factory.cc
 )
+
+# SDL3 window backend (only compiled when YAZE_USE_SDL3 is defined)
+if(YAZE_USE_SDL3)
+  list(APPEND YAZE_APP_CORE_SRC
+    app/platform/sdl3_window_backend.cc
+  )
+endif()
 
 # Platform-specific sources
 if (WIN32 OR MINGW OR (UNIX AND NOT APPLE))

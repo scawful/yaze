@@ -18,6 +18,8 @@ jobs:
   build:
     name: "Build Release - ${{ matrix.name }}"
     runs-on: ${{ matrix.os }}
+    env:
+      YAZE_VERSION_OVERRIDE: ${{ env.VERSION }}
     strategy:
       fail-fast: false
       matrix:
