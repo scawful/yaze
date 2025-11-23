@@ -168,8 +168,8 @@ absl::Status EmscriptenWebSocket::Send(const std::string& message) {
     return absl::FailedPreconditionError("WebSocket not connected");
   }
 
-  EMSCRIPTEN_RESULT result = emscripten_websocket_send_text(
-      socket_, message.c_str(), message.length());
+  EMSCRIPTEN_RESULT result = emscripten_websocket_send_utf8_text(
+      socket_, message.c_str());
 
   if (result != EMSCRIPTEN_RESULT_SUCCESS) {
     return absl::InternalError("Failed to send text message");
