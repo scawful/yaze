@@ -15,11 +15,11 @@ cmake_policy(SET CMP0077 NEW)
 
 # Enable Objective-C only on macOS where it's actually used
 if(CMAKE_SYSTEM_NAME MATCHES "Darwin")
-    project(yaze VERSION 0.3.8
+    project(yaze VERSION 0.3.9
                  DESCRIPTION "Yet Another Zelda3 Editor"
                  LANGUAGES CXX C OBJC OBJCXX)
 else()
-    project(yaze VERSION 0.3.8
+    project(yaze VERSION 0.3.9
                  DESCRIPTION "Yet Another Zelda3 Editor"
                  LANGUAGES CXX C)
 endif()
