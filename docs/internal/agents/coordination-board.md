@@ -10,6 +10,12 @@
 - STATUS: IN_PROGRESS (another agent actively working)
 - NOTES: Root causes identified (hashFiles() invalidation, Windows crash_handler POSIX macros)
 
+### 2025-11-24 CODEX – Dungeon objects & ZSOW palette (ACTIVE)
+- TASK: Fix dungeon object rendering regression + ZSOW v3 large-area palette issues; add regression tests
+- SCOPE: dungeon editor rendering, overworld palette mapping/tests
+- STATUS: ACTIVE
+- NOTES: Visual defects reported; will run regression tests and patch palettes
+
 ---
 
 ### 2025-11-23 COORDINATOR - v0.4.0 Roadmap Refined
