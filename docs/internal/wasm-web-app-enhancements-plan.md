@@ -19,13 +19,13 @@ This document outlines the comprehensive plan to make yaze's WASM web build full
 - [x] **Phase 5**: AI Service Integration (BrowserAIService, WasmSecureStorage)
 - [x] **Phase 6**: Local Storage Persistence (WasmSettings, AutoSaveManager)
 
+- [x] **Phase 7**: Web Workers for heavy processing (WasmWorkerPool)
+- [x] **Phase 8**: Emulator Audio (WebAudio, WasmAudioBackend)
+
 ### In Progress
 - [ ] WASM CI build verification
 - [ ] Integration of loading manager with gfx::Arena
-
-### Remaining
-- [ ] **Phase 7**: Web Workers for heavy processing
-- [ ] **Phase 8**: Emulator Audio (WebAudio)
+- [ ] Integration testing across all phases
 
 ---
 
