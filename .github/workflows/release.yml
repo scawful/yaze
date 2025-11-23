@@ -61,7 +61,7 @@ jobs:
         with:
           platform: ${{ matrix.platform }}
           preset: ${{ matrix.preset }}
-          cache-key: ${{ hashFiles('cmake/dependencies.cmake') }}
+          cache-key: ${{ github.sha }}
 
       - name: Build project
         uses: ./.github/actions/build-project
@@ -93,7 +93,9 @@ jobs:
         shell: bash
         run: |
           echo "Cleaning old package files to ensure fresh generation"
-          rm -rf build/*.deb build/*.tar.gz build/*.dmg build/*.zip build/*.exe build/packages/*
+          rm -rf build/packages build/_CPack_Packages
+          rm -f build/*.deb build/*.tar.gz build/*.dmg build/*.zip build/*.exe
+          mkdir -p build/packages
 
       - name: Package artifacts (Linux)
         if: matrix.platform == 'linux'
@@ -266,7 +268,7 @@ jobs:
         with:
           platform: ${{ matrix.platform }}
           preset: ${{ matrix.preset }}
-          cache-key: ${{ hashFiles('cmake/dependencies.lock') }}
+          cache-key: ${{ github.sha }}
 
       - name: Build project
         uses: ./.github/actions/build-project
