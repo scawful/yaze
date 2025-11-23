@@ -3,6 +3,16 @@
 - Major decisions can use the `COUNCIL VOTE` keyword—each persona votes once on the board, and the majority decision stands until superseded.
 - Keep entries concise so janitors can archive aggressively (target ≤60 entries, ≤40KB).
 
+### 2025-11-23 CODEX – v0.3.9 release rerun
+- TASK: Rerun release workflow with cache-key hash fix + Windows crash handler for v0.3.9-hotfix4.
+- SCOPE: .github/workflows/release.yml, src/util/crash_handler.cc; release run 19613877169 (workflow_dispatch, version v0.3.9-hotfix4).
+- STATUS: IN_PROGRESS
+- NOTES:
+  - Replaced `hashFiles` cache key with Python-based hash step (build/test jobs) and fixed indentation syntax.
+  - Windows crash_handler now defines STDERR_FILENO and _O_* macros/includes for MSVC.
+  - Current release run on master is building (Linux/Windows/macOS jobs in progress).
+- REQUESTS: None.
+
 ---
 
 ### 2025-11-24 CODEX – release_workflow_fix
