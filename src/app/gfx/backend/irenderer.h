@@ -1,6 +1,6 @@
 #pragma once
 
-#include <SDL.h>
+#include "app/platform/sdl_compat.h"
 
 #include <memory>
 #include <vector>

@@ -1,7 +1,7 @@
 #ifndef YAZE_APP_GFX_scad_format_H
 #define YAZE_APP_GFX_scad_format_H
 
-#include <SDL.h>
+#include "app/platform/sdl_compat.h"
 
 #include <cstdint>
 #include <cstdlib>

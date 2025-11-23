@@ -1,7 +1,7 @@
 // Headless Emulator Test Harness
 // Minimal SDL initialization for testing APU without GUI overhead
 
-#include <SDL.h>
+#include "app/platform/sdl_compat.h"
 
 #include <cstdint>
 #include <cstdio>

@@ -37,7 +37,7 @@
 #include "app/platform/window.h"
 #include "app/rom.h"
 
-#include <SDL.h>
+#include "app/platform/sdl_compat.h"
 
 #ifdef main
 #undef main
