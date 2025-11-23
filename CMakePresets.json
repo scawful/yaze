@@ -158,7 +158,7 @@
         "YAZE_BUILD_Z3ED": "OFF",
         "YAZE_BUILD_TESTS": "OFF",
         "YAZE_ENABLE_GRPC": "OFF",
-        "YAZE_ENABLE_JSON": "OFF",
+        "YAZE_ENABLE_JSON": "ON",
         "YAZE_ENABLE_AI": "OFF",
         "YAZE_ENABLE_NFD": "OFF",
         "YAZE_BUILD_AGENT_UI": "OFF",
