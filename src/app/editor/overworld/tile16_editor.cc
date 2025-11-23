@@ -32,16 +32,18 @@ absl::Status Tile16Editor::Initialize(
   current_gfx_bmp_.Create(current_gfx_bmp.width(), current_gfx_bmp.height(),
                           current_gfx_bmp.depth(), current_gfx_bmp.vector());
   current_gfx_bmp_.SetPalette(current_gfx_bmp.palette());  // Temporary palette
-  // TODO: Queue texture for later rendering.
-  // core::Renderer::Get().RenderBitmap(&current_gfx_bmp_);
+  // Queue texture for later rendering.
+  gfx::Arena::Get().QueueTextureCommand(gfx::Arena::TextureCommandType::CREATE,
+                                        &current_gfx_bmp_);
 
   // Copy the tile16 blockset bitmap
   tile16_blockset_bmp_.Create(
       tile16_blockset_bmp.width(), tile16_blockset_bmp.height(),
       tile16_blockset_bmp.depth(), tile16_blockset_bmp.vector());
   tile16_blockset_bmp_.SetPalette(tile16_blockset_bmp.palette());
-  // TODO: Queue texture for later rendering.
-  // core::Renderer::Get().RenderBitmap(&tile16_blockset_bmp_);
+  // Queue texture for later rendering.
+  gfx::Arena::Get().QueueTextureCommand(gfx::Arena::TextureCommandType::CREATE,
+                                        &tile16_blockset_bmp_);
 
   // Note: LoadTile8() will be called after palette is set by overworld editor
   // This ensures proper palette coordination from the start
@@ -50,8 +52,9 @@ absl::Status Tile16Editor::Initialize(
   current_tile16_bmp_.Create(kTile16Size, kTile16Size, 8,
                              std::vector<uint8_t>(kTile16PixelCount, 0));
   current_tile16_bmp_.SetPalette(tile16_blockset_bmp.palette());
-  // TODO: Queue texture for later rendering.
-  // core::Renderer::Get().RenderBitmap(&current_tile16_bmp_);
+  // Queue texture for later rendering.
+  gfx::Arena::Get().QueueTextureCommand(gfx::Arena::TextureCommandType::CREATE,
+                                        &current_tile16_bmp_);
 
   // Initialize enhanced canvas features with proper sizing
   tile16_edit_canvas_.InitializeDefaults();
@@ -1235,6 +1238,8 @@ absl::Status Tile16Editor::LoadTile8() {
       std::vector<uint8_t> tile_data(64);  // 8x8 = 64 pixels
 
       // Extract tile data from the main graphics bitmap
+      // Keep raw 4-bit pixel values (0-15); palette offset is applied in
+      // RefreshAllPalettes() via SetPaletteWithTransparent
       for (int py = 0; py < 8; ++py) {
         for (int px = 0; px < 8; ++px) {
           int src_x = tile_x * 8 + px;
@@ -1246,10 +1251,9 @@ absl::Status Tile16Editor::LoadTile8() {
               dst_index < 64) {
             uint8_t pixel_value = current_gfx_bmp_.data()[src_index];
 
-            // Apply normalization based on settings
-            if (auto_normalize_pixels_) {
-              pixel_value &= palette_normalization_mask_;
-            }
+            // Normalize to 4-bit range for proper SNES 4bpp graphics
+            // The actual palette offset is applied during palette refresh
+            pixel_value &= 0x0F;
 
             tile_data[dst_index] = pixel_value;
           }
@@ -1324,7 +1328,8 @@ absl::Status Tile16Editor::SetCurrentTile(int tile_id) {
 
     tile_data.resize(kTile16PixelCount);
 
-    // Manual extraction without the buggy offset increment
+    // Manual extraction - preserve pixel values for palette-based rendering
+    // The 4-bit mask is applied after extraction to normalize values
     for (int ty = 0; ty < kTile16Size; ty++) {
       for (int tx = 0; tx < kTile16Size; tx++) {
         int pixel_x = tile_x + tx;
@@ -1335,34 +1340,56 @@ absl::Status Tile16Editor::SetCurrentTile(int tile_id) {
         if (src_index < static_cast<int>(tile16_blockset_->atlas.size()) &&
             dst_index < static_cast<int>(tile_data.size())) {
           uint8_t pixel_value = tile16_blockset_->atlas.data()[src_index];
-          // Normalize pixel values to valid palette range
-          pixel_value &= 0x0F;  // Keep only lower 4 bits for palette index
+          // Normalize pixel values to 4-bit range for sub-palette indexing
+          // The actual palette offset is applied via SetPaletteWithTransparent
+          pixel_value &= 0x0F;
           tile_data[dst_index] = pixel_value;
         }
       }
     }
   } else {
-    // Normalize the extracted data based on settings
-    if (auto_normalize_pixels_) {
-      for (auto& pixel : tile_data) {
-        pixel &= palette_normalization_mask_;
-      }
+    // Normalize the extracted data to 4-bit range
+    for (auto& pixel : tile_data) {
+      pixel &= 0x0F;
     }
   }
 
   // Create the bitmap with the extracted data
   current_tile16_bmp_.Create(kTile16Size, kTile16Size, 8, tile_data);
 
-  // Use the same palette system as the overworld (complete 256-color palette)
+  // CRITICAL FIX: Use SetPaletteWithTransparent with proper palette offset
+  // based on current_palette_ selection and default sheet (sheet 0 for tile16)
+  gfx::SnesPalette display_palette;
   if (overworld_palette_.size() >= 256) {
-    // Use complete 256-color palette (same as overworld system)
-    // The pixel data already contains correct color indices for the 256-color
-    // palette
-    current_tile16_bmp_.SetPalette(overworld_palette_);
+    display_palette = overworld_palette_;
   } else if (palette_.size() >= 256) {
-    current_tile16_bmp_.SetPalette(palette_);
+    display_palette = palette_;
   } else if (rom()->palette_group().overworld_main.size() > 0) {
-    current_tile16_bmp_.SetPalette(rom()->palette_group().overworld_main[0]);
+    display_palette = rom()->palette_group().overworld_main[0];
+  }
+
+  // CRITICAL FIX: Validate palette before attempting to use it
+  if (!display_palette.empty()) {
+    // Calculate palette offset: use sheet 0 (main blockset) as default for tile16
+    // palette_base * 16 gives the row offset, current_palette_ * 8 gives
+    // sub-palette
+    int palette_base = GetPaletteBaseForSheet(0);  // Default to main blockset
+    size_t palette_offset = (palette_base * 16) + (current_palette_ * 8);
+
+    // Ensure the palette offset is within bounds
+    if (palette_offset + 7 <= display_palette.size()) {
+      // Apply the correct sub-palette with transparency
+      current_tile16_bmp_.SetPaletteWithTransparent(display_palette, palette_offset,
+                                                    7);
+    } else {
+      // Fallback: use offset 0 if calculated offset exceeds palette size
+      util::logf("Warning: palette offset %zu exceeds palette size %zu, using offset 0",
+                 palette_offset, display_palette.size());
+      current_tile16_bmp_.SetPaletteWithTransparent(display_palette, 0, 
+                                                    std::min(7, static_cast<int>(display_palette.size() - 1)));
+    }
+  } else {
+    util::logf("Warning: No valid palette available for Tile16 %d, skipping palette setup", tile_id);
   }
 
   // Queue texture creation via Arena's deferred system
@@ -2062,6 +2089,36 @@ int Tile16Editor::GetActualPaletteSlotForCurrentTile16() const {
   return GetActualPaletteSlot(current_palette_, 0);
 }
 
+int Tile16Editor::GetPaletteBaseForSheet(int sheet_index) const {
+  // Based on overworld palette structure and how ProcessGraphicsBuffer assigns
+  // colors: The 256-color palette is organized as 16 rows of 16 colors each.
+  // Different graphics sheets map to different palette regions:
+  //
+  // Row 0: Transparent/system colors
+  // Row 1: HUD colors (palette index 0x10-0x1F)
+  // Rows 2-4: MAIN/AUX1 palette region for main graphics
+  // Rows 5-7: AUX2 palette region for area-specific graphics
+  // Row 7: ANIMATED palette for animated tiles
+  //
+  // The palette_button (0-7) selects within the region.
+  switch (sheet_index) {
+    case 0:   // Main blockset
+    case 3:   // Area graphics set 1
+    case 4:   // Area graphics set 2
+      return 2;  // AUX1 palette region starts at row 2
+    case 5:   // Area graphics set 3
+    case 6:   // Area graphics set 4
+      return 5;  // AUX2 palette region starts at row 5
+    case 1:   // Main graphics
+    case 2:   // Main graphics
+      return 2;  // MAIN palette region starts at row 2
+    case 7:   // Animated tiles
+      return 7;  // ANIMATED palette region at row 7
+    default:
+      return 2;  // Default to MAIN region
+  }
+}
+
 // Helper methods for palette management
 absl::Status Tile16Editor::UpdateTile8Palette(int tile8_id) {
   if (tile8_id < 0 ||
@@ -2187,13 +2244,29 @@ absl::Status Tile16Editor::RefreshAllPalettes() {
         gfx::Arena::TextureCommandType::UPDATE, &current_tile16_bmp_);
   }
 
-  // Update all individual tile8 graphics with complete 256-color palette
+  // CRITICAL FIX: Update individual tile8 graphics with proper palette offsets
+  // Each tile8 belongs to a specific graphics sheet, which maps to a specific
+  // region of the 256-color palette. The current_palette_ (0-7) button selects
+  // within that region.
   for (size_t i = 0; i < current_gfx_individual_.size(); ++i) {
     if (current_gfx_individual_[i].is_active()) {
-      // Use complete 256-color palette (same as overworld system)
-      // The pixel data already contains correct color indices for the 256-color
-      // palette
-      current_gfx_individual_[i].SetPalette(display_palette);
+      // Determine which sheet this tile belongs to and get the palette offset
+      int sheet_index = GetSheetIndexForTile8(static_cast<int>(i));
+      int palette_base = GetPaletteBaseForSheet(sheet_index);
+
+      // Calculate the palette offset in the 256-color palette:
+      // - palette_base * 16: row offset in the 16x16 palette grid
+      // - current_palette_: additional offset within the region (0-7 maps to
+      // different sub-palettes)
+      // For 4bpp SNES graphics, we use 8 colors per sub-palette with
+      // transparent index 0
+      size_t palette_offset = (palette_base * 16) + (current_palette_ * 8);
+
+      // Use SetPaletteWithTransparent to apply the correct 8-color sub-palette
+      // This extracts 7 colors starting at palette_offset and creates
+      // transparent index 0
+      current_gfx_individual_[i].SetPaletteWithTransparent(
+          display_palette, palette_offset, 7);
       current_gfx_individual_[i].set_modified(true);
       // Queue texture update via Arena's deferred system
       gfx::Arena::Get().QueueTextureCommand(

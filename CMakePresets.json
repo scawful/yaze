@@ -71,6 +71,20 @@
       }
     },
     {
+      "name": "mac-base",
+      "hidden": true,
+      "description": "Base macOS preset with Homebrew toolchain visibility",
+      "inherits": "base",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
+      },
+      "environment": {
+        "PATH": "$env{HOMEBREW_PREFIX}/bin:/opt/homebrew/bin:/usr/local/bin:$penv{PATH}"
+      }
+    },
+    {
       "name": "dev",
       "inherits": "base",
       "displayName": "Developer Build",
@@ -147,7 +161,7 @@
     },
     {
       "name": "ci-macos",
-      "inherits": "base",
+      "inherits": "mac-base",
       "displayName": "CI Build - macOS",
       "description": "CI build with gRPC enabled (uses caching for speed)",
       "cacheVariables": {
@@ -411,7 +425,7 @@
     },
     {
       "name": "mac-dbg",
-      "inherits": "base",
+      "inherits": "mac-base",
       "displayName": "macOS Debug",
       "description": "Debug build for macOS",
       "condition": {
@@ -441,7 +455,7 @@
     },
     {
       "name": "mac-rel",
-      "inherits": "base",
+      "inherits": "mac-base",
       "displayName": "macOS Release",
       "description": "Release build for macOS",
       "condition": {
@@ -463,7 +477,7 @@
     },
     {
       "name": "mac-dev",
-      "inherits": "base",
+      "inherits": "mac-base",
       "displayName": "macOS Development",
       "description": "Development build with ROM tests",
       "condition": {
@@ -485,7 +499,7 @@
     },
     {
       "name": "mac-ai",
-      "inherits": "base",
+      "inherits": "mac-base",
       "displayName": "macOS AI Development",
       "description": "Full development build with AI features and gRPC",
       "condition": {
@@ -507,7 +521,7 @@
     },
     {
       "name": "mac-ai-fast",
-      "inherits": "base",
+      "inherits": "mac-base",
       "displayName": "macOS AI Development (Fast - System gRPC)",
       "description": "Fast AI development build using Homebrew gRPC/protobuf (brew install grpc protobuf abseil)",
       "binaryDir": "${sourceDir}/build_fast",
@@ -531,7 +545,7 @@
     },
     {
       "name": "mac-uni",
-      "inherits": "base",
+      "inherits": "mac-base",
       "displayName": "macOS Universal Binary",
       "description": "Universal binary for macOS (ARM64 + x86_64)",
       "condition": {

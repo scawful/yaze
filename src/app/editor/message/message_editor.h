@@ -91,6 +91,7 @@ class MessageEditor : public Editor {
   gui::TextBox message_text_box_;
   Rom* rom_;
   Rom expanded_message_bin_;
+  std::string expanded_message_path_;
 
   // Card visibility states
   bool show_message_list_ = false;

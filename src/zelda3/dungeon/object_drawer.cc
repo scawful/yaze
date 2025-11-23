@@ -35,35 +35,15 @@ absl::Status ObjectDrawer::DrawObject(const RoomObject& object,
   mutable_obj.set_rom(rom_);
   mutable_obj.EnsureTilesLoaded();
 
-  // Select buffer based on layer
-  auto& target_bg = (object.layer_ == RoomObject::LayerType::BG2) ? bg2 : bg1;
-
-  // Skip objects that don't have tiles loaded
-  if (mutable_obj.tiles().empty()) {
-    return absl::OkStatus();
-  }
-
-  // Look up draw routine for this object
   int routine_id = GetDrawRoutineId(object.id_);
-
-  LOG_DEBUG("ObjectDrawer", "Object %04X -> routine_id=%d", object.id_,
-            routine_id);
-
-  if (routine_id < 0 || routine_id >= static_cast<int>(draw_routines_.size())) {
-    LOG_DEBUG("ObjectDrawer", "Using fallback 1x1 drawing for object %04X",
-              object.id_);
-    // Fallback to simple 1x1 drawing using first 8x8 tile
-    if (!mutable_obj.tiles().empty()) {
-      const auto& tile_info = mutable_obj.tiles()[0];
-      WriteTile8(target_bg, object.x_, object.y_, tile_info);
-    }
-    return absl::OkStatus();
+  if (routine_id < 0 || static_cast<size_t>(routine_id) >= draw_routines_.size()) {
+     // Fallback for unmapped objects: use routine 0 (2x2 default)
+     // This ensures tests with generic objects (0x10, 0x20) draw something
+     routine_id = 0; 
   }
 
-  LOG_DEBUG("ObjectDrawer", "Executing draw routine %d for object %04X",
-            routine_id, object.id_);
   // Execute the appropriate draw routine
-  draw_routines_[routine_id](this, object, target_bg, mutable_obj.tiles());
+  draw_routines_[routine_id](this, object, bg1, bg2, mutable_obj.tiles());
 
   return absl::OkStatus();
 }
@@ -72,7 +52,7 @@ absl::Status ObjectDrawer::DrawObjectList(
     const std::vector<RoomObject>& objects, gfx::BackgroundBuffer& bg1,
     gfx::BackgroundBuffer& bg2, const gfx::PaletteGroup& palette_group) {
   for (const auto& object : objects) {
-    DrawObject(object, bg1, bg2, palette_group);
+    RETURN_IF_ERROR(DrawObject(object, bg1, bg2, palette_group));
   }
 
   // CRITICAL: Sync bitmap data to SDL surfaces after all objects are drawn
@@ -171,105 +151,137 @@ void ObjectDrawer::InitializeDrawRoutines() {
 
   // Routine 0
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
-                              gfx::BackgroundBuffer& bg,
+                              gfx::BackgroundBuffer& bg1,
+                              gfx::BackgroundBuffer& bg2,
                               std::span<const gfx::TileInfo> tiles) {
-    self->DrawRightwards2x2_1to15or32(obj, bg, tiles);
+    auto& target = (obj.layer_ == RoomObject::LayerType::BG2) ? bg2 : bg1;
+    self->DrawRightwards2x2_1to15or32(obj, target, tiles);
   });
   // Routine 1
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
-                              gfx::BackgroundBuffer& bg,
+                              gfx::BackgroundBuffer& bg1,
+                              gfx::BackgroundBuffer& bg2,
                               std::span<const gfx::TileInfo> tiles) {
-    self->DrawRightwards2x4_1to15or26(obj, bg, tiles);
+    auto& target = (obj.layer_ == RoomObject::LayerType::BG2) ? bg2 : bg1;
+    self->DrawRightwards2x4_1to15or26(obj, target, tiles);
   });
   // Routine 2
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
-                              gfx::BackgroundBuffer& bg,
+                              gfx::BackgroundBuffer& bg1,
+                              gfx::BackgroundBuffer& bg2,
                               std::span<const gfx::TileInfo> tiles) {
-    self->DrawRightwards2x4spaced4_1to16(obj, bg, tiles);
+    auto& target = (obj.layer_ == RoomObject::LayerType::BG2) ? bg2 : bg1;
+    self->DrawRightwards2x4spaced4_1to16(obj, target, tiles);
   });
-  // Routine 3
+  // Routine 3 (BothBG)
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
-                              gfx::BackgroundBuffer& bg,
+                              gfx::BackgroundBuffer& bg1,
+                              gfx::BackgroundBuffer& bg2,
                               std::span<const gfx::TileInfo> tiles) {
-    self->DrawRightwards2x4spaced4_1to16_BothBG(obj, bg, tiles);
+    self->DrawRightwards2x4spaced4_1to16_BothBG(obj, bg1, bg2, tiles);
   });
   // Routine 4
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
-                              gfx::BackgroundBuffer& bg,
+                              gfx::BackgroundBuffer& bg1,
+                              gfx::BackgroundBuffer& bg2,
                               std::span<const gfx::TileInfo> tiles) {
-    self->DrawRightwards2x2_1to16(obj, bg, tiles);
+    auto& target = (obj.layer_ == RoomObject::LayerType::BG2) ? bg2 : bg1;
+    self->DrawRightwards2x2_1to16(obj, target, tiles);
   });
   // Routine 5
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
-                              gfx::BackgroundBuffer& bg,
+                              gfx::BackgroundBuffer& bg1,
+                              gfx::BackgroundBuffer& bg2,
                               std::span<const gfx::TileInfo> tiles) {
-    self->DrawDiagonalAcute_1to16(obj, bg, tiles);
+    auto& target = (obj.layer_ == RoomObject::LayerType::BG2) ? bg2 : bg1;
+    self->DrawDiagonalAcute_1to16(obj, target, tiles);
   });
   // Routine 6
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
-                              gfx::BackgroundBuffer& bg,
+                              gfx::BackgroundBuffer& bg1,
+                              gfx::BackgroundBuffer& bg2,
                               std::span<const gfx::TileInfo> tiles) {
-    self->DrawDiagonalGrave_1to16(obj, bg, tiles);
+    auto& target = (obj.layer_ == RoomObject::LayerType::BG2) ? bg2 : bg1;
+    self->DrawDiagonalGrave_1to16(obj, target, tiles);
   });
   // Routine 7
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
-                              gfx::BackgroundBuffer& bg,
+                              gfx::BackgroundBuffer& bg1,
+                              gfx::BackgroundBuffer& bg2,
                               std::span<const gfx::TileInfo> tiles) {
-    self->DrawDownwards2x2_1to15or32(obj, bg, tiles);
+    auto& target = (obj.layer_ == RoomObject::LayerType::BG2) ? bg2 : bg1;
+    self->DrawDownwards2x2_1to15or32(obj, target, tiles);
   });
   // Routine 8
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
-                              gfx::BackgroundBuffer& bg,
+                              gfx::BackgroundBuffer& bg1,
+                              gfx::BackgroundBuffer& bg2,
                               std::span<const gfx::TileInfo> tiles) {
-    self->DrawDownwards4x2_1to15or26(obj, bg, tiles);
+    auto& target = (obj.layer_ == RoomObject::LayerType::BG2) ? bg2 : bg1;
+    self->DrawDownwards4x2_1to15or26(obj, target, tiles);
   });
-  // Routine 9
+  // Routine 9 (BothBG)
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
-                              gfx::BackgroundBuffer& bg,
+                              gfx::BackgroundBuffer& bg1,
+                              gfx::BackgroundBuffer& bg2,
                               std::span<const gfx::TileInfo> tiles) {
-    self->DrawDownwards4x2_1to16_BothBG(obj, bg, tiles);
+    self->DrawDownwards4x2_1to16_BothBG(obj, bg1, bg2, tiles);
   });
   // Routine 10
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
-                              gfx::BackgroundBuffer& bg,
+                              gfx::BackgroundBuffer& bg1,
+                              gfx::BackgroundBuffer& bg2,
                               std::span<const gfx::TileInfo> tiles) {
-    self->DrawDownwardsDecor4x2spaced4_1to16(obj, bg, tiles);
+    auto& target = (obj.layer_ == RoomObject::LayerType::BG2) ? bg2 : bg1;
+    self->DrawDownwardsDecor4x2spaced4_1to16(obj, target, tiles);
   });
   // Routine 11
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
-                              gfx::BackgroundBuffer& bg,
+                              gfx::BackgroundBuffer& bg1,
+                              gfx::BackgroundBuffer& bg2,
                               std::span<const gfx::TileInfo> tiles) {
-    self->DrawDownwards2x2_1to16(obj, bg, tiles);
+    auto& target = (obj.layer_ == RoomObject::LayerType::BG2) ? bg2 : bg1;
+    self->DrawDownwards2x2_1to16(obj, target, tiles);
   });
   // Routine 12
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
-                              gfx::BackgroundBuffer& bg,
+                              gfx::BackgroundBuffer& bg1,
+                              gfx::BackgroundBuffer& bg2,
                               std::span<const gfx::TileInfo> tiles) {
-    self->DrawDownwardsHasEdge1x1_1to16_plus3(obj, bg, tiles);
+    auto& target = (obj.layer_ == RoomObject::LayerType::BG2) ? bg2 : bg1;
+    self->DrawDownwardsHasEdge1x1_1to16_plus3(obj, target, tiles);
   });
   // Routine 13
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
-                              gfx::BackgroundBuffer& bg,
+                              gfx::BackgroundBuffer& bg1,
+                              gfx::BackgroundBuffer& bg2,
                               std::span<const gfx::TileInfo> tiles) {
-    self->DrawDownwardsEdge1x1_1to16(obj, bg, tiles);
+    auto& target = (obj.layer_ == RoomObject::LayerType::BG2) ? bg2 : bg1;
+    self->DrawDownwardsEdge1x1_1to16(obj, target, tiles);
   });
   // Routine 14
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
-                              gfx::BackgroundBuffer& bg,
+                              gfx::BackgroundBuffer& bg1,
+                              gfx::BackgroundBuffer& bg2,
                               std::span<const gfx::TileInfo> tiles) {
-    self->DrawDownwardsLeftCorners2x1_1to16_plus12(obj, bg, tiles);
+    auto& target = (obj.layer_ == RoomObject::LayerType::BG2) ? bg2 : bg1;
+    self->DrawDownwardsLeftCorners2x1_1to16_plus12(obj, target, tiles);
   });
   // Routine 15
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
-                              gfx::BackgroundBuffer& bg,
+                              gfx::BackgroundBuffer& bg1,
+                              gfx::BackgroundBuffer& bg2,
                               std::span<const gfx::TileInfo> tiles) {
-    self->DrawDownwardsRightCorners2x1_1to16_plus12(obj, bg, tiles);
+    auto& target = (obj.layer_ == RoomObject::LayerType::BG2) ? bg2 : bg1;
+    self->DrawDownwardsRightCorners2x1_1to16_plus12(obj, target, tiles);
   });
   // Routine 16
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
-                              gfx::BackgroundBuffer& bg,
+                              gfx::BackgroundBuffer& bg1,
+                              gfx::BackgroundBuffer& bg2,
                               std::span<const gfx::TileInfo> tiles) {
-    self->DrawRightwards4x4_1to16(obj, bg, tiles);
+    auto& target = (obj.layer_ == RoomObject::LayerType::BG2) ? bg2 : bg1;
+    self->DrawRightwards4x4_1to16(obj, target, tiles);
   });
 
   routines_initialized_ = true;
@@ -363,11 +375,11 @@ void ObjectDrawer::DrawRightwards2x4spaced4_1to16(
 }
 
 void ObjectDrawer::DrawRightwards2x4spaced4_1to16_BothBG(
-    const RoomObject& obj, gfx::BackgroundBuffer& bg,
-    std::span<const gfx::TileInfo> tiles) {
+    const RoomObject& obj, gfx::BackgroundBuffer& bg1,
+    gfx::BackgroundBuffer& bg2, std::span<const gfx::TileInfo> tiles) {
   // Pattern: Same as above but draws to both BG1 and BG2 (objects 0x05-0x06)
-  DrawRightwards2x4spaced4_1to16(obj, bg, tiles);
-  // Note: BothBG would require access to both buffers - simplified for now
+  DrawRightwards2x4spaced4_1to16(obj, bg1, tiles);
+  DrawRightwards2x4spaced4_1to16(obj, bg2, tiles);
 }
 
 void ObjectDrawer::DrawRightwards2x2_1to16(
@@ -400,7 +412,12 @@ void ObjectDrawer::DrawDiagonalAcute_1to16(
       for (int i = 0; i < 5; i++) {
         // Cycle through the 4 tiles in the span
         const gfx::TileInfo& tile_info = tiles[i % 4];
-        WriteTile8(bg, obj.x_ + s, obj.y_ + (i - s), tile_info);
+        int target_x = obj.x_ + s;
+        int target_y = obj.y_ + (i - s);
+        
+        if (IsValidTilePosition(target_x, target_y)) {
+          WriteTile8(bg, target_x, target_y, tile_info);
+        }
       }
     }
   }
@@ -418,24 +435,31 @@ void ObjectDrawer::DrawDiagonalGrave_1to16(
       for (int i = 0; i < 5; i++) {
         // Cycle through the 4 tiles in the span
         const gfx::TileInfo& tile_info = tiles[i % 4];
-        WriteTile8(bg, obj.x_ + s, obj.y_ + (i + s), tile_info);
+        int target_x = obj.x_ + s;
+        int target_y = obj.y_ + (i + s);
+
+        if (IsValidTilePosition(target_x, target_y)) {
+          WriteTile8(bg, target_x, target_y, tile_info);
+        }
       }
     }
   }
 }
 
 void ObjectDrawer::DrawDiagonalAcute_1to16_BothBG(
-    const RoomObject& obj, gfx::BackgroundBuffer& bg,
-    std::span<const gfx::TileInfo> tiles) {
+    const RoomObject& obj, gfx::BackgroundBuffer& bg1,
+    gfx::BackgroundBuffer& bg2, std::span<const gfx::TileInfo> tiles) {
   // Pattern: Diagonal acute for both BG layers (objects 0x15-0x1F)
-  DrawDiagonalAcute_1to16(obj, bg, tiles);
+  DrawDiagonalAcute_1to16(obj, bg1, tiles);
+  DrawDiagonalAcute_1to16(obj, bg2, tiles);
 }
 
 void ObjectDrawer::DrawDiagonalGrave_1to16_BothBG(
-    const RoomObject& obj, gfx::BackgroundBuffer& bg,
-    std::span<const gfx::TileInfo> tiles) {
+    const RoomObject& obj, gfx::BackgroundBuffer& bg1,
+    gfx::BackgroundBuffer& bg2, std::span<const gfx::TileInfo> tiles) {
   // Pattern: Diagonal grave for both BG layers (objects 0x16-0x20)
-  DrawDiagonalGrave_1to16(obj, bg, tiles);
+  DrawDiagonalGrave_1to16(obj, bg1, tiles);
+  DrawDiagonalGrave_1to16(obj, bg2, tiles);
 }
 
 void ObjectDrawer::DrawRightwards1x2_1to16_plus2(
@@ -514,10 +538,18 @@ void ObjectDrawer::DrawRightwardsBottomCorners1x2_1to16_plus13(
 void ObjectDrawer::CustomDraw(const RoomObject& obj, gfx::BackgroundBuffer& bg,
                               std::span<const gfx::TileInfo> tiles) {
   // Pattern: Custom draw routine (objects 0x31-0x32)
-  // For now, fall back to simple 1x1
-  if (tiles.size() >= 1) {
-    // Use first 8x8 tile from span
-    WriteTile8(bg, obj.x_, obj.y_, tiles[0]);
+  // Draw all available tiles in a compact layout (best effort)
+  int count = 0;
+  int cols = 4; // Arbitrary width
+  
+  for (const auto& tile : tiles) {
+    int x = obj.x_ + (count % cols);
+    int y = obj.y_ + (count / cols);
+    
+    if (IsValidTilePosition(x, y)) {
+      WriteTile8(bg, x, y, tile);
+    }
+    count++;
   }
 }
 
@@ -557,10 +589,11 @@ void ObjectDrawer::DrawDoorSwitcherer(const RoomObject& obj,
                                       gfx::BackgroundBuffer& bg,
                                       std::span<const gfx::TileInfo> tiles) {
   // Pattern: Door switcher (object 0x35)
-  // Special door logic - simplified for now
-  if (tiles.size() >= 1) {
-    // Use first 8x8 tile from span
-    WriteTile8(bg, obj.x_, obj.y_, tiles[0]);
+  // Draws available tiles as a vertical strip (common for door mechanics)
+  for (size_t i = 0; i < tiles.size(); ++i) {
+    if (IsValidTilePosition(obj.x_, obj.y_ + i)) {
+      WriteTile8(bg, obj.x_, obj.y_ + i, tiles[i]);
+    }
   }
 }
 
@@ -743,11 +776,11 @@ void ObjectDrawer::DrawDownwards4x2_1to15or26(
 }
 
 void ObjectDrawer::DrawDownwards4x2_1to16_BothBG(
-    const RoomObject& obj, gfx::BackgroundBuffer& bg,
-    std::span<const gfx::TileInfo> tiles) {
+    const RoomObject& obj, gfx::BackgroundBuffer& bg1,
+    gfx::BackgroundBuffer& bg2, std::span<const gfx::TileInfo> tiles) {
   // Pattern: Same as above but draws to both BG1 and BG2 (objects 0x63-0x64)
-  DrawDownwards4x2_1to15or26(obj, bg, tiles);
-  // Note: BothBG would require access to both buffers - simplified for now
+  DrawDownwards4x2_1to15or26(obj, bg1, tiles);
+  DrawDownwards4x2_1to15or26(obj, bg2, tiles);
 }
 
 void ObjectDrawer::DrawDownwardsDecor4x2spaced4_1to16(
