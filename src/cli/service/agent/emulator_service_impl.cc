@@ -1,11 +1,14 @@
 #include "cli/service/agent/emulator_service_impl.h"
 
+#include <filesystem>
 #include <fstream>
 #include <thread>
+#include <unordered_set>
 
 #include "absl/strings/escaping.h"
 #include "absl/strings/str_format.h"
 #include "app/emu/debug/breakpoint_manager.h"
+#include "app/emu/debug/disassembler.h"
 #include "app/emu/debug/disassembly_viewer.h"
 #include "app/emu/debug/watchpoint_manager.h"
 #include "app/emu/emulator.h"
@@ -534,17 +537,106 @@ grpc::Status EmulatorServiceImpl::RunToBreakpoint(
 grpc::Status EmulatorServiceImpl::StepOver(grpc::ServerContext* context,
                                            const Empty* request,
                                            StepResponse* response) {
-  // TODO: Implement step-over (step, but skip over JSR/JSL calls)
-  return grpc::Status(grpc::StatusCode::UNIMPLEMENTED,
-                      "StepOver not yet implemented");
+  if (!emulator_ || !emulator_->is_snes_initialized()) {
+    return grpc::Status(grpc::StatusCode::UNAVAILABLE,
+                        "SNES is not initialized.");
+  }
+
+  // Initialize step controller with emulator callbacks
+  InitializeStepController();
+
+  // Execute step over
+  auto result = step_controller_.StepOver();
+
+  // Fill response
+  auto& cpu = emulator_->snes().cpu();
+  auto* cpu_state = response->mutable_cpu_state();
+  cpu_state->set_a(cpu.A);
+  cpu_state->set_x(cpu.X);
+  cpu_state->set_y(cpu.Y);
+  cpu_state->set_sp(cpu.SP());
+  cpu_state->set_pc(cpu.PC);
+  cpu_state->set_db(cpu.DB);
+  cpu_state->set_pb(cpu.PB);
+  cpu_state->set_d(cpu.D);
+  cpu_state->set_status(cpu.status);
+  cpu_state->set_flag_n(cpu.GetNegativeFlag());
+  cpu_state->set_flag_v(cpu.GetOverflowFlag());
+  cpu_state->set_flag_d(cpu.GetDecimalFlag());
+  cpu_state->set_flag_i(cpu.GetInterruptFlag());
+  cpu_state->set_flag_z(cpu.GetZeroFlag());
+  cpu_state->set_flag_c(cpu.GetCarryFlag());
+  cpu_state->set_cycles(emulator_->GetCurrentCycle());
+
+  response->set_success(result.success);
+  response->set_message(result.message);
+  return grpc::Status::OK;
 }
 
 grpc::Status EmulatorServiceImpl::StepOut(grpc::ServerContext* context,
                                           const Empty* request,
                                           StepResponse* response) {
-  // TODO: Implement step-out (run until RTS/RTL)
-  return grpc::Status(grpc::StatusCode::UNIMPLEMENTED,
-                      "StepOut not yet implemented");
+  if (!emulator_ || !emulator_->is_snes_initialized()) {
+    return grpc::Status(grpc::StatusCode::UNAVAILABLE,
+                        "SNES is not initialized.");
+  }
+
+  // Initialize step controller with emulator callbacks
+  InitializeStepController();
+
+  // Check if we have a call stack to step out of
+  if (step_controller_.GetCallDepth() == 0) {
+    response->set_success(false);
+    response->set_message("Cannot step out - call stack is empty");
+    return grpc::Status::OK;
+  }
+
+  // Execute step out
+  auto result = step_controller_.StepOut();
+
+  // Fill response
+  auto& cpu = emulator_->snes().cpu();
+  auto* cpu_state = response->mutable_cpu_state();
+  cpu_state->set_a(cpu.A);
+  cpu_state->set_x(cpu.X);
+  cpu_state->set_y(cpu.Y);
+  cpu_state->set_sp(cpu.SP());
+  cpu_state->set_pc(cpu.PC);
+  cpu_state->set_db(cpu.DB);
+  cpu_state->set_pb(cpu.PB);
+  cpu_state->set_d(cpu.D);
+  cpu_state->set_status(cpu.status);
+  cpu_state->set_flag_n(cpu.GetNegativeFlag());
+  cpu_state->set_flag_v(cpu.GetOverflowFlag());
+  cpu_state->set_flag_d(cpu.GetDecimalFlag());
+  cpu_state->set_flag_i(cpu.GetInterruptFlag());
+  cpu_state->set_flag_z(cpu.GetZeroFlag());
+  cpu_state->set_flag_c(cpu.GetCarryFlag());
+  cpu_state->set_cycles(emulator_->GetCurrentCycle());
+
+  response->set_success(result.success);
+  response->set_message(result.message);
+  return grpc::Status::OK;
+}
+
+void EmulatorServiceImpl::InitializeStepController() {
+  auto& memory = emulator_->snes().memory();
+  auto& cpu = emulator_->snes().cpu();
+
+  // Set up memory reader
+  step_controller_.SetMemoryReader([&memory](uint32_t addr) -> uint8_t {
+    return memory.ReadByte(addr);
+  });
+
+  // Set up single step function
+  step_controller_.SetSingleStepper([this]() {
+    emulator_->StepSingleInstruction();
+  });
+
+  // Set up PC getter
+  step_controller_.SetPcGetter([&cpu]() -> uint32_t {
+    return (cpu.PB << 16) | cpu.PC;
+  });
 }
 
 // Disassembly
@@ -556,38 +648,60 @@ grpc::Status EmulatorServiceImpl::GetDisassembly(
                         "SNES is not initialized.");
   }
 
-  // Option 1: Use DisassemblyViewer to get recorded instructions
-  // Option 2: Disassemble directly from memory at start_address
-
-  // For now, disassemble directly from SNES memory
-  // TODO: Enhance DisassemblyViewer with GetInstructionsInRange() method
   auto& cpu = emulator_->snes().cpu();
   auto& memory = emulator_->snes().memory();
+  auto& bp_manager = emulator_->breakpoint_manager();
+
+  // Create disassembler instance
+  emu::debug::Disassembler65816 disassembler;
+
+  // Memory reader lambda that captures our memory reference
+  auto read_byte = [&memory](uint32_t addr) -> uint8_t {
+    return memory.ReadByte(addr);
+  };
+
+  // Get CPU flags for proper operand size handling
+  // M flag: true = 8-bit accumulator, false = 16-bit
+  // X flag: true = 8-bit index registers, false = 16-bit
+  bool m_flag = cpu.GetAccumulatorSize();  // true if 8-bit mode
+  bool x_flag = cpu.GetIndexSize();        // true if 8-bit mode
 
   uint32_t current_address = request->start_address();
   uint32_t instructions_added = 0;
+  const uint32_t max_instructions = std::min(request->count(), 1000u);
 
-  while (instructions_added < request->count() && instructions_added < 1000) {
-    uint8_t bank = (current_address >> 16) & 0xFF;
-    uint16_t offset = current_address & 0xFFFF;
+  // Build set of breakpoint addresses for quick lookup
+  auto breakpoints =
+      bp_manager.GetBreakpoints(emu::BreakpointManager::CpuType::CPU_65816);
+  std::unordered_set<uint32_t> bp_addresses;
+  for (const auto& bp : breakpoints) {
+    if (bp.enabled && bp.type == emu::BreakpointManager::Type::EXECUTE) {
+      bp_addresses.insert(bp.address);
+    }
+  }
 
-    // Read opcode and disassemble
-    uint8_t opcode = memory.ReadByte(current_address);
+  while (instructions_added < max_instructions) {
+    // Disassemble the instruction using our new disassembler
+    auto instruction =
+        disassembler.Disassemble(current_address, read_byte, m_flag, x_flag);
 
-    // Basic disassembly (simplified - real implementation would use CPU's
-    // disassembler)
     auto* line = response->add_lines();
-    line->set_address(current_address);
-    line->set_opcode(opcode);
+    line->set_address(instruction.address);
+    line->set_opcode(instruction.opcode);
+    line->set_mnemonic(instruction.mnemonic);
+    line->set_operand_str(instruction.operand_str);
+    line->set_size(instruction.size);
+    line->set_execution_count(0);  // Would need DisassemblyViewer integration
 
-    // TODO: Use proper 65816 disassembler to get instruction details
-    // For now, just provide basic info
-    line->set_mnemonic(absl::StrFormat("OPCODE_%02X", opcode));
-    line->set_size(1);               // Simplified - actual size varies
-    line->set_execution_count(0);    // Would need to query DisassemblyViewer
-    line->set_is_breakpoint(false);  // Would need to query BreakpointManager
+    // Add operand bytes
+    for (const auto& byte : instruction.operands) {
+      line->add_operands(byte);
+    }
 
-    current_address++;
+    // Check if this address has an execute breakpoint
+    line->set_is_breakpoint(bp_addresses.count(current_address) > 0);
+
+    current_address += instruction.size;
     instructions_added++;
   }
 
@@ -606,25 +720,127 @@ grpc::Status EmulatorServiceImpl::GetExecutionTrace(
 grpc::Status EmulatorServiceImpl::LoadSymbols(grpc::ServerContext* context,
                                               const SymbolFileRequest* request,
                                               CommandResponse* response) {
-  // TODO: Implement symbol file loading
-  return grpc::Status(grpc::StatusCode::UNIMPLEMENTED,
-                      "Symbol loading not yet implemented");
+  std::string filepath = request->filepath();
+  if (filepath.empty()) {
+    response->set_success(false);
+    response->set_message("No filepath specified");
+    return grpc::Status::OK;
+  }
+
+  // Convert proto enum to SymbolFormat
+  emu::debug::SymbolFormat format = emu::debug::SymbolFormat::kAuto;
+  switch (request->format()) {
+    case SymbolFormat::ASAR:
+      format = emu::debug::SymbolFormat::kAsar;
+      break;
+    case SymbolFormat::WLA_DX:
+      format = emu::debug::SymbolFormat::kWlaDx;
+      break;
+    case SymbolFormat::MESEN:
+      format = emu::debug::SymbolFormat::kMesen;
+      break;
+    default:
+      format = emu::debug::SymbolFormat::kAuto;
+      break;
+  }
+
+  // Check if it's a directory (for loading multiple ASM files)
+  std::filesystem::path path(filepath);
+  absl::Status status;
+
+  if (std::filesystem::is_directory(path)) {
+    status = symbol_provider_.LoadAsarAsmDirectory(filepath);
+  } else {
+    status = symbol_provider_.LoadSymbolFile(filepath, format);
+  }
+
+  if (status.ok()) {
+    response->set_success(true);
+    response->set_message(
+        absl::StrFormat("Loaded %zu symbols from %s",
+                        symbol_provider_.GetSymbolCount(), filepath));
+  } else {
+    response->set_success(false);
+    response->set_message(std::string(status.message().data(), status.message().size()));
+  }
+
+  return grpc::Status::OK;
 }
 
 grpc::Status EmulatorServiceImpl::ResolveSymbol(
     grpc::ServerContext* context, const SymbolLookupRequest* request,
     SymbolLookupResponse* response) {
-  // TODO: Implement symbol resolution
-  return grpc::Status(grpc::StatusCode::UNIMPLEMENTED,
-                      "Symbol resolution not yet implemented");
+  std::string symbol_name = request->symbol_name();
+
+  // First try exact match
+  auto symbol = symbol_provider_.FindSymbol(symbol_name);
+  if (symbol) {
+    response->set_found(true);
+    response->set_symbol_name(symbol->name);
+    response->set_address(symbol->address);
+    response->set_type(symbol->is_local ? "local_label" : "label");
+    response->set_description(symbol->comment);
+    return grpc::Status::OK;
+  }
+
+  // Try wildcard match if the name contains wildcards
+  if (symbol_name.find('*') != std::string::npos ||
+      symbol_name.find('?') != std::string::npos) {
+    auto matches = symbol_provider_.FindSymbolsMatching(symbol_name);
+    if (!matches.empty()) {
+      // Return the first match
+      const auto& first_match = matches[0];
+      response->set_found(true);
+      response->set_symbol_name(first_match.name);
+      response->set_address(first_match.address);
+      response->set_type(first_match.is_local ? "local_label" : "label");
+      response->set_description(
+          absl::StrFormat("First of %zu matches", matches.size()));
+      return grpc::Status::OK;
+    }
+  }
+
+  response->set_found(false);
+  response->set_symbol_name(symbol_name);
+  response->set_description("Symbol not found");
+  return grpc::Status::OK;
 }
 
 grpc::Status EmulatorServiceImpl::GetSymbolAt(grpc::ServerContext* context,
                                               const AddressRequest* request,
                                               SymbolLookupResponse* response) {
-  // TODO: Implement reverse symbol lookup
-  return grpc::Status(grpc::StatusCode::UNIMPLEMENTED,
-                      "Reverse symbol lookup not yet implemented");
+  uint32_t address = request->address();
+
+  // Try exact match first
+  auto symbol = symbol_provider_.GetSymbol(address);
+  if (symbol) {
+    response->set_found(true);
+    response->set_symbol_name(symbol->name);
+    response->set_address(symbol->address);
+    response->set_type(symbol->is_local ? "local_label" : "label");
+    response->set_description(symbol->comment);
+    return grpc::Status::OK;
+  }
+
+  // Try to find nearest symbol
+  auto nearest = symbol_provider_.GetNearestSymbol(address);
+  if (nearest && (address - nearest->address) <= 0x100) {
+    // Within reasonable offset range (256 bytes)
+    uint32_t offset = address - nearest->address;
+    response->set_found(true);
+    response->set_symbol_name(
+        absl::StrFormat("%s+$%X", nearest->name, offset));
+    response->set_address(address);
+    response->set_type("offset");
+    response->set_description(
+        absl::StrFormat("Offset $%X from %s", offset, nearest->name));
+    return grpc::Status::OK;
+  }
+
+  response->set_found(false);
+  response->set_address(address);
+  response->set_description(absl::StrFormat("No symbol at $%06X", address));
+  return grpc::Status::OK;
 }
 
 // Debug Session
