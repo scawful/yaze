@@ -18,11 +18,19 @@ set(
 )
 
 # Platform-specific sources
-if (WIN32 OR MINGW OR (UNIX AND NOT APPLE))
+if (WIN32 OR MINGW OR (UNIX AND NOT APPLE AND NOT EMSCRIPTEN))
   list(APPEND YAZE_APP_CORE_SRC
     app/platform/font_loader.cc
     app/platform/asset_loader.cc
     app/platform/file_dialog_nfd.cc  # NFD file dialog for Windows/Linux
+  )
+endif()
+
+if (EMSCRIPTEN)
+  list(APPEND YAZE_APP_CORE_SRC
+    app/platform/font_loader.cc
+    app/platform/asset_loader.cc
+    app/platform/file_dialog_web.cc
   )
 endif()
 
@@ -107,7 +115,7 @@ target_link_libraries(yaze_app_core_lib PUBLIC
 )
 
 # Link nativefiledialog-extended for Windows/Linux file dialogs
-if(WIN32 OR (UNIX AND NOT APPLE))
+if(WIN32 OR (UNIX AND NOT APPLE AND NOT EMSCRIPTEN))
   add_subdirectory(${CMAKE_SOURCE_DIR}/ext/nativefiledialog-extended ${CMAKE_BINARY_DIR}/nfd EXCLUDE_FROM_ALL)
   target_link_libraries(yaze_app_core_lib PUBLIC nfd)
   target_include_directories(yaze_app_core_lib PUBLIC ${CMAKE_SOURCE_DIR}/ext/nativefiledialog-extended/src/include)
