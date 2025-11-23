@@ -16,6 +16,8 @@ struct Theme {
   ImVec4 secondary = ImVec4(0.133f, 0.545f, 0.133f, 1.0f); // forest green
   // Warning / error color
   ImVec4 warning = ImVec4(0.8f, 0.2f, 0.2f, 1.0f);
+  // Success color
+  ImVec4 success = ImVec4(0.2f, 0.8f, 0.2f, 1.0f);
   // Background for panels
   ImVec4 panel_bg = ImVec4(0.07f, 0.07f, 0.07f, 0.95f);
   // Text color (default)

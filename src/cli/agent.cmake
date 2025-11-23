@@ -57,6 +57,7 @@ set(YAZE_AGENT_CORE_SOURCES
   cli/service/agent/tool_dispatcher.cc
   cli/service/agent/tools/build_tool.cc
   cli/service/agent/tools/filesystem_tool.cc
+  cli/service/agent/tools/memory_inspector_tool.cc
   cli/service/agent/disassembler_65816.cc
   cli/service/agent/rom_debug_agent.cc
   cli/service/agent/vim_mode.cc

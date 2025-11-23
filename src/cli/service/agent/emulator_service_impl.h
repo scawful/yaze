@@ -6,7 +6,7 @@
 
 #include "app/emu/debug/step_controller.h"
 #include "app/emu/debug/symbol_provider.h"
-#include "src/protos/emulator_service.grpc.pb.h"
+#include "protos/emulator_service.grpc.pb.h"
 
 // Forward declaration to avoid circular dependencies
 namespace yaze::emu {
