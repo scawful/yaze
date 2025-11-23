@@ -2,6 +2,8 @@
 # Yaze Net Library
 # ==============================================================================
 # This library contains networking and collaboration functionality:
+# - Network abstraction layer (HTTP/WebSocket interfaces)
+# - Platform-specific implementations (native/WASM)
 # - ROM version management
 # - Proposal approval system
 # - Collaboration utilities
@@ -9,12 +11,36 @@
 # Dependencies: yaze_util, absl
 # ==============================================================================
 
+# Base network sources (always included)
 set(
-  YAZE_NET_SRC
+  YAZE_NET_BASE_SRC
   app/net/rom_version_manager.cc
   app/net/websocket_client.cc
   app/net/collaboration_service.cc
+  app/net/network_factory.cc
 )
+
+# Platform-specific network implementation
+if(EMSCRIPTEN)
+  # WASM/Emscripten implementation
+  set(
+    YAZE_NET_PLATFORM_SRC
+    app/net/wasm/emscripten_http_client.cc
+    app/net/wasm/emscripten_websocket.cc
+  )
+  message(STATUS "  - Using Emscripten network implementation (Fetch API & WebSocket)")
+else()
+  # Native implementation
+  set(
+    YAZE_NET_PLATFORM_SRC
+    app/net/native/httplib_client.cc
+    app/net/native/httplib_websocket.cc
+  )
+  message(STATUS "  - Using native network implementation (cpp-httplib)")
+endif()
+
+# Combine all sources
+set(YAZE_NET_SRC ${YAZE_NET_BASE_SRC} ${YAZE_NET_PLATFORM_SRC})
 
 if(YAZE_WITH_GRPC)
   # Add ROM service implementation (disabled - proto field mismatch)
@@ -42,6 +68,19 @@ target_link_libraries(yaze_net PUBLIC
   ${ABSL_TARGETS}
   ${YAZE_SDL2_TARGETS}
 )
+
+# Add Emscripten-specific flags for WASM builds
+if(EMSCRIPTEN)
+  # Enable Fetch API for HTTP requests
+  target_compile_options(yaze_net PUBLIC "-sFETCH=1")
+  target_link_options(yaze_net PUBLIC "-sFETCH=1")
+
+  # Enable WebSocket support
+  target_compile_options(yaze_net PUBLIC "-sWEBSOCKET=1")
+  target_link_options(yaze_net PUBLIC "-sWEBSOCKET=1")
+
+  message(STATUS "  - Emscripten Fetch API and WebSocket support enabled")
+endif()
 
 # Add JSON and httplib support if enabled
 if(YAZE_WITH_JSON)
