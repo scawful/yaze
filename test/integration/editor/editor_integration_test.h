@@ -5,7 +5,7 @@
 
 #include "app/controller.h"
 #include "app/editor/editor.h"
-#include "app/gfx/backend/sdl2_renderer.h"
+#include "app/gfx/backend/renderer_factory.h"
 #include "app/platform/window.h"
 #include "app/rom.h"
 #include "imgui/imgui.h"
@@ -83,7 +83,7 @@ class EditorIntegrationTest {
 #endif
   std::unique_ptr<Rom> test_rom_;
   core::Window window_;
-  std::unique_ptr<gfx::SDL2Renderer> test_renderer_;
+  std::unique_ptr<gfx::IRenderer> test_renderer_;
 };
 
 }  // namespace test

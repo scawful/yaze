@@ -48,12 +48,18 @@ set(YAZE_AGENT_CORE_SOURCES
   cli/handlers/tools/gui_commands.cc
   cli/handlers/tools/resource_commands.cc
   cli/service/agent/conversational_agent_service.cc
+  cli/service/agent/dev_assist_agent.cc
   cli/service/agent/enhanced_tui.cc
   cli/service/agent/learned_knowledge_service.cc
   cli/service/agent/prompt_manager.cc
   cli/service/agent/simple_chat_session.cc
   cli/service/agent/todo_manager.cc
   cli/service/agent/tool_dispatcher.cc
+  cli/service/agent/tools/build_tool.cc
+  cli/service/agent/tools/filesystem_tool.cc
+  cli/service/agent/tools/memory_inspector_tool.cc
+  cli/service/agent/disassembler_65816.cc
+  cli/service/agent/rom_debug_agent.cc
   cli/service/agent/vim_mode.cc
   cli/service/command_registry.cc
   cli/service/gui/gui_action_generator.cc
@@ -204,20 +210,13 @@ if(YAZE_ENABLE_REMOTE_AUTOMATION)
   message(STATUS "✓ gRPC GUI automation enabled for yaze_agent")
 endif()
 
-# Link test support when tests are enabled (agent uses test harness functions)
-if(YAZE_BUILD_TESTS AND TARGET yaze_test_support)
-  if(APPLE)
-    target_link_options(yaze_agent PUBLIC 
-      "LINKER:-force_load,$<TARGET_FILE:yaze_test_support>")
-    target_link_libraries(yaze_agent PUBLIC yaze_test_support)
-  elseif(UNIX)
-    target_link_libraries(yaze_agent PUBLIC 
-      -Wl,--whole-archive yaze_test_support -Wl,--no-whole-archive)
-  else()
-    # Windows: Normal linking
-    target_link_libraries(yaze_agent PUBLIC yaze_test_support)
-  endif()
-  message(STATUS "✓ yaze_agent linked to yaze_test_support")
-endif()
+# NOTE: yaze_agent should NOT link to yaze_test_support to avoid circular dependency.
+# The circular force-load chain (yaze_test_support -> yaze_agent -> yaze_test_support)
+# causes SIGSEGV during static initialization due to duplicate symbols and SIOF.
+#
+# Test executables that need both should link them directly:
+#   target_link_libraries(my_test PRIVATE yaze_test_support)
+#
+# yaze_test_support already force-loads yaze_agent, so agent symbols are available.
 
 set_target_properties(yaze_agent PROPERTIES POSITION_INDEPENDENT_CODE ON)

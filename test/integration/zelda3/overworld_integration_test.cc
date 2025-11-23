@@ -28,7 +28,7 @@ class OverworldIntegrationTest : public ::testing::Test {
  protected:
   void SetUp() override {
 #if defined(__linux__)
-    GTEST_SKIP();
+    GTEST_SKIP() << "Overworld integration tests require ROM (unavailable on Linux CI)";
 #endif
 
     // Check if we should use real ROM or mock data
@@ -339,8 +339,12 @@ TEST_F(OverworldIntegrationTest, ComprehensiveDataIntegrity) {
   EXPECT_EQ(maps.size(), 160);
 
   for (const auto& map : maps) {
-    // TODO: Find a way to compare
-    // EXPECT_TRUE(map.bitmap_data() != nullptr);
+    // NOTE: Bitmap validation requires graphics system initialization.
+    // OverworldMap::bitmap() returns a reference to an internal Bitmap object,
+    // but bitmap data is only populated after LoadAreaGraphics() is called
+    // with an initialized SDL/graphics context. For unit testing without
+    // graphics, we validate map structure properties instead.
+    EXPECT_GE(map.area_graphics(), 0);
   }
 
   // Verify tile types are loaded

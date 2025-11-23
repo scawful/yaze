@@ -54,12 +54,33 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Compute dependency lock hash
+        id: deps-hash
+        shell: bash
+        run: |
+          python_cmd="$(command -v python3 || command -v python || true)"
+          if [ -z "$python_cmd" ]; then
+            echo "hash=none" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          hash=$("$python_cmd" - <<'PY'
+          import hashlib
+          import pathlib
+          path = pathlib.Path("cmake/dependencies.lock")
+          if path.is_file():
+              print(hashlib.sha256(path.read_bytes()).hexdigest())
+          else:
+              print("none")
+          PY
+          )
+          echo "hash=$hash" >> "$GITHUB_OUTPUT"
+
       - name: Setup build environment
         uses: ./.github/actions/setup-build
         with:
           platform: ${{ matrix.platform }}
           preset: ${{ matrix.preset }}
-          cache-key: ${{ hashFiles('cmake/dependencies.lock') }}
+          cache-key: ${{ steps.deps-hash.outputs.hash }}
 
       - name: Build project
         uses: ./.github/actions/build-project
@@ -91,7 +112,9 @@ jobs:
         shell: bash
         run: |
           echo "Cleaning old package files to ensure fresh generation"
-          rm -f build/*.deb build/*.tar.gz build/*.dmg build/*.zip build/*.exe build/packages/*
+          rm -rf build/packages build/_CPack_Packages
+          rm -f build/*.deb build/*.tar.gz build/*.dmg build/*.zip build/*.exe
+          mkdir -p build/packages
 
       - name: Package artifacts (Linux)
         if: matrix.platform == 'linux'
@@ -187,12 +210,33 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Compute dependency lock hash
+        id: deps-hash
+        shell: bash
+        run: |
+          python_cmd="$(command -v python3 || command -v python || true)"
+          if [ -z "$python_cmd" ]; then
+            echo "hash=none" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          hash=$("$python_cmd" - <<'PY'
+          import hashlib
+          import pathlib
+          path = pathlib.Path("cmake/dependencies.lock")
+          if path.is_file():
+              print(hashlib.sha256(path.read_bytes()).hexdigest())
+          else:
+              print("none")
+          PY
+          )
+          echo "hash=$hash" >> "$GITHUB_OUTPUT"
+
       - name: Setup build environment
         uses: ./.github/actions/setup-build
         with:
           platform: ${{ matrix.platform }}
           preset: ${{ matrix.preset }}
-          cache-key: ${{ hashFiles('cmake/dependencies.lock') }}
+          cache-key: ${{ steps.deps-hash.outputs.hash }}
 
       - name: Build project
         uses: ./.github/actions/build-project

@@ -8,10 +8,12 @@
 #include "zelda3/dungeon/room_object.h"
 
 // ROM addresses for object data (PC addresses, not SNES)
-static constexpr int kRoomObjectSubtype1 = 0x0A8000;
-static constexpr int kRoomObjectSubtype2 = 0x0A9000;
-static constexpr int kRoomObjectSubtype3 = 0x0AA000;
-static constexpr int kRoomObjectTileAddress = 0x0AB000;
+// ALTTP US 1.0 ROM addresses - these are the actual addresses from the game
+// SNES addresses are shown in comments for reference
+static constexpr int kRoomObjectSubtype1 = 0x0F8000;      // SNES: $08:8000
+static constexpr int kRoomObjectSubtype2 = 0x0F83F0;      // SNES: $08:83F0
+static constexpr int kRoomObjectSubtype3 = 0x0F84F0;      // SNES: $08:84F0
+static constexpr int kRoomObjectTileAddress = 0x091B52;   // SNES: $09:1B52
 
 namespace yaze {
 namespace zelda3 {

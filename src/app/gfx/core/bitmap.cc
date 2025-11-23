@@ -1,6 +1,6 @@
 #include "bitmap.h"
 
-#include <SDL.h>
+#include "app/platform/sdl_compat.h"
 
 #include <cstdint>
 #include <cstring>  // for memcpy

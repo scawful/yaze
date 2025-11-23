@@ -506,6 +506,30 @@
       }
     },
     {
+      "name": "mac-ai-fast",
+      "inherits": "base",
+      "displayName": "macOS AI Development (Fast - System gRPC)",
+      "description": "Fast AI development build using Homebrew gRPC/protobuf (brew install grpc protobuf abseil)",
+      "binaryDir": "${sourceDir}/build_fast",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "YAZE_BUILD_TESTS": "ON",
+        "YAZE_ENABLE_GRPC": "ON",
+        "YAZE_ENABLE_JSON": "ON",
+        "YAZE_ENABLE_AI": "ON",
+        "YAZE_ENABLE_ROM_TESTS": "ON",
+        "YAZE_BUILD_AGENT_UI": "ON",
+        "YAZE_ENABLE_REMOTE_AUTOMATION": "ON",
+        "YAZE_ENABLE_AI_RUNTIME": "ON",
+        "YAZE_PREFER_SYSTEM_GRPC": "ON"
+      }
+    },
+    {
       "name": "mac-uni",
       "inherits": "base",
       "displayName": "macOS Universal Binary",
@@ -526,6 +550,48 @@
         "YAZE_BUILD_AGENT_UI": "OFF",
         "YAZE_ENABLE_REMOTE_AUTOMATION": "OFF",
         "YAZE_ENABLE_AI_RUNTIME": "OFF"
+      }
+    },
+    {
+      "name": "mac-sdl3",
+      "inherits": "mac-dbg",
+      "displayName": "macOS SDL3 (Experimental)",
+      "description": "Debug build with experimental SDL3 support",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
+      },
+      "cacheVariables": {
+        "YAZE_USE_SDL3": "ON"
+      }
+    },
+    {
+      "name": "win-sdl3",
+      "inherits": "win-dbg",
+      "displayName": "Windows SDL3 (Experimental)",
+      "description": "Debug build with experimental SDL3 support",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      },
+      "cacheVariables": {
+        "YAZE_USE_SDL3": "ON"
+      }
+    },
+    {
+      "name": "lin-sdl3",
+      "inherits": "lin-dbg",
+      "displayName": "Linux SDL3 (Experimental)",
+      "description": "Debug build with experimental SDL3 support",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      },
+      "cacheVariables": {
+        "YAZE_USE_SDL3": "ON"
       }
     },
     {
@@ -807,10 +873,38 @@
       "jobs": 12
     },
     {
+      "name": "mac-ai-fast",
+      "configurePreset": "mac-ai-fast",
+      "displayName": "macOS AI Fast Build (System gRPC)",
+      "configuration": "Debug",
+      "jobs": 12
+    },
+    {
       "name": "mac-uni",
       "configurePreset": "mac-uni",
       "displayName": "macOS Universal Binary Build",
       "configuration": "Release",
+      "jobs": 12
+    },
+    {
+      "name": "mac-sdl3",
+      "configurePreset": "mac-sdl3",
+      "displayName": "macOS SDL3 Build",
+      "configuration": "Debug",
+      "jobs": 12
+    },
+    {
+      "name": "win-sdl3",
+      "configurePreset": "win-sdl3",
+      "displayName": "Windows SDL3 Build",
+      "configuration": "Debug",
+      "jobs": 12
+    },
+    {
+      "name": "lin-sdl3",
+      "configurePreset": "lin-sdl3",
+      "displayName": "Linux SDL3 Build",
+      "configuration": "Debug",
       "jobs": 12
     },
     {

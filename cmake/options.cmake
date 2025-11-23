@@ -12,7 +12,7 @@ option(YAZE_BUILD_TESTS "Build test suite" ON)
 # Feature flags
 option(YAZE_ENABLE_GRPC "Enable gRPC agent support" ON)
 option(YAZE_ENABLE_JSON "Enable JSON support" ON)
-option(YAZE_ENABLE_AI "Enable AI agent features" ON)
+option(YAZE_ENABLE_AI "Enable AI agent features" OFF)
 
 # Advanced feature toggles
 option(YAZE_ENABLE_REMOTE_AUTOMATION
@@ -48,9 +48,11 @@ option(YAZE_UNITY_BUILD "Enable Unity (Jumbo) builds" OFF)
 # Platform-specific options
 option(YAZE_USE_VCPKG "Use vcpkg for Windows dependencies" OFF)
 option(YAZE_USE_SYSTEM_DEPS "Use system package manager for dependencies" OFF)
+option(YAZE_USE_SDL3 "Use SDL3 instead of SDL2 (experimental)" OFF)
 
 # Development options
 option(YAZE_ENABLE_ROM_TESTS "Enable tests that require ROM files" OFF)
+option(YAZE_ENABLE_BENCHMARK_TESTS "Enable benchmark/performance tests" OFF)
 option(YAZE_MINIMAL_BUILD "Minimal build for CI (disable optional features)" OFF)
 option(YAZE_VERBOSE_BUILD "Verbose build output" OFF)
 
@@ -103,6 +105,11 @@ message(STATUS "z3ed CLI: ${YAZE_BUILD_Z3ED}")
 message(STATUS "Emulator: ${YAZE_BUILD_EMU}")
 message(STATUS "Static Library: ${YAZE_BUILD_LIB}")
 message(STATUS "Tests: ${YAZE_BUILD_TESTS}")
+if(YAZE_USE_SDL3)
+  message(STATUS "SDL Version: SDL3 (experimental)")
+else()
+  message(STATUS "SDL Version: SDL2 (stable)")
+endif()
 message(STATUS "gRPC Support: ${YAZE_ENABLE_GRPC}")
 message(STATUS "Remote Automation: ${YAZE_ENABLE_REMOTE_AUTOMATION}")
 message(STATUS "JSON Support: ${YAZE_ENABLE_JSON}")

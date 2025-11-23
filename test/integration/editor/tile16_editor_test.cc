@@ -6,7 +6,7 @@
 #include <memory>
 #include <vector>
 
-#include "app/gfx/backend/sdl2_renderer.h"
+#include "app/gfx/backend/renderer_factory.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/render/tilemap.h"
 #include "app/gfx/resource/arena.h"
@@ -95,8 +95,8 @@ class Tile16EditorIntegrationTest : public ::testing::Test {
 
  protected:
   static void InitializeTestEnvironment() {
-    // Create renderer for test
-    test_renderer_ = std::make_unique<gfx::SDL2Renderer>();
+    // Create renderer for test (uses factory for SDL2/SDL3 selection)
+    test_renderer_ = gfx::RendererFactory::Create();
     auto window_result = core::CreateWindow(test_window_, test_renderer_.get(),
                                             SDL_WINDOW_HIDDEN);
     if (window_result.ok()) {
@@ -111,7 +111,7 @@ class Tile16EditorIntegrationTest : public ::testing::Test {
 
   static bool window_initialized_;
   static core::Window test_window_;
-  static std::unique_ptr<gfx::SDL2Renderer> test_renderer_;
+  static std::unique_ptr<gfx::IRenderer> test_renderer_;
 
   bool rom_loaded_ = false;
   std::unique_ptr<Rom> rom_;
@@ -126,7 +126,7 @@ class Tile16EditorIntegrationTest : public ::testing::Test {
 // Static member definitions
 bool Tile16EditorIntegrationTest::window_initialized_ = false;
 core::Window Tile16EditorIntegrationTest::test_window_;
-std::unique_ptr<gfx::SDL2Renderer> Tile16EditorIntegrationTest::test_renderer_;
+std::unique_ptr<gfx::IRenderer> Tile16EditorIntegrationTest::test_renderer_;
 
 // Basic validation tests (no ROM required)
 TEST_F(Tile16EditorIntegrationTest, BasicValidation) {

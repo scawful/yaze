@@ -55,6 +55,30 @@ class PlatformPaths {
   static absl::StatusOr<std::filesystem::path> GetConfigDirectory();
 
   /**
+   * @brief Get the user's Documents directory.
+   *
+   * This is a visible, user-facing directory for storing projects, logs,
+   * and resources the user might want to access or share.
+   *
+   * - Windows: `My Documents\Yaze`
+   * - macOS/Linux: `~/Documents/Yaze`
+   *
+   * @return StatusOr with path to the Yaze documents directory.
+   */
+  static absl::StatusOr<std::filesystem::path> GetUserDocumentsDirectory();
+
+  /**
+   * @brief Get a subdirectory within the user documents folder.
+   *
+   * Creates the directory if it doesn't exist.
+   *
+   * @param subdir Subdirectory name (e.g., "logs", "agent")
+   * @return StatusOr with path to subdirectory
+   */
+  static absl::StatusOr<std::filesystem::path> GetUserDocumentsSubdirectory(
+      const std::string& subdir);
+
+  /**
    * @brief Get a subdirectory within the app data folder
    *
    * Creates the directory if it doesn't exist.

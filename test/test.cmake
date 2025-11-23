@@ -79,21 +79,20 @@ source_group("Tests\\Unit" FILES
   unit/gfx/snes_tile_test.cc
   unit/gfx/compression_test.cc
   unit/gfx/snes_palette_test.cc
+  unit/snes_color_test.cc
   unit/gui/tile_selector_widget_test.cc
   unit/gui/canvas_automation_api_test.cc
-  unit/zelda3/message_test.cc
   unit/zelda3/overworld_test.cc
   unit/zelda3/object_parser_test.cc
   unit/zelda3/object_parser_structs_test.cc
   unit/zelda3/sprite_builder_test.cc
-  unit/zelda3/sprite_position_test.cc
-  unit/zelda3/test_dungeon_objects.cc
   unit/zelda3/dungeon_component_unit_test.cc
-      unit/zelda3/dungeon/room_object_encoding_test.cc
-      zelda3/dungeon/room_manipulation_test.cc
-  unit/zelda3/dungeon_object_renderer_mock_test.cc
-  unit/zelda3/dungeon_object_rendering_tests.cc
-  unit/zelda3/dungeon_room_test.cc
+  unit/zelda3/dungeon/room_object_encoding_test.cc
+  unit/zelda3/dungeon/room_manipulation_test.cc
+  unit/emu/disassembler_test.cc
+  unit/emu/step_controller_test.cc
+  unit/tools/build_tool_test.cc
+  unit/tools/filesystem_tool_test.cc
 )
 
 # Integration Tests
@@ -107,28 +106,40 @@ source_group("Tests\\Integration" FILES
   integration/editor/tile16_editor_test.cc
   integration/editor/editor_integration_test.cc
   integration/editor/editor_integration_test.h
+  integration/agent/tool_dispatcher_test.cc
 )
 
 # Integration Tests (Zelda3)
 source_group("Tests\\Integration\\Zelda3" FILES
   integration/zelda3/overworld_integration_test.cc
   integration/zelda3/dungeon_editor_system_integration_test.cc
-  integration/zelda3/dungeon_object_renderer_integration_test.cc
+  integration/zelda3/dungeon_object_rendering_tests.cc
   integration/zelda3/room_integration_test.cc
+  integration/zelda3/dungeon_room_test.cc
+  integration/zelda3/sprite_position_test.cc
+  integration/zelda3/message_test.cc
 )
 
 # End-to-End Tests
 source_group("Tests\\E2E" FILES
   e2e/canvas_selection_test.cc
+  e2e/dungeon_canvas_interaction_test.cc
   e2e/framework_smoke_test.cc
   e2e/rom_dependent/e2e_rom_test.cc
   e2e/zscustomoverworld/zscustomoverworld_upgrade_test.cc
 )
 
 # Deprecated Tests
+# These files are kept for reference but excluded from the build.
+# See individual file headers for deprecation reasons and replacements.
 source_group("Tests\\Deprecated" FILES
   deprecated/comprehensive_integration_test.cc
   deprecated/dungeon_integration_test.cc
+  # Deprecated Nov 2025 - replaced by integration/zelda3/dungeon_object_rendering_tests.cc
+  integration/zelda3/dungeon_rendering_test.cc
+  unit/zelda3/dungeon/object_rendering_test.cc
+  # Deprecated Nov 2025 - outdated DungeonEditor architecture, see dungeon_editor_smoke_test.cc
+  e2e/dungeon_object_rendering_e2e_tests.cc
 )
 
 # Benchmarks

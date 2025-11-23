@@ -1,6 +1,6 @@
 #include "app/emu/audio/apu.h"
 
-#include <SDL.h>
+#include "app/platform/sdl_compat.h"
 
 #include <cstdint>
 #include <vector>

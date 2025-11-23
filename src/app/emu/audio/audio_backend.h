@@ -5,7 +5,7 @@
 #ifndef YAZE_APP_EMU_AUDIO_AUDIO_BACKEND_H
 #define YAZE_APP_EMU_AUDIO_AUDIO_BACKEND_H
 
-#include <SDL.h>
+#include "app/platform/sdl_compat.h"
 
 #include <cstdint>
 #include <memory>

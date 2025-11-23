@@ -2,7 +2,7 @@
 
 #ifdef YAZE_WITH_GRPC
 
-#include <SDL.h>
+#include "app/platform/sdl_compat.h"
 
 // Undefine Windows macros that conflict with protobuf generated code
 // SDL.h includes Windows.h on Windows, which defines these macros

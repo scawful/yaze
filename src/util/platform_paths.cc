@@ -110,6 +110,57 @@ absl::StatusOr<std::filesystem::path> PlatformPaths::GetConfigDirectory() {
   return GetAppDataDirectory();
 }
 
+absl::StatusOr<std::filesystem::path> PlatformPaths::GetUserDocumentsDirectory() {
+#ifdef _WIN32
+  wchar_t path[MAX_PATH];
+  if (SUCCEEDED(SHGetFolderPathW(NULL, CSIDL_PERSONAL, NULL, 0, path))) {
+    std::filesystem::path docs_dir = std::filesystem::path(path) / "Yaze";
+    auto status = EnsureDirectoryExists(docs_dir);
+    if (!status.ok()) {
+      return status;
+    }
+    return docs_dir;
+  }
+  // Fallback if SHGetFolderPathW fails
+  std::filesystem::path home = GetHomeDirectory();
+  std::filesystem::path docs_dir = home / "Documents" / "Yaze";
+  auto status = EnsureDirectoryExists(docs_dir);
+  if (!status.ok()) {
+    return status;
+  }
+  return docs_dir;
+#else
+  // Unix/macOS: Use ~/Documents/Yaze
+  std::filesystem::path home = GetHomeDirectory();
+  std::filesystem::path docs_dir = home / "Documents" / "Yaze";
+  auto status = EnsureDirectoryExists(docs_dir);
+  if (!status.ok()) {
+    // If ~/Documents doesn't exist (e.g. headless servers), fallback to home
+    docs_dir = home / "Yaze";
+    status = EnsureDirectoryExists(docs_dir);
+    if (!status.ok()) {
+      return status;
+    }
+  }
+  return docs_dir;
+#endif
+}
+
+absl::StatusOr<std::filesystem::path> PlatformPaths::GetUserDocumentsSubdirectory(
+    const std::string& subdir) {
+  auto docs_result = GetUserDocumentsDirectory();
+  if (!docs_result.ok()) {
+    return docs_result.status();
+  }
+
+  std::filesystem::path subdir_path = *docs_result / subdir;
+  auto status = EnsureDirectoryExists(subdir_path);
+  if (!status.ok()) {
+    return status;
+  }
+  return subdir_path;
+}
+
 absl::StatusOr<std::filesystem::path> PlatformPaths::GetAppDataSubdirectory(
     const std::string& subdir) {
   auto app_data_result = GetAppDataDirectory();

@@ -3,6 +3,27 @@
  * @brief End-to-end tests for dungeon object rendering system using imgui test
  * engine
  *
+ * ============================================================================
+ * DEPRECATED - DO NOT USE - November 2025
+ * ============================================================================
+ *
+ * This file is DEPRECATED and excluded from the build. It was written for the
+ * old monolithic DungeonEditor architecture and is incompatible with the new
+ * DungeonEditorV2 card-based system.
+ *
+ * REPLACEMENT:
+ * - For E2E dungeon testing: test/e2e/dungeon_editor_smoke_test.cc
+ * - For rendering integration tests:
+ *     test/integration/zelda3/dungeon_object_rendering_tests.cc
+ *
+ * This file is kept for reference only. If you need to implement new E2E
+ * dungeon rendering tests, use the patterns from dungeon_editor_smoke_test.cc
+ * which properly handles the DungeonEditorV2 card-based architecture.
+ *
+ * ============================================================================
+ * ORIGINAL DESCRIPTION (for historical reference)
+ * ============================================================================
+ *
  * These tests orchestrate complete user workflows for the dungeon editor,
  * validating:
  * - Object browser and selection
@@ -15,37 +36,16 @@
  * Created: October 4, 2025
  * Related: docs/dungeon_editing_implementation_plan.md
  *
- * ============================================================================
- * UPDATE NOTICE (October 2025): Tests need rewrite for DungeonEditorV2
- * ============================================================================
- *
- * These tests were written for the old monolithic DungeonEditor but need to be
- * updated for the new DungeonEditorV2 card-based architecture:
- *
- * OLD ARCHITECTURE:
+ * OLD ARCHITECTURE (no longer valid):
  * - Single "Dungeon Editor" window with tabs
  * - Object Selector, Canvas, Layers all in one window
  * - Monolithic UI structure
  *
  * NEW ARCHITECTURE (DungeonEditorV2):
- * - Independent EditorCard windows:
- *   - "Dungeon Controls" - main control panel
- *   - "Rooms List" - room selector
- *   - "Room Matrix" - visual room navigation
- *   - "Object Editor" - unified object placement/editing
- *   - "Palette Editor" - palette management
- *   - Individual room cards (e.g., "Room 0x00###RoomCard0")
+ * - Independent EditorCard windows
  * - Per-room layer visibility settings
  * - Dockable, closable independent windows
  *
- * REQUIRED UPDATES:
- * 1. Change window references from "Dungeon Editor" to appropriate card names
- * 2. Update tab navigation to card window focus
- * 3. Update object placement workflow for new ObjectEditorCard
- * 4. Update layer controls for per-room settings
- * 5. Update room selection to work with new room cards
- *
- * Current Status: Tests compile but may fail due to UI structure changes.
  * See: test/e2e/dungeon_editor_smoke_test.cc for updated test patterns.
  */
 
@@ -291,10 +291,13 @@ void DungeonObjectRenderingE2ETests::RegisterObjectPlacementTests() {
 
     // Click on canvas to place object
     ctx->SetRef("Dungeon Editor/Canvas");
-    // TODO: fix this
-    // ImVec2 canvas_center = ctx->ItemRectCenter("canvas##child");
-    // ctx->MouseMove(canvas_center);
-    // ctx->Yield();
+    // NOTE: Canvas mouse positioning disabled pending DungeonEditorV2 migration.
+    // The old "canvas##child" widget ID no longer exists in the new card-based
+    // architecture. See file header for required updates.
+    // Original code:
+    //   ImVec2 canvas_center = ctx->ItemRectCenter("canvas##child");
+    //   ctx->MouseMove(canvas_center);
+    //   ctx->Yield();
 
     // Verify preview is visible
     // (Actual verification would check rendering)
@@ -1153,6 +1156,12 @@ void DungeonObjectRenderingE2ETests::RegisterAllTests() {
 // =============================================================================
 
 TEST_F(DungeonObjectRenderingE2ETests, RunAllTests) {
+  // SKIP: Tests written for old DungeonEditor, need rewrite for DungeonEditorV2
+  // See file header comments for details on required migration.
+  // The card-based architecture uses different widget IDs and window structure.
+  GTEST_SKIP() << "E2E tests need rewrite for DungeonEditorV2 card-based architecture. "
+               << "See test/e2e/dungeon_editor_smoke_test.cc for updated patterns.";
+
   // Run all registered tests
   ImGuiTestEngine_QueueTests(engine_, ImGuiTestGroup_Tests, nullptr, nullptr);
   ImGuiTestEngine_Run(engine_);

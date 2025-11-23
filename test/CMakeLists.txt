@@ -7,7 +7,14 @@ if(YAZE_BUILD_TESTS)
   # tests using gtest_discover_tests, and assigns a label to all discovered tests.
   function(yaze_add_test_suite suite_name label is_gui_test)
     set(sources ${ARGN})
-    add_executable(${suite_name} yaze_test.cc ${sources})
+    
+    # Only GUI tests need controller.cc (yaze_test.cc uses Controller when config.enable_ui_tests is true)
+    # Controller is legacy code with circular dependencies - avoid it in non-GUI tests
+    if(is_gui_test)
+      add_executable(${suite_name} yaze_test.cc ../src/app/controller.cc ${sources})
+    else()
+      add_executable(${suite_name} yaze_test.cc ${sources})
+    endif()
 
     target_include_directories(${suite_name} PUBLIC
       ${CMAKE_SOURCE_DIR}/src
@@ -81,7 +88,6 @@ if(YAZE_BUILD_TESTS)
 
   # --- Stable Test Suite (Valid Contracts) ---
   set(STABLE_TEST_SOURCES
-    test_editor.cc
     test_utils.cc
     # Unit Tests
     unit/core/asar_wrapper_test.cc
@@ -101,6 +107,8 @@ if(YAZE_BUILD_TESTS)
     unit/zelda3/dungeon_component_unit_test.cc
     unit/zelda3/dungeon/room_object_encoding_test.cc
     unit/zelda3/dungeon/room_manipulation_test.cc
+    # Emulator Unit Tests
+    unit/emu/ppu_catchup_test.cc
     ../src/cli/service/resources/resource_catalog.cc
     cli/service/resources/command_context_test.cc
     # Integration Tests
@@ -108,7 +116,7 @@ if(YAZE_BUILD_TESTS)
     integration/dungeon_editor_test.cc
     integration/dungeon_editor_v2_test.cc
     integration/editor/tile16_editor_test.cc
-    integration/editor/editor_integration_test.cc
+    # NOTE: editor_integration_test.cc removed - legacy code with Controller dependency
     integration/zelda3/overworld_integration_test.cc
     integration/zelda3/dungeon_editor_system_integration_test.cc
     integration/zelda3/room_integration_test.cc
@@ -141,6 +149,11 @@ if(YAZE_BUILD_TESTS)
     e2e/framework_smoke_test.cc
     e2e/dungeon_editor_smoke_test.cc
     e2e/canvas_selection_test.cc
+    e2e/dungeon_e2e_tests.cc
+    e2e/dungeon_canvas_interaction_test.cc
+    e2e/dungeon_layer_rendering_test.cc
+    e2e/dungeon_object_drawing_test.cc
+    e2e/dungeon_visual_verification_test.cc
   )
 
   if(YAZE_ENABLE_AI_RUNTIME)

@@ -1,0 +1,506 @@
+name: Nightly Test Suite
+
+on:
+  schedule:
+    # Run nightly at 3 AM UTC
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+    inputs:
+      test_suites:
+        description: 'Test suites to run'
+        required: false
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - rom_dependent
+          - experimental
+          - benchmarks
+          - gui_e2e
+          - extended_integration
+      rom_path:
+        description: 'ROM path for ROM-dependent tests (optional)'
+        required: false
+        default: ''
+        type: string
+
+env:
+  BUILD_TYPE: RelWithDebInfo
+
+jobs:
+  rom-dependent-tests:
+    name: "ROM-Dependent Tests - ${{ matrix.os }}"
+    runs-on: ${{ matrix.os }}
+    if: |
+      github.event_name == 'schedule' ||
+      github.event.inputs.test_suites == 'all' ||
+      github.event.inputs.test_suites == 'rom_dependent'
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, macos-14, windows-2022]
+        include:
+          - os: ubuntu-22.04
+            platform: linux
+            preset: ci-linux
+          - os: macos-14
+            platform: macos
+            preset: ci-macos
+          - os: windows-2022
+            platform: windows
+            preset: ci-windows
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Compute dependency lock hash
+        id: deps-hash
+        shell: bash
+        run: |
+          python_cmd="$(command -v python3 || command -v python || true)"
+          if [ -z "$python_cmd" ]; then
+            echo "hash=none" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          hash=$("$python_cmd" - <<'PY'
+import hashlib
+import pathlib
+path = pathlib.Path("cmake/dependencies.lock")
+if path.is_file():
+    print(hashlib.sha256(path.read_bytes()).hexdigest())
+else:
+    print("none")
+PY
+)
+          echo "hash=$hash" >> "$GITHUB_OUTPUT"
+
+      - name: Setup build environment
+        uses: ./.github/actions/setup-build
+        with:
+          platform: ${{ matrix.platform }}
+          preset: ${{ matrix.preset }}
+          cache-key: ${{ steps.deps-hash.outputs.hash }}
+
+      - name: Configure with ROM tests enabled
+        run: |
+          cmake --preset ${{ matrix.preset }} \
+            -B build_nightly \
+            -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
+            -DYAZE_ENABLE_ROM_TESTS=ON \
+            -DYAZE_TEST_ROM_PATH="${{ github.event.inputs.rom_path || 'test_rom.sfc' }}"
+
+      - name: Build project
+        run: |
+          cmake --build build_nightly \
+            --config ${{ env.BUILD_TYPE }} \
+            --target yaze_test_rom_dependent \
+            --parallel
+
+      - name: Download test ROM (if available)
+        if: secrets.TEST_ROM_URL != ''
+        run: |
+          # This would download a test ROM from a secure location
+          # For now, this is a placeholder for ROM acquisition
+          echo "ROM acquisition would happen here"
+        continue-on-error: true
+
+      - name: Run ROM-dependent tests
+        if: hashFiles('test_rom.sfc') != '' || github.event.inputs.rom_path != ''
+        run: |
+          cd build_nightly
+          ctest -L rom_dependent \
+            --output-on-failure \
+            --output-junit rom_dependent_results.xml
+        continue-on-error: true
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rom-test-results-${{ matrix.platform }}
+          path: build_nightly/rom_dependent_results.xml
+          retention-days: 30
+
+  experimental-ai-tests:
+    name: "Experimental AI Tests - ${{ matrix.os }}"
+    runs-on: ${{ matrix.os }}
+    if: |
+      github.event_name == 'schedule' ||
+      github.event.inputs.test_suites == 'all' ||
+      github.event.inputs.test_suites == 'experimental'
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, macos-14, windows-2022]
+        include:
+          - os: ubuntu-22.04
+            platform: linux
+            preset: ci-linux
+          - os: macos-14
+            platform: macos
+            preset: ci-macos
+          - os: windows-2022
+            platform: windows
+            preset: ci-windows-ai
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Compute dependency lock hash
+        id: deps-hash
+        shell: bash
+        run: |
+          python_cmd="$(command -v python3 || command -v python || true)"
+          if [ -z "$python_cmd" ]; then
+            echo "hash=none" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          hash=$("$python_cmd" - <<'PY'
+import hashlib
+import pathlib
+path = pathlib.Path("cmake/dependencies.lock")
+if path.is_file():
+    print(hashlib.sha256(path.read_bytes()).hexdigest())
+else:
+    print("none")
+PY
+)
+          echo "hash=$hash" >> "$GITHUB_OUTPUT"
+
+      - name: Setup build environment
+        uses: ./.github/actions/setup-build
+        with:
+          platform: ${{ matrix.platform }}
+          preset: ${{ matrix.preset }}
+          cache-key: ${{ steps.deps-hash.outputs.hash }}
+
+      - name: Configure with AI runtime enabled
+        run: |
+          cmake --preset ${{ matrix.preset }} \
+            -B build_nightly \
+            -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
+            -DYAZE_ENABLE_AI_RUNTIME=ON \
+            -DYAZE_ENABLE_GRPC=ON \
+            -DYAZE_BUILD_AGENT_UI=ON
+
+      - name: Build project
+        run: |
+          cmake --build build_nightly \
+            --config ${{ env.BUILD_TYPE }} \
+            --target yaze_test_experimental \
+            --parallel
+
+      - name: Setup Ollama (Linux/macOS)
+        if: runner.os != 'Windows'
+        run: |
+          if [ "${{ runner.os }}" = "macOS" ]; then
+            brew install ollama || true
+          else
+            curl -fsSL https://ollama.com/install.sh | sh || true
+          fi
+          ollama serve &
+          sleep 10
+          ollama pull qwen2.5-coder:0.5b || true
+        continue-on-error: true
+
+      - name: Run experimental AI tests
+        run: |
+          cd build_nightly
+          ctest -L experimental \
+            --output-on-failure \
+            --timeout 600 \
+            --output-junit experimental_results.xml
+        continue-on-error: true
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: experimental-test-results-${{ matrix.platform }}
+          path: build_nightly/experimental_results.xml
+          retention-days: 30
+
+  gui-e2e-tests:
+    name: "GUI E2E Tests - ${{ matrix.os }}"
+    runs-on: ${{ matrix.os }}
+    if: |
+      github.event_name == 'schedule' ||
+      github.event.inputs.test_suites == 'all' ||
+      github.event.inputs.test_suites == 'gui_e2e'
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, macos-14]  # Windows GUI tests are flaky in CI
+        include:
+          - os: ubuntu-22.04
+            platform: linux
+            preset: ci-linux
+          - os: macos-14
+            platform: macos
+            preset: ci-macos
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Compute dependency lock hash
+        id: deps-hash
+        shell: bash
+        run: |
+          python_cmd="$(command -v python3 || command -v python || true)"
+          if [ -z "$python_cmd" ]; then
+            echo "hash=none" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          hash=$("$python_cmd" - <<'PY'
+import hashlib
+import pathlib
+path = pathlib.Path("cmake/dependencies.lock")
+if path.is_file():
+    print(hashlib.sha256(path.read_bytes()).hexdigest())
+else:
+    print("none")
+PY
+)
+          echo "hash=$hash" >> "$GITHUB_OUTPUT"
+
+      - name: Setup build environment
+        uses: ./.github/actions/setup-build
+        with:
+          platform: ${{ matrix.platform }}
+          preset: ${{ matrix.preset }}
+          cache-key: ${{ steps.deps-hash.outputs.hash }}
+
+      - name: Install GUI dependencies (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb libgl1-mesa-dev libglu1-mesa-dev
+
+      - name: Build project
+        uses: ./.github/actions/build-project
+        with:
+          platform: ${{ matrix.platform }}
+          preset: ${{ matrix.preset }}
+          build-type: ${{ env.BUILD_TYPE }}
+
+      - name: Run GUI E2E tests (Linux with Xvfb)
+        if: runner.os == 'Linux'
+        run: |
+          xvfb-run -a ./build/bin/yaze_test_gui \
+            --e2e \
+            --nogui \
+            --output-junit gui_e2e_results.xml
+        continue-on-error: true
+
+      - name: Run GUI E2E tests (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          ./build/bin/yaze_test_gui \
+            --e2e \
+            --nogui \
+            --output-junit gui_e2e_results.xml
+        continue-on-error: true
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gui-e2e-results-${{ matrix.platform }}
+          path: gui_e2e_results.xml
+          retention-days: 30
+
+  benchmark-tests:
+    name: "Performance Benchmarks"
+    runs-on: ubuntu-22.04
+    if: |
+      github.event_name == 'schedule' ||
+      github.event.inputs.test_suites == 'all' ||
+      github.event.inputs.test_suites == 'benchmarks'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup build environment
+        uses: ./.github/actions/setup-build
+        with:
+          platform: linux
+          preset: ci-linux
+          cache-key: ${{ steps.deps-hash.outputs.hash }}
+
+      - name: Build benchmarks
+        run: |
+          cmake --preset ci-linux \
+            -B build_bench \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DYAZE_BUILD_TESTS=ON
+          cmake --build build_bench \
+            --config Release \
+            --target yaze_test_benchmark \
+            --parallel
+
+      - name: Run benchmarks
+        run: |
+          ./build_bench/bin/yaze_test_benchmark \
+            --benchmark_format=json \
+            --benchmark_out=benchmark_results.json
+        continue-on-error: true
+
+      - name: Upload benchmark results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-results
+          path: benchmark_results.json
+          retention-days: 90
+
+      - name: Compare with baseline (if exists)
+        if: hashFiles('benchmark_baseline.json') != ''
+        run: |
+          # Compare current results with baseline
+          # This would use a tool like google/benchmark's compare.py
+          echo "Benchmark comparison would happen here"
+        continue-on-error: true
+
+  extended-integration-tests:
+    name: "Extended Integration Tests"
+    runs-on: ubuntu-22.04
+    if: |
+      github.event_name == 'schedule' ||
+      github.event.inputs.test_suites == 'all' ||
+      github.event.inputs.test_suites == 'extended_integration'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup build environment
+        uses: ./.github/actions/setup-build
+        with:
+          platform: linux
+          preset: ci-linux
+          cache-key: ${{ steps.deps-hash.outputs.hash }}
+
+      - name: Build with full features
+        run: |
+          cmake --preset ci-linux \
+            -B build_extended \
+            -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
+            -DYAZE_ENABLE_GRPC=ON \
+            -DYAZE_ENABLE_JSON=ON \
+            -DYAZE_ENABLE_HTTP_API=ON \
+            -DYAZE_BUILD_AGENT_UI=ON
+          cmake --build build_extended \
+            --config ${{ env.BUILD_TYPE }} \
+            --parallel
+
+      - name: Run extended integration tests
+        run: |
+          cd build_extended
+          # Run all integration tests with extended timeout
+          ctest -L integration \
+            --output-on-failure \
+            --timeout 1200 \
+            --output-junit extended_integration_results.xml
+
+      - name: Run HTTP API tests
+        if: hashFiles('scripts/agents/test-http-api.sh') != ''
+        run: |
+          chmod +x scripts/agents/test-http-api.sh
+          scripts/agents/test-http-api.sh
+        continue-on-error: true
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: extended-integration-results
+          path: build_extended/extended_integration_results.xml
+          retention-days: 30
+
+  nightly-summary:
+    name: "Nightly Test Summary"
+    runs-on: ubuntu-latest
+    if: always()
+    needs: [
+      rom-dependent-tests,
+      experimental-ai-tests,
+      gui-e2e-tests,
+      benchmark-tests,
+      extended-integration-tests
+    ]
+
+    steps:
+      - name: Generate summary
+        run: |
+          echo "# Nightly Test Results - $(date +'%Y-%m-%d')" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # ROM-Dependent Tests
+          if [ "${{ needs.rom-dependent-tests.result }}" == "success" ]; then
+            echo "✅ **ROM-Dependent Tests:** Passed" >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ needs.rom-dependent-tests.result }}" == "skipped" ]; then
+            echo "⏭️ **ROM-Dependent Tests:** Skipped" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **ROM-Dependent Tests:** Failed" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          # Experimental AI Tests
+          if [ "${{ needs.experimental-ai-tests.result }}" == "success" ]; then
+            echo "✅ **Experimental AI Tests:** Passed" >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ needs.experimental-ai-tests.result }}" == "skipped" ]; then
+            echo "⏭️ **Experimental AI Tests:** Skipped" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Experimental AI Tests:** Failed" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          # GUI E2E Tests
+          if [ "${{ needs.gui-e2e-tests.result }}" == "success" ]; then
+            echo "✅ **GUI E2E Tests:** Passed" >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ needs.gui-e2e-tests.result }}" == "skipped" ]; then
+            echo "⏭️ **GUI E2E Tests:** Skipped" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **GUI E2E Tests:** Failed" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          # Benchmark Tests
+          if [ "${{ needs.benchmark-tests.result }}" == "success" ]; then
+            echo "✅ **Performance Benchmarks:** Completed" >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ needs.benchmark-tests.result }}" == "skipped" ]; then
+            echo "⏭️ **Performance Benchmarks:** Skipped" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Performance Benchmarks:** Failed" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          # Extended Integration Tests
+          if [ "${{ needs.extended-integration-tests.result }}" == "success" ]; then
+            echo "✅ **Extended Integration Tests:** Passed" >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ needs.extended-integration-tests.result }}" == "skipped" ]; then
+            echo "⏭️ **Extended Integration Tests:** Skipped" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Extended Integration Tests:** Failed" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "*Nightly tests include comprehensive suites not run during PR/push CI.*" >> $GITHUB_STEP_SUMMARY
+
+      - name: Send notification (if configured)
+        if: failure() && vars.SLACK_WEBHOOK_URL != ''
+        run: |
+          # Send notification about nightly test failures
+          echo "Notification would be sent here"
+        continue-on-error: true

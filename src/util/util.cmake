@@ -36,6 +36,9 @@ target_include_directories(yaze_util PUBLIC
   ${PROJECT_BINARY_DIR}
 )
 
+# Define YAZE_ASSETS_PATH for development builds to find assets in source tree
+target_compile_definitions(yaze_util PRIVATE YAZE_ASSETS_PATH="${CMAKE_SOURCE_DIR}/assets")
+
 # Note: Abseil include paths are provided automatically through target_link_libraries
 # No manual include_directories needed - linking to absl::* targets provides the paths
 

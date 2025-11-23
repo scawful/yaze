@@ -1,5 +1,54 @@
 # Changelog
 
+## 0.3.9 (November 2025)
+
+### AI Agent Infrastructure
+
+**Semantic Inspection API**:
+- New `SemanticIntrospectionEngine` class providing structured game state access for AI agents
+- JSON output format optimized for LLM consumption: player state, sprites, location, game mode
+- Comprehensive name lookup tables: 243+ ALTTP sprite types, 128+ overworld areas, 27 game modes
+- Methods: `GetSemanticState()`, `GetStateAsJson()`, `GetPlayerState()`, `GetSpriteStates()`
+- Ready for multimodal AI integration with visual grounding support
+
+### Emulator Accuracy
+
+**PPU JIT Catch-up System**:
+- Implemented mid-scanline raster effect support via progressive rendering
+- `StartLine()` and `CatchUp()` methods enable cycle-accurate PPU emulation
+- Integrated into `WriteBBus` for immediate register change rendering
+- Enables proper display of H-IRQ effects (Tales of Phantasia, Star Ocean)
+- 19 comprehensive unit tests covering all edge cases
+
+**Dungeon Sprite Encoding**:
+- Complete sprite save functionality for dungeon rooms
+- Proper ROM format encoding with layer and subtype support
+- Handles sprite table pointer lookups correctly
+
+### Editor Fixes
+
+**Tile16 Palette System**:
+- Fixed Tile8 source canvas showing incorrect colors
+- Fixed palette buttons 0-7 not switching palettes correctly
+- Fixed color alignment inconsistency across canvases
+- Added `GetPaletteBaseForSheet()` for correct palette region mapping
+- Palettes now properly use `SetPaletteWithTransparent()` with sheet-based offsets
+
+### Documentation
+
+**SDL3 Migration Plan**:
+- Comprehensive migration plan document (58-62 hour estimate)
+- Complete audit of SDL2 usage across all subsystems
+- Identified existing abstraction layers (IAudioBackend, IInputBackend, IRenderer)
+- 5-phase migration strategy for v0.4.0
+
+**v0.4.0 Initiative Documentation**:
+- Created initiative tracking document for SDL3 modernization
+- Defined milestones, agent assignments, and success criteria
+- Parallel workstream coordination protocol
+
+---
+
 ## 0.3.2 (October 2025)
 
 ### AI Agent Infrastructure

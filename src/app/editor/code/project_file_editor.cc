@@ -49,7 +49,7 @@ void ProjectFileEditor::Draw() {
       if (!file.empty()) {
         auto status = LoadFile(file);
         if (!status.ok() && toast_manager_) {
-          toast_manager_->Show(std::string(status.message()),
+          toast_manager_->Show(std::string(status.message().data(), status.message().size()),
                                ToastType::kError);
         }
       }
@@ -64,7 +64,7 @@ void ProjectFileEditor::Draw() {
       if (status.ok() && toast_manager_) {
         toast_manager_->Show("Project file saved", ToastType::kSuccess);
       } else if (!status.ok() && toast_manager_) {
-        toast_manager_->Show(std::string(status.message()), ToastType::kError);
+        toast_manager_->Show(std::string(status.message().data(), status.message().size()), ToastType::kError);
       }
     }
     if (!can_save)
@@ -79,7 +79,7 @@ void ProjectFileEditor::Draw() {
         if (status.ok() && toast_manager_) {
           toast_manager_->Show("Project file saved", ToastType::kSuccess);
         } else if (!status.ok() && toast_manager_) {
-          toast_manager_->Show(std::string(status.message()),
+          toast_manager_->Show(std::string(status.message().data(), status.message().size()),
                                ToastType::kError);
         }
       }

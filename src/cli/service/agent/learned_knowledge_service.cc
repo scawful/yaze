@@ -36,13 +36,13 @@ bool FileExists(const std::filesystem::path& path) {
 }  // namespace
 
 LearnedKnowledgeService::LearnedKnowledgeService() {
-  // Get app data directory in a cross-platform way
-  auto app_data_result = util::PlatformPaths::GetAppDataSubdirectory("agent");
-  if (app_data_result.ok()) {
-    data_dir_ = *app_data_result;
+  // Get user documents directory for agent knowledge (visible to user)
+  auto docs_result = util::PlatformPaths::GetUserDocumentsSubdirectory("agent");
+  if (docs_result.ok()) {
+    data_dir_ = *docs_result;
   } else {
-    // Fallback to current directory
-    data_dir_ = std::filesystem::current_path() / ".yaze" / "agent";
+    // Fallback to current directory -> agent (e.g. portable mode)
+    data_dir_ = std::filesystem::current_path() / "agent";
   }
 
   prefs_file_ = data_dir_ / "preferences.json";

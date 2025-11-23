@@ -1,7 +1,7 @@
 #ifndef YAZE_APP_GFX_ATLAS_RENDERER_H
 #define YAZE_APP_GFX_ATLAS_RENDERER_H
 
-#include <SDL.h>
+#include "app/platform/sdl_compat.h"
 
 #include <memory>
 #include <unordered_map>

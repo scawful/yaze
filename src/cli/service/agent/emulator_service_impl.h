@@ -2,6 +2,10 @@
 
 #include <grpcpp/grpcpp.h>
 
+#include <memory>
+
+#include "app/emu/debug/step_controller.h"
+#include "app/emu/debug/symbol_provider.h"
 #include "protos/emulator_service.grpc.pb.h"
 
 // Forward declaration to avoid circular dependencies
@@ -118,8 +122,12 @@ class EmulatorServiceImpl final : public EmulatorService::Service {
                               DebugStatusResponse* response) override;
 
  private:
+  void InitializeStepController();
+
   yaze::emu::Emulator*
       emulator_;  // Non-owning pointer to the emulator instance
+  yaze::emu::debug::SymbolProvider symbol_provider_;  // Symbol table for debugging
+  yaze::emu::debug::StepController step_controller_;  // Call stack tracking
 };
 
 }  // namespace yaze::agent

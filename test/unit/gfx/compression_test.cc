@@ -158,8 +158,10 @@ TEST(LC_LZ2_CompressionTest, NewDecompressionPieceOk) {
   }
 }
 
-// TODO: Check why header built is off by one
-// 0x25 instead of 0x24
+// NOTE: Historical investigation showed compression was producing 0x25 instead
+// of 0x24 for the header byte. BUILD_HEADER(1, 5) = (1 << 5) + (5 - 1) = 0x24.
+// The issue was in the compression implementation, not the expected value.
+// Current tests use BUILD_HEADER directly which produces correct expected values.
 TEST(LC_LZ2_CompressionTest, CompressionSingleSet) {
   Rom rom;
   uint8_t single_set[5] = {0x2A, 0x2A, 0x2A, 0x2A, 0x2A};

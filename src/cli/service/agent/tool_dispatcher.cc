@@ -18,6 +18,8 @@
 #endif
 #include "cli/handlers/tools/gui_commands.h"
 #include "cli/handlers/tools/resource_commands.h"
+#include "cli/service/agent/tools/filesystem_tool.h"
+#include "cli/service/agent/tools/memory_inspector_tool.h"
 #include "cli/service/resources/command_context.h"
 #include "cli/util/terminal_colors.h"
 
@@ -129,12 +131,45 @@ ToolCallType GetToolCallType(const std::string& tool_name) {
   if (tool_name == "emulator-get-metrics")
     return ToolCallType::kEmulatorGetMetrics;
 
+  // Filesystem commands
+  if (tool_name == "filesystem-list")
+    return ToolCallType::kFilesystemList;
+  if (tool_name == "filesystem-read")
+    return ToolCallType::kFilesystemRead;
+  if (tool_name == "filesystem-exists")
+    return ToolCallType::kFilesystemExists;
+  if (tool_name == "filesystem-info")
+    return ToolCallType::kFilesystemInfo;
+
+  // Build commands (placeholder for future implementation)
+  if (tool_name == "build-configure")
+    return ToolCallType::kBuildConfigure;
+  if (tool_name == "build-compile")
+    return ToolCallType::kBuildCompile;
+  if (tool_name == "build-test")
+    return ToolCallType::kBuildTest;
+  if (tool_name == "build-status")
+    return ToolCallType::kBuildStatus;
+
+  // Memory inspector commands
+  if (tool_name == "memory-analyze")
+    return ToolCallType::kMemoryAnalyze;
+  if (tool_name == "memory-search")
+    return ToolCallType::kMemorySearch;
+  if (tool_name == "memory-compare")
+    return ToolCallType::kMemoryCompare;
+  if (tool_name == "memory-check")
+    return ToolCallType::kMemoryCheck;
+  if (tool_name == "memory-regions")
+    return ToolCallType::kMemoryRegions;
+
   return ToolCallType::kUnknown;
 }
 
 // Create the appropriate command handler for a tool call type
 std::unique_ptr<resources::CommandHandler> CreateHandler(ToolCallType type) {
   using namespace yaze::cli::handlers;
+  using namespace yaze::cli::agent::tools;
 
   switch (type) {
     // Resource commands
@@ -239,6 +274,38 @@ std::unique_ptr<resources::CommandHandler> CreateHandler(ToolCallType type) {
       return std::make_unique<EmulatorGetMetricsCommandHandler>();
 #endif
 
+    // Filesystem commands
+    case ToolCallType::kFilesystemList:
+      return std::make_unique<FileSystemListTool>();
+    case ToolCallType::kFilesystemRead:
+      return std::make_unique<FileSystemReadTool>();
+    case ToolCallType::kFilesystemExists:
+      return std::make_unique<FileSystemExistsTool>();
+    case ToolCallType::kFilesystemInfo:
+      return std::make_unique<FileSystemInfoTool>();
+
+    // Build commands (TODO: Implement these handlers)
+    // case ToolCallType::kBuildConfigure:
+    //   return std::make_unique<BuildConfigureCommandHandler>();
+    // case ToolCallType::kBuildCompile:
+    //   return std::make_unique<BuildCompileCommandHandler>();
+    // case ToolCallType::kBuildTest:
+    //   return std::make_unique<BuildTestCommandHandler>();
+    // case ToolCallType::kBuildStatus:
+    //   return std::make_unique<BuildStatusCommandHandler>();
+
+    // Memory inspector commands
+    case ToolCallType::kMemoryAnalyze:
+      return std::make_unique<MemoryAnalyzeTool>();
+    case ToolCallType::kMemorySearch:
+      return std::make_unique<MemorySearchTool>();
+    case ToolCallType::kMemoryCompare:
+      return std::make_unique<MemoryCompareTool>();
+    case ToolCallType::kMemoryCheck:
+      return std::make_unique<MemoryCheckTool>();
+    case ToolCallType::kMemoryRegions:
+      return std::make_unique<MemoryRegionsTool>();
+
     default:
       return nullptr;
   }
@@ -334,6 +401,25 @@ bool ToolDispatcher::IsToolEnabled(ToolCallType type) const {
     case ToolCallType::kEmulatorGetMetrics:
       return preferences_.emulator;
 #endif
+
+    case ToolCallType::kFilesystemList:
+    case ToolCallType::kFilesystemRead:
+    case ToolCallType::kFilesystemExists:
+    case ToolCallType::kFilesystemInfo:
+      return preferences_.filesystem;
+
+    case ToolCallType::kBuildConfigure:
+    case ToolCallType::kBuildCompile:
+    case ToolCallType::kBuildTest:
+    case ToolCallType::kBuildStatus:
+      return preferences_.build;
+
+    case ToolCallType::kMemoryAnalyze:
+    case ToolCallType::kMemorySearch:
+    case ToolCallType::kMemoryCompare:
+    case ToolCallType::kMemoryCheck:
+    case ToolCallType::kMemoryRegions:
+      return preferences_.memory_inspector;
 
     default:
       return true;

@@ -7,7 +7,9 @@
 #include "absl/strings/str_format.h"
 #include "absl/time/time.h"
 #include "app/gui/core/icons.h"
+#ifdef Z3ED_AI
 #include "cli/service/rom/rom_sandbox_manager.h"
+#endif
 #include "imgui/imgui.h"
 
 // Policy evaluation support (optional, only in main yaze build)
@@ -455,6 +457,7 @@ void ProposalDrawer::FocusProposal(const std::string& proposal_id) {
 }
 
 void ProposalDrawer::RefreshProposals() {
+#ifdef Z3ED_AI
   auto& registry = cli::ProposalRegistry::Instance();
 
   std::optional<cli::ProposalRegistry::ProposalStatus> filter;
@@ -491,6 +494,7 @@ void ProposalDrawer::RefreshProposals() {
       log_content_.clear();
     }
   }
+#endif
 }
 
 void ProposalDrawer::SelectProposal(const std::string& proposal_id) {
@@ -509,6 +513,7 @@ void ProposalDrawer::SelectProposal(const std::string& proposal_id) {
 }
 
 absl::Status ProposalDrawer::AcceptProposal(const std::string& proposal_id) {
+#ifdef Z3ED_AI
   auto& registry = cli::ProposalRegistry::Instance();
 
   // Get proposal metadata to find sandbox
@@ -579,18 +584,26 @@ absl::Status ProposalDrawer::AcceptProposal(const std::string& proposal_id) {
 
   needs_refresh_ = true;
   return status;
+#else
+  return absl::UnimplementedError("AI features disabled");
+#endif
 }
 
 absl::Status ProposalDrawer::RejectProposal(const std::string& proposal_id) {
+#ifdef Z3ED_AI
   auto& registry = cli::ProposalRegistry::Instance();
   auto status = registry.UpdateStatus(
       proposal_id, cli::ProposalRegistry::ProposalStatus::kRejected);
 
   needs_refresh_ = true;
   return status;
+#else
+  return absl::UnimplementedError("AI features disabled");
+#endif
 }
 
 absl::Status ProposalDrawer::DeleteProposal(const std::string& proposal_id) {
+#ifdef Z3ED_AI
   auto& registry = cli::ProposalRegistry::Instance();
   auto status = registry.RemoveProposal(proposal_id);
 
@@ -603,6 +616,9 @@ absl::Status ProposalDrawer::DeleteProposal(const std::string& proposal_id) {
 
   needs_refresh_ = true;
   return status;
+#else
+  return absl::UnimplementedError("AI features disabled");
+#endif
 }
 
 }  // namespace editor

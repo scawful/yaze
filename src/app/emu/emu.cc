@@ -2,7 +2,7 @@
 #include "app/platform/app_delegate.h"
 #endif
 
-#include <SDL.h>
+#include "app/platform/sdl_compat.h"
 
 #include <memory>
 #include <string>
@@ -14,7 +14,7 @@
 #include "absl/flags/parse.h"
 #include "app/emu/snes.h"
 #include "app/gfx/backend/irenderer.h"
-#include "app/gfx/backend/sdl2_renderer.h"
+#include "app/gfx/backend/renderer_factory.h"
 #include "app/rom.h"
 #include "util/sdl_deleter.h"
 
@@ -89,8 +89,8 @@ int main(int argc, char** argv) {
     return EXIT_FAILURE;
   }
 
-  // Create and initialize the renderer
-  auto renderer = std::make_unique<yaze::gfx::SDL2Renderer>();
+  // Create and initialize the renderer (uses factory for SDL2/SDL3 selection)
+  auto renderer = yaze::gfx::RendererFactory::Create();
   if (!renderer->Initialize(window_.get())) {
     printf("Failed to initialize renderer\n");
     SDL_Quit();

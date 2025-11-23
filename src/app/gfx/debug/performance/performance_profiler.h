@@ -1,7 +1,7 @@
 #ifndef YAZE_APP_GFX_PERFORMANCE_PERFORMANCE_PROFILER_H
 #define YAZE_APP_GFX_PERFORMANCE_PERFORMANCE_PROFILER_H
 
-#include <SDL.h>
+#include "app/platform/sdl_compat.h"
 
 #include <chrono>
 #include <string>

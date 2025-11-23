@@ -33,7 +33,7 @@ TEST_F(RomTest, Uninitialized) {
 
 TEST_F(RomTest, LoadFromFile) {
 #if defined(__linux__)
-  GTEST_SKIP();
+  GTEST_SKIP() << "ROM file loading skipped on Linux CI (no ROM available)";
 #endif
   EXPECT_OK(rom_.LoadFromFile("zelda3.sfc"));
   EXPECT_EQ(rom_.size(), 0x200000);
@@ -194,7 +194,7 @@ TEST_F(RomTest, ReadTransactionFailure) {
 
 TEST_F(RomTest, SaveTruncatesExistingFile) {
 #if defined(__linux__)
-  GTEST_SKIP();
+  GTEST_SKIP() << "File save tests skipped on Linux CI (filesystem access)";
 #endif
   // Prepare ROM data and save to a temp file twice; second save should
   // overwrite, not append

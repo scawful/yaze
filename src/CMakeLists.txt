@@ -16,7 +16,11 @@ set(
   app/emu/cpu/internal/instructions.cc
   app/emu/debug/apu_debugger.cc
   app/emu/debug/breakpoint_manager.cc
+  app/emu/debug/disassembler.cc
   app/emu/debug/disassembly_viewer.cc
+  app/emu/debug/semantic_introspection.cc
+  app/emu/debug/step_controller.cc
+  app/emu/debug/symbol_provider.cc
   app/emu/debug/watchpoint_manager.cc
   app/emu/emu.cc
   app/emu/emulator.cc
@@ -30,6 +34,12 @@ set(
   app/emu/ui/input_handler.cc
   app/emu/video/ppu.cc
 )
+
+# Add SDL3-specific backends when SDL3 is enabled
+if(YAZE_USE_SDL3)
+  list(APPEND YAZE_APP_EMU_SRC app/emu/input/sdl3_input_backend.cc)
+  list(APPEND YAZE_APP_EMU_SRC app/emu/audio/sdl3_audio_backend.cc)
+endif()
 
 # Define resource files for bundling
 set(YAZE_RESOURCE_FILES

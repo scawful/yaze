@@ -47,7 +47,7 @@ grpc::Status ConvertStatus(const absl::Status& status) {
       break;
   }
 
-  return grpc::Status(code, std::string(status.message()));
+  return grpc::Status(code, std::string(status.message().data(), status.message().size()));
 }
 
 }  // namespace

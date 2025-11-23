@@ -1,6 +1,25 @@
+/**
+ * @file object_rendering_test.cc
+ * @brief Unit tests for object rendering with mock data
+ *
+ * ============================================================================
+ * DEPRECATED - DO NOT USE - November 2025
+ * ============================================================================
+ *
+ * This file is DEPRECATED and excluded from the build. It duplicates coverage
+ * already provided by dungeon_object_rendering_tests.cc but uses mock ROM data
+ * instead of the proper TestRomManager fixture.
+ *
+ * REPLACEMENT:
+ * - Use test/integration/zelda3/dungeon_object_rendering_tests.cc instead
+ *
+ * This file is kept for reference only.
+ * ============================================================================
+ */
+
 #include "absl/status/status.h"
-#include "app/gfx/background_buffer.h"
-#include "app/gfx/snes_palette.h"
+#include "app/gfx/render/background_buffer.h"
+#include "app/gfx/types/snes_palette.h"
 #include "app/rom.h"
 #include "gtest/gtest.h"
 #include "zelda3/dungeon/object_drawer.h"

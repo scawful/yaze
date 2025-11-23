@@ -1,7 +1,7 @@
 #ifndef YAZE_APP_ROM_H
 #define YAZE_APP_ROM_H
 
-#include <SDL.h>
+#include "app/platform/sdl_compat.h"
 #include <zelda.h>
 
 #include <array>
