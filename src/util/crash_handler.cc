@@ -2,10 +2,12 @@
 
 #include <algorithm>
 #include <chrono>
+#include <cstdio>
 #include <ctime>
 #include <fstream>
 #include <iomanip>
 #include <sstream>
+#include <cstring>
 #include <vector>
 
 #include "absl/debugging/failure_signal_handler.h"
@@ -13,7 +15,10 @@
 #include "util/platform_paths.h"
 
 #ifdef _WIN32
+#include <fcntl.h>
 #include <io.h>
+#include <sys/stat.h>
+#define STDERR_FILENO _fileno(stderr)
 #define write _write
 #define close _close
 #define open _open
