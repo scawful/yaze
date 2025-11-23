@@ -60,6 +60,10 @@ bool DrawEntranceInserterPopup() {
   }
   if (ImGui::BeginPopup("Entrance Inserter")) {
     static int entrance_id = 0;
+    if (ImGui::IsWindowAppearing()) {
+      entrance_id = 0;
+    }
+
     gui::InputHex("Entrance ID", &entrance_id);
 
     if (Button(ICON_MD_DONE)) {
@@ -86,6 +90,10 @@ bool DrawOverworldEntrancePopup(zelda3::OverworldEntrance& entrance) {
 
   if (ImGui::BeginPopupModal("Entrance Editor", NULL,
                              ImGuiWindowFlags_AlwaysAutoResize)) {
+    if (ImGui::IsWindowAppearing()) {
+      // Reset state if needed
+    }
+
     ImGui::Text("Entrance ID: %d", entrance.entrance_id_);
     ImGui::Separator();
 
@@ -126,6 +134,13 @@ void DrawExitInserterPopup() {
     static int x_pos = 0;
     static int y_pos = 0;
 
+    if (ImGui::IsWindowAppearing()) {
+      exit_id = 0;
+      room_id = 0;
+      x_pos = 0;
+      y_pos = 0;
+    }
+
     ImGui::Text("Insert New Exit");
     ImGui::Separator();
 
@@ -158,9 +173,9 @@ bool DrawExitEditorPopup(zelda3::OverworldExit& exit) {
   if (ImGui::BeginPopupModal("Exit editor", NULL,
                              ImGuiWindowFlags_AlwaysAutoResize)) {
     // Normal door: None = 0, Wooden = 1, Bombable = 2
-    static int doorType = exit.door_type_1_;
+    static int doorType = 0;
     // Fancy door: None = 0, Sanctuary = 1, Palace = 2
-    static int fancyDoorType = exit.door_type_2_;
+    static int fancyDoorType = 0;
 
     static int xPos = 0;
     static int yPos = 0;
@@ -180,6 +195,24 @@ bool DrawExitEditorPopup(zelda3::OverworldExit& exit) {
     static int left = 0;
     static int right = 0;
     static int leftEdgeOfMap = 0;
+    static bool special_exit = false;
+    static bool show_properties = false;
+
+    if (ImGui::IsWindowAppearing()) {
+      // Reset state from entity
+      doorType = exit.door_type_1_;
+      fancyDoorType = exit.door_type_2_;
+      xPos = 0; // Unknown mapping
+      yPos = 0; // Unknown mapping
+      
+      // Reset other static vars to avoid pollution
+      centerY = 0; centerX = 0; unk1 = 0; unk2 = 0;
+      linkPosture = 0; spriteGFX = 0; bgGFX = 0;
+      palette = 0; sprPal = 0; top = 0; bottom = 0;
+      left = 0; right = 0; leftEdgeOfMap = 0;
+      special_exit = false;
+      show_properties = false;
+    }
 
     gui::InputHexWord("Room", &exit.room_id_);
     SameLine();
@@ -202,7 +235,6 @@ bool DrawExitEditorPopup(zelda3::OverworldExit& exit) {
 
     ImGui::Separator();
 
-    static bool show_properties = false;
     Checkbox("Show properties", &show_properties);
     if (show_properties) {
       Text("Deleted? %s", exit.deleted_ ? "true" : "false");
@@ -215,22 +247,24 @@ bool DrawExitEditorPopup(zelda3::OverworldExit& exit) {
 
     gui::TextWithSeparators("Unimplemented below");
 
-    ImGui::RadioButton("None", &doorType, 0);
+    if (ImGui::RadioButton("None", &doorType, 0)) exit.door_type_1_ = doorType;
     SameLine();
-    ImGui::RadioButton("Wooden", &doorType, 1);
+    if (ImGui::RadioButton("Wooden", &doorType, 1)) exit.door_type_1_ = doorType;
     SameLine();
-    ImGui::RadioButton("Bombable", &doorType, 2);
+    if (ImGui::RadioButton("Bombable", &doorType, 2)) exit.door_type_1_ = doorType;
+
     // If door type is not None, input positions
     if (doorType != 0) {
       gui::InputHex("Door X pos", &xPos);
       gui::InputHex("Door Y pos", &yPos);
     }
 
-    ImGui::RadioButton("None##Fancy", &fancyDoorType, 0);
+    if (ImGui::RadioButton("None##Fancy", &fancyDoorType, 0)) exit.door_type_2_ = fancyDoorType;
     SameLine();
-    ImGui::RadioButton("Sanctuary", &fancyDoorType, 1);
+    if (ImGui::RadioButton("Sanctuary", &fancyDoorType, 1)) exit.door_type_2_ = fancyDoorType;
     SameLine();
-    ImGui::RadioButton("Palace", &fancyDoorType, 2);
+    if (ImGui::RadioButton("Palace", &fancyDoorType, 2)) exit.door_type_2_ = fancyDoorType;
+
     // If fancy door type is not None, input positions
     if (fancyDoorType != 0) {
       // Placeholder for fancy door's X position
@@ -239,7 +273,6 @@ bool DrawExitEditorPopup(zelda3::OverworldExit& exit) {
       gui::InputHex("Fancy Door Y pos", &yPos);
     }
 
-    static bool special_exit = false;
     Checkbox("Special exit", &special_exit);
     if (special_exit) {
       gui::InputHex("Center X", &centerX);
@@ -318,11 +351,7 @@ void DrawItemInsertPopup() {
 
 // TODO: Implement deleting OverworldItem objects, currently only hides them
 bool DrawItemEditorPopup(zelda3::OverworldItem& item) {
-  static bool set_done = false;
-  if (set_done) {
-    set_done = false;
-    return true;
-  }
+  bool set_done = false;
   if (ImGui::BeginPopupModal("Item editor", NULL,
                              ImGuiWindowFlags_AlwaysAutoResize)) {
     BeginChild("ScrollRegion", ImVec2(150, 150), true,
@@ -339,18 +368,17 @@ bool DrawItemEditorPopup(zelda3::OverworldItem& item) {
     EndChild();
 
     if (Button(ICON_MD_DONE)) {
-      set_done = true;  // FIX: Save changes when Done is clicked
+      set_done = true;
       ImGui::CloseCurrentPopup();
     }
     SameLine();
     if (Button(ICON_MD_CLOSE)) {
-      // FIX: Discard changes - don't set set_done
       ImGui::CloseCurrentPopup();
     }
     SameLine();
     if (Button(ICON_MD_DELETE)) {
       item.deleted = true;
-      set_done = true;  // FIX: Save deletion when Delete is clicked
+      set_done = true;
       ImGui::CloseCurrentPopup();
     }
 
@@ -361,9 +389,8 @@ bool DrawItemEditorPopup(zelda3::OverworldItem& item) {
 
 const ImGuiTableSortSpecs* SpriteItem::s_current_sort_specs = nullptr;
 
-void DrawSpriteTable(std::function<void(int)> onSpriteSelect) {
+void DrawSpriteTable(std::function<void(int)> onSpriteSelect, int& selected_id) {
   static ImGuiTextFilter filter;
-  static int selected_id = 0;
   static std::vector<SpriteItem> items;
 
   // Initialize items if empty
@@ -414,13 +441,19 @@ void DrawSpriteInserterPopup() {
     static int new_sprite_id = 0;
     static int x_pos = 0;
     static int y_pos = 0;
+    
+    if (ImGui::IsWindowAppearing()) {
+      new_sprite_id = 0;
+      x_pos = 0;
+      y_pos = 0;
+    }
 
     ImGui::Text("Add New Sprite");
     ImGui::Separator();
 
     BeginChild("ScrollRegion", ImVec2(250, 200), true,
                ImGuiWindowFlags_AlwaysVerticalScrollbar);
-    DrawSpriteTable([](int selected_id) { new_sprite_id = selected_id; });
+    DrawSpriteTable([](int selected_id) { new_sprite_id = selected_id; }, new_sprite_id);
     EndChild();
 
     ImGui::Separator();
@@ -454,15 +487,20 @@ bool DrawSpriteEditorPopup(zelda3::Sprite& sprite) {
   }
   if (ImGui::BeginPopupModal("Sprite editor", NULL,
                              ImGuiWindowFlags_AlwaysAutoResize)) {
+    static int selected_id = 0;
+    if (ImGui::IsWindowAppearing()) {
+      selected_id = sprite.id();
+    }
+                             
     BeginChild("ScrollRegion", ImVec2(350, 350), true,
                ImGuiWindowFlags_AlwaysVerticalScrollbar);
     ImGui::BeginGroup();
     Text("%s", sprite.name().c_str());
 
-    DrawSpriteTable([&sprite](int selected_id) {
-      sprite.set_id(selected_id);
+    DrawSpriteTable([&sprite](int id) {
+      sprite.set_id(id);
       sprite.UpdateMapProperties(sprite.map_id(), nullptr);
-    });
+    }, selected_id);
     ImGui::EndGroup();
     EndChild();
 

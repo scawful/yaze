@@ -67,8 +67,9 @@ absl::Status Overworld::Load(Rom* rom) {
   }
 
   // Phase 4: Map Configuration
-  uint8_t asm_version = (*rom_)[OverworldCustomASMHasBeenApplied];
-  if (asm_version >= 3) {
+  // Phase 4: Map Configuration
+  auto version = OverworldVersionHelper::GetVersion(*rom_);
+  if (OverworldVersionHelper::SupportsAreaEnum(version)) {
     AssignMapSizes(overworld_maps_);
   } else {
     FetchLargeMaps();
@@ -270,25 +271,24 @@ absl::Status Overworld::ConfigureMultiAreaMap(int parent_index,
         absl::StrFormat("Invalid parent index: %d", parent_index));
   }
 
-  // Check ROM version
-  uint8_t asm_version = (*rom_)[OverworldCustomASMHasBeenApplied];
-
   // Version requirements:
   // - Vanilla (0xFF): Supports Small and Large only
   // - v1-v2: Supports Small and Large only
   // - v3+: Supports all 4 sizes (Small, Large, Wide, Tall)
+  auto version = OverworldVersionHelper::GetVersion(*rom_);
   if ((size == AreaSizeEnum::WideArea || size == AreaSizeEnum::TallArea) &&
-      (asm_version < 3 || asm_version == 0xFF)) {
+      !OverworldVersionHelper::SupportsAreaEnum(version)) {
     return absl::FailedPreconditionError(
         "Wide and Tall areas require ZSCustomOverworld v3+");
   }
 
   LOG_DEBUG("Overworld",
             "ConfigureMultiAreaMap: parent=%d, current_size=%d, new_size=%d, "
-            "version=%d",
+            "version=%s",
             parent_index,
             static_cast<int>(overworld_maps_[parent_index].area_size()),
-            static_cast<int>(size), asm_version);
+            static_cast<int>(size),
+            OverworldVersionHelper::GetVersionName(version));
 
   // CRITICAL: First, get OLD siblings (before changing) so we can reset them
   std::vector<int> old_siblings;
@@ -370,7 +370,7 @@ absl::Status Overworld::ConfigureMultiAreaMap(int parent_index,
     all_affected.insert(sibling);
   }
 
-  if (asm_version >= 3 && asm_version != 0xFF) {
+  if (OverworldVersionHelper::SupportsAreaEnum(version)) {
     // v3+: Update expanded tables
     for (int sibling : all_affected) {
       if (sibling < 0 || sibling >= kNumOverworldMaps)
@@ -382,7 +382,7 @@ absl::Status Overworld::ConfigureMultiAreaMap(int parent_index,
           kOverworldScreenSize + sibling,
           static_cast<uint8_t>(overworld_maps_[sibling].area_size())));
     }
-  } else if (asm_version < 3 && asm_version != 0xFF) {
+  } else if (OverworldVersionHelper::SupportsExpandedSpace(version)) {
     // v1/v2: Update basic parent table
     for (int sibling : all_affected) {
       if (sibling < 0 || sibling >= kNumOverworldMaps)
@@ -443,10 +443,14 @@ absl::Status Overworld::AssembleMap32Tiles() {
   // Check if expanded tile32 data is actually present in ROM
   // The flag position should contain 0x04 for vanilla, something else for
   // expanded
-  uint8_t asm_version = (*rom_)[OverworldCustomASMHasBeenApplied];
+  // Check if expanded tile32 data is actually present in ROM
+  // The flag position should contain 0x04 for vanilla, something else for
+  // expanded
+  auto version = OverworldVersionHelper::GetVersion(*rom_);
   uint8_t expanded_flag = rom()->data()[kMap32ExpandedFlagPos];
   util::logf("Expanded tile32 flag: %d", expanded_flag);
-  if (expanded_flag != 0x04 || asm_version >= 3) {
+  if (expanded_flag != 0x04 ||
+      OverworldVersionHelper::SupportsAreaEnum(version)) {
     // ROM has expanded tile32 data - use expanded addresses
     map32address[0] = rom()->version_constants().kMap32TileTL;
     map32address[1] = kMap32TileTRExpanded;
@@ -500,10 +504,14 @@ absl::Status Overworld::AssembleMap16Tiles() {
   // Check if expanded tile16 data is actually present in ROM
   // The flag position should contain 0x0F for vanilla, something else for
   // expanded
-  uint8_t asm_version = (*rom_)[OverworldCustomASMHasBeenApplied];
+  // Check if expanded tile16 data is actually present in ROM
+  // The flag position should contain 0x0F for vanilla, something else for
+  // expanded
+  auto version = OverworldVersionHelper::GetVersion(*rom_);
   uint8_t expanded_flag = rom()->data()[kMap16ExpandedFlagPos];
   util::logf("Expanded tile16 flag: %d", expanded_flag);
-  if (rom()->data()[kMap16ExpandedFlagPos] == 0x0F || asm_version >= 3) {
+  if (rom()->data()[kMap16ExpandedFlagPos] == 0x0F ||
+      OverworldVersionHelper::SupportsAreaEnum(version)) {
     // ROM has expanded tile16 data - use expanded addresses
     tpos = kMap16TilesExpanded;
     num_tile16 = NumberOfMap16Ex;
@@ -715,9 +723,10 @@ absl::Status Overworld::LoadSprites() {
   std::vector<std::future<absl::Status>> futures;
 
   // Determine sprite table locations based on actual ASM version in ROM
-  uint8_t asm_version = (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
+  // Determine sprite table locations based on actual ASM version in ROM
+  auto version = OverworldVersionHelper::GetVersion(*rom_);
 
-  if (asm_version >= 3 && asm_version != 0xFF) {
+  if (OverworldVersionHelper::SupportsAreaEnum(version)) {
     // v3: Use expanded sprite tables
     futures.emplace_back(std::async(std::launch::async, [this]() {
       return LoadSpritesFromMap(overworldSpritesBeginingExpanded, 64, 0);
@@ -956,7 +965,9 @@ absl::Status Overworld::SaveLargeMaps() {
 
   // Check if this is a v3+ ROM to use expanded transition system
   uint8_t asm_version = (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
-  bool use_expanded_transitions = (asm_version >= 3 && asm_version != 0xFF);
+  auto version = OverworldVersionHelper::GetVersion(*rom_);
+  bool use_expanded_transitions =
+      OverworldVersionHelper::SupportsAreaEnum(version);
 
   if (use_expanded_transitions) {
     // Use new v3+ complex transition system with neighbor awareness
