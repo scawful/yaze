@@ -142,6 +142,29 @@
       }
     },
     {
+      "name": "wasm-release",
+      "inherits": "base",
+      "displayName": "Web Assembly Release",
+      "description": "Emscripten build for Web Assembly",
+      "generator": "Ninja",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_CXX_STANDARD": "20",
+        "YAZE_BUILD_TESTS": "OFF",
+        "YAZE_ENABLE_GRPC": "OFF",
+        "YAZE_ENABLE_JSON": "ON",
+        "YAZE_ENABLE_AI": "OFF",
+        "YAZE_ENABLE_NFD": "OFF",
+        "YAZE_BUILD_AGENT_UI": "OFF",
+        "YAZE_ENABLE_REMOTE_AUTOMATION": "OFF",
+        "YAZE_ENABLE_AI_RUNTIME": "OFF",
+        "YAZE_WITH_IMGUI": "ON",
+        "YAZE_WITH_SDL": "ON",
+        "CMAKE_CXX_FLAGS": "-s USE_SDL=2 -s USE_FREETYPE=1 -s ALLOW_MEMORY_GROWTH=1 --preload-file assets@/assets --shell-file src/web/shell.html",
+        "CMAKE_EXE_LINKER_FLAGS": "-s USE_SDL=2 -s USE_FREETYPE=1 -s ALLOW_MEMORY_GROWTH=1 --preload-file assets@/assets --shell-file src/web/shell.html"
+      }
+    },
+    {
       "name": "ci-linux",
       "inherits": "base",
       "displayName": "CI Build - Linux",
@@ -450,7 +473,7 @@
       "displayName": "macOS Debug Verbose",
       "description": "Debug build with verbose warnings",
       "cacheVariables": {
-        "YAZE_SUPPRESS_WARNINGS": "OFF"
+        "CMAKE_SUPPRESS_WARNINGS": "OFF"
       }
     },
     {
@@ -686,6 +709,12 @@
       "name": "minimal",
       "configurePreset": "minimal",
       "displayName": "Minimal Build",
+      "jobs": 12
+    },
+    {
+      "name": "wasm-release",
+      "configurePreset": "wasm-release",
+      "displayName": "Web Assembly Release",
       "jobs": 12
     },
     {

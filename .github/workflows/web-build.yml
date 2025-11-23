@@ -1,0 +1,77 @@
+name: Web Build & Deploy
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ master, main, develop ]
+    paths:
+      - 'src/**'
+      - 'docs/**'
+      - 'CMakeLists.txt'
+      - 'CMakePresets.json'
+      - 'Doxyfile'
+      - 'scripts/build-wasm.sh'
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+      
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      # --- Setup Tools ---
+      - name: Setup Emscripten
+        uses: mymindstorm/setup-emsdk@v14
+        with:
+          version: 3.1.51
+          actions-cache-folder: 'emsdk-cache'
+
+      - name: Setup Ninja
+        uses: seanmiddleditch/gha-setup-ninja@v4
+        
+      - name: Setup CMake
+        uses: jwlawson/actions-setup-cmake@v1.14
+        with:
+          cmake-version: '3.27.x'
+
+      - name: Install Doxygen & Graphviz
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y doxygen graphviz
+
+      # --- Build Web App ---
+      - name: Build WASM App
+        run: |
+          chmod +x scripts/build-wasm.sh
+          ./scripts/build-wasm.sh
+
+      # --- Build Documentation ---
+      - name: Build Documentation
+        run: |
+          doxygen Doxyfile
+          # Move docs into dist/docs
+          mkdir -p build-wasm/dist/docs
+          mv build/docs/html/* build-wasm/dist/docs/
+
+      # --- Deploy ---
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: build-wasm/dist/
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

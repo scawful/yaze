@@ -2,6 +2,10 @@
 #include "app/platform/app_delegate.h"
 #endif
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
+
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include "absl/debugging/failure_signal_handler.h"
 #include "absl/debugging/symbolize.h"
@@ -58,9 +62,115 @@ DEFINE_FLAG(int, test_harness_port, 50051,
             "Port for gRPC test harness server (default: 50051).");
 #endif
 
+// Global controller for Emscripten loop
+static std::unique_ptr<Controller> g_controller;
+
+#ifdef __EMSCRIPTEN__
+static bool g_filesystem_ready = false;
+
+extern "C" {
+EMSCRIPTEN_KEEPALIVE
+void SetFileSystemReady() {
+  g_filesystem_ready = true;
+  LOG_INFO("Main", "Filesystem sync complete, ready to start.");
+}
+
+EMSCRIPTEN_KEEPALIVE
+void LoadRomFromWeb(const char* filename) {
+  if (!filename || !g_controller) return;
+  LOG_INFO("Main", "Loading ROM from web: %s", filename);
+  
+  // If active, we might want to reset or just call OnEntry again.
+  // Controller::OnEntry handles resetting the editor manager.
+  auto status = g_controller->OnEntry(std::string(filename));
+  if (!status.ok()) {
+    LOG_ERROR("Main", "Failed to load ROM: %s", std::string(status.message()).c_str());
+    // TODO: Show error dialog in UI
+  }
+}
+}
+
+EM_JS(void, MountFilesystems, (), {
+  // Create directories
+  FS.mkdir('/roms');
+  FS.mkdir('/saves');
+
+  // Mount filesystems
+  FS.mount(MEMFS, {}, '/roms');
+  FS.mount(IDBFS, {}, '/saves');
+
+  // Sync from IDBFS to memory
+  FS.syncfs(true, function(err) {
+    if (err) {
+      console.error("Failed to sync IDBFS: " + err);
+    } else {
+      console.log("IDBFS synced successfully");
+    }
+    // Signal C++ that we are ready regardless of success/fail
+    // (worst case we start with empty saves)
+    Module._SetFileSystemReady();
+  });
+});
+#endif
+
+void TickFrame() {
+#ifdef __EMSCRIPTEN__
+  if (!g_filesystem_ready) {
+    // Wait for FS sync
+    // We could render a loading screen here if we had ImGui init early
+    return;
+  }
+
+  // Initialize controller once FS is ready
+  if (!g_controller) {
+    g_controller = std::make_unique<Controller>();
+    
+    std::string rom_filename = "";
+    if (!FLAGS_rom_file->Get().empty()) {
+      rom_filename = FLAGS_rom_file->Get();
+    }
+    
+    if (auto status = g_controller->OnEntry(rom_filename); !status.ok()) {
+        std::cerr << status.message() << std::endl;
+        emscripten_cancel_main_loop();
+        return;
+    }
+
+    if (!FLAGS_editor->Get().empty()) {
+      g_controller->SetStartupEditor(FLAGS_editor->Get(), FLAGS_cards->Get());
+    }
+  }
+#endif
+
+  if (!g_controller || !g_controller->IsActive()) {
+#ifdef __EMSCRIPTEN__
+    // Trigger sync back to IDBFS on exit (if this ever happens in web)
+    EM_ASM(
+      FS.syncfs(false, function(err) {
+        if (err) console.error("Failed to save IDBFS: " + err);
+        else console.log("IDBFS saved successfully");
+      });
+    );
+    emscripten_cancel_main_loop();
+#endif
+    return;
+  }
+
+  g_controller->OnInput();
+  if (auto status = g_controller->OnLoad(); !status.ok()) {
+    std::cerr << status.message() << std::endl;
+#ifdef __EMSCRIPTEN__
+    emscripten_cancel_main_loop();
+#endif
+    return;
+  }
+  g_controller->DoRender();
+}
+
 int main(int argc, char** argv) {
   absl::InitializeSymbolizer(argv[0]);
 
+#ifndef __EMSCRIPTEN__
   // Initialize crash handler for release builds
   // This writes crash reports to ~/.yaze/crash_logs/ (or equivalent)
   // In debug builds, crashes are also printed to stderr
@@ -68,6 +178,7 @@ int main(int argc, char** argv) {
 
   // Clean up old crash logs (keep last 5)
   yaze::util::CrashHandler::CleanupOldLogs(5);
+#endif
 
   // Parse command line flags with custom parser
   yaze::util::FlagParser parser(yaze::util::global_flag_registry());
@@ -107,6 +218,7 @@ int main(int argc, char** argv) {
   }
 
 #ifdef YAZE_WITH_GRPC
+#ifndef __EMSCRIPTEN__
   // Start gRPC test harness server if requested
   if (FLAGS_enable_test_harness->Get()) {
     // Get TestManager instance (initializes UI testing if available)
@@ -130,6 +242,7 @@ int main(int argc, char** argv) {
         << std::endl;
   }
 #endif
+#endif
 
 #ifdef __APPLE__
   return yaze_run_cocoa_app_delegate(rom_filename.c_str());
@@ -138,6 +251,13 @@ int main(int argc, char** argv) {
   SDL_SetMainReady();
 #endif
 
+#ifdef __EMSCRIPTEN__
+  // Initialize filesystems asynchronously
+  MountFilesystems();
+  
+  // Emscripten main loop - waits for g_filesystem_ready in TickFrame
+  emscripten_set_main_loop(TickFrame, 0, 1);
+#else
   auto controller = std::make_unique<Controller>();
   EXIT_IF_ERROR(controller->OnEntry(rom_filename))
 
@@ -160,15 +280,19 @@ int main(int argc, char** argv) {
     }
   }
 
-  while (controller->IsActive()) {
-    controller->OnInput();
-    if (auto status = controller->OnLoad(); !status.ok()) {
-      std::cerr << status.message() << std::endl;
-      break;
-    }
-    controller->DoRender();
+  // Assign to global for shared TickFrame if we wanted to reuse it, but 
+  // for desktop we can keep the loop local or use TickFrame logic.
+  // To avoid duplication, let's wire it up to use TickFrame-like logic 
+  // or just keep the loop as is for minimal risk.
+  
+  // Using local loop for desktop to match previous behavior exactly
+  g_controller = std::move(controller);
+  
+  while (g_controller->IsActive()) {
+      TickFrame();
   }
-  controller->OnExit();
+  
+  g_controller->OnExit();
 
   if (api_server) {
     api_server->Stop();
@@ -178,6 +302,8 @@ int main(int argc, char** argv) {
   // Shutdown gRPC server if running
   yaze::test::ImGuiTestHarnessServer::Instance().Shutdown();
 #endif
+
+#endif // __EMSCRIPTEN__
 
   return EXIT_SUCCESS;
 }

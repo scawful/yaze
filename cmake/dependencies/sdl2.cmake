@@ -4,6 +4,21 @@
 include(cmake/CPM.cmake)
 include(cmake/dependencies.lock)
 
+# For Emscripten, use the built-in SDL2 port
+if(EMSCRIPTEN)
+  message(STATUS "Using Emscripten built-in SDL2")
+  if(NOT TARGET yaze_sdl2)
+    add_library(yaze_sdl2 INTERFACE)
+    # Flags are already set in CMakePresets.json or toolchain (-s USE_SDL=2)
+    # But we can enforce them here too if needed, or just leave empty as an interface
+    # to satisfy linking requirements of other targets.
+    target_link_options(yaze_sdl2 INTERFACE "SHELL:-s USE_SDL=2")
+    target_compile_options(yaze_sdl2 INTERFACE "SHELL:-s USE_SDL=2")
+  endif()
+  set(YAZE_SDL2_TARGETS yaze_sdl2)
+  return()
+endif()
+
 message(STATUS "Setting up SDL2 ${SDL2_VERSION} with CPM.cmake")
 
 # Try to use system packages first if requested
