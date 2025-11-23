@@ -16,7 +16,10 @@ set(
   app/emu/cpu/internal/instructions.cc
   app/emu/debug/apu_debugger.cc
   app/emu/debug/breakpoint_manager.cc
+  app/emu/debug/disassembler.cc
   app/emu/debug/disassembly_viewer.cc
+  app/emu/debug/step_controller.cc
+  app/emu/debug/symbol_provider.cc
   app/emu/debug/watchpoint_manager.cc
   app/emu/emu.cc
   app/emu/emulator.cc
