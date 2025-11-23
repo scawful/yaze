@@ -574,7 +574,7 @@ void Room::RenderObjectsToBackground() {
   // Log only failures, not successes
   if (!status.ok()) {
     LOG_DEBUG("[RenderObjectsToBackground]", "ObjectDrawer failed: %s",
-              std::string(status.message()).c_str());
+              std::string(status.message().data(), status.message().size()).c_str());
   } else {
     // Mark objects as clean after successful render
     objects_dirty_ = false;
