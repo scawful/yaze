@@ -1,6 +1,6 @@
 #include "controller.h"
 
-#include <SDL.h>
+#include "app/platform/sdl_compat.h"
 
 #include <string>
 
