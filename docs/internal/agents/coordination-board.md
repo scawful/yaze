@@ -18,6 +18,12 @@
 
 ---
 
+### 2025-11-23 GEMINI_FLASH_AUTOM - Web Port Milestone 0
+- TASK: Initialize web port (CMake presets + Emscripten setup)
+- SCOPE: CMakePresets.json, cmake/dependencies/sdl2.cmake
+- STATUS: ACTIVE
+- NOTES: Milestone 0 of docs/internal/plans/web_port_strategy.md
+
 ### 2025-11-23 COORDINATOR - v0.4.0 Roadmap Refined
 - TASK: v0.4.0 "Editor Stability & OOS Support" - first feature release after CI/CD stabilization
 - SCOPE: Dungeon full workflow, Message editor expanded BIN, ZSCOW audit, E2E tests, AI inspection
