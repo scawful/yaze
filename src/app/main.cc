@@ -11,6 +11,7 @@
 #include "util/crash_handler.h"
 #include "util/flag.h"
 #include "util/log.h"
+#include "util/platform_paths.h"
 #include "yaze.h"  // For YAZE_VERSION_STRING
 
 #ifdef YAZE_WITH_GRPC
@@ -92,7 +93,17 @@ int main(int argc, char** argv) {
     log_categories.insert(categories_str.substr(start));
   }
 
-  yaze::util::LogManager::instance().configure(log_level, FLAGS_log_file->Get(),
+  // Determine log file path
+  std::string log_path = FLAGS_log_file->Get();
+  if (log_path.empty()) {
+    // Default to ~/Documents/Yaze/logs/yaze.log if not specified
+    auto logs_dir = yaze::util::PlatformPaths::GetUserDocumentsSubdirectory("logs");
+    if (logs_dir.ok()) {
+      log_path = (*logs_dir / "yaze.log").string();
+    }
+  }
+
+  yaze::util::LogManager::instance().configure(log_level, log_path,
                                                log_categories);
 
   // Enable console logging via feature flag if debug is enabled.
