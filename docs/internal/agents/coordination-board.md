@@ -1,5 +1,6 @@
-## Coordination Board
+# Coordination Board
 
+**STOP:** Before posting, verify your **Agent ID** in [personas.md](personas.md). Use only canonical IDs.
 **Guidelines:** Keep entries concise (<=5 lines). Archive completed work weekly. Target <=40 active entries.
 
 ### 2025-11-23 CODEX – v0.3.9 release rerun
@@ -32,6 +33,15 @@
 - SCOPE: dungeon editor rendering, overworld palette mapping/tests
 - STATUS: ACTIVE
 - NOTES: Visual defects reported; will run regression tests and patch palettes
+
+### 2025-11-23 ai-infra-architect – WASM Network Abstraction Layer
+- TASK: Implement network abstraction layer for WASM support (Phase 1)
+- SCOPE: src/app/net/http_client.h, websocket_interface.h, network_factory.{h,cc}, native/wasm implementations
+- STATUS: COMPLETE
+- NOTES: Abstract interfaces created for HTTP/WebSocket. Native implementations done. WASM stubs ready for testing.
+- FILES: http_client.h, websocket_interface.h, network_factory.{h,cc}, native/{httplib_client,httplib_websocket}.{h,cc}, wasm/{emscripten_http_client,emscripten_websocket}.{h,cc}
+
+---
 
 ### 2025-11-23 COORDINATOR - v0.4.0 Initiative Launch
 - TASK: Launch YAZE v0.4.0 Development Initiative
@@ -69,7 +79,7 @@
 
 ---
 
-### 2025-11-23 CLAUDE_AIINF - Semantic Inspection API
+### 2025-11-23 ai-infra-architect - Semantic Inspection API
 - TASK: Implement Semantic Inspection API Phase 1 for AI agents
 - SCOPE: src/app/emu/debug/semantic_introspection.{h,cc}
 - STATUS: COMPLETE
@@ -77,7 +87,7 @@
 
 ---
 
-### 2025-11-23 CLAUDE_CORE – SDL3 Backend Infrastructure
+### 2025-11-23 imgui-frontend-engineer – SDL3 Backend Infrastructure
 - TASK: Implement SDL3 backend infrastructure for v0.4.0 migration
 - SCOPE: src/app/platform/, src/app/emu/audio/, src/app/emu/input/, src/app/gfx/backend/
 - STATUS: COMPLETE (commit a5dc884612)
@@ -85,7 +95,7 @@
 
 ---
 
-### 2025-11-22 CLAUDE_CORE - CI Optimization
+### 2025-11-22 backend-infra-engineer - CI Optimization
 - TASK: Optimize CI for lean PR/push runs with comprehensive nightly testing
 - SCOPE: .github/workflows/ci.yml, nightly.yml
 - STATUS: COMPLETE
@@ -93,7 +103,7 @@
 
 ---
 
-### 2025-11-22 CLAUDE_AIINF - Test Suite Gating
+### 2025-11-22 test-infrastructure-expert - Test Suite Gating
 - TASK: Gate optional test suites OFF by default (Test Slimdown Initiative)
 - SCOPE: cmake/options.cmake, test/CMakeLists.txt
 - STATUS: COMPLETE
@@ -101,7 +111,7 @@
 
 ---
 
-### 2025-11-22 CLAUDE_AIINF - FileSystemTool
+### 2025-11-22 ai-infra-architect - FileSystemTool
 - TASK: Implement FileSystemTool for AI agents (Milestone 4, Phase 3)
 - SCOPE: src/cli/service/agent/tools/filesystem_tool.{h,cc}
 - STATUS: COMPLETE
@@ -113,14 +123,3 @@
 
 Historical entries from 2025-11-20 to 2025-11-22 have been archived to:
 `docs/internal/agents/archive/coordination-board-2025-11-20-to-22.md`
-
-**Archived content includes:**
-- 35+ "keep-chatting" morale rounds (Lightning Tips, bingo, haiku challenges)
-- Agent onboarding sessions (GEMINI_FLASH_AUTOM, CODEX)
-- AI-Powered Test Generation PoC research
-- Real-Time Emulator Integration research
-- gRPC/Linux build hang resolution
-- Windows build workflow fixes
-- Friendly rivalry documentation sprints
-
-All key achievements are documented in respective feature/research documents.

@@ -2,6 +2,18 @@
 
 This guide provides **explicit, step-by-step** instructions for building and testing the YAZE project. Follow these commands exactly as written.
 
+## ⚠️ CRITICAL AGENT RULES ⚠️
+
+**1. STRICT SEPARATION:** You must **NEVER** use the default `build/` directory or the standard `*-dbg` presets for your own tasks. These are reserved for the user.
+**2. USE YOUR DIRECTORY:** Always use the `build_ai` directory. The `*-ai` presets in `CMakePresets.json` have been configured to enforce this.
+**3. USE THE SCRIPT:** The most robust way to build is to use the helper script:
+   ```bash
+   ./scripts/agent_build.sh [target]
+   ```
+   *Example:* `./scripts/agent_build.sh yaze` or `./scripts/agent_build.sh yaze_test`
+
+---
+
 ## Quick Reference: Build Times
 
 **First Build (Cold Start)**:
