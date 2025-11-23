@@ -346,6 +346,7 @@
       "inherits": "windows-base",
       "displayName": "Windows AI Development",
       "description": "Full development build with AI features and gRPC",
+      "binaryDir": "${sourceDir}/build_ai",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
         "YAZE_BUILD_TESTS": "ON",
@@ -447,6 +448,7 @@
       "inherits": "windows-vs-base",
       "displayName": "Windows AI Development (Visual Studio)",
       "description": "Full development build with AI features for Visual Studio",
+      "binaryDir": "${sourceDir}/build_ai",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
         "YAZE_BUILD_TESTS": "ON",
@@ -538,6 +540,7 @@
       "inherits": "mac-base",
       "displayName": "macOS AI Development",
       "description": "Full development build with AI features and gRPC",
+      "binaryDir": "${sourceDir}/build_ai",
       "condition": {
         "type": "equals",
         "lhs": "${hostSystemName}",
@@ -723,6 +726,7 @@
       "inherits": "base",
       "displayName": "Linux AI Development",
       "description": "Full development build with AI features and gRPC",
+      "binaryDir": "${sourceDir}/build_ai",
       "condition": {
         "type": "equals",
         "lhs": "${hostSystemName}",
