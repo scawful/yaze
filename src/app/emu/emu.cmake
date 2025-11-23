@@ -55,6 +55,8 @@ if(YAZE_BUILD_EMU AND NOT YAZE_MINIMAL_BUILD)
   )
   target_link_libraries(yaze_emu_test PRIVATE
     yaze_emulator
+    yaze_editor
+    yaze_gui
     yaze_util
     absl::flags
     absl::flags_parse
