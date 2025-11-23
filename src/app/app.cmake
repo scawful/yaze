@@ -58,6 +58,13 @@ target_include_directories(yaze PUBLIC
 target_sources(yaze PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/yaze_config.h)
 set_source_files_properties(${CMAKE_CURRENT_BINARY_DIR}/yaze_config.h PROPERTIES GENERATED TRUE)
 
+# Add SDL version compile definitions
+if(YAZE_USE_SDL3)
+  target_compile_definitions(yaze PRIVATE YAZE_SDL3=1)
+else()
+  target_compile_definitions(yaze PRIVATE YAZE_SDL2=1)
+endif()
+
 # Link modular libraries
 target_link_libraries(yaze PRIVATE
   yaze_editor

@@ -35,6 +35,12 @@ set(
   app/emu/video/ppu.cc
 )
 
+# Add SDL3-specific backends when SDL3 is enabled
+if(YAZE_USE_SDL3)
+  list(APPEND YAZE_APP_EMU_SRC app/emu/input/sdl3_input_backend.cc)
+  list(APPEND YAZE_APP_EMU_SRC app/emu/audio/sdl3_audio_backend.cc)
+endif()
+
 # Define resource files for bundling
 set(YAZE_RESOURCE_FILES
   ${CMAKE_SOURCE_DIR}/assets/font/Karla-Regular.ttf

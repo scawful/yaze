@@ -9,6 +9,10 @@
 
 #include "util/log.h"
 
+#ifdef YAZE_USE_SDL3
+#include "app/emu/audio/sdl3_audio_backend.h"
+#endif
+
 namespace yaze {
 namespace emu {
 namespace audio {
@@ -334,6 +338,14 @@ std::unique_ptr<IAudioBackend> AudioBackendFactory::Create(BackendType type) {
   switch (type) {
     case BackendType::SDL2:
       return std::make_unique<SDL2AudioBackend>();
+
+    case BackendType::SDL3:
+#ifdef YAZE_USE_SDL3
+      return std::make_unique<SDL3AudioBackend>();
+#else
+      LOG_ERROR("AudioBackend", "SDL3 backend requested but not compiled with SDL3 support");
+      return std::make_unique<SDL2AudioBackend>();
+#endif
 
     case BackendType::NULL_BACKEND:
       // TODO: Implement null backend for testing
