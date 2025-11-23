@@ -318,11 +318,12 @@ void MessageEditor::DrawExpandedMessageSettings() {
   ImGui::BeginChild("##ExpandedMessageSettings", ImVec2(0, 100), true,
                     ImGuiWindowFlags_AlwaysVerticalScrollbar);
   ImGui::Text("Expanded Messages");
-  static std::string expanded_message_path = "";
+  
   if (ImGui::Button("Load Expanded Message")) {
-    expanded_message_path = util::FileDialogWrapper::ShowOpenFileDialog();
-    if (!expanded_message_path.empty()) {
-      if (!LoadExpandedMessages(expanded_message_path, parsed_messages_,
+    std::string path = util::FileDialogWrapper::ShowOpenFileDialog();
+    if (!path.empty()) {
+      expanded_message_path_ = path;
+      if (!LoadExpandedMessages(expanded_message_path_, parsed_messages_,
                                 expanded_messages_,
                                 message_preview_.all_dictionaries_)
                .ok()) {
@@ -334,7 +335,7 @@ void MessageEditor::DrawExpandedMessageSettings() {
   }
 
   if (expanded_messages_.size() > 0) {
-    ImGui::Text("Expanded Path: %s", expanded_message_path.c_str());
+    ImGui::Text("Expanded Path: %s", expanded_message_path_.c_str());
     ImGui::Text("Expanded Messages: %lu", expanded_messages_.size());
     if (ImGui::Button("Add New Message")) {
       MessageData new_message;
@@ -343,8 +344,31 @@ void MessageEditor::DrawExpandedMessageSettings() {
                             expanded_messages_.back().Data.size();
       expanded_messages_.push_back(new_message);
     }
+    
     if (ImGui::Button("Save Expanded Messages")) {
-      PRINT_IF_ERROR(SaveExpandedMessages());
+      if (expanded_message_path_.empty()) {
+        expanded_message_path_ = util::FileDialogWrapper::ShowSaveFileDialog();
+      }
+      if (!expanded_message_path_.empty()) {
+        PRINT_IF_ERROR(SaveExpandedMessages());
+      }
+    }
+
+    ImGui::SameLine();
+    if (ImGui::Button("Save As...")) {
+      std::string path = util::FileDialogWrapper::ShowSaveFileDialog();
+      if (!path.empty()) {
+        expanded_message_path_ = path;
+        PRINT_IF_ERROR(SaveExpandedMessages());
+      }
+    }
+
+    ImGui::SameLine();
+    if (ImGui::Button("Export to JSON")) {
+      std::string path = util::FileDialogWrapper::ShowSaveFileDialog();
+      if (!path.empty()) {
+        PRINT_IF_ERROR(ExportMessagesToJson(path, expanded_messages_));
+      }
     }
   }
 
@@ -495,13 +519,52 @@ absl::Status MessageEditor::Save() {
 }
 
 absl::Status MessageEditor::SaveExpandedMessages() {
+  if (expanded_message_path_.empty()) {
+    return absl::InvalidArgumentError("No path specified for expanded messages");
+  }
+  
+  // Ensure the ROM object is loaded/initialized if needed, or just use it as a buffer
+  // The original code used expanded_message_bin_ which wasn't clearly initialized in this scope
+  // except potentially in LoadExpandedMessages via a static local? 
+  // Wait, LoadExpandedMessages used a static local Rom. 
+  // We need to ensure expanded_message_bin_ member is populated or we load it.
+  
+  if (!expanded_message_bin_.is_loaded()) {
+     // Try to load from the path if it exists, otherwise create new?
+     // For now, let's assume we are overwriting or updating.
+     // If we are just writing raw data, maybe we don't need a full ROM load if we just write bytes?
+     // But SaveToFile expects a loaded ROM structure.
+     // Let's try to load it first.
+     auto status = expanded_message_bin_.LoadFromFile(expanded_message_path_, false);
+     if (!status.ok()) {
+         // If file doesn't exist, maybe we should create a buffer?
+         // For now, let's propagate error if we can't load it to update it.
+         // Or if it's a new file, we might need to handle that.
+         // Let's assume for this task we are updating an existing BIN or creating one.
+         // If creating, we might need to initialize expanded_message_bin_ with enough size.
+         // Let's just try to load, and if it fails (e.g. new file), initialize empty.
+         expanded_message_bin_.Expand(0x200000); // Default 2MB? Or just enough?
+     }
+  }
+
   for (const auto& expanded_message : expanded_messages_) {
+    // Ensure vector is large enough
+    if (expanded_message.Address + expanded_message.Data.size() > expanded_message_bin_.size()) {
+        expanded_message_bin_.Expand(expanded_message.Address + expanded_message.Data.size() + 0x1000);
+    }
     std::copy(expanded_message.Data.begin(), expanded_message.Data.end(),
               expanded_message_bin_.mutable_data() + expanded_message.Address);
   }
-  RETURN_IF_ERROR(expanded_message_bin_.WriteByte(
-      expanded_messages_.back().Address + expanded_messages_.back().Data.size(),
-      0xFF));
+  
+  // Write terminator
+  if (!expanded_messages_.empty()) {
+      size_t end_pos = expanded_messages_.back().Address + expanded_messages_.back().Data.size();
+      if (end_pos < expanded_message_bin_.size()) {
+          expanded_message_bin_.WriteByte(end_pos, 0xFF);
+      }
+  }
+
+  expanded_message_bin_.set_filename(expanded_message_path_);
   RETURN_IF_ERROR(expanded_message_bin_.SaveToFile(
       Rom::SaveSettings{.backup = true, .save_new = false, .z3_save = false}));
   return absl::OkStatus();

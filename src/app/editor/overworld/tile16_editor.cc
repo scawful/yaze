@@ -32,16 +32,18 @@ absl::Status Tile16Editor::Initialize(
   current_gfx_bmp_.Create(current_gfx_bmp.width(), current_gfx_bmp.height(),
                           current_gfx_bmp.depth(), current_gfx_bmp.vector());
   current_gfx_bmp_.SetPalette(current_gfx_bmp.palette());  // Temporary palette
-  // TODO: Queue texture for later rendering.
-  // core::Renderer::Get().RenderBitmap(&current_gfx_bmp_);
+  // Queue texture for later rendering.
+  gfx::Arena::Get().QueueTextureCommand(gfx::Arena::TextureCommandType::CREATE,
+                                        &current_gfx_bmp_);
 
   // Copy the tile16 blockset bitmap
   tile16_blockset_bmp_.Create(
       tile16_blockset_bmp.width(), tile16_blockset_bmp.height(),
       tile16_blockset_bmp.depth(), tile16_blockset_bmp.vector());
   tile16_blockset_bmp_.SetPalette(tile16_blockset_bmp.palette());
-  // TODO: Queue texture for later rendering.
-  // core::Renderer::Get().RenderBitmap(&tile16_blockset_bmp_);
+  // Queue texture for later rendering.
+  gfx::Arena::Get().QueueTextureCommand(gfx::Arena::TextureCommandType::CREATE,
+                                        &tile16_blockset_bmp_);
 
   // Note: LoadTile8() will be called after palette is set by overworld editor
   // This ensures proper palette coordination from the start
@@ -50,8 +52,9 @@ absl::Status Tile16Editor::Initialize(
   current_tile16_bmp_.Create(kTile16Size, kTile16Size, 8,
                              std::vector<uint8_t>(kTile16PixelCount, 0));
   current_tile16_bmp_.SetPalette(tile16_blockset_bmp.palette());
-  // TODO: Queue texture for later rendering.
-  // core::Renderer::Get().RenderBitmap(&current_tile16_bmp_);
+  // Queue texture for later rendering.
+  gfx::Arena::Get().QueueTextureCommand(gfx::Arena::TextureCommandType::CREATE,
+                                        &current_tile16_bmp_);
 
   // Initialize enhanced canvas features with proper sizing
   tile16_edit_canvas_.InitializeDefaults();
@@ -1365,15 +1368,29 @@ absl::Status Tile16Editor::SetCurrentTile(int tile_id) {
     display_palette = rom()->palette_group().overworld_main[0];
   }
 
-  // Calculate palette offset: use sheet 0 (main blockset) as default for tile16
-  // palette_base * 16 gives the row offset, current_palette_ * 8 gives
-  // sub-palette
-  int palette_base = GetPaletteBaseForSheet(0);  // Default to main blockset
-  size_t palette_offset = (palette_base * 16) + (current_palette_ * 8);
+  // CRITICAL FIX: Validate palette before attempting to use it
+  if (!display_palette.empty()) {
+    // Calculate palette offset: use sheet 0 (main blockset) as default for tile16
+    // palette_base * 16 gives the row offset, current_palette_ * 8 gives
+    // sub-palette
+    int palette_base = GetPaletteBaseForSheet(0);  // Default to main blockset
+    size_t palette_offset = (palette_base * 16) + (current_palette_ * 8);
 
-  // Apply the correct sub-palette with transparency
-  current_tile16_bmp_.SetPaletteWithTransparent(display_palette, palette_offset,
-                                                7);
+    // Ensure the palette offset is within bounds
+    if (palette_offset + 7 <= display_palette.size()) {
+      // Apply the correct sub-palette with transparency
+      current_tile16_bmp_.SetPaletteWithTransparent(display_palette, palette_offset,
+                                                    7);
+    } else {
+      // Fallback: use offset 0 if calculated offset exceeds palette size
+      util::logf("Warning: palette offset %zu exceeds palette size %zu, using offset 0",
+                 palette_offset, display_palette.size());
+      current_tile16_bmp_.SetPaletteWithTransparent(display_palette, 0, 
+                                                    std::min(7, static_cast<int>(display_palette.size() - 1)));
+    }
+  } else {
+    util::logf("Warning: No valid palette available for Tile16 %d, skipping palette setup", tile_id);
+  }
 
   // Queue texture creation via Arena's deferred system
   gfx::Arena::Get().QueueTextureCommand(gfx::Arena::TextureCommandType::CREATE,

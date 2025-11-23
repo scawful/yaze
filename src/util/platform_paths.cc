@@ -45,6 +45,9 @@ std::filesystem::path PlatformPaths::GetHomeDirectory() {
       return temp;
     }
     return std::filesystem::path(".");
+#elif defined(__EMSCRIPTEN__)
+    // Emscripten: Use standard home
+    return std::filesystem::path("/home/web_user");
 #else
     // Unix/macOS: Use HOME environment variable
     const char* home = std::getenv("HOME");
@@ -90,6 +93,11 @@ absl::StatusOr<std::filesystem::path> PlatformPaths::GetAppDataDirectory() {
   if (!status.ok()) {
     return status;
   }
+  return app_data;
+#elif defined(__EMSCRIPTEN__)
+  // Emscripten: Use /saves for persistent data (mounted IDBFS)
+  std::filesystem::path app_data("/saves");
+  // We assume the mount point exists or will be created by initialization
   return app_data;
 #else
   // Unix/macOS: Use ~/.yaze for simplicity and consistency

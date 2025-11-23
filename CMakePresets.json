@@ -71,6 +71,20 @@
       }
     },
     {
+      "name": "mac-base",
+      "hidden": true,
+      "description": "Base macOS preset with Homebrew toolchain visibility",
+      "inherits": "base",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
+      },
+      "environment": {
+        "PATH": "$env{HOMEBREW_PREFIX}/bin:/opt/homebrew/bin:/usr/local/bin:$penv{PATH}"
+      }
+    },
+    {
       "name": "dev",
       "inherits": "base",
       "displayName": "Developer Build",
@@ -128,6 +142,29 @@
       }
     },
     {
+      "name": "wasm-release",
+      "inherits": "base",
+      "displayName": "Web Assembly Release",
+      "description": "Emscripten build for Web Assembly",
+      "generator": "Ninja",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_CXX_STANDARD": "20",
+        "YAZE_BUILD_TESTS": "OFF",
+        "YAZE_ENABLE_GRPC": "OFF",
+        "YAZE_ENABLE_JSON": "ON",
+        "YAZE_ENABLE_AI": "OFF",
+        "YAZE_ENABLE_NFD": "OFF",
+        "YAZE_BUILD_AGENT_UI": "OFF",
+        "YAZE_ENABLE_REMOTE_AUTOMATION": "OFF",
+        "YAZE_ENABLE_AI_RUNTIME": "OFF",
+        "YAZE_WITH_IMGUI": "ON",
+        "YAZE_WITH_SDL": "ON",
+        "CMAKE_CXX_FLAGS": "-s USE_SDL=2 -s USE_FREETYPE=1 -s ALLOW_MEMORY_GROWTH=1 --preload-file assets@/assets --shell-file src/web/shell.html",
+        "CMAKE_EXE_LINKER_FLAGS": "-s USE_SDL=2 -s USE_FREETYPE=1 -s ALLOW_MEMORY_GROWTH=1 --preload-file assets@/assets --shell-file src/web/shell.html"
+      }
+    },
+    {
       "name": "ci-linux",
       "inherits": "base",
       "displayName": "CI Build - Linux",
@@ -147,7 +184,7 @@
     },
     {
       "name": "ci-macos",
-      "inherits": "base",
+      "inherits": "mac-base",
       "displayName": "CI Build - macOS",
       "description": "CI build with gRPC enabled (uses caching for speed)",
       "cacheVariables": {
@@ -411,7 +448,7 @@
     },
     {
       "name": "mac-dbg",
-      "inherits": "base",
+      "inherits": "mac-base",
       "displayName": "macOS Debug",
       "description": "Debug build for macOS",
       "condition": {
@@ -436,12 +473,12 @@
       "displayName": "macOS Debug Verbose",
       "description": "Debug build with verbose warnings",
       "cacheVariables": {
-        "YAZE_SUPPRESS_WARNINGS": "OFF"
+        "CMAKE_SUPPRESS_WARNINGS": "OFF"
       }
     },
     {
       "name": "mac-rel",
-      "inherits": "base",
+      "inherits": "mac-base",
       "displayName": "macOS Release",
       "description": "Release build for macOS",
       "condition": {
@@ -463,7 +500,7 @@
     },
     {
       "name": "mac-dev",
-      "inherits": "base",
+      "inherits": "mac-base",
       "displayName": "macOS Development",
       "description": "Development build with ROM tests",
       "condition": {
@@ -485,7 +522,7 @@
     },
     {
       "name": "mac-ai",
-      "inherits": "base",
+      "inherits": "mac-base",
       "displayName": "macOS AI Development",
       "description": "Full development build with AI features and gRPC",
       "condition": {
@@ -507,7 +544,7 @@
     },
     {
       "name": "mac-ai-fast",
-      "inherits": "base",
+      "inherits": "mac-base",
       "displayName": "macOS AI Development (Fast - System gRPC)",
       "description": "Fast AI development build using Homebrew gRPC/protobuf (brew install grpc protobuf abseil)",
       "binaryDir": "${sourceDir}/build_fast",
@@ -531,7 +568,7 @@
     },
     {
       "name": "mac-uni",
-      "inherits": "base",
+      "inherits": "mac-base",
       "displayName": "macOS Universal Binary",
       "description": "Universal binary for macOS (ARM64 + x86_64)",
       "condition": {
@@ -714,6 +751,12 @@
       "name": "minimal",
       "configurePreset": "minimal",
       "displayName": "Minimal Build",
+      "jobs": 12
+    },
+    {
+      "name": "wasm-release",
+      "configurePreset": "wasm-release",
+      "displayName": "Web Assembly Release",
       "jobs": 12
     },
     {
