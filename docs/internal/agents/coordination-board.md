@@ -85,6 +85,17 @@
 - STATUS: COMPLETE
 - NOTES: Game state JSON serialization for AI agents. Phase 1 MVP complete.
 
+### 2025-11-23 backend-infra-engineer – WASM Platform Layer (Phases 1-3)
+- TASK: Implement WASM platform infrastructure for browser-based yaze
+- SCOPE: src/app/platform/wasm/, src/web/, src/app/app_core.cmake
+- STATUS: COMPLETE
+- NOTES:
+  - Phase 1: File system layer (wasm_storage, wasm_file_dialog) with IndexedDB
+  - Phase 2: Error handling (wasm_error_handler) with browser UI integration
+  - Phase 3: Progressive loading (wasm_loading_manager) with cancellation
+  - Web resources: error_handler.js/css, loading_indicator.js/css
+- FILES: wasm_{storage,file_dialog,error_handler,loading_manager}.{h,cc}
+
 ---
 
 ### 2025-11-23 imgui-frontend-engineer – SDL3 Backend Infrastructure

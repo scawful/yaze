@@ -1,0 +1,305 @@
+#ifdef __EMSCRIPTEN__
+
+#include "app/platform/wasm/wasm_error_handler.h"
+
+#include <emscripten.h>
+#include <emscripten/html5.h>
+#include <map>
+#include <mutex>
+
+namespace yaze {
+namespace platform {
+
+// Static member initialization
+bool WasmErrorHandler::initialized_ = false;
+int WasmErrorHandler::callback_counter_ = 0;
+
+// Store confirmation callbacks
+static std::map<int, std::function<void(bool)>> g_confirm_callbacks;
+static std::mutex g_callback_mutex;
+
+// JavaScript functions for browser UI interaction
+EM_JS(void, js_show_modal,
+      (const char* title, const char* message, const char* type), {
+        const titleStr = UTF8ToString(title);
+        const messageStr = UTF8ToString(message);
+        const typeStr = UTF8ToString(type);
+
+        if (typeof window.showYazeModal == = 'function') {
+          window.showYazeModal(titleStr, messageStr, typeStr);
+        } else {
+          // Fallback to alert if custom modal not available
+          alert(titleStr + '\n\n' + messageStr);
+        }
+      });
+
+EM_JS(void, js_show_toast,
+      (const char* message, const char* type, int duration_ms), {
+        const messageStr = UTF8ToString(message);
+        const typeStr = UTF8ToString(type);
+
+        if (typeof window.showYazeToast == = 'function') {
+          window.showYazeToast(messageStr, typeStr, duration_ms);
+        } else {
+          // Fallback to console if toast not available
+          console.log('[' + typeStr + '] ' + messageStr);
+        }
+      });
+
+EM_JS(void, js_show_progress, (const char* task, float progress), {
+  const taskStr = UTF8ToString(task);
+
+  if (typeof window.showYazeProgress == = 'function') {
+    window.showYazeProgress(taskStr, progress);
+  } else {
+    // Fallback to console
+    console.log('Progress: ' + taskStr + ' - ' + (progress * 100).toFixed(0) +
+                '%');
+  }
+});
+
+EM_JS(void, js_hide_progress, (), {
+  if (typeof window.hideYazeProgress == = 'function') {
+    window.hideYazeProgress();
+  }
+});
+
+EM_JS(void, js_show_confirm, (const char* message, int callback_id), {
+  const messageStr = UTF8ToString(message);
+
+  if (typeof window.showYazeConfirm == = 'function') {
+    window.showYazeConfirm(
+        messageStr, function(result) {
+          // Call back into C++ with the result
+          Module._handleConfirmCallback(callback_id, result ? 1 : 0);
+        });
+  } else {
+    // Fallback to browser confirm
+    const result = confirm(messageStr);
+    Module._handleConfirmCallback(callback_id, result ? 1 : 0);
+  }
+});
+
+EM_JS(void, js_inject_styles, (), {
+  // Check if styles already injected
+  if (document.getElementById('yaze-error-handler-styles')) {
+    return;
+  }
+
+  // Create style element
+  const style = document.createElement('style');
+  style.id = 'yaze-error-handler-styles';
+
+  // Load external CSS if available, otherwise inject minimal inline styles
+  const link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.href = 'error_handler.css';
+  link.onerror = function() {
+    // If external CSS fails, use inline styles
+    style.textContent = `
+                            /* Minimal fallback styles */
+                            .yaze -
+                        modal - overlay {
+    position:
+      fixed;
+    top:
+      0;
+    left:
+      0;
+    right:
+      0;
+    bottom:
+      0;
+    background:
+      rgba(0, 0, 0, 0.5);
+    display:
+      flex;
+      align - items : center;
+      justify - content : center;
+      z - index : 10000;
+    }
+    .yaze - modal - content {
+    background:
+      white;
+      border - radius : 8px;
+    padding:
+      24px;
+      max - width : 500px;
+      box - shadow : 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .yaze - toast {
+    position:
+      fixed;
+    bottom:
+      20px;
+    right:
+      20px;
+    padding:
+      12px 20px;
+      border - radius : 4px;
+    color:
+      white;
+      z - index : 10001;
+    animation:
+      slideIn 0.3s ease;
+    }
+    .yaze - toast - info {
+    background:
+# 3498db;
+    }
+    .yaze - toast - success {
+    background:
+# 2ecc71;
+    }
+    .yaze - toast - warning {
+    background:
+#f39c12;
+    }
+    .yaze - toast - error {
+    background:
+#e74c3c;
+    }
+    @keyframes slideIn {
+      from {
+      transform:
+        translateX(100 %);
+      opacity:
+        0;
+      }
+      to {
+      transform:
+        translateX(0);
+      opacity:
+        1;
+      }
+    }
+    `;
+    document.head.appendChild(style);
+  };
+
+  document.head.appendChild(link);
+});
+
+// C++ callback handler for confirmation dialogs
+extern "C" EMSCRIPTEN_KEEPALIVE void handleConfirmCallback(int callback_id,
+                                                           int result) {
+  std::lock_guard<std::mutex> lock(g_callback_mutex);
+
+  auto it = g_confirm_callbacks.find(callback_id);
+  if (it != g_confirm_callbacks.end()) {
+    auto callback = it->second;
+    g_confirm_callbacks.erase(it);
+
+    // Call the callback with the result
+    callback(result != 0);
+  }
+}
+
+void WasmErrorHandler::Initialize() {
+  if (initialized_) {
+    return;
+  }
+
+  // Inject styles
+  js_inject_styles();
+
+  // Export the C++ callback handler to JavaScript
+  EM_ASM({
+    Module._handleConfirmCallback =
+        Module.cwrap('handleConfirmCallback', null, ['number', 'number']);
+  });
+
+  initialized_ = true;
+}
+
+void WasmErrorHandler::ShowError(const std::string& title,
+                                 const std::string& message) {
+  if (!initialized_) {
+    Initialize();
+  }
+  js_show_modal(title.c_str(), message.c_str(), "error");
+}
+
+void WasmErrorHandler::ShowWarning(const std::string& title,
+                                   const std::string& message) {
+  if (!initialized_) {
+    Initialize();
+  }
+  js_show_modal(title.c_str(), message.c_str(), "warning");
+}
+
+void WasmErrorHandler::ShowInfo(const std::string& title,
+                                const std::string& message) {
+  if (!initialized_) {
+    Initialize();
+  }
+  js_show_modal(title.c_str(), message.c_str(), "info");
+}
+
+void WasmErrorHandler::Toast(const std::string& message, ToastType type,
+                             int duration_ms) {
+  if (!initialized_) {
+    Initialize();
+  }
+
+  const char* type_str = "info";
+  switch (type) {
+    case ToastType::kSuccess:
+      type_str = "success";
+      break;
+    case ToastType::kWarning:
+      type_str = "warning";
+      break;
+    case ToastType::kError:
+      type_str = "error";
+      break;
+    case ToastType::kInfo:
+    default:
+      type_str = "info";
+      break;
+  }
+
+  js_show_toast(message.c_str(), type_str, duration_ms);
+}
+
+void WasmErrorHandler::ShowProgress(const std::string& task, float progress) {
+  if (!initialized_) {
+    Initialize();
+  }
+
+  // Clamp progress to 0.0 - 1.0
+  if (progress < 0.0f)
+    progress = 0.0f;
+  if (progress > 1.0f)
+    progress = 1.0f;
+
+  js_show_progress(task.c_str(), progress);
+}
+
+void WasmErrorHandler::HideProgress() {
+  if (!initialized_) {
+    Initialize();
+  }
+  js_hide_progress();
+}
+
+void WasmErrorHandler::Confirm(const std::string& message,
+                               std::function<void(bool)> callback) {
+  if (!initialized_) {
+    Initialize();
+  }
+
+  // Store callback with unique ID
+  int callback_id = ++callback_counter_;
+  {
+    std::lock_guard<std::mutex> lock(g_callback_mutex);
+    g_confirm_callbacks[callback_id] = callback;
+  }
+
+  js_show_confirm(message.c_str(), callback_id);
+}
+
+}  // namespace platform
+}  // namespace yaze
+
+#endif  // __EMSCRIPTEN__
