@@ -8,7 +8,7 @@
 #include "app/controller.h"
 #include "cli/service/api/http_server.h"
 #include "core/features.h"
-#include "core/version.h"
+#include "yaze.h"
 #include "util/crash_handler.h"
 #include "util/flag.h"
 #include "util/log.h"
