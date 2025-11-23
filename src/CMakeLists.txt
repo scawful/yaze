@@ -75,7 +75,13 @@ add_subdirectory(core)
 
 # App-specific libraries
 include(app/gfx/gfx_library.cmake)
-include(app/net/net_library.cmake)
+
+# Only include net library for non-Emscripten builds
+# (contains dependencies on Threads, OpenSSL, gRPC that are incompatible with WASM)
+if(NOT EMSCRIPTEN)
+  include(app/net/net_library.cmake)
+endif()
+
 include(app/gui/gui_library.cmake)
 # NOTE: app/core/core_library.cmake merged into app/app.cmake
 

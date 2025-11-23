@@ -63,9 +63,13 @@ set(GUI_AUTOMATION_SRC
 # build_cleaner:auto-maintain
 set(GUI_APP_SRC
   app/gui/app/agent_chat_widget.cc
-  app/gui/app/collaboration_panel.cc
   app/gui/app/editor_layout.cc
 )
+
+# Collaboration panel requires network libraries not available in WASM
+if(NOT EMSCRIPTEN)
+  list(APPEND GUI_APP_SRC app/gui/app/collaboration_panel.cc)
+endif()
 
 # ==============================================================================
 # LIBRARY DEFINITIONS AND LINK STRUCTURE (manually configured)
@@ -122,7 +126,9 @@ endforeach()
 
 # 3. Create Aggregate INTERFACE library
 add_library(yaze_gui INTERFACE)
-target_link_libraries(yaze_gui INTERFACE
+
+# Base libraries that are always linked
+set(YAZE_GUI_INTERFACE_LIBS
   yaze_gui_core
   yaze_canvas
   yaze_gui_widgets
@@ -132,9 +138,16 @@ target_link_libraries(yaze_gui INTERFACE
   yaze_gfx
   yaze_util
   yaze_common
-  yaze_net
   ImGui
   ${YAZE_SDL2_TARGETS}
 )
+
+# Add yaze_net only for non-Emscripten builds
+# (yaze_net has dependencies on Threads, OpenSSL, and potentially gRPC that are incompatible with WASM)
+if(NOT EMSCRIPTEN)
+  list(APPEND YAZE_GUI_INTERFACE_LIBS yaze_net)
+endif()
+
+target_link_libraries(yaze_gui INTERFACE ${YAZE_GUI_INTERFACE_LIBS})
 
 message(STATUS "✓ yaze_gui library refactored and configured")
