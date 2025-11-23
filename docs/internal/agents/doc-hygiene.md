@@ -26,3 +26,4 @@ Purpose: keep `docs/internal` lean, discoverable, and aligned with active work. 
 - No gamified/leaderboard or duplicative status pages in `agents/`—keep status in the board and the canonical spec.
 - Prefer updating `docs/internal/README.md` or the nearest index with short summaries instead of creating new directories.
 - Cap new doc creation per initiative to one spec + one handoff; everything else belongs in comments/PRs or the board.
+- Filenames: avoid ALL-CAPS except established anchors (README, AGENTS, GEMINI, CLAUDE, CONTRIBUTING, etc.); use kebab-case for new docs.
