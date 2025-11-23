@@ -13,6 +13,11 @@ speculative without impacting the published docs.
 - `agents/` – includes the coordination board, personas, GH Actions remote guide, and helper scripts
   (`scripts/agents/`) for common agent workflows.
 
+## Doc hygiene
+- Keep a single canonical spec per initiative and link it from the coordination board.
+- Use `docs/internal/agents/doc-hygiene.md` for templates, review cadence, and archiving rules to avoid doc sprawl.
+- Archive completed/idle specs into the relevant `archive/` folder instead of leaving drafts at the root.
+
 When adding new internal docs, place them under the appropriate subdirectory here instead of
 `docs/`.
 

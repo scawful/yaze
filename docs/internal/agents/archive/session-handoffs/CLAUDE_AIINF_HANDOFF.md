@@ -48,7 +48,7 @@ Established three-agent team:
 - **Codex (CODEX)**: Documentation, coordination, QA, organization
 
 Files created:
-- `docs/internal/agents/agent-leaderboard.md` - Competitive tracking
+- `docs/internal/agents/archive/legacy-2025-11/agent-leaderboard-archived-2025-11-25.md` - Competitive tracking
 - `docs/internal/agents/claude-gemini-collaboration.md` - Collaboration framework
 - `docs/internal/agents/CODEX_ONBOARDING.md` - Codex welcome guide
 - `docs/internal/agents/coordination-board.md` - Updated with team assignments
@@ -156,7 +156,7 @@ Files created:
 
 ### Key Documents
 - **Coordination Board**: `docs/internal/agents/coordination-board.md`
-- **Leaderboard**: `docs/internal/agents/agent-leaderboard.md`
+- **Leaderboard**: `docs/internal/agents/archive/legacy-2025-11/agent-leaderboard-archived-2025-11-25.md`
 - **Collaboration Guide**: `docs/internal/agents/claude-gemini-collaboration.md`
 - **Testing Docs**: `docs/internal/testing/README.md`
 

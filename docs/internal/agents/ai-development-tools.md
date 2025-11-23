@@ -709,6 +709,6 @@ LOG_WARNING("Emulator",
 ## Related Documentation
 
 - **FileSystemTool**: `filesystem-tool.md`
-- **AI Infrastructure**: `ai-infrastructure-initiative.md`
+- **AI Infrastructure (archived)**: `archive/legacy-2025-11/ai-infrastructure-initiative-archived-2025-11-25.md`
 - **Agent Architecture**: `agent-architecture.md`
 - **Development Plan**: `../plans/ai-assisted-development-plan.md`
