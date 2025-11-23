@@ -506,6 +506,30 @@
       }
     },
     {
+      "name": "mac-ai-fast",
+      "inherits": "base",
+      "displayName": "macOS AI Development (Fast - System gRPC)",
+      "description": "Fast AI development build using Homebrew gRPC/protobuf (brew install grpc protobuf abseil)",
+      "binaryDir": "${sourceDir}/build_fast",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "YAZE_BUILD_TESTS": "ON",
+        "YAZE_ENABLE_GRPC": "ON",
+        "YAZE_ENABLE_JSON": "ON",
+        "YAZE_ENABLE_AI": "ON",
+        "YAZE_ENABLE_ROM_TESTS": "ON",
+        "YAZE_BUILD_AGENT_UI": "ON",
+        "YAZE_ENABLE_REMOTE_AUTOMATION": "ON",
+        "YAZE_ENABLE_AI_RUNTIME": "ON",
+        "YAZE_PREFER_SYSTEM_GRPC": "ON"
+      }
+    },
+    {
       "name": "mac-uni",
       "inherits": "base",
       "displayName": "macOS Universal Binary",
@@ -803,6 +827,13 @@
       "name": "mac-ai",
       "configurePreset": "mac-ai",
       "displayName": "macOS AI Development Build",
+      "configuration": "Debug",
+      "jobs": 12
+    },
+    {
+      "name": "mac-ai-fast",
+      "configurePreset": "mac-ai-fast",
+      "displayName": "macOS AI Fast Build (System gRPC)",
       "configuration": "Debug",
       "jobs": 12
     },
