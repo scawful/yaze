@@ -2,12 +2,11 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-> **Coordination Requirement**  
-> Before starting or handing off work, read and update the shared protocol in
-> [`docs/internal/agents/coordination-board.md`](docs/internal/agents/coordination-board.md) as
-> described in `AGENTS.md`. Always acknowledge pending `REQUEST`/`BLOCKER` entries addressed to the
-> Claude persona you are using (`CLAUDE_CORE`, `CLAUDE_AIINF`, or `CLAUDE_DOCS`). See
-> [`docs/internal/agents/personas.md`](docs/internal/agents/personas.md) for responsibilities.
+> **Coordination (Lightweight)**
+> For quick tasks (<30 min), skip the board and just commit with clear messages. For substantial
+> work, check [`docs/internal/agents/coordination-board.md`](docs/internal/agents/coordination-board.md)
+> for `REQUEST`/`BLOCKER` tags before editing shared subsystems. Post completion notes only for
+> significant features. See [`AGENTS.md`](AGENTS.md) for the full protocol.
 
 ## Project Overview
 

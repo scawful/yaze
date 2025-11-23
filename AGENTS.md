@@ -1,9 +1,15 @@
 ## Inter-Agent Protocol (Lean)
-1) **Read the board** (`docs/internal/agents/coordination-board.md`) before starting.
-2) **Log your intent** (task, scope, files) on the board with your agent ID.
-3) **Answer requests** tagged to your ID.
-4) **Record completion/handoff** with a short state note.
-5) For multi-day work, use `docs/internal/agents/initiative-template.md` and link it from your board entry.
+
+**Quick tasks (<30 min):** Skip the board. Just do the work and commit with a clear message.
+
+**Substantial work (>30 min or multi-file):**
+1) **Check for blockers** - Scan `docs/internal/agents/coordination-board.md` for `REQUEST`/`BLOCKER` tags
+2) **Claim if overlapping** - Only post if your work touches files another agent is actively editing
+3) **Record milestones** - Post completion notes for significant features (not routine fixes)
+
+**Multi-day initiatives:** Use `docs/internal/agents/initiative-template.md` to track progress separately from the board.
+
+**Board hygiene:** Keep entries concise (≤5 lines). Archive completed work weekly. Target ≤40 active entries.
 
 ## Agent IDs (shared with Oracle-of-Secrets/.claude/agents)
 Use these canonical IDs (scopes in `docs/internal/agents/personas.md` and `.claude/agents/*`):

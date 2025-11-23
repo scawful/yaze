@@ -49,6 +49,9 @@ class OverworldVersionHelper {
    * @return Detected overworld version
    */
   static OverworldVersion GetVersion(const Rom& rom) {
+    if (rom.size() <= OverworldCustomASMHasBeenApplied) {
+      return OverworldVersion::kVanilla;
+    }
     uint8_t asm_version = rom.data()[OverworldCustomASMHasBeenApplied];
 
     // 0xFF = vanilla ROM (no ZScream ASM applied)

@@ -440,7 +440,7 @@ void OverworldMap::SetupCustomTileset(uint8_t asm_version) {
                       (mosaicByte & 0x02) != 0x00, (mosaicByte & 0x01) != 0x00};
 
   // Load area size for v3
-  if (asm_version >= 3 && asm_version != 0xFF) {
+  if (OverworldVersionHelper::SupportsAreaEnum(OverworldVersionHelper::GetVersion(*rom_))) {
     uint8_t size_byte = (*rom_)[kOverworldScreenSize + index_];
     area_size_ = static_cast<AreaSizeEnum>(size_byte);
     large_map_ = (area_size_ == AreaSizeEnum::LargeArea);
@@ -593,12 +593,10 @@ void OverworldMap::LoadAreaGraphicsBlocksets() {
 // you were to make area 03 not a large area anymore for example, so you might
 // want to do the same.
 void OverworldMap::LoadDeathMountainGFX() {
-  static_graphics_[7] = (((parent_ >= 0x03 && parent_ <= 0x07) ||
-                          (parent_ >= 0x0B && parent_ <= 0x0E)) ||
-                         ((parent_ >= 0x43 && parent_ <= 0x47) ||
-                          (parent_ >= 0x4B && parent_ <= 0x4E)))
-                            ? 0x59
-                            : 0x5B;
+  // Match ZScream 3.0.4 behavior: only specific DM parents use animated GFX
+  const bool is_light_dm = (parent_ == 0x03 || parent_ == 0x05 || parent_ == 0x07);
+  const bool is_dark_dm = (parent_ == 0x43 || parent_ == 0x45 || parent_ == 0x47);
+  static_graphics_[7] = (is_light_dm || is_dark_dm) ? 0x59 : 0x5B;
 }
 
 void OverworldMap::LoadAreaGraphics() {
@@ -752,11 +750,12 @@ absl::Status OverworldMap::LoadPalette() {
 
   if (index_ > 0) {
     // Load previous palette ID based on ASM version
-    if (asm_version < 3 || asm_version == 0xFF) {
-      previous_pal_id = (*rom_)[kOverworldMapPaletteIds + parent_ - 1];
-    } else {
+    auto version = OverworldVersionHelper::GetVersion(*rom_);
+    if (OverworldVersionHelper::SupportsAreaEnum(version)) {
       // v3 uses expanded palette table
       previous_pal_id = (*rom_)[kOverworldPalettesScreenToSetNew + parent_ - 1];
+    } else {
+      previous_pal_id = (*rom_)[kOverworldMapPaletteIds + parent_ - 1];
     }
 
     previous_spr_pal_id = (*rom_)[kOverworldSpritePaletteIds + parent_ - 1];

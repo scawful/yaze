@@ -42,7 +42,16 @@ absl::Status DungeonEditorSystem::LoadDungeon(int dungeon_id) {
 }
 
 absl::Status DungeonEditorSystem::SaveDungeon() {
-  // TODO: Implement actual dungeon saving to ROM
+  if (!rom_) return absl::InvalidArgumentError("ROM is null");
+
+  // Iterate through all rooms to ensure global data (like sprites) is saved
+  for (int i = 0; i < NumberOfRooms; ++i) {
+    auto status = SaveRoomData(i);
+    if (!status.ok()) {
+      return status;
+    }
+  }
+
   editor_state_.is_dirty = false;
   editor_state_.last_save_time = std::chrono::steady_clock::now();
 
@@ -905,11 +914,31 @@ absl::Status DungeonEditorSystem::LoadRoomData(int room_id) {
 absl::Status DungeonEditorSystem::SaveRoomData(int room_id) {
   if (!rom_) return absl::InvalidArgumentError("ROM is null");
 
-  // Load room first to get pointers/metadata correct
-  Room room = LoadRoomFromRom(rom_, room_id);
+  // Check if this is the currently edited room in the ObjectEditor
+  bool is_current_editor_room = false;
+  if (object_editor_ && object_editor_->GetRoom().id() == room_id) {
+    is_current_editor_room = true;
+  }
+
+  // If it's the current room, we MUST use the editor's room object
+  // because it contains the unsaved object/tile changes.
+  // If it's not, we load from ROM (assuming objects haven't changed).
   
-  // 1. Save Sprites
-  room.GetSprites().clear();
+  std::unique_ptr<Room> room_ptr;
+  Room* room = nullptr;
+
+  if (is_current_editor_room) {
+    room = object_editor_->GetMutableRoom();
+  } else {
+    room_ptr = std::make_unique<Room>(LoadRoomFromRom(rom_, room_id));
+    room = room_ptr.get();
+  }
+
+  if (!room) return absl::InternalError("Failed to get Room object");
+
+  // 1. Sync Sprites from DungeonEditorSystem to Room
+  // We rebuild the room's sprite list from the system's source of truth
+  room->GetSprites().clear();
   for (const auto& [id, sprite_data] : sprites_) {
     auto room_id_it = sprite_data.properties.find("room_id");
     if (room_id_it != sprite_data.properties.end()) {
@@ -924,11 +953,21 @@ absl::Status DungeonEditorSystem::SaveRoomData(int room_id) {
     if (sprite_data.properties.count("subtype")) subtype = std::stoi(sprite_data.properties.at("subtype"));
 
     zelda3::Sprite z3_sprite(raw_id, sprite_data.x, sprite_data.y, subtype, sprite_data.layer);
-    room.GetSprites().push_back(z3_sprite);
+    room->GetSprites().push_back(z3_sprite);
   }
   
-  auto status = room.SaveSprites();
+  // 2. Save Sprites
+  auto status = room->SaveSprites();
   if (!status.ok()) return status;
+
+  // 3. Save Objects (Tiles)
+  // Only save objects if it's the current room (where we might have changes)
+  // or if we want to enforce a rewrite. For now, saving only if current
+  // avoids unnecessary ROM writes for unmodified rooms.
+  if (is_current_editor_room) {
+    status = room->SaveObjects();
+    if (!status.ok()) return status;
+  }
 
   return absl::OkStatus();
 }

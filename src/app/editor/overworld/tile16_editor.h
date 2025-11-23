@@ -118,6 +118,7 @@ class Tile16Editor : public gfx::GfxContext {
 
   // NEW: Core palette mapping methods for fixing color alignment
   int GetActualPaletteSlot(int palette_button, int sheet_index) const;
+  int GetPaletteBaseForSheet(int sheet_index) const;
   int GetSheetIndexForTile8(int tile8_id) const;
   int GetActualPaletteSlotForCurrentTile16() const;
 

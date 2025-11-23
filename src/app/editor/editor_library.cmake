@@ -126,7 +126,7 @@ endif()
 
 # Note: yaze_test_support linking is deferred to test.cmake to ensure proper ordering
 
-if(YAZE_WITH_JSON)
+if(YAZE_ENABLE_JSON)
   target_include_directories(yaze_editor PUBLIC
     ${CMAKE_SOURCE_DIR}/ext/json/include)
 
