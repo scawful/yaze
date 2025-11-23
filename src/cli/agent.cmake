@@ -138,10 +138,30 @@ set(_yaze_agent_link_targets
 )
 
 if(YAZE_ENABLE_AI_RUNTIME)
-  list(APPEND _yaze_agent_link_targets yaml-cpp)
+  # Prefer the consolidated yaml target so include paths propagate consistently
+  if(DEFINED YAZE_YAML_TARGETS AND NOT "${YAZE_YAML_TARGETS}" STREQUAL "")
+    list(APPEND _yaze_agent_link_targets ${YAZE_YAML_TARGETS})
+  else()
+    # Fallback in case dependency setup changes
+    list(APPEND _yaze_agent_link_targets yaml-cpp)
+  endif()
 endif()
 
 target_link_libraries(yaze_agent PUBLIC ${_yaze_agent_link_targets})
+
+# Ensure yaml-cpp include paths propagate even when using system packages
+if(YAZE_ENABLE_AI_RUNTIME)
+  set(_yaml_targets_to_check ${YAZE_YAML_TARGETS} yaml-cpp yaml-cpp::yaml-cpp)
+  foreach(_yaml_target IN LISTS _yaml_targets_to_check)
+    if(TARGET ${_yaml_target})
+      get_target_property(_yaml_inc ${_yaml_target} INTERFACE_INCLUDE_DIRECTORIES)
+      if(_yaml_inc)
+        target_include_directories(yaze_agent PUBLIC ${_yaml_inc})
+        break()
+      endif()
+    endif()
+  endforeach()
+endif()
 
 target_include_directories(yaze_agent
   PUBLIC

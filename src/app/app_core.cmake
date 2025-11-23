@@ -30,11 +30,19 @@ if(YAZE_USE_SDL3)
 endif()
 
 # Platform-specific sources
-if (WIN32 OR MINGW OR (UNIX AND NOT APPLE))
+if (WIN32 OR MINGW OR (UNIX AND NOT APPLE AND NOT EMSCRIPTEN))
   list(APPEND YAZE_APP_CORE_SRC
     app/platform/font_loader.cc
     app/platform/asset_loader.cc
     app/platform/file_dialog_nfd.cc  # NFD file dialog for Windows/Linux
+  )
+endif()
+
+if (EMSCRIPTEN)
+  list(APPEND YAZE_APP_CORE_SRC
+    app/platform/font_loader.cc
+    app/platform/asset_loader.cc
+    app/platform/file_dialog_web.cc
   )
 endif()
 
@@ -64,6 +72,13 @@ if(APPLE)
       ${CMAKE_SOURCE_DIR}/incl
       ${PROJECT_BINARY_DIR}
     )
+
+    if(YAZE_ENABLE_JSON)
+      target_include_directories(yaze_app_objcxx PUBLIC
+        ${CMAKE_SOURCE_DIR}/ext/json/include)
+      target_compile_definitions(yaze_app_objcxx PUBLIC YAZE_WITH_JSON)
+    endif()
+
     target_link_libraries(yaze_app_objcxx PUBLIC ${ABSL_TARGETS} yaze_util ${YAZE_SDL2_TARGETS})
     target_compile_definitions(yaze_app_objcxx PUBLIC MACOS)
 
@@ -89,10 +104,15 @@ target_include_directories(yaze_app_core_lib PUBLIC
   ${CMAKE_SOURCE_DIR}/src/app
   ${CMAKE_SOURCE_DIR}/ext
   ${CMAKE_SOURCE_DIR}/ext/imgui
+  ${CMAKE_SOURCE_DIR}/ext/json/include
   ${CMAKE_SOURCE_DIR}/incl
   ${SDL2_INCLUDE_DIR}
   ${PROJECT_BINARY_DIR}
 )
+
+if(YAZE_ENABLE_JSON)
+  target_compile_definitions(yaze_app_core_lib PUBLIC YAZE_WITH_JSON)
+endif()
 
 target_link_libraries(yaze_app_core_lib PUBLIC
   yaze_core_lib    # Foundational core library with project management
@@ -110,7 +130,7 @@ target_link_libraries(yaze_app_core_lib PUBLIC
 )
 
 # Link nativefiledialog-extended for Windows/Linux file dialogs
-if(WIN32 OR (UNIX AND NOT APPLE))
+if(WIN32 OR (UNIX AND NOT APPLE AND NOT EMSCRIPTEN))
   add_subdirectory(${CMAKE_SOURCE_DIR}/ext/nativefiledialog-extended ${CMAKE_BINARY_DIR}/nfd EXCLUDE_FROM_ALL)
   target_link_libraries(yaze_app_core_lib PUBLIC nfd)
   target_include_directories(yaze_app_core_lib PUBLIC ${CMAKE_SOURCE_DIR}/ext/nativefiledialog-extended/src/include)
@@ -121,7 +141,6 @@ if(YAZE_WITH_GRPC)
   target_include_directories(yaze_app_core_lib PRIVATE
     ${CMAKE_SOURCE_DIR}/ext/json/include)
   target_compile_definitions(yaze_app_core_lib PRIVATE YAZE_WITH_JSON)
-
   # Link to consolidated gRPC support library
   target_link_libraries(yaze_app_core_lib PUBLIC yaze_grpc_support)
   

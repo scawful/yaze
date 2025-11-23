@@ -73,7 +73,7 @@ struct SpriteItem {
   }
 };
 
-void DrawSpriteTable(std::function<void(int)> onSpriteSelect);
+void DrawSpriteTable(std::function<void(int)> onSpriteSelect, int& selected_id);
 void DrawSpriteInserterPopup();
 bool DrawSpriteEditorPopup(zelda3::Sprite& sprite);
 

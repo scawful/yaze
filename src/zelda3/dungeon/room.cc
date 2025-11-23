@@ -902,11 +902,23 @@ absl::Status Room::SaveObjects() {
     return absl::OutOfRangeError("Objects location out of range");
   }
 
+  // Calculate available space
+  RoomSize room_size_info = CalculateRoomSize(rom_, room_id_);
+  int available_size = room_size_info.room_size;
+
   // Skip graphics/layout header (2 bytes)
   int write_pos = objects_location + 2;
 
   // Encode all objects
   auto encoded_bytes = EncodeObjects();
+
+  // VALIDATION: Check if new data fits in available space
+  // We subtract 2 bytes for the header which is not part of encoded_bytes
+  if (encoded_bytes.size() > available_size - 2) {
+    return absl::OutOfRangeError(absl::StrFormat(
+        "Room %d object data too large! Size: %d, Available: %d", room_id_,
+        encoded_bytes.size(), available_size - 2));
+  }
 
   // Write encoded bytes to ROM using WriteVector
   return rom_->WriteVector(write_pos, encoded_bytes);
@@ -941,26 +953,49 @@ absl::Status Room::SaveSprites() {
     return absl::OutOfRangeError("Sprite address out of range");
   }
 
-  // Handle sortsprites byte (skip if present)
-  // Logic from LoadSprites: if rom_data[sprite_address] == 1, skip
-  if (rom_data[sprite_address] == 1) {
-    // But wait, if we are writing, we should probably preserve or write this byte.
-    // For now, let's assume we write after it if it exists.
-    // However, if we rewrite the whole list, we might overflow if we are not careful.
-    // For this simplified implementation, we'll assume in-place overwrite
-    // and respect the existing flag if it's there?
-    // Actually, let's just skip it for writing too if it's 1.
-    // CAUTION: Writing data might exceed original space.
-    // A proper implementation would use a reallocation system (like Asar or a free space manager).
-    // Here we assume strict overwrite/same size or less for safety, or just write.
-    // Since yaze currently doesn't have a space manager, we must be careful.
-    // TODO: Add size check?
+  // Calculate available space for sprites
+  // Check next room's sprite pointer
+  int next_sprite_address_snes =
+      (0x09 << 16) + (rom_data[sprite_pointer + ((room_id_ + 1) * 2) + 1] << 8) +
+      rom_data[sprite_pointer + ((room_id_ + 1) * 2)];
+  
+  int next_sprite_address = SnesToPc(next_sprite_address_snes);
+  
+  // Handle wrap-around or end of bank if needed, but usually sequential
+  int available_size = next_sprite_address - sprite_address;
+  
+  // If calculation seems wrong (negative or too large), fallback to a safe limit or error
+  if (available_size <= 0 || available_size > 0x1000) {
+      // Fallback: Assume standard max or just warn. 
+      // For now, let's be strict but allow a reasonable max if calculation fails (e.g. last room)
+      if (room_id_ == NumberOfRooms - 1) {
+          available_size = 0x100; // Arbitrary safe limit for last room
+      } else {
+          // If negative, it means pointers are not sequential. 
+          // This happens in some ROMs. We can't easily validate size then without a free space map.
+          // We'll log a warning and proceed with caution? No, prompt says "Free space validation".
+          // Let's error out if we can't determine size.
+          return absl::InternalError(absl::StrFormat("Cannot determine available sprite space for room %d", room_id_));
+      }
   }
+
+  // Handle sortsprites byte (skip if present)
+  bool has_sort_sprite = false;
   if (rom_data[sprite_address] == 1) {
+     has_sort_sprite = true;
      sprite_address += 1;
+     available_size -= 1;
   }
 
   auto encoded_bytes = EncodeSprites();
+
+  // VALIDATION
+  if (encoded_bytes.size() > available_size) {
+      return absl::OutOfRangeError(absl::StrFormat(
+        "Room %d sprite data too large! Size: %d, Available: %d", room_id_,
+        encoded_bytes.size(), available_size));
+  }
+
   return rom_->WriteVector(sprite_address, encoded_bytes);
 }
 

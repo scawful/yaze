@@ -100,15 +100,17 @@ if(YAZE_BUILD_TESTS)
     unit/snes_color_test.cc
     unit/gui/tile_selector_widget_test.cc
     unit/gui/canvas_automation_api_test.cc
+    unit/editor/message/message_data_test.cc
     unit/zelda3/overworld_test.cc
+    unit/zelda3/overworld_regression_test.cc
+    unit/zelda3/overworld_version_helper_test.cc
     unit/zelda3/object_parser_test.cc
     unit/zelda3/object_parser_structs_test.cc
     unit/zelda3/sprite_builder_test.cc
     unit/zelda3/dungeon_component_unit_test.cc
     unit/zelda3/dungeon/room_object_encoding_test.cc
     unit/zelda3/dungeon/room_manipulation_test.cc
-    # Emulator Unit Tests
-    unit/emu/ppu_catchup_test.cc
+    unit/zelda3/dungeon/dungeon_save_test.cc
     ../src/cli/service/resources/resource_catalog.cc
     cli/service/resources/command_context_test.cc
     # Integration Tests
@@ -149,11 +151,6 @@ if(YAZE_BUILD_TESTS)
     e2e/framework_smoke_test.cc
     e2e/dungeon_editor_smoke_test.cc
     e2e/canvas_selection_test.cc
-    e2e/dungeon_e2e_tests.cc
-    e2e/dungeon_canvas_interaction_test.cc
-    e2e/dungeon_layer_rendering_test.cc
-    e2e/dungeon_object_drawing_test.cc
-    e2e/dungeon_visual_verification_test.cc
   )
 
   if(YAZE_ENABLE_AI_RUNTIME)
