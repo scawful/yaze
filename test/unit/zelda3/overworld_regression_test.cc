@@ -143,5 +143,22 @@ TEST_F(OverworldRegressionTest, VersionHelperLogic) {
   EXPECT_TRUE(OverworldVersionHelper::SupportsAreaEnum(ov_version));
 }
 
+TEST_F(OverworldRegressionTest, DeathMountainPaletteUsesExactParents) {
+  // Treat ROM as vanilla so parent_ stays equal to index
+  (*rom_)[OverworldCustomASMHasBeenApplied] = 0xFF;
+
+  OverworldMap dm_map_lw(0x03, rom_.get());
+  dm_map_lw.LoadAreaGraphics();
+  EXPECT_EQ(dm_map_lw.static_graphics(7), 0x59);
+
+  OverworldMap dm_map_dw(0x45, rom_.get());
+  dm_map_dw.LoadAreaGraphics();
+  EXPECT_EQ(dm_map_dw.static_graphics(7), 0x59);
+
+  OverworldMap non_dm_map(0x04, rom_.get());
+  non_dm_map.LoadAreaGraphics();
+  EXPECT_EQ(non_dm_map.static_graphics(7), 0x5B);
+}
+
 }  // namespace zelda3
 }  // namespace yaze

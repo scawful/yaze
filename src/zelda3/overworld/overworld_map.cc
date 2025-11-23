@@ -593,12 +593,10 @@ void OverworldMap::LoadAreaGraphicsBlocksets() {
 // you were to make area 03 not a large area anymore for example, so you might
 // want to do the same.
 void OverworldMap::LoadDeathMountainGFX() {
-  static_graphics_[7] = (((parent_ >= 0x03 && parent_ <= 0x07) ||
-                          (parent_ >= 0x0B && parent_ <= 0x0E)) ||
-                         ((parent_ >= 0x43 && parent_ <= 0x47) ||
-                          (parent_ >= 0x4B && parent_ <= 0x4E)))
-                            ? 0x59
-                            : 0x5B;
+  // Match ZScream 3.0.4 behavior: only specific DM parents use animated GFX
+  const bool is_light_dm = (parent_ == 0x03 || parent_ == 0x05 || parent_ == 0x07);
+  const bool is_dark_dm = (parent_ == 0x43 || parent_ == 0x45 || parent_ == 0x47);
+  static_graphics_[7] = (is_light_dm || is_dark_dm) ? 0x59 : 0x5B;
 }
 
 void OverworldMap::LoadAreaGraphics() {
