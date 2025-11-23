@@ -39,14 +39,15 @@ std::filesystem::path CrashHandler::crash_log_path_;
 int CrashHandler::crash_log_fd_ = -1;
 
 void CrashHandler::CrashLogWriter(const char* data) {
+  // Compute length manually (async-signal-safe)
+  size_t len = 0;
+  while (data[len] != '\0') ++len;
+
   if (crash_log_fd_ >= 0) {
-    // Write to crash log file
-    size_t len = 0;
-    while (data[len] != '\0') ++len;
     write(crash_log_fd_, data, len);
   }
   // Also write to stderr for immediate visibility
-  write(STDERR_FILENO, data, strlen(data));
+  write(STDERR_FILENO, data, len);
 }
 
 void CrashHandler::Initialize(const std::string& version) {

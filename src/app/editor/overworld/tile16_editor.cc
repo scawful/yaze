@@ -1371,6 +1371,21 @@ absl::Status Tile16Editor::SetCurrentTile(int tile_id) {
   int palette_base = GetPaletteBaseForSheet(0);  // Default to main blockset
   size_t palette_offset = (palette_base * 16) + (current_palette_ * 8);
 
+  // Defensive checks: ensure palette is present and offset is valid
+  if (display_palette.empty()) {
+    util::logf("Tile16Editor: display palette empty; falling back to offset 0");
+    return absl::FailedPreconditionError("display palette unavailable");
+  }
+  if (palette_offset + 7 >= display_palette.size()) {
+    util::logf("Tile16Editor: palette offset %zu out of range (size=%zu); "
+               "using offset 0",
+               palette_offset, display_palette.size());
+    palette_offset = 0;
+    if (display_palette.size() < 8) {
+      return absl::FailedPreconditionError("display palette too small");
+    }
+  }
+
   // Apply the correct sub-palette with transparency
   current_tile16_bmp_.SetPaletteWithTransparent(display_palette, palette_offset,
                                                 7);
