@@ -8,6 +8,40 @@ var progressElement = document.getElementById('progress');
 var spinnerElement = document.getElementById('spinner');
 var loadingOverlay = document.getElementById('loading-overlay');
 
+// Check SharedArrayBuffer support before anything else
+(function checkCrossOriginIsolation() {
+  const hasSharedArrayBuffer = typeof SharedArrayBuffer !== 'undefined';
+  const isCrossOriginIsolated = window.crossOriginIsolated === true;
+
+  console.log('[COI] SharedArrayBuffer:', hasSharedArrayBuffer);
+  console.log('[COI] crossOriginIsolated:', isCrossOriginIsolated);
+  console.log('[COI] Service Worker controller:', !!navigator.serviceWorker?.controller);
+
+  if (!hasSharedArrayBuffer) {
+    console.warn('[COI] SharedArrayBuffer not available. Attempting COI setup...');
+
+    // Check if we're in the middle of COI setup
+    const coiAttempted = window.sessionStorage.getItem("coiAttempted");
+    const coiReloaded = window.sessionStorage.getItem("coiReloadedBySelf");
+
+    if (coiAttempted && coiReloaded) {
+      // We've already tried COI and reloaded - show error to user
+      console.error('[COI] COI setup failed after reload. SharedArrayBuffer still unavailable.');
+      if (statusElement) {
+        statusElement.innerHTML = 'Error: SharedArrayBuffer not available.<br>Try a Chromium-based browser or check browser settings.';
+        statusElement.style.color = '#f44';
+      }
+      // Don't attempt to load WASM - it will fail
+      window.YAZE_COI_FAILED = true;
+    }
+  } else {
+    console.log('[COI] SharedArrayBuffer available!');
+    // Clear any stale COI session markers
+    window.sessionStorage.removeItem("coiAttempted");
+    window.sessionStorage.removeItem("coiReloadedBySelf");
+  }
+})();
+
 // Ensure loading overlay is visible initially
 if (loadingOverlay) loadingOverlay.style.display = 'flex';
 
