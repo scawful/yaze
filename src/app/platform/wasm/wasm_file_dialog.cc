@@ -16,6 +16,7 @@ namespace platform {
 // Static member initialization
 int WasmFileDialog::next_callback_id_ = 1;
 std::unordered_map<int, WasmFileDialog::PendingOperation> WasmFileDialog::pending_operations_;
+std::mutex WasmFileDialog::operations_mutex_;
 
 // JavaScript interop for file operations
 EM_JS(void, openFileDialog_impl, (const char* accept, int callback_id, bool is_text), {
@@ -26,7 +27,9 @@ EM_JS(void, openFileDialog_impl, (const char* accept, int callback_id, bool is_t
   input.onchange = function(e) {
     var file = e.target.files[0];
     if (!file) {
-      Module._yazeHandleFileError(callback_id, allocateUTF8("No file selected"));
+      var errPtr = allocateUTF8("No file selected");
+      Module._yazeHandleFileError(callback_id, errPtr);
+      _free(errPtr);
       return;
     }
     var reader = new FileReader();
@@ -143,6 +146,7 @@ bool WasmFileDialog::IsSupported() {
 
 // Private methods
 int WasmFileDialog::RegisterCallback(PendingOperation operation) {
+  std::lock_guard<std::mutex> lock(operations_mutex_);
   int id = next_callback_id_++;
   operation.id = id;
   pending_operations_[id] = std::move(operation);
@@ -150,6 +154,7 @@ int WasmFileDialog::RegisterCallback(PendingOperation operation) {
 }
 
 std::unique_ptr<WasmFileDialog::PendingOperation> WasmFileDialog::GetPendingOperation(int callback_id) {
+  std::lock_guard<std::mutex> lock(operations_mutex_);
   auto it = pending_operations_.find(callback_id);
   if (it == pending_operations_.end()) {
     return nullptr;

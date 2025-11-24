@@ -102,6 +102,20 @@ absl::StatusOr<std::string> WasmCollaboration::CreateSession(
   // Set up WebSocket callbacks
   websocket_->OnOpen([this]() {
     ConsoleLog("WebSocket connected, creating session");
+    is_connected_ = true;
+
+    // Add self to users list
+    User self_user;
+    self_user.id = user_id_;
+    self_user.name = username_;
+    self_user.color = user_color_;
+    self_user.is_active = true;
+    self_user.last_activity = GetCurrentTime();
+
+    {
+      std::lock_guard<std::mutex> lock(users_mutex_);
+      users_[user_id_] = self_user;
+    }
 
     // Send create session message
     json msg;
@@ -116,6 +130,11 @@ absl::StatusOr<std::string> WasmCollaboration::CreateSession(
     if (!send_status.ok()) {
       ConsoleError("Failed to send create message");
     }
+
+    if (status_callback_) {
+      status_callback_(true, "Session created");
+    }
+    UpdateCollaborationUI("session_created", room_code_.c_str());
   });
 
   websocket_->OnMessage([this](const std::string& message) {
@@ -132,31 +151,17 @@ absl::StatusOr<std::string> WasmCollaboration::CreateSession(
 
   websocket_->OnError([this](const std::string& error) {
     ConsoleError(error.c_str());
+    is_connected_ = false;
     if (status_callback_) {
       status_callback_(false, error);
     }
   });
 
-  is_connected_ = true;
+  // Note: is_connected_ will be set to true in OnOpen callback when connection is established
+  // For now, mark as "connecting" state by returning the room code
+  // The actual connected state is confirmed in HandleMessage when create_response is received
 
-  // Add self to users list
-  User self_user;
-  self_user.id = user_id_;
-  self_user.name = username_;
-  self_user.color = user_color_;
-  self_user.is_active = true;
-  self_user.last_activity = GetCurrentTime();
-
-  {
-    std::lock_guard<std::mutex> lock(users_mutex_);
-    users_[user_id_] = self_user;
-  }
-
-  if (status_callback_) {
-    status_callback_(true, "Session created");
-  }
-
-  UpdateCollaborationUI("session_created", room_code_.c_str());
+  UpdateCollaborationUI("session_creating", room_code_.c_str());
   return room_code_;
 }
 
@@ -178,6 +183,7 @@ absl::Status WasmCollaboration::JoinSession(const std::string& room_code,
   // Set up WebSocket callbacks
   websocket_->OnOpen([this]() {
     ConsoleLog("WebSocket connected, joining session");
+    is_connected_ = true;
 
     // Send join session message
     json msg;
@@ -191,6 +197,11 @@ absl::Status WasmCollaboration::JoinSession(const std::string& room_code,
     if (!send_status.ok()) {
       ConsoleError("Failed to send join message");
     }
+
+    if (status_callback_) {
+      status_callback_(true, "Joined session");
+    }
+    UpdateCollaborationUI("session_joined", room_code_.c_str());
   });
 
   websocket_->OnMessage([this](const std::string& message) {
@@ -207,18 +218,14 @@ absl::Status WasmCollaboration::JoinSession(const std::string& room_code,
 
   websocket_->OnError([this](const std::string& error) {
     ConsoleError(error.c_str());
+    is_connected_ = false;
     if (status_callback_) {
       status_callback_(false, error);
     }
   });
 
-  is_connected_ = true;
-
-  if (status_callback_) {
-    status_callback_(true, "Joined session");
-  }
-
-  UpdateCollaborationUI("session_joined", room_code_.c_str());
+  // Note: is_connected_ will be set in OnOpen callback
+  UpdateCollaborationUI("session_joining", room_code_.c_str());
   return absl::OkStatus();
 }
 

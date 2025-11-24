@@ -3,6 +3,7 @@
 
 #ifdef __EMSCRIPTEN__
 
+#include <atomic>
 #include <functional>
 #include <string>
 
@@ -86,11 +87,11 @@ class WasmErrorHandler {
   WasmErrorHandler() = delete;
   ~WasmErrorHandler() = delete;
 
-  // Track if handler is initialized
-  static bool initialized_;
+  // Track if handler is initialized (thread-safe)
+  static std::atomic<bool> initialized_;
 
-  // Counter for generating unique callback IDs
-  static int callback_counter_;
+  // Counter for generating unique callback IDs (thread-safe)
+  static std::atomic<int> callback_counter_;
 };
 
 }  // namespace platform

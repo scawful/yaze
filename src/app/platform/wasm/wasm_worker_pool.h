@@ -86,6 +86,9 @@ class WasmWorkerPool {
     bool is_busy = false;
   };
 
+  // Special task ID returned when task is executed synchronously (no workers available)
+  static constexpr uint32_t kSynchronousTaskId = UINT32_MAX;
+
   WasmWorkerPool(size_t num_workers = 0);  // 0 = auto-detect optimal count
   ~WasmWorkerPool();
 

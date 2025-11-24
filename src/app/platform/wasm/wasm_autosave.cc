@@ -18,8 +18,13 @@ bool AutoSaveManager::emergency_save_triggered_ = false;
 
 // JavaScript event handler registration using EM_JS
 EM_JS(void, register_beforeunload_handler, (), {
+  // Store handler references for cleanup
+  if (!window._yazeAutoSaveHandlers) {
+    window._yazeAutoSaveHandlers = {};
+  }
+
   // Register beforeunload event handler
-  window.addEventListener('beforeunload', (event) => {
+  window._yazeAutoSaveHandlers.beforeunload = function(event) {
     // Call the C++ emergency save function
     if (Module._yazeEmergencySave) {
       Module._yazeEmergencySave();
@@ -28,31 +33,43 @@ EM_JS(void, register_beforeunload_handler, (), {
     // Some browsers require returnValue to be set
     event.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
     return event.returnValue;
-  });
+  };
+  window.addEventListener('beforeunload', window._yazeAutoSaveHandlers.beforeunload);
 
   // Register visibilitychange event for when tab becomes hidden
-  document.addEventListener('visibilitychange', () => {
+  window._yazeAutoSaveHandlers.visibilitychange = function() {
     if (document.hidden && Module._yazeEmergencySave) {
       // Save when tab becomes hidden (user switches tabs or minimizes)
       Module._yazeEmergencySave();
     }
-  });
+  };
+  document.addEventListener('visibilitychange', window._yazeAutoSaveHandlers.visibilitychange);
 
   // Register pagehide event as backup
-  window.addEventListener('pagehide', (event) => {
+  window._yazeAutoSaveHandlers.pagehide = function(event) {
     if (Module._yazeEmergencySave) {
       Module._yazeEmergencySave();
     }
-  });
+  };
+  window.addEventListener('pagehide', window._yazeAutoSaveHandlers.pagehide);
 
   console.log('AutoSave event handlers registered');
 });
 
 EM_JS(void, unregister_beforeunload_handler, (), {
-  // Remove all event listeners
-  window.removeEventListener('beforeunload', null);
-  document.removeEventListener('visibilitychange', null);
-  window.removeEventListener('pagehide', null);
+  // Remove all event listeners using stored references
+  if (window._yazeAutoSaveHandlers) {
+    if (window._yazeAutoSaveHandlers.beforeunload) {
+      window.removeEventListener('beforeunload', window._yazeAutoSaveHandlers.beforeunload);
+    }
+    if (window._yazeAutoSaveHandlers.visibilitychange) {
+      document.removeEventListener('visibilitychange', window._yazeAutoSaveHandlers.visibilitychange);
+    }
+    if (window._yazeAutoSaveHandlers.pagehide) {
+      window.removeEventListener('pagehide', window._yazeAutoSaveHandlers.pagehide);
+    }
+    window._yazeAutoSaveHandlers = null;
+  }
   console.log('AutoSave event handlers unregistered');
 });
 
@@ -294,11 +311,23 @@ absl::StatusOr<nlohmann::json> AutoSaveManager::LoadFromStorage() {
 }
 
 void AutoSaveManager::EmergencySave() {
-  // Don't use lock here as this needs to be fast
+  // Use try_lock to avoid blocking - emergency save should be fast
+  // If we can't get the lock, another operation is in progress
+  std::unique_lock<std::mutex> lock(mutex_, std::try_to_lock);
+
   try {
     nlohmann::json emergency_data = nlohmann::json::object();
     emergency_data["emergency"] = true;
-    emergency_data["components"] = CollectComponentData();
+
+    // Only collect component data if we got the lock
+    if (lock.owns_lock()) {
+      emergency_data["components"] = CollectComponentData();
+    } else {
+      // Can't safely access components, save empty state marker
+      emergency_data["components"] = nlohmann::json::object();
+      emergency_data["incomplete"] = true;
+    }
+
     emergency_data["timestamp"] =
         std::chrono::duration_cast<std::chrono::milliseconds>(
             std::chrono::system_clock::now().time_since_epoch()).count();

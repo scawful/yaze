@@ -12,8 +12,8 @@ namespace yaze {
 namespace platform {
 
 // Static member initialization
-bool WasmErrorHandler::initialized_ = false;
-int WasmErrorHandler::callback_counter_ = 0;
+std::atomic<bool> WasmErrorHandler::initialized_{false};
+std::atomic<int> WasmErrorHandler::callback_counter_{0};
 
 // Store confirmation callbacks
 static std::map<int, std::function<void(bool)>> g_confirm_callbacks;
@@ -96,33 +96,34 @@ extern "C" EMSCRIPTEN_KEEPALIVE void handleConfirmCallback(int callback_id, int 
 }
 
 void WasmErrorHandler::Initialize() {
-  if (initialized_) {
-    return;
+  // Use compare_exchange for thread-safe initialization
+  bool expected = false;
+  if (!initialized_.compare_exchange_strong(expected, true)) {
+    return;  // Already initialized by another thread
   }
   js_inject_styles();
   EM_ASM({
     Module._handleConfirmCallback = Module.cwrap('handleConfirmCallback', null, ['number', 'number']);
   });
-  initialized_ = true;
 }
 
 void WasmErrorHandler::ShowError(const std::string& title, const std::string& message) {
-  if (!initialized_) Initialize();
+  if (!initialized_.load()) Initialize();
   js_show_modal(title.c_str(), message.c_str(), "error");
 }
 
 void WasmErrorHandler::ShowWarning(const std::string& title, const std::string& message) {
-  if (!initialized_) Initialize();
+  if (!initialized_.load()) Initialize();
   js_show_modal(title.c_str(), message.c_str(), "warning");
 }
 
 void WasmErrorHandler::ShowInfo(const std::string& title, const std::string& message) {
-  if (!initialized_) Initialize();
+  if (!initialized_.load()) Initialize();
   js_show_modal(title.c_str(), message.c_str(), "info");
 }
 
 void WasmErrorHandler::Toast(const std::string& message, ToastType type, int duration_ms) {
-  if (!initialized_) Initialize();
+  if (!initialized_.load()) Initialize();
   const char* type_str = "info";
   switch (type) {
     case ToastType::kSuccess: type_str = "success"; break;
@@ -135,20 +136,20 @@ void WasmErrorHandler::Toast(const std::string& message, ToastType type, int dur
 }
 
 void WasmErrorHandler::ShowProgress(const std::string& task, float progress) {
-  if (!initialized_) Initialize();
+  if (!initialized_.load()) Initialize();
   if (progress < 0.0f) progress = 0.0f;
   if (progress > 1.0f) progress = 1.0f;
   js_show_progress(task.c_str(), progress);
 }
 
 void WasmErrorHandler::HideProgress() {
-  if (!initialized_) Initialize();
+  if (!initialized_.load()) Initialize();
   js_hide_progress();
 }
 
 void WasmErrorHandler::Confirm(const std::string& message, std::function<void(bool)> callback) {
-  if (!initialized_) Initialize();
-  int callback_id = ++callback_counter_;
+  if (!initialized_.load()) Initialize();
+  int callback_id = callback_counter_.fetch_add(1) + 1;
   {
     std::lock_guard<std::mutex> lock(g_callback_mutex);
     g_confirm_callbacks[callback_id] = callback;
