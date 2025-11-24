@@ -15,7 +15,11 @@ fi
 
 echo "=== Building YAZE for Web (WASM) ==="
 
-# Create build directory
+# Create build directory (clean if it exists to avoid cache issues)
+if [ -d "$BUILD_DIR" ]; then
+    echo "Cleaning build directory..."
+    rm -rf "$BUILD_DIR/CMakeCache.txt" "$BUILD_DIR/CMakeFiles" 2>/dev/null || true
+fi
 mkdir -p "$BUILD_DIR"
 cd "$BUILD_DIR"
 
