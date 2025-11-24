@@ -34,18 +34,24 @@
 - STATUS: IN_PROGRESS (another agent actively working)
 - NOTES: Root causes identified (hashFiles() invalidation, Windows crash_handler POSIX macros)
 
+### 2025-11-24 ai-infra-architect – WASM collab server deployment
+- TASK: Evaluate WASM web collaboration vs yaze-server and deploy compatible backend to halext-server.
+- SCOPE: src/app/platform/wasm/*collaboration*, src/web/collaboration_ui.*, ~/Code/yaze-server, halext-server deployment.
+- STATUS: COMPLETE
+- NOTES: Added WASM-protocol shim + passwords/rate limits + Gemini AI handler to yaze-server/server.js (halext pm2 `yaze-collab`, port 8765). Web client wired to collab via exported bindings; docked chat/console UI added. Needs wasm rebuild to ship UI; AI requires GEMINI_API_KEY/AI_AGENT_ENDPOINT set server-side.
+
 ### 2025-11-24 CODEX – Dungeon objects & ZSOW palette (ACTIVE)
 - TASK: Fix dungeon object rendering regression + ZSOW v3 large-area palette issues; add regression tests
 - SCOPE: dungeon editor rendering, overworld palette mapping/tests
 - STATUS: ACTIVE
 - NOTES: Visual defects reported; will run regression tests and patch palettes
 
-### 2025-11-23 ai-infra-architect – WASM Network Abstraction Layer
-- TASK: Implement network abstraction layer for WASM support (Phase 1)
-- SCOPE: src/app/net/http_client.h, websocket_interface.h, network_factory.{h,cc}, native/wasm implementations
+### 2025-11-23 CLAUDE_AIINF – WASM Real-time Collaboration Infrastructure
+- TASK: Implement real-time collaboration infrastructure for WASM web build
+- SCOPE: src/app/platform/wasm/wasm_collaboration.{h,cc}, src/web/collaboration_ui.{js,css}
 - STATUS: COMPLETE
-- NOTES: Abstract interfaces created for HTTP/WebSocket. Native implementations done. WASM stubs ready for testing.
-- FILES: http_client.h, websocket_interface.h, network_factory.{h,cc}, native/{httplib_client,httplib_websocket}.{h,cc}, wasm/{emscripten_http_client,emscripten_websocket}.{h,cc}
+- NOTES: WebSocket-based multi-user ROM editing. JSON message protocol, user presence, cursor tracking, change sync.
+- FILES: wasm_collaboration.{h,cc} (C++ manager), collaboration_ui.js (UI panels), collaboration_ui.css (styling)
 
 ---
 
@@ -91,16 +97,16 @@
 - STATUS: COMPLETE
 - NOTES: Game state JSON serialization for AI agents. Phase 1 MVP complete.
 
-### 2025-11-23 backend-infra-engineer – WASM Platform Layer (Phases 1-3)
-- TASK: Implement WASM platform infrastructure for browser-based yaze
-- SCOPE: src/app/platform/wasm/, src/web/, src/app/app_core.cmake
+### 2025-11-23 backend-infra-engineer – WASM Platform Layer (All 8 Phases)
+- TASK: Implement complete WASM platform infrastructure for browser-based yaze
+- SCOPE: src/app/platform/wasm/, src/web/, src/app/emu/platform/wasm/, src/cli/service/ai/
 - STATUS: COMPLETE
 - NOTES:
-  - Phase 1: File system layer (wasm_storage, wasm_file_dialog) with IndexedDB
-  - Phase 2: Error handling (wasm_error_handler) with browser UI integration
-  - Phase 3: Progressive loading (wasm_loading_manager) with cancellation
-  - Web resources: error_handler.js/css, loading_indicator.js/css
-- FILES: wasm_{storage,file_dialog,error_handler,loading_manager}.{h,cc}
+  - Phases 1-3: File system (IndexedDB), error handling (browser UI), progressive loading
+  - Phases 4-6: Offline support (service-worker.js), AI integration, local storage (settings/autosave)
+  - Phases 7-8: Web workers (pthread pool), WebAudio (SPC700 playback)
+  - Arena integration: WasmLoadingManager connected to LoadAllGraphicsData
+- FILES: wasm_{storage,file_dialog,error_handler,loading_manager,settings,autosave,secure_storage,worker_pool}.{h,cc}, wasm_audio.{h,cc}
 
 ---
 

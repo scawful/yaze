@@ -135,23 +135,6 @@ absl::Status DungeonEditorV2::Load() {
   canvas_viewer_.SetCurrentPaletteGroup(current_palette_group_);
   canvas_viewer_.SetCurrentPaletteId(current_palette_id_);
 
-  object_selector_.SetCurrentPaletteGroup(current_palette_group_);
-  object_selector_.SetCurrentPaletteId(current_palette_id_);
-  object_selector_.set_rooms(&rooms_);
-
-  // Wire up object placement callback from selector to canvas interaction
-  object_selector_.SetObjectSelectedCallback(
-      [this](const zelda3::RoomObject& obj) {
-        // When object is selected in selector, set it as preview in canvas
-        canvas_viewer_.SetPreviewObject(obj);
-      });
-
-  object_selector_.SetObjectPlacementCallback(
-      [this](const zelda3::RoomObject& obj) {
-        // When object is placed via selector UI, handle it
-        HandleObjectPlaced(obj);
-      });
-
   // Capture mutations for undo/redo snapshots
   canvas_viewer_.object_interaction().SetMutationHook(
       [this]() { PushUndoSnapshot(current_room_id_); });
@@ -179,6 +162,11 @@ absl::Status DungeonEditorV2::Load() {
   // Initialize palette editor with loaded ROM
   palette_editor_.Initialize(rom_);
 
+  // Initialize DungeonEditorSystem (currently scaffolding for persistence and metadata)
+  dungeon_editor_system_ = std::make_unique<zelda3::DungeonEditorSystem>(rom_);
+  (void)dungeon_editor_system_->Initialize();
+  dungeon_editor_system_->SetCurrentRoom(current_room_id_);
+
   // Initialize unified object editor card
   object_editor_card_ = std::make_unique<ObjectEditorCard>(
       renderer_, rom_, &canvas_viewer_, dungeon_editor_system_->GetObjectEditor());
@@ -187,12 +175,6 @@ absl::Status DungeonEditorV2::Load() {
   if (dungeon_editor_system_) {
     canvas_viewer_.SetEditorSystem(dungeon_editor_system_.get());
   }
-
-  // Initialize DungeonEditorSystem (currently scaffolding for persistence and metadata)
-  dungeon_editor_system_ = std::make_unique<zelda3::DungeonEditorSystem>(rom_);
-  (void)dungeon_editor_system_->Initialize();
-  dungeon_editor_system_->SetCurrentRoom(current_room_id_);
-  object_selector_.set_dungeon_editor_system(&dungeon_editor_system_);
 
   // Wire palette changes to trigger room re-renders
   // PaletteManager now tracks all modifications globally

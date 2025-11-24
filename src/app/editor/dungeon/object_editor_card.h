@@ -55,7 +55,6 @@ class ObjectEditorCard {
   void DrawEmulatorPreview();
   void DrawInteractionControls();
   void DrawSelectedObjectInfo();
-  void DrawObjectPreviewIcon(int object_id, const ImVec2& size);
 
   // Keyboard shortcuts
   void HandleKeyboardShortcuts();

@@ -72,23 +72,17 @@ class DungeonObjectSelector {
   const zelda3::RoomObject& GetPreviewObject() const { return preview_object_; }
   bool IsObjectLoaded() const { return object_loaded_; }
 
- private:
-  void DrawRoomGraphics();
-  void DrawObjectBrowser();
-  void DrawCompactObjectEditor();
-  void DrawCompactSpriteEditor();
-
-  // Helper methods for primitive object rendering
-  ImU32 GetObjectTypeColor(int object_id);
-  std::string GetObjectTypeSymbol(int object_id);
-  void RenderObjectPrimitive(const zelda3::RoomObject& object, int x, int y);
-
   // AssetBrowser-style object selection
   void DrawObjectAssetBrowser();
+
+ private:
+  void DrawRoomGraphics();
   bool MatchesObjectFilter(int obj_id, int filter_type);
   void CalculateObjectDimensions(const zelda3::RoomObject& object, int& width,
                                  int& height);
   void PlaceObjectAtPosition(int x, int y);
+  void DrawCompactObjectEditor();
+  void DrawCompactSpriteEditor();
   void DrawCompactItemEditor();
   void DrawCompactEntranceEditor();
   void DrawCompactDoorEditor();
@@ -98,6 +92,9 @@ class DungeonObjectSelector {
                          float size);
   zelda3::RoomObject MakePreviewObject(int obj_id) const;
   void EnsureRegistryInitialized();
+  ImU32 GetObjectTypeColor(int object_id);
+  std::string GetObjectTypeSymbol(int object_id);
+  void RenderObjectPrimitive(const zelda3::RoomObject& object, int x, int y);
 
   Rom* rom_ = nullptr;
   gui::Canvas room_gfx_canvas_{"##RoomGfxCanvas",
