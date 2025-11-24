@@ -1,32 +1,38 @@
 :root {
-  /* Color Palette - Dark Modern Theme (VS Code-ish) */
-  --bg-app: #1e1e1e;
-  --bg-header: #252526;
-  --bg-panel: #2d2d2d;
-  --bg-input: #3c3c3c;
-  
-  --text-primary: #e0e0e0;
-  --text-secondary: #a0a0a0;
-  --text-muted: #6b6b6b;
-  
-  --accent-primary: #0e639c; /* VS Code Blue */
-  --accent-hover: #1177bb;
-  --accent-active: #094771;
-  
-  --border-light: #3e3e42;
-  --border-focus: #007fd4;
-  
-  --status-success: #4ec9b0;
-  --status-warning: #cca700;
-  --status-error: #f48771;
-  
-  /* Dimensions */
-  --header-height: 48px;
-  --control-radius: 4px;
-  
+  /* Dark hacker theme */
+  --bg-app: #0d0d0d;
+  --bg-header: #141414;
+  --bg-panel: #1a1a1a;
+  --bg-input: #222;
+
+  --text-primary: #ccc;
+  --text-secondary: #888;
+  --text-muted: #555;
+  --text-accent: #0af;
+
+  --accent-primary: #0af;
+  --accent-hover: #0cf;
+  --accent-dim: #068;
+
+  --border-color: #333;
+  --border-focus: #0af;
+
+  --status-success: #0c6;
+  --status-warning: #f90;
+  --status-error: #f44;
+
+  /* Tight dimensions */
+  --header-height: 32px;
+  --status-bar-height: 20px;
+  --control-radius: 2px;
+
   /* Typography */
-  --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  --font-mono: "Fira Code", "Cascadia Code", "Consolas", monospace;
+  --font-ui: "SF Mono", "Consolas", "Monaco", monospace;
+  --font-mono: "SF Mono", "Consolas", "Monaco", monospace;
+}
+
+* {
+  box-sizing: border-box;
 }
 
 body {
@@ -35,6 +41,7 @@ body {
   background-color: var(--bg-app);
   color: var(--text-primary);
   font-family: var(--font-ui);
+  font-size: 12px;
   height: 100vh;
   width: 100vw;
   overflow: hidden;
@@ -42,90 +49,144 @@ body {
   flex-direction: column;
 }
 
-/* Header / Toolbar */
+/* Header - tight toolbar */
 #header {
   height: var(--header-height);
   background-color: var(--bg-header);
-  border-bottom: 1px solid var(--bg-app); /* darker separator */
+  border-bottom: 1px solid var(--border-color);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 16px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-  z-index: 100;
+  padding: 0 8px;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
-.logo-area {
+.header-left, .header-right {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 4px;
 }
 
-h1 {
-  font-size: 18px;
-  font-weight: 600;
-  margin: 0;
-  color: var(--text-primary);
-  letter-spacing: 0.5px;
+.logo {
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--text-accent);
+  letter-spacing: 1px;
+  text-transform: lowercase;
 }
 
 .version-tag {
-  font-size: 11px;
-  background: var(--bg-input);
-  color: var(--text-secondary);
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-family: var(--font-mono);
-}
-
-#controls {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
-/* Modern Buttons */
-.btn {
-  background-color: var(--bg-input);
-  color: var(--text-primary);
-  border: 1px solid transparent;
-  padding: 6px 12px;
-  font-size: 13px;
+  font-size: 10px;
+  color: var(--text-muted);
+  padding: 1px 4px;
+  border: 1px solid var(--border-color);
   border-radius: var(--control-radius);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
+}
+
+.separator {
+  color: var(--text-muted);
+  margin: 0 4px;
+}
+
+/* Toolbar buttons - tight and flat */
+.toolbar-btn {
+  background: transparent;
+  color: var(--text-secondary);
+  border: none;
+  padding: 4px 8px;
+  font-size: 11px;
   font-family: var(--font-ui);
+  cursor: pointer;
+  border-radius: var(--control-radius);
+  transition: all 0.1s;
 }
 
-.btn:hover {
-  background-color: #4a4a4a;
-  border-color: var(--border-light);
+.toolbar-btn:hover {
+  background: var(--bg-input);
+  color: var(--text-primary);
 }
 
-.btn:active {
-  transform: translateY(1px);
+.toolbar-btn:active {
+  background: var(--accent-dim);
 }
 
-.btn-primary {
-  background-color: var(--accent-primary);
+/* Dropdown menu */
+.dropdown {
+  position: relative;
 }
 
-.btn-primary:hover {
-  background-color: var(--accent-hover);
+.dropdown-content {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 100%;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-color);
+  min-width: 160px;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
 }
 
-/* File Input Styling */
+.dropdown-content.show {
+  display: block;
+}
+
+.dropdown-content a {
+  display: block;
+  padding: 8px 12px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 11px;
+}
+
+.dropdown-content a:hover {
+  background: var(--bg-input);
+  color: var(--text-primary);
+}
+
+.dropdown-divider {
+  height: 1px;
+  background: var(--border-color);
+  margin: 4px 0;
+}
+
+/* Status bar */
+#status-bar {
+  height: var(--status-bar-height);
+  background: var(--bg-header);
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  font-size: 10px;
+  color: var(--text-muted);
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+#status-text {
+  flex: 1;
+}
+
+#offline-indicator {
+  display: none;
+  color: var(--status-warning);
+}
+
+#offline-indicator.show {
+  display: inline;
+}
+
+/* File input */
 input[type="file"] {
   display: none;
 }
 
-/* Main Canvas Area */
+/* Canvas container */
 #canvas-container {
   flex: 1;
-  background-color: #000; /* Letterboxing background */
+  background-color: #000;
   position: relative;
   display: flex;
   justify-content: center;
@@ -135,31 +196,33 @@ input[type="file"] {
 
 canvas.emscripten {
   border: none;
-  box-shadow: 0 0 20px rgba(0,0,0,0.5);
   outline: none;
-  image-rendering: pixelated; /* Keep retro look crisp */
+  image-rendering: pixelated;
 }
 
-/* Status & Overlays */
+/* Loading overlay */
 #loading-overlay {
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(30, 30, 30, 0.9);
+  background: rgba(0, 0, 0, 0.95);
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
   z-index: 50;
 }
 
+.loading-content {
+  text-align: center;
+}
+
 .spinner {
-  height: 40px;
-  width: 40px;
-  border: 3px solid rgba(255,255,255,0.1);
+  height: 24px;
+  width: 24px;
+  border: 2px solid var(--border-color);
   border-top-color: var(--accent-primary);
   border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-bottom: 16px;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto 12px;
 }
 
 @keyframes spin {
@@ -168,71 +231,189 @@ canvas.emscripten {
 
 #status {
   color: var(--text-secondary);
-  font-size: 14px;
+  font-size: 11px;
+}
+
+progress {
+  width: 200px;
+  height: 4px;
   margin-top: 8px;
+  appearance: none;
+  background: var(--bg-input);
+  border: none;
+  border-radius: 2px;
 }
 
-/* Offline Indicator */
-#offline-indicator {
-  position: fixed;
-  top: calc(var(--header-height) + 10px);
-  right: 16px;
-  background: var(--bg-secondary);
-  color: var(--text-secondary);
-  padding: 8px 12px;
-  border-radius: var(--control-radius);
-  font-size: 12px;
-  display: none;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-  border-left: 3px solid var(--status-warning);
-  z-index: 1000;
-  animation: slideIn 0.3s ease;
+progress::-webkit-progress-bar {
+  background: var(--bg-input);
+  border-radius: 2px;
 }
 
-#offline-indicator.show {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+progress::-webkit-progress-value {
+  background: var(--accent-primary);
+  border-radius: 2px;
 }
 
-/* Update Notification */
+progress::-moz-progress-bar {
+  background: var(--accent-primary);
+  border-radius: 2px;
+}
+
+/* Update notification */
 #update-notification {
   position: fixed;
-  bottom: 20px;
-  right: 20px;
-  background: var(--accent-primary);
-  color: white;
-  padding: 12px 16px;
-  border-radius: var(--control-radius);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  bottom: 8px;
+  right: 8px;
+  background: var(--bg-panel);
+  border: 1px solid var(--accent-primary);
+  padding: 8px 12px;
   display: none;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
   z-index: 2000;
-  animation: slideUp 0.3s ease;
+  font-size: 11px;
 }
 
 #update-notification.show {
   display: flex;
 }
 
-/* Touch Mode Indicator */
-.yaze-touch-indicator {
-  background-color: var(--accent-primary) !important;
-  top: calc(var(--header-height) + 10px) !important;
+/* Terminal overrides for new header style */
+.terminal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 8px;
+  height: 28px;
+  background: var(--bg-header);
+  border-bottom: 1px solid var(--border-color);
+  cursor: pointer;
 }
 
-/* Utilities */
-.hidden { display: none !important; }
+.terminal-title {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
 
+.terminal-controls {
+  display: flex;
+  gap: 2px;
+}
+
+.terminal-ctrl-btn {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+  width: 20px;
+  height: 18px;
+  font-size: 9px;
+  font-family: var(--font-mono);
+  cursor: pointer;
+  border-radius: var(--control-radius);
+}
+
+.terminal-ctrl-btn:hover {
+  background: var(--bg-input);
+  color: var(--text-primary);
+}
+
+.terminal-prompt {
+  color: var(--accent-primary);
+  margin-right: 8px;
+}
+
+/* Modal */
+.modal {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3000;
+}
+
+.modal-content {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-color);
+  padding: 24px;
+  max-width: 400px;
+  text-align: center;
+}
+
+.modal-content h2 {
+  margin: 0 0 12px;
+  font-size: 16px;
+  color: var(--text-accent);
+  font-weight: 600;
+}
+
+.modal-content p {
+  margin: 0 0 8px;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.version-info {
+  color: var(--text-muted);
+  font-size: 10px;
+}
+
+.about-links {
+  margin: 16px 0;
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+}
+
+.about-links a {
+  color: var(--accent-primary);
+  text-decoration: none;
+  font-size: 11px;
+}
+
+.about-links a:hover {
+  text-decoration: underline;
+}
+
+/* Touch mode indicator */
+.yaze-touch-indicator {
+  display: none;
+}
+
+/* Zoom controls - hidden by default, show on touch */
+.yaze-zoom-controls {
+  display: none;
+}
+
+.yaze-touch-mode .yaze-zoom-controls {
+  display: flex;
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  gap: 4px;
+}
+
+.yaze-zoom-controls button {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  width: 28px;
+  height: 28px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+/* Responsive */
 @media (max-width: 600px) {
   #header {
-    padding: 0 8px;
+    padding: 0 4px;
   }
-  h1 {
-    font-size: 16px;
+  .toolbar-btn {
+    padding: 4px 6px;
+    font-size: 10px;
   }
-  .btn span {
-    display: none; /* Hide text on small screens, show only icons if we had them */
+  .logo {
+    font-size: 12px;
   }
 }

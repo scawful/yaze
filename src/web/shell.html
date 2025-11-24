@@ -10,11 +10,11 @@
     <script src="coi-serviceworker.js"></script>
 
     <!-- PWA Meta Tags -->
-    <meta name="theme-color" content="#1e1e1e">
+    <meta name="theme-color" content="#0d0d0d">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="YAZE">
+    <meta name="apple-mobile-web-app-title" content="yaze">
     <!-- Collaboration server URL -->
     <meta name="yaze-collab-server" content="wss://org.halext.org:8765">
 
@@ -33,89 +33,95 @@
     <link rel="stylesheet" href="loading_indicator.css">
     <link rel="stylesheet" href="error_handler.css">
 
-    <title>yaze web</title>
+    <title>yaze</title>
   </head>
   <body>
     <div id="header">
-      <div class="logo-area">
-        <h1>yaze</h1>
-        <span class="version-tag">WASM</span>
-      </div>
-      <div id="controls">
-        <button id="upload-btn" class="btn btn-primary" onclick="document.getElementById('rom-input').click()">
+      <div class="header-left">
+        <span class="logo">yaze</span>
+        <span class="version-tag">v0.8</span>
+        <span class="separator">|</span>
+        <button class="toolbar-btn" onclick="document.getElementById('rom-input').click()">
           Open ROM
         </button>
         <input type="file" id="rom-input" accept=".sfc,.smc">
-        
-        <button id="download-save-btn" class="btn" onclick="downloadSaves()">
-          Saves
-        </button>
-        
-        <button id="fullscreen-btn" class="btn" onclick="Module.requestFullscreen(false, false)">
-          Fullscreen
-        </button>
-        
-        <button id="terminal-btn" class="btn" onclick="toggleTerminal()">
-          Terminal
-        </button>
-        
-        <button id="collab-btn" class="btn" onclick="toggleCollabConsole()">
-          Collab
-        </button>
+        <button class="toolbar-btn" onclick="downloadSaves()">Saves</button>
+        <button class="toolbar-btn" onclick="Module.requestFullscreen(false, false)">Fullscreen</button>
+      </div>
+      <div class="header-right">
+        <button class="toolbar-btn" onclick="toggleTerminal()">Terminal</button>
+        <button class="toolbar-btn" onclick="toggleCollabConsole()">Collab</button>
+        <div class="dropdown">
+          <button class="toolbar-btn" onclick="toggleHelpMenu()">Help</button>
+          <div id="help-menu" class="dropdown-content">
+            <a href="https://halext.org" target="_blank" rel="noopener">halext.org</a>
+            <a href="./docs/" target="_blank" rel="noopener">Documentation</a>
+            <a href="https://github.com/scawful/yaze" target="_blank" rel="noopener">GitHub</a>
+            <div class="dropdown-divider"></div>
+            <a href="#" onclick="showShortcuts(); return false;">Keyboard Shortcuts</a>
+            <a href="#" onclick="showAbout(); return false;">About yaze</a>
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- Offline indicator -->
-    <div id="offline-indicator">
-      <span>⚡ Offline Mode</span>
+    <!-- Status bar -->
+    <div id="status-bar">
+      <span id="status-text">Ready</span>
+      <span id="offline-indicator" class="status-item">Offline</span>
     </div>
 
     <!-- Update notification -->
     <div id="update-notification">
-      <span>New version available!</span>
-      <button class="btn btn-primary" onclick="updateServiceWorker()">Update</button>
-      <button class="btn" onclick="dismissUpdate()">Dismiss</button>
+      <span>Update available</span>
+      <button class="toolbar-btn" onclick="updateServiceWorker()">Reload</button>
+      <button class="toolbar-btn" onclick="dismissUpdate()">Dismiss</button>
     </div>
-
-    <!-- Touch mode indicator -->
-    <div class="yaze-touch-indicator">Touch Mode</div>
 
     <div id="canvas-container">
-      <div id="loading-overlay" style="display: none;"> <!-- Hidden by default, logic controls it -->
-        <figure id="spinner"><div class="spinner"></div></figure>
-        <div id="status">Downloading...</div>
-        <progress value="0" max="100" id="progress" hidden=1></progress>
+      <div id="loading-overlay" style="display: none;">
+        <div class="loading-content">
+          <div class="spinner"></div>
+          <div id="status">Downloading...</div>
+          <progress value="0" max="100" id="progress" hidden=1></progress>
+        </div>
       </div>
-      
-      <canvas class="emscripten" id="canvas" oncontextmenu="event.preventDefault()" tabindex=-1></canvas>
 
-      <!-- Touch zoom controls -->
-      <div class="yaze-zoom-controls">
-        <button onclick="zoomIn()" title="Zoom In">+</button>
-        <div class="yaze-zoom-level" id="zoom-level">100%</div>
-        <button onclick="zoomOut()" title="Zoom Out">-</button>
-        <button onclick="resetZoom()" title="Reset View">R</button>
-      </div>
+      <canvas class="emscripten" id="canvas" oncontextmenu="event.preventDefault()" tabindex=-1></canvas>
     </div>
 
+    <!-- Terminal (simplified header) -->
     <div id="terminal-container" class="terminal-container terminal-collapsed">
       <div class="terminal-header" onclick="toggleTerminal()">
-        <div class="terminal-window-controls" onclick="event.stopPropagation()">
-          <button class="terminal-window-btn close" onclick="hideTerminal()" title="Close"></button>
-          <button class="terminal-window-btn minimize" onclick="toggleTerminal()" title="Minimize"></button>
-          <button class="terminal-window-btn maximize" onclick="maximizeTerminal()" title="Maximize"></button>
+        <span class="terminal-title">z3ed terminal</span>
+        <div class="terminal-controls">
+          <button class="terminal-ctrl-btn" onclick="event.stopPropagation(); clearTerminal();" title="Clear">C</button>
+          <button class="terminal-ctrl-btn" onclick="event.stopPropagation(); maximizeTerminal();" title="Maximize">M</button>
+          <button class="terminal-ctrl-btn" onclick="event.stopPropagation(); hideTerminal();" title="Close">X</button>
         </div>
-        <span class="terminal-title">z3ed — bash</span>
-        <span class="terminal-toggle">▼</span>
       </div>
       <div class="terminal-body">
         <div class="terminal-resize-handle" id="terminal-resize-handle"></div>
         <div class="terminal-output" id="terminal-output"></div>
         <div class="terminal-input-line">
-          <span class="terminal-prompt-symbol"></span>
-          <input type="text" id="terminal-input" class="terminal-input" autocomplete="off" spellcheck="false" placeholder="type a command...">
-          <button class="terminal-submit" onclick="submitTerminalCommand()">↵</button>
+          <span class="terminal-prompt">$</span>
+          <input type="text" id="terminal-input" class="terminal-input" autocomplete="off" spellcheck="false" placeholder="Enter command...">
         </div>
+      </div>
+    </div>
+
+    <!-- About modal -->
+    <div id="about-modal" class="modal" style="display: none;">
+      <div class="modal-content">
+        <h2>yaze - Yet Another Zelda3 Editor</h2>
+        <p>A modern ROM editor for The Legend of Zelda: A Link to the Past</p>
+        <p class="version-info">Web Build v0.8 | WASM + WebGL</p>
+        <div class="about-links">
+          <a href="https://halext.org" target="_blank">halext.org</a>
+          <a href="https://github.com/scawful/yaze" target="_blank">GitHub</a>
+          <a href="./docs/" target="_blank">Docs</a>
+        </div>
+        <button class="toolbar-btn" onclick="hideAbout()">Close</button>
       </div>
     </div>
 
@@ -129,6 +135,36 @@
     <script src="drop_zone.js"></script>
     <script src="loading_indicator.js"></script>
     <script src="error_handler.js"></script>
+    <script>
+      // Help menu toggle
+      function toggleHelpMenu() {
+        var menu = document.getElementById('help-menu');
+        menu.classList.toggle('show');
+      }
+      // Close help menu when clicking outside
+      document.addEventListener('click', function(e) {
+        if (!e.target.closest('.dropdown')) {
+          var menu = document.getElementById('help-menu');
+          if (menu) menu.classList.remove('show');
+        }
+      });
+      // About modal
+      function showAbout() {
+        document.getElementById('about-modal').style.display = 'flex';
+      }
+      function hideAbout() {
+        document.getElementById('about-modal').style.display = 'none';
+      }
+      // Shortcuts (uses existing overlay)
+      function showShortcuts() {
+        if (window.yazeShortcuts) window.yazeShortcuts.show();
+      }
+      // Clear terminal
+      function clearTerminal() {
+        var output = document.getElementById('terminal-output');
+        if (output) output.innerHTML = '';
+      }
+    </script>
     {{{ SCRIPT }}}
   </body>
 </html>
