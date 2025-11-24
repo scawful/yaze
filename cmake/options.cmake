@@ -49,6 +49,7 @@ option(YAZE_UNITY_BUILD "Enable Unity (Jumbo) builds" OFF)
 option(YAZE_USE_VCPKG "Use vcpkg for Windows dependencies" OFF)
 option(YAZE_USE_SYSTEM_DEPS "Use system package manager for dependencies" OFF)
 option(YAZE_USE_SDL3 "Use SDL3 instead of SDL2 (experimental)" OFF)
+option(YAZE_WASM_TERMINAL "Build z3ed for WASM terminal mode (no TUI)" OFF)
 
 # Development options
 option(YAZE_ENABLE_ROM_TESTS "Enable tests that require ROM files" OFF)
@@ -95,6 +96,10 @@ endif()
 
 if(YAZE_ENABLE_HTTP_API)
   add_compile_definitions(YAZE_HTTP_API_ENABLED)
+endif()
+
+if(YAZE_WASM_TERMINAL)
+  add_compile_definitions(YAZE_WASM_TERMINAL_MODE)
 endif()
 
 # Print configuration summary
