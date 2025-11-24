@@ -5,9 +5,7 @@
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
 #include "app/platform/wasm/wasm_collaboration.h"
-#include "app/platform/wasm/wasm_config.h"
-#include "app/platform/wasm/wasm_drop_handler.h"
-#include <fstream>
+#include "app/platform/wasm/wasm_bootstrap.h"
 #endif
 
 #define IMGUI_DEFINE_MATH_OPERATORS
@@ -69,200 +67,161 @@ DEFINE_FLAG(int, test_harness_port, 50051,
             "Port for gRPC test harness server (default: 50051).");
 #endif
 
-// Global controller for Emscripten loop
-static std::unique_ptr<Controller> g_controller;
+// Global application state wrapper
+class Application {
+ public:
+  static Application& Instance() {
+    static Application instance;
+    return instance;
+  }
 
-// Accessor functions for WASM debug inspector
-namespace yaze::app {
-emu::Emulator* GetGlobalEmulator() {
-  if (!g_controller) {
-    return nullptr;
+  void Initialize() {
+    controller_ = std::make_unique<Controller>();
+    
+    // Process pending ROM load if we have one (from flags or queued web load)
+    std::string start_path = "";
+    if (!pending_rom_.empty()) {
+      start_path = pending_rom_;
+      pending_rom_.clear();
+    }
+    
+    // Always call OnEntry to initialize Window/Renderer, even with empty path
+    auto status = controller_->OnEntry(start_path);
+    if (!status.ok()) {
+       LOG_ERROR("App", "Failed to initialize controller: %s", std::string(status.message()).c_str());
+    } else {
+       // Controller is now active
+       if (!start_path.empty()) {
+           // Apply startup editor flags if set
+           if (!FLAGS_editor->Get().empty()) {
+             controller_->SetStartupEditor(FLAGS_editor->Get(), FLAGS_cards->Get());
+           }
+       }
+    }
   }
-  auto* editor_manager = g_controller->editor_manager();
-  if (!editor_manager) {
-    return nullptr;
-  }
-  return &editor_manager->emulator();
-}
-}  // namespace yaze::app
+
+  void Tick() {
+    if (!controller_) return;
 
 #ifdef __EMSCRIPTEN__
-static bool g_filesystem_ready = false;
-static std::string g_pending_rom_filename;
+    auto& wasm_collab = app::platform::GetWasmCollaborationInstance();
+    wasm_collab.SetRom(controller_->GetCurrentRom());
+#endif
 
-extern "C" {
-EMSCRIPTEN_KEEPALIVE
-void SetFileSystemReady() {
-  g_filesystem_ready = true;
-  LOG_INFO("Main", "Filesystem sync complete, ready to start.");
-}
+    controller_->OnInput();
+    auto status = controller_->OnLoad();
+    if (!status.ok()) {
+      LOG_ERROR("Main", "Controller Load Error: %s", std::string(status.message()).c_str());
+#ifdef __EMSCRIPTEN__
+      emscripten_cancel_main_loop();
+#endif
+      return;
+    }
 
-EMSCRIPTEN_KEEPALIVE
-void LoadRomFromWeb(const char* filename) {
-  if (!filename) {
-    LOG_ERROR("Main", "LoadRomFromWeb called with null filename");
-    EM_ASM({
-      console.error("LoadRomFromWeb: null filename provided");
-      alert("Error: No filename provided");
-    });
-    return;
+#ifdef __EMSCRIPTEN__
+    wasm_collab.ProcessPendingChanges();
+#endif
+    controller_->DoRender();
   }
-  
-  std::string rom_path = filename;
-  LOG_INFO("Main", "LoadRomFromWeb called: %s (controller ready: %s)", 
-           rom_path.c_str(), g_controller ? "yes" : "no");
-  
-  // If controller isn't ready yet, queue the ROM load
-  if (!g_controller) {
-    g_pending_rom_filename = rom_path;
-    LOG_INFO("Main", "Controller not ready, queuing ROM load: %s", rom_path.c_str());
-    return;
-  }
-  
-  // Controller is ready, load the ROM
-  LOG_INFO("Main", "Loading ROM from web: %s", rom_path.c_str());
-  
-  try {
-    auto status = g_controller->OnEntry(rom_path);
+
+  // Unified load function for CLI, Web, and Startup
+  void LoadRom(const std::string& path) {
+    LOG_INFO("App", "Requesting ROM load: %s", path.c_str());
+
+    if (!controller_) {
+      // If controller not initialized, queue it.
+      pending_rom_ = path;
+      LOG_INFO("App", "Queued ROM load (controller not ready): %s", path.c_str());
+      return;
+    }
+
+    // Controller exists. 
+    // If it's already active (window open), use OpenRomOrProject.
+    // If it's not active (unlikely with new Initialize logic, but safe check), use OnEntry.
+    
+    absl::Status status;
+    if (!controller_->IsActive()) {
+       status = controller_->OnEntry(path);
+    } else {
+       status = controller_->editor_manager()->OpenRomOrProject(path);
+    }
+
     if (!status.ok()) {
       std::string error_msg = absl::StrCat("Failed to load ROM: ", status.message());
-      LOG_ERROR("Main", "%s", error_msg.c_str());
-      // Show error in JavaScript console and alert
+      LOG_ERROR("App", "%s", error_msg.c_str());
+      
+#ifdef __EMSCRIPTEN__
       EM_ASM({
         var msg = UTF8ToString($0);
         console.error(msg);
         alert(msg);
       }, error_msg.c_str());
+#endif
     } else {
-      LOG_INFO("Main", "ROM loaded successfully: %s", rom_path.c_str());
-      // Notify JavaScript of success
+      LOG_INFO("App", "ROM loaded successfully: %s", path.c_str());
+#ifdef __EMSCRIPTEN__
       EM_ASM({
         console.log("ROM loaded successfully: " + UTF8ToString($0));
-      }, rom_path.c_str());
-    }
-  } catch (const std::exception& e) {
-    std::string error_msg = absl::StrCat("Exception loading ROM: ", e.what());
-    LOG_ERROR("Main", "%s", error_msg.c_str());
-    EM_ASM({
-      var msg = UTF8ToString($0);
-      console.error(msg);
-      alert(msg);
-    }, error_msg.c_str());
-  } catch (...) {
-    std::string error_msg = "Unknown exception loading ROM";
-    LOG_ERROR("Main", "%s", error_msg.c_str());
-    EM_ASM({
-      var msg = UTF8ToString($0);
-      console.error(msg);
-      alert(msg);
-    }, error_msg.c_str());
-  }
-}
-}
-
-EM_JS(void, MountFilesystems, (), {
-  // Create directories
-  FS.mkdir('/roms');
-  FS.mkdir('/saves');
-
-  // Mount filesystems
-  FS.mount(MEMFS, {}, '/roms');
-  
-  // Check if IDBFS is available (try multiple ways to access it)
-  var idbfs = null;
-  if (typeof IDBFS !== 'undefined') {
-    idbfs = IDBFS;
-  } else if (typeof Module !== 'undefined' && typeof Module.IDBFS !== 'undefined') {
-    idbfs = Module.IDBFS;
-  } else if (typeof FS !== 'undefined' && typeof FS.filesystems !== 'undefined' && FS.filesystems.IDBFS) {
-    idbfs = FS.filesystems.IDBFS;
-  }
-  
-  if (idbfs !== null) {
-    try {
-      FS.mount(idbfs, {}, '/saves');
-      
-      // Sync from IDBFS to memory
-      FS.syncfs(true, function(err) {
-        if (err) {
-          console.error("Failed to sync IDBFS: " + err);
-        } else {
-          console.log("IDBFS synced successfully");
-        }
-        // Signal C++ that we are ready regardless of success/fail
-        // (worst case we start with empty saves)
-        Module._SetFileSystemReady();
-      });
-    } catch (e) {
-      console.error("Error mounting IDBFS: " + e);
-      // Fallback to MEMFS
-      FS.mount(MEMFS, {}, '/saves');
-      Module._SetFileSystemReady();
-    }
-  } else {
-    // Fallback to MEMFS if IDBFS is not available (no persistence, but app will work)
-    console.warn("IDBFS not available, using MEMFS for /saves (no persistence)");
-    FS.mount(MEMFS, {}, '/saves');
-    // Signal ready immediately since there's no async sync needed
-    Module._SetFileSystemReady();
-  }
-});
+      }, path.c_str());
 #endif
+    }
+  }
+
+  Controller* GetController() { return controller_.get(); }
+  bool IsReady() const { return controller_ != nullptr; }
+
+  void Shutdown() {
+    if (controller_) {
+      controller_->OnExit();
+      controller_.reset();
+    }
+  }
+
+ private:
+  std::unique_ptr<Controller> controller_;
+  std::string pending_rom_;
+};
+
+// Accessor functions for WASM debug inspector / Bridges
+namespace yaze::app {
+emu::Emulator* GetGlobalEmulator() {
+  auto* c = Application::Instance().GetController();
+  if (!c || !c->editor_manager()) {
+    return nullptr;
+  }
+  return &c->editor_manager()->emulator();
+}
+
+editor::EditorManager* GetGlobalEditorManager() {
+  auto* c = Application::Instance().GetController();
+  return c ? c->editor_manager() : nullptr;
+}
+}  // namespace yaze::app
 
 void TickFrame() {
 #ifdef __EMSCRIPTEN__
-  auto& wasm_collab = app::platform::GetWasmCollaborationInstance();
-  if (!g_filesystem_ready) {
-    // Wait for FS sync
-    // We could render a loading screen here if we had ImGui init early
+  if (!yaze::app::wasm::IsFileSystemReady()) {
     return;
   }
 
-  // Initialize controller once FS is ready
-  if (!g_controller) {
-    g_controller = std::make_unique<Controller>();
+  // Lazy Init for WASM (waiting for FS)
+  if (!Application::Instance().IsReady()) {
+    Application::Instance().Initialize();
     
-    std::string rom_filename = "";
-    if (!FLAGS_rom_file->Get().empty()) {
-      rom_filename = FLAGS_rom_file->Get();
-    } else if (!g_pending_rom_filename.empty()) {
-      // Use pending ROM from LoadRomFromWeb call
-      rom_filename = g_pending_rom_filename;
-      g_pending_rom_filename.clear();
-    }
-    
-    if (auto status = g_controller->OnEntry(rom_filename); !status.ok()) {
-        std::cerr << status.message() << std::endl;
-        emscripten_cancel_main_loop();
-        return;
-    }
-
-    if (!FLAGS_editor->Get().empty()) {
-      g_controller->SetStartupEditor(FLAGS_editor->Get(), FLAGS_cards->Get());
-    }
-
-    wasm_collab.SetRom(g_controller->GetCurrentRom());
-  } else if (!g_pending_rom_filename.empty()) {
-    // Controller is already initialized, but we have a pending ROM load
-    std::string rom_path = g_pending_rom_filename;
-    g_pending_rom_filename.clear();
-    LOG_INFO("Main", "Processing queued ROM load: %s", rom_path.c_str());
-    auto status = g_controller->OnEntry(rom_path);
-    if (!status.ok()) {
-      LOG_ERROR("Main", "Failed to load queued ROM: %s", std::string(status.message()).c_str());
-      EM_ASM({
-        console.error("Failed to load ROM: " + UTF8ToString($0));
-        alert("Failed to load ROM: " + UTF8ToString($0));
-      }, std::string(status.message()).c_str());
-    } else {
-      LOG_INFO("Main", "Queued ROM loaded successfully: %s", rom_path.c_str());
-    }
+    // Check flags for startup ROM if no web-load occurred
+    // Note: If Initialize() processed a pending_rom, this flag check might be redundant 
+    // or conflict. However, flags are static.
+    // If pending_rom_ was set via LoadRom (from Web) before Init, it takes precedence.
+    // If not, we check flags.
+    // But Initialize() already checks pending_rom_.
+    // So we just need to ensure flags are put into pending_rom_ if no other rom is there?
+    // Actually, in main() we can seed pending_rom_ from flags.
   }
 #endif
 
-  if (!g_controller || !g_controller->IsActive()) {
+  if (!Application::Instance().IsReady() || !Application::Instance().GetController()->IsActive()) {
 #ifdef __EMSCRIPTEN__
-    // Trigger sync back to IDBFS on exit (if this ever happens in web)
+    // Sync back to IDBFS on exit
     EM_ASM(
       FS.syncfs(false, function(err) {
         if (err) console.error("Failed to save IDBFS: " + err);
@@ -274,49 +233,25 @@ void TickFrame() {
     return;
   }
 
-#ifdef __EMSCRIPTEN__
-  if (g_controller) {
-    wasm_collab.SetRom(g_controller->GetCurrentRom());
-  }
-#endif
-
-  g_controller->OnInput();
-  if (auto status = g_controller->OnLoad(); !status.ok()) {
-    std::cerr << status.message() << std::endl;
-#ifdef __EMSCRIPTEN__
-    emscripten_cancel_main_loop();
-#endif
-    return;
-  }
-#ifdef __EMSCRIPTEN__
-  wasm_collab.ProcessPendingChanges();
-#endif
-  g_controller->DoRender();
+  Application::Instance().Tick();
 }
 
 int main(int argc, char** argv) {
   absl::InitializeSymbolizer(argv[0]);
 
 #ifndef __EMSCRIPTEN__
-  // Initialize crash handler for release builds
-  // This writes crash reports to ~/.yaze/crash_logs/ (or equivalent)
-  // In debug builds, crashes are also printed to stderr
   yaze::util::CrashHandler::Initialize(YAZE_VERSION_STRING);
-
-  // Clean up old crash logs (keep last 5)
   yaze::util::CrashHandler::CleanupOldLogs(5);
 #endif
 
-  // Parse command line flags with custom parser
   yaze::util::FlagParser parser(yaze::util::global_flag_registry());
   RETURN_IF_EXCEPTION(parser.Parse(argc, argv));
 
   // Set up logging
-  yaze::util::LogLevel log_level = FLAGS_debug->Get()
-                                       ? yaze::util::LogLevel::YAZE_DEBUG
+  yaze::util::LogLevel log_level = FLAGS_debug->Get() 
+                                       ? yaze::util::LogLevel::YAZE_DEBUG 
                                        : yaze::util::LogLevel::INFO;
 
-  // Parse log categories from comma-separated string
   std::set<std::string> log_categories;
   std::string categories_str = FLAGS_log_categories->Get();
   if (!categories_str.empty()) {
@@ -330,10 +265,8 @@ int main(int argc, char** argv) {
     log_categories.insert(categories_str.substr(start));
   }
 
-  // Determine log file path
   std::string log_path = FLAGS_log_file->Get();
   if (log_path.empty()) {
-    // Default to ~/Documents/Yaze/logs/yaze.log if not specified
     auto logs_dir = yaze::util::PlatformPaths::GetUserDocumentsSubdirectory("logs");
     if (logs_dir.ok()) {
       log_path = (*logs_dir / "yaze.log").string();
@@ -343,132 +276,81 @@ int main(int argc, char** argv) {
   yaze::util::LogManager::instance().configure(log_level, log_path,
                                                log_categories);
 
-  // Enable console logging via feature flag if debug is enabled.
   if (FLAGS_debug->Get()) {
     yaze::core::FeatureFlags::get().kLogToConsole = true;
     LOG_INFO("Main", "🚀 YAZE started in debug mode");
   }
 
-  std::string rom_filename = "";
+  // Pre-load ROM path into Application if flag is set
   if (!FLAGS_rom_file->Get().empty()) {
-    rom_filename = FLAGS_rom_file->Get();
+    Application::Instance().LoadRom(FLAGS_rom_file->Get());
   }
 
 #ifdef YAZE_WITH_GRPC
 #ifndef __EMSCRIPTEN__
-  // Start gRPC test harness server if requested
   if (FLAGS_enable_test_harness->Get()) {
-    // Get TestManager instance (initializes UI testing if available)
     auto& test_manager = yaze::test::TestManager::Get();
-
     auto& server = yaze::test::ImGuiTestHarnessServer::Instance();
     int port = FLAGS_test_harness_port->Get();
 
-    std::cout << "\n🚀 Starting ImGui Test Harness on port " << port << "..."
-              << std::endl;
+    std::cout << "\n🚀 Starting ImGui Test Harness on port " << port << "..." << std::endl;
     auto status = server.Start(port, &test_manager);
     if (!status.ok()) {
-      std::cerr << "❌ ERROR: Failed to start test harness server on port "
-                << port << std::endl;
-      std::cerr << "   " << status.message() << std::endl;
+      std::cerr << "❌ ERROR: Failed to start test harness server: " << status.message() << std::endl;
       return 1;
     }
     std::cout << "✅ Test harness ready on 127.0.0.1:" << port << std::endl;
-    std::cout
-        << "   Available RPCs: Ping, Click, Type, Wait, Assert, Screenshot\n"
-        << std::endl;
   }
 #endif
 #endif
 
 #ifdef __APPLE__
-  return yaze_run_cocoa_app_delegate(rom_filename.c_str());
+  // On macOS, we delegate to Cocoa app delegate which will eventually call main loop or TickFrame?
+  // Existing code was: return yaze_run_cocoa_app_delegate(rom_filename.c_str());
+  // The app delegate likely manages the loop.
+  // We should pass the rom filename if we have it.
+  // Application singleton is now ready to receive calls.
+  return yaze_run_cocoa_app_delegate(FLAGS_rom_file->Get().c_str());
 #elif defined(_WIN32)
-  // We set SDL_MAIN_HANDLED for Win32 to avoid SDL hijacking main()
   SDL_SetMainReady();
 #endif
 
 #ifdef __EMSCRIPTEN__
-  // Load WASM configuration from JavaScript
-  app::platform::WasmConfig::Get().LoadFromJavaScript();
+  // Register the ROM load handler with the bootstrap layer
+  yaze::app::wasm::SetRomLoadHandler([](std::string path) {
+    Application::Instance().LoadRom(path);
+  });
 
-  // Initialize drop handler for Drag & Drop support
-  auto& drop_handler = yaze::platform::WasmDropHandler::GetInstance();
-  drop_handler.Initialize("", 
-    [](const std::string& filename, const std::vector<uint8_t>& data) {
-        // Determine file type from extension
-        std::string ext = filename.substr(filename.find_last_of(".") + 1);
-        std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
-
-        if (ext == "sfc" || ext == "smc" || ext == "zip") {
-            // Write to MEMFS and load
-            std::string path = "/roms/" + filename;
-            std::ofstream file(path, std::ios::binary);
-            file.write(reinterpret_cast<const char*>(data.data()), data.size());
-            file.close();
-            
-            LOG_INFO("Main", "Wrote dropped ROM to %s (%zu bytes)", path.c_str(), data.size());
-            LoadRomFromWeb(path.c_str());
-        } 
-        else if (ext == "pal" || ext == "tpl") {
-            // Placeholder for palette logic
-            LOG_INFO("Main", "Palette drop detected: %s. Feature pending UI integration.", filename.c_str());
-            // Future: Decode and apply to current palette editor via Controller/EditorManager
-        }
-    },
-    [](const std::string& error) {
-        LOG_ERROR("Main", "Drop Handler Error: %s", error.c_str());
-    }
-  );
-
-  // Initialize filesystems asynchronously
-  MountFilesystems();
-
-  // Emscripten main loop - waits for g_filesystem_ready in TickFrame
+  yaze::app::wasm::InitializeWasmPlatform();
   emscripten_set_main_loop(TickFrame, 0, 1);
 #else
-  auto controller = std::make_unique<Controller>();
-  EXIT_IF_ERROR(controller->OnEntry(rom_filename))
-
-  // Set startup editor and cards from flags (after OnEntry initializes editor
-  // manager)
-  if (!FLAGS_editor->Get().empty()) {
-    controller->SetStartupEditor(FLAGS_editor->Get(), FLAGS_cards->Get());
-  }
-
-  // Start API server if requested
+  // Desktop Main Loop
+  
+  // API Server
   std::unique_ptr<yaze::cli::api::HttpServer> api_server;
   if (FLAGS_enable_api->Get()) {
     api_server = std::make_unique<yaze::cli::api::HttpServer>();
     auto status = api_server->Start(FLAGS_api_port->Get());
     if (!status.ok()) {
-      LOG_ERROR("Main", "Failed to start API server: %s",
-                std::string(status.message().data(), status.message().size()).c_str());
+      LOG_ERROR("Main", "Failed to start API server: %s", std::string(status.message()).c_str());
     } else {
       LOG_INFO("Main", "API Server started on port %d", FLAGS_api_port->Get());
     }
   }
 
-  // Assign to global for shared TickFrame if we wanted to reuse it, but 
-  // for desktop we can keep the loop local or use TickFrame logic.
-  // To avoid duplication, let's wire it up to use TickFrame-like logic 
-  // or just keep the loop as is for minimal risk.
+  Application::Instance().Initialize();
   
-  // Using local loop for desktop to match previous behavior exactly
-  g_controller = std::move(controller);
-  
-  while (g_controller->IsActive()) {
+  while (Application::Instance().GetController()->IsActive()) {
       TickFrame();
   }
   
-  g_controller->OnExit();
+  Application::Instance().Shutdown();
 
   if (api_server) {
     api_server->Stop();
   }
 
 #ifdef YAZE_WITH_GRPC
-  // Shutdown gRPC server if running
   yaze::test::ImGuiTestHarnessServer::Instance().Shutdown();
 #endif
 

@@ -85,7 +85,7 @@ struct WasmConfig {
   // AI service settings (for terminal AI commands)
   struct AI {
     bool enabled = true;
-    std::string model = "gemini-2.0-flash-exp";
+    std::string model = "gemini-2.5-flash";
     std::string endpoint;  // Empty = use collaboration server
     int max_response_length = 4096;
   } ai;
@@ -220,7 +220,7 @@ struct WasmConfig {
 
   struct AI {
     bool enabled = true;
-    std::string model = "gemini-2.0-flash-exp";
+    std::string model = "gemini-2.5-flash";
     std::string endpoint;
     int max_response_length = 4096;
   } ai;

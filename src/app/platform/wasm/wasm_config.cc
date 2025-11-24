@@ -136,7 +136,7 @@ void WasmConfig::LoadFromJavaScript() {
 
   // AI settings
   ai.enabled = WasmConfig_GetInt("ai.enabled", 1) != 0;
-  char* ai_model = WasmConfig_GetString("ai.model", "gemini-2.0-flash-exp");
+  char* ai_model = WasmConfig_GetString("ai.model", "gemini-2.5-flash");
   ai.model = std::string(ai_model);
   free(ai_model);
 
