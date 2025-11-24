@@ -75,10 +75,12 @@ if(EMSCRIPTEN)
   target_compile_options(yaze_net PUBLIC "-sFETCH=1")
   target_link_options(yaze_net PUBLIC "-sFETCH=1")
 
-  # WebSocket support is built-in via <emscripten/websocket.h>
-  # No additional flags needed
+  # WebSocket support requires linking websocket.js library
+  # The <emscripten/websocket.h> header provides the API, but the
+  # implementation is in the websocket.js library
+  target_link_libraries(yaze_net PUBLIC websocket.js)
 
-  message(STATUS "  - Emscripten Fetch API enabled (WebSocket built-in)")
+  message(STATUS "  - Emscripten Fetch API and WebSocket enabled")
 endif()
 
 # Add JSON and httplib support if enabled
