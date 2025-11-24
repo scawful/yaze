@@ -5,8 +5,11 @@ Quick iteration setup for maximizing Gemini's effectiveness on YAZE.
 ## One-Time Setup
 
 ```bash
-# Use dedicated build directory (never interfere with user's build/)
-cmake --preset mac-dbg -B build_gemini
+# Use the dedicated Gemini build script (recommended)
+./scripts/gemini_build.sh
+
+# Or manually configure with the Gemini preset
+cmake --preset mac-gemini
 
 # Verify setup succeeded
 ls build_gemini/compile_commands.json
@@ -15,7 +18,12 @@ ls build_gemini/compile_commands.json
 ## Fast Rebuild Cycle (~30s-2min)
 
 ```bash
-# Rebuild editor only (fastest)
+# Recommended: Use the build script
+./scripts/gemini_build.sh              # Build yaze (default)
+./scripts/gemini_build.sh yaze_test    # Build tests
+./scripts/gemini_build.sh --fresh      # Clean reconfigure
+
+# Or use cmake directly
 cmake --build build_gemini -j8 --target yaze
 
 # Rebuild editor library (for src/app/editor/ changes)
@@ -78,7 +86,8 @@ cmake --build build_gemini --target format
 ### Build fails with "target not found"
 ```bash
 # Reconfigure (CMakeLists.txt changed)
-cmake --preset mac-dbg -B build_gemini --fresh
+./scripts/gemini_build.sh --fresh
+# Or: cmake --preset mac-gemini --fresh
 ```
 
 ### Tests timeout

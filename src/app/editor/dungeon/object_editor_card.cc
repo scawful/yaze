@@ -18,6 +18,22 @@ ObjectEditorCard::ObjectEditorCard(
       object_selector_(rom),
       object_editor_(object_editor) {
   emulator_preview_.Initialize(renderer, rom);
+
+  // Wire up object selector callback
+  object_selector_.SetObjectSelectedCallback(
+      [this](const zelda3::RoomObject& obj) {
+        preview_object_ = obj;
+        has_preview_object_ = true;
+        canvas_viewer_->SetPreviewObject(preview_object_);
+        canvas_viewer_->SetObjectInteractionEnabled(true);
+        interaction_mode_ = InteractionMode::Place;
+
+        // Sync with backend editor if available
+        if (object_editor_) {
+          object_editor_->SetMode(zelda3::DungeonObjectEditor::Mode::kInsert);
+          object_editor_->SetCurrentObjectType(obj.id_);
+        }
+      });
 }
 
 void ObjectEditorCard::Draw(bool* p_open) {
@@ -103,130 +119,9 @@ void ObjectEditorCard::Draw(bool* p_open) {
 }
 
 void ObjectEditorCard::DrawObjectSelector() {
-  ImGui::Text(ICON_MD_INFO " Select an object to place on the canvas");
-  ImGui::Separator();
-
-  // Text filter for objects
-  static char object_filter[256] = "";
-  ImGui::SetNextItemWidth(-1);
-  if (ImGui::InputTextWithHint("##ObjectFilter",
-                               ICON_MD_SEARCH " Filter objects...",
-                               object_filter, sizeof(object_filter))) {
-    // Filter updated
-  }
-
-  ImGui::Separator();
-
-  // Object list with categories
-  if (ImGui::BeginChild("##ObjectList", ImVec2(0, 0), true)) {
-    // Floor objects
-    if (ImGui::CollapsingHeader(ICON_MD_GRID_ON " Floor Objects",
-                                ImGuiTreeNodeFlags_DefaultOpen)) {
-      for (int i = 0; i < 0x100; i++) {
-        std::string filter_str = object_filter;
-        if (!filter_str.empty()) {
-          // Simple name-based filtering
-          std::string object_name = absl::StrFormat("Object %02X", i);
-          std::transform(filter_str.begin(), filter_str.end(),
-                         filter_str.begin(), ::tolower);
-          std::transform(object_name.begin(), object_name.end(),
-                         object_name.begin(), ::tolower);
-          if (object_name.find(filter_str) == std::string::npos) {
-            continue;
-          }
-        }
-
-        // Create preview icon with small canvas
-        ImGui::BeginGroup();
-
-        // Small preview canvas (32x32 pixels)
-        DrawObjectPreviewIcon(i, ImVec2(32, 32));
-
-        ImGui::SameLine();
-
-        // Object label and selection
-        std::string object_label = absl::StrFormat("%02X - Floor Object", i);
-
-        if (ImGui::Selectable(object_label.c_str(),
-                              has_preview_object_ && preview_object_.id_ == i,
-                              0, ImVec2(0, 32))) {  // Match preview height
-          preview_object_ =
-              zelda3::RoomObject{static_cast<int16_t>(i), 0, 0, 0, 0};
-          has_preview_object_ = true;
-          canvas_viewer_->SetPreviewObject(preview_object_);
-          canvas_viewer_->SetObjectInteractionEnabled(true);
-          interaction_mode_ = InteractionMode::Place;
-
-          // Update ObjectEditor state if available
-          if (object_editor_) {
-            object_editor_->SetMode(zelda3::DungeonObjectEditor::Mode::kInsert);
-            object_editor_->SetCurrentObjectType(i);
-            // Note: Size and layer would ideally be set here too
-          }
-        }
-
-        ImGui::EndGroup();
-
-        if (ImGui::IsItemHovered()) {
-          ImGui::BeginTooltip();
-          ImGui::Text("Object ID: 0x%02X", i);
-          ImGui::Text("Type: Floor Object");
-          ImGui::Text("Click to select for placement");
-          ImGui::EndTooltip();
-        }
-      }
-    }
-
-    // Wall objects
-    if (ImGui::CollapsingHeader(ICON_MD_BORDER_ALL " Wall Objects")) {
-      for (int i = 0; i < 0x50; i++) {
-        std::string object_label = absl::StrFormat("%s %02X - Wall Object",
-                                                   ICON_MD_BORDER_VERTICAL, i);
-
-        if (ImGui::Selectable(object_label.c_str())) {
-          // Wall objects have special handling
-          preview_object_ = zelda3::RoomObject{static_cast<int16_t>(i), 0, 0, 0,
-                                               1};  // layer=1 for walls
-          has_preview_object_ = true;
-          canvas_viewer_->SetPreviewObject(preview_object_);
-          canvas_viewer_->SetObjectInteractionEnabled(true);
-          interaction_mode_ = InteractionMode::Place;
-        }
-      }
-    }
-
-    // Special objects
-    if (ImGui::CollapsingHeader(ICON_MD_STAR " Special Objects")) {
-      const char* special_objects[] = {"Stairs Down", "Stairs Up", "Chest",
-                                       "Door",        "Pot",       "Block",
-                                       "Switch",      "Torch"};
-
-      for (int i = 0; i < IM_ARRAYSIZE(special_objects); i++) {
-        std::string object_label =
-            absl::StrFormat("%s %s", ICON_MD_STAR, special_objects[i]);
-
-        if (ImGui::Selectable(object_label.c_str())) {
-          // Special object IDs start at 0xF8
-          preview_object_ =
-              zelda3::RoomObject{static_cast<int16_t>(0xF8 + i), 0, 0, 0, 2};
-          has_preview_object_ = true;
-          canvas_viewer_->SetPreviewObject(preview_object_);
-          canvas_viewer_->SetObjectInteractionEnabled(true);
-          interaction_mode_ = InteractionMode::Place;
-        }
-      }
-    }
-
-    ImGui::EndChild();
-  }
-
-  // Quick actions at bottom
-  if (ImGui::Button(ICON_MD_CLEAR " Clear Selection", ImVec2(-1, 0))) {
-    has_preview_object_ = false;
-    canvas_viewer_->ClearPreviewObject();
-    canvas_viewer_->SetObjectInteractionEnabled(false);
-    interaction_mode_ = InteractionMode::None;
-  }
+  // Delegate to the robust DungeonObjectSelector component
+  // This uses full graphics rendering instead of primitive colored squares
+  object_selector_.DrawObjectAssetBrowser();
 }
 
 void ObjectEditorCard::DrawEmulatorPreview() {
@@ -262,48 +157,7 @@ void ObjectEditorCard::DrawEmulatorPreview() {
 
 // DrawInteractionControls removed - controls moved to top of card
 
-void ObjectEditorCard::DrawObjectPreviewIcon(int object_id,
-                                             const ImVec2& size) {
-  const auto& theme = AgentUI::GetTheme();
-  // Create a small preview box for the object
-  ImDrawList* draw_list = ImGui::GetWindowDrawList();
-  ImVec2 cursor_pos = ImGui::GetCursorScreenPos();
-  ImVec2 box_min = cursor_pos;
-  ImVec2 box_max = ImVec2(cursor_pos.x + size.x, cursor_pos.y + size.y);
 
-  // Draw background
-  draw_list->AddRectFilled(box_min, box_max, ImGui::GetColorU32(theme.box_bg_dark));
-  draw_list->AddRect(box_min, box_max, ImGui::GetColorU32(theme.box_border));
-
-  // Draw a simple representation based on object ID
-  // For now, use colored squares and icons as placeholders
-  // Later this can be replaced with actual object bitmaps
-
-  // Color based on object ID for visual variety, using theme accent as base
-  float hue = (object_id % 16) / 16.0f;
-  ImVec4 base_color = theme.accent_color;
-  ImU32 obj_color = ImGui::ColorConvertFloat4ToU32(
-      ImVec4(base_color.x * (0.7f + hue * 0.3f),
-             base_color.y * (0.7f + hue * 0.3f),
-             base_color.z * (0.7f + hue * 0.3f),
-             1.0f));
-
-  // Draw inner colored square (16x16 in the center)
-  ImVec2 inner_min = ImVec2(cursor_pos.x + 8, cursor_pos.y + 8);
-  ImVec2 inner_max = ImVec2(cursor_pos.x + 24, cursor_pos.y + 24);
-  draw_list->AddRectFilled(inner_min, inner_max, obj_color);
-  draw_list->AddRect(inner_min, inner_max, ImGui::GetColorU32(theme.text_secondary_gray));
-
-  // Draw object ID text (very small)
-  std::string id_text = absl::StrFormat("%02X", object_id);
-  ImVec2 text_size = ImGui::CalcTextSize(id_text.c_str());
-  ImVec2 text_pos = ImVec2(cursor_pos.x + (size.x - text_size.x) * 0.5f,
-                           cursor_pos.y + size.y - text_size.y - 2);
-  draw_list->AddText(text_pos, ImGui::GetColorU32(theme.box_text), id_text.c_str());
-
-  // Advance cursor
-  ImGui::Dummy(size);
-}
 
 void ObjectEditorCard::DrawObjectTemplates() {
   if (!object_editor_) {

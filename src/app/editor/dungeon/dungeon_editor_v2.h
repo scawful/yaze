@@ -48,7 +48,6 @@ class DungeonEditorV2 : public Editor {
         room_loader_(rom),
         room_selector_(rom),
         canvas_viewer_(rom),
-        object_selector_(rom),
         object_emulator_preview_() {
     type_ = EditorType::kDungeon;
     if (rom) {
@@ -75,7 +74,6 @@ class DungeonEditorV2 : public Editor {
     room_loader_ = DungeonRoomLoader(rom);
     room_selector_.set_rom(rom);
     canvas_viewer_.SetRom(rom);
-    object_selector_.SetRom(rom);
     object_emulator_preview_.Initialize(renderer_, rom);
   }
   Rom* rom() const { return rom_; }
@@ -151,7 +149,6 @@ class DungeonEditorV2 : public Editor {
   DungeonRoomLoader room_loader_;
   DungeonRoomSelector room_selector_;
   DungeonCanvasViewer canvas_viewer_;
-  DungeonObjectSelector object_selector_;
   gui::DungeonObjectEmulatorPreview object_emulator_preview_;
   gui::PaletteEditorWidget palette_editor_;
   std::unique_ptr<ObjectEditorCard>

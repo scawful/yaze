@@ -160,6 +160,8 @@ endif()
 # Conditionally link gRPC if enabled
 if(YAZE_WITH_GRPC)
   target_link_libraries(yaze_editor PUBLIC yaze_grpc_support)
+  # Add protobuf generated headers directory
+  target_include_directories(yaze_editor PUBLIC ${PROJECT_BINARY_DIR}/gens)
 endif()
 
 set_target_properties(yaze_editor PROPERTIES
