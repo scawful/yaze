@@ -74,6 +74,10 @@ if (typeof window === 'undefined') {
 
     self.addEventListener("fetch", function (event) {
         const r = event.request;
+        // Skip invalid or empty URLs
+        if (!r.url || r.url === '' || r.url === 'about:blank') {
+            return;
+        }
         if (r.cache === "only-if-cached" && r.mode !== "same-origin") {
             return;
         }
@@ -105,7 +109,10 @@ if (typeof window === 'undefined') {
                     });
                 })
                 .catch((e) => {
-                    console.error("[COI] Fetch error:", e);
+                    // Only log non-empty URLs to reduce noise
+                    if (r.url && r.url !== '') {
+                        console.warn("[COI] Fetch failed for:", r.url, e.message || e);
+                    }
                     // CRITICAL: Must return a response, not undefined
                     return new Response(null, {
                         status: 502,
