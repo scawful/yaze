@@ -10,239 +10,86 @@
     <script src="coi-serviceworker.js"></script>
 
     <!-- PWA Meta Tags -->
-    <meta name="theme-color" content="#0e639c">
+    <meta name="theme-color" content="#1e1e1e">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="YAZE">
-    <!-- Collaboration server URL; adjust to your deployment (wss:// recommended) -->
+    <!-- Collaboration server URL -->
     <meta name="yaze-collab-server" content="wss://org.halext.org:8765">
 
-    <!-- Link to manifest for PWA (relative path for subdirectory support) -->
-    <link rel="manifest" href="manifest.json">
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="./manifest.json">
+    <link rel="icon" type="image/x-icon" href="./icons/favicon.ico">
+    <link rel="apple-touch-icon" href="./icons/icon-192x192.png">
 
-    <!-- iOS Icon (placeholder) -->
-    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
-
-    <!-- Keyboard Shortcuts Overlay Styles -->
+    <!-- Styles -->
+    <link rel="stylesheet" href="main.css">
     <link rel="stylesheet" href="shortcuts_overlay.css">
-
-    <!-- Touch Gesture Styles for iPad/Tablet -->
     <link rel="stylesheet" href="touch_gestures.css">
     <link rel="stylesheet" href="collab_console.css">
-
-    <!-- Terminal Styles -->
     <link rel="stylesheet" href="terminal.css">
+    <link rel="stylesheet" href="drop_zone.css">
+    <link rel="stylesheet" href="loading_indicator.css">
+    <link rel="stylesheet" href="error_handler.css">
 
-    <title>YAZE - Yet Another Zelda3 Editor (Web)</title>
-    <style>
-      body {
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        background-color: #1e1e1e;
-        color: #d4d4d4;
-        margin: 0;
-        padding: 0;
-        display: flex;
-        flex-direction: column;
-        height: 100vh;
-        overflow: hidden;
-      }
-
-      #header {
-        background-color: #252526;
-        padding: 10px 20px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        border-bottom: 1px solid #3e3e42;
-        height: 40px;
-      }
-
-      h1 {
-        font-size: 18px;
-        margin: 0;
-        color: #cccccc;
-      }
-
-      #controls {
-        display: flex;
-        gap: 10px;
-        align-items: center;
-      }
-
-      button, input[type="file"]::file-selector-button {
-        background-color: #0e639c;
-        color: white;
-        border: none;
-        padding: 6px 12px;
-        border-radius: 2px;
-        cursor: pointer;
-        font-size: 13px;
-        transition: background-color 0.2s;
-      }
-
-      button:hover, input[type="file"]::file-selector-button:hover {
-        background-color: #1177bb;
-      }
-
-      button:disabled {
-        background-color: #3a3d41;
-        color: #777;
-        cursor: not-allowed;
-      }
-      
-      #rom-input {
-        display: none; /* Hidden file input */
-      }
-
-      #canvas-container {
-        flex: 1;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        background-color: #000;
-        position: relative;
-      }
-
-      canvas.emscripten {
-        border: 0px none;
-        background-color: black;
-        display: block;
-        /* The canvas will be sized by the app */
-        max-width: 100%;
-        max-height: 100%;
-      }
-
-      #status {
-        position: absolute;
-        bottom: 20px;
-        left: 20px;
-        color: #cccccc;
-        background: rgba(0, 0, 0, 0.7);
-        padding: 5px 10px;
-        border-radius: 4px;
-        pointer-events: none;
-        font-size: 12px;
-        display: none;
-      }
-      
-      #loading {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        font-size: 24px;
-        color: white;
-        pointer-events: none;
-      }
-
-      /* Offline indicator */
-      #offline-indicator {
-        position: fixed;
-        top: 60px;
-        right: 20px;
-        background: #d32f2f;
-        color: white;
-        padding: 8px 16px;
-        border-radius: 4px;
-        font-size: 14px;
-        display: none;
-        z-index: 1000;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-      }
-
-      #offline-indicator.show {
-        display: block;
-      }
-
-      /* Update available notification */
-      #update-notification {
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        background: #0e639c;
-        color: white;
-        padding: 12px 20px;
-        border-radius: 4px;
-        font-size: 14px;
-        display: none;
-        z-index: 1000;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-      }
-
-      #update-notification.show {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-      }
-
-      #update-notification button {
-        background: rgba(255,255,255,0.2);
-        margin-left: 10px;
-      }
-
-      #update-notification button:hover {
-        background: rgba(255,255,255,0.3);
-      }
-
-      /* Spinner from Emscripten template */
-      .spinner {
-        height: 50px;
-        width: 50px;
-        margin: 0px auto;
-        -webkit-animation: rotation .8s linear infinite;
-        -moz-animation: rotation .8s linear infinite;
-        -o-animation: rotation .8s linear infinite;
-        animation: rotation 0.8s linear infinite;
-        border-left: 10px solid rgb(0,150,240);
-        border-right: 10px solid rgb(0,150,240);
-        border-bottom: 10px solid rgb(0,150,240);
-        border-top: 10px solid rgb(100,0,200);
-        border-radius: 100%;
-        background-color: rgb(200,100,250);
-      }
-      @keyframes rotation {
-        from {transform: rotate(0deg);}
-        to {transform: rotate(360deg);}
-      }
-
-    </style>
+    <title>YAZE Web</title>
   </head>
   <body>
     <div id="header">
-      <h1>YAZE Web</h1>
+      <div class="logo-area">
+        <h1>YAZE</h1>
+        <span class="version-tag">WASM</span>
+      </div>
       <div id="controls">
-        <button id="upload-btn" onclick="document.getElementById('rom-input').click()">Open ROM</button>
+        <button id="upload-btn" class="btn btn-primary" onclick="document.getElementById('rom-input').click()">
+          Open ROM
+        </button>
         <input type="file" id="rom-input" accept=".sfc,.smc">
-        <button id="download-save-btn" onclick="downloadSaves()">Download Saves</button>
-        <button id="fullscreen-btn" onclick="Module.requestFullscreen(false, false)">Fullscreen</button>
-        <button id="terminal-btn" onclick="toggleTerminal()">Terminal</button>
-        <button id="collab-btn" onclick="toggleCollabConsole()">Chat</button>
+        
+        <button id="download-save-btn" class="btn" onclick="downloadSaves()">
+          Saves
+        </button>
+        
+        <button id="fullscreen-btn" class="btn" onclick="Module.requestFullscreen(false, false)">
+          Fullscreen
+        </button>
+        
+        <button id="terminal-btn" class="btn" onclick="toggleTerminal()">
+          Terminal
+        </button>
+        
+        <button id="collab-btn" class="btn" onclick="toggleCollabConsole()">
+          Collab
+        </button>
       </div>
     </div>
 
     <!-- Offline indicator -->
-    <div id="offline-indicator">Offline Mode - Working from cache</div>
+    <div id="offline-indicator">
+      <span>⚡ Offline Mode</span>
+    </div>
 
     <!-- Update notification -->
     <div id="update-notification">
-      <span>A new version of YAZE is available!</span>
-      <button onclick="updateServiceWorker()">Update</button>
-      <button onclick="dismissUpdate()">Dismiss</button>
+      <span>New version available!</span>
+      <button class="btn btn-primary" onclick="updateServiceWorker()">Update</button>
+      <button class="btn" onclick="dismissUpdate()">Dismiss</button>
     </div>
 
     <!-- Touch mode indicator -->
     <div class="yaze-touch-indicator">Touch Mode</div>
 
     <div id="canvas-container">
-      <figure style="overflow:visible;" id="spinner"><div class="spinner"></div><center style="margin-top:0.5em"><strong>emscripten</strong></center></figure>
-      <div class="emscripten" id="status">Downloading...</div>
-      <div class="emscripten">
+      <div id="loading-overlay" style="display: none;"> <!-- Hidden by default, logic controls it -->
+        <figure id="spinner"><div class="spinner"></div></figure>
+        <div id="status">Downloading...</div>
         <progress value="0" max="100" id="progress" hidden=1></progress>
       </div>
+      
       <canvas class="emscripten" id="canvas" oncontextmenu="event.preventDefault()" tabindex=-1></canvas>
 
-      <!-- Touch zoom controls (visible in touch mode) -->
+      <!-- Touch zoom controls -->
       <div class="yaze-zoom-controls">
         <button onclick="zoomIn()" title="Zoom In">+</button>
         <div class="yaze-zoom-level" id="zoom-level">100%</div>
@@ -272,443 +119,16 @@
       </div>
     </div>
 
-    <!-- Configuration (must load before WASM) -->
+    <!-- Scripts -->
     <script src="config.js"></script>
-
-    <script type='text/javascript'>
-      var statusElement = document.getElementById('status');
-      var progressElement = document.getElementById('progress');
-      var spinnerElement = document.getElementById('spinner');
-
-      var Module = {
-        print: (function() {
-          return function(text) {
-            if (arguments.length > 1) text = Array.prototype.slice.call(arguments).join(' ');
-            console.log(text);
-          };
-        })(),
-        printErr: function(text) {
-          if (arguments.length > 1) text = Array.prototype.slice.call(arguments).join(' ');
-          console.error(text);
-        },
-        canvas: (function() {
-          var canvas = document.getElementById('canvas');
-          // As a default initial behavior, pop up an alert when webgl context is lost. To make your
-          // application robust, you may want to override this behavior before shipping!
-          // See http://www.khronos.org/registry/webgl/specs/latest/1.0/#5.15.2
-          canvas.addEventListener("webglcontextlost", function(e) { alert('WebGL context lost. You will need to reload the page.'); e.preventDefault(); }, false);
-          return canvas;
-        })(),
-        setStatus: function(text) {
-          if (!Module.setStatus.last) Module.setStatus.last = { time: Date.now(), text: '' };
-          if (text === Module.setStatus.last.text) return;
-          
-          var m = text.match(/([^(]+)\((\d+(\.\d+)?)\/(\d+)\)/);
-          var now = Date.now();
-          if (m && now - Module.setStatus.last.time < 30) return; // if this is a progress update, skip it if too soon
-          Module.setStatus.last.time = now;
-          Module.setStatus.last.text = text;
-          if (m) {
-            text = m[1];
-            progressElement.value = parseInt(m[2])*100;
-            progressElement.max = parseInt(m[4])*100;
-            progressElement.hidden = false;
-            spinnerElement.hidden = false;
-          } else {
-            progressElement.value = null;
-            progressElement.max = null;
-            progressElement.hidden = true;
-            if (!text) spinnerElement.hidden = true;
-          }
-          statusElement.innerHTML = text;
-          statusElement.style.display = text ? 'block' : 'none';
-        },
-        totalDependencies: 0,
-        monitorRunDependencies: function(left) {
-          this.totalDependencies = Math.max(this.totalDependencies, left);
-          Module.setStatus(left ? 'Preparing... (' + (this.totalDependencies-left) + '/' + this.totalDependencies + ')' : 'All downloads complete.');
-        },
-        onRuntimeInitialized: function() {
-           console.log("YAZE Web initialized");
-           document.getElementById('spinner').style.display = 'none';
-
-           // Initialize z3ed terminal
-           if (typeof Z3edTerminal !== 'undefined') {
-             window.z3edTerminal = new Z3edTerminal('terminal-container');
-             window.z3edTerminal.printInfo('z3ed Web Terminal ready. Type /help for commands.');
-           }
-        }
-      };
-      
-      Module.setStatus('Downloading...');
-      
-      window.onerror = function(event) {
-        // TODO: do not warn on ok events like simulating an infinite loop or exitStatus
-        Module.setStatus('Exception thrown, see JavaScript console');
-        spinnerElement.style.display = 'none';
-        Module.setStatus = function(text) {
-          if (text) Module.printErr('[post-exception status] ' + text);
-        };
-      };
-
-      // ROM Upload Handling
-      document.getElementById('rom-input').addEventListener('change', function(e) {
-        var file = e.target.files[0];
-        if (!file) return;
-        
-        var reader = new FileReader();
-        reader.onload = function(e) {
-          var data = new Uint8Array(e.target.result);
-          var filename = '/roms/' + file.name;
-          
-          try {
-            // Ensure /roms exists (should be created by C++ init, but good to check)
-            try { FS.mkdir('/roms'); } catch(e) {}
-            
-            // Write file to MEMFS
-            FS.writeFile(filename, data);
-            console.log("Wrote " + data.length + " bytes to " + filename);
-            
-            // Call C++ to load the ROM
-            // We need to export LoadRomFromWeb in C++
-            Module.ccall('LoadRomFromWeb', 'null', ['string'], [filename]);
-            
-          } catch (err) {
-            console.error("Error writing file:", err);
-            alert("Failed to load ROM: " + err);
-          }
-        };
-        reader.readAsArrayBuffer(file);
-      });
-
-      // Save Download Handling
-      window.downloadSaves = function() {
-        // First, sync from IndexedDB to make sure we have latest
-        // Actually, we want to sync MEMFS -> IDBFS to save current state, 
-        // then download what's in MEMFS (which matches IDBFS after sync)
-        
-        // Trigger a sync first to ensure everything in memory is persisted
-        FS.syncfs(false, function(err) {
-          if (err) {
-            console.error("Sync failed:", err);
-            alert("Failed to sync saves: " + err);
-            return;
-          }
-          
-          // Now look for files in /saves
-          try {
-            var files = FS.readdir('/saves');
-            var found = false;
-            
-            files.forEach(function(file) {
-              if (file === '.' || file === '..') return;
-              if (file.endsWith('.srm') || file.endsWith('.sav')) {
-                found = true;
-                var content = FS.readFile('/saves/' + file);
-                var blob = new Blob([content], {type: 'application/octet-stream'});
-                var url = URL.createObjectURL(blob);
-                
-                var a = document.createElement('a');
-                a.style.display = 'none';
-                a.href = url;
-                a.download = file;
-                document.body.appendChild(a);
-                a.click();
-                window.setTimeout(function() {
-                  document.body.removeChild(a);
-                  window.URL.revokeObjectURL(url);
-                }, 1000);
-              }
-            });
-            
-            if (!found) {
-              alert("No save files found in /saves");
-            }
-            
-          } catch (e) {
-            console.error("Error reading saves:", e);
-            alert("Error listing saves: " + e);
-          }
-        });
-      };
-
-      // Service Worker Registration
-      let newServiceWorker;
-
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          // Use relative path for GitHub Pages subdirectory support
-          navigator.serviceWorker.register('service-worker.js')
-            .then((registration) => {
-              console.log('ServiceWorker registration successful:', registration.scope);
-
-              // Check for updates periodically (every hour)
-              setInterval(() => {
-                registration.update();
-              }, 3600000);
-
-              // Listen for new service worker waiting
-              registration.addEventListener('updatefound', () => {
-                const installingWorker = registration.installing;
-                installingWorker.addEventListener('statechange', () => {
-                  if (installingWorker.state === 'installed' &&
-                      navigator.serviceWorker.controller) {
-                    // New service worker is ready to activate
-                    newServiceWorker = installingWorker;
-                    showUpdateNotification();
-                  }
-                });
-              });
-            })
-            .catch((error) => {
-              console.error('ServiceWorker registration failed:', error);
-            });
-
-          // Listen for service worker controller changes
-          navigator.serviceWorker.addEventListener('controllerchange', () => {
-            // Service worker has been updated, reload the page
-            window.location.reload();
-          });
-        });
-      }
-
-      // Online/Offline detection
-      function updateOnlineStatus() {
-        const offlineIndicator = document.getElementById('offline-indicator');
-        if (navigator.onLine) {
-          offlineIndicator.classList.remove('show');
-          console.log('Online: Connected to network');
-        } else {
-          offlineIndicator.classList.add('show');
-          console.log('Offline: Working from cache');
-        }
-      }
-
-      window.addEventListener('online', updateOnlineStatus);
-      window.addEventListener('offline', updateOnlineStatus);
-
-      // Check initial online status
-      document.addEventListener('DOMContentLoaded', updateOnlineStatus);
-
-      // Update notification functions
-      function showUpdateNotification() {
-        const notification = document.getElementById('update-notification');
-        notification.classList.add('show');
-      }
-
-      function dismissUpdate() {
-        const notification = document.getElementById('update-notification');
-        notification.classList.remove('show');
-      }
-
-      function updateServiceWorker() {
-        if (newServiceWorker) {
-          // Tell the waiting service worker to activate
-          newServiceWorker.postMessage({ type: 'SKIP_WAITING' });
-          dismissUpdate();
-        }
-      }
-
-      // Cache status check (optional - for debugging)
-      function checkCacheStatus() {
-        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-          const messageChannel = new MessageChannel();
-          messageChannel.port1.onmessage = (event) => {
-            console.log('Cache version:', event.data.version);
-          };
-          navigator.serviceWorker.controller.postMessage(
-            { type: 'CACHE_VERSION' },
-            [messageChannel.port2]
-          );
-        }
-      }
-
-      // Touch Mode Detection
-      let isTouchMode = false;
-      let lastInputWasTouch = false;
-
-      function enableTouchMode() {
-        if (!isTouchMode) {
-          isTouchMode = true;
-          document.body.classList.add('yaze-touch-mode');
-          console.log('Touch mode enabled');
-        }
-      }
-
-      function disableTouchMode() {
-        if (isTouchMode) {
-          isTouchMode = false;
-          document.body.classList.remove('yaze-touch-mode');
-          console.log('Touch mode disabled');
-        }
-      }
-
-      // Detect touch vs mouse input
-      document.addEventListener('touchstart', function() {
-        lastInputWasTouch = true;
-        enableTouchMode();
-      }, { passive: true });
-
-      document.addEventListener('mousemove', function(e) {
-        // Only switch to mouse mode if this is a real mouse movement
-        // (touch events can also fire mousemove)
-        if (!lastInputWasTouch && e.movementX !== 0 && e.movementY !== 0) {
-          disableTouchMode();
-        }
-        lastInputWasTouch = false;
-      });
-
-      // Detect if device supports touch
-      if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
-        console.log('Touch-capable device detected');
-        // Don't enable touch mode yet - wait for actual touch
-      }
-
-      // Touch Zoom Controls
-      let currentZoom = 1.0;
-      const MIN_ZOOM = 0.25;
-      const MAX_ZOOM = 4.0;
-
-      function updateZoomDisplay() {
-        const zoomLevel = document.getElementById('zoom-level');
-        if (zoomLevel) {
-          zoomLevel.textContent = Math.round(currentZoom * 100) + '%';
-        }
-      }
-
-      function zoomIn() {
-        currentZoom = Math.min(currentZoom * 1.25, MAX_ZOOM);
-        applyZoom();
-      }
-
-      function zoomOut() {
-        currentZoom = Math.max(currentZoom / 1.25, MIN_ZOOM);
-        applyZoom();
-      }
-
-      function resetZoom() {
-        currentZoom = 1.0;
-        applyZoom();
-        // Also reset pan if available
-        if (typeof Module !== 'undefined' && typeof Module._ResetCanvasView === 'function') {
-          Module._ResetCanvasView();
-        }
-      }
-
-      function applyZoom() {
-        updateZoomDisplay();
-        // Pass zoom to C++ if function is available
-        if (typeof Module !== 'undefined' && typeof Module.ccall === 'function') {
-          try {
-            Module.ccall('SetCanvasZoom', null, ['number'], [currentZoom]);
-          } catch (e) {
-            // Function might not exist yet
-          }
-        }
-      }
-
-      // Update zoom display when gesture changes it
-      window.onZoomChanged = function(zoom) {
-        currentZoom = zoom;
-        updateZoomDisplay();
-      };
-
-      // Terminal control functions
-      function toggleTerminal() {
-        var container = document.getElementById('terminal-container');
-        container.classList.toggle('terminal-collapsed');
-        container.classList.remove('terminal-hidden');
-        // Update toggle arrow direction
-        var toggle = container.querySelector('.terminal-toggle');
-        if (toggle) {
-          toggle.textContent = container.classList.contains('terminal-collapsed') ? '▲' : '▼';
-        }
-      }
-
-      function hideTerminal() {
-        var container = document.getElementById('terminal-container');
-        container.classList.add('terminal-hidden');
-      }
-
-      function maximizeTerminal() {
-        var container = document.getElementById('terminal-container');
-        container.classList.remove('terminal-collapsed');
-        container.classList.remove('terminal-hidden');
-        container.style.height = '70vh';
-        var toggle = container.querySelector('.terminal-toggle');
-        if (toggle) toggle.textContent = '▼';
-      }
-
-      function submitTerminalCommand() {
-        var input = document.getElementById('terminal-input');
-        if (input && input.value.trim()) {
-          // If z3ed terminal is available, use it
-          if (window.z3edTerminal && typeof window.z3edTerminal.execute === 'function') {
-            window.z3edTerminal.execute(input.value);
-          } else {
-            // Fallback: just echo the command
-            var output = document.getElementById('terminal-output');
-            if (output) {
-              var line = document.createElement('div');
-              line.className = 'terminal-line terminal-prompt';
-              line.textContent = input.value;
-              output.appendChild(line);
-              output.scrollTop = output.scrollHeight;
-            }
-          }
-          input.value = '';
-        }
-      }
-
-      // Handle Enter key in terminal input
-      document.addEventListener('DOMContentLoaded', function() {
-        var input = document.getElementById('terminal-input');
-        if (input) {
-          input.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') {
-              e.preventDefault();
-              submitTerminalCommand();
-            }
-          });
-        }
-
-        // Terminal resize handle
-        var handle = document.getElementById('terminal-resize-handle');
-        var container = document.getElementById('terminal-container');
-        if (handle && container) {
-          let isResizing = false;
-          let startY, startHeight;
-
-          handle.addEventListener('mousedown', function(e) {
-            isResizing = true;
-            startY = e.clientY;
-            startHeight = container.offsetHeight;
-            document.body.style.cursor = 'ns-resize';
-            e.preventDefault();
-          });
-
-          document.addEventListener('mousemove', function(e) {
-            if (!isResizing) return;
-            var delta = startY - e.clientY;
-            var newHeight = Math.min(Math.max(startHeight + delta, 120), window.innerHeight * 0.7);
-            container.style.height = newHeight + 'px';
-          });
-
-          document.addEventListener('mouseup', function() {
-            isResizing = false;
-            document.body.style.cursor = '';
-          });
-        }
-      });
-
-    </script>
-    <!-- Keyboard Shortcuts Handler -->
+    <script src="app.js"></script>
     <script src="shortcuts_overlay.js"></script>
-    <!-- Touch Gesture Handler for iPad/Tablet -->
     <script src="touch_gestures.js"></script>
     <script src="collab_console.js"></script>
-    <!-- z3ed Terminal -->
     <script src="terminal.js"></script>
+    <script src="drop_zone.js"></script>
+    <script src="loading_indicator.js"></script>
+    <script src="error_handler.js"></script>
     {{{ SCRIPT }}}
   </body>
 </html>

@@ -70,13 +70,25 @@ if (typeof window === 'undefined') {
         window.sessionStorage.removeItem("coiReloadedBySelf");
         const coepDegrading = (reloadedBySelf === "coepDegrade");
 
+        // Prevent infinite reload loops - track if we've already attempted COI setup
+        const coiAttempted = window.sessionStorage.getItem("coiAttempted");
+        if (coiAttempted && !window.crossOriginIsolated) {
+            // We already tried and it didn't work - don't keep reloading
+            console.warn("COI: SharedArrayBuffer setup failed after reload. COOP/COEP may not be supported.");
+            window.sessionStorage.removeItem("coiAttempted");
+            return;
+        }
+
         // You can customize the behavior via these options:
         const coi = {
             shouldRegister: () => !reloadedBySelf,
             shouldDeregister: () => false,
             coepCredentialless: () => true,
             coepDegrade: () => true,
-            doReload: () => window.location.reload(),
+            doReload: () => {
+                window.sessionStorage.setItem("coiAttempted", "true");
+                window.location.reload();
+            },
             quiet: false,
             ...window.coi
         };
@@ -98,6 +110,15 @@ if (typeof window === 'undefined') {
             window.crossOriginIsolated !== false &&
             window.SharedArrayBuffer !== undefined
         ) {
+            // Clear any previous attempt markers - COI is working
+            window.sessionStorage.removeItem("coiAttempted");
+            return;
+        }
+
+        // If COI is now working after our reload, clear the attempt marker
+        if (window.crossOriginIsolated && window.SharedArrayBuffer !== undefined) {
+            window.sessionStorage.removeItem("coiAttempted");
+            if (!coi.quiet) console.log("COI: SharedArrayBuffer enabled successfully!");
             return;
         }
 

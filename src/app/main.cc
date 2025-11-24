@@ -6,6 +6,8 @@
 #include <emscripten.h>
 #include "app/platform/wasm/wasm_collaboration.h"
 #include "app/platform/wasm/wasm_config.h"
+#include "app/platform/wasm/wasm_drop_handler.h"
+#include <fstream>
 #endif
 
 #define IMGUI_DEFINE_MATH_OPERATORS
@@ -279,6 +281,35 @@ int main(int argc, char** argv) {
 #ifdef __EMSCRIPTEN__
   // Load WASM configuration from JavaScript
   app::platform::WasmConfig::Get().LoadFromJavaScript();
+
+  // Initialize drop handler for Drag & Drop support
+  auto& drop_handler = yaze::platform::WasmDropHandler::GetInstance();
+  drop_handler.Initialize("", 
+    [](const std::string& filename, const std::vector<uint8_t>& data) {
+        // Determine file type from extension
+        std::string ext = filename.substr(filename.find_last_of(".") + 1);
+        std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+
+        if (ext == "sfc" || ext == "smc" || ext == "zip") {
+            // Write to MEMFS and load
+            std::string path = "/roms/" + filename;
+            std::ofstream file(path, std::ios::binary);
+            file.write(reinterpret_cast<const char*>(data.data()), data.size());
+            file.close();
+            
+            LOG_INFO("Main", "Wrote dropped ROM to %s (%zu bytes)", path.c_str(), data.size());
+            LoadRomFromWeb(path.c_str());
+        } 
+        else if (ext == "pal" || ext == "tpl") {
+            // Placeholder for palette logic
+            LOG_INFO("Main", "Palette drop detected: %s. Feature pending UI integration.", filename.c_str());
+            // Future: Decode and apply to current palette editor via Controller/EditorManager
+        }
+    },
+    [](const std::string& error) {
+        LOG_ERROR("Main", "Drop Handler Error: %s", error.c_str());
+    }
+  );
 
   // Initialize filesystems asynchronously
   MountFilesystems();

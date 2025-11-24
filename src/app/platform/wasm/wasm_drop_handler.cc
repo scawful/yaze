@@ -41,14 +41,15 @@ EM_JS(void, setupDropZone_impl, (const char* element_id), {
     overlay = document.createElement('div');
     overlay.id = 'yaze-drop-overlay';
     overlay.className = 'yaze-drop-overlay';
-    overlay.innerHTML = '<div class="yaze-drop-content"><div class="yaze-drop-icon">📁</div><div class="yaze-drop-text">Drop ROM file here</div><div class="yaze-drop-info">Supported: .sfc, .smc, .zip</div></div>';
+    overlay.innerHTML = '<div class="yaze-drop-content"><div class="yaze-drop-icon">📁</div><div class="yaze-drop-text">Drop file here</div><div class="yaze-drop-info">Supported: .sfc, .smc, .zip, .pal, .tpl</div></div>';
     document.body.appendChild(overlay);
   }
 
-  // Helper function to check if file is a ROM
-  function isRomFile(filename) {
+  // Helper function to check if file is a ROM or supported asset
+  function isSupportedFile(filename) {
     var ext = filename.toLowerCase().split('.').pop();
-    return ext === 'sfc' || ext === 'smc' || ext === 'zip';
+    return ext === 'sfc' || ext === 'smc' || ext === 'zip' || 
+           ext === 'pal' || ext === 'tpl';
   }
 
   // Helper function to check if dragged items contain files
@@ -109,8 +110,8 @@ EM_JS(void, setupDropZone_impl, (const char* element_id), {
 
     var file = files[0];  // Only handle first file
 
-    if (!isRomFile(file.name)) {
-      var errPtr = allocateUTF8("Invalid file type. Please drop a ROM file (.sfc, .smc, or .zip)");
+    if (!isSupportedFile(file.name)) {
+      var errPtr = allocateUTF8("Invalid file type. Please drop a ROM (.sfc) or Palette (.pal, .tpl)");
       Module._yazeHandleDropError(errPtr);
       _free(errPtr);
       return;
@@ -118,7 +119,7 @@ EM_JS(void, setupDropZone_impl, (const char* element_id), {
 
     // Show loading state in overlay
     overlay.classList.add('yaze-drop-loading');
-    overlay.querySelector('.yaze-drop-text').textContent = 'Loading ROM...';
+    overlay.querySelector('.yaze-drop-text').textContent = 'Loading file...';
     overlay.querySelector('.yaze-drop-info').textContent = file.name + ' (' + (file.size / 1024).toFixed(1) + ' KB)';
 
     var reader = new FileReader();
@@ -135,8 +136,8 @@ EM_JS(void, setupDropZone_impl, (const char* element_id), {
       // Hide loading state
       setTimeout(function() {
         overlay.classList.remove('yaze-drop-loading');
-        overlay.querySelector('.yaze-drop-text').textContent = 'Drop ROM file here';
-        overlay.querySelector('.yaze-drop-info').textContent = 'Supported: .sfc, .smc, .zip';
+        overlay.querySelector('.yaze-drop-text').textContent = 'Drop file here';
+        overlay.querySelector('.yaze-drop-info').textContent = 'Supported: .sfc, .smc, .zip, .pal, .tpl';
       }, 500);
     };
 
@@ -383,7 +384,8 @@ bool WasmDropHandler::IsValidRomFile(const std::string& filename) {
   std::transform(ext.begin(), ext.end(), ext.begin(),
                  [](unsigned char c) { return std::tolower(c); });
 
-  return ext == "sfc" || ext == "smc" || ext == "zip";
+  return ext == "sfc" || ext == "smc" || ext == "zip" ||
+         ext == "pal" || ext == "tpl";
 }
 
 void WasmDropHandler::HandleDroppedFile(const char* filename,
@@ -392,7 +394,7 @@ void WasmDropHandler::HandleDroppedFile(const char* filename,
 
   // Validate file
   if (!IsValidRomFile(filename)) {
-    HandleDropError("Invalid ROM file format");
+    HandleDropError("Invalid file format");
     return;
   }
 

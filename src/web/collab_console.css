@@ -5,14 +5,14 @@
 
 .yaze-console-container {
   position: fixed;
-  top: 0;
+  top: var(--header-height);
   right: 0;
   bottom: 0;
   width: 360px;
   max-width: 38vw;
   z-index: 1990;
-  background: rgba(10, 12, 18, 0.96);
-  border-left: 1px solid #2c3240;
+  background: var(--bg-panel);
+  border-left: 1px solid var(--border-light);
   display: none;
   pointer-events: auto;
   box-shadow: -6px 0 18px rgba(0,0,0,0.35);
@@ -27,10 +27,10 @@
   pointer-events: auto;
   position: relative;
   flex: 1 1 auto;
-  background: rgba(16, 18, 26, 0.9);
-  border-bottom: 1px solid #2c3240;
-  color: #dfe6f8;
-  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  background: var(--bg-app);
+  border-bottom: 1px solid var(--border-light);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
   overflow: hidden;
 }
 
@@ -39,8 +39,8 @@
   grid-template-columns: repeat(5, 1fr);
   gap: 8px;
   padding: 10px;
-  background: rgba(14, 99, 156, 0.15);
-  border-bottom: 1px solid #2c3240;
+  background: var(--bg-header);
+  border-bottom: 1px solid var(--border-light);
 }
 
 .yaze-chat-header input,
@@ -49,20 +49,20 @@
   width: 100%;
   font-size: 12px;
   padding: 6px 8px;
-  border-radius: 4px;
-  border: 1px solid #2c3240;
-  background: #111727;
-  color: #dfe6f8;
+  border-radius: var(--control-radius);
+  border: 1px solid var(--border-light);
+  background: var(--bg-input);
+  color: var(--text-primary);
 }
 
 .yaze-chat-header button {
-  background: #0e639c;
+  background: var(--accent-primary);
   border: none;
   cursor: pointer;
 }
 
 .yaze-chat-header button:hover {
-  background: #1177bb;
+  background: var(--accent-hover);
 }
 
 .yaze-chat-body {
@@ -83,27 +83,27 @@
 }
 
 .yaze-msg .meta {
-  color: #7fa7d9;
+  color: var(--text-secondary);
   min-width: 110px;
   font-weight: 600;
 }
 
 .yaze-msg .text {
-  color: #dfe6f8;
+  color: var(--text-primary);
   white-space: pre-wrap;
   word-break: break-word;
 }
 
 .yaze-msg.system .text {
-  color: #a0aec0;
+  color: var(--text-muted);
 }
 
 .yaze-chat-input {
   display: flex;
   gap: 8px;
   padding: 10px;
-  border-top: 1px solid #2c3240;
-  background: rgba(12, 15, 22, 0.9);
+  border-top: 1px solid var(--border-light);
+  background: var(--bg-header);
 }
 
 .yaze-chat-input textarea {
@@ -111,21 +111,21 @@
   min-height: 48px;
   max-height: 120px;
   resize: vertical;
-  background: #0b1020;
-  color: #dfe6f8;
-  border: 1px solid #2c3240;
-  border-radius: 4px;
+  background: var(--bg-input);
+  color: var(--text-primary);
+  border: 1px solid var(--border-light);
+  border-radius: var(--control-radius);
   padding: 8px;
   font-size: 12px;
-  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  font-family: var(--font-mono);
 }
 
 .yaze-chat-input button {
   width: 120px;
-  background: #0e639c;
+  background: var(--accent-primary);
   color: #fff;
   border: none;
-  border-radius: 4px;
+  border-radius: var(--control-radius);
   cursor: pointer;
   font-size: 12px;
 }
@@ -133,10 +133,10 @@
 .yaze-console-pane {
   pointer-events: auto;
   flex: 0 0 140px;
-  background: rgba(10, 12, 18, 0.94);
-  border-top: 1px solid #2c3240;
-  color: #cbd5e1;
-  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  background: var(--bg-panel);
+  border-top: 1px solid var(--border-light);
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
   font-size: 12px;
   display: flex;
   flex-direction: column;
@@ -147,16 +147,16 @@
   align-items: center;
   justify-content: space-between;
   padding: 6px 10px;
-  background: rgba(14, 99, 156, 0.12);
-  border-bottom: 1px solid #2c3240;
+  background: var(--bg-header);
+  border-bottom: 1px solid var(--border-light);
 }
 
 .yaze-console-header .controls button {
   margin-left: 8px;
-  background: #111727;
-  color: #dfe6f8;
-  border: 1px solid #2c3240;
-  border-radius: 4px;
+  background: var(--bg-input);
+  color: var(--text-primary);
+  border: 1px solid var(--border-light);
+  border-radius: var(--control-radius);
   padding: 4px 8px;
   cursor: pointer;
   font-size: 11px;
@@ -175,10 +175,10 @@
   align-items: center;
   gap: 6px;
   font-size: 12px;
-  background: #111727;
-  color: #dfe6f8;
+  background: var(--bg-input);
+  color: var(--text-primary);
   padding: 4px 8px;
-  border-radius: 4px;
+  border-radius: var(--control-radius);
 }
 
 .yaze-badge.locked::before {

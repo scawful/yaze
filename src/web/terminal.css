@@ -21,14 +21,14 @@
   --term-glow: rgba(51, 255, 51, 0.15);
 
   /* Accent colors */
-  --term-error: #ff3333;
-  --term-warning: #ffaa00;
-  --term-info: #33aaff;
-  --term-success: #33ff33;
+  --term-error: var(--status-error, #ff3333);
+  --term-warning: var(--status-warning, #ffaa00);
+  --term-info: var(--accent-primary, #33aaff);
+  --term-success: var(--status-success, #33ff33);
 
-  /* Window chrome */
-  --term-chrome-bg: #1a1a1a;
-  --term-chrome-border: #333333;
+  /* Window chrome - Match app theme */
+  --term-chrome-bg: var(--bg-header, #1a1a1a);
+  --term-chrome-border: var(--border-light, #333333);
   --term-btn-close: #ff5f56;
   --term-btn-minimize: #ffbd2e;
   --term-btn-maximize: #27ca3f;
