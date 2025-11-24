@@ -8,8 +8,12 @@
 
 #include <emscripten/bind.h>
 
+#include <iomanip>
 #include <sstream>
 
+#include "app/emu/emulator.h"
+#include "app/emu/snes.h"
+#include "app/emu/video/ppu.h"
 #include "app/gfx/resource/arena.h"
 #include "app/rom.h"
 #include "zelda3/dungeon/palette_debug.h"
@@ -20,6 +24,18 @@ using namespace emscripten;
 namespace yaze::cli {
 extern Rom* GetGlobalRom();
 }
+
+// External function to get the global emulator (defined in main.cc)
+namespace yaze::app {
+extern emu::Emulator* GetGlobalEmulator();
+}
+
+// Helper function to get the emulator for this file
+namespace {
+yaze::emu::Emulator* GetGlobalEmulator() {
+  return yaze::app::GetGlobalEmulator();
+}
+}  // namespace
 
 // =============================================================================
 // Palette Debug Functions
@@ -141,8 +157,7 @@ std::string getRomStatus() {
   } else {
     json << "\"loaded\":" << (rom->is_loaded() ? "true" : "false") << ",";
     json << "\"size\":" << rom->size() << ",";
-    json << "\"title\":\"" << rom->title() << "\",";
-    json << "\"version\":" << static_cast<int>(rom->version());
+    json << "\"title\":\"" << rom->title() << "\"";
   }
 
   json << "}";
@@ -176,7 +191,7 @@ std::string readRomBytes(int address, int count) {
   return json.str();
 }
 
-std::string getRomPaletteGroup(int group_id, int palette_index) {
+std::string getRomPaletteGroup(const std::string& group_name, int palette_index) {
   std::ostringstream json;
   auto* rom = yaze::cli::GetGlobalRom();
 
@@ -184,15 +199,15 @@ std::string getRomPaletteGroup(int group_id, int palette_index) {
     return "{\"error\":\"No ROM loaded\"}";
   }
 
-  json << "{\"group_id\":" << group_id << ",\"palette_index\":" << palette_index;
+  json << "{\"group_name\":\"" << group_name << "\",\"palette_index\":" << palette_index;
 
   // Get palette colors from the ROM's palette groups
   try {
-    auto& palette_group = rom->palette_group();
-    if (group_id >= 0 && group_id < static_cast<int>(palette_group.size())) {
-      auto& group = palette_group[group_id];
-      if (palette_index >= 0 && palette_index < static_cast<int>(group.size())) {
-        auto& palette = group[palette_index];
+    auto palette_group = rom->palette_group();
+    auto* group = palette_group.get_group(group_name);
+    if (group) {
+      if (palette_index >= 0 && palette_index < static_cast<int>(group->size())) {
+        auto palette = (*group)[palette_index];
         json << ",\"size\":" << palette.size();
         json << ",\"colors\":[";
         for (size_t i = 0; i < palette.size(); i++) {
@@ -207,7 +222,7 @@ std::string getRomPaletteGroup(int group_id, int palette_index) {
         json << ",\"error\":\"Invalid palette index\"";
       }
     } else {
-      json << ",\"error\":\"Invalid group ID\"";
+      json << ",\"error\":\"Invalid group name. Valid names: ow_main, ow_aux, ow_animated, hud, global_sprites, armors, swords, shields, sprites_aux1, sprites_aux2, sprites_aux3, dungeon_main, grass, 3d_object, ow_mini_map\"";
     }
   } catch (...) {
     json << ",\"error\":\"Exception accessing palette\"";
@@ -285,6 +300,199 @@ std::string getOverworldTileInfo(int map_id, int tile_x, int tile_y) {
 }
 
 // =============================================================================
+// Emulator Debug Functions
+// =============================================================================
+
+/**
+ * @brief Get the current emulator status including CPU state
+ *
+ * Returns JSON with:
+ * - initialized: whether the emulator is ready
+ * - running: whether the emulator is currently executing
+ * - cpu: register values (A, X, Y, SP, PC, D, DB, PB, P/status)
+ * - cycles: total cycles executed
+ * - fps: current frames per second
+ *
+ * CPU status flags (P register):
+ * - N (0x80): Negative
+ * - V (0x40): Overflow
+ * - M (0x20): Accumulator size (0=16-bit, 1=8-bit)
+ * - X (0x10): Index size (0=16-bit, 1=8-bit)
+ * - D (0x08): Decimal mode
+ * - I (0x04): IRQ disable
+ * - Z (0x02): Zero
+ * - C (0x01): Carry
+ * - E: Emulation mode (6502 compatibility)
+ */
+std::string getEmulatorStatus() {
+  std::ostringstream json;
+  auto* emulator = GetGlobalEmulator();
+
+  json << "{";
+
+  if (!emulator) {
+    json << "\"initialized\":false,\"error\":\"Emulator not available\"";
+    json << "}";
+    return json.str();
+  }
+
+  bool is_initialized = emulator->is_snes_initialized();
+  bool is_running = emulator->running();
+
+  json << "\"initialized\":" << (is_initialized ? "true" : "false") << ",";
+  json << "\"running\":" << (is_running ? "true" : "false") << ",";
+
+  if (is_initialized) {
+    auto& snes = emulator->snes();
+    auto& cpu = snes.cpu();
+
+    // CPU registers
+    json << "\"cpu\":{";
+    json << "\"A\":" << cpu.A << ",";
+    json << "\"X\":" << cpu.X << ",";
+    json << "\"Y\":" << cpu.Y << ",";
+    json << "\"SP\":" << cpu.SP() << ",";
+    json << "\"PC\":" << cpu.PC << ",";
+    json << "\"D\":" << cpu.D << ",";       // Direct page register
+    json << "\"DB\":" << (int)cpu.DB << ","; // Data bank register
+    json << "\"PB\":" << (int)cpu.PB << ","; // Program bank register
+    json << "\"P\":" << (int)cpu.status << ","; // Processor status
+    json << "\"E\":" << (int)cpu.E << ",";   // Emulation mode flag
+
+    // Decode status flags for convenience
+    json << "\"flags\":{";
+    json << "\"N\":" << (cpu.GetNegativeFlag() ? "true" : "false") << ",";
+    json << "\"V\":" << (cpu.GetOverflowFlag() ? "true" : "false") << ",";
+    json << "\"M\":" << (cpu.GetAccumulatorSize() ? "true" : "false") << ",";
+    json << "\"X\":" << (cpu.GetIndexSize() ? "true" : "false") << ",";
+    json << "\"D\":" << (cpu.GetDecimalFlag() ? "true" : "false") << ",";
+    json << "\"I\":" << (cpu.GetInterruptFlag() ? "true" : "false") << ",";
+    json << "\"Z\":" << (cpu.GetZeroFlag() ? "true" : "false") << ",";
+    json << "\"C\":" << (cpu.GetCarryFlag() ? "true" : "false");
+    json << "}";
+    json << "},";
+
+    // Full 24-bit PC address
+    uint32_t full_pc = ((uint32_t)cpu.PB << 16) | cpu.PC;
+    json << "\"full_pc\":" << full_pc << ",";
+    json << "\"full_pc_hex\":\"$" << std::hex << std::uppercase
+         << std::setfill('0') << std::setw(6) << full_pc << std::dec << "\",";
+
+    // Timing information
+    json << "\"cycles\":" << snes.mutable_cycles() << ",";
+    json << "\"fps\":" << emulator->GetCurrentFPS();
+  }
+
+  json << "}";
+  return json.str();
+}
+
+/**
+ * @brief Read memory from the emulator's WRAM
+ *
+ * @param address Starting address (SNES address space, e.g., 0x7E0000 for WRAM)
+ * @param count Number of bytes to read (max 256)
+ * @return JSON with address, count, and bytes array
+ *
+ * Memory map reference:
+ * - $7E0000-$7E1FFF: Low RAM (first 8KB, mirrored in banks $00-$3F)
+ * - $7E2000-$7FFFFF: High RAM (additional ~120KB)
+ * - $7F0000-$7FFFFF: Extended RAM (second 64KB bank)
+ */
+std::string readEmulatorMemory(int address, int count) {
+  std::ostringstream json;
+  auto* emulator = GetGlobalEmulator();
+
+  if (!emulator || !emulator->is_snes_initialized()) {
+    return "{\"error\":\"Emulator not initialized\"}";
+  }
+
+  // Clamp count to prevent huge responses
+  if (count > 256) count = 256;
+  if (count < 1) count = 1;
+
+  auto& snes = emulator->snes();
+
+  json << "{\"address\":" << address << ",";
+  json << "\"address_hex\":\"$" << std::hex << std::uppercase
+       << std::setfill('0') << std::setw(6) << address << std::dec << "\",";
+  json << "\"count\":" << count << ",";
+  json << "\"bytes\":[";
+
+  // Read bytes from emulator memory using Snes::Read
+  // This respects SNES memory mapping
+  for (int i = 0; i < count; i++) {
+    if (i > 0) json << ",";
+    uint8_t byte = snes.Read(address + i);
+    json << static_cast<int>(byte);
+  }
+
+  json << "],\"hex\":\"";
+  // Also provide hex string representation
+  for (int i = 0; i < count; i++) {
+    uint8_t byte = snes.Read(address + i);
+    json << std::hex << std::uppercase << std::setfill('0') << std::setw(2)
+         << static_cast<int>(byte);
+  }
+  json << std::dec << "\"}";
+
+  return json.str();
+}
+
+/**
+ * @brief Get PPU (video) state from the emulator
+ *
+ * Returns JSON with:
+ * - current_scanline: Current rendering scanline
+ * - h_pos / v_pos: Horizontal/vertical position
+ * - mode: Current BG mode (0-7)
+ * - brightness: Screen brightness level
+ * - forced_blank: Whether screen is blanked
+ * - overscan: Whether overscan is enabled
+ * - interlace: Whether interlacing is enabled
+ */
+std::string getEmulatorVideoState() {
+  std::ostringstream json;
+  auto* emulator = GetGlobalEmulator();
+
+  if (!emulator || !emulator->is_snes_initialized()) {
+    return "{\"error\":\"Emulator not initialized\"}";
+  }
+
+  auto& snes = emulator->snes();
+  auto& ppu = snes.ppu();
+  auto& memory = snes.memory();
+
+  json << "{";
+
+  // Scanline and position info from memory interface
+  json << "\"h_pos\":" << memory.h_pos() << ",";
+  json << "\"v_pos\":" << memory.v_pos() << ",";
+  json << "\"current_scanline\":" << ppu.current_scanline_ << ",";
+
+  // PPU mode and settings
+  json << "\"mode\":" << (int)ppu.mode << ",";
+  json << "\"brightness\":" << (int)ppu.brightness << ",";
+  json << "\"forced_blank\":" << (ppu.forced_blank_ ? "true" : "false") << ",";
+  json << "\"overscan\":" << (ppu.overscan_ ? "true" : "false") << ",";
+  json << "\"frame_overscan\":" << (ppu.frame_overscan_ ? "true" : "false") << ",";
+  json << "\"interlace\":" << (ppu.interlace ? "true" : "false") << ",";
+  json << "\"frame_interlace\":" << (ppu.frame_interlace ? "true" : "false") << ",";
+  json << "\"pseudo_hires\":" << (ppu.pseudo_hires_ ? "true" : "false") << ",";
+  json << "\"direct_color\":" << (ppu.direct_color_ ? "true" : "false") << ",";
+  json << "\"bg3_priority\":" << (ppu.bg3priority ? "true" : "false") << ",";
+  json << "\"even_frame\":" << (ppu.even_frame ? "true" : "false") << ",";
+
+  // VRAM pointer info
+  json << "\"vram_pointer\":" << ppu.vram_pointer << ",";
+  json << "\"vram_increment\":" << ppu.vram_increment_ << ",";
+  json << "\"vram_increment_on_high\":" << (ppu.vram_increment_on_high_ ? "true" : "false");
+
+  json << "}";
+  return json.str();
+}
+
+// =============================================================================
 // Combined Debug State for AI Analysis
 // =============================================================================
 
@@ -301,6 +509,9 @@ std::string getFullDebugState() {
 
   // ROM status
   json << "\"rom\":" << getRomStatus() << ",";
+
+  // Emulator status
+  json << "\"emulator\":" << getEmulatorStatus() << ",";
 
   // Diagnostic summary
   json << "\"diagnostic\":\"" << getDiagnosticSummary() << "\",";
@@ -343,6 +554,11 @@ EMSCRIPTEN_BINDINGS(yaze_debug_inspector) {
   // Overworld debug functions
   function("getOverworldMapInfo", &getOverworldMapInfo);
   function("getOverworldTileInfo", &getOverworldTileInfo);
+
+  // Emulator debug functions
+  function("getEmulatorStatus", &getEmulatorStatus);
+  function("readEmulatorMemory", &readEmulatorMemory);
+  function("getEmulatorVideoState", &getEmulatorVideoState);
 
   // Combined state for AI
   function("getFullDebugState", &getFullDebugState);

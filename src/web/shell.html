@@ -855,7 +855,7 @@
       window.yazeDebug = {
         // Version and capability info
         version: '1.0.0',
-        capabilities: ['palette', 'arena', 'timeline', 'pixel-inspector'],
+        capabilities: ['palette', 'arena', 'timeline', 'pixel-inspector', 'rom', 'overworld'],
 
         // Check if WASM module is ready
         isReady: function() {
@@ -944,6 +944,63 @@
           }
         },
 
+        // --- ROM Debug Functions ---
+        rom: {
+          // Get ROM load status, size, title, and version
+          getStatus: function() {
+            if (!window.yazeDebug.isReady()) return { error: 'Module not ready' };
+            try {
+              return JSON.parse(Module.getRomStatus());
+            } catch (e) {
+              return { error: e.message };
+            }
+          },
+
+          // Read bytes from ROM at specified address
+          readBytes: function(address, count) {
+            if (!window.yazeDebug.isReady()) return { error: 'Module not ready' };
+            try {
+              count = count || 16; // Default to 16 bytes
+              return JSON.parse(Module.readRomBytes(address, count));
+            } catch (e) {
+              return { error: e.message };
+            }
+          },
+
+          // Get palette group data from ROM
+          getPaletteGroup: function(groupId, paletteIndex) {
+            if (!window.yazeDebug.isReady()) return { error: 'Module not ready' };
+            try {
+              return JSON.parse(Module.getRomPaletteGroup(groupId, paletteIndex));
+            } catch (e) {
+              return { error: e.message };
+            }
+          }
+        },
+
+        // --- Overworld Debug Functions ---
+        overworld: {
+          // Get overworld map info (size, parent, world type)
+          getMapInfo: function(mapId) {
+            if (!window.yazeDebug.isReady()) return { error: 'Module not ready' };
+            try {
+              return JSON.parse(Module.getOverworldMapInfo(mapId));
+            } catch (e) {
+              return { error: e.message };
+            }
+          },
+
+          // Get tile info at specific coordinates
+          getTileInfo: function(mapId, tileX, tileY) {
+            if (!window.yazeDebug.isReady()) return { error: 'Module not ready' };
+            try {
+              return JSON.parse(Module.getOverworldTileInfo(mapId, tileX, tileY));
+            } catch (e) {
+              return { error: e.message };
+            }
+          }
+        },
+
         // --- Timeline Analysis ---
         timeline: {
           // Get event timeline for analyzing order of operations
@@ -998,6 +1055,7 @@
             timestamp: Date.now(),
             palette: this.palette.getFullState(),
             arena: this.arena.getStatus(),
+            rom: this.rom.getStatus(),
             timeline: this.timeline.get(),
             summary: this.analysis.getSummary(),
             hypothesis: this.analysis.getHypothesis()
@@ -1012,6 +1070,9 @@
           var lines = [
             '=== YAZE Debug State ===',
             'Timestamp: ' + new Date(state.timestamp).toISOString(),
+            '',
+            '--- ROM Status ---',
+            JSON.stringify(state.rom, null, 2),
             '',
             '--- Diagnostic Summary ---',
             state.summary,

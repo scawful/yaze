@@ -15,6 +15,7 @@
 #include "absl/debugging/symbolize.h"
 #include "absl/strings/str_cat.h"
 #include "app/controller.h"
+#include "app/emu/emulator.h"
 #include "cli/service/api/http_server.h"
 #include "core/features.h"
 #include "util/crash_handler.h"
@@ -70,6 +71,20 @@ DEFINE_FLAG(int, test_harness_port, 50051,
 
 // Global controller for Emscripten loop
 static std::unique_ptr<Controller> g_controller;
+
+// Accessor functions for WASM debug inspector
+namespace yaze::app {
+emu::Emulator* GetGlobalEmulator() {
+  if (!g_controller) {
+    return nullptr;
+  }
+  auto* editor_manager = g_controller->editor_manager();
+  if (!editor_manager) {
+    return nullptr;
+  }
+  return &editor_manager->emulator();
+}
+}  // namespace yaze::app
 
 #ifdef __EMSCRIPTEN__
 static bool g_filesystem_ready = false;
