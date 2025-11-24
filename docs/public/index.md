@@ -5,9 +5,13 @@
 
 # YAZE Documentation
 
-YAZE documentation now focuses on concise, Doxygen-friendly sections. Use the categories
-below for human-readable guides and reference material. Internal planning, AI agent playbooks,
-and research notes were moved to `docs/internal/` so the public docs stay focused.
+YAZE public docs are trimmed for readability and Doxygen export. Start with the quick links
+below; detailed planning and AI-agent material lives in `docs/internal/`.
+
+**New here?**
+- Install/build: [Getting Started](overview/getting-started.md) → [Build Quick Reference](build/quick-reference.md)
+- Understand the project: [Architecture Overview](developer/architecture.md)
+- Troubleshoot fast: [Build Troubleshooting](build/troubleshooting.md), [Debugging Guide](developer/debugging-guide.md)
 
 ## Overview
 - [Getting Started](overview/getting-started.md)
@@ -47,6 +51,10 @@ and research notes were moved to `docs/internal/` so the public docs stay focuse
 ## Reference
 - [ROM Reference](reference/rom-reference.md)
 - [Changelog](reference/changelog.md)
+
+---
+
+Maintainer note: public doc style and Doxygen guidance live in [`docs/public/README.md`](README.md).
 
 ---
 
