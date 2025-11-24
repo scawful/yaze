@@ -5,7 +5,6 @@
 
 #include "cli/handlers/graphics/hex_commands.h"
 #include "cli/handlers/graphics/palette_commands.h"
-#include "cli/handlers/agent/todo_commands.h"
 
 namespace yaze {
 namespace cli {
@@ -32,14 +31,11 @@ std::vector<std::unique_ptr<resources::CommandHandler>>
 CreateAgentCommandHandlers() {
   std::vector<std::unique_ptr<resources::CommandHandler>> handlers;
 
-  // Todo commands
-  handlers.push_back(std::make_unique<TodoAddCommandHandler>());
-  handlers.push_back(std::make_unique<TodoListCommandHandler>());
-  handlers.push_back(std::make_unique<TodoUpdateCommandHandler>());
-  handlers.push_back(std::make_unique<TodoCompleteCommandHandler>());
-  
-  // Note: Chat and other heavy agent commands are currently disabled in browser build
-  // to avoid complex dependency chains (curl, threads, etc).
+  // Note: Todo and other heavy agent commands are currently disabled in browser build.
+  // The todo commands use a function-based API (HandleTodoCommand) rather than
+  // CommandHandler classes, and are handled through the terminal bridge directly.
+  // Chat and other complex agent commands are also disabled to avoid complex
+  // dependency chains (curl, threads, etc).
 
   return handlers;
 }
