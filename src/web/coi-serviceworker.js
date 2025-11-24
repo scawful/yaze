@@ -70,13 +70,9 @@ if (typeof window === 'undefined') {
         window.sessionStorage.removeItem("coiReloadedBySelf");
         const coepDegrading = (reloadedBySelf === "coepDegrade");
 
-        // Prevent infinite reload loops - track if we've already attempted COI setup
-        const coiAttempted = window.sessionStorage.getItem("coiAttempted");
-        if (coiAttempted && !window.crossOriginIsolated) {
-            // We already tried and it didn't work - don't keep reloading
-            console.warn("COI: SharedArrayBuffer setup failed after reload. COOP/COEP may not be supported.");
+        // Clear coiAttempted on successful COI setup
+        if (window.crossOriginIsolated) {
             window.sessionStorage.removeItem("coiAttempted");
-            return;
         }
 
         // You can customize the behavior via these options:
@@ -126,7 +122,7 @@ if (typeof window === 'undefined') {
         // cross-origin requests. Setting coepDegrade tells the service worker to use
         // credentialless mode for COEP. This is less restrictive but should still enable
         // SharedArrayBuffer.
-        if (n.serviceWorker) {
+        if (n.serviceWorker && coi.shouldRegister()) {
             if (!coi.quiet) {
                 console.log("COI: Registering service worker for SharedArrayBuffer support...");
             }
@@ -149,7 +145,8 @@ if (typeof window === 'undefined') {
                             }
                         });
 
-                        if (registration.active && !controlling) {
+                        if (registration.active && !controlling && !reloadedBySelf) {
+                            // Only reload once - reloadedBySelf prevents infinite loop
                             if (!coi.quiet) console.log("COI: Service worker ready, reloading...");
                             window.sessionStorage.setItem("coiReloadedBySelf", coi.coepDegrade() ? "coepDegrade" : "true");
                             coi.doReload();
@@ -160,6 +157,13 @@ if (typeof window === 'undefined') {
                     }
                 );
 
+            n.serviceWorker.controller?.postMessage({
+                type: "coepCredentialless",
+                value: coi.coepCredentialless() || coepDegrading,
+            });
+        } else if (n.serviceWorker) {
+            // shouldRegister() returned false - we already reloaded, just send config
+            if (!coi.quiet) console.log("COI: Skipping registration (already reloaded)");
             n.serviceWorker.controller?.postMessage({
                 type: "coepCredentialless",
                 value: coi.coepCredentialless() || coepDegrading,
