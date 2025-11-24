@@ -93,3 +93,4 @@ recent_files.txt
 .genkit
 .claude
 scripts/__pycache__/
+build_gemini
