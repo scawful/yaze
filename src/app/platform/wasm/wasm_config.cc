@@ -167,6 +167,124 @@ WasmConfig& WasmConfig::Get() {
   return instance;
 }
 
+// clang-format off
+// Fetch server health status asynchronously via JavaScript fetch API.
+// Results are written directly to window.YAZE_SERVER_STATUS and can be
+// read by calling FetchServerStatus() which polls this global.
+EM_JS(void, WasmConfig_StartHealthFetch, (), {
+  try {
+    var config = window.YAZE_CONFIG || {};
+    var serverUrl = config.collaboration?.serverUrl || '';
+
+    // Initialize status object
+    window.YAZE_SERVER_STATUS = {
+      fetched: true,
+      reachable: false,
+      error: serverUrl ? null : 'No collaboration server configured'
+    };
+
+    if (!serverUrl) return;
+
+    // Convert ws:// to http:// or wss:// to https://
+    var healthUrl = serverUrl
+      .replace(/^wss:\/\//, 'https://')
+      .replace(/^ws:\/\//, 'http://');
+    // Remove /ws suffix if present, add /health
+    healthUrl = healthUrl.replace(/\/ws\/?$/, '') + '/health';
+
+    fetch(healthUrl, { method: 'GET', mode: 'cors' })
+      .then(function(response) {
+        if (!response.ok) throw new Error('HTTP ' + response.status);
+        return response.json();
+      })
+      .then(function(data) {
+        window.YAZE_SERVER_STATUS = {
+          fetched: true,
+          reachable: true,
+          version: data.version || '',
+          sessions: data.sessions || 0,
+          total_connections: data.total_connections || 0,
+          ai_enabled: data.ai?.enabled || false,
+          ai_configured: data.ai?.configured || false,
+          ai_provider: data.ai?.provider || 'none',
+          tls_detected: data.tls?.detected || false,
+          persistence_type: data.persistence?.type || 'unknown'
+        };
+      })
+      .catch(function(err) {
+        window.YAZE_SERVER_STATUS = {
+          fetched: true,
+          reachable: false,
+          error: err.message
+        };
+      });
+  } catch (e) {
+    console.error('[WasmConfig] FetchHealth error:', e);
+    window.YAZE_SERVER_STATUS = {
+      fetched: true,
+      reachable: false,
+      error: e.message
+    };
+  }
+});
+
+// Read server status from JavaScript global
+EM_JS(int, WasmConfig_GetServerStatusInt, (const char* key), {
+  var status = window.YAZE_SERVER_STATUS || {};
+  var keyStr = UTF8ToString(key);
+  var val = status[keyStr];
+  if (typeof val === 'boolean') return val ? 1 : 0;
+  if (typeof val === 'number') return Math.floor(val);
+  return 0;
+});
+
+EM_JS(char*, WasmConfig_GetServerStatusString, (const char* key), {
+  var status = window.YAZE_SERVER_STATUS || {};
+  var keyStr = UTF8ToString(key);
+  var val = status[keyStr] || '';
+  if (typeof val !== 'string') val = String(val);
+  var len = lengthBytesUTF8(val) + 1;
+  var ptr = _malloc(len);
+  stringToUTF8(val, ptr, len);
+  return ptr;
+});
+// clang-format on
+
+void WasmConfig::FetchServerStatus() {
+  // Start the async fetch (results go to window.YAZE_SERVER_STATUS)
+  WasmConfig_StartHealthFetch();
+
+  // Read current status from JavaScript
+  std::lock_guard<std::mutex> lock(config_mutex_);
+
+  server_status.fetched = WasmConfig_GetServerStatusInt("fetched") != 0;
+  server_status.reachable = WasmConfig_GetServerStatusInt("reachable") != 0;
+  server_status.ai_enabled = WasmConfig_GetServerStatusInt("ai_enabled") != 0;
+  server_status.ai_configured =
+      WasmConfig_GetServerStatusInt("ai_configured") != 0;
+  server_status.tls_detected =
+      WasmConfig_GetServerStatusInt("tls_detected") != 0;
+  server_status.active_sessions = WasmConfig_GetServerStatusInt("sessions");
+  server_status.total_connections =
+      WasmConfig_GetServerStatusInt("total_connections");
+
+  char* version = WasmConfig_GetServerStatusString("version");
+  server_status.server_version = std::string(version);
+  free(version);
+
+  char* provider = WasmConfig_GetServerStatusString("ai_provider");
+  server_status.ai_provider = std::string(provider);
+  free(provider);
+
+  char* persist_type = WasmConfig_GetServerStatusString("persistence_type");
+  server_status.persistence_type = std::string(persist_type);
+  free(persist_type);
+
+  char* error = WasmConfig_GetServerStatusString("error");
+  server_status.error_message = std::string(error);
+  free(error);
+}
+
 }  // namespace platform
 }  // namespace app
 }  // namespace yaze

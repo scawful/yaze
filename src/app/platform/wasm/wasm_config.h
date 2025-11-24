@@ -97,6 +97,21 @@ struct WasmConfig {
     std::string protocol_version = "2.0";
   } deployment;
 
+  // Server status (populated by FetchServerStatus)
+  struct ServerStatus {
+    bool fetched = false;
+    bool reachable = false;
+    bool ai_enabled = false;
+    bool ai_configured = false;
+    std::string ai_provider;  // "gemini", "external", "none"
+    bool tls_detected = false;
+    std::string persistence_type;  // "memory", "file"
+    int active_sessions = 0;
+    int total_connections = 0;
+    std::string server_version;
+    std::string error_message;
+  } server_status;
+
   /**
    * @brief Load configuration from JavaScript window.YAZE_CONFIG
    *
@@ -104,6 +119,14 @@ struct WasmConfig {
    * from the JavaScript environment.
    */
   void LoadFromJavaScript();
+
+  /**
+   * @brief Fetch server status from /health endpoint asynchronously
+   *
+   * Populates server_status struct with reachability, AI status, TLS info.
+   * Safe to call multiple times; will update server_status on each call.
+   */
+  void FetchServerStatus();
 
   /**
    * @brief Get the singleton configuration instance
@@ -208,7 +231,22 @@ struct WasmConfig {
     std::string protocol_version = "2.0";
   } deployment;
 
+  struct ServerStatus {
+    bool fetched = false;
+    bool reachable = false;
+    bool ai_enabled = false;
+    bool ai_configured = false;
+    std::string ai_provider;
+    bool tls_detected = false;
+    std::string persistence_type;
+    int active_sessions = 0;
+    int total_connections = 0;
+    std::string server_version;
+    std::string error_message;
+  } server_status;
+
   void LoadFromJavaScript() {}
+  void FetchServerStatus() {}
   static WasmConfig& Get() {
     static WasmConfig instance;
     return instance;
