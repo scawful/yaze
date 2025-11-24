@@ -7,6 +7,49 @@
  * - Cross-Origin-Opener-Policy: same-origin
  * - Cross-Origin-Embedder-Policy: require-corp
  */
+
+// BLOCKING CHECK: If we need COI setup, stop everything immediately
+if (typeof window !== 'undefined' && typeof SharedArrayBuffer === 'undefined') {
+    const n = navigator;
+    const reloadedBySelf = window.sessionStorage.getItem("coiReloadedBySelf");
+
+    if (reloadedBySelf) {
+        // Already reloaded but still no SAB - COI failed, let error show
+        console.error('[COI] Failed: SharedArrayBuffer unavailable after COI setup.');
+        window.YAZE_COI_FAILED = true;
+    } else if (n.serviceWorker?.controller) {
+        // SW is controlling but SAB not available, reload to apply headers
+        console.log('[COI] Blocking: SW controlling, reloading for headers...');
+        window.sessionStorage.setItem("coiReloadedBySelf", "true");
+        window.stop();
+        window.location.reload();
+    } else if (n.serviceWorker) {
+        // No SW controller yet - register and reload SYNCHRONOUSLY
+        // Use document.write to prevent rest of page from loading
+        console.log('[COI] First visit: Registering service worker...');
+        window.sessionStorage.setItem("coiReloadedBySelf", "true");
+
+        n.serviceWorker.register(window.document.currentScript.src).then(() => {
+            console.log('[COI] SW registered, reloading...');
+            window.location.reload();
+        }).catch(err => {
+            console.error('[COI] SW registration failed:', err);
+        });
+
+        // CRITICAL: Stop the page from loading further while SW registers
+        // This prevents yaze.js from loading before COI is ready
+        document.write('<html><head><meta charset="utf-8"><title>yaze - Loading...</title>' +
+            '<style>body{background:#0d0d0d;color:#0c6;font-family:monospace;display:flex;' +
+            'align-items:center;justify-content:center;height:100vh;margin:0;}' +
+            '.loading{text-align:center}.spinner{border:2px solid #333;border-top:2px solid #0c6;' +
+            'border-radius:50%;width:24px;height:24px;animation:spin 1s linear infinite;margin:0 auto 12px;}' +
+            '@keyframes spin{to{transform:rotate(360deg)}}</style></head>' +
+            '<body><div class="loading"><div class="spinner"></div>Initializing secure context...</div></body></html>');
+        document.close();
+        throw new Error('COI setup in progress - blocking page load');
+    }
+}
+
 let coepCredentialless = false;
 if (typeof window === 'undefined') {
     self.addEventListener("install", () => self.skipWaiting());
@@ -91,7 +134,8 @@ if (typeof window === 'undefined') {
 
         // You can customize the behavior via these options:
         const coi = {
-            shouldRegister: () => !reloadedBySelf,
+            // Skip registration if already handled by blocking check above
+            shouldRegister: () => !reloadedBySelf && typeof SharedArrayBuffer === 'undefined',
             shouldDeregister: () => false,
             // Firefox needs require-corp mode, Chrome/Edge can use credentialless
             coepCredentialless: () => !isFirefox,
