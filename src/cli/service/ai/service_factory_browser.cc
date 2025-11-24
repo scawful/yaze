@@ -1,0 +1,50 @@
+#include "cli/service/ai/service_factory.h"
+
+#include "cli/service/ai/browser_ai_service.h"
+#include "cli/service/ai/ai_service.h"
+#include "net/http_client.h"
+
+#ifdef __EMSCRIPTEN__
+#include "net/wasm/http_client.h"
+#endif
+
+namespace yaze {
+namespace cli {
+
+std::unique_ptr<AIService> CreateAIService() {
+  AIServiceConfig config;
+  config.provider = "gemini";
+  config.model = "gemini-1.5-flash";
+  return CreateAIService(config);
+}
+
+std::unique_ptr<AIService> CreateAIService(const AIServiceConfig& config) {
+  // For browser, we always use BrowserAIService wrapping Gemini
+  // The browser client handles API keys via config/JS
+  
+  BrowserAIConfig browser_config;
+  browser_config.model = config.model;
+  if (browser_config.model.empty()) {
+    browser_config.model = "gemini-1.5-flash";
+  }
+  browser_config.api_key = config.gemini_api_key;
+  browser_config.verbose = config.verbose;
+
+#ifdef __EMSCRIPTEN__
+  auto http_client = std::make_unique<net::WasmHttpClient>();
+#else
+  // Fallback for non-wasm builds if this file is included
+  std::unique_ptr<net::IHttpClient> http_client = nullptr;
+#endif
+
+  return std::make_unique<BrowserAIService>(browser_config, std::move(http_client));
+}
+
+absl::StatusOr<std::unique_ptr<AIService>> CreateAIServiceStrict(
+    const AIServiceConfig& config) {
+  return CreateAIService(config);
+}
+
+}  // namespace cli
+}  // namespace yaze
+

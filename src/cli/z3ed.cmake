@@ -64,7 +64,7 @@ endif()
 if(EMSCRIPTEN)
   message(STATUS "Configuring z3ed for WASM terminal mode")
   set_target_properties(z3ed PROPERTIES
-    LINK_FLAGS "-s EXPORTED_FUNCTIONS='[\"_main\",\"_z3ed_execute_command\",\"_z3ed_init\"]' -s EXPORTED_RUNTIME_METHODS='[\"ccall\",\"cwrap\",\"stringToUTF8\",\"UTF8ToString\"]' -s MODULARIZE=1 -s EXPORT_NAME='Z3edTerminal'"
+    LINK_FLAGS "-s EXPORTED_FUNCTIONS='[\"_main\",\"_z3ed_execute_command\",\"_z3ed_init\"]' -s EXPORTED_RUNTIME_METHODS='[\"ccall\",\"cwrap\",\"stringToUTF8\",\"UTF8ToString\"]' -s MODULARIZE=1 -s EXPORT_NAME='Z3edTerminal' --bind"
   )
   target_compile_definitions(z3ed PRIVATE YAZE_WASM_TERMINAL_MODE)
 endif()
