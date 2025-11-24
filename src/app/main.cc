@@ -102,19 +102,45 @@ EM_JS(void, MountFilesystems, (), {
 
   // Mount filesystems
   FS.mount(MEMFS, {}, '/roms');
-  FS.mount(IDBFS, {}, '/saves');
-
-  // Sync from IDBFS to memory
-  FS.syncfs(true, function(err) {
-    if (err) {
-      console.error("Failed to sync IDBFS: " + err);
-    } else {
-      console.log("IDBFS synced successfully");
+  
+  // Check if IDBFS is available (try multiple ways to access it)
+  var idbfs = null;
+  if (typeof IDBFS !== 'undefined') {
+    idbfs = IDBFS;
+  } else if (typeof Module !== 'undefined' && typeof Module.IDBFS !== 'undefined') {
+    idbfs = Module.IDBFS;
+  } else if (typeof FS !== 'undefined' && typeof FS.filesystems !== 'undefined' && FS.filesystems.IDBFS) {
+    idbfs = FS.filesystems.IDBFS;
+  }
+  
+  if (idbfs !== null) {
+    try {
+      FS.mount(idbfs, {}, '/saves');
+      
+      // Sync from IDBFS to memory
+      FS.syncfs(true, function(err) {
+        if (err) {
+          console.error("Failed to sync IDBFS: " + err);
+        } else {
+          console.log("IDBFS synced successfully");
+        }
+        // Signal C++ that we are ready regardless of success/fail
+        // (worst case we start with empty saves)
+        Module._SetFileSystemReady();
+      });
+    } catch (e) {
+      console.error("Error mounting IDBFS: " + e);
+      // Fallback to MEMFS
+      FS.mount(MEMFS, {}, '/saves');
+      Module._SetFileSystemReady();
     }
-    // Signal C++ that we are ready regardless of success/fail
-    // (worst case we start with empty saves)
+  } else {
+    // Fallback to MEMFS if IDBFS is not available (no persistence, but app will work)
+    console.warn("IDBFS not available, using MEMFS for /saves (no persistence)");
+    FS.mount(MEMFS, {}, '/saves');
+    // Signal ready immediately since there's no async sync needed
     Module._SetFileSystemReady();
-  });
+  }
 });
 #endif
 
