@@ -9,8 +9,10 @@
 
 #ifdef __EMSCRIPTEN__
 
+#include <algorithm>
 #include <cstring>
 #include <memory>
+#include <set>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -182,26 +184,99 @@ std::string ProcessCommandInternal(const std::string& command_str) {
 std::vector<std::string> GetCompletionsInternal(const std::string& partial) {
   std::vector<std::string> completions;
 
-  // Get all available commands from registry
-  auto& registry = yaze::cli::CommandRegistry::Instance();
-  auto categories = registry.GetCategories();
+  // Parse the partial command to understand context
+  auto parts = absl::StrSplit(partial, ' ', absl::SkipEmpty());
+  std::vector<std::string> cmd_parts(parts.begin(), parts.end());
 
-  for (const auto& category : categories) {
-    auto commands = registry.GetCommandsInCategory(category);
-    for (const auto& cmd : commands) {
-      if (cmd.find(partial) == 0) {
-        completions.push_back(cmd);
+  // If empty or single word, show top-level commands
+  if (cmd_parts.empty() || (cmd_parts.size() == 1 && !partial.empty() && partial.back() != ' ')) {
+    std::string prefix = cmd_parts.empty() ? "" : cmd_parts[0];
+
+    // Get all available commands from registry
+    auto& registry = yaze::cli::CommandRegistry::Instance();
+    auto categories = registry.GetCategories();
+
+    std::set<std::string> unique_commands;  // Use set to avoid duplicates
+
+    for (const auto& category : categories) {
+      auto commands = registry.GetCommandsInCategory(category);
+      for (const auto& cmd : commands) {
+        if (prefix.empty() || cmd.find(prefix) == 0) {
+          unique_commands.insert(cmd);
+        }
+      }
+    }
+
+    // Add special/built-in commands
+    std::vector<std::string> special = {
+      "help", "rom", "ai", "clear", "version", "hex", "palette", "sprite",
+      "music", "dialogue", "message", "resource", "dungeon", "overworld",
+      "gui", "emulator", "query", "analyze", "catalog"
+    };
+
+    for (const auto& cmd : special) {
+      if (prefix.empty() || cmd.find(prefix) == 0) {
+        unique_commands.insert(cmd);
+      }
+    }
+
+    // Convert set to vector
+    completions.assign(unique_commands.begin(), unique_commands.end());
+
+  } else if (cmd_parts.size() >= 1) {
+    // Context-specific completions based on the command
+    const std::string& command = cmd_parts[0];
+
+    if (command == "rom") {
+      // ROM subcommands
+      std::vector<std::string> rom_cmds = {"load", "info", "save", "stats", "verify"};
+      std::string prefix = cmd_parts.size() > 1 ? cmd_parts[1] : "";
+      for (const auto& subcmd : rom_cmds) {
+        if (prefix.empty() || subcmd.find(prefix) == 0) {
+          completions.push_back("rom " + subcmd);
+        }
+      }
+    } else if (command == "hex") {
+      // Hex subcommands
+      std::vector<std::string> hex_cmds = {"read", "write", "search", "dump", "compare"};
+      std::string prefix = cmd_parts.size() > 1 ? cmd_parts[1] : "";
+      for (const auto& subcmd : hex_cmds) {
+        if (prefix.empty() || subcmd.find(prefix) == 0) {
+          completions.push_back("hex " + subcmd);
+        }
+      }
+    } else if (command == "palette") {
+      // Palette subcommands
+      std::vector<std::string> pal_cmds = {"get", "set", "analyze", "export", "import", "list"};
+      std::string prefix = cmd_parts.size() > 1 ? cmd_parts[1] : "";
+      for (const auto& subcmd : pal_cmds) {
+        if (prefix.empty() || subcmd.find(prefix) == 0) {
+          completions.push_back("palette " + subcmd);
+        }
+      }
+    } else if (command == "resource") {
+      // Resource subcommands
+      std::vector<std::string> res_cmds = {"list", "query", "search", "export", "info"};
+      std::string prefix = cmd_parts.size() > 1 ? cmd_parts[1] : "";
+      for (const auto& subcmd : res_cmds) {
+        if (prefix.empty() || subcmd.find(prefix) == 0) {
+          completions.push_back("resource " + subcmd);
+        }
+      }
+    } else if (command == "gui") {
+      // GUI subcommands
+      std::vector<std::string> gui_cmds = {"click", "discover", "screenshot", "place", "select"};
+      std::string prefix = cmd_parts.size() > 1 ? cmd_parts[1] : "";
+      for (const auto& subcmd : gui_cmds) {
+        if (prefix.empty() || subcmd.find(prefix) == 0) {
+          completions.push_back("gui " + subcmd);
+        }
       }
     }
   }
 
-  // Add special commands
-  std::vector<std::string> special = {"help", "rom", "ai", "clear", "version"};
-  for (const auto& cmd : special) {
-    if (cmd.find(partial) == 0) {
-      completions.push_back(cmd);
-    }
-  }
+  // Sort completions alphabetically
+  std::sort(completions.begin(), completions.end());
 
   return completions;
 }
