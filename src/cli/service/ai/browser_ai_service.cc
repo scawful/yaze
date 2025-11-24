@@ -93,6 +93,7 @@ BrowserAIService::BrowserAIService(const BrowserAIConfig& config,
 }
 
 void BrowserAIService::SetRomContext(Rom* rom) {
+  std::lock_guard<std::mutex> lock(mutex_);
   rom_ = rom;
   if (rom_ && rom_->is_loaded()) {
     // Add ROM-specific context to system instruction
@@ -105,6 +106,7 @@ void BrowserAIService::SetRomContext(Rom* rom) {
 
 absl::StatusOr<AgentResponse> BrowserAIService::GenerateResponse(
     const std::string& prompt) {
+  std::lock_guard<std::mutex> lock(mutex_);
   if (!http_client_) {
     return absl::FailedPreconditionError("HTTP client not initialized");
   }
@@ -155,6 +157,7 @@ absl::StatusOr<AgentResponse> BrowserAIService::GenerateResponse(
 
 absl::StatusOr<AgentResponse> BrowserAIService::GenerateResponse(
     const std::vector<agent::ChatMessage>& history) {
+  std::lock_guard<std::mutex> lock(mutex_);
   if (!http_client_) {
     return absl::FailedPreconditionError("HTTP client not initialized");
   }
@@ -214,6 +217,7 @@ absl::StatusOr<AgentResponse> BrowserAIService::GenerateResponse(
 }
 
 absl::StatusOr<std::vector<ModelInfo>> BrowserAIService::ListAvailableModels() {
+  std::lock_guard<std::mutex> lock(mutex_);
   // For browser context, we'll return a curated list of Gemini models
   // that are known to work well with the API
   std::vector<ModelInfo> models;
@@ -261,6 +265,7 @@ absl::StatusOr<std::vector<ModelInfo>> BrowserAIService::ListAvailableModels() {
 absl::StatusOr<AgentResponse> BrowserAIService::AnalyzeImage(
     const std::string& image_data,
     const std::string& prompt) {
+  std::lock_guard<std::mutex> lock(mutex_);
   if (!http_client_) {
     return absl::FailedPreconditionError("HTTP client not initialized");
   }
@@ -318,6 +323,7 @@ absl::StatusOr<AgentResponse> BrowserAIService::AnalyzeImage(
 }
 
 absl::Status BrowserAIService::CheckAvailability() {
+  std::lock_guard<std::mutex> lock(mutex_);
   if (!http_client_) {
     return absl::FailedPreconditionError("HTTP client not initialized");
   }
@@ -354,6 +360,7 @@ absl::Status BrowserAIService::CheckAvailability() {
 }
 
 void BrowserAIService::UpdateApiKey(const std::string& api_key) {
+  std::lock_guard<std::mutex> lock(mutex_);
   config_.api_key = api_key;
 
   // Store in sessionStorage for this session

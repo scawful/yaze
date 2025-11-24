@@ -4,6 +4,8 @@
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
+#include "app/platform/wasm/wasm_collaboration.h"
+#include "app/platform/wasm/wasm_config.h"
 #endif
 
 #define IMGUI_DEFINE_MATH_OPERATORS
@@ -116,6 +118,7 @@ EM_JS(void, MountFilesystems, (), {
 
 void TickFrame() {
 #ifdef __EMSCRIPTEN__
+  auto& wasm_collab = app::platform::GetWasmCollaborationInstance();
   if (!g_filesystem_ready) {
     // Wait for FS sync
     // We could render a loading screen here if we had ImGui init early
@@ -140,6 +143,8 @@ void TickFrame() {
     if (!FLAGS_editor->Get().empty()) {
       g_controller->SetStartupEditor(FLAGS_editor->Get(), FLAGS_cards->Get());
     }
+
+    wasm_collab.SetRom(g_controller->GetCurrentRom());
   }
 #endif
 
@@ -157,6 +162,12 @@ void TickFrame() {
     return;
   }
 
+#ifdef __EMSCRIPTEN__
+  if (g_controller) {
+    wasm_collab.SetRom(g_controller->GetCurrentRom());
+  }
+#endif
+
   g_controller->OnInput();
   if (auto status = g_controller->OnLoad(); !status.ok()) {
     std::cerr << status.message() << std::endl;
@@ -165,6 +176,9 @@ void TickFrame() {
 #endif
     return;
   }
+#ifdef __EMSCRIPTEN__
+  wasm_collab.ProcessPendingChanges();
+#endif
   g_controller->DoRender();
 }
 
@@ -263,9 +277,12 @@ int main(int argc, char** argv) {
 #endif
 
 #ifdef __EMSCRIPTEN__
+  // Load WASM configuration from JavaScript
+  app::platform::WasmConfig::Get().LoadFromJavaScript();
+
   // Initialize filesystems asynchronously
   MountFilesystems();
-  
+
   // Emscripten main loop - waits for g_filesystem_ready in TickFrame
   emscripten_set_main_loop(TickFrame, 0, 1);
 #else

@@ -9,6 +9,7 @@
 
 #include "absl/strings/str_format.h"
 #include "app/platform/wasm/wasm_storage.h"
+#include "app/platform/wasm/wasm_config.h"
 
 namespace yaze {
 namespace platform {
@@ -108,7 +109,7 @@ void yazeEmergencySave() {
 // AutoSaveManager implementation
 
 AutoSaveManager::AutoSaveManager()
-    : interval_seconds_(60),
+    : interval_seconds_(WasmConfig::Get().autosave.interval_seconds),
       enabled_(true),
       running_(false),
       timer_id_(-1),

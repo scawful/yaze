@@ -7,11 +7,13 @@
 #include <emscripten/val.h>
 
 #include <chrono>
+#include <cmath>
 #include <random>
 #include <sstream>
 
 #include "absl/strings/str_format.h"
 #include "nlohmann/json.hpp"
+#include "app/platform/wasm/wasm_config.h"
 
 using json = nlohmann::json;
 
@@ -94,7 +96,14 @@ const std::vector<std::string> kUserColors = {
     "#F7DC6F",  // Gold
 };
 
+WasmCollaboration& GetInstance() {
+  static WasmCollaboration instance;
+  return instance;
+}
+
 }  // namespace
+
+WasmCollaboration& GetWasmCollaborationInstance() { return GetInstance(); }
 
 WasmCollaboration::WasmCollaboration() {
   user_id_ = GenerateUserId();
@@ -123,9 +132,10 @@ void WasmCollaboration::InitializeFromConfig() {
 }
 
 absl::StatusOr<std::string> WasmCollaboration::CreateSession(
-    const std::string& session_name, const std::string& username) {
-  if (is_connected_) {
-    return absl::FailedPreconditionError("Already connected to a session");
+    const std::string& session_name, const std::string& username,
+    const std::string& password) {
+  if (is_connected_ || connection_state_ == ConnectionState::Connecting) {
+    return absl::FailedPreconditionError("Already connected or connecting to a session");
   }
 
   if (!IsConfigured()) {
@@ -141,6 +151,10 @@ absl::StatusOr<std::string> WasmCollaboration::CreateSession(
 
   session_name_ = session_name;
   username_ = username;
+  stored_password_ = password;
+  should_reconnect_ = true;  // Enable auto-reconnect for this session
+
+  UpdateConnectionState(ConnectionState::Connecting, "Creating session...");
 
   // Connect to WebSocket server
   auto status = websocket_->Connect(websocket_url_);
@@ -149,9 +163,10 @@ absl::StatusOr<std::string> WasmCollaboration::CreateSession(
   }
 
   // Set up WebSocket callbacks
-  websocket_->OnOpen([this]() {
+  websocket_->OnOpen([this, password]() {
     ConsoleLog("WebSocket connected, creating session");
     is_connected_ = true;
+    UpdateConnectionState(ConnectionState::Connected, "Connected");
 
     // Add self to users list
     User self_user;
@@ -174,6 +189,9 @@ absl::StatusOr<std::string> WasmCollaboration::CreateSession(
     msg["user"] = username_;
     msg["user_id"] = user_id_;
     msg["color"] = user_color_;
+    if (!password.empty()) {
+      msg["password"] = password;
+    }
 
     auto send_status = websocket_->Send(msg.dump());
     if (!send_status.ok()) {
@@ -192,6 +210,15 @@ absl::StatusOr<std::string> WasmCollaboration::CreateSession(
 
   websocket_->OnClose([this](int code, const std::string& reason) {
     is_connected_ = false;
+    ConsoleLog(absl::StrFormat("WebSocket closed: %s (code: %d)", reason, code).c_str());
+
+    // Initiate reconnection if enabled
+    if (should_reconnect_) {
+      InitiateReconnection();
+    } else {
+      UpdateConnectionState(ConnectionState::Disconnected, absl::StrFormat("Disconnected: %s", reason));
+    }
+
     if (status_callback_) {
       status_callback_(false, absl::StrFormat("Disconnected: %s", reason));
     }
@@ -201,6 +228,14 @@ absl::StatusOr<std::string> WasmCollaboration::CreateSession(
   websocket_->OnError([this](const std::string& error) {
     ConsoleError(error.c_str());
     is_connected_ = false;
+
+    // Initiate reconnection on error
+    if (should_reconnect_) {
+      InitiateReconnection();
+    } else {
+      UpdateConnectionState(ConnectionState::Disconnected, error);
+    }
+
     if (status_callback_) {
       status_callback_(false, error);
     }
@@ -215,9 +250,10 @@ absl::StatusOr<std::string> WasmCollaboration::CreateSession(
 }
 
 absl::Status WasmCollaboration::JoinSession(const std::string& room_code,
-                                           const std::string& username) {
-  if (is_connected_) {
-    return absl::FailedPreconditionError("Already connected to a session");
+                                           const std::string& username,
+                                           const std::string& password) {
+  if (is_connected_ || connection_state_ == ConnectionState::Connecting) {
+    return absl::FailedPreconditionError("Already connected or connecting to a session");
   }
 
   if (!IsConfigured()) {
@@ -228,6 +264,10 @@ absl::Status WasmCollaboration::JoinSession(const std::string& room_code,
 
   room_code_ = room_code;
   username_ = username;
+  stored_password_ = password;
+  should_reconnect_ = true;  // Enable auto-reconnect for this session
+
+  UpdateConnectionState(ConnectionState::Connecting, "Joining session...");
 
   // Connect to WebSocket server
   auto status = websocket_->Connect(websocket_url_);
@@ -236,9 +276,10 @@ absl::Status WasmCollaboration::JoinSession(const std::string& room_code,
   }
 
   // Set up WebSocket callbacks
-  websocket_->OnOpen([this]() {
+  websocket_->OnOpen([this, password]() {
     ConsoleLog("WebSocket connected, joining session");
     is_connected_ = true;
+    UpdateConnectionState(ConnectionState::Connected, "Connected");
 
     // Send join session message
     json msg;
@@ -247,6 +288,9 @@ absl::Status WasmCollaboration::JoinSession(const std::string& room_code,
     msg["user"] = username_;
     msg["user_id"] = user_id_;
     msg["color"] = user_color_;
+    if (!password.empty()) {
+      msg["password"] = password;
+    }
 
     auto send_status = websocket_->Send(msg.dump());
     if (!send_status.ok()) {
@@ -265,6 +309,15 @@ absl::Status WasmCollaboration::JoinSession(const std::string& room_code,
 
   websocket_->OnClose([this](int code, const std::string& reason) {
     is_connected_ = false;
+    ConsoleLog(absl::StrFormat("WebSocket closed: %s (code: %d)", reason, code).c_str());
+
+    // Initiate reconnection if enabled
+    if (should_reconnect_) {
+      InitiateReconnection();
+    } else {
+      UpdateConnectionState(ConnectionState::Disconnected, absl::StrFormat("Disconnected: %s", reason));
+    }
+
     if (status_callback_) {
       status_callback_(false, absl::StrFormat("Disconnected: %s", reason));
     }
@@ -274,6 +327,14 @@ absl::Status WasmCollaboration::JoinSession(const std::string& room_code,
   websocket_->OnError([this](const std::string& error) {
     ConsoleError(error.c_str());
     is_connected_ = false;
+
+    // Initiate reconnection on error
+    if (should_reconnect_) {
+      InitiateReconnection();
+    } else {
+      UpdateConnectionState(ConnectionState::Disconnected, error);
+    }
+
     if (status_callback_) {
       status_callback_(false, error);
     }
@@ -285,28 +346,39 @@ absl::Status WasmCollaboration::JoinSession(const std::string& room_code,
 }
 
 absl::Status WasmCollaboration::LeaveSession() {
-  if (!is_connected_) {
+  if (!is_connected_ && connection_state_ != ConnectionState::Connecting &&
+      connection_state_ != ConnectionState::Reconnecting) {
     return absl::FailedPreconditionError("Not connected to a session");
   }
 
-  // Send leave message
-  json msg;
-  msg["type"] = "leave";
-  msg["room"] = room_code_;
-  msg["user_id"] = user_id_;
+  // Disable auto-reconnect when explicitly leaving
+  should_reconnect_ = false;
 
-  auto status = websocket_->Send(msg.dump());
-  if (!status.ok()) {
-    ConsoleError("Failed to send leave message");
+  // Send leave message if connected
+  if (is_connected_) {
+    json msg;
+    msg["type"] = "leave";
+    msg["room"] = room_code_;
+    msg["user_id"] = user_id_;
+
+    auto status = websocket_->Send(msg.dump());
+    if (!status.ok()) {
+      ConsoleError("Failed to send leave message");
+    }
   }
 
   // Close WebSocket connection
-  websocket_->Close();
+  if (websocket_) {
+    websocket_->Close();
+  }
   is_connected_ = false;
+  UpdateConnectionState(ConnectionState::Disconnected, "Left session");
 
   // Clear state
   room_code_.clear();
   session_name_.clear();
+  stored_password_.clear();
+  ResetReconnectionState();
 
   {
     std::lock_guard<std::mutex> lock(users_mutex_);
@@ -329,13 +401,10 @@ absl::Status WasmCollaboration::LeaveSession() {
 absl::Status WasmCollaboration::BroadcastChange(
     uint32_t offset, const std::vector<uint8_t>& old_data,
     const std::vector<uint8_t>& new_data) {
-  if (!is_connected_) {
-    return absl::FailedPreconditionError("Not connected to a session");
-  }
-
-  if (old_data.size() > max_change_size_ || new_data.size() > max_change_size_) {
+  size_t max_size = WasmConfig::Get().collaboration.max_change_size_bytes;
+  if (old_data.size() > max_size || new_data.size() > max_size) {
     return absl::InvalidArgumentError(
-        absl::StrFormat("Change size exceeds maximum of %d bytes", max_change_size_));
+        absl::StrFormat("Change size exceeds maximum of %d bytes", max_size));
   }
 
   // Create change message
@@ -348,8 +417,25 @@ absl::Status WasmCollaboration::BroadcastChange(
   msg["new_data"] = new_data;
   msg["timestamp"] = GetCurrentTime();
 
-  auto status = websocket_->Send(msg.dump());
+  std::string message = msg.dump();
+
+  // If disconnected, queue the message for later
+  if (!is_connected_) {
+    if (connection_state_ == ConnectionState::Reconnecting) {
+      QueueMessageWhileDisconnected(message);
+      return absl::OkStatus();  // Queued successfully
+    } else {
+      return absl::FailedPreconditionError("Not connected to a session");
+    }
+  }
+
+  auto status = websocket_->Send(message);
   if (!status.ok()) {
+    // Try to queue on send failure
+    if (connection_state_ == ConnectionState::Reconnecting) {
+      QueueMessageWhileDisconnected(message);
+      return absl::OkStatus();
+    }
     return absl::InternalError("Failed to send change");
   }
 
@@ -359,13 +445,18 @@ absl::Status WasmCollaboration::BroadcastChange(
 
 absl::Status WasmCollaboration::SendCursorPosition(
     const std::string& editor_type, int x, int y, int map_id) {
+  // Don't queue cursor updates during reconnection - they're transient
   if (!is_connected_) {
+    if (connection_state_ == ConnectionState::Reconnecting) {
+      return absl::OkStatus();  // Silently drop during reconnection
+    }
     return absl::FailedPreconditionError("Not connected to a session");
   }
 
   // Rate limit cursor updates
   double now = GetCurrentTime();
-  if (now - last_cursor_send_ < cursor_send_interval_) {
+  double cursor_interval = WasmConfig::Get().collaboration.cursor_send_interval_seconds;
+  if (now - last_cursor_send_ < cursor_interval) {
     return absl::OkStatus();  // Silently skip
   }
   last_cursor_send_ = now;
@@ -384,6 +475,10 @@ absl::Status WasmCollaboration::SendCursorPosition(
 
   auto status = websocket_->Send(msg.dump());
   if (!status.ok()) {
+    // Don't fail on cursor send errors during reconnection
+    if (connection_state_ == ConnectionState::Reconnecting) {
+      return absl::OkStatus();
+    }
     return absl::InternalError("Failed to send cursor position");
   }
 
@@ -563,9 +658,10 @@ void WasmCollaboration::CheckUserTimeouts() {
   double now = GetCurrentTime();
   std::lock_guard<std::mutex> lock(users_mutex_);
 
+  double timeout = WasmConfig::Get().collaboration.user_timeout_seconds;
   bool users_changed = false;
   for (auto& [id, user] : users_) {
-    if (user.is_active && (now - user.last_activity) > user_timeout_seconds_) {
+    if (user.is_active && (now - user.last_activity) > timeout) {
       user.is_active = false;
       users_changed = true;
     }
@@ -598,10 +694,12 @@ void WasmCollaboration::ApplyRemoteChange(const ChangeEvent& change) {
     return;
   }
 
+  applying_remote_change_ = true;
   // Apply the change to the ROM
   for (size_t i = 0; i < change.new_data.size(); ++i) {
     rom_->WriteByte(change.offset + i, change.new_data[i]);
   }
+  applying_remote_change_ = false;
 
   // Notify the UI about the change
   if (change_callback_) {
@@ -615,6 +713,276 @@ void WasmCollaboration::ApplyRemoteChange(const ChangeEvent& change) {
   ui_data["user_id"] = change.user_id;
   UpdateCollaborationUI("change_applied", ui_data.dump().c_str());
 }
+
+void WasmCollaboration::UpdateConnectionState(ConnectionState new_state, const std::string& message) {
+  connection_state_ = new_state;
+
+  // Notify via callback
+  if (connection_state_callback_) {
+    connection_state_callback_(new_state, message);
+  }
+
+  // Update UI
+  std::string state_str;
+  switch (new_state) {
+    case ConnectionState::Disconnected:
+      state_str = "disconnected";
+      break;
+    case ConnectionState::Connecting:
+      state_str = "connecting";
+      break;
+    case ConnectionState::Connected:
+      state_str = "connected";
+      break;
+    case ConnectionState::Reconnecting:
+      state_str = "reconnecting";
+      break;
+  }
+
+  json ui_data;
+  ui_data["state"] = state_str;
+  ui_data["message"] = message;
+  UpdateCollaborationUI("connection_state", ui_data.dump().c_str());
+}
+
+void WasmCollaboration::InitiateReconnection() {
+  if (!should_reconnect_ || room_code_.empty()) {
+    UpdateConnectionState(ConnectionState::Disconnected, "Disconnected");
+    return;
+  }
+
+  if (reconnection_attempts_ >= max_reconnection_attempts_) {
+    ConsoleError(absl::StrFormat("Max reconnection attempts reached (%d), giving up",
+                                  max_reconnection_attempts_).c_str());
+    UpdateConnectionState(ConnectionState::Disconnected, "Reconnection failed - max attempts reached");
+    ResetReconnectionState();
+    return;
+  }
+
+  reconnection_attempts_++;
+  UpdateConnectionState(ConnectionState::Reconnecting,
+                        absl::StrFormat("Reconnecting... (attempt %d/%d)",
+                                        reconnection_attempts_, max_reconnection_attempts_));
+
+  // Calculate delay with exponential backoff
+  double delay = std::min(reconnection_delay_seconds_ * std::pow(2, reconnection_attempts_ - 1),
+                           max_reconnection_delay_);
+
+  ConsoleLog(absl::StrFormat("Will reconnect in %.1f seconds (attempt %d)",
+                              delay, reconnection_attempts_).c_str());
+
+  // Schedule reconnection using emscripten_set_timeout
+  emscripten_async_call([](void* arg) {
+    WasmCollaboration* self = static_cast<WasmCollaboration*>(arg);
+    self->AttemptReconnection();
+  }, this, delay * 1000);  // Convert to milliseconds
+}
+
+void WasmCollaboration::AttemptReconnection() {
+  if (is_connected_ || connection_state_ == ConnectionState::Connected) {
+    // Already reconnected somehow
+    ResetReconnectionState();
+    return;
+  }
+
+  ConsoleLog(absl::StrFormat("Attempting to reconnect to room %s", room_code_).c_str());
+
+  // Create new websocket instance
+  websocket_ = std::make_unique<net::EmscriptenWebSocket>();
+
+  // Attempt connection
+  auto status = websocket_->Connect(websocket_url_);
+  if (!status.ok()) {
+    ConsoleError(absl::StrFormat("Reconnection failed: %s", status.message()).c_str());
+    InitiateReconnection();  // Schedule next attempt
+    return;
+  }
+
+  // Set up WebSocket callbacks for reconnection
+  websocket_->OnOpen([this]() {
+    ConsoleLog("WebSocket reconnected, rejoining session");
+    is_connected_ = true;
+    UpdateConnectionState(ConnectionState::Connected, "Reconnected successfully");
+
+    // Send rejoin message
+    json msg;
+    msg["type"] = "join";
+    msg["room"] = room_code_;
+    msg["user"] = username_;
+    msg["user_id"] = user_id_;
+    msg["color"] = user_color_;
+    if (!stored_password_.empty()) {
+      msg["password"] = stored_password_;
+    }
+    msg["rejoin"] = true;  // Indicate this is a reconnection
+
+    auto send_status = websocket_->Send(msg.dump());
+    if (!send_status.ok()) {
+      ConsoleError("Failed to send rejoin message");
+    }
+
+    // Reset reconnection state on success
+    ResetReconnectionState();
+
+    // Send any queued messages
+    std::vector<std::string> messages_to_send;
+    {
+      std::lock_guard<std::mutex> lock(message_queue_mutex_);
+      messages_to_send = std::move(queued_messages_);
+      queued_messages_.clear();
+    }
+
+    for (const auto& msg : messages_to_send) {
+      websocket_->Send(msg);
+    }
+
+    if (status_callback_) {
+      status_callback_(true, "Reconnected to session");
+    }
+    UpdateCollaborationUI("session_reconnected", room_code_.c_str());
+  });
+
+  websocket_->OnMessage([this](const std::string& message) {
+    HandleMessage(message);
+  });
+
+  websocket_->OnClose([this](int code, const std::string& reason) {
+    is_connected_ = false;
+    ConsoleLog(absl::StrFormat("Reconnection WebSocket closed: %s", reason).c_str());
+
+    // Attempt reconnection again
+    InitiateReconnection();
+
+    if (status_callback_) {
+      status_callback_(false, absl::StrFormat("Disconnected: %s", reason));
+    }
+  });
+
+  websocket_->OnError([this](const std::string& error) {
+    ConsoleError(absl::StrFormat("Reconnection error: %s", error).c_str());
+    is_connected_ = false;
+
+    // Attempt reconnection again
+    InitiateReconnection();
+
+    if (status_callback_) {
+      status_callback_(false, error);
+    }
+  });
+}
+
+void WasmCollaboration::ResetReconnectionState() {
+  reconnection_attempts_ = 0;
+  reconnection_delay_seconds_ = 1.0;  // Reset to initial delay
+}
+
+void WasmCollaboration::QueueMessageWhileDisconnected(const std::string& message) {
+  std::lock_guard<std::mutex> lock(message_queue_mutex_);
+
+  // Limit queue size to prevent memory issues
+  if (queued_messages_.size() >= max_queued_messages_) {
+    ConsoleLog("Message queue full, dropping oldest message");
+    queued_messages_.erase(queued_messages_.begin());
+  }
+
+  queued_messages_.push_back(message);
+  ConsoleLog(absl::StrFormat("Queued message for reconnection (queue size: %d)",
+                              queued_messages_.size()).c_str());
+}
+
+// ---------------------------------------------------------------------------
+// JS bindings for WASM (exported with EMSCRIPTEN_KEEPALIVE)
+// ---------------------------------------------------------------------------
+extern "C" {
+
+EMSCRIPTEN_KEEPALIVE const char* WasmCollaborationCreate(
+    const char* session_name, const char* username, const char* password) {
+  static std::string last_room_code;
+  if (!session_name || !username) {
+    ConsoleError("Invalid session/user parameters");
+    return nullptr;
+  }
+  auto& collab = GetInstance();
+  auto result = collab.CreateSession(session_name, username,
+                                     password ? std::string(password) : "");
+  if (!result.ok()) {
+    ConsoleError(std::string(result.status().message()).c_str());
+    return nullptr;
+  }
+  last_room_code = *result;
+  return last_room_code.c_str();
+}
+
+EMSCRIPTEN_KEEPALIVE int WasmCollaborationJoin(const char* room_code,
+                                               const char* username,
+                                               const char* password) {
+  if (!room_code || !username) {
+    ConsoleError("room_code and username are required");
+    return 0;
+  }
+  auto& collab = GetInstance();
+  auto status = collab.JoinSession(room_code, username,
+                                   password ? std::string(password) : "");
+  if (!status.ok()) {
+    ConsoleError(std::string(status.message()).c_str());
+    return 0;
+  }
+  return 1;
+}
+
+EMSCRIPTEN_KEEPALIVE int WasmCollaborationLeave() {
+  auto& collab = GetInstance();
+  auto status = collab.LeaveSession();
+  return status.ok() ? 1 : 0;
+}
+
+EMSCRIPTEN_KEEPALIVE int WasmCollaborationSendCursor(
+    const char* editor_type, int x, int y, int map_id) {
+  auto& collab = GetInstance();
+  auto status = collab.SendCursorPosition(editor_type ? editor_type : "unknown",
+                                          x, y, map_id);
+  return status.ok() ? 1 : 0;
+}
+
+EMSCRIPTEN_KEEPALIVE int WasmCollaborationBroadcastChange(
+    uint32_t offset, const uint8_t* new_data, size_t length) {
+  if (!new_data && length > 0) {
+    return 0;
+  }
+  auto& collab = GetInstance();
+  std::vector<uint8_t> data;
+  data.reserve(length);
+  for (size_t i = 0; i < length; ++i) {
+    data.push_back(new_data[i]);
+  }
+  std::vector<uint8_t> old_data;  // Not tracked in WASM path
+  auto status = collab.BroadcastChange(offset, old_data, data);
+  return status.ok() ? 1 : 0;
+}
+
+EMSCRIPTEN_KEEPALIVE void WasmCollaborationSetServerUrl(const char* url) {
+  if (!url) return;
+  auto& collab = GetInstance();
+  collab.SetWebSocketUrl(std::string(url));
+}
+
+EMSCRIPTEN_KEEPALIVE int WasmCollaborationIsConnected() {
+  return GetInstance().IsConnected() ? 1 : 0;
+}
+
+EMSCRIPTEN_KEEPALIVE const char* WasmCollaborationGetRoomCode() {
+  static std::string room;
+  room = GetInstance().GetRoomCode();
+  return room.c_str();
+}
+
+EMSCRIPTEN_KEEPALIVE const char* WasmCollaborationGetUserId() {
+  static std::string user;
+  user = GetInstance().GetUserId();
+  return user.c_str();
+}
+
+}  // extern "C"
 
 }  // namespace platform
 }  // namespace app

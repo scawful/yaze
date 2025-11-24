@@ -64,11 +64,20 @@ class WasmCollaboration {
     double timestamp;
   };
 
+  // Connection state enum
+  enum class ConnectionState {
+    Disconnected,
+    Connecting,
+    Connected,
+    Reconnecting
+  };
+
   // Callbacks for UI updates
   using UserListCallback = std::function<void(const std::vector<User>&)>;
   using ChangeCallback = std::function<void(const ChangeEvent&)>;
   using CursorCallback = std::function<void(const CursorInfo&)>;
   using StatusCallback = std::function<void(bool connected, const std::string& message)>;
+  using ConnectionStateCallback = std::function<void(ConnectionState state, const std::string& message)>;
 
   WasmCollaboration();
   ~WasmCollaboration();
@@ -113,7 +122,8 @@ class WasmCollaboration {
    * @return Room code for others to join
    */
   absl::StatusOr<std::string> CreateSession(const std::string& session_name,
-                                           const std::string& username);
+                                           const std::string& username,
+                                           const std::string& password = "");
 
   /**
    * @brief Join an existing collaboration session
@@ -122,7 +132,8 @@ class WasmCollaboration {
    * @return Status of connection attempt
    */
   absl::Status JoinSession(const std::string& room_code,
-                          const std::string& username);
+                          const std::string& username,
+                          const std::string& password = "");
 
   /**
    * @brief Leave current collaboration session
@@ -188,6 +199,22 @@ class WasmCollaboration {
   }
 
   /**
+   * @brief Register callback for connection state changes
+   * @param callback Function to call on connection state changes
+   */
+  void SetConnectionStateCallback(ConnectionStateCallback callback) {
+    connection_state_callback_ = callback;
+  }
+
+  /**
+   * @brief Get current connection state
+   * @return Current connection state
+   */
+  ConnectionState GetConnectionState() const {
+    return connection_state_;
+  }
+
+  /**
    * @brief Get list of connected users
    * @return Vector of active users
    */
@@ -200,6 +227,11 @@ class WasmCollaboration {
   bool IsConnected() const;
 
   /**
+   * @brief Whether we're currently applying a remote change (used to avoid rebroadcast)
+   */
+  bool IsApplyingRemoteChange() const { return applying_remote_change_; }
+
+  /**
    * @brief Get current room code
    * @return Room code or empty string if not connected
    */
@@ -210,6 +242,11 @@ class WasmCollaboration {
    * @return Session name or empty string if not connected
    */
   std::string GetSessionName() const { return session_name_; }
+
+  /**
+   * @brief Get current user id (stable per session)
+   */
+  std::string GetUserId() const { return user_id_; }
 
   /**
    * @brief Enable/disable automatic conflict resolution
@@ -243,10 +280,26 @@ class WasmCollaboration {
   bool IsChangeValid(const ChangeEvent& change);
   void ApplyRemoteChange(const ChangeEvent& change);
 
+  // Reconnection management
+  void InitiateReconnection();
+  void AttemptReconnection();
+  void ResetReconnectionState();
+  void UpdateConnectionState(ConnectionState new_state, const std::string& message);
+  void QueueMessageWhileDisconnected(const std::string& message);
+
   // Connection management
   std::unique_ptr<net::EmscriptenWebSocket> websocket_;
   bool is_connected_ = false;
+  ConnectionState connection_state_ = ConnectionState::Disconnected;
   std::string websocket_url_;  // Set via SetWebSocketUrl() or environment
+
+  // Reconnection state
+  int reconnection_attempts_ = 0;
+  int max_reconnection_attempts_ = 10;
+  double reconnection_delay_seconds_ = 1.0;  // Initial delay
+  double max_reconnection_delay_ = 30.0;  // Max delay between attempts
+  bool should_reconnect_ = false;
+  std::string stored_password_;  // Store password for reconnection
 
   // Session state
   std::string room_code_;
@@ -267,24 +320,33 @@ class WasmCollaboration {
   std::vector<ChangeEvent> pending_changes_;
   mutable std::mutex changes_mutex_;
 
+  // Message queue for disconnected state
+  std::vector<std::string> queued_messages_;
+  mutable std::mutex message_queue_mutex_;
+  size_t max_queued_messages_ = 100;  // Limit queue size
+
   // Configuration
   bool auto_resolve_conflicts_ = true;
-  double user_timeout_seconds_ = 30.0;
-  size_t max_change_size_ = 1024;  // Max bytes per change
 
   // Callbacks
   UserListCallback user_list_callback_;
   ChangeCallback change_callback_;
   CursorCallback cursor_callback_;
   StatusCallback status_callback_;
+  ConnectionStateCallback connection_state_callback_;
 
   // ROM reference for applying changes
   Rom* rom_ = nullptr;
 
   // Rate limiting
   double last_cursor_send_ = 0;
-  double cursor_send_interval_ = 0.1;  // 100ms minimum between cursor updates
+
+  // Guard to prevent echoing remote writes back to the server
+  bool applying_remote_change_ = false;
 };
+
+// Singleton accessor used by JS bindings and the WASM main loop
+WasmCollaboration& GetWasmCollaborationInstance();
 
 }  // namespace platform
 }  // namespace app

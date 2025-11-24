@@ -1,0 +1,227 @@
+.yaze-console-toggle {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  z-index: 2000;
+  background: #0e639c;
+  color: #fff;
+  border: none;
+  padding: 8px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+}
+
+.yaze-console-container {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 360px;
+  max-width: 38vw;
+  z-index: 1990;
+  background: rgba(10, 12, 18, 0.96);
+  border-left: 1px solid #2c3240;
+  display: none;
+  pointer-events: auto;
+  box-shadow: -6px 0 18px rgba(0,0,0,0.35);
+}
+
+.yaze-console-container.active {
+  display: flex;
+  flex-direction: column;
+}
+
+.yaze-chat-pane {
+  pointer-events: auto;
+  position: relative;
+  flex: 1 1 auto;
+  background: rgba(16, 18, 26, 0.9);
+  border-bottom: 1px solid #2c3240;
+  color: #dfe6f8;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  overflow: hidden;
+}
+
+.yaze-chat-header {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  padding: 10px;
+  background: rgba(14, 99, 156, 0.15);
+  border-bottom: 1px solid #2c3240;
+}
+
+.yaze-chat-header input,
+.yaze-chat-header select,
+.yaze-chat-header button {
+  width: 100%;
+  font-size: 12px;
+  padding: 6px 8px;
+  border-radius: 4px;
+  border: 1px solid #2c3240;
+  background: #111727;
+  color: #dfe6f8;
+}
+
+.yaze-chat-header button {
+  background: #0e639c;
+  border: none;
+  cursor: pointer;
+}
+
+.yaze-chat-header button:hover {
+  background: #1177bb;
+}
+
+.yaze-chat-body {
+  height: 32vh;
+  overflow-y: auto;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.yaze-msg {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.yaze-msg .meta {
+  color: #7fa7d9;
+  min-width: 110px;
+  font-weight: 600;
+}
+
+.yaze-msg .text {
+  color: #dfe6f8;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.yaze-msg.system .text {
+  color: #a0aec0;
+}
+
+.yaze-chat-input {
+  display: flex;
+  gap: 8px;
+  padding: 10px;
+  border-top: 1px solid #2c3240;
+  background: rgba(12, 15, 22, 0.9);
+}
+
+.yaze-chat-input textarea {
+  flex: 1;
+  min-height: 48px;
+  max-height: 120px;
+  resize: vertical;
+  background: #0b1020;
+  color: #dfe6f8;
+  border: 1px solid #2c3240;
+  border-radius: 4px;
+  padding: 8px;
+  font-size: 12px;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+}
+
+.yaze-chat-input button {
+  width: 120px;
+  background: #0e639c;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.yaze-console-pane {
+  pointer-events: auto;
+  flex: 0 0 140px;
+  background: rgba(10, 12, 18, 0.94);
+  border-top: 1px solid #2c3240;
+  color: #cbd5e1;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  font-size: 12px;
+  display: flex;
+  flex-direction: column;
+}
+
+.yaze-console-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px;
+  background: rgba(14, 99, 156, 0.12);
+  border-bottom: 1px solid #2c3240;
+}
+
+.yaze-console-header .controls button {
+  margin-left: 8px;
+  background: #111727;
+  color: #dfe6f8;
+  border: 1px solid #2c3240;
+  border-radius: 4px;
+  padding: 4px 8px;
+  cursor: pointer;
+  font-size: 11px;
+}
+
+.yaze-console-body {
+  padding: 8px 10px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  flex: 1 1 auto;
+}
+
+.yaze-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  background: #111727;
+  color: #dfe6f8;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.yaze-badge.locked::before {
+  content: '🔒';
+}
+
+.yaze-badge.unlocked::before {
+  content: '🔓';
+}
+
+@media (max-width: 900px) {
+  .yaze-chat-header {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .yaze-chat-header button {
+    grid-column: span 2;
+  }
+  .yaze-chat-input button {
+    width: 100px;
+  }
+}
+
+/* Docking space for the main app when console is open */
+body.yaze-console-open {
+  margin-right: 360px;
+}
+
+@media (max-width: 900px) {
+  body.yaze-console-open {
+    margin-right: 0;
+  }
+  .yaze-console-container {
+    width: 100%;
+    max-width: 100%;
+  }
+}

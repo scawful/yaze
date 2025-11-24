@@ -4,6 +4,7 @@
 #ifdef __EMSCRIPTEN__
 
 #include <memory>
+#include <mutex>
 #include <string>
 #include <vector>
 
@@ -191,6 +192,9 @@ class BrowserAIService : public AIService {
   // Gemini API base URL
   static constexpr const char* kGeminiApiBaseUrl =
       "https://generativelanguage.googleapis.com/v1beta/models/";
+
+  // Mutex for thread safety
+  mutable std::mutex mutex_;
 };
 
 }  // namespace cli
