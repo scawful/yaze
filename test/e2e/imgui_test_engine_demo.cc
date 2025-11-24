@@ -5,6 +5,7 @@
 #include "app/test/screenshot_assertion.h"
 #include "imgui.h"
 #include "imgui_test_engine/imgui_te_context.h"
+#include "imgui_test_engine/imgui_te_engine.h" // Added include for ImGuiTestEngine
 #include "test_utils.h"
 
 namespace yaze {
@@ -65,10 +66,10 @@ void E2ETest_ImGuiMouseInteraction(ImGuiTestContext* ctx) {
   ctx->WindowFocus("Overworld Editor");
 
   // Find a canvas widget
-  ImGuiTestItemInfo* canvas = ctx->ItemInfo("##OverworldCanvas");
-  if (canvas && canvas->ID != 0) {
+  ImGuiTestItemInfo canvas = ctx->ItemInfo("##OverworldCanvas");
+  if (canvas.ID != 0) {
     // Get canvas bounds
-    ImRect bounds = canvas->RectClipped;
+    ImRect bounds = canvas.RectClipped;
 
     // Test: Click at canvas center
     ImVec2 center((bounds.Min.x + bounds.Max.x) / 2,
@@ -149,8 +150,8 @@ void E2ETest_ImGuiWidgetState(ImGuiTestContext* ctx) {
   ctx->WindowFocus("Settings");
 
   // Test: Check if a checkbox exists and interact with it
-  ImGuiTestItemInfo* item = ctx->ItemInfo("**/Dark Mode");
-  if (item && item->ID != 0) {
+  ImGuiTestItemInfo item = ctx->ItemInfo("**/Dark Mode");
+  if (item.ID != 0) {
     // Toggle the checkbox
     ctx->ItemClick("**/Dark Mode");
     ctx->Yield(2);
@@ -228,7 +229,7 @@ void E2ETest_ImGuiTimingDemo(ImGuiTestContext* ctx) {
   ctx->SetRef("Yaze");
 
   // Test speed affects how long Yield() waits
-  ctx->LogInfo("Current test speed: %d", ctx->Engine->IO.ConfigRunSpeed);
+  ctx->LogInfo("Current test speed: %d", ImGuiTestEngine_GetIO(ctx->Engine).ConfigRunSpeed);
 
   // Open an editor that has loading time
   ctx->MenuClick("View/Dungeon Editor");
@@ -267,8 +268,8 @@ void E2ETest_ImGuiErrorHandling(ImGuiTestContext* ctx) {
   // Attempt to interact with a non-existent widget
   ctx->LogInfo("Testing missing widget handling...");
 
-  ImGuiTestItemInfo* item = ctx->ItemInfo("NonExistentWidget");
-  if (!item || item->ID == 0) {
+  ImGuiTestItemInfo item = ctx->ItemInfo("NonExistentWidget");
+  if (item.ID == 0) {
     ctx->LogInfo("Correctly detected missing widget");
   }
 

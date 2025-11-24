@@ -5,7 +5,7 @@
 #include <memory>
 
 #include "app/net/wasm/emscripten_http_client.h"
-#include "app/platform/wasm/wasm_secure_storage.h"
+#include "app/platform/wasm/wasm_browser_storage.h"
 #include "cli/service/ai/browser_ai_service.h"
 
 int main() {
@@ -16,24 +16,24 @@ int main() {
     using namespace yaze::app::platform;
 
     // Test API key storage
-    auto status = WasmSecureStorage::StoreApiKey("test_service", "test_key_12345");
+    auto status = WasmBrowserStorage::StoreApiKey("test_service", "test_key_12345");
     if (status.ok()) {
       std::cout << "✓ API key stored successfully\n";
     }
 
     // Test API key retrieval
-    auto key_or = WasmSecureStorage::RetrieveApiKey("test_service");
+    auto key_or = WasmBrowserStorage::RetrieveApiKey("test_service");
     if (key_or.ok() && key_or.value() == "test_key_12345") {
       std::cout << "✓ API key retrieved successfully\n";
     }
 
     // Test API key existence check
-    if (WasmSecureStorage::HasApiKey("test_service")) {
+    if (WasmBrowserStorage::HasApiKey("test_service")) {
       std::cout << "✓ API key existence check passed\n";
     }
 
     // Clean up
-    WasmSecureStorage::ClearApiKey("test_service");
+    WasmBrowserStorage::ClearApiKey("test_service");
   }
 
   // Test browser AI service
