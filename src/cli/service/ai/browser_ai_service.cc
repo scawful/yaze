@@ -223,7 +223,7 @@ absl::StatusOr<std::vector<ModelInfo>> BrowserAIService::ListAvailableModels() {
   std::vector<ModelInfo> models;
 
   models.push_back({
-      .name = "gemini-2.0-flash-exp",
+      .name = "gemini-2.5-flash",
       .display_name = "Gemini 2.0 Flash (Experimental)",
       .provider = "gemini",
       .description = "Fastest Gemini model with experimental features",

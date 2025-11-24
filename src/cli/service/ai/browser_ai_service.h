@@ -31,7 +31,7 @@ struct ChatMessage;
  */
 struct BrowserAIConfig {
   std::string api_key;                         // Gemini API key
-  std::string model = "gemini-2.0-flash-exp";  // Default to latest flash model
+  std::string model = "gemini-2.5-flash";  // Default to latest flash model
   float temperature = 0.7f;
   int max_output_tokens = 2048;
   std::string system_instruction;  // System prompt

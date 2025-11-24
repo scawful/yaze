@@ -44,7 +44,7 @@ int main() {
     // Create configuration
     BrowserAIConfig config;
     config.api_key = "test_api_key";
-    config.model = "gemini-2.0-flash-exp";
+    config.model = "gemini-2.5-flash";
     config.verbose = true;
 
     // Create HTTP client
