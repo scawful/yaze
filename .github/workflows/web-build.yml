@@ -34,48 +34,37 @@ jobs:
       - name: Check for web-only changes
         id: changes
         run: |
-          # Get changed files between HEAD and HEAD~1
-          CHANGED=$(git diff --name-only HEAD~1 HEAD 2>/dev/null || echo "")
-          echo "Changed files:"
-          echo "$CHANGED"
+          set -e
+          echo "Event: ${GITHUB_EVENT_NAME}"
 
-          # Check if ONLY web assets changed (no C++/CMake changes)
-          if echo "$CHANGED" | grep -qE '\.(cc|cpp|h|hpp|c)$|CMakeLists\.txt|CMakePresets\.json|build-wasm\.sh'; then
-            echo "needs_wasm_build=true" >> $GITHUB_OUTPUT
-            echo "C++ or build files changed - full WASM build required"
+          NEEDS_BUILD=false
+          CHANGED=""
+
+          if git rev-parse HEAD~1 >/dev/null 2>&1; then
+            CHANGED=$(git diff --name-only HEAD~1 HEAD || echo "")
           else
-            echo "needs_wasm_build=false" >> $GITHUB_OUTPUT
-            echo "Web-only changes - skipping WASM build"
+            echo "No previous commit to diff against; forcing WASM build."
+            NEEDS_BUILD=true
           fi
 
-      # --- Setup Tools (only if WASM build needed) ---
-      - name: Setup Emscripten
-        if: steps.changes.outputs.needs_wasm_build == 'true'
-        uses: mymindstorm/setup-emsdk@v14
-        with:
-          version: 3.1.51
-          actions-cache-folder: 'emsdk-cache'
+          echo "Changed files:"
+          echo "${CHANGED}"
 
-      - name: Setup Ninja
-        if: steps.changes.outputs.needs_wasm_build == 'true'
-        uses: seanmiddleditch/gha-setup-ninja@v4
+          if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" ]]; then
+            echo "Manual dispatch - force WASM build."
+            NEEDS_BUILD=true
+          fi
 
-      - name: Setup CMake
-        if: steps.changes.outputs.needs_wasm_build == 'true'
-        uses: jwlawson/actions-setup-cmake@v1.14
-        with:
-          cmake-version: '3.27.x'
+          if echo "${CHANGED}" | grep -qE '\.(cc|cpp|h|hpp|c)$|CMakeLists\.txt|CMakePresets\.json|build-wasm\.sh'; then
+            echo "C++ or build files changed - full WASM build required"
+            NEEDS_BUILD=true
+          fi
 
-      - name: Setup ccache
-        if: steps.changes.outputs.needs_wasm_build == 'true'
-        uses: hendrikmuhs/ccache-action@v1.2
-        with:
-          key: wasm-ccache
-          max-size: 1G
+          echo "needs_wasm_build=${NEEDS_BUILD}" >> "${GITHUB_OUTPUT}"
 
       # --- Cache CPM dependencies ---
       - name: Cache CPM packages
-        if: steps.changes.outputs.needs_wasm_build == 'true'
+        if: steps.changes.outputs.needs_wasm_build == 'true' || steps.wasm_cache.outputs.has_cached_wasm == 'false'
         uses: actions/cache@v4
         with:
           path: ~/.cache/CPM
@@ -95,6 +84,43 @@ jobs:
           restore-keys: |
             wasm-build-
 
+      - name: Check cached WASM artifacts
+        if: steps.changes.outputs.needs_wasm_build == 'false'
+        id: wasm_cache
+        run: |
+          if [ -f build-wasm/bin/yaze.js ] && [ -f build-wasm/bin/yaze.wasm ]; then
+            echo "Cached WASM found."
+            echo "has_cached_wasm=true" >> "${GITHUB_OUTPUT}"
+          else
+            echo "No cached WASM artifacts; will trigger a build."
+            echo "has_cached_wasm=false" >> "${GITHUB_OUTPUT}"
+          fi
+
+      # --- Setup Tools (only if WASM build needed or cache missing) ---
+      - name: Setup Emscripten
+        if: steps.changes.outputs.needs_wasm_build == 'true' || steps.wasm_cache.outputs.has_cached_wasm == 'false'
+        uses: mymindstorm/setup-emsdk@v14
+        with:
+          version: 3.1.51
+          actions-cache-folder: 'emsdk-cache'
+
+      - name: Setup Ninja
+        if: steps.changes.outputs.needs_wasm_build == 'true' || steps.wasm_cache.outputs.has_cached_wasm == 'false'
+        uses: seanmiddleditch/gha-setup-ninja@v4
+
+      - name: Setup CMake
+        if: steps.changes.outputs.needs_wasm_build == 'true' || steps.wasm_cache.outputs.has_cached_wasm == 'false'
+        uses: jwlawson/actions-setup-cmake@v1.14
+        with:
+          cmake-version: '3.27.x'
+
+      - name: Setup ccache
+        if: steps.changes.outputs.needs_wasm_build == 'true' || steps.wasm_cache.outputs.has_cached_wasm == 'false'
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: wasm-ccache
+          max-size: 1G
+
       - name: Install Graphviz
         run: |
           sudo apt-get update
@@ -107,14 +133,14 @@ jobs:
 
       # --- Build Web App (full build or use cache) ---
       - name: Build WASM App
-        if: steps.changes.outputs.needs_wasm_build == 'true'
+        if: steps.changes.outputs.needs_wasm_build == 'true' || steps.wasm_cache.outputs.has_cached_wasm == 'false'
         run: |
           export PATH="/usr/lib/ccache:$PATH"
           chmod +x scripts/build-wasm.sh
           ./scripts/build-wasm.sh
 
       - name: Use cached WASM + update web assets
-        if: steps.changes.outputs.needs_wasm_build == 'false'
+        if: steps.changes.outputs.needs_wasm_build == 'false' && steps.wasm_cache.outputs.has_cached_wasm == 'true'
         run: |
           echo "Using cached WASM build, updating web assets only..."
           mkdir -p build-wasm/dist
