@@ -21,12 +21,23 @@ if(EMSCRIPTEN)
     cli/service/resources/resource_catalog.cc
     cli/service/resources/resource_context_builder.cc
 
+    # Browser specific implementations
+    cli/service/ai/service_factory_browser.cc
+    cli/handlers/agent/browser_agent.cc
+    cli/handlers/command_handlers_browser.cc
+
     # Basic handlers that don't require native dependencies
-    cli/handlers/command_handlers.cc
     cli/handlers/game/dungeon.cc
     cli/handlers/game/overworld.cc
     cli/handlers/graphics/gfx.cc
     cli/handlers/rom/rom_commands.cc
+    cli/handlers/rom/mock_rom.cc
+    
+    # Explicitly supported handlers
+    cli/handlers/graphics/hex_commands.cc
+    cli/handlers/graphics/palette_commands.cc
+    cli/handlers/agent/todo_commands.cc
+    cli/service/agent/todo_manager.cc
   )
 
   add_library(yaze_agent STATIC ${YAZE_BROWSER_AI_SOURCES})

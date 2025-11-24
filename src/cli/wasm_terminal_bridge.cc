@@ -29,8 +29,10 @@
 
 namespace {
 
-// Global state for the terminal bridge
-struct TerminalBridge {
+// Global state for the bridge
+// TODO(security): This global singleton is fragile and prone to memory management issues.
+// Consider refactoring to use Embind for safer C++/JS interop or instance-based state management.
+struct BridgeState {
   std::unique_ptr<yaze::Rom> rom;
   std::unique_ptr<yaze::cli::BrowserAIService> ai_service;
   std::string last_output;
