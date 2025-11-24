@@ -44,10 +44,15 @@ jobs:
         with:
           cmake-version: '3.27.x'
 
-      - name: Install Doxygen & Graphviz
+      - name: Install Graphviz
         run: |
           sudo apt-get update
-          sudo apt-get install -y doxygen graphviz
+          sudo apt-get install -y graphviz
+
+      - name: Install Doxygen 1.10.0
+        uses: ssciwr/doxygen-install@v1
+        with:
+          version: "1.10.0"
 
       # --- Build Web App ---
       - name: Build WASM App
@@ -58,6 +63,7 @@ jobs:
       # --- Build Documentation ---
       - name: Build Documentation
         run: |
+          mkdir -p build/docs
           doxygen Doxyfile
           # Move docs into dist/docs
           mkdir -p build-wasm/dist/docs
