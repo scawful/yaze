@@ -22,7 +22,7 @@ class DungeonPaletteTest : public ::testing::Test {
   std::unique_ptr<ObjectDrawer> drawer_;
 };
 
-TEST_F(DungeonPaletteTest, PaletteOffsetIsCorrectFor4BPP) {
+TEST_F(DungeonPaletteTest, PaletteOffsetIsCorrectFor8BPP) {
   // Create a bitmap
   gfx::Bitmap bitmap;
   bitmap.Create(8, 8, 8, std::vector<uint8_t>(64, 0));
@@ -53,49 +53,50 @@ TEST_F(DungeonPaletteTest, PaletteOffsetIsCorrectFor4BPP) {
   drawer_->DrawTileToBitmap(bitmap, tile_info, 0, 0, tiledata.data());
   
   // Check pixels
-  // Palette offset should be (palette & 0x07) * 16
-  // For palette 1, offset is 16.
-  // Pixel at (0,0) was 1. Result should be 1 + 16 = 17.
-  // Pixel at (1,0) was 2. Result should be 2 + 16 = 18.
+  // Palette offset should be (palette & 0x07) * 8
+  // For palette 1, offset is 8.
+  // Pixel at (0,0) was 1. Result should be 1 + 8 = 9.
+  // Pixel at (1,0) was 2. Result should be 2 + 8 = 10.
   
   const auto& data = bitmap.vector();
   // Bitmap data is row-major.
   // (0,0) is index 0.
-  EXPECT_EQ(data[0], 17);
-  EXPECT_EQ(data[1], 18);
+  EXPECT_EQ(data[0], 9);
+  EXPECT_EQ(data[1], 10);
   
   // Test with palette 0
   tile_info.palette_ = 0;
   drawer_->DrawTileToBitmap(bitmap, tile_info, 0, 0, tiledata.data());
   // Offset 0.
   // Note: DrawTileToBitmap does not clear the bitmap, it overwrites.
-  // Pixel 0 was 17. Now it should be 1.
+  // Pixel 0 was 9. Now it should be 1.
   EXPECT_EQ(data[0], 1);
   EXPECT_EQ(data[1], 2);
   
   // Test with palette 7
   tile_info.palette_ = 7;
   drawer_->DrawTileToBitmap(bitmap, tile_info, 0, 0, tiledata.data());
-  // Offset 7 * 16 = 112.
-  EXPECT_EQ(data[0], 1 + 112);
-  EXPECT_EQ(data[1], 2 + 112);
+  // Offset 7 * 8 = 56.
+  EXPECT_EQ(data[0], 1 + 56);
+  EXPECT_EQ(data[1], 2 + 56);
 }
 
 TEST_F(DungeonPaletteTest, PaletteOffsetWorksWithConvertedData) {
   gfx::Bitmap bitmap;
   bitmap.Create(8, 8, 8, std::vector<uint8_t>(64, 0));
 
-  // Create 4BPP packed tile data (simulating converted buffer)
-  // Layout: 512 bytes per tile row, 4 bytes per tile
+  // Create 8BPP unpacked tile data (simulating converted buffer)
+  // Layout: 1024 bytes per tile row, 8 bytes per tile
   // For tile 0: base_x=0, base_y=0
-  std::vector<uint8_t> tiledata(512 * 8, 0);
+  std::vector<uint8_t> tiledata(1024 * 8, 0);
 
-  // Set pixel pair at row 0: high nibble = 3, low nibble = 5
-  tiledata[0] = 0x35;
+  // Set pixel pair at row 0: pixel 0 = 3, pixel 1 = 5
+  tiledata[0] = 3;
+  tiledata[1] = 5;
 
   gfx::TileInfo tile_info;
   tile_info.id_ = 0;
-  tile_info.palette_ = 2;  // Palette 2 → offset 32
+  tile_info.palette_ = 2;  // Palette 2 → offset 16
   tile_info.horizontal_mirror_ = false;
   tile_info.vertical_mirror_ = false;
   tile_info.over_ = false;
@@ -103,10 +104,59 @@ TEST_F(DungeonPaletteTest, PaletteOffsetWorksWithConvertedData) {
   drawer_->DrawTileToBitmap(bitmap, tile_info, 0, 0, tiledata.data());
 
   const auto& data = bitmap.vector();
-  // Pixel 0 (high nibble 3) + offset 32 = 35
-  EXPECT_EQ(data[0], 35);
-  // Pixel 1 (low nibble 5) + offset 32 = 37
-  EXPECT_EQ(data[1], 37);
+  // Pixel 0: 3 + 16 = 19
+  // Pixel 1: 5 + 16 = 21
+  EXPECT_EQ(data[0], 19);
+  EXPECT_EQ(data[1], 21);
+}
+
+TEST_F(DungeonPaletteTest, InspectActualPaletteColors) {
+  // Load actual ROM file
+  auto load_result = rom_->LoadFromFile("zelda3.sfc");
+  if (!load_result.ok()) {
+    GTEST_SKIP() << "ROM file not found, skipping";
+  }
+
+  // Get dungeon main palette group
+  const auto& dungeon_pal_group = rom_->palette_group().dungeon_main;
+  
+  ASSERT_FALSE(dungeon_pal_group.empty()) << "Dungeon palette group is empty!";
+  
+  // Get first palette (palette 0)
+  const auto& palette0 = dungeon_pal_group[0];
+  
+  printf("\n=== Dungeon Palette 0 - First 16 colors ===\n");
+  for (size_t i = 0; i < std::min(size_t(16), palette0.size()); ++i) {
+    const auto& color = palette0[i];
+    auto rgb = color.rgb();
+    printf("Color %02zu: R=%03d G=%03d B=%03d (0x%02X%02X%02X)\n", 
+           i, 
+           static_cast<int>(rgb.x), 
+           static_cast<int>(rgb.y), 
+           static_cast<int>(rgb.z),
+           static_cast<int>(rgb.x),
+           static_cast<int>(rgb.y),
+           static_cast<int>(rgb.z));
+  }
+  
+  // Total palette size
+  printf("\nTotal palette size: %zu colors\n", palette0.size());
+  EXPECT_EQ(palette0.size(), 90) << "Expected 90 colors for dungeon palette";
+  
+  // Colors 56-63 (palette 7 offset: 7*8=56)
+  printf("\n=== Colors 56-63 (pal=7 range) ===\n");
+  for (size_t i = 56; i < std::min(size_t(64), palette0.size()); ++i) {
+    const auto& color = palette0[i];
+    auto rgb = color.rgb();
+    printf("Color %02zu: R=%03d G=%03d B=%03d (0x%02X%02X%02X)\n", 
+           i, 
+           static_cast<int>(rgb.x), 
+           static_cast<int>(rgb.y), 
+           static_cast<int>(rgb.z),
+           static_cast<int>(rgb.x),
+           static_cast<int>(rgb.y),
+           static_cast<int>(rgb.z));
+  }
 }
 
 } // namespace test
