@@ -98,20 +98,62 @@ var Module = {
     this.totalDependencies = Math.max(this.totalDependencies, left);
     Module.setStatus(left ? 'Preparing... (' + (this.totalDependencies-left) + '/' + this.totalDependencies + ')' : 'All downloads complete.');
   },
+  preRun: [(function() {
+    try {
+      console.log('[WASM] Pre-run checks starting');
+
+      // Check memory availability
+      if (typeof performance !== 'undefined' && performance.memory) {
+        const memoryMB = performance.memory.jsHeapSizeLimit / (1024 * 1024);
+        if (memoryMB < 512) {
+          throw new Error(`Insufficient memory: ${memoryMB.toFixed(0)}MB available, need 512MB`);
+        }
+      }
+
+      // Check SharedArrayBuffer availability
+      if (typeof SharedArrayBuffer === 'undefined') {
+        console.warn('[WASM] SharedArrayBuffer not available. Multi-threading disabled.');
+      }
+
+      console.log('[WASM] Pre-run checks passed');
+    } catch (err) {
+      console.error('[WASM] Pre-run check failed:', err);
+      showFatalError('Startup Failed', err.message);
+    }
+  })],
+  onAbort: function(what) {
+    console.error('[WASM] Abort:', what);
+    Module.setStatus('Fatal error: ' + what);
+    showFatalError('WASM Aborted', what || 'Unknown error');
+  },
   onRuntimeInitialized: function() {
-     console.log("YAZE Web initialized");
-     if (loadingOverlay) loadingOverlay.style.display = 'none';
-     
-     // Hide welcome screen and show canvas
-     if (typeof hideWelcomeScreen === 'function') hideWelcomeScreen();
+    try {
+      console.log('[WASM] Runtime initialized successfully');
 
-     // Resize canvas to fill container
-     resizeCanvasToContainer();
+      if (loadingOverlay) loadingOverlay.style.display = 'none';
 
-     if (typeof Z3edTerminal !== 'undefined') {
-       window.z3edTerminal = new Z3edTerminal('panel-terminal');
-       window.z3edTerminal.printInfo('z3ed Web Terminal ready. Type /help for commands.');
-     }
+      // Hide welcome screen and show canvas
+      if (typeof hideWelcomeScreen === 'function') hideWelcomeScreen();
+
+      // Resize canvas to fill container
+      resizeCanvasToContainer();
+
+      // Verify critical functions are available
+      if (typeof Module._LoadRomFromWeb === 'undefined' && !Module.ccall) {
+        throw new Error('Critical WASM function missing: LoadRomFromWeb');
+      }
+
+      // Initialize terminal if available
+      if (typeof Z3edTerminal !== 'undefined') {
+        window.z3edTerminal = new Z3edTerminal('panel-terminal');
+        window.z3edTerminal.printInfo('z3ed Web Terminal ready. Type /help for commands.');
+      }
+
+      console.log('[WASM] Initialization complete');
+    } catch (err) {
+      console.error('[WASM] Initialization error:', err);
+      showFatalError('Initialization Failed', err.message);
+    }
   }
 };
 
@@ -261,10 +303,14 @@ function resizeCanvasToContainer() {
   // console.log('Canvas resized to:', width, 'x', height);
 }
 
+// Use throttled resize for real-time feedback and debounced resize for final adjustment
+const throttledResize = throttle(resizeCanvasToContainer, 100);
+const debouncedResize = debounce(resizeCanvasToContainer, 250);
+
 // Resize canvas on window resize
 window.addEventListener('resize', function() {
-  // Debounce slightly to handle smooth flex transitions
-  requestAnimationFrame(resizeCanvasToContainer);
+  throttledResize();  // Immediate feedback
+  debouncedResize();  // Final adjustment
 });
 
 // UI Helpers
@@ -273,6 +319,49 @@ function hideWelcomeScreen() {
   if (welcome) welcome.style.display = 'none';
   var canvas = document.getElementById('canvas');
   if (canvas) canvas.style.display = 'block';
+}
+
+function showFatalError(title, message) {
+  const statusEl = document.getElementById('status');
+  const loadingOv = document.getElementById('loading-overlay');
+
+  if (statusEl) {
+    statusEl.innerHTML = `
+      <div style="color: #f44; font-weight: bold;">${title}</div>
+      <div style="margin-top: 8px;">${message}</div>
+      <button onclick="location.reload()" style="margin-top: 16px; padding: 8px 16px; cursor: pointer; background: #333; color: #fff; border: 1px solid #555; border-radius: 4px;">
+        Reload Page
+      </button>
+    `;
+  }
+
+  if (loadingOv) {
+    loadingOv.style.display = 'flex';
+  }
+}
+
+// Utility functions for debouncing and throttling
+function debounce(func, wait) {
+  let timeout;
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
+}
+
+function throttle(func, limit) {
+  let inThrottle;
+  return function(...args) {
+    if (!inThrottle) {
+      func.apply(this, args);
+      inThrottle = true;
+      setTimeout(() => inThrottle = false, limit);
+    }
+  };
 }
 
 // Initial resize after a short delay to ensure layout is complete
@@ -326,51 +415,97 @@ window.downloadSaves = function() {
 };
 
 // Service Worker & PWA Logic
-let newServiceWorker;
-let swUpdatePending = false;
+const ServiceWorkerManager = {
+  newWorker: null,
+  updatePending: false,
+  reloadCount: 0,
+  maxReloads: 3,
+  reloadTimestamp: 0,
 
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    // Wait for COI service worker to finish setup before registering PWA service worker
-    // The COI SW needs to be controlling the page first for SharedArrayBuffer support
-    const coiReloading = window.sessionStorage.getItem("coiReloadedBySelf") ||
-                         window.sessionStorage.getItem("coiAttempted");
-
-    if (coiReloading) {
-      console.log('[PWA] Waiting for COI service worker to complete setup...');
-      return; // Don't register PWA SW during COI setup
+  handleControllerChange: function() {
+    if (!this.updatePending) {
+      console.log('[PWA] Controller changed without update pending - ignoring');
+      return;
     }
 
-    // Small delay to ensure COI SW has fully activated
-    setTimeout(() => {
-      navigator.serviceWorker.register('service-worker.js')
-        .then((registration) => {
-          console.log('ServiceWorker registration successful');
-          setInterval(() => { registration.update(); }, 3600000);
-          registration.addEventListener('updatefound', () => {
-            const installingWorker = registration.installing;
-            installingWorker.addEventListener('statechange', () => {
-              if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                newServiceWorker = installingWorker;
-                swUpdatePending = true;
-                var notif = document.getElementById('update-notification');
-                if (notif) notif.classList.add('show');
-              }
-            });
-          });
-        })
-        .catch(err => console.error('ServiceWorker failed', err));
-    }, 100);
-
-    // Guard controllerchange to prevent reload loops
-    // Only reload if the user explicitly requested an update
-    navigator.serviceWorker.addEventListener('controllerchange', () => {
-      if (swUpdatePending) {
-        swUpdatePending = false;
-        window.location.reload();
-      } else {
-        console.log('[PWA] Controller changed, but no update pending - skipping reload');
+    // Check for reload loop
+    const now = Date.now();
+    if (now - this.reloadTimestamp < 5000) { // 5 seconds
+      this.reloadCount++;
+      if (this.reloadCount >= this.maxReloads) {
+        console.error('[PWA] Too many reloads, aborting update');
+        alert('Service worker update failed. Please reload manually.');
+        this.updatePending = false;
+        return;
       }
+    } else {
+      this.reloadCount = 0;
+    }
+
+    this.reloadTimestamp = now;
+    this.updatePending = false;
+
+    console.log('[PWA] Reloading for service worker update');
+    window.location.reload();
+  },
+
+  requestUpdate: function(newWorker) {
+    this.updatePending = true;
+    newWorker.postMessage({ type: 'SKIP_WAITING' });
+
+    // Auto-reload after 2 seconds if user doesn't dismiss
+    setTimeout(() => {
+      if (this.updatePending) {
+        console.log('[PWA] Auto-reloading for update');
+        this.handleControllerChange();
+      }
+    }, 2000);
+  }
+};
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', async () => {
+    // Better COI detection - wait for SharedArrayBuffer
+    const hasSAB = typeof SharedArrayBuffer !== 'undefined';
+    const hasController = navigator.serviceWorker.controller;
+
+    if (!hasSAB && !hasController) {
+      console.log('[PWA] Waiting for COI setup to complete...');
+      return; // COI SW will reload page
+    }
+
+    if (!hasSAB && hasController) {
+      console.error('[PWA] COI setup failed - SharedArrayBuffer unavailable');
+      // Show error to user, don't attempt PWA registration
+      return;
+    }
+
+    // COI is ready, safe to register PWA SW
+    try {
+      const registration = await navigator.serviceWorker.register('service-worker.js');
+      console.log('[PWA] Service worker registered successfully');
+
+      // Check for updates every hour
+      setInterval(() => { registration.update(); }, 3600000);
+
+      // Handle updates
+      registration.addEventListener('updatefound', () => {
+        const installingWorker = registration.installing;
+        installingWorker.addEventListener('statechange', () => {
+          if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
+            ServiceWorkerManager.newWorker = installingWorker;
+            const notif = document.getElementById('update-notification');
+            if (notif) notif.classList.add('show');
+          }
+        });
+      });
+    } catch (err) {
+      console.error('[PWA] Service worker registration failed:', err);
+    }
+
+    // Listen for controller changes
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      ServiceWorkerManager.handleControllerChange();
     });
   });
 }
@@ -390,11 +525,11 @@ window.addEventListener('offline', updateOnlineStatus);
 document.addEventListener('DOMContentLoaded', updateOnlineStatus);
 
 window.updateServiceWorker = function() {
-  if (newServiceWorker) {
-    swUpdatePending = true; // Allow controllerchange to trigger reload
-    newServiceWorker.postMessage({ type: 'SKIP_WAITING' });
-    var notif = document.getElementById('update-notification');
-    if (notif) notif.classList.remove('show');
+  const notif = document.getElementById('update-notification');
+  if (notif) notif.classList.remove('show');
+
+  if (ServiceWorkerManager.newWorker) {
+    ServiceWorkerManager.requestUpdate(ServiceWorkerManager.newWorker);
   }
 };
 

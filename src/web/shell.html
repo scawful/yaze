@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <meta name="description" content="A modern, cross-platform ROM editor for The Legend of Zelda: A Link to the Past">
 
     <!-- COI Service Worker for SharedArrayBuffer support (must be first!) -->
@@ -15,8 +15,8 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="yaze">
-    <!-- Collaboration server URL -->
-    <meta name="yaze-collab-server" content="wss://org.halext.org:8765">
+    <!-- Collaboration server URL (can be configured at build time) -->
+    <meta name="yaze-collab-server" content="">
 
     <!-- PWA Manifest -->
     <link rel="manifest" href="./manifest.json">
@@ -24,10 +24,11 @@
     <link rel="apple-touch-icon" href="./icons/icon-192x192.png">
 
     <!-- Styles -->
-    <!-- Material Symbols - with fallback if CDN fails -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <!-- Preconnect for fonts (must be before stylesheet for best performance) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- Material Symbols - with fallback if CDN fails -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="main.css">
     <link rel="stylesheet" href="shortcuts_overlay.css">
     <link rel="stylesheet" href="touch_gestures.css">
