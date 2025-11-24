@@ -3,23 +3,40 @@
  * Provides offline support and caching for the web application
  */
 
-const CACHE_NAME = 'yaze-cache-v1';
-const RUNTIME_CACHE = 'yaze-runtime-v1';
+const CACHE_NAME = 'yaze-cache-v2';
+const RUNTIME_CACHE = 'yaze-runtime-v2';
 
 // List of assets to pre-cache during installation
 // Using relative paths for GitHub Pages subdirectory support
+// NOTE: yaze.data (~22MB) is NOT precached - it's cached on-demand during fetch
+// to avoid installation timeouts and failed service worker activations
 const PRECACHE_ASSETS = [
   './',
   './index.html',
   './yaze.js',
   './yaze.wasm',
-  './yaze.data', // Include if present
+  // './yaze.data - cached on-demand, too large for precache
   './coi-serviceworker.js',
+  './app.js',
+  './main.css',
   './loading_indicator.css',
   './loading_indicator.js',
   './error_handler.css',
   './error_handler.js',
-  './config.js'
+  './config.js',
+  './shortcuts_overlay.js',
+  './shortcuts_overlay.css',
+  './terminal.js',
+  './terminal.css',
+  './collab_console.js',
+  './collab_console.css',
+  './touch_gestures.js',
+  './touch_gestures.css',
+  './drop_zone.js',
+  './drop_zone.css',
+  './collaboration_ui.js',
+  './collaboration_ui.css',
+  './offline.html'
 ];
 
 // Install event - pre-cache all static assets
@@ -41,8 +58,9 @@ self.addEventListener('install', (event) => {
       })
       .then(() => {
         console.log('[ServiceWorker] Pre-caching complete');
-        // Force the waiting service worker to become the active service worker
-        return self.skipWaiting();
+        // Don't call skipWaiting() here - let the user decide when to update
+        // This prevents conflicts with the COI service worker and avoids
+        // unexpected reloads. skipWaiting() is called via message event instead.
       })
   );
 });

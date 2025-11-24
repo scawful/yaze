@@ -153,6 +153,15 @@
   const userConfig = window.YAZE_CONFIG || {};
   window.YAZE_CONFIG = deepMerge(defaultConfig, userConfig);
 
+  // Try to read collaboration server URL from <meta name="yaze-collab-server"> tag
+  // This allows deployment-specific configuration without modifying config.js
+  if (!window.YAZE_CONFIG.collaboration.serverUrl) {
+    const metaTag = document.querySelector('meta[name="yaze-collab-server"]');
+    if (metaTag && metaTag.content) {
+      window.YAZE_CONFIG.collaboration.serverUrl = metaTag.content;
+    }
+  }
+
   // Log configuration status
   if (window.YAZE_CONFIG.collaboration.serverUrl) {
     console.log('[yaze] Collaboration server configured:',

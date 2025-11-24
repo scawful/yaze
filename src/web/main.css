@@ -1,0 +1,238 @@
+:root {
+  /* Color Palette - Dark Modern Theme (VS Code-ish) */
+  --bg-app: #1e1e1e;
+  --bg-header: #252526;
+  --bg-panel: #2d2d2d;
+  --bg-input: #3c3c3c;
+  
+  --text-primary: #e0e0e0;
+  --text-secondary: #a0a0a0;
+  --text-muted: #6b6b6b;
+  
+  --accent-primary: #0e639c; /* VS Code Blue */
+  --accent-hover: #1177bb;
+  --accent-active: #094771;
+  
+  --border-light: #3e3e42;
+  --border-focus: #007fd4;
+  
+  --status-success: #4ec9b0;
+  --status-warning: #cca700;
+  --status-error: #f48771;
+  
+  /* Dimensions */
+  --header-height: 48px;
+  --control-radius: 4px;
+  
+  /* Typography */
+  --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: "Fira Code", "Cascadia Code", "Consolas", monospace;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg-app);
+  color: var(--text-primary);
+  font-family: var(--font-ui);
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header / Toolbar */
+#header {
+  height: var(--header-height);
+  background-color: var(--bg-header);
+  border-bottom: 1px solid var(--bg-app); /* darker separator */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  z-index: 100;
+}
+
+.logo-area {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+h1 {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+  color: var(--text-primary);
+  letter-spacing: 0.5px;
+}
+
+.version-tag {
+  font-size: 11px;
+  background: var(--bg-input);
+  color: var(--text-secondary);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+}
+
+#controls {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* Modern Buttons */
+.btn {
+  background-color: var(--bg-input);
+  color: var(--text-primary);
+  border: 1px solid transparent;
+  padding: 6px 12px;
+  font-size: 13px;
+  border-radius: var(--control-radius);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-ui);
+}
+
+.btn:hover {
+  background-color: #4a4a4a;
+  border-color: var(--border-light);
+}
+
+.btn:active {
+  transform: translateY(1px);
+}
+
+.btn-primary {
+  background-color: var(--accent-primary);
+}
+
+.btn-primary:hover {
+  background-color: var(--accent-hover);
+}
+
+/* File Input Styling */
+input[type="file"] {
+  display: none;
+}
+
+/* Main Canvas Area */
+#canvas-container {
+  flex: 1;
+  background-color: #000; /* Letterboxing background */
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+canvas.emscripten {
+  border: none;
+  box-shadow: 0 0 20px rgba(0,0,0,0.5);
+  outline: none;
+  image-rendering: pixelated; /* Keep retro look crisp */
+}
+
+/* Status & Overlays */
+#loading-overlay {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(30, 30, 30, 0.9);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+
+.spinner {
+  height: 40px;
+  width: 40px;
+  border: 3px solid rgba(255,255,255,0.1);
+  border-top-color: var(--accent-primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+#status {
+  color: var(--text-secondary);
+  font-size: 14px;
+  margin-top: 8px;
+}
+
+/* Offline Indicator */
+#offline-indicator {
+  position: fixed;
+  top: calc(var(--header-height) + 10px);
+  right: 16px;
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  padding: 8px 12px;
+  border-radius: var(--control-radius);
+  font-size: 12px;
+  display: none;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  border-left: 3px solid var(--status-warning);
+  z-index: 1000;
+  animation: slideIn 0.3s ease;
+}
+
+#offline-indicator.show {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Update Notification */
+#update-notification {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: var(--accent-primary);
+  color: white;
+  padding: 12px 16px;
+  border-radius: var(--control-radius);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  display: none;
+  align-items: center;
+  gap: 12px;
+  z-index: 2000;
+  animation: slideUp 0.3s ease;
+}
+
+#update-notification.show {
+  display: flex;
+}
+
+/* Touch Mode Indicator */
+.yaze-touch-indicator {
+  background-color: var(--accent-primary) !important;
+  top: calc(var(--header-height) + 10px) !important;
+}
+
+/* Utilities */
+.hidden { display: none !important; }
+
+@media (max-width: 600px) {
+  #header {
+    padding: 0 8px;
+  }
+  h1 {
+    font-size: 16px;
+  }
+  .btn span {
+    display: none; /* Hide text on small screens, show only icons if we had them */
+  }
+}

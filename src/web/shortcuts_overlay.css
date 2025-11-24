@@ -30,8 +30,8 @@
 
 /* Modal container */
 .yaze-shortcuts-modal {
-  background-color: #1e1e1e;
-  border: 1px solid #3e3e42;
+  background-color: var(--bg-app);
+  border: 1px solid var(--border-light);
   border-radius: 8px;
   width: 90%;
   max-width: 650px;
@@ -60,20 +60,20 @@
   justify-content: space-between;
   align-items: center;
   padding: 16px 20px;
-  border-bottom: 1px solid #3e3e42;
+  border-bottom: 1px solid var(--border-light);
 }
 
 .yaze-shortcuts-header h2 {
   margin: 0;
   font-size: 18px;
   font-weight: 500;
-  color: #0e639c;
+  color: var(--accent-primary);
 }
 
 .yaze-shortcuts-close {
   background: none;
   border: none;
-  color: #808080;
+  color: var(--text-secondary);
   font-size: 24px;
   cursor: pointer;
   padding: 0;
@@ -88,35 +88,35 @@
 }
 
 .yaze-shortcuts-close:hover {
-  background-color: #3e3e42;
-  color: #ffffff;
+  background-color: var(--bg-header);
+  color: var(--text-primary);
 }
 
 /* Search */
 .yaze-shortcuts-search {
   padding: 12px 20px;
-  border-bottom: 1px solid #3e3e42;
+  border-bottom: 1px solid var(--border-light);
 }
 
 .yaze-shortcuts-search input {
   width: 100%;
   padding: 10px 14px;
-  background-color: #252526;
-  border: 1px solid #3e3e42;
+  background-color: var(--bg-header);
+  border: 1px solid var(--border-light);
   border-radius: 4px;
-  color: #d4d4d4;
+  color: var(--text-primary);
   font-size: 14px;
   outline: none;
   transition: border-color 0.15s, box-shadow 0.15s;
 }
 
 .yaze-shortcuts-search input:focus {
-  border-color: #0e639c;
+  border-color: var(--accent-primary);
   box-shadow: 0 0 0 2px rgba(14, 99, 156, 0.25);
 }
 
 .yaze-shortcuts-search input::placeholder {
-  color: #6e6e6e;
+  color: var(--text-muted);
 }
 
 /* Content area */
@@ -132,13 +132,13 @@
 }
 
 .yaze-shortcuts-content::-webkit-scrollbar-track {
-  background: #1e1e1e;
+  background: var(--bg-app);
 }
 
 .yaze-shortcuts-content::-webkit-scrollbar-thumb {
-  background-color: #3e3e42;
+  background-color: var(--border-light);
   border-radius: 5px;
-  border: 2px solid #1e1e1e;
+  border: 2px solid var(--bg-app);
 }
 
 .yaze-shortcuts-content::-webkit-scrollbar-thumb:hover {
@@ -154,12 +154,12 @@
 .yaze-shortcuts-category-header {
   font-size: 12px;
   font-weight: 600;
-  color: #808080;
+  color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin: 16px 0 8px 0;
   padding-bottom: 4px;
-  border-bottom: 1px solid #2d2d30;
+  border-bottom: 1px solid var(--bg-panel);
 }
 
 .yaze-shortcuts-category:first-child .yaze-shortcuts-category-header {
@@ -184,7 +184,7 @@
 }
 
 .yaze-shortcut-row:hover {
-  background-color: #2d2d30;
+  background-color: var(--bg-panel);
 }
 
 /* Keyboard keys */
@@ -202,11 +202,11 @@
   min-width: 24px;
   height: 24px;
   padding: 0 8px;
-  background: linear-gradient(180deg, #3e3e42 0%, #2d2d30 100%);
+  background: linear-gradient(180deg, var(--border-light) 0%, var(--bg-panel) 100%);
   border: 1px solid #4e4e52;
   border-radius: 4px;
-  box-shadow: 0 2px 0 #252526;
-  color: #d4d4d4;
+  box-shadow: 0 2px 0 var(--bg-header);
+  color: var(--text-primary);
   font-family: 'Segoe UI', system-ui, sans-serif;
   font-size: 12px;
   font-weight: 500;
@@ -214,7 +214,7 @@
 
 /* Shortcut description */
 .yaze-shortcut-description {
-  color: #cccccc;
+  color: var(--text-primary);
   font-size: 14px;
   text-align: right;
   margin-left: 16px;
@@ -223,12 +223,12 @@
 /* Footer */
 .yaze-shortcuts-footer {
   padding: 12px 20px;
-  border-top: 1px solid #3e3e42;
+  border-top: 1px solid var(--border-light);
   text-align: center;
 }
 
 .yaze-shortcuts-footer span {
-  color: #6e6e6e;
+  color: var(--text-muted);
   font-size: 12px;
 }
 
@@ -239,11 +239,11 @@
   min-width: 20px;
   height: 20px;
   padding: 0 6px;
-  background: linear-gradient(180deg, #3e3e42 0%, #2d2d30 100%);
+  background: linear-gradient(180deg, var(--border-light) 0%, var(--bg-panel) 100%);
   border: 1px solid #4e4e52;
   border-radius: 3px;
-  box-shadow: 0 1px 0 #252526;
-  color: #d4d4d4;
+  box-shadow: 0 1px 0 var(--bg-header);
+  color: var(--text-primary);
   font-family: 'Segoe UI', system-ui, sans-serif;
   font-size: 11px;
   font-weight: 500;
