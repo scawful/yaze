@@ -3,6 +3,7 @@
 
 #ifdef __EMSCRIPTEN__
 
+#include <atomic>
 #include <functional>
 #include <string>
 #include <vector>
@@ -154,8 +155,8 @@ class WasmStorage {
   // Check if we're running in a web context
   static bool IsWebContext();
 
-  // Database initialized flag
-  static bool initialized_;
+  // Database initialized flag (thread-safe)
+  static std::atomic<bool> initialized_;
 };
 
 }  // namespace platform

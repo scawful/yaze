@@ -45,6 +45,35 @@ EM_JS(char*, GenerateRandomRoomCode, (), {
   stringToUTF8(result, stringOnWasmHeap, lengthBytes);
   return stringOnWasmHeap;
 });
+
+EM_JS(char*, GetCollaborationServerUrl, (), {
+  // Check for configuration in order of precedence:
+  // 1. window.YAZE_CONFIG.collaborationServerUrl
+  // 2. Environment variable via meta tag
+  // 3. Default empty (disabled)
+  var url = '';
+
+  if (typeof window !== 'undefined') {
+    if (window.YAZE_CONFIG && window.YAZE_CONFIG.collaborationServerUrl) {
+      url = window.YAZE_CONFIG.collaborationServerUrl;
+    } else {
+      // Check for meta tag configuration
+      var meta = document.querySelector('meta[name="yaze-collab-server"]');
+      if (meta && meta.content) {
+        url = meta.content;
+      }
+    }
+  }
+
+  if (url.length === 0) {
+    return null;
+  }
+
+  var lengthBytes = lengthBytesUTF8(url) + 1;
+  var stringOnWasmHeap = _malloc(lengthBytes);
+  stringToUTF8(url, stringOnWasmHeap, lengthBytes);
+  return stringOnWasmHeap;
+});
 // clang-format on
 
 namespace yaze {
@@ -71,6 +100,9 @@ WasmCollaboration::WasmCollaboration() {
   user_id_ = GenerateUserId();
   user_color_ = GenerateUserColor();
   websocket_ = std::make_unique<net::EmscriptenWebSocket>();
+
+  // Try to initialize from config automatically
+  InitializeFromConfig();
 }
 
 WasmCollaboration::~WasmCollaboration() {
@@ -79,10 +111,27 @@ WasmCollaboration::~WasmCollaboration() {
   }
 }
 
+void WasmCollaboration::InitializeFromConfig() {
+  char* url = GetCollaborationServerUrl();
+  if (url != nullptr) {
+    websocket_url_ = std::string(url);
+    free(url);
+    ConsoleLog(("Collaboration server configured: " + websocket_url_).c_str());
+  } else {
+    ConsoleLog("Collaboration server not configured. Set window.YAZE_CONFIG.collaborationServerUrl or add <meta name=\"yaze-collab-server\" content=\"wss://...\"> to enable.");
+  }
+}
+
 absl::StatusOr<std::string> WasmCollaboration::CreateSession(
     const std::string& session_name, const std::string& username) {
   if (is_connected_) {
     return absl::FailedPreconditionError("Already connected to a session");
+  }
+
+  if (!IsConfigured()) {
+    return absl::FailedPreconditionError(
+        "Collaboration server not configured. Set window.YAZE_CONFIG.collaborationServerUrl "
+        "or call SetWebSocketUrl() before creating a session.");
   }
 
   // Generate room code
@@ -169,6 +218,12 @@ absl::Status WasmCollaboration::JoinSession(const std::string& room_code,
                                            const std::string& username) {
   if (is_connected_) {
     return absl::FailedPreconditionError("Already connected to a session");
+  }
+
+  if (!IsConfigured()) {
+    return absl::FailedPreconditionError(
+        "Collaboration server not configured. Set window.YAZE_CONFIG.collaborationServerUrl "
+        "or call SetWebSocketUrl() before joining a session.");
   }
 
   room_code_ = room_code;

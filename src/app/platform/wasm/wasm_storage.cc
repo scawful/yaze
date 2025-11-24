@@ -15,7 +15,7 @@ namespace yaze {
 namespace platform {
 
 // Static member initialization
-bool WasmStorage::initialized_ = false;
+std::atomic<bool> WasmStorage::initialized_{false};
 
 // JavaScript IndexedDB interface using EM_JS
 EM_JS(int, idb_open_database, (const char* db_name, int version), {
@@ -194,21 +194,71 @@ EM_JS(char*, idb_list_keys, (const char* store_name), {
   });
 });
 
+EM_JS(size_t, idb_get_storage_usage, (), {
+  return Asyncify.handleAsync(function() {
+    if (!Module._yazeDB) {
+      console.error('Database not initialized');
+      return 0;
+    }
+    return new Promise(function(resolve) {
+      var totalSize = 0;
+      var storeNames = ['roms', 'projects', 'preferences'];
+      var completed = 0;
+
+      storeNames.forEach(function(storeName) {
+        var transaction = Module._yazeDB.transaction([storeName], 'readonly');
+        var store = transaction.objectStore(storeName);
+        var request = store.openCursor();
+
+        request.onsuccess = function(event) {
+          var cursor = event.target.result;
+          if (cursor) {
+            var value = cursor.value;
+            if (value instanceof Uint8Array) {
+              totalSize += value.length;
+            } else if (typeof value === 'string') {
+              totalSize += value.length * 2;  // UTF-16 estimation
+            } else if (value) {
+              totalSize += JSON.stringify(value).length * 2;
+            }
+            cursor.continue();
+          } else {
+            completed++;
+            if (completed === storeNames.length) {
+              resolve(totalSize);
+            }
+          }
+        };
+
+        request.onerror = function() {
+          completed++;
+          if (completed === storeNames.length) {
+            resolve(totalSize);
+          }
+        };
+      });
+    });
+  });
+});
+
 // Implementation of WasmStorage methods
 absl::Status WasmStorage::Initialize() {
-  if (initialized_) {
-    return absl::OkStatus();
+  // Use compare_exchange for thread-safe initialization
+  bool expected = false;
+  if (!initialized_.compare_exchange_strong(expected, true)) {
+    return absl::OkStatus();  // Already initialized by another thread
   }
+
   int result = idb_open_database(kDatabaseName, kDatabaseVersion);
   if (result != 0) {
+    initialized_.store(false);  // Reset on failure
     return absl::InternalError("Failed to initialize IndexedDB");
   }
-  initialized_ = true;
   return absl::OkStatus();
 }
 
 void WasmStorage::EnsureInitialized() {
-  if (!initialized_) {
+  if (!initialized_.load()) {
     auto status = Initialize();
     if (!status.ok()) {
       emscripten_log(EM_LOG_ERROR, "Failed to initialize WasmStorage: %s", status.ToString().c_str());
@@ -218,7 +268,7 @@ void WasmStorage::EnsureInitialized() {
 
 bool WasmStorage::IsStorageAvailable() {
   EnsureInitialized();
-  return initialized_;
+  return initialized_.load();
 }
 
 bool WasmStorage::IsWebContext() {
@@ -230,7 +280,7 @@ bool WasmStorage::IsWebContext() {
 // ROM Storage Operations
 absl::Status WasmStorage::SaveRom(const std::string& name, const std::vector<uint8_t>& data) {
   EnsureInitialized();
-  if (!initialized_) {
+  if (!initialized_.load()) {
     return absl::FailedPreconditionError("Storage not initialized");
   }
   int result = idb_save_binary(kRomStoreName, name.c_str(), data.data(), data.size());
@@ -242,7 +292,7 @@ absl::Status WasmStorage::SaveRom(const std::string& name, const std::vector<uin
 
 absl::StatusOr<std::vector<uint8_t>> WasmStorage::LoadRom(const std::string& name) {
   EnsureInitialized();
-  if (!initialized_) {
+  if (!initialized_.load()) {
     return absl::FailedPreconditionError("Storage not initialized");
   }
   uint8_t* data_ptr = nullptr;
@@ -260,7 +310,7 @@ absl::StatusOr<std::vector<uint8_t>> WasmStorage::LoadRom(const std::string& nam
 
 absl::Status WasmStorage::DeleteRom(const std::string& name) {
   EnsureInitialized();
-  if (!initialized_) {
+  if (!initialized_.load()) {
     return absl::FailedPreconditionError("Storage not initialized");
   }
   int result = idb_delete_entry(kRomStoreName, name.c_str());
@@ -272,7 +322,7 @@ absl::Status WasmStorage::DeleteRom(const std::string& name) {
 
 std::vector<std::string> WasmStorage::ListRoms() {
   EnsureInitialized();
-  if (!initialized_) {
+  if (!initialized_.load()) {
     return {};
   }
   char* keys_json = idb_list_keys(kRomStoreName);
@@ -297,7 +347,7 @@ std::vector<std::string> WasmStorage::ListRoms() {
 // Project Storage Operations
 absl::Status WasmStorage::SaveProject(const std::string& name, const std::string& json) {
   EnsureInitialized();
-  if (!initialized_) {
+  if (!initialized_.load()) {
     return absl::FailedPreconditionError("Storage not initialized");
   }
   int result = idb_save_string(kProjectStoreName, name.c_str(), json.c_str());
@@ -309,7 +359,7 @@ absl::Status WasmStorage::SaveProject(const std::string& name, const std::string
 
 absl::StatusOr<std::string> WasmStorage::LoadProject(const std::string& name) {
   EnsureInitialized();
-  if (!initialized_) {
+  if (!initialized_.load()) {
     return absl::FailedPreconditionError("Storage not initialized");
   }
   char* json_ptr = idb_load_string(kProjectStoreName, name.c_str());
@@ -323,7 +373,7 @@ absl::StatusOr<std::string> WasmStorage::LoadProject(const std::string& name) {
 
 absl::Status WasmStorage::DeleteProject(const std::string& name) {
   EnsureInitialized();
-  if (!initialized_) {
+  if (!initialized_.load()) {
     return absl::FailedPreconditionError("Storage not initialized");
   }
   int result = idb_delete_entry(kProjectStoreName, name.c_str());
@@ -335,7 +385,7 @@ absl::Status WasmStorage::DeleteProject(const std::string& name) {
 
 std::vector<std::string> WasmStorage::ListProjects() {
   EnsureInitialized();
-  if (!initialized_) {
+  if (!initialized_.load()) {
     return {};
   }
   char* keys_json = idb_list_keys(kProjectStoreName);
@@ -360,7 +410,7 @@ std::vector<std::string> WasmStorage::ListProjects() {
 // User Preferences Storage
 absl::Status WasmStorage::SavePreferences(const nlohmann::json& prefs) {
   EnsureInitialized();
-  if (!initialized_) {
+  if (!initialized_.load()) {
     return absl::FailedPreconditionError("Storage not initialized");
   }
   std::string json_str = prefs.dump();
@@ -373,7 +423,7 @@ absl::Status WasmStorage::SavePreferences(const nlohmann::json& prefs) {
 
 absl::StatusOr<nlohmann::json> WasmStorage::LoadPreferences() {
   EnsureInitialized();
-  if (!initialized_) {
+  if (!initialized_.load()) {
     return absl::FailedPreconditionError("Storage not initialized");
   }
   char* json_ptr = idb_load_string(kPreferencesStoreName, kPreferencesKey);
@@ -392,7 +442,7 @@ absl::StatusOr<nlohmann::json> WasmStorage::LoadPreferences() {
 
 absl::Status WasmStorage::ClearPreferences() {
   EnsureInitialized();
-  if (!initialized_) {
+  if (!initialized_.load()) {
     return absl::FailedPreconditionError("Storage not initialized");
   }
   int result = idb_delete_entry(kPreferencesStoreName, kPreferencesKey);
@@ -405,11 +455,10 @@ absl::Status WasmStorage::ClearPreferences() {
 // Utility Operations
 absl::StatusOr<size_t> WasmStorage::GetStorageUsage() {
   EnsureInitialized();
-  if (!initialized_) {
+  if (!initialized_.load()) {
     return absl::FailedPreconditionError("Storage not initialized");
   }
-  // Note: This is a simplified version - full async would need Asyncify
-  return static_cast<size_t>(0);
+  return idb_get_storage_usage();
 }
 
 }  // namespace platform
