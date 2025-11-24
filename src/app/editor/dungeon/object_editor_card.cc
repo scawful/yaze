@@ -287,9 +287,10 @@ void ObjectEditorCard::DrawSelectedObjectInfo() {
                 preview_object_.layer_ == zelda3::RoomObject::BG1   ? "BG1"
                 : preview_object_.layer_ == zelda3::RoomObject::BG2 ? "BG2"
                                                                     : "BG3");
-    ImGui::EndGroup();
-    ImGui::Separator();
   }
+  
+  ImGui::EndGroup();
+  ImGui::Separator();
 
   // Delegate property editing to the backend
   if (object_editor_) {

@@ -142,6 +142,9 @@
      * @param {KeyboardEvent} event
      */
     handleKeyDown(event) {
+      // Stop event from bubbling to Emscripten/Global handlers to ensure typing works
+      event.stopPropagation();
+
       switch (event.key) {
         case 'Enter':
           event.preventDefault();

@@ -13,6 +13,7 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include "absl/debugging/failure_signal_handler.h"
 #include "absl/debugging/symbolize.h"
+#include "absl/strings/str_cat.h"
 #include "app/controller.h"
 #include "cli/service/api/http_server.h"
 #include "core/features.h"
@@ -85,6 +86,10 @@ EMSCRIPTEN_KEEPALIVE
 void LoadRomFromWeb(const char* filename) {
   if (!filename) {
     LOG_ERROR("Main", "LoadRomFromWeb called with null filename");
+    EM_ASM({
+      console.error("LoadRomFromWeb: null filename provided");
+      alert("Error: No filename provided");
+    });
     return;
   }
   
@@ -101,16 +106,41 @@ void LoadRomFromWeb(const char* filename) {
   
   // Controller is ready, load the ROM
   LOG_INFO("Main", "Loading ROM from web: %s", rom_path.c_str());
-  auto status = g_controller->OnEntry(rom_path);
-  if (!status.ok()) {
-    LOG_ERROR("Main", "Failed to load ROM: %s", std::string(status.message()).c_str());
-    // Show error in JavaScript console and alert
+  
+  try {
+    auto status = g_controller->OnEntry(rom_path);
+    if (!status.ok()) {
+      std::string error_msg = absl::StrCat("Failed to load ROM: ", status.message());
+      LOG_ERROR("Main", "%s", error_msg.c_str());
+      // Show error in JavaScript console and alert
+      EM_ASM({
+        var msg = UTF8ToString($0);
+        console.error(msg);
+        alert(msg);
+      }, error_msg.c_str());
+    } else {
+      LOG_INFO("Main", "ROM loaded successfully: %s", rom_path.c_str());
+      // Notify JavaScript of success
+      EM_ASM({
+        console.log("ROM loaded successfully: " + UTF8ToString($0));
+      }, rom_path.c_str());
+    }
+  } catch (const std::exception& e) {
+    std::string error_msg = absl::StrCat("Exception loading ROM: ", e.what());
+    LOG_ERROR("Main", "%s", error_msg.c_str());
     EM_ASM({
-      console.error("Failed to load ROM: " + UTF8ToString($0));
-      alert("Failed to load ROM: " + UTF8ToString($0));
-    }, std::string(status.message()).c_str());
-  } else {
-    LOG_INFO("Main", "ROM loaded successfully: %s", rom_path.c_str());
+      var msg = UTF8ToString($0);
+      console.error(msg);
+      alert(msg);
+    }, error_msg.c_str());
+  } catch (...) {
+    std::string error_msg = "Unknown exception loading ROM";
+    LOG_ERROR("Main", "%s", error_msg.c_str());
+    EM_ASM({
+      var msg = UTF8ToString($0);
+      console.error(msg);
+      alert(msg);
+    }, error_msg.c_str());
   }
 }
 }

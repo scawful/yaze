@@ -24,6 +24,7 @@
     <link rel="apple-touch-icon" href="./icons/icon-192x192.png">
 
     <!-- Styles -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
     <link rel="stylesheet" href="main.css">
     <link rel="stylesheet" href="shortcuts_overlay.css">
     <link rel="stylesheet" href="touch_gestures.css">
@@ -39,48 +40,67 @@
     <div id="header">
       <div class="header-left">
         <span class="logo">yaze</span>
-        <span class="version-tag">v0.8</span>
-        <span class="separator">|</span>
-        <button class="toolbar-btn" onclick="document.getElementById('rom-input').click()" title="Open ROM file (Ctrl+O)">
-          Open ROM
-        </button>
-        <input type="file" id="rom-input" accept=".sfc,.smc">
-        <button class="toolbar-btn" onclick="downloadSaves()" title="Download save files">Saves</button>
-        <button class="toolbar-btn" onclick="Module.requestFullscreen(false, false)" title="Enter fullscreen (F11)">Fullscreen</button>
+        <div class="toolbar-divider"></div>
+        <div class="toolbar-group">
+          <button class="nav-btn" onclick="document.getElementById('rom-input').click()" title="Open ROM (Ctrl+O)">
+            <span class="material-symbols-outlined">folder_open</span>
+          </button>
+          <button class="nav-btn" onclick="if(Module && Module._saveRom) Module._saveRom()" title="Save ROM (Ctrl+S)">
+            <span class="material-symbols-outlined">save</span>
+          </button>
+          <button class="nav-btn" onclick="downloadSaves()" title="Download Saves">
+            <span class="material-symbols-outlined">download</span>
+          </button>
+          <input type="file" id="rom-input" accept=".sfc,.smc">
+        </div>
       </div>
+      
+      <div class="header-center" id="header-status">
+        Ready
+      </div>
+
       <div class="header-right">
-        <button class="toolbar-btn panel-toggle" data-panel="terminal" onclick="panels.toggle('terminal')" title="Toggle Terminal (`)">Terminal</button>
-        <button class="toolbar-btn panel-toggle" data-panel="problems" onclick="panels.toggle('problems')" title="Toggle Problems">Problems</button>
-        <button class="toolbar-btn" onclick="toggleCollabConsole()" title="Toggle collaboration console">Collab</button>
-        <button class="toolbar-btn" onclick="palette.show()" title="Command palette (Ctrl+K)">Ctrl+K</button>
+        <div class="toolbar-group">
+          <button class="nav-btn panel-toggle" data-panel="terminal" onclick="panels.toggle('terminal')" title="Toggle Terminal (`)">
+            <span class="material-symbols-outlined">terminal</span>
+          </button>
+          <button class="nav-btn" onclick="toggleCollabConsole()" title="Collaboration">
+            <span class="material-symbols-outlined">group</span>
+          </button>
+          <button class="nav-btn" onclick="toggleFullscreen()" title="Fullscreen (F11)">
+            <span class="material-symbols-outlined">fullscreen</span>
+          </button>
+        </div>
+        <div class="toolbar-divider"></div>
         <div class="dropdown">
-          <button class="toolbar-btn" onclick="toggleHelpMenu()" title="Help menu">Help</button>
+          <button class="nav-btn" onclick="toggleHelpMenu()" title="Menu">
+            <span class="material-symbols-outlined">menu</span>
+          </button>
           <div id="help-menu" class="dropdown-content">
+            <div style="padding: 8px 12px; font-size: 10px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Theme</div>
+            <a href="#" onclick="setTheme('default'); return false;">Hacker Green</a>
+            <a href="#" onclick="setTheme('modern'); return false;">Modern Dark</a>
+            <a href="#" onclick="setTheme('halext'); return false;">Halext Purple</a>
+            <div class="dropdown-divider"></div>
+            <div style="padding: 8px 12px; font-size: 10px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Links</div>
             <a href="https://halext.org" target="_blank" rel="noopener">halext.org</a>
             <a href="./docs/" target="_blank" rel="noopener">Documentation</a>
             <a href="https://github.com/scawful/yaze" target="_blank" rel="noopener">GitHub</a>
             <div class="dropdown-divider"></div>
-            <a href="#" onclick="showShortcuts(); return false;">Keyboard Shortcuts</a>
-            <a href="#" onclick="showAbout(); return false;">About yaze</a>
+            <a href="#" onclick="showShortcuts(); return false;">Shortcuts</a>
+            <a href="#" onclick="showAbout(); return false;">About</a>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Status bar -->
-    <div id="status-bar">
-      <span id="status-text">Ready</span>
-      <span id="rom-info" class="status-item"></span>
-      <span id="editor-mode" class="status-item"></span>
-      <span id="collab-status" class="status-item"></span>
-      <span id="offline-indicator" class="status-item">Offline</span>
-    </div>
+    <!-- Removed old status bar to save space -->
 
     <!-- Update notification -->
     <div id="update-notification">
       <span>Update available</span>
-      <button class="toolbar-btn" onclick="updateServiceWorker()">Reload</button>
-      <button class="toolbar-btn" onclick="dismissUpdate()">Dismiss</button>
+      <button class="nav-btn" onclick="updateServiceWorker()" style="height: 24px; font-size: 11px;">Reload</button>
+      <button class="nav-btn" onclick="dismissUpdate()" style="height: 24px; font-size: 11px;">Dismiss</button>
     </div>
 
     <div id="canvas-container">
@@ -92,7 +112,24 @@
         </div>
       </div>
 
-      <canvas class="emscripten" id="canvas" oncontextmenu="event.preventDefault()" tabindex=-1></canvas>
+      <!-- Welcome / Empty State -->
+      <div id="welcome-screen" class="welcome-screen">
+        <div class="welcome-content">
+          <span class="material-symbols-outlined welcome-icon">stadia_controller</span>
+          <h1>Welcome to YAZE</h1>
+          <p>Drop a ROM file here or click Open to start.</p>
+          <div class="welcome-actions">
+            <button class="nav-btn large" onclick="document.getElementById('rom-input').click()">
+              <span class="material-symbols-outlined">folder_open</span> Open ROM
+            </button>
+            <button class="nav-btn large" onclick="window.open('https://halext.org', '_blank')">
+              <span class="material-symbols-outlined">public</span> Visit Halext
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <canvas class="emscripten" id="canvas" oncontextmenu="event.preventDefault()" tabindex=-1 style="display: none;"></canvas>
     </div>
 
     <!-- VSCode-style bottom panel -->
@@ -143,6 +180,8 @@
           <div class="palette-item" data-action="terminal">Toggle Terminal</div>
           <div class="palette-item" data-action="collab">Toggle Collaboration</div>
           <div class="palette-item" data-action="shortcuts">Keyboard Shortcuts</div>
+          <div class="palette-item" data-action="theme-default">Theme: Hacker Green</div>
+          <div class="palette-item" data-action="theme-halext">Theme: Halext Purple</div>
           <div class="palette-item" data-action="docs">Documentation</div>
           <div class="palette-item" data-action="about">About yaze</div>
         </div>
@@ -164,6 +203,37 @@
       </div>
     </div>
 
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal" style="display: none;">
+      <div class="modal-content settings-content">
+        <div class="modal-header">
+          <h2>Settings</h2>
+          <button class="nav-btn" onclick="hideSettings()"><span class="material-symbols-outlined">close</span></button>
+        </div>
+        <div class="settings-body">
+          <div class="setting-group">
+            <label>Theme</label>
+            <select id="settings-theme" onchange="setTheme(this.value)">
+              <option value="default">Hacker Green</option>
+              <option value="modern">Modern Dark</option>
+              <option value="halext">Halext Purple</option>
+            </select>
+          </div>
+          <!-- Future settings: Auto-save interval, VSync, Input mapping -->
+          <div class="setting-group">
+            <label>Interface</label>
+            <div class="checkbox-row">
+              <input type="checkbox" id="setting-touch" onchange="document.body.classList.toggle('yaze-touch-mode', this.checked)">
+              <label for="setting-touch">Force Touch Mode</label>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="nav-btn" onclick="hideSettings()">Done</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Scripts -->
     <script src="config.js"></script>
     <script src="app.js"></script>
@@ -175,6 +245,36 @@
     <script src="loading_indicator.js"></script>
     <script src="error_handler.js"></script>
     <script>
+      // Settings Modal Logic
+      function showSettings() {
+        document.getElementById('settings-modal').style.display = 'flex';
+        // Sync select with current theme
+        var current = localStorage.getItem('yaze-theme') || 'default';
+        document.getElementById('settings-theme').value = current;
+      }
+      function hideSettings() {
+        document.getElementById('settings-modal').style.display = 'none';
+      }
+
+      // Theme management
+      function setTheme(theme) {
+        if (theme === 'default') {
+          document.body.removeAttribute('data-theme');
+          localStorage.removeItem('yaze-theme');
+        } else {
+          document.body.setAttribute('data-theme', theme);
+          localStorage.setItem('yaze-theme', theme);
+        }
+      }
+
+      // Initialize theme
+      (function initTheme() {
+        const savedTheme = localStorage.getItem('yaze-theme');
+        if (savedTheme) {
+          setTheme(savedTheme);
+        }
+      })();
+
       // Help menu toggle
       function toggleHelpMenu() {
         var menu = document.getElementById('help-menu');
@@ -225,12 +325,14 @@
           this.container.style.height = this.height + 'px';
           if (panel) this.switchTab(panel);
           this.updateToggles();
+          setTimeout(resizeCanvasToContainer, 200); // Resize canvas after transition
         },
 
         close: function() {
           this.height = this.container.offsetHeight || 250;
           this.container.classList.add('panel-collapsed');
           this.updateToggles();
+          setTimeout(resizeCanvasToContainer, 200); // Resize canvas after transition
         },
 
         switchTab: function(panel) {
@@ -262,6 +364,7 @@
         maximize: function() {
           this.container.style.height = '70vh';
           this.height = this.container.offsetHeight;
+          setTimeout(resizeCanvasToContainer, 200);
         },
 
         updateToggles: function() {
@@ -290,6 +393,7 @@
             var delta = startY - e.clientY;
             var newHeight = Math.min(Math.max(startHeight + delta, 100), window.innerHeight * 0.7);
             self.container.style.height = newHeight + 'px';
+            requestAnimationFrame(resizeCanvasToContainer); // Resize during drag
           }
 
           function onMouseUp() {
@@ -297,6 +401,7 @@
             document.body.style.cursor = '';
             document.removeEventListener('mousemove', onMouseMove);
             document.removeEventListener('mouseup', onMouseUp);
+            resizeCanvasToContainer(); // Final resize
           }
         },
 
@@ -409,6 +514,8 @@
             case 'terminal': toggleTerminal(); break;
             case 'collab': toggleCollabConsole(); break;
             case 'shortcuts': showShortcuts(); break;
+            case 'theme-default': setTheme('default'); break;
+            case 'theme-halext': setTheme('halext'); break;
             case 'docs': window.open('./docs/', '_blank'); break;
             case 'about': showAbout(); break;
           }
@@ -431,30 +538,30 @@
       // Status bar helpers (called from WASM)
       window.yazeStatus = {
         setRomInfo: function(name, size) {
-          var el = document.getElementById('rom-info');
-          if (name) {
-            el.textContent = name + ' (' + (size/1024).toFixed(0) + 'KB)';
-            el.classList.add('show');
-          } else {
-            el.classList.remove('show');
+          var statusDiv = document.getElementById('header-status');
+          if (statusDiv) {
+            statusDiv.textContent = name ? (name + ' (' + (size/1024).toFixed(0) + 'KB)') : 'Ready';
+            statusDiv.style.color = name ? 'var(--text-accent)' : 'var(--text-muted)';
           }
         },
         setEditorMode: function(mode) {
-          var el = document.getElementById('editor-mode');
-          if (mode) {
-            el.textContent = mode;
-            el.classList.add('show');
-          } else {
-            el.classList.remove('show');
+          // Optional: append mode if needed, or replace
+          // For minimalist style, we might just show the mode
+          var statusDiv = document.getElementById('header-status');
+          if (statusDiv && mode) {
+             statusDiv.textContent = mode;
           }
         },
         setCollabStatus: function(connected, roomName) {
-          var el = document.getElementById('collab-status');
-          if (connected) {
-            el.textContent = 'collab: ' + (roomName || 'connected');
-            el.className = 'status-item show connected';
-          } else {
-            el.classList.remove('show');
+          var statusDiv = document.getElementById('header-status');
+          if (statusDiv) {
+            if (connected) {
+              statusDiv.textContent = 'Collab: ' + (roomName || 'Connected');
+              statusDiv.style.color = 'var(--status-success)';
+            } else {
+              statusDiv.textContent = 'Ready';
+              statusDiv.style.color = 'var(--text-muted)';
+            }
           }
         }
       };

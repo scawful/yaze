@@ -25,6 +25,7 @@
 #include "app/gfx/types/snes_tile.h"
 #include "app/gfx/util/compression.h"
 #ifdef __EMSCRIPTEN__
+#include <emscripten.h>
 #include "app/platform/wasm/wasm_collaboration.h"
 #endif
 #include "app/snes.h"
@@ -47,7 +48,9 @@ constexpr size_t kBaseRomSize = 1048576;  // 1MB
 constexpr size_t kHeaderSize = 0x200;     // 512 bytes
 
 void MaybeStripSmcHeader(std::vector<uint8_t>& rom_data, unsigned long& size) {
-  if (size % kBaseRomSize == kHeaderSize && size >= kHeaderSize) {
+  // Bounds check before erasing
+  if (size >= kHeaderSize && rom_data.size() >= kHeaderSize &&
+      size % kBaseRomSize == kHeaderSize) {
     rom_data.erase(rom_data.begin(), rom_data.begin() + kHeaderSize);
     size -= kHeaderSize;
   }
@@ -94,7 +97,15 @@ RomLoadOptions RomLoadOptions::RawDataOnly() {
 }
 
 uint32_t GetGraphicsAddress(const uint8_t* data, uint8_t addr, uint32_t ptr1,
-                            uint32_t ptr2, uint32_t ptr3) {
+                            uint32_t ptr2, uint32_t ptr3, size_t rom_size) {
+  // Validate pointer table accesses are within ROM bounds
+  // Each pointer table entry is 1 byte, and we access ptr + addr
+  if (ptr1 + addr >= rom_size || ptr2 + addr >= rom_size || ptr3 + addr >= rom_size) {
+    // Return UINT32_MAX as a sentinel value to indicate invalid offset
+    // Callers should check for this value before using the offset
+    // In practice, this should never happen with valid ROMs, but WASM requires bounds checking
+    return UINT32_MAX;
+  }
   return SnesToPc(AddressFromBytes(data[ptr1 + addr], data[ptr2 + addr],
                                    data[ptr3 + addr]));
 }
@@ -106,9 +117,18 @@ absl::StatusOr<std::vector<uint8_t>> Load2BppGraphics(const Rom& rom) {
     auto offset = GetGraphicsAddress(rom.data(), sheet_id,
                                      rom.version_constants().kOverworldGfxPtr1,
                                      rom.version_constants().kOverworldGfxPtr2,
-                                     rom.version_constants().kOverworldGfxPtr3);
+                                     rom.version_constants().kOverworldGfxPtr3,
+                                     rom.size());
+    
+    // Bounds check before decompressing (also check for invalid offset sentinel)
+    if (offset == UINT32_MAX || offset >= rom.size()) {
+      return absl::OutOfRangeError(
+          absl::StrFormat("2BPP graphics sheet %u offset %u exceeds ROM size %zu",
+                          sheet_id, offset, rom.size()));
+    }
+    
     ASSIGN_OR_RETURN(auto decomp_sheet,
-                     gfx::lc_lz2::DecompressV2(rom.data(), offset));
+                     gfx::lc_lz2::DecompressV2(rom.data(), offset, 0, 1, rom.size()));
     auto converted_sheet = gfx::SnesTo8bppSheet(decomp_sheet, 2);
     for (const auto& each_pixel : converted_sheet) {
       sheet.push_back(each_pixel);
@@ -139,6 +159,17 @@ absl::StatusOr<std::array<gfx::Bitmap, kNumLinkSheets>> LoadLinkGraphics(
 }
 
 absl::StatusOr<gfx::Bitmap> LoadFontGraphics(const Rom& rom) {
+  // Validate ROM size before accessing font graphics
+  constexpr uint32_t kFontGraphicsOffset = 0x70000;
+  constexpr uint32_t kFontGraphicsSize = 0x2000;
+  constexpr uint32_t kMinRomSizeForFont = kFontGraphicsOffset + kFontGraphicsSize;
+  
+  if (rom.size() < kMinRomSizeForFont) {
+    return absl::FailedPreconditionError(
+        absl::StrFormat("ROM too small for font graphics: %zu bytes (need at least %u bytes)",
+                        rom.size(), kMinRomSizeForFont));
+  }
+  
   std::vector<uint8_t> data(0x2000);
   for (int i = 0; i < 0x2000; i++) {
     data[i] = rom.data()[0x70000 + i];
@@ -239,7 +270,16 @@ absl::StatusOr<std::array<gfx::Bitmap, kNumGfxSheets>> LoadAllGraphicsData(
       auto offset = GetGraphicsAddress(
           rom.data(), i, rom.version_constants().kOverworldGfxPtr1,
           rom.version_constants().kOverworldGfxPtr2,
-          rom.version_constants().kOverworldGfxPtr3);
+          rom.version_constants().kOverworldGfxPtr3,
+          rom.size());
+      
+      // Bounds check before copying ROM data (also check for invalid offset sentinel)
+      if (offset == UINT32_MAX || offset + Uncompressed3BPPSize > rom.size()) {
+        return absl::OutOfRangeError(
+            absl::StrFormat("Graphics sheet %u offset %u + size %u exceeds ROM size %zu",
+                            i, offset, Uncompressed3BPPSize, rom.size()));
+      }
+      
       std::copy(rom.data() + offset, rom.data() + offset + Uncompressed3BPPSize,
                 sheet.begin());
       bpp3 = true;
@@ -249,8 +289,19 @@ absl::StatusOr<std::array<gfx::Bitmap, kNumGfxSheets>> LoadAllGraphicsData(
       auto offset = GetGraphicsAddress(
           rom.data(), i, rom.version_constants().kOverworldGfxPtr1,
           rom.version_constants().kOverworldGfxPtr2,
-          rom.version_constants().kOverworldGfxPtr3);
-      ASSIGN_OR_RETURN(sheet, gfx::lc_lz2::DecompressV2(rom.data(), offset));
+          rom.version_constants().kOverworldGfxPtr3,
+          rom.size());
+      
+      // Bounds check before decompressing (DecompressV2 will need to read from ROM)
+      // We can't know the exact decompressed size, but we should at least check
+      // the offset is valid (also check for invalid offset sentinel)
+      if (offset == UINT32_MAX || offset >= rom.size()) {
+        return absl::OutOfRangeError(
+            absl::StrFormat("Graphics sheet %u offset %u exceeds ROM size %zu",
+                            i, offset, rom.size()));
+      }
+      
+      ASSIGN_OR_RETURN(sheet, gfx::lc_lz2::DecompressV2(rom.data(), offset, 0, 1, rom.size()));
       bpp3 = true;
     }
 
@@ -341,7 +392,8 @@ absl::Status SaveAllGraphicsData(
       auto offset = GetGraphicsAddress(
           rom.data(), i, rom.version_constants().kOverworldGfxPtr1,
           rom.version_constants().kOverworldGfxPtr2,
-          rom.version_constants().kOverworldGfxPtr3);
+          rom.version_constants().kOverworldGfxPtr3,
+          rom.size());
       std::copy(final_data.begin(), final_data.end(), rom.begin() + offset);
     }
   }
@@ -361,12 +413,43 @@ absl::Status Rom::LoadFromFile(const std::string& filename,
   }
 
   // Validate file exists before proceeding
+#ifdef __EMSCRIPTEN__
+  // In Emscripten, use the path as-is (MEMFS paths are absolute from root)
+  filename_ = filename;
+  
+  // Try to open the file to verify it exists (this works with MEMFS)
+  std::ifstream test_file(filename_, std::ios::binary);
+  if (!test_file.is_open()) {
+    return absl::NotFoundError(
+        absl::StrCat("ROM file does not exist or cannot be opened: ", filename_));
+  }
+  
+  // Get file size from stream (std::filesystem::file_size doesn't work with MEMFS)
+  test_file.seekg(0, std::ios::end);
+  if (!test_file) {
+    test_file.close();
+    return absl::InternalError("Could not seek to end of ROM file");
+  }
+  size_ = test_file.tellg();
+  test_file.close();
+  
+  // Validate ROM size before proceeding
+  if (size_ < 32768) {
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "ROM file too small (%zu bytes), minimum is 32KB", size_));
+  }
+  if (size_ > 8 * 1024 * 1024) {
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "ROM file too large (%zu bytes), maximum is 8MB", size_));
+  }
+#else
   if (!std::filesystem::exists(filename)) {
     return absl::NotFoundError(
         absl::StrCat("ROM file does not exist: ", filename));
   }
 
   filename_ = std::filesystem::absolute(filename).string();
+#endif
   short_name_ = filename_.substr(filename_.find_last_of("/\\") + 1);
 
   std::ifstream file(filename_, std::ios::binary);
@@ -376,6 +459,8 @@ absl::Status Rom::LoadFromFile(const std::string& filename,
   }
 
   // Get file size and validate
+#ifndef __EMSCRIPTEN__
+  // For non-Emscripten builds, get file size from filesystem
   try {
     size_ = std::filesystem::file_size(filename_);
 
@@ -403,6 +488,8 @@ absl::Status Rom::LoadFromFile(const std::string& filename,
           absl::StrFormat("Invalid ROM size: %zu bytes", size_));
     }
   }
+#endif
+  // For Emscripten, size_ was already determined above
 
   // Allocate and read ROM data
   try {
