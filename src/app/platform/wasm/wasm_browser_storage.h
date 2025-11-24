@@ -14,161 +14,71 @@ namespace app {
 namespace platform {
 
 /**
- * @class WasmBrowserStorage
- * @brief Secure storage for sensitive data in browser environment
+ * Stubbed browser storage for WASM builds.
  *
- * This class provides secure storage for API keys and other sensitive
- * data using browser storage APIs. It uses sessionStorage by default
- * (cleared when tab closes) with optional localStorage for persistence.
- *
- * Security considerations:
- * - API keys are stored in sessionStorage by default (memory only)
- * - localStorage option available for user convenience (less secure)
- * - Keys are prefixed with "yaze_secure_" to avoid conflicts
- * - No encryption currently (future enhancement)
- *
- * Storage format:
- * - Key: "yaze_secure_<service>_<type>"
- * - Value: Raw string value (API key, token, etc.)
+ * Key/secret storage in the browser is intentionally disabled to avoid leaking
+ * model/API credentials in page-visible storage. All methods return
+ * Unimplemented/NotFound and should not be used for sensitive data.
  */
 class WasmBrowserStorage {
  public:
-  /**
-   * @enum StorageType
-   * @brief Type of browser storage to use
-   */
-  enum class StorageType {
-    kSession,  // sessionStorage (cleared on tab close)
-    kLocal     // localStorage (persistent)
-  };
+  enum class StorageType { kSession, kLocal };
 
-  /**
-   * @brief Store an API key for a service
-   * @param service Service name (e.g., "gemini", "openai")
-   * @param key API key value
-   * @param storage_type Storage type to use
-   * @return Success status
-   */
-  static absl::Status StoreApiKey(const std::string& service,
-                                   const std::string& key,
-                                   StorageType storage_type = StorageType::kSession);
+  static absl::Status StoreApiKey(const std::string&, const std::string&,
+                                  StorageType = StorageType::kSession) {
+    return absl::UnimplementedError("Browser storage disabled for security");
+  }
 
-  /**
-   * @brief Retrieve an API key for a service
-   * @param service Service name
-   * @param storage_type Storage type to check
-   * @return API key or NotFound error
-   */
   static absl::StatusOr<std::string> RetrieveApiKey(
-      const std::string& service,
-      StorageType storage_type = StorageType::kSession);
+      const std::string&, StorageType = StorageType::kSession) {
+    return absl::NotFoundError("Browser storage disabled");
+  }
 
-  /**
-   * @brief Clear an API key for a service
-   * @param service Service name
-   * @param storage_type Storage type to clear from
-   * @return Success status
-   */
-  static absl::Status ClearApiKey(const std::string& service,
-                                   StorageType storage_type = StorageType::kSession);
+  static absl::Status ClearApiKey(const std::string&,
+                                  StorageType = StorageType::kSession) {
+    return absl::UnimplementedError("Browser storage disabled for security");
+  }
 
-  /**
-   * @brief Check if an API key exists for a service
-   * @param service Service name
-   * @param storage_type Storage type to check
-   * @return True if key exists
-   */
-  static bool HasApiKey(const std::string& service,
-                        StorageType storage_type = StorageType::kSession);
+  static bool HasApiKey(const std::string&,
+                        StorageType = StorageType::kSession) {
+    return false;
+  }
 
-  /**
-   * @brief Store a generic secret value
-   * @param key Storage key
-   * @param value Secret value
-   * @param storage_type Storage type to use
-   * @return Success status
-   */
-  static absl::Status StoreSecret(const std::string& key,
-                                   const std::string& value,
-                                   StorageType storage_type = StorageType::kSession);
+  static absl::Status StoreSecret(const std::string&, const std::string&,
+                                  StorageType = StorageType::kSession) {
+    return absl::UnimplementedError("Browser storage disabled for security");
+  }
 
-  /**
-   * @brief Retrieve a generic secret value
-   * @param key Storage key
-   * @param storage_type Storage type to check
-   * @return Secret value or NotFound error
-   */
   static absl::StatusOr<std::string> RetrieveSecret(
-      const std::string& key,
-      StorageType storage_type = StorageType::kSession);
+      const std::string&, StorageType = StorageType::kSession) {
+    return absl::NotFoundError("Browser storage disabled");
+  }
 
-  /**
-   * @brief Clear a generic secret value
-   * @param key Storage key
-   * @param storage_type Storage type to clear from
-   * @return Success status
-   */
-  static absl::Status ClearSecret(const std::string& key,
-                                   StorageType storage_type = StorageType::kSession);
+  static absl::Status ClearSecret(const std::string&,
+                                  StorageType = StorageType::kSession) {
+    return absl::UnimplementedError("Browser storage disabled for security");
+  }
 
-  /**
-   * @brief List all stored API keys (service names only)
-   * @param storage_type Storage type to check
-   * @return List of service names with stored keys
-   */
   static std::vector<std::string> ListStoredApiKeys(
-      StorageType storage_type = StorageType::kSession);
+      StorageType = StorageType::kSession) {
+    return {};
+  }
 
-  /**
-   * @brief Clear all stored API keys
-   * @param storage_type Storage type to clear
-   * @return Success status
-   */
-  static absl::Status ClearAllApiKeys(StorageType storage_type = StorageType::kSession);
+  static absl::Status ClearAllApiKeys(StorageType = StorageType::kSession) {
+    return absl::UnimplementedError("Browser storage disabled for security");
+  }
 
-  /**
-   * @brief Check if browser storage is available
-   * @return True if storage APIs are available
-   */
-  static bool IsStorageAvailable();
-
-  /**
-   * @brief Get storage quota information
-   * @param storage_type Storage type to check
-   * @return Used and available bytes, or error if not supported
-   */
   struct StorageQuota {
     size_t used_bytes = 0;
     size_t available_bytes = 0;
   };
+
+  static bool IsStorageAvailable() { return false; }
+
   static absl::StatusOr<StorageQuota> GetStorageQuota(
-      StorageType storage_type = StorageType::kSession);
-
- private:
-  // Key prefixes for different types of data
-  static constexpr const char* kApiKeyPrefix = "yaze_secure_api_";
-  static constexpr const char* kSecretPrefix = "yaze_secure_secret_";
-
-  /**
-   * @brief Build storage key for API keys
-   * @param service Service name
-   * @return Full storage key
-   */
-  static std::string BuildApiKeyStorageKey(const std::string& service);
-
-  /**
-   * @brief Build storage key for secrets
-   * @param key User-provided key
-   * @return Full storage key
-   */
-  static std::string BuildSecretStorageKey(const std::string& key);
-
-  /**
-   * @brief Extract service name from storage key
-   * @param storage_key Full storage key
-   * @return Service name or empty if not an API key
-   */
-  static std::string ExtractServiceFromKey(const std::string& storage_key);
+      StorageType = StorageType::kSession) {
+    return absl::UnimplementedError("Browser storage disabled for security");
+  }
 };
 
 }  // namespace platform

@@ -23,6 +23,43 @@
   let statusBadge = null;
   let roomCodeDisplay = null;
   let cursorOverlay = null;
+  let collabBindings = null;
+  let bindingPoll = null;
+
+  function ensureCollabBindings() {
+    if (collabBindings) return collabBindings;
+    if (typeof Module === 'undefined' || typeof Module.cwrap !== 'function') {
+      return null;
+    }
+    collabBindings = {
+      create: Module.cwrap('WasmCollaborationCreate', 'string', ['string', 'string', 'string']),
+      join: Module.cwrap('WasmCollaborationJoin', 'number', ['string', 'string', 'string']),
+      leave: Module.cwrap('WasmCollaborationLeave', 'number', []),
+      sendCursor: Module.cwrap('WasmCollaborationSendCursor', 'number', ['string', 'number', 'number', 'number']),
+      broadcastChange: Module.cwrap('WasmCollaborationBroadcastChange', 'number', ['number', 'number', 'number']),
+      setServer: Module.cwrap('WasmCollaborationSetServerUrl', null, ['string']),
+      isConnected: Module.cwrap('WasmCollaborationIsConnected', 'number', []),
+      getRoomCode: Module.cwrap('WasmCollaborationGetRoomCode', 'string', []),
+      getUserId: Module.cwrap('WasmCollaborationGetUserId', 'string', [])
+    };
+
+    if (typeof window !== 'undefined' &&
+        window.YAZE_CONFIG &&
+        window.YAZE_CONFIG.collaborationServerUrl) {
+      collabBindings.setServer(window.YAZE_CONFIG.collaborationServerUrl);
+    }
+    return collabBindings;
+  }
+
+  function startBindingPoll() {
+    if (bindingPoll) return;
+    bindingPoll = setInterval(() => {
+      if (ensureCollabBindings()) {
+        clearInterval(bindingPoll);
+        bindingPoll = null;
+      }
+    }, 500);
+  }
 
   /**
    * Initialize collaboration UI
@@ -31,6 +68,7 @@
     createCollabPanel();
     createCursorOverlay();
     attachEventHandlers();
+    startBindingPoll();
 
     // Register global handler for C++ callbacks
     window.updateCollaborationUI = handleCollaborationUpdate;
@@ -152,7 +190,10 @@
     const disconnectBtn = document.getElementById('disconnect-btn');
     disconnectBtn.addEventListener('click', () => {
       if (confirm('Are you sure you want to leave the collaboration session?')) {
-        Module._wasm_collaboration_leave();
+        const api = ensureCollabBindings();
+        if (api && api.leave) {
+          api.leave();
+        }
         updateConnectionStatus(false);
       }
     });
@@ -174,11 +215,17 @@
           <input type="text" id="user-name" placeholder="Enter your name"
                  maxlength="30" autocomplete="off">
         </div>
+        <div class="form-group">
+          <label for="session-password">Session Password (optional):</label>
+          <input type="password" id="session-password" placeholder="Leave blank for open session"
+                 maxlength="64" autocomplete="off">
+        </div>
       </div>
     `);
 
     const sessionInput = dialog.querySelector('#session-name');
     const userInput = dialog.querySelector('#user-name');
+    const passwordInput = dialog.querySelector('#session-password');
 
     // Load saved username
     userInput.value = localStorage.getItem('collab-username') || '';
@@ -186,6 +233,7 @@
     dialog.querySelector('.dialog-ok').addEventListener('click', () => {
       const sessionName = sessionInput.value.trim() || 'Unnamed Session';
       const userName = userInput.value.trim();
+      const sessionPassword = passwordInput.value.trim();
 
       if (!userName) {
         alert('Please enter your name');
@@ -195,14 +243,18 @@
       // Save username
       localStorage.setItem('collab-username', userName);
 
-      // Create session via C++
-      if (typeof Module._wasm_collaboration_create === 'function') {
-        const roomCode = Module._wasm_collaboration_create(sessionName, userName);
-        if (roomCode) {
-          collabState.roomCode = roomCode;
-          collabState.sessionName = sessionName;
-          updateConnectionStatus(true);
-        }
+      const api = ensureCollabBindings();
+      if (!api || !api.create) {
+        alert('Collaboration runtime not ready');
+        return;
+      }
+
+      const roomCode = api.create(sessionName, userName, sessionPassword);
+      if (roomCode) {
+        collabState.roomCode = roomCode;
+        collabState.sessionName = sessionName;
+        collabState.selfUserId = api.getUserId ? api.getUserId() : '';
+        updateConnectionStatus(true);
       }
 
       dialog.remove();
@@ -225,11 +277,17 @@
           <input type="text" id="user-name" placeholder="Enter your name"
                  maxlength="30" autocomplete="off">
         </div>
+        <div class="form-group">
+          <label for="session-password">Session Password (if required):</label>
+          <input type="password" id="session-password" placeholder="Enter session password"
+                 maxlength="64" autocomplete="off">
+        </div>
       </div>
     `);
 
     const codeInput = dialog.querySelector('#room-code');
     const userInput = dialog.querySelector('#user-name');
+    const passwordInput = dialog.querySelector('#session-password');
 
     // Load saved username
     userInput.value = localStorage.getItem('collab-username') || '';
@@ -251,13 +309,18 @@
       // Save username
       localStorage.setItem('collab-username', userName);
 
-      // Join session via C++
-      if (typeof Module._wasm_collaboration_join === 'function') {
-        const success = Module._wasm_collaboration_join(roomCode, userName);
-        if (success) {
-          collabState.roomCode = roomCode;
-          updateConnectionStatus(true);
-        }
+      const api = ensureCollabBindings();
+      if (!api || !api.join) {
+        alert('Collaboration runtime not ready');
+        return;
+      }
+
+      const sessionPassword = passwordInput.value.trim();
+      const success = api.join(roomCode, userName, sessionPassword);
+      if (success) {
+        collabState.roomCode = roomCode;
+        collabState.selfUserId = api.getUserId ? api.getUserId() : '';
+        updateConnectionStatus(true);
       }
 
       dialog.remove();
@@ -397,6 +460,10 @@
         case 'session_created':
         case 'session_joined':
           collabState.roomCode = data; // data is room code string
+          if (!collabState.selfUserId) {
+            const api = ensureCollabBindings();
+            collabState.selfUserId = api && api.getUserId ? api.getUserId() : '';
+          }
           updateConnectionStatus(true);
           break;
 
