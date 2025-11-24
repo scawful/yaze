@@ -102,8 +102,8 @@
       // Enable AI features in terminal
       enabled: true,
 
-      // AI model to use (gemini-2.0-flash-exp, gemini-1.5-flash, etc.)
-      model: 'gemini-2.0-flash-exp',
+      // AI model to use (gemini-2.5-flash, gemini-2.5-pro, etc.)
+      model: 'gemini-2.5-flash',
 
       // Server endpoint for AI queries (empty = use collaboration server)
       // Set to your yaze-server URL if different from collaboration server
