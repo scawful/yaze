@@ -101,12 +101,15 @@ var Module = {
   onRuntimeInitialized: function() {
      console.log("YAZE Web initialized");
      if (loadingOverlay) loadingOverlay.style.display = 'none';
+     
+     // Hide welcome screen and show canvas
+     if (typeof hideWelcomeScreen === 'function') hideWelcomeScreen();
 
      // Resize canvas to fill container
      resizeCanvasToContainer();
 
      if (typeof Z3edTerminal !== 'undefined') {
-       window.z3edTerminal = new Z3edTerminal('terminal-container');
+       window.z3edTerminal = new Z3edTerminal('panel-terminal');
        window.z3edTerminal.printInfo('z3ed Web Terminal ready. Type /help for commands.');
      }
   }
@@ -139,23 +142,86 @@ if (romInput) {
         FS.writeFile(filename, data);
         console.log("Wrote " + data.length + " bytes to " + filename);
         
+        // Verify file was written correctly
+        try {
+          var stats = FS.stat(filename);
+          if (!stats) {
+            throw new Error("File write verification failed - stats is null");
+          }
+          if (stats.size !== data.length) {
+            throw new Error("File size mismatch: expected " + data.length + " bytes, got " + stats.size);
+          }
+          console.log("File verified: " + filename + " (" + stats.size + " bytes)");
+        } catch (verifyErr) {
+          console.error("File verification failed:", verifyErr);
+          alert("Failed to verify ROM file: " + verifyErr);
+          return;
+        }
+        
         // Check if ccall is available, fallback to direct function call
-        if (Module.ccall) {
-          Module.ccall('LoadRomFromWeb', 'null', ['string'], [filename]);
-        } else if (Module._LoadRomFromWeb) {
-          Module._LoadRomFromWeb(filename);
-        } else {
-          console.error("LoadRomFromWeb function not available");
-          alert("ROM loading not ready yet. Please wait for the app to initialize.");
+        try {
+          if (Module.ccall) {
+            var result = Module.ccall('LoadRomFromWeb', 'null', ['string'], [filename]);
+            console.log("LoadRomFromWeb called, result:", result);
+          } else if (Module._LoadRomFromWeb) {
+            // Use UTF8ToString to convert filename if needed
+            var filenamePtr = Module.stringToUTF8 ? Module.stringToUTF8(filename) : filename;
+            Module._LoadRomFromWeb(filenamePtr);
+            console.log("LoadRomFromWeb called via direct function");
+          } else {
+            console.error("LoadRomFromWeb function not available");
+            alert("ROM loading not ready yet. Please wait for the app to initialize.");
+            return;
+          }
+        } catch (wasmErr) {
+          console.error("WASM error loading ROM:", wasmErr);
+          var errorMsg = "Failed to load ROM: ";
+          if (wasmErr.message) {
+            errorMsg += wasmErr.message;
+          } else if (wasmErr.toString) {
+            errorMsg += wasmErr.toString();
+          } else {
+            errorMsg += "Memory access error (ROM may be corrupted or invalid)";
+          }
+          alert(errorMsg);
+          // Try to get more details from the error
+          if (wasmErr.stack) {
+            console.error("Stack trace:", wasmErr.stack);
+          }
         }
       } catch (err) {
         console.error("Error writing file:", err);
-        alert("Failed to load ROM: " + err);
+        var errorMsg = "Failed to load ROM: ";
+        if (err.message) {
+          errorMsg += err.message;
+        } else {
+          errorMsg += err.toString();
+        }
+        alert(errorMsg);
       }
     };
     reader.readAsArrayBuffer(file);
   });
 }
+
+// Fullscreen toggle helper
+window.toggleFullscreen = function() {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen().catch(err => {
+      console.warn(`Error attempting to enable fullscreen: ${err.message}`);
+    });
+  } else {
+    if (document.exitFullscreen) {
+      document.exitFullscreen();
+    }
+  }
+};
+
+// Listen for fullscreen changes to trigger resize
+document.addEventListener('fullscreenchange', function() {
+  // Small delay to allow browser layout to settle
+  setTimeout(resizeCanvasToContainer, 100);
+});
 
 // Canvas resize function to fill container
 function resizeCanvasToContainer() {
@@ -170,31 +236,44 @@ function resizeCanvasToContainer() {
   
   if (width <= 0 || height <= 0) return; // Skip if container not visible
   
+  // Check if resize is actually needed
+  // In fullscreen, force update to ensure GL context matches window
+  if (!document.fullscreenElement && canvas.width === width && canvas.height === height) return;
+
   // Set canvas size to match container exactly
   canvas.width = width;
   canvas.height = height;
   canvas.style.width = width + 'px';
   canvas.style.height = height + 'px';
   
-  // Notify Emscripten/GLFW of the resize if available
+  // Notify Emscripten of the resize
   if (Module) {
-    // Try Emscripten's canvas resize API
+    // Standard Emscripten resize hook
+    if (typeof Module.setCanvasSize === 'function') {
+      Module.setCanvasSize(width, height);
+    }
+    // Internal helper if available
     if (typeof Module._emscripten_set_canvas_element_size === 'function') {
       Module._emscripten_set_canvas_element_size('#canvas', width, height);
     }
-    // Also try GLFW window resize if available
-    if (typeof Module._glfwSetWindowSize === 'function' && Module.canvas) {
-      Module._glfwSetWindowSize(Module.canvas, width, height);
-    }
   }
   
-  console.log('Canvas resized to:', width, 'x', height);
+  // console.log('Canvas resized to:', width, 'x', height);
 }
 
 // Resize canvas on window resize
 window.addEventListener('resize', function() {
-  resizeCanvasToContainer();
+  // Debounce slightly to handle smooth flex transitions
+  requestAnimationFrame(resizeCanvasToContainer);
 });
+
+// UI Helpers
+function hideWelcomeScreen() {
+  var welcome = document.getElementById('welcome-screen');
+  if (welcome) welcome.style.display = 'none';
+  var canvas = document.getElementById('canvas');
+  if (canvas) canvas.style.display = 'block';
+}
 
 // Initial resize after a short delay to ensure layout is complete
 setTimeout(resizeCanvasToContainer, 100);

@@ -294,6 +294,9 @@
 
     ui.chatSend.addEventListener('click', sendChat);
     ui.chatInput.addEventListener('keydown', (e) => {
+      // Stop event from bubbling to prevent global/WASM handlers from stealing input
+      e.stopPropagation();
+      
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
         sendChat();

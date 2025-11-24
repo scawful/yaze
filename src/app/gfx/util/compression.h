@@ -240,7 +240,7 @@ void memfill(const uint8_t* data, std::vector<uint8_t>& buffer, int buffer_pos,
  */
 absl::StatusOr<std::vector<uint8_t>> DecompressV2(const uint8_t* data,
                                                   int offset, int size = 0x800,
-                                                  int mode = 1);
+                                                  int mode = 1, size_t rom_size = static_cast<size_t>(-1));
 absl::StatusOr<std::vector<uint8_t>> DecompressGraphics(const uint8_t* data,
                                                         int pos, int size);
 absl::StatusOr<std::vector<uint8_t>> DecompressOverworld(const uint8_t* data,

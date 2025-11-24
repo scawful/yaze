@@ -80,10 +80,18 @@ namespace palette_group_internal {
 absl::Status LoadOverworldMainPalettes(const std::vector<uint8_t>& rom_data,
                                        gfx::PaletteGroupMap& palette_groups) {
   auto data = rom_data.data();
+  size_t rom_size = rom_data.size();
   for (int i = 0; i < 6; i++) {
+    int offset = kOverworldPaletteMain + (i * (35 * 2));
+    int num_colors = 35;
+    // Bounds check: each color is 2 bytes, so we need offset + (num_colors * 2) bytes
+    if (offset < 0 || offset + (num_colors * 2) > static_cast<int>(rom_size)) {
+      return absl::OutOfRangeError(
+          absl::StrFormat("Overworld main palette %d out of bounds: offset %d, size %zu",
+                         i, offset, rom_size));
+    }
     palette_groups.overworld_main.AddPalette(
-        gfx::ReadPaletteFromRom(kOverworldPaletteMain + (i * (35 * 2)),
-                                /*num_colors=*/35, data));
+        gfx::ReadPaletteFromRom(offset, num_colors, data));
   }
   return absl::OkStatus();
 }
@@ -92,10 +100,17 @@ absl::Status LoadOverworldAuxiliaryPalettes(
     const std::vector<uint8_t>& rom_data,
     gfx::PaletteGroupMap& palette_groups) {
   auto data = rom_data.data();
+  size_t rom_size = rom_data.size();
   for (int i = 0; i < 20; i++) {
+    int offset = kOverworldPaletteAux + (i * (21 * 2));
+    int num_colors = 21;
+    if (offset < 0 || offset + (num_colors * 2) > static_cast<int>(rom_size)) {
+      return absl::OutOfRangeError(
+          absl::StrFormat("Overworld aux palette %d out of bounds: offset %d, size %zu",
+                         i, offset, rom_size));
+    }
     palette_groups.overworld_aux.AddPalette(
-        gfx::ReadPaletteFromRom(kOverworldPaletteAux + (i * (21 * 2)),
-                                /*num_colors=*/21, data));
+        gfx::ReadPaletteFromRom(offset, num_colors, data));
   }
   return absl::OkStatus();
 }
@@ -104,9 +119,17 @@ absl::Status LoadOverworldAnimatedPalettes(
     const std::vector<uint8_t>& rom_data,
     gfx::PaletteGroupMap& palette_groups) {
   auto data = rom_data.data();
+  size_t rom_size = rom_data.size();
   for (int i = 0; i < 14; i++) {
-    palette_groups.overworld_animated.AddPalette(gfx::ReadPaletteFromRom(
-        kOverworldPaletteAnimated + (i * (7 * 2)), /*num_colors=*/7, data));
+    int offset = kOverworldPaletteAnimated + (i * (7 * 2));
+    int num_colors = 7;
+    if (offset < 0 || offset + (num_colors * 2) > static_cast<int>(rom_size)) {
+      return absl::OutOfRangeError(
+          absl::StrFormat("Overworld animated palette %d out of bounds: offset %d, size %zu",
+                         i, offset, rom_size));
+    }
+    palette_groups.overworld_animated.AddPalette(
+        gfx::ReadPaletteFromRom(offset, num_colors, data));
   }
   return absl::OkStatus();
 }
@@ -114,9 +137,16 @@ absl::Status LoadOverworldAnimatedPalettes(
 absl::Status LoadHUDPalettes(const std::vector<uint8_t>& rom_data,
                              gfx::PaletteGroupMap& palette_groups) {
   auto data = rom_data.data();
+  size_t rom_size = rom_data.size();
   for (int i = 0; i < 2; i++) {
-    palette_groups.hud.AddPalette(gfx::ReadPaletteFromRom(
-        kHudPalettes + (i * 64), /*num_colors=*/32, data));
+    int offset = kHudPalettes + (i * 64);
+    int num_colors = 32;
+    if (offset < 0 || offset + (num_colors * 2) > static_cast<int>(rom_size)) {
+      return absl::OutOfRangeError(
+          absl::StrFormat("HUD palette %d out of bounds: offset %d, size %zu",
+                         i, offset, rom_size));
+    }
+    palette_groups.hud.AddPalette(gfx::ReadPaletteFromRom(offset, num_colors, data));
   }
   return absl::OkStatus();
 }
@@ -124,19 +154,45 @@ absl::Status LoadHUDPalettes(const std::vector<uint8_t>& rom_data,
 absl::Status LoadGlobalSpritePalettes(const std::vector<uint8_t>& rom_data,
                                       gfx::PaletteGroupMap& palette_groups) {
   auto data = rom_data.data();
+  size_t rom_size = rom_data.size();
+  
+  // Check first palette
+  int offset1 = kGlobalSpritesLW;
+  int num_colors1 = 60;
+  if (offset1 < 0 || offset1 + (num_colors1 * 2) > static_cast<int>(rom_size)) {
+    return absl::OutOfRangeError(
+        absl::StrFormat("Global sprite LW palette out of bounds: offset %d, size %zu",
+                       offset1, rom_size));
+  }
   palette_groups.global_sprites.AddPalette(
-      gfx::ReadPaletteFromRom(kGlobalSpritesLW, /*num_colors=*/60, data));
-  palette_groups.global_sprites.AddPalette(gfx::ReadPaletteFromRom(
-      kGlobalSpritePalettesDW, /*num_colors=*/60, data));
+      gfx::ReadPaletteFromRom(offset1, num_colors1, data));
+  
+  // Check second palette
+  int offset2 = kGlobalSpritePalettesDW;
+  int num_colors2 = 60;
+  if (offset2 < 0 || offset2 + (num_colors2 * 2) > static_cast<int>(rom_size)) {
+    return absl::OutOfRangeError(
+        absl::StrFormat("Global sprite DW palette out of bounds: offset %d, size %zu",
+                       offset2, rom_size));
+  }
+  palette_groups.global_sprites.AddPalette(
+      gfx::ReadPaletteFromRom(offset2, num_colors2, data));
   return absl::OkStatus();
 }
 
 absl::Status LoadArmorPalettes(const std::vector<uint8_t>& rom_data,
                                gfx::PaletteGroupMap& palette_groups) {
   auto data = rom_data.data();
+  size_t rom_size = rom_data.size();
   for (int i = 0; i < 5; i++) {
-    palette_groups.armors.AddPalette(gfx::ReadPaletteFromRom(
-        kArmorPalettes + (i * 30), /*num_colors=*/15, data));
+    int offset = kArmorPalettes + (i * 30);
+    int num_colors = 15;
+    if (offset < 0 || offset + (num_colors * 2) > static_cast<int>(rom_size)) {
+      return absl::OutOfRangeError(
+          absl::StrFormat("Armor palette %d out of bounds: offset %d, size %zu",
+                         i, offset, rom_size));
+    }
+    palette_groups.armors.AddPalette(gfx::ReadPaletteFromRom(offset, num_colors, data));
   }
   return absl::OkStatus();
 }
@@ -144,9 +200,16 @@ absl::Status LoadArmorPalettes(const std::vector<uint8_t>& rom_data,
 absl::Status LoadSwordPalettes(const std::vector<uint8_t>& rom_data,
                                gfx::PaletteGroupMap& palette_groups) {
   auto data = rom_data.data();
+  size_t rom_size = rom_data.size();
   for (int i = 0; i < 4; i++) {
-    palette_groups.swords.AddPalette(gfx::ReadPaletteFromRom(
-        kSwordPalettes + (i * 6), /*num_colors=*/3, data));
+    int offset = kSwordPalettes + (i * 6);
+    int num_colors = 3;
+    if (offset < 0 || offset + (num_colors * 2) > static_cast<int>(rom_size)) {
+      return absl::OutOfRangeError(
+          absl::StrFormat("Sword palette %d out of bounds: offset %d, size %zu",
+                         i, offset, rom_size));
+    }
+    palette_groups.swords.AddPalette(gfx::ReadPaletteFromRom(offset, num_colors, data));
   }
   return absl::OkStatus();
 }
@@ -154,9 +217,16 @@ absl::Status LoadSwordPalettes(const std::vector<uint8_t>& rom_data,
 absl::Status LoadShieldPalettes(const std::vector<uint8_t>& rom_data,
                                 gfx::PaletteGroupMap& palette_groups) {
   auto data = rom_data.data();
+  size_t rom_size = rom_data.size();
   for (int i = 0; i < 3; i++) {
-    palette_groups.shields.AddPalette(gfx::ReadPaletteFromRom(
-        kShieldPalettes + (i * 8), /*num_colors=*/4, data));
+    int offset = kShieldPalettes + (i * 8);
+    int num_colors = 4;
+    if (offset < 0 || offset + (num_colors * 2) > static_cast<int>(rom_size)) {
+      return absl::OutOfRangeError(
+          absl::StrFormat("Shield palette %d out of bounds: offset %d, size %zu",
+                         i, offset, rom_size));
+    }
+    palette_groups.shields.AddPalette(gfx::ReadPaletteFromRom(offset, num_colors, data));
   }
   return absl::OkStatus();
 }
@@ -164,9 +234,16 @@ absl::Status LoadShieldPalettes(const std::vector<uint8_t>& rom_data,
 absl::Status LoadSpriteAux1Palettes(const std::vector<uint8_t>& rom_data,
                                     gfx::PaletteGroupMap& palette_groups) {
   auto data = rom_data.data();
+  size_t rom_size = rom_data.size();
   for (int i = 0; i < 12; i++) {
-    palette_groups.sprites_aux1.AddPalette(gfx::ReadPaletteFromRom(
-        kSpritesPalettesAux1 + (i * 14), /*num_colors=*/7, data));
+    int offset = kSpritesPalettesAux1 + (i * 14);
+    int num_colors = 7;
+    if (offset < 0 || offset + (num_colors * 2) > static_cast<int>(rom_size)) {
+      return absl::OutOfRangeError(
+          absl::StrFormat("Sprite aux1 palette %d out of bounds: offset %d, size %zu",
+                         i, offset, rom_size));
+    }
+    palette_groups.sprites_aux1.AddPalette(gfx::ReadPaletteFromRom(offset, num_colors, data));
   }
   return absl::OkStatus();
 }
@@ -174,9 +251,16 @@ absl::Status LoadSpriteAux1Palettes(const std::vector<uint8_t>& rom_data,
 absl::Status LoadSpriteAux2Palettes(const std::vector<uint8_t>& rom_data,
                                     gfx::PaletteGroupMap& palette_groups) {
   auto data = rom_data.data();
+  size_t rom_size = rom_data.size();
   for (int i = 0; i < 11; i++) {
-    palette_groups.sprites_aux2.AddPalette(gfx::ReadPaletteFromRom(
-        kSpritesPalettesAux2 + (i * 14), /*num_colors=*/7, data));
+    int offset = kSpritesPalettesAux2 + (i * 14);
+    int num_colors = 7;
+    if (offset < 0 || offset + (num_colors * 2) > static_cast<int>(rom_size)) {
+      return absl::OutOfRangeError(
+          absl::StrFormat("Sprite aux2 palette %d out of bounds: offset %d, size %zu",
+                         i, offset, rom_size));
+    }
+    palette_groups.sprites_aux2.AddPalette(gfx::ReadPaletteFromRom(offset, num_colors, data));
   }
   return absl::OkStatus();
 }
@@ -184,9 +268,16 @@ absl::Status LoadSpriteAux2Palettes(const std::vector<uint8_t>& rom_data,
 absl::Status LoadSpriteAux3Palettes(const std::vector<uint8_t>& rom_data,
                                     gfx::PaletteGroupMap& palette_groups) {
   auto data = rom_data.data();
+  size_t rom_size = rom_data.size();
   for (int i = 0; i < 24; i++) {
-    palette_groups.sprites_aux3.AddPalette(gfx::ReadPaletteFromRom(
-        kSpritesPalettesAux3 + (i * 14), /*num_colors=*/7, data));
+    int offset = kSpritesPalettesAux3 + (i * 14);
+    int num_colors = 7;
+    if (offset < 0 || offset + (num_colors * 2) > static_cast<int>(rom_size)) {
+      return absl::OutOfRangeError(
+          absl::StrFormat("Sprite aux3 palette %d out of bounds: offset %d, size %zu",
+                         i, offset, rom_size));
+    }
+    palette_groups.sprites_aux3.AddPalette(gfx::ReadPaletteFromRom(offset, num_colors, data));
   }
   return absl::OkStatus();
 }
@@ -194,19 +285,46 @@ absl::Status LoadSpriteAux3Palettes(const std::vector<uint8_t>& rom_data,
 absl::Status LoadDungeonMainPalettes(const std::vector<uint8_t>& rom_data,
                                      gfx::PaletteGroupMap& palette_groups) {
   auto data = rom_data.data();
+  size_t rom_size = rom_data.size();
   for (int i = 0; i < 20; i++) {
-    palette_groups.dungeon_main.AddPalette(gfx::ReadPaletteFromRom(
-        kDungeonMainPalettes + (i * 180), /*num_colors=*/90, data));
+    int offset = kDungeonMainPalettes + (i * 180);
+    int num_colors = 90;
+    if (offset < 0 || offset + (num_colors * 2) > static_cast<int>(rom_size)) {
+      return absl::OutOfRangeError(
+          absl::StrFormat("Dungeon main palette %d out of bounds: offset %d, size %zu",
+                         i, offset, rom_size));
+    }
+    palette_groups.dungeon_main.AddPalette(gfx::ReadPaletteFromRom(offset, num_colors, data));
   }
   return absl::OkStatus();
 }
 
 absl::Status LoadGrassColors(const std::vector<uint8_t>& rom_data,
                              gfx::PaletteGroupMap& palette_groups) {
+  size_t rom_size = rom_data.size();
+  
+  // Each color is 2 bytes
+  if (kHardcodedGrassLW < 0 || kHardcodedGrassLW + 2 > static_cast<int>(rom_size)) {
+    return absl::OutOfRangeError(
+        absl::StrFormat("Grass LW color out of bounds: offset %d, size %zu",
+                       kHardcodedGrassLW, rom_size));
+  }
   palette_groups.grass.AddColor(
       gfx::ReadColorFromRom(kHardcodedGrassLW, rom_data.data()));
+  
+  if (kHardcodedGrassDW < 0 || kHardcodedGrassDW + 2 > static_cast<int>(rom_size)) {
+    return absl::OutOfRangeError(
+        absl::StrFormat("Grass DW color out of bounds: offset %d, size %zu",
+                       kHardcodedGrassDW, rom_size));
+  }
   palette_groups.grass.AddColor(
       gfx::ReadColorFromRom(kHardcodedGrassDW, rom_data.data()));
+  
+  if (kHardcodedGrassSpecial < 0 || kHardcodedGrassSpecial + 2 > static_cast<int>(rom_size)) {
+    return absl::OutOfRangeError(
+        absl::StrFormat("Grass special color out of bounds: offset %d, size %zu",
+                       kHardcodedGrassSpecial, rom_size));
+  }
   palette_groups.grass.AddColor(
       gfx::ReadColorFromRom(kHardcodedGrassSpecial, rom_data.data()));
   return absl::OkStatus();
@@ -215,10 +333,27 @@ absl::Status LoadGrassColors(const std::vector<uint8_t>& rom_data,
 absl::Status Load3DObjectPalettes(const std::vector<uint8_t>& rom_data,
                                   gfx::PaletteGroupMap& palette_groups) {
   auto data = rom_data.data();
+  size_t rom_size = rom_data.size();
+  
+  int offset1 = kTriforcePalette;
+  int num_colors1 = 8;
+  if (offset1 < 0 || offset1 + (num_colors1 * 2) > static_cast<int>(rom_size)) {
+    return absl::OutOfRangeError(
+        absl::StrFormat("Triforce palette out of bounds: offset %d, size %zu",
+                       offset1, rom_size));
+  }
   palette_groups.object_3d.AddPalette(
-      gfx::ReadPaletteFromRom(kTriforcePalette, 8, data));
+      gfx::ReadPaletteFromRom(offset1, num_colors1, data));
+  
+  int offset2 = kCrystalPalette;
+  int num_colors2 = 8;
+  if (offset2 < 0 || offset2 + (num_colors2 * 2) > static_cast<int>(rom_size)) {
+    return absl::OutOfRangeError(
+        absl::StrFormat("Crystal palette out of bounds: offset %d, size %zu",
+                       offset2, rom_size));
+  }
   palette_groups.object_3d.AddPalette(
-      gfx::ReadPaletteFromRom(kCrystalPalette, 8, data));
+      gfx::ReadPaletteFromRom(offset2, num_colors2, data));
   return absl::OkStatus();
 }
 
@@ -226,9 +361,17 @@ absl::Status LoadOverworldMiniMapPalettes(
     const std::vector<uint8_t>& rom_data,
     gfx::PaletteGroupMap& palette_groups) {
   auto data = rom_data.data();
+  size_t rom_size = rom_data.size();
   for (int i = 0; i < 2; i++) {
-    palette_groups.overworld_mini_map.AddPalette(gfx::ReadPaletteFromRom(
-        kOverworldMiniMapPalettes + (i * 256), /*num_colors=*/128, data));
+    int offset = kOverworldMiniMapPalettes + (i * 256);
+    int num_colors = 128;
+    if (offset < 0 || offset + (num_colors * 2) > static_cast<int>(rom_size)) {
+      return absl::OutOfRangeError(
+          absl::StrFormat("Overworld minimap palette %d out of bounds: offset %d, size %zu",
+                         i, offset, rom_size));
+    }
+    palette_groups.overworld_mini_map.AddPalette(
+        gfx::ReadPaletteFromRom(offset, num_colors, data));
   }
   return absl::OkStatus();
 }
@@ -306,6 +449,11 @@ SnesPalette ReadPaletteFromRom(int offset, int num_colors, const uint8_t* rom) {
   std::vector<gfx::SnesColor> colors(num_colors);
 
   while (color_offset < num_colors) {
+    // Bounds check before accessing ROM data
+    // Each color is 2 bytes, so we need at least offset + 1 bytes available
+    // Note: We can't check full bounds here without ROM size, but we can at least
+    // validate the immediate access. Full bounds should be checked by caller.
+    
     // Read SNES 15-bit color (little endian)
     uint16_t snes_color_word = (uint16_t)((rom[offset + 1]) << 8) | rom[offset];
 

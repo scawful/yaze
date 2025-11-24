@@ -768,7 +768,8 @@ absl::Status ValidateCompressionResult(CompressionPiecePointer& chain_head,
     RETURN_IF_ERROR(
         temp_rom.LoadFromData(CreateCompressionString(chain_head->next, mode)))
     ASSIGN_OR_RETURN(auto decomp_data,
-                     DecompressV2(temp_rom.data(), 0, temp_rom.size()));
+                     DecompressV2(temp_rom.data(), 0, temp_rom.size(), 1,
+                                  temp_rom.size()));
     if (!std::equal(decomp_data.begin() + start, decomp_data.end(),
                     temp_rom.begin())) {
       return absl::InternalError(absl::StrFormat(
@@ -1188,7 +1189,8 @@ absl::Status ValidateCompressionResultV3(const CompressionContext& context) {
     Rom temp_rom;
     RETURN_IF_ERROR(temp_rom.LoadFromData(context.compressed_data));
     ASSIGN_OR_RETURN(auto decomp_data,
-                     DecompressV2(temp_rom.data(), 0, temp_rom.size()));
+                     DecompressV2(temp_rom.data(), 0, temp_rom.size(), 1,
+                                  temp_rom.size()));
 
     if (!std::equal(decomp_data.begin() + context.start, decomp_data.end(),
                     temp_rom.begin())) {
@@ -1380,9 +1382,17 @@ void memfill(const uint8_t* data, std::vector<uint8_t>& buffer, int buffer_pos,
 
 absl::StatusOr<std::vector<uint8_t>> DecompressV2(const uint8_t* data,
                                                   int offset, int size,
-                                                  int mode) {
+                                                  int mode, size_t rom_size) {
   if (size == 0) {
     return std::vector<uint8_t>();
+  }
+
+  // Validate initial offset is within bounds (if rom_size provided)
+  // rom_size == static_cast<size_t>(-1) means "no bounds checking"
+  if (rom_size != static_cast<size_t>(-1) && (offset < 0 || static_cast<size_t>(offset) >= rom_size)) {
+    return absl::OutOfRangeError(
+        absl::StrFormat("DecompressV2: Initial offset %d exceeds ROM size %zu",
+                        offset, rom_size));
   }
 
   std::vector<uint8_t> buffer(size, 0);
@@ -1392,8 +1402,20 @@ absl::StatusOr<std::vector<uint8_t>> DecompressV2(const uint8_t* data,
   uint8_t header = data[offset];
 
   while (header != kSnesByteMax) {
+    // Bounds check before reading command (if rom_size provided)
+    if (rom_size != static_cast<size_t>(-1) && static_cast<size_t>(offset) >= rom_size) {
+      return absl::OutOfRangeError(
+          absl::StrFormat("DecompressV2: Offset %d exceeds ROM size %zu while reading command",
+                          offset, rom_size));
+    }
+    
     if ((header & kExpandedMod) == kExpandedMod) {
-      // Expanded Command
+      // Expanded Command - needs 2 bytes
+      if (rom_size != static_cast<size_t>(-1) && static_cast<size_t>(offset + 1) >= rom_size) {
+        return absl::OutOfRangeError(
+            absl::StrFormat("DecompressV2: Offset %d+1 exceeds ROM size %zu for expanded command",
+                            offset, rom_size));
+      }
       command = ((header >> 2) & kCommandMod);
       length = (((header << 8) | data[offset + 1]) & kExpandedLengthMod);
       offset += 2;  // Advance 2 bytes in ROM
