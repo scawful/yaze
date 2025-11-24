@@ -29,9 +29,6 @@
   /* Window chrome - Match app theme */
   --term-chrome-bg: var(--bg-header, #1a1a1a);
   --term-chrome-border: var(--border-light, #333333);
-  --term-btn-close: #ff5f56;
-  --term-btn-minimize: #ffbd2e;
-  --term-btn-maximize: #27ca3f;
 }
 
 /* ============================================
@@ -140,73 +137,30 @@
   background: linear-gradient(180deg, #333333 0%, #222222 100%);
 }
 
-/* Traffic light buttons */
-.terminal-window-controls {
+/* Simple flat control buttons */
+.terminal-controls {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding-right: 12px;
+  gap: 2px;
 }
 
-.terminal-window-btn {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  border: none;
+.terminal-ctrl-btn {
+  background: transparent;
+  border: 1px solid var(--term-border);
+  color: var(--term-text-dim);
+  width: 20px;
+  height: 18px;
+  font-size: 9px;
+  font-family: inherit;
   cursor: pointer;
-  transition: filter 0.15s ease;
-  position: relative;
+  border-radius: 2px;
+  transition: all 0.1s;
 }
 
-.terminal-window-btn:hover {
-  filter: brightness(1.2);
-}
-
-.terminal-window-btn.close {
-  background: var(--term-btn-close);
-}
-
-.terminal-window-btn.minimize {
-  background: var(--term-btn-minimize);
-}
-
-.terminal-window-btn.maximize {
-  background: var(--term-btn-maximize);
-}
-
-/* Button icons on hover */
-.terminal-window-btn::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  opacity: 0;
-  transition: opacity 0.15s ease;
-}
-
-.terminal-header:hover .terminal-window-btn.close::after {
-  content: '×';
-  font-size: 10px;
-  font-weight: bold;
-  color: #4a0000;
-  opacity: 1;
-}
-
-.terminal-header:hover .terminal-window-btn.minimize::after {
-  content: '−';
-  font-size: 12px;
-  font-weight: bold;
-  color: #5a4000;
-  opacity: 1;
-}
-
-.terminal-header:hover .terminal-window-btn.maximize::after {
-  content: '+';
-  font-size: 10px;
-  font-weight: bold;
-  color: #0a4a00;
-  opacity: 1;
+.terminal-ctrl-btn:hover {
+  background: var(--term-bg-secondary);
+  color: var(--term-text);
+  border-color: var(--term-text-dim);
 }
 
 /* Title */
@@ -631,14 +585,8 @@
     padding: 0 10px;
   }
 
-  .terminal-window-controls {
-    gap: 6px;
-    padding-right: 8px;
-  }
-
-  .terminal-window-btn {
-    width: 10px;
-    height: 10px;
+  .terminal-controls {
+    gap: 2px;
   }
 
   .terminal-title {
@@ -678,7 +626,7 @@
     display: none;
   }
 
-  .terminal-window-controls {
+  .terminal-controls {
     display: none;
   }
 
