@@ -102,6 +102,9 @@ var Module = {
      console.log("YAZE Web initialized");
      if (loadingOverlay) loadingOverlay.style.display = 'none';
 
+     // Resize canvas to fill container
+     resizeCanvasToContainer();
+
      if (typeof Z3edTerminal !== 'undefined') {
        window.z3edTerminal = new Z3edTerminal('terminal-container');
        window.z3edTerminal.printInfo('z3ed Web Terminal ready. Type /help for commands.');
@@ -135,7 +138,16 @@ if (romInput) {
         try { FS.mkdir('/roms'); } catch(e) {}
         FS.writeFile(filename, data);
         console.log("Wrote " + data.length + " bytes to " + filename);
-        Module.ccall('LoadRomFromWeb', 'null', ['string'], [filename]);
+        
+        // Check if ccall is available, fallback to direct function call
+        if (Module.ccall) {
+          Module.ccall('LoadRomFromWeb', 'null', ['string'], [filename]);
+        } else if (Module._LoadRomFromWeb) {
+          Module._LoadRomFromWeb(filename);
+        } else {
+          console.error("LoadRomFromWeb function not available");
+          alert("ROM loading not ready yet. Please wait for the app to initialize.");
+        }
       } catch (err) {
         console.error("Error writing file:", err);
         alert("Failed to load ROM: " + err);
@@ -144,6 +156,48 @@ if (romInput) {
     reader.readAsArrayBuffer(file);
   });
 }
+
+// Canvas resize function to fill container
+function resizeCanvasToContainer() {
+  var canvas = document.getElementById('canvas');
+  var container = document.getElementById('canvas-container');
+  if (!canvas || !container) return;
+  
+  // Get container dimensions (already accounts for header and status bar via flexbox)
+  var containerRect = container.getBoundingClientRect();
+  var width = Math.floor(containerRect.width);
+  var height = Math.floor(containerRect.height);
+  
+  if (width <= 0 || height <= 0) return; // Skip if container not visible
+  
+  // Set canvas size to match container exactly
+  canvas.width = width;
+  canvas.height = height;
+  canvas.style.width = width + 'px';
+  canvas.style.height = height + 'px';
+  
+  // Notify Emscripten/GLFW of the resize if available
+  if (Module) {
+    // Try Emscripten's canvas resize API
+    if (typeof Module._emscripten_set_canvas_element_size === 'function') {
+      Module._emscripten_set_canvas_element_size('#canvas', width, height);
+    }
+    // Also try GLFW window resize if available
+    if (typeof Module._glfwSetWindowSize === 'function' && Module.canvas) {
+      Module._glfwSetWindowSize(Module.canvas, width, height);
+    }
+  }
+  
+  console.log('Canvas resized to:', width, 'x', height);
+}
+
+// Resize canvas on window resize
+window.addEventListener('resize', function() {
+  resizeCanvasToContainer();
+});
+
+// Initial resize after a short delay to ensure layout is complete
+setTimeout(resizeCanvasToContainer, 100);
 
 // Save Download Handling
 window.downloadSaves = function() {
