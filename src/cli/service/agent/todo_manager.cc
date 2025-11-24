@@ -12,6 +12,10 @@
 #include "absl/time/time.h"
 #include "util/platform_paths.h"
 
+#ifdef __EMSCRIPTEN__
+#include "app/platform/wasm/wasm_storage.h"
+#endif
+
 #ifdef YAZE_WITH_JSON
 #include "nlohmann/json.hpp"
 using json = nlohmann::json;
@@ -76,6 +80,10 @@ TodoManager::TodoManager(const std::string& data_dir)
       todos_file_((std::filesystem::path(data_dir) / "todos.json").string()) {}
 
 absl::Status TodoManager::Initialize() {
+#ifdef __EMSCRIPTEN__
+  // For WASM, we try to load from IndexedDB immediately
+  return Load();
+#else
   auto status = util::PlatformPaths::EnsureDirectoryExists(data_dir_);
   if (!status.ok()) {
     return status;
@@ -87,6 +95,7 @@ absl::Status TodoManager::Initialize() {
   }
 
   return absl::OkStatus();
+#endif
 }
 
 std::string TodoManager::GenerateId() {
@@ -319,6 +328,12 @@ absl::Status TodoManager::Save() {
     j_todos.push_back(j_item);
   }
 
+#ifdef __EMSCRIPTEN__
+  // For WASM, save to IndexedDB via WasmStorage
+  // We use "agent_todos" as the project key
+  using yaze::platform::WasmStorage;
+  return WasmStorage::SaveProject("agent_todos", j_todos.dump());
+#else
   std::ofstream file(todos_file_);
   if (!file.is_open()) {
     return absl::InternalError(
@@ -327,6 +342,8 @@ absl::Status TodoManager::Save() {
 
   file << j_todos.dump(2);
   return absl::OkStatus();
+#endif
+
 #else
   return absl::UnimplementedError("JSON support required for TODO persistence");
 #endif
@@ -334,19 +351,41 @@ absl::Status TodoManager::Save() {
 
 absl::Status TodoManager::Load() {
 #ifdef YAZE_WITH_JSON
+  json j_todos;
+
+#ifdef __EMSCRIPTEN__
+  // For WASM, load from IndexedDB via WasmStorage
+  using yaze::platform::WasmStorage;
+  auto result = WasmStorage::LoadProject("agent_todos");
+  if (!result.ok()) {
+    // If not found, it might be first run, which is fine
+    if (absl::IsNotFound(result.status())) {
+      todos_.clear();
+      return absl::OkStatus();
+    }
+    return result.status();
+  }
+  
+  try {
+    j_todos = json::parse(*result);
+  } catch (const std::exception& e) {
+    return absl::InternalError(
+        absl::StrFormat("Failed to parse persisted JSON: %s", e.what()));
+  }
+#else
   std::ifstream file(todos_file_);
   if (!file.is_open()) {
     return absl::InternalError(
         absl::StrFormat("Failed to open file: %s", todos_file_));
   }
 
-  json j_todos;
   try {
     file >> j_todos;
   } catch (const std::exception& e) {
     return absl::InternalError(
         absl::StrFormat("Failed to parse JSON: %s", e.what()));
   }
+#endif
 
   todos_.clear();
   for (const auto& j_item : j_todos) {

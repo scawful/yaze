@@ -42,6 +42,9 @@ echo "Copying web assets..."
 cp "$PROJECT_ROOT/src/web/"*.css dist/
 cp "$PROJECT_ROOT/src/web/"*.js dist/
 cp "$PROJECT_ROOT/src/web/manifest.json" dist/ 2>/dev/null || true
+cp "$PROJECT_ROOT/src/web/offline.html" dist/ 2>/dev/null || true
+# coi-serviceworker.js is critical for SharedArrayBuffer support
+echo "coi-serviceworker.js copied (required for SharedArrayBuffer/pthreads)"
 
 # Copy z3ed WASM module if built
 if [ -f bin/z3ed.js ]; then

@@ -186,19 +186,18 @@
     }
   }
 
-  function buildUI() {
-    // Toggle button
-    const toggle = document.createElement('button');
-    toggle.className = 'yaze-console-toggle';
-    toggle.textContent = 'Console';
-    toggle.addEventListener('click', () => {
-      state.chatVisible = !state.chatVisible;
-      container.classList.toggle('active', state.chatVisible);
-      document.body.classList.toggle('yaze-console-open', state.chatVisible);
-    });
-    document.body.appendChild(toggle);
+  let container = null;
 
-    const container = document.createElement('div');
+  // Global toggle function for header button
+  window.toggleCollabConsole = function() {
+    if (!container) return;
+    state.chatVisible = !state.chatVisible;
+    container.classList.toggle('active', state.chatVisible);
+    document.body.classList.toggle('yaze-console-open', state.chatVisible);
+  };
+
+  function buildUI() {
+    container = document.createElement('div');
     container.className = 'yaze-console-container';
 
     // Chat pane

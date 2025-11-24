@@ -6,6 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="description" content="A modern, cross-platform ROM editor for The Legend of Zelda: A Link to the Past">
 
+    <!-- COI Service Worker for SharedArrayBuffer support (must be first!) -->
+    <script src="coi-serviceworker.js"></script>
+
     <!-- PWA Meta Tags -->
     <meta name="theme-color" content="#0e639c">
     <meta name="mobile-web-app-capable" content="yes">
@@ -15,11 +18,11 @@
     <!-- Collaboration server URL; adjust to your deployment (wss:// recommended) -->
     <meta name="yaze-collab-server" content="wss://org.halext.org:8765">
 
-    <!-- Link to manifest for PWA -->
-    <link rel="manifest" href="/manifest.json">
+    <!-- Link to manifest for PWA (relative path for subdirectory support) -->
+    <link rel="manifest" href="manifest.json">
 
     <!-- iOS Icon (placeholder) -->
-    <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
+    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
 
     <!-- Keyboard Shortcuts Overlay Styles -->
     <link rel="stylesheet" href="shortcuts_overlay.css">
@@ -214,6 +217,7 @@
         <button id="download-save-btn" onclick="downloadSaves()">Download Saves</button>
         <button id="fullscreen-btn" onclick="Module.requestFullscreen(false, false)">Fullscreen</button>
         <button id="terminal-btn" onclick="toggleTerminal()">Terminal</button>
+        <button id="collab-btn" onclick="toggleCollabConsole()">Chat</button>
       </div>
     </div>
 
@@ -249,14 +253,21 @@
 
     <div id="terminal-container" class="terminal-container terminal-collapsed">
       <div class="terminal-header" onclick="toggleTerminal()">
-        <span class="terminal-title">z3ed Terminal</span>
-        <span class="terminal-toggle">▲</span>
+        <div class="terminal-window-controls" onclick="event.stopPropagation()">
+          <button class="terminal-window-btn close" onclick="hideTerminal()" title="Close"></button>
+          <button class="terminal-window-btn minimize" onclick="toggleTerminal()" title="Minimize"></button>
+          <button class="terminal-window-btn maximize" onclick="maximizeTerminal()" title="Maximize"></button>
+        </div>
+        <span class="terminal-title">z3ed — bash</span>
+        <span class="terminal-toggle">▼</span>
       </div>
       <div class="terminal-body">
+        <div class="terminal-resize-handle" id="terminal-resize-handle"></div>
         <div class="terminal-output" id="terminal-output"></div>
         <div class="terminal-input-line">
-          <span class="terminal-prompt">z3ed&gt; </span>
-          <input type="text" id="terminal-input" autocomplete="off" spellcheck="false">
+          <span class="terminal-prompt-symbol"></span>
+          <input type="text" id="terminal-input" class="terminal-input" autocomplete="off" spellcheck="false" placeholder="type a command...">
+          <button class="terminal-submit" onclick="submitTerminalCommand()">↵</button>
         </div>
       </div>
     </div>
@@ -426,7 +437,8 @@
 
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/service-worker.js')
+          // Use relative path for GitHub Pages subdirectory support
+          navigator.serviceWorker.register('service-worker.js')
             .then((registration) => {
               console.log('ServiceWorker registration successful:', registration.scope);
 
@@ -601,15 +613,93 @@
         updateZoomDisplay();
       };
 
-      // Terminal toggle function
+      // Terminal control functions
       function toggleTerminal() {
-        if (window.z3edTerminal) {
-          window.z3edTerminal.toggle();
-        } else {
-          var container = document.getElementById('terminal-container');
-          container.classList.toggle('terminal-collapsed');
+        var container = document.getElementById('terminal-container');
+        container.classList.toggle('terminal-collapsed');
+        container.classList.remove('terminal-hidden');
+        // Update toggle arrow direction
+        var toggle = container.querySelector('.terminal-toggle');
+        if (toggle) {
+          toggle.textContent = container.classList.contains('terminal-collapsed') ? '▲' : '▼';
         }
       }
+
+      function hideTerminal() {
+        var container = document.getElementById('terminal-container');
+        container.classList.add('terminal-hidden');
+      }
+
+      function maximizeTerminal() {
+        var container = document.getElementById('terminal-container');
+        container.classList.remove('terminal-collapsed');
+        container.classList.remove('terminal-hidden');
+        container.style.height = '70vh';
+        var toggle = container.querySelector('.terminal-toggle');
+        if (toggle) toggle.textContent = '▼';
+      }
+
+      function submitTerminalCommand() {
+        var input = document.getElementById('terminal-input');
+        if (input && input.value.trim()) {
+          // If z3ed terminal is available, use it
+          if (window.z3edTerminal && typeof window.z3edTerminal.execute === 'function') {
+            window.z3edTerminal.execute(input.value);
+          } else {
+            // Fallback: just echo the command
+            var output = document.getElementById('terminal-output');
+            if (output) {
+              var line = document.createElement('div');
+              line.className = 'terminal-line terminal-prompt';
+              line.textContent = input.value;
+              output.appendChild(line);
+              output.scrollTop = output.scrollHeight;
+            }
+          }
+          input.value = '';
+        }
+      }
+
+      // Handle Enter key in terminal input
+      document.addEventListener('DOMContentLoaded', function() {
+        var input = document.getElementById('terminal-input');
+        if (input) {
+          input.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              submitTerminalCommand();
+            }
+          });
+        }
+
+        // Terminal resize handle
+        var handle = document.getElementById('terminal-resize-handle');
+        var container = document.getElementById('terminal-container');
+        if (handle && container) {
+          let isResizing = false;
+          let startY, startHeight;
+
+          handle.addEventListener('mousedown', function(e) {
+            isResizing = true;
+            startY = e.clientY;
+            startHeight = container.offsetHeight;
+            document.body.style.cursor = 'ns-resize';
+            e.preventDefault();
+          });
+
+          document.addEventListener('mousemove', function(e) {
+            if (!isResizing) return;
+            var delta = startY - e.clientY;
+            var newHeight = Math.min(Math.max(startHeight + delta, 120), window.innerHeight * 0.7);
+            container.style.height = newHeight + 'px';
+          });
+
+          document.addEventListener('mouseup', function() {
+            isResizing = false;
+            document.body.style.cursor = '';
+          });
+        }
+      });
 
     </script>
     <!-- Keyboard Shortcuts Handler -->

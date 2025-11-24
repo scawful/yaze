@@ -7,17 +7,19 @@ const CACHE_NAME = 'yaze-cache-v1';
 const RUNTIME_CACHE = 'yaze-runtime-v1';
 
 // List of assets to pre-cache during installation
+// Using relative paths for GitHub Pages subdirectory support
 const PRECACHE_ASSETS = [
-  '/',
-  '/index.html',
-  '/shell.html',
-  '/yaze.js',
-  '/yaze.wasm',
-  '/yaze.data', // Include if present
-  '/loading_indicator.css',
-  '/loading_indicator.js',
-  '/error_handler.css',
-  '/error_handler.js'
+  './',
+  './index.html',
+  './yaze.js',
+  './yaze.wasm',
+  './yaze.data', // Include if present
+  './coi-serviceworker.js',
+  './loading_indicator.css',
+  './loading_indicator.js',
+  './error_handler.css',
+  './error_handler.js',
+  './config.js'
 ];
 
 // Install event - pre-cache all static assets
@@ -108,7 +110,7 @@ self.addEventListener('fetch', (event) => {
             })
             .catch(() => {
               // If both cache and network fail, show offline page if available
-              return caches.match('/offline.html');
+              return caches.match('./offline.html');
             });
         })
     );

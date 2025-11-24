@@ -1,0 +1,152 @@
+/*! coi-serviceworker v0.1.7 - Guido Zuidhof and contributors, licensed under MIT */
+/*
+ * This service worker enables SharedArrayBuffer support on hosts that don't
+ * support setting COOP/COEP headers (like GitHub Pages).
+ *
+ * It intercepts all requests and adds the required headers:
+ * - Cross-Origin-Opener-Policy: same-origin
+ * - Cross-Origin-Embedder-Policy: require-corp
+ */
+let coepCredentialless = false;
+if (typeof window === 'undefined') {
+    self.addEventListener("install", () => self.skipWaiting());
+    self.addEventListener("activate", (e) => e.waitUntil(self.clients.claim()));
+
+    self.addEventListener("message", (ev) => {
+        if (!ev.data) {
+            return;
+        } else if (ev.data.type === "deregister") {
+            self.registration
+                .unregister()
+                .then(() => {
+                    return self.clients.matchAll();
+                })
+                .then((clients) => {
+                    clients.forEach((client) => client.navigate(client.url));
+                });
+        } else if (ev.data.type === "coepCredentialless") {
+            coepCredentialless = ev.data.value;
+        }
+    });
+
+    self.addEventListener("fetch", function (event) {
+        const r = event.request;
+        if (r.cache === "only-if-cached" && r.mode !== "same-origin") {
+            return;
+        }
+
+        const request =
+            coepCredentialless && r.mode === "no-cors"
+                ? new Request(r, {
+                      credentials: "omit",
+                  })
+                : r;
+        event.respondWith(
+            fetch(request)
+                .then((response) => {
+                    if (response.status === 0) {
+                        return response;
+                    }
+
+                    const newHeaders = new Headers(response.headers);
+                    newHeaders.set(
+                        "Cross-Origin-Embedder-Policy",
+                        coepCredentialless ? "credentialless" : "require-corp"
+                    );
+                    newHeaders.set("Cross-Origin-Opener-Policy", "same-origin");
+
+                    return new Response(response.body, {
+                        status: response.status,
+                        statusText: response.statusText,
+                        headers: newHeaders,
+                    });
+                })
+                .catch((e) => console.error(e))
+        );
+    });
+} else {
+    (() => {
+        const reloadedBySelf = window.sessionStorage.getItem("coiReloadedBySelf");
+        window.sessionStorage.removeItem("coiReloadedBySelf");
+        const coepDegrading = (reloadedBySelf === "coepDegrade");
+
+        // You can customize the behavior via these options:
+        const coi = {
+            shouldRegister: () => !reloadedBySelf,
+            shouldDeregister: () => false,
+            coepCredentialless: () => true,
+            coepDegrade: () => true,
+            doReload: () => window.location.reload(),
+            quiet: false,
+            ...window.coi
+        };
+
+        const n = navigator;
+        const controlling = n.serviceWorker && n.serviceWorker.controller;
+
+        // Record the fact that we're unregistering, so that on the next reload we don't register again.
+        if (controlling && coi.shouldDeregister()) {
+            if(!coi.quiet) console.log("Unregistering COI Service Worker...");
+            n.serviceWorker.controller.postMessage({ type: "deregister" });
+            return;
+        }
+
+        // If this is the first load, check whether the browser supports SharedArrayBuffer
+        // without COOP/COEP headers, in which case there's nothing to do.
+        if (
+            !reloadedBySelf &&
+            window.crossOriginIsolated !== false &&
+            window.SharedArrayBuffer !== undefined
+        ) {
+            return;
+        }
+
+        // In some environments (e.g. Chrome incognito), the coi service worker breaks some
+        // cross-origin requests. Setting coepDegrade tells the service worker to use
+        // credentialless mode for COEP. This is less restrictive but should still enable
+        // SharedArrayBuffer.
+        if (n.serviceWorker) {
+            if (!coi.quiet) {
+                console.log("COI: Registering service worker for SharedArrayBuffer support...");
+            }
+            n.serviceWorker
+                .register(window.document.currentScript.src)
+                .then(
+                    (registration) => {
+                        if(!coi.quiet) console.log("COI: Service worker registered:", registration.scope);
+
+                        registration.addEventListener("updatefound", () => {
+                            if(!coi.quiet) console.log("COI: Checking for updates...");
+
+                            if (
+                                !registration.active ||
+                                registration.waiting ||
+                                registration.installing
+                            ) {
+                                // First load, use the new service worker right away
+                                if (!coi.quiet) console.log("COI: Initial installation, will reload...");
+                            }
+                        });
+
+                        if (registration.active && !controlling) {
+                            if (!coi.quiet) console.log("COI: Service worker ready, reloading...");
+                            window.sessionStorage.setItem("coiReloadedBySelf", coi.coepDegrade() ? "coepDegrade" : "true");
+                            coi.doReload();
+                        }
+                    },
+                    (err) => {
+                        if (!coi.quiet) console.error("COI: Service worker registration failed:", err);
+                    }
+                );
+
+            n.serviceWorker.controller?.postMessage({
+                type: "coepCredentialless",
+                value: coi.coepCredentialless() || coepDegrading,
+            });
+        } else {
+            if (!coi.quiet) {
+                console.warn("COI: Service workers are not supported in this environment.");
+            }
+        }
+    })();
+}
