@@ -34,7 +34,7 @@ AgentChatWidget::AgentChatWidget()
   colors_.tool_call_bg = ImVec4(0.2f, 0.5f, 0.3f, 0.3f);    // Green tint
   colors_.timestamp_text = ImVec4(0.5f, 0.5f, 0.5f, 1.0f);  // Medium gray
 
-#ifdef Z3ED_AI_AVAILABLE
+#ifdef Z3ED_AI
   agent_service_ = std::make_unique<cli::agent::ConversationalAgentService>();
 #endif
 }
@@ -43,7 +43,7 @@ AgentChatWidget::~AgentChatWidget() = default;
 
 void AgentChatWidget::Initialize(Rom* rom) {
   rom_ = rom;
-#ifdef Z3ED_AI_AVAILABLE
+#ifdef Z3ED_AI
   if (agent_service_ && rom_) {
     agent_service_->SetRomContext(rom_);
   }
@@ -51,7 +51,7 @@ void AgentChatWidget::Initialize(Rom* rom) {
 }
 
 void AgentChatWidget::Render(bool* p_open) {
-#ifndef Z3ED_AI_AVAILABLE
+#ifndef Z3ED_AI
   ImGui::Begin("Agent Chat", p_open);
   ImGui::TextColored(colors_.error_text, "AI features not available");
   ImGui::TextWrapped(
@@ -126,7 +126,7 @@ void AgentChatWidget::RenderToolbar() {
 }
 
 void AgentChatWidget::RenderChatHistory() {
-#ifdef Z3ED_AI_AVAILABLE
+#ifdef Z3ED_AI
   if (!agent_service_)
     return;
 
@@ -238,7 +238,7 @@ void AgentChatWidget::RenderInputArea() {
 }
 
 void AgentChatWidget::SendMessage(const std::string& message) {
-#ifdef Z3ED_AI_AVAILABLE
+#ifdef Z3ED_AI
   if (!agent_service_)
     return;
 
@@ -254,15 +254,15 @@ void AgentChatWidget::SendMessage(const std::string& message) {
 }
 
 void AgentChatWidget::ClearHistory() {
-#ifdef Z3ED_AI_AVAILABLE
+#ifdef Z3ED_AI
   if (agent_service_) {
-    agent_service_->ClearHistory();
+    agent_service_->ResetConversation();
   }
 #endif
 }
 
 absl::Status AgentChatWidget::LoadHistory(const std::string& filepath) {
-#if defined(Z3ED_AI_AVAILABLE) && defined(YAZE_WITH_JSON)
+#if defined(Z3ED_AI) && defined(YAZE_WITH_JSON)
   if (!agent_service_) {
     return absl::FailedPreconditionError("Agent service not initialized");
   }
@@ -292,7 +292,7 @@ absl::Status AgentChatWidget::LoadHistory(const std::string& filepath) {
 }
 
 absl::Status AgentChatWidget::SaveHistory(const std::string& filepath) {
-#if defined(Z3ED_AI_AVAILABLE) && defined(YAZE_WITH_JSON)
+#if defined(Z3ED_AI) && defined(YAZE_WITH_JSON)
   if (!agent_service_) {
     return absl::FailedPreconditionError("Agent service not initialized");
   }

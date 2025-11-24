@@ -24,6 +24,9 @@
 #include "app/gfx/types/snes_palette.h"
 #include "app/gfx/types/snes_tile.h"
 #include "app/gfx/util/compression.h"
+#ifdef __EMSCRIPTEN__
+#include "app/platform/wasm/wasm_collaboration.h"
+#endif
 #include "app/snes.h"
 #include "core/features.h"
 #include "util/hex.h"
@@ -49,6 +52,19 @@ void MaybeStripSmcHeader(std::vector<uint8_t>& rom_data, unsigned long& size) {
     size -= kHeaderSize;
   }
 }
+
+#ifdef __EMSCRIPTEN__
+inline void MaybeBroadcastChange(uint32_t offset,
+                                 const std::vector<uint8_t>& old_bytes,
+                                 const std::vector<uint8_t>& new_bytes) {
+  if (new_bytes.empty()) return;
+  auto& collab = app::platform::GetWasmCollaborationInstance();
+  if (!collab.IsConnected() || collab.IsApplyingRemoteChange()) {
+    return;
+  }
+  (void)collab.BroadcastChange(offset, old_bytes, new_bytes);
+}
+#endif
 
 }  // namespace
 
@@ -772,9 +788,13 @@ absl::Status Rom::WriteByte(int addr, uint8_t value) {
         "Attempt to write byte %#02x value failed, address %d out of range",
         value, addr));
   }
+  const uint8_t old_val = rom_data_[addr];
   rom_data_[addr] = value;
   LOG_DEBUG("Rom", "WriteByte: %#06X: %s", addr, util::HexByte(value).data());
   dirty_ = true;
+#ifdef __EMSCRIPTEN__
+  MaybeBroadcastChange(addr, {old_val}, {value});
+#endif
   return absl::OkStatus();
 }
 
@@ -784,10 +804,17 @@ absl::Status Rom::WriteWord(int addr, uint16_t value) {
         "Attempt to write word %#04x value failed, address %d out of range",
         value, addr));
   }
+  const uint8_t old0 = rom_data_[addr];
+  const uint8_t old1 = rom_data_[addr + 1];
   rom_data_[addr] = (uint8_t)(value & 0xFF);
   rom_data_[addr + 1] = (uint8_t)((value >> 8) & 0xFF);
   LOG_DEBUG("Rom", "WriteWord: %#06X: %s", addr, util::HexWord(value).data());
   dirty_ = true;
+#ifdef __EMSCRIPTEN__
+  MaybeBroadcastChange(addr, {old0, old1},
+                       {static_cast<uint8_t>(value & 0xFF),
+                        static_cast<uint8_t>((value >> 8) & 0xFF)});
+#endif
   return absl::OkStatus();
 }
 
@@ -797,10 +824,17 @@ absl::Status Rom::WriteShort(int addr, uint16_t value) {
         "Attempt to write short %#04x value failed, address %d out of range",
         value, addr));
   }
+  const uint8_t old0 = rom_data_[addr];
+  const uint8_t old1 = rom_data_[addr + 1];
   rom_data_[addr] = (uint8_t)(value & 0xFF);
   rom_data_[addr + 1] = (uint8_t)((value >> 8) & 0xFF);
   LOG_DEBUG("Rom", "WriteShort: %#06X: %s", addr, util::HexWord(value).data());
   dirty_ = true;
+#ifdef __EMSCRIPTEN__
+  MaybeBroadcastChange(addr, {old0, old1},
+                       {static_cast<uint8_t>(value & 0xFF),
+                        static_cast<uint8_t>((value >> 8) & 0xFF)});
+#endif
   return absl::OkStatus();
 }
 
@@ -810,11 +844,20 @@ absl::Status Rom::WriteLong(uint32_t addr, uint32_t value) {
         "Attempt to write long %#06x value failed, address %d out of range",
         value, addr));
   }
+  const uint8_t old0 = rom_data_[addr];
+  const uint8_t old1 = rom_data_[addr + 1];
+  const uint8_t old2 = rom_data_[addr + 2];
   rom_data_[addr] = (uint8_t)(value & 0xFF);
   rom_data_[addr + 1] = (uint8_t)((value >> 8) & 0xFF);
   rom_data_[addr + 2] = (uint8_t)((value >> 16) & 0xFF);
   LOG_DEBUG("Rom", "WriteLong: %#06X: %s", addr, util::HexLong(value).data());
   dirty_ = true;
+#ifdef __EMSCRIPTEN__
+  MaybeBroadcastChange(addr, {old0, old1, old2},
+                       {static_cast<uint8_t>(value & 0xFF),
+                        static_cast<uint8_t>((value >> 8) & 0xFF),
+                        static_cast<uint8_t>((value >> 16) & 0xFF)});
+#endif
   return absl::OkStatus();
 }
 
@@ -824,12 +867,20 @@ absl::Status Rom::WriteVector(int addr, std::vector<uint8_t> data) {
     return absl::InvalidArgumentError(absl::StrFormat(
         "Attempt to write vector value failed, address %d out of range", addr));
   }
+  std::vector<uint8_t> old_data;
+  old_data.reserve(data.size());
+  for (int i = 0; i < static_cast<int>(data.size()); i++) {
+    old_data.push_back(rom_data_[addr + i]);
+  }
   for (int i = 0; i < static_cast<int>(data.size()); i++) {
     rom_data_[addr + i] = data[i];
   }
   LOG_DEBUG("Rom", "WriteVector: %#06X: %s", addr,
             util::HexByte(data[0]).data());
   dirty_ = true;
+#ifdef __EMSCRIPTEN__
+  MaybeBroadcastChange(addr, old_data, data);
+#endif
   return absl::OkStatus();
 }
 

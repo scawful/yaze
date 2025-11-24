@@ -102,6 +102,14 @@ if(YAZE_WASM_TERMINAL)
   add_compile_definitions(YAZE_WASM_TERMINAL_MODE)
 endif()
 
+if(YAZE_USE_SDL3)
+  add_compile_definitions(YAZE_USE_SDL3)
+endif()
+
+if(YAZE_BUILD_AGENT_UI)
+  add_compile_definitions(YAZE_BUILD_AGENT_UI)
+endif()
+
 # Print configuration summary
 message(STATUS "=== YAZE Build Configuration ===")
 message(STATUS "GUI Application: ${YAZE_BUILD_GUI}")

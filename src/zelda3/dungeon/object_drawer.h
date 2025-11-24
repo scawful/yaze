@@ -156,7 +156,7 @@ class ObjectDrawer {
       const RoomObject& obj, gfx::BackgroundBuffer& bg,
       std::span<const gfx::TileInfo> tiles);
 
-  // Downwards draw routines (missing implementation)
+  // Downwards draw routines
   void DrawDownwards2x2_1to15or32(const RoomObject& obj,
                                   gfx::BackgroundBuffer& bg,
                                   std::span<const gfx::TileInfo> tiles);

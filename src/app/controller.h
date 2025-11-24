@@ -43,6 +43,13 @@ class Controller {
   auto GetCurrentRom() -> Rom* { return editor_manager_.GetCurrentRom(); }
   auto renderer() -> gfx::IRenderer* { return renderer_.get(); }
 
+  // Test-friendly accessors for GUI testing with ImGuiTestEngine
+  editor::EditorManager* editor_manager() { return &editor_manager_; }
+
+  // Load a ROM file and initialize all editors for testing
+  // This performs the full initialization flow including LoadAssets()
+  absl::Status LoadRomForTesting(const std::string& rom_path);
+
  private:
   friend int ::main(int argc, char** argv);
 

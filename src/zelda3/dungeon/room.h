@@ -396,7 +396,7 @@ class Room {
   auto& mutable_blocks() { return blocks_; }
   auto rom() { return rom_; }
   auto mutable_rom() { return rom_; }
-  const std::array<uint8_t, 0x4000>& get_gfx_buffer() const {
+  const std::array<uint8_t, 0x8000>& get_gfx_buffer() const {
     return current_gfx16_;
   }
 
@@ -409,7 +409,7 @@ class Room {
  private:
   Rom* rom_;
 
-  std::array<uint8_t, 0x4000> current_gfx16_;
+  std::array<uint8_t, 0x8000> current_gfx16_;
 
   // Each room has its OWN background buffers and bitmaps
   gfx::BackgroundBuffer bg1_buffer_{512, 512};

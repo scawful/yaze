@@ -891,8 +891,8 @@ void ObjectDrawer::DrawTileToBitmap(gfx::Bitmap& bitmap,
                                     const gfx::TileInfo& tile_info, int pixel_x,
                                     int pixel_y, const uint8_t* tiledata) {
   // Draw an 8x8 tile directly to bitmap at pixel coordinates
-  if (!tiledata)
-    return;
+  // Graphics data is in 4BPP packed format (2 pixels per byte)
+  if (!tiledata) return;
 
   // DEBUG: Check if bitmap is valid
   if (!bitmap.is_active() || bitmap.width() == 0 || bitmap.height() == 0) {
@@ -901,55 +901,94 @@ void ObjectDrawer::DrawTileToBitmap(gfx::Bitmap& bitmap,
     return;
   }
 
-  // Calculate tile position in graphics sheet (128 pixels wide, 16 tiles per
-  // row)
-  int tile_sheet_x = (tile_info.id_ % 16) * 8;  // 16 tiles per row
-  int tile_sheet_y = (tile_info.id_ / 16) * 8;  // Each row is 16 tiles
+  // Calculate tile position in 4BPP graphics buffer
+  // Layout: 16 tiles per row, each tile is 4 bytes wide (8 pixels / 2)
+  // Row stride: 64 bytes (16 tiles * 4 bytes)
+  int tile_col = tile_info.id_ % 16;
+  int tile_row = tile_info.id_ / 16;
+  int tile_base_x = tile_col * 4;    // 4 bytes per tile horizontally
+  int tile_base_y = tile_row * 512;  // 512 bytes per tile row (8 rows * 64 bytes)
 
-  // Palettes are 3bpp (8 colors). Convert palette index to base color offset.
-  // Use 3 bits for palette index (0-7) since dungeon graphics are 3BPP
-  uint8_t palette_offset = (tile_info.palette_ & 0x07) * 8;
+  // Palette offset: 4BPP uses 16 colors per palette
+  uint8_t palette_offset = (tile_info.palette_ & 0x07) * 16;
 
   // DEBUG: Log tile info for first few tiles
   static int debug_tile_count = 0;
   if (debug_tile_count < 5) {
-    printf(
-        "[ObjectDrawer] DrawTile: id=0x%03X pos=(%d,%d) sheet=(%d,%d) pal=%d "
-        "mirror=(h:%d,v:%d)\n",
-        tile_info.id_, pixel_x, pixel_y, tile_sheet_x, tile_sheet_y,
-        tile_info.palette_, tile_info.horizontal_mirror_,
-        tile_info.vertical_mirror_);
+    printf("[ObjectDrawer] DrawTile4BPP: id=0x%03X pos=(%d,%d) base=(%d,%d) pal=%d\n",
+           tile_info.id_, pixel_x, pixel_y, tile_base_x, tile_base_y,
+           tile_info.palette_);
     debug_tile_count++;
   }
 
-  // Draw 8x8 pixels
+  // Draw 8x8 pixels (processing pixel pairs from packed bytes)
   int pixels_written = 0;
   int pixels_transparent = 0;
+
   for (int py = 0; py < 8; py++) {
-    for (int px = 0; px < 8; px++) {
-      // Apply mirroring
-      int src_x = tile_info.horizontal_mirror_ ? (7 - px) : px;
-      int src_y = tile_info.vertical_mirror_ ? (7 - py) : py;
+    // Source row with vertical mirroring
+    int src_row = tile_info.vertical_mirror_ ? (7 - py) : py;
 
-      // Read pixel from graphics sheet
-      int src_index = (tile_sheet_y + src_y) * 128 + (tile_sheet_x + src_x);
-      uint8_t pixel_index = tiledata[src_index];
-      if (pixel_index == 0) {
-        pixels_transparent++;
-        continue;
+    for (int nibble_pair = 0; nibble_pair < 4; nibble_pair++) {
+      // Source column with horizontal mirroring
+      int src_col = tile_info.horizontal_mirror_ ? (3 - nibble_pair) : nibble_pair;
+
+      // Calculate source index in 4BPP buffer
+      // ZScream layout: (row * 64) + nibble_pair + tile_base
+      int src_index = (src_row * 64) + src_col + tile_base_x + tile_base_y;
+      uint8_t packed_byte = tiledata[src_index];
+
+      // Unpack the two pixels from nibbles
+      uint8_t pix1, pix2;
+      if (tile_info.horizontal_mirror_) {
+        // When mirrored, swap nibble order
+        pix1 = packed_byte & 0x0F;         // Low nibble first
+        pix2 = (packed_byte >> 4) & 0x0F;  // High nibble second
+      } else {
+        pix1 = (packed_byte >> 4) & 0x0F;  // High nibble first
+        pix2 = packed_byte & 0x0F;         // Low nibble second
       }
-      uint8_t final_color = pixel_index + palette_offset;
-      int dest_x = pixel_x + px;
-      int dest_y = pixel_y + py;
 
-      if (dest_x >= 0 && dest_x < bitmap.width() && dest_y >= 0 &&
-          dest_y < bitmap.height()) {
-        int dest_index = dest_y * bitmap.width() + dest_x;
-        if (dest_index >= 0 &&
-            dest_index < static_cast<int>(bitmap.mutable_data().size())) {
-          bitmap.mutable_data()[dest_index] = final_color;
-          pixels_written++;
+      // Calculate destination pixel positions
+      int px1 = nibble_pair * 2;
+      int px2 = nibble_pair * 2 + 1;
+
+      // Write first pixel
+      if (pix1 != 0) {
+        uint8_t final_color = pix1 + palette_offset;
+        int dest_x = pixel_x + px1;
+        int dest_y = pixel_y + py;
+
+        if (dest_x >= 0 && dest_x < bitmap.width() &&
+            dest_y >= 0 && dest_y < bitmap.height()) {
+          int dest_index = dest_y * bitmap.width() + dest_x;
+          if (dest_index >= 0 &&
+              dest_index < static_cast<int>(bitmap.mutable_data().size())) {
+            bitmap.mutable_data()[dest_index] = final_color;
+            pixels_written++;
+          }
         }
+      } else {
+        pixels_transparent++;
+      }
+
+      // Write second pixel
+      if (pix2 != 0) {
+        uint8_t final_color = pix2 + palette_offset;
+        int dest_x = pixel_x + px2;
+        int dest_y = pixel_y + py;
+
+        if (dest_x >= 0 && dest_x < bitmap.width() &&
+            dest_y >= 0 && dest_y < bitmap.height()) {
+          int dest_index = dest_y * bitmap.width() + dest_x;
+          if (dest_index >= 0 &&
+              dest_index < static_cast<int>(bitmap.mutable_data().size())) {
+            bitmap.mutable_data()[dest_index] = final_color;
+            pixels_written++;
+          }
+        }
+      } else {
+        pixels_transparent++;
       }
     }
   }
@@ -960,13 +999,9 @@ void ObjectDrawer::DrawTileToBitmap(gfx::Bitmap& bitmap,
   }
 
   // DEBUG: Log pixel writing stats for first few tiles
-  if (debug_tile_count < 5) {
-    printf(
-        "[ObjectDrawer] Tile 0x%03X: wrote %d pixels, %d transparent, "
-        "src_index_range=[%d,%d]\n",
-        tile_info.id_, pixels_written, pixels_transparent,
-        (tile_sheet_y * 128 + tile_sheet_x),
-        (tile_sheet_y + 7) * 128 + (tile_sheet_x + 7));
+  if (debug_tile_count <= 5) {
+    printf("[ObjectDrawer] Tile 0x%03X: wrote %d pixels, %d transparent\n",
+           tile_info.id_, pixels_written, pixels_transparent);
   }
 }
 

@@ -32,6 +32,7 @@ Canvas::Canvas(const std::string& id, ImVec2 canvas_size)
   InitializeDefaults();
   config_.canvas_size = canvas_size;
   config_.custom_canvas_size = true;
+  canvas_sz_ = canvas_size;
 }
 
 Canvas::Canvas(const std::string& id, ImVec2 canvas_size,
@@ -41,6 +42,7 @@ Canvas::Canvas(const std::string& id, ImVec2 canvas_size,
   config_.canvas_size = canvas_size;
   config_.custom_canvas_size = true;
   SetGridSize(grid_size);
+  canvas_sz_ = canvas_size;
 }
 
 Canvas::Canvas(const std::string& id, ImVec2 canvas_size,
@@ -51,6 +53,7 @@ Canvas::Canvas(const std::string& id, ImVec2 canvas_size,
   config_.custom_canvas_size = true;
   config_.global_scale = global_scale;
   SetGridSize(grid_size);
+  canvas_sz_ = canvas_size;
 }
 
 // New constructors with renderer support (for migration to IRenderer pattern)
@@ -69,6 +72,7 @@ Canvas::Canvas(gfx::IRenderer* renderer, const std::string& id,
   InitializeDefaults();
   config_.canvas_size = canvas_size;
   config_.custom_canvas_size = true;
+  canvas_sz_ = canvas_size;
 }
 
 Canvas::Canvas(gfx::IRenderer* renderer, const std::string& id,
@@ -78,6 +82,7 @@ Canvas::Canvas(gfx::IRenderer* renderer, const std::string& id,
   config_.canvas_size = canvas_size;
   config_.custom_canvas_size = true;
   SetGridSize(grid_size);
+  canvas_sz_ = canvas_size;
 }
 
 Canvas::Canvas(gfx::IRenderer* renderer, const std::string& id,
@@ -88,6 +93,7 @@ Canvas::Canvas(gfx::IRenderer* renderer, const std::string& id,
   config_.custom_canvas_size = true;
   config_.global_scale = global_scale;
   SetGridSize(grid_size);
+  canvas_sz_ = canvas_size;
 }
 
 Canvas::~Canvas() = default;

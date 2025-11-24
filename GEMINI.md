@@ -18,14 +18,12 @@ This guide provides **explicit, step-by-step** instructions for building and tes
 ## Quick Reference: Build Times
 
 **First Build (Cold Start)**:
-- macOS: 8-12 minutes
-- Linux: 10-15 minutes
-- Windows: 15-25 minutes (gRPC adds significant time)
+- **Fast Mode (Recommended)**: 2-4 minutes (uses system gRPC/sccache)
+- Standard Mode: 10-20 minutes (compiles gRPC from source)
 
 **Incremental Builds (After Changes)**:
 - Typically 10-60 seconds depending on what changed
-- Single file edit: ~10-30 seconds
-- Header file change: 1-3 minutes (recompiles dependents)
+- **sccache/ccache**: Automatically detected and used if installed (highly recommended)
 
 ## Platform-Specific Build Commands
 
@@ -33,69 +31,46 @@ This guide provides **explicit, step-by-step** instructions for building and tes
 
 ```bash
 # Step 1: Configure (First time only, or when CMakeLists.txt changes)
-cmake --preset mac-dbg
+cmake --preset mac-ai
 
 # Step 2: Build the entire project
-cmake --build build --preset mac-dbg
+cmake --build build_ai --preset mac-ai
 
 # Step 3: Build specific targets (faster for incremental work)
-cmake --build build --target yaze                  # GUI application only
-cmake --build build --target yaze_test            # Test suite only
-cmake --build build --target ylib                 # Core library only
-
-# For verbose output (debugging build issues)
-cmake --build build --preset mac-dbg -v
+cmake --build build_ai --target yaze                  # GUI application only
+cmake --build build_ai --target yaze_test            # Test suite only
+cmake --build build_ai --target ylib                 # Core library only
 ```
 
 **Available macOS Presets**:
-- `mac-dbg` - Debug build (use this for development)
-- `mac-rel` - Release build (optimized, use for performance testing)
-- `mac-ai` - AI-enabled build (includes z3ed with Gemini API support)
+- `mac-ai` - **Preferred for Agents**. Configured to use system gRPC/protobuf if available (brew installed) and defaults to `build_ai`.
+- `mac-dbg` - User's debug build (DO NOT USE).
 
 ### Linux
 
 ```bash
 # Step 1: Configure
-cmake --preset lin-dbg
+cmake --preset lin-ai
 
 # Step 2: Build
-cmake --build build --preset lin-dbg
-
-# Step 3: Build specific targets
-cmake --build build --target yaze
-cmake --build build --target yaze_test
-cmake --build build --target ylib
+cmake --build build_ai --preset lin-ai
 ```
 
 **Available Linux Presets**:
-- `lin-dbg` - Debug build
-- `lin-rel` - Release build
-- `lin-ai` - AI-enabled build
+- `lin-ai` - **Preferred for Agents**. Uses `build_ai` and system libraries.
 
 ### Windows
 
 ```bash
 # Step 1: Configure (PowerShell or CMD)
-cmake --preset win-dbg
+cmake --preset win-ai
 
 # Step 2: Build
-cmake --build build --preset win-dbg
-
-# Step 3: Build specific targets
-cmake --build build --target yaze
-cmake --build build --target yaze_test
-cmake --build build --target ylib
+cmake --build build_ai --preset win-ai
 ```
 
 **Available Windows Presets**:
-- `win-dbg` - Debug build
-- `win-rel` - Release build
-- `win-ai` - AI-enabled build
-
-**Windows-Specific Notes**:
-- First build downloads and compiles gRPC (~15-20 minutes)
-- Subsequent builds are much faster due to caching
-- Use PowerShell or Developer Command Prompt for Visual Studio
+- `win-ai` - **Preferred for Agents**. Uses `build_ai`.
 
 ## Testing
 
@@ -103,13 +78,10 @@ cmake --build build --target ylib
 
 ```bash
 # Build tests first
-cmake --build build --target yaze_test
+cmake --build build_ai --target yaze_test
 
 # Run all tests
-./build/bin/yaze_test
-
-# On Windows:
-.\build\bin\yaze_test.exe
+./build_ai/bin/yaze_test
 ```
 
 ### Running Specific Test Categories
