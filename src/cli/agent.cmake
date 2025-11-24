@@ -38,6 +38,10 @@ if(EMSCRIPTEN)
     cli/handlers/graphics/palette_commands.cc
     cli/handlers/agent/todo_commands.cc
     cli/service/agent/todo_manager.cc
+    
+    # Proposal and Sandbox support (needed by yaze_editor)
+    cli/service/planning/proposal_registry.cc
+    cli/service/rom/rom_sandbox_manager.cc
   )
 
   add_library(yaze_agent STATIC ${YAZE_BROWSER_AI_SOURCES})

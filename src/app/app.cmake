@@ -106,7 +106,7 @@ if(EMSCRIPTEN)
   # Export functions for web interface (only in yaze, not yaze_emu)
   # Use set_target_properties with LINK_FLAGS (similar to z3ed.cmake)
   set_target_properties(yaze PROPERTIES
-    LINK_FLAGS "-s EXPORTED_RUNTIME_METHODS='[\"ccall\",\"cwrap\",\"stringToUTF8\",\"UTF8ToString\",\"FS\"]' -s EXPORTED_FUNCTIONS='[\"_main\",\"_SetFileSystemReady\",\"_LoadRomFromWeb\"]' --shell-file ${CMAKE_SOURCE_DIR}/src/web/shell.html"
+    LINK_FLAGS "--bind -s EXPORTED_RUNTIME_METHODS='[\"ccall\",\"cwrap\",\"stringToUTF8\",\"UTF8ToString\",\"FS\"]' -s EXPORTED_FUNCTIONS='[\"_main\",\"_SetFileSystemReady\",\"_LoadRomFromWeb\"]' --shell-file ${CMAKE_SOURCE_DIR}/src/web/shell.html"
   )
 endif()
 
