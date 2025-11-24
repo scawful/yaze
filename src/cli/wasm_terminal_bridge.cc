@@ -62,6 +62,24 @@ struct BridgeState {
 
 static BridgeState g_bridge;
 
+}  // namespace
+
+// Global accessor for command handlers
+namespace yaze {
+namespace cli {
+BrowserAIService* GetGlobalBrowserAIService() {
+  return g_bridge.ai_service.get();
+}
+
+Rom* GetGlobalRom() {
+  return g_bridge.rom.get();
+}
+
+}  // namespace cli
+}  // namespace yaze
+
+namespace {
+
 // JavaScript function to print to terminal
 EM_JS(void, z3ed_print_to_terminal, (const char* text), {
   if (window.z3edTerminal) {
