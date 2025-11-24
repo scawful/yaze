@@ -12,6 +12,9 @@
 #include "app/editor/editor.h"
 #include "app/gui/widgets/text_editor.h"
 #include "cli/service/agent/conversational_agent_service.h"
+#ifdef YAZE_WITH_GRPC
+#include "app/editor/agent/automation_bridge.h"
+#endif
 
 namespace yaze {
 
@@ -235,6 +238,7 @@ class AgentEditor : public Editor {
   // Setup callbacks
   void SetupChatWidgetCallbacks();
   void SetupMultimodalCallbacks();
+  void SetupAutomationCallbacks();
 
   // Bot profile helpers
   std::filesystem::path GetProfilesDirectory() const;
@@ -249,6 +253,7 @@ class AgentEditor : public Editor {
   std::unique_ptr<AgentCollaborationCoordinator> local_coordinator_;
 #ifdef YAZE_WITH_GRPC
   std::unique_ptr<NetworkCollaborationCoordinator> network_coordinator_;
+  AutomationBridge harness_telemetry_bridge_;
 #endif
 
   ToastManager* toast_manager_ = nullptr;

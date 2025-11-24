@@ -55,6 +55,7 @@ class UICoordinator {
   UICoordinator& operator=(const UICoordinator&) = delete;
 
   // Main UI drawing interface
+  void DrawBackground();
   void DrawAllUI();
   void DrawMenuBarExtras();
   void DrawContextSensitiveCardControl();
