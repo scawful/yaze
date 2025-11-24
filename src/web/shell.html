@@ -19,6 +19,12 @@
     <!-- iOS Icon (placeholder) -->
     <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
 
+    <!-- Keyboard Shortcuts Overlay Styles -->
+    <link rel="stylesheet" href="shortcuts_overlay.css">
+
+    <!-- Touch Gesture Styles for iPad/Tablet -->
+    <link rel="stylesheet" href="touch_gestures.css">
+
     <title>YAZE - Yet Another Zelda3 Editor (Web)</title>
     <style>
       body {
@@ -214,13 +220,24 @@
       <button onclick="dismissUpdate()">Dismiss</button>
     </div>
 
+    <!-- Touch mode indicator -->
+    <div class="yaze-touch-indicator">Touch Mode</div>
+
     <div id="canvas-container">
       <figure style="overflow:visible;" id="spinner"><div class="spinner"></div><center style="margin-top:0.5em"><strong>emscripten</strong></center></figure>
       <div class="emscripten" id="status">Downloading...</div>
       <div class="emscripten">
-        <progress value="0" max="100" id="progress" hidden=1></progress>  
+        <progress value="0" max="100" id="progress" hidden=1></progress>
       </div>
       <canvas class="emscripten" id="canvas" oncontextmenu="event.preventDefault()" tabindex=-1></canvas>
+
+      <!-- Touch zoom controls (visible in touch mode) -->
+      <div class="yaze-zoom-controls">
+        <button onclick="zoomIn()" title="Zoom In">+</button>
+        <div class="yaze-zoom-level" id="zoom-level">100%</div>
+        <button onclick="zoomOut()" title="Zoom Out">-</button>
+        <button onclick="resetZoom()" title="Reset View">R</button>
+      </div>
     </div>
 
     <script type='text/javascript'>
@@ -464,7 +481,101 @@
         }
       }
 
+      // Touch Mode Detection
+      let isTouchMode = false;
+      let lastInputWasTouch = false;
+
+      function enableTouchMode() {
+        if (!isTouchMode) {
+          isTouchMode = true;
+          document.body.classList.add('yaze-touch-mode');
+          console.log('Touch mode enabled');
+        }
+      }
+
+      function disableTouchMode() {
+        if (isTouchMode) {
+          isTouchMode = false;
+          document.body.classList.remove('yaze-touch-mode');
+          console.log('Touch mode disabled');
+        }
+      }
+
+      // Detect touch vs mouse input
+      document.addEventListener('touchstart', function() {
+        lastInputWasTouch = true;
+        enableTouchMode();
+      }, { passive: true });
+
+      document.addEventListener('mousemove', function(e) {
+        // Only switch to mouse mode if this is a real mouse movement
+        // (touch events can also fire mousemove)
+        if (!lastInputWasTouch && e.movementX !== 0 && e.movementY !== 0) {
+          disableTouchMode();
+        }
+        lastInputWasTouch = false;
+      });
+
+      // Detect if device supports touch
+      if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
+        console.log('Touch-capable device detected');
+        // Don't enable touch mode yet - wait for actual touch
+      }
+
+      // Touch Zoom Controls
+      let currentZoom = 1.0;
+      const MIN_ZOOM = 0.25;
+      const MAX_ZOOM = 4.0;
+
+      function updateZoomDisplay() {
+        const zoomLevel = document.getElementById('zoom-level');
+        if (zoomLevel) {
+          zoomLevel.textContent = Math.round(currentZoom * 100) + '%';
+        }
+      }
+
+      function zoomIn() {
+        currentZoom = Math.min(currentZoom * 1.25, MAX_ZOOM);
+        applyZoom();
+      }
+
+      function zoomOut() {
+        currentZoom = Math.max(currentZoom / 1.25, MIN_ZOOM);
+        applyZoom();
+      }
+
+      function resetZoom() {
+        currentZoom = 1.0;
+        applyZoom();
+        // Also reset pan if available
+        if (typeof Module !== 'undefined' && typeof Module._ResetCanvasView === 'function') {
+          Module._ResetCanvasView();
+        }
+      }
+
+      function applyZoom() {
+        updateZoomDisplay();
+        // Pass zoom to C++ if function is available
+        if (typeof Module !== 'undefined' && typeof Module.ccall === 'function') {
+          try {
+            Module.ccall('SetCanvasZoom', null, ['number'], [currentZoom]);
+          } catch (e) {
+            // Function might not exist yet
+          }
+        }
+      }
+
+      // Update zoom display when gesture changes it
+      window.onZoomChanged = function(zoom) {
+        currentZoom = zoom;
+        updateZoomDisplay();
+      };
+
     </script>
+    <!-- Keyboard Shortcuts Handler -->
+    <script src="shortcuts_overlay.js"></script>
+    <!-- Touch Gesture Handler for iPad/Tablet -->
+    <script src="touch_gestures.js"></script>
     {{{ SCRIPT }}}
   </body>
 </html>

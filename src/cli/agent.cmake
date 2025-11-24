@@ -222,6 +222,7 @@ target_include_directories(yaze_agent
     ${CMAKE_SOURCE_DIR}/ext/httplib
     ${CMAKE_SOURCE_DIR}/src/lib
     ${CMAKE_SOURCE_DIR}/src/cli/handlers
+    ${CMAKE_BINARY_DIR}/gens
 )
 
 if(YAZE_ENABLE_AI_RUNTIME AND YAZE_ENABLE_JSON)

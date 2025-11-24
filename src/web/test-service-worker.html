@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YAZE Service Worker Test</title>
+    <style>
+        body {
+            font-family: monospace;
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .test-result {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .pass { background: #0e639c; }
+        .fail { background: #d32f2f; }
+        .info { background: #3a3d41; }
+        button {
+            background: #0e639c;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #1177bb; }
+    </style>
+</head>
+<body>
+    <h1>YAZE Service Worker Test Suite</h1>
+    <div id="results"></div>
+
+    <h2>Manual Tests</h2>
+    <button onclick="testServiceWorkerRegistration()">Test Registration</button>
+    <button onclick="testCacheStorage()">Test Cache Storage</button>
+    <button onclick="testOfflineDetection()">Test Offline Detection</button>
+    <button onclick="clearCaches()">Clear All Caches</button>
+
+    <script>
+        const results = document.getElementById('results');
+
+        function log(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = `test-result ${type}`;
+            div.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            results.appendChild(div);
+        }
+
+        // Auto-run tests on load
+        window.addEventListener('load', async () => {
+            log('Starting Service Worker tests...');
+
+            // Test 1: Service Worker API availability
+            if ('serviceWorker' in navigator) {
+                log('✓ Service Worker API is available', 'pass');
+            } else {
+                log('✗ Service Worker API is NOT available', 'fail');
+                return;
+            }
+
+            // Test 2: HTTPS/localhost check
+            if (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+                log('✓ Running on HTTPS or localhost', 'pass');
+            } else {
+                log('✗ Service Workers require HTTPS or localhost', 'fail');
+            }
+
+            // Test 3: Check registration status
+            const registration = await navigator.serviceWorker.getRegistration();
+            if (registration) {
+                log(`✓ Service Worker registered: ${registration.scope}`, 'pass');
+                log(`  Active: ${registration.active ? 'Yes' : 'No'}`, 'info');
+                log(`  Waiting: ${registration.waiting ? 'Yes' : 'No'}`, 'info');
+                log(`  Installing: ${registration.installing ? 'Yes' : 'No'}`, 'info');
+            } else {
+                log('ℹ No Service Worker registered yet', 'info');
+            }
+
+            // Test 4: Cache API availability
+            if ('caches' in window) {
+                log('✓ Cache API is available', 'pass');
+                const cacheNames = await caches.keys();
+                log(`  Found ${cacheNames.length} cache(s): ${cacheNames.join(', ')}`, 'info');
+            } else {
+                log('✗ Cache API is NOT available', 'fail');
+            }
+
+            // Test 5: Online status
+            log(`Network status: ${navigator.onLine ? 'Online' : 'Offline'}`, 'info');
+        });
+
+        async function testServiceWorkerRegistration() {
+            try {
+                const registration = await navigator.serviceWorker.register('/service-worker.js');
+                log('✓ Service Worker registered successfully', 'pass');
+                log(`  Scope: ${registration.scope}`, 'info');
+            } catch (error) {
+                log(`✗ Registration failed: ${error.message}`, 'fail');
+            }
+        }
+
+        async function testCacheStorage() {
+            try {
+                const cache = await caches.open('test-cache');
+                await cache.add('/');
+                log('✓ Cache storage is working', 'pass');
+
+                const keys = await cache.keys();
+                log(`  Cached ${keys.length} item(s)`, 'info');
+
+                await caches.delete('test-cache');
+                log('  Test cache cleaned up', 'info');
+            } catch (error) {
+                log(`✗ Cache test failed: ${error.message}`, 'fail');
+            }
+        }
+
+        function testOfflineDetection() {
+            log(`Current status: ${navigator.onLine ? 'Online' : 'Offline'}`, 'info');
+            log('Try disconnecting your network to test offline detection', 'info');
+
+            window.addEventListener('online', () => log('➡ Went ONLINE', 'pass'), { once: true });
+            window.addEventListener('offline', () => log('➡ Went OFFLINE', 'info'), { once: true });
+        }
+
+        async function clearCaches() {
+            try {
+                const cacheNames = await caches.keys();
+                await Promise.all(cacheNames.map(name => caches.delete(name)));
+                log(`✓ Cleared ${cacheNames.length} cache(s)`, 'pass');
+
+                // Unregister service worker
+                const registration = await navigator.serviceWorker.getRegistration();
+                if (registration) {
+                    await registration.unregister();
+                    log('✓ Service Worker unregistered', 'pass');
+                }
+
+                log('ℹ Reload the page to re-register', 'info');
+            } catch (error) {
+                log(`✗ Clear failed: ${error.message}`, 'fail');
+            }
+        }
+    </script>
+</body>
+</html>
