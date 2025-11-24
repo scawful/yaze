@@ -29,9 +29,12 @@
   // Default configuration
   const defaultConfig = {
     // Collaboration settings for multi-user editing
+    // Uses yaze-server (https://github.com/scawful/yaze-server) for WebSocket backend
     collaboration: {
       // WebSocket server URL (empty = disabled)
-      // Set this to your collaboration server URL
+      // For local development: 'ws://localhost:8765'
+      // For production: 'wss://your-domain.com' (requires SSL proxy)
+      // For halext deployment: 'wss://yaze.halext.org/ws'
       serverUrl: '',
 
       // Time before a user is considered inactive (seconds)
@@ -41,7 +44,17 @@
       cursorSendIntervalMs: 100,
 
       // Maximum size of a single ROM change (bytes)
-      maxChangeSizeBytes: 1024
+      // Must match server's maxChangeSizeBytes setting
+      maxChangeSizeBytes: 1024,
+
+      // Enable automatic reconnection on disconnect
+      autoReconnect: true,
+
+      // Maximum reconnection attempts before giving up
+      maxReconnectAttempts: 10,
+
+      // Initial reconnection delay (doubles each attempt, max 30s)
+      initialReconnectDelayMs: 1000
     },
 
     // Autosave and crash recovery settings
@@ -81,6 +94,35 @@
 
       // Maximum ROM cache size (MB)
       maxRomCacheSizeMb: 100
+    },
+
+    // AI service settings (for terminal AI commands)
+    // Connects to yaze-server's AI endpoint or direct Gemini API
+    ai: {
+      // Enable AI features in terminal
+      enabled: true,
+
+      // AI model to use (gemini-2.0-flash-exp, gemini-1.5-flash, etc.)
+      model: 'gemini-2.0-flash-exp',
+
+      // Server endpoint for AI queries (empty = use collaboration server)
+      // Set to your yaze-server URL if different from collaboration server
+      endpoint: '',
+
+      // Maximum response length (characters)
+      maxResponseLength: 4096
+    },
+
+    // Server deployment info (read-only, for diagnostics)
+    deployment: {
+      // yaze-server repository
+      serverRepo: 'https://github.com/scawful/yaze-server',
+
+      // Default server port
+      defaultPort: 8765,
+
+      // Protocol version supported
+      protocolVersion: '2.0'
     }
   };
 

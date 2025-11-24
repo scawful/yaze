@@ -85,15 +85,33 @@ class WasmCollaboration {
   /**
    * @brief Set the WebSocket server URL
    * @param url Full WebSocket URL (e.g., "wss://your-server.com/ws")
+   * @return Status indicating success or validation failure
    *
    * For GitHub Pages deployment, you'll need a separate WebSocket server.
    * Options include:
    * - Cloudflare Workers with Durable Objects
    * - Deno Deploy
    * - Railway, Render, or other PaaS providers
-   * - Self-hosted server
+   * - Self-hosted server (e.g., yaze-server on port 8765)
+   *
+   * URL must start with "ws://" or "wss://" to be valid.
    */
-  void SetWebSocketUrl(const std::string& url) { websocket_url_ = url; }
+  absl::Status SetWebSocketUrl(const std::string& url) {
+    if (url.empty()) {
+      websocket_url_.clear();
+      return absl::OkStatus();
+    }
+    if (url.find("ws://") != 0 && url.find("wss://") != 0) {
+      return absl::InvalidArgumentError(
+          "WebSocket URL must start with ws:// or wss://");
+    }
+    // Basic URL structure validation
+    if (url.length() < 8) {  // Minimum: "ws://x" or "wss://x"
+      return absl::InvalidArgumentError("WebSocket URL is too short");
+    }
+    websocket_url_ = url;
+    return absl::OkStatus();
+  }
 
   /**
    * @brief Get the current WebSocket server URL

@@ -85,6 +85,17 @@ EM_JS(int, WasmConfig_GetInt, (const char* path, int defaultVal), {
 // clang-format on
 
 void WasmConfig::LoadFromJavaScript() {
+  // Prevent concurrent loading
+  bool expected = false;
+  if (!loading_.compare_exchange_strong(expected, true,
+                                         std::memory_order_acq_rel)) {
+    // Already loading, wait for completion
+    return;
+  }
+
+  // Lock for writing config values
+  std::lock_guard<std::mutex> lock(config_mutex_);
+
   // Collaboration settings
   char* server_url = WasmConfig_GetString("collaboration.serverUrl", "");
   collaboration.server_url = std::string(server_url);
@@ -123,7 +134,32 @@ void WasmConfig::LoadFromJavaScript() {
   cache.max_rom_cache_size_mb =
       WasmConfig_GetInt("cache.maxRomCacheSizeMb", 100);
 
-  loaded_ = true;
+  // AI settings
+  ai.enabled = WasmConfig_GetInt("ai.enabled", 1) != 0;
+  char* ai_model = WasmConfig_GetString("ai.model", "gemini-2.0-flash-exp");
+  ai.model = std::string(ai_model);
+  free(ai_model);
+
+  char* ai_endpoint = WasmConfig_GetString("ai.endpoint", "");
+  ai.endpoint = std::string(ai_endpoint);
+  free(ai_endpoint);
+
+  ai.max_response_length = WasmConfig_GetInt("ai.maxResponseLength", 4096);
+
+  // Deployment info (read-only defaults, but can be overridden)
+  char* server_repo = WasmConfig_GetString("deployment.serverRepo",
+      "https://github.com/scawful/yaze-server");
+  deployment.server_repo = std::string(server_repo);
+  free(server_repo);
+
+  deployment.default_port = WasmConfig_GetInt("deployment.defaultPort", 8765);
+
+  char* protocol_version = WasmConfig_GetString("deployment.protocolVersion", "2.0");
+  deployment.protocol_version = std::string(protocol_version);
+  free(protocol_version);
+
+  loaded_.store(true, std::memory_order_release);
+  loading_.store(false, std::memory_order_release);
 }
 
 WasmConfig& WasmConfig::Get() {

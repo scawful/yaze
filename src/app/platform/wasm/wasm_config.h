@@ -4,6 +4,9 @@
 #ifdef __EMSCRIPTEN__
 
 #include <emscripten.h>
+
+#include <atomic>
+#include <mutex>
 #include <string>
 
 namespace yaze {
@@ -79,6 +82,21 @@ struct WasmConfig {
     int max_rom_cache_size_mb = 100;
   } cache;
 
+  // AI service settings (for terminal AI commands)
+  struct AI {
+    bool enabled = true;
+    std::string model = "gemini-2.0-flash-exp";
+    std::string endpoint;  // Empty = use collaboration server
+    int max_response_length = 4096;
+  } ai;
+
+  // Server deployment info
+  struct Deployment {
+    std::string server_repo = "https://github.com/scawful/yaze-server";
+    int default_port = 8765;
+    std::string protocol_version = "2.0";
+  } deployment;
+
   /**
    * @brief Load configuration from JavaScript window.YAZE_CONFIG
    *
@@ -97,10 +115,34 @@ struct WasmConfig {
    * @brief Check if config was loaded from JavaScript
    * @return true if LoadFromJavaScript() was called successfully
    */
-  bool IsLoaded() const { return loaded_; }
+  bool IsLoaded() const { return loaded_.load(std::memory_order_acquire); }
+
+  /**
+   * @brief Check if config is currently being loaded
+   * @return true if LoadFromJavaScript() is in progress
+   */
+  bool IsLoading() const { return loading_.load(std::memory_order_acquire); }
+
+  /**
+   * @brief Get read access to config (thread-safe)
+   * @return Lock guard for read operations
+   *
+   * Use this when reading multiple config values to ensure consistency.
+   * Example:
+   * @code
+   * auto lock = WasmConfig::Get().GetReadLock();
+   * auto url = WasmConfig::Get().collaboration.server_url;
+   * auto timeout = WasmConfig::Get().collaboration.user_timeout_seconds;
+   * @endcode
+   */
+  std::unique_lock<std::mutex> GetReadLock() const {
+    return std::unique_lock<std::mutex>(config_mutex_);
+  }
 
  private:
-  bool loaded_ = false;
+  std::atomic<bool> loaded_{false};
+  std::atomic<bool> loading_{false};
+  mutable std::mutex config_mutex_;
 };
 
 // External C declarations for functions implemented in .cc
@@ -117,6 +159,9 @@ extern "C" {
 #else  // !__EMSCRIPTEN__
 
 // Stub for non-WASM builds - provides defaults
+#include <mutex>
+#include <string>
+
 namespace yaze {
 namespace app {
 namespace platform {
@@ -150,12 +195,32 @@ struct WasmConfig {
     int max_rom_cache_size_mb = 100;
   } cache;
 
+  struct AI {
+    bool enabled = true;
+    std::string model = "gemini-2.0-flash-exp";
+    std::string endpoint;
+    int max_response_length = 4096;
+  } ai;
+
+  struct Deployment {
+    std::string server_repo = "https://github.com/scawful/yaze-server";
+    int default_port = 8765;
+    std::string protocol_version = "2.0";
+  } deployment;
+
   void LoadFromJavaScript() {}
   static WasmConfig& Get() {
     static WasmConfig instance;
     return instance;
   }
   bool IsLoaded() const { return true; }
+  bool IsLoading() const { return false; }
+  std::unique_lock<std::mutex> GetReadLock() const {
+    return std::unique_lock<std::mutex>(config_mutex_);
+  }
+
+ private:
+  mutable std::mutex config_mutex_;
 };
 
 }  // namespace platform
