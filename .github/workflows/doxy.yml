@@ -24,16 +24,20 @@ jobs:
       with:
         fetch-depth: 0
 
-    - name: Install dependencies
+    - name: Install Graphviz
       run: |
         sudo apt-get update
-        sudo apt-get install -y doxygen graphviz
+        sudo apt-get install -y graphviz
+
+    - name: Install Doxygen 1.10.0
+      uses: ssciwr/doxygen-install@v1
+      with:
+        version: "1.10.0"
 
     - name: Generate Doxygen documentation
-      uses: mattnotmitt/doxygen-action@v1.9.8
-      with:
-        doxyfile-path: "./Doxyfile"
-        working-directory: "."
+      run: |
+        mkdir -p build/docs
+        doxygen Doxyfile
     
     - name: Verify Generation
       run: |
