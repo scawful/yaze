@@ -355,13 +355,25 @@
             console.warn('Failed to get palette events:', e);
             return;
           }
-          if (!eventsStr || eventsStr.length === 0) return;
+
+          // Handle empty or invalid responses - eventsStr could be "", "[]", or invalid
+          if (!eventsStr || eventsStr.length === 0 || eventsStr === '[]') {
+            // Show empty state in problems panel
+            var list = document.getElementById('problems-list');
+            if (list) {
+              list.innerHTML = '<div class="problems-empty">No palette events yet. Open a dungeon room to see palette debug info.</div>';
+            }
+            return;
+          }
 
           var events;
           try {
             events = JSON.parse(eventsStr);
           } catch (e) {
-            console.warn('Failed to parse palette events JSON:', e, 'Raw:', eventsStr);
+            // Only log parse errors for non-empty, non-bracket strings
+            if (eventsStr.trim() && eventsStr.trim() !== '[]') {
+              console.warn('Failed to parse palette events JSON:', e, 'Raw:', eventsStr);
+            }
             return;
           }
           var list = document.getElementById('problems-list');

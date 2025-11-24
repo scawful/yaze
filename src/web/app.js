@@ -217,13 +217,27 @@ function waitForModule(cb) {
   }
 }
 
-function ensureFSReady() {
+function ensureFSReady(showAlert = true) {
   if (fsReady && typeof FS !== 'undefined') return true;
   if (fsInitPromise) {
     console.warn('FS not ready yet; still initializing.');
+    if (showAlert) {
+      // Show a non-blocking status message instead of silent failure
+      var status = document.getElementById('header-status');
+      if (status) {
+        status.textContent = 'File system initializing... please wait';
+        status.style.color = '#ffaa00';
+        setTimeout(function() {
+          status.textContent = 'Ready';
+          status.style.color = '';
+        }, 3000);
+      }
+    }
     return false;
   }
-  alert('WASM not ready yet. Please wait for the app to finish loading, then retry.');
+  if (showAlert) {
+    alert('WASM not ready yet. Please wait for the app to finish loading, then retry.');
+  }
   return false;
 }
 
@@ -231,15 +245,48 @@ function initPersistentFS() {
   if (fsInitPromise) return fsInitPromise;
   fsInitPromise = new Promise((resolve, reject) => {
     waitForModule(() => {
-      if (typeof FS === 'undefined' || typeof IDBFS === 'undefined') {
+      if (typeof FS === 'undefined') {
         fsInitAttempts++;
         if (fsInitAttempts < 5) {
-          console.warn('FS/IDBFS unavailable; retrying...', fsInitAttempts);
+          console.warn('FS unavailable; retrying...', fsInitAttempts);
           fsInitPromise = null;
           setTimeout(initPersistentFS, 100);
           return;
         }
-        reject(new Error('FS/IDBFS unavailable during init'));
+        reject(new Error('FS unavailable during init'));
+        return;
+      }
+
+      // Check if /roms already exists (C++ may have already set up the FS)
+      var romsExists = false;
+      try {
+        FS.stat('/roms');
+        romsExists = true;
+      } catch (e) {
+        // Directory doesn't exist
+      }
+
+      if (romsExists) {
+        // C++ already mounted IDBFS, just mark as ready
+        console.log('[WASM] FS already initialized by C++ runtime');
+        fsReady = true;
+        resolve();
+        return;
+      }
+
+      // IDBFS not available yet - might need to wait
+      if (typeof IDBFS === 'undefined') {
+        fsInitAttempts++;
+        if (fsInitAttempts < 5) {
+          console.warn('IDBFS unavailable; retrying...', fsInitAttempts);
+          fsInitPromise = null;
+          setTimeout(initPersistentFS, 100);
+          return;
+        }
+        // Fall back to in-memory FS
+        console.warn('[WASM] IDBFS unavailable, using in-memory FS');
+        fsReady = true;
+        resolve();
         return;
       }
 
