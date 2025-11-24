@@ -80,9 +80,7 @@
 
       // Focus the input field to ensure it's ready for typing
       setTimeout(() => {
-        if (this.inputElement) {
-          this.inputElement.focus();
-        }
+        this.focusInput();
       }, 100);
 
       console.log('Z3edTerminal initialized');
@@ -95,6 +93,16 @@
       if (this.inputElement) {
         this.inputElement.addEventListener('keydown', this.handleKeyDown.bind(this));
         this.inputElement.addEventListener('keyup', this.handleKeyUp.bind(this));
+        // Ensure emulator-level key listeners don't steal terminal input
+        document.addEventListener('keydown', (event) => {
+          if (event.target === this.inputElement) {
+            event.stopPropagation();
+          }
+        }, true);
+        // Make any click within the terminal focus the input
+        if (this.container) {
+          this.container.addEventListener('click', () => this.focusInput());
+        }
       }
 
       if (this.headerElement) {
@@ -149,16 +157,28 @@
     }
 
     /**
+     * Focus the terminal input safely
+     */
+    focusInput() {
+      if (this.inputElement) {
+        this.inputElement.focus();
+        // Place cursor at end without selecting text
+        const len = this.inputElement.value.length;
+        this.inputElement.setSelectionRange(len, len);
+      }
+    }
+
+    /**
      * Handle keydown events
      * @param {KeyboardEvent} event
      */
     handleKeyDown(event) {
+      // Always keep terminal input events local
+      event.stopPropagation();
+      event.stopImmediatePropagation();
+
       // Only stop propagation for special keys, allow normal typing to work
       const specialKeys = ['Enter', 'ArrowUp', 'ArrowDown', 'Tab', 'Escape'];
-
-      if (specialKeys.includes(event.key) || event.ctrlKey || event.metaKey) {
-        event.stopPropagation();
-      }
 
       switch (event.key) {
         case 'Enter':

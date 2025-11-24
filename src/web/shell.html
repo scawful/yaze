@@ -346,6 +346,17 @@
       };
 
       // VSCode-style panel system
+      function focusTerminalInput() {
+        var input = document.getElementById('terminal-input');
+        if (input) {
+          input.focus();
+          var len = input.value.length;
+          if (typeof input.setSelectionRange === 'function') {
+            input.setSelectionRange(len, len);
+          }
+        }
+      }
+
       var panels = {
         container: null,
         activeTab: 'terminal',
@@ -372,6 +383,9 @@
           this.container.style.height = this.height + 'px';
           if (panel) this.switchTab(panel);
           this.updateToggles();
+          if ((panel || this.activeTab) === 'terminal') {
+            focusTerminalInput();
+          }
           setTimeout(resizeCanvasToContainer, 200); // Resize canvas after transition
         },
 
@@ -393,6 +407,9 @@
             view.classList.toggle('active', view.id === 'panel-' + panel);
           });
           this.updateToggles();
+          if (panel === 'terminal') {
+            focusTerminalInput();
+          }
 
           // Refresh palette inspector if problems tab is active
           if (panel === 'problems' && typeof paletteInspector !== 'undefined') {
@@ -581,6 +598,18 @@
           palette.show();
         }
       });
+
+      // Keep input events inside terminal/collab from being captured by global/WASM listeners
+      document.addEventListener('keydown', function(e) {
+        var t = e.target;
+        if (!t) return;
+        var inTerminal = t.closest && t.closest('#panel-terminal');
+        var inCollab = t.closest && t.closest('.yaze-chat-input');
+        if (inTerminal || inCollab || t.id === 'yaze-chat-input' || t.id === 'terminal-input') {
+          e.stopPropagation();
+          e.stopImmediatePropagation();
+        }
+      }, true);
 
       // Initialize palette on load
       document.addEventListener('DOMContentLoaded', function() {

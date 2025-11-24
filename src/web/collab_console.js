@@ -296,10 +296,23 @@
     ui.chatInput.addEventListener('keydown', (e) => {
       // Stop event from bubbling to prevent global/WASM handlers from stealing input
       e.stopPropagation();
-      
+      // Prevent shortcuts from firing while typing
+      e.stopImmediatePropagation();
+
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
         sendChat();
+      }
+    }, true);
+    // Keep focus in chat input when interacting with the pane
+    ui.chatBody.addEventListener('click', () => ui.chatInput.focus());
+    ui.container.addEventListener('click', (e) => {
+      // Only refocus for clicks inside the collab UI, not on buttons
+      if (e.target === ui.chatBody || e.target === ui.chatInput) {
+        return;
+      }
+      if (ui.container.contains(e.target)) {
+        ui.chatInput.focus();
       }
     });
 
