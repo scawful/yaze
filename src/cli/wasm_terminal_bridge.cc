@@ -60,7 +60,7 @@ struct BridgeState {
   }
 };
 
-static TerminalBridge g_bridge;
+static BridgeState g_bridge;
 
 // JavaScript function to print to terminal
 EM_JS(void, z3ed_print_to_terminal, (const char* text), {

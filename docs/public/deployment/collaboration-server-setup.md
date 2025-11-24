@@ -2,6 +2,30 @@
 
 This guide explains how to set up a WebSocket server for yaze's real-time collaboration feature, enabling multiple users to edit ROMs together.
 
+## Quick Start with yaze-server
+
+The official collaboration server is **[yaze-server](https://github.com/scawful/yaze-server)**, a Node.js WebSocket server with:
+- Real-time session management
+- AI agent integration (Gemini/Genkit)
+- ROM synchronization and diff broadcasting
+- Rate limiting and security features
+
+### Local Development
+```bash
+git clone https://github.com/scawful/yaze-server.git
+cd yaze-server
+npm install
+npm start
+# Server runs on ws://localhost:8765
+```
+
+### Production Deployment
+For production, deploy yaze-server behind an SSL proxy:
+- **halext.org**: `wss://yaze.halext.org/ws`
+- **Self-hosted**: Deploy to Railway, Render, Fly.io, or your own VPS
+
+---
+
 ## Overview
 
 The yaze web app (WASM build) supports real-time collaboration through WebSocket connections. Since GitHub Pages only serves static files, you'll need a separate WebSocket server to enable this feature.
