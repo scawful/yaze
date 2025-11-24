@@ -14,6 +14,7 @@
 #include "zelda3/dungeon/object_drawer.h"
 #include "zelda3/dungeon/room_object.h"
 #include "zelda3/sprite/sprite.h"
+#include "zelda3/dungeon/palette_debug.h"
 
 namespace yaze {
 namespace zelda3 {
@@ -217,13 +218,13 @@ void Room::LoadRoomGraphics(uint8_t entrance_blockset) {
 }
 
 constexpr int kGfxBufferOffset = 92 * 2048;
-constexpr int kGfxBufferStride = 512;
-constexpr int kGfxBufferAnimatedFrameOffset = 7 * 2048;
-constexpr int kGfxBufferAnimatedFrameStride = 512;
-constexpr int kGfxBufferRoomOffset = 2048;
-constexpr int kGfxBufferRoomSpriteOffset = 512;
-constexpr int kGfxBufferRoomSpriteStride = 2048;
-constexpr int kGfxBufferRoomSpriteLastLineOffset = 0x88;
+constexpr int kGfxBufferStride = 1024;
+constexpr int kGfxBufferAnimatedFrameOffset = 7 * 4096;
+constexpr int kGfxBufferAnimatedFrameStride = 1024;
+constexpr int kGfxBufferRoomOffset = 4096;
+constexpr int kGfxBufferRoomSpriteOffset = 1024;
+constexpr int kGfxBufferRoomSpriteStride = 4096;
+constexpr int kGfxBufferRoomSpriteLastLineOffset = 0x110;
 
 void Room::CopyRoomGraphicsToBuffer() {
   if (!rom_ || !rom_->is_loaded()) {
@@ -237,7 +238,7 @@ void Room::CopyRoomGraphicsToBuffer() {
     return;
   }
 
-  printf("[CopyRoomGraphicsToBuffer] Room %d: Converting 3BPP to 4BPP\n",
+  printf("[CopyRoomGraphicsToBuffer] Room %d: Converting 3BPP to 8BPP (Unpacked)\n",
          room_id_);
 
   // Bit extraction mask (MSB to LSB)
@@ -256,7 +257,7 @@ void Room::CopyRoomGraphicsToBuffer() {
     // Validate block index
     if (blocks_[block] < 0 || blocks_[block] > 255) {
       // Skip invalid blocks, but advance destination position
-      dest_pos += 2048;  // 64 tiles * 32 bytes per 4BPP tile
+      dest_pos += 4096;  // 64 tiles * 64 bytes per 8BPP tile
       continue;
     }
 
@@ -267,7 +268,7 @@ void Room::CopyRoomGraphicsToBuffer() {
     // Validate source bounds
     if (src_sheet_offset < 0 ||
         src_sheet_offset + 1536 > static_cast<int>(gfx_buffer_data->size())) {
-      dest_pos += 2048;
+      dest_pos += 4096;
       continue;
     }
 
@@ -306,16 +307,23 @@ void Room::CopyRoomGraphicsToBuffer() {
             if (plane1 & kBitMask[bit_index2]) pix2 |= 2;
             if (plane2 & kBitMask[bit_index2]) pix2 |= 4;
 
-            // Pack into 4BPP format: high nibble = pix1, low nibble = pix2
-            // Destination uses ZScream's layout:
-            // (row * 64) + nibble_pair + (tile_col * 4) + (tile_row * 512) + (block * 2048)
-            int dest_index = (row * 64) + nibble_pair + (tile_col * 4) +
-                            (tile_row * 512) + (block * 2048);
+            // Unpack to 8BPP (1 byte per pixel)
+            // Destination uses linear bitmap layout (128 pixels wide)
+            // (row * 128) + pixel_pair_offset + (tile_col * 8) + (tile_row * 1024) + (block * 4096)
+            int dest_base = (block * 4096) + (tile_row * 1024) + (tile_col * 8) + (row * 128);
+            
+            // pix1 (first pixel of pair)
+            int dest_index1 = dest_base + (nibble_pair * 2);
+            if (dest_index1 < static_cast<int>(current_gfx16_.size())) {
+              current_gfx16_[dest_index1] = pix1;
+              if (pix1 != 0) bytes_converted++;
+            }
 
-            if (dest_index >= 0 &&
-                dest_index < static_cast<int>(current_gfx16_.size())) {
-              current_gfx16_[dest_index] = (pix1 << 4) | pix2;
-              if (pix1 != 0 || pix2 != 0) bytes_converted++;
+            // pix2 (second pixel of pair)
+            int dest_index2 = dest_base + (nibble_pair * 2) + 1;
+            if (dest_index2 < static_cast<int>(current_gfx16_.size())) {
+              current_gfx16_[dest_index2] = pix2;
+              if (pix2 != 0) bytes_converted++;
             }
           }
         }
@@ -452,10 +460,44 @@ void Room::RenderRoomGraphics() {
 
   auto bg1_palette = dungeon_pal_group[palette_id];
 
+  // DEBUG: Log palette loading
+  PaletteDebugger::Get().LogPaletteLoad(
+      "Room::RenderRoomGraphics", palette_id, bg1_palette);
+
+  // Store current palette and bitmap for pixel inspector debugging
+  PaletteDebugger::Get().SetCurrentPalette(bg1_palette);
+  PaletteDebugger::Get().SetCurrentBitmap(&bg1_bmp);
+
   if (bg1_palette.size() > 0) {
     // Apply FULL 90-color dungeon palette
     bg1_bmp.SetPalette(bg1_palette);
     bg2_bmp.SetPalette(bg1_palette);
+
+    // DEBUG: Verify palette was applied to SDL surface
+    auto* surface = bg1_bmp.surface();
+    if (surface && surface->format && surface->format->palette) {
+      PaletteDebugger::Get().LogPaletteApplication(
+          "Room::RenderRoomGraphics (BG1)", palette_id, true);
+
+      // Log surface state for detailed debugging
+      PaletteDebugger::Get().LogSurfaceState(
+          "Room::RenderRoomGraphics (after SetPalette)", surface);
+
+      // Sample color 56 (pal=7, offset 0)
+      if (surface->format->palette->ncolors > 56) {
+        auto& c = surface->format->palette->colors[56];
+        if (c.r != 156 || c.g != 107 || c.b != 107) {
+          PaletteDebugger::Get().LogPaletteApplication(
+              "Room::RenderRoomGraphics", palette_id, false,
+              absl::StrFormat("Color 56 mismatch: got R=%d G=%d B=%d", c.r, c.g,
+                              c.b));
+        }
+      }
+    } else {
+      PaletteDebugger::Get().LogPaletteApplication(
+          "Room::RenderRoomGraphics", palette_id, false,
+          "SDL surface has no palette!");
+    }
   }
 
   // Render objects ON TOP of background tiles (AFTER palette is set)
@@ -585,18 +627,10 @@ void Room::RenderObjectsToBackground() {
   }
 
   auto room_palette = dungeon_pal_group[palette_id];
-  // Dungeon palettes are 16-color sub-palettes. Split the 90-color palette into
-  // 16-color groups.
-  auto palette_group_result =
-      gfx::CreatePaletteGroupFromLargePalette(room_palette, 16);
-  if (!palette_group_result.ok()) {
-    // Fallback to empty palette group
-    gfx::PaletteGroup empty_group;
-    ObjectDrawer drawer(rom_, current_gfx16_.data());
-    drawer.DrawObjectList(tile_objects_, bg1_buffer_, bg2_buffer_, empty_group);
-    return;
-  }
-  auto palette_group = palette_group_result.value();
+  // Dungeon palettes are 90-color palettes for 3BPP graphics (8-color strides)
+  // Pass the full palette to ObjectDrawer so it can handle all palette indices
+  gfx::PaletteGroup palette_group;
+  palette_group.AddPalette(room_palette);
 
   // Use ObjectDrawer for pattern-based object rendering
   // This provides proper wall/object drawing patterns

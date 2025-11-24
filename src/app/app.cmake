@@ -27,6 +27,10 @@ set(YAZE_APP_EXECUTABLE_SRC
   app/controller.cc
 )
 
+if(EMSCRIPTEN)
+  list(APPEND YAZE_APP_EXECUTABLE_SRC web/yaze_debug_inspector.cc)
+endif()
+
 if (APPLE)
   add_executable(yaze MACOSX_BUNDLE ${YAZE_APP_EXECUTABLE_SRC} ${YAZE_RESOURCE_FILES})
 
@@ -107,6 +111,12 @@ if(EMSCRIPTEN)
   # Use set_target_properties with LINK_FLAGS (similar to z3ed.cmake)
   set_target_properties(yaze PROPERTIES
     LINK_FLAGS "--bind -s EXPORTED_RUNTIME_METHODS='[\"ccall\",\"cwrap\",\"stringToUTF8\",\"UTF8ToString\",\"FS\"]' -s EXPORTED_FUNCTIONS='[\"_main\",\"_SetFileSystemReady\",\"_LoadRomFromWeb\"]' --shell-file ${CMAKE_SOURCE_DIR}/src/web/shell.html"
+  )
+  add_custom_command(TARGET yaze POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            $<TARGET_FILE:yaze>
+            $<TARGET_FILE_DIR:yaze>/index.html
+    COMMENT "Adding index.html alias for local HTTP servers"
   )
 endif()
 

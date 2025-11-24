@@ -7,6 +7,7 @@
 #include "app/gfx/backend/irenderer.h"
 #include "util/log.h"
 #include "util/sdl_deleter.h"
+#include "zelda3/dungeon/palette_debug.h"
 
 namespace yaze {
 namespace gfx {
@@ -70,6 +71,31 @@ void Arena::ProcessTextureQueue(IRenderer* renderer) {
         if (command.bitmap && command.bitmap->surface() &&
             command.bitmap->surface()->format && command.bitmap->is_active() &&
             command.bitmap->width() > 0 && command.bitmap->height() > 0) {
+
+          // DEBUG: Log texture creation with palette validation
+          auto* surf = command.bitmap->surface();
+          bool has_palette = surf->format->palette != nullptr;
+          int color_count = has_palette ? surf->format->palette->ncolors : 0;
+
+          // Log detailed surface state for debugging
+          zelda3::PaletteDebugger::Get().LogSurfaceState(
+              "Arena::ProcessTextureQueue (CREATE)", surf);
+          zelda3::PaletteDebugger::Get().LogTextureCreation(
+              "Arena::ProcessTextureQueue", has_palette, color_count);
+
+          // WARNING: Creating texture without proper palette will produce wrong
+          // colors
+          if (!has_palette) {
+            LOG_WARN("Arena",
+                     "Creating texture from surface WITHOUT palette - "
+                     "colors will be incorrect!");
+          } else if (color_count < 90) {
+            LOG_WARN("Arena",
+                     "Creating texture with only %d palette colors (expected "
+                     "90 for dungeon)",
+                     color_count);
+          }
+
           try {
             auto texture = active_renderer->CreateTexture(
                 command.bitmap->width(), command.bitmap->height());

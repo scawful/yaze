@@ -73,6 +73,9 @@ class Arena {
   size_t GetPooledSurfaceCount() const {
     return surface_pool_.available_surfaces_.size();
   }
+  size_t texture_command_queue_size() const {
+    return texture_command_queue_.size();
+  }
 
   // Graphics sheet access (223 total sheets in YAZE)
   /**

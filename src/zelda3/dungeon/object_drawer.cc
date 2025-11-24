@@ -71,34 +71,26 @@ absl::Status ObjectDrawer::DrawObject(const RoomObject& object,
 absl::Status ObjectDrawer::DrawObjectList(
     const std::vector<RoomObject>& objects, gfx::BackgroundBuffer& bg1,
     gfx::BackgroundBuffer& bg2, const gfx::PaletteGroup& palette_group) {
+  absl::Status status = absl::OkStatus();
   for (const auto& object : objects) {
-    DrawObject(object, bg1, bg2, palette_group);
+    auto s = DrawObject(object, bg1, bg2, palette_group);
+    if (!s.ok() && status.ok()) {
+      status = s;
+    }
   }
 
-  // CRITICAL: Apply dungeon palette to background buffers BEFORE syncing to SDL
-  // ObjectDrawer writes palette index values (0-255) to the bitmap, but these
-  // need to be converted to RGB colors using the dungeon palette
+  // NOTE: Palette is already set in Room::RenderRoomGraphics() before calling
+  // this function. We just need to sync the pixel data to the SDL surface.
   auto& bg1_bmp = bg1.bitmap();
   auto& bg2_bmp = bg2.bitmap();
 
-  // Apply dungeon palette (main palette from palette group)
-  if (!palette_group.empty()) {
-    const auto& dungeon_palette = palette_group[0];  // Main dungeon palette (90 colors)
-    bg1_bmp.SetPalette(dungeon_palette);
-    bg2_bmp.SetPalette(dungeon_palette);
-    printf("[ObjectDrawer] Applied dungeon palette: %zu colors\n",
-           dungeon_palette.size());
-  }
-
-  // Sync bitmap data to SDL surfaces after palette is applied
+  // Sync bitmap data to SDL surfaces (palette already applied)
   if (bg1_bmp.modified() && bg1_bmp.surface() &&
       bg1_bmp.mutable_data().size() > 0) {
     SDL_LockSurface(bg1_bmp.surface());
     memcpy(bg1_bmp.surface()->pixels, bg1_bmp.mutable_data().data(),
            bg1_bmp.mutable_data().size());
     SDL_UnlockSurface(bg1_bmp.surface());
-    printf("[ObjectDrawer] Synced BG1 bitmap data to SDL surface (%zu bytes)\n",
-           bg1_bmp.mutable_data().size());
   }
 
   if (bg2_bmp.modified() && bg2_bmp.surface() &&
@@ -107,11 +99,9 @@ absl::Status ObjectDrawer::DrawObjectList(
     memcpy(bg2_bmp.surface()->pixels, bg2_bmp.mutable_data().data(),
            bg2_bmp.mutable_data().size());
     SDL_UnlockSurface(bg2_bmp.surface());
-    printf("[ObjectDrawer] Synced BG2 bitmap data to SDL surface (%zu bytes)\n",
-           bg2_bmp.mutable_data().size());
   }
 
-  return absl::OkStatus();
+  return status;
 }
 
 // ============================================================================
@@ -891,7 +881,7 @@ void ObjectDrawer::DrawTileToBitmap(gfx::Bitmap& bitmap,
                                     const gfx::TileInfo& tile_info, int pixel_x,
                                     int pixel_y, const uint8_t* tiledata) {
   // Draw an 8x8 tile directly to bitmap at pixel coordinates
-  // Graphics data is in 4BPP packed format (2 pixels per byte)
+  // Graphics data is in 8BPP unpacked format (1 byte per pixel)
   if (!tiledata) return;
 
   // DEBUG: Check if bitmap is valid
@@ -901,94 +891,56 @@ void ObjectDrawer::DrawTileToBitmap(gfx::Bitmap& bitmap,
     return;
   }
 
-  // Calculate tile position in 4BPP graphics buffer
-  // Layout: 16 tiles per row, each tile is 4 bytes wide (8 pixels / 2)
-  // Row stride: 64 bytes (16 tiles * 4 bytes)
+  // Calculate tile position in 8BPP graphics buffer
+  // Layout: 16 tiles per row, each tile is 8 bytes wide (8 pixels)
+  // Row stride: 128 bytes (16 tiles * 8 bytes)
   int tile_col = tile_info.id_ % 16;
   int tile_row = tile_info.id_ / 16;
-  int tile_base_x = tile_col * 4;    // 4 bytes per tile horizontally
-  int tile_base_y = tile_row * 512;  // 512 bytes per tile row (8 rows * 64 bytes)
+  int tile_base_x = tile_col * 8;     // 8 bytes per tile horizontally
+  int tile_base_y = tile_row * 1024;  // 1024 bytes per tile row (8 rows * 128 bytes)
 
-  // Palette offset: 4BPP uses 16 colors per palette
-  uint8_t palette_offset = (tile_info.palette_ & 0x07) * 16;
+  // Palette offset: 3BPP uses 8 colors per palette (consistent with BackgroundBuffer)
+  uint8_t palette_offset = (tile_info.palette_ & 0x07) * 8;
 
   // DEBUG: Log tile info for first few tiles
   static int debug_tile_count = 0;
   if (debug_tile_count < 5) {
-    printf("[ObjectDrawer] DrawTile4BPP: id=0x%03X pos=(%d,%d) base=(%d,%d) pal=%d\n",
+    printf("[ObjectDrawer] DrawTile8BPP: id=0x%03X pos=(%d,%d) base=(%d,%d) pal=%d\n",
            tile_info.id_, pixel_x, pixel_y, tile_base_x, tile_base_y,
            tile_info.palette_);
     debug_tile_count++;
   }
 
-  // Draw 8x8 pixels (processing pixel pairs from packed bytes)
   int pixels_written = 0;
-  int pixels_transparent = 0;
 
+  // Draw 8x8 pixels
   for (int py = 0; py < 8; py++) {
     // Source row with vertical mirroring
     int src_row = tile_info.vertical_mirror_ ? (7 - py) : py;
+    int dst_y = pixel_y + py;
 
-    for (int nibble_pair = 0; nibble_pair < 4; nibble_pair++) {
+    for (int px = 0; px < 8; px++) {
       // Source column with horizontal mirroring
-      int src_col = tile_info.horizontal_mirror_ ? (3 - nibble_pair) : nibble_pair;
+      int src_col = tile_info.horizontal_mirror_ ? (7 - px) : px;
+      int dst_x = pixel_x + px;
 
-      // Calculate source index in 4BPP buffer
-      // ZScream layout: (row * 64) + nibble_pair + tile_base
-      int src_index = (src_row * 64) + src_col + tile_base_x + tile_base_y;
-      uint8_t packed_byte = tiledata[src_index];
+      // Calculate source index in 8BPP buffer
+      // Linear layout: (row * 128) + col + tile_base
+      int src_index = (src_row * 128) + src_col + tile_base_x + tile_base_y;
+      uint8_t pixel = tiledata[src_index];
 
-      // Unpack the two pixels from nibbles
-      uint8_t pix1, pix2;
-      if (tile_info.horizontal_mirror_) {
-        // When mirrored, swap nibble order
-        pix1 = packed_byte & 0x0F;         // Low nibble first
-        pix2 = (packed_byte >> 4) & 0x0F;  // High nibble second
-      } else {
-        pix1 = (packed_byte >> 4) & 0x0F;  // High nibble first
-        pix2 = packed_byte & 0x0F;         // Low nibble second
-      }
 
-      // Calculate destination pixel positions
-      int px1 = nibble_pair * 2;
-      int px2 = nibble_pair * 2 + 1;
 
-      // Write first pixel
-      if (pix1 != 0) {
-        uint8_t final_color = pix1 + palette_offset;
-        int dest_x = pixel_x + px1;
-        int dest_y = pixel_y + py;
-
-        if (dest_x >= 0 && dest_x < bitmap.width() &&
-            dest_y >= 0 && dest_y < bitmap.height()) {
-          int dest_index = dest_y * bitmap.width() + dest_x;
-          if (dest_index >= 0 &&
-              dest_index < static_cast<int>(bitmap.mutable_data().size())) {
-            bitmap.mutable_data()[dest_index] = final_color;
+      // Write pixel to bitmap (0 is transparent)
+      if (pixel != 0) {
+        if (dst_x >= 0 && dst_x < bitmap.width() &&
+            dst_y >= 0 && dst_y < bitmap.height()) {
+          int dest_index = dst_y * bitmap.width() + dst_x;
+          if (dest_index < static_cast<int>(bitmap.mutable_data().size())) {
+            bitmap.mutable_data()[dest_index] = pixel + palette_offset;
             pixels_written++;
           }
         }
-      } else {
-        pixels_transparent++;
-      }
-
-      // Write second pixel
-      if (pix2 != 0) {
-        uint8_t final_color = pix2 + palette_offset;
-        int dest_x = pixel_x + px2;
-        int dest_y = pixel_y + py;
-
-        if (dest_x >= 0 && dest_x < bitmap.width() &&
-            dest_y >= 0 && dest_y < bitmap.height()) {
-          int dest_index = dest_y * bitmap.width() + dest_x;
-          if (dest_index >= 0 &&
-              dest_index < static_cast<int>(bitmap.mutable_data().size())) {
-            bitmap.mutable_data()[dest_index] = final_color;
-            pixels_written++;
-          }
-        }
-      } else {
-        pixels_transparent++;
       }
     }
   }
@@ -996,12 +948,6 @@ void ObjectDrawer::DrawTileToBitmap(gfx::Bitmap& bitmap,
   // Mark bitmap as modified if we wrote any pixels
   if (pixels_written > 0) {
     bitmap.set_modified(true);
-  }
-
-  // DEBUG: Log pixel writing stats for first few tiles
-  if (debug_tile_count <= 5) {
-    printf("[ObjectDrawer] Tile 0x%03X: wrote %d pixels, %d transparent\n",
-           tile_info.id_, pixels_written, pixels_transparent);
   }
 }
 
