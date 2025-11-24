@@ -50,10 +50,15 @@
 
   function setStatus() {
     if (!ui.status) return;
-    ui.status.textContent = state.connected
+    const locked = !!state.password;
+    const text = state.connected
       ? `Room ${state.sessionCode || '(unknown)'}`
       : 'Disconnected';
-    ui.status.className = `yaze-badge ${state.password ? 'locked' : 'unlocked'}`;
+    ui.status.className = `yaze-badge ${locked ? 'locked' : 'unlocked'}`;
+    const icon = ui.status.querySelector('.status-icon');
+    const label = ui.status.querySelector('.status-text');
+    if (icon) icon.textContent = locked ? 'lock' : 'lock_open';
+    if (label) label.textContent = text;
   }
 
   function disconnect(reason = 'Client request') {
@@ -207,18 +212,36 @@
     const header = document.createElement('div');
     header.className = 'yaze-chat-header';
     header.innerHTML = `
-      <input id="yaze-server-url" placeholder="ws://server:8765" />
-      <input id="yaze-session-code" placeholder="Room code (ABC123)" maxlength="6" style="text-transform: uppercase;" />
-      <input id="yaze-session-name" placeholder="Session name (host)" />
-      <input id="yaze-username" placeholder="Username" />
-      <input id="yaze-password" type="password" placeholder="Password (optional)" />
+      <label class="yaze-field">
+        <span class="material-symbols-outlined">link</span>
+        <input id="yaze-server-url" placeholder="ws://server:8765" />
+      </label>
+      <label class="yaze-field">
+        <span class="material-symbols-outlined">qr_code</span>
+        <input id="yaze-session-code" placeholder="Room code (ABC123)" maxlength="6" style="text-transform: uppercase;" />
+      </label>
+      <label class="yaze-field">
+        <span class="material-symbols-outlined">meeting_room</span>
+        <input id="yaze-session-name" placeholder="Session name (host)" />
+      </label>
+      <label class="yaze-field">
+        <span class="material-symbols-outlined">person</span>
+        <input id="yaze-username" placeholder="Username" />
+      </label>
+      <label class="yaze-field">
+        <span class="material-symbols-outlined">vpn_key</span>
+        <input id="yaze-password" type="password" placeholder="Password (optional)" />
+      </label>
       <select id="yaze-mode">
         <option value="join">Join</option>
         <option value="host">Host</option>
       </select>
-      <button id="yaze-connect">Connect</button>
-      <button id="yaze-disconnect">Disconnect</button>
-      <div id="yaze-status" class="yaze-badge unlocked">Disconnected</div>
+      <button id="yaze-connect" class="yaze-icon-btn"><span class="material-symbols-outlined">power</span><span>Connect</span></button>
+      <button id="yaze-disconnect" class="yaze-icon-btn subtle"><span class="material-symbols-outlined">link_off</span><span>Disconnect</span></button>
+      <div id="yaze-status" class="yaze-badge unlocked">
+        <span class="material-symbols-outlined status-icon">lock_open</span>
+        <span class="status-text">Disconnected</span>
+      </div>
     `;
 
     const body = document.createElement('div');
@@ -228,7 +251,7 @@
     inputRow.className = 'yaze-chat-input';
     inputRow.innerHTML = `
       <textarea id="yaze-chat-input" placeholder="Type a message. Enter to send, Shift+Enter for newline."></textarea>
-      <button id="yaze-chat-send">Send</button>
+      <button id="yaze-chat-send" class="yaze-icon-btn primary"><span class="material-symbols-outlined">send</span></button>
     `;
 
     chatPane.appendChild(header);
@@ -241,10 +264,10 @@
     const consoleHeader = document.createElement('div');
     consoleHeader.className = 'yaze-console-header';
     consoleHeader.innerHTML = `
-      <div>Collab Console</div>
+      <div class="title"><span class="material-symbols-outlined">terminal</span>Collab Console</div>
       <div class="controls">
-        <button id="yaze-console-toggle">Hide Log</button>
-        <button id="yaze-console-clear">Clear</button>
+        <button id="yaze-console-toggle" class="yaze-icon-btn subtle"><span class="material-symbols-outlined">visibility_off</span><span>Hide</span></button>
+        <button id="yaze-console-clear" class="yaze-icon-btn subtle"><span class="material-symbols-outlined">backspace</span><span>Clear</span></button>
       </div>
     `;
     const consoleBody = document.createElement('div');
@@ -294,28 +317,14 @@
 
     ui.chatSend.addEventListener('click', sendChat);
     ui.chatInput.addEventListener('keydown', (e) => {
-      // Stop event from bubbling to prevent global/WASM handlers from stealing input
+      // Keep input local but allow default typing
       e.stopPropagation();
-      // Prevent shortcuts from firing while typing
-      e.stopImmediatePropagation();
 
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
         sendChat();
       }
     }, true);
-    // Keep focus in chat input when interacting with the pane
-    ui.chatBody.addEventListener('click', () => ui.chatInput.focus());
-    ui.container.addEventListener('click', (e) => {
-      // Only refocus for clicks inside the collab UI, not on buttons
-      if (e.target === ui.chatBody || e.target === ui.chatInput) {
-        return;
-      }
-      if (ui.container.contains(e.target)) {
-        ui.chatInput.focus();
-      }
-    });
-
     ui.consoleToggle.addEventListener('click', () => {
       state.consoleVisible = !state.consoleVisible;
       ui.consolePane.style.display = state.consoleVisible ? 'flex' : 'none';

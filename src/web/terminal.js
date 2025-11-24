@@ -173,13 +173,10 @@
      * @param {KeyboardEvent} event
      */
     handleKeyDown(event) {
-      // Always keep terminal input events local
+      // Keep terminal input events local but allow default text entry
       event.stopPropagation();
-      event.stopImmediatePropagation();
 
-      // Only stop propagation for special keys, allow normal typing to work
       const specialKeys = ['Enter', 'ArrowUp', 'ArrowDown', 'Tab', 'Escape'];
-
       switch (event.key) {
         case 'Enter':
           event.preventDefault();
