@@ -175,6 +175,30 @@ window.onerror = function(event) {
   };
 };
 
+// Limit SDL/Emscripten keyboard capture to the canvas so text inputs stay usable
+function configureKeyboardCapture() {
+  var canvas = document.getElementById('canvas');
+  waitForModule(() => {
+    if (canvas && typeof Module !== 'undefined') {
+      Module.keyboardListeningElement = canvas;
+    }
+  });
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', configureKeyboardCapture);
+} else {
+  configureKeyboardCapture();
+}
+
+function waitForModule(cb) {
+  if (typeof Module !== 'undefined') {
+    cb();
+  } else {
+    setTimeout(() => waitForModule(cb), 30);
+  }
+}
+
 function ensureFSReady() {
   if (fsReady && typeof FS !== 'undefined') return true;
   if (fsInitPromise) {
@@ -188,31 +212,40 @@ function ensureFSReady() {
 function initPersistentFS() {
   if (fsInitPromise) return fsInitPromise;
   fsInitPromise = new Promise((resolve, reject) => {
-    if (typeof FS === 'undefined' || typeof IDBFS === 'undefined') {
-      reject(new Error('FS/IDBFS unavailable during init'));
-      return;
-    }
+    waitForModule(() => {
+      if (typeof FS === 'undefined' || typeof IDBFS === 'undefined') {
+        fsInitAttempts++;
+        if (fsInitAttempts < 5) {
+          console.warn('FS/IDBFS unavailable; retrying...', fsInitAttempts);
+          fsInitPromise = null;
+          setTimeout(initPersistentFS, 100);
+          return;
+        }
+        reject(new Error('FS/IDBFS unavailable during init'));
+        return;
+      }
 
-    try {
-      try { FS.mkdir('/roms'); } catch (e) {}
-      try { FS.mkdir('/saves'); } catch (e) {}
-      try { FS.mount(IDBFS, {}, '/roms'); } catch (e) { console.warn('Mount /roms failed (maybe already mounted):', e); }
-      try { FS.mount(IDBFS, {}, '/saves'); } catch (e) { console.warn('Mount /saves failed (maybe already mounted):', e); }
-    } catch (err) {
-      console.error('FS init error:', err);
-      reject(err);
-      return;
-    }
-
-    FS.syncfs(true, function(err) {
-      if (err) {
-        console.error('FS sync (pull) failed:', err);
+      try {
+        try { FS.mkdir('/roms'); } catch (e) {}
+        try { FS.mkdir('/saves'); } catch (e) {}
+        try { FS.mount(IDBFS, {}, '/roms'); } catch (e) { console.warn('Mount /roms failed (maybe already mounted):', e); }
+        try { FS.mount(IDBFS, {}, '/saves'); } catch (e) { console.warn('Mount /saves failed (maybe already mounted):', e); }
+      } catch (err) {
+        console.error('FS init error:', err);
         reject(err);
         return;
       }
-      fsReady = true;
-      console.log('[WASM] FS ready (IDBFS mounted)');
-      resolve();
+
+      FS.syncfs(true, function(err) {
+        if (err) {
+          console.error('FS sync (pull) failed:', err);
+          reject(err);
+          return;
+        }
+        fsReady = true;
+        console.log('[WASM] FS ready (IDBFS mounted)');
+        resolve();
+      });
     });
   });
   return fsInitPromise;
@@ -310,6 +343,7 @@ window.toggleFullscreen = function() {
   if (!document.fullscreenElement) {
     document.documentElement.requestFullscreen().catch(err => {
       console.warn(`Error attempting to enable fullscreen: ${err.message}`);
+      alert('Fullscreen request was blocked by the browser. Check browser settings or allow fullscreen for this site.');
     });
   } else {
     if (document.exitFullscreen) {
@@ -317,6 +351,15 @@ window.toggleFullscreen = function() {
     }
   }
 };
+
+// Toggle icon based on fullscreen state
+document.addEventListener('fullscreenchange', function() {
+  var btn = document.getElementById('fullscreen-btn');
+  var icon = btn ? btn.querySelector('.material-symbols-outlined') : null;
+  if (icon) {
+    icon.textContent = document.fullscreenElement ? 'fullscreen_exit' : 'fullscreen';
+  }
+});
 
 // Listen for fullscreen changes to trigger resize
 document.addEventListener('fullscreenchange', function() {

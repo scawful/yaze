@@ -44,9 +44,37 @@
   border-bottom: 1px solid var(--border-color);
 }
 
-.yaze-chat-header input,
-.yaze-chat-header select,
-.yaze-chat-header button {
+.yaze-field {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-radius: var(--control-radius);
+  padding: 4px 8px;
+  height: 32px;
+}
+
+.yaze-field .material-symbols-outlined {
+  font-size: 16px;
+  color: var(--text-muted);
+}
+
+.yaze-field input {
+  width: 100%;
+  font-size: 13px;
+  border: none;
+  background: transparent;
+  color: var(--text-primary);
+  font-family: var(--font-ui);
+}
+
+.yaze-field input:focus {
+  outline: none;
+}
+
+.yaze-chat-header select {
   width: 100%;
   font-size: 13px;
   padding: 8px 12px;
@@ -54,27 +82,42 @@
   border: 1px solid var(--border-color);
   background: var(--bg-input);
   color: var(--text-primary);
-  height: 32px; /* Consistent height */
+  height: 32px;
   font-family: var(--font-ui);
 }
 
-.yaze-chat-header input:focus,
-.yaze-chat-header select:focus {
-  border-color: var(--border-focus);
-  outline: none;
-}
-
-.yaze-chat-header button {
-  background: var(--accent-dim);
-  border: none;
+.yaze-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: center;
+  width: 100%;
+  font-size: 13px;
+  padding: 8px 10px;
+  border-radius: var(--control-radius);
+  border: 1px solid var(--border-color);
+  background: var(--bg-input);
+  color: var(--text-primary);
   cursor: pointer;
   font-weight: 600;
-  color: #fff;
-  transition: background 0.1s;
 }
 
-.yaze-chat-header button:hover {
+.yaze-icon-btn .material-symbols-outlined {
+  font-size: 16px;
+}
+
+.yaze-icon-btn.primary {
   background: var(--accent-primary);
+  border: none;
+  color: #000;
+}
+
+.yaze-icon-btn.subtle {
+  background: var(--bg-panel);
+}
+
+.yaze-icon-btn:hover {
+  filter: brightness(1.05);
 }
 
 /* Full width elements in grid */
@@ -84,6 +127,13 @@
 #yaze-mode { grid-column: span 2; }
 #yaze-connect, #yaze-disconnect { grid-column: span 1; }
 #yaze-status { grid-column: 1 / -1; text-align: center; margin-top: 4px; }
+#yaze-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: center;
+}
+#yaze-status .status-icon { font-size: 16px; }
 
 .yaze-chat-body {
   flex: 1 1 auto;
@@ -217,6 +267,18 @@
   font-size: 10px;
 }
 
+.yaze-console-header .title {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.yaze-console-header .title .material-symbols-outlined {
+  font-size: 16px;
+}
+
 .yaze-console-header .controls button {
   margin-left: 8px;
   background: transparent;
@@ -285,4 +347,3 @@ body.yaze-console-open {
     margin-right: 0;
   }
 }
-
