@@ -154,8 +154,9 @@
         "YAZE_BUILD_APP": "ON",
         "YAZE_BUILD_LIB": "ON",
         "YAZE_BUILD_EMU": "ON",
-        "YAZE_BUILD_CLI": "OFF",
-        "YAZE_BUILD_Z3ED": "OFF",
+        "YAZE_BUILD_CLI": "ON",
+        "YAZE_BUILD_Z3ED": "ON",
+        "YAZE_WASM_TERMINAL": "ON",
         "YAZE_BUILD_TESTS": "OFF",
         "YAZE_ENABLE_GRPC": "OFF",
         "YAZE_ENABLE_JSON": "ON",
@@ -191,8 +192,9 @@
         "YAZE_BUILD_GUI": "ON",
         "YAZE_BUILD_LIB": "ON",
         "YAZE_BUILD_EMU": "ON",
-        "YAZE_BUILD_CLI": "OFF",
+        "YAZE_BUILD_CLI": "ON",
         "YAZE_BUILD_Z3ED": "ON",
+        "YAZE_WASM_TERMINAL": "ON",
         "YAZE_BUILD_TESTS": "OFF",
         "YAZE_ENABLE_GRPC": "OFF",
         "YAZE_ENABLE_JSON": "ON",
@@ -577,6 +579,29 @@
       "displayName": "macOS AI Development",
       "description": "Full development build with AI features and gRPC",
       "binaryDir": "${sourceDir}/build_ai",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "YAZE_BUILD_TESTS": "ON",
+        "YAZE_ENABLE_GRPC": "ON",
+        "YAZE_ENABLE_JSON": "ON",
+        "YAZE_ENABLE_AI": "ON",
+        "YAZE_ENABLE_ROM_TESTS": "ON",
+        "YAZE_BUILD_AGENT_UI": "ON",
+        "YAZE_ENABLE_REMOTE_AUTOMATION": "ON",
+        "YAZE_ENABLE_AI_RUNTIME": "ON"
+      }
+    },
+    {
+      "name": "mac-gemini",
+      "inherits": "mac-base",
+      "displayName": "macOS Gemini Agent Build",
+      "description": "Full development build for Gemini AI agent with all features",
+      "binaryDir": "${sourceDir}/build_gemini",
       "condition": {
         "type": "equals",
         "lhs": "${hostSystemName}",
