@@ -24,7 +24,10 @@
     <link rel="apple-touch-icon" href="./icons/icon-192x192.png">
 
     <!-- Styles -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <!-- Material Symbols - with fallback if CDN fails -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="main.css">
     <link rel="stylesheet" href="shortcuts_overlay.css">
     <link rel="stylesheet" href="touch_gestures.css">
@@ -298,6 +301,47 @@
       function showShortcuts() {
         if (window.yazeShortcuts) window.yazeShortcuts.show();
       }
+
+      // Dungeon palette debugging
+      var paletteInspector = {
+        refresh: function() {
+          if (typeof Module === 'undefined' || typeof Module.getDungeonPaletteEvents !== 'function') return;
+          
+          var eventsStr = Module.getDungeonPaletteEvents();
+          if (!eventsStr) return;
+          
+          var events = JSON.parse(eventsStr);
+          var list = document.getElementById('problems-list');
+          
+          if (!list) return;
+          list.innerHTML = '';
+          
+          if (events.length === 0) {
+            list.innerHTML = '<div class="problems-empty">No palette events yet</div>';
+            return;
+          }
+          
+          events.forEach(function(event) {
+            var item = document.createElement('div');
+            item.className = 'problem-item';
+            if (event.level === 'error') item.classList.add('error');
+            if (event.level === 'warning') item.classList.add('warning');
+            
+            var icon = event.level === 'error' ? '❌' : event.level === 'warning' ? '⚠️' : 'ℹ️';
+            item.innerHTML = `
+              <span class="problem-icon">${icon}</span>
+              <span class="problem-location">${event.location}</span>
+              <span class="problem-message">${event.message}</span>
+            `;
+            list.appendChild(item);
+          });
+        },
+        
+        autoRefresh: function() {
+          setInterval(this.refresh.bind(this), 1000);
+        }
+      };
+
       // VSCode-style panel system
       var panels = {
         container: null,
@@ -346,6 +390,11 @@
             view.classList.toggle('active', view.id === 'panel-' + panel);
           });
           this.updateToggles();
+
+          // Refresh palette inspector if problems tab is active
+          if (panel === 'problems' && typeof paletteInspector !== 'undefined') {
+            paletteInspector.refresh();
+          }
         },
 
         clear: function() {

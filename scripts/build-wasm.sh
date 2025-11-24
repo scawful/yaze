@@ -53,9 +53,22 @@ cp "$PROJECT_ROOT/src/web/"*.css dist/
 cp "$PROJECT_ROOT/src/web/"*.js dist/
 cp "$PROJECT_ROOT/src/web/manifest.json" dist/ 2>/dev/null || true
 cp "$PROJECT_ROOT/src/web/offline.html" dist/ 2>/dev/null || true
-cp -r "$PROJECT_ROOT/src/web/icons" dist/ 2>/dev/null || true
+# Copy icons directory (ensure it exists and is copied)
+if [ -d "$PROJECT_ROOT/src/web/icons" ]; then
+    echo "Copying icons..."
+    cp -r "$PROJECT_ROOT/src/web/icons" dist/ || true
+    # Verify icons were copied
+    if [ ! -d "dist/icons" ]; then
+        echo "Warning: icons directory not copied successfully"
+    fi
+else
+    echo "Warning: icons directory not found at $PROJECT_ROOT/src/web/icons"
+fi
 # coi-serviceworker.js is critical for SharedArrayBuffer support
-echo "coi-serviceworker.js copied (required for SharedArrayBuffer/pthreads)"
+if [ -f "$PROJECT_ROOT/src/web/coi-serviceworker.js" ]; then
+    cp "$PROJECT_ROOT/src/web/coi-serviceworker.js" dist/
+    echo "coi-serviceworker.js copied (required for SharedArrayBuffer/pthreads)"
+fi
 
 # Copy z3ed WASM module if built
 if [ -f bin/z3ed.js ]; then
