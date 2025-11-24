@@ -39,7 +39,6 @@
 #ifdef YAZE_WITH_GRPC
 #include "app/editor/agent/agent_chat_history_popup.h"
 #include "app/editor/agent/agent_editor.h"
-#include "app/editor/agent/automation_bridge.h"
 
 // Forward declarations for gRPC-dependent types
 namespace yaze::agent {
@@ -93,6 +92,7 @@ class EditorManager {
                                 : nullptr;
   }
   auto GetCurrentEditor() const -> Editor* { return current_editor_; }
+  void SetCurrentEditor(Editor* editor) { current_editor_ = editor; }
   size_t GetCurrentSessionId() const {
     return session_coordinator_ ? session_coordinator_->GetActiveSessionIndex()
                                 : 0;
@@ -111,8 +111,11 @@ class EditorManager {
   // Get current session's feature flags (falls back to global if no session)
   core::FeatureFlags::Flags* GetCurrentFeatureFlags() {
     size_t current_index = GetCurrentSessionIndex();
-    if (current_index < sessions_.size()) {
-      return &sessions_[current_index].feature_flags;
+    if (session_coordinator_ && current_index < session_coordinator_->GetTotalSessionCount()) {
+      auto* session = static_cast<RomSession*>(session_coordinator_->GetSession(current_index));
+      if (session) {
+        return &session->feature_flags;
+      }
     }
     return &core::FeatureFlags::get();  // Fallback to global
   }
@@ -188,6 +191,9 @@ class EditorManager {
   bool HasDuplicateSession(const std::string& filepath);
   void RenameSession(size_t index, const std::string& new_name);
   void Quit() { quit_ = true; }
+
+  // Public for SessionCoordinator to configure new sessions
+  void ConfigureSession(RomSession* session);
 
   // UI visibility controls (public for MenuOrchestrator)
   // UI visibility controls - inline for performance (single-line wrappers
@@ -284,8 +290,6 @@ class EditorManager {
   bool show_proposal_drawer_ = false;
 
 #ifdef YAZE_WITH_GRPC
-  AutomationBridge harness_telemetry_bridge_;
-
   // Agent chat history popup
   AgentChatHistoryPopup agent_chat_history_popup_;
   bool show_chat_history_popup_ = false;
@@ -311,9 +315,7 @@ class EditorManager {
 
  public:
  private:
-  std::deque<RomSession> sessions_;
   Editor* current_editor_ = nullptr;
-  EditorSet blank_editor_set_{};
   // Tracks which session is currently active so delegators (menus, popups,
   // shortcuts) stay in sync without relying on per-editor context.
 

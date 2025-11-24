@@ -35,7 +35,6 @@
 #include "app/emu/emulator.h"
 #include "app/gfx/debug/performance/performance_profiler.h"
 #include "app/gfx/resource/arena.h"
-#include "app/gui/core/background_renderer.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/input.h"
 #include "app/gui/core/theme_manager.h"
@@ -67,7 +66,6 @@
 #ifdef YAZE_WITH_GRPC
 #include "app/editor/agent/agent_chat_widget.h"
 #include "app/editor/agent/automation_bridge.h"
-#include "app/service/screenshot_utils.h"
 #include "app/test/z3ed_test_suite.h"
 #include "cli/service/agent/agent_control_server.h"
 #include "cli/service/agent/conversational_agent_service.h"
@@ -126,8 +124,7 @@ void EditorManager::ShowChatHistory() {
 #endif
 
 EditorManager::EditorManager()
-    : blank_editor_set_(nullptr, &user_settings_),
-      project_manager_(&toast_manager_),
+    : project_manager_(&toast_manager_),
       rom_file_manager_(&toast_manager_) {
   std::stringstream ss;
   ss << YAZE_VERSION_MAJOR << "." << YAZE_VERSION_MINOR << "."
@@ -172,8 +169,7 @@ EditorManager::EditorManager()
 
   // STEP 2: Initialize SessionCoordinator (independent of popups)
   session_coordinator_ = std::make_unique<SessionCoordinator>(
-      static_cast<void*>(&sessions_), &card_registry_, &toast_manager_,
-      &user_settings_);
+      &card_registry_, &toast_manager_, &user_settings_);
 
   // STEP 3: Initialize MenuOrchestrator (depends on popup_manager_,
   // session_coordinator_)
@@ -341,164 +337,6 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
     agent_editor_.GetChatWidget()->SetChatHistoryPopup(
         &agent_chat_history_popup_);
   }
-
-  // Set up multimodal (vision) callbacks for Gemini
-  AgentChatWidget::MultimodalCallbacks multimodal_callbacks;
-  multimodal_callbacks.capture_snapshot =
-      [this](std::filesystem::path* output_path) -> absl::Status {
-    using CaptureMode = AgentChatWidget::CaptureMode;
-
-    absl::StatusOr<yaze::test::ScreenshotArtifact> result;
-
-    // Capture based on selected mode
-    switch (agent_editor_.GetChatWidget()->capture_mode()) {
-      case CaptureMode::kFullWindow:
-        result = yaze::test::CaptureHarnessScreenshot("");
-        break;
-
-      case CaptureMode::kActiveEditor:
-        result = yaze::test::CaptureActiveWindow("");
-        if (!result.ok()) {
-          // Fallback to full window if no active window
-          result = yaze::test::CaptureHarnessScreenshot("");
-        }
-        break;
-
-      case CaptureMode::kSpecificWindow: {
-        const char* window_name =
-            agent_editor_.GetChatWidget()->specific_window_name();
-        if (window_name && std::strlen(window_name) > 0) {
-          result = yaze::test::CaptureWindowByName(window_name, "");
-          if (!result.ok()) {
-            // Fallback to active window if specific window not found
-            result = yaze::test::CaptureActiveWindow("");
-          }
-        } else {
-          result = yaze::test::CaptureActiveWindow("");
-        }
-        if (!result.ok()) {
-          result = yaze::test::CaptureHarnessScreenshot("");
-        }
-        break;
-      }
-    }
-
-    if (!result.ok()) {
-      return result.status();
-    }
-    *output_path = result->file_path;
-    return absl::OkStatus();
-  };
-#ifdef YAZE_AI_RUNTIME_AVAILABLE
-  multimodal_callbacks.send_to_gemini =
-      [this](const std::filesystem::path& image_path,
-             const std::string& prompt) -> absl::Status {
-    // Get Gemini API key from environment
-    const char* api_key = std::getenv("GEMINI_API_KEY");
-    if (!api_key || std::strlen(api_key) == 0) {
-      return absl::FailedPreconditionError(
-          "GEMINI_API_KEY environment variable not set");
-    }
-
-    // Create Gemini service
-    cli::GeminiConfig config;
-    config.api_key = api_key;
-    config.model = "gemini-2.5-flash";  // Use vision-capable model
-    config.verbose = false;
-
-    cli::GeminiAIService gemini_service(config);
-
-    // Generate multimodal response
-    auto response =
-        gemini_service.GenerateMultimodalResponse(image_path.string(), prompt);
-    if (!response.ok()) {
-      return response.status();
-    }
-
-    // Add the response to chat history
-    cli::agent::ChatMessage agent_msg;
-    agent_msg.sender = cli::agent::ChatMessage::Sender::kAgent;
-    agent_msg.message = response->text_response;
-    agent_msg.timestamp = absl::Now();
-    agent_editor_.GetChatWidget()->SetRomContext(GetCurrentRom());
-
-    return absl::OkStatus();
-  };
-#else
-  multimodal_callbacks.send_to_gemini = [](const std::filesystem::path&,
-                                           const std::string&) -> absl::Status {
-    return absl::FailedPreconditionError(
-        "Gemini AI runtime is disabled in this build");
-  };
-#endif
-
-  agent_editor_.GetChatWidget()->SetMultimodalCallbacks(multimodal_callbacks);
-
-  // Set up Z3ED command callbacks for proposal management
-  AgentChatWidget::Z3EDCommandCallbacks z3ed_callbacks;
-
-  z3ed_callbacks.accept_proposal =
-      [this](const std::string& proposal_id) -> absl::Status {
-    // Use ProposalDrawer's existing logic
-    proposal_drawer_.Show();
-    proposal_drawer_.FocusProposal(proposal_id);
-
-    toast_manager_.Show(
-        absl::StrFormat("%s View proposal %s in drawer to accept",
-                        ICON_MD_PREVIEW, proposal_id),
-        ToastType::kInfo, 3.5f);
-
-    return absl::OkStatus();
-  };
-
-  z3ed_callbacks.reject_proposal =
-      [this](const std::string& proposal_id) -> absl::Status {
-    // Use ProposalDrawer's existing logic
-    proposal_drawer_.Show();
-    proposal_drawer_.FocusProposal(proposal_id);
-
-    toast_manager_.Show(
-        absl::StrFormat("%s View proposal %s in drawer to reject",
-                        ICON_MD_PREVIEW, proposal_id),
-        ToastType::kInfo, 3.0f);
-
-    return absl::OkStatus();
-  };
-
-  z3ed_callbacks.list_proposals =
-      []() -> absl::StatusOr<std::vector<std::string>> {
-    // Return empty for now - ProposalDrawer handles the real list
-    return std::vector<std::string>{};
-  };
-
-  z3ed_callbacks.diff_proposal =
-      [this](const std::string& proposal_id) -> absl::StatusOr<std::string> {
-    // Open drawer to show diff
-    proposal_drawer_.Show();
-    proposal_drawer_.FocusProposal(proposal_id);
-    return "See diff in proposal drawer";
-  };
-
-  agent_editor_.GetChatWidget()->SetZ3EDCommandCallbacks(z3ed_callbacks);
-
-  AgentChatWidget::AutomationCallbacks automation_callbacks;
-  automation_callbacks.open_harness_dashboard = [this]() {
-    test::TestManager::Get().ShowHarnessDashboard();
-  };
-  automation_callbacks.show_active_tests = [this]() {
-    test::TestManager::Get().ShowHarnessActiveTests();
-  };
-  automation_callbacks.replay_last_plan = [this]() {
-    test::TestManager::Get().ReplayLastPlan();
-  };
-  automation_callbacks.focus_proposal = [this](const std::string& proposal_id) {
-    proposal_drawer_.Show();
-    proposal_drawer_.FocusProposal(proposal_id);
-  };
-  agent_editor_.GetChatWidget()->SetAutomationCallbacks(automation_callbacks);
-
-  harness_telemetry_bridge_.SetChatWidget(agent_editor_.GetChatWidget());
-  test::TestManager::Get().SetHarnessListener(&harness_telemetry_bridge_);
 #endif
 
   // Load critical user settings first
@@ -706,19 +544,8 @@ absl::Status EditorManager::Update() {
 #endif
 
   // Draw background grid effects for the entire viewport
-  if (ImGui::GetCurrentContext()) {
-    ImDrawList* bg_draw_list = ImGui::GetBackgroundDrawList();
-    const ImGuiViewport* viewport = ImGui::GetMainViewport();
-
-    auto& theme_manager = gui::ThemeManager::Get();
-    auto current_theme = theme_manager.GetCurrentTheme();
-    auto& bg_renderer = gui::BackgroundRenderer::Get();
-
-    // Draw grid covering the entire main viewport
-    ImVec2 grid_pos = viewport->WorkPos;
-    ImVec2 grid_size = viewport->WorkSize;
-    bg_renderer.RenderDockingBackground(bg_draw_list, grid_pos, grid_size,
-                                        current_theme.primary);
+  if (ui_coordinator_) {
+    ui_coordinator_->DrawBackground();
   }
 
   // Ensure TestManager always has the current ROM
@@ -778,79 +605,9 @@ absl::Status EditorManager::Update() {
   // ROM is loaded and valid - don't auto-show welcome screen
   // Welcome screen should only be shown manually at this point
 
-  // Iterate through ALL sessions to support multi-session docking
-  for (size_t session_idx = 0; session_idx < sessions_.size(); ++session_idx) {
-    auto& session = sessions_[session_idx];
-    if (!session.rom.is_loaded())
-      continue;  // Skip sessions with invalid ROMs
-
-    // Use RAII SessionScope for clean context switching
-    SessionScope scope(this, session_idx);
-
-    for (auto editor : session.editors.active_editors_) {
-      if (*editor->active()) {
-        if (editor->type() == EditorType::kOverworld) {
-          auto& overworld_editor = static_cast<OverworldEditor&>(*editor);
-          if (overworld_editor.jump_to_tab() != -1) {
-            session_coordinator_->SwitchToSession(session_idx);
-            // Set the dungeon editor to the jump to tab
-            session.editors.dungeon_editor_.add_room(
-                overworld_editor.jump_to_tab());
-            overworld_editor.jump_to_tab_ = -1;
-          }
-        }
-
-        // CARD-BASED EDITORS: Don't wrap in Begin/End, they manage own windows
-        bool is_card_based_editor = IsCardBasedEditor(editor->type());
-
-        if (is_card_based_editor) {
-          // Card-based editors create their own top-level windows
-          // No parent wrapper needed - this allows independent docking
-          current_editor_ = editor;
-
-          status_ = editor->Update();
-
-          // Route editor errors to toast manager
-          if (!status_.ok()) {
-            std::string editor_name = GetEditorName(editor->type());
-            toast_manager_.Show(
-                absl::StrFormat("%s Error: %s", editor_name, status_.message()),
-                editor::ToastType::kError, 8.0f);
-          }
-
-        } else {
-          // TRADITIONAL EDITORS: Wrap in Begin/End
-          std::string window_title =
-              GenerateUniqueEditorTitle(editor->type(), session_idx);
-
-          // Set window to maximize on first open
-          ImGui::SetNextWindowSize(ImGui::GetMainViewport()->WorkSize,
-                                   ImGuiCond_FirstUseEver);
-          ImGui::SetNextWindowPos(ImGui::GetMainViewport()->WorkPos,
-                                  ImGuiCond_FirstUseEver);
-
-          if (ImGui::Begin(window_title.c_str(), editor->active(),
-                           ImGuiWindowFlags_None)) {  // Allow full docking
-            // Temporarily switch context for this editor's update
-            SessionScope scope(this, session_idx);
-            current_editor_ = editor;
-
-            status_ = editor->Update();
-
-            // Route editor errors to toast manager
-            if (!status_.ok()) {
-              std::string editor_name = GetEditorName(editor->type());
-              toast_manager_.Show(absl::StrFormat("%s Error: %s", editor_name,
-                                                  status_.message()),
-                                  editor::ToastType::kError, 8.0f);
-            }
-
-            // Restore context
-          }
-          ImGui::End();
-        }
-      }
-    }
+  // Delegate session updates to SessionCoordinator
+  if (session_coordinator_) {
+    session_coordinator_->UpdateSessions();
   }
 
   if (ui_coordinator_ && ui_coordinator_->IsPerformanceDashboardVisible()) {
@@ -874,19 +631,21 @@ absl::Status EditorManager::Update() {
 
     // Collect all active card-based editors
     std::vector<std::string> active_categories;
-    for (size_t session_idx = 0; session_idx < sessions_.size();
-         ++session_idx) {
-      auto& session = sessions_[session_idx];
-      if (!session.rom.is_loaded())
-        continue;
+    if (session_coordinator_) {
+      for (size_t session_idx = 0; session_idx < session_coordinator_->GetTotalSessionCount();
+           ++session_idx) {
+        auto* session = static_cast<RomSession*>(session_coordinator_->GetSession(session_idx));
+        if (!session || !session->rom.is_loaded())
+          continue;
 
-      for (auto editor : session.editors.active_editors_) {
-        if (*editor->active() && IsCardBasedEditor(editor->type())) {
-          std::string category =
-              EditorRegistry::GetEditorCategory(editor->type());
-          if (std::find(active_categories.begin(), active_categories.end(),
-                        category) == active_categories.end()) {
-            active_categories.push_back(category);
+        for (auto editor : session->editors.active_editors_) {
+          if (*editor->active() && IsCardBasedEditor(editor->type())) {
+            std::string category =
+                EditorRegistry::GetEditorCategory(editor->type());
+            if (std::find(active_categories.begin(), active_categories.end(),
+                          category) == active_categories.end()) {
+              active_categories.push_back(category);
+            }
           }
         }
       }
@@ -1284,9 +1043,11 @@ absl::Status EditorManager::SaveRomAs(const std::string& filename) {
 
   auto save_status = rom_file_manager_.SaveRomAs(current_rom, filename);
   if (save_status.ok()) {
-    size_t current_session_idx = GetCurrentSessionIndex();
-    if (current_session_idx < sessions_.size()) {
-      sessions_[current_session_idx].filepath = filename;
+    if (session_coordinator_) {
+      auto* session = session_coordinator_->GetActiveRomSession();
+      if (session) {
+        session->filepath = filename;
+      }
     }
 
     auto& manager = project::RecentFilesManager::GetInstance();
@@ -1447,9 +1208,11 @@ absl::Status EditorManager::SaveProject() {
 
   // Update project with current settings
   if (GetCurrentRom() && GetCurrentEditorSet()) {
-    size_t session_idx = GetCurrentSessionIndex();
-    if (session_idx < sessions_.size()) {
-      current_project_.feature_flags = sessions_[session_idx].feature_flags;
+    if (session_coordinator_) {
+      auto* session = session_coordinator_->GetActiveRomSession();
+      if (session) {
+        current_project_.feature_flags = session->feature_flags;
+      }
     }
 
     current_project_.workspace_settings.font_global_scale =
@@ -1545,14 +1308,17 @@ absl::Status EditorManager::SetCurrentRom(Rom* rom) {
     return absl::InvalidArgumentError("Invalid ROM pointer");
   }
 
-  for (size_t i = 0; i < sessions_.size(); ++i) {
-    if (&sessions_[i].rom == rom) {
-      session_coordinator_->SwitchToSession(i);
-
-      // Update test manager with current ROM for ROM-dependent tests
-      test::TestManager::Get().SetCurrentRom(GetCurrentRom());
-
-      return absl::OkStatus();
+  // We need to find the session that owns this ROM.
+  // This is inefficient but SetCurrentRom is rare.
+  if (session_coordinator_) {
+    for (size_t i = 0; i < session_coordinator_->GetTotalSessionCount(); ++i) {
+      auto* session = static_cast<RomSession*>(session_coordinator_->GetSession(i));
+      if (session && &session->rom == rom) {
+        session_coordinator_->SwitchToSession(i);
+        // Update test manager with current ROM for ROM-dependent tests
+        test::TestManager::Get().SetCurrentRom(GetCurrentRom());
+        return absl::OkStatus();
+      }
     }
   }
   // If ROM wasn't found in existing sessions, treat as new session.
@@ -1563,24 +1329,15 @@ absl::Status EditorManager::SetCurrentRom(Rom* rom) {
 void EditorManager::CreateNewSession() {
   if (session_coordinator_) {
     session_coordinator_->CreateNewSession();
-
-    // Wire editor contexts for new session
-    if (!sessions_.empty()) {
-      RomSession& session = sessions_.back();
-      session.editors.set_user_settings(&user_settings_);
-      ConfigureEditorDependencies(&session.editors, &session.rom,
-                                  session.editors.session_id());
-      session_coordinator_->SwitchToSession(sessions_.size() - 1);
-    }
   }
 
   // Don't switch to the new session automatically
   toast_manager_.Show(
-      absl::StrFormat("New session created (Session %zu)", sessions_.size()),
+      absl::StrFormat("New session created (Session %zu)", GetActiveSessionCount()),
       editor::ToastType::kSuccess);
 
   // Show session manager if user has multiple sessions now
-  if (sessions_.size() > 2) {
+  if (GetActiveSessionCount() > 2) {
     toast_manager_.Show(
         "Tip: Use Workspace → Sessions → Session Switcher for quick navigation",
         editor::ToastType::kInfo, 5.0f);
@@ -1596,14 +1353,6 @@ void EditorManager::DuplicateCurrentSession() {
 
   if (session_coordinator_) {
     session_coordinator_->DuplicateCurrentSession();
-
-    // Wire editor contexts for duplicated session
-    if (!sessions_.empty()) {
-      RomSession& session = sessions_.back();
-      ConfigureEditorDependencies(&session.editors, &session.rom,
-                                  session.editors.session_id());
-      session_coordinator_->SwitchToSession(sessions_.size() - 1);
-    }
   }
 }
 
@@ -1630,10 +1379,6 @@ void EditorManager::SwitchToSession(size_t index) {
 
   session_coordinator_->SwitchToSession(index);
 
-  if (index >= sessions_.size()) {
-    return;
-  }
-
   // This logic is now handled by SessionCoordinator and GetCurrent... methods.
 
 #ifdef YAZE_ENABLE_TESTING
@@ -1645,14 +1390,6 @@ size_t EditorManager::GetCurrentSessionIndex() const {
   if (session_coordinator_) {
     return session_coordinator_->GetActiveSessionIndex();
   }
-
-  // Fallback to finding by ROM pointer
-  for (size_t i = 0; i < sessions_.size(); ++i) {
-    if (&sessions_[i].rom == GetCurrentRom() &&
-        sessions_[i].custom_name != "[CLOSED SESSION]") {
-      return i;
-    }
-  }
   return 0;  // Default to first session if not found
 }
 
@@ -1660,15 +1397,7 @@ size_t EditorManager::GetActiveSessionCount() const {
   if (session_coordinator_) {
     return session_coordinator_->GetActiveSessionCount();
   }
-
-  // Fallback to counting non-closed sessions
-  size_t count = 0;
-  for (const auto& session : sessions_) {
-    if (session.custom_name != "[CLOSED SESSION]") {
-      count++;
-    }
-  }
-  return count;
+  return 0;
 }
 
 std::string EditorManager::GenerateUniqueEditorTitle(
@@ -1767,6 +1496,13 @@ void EditorManager::SwitchToEditor(EditorType editor_type) {
   }
 }
 
+void EditorManager::ConfigureSession(RomSession* session) {
+  if (!session) return;
+  session->editors.set_user_settings(&user_settings_);
+  ConfigureEditorDependencies(&session->editors, &session->rom,
+                              session->editors.session_id());
+}
+
 // SessionScope implementation
 EditorManager::SessionScope::SessionScope(EditorManager* manager,
                                           size_t session_id)
@@ -1784,12 +1520,8 @@ EditorManager::SessionScope::~SessionScope() {
 }
 
 bool EditorManager::HasDuplicateSession(const std::string& filepath) {
-  for (const auto& session : sessions_) {
-    if (session.filepath == filepath) {
-      return true;
-    }
-  }
-  return false;
+  return session_coordinator_ &&
+         session_coordinator_->HasDuplicateSession(filepath);
 }
 
 /**

@@ -11,6 +11,7 @@
 #include "absl/strings/match.h"
 #include "absl/strings/str_format.h"
 #include "absl/time/clock.h"
+#include "absl/time/time.h"
 #include "app/editor/agent/agent_chat_widget.h"
 #include "app/editor/agent/agent_collaboration_coordinator.h"
 #include "app/editor/system/proposal_drawer.h"
@@ -18,12 +19,15 @@
 #include "app/gui/core/icons.h"
 #include "app/platform/asset_loader.h"
 #include "app/rom.h"
+#include "app/service/screenshot_utils.h"
+#include "app/test/test_manager.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
 #include "util/file_util.h"
 #include "util/platform_paths.h"
 
 #ifdef YAZE_WITH_GRPC
 #include "app/editor/agent/network_collaboration_coordinator.h"
+#include "cli/service/ai/gemini_ai_service.h"
 #endif
 
 #if defined(YAZE_WITH_JSON)
@@ -142,6 +146,14 @@ void AgentEditor::InitializeWithDependencies(ToastManager* toast_manager,
 
   SetupChatWidgetCallbacks();
   SetupMultimodalCallbacks();
+  SetupAutomationCallbacks();
+
+#ifdef YAZE_WITH_GRPC
+  if (chat_widget_) {
+    harness_telemetry_bridge_.SetChatWidget(chat_widget_.get());
+    test::TestManager::Get().SetHarnessListener(&harness_telemetry_bridge_);
+  }
+#endif
 }
 
 void AgentEditor::SetRomContext(Rom* rom) {
@@ -2021,8 +2033,187 @@ void AgentEditor::SetupChatWidgetCallbacks() {
 }
 
 void AgentEditor::SetupMultimodalCallbacks() {
-  // Multimodal callbacks are set up by the EditorManager since it has
-  // access to the screenshot utilities. We just initialize the structure here.
+#ifdef YAZE_WITH_GRPC
+  if (!chat_widget_) {
+    return;
+  }
+
+  // Set up multimodal (vision) callbacks for Gemini
+  AgentChatWidget::MultimodalCallbacks multimodal_callbacks;
+  multimodal_callbacks.capture_snapshot =
+      [this](std::filesystem::path* output_path) -> absl::Status {
+    using CaptureMode = AgentChatWidget::CaptureMode;
+
+    absl::StatusOr<yaze::test::ScreenshotArtifact> result;
+
+    // Capture based on selected mode
+    switch (chat_widget_->capture_mode()) {
+      case CaptureMode::kFullWindow:
+        result = yaze::test::CaptureHarnessScreenshot("");
+        break;
+
+      case CaptureMode::kActiveEditor:
+        result = yaze::test::CaptureActiveWindow("");
+        if (!result.ok()) {
+          // Fallback to full window if no active window
+          result = yaze::test::CaptureHarnessScreenshot("");
+        }
+        break;
+
+      case CaptureMode::kSpecificWindow: {
+        const char* window_name = chat_widget_->specific_window_name();
+        if (window_name && std::strlen(window_name) > 0) {
+          result = yaze::test::CaptureWindowByName(window_name, "");
+          if (!result.ok()) {
+            // Fallback to active window if specific window not found
+            result = yaze::test::CaptureActiveWindow("");
+          }
+        } else {
+          result = yaze::test::CaptureActiveWindow("");
+        }
+        if (!result.ok()) {
+          result = yaze::test::CaptureHarnessScreenshot("");
+        }
+        break;
+      }
+    }
+
+    if (!result.ok()) {
+      return result.status();
+    }
+    *output_path = result->file_path;
+    return absl::OkStatus();
+  };
+#ifdef YAZE_AI_RUNTIME_AVAILABLE
+  multimodal_callbacks.send_to_gemini =
+      [this](const std::filesystem::path& image_path,
+             const std::string& prompt) -> absl::Status {
+    // Get Gemini API key from environment
+    const char* api_key = std::getenv("GEMINI_API_KEY");
+    if (!api_key || std::strlen(api_key) == 0) {
+      return absl::FailedPreconditionError(
+          "GEMINI_API_KEY environment variable not set");
+    }
+
+    // Create Gemini service
+    cli::GeminiConfig config;
+    config.api_key = api_key;
+    config.model = "gemini-2.5-flash";  // Use vision-capable model
+    config.verbose = false;
+
+    cli::GeminiAIService gemini_service(config);
+
+    // Generate multimodal response
+    auto response =
+        gemini_service.GenerateMultimodalResponse(image_path.string(), prompt);
+    if (!response.ok()) {
+      return response.status();
+    }
+
+    // Add the response to chat history
+    cli::agent::ChatMessage agent_msg;
+    agent_msg.sender = cli::agent::ChatMessage::Sender::kAgent;
+    agent_msg.message = response->text_response;
+    agent_msg.timestamp = absl::Now();
+    if (rom_) {
+      chat_widget_->SetRomContext(rom_);
+    }
+
+    return absl::OkStatus();
+  };
+#else
+  multimodal_callbacks.send_to_gemini = [](const std::filesystem::path&,
+                                           const std::string&) -> absl::Status {
+    return absl::FailedPreconditionError(
+        "Gemini AI runtime is disabled in this build");
+  };
+#endif
+
+  chat_widget_->SetMultimodalCallbacks(multimodal_callbacks);
+#endif
+}
+
+void AgentEditor::SetupAutomationCallbacks() {
+#ifdef YAZE_WITH_GRPC
+  if (!chat_widget_) {
+    return;
+  }
+
+  // Set up Z3ED command callbacks for proposal management
+  AgentChatWidget::Z3EDCommandCallbacks z3ed_callbacks;
+
+  z3ed_callbacks.accept_proposal =
+      [this](const std::string& proposal_id) -> absl::Status {
+    if (!proposal_drawer_) return absl::FailedPreconditionError("Proposal drawer unavailable");
+
+    // Use ProposalDrawer's existing logic
+    proposal_drawer_->Show();
+    proposal_drawer_->FocusProposal(proposal_id);
+
+    if (toast_manager_) {
+      toast_manager_->Show(
+          absl::StrFormat("%s View proposal %s in drawer to accept",
+                          ICON_MD_PREVIEW, proposal_id),
+          ToastType::kInfo, 3.5f);
+    }
+
+    return absl::OkStatus();
+  };
+
+  z3ed_callbacks.reject_proposal =
+      [this](const std::string& proposal_id) -> absl::Status {
+    if (!proposal_drawer_) return absl::FailedPreconditionError("Proposal drawer unavailable");
+
+    // Use ProposalDrawer's existing logic
+    proposal_drawer_->Show();
+    proposal_drawer_->FocusProposal(proposal_id);
+
+    if (toast_manager_) {
+      toast_manager_->Show(
+          absl::StrFormat("%s View proposal %s in drawer to reject",
+                          ICON_MD_PREVIEW, proposal_id),
+          ToastType::kInfo, 3.0f);
+    }
+
+    return absl::OkStatus();
+  };
+
+  z3ed_callbacks.list_proposals =
+      []() -> absl::StatusOr<std::vector<std::string>> {
+    // Return empty for now - ProposalDrawer handles the real list
+    return std::vector<std::string>{};
+  };
+
+  z3ed_callbacks.diff_proposal =
+      [this](const std::string& proposal_id) -> absl::StatusOr<std::string> {
+    if (!proposal_drawer_) return absl::FailedPreconditionError("Proposal drawer unavailable");
+
+    // Open drawer to show diff
+    proposal_drawer_->Show();
+    proposal_drawer_->FocusProposal(proposal_id);
+    return "See diff in proposal drawer";
+  };
+
+  chat_widget_->SetZ3EDCommandCallbacks(z3ed_callbacks);
+
+  AgentChatWidget::AutomationCallbacks automation_callbacks;
+  automation_callbacks.open_harness_dashboard = []() {
+    test::TestManager::Get().ShowHarnessDashboard();
+  };
+  automation_callbacks.show_active_tests = []() {
+    test::TestManager::Get().ShowHarnessActiveTests();
+  };
+  automation_callbacks.replay_last_plan = []() {
+    test::TestManager::Get().ReplayLastPlan();
+  };
+  automation_callbacks.focus_proposal = [this](const std::string& proposal_id) {
+    if (proposal_drawer_) {
+      proposal_drawer_->Show();
+      proposal_drawer_->FocusProposal(proposal_id);
+    }
+  };
+  chat_widget_->SetAutomationCallbacks(automation_callbacks);
+#endif
 }
 
 }  // namespace editor

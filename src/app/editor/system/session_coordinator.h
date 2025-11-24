@@ -4,6 +4,7 @@
 #include <deque>
 #include <string>
 #include <vector>
+#include <memory>
 
 #include "absl/status/status.h"
 #include "app/editor/session_types.h"
@@ -41,8 +42,7 @@ class ToastManager;
  */
 class SessionCoordinator {
  public:
-  explicit SessionCoordinator(void* sessions_ptr,
-                              EditorCardRegistry* card_registry,
+  explicit SessionCoordinator(EditorCardRegistry* card_registry,
                               ToastManager* toast_manager,
                               UserSettings* user_settings);
   ~SessionCoordinator() = default;
@@ -56,6 +56,7 @@ class SessionCoordinator {
   void CloseSession(size_t index);
   void RemoveSession(size_t index);
   void SwitchToSession(size_t index);
+  void UpdateSessions();
 
   // Session activation and queries
   void ActivateSession(size_t index);
@@ -158,7 +159,7 @@ class SessionCoordinator {
  private:
   // Core dependencies
   EditorManager* editor_manager_ = nullptr;
-  void* sessions_ptr_;  // std::deque<EditorManager::RomSession>*
+  std::vector<std::unique_ptr<RomSession>> sessions_;
   EditorCardRegistry* card_registry_;
   ToastManager* toast_manager_;
   UserSettings* user_settings_;
