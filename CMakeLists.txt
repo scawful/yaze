@@ -35,12 +35,19 @@ endif()
 # Include build options first
 include(cmake/options.cmake)
 
-# Enable ccache for faster rebuilds if available
-find_program(CCACHE_FOUND ccache)
-if(CCACHE_FOUND)
-    message(STATUS "✓ ccache found, enabling for faster builds")
-    set(CMAKE_CXX_COMPILER_LAUNCHER ccache)
-    set(CMAKE_C_COMPILER_LAUNCHER ccache)
+# Enable sccache/ccache for faster rebuilds if available
+find_program(SCCACHE_FOUND sccache)
+if(SCCACHE_FOUND)
+    message(STATUS "✓ sccache found, enabling for faster builds")
+    set(CMAKE_CXX_COMPILER_LAUNCHER sccache)
+    set(CMAKE_C_COMPILER_LAUNCHER sccache)
+else()
+    find_program(CCACHE_FOUND ccache)
+    if(CCACHE_FOUND)
+        message(STATUS "✓ ccache found, enabling for faster builds")
+        set(CMAKE_CXX_COMPILER_LAUNCHER ccache)
+        set(CMAKE_C_COMPILER_LAUNCHER ccache)
+    endif()
 endif()
 
 # Version is defined in project() above - use those variables

@@ -237,60 +237,95 @@ void Room::CopyRoomGraphicsToBuffer() {
     return;
   }
 
-  printf("[CopyRoomGraphicsToBuffer] Room %d: Copying graphics from blocks\n",
+  printf("[CopyRoomGraphicsToBuffer] Room %d: Converting 3BPP to 4BPP\n",
          room_id_);
 
-  // Copy room graphics to buffer
-  int sheet_pos = 0;
-  int bytes_copied = 0;
-  for (int i = 0; i < 16; i++) {
+  // Bit extraction mask (MSB to LSB)
+  static const uint8_t kBitMask[8] = {
+    0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01
+  };
+
+  // Clear destination buffer
+  std::fill(current_gfx16_.begin(), current_gfx16_.end(), 0);
+
+  int bytes_converted = 0;
+  int dest_pos = 0;
+
+  // Process each of the 16 graphics blocks
+  for (int block = 0; block < 16; block++) {
     // Validate block index
-    if (blocks_[i] < 0 || blocks_[i] > 255) {
-      sheet_pos += kGfxBufferRoomOffset;
+    if (blocks_[block] < 0 || blocks_[block] > 255) {
+      // Skip invalid blocks, but advance destination position
+      dest_pos += 2048;  // 64 tiles * 32 bytes per 4BPP tile
       continue;
     }
 
-    int data = 0;
-    int block_offset = blocks_[i] * kGfxBufferRoomOffset;
+    // Source offset in ROM graphics buffer (3BPP format)
+    // Each 3BPP sheet is 1536 bytes (64 tiles * 24 bytes/tile)
+    int src_sheet_offset = blocks_[block] * 1536;
 
-    // Validate block_offset bounds
-    if (block_offset < 0 ||
-        block_offset >= static_cast<int>(gfx_buffer_data->size())) {
-      sheet_pos += kGfxBufferRoomOffset;
+    // Validate source bounds
+    if (src_sheet_offset < 0 ||
+        src_sheet_offset + 1536 > static_cast<int>(gfx_buffer_data->size())) {
+      dest_pos += 2048;
       continue;
     }
 
-    while (data < kGfxBufferRoomOffset) {
-      int buffer_index = data + block_offset;
-      if (buffer_index >= 0 &&
-          buffer_index < static_cast<int>(gfx_buffer_data->size())) {
-        uint8_t map_byte = (*gfx_buffer_data)[buffer_index];
-        // NOTE: DO NOT apply sprite offset here!
-        // current_gfx16_ holds pixel data (palette indices 0-7), not tile IDs.
-        // The 0x88 offset is for tile IDs in tilemaps, not raw pixel data.
-        // if (i < 4) {
-        //   map_byte += kGfxBufferRoomSpriteLastLineOffset;
-        // }
+    // Convert 64 tiles per block (arranged as 16x4 grid in sheet)
+    for (int tile_row = 0; tile_row < 4; tile_row++) {       // 4 rows of tiles
+      for (int tile_col = 0; tile_col < 16; tile_col++) {    // 16 tiles per row
+        int tile_index = tile_row * 16 + tile_col;
 
-        // Validate current_gfx16_ access
-        int gfx_index = data + sheet_pos;
-        if (gfx_index >= 0 &&
-            gfx_index < static_cast<int>(sizeof(current_gfx16_))) {
-          current_gfx16_[gfx_index] = map_byte;
-          if (map_byte != 0)
-            bytes_copied++;
+        // Source offset for this tile in 3BPP format
+        // ZScream formula: (i * 24) + (j * 384) where i=tile_col, j=tile_row
+        int tile_src = src_sheet_offset + (tile_col * 24) + (tile_row * 384);
+
+        // Convert 8 pixel rows
+        for (int row = 0; row < 8; row++) {
+          // Read 3 bitplanes from SNES planar format
+          // Planes 0-1 are interleaved at bytes 0-15
+          // Plane 2 is at bytes 16-23
+          uint8_t plane0 = (*gfx_buffer_data)[tile_src + (row * 2)];
+          uint8_t plane1 = (*gfx_buffer_data)[tile_src + (row * 2) + 1];
+          uint8_t plane2 = (*gfx_buffer_data)[tile_src + 16 + row];
+
+          // Convert 8 pixels to 4 nibble-pairs (4BPP packed format)
+          for (int nibble_pair = 0; nibble_pair < 4; nibble_pair++) {
+            uint8_t pix1 = 0;  // First pixel of pair
+            uint8_t pix2 = 0;  // Second pixel of pair
+
+            // Extract first pixel color from 3 bitplanes
+            int bit_index1 = nibble_pair * 2;
+            if (plane0 & kBitMask[bit_index1]) pix1 |= 1;
+            if (plane1 & kBitMask[bit_index1]) pix1 |= 2;
+            if (plane2 & kBitMask[bit_index1]) pix1 |= 4;
+
+            // Extract second pixel color from 3 bitplanes
+            int bit_index2 = nibble_pair * 2 + 1;
+            if (plane0 & kBitMask[bit_index2]) pix2 |= 1;
+            if (plane1 & kBitMask[bit_index2]) pix2 |= 2;
+            if (plane2 & kBitMask[bit_index2]) pix2 |= 4;
+
+            // Pack into 4BPP format: high nibble = pix1, low nibble = pix2
+            // Destination uses ZScream's layout:
+            // (row * 64) + nibble_pair + (tile_col * 4) + (tile_row * 512) + (block * 2048)
+            int dest_index = (row * 64) + nibble_pair + (tile_col * 4) +
+                            (tile_row * 512) + (block * 2048);
+
+            if (dest_index >= 0 &&
+                dest_index < static_cast<int>(current_gfx16_.size())) {
+              current_gfx16_[dest_index] = (pix1 << 4) | pix2;
+              if (pix1 != 0 || pix2 != 0) bytes_converted++;
+            }
+          }
         }
       }
-      data++;
     }
-
-    sheet_pos += kGfxBufferRoomOffset;
   }
 
-  printf(
-      "[CopyRoomGraphicsToBuffer] Room %d: Copied %d non-zero bytes to "
-      "current_gfx16_\n",
-      room_id_, bytes_copied);
+  printf("[CopyRoomGraphicsToBuffer] Room %d: Converted %d non-zero pixel pairs\n",
+         room_id_, bytes_converted);
+
   LoadAnimatedGraphics();
 }
 

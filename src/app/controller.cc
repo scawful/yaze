@@ -126,4 +126,13 @@ void Controller::OnExit() {
   PRINT_IF_ERROR(ShutdownWindow(window_));
 }
 
+absl::Status Controller::LoadRomForTesting(const std::string& rom_path) {
+  // Use EditorManager's OpenRomOrProject which handles the full initialization:
+  // 1. Load ROM file into session
+  // 2. ConfigureEditorDependencies()
+  // 3. LoadAssets() - initializes all editors and loads graphics
+  // 4. Updates UI state (hides welcome screen, etc.)
+  return editor_manager_.OpenRomOrProject(rom_path);
+}
+
 }  // namespace yaze

@@ -318,7 +318,10 @@ class Canvas {
   void set_scrolling(ImVec2 scroll) { scrolling_ = scroll; }
   auto drawn_tile_position() const { return drawn_tile_pos_; }
   auto canvas_size() const { return canvas_sz_; }
-  void set_global_scale(float scale) { global_scale_ = scale; }
+  void set_global_scale(float scale) {
+    global_scale_ = scale;
+    config_.global_scale = scale;
+  }
   void set_draggable(bool draggable) { draggable_ = draggable; }
 
   // Modern accessors using modular structure

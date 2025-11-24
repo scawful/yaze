@@ -327,7 +327,7 @@ absl::StatusOr<std::string> AIVisionVerifier::CallVisionModel(
       auto response =
           gemini_service->GenerateMultimodalResponse(temp_image_path, prompt);
       if (response.ok()) {
-        return response->response;
+        return response->text_response;
       }
       LOG_DEBUG("AIVisionVerifier", "Gemini multimodal failed: %s",
                 response.status().message().data());
@@ -336,7 +336,7 @@ absl::StatusOr<std::string> AIVisionVerifier::CallVisionModel(
     // Fallback to text-only generation
     auto response = ai_service_->GenerateResponse(prompt);
     if (response.ok()) {
-      return response->response;
+      return response->text_response;
     }
     return response.status();
   }

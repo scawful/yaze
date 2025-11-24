@@ -3,10 +3,86 @@
 #include "app/platform/wasm/wasm_config.h"
 
 #include <cstdlib>
+#include <emscripten.h>
 
 namespace yaze {
 namespace app {
 namespace platform {
+
+// clang-format off
+
+// Helper to read string from JS config
+EM_JS(char*, WasmConfig_GetString, (const char* path, const char* defaultVal), {
+  try {
+    var config = window.YAZE_CONFIG || {};
+    var parts = UTF8ToString(path).split('.');
+    var value = config;
+    for (var i = 0; i < parts.length; i++) {
+      if (value && typeof value === 'object' && parts[i] in value) {
+        value = value[parts[i]];
+      } else {
+        value = UTF8ToString(defaultVal);
+        break;
+      }
+    }
+    if (typeof value !== 'string') {
+      value = UTF8ToString(defaultVal);
+    }
+    var lengthBytes = lengthBytesUTF8(value) + 1;
+    var stringOnWasmHeap = _malloc(lengthBytes);
+    stringToUTF8(value, stringOnWasmHeap, lengthBytes);
+    return stringOnWasmHeap;
+  } catch (e) {
+    console.error('[WasmConfig] Error reading string:', e);
+    var def = UTF8ToString(defaultVal);
+    var len = lengthBytesUTF8(def) + 1;
+    var ptr = _malloc(len);
+    stringToUTF8(def, ptr, len);
+    return ptr;
+  }
+});
+
+// Helper to read number from JS config
+EM_JS(double, WasmConfig_GetNumber, (const char* path, double defaultVal), {
+  try {
+    var config = window.YAZE_CONFIG || {};
+    var parts = UTF8ToString(path).split('.');
+    var value = config;
+    for (var i = 0; i < parts.length; i++) {
+      if (value && typeof value === 'object' && parts[i] in value) {
+        value = value[parts[i]];
+      } else {
+        return defaultVal;
+      }
+    }
+    return typeof value === 'number' ? value : defaultVal;
+  } catch (e) {
+    console.error('[WasmConfig] Error reading number:', e);
+    return defaultVal;
+  }
+});
+
+// Helper to read int from JS config
+EM_JS(int, WasmConfig_GetInt, (const char* path, int defaultVal), {
+  try {
+    var config = window.YAZE_CONFIG || {};
+    var parts = UTF8ToString(path).split('.');
+    var value = config;
+    for (var i = 0; i < parts.length; i++) {
+      if (value && typeof value === 'object' && parts[i] in value) {
+        value = value[parts[i]];
+      } else {
+        return defaultVal;
+      }
+    }
+    return typeof value === 'number' ? Math.floor(value) : defaultVal;
+  } catch (e) {
+    console.error('[WasmConfig] Error reading int:', e);
+    return defaultVal;
+  }
+});
+
+// clang-format on
 
 void WasmConfig::LoadFromJavaScript() {
   // Collaboration settings
