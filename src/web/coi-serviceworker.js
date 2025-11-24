@@ -61,7 +61,18 @@ if (typeof window === 'undefined') {
                         headers: newHeaders,
                     });
                 })
-                .catch((e) => console.error(e))
+                .catch((e) => {
+                    console.error("[COI] Fetch error:", e);
+                    // CRITICAL: Must return a response, not undefined
+                    return new Response(null, {
+                        status: 502,
+                        statusText: "COI Fetch Error",
+                        headers: new Headers({
+                            "Cross-Origin-Embedder-Policy": coepCredentialless ? "credentialless" : "require-corp",
+                            "Cross-Origin-Opener-Policy": "same-origin"
+                        })
+                    });
+                })
         );
     });
 } else {
