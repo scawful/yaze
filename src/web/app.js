@@ -690,3 +690,32 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 });
+
+// Initialize the WASM module
+// Since we use MODULARIZE=1, we need to call createYazeModule() explicitly
+(function initWASM() {
+  console.log('[WASM] Waiting for createYazeModule to be available...');
+
+  function tryInit() {
+    if (typeof createYazeModule === 'function') {
+      console.log('[WASM] Initializing module...');
+      createYazeModule(Module).then(function(instance) {
+        console.log('[WASM] Module initialized successfully');
+        window.Module = instance;
+      }).catch(function(err) {
+        console.error('[WASM] Module initialization failed:', err);
+        showFatalError('WASM Initialization Failed', err.message || err.toString());
+      });
+    } else {
+      // yaze.js not loaded yet, try again in 100ms
+      setTimeout(tryInit, 100);
+    }
+  }
+
+  // Start trying to initialize after DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', tryInit);
+  } else {
+    tryInit();
+  }
+})();

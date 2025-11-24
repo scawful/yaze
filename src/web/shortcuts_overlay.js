@@ -53,6 +53,17 @@
    * @param {KeyboardEvent} event
    */
   function handleKeyDown(event) {
+    // Skip shortcut handling if user is typing in an input field
+    const target = event.target;
+    if (target && (
+      target.tagName === 'INPUT' ||
+      target.tagName === 'TEXTAREA' ||
+      target.isContentEditable
+    )) {
+      // Allow normal typing in input fields
+      return;
+    }
+
     // Check if we should prevent this shortcut
     for (const shortcut of preventDefaultShortcuts) {
       if (matchesShortcut(event, shortcut)) {
