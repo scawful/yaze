@@ -19,13 +19,18 @@ echo "=== Building YAZE for Web (WASM) ==="
 mkdir -p "$BUILD_DIR"
 cd "$BUILD_DIR"
 
-# Configure
+# Configure with ccache if available
 echo "Configuring..."
-emcmake cmake "$PROJECT_ROOT" --preset wasm-release
+CMAKE_EXTRA_ARGS=""
+if command -v ccache &> /dev/null; then
+    echo "ccache detected - enabling compiler caching"
+    CMAKE_EXTRA_ARGS="-DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache"
+fi
+emcmake cmake "$PROJECT_ROOT" --preset wasm-release $CMAKE_EXTRA_ARGS
 
-# Build
+# Build (use parallel jobs)
 echo "Building..."
-cmake --build .
+cmake --build . --parallel
 
 # Package / Organize output
 echo "Packaging..."
@@ -43,6 +48,7 @@ cp "$PROJECT_ROOT/src/web/"*.css dist/
 cp "$PROJECT_ROOT/src/web/"*.js dist/
 cp "$PROJECT_ROOT/src/web/manifest.json" dist/ 2>/dev/null || true
 cp "$PROJECT_ROOT/src/web/offline.html" dist/ 2>/dev/null || true
+cp -r "$PROJECT_ROOT/src/web/icons" dist/ 2>/dev/null || true
 # coi-serviceworker.js is critical for SharedArrayBuffer support
 echo "coi-serviceworker.js copied (required for SharedArrayBuffer/pthreads)"
 

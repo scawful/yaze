@@ -22,27 +22,78 @@ jobs:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-      
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           submodules: recursive
+          fetch-depth: 2
 
-      # --- Setup Tools ---
+      # --- Detect what changed ---
+      - name: Check for web-only changes
+        id: changes
+        run: |
+          # Get changed files between HEAD and HEAD~1
+          CHANGED=$(git diff --name-only HEAD~1 HEAD 2>/dev/null || echo "")
+          echo "Changed files:"
+          echo "$CHANGED"
+
+          # Check if ONLY web assets changed (no C++/CMake changes)
+          if echo "$CHANGED" | grep -qE '\.(cc|cpp|h|hpp|c)$|CMakeLists\.txt|CMakePresets\.json|build-wasm\.sh'; then
+            echo "needs_wasm_build=true" >> $GITHUB_OUTPUT
+            echo "C++ or build files changed - full WASM build required"
+          else
+            echo "needs_wasm_build=false" >> $GITHUB_OUTPUT
+            echo "Web-only changes - skipping WASM build"
+          fi
+
+      # --- Setup Tools (only if WASM build needed) ---
       - name: Setup Emscripten
+        if: steps.changes.outputs.needs_wasm_build == 'true'
         uses: mymindstorm/setup-emsdk@v14
         with:
           version: 3.1.51
           actions-cache-folder: 'emsdk-cache'
 
       - name: Setup Ninja
+        if: steps.changes.outputs.needs_wasm_build == 'true'
         uses: seanmiddleditch/gha-setup-ninja@v4
-        
+
       - name: Setup CMake
+        if: steps.changes.outputs.needs_wasm_build == 'true'
         uses: jwlawson/actions-setup-cmake@v1.14
         with:
           cmake-version: '3.27.x'
+
+      - name: Setup ccache
+        if: steps.changes.outputs.needs_wasm_build == 'true'
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: wasm-ccache
+          max-size: 1G
+
+      # --- Cache CPM dependencies ---
+      - name: Cache CPM packages
+        if: steps.changes.outputs.needs_wasm_build == 'true'
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/CPM
+          key: cpm-wasm-${{ hashFiles('**/CMakeLists.txt') }}
+          restore-keys: |
+            cpm-wasm-
+
+      # --- Cache WASM build artifacts ---
+      - name: Cache WASM build
+        uses: actions/cache@v4
+        with:
+          path: |
+            build-wasm/bin
+            build-wasm/CMakeCache.txt
+            build-wasm/CMakeFiles
+          key: wasm-build-${{ hashFiles('src/**/*.cc', 'src/**/*.h', 'CMakeLists.txt') }}
+          restore-keys: |
+            wasm-build-
 
       - name: Install Graphviz
         run: |
@@ -54,11 +105,38 @@ jobs:
         with:
           version: "1.10.0"
 
-      # --- Build Web App ---
+      # --- Build Web App (full build or use cache) ---
       - name: Build WASM App
+        if: steps.changes.outputs.needs_wasm_build == 'true'
         run: |
+          export PATH="/usr/lib/ccache:$PATH"
           chmod +x scripts/build-wasm.sh
           ./scripts/build-wasm.sh
+
+      - name: Use cached WASM + update web assets
+        if: steps.changes.outputs.needs_wasm_build == 'false'
+        run: |
+          echo "Using cached WASM build, updating web assets only..."
+          mkdir -p build-wasm/dist
+
+          # Check if we have cached WASM files
+          if [ -f build-wasm/bin/yaze.wasm ]; then
+            cp build-wasm/bin/yaze.html build-wasm/dist/index.html
+            cp build-wasm/bin/yaze.js build-wasm/dist/
+            cp build-wasm/bin/yaze.wasm build-wasm/dist/
+            cp build-wasm/bin/yaze.data build-wasm/dist/ 2>/dev/null || true
+          else
+            echo "ERROR: No cached WASM build found. Triggering full build..."
+            exit 1
+          fi
+
+          # Copy updated web assets
+          cp src/web/*.css build-wasm/dist/
+          cp src/web/*.js build-wasm/dist/
+          cp src/web/manifest.json build-wasm/dist/ 2>/dev/null || true
+          cp src/web/offline.html build-wasm/dist/ 2>/dev/null || true
+          cp -r src/web/icons build-wasm/dist/ 2>/dev/null || true
+          echo "Web assets updated!"
 
       # --- Build Documentation ---
       - name: Build Documentation
