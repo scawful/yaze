@@ -1,6 +1,9 @@
 #ifndef YAZE_CLI_TUI_H
 #define YAZE_CLI_TUI_H
 
+// FTXUI is not available on WASM builds
+#ifndef __EMSCRIPTEN__
+
 #include <ftxui/component/component.hpp>
 #include <ftxui/dom/elements.hpp>
 #include <ftxui/screen/screen.hpp>
@@ -76,5 +79,7 @@ void ShowMain();
 
 }  // namespace cli
 }  // namespace yaze
+
+#endif  // __EMSCRIPTEN__
 
 #endif  // YAZE_CLI_TUI_H

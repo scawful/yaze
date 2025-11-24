@@ -10,7 +10,9 @@
 #include "absl/strings/match.h"
 #include "absl/strings/str_format.h"
 #include "cli/cli.h"
+#ifndef __EMSCRIPTEN__
 #include "cli/tui/tui.h"
+#endif
 #include "cli/z3ed_ascii_logo.h"
 #include "yaze_config.h"
 
@@ -391,6 +393,7 @@ int main(int argc, char* argv[]) {
 #endif
 
   // Handle TUI mode
+#ifndef __EMSCRIPTEN__
   if (absl::GetFlag(FLAGS_tui)) {
     // Load ROM if specified before launching TUI
     std::string rom_path = absl::GetFlag(FLAGS_rom);
@@ -405,6 +408,12 @@ int main(int argc, char* argv[]) {
     yaze::cli::ShowMain();
     return EXIT_SUCCESS;
   }
+#else
+  if (absl::GetFlag(FLAGS_tui)) {
+    std::cerr << "TUI mode is not available in WASM builds.\n";
+    return EXIT_FAILURE;
+  }
+#endif
 
   // Create CLI instance
   yaze::cli::ModernCLI cli;
