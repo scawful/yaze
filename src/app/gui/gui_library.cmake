@@ -20,7 +20,9 @@ set(GUI_CORE_SRC
   app/gui/core/layout_helpers.cc
   app/gui/core/style.cc
   app/gui/core/theme_manager.cc
+  app/gui/core/touch_input.cc
   app/gui/core/ui_helpers.cc
+  app/gui/keyboard_shortcuts.cc
 )
 
 # build_cleaner:auto-maintain
@@ -38,6 +40,7 @@ set(CANVAS_SRC
   app/gui/canvas/canvas_performance_integration.cc
   app/gui/canvas/canvas_popup.cc
   app/gui/canvas/canvas_rendering.cc
+  app/gui/canvas/canvas_touch_handler.cc
   app/gui/canvas/canvas_usage_tracker.cc
   app/gui/canvas/canvas_utils.cc
 )

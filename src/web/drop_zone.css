@@ -1,0 +1,289 @@
+/**
+ * Yaze Drop Zone Styles
+ * Provides visual feedback for drag and drop ROM loading
+ */
+
+/* Main drop overlay */
+.yaze-drop-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  z-index: 10000;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  opacity: 0;
+}
+
+/* Active state when dragging over */
+.yaze-drop-overlay.yaze-drop-active {
+  display: flex;
+  pointer-events: all;
+  opacity: 1;
+  background: rgba(0, 0, 0, 0.92);
+}
+
+/* Loading state */
+.yaze-drop-overlay.yaze-drop-loading {
+  display: flex;
+  pointer-events: all;
+  opacity: 1;
+}
+
+/* Content container */
+.yaze-drop-content {
+  text-align: center;
+  color: white;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  padding: 80px 60px;
+  border-radius: 24px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+  border: 3px dashed rgba(255, 255, 255, 0.4);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4),
+              inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  animation: pulse 2.5s ease-in-out infinite;
+  max-width: 500px;
+  width: 90%;
+  transform: scale(0.95);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Active content state */
+.yaze-drop-overlay.yaze-drop-active .yaze-drop-content {
+  border-color: #4CAF50;
+  background: linear-gradient(135deg, rgba(76, 175, 80, 0.25) 0%, rgba(76, 175, 80, 0.15) 100%);
+  animation: pulse-active 1.2s ease-in-out infinite;
+  transform: scale(1);
+  box-shadow: 0 25px 70px rgba(76, 175, 80, 0.3),
+              inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+/* Loading content state */
+.yaze-drop-overlay.yaze-drop-loading .yaze-drop-content {
+  border-color: #2196F3;
+  background: linear-gradient(135deg, rgba(33, 150, 243, 0.25) 0%, rgba(33, 150, 243, 0.15) 100%);
+  border-style: solid;
+  animation: none;
+  transform: scale(1);
+  box-shadow: 0 25px 70px rgba(33, 150, 243, 0.3),
+              inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+/* Icon */
+.yaze-drop-icon {
+  font-size: 84px;
+  margin-bottom: 24px;
+  filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.3));
+  animation: float 3s ease-in-out infinite;
+  transition: all 0.3s ease;
+}
+
+.yaze-drop-overlay.yaze-drop-active .yaze-drop-icon {
+  transform: scale(1.1);
+  filter: drop-shadow(0 10px 20px rgba(76, 175, 80, 0.5));
+}
+
+.yaze-drop-overlay.yaze-drop-loading .yaze-drop-icon {
+  animation: spin 2s linear infinite;
+  filter: drop-shadow(0 10px 20px rgba(33, 150, 243, 0.5));
+}
+
+/* Text elements */
+.yaze-drop-text {
+  font-size: 32px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  letter-spacing: -0.5px;
+  background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.yaze-drop-info {
+  font-size: 18px;
+  opacity: 0.85;
+  font-weight: 400;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+  letter-spacing: 0.2px;
+}
+
+/* Progress bar container */
+.yaze-drop-progress {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  margin-top: 24px;
+  overflow: hidden;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+/* Progress bar fill */
+.yaze-drop-progress-bar {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #2196F3 0%, #4CAF50 100%);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+  box-shadow: 0 2px 8px rgba(33, 150, 243, 0.5);
+  position: relative;
+  overflow: hidden;
+}
+
+.yaze-drop-progress-bar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.3) 50%,
+    transparent 100%);
+  animation: shimmer 1.5s infinite;
+}
+
+/* Animations */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(0.95);
+  }
+  50% {
+    opacity: 0.92;
+    transform: scale(0.97);
+  }
+}
+
+@keyframes pulse-active {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.03);
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(200%);
+  }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .yaze-drop-content {
+    padding: 60px 40px;
+    width: 95%;
+  }
+
+  .yaze-drop-icon {
+    font-size: 64px;
+  }
+
+  .yaze-drop-text {
+    font-size: 24px;
+  }
+
+  .yaze-drop-info {
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .yaze-drop-content {
+    padding: 40px 30px;
+    border-radius: 16px;
+  }
+
+  .yaze-drop-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+  }
+
+  .yaze-drop-text {
+    font-size: 20px;
+  }
+
+  .yaze-drop-info {
+    font-size: 14px;
+  }
+}
+
+/* Dark mode enhancements */
+@media (prefers-color-scheme: dark) {
+  .yaze-drop-overlay {
+    background: rgba(0, 0, 0, 0.95);
+  }
+
+  .yaze-drop-overlay.yaze-drop-active {
+    background: rgba(0, 0, 0, 0.97);
+  }
+
+  .yaze-drop-content {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.03) 100%);
+    border-color: rgba(255, 255, 255, 0.3);
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .yaze-drop-content {
+    border-width: 4px;
+    border-color: white;
+  }
+
+  .yaze-drop-text {
+    -webkit-text-fill-color: white;
+    text-shadow: none;
+  }
+
+  .yaze-drop-info {
+    opacity: 1;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .yaze-drop-overlay,
+  .yaze-drop-content,
+  .yaze-drop-icon {
+    animation: none;
+    transition: opacity 0.3s ease;
+  }
+
+  .yaze-drop-progress-bar::after {
+    animation: none;
+  }
+}

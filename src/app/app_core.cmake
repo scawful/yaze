@@ -49,6 +49,8 @@ if (EMSCRIPTEN)
     # WASM File System Layer (Phase 1)
     app/platform/wasm/wasm_storage.cc
     app/platform/wasm/wasm_file_dialog.cc
+    # WASM Drag & Drop ROM Loading
+    app/platform/wasm/wasm_drop_handler.cc
     # WASM Loading Manager (Phase 3)
     app/platform/wasm/wasm_loading_manager.cc
     # WASM AI Service Integration (Phase 5)
@@ -58,6 +60,8 @@ if (EMSCRIPTEN)
     app/platform/wasm/wasm_autosave.cc
     # WASM Web Workers for Heavy Processing (Phase 7)
     app/platform/wasm/wasm_worker_pool.cc
+    # WASM Patch Export functionality (Phase 8)
+    app/platform/wasm/wasm_patch_export.cc
   )
 endif()
 
@@ -207,7 +211,18 @@ if(EMSCRIPTEN)
     ${CMAKE_BINARY_DIR}/error_handler.css
     COPYONLY
   )
-  message(STATUS "  - WASM web resources copied (loading_indicator, error_handler)")
+  # Copy drag and drop zone resources
+  configure_file(
+    ${CMAKE_SOURCE_DIR}/src/web/drop_zone.js
+    ${CMAKE_BINARY_DIR}/drop_zone.js
+    COPYONLY
+  )
+  configure_file(
+    ${CMAKE_SOURCE_DIR}/src/web/drop_zone.css
+    ${CMAKE_BINARY_DIR}/drop_zone.css
+    COPYONLY
+  )
+  message(STATUS "  - WASM web resources copied (loading_indicator, error_handler, drop_zone)")
 endif()
 
 message(STATUS "✓ yaze_app_core_lib library configured (application layer)")
