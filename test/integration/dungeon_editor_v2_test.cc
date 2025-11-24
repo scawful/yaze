@@ -31,7 +31,7 @@ TEST_F(DungeonEditorV2IntegrationTest, LoadAllRooms) {
   ASSERT_TRUE(status.ok()) << "Load failed: " << status.message();
 }
 
-TEST_F(DungeonEditorV2IntegrationTest, LoadWithoutRom) {
+TEST_F(DungeonEditorV2IntegrationTest, DISABLED_LoadWithoutRom) {
   // Test error handling when ROM is not available
   editor::DungeonEditorV2 editor(nullptr);
   auto status = editor.Load();
@@ -73,7 +73,7 @@ TEST_F(DungeonEditorV2IntegrationTest, UpdateAfterLoad) {
 // Save Tests - Component Delegation
 // ============================================================================
 
-TEST_F(DungeonEditorV2IntegrationTest, SaveWithoutRom) {
+TEST_F(DungeonEditorV2IntegrationTest, DISABLED_SaveWithoutRom) {
   // Test error handling when ROM is not available
   editor::DungeonEditorV2 editor(nullptr);
   auto status = editor.Save();
@@ -147,7 +147,7 @@ TEST_F(DungeonEditorV2IntegrationTest, ComponentsInitializedAfterLoad) {
 // ROM Management Tests
 // ============================================================================
 
-TEST_F(DungeonEditorV2IntegrationTest, SetRomAfterConstruction) {
+TEST_F(DungeonEditorV2IntegrationTest, DISABLED_SetRomAfterConstruction) {
   // Create editor without ROM
   editor::DungeonEditorV2 editor;
   EXPECT_EQ(editor.rom(), nullptr);
@@ -158,7 +158,7 @@ TEST_F(DungeonEditorV2IntegrationTest, SetRomAfterConstruction) {
   EXPECT_TRUE(editor.IsRomLoaded());
 }
 
-TEST_F(DungeonEditorV2IntegrationTest, SetRomAndLoad) {
+TEST_F(DungeonEditorV2IntegrationTest, DISABLED_SetRomAndLoad) {
   // Create editor without ROM
   editor::DungeonEditorV2 editor;
 

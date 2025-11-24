@@ -33,14 +33,14 @@ void E2ETest_EmulatorStepOver(ImGuiTestContext* ctx) {
   // emu::StepController controller(snes);
 
   // Configure stepping behavior
-  emu::StepConfig config;
-  config.max_instructions = 10000;
-  config.track_call_stack = true;
-  config.log_instructions = false;
+  // emu::StepConfig config;
+  // config.max_instructions = 10000;
+  // config.track_call_stack = true;
+  // config.log_instructions = false;
 
-  ctx->LogInfo("StepConfig: max_instructions=%d, track_call_stack=%s",
-               config.max_instructions,
-               config.track_call_stack ? "true" : "false");
+  // ctx->LogInfo("StepConfig: max_instructions=%d, track_call_stack=%s",
+  //              config.max_instructions,
+  //              config.track_call_stack ? "true" : "false");
 
   // In real test:
   // controller.SetConfig(config);

@@ -88,7 +88,6 @@ if(YAZE_BUILD_TESTS)
 
   # --- Stable Test Suite (Valid Contracts) ---
   set(STABLE_TEST_SOURCES
-    test_utils.cc
     # Unit Tests
     unit/core/asar_wrapper_test.cc
     unit/core/hex_test.cc
@@ -111,6 +110,7 @@ if(YAZE_BUILD_TESTS)
     unit/zelda3/dungeon/room_object_encoding_test.cc
     unit/zelda3/dungeon/room_manipulation_test.cc
     unit/zelda3/dungeon/dungeon_save_test.cc
+    unit/zelda3/dungeon/bpp_conversion_test.cc
     ../src/cli/service/resources/resource_catalog.cc
     cli/service/resources/command_context_test.cc
     # Integration Tests
@@ -123,6 +123,7 @@ if(YAZE_BUILD_TESTS)
     integration/zelda3/dungeon_editor_system_integration_test.cc
     integration/zelda3/room_integration_test.cc
     integration/zelda3/dungeon_object_rendering_tests.cc
+    integration/zelda3/dungeon_palette_test.cc
     integration/zelda3/dungeon_room_test.cc
     integration/zelda3/sprite_position_test.cc
     integration/zelda3/message_test.cc
@@ -144,13 +145,18 @@ if(YAZE_BUILD_TESTS)
     )
   endif()
 
-  # --- Experimental & GUI Test Suites ---
+  # Experimental & GUI Test Suites ---
   # GUI tests always available when tests are built (uses ImGui Test Engine)
   set(GUI_TEST_SOURCES
-    test_utils.cc
+    gui_test_utils.cc
     e2e/framework_smoke_test.cc
     e2e/dungeon_editor_smoke_test.cc
     e2e/canvas_selection_test.cc
+    e2e/dungeon_e2e_tests.cc
+    e2e/dungeon_visual_verification_test.cc
+    e2e/dungeon_object_drawing_test.cc
+    e2e/dungeon_canvas_interaction_test.cc
+    e2e/dungeon_layer_rendering_test.cc
     # AI Multimodal Testing Framework
     e2e/ai_multimodal_test.cc
     e2e/emulator_stepping_test.cc
@@ -176,7 +182,6 @@ if(YAZE_BUILD_TESTS)
 
   if(YAZE_ENABLE_AI_RUNTIME)
     set(EXPERIMENTAL_TEST_SOURCES
-      test_utils.cc
       integration/ai/test_ai_tile_placement.cc
       integration/ai/test_gemini_vision.cc
     )

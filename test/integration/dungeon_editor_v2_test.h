@@ -7,6 +7,7 @@
 #include "app/editor/dungeon/dungeon_editor_v2.h"
 #include "app/rom.h"
 #include "gtest/gtest.h"
+#include "imgui.h"
 
 namespace yaze {
 namespace test {
@@ -19,6 +20,20 @@ namespace test {
 class DungeonEditorV2IntegrationTest : public ::testing::Test {
  protected:
   void SetUp() override {
+    // Initialize ImGui context for GUI components
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO();
+    io.DisplaySize = ImVec2(1920, 1080);
+    io.DeltaTime = 1.0f / 60.0f;
+    
+    // Build font atlas to satisfy NewFrame
+    unsigned char* pixels;
+    int width, height;
+    io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+
+    // Start a frame so we can call ImGui functions
+    ImGui::NewFrame();
+
     // Use the real ROM (try multiple locations)
     rom_ = std::make_unique<Rom>();
     auto status = rom_->LoadFromFile("assets/zelda3.sfc");
@@ -37,6 +52,10 @@ class DungeonEditorV2IntegrationTest : public ::testing::Test {
   void TearDown() override {
     dungeon_editor_v2_.reset();
     rom_.reset();
+    
+    // End frame and cleanup ImGui context
+    ImGui::Render();
+    ImGui::DestroyContext();
   }
 
   std::unique_ptr<Rom> rom_;
