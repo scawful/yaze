@@ -62,6 +62,10 @@ if (EMSCRIPTEN)
     app/platform/wasm/wasm_worker_pool.cc
     # WASM Patch Export functionality (Phase 8)
     app/platform/wasm/wasm_patch_export.cc
+    # WASM Centralized Configuration
+    app/platform/wasm/wasm_config.cc
+    # WASM Real-time Collaboration
+    app/platform/wasm/wasm_collaboration.cc
   )
 endif()
 
