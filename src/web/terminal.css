@@ -1,0 +1,742 @@
+/**
+ * z3ed Terminal Styles
+ * Collapsible web terminal component for the yaze web application
+ * Matches the dark theme: background #1e1e1e, text #d4d4d4, accent #0e639c
+ */
+
+/* ============================================
+   Terminal Container - Main Collapsible Panel
+   ============================================ */
+
+.terminal-container {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 300px;
+  min-height: 100px;
+  max-height: 70vh;
+  background: #1e1e1e;
+  border-top: 1px solid #3e3e42;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.4);
+  z-index: 9000;
+  display: flex;
+  flex-direction: column;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 0.3s ease;
+}
+
+/* Collapsed state - minimize to just header bar */
+.terminal-container.terminal-collapsed {
+  height: 36px;
+  min-height: 36px;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.terminal-container.terminal-collapsed .terminal-output,
+.terminal-container.terminal-collapsed .terminal-input-line,
+.terminal-container.terminal-collapsed .terminal-resize-handle {
+  display: none;
+}
+
+/* Hidden state - completely invisible */
+.terminal-container.terminal-hidden {
+  transform: translateY(100%);
+  pointer-events: none;
+}
+
+/* ============================================
+   Terminal Header - Clickable Title Bar
+   ============================================ */
+
+.terminal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  background: #252526;
+  border-bottom: 1px solid #3e3e42;
+  cursor: pointer;
+  user-select: none;
+  flex-shrink: 0;
+  transition: background 0.2s ease;
+}
+
+.terminal-header:hover {
+  background: #2d2d2d;
+}
+
+.terminal-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.terminal-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #cccccc;
+  letter-spacing: 0.3px;
+}
+
+.terminal-title-icon {
+  font-size: 14px;
+  color: #0e639c;
+}
+
+/* Status indicator in header */
+.terminal-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: #6b7280;
+}
+
+.terminal-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #6b7280;
+}
+
+.terminal-status-dot.active {
+  background: #10b981;
+  animation: pulse-dot 2s infinite;
+}
+
+.terminal-status-dot.error {
+  background: #ef4444;
+}
+
+/* Header controls */
+.terminal-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.terminal-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  color: #9ca3af;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.terminal-toggle:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #d4d4d4;
+}
+
+.terminal-toggle:active {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* Collapse icon rotation */
+.terminal-toggle .collapse-icon {
+  transition: transform 0.3s ease;
+}
+
+.terminal-collapsed .terminal-toggle .collapse-icon {
+  transform: rotate(180deg);
+}
+
+.terminal-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  color: #9ca3af;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.terminal-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #d4d4d4;
+}
+
+.terminal-btn:active {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.terminal-btn.danger:hover {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+}
+
+/* ============================================
+   Terminal Output - Scrollable Log Area
+   ============================================ */
+
+.terminal-output {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 12px 16px;
+  background: #1e1e1e;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #d4d4d4;
+  word-wrap: break-word;
+  white-space: pre-wrap;
+}
+
+/* Scrollbar styling */
+.terminal-output::-webkit-scrollbar {
+  width: 8px;
+}
+
+.terminal-output::-webkit-scrollbar-track {
+  background: #1e1e1e;
+  border-radius: 4px;
+}
+
+.terminal-output::-webkit-scrollbar-thumb {
+  background: #3e3e42;
+  border-radius: 4px;
+}
+
+.terminal-output::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* Output line base */
+.terminal-line {
+  margin-bottom: 4px;
+  padding: 2px 0;
+}
+
+/* User input echo - cyan color */
+.terminal-prompt {
+  color: #4ecdc4;
+  font-weight: 500;
+}
+
+.terminal-prompt::before {
+  content: '> ';
+  color: #0e639c;
+  font-weight: 600;
+}
+
+/* AI/system response - light gray */
+.terminal-response {
+  color: #d4d4d4;
+  padding-left: 8px;
+  border-left: 2px solid #3e3e42;
+  margin-left: 4px;
+}
+
+/* Error messages - red */
+.terminal-error {
+  color: #f87171;
+  background: rgba(239, 68, 68, 0.1);
+  padding: 4px 8px;
+  border-radius: 4px;
+  border-left: 3px solid #ef4444;
+}
+
+.terminal-error::before {
+  content: '[ERROR] ';
+  font-weight: 600;
+  color: #ef4444;
+}
+
+/* Info messages - blue */
+.terminal-info {
+  color: #60a5fa;
+  background: rgba(59, 130, 246, 0.1);
+  padding: 4px 8px;
+  border-radius: 4px;
+  border-left: 3px solid #3b82f6;
+}
+
+.terminal-info::before {
+  content: '[INFO] ';
+  font-weight: 600;
+  color: #3b82f6;
+}
+
+/* Success messages - green */
+.terminal-success {
+  color: #4ade80;
+  background: rgba(74, 222, 128, 0.1);
+  padding: 4px 8px;
+  border-radius: 4px;
+  border-left: 3px solid #22c55e;
+}
+
+.terminal-success::before {
+  content: '[OK] ';
+  font-weight: 600;
+  color: #22c55e;
+}
+
+/* Warning messages - yellow */
+.terminal-warning {
+  color: #fbbf24;
+  background: rgba(251, 191, 36, 0.1);
+  padding: 4px 8px;
+  border-radius: 4px;
+  border-left: 3px solid #f59e0b;
+}
+
+.terminal-warning::before {
+  content: '[WARN] ';
+  font-weight: 600;
+  color: #f59e0b;
+}
+
+/* Timestamp styling */
+.terminal-timestamp {
+  color: #6b7280;
+  font-size: 11px;
+  margin-right: 8px;
+}
+
+/* Welcome/help text */
+.terminal-welcome {
+  color: #9ca3af;
+  font-style: italic;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px dashed #3e3e42;
+}
+
+/* Command highlight */
+.terminal-command {
+  color: #c792ea;
+  font-weight: 500;
+}
+
+/* ============================================
+   Terminal Input Line - Command Entry
+   ============================================ */
+
+.terminal-input-line {
+  display: flex;
+  align-items: center;
+  padding: 8px 16px;
+  background: #252526;
+  border-top: 1px solid #3e3e42;
+  flex-shrink: 0;
+}
+
+.terminal-prompt-symbol {
+  color: #0e639c;
+  font-weight: 600;
+  font-size: 14px;
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+
+.terminal-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #d4d4d4;
+  font-family: inherit;
+  font-size: 13px;
+  caret-color: #0e639c;
+}
+
+.terminal-input::placeholder {
+  color: #6b7280;
+}
+
+.terminal-input:focus {
+  outline: none;
+}
+
+/* Submit button (optional, for touch devices) */
+.terminal-submit {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 28px;
+  padding: 0;
+  background: #0e639c;
+  border: none;
+  border-radius: 4px;
+  color: white;
+  font-size: 14px;
+  cursor: pointer;
+  margin-left: 8px;
+  transition: background 0.2s ease;
+}
+
+.terminal-submit:hover {
+  background: #1177bb;
+}
+
+.terminal-submit:active {
+  background: #0a5284;
+}
+
+/* ============================================
+   Resize Handle - Draggable Border
+   ============================================ */
+
+.terminal-resize-handle {
+  position: absolute;
+  top: -4px;
+  left: 0;
+  right: 0;
+  height: 8px;
+  cursor: ns-resize;
+  background: transparent;
+  z-index: 10;
+}
+
+.terminal-resize-handle:hover,
+.terminal-resize-handle:active {
+  background: linear-gradient(to bottom, rgba(14, 99, 156, 0.5), transparent);
+}
+
+.terminal-resize-handle::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 40px;
+  height: 4px;
+  background: #3e3e42;
+  border-radius: 2px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.terminal-resize-handle:hover::before {
+  opacity: 1;
+}
+
+/* ============================================
+   Loading/Processing States
+   ============================================ */
+
+.terminal-loading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #9ca3af;
+  padding: 4px 0;
+}
+
+.terminal-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid #3e3e42;
+  border-top-color: #0e639c;
+  border-radius: 50%;
+  animation: terminal-spin 0.8s linear infinite;
+}
+
+/* ============================================
+   Autocomplete/Suggestions
+   ============================================ */
+
+.terminal-suggestions {
+  position: absolute;
+  bottom: 100%;
+  left: 16px;
+  right: 16px;
+  max-height: 200px;
+  overflow-y: auto;
+  background: #252526;
+  border: 1px solid #3e3e42;
+  border-radius: 4px 4px 0 0;
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.3);
+  display: none;
+}
+
+.terminal-suggestions.visible {
+  display: block;
+}
+
+.terminal-suggestion {
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 13px;
+  color: #d4d4d4;
+  transition: background 0.15s ease;
+}
+
+.terminal-suggestion:hover,
+.terminal-suggestion.selected {
+  background: #0e639c;
+  color: white;
+}
+
+.terminal-suggestion-command {
+  font-weight: 600;
+  color: #4ecdc4;
+}
+
+.terminal-suggestion-desc {
+  font-size: 11px;
+  color: #9ca3af;
+  margin-left: 8px;
+}
+
+.terminal-suggestion.selected .terminal-suggestion-command,
+.terminal-suggestion:hover .terminal-suggestion-command {
+  color: white;
+}
+
+.terminal-suggestion.selected .terminal-suggestion-desc,
+.terminal-suggestion:hover .terminal-suggestion-desc {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* ============================================
+   Animations
+   ============================================ */
+
+@keyframes terminal-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse-dot {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes terminal-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.terminal-line {
+  animation: terminal-fade-in 0.2s ease-out;
+}
+
+/* ============================================
+   Mobile Responsive Styles
+   ============================================ */
+
+@media (max-width: 768px) {
+  .terminal-container {
+    height: 250px;
+    min-height: 80px;
+    max-height: 50vh;
+  }
+
+  .terminal-header {
+    padding: 10px 12px;
+  }
+
+  .terminal-title {
+    font-size: 12px;
+  }
+
+  .terminal-output {
+    padding: 10px 12px;
+    font-size: 12px;
+  }
+
+  .terminal-input-line {
+    padding: 10px 12px;
+  }
+
+  .terminal-input {
+    font-size: 16px; /* Prevent zoom on iOS */
+  }
+
+  .terminal-submit {
+    display: flex;
+  }
+
+  .terminal-suggestions {
+    left: 12px;
+    right: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .terminal-container {
+    height: 200px;
+    max-height: 40vh;
+  }
+
+  .terminal-header-left {
+    gap: 6px;
+  }
+
+  .terminal-title {
+    font-size: 11px;
+  }
+
+  .terminal-status {
+    display: none;
+  }
+
+  .terminal-output {
+    padding: 8px 10px;
+    font-size: 11px;
+    line-height: 1.4;
+  }
+
+  .terminal-prompt::before {
+    content: '>';
+  }
+
+  .terminal-response {
+    padding-left: 4px;
+    margin-left: 2px;
+  }
+}
+
+/* Full-width mode for small screens */
+@media (max-width: 640px) {
+  .terminal-container {
+    left: 0;
+    right: 0;
+    border-radius: 0;
+  }
+}
+
+/* ============================================
+   Accessibility
+   ============================================ */
+
+/* Focus styles */
+.terminal-input:focus-visible {
+  outline: 2px solid #0e639c;
+  outline-offset: 2px;
+}
+
+.terminal-toggle:focus-visible,
+.terminal-btn:focus-visible,
+.terminal-submit:focus-visible {
+  outline: 2px solid #0e639c;
+  outline-offset: 2px;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .terminal-container,
+  .terminal-header,
+  .terminal-toggle .collapse-icon,
+  .terminal-spinner,
+  .terminal-line {
+    animation: none;
+    transition: none;
+  }
+
+  .terminal-status-dot.active {
+    animation: none;
+  }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .terminal-container {
+    border-top-width: 2px;
+    border-top-color: #fff;
+  }
+
+  .terminal-header {
+    border-bottom-width: 2px;
+  }
+
+  .terminal-prompt {
+    color: #00ffff;
+  }
+
+  .terminal-error {
+    color: #ff6b6b;
+    border-left-width: 4px;
+  }
+
+  .terminal-info {
+    color: #6eb5ff;
+    border-left-width: 4px;
+  }
+
+  .terminal-input {
+    color: #ffffff;
+  }
+}
+
+/* Dark mode - ensure consistency */
+@media (prefers-color-scheme: dark) {
+  .terminal-input {
+    color-scheme: dark;
+  }
+}
+
+/* ============================================
+   Utility Classes
+   ============================================ */
+
+/* For programmatic show/hide */
+.terminal-visible {
+  display: flex !important;
+}
+
+.terminal-hidden {
+  display: none !important;
+}
+
+/* Text selection in output */
+.terminal-output ::selection {
+  background: #264f78;
+  color: #fff;
+}
+
+/* Code blocks in output */
+.terminal-code {
+  background: #2d2d2d;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 12px;
+  color: #ce9178;
+}
+
+/* Links in output */
+.terminal-link {
+  color: #4fc1ff;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  cursor: pointer;
+}
+
+.terminal-link:hover {
+  color: #80d4ff;
+  text-decoration-style: solid;
+}

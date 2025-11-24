@@ -11,6 +11,22 @@ if(EMSCRIPTEN)
     cli/service/ai/browser_ai_service.cc
     cli/service/ai/ai_service.cc
     cli/service/ai/common.h
+    cli/wasm_terminal_bridge.cc  # Web terminal integration
+
+    # Minimal command infrastructure for WASM
+    cli/flags.cc  # Define flags for handlers
+    cli/service/command_registry.cc
+    cli/service/resources/command_handler.cc
+    cli/service/resources/command_context.cc
+    cli/service/resources/resource_catalog.cc
+    cli/service/resources/resource_context_builder.cc
+
+    # Basic handlers that don't require native dependencies
+    cli/handlers/command_handlers.cc
+    cli/handlers/game/dungeon.cc
+    cli/handlers/game/overworld.cc
+    cli/handlers/graphics/gfx.cc
+    cli/handlers/rom/rom_commands.cc
   )
 
   add_library(yaze_agent STATIC ${YAZE_BROWSER_AI_SOURCES})
@@ -18,6 +34,8 @@ if(EMSCRIPTEN)
   target_link_libraries(yaze_agent PUBLIC
     yaze_common
     yaze_util
+    yaze_app_core_lib  # For Rom class and core functionality
+    yaze_zelda3        # For game-specific structures
     ${ABSL_TARGETS}
   )
 

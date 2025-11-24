@@ -25,6 +25,9 @@
     <!-- Touch Gesture Styles for iPad/Tablet -->
     <link rel="stylesheet" href="touch_gestures.css">
 
+    <!-- Terminal Styles -->
+    <link rel="stylesheet" href="terminal.css">
+
     <title>YAZE - Yet Another Zelda3 Editor (Web)</title>
     <style>
       body {
@@ -207,6 +210,7 @@
         <input type="file" id="rom-input" accept=".sfc,.smc">
         <button id="download-save-btn" onclick="downloadSaves()">Download Saves</button>
         <button id="fullscreen-btn" onclick="Module.requestFullscreen(false, false)">Fullscreen</button>
+        <button id="terminal-btn" onclick="toggleTerminal()">Terminal</button>
       </div>
     </div>
 
@@ -237,6 +241,20 @@
         <div class="yaze-zoom-level" id="zoom-level">100%</div>
         <button onclick="zoomOut()" title="Zoom Out">-</button>
         <button onclick="resetZoom()" title="Reset View">R</button>
+      </div>
+    </div>
+
+    <div id="terminal-container" class="terminal-container terminal-collapsed">
+      <div class="terminal-header" onclick="toggleTerminal()">
+        <span class="terminal-title">z3ed Terminal</span>
+        <span class="terminal-toggle">▲</span>
+      </div>
+      <div class="terminal-body">
+        <div class="terminal-output" id="terminal-output"></div>
+        <div class="terminal-input-line">
+          <span class="terminal-prompt">z3ed&gt; </span>
+          <input type="text" id="terminal-input" autocomplete="off" spellcheck="false">
+        </div>
       </div>
     </div>
 
@@ -296,6 +314,12 @@
         onRuntimeInitialized: function() {
            console.log("YAZE Web initialized");
            document.getElementById('spinner').style.display = 'none';
+
+           // Initialize z3ed terminal
+           if (typeof Z3edTerminal !== 'undefined') {
+             window.z3edTerminal = new Z3edTerminal('terminal-container');
+             window.z3edTerminal.printInfo('z3ed Web Terminal ready. Type /help for commands.');
+           }
         }
       };
       
@@ -571,11 +595,23 @@
         updateZoomDisplay();
       };
 
+      // Terminal toggle function
+      function toggleTerminal() {
+        if (window.z3edTerminal) {
+          window.z3edTerminal.toggle();
+        } else {
+          var container = document.getElementById('terminal-container');
+          container.classList.toggle('terminal-collapsed');
+        }
+      }
+
     </script>
     <!-- Keyboard Shortcuts Handler -->
     <script src="shortcuts_overlay.js"></script>
     <!-- Touch Gesture Handler for iPad/Tablet -->
     <script src="touch_gestures.js"></script>
+    <!-- z3ed Terminal -->
+    <script src="terminal.js"></script>
     {{{ SCRIPT }}}
   </body>
 </html>

@@ -30,10 +30,25 @@ cmake --build .
 # Package / Organize output
 echo "Packaging..."
 mkdir -p dist
+
+# Copy main WASM app
 cp bin/yaze.html dist/index.html
 cp bin/yaze.js dist/
 cp bin/yaze.wasm dist/
 cp bin/yaze.data dist/ 2>/dev/null || true # might not exist if no assets packed
+
+# Copy web assets (CSS, JS for terminal, overlays, etc.)
+echo "Copying web assets..."
+cp "$PROJECT_ROOT/src/web/"*.css dist/
+cp "$PROJECT_ROOT/src/web/"*.js dist/
+cp "$PROJECT_ROOT/src/web/manifest.json" dist/ 2>/dev/null || true
+
+# Copy z3ed WASM module if built
+if [ -f bin/z3ed.js ]; then
+    echo "Copying z3ed terminal module..."
+    cp bin/z3ed.js dist/
+    cp bin/z3ed.wasm dist/
+fi
 
 echo "=== Build Complete ==="
 echo "Output in: $BUILD_DIR/dist/"
