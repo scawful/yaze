@@ -40,6 +40,7 @@ mkdir -p dist
 cp bin/yaze.html dist/index.html
 cp bin/yaze.js dist/
 cp bin/yaze.wasm dist/
+cp bin/yaze.worker.js dist/ 2>/dev/null || true  # pthread worker script
 cp bin/yaze.data dist/ 2>/dev/null || true # might not exist if no assets packed
 
 # Copy web assets (CSS, JS for terminal, overlays, etc.)
@@ -57,6 +58,7 @@ if [ -f bin/z3ed.js ]; then
     echo "Copying z3ed terminal module..."
     cp bin/z3ed.js dist/
     cp bin/z3ed.wasm dist/
+    cp bin/z3ed.worker.js dist/ 2>/dev/null || true
 fi
 
 echo "=== Build Complete ==="
