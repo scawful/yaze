@@ -81,6 +81,8 @@ if (typeof window === 'undefined') {
         if (r.cache === "only-if-cached" && r.mode !== "same-origin") {
             return;
         }
+        // For worker scripts, we need to ensure proper content-type
+        const isWorker = r.url.endsWith('.worker.js') || r.destination === 'worker';
 
         const request =
             coepCredentialless && r.mode === "no-cors"
@@ -90,7 +92,7 @@ if (typeof window === 'undefined') {
                 : r;
         event.respondWith(
             fetch(request)
-                .then((response) => {
+                .then(async (response) => {
                     if (response.status === 0) {
                         return response;
                     }
@@ -104,7 +106,14 @@ if (typeof window === 'undefined') {
                     // Required for Firefox require-corp mode to allow subresources
                     newHeaders.set("Cross-Origin-Resource-Policy", "same-origin");
 
-                    return new Response(response.body, {
+                    // Ensure worker scripts have correct MIME type
+                    if (isWorker) {
+                        newHeaders.set("Content-Type", "application/javascript");
+                    }
+
+                    // Use blob() to properly handle the response body
+                    const blob = await response.blob();
+                    return new Response(blob, {
                         status: response.status,
                         statusText: response.statusText,
                         headers: newHeaders,
