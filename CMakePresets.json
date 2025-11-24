@@ -144,7 +144,7 @@
     {
       "name": "wasm-release",
       "displayName": "Web Assembly Release",
-      "description": "Emscripten build for Web Assembly",
+      "description": "Emscripten build for Web Assembly - use with emcmake",
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/build-wasm",
       "cacheVariables": {
