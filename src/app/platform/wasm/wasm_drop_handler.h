@@ -129,10 +129,12 @@ class WasmDropHandler {
    */
   static void HandleDragLeave();
 
+ public:
+  ~WasmDropHandler();
+
  private:
   // Singleton pattern - private constructor
   WasmDropHandler();
-  ~WasmDropHandler();
 
   // Delete copy constructor and assignment operator
   WasmDropHandler(const WasmDropHandler&) = delete;
