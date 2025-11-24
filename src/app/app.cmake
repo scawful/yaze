@@ -101,6 +101,15 @@ if(APPLE)
   target_link_libraries(yaze PUBLIC "-framework Cocoa")
 endif()
 
+# Emscripten-specific linker flags for yaze (not yaze_emu)
+if(EMSCRIPTEN)
+  # Export functions for web interface (only in yaze, not yaze_emu)
+  # Use set_target_properties with LINK_FLAGS (similar to z3ed.cmake)
+  set_target_properties(yaze PROPERTIES
+    LINK_FLAGS "-s EXPORTED_RUNTIME_METHODS='[\"ccall\",\"cwrap\",\"stringToUTF8\",\"UTF8ToString\",\"FS\"]' -s EXPORTED_FUNCTIONS='[\"_main\",\"_SetFileSystemReady\",\"_LoadRomFromWeb\"]' --shell-file ${CMAKE_SOURCE_DIR}/src/web/shell.html"
+  )
+endif()
+
 # Post-build asset copying for non-macOS platforms
 if(NOT APPLE)
   add_custom_command(TARGET yaze POST_BUILD

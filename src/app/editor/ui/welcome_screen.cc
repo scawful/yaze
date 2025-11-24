@@ -173,13 +173,16 @@ bool WelcomeScreen::Show(bool* p_open) {
   // even when our logic says the window should be visible
   if (first_show_attempt_) {
     ImGui::SetNextWindowCollapsed(false);  // Force window to be expanded
-    ImGui::SetNextWindowFocus();           // Bring window to front
+    // Don't steal focus - allow menu bar to remain clickable
     first_show_attempt_ = false;
   }
 
+  // Window flags: allow menu bar to be clickable by not bringing to front
   ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoCollapse |
                                   ImGuiWindowFlags_NoResize |
-                                  ImGuiWindowFlags_NoMove;
+                                  ImGuiWindowFlags_NoMove |
+                                  ImGuiWindowFlags_NoBringToFrontOnFocus |
+                                  ImGuiWindowFlags_NoTitleBar;
 
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(20, 20));
 

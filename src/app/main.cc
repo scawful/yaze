@@ -72,6 +72,7 @@ static std::unique_ptr<Controller> g_controller;
 
 #ifdef __EMSCRIPTEN__
 static bool g_filesystem_ready = false;
+static std::string g_pending_rom_filename;
 
 extern "C" {
 EMSCRIPTEN_KEEPALIVE
@@ -82,15 +83,34 @@ void SetFileSystemReady() {
 
 EMSCRIPTEN_KEEPALIVE
 void LoadRomFromWeb(const char* filename) {
-  if (!filename || !g_controller) return;
-  LOG_INFO("Main", "Loading ROM from web: %s", filename);
+  if (!filename) {
+    LOG_ERROR("Main", "LoadRomFromWeb called with null filename");
+    return;
+  }
   
-  // If active, we might want to reset or just call OnEntry again.
-  // Controller::OnEntry handles resetting the editor manager.
-  auto status = g_controller->OnEntry(std::string(filename));
+  std::string rom_path = filename;
+  LOG_INFO("Main", "LoadRomFromWeb called: %s (controller ready: %s)", 
+           rom_path.c_str(), g_controller ? "yes" : "no");
+  
+  // If controller isn't ready yet, queue the ROM load
+  if (!g_controller) {
+    g_pending_rom_filename = rom_path;
+    LOG_INFO("Main", "Controller not ready, queuing ROM load: %s", rom_path.c_str());
+    return;
+  }
+  
+  // Controller is ready, load the ROM
+  LOG_INFO("Main", "Loading ROM from web: %s", rom_path.c_str());
+  auto status = g_controller->OnEntry(rom_path);
   if (!status.ok()) {
     LOG_ERROR("Main", "Failed to load ROM: %s", std::string(status.message()).c_str());
-    // TODO: Show error dialog in UI
+    // Show error in JavaScript console and alert
+    EM_ASM({
+      console.error("Failed to load ROM: " + UTF8ToString($0));
+      alert("Failed to load ROM: " + UTF8ToString($0));
+    }, std::string(status.message()).c_str());
+  } else {
+    LOG_INFO("Main", "ROM loaded successfully: %s", rom_path.c_str());
   }
 }
 }
@@ -160,6 +180,10 @@ void TickFrame() {
     std::string rom_filename = "";
     if (!FLAGS_rom_file->Get().empty()) {
       rom_filename = FLAGS_rom_file->Get();
+    } else if (!g_pending_rom_filename.empty()) {
+      // Use pending ROM from LoadRomFromWeb call
+      rom_filename = g_pending_rom_filename;
+      g_pending_rom_filename.clear();
     }
     
     if (auto status = g_controller->OnEntry(rom_filename); !status.ok()) {
@@ -173,6 +197,21 @@ void TickFrame() {
     }
 
     wasm_collab.SetRom(g_controller->GetCurrentRom());
+  } else if (!g_pending_rom_filename.empty()) {
+    // Controller is already initialized, but we have a pending ROM load
+    std::string rom_path = g_pending_rom_filename;
+    g_pending_rom_filename.clear();
+    LOG_INFO("Main", "Processing queued ROM load: %s", rom_path.c_str());
+    auto status = g_controller->OnEntry(rom_path);
+    if (!status.ok()) {
+      LOG_ERROR("Main", "Failed to load queued ROM: %s", std::string(status.message()).c_str());
+      EM_ASM({
+        console.error("Failed to load ROM: " + UTF8ToString($0));
+        alert("Failed to load ROM: " + UTF8ToString($0));
+      }, std::string(status.message()).c_str());
+    } else {
+      LOG_INFO("Main", "Queued ROM loaded successfully: %s", rom_path.c_str());
+    }
   }
 #endif
 

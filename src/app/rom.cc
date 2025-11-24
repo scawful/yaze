@@ -492,9 +492,15 @@ absl::Status Rom::LoadZelda3(const RomLoadOptions& options) {
     }
     title_.assign(rom_data_.begin() + offset,
                   rom_data_.begin() + offset + kTitleStringLength);
+    // Check bounds before accessing version byte (offset + 0x19)
+    if (offset + 0x19 < rom_data_.size()) {
     if (rom_data_[offset + 0x19] == 0) {
       version_ = zelda3_version::JP;
     } else {
+        version_ = zelda3_version::US;
+      }
+    } else {
+      // Default to US if we can't read the version byte
       version_ = zelda3_version::US;
     }
   }
@@ -527,32 +533,130 @@ absl::Status Rom::LoadZelda3(const RomLoadOptions& options) {
 }
 
 absl::Status Rom::LoadGfxGroups() {
+  if (rom_data_.empty()) {
+    return absl::FailedPreconditionError("ROM data is empty");
+  }
+  
+  // Check if version is in the constants map (this also validates the version)
+  if (kVersionConstantsMap.find(version_) == kVersionConstantsMap.end()) {
+    return absl::FailedPreconditionError(
+        absl::StrFormat("Unsupported ROM version: %d", static_cast<int>(version_)));
+  }
+  
+  // Validate kGfxGroupsPointer is within bounds before reading
+  if (kGfxGroupsPointer + 1 >= rom_data_.size()) {
+    return absl::OutOfRangeError(
+        absl::StrFormat("Graphics groups pointer address out of bounds: %u >= %zu",
+                       kGfxGroupsPointer + 1, rom_data_.size()));
+  }
+  
   ASSIGN_OR_RETURN(auto main_blockset_ptr, ReadWord(kGfxGroupsPointer));
   main_blockset_ptr = SnesToPc(main_blockset_ptr);
+  
+  // Validate converted pointer is within bounds
+  if (main_blockset_ptr >= rom_data_.size()) {
+    return absl::OutOfRangeError(
+        absl::StrFormat("Main blockset pointer out of bounds after conversion: %u >= %zu",
+                       main_blockset_ptr, rom_data_.size()));
+  }
+  
+  // Bounds check for main blocksets
+  uint32_t main_blockset_end = main_blockset_ptr + (kNumMainBlocksets * 8);
+  if (main_blockset_end > rom_data_.size()) {
+    return absl::OutOfRangeError(
+        absl::StrFormat("Main blockset data out of bounds: %u > %zu", 
+                       main_blockset_end, rom_data_.size()));
+  }
 
   for (uint32_t i = 0; i < kNumMainBlocksets; i++) {
     for (int j = 0; j < 8; j++) {
-      main_blockset_ids[i][j] = rom_data_[main_blockset_ptr + (i * 8) + j];
+      uint32_t idx = main_blockset_ptr + (i * 8) + j;
+      if (idx >= rom_data_.size()) {
+        return absl::OutOfRangeError(
+            absl::StrFormat("Main blockset index out of bounds: %u >= %zu", 
+                           idx, rom_data_.size()));
+      }
+      main_blockset_ids[i][j] = rom_data_[idx];
     }
+  }
+
+  // Bounds check for room blocksets
+  if (kEntranceGfxGroup >= rom_data_.size()) {
+    return absl::OutOfRangeError(
+        absl::StrFormat("Entrance graphics group address out of bounds: %u >= %zu",
+                       kEntranceGfxGroup, rom_data_.size()));
+  }
+  
+  uint32_t room_blockset_end = kEntranceGfxGroup + (kNumRoomBlocksets * 4);
+  if (room_blockset_end > rom_data_.size()) {
+    return absl::OutOfRangeError(
+        absl::StrFormat("Room blockset data out of bounds: %u > %zu", 
+                       room_blockset_end, rom_data_.size()));
   }
 
   for (uint32_t i = 0; i < kNumRoomBlocksets; i++) {
     for (int j = 0; j < 4; j++) {
-      room_blockset_ids[i][j] = rom_data_[kEntranceGfxGroup + (i * 4) + j];
+      uint32_t idx = kEntranceGfxGroup + (i * 4) + j;
+      if (idx >= rom_data_.size()) {
+        return absl::OutOfRangeError(
+            absl::StrFormat("Room blockset index out of bounds: %u >= %zu", 
+                           idx, rom_data_.size()));
+      }
+      room_blockset_ids[i][j] = rom_data_[idx];
     }
+  }
+
+  auto vc = version_constants();
+  
+  // Bounds check for sprite blocksets
+  if (vc.kSpriteBlocksetPointer >= rom_data_.size()) {
+    return absl::OutOfRangeError(
+        absl::StrFormat("Sprite blockset pointer out of bounds: %u >= %zu",
+                       vc.kSpriteBlocksetPointer, rom_data_.size()));
+  }
+  
+  uint32_t sprite_blockset_end = vc.kSpriteBlocksetPointer + (kNumSpritesets * 4);
+  if (sprite_blockset_end > rom_data_.size()) {
+    return absl::OutOfRangeError(
+        absl::StrFormat("Sprite blockset data out of bounds: %u > %zu", 
+                       sprite_blockset_end, rom_data_.size()));
   }
 
   for (uint32_t i = 0; i < kNumSpritesets; i++) {
     for (int j = 0; j < 4; j++) {
-      spriteset_ids[i][j] =
-          rom_data_[version_constants().kSpriteBlocksetPointer + (i * 4) + j];
+      uint32_t idx = vc.kSpriteBlocksetPointer + (i * 4) + j;
+      if (idx >= rom_data_.size()) {
+        return absl::OutOfRangeError(
+            absl::StrFormat("Sprite blockset index out of bounds: %u >= %zu", 
+                           idx, rom_data_.size()));
+      }
+      spriteset_ids[i][j] = rom_data_[idx];
     }
+  }
+
+  // Bounds check for palette sets
+  if (vc.kDungeonPalettesGroups >= rom_data_.size()) {
+    return absl::OutOfRangeError(
+        absl::StrFormat("Dungeon palettes groups pointer out of bounds: %u >= %zu",
+                       vc.kDungeonPalettesGroups, rom_data_.size()));
+  }
+  
+  uint32_t palette_end = vc.kDungeonPalettesGroups + (kNumPalettesets * 4);
+  if (palette_end > rom_data_.size()) {
+    return absl::OutOfRangeError(
+        absl::StrFormat("Palette set data out of bounds: %u > %zu", 
+                       palette_end, rom_data_.size()));
   }
 
   for (uint32_t i = 0; i < kNumPalettesets; i++) {
     for (int j = 0; j < 4; j++) {
-      paletteset_ids[i][j] =
-          rom_data_[version_constants().kDungeonPalettesGroups + (i * 4) + j];
+      uint32_t idx = vc.kDungeonPalettesGroups + (i * 4) + j;
+      if (idx >= rom_data_.size()) {
+        return absl::OutOfRangeError(
+            absl::StrFormat("Palette set index out of bounds: %u >= %zu", 
+                           idx, rom_data_.size()));
+      }
+      paletteset_ids[i][j] = rom_data_[idx];
     }
   }
 
@@ -716,6 +820,9 @@ absl::Status Rom::SaveAllPalettes() {
 }
 
 absl::StatusOr<uint8_t> Rom::ReadByte(int offset) {
+  if (offset < 0) {
+    return absl::FailedPreconditionError("Offset cannot be negative");
+  }
   if (offset >= static_cast<int>(rom_data_.size())) {
     return absl::FailedPreconditionError("Offset out of range");
   }
@@ -723,6 +830,9 @@ absl::StatusOr<uint8_t> Rom::ReadByte(int offset) {
 }
 
 absl::StatusOr<uint16_t> Rom::ReadWord(int offset) {
+  if (offset < 0) {
+    return absl::FailedPreconditionError("Offset cannot be negative");
+  }
   if (offset + 1 >= static_cast<int>(rom_data_.size())) {
     return absl::FailedPreconditionError("Offset out of range");
   }
@@ -731,6 +841,9 @@ absl::StatusOr<uint16_t> Rom::ReadWord(int offset) {
 }
 
 absl::StatusOr<uint32_t> Rom::ReadLong(int offset) {
+  if (offset < 0) {
+    return absl::OutOfRangeError("Offset cannot be negative");
+  }
   if (offset + 2 >= static_cast<int>(rom_data_.size())) {
     return absl::OutOfRangeError("Offset out of range");
   }

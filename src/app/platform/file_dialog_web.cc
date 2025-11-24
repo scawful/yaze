@@ -11,11 +11,26 @@ namespace yaze {
 namespace util {
 
 // Web implementation of FileDialogWrapper
-// For now, these are stubs. In Milestone 3, we will connect these to HTML/JS.
+// Triggers the existing file input element in the HTML
 
 std::string FileDialogWrapper::ShowOpenFileDialog() {
-  // TODO(web): Implement file picker via JS
+#ifdef __EMSCRIPTEN__
+  // Trigger the existing file input element
+  // The file input handler in app.js will handle the file selection
+  // and call LoadRomFromWeb, which will update the ROM
+  EM_ASM({
+    var romInput = document.getElementById('rom-input');
+    if (romInput) {
+      romInput.click();
+    }
+  });
+  
+  // Return empty string - the actual loading happens asynchronously
+  // via the file input handler which calls LoadRomFromWeb
   return "";
+#else
+  return "";
+#endif
 }
 
 std::string FileDialogWrapper::ShowOpenFolderDialog() {

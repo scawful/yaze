@@ -7,6 +7,10 @@
 #include <vector>
 
 #include "absl/strings/str_format.h"
+
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
 #include "app/editor/editor.h"
 #include "app/editor/editor_manager.h"
 #include "app/editor/system/editor_registry.h"
@@ -50,6 +54,18 @@ UICoordinator::UICoordinator(
 
   // Wire welcome screen callbacks to EditorManager
   welcome_screen_->SetOpenRomCallback([this]() {
+#ifdef __EMSCRIPTEN__
+    // In web builds, trigger the file input element directly
+    // The file input handler in app.js will handle the file selection
+    // and call LoadRomFromWeb, which will update the ROM
+    EM_ASM({
+      var romInput = document.getElementById('rom-input');
+      if (romInput) {
+        romInput.click();
+      }
+    });
+    // Don't hide welcome screen yet - it will be hidden when ROM loads
+#else
     if (editor_manager_) {
       auto status = editor_manager_->LoadRom();
       if (!status.ok()) {
@@ -62,6 +78,7 @@ UICoordinator::UICoordinator(
         welcome_screen_manually_closed_ = true;
       }
     }
+#endif
   });
 
   welcome_screen_->SetNewProjectCallback([this]() {
