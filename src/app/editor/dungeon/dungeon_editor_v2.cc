@@ -189,10 +189,10 @@ absl::Status DungeonEditorV2::Load() {
   }
 
   // Initialize DungeonEditorSystem (currently scaffolding for persistence and metadata)
-  dungeon_dungeon_editor_system_ = std::make_unique<zelda3::DungeonEditorSystem>(rom_);
-  (void)dungeon_dungeon_editor_system_->Initialize();
-  dungeon_dungeon_editor_system_->SetCurrentRoom(current_room_id_);
-  object_selector_.set_dungeon_editor_system(&dungeon_dungeon_editor_system_);
+  dungeon_editor_system_ = std::make_unique<zelda3::DungeonEditorSystem>(rom_);
+  (void)dungeon_editor_system_->Initialize();
+  dungeon_editor_system_->SetCurrentRoom(current_room_id_);
+  object_selector_.set_dungeon_editor_system(&dungeon_editor_system_);
 
   // Wire palette changes to trigger room re-renders
   // PaletteManager now tracks all modifications globally
@@ -287,8 +287,8 @@ absl::Status DungeonEditorV2::Save() {
     }
 
     // Save sprites and other entities via system
-    if (dungeon_dungeon_editor_system_) {
-      auto sys_status = dungeon_dungeon_editor_system_->SaveRoom(room.id());
+    if (dungeon_editor_system_) {
+      auto sys_status = dungeon_editor_system_->SaveRoom(room.id());
       if (!sys_status.ok()) {
         LOG_ERROR("DungeonEditorV2", "Failed to save room system data: %s",
                   sys_status.message().data());
@@ -297,8 +297,8 @@ absl::Status DungeonEditorV2::Save() {
   }
 
   // Save additional dungeon state (stubbed) via DungeonEditorSystem when present
-  if (dungeon_dungeon_editor_system_) {
-    auto status = dungeon_dungeon_editor_system_->SaveDungeon();
+  if (dungeon_editor_system_) {
+    auto status = dungeon_editor_system_->SaveDungeon();
     if (!status.ok()) {
       LOG_ERROR("DungeonEditorV2", "DungeonEditorSystem save failed: %s",
                 status.message().data());
@@ -428,10 +428,10 @@ void DungeonEditorV2::DrawRoomTab(int room_id) {
     }
     
     // Load system data for this room (sprites, etc.)
-    if (dungeon_dungeon_editor_system_) {
-      auto sys_status = dungeon_dungeon_editor_system_->ReloadRoom(room_id);
+    if (dungeon_editor_system_) {
+      auto sys_status = dungeon_editor_system_->ReloadRoom(room_id);
       if (!sys_status.ok()) {
-        LOG_ERROR("DungeonEditorV2", "Failed to load system data: %s", 
+        LOG_ERROR("DungeonEditorV2", "Failed to load system data: %s",
                   sys_status.message().data());
       }
     }
@@ -1146,46 +1146,6 @@ void DungeonEditorV2::HandleObjectPlaced(const zelda3::RoomObject& obj) {
   room.RenderRoomGraphics();
 
   LOG_DEBUG("DungeonEditorV2", "Object placed and room re-rendered successfully");
-}
-
-absl::Status DungeonEditorV2::Undo() {
-  if (current_room_id_ < 0 ||
-      current_room_id_ >= static_cast<int>(rooms_.size())) {
-    return absl::FailedPreconditionError("No active room");
-  }
-
-  auto& undo_stack = undo_history_[current_room_id_];
-  if (undo_stack.empty()) {
-    return absl::FailedPreconditionError("Nothing to undo");
-  }
-
-  // Save current state for redo
-  redo_history_[current_room_id_].push_back(
-      rooms_[current_room_id_].GetTileObjects());
-
-  auto snapshot = std::move(undo_stack.back());
-  undo_stack.pop_back();
-  return RestoreFromSnapshot(current_room_id_, std::move(snapshot));
-}
-
-absl::Status DungeonEditorV2::Redo() {
-  if (current_room_id_ < 0 ||
-      current_room_id_ >= static_cast<int>(rooms_.size())) {
-    return absl::FailedPreconditionError("No active room");
-  }
-
-  auto& redo_stack = redo_history_[current_room_id_];
-  if (redo_stack.empty()) {
-    return absl::FailedPreconditionError("Nothing to redo");
-  }
-
-  // Save current state for undo before applying redo snapshot
-  undo_history_[current_room_id_].push_back(
-      rooms_[current_room_id_].GetTileObjects());
-
-  auto snapshot = std::move(redo_stack.back());
-  redo_stack.pop_back();
-  return RestoreFromSnapshot(current_room_id_, std::move(snapshot));
 }
 
 absl::Status DungeonEditorV2::Cut() {
