@@ -136,6 +136,8 @@ jobs:
           cp src/web/manifest.json build-wasm/dist/ 2>/dev/null || true
           cp src/web/offline.html build-wasm/dist/ 2>/dev/null || true
           cp -r src/web/icons build-wasm/dist/ 2>/dev/null || true
+          # coi-serviceworker.js is critical for SharedArrayBuffer support
+          cp src/web/coi-serviceworker.js build-wasm/dist/ 2>/dev/null || true
           echo "Web assets updated!"
 
       # --- Build Documentation ---

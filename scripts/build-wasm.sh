@@ -80,5 +80,10 @@ fi
 
 echo "=== Build Complete ==="
 echo "Output in: $BUILD_DIR/dist/"
-echo "To test: python3 -m http.server --directory $BUILD_DIR/dist"
+echo ""
+echo "To serve the app, run:"
+echo "  scripts/serve-wasm.sh [port]"
+echo ""
+echo "Or manually:"
+echo "  cd $BUILD_DIR/dist && python3 -m http.server 8080"
 
