@@ -86,11 +86,15 @@ if (typeof window === 'undefined') {
             window.sessionStorage.removeItem("coiAttempted");
         }
 
+        // Detect Firefox - it needs require-corp, not credentialless
+        const isFirefox = navigator.userAgent.includes('Firefox');
+
         // You can customize the behavior via these options:
         const coi = {
             shouldRegister: () => !reloadedBySelf,
             shouldDeregister: () => false,
-            coepCredentialless: () => true,
+            // Firefox needs require-corp mode, Chrome/Edge can use credentialless
+            coepCredentialless: () => !isFirefox,
             coepDegrade: () => true,
             doReload: () => {
                 window.sessionStorage.setItem("coiAttempted", "true");
@@ -99,6 +103,11 @@ if (typeof window === 'undefined') {
             quiet: false,
             ...window.coi
         };
+
+        if (!coi.quiet) {
+            console.log('[COI] Browser:', isFirefox ? 'Firefox' : 'Chromium');
+            console.log('[COI] Using COEP mode:', isFirefox ? 'require-corp' : 'credentialless');
+        }
 
         const n = navigator;
         const controlling = n.serviceWorker && n.serviceWorker.controller;
