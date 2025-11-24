@@ -155,7 +155,7 @@ std::vector<uint8_t> WasmPatchExport::GenerateBPSPatch(
     const std::vector<uint8_t>& target) {
   std::vector<uint8_t> patch;
 
-  // BPS header
+  // BPS header "BPS1"
   patch.push_back('B');
   patch.push_back('P');
   patch.push_back('S');
@@ -170,92 +170,125 @@ std::vector<uint8_t> WasmPatchExport::GenerateBPSPatch(
   // Metadata size (0 for no metadata)
   WriteVariableLength(patch, 0);
 
-  // Generate patch data
-  size_t source_offset = 0;
-  size_t target_offset = 0;
+  // BPS action types:
+  // 0 = SourceRead: copy n bytes from source at outputOffset
+  // 1 = TargetRead: copy n literal bytes from patch
+  // 2 = SourceCopy: copy n bytes from source at sourceRelativeOffset
+  // 3 = TargetCopy: copy n bytes from target at targetRelativeOffset
+
   size_t output_offset = 0;
+  int64_t source_relative_offset = 0;
+  int64_t target_relative_offset = 0;
 
-  while (target_offset < target.size()) {
-    size_t source_len = 0;
-    size_t target_len = 0;
-
-    // Find matching data from source
-    for (size_t i = 0; source_offset + i < source.size() &&
-                        target_offset + source_len < target.size(); ++i) {
-      if (source[source_offset + i] == target[target_offset + source_len]) {
-        ++source_len;
-      } else {
-        break;
+  while (output_offset < target.size()) {
+    // Check if we can use SourceRead (bytes match at current position)
+    size_t source_read_len = 0;
+    if (output_offset < source.size()) {
+      while (output_offset + source_read_len < target.size() &&
+             output_offset + source_read_len < source.size() &&
+             source[output_offset + source_read_len] ==
+                 target[output_offset + source_read_len]) {
+        ++source_read_len;
       }
     }
 
-    // Find non-matching data
-    size_t scan_start = target_offset + source_len;
-    while (scan_start + target_len < target.size()) {
-      bool found_match = false;
-
-      // Look for a potential match in source
-      if (source_len > 0 || target_len >= 4) {
-        for (size_t i = 0; i < source.size() - 3; ++i) {
-          if (source[i] == target[scan_start + target_len] &&
-              source[i + 1] == target[std::min(scan_start + target_len + 1, target.size() - 1)] &&
-              source[i + 2] == target[std::min(scan_start + target_len + 2, target.size() - 1)]) {
-            found_match = true;
-            break;
-          }
+    // Try to find a better match elsewhere in source (SourceCopy)
+    size_t best_source_copy_offset = 0;
+    size_t best_source_copy_len = 0;
+    if (source_read_len < 4) {  // Only search if SourceRead isn't good enough
+      for (size_t i = 0; i < source.size(); ++i) {
+        size_t match_len = 0;
+        while (i + match_len < source.size() &&
+               output_offset + match_len < target.size() &&
+               source[i + match_len] == target[output_offset + match_len]) {
+          ++match_len;
+        }
+        if (match_len > best_source_copy_len && match_len >= 4) {
+          best_source_copy_len = match_len;
+          best_source_copy_offset = i;
         }
       }
-
-      if (found_match && (source_len > 0 || target_len >= 4)) {
-        break;
-      }
-      ++target_len;
     }
 
-    // Encode the action
-    uint64_t action = 0;
-
-    if (source_len > 0) {
-      // SourceRead
-      action = (source_len - 1) << 2;
+    // Decide which action to use
+    if (source_read_len >= 4 || (source_read_len > 0 && source_read_len >= best_source_copy_len)) {
+      // Use SourceRead
+      uint64_t action = ((source_read_len - 1) << 2) | 0;
       WriteVariableLength(patch, action);
-      source_offset += source_len;
-    }
-
-    if (target_len > 0) {
-      // TargetRead
-      action = ((target_len - 1) << 2) | 1;
+      output_offset += source_read_len;
+    } else if (best_source_copy_len >= 4) {
+      // Use SourceCopy
+      uint64_t action = ((best_source_copy_len - 1) << 2) | 2;
       WriteVariableLength(patch, action);
 
-      // Write the actual data
-      for (size_t i = 0; i < target_len; ++i) {
-        patch.push_back(target[target_offset + source_len + i]);
-      }
-    }
+      // Write relative offset (signed, encoded as unsigned with sign bit)
+      int64_t relative = static_cast<int64_t>(best_source_copy_offset) - source_relative_offset;
+      uint64_t encoded_offset = (relative < 0) ?
+          ((static_cast<uint64_t>(-relative - 1) << 1) | 1) :
+          (static_cast<uint64_t>(relative) << 1);
+      WriteVariableLength(patch, encoded_offset);
 
-    target_offset += source_len + target_len;
-    output_offset += source_len + target_len;
+      source_relative_offset = best_source_copy_offset + best_source_copy_len;
+      output_offset += best_source_copy_len;
+    } else {
+      // Use TargetRead - find how many bytes to write literally
+      size_t target_read_len = 1;
+      while (output_offset + target_read_len < target.size()) {
+        // Check if next position has a good match
+        bool has_good_match = false;
+
+        // Check SourceRead at next position
+        if (output_offset + target_read_len < source.size() &&
+            source[output_offset + target_read_len] ==
+                target[output_offset + target_read_len]) {
+          size_t match_len = 0;
+          while (output_offset + target_read_len + match_len < target.size() &&
+                 output_offset + target_read_len + match_len < source.size() &&
+                 source[output_offset + target_read_len + match_len] ==
+                     target[output_offset + target_read_len + match_len]) {
+            ++match_len;
+          }
+          if (match_len >= 4) {
+            has_good_match = true;
+          }
+        }
+
+        if (has_good_match) {
+          break;
+        }
+        ++target_read_len;
+      }
+
+      // Write TargetRead action
+      uint64_t action = ((target_read_len - 1) << 2) | 1;
+      WriteVariableLength(patch, action);
+
+      // Write the literal bytes
+      for (size_t i = 0; i < target_read_len; ++i) {
+        patch.push_back(target[output_offset + i]);
+      }
+      output_offset += target_read_len;
+    }
   }
 
-  // Write checksums
+  // Write checksums (all CRC32, little-endian)
   uint32_t source_crc = CalculateCRC32(source);
   uint32_t target_crc = CalculateCRC32(target);
-  uint32_t patch_crc = CalculateCRC32(patch.data(), patch.size());
 
-  // Source CRC32 (little-endian)
+  // Source CRC32
   patch.push_back(source_crc & 0xFF);
   patch.push_back((source_crc >> 8) & 0xFF);
   patch.push_back((source_crc >> 16) & 0xFF);
   patch.push_back((source_crc >> 24) & 0xFF);
 
-  // Target CRC32 (little-endian)
+  // Target CRC32
   patch.push_back(target_crc & 0xFF);
   patch.push_back((target_crc >> 8) & 0xFF);
   patch.push_back((target_crc >> 16) & 0xFF);
   patch.push_back((target_crc >> 24) & 0xFF);
 
-  // Patch CRC32 (little-endian)
-  patch_crc = CalculateCRC32(patch.data(), patch.size());
+  // Patch CRC32 (includes everything before this point)
+  uint32_t patch_crc = CalculateCRC32(patch.data(), patch.size());
   patch.push_back(patch_crc & 0xFF);
   patch.push_back((patch_crc >> 8) & 0xFF);
   patch.push_back((patch_crc >> 16) & 0xFF);

@@ -74,6 +74,39 @@ class WasmCollaboration {
   ~WasmCollaboration();
 
   /**
+   * @brief Set the WebSocket server URL
+   * @param url Full WebSocket URL (e.g., "wss://your-server.com/ws")
+   *
+   * For GitHub Pages deployment, you'll need a separate WebSocket server.
+   * Options include:
+   * - Cloudflare Workers with Durable Objects
+   * - Deno Deploy
+   * - Railway, Render, or other PaaS providers
+   * - Self-hosted server
+   */
+  void SetWebSocketUrl(const std::string& url) { websocket_url_ = url; }
+
+  /**
+   * @brief Get the current WebSocket server URL
+   * @return Current URL or empty if not configured
+   */
+  std::string GetWebSocketUrl() const { return websocket_url_; }
+
+  /**
+   * @brief Initialize WebSocket URL from JavaScript configuration
+   *
+   * Looks for window.YAZE_CONFIG.collaborationServerUrl in the browser.
+   * This allows deployment-specific configuration without recompiling.
+   */
+  void InitializeFromConfig();
+
+  /**
+   * @brief Check if collaboration is configured and available
+   * @return true if WebSocket URL is set and valid
+   */
+  bool IsConfigured() const { return !websocket_url_.empty(); }
+
+  /**
    * @brief Create a new collaboration session
    * @param session_name Name for the session
    * @param username User's display name
@@ -213,7 +246,7 @@ class WasmCollaboration {
   // Connection management
   std::unique_ptr<net::EmscriptenWebSocket> websocket_;
   bool is_connected_ = false;
-  std::string websocket_url_ = "wss://yaze-collab.example.com/ws";
+  std::string websocket_url_;  // Set via SetWebSocketUrl() or environment
 
   // Session state
   std::string room_code_;
