@@ -145,11 +145,27 @@ if (typeof window === 'undefined') {
                             }
                         });
 
-                        if (registration.active && !controlling && !reloadedBySelf) {
-                            // Only reload once - reloadedBySelf prevents infinite loop
-                            if (!coi.quiet) console.log("COI: Service worker ready, reloading...");
-                            window.sessionStorage.setItem("coiReloadedBySelf", coi.coepDegrade() ? "coepDegrade" : "true");
-                            coi.doReload();
+                        // Reload after initial registration to enable COOP/COEP headers
+                        if (!reloadedBySelf) {
+                            // Wait for SW to be ready, then reload
+                            const waitAndReload = () => {
+                                if (!coi.quiet) console.log("COI: Service worker ready, reloading...");
+                                window.sessionStorage.setItem("coiReloadedBySelf", coi.coepDegrade() ? "coepDegrade" : "true");
+                                coi.doReload();
+                            };
+
+                            if (registration.active && !controlling) {
+                                // SW is active but not controlling - reload now
+                                waitAndReload();
+                            } else if (registration.installing || registration.waiting) {
+                                // Wait for SW to activate
+                                const sw = registration.installing || registration.waiting;
+                                sw.addEventListener('statechange', () => {
+                                    if (sw.state === 'activated' && !navigator.serviceWorker.controller) {
+                                        waitAndReload();
+                                    }
+                                });
+                            }
                         }
                     },
                     (err) => {
