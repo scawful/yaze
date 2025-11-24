@@ -101,6 +101,8 @@ if (typeof window === 'undefined') {
                         coepCredentialless ? "credentialless" : "require-corp"
                     );
                     newHeaders.set("Cross-Origin-Opener-Policy", "same-origin");
+                    // Required for Firefox require-corp mode to allow subresources
+                    newHeaders.set("Cross-Origin-Resource-Policy", "same-origin");
 
                     return new Response(response.body, {
                         status: response.status,
@@ -119,7 +121,8 @@ if (typeof window === 'undefined') {
                         statusText: "COI Fetch Error",
                         headers: new Headers({
                             "Cross-Origin-Embedder-Policy": coepCredentialless ? "credentialless" : "require-corp",
-                            "Cross-Origin-Opener-Policy": "same-origin"
+                            "Cross-Origin-Opener-Policy": "same-origin",
+                            "Cross-Origin-Resource-Policy": "same-origin"
                         })
                     });
                 })
