@@ -30,10 +30,13 @@ cmake --build .
 # Package / Organize output
 echo "Packaging..."
 mkdir -p dist
-cp yaze.html dist/index.html
-cp yaze.js dist/
-cp yaze.wasm dist/
-cp yaze.data dist/ 2>/dev/null || true # might not exist if no assets packed
+cp bin/yaze.html dist/index.html
+cp bin/yaze.js dist/
+cp bin/yaze.wasm dist/
+cp bin/yaze.data dist/ 2>/dev/null || true # might not exist if no assets packed
+# Also copy emulator if it was built
+cp bin/yaze_emu.js dist/ 2>/dev/null || true
+cp bin/yaze_emu.wasm dist/ 2>/dev/null || true
 
 echo "=== Build Complete ==="
 echo "Output in: $BUILD_DIR/dist/"
