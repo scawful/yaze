@@ -648,6 +648,123 @@ progress::-webkit-progress-value {
   padding: 20px;
 }
 
+.problem-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: var(--control-radius);
+  margin-bottom: 4px;
+  background: var(--bg-input);
+}
+
+.problem-item:hover {
+  background: var(--bg-hover);
+}
+
+.problem-item.error {
+  border-left: 3px solid var(--status-error);
+}
+
+.problem-item.warning {
+  border-left: 3px solid var(--status-warning);
+}
+
+.problem-icon {
+  flex-shrink: 0;
+  font-size: 12px;
+}
+
+.problem-location {
+  color: var(--text-accent);
+  font-size: 11px;
+  font-family: var(--font-mono);
+  white-space: nowrap;
+}
+
+.problem-message {
+  flex: 1;
+  color: var(--text-primary);
+  font-size: 11px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Color Swatches */
+.color-swatch {
+  width: 16px;
+  height: 16px;
+  border-radius: 2px;
+  border: 1px solid var(--border-color);
+  flex-shrink: 0;
+}
+
+/* Pixel Inspector Overlay */
+.pixel-inspector {
+  position: fixed;
+  top: 60px;
+  right: 20px;
+  width: 280px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-color);
+  border-radius: var(--control-radius);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+  z-index: 2000;
+  font-family: var(--font-ui);
+}
+
+.pixel-inspector-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: var(--bg-header);
+  border-bottom: 1px solid var(--border-color);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.pixel-inspector-close {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 16px;
+  cursor: pointer;
+  padding: 0 4px;
+}
+
+.pixel-inspector-close:hover {
+  color: var(--text-primary);
+}
+
+.pixel-inspector-content {
+  padding: 12px;
+}
+
+.pixel-inspector-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 11px;
+}
+
+.pixel-inspector-row:last-child {
+  margin-bottom: 0;
+}
+
+.pixel-inspector-label {
+  color: var(--text-muted);
+  width: 90px;
+  flex-shrink: 0;
+}
+
+.pixel-inspector-row span:not(.pixel-inspector-label) {
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+}
+
 /* Modal */
 .modal {
   position: fixed;

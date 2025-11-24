@@ -69,6 +69,12 @@
           <button class="nav-btn panel-toggle" data-panel="terminal" onclick="panels.toggle('terminal')" title="Toggle Terminal (`)">
             <span class="material-symbols-outlined">terminal</span>
           </button>
+          <button class="nav-btn" onclick="panels.toggle('problems')" title="Toggle Problems Panel">
+            <span class="material-symbols-outlined">bug_report</span>
+          </button>
+          <button class="nav-btn" onclick="pixelInspector.toggle()" title="Toggle Pixel Inspector (Debug)" id="pixel-inspector-btn">
+            <span class="material-symbols-outlined">colorize</span>
+          </button>
           <button class="nav-btn" onclick="toggleCollabConsole()" title="Collaboration">
             <span class="material-symbols-outlined">group</span>
           </button>
@@ -136,6 +142,38 @@
       </div>
 
       <canvas class="emscripten" id="canvas" oncontextmenu="event.preventDefault()" tabindex=-1 style="display: none;"></canvas>
+
+      <!-- Pixel Inspector Overlay -->
+      <div id="pixel-inspector" class="pixel-inspector" style="display: none;">
+        <div class="pixel-inspector-header">
+          <span>Pixel Inspector</span>
+          <button class="pixel-inspector-close" onclick="pixelInspector.toggle()">×</button>
+        </div>
+        <div class="pixel-inspector-content">
+          <div class="pixel-inspector-row">
+            <span class="pixel-inspector-label">Position:</span>
+            <span id="inspector-xy">-</span>
+          </div>
+          <div class="pixel-inspector-row">
+            <span class="pixel-inspector-label">Palette Index:</span>
+            <span id="inspector-index">-</span>
+          </div>
+          <div class="pixel-inspector-row">
+            <span class="pixel-inspector-label">Actual:</span>
+            <span id="inspector-actual-rgb">-</span>
+            <div id="inspector-actual-swatch" class="color-swatch"></div>
+          </div>
+          <div class="pixel-inspector-row">
+            <span class="pixel-inspector-label">Expected:</span>
+            <span id="inspector-expected-rgb">-</span>
+            <div id="inspector-expected-swatch" class="color-swatch"></div>
+          </div>
+          <div class="pixel-inspector-row">
+            <span class="pixel-inspector-label">Status:</span>
+            <span id="inspector-status">-</span>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- VSCode-style bottom panel -->
@@ -309,41 +347,172 @@
       var paletteInspector = {
         refresh: function() {
           if (typeof Module === 'undefined' || typeof Module.getDungeonPaletteEvents !== 'function') return;
-          
-          var eventsStr = Module.getDungeonPaletteEvents();
-          if (!eventsStr) return;
-          
-          var events = JSON.parse(eventsStr);
-          var list = document.getElementById('problems-list');
-          
-          if (!list) return;
-          list.innerHTML = '';
-          
-          if (events.length === 0) {
-            list.innerHTML = '<div class="problems-empty">No palette events yet</div>';
+
+          var eventsStr;
+          try {
+            eventsStr = Module.getDungeonPaletteEvents();
+          } catch (e) {
+            console.warn('Failed to get palette events:', e);
             return;
           }
-          
+          if (!eventsStr || eventsStr.length === 0) return;
+
+          var events;
+          try {
+            events = JSON.parse(eventsStr);
+          } catch (e) {
+            console.warn('Failed to parse palette events JSON:', e, 'Raw:', eventsStr);
+            return;
+          }
+          var list = document.getElementById('problems-list');
+
+          if (!list) return;
+          list.innerHTML = '';
+
+          if (events.length === 0) {
+            list.innerHTML = '<div class="problems-empty">No palette events yet. Open a dungeon room to see palette debug info.</div>';
+            return;
+          }
+
           events.forEach(function(event) {
             var item = document.createElement('div');
             item.className = 'problem-item';
             if (event.level === 'error') item.classList.add('error');
             if (event.level === 'warning') item.classList.add('warning');
-            
+
             var icon = event.level === 'error' ? '❌' : event.level === 'warning' ? '⚠️' : 'ℹ️';
-            item.innerHTML = `
-              <span class="problem-icon">${icon}</span>
-              <span class="problem-location">${event.location}</span>
-              <span class="problem-message">${event.message}</span>
-            `;
+
+            // Build HTML with optional color swatch
+            var swatchHtml = '';
+            if (event.sample_rgb && event.sample_rgb.length >= 3) {
+              var r = event.sample_rgb[0], g = event.sample_rgb[1], b = event.sample_rgb[2];
+              swatchHtml = '<div class="color-swatch" style="background-color: rgb(' + r + ',' + g + ',' + b + ');" title="Sample color: rgb(' + r + ',' + g + ',' + b + ')"></div>';
+            }
+
+            item.innerHTML =
+              '<span class="problem-icon">' + icon + '</span>' +
+              '<span class="problem-location">' + event.location + '</span>' +
+              '<span class="problem-message">' + event.message + '</span>' +
+              swatchHtml;
             list.appendChild(item);
           });
         },
-        
+
+        clear: function() {
+          if (typeof Module !== 'undefined' && typeof Module.clearPaletteDebugEvents === 'function') {
+            Module.clearPaletteDebugEvents();
+          }
+          this.refresh();
+        },
+
         autoRefresh: function() {
           setInterval(this.refresh.bind(this), 1000);
         }
       };
+
+      // Pixel Inspector for debugging palette issues
+      var pixelInspector = {
+        enabled: false,
+        el: null,
+
+        init: function() {
+          this.el = document.getElementById('pixel-inspector');
+          var canvas = document.getElementById('canvas');
+          if (canvas) {
+            canvas.addEventListener('mousemove', this.onMouseMove.bind(this));
+            canvas.addEventListener('click', this.onClick.bind(this));
+          }
+        },
+
+        toggle: function() {
+          this.enabled = !this.enabled;
+          if (this.el) {
+            this.el.style.display = this.enabled ? 'block' : 'none';
+          }
+          // Update cursor on canvas
+          var canvas = document.getElementById('canvas');
+          if (canvas) {
+            canvas.style.cursor = this.enabled ? 'crosshair' : '';
+          }
+        },
+
+        onMouseMove: function(e) {
+          if (!this.enabled) return;
+          if (typeof Module === 'undefined' || typeof Module.samplePixelAt !== 'function') return;
+
+          var canvas = document.getElementById('canvas');
+          if (!canvas) return;
+
+          var rect = canvas.getBoundingClientRect();
+          var x = Math.floor(e.clientX - rect.left);
+          var y = Math.floor(e.clientY - rect.top);
+
+          // Call WASM to sample pixel
+          var resultStr = Module.samplePixelAt(x, y);
+          if (!resultStr) return;
+
+          try {
+            var result = JSON.parse(resultStr);
+            this.updateDisplay(result);
+          } catch (err) {
+            console.error('Pixel inspector parse error:', err);
+          }
+        },
+
+        onClick: function(e) {
+          if (!this.enabled) return;
+          // On click, log the current pixel info to console for easy copying
+          var xyEl = document.getElementById('inspector-xy');
+          var indexEl = document.getElementById('inspector-index');
+          var actualEl = document.getElementById('inspector-actual-rgb');
+          var expectedEl = document.getElementById('inspector-expected-rgb');
+          console.log('Pixel Inspector Snapshot:');
+          console.log('  Position:', xyEl ? xyEl.textContent : '-');
+          console.log('  Index:', indexEl ? indexEl.textContent : '-');
+          console.log('  Actual:', actualEl ? actualEl.textContent : '-');
+          console.log('  Expected:', expectedEl ? expectedEl.textContent : '-');
+        },
+
+        updateDisplay: function(result) {
+          var xyEl = document.getElementById('inspector-xy');
+          var indexEl = document.getElementById('inspector-index');
+          var actualRgbEl = document.getElementById('inspector-actual-rgb');
+          var expectedRgbEl = document.getElementById('inspector-expected-rgb');
+          var actualSwatchEl = document.getElementById('inspector-actual-swatch');
+          var expectedSwatchEl = document.getElementById('inspector-expected-swatch');
+          var statusEl = document.getElementById('inspector-status');
+
+          if (xyEl) xyEl.textContent = result.x + ', ' + result.y;
+          if (indexEl) indexEl.textContent = result.palette_index;
+
+          if (result.actual && result.actual.length >= 3) {
+            var ar = result.actual[0], ag = result.actual[1], ab = result.actual[2];
+            if (actualRgbEl) actualRgbEl.textContent = 'rgb(' + ar + ', ' + ag + ', ' + ab + ')';
+            if (actualSwatchEl) actualSwatchEl.style.backgroundColor = 'rgb(' + ar + ',' + ag + ',' + ab + ')';
+          }
+
+          if (result.expected && result.expected.length >= 3) {
+            var er = result.expected[0], eg = result.expected[1], eb = result.expected[2];
+            if (expectedRgbEl) expectedRgbEl.textContent = 'rgb(' + er + ', ' + eg + ', ' + eb + ')';
+            if (expectedSwatchEl) expectedSwatchEl.style.backgroundColor = 'rgb(' + er + ',' + eg + ',' + eb + ')';
+          }
+
+          if (statusEl) {
+            if (result.matches) {
+              statusEl.textContent = '✓ Match';
+              statusEl.style.color = 'var(--status-success, #4caf50)';
+            } else {
+              statusEl.textContent = '✗ Mismatch';
+              statusEl.style.color = 'var(--status-error, #f44336)';
+            }
+          }
+        }
+      };
+
+      // Initialize pixel inspector on load
+      document.addEventListener('DOMContentLoaded', function() {
+        pixelInspector.init();
+      });
 
       // VSCode-style panel system
       function focusTerminalInput() {
@@ -599,14 +768,46 @@
         }
       });
 
-      // Keep input events inside terminal/collab from being captured by global/WASM listeners
+      // Keep input events inside terminal/collab/pixel-inspector from being captured by global/WASM listeners
+      // This must run in capture phase (true) to intercept before Emscripten
       document.addEventListener('keydown', function(e) {
         var t = e.target;
         if (!t) return;
+
+        // Check if we're in any input context that should capture keyboard
+        var isInput = t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable;
         var inTerminal = t.closest && t.closest('#panel-terminal');
-        var inCollab = t.closest && t.closest('.yaze-chat-input');
-        if (inTerminal || inCollab || t.id === 'yaze-chat-input' || t.id === 'terminal-input') {
+        var inCollab = t.closest && (t.closest('.yaze-collab-console') || t.closest('.yaze-chat-input'));
+        var inPalette = t.closest && t.closest('#command-palette');
+        var inModal = t.closest && t.closest('.modal');
+
+        if (isInput || inTerminal || inCollab || inPalette || inModal ||
+            t.id === 'yaze-chat-input' || t.id === 'terminal-input' ||
+            t.id === 'palette-input') {
           e.stopPropagation();
+          // Also stop immediate propagation to prevent Emscripten handlers
+          e.stopImmediatePropagation();
+        }
+      }, true);
+
+      // Same for keyup and keypress events
+      document.addEventListener('keyup', function(e) {
+        var t = e.target;
+        if (!t) return;
+        var isInput = t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable;
+        if (isInput) {
+          e.stopPropagation();
+          e.stopImmediatePropagation();
+        }
+      }, true);
+
+      document.addEventListener('keypress', function(e) {
+        var t = e.target;
+        if (!t) return;
+        var isInput = t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable;
+        if (isInput) {
+          e.stopPropagation();
+          e.stopImmediatePropagation();
         }
       }, true);
 
@@ -645,6 +846,192 @@
           }
         }
       };
+
+      // ==========================================================================
+      // AI Debug API for Gemini/Antigravity Integration
+      // ==========================================================================
+      // This global object provides a unified interface for AI assistants
+      // to query debug state and analyze rendering issues.
+      window.yazeDebug = {
+        // Version and capability info
+        version: '1.0.0',
+        capabilities: ['palette', 'arena', 'timeline', 'pixel-inspector'],
+
+        // Check if WASM module is ready
+        isReady: function() {
+          return typeof Module !== 'undefined' && Module.calledRun;
+        },
+
+        // --- Palette Debug Functions ---
+        palette: {
+          // Get all palette debug events
+          getEvents: function() {
+            if (!window.yazeDebug.isReady()) return { error: 'Module not ready' };
+            try {
+              return JSON.parse(Module.getDungeonPaletteEvents());
+            } catch (e) {
+              return { error: e.message };
+            }
+          },
+
+          // Get full palette state for AI analysis
+          getFullState: function() {
+            if (!window.yazeDebug.isReady()) return { error: 'Module not ready' };
+            try {
+              return JSON.parse(Module.getFullPaletteState());
+            } catch (e) {
+              return { error: e.message };
+            }
+          },
+
+          // Get palette data with all colors
+          getData: function() {
+            if (!window.yazeDebug.isReady()) return { error: 'Module not ready' };
+            try {
+              return JSON.parse(Module.getPaletteData());
+            } catch (e) {
+              return { error: e.message };
+            }
+          },
+
+          // Get color comparisons
+          getComparisons: function() {
+            if (!window.yazeDebug.isReady()) return { error: 'Module not ready' };
+            try {
+              return JSON.parse(Module.getColorComparisons());
+            } catch (e) {
+              return { error: e.message };
+            }
+          },
+
+          // Sample pixel at coordinates
+          samplePixel: function(x, y) {
+            if (!window.yazeDebug.isReady()) return { error: 'Module not ready' };
+            try {
+              return JSON.parse(Module.samplePixelAt(x, y));
+            } catch (e) {
+              return { error: e.message };
+            }
+          },
+
+          // Clear all debug events
+          clear: function() {
+            if (!window.yazeDebug.isReady()) return;
+            Module.clearPaletteDebugEvents();
+          }
+        },
+
+        // --- Arena/Graphics Debug Functions ---
+        arena: {
+          // Get arena status including texture queue and active sheets
+          getStatus: function() {
+            if (!window.yazeDebug.isReady()) return { error: 'Module not ready' };
+            try {
+              return JSON.parse(Module.getArenaStatus());
+            } catch (e) {
+              return { error: e.message };
+            }
+          },
+
+          // Get info about a specific graphics sheet
+          getSheetInfo: function(index) {
+            if (!window.yazeDebug.isReady()) return { error: 'Module not ready' };
+            try {
+              return JSON.parse(Module.getGfxSheetInfo(index));
+            } catch (e) {
+              return { error: e.message };
+            }
+          }
+        },
+
+        // --- Timeline Analysis ---
+        timeline: {
+          // Get event timeline for analyzing order of operations
+          get: function() {
+            if (!window.yazeDebug.isReady()) return { error: 'Module not ready' };
+            try {
+              return JSON.parse(Module.getEventTimeline());
+            } catch (e) {
+              return { error: e.message };
+            }
+          }
+        },
+
+        // --- AI Analysis Helpers ---
+        analysis: {
+          // Get diagnostic summary (human readable)
+          getSummary: function() {
+            if (!window.yazeDebug.isReady()) return 'Module not ready';
+            try {
+              return Module.getDiagnosticSummary();
+            } catch (e) {
+              return 'Error: ' + e.message;
+            }
+          },
+
+          // Get hypothesis analysis based on captured events
+          getHypothesis: function() {
+            if (!window.yazeDebug.isReady()) return 'Module not ready';
+            try {
+              return Module.getHypothesisAnalysis();
+            } catch (e) {
+              return 'Error: ' + e.message;
+            }
+          },
+
+          // Get complete debug state for AI consumption
+          getFullState: function() {
+            if (!window.yazeDebug.isReady()) return { error: 'Module not ready' };
+            try {
+              return JSON.parse(Module.getFullDebugState());
+            } catch (e) {
+              return { error: e.message };
+            }
+          }
+        },
+
+        // --- Convenience Methods ---
+        // Get everything for quick AI analysis
+        dumpAll: function() {
+          return {
+            ready: this.isReady(),
+            timestamp: Date.now(),
+            palette: this.palette.getFullState(),
+            arena: this.arena.getStatus(),
+            timeline: this.timeline.get(),
+            summary: this.analysis.getSummary(),
+            hypothesis: this.analysis.getHypothesis()
+          };
+        },
+
+        // Format state as human-readable string for AI prompts
+        formatForAI: function() {
+          var state = this.dumpAll();
+          if (!state.ready) return 'WASM module not ready. Please load a ROM first.';
+
+          var lines = [
+            '=== YAZE Debug State ===',
+            'Timestamp: ' + new Date(state.timestamp).toISOString(),
+            '',
+            '--- Diagnostic Summary ---',
+            state.summary,
+            '',
+            '--- Hypothesis Analysis ---',
+            state.hypothesis,
+            '',
+            '--- Timeline ---',
+            JSON.stringify(state.timeline, null, 2),
+            '',
+            '--- Arena Status ---',
+            JSON.stringify(state.arena, null, 2)
+          ];
+
+          return lines.join('\n');
+        }
+      };
+
+      // Log API availability to console for debugging
+      console.log('yazeDebug API available. Use window.yazeDebug.dumpAll() for full state.');
     </script>
     {{{ SCRIPT }}}
   </body>

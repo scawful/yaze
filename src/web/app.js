@@ -10,6 +10,7 @@ var loadingOverlay = document.getElementById('loading-overlay');
 let wasmReady = false;
 let fsReady = false;
 let fsInitPromise = null;
+let fsInitAttempts = 0;
 
 // Check SharedArrayBuffer support before anything else
 (function checkCrossOriginIsolation() {
@@ -180,7 +181,24 @@ function configureKeyboardCapture() {
   var canvas = document.getElementById('canvas');
   waitForModule(() => {
     if (canvas && typeof Module !== 'undefined') {
+      // Set the canvas as the only element that receives keyboard events from SDL
       Module.keyboardListeningElement = canvas;
+
+      // Additionally, we need to prevent SDL from capturing events when
+      // the user is typing in an input field
+      if (typeof SDL !== 'undefined' && SDL.receiveEvent) {
+        var originalReceiveEvent = SDL.receiveEvent;
+        SDL.receiveEvent = function(event) {
+          // Don't let SDL capture keyboard events from input fields
+          if (event.type === 'keydown' || event.type === 'keyup' || event.type === 'keypress') {
+            var target = event.target;
+            if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) {
+              return; // Don't pass to SDL
+            }
+          }
+          return originalReceiveEvent.call(this, event);
+        };
+      }
     }
   });
 }
