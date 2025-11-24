@@ -280,23 +280,29 @@ progress::-moz-progress-bar {
   border-radius: 2px;
 }
 
-/* Update notification */
+/* Update notification - above terminal */
 #update-notification {
   position: fixed;
-  bottom: 8px;
+  bottom: 330px;
   right: 8px;
   background: var(--bg-panel);
-  border: 1px solid var(--accent-primary);
-  padding: 8px 12px;
+  border: 1px solid var(--border-color);
+  padding: 6px 10px;
   display: none;
   align-items: center;
-  gap: 8px;
-  z-index: 2000;
-  font-size: 11px;
+  gap: 6px;
+  z-index: 10000;
+  font-size: 10px;
+  color: var(--text-secondary);
 }
 
 #update-notification.show {
   display: flex;
+}
+
+#update-notification .toolbar-btn {
+  padding: 2px 6px;
+  font-size: 10px;
 }
 
 /* Terminal overrides for new header style */
