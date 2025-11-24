@@ -230,12 +230,25 @@ body {
 
 /* Icons */
 .material-symbols-outlined {
+  font-family: 'Material Symbols Outlined', sans-serif;
   font-size: 18px;
   /* Standard settings to ensure cross-browser compatibility */
   font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
   display: inline-block;
   line-height: 1;
   transition: transform 0.2s ease;
+  /* Fallback for when font doesn't load */
+  font-style: normal;
+  font-weight: normal;
+  letter-spacing: normal;
+  text-transform: none;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  /* Use system font as fallback */
+  font-feature-settings: 'liga';
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
 }
 
 .nav-btn:hover .material-symbols-outlined {
