@@ -29,24 +29,62 @@ if (typeof window !== 'undefined' && typeof SharedArrayBuffer === 'undefined') {
         console.log('[COI] First visit: Registering service worker...');
         window.sessionStorage.setItem("coiReloadedBySelf", "true");
 
-        n.serviceWorker.register(window.document.currentScript.src).then(() => {
-            console.log('[COI] SW registered, reloading...');
-            window.location.reload();
-        }).catch(err => {
-            console.error('[COI] SW registration failed:', err);
-        });
+        // Create non-blocking overlay instead of document.write
+        const overlay = document.createElement('div');
+        overlay.id = 'coi-setup-overlay';
+        overlay.style.cssText = `
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(13,13,13,0.98); z-index: 999999;
+            display: flex; align-items: center; justify-content: center;
+            color: #0c6; font-family: monospace; font-size: 14px;
+        `;
+        overlay.innerHTML = `
+            <div style="text-align: center;">
+                <div class="coi-spinner" style="
+                    border: 2px solid #333;
+                    border-top: 2px solid #0c6;
+                    border-radius: 50%;
+                    width: 24px;
+                    height: 24px;
+                    animation: coi-spin 1s linear infinite;
+                    margin: 0 auto 12px;
+                "></div>
+                <style>
+                    @keyframes coi-spin {
+                        to { transform: rotate(360deg); }
+                    }
+                </style>
+                <div>Initializing secure context...</div>
+                <div style="font-size: 11px; margin-top: 12px; opacity: 0.7;">
+                    This is required for SharedArrayBuffer support
+                </div>
+            </div>
+        `;
+        (document.body || document.documentElement).appendChild(overlay);
 
-        // CRITICAL: Stop the page from loading further while SW registers
-        // This prevents yaze.js from loading before COI is ready
-        document.write('<html><head><meta charset="utf-8"><title>yaze - Loading...</title>' +
-            '<style>body{background:#0d0d0d;color:#0c6;font-family:monospace;display:flex;' +
-            'align-items:center;justify-content:center;height:100vh;margin:0;}' +
-            '.loading{text-align:center}.spinner{border:2px solid #333;border-top:2px solid #0c6;' +
-            'border-radius:50%;width:24px;height:24px;animation:spin 1s linear infinite;margin:0 auto 12px;}' +
-            '@keyframes spin{to{transform:rotate(360deg)}}</style></head>' +
-            '<body><div class="loading"><div class="spinner"></div>Initializing secure context...</div></body></html>');
-        document.close();
-        throw new Error('COI setup in progress - blocking page load');
+        n.serviceWorker.register(window.document.currentScript.src)
+            .then(() => {
+                console.log('[COI] SW registered, reloading in 1s...');
+                setTimeout(() => window.location.reload(), 1000);
+            })
+            .catch(err => {
+                console.error('[COI] SW registration failed:', err);
+                overlay.innerHTML = `
+                    <div style="text-align: center; color: #f44;">
+                        <div>Failed to enable SharedArrayBuffer support</div>
+                        <div style="font-size: 12px; margin-top: 12px; opacity: 0.8;">
+                            ${err.message || err}
+                        </div>
+                        <button onclick="location.reload()" style="
+                            margin-top: 16px; padding: 8px 16px; cursor: pointer;
+                            background: #333; color: #fff; border: 1px solid #555;
+                            border-radius: 4px; font-family: monospace;
+                        ">Retry</button>
+                    </div>
+                `;
+            });
+
+        // Don't throw - let page continue loading in background
     }
 }
 

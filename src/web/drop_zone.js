@@ -300,13 +300,43 @@
 
       // If Module is available (Emscripten), call the C++ handler
       if (typeof Module !== 'undefined' && Module._yazeHandleDroppedFile) {
-        const data = new Uint8Array(reader.result);
-        const filenamePtr = Module.allocateUTF8(file.name);
-        const dataPtr = Module._malloc(data.length);
-        Module.HEAPU8.set(data, dataPtr);
-        Module._yazeHandleDroppedFile(filenamePtr, dataPtr, data.length);
-        Module._free(dataPtr);
-        Module._free(filenamePtr);
+        let filenamePtr = 0;
+        let dataPtr = 0;
+
+        try {
+          const data = new Uint8Array(reader.result);
+
+          // Allocate filename string
+          const filenameBytes = new TextEncoder().encode(file.name + '\0');
+          filenamePtr = Module._malloc(filenameBytes.length);
+          if (!filenamePtr) {
+            throw new Error('Failed to allocate memory for filename');
+          }
+          Module.HEAPU8.set(filenameBytes, filenamePtr);
+
+          // Allocate data buffer
+          dataPtr = Module._malloc(data.length);
+          if (!dataPtr) {
+            throw new Error('Failed to allocate memory for file data');
+          }
+          Module.HEAPU8.set(data, dataPtr);
+
+          // Call WASM function
+          const result = Module._yazeHandleDroppedFile(filenamePtr, dataPtr, data.length);
+          if (result !== 0) {
+            throw new Error(`WASM function returned error code: ${result}`);
+          }
+
+          console.log('[DropZone] File handled successfully by WASM');
+
+        } catch (err) {
+          console.error('[DropZone] WASM error:', err);
+          showError('Failed to process dropped file: ' + err.message);
+        } finally {
+          // Always free memory
+          if (dataPtr) Module._free(dataPtr);
+          if (filenamePtr) Module._free(filenamePtr);
+        }
       }
     };
 
@@ -382,9 +412,19 @@
 
     // If Module is available (Emscripten), call the C++ error handler
     if (typeof Module !== 'undefined' && Module._yazeHandleDropError) {
-      const errPtr = Module.allocateUTF8(message);
-      Module._yazeHandleDropError(errPtr);
-      Module._free(errPtr);
+      let errPtr = 0;
+      try {
+        const errBytes = new TextEncoder().encode(message + '\0');
+        errPtr = Module._malloc(errBytes.length);
+        if (errPtr) {
+          Module.HEAPU8.set(errBytes, errPtr);
+          Module._yazeHandleDropError(errPtr);
+        }
+      } catch (e) {
+        console.error('[DropZone] Error calling WASM error handler:', e);
+      } finally {
+        if (errPtr) Module._free(errPtr);
+      }
     }
 
     // Show error in console

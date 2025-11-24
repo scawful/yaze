@@ -142,9 +142,46 @@
       }
     },
     {
+      "name": "wasm-debug",
+      "displayName": "Web Assembly Debug",
+      "description": "Emscripten build for Web Assembly with debug flags - use with emcmake for local development",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build-wasm-debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_CXX_STANDARD": "20",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "YAZE_BUILD_APP": "ON",
+        "YAZE_BUILD_LIB": "ON",
+        "YAZE_BUILD_EMU": "ON",
+        "YAZE_BUILD_CLI": "ON",
+        "YAZE_BUILD_Z3ED": "ON",
+        "YAZE_WASM_TERMINAL": "ON",
+        "YAZE_BUILD_TESTS": "OFF",
+        "YAZE_ENABLE_GRPC": "OFF",
+        "YAZE_ENABLE_JSON": "ON",
+        "YAZE_ENABLE_AI": "OFF",
+        "YAZE_ENABLE_NFD": "OFF",
+        "YAZE_BUILD_AGENT_UI": "OFF",
+        "YAZE_ENABLE_AGENT_CLI": "OFF",
+        "YAZE_ENABLE_REMOTE_AUTOMATION": "OFF",
+        "YAZE_ENABLE_AI_RUNTIME": "OFF",
+        "YAZE_ENABLE_HTTP_API": "OFF",
+        "YAZE_WITH_IMGUI": "ON",
+        "YAZE_WITH_SDL": "ON",
+        "CMAKE_THREAD_LIBS_INIT": "-pthread",
+        "CMAKE_HAVE_THREADS_LIBRARY": "TRUE",
+        "CMAKE_USE_PTHREADS_INIT": "TRUE",
+        "Threads_FOUND": "TRUE",
+        "CMAKE_CXX_FLAGS": "-pthread -s USE_SDL=2 -s USE_FREETYPE=1 -s USE_PTHREADS=1 -s ALLOW_MEMORY_GROWTH=1 -s NO_DISABLE_EXCEPTION_CATCHING -s SAFE_HEAP=1 -s ASSERTIONS=2 -s STACK_SIZE=32MB -s ASYNCIFY=1 -g",
+        "CMAKE_C_FLAGS": "-pthread -s USE_PTHREADS=1 -g",
+        "CMAKE_EXE_LINKER_FLAGS": "-pthread -s USE_SDL=2 -s USE_FREETYPE=1 -s USE_PTHREADS=1 -s PTHREAD_POOL_SIZE=4 -s ALLOW_MEMORY_GROWTH=1 -s NO_DISABLE_EXCEPTION_CATCHING -s FORCE_FILESYSTEM=1 -s STACK_SIZE=32MB -s INITIAL_MEMORY=64MB -s ASYNCIFY=1 -s SAFE_HEAP=1 -s ASSERTIONS=2 -g -lidbfs.js --preload-file ${sourceDir}/assets@/assets"
+      }
+    },
+    {
       "name": "wasm-release",
       "displayName": "Web Assembly Release",
-      "description": "Emscripten build for Web Assembly - use with emcmake",
+      "description": "Emscripten build for Web Assembly - use with emcmake for production",
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/build-wasm",
       "cacheVariables": {
@@ -173,9 +210,9 @@
         "CMAKE_HAVE_THREADS_LIBRARY": "TRUE",
         "CMAKE_USE_PTHREADS_INIT": "TRUE",
         "Threads_FOUND": "TRUE",
-        "CMAKE_CXX_FLAGS": "-pthread -s USE_SDL=2 -s USE_FREETYPE=1 -s USE_PTHREADS=1 -s ALLOW_MEMORY_GROWTH=1 -s NO_DISABLE_EXCEPTION_CATCHING -s SAFE_HEAP=1 -s ASSERTIONS=2 -s STACK_SIZE=32MB -s ASYNCIFY=1",
-        "CMAKE_C_FLAGS": "-pthread -s USE_PTHREADS=1",
-        "CMAKE_EXE_LINKER_FLAGS": "-pthread -s USE_SDL=2 -s USE_FREETYPE=1 -s USE_PTHREADS=1 -s PTHREAD_POOL_SIZE=4 -s ALLOW_MEMORY_GROWTH=1 -s NO_DISABLE_EXCEPTION_CATCHING -s FORCE_FILESYSTEM=1 -s STACK_SIZE=32MB -s INITIAL_MEMORY=64MB -s ASYNCIFY=1 -lidbfs.js --preload-file ${sourceDir}/assets@/assets"
+        "CMAKE_CXX_FLAGS": "-pthread -s USE_SDL=2 -s USE_FREETYPE=1 -s USE_PTHREADS=1 -s ALLOW_MEMORY_GROWTH=1 -s NO_DISABLE_EXCEPTION_CATCHING -s STACK_SIZE=32MB -s ASYNCIFY=1 -O3 -flto -s WASM=2 -s ENVIRONMENT=web -msimd128",
+        "CMAKE_C_FLAGS": "-pthread -s USE_PTHREADS=1 -O3",
+        "CMAKE_EXE_LINKER_FLAGS": "-pthread -s USE_SDL=2 -s USE_FREETYPE=1 -s USE_PTHREADS=1 -s PTHREAD_POOL_SIZE=4 -s ALLOW_MEMORY_GROWTH=1 -s MAXIMUM_MEMORY=512MB -s NO_DISABLE_EXCEPTION_CATCHING -s FORCE_FILESYSTEM=1 -s STACK_SIZE=32MB -s INITIAL_MEMORY=32MB -s ASYNCIFY=1 -O3 -flto -s WASM=2 -s ENVIRONMENT=web -s MODULARIZE=1 -s EXPORT_NAME='createYazeModule' -lidbfs.js --preload-file ${sourceDir}/assets@/assets"
       }
     },
     {
@@ -832,6 +869,12 @@
       "name": "minimal",
       "configurePreset": "minimal",
       "displayName": "Minimal Build",
+      "jobs": 12
+    },
+    {
+      "name": "wasm-debug",
+      "configurePreset": "wasm-debug",
+      "displayName": "Web Assembly Debug",
       "jobs": 12
     },
     {
