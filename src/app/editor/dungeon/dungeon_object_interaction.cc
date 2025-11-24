@@ -106,7 +106,6 @@ void DungeonObjectInteraction::HandleCanvasMouseInput() {
     }
   }
 }
-}
 
 void DungeonObjectInteraction::CheckForObjectSelection() {
   // Draw object selection rectangle similar to OverworldEditor

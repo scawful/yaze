@@ -178,7 +178,8 @@ uint32_t WasmWorkerPool::SubmitTaskWithProgress(TaskType type,
         completion_callback(false, std::vector<uint8_t>());
       }
     }
-    return 0;
+    // Return special ID to indicate synchronous execution (task already completed)
+    return kSynchronousTaskId;
   }
 
   auto task = std::make_shared<Task>();

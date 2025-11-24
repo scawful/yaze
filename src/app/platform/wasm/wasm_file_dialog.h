@@ -5,6 +5,7 @@
 
 #include <functional>
 #include <memory>
+#include <mutex>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -98,9 +99,10 @@ class WasmFileDialog {
   };
 
  private:
-  // Callback management
+  // Callback management (thread-safe)
   static int next_callback_id_;
   static std::unordered_map<int, PendingOperation> pending_operations_;
+  static std::mutex operations_mutex_;
 
   /**
    * @brief Register a callback for async file operations
