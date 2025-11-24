@@ -440,12 +440,8 @@ void ObjectEditorCard::DrawSelectedObjectInfo() {
   // Delegate property editing to the backend
   if (object_editor_) {
     object_editor_->DrawPropertyUI();
-
-  ImGui::SameLine();
-  ImGui::Text("|");
-  ImGui::SameLine();
-  ImGui::TextColored(theme.text_warning_yellow,
-                     ICON_MD_CHECKLIST " Selected: %zu", selected.size());
+  }
+}
 
 // ============================================================================
 // Keyboard Shortcuts Implementation
@@ -512,9 +508,10 @@ void ObjectEditorCard::HandleKeyboardShortcuts() {
   // I: Toggle object ID labels
   if (ImGui::IsKeyPressed(ImGuiKey_I) && !io.KeyCtrl) {
     show_object_ids_ = !show_object_ids_;
-    if (canvas_viewer_) {
-      canvas_viewer_->object_interaction().SetShowObjectIDs(show_object_ids_);
-    }
+    // TODO: Implement SetShowObjectIDs in DungeonObjectInteraction
+    // if (canvas_viewer_) {
+    //   canvas_viewer_->object_interaction().SetShowObjectIDs(show_object_ids_);
+    // }
   }
 
   // Arrow keys: Nudge selected objects
@@ -552,7 +549,9 @@ void ObjectEditorCard::SelectAllObjects() {
     all_indices.push_back(i);
   }
 
-  interaction.SetSelectedObjects(all_indices);
+  // TODO: Implement SetSelectedObjects in DungeonObjectInteraction
+  // interaction.SetSelectedObjects(all_indices);
+  (void)interaction;  // Suppress unused variable warning
 }
 
 void ObjectEditorCard::DeselectAllObjects() {
@@ -615,7 +614,10 @@ void ObjectEditorCard::DuplicateSelectedObjects() {
   }
 
   // Select the new objects
-  interaction.SetSelectedObjects(new_indices);
+  // TODO: Implement SetSelectedObjects in DungeonObjectInteraction
+  // interaction.SetSelectedObjects(new_indices);
+  (void)interaction;  // Suppress unused variable warning
+  (void)new_indices;
 }
 
 void ObjectEditorCard::CopySelectedObjects() {
@@ -638,7 +640,9 @@ void ObjectEditorCard::PasteObjects() {
 
   if (!new_indices.empty()) {
     // Select the pasted objects
-    canvas_viewer_->object_interaction().SetSelectedObjects(new_indices);
+    // TODO: Implement SetSelectedObjects in DungeonObjectInteraction
+    // canvas_viewer_->object_interaction().SetSelectedObjects(new_indices);
+    (void)new_indices;
   }
 }
 
@@ -668,10 +672,14 @@ void ObjectEditorCard::CycleObjectSelection(int direction) {
   size_t current_idx = selected.empty() ? 0 : selected.front();
   size_t next_idx = (current_idx + direction + total_objects) % total_objects;
 
-  interaction.SetSelectedObjects({next_idx});
+  // TODO: Implement SetSelectedObjects in DungeonObjectInteraction
+  // interaction.SetSelectedObjects({next_idx});
+  (void)interaction;
+  (void)next_idx;
 
   // Scroll to selected object
-  ScrollToObject(next_idx);
+  // TODO: Re-enable when ScrollToObject is implemented
+  // ScrollToObject(next_idx);
 }
 
 void ObjectEditorCard::ScrollToObject(size_t index) {
@@ -680,8 +688,10 @@ void ObjectEditorCard::ScrollToObject(size_t index) {
   const auto& objects = object_editor_->GetObjects();
   if (index >= objects.size()) return;
 
-  const auto& obj = objects[index];
-  canvas_viewer_->ScrollTo(obj.x(), obj.y());
+  // TODO: Implement ScrollTo in DungeonCanvasViewer
+  // const auto& obj = objects[index];
+  // canvas_viewer_->ScrollTo(obj.x(), obj.y());
+  (void)objects;
 }
 
 }  // namespace yaze::editor

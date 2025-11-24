@@ -3,6 +3,7 @@ set(
   zelda3/dungeon/dungeon_editor_system.cc
   zelda3/dungeon/dungeon_object_editor.cc
   zelda3/dungeon/dungeon_object_registry.cc
+  zelda3/dungeon/dungeon_validator.cc
   zelda3/dungeon/object_drawer.cc
   zelda3/dungeon/object_parser.cc
   zelda3/dungeon/object_templates.cc

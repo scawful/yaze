@@ -1028,6 +1028,12 @@ absl::Status DungeonEditorSystem::SaveChestData() {
   return absl::OkStatus();
 }
 
+void DungeonEditorSystem::SetExternalRoom(Room* room) {
+  if (object_editor_) {
+    object_editor_->SetExternalRoom(room);
+  }
+}
+
 // Factory function
 std::unique_ptr<DungeonEditorSystem> CreateDungeonEditorSystem(Rom* rom) {
   return std::make_unique<DungeonEditorSystem>(rom);
