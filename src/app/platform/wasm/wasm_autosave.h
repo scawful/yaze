@@ -195,6 +195,9 @@ class AutoSaveManager {
 
   // Event handler registration state
   bool event_handlers_initialized_;
+
+ public:
+  // Must be public for emergency save callback access
   static bool emergency_save_triggered_;
 };
 

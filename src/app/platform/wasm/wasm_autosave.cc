@@ -3,6 +3,7 @@
 #include "app/platform/wasm/wasm_autosave.h"
 
 #include <emscripten.h>
+#include <emscripten/html5.h>  // For emscripten_set_timeout/clear_timeout
 #include <chrono>
 #include <ctime>
 
