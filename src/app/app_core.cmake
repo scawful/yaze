@@ -68,6 +68,8 @@ if (EMSCRIPTEN)
     app/platform/wasm/wasm_collaboration.cc
     # WASM Message Queue for offline support
     app/platform/wasm/wasm_message_queue.cc
+    # WASM Bootstrap (Platform Init)
+    app/platform/wasm/wasm_bootstrap.cc
   )
 endif()
 

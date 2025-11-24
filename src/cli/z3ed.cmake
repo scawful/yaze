@@ -19,6 +19,7 @@ else()
   # Add WASM terminal bridge for Emscripten builds
   list(APPEND Z3ED_BASE_SOURCES
     cli/wasm_terminal_bridge.cc
+    cli/wasm_z3ed_stub.cc
   )
 endif()
 
