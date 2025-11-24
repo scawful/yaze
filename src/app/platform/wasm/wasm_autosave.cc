@@ -14,6 +14,8 @@
 namespace yaze {
 namespace platform {
 
+using ::yaze::app::platform::WasmConfig;
+
 // Static member initialization
 bool AutoSaveManager::emergency_save_triggered_ = false;
 
@@ -109,7 +111,7 @@ void yazeEmergencySave() {
 // AutoSaveManager implementation
 
 AutoSaveManager::AutoSaveManager()
-    : interval_seconds_(WasmConfig::Get().autosave.interval_seconds),
+    : interval_seconds_(app::platform::WasmConfig::Get().autosave.interval_seconds),
       enabled_(true),
       running_(false),
       timer_id_(-1),
