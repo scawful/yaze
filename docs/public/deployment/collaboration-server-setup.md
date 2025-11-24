@@ -30,6 +30,12 @@ For production, deploy yaze-server behind an SSL proxy when possible:
 - Health: `http://org.halext.org:8765/health`, metrics at `/metrics`
 - AI: enable with `GEMINI_API_KEY` or `AI_AGENT_ENDPOINT` + `ENABLE_AI_AGENT=true`
 
+### Server v2.1 Features
+- **Persistence**: Configurable SQLite storage (`SQLITE_DB_PATH` env var)
+- **Admin API**: Protected endpoints for session/room management
+- **Enhanced Health**: AI status, TLS detection, persistence info in `/health`
+- **Configurable Limits**: Tunable rate limits via environment variables
+
 ---
 
 ## Overview
@@ -110,10 +116,32 @@ See `yaze-server/README.md` for full payload examples.
    ```bash
    npm ci
    ```
-3. Configure environment (examples):
-   - `PORT=8765` (default matches halext deployment)
-   - `ENABLE_AI_AGENT=true|false`
-   - `GEMINI_API_KEY` **or** `AI_AGENT_ENDPOINT` for AI responses
+3. Configure environment variables:
+
+   **Core Settings:**
+   ```bash
+   PORT=8765                          # WebSocket/HTTP port (default: 8765)
+   ENABLE_AI_AGENT=true               # Enable AI query handling (default: true)
+   GEMINI_API_KEY=your_api_key        # Gemini API key for AI responses
+   AI_AGENT_ENDPOINT=http://...       # Alternative: external AI endpoint
+   ```
+
+   **Persistence (v2.1+):**
+   ```bash
+   SQLITE_DB_PATH=/var/lib/yaze-collab.db  # File-based persistence (default: :memory:)
+   ```
+
+   **Rate Limiting:**
+   ```bash
+   RATE_LIMIT_MAX_MESSAGES=100        # Messages per minute per IP (default: 100)
+   JOIN_LIMIT_MAX_ATTEMPTS=10         # Join/host attempts per minute per IP (default: 10)
+   ```
+
+   **Admin API:**
+   ```bash
+   ADMIN_API_KEY=your_secret_key      # Protect admin endpoints (optional)
+   ```
+
 4. Run with PM2 for process management:
    ```bash
    npm install -g pm2
@@ -224,8 +252,248 @@ collab.SetWebSocketUrl("ws://org.halext.org:8765");
 - **Status:** `curl http://org.halext.org:8765/health` and `/metrics`; add `/metrics` scrape to Prometheus if available.
 - **Logs:** `pm2 logs yaze-collab` (rotate externally if needed).
 - **Restart/Redeploy:** `pm2 restart yaze-collab`; `pm2 list` to verify uptime.
-- **Admin actions:** temporarily block abusive IPs at the proxy (nginx `deny`, Caddy `ip` matcher); rate limits already exist server-side.
+- **Admin actions:** Use Admin API (see below) or block abusive IPs at the proxy.
 - **Scaling path:** add Redis pub/sub for multi-instance broadcast; place proxy in front with sticky room affinity if you shard.
+
+---
+
+## Admin API (v2.1+)
+
+Protected endpoints for server administration. Set `ADMIN_API_KEY` to require authentication.
+
+### Authentication
+Include the key in requests:
+```bash
+curl -H "X-Admin-Key: your_secret_key" http://localhost:8765/admin/sessions
+# Or as query param: http://localhost:8765/admin/sessions?admin_key=your_secret_key
+```
+
+### Endpoints
+
+**List all sessions/rooms:**
+```bash
+GET /admin/sessions
+# Response: { sessions: [...], wasm_rooms: [...], total_connections: N }
+```
+
+**List users in a session:**
+```bash
+GET /admin/sessions/:code/users
+# Response: { code: "ABC123", type: "full"|"wasm", users: [...] }
+```
+
+**Close a session (kick all users):**
+```bash
+DELETE /admin/sessions/:code
+# Body: { "reason": "Maintenance" }  (optional)
+# Response: { success: true, code: "ABC123", reason: "..." }
+```
+
+**Kick a specific user:**
+```bash
+DELETE /admin/sessions/:code/users/:userId
+# Body: { "reason": "Violation of rules" }  (optional)
+# Response: { success: true, code: "ABC123", userId: "user-123", reason: "..." }
+```
+
+**Broadcast message to session:**
+```bash
+POST /admin/sessions/:code/broadcast
+# Body: { "message": "Server maintenance in 5 minutes", "message_type": "admin" }
+# Response: { success: true, code: "ABC123", recipients: N }
+```
+
+---
+
+## Halext TLS Deployment Guide
+
+Step-by-step guide to add WSS (TLS) to the halext deployment.
+
+### Prerequisites
+- SSH access to halext-server
+- Domain DNS pointing to server (e.g., `collab.halext.org` or use existing `org.halext.org`)
+- Certbot or existing SSL certificates
+
+### Option A: nginx reverse proxy
+
+1. **Install nginx (if not present):**
+   ```bash
+   sudo apt update && sudo apt install nginx certbot python3-certbot-nginx
+   ```
+
+2. **Create nginx config:**
+   ```bash
+   sudo nano /etc/nginx/sites-available/yaze-collab
+   ```
+   ```nginx
+   server {
+       listen 80;
+       server_name collab.halext.org;  # or org.halext.org
+
+       # Redirect HTTP to HTTPS
+       return 301 https://$server_name$request_uri;
+   }
+
+   server {
+       listen 443 ssl http2;
+       server_name collab.halext.org;
+
+       ssl_certificate /etc/letsencrypt/live/collab.halext.org/fullchain.pem;
+       ssl_certificate_key /etc/letsencrypt/live/collab.halext.org/privkey.pem;
+       ssl_protocols TLSv1.2 TLSv1.3;
+       ssl_ciphers HIGH:!aNULL:!MD5;
+
+       # WebSocket proxy
+       location / {
+           proxy_pass http://127.0.0.1:8765;
+           proxy_http_version 1.1;
+           proxy_set_header Upgrade $http_upgrade;
+           proxy_set_header Connection "upgrade";
+           proxy_set_header Host $host;
+           proxy_set_header X-Real-IP $remote_addr;
+           proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+           proxy_set_header X-Forwarded-Proto $scheme;
+           proxy_read_timeout 86400;
+           proxy_send_timeout 86400;
+       }
+   }
+   ```
+
+3. **Enable site and get certificate:**
+   ```bash
+   sudo ln -s /etc/nginx/sites-available/yaze-collab /etc/nginx/sites-enabled/
+   sudo certbot --nginx -d collab.halext.org
+   sudo nginx -t && sudo systemctl reload nginx
+   ```
+
+4. **Update client config to use WSS:**
+   ```javascript
+   window.YAZE_CONFIG = {
+     collaboration: { serverUrl: 'wss://collab.halext.org' }
+   };
+   ```
+
+### Option B: Caddy (simpler, auto-TLS)
+
+1. **Install Caddy:**
+   ```bash
+   sudo apt install -y debian-keyring debian-archive-keyring apt-transport-https
+   curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | sudo gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
+   curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | sudo tee /etc/apt/sources.list.d/caddy-stable.list
+   sudo apt update && sudo apt install caddy
+   ```
+
+2. **Create Caddyfile:**
+   ```bash
+   sudo nano /etc/caddy/Caddyfile
+   ```
+   ```caddy
+   collab.halext.org {
+       reverse_proxy localhost:8765
+       # Caddy handles TLS automatically
+   }
+   ```
+
+3. **Reload Caddy:**
+   ```bash
+   sudo systemctl reload caddy
+   ```
+
+### Verify TLS is working
+
+```bash
+# Check health endpoint shows TLS detected
+curl -s https://collab.halext.org/health | jq '.tls'
+# Expected: { "detected": true, "note": "Request via TLS proxy" }
+
+# Test WebSocket connection
+wscat -c wss://collab.halext.org
+```
+
+---
+
+## PM2 Ecosystem File
+
+For more control, use a PM2 ecosystem file:
+
+**ecosystem.config.js:**
+```javascript
+module.exports = {
+  apps: [{
+    name: 'yaze-collab',
+    script: 'server.js',
+    instances: 1,
+    autorestart: true,
+    watch: false,
+    max_memory_restart: '500M',
+    env: {
+      NODE_ENV: 'development',
+      PORT: 8765
+    },
+    env_production: {
+      NODE_ENV: 'production',
+      PORT: 8765,
+      SQLITE_DB_PATH: '/var/lib/yaze-collab/sessions.db',
+      ENABLE_AI_AGENT: 'true',
+      // GEMINI_API_KEY: 'your_key_here',
+      // ADMIN_API_KEY: 'your_admin_key'
+    }
+  }]
+};
+```
+
+**Usage:**
+```bash
+pm2 start ecosystem.config.js --env production
+pm2 save
+pm2 startup  # Enable startup on boot
+```
+
+---
+
+## Persistence & Backup
+
+### Enable file-based persistence
+```bash
+# Create data directory
+sudo mkdir -p /var/lib/yaze-collab
+sudo chown $(whoami) /var/lib/yaze-collab
+
+# Set environment variable
+export SQLITE_DB_PATH=/var/lib/yaze-collab/sessions.db
+pm2 restart yaze-collab --update-env
+```
+
+### Backup strategy
+```bash
+# Daily backup cron job
+echo "0 3 * * * sqlite3 /var/lib/yaze-collab/sessions.db '.backup /backups/yaze-collab-$(date +%Y%m%d).db'" | crontab -
+
+# Retain last 7 days
+echo "0 4 * * * find /backups -name 'yaze-collab-*.db' -mtime +7 -delete" | crontab -e
+```
+
+### Health endpoint (v2.1+)
+The `/health` endpoint now reports persistence status:
+```json
+{
+  "status": "healthy",
+  "version": "2.1",
+  "persistence": {
+    "type": "file",
+    "path": "/var/lib/yaze-collab/sessions.db"
+  },
+  "ai": {
+    "enabled": true,
+    "configured": true,
+    "provider": "gemini"
+  },
+  "tls": {
+    "detected": true,
+    "note": "Request via TLS proxy"
+  }
+}
+```
 
 ## Client UX hints
 

@@ -42,6 +42,10 @@ if (APPLE)
     MACOSX_BUNDLE_LONG_VERSION_STRING "${PROJECT_VERSION}"
     MACOSX_BUNDLE_SHORT_VERSION_STRING "${PROJECT_VERSION}"
   )
+elseif(EMSCRIPTEN)
+  add_executable(yaze ${YAZE_APP_EXECUTABLE_SRC})
+  # Set suffix to .html so Emscripten generates HTML output with shell template
+  set_target_properties(yaze PROPERTIES SUFFIX ".html")
 else()
   add_executable(yaze ${YAZE_APP_EXECUTABLE_SRC})
   if(WIN32 OR UNIX)
