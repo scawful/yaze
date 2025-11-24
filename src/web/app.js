@@ -7,6 +7,9 @@ var statusElement = document.getElementById('status');
 var progressElement = document.getElementById('progress');
 var spinnerElement = document.getElementById('spinner');
 var loadingOverlay = document.getElementById('loading-overlay');
+let wasmReady = false;
+let fsReady = false;
+let fsInitPromise = null;
 
 // Check SharedArrayBuffer support before anything else
 (function checkCrossOriginIsolation() {
@@ -149,6 +152,11 @@ var Module = {
         window.z3edTerminal.printInfo('z3ed Web Terminal ready. Type /help for commands.');
       }
 
+      wasmReady = true;
+      initPersistentFS().catch((err) => {
+        console.warn('Persistent FS init failed; continuing with in-memory FS only.', err);
+      });
+
       console.log('[WASM] Initialization complete');
     } catch (err) {
       console.error('[WASM] Initialization error:', err);
@@ -167,12 +175,56 @@ window.onerror = function(event) {
   };
 };
 
+function ensureFSReady() {
+  if (fsReady && typeof FS !== 'undefined') return true;
+  if (fsInitPromise) {
+    console.warn('FS not ready yet; still initializing.');
+    return false;
+  }
+  alert('WASM not ready yet. Please wait for the app to finish loading, then retry.');
+  return false;
+}
+
+function initPersistentFS() {
+  if (fsInitPromise) return fsInitPromise;
+  fsInitPromise = new Promise((resolve, reject) => {
+    if (typeof FS === 'undefined' || typeof IDBFS === 'undefined') {
+      reject(new Error('FS/IDBFS unavailable during init'));
+      return;
+    }
+
+    try {
+      try { FS.mkdir('/roms'); } catch (e) {}
+      try { FS.mkdir('/saves'); } catch (e) {}
+      try { FS.mount(IDBFS, {}, '/roms'); } catch (e) { console.warn('Mount /roms failed (maybe already mounted):', e); }
+      try { FS.mount(IDBFS, {}, '/saves'); } catch (e) { console.warn('Mount /saves failed (maybe already mounted):', e); }
+    } catch (err) {
+      console.error('FS init error:', err);
+      reject(err);
+      return;
+    }
+
+    FS.syncfs(true, function(err) {
+      if (err) {
+        console.error('FS sync (pull) failed:', err);
+        reject(err);
+        return;
+      }
+      fsReady = true;
+      console.log('[WASM] FS ready (IDBFS mounted)');
+      resolve();
+    });
+  });
+  return fsInitPromise;
+}
+
 // ROM Upload Handling
 var romInput = document.getElementById('rom-input');
 if (romInput) {
   romInput.addEventListener('change', function(e) {
     var file = e.target.files[0];
     if (!file) return;
+    if (!ensureFSReady()) return;
     
     var reader = new FileReader();
     reader.onload = function(e) {
@@ -214,6 +266,13 @@ if (romInput) {
             console.error("LoadRomFromWeb function not available");
             alert("ROM loading not ready yet. Please wait for the app to initialize.");
             return;
+          }
+
+          // Persist to IndexedDB
+          if (fsReady) {
+            FS.syncfs(false, function(err) {
+              if (err) console.warn('FS sync (push) failed after ROM load:', err);
+            });
           }
         } catch (wasmErr) {
           console.error("WASM error loading ROM:", wasmErr);
@@ -369,7 +428,7 @@ setTimeout(resizeCanvasToContainer, 100);
 
 // Save Download Handling
 window.downloadSaves = function() {
-  if (typeof FS === 'undefined') return;
+  if (!ensureFSReady()) return;
   
   FS.syncfs(false, function(err) {
     if (err) {
@@ -413,6 +472,19 @@ window.downloadSaves = function() {
     }
   });
 };
+
+// Persist saves (can be called from WASM via ccall if needed)
+window.flushSaves = function() {
+  if (!ensureFSReady()) return;
+  FS.syncfs(false, function(err) {
+    if (err) {
+      console.warn('Failed to sync saves:', err);
+    } else {
+      console.log('Saves synced to persistent storage.');
+    }
+  });
+};
+
 
 // Service Worker & PWA Logic
 const ServiceWorkerManager = {
