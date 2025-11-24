@@ -8,14 +8,14 @@
   --text-primary: #ccc;
   --text-secondary: #888;
   --text-muted: #555;
-  --text-accent: #0af;
+  --text-accent: #0c6;
 
-  --accent-primary: #0af;
-  --accent-hover: #0cf;
-  --accent-dim: #068;
+  --accent-primary: #0c6;
+  --accent-hover: #0f8;
+  --accent-dim: #084;
 
   --border-color: #333;
-  --border-focus: #0af;
+  --border-focus: #0c6;
 
   --status-success: #0c6;
   --status-warning: #f90;
@@ -169,13 +169,34 @@ body {
   flex: 1;
 }
 
-#offline-indicator {
+.status-item {
   display: none;
+  padding: 0 6px;
+  border-left: 1px solid var(--border-color);
+}
+
+.status-item.show {
+  display: inline;
+}
+
+#offline-indicator {
   color: var(--status-warning);
 }
 
-#offline-indicator.show {
-  display: inline;
+#rom-info {
+  color: var(--accent-primary);
+}
+
+#editor-mode {
+  color: var(--text-secondary);
+}
+
+#collab-status.connected {
+  color: var(--status-success);
+}
+
+#collab-status.disconnected {
+  color: var(--text-muted);
 }
 
 /* File input */
@@ -374,6 +395,53 @@ progress::-moz-progress-bar {
 
 .about-links a:hover {
   text-decoration: underline;
+}
+
+/* Command palette */
+.palette-container {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-color);
+  width: 400px;
+  max-width: 90vw;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.7);
+}
+
+.palette-input {
+  width: 100%;
+  padding: 12px;
+  background: var(--bg-input);
+  border: none;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  outline: none;
+}
+
+.palette-input::placeholder {
+  color: var(--text-muted);
+}
+
+.palette-results {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.palette-item {
+  padding: 10px 12px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.palette-item:hover,
+.palette-item.selected {
+  background: var(--bg-input);
+  color: var(--text-primary);
+}
+
+.palette-item.hidden {
+  display: none;
 }
 
 /* Touch mode indicator */

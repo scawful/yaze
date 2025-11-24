@@ -41,18 +41,19 @@
         <span class="logo">yaze</span>
         <span class="version-tag">v0.8</span>
         <span class="separator">|</span>
-        <button class="toolbar-btn" onclick="document.getElementById('rom-input').click()">
+        <button class="toolbar-btn" onclick="document.getElementById('rom-input').click()" title="Open ROM file (Ctrl+O)">
           Open ROM
         </button>
         <input type="file" id="rom-input" accept=".sfc,.smc">
-        <button class="toolbar-btn" onclick="downloadSaves()">Saves</button>
-        <button class="toolbar-btn" onclick="Module.requestFullscreen(false, false)">Fullscreen</button>
+        <button class="toolbar-btn" onclick="downloadSaves()" title="Download save files">Saves</button>
+        <button class="toolbar-btn" onclick="Module.requestFullscreen(false, false)" title="Enter fullscreen (F11)">Fullscreen</button>
       </div>
       <div class="header-right">
-        <button class="toolbar-btn" onclick="toggleTerminal()">Terminal</button>
-        <button class="toolbar-btn" onclick="toggleCollabConsole()">Collab</button>
+        <button class="toolbar-btn" onclick="toggleTerminal()" title="Toggle z3ed terminal (`)">Terminal</button>
+        <button class="toolbar-btn" onclick="toggleCollabConsole()" title="Toggle collaboration console">Collab</button>
+        <button class="toolbar-btn" onclick="palette.show()" title="Command palette (Ctrl+K)">Ctrl+K</button>
         <div class="dropdown">
-          <button class="toolbar-btn" onclick="toggleHelpMenu()">Help</button>
+          <button class="toolbar-btn" onclick="toggleHelpMenu()" title="Help menu">Help</button>
           <div id="help-menu" class="dropdown-content">
             <a href="https://halext.org" target="_blank" rel="noopener">halext.org</a>
             <a href="./docs/" target="_blank" rel="noopener">Documentation</a>
@@ -68,6 +69,9 @@
     <!-- Status bar -->
     <div id="status-bar">
       <span id="status-text">Ready</span>
+      <span id="rom-info" class="status-item"></span>
+      <span id="editor-mode" class="status-item"></span>
+      <span id="collab-status" class="status-item"></span>
       <span id="offline-indicator" class="status-item">Offline</span>
     </div>
 
@@ -106,6 +110,23 @@
         <div class="terminal-input-line">
           <span class="terminal-prompt">$</span>
           <input type="text" id="terminal-input" class="terminal-input" autocomplete="off" spellcheck="false" placeholder="Enter command...">
+        </div>
+      </div>
+    </div>
+
+    <!-- Command palette (Ctrl+K) -->
+    <div id="command-palette" class="modal" style="display: none;">
+      <div class="palette-container">
+        <input type="text" id="palette-input" class="palette-input" placeholder="Type a command..." autocomplete="off">
+        <div id="palette-results" class="palette-results">
+          <div class="palette-item" data-action="open-rom">Open ROM</div>
+          <div class="palette-item" data-action="save">Save ROM</div>
+          <div class="palette-item" data-action="fullscreen">Toggle Fullscreen</div>
+          <div class="palette-item" data-action="terminal">Toggle Terminal</div>
+          <div class="palette-item" data-action="collab">Toggle Collaboration</div>
+          <div class="palette-item" data-action="shortcuts">Keyboard Shortcuts</div>
+          <div class="palette-item" data-action="docs">Documentation</div>
+          <div class="palette-item" data-action="about">About yaze</div>
         </div>
       </div>
     </div>
@@ -164,6 +185,137 @@
         var output = document.getElementById('terminal-output');
         if (output) output.innerHTML = '';
       }
+
+      // Command palette
+      var palette = {
+        el: null,
+        input: null,
+        results: null,
+        selectedIndex: 0,
+        items: [],
+
+        init: function() {
+          this.el = document.getElementById('command-palette');
+          this.input = document.getElementById('palette-input');
+          this.results = document.getElementById('palette-results');
+          this.items = Array.from(this.results.querySelectorAll('.palette-item'));
+
+          this.input.addEventListener('input', () => this.filter());
+          this.input.addEventListener('keydown', (e) => this.handleKey(e));
+          this.el.addEventListener('click', (e) => {
+            if (e.target === this.el) this.hide();
+          });
+          this.items.forEach(item => {
+            item.addEventListener('click', () => this.execute(item.dataset.action));
+          });
+        },
+
+        show: function() {
+          this.el.style.display = 'flex';
+          this.input.value = '';
+          this.filter();
+          this.input.focus();
+        },
+
+        hide: function() {
+          this.el.style.display = 'none';
+        },
+
+        filter: function() {
+          var query = this.input.value.toLowerCase();
+          this.items.forEach(item => {
+            var match = item.textContent.toLowerCase().includes(query);
+            item.classList.toggle('hidden', !match);
+          });
+          this.selectedIndex = 0;
+          this.updateSelection();
+        },
+
+        updateSelection: function() {
+          var visible = this.items.filter(i => !i.classList.contains('hidden'));
+          visible.forEach((item, i) => {
+            item.classList.toggle('selected', i === this.selectedIndex);
+          });
+        },
+
+        handleKey: function(e) {
+          var visible = this.items.filter(i => !i.classList.contains('hidden'));
+          if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            this.selectedIndex = Math.min(this.selectedIndex + 1, visible.length - 1);
+            this.updateSelection();
+          } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            this.selectedIndex = Math.max(this.selectedIndex - 1, 0);
+            this.updateSelection();
+          } else if (e.key === 'Enter') {
+            e.preventDefault();
+            if (visible[this.selectedIndex]) {
+              this.execute(visible[this.selectedIndex].dataset.action);
+            }
+          } else if (e.key === 'Escape') {
+            this.hide();
+          }
+        },
+
+        execute: function(action) {
+          this.hide();
+          switch(action) {
+            case 'open-rom': document.getElementById('rom-input').click(); break;
+            case 'save': if(Module && Module._saveRom) Module._saveRom(); break;
+            case 'fullscreen': Module.requestFullscreen(false, false); break;
+            case 'terminal': toggleTerminal(); break;
+            case 'collab': toggleCollabConsole(); break;
+            case 'shortcuts': showShortcuts(); break;
+            case 'docs': window.open('./docs/', '_blank'); break;
+            case 'about': showAbout(); break;
+          }
+        }
+      };
+
+      // Global keyboard shortcuts
+      document.addEventListener('keydown', function(e) {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+          e.preventDefault();
+          palette.show();
+        }
+      });
+
+      // Initialize palette on load
+      document.addEventListener('DOMContentLoaded', function() {
+        palette.init();
+      });
+
+      // Status bar helpers (called from WASM)
+      window.yazeStatus = {
+        setRomInfo: function(name, size) {
+          var el = document.getElementById('rom-info');
+          if (name) {
+            el.textContent = name + ' (' + (size/1024).toFixed(0) + 'KB)';
+            el.classList.add('show');
+          } else {
+            el.classList.remove('show');
+          }
+        },
+        setEditorMode: function(mode) {
+          var el = document.getElementById('editor-mode');
+          if (mode) {
+            el.textContent = mode;
+            el.classList.add('show');
+          } else {
+            el.classList.remove('show');
+          }
+        },
+        setCollabStatus: function(connected, roomName) {
+          var el = document.getElementById('collab-status');
+          if (connected) {
+            el.textContent = 'collab: ' + (roomName || 'connected');
+            el.className = 'status-item show connected';
+          } else {
+            el.classList.remove('show');
+          }
+        }
+      };
     </script>
     {{{ SCRIPT }}}
   </body>
