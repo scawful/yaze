@@ -326,8 +326,8 @@ EM_JS(char*, retrieveApiKey, (const char* service), {
 ### Files to Create
 - `src/cli/service/ai/browser_ai_service.h`
 - `src/cli/service/ai/browser_ai_service.cc`
-- `src/app/platform/wasm/wasm_secure_storage.h`
-- `src/app/platform/wasm/wasm_secure_storage.cc`
+- `src/app/platform/wasm/wasm_browser_storage.h`
+- `src/app/platform/wasm/wasm_browser_storage.cc`
 
 ---
 
@@ -499,7 +499,7 @@ src/app/platform/
     wasm_settings.h/.cc
     wasm_autosave.h/.cc
     wasm_worker_pool.h/.cc
-    wasm_secure_storage.h/.cc
+    wasm_browser_storage.h/.cc
 src/web/
   index.html
   shell.html

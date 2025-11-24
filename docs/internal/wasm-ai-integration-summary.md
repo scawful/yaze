@@ -31,10 +31,11 @@ This document summarizes the implementation of Phase 5: AI Service Integration f
   - Support for multiple Gemini models (2.0 Flash, 1.5 Pro, etc.)
   - Proper handling of API rate limits and quotas
 
-### 2. Secure Storage (`src/app/platform/wasm/`)
+### 2. Browser Storage (`src/app/platform/wasm/`)
 
-#### `wasm_secure_storage.h`
-- **Purpose**: Secure API key storage for browser environment
+#### `wasm_browser_storage.h`
+- **Purpose**: Browser storage wrapper for API keys and settings
+- **Note**: This is NOT actually secure storage - uses standard localStorage/sessionStorage
 - **Key Features**:
   - Dual storage modes: sessionStorage (default) and localStorage
   - API key management: Store, Retrieve, Clear, Check existence
@@ -43,7 +44,7 @@ This document summarizes the implementation of Phase 5: AI Service Integration f
   - Bulk operations (list all keys, clear all)
   - Browser storage availability checking
 
-#### `wasm_secure_storage.cc`
+#### `wasm_browser_storage.cc`
 - **Purpose**: Implementation using Emscripten JavaScript interop
 - **Key Features**:
   - JavaScript bridge functions using `EM_JS` macros
@@ -64,7 +65,7 @@ This document summarizes the implementation of Phase 5: AI Service Integration f
 - Enables JSON support for API communication
 
 #### `src/app/app_core.cmake`
-- Added `wasm_secure_storage.cc` to WASM platform sources
+- Added `wasm_browser_storage.cc` to WASM platform sources
 - Integrated with existing WASM file system and loading manager
 
 #### `src/CMakeLists.txt`
@@ -119,14 +120,15 @@ This document summarizes the implementation of Phase 5: AI Service Integration f
 #ifdef __EMSCRIPTEN__
 #include "cli/service/ai/browser_ai_service.h"
 #include "app/net/wasm/emscripten_http_client.h"
-#include "app/platform/wasm/wasm_secure_storage.h"
+#include "app/platform/wasm/wasm_browser_storage.h"
 
 // Store API key from user input
-WasmSecureStorage::StoreApiKey("gemini", user_api_key);
+WasmBrowserStorage::StoreApiKey("gemini", user_api_key);
+    }
 
-// Create AI service
-BrowserAIConfig config;
-config.api_key = WasmSecureStorage::RetrieveApiKey("gemini").value();
+    // Create AI service
+    BrowserAIConfig config;
+    config.api_key = WasmBrowserStorage::RetrieveApiKey("gemini").value();
 config.model = "gemini-2.0-flash-exp";
 
 auto http_client = std::make_unique<EmscriptenHttpClient>();

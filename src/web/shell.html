@@ -12,6 +12,8 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="YAZE">
+    <!-- Collaboration server URL; adjust to your deployment (wss:// recommended) -->
+    <meta name="yaze-collab-server" content="wss://org.halext.org:8765">
 
     <!-- Link to manifest for PWA -->
     <link rel="manifest" href="/manifest.json">
@@ -24,6 +26,7 @@
 
     <!-- Touch Gesture Styles for iPad/Tablet -->
     <link rel="stylesheet" href="touch_gestures.css">
+    <link rel="stylesheet" href="collab_console.css">
 
     <!-- Terminal Styles -->
     <link rel="stylesheet" href="terminal.css">
@@ -613,9 +616,9 @@
     <script src="shortcuts_overlay.js"></script>
     <!-- Touch Gesture Handler for iPad/Tablet -->
     <script src="touch_gestures.js"></script>
+    <script src="collab_console.js"></script>
     <!-- z3ed Terminal -->
     <script src="terminal.js"></script>
     {{{ SCRIPT }}}
   </body>
 </html>
-

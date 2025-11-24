@@ -1,0 +1,325 @@
+(() => {
+  'use strict';
+
+  const state = {
+    ws: null,
+    connected: false,
+    sessionCode: '',
+    sessionName: '',
+    username: localStorage.getItem('collab-username') || '',
+    password: '',
+    serverUrl: (() => {
+      const cfg = (window.YAZE_CONFIG && window.YAZE_CONFIG.collaborationServerUrl) || '';
+      if (cfg) return cfg;
+      const meta = document.querySelector('meta[name="yaze-collab-server"]');
+      if (meta && meta.content) return meta.content;
+      const saved = localStorage.getItem('collab-server-url');
+      return saved || '';
+    })(),
+    consoleVisible: false,
+    chatVisible: false,
+    docked: true,
+  };
+
+  let ui = {};
+
+  function logConsole(line) {
+    if (!ui.consoleBody) return;
+    const ts = new Date().toLocaleTimeString();
+    const div = document.createElement('div');
+    div.textContent = `[${ts}] ${line}`;
+    ui.consoleBody.appendChild(div);
+    ui.consoleBody.scrollTop = ui.consoleBody.scrollHeight;
+  }
+
+  function appendMsg(kind, sender, text) {
+    if (!ui.chatBody) return;
+    const row = document.createElement('div');
+    row.className = `yaze-msg ${kind}`;
+    const meta = document.createElement('div');
+    meta.className = 'meta';
+    meta.textContent = sender;
+    const body = document.createElement('div');
+    body.className = 'text';
+    body.textContent = text;
+    row.appendChild(meta);
+    row.appendChild(body);
+    ui.chatBody.appendChild(row);
+    ui.chatBody.scrollTop = ui.chatBody.scrollHeight;
+  }
+
+  function setStatus() {
+    if (!ui.status) return;
+    ui.status.textContent = state.connected
+      ? `Room ${state.sessionCode || '(unknown)'}`
+      : 'Disconnected';
+    ui.status.className = `yaze-badge ${state.password ? 'locked' : 'unlocked'}`;
+  }
+
+  function disconnect(reason = 'Client request') {
+    if (state.ws) {
+      try {
+        state.ws.close();
+      } catch (_) {}
+    }
+    state.ws = null;
+    state.connected = false;
+    setStatus();
+    logConsole(`Disconnected: ${reason}`);
+  }
+
+  function connect() {
+    if (!state.serverUrl) {
+      alert('Set server URL first');
+      return;
+    }
+    disconnect('Reconnecting');
+    try {
+      state.ws = new WebSocket(state.serverUrl);
+      state.ws.onopen = () => {
+        state.connected = true;
+        setStatus();
+        logConsole('Connected');
+        const mode = ui.mode.value || 'join';
+        if (mode === 'host') {
+          sendHost();
+        } else {
+          sendJoin();
+        }
+      };
+      state.ws.onmessage = (e) => handleServer(JSON.parse(e.data));
+      state.ws.onclose = () => {
+        state.connected = false;
+        setStatus();
+        logConsole('Connection closed');
+      };
+      state.ws.onerror = (err) => {
+        logConsole(`Error: ${err?.message || err}`);
+      };
+    } catch (e) {
+      alert(`Connect failed: ${e}`);
+    }
+  }
+
+  function send(msg) {
+    if (!state.ws || state.ws.readyState !== WebSocket.OPEN) {
+      logConsole('Not connected');
+      return;
+    }
+    state.ws.send(JSON.stringify(msg));
+  }
+
+  function sendHost() {
+    const payload = {
+      session_name: ui.sessionName.value || 'YAZE Session',
+      username: ui.username.value || 'anon',
+      rom_hash: null,
+      ai_enabled: false,
+      session_password: ui.password.value || undefined,
+    };
+    send({ type: 'host_session', payload });
+  }
+
+  function sendJoin() {
+    const payload = {
+      session_code: (ui.sessionCode.value || '').toUpperCase(),
+      username: ui.username.value || 'anon',
+      session_password: ui.password.value || undefined,
+    };
+    send({ type: 'join_session', payload });
+  }
+
+  function sendChat() {
+    const text = ui.chatInput.value.trim();
+    if (!text) return;
+    send({
+      type: 'chat_message',
+      payload: {
+        sender: state.username || 'anon',
+        message: text,
+        message_type: 'chat',
+      },
+    });
+    ui.chatInput.value = '';
+  }
+
+  function handleServer(msg) {
+    switch (msg.type) {
+      case 'session_hosted':
+        state.sessionCode = msg.payload.session_code;
+        state.sessionName = msg.payload.session_name;
+        state.username = msg.payload.participants?.[0] || state.username;
+        setStatus();
+        appendMsg('system', 'system', `Hosted ${state.sessionCode} (${state.sessionName})`);
+        break;
+      case 'session_joined':
+        state.sessionCode = msg.payload.session_code;
+        state.sessionName = msg.payload.session_name;
+        appendMsg(
+          'system',
+          'system',
+          `Joined ${state.sessionCode} (${state.sessionName}) participants: ${msg.payload.participants.join(
+            ', '
+          )}`
+        );
+        setStatus();
+        break;
+      case 'chat_message':
+        appendMsg('chat', msg.payload.sender, msg.payload.message || '');
+        break;
+      case 'participant_joined':
+      case 'participant_left':
+        appendMsg(
+          'system',
+          'system',
+          `${msg.payload.username} ${msg.type === 'participant_joined' ? 'joined' : 'left'}`
+        );
+        break;
+      case 'error':
+        appendMsg('system', 'error', msg.payload?.error || 'Unknown error');
+        break;
+      case 'server_shutdown':
+        appendMsg('system', 'server', 'Server shutting down');
+        break;
+      default:
+        logConsole(`Unhandled: ${msg.type}`);
+    }
+  }
+
+  function buildUI() {
+    // Toggle button
+    const toggle = document.createElement('button');
+    toggle.className = 'yaze-console-toggle';
+    toggle.textContent = 'Console';
+    toggle.addEventListener('click', () => {
+      state.chatVisible = !state.chatVisible;
+      container.classList.toggle('active', state.chatVisible);
+      document.body.classList.toggle('yaze-console-open', state.chatVisible);
+    });
+    document.body.appendChild(toggle);
+
+    const container = document.createElement('div');
+    container.className = 'yaze-console-container';
+
+    // Chat pane
+    const chatPane = document.createElement('div');
+    chatPane.className = 'yaze-chat-pane';
+
+    const header = document.createElement('div');
+    header.className = 'yaze-chat-header';
+    header.innerHTML = `
+      <input id="yaze-server-url" placeholder="ws://server:8765" />
+      <input id="yaze-session-code" placeholder="Room code (ABC123)" maxlength="6" style="text-transform: uppercase;" />
+      <input id="yaze-session-name" placeholder="Session name (host)" />
+      <input id="yaze-username" placeholder="Username" />
+      <input id="yaze-password" type="password" placeholder="Password (optional)" />
+      <select id="yaze-mode">
+        <option value="join">Join</option>
+        <option value="host">Host</option>
+      </select>
+      <button id="yaze-connect">Connect</button>
+      <button id="yaze-disconnect">Disconnect</button>
+      <div id="yaze-status" class="yaze-badge unlocked">Disconnected</div>
+    `;
+
+    const body = document.createElement('div');
+    body.className = 'yaze-chat-body';
+
+    const inputRow = document.createElement('div');
+    inputRow.className = 'yaze-chat-input';
+    inputRow.innerHTML = `
+      <textarea id="yaze-chat-input" placeholder="Type a message. Enter to send, Shift+Enter for newline."></textarea>
+      <button id="yaze-chat-send">Send</button>
+    `;
+
+    chatPane.appendChild(header);
+    chatPane.appendChild(body);
+    chatPane.appendChild(inputRow);
+
+    // Console pane
+    const consolePane = document.createElement('div');
+    consolePane.className = 'yaze-console-pane';
+    const consoleHeader = document.createElement('div');
+    consoleHeader.className = 'yaze-console-header';
+    consoleHeader.innerHTML = `
+      <div>Collab Console</div>
+      <div class="controls">
+        <button id="yaze-console-toggle">Hide Log</button>
+        <button id="yaze-console-clear">Clear</button>
+      </div>
+    `;
+    const consoleBody = document.createElement('div');
+    consoleBody.className = 'yaze-console-body';
+    consolePane.appendChild(consoleHeader);
+    consolePane.appendChild(consoleBody);
+
+    container.appendChild(chatPane);
+    container.appendChild(consolePane);
+    document.body.appendChild(container);
+
+    // Wire refs
+    ui = {
+      container,
+      chatBody: body,
+      chatInput: inputRow.querySelector('#yaze-chat-input'),
+      chatSend: inputRow.querySelector('#yaze-chat-send'),
+      serverUrl: header.querySelector('#yaze-server-url'),
+      sessionCode: header.querySelector('#yaze-session-code'),
+      sessionName: header.querySelector('#yaze-session-name'),
+      username: header.querySelector('#yaze-username'),
+      password: header.querySelector('#yaze-password'),
+      mode: header.querySelector('#yaze-mode'),
+      connectBtn: header.querySelector('#yaze-connect'),
+      disconnectBtn: header.querySelector('#yaze-disconnect'),
+      status: header.querySelector('#yaze-status'),
+      consolePane,
+      consoleBody,
+      consoleToggle: consoleHeader.querySelector('#yaze-console-toggle'),
+      consoleClear: consoleHeader.querySelector('#yaze-console-clear'),
+    };
+
+    ui.serverUrl.value = state.serverUrl;
+    ui.username.value = state.username;
+
+    ui.connectBtn.addEventListener('click', () => {
+      state.serverUrl = ui.serverUrl.value.trim();
+      localStorage.setItem('collab-server-url', state.serverUrl);
+      state.username = ui.username.value.trim();
+      state.password = ui.password.value.trim();
+      state.sessionCode = ui.sessionCode.value.trim();
+      state.sessionName = ui.sessionName.value.trim();
+      connect();
+    });
+
+    ui.disconnectBtn.addEventListener('click', () => disconnect('User'));
+
+    ui.chatSend.addEventListener('click', sendChat);
+    ui.chatInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendChat();
+      }
+    });
+
+    ui.consoleToggle.addEventListener('click', () => {
+      state.consoleVisible = !state.consoleVisible;
+      ui.consolePane.style.display = state.consoleVisible ? 'flex' : 'none';
+      ui.consoleToggle.textContent = state.consoleVisible ? 'Hide Log' : 'Show Log';
+    });
+
+    ui.consoleClear.addEventListener('click', () => {
+      ui.consoleBody.innerHTML = '';
+    });
+
+    // Default visibility: hidden until toggled
+    ui.consolePane.style.display = 'flex';
+    state.consoleVisible = true;
+    setStatus();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', buildUI);
+  } else {
+    buildUI();
+  }
+})();

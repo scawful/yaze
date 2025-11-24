@@ -205,7 +205,7 @@ src/app/platform/wasm/
 ├── wasm_loading_manager.{h,cc} # Phase 3 ✓
 ├── wasm_settings.{h,cc}        # Phase 6 ✓
 ├── wasm_autosave.{h,cc}        # Phase 6 ✓
-├── wasm_secure_storage.{h,cc}  # Phase 5 ✓
+├── wasm_browser_storage.{h,cc} # Phase 5 ✓
 ├── wasm_worker_pool.{h,cc}     # Phase 7 ✓
 ├── wasm_drop_handler.{h,cc}    # Phase 9 (planned)
 ├── wasm_patch_export.{h,cc}    # Phase 9 (planned)

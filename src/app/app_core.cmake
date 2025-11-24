@@ -54,7 +54,7 @@ if (EMSCRIPTEN)
     # WASM Loading Manager (Phase 3)
     app/platform/wasm/wasm_loading_manager.cc
     # WASM AI Service Integration (Phase 5)
-    app/platform/wasm/wasm_secure_storage.cc
+    app/platform/wasm/wasm_browser_storage.cc
     # WASM Local Storage Persistence (Phase 6)
     app/platform/wasm/wasm_settings.cc
     app/platform/wasm/wasm_autosave.cc
@@ -66,6 +66,8 @@ if (EMSCRIPTEN)
     app/platform/wasm/wasm_config.cc
     # WASM Real-time Collaboration
     app/platform/wasm/wasm_collaboration.cc
+    # WASM Message Queue for offline support
+    app/platform/wasm/wasm_message_queue.cc
   )
 endif()
 
