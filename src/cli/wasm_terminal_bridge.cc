@@ -22,6 +22,7 @@
 #include "absl/strings/str_split.h"
 #include "absl/strings/str_join.h"
 #include "app/rom.h"
+#include "app/net/wasm/emscripten_http_client.h"
 #include "cli/service/command_registry.h"
 #include "cli/service/ai/browser_ai_service.h"
 #include "cli/handlers/command_handlers.h"
@@ -50,7 +51,9 @@ struct TerminalBridge {
       config.api_key = api_key;
       config.model = "gemini-2.0-flash-exp";
       config.verbose = false;
-      ai_service = std::make_unique<yaze::cli::BrowserAIService>(config);
+      auto http_client = std::make_unique<yaze::net::EmscriptenHttpClient>();
+      ai_service = std::make_unique<yaze::cli::BrowserAIService>(
+          config, std::move(http_client));
     }
   }
 };
@@ -116,7 +119,6 @@ std::string ProcessCommandInternal(const std::string& command_str) {
     if (args[1] == "info" && g_bridge.rom && g_bridge.rom->is_loaded()) {
       output << "ROM Info:\n";
       output << "  Size: " << g_bridge.rom->size() << " bytes\n";
-      output << "  Version: " << static_cast<int>(g_bridge.rom->version()) << "\n";
       output << "  Title: " << g_bridge.rom->title() << "\n";
       return output.str();
     }
@@ -135,7 +137,7 @@ std::string ProcessCommandInternal(const std::string& command_str) {
     // Generate response using AI service
     auto response = g_bridge.ai_service->GenerateResponse(prompt);
     if (response.ok()) {
-      return *response;
+      return response->text_response;
     } else {
       return "AI error: " + std::string(response.status().message());
     }
@@ -308,7 +310,6 @@ const char* Z3edGetRomInfo() {
   json << "{"
        << "\"loaded\": true,"
        << "\"size\": " << g_bridge.rom->size() << ","
-       << "\"version\": " << static_cast<int>(g_bridge.rom->version()) << ","
        << "\"title\": \"" << g_bridge.rom->title() << "\""
        << "}";
 
