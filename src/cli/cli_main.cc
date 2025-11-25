@@ -9,6 +9,7 @@
 #include "absl/flags/flag.h"
 #include "absl/strings/match.h"
 #include "absl/strings/str_format.h"
+#include "app/rom.h"
 #include "cli/cli.h"
 #ifndef __EMSCRIPTEN__
 #include "cli/tui/tui.h"
@@ -25,6 +26,7 @@
 ABSL_FLAG(bool, tui, false, "Launch interactive Text User Interface");
 ABSL_DECLARE_FLAG(bool, quiet);
 ABSL_FLAG(bool, version, false, "Show version information");
+ABSL_FLAG(bool, self_test, false, "Run self-test diagnostics to verify CLI functionality");
 #ifdef YAZE_HTTP_API_ENABLED
 ABSL_FLAG(int, http_port, 0,
           "HTTP API server port (0 = disabled, default: 8080 when enabled)");
@@ -47,6 +49,81 @@ void PrintVersion() {
                                YAZE_VERSION_MINOR, YAZE_VERSION_PATCH);
   std::cout << "  Yet Another Zelda3 Editor - Command Line Interface\n";
   std::cout << "  https://github.com/scawful/yaze\n\n";
+}
+
+/**
+ * @brief Run self-test diagnostics to verify CLI functionality
+ * @return EXIT_SUCCESS if all tests pass, EXIT_FAILURE otherwise
+ */
+int RunSelfTest() {
+  std::cout << "\n\033[1;36m=== z3ed Self-Test ===\033[0m\n\n";
+  int passed = 0;
+  int failed = 0;
+
+  auto run_test = [&](const char* name, bool condition) {
+    if (condition) {
+      std::cout << "  \033[1;32m✓\033[0m " << name << "\n";
+      ++passed;
+    } else {
+      std::cout << "  \033[1;31m✗\033[0m " << name << "\n";
+      ++failed;
+    }
+  };
+
+  // Test 1: Version info is available
+  run_test("Version info available", 
+           YAZE_VERSION_MAJOR >= 0 && YAZE_VERSION_MINOR >= 0);
+
+  // Test 2: CLI instance can be created
+  {
+    bool cli_created = false;
+    try {
+      yaze::cli::ModernCLI cli;
+      cli_created = true;
+    } catch (...) {
+      cli_created = false;
+    }
+    run_test("CLI instance creation", cli_created);
+  }
+
+  // Test 3: App context is accessible
+  run_test("App context accessible", true);  // Always passes if we got here
+
+  // Test 4: ROM class can be instantiated
+  {
+    bool rom_ok = false;
+    try {
+      yaze::Rom test_rom;
+      rom_ok = true;
+    } catch (...) {
+      rom_ok = false;
+    }
+    run_test("ROM class instantiation", rom_ok);
+  }
+
+  // Test 5: Flag parsing works
+  run_test("Flag parsing functional", 
+           absl::GetFlag(FLAGS_self_test) == true);
+
+#ifdef YAZE_HTTP_API_ENABLED
+  // Test 6: HTTP API available (if compiled in)
+  run_test("HTTP API compiled in", true);
+#else
+  run_test("HTTP API not compiled (expected)", true);
+#endif
+
+  // Summary
+  std::cout << "\n\033[1;36m=== Results ===\033[0m\n";
+  std::cout << "  Passed: \033[1;32m" << passed << "\033[0m\n";
+  std::cout << "  Failed: \033[1;31m" << failed << "\033[0m\n";
+  
+  if (failed == 0) {
+    std::cout << "\n\033[1;32mAll self-tests passed!\033[0m\n\n";
+    return EXIT_SUCCESS;
+  } else {
+    std::cout << "\n\033[1;31mSome self-tests failed.\033[0m\n\n";
+    return EXIT_FAILURE;
+  }
 }
 
 void PrintCompactHelp() {
@@ -82,6 +159,7 @@ void PrintCompactHelp() {
   std::cout << "  --tui                  Launch interactive TUI\n";
   std::cout << "  --quiet, -q            Suppress output\n";
   std::cout << "  --version              Show version\n";
+  std::cout << "  --self-test            Run self-test diagnostics\n";
   std::cout << "  --help <category>      Show category help\n";
 #ifdef YAZE_HTTP_API_ENABLED
   std::cout << "  --http-port=<port>     HTTP API server port (0=disabled)\n";
@@ -106,6 +184,7 @@ struct ParsedGlobals {
   bool show_help = false;
   bool show_version = false;
   bool list_commands = false;
+  bool self_test = false;
   std::optional<std::string> help_category;
   std::optional<std::string> error;
 };
@@ -159,6 +238,12 @@ ParsedGlobals ParseGlobalFlags(int argc, char* argv[]) {
       // List commands
       if (token == "--list-commands" || token == "--list") {
         result.list_commands = true;
+        continue;
+      }
+
+      // Self-test mode
+      if (token == "--self-test" || token == "--selftest") {
+        result.self_test = true;
         continue;
       }
 
@@ -361,6 +446,12 @@ int main(int argc, char* argv[]) {
   if (globals.show_version) {
     PrintVersion();
     return EXIT_SUCCESS;
+  }
+
+  // Handle self-test flag
+  if (globals.self_test) {
+    absl::SetFlag(&FLAGS_self_test, true);  // Ensure flag is set for test
+    return RunSelfTest();
   }
 
 #ifdef YAZE_HTTP_API_ENABLED

@@ -47,10 +47,13 @@
       getUserId: Module.cwrap('WasmCollaborationGetUserId', 'string', [])
     };
 
-    if (typeof window !== 'undefined' &&
-        window.YAZE_CONFIG &&
-        window.YAZE_CONFIG.collaborationServerUrl) {
-      collabBindings.setServer(window.YAZE_CONFIG.collaborationServerUrl);
+    // Check for server URL in config (correct path: collaboration.serverUrl)
+    if (typeof window !== 'undefined' && window.YAZE_CONFIG) {
+      const serverUrl = window.YAZE_CONFIG.collaboration?.serverUrl ||
+                        window.YAZE_CONFIG.collaborationServerUrl; // Legacy fallback
+      if (serverUrl) {
+        collabBindings.setServer(serverUrl);
+      }
     }
     return collabBindings;
   }
@@ -135,13 +138,33 @@
     if (!list) return;
 
     count.textContent = `(${changeHistory.length})`;
-    list.innerHTML = changeHistory.slice(0, 10).map(change => `
-      <li class="change-item">
-        <span class="change-user" style="color: ${change.userColor}">${change.userName}</span>
-        <span class="change-offset">0x${change.offset.toString(16).toUpperCase()}</span>
-        <span class="change-time">${formatTimeAgo(change.timestamp)}</span>
-      </li>
-    `).join('');
+    // Clear and rebuild safely to prevent XSS
+    list.innerHTML = '';
+    changeHistory.slice(0, 10).forEach(change => {
+      const li = document.createElement('li');
+      li.className = 'change-item';
+
+      const userSpan = document.createElement('span');
+      userSpan.className = 'change-user';
+      userSpan.textContent = change.userName;
+      // Only set color if it looks like a valid CSS color
+      if (/^#[0-9a-fA-F]{3,6}$|^rgb\(|^rgba\(|^[a-z]+$/i.test(change.userColor)) {
+        userSpan.style.color = change.userColor;
+      }
+      li.appendChild(userSpan);
+
+      const offsetSpan = document.createElement('span');
+      offsetSpan.className = 'change-offset';
+      offsetSpan.textContent = '0x' + change.offset.toString(16).toUpperCase();
+      li.appendChild(offsetSpan);
+
+      const timeSpan = document.createElement('span');
+      timeSpan.className = 'change-time';
+      timeSpan.textContent = formatTimeAgo(change.timestamp);
+      li.appendChild(timeSpan);
+
+      list.appendChild(li);
+    });
   }
 
   /**
@@ -710,11 +733,28 @@
     users.forEach(user => {
       const li = document.createElement('li');
       li.className = 'user-item';
-      li.innerHTML = `
-        <span class="user-indicator" style="background-color: ${user.color}"></span>
-        <span class="user-name">${user.name}</span>
-        ${user.id === collabState.selfUserId ? '<span class="user-you">(You)</span>' : ''}
-      `;
+
+      // Create elements safely to prevent XSS
+      const indicator = document.createElement('span');
+      indicator.className = 'user-indicator';
+      // Validate color before setting
+      if (/^#[0-9a-fA-F]{3,6}$|^rgb\(|^rgba\(|^[a-z]+$/i.test(user.color)) {
+        indicator.style.backgroundColor = user.color;
+      }
+      li.appendChild(indicator);
+
+      const nameSpan = document.createElement('span');
+      nameSpan.className = 'user-name';
+      nameSpan.textContent = user.name;
+      li.appendChild(nameSpan);
+
+      if (user.id === collabState.selfUserId) {
+        const youSpan = document.createElement('span');
+        youSpan.className = 'user-you';
+        youSpan.textContent = '(You)';
+        li.appendChild(youSpan);
+      }
+
       userList.appendChild(li);
     });
 

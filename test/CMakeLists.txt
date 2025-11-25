@@ -196,4 +196,18 @@ if(YAZE_BUILD_TESTS)
   )
   yaze_add_test_suite(yaze_test_benchmark "benchmark" OFF ${BENCHMARK_TEST_SOURCES})
 
+  # --- z3ed CLI Smoke Test ---
+  # Add z3ed self-test as a ctest entry if z3ed target exists
+  if(TARGET z3ed)
+    add_test(
+      NAME z3ed_self_test
+      COMMAND $<TARGET_FILE:z3ed> --self-test
+      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+    )
+    set_tests_properties(z3ed_self_test PROPERTIES 
+      LABELS "stable;cli;z3ed"
+      TIMEOUT 30
+    )
+  endif()
+
 endif()

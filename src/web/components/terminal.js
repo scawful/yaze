@@ -7,12 +7,16 @@
 (function() {
   'use strict';
 
-  // Configuration constants
+  // Configuration constants - use namespace if available, with fallbacks
+  const yazeConstants = (window.yaze && window.yaze.constants) || {};
+  const terminalConstants = yazeConstants.terminal || {};
+  const storageKeys = yazeConstants.storageKeys || {};
+
   const CONFIG = {
-    maxHistorySize: 50,
-    defaultPrompt: 'z3ed> ',
-    apiKeyStorageKey: 'z3ed_gemini_api_key',
-    maxOutputLines: 1000
+    maxHistorySize: terminalConstants.MAX_HISTORY || 50,
+    defaultPrompt: terminalConstants.DEFAULT_PROMPT || 'z3ed> ',
+    apiKeyStorageKey: storageKeys.GEMINI_API_KEY || 'z3ed_gemini_api_key',
+    maxOutputLines: terminalConstants.MAX_OUTPUT_LINES || 1000
   };
 
   // Built-in commands that are handled client-side
@@ -62,6 +66,22 @@
       this.currentCompletions = [];  // Current completion suggestions
       this.completionIndex = -1;  // Index in completion list
 
+      // Timers (for cleanup)
+      this.moduleCheckInterval = null;
+      this.autocompleteTimeout = null;
+      this._focusTimeout = null;
+
+      // Bound event handlers (for cleanup)
+      this._boundHandlers = {
+        keydown: this.handleKeyDown.bind(this),
+        keyup: this.handleKeyUp.bind(this),
+        docKeydown: null,
+        docKeyup: null,
+        docKeypress: null,
+        containerClick: () => this.focusInput(),
+        headerClick: this.toggle.bind(this)
+      };
+
       // Initialize
       this.init();
     }
@@ -70,6 +90,9 @@
      * Initialize the terminal
      */
     init() {
+      // Add ARIA attributes for accessibility
+      this.setupAccessibility();
+
       this.bindEvents();
       this.loadHistory();
       this.checkModuleReady();
@@ -79,7 +102,7 @@
       window.z3edTerminal = this;
 
       // Focus the input field to ensure it's ready for typing
-      setTimeout(() => {
+      this._focusTimeout = setTimeout(() => {
         this.focusInput();
       }, 100);
 
@@ -87,40 +110,84 @@
     }
 
     /**
+     * Setup ARIA accessibility attributes
+     */
+    setupAccessibility() {
+      // Terminal container
+      if (this.container) {
+        this.container.setAttribute('role', 'region');
+        this.container.setAttribute('aria-label', 'Command terminal');
+      }
+
+      // Output area - log role for live output
+      if (this.outputElement) {
+        this.outputElement.setAttribute('role', 'log');
+        this.outputElement.setAttribute('aria-live', 'polite');
+        this.outputElement.setAttribute('aria-label', 'Terminal output');
+        this.outputElement.setAttribute('aria-relevant', 'additions');
+      }
+
+      // Input field
+      if (this.inputElement) {
+        this.inputElement.setAttribute('aria-label', 'Terminal command input');
+        this.inputElement.setAttribute('aria-autocomplete', 'list');
+        this.inputElement.setAttribute('aria-haspopup', 'listbox');
+        this.inputElement.setAttribute('aria-expanded', 'false');
+      }
+
+      // Header toggle
+      if (this.headerElement) {
+        this.headerElement.setAttribute('role', 'button');
+        this.headerElement.setAttribute('aria-label', 'Toggle terminal visibility');
+        this.headerElement.setAttribute('tabindex', '0');
+        this.headerElement.setAttribute('aria-expanded', !this.isCollapsed ? 'true' : 'false');
+      }
+    }
+
+    /**
      * Bind event listeners
      */
     bindEvents() {
+      const self = this;
+
       if (this.inputElement) {
-        this.inputElement.addEventListener('keydown', this.handleKeyDown.bind(this));
-        this.inputElement.addEventListener('keyup', this.handleKeyUp.bind(this));
+        this.inputElement.addEventListener('keydown', this._boundHandlers.keydown);
+        this.inputElement.addEventListener('keyup', this._boundHandlers.keyup);
+
         // Ensure emulator-level key listeners (SDL/Emscripten) don't steal terminal input
         // Use capture phase with stopImmediatePropagation for maximum isolation
-        document.addEventListener('keydown', (event) => {
-          if (event.target === this.inputElement) {
+        // Store handlers for cleanup
+        this._boundHandlers.docKeydown = (event) => {
+          if (event.target === self.inputElement) {
             event.stopPropagation();
             event.stopImmediatePropagation();
           }
-        }, true);
-        document.addEventListener('keyup', (event) => {
-          if (event.target === this.inputElement) {
+        };
+        this._boundHandlers.docKeyup = (event) => {
+          if (event.target === self.inputElement) {
             event.stopPropagation();
             event.stopImmediatePropagation();
           }
-        }, true);
-        document.addEventListener('keypress', (event) => {
-          if (event.target === this.inputElement) {
+        };
+        this._boundHandlers.docKeypress = (event) => {
+          if (event.target === self.inputElement) {
             event.stopPropagation();
             event.stopImmediatePropagation();
           }
-        }, true);
+        };
+
+        document.addEventListener('keydown', this._boundHandlers.docKeydown, true);
+        document.addEventListener('keyup', this._boundHandlers.docKeyup, true);
+        document.addEventListener('keypress', this._boundHandlers.docKeypress, true);
+
         // Make any click within the terminal focus the input
         if (this.container) {
-          this.container.addEventListener('click', () => this.focusInput());
+          this.container.addEventListener('click', this._boundHandlers.containerClick);
         }
       }
 
       if (this.headerElement) {
-        this.headerElement.addEventListener('click', this.toggle.bind(this));
+        this.headerElement.addEventListener('click', this._boundHandlers.headerClick);
       }
 
       // Listen for Module ready state
@@ -671,6 +738,11 @@
     toggle() {
       this.isCollapsed = !this.isCollapsed;
 
+      // Update ARIA state for accessibility
+      if (this.headerElement) {
+        this.headerElement.setAttribute('aria-expanded', this.isCollapsed ? 'false' : 'true');
+      }
+
       if (this.isCollapsed) {
         this.container.classList.add('terminal-collapsed');
         if (this.toggleElement) {
@@ -697,9 +769,10 @@
       const line = document.createElement('div');
       line.className = 'terminal-line' + (className ? ' ' + className : '');
 
-      // Handle ANSI-style color codes (basic support)
-      text = this.processColorCodes(text);
-      line.innerHTML = this.escapeHtml(text);
+      // SECURITY: First escape HTML to prevent XSS, then add safe color spans
+      const escaped = this.escapeHtml(text);
+      const colored = this.processColorCodes(escaped);
+      line.innerHTML = colored;
 
       this.outputElement.appendChild(line);
 
@@ -751,6 +824,65 @@
       if (this.outputElement) {
         this.outputElement.innerHTML = '';
       }
+    }
+
+    /**
+     * Destroy the terminal and clean up all event listeners
+     * Call this when removing the terminal from the DOM to prevent memory leaks
+     */
+    destroy() {
+      // Clear all timers
+      if (this.moduleCheckInterval) {
+        clearInterval(this.moduleCheckInterval);
+        this.moduleCheckInterval = null;
+      }
+      if (this.autocompleteTimeout) {
+        clearTimeout(this.autocompleteTimeout);
+        this.autocompleteTimeout = null;
+      }
+      if (this._focusTimeout) {
+        clearTimeout(this._focusTimeout);
+        this._focusTimeout = null;
+      }
+
+      // Remove input element listeners
+      if (this.inputElement) {
+        this.inputElement.removeEventListener('keydown', this._boundHandlers.keydown);
+        this.inputElement.removeEventListener('keyup', this._boundHandlers.keyup);
+      }
+
+      // Remove document-level listeners
+      if (this._boundHandlers.docKeydown) {
+        document.removeEventListener('keydown', this._boundHandlers.docKeydown, true);
+      }
+      if (this._boundHandlers.docKeyup) {
+        document.removeEventListener('keyup', this._boundHandlers.docKeyup, true);
+      }
+      if (this._boundHandlers.docKeypress) {
+        document.removeEventListener('keypress', this._boundHandlers.docKeypress, true);
+      }
+
+      // Remove container click listener
+      if (this.container && this._boundHandlers.containerClick) {
+        this.container.removeEventListener('click', this._boundHandlers.containerClick);
+      }
+
+      // Remove header click listener
+      if (this.headerElement && this._boundHandlers.headerClick) {
+        this.headerElement.removeEventListener('click', this._boundHandlers.headerClick);
+      }
+
+      // Clear global reference
+      if (window.z3edTerminal === this) {
+        window.z3edTerminal = null;
+      }
+
+      // Clear namespace reference
+      if (window.yaze && window.yaze.ui && window.yaze.ui.terminal === this) {
+        window.yaze.ui.terminal = null;
+      }
+
+      console.log('Z3edTerminal destroyed');
     }
 
     /**
@@ -917,7 +1049,8 @@
         try {
           Module.ccall('Z3edSetApiKey', null, ['string'], [key]);
         } catch (error) {
-          // Function may not exist
+          // Function may not exist in this WASM build - log for debugging
+          console.debug('[Z3edTerminal] Z3edSetApiKey not available:', error.message);
         }
       }
     }
@@ -955,7 +1088,8 @@
           this.print('z3ed WASM: ' + version);
         }
       } catch (error) {
-        // Version function may not exist
+        // Version function may not exist in this WASM build
+        console.debug('[Z3edTerminal] Z3edGetVersion not available:', error.message);
       }
     } else {
       this.printWarning('WASM module not yet loaded.');
@@ -1100,6 +1234,25 @@
     document.addEventListener('DOMContentLoaded', initializeTerminal);
   } else {
     initializeTerminal();
+  }
+
+  // Integrate with yaze namespace
+  if (window.yaze) {
+    // Ensure ui namespace exists
+    if (!window.yaze.ui) {
+      window.yaze.ui = {};
+    }
+
+    // Register terminal class for external access
+    window.yaze.ui.Terminal = Z3edTerminal;
+
+    // Terminal instance will be set by initializeTerminal
+    Object.defineProperty(window.yaze.ui, 'terminal', {
+      get: function() { return window.z3edTerminal; },
+      configurable: true
+    });
+
+    console.log('[Terminal] Integrated with yaze namespace');
   }
 
 })();

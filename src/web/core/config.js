@@ -151,24 +151,32 @@
 
   // Merge user configuration with defaults
   const userConfig = window.YAZE_CONFIG || {};
-  window.YAZE_CONFIG = deepMerge(defaultConfig, userConfig);
+  const finalConfig = deepMerge(defaultConfig, userConfig);
+
+  // Assign to both legacy and new namespace locations
+  window.YAZE_CONFIG = finalConfig;
+
+  // Integrate with yaze namespace if available
+  if (window.yaze) {
+    window.yaze.config = finalConfig;
+  }
 
   // Try to read collaboration server URL from <meta name="yaze-collab-server"> tag
   // This allows deployment-specific configuration without modifying config.js
-  if (!window.YAZE_CONFIG.collaboration.serverUrl) {
+  if (!finalConfig.collaboration.serverUrl) {
     const metaTag = document.querySelector('meta[name="yaze-collab-server"]');
     if (metaTag && metaTag.content) {
-      window.YAZE_CONFIG.collaboration.serverUrl = metaTag.content;
+      finalConfig.collaboration.serverUrl = metaTag.content;
     }
   }
 
   // Log configuration status
-  if (window.YAZE_CONFIG.collaboration.serverUrl) {
+  if (finalConfig.collaboration.serverUrl) {
     console.log('[yaze] Collaboration server configured:',
-                window.YAZE_CONFIG.collaboration.serverUrl);
+                finalConfig.collaboration.serverUrl);
   } else {
     console.log('[yaze] Collaboration disabled (no server URL configured)');
   }
 
-  console.log('[yaze] Configuration loaded:', window.YAZE_CONFIG);
+  console.log('[yaze] Configuration loaded:', finalConfig);
 })();

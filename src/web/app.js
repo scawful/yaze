@@ -12,6 +12,74 @@ let fsReady = false;
 let fsInitPromise = null;
 let fsInitAttempts = 0;
 
+// Worker spawn tracking to prevent infinite loops
+window.YAZE_WORKER_SPAWN_COUNT = 0;
+window.YAZE_WORKER_SPAWN_LIMIT = 12; // Max worker spawns before aborting (4 pool + some retries)
+window.YAZE_WORKER_SPAWN_WINDOW_MS = 3000; // Reset count after this period
+window.YAZE_WORKER_LAST_SPAWN = 0;
+window.YAZE_WORKER_ABORTED = false;
+window.YAZE_WORKER_ERRORS = 0;
+
+// Intercept Worker constructor to prevent infinite spawn loops
+(function interceptWorkerSpawns() {
+  const OriginalWorker = window.Worker;
+
+  window.Worker = function(url, options) {
+    const now = Date.now();
+
+    // Reset counter if enough time has passed (workers are stable)
+    if (now - window.YAZE_WORKER_LAST_SPAWN > window.YAZE_WORKER_SPAWN_WINDOW_MS) {
+      window.YAZE_WORKER_SPAWN_COUNT = 0;
+      window.YAZE_WORKER_ERRORS = 0;
+    }
+    window.YAZE_WORKER_LAST_SPAWN = now;
+    window.YAZE_WORKER_SPAWN_COUNT++;
+
+    // Check if we've hit the limit
+    if (window.YAZE_WORKER_SPAWN_COUNT > window.YAZE_WORKER_SPAWN_LIMIT) {
+      if (!window.YAZE_WORKER_ABORTED) {
+        window.YAZE_WORKER_ABORTED = true;
+        console.error('[WORKER] Too many worker spawns (' + window.YAZE_WORKER_SPAWN_COUNT + '/' + window.YAZE_WORKER_SPAWN_LIMIT + ')');
+        console.error('[WORKER] Errors: ' + window.YAZE_WORKER_ERRORS + '. Aborting to prevent hang.');
+
+        // Show error to user after a small delay to allow DOM to be ready
+        setTimeout(function() {
+          if (typeof showFatalError === 'function') {
+            showFatalError('Worker Spawn Error',
+              'Too many web workers spawned (' + window.YAZE_WORKER_SPAWN_COUNT + '). ' +
+              'Try: 1) Clear browser cache, 2) Disable extensions, 3) Use Chrome/Edge.');
+          }
+        }, 100);
+      }
+      // Return a minimal dummy worker
+      var dummy = Object.create(OriginalWorker.prototype);
+      dummy.postMessage = dummy.terminate = function() {};
+      dummy.addEventListener = dummy.removeEventListener = function() {};
+      return dummy;
+    }
+
+    // Only log yaze workers, not service workers
+    if (url && url.includes('yaze')) {
+      console.log('[WORKER] Spawn #' + window.YAZE_WORKER_SPAWN_COUNT + ': ' + url);
+    }
+
+    // Create the actual worker
+    var worker = new OriginalWorker(url, options);
+
+    // Track errors to detect crash loops
+    worker.addEventListener('error', function(e) {
+      window.YAZE_WORKER_ERRORS++;
+      console.warn('[WORKER] Error in worker:', e.message || e);
+    });
+
+    return worker;
+  };
+
+  // Preserve prototype chain
+  window.Worker.prototype = OriginalWorker.prototype;
+  Object.setPrototypeOf(window.Worker, OriginalWorker);
+})();
+
 // Check SharedArrayBuffer support before anything else
 (function checkCrossOriginIsolation() {
   const hasSharedArrayBuffer = typeof SharedArrayBuffer !== 'undefined';
@@ -123,7 +191,7 @@ var Module = {
         if (loadingOverlay) loadingOverlay.style.display = 'none';
       }
     }
-    if (statusElement) statusElement.innerHTML = text;
+    if (statusElement) statusElement.textContent = text;
   },
   totalDependencies: 0,
   monitorRunDependencies: function(left) {
@@ -358,13 +426,26 @@ function showFatalError(title, message) {
   const loadingOv = document.getElementById('loading-overlay');
 
   if (statusEl) {
-    statusEl.innerHTML = `
-      <div style="color: #f44; font-weight: bold;">${title}</div>
-      <div style="margin-top: 8px;">${message}</div>
-      <button onclick="location.reload()" style="margin-top: 16px; padding: 8px 16px; cursor: pointer; background: #333; color: #fff; border: 1px solid #555; border-radius: 4px;">
-        Reload Page
-      </button>
-    `;
+    // Clear existing content safely
+    statusEl.textContent = '';
+
+    // Create elements programmatically to avoid XSS
+    const titleDiv = document.createElement('div');
+    titleDiv.style.cssText = 'color: #f44; font-weight: bold;';
+    titleDiv.textContent = title;
+
+    const messageDiv = document.createElement('div');
+    messageDiv.style.marginTop = '8px';
+    messageDiv.textContent = message;
+
+    const reloadBtn = document.createElement('button');
+    reloadBtn.style.cssText = 'margin-top: 16px; padding: 8px 16px; cursor: pointer; background: #333; color: #fff; border: 1px solid #555; border-radius: 4px;';
+    reloadBtn.textContent = 'Reload Page';
+    reloadBtn.addEventListener('click', function() { location.reload(); });
+
+    statusEl.appendChild(titleDiv);
+    statusEl.appendChild(messageDiv);
+    statusEl.appendChild(reloadBtn);
   }
 
   if (loadingOv) {
@@ -734,7 +815,7 @@ window.yazeDebug.switchToEditor = function(name) {
 // Add setAgentMode wrapper (using executeCommand)
 window.yazeDebug.setAgentMode = function(enabled) {
   if (window.Module && window.Module.executeCommand) {
-    // We don't have a direct C++ binding for SetAgentMode yet, 
+    // We don't have a direct C++ binding for SetAgentMode yet,
     // but we can try to use executeCommand if we add a CLI command for it.
     // For now, we'll just log.
     console.warn('[yazeDebug] setAgentMode not implemented yet');
@@ -742,3 +823,74 @@ window.yazeDebug.setAgentMode = function(enabled) {
   }
   return { error: "Module not ready" };
 };
+
+// ============================================================================
+// Namespace Integration
+// Populate window.yaze with exports from this module
+// ============================================================================
+(function integrateNamespace() {
+  'use strict';
+
+  // Wait for yaze namespace to be available
+  if (!window.yaze) {
+    console.warn('[app.js] yaze namespace not found, skipping integration');
+    return;
+  }
+
+  // Core state
+  window.yaze.core.state.wasmReady = wasmReady;
+  window.yaze.core.state.fsReady = fsReady;
+
+  // Module will be assigned after WASM init, set up getter
+  Object.defineProperty(window.yaze.core, 'Module', {
+    get: function() { return window.Module; },
+    configurable: true
+  });
+
+  Object.defineProperty(window.yaze.core, 'FS', {
+    get: function() { return window.FS || (window.Module && window.Module.FS); },
+    configurable: true
+  });
+
+  // Utility functions
+  window.yaze.utils.resizeCanvas = window.resizeCanvasToContainer;
+  window.yaze.utils.toggleFullscreen = window.toggleFullscreen;
+  window.yaze.utils.zoom = {
+    in: window.zoomIn,
+    out: window.zoomOut,
+    reset: window.resetZoom,
+    get current() { return currentZoom; }
+  };
+  window.yaze.utils.debounce = debounce;
+  window.yaze.utils.throttle = throttle;
+
+  // Service worker manager
+  window.yaze.utils.serviceWorker = {
+    update: window.updateServiceWorker,
+    dismiss: window.dismissUpdate,
+    manager: ServiceWorkerManager
+  };
+
+  // Debug API
+  window.yaze.debug = window.yazeDebug;
+
+  // Terminal UI helpers
+  window.yaze.ui.terminalHelpers = {
+    toggle: window.toggleTerminal,
+    hide: window.hideTerminal,
+    maximize: window.maximizeTerminal,
+    submit: submitTerminalCommand
+  };
+
+  // Emit ready event
+  if (window.yaze.events && window.yaze.events.emit) {
+    // Defer to ensure all modules have loaded
+    setTimeout(function() {
+      if (wasmReady) {
+        window.yaze.events.emit(window.yaze.events.WASM_READY, { Module: window.Module });
+      }
+    }, 0);
+  }
+
+  console.log('[app.js] Integrated with yaze namespace');
+})();

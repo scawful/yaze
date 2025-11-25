@@ -20,7 +20,8 @@ const PRECACHE_ASSETS = [
   // PWA files (coi-serviceworker.js is at root for proper scope)
   './coi-serviceworker.js',
   './pwa/offline.html',
-  // Core infrastructure
+  // Core infrastructure (namespace.js must load first)
+  './core/namespace.js',
   './core/config.js',
   './core/filesystem_manager.js',
   './core/loading_indicator.js',
