@@ -34,7 +34,8 @@ if(EMSCRIPTEN)
     cli/handlers/rom/rom_commands.cc
     cli/handlers/rom/mock_rom.cc
     cli/handlers/tools/resource_commands.cc
-    
+    cli/handlers/tools/test_helpers_commands.cc
+
     # Explicitly supported handlers
     cli/handlers/graphics/hex_commands.cc
     cli/handlers/graphics/palette_commands.cc
@@ -126,6 +127,7 @@ set(YAZE_AGENT_CORE_SOURCES
   cli/handlers/rom/rom_commands.cc
   cli/handlers/tools/gui_commands.cc
   cli/handlers/tools/resource_commands.cc
+  cli/handlers/tools/test_helpers_commands.cc
   cli/service/agent/conversational_agent_service.cc
   cli/service/agent/dev_assist_agent.cc
   cli/service/agent/enhanced_tui.cc
@@ -137,6 +139,7 @@ set(YAZE_AGENT_CORE_SOURCES
   cli/service/agent/tools/build_tool.cc
   cli/service/agent/tools/filesystem_tool.cc
   cli/service/agent/tools/memory_inspector_tool.cc
+  cli/service/agent/tools/visual_analysis_tool.cc
   cli/service/agent/disassembler_65816.cc
   cli/service/agent/rom_debug_agent.cc
   cli/service/agent/vim_mode.cc
@@ -315,6 +318,13 @@ if(YAZE_ENABLE_REMOTE_AUTOMATION)
   # Note: YAZE_WITH_GRPC is defined globally via add_compile_definitions in options.cmake
   # This ensures #ifdef YAZE_WITH_GRPC works in all translation units
   message(STATUS "✓ gRPC GUI automation enabled for yaze_agent")
+endif()
+
+# Add OpenCV support for advanced visual analysis
+if(YAZE_ENABLE_OPENCV AND OpenCV_FOUND)
+  target_link_libraries(yaze_agent PUBLIC ${OpenCV_LIBS})
+  target_include_directories(yaze_agent PUBLIC ${OpenCV_INCLUDE_DIRS})
+  message(STATUS "✓ OpenCV visual analysis enabled for yaze_agent")
 endif()
 
 # NOTE: yaze_agent should NOT link to yaze_test_support to avoid circular dependency.
