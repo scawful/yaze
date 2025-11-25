@@ -209,13 +209,13 @@ class Rom {
   auto mutable_data() { return rom_data_.data(); }
   auto begin() { return rom_data_.begin(); }
   auto end() { return rom_data_.end(); }
-  auto vector() const { return rom_data_; }
+  const auto& vector() const { return rom_data_; }
   auto filename() const { return filename_; }
   auto set_filename(std::string_view name) { filename_ = name; }
   auto short_name() const { return short_name_; }
-  auto graphics_buffer() const { return graphics_buffer_; }
+  const auto& graphics_buffer() const { return graphics_buffer_; }
   auto mutable_graphics_buffer() { return &graphics_buffer_; }
-  auto palette_group() const { return palette_groups_; }
+  const auto& palette_group() const { return palette_groups_; }
   auto mutable_palette_group() { return &palette_groups_; }
   auto dungeon_palette(int i) { return palette_groups_.dungeon_main[i]; }
   auto mutable_dungeon_palette(int i) {

@@ -1012,7 +1012,7 @@ absl::Status OverworldMap::LoadVanillaOverlayData() {
 }
 
 void OverworldMap::ProcessGraphicsBuffer(int index, int static_graphics_offset,
-                                         int size, uint8_t* all_gfx) {
+                                         int size, const uint8_t* all_gfx) {
   // Ensure we don't go out of bounds
   int max_offset = static_graphics_offset * size + size;
   if (max_offset > rom_->graphics_buffer().size()) {

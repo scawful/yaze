@@ -982,7 +982,7 @@ absl::Status GraphicsEditor::DecompressSuperDonkey() {
 
       auto palette_group = rom()->palette_group().get_group(
           kPaletteGroupAddressesKeys[current_palette_]);
-      z3_rom_palette_ = *palette_group->mutable_palette(current_palette_index_);
+      z3_rom_palette_ = palette_group->palette(current_palette_index_);
       gfx_sheets_[i].SetPalette(z3_rom_palette_);
     }
 
@@ -1008,7 +1008,7 @@ absl::Status GraphicsEditor::DecompressSuperDonkey() {
       // ROM palette
       auto palette_group = rom()->palette_group().get_group(
           kPaletteGroupAddressesKeys[current_palette_]);
-      z3_rom_palette_ = *palette_group->mutable_palette(current_palette_index_);
+      z3_rom_palette_ = palette_group->palette(current_palette_index_);
       gfx_sheets_[i].SetPalette(z3_rom_palette_);
     }
 
