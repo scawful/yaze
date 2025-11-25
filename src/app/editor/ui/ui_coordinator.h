@@ -97,6 +97,14 @@ class UICoordinator {
   void ShowCommandPalette() { show_command_palette_ = true; }
   void ShowCardBrowser() { show_card_browser_ = true; }
 
+  // Menu bar visibility (for WASM/web app mode)
+  bool IsMenuBarVisible() const { return show_menu_bar_; }
+  void SetMenuBarVisible(bool visible) { show_menu_bar_ = visible; }
+  void ToggleMenuBar() { show_menu_bar_ = !show_menu_bar_; }
+
+  // Draw floating menu bar restore button (when menu bar is hidden)
+  void DrawMenuBarRestoreButton();
+
   // Window visibility management
   void ShowAllWindows();
   void HideAllWindows();
@@ -195,6 +203,7 @@ class UICoordinator {
   bool show_save_workspace_preset_ = false;
   bool show_load_workspace_preset_ = false;
   bool show_card_sidebar_ = true;  // Show sidebar by default
+  bool show_menu_bar_ = true;      // Menu bar visible by default
 
   // Command Palette state
   char command_palette_query_[256] = {};

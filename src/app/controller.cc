@@ -65,12 +65,32 @@ absl::Status Controller::OnLoad() {
   ImGui::NewFrame();
 
   const ImGuiViewport* viewport = ImGui::GetMainViewport();
-  ImGui::SetNextWindowPos(viewport->WorkPos);
-  ImGui::SetNextWindowSize(viewport->WorkSize);
+
+  // Calculate layout offsets for sidebars
+  const float left_offset = editor_manager_.GetLeftLayoutOffset();
+  const float right_offset = editor_manager_.GetRightLayoutOffset();
+
+  // Adjust dockspace position and size for sidebars
+  ImVec2 dockspace_pos = viewport->WorkPos;
+  ImVec2 dockspace_size = viewport->WorkSize;
+
+  dockspace_pos.x += left_offset;
+  dockspace_size.x -= (left_offset + right_offset);
+
+  ImGui::SetNextWindowPos(dockspace_pos);
+  ImGui::SetNextWindowSize(dockspace_size);
   ImGui::SetNextWindowViewport(viewport->ID);
 
-  ImGuiWindowFlags window_flags =
-      ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
+  // Check if menu bar should be visible (WASM can hide it for clean UI)
+  bool show_menu_bar = true;
+  if (editor_manager_.ui_coordinator()) {
+    show_menu_bar = editor_manager_.ui_coordinator()->IsMenuBarVisible();
+  }
+
+  ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDocking;
+  if (show_menu_bar) {
+    window_flags |= ImGuiWindowFlags_MenuBar;
+  }
   window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse |
                   ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
   window_flags |=
@@ -83,15 +103,22 @@ absl::Status Controller::OnLoad() {
   ImGui::Begin("DockSpaceWindow", nullptr, window_flags);
   ImGui::PopStyleVar(3);
 
-  // Create DockSpace first
+  // Create DockSpace with adjusted size
   ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
   gui::DockSpaceRenderer::BeginEnhancedDockSpace(
       dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_PassthruCentralNode);
 
-  editor_manager_.DrawMenuBar();  // Draw the fixed menu bar at the top
+  if (show_menu_bar) {
+    editor_manager_.DrawMenuBar();  // Draw the fixed menu bar at the top
+  }
 
   gui::DockSpaceRenderer::EndEnhancedDockSpace();
   ImGui::End();
+
+  // Draw menu bar restore button when menu is hidden (WASM)
+  if (!show_menu_bar && editor_manager_.ui_coordinator()) {
+    editor_manager_.ui_coordinator()->DrawMenuBarRestoreButton();
+  }
 #endif
   gui::WidgetIdRegistry::Instance().BeginFrame();
   absl::Status update_status = editor_manager_.Update();

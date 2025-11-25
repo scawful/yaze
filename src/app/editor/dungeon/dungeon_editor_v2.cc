@@ -44,6 +44,8 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
                                .category = "Dungeon",
                                .shortcut_hint = "Ctrl+Shift+D",
                                .visibility_flag = &show_control_panel_,
+                               .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
+                               .disabled_tooltip = "Load a ROM to access dungeon controls",
                                .priority = 10});
 
   card_registry->RegisterCard({.card_id = MakeCardId("dungeon.room_selector"),
@@ -53,6 +55,8 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
                                .category = "Dungeon",
                                .shortcut_hint = "Ctrl+Shift+R",
                                .visibility_flag = &show_room_selector_,
+                               .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
+                               .disabled_tooltip = "Load a ROM to browse dungeon rooms",
                                .priority = 20});
 
   card_registry->RegisterCard({.card_id = MakeCardId("dungeon.room_matrix"),
@@ -62,6 +66,8 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
                                .category = "Dungeon",
                                .shortcut_hint = "Ctrl+Shift+M",
                                .visibility_flag = &show_room_matrix_,
+                               .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
+                               .disabled_tooltip = "Load a ROM to view the room matrix",
                                .priority = 30});
 
   card_registry->RegisterCard({.card_id = MakeCardId("dungeon.entrances"),
@@ -71,6 +77,8 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
                                .category = "Dungeon",
                                .shortcut_hint = "Ctrl+Shift+E",
                                .visibility_flag = &show_entrances_list_,
+                               .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
+                               .disabled_tooltip = "Load a ROM to view dungeon entrances",
                                .priority = 40});
 
   card_registry->RegisterCard({.card_id = MakeCardId("dungeon.room_graphics"),
@@ -80,6 +88,8 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
                                .category = "Dungeon",
                                .shortcut_hint = "Ctrl+Shift+G",
                                .visibility_flag = &show_room_graphics_,
+                               .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
+                               .disabled_tooltip = "Load a ROM to view room graphics",
                                .priority = 50});
 
   card_registry->RegisterCard({.card_id = MakeCardId("dungeon.object_editor"),
@@ -89,6 +99,8 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
                                .category = "Dungeon",
                                .shortcut_hint = "Ctrl+Shift+O",
                                .visibility_flag = &show_object_editor_,
+                               .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
+                               .disabled_tooltip = "Load a ROM to edit dungeon objects",
                                .priority = 60});
 
   card_registry->RegisterCard({.card_id = MakeCardId("dungeon.palette_editor"),
@@ -98,6 +110,8 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
                                .category = "Dungeon",
                                .shortcut_hint = "Ctrl+Shift+P",
                                .visibility_flag = &show_palette_editor_,
+                               .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
+                               .disabled_tooltip = "Load a ROM to edit dungeon palettes",
                                .priority = 70});
 
   card_registry->RegisterCard({.card_id = MakeCardId("dungeon.debug_controls"),
@@ -107,6 +121,8 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
                                .category = "Dungeon",
                                .shortcut_hint = "Ctrl+Shift+B",
                                .visibility_flag = &show_debug_controls_,
+                               .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
+                               .disabled_tooltip = "Load a ROM to access debug controls",
                                .priority = 80});
 
   // Show control panel and room selector by default when Dungeon Editor is

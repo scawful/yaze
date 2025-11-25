@@ -199,6 +199,8 @@ void PaletteEditor::Initialize() {
                                .category = "Palette",
                                .shortcut_hint = "Ctrl+Shift+P",
                                .visibility_flag = &show_control_panel_,
+                               .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
+                               .disabled_tooltip = "Load a ROM first",
                                .priority = 10});
 
   card_registry->RegisterCard({.card_id = "palette.ow_main",
@@ -208,6 +210,8 @@ void PaletteEditor::Initialize() {
                                .category = "Palette",
                                .shortcut_hint = "Ctrl+Alt+1",
                                .visibility_flag = &show_ow_main_card_,
+                               .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
+                               .disabled_tooltip = "Load a ROM first",
                                .priority = 20});
 
   card_registry->RegisterCard({.card_id = "palette.ow_animated",
@@ -217,6 +221,8 @@ void PaletteEditor::Initialize() {
                                .category = "Palette",
                                .shortcut_hint = "Ctrl+Alt+2",
                                .visibility_flag = &show_ow_animated_card_,
+                               .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
+                               .disabled_tooltip = "Load a ROM first",
                                .priority = 30});
 
   card_registry->RegisterCard({.card_id = "palette.dungeon_main",
@@ -226,6 +232,8 @@ void PaletteEditor::Initialize() {
                                .category = "Palette",
                                .shortcut_hint = "Ctrl+Alt+3",
                                .visibility_flag = &show_dungeon_main_card_,
+                               .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
+                               .disabled_tooltip = "Load a ROM first",
                                .priority = 40});
 
   card_registry->RegisterCard({.card_id = "palette.sprites",
@@ -235,6 +243,8 @@ void PaletteEditor::Initialize() {
                                .category = "Palette",
                                .shortcut_hint = "Ctrl+Alt+4",
                                .visibility_flag = &show_sprite_card_,
+                               .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
+                               .disabled_tooltip = "Load a ROM first",
                                .priority = 50});
 
   card_registry->RegisterCard({.card_id = "palette.sprites_aux1",
@@ -244,6 +254,8 @@ void PaletteEditor::Initialize() {
                                .category = "Palette",
                                .shortcut_hint = "Ctrl+Alt+7",
                                .visibility_flag = &show_sprites_aux1_card_,
+                               .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
+                               .disabled_tooltip = "Load a ROM first",
                                .priority = 51});
 
   card_registry->RegisterCard({.card_id = "palette.sprites_aux2",
@@ -253,6 +265,8 @@ void PaletteEditor::Initialize() {
                                .category = "Palette",
                                .shortcut_hint = "Ctrl+Alt+8",
                                .visibility_flag = &show_sprites_aux2_card_,
+                               .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
+                               .disabled_tooltip = "Load a ROM first",
                                .priority = 52});
 
   card_registry->RegisterCard({.card_id = "palette.sprites_aux3",
@@ -262,6 +276,8 @@ void PaletteEditor::Initialize() {
                                .category = "Palette",
                                .shortcut_hint = "Ctrl+Alt+9",
                                .visibility_flag = &show_sprites_aux3_card_,
+                               .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
+                               .disabled_tooltip = "Load a ROM first",
                                .priority = 53});
 
   card_registry->RegisterCard({.card_id = "palette.equipment",
@@ -271,6 +287,8 @@ void PaletteEditor::Initialize() {
                                .category = "Palette",
                                .shortcut_hint = "Ctrl+Alt+5",
                                .visibility_flag = &show_equipment_card_,
+                               .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
+                               .disabled_tooltip = "Load a ROM first",
                                .priority = 60});
 
   card_registry->RegisterCard({.card_id = "palette.quick_access",
@@ -280,6 +298,8 @@ void PaletteEditor::Initialize() {
                                .category = "Palette",
                                .shortcut_hint = "Ctrl+Alt+Q",
                                .visibility_flag = &show_quick_access_,
+                               .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
+                               .disabled_tooltip = "Load a ROM first",
                                .priority = 70});
 
   card_registry->RegisterCard({.card_id = "palette.custom",
@@ -289,6 +309,8 @@ void PaletteEditor::Initialize() {
                                .category = "Palette",
                                .shortcut_hint = "Ctrl+Alt+C",
                                .visibility_flag = &show_custom_palette_,
+                               .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
+                               .disabled_tooltip = "Load a ROM first",
                                .priority = 80});
 
   // Show control panel by default when Palette Editor is activated

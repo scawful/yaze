@@ -28,6 +28,7 @@
 #include "app/editor/ui/editor_selection_dialog.h"
 #include "app/editor/ui/layout_manager.h"
 #include "app/editor/ui/layout_presets.h"
+#include "app/editor/ui/right_panel_manager.h"
 #include "app/editor/ui/menu_builder.h"
 #include "app/editor/ui/rom_load_options_dialog.h"
 #include "app/editor/ui/ui_coordinator.h"
@@ -85,6 +86,26 @@ class EditorManager {
 
   MenuBuilder& menu_builder() { return menu_builder_; }
   WorkspaceManager* workspace_manager() { return &workspace_manager_; }
+  RightPanelManager* right_panel_manager() { return right_panel_manager_.get(); }
+
+  // Layout offset calculation for dockspace adjustment
+  // Returns the left margin needed for sidebar
+  float GetLeftLayoutOffset() const {
+    // Sidebar is visible when:
+    // 1. ui_coordinator exists
+    // 2. Card sidebar visibility is enabled
+    // 3. Sidebar is not collapsed
+    if (!ui_coordinator_ || !ui_coordinator_->IsCardSidebarVisible() ||
+        card_registry_.IsSidebarCollapsed()) {
+      return 0.0f;
+    }
+    return EditorCardRegistry::GetSidebarWidth();
+  }
+
+  // Returns the right margin needed for panels
+  float GetRightLayoutOffset() const {
+    return right_panel_manager_ ? right_panel_manager_->GetPanelWidth() : 0.0f;
+  }
 
   absl::Status SetCurrentRom(Rom* rom);
   auto GetCurrentRom() const -> Rom* {
@@ -277,6 +298,9 @@ class EditorManager {
   absl::Status DrawRomSelector() = delete;  // Moved to UICoordinator
   // DrawContextSensitiveCardControl removed - card control moved to sidebar
 
+  // Draw placeholder sidebar when no ROM is loaded
+  void DrawPlaceholderSidebar();
+
   absl::Status LoadAssets();
 
   // Testing system
@@ -352,6 +376,8 @@ class EditorManager {
   std::unique_ptr<SessionCoordinator> session_coordinator_;
   std::unique_ptr<LayoutManager>
       layout_manager_;  // DockBuilder layout management
+  std::unique_ptr<RightPanelManager>
+      right_panel_manager_;  // Right-side panel system
   WorkspaceManager workspace_manager_{&toast_manager_};
 
   float autosave_timer_ = 0.0f;

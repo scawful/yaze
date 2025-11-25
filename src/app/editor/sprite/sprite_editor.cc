@@ -36,14 +36,18 @@ void SpriteEditor::Initialize() {
                                .icon = ICON_MD_SMART_TOY,
                                .category = "Sprite",
                                .shortcut_hint = "Alt+Shift+1",
-                               .priority = 10});
+                               .priority = 10,
+                               .enabled_condition = [this]() { return rom_->is_loaded(); },
+                               .disabled_tooltip = "Load a ROM first"});
   card_registry->RegisterCard({.card_id = "sprite.custom_editor",
                                .display_name = "Custom Sprites",
                                .window_title = " Custom Sprites",
                                .icon = ICON_MD_ADD_CIRCLE,
                                .category = "Sprite",
                                .shortcut_hint = "Alt+Shift+2",
-                               .priority = 20});
+                               .priority = 20,
+                               .enabled_condition = [this]() { return rom_->is_loaded(); },
+                               .disabled_tooltip = "Load a ROM first"});
 
   // Show vanilla editor by default
   card_registry->ShowCard("sprite.vanilla_editor");

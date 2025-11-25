@@ -1512,6 +1512,84 @@
       // Log API availability to console for debugging
       console.log('yazeDebug API available. Use window.yazeDebug.dumpAll() for full state.');
     </script>
-    {{{ SCRIPT }}}
+    <!-- Hold the generated WASM loader script until SharedArrayBuffer is available -->
+    <template id="yaze-wasm-script">
+      {{{ SCRIPT }}}
+    </template>
+    <script>
+      // Wait for COOP/COEP (or the COI service worker) before loading the WASM bundle.
+      // Prevents the "SharedArrayBuffer is not defined" crash on the first load.
+      (function loadWasmWhenIsolated() {
+        const template = document.getElementById('yaze-wasm-script');
+        const statusEl = document.getElementById('status');
+        const maxAttempts = 40;
+        const retryDelayMs = 250;
+        let attempts = 0;
+
+        function showWaiting() {
+          if (statusEl) statusEl.textContent = 'Initializing secure context...';
+        }
+
+        function showFailure(message) {
+          console.error('[WASM] ' + message);
+          if (typeof showFatalError === 'function') {
+            showFatalError('SharedArrayBuffer unavailable', message);
+          } else if (statusEl) {
+            statusEl.textContent = message;
+            statusEl.style.color = '#f44';
+          }
+        }
+
+        function injectWasmScript() {
+          if (!template) {
+            showFailure('WASM loader template missing');
+            return;
+          }
+
+          const scriptEl = template.content.querySelector('script');
+          if (!scriptEl) {
+            showFailure('WASM script tag missing from template');
+            return;
+          }
+
+          const clone = scriptEl.cloneNode(true);
+          clone.addEventListener('error', (e) => {
+            showFailure('Failed to load WASM bundle: ' + (e && e.message ? e.message : e.type || 'unknown error'));
+          });
+
+          document.body.appendChild(clone);
+          console.log('[WASM] yaze.js injection complete (SharedArrayBuffer ready)');
+        }
+
+        function tryLoad() {
+          const hasSAB = typeof SharedArrayBuffer !== 'undefined';
+          const isolated = typeof crossOriginIsolated === 'undefined' ? true : crossOriginIsolated === true;
+          const coiFailed = window.YAZE_COI_FAILED;
+
+          if (hasSAB && isolated) {
+            injectWasmScript();
+            return;
+          }
+
+          if (coiFailed) {
+            showFailure('Cross-origin isolation failed; SharedArrayBuffer is unavailable.');
+            return;
+          }
+
+          if (attempts === 0) {
+            showWaiting();
+          }
+
+          if (++attempts > maxAttempts) {
+            showFailure('Timed out waiting for SharedArrayBuffer. Check COOP/COEP or service worker settings.');
+            return;
+          }
+
+          setTimeout(tryLoad, retryDelayMs);
+        }
+
+        tryLoad();
+      })();
+    </script>
   </body>
 </html>
