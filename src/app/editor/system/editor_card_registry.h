@@ -304,7 +304,34 @@ class EditorCardRegistry {
       std::function<void()> on_collapse = nullptr);
 
   static constexpr float GetSidebarWidth() { return 48.0f; }
+  static constexpr float GetTreeSidebarWidth() { return 200.0f; }
   static constexpr float GetCollapsedSidebarWidth() { return 16.0f; }
+
+  /**
+   * @brief Draw tree view sidebar with hierarchical category/card structure
+   *
+   * A wider sidebar (200px) showing categories as expandable tree nodes
+   * with checkboxes for each card. More detailed than icon sidebar.
+   */
+  void DrawTreeSidebar(
+      size_t session_id,
+      const std::vector<std::string>& active_categories,
+      std::function<void(const std::string&)> on_category_switch = nullptr);
+
+  /**
+   * @brief Get whether tree view mode is enabled
+   */
+  bool IsTreeViewMode() const { return tree_view_mode_; }
+
+  /**
+   * @brief Set tree view mode (true = tree view, false = icon sidebar)
+   */
+  void SetTreeViewMode(bool enabled) { tree_view_mode_ = enabled; }
+
+  /**
+   * @brief Toggle between tree view and icon sidebar modes
+   */
+  void ToggleTreeViewMode() { tree_view_mode_ = !tree_view_mode_; }
 
   /**
    * @brief Check if sidebar is collapsed
@@ -533,6 +560,7 @@ class EditorCardRegistry {
 
   // Sidebar state
   bool sidebar_collapsed_ = true;  // Start collapsed by default
+  bool tree_view_mode_ = true;     // Start in tree view mode (user preference)
 
   // Utility icon callbacks
   std::function<void()> on_show_emulator_;

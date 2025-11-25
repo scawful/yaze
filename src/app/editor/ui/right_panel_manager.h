@@ -17,6 +17,7 @@ class ProposalDrawer;
 class ToastManager;
 class AgentChatWidget;
 class SettingsEditor;
+class SelectionPropertiesPanel;
 
 /**
  * @class RightPanelManager
@@ -44,7 +45,8 @@ class RightPanelManager {
     kAgentChat,
     kProposals,
     kSettings,
-    kHelp
+    kHelp,
+    kProperties  // New: Full-editing properties panel
   };
 
   RightPanelManager() = default;
@@ -61,6 +63,9 @@ class RightPanelManager {
   void SetAgentChatWidget(AgentChatWidget* widget) { agent_chat_widget_ = widget; }
   void SetProposalDrawer(ProposalDrawer* drawer) { proposal_drawer_ = drawer; }
   void SetSettingsEditor(SettingsEditor* editor) { settings_editor_ = editor; }
+  void SetPropertiesPanel(SelectionPropertiesPanel* panel) {
+    properties_panel_ = panel;
+  }
   void SetToastManager(ToastManager* manager) { toast_manager_ = manager; }
   void SetRom(Rom* rom) { rom_ = rom; }
 
@@ -148,6 +153,7 @@ class RightPanelManager {
   AgentChatWidget* agent_chat_widget() const { return agent_chat_widget_; }
   ProposalDrawer* proposal_drawer() const { return proposal_drawer_; }
   SettingsEditor* settings_editor() const { return settings_editor_; }
+  SelectionPropertiesPanel* properties_panel() const { return properties_panel_; }
 
  private:
   void DrawPanelHeader(const char* title, const char* icon);
@@ -155,6 +161,7 @@ class RightPanelManager {
   void DrawProposalsPanel();
   void DrawSettingsPanel();
   void DrawHelpPanel();
+  void DrawPropertiesPanel();
 
   // Active panel
   PanelType active_panel_ = PanelType::kNone;
@@ -164,11 +171,13 @@ class RightPanelManager {
   float proposals_width_ = 420.0f;
   float settings_width_ = 420.0f;    // Same width for unified look
   float help_width_ = 350.0f;
+  float properties_width_ = 320.0f;  // Narrower for properties
 
   // Component references (not owned)
   AgentChatWidget* agent_chat_widget_ = nullptr;
   ProposalDrawer* proposal_drawer_ = nullptr;
   SettingsEditor* settings_editor_ = nullptr;
+  SelectionPropertiesPanel* properties_panel_ = nullptr;
   ToastManager* toast_manager_ = nullptr;
   Rom* rom_ = nullptr;
 

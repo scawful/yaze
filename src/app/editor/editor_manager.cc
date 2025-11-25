@@ -753,8 +753,14 @@ absl::Status EditorManager::Update() {
 
         auto collapse_callback = []() {};
 
-        card_registry_.DrawSidebar(sidebar_category, active_categories,
-                                   category_switch_callback, collapse_callback);
+        // Draw appropriate sidebar based on view mode
+        if (card_registry_.IsTreeViewMode()) {
+          card_registry_.DrawTreeSidebar(
+              GetCurrentSessionId(), active_categories, category_switch_callback);
+        } else {
+          card_registry_.DrawSidebar(sidebar_category, active_categories,
+                                     category_switch_callback, collapse_callback);
+        }
       } else {
         // No active card-based editors - draw placeholder
         DrawPlaceholderSidebar();

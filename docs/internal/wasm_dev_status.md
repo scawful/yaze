@@ -117,10 +117,65 @@ The `WidgetIdRegistry` system tracks all ImGui widget bounds in real-time:
 *   **Session Control:** `getSessionInfo()`, `createSession()`, `switchSession()`
 *   **ROM Control:** `getRomStatus()`, `readRomBytes()`, `writeRomBytes()`, `saveRom()`
 
+#### Extended UI Control APIs (November 2025)
+
+**Async Editor Switching (`yazeDebug.switchToEditorAsync`)**:
+Promise-based editor switching with operation tracking for reliable LLM automation.
+*   Returns `Promise<{success, editor, session_id, error}>` after editor transition completes
+*   Supports all 14 editor types: Assembly, Dungeon, Graphics, Music, Overworld, Palette, Screen, Sprite, Message, Hex, Agent, Settings, World, Map
+*   5-second timeout with proper error reporting
+
+**Card Control API (`yazeDebug.cards`)**:
+*   `show(cardId)` - Show a specific card by ID (e.g., "dungeon.room_selector")
+*   `hide(cardId)` - Hide a specific card
+*   `toggle(cardId)` - Toggle card visibility
+*   `getState()` - Get visibility state of all cards
+*   `getInCategory(category)` - List cards in a category (dungeon, overworld, etc.)
+*   `showGroup(groupName)` - Show predefined card groups (dungeon_editing, overworld_editing, etc.)
+*   `hideGroup(groupName)` - Hide predefined card groups
+*   `getGroups()` - List available card groups
+
+**Sidebar Control API (`yazeDebug.sidebar`)**:
+*   `isTreeView()` - Check if tree view mode is active
+*   `setTreeView(enabled)` - Switch between tree view (200px) and icon mode (48px)
+*   `toggle()` - Toggle between view modes
+*   `getState()` - Get sidebar state (mode, width, collapsed)
+
+**Right Panel Control API (`yazeDebug.rightPanel`)**:
+*   `open(panelName)` - Open specific panel: properties, agent, proposals, settings, help
+*   `close()` - Close current panel
+*   `toggle(panelName)` - Toggle panel visibility
+*   `getState()` - Get panel state (active, expanded, width)
+*   `openProperties()` - Convenience method for properties panel
+*   `openAgent()` - Convenience method for agent chat panel
+
+**Tree View Sidebar**:
+New hierarchical sidebar mode (200px wide) with:
+*   Category icons and expandable tree nodes
+*   Checkboxes for each card with visibility toggles
+*   Visible count badges per category
+*   "Show All" / "Hide All" buttons per category
+*   Toggle button to switch to icon mode
+
+**Selection Properties Panel**:
+New right-side panel for editing selected entities:
+*   Context-aware property display based on selection type
+*   Supports dungeon rooms, objects, sprites, entrances
+*   Supports overworld maps, tiles, sprites, entrances, exits, items
+*   Supports graphics sheets and palettes
+*   Position/size editors with clamping
+*   Byte/word property editors with hex display
+*   Flag property editors with checkboxes
+*   Advanced and raw data toggles
+
 **Key Files:**
 *   `src/app/platform/wasm/wasm_control_api.cc` - C++ implementation
 *   `src/app/platform/wasm/wasm_control_api.h` - API declarations
 *   `src/web/core/agent_automation.js` - GUI automation layer
+*   `src/web/debug/yaze_debug_inspector.cc` - Extended WASM bindings
+*   `src/app/editor/system/editor_card_registry.cc` - Tree view sidebar implementation
+*   `src/app/editor/ui/right_panel_manager.cc` - Right panel management
+*   `src/app/editor/ui/selection_properties_panel.cc` - Properties panel implementation
 
 ### Performance Optimizations & Bug Fixes (November 2025)
 

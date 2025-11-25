@@ -87,6 +87,8 @@ class EditorManager {
   MenuBuilder& menu_builder() { return menu_builder_; }
   WorkspaceManager* workspace_manager() { return &workspace_manager_; }
   RightPanelManager* right_panel_manager() { return right_panel_manager_.get(); }
+  EditorCardRegistry& card_registry() { return card_registry_; }
+  const EditorCardRegistry& card_registry() const { return card_registry_; }
 
   // Layout offset calculation for dockspace adjustment
   // Returns the left margin needed for sidebar
@@ -99,7 +101,10 @@ class EditorManager {
         card_registry_.IsSidebarCollapsed()) {
       return 0.0f;
     }
-    return EditorCardRegistry::GetSidebarWidth();
+    // Return appropriate width based on view mode
+    return card_registry_.IsTreeViewMode()
+               ? EditorCardRegistry::GetTreeSidebarWidth()
+               : EditorCardRegistry::GetSidebarWidth();
   }
 
   // Returns the right margin needed for panels
