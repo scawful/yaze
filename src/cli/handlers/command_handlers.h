@@ -72,6 +72,13 @@ class EmulatorWriteMemoryCommandHandler;
 class EmulatorGetRegistersCommandHandler;
 class EmulatorGetMetricsCommandHandler;
 
+// Test helper tools
+class ToolsHarnessStateCommandHandler;
+class ToolsExtractValuesCommandHandler;
+class ToolsExtractGoldenCommandHandler;
+class ToolsPatchV3CommandHandler;
+class ToolsListCommandHandler;
+
 /**
  * @brief Factory function to create all CLI-level command handlers
  *

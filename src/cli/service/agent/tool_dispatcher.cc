@@ -1,11 +1,14 @@
 #include "cli/service/agent/tool_dispatcher.h"
 
 #include <algorithm>
+#include <chrono>
+#include <future>
 #include <memory>
 #include <regex>
 #include <sstream>
 #include <string>
 
+#include "absl/strings/ascii.h"
 #include "absl/strings/str_cat.h"
 #include "cli/handlers/game/dialogue_commands.h"
 #include "cli/handlers/game/dungeon_commands.h"
@@ -13,6 +16,7 @@
 #include "cli/handlers/game/music_commands.h"
 #include "cli/handlers/game/overworld_commands.h"
 #include "cli/handlers/graphics/sprite_commands.h"
+#include "cli/handlers/tools/test_helpers_commands.h"
 #ifdef YAZE_WITH_GRPC
 #include "cli/handlers/tools/emulator_commands.h"
 #endif
@@ -31,6 +35,14 @@ namespace {
 
 // Map tool name to handler type
 ToolCallType GetToolCallType(const std::string& tool_name) {
+  // Meta-tools for discoverability
+  if (tool_name == "tools-list")
+    return ToolCallType::kToolsList;
+  if (tool_name == "tools-describe")
+    return ToolCallType::kToolsDescribe;
+  if (tool_name == "tools-search")
+    return ToolCallType::kToolsSearch;
+
   // Resource commands
   if (tool_name == "resource-list")
     return ToolCallType::kResourceList;
@@ -163,6 +175,18 @@ ToolCallType GetToolCallType(const std::string& tool_name) {
   if (tool_name == "memory-regions")
     return ToolCallType::kMemoryRegions;
 
+  // Test helper tools
+  if (tool_name == "tools-helper-list")
+    return ToolCallType::kToolsHelperList;
+  if (tool_name == "tools-harness-state")
+    return ToolCallType::kToolsHarnessState;
+  if (tool_name == "tools-extract-values")
+    return ToolCallType::kToolsExtractValues;
+  if (tool_name == "tools-extract-golden")
+    return ToolCallType::kToolsExtractGolden;
+  if (tool_name == "tools-patch-v3")
+    return ToolCallType::kToolsPatchV3;
+
   return ToolCallType::kUnknown;
 }
 
@@ -172,6 +196,12 @@ std::unique_ptr<resources::CommandHandler> CreateHandler(ToolCallType type) {
   using namespace yaze::cli::agent::tools;
 
   switch (type) {
+    // Meta-tools are handled specially in Dispatch()
+    case ToolCallType::kToolsList:
+    case ToolCallType::kToolsDescribe:
+    case ToolCallType::kToolsSearch:
+      return nullptr;  // Handled inline
+
     // Resource commands
     case ToolCallType::kResourceList:
       return std::make_unique<ResourceListCommandHandler>();
@@ -306,6 +336,18 @@ std::unique_ptr<resources::CommandHandler> CreateHandler(ToolCallType type) {
     case ToolCallType::kMemoryRegions:
       return std::make_unique<MemoryRegionsTool>();
 
+    // Test helper tools
+    case ToolCallType::kToolsHelperList:
+      return std::make_unique<ToolsListCommandHandler>();
+    case ToolCallType::kToolsHarnessState:
+      return std::make_unique<ToolsHarnessStateCommandHandler>();
+    case ToolCallType::kToolsExtractValues:
+      return std::make_unique<ToolsExtractValuesCommandHandler>();
+    case ToolCallType::kToolsExtractGolden:
+      return std::make_unique<ToolsExtractGoldenCommandHandler>();
+    case ToolCallType::kToolsPatchV3:
+      return std::make_unique<ToolsPatchV3CommandHandler>();
+
     default:
       return nullptr;
   }
@@ -421,6 +463,18 @@ bool ToolDispatcher::IsToolEnabled(ToolCallType type) const {
     case ToolCallType::kMemoryRegions:
       return preferences_.memory_inspector;
 
+    case ToolCallType::kToolsList:
+    case ToolCallType::kToolsDescribe:
+    case ToolCallType::kToolsSearch:
+      return preferences_.meta_tools;
+
+    case ToolCallType::kToolsHelperList:
+    case ToolCallType::kToolsHarnessState:
+    case ToolCallType::kToolsExtractValues:
+    case ToolCallType::kToolsExtractGolden:
+    case ToolCallType::kToolsPatchV3:
+      return preferences_.test_helpers;
+
     default:
       return true;
   }
@@ -440,6 +494,68 @@ absl::StatusOr<std::string> ToolDispatcher::Dispatch(const ToolCall& call) {
         "Tool '", call.tool_name, "' disabled by current agent configuration"));
   }
 
+  // Handle meta-tools inline
+  if (type == ToolCallType::kToolsList) {
+    std::ostringstream result;
+    result << "{\"tools\": [\n";
+    auto tools = GetAvailableTools();
+    for (size_t i = 0; i < tools.size(); ++i) {
+      result << "  {\"name\": \"" << tools[i].name << "\", "
+             << "\"category\": \"" << tools[i].category << "\", "
+             << "\"description\": \"" << tools[i].description << "\"}";
+      if (i < tools.size() - 1) result << ",";
+      result << "\n";
+    }
+    result << "]}\n";
+    return result.str();
+  }
+
+  if (type == ToolCallType::kToolsDescribe) {
+    auto it = call.args.find("name");
+    if (it == call.args.end()) {
+      return absl::InvalidArgumentError(
+          "tools-describe requires 'name' argument");
+    }
+    auto info = GetToolInfo(it->second);
+    if (!info) {
+      return absl::NotFoundError(
+          absl::StrCat("Tool not found: ", it->second));
+    }
+    std::ostringstream result;
+    result << "{\"name\": \"" << info->name << "\", "
+           << "\"category\": \"" << info->category << "\", "
+           << "\"description\": \"" << info->description << "\", "
+           << "\"usage\": \"" << info->usage << "\", "
+           << "\"requires_rom\": " << (info->requires_rom ? "true" : "false")
+           << ", \"examples\": [";
+    for (size_t i = 0; i < info->examples.size(); ++i) {
+      result << "\"" << info->examples[i] << "\"";
+      if (i < info->examples.size() - 1) result << ", ";
+    }
+    result << "]}\n";
+    return result.str();
+  }
+
+  if (type == ToolCallType::kToolsSearch) {
+    auto it = call.args.find("query");
+    if (it == call.args.end()) {
+      return absl::InvalidArgumentError(
+          "tools-search requires 'query' argument");
+    }
+    auto matches = SearchTools(it->second);
+    std::ostringstream result;
+    result << "{\"query\": \"" << it->second << "\", \"matches\": [\n";
+    for (size_t i = 0; i < matches.size(); ++i) {
+      result << "  {\"name\": \"" << matches[i].name << "\", "
+             << "\"category\": \"" << matches[i].category << "\", "
+             << "\"description\": \"" << matches[i].description << "\"}";
+      if (i < matches.size() - 1) result << ",";
+      result << "\n";
+    }
+    result << "]}\n";
+    return result.str();
+  }
+
   // Create the appropriate command handler
   auto handler = CreateHandler(type);
   if (!handler) {
@@ -451,7 +567,7 @@ absl::StatusOr<std::string> ToolDispatcher::Dispatch(const ToolCall& call) {
   std::vector<std::string> args = ConvertArgsToVector(call.args);
 
   // Check if ROM context is required but not available
-  if (!rom_context_) {
+  if (!rom_context_ && handler->RequiresRom()) {
     return absl::FailedPreconditionError(
         absl::StrCat("Tool '", call.tool_name,
                      "' requires ROM context but none is available"));
@@ -483,6 +599,183 @@ absl::StatusOr<std::string> ToolDispatcher::Dispatch(const ToolCall& call) {
   }
 
   return output;
+}
+
+std::vector<ToolDispatcher::ToolInfo> ToolDispatcher::GetAvailableTools()
+    const {
+  std::vector<ToolInfo> tools;
+
+  // Meta-tools
+  if (preferences_.meta_tools) {
+    tools.push_back({"tools-list", "meta", "List all available tools",
+                     "tools-list", {}, false});
+    tools.push_back({"tools-describe", "meta",
+                     "Get detailed information about a tool",
+                     "tools-describe --name=<tool>", {}, false});
+    tools.push_back({"tools-search", "meta", "Search tools by keyword",
+                     "tools-search --query=<keyword>", {}, false});
+  }
+
+  // Resource commands
+  if (preferences_.resources) {
+    tools.push_back({"resource-list", "resource", "List resource labels",
+                     "resource-list --type=<type>",
+                     {"resource-list --type=dungeon"}, true});
+    tools.push_back({"resource-search", "resource", "Search resource labels",
+                     "resource-search --query=<query>",
+                     {"resource-search --query=castle"}, true});
+  }
+
+  // Dungeon commands
+  if (preferences_.dungeon) {
+    tools.push_back({"dungeon-list-sprites", "dungeon",
+                     "List sprites in a dungeon room",
+                     "dungeon-list-sprites --room=<id>", {}, true});
+    tools.push_back({"dungeon-describe-room", "dungeon", "Describe a room",
+                     "dungeon-describe-room --room=<id>", {}, true});
+    tools.push_back({"dungeon-list-objects", "dungeon", "List room objects",
+                     "dungeon-list-objects --room=<id>", {}, true});
+  }
+
+  // Overworld commands
+  if (preferences_.overworld) {
+    tools.push_back({"overworld-describe-map", "overworld", "Describe a map",
+                     "overworld-describe-map --map=<id>", {}, true});
+    tools.push_back({"overworld-find-tile", "overworld", "Find tile locations",
+                     "overworld-find-tile --tile=<id>", {}, true});
+    tools.push_back({"overworld-list-sprites", "overworld", "List sprites",
+                     "overworld-list-sprites --map=<id>", {}, true});
+  }
+
+  // Filesystem commands
+  if (preferences_.filesystem) {
+    tools.push_back({"filesystem-list", "filesystem", "List directory contents",
+                     "filesystem-list --path=<path>", {}, false});
+    tools.push_back({"filesystem-read", "filesystem", "Read file contents",
+                     "filesystem-read --path=<path>", {}, false});
+    tools.push_back({"filesystem-exists", "filesystem", "Check file existence",
+                     "filesystem-exists --path=<path>", {}, false});
+  }
+
+  // Memory inspector
+  if (preferences_.memory_inspector) {
+    tools.push_back({"memory-analyze", "memory", "Analyze memory region",
+                     "memory-analyze --address=<addr> --length=<len>", {},
+                     true});
+    tools.push_back({"memory-search", "memory", "Search for byte pattern",
+                     "memory-search --pattern=<hex>", {}, true});
+    tools.push_back({"memory-regions", "memory", "List known memory regions",
+                     "memory-regions", {}, false});
+  }
+
+  // Test helper tools
+  if (preferences_.test_helpers) {
+    tools.push_back({"tools-helper-list", "tools", "List test helper tools",
+                     "tools-helper-list", {}, false});
+    tools.push_back({"tools-harness-state", "tools",
+                     "Generate WRAM state for test harness",
+                     "tools-harness-state --rom=<path> --output=<path>", {},
+                     false});
+    tools.push_back({"tools-extract-values", "tools",
+                     "Extract vanilla ROM values",
+                     "tools-extract-values --rom=<path>", {}, true});
+    tools.push_back({"tools-extract-golden", "tools",
+                     "Extract golden data for testing",
+                     "tools-extract-golden --rom=<path> --output=<path>", {},
+                     true});
+    tools.push_back({"tools-patch-v3", "tools", "Create v3 patched ROM",
+                     "tools-patch-v3 --rom=<input> --output=<output>", {},
+                     true});
+  }
+
+  return tools;
+}
+
+std::optional<ToolDispatcher::ToolInfo> ToolDispatcher::GetToolInfo(
+    const std::string& tool_name) const {
+  auto tools = GetAvailableTools();
+  for (const auto& tool : tools) {
+    if (tool.name == tool_name) {
+      return tool;
+    }
+  }
+  return std::nullopt;
+}
+
+std::vector<ToolDispatcher::ToolInfo> ToolDispatcher::SearchTools(
+    const std::string& query) const {
+  std::vector<ToolInfo> matches;
+  std::string lower_query = absl::AsciiStrToLower(query);
+
+  auto tools = GetAvailableTools();
+  for (const auto& tool : tools) {
+    std::string lower_name = absl::AsciiStrToLower(tool.name);
+    std::string lower_desc = absl::AsciiStrToLower(tool.description);
+    std::string lower_category = absl::AsciiStrToLower(tool.category);
+
+    if (lower_name.find(lower_query) != std::string::npos ||
+        lower_desc.find(lower_query) != std::string::npos ||
+        lower_category.find(lower_query) != std::string::npos) {
+      matches.push_back(tool);
+    }
+  }
+
+  return matches;
+}
+
+ToolDispatcher::BatchResult ToolDispatcher::DispatchBatch(
+    const BatchToolCall& batch) {
+  BatchResult result;
+  result.results.resize(batch.calls.size());
+  result.statuses.resize(batch.calls.size());
+
+  auto start_time = std::chrono::high_resolution_clock::now();
+
+  if (batch.parallel && batch.calls.size() > 1) {
+    // Parallel execution using std::async
+    std::vector<std::future<absl::StatusOr<std::string>>> futures;
+    futures.reserve(batch.calls.size());
+
+    for (const auto& call : batch.calls) {
+      futures.push_back(std::async(std::launch::async, [this, &call]() {
+        return this->Dispatch(call);
+      }));
+    }
+
+    // Collect results
+    for (size_t i = 0; i < futures.size(); ++i) {
+      auto status_or = futures[i].get();
+      if (status_or.ok()) {
+        result.results[i] = std::move(status_or.value());
+        result.statuses[i] = absl::OkStatus();
+        result.successful_count++;
+      } else {
+        result.results[i] = "";
+        result.statuses[i] = status_or.status();
+        result.failed_count++;
+      }
+    }
+  } else {
+    // Sequential execution
+    for (size_t i = 0; i < batch.calls.size(); ++i) {
+      auto status_or = Dispatch(batch.calls[i]);
+      if (status_or.ok()) {
+        result.results[i] = std::move(status_or.value());
+        result.statuses[i] = absl::OkStatus();
+        result.successful_count++;
+      } else {
+        result.results[i] = "";
+        result.statuses[i] = status_or.status();
+        result.failed_count++;
+      }
+    }
+  }
+
+  auto end_time = std::chrono::high_resolution_clock::now();
+  result.total_execution_time_ms =
+      std::chrono::duration<double, std::milli>(end_time - start_time).count();
+
+  return result;
 }
 
 }  // namespace agent

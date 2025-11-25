@@ -267,6 +267,30 @@ void CommandRegistry::RegisterAllCommands() {
       metadata.examples = {
           "z3ed simple-chat --rom=zelda3.sfc",
           "z3ed simple-chat \"What dungeons exist?\" --rom=zelda3.sfc"};
+    } else if (name.find("tools-") == 0) {
+      metadata.category = "tools";
+      if (name == "tools-list") {
+        metadata.description = "List available test helper tools";
+        metadata.requires_rom = false;
+        metadata.available_to_agent = true;
+      } else if (name == "tools-harness-state") {
+        metadata.description = "Generate WRAM state for test harnesses";
+        metadata.examples = {
+            "z3ed tools-harness-state --rom=zelda3.sfc --output=state.h"};
+      } else if (name == "tools-extract-values") {
+        metadata.description = "Extract vanilla ROM values";
+        metadata.examples = {"z3ed tools-extract-values --rom=zelda3.sfc"};
+      } else if (name == "tools-extract-golden") {
+        metadata.description = "Extract comprehensive golden data for testing";
+        metadata.examples = {
+            "z3ed tools-extract-golden --rom=zelda3.sfc --output=golden.h"};
+      } else if (name == "tools-patch-v3") {
+        metadata.description = "Create v3 ZSCustomOverworld patched ROM";
+        metadata.examples = {
+            "z3ed tools-patch-v3 --rom=zelda3.sfc --output=patched.sfc"};
+      } else {
+        metadata.description = "Test helper tool";
+      }
     } else {
       metadata.category = "misc";
       metadata.description = "Miscellaneous command";
