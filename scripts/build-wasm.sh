@@ -1,20 +1,20 @@
 #!/bin/bash
 set -e
 
-set -e
-
 usage() {
     cat <<'EOF'
-Usage: scripts/build-wasm.sh [debug|release] [--incremental]
+Usage: scripts/build-wasm.sh [debug|release] [--incremental] [--clean]
 Options:
   debug|release   Build mode (default: release)
   --incremental   Skip cleaning CMake cache/files to speed up incremental builds
+  --clean         Completely remove build directory and start fresh
 EOF
 }
 
 # Defaults
 BUILD_MODE="release"
 CLEAN_CACHE=true
+FULL_CLEAN=false
 
 for arg in "$@"; do
     case "$arg" in
@@ -23,6 +23,9 @@ for arg in "$@"; do
             ;;
         --incremental)
             CLEAN_CACHE=false
+            ;;
+        --clean)
+            FULL_CLEAN=true
             ;;
         -h|--help)
             usage
@@ -58,9 +61,12 @@ fi
 
 echo "=== Building YAZE for Web (WASM) - $BUILD_MODE mode ==="
 
-# Create build directory (clean unless incremental)
+# Handle build directory based on flags
 if [ -d "$BUILD_DIR" ]; then
-    if [ "$CLEAN_CACHE" = true ]; then
+    if [ "$FULL_CLEAN" = true ]; then
+        echo "Full clean: removing entire build directory..."
+        rm -rf "$BUILD_DIR"
+    elif [ "$CLEAN_CACHE" = true ]; then
         echo "Cleaning build directory (CMake cache/files)..."
         rm -rf "$BUILD_DIR/CMakeCache.txt" "$BUILD_DIR/CMakeFiles" 2>/dev/null || true
     else
@@ -115,31 +121,99 @@ copy_item bin/yaze.wasm dist/
 copy_item bin/yaze.worker.js dist/ 2>/dev/null || true  # pthread worker script
 copy_item bin/yaze.data dist/ 2>/dev/null || true # might not exist if no assets packed
 
-# Copy web assets (CSS, JS for terminal, overlays, etc.)
+# Copy web assets (organized in subdirectories)
 echo "Copying web assets..."
-for f in "$PROJECT_ROOT/src/web/"*.css; do
-    [ -f "$f" ] && copy_item "$f" dist/
-done
-for f in "$PROJECT_ROOT/src/web/"*.js; do
-    [ -f "$f" ] && copy_item "$f" dist/
-done
-copy_item "$PROJECT_ROOT/src/web/manifest.json" dist/ 2>/dev/null || true
-copy_item "$PROJECT_ROOT/src/web/offline.html" dist/ 2>/dev/null || true
-# Copy icons directory (ensure it exists and is copied)
+
+# Helper function to copy all files from a source directory to destination
+# Usage: copy_directory_contents <src_dir> <dest_dir> [file_pattern]
+copy_directory_contents() {
+    local src_dir="$1"
+    local dest_dir="$2"
+    local pattern="${3:-*}"  # Default to all files
+
+    if [ ! -d "$src_dir" ]; then
+        echo "Warning: Source directory not found: $src_dir"
+        return 1
+    fi
+
+    mkdir -p "$dest_dir"
+    local count=0
+
+    # Use find to get all matching files (handles patterns better)
+    while IFS= read -r -d '' file; do
+        if [ -f "$file" ]; then
+            copy_item "$file" "$dest_dir/"
+            ((count++)) || true
+        fi
+    done < <(find "$src_dir" -maxdepth 1 -type f -name "$pattern" -print0 2>/dev/null)
+
+    if [ "$count" -eq 0 ]; then
+        echo "Warning: No files matching '$pattern' found in $src_dir"
+    else
+        echo "  Copied $count file(s)"
+    fi
+}
+
+# Copy styles directory (all CSS files)
+if [ -d "$PROJECT_ROOT/src/web/styles" ]; then
+    echo "Copying styles..."
+    copy_directory_contents "$PROJECT_ROOT/src/web/styles" "dist/styles" "*.css"
+fi
+
+# Copy components directory (all JS files)
+if [ -d "$PROJECT_ROOT/src/web/components" ]; then
+    echo "Copying components..."
+    copy_directory_contents "$PROJECT_ROOT/src/web/components" "dist/components" "*.js"
+fi
+
+# Copy core directory (all JS files)
+if [ -d "$PROJECT_ROOT/src/web/core" ]; then
+    echo "Copying core..."
+    copy_directory_contents "$PROJECT_ROOT/src/web/core" "dist/core" "*.js"
+fi
+
+# Copy PWA files (all files in the directory)
+if [ -d "$PROJECT_ROOT/src/web/pwa" ]; then
+    echo "Copying PWA files..."
+    mkdir -p dist/pwa
+    # Copy all JS files
+    copy_directory_contents "$PROJECT_ROOT/src/web/pwa" "dist/pwa" "*.js"
+    # Copy manifest.json
+    copy_directory_contents "$PROJECT_ROOT/src/web/pwa" "dist/pwa" "*.json"
+    # Copy HTML files
+    copy_directory_contents "$PROJECT_ROOT/src/web/pwa" "dist/pwa" "*.html"
+    # Copy markdown docs (optional, for reference)
+    copy_directory_contents "$PROJECT_ROOT/src/web/pwa" "dist/pwa" "*.md"
+    # Verify coi-serviceworker.js was copied (critical for SharedArrayBuffer support)
+    if [ -f "dist/pwa/coi-serviceworker.js" ]; then
+        echo "  coi-serviceworker.js present (required for SharedArrayBuffer/pthreads)"
+    else
+        echo "Warning: coi-serviceworker.js not found - SharedArrayBuffer may not work"
+    fi
+fi
+
+# Copy debug tools
+if [ -d "$PROJECT_ROOT/src/web/debug" ]; then
+    echo "Copying debug tools..."
+    mkdir -p dist/debug
+    # Copy all files (could be .js, .cc, .html, etc.)
+    copy_directory_contents "$PROJECT_ROOT/src/web/debug" "dist/debug" "*"
+fi
+
+# Copy main app.js (stays at root)
+if [ -f "$PROJECT_ROOT/src/web/app.js" ]; then
+    copy_item "$PROJECT_ROOT/src/web/app.js" dist/
+fi
+
+# Copy icons directory
 if [ -d "$PROJECT_ROOT/src/web/icons" ]; then
     echo "Copying icons..."
     copy_item "$PROJECT_ROOT/src/web/icons" dist/icons
-    # Verify icons were copied
     if [ ! -d "dist/icons" ]; then
         echo "Warning: icons directory not copied successfully"
     fi
 else
     echo "Warning: icons directory not found at $PROJECT_ROOT/src/web/icons"
-fi
-# coi-serviceworker.js is critical for SharedArrayBuffer support
-if [ -f "$PROJECT_ROOT/src/web/coi-serviceworker.js" ]; then
-    copy_item "$PROJECT_ROOT/src/web/coi-serviceworker.js" dist/
-    echo "coi-serviceworker.js copied (required for SharedArrayBuffer/pthreads)"
 fi
 
 # Copy yaze icon

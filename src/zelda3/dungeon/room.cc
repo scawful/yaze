@@ -334,6 +334,13 @@ void Room::CopyRoomGraphicsToBuffer() {
   printf("[CopyRoomGraphicsToBuffer] Room %d: Converted %d non-zero pixel pairs\n",
          room_id_, bytes_converted);
 
+  // DEBUG: Print first few bytes of converted graphics
+  printf("[CopyRoomGraphicsToBuffer] First 16 bytes of current_gfx16_:\n");
+  for (int i = 0; i < 16; i++) {
+    printf("%02X ", current_gfx16_[i]);
+  }
+  printf("\n");
+
   LoadAnimatedGraphics();
 }
 
@@ -463,6 +470,12 @@ void Room::RenderRoomGraphics() {
   // DEBUG: Log palette loading
   PaletteDebugger::Get().LogPaletteLoad(
       "Room::RenderRoomGraphics", palette_id, bg1_palette);
+      
+  printf("[RenderRoomGraphics] Palette ID: %d, Size: %zu\n", palette_id, bg1_palette.size());
+  if (!bg1_palette.empty()) {
+    printf("[RenderRoomGraphics] First color: R=%d G=%d B=%d\n", 
+           bg1_palette[0].rom_color().red, bg1_palette[0].rom_color().green, bg1_palette[0].rom_color().blue);
+  }
 
   // Store current palette and bitmap for pixel inspector debugging
   PaletteDebugger::Get().SetCurrentPalette(bg1_palette);

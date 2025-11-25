@@ -3,12 +3,15 @@
 #include "absl/strings/str_format.h"
 #include "app/editor/editor.h"
 #include "app/editor/editor_manager.h"
+#include "app/editor/system/editor_card_registry.h"
 #include "app/editor/system/editor_registry.h"
+#include "app/editor/system/layout_orchestrator.h"
 #include "app/editor/system/popup_manager.h"
 #include "app/editor/system/project_manager.h"
 #include "app/editor/system/rom_file_manager.h"
 #include "app/editor/system/session_coordinator.h"
 #include "app/editor/system/toast_manager.h"
+#include "app/editor/ui/layout_presets.h"
 #include "app/editor/ui/menu_builder.h"
 #include "app/gui/core/icons.h"
 #include "app/rom.h"
@@ -39,8 +42,7 @@ void MenuOrchestrator::BuildMainMenu() {
   BuildFileMenu();
   BuildEditMenu();
   BuildViewMenu();
-  BuildToolsMenu();
-  BuildDebugMenu();  // Add Debug menu between Tools and Window
+  BuildToolsMenu();  // Debug menu items merged into Tools
   BuildWindowMenu();
   BuildHelpMenu();
 
@@ -211,6 +213,11 @@ void MenuOrchestrator::AddViewMenuItems() {
           "Ctrl+Shift+E")
       .Separator();
 
+  // Auto-generated Cards submenu (from EditorCardRegistry)
+  AddCardsSubmenu();
+
+  menu_builder_.Separator();
+
   // Settings and UI
   menu_builder_
       .Item("Display Settings", ICON_MD_DISPLAY_SETTINGS,
@@ -226,6 +233,53 @@ void MenuOrchestrator::AddViewMenuItems() {
             [this]() { OnShowWelcomeScreen(); });
 }
 
+void MenuOrchestrator::AddCardsSubmenu() {
+  if (!card_registry_) {
+    return;
+  }
+
+  // Using raw ImGui for conditional submenus
+  if (ImGui::BeginMenu(absl::StrFormat("%s Cards", ICON_MD_DASHBOARD).c_str())) {
+    // Get all categories from the card registry (across all sessions)
+    auto categories = card_registry_->GetAllCategories();
+
+    for (const auto& category : categories) {
+      if (ImGui::BeginMenu(category.c_str())) {
+        // Draw all cards in this category
+        // Using session_id 0 for global cards, individual sessions will have their own menus
+        card_registry_->DrawViewMenuSection(0, category);
+        ImGui::EndMenu();
+      }
+    }
+
+    ImGui::EndMenu();
+  }
+}
+
+void MenuOrchestrator::AddLayoutPresetsSubmenu() {
+  // Using raw ImGui for conditional submenu
+  if (ImGui::BeginMenu(absl::StrFormat("%s Layout Presets", ICON_MD_VIEW_QUILT).c_str())) {
+    if (ImGui::MenuItem(absl::StrFormat("%s Reset to Default", ICON_MD_REFRESH).c_str())) {
+      OnResetWorkspaceLayout();
+    }
+
+    ImGui::Separator();
+
+    // Named Presets
+    if (ImGui::MenuItem(absl::StrFormat("%s Developer", ICON_MD_CODE).c_str())) {
+      OnLoadDeveloperLayout();
+    }
+    if (ImGui::MenuItem(absl::StrFormat("%s Designer", ICON_MD_BRUSH).c_str())) {
+      OnLoadDesignerLayout();
+    }
+    if (ImGui::MenuItem(absl::StrFormat("%s Modder", ICON_MD_BUILD).c_str())) {
+      OnLoadModderLayout();
+    }
+
+    ImGui::EndMenu();
+  }
+}
+
 void MenuOrchestrator::BuildToolsMenu() {
   menu_builder_.BeginMenu("Tools");
   AddToolsMenuItems();
@@ -233,7 +287,7 @@ void MenuOrchestrator::BuildToolsMenu() {
 }
 
 void MenuOrchestrator::AddToolsMenuItems() {
-  // Core Tools - keep these in Tools menu
+  // Search & Navigation
   menu_builder_
       .Item(
           "Global Search", ICON_MD_SEARCH, [this]() { OnShowGlobalSearch(); },
@@ -241,50 +295,11 @@ void MenuOrchestrator::AddToolsMenuItems() {
       .Item(
           "Command Palette", ICON_MD_SEARCH,
           [this]() { OnShowCommandPalette(); }, "Ctrl+Shift+P")
-      .Separator();
-
-  // Resource Management
-  menu_builder_
       .Item("Resource Label Manager", ICON_MD_LABEL,
             [this]() { OnShowResourceLabelManager(); })
       .Separator();
 
-  // Collaboration (GRPC builds only)
-#ifdef YAZE_WITH_GRPC
-  menu_builder_.BeginSubMenu("Collaborate", ICON_MD_PEOPLE)
-      .Item("Start Collaboration Session", ICON_MD_PLAY_CIRCLE,
-            [this]() { OnStartCollaboration(); })
-      .Item("Join Collaboration Session", ICON_MD_GROUP_ADD,
-            [this]() { OnJoinCollaboration(); })
-      .Item("Network Status", ICON_MD_CLOUD,
-            [this]() { OnShowNetworkStatus(); })
-      .EndMenu();
-#endif
-}
-
-void MenuOrchestrator::BuildDebugMenu() {
-  menu_builder_.BeginMenu("Debug");
-  AddDebugMenuItems();
-  menu_builder_.EndMenu();
-}
-
-void MenuOrchestrator::AddDebugMenuItems() {
-  // Testing section (move from Tools if present)
-#ifdef YAZE_ENABLE_TESTING
-  menu_builder_.BeginSubMenu("Testing", ICON_MD_SCIENCE)
-      .Item(
-          "Test Dashboard", ICON_MD_DASHBOARD,
-          [this]() { OnShowTestDashboard(); }, "Ctrl+T")
-      .Item("Run All Tests", ICON_MD_PLAY_ARROW, [this]() { OnRunAllTests(); })
-      .Item("Run Unit Tests", ICON_MD_CHECK_BOX, [this]() { OnRunUnitTests(); })
-      .Item("Run Integration Tests", ICON_MD_INTEGRATION_INSTRUCTIONS,
-            [this]() { OnRunIntegrationTests(); })
-      .Item("Run E2E Tests", ICON_MD_VISIBILITY, [this]() { OnRunE2ETests(); })
-      .EndMenu()
-      .Separator();
-#endif
-
-  // ROM Analysis submenu
+  // ROM Analysis (moved from Debug menu)
   menu_builder_.BeginSubMenu("ROM Analysis", ICON_MD_STORAGE)
       .Item(
           "ROM Information", ICON_MD_INFO, [this]() { OnShowRomInfo(); },
@@ -298,7 +313,7 @@ void MenuOrchestrator::AddDebugMenuItems() {
           nullptr, [this]() { return HasActiveRom(); })
       .EndMenu();
 
-  // ZSCustomOverworld submenu
+  // ZSCustomOverworld (moved from Debug menu)
   menu_builder_.BeginSubMenu("ZSCustomOverworld", ICON_MD_CODE)
       .Item(
           "Check ROM Version", ICON_MD_INFO, [this]() { OnCheckRomVersion(); },
@@ -310,7 +325,7 @@ void MenuOrchestrator::AddDebugMenuItems() {
             [this]() { OnToggleCustomLoading(); })
       .EndMenu();
 
-  // Asar Integration submenu
+  // Asar Integration (moved from Debug menu)
   menu_builder_.BeginSubMenu("Asar Integration", ICON_MD_BUILD)
       .Item("Asar Status", ICON_MD_INFO,
             [this]() { popup_manager_.Show(PopupID::kAsarIntegration); })
@@ -318,33 +333,57 @@ void MenuOrchestrator::AddDebugMenuItems() {
           "Toggle ASM Patch", ICON_MD_CODE, [this]() { OnToggleAsarPatch(); },
           nullptr, [this]() { return HasActiveRom(); })
       .Item("Load ASM File", ICON_MD_FOLDER_OPEN, [this]() { OnLoadAsmFile(); })
-      .EndMenu();
+      .EndMenu()
+      .Separator();
 
-  menu_builder_.Separator();
-
-  // Development Tools
-  menu_builder_
+  // Development Tools (moved from Debug menu)
+  menu_builder_.BeginSubMenu("Development", ICON_MD_DEVELOPER_MODE)
       .Item("Memory Editor", ICON_MD_MEMORY, [this]() { OnShowMemoryEditor(); })
       .Item("Assembly Editor", ICON_MD_CODE,
             [this]() { OnShowAssemblyEditor(); })
       .Item("Feature Flags", ICON_MD_FLAG,
             [this]() { popup_manager_.Show(PopupID::kFeatureFlags); })
-      .Separator()
       .Item("Performance Dashboard", ICON_MD_SPEED,
-            [this]() { OnShowPerformanceDashboard(); });
-
+            [this]() { OnShowPerformanceDashboard(); })
 #ifdef YAZE_WITH_GRPC
-  menu_builder_.Item("Agent Proposals", ICON_MD_PREVIEW,
-                     [this]() { OnShowProposalDrawer(); });
+      .Item("Agent Proposals", ICON_MD_PREVIEW,
+            [this]() { OnShowProposalDrawer(); })
+#endif
+      .EndMenu();
+
+  // Testing (moved from Debug menu)
+#ifdef YAZE_ENABLE_TESTING
+  menu_builder_.BeginSubMenu("Testing", ICON_MD_SCIENCE)
+      .Item(
+          "Test Dashboard", ICON_MD_DASHBOARD,
+          [this]() { OnShowTestDashboard(); }, "Ctrl+T")
+      .Item("Run All Tests", ICON_MD_PLAY_ARROW, [this]() { OnRunAllTests(); })
+      .Item("Run Unit Tests", ICON_MD_CHECK_BOX, [this]() { OnRunUnitTests(); })
+      .Item("Run Integration Tests", ICON_MD_INTEGRATION_INSTRUCTIONS,
+            [this]() { OnRunIntegrationTests(); })
+      .Item("Run E2E Tests", ICON_MD_VISIBILITY, [this]() { OnRunE2ETests(); })
+      .EndMenu();
 #endif
 
-  menu_builder_.Separator();
-
-  // ImGui Debug Windows
-  menu_builder_
+  // ImGui Debug (moved from Debug menu)
+  menu_builder_.BeginSubMenu("ImGui Debug", ICON_MD_BUG_REPORT)
       .Item("ImGui Demo", ICON_MD_HELP, [this]() { OnShowImGuiDemo(); })
       .Item("ImGui Metrics", ICON_MD_ANALYTICS,
-            [this]() { OnShowImGuiMetrics(); });
+            [this]() { OnShowImGuiMetrics(); })
+      .EndMenu()
+      .Separator();
+
+  // Collaboration (GRPC builds only)
+#ifdef YAZE_WITH_GRPC
+  menu_builder_.BeginSubMenu("Collaborate", ICON_MD_PEOPLE)
+      .Item("Start Collaboration Session", ICON_MD_PLAY_CIRCLE,
+            [this]() { OnStartCollaboration(); })
+      .Item("Join Collaboration Session", ICON_MD_GROUP_ADD,
+            [this]() { OnJoinCollaboration(); })
+      .Item("Network Status", ICON_MD_CLOUD,
+            [this]() { OnShowNetworkStatus(); })
+      .EndMenu();
+#endif
 }
 
 void MenuOrchestrator::BuildWindowMenu() {
@@ -723,9 +762,12 @@ void MenuOrchestrator::OnHideAllWindows() {
 }
 
 void MenuOrchestrator::OnResetWorkspaceLayout() {
-  // Delegate to EditorManager
+  // Queue as deferred action to avoid modifying ImGui state during menu rendering
   if (editor_manager_) {
-    editor_manager_->ResetWorkspaceLayout();
+    editor_manager_->QueueDeferredAction([this]() {
+      editor_manager_->ResetWorkspaceLayout();
+      toast_manager_.Show("Layout reset to default", ToastType::kInfo);
+    });
   }
 }
 

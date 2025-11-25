@@ -107,6 +107,10 @@ class DungeonEditorV2 : public Editor {
   bool show_debug_controls_ = false;  // Debug controls card
   bool show_control_panel_ = true;    // Control panel (visible by default)
 
+  // Public accessors for WASM API and automation
+  int current_room_id() const { return room_selector_.current_room_id(); }
+  const ImVector<int>& active_rooms() const { return room_selector_.active_rooms(); }
+
  private:
   gfx::IRenderer* renderer_ = nullptr;
   // Simple UI layout

@@ -317,9 +317,9 @@ void WindowDelegate::LoadWorkspaceLayout() {
 }
 
 void WindowDelegate::ResetWorkspaceLayout() {
-  // Reset to default ImGui layout
-  ImGui::LoadIniSettingsFromMemory(nullptr);
-  printf("[WindowDelegate] Workspace layout reset to default\n");
+  // Request layout rebuild - the actual reset is handled by LayoutManager
+  // Do NOT use LoadIniSettingsFromMemory(nullptr) as it causes crashes
+  printf("[WindowDelegate] Workspace layout reset requested\n");
 }
 
 }  // namespace editor

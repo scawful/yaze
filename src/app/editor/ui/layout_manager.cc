@@ -1,5 +1,6 @@
 #include "app/editor/ui/layout_manager.h"
 
+#include "app/editor/system/editor_card_registry.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
 #include "util/log.h"
@@ -71,124 +72,76 @@ void LayoutManager::InitializeEditorLayout(EditorType type,
 }
 
 void LayoutManager::BuildOverworldLayout(ImGuiID dockspace_id) {
-  // TODO: [EditorManagerRefactor] Implement DockBuilder layout for Overworld
-  // Editor
+  // Default Overworld Editor Layout:
+  // - Center 75%: Overworld Canvas (main editing area, maximized)
+  // - Right 25%: Tile16 Selector
   //
-  // Desired layout:
-  // - Left 25%: Tile16 Selector (top 50%) + Tile8 Selector (bottom 50%)
-  // - Center 60%: Main Canvas (full height)
-  // - Right 15%: Area Graphics (top 60%) + Scratch Pad (bottom 40%)
-  //
-  // Additional floating cards:
-  // - Tile16 Editor (floating, 800x600)
-  // - GFX Groups (floating, 700x550)
-  // - Usage Stats (floating, 600x500)
-  // - V3 Settings (floating, 500x600)
+  // Other cards (Tile8, Area Graphics, GFX Groups, etc.) start hidden
+  // and can be opened via sidebar or View menu
 
-  ImGuiID dock_left_id = 0;
   ImGuiID dock_center_id = 0;
   ImGuiID dock_right_id = 0;
 
-  // Split dockspace: Left 25% | Center 60% | Right 15%
-  dock_left_id = ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Left, 0.25f,
-                                             nullptr, &dockspace_id);
+  // Split dockspace: Center 75% | Right 25%
   dock_right_id = ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Right,
-                                              0.20f, nullptr, &dockspace_id);
-  dock_center_id = dockspace_id;  // Center is what remains
+                                              0.25f, nullptr, &dock_center_id);
 
-  // Split left panel: Tile16 (top) and Tile8 (bottom)
-  ImGuiID dock_left_top = 0;
-  ImGuiID dock_left_bottom = ImGui::DockBuilderSplitNode(
-      dock_left_id, ImGuiDir_Down, 0.50f, nullptr, &dock_left_top);
-
-  // Split right panel: Area Graphics (top) and Scratch Pad (bottom)
-  ImGuiID dock_right_top = 0;
-  ImGuiID dock_right_bottom = ImGui::DockBuilderSplitNode(
-      dock_right_id, ImGuiDir_Down, 0.40f, nullptr, &dock_right_top);
-
-  // Dock windows to their designated nodes
+  // Dock main windows
   ImGui::DockBuilderDockWindow(" Overworld Canvas", dock_center_id);
-  ImGui::DockBuilderDockWindow(" Tile16 Selector", dock_left_top);
-  ImGui::DockBuilderDockWindow(" Tile8 Selector", dock_left_bottom);
-  ImGui::DockBuilderDockWindow(" Area Graphics", dock_right_top);
-  ImGui::DockBuilderDockWindow(" Scratch Pad", dock_right_bottom);
+  ImGui::DockBuilderDockWindow(" Tile16 Selector", dock_right_id);
 
-  // Note: Floating windows (Tile16 Editor, GFX Groups, etc.) are not docked
-  // They will appear as floating windows with their configured default
-  // positions
+  // Note: Other cards (Tile8 Selector, Area Graphics, Scratch Pad, GFX Groups)
+  // are not docked by default - they can be opened from the sidebar/menu
 }
 
 void LayoutManager::BuildDungeonLayout(ImGuiID dockspace_id) {
-  // TODO: [EditorManagerRefactor] Implement DockBuilder layout for Dungeon
-  // Editor
+  // Default Dungeon Editor Layout:
+  // - Left 20%: Room Selector (list of dungeon rooms)
+  // - Center 60%: Room Canvas (main editing area)
+  // - Right 20%: Object Editor (for placing/editing objects)
   //
-  // Desired layout:
-  // - Left 20%: Room Selector (top 60%) + Entrances (bottom 40%)
-  // - Center 65%: Room Canvas + Tabs for multiple rooms
-  // - Right 15%: Object Editor (top) + Palette Editor (bottom)
+  // Other cards (Entrances, Palette Editor, Room Matrix) start hidden
 
   ImGuiID dock_left_id = 0;
   ImGuiID dock_center_id = 0;
   ImGuiID dock_right_id = 0;
 
-  // Split dockspace: Left 20% | Center 65% | Right 15%
+  // Split dockspace: Left 20% | Center 60% | Right 20%
   dock_left_id = ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Left, 0.20f,
                                              nullptr, &dockspace_id);
   dock_right_id = ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Right,
-                                              0.19f, nullptr, &dockspace_id);
+                                              0.25f, nullptr, &dockspace_id);
   dock_center_id = dockspace_id;
 
-  // Split left panel: Room Selector (top 60%) and Entrances (bottom 40%)
-  ImGuiID dock_left_top = 0;
-  ImGuiID dock_left_bottom = ImGui::DockBuilderSplitNode(
-      dock_left_id, ImGuiDir_Down, 0.40f, nullptr, &dock_left_top);
+  // Dock main windows
+  ImGui::DockBuilderDockWindow(" Rooms List", dock_left_id);
+  ImGui::DockBuilderDockWindow(" Dungeon Controls", dock_center_id);
+  ImGui::DockBuilderDockWindow(" Object Editor", dock_right_id);
 
-  // Split right panel: Object Editor (top 50%) and Palette Editor (bottom 50%)
-  ImGuiID dock_right_top = 0;
-  ImGuiID dock_right_bottom = ImGui::DockBuilderSplitNode(
-      dock_right_id, ImGuiDir_Down, 0.50f, nullptr, &dock_right_top);
-
-  // Dock windows
-  ImGui::DockBuilderDockWindow(" Rooms List", dock_left_top);
-  ImGui::DockBuilderDockWindow(" Entrances", dock_left_bottom);
-  ImGui::DockBuilderDockWindow(" Object Editor", dock_right_top);
-  ImGui::DockBuilderDockWindow(" Palette Editor", dock_right_bottom);
-
-  // Room tabs and Room Matrix are floating by default
-  // Individual room windows (###RoomCard*) will dock together due to their
-  // window class
+  // Note: Other cards (Entrances, Palette Editor, Room Matrix, Room Graphics)
+  // are not docked by default - they can be opened from the sidebar/menu
 }
 
 void LayoutManager::BuildGraphicsLayout(ImGuiID dockspace_id) {
-  // TODO: [EditorManagerRefactor] Implement DockBuilder layout for Graphics
-  // Editor
+  // Default Graphics Editor Layout:
+  // - Left 25%: Sheet Browser (list of all GFX sheets)
+  // - Center 75%: Sheet Editor (main editing canvas with tabs)
   //
-  // Desired layout:
-  // - Left 30%: Sheet Browser
-  // - Center 50%: Sheet Editor
-  // - Right 20%: Animations (top) + Prototype (bottom)
+  // Other cards (Player Animations, Prototype Viewer) start hidden
 
   ImGuiID dock_left_id = 0;
   ImGuiID dock_center_id = 0;
-  ImGuiID dock_right_id = 0;
 
-  // Split dockspace: Left 30% | Center 50% | Right 20%
-  dock_left_id = ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Left, 0.30f,
-                                             nullptr, &dockspace_id);
-  dock_right_id = ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Right,
-                                              0.29f, nullptr, &dockspace_id);
-  dock_center_id = dockspace_id;
+  // Split dockspace: Left 25% | Center 75%
+  dock_left_id = ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Left, 0.25f,
+                                             nullptr, &dock_center_id);
 
-  // Split right panel: Animations (top) and Prototype (bottom)
-  ImGuiID dock_right_top = 0;
-  ImGuiID dock_right_bottom = ImGui::DockBuilderSplitNode(
-      dock_right_id, ImGuiDir_Down, 0.50f, nullptr, &dock_right_top);
-
-  // Dock windows
+  // Dock main windows
   ImGui::DockBuilderDockWindow(" GFX Sheets", dock_left_id);
   ImGui::DockBuilderDockWindow(" Sheet Editor", dock_center_id);
-  ImGui::DockBuilderDockWindow(" Animations", dock_right_top);
-  ImGui::DockBuilderDockWindow(" Prototype", dock_right_bottom);
+
+  // Note: Player Animations and Prototype Viewer are not docked by default
+  // They can be opened from the sidebar/menu
 }
 
 void LayoutManager::BuildPaletteLayout(ImGuiID dockspace_id) {
@@ -406,6 +359,19 @@ void LayoutManager::MarkLayoutInitialized(EditorType type) {
 void LayoutManager::ClearInitializationFlags() {
   layouts_initialized_.clear();
   LOG_INFO("LayoutManager", "Cleared all layout initialization flags");
+}
+
+std::string LayoutManager::GetWindowTitle(const std::string& card_id) const {
+  if (!card_registry_) {
+    return "";
+  }
+
+  // Look up the card info in the registry (using session_id 0 for global lookup)
+  auto* info = card_registry_->GetCardInfo(0, card_id);
+  if (info) {
+    return info->GetWindowTitle();
+  }
+  return "";
 }
 
 }  // namespace editor

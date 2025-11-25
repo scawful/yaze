@@ -58,7 +58,8 @@ class UICoordinator {
   void DrawBackground();
   void DrawAllUI();
   void DrawMenuBarExtras();
-  void DrawContextSensitiveCardControl();
+  void DrawNotificationBell();
+  void DrawSessionButton();
 
   // Core UI components (actual ImGui rendering moved from EditorManager)
   void DrawCommandPalette();
@@ -77,7 +78,6 @@ class UICoordinator {
 
   // Window management UI
   void DrawWindowManagementUI();
-  void DrawRomSelector();
 
   // Popup and dialog management
   void DrawAllPopups();

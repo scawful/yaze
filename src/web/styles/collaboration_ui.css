@@ -529,6 +529,160 @@
   }
 }
 
+/* Reconnecting status */
+.collab-status-badge.reconnecting {
+  background: #f59e0b;
+  color: white;
+  animation: pulse 1.5s infinite;
+}
+
+/* Reconnect prompt */
+.collab-reconnect-prompt {
+  position: fixed;
+  bottom: 80px;
+  right: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: #1a1a1a;
+  border: 1px solid #3b82f6;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
+  z-index: 10002;
+  animation: slideIn 0.3s ease;
+}
+
+.collab-reconnect-prompt span {
+  color: #e0e0e0;
+  font-size: 13px;
+}
+
+.collab-reconnect-prompt button {
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.collab-reconnect-prompt .reconnect-yes {
+  background: #3b82f6;
+  border: none;
+  color: white;
+}
+
+.collab-reconnect-prompt .reconnect-yes:hover {
+  background: #2563eb;
+}
+
+.collab-reconnect-prompt .reconnect-no {
+  background: transparent;
+  border: 1px solid #444;
+  color: #9ca3af;
+}
+
+.collab-reconnect-prompt .reconnect-no:hover {
+  background: #2d2d2d;
+  color: #e0e0e0;
+}
+
+/* Change history section */
+.collab-changes {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #333;
+}
+
+.collab-changes h3 {
+  margin: 0 0 12px 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.collab-changes .change-count {
+  font-size: 11px;
+  color: #6b7280;
+  font-weight: normal;
+}
+
+.change-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.change-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  margin-bottom: 4px;
+  background: #252525;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.change-item .change-user {
+  font-weight: 600;
+  min-width: 60px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.change-item .change-offset {
+  font-family: 'Courier New', monospace;
+  color: #4ecdc4;
+  flex: 1;
+}
+
+.change-item .change-time {
+  color: #6b7280;
+  font-size: 11px;
+}
+
+/* Error toast animation */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideOut {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
 /* Dark mode override for inputs */
 @media (prefers-color-scheme: dark) {
   input {

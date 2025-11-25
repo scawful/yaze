@@ -194,6 +194,7 @@ void PaletteEditor::Initialize() {
 
   card_registry->RegisterCard({.card_id = "palette.control_panel",
                                .display_name = "Palette Controls",
+                               .window_title = " Group Manager",
                                .icon = ICON_MD_PALETTE,
                                .category = "Palette",
                                .shortcut_hint = "Ctrl+Shift+P",
@@ -202,6 +203,7 @@ void PaletteEditor::Initialize() {
 
   card_registry->RegisterCard({.card_id = "palette.ow_main",
                                .display_name = "Overworld Main",
+                               .window_title = " Overworld Main",
                                .icon = ICON_MD_LANDSCAPE,
                                .category = "Palette",
                                .shortcut_hint = "Ctrl+Alt+1",
@@ -210,6 +212,7 @@ void PaletteEditor::Initialize() {
 
   card_registry->RegisterCard({.card_id = "palette.ow_animated",
                                .display_name = "Overworld Animated",
+                               .window_title = " Overworld Animated",
                                .icon = ICON_MD_WATER,
                                .category = "Palette",
                                .shortcut_hint = "Ctrl+Alt+2",
@@ -218,6 +221,7 @@ void PaletteEditor::Initialize() {
 
   card_registry->RegisterCard({.card_id = "palette.dungeon_main",
                                .display_name = "Dungeon Main",
+                               .window_title = " Dungeon Main",
                                .icon = ICON_MD_CASTLE,
                                .category = "Palette",
                                .shortcut_hint = "Ctrl+Alt+3",
@@ -226,6 +230,7 @@ void PaletteEditor::Initialize() {
 
   card_registry->RegisterCard({.card_id = "palette.sprites",
                                .display_name = "Global Sprite Palettes",
+                               .window_title = " SNES Palette",
                                .icon = ICON_MD_PETS,
                                .category = "Palette",
                                .shortcut_hint = "Ctrl+Alt+4",
@@ -234,6 +239,7 @@ void PaletteEditor::Initialize() {
 
   card_registry->RegisterCard({.card_id = "palette.sprites_aux1",
                                .display_name = "Sprites Aux 1",
+                               .window_title = " Sprites Aux 1",
                                .icon = ICON_MD_FILTER_1,
                                .category = "Palette",
                                .shortcut_hint = "Ctrl+Alt+7",
@@ -242,6 +248,7 @@ void PaletteEditor::Initialize() {
 
   card_registry->RegisterCard({.card_id = "palette.sprites_aux2",
                                .display_name = "Sprites Aux 2",
+                               .window_title = " Sprites Aux 2",
                                .icon = ICON_MD_FILTER_2,
                                .category = "Palette",
                                .shortcut_hint = "Ctrl+Alt+8",
@@ -250,6 +257,7 @@ void PaletteEditor::Initialize() {
 
   card_registry->RegisterCard({.card_id = "palette.sprites_aux3",
                                .display_name = "Sprites Aux 3",
+                               .window_title = " Sprites Aux 3",
                                .icon = ICON_MD_FILTER_3,
                                .category = "Palette",
                                .shortcut_hint = "Ctrl+Alt+9",
@@ -258,6 +266,7 @@ void PaletteEditor::Initialize() {
 
   card_registry->RegisterCard({.card_id = "palette.equipment",
                                .display_name = "Equipment Palettes",
+                               .window_title = " Equipment Palettes",
                                .icon = ICON_MD_SHIELD,
                                .category = "Palette",
                                .shortcut_hint = "Ctrl+Alt+5",
@@ -266,6 +275,7 @@ void PaletteEditor::Initialize() {
 
   card_registry->RegisterCard({.card_id = "palette.quick_access",
                                .display_name = "Quick Access",
+                               .window_title = " Color Harmony",
                                .icon = ICON_MD_COLOR_LENS,
                                .category = "Palette",
                                .shortcut_hint = "Ctrl+Alt+Q",
@@ -274,6 +284,7 @@ void PaletteEditor::Initialize() {
 
   card_registry->RegisterCard({.card_id = "palette.custom",
                                .display_name = "Custom Palette",
+                               .window_title = " Palette Editor",
                                .icon = ICON_MD_BRUSH,
                                .category = "Palette",
                                .shortcut_hint = "Ctrl+Alt+C",

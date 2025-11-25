@@ -1,7 +1,10 @@
 # WASM Debug Infrastructure for AI Integration
 
-**Date:** November 24, 2024
+**Date:** November 24, 2025 (Updated)
+**Status:** Current - Active debugging API
 **Purpose:** Comprehensive debug API for Gemini/Antigravity AI integration to analyze rendering issues and game state in the yaze web application.
+
+**Note:** This document is the high-level overview for WASM debugging. For detailed API reference, see `wasm-yazeDebug-api-reference.md`. For general WASM status and control APIs, see `wasm_dev_status.md`.
 
 ## Overview
 

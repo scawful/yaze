@@ -35,12 +35,14 @@ void SettingsEditor::Initialize() {
 
   card_registry->RegisterCard({.card_id = MakeCardId("settings.general"),
                                .display_name = "General Settings",
+                               .window_title = " Settings Navigation",
                                .icon = ICON_MD_SETTINGS,
                                .category = "System",
                                .priority = 10});
 
   card_registry->RegisterCard({.card_id = MakeCardId("settings.appearance"),
                                .display_name = "Appearance",
+                               .window_title = " Settings Content",
                                .icon = ICON_MD_PALETTE,
                                .category = "System",
                                .priority = 20});
@@ -48,24 +50,28 @@ void SettingsEditor::Initialize() {
   card_registry->RegisterCard(
       {.card_id = MakeCardId("settings.editor_behavior"),
        .display_name = "Editor Behavior",
+       .window_title = " Editor Behavior",
        .icon = ICON_MD_TUNE,
        .category = "System",
        .priority = 30});
 
   card_registry->RegisterCard({.card_id = MakeCardId("settings.performance"),
                                .display_name = "Performance",
+                               .window_title = " Performance",
                                .icon = ICON_MD_SPEED,
                                .category = "System",
                                .priority = 40});
 
   card_registry->RegisterCard({.card_id = MakeCardId("settings.ai_agent"),
                                .display_name = "AI Agent",
+                               .window_title = " AI Agent",
                                .icon = ICON_MD_SMART_TOY,
                                .category = "System",
                                .priority = 50});
 
   card_registry->RegisterCard({.card_id = MakeCardId("settings.shortcuts"),
                                .display_name = "Keyboard Shortcuts",
+                               .window_title = " Keyboard Shortcuts",
                                .icon = ICON_MD_KEYBOARD,
                                .category = "System",
                                .priority = 60});
@@ -195,14 +201,139 @@ void SettingsEditor::DrawGeneralSettings() {
 }
 
 void SettingsEditor::DrawKeyboardShortcuts() {
-  ImGui::Text("Keyboard shortcut customization coming soon...");
+  ImGui::Text("%s Keyboard Shortcuts", ICON_MD_KEYBOARD);
   ImGui::Separator();
 
-  // TODO: Implement keyboard shortcut editor with:
-  // - Visual shortcut conflict detection
-  // - Import/export shortcut profiles
-  // - Search and filter shortcuts
-  // - Live editing and rebinding
+  if (ImGui::CollapsingHeader("Card Shortcuts", ImGuiTreeNodeFlags_DefaultOpen)) {
+    DrawCardShortcuts();
+  }
+
+  ImGui::Separator();
+  ImGui::TextDisabled("More keyboard shortcut customization coming soon...");
+}
+
+void SettingsEditor::DrawCardShortcuts() {
+  if (!card_registry_ || !user_settings_) {
+    ImGui::TextDisabled("Card registry or user settings not available");
+    return;
+  }
+
+  ImGui::Text("Customize shortcuts for editor cards:");
+  ImGui::Spacing();
+
+  // Get all categories
+  auto categories = card_registry_->GetAllCategories();
+
+  for (const auto& category : categories) {
+    if (ImGui::TreeNode(category.c_str())) {
+      // Get cards in this category
+      auto cards = card_registry_->GetCardsInCategory(0, category);
+
+      if (ImGui::BeginTable("##CardShortcuts", 3, 
+          ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_Resizable)) {
+        ImGui::TableSetupColumn("Card", ImGuiTableColumnFlags_WidthStretch);
+        ImGui::TableSetupColumn("Current Shortcut", ImGuiTableColumnFlags_WidthFixed, 150.0f);
+        ImGui::TableSetupColumn("Actions", ImGuiTableColumnFlags_WidthFixed, 100.0f);
+        ImGui::TableHeadersRow();
+
+        for (const auto& card : cards) {
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          
+          // Display name with icon
+          ImGui::Text("%s %s", card.icon.c_str(), card.display_name.c_str());
+          
+          ImGui::TableNextColumn();
+          
+          // Get current shortcut (user-defined or default)
+          std::string current_shortcut;
+          auto it = user_settings_->prefs().card_shortcuts.find(card.card_id);
+          if (it != user_settings_->prefs().card_shortcuts.end()) {
+            current_shortcut = it->second;
+          } else if (!card.shortcut_hint.empty()) {
+            current_shortcut = card.shortcut_hint + " (default)";
+          } else {
+            current_shortcut = "None";
+          }
+          
+          // Show shortcut editing
+          ImGui::PushID(card.card_id.c_str());
+          
+          if (is_editing_shortcut_ && editing_card_id_ == card.card_id) {
+            // Editing mode
+            ImGui::SetKeyboardFocusHere();
+            if (ImGui::InputText("##EditShortcut", shortcut_edit_buffer_, 
+                                 sizeof(shortcut_edit_buffer_), 
+                                 ImGuiInputTextFlags_EnterReturnsTrue)) {
+              // Save the new shortcut
+              if (strlen(shortcut_edit_buffer_) > 0) {
+                user_settings_->prefs().card_shortcuts[card.card_id] = shortcut_edit_buffer_;
+              } else {
+                user_settings_->prefs().card_shortcuts.erase(card.card_id);
+              }
+              user_settings_->Save();
+              is_editing_shortcut_ = false;
+              editing_card_id_.clear();
+            }
+            
+            ImGui::SameLine();
+            if (ImGui::SmallButton("Cancel")) {
+              is_editing_shortcut_ = false;
+              editing_card_id_.clear();
+            }
+          } else {
+            // Display mode
+            ImGui::TextColored(ImVec4(0.7f, 0.9f, 0.7f, 1.0f), "%s", current_shortcut.c_str());
+          }
+          
+          ImGui::TableNextColumn();
+          
+          // Edit button
+          if (!is_editing_shortcut_) {
+            if (ImGui::SmallButton(ICON_MD_EDIT)) {
+              is_editing_shortcut_ = true;
+              editing_card_id_ = card.card_id;
+              // Pre-fill with current shortcut
+              auto custom_it = user_settings_->prefs().card_shortcuts.find(card.card_id);
+              if (custom_it != user_settings_->prefs().card_shortcuts.end()) {
+                strncpy(shortcut_edit_buffer_, custom_it->second.c_str(), 
+                        sizeof(shortcut_edit_buffer_) - 1);
+              } else if (!card.shortcut_hint.empty()) {
+                strncpy(shortcut_edit_buffer_, card.shortcut_hint.c_str(),
+                        sizeof(shortcut_edit_buffer_) - 1);
+              } else {
+                shortcut_edit_buffer_[0] = '\0';
+              }
+            }
+            
+            ImGui::SameLine();
+            
+            // Reset to default button
+            auto custom_it = user_settings_->prefs().card_shortcuts.find(card.card_id);
+            if (custom_it != user_settings_->prefs().card_shortcuts.end()) {
+              if (ImGui::SmallButton(ICON_MD_REFRESH)) {
+                user_settings_->prefs().card_shortcuts.erase(card.card_id);
+                user_settings_->Save();
+              }
+              if (ImGui::IsItemHovered()) {
+                ImGui::SetTooltip("Reset to default");
+              }
+            }
+          }
+          
+          ImGui::PopID();
+        }
+        
+        ImGui::EndTable();
+      }
+      
+      ImGui::TreePop();
+    }
+  }
+
+  ImGui::Spacing();
+  ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.6f, 1.0f), 
+                     ICON_MD_INFO " Tip: Use format like 'Ctrl+Shift+X' for shortcuts");
 }
 
 void SettingsEditor::DrawThemeSettings() {

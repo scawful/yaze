@@ -7,7 +7,7 @@
     <meta name="description" content="A modern, cross-platform ROM editor for The Legend of Zelda: A Link to the Past">
 
     <!-- COI Service Worker for SharedArrayBuffer support (must be first!) -->
-    <script src="coi-serviceworker.js"></script>
+    <script src="pwa/coi-serviceworker.js"></script>
 
     <!-- PWA Meta Tags -->
     <meta name="theme-color" content="#0d0d0d">
@@ -19,7 +19,7 @@
     <meta name="yaze-collab-server" content="">
 
     <!-- PWA Manifest -->
-    <link rel="manifest" href="./manifest.json">
+    <link rel="manifest" href="./pwa/manifest.json">
     <link rel="icon" type="image/x-icon" href="./icons/favicon.ico">
     <link rel="apple-touch-icon" href="./icons/icon-192x192.png">
 
@@ -29,14 +29,14 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <!-- Material Symbols - with fallback if CDN fails -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link rel="stylesheet" href="main.css">
-    <link rel="stylesheet" href="shortcuts_overlay.css">
-    <link rel="stylesheet" href="touch_gestures.css">
-    <link rel="stylesheet" href="collab_console.css">
-    <link rel="stylesheet" href="terminal.css">
-    <link rel="stylesheet" href="drop_zone.css">
-    <link rel="stylesheet" href="loading_indicator.css">
-    <link rel="stylesheet" href="error_handler.css">
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/shortcuts_overlay.css">
+    <link rel="stylesheet" href="styles/touch_gestures.css">
+    <link rel="stylesheet" href="styles/collab_console.css">
+    <link rel="stylesheet" href="styles/terminal.css">
+    <link rel="stylesheet" href="styles/drop_zone.css">
+    <link rel="stylesheet" href="styles/loading_indicator.css">
+    <link rel="stylesheet" href="styles/error_handler.css">
 
     <title>yaze</title>
   </head>
@@ -147,32 +147,16 @@
     </div>
 
     <div id="canvas-container">
-      <div id="loading-overlay" style="display: none;">
+      <div id="loading-overlay" style="display: flex;">
         <div class="loading-content">
-          <div class="spinner"></div>
-          <div id="status">Downloading...</div>
+          <div class="spinner" id="spinner"></div>
+          <div id="status">Initializing...</div>
           <progress value="0" max="100" id="progress" hidden=1></progress>
         </div>
       </div>
 
-      <!-- Welcome / Empty State -->
-      <div id="welcome-screen" class="welcome-screen">
-        <div class="welcome-content">
-          <span class="material-symbols-outlined welcome-icon">stadia_controller</span>
-          <h1>Welcome to YAZE</h1>
-          <p>Drop a ROM file here or click Open to start.</p>
-          <div class="welcome-actions">
-            <button class="nav-btn large" onclick="document.getElementById('rom-input').click()">
-              <span class="material-symbols-outlined">folder_open</span> Open ROM
-            </button>
-            <button class="nav-btn large" onclick="window.open('https://halext.org', '_blank')">
-              <span class="material-symbols-outlined">public</span> Visit Halext
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <canvas class="emscripten" id="canvas" oncontextmenu="event.preventDefault()" tabindex=-1 style="display: none;"></canvas>
+      <!-- Canvas is always visible, loading overlay covers it during init -->
+      <canvas class="emscripten" id="canvas" oncontextmenu="event.preventDefault()" tabindex=-1></canvas>
 
       <!-- Pixel Inspector Overlay -->
       <div id="pixel-inspector" class="pixel-inspector" style="display: none;">
@@ -342,15 +326,19 @@
     </div>
 
     <!-- Scripts -->
-    <script src="config.js"></script>
+    <!-- Core infrastructure -->
+    <script src="core/config.js"></script>
+    <script src="core/filesystem_manager.js"></script>
+    <script src="core/loading_indicator.js"></script>
+    <script src="core/error_handler.js"></script>
+    <!-- Main application -->
     <script src="app.js"></script>
-    <script src="shortcuts_overlay.js"></script>
-    <script src="touch_gestures.js"></script>
-    <script src="collab_console.js"></script>
-    <script src="terminal.js"></script>
-    <script src="drop_zone.js"></script>
-    <script src="loading_indicator.js"></script>
-    <script src="error_handler.js"></script>
+    <!-- UI Components -->
+    <script src="components/shortcuts_overlay.js"></script>
+    <script src="components/touch_gestures.js"></script>
+    <script src="components/collab_console.js"></script>
+    <script src="components/terminal.js"></script>
+    <script src="components/drop_zone.js"></script>
     <script>
       // Settings Modal Logic
       function showSettings() {

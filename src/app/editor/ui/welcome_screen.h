@@ -53,6 +53,14 @@ class WelcomeScreen {
   }
 
   /**
+   * @brief Set callback for creating project with template
+   */
+  void SetNewProjectWithTemplateCallback(
+      std::function<void(const std::string&)> callback) {
+    new_project_with_template_callback_ = callback;
+  }
+
+  /**
    * @brief Set callback for opening project
    */
   void SetOpenProjectCallback(
@@ -102,6 +110,7 @@ class WelcomeScreen {
   std::function<void()> open_rom_callback_;
   std::function<void()> new_project_callback_;
   std::function<void(const std::string&)> open_project_callback_;
+  std::function<void(const std::string&)> new_project_with_template_callback_;
 
   // UI state
   int selected_template_ = 0;

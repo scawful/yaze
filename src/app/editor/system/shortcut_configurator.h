@@ -21,6 +21,9 @@ class PopupManager;
 class ToastManager;
 class EditorCardRegistry;
 
+// Forward declaration
+class UserSettings;
+
 struct ShortcutDependencies {
   EditorManager* editor_manager = nullptr;
   EditorRegistry* editor_registry = nullptr;
@@ -33,12 +36,25 @@ struct ShortcutDependencies {
   PopupManager* popup_manager = nullptr;
   ToastManager* toast_manager = nullptr;
   EditorCardRegistry* card_registry = nullptr;
+  UserSettings* user_settings = nullptr;
 };
 
 void ConfigureEditorShortcuts(const ShortcutDependencies& deps,
                               ShortcutManager* shortcut_manager);
 
 void ConfigureMenuShortcuts(const ShortcutDependencies& deps,
+                            ShortcutManager* shortcut_manager);
+
+/**
+ * @brief Register configurable card shortcuts from user settings
+ * @param deps Shortcut dependencies
+ * @param shortcut_manager The shortcut manager to register with
+ *
+ * This function reads card shortcuts from UserSettings and registers them
+ * with the shortcut manager. It falls back to CardInfo.shortcut_hint if
+ * no custom shortcut is defined for a card.
+ */
+void ConfigureCardShortcuts(const ShortcutDependencies& deps,
                             ShortcutManager* shortcut_manager);
 
 }  // namespace editor

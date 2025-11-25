@@ -72,6 +72,7 @@ void OverworldEditor::Initialize() {
   card_registry->RegisterCard({
       .card_id = MakeCardId("overworld.canvas"),
       .display_name = "Overworld Canvas",
+      .window_title = " Overworld Canvas",
       .icon = ICON_MD_MAP,
       .category = "Overworld",
       .shortcut_hint = "Ctrl+Shift+O",
@@ -82,6 +83,7 @@ void OverworldEditor::Initialize() {
   card_registry->RegisterCard(
       {.card_id = MakeCardId("overworld.tile16_selector"),
        .display_name = "Tile16 Selector",
+       .window_title = " Tile16 Selector",
        .icon = ICON_MD_GRID_ON,
        .category = "Overworld",
        .shortcut_hint = "Ctrl+Alt+1",
@@ -91,6 +93,7 @@ void OverworldEditor::Initialize() {
   card_registry->RegisterCard(
       {.card_id = MakeCardId("overworld.tile8_selector"),
        .display_name = "Tile8 Selector",
+       .window_title = " Tile8 Selector",
        .icon = ICON_MD_GRID_3X3,
        .category = "Overworld",
        .shortcut_hint = "Ctrl+Alt+2",
@@ -99,6 +102,7 @@ void OverworldEditor::Initialize() {
 
   card_registry->RegisterCard({.card_id = MakeCardId("overworld.area_graphics"),
                                .display_name = "Area Graphics",
+                               .window_title = " Area Graphics",
                                .icon = ICON_MD_IMAGE,
                                .category = "Overworld",
                                .shortcut_hint = "Ctrl+Alt+3",
@@ -107,6 +111,7 @@ void OverworldEditor::Initialize() {
 
   card_registry->RegisterCard({.card_id = MakeCardId("overworld.scratch"),
                                .display_name = "Scratch Workspace",
+                               .window_title = " Scratch Pad",
                                .icon = ICON_MD_DRAW,
                                .category = "Overworld",
                                .shortcut_hint = "Ctrl+Alt+4",
@@ -115,6 +120,7 @@ void OverworldEditor::Initialize() {
 
   card_registry->RegisterCard({.card_id = MakeCardId("overworld.gfx_groups"),
                                .display_name = "GFX Groups",
+                               .window_title = " GFX Groups",
                                .icon = ICON_MD_FOLDER,
                                .category = "Overworld",
                                .shortcut_hint = "Ctrl+Alt+5",
@@ -123,6 +129,7 @@ void OverworldEditor::Initialize() {
 
   card_registry->RegisterCard({.card_id = MakeCardId("overworld.usage_stats"),
                                .display_name = "Usage Statistics",
+                               .window_title = " Usage Statistics",
                                .icon = ICON_MD_ANALYTICS,
                                .category = "Overworld",
                                .shortcut_hint = "Ctrl+Alt+6",
@@ -131,6 +138,7 @@ void OverworldEditor::Initialize() {
 
   card_registry->RegisterCard({.card_id = MakeCardId("overworld.v3_settings"),
                                .display_name = "v3 Settings",
+                               .window_title = " v3 Settings",
                                .icon = ICON_MD_SETTINGS,
                                .category = "Overworld",
                                .shortcut_hint = "Ctrl+Alt+7",

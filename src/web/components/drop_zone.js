@@ -283,6 +283,16 @@
       return;
     }
 
+    // Ensure FS is ready before processing
+  if (typeof FilesystemManager !== 'undefined' && typeof FilesystemManager.ensureReady === 'function') {
+    if (!FilesystemManager.ensureReady(true)) {
+      // If not ready, try again in a moment
+      console.log('[DropZone] FS not ready, retrying in 500ms...');
+      setTimeout(() => processFile(file), 500);
+      return;
+    }
+  }
+
     // Show loading state
     showLoading(file.name, file.size);
 
@@ -298,44 +308,16 @@
         state.callbacks.onDrop(file.name, data);
       }
 
-      // If Module is available (Emscripten), call the C++ handler
-      if (typeof Module !== 'undefined' && Module._yazeHandleDroppedFile) {
-        let filenamePtr = 0;
-        let dataPtr = 0;
-
+      // If Module is available (Emscripten), use FilesystemManager to handle the ROM
+      // This writes to the VFS and calls LoadRomFromWeb
+      if (typeof Module !== 'undefined' && typeof FilesystemManager !== 'undefined') {
         try {
-          const data = new Uint8Array(reader.result);
-
-          // Allocate filename string
-          const filenameBytes = new TextEncoder().encode(file.name + '\0');
-          filenamePtr = Module._malloc(filenameBytes.length);
-          if (!filenamePtr) {
-            throw new Error('Failed to allocate memory for filename');
-          }
-          Module.HEAPU8.set(filenameBytes, filenamePtr);
-
-          // Allocate data buffer
-          dataPtr = Module._malloc(data.length);
-          if (!dataPtr) {
-            throw new Error('Failed to allocate memory for file data');
-          }
-          Module.HEAPU8.set(data, dataPtr);
-
-          // Call WASM function
-          const result = Module._yazeHandleDroppedFile(filenamePtr, dataPtr, data.length);
-          if (result !== 0) {
-            throw new Error(`WASM function returned error code: ${result}`);
-          }
-
-          console.log('[DropZone] File handled successfully by WASM');
-
+          // Use FilesystemManager which handles VFS write and WASM call
+          FilesystemManager.handleRomUpload(file);
+          console.log('[DropZone] ROM upload delegated to FilesystemManager');
         } catch (err) {
-          console.error('[DropZone] WASM error:', err);
+          console.error('[DropZone] Error delegating to FilesystemManager:', err);
           showError('Failed to process dropped file: ' + err.message);
-        } finally {
-          // Always free memory
-          if (dataPtr) Module._free(dataPtr);
-          if (filenamePtr) Module._free(filenamePtr);
         }
       }
     };
@@ -410,38 +392,21 @@
       state.callbacks.onError(message);
     }
 
-    // If Module is available (Emscripten), call the C++ error handler
-    if (typeof Module !== 'undefined' && Module._yazeHandleDropError) {
-      let errPtr = 0;
-      try {
-        const errBytes = new TextEncoder().encode(message + '\0');
-        errPtr = Module._malloc(errBytes.length);
-        if (errPtr) {
-          Module.HEAPU8.set(errBytes, errPtr);
-          Module._yazeHandleDropError(errPtr);
-        }
-      } catch (e) {
-        console.error('[DropZone] Error calling WASM error handler:', e);
-      } finally {
-        if (errPtr) Module._free(errPtr);
-      }
-    }
-
-    // Show error in console
+    // Show error in console and alert user
     console.error('YazeDropZone:', message);
-  }
 
-  // Auto-initialize if Module is available
-  if (typeof Module !== 'undefined') {
-    // Wait for Module to be ready
-    if (Module.onRuntimeInitialized) {
-      const originalCallback = Module.onRuntimeInitialized;
-      Module.onRuntimeInitialized = function() {
-        if (originalCallback) originalCallback();
-        // Auto-init with default settings
-        YazeDropZone.init();
-      };
+    // Show user-friendly error message
+    if (message && message.length > 0) {
+      alert('Drop error: ' + message);
     }
   }
+
+  // NOTE: Auto-initialization is disabled because the C++ WasmDropHandler
+  // (in wasm_drop_handler.cc) sets up its own drop zone via setupDropZone_impl.
+  // Having both active would cause duplicate handling of drop events.
+  // If you need JS-only drop handling, call YazeDropZone.init() manually.
+  //
+  // The C++ handler is preferred because it integrates directly with the
+  // ROM loading pipeline via LoadRomFromWeb.
 
 })();

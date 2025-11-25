@@ -484,13 +484,14 @@ void EditorCardRegistry::DrawSidebar(
     std::function<void()> on_collapse) {
   // Use ThemeManager for consistent theming
   const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
-  const float sidebar_width = GetSidebarWidth();
 
-  // Fixed sidebar window on the left edge of screen - exactly like VSCode
-  // Positioned below menu bar, spans full height, fixed 48px width
-  ImGui::SetNextWindowPos(ImVec2(0, ImGui::GetFrameHeight()));
-  ImGui::SetNextWindowSize(
-      ImVec2(sidebar_width, -1));  // Exactly 48px wide, full height
+  // Calculate full viewport height below menu bar
+  const float menu_bar_height = ImGui::GetFrameHeight();
+  const float viewport_height = ImGui::GetIO().DisplaySize.y - menu_bar_height;
+
+  // VSCode-style dark sidebar background with visible border
+  ImVec4 sidebar_bg = ImVec4(0.18f, 0.18f, 0.20f, 1.0f);
+  ImVec4 sidebar_border = ImVec4(0.4f, 0.4f, 0.45f, 1.0f);
 
   ImGuiWindowFlags sidebar_flags =
       ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
@@ -499,9 +500,16 @@ void EditorCardRegistry::DrawSidebar(
       ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoFocusOnAppearing |
       ImGuiWindowFlags_NoNavFocus;
 
-  // VSCode-style dark sidebar background with visible border
-  ImVec4 sidebar_bg = ImVec4(0.18f, 0.18f, 0.20f, 1.0f);
-  ImVec4 sidebar_border = ImVec4(0.4f, 0.4f, 0.45f, 1.0f);
+  // When collapsed, don't draw anything - the expand icon is in the menu bar
+  if (sidebar_collapsed_) {
+    return;
+  }
+
+  // Full sidebar (expanded state)
+  const float sidebar_width = GetSidebarWidth();
+
+  ImGui::SetNextWindowPos(ImVec2(0, menu_bar_height));
+  ImGui::SetNextWindowSize(ImVec2(sidebar_width, viewport_height));
 
   ImGui::PushStyleColor(ImGuiCol_WindowBg, sidebar_bg);
   ImGui::PushStyleColor(ImGuiCol_Border, sidebar_border);
@@ -607,6 +615,18 @@ void EditorCardRegistry::DrawSidebar(
 
       ImGui::Dummy(ImVec2(0, 2.0f));
 
+      // Calculate available height for scrollable card region
+      // Reserve space for: utility icons (4 buttons * 36px + spacing) + collapse button + separators
+      const float utility_section_height = 4 * 40.0f + 80.0f;  // 4 utility buttons + collapse + separators
+      const float current_y = ImGui::GetCursorPosY();
+      const float available_height = viewport_height - current_y - utility_section_height;
+      
+      // Scrollable region for card buttons (only if there's room)
+      if (available_height > 50.0f) {
+        ImGui::BeginChild("##CardScrollRegion", ImVec2(42.0f, available_height), false,
+                          ImGuiChildFlags_None);
+      }
+
       // Draw individual card toggle buttons
       ImVec4 accent_color = gui::ConvertColorToImVec4(theme.accent);
       ImVec4 button_bg = gui::ConvertColorToImVec4(theme.button);
@@ -653,30 +673,82 @@ void EditorCardRegistry::DrawSidebar(
 
         ImGui::PopID();
       }
+
+      // End scrollable region
+      if (available_height > 50.0f) {
+        ImGui::EndChild();
+      }
     }  // End if (!cards.empty())
 
-    // Card Browser and Collapse buttons at bottom
-    if (on_collapse) {
-      ImGui::Dummy(ImVec2(0, 10.0f));
-      ImGui::Separator();
-      ImGui::Spacing();
+    // Utility icons section at bottom
+    ImGui::Dummy(ImVec2(0, 10.0f));
+    ImGui::Separator();
+    ImGui::Spacing();
 
-      // Collapse button
-      ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.2f, 0.22f, 0.9f));
-      ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
-                            ImVec4(0.3f, 0.3f, 0.32f, 1.0f));
-      ImGui::PushStyleColor(ImGuiCol_ButtonActive,
-                            ImVec4(0.25f, 0.25f, 0.27f, 1.0f));
+    // Utility button styling
+    ImVec4 utility_btn = ImVec4(0.22f, 0.22f, 0.24f, 0.9f);
+    ImVec4 utility_btn_hover = ImVec4(0.32f, 0.32f, 0.34f, 1.0f);
+    ImVec4 utility_btn_active = ImVec4(0.27f, 0.27f, 0.29f, 1.0f);
 
-      if (ImGui::Button(ICON_MD_KEYBOARD_ARROW_LEFT, ImVec2(40.0f, 36.0f))) {
-        on_collapse();
-      }
+    ImGui::PushStyleColor(ImGuiCol_Button, utility_btn);
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, utility_btn_hover);
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, utility_btn_active);
 
-      ImGui::PopStyleColor(3);
+    // Emulator button
+    if (ImGui::Button(ICON_MD_PLAY_ARROW, ImVec2(40.0f, 36.0f))) {
+      if (on_show_emulator_) on_show_emulator_();
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Emulator (Ctrl+Shift+E)");
+    }
 
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Hide Sidebar\nCtrl+B");
-      }
+    // Hex Editor button
+    if (ImGui::Button(ICON_MD_MEMORY, ImVec2(40.0f, 36.0f))) {
+      ShowCard(session_id, "memory.hex_editor");
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Hex Editor (Ctrl+0)");
+    }
+
+    // Settings button
+    if (ImGui::Button(ICON_MD_SETTINGS, ImVec2(40.0f, 36.0f))) {
+      if (on_show_settings_) on_show_settings_();
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Settings");
+    }
+
+    // Card Browser button
+    if (ImGui::Button(ICON_MD_DASHBOARD, ImVec2(40.0f, 36.0f))) {
+      if (on_show_card_browser_) on_show_card_browser_();
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Card Browser (Ctrl+Shift+B)");
+    }
+
+    ImGui::PopStyleColor(3);
+
+    ImGui::Spacing();
+    ImGui::Separator();
+    ImGui::Spacing();
+
+    // Collapse button
+    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.2f, 0.22f, 0.9f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
+                          ImVec4(0.3f, 0.3f, 0.32f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive,
+                          ImVec4(0.25f, 0.25f, 0.27f, 1.0f));
+
+    if (ImGui::Button(ICON_MD_KEYBOARD_ARROW_LEFT, ImVec2(40.0f, 36.0f))) {
+      sidebar_collapsed_ = true;
+      // Don't call on_collapse() - we want the collapsed sidebar strip to remain visible
+      // The sidebar_collapsed_ flag handles the visual state internally
+    }
+
+    ImGui::PopStyleColor(3);
+
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Collapse Sidebar (Ctrl+B)");
     }
   }
   ImGui::End();

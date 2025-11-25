@@ -209,6 +209,9 @@ static void ShowExampleAppPropertyEditor(bool* p_open) {
   ImGui::End();
 }
 
+// Forward declaration
+class EditorCardRegistry;
+
 class SettingsEditor : public Editor {
  public:
   explicit SettingsEditor(Rom* rom = nullptr,
@@ -223,6 +226,7 @@ class SettingsEditor : public Editor {
   absl::Status Update() override;
 
   void set_user_settings(UserSettings* settings) { user_settings_ = settings; }
+  void set_card_registry(EditorCardRegistry* registry) { card_registry_ = registry; }
   absl::Status Cut() override { return absl::UnimplementedError("Cut"); }
   absl::Status Copy() override { return absl::UnimplementedError("Copy"); }
   absl::Status Paste() override { return absl::UnimplementedError("Paste"); }
@@ -243,8 +247,16 @@ class SettingsEditor : public Editor {
  private:
   Rom* rom_;
   UserSettings* user_settings_;
+  EditorCardRegistry* card_registry_ = nullptr;
+  
+  // Shortcut editing state
+  char shortcut_edit_buffer_[64] = {};
+  std::string editing_card_id_;
+  bool is_editing_shortcut_ = false;
+  
   void DrawGeneralSettings();
   void DrawKeyboardShortcuts();
+  void DrawCardShortcuts();
   void DrawThemeSettings();
   void DrawEditorBehavior();
   void DrawPerformanceSettings();

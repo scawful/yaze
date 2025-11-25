@@ -2,6 +2,7 @@
 #define YAZE_APP_EDITOR_SYSTEM_USER_SETTINGS_H_
 
 #include <string>
+#include <unordered_map>
 
 #include "absl/status/status.h"
 
@@ -54,6 +55,10 @@ class UserSettings {
     bool log_rom_operations = true;
     bool log_gui_automation = true;
     bool log_proposals = true;
+
+    // Card Shortcuts
+    // Maps card_id -> shortcut string (e.g., "dungeon.room_selector" -> "Ctrl+Shift+R")
+    std::unordered_map<std::string, std::string> card_shortcuts;
   };
 
   UserSettings();

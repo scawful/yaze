@@ -17,6 +17,8 @@ class EditorManager;
 class RomFileManager;
 class ProjectManager;
 class EditorRegistry;
+class EditorCardRegistry;
+class LayoutOrchestrator;
 class SessionCoordinator;
 class ToastManager;
 class PopupManager;
@@ -46,6 +48,10 @@ class MenuOrchestrator {
                    ToastManager& toast_manager, PopupManager& popup_manager);
   ~MenuOrchestrator() = default;
 
+  // Set optional dependencies for advanced features
+  void SetCardRegistry(EditorCardRegistry* registry) { card_registry_ = registry; }
+  void SetLayoutOrchestrator(LayoutOrchestrator* orchestrator) { layout_orchestrator_ = orchestrator; }
+
   // Non-copyable due to reference members
   MenuOrchestrator(const MenuOrchestrator&) = delete;
   MenuOrchestrator& operator=(const MenuOrchestrator&) = delete;
@@ -55,8 +61,7 @@ class MenuOrchestrator {
   void BuildFileMenu();
   void BuildEditMenu();
   void BuildViewMenu();
-  void BuildToolsMenu();
-  void BuildDebugMenu();
+  void BuildToolsMenu();  // Also contains former Debug menu items
   void BuildWindowMenu();
   void BuildHelpMenu();
 
@@ -185,6 +190,10 @@ class MenuOrchestrator {
   ToastManager& toast_manager_;
   PopupManager& popup_manager_;
 
+  // Optional dependencies for advanced features
+  EditorCardRegistry* card_registry_ = nullptr;
+  LayoutOrchestrator* layout_orchestrator_ = nullptr;
+
   // Menu state
   bool menu_needs_refresh_ = false;
 
@@ -192,10 +201,13 @@ class MenuOrchestrator {
   void AddFileMenuItems();
   void AddEditMenuItems();
   void AddViewMenuItems();
-  void AddToolsMenuItems();
-  void AddDebugMenuItems();
+  void AddToolsMenuItems();  // Also contains former Debug menu items
   void AddWindowMenuItems();
   void AddHelpMenuItems();
+
+  // Auto-generated menu helpers
+  void AddCardsSubmenu();
+  void AddLayoutPresetsSubmenu();
 
   // Menu item validation helpers
   bool CanSaveRom() const;

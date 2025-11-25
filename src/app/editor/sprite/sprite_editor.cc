@@ -32,12 +32,14 @@ void SpriteEditor::Initialize() {
 
   card_registry->RegisterCard({.card_id = "sprite.vanilla_editor",
                                .display_name = "Vanilla Sprites",
+                               .window_title = " Vanilla Sprites",
                                .icon = ICON_MD_SMART_TOY,
                                .category = "Sprite",
                                .shortcut_hint = "Alt+Shift+1",
                                .priority = 10});
   card_registry->RegisterCard({.card_id = "sprite.custom_editor",
                                .display_name = "Custom Sprites",
+                               .window_title = " Custom Sprites",
                                .icon = ICON_MD_ADD_CIRCLE,
                                .category = "Sprite",
                                .shortcut_hint = "Alt+Shift+2",

@@ -5,8 +5,10 @@
 
 #include <cstddef>
 #include <deque>
+#include <functional>
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "absl/status/status.h"
 #include "app/editor/code/project_file_editor.h"
@@ -25,7 +27,9 @@
 #include "app/editor/system/window_delegate.h"
 #include "app/editor/ui/editor_selection_dialog.h"
 #include "app/editor/ui/layout_manager.h"
+#include "app/editor/ui/layout_presets.h"
 #include "app/editor/ui/menu_builder.h"
+#include "app/editor/ui/rom_load_options_dialog.h"
 #include "app/editor/ui/ui_coordinator.h"
 #include "app/editor/ui/welcome_screen.h"
 #include "app/editor/ui/workspace_manager.h"
@@ -170,7 +174,7 @@ class EditorManager {
   // Window management - inline delegation (reduces EditorManager bloat)
   void SaveWorkspaceLayout() { window_delegate_.SaveWorkspaceLayout(); }
   void LoadWorkspaceLayout() { window_delegate_.LoadWorkspaceLayout(); }
-  void ResetWorkspaceLayout() { window_delegate_.ResetWorkspaceLayout(); }
+  void ResetWorkspaceLayout();
   void ShowAllWindows() {
     if (ui_coordinator_)
       ui_coordinator_->ShowAllWindows();
@@ -191,6 +195,12 @@ class EditorManager {
   bool HasDuplicateSession(const std::string& filepath);
   void RenameSession(size_t index, const std::string& new_name);
   void Quit() { quit_ = true; }
+
+  // Deferred action queue - actions executed safely on next frame
+  // Use this to avoid modifying ImGui state during menu/popup rendering
+  void QueueDeferredAction(std::function<void()> action) {
+    deferred_actions_.push_back(std::move(action));
+  }
 
   // Public for SessionCoordinator to configure new sessions
   void ConfigureSession(RomSession* session);
@@ -265,7 +275,7 @@ class EditorManager {
 
  private:
   absl::Status DrawRomSelector() = delete;  // Moved to UICoordinator
-  void DrawContextSensitiveCardControl();   // Card control for current editor
+  // DrawContextSensitiveCardControl removed - card control moved to sidebar
 
   absl::Status LoadAssets();
 
@@ -302,6 +312,8 @@ class EditorManager {
   // UICoordinator Kept here for backward compatibility during transition
   EditorSelectionDialog editor_selection_dialog_;
   WelcomeScreen welcome_screen_;
+  RomLoadOptionsDialog rom_load_options_dialog_;
+  bool show_rom_load_options_ = false;
 
 #ifdef YAZE_WITH_GRPC
   // Agent editor - manages chat, collaboration, and network coordination
@@ -343,6 +355,9 @@ class EditorManager {
   WorkspaceManager workspace_manager_{&toast_manager_};
 
   float autosave_timer_ = 0.0f;
+
+  // Deferred action queue - executed at the start of each frame
+  std::vector<std::function<void()>> deferred_actions_;
 
   // RAII helper for clean session context switching
   class SessionScope {
