@@ -644,6 +644,38 @@ absl::Status Overworld::LoadOverworldMaps() {
       "loading",
       kEssentialMapsPerWorld);
 
+#ifdef __EMSCRIPTEN__
+  // WASM: Use sequential loading to avoid spawning excessive Web Workers
+  // and blocking the main thread. std::async creates new pthreads which
+  // become Web Workers, and future.wait() blocks the main thread which
+  // is dangerous in browsers.
+  for (int i = 0; i < kNumOverworldMaps; ++i) {
+    bool is_essential = false;
+
+    if (i < kLightWorldEssential) {
+      is_essential = true;
+    } else if (i >= kDarkWorldMapIdStart && i < kDarkWorldEssential) {
+      is_essential = true;
+    } else if (i >= kSpecialWorldMapIdStart && i < kSpecialWorldEssential) {
+      is_essential = true;
+    }
+
+    if (is_essential) {
+      int world_type = 0;
+      if (i >= kDarkWorldMapIdStart && i < kSpecialWorldMapIdStart) {
+        world_type = 1;
+      } else if (i >= kSpecialWorldMapIdStart) {
+        world_type = 2;
+      }
+
+      RETURN_IF_ERROR(overworld_maps_[i].BuildMap(size, game_state_, world_type,
+                                                  tiles16_, GetMapTiles(world_type)));
+    } else {
+      overworld_maps_[i].SetNotBuilt();
+    }
+  }
+#else
+  // Native: Use parallel loading with std::async for faster performance
   std::vector<std::future<absl::Status>> futures;
 
   // Build essential maps only
@@ -683,6 +715,7 @@ absl::Status Overworld::LoadOverworldMaps() {
     future.wait();
     RETURN_IF_ERROR(future.get());
   }
+#endif
 
   util::logf("Essential maps built. Remaining maps will be built on-demand.");
   return absl::OkStatus();
@@ -720,11 +753,23 @@ void Overworld::LoadTileTypes() {
 }
 
 absl::Status Overworld::LoadSprites() {
-  std::vector<std::future<absl::Status>> futures;
-
-  // Determine sprite table locations based on actual ASM version in ROM
   // Determine sprite table locations based on actual ASM version in ROM
   auto version = OverworldVersionHelper::GetVersion(*rom_);
+
+#ifdef __EMSCRIPTEN__
+  // WASM: Sequential loading to avoid Web Worker explosion
+  if (OverworldVersionHelper::SupportsAreaEnum(version)) {
+    RETURN_IF_ERROR(LoadSpritesFromMap(overworldSpritesBeginingExpanded, 64, 0));
+    RETURN_IF_ERROR(LoadSpritesFromMap(overworldSpritesZeldaExpanded, 144, 1));
+    RETURN_IF_ERROR(LoadSpritesFromMap(overworldSpritesAgahnimExpanded, 144, 2));
+  } else {
+    RETURN_IF_ERROR(LoadSpritesFromMap(kOverworldSpritesBeginning, 64, 0));
+    RETURN_IF_ERROR(LoadSpritesFromMap(kOverworldSpritesZelda, 144, 1));
+    RETURN_IF_ERROR(LoadSpritesFromMap(kOverworldSpritesAgahnim, 144, 2));
+  }
+#else
+  // Native: Parallel loading for performance
+  std::vector<std::future<absl::Status>> futures;
 
   if (OverworldVersionHelper::SupportsAreaEnum(version)) {
     // v3: Use expanded sprite tables
@@ -754,6 +799,7 @@ absl::Status Overworld::LoadSprites() {
     future.wait();
     RETURN_IF_ERROR(future.get());
   }
+#endif
   return absl::OkStatus();
 }
 
