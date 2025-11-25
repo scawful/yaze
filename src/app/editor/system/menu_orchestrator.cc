@@ -152,45 +152,55 @@ void MenuOrchestrator::BuildViewMenu() {
 }
 
 void MenuOrchestrator::AddViewMenuItems() {
-  // Editor Selection
+  // Editor Selection (requires ROM)
   menu_builder_
       .Item(
           "Editor Selection", ICON_MD_DASHBOARD,
-          [this]() { OnShowEditorSelection(); }, "Ctrl+E")
+          [this]() { OnShowEditorSelection(); }, "Ctrl+E",
+          [this]() { return HasActiveRom(); })
       .Separator();
 
-  // Individual Editor Shortcuts
+  // Individual Editor Shortcuts (require ROM)
   menu_builder_
       .Item(
           "Overworld", ICON_MD_MAP,
-          [this]() { OnSwitchToEditor(EditorType::kOverworld); }, "Ctrl+1")
+          [this]() { OnSwitchToEditor(EditorType::kOverworld); }, "Ctrl+1",
+          [this]() { return HasActiveRom(); })
       .Item(
           "Dungeon", ICON_MD_CASTLE,
-          [this]() { OnSwitchToEditor(EditorType::kDungeon); }, "Ctrl+2")
+          [this]() { OnSwitchToEditor(EditorType::kDungeon); }, "Ctrl+2",
+          [this]() { return HasActiveRom(); })
       .Item(
           "Graphics", ICON_MD_IMAGE,
-          [this]() { OnSwitchToEditor(EditorType::kGraphics); }, "Ctrl+3")
+          [this]() { OnSwitchToEditor(EditorType::kGraphics); }, "Ctrl+3",
+          [this]() { return HasActiveRom(); })
       .Item(
           "Sprites", ICON_MD_TOYS,
-          [this]() { OnSwitchToEditor(EditorType::kSprite); }, "Ctrl+4")
+          [this]() { OnSwitchToEditor(EditorType::kSprite); }, "Ctrl+4",
+          [this]() { return HasActiveRom(); })
       .Item(
           "Messages", ICON_MD_CHAT_BUBBLE,
-          [this]() { OnSwitchToEditor(EditorType::kMessage); }, "Ctrl+5")
+          [this]() { OnSwitchToEditor(EditorType::kMessage); }, "Ctrl+5",
+          [this]() { return HasActiveRom(); })
       .Item(
           "Music", ICON_MD_MUSIC_NOTE,
-          [this]() { OnSwitchToEditor(EditorType::kMusic); }, "Ctrl+6")
+          [this]() { OnSwitchToEditor(EditorType::kMusic); }, "Ctrl+6",
+          [this]() { return HasActiveRom(); })
       .Item(
           "Palettes", ICON_MD_PALETTE,
-          [this]() { OnSwitchToEditor(EditorType::kPalette); }, "Ctrl+7")
+          [this]() { OnSwitchToEditor(EditorType::kPalette); }, "Ctrl+7",
+          [this]() { return HasActiveRom(); })
       .Item(
           "Screens", ICON_MD_TV,
-          [this]() { OnSwitchToEditor(EditorType::kScreen); }, "Ctrl+8")
+          [this]() { OnSwitchToEditor(EditorType::kScreen); }, "Ctrl+8",
+          [this]() { return HasActiveRom(); })
       .Item(
           "Assembly", ICON_MD_CODE,
-          [this]() { OnSwitchToEditor(EditorType::kAssembly); }, "Ctrl+9")
+          [this]() { OnSwitchToEditor(EditorType::kAssembly); }, "Ctrl+9",
+          [this]() { return HasActiveRom(); })
       .Item(
           "Hex Editor", ICON_MD_DATA_ARRAY, [this]() { OnShowHexEditor(); },
-          "Ctrl+0")
+          "Ctrl+0", [this]() { return HasActiveRom(); })
       .Separator();
 
   // Special Editors
@@ -210,13 +220,8 @@ void MenuOrchestrator::AddViewMenuItems() {
   menu_builder_
       .Item(
           "Emulator", ICON_MD_VIDEOGAME_ASSET, [this]() { OnShowEmulator(); },
-          "Ctrl+Shift+E")
+          "Ctrl+Shift+E", [this]() { return HasActiveRom(); })
       .Separator();
-
-  // Auto-generated Cards submenu (from EditorCardRegistry)
-  AddCardsSubmenu();
-
-  menu_builder_.Separator();
 
   // Settings and UI
   menu_builder_
@@ -225,12 +230,8 @@ void MenuOrchestrator::AddViewMenuItems() {
       .Separator();
 
   // Additional UI Elements
-  menu_builder_
-      .Item(
-          "Card Browser", ICON_MD_DASHBOARD, [this]() { OnShowCardBrowser(); },
-          "Ctrl+Shift+B")
-      .Item("Welcome Screen", ICON_MD_HOME,
-            [this]() { OnShowWelcomeScreen(); });
+  menu_builder_.Item("Welcome Screen", ICON_MD_HOME,
+                     [this]() { OnShowWelcomeScreen(); });
 }
 
 void MenuOrchestrator::AddCardsSubmenu() {
@@ -250,6 +251,37 @@ void MenuOrchestrator::AddCardsSubmenu() {
         card_registry_->DrawViewMenuSection(0, category);
         ImGui::EndMenu();
       }
+    }
+
+    ImGui::EndMenu();
+  }
+}
+
+void MenuOrchestrator::AddPanelsSubmenu() {
+  // Using raw ImGui for panels submenu
+  if (ImGui::BeginMenu(absl::StrFormat("%s Panels", ICON_MD_VIEW_SIDEBAR).c_str())) {
+#ifdef YAZE_WITH_GRPC
+    if (ImGui::MenuItem(absl::StrFormat("%s AI Agent", ICON_MD_SMART_TOY).c_str(),
+                        "Ctrl+Shift+A")) {
+      OnShowAIAgent();
+    }
+#endif
+
+#ifdef YAZE_WITH_GRPC
+    if (ImGui::MenuItem(absl::StrFormat("%s Proposals", ICON_MD_DESCRIPTION).c_str(),
+                        "Ctrl+Shift+R")) {
+      OnShowProposalDrawer();
+    }
+#endif
+
+    if (ImGui::MenuItem(absl::StrFormat("%s Settings", ICON_MD_SETTINGS).c_str())) {
+      OnShowSettings();
+    }
+
+    ImGui::Separator();
+
+    if (ImGui::MenuItem(absl::StrFormat("%s Help", ICON_MD_HELP).c_str(), "F1")) {
+      OnShowAbout();
     }
 
     ImGui::EndMenu();
@@ -436,6 +468,29 @@ void MenuOrchestrator::AddWindowMenuItems() {
       .Item("Hide All Windows", ICON_MD_VISIBILITY_OFF,
             [this]() { OnHideAllWindows(); })
       .Separator();
+
+  // Cards submenu (editor cards) - requires ROM for meaningful content
+  if (HasActiveRom()) {
+    AddCardsSubmenu();
+  } else {
+    // Show disabled cards menu placeholder
+    if (ImGui::BeginMenu(absl::StrFormat("%s Cards", ICON_MD_DASHBOARD).c_str())) {
+      ImGui::MenuItem("(No ROM loaded)", nullptr, false, false);
+      ImGui::EndMenu();
+    }
+  }
+
+  // Card Browser (requires ROM)
+  menu_builder_
+      .Item(
+          "Card Browser", ICON_MD_DASHBOARD, [this]() { OnShowCardBrowser(); },
+          "Ctrl+Shift+B", [this]() { return HasActiveRom(); })
+      .Separator();
+
+  // Panels submenu (right-side panels)
+  AddPanelsSubmenu();
+
+  menu_builder_.Separator();
 
   // Workspace Presets
   menu_builder_
