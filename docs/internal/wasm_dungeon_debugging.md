@@ -2,7 +2,7 @@
 
 **Status:** Current (November 2025)
 **Last Updated:** 2025-11-25
-**Version:** 2.2.0
+**Version:** 2.3.0
 
 The WASM build includes a powerful, hidden "Debug Inspector" that bypasses the need for GDB/LLDB by exposing C++ state directly to the browser console.
 
@@ -107,3 +107,35 @@ window.yazeDebug.dumpAll()
 // 5. AI-formatted output
 console.log(window.yazeDebug.formatForAI())
 ```
+
+#### 9. Gemini Antigravity AI Tools
+
+For AI assistants that struggle with ImGui element discovery, use the high-level `window.aiTools` API:
+
+```javascript
+// Get full application state with console output
+window.aiTools.getAppState()
+
+// Get dungeon room data
+window.aiTools.getRoomData(0)
+
+// Navigate directly to a room
+window.aiTools.navigateTo('room:42')
+
+// Show/hide editor cards
+window.aiTools.showCard('Room Selector')
+window.aiTools.hideCard('Object Editor')
+
+// Get complete API reference
+window.aiTools.dumpAPIReference()
+```
+
+**Nav Bar Access:**
+The web UI includes dedicated dropdown menus:
+- **Editor** - Quick switch to any editor
+- **Emulator** - Run/Pause/Step/Reset controls
+- **Layouts** - Preset card configurations
+- **AI Tools** - All `window.aiTools` functions via UI clicks
+
+**Command Palette (Ctrl+K):**
+Search for "AI:" to access all AI helper commands.

@@ -2,19 +2,20 @@
 
 ## Overview
 
-The yaze WASM build exposes a comprehensive set of JavaScript APIs for programmatic control and data access. These APIs are organized into five main namespaces:
+The yaze WASM build exposes a comprehensive set of JavaScript APIs for programmatic control and data access. These APIs are organized into six main namespaces:
 
 - **`window.yaze.control`** - Editor control and manipulation
 - **`window.yaze.editor`** - Query current editor state
 - **`window.yaze.data`** - Read-only access to ROM data
 - **`window.yaze.gui`** - GUI automation and interaction
 - **`window.yazeDebug`** - Debug utilities and diagnostics
+- **`window.aiTools`** - High-level AI assistant tools (Gemini Antigravity)
 
 ## API Version
 
-- Version: 2.2.0
+- Version: 2.3.0
 - Last Updated: 2025-11-25
-- Capabilities: `['palette', 'arena', 'graphics', 'timeline', 'pixel-inspector', 'rom', 'overworld', 'emulator', 'editor', 'control', 'data', 'gui', 'loading-progress']`
+- Capabilities: `['palette', 'arena', 'graphics', 'timeline', 'pixel-inspector', 'rom', 'overworld', 'emulator', 'editor', 'control', 'data', 'gui', 'loading-progress', 'ai-tools']`
 
 ## Build Requirements
 
@@ -680,6 +681,190 @@ const fullState = window.yazeDebug.analysis.getFullState()
 
 ---
 
+## window.aiTools - Gemini Antigravity AI Tools
+
+High-level helper functions designed for AI assistants like Gemini Antigravity that struggle to discover elements in the ImGui WASM application. These tools provide simplified access to common operations with console output for easy reading.
+
+### Application State
+
+#### getAppState()
+
+```javascript
+window.aiTools.getAppState()
+```
+
+Get complete application state including ROM status, current editor, visible cards, and available actions. Results are logged to console.
+
+**Console Output:**
+```
+=== YAZE APPLICATION STATE ===
+ROM Status: { loaded: true, filename: "zelda3.sfc", ... }
+Current Editor: { name: "Dungeon", type: 1 }
+Visible Cards: ["Room Selector", "Object Editor", ...]
+Available Editors: ["Overworld", "Dungeon", "Graphics", ...]
+Available Layouts: ["overworld_default", "dungeon_default", ...]
+```
+
+#### getEditorState()
+
+```javascript
+window.aiTools.getEditorState()
+```
+
+Get detailed snapshot of current editor state. Results are logged to console.
+
+### Card Management
+
+#### getVisibleCards()
+
+```javascript
+window.aiTools.getVisibleCards()
+```
+
+List all currently visible cards/panels. Results are logged to console.
+
+#### getAvailableCards()
+
+```javascript
+window.aiTools.getAvailableCards()
+```
+
+List all available cards across all editors. Results are logged to console.
+
+#### showCard(cardName)
+
+```javascript
+window.aiTools.showCard()        // Prompts for card name
+window.aiTools.showCard('Room Selector')  // Direct call
+```
+
+Show/open a specific card. If called without argument, prompts user for card name.
+
+#### hideCard(cardName)
+
+```javascript
+window.aiTools.hideCard()        // Prompts for card name
+window.aiTools.hideCard('Object Editor')  // Direct call
+```
+
+Hide/close a specific card. If called without argument, prompts user for card name.
+
+### Navigation
+
+#### navigateTo(target)
+
+```javascript
+window.aiTools.navigateTo()      // Prompts for target
+window.aiTools.navigateTo('room:0')      // Go to dungeon room 0
+window.aiTools.navigateTo('map:5')       // Go to overworld map 5
+window.aiTools.navigateTo('Dungeon')     // Switch to Dungeon editor
+```
+
+Navigate to a specific location. Supports:
+- `room:<id>` - Navigate to dungeon room
+- `map:<id>` - Navigate to overworld map
+- Editor name - Switch to editor
+
+### Data Access
+
+#### getRoomData(roomId)
+
+```javascript
+window.aiTools.getRoomData()     // Prompts for room ID
+window.aiTools.getRoomData(0)    // Get data for room 0
+```
+
+Get dungeon room data including tiles, objects, and properties. Results logged to console.
+
+#### getMapData(mapId)
+
+```javascript
+window.aiTools.getMapData()      // Prompts for map ID
+window.aiTools.getMapData(0)     // Get data for map 0
+```
+
+Get overworld map data including tiles, entities, and properties. Results logged to console.
+
+### Documentation
+
+#### dumpAPIReference()
+
+```javascript
+window.aiTools.dumpAPIReference()
+```
+
+Output complete API reference to console, including all available methods across all namespaces (`window.yaze.*`, `window.yazeDebug`, `window.aiTools`).
+
+**Console Output:**
+```
+=== YAZE WASM API REFERENCE ===
+
+--- window.yaze.control ---
+  switchEditor(editorName) - Switch to a different editor
+  getCurrentEditor() - Get current editor info
+  ...
+
+--- window.aiTools ---
+  getAppState() - Get full application state
+  getEditorState() - Get current editor snapshot
+  ...
+```
+
+---
+
+## Nav Bar UI for AI Assistants
+
+The web interface includes dedicated dropdown menus for AI assistant access:
+
+### Editor Switcher Dropdown
+
+Quick access to all 13 editors:
+- Overworld, Dungeon, Graphics, Palette, Sprite
+- Music, Message, Screen, Assembly, Hex
+- Agent, Code, Settings
+
+### Emulator Controls Dropdown
+
+- **Show Emulator** - Display emulator window
+- **Run** - Start emulation
+- **Pause** - Pause emulation
+- **Step** - Single step execution
+- **Reset** - Reset emulator state
+- **Memory Viewer** - Open memory inspection
+- **Disassembly** - View disassembled code
+
+### Layouts Dropdown
+
+Preset card configurations:
+- `overworld_default` - Optimal for overworld editing
+- `dungeon_default` - Optimal for dungeon editing
+- `graphics_default` - Optimal for graphics editing
+- `debug_default` - Debug-focused layout
+- `minimal` - Minimal interface
+- `all_cards` - Show all available cards
+
+### AI Tools Dropdown
+
+Dedicated menu with all `window.aiTools` functions accessible via UI clicks.
+
+---
+
+## Command Palette (Ctrl+K)
+
+All AI tools are accessible via the command palette:
+
+| Command | Action |
+|---------|--------|
+| `Editor: Overworld` | Switch to Overworld editor |
+| `Editor: Dungeon` | Switch to Dungeon editor |
+| `Emulator: Show` | Show emulator window |
+| `Emulator: Run` | Start emulation |
+| `AI: Get App State` | Run `aiTools.getAppState()` |
+| `AI: Get Editor State` | Run `aiTools.getEditorState()` |
+| `AI: API Reference` | Run `aiTools.dumpAPIReference()` |
+
+---
+
 ## Error Handling
 
 All API functions return error objects on failure:
@@ -721,6 +906,7 @@ console.log(window.yazeDebug.formatForAI())
 ## API Maturity
 
 - **Stable** (v2.0): `window.yaze.control`, `window.yaze.editor`, `window.yaze.data`, `window.yazeDebug`
+- **Stable** (v2.3): `window.aiTools` - AI assistant helper functions
 - **Experimental** (v2.1): `window.yaze.gui` UI interaction methods
 
 ## Loading Progress System
@@ -769,6 +955,13 @@ window.yazeDebug.arena.getStatus()
 ---
 
 ## Version History
+
+**2.3.0** (2025-11-25)
+- Added `window.aiTools` API for Gemini Antigravity AI integration
+- New nav bar dropdowns: Editor Switcher, Emulator Controls, Layouts, AI Tools
+- Command palette integration for all AI tools
+- High-level helper functions with console output for AI readability
+- Documentation for nav bar UI elements
 
 **2.2.0** (2025-11-25)
 - Added loading progress system documentation

@@ -678,6 +678,147 @@ var FilesystemManager = {
     } catch (e) {
       return [];
     }
+  },
+
+  // ========================
+  // File Management Operations
+  // ========================
+
+  /**
+   * Deletes a file from the virtual filesystem.
+   * @param {string} path - Full path to the file
+   * @returns {boolean} - True if successful
+   */
+  deleteFile: function(path) {
+    if (!this.ensureReady()) return false;
+    try {
+      FS.unlink(path);
+      this.syncAll();
+      console.log('[FilesystemManager] Deleted file:', path);
+      return true;
+    } catch (e) {
+      console.error('[FilesystemManager] Failed to delete file:', path, e);
+      return false;
+    }
+  },
+
+  /**
+   * Renames/moves a file in the virtual filesystem.
+   * @param {string} oldPath - Current file path
+   * @param {string} newPath - New file path
+   * @returns {boolean} - True if successful
+   */
+  renameFile: function(oldPath, newPath) {
+    if (!this.ensureReady()) return false;
+    try {
+      FS.rename(oldPath, newPath);
+      this.syncAll();
+      console.log('[FilesystemManager] Renamed file:', oldPath, '->', newPath);
+      return true;
+    } catch (e) {
+      console.error('[FilesystemManager] Failed to rename file:', oldPath, e);
+      return false;
+    }
+  },
+
+  /**
+   * Gets file information (size, modification time).
+   * @param {string} path - Full path to the file
+   * @returns {Object|null} - File info object or null if error
+   */
+  getFileInfo: function(path) {
+    if (!this.ensureReady()) return null;
+    try {
+      var stat = FS.stat(path);
+      return {
+        size: stat.size,
+        mtime: new Date(stat.mtime),
+        isDirectory: FS.isDir(stat.mode)
+      };
+    } catch (e) {
+      return null;
+    }
+  },
+
+  /**
+   * Gets detailed file listing for a directory.
+   * @param {string} dirPath - Directory path
+   * @returns {Array} - Array of file info objects
+   */
+  getDirectoryListing: function(dirPath) {
+    if (!this.ensureReady()) return [];
+    try {
+      var files = FS.readdir(dirPath).filter(f => f !== '.' && f !== '..');
+      var self = this;
+      return files.map(function(filename) {
+        var fullPath = dirPath + '/' + filename;
+        var info = self.getFileInfo(fullPath);
+        return {
+          name: filename,
+          path: fullPath,
+          size: info ? info.size : 0,
+          mtime: info ? info.mtime : null,
+          isDirectory: info ? info.isDirectory : false
+        };
+      });
+    } catch (e) {
+      console.error('[FilesystemManager] Failed to list directory:', dirPath, e);
+      return [];
+    }
+  },
+
+  /**
+   * Gets storage usage estimate using browser Storage API.
+   * @returns {Promise<Object>} - Storage info with usage and quota
+   */
+  getStorageUsage: function() {
+    return new Promise(function(resolve) {
+      if (navigator.storage && navigator.storage.estimate) {
+        navigator.storage.estimate().then(function(estimate) {
+          resolve({
+            usage: estimate.usage || 0,
+            quota: estimate.quota || 0,
+            percent: estimate.quota ? Math.round((estimate.usage / estimate.quota) * 100) : 0
+          });
+        }).catch(function() {
+          resolve({ usage: 0, quota: 0, percent: 0 });
+        });
+      } else {
+        resolve({ usage: 0, quota: 0, percent: 0 });
+      }
+    });
+  },
+
+  /**
+   * Downloads a file from the virtual filesystem to user's computer.
+   * @param {string} path - Full path to the file
+   * @param {string} downloadName - Optional name for the downloaded file
+   */
+  downloadFile: function(path, downloadName) {
+    if (!this.ensureReady()) return;
+    try {
+      var content = FS.readFile(path);
+      var blob = new Blob([content], { type: 'application/octet-stream' });
+      var url = URL.createObjectURL(blob);
+
+      var filename = downloadName || path.split('/').pop();
+      var a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+
+      setTimeout(function() {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }, 1000);
+
+      console.log('[FilesystemManager] Downloaded file:', path);
+    } catch (e) {
+      console.error('[FilesystemManager] Failed to download file:', path, e);
+      alert('Failed to download file: ' + e.message);
+    }
   }
 };
 

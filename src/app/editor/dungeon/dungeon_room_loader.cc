@@ -70,9 +70,10 @@ absl::Status DungeonRoomLoader::LoadAllRooms(
       }
     }
 
-    rooms[i] = zelda3::LoadRoomFromRom(rom_, i);
+    // Lazy load: Only load header/metadata, not objects/graphics
+    rooms[i] = zelda3::LoadRoomHeaderFromRom(rom_, i);
     auto room_size = zelda3::CalculateRoomSize(rom_, i);
-    rooms[i].LoadObjects();
+    // rooms[i].LoadObjects(); // DEFERRED: Load on demand
 
     auto dungeon_palette_ptr = rom_->paletteset_ids[rooms[i].palette][0];
     auto palette_id = rom_->ReadWord(0xDEC4B + dungeon_palette_ptr);
@@ -116,14 +117,14 @@ absl::Status DungeonRoomLoader::LoadAllRooms(
       auto dungeon_man_pal_group = rom_->palette_group().dungeon_main;
 
       for (int i = start_room; i < end_room; ++i) {
-        // Load room data (this is the expensive operation)
-        rooms[i] = zelda3::LoadRoomFromRom(rom_, i);
+        // Lazy load: Only load header/metadata
+        rooms[i] = zelda3::LoadRoomHeaderFromRom(rom_, i);
 
         // Calculate room size
         auto room_size = zelda3::CalculateRoomSize(rom_, i);
 
-        // Load room objects
-        rooms[i].LoadObjects();
+        // Load room objects - DEFERRED
+        // rooms[i].LoadObjects();
 
         // Process palette
         auto dungeon_palette_ptr = rom_->paletteset_ids[rooms[i].palette][0];
