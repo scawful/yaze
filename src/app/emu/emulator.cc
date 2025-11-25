@@ -23,6 +23,10 @@ extern bool g_window_is_resizing;
 #include "app/gui/core/theme_manager.h"
 #include "imgui/imgui.h"
 
+#ifdef __EMSCRIPTEN__
+#include "app/emu/platform/wasm/wasm_audio.h"
+#endif
+
 namespace yaze {
 namespace emu {
 
@@ -58,6 +62,16 @@ void Emulator::set_use_sdl_audio_stream(bool enabled) {
   }
 }
 
+void Emulator::ResumeAudio() {
+#ifdef __EMSCRIPTEN__
+  if (audio_backend_) {
+    // Safe cast because we know we created a WasmAudioBackend in WASM builds
+    auto* wasm_backend = static_cast<audio::WasmAudioBackend*>(audio_backend_.get());
+    wasm_backend->HandleUserInteraction();
+  }
+#endif
+}
+
 void Emulator::Initialize(gfx::IRenderer* renderer,
                           const std::vector<uint8_t>& rom_data) {
   // This method is now optional - emulator can be initialized lazily in Run()
@@ -80,8 +94,13 @@ void Emulator::Initialize(gfx::IRenderer* renderer,
 
   // Initialize audio backend if not already done
   if (!audio_backend_) {
+#ifdef __EMSCRIPTEN__
+    audio_backend_ = audio::AudioBackendFactory::Create(
+        audio::AudioBackendFactory::BackendType::WASM);
+#else
     audio_backend_ = audio::AudioBackendFactory::Create(
         audio::AudioBackendFactory::BackendType::SDL2);
+#endif
 
     audio::AudioConfig config;
     config.sample_rate = 48000;
@@ -136,8 +155,13 @@ void Emulator::Run(Rom* rom) {
 
   // Initialize audio backend if not already done (lazy initialization)
   if (!audio_backend_) {
+#ifdef __EMSCRIPTEN__
+    audio_backend_ = audio::AudioBackendFactory::Create(
+        audio::AudioBackendFactory::BackendType::WASM);
+#else
     audio_backend_ = audio::AudioBackendFactory::Create(
         audio::AudioBackendFactory::BackendType::SDL2);
+#endif
 
     audio::AudioConfig config;
     config.sample_rate = 48000;

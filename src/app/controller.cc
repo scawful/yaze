@@ -104,7 +104,7 @@ absl::Status Controller::OnLoad() {
   ImGui::PopStyleVar(3);
 
   // Create DockSpace with adjusted size
-  ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
+  ImGuiID dockspace_id = ImGui::GetID("MainDockSpace");
   gui::DockSpaceRenderer::BeginEnhancedDockSpace(
       dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_PassthruCentralNode);
 

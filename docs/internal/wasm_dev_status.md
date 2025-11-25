@@ -1,7 +1,7 @@
 # WASM / Web Agent Integration Status
 
-**Last Updated:** November 24, 2025
-**Status:** Functional MVP with Agent APIs (ROM loading fixed, loading progress added, control APIs implemented)
+**Last Updated:** November 25, 2025
+**Status:** Functional MVP with Agent APIs (ROM loading fixed, loading progress added, control APIs implemented, performance optimizations applied)
 
 ## Overview
 This document tracks the development state of the `yaze` WASM web application, specifically focusing on the AI Agent integration (`z3ed` console) and the modern UI overhaul.
@@ -121,6 +121,75 @@ The `WidgetIdRegistry` system tracks all ImGui widget bounds in real-time:
 *   `src/app/platform/wasm/wasm_control_api.cc` - C++ implementation
 *   `src/app/platform/wasm/wasm_control_api.h` - API declarations
 *   `src/web/core/agent_automation.js` - GUI automation layer
+
+### Performance Optimizations & Bug Fixes (November 2025)
+
+A comprehensive audit and fix of the WASM web layer was performed to address performance issues, memory leaks, and race conditions.
+
+#### JavaScript Performance Fixes (`app.js`)
+*   **Event Sanitization Optimization:**
+    *   Removed redundant document-level event listeners (canvas-only now)
+    *   Added WeakMap caching to avoid re-sanitizing the same event objects
+    *   Optimized to check only relevant properties per event type category
+    *   ~50% reduction in sanitization overhead
+*   **Console Log Buffer:**
+    *   Replaced O(n) `Array.shift()` with O(1) circular buffer implementation
+    *   Uses modulo arithmetic for constant-time log rotation
+*   **Polling Cleanup:**
+    *   Added timeout tracking and max retry limits for module initialization
+    *   Proper interval cleanup when components are destroyed
+    *   Added `window.YAZE_MODULE_READY` flag for reliable initialization detection
+
+#### Memory Leak Fixes
+*   **Service Worker Cache (`service-worker.js`):**
+    *   Added `MAX_RUNTIME_CACHE_SIZE` (50 entries) with LRU eviction
+    *   New `trimRuntimeCache()` function enforces size limits
+    *   `addToRuntimeCacheWithEviction()` wrapper for cache operations
+*   **Confirmation Callbacks (`wasm_error_handler.cc`):**
+    *   Added `CallbackEntry` struct with timestamps for timeout tracking
+    *   Auto-cleanup of callbacks older than 5 minutes
+    *   Page unload handler via `js_register_cleanup_handler()`
+*   **Loading Indicators (`loading_indicator.js`):**
+    *   Added try-catch error handling to ensure cleanup on errors
+    *   Stale indicator cleanup (5-minute timeout)
+    *   Periodic cleanup interval with proper lifecycle management
+
+#### Race Condition Fixes
+*   **Module Initialization (`app.js`):**
+    *   Added `window.YAZE_MODULE_READY` flag set AFTER promise resolves
+    *   Updated `waitForModule()` to check both Module existence AND ready flag
+    *   Prevents code from seeing incomplete Module state
+*   **FS Ready State (`filesystem_manager.js`):**
+    *   Restructured `initPersistentFS()` with synchronous lock pattern
+    *   Promise created immediately before async operations
+    *   Eliminates race where two calls could create duplicate promises
+*   **Redundant FS Exposure:**
+    *   Added `fsExposed` flag to prevent wasteful redundant calls
+    *   Reduced from 3 setTimeout calls to 1 conditional retry
+
+#### C++ WASM Fixes
+*   **Memory Safety (`wasm_storage.cc`):**
+    *   Added `free(data_ptr)` in error paths of `LoadRom()` to prevent memory leaks
+    *   Ensures allocated memory is freed even when operations fail
+*   **Cleanup Handlers (`wasm_error_handler.cc`):**
+    *   Added `cleanupConfirmCallbacks()` function for page unload
+    *   Registered via `js_register_cleanup_handler()` in `Initialize()`
+
+#### Drop Zone Optimization (`drop_zone.js`, `filesystem_manager.js`)
+*   **Eliminated Double File Reading:**
+    *   Added new `FilesystemManager.handleRomData(filename, data)` method
+    *   Accepts pre-read `Uint8Array` instead of `File` object
+    *   Drop zone now passes already-read data instead of re-reading
+    *   Reduces CPU and memory usage for ROM uploads
+
+**Key Files Modified:**
+*   `src/web/app.js` - Event sanitization, console buffer, module init
+*   `src/web/core/filesystem_manager.js` - FS init race fix, handleRomData
+*   `src/web/core/loading_indicator.js` - Stale cleanup, error handling
+*   `src/web/components/drop_zone.js` - Use handleRomData
+*   `src/web/pwa/service-worker.js` - Cache eviction
+*   `src/app/platform/wasm/wasm_storage.cc` - Memory free on error
+*   `src/app/platform/wasm/wasm_error_handler.cc` - Callback cleanup
 
 ## 2. Technical Debt & Known Issues
 

@@ -335,6 +335,13 @@
     userList = document.getElementById('user-list');
     statusBadge = collabPanel.querySelector('.collab-status-badge');
     roomCodeDisplay = document.getElementById('room-code-text');
+
+    // Expose toggle function globally
+    window.toggleCollaborationPanel = function() {
+      if (collabPanel) {
+        collabPanel.classList.toggle('collapsed');
+      }
+    };
   }
 
   /**

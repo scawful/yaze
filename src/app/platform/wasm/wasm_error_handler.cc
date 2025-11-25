@@ -15,9 +15,51 @@ namespace platform {
 std::atomic<bool> WasmErrorHandler::initialized_{false};
 std::atomic<int> WasmErrorHandler::callback_counter_{0};
 
-// Store confirmation callbacks
-static std::map<int, std::function<void(bool)>> g_confirm_callbacks;
+// Store confirmation callbacks with timestamps for timeout cleanup
+struct CallbackEntry {
+  std::function<void(bool)> callback;
+  double timestamp;  // Time when callback was registered (ms since epoch)
+};
+static std::map<int, CallbackEntry> g_confirm_callbacks;
 static std::mutex g_callback_mutex;
+
+// Callback timeout in milliseconds (5 minutes)
+constexpr double kCallbackTimeoutMs = 5.0 * 60.0 * 1000.0;
+
+// Helper to get current time in milliseconds
+static double GetCurrentTimeMs() {
+  return EM_ASM_DOUBLE({ return Date.now(); });
+}
+
+// Cleanup stale callbacks that have exceeded the timeout
+static void CleanupStaleCallbacks() {
+  std::lock_guard<std::mutex> lock(g_callback_mutex);
+  const double now = GetCurrentTimeMs();
+
+  for (auto it = g_confirm_callbacks.begin(); it != g_confirm_callbacks.end();) {
+    if (now - it->second.timestamp > kCallbackTimeoutMs) {
+      it = g_confirm_callbacks.erase(it);
+    } else {
+      ++it;
+    }
+  }
+}
+
+// JavaScript function to register cleanup handler for page unload
+EM_JS(void, js_register_cleanup_handler, (), {
+  window.addEventListener('beforeunload', function() {
+    // Signal C++ to cleanup stale callbacks
+    if (Module._cleanupConfirmCallbacks) {
+      Module._cleanupConfirmCallbacks();
+    }
+  });
+});
+
+// C++ cleanup function called from JavaScript on page unload
+extern "C" EMSCRIPTEN_KEEPALIVE void cleanupConfirmCallbacks() {
+  std::lock_guard<std::mutex> lock(g_callback_mutex);
+  g_confirm_callbacks.clear();
+}
 
 // JavaScript functions for browser UI interaction
 EM_JS(void, js_show_modal, (const char* title, const char* message, const char* type), {
@@ -86,11 +128,16 @@ EM_JS(void, js_inject_styles, (), {
 
 // C++ callback handler for confirmation dialogs
 extern "C" EMSCRIPTEN_KEEPALIVE void handleConfirmCallback(int callback_id, int result) {
-  std::lock_guard<std::mutex> lock(g_callback_mutex);
-  auto it = g_confirm_callbacks.find(callback_id);
-  if (it != g_confirm_callbacks.end()) {
-    auto callback = it->second;
-    g_confirm_callbacks.erase(it);
+  std::function<void(bool)> callback;
+  {
+    std::lock_guard<std::mutex> lock(g_callback_mutex);
+    auto it = g_confirm_callbacks.find(callback_id);
+    if (it != g_confirm_callbacks.end()) {
+      callback = it->second.callback;
+      g_confirm_callbacks.erase(it);
+    }
+  }
+  if (callback) {
     callback(result != 0);
   }
 }
@@ -104,7 +151,9 @@ void WasmErrorHandler::Initialize() {
   js_inject_styles();
   EM_ASM({
     Module._handleConfirmCallback = Module.cwrap('handleConfirmCallback', null, ['number', 'number']);
+    Module._cleanupConfirmCallbacks = Module.cwrap('cleanupConfirmCallbacks', null, []);
   });
+  js_register_cleanup_handler();
 }
 
 void WasmErrorHandler::ShowError(const std::string& title, const std::string& message) {
@@ -149,10 +198,14 @@ void WasmErrorHandler::HideProgress() {
 
 void WasmErrorHandler::Confirm(const std::string& message, std::function<void(bool)> callback) {
   if (!initialized_.load()) Initialize();
+
+  // Cleanup any stale callbacks before adding new one
+  CleanupStaleCallbacks();
+
   int callback_id = callback_counter_.fetch_add(1) + 1;
   {
     std::lock_guard<std::mutex> lock(g_callback_mutex);
-    g_confirm_callbacks[callback_id] = callback;
+    g_confirm_callbacks[callback_id] = CallbackEntry{callback, GetCurrentTimeMs()};
   }
   js_show_confirm(message.c_str(), callback_id);
 }

@@ -38,6 +38,10 @@ struct ColorComparison {
 
 class PaletteDebugger {
  public:
+  // Maximum number of events to store (prevents memory exhaustion in WASM)
+  static constexpr size_t kMaxEvents = 1000;
+  static constexpr size_t kMaxComparisons = 500;
+
   static PaletteDebugger& Get();
 
   void LogPaletteLoad(const std::string& location, int palette_id,
@@ -55,7 +59,7 @@ class PaletteDebugger {
   // Pixel sampling for debugging
   ColorComparison SamplePixelAt(int x, int y) const;
   std::vector<ColorComparison> GetColorComparisons() const { return comparisons_; }
-  void AddComparison(const ColorComparison& comp) { comparisons_.push_back(comp); }
+  void AddComparison(const ColorComparison& comp) { AddComparisonLimited(comp); }
   void ClearComparisons() { comparisons_.clear(); }
 
   // Compute checksum for palette integrity verification
@@ -82,6 +86,24 @@ class PaletteDebugger {
 
  private:
   PaletteDebugger() = default;
+
+  // Helper to add events with size limit enforcement
+  void AddEvent(const PaletteDebugEvent& event) {
+    if (events_.size() >= kMaxEvents) {
+      // Remove oldest half when at limit (keeps recent events)
+      events_.erase(events_.begin(), events_.begin() + kMaxEvents / 2);
+    }
+    events_.push_back(event);
+  }
+
+  // Helper to add comparisons with size limit enforcement
+  void AddComparisonLimited(const ColorComparison& comp) {
+    if (comparisons_.size() >= kMaxComparisons) {
+      comparisons_.erase(comparisons_.begin(), comparisons_.begin() + kMaxComparisons / 2);
+    }
+    comparisons_.push_back(comp);
+  }
+
   std::vector<PaletteDebugEvent> events_;
   std::vector<ColorComparison> comparisons_;
   gfx::SnesPalette current_palette_;

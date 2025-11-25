@@ -195,8 +195,8 @@
 
   let container = null;
 
-  // Global toggle function for header button
-  window.toggleCollabConsole = function() {
+  // Global toggle implementation (called by app.js orchestrator)
+  window.toggleCollabConsole_impl = function() {
     if (!container) return;
     state.chatVisible = !state.chatVisible;
     container.classList.toggle('active', state.chatVisible);

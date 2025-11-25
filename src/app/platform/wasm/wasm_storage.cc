@@ -299,8 +299,10 @@ absl::StatusOr<std::vector<uint8_t>> WasmStorage::LoadRom(const std::string& nam
   size_t data_size = 0;
   int result = idb_load_binary(kRomStoreName, name.c_str(), &data_ptr, &data_size);
   if (result == -2) {
+    if (data_ptr) free(data_ptr);
     return absl::NotFoundError(absl::StrFormat("ROM '%s' not found", name));
   } else if (result != 0) {
+    if (data_ptr) free(data_ptr);
     return absl::InternalError(absl::StrFormat("Failed to load ROM '%s'", name));
   }
   std::vector<uint8_t> data(data_ptr, data_ptr + data_size);
@@ -364,6 +366,8 @@ absl::StatusOr<std::string> WasmStorage::LoadProject(const std::string& name) {
   }
   char* json_ptr = idb_load_string(kProjectStoreName, name.c_str());
   if (!json_ptr) {
+    // Note: idb_load_string returns 0 (null) on not found or error,
+    // no memory is allocated in that case, so no free needed here.
     return absl::NotFoundError(absl::StrFormat("Project '%s' not found", name));
   }
   std::string json(json_ptr);
