@@ -111,8 +111,14 @@ if(EMSCRIPTEN)
   # Use set_target_properties with LINK_FLAGS (similar to z3ed.cmake)
   # Note: Functions marked with EMSCRIPTEN_KEEPALIVE must also be listed here
   # MODULARIZE=1 allows async initialization via createYazeModule()
+  #
+  # Memory configuration for optimal WASM performance:
+  # - INITIAL_MEMORY: Start with 256MB to reduce heap resizing during load
+  # - ALLOW_MEMORY_GROWTH: Allow heap to grow beyond initial size
+  # - STACK_SIZE: 8MB stack for recursive operations (overworld loading, etc.)
+  # - MAXIMUM_MEMORY: Cap at 1GB to prevent runaway allocations
   set_target_properties(yaze PROPERTIES
-    LINK_FLAGS "--bind -s MODULARIZE=1 -s EXPORT_NAME='createYazeModule' -s EXPORTED_RUNTIME_METHODS='[\"ccall\",\"cwrap\",\"stringToUTF8\",\"UTF8ToString\",\"lengthBytesUTF8\",\"FS\",\"IDBFS\",\"allocateUTF8\"]' -s EXPORTED_FUNCTIONS='[\"_main\",\"_SetFileSystemReady\",\"_SyncFilesystem\",\"_LoadRomFromWeb\",\"_yazeHandleDroppedFile\",\"_yazeHandleDropError\",\"_yazeHandleDragEnter\",\"_yazeHandleDragLeave\",\"_malloc\",\"_free\"]' --shell-file ${CMAKE_SOURCE_DIR}/src/web/shell.html"
+    LINK_FLAGS "--bind -s MODULARIZE=1 -s EXPORT_NAME='createYazeModule' -s INITIAL_MEMORY=268435456 -s ALLOW_MEMORY_GROWTH=1 -s MAXIMUM_MEMORY=1073741824 -s STACK_SIZE=8388608 -s EXPORTED_RUNTIME_METHODS='[\"ccall\",\"cwrap\",\"stringToUTF8\",\"UTF8ToString\",\"lengthBytesUTF8\",\"FS\",\"IDBFS\",\"allocateUTF8\"]' -s EXPORTED_FUNCTIONS='[\"_main\",\"_SetFileSystemReady\",\"_SyncFilesystem\",\"_LoadRomFromWeb\",\"_yazeHandleDroppedFile\",\"_yazeHandleDropError\",\"_yazeHandleDragEnter\",\"_yazeHandleDragLeave\",\"_malloc\",\"_free\"]' --shell-file ${CMAKE_SOURCE_DIR}/src/web/shell.html"
   )
   add_custom_command(TARGET yaze POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different

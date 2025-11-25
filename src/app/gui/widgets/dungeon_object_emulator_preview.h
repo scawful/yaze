@@ -39,6 +39,10 @@ class DungeonObjectEmulatorPreview {
   // Debug info
   int last_cycle_count_ = 0;
   std::string last_error_;
+
+  // Lazy initialization flag - defer heavy SNES init until actually needed
+  bool initialized_ = false;
+  void EnsureInitialized();
 };
 
 }  // namespace gui

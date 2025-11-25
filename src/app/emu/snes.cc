@@ -36,7 +36,7 @@ uint8_t input_read(Input* input) {
 }
 }  // namespace
 
-void Snes::Init(std::vector<uint8_t>& rom_data) {
+void Snes::Init(const std::vector<uint8_t>& rom_data) {
   LOG_DEBUG("SNES", "Initializing emulator with ROM size %zu bytes",
             rom_data.size());
 
