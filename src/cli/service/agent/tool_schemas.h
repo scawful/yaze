@@ -526,6 +526,210 @@ class ToolSchemaRegistry {
                            "z3ed visual-tile-histogram --type=dungeon --top=50"},
               .related_tools = {"visual-palette-usage",
                                "visual-find-similar-tiles"}});
+
+    // =========================================================================
+    // Code Generation Tools
+    // =========================================================================
+
+    Register({.name = "codegen-asm-hook",
+              .category = "codegen",
+              .description = "Generate ASM hook at ROM address",
+              .detailed_help =
+                  "Generates Asar-compatible ASM code to hook into the ROM at "
+                  "a specified address using JSL. Validates the address is safe "
+                  "and not already hooked. Includes known safe hook locations.",
+              .arguments = {{.name = "address",
+                             .type = "hex",
+                             .description = "ROM address to hook (hex)",
+                             .required = true},
+                            {.name = "label",
+                             .type = "string",
+                             .description = "Label name for the hook",
+                             .required = true},
+                            {.name = "nop-fill",
+                             .type = "number",
+                             .description = "Number of NOP bytes to add",
+                             .required = false,
+                             .default_value = "1"}},
+              .examples = {"z3ed codegen-asm-hook --address=0x02AB08 --label=MyHook",
+                           "z3ed codegen-asm-hook --address=0x00893D --label=ForceBlankHook --nop-fill=2"},
+              .requires_rom = true,
+              .related_tools = {"codegen-freespace-patch", "memory-analyze"}});
+
+    Register({.name = "codegen-freespace-patch",
+              .category = "codegen",
+              .description = "Generate patch using detected free regions",
+              .detailed_help =
+                  "Detects available freespace in the ROM (regions with >80% "
+                  "0x00/0xFF bytes) and generates a patch to allocate space "
+                  "for custom code. Returns available regions and generated ASM.",
+              .arguments = {{.name = "label",
+                             .type = "string",
+                             .description = "Label for the code block",
+                             .required = true},
+                            {.name = "size",
+                             .type = "hex",
+                             .description = "Size in bytes needed (hex)",
+                             .required = true},
+                            {.name = "prefer-bank",
+                             .type = "hex",
+                             .description = "Preferred bank number (hex)",
+                             .required = false}},
+              .examples = {"z3ed codegen-freespace-patch --label=MyCode --size=0x100",
+                           "z3ed codegen-freespace-patch --label=CustomRoutine --size=0x200 --prefer-bank=0x3F"},
+              .requires_rom = true,
+              .related_tools = {"codegen-asm-hook", "memory-regions"}});
+
+    Register({.name = "codegen-sprite-template",
+              .category = "codegen",
+              .description = "Generate sprite ASM from template",
+              .detailed_help =
+                  "Generates a complete sprite ASM template with init and main "
+                  "state machine. Includes SNES sprite variable documentation "
+                  "and proper PHB/PLB register preservation.",
+              .arguments = {{.name = "name",
+                             .type = "string",
+                             .description = "Sprite name/label",
+                             .required = true},
+                            {.name = "init-code",
+                             .type = "string",
+                             .description = "Initialization ASM code",
+                             .required = false},
+                            {.name = "main-code",
+                             .type = "string",
+                             .description = "Main loop ASM code",
+                             .required = false}},
+              .examples = {"z3ed codegen-sprite-template --name=MySprite",
+                           "z3ed codegen-sprite-template --name=CustomChest --init-code=\"LDA #$42 : STA $0DC0,X\""},
+              .requires_rom = false,
+              .related_tools = {"codegen-event-handler"}});
+
+    Register({.name = "codegen-event-handler",
+              .category = "codegen",
+              .description = "Generate event handler code",
+              .detailed_help =
+                  "Generates ASM event handler code for NMI, IRQ, or Reset "
+                  "handlers. Includes proper state preservation and known "
+                  "hook addresses for each event type.",
+              .arguments = {{.name = "type",
+                             .type = "string",
+                             .description = "Event type",
+                             .required = true,
+                             .enum_values = {"nmi", "irq", "reset"}},
+                            {.name = "label",
+                             .type = "string",
+                             .description = "Handler label name",
+                             .required = true},
+                            {.name = "custom-code",
+                             .type = "string",
+                             .description = "Custom ASM code",
+                             .required = false}},
+              .examples = {"z3ed codegen-event-handler --type=nmi --label=MyVBlank",
+                           "z3ed codegen-event-handler --type=nmi --label=MyHandler --custom-code=\"LDA #$80 : STA $2100\""},
+              .requires_rom = false,
+              .related_tools = {"codegen-asm-hook", "codegen-sprite-template"}});
+
+    // =========================================================================
+    // Project Management Tools
+    // =========================================================================
+
+    Register({.name = "project-status",
+              .category = "project",
+              .description = "Show current project state and pending edits",
+              .detailed_help =
+                  "Displays current project state including loaded ROM info, "
+                  "pending uncommitted edits, available snapshots, and ROM "
+                  "checksum for validation.",
+              .arguments = {},
+              .examples = {"z3ed project-status"},
+              .requires_rom = true,
+              .related_tools = {"project-snapshot", "project-restore"}});
+
+    Register({.name = "project-snapshot",
+              .category = "project",
+              .description = "Create named checkpoint with edit deltas",
+              .detailed_help =
+                  "Creates a named snapshot storing all pending edits as "
+                  "deltas (not full ROM copy). Includes ROM checksum for "
+                  "validation when restoring.",
+              .arguments = {{.name = "name",
+                             .type = "string",
+                             .description = "Snapshot name",
+                             .required = true},
+                            {.name = "description",
+                             .type = "string",
+                             .description = "Optional description",
+                             .required = false}},
+              .examples = {"z3ed project-snapshot --name=before-edit",
+                           "z3ed project-snapshot --name=dungeon-complete --description=\"Finished dungeon 1\""},
+              .requires_rom = true,
+              .related_tools = {"project-status", "project-restore", "project-diff"}});
+
+    Register({.name = "project-restore",
+              .category = "project",
+              .description = "Restore ROM to named checkpoint",
+              .detailed_help =
+                  "Restores the ROM to a previously saved snapshot state by "
+                  "replaying the stored edit deltas. Validates ROM checksum "
+                  "to ensure correct base ROM.",
+              .arguments = {{.name = "name",
+                             .type = "string",
+                             .description = "Snapshot name to restore",
+                             .required = true}},
+              .examples = {"z3ed project-restore --name=before-edit"},
+              .requires_rom = true,
+              .related_tools = {"project-snapshot", "project-status"}});
+
+    Register({.name = "project-export",
+              .category = "project",
+              .description = "Export project as portable archive",
+              .detailed_help =
+                  "Exports the project metadata and all snapshots as a "
+                  "portable archive file. Optionally includes the base ROM.",
+              .arguments = {{.name = "path",
+                             .type = "string",
+                             .description = "Output file path",
+                             .required = true},
+                            {.name = "include-rom",
+                             .type = "flag",
+                             .description = "Include base ROM in export",
+                             .required = false}},
+              .examples = {"z3ed project-export --path=myproject.tar.gz",
+                           "z3ed project-export --path=backup.tar.gz --include-rom"},
+              .requires_rom = true,
+              .related_tools = {"project-import"}});
+
+    Register({.name = "project-import",
+              .category = "project",
+              .description = "Import project archive",
+              .detailed_help =
+                  "Imports a project archive and loads its metadata and "
+                  "snapshots. Validates project structure and checksums.",
+              .arguments = {{.name = "path",
+                             .type = "string",
+                             .description = "Archive file path",
+                             .required = true}},
+              .examples = {"z3ed project-import --path=myproject.tar.gz"},
+              .requires_rom = false,
+              .related_tools = {"project-export"}});
+
+    Register({.name = "project-diff",
+              .category = "project",
+              .description = "Compare two project states",
+              .detailed_help =
+                  "Compares two snapshots and shows the differences in edits "
+                  "between them. Useful for reviewing changes between versions.",
+              .arguments = {{.name = "snapshot1",
+                             .type = "string",
+                             .description = "First snapshot name",
+                             .required = true},
+                            {.name = "snapshot2",
+                             .type = "string",
+                             .description = "Second snapshot name",
+                             .required = true}},
+              .examples = {"z3ed project-diff --snapshot1=v1 --snapshot2=v2"},
+              .requires_rom = true,
+              .related_tools = {"project-snapshot", "rom-diff"}});
   }
 
   std::map<std::string, ToolSchema> schemas_;

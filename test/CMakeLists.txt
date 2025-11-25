@@ -116,6 +116,8 @@ if(YAZE_BUILD_TESTS)
     unit/tools/filesystem_tool_test.cc
     unit/tools/memory_inspector_tool_test.cc
     unit/tools/visual_analysis_tool_test.cc
+    unit/tools/project_tool_test.cc
+    unit/tools/code_gen_tool_test.cc
     ../src/cli/service/resources/resource_catalog.cc
     cli/service/resources/command_context_test.cc
     # Integration Tests

@@ -137,8 +137,12 @@ set(YAZE_AGENT_CORE_SOURCES
   cli/service/agent/todo_manager.cc
   cli/service/agent/tool_dispatcher.cc
   cli/service/agent/tools/build_tool.cc
+  cli/service/agent/tools/code_gen_tool.cc
   cli/service/agent/tools/filesystem_tool.cc
   cli/service/agent/tools/memory_inspector_tool.cc
+  cli/service/agent/tools/project_tool.cc
+  cli/service/agent/tools/rom_diff_tool.cc
+  cli/service/agent/tools/validation_tool.cc
   cli/service/agent/tools/visual_analysis_tool.cc
   cli/service/agent/disassembler_65816.cc
   cli/service/agent/rom_debug_agent.cc

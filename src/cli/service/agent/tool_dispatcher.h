@@ -98,6 +98,18 @@ enum class ToolCallType {
   kVisualAnalyzeSpritesheet,
   kVisualPaletteUsage,
   kVisualTileHistogram,
+  // Code Generation
+  kCodeGenAsmHook,
+  kCodeGenFreespacePatch,
+  kCodeGenSpriteTemplate,
+  kCodeGenEventHandler,
+  // Project Management
+  kProjectStatus,
+  kProjectSnapshot,
+  kProjectRestore,
+  kProjectExport,
+  kProjectImport,
+  kProjectDiff,
 };
 
 class ToolDispatcher {
@@ -122,6 +134,8 @@ class ToolDispatcher {
     bool test_helpers = true;
     bool meta_tools = true;  // tools-list, tools-describe, tools-search
     bool visual_analysis = true;
+    bool code_gen = true;
+    bool project = true;
   };
 
   /**

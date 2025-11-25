@@ -223,6 +223,100 @@ categories:
           accuracy_criteria: "Uses visual-tile-histogram with dungeon type"
           completeness_criteria: "Lists top tiles with usage counts"
 
+  project_management:
+    description: "Tasks for project state and snapshot management"
+    tasks:
+      - id: "project_status"
+        name: "Get Project Status"
+        prompt: "What is the current project status? Show me any pending edits and available snapshots."
+        expected_patterns:
+          - "project|status|snapshot"
+          - "edit|pending|initialized"
+        required_tool: "project-status"
+        scoring:
+          accuracy_criteria: "Uses project-status tool correctly"
+          completeness_criteria: "Reports project state, snapshots, and ROM checksum"
+
+      - id: "create_snapshot"
+        name: "Create Project Snapshot"
+        prompt: "Create a snapshot named 'v1.0' with description 'Initial sprite modifications'."
+        expected_patterns:
+          - "snapshot|created|v1.0"
+          - "edit|delta|saved"
+        required_tool: "project-snapshot"
+        scoring:
+          accuracy_criteria: "Uses project-snapshot with correct name parameter"
+          completeness_criteria: "Confirms snapshot creation with details"
+
+      - id: "compare_snapshots"
+        name: "Compare Snapshots"
+        prompt: "Compare snapshots 'before-fix' and 'after-fix' to see what changed."
+        expected_patterns:
+          - "diff|compare|changed"
+          - "added|removed|modified"
+        required_tool: "project-diff"
+        scoring:
+          accuracy_criteria: "Uses project-diff with both snapshot names"
+          completeness_criteria: "Shows detailed comparison of edits"
+
+      - id: "restore_checkpoint"
+        name: "Restore to Checkpoint"
+        prompt: "Restore the ROM to the 'stable' snapshot."
+        expected_patterns:
+          - "restore|snapshot|stable"
+          - "applied|reverted|edit"
+        required_tool: "project-restore"
+        scoring:
+          accuracy_criteria: "Uses project-restore with correct snapshot name"
+          completeness_criteria: "Confirms restoration and lists applied edits"
+
+  code_generation:
+    description: "Tasks for ASM code generation and patching"
+    tasks:
+      - id: "generate_hook"
+        name: "Generate ASM Hook"
+        prompt: "Generate an ASM hook at address $008040 with label MyCustomHook and 2 NOPs for alignment."
+        expected_patterns:
+          - "hook|JSL|008040"
+          - "MyCustomHook|NOP"
+        required_tool: "codegen-asm-hook"
+        scoring:
+          accuracy_criteria: "Uses codegen-asm-hook with correct address and label"
+          completeness_criteria: "Generates valid ASM with proper hook structure"
+
+      - id: "find_freespace"
+        name: "Find Freespace for Patch"
+        prompt: "Generate a freespace patch for 256 bytes of code labeled 'NewSpriteCode', preferring bank $3F."
+        expected_patterns:
+          - "freespace|org|NewSpriteCode"
+          - "1F8000|bank|free"
+        required_tool: "codegen-freespace-patch"
+        scoring:
+          accuracy_criteria: "Uses codegen-freespace-patch with size and label"
+          completeness_criteria: "Reports available regions and generates allocation code"
+
+      - id: "sprite_template"
+        name: "Generate Sprite Template"
+        prompt: "Generate a sprite template named 'FollowerSprite' with init code that sets sprite state and main code that follows the player."
+        expected_patterns:
+          - "sprite|FollowerSprite|template"
+          - "init|main|0DD0"
+        required_tool: "codegen-sprite-template"
+        scoring:
+          accuracy_criteria: "Uses codegen-sprite-template with name and custom code"
+          completeness_criteria: "Generates complete sprite with init and main sections"
+
+      - id: "event_handler"
+        name: "Generate Event Handler"
+        prompt: "Generate an NMI event handler labeled 'FrameCounter' that increments a counter each frame."
+        expected_patterns:
+          - "NMI|event|handler"
+          - "FrameCounter|INC|counter"
+        required_tool: "codegen-event-handler"
+        scoring:
+          accuracy_criteria: "Uses codegen-event-handler with type=nmi and label"
+          completeness_criteria: "Generates handler with state preservation and custom code"
+
   conversation:
     description: "Tasks testing multi-turn dialog and context"
     tasks:

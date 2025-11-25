@@ -110,6 +110,13 @@ class Application {
            }
        }
     }
+#ifdef __EMSCRIPTEN__
+    // Register the ROM load handler now that controller is ready.
+    // This will flush any pending ROM loads (e.g. from startup flags or drag-drop).
+    yaze::app::wasm::SetRomLoadHandler([](std::string path) {
+      Application::Instance().LoadRom(path);
+    });
+#endif
   }
 
   void Tick() {
@@ -351,10 +358,7 @@ int main(int argc, char** argv) {
 #endif
 
 #ifdef __EMSCRIPTEN__
-  // Register the ROM load handler with the bootstrap layer
-  yaze::app::wasm::SetRomLoadHandler([](std::string path) {
-    Application::Instance().LoadRom(path);
-  });
+
 
   yaze::app::wasm::InitializeWasmPlatform();
   emscripten_set_main_loop(TickFrame, 0, 1);

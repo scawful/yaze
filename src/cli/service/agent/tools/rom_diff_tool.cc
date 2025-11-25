@@ -66,10 +66,10 @@ static const std::vector<MemoryRegion> kKnownRegions = {
 absl::Status RomDiffTool::Execute(Rom* /*rom*/,
                                   const resources::ArgumentParser& parser,
                                   resources::OutputFormatter& formatter) {
-  std::string rom1_path = parser.GetArg("rom1");
-  std::string rom2_path = parser.GetArg("rom2");
-  bool semantic = parser.HasArg("semantic");
-  std::string format = parser.GetArgWithDefault("format", "json");
+  std::string rom1_path = parser.GetString("rom1").value();
+  std::string rom2_path = parser.GetString("rom2").value();
+  bool semantic = parser.HasFlag("semantic");
+  std::string format = parser.GetString("format").value_or("json");
 
   // Load both ROMs
   Rom rom1, rom2;
@@ -279,9 +279,9 @@ std::string RomDiffTool::FormatAsText(const DiffSummary& summary) const {
 absl::Status RomChangesTool::Execute(Rom* /*rom*/,
                                      const resources::ArgumentParser& parser,
                                      resources::OutputFormatter& formatter) {
-  std::string rom1_path = parser.GetArg("rom1");
-  std::string rom2_path = parser.GetArg("rom2");
-  std::string format = parser.GetArgWithDefault("format", "json");
+  std::string rom1_path = parser.GetString("rom1").value();
+  std::string rom2_path = parser.GetString("rom2").value();
+  std::string format = parser.GetString("format").value_or("json");
 
   // Load both ROMs
   Rom rom1, rom2;

@@ -99,7 +99,8 @@ class RomValidateTool : public ValidationToolBase {
   absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
                        resources::OutputFormatter& formatter) override;
 
- private:
+ public:
+  // Validation methods (public for use by ValidateAllTool)
   std::vector<ValidationIssue> ValidateHeader(Rom* rom);
   std::vector<ValidationIssue> ValidateChecksum(Rom* rom);
   std::vector<ValidationIssue> ValidateSize(Rom* rom);
@@ -136,7 +137,8 @@ class DataValidateTool : public ValidationToolBase {
   absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
                        resources::OutputFormatter& formatter) override;
 
- private:
+ public:
+  // Validation methods (public for use by ValidateAllTool)
   std::vector<ValidationIssue> ValidateSprites(Rom* rom);
   std::vector<ValidationIssue> ValidateTiles(Rom* rom);
   std::vector<ValidationIssue> ValidatePalettes(Rom* rom);
