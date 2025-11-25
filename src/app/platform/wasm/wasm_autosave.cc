@@ -97,7 +97,7 @@ EM_JS(int, get_recovery_flag, (), {
   }
 });
 
-// C function exposed to JavaScript for emergency save
+// C functions exposed to JavaScript for emergency save and recovery
 extern "C" {
 EMSCRIPTEN_KEEPALIVE
 void yazeEmergencySave() {
@@ -105,6 +105,29 @@ void yazeEmergencySave() {
     AutoSaveManager::emergency_save_triggered_ = true;
     AutoSaveManager::Instance().EmergencySave();
   }
+}
+
+EMSCRIPTEN_KEEPALIVE
+int yazeRecoverSession() {
+  auto status = AutoSaveManager::Instance().RecoverLastSession();
+  if (status.ok()) {
+    emscripten_log(EM_LOG_INFO, "Session recovery successful");
+    return 1;
+  } else {
+    emscripten_log(EM_LOG_WARN, "Session recovery failed: %s",
+                   std::string(status.message()).c_str());
+    return 0;
+  }
+}
+
+EMSCRIPTEN_KEEPALIVE
+int yazeHasRecoveryData() {
+  return AutoSaveManager::Instance().HasRecoveryData() ? 1 : 0;
+}
+
+EMSCRIPTEN_KEEPALIVE
+void yazeClearRecoveryData() {
+  AutoSaveManager::Instance().ClearRecoveryData();
 }
 }
 
