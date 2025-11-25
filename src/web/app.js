@@ -63,6 +63,34 @@ var Module = {
   canvas: (function() {
     var canvas = document.getElementById('canvas');
     canvas.addEventListener("webglcontextlost", function(e) { alert('WebGL context lost. You will need to reload the page.'); e.preventDefault(); }, false);
+
+    // WORKAROUND: Ensure all mouse events have defined coordinates to prevent
+    // SAFE_HEAP assertion failures in Emscripten's SDL event handler.
+    // Some browser events can have undefined coordinates in edge cases.
+    ['mousemove', 'mousedown', 'mouseup', 'mouseenter', 'mouseleave', 'wheel'].forEach(function(eventType) {
+      canvas.addEventListener(eventType, function(e) {
+        // Validate and fix event coordinates before Emscripten sees them
+        if (typeof e.clientX !== 'number' || isNaN(e.clientX)) {
+          Object.defineProperty(e, 'clientX', { value: 0, writable: false });
+        }
+        if (typeof e.clientY !== 'number' || isNaN(e.clientY)) {
+          Object.defineProperty(e, 'clientY', { value: 0, writable: false });
+        }
+        if (typeof e.offsetX !== 'number' || isNaN(e.offsetX)) {
+          Object.defineProperty(e, 'offsetX', { value: 0, writable: false });
+        }
+        if (typeof e.offsetY !== 'number' || isNaN(e.offsetY)) {
+          Object.defineProperty(e, 'offsetY', { value: 0, writable: false });
+        }
+        if (typeof e.movementX !== 'number' || isNaN(e.movementX)) {
+          Object.defineProperty(e, 'movementX', { value: 0, writable: false });
+        }
+        if (typeof e.movementY !== 'number' || isNaN(e.movementY)) {
+          Object.defineProperty(e, 'movementY', { value: 0, writable: false });
+        }
+      }, true); // Use capture phase to run before Emscripten's handlers
+    });
+
     return canvas;
   })(),
   setStatus: function(text) {
@@ -258,14 +286,23 @@ window.resizeCanvasToContainer = function resizeCanvasToContainer() {
   var canvas = document.getElementById('canvas');
   var container = document.getElementById('canvas-container');
   if (!canvas || !container) return;
-  
+
   // Get container dimensions (already accounts for header and status bar via flexbox)
   var containerRect = container.getBoundingClientRect();
+
+  // Validate dimensions are defined and numeric
+  if (typeof containerRect.width !== 'number' || isNaN(containerRect.width) ||
+      typeof containerRect.height !== 'number' || isNaN(containerRect.height)) {
+    console.warn('[Resize] Invalid container dimensions, skipping');
+    return;
+  }
+
   var width = Math.floor(containerRect.width);
   var height = Math.floor(containerRect.height);
-  
-  if (width <= 0 || height <= 0) return; // Skip if container not visible
-  
+
+  // Skip if dimensions are invalid or container not visible
+  if (width <= 0 || height <= 0 || !isFinite(width) || !isFinite(height)) return;
+
   // Check if resize is actually needed
   // In fullscreen, force update to ensure GL context matches window
   if (!document.fullscreenElement && canvas.width === width && canvas.height === height) return;
@@ -275,19 +312,27 @@ window.resizeCanvasToContainer = function resizeCanvasToContainer() {
   canvas.height = height;
   canvas.style.width = width + 'px';
   canvas.style.height = height + 'px';
-  
-  // Notify Emscripten of the resize
+
+  // Notify Emscripten of the resize - ensure integers
   if (Module) {
     // Standard Emscripten resize hook
     if (typeof Module.setCanvasSize === 'function') {
-      Module.setCanvasSize(width, height);
+      try {
+        Module.setCanvasSize(width | 0, height | 0); // Ensure integer with bitwise OR
+      } catch (e) {
+        console.warn('[Resize] Module.setCanvasSize failed:', e);
+      }
     }
     // Internal helper if available
     if (typeof Module._emscripten_set_canvas_element_size === 'function') {
-      Module._emscripten_set_canvas_element_size('#canvas', width, height);
+      try {
+        Module._emscripten_set_canvas_element_size('#canvas', width | 0, height | 0);
+      } catch (e) {
+        console.warn('[Resize] _emscripten_set_canvas_element_size failed:', e);
+      }
     }
   }
-  
+
   // console.log('Canvas resized to:', width, 'x', height);
 }
 
@@ -296,7 +341,13 @@ const throttledResize = throttle(window.resizeCanvasToContainer, 100);
 const debouncedResize = debounce(window.resizeCanvasToContainer, 250);
 
 // Resize canvas on window resize
-window.addEventListener('resize', function() {
+window.addEventListener('resize', function(e) {
+  // Validate window dimensions before processing resize
+  if (typeof window.innerWidth !== 'number' || isNaN(window.innerWidth) ||
+      typeof window.innerHeight !== 'number' || isNaN(window.innerHeight)) {
+    console.warn('[Resize] Invalid window dimensions, skipping');
+    return;
+  }
   throttledResize();  // Immediate feedback
   debouncedResize();  // Final adjustment
 });

@@ -884,7 +884,7 @@
       // Resize canvas when panels open/close
       // Note: This delegates to app.js resizeCanvasToContainer if available
       function resizeCanvasToContainer() {
-        // Prefer the app.js version which has proper integer conversion
+        // Prefer the app.js version which has proper validation and integer conversion
         if (typeof window.resizeCanvasToContainer === 'function' &&
             window.resizeCanvasToContainer !== resizeCanvasToContainer) {
           return window.resizeCanvasToContainer();
@@ -894,16 +894,28 @@
         var container = document.getElementById('canvas-container');
         if (!canvas || !container) return;
 
-        // Get available space - MUST use Math.floor for WASM integer heap
+        // Get available space - validate and use Math.floor for WASM integer heap
         var rect = container.getBoundingClientRect();
+
+        // Validate dimensions are defined and numeric
+        if (typeof rect.width !== 'number' || isNaN(rect.width) ||
+            typeof rect.height !== 'number' || isNaN(rect.height)) {
+          return;
+        }
+
         var width = Math.floor(rect.width);
         var height = Math.floor(rect.height);
 
-        if (width <= 0 || height <= 0) return;
+        // Skip if dimensions are invalid
+        if (width <= 0 || height <= 0 || !isFinite(width) || !isFinite(height)) return;
 
-        // Notify Emscripten to resize if available
+        // Notify Emscripten to resize if available - ensure integers with bitwise OR
         if (typeof Module !== 'undefined' && Module.setCanvasSize) {
-          Module.setCanvasSize(width, height);
+          try {
+            Module.setCanvasSize(width | 0, height | 0);
+          } catch (e) {
+            console.warn('Module.setCanvasSize failed:', e);
+          }
         }
       }
 
