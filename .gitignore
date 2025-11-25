@@ -94,3 +94,6 @@ recent_files.txt
 .claude
 scripts/__pycache__/
 build_gemini
+scripts/ai/results/*.json
+scripts/ai/results/*.md
+scripts/ai/results/*.txt
