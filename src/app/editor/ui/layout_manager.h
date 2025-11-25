@@ -10,6 +10,27 @@
 namespace yaze {
 namespace editor {
 
+// Forward declaration
+class EditorCardRegistry;
+
+/**
+ * @enum LayoutType
+ * @brief Predefined layout types for different editor workflows
+ */
+enum class LayoutType {
+  kDefault,
+  kOverworld,
+  kDungeon,
+  kGraphics,
+  kPalette,
+  kScreen,
+  kMusic,
+  kSprite,
+  kMessage,
+  kAssembly,
+  kSettings
+};
+
 /**
  * @class LayoutManager
  * @brief Manages ImGui DockBuilder layouts for each editor type
@@ -23,11 +44,26 @@ namespace editor {
  * - Layout persistence and restoration
  * - Workspace presets (Developer, Designer, Modder)
  * - Dynamic layout initialization on first editor switch
+ * - Card registry integration for window title lookups
  */
 class LayoutManager {
  public:
   LayoutManager() = default;
   ~LayoutManager() = default;
+
+  /**
+   * @brief Set the card registry for window title lookups
+   * @param registry Pointer to the EditorCardRegistry
+   */
+  void SetCardRegistry(EditorCardRegistry* registry) {
+    card_registry_ = registry;
+  }
+
+  /**
+   * @brief Get the card registry
+   * @return Pointer to the EditorCardRegistry
+   */
+  EditorCardRegistry* card_registry() const { return card_registry_; }
 
   /**
    * @brief Initialize the default layout for a specific editor type
@@ -72,6 +108,39 @@ class LayoutManager {
    */
   void ClearInitializationFlags();
 
+  /**
+   * @brief Set the current layout type for rebuild
+   * @param type The layout type to set
+   */
+  void SetLayoutType(LayoutType type) { current_layout_type_ = type; }
+
+  /**
+   * @brief Get the current layout type
+   */
+  LayoutType GetLayoutType() const { return current_layout_type_; }
+
+  /**
+   * @brief Request a layout rebuild on next frame
+   */
+  void RequestRebuild() { rebuild_requested_ = true; }
+
+  /**
+   * @brief Check if rebuild was requested
+   */
+  bool IsRebuildRequested() const { return rebuild_requested_; }
+
+  /**
+   * @brief Clear rebuild request flag
+   */
+  void ClearRebuildRequest() { rebuild_requested_ = false; }
+
+  /**
+   * @brief Get window title for a card ID from registry
+   * @param card_id The card ID to look up
+   * @return Window title or empty string if not found
+   */
+  std::string GetWindowTitle(const std::string& card_id) const;
+
  private:
   // DockBuilder layout implementations for each editor type
   void BuildOverworldLayout(ImGuiID dockspace_id);
@@ -87,6 +156,15 @@ class LayoutManager {
 
   // Track which layouts have been initialized
   std::unordered_map<EditorType, bool> layouts_initialized_;
+
+  // Card registry for window title lookups
+  EditorCardRegistry* card_registry_ = nullptr;
+
+  // Current layout type
+  LayoutType current_layout_type_ = LayoutType::kDefault;
+
+  // Rebuild flag
+  bool rebuild_requested_ = false;
 };
 
 }  // namespace editor

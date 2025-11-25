@@ -23,16 +23,29 @@ class EditorCard;
  * organized by category, and controlled programmatically.
  */
 struct CardInfo {
-  std::string card_id;  // Unique identifier (e.g., "dungeon.room_selector")
+  std::string card_id;       // Unique identifier (e.g., "dungeon.room_selector")
   std::string display_name;  // Human-readable name (e.g., "Room Selector")
+  std::string window_title;  // ImGui window title for DockBuilder (e.g., " Rooms List")
   std::string icon;          // Material icon
-  std::string category;  // Category (e.g., "Dungeon", "Graphics", "Palette")
-  std::string shortcut_hint;      // Display hint (e.g., "Ctrl+Shift+R")
+  std::string category;      // Category (e.g., "Dungeon", "Graphics", "Palette")
+  std::string shortcut_hint; // Display hint (e.g., "Ctrl+Shift+R")
   bool* visibility_flag;          // Pointer to bool controlling visibility
   EditorCard* card_instance;      // Pointer to actual card (optional)
   std::function<void()> on_show;  // Callback when card is shown
   std::function<void()> on_hide;  // Callback when card is hidden
   int priority;                   // Display priority for menus (lower = higher)
+
+  /**
+   * @brief Get the effective window title for DockBuilder
+   * @return window_title if set, otherwise generates from icon + display_name
+   */
+  std::string GetWindowTitle() const {
+    if (!window_title.empty()) {
+      return window_title;
+    }
+    // Generate from icon + display_name if window_title not explicitly set
+    return icon + " " + display_name;
+  }
 };
 
 /**
@@ -287,6 +300,36 @@ class EditorCardRegistry {
       std::function<void()> on_collapse = nullptr);
 
   static constexpr float GetSidebarWidth() { return 48.0f; }
+  static constexpr float GetCollapsedSidebarWidth() { return 16.0f; }
+
+  /**
+   * @brief Check if sidebar is collapsed
+   */
+  bool IsSidebarCollapsed() const { return sidebar_collapsed_; }
+
+  /**
+   * @brief Set sidebar collapsed state
+   */
+  void SetSidebarCollapsed(bool collapsed) { sidebar_collapsed_ = collapsed; }
+
+  /**
+   * @brief Toggle sidebar collapsed state
+   */
+  void ToggleSidebarCollapsed() { sidebar_collapsed_ = !sidebar_collapsed_; }
+
+  // ============================================================================
+  // Utility Icon Callbacks (for sidebar quick access buttons)
+  // ============================================================================
+
+  void SetShowEmulatorCallback(std::function<void()> cb) {
+    on_show_emulator_ = std::move(cb);
+  }
+  void SetShowSettingsCallback(std::function<void()> cb) {
+    on_show_settings_ = std::move(cb);
+  }
+  void SetShowCardBrowserCallback(std::function<void()> cb) {
+    on_show_card_browser_ = std::move(cb);
+  }
 
   // ============================================================================
   // Compact Controls for Menu Bar
@@ -483,6 +526,14 @@ class EditorCardRegistry {
   std::string active_category_;
   std::vector<std::string> recent_categories_;
   static constexpr size_t kMaxRecentCategories = 5;
+
+  // Sidebar state
+  bool sidebar_collapsed_ = false;
+
+  // Utility icon callbacks
+  std::function<void()> on_show_emulator_;
+  std::function<void()> on_show_settings_;
+  std::function<void()> on_show_card_browser_;
 
   // Helper methods
   void UpdateSessionCount();

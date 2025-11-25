@@ -134,10 +134,8 @@ var Module = {
     try {
       console.log('[WASM] Runtime initialized successfully');
 
+      // Hide loading overlay - canvas is already visible
       if (loadingOverlay) loadingOverlay.style.display = 'none';
-
-      // Hide welcome screen and show canvas
-      if (typeof hideWelcomeScreen === 'function') hideWelcomeScreen();
 
       // Resize canvas to fill container
       resizeCanvasToContainer();
@@ -147,14 +145,13 @@ var Module = {
         throw new Error('Critical WASM function missing: LoadRomFromWeb');
       }
 
-      // Initialize terminal if available
-      if (typeof Z3edTerminal !== 'undefined') {
-        window.z3edTerminal = new Z3edTerminal('panel-terminal');
-        window.z3edTerminal.printInfo('z3ed Web Terminal ready. Type /help for commands.');
+      // Terminal auto-initializes via terminal.js - just print welcome if ready
+      if (window.z3edTerminal) {
+        window.z3edTerminal.printInfo('WASM ready. Type /help for commands.');
       }
 
       wasmReady = true;
-      initPersistentFS().catch((err) => {
+      FilesystemManager.initPersistentFS().catch((err) => {
         console.warn('Persistent FS init failed; continuing with in-memory FS only.', err);
       });
 
@@ -217,221 +214,12 @@ function waitForModule(cb) {
   }
 }
 
-function ensureFSReady(showAlert = true) {
-  if (fsReady && typeof FS !== 'undefined') return true;
-  if (fsInitPromise) {
-    console.warn('FS not ready yet; still initializing.');
-    if (showAlert) {
-      // Show a non-blocking status message instead of silent failure
-      var status = document.getElementById('header-status');
-      if (status) {
-        status.textContent = 'File system initializing... please wait';
-        status.style.color = '#ffaa00';
-        setTimeout(function() {
-          status.textContent = 'Ready';
-          status.style.color = '';
-        }, 3000);
-      }
-    }
-    return false;
-  }
-  if (showAlert) {
-    alert('WASM not ready yet. Please wait for the app to finish loading, then retry.');
-  }
-  return false;
-}
-
-// C++ calls this when it has finished mounting filesystems
-Module.onFileSystemReady = function() {
-  console.log('[WASM] C++ signaled FileSystem Ready');
-  fsReady = true;
-  if (fsInitPromise) {
-    // If we were waiting on JS init, resolve it now
-    // We can't easily resolve an external promise, but we can update state
-    // The polling in initPersistentFS will catch it or we can just let it be
-  }
-  
-  // Update UI if needed
-  var status = document.getElementById('header-status');
-  if (status && status.textContent.includes('initializing')) {
-    status.textContent = 'Ready';
-    status.style.color = '';
-  }
-};
-
-function initPersistentFS() {
-  if (fsInitPromise) return fsInitPromise;
-  fsInitPromise = new Promise((resolve, reject) => {
-    waitForModule(() => {
-      // If C++ already signaled ready, we are done
-      if (fsReady) {
-        resolve();
-        return;
-      }
-
-      if (typeof FS === 'undefined') {
-        fsInitAttempts++;
-        if (fsInitAttempts < 20) { // Increased retries
-          console.warn('FS unavailable; retrying...', fsInitAttempts);
-          fsInitPromise = null;
-          setTimeout(() => initPersistentFS().then(resolve).catch(reject), 100);
-          return;
-        }
-        reject(new Error('FS unavailable during init'));
-        return;
-      }
-
-      // Check if /roms already exists (C++ may have already set up the FS)
-      var romsExists = false;
-      try {
-        FS.stat('/roms');
-        romsExists = true;
-      } catch (e) {
-        // Directory doesn't exist
-      }
-
-      if (romsExists) {
-        // C++ already mounted IDBFS, just mark as ready
-        console.log('[WASM] FS already initialized by C++ runtime');
-        fsReady = true;
-        resolve();
-        return;
-      }
-      
-      // If we are here, C++ hasn't initialized FS yet, or we are responsible for it.
-      // In the new architecture, C++ (wasm_bootstrap.cc) handles MountFilesystems via EM_JS.
-      // So we should just wait for C++ to signal readiness via Module._SetFileSystemReady -> SetFileSystemReady -> (maybe callback to JS?)
-      
-      // Actually, wasm_bootstrap.cc calls SetFileSystemReady (C++) which logs.
-      // It doesn't explicitly call back into JS to set fsReady = true unless we bind it.
-      // But wait, `MountFilesystems` in `wasm_bootstrap.cc` calls `Module._SetFileSystemReady()`.
-      // We need to intercept that or have C++ call a JS function.
-      
-      // Let's rely on polling for now if we missed the event, or just wait.
-      // But better: let's try to mount if it looks like C++ failed or hasn't started.
-      
-      // Actually, `MountFilesystems` is an EM_JS function called by `InitializeWasmPlatform`.
-      // It should run early.
-      
-      console.log('[WASM] Waiting for C++ FS initialization...');
-      
-      // Poll for fsReady or /roms existence
-      var checkInterval = setInterval(() => {
-        if (fsReady) {
-          clearInterval(checkInterval);
-          resolve();
-          return;
-        }
-        
-        try {
-          FS.stat('/roms');
-          console.log('[WASM] Detected /roms, marking FS ready');
-          fsReady = true;
-          clearInterval(checkInterval);
-          resolve();
-        } catch(e) {
-          // Still waiting
-        }
-      }, 200);
-      
-      // Timeout after 10 seconds
-      setTimeout(() => {
-        if (!fsReady) {
-          clearInterval(checkInterval);
-          console.warn('[WASM] FS init timed out, forcing ready (might be MEMFS)');
-          fsReady = true; // Fallback
-          resolve();
-        }
-      }, 10000);
-    });
-  });
-  return fsInitPromise;
-}
-
 // ROM Upload Handling
 var romInput = document.getElementById('rom-input');
 if (romInput) {
   romInput.addEventListener('change', function(e) {
     var file = e.target.files[0];
-    if (!file) return;
-    if (!ensureFSReady()) return;
-    
-    var reader = new FileReader();
-    reader.onload = function(e) {
-      var data = new Uint8Array(e.target.result);
-      var filename = '/roms/' + file.name;
-      
-      try {
-        try { FS.mkdir('/roms'); } catch(e) {}
-        FS.writeFile(filename, data);
-        console.log("Wrote " + data.length + " bytes to " + filename);
-        
-        // Verify file was written correctly
-        try {
-          var stats = FS.stat(filename);
-          if (!stats) {
-            throw new Error("File write verification failed - stats is null");
-          }
-          if (stats.size !== data.length) {
-            throw new Error("File size mismatch: expected " + data.length + " bytes, got " + stats.size);
-          }
-          console.log("File verified: " + filename + " (" + stats.size + " bytes)");
-        } catch (verifyErr) {
-          console.error("File verification failed:", verifyErr);
-          alert("Failed to verify ROM file: " + verifyErr);
-          return;
-        }
-        
-        // Check if ccall is available, fallback to direct function call
-        try {
-          if (Module.ccall) {
-            var result = Module.ccall('LoadRomFromWeb', 'null', ['string'], [filename]);
-            console.log("LoadRomFromWeb called, result:", result);
-          } else if (Module._LoadRomFromWeb) {
-            // Use UTF8ToString to convert filename if needed
-            var filenamePtr = Module.stringToUTF8 ? Module.stringToUTF8(filename) : filename;
-            Module._LoadRomFromWeb(filenamePtr);
-            console.log("LoadRomFromWeb called via direct function");
-          } else {
-            console.error("LoadRomFromWeb function not available");
-            alert("ROM loading not ready yet. Please wait for the app to initialize.");
-            return;
-          }
-
-          // Persist to IndexedDB
-          if (fsReady) {
-            FS.syncfs(false, function(err) {
-              if (err) console.warn('FS sync (push) failed after ROM load:', err);
-            });
-          }
-        } catch (wasmErr) {
-          console.error("WASM error loading ROM:", wasmErr);
-          var errorMsg = "Failed to load ROM: ";
-          if (wasmErr.message) {
-            errorMsg += wasmErr.message;
-          } else if (wasmErr.toString) {
-            errorMsg += wasmErr.toString();
-          } else {
-            errorMsg += "Memory access error (ROM may be corrupted or invalid)";
-          }
-          alert(errorMsg);
-          // Try to get more details from the error
-          if (wasmErr.stack) {
-            console.error("Stack trace:", wasmErr.stack);
-          }
-        }
-      } catch (err) {
-        console.error("Error writing file:", err);
-        var errorMsg = "Failed to load ROM: ";
-        if (err.message) {
-          errorMsg += err.message;
-        } else {
-          errorMsg += err.toString();
-        }
-        alert(errorMsg);
-      }
-    };
-    reader.readAsArrayBuffer(file);
+    FilesystemManager.handleRomUpload(file);
   });
 }
 
@@ -513,13 +301,6 @@ window.addEventListener('resize', function() {
 });
 
 // UI Helpers
-function hideWelcomeScreen() {
-  var welcome = document.getElementById('welcome-screen');
-  if (welcome) welcome.style.display = 'none';
-  var canvas = document.getElementById('canvas');
-  if (canvas) canvas.style.display = 'block';
-}
-
 function showFatalError(title, message) {
   const statusEl = document.getElementById('status');
   const loadingOv = document.getElementById('loading-overlay');
@@ -566,65 +347,6 @@ function throttle(func, limit) {
 // Initial resize after a short delay to ensure layout is complete
 setTimeout(resizeCanvasToContainer, 100);
 
-// Save Download Handling
-window.downloadSaves = function() {
-  if (!ensureFSReady()) return;
-  
-  FS.syncfs(false, function(err) {
-    if (err) {
-      console.error("Sync failed:", err);
-      alert("Failed to sync saves: " + err);
-      return;
-    }
-    
-    try {
-      var files = FS.readdir('/saves');
-      var found = false;
-      
-      files.forEach(function(file) {
-        if (file === '.' || file === '..') return;
-        if (file.endsWith('.srm') || file.endsWith('.sav')) {
-          found = true;
-          var content = FS.readFile('/saves/' + file);
-          var blob = new Blob([content], {type: 'application/octet-stream'});
-          var url = URL.createObjectURL(blob);
-          
-          var a = document.createElement('a');
-          a.style.display = 'none';
-          a.href = url;
-          a.download = file;
-          document.body.appendChild(a);
-          a.click();
-          window.setTimeout(function() {
-            document.body.removeChild(a);
-            window.URL.revokeObjectURL(url);
-          }, 1000);
-        }
-      });
-      
-      if (!found) {
-        alert("No save files found in /saves");
-      }
-      
-    } catch (e) {
-      console.error("Error reading saves:", e);
-      alert("Error listing saves: " + e);
-    }
-  });
-};
-
-// Persist saves (can be called from WASM via ccall if needed)
-window.flushSaves = function() {
-  if (!ensureFSReady()) return;
-  FS.syncfs(false, function(err) {
-    if (err) {
-      console.warn('Failed to sync saves:', err);
-    } else {
-      console.log('Saves synced to persistent storage.');
-    }
-  });
-};
-
 
 // Service Worker & PWA Logic
 const ServiceWorkerManager = {
@@ -640,14 +362,23 @@ const ServiceWorkerManager = {
       return;
     }
 
+    // Check if we're already in a reload cycle (prevents infinite loops)
+    if (sessionStorage.getItem('sw_update_reloading')) {
+      console.log('[PWA] Already reloading for update - clearing flag');
+      sessionStorage.removeItem('sw_update_reloading');
+      this.updatePending = false;
+      this.newWorker = null;
+      return;
+    }
+
     // Check for reload loop
     const now = Date.now();
     if (now - this.reloadTimestamp < 5000) { // 5 seconds
       this.reloadCount++;
       if (this.reloadCount >= this.maxReloads) {
         console.error('[PWA] Too many reloads, aborting update');
-        alert('Service worker update failed. Please reload manually.');
         this.updatePending = false;
+        this.newWorker = null;
         return;
       }
     } else {
@@ -657,21 +388,21 @@ const ServiceWorkerManager = {
     this.reloadTimestamp = now;
     this.updatePending = false;
 
+    // Set flag before reload to detect loops
+    sessionStorage.setItem('sw_update_reloading', 'true');
     console.log('[PWA] Reloading for service worker update');
     window.location.reload();
   },
 
   requestUpdate: function(newWorker) {
+    // Prevent double-trigger
+    if (this.updatePending) {
+      console.log('[PWA] Update already pending - ignoring');
+      return;
+    }
     this.updatePending = true;
     newWorker.postMessage({ type: 'SKIP_WAITING' });
-
-    // Auto-reload after 2 seconds if user doesn't dismiss
-    setTimeout(() => {
-      if (this.updatePending) {
-        console.log('[PWA] Auto-reloading for update');
-        this.handleControllerChange();
-      }
-    }, 2000);
+    // Note: Removed auto-reload timer - controllerchange event handles reload
   }
 };
 
@@ -748,6 +479,10 @@ window.updateServiceWorker = function() {
 window.dismissUpdate = function() {
   var notif = document.getElementById('update-notification');
   if (notif) notif.classList.remove('show');
+  // Properly cancel the update - reset state to prevent auto-reload
+  ServiceWorkerManager.updatePending = false;
+  ServiceWorkerManager.newWorker = null;
+  console.log('[PWA] Update dismissed by user');
 };
 
 // Touch Mode (simplified)
@@ -864,15 +599,8 @@ window.toggleCollabConsole = function() {
 
 // Event Listeners for Terminal UI
 document.addEventListener('DOMContentLoaded', function() {
-  var input = document.getElementById('terminal-input');
-  if (input) {
-    input.addEventListener('keydown', function(e) {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        submitTerminalCommand();
-      }
-    });
-  }
+  // Note: Enter key handling is done by terminal.js Z3edTerminal class
+  // Removed duplicate listener to avoid conflicts
 
   // Terminal resize handle
   var handle = document.getElementById('terminal-resize-handle');
@@ -931,3 +659,34 @@ document.addEventListener('DOMContentLoaded', function() {
     tryInit();
   }
 })();
+
+// Initialize Debug API wrapper
+window.yazeDebug = window.yazeDebug || {};
+
+// Add switchToEditor wrapper
+window.yazeDebug.switchToEditor = function(name) {
+  if (window.Module && window.Module.switchToEditor) {
+    try {
+      var result = window.Module.switchToEditor(name);
+      console.log('[yazeDebug] switchToEditor result:', result);
+      return JSON.parse(result);
+    } catch(e) {
+      console.error('[yazeDebug] switchToEditor failed:', e);
+      return { error: e.toString() };
+    }
+  }
+  console.warn('[yazeDebug] Module.switchToEditor not available');
+  return { error: "Module not ready" };
+};
+
+// Add setAgentMode wrapper (using executeCommand)
+window.yazeDebug.setAgentMode = function(enabled) {
+  if (window.Module && window.Module.executeCommand) {
+    // We don't have a direct C++ binding for SetAgentMode yet, 
+    // but we can try to use executeCommand if we add a CLI command for it.
+    // For now, we'll just log.
+    console.warn('[yazeDebug] setAgentMode not implemented yet');
+    return { error: "Not implemented" };
+  }
+  return { error: "Module not ready" };
+};

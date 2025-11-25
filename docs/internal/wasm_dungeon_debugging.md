@@ -1,6 +1,10 @@
 ### 🛠️ WASM Debugging Guide: Dungeon Editor
 
+**Status:** Current (November 2025)
+
 The WASM build includes a powerful, hidden "Debug Inspector" that bypasses the need for GDB/LLDB by exposing C++ state directly to the browser console.
+
+**Cross-Reference:** For comprehensive debug API reference, see `wasm-debug-infrastructure.md`.
 
 #### 1. The "God Mode" Console Inspector
 The file `src/web/yaze_debug_inspector.cc` binds C++ functions to the global `Module` object. You can invoke these directly from Chrome/Firefox DevTools.

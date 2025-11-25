@@ -1,5 +1,8 @@
 # Debugging WASM Memory Access Errors
 
+**Status:** Current Technical Reference (November 2025)
+**Purpose:** Practical debugging techniques for WASM memory issues
+
 ## Quick Methods to Find Out-of-Bounds Accesses
 
 ### Method 1: Enable Emscripten SAFE_HEAP (Easiest)

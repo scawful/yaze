@@ -1,8 +1,9 @@
 # WASM Development Guide
 
-**Status:** Active  
-**Last Updated:** 2025-01-XX  
-**For:** AI agents working on the YAZE web port
+**Status:** Active
+**Last Updated:** 2025-11-24
+**Purpose:** Technical reference for building, debugging, and deploying WASM builds
+**Audience:** AI agents and developers working on the YAZE web port
 
 ## Quick Start
 
@@ -128,6 +129,28 @@ These steps get Gemini (via the Antigravity browser extension) attached to your 
 - Check network tab to see if Google Fonts is loading
 - Icons use Material Symbols from CDN - ensure internet connection
 
+### ROM Loading Fails Silently
+**Symptom:** ROM file is dropped/selected but nothing happens
+
+**Solution:**
+1. Check browser console for errors
+2. Verify ROM file size is valid (Zelda 3 ROMs are ~1MB)
+3. Check if `Module.ccall` or `Module._LoadRomFromWeb` exists:
+   ```js
+   console.log(typeof Module.ccall);
+   console.log(typeof Module._LoadRomFromWeb);
+   ```
+4. If functions are missing, verify `EXPORTED_FUNCTIONS` in `app.cmake` includes them
+5. Check `FilesystemManager.ready` is `true` before loading
+
+### Module Initialization Fails
+**Symptom:** `createYazeModule is not defined` or similar errors
+
+**Solution:**
+- Verify `MODULARIZE=1` and `EXPORT_NAME='createYazeModule'` are in `app.cmake`
+- Check that `yaze.js` is loaded before `app.js` tries to call `createYazeModule()`
+- Look for JavaScript errors in console during page load
+
 ### Directory Listing Instead of App
 **Symptom:** Browser shows file list instead of the app
 
@@ -153,11 +176,54 @@ build-wasm/
 
 ## Key Files
 
+**Build Configuration & Scripts:**
 - **`CMakePresets.json`** - Build configurations (`wasm-debug`, `wasm-release`)
+- **`src/app/app.cmake`** - WASM linker flags (EXPORTED_FUNCTIONS, MODULARIZE, etc.)
 - **`scripts/build-wasm.sh`** - Full build and packaging script
 - **`scripts/serve-wasm.sh`** - Local development server
+
+**Web Assets:**
 - **`src/web/shell.html`** - HTML shell template
+- **`src/web/app.js`** - Main UI logic, module initialization
+- **`src/web/core/`** - Core JavaScript functionality (agent automation, control APIs)
+- **`src/web/components/`** - UI components (terminal, collaboration, etc.)
+- **`src/web/styles/`** - Stylesheets and theme definitions
+- **`src/web/pwa/`** - Progressive Web App files (service worker, manifest)
+- **`src/web/debug/`** - Debug and development utilities
+
+**C++ Platform Layer:**
+- **`src/app/platform/wasm/wasm_control_api.cc`** - Control API implementation (JS interop)
+- **`src/app/platform/wasm/wasm_control_api.h`** - Control API declarations
+- **`src/app/platform/wasm/wasm_session_bridge.cc`** - Session/collaboration bridge
+- **`src/app/platform/wasm/wasm_drop_handler.cc`** - File drop handler
+- **`src/app/platform/wasm/wasm_loading_manager.cc`** - Loading progress UI
+
+**CI/CD:**
 - **`.github/workflows/web-build.yml`** - CI/CD for GitHub Pages
+
+## CMake WASM Configuration
+
+The WASM build uses specific Emscripten flags in `src/app/app.cmake`:
+
+```cmake
+# Key flags for WASM build
+-s MODULARIZE=1                    # Allows async initialization via createYazeModule()
+-s EXPORT_NAME='createYazeModule'  # Function name for module factory
+-s EXPORTED_RUNTIME_METHODS='[...]' # Runtime methods available in JS
+-s EXPORTED_FUNCTIONS='[...]'       # C functions callable from JS
+```
+
+**Important Exports:**
+- `_main`, `_SetFileSystemReady`, `_LoadRomFromWeb` - Core functions
+- `_yazeHandleDroppedFile`, `_yazeHandleDropError` - Drag & drop handlers
+- `_yazeHandleDragEnter`, `_yazeHandleDragLeave` - Drag state tracking
+- `_malloc`, `_free` - Memory allocation for JS interop
+
+**Runtime Methods:**
+- `ccall`, `cwrap` - Function calling
+- `stringToUTF8`, `UTF8ToString`, `lengthBytesUTF8` - String conversion
+- `FS`, `IDBFS` - Filesystem access
+- `allocateUTF8` - String allocation helper
 
 ## Debugging Tips
 
@@ -219,6 +285,45 @@ The workflow (`.github/workflows/web-build.yml`) automatically:
 - Preparing for deployment
 - CI/CD builds
 - Production releases
+
+## JavaScript APIs
+
+The WASM build exposes JavaScript APIs for programmatic control and debugging. These are available after the module initializes.
+
+### API Documentation
+
+**For detailed API reference documentation:**
+- **Control & GUI APIs** - See `docs/internal/wasm-yazeDebug-api-reference.md` for `window.yaze.*` API documentation
+  - `window.yaze.editor` - Query editor state and selection
+  - `window.yaze.data` - Read-only ROM data access
+  - `window.yaze.gui` - GUI element discovery and automation
+  - `window.yaze.control` - Programmatic editor control
+- **Debug APIs** - See `docs/internal/wasm-yazeDebug-api-reference.md` for `window.yazeDebug.*` API documentation
+  - ROM reading, graphics diagnostics, arena status, emulator state
+  - Palette inspection, timeline analysis
+  - AI-formatted state dumps for Gemini/Antigravity debugging
+
+### Quick API Check
+
+To verify APIs are available in the browser console:
+
+```javascript
+// Check if module is ready
+window.yazeDebug.isReady()
+
+// Get ROM status
+window.yazeDebug.rom.getStatus()
+
+// Get formatted state for AI
+window.yazeDebug.formatForAI()
+```
+
+### Gemini/Antigravity Debugging
+
+For AI-assisted debugging workflows using the Antigravity browser extension, see [`docs/internal/agents/wasm-antigravity-playbook.md`](./wasm-antigravity-playbook.md) for detailed instructions on:
+- Connecting Gemini to your local WASM build
+- Using debug APIs with AI agents
+- Common debugging workflows and examples
 
 ## Additional Resources
 

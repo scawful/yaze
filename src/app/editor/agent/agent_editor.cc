@@ -179,13 +179,11 @@ void AgentEditor::DrawDashboard() {
   // Pulsing glow for window
   float pulse = 0.5f + 0.5f * std::sin(pulse_animation_);
   // Apply theme primary color with pulsing effect
-const auto& theme = yaze::gui::style::DefaultTheme();
-ImGui::PushStyleColor(ImGuiCol_TitleBgActive,
-    ImVec4(theme.primary.x + 0.1f * pulse,
-            theme.primary.y + 0.15f * pulse,
-            theme.primary.z + 0.2f * pulse,
-            1.0f));
-ImGui::PopStyleColor();
+  const auto& theme = yaze::gui::style::DefaultTheme();
+  ImGui::PushStyleColor(ImGuiCol_TitleBgActive,
+                        ImVec4(theme.primary.x + 0.1f * pulse,
+                               theme.primary.y + 0.15f * pulse,
+                               theme.primary.z + 0.2f * pulse, 1.0f));
 
   ImGui::SetNextWindowSize(ImVec2(1200, 800), ImGuiCond_FirstUseEver);
   ImGui::Begin(ICON_MD_SMART_TOY " AI AGENT PLATFORM [v0.4.x]", &active_,
@@ -342,9 +340,7 @@ ImGui::PopStyleColor();
   }
 
   ImGui::End();
-
-  // Pop the TitleBgActive color pushed at the beginning of DrawDashboard
-  ImGui::PopStyleColor();
+  ImGui::PopStyleColor();  // Pop TitleBgActive pushed at start of DrawDashboard
 }
 
 void AgentEditor::DrawConfigurationPanel() {

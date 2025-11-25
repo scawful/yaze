@@ -70,24 +70,28 @@ void MessageEditor::Initialize() {
 
   card_registry->RegisterCard({.card_id = MakeCardId("message.message_list"),
                                .display_name = "Message List",
+                               .window_title = " Message List",
                                .icon = ICON_MD_LIST,
                                .category = "Message",
                                .priority = 10});
 
   card_registry->RegisterCard({.card_id = MakeCardId("message.message_editor"),
                                .display_name = "Message Editor",
+                               .window_title = " Message Editor",
                                .icon = ICON_MD_EDIT,
                                .category = "Message",
                                .priority = 20});
 
   card_registry->RegisterCard({.card_id = MakeCardId("message.font_atlas"),
                                .display_name = "Font Atlas",
+                               .window_title = " Font Atlas",
                                .icon = ICON_MD_FONT_DOWNLOAD,
                                .category = "Message",
                                .priority = 30});
 
   card_registry->RegisterCard({.card_id = MakeCardId("message.dictionary"),
                                .display_name = "Dictionary",
+                               .window_title = " Dictionary",
                                .icon = ICON_MD_BOOK,
                                .category = "Message",
                                .priority = 40});

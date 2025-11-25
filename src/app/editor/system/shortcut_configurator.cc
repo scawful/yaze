@@ -2,6 +2,7 @@
 
 #include "absl/functional/bind_front.h"
 #include "absl/strings/str_format.h"
+#include "absl/strings/str_split.h"
 #include "app/editor/editor_manager.h"
 #include "app/editor/system/editor_card_registry.h"
 #include "app/editor/system/menu_orchestrator.h"
@@ -10,6 +11,7 @@
 #include "app/editor/system/rom_file_manager.h"
 #include "app/editor/system/session_coordinator.h"
 #include "app/editor/system/toast_manager.h"
+#include "app/editor/system/user_settings.h"
 #include "app/editor/ui/ui_coordinator.h"
 #include "app/editor/ui/workspace_manager.h"
 #include "core/project.h"
@@ -335,6 +337,114 @@ void ConfigureMenuShortcuts(const ShortcutDependencies& deps,
                     }
                   });
 #endif
+}
+
+namespace {
+
+// Helper to parse shortcut strings like "Ctrl+Shift+R" into ImGuiKey combinations
+std::vector<ImGuiKey> ParseShortcutString(const std::string& shortcut) {
+  std::vector<ImGuiKey> keys;
+  if (shortcut.empty()) {
+    return keys;
+  }
+
+  std::vector<std::string> parts = absl::StrSplit(shortcut, '+');
+  
+  for (const auto& part : parts) {
+    std::string trimmed = part;
+    // Trim whitespace
+    while (!trimmed.empty() && (trimmed.front() == ' ' || trimmed.front() == '\t')) {
+      trimmed = trimmed.substr(1);
+    }
+    while (!trimmed.empty() && (trimmed.back() == ' ' || trimmed.back() == '\t')) {
+      trimmed.pop_back();
+    }
+    
+    if (trimmed.empty()) continue;
+    
+    // Modifiers
+    if (trimmed == "Ctrl" || trimmed == "Control") {
+      keys.push_back(ImGuiMod_Ctrl);
+    } else if (trimmed == "Shift") {
+      keys.push_back(ImGuiMod_Shift);
+    } else if (trimmed == "Alt") {
+      keys.push_back(ImGuiMod_Alt);
+    } else if (trimmed == "Super" || trimmed == "Win" || trimmed == "Cmd") {
+      keys.push_back(ImGuiMod_Super);
+    }
+    // Letter keys
+    else if (trimmed.length() == 1 && trimmed[0] >= 'A' && trimmed[0] <= 'Z') {
+      keys.push_back(static_cast<ImGuiKey>(ImGuiKey_A + (trimmed[0] - 'A')));
+    }
+    else if (trimmed.length() == 1 && trimmed[0] >= 'a' && trimmed[0] <= 'z') {
+      keys.push_back(static_cast<ImGuiKey>(ImGuiKey_A + (trimmed[0] - 'a')));
+    }
+    // Number keys
+    else if (trimmed.length() == 1 && trimmed[0] >= '0' && trimmed[0] <= '9') {
+      keys.push_back(static_cast<ImGuiKey>(ImGuiKey_0 + (trimmed[0] - '0')));
+    }
+    // Function keys
+    else if (trimmed[0] == 'F' && trimmed.length() >= 2) {
+      int fnum = std::stoi(trimmed.substr(1));
+      if (fnum >= 1 && fnum <= 12) {
+        keys.push_back(static_cast<ImGuiKey>(ImGuiKey_F1 + (fnum - 1)));
+      }
+    }
+  }
+  
+  return keys;
+}
+
+}  // namespace
+
+void ConfigureCardShortcuts(const ShortcutDependencies& deps,
+                            ShortcutManager* shortcut_manager) {
+  if (!shortcut_manager || !deps.card_registry) {
+    return;
+  }
+
+  auto* card_registry = deps.card_registry;
+  auto* user_settings = deps.user_settings;
+
+  // Get all categories and cards
+  auto categories = card_registry->GetAllCategories();
+
+  for (const auto& category : categories) {
+    auto cards = card_registry->GetCardsInCategory(0, category);
+
+    for (const auto& card : cards) {
+      std::string shortcut_string;
+
+      // Check for user-defined shortcut first
+      if (user_settings) {
+        auto it = user_settings->prefs().card_shortcuts.find(card.card_id);
+        if (it != user_settings->prefs().card_shortcuts.end()) {
+          shortcut_string = it->second;
+        }
+      }
+
+      // Fall back to default shortcut_hint
+      if (shortcut_string.empty() && !card.shortcut_hint.empty()) {
+        shortcut_string = card.shortcut_hint;
+      }
+
+      // If we have a shortcut, parse and register it
+      if (!shortcut_string.empty()) {
+        auto keys = ParseShortcutString(shortcut_string);
+        if (!keys.empty()) {
+          std::string card_id_copy = card.card_id;
+          RegisterIfValid(
+              shortcut_manager, 
+              absl::StrFormat("card.%s", card.card_id),
+              keys,
+              [card_registry, card_id_copy]() {
+                // Use session_id 0 for global card toggle
+                card_registry->ToggleCard(0, card_id_copy);
+              });
+        }
+      }
+    }
+  }
 }
 
 }  // namespace yaze::editor

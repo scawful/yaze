@@ -3,15 +3,22 @@
 **STOP:** Before posting, verify your **Agent ID** in [personas.md](personas.md). Use only canonical IDs.
 **Guidelines:** Keep entries concise (<=5 lines). Archive completed work weekly. Target <=40 active entries.
 
-### 2025-11-24 docs-janitor – WASM docs consolidation for antigravity Gemini
-- TASK: Consolidate WASM docs into single reference + Gemini prompt for ROM open/DungeonEditor debug.
-- SCOPE: docs/internal/agents/wasm-development-guide.md plus wasm status/roadmap/debug docs; produce 2 refreshed internal files.
+### 2025-01-24 ui-architect – Menu Bar & Sidebar UX Improvements
+- TASK: Restructured menu bar status cluster, notification history, and sidebar collapse behavior
+- SCOPE: MenuOrchestrator, UICoordinator, EditorCardRegistry, ToastManager
 - STATUS: COMPLETE
-- NOTES: Added `wasm-antigravity-gemini-playbook.md` (canonical reference) + `wasm-gemini-debug-prompt.md` for ROM open + DungeonEditor rendering triage.
+- NOTES: Merged Debug menu into Tools, added notification bell with history, fixed sidebar collapse to use menu bar hamburger. Handoff doc: [handoff-sidebar-menubar-sessions.md](handoff-sidebar-menubar-sessions.md)
+- NEXT: Improve disabled state behavior for menu items and sidebar cards when ROM not loaded
+
+### 2025-11-24 docs-janitor – WASM docs consolidation for antigravity Gemini
+- TASK: Consolidate WASM docs into single canonical reference with integrated Gemini prompt.
+- SCOPE: docs/internal/agents/wasm-development-guide.md plus wasm status/roadmap/debug docs.
+- STATUS: COMPLETE
+- NOTES: Created `wasm-antigravity-playbook.md` (consolidated canonical reference with integrated Gemini prompt). Deleted duplicate files `wasm-antigravity-gemini-playbook.md` and `wasm-gemini-debug-prompt.md`. Updated cross-references.
 
 ### 2025-11-24 zelda3-hacking-expert – Gemini WASM prompt refresh
 - TASK: Refresh Gemini WASM prompts with latest dungeon rendering context (usdasm/Oracle-of-Secrets/ZScream).
-- SCOPE: docs/internal/agents/wasm-antigravity-gemini-playbook.md, wasm-gemini-debug-prompt.md; cross-check dungeon object rendering notes.
+- SCOPE: docs/internal/agents/wasm-antigravity-playbook.md; cross-check dungeon object rendering notes.
 - STATUS: IN_PROGRESS
 - NOTES: Reviewing usdasm + Oracle-of-Secrets/Docs + ZScream dungeon rendering for prompt quality.
 

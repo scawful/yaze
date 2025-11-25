@@ -28,7 +28,7 @@ set(YAZE_APP_EXECUTABLE_SRC
 )
 
 if(EMSCRIPTEN)
-  list(APPEND YAZE_APP_EXECUTABLE_SRC web/yaze_debug_inspector.cc)
+  list(APPEND YAZE_APP_EXECUTABLE_SRC web/debug/yaze_debug_inspector.cc)
 endif()
 
 if (APPLE)
@@ -109,8 +109,10 @@ endif()
 if(EMSCRIPTEN)
   # Export functions for web interface (only in yaze, not yaze_emu)
   # Use set_target_properties with LINK_FLAGS (similar to z3ed.cmake)
+  # Note: Functions marked with EMSCRIPTEN_KEEPALIVE must also be listed here
+  # MODULARIZE=1 allows async initialization via createYazeModule()
   set_target_properties(yaze PROPERTIES
-    LINK_FLAGS "--bind -s EXPORTED_RUNTIME_METHODS='[\"ccall\",\"cwrap\",\"stringToUTF8\",\"UTF8ToString\",\"FS\"]' -s EXPORTED_FUNCTIONS='[\"_main\",\"_SetFileSystemReady\",\"_LoadRomFromWeb\"]' --shell-file ${CMAKE_SOURCE_DIR}/src/web/shell.html"
+    LINK_FLAGS "--bind -s MODULARIZE=1 -s EXPORT_NAME='createYazeModule' -s EXPORTED_RUNTIME_METHODS='[\"ccall\",\"cwrap\",\"stringToUTF8\",\"UTF8ToString\",\"lengthBytesUTF8\",\"FS\",\"IDBFS\",\"allocateUTF8\"]' -s EXPORTED_FUNCTIONS='[\"_main\",\"_SetFileSystemReady\",\"_LoadRomFromWeb\",\"_yazeHandleDroppedFile\",\"_yazeHandleDropError\",\"_yazeHandleDragEnter\",\"_yazeHandleDragLeave\",\"_malloc\",\"_free\"]' --shell-file ${CMAKE_SOURCE_DIR}/src/web/shell.html"
   )
   add_custom_command(TARGET yaze POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different

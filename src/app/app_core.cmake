@@ -71,6 +71,10 @@ if (EMSCRIPTEN)
     app/platform/wasm/wasm_message_queue.cc
     # WASM Bootstrap (Platform Init)
     app/platform/wasm/wasm_bootstrap.cc
+    # WASM Control API for editor/UI control from browser
+    app/platform/wasm/wasm_control_api.cc
+    # WASM Session Bridge for z3ed integration
+    app/platform/wasm/wasm_session_bridge.cc
   )
 endif()
 
@@ -201,33 +205,33 @@ endif()
 if(EMSCRIPTEN)
   # Copy JavaScript and CSS files for loading indicators
   configure_file(
-    ${CMAKE_SOURCE_DIR}/src/web/loading_indicator.js
+    ${CMAKE_SOURCE_DIR}/src/web/core/loading_indicator.js
     ${CMAKE_BINARY_DIR}/loading_indicator.js
     COPYONLY
   )
   configure_file(
-    ${CMAKE_SOURCE_DIR}/src/web/loading_indicator.css
+    ${CMAKE_SOURCE_DIR}/src/web/styles/loading_indicator.css
     ${CMAKE_BINARY_DIR}/loading_indicator.css
     COPYONLY
   )
   configure_file(
-    ${CMAKE_SOURCE_DIR}/src/web/error_handler.js
+    ${CMAKE_SOURCE_DIR}/src/web/core/error_handler.js
     ${CMAKE_BINARY_DIR}/error_handler.js
     COPYONLY
   )
   configure_file(
-    ${CMAKE_SOURCE_DIR}/src/web/error_handler.css
+    ${CMAKE_SOURCE_DIR}/src/web/styles/error_handler.css
     ${CMAKE_BINARY_DIR}/error_handler.css
     COPYONLY
   )
   # Copy drag and drop zone resources
   configure_file(
-    ${CMAKE_SOURCE_DIR}/src/web/drop_zone.js
+    ${CMAKE_SOURCE_DIR}/src/web/components/drop_zone.js
     ${CMAKE_BINARY_DIR}/drop_zone.js
     COPYONLY
   )
   configure_file(
-    ${CMAKE_SOURCE_DIR}/src/web/drop_zone.css
+    ${CMAKE_SOURCE_DIR}/src/web/styles/drop_zone.css
     ${CMAKE_BINARY_DIR}/drop_zone.css
     COPYONLY
   )

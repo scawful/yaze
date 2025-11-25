@@ -20,18 +20,21 @@ void MusicEditor::Initialize() {
 
   card_registry->RegisterCard({.card_id = "music.tracker",
                                .display_name = "Music Tracker",
+                               .window_title = " Music Tracker",
                                .icon = ICON_MD_MUSIC_NOTE,
                                .category = "Music",
                                .shortcut_hint = "Ctrl+Shift+M",
                                .priority = 10});
   card_registry->RegisterCard({.card_id = "music.instrument_editor",
                                .display_name = "Instrument Editor",
+                               .window_title = " Instrument Editor",
                                .icon = ICON_MD_PIANO,
                                .category = "Music",
                                .shortcut_hint = "Ctrl+Shift+I",
                                .priority = 20});
   card_registry->RegisterCard({.card_id = "music.assembly",
                                .display_name = "Assembly View",
+                               .window_title = " Music Assembly",
                                .icon = ICON_MD_CODE,
                                .category = "Music",
                                .shortcut_hint = "Ctrl+Shift+A",

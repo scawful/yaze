@@ -183,12 +183,14 @@ void AssemblyEditor::Initialize() {
   auto* card_registry = dependencies_.card_registry;
   card_registry->RegisterCard({.card_id = "assembly.editor",
                                .display_name = "Assembly Editor",
+                               .window_title = " Assembly Editor",
                                .icon = ICON_MD_CODE,
                                .category = "Assembly",
                                .shortcut_hint = "",
                                .priority = 10});
   card_registry->RegisterCard({.card_id = "assembly.file_browser",
                                .display_name = "File Browser",
+                               .window_title = " File Browser",
                                .icon = ICON_MD_FOLDER_OPEN,
                                .category = "Assembly",
                                .shortcut_hint = "",

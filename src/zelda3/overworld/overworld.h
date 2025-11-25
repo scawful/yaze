@@ -282,6 +282,8 @@ class Overworld {
   auto expanded_tile16() const { return expanded_tile16_; }
   auto expanded_tile32() const { return expanded_tile32_; }
   auto expanded_entrances() const { return expanded_entrances_; }
+  int current_map_id() const { return current_map_; }
+  int current_world() const { return current_world_; }
   void set_current_map(int i) { current_map_ = i; }
   void set_current_world(int world) { current_world_ = world; }
   uint16_t GetTile(int x, int y) const {

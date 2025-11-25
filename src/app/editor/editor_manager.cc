@@ -9,6 +9,10 @@
 #include <string>
 #include <vector>
 
+#ifdef __EMSCRIPTEN__
+#include "app/platform/wasm/wasm_loading_manager.h"
+#endif
+
 #define IMGUI_DEFINE_MATH_OPERATORS
 
 #include "absl/status/status.h"
@@ -76,6 +80,11 @@
 #include "util/macro.h"
 #include "yaze_config.h"
 
+#ifdef __EMSCRIPTEN__
+#include "app/platform/wasm/wasm_control_api.h"
+#include "app/platform/wasm/wasm_session_bridge.h"
+#endif
+
 namespace yaze {
 namespace editor {
 
@@ -111,6 +120,15 @@ void EditorManager::HideCurrentEditorCards() {
 void EditorManager::ShowHexEditor() {
   // Using EditorCardRegistry directly
   card_registry_.ShowCard("memory.hex_editor");
+}
+
+void EditorManager::ResetWorkspaceLayout() {
+  // Clear all layout initialization flags and request rebuild
+  if (layout_manager_) {
+    layout_manager_->ClearInitializationFlags();
+    layout_manager_->RequestRebuild();
+  }
+  LOG_INFO("EditorManager", "Workspace layout reset - will rebuild on next editor switch");
 }
 
 #ifdef YAZE_WITH_GRPC
@@ -176,6 +194,9 @@ EditorManager::EditorManager()
   menu_orchestrator_ = std::make_unique<MenuOrchestrator>(
       this, menu_builder_, rom_file_manager_, project_manager_,
       editor_registry_, *session_coordinator_, toast_manager_, *popup_manager_);
+  
+  // Wire up card registry for Cards submenu in View menu
+  menu_orchestrator_->SetCardRegistry(&card_registry_);
 
   session_coordinator_->SetEditorManager(this);
 
@@ -261,51 +282,61 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
   // Using EditorCardRegistry directly
   card_registry_.RegisterCard({.card_id = "emulator.cpu_debugger",
                                .display_name = "CPU Debugger",
+                               .window_title = " CPU Debugger",
                                .icon = ICON_MD_BUG_REPORT,
                                .category = "Emulator",
                                .priority = 10});
   card_registry_.RegisterCard({.card_id = "emulator.ppu_viewer",
                                .display_name = "PPU Viewer",
+                               .window_title = " PPU Viewer",
                                .icon = ICON_MD_VIDEOGAME_ASSET,
                                .category = "Emulator",
                                .priority = 20});
   card_registry_.RegisterCard({.card_id = "emulator.memory_viewer",
                                .display_name = "Memory Viewer",
+                               .window_title = " Memory Viewer",
                                .icon = ICON_MD_MEMORY,
                                .category = "Emulator",
                                .priority = 30});
   card_registry_.RegisterCard({.card_id = "emulator.breakpoints",
                                .display_name = "Breakpoints",
+                               .window_title = " Breakpoints",
                                .icon = ICON_MD_STOP,
                                .category = "Emulator",
                                .priority = 40});
   card_registry_.RegisterCard({.card_id = "emulator.performance",
                                .display_name = "Performance",
+                               .window_title = " Performance",
                                .icon = ICON_MD_SPEED,
                                .category = "Emulator",
                                .priority = 50});
   card_registry_.RegisterCard({.card_id = "emulator.ai_agent",
                                .display_name = "AI Agent",
+                               .window_title = " AI Agent",
                                .icon = ICON_MD_SMART_TOY,
                                .category = "Emulator",
                                .priority = 60});
   card_registry_.RegisterCard({.card_id = "emulator.save_states",
                                .display_name = "Save States",
+                               .window_title = " Save States",
                                .icon = ICON_MD_SAVE,
                                .category = "Emulator",
                                .priority = 70});
   card_registry_.RegisterCard({.card_id = "emulator.keyboard_config",
                                .display_name = "Keyboard Config",
+                               .window_title = " Keyboard Config",
                                .icon = ICON_MD_KEYBOARD,
                                .category = "Emulator",
                                .priority = 80});
   card_registry_.RegisterCard({.card_id = "emulator.apu_debugger",
                                .display_name = "APU Debugger",
+                               .window_title = " APU Debugger",
                                .icon = ICON_MD_AUDIOTRACK,
                                .category = "Emulator",
                                .priority = 90});
   card_registry_.RegisterCard({.card_id = "emulator.audio_mixer",
                                .display_name = "Audio Mixer",
+                               .window_title = " Audio Mixer",
                                .icon = ICON_MD_AUDIO_FILE,
                                .category = "Emulator",
                                .priority = 100});
@@ -317,6 +348,7 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
   // Register memory/hex editor card
   card_registry_.RegisterCard({.card_id = "memory.hex_editor",
                                .display_name = "Hex Editor",
+                               .window_title = " Hex Editor",
                                .icon = ICON_MD_MEMORY,
                                .category = "Memory",
                                .priority = 10});
@@ -346,6 +378,51 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
              status_.ToString().c_str());
   }
 
+  // Initialize WASM control and session APIs for browser/agent integration
+#ifdef __EMSCRIPTEN__
+  app::platform::WasmControlApi::Initialize(this);
+  app::platform::WasmSessionBridge::Initialize(this);
+  LOG_INFO("EditorManager", "WASM Control and Session APIs initialized");
+#endif
+
+  // Initialize ROM load options dialog callbacks
+  rom_load_options_dialog_.SetConfirmCallback(
+      [this](const RomLoadOptionsDialog::LoadOptions& options) {
+        // Apply feature flags from dialog
+        auto& flags = core::FeatureFlags::get();
+        flags.overworld.kSaveOverworldMaps = options.save_overworld_maps;
+        flags.overworld.kSaveOverworldEntrances = options.save_overworld_entrances;
+        flags.overworld.kSaveOverworldExits = options.save_overworld_exits;
+        flags.overworld.kSaveOverworldItems = options.save_overworld_items;
+        flags.overworld.kLoadCustomOverworld = options.enable_custom_overworld;
+        flags.kSaveDungeonMaps = options.save_dungeon_maps;
+        flags.kSaveAllPalettes = options.save_all_palettes;
+        flags.kSaveGfxGroups = options.save_gfx_groups;
+
+        // Create project if requested
+        if (options.create_project && !options.project_name.empty()) {
+          project_manager_.SetProjectRom(GetCurrentRom()->filename());
+          auto status = project_manager_.FinalizeProjectCreation(
+              options.project_name, options.project_path);
+          if (!status.ok()) {
+            toast_manager_.Show("Failed to create project", ToastType::kError);
+          } else {
+            toast_manager_.Show("Project created: " + options.project_name,
+                                ToastType::kSuccess);
+          }
+        }
+
+        // Close dialog and show editor selection
+        show_rom_load_options_ = false;
+        if (ui_coordinator_) {
+          editor_selection_dialog_.ClearRecentEditors();
+          ui_coordinator_->SetEditorSelectionVisible(true);
+        }
+
+        LOG_INFO("EditorManager", "ROM load options applied: preset=%s",
+                 options.selected_preset.c_str());
+      });
+
   // Initialize welcome screen callbacks
   welcome_screen_.SetOpenRomCallback([this]() {
     status_ = LoadRom();
@@ -360,6 +437,16 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
       ui_coordinator_->SetWelcomeScreenManuallyClosed(true);
     }
   });
+
+  welcome_screen_.SetNewProjectWithTemplateCallback(
+      [this](const std::string& template_name) {
+        // Set the template for the ROM load options dialog
+        status_ = CreateNewProject(template_name);
+        if (status_.ok() && ui_coordinator_) {
+          ui_coordinator_->SetWelcomeScreenVisible(false);
+          ui_coordinator_->SetWelcomeScreenManuallyClosed(true);
+        }
+      });
 
   welcome_screen_.SetOpenProjectCallback([this](const std::string& filepath) {
     status_ = OpenRomOrProject(filepath);
@@ -387,6 +474,21 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
 
   // Defer workspace presets loading to avoid initialization crashes
   // This will be called lazily when workspace features are accessed
+
+  // Set up sidebar utility icon callbacks
+  card_registry_.SetShowEmulatorCallback([this]() {
+    if (ui_coordinator_) {
+      ui_coordinator_->SetEmulatorVisible(true);
+    }
+  });
+  card_registry_.SetShowSettingsCallback([this]() {
+    SwitchToEditor(EditorType::kSettings);
+  });
+  card_registry_.SetShowCardBrowserCallback([this]() {
+    if (ui_coordinator_) {
+      ui_coordinator_->ShowCardBrowser();
+    }
+  });
 
   // Initialize testing system only when tests are enabled
 #ifdef YAZE_ENABLE_TESTING
@@ -502,6 +604,17 @@ void EditorManager::OpenEditorAndCardsFromFlags(const std::string& editor_name,
  * components.
  */
 absl::Status EditorManager::Update() {
+  // Process deferred actions from previous frame
+  // This ensures actions that modify ImGui state (like layout resets)
+  // are executed safely outside of menu/popup rendering contexts
+  if (!deferred_actions_.empty()) {
+    std::vector<std::function<void()>> actions_to_execute;
+    actions_to_execute.swap(deferred_actions_);
+    for (auto& action : actions_to_execute) {
+      action();
+    }
+  }
+
   // Update timing manager for accurate delta time across the application
   // This fixes animation timing issues that occur when mouse isn't moving
   TimingManager::Get().Update();
@@ -522,6 +635,11 @@ absl::Status EditorManager::Update() {
     if (!show) {
       ui_coordinator_->SetEditorSelectionVisible(false);
     }
+  }
+
+  // Draw ROM load options dialog (ZSCustomOverworld, feature flags, project)
+  if (show_rom_load_options_) {
+    rom_load_options_dialog_.Draw(&show_rom_load_options_);
   }
 
   // Draw card browser (managed by UICoordinator)
@@ -679,10 +797,10 @@ absl::Status EditorManager::Update() {
         }
       };
 
-      auto collapse_callback = [this]() {
-        if (ui_coordinator_) {
-          ui_coordinator_->SetCardSidebarVisible(false);
-        }
+      // No-op collapse callback - sidebar_collapsed_ handles the collapsed state internally
+      // The collapsed sidebar strip is always shown when IsCardSidebarVisible() is true
+      auto collapse_callback = []() {
+        // Intentionally empty - collapse state is managed by EditorCardRegistry::sidebar_collapsed_
       };
 
       card_registry_.DrawSidebar(sidebar_category, active_categories,
@@ -700,12 +818,7 @@ absl::Status EditorManager::Update() {
   return absl::OkStatus();
 }
 
-void EditorManager::DrawContextSensitiveCardControl() {
-  // Delegate to UICoordinator for clean separation of concerns
-  if (ui_coordinator_) {
-    ui_coordinator_->DrawContextSensitiveCardControl();
-  }
-}
+// DrawContextSensitiveCardControl removed - card control is now in the sidebar
 
 /**
  * @brief Draw the main menu bar
@@ -725,18 +838,31 @@ void EditorManager::DrawMenuBar() {
   static bool show_display_settings = false;
 
   if (ImGui::BeginMenuBar()) {
+    // Sidebar toggle icon (hamburger menu) - only shown when sidebar is collapsed
+    if (card_registry_.IsSidebarCollapsed()) {
+      ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+      ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
+                            ImVec4(0.3f, 0.3f, 0.35f, 0.5f));
+      ImGui::PushStyleColor(ImGuiCol_ButtonActive,
+                            ImVec4(0.25f, 0.25f, 0.3f, 0.7f));
+
+      if (ImGui::SmallButton(ICON_MD_MENU)) {
+        card_registry_.SetSidebarCollapsed(false);
+      }
+
+      ImGui::PopStyleColor(3);
+
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Show Sidebar (Ctrl+B)");
+      }
+    }
+
     // Delegate menu building to MenuOrchestrator
     if (menu_orchestrator_) {
       menu_orchestrator_->BuildMainMenu();
     }
 
-    // ROM selector now drawn by UICoordinator
-    if (ui_coordinator_) {
-      ui_coordinator_->DrawRomSelector();
-    }
-
-    // Delegate menu bar extras to UICoordinator (session indicator, version
-    // display)
+    // Delegate menu bar extras to UICoordinator (status cluster on right)
     if (ui_coordinator_) {
       ui_coordinator_->DrawMenuBarExtras();
     }
@@ -827,23 +953,19 @@ void EditorManager::DrawMenuBar() {
   // Enhanced Global Search UI (managed by UICoordinator)
   // No longer here - handled by ui_coordinator_->DrawAllUI()
 
-  if (ui_coordinator_ && ui_coordinator_->IsPaletteEditorVisible()) {
-    bool visible = true;
-    ImGui::Begin("Palette Editor", &visible);
-    if (auto* editor_set = GetCurrentEditorSet()) {
-      status_ = editor_set->palette_editor_.Update();
-    }
-
-    // Route palette editor errors to toast manager
-    if (!status_.ok()) {
-      toast_manager_.Show(
-          absl::StrFormat("Palette Editor Error: %s", status_.message()),
-          editor::ToastType::kError, 8.0f);
-    }
-
-    ImGui::End();
-    if (!visible) {
-      ui_coordinator_->SetPaletteEditorVisible(false);
+  // Update all active editors
+  auto* current_editor_set = GetCurrentEditorSet();
+  if (current_editor_set) {
+    for (auto* editor : current_editor_set->active_editors_) {
+      if (editor && *editor->active()) {
+        status_ = editor->Update();
+        if (!status_.ok()) {
+          LOG_ERROR("EditorManager", "Editor update failed: %s",
+                    status_.message().data());
+          // If critical error, maybe deactivate?
+          // editor->set_active(false);
+        }
+      }
     }
   }
 
@@ -929,8 +1051,10 @@ absl::Status EditorManager::LoadRom() {
 
   if (ui_coordinator_) {
     ui_coordinator_->SetWelcomeScreenVisible(false);
-    editor_selection_dialog_.ClearRecentEditors();
-    ui_coordinator_->SetEditorSelectionVisible(true);
+
+    // Show ROM load options dialog for ZSCustomOverworld and feature settings
+    rom_load_options_dialog_.Open(GetCurrentRom());
+    show_rom_load_options_ = true;
   }
 
   return absl::OkStatus();
@@ -944,6 +1068,20 @@ absl::Status EditorManager::LoadAssets() {
   }
 
   auto start_time = std::chrono::steady_clock::now();
+
+#ifdef __EMSCRIPTEN__
+  // Start progress tracking for WASM builds
+  auto loading_handle =
+      app::platform::WasmLoadingManager::BeginLoading("Loading Editor Assets");
+  constexpr int kTotalSteps = 11;  // Graphics + 8 editors + profiler + finish
+  int current_step = 0;
+  auto update_progress = [&](const std::string& message) {
+    current_step++;
+    float progress = static_cast<float>(current_step) / kTotalSteps;
+    app::platform::WasmLoadingManager::UpdateProgress(loading_handle, progress);
+    app::platform::WasmLoadingManager::UpdateMessage(loading_handle, message);
+  };
+#endif
 
   // Set renderer for emulator (lazy initialization happens in Run())
   if (renderer_) {
@@ -964,18 +1102,61 @@ absl::Status EditorManager::LoadAssets() {
       .Initialize();  // Initialize settings editor to register System cards
   // Initialize the dungeon editor with the renderer
   current_editor_set->dungeon_editor_.Initialize(renderer_, current_rom);
+
+#ifdef __EMSCRIPTEN__
+  update_progress("Loading graphics sheets...");
+#endif
   ASSIGN_OR_RETURN(*gfx::Arena::Get().mutable_gfx_sheets(),
                    LoadAllGraphicsData(*current_rom));
+
+#ifdef __EMSCRIPTEN__
+  update_progress("Loading overworld...");
+#endif
   RETURN_IF_ERROR(current_editor_set->overworld_editor_.Load());
+
+#ifdef __EMSCRIPTEN__
+  update_progress("Loading dungeons...");
+#endif
   RETURN_IF_ERROR(current_editor_set->dungeon_editor_.Load());
+
+#ifdef __EMSCRIPTEN__
+  update_progress("Loading screen editor...");
+#endif
   RETURN_IF_ERROR(current_editor_set->screen_editor_.Load());
+
+#ifdef __EMSCRIPTEN__
+  update_progress("Loading settings...");
+#endif
   RETURN_IF_ERROR(current_editor_set->settings_editor_.Load());
+
+#ifdef __EMSCRIPTEN__
+  update_progress("Loading sprites...");
+#endif
   RETURN_IF_ERROR(current_editor_set->sprite_editor_.Load());
+
+#ifdef __EMSCRIPTEN__
+  update_progress("Loading messages...");
+#endif
   RETURN_IF_ERROR(current_editor_set->message_editor_.Load());
+
+#ifdef __EMSCRIPTEN__
+  update_progress("Loading music...");
+#endif
   RETURN_IF_ERROR(current_editor_set->music_editor_.Load());
+
+#ifdef __EMSCRIPTEN__
+  update_progress("Loading palettes...");
+#endif
   RETURN_IF_ERROR(current_editor_set->palette_editor_.Load());
 
+#ifdef __EMSCRIPTEN__
+  update_progress("Finishing up...");
+#endif
   gfx::PerformanceProfiler::Get().PrintSummary();
+
+#ifdef __EMSCRIPTEN__
+  app::platform::WasmLoadingManager::EndLoading(loading_handle);
+#endif
 
   auto end_time = std::chrono::steady_clock::now();
   auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(
@@ -1113,8 +1294,14 @@ absl::Status EditorManager::CreateNewProject(const std::string& template_name) {
   auto status = project_manager_.CreateNewProject(template_name);
   if (status.ok()) {
     current_project_ = project_manager_.GetCurrentProject();
-    // Show project creation dialog
-    popup_manager_->Show("Create New Project");
+    
+    // Trigger ROM selection dialog - projects need a ROM to be useful
+    // LoadRom() opens file dialog and shows ROM load options when ROM is loaded
+    status = LoadRom();
+    if (status.ok() && ui_coordinator_) {
+      ui_coordinator_->SetWelcomeScreenVisible(false);
+      ui_coordinator_->SetWelcomeScreenManuallyClosed(true);
+    }
   }
   return status;
 }

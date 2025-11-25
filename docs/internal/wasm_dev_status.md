@@ -1,12 +1,32 @@
 # WASM / Web Agent Integration Status
 
-**Last Updated:** November 23, 2025
-**Status:** Functional MVP (Agent integrated, UI modernized)
+**Last Updated:** November 24, 2025
+**Status:** Functional MVP with Agent APIs (ROM loading fixed, loading progress added, control APIs implemented)
 
 ## Overview
 This document tracks the development state of the `yaze` WASM web application, specifically focusing on the AI Agent integration (`z3ed` console) and the modern UI overhaul.
 
 ## 1. Completed Features
+
+### ROM Loading & Initialization (November 2025 Fixes)
+*   **ROM File Validation (`rom_file_manager.cc`):**
+    *   Fixed minimum ROM size check from 1MB to 512KB (was rejecting valid 1MB Zelda 3 ROMs)
+*   **CMake WASM Configuration (`app.cmake`):**
+    *   Added `MODULARIZE=1` and `EXPORT_NAME='createYazeModule'` to match `app.js` expectations
+    *   Added missing exports: `_yazeHandleDroppedFile`, `_yazeHandleDropError`, `_yazeHandleDragEnter`, `_yazeHandleDragLeave`, `_malloc`, `_free`
+    *   Added missing runtime methods: `lengthBytesUTF8`, `IDBFS`, `allocateUTF8`
+*   **JavaScript Fixes (`filesystem_manager.js`):**
+    *   Fixed `Module.ccall` return type from `'null'` (string) to `null`
+    *   Fixed direct function fallback to properly allocate/free memory for string parameters
+*   **Drop Zone (`drop_zone.js`):**
+    *   Disabled duplicate auto-initialization (conflicted with C++ handler)
+    *   Now delegates to `FilesystemManager.handleRomUpload` instead of calling non-existent function
+*   **Loading Progress (`editor_manager.cc`):**
+    *   Added `WasmLoadingManager` integration to `LoadAssets()`
+    *   Shows progress for each editor: "Loading overworld...", "Loading dungeons...", etc.
+*   **UI Streamlining (`shell.html`, `app.js`):**
+    *   Removed HTML welcome screen - canvas is always visible
+    *   Loading overlay shows during initialization with status messages
 
 ### AI Agent Integration
 *   **Core Bridge (`wasm_terminal_bridge.cc`):**
@@ -18,6 +38,16 @@ This document tracks the development state of the `yaze` WASM web application, s
     *   **`agent diff`**: Shows the "pending plan" (conceptual diff).
     *   **`agent list/describe`**: Introspects ROM resources via `ResourceCatalog`.
     *   **`agent todo`**: Fully implemented with persistent storage.
+*   **Browser AI Service** (`src/cli/service/ai/browser_ai_service.cc`):
+    *   Implements `AIService` interface for browser-based AI calls
+    *   Uses `IHttpClient` from network abstraction layer (CORS-compatible)
+    *   Supports Gemini API (text and vision models)
+    *   Secures API keys via sessionStorage (cleared on tab close)
+    *   Comprehensive error handling with `absl::Status`
+*   **Browser Storage** (`src/app/platform/wasm/wasm_browser_storage.cc`):
+    *   Non-hardcoded API key management via sessionStorage/localStorage
+    *   User-provided keys, never embedded in binary
+    *   Namespaced storage to avoid conflicts
 *   **Persistence (`todo_manager.cc`):**
     *   Updated to use `WasmStorage` (IndexedDB) when compiled for Emscripten. TODOs persist across reloads.
 
@@ -30,6 +60,67 @@ This document tracks the development state of the `yaze` WASM web application, s
     *   **`main.css`**: Unified design system (VS Code dark theme variables).
     *   **`app.js`**: Extracted logic from `shell.html`. Handles terminal resize, zoom, and PWA updates.
     *   **Components**: `terminal.css`, `collab_console.css`, etc., updated to use CSS variables.
+
+### WASM Control APIs (November 2025)
+
+The WASM build now exposes comprehensive JavaScript APIs for programmatic control, enabling LLM agents with DOM access to interact with the editor.
+
+#### Editor State APIs (`window.yaze.editor`)
+*   **`getSnapshot()`**: Get current editor state (type, ROM status, active data)
+*   **`getCurrentRoom()`**: Get dungeon room info (room_id, active_rooms, visible_cards)
+*   **`getCurrentMap()`**: Get overworld map info (map_id, world, world_name)
+*   **`getSelection()`**: Get current selection in active editor
+
+#### Read-only Data APIs (`window.yaze.data`)
+*   **Dungeon Data:**
+    *   `getRoomTiles(roomId)` - Get room tile data (layer1, layer2)
+    *   `getRoomObjects(roomId)` - Get objects in a room
+    *   `getRoomProperties(roomId)` - Get room properties (music, palette, tileset)
+*   **Overworld Data:**
+    *   `getMapTiles(mapId)` - Get map tile data
+    *   `getMapEntities(mapId)` - Get entities (entrances, exits, items, sprites)
+    *   `getMapProperties(mapId)` - Get map properties (gfx_group, palette, area_size)
+*   **Palette Data:**
+    *   `getPalette(group, id)` - Get palette colors
+    *   `getPaletteGroups()` - List available palette groups
+
+#### GUI Automation APIs (`window.yaze.gui`)
+*   **Element Discovery:**
+    *   `discover()` - List all interactive UI elements with metadata
+    *   `getElementBounds(id)` - Get element position and dimensions (backed by `WidgetIdRegistry`)
+    *   `waitForElement(id, timeout)` - Async wait for element to appear
+*   **Interaction:**
+    *   `click(target)` - Click by element ID or {x, y} coordinates
+    *   `doubleClick(target)` - Double-click
+    *   `drag(from, to, steps)` - Drag operation
+    *   `pressKey(key, modifiers)` - Send keyboard input
+    *   `type(text, delay)` - Type text string
+    *   `scroll(dx, dy)` - Scroll canvas
+*   **Utility:**
+    *   `takeScreenshot(format)` - Capture canvas as base64
+    *   `getCanvasInfo()` - Get canvas dimensions
+    *   `isReady()` - Check if GUI API is ready
+
+**Widget Tracking Infrastructure** (November 2025):
+The `WidgetIdRegistry` system tracks all ImGui widget bounds in real-time:
+-   **Real-time Bounds**: `GetUIElementTree()` and `GetUIElementBounds()` query live widget positions via `WidgetIdRegistry`
+-   **Frame Lifecycle**: Integrated into `Controller::OnLoad()` with `BeginFrame()` and `EndFrame()` hooks
+-   **Bounds Data**: Includes `min_x`, `min_y`, `max_x`, `max_y` for accurate GUI automation
+-   **Metadata**: Returns `imgui_id`, `last_seen_frame`, widget type, visibility, enabled state
+-   **Key Files**: `src/app/gui/automation/widget_id_registry.h`, `src/app/gui/automation/widget_measurement.h`
+
+#### Control APIs (`window.yaze.control`)
+*   **Editor Control:** `switchEditor()`, `getCurrentEditor()`, `getAvailableEditors()`
+*   **Card Control:** `openCard()`, `closeCard()`, `toggleCard()`, `getVisibleCards()`
+*   **Layout Control:** `setCardLayout()`, `getAvailableLayouts()`, `saveCurrentLayout()`
+*   **Menu Actions:** `triggerMenuAction()`, `getAvailableMenuActions()`
+*   **Session Control:** `getSessionInfo()`, `createSession()`, `switchSession()`
+*   **ROM Control:** `getRomStatus()`, `readRomBytes()`, `writeRomBytes()`, `saveRom()`
+
+**Key Files:**
+*   `src/app/platform/wasm/wasm_control_api.cc` - C++ implementation
+*   `src/app/platform/wasm/wasm_control_api.h` - API declarations
+*   `src/web/core/agent_automation.js` - GUI automation layer
 
 ## 2. Technical Debt & Known Issues
 
@@ -58,10 +149,14 @@ This document tracks the development state of the `yaze` WASM web application, s
     *   `src/cli/handlers/agent/browser_agent.cc` (Agent commands)
     *   `src/cli/wasm_terminal_bridge.cc` (JS <-> C++ Bridge)
     *   `src/app/platform/wasm/wasm_drop_handler.cc` (File drag & drop)
+    *   `src/app/platform/wasm/wasm_control_api.cc` (Control API implementation)
+    *   `src/app/platform/wasm/wasm_control_api.h` (Control API declarations)
     *   `src/cli/service/agent/todo_manager.cc` (Persistence logic)
 
 *   **Web Frontend**:
     *   `src/web/shell.html` (Entry point)
     *   `src/web/app.js` (Main UI logic)
-    *   `src/web/main.css` (Theme definitions)
-    *   `src/web/terminal.js` (Console UI component)
+    *   `src/web/core/agent_automation.js` (GUI Automation layer)
+    *   `src/web/styles/main.css` (Theme definitions)
+    *   `src/web/components/terminal.js` (Console UI component)
+    *   `src/web/components/collaboration_ui.js` (Collaboration UI)

@@ -93,10 +93,24 @@
       if (this.inputElement) {
         this.inputElement.addEventListener('keydown', this.handleKeyDown.bind(this));
         this.inputElement.addEventListener('keyup', this.handleKeyUp.bind(this));
-        // Ensure emulator-level key listeners don't steal terminal input
+        // Ensure emulator-level key listeners (SDL/Emscripten) don't steal terminal input
+        // Use capture phase with stopImmediatePropagation for maximum isolation
         document.addEventListener('keydown', (event) => {
           if (event.target === this.inputElement) {
             event.stopPropagation();
+            event.stopImmediatePropagation();
+          }
+        }, true);
+        document.addEventListener('keyup', (event) => {
+          if (event.target === this.inputElement) {
+            event.stopPropagation();
+            event.stopImmediatePropagation();
+          }
+        }, true);
+        document.addEventListener('keypress', (event) => {
+          if (event.target === this.inputElement) {
+            event.stopPropagation();
+            event.stopImmediatePropagation();
           }
         }, true);
         // Make any click within the terminal focus the input
@@ -131,14 +145,22 @@
 
     /**
      * Check if WASM Module is ready
+     * Uses multiple indicators for better detection with modularized builds
      * @returns {boolean}
      */
     checkModuleReady() {
-      if (typeof Module !== 'undefined' && Module.calledRun) {
-        if (!this.isModuleReady) {
-          this.onModuleReady();
+      if (typeof Module !== 'undefined') {
+        // Check multiple indicators - modularized builds may not set calledRun
+        const hasCalledRun = Module.calledRun === true;
+        const hasCcall = typeof Module.ccall === 'function';
+        const hasProcessCommand = typeof Module._Z3edProcessCommand === 'function';
+
+        if (hasCalledRun || hasCcall || hasProcessCommand) {
+          if (!this.isModuleReady) {
+            this.onModuleReady();
+          }
+          return true;
         }
-        return true;
       }
       return false;
     }

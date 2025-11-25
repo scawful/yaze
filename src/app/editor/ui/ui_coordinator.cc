@@ -146,150 +146,215 @@ void UICoordinator::DrawAllUI() {
   DrawWindowManagementUI();      // Window management
 }
 
-void UICoordinator::DrawRomSelector() {
-  auto* current_rom = editor_manager_->GetCurrentRom();
-  ImGui::SameLine((ImGui::GetWindowWidth() / 2) - 100);
-  if (current_rom && current_rom->is_loaded()) {
-    ImGui::SetNextItemWidth(ImGui::GetWindowWidth() / 6);
-    if (ImGui::BeginCombo("##ROMSelector", current_rom->short_name().c_str())) {
-      for (size_t i = 0; i < session_coordinator_.GetTotalSessionCount(); ++i) {
-        if (session_coordinator_.IsSessionClosed(i))
-          continue;
-
-        auto* session =
-            static_cast<RomSession*>(session_coordinator_.GetSession(i));
-        if (!session)
-          continue;
-
-        Rom* rom = &session->rom;
-        ImGui::PushID(static_cast<int>(i));
-        bool selected = (rom == current_rom);
-        if (ImGui::Selectable(rom->short_name().c_str(), selected)) {
-          editor_manager_->SwitchToSession(i);
-        }
-        ImGui::PopID();
-      }
-      ImGui::EndCombo();
-    }
-    // Inline status next to ROM selector
-    ImGui::SameLine();
-    ImGui::Text("Size: %.1f MB", current_rom->size() / 1048576.0f);
-
-    // Context-sensitive card control (right after ROM info)
-    ImGui::SameLine();
-    DrawContextSensitiveCardControl();
-  } else {
-    ImGui::Text("No ROM loaded");
-  }
-}
-
 void UICoordinator::DrawMenuBarExtras() {
-  // Get current ROM from EditorManager (RomFileManager doesn't track "current")
-  auto* current_rom = editor_manager_->GetCurrentRom();
+  // Compact right-aligned status cluster:
+  // [●][🔔][📄▾][v0.x.x]
+  // dirty bell session version
 
-  // Calculate version width for right alignment
+  auto* current_rom = editor_manager_->GetCurrentRom();
   std::string version_text =
       absl::StrFormat("v%s", editor_manager_->version().c_str());
-  float version_width = ImGui::CalcTextSize(version_text.c_str()).x;
 
-  // Session indicator with Material Design styling
-  if (session_coordinator_.HasMultipleSessions()) {
-    ImGui::SameLine();
-    std::string session_button_text = absl::StrFormat(
-        "%s %zu", ICON_MD_TAB, session_coordinator_.GetActiveSessionCount());
+  // Calculate cluster width for right alignment
+  float cluster_width = 150.0f;
+  ImGui::SameLine(ImGui::GetWindowWidth() - cluster_width);
 
-    // Material Design button styling
-    ImGui::PushStyleColor(ImGuiCol_Button, gui::GetPrimaryVec4());
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, gui::GetPrimaryHoverVec4());
-    ImGui::PushStyleColor(ImGuiCol_ButtonActive, gui::GetPrimaryActiveVec4());
-
-    if (ImGui::SmallButton(session_button_text.c_str())) {
-      session_coordinator_.ToggleSessionSwitcher();
-    }
-
-    ImGui::PopStyleColor(3);
-
+  // 1. Dirty badge - orange dot, only when ROM has unsaved changes
+  if (current_rom && current_rom->is_loaded() && current_rom->dirty()) {
+    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.6f, 0.2f, 1.0f));
+    ImGui::Text(ICON_MD_FIBER_MANUAL_RECORD);
+    ImGui::PopStyleColor();
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Switch Sessions (Ctrl+Tab)");
+      ImGui::SetTooltip("Unsaved changes: %s", current_rom->short_name().c_str());
     }
+    ImGui::SameLine();
   }
 
-  // ROM information display with Material Design card styling
-  ImGui::SameLine();
-  if (current_rom && current_rom->is_loaded()) {
-    ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
-    std::string rom_title = current_rom->title();
-    if (current_rom->dirty()) {
-      ImGui::Text("%s %s*", ICON_MD_CIRCLE, rom_title.c_str());
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Unsaved changes");
-      }
-    } else {
-      ImGui::Text("%s %s", ICON_MD_INSERT_DRIVE_FILE, rom_title.c_str());
-    }
-    ImGui::PopStyleColor();
-  } else {
-    ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextDisabledVec4());
-    ImGui::Text("%s No ROM", ICON_MD_WARNING);
-    ImGui::PopStyleColor();
+  // 2. Notification bell - shows history dropdown
+  DrawNotificationBell();
+    ImGui::SameLine();
+
+  // 3. Session button - layers icon, only if 2+ sessions open
+  if (session_coordinator_.HasMultipleSessions()) {
+    DrawSessionButton();
+    ImGui::SameLine();
   }
 
-  // Version info aligned to far right
-  ImGui::SameLine(ImGui::GetWindowWidth() - version_width - 15.0f);
+  // 4. Version - always visible, subdued gray text
   ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextDisabledVec4());
   ImGui::Text("%s", version_text.c_str());
   ImGui::PopStyleColor();
 }
 
-void UICoordinator::DrawContextSensitiveCardControl() {
-  // Get the currently active editor directly from EditorManager
-  // This ensures we show cards for the correct editor that has focus
-  auto* active_editor = editor_manager_->GetCurrentEditor();
-  if (!active_editor)
-    return;
+void UICoordinator::DrawNotificationBell() {
+  size_t unread = toast_manager_.GetUnreadCount();
 
-  // Only show card control for card-based editors (not palette, not assembly in
-  // legacy mode, etc.)
-  if (!editor_registry_.IsCardBasedEditor(active_editor->type())) {
-    return;
+  // Bell icon with accent color when there are unread notifications
+  if (unread > 0) {
+    ImGui::PushStyleColor(ImGuiCol_Text, gui::GetPrimaryVec4());
+    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, gui::GetSurfaceContainerHighVec4());
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, gui::GetSurfaceContainerHighestVec4());
+  } else {
+    ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
+    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, gui::GetSurfaceContainerHighVec4());
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, gui::GetSurfaceContainerHighestVec4());
   }
 
-  // Get the category and session for the active editor
-  std::string category =
-      editor_registry_.GetEditorCategory(active_editor->type());
-  size_t session_id = editor_manager_->GetCurrentSessionId();
-
-  // Draw compact card control in menu bar (mini dropdown for cards)
-  ImGui::SameLine();
-  ImGui::PushStyleColor(ImGuiCol_Button, gui::GetSurfaceContainerHighVec4());
-  ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
-                        gui::GetSurfaceContainerHighestVec4());
-
-  if (ImGui::SmallButton(
-          absl::StrFormat("%s %s", ICON_MD_LAYERS, category.c_str()).c_str())) {
-    ImGui::OpenPopup("##CardQuickAccess");
+  if (ImGui::SmallButton(ICON_MD_NOTIFICATIONS)) {
+    ImGui::OpenPopup("##NotificationHistory");
+    toast_manager_.MarkAllRead();
   }
 
-  ImGui::PopStyleColor(2);
+  ImGui::PopStyleColor(4);
 
-  if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("Quick access to %s cards", category.c_str());
+    if (ImGui::IsItemHovered()) {
+    if (unread > 0) {
+      ImGui::SetTooltip("%zu new notification%s", unread, unread == 1 ? "" : "s");
+    } else {
+      ImGui::SetTooltip("No new notifications");
+    }
   }
 
-  // Quick access popup for toggling cards
-  if (ImGui::BeginPopup("##CardQuickAccess")) {
-    auto cards = card_registry_.GetCardsInCategory(session_id, category);
+  // Notification history dropdown popup
+  if (ImGui::BeginPopup("##NotificationHistory")) {
+    ImGui::Text(ICON_MD_NOTIFICATIONS " Notifications");
+    ImGui::Separator();
 
-    for (const auto& card : cards) {
-      bool visible = card.visibility_flag ? *card.visibility_flag : false;
-      if (ImGui::MenuItem(card.display_name.c_str(), nullptr, visible)) {
-        if (visible) {
-          card_registry_.HideCard(session_id, card.card_id);
-        } else {
-          card_registry_.ShowCard(session_id, card.card_id);
+    const auto& history = toast_manager_.GetHistory();
+    if (history.empty()) {
+      ImGui::TextDisabled("No notifications");
+    } else {
+      // Show most recent notifications (up to 15)
+      size_t shown = 0;
+      for (const auto& entry : history) {
+        if (shown >= 15) break;
+
+        // Icon and color based on type
+        const char* icon;
+        ImVec4 color;
+        switch (entry.type) {
+          case ToastType::kSuccess:
+            icon = ICON_MD_CHECK_CIRCLE;
+            color = ImVec4(0.3f, 0.8f, 0.3f, 1.0f);
+            break;
+          case ToastType::kWarning:
+            icon = ICON_MD_WARNING;
+            color = ImVec4(1.0f, 0.7f, 0.2f, 1.0f);
+            break;
+          case ToastType::kError:
+            icon = ICON_MD_ERROR;
+            color = ImVec4(1.0f, 0.3f, 0.3f, 1.0f);
+            break;
+          default:
+            icon = ICON_MD_INFO;
+            color = ImVec4(0.4f, 0.7f, 1.0f, 1.0f);
+            break;
         }
+
+        ImGui::PushStyleColor(ImGuiCol_Text, color);
+        ImGui::Text("%s", icon);
+    ImGui::PopStyleColor();
+        ImGui::SameLine();
+
+        // Message (truncated if too long)
+        std::string msg = entry.message;
+        if (msg.length() > 40) {
+          msg = msg.substr(0, 37) + "...";
+        }
+        ImGui::TextUnformatted(msg.c_str());
+
+        // Timestamp (relative)
+        auto now = std::chrono::system_clock::now();
+        auto diff = std::chrono::duration_cast<std::chrono::seconds>(
+            now - entry.timestamp).count();
+
+        std::string time_str;
+        if (diff < 60) {
+          time_str = "just now";
+        } else if (diff < 3600) {
+          time_str = absl::StrFormat("%dm ago", diff / 60);
+        } else if (diff < 86400) {
+          time_str = absl::StrFormat("%dh ago", diff / 3600);
+  } else {
+          time_str = absl::StrFormat("%dd ago", diff / 86400);
+        }
+
+        ImGui::SameLine(ImGui::GetWindowWidth() - 60);
+        ImGui::TextDisabled("%s", time_str.c_str());
+
+        ++shown;
       }
     }
+
+    ImGui::Separator();
+    if (ImGui::MenuItem(ICON_MD_DELETE " Clear All")) {
+      toast_manager_.ClearHistory();
+    }
+
+    ImGui::EndPopup();
+  }
+}
+
+void UICoordinator::DrawSessionButton() {
+  auto* current_rom = editor_manager_->GetCurrentRom();
+
+  ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+  ImGui::PushStyleColor(ImGuiCol_ButtonHovered, gui::GetSurfaceContainerHighVec4());
+  ImGui::PushStyleColor(ImGuiCol_ButtonActive, gui::GetSurfaceContainerHighestVec4());
+
+  if (ImGui::SmallButton(ICON_MD_LAYERS)) {
+    ImGui::OpenPopup("##SessionSwitcherPopup");
+  }
+
+  ImGui::PopStyleColor(3);
+
+  if (ImGui::IsItemHovered()) {
+    std::string tooltip = current_rom && current_rom->is_loaded()
+        ? current_rom->short_name()
+        : "No ROM loaded";
+    ImGui::SetTooltip("%s\n%zu sessions open (Ctrl+Tab)",
+        tooltip.c_str(),
+        session_coordinator_.GetActiveSessionCount());
+  }
+
+  // Session switcher popup
+  if (ImGui::BeginPopup("##SessionSwitcherPopup")) {
+    ImGui::Text(ICON_MD_LAYERS " Sessions");
+    ImGui::Separator();
+
+    for (size_t i = 0; i < session_coordinator_.GetTotalSessionCount(); ++i) {
+      if (session_coordinator_.IsSessionClosed(i))
+        continue;
+
+      auto* session = static_cast<RomSession*>(session_coordinator_.GetSession(i));
+      if (!session)
+        continue;
+
+      Rom* rom = &session->rom;
+      ImGui::PushID(static_cast<int>(i));
+
+      bool is_current = (rom == current_rom);
+      if (is_current) {
+        ImGui::PushStyleColor(ImGuiCol_Text, gui::GetPrimaryVec4());
+      }
+
+      std::string label = rom->is_loaded()
+          ? absl::StrFormat("%s %s", ICON_MD_DESCRIPTION, rom->short_name().c_str())
+          : absl::StrFormat("%s Session %zu", ICON_MD_DESCRIPTION, i + 1);
+
+      if (ImGui::Selectable(label.c_str(), is_current)) {
+        editor_manager_->SwitchToSession(i);
+      }
+
+      if (is_current) {
+        ImGui::PopStyleColor();
+      }
+
+      ImGui::PopID();
+    }
+
     ImGui::EndPopup();
   }
 }

@@ -750,7 +750,7 @@ void WelcomeScreen::DrawProjectCard(const RecentProject& project, int index) {
 void WelcomeScreen::DrawTemplatesSection() {
   // Header with visual settings button
   float content_width = ImGui::GetContentRegionAvail().x;
-  ImGui::TextColored(kGanonPurple, ICON_MD_LAYERS " Templates");
+  ImGui::TextColored(kGanonPurple, ICON_MD_LAYERS " Project Templates");
   ImGui::SameLine(content_width - 25);
   if (ImGui::SmallButton(show_triforce_settings_ ? ICON_MD_CLOSE
                                                  : ICON_MD_TUNE)) {
@@ -805,15 +805,25 @@ void WelcomeScreen::DrawTemplatesSection() {
   struct Template {
     const char* icon;
     const char* name;
+    const char* description;
+    const char* template_id;
     ImVec4 color;
   };
 
   Template templates[] = {
-      {ICON_MD_COTTAGE, "Vanilla ALTTP", kHyruleGreen},
-      {ICON_MD_MAP, "ZSCustomOverworld v3", kMasterSwordBlue},
+      {ICON_MD_COTTAGE, "Vanilla ROM Hack",
+       "Standard editing without custom ASM", "Vanilla ROM Hack", kHyruleGreen},
+      {ICON_MD_MAP, "ZSCustomOverworld v3",
+       "Full overworld expansion features", "ZSCustomOverworld v3 (Recommended)",
+       kMasterSwordBlue},
+      {ICON_MD_LAYERS, "ZSCustomOverworld v2",
+       "Basic overworld expansion", "ZSCustomOverworld v2", kShadowPurple},
+      {ICON_MD_SHUFFLE, "Randomizer Compatible",
+       "Minimal custom features for rando", "Randomizer Compatible",
+       kSpiritOrange},
   };
 
-  for (int i = 0; i < 2; ++i) {
+  for (int i = 0; i < 4; ++i) {
     bool is_selected = (selected_template_ == i);
 
     // Subtle selection highlight (no animation)
@@ -836,22 +846,41 @@ void WelcomeScreen::DrawTemplatesSection() {
     }
 
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(ICON_MD_STAR " Start with a %s template",
-                        templates[i].name);
+      ImGui::SetTooltip("%s %s\n%s", ICON_MD_INFO, templates[i].name,
+                        templates[i].description);
     }
   }
 
   ImGui::Spacing();
+
+  // Use Template button - enabled and functional
   ImGui::PushStyleColor(ImGuiCol_Button,
                         ImVec4(kSpiritOrange.x * 0.6f, kSpiritOrange.y * 0.6f,
                                kSpiritOrange.z * 0.6f, 0.8f));
   ImGui::PushStyleColor(ImGuiCol_ButtonHovered, kSpiritOrange);
-  ImGui::BeginDisabled(true);
-  ImGui::Button(
-      absl::StrFormat("%s Use Template", ICON_MD_ROCKET_LAUNCH).c_str(),
-      ImVec2(-1, 30));  // Reduced from 35 to 30
-  ImGui::EndDisabled();
-  ImGui::PopStyleColor(2);
+  ImGui::PushStyleColor(ImGuiCol_ButtonActive,
+                        ImVec4(kSpiritOrange.x * 1.2f, kSpiritOrange.y * 1.2f,
+                               kSpiritOrange.z * 1.2f, 1.0f));
+
+  if (ImGui::Button(
+          absl::StrFormat("%s Use Template", ICON_MD_ROCKET_LAUNCH).c_str(),
+          ImVec2(-1, 30))) {
+    // Trigger template-based project creation
+    if (new_project_with_template_callback_) {
+      new_project_with_template_callback_(templates[selected_template_].template_id);
+    } else if (new_project_callback_) {
+      // Fallback to regular new project if template callback not set
+      new_project_callback_();
+    }
+  }
+
+  ImGui::PopStyleColor(3);
+
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("%s Create new project with '%s' template\nThis will "
+                      "open a ROM and apply the template settings.",
+                      ICON_MD_INFO, templates[selected_template_].name);
+  }
 }
 
 void WelcomeScreen::DrawTipsSection() {

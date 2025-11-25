@@ -82,6 +82,29 @@ std::string executeCommand(std::string command) {
   return result ? std::string(result) : "";
 }
 
+std::string switchToEditor(std::string editor_name) {
+  auto* manager = yaze::app::GetGlobalEditorManager();
+  if (!manager) {
+    return "{\"error\":\"EditorManager not available\"}";
+  }
+  
+  if (editor_name == "Dungeon") {
+    manager->SwitchToEditor(yaze::editor::EditorType::kDungeon);
+    return "{\"success\":true,\"editor\":\"Dungeon\"}";
+  } else if (editor_name == "Overworld") {
+    manager->SwitchToEditor(yaze::editor::EditorType::kOverworld);
+    return "{\"success\":true,\"editor\":\"Overworld\"}";
+  } else if (editor_name == "Sprite") {
+    manager->SwitchToEditor(yaze::editor::EditorType::kSprite);
+    return "{\"success\":true,\"editor\":\"Sprite\"}";
+  } else if (editor_name == "Text") {
+    manager->SwitchToEditor(yaze::editor::EditorType::kMessage);
+    return "{\"success\":true,\"editor\":\"Text\"}";
+  }
+  
+  return "{\"error\":\"Unknown editor name\"}";
+}
+
 // =============================================================================
 // Palette Debug Functions
 // =============================================================================
@@ -696,6 +719,7 @@ EMSCRIPTEN_BINDINGS(yaze_debug_inspector) {
   // Editor state and command execution
   function("getEditorState", &getEditorState);
   function("executeCommand", &executeCommand);
+  function("switchToEditor", &switchToEditor);
 
   // Combined state for AI
   function("getFullDebugState", &getFullDebugState);

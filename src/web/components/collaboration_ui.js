@@ -17,6 +17,10 @@
     selfColor: '#4ECDC4'
   };
 
+  // Change history for tracking modifications
+  const changeHistory = [];
+  const MAX_CHANGES = 50;
+
   // UI Elements
   let collabPanel = null;
   let userList = null;
@@ -62,6 +66,157 @@
   }
 
   /**
+   * Show collaboration error as toast notification
+   */
+  function showCollabError(message) {
+    // Use existing error handler if available
+    if (window.showYazeToast) {
+      window.showYazeToast(message, 'error', 5000);
+    } else {
+      // Fallback notification
+      const toast = document.createElement('div');
+      toast.className = 'collab-error-toast';
+      toast.textContent = message;
+      toast.style.cssText = `
+        position: fixed;
+        bottom: 80px;
+        right: 20px;
+        background: #f44336;
+        color: white;
+        padding: 12px 20px;
+        border-radius: 4px;
+        z-index: 10002;
+        animation: slideIn 0.3s ease;
+      `;
+      document.body.appendChild(toast);
+      setTimeout(() => {
+        toast.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => toast.remove(), 300);
+      }, 5000);
+    }
+  }
+
+  /**
+   * Format timestamp as relative time
+   */
+  function formatTimeAgo(timestamp) {
+    const seconds = Math.floor((Date.now() - timestamp) / 1000);
+    if (seconds < 60) return 'just now';
+    if (seconds < 3600) return Math.floor(seconds / 60) + 'm ago';
+    if (seconds < 86400) return Math.floor(seconds / 3600) + 'h ago';
+    return new Date(timestamp).toLocaleDateString();
+  }
+
+  /**
+   * Add change to history
+   */
+  function addChangeToHistory(changeData) {
+    const user = collabState.users.find(u => u.id === changeData.user_id);
+    changeHistory.unshift({
+      ...changeData,
+      userName: user?.name || 'Unknown',
+      userColor: user?.color || '#888',
+      timestamp: Date.now()
+    });
+
+    if (changeHistory.length > MAX_CHANGES) {
+      changeHistory.pop();
+    }
+
+    updateChangeList();
+  }
+
+  /**
+   * Update change history list display
+   */
+  function updateChangeList() {
+    const list = document.getElementById('change-list');
+    const count = document.querySelector('.change-count');
+    if (!list) return;
+
+    count.textContent = `(${changeHistory.length})`;
+    list.innerHTML = changeHistory.slice(0, 10).map(change => `
+      <li class="change-item">
+        <span class="change-user" style="color: ${change.userColor}">${change.userName}</span>
+        <span class="change-offset">0x${change.offset.toString(16).toUpperCase()}</span>
+        <span class="change-time">${formatTimeAgo(change.timestamp)}</span>
+      </li>
+    `).join('');
+  }
+
+  /**
+   * Save session state for persistence
+   */
+  function saveSession() {
+    if (collabState.isConnected) {
+      localStorage.setItem('collab-session', JSON.stringify({
+        roomCode: collabState.roomCode,
+        sessionName: collabState.sessionName,
+        selfColor: collabState.selfColor,
+        timestamp: Date.now()
+      }));
+    }
+  }
+
+  /**
+   * Attempt to restore previous session
+   */
+  function restoreSession() {
+    const saved = localStorage.getItem('collab-session');
+    if (!saved) return;
+
+    try {
+      const session = JSON.parse(saved);
+      // Only restore if within last 5 minutes
+      if (Date.now() - session.timestamp > 300000) {
+        localStorage.removeItem('collab-session');
+        return;
+      }
+
+      const username = localStorage.getItem('collab-username');
+      if (session.roomCode && username) {
+        showReconnectPrompt(session, username);
+      }
+    } catch (e) {
+      localStorage.removeItem('collab-session');
+    }
+  }
+
+  /**
+   * Show reconnection prompt for previous session
+   */
+  function showReconnectPrompt(session, username) {
+    const notification = document.createElement('div');
+    notification.className = 'collab-reconnect-prompt';
+    notification.innerHTML = `
+      <span>Reconnect to "${session.sessionName || session.roomCode}"?</span>
+      <button class="reconnect-yes">Reconnect</button>
+      <button class="reconnect-no">Dismiss</button>
+    `;
+    document.body.appendChild(notification);
+
+    notification.querySelector('.reconnect-yes').onclick = () => {
+      const api = ensureCollabBindings();
+      if (api && api.join) {
+        api.join(session.roomCode, username, '');
+      }
+      notification.remove();
+    };
+
+    notification.querySelector('.reconnect-no').onclick = () => {
+      localStorage.removeItem('collab-session');
+      notification.remove();
+    };
+
+    // Auto-dismiss after 30 seconds
+    setTimeout(() => {
+      if (notification.parentNode) {
+        notification.remove();
+      }
+    }, 30000);
+  }
+
+  /**
    * Initialize collaboration UI
    */
   function initCollaborationUI() {
@@ -72,6 +227,12 @@
 
     // Register global handler for C++ callbacks
     window.updateCollaborationUI = handleCollaborationUpdate;
+
+    // Save session on page unload
+    window.addEventListener('beforeunload', saveSession);
+
+    // Try to restore previous session after a short delay
+    setTimeout(restoreSession, 1000);
   }
 
   /**
@@ -130,6 +291,11 @@
         <div class="collab-users">
           <h3>Connected Users</h3>
           <ul id="user-list" class="user-list"></ul>
+        </div>
+
+        <div class="collab-changes">
+          <h3>Recent Changes <span class="change-count">(0)</span></h3>
+          <ul id="change-list" class="change-list"></ul>
         </div>
 
         <div class="collab-actions">
@@ -454,7 +620,11 @@
     console.log('[Collaboration UI]', type, data);
 
     try {
-      const parsedData = data ? JSON.parse(data) : {};
+      let parsedData = {};
+      // Some callbacks pass room code as string, others pass JSON
+      if (data && data.startsWith('{')) {
+        parsedData = JSON.parse(data);
+      }
 
       switch (type) {
         case 'session_created':
@@ -470,6 +640,8 @@
         case 'session_left':
         case 'disconnected':
           updateConnectionStatus(false);
+          // Clear session storage on intentional disconnect
+          localStorage.removeItem('collab-session');
           break;
 
         case 'users_update':
@@ -482,6 +654,42 @@
 
         case 'change_applied':
           showChangeNotification(parsedData);
+          addChangeToHistory(parsedData);
+          break;
+
+        // Error handling cases
+        case 'error':
+          showCollabError(parsedData.message || 'Connection error');
+          break;
+
+        case 'connection_error':
+          showCollabError('Failed to connect to collaboration server');
+          updateConnectionStatus(false);
+          break;
+
+        case 'rate_limited':
+          showCollabError('Too many changes - please slow down');
+          break;
+
+        case 'password_rejected':
+          showCollabError('Invalid session password');
+          break;
+
+        case 'session_not_found':
+          showCollabError('Session not found - it may have expired');
+          localStorage.removeItem('collab-session');
+          break;
+
+        case 'reconnecting':
+          // Show subtle reconnecting indicator
+          if (statusBadge) {
+            statusBadge.textContent = 'Reconnecting...';
+            statusBadge.className = 'collab-status-badge reconnecting';
+          }
+          break;
+
+        case 'reconnected':
+          updateConnectionStatus(true);
           break;
 
         default:

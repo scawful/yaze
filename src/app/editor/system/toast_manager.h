@@ -1,6 +1,7 @@
 #ifndef YAZE_APP_EDITOR_SYSTEM_TOAST_MANAGER_H
 #define YAZE_APP_EDITOR_SYSTEM_TOAST_MANAGER_H
 
+#include <chrono>
 #include <deque>
 #include <string>
 
@@ -22,11 +23,37 @@ struct Toast {
   float ttl_seconds = 3.0f;
 };
 
+/**
+ * @brief Entry in the notification history with timestamp
+ */
+struct NotificationEntry {
+  std::string message;
+  ToastType type;
+  std::chrono::system_clock::time_point timestamp;
+  bool read = false;
+};
+
 class ToastManager {
  public:
+  static constexpr size_t kMaxHistorySize = 50;
+
   void Show(const std::string& message, ToastType type = ToastType::kInfo,
             float ttl_seconds = 3.0f) {
     toasts_.push_back({message, type, ttl_seconds});
+
+    // Also add to notification history
+    NotificationEntry entry;
+    entry.message = message;
+    entry.type = type;
+    entry.timestamp = std::chrono::system_clock::now();
+    entry.read = false;
+
+    notification_history_.push_front(entry);
+
+    // Trim history if too large
+    while (notification_history_.size() > kMaxHistorySize) {
+      notification_history_.pop_back();
+    }
   }
 
   void Draw() {
@@ -77,8 +104,30 @@ class ToastManager {
     }
   }
 
+  // Notification history methods
+  size_t GetUnreadCount() const {
+    size_t count = 0;
+    for (const auto& entry : notification_history_) {
+      if (!entry.read) ++count;
+    }
+    return count;
+  }
+
+  const std::deque<NotificationEntry>& GetHistory() const {
+    return notification_history_;
+  }
+
+  void MarkAllRead() {
+    for (auto& entry : notification_history_) {
+      entry.read = true;
+    }
+  }
+
+  void ClearHistory() { notification_history_.clear(); }
+
  private:
   std::deque<Toast> toasts_;
+  std::deque<NotificationEntry> notification_history_;
 };
 
 }  // namespace editor

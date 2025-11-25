@@ -38,6 +38,7 @@ set(
   app/editor/system/editor_card_registry.cc
   app/editor/system/editor_registry.cc
   app/editor/system/extension_manager.cc
+  app/editor/system/layout_orchestrator.cc
   app/editor/system/menu_orchestrator.cc
   app/editor/system/popup_manager.cc
   app/editor/system/project_manager.cc
@@ -51,7 +52,9 @@ set(
   app/editor/system/shortcut_configurator.cc
   app/editor/ui/editor_selection_dialog.cc
   app/editor/ui/layout_manager.cc
+  app/editor/ui/layout_presets.cc
   app/editor/ui/menu_builder.cc
+  app/editor/ui/rom_load_options_dialog.cc
   app/editor/ui/ui_coordinator.cc
   app/editor/ui/welcome_screen.cc
   app/editor/ui/workspace_manager.cc

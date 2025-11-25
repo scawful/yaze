@@ -39,6 +39,7 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
 
   card_registry->RegisterCard({.card_id = MakeCardId("dungeon.control_panel"),
                                .display_name = "Dungeon Controls",
+                               .window_title = " Dungeon Controls",
                                .icon = ICON_MD_CASTLE,
                                .category = "Dungeon",
                                .shortcut_hint = "Ctrl+Shift+D",
@@ -47,6 +48,7 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
 
   card_registry->RegisterCard({.card_id = MakeCardId("dungeon.room_selector"),
                                .display_name = "Room Selector",
+                               .window_title = " Rooms List",
                                .icon = ICON_MD_LIST,
                                .category = "Dungeon",
                                .shortcut_hint = "Ctrl+Shift+R",
@@ -55,6 +57,7 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
 
   card_registry->RegisterCard({.card_id = MakeCardId("dungeon.room_matrix"),
                                .display_name = "Room Matrix",
+                               .window_title = " Room Matrix",
                                .icon = ICON_MD_GRID_VIEW,
                                .category = "Dungeon",
                                .shortcut_hint = "Ctrl+Shift+M",
@@ -63,6 +66,7 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
 
   card_registry->RegisterCard({.card_id = MakeCardId("dungeon.entrances"),
                                .display_name = "Entrances",
+                               .window_title = " Entrances",
                                .icon = ICON_MD_DOOR_FRONT,
                                .category = "Dungeon",
                                .shortcut_hint = "Ctrl+Shift+E",
@@ -71,6 +75,7 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
 
   card_registry->RegisterCard({.card_id = MakeCardId("dungeon.room_graphics"),
                                .display_name = "Room Graphics",
+                               .window_title = " Room Graphics",
                                .icon = ICON_MD_IMAGE,
                                .category = "Dungeon",
                                .shortcut_hint = "Ctrl+Shift+G",
@@ -79,6 +84,7 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
 
   card_registry->RegisterCard({.card_id = MakeCardId("dungeon.object_editor"),
                                .display_name = "Object Editor",
+                               .window_title = " Object Editor",
                                .icon = ICON_MD_CONSTRUCTION,
                                .category = "Dungeon",
                                .shortcut_hint = "Ctrl+Shift+O",
@@ -87,6 +93,7 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
 
   card_registry->RegisterCard({.card_id = MakeCardId("dungeon.palette_editor"),
                                .display_name = "Palette Editor",
+                               .window_title = " Palette Editor",
                                .icon = ICON_MD_PALETTE,
                                .category = "Dungeon",
                                .shortcut_hint = "Ctrl+Shift+P",
@@ -95,6 +102,7 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
 
   card_registry->RegisterCard({.card_id = MakeCardId("dungeon.debug_controls"),
                                .display_name = "Debug Controls",
+                               .window_title = " Debug Controls",
                                .icon = ICON_MD_BUG_REPORT,
                                .category = "Dungeon",
                                .shortcut_hint = "Ctrl+Shift+B",

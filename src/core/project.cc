@@ -764,36 +764,134 @@ std::string YazeProject::GenerateProjectId() const {
 // ProjectManager Implementation
 std::vector<ProjectManager::ProjectTemplate>
 ProjectManager::GetProjectTemplates() {
-  return {{
-              "Basic ROM Hack",
-              "Simple project for modifying an existing ROM with basic tools",
-              ICON_MD_VIDEOGAME_ASSET,
-              {}  // Basic defaults
-          },
-          {
-              "Full Overworld Mod",
-              "Complete overworld modification with custom graphics and maps",
-              ICON_MD_MAP,
-              {}  // Overworld-focused settings
-          },
-          {
-              "Dungeon Designer",
-              "Focused on dungeon creation and modification",
-              ICON_MD_DOMAIN,
-              {}  // Dungeon-focused settings
-          },
-          {
-              "Graphics Pack",
-              "Project focused on graphics, sprites, and visual modifications",
-              ICON_MD_PALETTE,
-              {}  // Graphics-focused settings
-          },
-          {
-              "Complete Overhaul",
-              "Full-scale ROM hack with all features enabled",
-              ICON_MD_BUILD,
-              {}  // All features enabled
-          }};
+  std::vector<ProjectTemplate> templates;
+  
+  // ==========================================================================
+  // ZSCustomOverworld Templates (Recommended)
+  // ==========================================================================
+  
+  // Vanilla ROM Hack - no ZSO
+  {
+    ProjectTemplate t;
+    t.name = "Vanilla ROM Hack";
+    t.description = "Standard ROM editing without custom ASM. Limited to vanilla features.";
+    t.icon = ICON_MD_VIDEOGAME_ASSET;
+    t.template_project.feature_flags.overworld.kLoadCustomOverworld = false;
+    t.template_project.feature_flags.overworld.kApplyZSCustomOverworldASM = false;
+    t.template_project.feature_flags.overworld.kSaveOverworldMaps = true;
+    t.template_project.feature_flags.overworld.kSaveOverworldEntrances = true;
+    t.template_project.feature_flags.overworld.kSaveOverworldExits = true;
+    t.template_project.feature_flags.overworld.kSaveOverworldItems = true;
+    templates.push_back(t);
+  }
+  
+  // ZSCustomOverworld v2 - Basic expansion
+  {
+    ProjectTemplate t;
+    t.name = "ZSCustomOverworld v2";
+    t.description = "Basic overworld expansion: custom BG colors, main palettes, parent system.";
+    t.icon = ICON_MD_MAP;
+    t.template_project.feature_flags.overworld.kLoadCustomOverworld = true;
+    t.template_project.feature_flags.overworld.kApplyZSCustomOverworldASM = true;
+    t.template_project.feature_flags.overworld.kSaveOverworldMaps = true;
+    t.template_project.feature_flags.overworld.kSaveOverworldEntrances = true;
+    t.template_project.feature_flags.overworld.kSaveOverworldExits = true;
+    t.template_project.feature_flags.overworld.kSaveOverworldItems = true;
+    t.template_project.feature_flags.kSaveAllPalettes = true;
+    t.template_project.feature_flags.kSaveGfxGroups = true;
+    t.template_project.metadata.tags = {"zso_v2", "overworld", "expansion"};
+    templates.push_back(t);
+  }
+  
+  // ZSCustomOverworld v3 - Full features (Recommended)
+  {
+    ProjectTemplate t;
+    t.name = "ZSCustomOverworld v3 (Recommended)";
+    t.description = "Full overworld expansion: wide/tall areas, animated GFX, overlays, all features.";
+    t.icon = ICON_MD_TERRAIN;
+    t.template_project.feature_flags.overworld.kLoadCustomOverworld = true;
+    t.template_project.feature_flags.overworld.kApplyZSCustomOverworldASM = true;
+    t.template_project.feature_flags.overworld.kSaveOverworldMaps = true;
+    t.template_project.feature_flags.overworld.kSaveOverworldEntrances = true;
+    t.template_project.feature_flags.overworld.kSaveOverworldExits = true;
+    t.template_project.feature_flags.overworld.kSaveOverworldItems = true;
+    t.template_project.feature_flags.overworld.kSaveOverworldProperties = true;
+    t.template_project.feature_flags.kSaveAllPalettes = true;
+    t.template_project.feature_flags.kSaveGfxGroups = true;
+    t.template_project.feature_flags.kSaveDungeonMaps = true;
+    t.template_project.feature_flags.kSaveGraphicsSheet = true;
+    t.template_project.metadata.tags = {"zso_v3", "overworld", "full", "recommended"};
+    templates.push_back(t);
+  }
+  
+  // Randomizer Compatible
+  {
+    ProjectTemplate t;
+    t.name = "Randomizer Compatible";
+    t.description = "Compatible with ALttP Randomizer. Minimal custom features to avoid conflicts.";
+    t.icon = ICON_MD_SHUFFLE;
+    t.template_project.feature_flags.overworld.kLoadCustomOverworld = false;
+    t.template_project.feature_flags.overworld.kApplyZSCustomOverworldASM = false;
+    t.template_project.feature_flags.overworld.kSaveOverworldMaps = false;
+    t.template_project.feature_flags.kSaveDungeonMaps = false;
+    t.template_project.metadata.tags = {"randomizer", "compatible", "minimal"};
+    templates.push_back(t);
+  }
+  
+  // ==========================================================================
+  // Editor-Focused Templates
+  // ==========================================================================
+  
+  // Dungeon Designer
+  {
+    ProjectTemplate t;
+    t.name = "Dungeon Designer";
+    t.description = "Focused on dungeon creation and modification.";
+    t.icon = ICON_MD_DOMAIN;
+    t.template_project.feature_flags.kSaveDungeonMaps = true;
+    t.template_project.workspace_settings.show_grid = true;
+    t.template_project.workspace_settings.last_layout_preset = "dungeon_default";
+    t.template_project.metadata.tags = {"dungeons", "rooms", "design"};
+    templates.push_back(t);
+  }
+  
+  // Graphics Pack
+  {
+    ProjectTemplate t;
+    t.name = "Graphics Pack";
+    t.description = "Project focused on graphics, sprites, and visual modifications.";
+    t.icon = ICON_MD_PALETTE;
+    t.template_project.feature_flags.kSaveGraphicsSheet = true;
+    t.template_project.feature_flags.kSaveAllPalettes = true;
+    t.template_project.feature_flags.kSaveGfxGroups = true;
+    t.template_project.workspace_settings.show_grid = true;
+    t.template_project.workspace_settings.last_layout_preset = "graphics_default";
+    t.template_project.metadata.tags = {"graphics", "sprites", "palettes"};
+    templates.push_back(t);
+  }
+  
+  // Complete Overhaul
+  {
+    ProjectTemplate t;
+    t.name = "Complete Overhaul";
+    t.description = "Full-scale ROM hack with all features enabled.";
+    t.icon = ICON_MD_BUILD;
+    t.template_project.feature_flags.overworld.kLoadCustomOverworld = true;
+    t.template_project.feature_flags.overworld.kApplyZSCustomOverworldASM = true;
+    t.template_project.feature_flags.overworld.kSaveOverworldMaps = true;
+    t.template_project.feature_flags.overworld.kSaveOverworldEntrances = true;
+    t.template_project.feature_flags.overworld.kSaveOverworldExits = true;
+    t.template_project.feature_flags.overworld.kSaveOverworldItems = true;
+    t.template_project.feature_flags.overworld.kSaveOverworldProperties = true;
+    t.template_project.feature_flags.kSaveDungeonMaps = true;
+    t.template_project.feature_flags.kSaveGraphicsSheet = true;
+    t.template_project.feature_flags.kSaveAllPalettes = true;
+    t.template_project.feature_flags.kSaveGfxGroups = true;
+    t.template_project.metadata.tags = {"complete", "overhaul", "full-mod"};
+    templates.push_back(t);
+  }
+  
+  return templates;
 }
 
 absl::StatusOr<YazeProject> ProjectManager::CreateFromTemplate(
