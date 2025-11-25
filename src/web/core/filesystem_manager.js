@@ -175,17 +175,18 @@ var FilesystemManager = {
   handleRomUpload: function(file) {
     if (!file) return;
     if (!this.ensureReady()) return;
-    
+
     var reader = new FileReader();
+    var self = this;
     reader.onload = (e) => {
       var data = new Uint8Array(e.target.result);
       var filename = '/roms/' + file.name;
-      
+
       try {
         try { FS.mkdir('/roms'); } catch(e) {}
         FS.writeFile(filename, data);
         console.log("Wrote " + data.length + " bytes to " + filename);
-        
+
         // Verify file was written correctly
         try {
           var stats = FS.stat(filename);
@@ -201,64 +202,94 @@ var FilesystemManager = {
           alert("Failed to verify ROM file: " + verifyErr);
           return;
         }
-        
-        // Check if ccall is available, fallback to direct function call
-        try {
-          if (Module.ccall) {
-            // Use null (not 'null' string) for void return type
-            Module.ccall('LoadRomFromWeb', null, ['string'], [filename]);
-            console.log("LoadRomFromWeb called via ccall");
-          } else if (Module._LoadRomFromWeb) {
-            // Properly allocate and convert string for direct function call
-            var len = Module.lengthBytesUTF8(filename) + 1;
-            var filenamePtr = Module._malloc(len);
-            if (!filenamePtr) {
-              throw new Error("Failed to allocate memory for filename");
-            }
-            Module.stringToUTF8(filename, filenamePtr, len);
-            Module._LoadRomFromWeb(filenamePtr);
-            Module._free(filenamePtr);
-            console.log("LoadRomFromWeb called via direct function");
-          } else {
-            console.error("LoadRomFromWeb function not available");
-            alert("ROM loading not ready yet. Please wait for the app to initialize.");
-            return;
-          }
 
-          // Persist to IndexedDB
-          if (this.ready) {
-            FS.syncfs(false, function(err) {
-              if (err) console.warn('FS sync (push) failed after ROM load:', err);
-            });
-          }
-        } catch (wasmErr) {
-          console.error("WASM error loading ROM:", wasmErr);
-          var errorMsg = "Failed to load ROM: ";
-          if (wasmErr.message) {
-            errorMsg += wasmErr.message;
-          } else if (wasmErr.toString) {
-            errorMsg += wasmErr.toString();
-          } else {
-            errorMsg += "Memory access error (ROM may be corrupted or invalid)";
-          }
-          alert(errorMsg);
-          // Try to get more details from the error
-          if (wasmErr.stack) {
-            console.error("Stack trace:", wasmErr.stack);
-          }
+        // Show loading indicator BEFORE the blocking WASM call
+        // On WASM, ROM loading is sequential and blocks the main thread
+        var loadingId = null;
+        if (typeof window.createLoadingIndicator === 'function') {
+          loadingId = window.createLoadingIndicator('rom-load', 'Loading ROM: ' + file.name);
         }
-      } catch (err) {
-        console.error("Error writing file:", err);
-        var errorMsg = "Failed to load ROM: ";
-        if (err.message) {
-          errorMsg += err.message;
-        } else {
-          errorMsg += err.toString();
-        }
-        alert(errorMsg);
+
+        // Use setTimeout to yield to browser so loading indicator can render
+        // before the blocking WASM call starts
+        setTimeout(function() {
+          self._executeRomLoad(filename, loadingId);
+        }, 50); // Small delay to allow UI to update
+
+      } catch(err) {
+        console.error("File system error:", err);
+        alert("Failed to save ROM to filesystem: " + err);
       }
     };
+    reader.onerror = (err) => {
+      console.error("FileReader error:", err);
+      alert("Failed to read ROM file");
+    };
     reader.readAsArrayBuffer(file);
+  },
+
+  /**
+   * Internal: Execute the actual ROM load (called after UI yield)
+   * @private
+   */
+  _executeRomLoad: function(filename, loadingId) {
+    var self = this;
+    try {
+      if (Module.ccall) {
+        // Use null (not 'null' string) for void return type
+        Module.ccall('LoadRomFromWeb', null, ['string'], [filename]);
+        console.log("LoadRomFromWeb called via ccall");
+      } else if (Module._LoadRomFromWeb) {
+        // Properly allocate and convert string for direct function call
+        var len = Module.lengthBytesUTF8(filename) + 1;
+        var filenamePtr = Module._malloc(len);
+        if (!filenamePtr) {
+          throw new Error("Failed to allocate memory for filename");
+        }
+        Module.stringToUTF8(filename, filenamePtr, len);
+        Module._LoadRomFromWeb(filenamePtr);
+        Module._free(filenamePtr);
+        console.log("LoadRomFromWeb called via direct function");
+      } else {
+        console.error("LoadRomFromWeb function not available");
+        alert("ROM loading not ready yet. Please wait for the app to initialize.");
+        if (loadingId && typeof window.removeLoadingIndicator === 'function') {
+          window.removeLoadingIndicator(loadingId);
+        }
+        return;
+      }
+
+      // Persist to IndexedDB
+      if (self.ready) {
+        FS.syncfs(false, function(err) {
+          if (err) console.warn('FS sync (push) failed after ROM load:', err);
+        });
+      }
+
+      // Remove loading indicator after load completes
+      if (loadingId && typeof window.removeLoadingIndicator === 'function') {
+        window.removeLoadingIndicator(loadingId);
+      }
+    } catch (wasmErr) {
+      console.error("WASM error loading ROM:", wasmErr);
+      var errorMsg = "Failed to load ROM: ";
+      if (wasmErr.message) {
+        errorMsg += wasmErr.message;
+      } else if (wasmErr.toString) {
+        errorMsg += wasmErr.toString();
+      } else {
+        errorMsg += "Memory access error (ROM may be corrupted or invalid)";
+      }
+      alert(errorMsg);
+      // Try to get more details from the error
+      if (wasmErr.stack) {
+        console.error("Stack trace:", wasmErr.stack);
+      }
+      // Remove loading indicator on error
+      if (loadingId && typeof window.removeLoadingIndicator === 'function') {
+        window.removeLoadingIndicator(loadingId);
+      }
+    }
   },
 
   /**
