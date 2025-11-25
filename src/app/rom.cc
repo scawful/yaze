@@ -256,10 +256,8 @@ absl::StatusOr<gfx::Bitmap> LoadFontGraphics(const Rom& rom) {
                         rom.size(), kMinRomSizeForFont));
   }
   
-  std::vector<uint8_t> data(0x2000);
-  for (int i = 0; i < 0x2000; i++) {
-    data[i] = rom.data()[0x70000 + i];
-  }
+  // Use memcpy instead of byte-by-byte copy for performance
+  std::vector<uint8_t> data(rom.data() + 0x70000, rom.data() + 0x70000 + 0x2000);
 
   std::vector<uint8_t> new_data(0x4000);
   std::vector<uint8_t> mask = {0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01};
@@ -303,13 +301,9 @@ absl::StatusOr<gfx::Bitmap> LoadFontGraphics(const Rom& rom) {
     sheet_position += 0x400;
   }
 
-  std::vector<uint8_t> fontgfx16_data(0x4000);
-  for (int i = 0; i < 0x4000; i++) {
-    fontgfx16_data[i] = new_data[i];
-  }
-
+  // Use move semantics to avoid redundant copy
   gfx::Bitmap font_gfx;
-  font_gfx.Create(128, 128, 64, fontgfx16_data);
+  font_gfx.Create(128, 128, 64, std::move(new_data));
   return font_gfx;
 }
 
@@ -597,24 +591,27 @@ absl::StatusOr<std::array<gfx::Bitmap, kNumGfxSheets>> LoadAllGraphicsData(
       }
 
       // Append to legacy graphics buffer for backward compatibility
-      for (int j = 0; j < graphics_sheets[i].size(); ++j) {
-        rom.mutable_graphics_buffer()->push_back(graphics_sheets[i].at(j));
-      }
+      // Use insert with iterators for efficiency instead of byte-by-byte push_back
+      auto& buffer = *rom.mutable_graphics_buffer();
+      const uint8_t* sheet_data = graphics_sheets[i].data();
+      buffer.insert(buffer.end(), sheet_data,
+                    sheet_data + graphics_sheets[i].size());
 
     } else {
       // Create placeholder bitmap for skipped/failed sheets (2BPP sheets, etc.)
       // This ensures the bitmap exists even if empty, preventing index out of
       // bounds errors when editors iterate over all sheets.
-      std::vector<uint8_t> placeholder_data(gfx::kTilesheetWidth *
-                                                gfx::kTilesheetHeight,
-                                            0xFF);
+      constexpr size_t kPlaceholderSize =
+          gfx::kTilesheetWidth * gfx::kTilesheetHeight;
+      std::vector<uint8_t> placeholder_data(kPlaceholderSize, 0xFF);
       graphics_sheets[i].Create(gfx::kTilesheetWidth, gfx::kTilesheetHeight,
-                                gfx::kTilesheetDepth, placeholder_data);
+                                gfx::kTilesheetDepth, std::move(placeholder_data));
 
       // Also append to legacy graphics buffer for backward compatibility
-      for (const auto& byte : placeholder_data) {
-        rom.mutable_graphics_buffer()->push_back(byte);
-      }
+      // Use resize + memset for efficiency
+      auto& buffer = *rom.mutable_graphics_buffer();
+      size_t old_size = buffer.size();
+      buffer.resize(old_size + kPlaceholderSize, 0xFF);
     }
   }
 

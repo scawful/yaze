@@ -6,6 +6,10 @@
 #include <mutex>
 #include <thread>
 
+#ifdef __EMSCRIPTEN__
+#include "app/platform/wasm/wasm_loading_manager.h"
+#endif
+
 #include "app/gfx/debug/performance/performance_profiler.h"
 #include "app/gfx/types/snes_palette.h"
 #include "util/log.h"
@@ -48,7 +52,24 @@ absl::Status DungeonRoomLoader::LoadAllRooms(
 
   auto dungeon_man_pal_group = rom_->palette_group().dungeon_main;
 
+  // Create loading indicator for progress feedback
+  auto loading_handle =
+      app::platform::WasmLoadingManager::BeginLoading("Loading Dungeon Rooms");
+
   for (int i = 0; i < kTotalRooms; ++i) {
+    // Update progress every 10 rooms to reduce overhead
+    if (i % 10 == 0) {
+      float progress = static_cast<float>(i) / static_cast<float>(kTotalRooms);
+      app::platform::WasmLoadingManager::UpdateProgress(loading_handle,
+                                                        progress);
+
+      // Check for cancellation
+      if (app::platform::WasmLoadingManager::IsCancelled(loading_handle)) {
+        app::platform::WasmLoadingManager::EndLoading(loading_handle);
+        return absl::CancelledError("Dungeon room loading cancelled by user");
+      }
+    }
+
     rooms[i] = zelda3::LoadRoomFromRom(rom_, i);
     auto room_size = zelda3::CalculateRoomSize(rom_, i);
     rooms[i].LoadObjects();
@@ -62,6 +83,8 @@ absl::Status DungeonRoomLoader::LoadAllRooms(
       room_palette_results.emplace_back(rooms[i].palette, color.rgb());
     }
   }
+
+  app::platform::WasmLoadingManager::EndLoading(loading_handle);
 #else
   // Native: Parallel loading for performance
   constexpr int kMaxConcurrency =
