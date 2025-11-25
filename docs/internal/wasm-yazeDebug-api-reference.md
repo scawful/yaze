@@ -1,473 +1,665 @@
-# window.yazeDebug JavaScript API Documentation
+# Yaze WASM JavaScript API Reference
 
 ## Overview
-The `window.yazeDebug` API provides unified access to yaze's WASM debug infrastructure for AI assistants (Gemini/Antigravity) to query ROM state, overworld data, palette info, and rendering pipeline status.
+
+The yaze WASM build exposes a comprehensive set of JavaScript APIs for programmatic control and data access. These APIs are organized into five main namespaces:
+
+- **`window.yaze.control`** - Editor control and manipulation
+- **`window.yaze.editor`** - Query current editor state
+- **`window.yaze.data`** - Read-only access to ROM data
+- **`window.yaze.gui`** - GUI automation and interaction
+- **`window.yazeDebug`** - Debug utilities and diagnostics
 
 ## API Version
-- Version: 1.1.0
-- Capabilities: `['palette', 'arena', 'graphics', 'timeline', 'pixel-inspector', 'rom', 'overworld', 'emulator', 'editor']`
 
-## Basic Usage
+- Version: 2.0.0
+- Last Updated: 2025-11-24
+- Capabilities: `['palette', 'arena', 'graphics', 'timeline', 'pixel-inspector', 'rom', 'overworld', 'emulator', 'editor', 'control', 'data', 'gui']`
 
-### Check if Module is Ready
+## Quick Start
+
+### Check if API is Ready
+
 ```javascript
-window.yazeDebug.isReady()
+// All control APIs share the same ready state
+if (window.yaze.control.isReady()) {
+  // APIs are available
+}
+```
+
+### Basic Example
+
+```javascript
+// Switch to Dungeon editor
+window.yaze.control.switchEditor('Dungeon');
+
+// Get current editor state
+const snapshot = window.yaze.editor.getSnapshot();
+console.log('Active editor:', snapshot.editor_type);
+
+// Get room tile data
+const roomData = window.yaze.data.getRoomTiles(0);
+console.log('Room dimensions:', roomData.width, 'x', roomData.height);
+
+// Get available layouts
+const layouts = window.yaze.control.getAvailableLayouts();
+console.log('Available layouts:', layouts);
+```
+
+---
+
+## window.yaze.control - Editor Control API
+
+Provides programmatic control over the editor UI, ROM operations, and session management.
+
+### Utility
+
+#### isReady()
+
+```javascript
+const ready = window.yaze.control.isReady()
 // Returns: boolean
 ```
 
-### Get Complete State Dump
+Checks if the control API is initialized and ready for use.
+
+### Editor Control
+
+#### switchEditor(editorName)
+
 ```javascript
-window.yazeDebug.dumpAll()
-// Returns: object with all debug state
+window.yaze.control.switchEditor('Dungeon')
+window.yaze.control.switchEditor('Overworld')
+window.yaze.control.switchEditor('Graphics')
 ```
-
-### Get Formatted State for AI
-```javascript
-window.yazeDebug.formatForAI()
-// Returns: human-readable string formatted for AI consumption
-```
-
----
-
-## ROM Debug Functions
-
-### Get ROM Status
-```javascript
-window.yazeDebug.rom.getStatus()
-```
-**Returns:**
-```json
-{
-  "loaded": true,
-  "size": 1048576,
-  "title": "THE LEGEND OF ZELDA",
-  "version": 0
-}
-```
-
-### Read ROM Bytes
-```javascript
-window.yazeDebug.rom.readBytes(address, count)
-```
-**Parameters:**
-- `address` (number): ROM address to read from
-- `count` (number, optional): Number of bytes to read (default: 16, max: 256)
-
-**Returns:**
-```json
-{
-  "address": 65536,
-  "count": 16,
-  "bytes": [0x12, 0x34, 0x56, ...]
-}
-```
-
-**Example:**
-```javascript
-// Read 32 bytes from address 0x10000
-window.yazeDebug.rom.readBytes(0x10000, 32)
-```
-
-### Get ROM Palette Group
-```javascript
-window.yazeDebug.rom.getPaletteGroup(groupName, paletteIndex)
-```
-**Parameters:**
-- `groupName` (string): Palette group name. Valid values:
-  - `"ow_main"`, `"ow_aux"`, `"ow_animated"` - Overworld palettes
-  - `"dungeon_main"` - Dungeon palettes
-  - `"hud"` - HUD palettes
-  - `"global_sprites"`, `"sprites_aux1"`, `"sprites_aux2"`, `"sprites_aux3"` - Sprite palettes
-  - `"armors"`, `"swords"`, `"shields"` - Equipment palettes
-  - `"grass"`, `"3d_object"`, `"ow_mini_map"` - Misc palettes
-- `paletteIndex` (number): Index within the group
-
-**Returns:**
-```json
-{
-  "group_name": "ow_main",
-  "palette_index": 0,
-  "size": 16,
-  "colors": [
-    {"r": 255, "g": 0, "b": 0},
-    {"r": 0, "g": 255, "b": 0},
-    ...
-  ]
-}
-```
-
-**Example:**
-```javascript
-// Get the first overworld main palette
-window.yazeDebug.rom.getPaletteGroup("ow_main", 0)
-
-// Get dungeon palette
-window.yazeDebug.rom.getPaletteGroup("dungeon_main", 0)
-```
-
----
-
-## Overworld Debug Functions
-
-### Get Overworld Map Info
-```javascript
-window.yazeDebug.overworld.getMapInfo(mapId)
-```
-**Parameters:**
-- `mapId` (number): Map ID (0-159)
-  - 0-63: Light World
-  - 64-127: Dark World
-  - 128-159: Special World
-
-**Returns:**
-```json
-{
-  "map_id": 0,
-  "size_flag": 32,
-  "is_large": true,
-  "parent_id": 0,
-  "world": "light"
-}
-```
-
-**Example:**
-```javascript
-// Get info for Hyrule Castle (Light World)
-window.yazeDebug.overworld.getMapInfo(0)
-
-// Get info for Dark World map
-window.yazeDebug.overworld.getMapInfo(64)
-```
-
-### Get Overworld Tile Info
-```javascript
-window.yazeDebug.overworld.getTileInfo(mapId, tileX, tileY)
-```
-**Parameters:**
-- `mapId` (number): Map ID
-- `tileX` (number): Tile X coordinate
-- `tileY` (number): Tile Y coordinate
-
-**Returns:**
-```json
-{
-  "map_id": 0,
-  "tile_x": 10,
-  "tile_y": 15,
-  "note": "Full tile data requires overworld to be loaded in editor"
-}
-```
-
----
-
-## Palette Debug Functions
-
-### Get Palette Events
-```javascript
-window.yazeDebug.palette.getEvents()
-```
-Returns all palette debug events logged during rendering.
-
-### Get Full Palette State
-```javascript
-window.yazeDebug.palette.getFullState()
-```
-Returns complete palette state for AI analysis.
-
-### Get Palette Data
-```javascript
-window.yazeDebug.palette.getData()
-```
-Returns palette data with all colors.
-
-### Get Color Comparisons
-```javascript
-window.yazeDebug.palette.getComparisons()
-```
-Returns color comparison data for validation.
-
-### Sample Pixel
-```javascript
-window.yazeDebug.palette.samplePixel(x, y)
-```
-Samples a pixel at canvas coordinates for debugging.
-
-### Clear Palette Events
-```javascript
-window.yazeDebug.palette.clear()
-```
-Clears all palette debug events.
-
----
-
-## Arena/Graphics Debug Functions
-
-### Get Arena Status
-```javascript
-window.yazeDebug.arena.getStatus()
-```
-**Returns:**
-```json
-{
-  "texture_queue_size": 10,
-  "gfx_sheets": [
-    {
-      "index": 0,
-      "width": 128,
-      "height": 128,
-      "has_texture": true,
-      "has_surface": true
-    }
-  ]
-}
-```
-
-### Get Graphics Sheet Info
-```javascript
-window.yazeDebug.arena.getSheetInfo(index)
-```
-**Parameters:**
-- `index` (number): Sheet index (0-222)
-
-**Returns:**
-```json
-{
-  "index": 0,
-  "active": true,
-  "width": 128,
-  "height": 128,
-  "has_texture": true,
-  "has_surface": true,
-  "surface_format": 372645892,
-  "palette_colors": 256
-}
-```
-
----
-
-## Graphics Diagnostics Functions
-
-### Get Graphics Diagnostics
-```javascript
-window.yazeDebug.graphics.getDiagnostics()
-```
-Returns comprehensive ROM graphics loading diagnostics for debugging regression issues.
-
-**Returns:**
-```json
-{
-  "rom_size": 1048576,
-  "header_stripped": true,
-  "checksum_valid": true,
-  "ptr1_loc": 80896,
-  "ptr2_loc": 81152,
-  "ptr3_loc": 81408,
-  "sheets": [
-    {
-      "index": 0,
-      "decomp_size_param": 2048,
-      "actual_decomp_size": 2048,
-      "decompression_succeeded": true,
-      "first_8_bytes": [12, 34, 56, 78, 90, 12, 34, 56]
-    }
-  ],
-  "analysis": {
-    "all_sheets_0xFF": false,
-    "size_param_zero_bug": false,
-    "header_misaligned": false,
-    "suspected_regression": false
-  }
-}
-```
-
-### Detect 0xFF Pattern
-```javascript
-window.yazeDebug.graphics.detect0xFFPattern()
-```
-Quick check for the graphics loading regression (all sheets returning 0xFF).
-
-**Returns:**
-```json
-{
-  "detected": false,
-  "message": "No 0xFF pattern detected"
-}
-```
-
----
-
-## Emulator Debug Functions
-
-### Get Emulator Status
-```javascript
-window.yazeDebug.emulator.getStatus()
-```
-Returns current emulator CPU state and performance metrics.
-
-**Returns:**
-```json
-{
-  "running": true,
-  "cycles": 123456,
-  "fps": 60.0,
-  "registers": {
-    "A": 255,
-    "X": 0,
-    "Y": 128,
-    "S": 511,
-    "P": 36,
-    "PC": 32768,
-    "DB": 0,
-    "D": 0
-  }
-}
-```
-
-### Read Emulator Memory
-```javascript
-window.yazeDebug.emulator.readMemory(address, count)
-```
-**Parameters:**
-- `address` (number): WRAM address to read
-- `count` (number, optional): Number of bytes (default: 16, max: 256)
-
-**Returns:**
-```json
-{
-  "address": 32768,
-  "count": 16,
-  "bytes": [0, 0, 0, 0, ...]
-}
-```
-
-### Get Video State
-```javascript
-window.yazeDebug.emulator.getVideoState()
-```
-Returns PPU state and scanline information.
-
-**Returns:**
-```json
-{
-  "scanline": 128,
-  "h_count": 256,
-  "frame_count": 12345,
-  "brightness": 15
-}
-```
-
----
-
-## Editor Debug Functions
-
-### Get Editor State
-```javascript
-window.yazeDebug.editor.getState()
-```
-Returns current active editor and session information.
-
-**Returns:**
-```json
-{
-  "active_editor": "Dungeon",
-  "session_id": "abc123",
-  "rom_loaded": true
-}
-```
-
-### Execute Command
-```javascript
-window.yazeDebug.editor.executeCommand(command)
-```
-Executes a z3ed CLI command in the editor context.
 
 **Parameters:**
-- `command` (string): z3ed command to execute
+- `editorName` (string): Name of editor to switch to
+  - Valid values: `"Overworld"`, `"Dungeon"`, `"Graphics"`, `"Palette"`, `"Sprite"`, `"Music"`, `"Message"`, `"Screen"`, `"Assembly"`, `"Hex"`, `"Agent"`, `"Settings"`
 
 **Returns:**
 ```json
 {
   "success": true,
-  "output": "Command output here"
+  "editor": "Dungeon"
 }
 ```
 
+#### getCurrentEditor()
+
+```javascript
+const editor = window.yaze.control.getCurrentEditor()
+```
+
+**Returns:**
+```json
+{
+  "name": "Dungeon",
+  "type": 1,
+  "active": true
+}
+```
+
+#### getAvailableEditors()
+
+```javascript
+const editors = window.yaze.control.getAvailableEditors()
+```
+
+**Returns:**
+```json
+[
+  {"name": "Overworld", "type": 0},
+  {"name": "Dungeon", "type": 1},
+  {"name": "Graphics", "type": 2}
+]
+```
+
+### Card Control
+
+Cards are dockable panels within each editor.
+
+#### openCard(cardId)
+
+```javascript
+window.yaze.control.openCard('dungeon.room_selector')
+```
+
+**Parameters:**
+- `cardId` (string): Card identifier
+
+**Returns:**
+```json
+{
+  "success": true,
+  "card_id": "dungeon.room_selector",
+  "visible": true
+}
+```
+
+#### closeCard(cardId)
+
+```javascript
+window.yaze.control.closeCard('dungeon.room_selector')
+```
+
+**Returns:**
+```json
+{
+  "success": true,
+  "card_id": "dungeon.room_selector",
+  "visible": false
+}
+```
+
+#### toggleCard(cardId)
+
+```javascript
+window.yaze.control.toggleCard('dungeon.room_selector')
+```
+
+#### getVisibleCards()
+
+```javascript
+const cards = window.yaze.control.getVisibleCards()
+```
+
+#### getAvailableCards()
+
+```javascript
+const cards = window.yaze.control.getAvailableCards()
+```
+
+#### getCardsInCategory(category)
+
+```javascript
+const cards = window.yaze.control.getCardsInCategory('Dungeon')
+```
+
+### Layout Control
+
+#### setCardLayout(layoutName)
+
+```javascript
+window.yaze.control.setCardLayout('dungeon_default')
+```
+
+**Parameters:**
+- `layoutName` (string): Name of layout preset
+
+**Returns:**
+```json
+{
+  "success": true,
+  "layout": "dungeon_default"
+}
+```
+
+#### getAvailableLayouts()
+
+```javascript
+const layouts = window.yaze.control.getAvailableLayouts()
+```
+
+**Returns:**
+```json
+[
+  "overworld_default",
+  "dungeon_default",
+  "graphics_default",
+  "debug_default",
+  "minimal",
+  "all_cards"
+]
+```
+
+#### saveCurrentLayout(layoutName)
+
+```javascript
+window.yaze.control.saveCurrentLayout('my_custom_layout')
+```
+
+### Menu/UI Actions
+
+#### triggerMenuAction(actionPath)
+
+```javascript
+window.yaze.control.triggerMenuAction('File.Save')
+```
+
+**Parameters:**
+- `actionPath` (string): Menu path (format: `"Menu.Action"`)
+
+#### getAvailableMenuActions()
+
+```javascript
+const actions = window.yaze.control.getAvailableMenuActions()
+```
+
+### Session Control
+
+#### getSessionInfo()
+
+```javascript
+const info = window.yaze.control.getSessionInfo()
+```
+
+**Returns:**
+```json
+{
+  "session_index": 0,
+  "session_count": 1,
+  "rom_loaded": true,
+  "rom_filename": "zelda3.sfc",
+  "rom_title": "THE LEGEND OF ZELDA",
+  "current_editor": "Dungeon"
+}
+```
+
+#### createSession()
+
+```javascript
+const result = window.yaze.control.createSession()
+```
+
+#### switchSession(sessionIndex)
+
+```javascript
+window.yaze.control.switchSession(0)
+```
+
+### ROM Control
+
+#### getRomStatus()
+
+```javascript
+const status = window.yaze.control.getRomStatus()
+```
+
+**Returns:**
+```json
+{
+  "loaded": true,
+  "filename": "zelda3.sfc",
+  "title": "THE LEGEND OF ZELDA",
+  "size": 1048576,
+  "dirty": false
+}
+```
+
+#### readRomBytes(address, count)
+
+```javascript
+const bytes = window.yaze.control.readRomBytes(0x10000, 32)
+```
+
+**Parameters:**
+- `address` (number): ROM address to read from
+- `count` (number, optional): Number of bytes (default: 16, max: 256)
+
+#### writeRomBytes(address, bytes)
+
+```javascript
+window.yaze.control.writeRomBytes(0x10000, [0x00, 0x01, 0x02, 0x03])
+```
+
+**Parameters:**
+- `address` (number): ROM address to write to
+- `bytes` (array): Array of byte values (0-255)
+
+#### saveRom()
+
+```javascript
+const result = window.yaze.control.saveRom()
+```
+
 ---
 
-## Timeline Analysis
+## window.yaze.editor - Editor State API
 
-### Get Event Timeline
+Query current editor state.
+
+### getSnapshot()
+
 ```javascript
-window.yazeDebug.timeline.get()
+const snapshot = window.yaze.editor.getSnapshot()
 ```
-Returns event timeline for analyzing order of operations.
+
+Get comprehensive snapshot of current editor state.
+
+### getCurrentRoom()
+
+```javascript
+const room = window.yaze.editor.getCurrentRoom()
+```
+
+Get current dungeon room (only in Dungeon editor).
+
+### getCurrentMap()
+
+```javascript
+const map = window.yaze.editor.getCurrentMap()
+```
+
+Get current overworld map (only in Overworld editor).
+
+### getSelection()
+
+```javascript
+const selection = window.yaze.editor.getSelection()
+```
+
+Get current selection in active editor.
 
 ---
 
-## AI Analysis Helpers
+## window.yaze.data - Read-only Data API
 
-### Get Diagnostic Summary
-```javascript
-window.yazeDebug.analysis.getSummary()
-```
-Returns human-readable diagnostic summary.
+Access ROM data without modifying it.
 
-### Get Hypothesis Analysis
-```javascript
-window.yazeDebug.analysis.getHypothesis()
-```
-Returns hypothesis analysis based on captured events.
+### Dungeon Data
 
-### Get Full Debug State
+#### getRoomTiles(roomId)
+
 ```javascript
-window.yazeDebug.analysis.getFullState()
+const tiles = window.yaze.data.getRoomTiles(0)
 ```
-Returns complete debug state combining all subsystems.
+
+Get tile data for a dungeon room.
+
+**Parameters:**
+- `roomId` (number): Room ID (0-295)
+
+#### getRoomObjects(roomId)
+
+```javascript
+const objects = window.yaze.data.getRoomObjects(0)
+```
+
+Get tile objects in a dungeon room.
+
+#### getRoomProperties(roomId)
+
+```javascript
+const props = window.yaze.data.getRoomProperties(0)
+```
+
+Get properties for a dungeon room.
+
+### Overworld Data
+
+#### getMapTiles(mapId)
+
+```javascript
+const tiles = window.yaze.data.getMapTiles(0)
+```
+
+Get tile data for an overworld map.
+
+**Parameters:**
+- `mapId` (number): Map ID (0-159)
+
+#### getMapEntities(mapId)
+
+```javascript
+const entities = window.yaze.data.getMapEntities(0)
+```
+
+Get entities (entrances, exits, items, sprites) on a map.
+
+#### getMapProperties(mapId)
+
+```javascript
+const props = window.yaze.data.getMapProperties(0)
+```
+
+Get properties for an overworld map.
+
+### Palette Data
+
+#### getPalette(groupName, paletteId)
+
+```javascript
+const palette = window.yaze.data.getPalette('ow_main', 0)
+```
+
+Get palette colors.
+
+**Parameters:**
+- `groupName` (string): Palette group name
+- `paletteId` (number): Palette ID within group
+
+#### getPaletteGroups()
+
+```javascript
+const groups = window.yaze.data.getPaletteGroups()
+```
+
+Get list of available palette groups.
 
 ---
 
-## Complete Usage Example
+## window.yaze.gui - GUI Automation API
+
+For LLM agents to interact with the ImGui UI. (Structure defined; interaction methods planned for v2.1)
+
+### UI Discovery
+
+#### discover()
 
 ```javascript
-// Wait for WASM module to be ready
+const elements = window.yaze.gui.discover()
+```
+
+Get complete UI element tree for discovery and automation.
+
+#### getElementBounds(elementId)
+
+```javascript
+const bounds = window.yaze.gui.getElementBounds('dungeon_room_selector')
+```
+
+Get precise bounds for a specific UI element.
+
+---
+
+## window.yazeDebug - Debug API
+
+Debug utilities for analyzing ROM state, graphics pipeline, and emulator status.
+
+### Utility
+
+#### isReady()
+
+```javascript
 if (window.yazeDebug.isReady()) {
-  // Check ROM status
-  const romStatus = window.yazeDebug.rom.getStatus();
-  console.log('ROM:', romStatus.title, 'Size:', romStatus.size);
-  
-  // Read some ROM bytes
-  const bytes = window.yazeDebug.rom.readBytes(0x10000, 16);
-  console.log('Bytes at 0x10000:', bytes.bytes);
-  
-  // Get overworld map info
-  const mapInfo = window.yazeDebug.overworld.getMapInfo(0);
-  console.log('Map 0 is large:', mapInfo.is_large);
-  
-  // Get palette from ROM
-  const palette = window.yazeDebug.rom.getPaletteGroup("ow_main", 0);
-  console.log('Palette has', palette.size, 'colors');
-  
-  // Get arena status
-  const arena = window.yazeDebug.arena.getStatus();
-  console.log('Texture queue size:', arena.texture_queue_size);
-  
-  // Dump everything for AI analysis
-  const fullState = window.yazeDebug.dumpAll();
-  console.log('Full state:', fullState);
-  
-  // Or get formatted string for AI
-  const aiPrompt = window.yazeDebug.formatForAI();
-  console.log(aiPrompt);
-} else {
-  console.log('WASM module not ready yet');
+  // Debug API is available
 }
+```
+
+#### dumpAll()
+
+```javascript
+const dump = window.yazeDebug.dumpAll()
+```
+
+Get complete debug state dump.
+
+#### formatForAI()
+
+```javascript
+const aiPrompt = window.yazeDebug.formatForAI()
+```
+
+Get debug state formatted for AI consumption.
+
+### ROM Debug
+
+#### rom.getStatus()
+
+```javascript
+const status = window.yazeDebug.rom.getStatus()
+```
+
+#### rom.readBytes(address, count)
+
+```javascript
+const bytes = window.yazeDebug.rom.readBytes(0x10000, 32)
+```
+
+#### rom.getPaletteGroup(groupName, paletteIndex)
+
+```javascript
+const palette = window.yazeDebug.rom.getPaletteGroup("ow_main", 0)
+```
+
+### Overworld Debug
+
+#### overworld.getMapInfo(mapId)
+
+```javascript
+const mapInfo = window.yazeDebug.overworld.getMapInfo(0)
+```
+
+#### overworld.getTileInfo(mapId, tileX, tileY)
+
+```javascript
+const tileInfo = window.yazeDebug.overworld.getTileInfo(0, 10, 15)
+```
+
+### Palette Debug
+
+#### palette.getEvents()
+
+```javascript
+const events = window.yazeDebug.palette.getEvents()
+```
+
+#### palette.getFullState()
+
+```javascript
+const state = window.yazeDebug.palette.getFullState()
+```
+
+#### palette.getData()
+
+```javascript
+const data = window.yazeDebug.palette.getData()
+```
+
+#### palette.getComparisons()
+
+```javascript
+const comparisons = window.yazeDebug.palette.getComparisons()
+```
+
+#### palette.samplePixel(x, y)
+
+```javascript
+const color = window.yazeDebug.palette.samplePixel(100, 100)
+```
+
+#### palette.clear()
+
+```javascript
+window.yazeDebug.palette.clear()
+```
+
+### Arena/Graphics Debug
+
+#### arena.getStatus()
+
+```javascript
+const status = window.yazeDebug.arena.getStatus()
+```
+
+#### arena.getSheetInfo(index)
+
+```javascript
+const sheet = window.yazeDebug.arena.getSheetInfo(0)
+```
+
+### Graphics Diagnostics
+
+#### graphics.getDiagnostics()
+
+```javascript
+const diag = window.yazeDebug.graphics.getDiagnostics()
+```
+
+#### graphics.detect0xFFPattern()
+
+```javascript
+const result = window.yazeDebug.graphics.detect0xFFPattern()
+```
+
+### Emulator Debug
+
+#### emulator.getStatus()
+
+```javascript
+const status = window.yazeDebug.emulator.getStatus()
+```
+
+#### emulator.readMemory(address, count)
+
+```javascript
+const memory = window.yazeDebug.emulator.readMemory(0x7E0000, 16)
+```
+
+#### emulator.getVideoState()
+
+```javascript
+const video = window.yazeDebug.emulator.getVideoState()
+```
+
+### Editor Debug
+
+#### editor.getState()
+
+```javascript
+const state = window.yazeDebug.editor.getState()
+```
+
+#### editor.executeCommand(command)
+
+```javascript
+const result = window.yazeDebug.editor.executeCommand('get_room_0')
+```
+
+### Timeline Analysis
+
+#### timeline.get()
+
+```javascript
+const timeline = window.yazeDebug.timeline.get()
+```
+
+### AI Analysis Helpers
+
+#### analysis.getSummary()
+
+```javascript
+const summary = window.yazeDebug.analysis.getSummary()
+```
+
+#### analysis.getHypothesis()
+
+```javascript
+const hypothesis = window.yazeDebug.analysis.getHypothesis()
+```
+
+#### analysis.getFullState()
+
+```javascript
+const fullState = window.yazeDebug.analysis.getFullState()
 ```
 
 ---
 
 ## Error Handling
 
-All API functions check if the module is ready and return error objects on failure:
+All API functions return error objects on failure:
 
 ```javascript
 {
@@ -475,41 +667,57 @@ All API functions check if the module is ready and return error objects on failu
 }
 ```
 
-or
+Always check for the `error` field before using data:
 
 ```javascript
-{
-  "error": "Exception message here"
+const result = window.yaze.control.switchEditor('Invalid');
+if (result.error) {
+  console.error('API call failed:', result.error);
+} else {
+  console.log('Success:', result);
 }
 ```
 
-Always check for the `error` field in responses before using the data.
+---
+
+## Browser Console Quick Reference
+
+```javascript
+window.yaze.control.isReady()
+window.yaze.control.getRomStatus()
+window.yaze.control.switchEditor('Dungeon')
+window.yaze.editor.getSnapshot()
+window.yaze.data.getRoomTiles(0)
+window.yaze.control.getAvailableEditors()
+window.yazeDebug.dumpAll()
+console.log(window.yazeDebug.formatForAI())
+```
 
 ---
 
-## Browser Console Testing
+## API Maturity
 
-Open the browser console and try these commands:
+- **Stable** (v2.0): `window.yaze.control`, `window.yaze.editor`, `window.yaze.data`, `window.yazeDebug`
+- **Experimental** (v2.1): `window.yaze.gui` UI interaction methods
 
-```javascript
-// Quick status check
-window.yazeDebug.isReady()
+## Version History
 
-// See all capabilities
-window.yazeDebug.capabilities
+**2.0.0** (2025-11-24)
+- Consolidated all five API namespaces into single reference
+- Comprehensive documentation of `window.yaze.control` (editor control, ROM operations)
+- Comprehensive documentation of `window.yaze.editor` (editor state queries)
+- Comprehensive documentation of `window.yaze.data` (read-only ROM data access)
+- Added `window.yaze.gui` structure with UI discovery APIs
+- Expanded from debug-only reference to comprehensive API documentation
+- All methods verified against actual implementation in `wasm_control_api.cc`
 
-// Get ROM info
-window.yazeDebug.rom.getStatus()
+**1.1.0** (2025-11-20)
+- Initial `window.yazeDebug` API reference
 
-// Read some ROM data
-window.yazeDebug.rom.readBytes(0x10000, 32)
+---
 
-// Get map info for Light World map 0
-window.yazeDebug.overworld.getMapInfo(0)
+## Related Documentation
 
-// Get complete dump
-window.yazeDebug.dumpAll()
-
-// Get formatted for AI
-console.log(window.yazeDebug.formatForAI())
-```
+- [WASM Development Guide](./agents/wasm-development-guide.md) - Building and debugging WASM
+- [Architecture Documentation](./architecture/README.md) - System design details
+- [CI/CD Documentation](./ci-and-testing.md) - Build and test infrastructure

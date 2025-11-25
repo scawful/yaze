@@ -23,7 +23,7 @@ YAZE uses a **tiered testing strategy** to balance CI speed with comprehensive c
    - Add ROM tests when modifying editors
    - Add AI tests when touching agent features
 
-See `docs/internal/CI-TEST-STRATEGY.md` for detailed CI configuration.
+For detailed CI configuration, see the CI/CD section below.
 
 ## Quick Start
 

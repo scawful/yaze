@@ -385,9 +385,13 @@ std::vector<ImGuiKey> ParseShortcutString(const std::string& shortcut) {
     }
     // Function keys
     else if (trimmed[0] == 'F' && trimmed.length() >= 2) {
-      int fnum = std::stoi(trimmed.substr(1));
-      if (fnum >= 1 && fnum <= 12) {
-        keys.push_back(static_cast<ImGuiKey>(ImGuiKey_F1 + (fnum - 1)));
+      try {
+        int fnum = std::stoi(trimmed.substr(1));
+        if (fnum >= 1 && fnum <= 12) {
+          keys.push_back(static_cast<ImGuiKey>(ImGuiKey_F1 + (fnum - 1)));
+        }
+      } catch (const std::exception&) {
+        // Invalid function key format (e.g., "Fabc") - skip this key
       }
     }
   }
