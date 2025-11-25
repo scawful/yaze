@@ -112,7 +112,7 @@ if(EMSCRIPTEN)
   # Note: Functions marked with EMSCRIPTEN_KEEPALIVE must also be listed here
   # MODULARIZE=1 allows async initialization via createYazeModule()
   set_target_properties(yaze PROPERTIES
-    LINK_FLAGS "--bind -s MODULARIZE=1 -s EXPORT_NAME='createYazeModule' -s EXPORTED_RUNTIME_METHODS='[\"ccall\",\"cwrap\",\"stringToUTF8\",\"UTF8ToString\",\"lengthBytesUTF8\",\"FS\",\"IDBFS\",\"allocateUTF8\"]' -s EXPORTED_FUNCTIONS='[\"_main\",\"_SetFileSystemReady\",\"_LoadRomFromWeb\",\"_yazeHandleDroppedFile\",\"_yazeHandleDropError\",\"_yazeHandleDragEnter\",\"_yazeHandleDragLeave\",\"_malloc\",\"_free\"]' --shell-file ${CMAKE_SOURCE_DIR}/src/web/shell.html"
+    LINK_FLAGS "--bind -s MODULARIZE=1 -s EXPORT_NAME='createYazeModule' -s EXPORTED_RUNTIME_METHODS='[\"ccall\",\"cwrap\",\"stringToUTF8\",\"UTF8ToString\",\"lengthBytesUTF8\",\"FS\",\"IDBFS\",\"allocateUTF8\"]' -s EXPORTED_FUNCTIONS='[\"_main\",\"_SetFileSystemReady\",\"_SyncFilesystem\",\"_LoadRomFromWeb\",\"_yazeHandleDroppedFile\",\"_yazeHandleDropError\",\"_yazeHandleDragEnter\",\"_yazeHandleDragLeave\",\"_malloc\",\"_free\"]' --shell-file ${CMAKE_SOURCE_DIR}/src/web/shell.html"
   )
   add_custom_command(TARGET yaze POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
