@@ -14,7 +14,7 @@ let fsInitAttempts = 0;
 
 // Worker spawn tracking to prevent infinite loops
 window.YAZE_WORKER_SPAWN_COUNT = 0;
-window.YAZE_WORKER_SPAWN_LIMIT = 12; // Max worker spawns before aborting (4 pool + some retries)
+window.YAZE_WORKER_SPAWN_LIMIT = 24; // Max worker spawns (4 pool + async map loading needs ~16)
 window.YAZE_WORKER_SPAWN_WINDOW_MS = 3000; // Reset count after this period
 window.YAZE_WORKER_LAST_SPAWN = 0;
 window.YAZE_WORKER_ABORTED = false;
