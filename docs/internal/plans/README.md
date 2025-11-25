@@ -15,7 +15,8 @@ Purpose: keep plan/spec documents centralized and up to date.
 
 ## Current priorities
 - Active release/initiative specs live under `docs/internal/agents/` (e.g., `initiative-v040.md`). Start there before drafting a new plan here.
-- Active plans in this directory: `emulator-debug-api-design.md`, `web_port_strategy.md`, `ai-assisted-development-plan.md`, `ai-infra-improvements.md`, `app-dev-agent-tools.md`, `asm-debug-prompt-engineering.md`, `EDITOR_ROADMAPS_2025-11.md`, `graphics_system_improvement_plan.md`, `hex_editor_enhancements.md`, `message_editor_implementation_roadmap.md`, `message_system_improvement_plan.md`, `ui_modernization.md`.
+- Active plans in this directory: `web_port_strategy.md`, `ai-infra-improvements.md`.
+- Archived plans (partially implemented or completed reference documents): see `archive/plans-2025-11/` for historical context.
 
 ## Naming
 - Avoid ALL-CAPS filenames except established anchors (README, AGENTS, GEMINI, CLAUDE, CONTRIBUTING, etc.). Use kebab-case for new plans.
