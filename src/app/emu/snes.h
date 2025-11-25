@@ -41,7 +41,7 @@ class Snes {
   }
   ~Snes() = default;
 
-  void Init(std::vector<uint8_t>& rom_data);
+  void Init(const std::vector<uint8_t>& rom_data);
   void Reset(bool hard = false);
   void RunFrame();
   void CatchUpApu();

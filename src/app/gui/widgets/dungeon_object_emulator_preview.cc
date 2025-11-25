@@ -12,7 +12,7 @@ namespace yaze {
 namespace gui {
 
 DungeonObjectEmulatorPreview::DungeonObjectEmulatorPreview() {
-  snes_instance_ = std::make_unique<emu::Snes>();
+  // Defer SNES initialization until actually needed to reduce startup memory
 }
 
 DungeonObjectEmulatorPreview::~DungeonObjectEmulatorPreview() {
@@ -25,11 +25,20 @@ void DungeonObjectEmulatorPreview::Initialize(gfx::IRenderer* renderer,
                                               Rom* rom) {
   renderer_ = renderer;
   rom_ = rom;
-  snes_instance_ = std::make_unique<emu::Snes>();
-  std::vector<uint8_t> rom_data = rom->vector();
-  snes_instance_->Init(rom_data);
-
+  // Defer SNES initialization until EnsureInitialized() is called
+  // This avoids a ~2MB ROM copy during startup
   // object_texture_ = renderer_->CreateTexture(256, 256);
+}
+
+void DungeonObjectEmulatorPreview::EnsureInitialized() {
+  if (initialized_) return;
+  if (!rom_ || !rom_->is_loaded()) return;
+
+  snes_instance_ = std::make_unique<emu::Snes>();
+  // Use const reference to avoid copying the ROM data
+  const std::vector<uint8_t>& rom_data = rom_->vector();
+  snes_instance_->Init(rom_data);
+  initialized_ = true;
 }
 
 void DungeonObjectEmulatorPreview::Render() {
@@ -141,6 +150,13 @@ void DungeonObjectEmulatorPreview::RenderControls() {
 void DungeonObjectEmulatorPreview::TriggerEmulatedRender() {
   if (!rom_ || !rom_->is_loaded()) {
     last_error_ = "ROM not loaded";
+    return;
+  }
+
+  // Lazy initialize the SNES emulator on first use
+  EnsureInitialized();
+  if (!snes_instance_) {
+    last_error_ = "Failed to initialize SNES emulator";
     return;
   }
 
