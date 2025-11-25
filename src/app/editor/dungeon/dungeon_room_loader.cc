@@ -34,6 +34,36 @@ absl::Status DungeonRoomLoader::LoadAllRooms(
   }
 
   constexpr int kTotalRooms = 0x100 + 40;  // 296 rooms
+
+  // Data structures for collecting results
+  std::vector<std::pair<int, zelda3::RoomSize>> room_size_results;
+  std::vector<std::pair<int, ImVec4>> room_palette_results;
+
+#ifdef __EMSCRIPTEN__
+  // WASM: Sequential loading to avoid Web Worker explosion
+  // std::async creates pthreads which become Web Workers in browsers,
+  // causing excessive worker spawning and main thread blocking.
+  LOG_DEBUG("Dungeon", "Loading %d dungeon rooms sequentially (WASM build)",
+            kTotalRooms);
+
+  auto dungeon_man_pal_group = rom_->palette_group().dungeon_main;
+
+  for (int i = 0; i < kTotalRooms; ++i) {
+    rooms[i] = zelda3::LoadRoomFromRom(rom_, i);
+    auto room_size = zelda3::CalculateRoomSize(rom_, i);
+    rooms[i].LoadObjects();
+
+    auto dungeon_palette_ptr = rom_->paletteset_ids[rooms[i].palette][0];
+    auto palette_id = rom_->ReadWord(0xDEC4B + dungeon_palette_ptr);
+    if (palette_id.status() == absl::OkStatus()) {
+      int p_id = palette_id.value() / 180;
+      auto color = dungeon_man_pal_group[p_id][3];
+      room_size_results.emplace_back(i, room_size);
+      room_palette_results.emplace_back(rooms[i].palette, color.rgb());
+    }
+  }
+#else
+  // Native: Parallel loading for performance
   constexpr int kMaxConcurrency =
       8;  // Reasonable thread limit for room loading
 
@@ -49,8 +79,6 @@ absl::Status DungeonRoomLoader::LoadAllRooms(
 
   // Thread-safe data structures for collecting results
   std::mutex results_mutex;
-  std::vector<std::pair<int, zelda3::RoomSize>> room_size_results;
-  std::vector<std::pair<int, ImVec4>> room_palette_results;
 
   // Process rooms in parallel batches
   std::vector<std::future<absl::Status>> futures;
@@ -100,6 +128,7 @@ absl::Status DungeonRoomLoader::LoadAllRooms(
   for (auto& future : futures) {
     RETURN_IF_ERROR(future.get());
   }
+#endif
 
   // Process collected results on main thread
   {
