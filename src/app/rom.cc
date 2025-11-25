@@ -41,18 +41,63 @@
 #endif
 
 namespace yaze {
+
+// ============================================================================
+// Graphics Constants
+// ============================================================================
+
+/// Size of uncompressed 3BPP graphics sheet data (1536 bytes = 0x600)
+/// Used for graphics sheets 115-126 which are stored uncompressed in the ROM.
 constexpr int Uncompressed3BPPSize = 0x0600;
 
 namespace {
-constexpr size_t kBaseRomSize = 1048576;  // 1MB
-constexpr size_t kHeaderSize = 0x200;     // 512 bytes
 
+// ============================================================================
+// ROM Structure Constants
+// ============================================================================
+
+/// Standard SNES ROM size for The Legend of Zelda: A Link to the Past (1MB)
+constexpr size_t kBaseRomSize = 1048576;
+
+/// Size of the optional SMC/SFC copier header that some ROM dumps include.
+/// This 512-byte header was added by SNES copier devices (Super Magicom, etc.)
+/// and contains metadata about the ROM. It must be stripped for correct
+/// address calculations since all ROM offsets assume a headerless image.
+constexpr size_t kHeaderSize = 0x200;  // 512 bytes
+
+// ============================================================================
+// SMC Header Detection and Removal
+// ============================================================================
+
+/// Detects and removes the 512-byte SMC copier header if present.
+///
+/// SMC headers were added by SNES game copier devices (Super Magicom, Pro Fighter,
+/// etc.) to store metadata about the ROM. Modern emulators and tools expect
+/// headerless ROM images, so this header must be stripped for correct operation.
+///
+/// Detection Logic:
+/// - A standard ALTTP ROM is exactly 1MB (1,048,576 bytes)
+/// - With an SMC header, it becomes 1MB + 512 bytes (1,049,088 bytes)
+/// - We check: (file_size % 1MB) == 512 bytes
+///
+/// This modulo-based approach correctly identifies:
+/// - 1MB ROM + 512-byte header = 1,049,088 bytes (✓ strips header)
+/// - 1MB ROM without header = 1,048,576 bytes (✓ no change)
+/// - 2MB expanded ROM + header = 2,097,664 bytes (✓ strips header)
+/// - 1.5MB expanded ROM + header = 1,573,376 bytes (✗ won't detect - rare case)
+///
+/// @param rom_data  The ROM data buffer (modified in-place if header found)
+/// @param size      The file size (updated if header stripped)
+///
+/// @note Do NOT change the modulo base from kBaseRomSize (1MB) to 0x8000 (32KB).
+///       The 32KB check caused false positives and broke graphics loading.
+///       See git history for details on this regression.
 void MaybeStripSmcHeader(std::vector<uint8_t>& rom_data, unsigned long& size) {
-  // Bounds check before erasing
-  if (size >= kHeaderSize && rom_data.size() >= kHeaderSize &&
-      size % kBaseRomSize == kHeaderSize) {
+  if (size % kBaseRomSize == kHeaderSize && size >= kHeaderSize &&
+      rom_data.size() >= kHeaderSize) {
     rom_data.erase(rom_data.begin(), rom_data.begin() + kHeaderSize);
     size -= kHeaderSize;
+    LOG_INFO("Rom", "Stripped SMC header from ROM (new size: %lu)", size);
   }
 }
 
@@ -96,20 +141,59 @@ RomLoadOptions RomLoadOptions::RawDataOnly() {
   return options;
 }
 
+// ============================================================================
+// Graphics Address Resolution
+// ============================================================================
+
+/// Resolves a graphics sheet index to its PC (file) offset in the ROM.
+///
+/// ALTTP stores graphics sheet addresses using three separate pointer tables,
+/// where each table contains one byte of the 24-bit SNES address:
+/// - ptr1 table: Low byte of address (bits 0-7)
+/// - ptr2 table: High byte of address (bits 8-15)
+/// - ptr3 table: Bank byte of address (bits 16-23)
+///
+/// For US ROMs, these tables are located at:
+/// - kOverworldGfxPtr1 = 0x4F80 (low bytes)
+/// - kOverworldGfxPtr2 = 0x505F (high bytes)
+/// - kOverworldGfxPtr3 = 0x513E (bank bytes)
+///
+/// Example for sheet index 0:
+///   SNES addr = (data[0x513E] << 16) | (data[0x505F] << 8) | data[0x4F80]
+///   PC offset = SnesToPc(SNES addr)
+///
+/// @param data      Pointer to ROM data buffer
+/// @param addr      Graphics sheet index (0-222)
+/// @param ptr1      Offset of low-byte pointer table in ROM
+/// @param ptr2      Offset of high-byte pointer table in ROM
+/// @param ptr3      Offset of bank-byte pointer table in ROM
+/// @param rom_size  ROM size (unused, kept for API compatibility)
+/// @return          PC offset where the graphics sheet data begins
+///
+/// @warning Callers must verify the returned offset is within ROM bounds
+///          before attempting to read or decompress data at that location.
 uint32_t GetGraphicsAddress(const uint8_t* data, uint8_t addr, uint32_t ptr1,
-                            uint32_t ptr2, uint32_t ptr3, size_t rom_size) {
-  // Validate pointer table accesses are within ROM bounds
-  // Each pointer table entry is 1 byte, and we access ptr + addr
-  if (ptr1 + addr >= rom_size || ptr2 + addr >= rom_size || ptr3 + addr >= rom_size) {
-    // Return UINT32_MAX as a sentinel value to indicate invalid offset
-    // Callers should check for this value before using the offset
-    // In practice, this should never happen with valid ROMs, but WASM requires bounds checking
-    return UINT32_MAX;
-  }
+                            uint32_t ptr2, uint32_t ptr3, size_t /*rom_size*/) {
   return SnesToPc(AddressFromBytes(data[ptr1 + addr], data[ptr2 + addr],
                                    data[ptr3 + addr]));
 }
 
+// ============================================================================
+// 2BPP Graphics Loading
+// ============================================================================
+
+/// Loads and decompresses 2-bit-per-pixel graphics sheets.
+///
+/// These sheets are used for fonts and certain UI elements that only need
+/// 4 colors (2^2 = 4). The specific sheet IDs loaded are:
+/// - 0x71, 0x72: Font graphics
+/// - 0xDA-0xDE: Additional 2BPP assets
+///
+/// @param rom  The loaded ROM to read graphics from
+/// @return     Combined 8BPP pixel data for all 2BPP sheets, or error status
+///
+/// @note The decompressed 2BPP data is converted to 8BPP format for
+///       consistent handling in the graphics pipeline.
 absl::StatusOr<std::vector<uint8_t>> Load2BppGraphics(const Rom& rom) {
   std::vector<uint8_t> sheet;
   const uint8_t sheets[] = {0x71, 0x72, 0xDA, 0xDB, 0xDC, 0xDD, 0xDE};
@@ -119,16 +203,18 @@ absl::StatusOr<std::vector<uint8_t>> Load2BppGraphics(const Rom& rom) {
                                      rom.version_constants().kOverworldGfxPtr2,
                                      rom.version_constants().kOverworldGfxPtr3,
                                      rom.size());
-    
-    // Bounds check before decompressing (also check for invalid offset sentinel)
-    if (offset == UINT32_MAX || offset >= rom.size()) {
+
+    if (offset >= rom.size()) {
       return absl::OutOfRangeError(
           absl::StrFormat("2BPP graphics sheet %u offset %u exceeds ROM size %zu",
                           sheet_id, offset, rom.size()));
     }
-    
+
+    // Decompress using LC-LZ2 algorithm with 0x800 byte output buffer.
+    // IMPORTANT: The size parameter (0x800) must NOT be 0, or DecompressV2
+    // returns an empty vector immediately. This was a regression bug.
     ASSIGN_OR_RETURN(auto decomp_sheet,
-                     gfx::lc_lz2::DecompressV2(rom.data(), offset, 0, 1, rom.size()));
+                     gfx::lc_lz2::DecompressV2(rom.data(), offset, 0x800, 1, rom.size()));
     auto converted_sheet = gfx::SnesTo8bppSheet(decomp_sheet, 2);
     for (const auto& each_pixel : converted_sheet) {
       sheet.push_back(each_pixel);
@@ -227,16 +313,77 @@ absl::StatusOr<gfx::Bitmap> LoadFontGraphics(const Rom& rom) {
   return font_gfx;
 }
 
+// ============================================================================
+// Main Graphics Loading
+// ============================================================================
+
+/// Loads all 223 graphics sheets from the ROM into bitmap format.
+///
+/// ALTTP uses 223 graphics sheets (kNumGfxSheets) stored in three formats:
+///
+/// Sheet Categories:
+/// - Sheets 0-112:   Compressed 3BPP (overworld, dungeons, sprites)
+/// - Sheets 113-114: 2BPP sheets (skipped here, loaded separately)
+/// - Sheets 115-126: Uncompressed 3BPP (special graphics)
+/// - Sheets 127-217: Compressed 3BPP (additional graphics)
+/// - Sheets 218+:    2BPP sheets (skipped here)
+///
+/// Compression Format:
+/// Graphics data is compressed using Nintendo's LC-LZ2 algorithm. Each sheet
+/// is decompressed to a 0x800 (2048) byte buffer, then converted from SNES
+/// planar format to linear 8BPP for easier manipulation.
+///
+/// Graphics Buffer:
+/// All sheet data is also appended to rom.graphics_buffer() for legacy
+/// compatibility. Sheets that fail to load are filled with 0xFF bytes to
+/// maintain correct indexing.
+///
+/// @param rom          The loaded ROM (modified: graphics_buffer populated)
+/// @param defer_render If true, defer texture creation for progressive loading
+/// @return             Array of 223 Bitmap objects, or error status
+///
+/// @warning The DecompressV2 size parameter MUST be 0x800, not 0.
+///          Passing size=0 causes immediate return of empty data, which
+///          was a regression bug that caused all graphics to appear as
+///          solid purple/brown (0xFF fill).
 absl::StatusOr<std::array<gfx::Bitmap, kNumGfxSheets>> LoadAllGraphicsData(
     Rom& rom, bool defer_render) {
   std::array<gfx::Bitmap, kNumGfxSheets> graphics_sheets;
   std::vector<uint8_t> sheet;
   bool bpp3 = false;
-  // CRITICAL: Clear the graphics buffer before loading to prevent corruption!
-  // Without this, multiple ROM loads would accumulate corrupted data.
+
+  // Clear graphics buffer to prevent corruption from multiple ROM loads
   rom.mutable_graphics_buffer()->clear();
   LOG_DEBUG("Graphics", "Cleared graphics buffer, loading %d sheets",
             kNumGfxSheets);
+
+  // -------------------------------------------------------------------------
+  // Diagnostic Logging: ROM Alignment Verification
+  // -------------------------------------------------------------------------
+  // These logs help diagnose issues where the ROM header wasn't stripped
+  // correctly, causing all pointer lookups to be offset by 512 bytes.
+  LOG_INFO("Graphics", "ROM size: %zu bytes (0x%zX)", rom.size(), rom.size());
+  LOG_INFO("Graphics", "Pointer tables: ptr1=0x%X, ptr2=0x%X, ptr3=0x%X",
+           rom.version_constants().kOverworldGfxPtr1,
+           rom.version_constants().kOverworldGfxPtr2,
+           rom.version_constants().kOverworldGfxPtr3);
+
+  // Probe first 5 sheets to verify pointer tables are reading valid addresses
+  for (int probe = 0; probe < 5; probe++) {
+    uint32_t ptr1 = rom.version_constants().kOverworldGfxPtr1;
+    uint32_t ptr2 = rom.version_constants().kOverworldGfxPtr2;
+    uint32_t ptr3 = rom.version_constants().kOverworldGfxPtr3;
+    if (ptr1 + probe < rom.size() && ptr2 + probe < rom.size() && ptr3 + probe < rom.size()) {
+      uint8_t b1 = rom.data()[ptr1 + probe];
+      uint8_t b2 = rom.data()[ptr2 + probe];
+      uint8_t b3 = rom.data()[ptr3 + probe];
+      uint32_t snes_addr = AddressFromBytes(b1, b2, b3);
+      uint32_t pc_addr = SnesToPc(snes_addr);
+      LOG_INFO("Graphics", "Sheet %d: bytes=[%02X,%02X,%02X] -> SNES=0x%06X -> PC=0x%X (valid=%s)",
+               probe, b1, b2, b3, snes_addr, pc_addr,
+               pc_addr < rom.size() ? "yes" : "NO");
+    }
+  }
 
 #ifdef __EMSCRIPTEN__
   // Start progress tracking for WASM builds
@@ -265,54 +412,80 @@ absl::StatusOr<std::array<gfx::Bitmap, kNumGfxSheets>> LoadAllGraphicsData(
       return absl::CancelledError("Graphics loading cancelled by user");
     }
 #endif
-    if (i >= 115 && i <= 126) {  // uncompressed sheets
+    // -----------------------------------------------------------------------
+    // Category 1: Uncompressed 3BPP sheets (115-126)
+    // -----------------------------------------------------------------------
+    // These sheets are stored raw in the ROM without LC-LZ2 compression.
+    // Size is fixed at Uncompressed3BPPSize (0x600 = 1536 bytes).
+    if (i >= 115 && i <= 126) {
       sheet.resize(Uncompressed3BPPSize);
       auto offset = GetGraphicsAddress(
           rom.data(), i, rom.version_constants().kOverworldGfxPtr1,
           rom.version_constants().kOverworldGfxPtr2,
           rom.version_constants().kOverworldGfxPtr3,
           rom.size());
-      
-      // Bounds check before copying ROM data (also check for invalid offset sentinel)
-      if (offset == UINT32_MAX || offset + Uncompressed3BPPSize > rom.size()) {
-        return absl::OutOfRangeError(
-            absl::StrFormat("Graphics sheet %u offset %u + size %u exceeds ROM size %zu",
-                            i, offset, Uncompressed3BPPSize, rom.size()));
+
+      if (offset + Uncompressed3BPPSize > rom.size()) {
+        LOG_WARN("Rom", "Uncompressed sheet %u offset 0x%X out of bounds (ROM size 0x%zX)",
+                 i, offset, rom.size());
+        // Use zero-filled sheet to maintain buffer alignment
+        sheet.assign(Uncompressed3BPPSize, 0);
+      } else {
+        std::copy(rom.data() + offset, rom.data() + offset + Uncompressed3BPPSize,
+                  sheet.begin());
       }
-      
-      std::copy(rom.data() + offset, rom.data() + offset + Uncompressed3BPPSize,
-                sheet.begin());
       bpp3 = true;
+
+    // -----------------------------------------------------------------------
+    // Category 2: 2BPP sheets (113-114, 218+) - Skipped
+    // -----------------------------------------------------------------------
+    // These are loaded separately via Load2BppGraphics(). We still need to
+    // push placeholder data to graphics_buffer to maintain index alignment.
     } else if (i == 113 || i == 114 || i >= 218) {
       bpp3 = false;
+
+    // -----------------------------------------------------------------------
+    // Category 3: Compressed 3BPP sheets (0-112, 127-217)
+    // -----------------------------------------------------------------------
+    // Standard compressed graphics using Nintendo's LC-LZ2 algorithm.
     } else {
       auto offset = GetGraphicsAddress(
           rom.data(), i, rom.version_constants().kOverworldGfxPtr1,
           rom.version_constants().kOverworldGfxPtr2,
           rom.version_constants().kOverworldGfxPtr3,
           rom.size());
-      
-      // Bounds check before decompressing (DecompressV2 will need to read from ROM)
-      // We can't know the exact decompressed size, but we should at least check
-      // the offset is valid (also check for invalid offset sentinel)
-      if (offset == UINT32_MAX || offset >= rom.size()) {
-        return absl::OutOfRangeError(
-            absl::StrFormat("Graphics sheet %u offset %u exceeds ROM size %zu",
-                            i, offset, rom.size()));
+
+      if (offset >= rom.size()) {
+        LOG_WARN("Rom", "Compressed sheet %u offset 0x%X exceeds ROM size 0x%zX",
+                 i, offset, rom.size());
+        bpp3 = false;
+      } else {
+        // Decompress LC-LZ2 data to 0x800 byte buffer
+        // CRITICAL: size parameter MUST be 0x800, not 0!
+        // size=0 causes DecompressV2 to return empty data immediately.
+        auto decomp_result = gfx::lc_lz2::DecompressV2(rom.data(), offset, 0x800, 1, rom.size());
+        if (decomp_result.ok()) {
+          sheet = *decomp_result;
+          bpp3 = true;
+        } else {
+          LOG_WARN("Rom", "Decompression failed for sheet %u: %s", i, decomp_result.status().message());
+          bpp3 = false;
+        }
       }
-      
-      ASSIGN_OR_RETURN(sheet, gfx::lc_lz2::DecompressV2(rom.data(), offset, 0, 1, rom.size()));
-      bpp3 = true;
     }
 
+    // -----------------------------------------------------------------------
+    // Post-processing: Convert and store sheet data
+    // -----------------------------------------------------------------------
     if (bpp3) {
+      // Convert from SNES 3BPP planar format to linear 8BPP indexed format
       auto converted_sheet = gfx::SnesTo8bppSheet(sheet, 3);
 
+      // Create bitmap from converted pixel data
       graphics_sheets[i].Create(gfx::kTilesheetWidth, gfx::kTilesheetHeight,
                                 gfx::kTilesheetDepth, converted_sheet);
 
-      // Apply default palette based on sheet index to prevent white sheets
-      // This ensures graphics are visible immediately after loading
+      // Apply default palette for immediate visibility (prevents white sheets)
       if (!rom.palette_group().empty()) {
         gfx::SnesPalette default_palette;
 
@@ -336,17 +509,19 @@ absl::StatusOr<std::array<gfx::Bitmap, kNumGfxSheets>> LoadAllGraphicsData(
           }
         }
 
-        // Apply palette if we have one
         if (!default_palette.empty()) {
           graphics_sheets[i].SetPalette(default_palette);
         }
       }
 
+      // Append to legacy graphics buffer for backward compatibility
       for (int j = 0; j < graphics_sheets[i].size(); ++j) {
         rom.mutable_graphics_buffer()->push_back(graphics_sheets[i].at(j));
       }
 
     } else {
+      // Fill placeholder data for skipped/failed sheets (0xFF = transparent)
+      // This maintains correct indexing in graphics_buffer
       for (int j = 0; j < graphics_sheets[0].size(); ++j) {
         rom.mutable_graphics_buffer()->push_back(0xFF);
       }
@@ -560,11 +735,32 @@ absl::Status Rom::LoadZelda3(const RomLoadOptions& options) {
     return absl::FailedPreconditionError("ROM data is empty");
   }
 
+  LOG_INFO("Rom", "LoadZelda3: Initial size=%lu bytes (0x%lX)", size_, size_);
+
   if (options.strip_header) {
     MaybeStripSmcHeader(rom_data_, size_);
   }
 
   size_ = rom_data_.size();
+
+  // Log post-strip ROM alignment verification
+  LOG_INFO("Rom", "LoadZelda3: Post-strip size=%zu bytes (0x%zX)", size_, size_);
+
+  // Verify SNES checksum after stripping to confirm alignment
+  if (size_ > 0x7FE0) {
+    uint16_t complement = rom_data_[0x7FDC] | (rom_data_[0x7FDD] << 8);
+    uint16_t checksum = rom_data_[0x7FDE] | (rom_data_[0x7FDF] << 8);
+    bool valid = (complement ^ checksum) == 0xFFFF;
+    LOG_INFO("Rom", "SNES checksum at 0x7FDC: complement=0x%04X checksum=0x%04X XOR=0x%04X valid=%s",
+             complement, checksum, complement ^ checksum, valid ? "YES" : "NO");
+
+    // Log first few bytes at critical pointer table location (kOverworldGfxPtr1 = 0x4F80)
+    if (size_ > 0x4F85) {
+      LOG_INFO("Rom", "Bytes at 0x4F80 (ptr1): %02X %02X %02X %02X %02X %02X",
+               rom_data_[0x4F80], rom_data_[0x4F81], rom_data_[0x4F82],
+               rom_data_[0x4F83], rom_data_[0x4F84], rom_data_[0x4F85]);
+    }
+  }
 
   constexpr uint32_t kTitleStringOffset = 0x7FC0;
   constexpr uint32_t kTitleStringLength = 20;
@@ -632,119 +828,79 @@ absl::Status Rom::LoadGfxGroups() {
   
   // Validate kGfxGroupsPointer is within bounds before reading
   if (kGfxGroupsPointer + 1 >= rom_data_.size()) {
-    return absl::OutOfRangeError(
-        absl::StrFormat("Graphics groups pointer address out of bounds: %u >= %zu",
-                       kGfxGroupsPointer + 1, rom_data_.size()));
+    LOG_WARN("Rom", "Graphics groups pointer address out of bounds: %u >= %zu",
+             kGfxGroupsPointer + 1, rom_data_.size());
+    return absl::OkStatus(); // Continue with empty groups
   }
   
-  ASSIGN_OR_RETURN(auto main_blockset_ptr, ReadWord(kGfxGroupsPointer));
-  main_blockset_ptr = SnesToPc(main_blockset_ptr);
+  auto ptr_status = ReadWord(kGfxGroupsPointer);
+  if (!ptr_status.ok()) return absl::OkStatus();
+  
+  auto main_blockset_ptr = SnesToPc(*ptr_status);
   
   // Validate converted pointer is within bounds
   if (main_blockset_ptr >= rom_data_.size()) {
-    return absl::OutOfRangeError(
-        absl::StrFormat("Main blockset pointer out of bounds after conversion: %u >= %zu",
-                       main_blockset_ptr, rom_data_.size()));
+    LOG_WARN("Rom", "Main blockset pointer out of bounds: %u >= %zu",
+             main_blockset_ptr, rom_data_.size());
+    return absl::OkStatus();
   }
   
   // Bounds check for main blocksets
   uint32_t main_blockset_end = main_blockset_ptr + (kNumMainBlocksets * 8);
   if (main_blockset_end > rom_data_.size()) {
-    return absl::OutOfRangeError(
-        absl::StrFormat("Main blockset data out of bounds: %u > %zu", 
-                       main_blockset_end, rom_data_.size()));
+    LOG_WARN("Rom", "Main blockset data out of bounds: %u > %zu", 
+             main_blockset_end, rom_data_.size());
+    return absl::OkStatus();
   }
 
   for (uint32_t i = 0; i < kNumMainBlocksets; i++) {
     for (int j = 0; j < 8; j++) {
       uint32_t idx = main_blockset_ptr + (i * 8) + j;
-      if (idx >= rom_data_.size()) {
-        return absl::OutOfRangeError(
-            absl::StrFormat("Main blockset index out of bounds: %u >= %zu", 
-                           idx, rom_data_.size()));
+      // We already checked end bounds, but double check
+      if (idx < rom_data_.size()) {
+        main_blockset_ids[i][j] = rom_data_[idx];
       }
-      main_blockset_ids[i][j] = rom_data_[idx];
     }
   }
 
   // Bounds check for room blocksets
   if (kEntranceGfxGroup >= rom_data_.size()) {
-    return absl::OutOfRangeError(
-        absl::StrFormat("Entrance graphics group address out of bounds: %u >= %zu",
-                       kEntranceGfxGroup, rom_data_.size()));
-  }
-  
-  uint32_t room_blockset_end = kEntranceGfxGroup + (kNumRoomBlocksets * 4);
-  if (room_blockset_end > rom_data_.size()) {
-    return absl::OutOfRangeError(
-        absl::StrFormat("Room blockset data out of bounds: %u > %zu", 
-                       room_blockset_end, rom_data_.size()));
-  }
-
-  for (uint32_t i = 0; i < kNumRoomBlocksets; i++) {
-    for (int j = 0; j < 4; j++) {
-      uint32_t idx = kEntranceGfxGroup + (i * 4) + j;
-      if (idx >= rom_data_.size()) {
-        return absl::OutOfRangeError(
-            absl::StrFormat("Room blockset index out of bounds: %u >= %zu", 
-                           idx, rom_data_.size()));
+     // Log warning?
+  } else {
+      uint32_t room_blockset_end = kEntranceGfxGroup + (kNumRoomBlocksets * 4);
+      if (room_blockset_end <= rom_data_.size()) {
+          for (uint32_t i = 0; i < kNumRoomBlocksets; i++) {
+            for (int j = 0; j < 4; j++) {
+              room_blockset_ids[i][j] = rom_data_[kEntranceGfxGroup + (i * 4) + j];
+            }
+          }
       }
-      room_blockset_ids[i][j] = rom_data_[idx];
-    }
   }
 
   auto vc = version_constants();
   
   // Bounds check for sprite blocksets
-  if (vc.kSpriteBlocksetPointer >= rom_data_.size()) {
-    return absl::OutOfRangeError(
-        absl::StrFormat("Sprite blockset pointer out of bounds: %u >= %zu",
-                       vc.kSpriteBlocksetPointer, rom_data_.size()));
-  }
-  
-  uint32_t sprite_blockset_end = vc.kSpriteBlocksetPointer + (kNumSpritesets * 4);
-  if (sprite_blockset_end > rom_data_.size()) {
-    return absl::OutOfRangeError(
-        absl::StrFormat("Sprite blockset data out of bounds: %u > %zu", 
-                       sprite_blockset_end, rom_data_.size()));
-  }
-
-  for (uint32_t i = 0; i < kNumSpritesets; i++) {
-    for (int j = 0; j < 4; j++) {
-      uint32_t idx = vc.kSpriteBlocksetPointer + (i * 4) + j;
-      if (idx >= rom_data_.size()) {
-        return absl::OutOfRangeError(
-            absl::StrFormat("Sprite blockset index out of bounds: %u >= %zu", 
-                           idx, rom_data_.size()));
+  if (vc.kSpriteBlocksetPointer < rom_data_.size()) {
+      uint32_t sprite_blockset_end = vc.kSpriteBlocksetPointer + (kNumSpritesets * 4);
+      if (sprite_blockset_end <= rom_data_.size()) {
+          for (uint32_t i = 0; i < kNumSpritesets; i++) {
+            for (int j = 0; j < 4; j++) {
+              spriteset_ids[i][j] = rom_data_[vc.kSpriteBlocksetPointer + (i * 4) + j];
+            }
+          }
       }
-      spriteset_ids[i][j] = rom_data_[idx];
-    }
   }
 
   // Bounds check for palette sets
-  if (vc.kDungeonPalettesGroups >= rom_data_.size()) {
-    return absl::OutOfRangeError(
-        absl::StrFormat("Dungeon palettes groups pointer out of bounds: %u >= %zu",
-                       vc.kDungeonPalettesGroups, rom_data_.size()));
-  }
-  
-  uint32_t palette_end = vc.kDungeonPalettesGroups + (kNumPalettesets * 4);
-  if (palette_end > rom_data_.size()) {
-    return absl::OutOfRangeError(
-        absl::StrFormat("Palette set data out of bounds: %u > %zu", 
-                       palette_end, rom_data_.size()));
-  }
-
-  for (uint32_t i = 0; i < kNumPalettesets; i++) {
-    for (int j = 0; j < 4; j++) {
-      uint32_t idx = vc.kDungeonPalettesGroups + (i * 4) + j;
-      if (idx >= rom_data_.size()) {
-        return absl::OutOfRangeError(
-            absl::StrFormat("Palette set index out of bounds: %u >= %zu", 
-                           idx, rom_data_.size()));
+  if (vc.kDungeonPalettesGroups < rom_data_.size()) {
+      uint32_t palette_end = vc.kDungeonPalettesGroups + (kNumPalettesets * 4);
+      if (palette_end <= rom_data_.size()) {
+          for (uint32_t i = 0; i < kNumPalettesets; i++) {
+            for (int j = 0; j < 4; j++) {
+              paletteset_ids[i][j] = rom_data_[vc.kDungeonPalettesGroups + (i * 4) + j];
+            }
+          }
       }
-      paletteset_ids[i][j] = rom_data_[idx];
-    }
   }
 
   return absl::OkStatus();
