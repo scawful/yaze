@@ -1,7 +1,7 @@
 # WASM Development Guide
 
 **Status:** Active
-**Last Updated:** 2025-11-24
+**Last Updated:** 2025-11-25
 **Purpose:** Technical reference for building, debugging, and deploying WASM builds
 **Audience:** AI agents and developers working on the YAZE web port
 
@@ -197,6 +197,8 @@ build-wasm/
 - **`src/app/platform/wasm/wasm_session_bridge.cc`** - Session/collaboration bridge
 - **`src/app/platform/wasm/wasm_drop_handler.cc`** - File drop handler
 - **`src/app/platform/wasm/wasm_loading_manager.cc`** - Loading progress UI
+- **`src/app/platform/wasm/wasm_storage.cc`** - IndexedDB storage with memory-safe error handling
+- **`src/app/platform/wasm/wasm_error_handler.cc`** - Error handling with callback cleanup
 
 **CI/CD:**
 - **`.github/workflows/web-build.yml`** - CI/CD for GitHub Pages
@@ -286,6 +288,109 @@ The workflow (`.github/workflows/web-build.yml`) automatically:
 - CI/CD builds
 - Production releases
 
+## Performance Best Practices
+
+Based on the November 2025 performance audit, follow these guidelines when developing for WASM:
+
+### JavaScript Performance
+
+**Event Handling:**
+- Avoid adding event listeners to both canvas AND document for the same events
+- Use WeakMap to cache processed event objects and avoid redundant work
+- Only sanitize/process properties relevant to the specific event type
+
+**Data Structures:**
+- Use circular buffers instead of arrays with `shift()` for log/history buffers
+- `Array.shift()` is O(n) - avoid in high-frequency code paths
+- Example circular buffer pattern:
+  ```javascript
+  var buffer = new Array(maxSize);
+  var index = 0;
+  function add(item) {
+    buffer[index] = item;
+    index = (index + 1) % maxSize;
+  }
+  ```
+
+**Polling/Intervals:**
+- Always store interval/timeout handles for cleanup
+- Clear intervals when the feature is no longer needed
+- Set max retry limits to prevent infinite polling
+- Use flags (e.g., `window.YAZE_MODULE_READY`) to track initialization state
+
+### Memory Management
+
+**Service Worker Caching:**
+- Implement cache size limits with LRU eviction
+- Don't cache indefinitely - set `MAX_CACHE_SIZE` constants
+- Clean up old cache versions on activation
+
+**C++ Memory in EM_JS:**
+- Always `free()` allocated memory in error paths, not just success paths
+- Check if pointers are non-null before freeing
+- Example pattern:
+  ```cpp
+  if (result != 0) {
+    if (data_ptr) free(data_ptr);  // Always free on error
+    return absl::InternalError(...);
+  }
+  ```
+
+**Callback Cleanup:**
+- Add timeout/expiry tracking for stored callbacks
+- Register cleanup handlers for page unload events
+- Periodically clean stale entries (e.g., every minute)
+
+### Race Condition Prevention
+
+**Module Initialization:**
+- Use explicit ready flags, not just existence checks
+- Set ready flag AFTER all initialization is complete
+- Pattern:
+  ```javascript
+  window.YAZE_MODULE_READY = false;
+  createModule().then(function(instance) {
+    window.Module = instance;
+    window.YAZE_MODULE_READY = true;  // Set AFTER assignment
+  });
+  ```
+
+**Promise Initialization:**
+- Create promises synchronously before any async operations
+- Use synchronous lock patterns to prevent duplicate promises:
+  ```javascript
+  if (this.initPromise) return this.initPromise;
+  this.initPromise = new Promise(...);  // Immediate assignment
+  // Then do async work
+  ```
+
+**Redundant Operations:**
+- Use flags to track completed operations
+- Avoid multiple setTimeout calls for the same operation
+- Check flags before executing expensive operations
+
+### File Handling
+
+**Avoid Double Reading:**
+- When files are read via FileReader, pass the `Uint8Array` directly
+- Don't re-read files in downstream handlers
+- Use methods like `handleRomData(filename, data)` instead of `handleRomUpload(file)`
+
+### C++ Mutex Best Practices
+
+**JS Calls and Locks:**
+- Always call JS functions OUTSIDE mutex locks
+- JS calls can block/yield - holding a lock during JS calls risks deadlock
+- Pattern:
+  ```cpp
+  std::string data;
+  {
+    std::lock_guard<std::mutex> lock(mutex_);
+    data = operations_[handle]->data;  // Copy inside lock
+  }
+  js_function(data.c_str());  // Call outside lock
+  ```
+
 ## JavaScript APIs
 
 The WASM build exposes JavaScript APIs for programmatic control and debugging. These are available after the module initializes.
@@ -324,6 +429,46 @@ For AI-assisted debugging workflows using the Antigravity browser extension, see
 - Connecting Gemini to your local WASM build
 - Using debug APIs with AI agents
 - Common debugging workflows and examples
+
+### Dungeon Object Rendering Debugging
+
+For debugging dungeon object rendering issues (objects appearing at wrong positions, wrong sprites, visual discrepancies), see [`docs/internal/wasm_dungeon_debugging.md`](../wasm_dungeon_debugging.md) Section 12: "Antigravity: Debugging Dungeon Object Rendering Issues".
+
+**Quick Reference for Antigravity:**
+
+```javascript
+// 1. Capture screenshot for visual analysis
+const canvas = document.getElementById('canvas');
+const dataUrl = canvas.toDataURL('image/png');
+
+// 2. Get room data for comparison
+const objects = window.yaze.data.getRoomObjects(roomId);
+const tiles = window.yaze.data.getRoomTiles(roomId);
+
+// 3. Check graphics loading status
+const arena = window.yazeDebug.arena.getStatus();
+
+// 4. Full diagnostic dump (copies to clipboard)
+async function getDiagnostic(roomId) {
+  const data = {
+    room_id: roomId,
+    objects: window.yaze.data.getRoomObjects(roomId),
+    properties: window.yaze.data.getRoomProperties(roomId),
+    arena: window.yazeDebug?.arena?.getStatus(),
+    visible_cards: window.yaze.editor.getSnapshot()?.visible_cards
+  };
+  await navigator.clipboard.writeText(JSON.stringify(data, null, 2));
+  return data;
+}
+```
+
+**Common Issues:**
+| Symptom | Check |
+|---------|-------|
+| Objects invisible | `window.yazeDebug.arena.getStatus().pending_textures` |
+| Wrong position | Compare `getRoomObjects()` pixel coords vs visual |
+| Wrong colors | `Module.getDungeonPaletteEvents()` |
+| Black squares | Wait for deferred texture loading |
 
 ## Additional Resources
 
