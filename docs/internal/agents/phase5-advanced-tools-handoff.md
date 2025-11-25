@@ -105,47 +105,281 @@ struct AsmTemplate {
   std::string name;
   std::string code_template;  // With {{PLACEHOLDER}} syntax
   std::vector<std::string> required_params;
+  std::string description;
 };
 
 class CodeGenTool : public resources::CommandHandler {
+ public:
+  // Generate ASM hook at specific ROM address
+  std::string GenerateHook(uint32_t address, const std::string& label,
+                          const std::string& code);
+
+  // Generate freespace patch using detected free regions
+  std::string GenerateFreespaceBlock(size_t size, const std::string& code,
+                                    const std::string& label);
+
+  // Substitute placeholders in template
+  std::string SubstitutePlaceholders(const std::string& tmpl,
+                                     const std::map<std::string, std::string>& params);
+
+  // Validate hook address and detect conflicts
+  absl::Status ValidateHookAddress(Rom* rom, uint32_t address);
+
  private:
   // Template library for common patterns
   static const std::vector<AsmTemplate> kTemplates;
-  
-  std::string GenerateHook(uint32_t address, const std::string& label);
-  std::string GenerateFreespaceBlock(size_t size, const std::string& code);
-  std::string SubstitutePlaceholders(const std::string& tmpl, 
-                                     const std::map<std::string, std::string>& params);
+
+  // Integration with existing freespace detection
+  std::vector<FreeSpaceRegion> DetectFreeSpace(Rom* rom);
 };
 ```
 
-**Templates to Include:**
+---
+
+**Implementation Guide: Section 5.2**
+
+See below for detailed implementation patterns, hook locations, freespace detection, and template library.
+
+---
+
+## 5.2.1 Common Hook Locations in ALTTP
+
+Based on `validation_tool.cc` analysis and ZSCustomOverworld_v3.asm:
+
+| Address | SNES Addr | Description | Original | Safe? |
+|---------|-----------|-------------|----------|-------|
+| `$008027` | `$00:8027` | Reset vector entry | `SEI` | ⚠️ Check |
+| `$008040` | `$00:8040` | NMI vector entry | `JSL` | ⚠️ Check |
+| `$0080B5` | `$00:80B5` | IRQ vector entry | `PHP` | ⚠️ Check |
+| `$00893D` | `$00:893D` | EnableForceBlank | `JSR` | ✅ Safe |
+| `$02AB08` | `$05:AB08` | Overworld_LoadMapProperties | `PHB` | ✅ Safe |
+| `$02AF19` | `$05:AF19` | Overworld_LoadSubscreenAndSilenceSFX1 | `PHP` | ✅ Safe |
+| `$09C499` | `$13:C499` | Sprite_OverworldReloadAll | `PHB` | ✅ Safe |
+
+**Hook Validation:**
+
+```cpp
+absl::Status ValidateHookAddress(Rom* rom, uint32_t address) {
+  if (address >= rom->size()) {
+    return absl::InvalidArgumentError("Address beyond ROM size");
+  }
+
+  // Read current byte at address
+  auto byte = rom->ReadByte(address);
+  if (!byte.ok()) return byte.status();
+
+  // Check if already modified (JSL = $22, JML = $5C)
+  if (*byte == 0x22 || *byte == 0x5C) {
+    return absl::AlreadyExistsError(
+        absl::StrFormat("Address $%06X already has hook (JSL/JML)", address));
+  }
+
+  return absl::OkStatus();
+}
+```
+
+## 5.2.2 Free Space Detection
+
+Integrate with `validation_tool.cc:CheckFreeSpace()`:
+
+```cpp
+std::vector<FreeSpaceRegion> DetectFreeSpace(Rom* rom) {
+  // From validation_tool.cc:456-507
+  std::vector<FreeSpaceRegion> regions = {
+    {0x1F8000, 0x1FFFFF, "Bank $3F"},      // 32KB
+    {0x0FFF00, 0x0FFFFF, "Bank $1F end"},  // 256 bytes
+  };
+
+  std::vector<FreeSpaceRegion> available;
+  for (const auto& region : regions) {
+    if (region.end > rom->size()) continue;
+
+    // Check if region is mostly 0xFF (free space marker)
+    int free_bytes = 0;
+    for (uint32_t addr = region.start; addr < region.end; ++addr) {
+      if ((*rom)[addr] == 0xFF || (*rom)[addr] == 0x00) {
+        free_bytes++;
+      }
+    }
+
+    int free_percent = (free_bytes * 100) / (region.end - region.start);
+    if (free_percent > 80) {
+      available.push_back(region);
+    }
+  }
+  return available;
+}
+```
+
+## 5.2.3 ASM Template Library
+
+**Template 1: NMI Hook** (based on ZSCustomOverworld_v3.asm)
 
 ```asm
-; Hook template
-org ${{ADDRESS}}
-  JSL {{LABEL}}
-  
+; NMI Hook Template
+org ${{NMI_HOOK_ADDRESS}}  ; Default: $008040
+  JSL {{LABEL}}_NMI
+  NOP
+
 freecode
+{{LABEL}}_NMI:
+  PHB : PHK : PLB
+  {{CUSTOM_CODE}}
+  PLB
+  RTL
+```
+
+**Template 2: Sprite Initialization** (from Sprite_Template.asm)
+
+```asm
+; Sprite Template - Sprite Variables:
+; $0D00,X = Y pos (low)  $0D10,X = X pos (low)
+; $0D20,X = Y pos (high) $0D30,X = X pos (high)
+; $0D40,X = Y velocity   $0D50,X = X velocity
+; $0DD0,X = State (08=init, 09=active)
+; $0DC0,X = Graphics ID  $0E20,X = Sprite type
+
+freecode
+{{SPRITE_NAME}}:
+  PHB : PHK : PLB
+
+  LDA $0DD0, X
+  CMP #$08 : BEQ .initialize
+  CMP #$09 : BEQ .main
+  PLB : RTL
+
+.initialize
+  {{INIT_CODE}}
+  LDA #$09 : STA $0DD0, X
+  PLB : RTL
+
+.main
+  {{MAIN_CODE}}
+  PLB : RTL
+```
+
+**Template 3: Overworld Transition Hook**
+
+```asm
+; Based on ZSCustomOverworld:Overworld_LoadMapProperties
+org ${{TRANSITION_HOOK}}  ; Default: $02AB08
+  JSL {{LABEL}}_AreaTransition
+  NOP
+
+freecode
+{{LABEL}}_AreaTransition:
+  PHB : PHK : PLB
+  LDA $8A  ; New area ID
+  CMP #${{AREA_ID}}
+  BNE .skip
+  {{CUSTOM_CODE}}
+.skip
+  PLB
+  PHB  ; Original instruction
+  RTL
+```
+
+**Template 4: Freespace Allocation**
+
+```asm
+org ${{FREESPACE_ADDRESS}}
 {{LABEL}}:
   {{CODE}}
   RTL
 
-; Sprite template  
-{{SPRITE_NAME}}:
-  PHB
-  PHK
-  PLB
-  {{SPRITE_CODE}}
-  PLB
-  RTL
+; Hook from existing code
+org ${{HOOK_ADDRESS}}
+  JSL {{LABEL}}
+  NOP  ; Fill remaining bytes
 ```
 
-**Dependencies:**
-- ROM free space detection from `validation_tool.cc`
-- Address validation from memory inspector
+## 5.2.4 AsarWrapper Integration
 
-**Estimated Effort:** 6-8 hours
+**Current State:** `AsarWrapper` is stubbed (build disabled). Interface exists at:
+- `src/core/asar_wrapper.h`: Defines `ApplyPatchFromString()`
+- `src/core/asar_wrapper.cc`: Returns `UnimplementedError`
+
+**Integration Pattern (when ASAR re-enabled):**
+
+```cpp
+absl::StatusOr<std::string> ApplyGeneratedPatch(
+    const std::string& asm_code, Rom* rom) {
+  AsarWrapper asar;
+  RETURN_IF_ERROR(asar.Initialize());
+
+  auto result = asar.ApplyPatchFromString(asm_code, rom->data());
+  if (!result.ok()) return result.status();
+
+  // Return symbol table
+  std::ostringstream out;
+  for (const auto& sym : result->symbols) {
+    out << absl::StrFormat("%s = $%06X\n", sym.name, sym.address);
+  }
+  return out.str();
+}
+```
+
+**Fallback (current):** Generate .asm file for manual application
+
+## 5.2.5 Address Validation
+
+Reuse `memory_inspector_tool.cc` patterns:
+
+```cpp
+absl::Status ValidateCodeAddress(Rom* rom, uint32_t address) {
+  // Check not in WRAM
+  if (ALTTPMemoryMap::IsWRAM(address)) {
+    return absl::InvalidArgumentError("Address is WRAM, not ROM code");
+  }
+
+  // Validate against known code regions (from rom_diff_tool.cc:55-56)
+  const std::vector<std::pair<uint32_t, uint32_t>> kCodeRegions = {
+    {0x008000, 0x00FFFF},  // Bank $00 code
+    {0x018000, 0x01FFFF},  // Bank $03 code
+  };
+
+  for (const auto& [start, end] : kCodeRegions) {
+    if (address >= start && address <= end) {
+      return absl::OkStatus();
+    }
+  }
+
+  return absl::InvalidArgumentError("Address not in known code region");
+}
+```
+
+## 5.2.6 Example Usage
+
+```bash
+# Generate hook
+z3ed codegen-asm-hook \
+  --address=$02AB08 \
+  --label=LogAreaChange \
+  --code="LDA \$8A\nSTA \$7F5000"
+
+# Generate sprite
+z3ed codegen-sprite-template \
+  --name=CustomChest \
+  --init="LDA #$42\nSTA \$0DC0,X" \
+  --main="JSR MoveSprite"
+
+# Allocate freespace
+z3ed codegen-freespace-patch \
+  --size=256 \
+  --label=CustomRoutine \
+  --code="<asm>"
+```
+
+---
+
+**Dependencies:**
+- ✅ `validation_tool.cc:CheckFreeSpace()` - freespace detection
+- ✅ `memory_inspector_tool.cc:MemoryInspectorBase` - address validation
+- ⚠️ `asar_wrapper.cc` - currently stubbed, awaiting build fix
+- ✅ ZSCustomOverworld_v3.asm - hook location reference
+- ✅ Sprite_Template.asm - sprite variable documentation
+
+**Estimated Effort:** 8-10 hours
 
 ---
 
