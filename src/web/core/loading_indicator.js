@@ -88,6 +88,9 @@
     requestAnimationFrame(() => {
       overlay.classList.add('yaze-loading-visible');
     });
+
+    // Return the ID so it can be used with removeLoadingIndicator
+    return id;
   };
 
   /**
