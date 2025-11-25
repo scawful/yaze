@@ -632,7 +632,12 @@ absl::Status Overworld::LoadOverworldMaps() {
   // Performance optimization: Only build essential maps initially
   // Essential maps are the first few maps of each world that are commonly
   // accessed
+#ifdef __EMSCRIPTEN__
+  // WASM: Fewer maps for faster initial load (rest load on-demand)
+  constexpr int kEssentialMapsPerWorld = 4;
+#else
   constexpr int kEssentialMapsPerWorld = 16;
+#endif
   constexpr int kLightWorldEssential = kEssentialMapsPerWorld;
   constexpr int kDarkWorldEssential =
       kDarkWorldMapIdStart + kEssentialMapsPerWorld;
