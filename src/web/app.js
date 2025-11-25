@@ -12,6 +12,9 @@ let fsReady = false;
 let fsInitPromise = null;
 let fsInitAttempts = 0;
 
+// Cached regex for setStatus progress parsing (avoid recompilation per call)
+const PROGRESS_REGEX = /([^(]+)\((\d+(\.\d+)?)\/(\d+)\)/;
+
 // Worker spawn tracking to prevent infinite loops
 window.YAZE_WORKER_SPAWN_COUNT = 0;
 window.YAZE_WORKER_SPAWN_LIMIT = 24; // Max worker spawns (4 pool + async map loading needs ~16)
@@ -137,6 +140,17 @@ var Module = {
     // The error "attempt to write non-integer (undefined) into integer heap" occurs
     // when browser events have undefined properties that SDL expects to be integers.
 
+    // Cache to avoid re-sanitizing the same event object
+    var sanitizedEvents = new WeakMap();
+
+    // Properties to check for each event type category
+    var propertiesToCheck = {
+      mouse: ['clientX', 'clientY', 'offsetX', 'offsetY', 'pageX', 'pageY', 'screenX', 'screenY', 'movementX', 'movementY', 'x', 'y', 'button', 'buttons', 'which', 'detail'],
+      wheel: ['deltaX', 'deltaY', 'deltaZ', 'deltaMode', 'wheelDelta', 'wheelDeltaX', 'wheelDeltaY'],
+      keyboard: ['keyCode', 'charCode', 'which', 'location'],
+      pointer: ['pointerId', 'width', 'height', 'tiltX', 'tiltY', 'twist', 'pressure']
+    };
+
     // Helper to safely define integer property with default value
     function ensureIntProperty(event, prop, defaultValue) {
       var val = event[prop];
@@ -151,60 +165,45 @@ var Module = {
 
     // Helper to sanitize all common integer properties on an event
     function sanitizeEventIntegers(e) {
-      // Mouse/pointer coordinates
-      ensureIntProperty(e, 'clientX', 0);
-      ensureIntProperty(e, 'clientY', 0);
-      ensureIntProperty(e, 'offsetX', 0);
-      ensureIntProperty(e, 'offsetY', 0);
-      ensureIntProperty(e, 'pageX', 0);
-      ensureIntProperty(e, 'pageY', 0);
-      ensureIntProperty(e, 'screenX', 0);
-      ensureIntProperty(e, 'screenY', 0);
-      ensureIntProperty(e, 'movementX', 0);
-      ensureIntProperty(e, 'movementY', 0);
-      ensureIntProperty(e, 'x', 0);
-      ensureIntProperty(e, 'y', 0);
+      // Skip if already sanitized (WeakMap allows garbage collection)
+      if (sanitizedEvents.has(e)) return;
+      sanitizedEvents.set(e, true);
 
-      // Mouse button state
-      ensureIntProperty(e, 'button', 0);
-      ensureIntProperty(e, 'buttons', 0);
-      ensureIntProperty(e, 'which', 0);
+      var eventType = e.type;
 
-      // Wheel event properties
-      ensureIntProperty(e, 'deltaX', 0);
-      ensureIntProperty(e, 'deltaY', 0);
-      ensureIntProperty(e, 'deltaZ', 0);
-      ensureIntProperty(e, 'deltaMode', 0);
-      ensureIntProperty(e, 'wheelDelta', 0);
-      ensureIntProperty(e, 'wheelDeltaX', 0);
-      ensureIntProperty(e, 'wheelDeltaY', 0);
-
-      // Keyboard event properties
-      ensureIntProperty(e, 'keyCode', 0);
-      ensureIntProperty(e, 'charCode', 0);
-      ensureIntProperty(e, 'which', 0);
-      ensureIntProperty(e, 'location', 0);
-
-      // Touch/pointer event properties
-      ensureIntProperty(e, 'pointerId', 0);
-      ensureIntProperty(e, 'width', 1);
-      ensureIntProperty(e, 'height', 1);
-      ensureIntProperty(e, 'tiltX', 0);
-      ensureIntProperty(e, 'tiltY', 0);
-      ensureIntProperty(e, 'twist', 0);
-
-      // Pressure is a float but ensure it's defined
-      if (typeof e.pressure !== 'number' || isNaN(e.pressure)) {
-        try {
-          Object.defineProperty(e, 'pressure', { value: 0.0, writable: false, configurable: true });
-        } catch (ex) {}
+      // Determine which properties to check based on event type
+      var props;
+      if (eventType.startsWith('mouse') || eventType === 'click' || eventType === 'dblclick' || eventType === 'contextmenu') {
+        props = propertiesToCheck.mouse;
+      } else if (eventType.startsWith('wheel') || eventType === 'DOMMouseScroll') {
+        props = propertiesToCheck.mouse.concat(propertiesToCheck.wheel);
+      } else if (eventType.startsWith('key')) {
+        props = propertiesToCheck.keyboard;
+      } else if (eventType.startsWith('pointer')) {
+        props = propertiesToCheck.mouse.concat(propertiesToCheck.pointer);
+      } else {
+        props = propertiesToCheck.mouse;
       }
 
-      // Detail (for click/dblclick)
-      ensureIntProperty(e, 'detail', 0);
+      // Sanitize each property
+      for (var i = 0; i < props.length; i++) {
+        var prop = props[i];
+        var defaultValue = (prop === 'width' || prop === 'height') ? 1 : 0;
+        if (prop === 'pressure') {
+          // Pressure is a float
+          if (typeof e.pressure !== 'number' || isNaN(e.pressure)) {
+            try {
+              Object.defineProperty(e, 'pressure', { value: 0.0, writable: false, configurable: true });
+            } catch (ex) {}
+          }
+        } else {
+          ensureIntProperty(e, prop, defaultValue);
+        }
+      }
     }
 
     // Apply to all relevant event types - use capture phase to run before Emscripten
+    // ONLY on canvas (document-level listeners are redundant and cause performance issues)
     var eventTypes = [
       'mousemove', 'mousedown', 'mouseup', 'mouseenter', 'mouseleave', 'mouseover', 'mouseout',
       'click', 'dblclick', 'contextmenu',
@@ -218,10 +217,12 @@ var Module = {
       canvas.addEventListener(eventType, sanitizeEventIntegers, true);
     });
 
-    // Also sanitize at document level to catch events that might bubble
-    eventTypes.forEach(function(eventType) {
-      document.addEventListener(eventType, sanitizeEventIntegers, true);
-    });
+    // Expose cleanup function for event listener removal (prevents memory leaks on canvas disposal)
+    window.cleanupCanvasEventSanitization = function() {
+      eventTypes.forEach(function(eventType) {
+        canvas.removeEventListener(eventType, sanitizeEventIntegers, true);
+      });
+    };
 
     return canvas;
   })(),
@@ -229,7 +230,7 @@ var Module = {
     if (!Module.setStatus.last) Module.setStatus.last = { time: Date.now(), text: '' };
     if (text === Module.setStatus.last.text) return;
     
-    var m = text.match(/([^(]+)\((\d+(\.\d+)?)\/(\d+)\)/);
+    var m = text.match(PROGRESS_REGEX);
     var now = Date.now();
     if (m && now - Module.setStatus.last.time < 30) return;
     Module.setStatus.last.time = now;
@@ -439,7 +440,7 @@ if (document.readyState === 'loading') {
 }
 
 function waitForModule(cb) {
-  if (typeof Module !== 'undefined') {
+  if (typeof Module !== 'undefined' && window.YAZE_MODULE_READY) {
     cb();
   } else {
     setTimeout(() => waitForModule(cb), 30);
@@ -649,9 +650,18 @@ function showCrashRecoveryDialog(errorMessage) {
     log += 'User Agent: ' + navigator.userAgent + '\n\n';
     log += 'Error:\n' + errorMessage + '\n\n';
     log += 'Console Log (recent):\n';
-    // Try to get any stored console logs
+    // Try to get any stored console logs (circular buffer)
     if (window._yazeConsoleLogs) {
-      log += window._yazeConsoleLogs.join('\n');
+      // Read from circular buffer in chronological order
+      var logs = [];
+      var startIdx = window._yazeLogIndex;
+      for (var i = 0; i < window._yazeConsoleLogs.length; i++) {
+        var idx = (startIdx + i) % window._yazeConsoleLogs.length;
+        if (window._yazeConsoleLogs[idx]) {
+          logs.push(window._yazeConsoleLogs[idx]);
+        }
+      }
+      log += logs.join('\n');
     }
     var blob = new Blob([log], { type: 'text/plain' });
     var url = URL.createObjectURL(blob);
@@ -775,29 +785,33 @@ function showRecoveryPromptDialog() {
 
 // Console log capture for crash reports
 (function captureLogs() {
-  window._yazeConsoleLogs = [];
+  window._yazeConsoleLogs = new Array(100);
+  window._yazeLogIndex = 0;
   var maxLogs = 100;
 
   var originalLog = console.log;
   var originalWarn = console.warn;
   var originalError = console.error;
 
+  // Use circular buffer - overwrite oldest entries instead of shift()
+  function addLog(prefix, msg) {
+    window._yazeConsoleLogs[window._yazeLogIndex] = prefix + msg;
+    window._yazeLogIndex = (window._yazeLogIndex + 1) % maxLogs;
+  }
+
   console.log = function() {
     var msg = Array.prototype.slice.call(arguments).join(' ');
-    window._yazeConsoleLogs.push('[LOG] ' + msg);
-    if (window._yazeConsoleLogs.length > maxLogs) window._yazeConsoleLogs.shift();
+    addLog('[LOG] ', msg);
     return originalLog.apply(console, arguments);
   };
   console.warn = function() {
     var msg = Array.prototype.slice.call(arguments).join(' ');
-    window._yazeConsoleLogs.push('[WARN] ' + msg);
-    if (window._yazeConsoleLogs.length > maxLogs) window._yazeConsoleLogs.shift();
+    addLog('[WARN] ', msg);
     return originalWarn.apply(console, arguments);
   };
   console.error = function() {
     var msg = Array.prototype.slice.call(arguments).join(' ');
-    window._yazeConsoleLogs.push('[ERROR] ' + msg);
-    if (window._yazeConsoleLogs.length > maxLogs) window._yazeConsoleLogs.shift();
+    addLog('[ERROR] ', msg);
     return originalError.apply(console, arguments);
   };
 })();
@@ -1066,6 +1080,12 @@ window.maximizeTerminal = function() {
 };
 
 window.toggleCollabConsole = function() {
+  // Prioritize the new collaboration UI if available
+  if (typeof window.toggleCollaborationPanel === 'function') {
+    window.toggleCollaborationPanel();
+    return;
+  }
+
   // Check for the global function defined by collab_console.js
   if (window.toggleCollabConsole_impl) {
     window.toggleCollabConsole_impl();
@@ -1117,20 +1137,36 @@ document.addEventListener('DOMContentLoaded', function() {
 // Since we use MODULARIZE=1, we need to call createYazeModule() explicitly
 (function initWASM() {
   console.log('[WASM] Waiting for createYazeModule to be available...');
+  window.YAZE_MODULE_READY = false;
+  var initTimeout = null;
+  var maxRetries = 100;  // 10 seconds max (100ms * 100)
+  var retryCount = 0;
 
   function tryInit() {
     if (typeof createYazeModule === 'function') {
       console.log('[WASM] Initializing module...');
+      // Clear any pending retries
+      if (initTimeout !== null) {
+        clearTimeout(initTimeout);
+        initTimeout = null;
+      }
       createYazeModule(Module).then(function(instance) {
         console.log('[WASM] Module initialized successfully');
         window.Module = instance;
+        window.YAZE_MODULE_READY = true;
       }).catch(function(err) {
         console.error('[WASM] Module initialization failed:', err);
         showFatalError('WASM Initialization Failed', err.message || err.toString());
       });
     } else {
       // yaze.js not loaded yet, try again in 100ms
-      setTimeout(tryInit, 100);
+      retryCount++;
+      if (retryCount < maxRetries) {
+        initTimeout = setTimeout(tryInit, 100);
+      } else {
+        console.error('[WASM] createYazeModule function not found after ' + (maxRetries * 100) + 'ms');
+        showFatalError('WASM Initialization Failed', 'Module loading timed out');
+      }
     }
   }
 

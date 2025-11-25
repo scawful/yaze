@@ -16,7 +16,7 @@
     maxHistorySize: terminalConstants.MAX_HISTORY || 50,
     defaultPrompt: terminalConstants.DEFAULT_PROMPT || 'z3ed> ',
     apiKeyStorageKey: storageKeys.GEMINI_API_KEY || 'z3ed_gemini_api_key',
-    maxOutputLines: terminalConstants.MAX_OUTPUT_LINES || 1000
+    maxOutputLines: terminalConstants.MAX_OUTPUT_LINES || 300
   };
 
   // Built-in commands that are handled client-side
@@ -206,6 +206,7 @@
       this.moduleCheckInterval = setInterval(() => {
         if (this.checkModuleReady()) {
           clearInterval(this.moduleCheckInterval);
+          this.moduleCheckInterval = null;
         }
       }, 500);
     }

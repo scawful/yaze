@@ -11,6 +11,12 @@
   // Store active loading indicators
   const activeIndicators = new Map();
 
+  // Stale indicator timeout in milliseconds (5 minutes)
+  const STALE_INDICATOR_TIMEOUT_MS = 5 * 60 * 1000;
+
+  // Interval ID for stale indicator cleanup
+  let staleCleanupInterval = null;
+
   /**
    * Create a new loading indicator
    * @param {number} id - Unique identifier for this loading operation
@@ -88,6 +94,11 @@
     requestAnimationFrame(() => {
       overlay.classList.add('yaze-loading-visible');
     });
+
+    // Start stale cleanup when first indicator is created (lazy initialization)
+    if (activeIndicators.size === 1) {
+      startStaleCleanup();
+    }
 
     // Return the ID so it can be used with removeLoadingIndicator
     return id;
@@ -172,16 +183,31 @@
     const indicator = activeIndicators.get(id);
     if (!indicator) return;
 
-    // Fade out animation
-    indicator.overlay.classList.remove('yaze-loading-visible');
+    try {
+      // Fade out animation
+      indicator.overlay.classList.remove('yaze-loading-visible');
 
-    // Remove after animation completes
-    setTimeout(() => {
-      if (indicator.overlay.parentNode) {
-        indicator.overlay.parentNode.removeChild(indicator.overlay);
-      }
+      // Remove after animation completes
+      setTimeout(() => {
+        try {
+          if (indicator.overlay && indicator.overlay.parentNode) {
+            indicator.overlay.parentNode.removeChild(indicator.overlay);
+          }
+        } catch (e) {
+          console.warn('[LoadingIndicator] Error removing overlay:', e);
+        }
+        activeIndicators.delete(id);
+
+        // Stop cleanup interval when no indicators are active (save resources)
+        if (activeIndicators.size === 0) {
+          stopStaleCleanup();
+        }
+      }, 300);
+    } catch (e) {
+      // Ensure cleanup even on error
+      console.warn('[LoadingIndicator] Error during removal, forcing cleanup:', e);
       activeIndicators.delete(id);
-    }, 300);
+    }
   };
 
   /**
@@ -209,15 +235,62 @@
    */
   window.removeAllLoadingIndicators = function() {
     for (const [id, indicator] of activeIndicators.entries()) {
-      if (indicator.overlay.parentNode) {
-        indicator.overlay.parentNode.removeChild(indicator.overlay);
+      try {
+        if (indicator.overlay && indicator.overlay.parentNode) {
+          indicator.overlay.parentNode.removeChild(indicator.overlay);
+        }
+      } catch (e) {
+        console.warn('[LoadingIndicator] Error removing indicator:', e);
       }
     }
     activeIndicators.clear();
   };
 
+  /**
+   * Cleanup stale indicators that have been active longer than the timeout
+   * This prevents memory leaks from indicators that were not properly removed
+   */
+  function cleanupStaleIndicators() {
+    const now = Date.now();
+    const staleIds = [];
+
+    for (const [id, indicator] of activeIndicators.entries()) {
+      if (now - indicator.startTime > STALE_INDICATOR_TIMEOUT_MS) {
+        staleIds.push(id);
+      }
+    }
+
+    if (staleIds.length > 0) {
+      console.warn(`[LoadingIndicator] Cleaning up ${staleIds.length} stale indicator(s)`);
+      for (const id of staleIds) {
+        window.removeLoadingIndicator(id);
+      }
+    }
+  }
+
+  /**
+   * Start periodic cleanup of stale indicators
+   */
+  function startStaleCleanup() {
+    if (staleCleanupInterval === null) {
+      // Run cleanup every minute
+      staleCleanupInterval = setInterval(cleanupStaleIndicators, 60 * 1000);
+    }
+  }
+
+  /**
+   * Stop periodic cleanup of stale indicators
+   */
+  function stopStaleCleanup() {
+    if (staleCleanupInterval !== null) {
+      clearInterval(staleCleanupInterval);
+      staleCleanupInterval = null;
+    }
+  }
+
   // Clean up on page unload
   window.addEventListener('beforeunload', function() {
+    stopStaleCleanup();
     window.removeAllLoadingIndicators();
   });
 
