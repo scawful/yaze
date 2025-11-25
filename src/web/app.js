@@ -342,9 +342,14 @@ var Module = {
       }
 
       wasmReady = true;
-      FilesystemManager.initPersistentFS().catch((err) => {
-        console.warn('Persistent FS init failed; continuing with in-memory FS only.', err);
-      });
+      FilesystemManager.initPersistentFS()
+        .then(() => {
+          // Check for recent files and offer to reopen last ROM
+          checkRecentFilesOnStartup();
+        })
+        .catch((err) => {
+          console.warn('Persistent FS init failed; continuing with in-memory FS only.', err);
+        });
 
       // Check if we're recovering from a crash
       checkCrashRecovery();
@@ -557,6 +562,15 @@ window.addEventListener('resize', function(e) {
   debouncedResize();  // Final adjustment
 });
 
+// Handle mobile orientation changes (separate from resize for better timing)
+window.addEventListener('orientationchange', function() {
+  // Delay resize to allow browser layout to settle after orientation change
+  setTimeout(function() {
+    console.log('[Resize] Orientation changed, resizing canvas');
+    window.resizeCanvasToContainer();
+  }, 150);
+});
+
 // UI Helpers
 function showFatalError(title, message) {
   const statusEl = document.getElementById('status');
@@ -689,9 +703,13 @@ function showCrashRecoveryDialog(errorMessage) {
   overlay.appendChild(dialog);
   document.body.appendChild(overlay);
 
+  // Focus the reload button for accessibility and keyboard control
+  reloadBtn.focus();
+
   // Stop propagation of events to prevent further errors
-  overlay.addEventListener('click', function(e) { e.stopPropagation(); }, true);
-  overlay.addEventListener('keydown', function(e) { e.stopPropagation(); }, true);
+  // Use bubbling phase (default) so children (like the button) still get events
+  overlay.addEventListener('click', function(e) { e.stopPropagation(); });
+  overlay.addEventListener('keydown', function(e) { e.stopPropagation(); });
 }
 
 // Check if we're recovering from a previous crash
@@ -718,6 +736,119 @@ function checkCrashRecovery() {
   } catch (e) {
     console.warn('[Recovery] Error checking crash recovery:', e);
   }
+}
+
+// Check for recent files on startup and offer to reopen last ROM
+function checkRecentFilesOnStartup() {
+  try {
+    // Check user preference for auto-load
+    var autoLoadPref = localStorage.getItem('yaze_autoload_recent');
+
+    // Get recent files
+    var recentFiles = FilesystemManager.getRecentFiles(5);
+    if (!recentFiles || recentFiles.length === 0) {
+      console.log('[Startup] No recent files found');
+      return;
+    }
+
+    var lastRom = recentFiles[0];
+    console.log('[Startup] Found recent ROM:', lastRom.filename);
+
+    // If auto-load is enabled, load directly
+    if (autoLoadPref === 'always') {
+      console.log('[Startup] Auto-loading last ROM');
+      FilesystemManager._executeRomLoad(lastRom.filename, null);
+      return;
+    }
+
+    // If auto-load is disabled, skip
+    if (autoLoadPref === 'never') {
+      return;
+    }
+
+    // Show prompt to reopen (default behavior)
+    showRecentFilePrompt(lastRom);
+  } catch (e) {
+    console.warn('[Startup] Error checking recent files:', e);
+  }
+}
+
+// Show prompt to reopen recently used ROM
+function showRecentFilePrompt(recentFile) {
+  var filename = recentFile.filename.split('/').pop();
+  var timeAgo = formatTimeAgo(recentFile.timestamp);
+
+  var overlay = document.createElement('div');
+  overlay.id = 'yaze-recent-dialog';
+  overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:99998;font-family:-apple-system,BlinkMacSystemFont,sans-serif;';
+
+  var dialog = document.createElement('div');
+  dialog.style.cssText = 'background:#1e1e1e;border-radius:12px;padding:28px;max-width:420px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,0.5);color:#fff;';
+
+  var title = document.createElement('h2');
+  title.style.cssText = 'margin:0 0 12px 0;color:#4fc3f7;font-size:20px;display:flex;align-items:center;gap:10px;';
+  title.innerHTML = '<span style="font-size:24px;">📂</span> Welcome Back';
+  dialog.appendChild(title);
+
+  var msg = document.createElement('p');
+  msg.style.cssText = 'margin:0 0 8px 0;color:#ccc;line-height:1.5;font-size:14px;';
+  msg.innerHTML = 'Would you like to continue working on<br><strong style="color:#fff;">' + filename + '</strong>?';
+  dialog.appendChild(msg);
+
+  var timeMsg = document.createElement('p');
+  timeMsg.style.cssText = 'margin:0 0 20px 0;color:#888;font-size:12px;';
+  timeMsg.textContent = 'Last opened ' + timeAgo;
+  dialog.appendChild(timeMsg);
+
+  var btnContainer = document.createElement('div');
+  btnContainer.style.cssText = 'display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;';
+
+  var skipBtn = document.createElement('button');
+  skipBtn.style.cssText = 'padding:10px 16px;border:1px solid #444;background:#2a2a2a;color:#aaa;border-radius:6px;cursor:pointer;font-size:13px;';
+  skipBtn.textContent = 'Start Fresh';
+  skipBtn.onclick = function() { overlay.remove(); };
+  btnContainer.appendChild(skipBtn);
+
+  var neverBtn = document.createElement('button');
+  neverBtn.style.cssText = 'padding:10px 16px;border:1px solid #444;background:#2a2a2a;color:#aaa;border-radius:6px;cursor:pointer;font-size:13px;';
+  neverBtn.textContent = "Don't Ask Again";
+  neverBtn.onclick = function() {
+    localStorage.setItem('yaze_autoload_recent', 'never');
+    overlay.remove();
+  };
+  btnContainer.appendChild(neverBtn);
+
+  var openBtn = document.createElement('button');
+  openBtn.style.cssText = 'padding:10px 20px;border:none;background:#4fc3f7;color:#000;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;';
+  openBtn.textContent = 'Open ROM';
+  openBtn.onclick = function() {
+    overlay.remove();
+    FilesystemManager._executeRomLoad(recentFile.filename, null);
+  };
+  btnContainer.appendChild(openBtn);
+
+  dialog.appendChild(btnContainer);
+  overlay.appendChild(dialog);
+  document.body.appendChild(overlay);
+
+  // Close on background click
+  overlay.addEventListener('click', function(e) {
+    if (e.target === overlay) overlay.remove();
+  });
+}
+
+// Format timestamp to human-readable relative time
+function formatTimeAgo(timestamp) {
+  var seconds = Math.floor((Date.now() - timestamp) / 1000);
+  if (seconds < 60) return 'just now';
+  var minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return minutes + ' minute' + (minutes === 1 ? '' : 's') + ' ago';
+  var hours = Math.floor(minutes / 60);
+  if (hours < 24) return hours + ' hour' + (hours === 1 ? '' : 's') + ' ago';
+  var days = Math.floor(hours / 24);
+  if (days < 7) return days + ' day' + (days === 1 ? '' : 's') + ' ago';
+  var weeks = Math.floor(days / 7);
+  return weeks + ' week' + (weeks === 1 ? '' : 's') + ' ago';
 }
 
 // Show the recovery prompt dialog after a crash
