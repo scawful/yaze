@@ -95,6 +95,13 @@ class CommandHandler {
    */
   virtual bool RequiresRom() const { return true; }
 
+  /**
+   * @brief Check if the command requires ROM labels
+   *
+   * Override to return false if labels are not needed.
+   */
+  virtual bool RequiresLabels() const { return false; }
+
  protected:
   /**
    * @brief Validate command arguments
@@ -112,13 +119,6 @@ class CommandHandler {
    */
   virtual absl::Status Execute(Rom* rom, const ArgumentParser& parser,
                                OutputFormatter& formatter) = 0;
-
-  /**
-   * @brief Check if the command requires ROM labels
-   *
-   * Override to return false if labels are not needed.
-   */
-  virtual bool RequiresLabels() const { return false; }
 
   /**
    * @brief Get the default output format ("json" or "text")
