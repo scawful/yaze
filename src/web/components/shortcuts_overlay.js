@@ -337,11 +337,13 @@
     document.addEventListener('keydown', handleKeyDown, true);
 
     // Add styles if not already present
-    if (!document.getElementById('yaze-shortcuts-styles')) {
+    // CSS is loaded by shell.html, but load dynamically as fallback
+    if (!document.getElementById('yaze-shortcuts-styles') &&
+        !document.querySelector('link[href*="shortcuts_overlay.css"]')) {
       const link = document.createElement('link');
       link.id = 'yaze-shortcuts-styles';
       link.rel = 'stylesheet';
-      link.href = 'shortcuts_overlay.css';
+      link.href = 'styles/shortcuts_overlay.css';
       document.head.appendChild(link);
     }
 

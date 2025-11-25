@@ -14,11 +14,20 @@ var FilesystemManager = {
    * @returns {boolean} - True if ready, false otherwise.
    */
   ensureReady: function(showAlert = true) {
-    if (this.ready && typeof FS !== 'undefined') return true;
-    
+    // Try to get FS from Module if not globally available
+    var fs = (typeof FS !== 'undefined') ? FS :
+             (typeof Module !== 'undefined' && Module.FS) ? Module.FS :
+             (typeof window.Module !== 'undefined' && window.Module.FS) ? window.Module.FS : null;
+
+    if (fs && typeof window.FS === 'undefined') {
+      window.FS = fs; // Expose globally for convenience
+    }
+
+    if (this.ready && fs) return true;
+
     // Check if /roms exists (fast path)
     try {
-      if (typeof FS !== 'undefined' && FS.stat('/roms')) {
+      if (fs && fs.stat('/roms')) {
         this.ready = true;
         return true;
       }
@@ -63,7 +72,17 @@ var FilesystemManager = {
           return;
         }
 
-        if (typeof FS === 'undefined') {
+        // Try to get FS from Module (MODULARIZE mode)
+        var fs = (typeof FS !== 'undefined') ? FS :
+                 (typeof Module !== 'undefined' && Module.FS) ? Module.FS :
+                 (typeof window.Module !== 'undefined' && window.Module.FS) ? window.Module.FS : null;
+
+        if (fs && typeof window.FS === 'undefined') {
+          console.log('[FilesystemManager] Exposing Module.FS globally');
+          window.FS = fs;
+        }
+
+        if (!fs) {
           this.initAttempts++;
           if (this.initAttempts < 50) { // Increased retries significantly
             console.warn('FS unavailable; retrying...', this.initAttempts);
@@ -318,15 +337,28 @@ function waitForModule(cb) {
 // Bind to Module.onFileSystemReady when Module is available
 waitForModule(() => {
   if (typeof Module !== 'undefined') {
-    // Ensure FS is globally available
-    if (typeof FS === 'undefined' && Module.FS) {
-      console.log('[FilesystemManager] Aliasing Module.FS to window.FS');
-      window.FS = Module.FS;
-    }
+    // Ensure FS is globally available (MODULARIZE mode puts it on Module.FS)
+    var exposeFS = function() {
+      if (typeof FS === 'undefined') {
+        if (Module.FS) {
+          console.log('[FilesystemManager] Aliasing Module.FS to window.FS');
+          window.FS = Module.FS;
+        } else if (window.Module && window.Module.FS) {
+          console.log('[FilesystemManager] Aliasing window.Module.FS to window.FS');
+          window.FS = window.Module.FS;
+        }
+      }
+    };
+
+    // Try immediately and also after a delay (module init may not be complete)
+    exposeFS();
+    setTimeout(exposeFS, 100);
+    setTimeout(exposeFS, 500);
 
     // Hook into existing onFileSystemReady if it exists
     var original = Module.onFileSystemReady;
     Module.onFileSystemReady = function() {
+      exposeFS(); // Ensure FS is available when C++ signals ready
       if (original) original();
       FilesystemManager.onFileSystemReady();
     };

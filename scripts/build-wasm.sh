@@ -187,6 +187,9 @@ if [ -d "$PROJECT_ROOT/src/web/pwa" ]; then
     # Verify coi-serviceworker.js was copied (critical for SharedArrayBuffer support)
     if [ -f "dist/pwa/coi-serviceworker.js" ]; then
         echo "  coi-serviceworker.js present (required for SharedArrayBuffer/pthreads)"
+        # CRITICAL: Also copy to root for GitHub Pages (service worker scope must cover /)
+        cp "dist/pwa/coi-serviceworker.js" "dist/coi-serviceworker.js"
+        echo "  coi-serviceworker.js copied to root (for GitHub Pages)"
     else
         echo "Warning: coi-serviceworker.js not found - SharedArrayBuffer may not work"
     fi

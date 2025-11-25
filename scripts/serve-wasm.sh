@@ -168,4 +168,44 @@ echo "Open http://127.0.0.1:$PORT in your browser"
 echo "Press Ctrl+C to stop the server"
 echo ""
 
-python3 -m http.server "$PORT" --directory "$DIST_DIR"
+# Use custom server with COOP/COEP headers for SharedArrayBuffer support
+python3 - "$PORT" "$DIST_DIR" <<'PYSERVER'
+import sys
+import os
+from http.server import HTTPServer, SimpleHTTPRequestHandler
+
+PORT = int(sys.argv[1])
+DIRECTORY = sys.argv[2]
+
+class COOPCOEPHandler(SimpleHTTPRequestHandler):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, directory=DIRECTORY, **kwargs)
+
+    def end_headers(self):
+        # Required headers for SharedArrayBuffer support
+        self.send_header('Cross-Origin-Opener-Policy', 'same-origin')
+        self.send_header('Cross-Origin-Embedder-Policy', 'require-corp')
+        self.send_header('Cross-Origin-Resource-Policy', 'same-origin')
+        # Prevent caching during development
+        self.send_header('Cache-Control', 'no-store')
+        super().end_headers()
+
+    def log_message(self, format, *args):
+        # Color-coded logging
+        status = args[1] if len(args) > 1 else ""
+        if status.startswith('2'):
+            color = '\033[32m'  # Green
+        elif status.startswith('3'):
+            color = '\033[33m'  # Yellow
+        elif status.startswith('4') or status.startswith('5'):
+            color = '\033[31m'  # Red
+        else:
+            color = ''
+        reset = '\033[0m' if color else ''
+        print(f"{color}{self.address_string()} - {format % args}{reset}")
+
+print(f"Server running with COOP/COEP headers enabled")
+print(f"SharedArrayBuffer support: ENABLED")
+httpd = HTTPServer(('', PORT), COOPCOEPHandler)
+httpd.serve_forever()
+PYSERVER

@@ -6,8 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <meta name="description" content="A modern, cross-platform ROM editor for The Legend of Zelda: A Link to the Past">
 
-    <!-- COI Service Worker for SharedArrayBuffer support (must be first!) -->
-    <script src="pwa/coi-serviceworker.js"></script>
+    <!-- COI service worker for SharedArrayBuffer support (must be at root for proper scope) -->
+    <script src="coi-serviceworker.js"></script>
 
     <!-- PWA Meta Tags -->
     <meta name="theme-color" content="#0d0d0d">
@@ -882,21 +882,29 @@
       });
 
       // Resize canvas when panels open/close
+      // Note: This delegates to app.js resizeCanvasToContainer if available
       function resizeCanvasToContainer() {
+        // Prefer the app.js version which has proper integer conversion
+        if (typeof window.resizeCanvasToContainer === 'function' &&
+            window.resizeCanvasToContainer !== resizeCanvasToContainer) {
+          return window.resizeCanvasToContainer();
+        }
+
         var canvas = document.getElementById('canvas');
         var container = document.getElementById('canvas-container');
         if (!canvas || !container) return;
 
-        // Get available space
+        // Get available space - MUST use Math.floor for WASM integer heap
         var rect = container.getBoundingClientRect();
+        var width = Math.floor(rect.width);
+        var height = Math.floor(rect.height);
+
+        if (width <= 0 || height <= 0) return;
 
         // Notify Emscripten to resize if available
         if (typeof Module !== 'undefined' && Module.setCanvasSize) {
-          Module.setCanvasSize(rect.width, rect.height);
+          Module.setCanvasSize(width, height);
         }
-
-        // Force a redraw by triggering resize event
-        window.dispatchEvent(new Event('resize'));
       }
 
       var panels = {

@@ -12,9 +12,21 @@ The yaze WASM build exposes a comprehensive set of JavaScript APIs for programma
 
 ## API Version
 
-- Version: 2.0.0
-- Last Updated: 2025-11-24
+- Version: 2.1.0
+- Last Updated: 2025-11-25
 - Capabilities: `['palette', 'arena', 'graphics', 'timeline', 'pixel-inspector', 'rom', 'overworld', 'emulator', 'editor', 'control', 'data', 'gui']`
+
+## Build Requirements
+
+The WASM module must be built with these Emscripten flags for full API access:
+
+```
+-s MODULARIZE=1
+-s EXPORT_NAME='createYazeModule'
+-s EXPORTED_RUNTIME_METHODS=['FS','ccall','cwrap','lengthBytesUTF8','stringToUTF8','UTF8ToString','getValue','setValue']
+```
+
+The dev server must set COOP/COEP headers for SharedArrayBuffer support. Use `./scripts/serve-wasm.sh` which handles this automatically.
 
 ## Quick Start
 
@@ -701,6 +713,12 @@ console.log(window.yazeDebug.formatForAI())
 - **Experimental** (v2.1): `window.yaze.gui` UI interaction methods
 
 ## Version History
+
+**2.1.0** (2025-11-25)
+- Added build requirements section documenting required Emscripten flags
+- Documented MODULARIZE mode and EXPORTED_RUNTIME_METHODS requirements
+- Updated for serve-wasm.sh COOP/COEP header support
+- Thread pool increased to 8 workers (PTHREAD_POOL_SIZE=8)
 
 **2.0.0** (2025-11-24)
 - Consolidated all five API namespaces into single reference

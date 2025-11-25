@@ -1,6 +1,7 @@
 ### 🛠️ WASM Debugging Guide: Dungeon Editor
 
 **Status:** Current (November 2025)
+**Last Updated:** 2025-11-25
 
 The WASM build includes a powerful, hidden "Debug Inspector" that bypasses the need for GDB/LLDB by exposing C++ state directly to the browser console.
 
@@ -42,3 +43,9 @@ The code in `src/app/editor/dungeon/dungeon_editor_v2.cc` contains a function `D
 There are **NO** `__EMSCRIPTEN__` checks inside the `src/app/editor/dungeon/` logic.
 *   **Implication**: If a logic bug exists in WASM, it likely exists in the Native macOS/Linux build too. Reproduce bugs on Desktop first for easier debugging (breakpoints, etc.), then verify the fix on Web.
 *   **Exception**: Rendering glitches are likely WASM-specific due to the single-threaded `TickFrame` loop vs. the multi-threaded desktop renderer.
+
+#### 5. Thread Pool Configuration
+The WASM build uses a fixed thread pool (`PTHREAD_POOL_SIZE=8` in CMakePresets.json).
+*   **Warning Signs**: If you see "Tried to spawn a new thread, but the thread pool is exhausted", heavy parallel operations are exceeding the pool size.
+*   **Fix**: Increase `PTHREAD_POOL_SIZE` in CMakePresets.json and rebuild with `--clean`
+*   **Root Cause**: Often happens during ROM loading when multiple graphics sheets are decompressed in parallel.
