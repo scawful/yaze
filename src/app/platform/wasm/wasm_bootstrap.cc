@@ -37,6 +37,22 @@ void SetFileSystemReady() {
 }
 
 EMSCRIPTEN_KEEPALIVE
+void SyncFilesystem() {
+  // Sync all IDBFS mounts to IndexedDB for persistence
+  EM_ASM({
+    if (typeof FS !== 'undefined' && FS.syncfs) {
+      FS.syncfs(false, function(err) {
+        if (err) {
+          console.error('[WASM] Failed to sync filesystem:', err);
+        } else {
+          console.log('[WASM] Filesystem synced successfully');
+        }
+      });
+    }
+  });
+}
+
+EMSCRIPTEN_KEEPALIVE
 void LoadRomFromWeb(const char* filename) {
   if (!filename) {
     LOG_ERROR("Wasm", "LoadRomFromWeb called with null filename");
@@ -69,13 +85,32 @@ void LoadRomFromWeb(const char* filename) {
 } // extern "C"
 
 EM_JS(void, MountFilesystems, (), {
-  // Create directories
-  FS.mkdir('/roms');
-  FS.mkdir('/saves');
+  // Create all required directories
+  var directories = [
+    '/roms',       // ROM files (MEMFS - loaded dynamically)
+    '/saves',      // Save files (IDBFS - persistent)
+    '/config',     // Configuration files (IDBFS - persistent)
+    '/projects',   // Project files (IDBFS - persistent)
+    '/prompts',    // Agent prompts (IDBFS - persistent)
+    '/recent',     // Recent files metadata (IDBFS - persistent)
+    '/temp'        // Temporary files (MEMFS - non-persistent)
+  ];
 
-  // Mount filesystems
+  directories.forEach(function(dir) {
+    try {
+      FS.mkdir(dir);
+    } catch (e) {
+      // Directory may already exist
+      if (e.code !== 'EEXIST') {
+        console.warn("Failed to create directory " + dir + ": " + e);
+      }
+    }
+  });
+
+  // Mount MEMFS for ROMs (loaded dynamically, not persisted)
   FS.mount(MEMFS, {}, '/roms');
-  
+  FS.mount(MEMFS, {}, '/temp');
+
   // Check if IDBFS is available (try multiple ways to access it)
   var idbfs = null;
   if (typeof IDBFS !== 'undefined') {
@@ -85,31 +120,49 @@ EM_JS(void, MountFilesystems, (), {
   } else if (typeof FS !== 'undefined' && typeof FS.filesystems !== 'undefined' && FS.filesystems.IDBFS) {
     idbfs = FS.filesystems.IDBFS;
   }
-  
+
+  // Persistent directories to mount with IDBFS
+  var persistentDirs = ['/saves', '/config', '/projects', '/prompts', '/recent'];
+  var mountedCount = 0;
+  var totalToMount = persistentDirs.length;
+
   if (idbfs !== null) {
-    try {
-      FS.mount(idbfs, {}, '/saves');
-      
-      // Sync from IDBFS to memory
-      FS.syncfs(true, function(err) {
-        if (err) {
-          console.error("Failed to sync IDBFS: " + err);
-        } else {
-          console.log("IDBFS synced successfully");
+    persistentDirs.forEach(function(dir) {
+      try {
+        FS.mount(idbfs, {}, dir);
+        mountedCount++;
+      } catch (e) {
+        console.error("Error mounting IDBFS for " + dir + ": " + e);
+        // Fallback to MEMFS for this directory
+        try {
+          FS.mount(MEMFS, {}, dir);
+        } catch (e2) {
+          // May already be mounted
         }
-        // Signal C++ that we are ready regardless of success/fail
-        Module._SetFileSystemReady();
-      });
-    } catch (e) {
-      console.error("Error mounting IDBFS: " + e);
-      // Fallback to MEMFS
-      FS.mount(MEMFS, {}, '/saves');
+        mountedCount++;
+      }
+    });
+
+    // Sync all IDBFS mounts from IndexedDB to memory
+    FS.syncfs(true, function(err) {
+      if (err) {
+        console.error("Failed to sync IDBFS: " + err);
+      } else {
+        console.log("IDBFS synced successfully");
+      }
+      // Signal C++ that we are ready regardless of success/fail
       Module._SetFileSystemReady();
-    }
+    });
   } else {
     // Fallback to MEMFS if IDBFS is not available
-    console.warn("IDBFS not available, using MEMFS for /saves (no persistence)");
-    FS.mount(MEMFS, {}, '/saves');
+    console.warn("IDBFS not available, using MEMFS for all directories (no persistence)");
+    persistentDirs.forEach(function(dir) {
+      try {
+        FS.mount(MEMFS, {}, dir);
+      } catch (e) {
+        // May already be mounted
+      }
+    });
     Module._SetFileSystemReady();
   }
 });
