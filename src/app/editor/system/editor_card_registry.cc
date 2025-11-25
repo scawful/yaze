@@ -784,6 +784,220 @@ void EditorCardRegistry::DrawSidebar(
 }
 
 // ============================================================================
+// Tree View Sidebar
+// ============================================================================
+
+void EditorCardRegistry::DrawTreeSidebar(
+    size_t session_id, const std::vector<std::string>& active_categories,
+    std::function<void(const std::string&)> on_category_switch) {
+  const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
+
+  const ImGuiViewport* viewport = ImGui::GetMainViewport();
+  const float viewport_height = viewport->WorkSize.y;
+
+  ImVec4 sidebar_bg = gui::ConvertColorToImVec4(theme.surface);
+  ImVec4 sidebar_border = gui::ConvertColorToImVec4(theme.text_disabled);
+
+  ImGuiWindowFlags sidebar_flags =
+      ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
+      ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse |
+      ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoFocusOnAppearing |
+      ImGuiWindowFlags_NoNavFocus;
+
+  if (sidebar_collapsed_) {
+    return;
+  }
+
+  const float sidebar_width = GetTreeSidebarWidth();
+
+  ImGui::SetNextWindowPos(ImVec2(viewport->WorkPos.x, viewport->WorkPos.y));
+  ImGui::SetNextWindowSize(ImVec2(sidebar_width, viewport_height));
+
+  ImGui::PushStyleColor(ImGuiCol_WindowBg, sidebar_bg);
+  ImGui::PushStyleColor(ImGuiCol_Border, sidebar_border);
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8.0f, 8.0f));
+  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4.0f, 4.0f));
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 1.0f);
+
+  if (ImGui::Begin("##TreeSidebar", nullptr, sidebar_flags)) {
+    // Header with title and collapse button
+    ImGui::PushStyleColor(ImGuiCol_Text,
+                          gui::ConvertColorToImVec4(theme.text_primary));
+    ImGui::Text("%s Editors", ICON_MD_FOLDER_OPEN);
+    ImGui::PopStyleColor();
+
+    ImGui::SameLine(sidebar_width - 36.0f);
+    if (ImGui::Button(ICON_MD_KEYBOARD_ARROW_LEFT, ImVec2(24.0f, 24.0f))) {
+      sidebar_collapsed_ = true;
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Collapse Sidebar");
+    }
+
+    ImGui::Separator();
+    ImGui::Spacing();
+
+    // Calculate available height for tree (reserve space for bottom buttons)
+    const float bottom_section_height = 100.0f;
+    const float available_height =
+        viewport_height - ImGui::GetCursorPosY() - bottom_section_height;
+
+    // Scrollable tree region
+    ImGui::BeginChild("##TreeContent", ImVec2(0, available_height), false,
+                      ImGuiChildFlags_None);
+
+    // Draw tree for each active category
+    for (const auto& category : active_categories) {
+      bool is_current = (category == active_category_);
+      auto cards = GetCardsInCategory(session_id, category);
+
+      if (cards.empty()) continue;
+
+      // Count visible cards
+      int visible_count = 0;
+      for (const auto& card : cards) {
+        if (card.visibility_flag && *card.visibility_flag) {
+          visible_count++;
+        }
+      }
+
+      // Tree node flags
+      ImGuiTreeNodeFlags node_flags =
+          ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth;
+      if (is_current) {
+        node_flags |= ImGuiTreeNodeFlags_Selected;
+      }
+      // Auto-expand current category
+      if (is_current) {
+        ImGui::SetNextItemOpen(true, ImGuiCond_Once);
+      }
+
+      // Category icon based on type
+      std::string cat_icon = ICON_MD_FOLDER;
+      if (category == "Dungeon")
+        cat_icon = ICON_MD_CASTLE;
+      else if (category == "Overworld")
+        cat_icon = ICON_MD_MAP;
+      else if (category == "Graphics")
+        cat_icon = ICON_MD_IMAGE;
+      else if (category == "Palette")
+        cat_icon = ICON_MD_PALETTE;
+      else if (category == "Sprite")
+        cat_icon = ICON_MD_PERSON;
+      else if (category == "Music")
+        cat_icon = ICON_MD_MUSIC_NOTE;
+      else if (category == "Message")
+        cat_icon = ICON_MD_MESSAGE;
+
+      // Draw category node with visible count badge
+      std::string node_label =
+          absl::StrFormat("%s %s (%d/%zu)", cat_icon, category, visible_count,
+                          cards.size());
+
+      bool node_open = ImGui::TreeNodeEx(node_label.c_str(), node_flags);
+
+      // Click on category to switch editor
+      if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen()) {
+        if (on_category_switch) {
+          on_category_switch(category);
+        }
+        SetActiveCategory(category);
+      }
+
+      if (node_open) {
+        // Draw cards as checkbox items
+        for (const auto& card : cards) {
+          ImGui::PushID(card.card_id.c_str());
+
+          bool visible = card.visibility_flag ? *card.visibility_flag : false;
+          bool is_enabled =
+              !card.enabled_condition || card.enabled_condition();
+
+          // Disable if condition not met
+          if (!is_enabled) {
+            ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.4f);
+            ImGui::BeginDisabled();
+          }
+
+          // Checkbox with icon and name
+          std::string item_label =
+              absl::StrFormat("%s %s", card.icon, card.display_name);
+
+          if (ImGui::Checkbox(item_label.c_str(), &visible)) {
+            if (card.visibility_flag) {
+              *card.visibility_flag = visible;
+              if (visible && card.on_show) {
+                card.on_show();
+              } else if (!visible && card.on_hide) {
+                card.on_hide();
+              }
+            }
+          }
+
+          // Tooltip with shortcut hint
+          if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+            if (!is_enabled && !card.disabled_tooltip.empty()) {
+              ImGui::SetTooltip("%s", card.disabled_tooltip.c_str());
+            } else if (!card.shortcut_hint.empty()) {
+              ImGui::SetTooltip("%s", card.shortcut_hint.c_str());
+            }
+          }
+
+          if (!is_enabled) {
+            ImGui::EndDisabled();
+            ImGui::PopStyleVar();
+          }
+
+          ImGui::PopID();
+        }
+
+        ImGui::TreePop();
+      }
+    }
+
+    ImGui::EndChild();
+
+    // Bottom section with utility buttons
+    ImGui::Separator();
+    ImGui::Spacing();
+
+    // Show All / Hide All buttons
+    ImVec4 success_color = gui::ConvertColorToImVec4(theme.success);
+    ImVec4 error_color = gui::ConvertColorToImVec4(theme.error);
+
+    if (ImGui::Button(ICON_MD_DONE_ALL " Show All", ImVec2(88.0f, 28.0f))) {
+      ShowAllCardsInSession(session_id);
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Show all cards");
+    }
+
+    ImGui::SameLine();
+
+    if (ImGui::Button(ICON_MD_CLOSE " Hide All", ImVec2(88.0f, 28.0f))) {
+      HideAllCardsInSession(session_id);
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Hide all cards");
+    }
+
+    // Toggle to icon mode button
+    ImGui::Spacing();
+    if (ImGui::Button(ICON_MD_VIEW_COMPACT " Icon Mode",
+                      ImVec2(sidebar_width - 20.0f, 28.0f))) {
+      tree_view_mode_ = false;
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Switch to compact icon sidebar");
+    }
+  }
+  ImGui::End();
+
+  ImGui::PopStyleVar(3);
+  ImGui::PopStyleColor(2);
+}
+
+// ============================================================================
 // Compact Controls for Menu Bar
 // ============================================================================
 

@@ -17,11 +17,75 @@ const PROGRESS_REGEX = /([^(]+)\((\d+(\.\d+)?)\/(\d+)\)/;
 
 // Worker spawn tracking to prevent infinite loops
 window.YAZE_WORKER_SPAWN_COUNT = 0;
-window.YAZE_WORKER_SPAWN_LIMIT = 24; // Max worker spawns (4 pool + async map loading needs ~16)
+window.YAZE_WORKER_SPAWN_LIMIT = 32; // Max worker spawns (increased for better parallelism)
 window.YAZE_WORKER_SPAWN_WINDOW_MS = 3000; // Reset count after this period
 window.YAZE_WORKER_LAST_SPAWN = 0;
 window.YAZE_WORKER_ABORTED = false;
 window.YAZE_WORKER_ERRORS = 0;
+
+// Frame timing diagnostics (enabled in debug mode)
+window.YAZE_FRAME_TIMING = {
+  enabled: false,
+  lastFrameTime: 0,
+  droppedFrames: 0,
+  frameCount: 0,
+  avgFrameTime: 16.67,
+  rafId: null
+};
+
+// Start frame timing monitoring
+function startFrameTimingMonitor() {
+  if (window.YAZE_FRAME_TIMING.enabled) return;
+  window.YAZE_FRAME_TIMING.enabled = true;
+  window.YAZE_FRAME_TIMING.lastFrameTime = performance.now();
+
+  function measureFrame(timestamp) {
+    const ft = window.YAZE_FRAME_TIMING;
+    const delta = timestamp - ft.lastFrameTime;
+    ft.lastFrameTime = timestamp;
+    ft.frameCount++;
+
+    // Update rolling average
+    ft.avgFrameTime = ft.avgFrameTime * 0.95 + delta * 0.05;
+
+    // Detect dropped frames (> 20ms = dropped at 60fps)
+    if (delta > 20) {
+      ft.droppedFrames++;
+      if (ft.droppedFrames % 10 === 1) {  // Log every 10th drop
+        console.warn('[FrameTiming] Dropped frame: ' + delta.toFixed(1) + 'ms (total: ' + ft.droppedFrames + ')');
+      }
+    }
+
+    if (ft.enabled) {
+      ft.rafId = requestAnimationFrame(measureFrame);
+    }
+  }
+
+  window.YAZE_FRAME_TIMING.rafId = requestAnimationFrame(measureFrame);
+}
+
+function stopFrameTimingMonitor() {
+  window.YAZE_FRAME_TIMING.enabled = false;
+  if (window.YAZE_FRAME_TIMING.rafId) {
+    cancelAnimationFrame(window.YAZE_FRAME_TIMING.rafId);
+    window.YAZE_FRAME_TIMING.rafId = null;
+  }
+}
+
+// Expose frame timing API
+window.yazeFrameTiming = {
+  start: startFrameTimingMonitor,
+  stop: stopFrameTimingMonitor,
+  getStats: function() {
+    var ft = window.YAZE_FRAME_TIMING;
+    return {
+      avgFrameTime: ft.avgFrameTime.toFixed(2) + 'ms',
+      estimatedFPS: (1000 / ft.avgFrameTime).toFixed(1),
+      droppedFrames: ft.droppedFrames,
+      totalFrames: ft.frameCount
+    };
+  }
+};
 
 // Intercept Worker constructor to prevent infinite spawn loops
 (function interceptWorkerSpawns() {
@@ -140,88 +204,118 @@ var Module = {
     // The error "attempt to write non-integer (undefined) into integer heap" occurs
     // when browser events have undefined properties that SDL expects to be integers.
 
-    // Cache to avoid re-sanitizing the same event object
-    var sanitizedEvents = new WeakMap();
-
-    // Properties to check for each event type category
-    var propertiesToCheck = {
-      mouse: ['clientX', 'clientY', 'offsetX', 'offsetY', 'pageX', 'pageY', 'screenX', 'screenY', 'movementX', 'movementY', 'x', 'y', 'button', 'buttons', 'which', 'detail'],
-      wheel: ['deltaX', 'deltaY', 'deltaZ', 'deltaMode', 'wheelDelta', 'wheelDeltaX', 'wheelDeltaY'],
-      keyboard: ['keyCode', 'charCode', 'which', 'location'],
-      pointer: ['pointerId', 'width', 'height', 'tiltX', 'tiltY', 'twist', 'pressure']
-    };
-
-    // Helper to safely define integer property with default value
-    function ensureIntProperty(event, prop, defaultValue) {
-      var val = event[prop];
-      if (typeof val !== 'number' || isNaN(val) || !isFinite(val)) {
-        try {
-          Object.defineProperty(event, prop, { value: defaultValue | 0, writable: false, configurable: true });
-        } catch (e) {
-          // Property might be non-configurable, ignore
-        }
-      }
-    }
-
-    // Helper to sanitize all common integer properties on an event
-    function sanitizeEventIntegers(e) {
-      // Skip if already sanitized (WeakMap allows garbage collection)
-      if (sanitizedEvents.has(e)) return;
-      sanitizedEvents.set(e, true);
-
-      var eventType = e.type;
-
-      // Determine which properties to check based on event type
-      var props;
-      if (eventType.startsWith('mouse') || eventType === 'click' || eventType === 'dblclick' || eventType === 'contextmenu') {
-        props = propertiesToCheck.mouse;
-      } else if (eventType.startsWith('wheel') || eventType === 'DOMMouseScroll') {
-        props = propertiesToCheck.mouse.concat(propertiesToCheck.wheel);
-      } else if (eventType.startsWith('key')) {
-        props = propertiesToCheck.keyboard;
-      } else if (eventType.startsWith('pointer')) {
-        props = propertiesToCheck.mouse.concat(propertiesToCheck.pointer);
-      } else {
-        props = propertiesToCheck.mouse;
-      }
-
-      // Sanitize each property
-      for (var i = 0; i < props.length; i++) {
-        var prop = props[i];
-        var defaultValue = (prop === 'width' || prop === 'height') ? 1 : 0;
-        if (prop === 'pressure') {
-          // Pressure is a float
-          if (typeof e.pressure !== 'number' || isNaN(e.pressure)) {
-            try {
-              Object.defineProperty(e, 'pressure', { value: 0.0, writable: false, configurable: true });
-            } catch (ex) {}
+    // PERFORMANCE OPTIMIZATION: Modern browsers (Chrome 90+, Firefox 90+, Safari 15+)
+    // have well-defined event properties. Skip sanitization for these browsers.
+    var needsSanitization = (function() {
+      // Create a synthetic mouse event to check if properties are defined
+      try {
+        var testEvent = new MouseEvent('click', { clientX: 0, clientY: 0 });
+        // Check if all critical properties exist and are numbers
+        var criticalProps = ['clientX', 'clientY', 'offsetX', 'offsetY', 'button', 'buttons'];
+        for (var i = 0; i < criticalProps.length; i++) {
+          var val = testEvent[criticalProps[i]];
+          if (typeof val !== 'number') {
+            console.log('[EventSanitization] Property ' + criticalProps[i] + ' is ' + typeof val + ', enabling sanitization');
+            return true;
           }
-        } else {
-          ensureIntProperty(e, prop, defaultValue);
+        }
+        console.log('[EventSanitization] Modern browser detected, skipping event sanitization for performance');
+        return false;
+      } catch (e) {
+        console.log('[EventSanitization] Feature detection failed, enabling sanitization');
+        return true;
+      }
+    })();
+
+    // Only set up sanitization if needed (legacy browsers)
+    var sanitizeEventIntegers = null;
+    var eventTypes = null;
+
+    if (needsSanitization) {
+      // Cache to avoid re-sanitizing the same event object
+      var sanitizedEvents = new WeakMap();
+
+      // Properties to check for each event type category
+      var propertiesToCheck = {
+        mouse: ['clientX', 'clientY', 'offsetX', 'offsetY', 'pageX', 'pageY', 'screenX', 'screenY', 'movementX', 'movementY', 'x', 'y', 'button', 'buttons', 'which', 'detail'],
+        wheel: ['deltaX', 'deltaY', 'deltaZ', 'deltaMode', 'wheelDelta', 'wheelDeltaX', 'wheelDeltaY'],
+        keyboard: ['keyCode', 'charCode', 'which', 'location'],
+        pointer: ['pointerId', 'width', 'height', 'tiltX', 'tiltY', 'twist', 'pressure']
+      };
+
+      // Helper to safely define integer property with default value
+      function ensureIntProperty(event, prop, defaultValue) {
+        var val = event[prop];
+        if (typeof val !== 'number' || isNaN(val) || !isFinite(val)) {
+          try {
+            Object.defineProperty(event, prop, { value: defaultValue | 0, writable: false, configurable: true });
+          } catch (e) {
+            // Property might be non-configurable, ignore
+          }
         }
       }
+
+      // Helper to sanitize all common integer properties on an event
+      sanitizeEventIntegers = function(e) {
+        // Skip if already sanitized (WeakMap allows garbage collection)
+        if (sanitizedEvents.has(e)) return;
+        sanitizedEvents.set(e, true);
+
+        var eventType = e.type;
+
+        // Determine which properties to check based on event type
+        var props;
+        if (eventType.startsWith('mouse') || eventType === 'click' || eventType === 'dblclick' || eventType === 'contextmenu') {
+          props = propertiesToCheck.mouse;
+        } else if (eventType.startsWith('wheel') || eventType === 'DOMMouseScroll') {
+          props = propertiesToCheck.mouse.concat(propertiesToCheck.wheel);
+        } else if (eventType.startsWith('key')) {
+          props = propertiesToCheck.keyboard;
+        } else if (eventType.startsWith('pointer')) {
+          props = propertiesToCheck.mouse.concat(propertiesToCheck.pointer);
+        } else {
+          props = propertiesToCheck.mouse;
+        }
+
+        // Sanitize each property
+        for (var i = 0; i < props.length; i++) {
+          var prop = props[i];
+          var defaultValue = (prop === 'width' || prop === 'height') ? 1 : 0;
+          if (prop === 'pressure') {
+            // Pressure is a float
+            if (typeof e.pressure !== 'number' || isNaN(e.pressure)) {
+              try {
+                Object.defineProperty(e, 'pressure', { value: 0.0, writable: false, configurable: true });
+              } catch (ex) {}
+            }
+          } else {
+            ensureIntProperty(e, prop, defaultValue);
+          }
+        }
+      };
+
+      // Apply to all relevant event types - use capture phase to run before Emscripten
+      eventTypes = [
+        'mousemove', 'mousedown', 'mouseup', 'mouseenter', 'mouseleave', 'mouseover', 'mouseout',
+        'click', 'dblclick', 'contextmenu',
+        'wheel', 'mousewheel', 'DOMMouseScroll',
+        'pointerdown', 'pointerup', 'pointermove', 'pointerenter', 'pointerleave', 'pointerover', 'pointerout', 'pointercancel',
+        'keydown', 'keyup', 'keypress',
+        'focus', 'blur', 'focusin', 'focusout'
+      ];
+
+      eventTypes.forEach(function(eventType) {
+        canvas.addEventListener(eventType, sanitizeEventIntegers, true);
+      });
     }
-
-    // Apply to all relevant event types - use capture phase to run before Emscripten
-    // ONLY on canvas (document-level listeners are redundant and cause performance issues)
-    var eventTypes = [
-      'mousemove', 'mousedown', 'mouseup', 'mouseenter', 'mouseleave', 'mouseover', 'mouseout',
-      'click', 'dblclick', 'contextmenu',
-      'wheel', 'mousewheel', 'DOMMouseScroll',
-      'pointerdown', 'pointerup', 'pointermove', 'pointerenter', 'pointerleave', 'pointerover', 'pointerout', 'pointercancel',
-      'keydown', 'keyup', 'keypress',
-      'focus', 'blur', 'focusin', 'focusout'
-    ];
-
-    eventTypes.forEach(function(eventType) {
-      canvas.addEventListener(eventType, sanitizeEventIntegers, true);
-    });
 
     // Expose cleanup function for event listener removal (prevents memory leaks on canvas disposal)
     window.cleanupCanvasEventSanitization = function() {
-      eventTypes.forEach(function(eventType) {
-        canvas.removeEventListener(eventType, sanitizeEventIntegers, true);
-      });
+      if (eventTypes && sanitizeEventIntegers) {
+        eventTypes.forEach(function(eventType) {
+          canvas.removeEventListener(eventType, sanitizeEventIntegers, true);
+        });
+      }
     };
 
     return canvas;
@@ -1356,6 +1450,412 @@ window.yazeDebug.setAgentMode = function(enabled) {
     return { error: "Not implemented" };
   }
   return { error: "Module not ready" };
+};
+
+/**
+ * Switch to an editor asynchronously with Promise support.
+ * This is the recommended API for agents/automation as it properly handles
+ * the deferred execution that occurs when called outside an ImGui frame.
+ *
+ * @param {string} name - Editor name: Assembly, Dungeon, Emulator, Graphics,
+ *                        Music, Overworld, Palette, Screen, Sprite, Message,
+ *                        Text, Hex, Agent, Settings
+ * @returns {Promise<{success: boolean, editor: string}>}
+ *
+ * @example
+ * // Switch to dungeon editor
+ * await yazeDebug.switchToEditorAsync('Dungeon');
+ *
+ * @example
+ * // With error handling
+ * try {
+ *   await yazeDebug.switchToEditorAsync('Dungeon');
+ *   console.log('Switched to Dungeon editor');
+ * } catch (e) {
+ *   console.error('Failed:', e.message);
+ * }
+ */
+window.yazeDebug.switchToEditorAsync = function(name) {
+  return new Promise((resolve, reject) => {
+    if (!window.Module || !window.Module.switchToEditorAsync) {
+      reject(new Error('Module not ready'));
+      return;
+    }
+
+    try {
+      const result = JSON.parse(window.Module.switchToEditorAsync(name));
+
+      // Check for immediate error (ROM not loaded, unknown editor, etc.)
+      if (result.error) {
+        reject(new Error(result.error));
+        return;
+      }
+
+      const opId = result.op_id;
+      let pollCount = 0;
+      const maxPolls = 300; // 5 seconds at 60fps
+
+      const pollInterval = setInterval(() => {
+        pollCount++;
+
+        try {
+          const status = JSON.parse(window.Module.getOperationStatus(opId));
+
+          if (status.status === 'completed') {
+            clearInterval(pollInterval);
+            resolve({ success: true, editor: status.editor || name });
+          } else if (status.status === 'error') {
+            clearInterval(pollInterval);
+            reject(new Error(status.error || 'Unknown error'));
+          } else if (pollCount >= maxPolls) {
+            clearInterval(pollInterval);
+            reject(new Error('Operation timed out after 5 seconds'));
+          }
+          // else status is 'pending', continue polling
+        } catch (e) {
+          clearInterval(pollInterval);
+          reject(new Error('Failed to get operation status: ' + e.message));
+        }
+      }, 16); // Poll each frame (~60fps)
+
+    } catch (e) {
+      reject(new Error('switchToEditorAsync failed: ' + e.message));
+    }
+  });
+};
+
+/**
+ * Card Control API
+ *
+ * Provides programmatic control over editor cards (UI panels).
+ *
+ * @example
+ * // Show a specific card
+ * yazeDebug.cards.show('dungeon.room_selector');
+ *
+ * @example
+ * // Hide all cards, then show just the ones needed
+ * yazeDebug.cards.showGroup('minimal');
+ * yazeDebug.cards.show('dungeon.room_selector');
+ *
+ * @example
+ * // Get all card states
+ * const state = yazeDebug.cards.getState();
+ * console.log(state.cards);
+ */
+window.yazeDebug.cards = {
+  /**
+   * Show a card by ID
+   * @param {string} cardId - Card identifier (e.g., "dungeon.room_selector")
+   * @returns {{success: boolean, card: string} | {error: string}}
+   */
+  show: function(cardId) {
+    if (!window.Module || !window.Module.showCard) {
+      return { error: 'Module not ready' };
+    }
+    try {
+      return JSON.parse(window.Module.showCard(cardId));
+    } catch (e) {
+      return { error: e.message };
+    }
+  },
+
+  /**
+   * Hide a card by ID
+   * @param {string} cardId - Card identifier
+   * @returns {{success: boolean, card: string} | {error: string}}
+   */
+  hide: function(cardId) {
+    if (!window.Module || !window.Module.hideCard) {
+      return { error: 'Module not ready' };
+    }
+    try {
+      return JSON.parse(window.Module.hideCard(cardId));
+    } catch (e) {
+      return { error: e.message };
+    }
+  },
+
+  /**
+   * Toggle a card's visibility
+   * @param {string} cardId - Card identifier
+   * @returns {{success: boolean, card: string, visible: boolean} | {error: string}}
+   */
+  toggle: function(cardId) {
+    if (!window.Module || !window.Module.toggleCard) {
+      return { error: 'Module not ready' };
+    }
+    try {
+      return JSON.parse(window.Module.toggleCard(cardId));
+    } catch (e) {
+      return { error: e.message };
+    }
+  },
+
+  /**
+   * Get the state of all cards
+   * @returns {{session_id: number, active_category: string, cards: Array<{id: string, name: string, category: string, visible: boolean}>}}
+   */
+  getState: function() {
+    if (!window.Module || !window.Module.getCardState) {
+      return { error: 'Module not ready' };
+    }
+    try {
+      return JSON.parse(window.Module.getCardState());
+    } catch (e) {
+      return { error: e.message };
+    }
+  },
+
+  /**
+   * Get cards in a specific category
+   * @param {string} category - Category name (e.g., "Dungeon", "Overworld")
+   * @returns {{category: string, cards: Array<{id: string, name: string, visible: boolean}>}}
+   */
+  getInCategory: function(category) {
+    if (!window.Module || !window.Module.getCardsInCategory) {
+      return { error: 'Module not ready' };
+    }
+    try {
+      return JSON.parse(window.Module.getCardsInCategory(category));
+    } catch (e) {
+      return { error: e.message };
+    }
+  },
+
+  /**
+   * Show a predefined group of cards
+   * @param {string} groupName - Group name: dungeon_editing, dungeon_debug,
+   *                             overworld_editing, graphics_editing, minimal
+   * @returns {{success: boolean, group: string, cards_shown: number}}
+   */
+  showGroup: function(groupName) {
+    if (!window.Module || !window.Module.showCardGroup) {
+      return { error: 'Module not ready' };
+    }
+    try {
+      return JSON.parse(window.Module.showCardGroup(groupName));
+    } catch (e) {
+      return { error: e.message };
+    }
+  },
+
+  /**
+   * Hide a predefined group of cards
+   * @param {string} groupName - Group name
+   * @returns {{success: boolean, group: string, cards_hidden: number}}
+   */
+  hideGroup: function(groupName) {
+    if (!window.Module || !window.Module.hideCardGroup) {
+      return { error: 'Module not ready' };
+    }
+    try {
+      return JSON.parse(window.Module.hideCardGroup(groupName));
+    } catch (e) {
+      return { error: e.message };
+    }
+  },
+
+  /**
+   * Get available card groups
+   * @returns {{groups: Array<{name: string, cards: string[]}>}}
+   */
+  getGroups: function() {
+    if (!window.Module || !window.Module.getCardGroups) {
+      return { error: 'Module not ready' };
+    }
+    try {
+      return JSON.parse(window.Module.getCardGroups());
+    } catch (e) {
+      return { error: e.message };
+    }
+  }
+};
+
+// ============================================================================
+// Sidebar Control API
+// Programmatic control of the left sidebar view mode
+// ============================================================================
+
+/**
+ * Sidebar control namespace for managing sidebar view mode
+ *
+ * @namespace yazeDebug.sidebar
+ *
+ * @example
+ * // Switch to tree view mode
+ * yazeDebug.sidebar.setTreeView(true);
+ *
+ * @example
+ * // Toggle between tree and icon modes
+ * yazeDebug.sidebar.toggle();
+ *
+ * @example
+ * // Get current sidebar state
+ * const state = yazeDebug.sidebar.getState();
+ * console.log(`Mode: ${state.mode}, Width: ${state.width}px`);
+ */
+window.yazeDebug.sidebar = {
+  /**
+   * Check if tree view mode is currently enabled
+   * @returns {boolean} True if in tree view mode
+   */
+  isTreeView: function() {
+    if (!window.Module || !window.Module.isTreeViewMode) {
+      return false;
+    }
+    return window.Module.isTreeViewMode();
+  },
+
+  /**
+   * Set sidebar view mode
+   * @param {boolean} treeView - True for tree view, false for icon mode
+   * @returns {{success: boolean, mode: string}}
+   */
+  setTreeView: function(treeView) {
+    if (!window.Module || !window.Module.setTreeViewMode) {
+      return { error: 'Module not ready' };
+    }
+    try {
+      return JSON.parse(window.Module.setTreeViewMode(treeView));
+    } catch (e) {
+      return { error: e.message };
+    }
+  },
+
+  /**
+   * Toggle between tree view and icon mode
+   * @returns {{success: boolean, mode: string}}
+   */
+  toggle: function() {
+    if (!window.Module || !window.Module.toggleTreeViewMode) {
+      return { error: 'Module not ready' };
+    }
+    try {
+      return JSON.parse(window.Module.toggleTreeViewMode());
+    } catch (e) {
+      return { error: e.message };
+    }
+  },
+
+  /**
+   * Get full sidebar state
+   * @returns {{available: boolean, mode: string, width: number, collapsed: boolean}}
+   */
+  getState: function() {
+    if (!window.Module || !window.Module.getSidebarState) {
+      return { available: false };
+    }
+    try {
+      return JSON.parse(window.Module.getSidebarState());
+    } catch (e) {
+      return { error: e.message };
+    }
+  }
+};
+
+// ============================================================================
+// Right Panel Control API
+// Programmatic control of the right-side panel (properties, agent, etc.)
+// ============================================================================
+
+/**
+ * Right panel control namespace
+ *
+ * @namespace yazeDebug.rightPanel
+ *
+ * @example
+ * // Open the properties panel
+ * yazeDebug.rightPanel.open('properties');
+ *
+ * @example
+ * // Toggle the agent chat panel
+ * yazeDebug.rightPanel.toggle('agent');
+ *
+ * @example
+ * // Close any open panel
+ * yazeDebug.rightPanel.close();
+ *
+ * Panel types: 'properties', 'agent', 'proposals', 'settings', 'help'
+ */
+window.yazeDebug.rightPanel = {
+  /**
+   * Open a specific panel
+   * @param {string} panelName - Panel to open: properties, agent, proposals, settings, help
+   * @returns {{success: boolean, panel?: string, error?: string}}
+   */
+  open: function(panelName) {
+    if (!window.Module || !window.Module.openRightPanel) {
+      return { error: 'Module not ready' };
+    }
+    try {
+      return JSON.parse(window.Module.openRightPanel(panelName));
+    } catch (e) {
+      return { error: e.message };
+    }
+  },
+
+  /**
+   * Close the currently open panel
+   * @returns {{success: boolean}}
+   */
+  close: function() {
+    if (!window.Module || !window.Module.closeRightPanel) {
+      return { error: 'Module not ready' };
+    }
+    try {
+      return JSON.parse(window.Module.closeRightPanel());
+    } catch (e) {
+      return { error: e.message };
+    }
+  },
+
+  /**
+   * Toggle a specific panel
+   * @param {string} panelName - Panel to toggle
+   * @returns {{success: boolean, state: string, panel?: string}}
+   */
+  toggle: function(panelName) {
+    if (!window.Module || !window.Module.toggleRightPanel) {
+      return { error: 'Module not ready' };
+    }
+    try {
+      return JSON.parse(window.Module.toggleRightPanel(panelName));
+    } catch (e) {
+      return { error: e.message };
+    }
+  },
+
+  /**
+   * Get current panel state
+   * @returns {{available: boolean, active: string, expanded: boolean, width: number}}
+   */
+  getState: function() {
+    if (!window.Module || !window.Module.getRightPanelState) {
+      return { available: false };
+    }
+    try {
+      return JSON.parse(window.Module.getRightPanelState());
+    } catch (e) {
+      return { error: e.message };
+    }
+  },
+
+  /**
+   * Open the properties panel (convenience method)
+   * @returns {{success: boolean, panel?: string}}
+   */
+  openProperties: function() {
+    return this.open('properties');
+  },
+
+  /**
+   * Open the agent chat panel (convenience method)
+   * @returns {{success: boolean, panel?: string}}
+   */
+  openAgent: function() {
+    return this.open('agent');
+  }
 };
 
 // ============================================================================

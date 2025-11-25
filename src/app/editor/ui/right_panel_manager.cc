@@ -4,6 +4,7 @@
 #include "app/editor/system/proposal_drawer.h"
 #include "app/editor/system/settings_editor.h"
 #include "app/editor/system/toast_manager.h"
+#include "app/editor/ui/selection_properties_panel.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/style.h"
 #include "app/gui/core/theme_manager.h"
@@ -24,6 +25,8 @@ const char* GetPanelTypeName(RightPanelManager::PanelType type) {
       return "Settings";
     case RightPanelManager::PanelType::kHelp:
       return "Help";
+    case RightPanelManager::PanelType::kProperties:
+      return "Properties";
     default:
       return "Unknown";
   }
@@ -41,6 +44,8 @@ const char* GetPanelTypeIcon(RightPanelManager::PanelType type) {
       return ICON_MD_SETTINGS;
     case RightPanelManager::PanelType::kHelp:
       return ICON_MD_HELP;
+    case RightPanelManager::PanelType::kProperties:
+      return ICON_MD_LIST_ALT;
     default:
       return ICON_MD_HELP;
   }
@@ -80,6 +85,8 @@ float RightPanelManager::GetPanelWidth() const {
       return settings_width_;
     case PanelType::kHelp:
       return help_width_;
+    case PanelType::kProperties:
+      return properties_width_;
     default:
       return 0.0f;
   }
@@ -98,6 +105,9 @@ void RightPanelManager::SetPanelWidth(PanelType type, float width) {
       break;
     case PanelType::kHelp:
       help_width_ = width;
+      break;
+    case PanelType::kProperties:
+      properties_width_ = width;
       break;
     default:
       break;
@@ -156,6 +166,9 @@ void RightPanelManager::Draw() {
         break;
       case PanelType::kHelp:
         DrawHelpPanel();
+        break;
+      case PanelType::kProperties:
+        DrawPropertiesPanel();
         break;
       default:
         break;
@@ -273,6 +286,42 @@ void RightPanelManager::DrawHelpPanel() {
   }
 }
 
+void RightPanelManager::DrawPropertiesPanel() {
+  if (properties_panel_) {
+    properties_panel_->Draw();
+  } else {
+    // Placeholder when no properties panel is set
+    ImGui::TextDisabled("No Selection");
+    ImGui::Spacing();
+    ImGui::TextWrapped(
+        "Select an item in the editor to view and edit its properties here.");
+    ImGui::Spacing();
+    ImGui::Separator();
+    ImGui::Spacing();
+
+    // Show placeholder sections for what properties would look like
+    if (ImGui::CollapsingHeader("Position & Size",
+                                ImGuiTreeNodeFlags_DefaultOpen)) {
+      ImGui::TextDisabled("X: --");
+      ImGui::TextDisabled("Y: --");
+      ImGui::TextDisabled("Width: --");
+      ImGui::TextDisabled("Height: --");
+    }
+
+    if (ImGui::CollapsingHeader("Appearance")) {
+      ImGui::TextDisabled("Tile ID: --");
+      ImGui::TextDisabled("Palette: --");
+      ImGui::TextDisabled("Layer: --");
+    }
+
+    if (ImGui::CollapsingHeader("Behavior")) {
+      ImGui::TextDisabled("Type: --");
+      ImGui::TextDisabled("Subtype: --");
+      ImGui::TextDisabled("Properties: --");
+    }
+  }
+}
+
 bool RightPanelManager::DrawPanelToggleButtons() {
   bool clicked = false;
   const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
@@ -345,6 +394,27 @@ bool RightPanelManager::DrawPanelToggleButtons() {
 
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip("Settings Panel");
+  }
+
+  ImGui::SameLine();
+
+  // Properties button
+  bool properties_active = IsPanelActive(PanelType::kProperties);
+  if (properties_active) {
+    ImGui::PushStyleColor(ImGuiCol_Text, gui::GetPrimaryVec4());
+  }
+
+  if (ImGui::SmallButton(ICON_MD_LIST_ALT)) {
+    TogglePanel(PanelType::kProperties);
+    clicked = true;
+  }
+
+  if (properties_active) {
+    ImGui::PopStyleColor();
+  }
+
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("Properties Panel");
   }
 
   ImGui::PopStyleColor(3);

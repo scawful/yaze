@@ -8,8 +8,10 @@
 
 #include <emscripten/bind.h>
 
+#include <atomic>
 #include <iomanip>
 #include <sstream>
+#include <unordered_map>
 
 #include "yaze.h"  // For YAZE_VERSION_STRING
 #include "app/emu/emulator.h"
@@ -45,6 +47,39 @@ namespace {
 yaze::emu::Emulator* GetGlobalEmulator() {
   return yaze::app::GetGlobalEmulator();
 }
+
+// =============================================================================
+// Async Operation Tracking
+// =============================================================================
+
+// Operation status for async API calls
+std::atomic<uint32_t> g_operation_counter{0};
+std::unordered_map<uint32_t, std::string> g_pending_operations;
+
+// Parse editor name to EditorType - supports all editor types
+yaze::editor::EditorType ParseEditorType(const std::string& name) {
+  static const std::unordered_map<std::string, yaze::editor::EditorType>
+      kEditorMap = {
+          {"Assembly", yaze::editor::EditorType::kAssembly},
+          {"Dungeon", yaze::editor::EditorType::kDungeon},
+          {"Emulator", yaze::editor::EditorType::kEmulator},
+          {"Graphics", yaze::editor::EditorType::kGraphics},
+          {"Music", yaze::editor::EditorType::kMusic},
+          {"Overworld", yaze::editor::EditorType::kOverworld},
+          {"Palette", yaze::editor::EditorType::kPalette},
+          {"Screen", yaze::editor::EditorType::kScreen},
+          {"Sprite", yaze::editor::EditorType::kSprite},
+          {"Message", yaze::editor::EditorType::kMessage},
+          {"Text", yaze::editor::EditorType::kMessage},  // Alias
+          {"Hex", yaze::editor::EditorType::kHex},
+          {"Agent", yaze::editor::EditorType::kAgent},
+          {"Settings", yaze::editor::EditorType::kSettings},
+      };
+  auto it = kEditorMap.find(name);
+  return it != kEditorMap.end() ? it->second
+                                : yaze::editor::EditorType::kUnknown;
+}
+
 }  // namespace
 
 // =============================================================================
@@ -87,22 +122,601 @@ std::string switchToEditor(std::string editor_name) {
   if (!manager) {
     return "{\"error\":\"EditorManager not available\"}";
   }
-  
-  if (editor_name == "Dungeon") {
-    manager->SwitchToEditor(yaze::editor::EditorType::kDungeon);
-    return "{\"success\":true,\"editor\":\"Dungeon\"}";
-  } else if (editor_name == "Overworld") {
-    manager->SwitchToEditor(yaze::editor::EditorType::kOverworld);
-    return "{\"success\":true,\"editor\":\"Overworld\"}";
-  } else if (editor_name == "Sprite") {
-    manager->SwitchToEditor(yaze::editor::EditorType::kSprite);
-    return "{\"success\":true,\"editor\":\"Sprite\"}";
-  } else if (editor_name == "Text") {
-    manager->SwitchToEditor(yaze::editor::EditorType::kMessage);
-    return "{\"success\":true,\"editor\":\"Text\"}";
+
+  // Parse editor type using the helper that supports all editors
+  auto editor_type = ParseEditorType(editor_name);
+  if (editor_type == yaze::editor::EditorType::kUnknown) {
+    return "{\"error\":\"Unknown editor name. Valid names: Assembly, Dungeon, "
+           "Emulator, Graphics, Music, Overworld, Palette, Screen, Sprite, "
+           "Message, Text, Hex, Agent, Settings\"}";
   }
-  
-  return "{\"error\":\"Unknown editor name\"}";
+
+  // Check if ROM is loaded (required for most editors)
+  auto* rom = manager->GetCurrentRom();
+  if (!rom || !rom->is_loaded()) {
+    // Some editors don't require ROM (Settings, Agent)
+    if (editor_type != yaze::editor::EditorType::kSettings &&
+        editor_type != yaze::editor::EditorType::kAgent) {
+      return "{\"error\":\"ROM not loaded\",\"editor\":\"" + editor_name +
+             "\"}";
+    }
+  }
+
+  manager->SwitchToEditor(editor_type);
+  return "{\"success\":true,\"editor\":\"" + editor_name +
+         "\",\"note\":\"Action may be deferred to next frame\"}";
+}
+
+// =============================================================================
+// Async Editor Switching API
+// =============================================================================
+
+/**
+ * @brief Switch to an editor asynchronously with operation tracking
+ *
+ * Returns an operation ID that can be polled with getOperationStatus().
+ * The operation completes on the next ImGui frame when the deferred action
+ * executes.
+ *
+ * @param editor_name Name of the editor to switch to
+ * @return JSON with op_id and initial status, or error
+ */
+std::string switchToEditorAsync(std::string editor_name) {
+  uint32_t op_id = g_operation_counter++;
+
+  auto* manager = yaze::app::GetGlobalEditorManager();
+  if (!manager) {
+    return "{\"error\":\"EditorManager not available\",\"op_id\":" +
+           std::to_string(op_id) + "}";
+  }
+
+  // Parse editor type
+  auto editor_type = ParseEditorType(editor_name);
+  if (editor_type == yaze::editor::EditorType::kUnknown) {
+    return "{\"error\":\"Unknown editor name\",\"op_id\":" +
+           std::to_string(op_id) + "}";
+  }
+
+  // Check ROM loaded (except for Settings/Agent)
+  auto* rom = manager->GetCurrentRom();
+  if (!rom || !rom->is_loaded()) {
+    if (editor_type != yaze::editor::EditorType::kSettings &&
+        editor_type != yaze::editor::EditorType::kAgent) {
+      return "{\"error\":\"ROM not loaded\",\"op_id\":" +
+             std::to_string(op_id) + "}";
+    }
+  }
+
+  // Mark operation as pending
+  g_pending_operations[op_id] = "pending";
+
+  // Queue the deferred action with completion callback
+  manager->QueueDeferredAction([op_id, editor_type, editor_name, manager]() {
+    // Check EditorSet exists
+    auto* editor_set = manager->GetCurrentEditorSet();
+    if (!editor_set) {
+      g_pending_operations[op_id] = "error:No editor set available";
+      return;
+    }
+
+    // Perform the switch
+    manager->SwitchToEditor(editor_type);
+    g_pending_operations[op_id] = "completed:" + editor_name;
+  });
+
+  return "{\"op_id\":" + std::to_string(op_id) +
+         ",\"status\":\"pending\",\"editor\":\"" + editor_name + "\"}";
+}
+
+/**
+ * @brief Get the status of an async operation
+ *
+ * @param op_id The operation ID returned by switchToEditorAsync
+ * @return JSON with status: "pending", "completed:EditorName", or "error:message"
+ */
+std::string getOperationStatus(uint32_t op_id) {
+  auto it = g_pending_operations.find(op_id);
+  if (it == g_pending_operations.end()) {
+    return "{\"error\":\"Unknown operation ID\",\"op_id\":" +
+           std::to_string(op_id) + "}";
+  }
+
+  const std::string& status = it->second;
+  std::ostringstream json;
+  json << "{\"op_id\":" << op_id << ",";
+
+  if (status == "pending") {
+    json << "\"status\":\"pending\"}";
+  } else if (status.rfind("completed:", 0) == 0) {
+    // Extract editor name from "completed:EditorName"
+    std::string editor = status.substr(10);
+    json << "\"status\":\"completed\",\"editor\":\"" << editor << "\"}";
+    // Clean up completed operations (keep last 100)
+    if (g_pending_operations.size() > 100) {
+      // Simple cleanup: remove this one since it's done
+      g_pending_operations.erase(it);
+    }
+  } else if (status.rfind("error:", 0) == 0) {
+    // Extract error message from "error:message"
+    std::string error_msg = status.substr(6);
+    json << "\"status\":\"error\",\"error\":\"" << error_msg << "\"}";
+    g_pending_operations.erase(it);
+  } else {
+    json << "\"status\":\"" << status << "\"}";
+  }
+
+  return json.str();
+}
+
+// =============================================================================
+// Card Control API
+// =============================================================================
+
+/**
+ * @brief Predefined card groups for common workflows
+ */
+static const std::unordered_map<std::string, std::vector<std::string>>
+    kCardGroups = {
+        {"dungeon_editing",
+         {"dungeon.room_selector", "dungeon.object_editor",
+          "dungeon.tile_selector"}},
+        {"dungeon_debug",
+         {"dungeon.room_selector", "dungeon.palette_debug"}},
+        {"overworld_editing",
+         {"overworld.map_selector", "overworld.tile_selector",
+          "overworld.entity_editor"}},
+        {"graphics_editing",
+         {"graphics.sheet_viewer", "graphics.tile_editor",
+          "graphics.palette_editor"}},
+        {"minimal", {}},  // Empty = hide all
+};
+
+/**
+ * @brief Show a card by ID
+ * @param card_id Card identifier (e.g., "dungeon.room_selector")
+ * @return JSON with success status
+ */
+std::string showCard(std::string card_id) {
+  auto* manager = yaze::app::GetGlobalEditorManager();
+  if (!manager) {
+    return "{\"error\":\"EditorManager not available\"}";
+  }
+
+  // Access card registry through the member function
+  // Note: We need to use the public interface
+  auto& card_registry = manager->card_registry();
+  bool success = card_registry.ShowCard(card_id);
+
+  if (success) {
+    return "{\"success\":true,\"card\":\"" + card_id + "\"}";
+  } else {
+    return "{\"error\":\"Card not found\",\"card\":\"" + card_id + "\"}";
+  }
+}
+
+/**
+ * @brief Hide a card by ID
+ */
+std::string hideCard(std::string card_id) {
+  auto* manager = yaze::app::GetGlobalEditorManager();
+  if (!manager) {
+    return "{\"error\":\"EditorManager not available\"}";
+  }
+
+  auto& card_registry = manager->card_registry();
+  bool success = card_registry.HideCard(card_id);
+
+  if (success) {
+    return "{\"success\":true,\"card\":\"" + card_id + "\"}";
+  } else {
+    return "{\"error\":\"Card not found\",\"card\":\"" + card_id + "\"}";
+  }
+}
+
+/**
+ * @brief Toggle a card's visibility
+ */
+std::string toggleCard(std::string card_id) {
+  auto* manager = yaze::app::GetGlobalEditorManager();
+  if (!manager) {
+    return "{\"error\":\"EditorManager not available\"}";
+  }
+
+  auto& card_registry = manager->card_registry();
+
+  // Get current visibility first
+  bool was_visible = card_registry.IsCardVisible(card_id);
+
+  // Toggle
+  bool success;
+  if (was_visible) {
+    success = card_registry.HideCard(card_id);
+  } else {
+    success = card_registry.ShowCard(card_id);
+  }
+
+  if (success) {
+    return "{\"success\":true,\"card\":\"" + card_id +
+           "\",\"visible\":" + (was_visible ? "false" : "true") + "}";
+  } else {
+    return "{\"error\":\"Card not found\",\"card\":\"" + card_id + "\"}";
+  }
+}
+
+/**
+ * @brief Get the visibility state of all cards
+ * @return JSON with all cards, their visibility, and categories
+ */
+std::string getCardState() {
+  auto* manager = yaze::app::GetGlobalEditorManager();
+  if (!manager) {
+    return "{\"error\":\"EditorManager not available\"}";
+  }
+
+  auto& card_registry = manager->card_registry();
+  size_t session_id = manager->GetCurrentSessionId();
+
+  std::ostringstream json;
+  json << "{\"session_id\":" << session_id << ",";
+  json << "\"active_category\":\"" << card_registry.GetActiveCategory() << "\",";
+  json << "\"cards\":[";
+
+  // Get all categories and iterate through cards
+  auto categories = card_registry.GetAllCategories(session_id);
+  bool first_card = true;
+
+  for (const auto& category : categories) {
+    auto cards = card_registry.GetCardsInCategory(session_id, category);
+    for (const auto& card : cards) {
+      if (!first_card) json << ",";
+      first_card = false;
+
+      json << "{";
+      json << "\"id\":\"" << card.card_id << "\",";
+      json << "\"name\":\"" << card.display_name << "\",";
+      json << "\"category\":\"" << card.category << "\",";
+      json << "\"visible\":"
+           << (card_registry.IsCardVisible(session_id, card.card_id) ? "true"
+                                                                     : "false");
+      json << "}";
+    }
+  }
+
+  json << "]}";
+  return json.str();
+}
+
+/**
+ * @brief Get cards in a specific category
+ */
+std::string getCardsInCategory(std::string category) {
+  auto* manager = yaze::app::GetGlobalEditorManager();
+  if (!manager) {
+    return "{\"error\":\"EditorManager not available\"}";
+  }
+
+  auto& card_registry = manager->card_registry();
+  size_t session_id = manager->GetCurrentSessionId();
+  auto cards = card_registry.GetCardsInCategory(session_id, category);
+
+  std::ostringstream json;
+  json << "{\"category\":\"" << category << "\",\"cards\":[";
+
+  bool first = true;
+  for (const auto& card : cards) {
+    if (!first) json << ",";
+    first = false;
+
+    json << "{";
+    json << "\"id\":\"" << card.card_id << "\",";
+    json << "\"name\":\"" << card.display_name << "\",";
+    json << "\"visible\":"
+         << (card_registry.IsCardVisible(session_id, card.card_id) ? "true"
+                                                                   : "false");
+    json << "}";
+  }
+
+  json << "]}";
+  return json.str();
+}
+
+/**
+ * @brief Show a predefined group of cards
+ */
+std::string showCardGroup(std::string group_name) {
+  auto* manager = yaze::app::GetGlobalEditorManager();
+  if (!manager) {
+    return "{\"error\":\"EditorManager not available\"}";
+  }
+
+  auto it = kCardGroups.find(group_name);
+  if (it == kCardGroups.end()) {
+    std::ostringstream groups;
+    groups << "dungeon_editing, dungeon_debug, overworld_editing, "
+              "graphics_editing, minimal";
+    return "{\"error\":\"Unknown group. Available: " + groups.str() + "\"}";
+  }
+
+  auto& card_registry = manager->card_registry();
+  const auto& card_ids = it->second;
+
+  // Show all cards in the group
+  int shown = 0;
+  for (const auto& card_id : card_ids) {
+    if (card_registry.ShowCard(card_id)) {
+      shown++;
+    }
+  }
+
+  return "{\"success\":true,\"group\":\"" + group_name +
+         "\",\"cards_shown\":" + std::to_string(shown) + "}";
+}
+
+/**
+ * @brief Hide a predefined group of cards
+ */
+std::string hideCardGroup(std::string group_name) {
+  auto* manager = yaze::app::GetGlobalEditorManager();
+  if (!manager) {
+    return "{\"error\":\"EditorManager not available\"}";
+  }
+
+  auto it = kCardGroups.find(group_name);
+  if (it == kCardGroups.end()) {
+    return "{\"error\":\"Unknown group\"}";
+  }
+
+  auto& card_registry = manager->card_registry();
+  const auto& card_ids = it->second;
+
+  // Special case: "minimal" hides all cards in active session
+  if (group_name == "minimal") {
+    card_registry.HideAll();
+    return "{\"success\":true,\"group\":\"minimal\",\"action\":\"hid_all\"}";
+  }
+
+  // Hide all cards in the group
+  int hidden = 0;
+  for (const auto& card_id : card_ids) {
+    if (card_registry.HideCard(card_id)) {
+      hidden++;
+    }
+  }
+
+  return "{\"success\":true,\"group\":\"" + group_name +
+         "\",\"cards_hidden\":" + std::to_string(hidden) + "}";
+}
+
+/**
+ * @brief Get available card groups
+ */
+std::string getCardGroups() {
+  std::ostringstream json;
+  json << "{\"groups\":[";
+
+  bool first = true;
+  for (const auto& [name, cards] : kCardGroups) {
+    if (!first) json << ",";
+    first = false;
+
+    json << "{\"name\":\"" << name << "\",\"cards\":[";
+    bool first_card = true;
+    for (const auto& card_id : cards) {
+      if (!first_card) json << ",";
+      first_card = false;
+      json << "\"" << card_id << "\"";
+    }
+    json << "]}";
+  }
+
+  json << "]}";
+  return json.str();
+}
+
+// =============================================================================
+// Sidebar View Mode Functions
+// =============================================================================
+
+/**
+ * @brief Check if tree view mode is enabled
+ */
+bool isTreeViewMode() {
+  auto* editor_manager = GetEditorManager();
+  if (!editor_manager) return false;
+  return editor_manager->card_registry().IsTreeViewMode();
+}
+
+/**
+ * @brief Set tree view mode
+ */
+std::string setTreeViewMode(bool enabled) {
+  auto* editor_manager = GetEditorManager();
+  if (!editor_manager) {
+    return R"({"success":false,"error":"Editor manager not available"})";
+  }
+  editor_manager->card_registry().SetTreeViewMode(enabled);
+  return enabled ? R"({"success":true,"mode":"tree"})"
+                 : R"({"success":true,"mode":"icon"})";
+}
+
+/**
+ * @brief Toggle tree view mode
+ */
+std::string toggleTreeViewMode() {
+  auto* editor_manager = GetEditorManager();
+  if (!editor_manager) {
+    return R"({"success":false,"error":"Editor manager not available"})";
+  }
+  editor_manager->card_registry().ToggleTreeViewMode();
+  bool is_tree = editor_manager->card_registry().IsTreeViewMode();
+  return is_tree ? R"({"success":true,"mode":"tree"})"
+                 : R"({"success":true,"mode":"icon"})";
+}
+
+/**
+ * @brief Get sidebar state including view mode and width
+ */
+std::string getSidebarState() {
+  auto* editor_manager = GetEditorManager();
+  if (!editor_manager) {
+    return R"({"available":false})";
+  }
+
+  auto& registry = editor_manager->card_registry();
+  bool is_tree = registry.IsTreeViewMode();
+  float width = is_tree
+                    ? yaze::editor::EditorCardRegistry::GetTreeSidebarWidth()
+                    : yaze::editor::EditorCardRegistry::GetSidebarWidth();
+
+  std::ostringstream json;
+  json << "{\"available\":true,";
+  json << "\"mode\":\"" << (is_tree ? "tree" : "icon") << "\",";
+  json << "\"width\":" << width << ",";
+  json << "\"collapsed\":" << (registry.IsSidebarCollapsed() ? "true" : "false")
+       << "}";
+  return json.str();
+}
+
+// =============================================================================
+// Right Panel Functions
+// =============================================================================
+
+/**
+ * @brief Open a specific right panel
+ */
+std::string openRightPanel(std::string panel_name) {
+  auto* editor_manager = GetEditorManager();
+  if (!editor_manager) {
+    return R"({"success":false,"error":"Editor manager not available"})";
+  }
+
+  auto* right_panel = editor_manager->right_panel_manager();
+  if (!right_panel) {
+    return R"({"success":false,"error":"Right panel manager not available"})";
+  }
+
+  using PanelType = yaze::editor::RightPanelManager::PanelType;
+  PanelType type = PanelType::kNone;
+
+  if (panel_name == "properties") {
+    type = PanelType::kProperties;
+  } else if (panel_name == "agent" || panel_name == "chat") {
+    type = PanelType::kAgentChat;
+  } else if (panel_name == "proposals") {
+    type = PanelType::kProposals;
+  } else if (panel_name == "settings") {
+    type = PanelType::kSettings;
+  } else if (panel_name == "help") {
+    type = PanelType::kHelp;
+  } else {
+    return R"({"success":false,"error":"Unknown panel type"})";
+  }
+
+  right_panel->OpenPanel(type);
+  return R"({"success":true,"panel":")" + panel_name + R"("})";
+}
+
+/**
+ * @brief Close the currently open right panel
+ */
+std::string closeRightPanel() {
+  auto* editor_manager = GetEditorManager();
+  if (!editor_manager) {
+    return R"({"success":false,"error":"Editor manager not available"})";
+  }
+
+  auto* right_panel = editor_manager->right_panel_manager();
+  if (!right_panel) {
+    return R"({"success":false,"error":"Right panel manager not available"})";
+  }
+
+  right_panel->ClosePanel();
+  return R"({"success":true})";
+}
+
+/**
+ * @brief Toggle a specific right panel
+ */
+std::string toggleRightPanel(std::string panel_name) {
+  auto* editor_manager = GetEditorManager();
+  if (!editor_manager) {
+    return R"({"success":false,"error":"Editor manager not available"})";
+  }
+
+  auto* right_panel = editor_manager->right_panel_manager();
+  if (!right_panel) {
+    return R"({"success":false,"error":"Right panel manager not available"})";
+  }
+
+  using PanelType = yaze::editor::RightPanelManager::PanelType;
+  PanelType type = PanelType::kNone;
+
+  if (panel_name == "properties") {
+    type = PanelType::kProperties;
+  } else if (panel_name == "agent" || panel_name == "chat") {
+    type = PanelType::kAgentChat;
+  } else if (panel_name == "proposals") {
+    type = PanelType::kProposals;
+  } else if (panel_name == "settings") {
+    type = PanelType::kSettings;
+  } else if (panel_name == "help") {
+    type = PanelType::kHelp;
+  } else {
+    return R"({"success":false,"error":"Unknown panel type"})";
+  }
+
+  right_panel->TogglePanel(type);
+  bool is_open = right_panel->IsPanelActive(type);
+  return is_open ? R"({"success":true,"state":"open","panel":")" + panel_name +
+                       R"("})"
+                 : R"({"success":true,"state":"closed"})";
+}
+
+/**
+ * @brief Get the state of the right panel
+ */
+std::string getRightPanelState() {
+  auto* editor_manager = GetEditorManager();
+  if (!editor_manager) {
+    return R"({"available":false})";
+  }
+
+  auto* right_panel = editor_manager->right_panel_manager();
+  if (!right_panel) {
+    return R"({"available":false})";
+  }
+
+  using PanelType = yaze::editor::RightPanelManager::PanelType;
+  auto active = right_panel->GetActivePanel();
+
+  std::string active_name = "none";
+  switch (active) {
+    case PanelType::kProperties:
+      active_name = "properties";
+      break;
+    case PanelType::kAgentChat:
+      active_name = "agent";
+      break;
+    case PanelType::kProposals:
+      active_name = "proposals";
+      break;
+    case PanelType::kSettings:
+      active_name = "settings";
+      break;
+    case PanelType::kHelp:
+      active_name = "help";
+      break;
+    default:
+      break;
+  }
+
+  std::ostringstream json;
+  json << "{\"available\":true,";
+  json << "\"active\":\"" << active_name << "\",";
+  json << "\"expanded\":" << (right_panel->IsPanelExpanded() ? "true" : "false")
+       << ",";
+  json << "\"width\":" << right_panel->GetPanelWidth() << "}";
+  return json.str();
 }
 
 // =============================================================================
@@ -728,6 +1342,32 @@ EMSCRIPTEN_BINDINGS(yaze_debug_inspector) {
   function("getEditorState", &getEditorState);
   function("executeCommand", &executeCommand);
   function("switchToEditor", &switchToEditor);
+
+  // Async editor switching API
+  function("switchToEditorAsync", &switchToEditorAsync);
+  function("getOperationStatus", &getOperationStatus);
+
+  // Card control API
+  function("showCard", &showCard);
+  function("hideCard", &hideCard);
+  function("toggleCard", &toggleCard);
+  function("getCardState", &getCardState);
+  function("getCardsInCategory", &getCardsInCategory);
+  function("showCardGroup", &showCardGroup);
+  function("hideCardGroup", &hideCardGroup);
+  function("getCardGroups", &getCardGroups);
+
+  // Sidebar view mode
+  function("isTreeViewMode", &isTreeViewMode);
+  function("setTreeViewMode", &setTreeViewMode);
+  function("toggleTreeViewMode", &toggleTreeViewMode);
+  function("getSidebarState", &getSidebarState);
+
+  // Right panel control
+  function("openRightPanel", &openRightPanel);
+  function("closeRightPanel", &closeRightPanel);
+  function("toggleRightPanel", &toggleRightPanel);
+  function("getRightPanelState", &getRightPanelState);
 
   // Combined state for AI
   function("getFullDebugState", &getFullDebugState);
