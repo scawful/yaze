@@ -1160,6 +1160,18 @@ absl::Status EditorManager::LoadAssets() {
     app::platform::WasmLoadingManager::UpdateProgress(loading_handle, progress);
     app::platform::WasmLoadingManager::UpdateMessage(loading_handle, message);
   };
+  // RAII guard to ensure loading indicator is closed even on early return
+  auto cleanup_loading = [&]() {
+    app::platform::WasmLoadingManager::EndLoading(loading_handle);
+  };
+  struct LoadingGuard {
+    std::function<void()> cleanup;
+    bool dismissed = false;
+    ~LoadingGuard() {
+      if (!dismissed) cleanup();
+    }
+    void dismiss() { dismissed = true; }
+  } loading_guard{cleanup_loading};
 #endif
 
   // Set renderer for emulator (lazy initialization happens in Run())
@@ -1240,6 +1252,8 @@ absl::Status EditorManager::LoadAssets() {
   gfx::PerformanceProfiler::Get().PrintSummary();
 
 #ifdef __EMSCRIPTEN__
+  // Dismiss the guard and manually close - we completed successfully
+  loading_guard.dismiss();
   app::platform::WasmLoadingManager::EndLoading(loading_handle);
 #endif
 

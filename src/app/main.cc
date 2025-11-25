@@ -78,9 +78,13 @@ class Application {
   void Initialize() {
     LOG_INFO("App", "Initializing Application instance...");
     controller_ = std::make_unique<Controller>();
-    
-    // Process pending ROM load if we have one (from flags or queued web load)
+
+    // Process pending ROM load if we have one (from flags - non-WASM only)
+    // Note: For WASM builds, ROM queuing is handled by wasm_bootstrap's
+    // g_pending_rom_load queue which is flushed via SetRomLoadHandler().
+    // The pending_rom_ member is only used for non-WASM desktop builds.
     std::string start_path = "";
+#ifndef __EMSCRIPTEN__
     if (!pending_rom_.empty()) {
       start_path = pending_rom_;
       pending_rom_.clear();
@@ -88,7 +92,10 @@ class Application {
     } else {
       LOG_INFO("App", "No pending ROM, starting empty.");
     }
-    
+#else
+    LOG_INFO("App", "WASM build - ROM loading handled via wasm_bootstrap queue.");
+#endif
+
     // Always call OnEntry to initialize Window/Renderer, even with empty path
     auto status = controller_->OnEntry(start_path);
     if (!status.ok()) {
@@ -139,16 +146,25 @@ class Application {
     LOG_INFO("App", "Requesting ROM load: %s", path.c_str());
 
     if (!controller_) {
-      // If controller not initialized, queue it.
+#ifdef __EMSCRIPTEN__
+      // For WASM builds, delegate queuing to wasm_bootstrap's TriggerRomLoad()
+      // which manages a single queue (g_pending_rom_load). This avoids double
+      // loading that could occur if both Application::pending_rom_ and
+      // wasm_bootstrap's queue are both populated.
+      yaze::app::wasm::TriggerRomLoad(path);
+      LOG_INFO("App", "Forwarded to wasm_bootstrap queue (controller not ready): %s", path.c_str());
+#else
+      // For non-WASM builds, queue in Application's pending_rom_
       pending_rom_ = path;
       LOG_INFO("App", "Queued ROM load (controller not ready): %s", path.c_str());
+#endif
       return;
     }
 
-    // Controller exists. 
+    // Controller exists.
     // If it's already active (window open), use OpenRomOrProject.
     // If it's not active (unlikely with new Initialize logic, but safe check), use OnEntry.
-    
+
     absl::Status status;
     if (!controller_->IsActive()) {
        status = controller_->OnEntry(path);
@@ -159,7 +175,7 @@ class Application {
     if (!status.ok()) {
       std::string error_msg = absl::StrCat("Failed to load ROM: ", status.message());
       LOG_ERROR("App", "%s", error_msg.c_str());
-      
+
 #ifdef __EMSCRIPTEN__
       EM_ASM({
         var msg = UTF8ToString($0);
@@ -189,7 +205,12 @@ class Application {
 
  private:
   std::unique_ptr<Controller> controller_;
+#ifndef __EMSCRIPTEN__
+  // For non-WASM builds, we need a local queue for ROMs requested before
+  // the controller is initialized. WASM builds use wasm_bootstrap's
+  // g_pending_rom_load queue instead to avoid double-loading.
   std::string pending_rom_;
+#endif
 };
 
 // Accessor functions for WASM debug inspector / Bridges

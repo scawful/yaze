@@ -425,6 +425,8 @@ absl::StatusOr<std::array<gfx::Bitmap, kNumGfxSheets>> LoadAllGraphicsData(
     if (app::platform::WasmLoadingManager::IsCancelled(loading_handle)) {
       app::platform::WasmLoadingManager::EndLoading(loading_handle);
       app::platform::WasmLoadingManager::ClearArenaHandle();
+      // Clear partial graphics buffer to prevent corrupted state
+      rom.mutable_graphics_buffer()->clear();
       return absl::CancelledError("Graphics loading cancelled by user");
     }
 #endif
@@ -600,10 +602,18 @@ absl::StatusOr<std::array<gfx::Bitmap, kNumGfxSheets>> LoadAllGraphicsData(
       }
 
     } else {
-      // Fill placeholder data for skipped/failed sheets (0xFF = transparent)
-      // This maintains correct indexing in graphics_buffer
-      for (int j = 0; j < graphics_sheets[0].size(); ++j) {
-        rom.mutable_graphics_buffer()->push_back(0xFF);
+      // Create placeholder bitmap for skipped/failed sheets (2BPP sheets, etc.)
+      // This ensures the bitmap exists even if empty, preventing index out of
+      // bounds errors when editors iterate over all sheets.
+      std::vector<uint8_t> placeholder_data(gfx::kTilesheetWidth *
+                                                gfx::kTilesheetHeight,
+                                            0xFF);
+      graphics_sheets[i].Create(gfx::kTilesheetWidth, gfx::kTilesheetHeight,
+                                gfx::kTilesheetDepth, placeholder_data);
+
+      // Also append to legacy graphics buffer for backward compatibility
+      for (const auto& byte : placeholder_data) {
+        rom.mutable_graphics_buffer()->push_back(byte);
       }
     }
   }
