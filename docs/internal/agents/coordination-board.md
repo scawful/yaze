@@ -9,6 +9,12 @@
 - STATUS: COMPLETE
 - NOTES: Added `wasm-antigravity-gemini-playbook.md` (canonical reference) + `wasm-gemini-debug-prompt.md` for ROM open + DungeonEditor rendering triage.
 
+### 2025-11-24 zelda3-hacking-expert – Gemini WASM prompt refresh
+- TASK: Refresh Gemini WASM prompts with latest dungeon rendering context (usdasm/Oracle-of-Secrets/ZScream).
+- SCOPE: docs/internal/agents/wasm-antigravity-gemini-playbook.md, wasm-gemini-debug-prompt.md; cross-check dungeon object rendering notes.
+- STATUS: IN_PROGRESS
+- NOTES: Reviewing usdasm + Oracle-of-Secrets/Docs + ZScream dungeon rendering for prompt quality.
+
 ### 2025-11-23 docs-janitor – docs/internal cleanup & hygiene rules
 - TASK: Cleanup docs/internal; keep active plans/coordination; add anti-spam + file-naming rules.
 - SCOPE: docs/internal (agents, plans, indexes) focusing on consolidating/archiving stale docs.

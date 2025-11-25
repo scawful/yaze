@@ -94,10 +94,13 @@
 
       <div class="header-right">
         <div class="toolbar-group">
+          <button class="nav-btn" onclick="palette.show()" title="Command Palette (Ctrl+K / Cmd+K)">
+            <span class="material-symbols-outlined">keyboard_command_key</span>
+          </button>
           <button class="nav-btn panel-toggle" data-panel="terminal" onclick="panels.toggle('terminal')" title="Toggle Terminal (`)">
             <span class="material-symbols-outlined">terminal</span>
           </button>
-          <button class="nav-btn" onclick="panels.toggle('problems')" title="Toggle Problems Panel">
+          <button class="nav-btn panel-toggle" data-panel="problems" onclick="panels.toggle('problems')" title="Toggle Problems Panel">
             <span class="material-symbols-outlined">bug_report</span>
           </button>
           <button class="nav-btn" onclick="pixelInspector.toggle()" title="Toggle Pixel Inspector (Debug)" id="pixel-inspector-btn">
@@ -116,10 +119,10 @@
             <span class="material-symbols-outlined">menu</span>
           </button>
           <div id="help-menu" class="dropdown-content">
-            <div style="padding: 8px 12px; font-size: 10px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Theme</div>
-            <a href="#" onclick="setTheme('default'); return false;">Hacker Green</a>
-            <a href="#" onclick="setTheme('modern'); return false;">Modern Dark</a>
-            <a href="#" onclick="setTheme('halext'); return false;">Halext Purple</a>
+            <a href="#" onclick="showSettings(); return false;">
+              <span class="material-symbols-outlined" style="font-size: 16px; vertical-align: middle; margin-right: 4px;">settings</span>
+              Settings
+            </a>
             <div class="dropdown-divider"></div>
             <div style="padding: 8px 12px; font-size: 10px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Links</div>
             <a href="https://halext.org" target="_blank" rel="noopener">halext.org</a>
@@ -248,6 +251,7 @@
         <div id="palette-results" class="palette-results">
           <div class="palette-item" data-action="open-rom">Open ROM</div>
           <div class="palette-item" data-action="save">Save ROM</div>
+          <div class="palette-item" data-action="settings">Settings</div>
           <div class="palette-item" data-action="fullscreen">Toggle Fullscreen</div>
           <div class="palette-item" data-action="terminal">Toggle Terminal</div>
           <div class="palette-item" data-action="collab">Toggle Collaboration</div>
@@ -283,24 +287,55 @@
           <button class="nav-btn" onclick="hideSettings()"><span class="material-symbols-outlined">close</span></button>
         </div>
         <div class="settings-body">
-          <div class="setting-group">
-            <label>Theme</label>
-            <select id="settings-theme" onchange="setTheme(this.value)">
-              <option value="default">Hacker Green</option>
-              <option value="modern">Modern Dark</option>
-              <option value="halext">Halext Purple</option>
-            </select>
+          <!-- Appearance Settings -->
+          <div class="setting-section">
+            <h3 class="setting-section-title">Appearance</h3>
+            <div class="setting-group">
+              <label for="settings-theme">Theme</label>
+              <select id="settings-theme" onchange="applyThemeSetting(this.value)">
+                <option value="default">Hacker Green</option>
+                <option value="modern">Modern Dark</option>
+                <option value="halext">Halext Purple</option>
+              </select>
+            </div>
+            <div class="setting-group">
+              <label for="settings-font-size">Font Size</label>
+              <div class="setting-input-with-label">
+                <input type="range" id="settings-font-size" min="10" max="16" value="12" step="1" oninput="applyFontSizeSetting(this.value)">
+                <span id="font-size-display">12px</span>
+              </div>
+            </div>
           </div>
-          <!-- Future settings: Auto-save interval, VSync, Input mapping -->
-          <div class="setting-group">
-            <label>Interface</label>
-            <div class="checkbox-row">
-              <input type="checkbox" id="setting-touch" onchange="document.body.classList.toggle('yaze-touch-mode', this.checked)">
-              <label for="setting-touch">Force Touch Mode</label>
+
+          <!-- Panel Settings -->
+          <div class="setting-section">
+            <h3 class="setting-section-title">Panels</h3>
+            <div class="setting-group">
+              <label for="settings-terminal-height">Terminal Height (pixels)</label>
+              <div class="setting-input-with-label">
+                <input type="range" id="settings-terminal-height" min="150" max="600" value="250" step="50" oninput="applyTerminalHeightSetting(this.value)">
+                <span id="terminal-height-display">250px</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Interface Settings -->
+          <div class="setting-section">
+            <h3 class="setting-section-title">Interface</h3>
+            <div class="setting-group">
+              <div class="checkbox-row">
+                <input type="checkbox" id="setting-touch" onchange="applyTouchModeSetting(this.checked)">
+                <label for="setting-touch">Force Touch Mode</label>
+              </div>
+              <div class="checkbox-row">
+                <input type="checkbox" id="setting-pixel-grid" onchange="applyPixelGridSetting(this.checked)">
+                <label for="setting-pixel-grid">Show Pixel Grid</label>
+              </div>
             </div>
           </div>
         </div>
         <div class="modal-footer">
+          <button class="nav-btn" onclick="resetSettings()" style="margin-right: auto;">Reset to Defaults</button>
           <button class="nav-btn" onclick="hideSettings()">Done</button>
         </div>
       </div>
@@ -320,12 +355,91 @@
       // Settings Modal Logic
       function showSettings() {
         document.getElementById('settings-modal').style.display = 'flex';
-        // Sync select with current theme
-        var current = localStorage.getItem('yaze-theme') || 'default';
-        document.getElementById('settings-theme').value = current;
+        // Load and sync all settings from localStorage
+        loadSettingsFromStorage();
       }
+
       function hideSettings() {
         document.getElementById('settings-modal').style.display = 'none';
+      }
+
+      function loadSettingsFromStorage() {
+        // Theme
+        var theme = localStorage.getItem('yaze-theme') || 'default';
+        document.getElementById('settings-theme').value = theme;
+
+        // Font size
+        var fontSize = localStorage.getItem('yaze-font-size') || '12';
+        document.getElementById('settings-font-size').value = fontSize;
+        document.getElementById('font-size-display').textContent = fontSize + 'px';
+
+        // Terminal height
+        var termHeight = localStorage.getItem('yaze-terminal-height') || '250';
+        document.getElementById('settings-terminal-height').value = termHeight;
+        document.getElementById('terminal-height-display').textContent = termHeight + 'px';
+
+        // Touch mode
+        var touchMode = localStorage.getItem('yaze-touch-mode') === 'true';
+        document.getElementById('setting-touch').checked = touchMode;
+
+        // Pixel grid
+        var pixelGrid = localStorage.getItem('yaze-pixel-grid') === 'true';
+        document.getElementById('setting-pixel-grid').checked = pixelGrid;
+      }
+
+      function applyThemeSetting(theme) {
+        setTheme(theme);
+      }
+
+      function applyFontSizeSetting(size) {
+        document.getElementById('font-size-display').textContent = size + 'px';
+        document.body.style.fontSize = size + 'px';
+        localStorage.setItem('yaze-font-size', size);
+      }
+
+      function applyTerminalHeightSetting(height) {
+        document.getElementById('terminal-height-display').textContent = height + 'px';
+        if (panels && panels.container) {
+          panels.height = parseInt(height);
+          if (!panels.container.classList.contains('panel-collapsed')) {
+            panels.container.style.height = height + 'px';
+          }
+        }
+        localStorage.setItem('yaze-terminal-height', height);
+      }
+
+      function applyTouchModeSetting(enabled) {
+        document.body.classList.toggle('yaze-touch-mode', enabled);
+        localStorage.setItem('yaze-touch-mode', enabled);
+      }
+
+      function applyPixelGridSetting(enabled) {
+        var canvas = document.getElementById('canvas');
+        if (canvas) {
+          canvas.style.imageRendering = enabled ? 'auto' : 'pixelated';
+        }
+        localStorage.setItem('yaze-pixel-grid', enabled);
+      }
+
+      function resetSettings() {
+        if (!confirm('Reset all settings to defaults?')) return;
+
+        // Clear all settings from localStorage
+        localStorage.removeItem('yaze-theme');
+        localStorage.removeItem('yaze-font-size');
+        localStorage.removeItem('yaze-terminal-height');
+        localStorage.removeItem('yaze-touch-mode');
+        localStorage.removeItem('yaze-pixel-grid');
+
+        // Apply defaults
+        setTheme('default');
+        applyFontSizeSetting('12');
+        applyTerminalHeightSetting('250');
+        applyTouchModeSetting(false);
+        applyPixelGridSetting(false);
+
+        // Reload settings UI
+        loadSettingsFromStorage();
       }
 
       // Theme management
@@ -339,11 +453,39 @@
         }
       }
 
-      // Initialize theme
-      (function initTheme() {
+      // Initialize all settings on page load
+      (function initSettings() {
+        // Theme
         const savedTheme = localStorage.getItem('yaze-theme');
         if (savedTheme) {
           setTheme(savedTheme);
+        }
+
+        // Font size
+        const savedFontSize = localStorage.getItem('yaze-font-size');
+        if (savedFontSize) {
+          document.body.style.fontSize = savedFontSize + 'px';
+        }
+
+        // Terminal height
+        const savedTermHeight = localStorage.getItem('yaze-terminal-height');
+        if (savedTermHeight && panels) {
+          panels.height = parseInt(savedTermHeight);
+        }
+
+        // Touch mode
+        const savedTouchMode = localStorage.getItem('yaze-touch-mode') === 'true';
+        if (savedTouchMode) {
+          document.body.classList.add('yaze-touch-mode');
+        }
+
+        // Pixel grid
+        const savedPixelGrid = localStorage.getItem('yaze-pixel-grid') === 'true';
+        if (savedPixelGrid) {
+          const canvas = document.getElementById('canvas');
+          if (canvas) {
+            canvas.style.imageRendering = 'auto';
+          }
         }
       })();
 
@@ -692,6 +834,83 @@
         }
       }
 
+      // Terminal command execution
+      function executeTerminalCommand(command) {
+        var output = document.getElementById('terminal-output');
+        if (!output) return;
+
+        // Add command to output
+        var cmdLine = document.createElement('div');
+        cmdLine.className = 'terminal-line terminal-prompt';
+        cmdLine.innerHTML = '<span class="terminal-command">' + escapeHtml(command) + '</span>';
+        output.appendChild(cmdLine);
+
+        // Execute command
+        var result = '';
+        if (window.yazeDebug && window.yazeDebug.isReady()) {
+          try {
+            result = Module.executeCommand ? Module.executeCommand(command) : 'Command execution not available';
+          } catch (e) {
+            result = 'Error: ' + e.message;
+          }
+        } else {
+          result = 'WASM module not ready. Please wait for initialization.';
+        }
+
+        // Add result to output
+        if (result) {
+          var resultLine = document.createElement('div');
+          resultLine.className = 'terminal-line terminal-response';
+          resultLine.textContent = result;
+          output.appendChild(resultLine);
+        }
+
+        // Scroll to bottom
+        output.scrollTop = output.scrollHeight;
+      }
+
+      function escapeHtml(text) {
+        var div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+      }
+
+      // Initialize terminal input handler
+      document.addEventListener('DOMContentLoaded', function() {
+        var termInput = document.getElementById('terminal-input');
+        if (termInput) {
+          termInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              e.stopPropagation();
+              var cmd = this.value.trim();
+              if (cmd) {
+                executeTerminalCommand(cmd);
+                this.value = '';
+              }
+            }
+          });
+        }
+      });
+
+      // Resize canvas when panels open/close
+      function resizeCanvasToContainer() {
+        var canvas = document.getElementById('canvas');
+        var container = document.getElementById('canvas-container');
+        if (!canvas || !container) return;
+
+        // Get available space
+        var rect = container.getBoundingClientRect();
+
+        // Notify Emscripten to resize if available
+        if (typeof Module !== 'undefined' && Module.setCanvasSize) {
+          Module.setCanvasSize(rect.width, rect.height);
+        }
+
+        // Force a redraw by triggering resize event
+        window.dispatchEvent(new Event('resize'));
+      }
+
       var panels = {
         container: null,
         activeTab: 'terminal',
@@ -914,6 +1133,7 @@
           switch(action) {
             case 'open-rom': document.getElementById('rom-input').click(); break;
             case 'save': if(Module && Module._saveRom) Module._saveRom(); break;
+            case 'settings': showSettings(); break;
             case 'fullscreen': Module.requestFullscreen(false, false); break;
             case 'terminal': toggleTerminal(); break;
             case 'collab': toggleCollabConsole(); break;
