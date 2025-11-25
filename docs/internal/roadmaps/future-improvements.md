@@ -88,7 +88,7 @@ Perfect rendering on modern displays.
 
 ### Autonomous Debugging Enhancements
 
-Advanced features for AI-driven emulator debugging (see E9-ai-agent-debugging-guide.md for current capabilities).
+Advanced features for AI-driven emulator debugging (see `docs/internal/agents/archive/foundation-docs-old/ai-agent-debugging-guide.md` for current capabilities).
 
 #### Pattern 1: Automated Bug Reproduction
 ```python

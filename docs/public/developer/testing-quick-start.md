@@ -300,7 +300,7 @@ After pushing, CI will run tests on all platforms (Linux, macOS, Windows):
 scripts/agents/run-gh-workflow.sh ci.yml -f enable_http_api_tests=true
 ```
 
-See [GH Actions Remote Guide](../../internal/agents/gh-actions-remote.md) for setup.
+See [GH Actions Remote Guide](../../internal/agents/archive/utility-tools/gh-actions-remote.md) for setup.
 
 ## Advanced Topics
 
