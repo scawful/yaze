@@ -156,14 +156,22 @@ jobs:
             exit 1
           fi
 
-          # Copy updated web assets
-          cp src/web/*.css build-wasm/dist/
-          cp src/web/*.js build-wasm/dist/
-          cp src/web/manifest.json build-wasm/dist/ 2>/dev/null || true
-          cp src/web/offline.html build-wasm/dist/ 2>/dev/null || true
+          # Copy updated web assets (new directory structure)
+          # Root level files
+          cp src/web/app.js build-wasm/dist/
+
+          # Copy subdirectories
+          cp -r src/web/styles build-wasm/dist/ 2>/dev/null || true
+          cp -r src/web/components build-wasm/dist/ 2>/dev/null || true
+          cp -r src/web/core build-wasm/dist/ 2>/dev/null || true
+          cp -r src/web/pwa build-wasm/dist/ 2>/dev/null || true
           cp -r src/web/icons build-wasm/dist/ 2>/dev/null || true
-          # coi-serviceworker.js is critical for SharedArrayBuffer support
-          cp src/web/coi-serviceworker.js build-wasm/dist/ 2>/dev/null || true
+          cp -r src/web/debug build-wasm/dist/ 2>/dev/null || true
+
+          # coi-serviceworker.js is critical for SharedArrayBuffer support (in pwa/)
+          if [ -f src/web/pwa/coi-serviceworker.js ]; then
+            echo "coi-serviceworker.js found in pwa/"
+          fi
           echo "Web assets updated!"
 
       # --- Build Documentation ---
