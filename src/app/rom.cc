@@ -368,19 +368,35 @@ absl::StatusOr<std::array<gfx::Bitmap, kNumGfxSheets>> LoadAllGraphicsData(
            rom.version_constants().kOverworldGfxPtr2,
            rom.version_constants().kOverworldGfxPtr3);
 
+  // Initialize Diagnostics
+  auto& diag = rom.GetMutableDiagnostics();
+  diag.rom_size = rom.size();
+  // SMC header detection: size % 1MB == 512 indicates header present
+  diag.header_stripped = (rom.size() % (1024 * 1024) != 512);
+  // Checksum calculation
+  if (rom.size() > 0x7FDE) {
+    uint16_t c = rom.data()[0x7FDC] | (rom.data()[0x7FDD] << 8);
+    uint16_t k = rom.data()[0x7FDE] | (rom.data()[0x7FDF] << 8);
+    diag.checksum_valid = ((c ^ k) == 0xFFFF);
+  }
+  diag.ptr1_loc = rom.version_constants().kOverworldGfxPtr1;
+  diag.ptr2_loc = rom.version_constants().kOverworldGfxPtr2;
+  diag.ptr3_loc = rom.version_constants().kOverworldGfxPtr3;
+
   // Probe first 5 sheets to verify pointer tables are reading valid addresses
   for (int probe = 0; probe < 5; probe++) {
     uint32_t ptr1 = rom.version_constants().kOverworldGfxPtr1;
     uint32_t ptr2 = rom.version_constants().kOverworldGfxPtr2;
     uint32_t ptr3 = rom.version_constants().kOverworldGfxPtr3;
     if (ptr1 + probe < rom.size() && ptr2 + probe < rom.size() && ptr3 + probe < rom.size()) {
-      uint8_t b1 = rom.data()[ptr1 + probe];
-      uint8_t b2 = rom.data()[ptr2 + probe];
-      uint8_t b3 = rom.data()[ptr3 + probe];
-      uint32_t snes_addr = AddressFromBytes(b1, b2, b3);
+      // Pointer tables: ptr1=bank, ptr2=high, ptr3=low (matches GetGraphicsAddress)
+      uint8_t bank = rom.data()[ptr1 + probe];
+      uint8_t high = rom.data()[ptr2 + probe];
+      uint8_t low = rom.data()[ptr3 + probe];
+      uint32_t snes_addr = AddressFromBytes(bank, high, low);
       uint32_t pc_addr = SnesToPc(snes_addr);
       LOG_INFO("Graphics", "Sheet %d: bytes=[%02X,%02X,%02X] -> SNES=0x%06X -> PC=0x%X (valid=%s)",
-               probe, b1, b2, b3, snes_addr, pc_addr,
+               probe, bank, high, low, snes_addr, pc_addr,
                pc_addr < rom.size() ? "yes" : "NO");
     }
   }
@@ -412,27 +428,52 @@ absl::StatusOr<std::array<gfx::Bitmap, kNumGfxSheets>> LoadAllGraphicsData(
       return absl::CancelledError("Graphics loading cancelled by user");
     }
 #endif
+
+    // Diagnostic Capture for this sheet
+    diag.sheets[i].index = i;
+    uint32_t offset = 0;
+    bool offset_valid = false;
+
     // -----------------------------------------------------------------------
     // Category 1: Uncompressed 3BPP sheets (115-126)
     // -----------------------------------------------------------------------
     // These sheets are stored raw in the ROM without LC-LZ2 compression.
     // Size is fixed at Uncompressed3BPPSize (0x600 = 1536 bytes).
     if (i >= 115 && i <= 126) {
-      sheet.resize(Uncompressed3BPPSize);
-      auto offset = GetGraphicsAddress(
+      diag.sheets[i].is_compressed = false;
+      diag.sheets[i].decomp_size_param = Uncompressed3BPPSize;
+      
+      offset = GetGraphicsAddress(
           rom.data(), i, rom.version_constants().kOverworldGfxPtr1,
           rom.version_constants().kOverworldGfxPtr2,
           rom.version_constants().kOverworldGfxPtr3,
           rom.size());
+      
+      diag.sheets[i].pc_offset = offset;
+      diag.sheets[i].snes_address = PcToSnes(offset);
+      offset_valid = (offset < rom.size());
+      
+      // Capture first 8 bytes for diagnostics
+      diag.sheets[i].first_bytes.clear();
+      if (offset_valid && offset + 8 <= rom.size()) {
+        for (int b = 0; b < 8; ++b) {
+          diag.sheets[i].first_bytes.push_back(rom.data()[offset + b]);
+        }
+      }
+      
+      sheet.resize(Uncompressed3BPPSize);
 
       if (offset + Uncompressed3BPPSize > rom.size()) {
         LOG_WARN("Rom", "Uncompressed sheet %u offset 0x%X out of bounds (ROM size 0x%zX)",
                  i, offset, rom.size());
         // Use zero-filled sheet to maintain buffer alignment
         sheet.assign(Uncompressed3BPPSize, 0);
+        diag.sheets[i].decompression_succeeded = false;
       } else {
         std::copy(rom.data() + offset, rom.data() + offset + Uncompressed3BPPSize,
                   sheet.begin());
+        diag.sheets[i].decompression_succeeded = true;
+        diag.sheets[i].actual_decomp_size = Uncompressed3BPPSize;
       }
       bpp3 = true;
 
@@ -442,6 +483,25 @@ absl::StatusOr<std::array<gfx::Bitmap, kNumGfxSheets>> LoadAllGraphicsData(
     // These are loaded separately via Load2BppGraphics(). We still need to
     // push placeholder data to graphics_buffer to maintain index alignment.
     } else if (i == 113 || i == 114 || i >= 218) {
+      diag.sheets[i].is_compressed = true; // Typically are compressed
+      // Still capture address for diagnostics
+      offset = GetGraphicsAddress(
+          rom.data(), i, rom.version_constants().kOverworldGfxPtr1,
+          rom.version_constants().kOverworldGfxPtr2,
+          rom.version_constants().kOverworldGfxPtr3,
+          rom.size());
+      diag.sheets[i].pc_offset = offset;
+      diag.sheets[i].snes_address = PcToSnes(offset);
+      offset_valid = (offset < rom.size());
+      
+      // Capture first 8 bytes for diagnostics
+      diag.sheets[i].first_bytes.clear();
+      if (offset_valid && offset + 8 <= rom.size()) {
+        for (int b = 0; b < 8; ++b) {
+          diag.sheets[i].first_bytes.push_back(rom.data()[offset + b]);
+        }
+      }
+      
       bpp3 = false;
 
     // -----------------------------------------------------------------------
@@ -449,27 +509,47 @@ absl::StatusOr<std::array<gfx::Bitmap, kNumGfxSheets>> LoadAllGraphicsData(
     // -----------------------------------------------------------------------
     // Standard compressed graphics using Nintendo's LC-LZ2 algorithm.
     } else {
-      auto offset = GetGraphicsAddress(
+      diag.sheets[i].is_compressed = true;
+      
+      offset = GetGraphicsAddress(
           rom.data(), i, rom.version_constants().kOverworldGfxPtr1,
           rom.version_constants().kOverworldGfxPtr2,
           rom.version_constants().kOverworldGfxPtr3,
           rom.size());
+      
+      diag.sheets[i].pc_offset = offset;
+      diag.sheets[i].snes_address = PcToSnes(offset);
+      offset_valid = (offset < rom.size());
+      
+      // Capture first 8 bytes for diagnostics
+      diag.sheets[i].first_bytes.clear();
+      if (offset_valid && offset + 8 <= rom.size()) {
+        for (int b = 0; b < 8; ++b) {
+          diag.sheets[i].first_bytes.push_back(rom.data()[offset + b]);
+        }
+      }
 
       if (offset >= rom.size()) {
         LOG_WARN("Rom", "Compressed sheet %u offset 0x%X exceeds ROM size 0x%zX",
                  i, offset, rom.size());
         bpp3 = false;
+        diag.sheets[i].decompression_succeeded = false;
+        diag.sheets[i].decomp_size_param = 0x800;
       } else {
         // Decompress LC-LZ2 data to 0x800 byte buffer
         // CRITICAL: size parameter MUST be 0x800, not 0!
         // size=0 causes DecompressV2 to return empty data immediately.
+        diag.sheets[i].decomp_size_param = 0x800;
         auto decomp_result = gfx::lc_lz2::DecompressV2(rom.data(), offset, 0x800, 1, rom.size());
         if (decomp_result.ok()) {
           sheet = *decomp_result;
           bpp3 = true;
+          diag.sheets[i].decompression_succeeded = true;
+          diag.sheets[i].actual_decomp_size = sheet.size();
         } else {
           LOG_WARN("Rom", "Decompression failed for sheet %u: %s", i, decomp_result.status().message());
           bpp3 = false;
+          diag.sheets[i].decompression_succeeded = false;
         }
       }
     }
@@ -527,6 +607,9 @@ absl::StatusOr<std::array<gfx::Bitmap, kNumGfxSheets>> LoadAllGraphicsData(
       }
     }
   }
+
+  // Analyze the collected diagnostics
+  diag.Analyze();
 
 #ifdef __EMSCRIPTEN__
   // Complete progress tracking for WASM builds
