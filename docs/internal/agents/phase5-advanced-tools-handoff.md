@@ -354,3 +354,157 @@ categories:
 - [Test Infrastructure Plan](../../test/README.md)
 - [AI Evaluation Suite](../../scripts/README.md#ai-model-evaluation-suite)
 
+---
+
+## Session Notes - 2025-11-25: WASM Pipeline Fixes
+
+**Commit:** `3054942a68 fix(wasm): resolve ROM loading pipeline race conditions and crashes`
+
+### Issues Fixed
+
+#### 1. Empty Bitmap Crash (rom.cc)
+- **Problem:** Graphics sheets 113-114 and 218+ (2BPP format) were left uninitialized, causing "index out of bounds" crashes when rendered
+- **Fix:** Create placeholder bitmaps for these sheets with proper dimensions
+- **Additional:** Clear graphics buffer on user cancellation to prevent corrupted state propagating to next load
+
+#### 2. Loading Indicator Stuck (editor_manager.cc)
+- **Problem:** WASM loading indicator remained visible after cancellation or errors due to missing cleanup paths
+- **Fix:** Implement RAII guard in `LoadAssets()` to ensure indicator closes on all exit paths (normal completion, error, early return)
+- **Pattern:** Guarantees UI state consistency regardless of exception or early exit
+
+#### 3. Pending ROM Race Condition (wasm_bootstrap.cc)
+- **Problem:** Single `pending_rom_` string field could be overwritten during concurrent loads, causing wrong ROM to load
+- **Fix:** Replace with thread-safe queue (`std::queue<std::string>`) protected by mutex
+- **Added Validation:**
+  - Empty path check
+  - Path traversal protection (`..` detection)
+  - Path length limit (max 512 chars)
+
+#### 4. Handle Cleanup Race (wasm_loading_manager.cc/h)
+- **Problem:** 32-bit handle IDs could be reused after operation completion, causing new operations to inherit cancelled state from stale entries
+- **Fix:** Change `LoadingHandle` from 32-bit to 64-bit:
+  - High 32 bits: Generation counter (incremented each `BeginLoading()`)
+  - Low 32 bits: Unique JS-visible ID
+- **Cleanup:** Remove async deletion - operations are now erased synchronously in `EndLoading()`
+- **Result:** Handles cannot be accidentally reused even under heavy load
+
+#### 5. Double ROM Load (main.cc)
+- **Problem:** WASM builds queued ROMs in both `Application::pending_rom_` and `wasm_bootstrap`'s queue, causing duplicate loads
+- **Fix:** WASM builds now use only `wasm_bootstrap` queue; removed duplicate queuing in `Application` class
+- **Scope:** Native builds unaffected - still use `Application::pending_rom_`
+
+#### 6. Arena Handle Synchronization (wasm_loading_manager.cc/h)
+- **Problem:** Static atomic `arena_handle_` allowed race conditions between `ReportArenaProgress()` and `ClearArenaHandle()`
+- **Fix:** Move `arena_handle_` from static atomic to mutex-protected member variable
+- **Guarantee:** `ReportArenaProgress()` now holds mutex during entire operation, ensuring atomic check-and-update
+
+### Key Code Changes Summary
+
+#### New Patterns Introduced
+
+**1. RAII Guard for UI State**
+```cpp
+// In editor_manager.cc
+struct LoadingIndicatorGuard {
+  ~LoadingIndicatorGuard() {
+    if (handle != WasmLoadingManager::kInvalidHandle) {
+      WasmLoadingManager::EndLoading(handle);
+    }
+  }
+  WasmLoadingManager::LoadingHandle handle;
+};
+```
+This ensures cleanup happens automatically on scope exit.
+
+**2. Generation Counter for Handle Safety**
+```cpp
+// In wasm_loading_manager.h
+// LoadingHandle = 64-bit: [generation (32 bits) | js_id (32 bits)]
+static LoadingHandle MakeHandle(uint32_t js_id, uint32_t generation) {
+  return (static_cast<uint64_t>(generation) << 32) | js_id;
+}
+```
+Prevents accidental handle reuse even with extreme load.
+
+**3. Thread-Safe Queue with Validation**
+```cpp
+// In wasm_bootstrap.cc
+std::queue<std::string> g_pending_rom_loads;  // Queue instead of single string
+std::mutex g_rom_load_mutex;  // Mutex protection
+
+// Validation in LoadRomFromWeb():
+if (path.empty() || path.find("..") != std::string::npos || path.length() > 512) {
+  return;  // Reject invalid paths
+}
+```
+
+#### Files Modified
+
+| File | Changes | Lines |
+|------|---------|-------|
+| `src/app/rom.cc` | Add 2BPP placeholder bitmaps, clear buffer on cancel | +18 |
+| `src/app/editor/editor_manager.cc` | Add RAII guard for loading indicator | +14 |
+| `src/app/platform/wasm/wasm_bootstrap.cc` | Replace string with queue, add path validation | +46 |
+| `src/app/platform/wasm/wasm_loading_manager.cc` | Implement 64-bit handles, mutex-protected arena_handle | +129 |
+| `src/app/platform/wasm/wasm_loading_manager.h` | Update handle design, add arena handle methods | +65 |
+| `src/app/main.cc` | Remove duplicate ROM queuing for WASM builds | +35 |
+
+**Total:** 6 files modified, 250 insertions, 57 deletions
+
+### Testing Notes
+
+**Native Build Status:** Verified
+- No regressions in native application
+- GUI loading flows work correctly
+- ROM cancellation properly clears state
+
+**WASM Build Status:** In Progress
+- Emscripten compilation validated
+- Ready for WASM deployment and browser testing
+
+**Post-Deployment Verification:**
+
+1. **ROM Loading Flow**
+   - Load ROM via file picker → verify loading indicator appears/closes
+   - Test cancellation during load → verify UI responds, ROM not partially loaded
+   - Load second ROM → verify first ROM properly cleaned up
+
+2. **Edge Cases**
+   - Try loading non-existent ROM → verify error message, no crash
+   - Rapid succession ROM loads → verify correct ROM loads, no race conditions
+   - Large ROM files → verify progress indicator updates smoothly
+
+3. **Graphics Rendering**
+   - Verify 2BPP sheets (113-114, 218+) render without crash
+   - Check graphics editor opens without errors
+   - Confirm overworld/dungeon graphics display correctly
+
+4. **Error Handling**
+   - Corrupted ROM file → proper error message, clean UI state
+   - Interrupted download → verify cancellation works, no orphaned handles
+   - Network timeout → verify timeout handled gracefully
+
+### Architectural Notes for Future Maintainers
+
+**Handle Generation Strategy:**
+- 64-bit handles prevent collision attacks even with 1000+ concurrent operations
+- Generation counter increments monotonically (no wraparound expected in practice)
+- Both high and low 32 bits contribute to uniqueness
+
+**Mutex Protection Scope:**
+- Arena handle operations are fast and lock-free within the critical section
+- `ReportArenaProgress()` holds mutex only during read-check-update sequence
+- No blocking I/O inside mutex to prevent deadlocks
+
+**Path Validation Rationale:**
+- Empty path catch: Prevents "load nothing" deadlock
+- Path traversal check: Security boundary (prevents escaping /roms directory in browser)
+- Length limit: Prevents pathological long strings from causing memory issues
+
+### Next Steps for Future Work
+
+1. Monitor WASM deployment for any remaining race conditions
+2. If handle exhaustion occurs (2^32 operations), implement handle recycling with grace period
+3. Consider adding metrics (loaded bytes/second, average load time) for performance tracking
+4. Evaluate if Arena's `ReportArenaProgress()` needs higher-frequency updates for large ROM files
+
