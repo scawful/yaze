@@ -275,9 +275,10 @@ std::string ProcessCommandInternal(const std::string& command_str) {
   if (registry.HasCommand(args[0])) {
     std::vector<std::string> cmd_args(args.begin() + 1, args.end());
     // Use the REAL active ROM
-    auto status = registry.Execute(args[0], cmd_args, g_bridge.GetActiveRom());
+    std::string cmd_output;
+    auto status = registry.Execute(args[0], cmd_args, g_bridge.GetActiveRom(), &cmd_output);
     if (status.ok()) {
-      return "Command executed successfully"; // Commands usually return output via other means or handlers
+      return cmd_output.empty() ? "Command executed successfully" : cmd_output;
     } else {
       return "Command failed: " + std::string(status.message());
     }
@@ -516,19 +517,16 @@ const char* Z3edQueryResource(const char* query) {
     // Construct args: resource-search --query <query> --format json
     std::vector<std::string> cmd_args = {"--query", query, "--format", "json"};
     
-    // Capture output from command execution
-    // Note: CommandHandler typically prints to stdout. 
-    // We need to capture this or ensure the handler populates g_bridge.last_output
-    // For now, we rely on the side-effect that many handlers might write to last_output context
-    // or we accept that we might need to redirect stdout in the future.
-    
-    auto status = registry.Execute(cmd_name, cmd_args, rom);
+    std::string cmd_output;
+    auto status = registry.Execute(cmd_name, cmd_args, rom, &cmd_output);
     if (status.ok()) {
-       // If the command succeeded, we return a success JSON or the output if captured.
-       // Since capturing isn't fully wired, we return a simplified success response
-       // The agent can use the terminal output for the actual data if printed to console.
-       // Ideally we would wire a stringstream capture here.
-       return "{\"status\":\"success\", \"message\":\"Query executed. Check console.\"}";
+       // If output captured, return it directly
+       if (!cmd_output.empty()) {
+           // We might want to update last_output too as a side effect if the bridge uses it
+           g_bridge.last_output = cmd_output;
+           return g_bridge.last_output.c_str();
+       }
+       return "{\"status\":\"success\", \"message\":\"Query executed but no output returned.\"}";
     }
   }
 

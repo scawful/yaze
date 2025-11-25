@@ -91,3 +91,60 @@ The fastest way to get a precise error location is to temporarily enable SAFE_HE
 
 **Note**: Remove SAFE_HEAP for production builds (it's slow), but it's perfect for debugging.
 
+## Common Pitfalls When Adding Bounds Checking
+
+### Pitfall 1: Accidentally Breaking Working Code
+
+When adding bounds checking to existing functions, be careful not to introduce new bugs:
+
+**Example: DecompressV2 size parameter regression**
+
+```cpp
+// ORIGINAL (working) - uses default size=0x800
+DecompressV2(rom.data(), offset)
+
+// BROKEN - accidentally passed 0 for size when adding bounds checking
+DecompressV2(rom.data(), offset, 0, 1, rom.size())  // size=0 causes empty return!
+
+// CORRECT - preserve the required size parameter
+DecompressV2(rom.data(), offset, 0x800, 1, rom.size())
+```
+
+The `DecompressV2` function has an early-exit when `size == 0`:
+```cpp
+if (size == 0) {
+  return std::vector<uint8_t>();  // Returns empty immediately!
+}
+```
+
+This caused all graphics sheets to fail loading, appearing as solid 0xFF (purple/brown).
+
+**See**: `docs/internal/graphics-loading-regression-2024.md` for full analysis.
+
+### Pitfall 2: Changing Header Stripping Heuristics
+
+The SMC header detection must use modulo 1MB, not 32KB:
+
+```cpp
+// CORRECT - 1MB modulo handles standard ROMs
+size % 1048576 == 512
+
+// BROKEN - 32KB modulo causes false positives
+size % 0x8000 == 512  // Matches too many file sizes!
+```
+
+### Pitfall 3: Silent Fallback to Error Data
+
+Functions that fill buffers with 0xFF on error can mask problems:
+
+```cpp
+if (!decompress_ok) {
+  // This hides the real error!
+  for (int j = 0; j < sheet_size; ++j) {
+    buffer.push_back(0xFF);
+  }
+}
+```
+
+Always log errors before falling back to placeholder data.
+
