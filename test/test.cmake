@@ -106,6 +106,7 @@ source_group("Tests\\Unit" FILES
   unit/emu/spc700_reset_test.cc
   unit/tools/build_tool_test.cc
   unit/tools/filesystem_tool_test.cc
+  unit/tools/memory_inspector_tool_test.cc
   unit/editor/message/message_data_test.cc
   unit/sdl3_audio_backend_test.cc
   unit/wasm_patch_export_test.cc
