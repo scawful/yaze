@@ -605,7 +605,7 @@ std::string getFileManagerDebugInfo() {
   auto* manager = yaze::app::GetGlobalEditorManager();
   if (manager) {
     json << ",\"editor_manager\":{";
-    json << "\"session_count\":" << manager->session_count() << ",";
+    json << "\"session_count\":" << manager->GetActiveSessionCount() << ",";
     json << "\"current_session\":" << manager->GetCurrentSessionId() << ",";
     json << "\"has_current_rom\":" << (manager->GetCurrentRom() ? "true" : "false");
     json << "}";
