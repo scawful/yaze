@@ -63,6 +63,11 @@
                 <div style="padding: 8px 12px; color: var(--text-muted); font-style: italic;">No ROM loaded</div>
               </div>
               <div class="dropdown-divider"></div>
+              <div style="padding: 8px 12px; font-size: 10px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Recent Files</div>
+              <div id="recent-files-list" style="max-height: 150px; overflow-y: auto;">
+                <div style="padding: 8px 12px; color: var(--text-muted); font-style: italic;">No recent files</div>
+              </div>
+              <div class="dropdown-divider"></div>
               <a href="#" onclick="event.stopPropagation(); fileManager.show(); closeAllDropdowns(); return false;">
                 <span class="material-symbols-outlined" style="font-size: 16px; vertical-align: middle; margin-right: 4px;">folder_managed</span>
                 File Manager
@@ -207,6 +212,17 @@
             </a>
             <a href="#" onclick="event.stopPropagation(); setLayout('all_cards'); return false;">
               <span class="material-symbols-outlined">grid_view</span> All Cards
+            </a>
+            <div class="dropdown-divider"></div>
+            <div style="padding: 8px 12px; font-size: 10px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Panels</div>
+            <a href="#" onclick="event.stopPropagation(); toggleTerminal(); closeAllDropdowns(); return false;">
+              <span class="material-symbols-outlined">terminal</span> Terminal
+            </a>
+            <a href="#" onclick="event.stopPropagation(); toggleCollabConsole(); closeAllDropdowns(); return false;">
+              <span class="material-symbols-outlined">group</span> Collaboration
+            </a>
+            <a href="#" onclick="event.stopPropagation(); pixelInspector.toggle(); closeAllDropdowns(); return false;">
+              <span class="material-symbols-outlined">colorize</span> Pixel Inspector
             </a>
           </div>
         </div>
@@ -1124,9 +1140,10 @@
         // Close help menu if open
         var helpMenu = document.getElementById('help-menu');
         if (helpMenu) helpMenu.classList.remove('show');
-        // Refresh ROM info when opening
+        // Refresh ROM info and recent files when opening
         if (menu.classList.contains('show')) {
           updateRomFilesList();
+          updateRecentFilesList();
         }
       }
 
@@ -1151,7 +1168,7 @@
             html += '<div class="rom-details">' + formatFileSize(sessions.current_rom.size) + ' - ' + (sessions.current_rom.filename || 'N/A') + '</div>';
             html += '</div></div>';
           } else {
-            html = '<div style="padding: 8px 12px; color: var(--text-muted); font-style: italic;">No ROM loaded</div>';
+            html = '<div style="padding: 8px 12px; color: var(--text-muted); font-style: italic; cursor: pointer;" onclick="document.getElementById(\'rom-input\').click()">No ROM loaded (Click to Open)</div>';
           }
 
           listEl.innerHTML = html;
@@ -1166,6 +1183,55 @@
         var sizes = ['B', 'KB', 'MB', 'GB'];
         var i = Math.floor(Math.log(bytes) / Math.log(k));
         return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+      }
+
+      function updateRecentFilesList() {
+        var listEl = document.getElementById('recent-files-list');
+        if (!listEl) return;
+
+        try {
+          var recentFiles = FilesystemManager.getRecentFiles(5);
+          var html = '';
+
+          if (!recentFiles || recentFiles.length === 0) {
+            html = '<div style="padding: 8px 12px; color: var(--text-muted); font-style: italic;">No recent files</div>';
+          } else {
+            recentFiles.forEach(function(file) {
+              var filename = file.filename.split('/').pop();
+              var timeAgo = formatTimeAgoShort(file.timestamp);
+              html += '<a href="#" class="recent-file-item" onclick="event.stopPropagation(); loadRecentFile(\'' + file.filename.replace(/'/g, "\\'") + '\'); closeAllDropdowns(); return false;" style="display: flex; align-items: center; gap: 8px; padding: 6px 12px;">';
+              html += '<span class="material-symbols-outlined" style="font-size: 16px; color: var(--accent-color);">history</span>';
+              html += '<span style="flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">' + filename + '</span>';
+              html += '<span style="font-size: 10px; color: var(--text-muted);">' + timeAgo + '</span>';
+              html += '</a>';
+            });
+          }
+
+          listEl.innerHTML = html;
+        } catch (e) {
+          console.warn('[RecentFiles] Error updating list:', e);
+          listEl.innerHTML = '<div style="padding: 8px 12px; color: var(--text-muted); font-style: italic;">No recent files</div>';
+        }
+      }
+
+      function formatTimeAgoShort(timestamp) {
+        var seconds = Math.floor((Date.now() - timestamp) / 1000);
+        if (seconds < 60) return 'now';
+        var minutes = Math.floor(seconds / 60);
+        if (minutes < 60) return minutes + 'm';
+        var hours = Math.floor(minutes / 60);
+        if (hours < 24) return hours + 'h';
+        var days = Math.floor(hours / 24);
+        return days + 'd';
+      }
+
+      function loadRecentFile(filepath) {
+        console.log('[RecentFiles] Loading:', filepath);
+        if (typeof FilesystemManager !== 'undefined' && FilesystemManager._executeRomLoad) {
+          FilesystemManager._executeRomLoad(filepath, null);
+        } else {
+          console.error('[RecentFiles] FilesystemManager not available');
+        }
       }
 
       function showFileManagerDebug() {

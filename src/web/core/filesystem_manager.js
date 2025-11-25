@@ -73,89 +73,105 @@ var FilesystemManager = {
    * @returns {Promise} - Resolves when FS is ready.
    */
   initPersistentFS: function() {
+    // Immediate synchronous check and assignment to prevent race
     if (this.initPromise) return this.initPromise;
-    
-    this.initPromise = new Promise((resolve, reject) => {
-      waitForModule(() => {
-        // If C++ already signaled ready, we are done
-        if (this.ready) {
-          resolve();
+
+    // Create promise immediately before any async operations
+    var self = this;
+    var resolveInit, rejectInit;
+    this.initPromise = new Promise(function(resolve, reject) {
+      resolveInit = resolve;
+      rejectInit = reject;
+    });
+
+    // Now do async work using resolveInit/rejectInit
+    waitForModule(function() {
+      // If C++ already signaled ready, we are done
+      if (self.ready) {
+        resolveInit();
+        return;
+      }
+
+      // Try to get FS from Module (MODULARIZE mode)
+      var fs = (typeof FS !== 'undefined') ? FS :
+               (typeof Module !== 'undefined' && Module.FS) ? Module.FS :
+               (typeof window.Module !== 'undefined' && window.Module.FS) ? window.Module.FS : null;
+
+      if (fs && typeof window.FS === 'undefined') {
+        console.log('[FilesystemManager] Exposing Module.FS globally');
+        window.FS = fs;
+      }
+
+      if (!fs) {
+        self.initAttempts++;
+        if (self.initAttempts < 50) { // Increased retries significantly
+          console.warn('FS unavailable; retrying...', self.initAttempts);
+          self.initPromise = null;
+          setTimeout(function() {
+            self.initPersistentFS().then(resolveInit).catch(rejectInit);
+          }, 100);
+          return;
+        }
+        rejectInit(new Error('FS unavailable during init'));
+        return;
+      }
+
+      // Check if /roms already exists (C++ may have already set up the FS)
+      var romsExists = false;
+      try {
+        FS.stat('/roms');
+        romsExists = true;
+      } catch (e) {
+        // Directory doesn't exist
+      }
+
+      if (romsExists) {
+        // C++ already mounted IDBFS, just mark as ready
+        console.log('[WASM] FS already initialized by C++ runtime');
+        self.ready = true;
+        resolveInit();
+        return;
+      }
+
+      console.log('[WASM] Waiting for C++ FS initialization...');
+
+      // Poll for ready or /roms existence
+      var checkInterval = setInterval(function() {
+        if (self.ready) {
+          clearInterval(checkInterval);
+          checkInterval = null;
+          resolveInit();
           return;
         }
 
-        // Try to get FS from Module (MODULARIZE mode)
-        var fs = (typeof FS !== 'undefined') ? FS :
-                 (typeof Module !== 'undefined' && Module.FS) ? Module.FS :
-                 (typeof window.Module !== 'undefined' && window.Module.FS) ? window.Module.FS : null;
-
-        if (fs && typeof window.FS === 'undefined') {
-          console.log('[FilesystemManager] Exposing Module.FS globally');
-          window.FS = fs;
-        }
-
-        if (!fs) {
-          this.initAttempts++;
-          if (this.initAttempts < 50) { // Increased retries significantly
-            console.warn('FS unavailable; retrying...', this.initAttempts);
-            this.initPromise = null;
-            setTimeout(() => this.initPersistentFS().then(resolve).catch(reject), 100);
-            return;
-          }
-          reject(new Error('FS unavailable during init'));
-          return;
-        }
-
-        // Check if /roms already exists (C++ may have already set up the FS)
-        var romsExists = false;
         try {
           FS.stat('/roms');
-          romsExists = true;
-        } catch (e) {
-          // Directory doesn't exist
+          console.log('[WASM] Detected /roms, marking FS ready');
+          self.ready = true;
+          clearInterval(checkInterval);
+          checkInterval = null;
+          resolveInit();
+        } catch(e) {
+          // Still waiting
         }
+      }, 200);
 
-        if (romsExists) {
-          // C++ already mounted IDBFS, just mark as ready
-          console.log('[WASM] FS already initialized by C++ runtime');
-          this.ready = true;
-          resolve();
-          return;
+      // Timeout after 15 seconds
+      setTimeout(function() {
+        if (!self.ready) {
+          if (checkInterval !== null) {
+            clearInterval(checkInterval);
+            checkInterval = null;
+          }
+          console.warn('[WASM] FS init timed out, forcing ready (might be MEMFS)');
+          // Try to create /roms if it doesn't exist
+          try { FS.mkdir('/roms'); } catch(e) {}
+          self.ready = true; // Fallback
+          resolveInit();
         }
-        
-        console.log('[WASM] Waiting for C++ FS initialization...');
-        
-        // Poll for ready or /roms existence
-        var checkInterval = setInterval(() => {
-          if (this.ready) {
-            clearInterval(checkInterval);
-            resolve();
-            return;
-          }
-          
-          try {
-            FS.stat('/roms');
-            console.log('[WASM] Detected /roms, marking FS ready');
-            this.ready = true;
-            clearInterval(checkInterval);
-            resolve();
-          } catch(e) {
-            // Still waiting
-          }
-        }, 200);
-        
-        // Timeout after 15 seconds
-        setTimeout(() => {
-          if (!this.ready) {
-            clearInterval(checkInterval);
-            console.warn('[WASM] FS init timed out, forcing ready (might be MEMFS)');
-            // Try to create /roms if it doesn't exist
-            try { FS.mkdir('/roms'); } catch(e) {}
-            this.ready = true; // Fallback
-            resolve();
-          }
-        }, 15000);
-      });
+      }, 15000);
     });
+
     return this.initPromise;
   },
 
@@ -233,6 +249,45 @@ var FilesystemManager = {
   },
 
   /**
+   * Handles ROM data that's already been read.
+   * @param {string} filename - The filename for the ROM
+   * @param {Uint8Array} data - The ROM data
+   */
+  handleRomData: function(filename, data) {
+    if (!this.ensureReady()) return;
+
+    var self = this;
+    var fullPath = '/roms/' + filename;
+
+    try {
+      try { FS.mkdir('/roms'); } catch(e) {}
+      FS.writeFile(fullPath, data);
+      console.log("Wrote " + data.length + " bytes to " + fullPath);
+
+      // Verify file was written correctly
+      try {
+        var stats = FS.stat(fullPath);
+        if (!stats || stats.size !== data.length) {
+          throw new Error("File size mismatch");
+        }
+      } catch (verifyErr) {
+        console.error("File verification failed:", verifyErr);
+        alert("Failed to verify ROM file: " + verifyErr);
+        return;
+      }
+
+      // Execute ROM load after UI yield
+      setTimeout(function() {
+        self._executeRomLoad(fullPath, null);
+      }, 50);
+
+    } catch(err) {
+      console.error("File system error:", err);
+      alert("Failed to save ROM to filesystem: " + err);
+    }
+  },
+
+  /**
    * Internal: Execute the actual ROM load (called after UI yield)
    * @private
    */
@@ -263,7 +318,10 @@ var FilesystemManager = {
         return;
       }
 
-      // Persist to IndexedDB
+      // Track as recent file for quick access
+      self.addRecentFile(filename, 'rom');
+
+      // Persist to IndexedDB (includes recent files update)
       if (self.ready) {
         FS.syncfs(false, function(err) {
           if (err) console.warn('FS sync (push) failed after ROM load:', err);
@@ -824,7 +882,7 @@ var FilesystemManager = {
 
 // Global helper for waitForModule if not already defined
 function waitForModule(cb) {
-  if (typeof Module !== 'undefined') {
+  if (typeof Module !== 'undefined' && window.YAZE_MODULE_READY) {
     cb();
   } else {
     setTimeout(() => waitForModule(cb), 30);
@@ -835,22 +893,29 @@ function waitForModule(cb) {
 waitForModule(() => {
   if (typeof Module !== 'undefined') {
     // Ensure FS is globally available (MODULARIZE mode puts it on Module.FS)
+    var fsExposed = false;
     var exposeFS = function() {
+      if (fsExposed) return;
       if (typeof FS === 'undefined') {
         if (Module.FS) {
           console.log('[FilesystemManager] Aliasing Module.FS to window.FS');
           window.FS = Module.FS;
+          fsExposed = true;
         } else if (window.Module && window.Module.FS) {
           console.log('[FilesystemManager] Aliasing window.Module.FS to window.FS');
           window.FS = window.Module.FS;
+          fsExposed = true;
         }
+      } else {
+        fsExposed = true;
       }
     };
 
-    // Try immediately and also after a delay (module init may not be complete)
+    // Try immediately and retry only if first attempt didn't succeed
     exposeFS();
-    setTimeout(exposeFS, 100);
-    setTimeout(exposeFS, 500);
+    if (!fsExposed) {
+      setTimeout(exposeFS, 500);
+    }
 
     // Hook into existing onFileSystemReady if it exists
     var original = Module.onFileSystemReady;
