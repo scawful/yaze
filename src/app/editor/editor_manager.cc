@@ -1139,7 +1139,7 @@ absl::Status EditorManager::LoadRom() {
   return absl::OkStatus();
 }
 
-absl::Status EditorManager::LoadAssets() {
+absl::Status EditorManager::LoadAssets(uint64_t passed_handle) {
   auto* current_rom = GetCurrentRom();
   auto* current_editor_set = GetCurrentEditorSet();
   if (!current_rom || !current_editor_set) {
@@ -1149,14 +1149,20 @@ absl::Status EditorManager::LoadAssets() {
   auto start_time = std::chrono::steady_clock::now();
 
 #ifdef __EMSCRIPTEN__
-  // Start progress tracking for WASM builds
-  auto loading_handle =
-      app::platform::WasmLoadingManager::BeginLoading("Loading Editor Assets");
+  // Use passed handle if provided, otherwise create new one
+  auto loading_handle = passed_handle != 0
+      ? static_cast<app::platform::WasmLoadingManager::LoadingHandle>(passed_handle)
+      : app::platform::WasmLoadingManager::BeginLoading("Loading Editor Assets");
+
+  // Progress starts at 10% (ROM already loaded), goes to 100%
+  constexpr float kStartProgress = 0.10f;
+  constexpr float kEndProgress = 1.0f;
   constexpr int kTotalSteps = 11;  // Graphics + 8 editors + profiler + finish
   int current_step = 0;
   auto update_progress = [&](const std::string& message) {
     current_step++;
-    float progress = static_cast<float>(current_step) / kTotalSteps;
+    float progress = kStartProgress +
+        (kEndProgress - kStartProgress) * (static_cast<float>(current_step) / kTotalSteps);
     app::platform::WasmLoadingManager::UpdateProgress(loading_handle, progress);
     app::platform::WasmLoadingManager::UpdateMessage(loading_handle, message);
   };
@@ -1172,6 +1178,8 @@ absl::Status EditorManager::LoadAssets() {
     }
     void dismiss() { dismissed = true; }
   } loading_guard{cleanup_loading};
+#else
+  (void)passed_handle;  // Unused on non-WASM
 #endif
 
   // Set renderer for emulator (lazy initialization happens in Run())
@@ -1344,10 +1352,34 @@ absl::Status EditorManager::OpenRomOrProject(const std::string& filename) {
     LOG_INFO("EditorManager", "Empty filename provided, skipping load.");
     return absl::OkStatus();
   }
+
+#ifdef __EMSCRIPTEN__
+  // Start loading indicator early for WASM builds
+  auto loading_handle =
+      app::platform::WasmLoadingManager::BeginLoading("Loading ROM");
+  app::platform::WasmLoadingManager::UpdateMessage(loading_handle,
+                                                   "Reading ROM file...");
+  // RAII guard to ensure loading indicator is closed even on early return
+  struct LoadingGuard {
+    app::platform::WasmLoadingManager::LoadingHandle handle;
+    bool dismissed = false;
+    ~LoadingGuard() {
+      if (!dismissed)
+        app::platform::WasmLoadingManager::EndLoading(handle);
+    }
+    void dismiss() { dismissed = true; }
+  } loading_guard{loading_handle};
+#endif
+
   if (absl::StrContains(filename, ".yaze")) {
     RETURN_IF_ERROR(current_project_.Open(filename));
     RETURN_IF_ERROR(OpenProject());
   } else {
+#ifdef __EMSCRIPTEN__
+    app::platform::WasmLoadingManager::UpdateProgress(loading_handle, 0.05f);
+    app::platform::WasmLoadingManager::UpdateMessage(loading_handle,
+                                                     "Loading ROM data...");
+#endif
     Rom temp_rom;
     RETURN_IF_ERROR(rom_file_manager_.LoadRom(&temp_rom, filename));
 
@@ -1378,7 +1410,17 @@ absl::Status EditorManager::OpenRomOrProject(const std::string& filename) {
       editor_set->assembly_editor_.OpenFolder(current_project_.code_folder);
     }
 
+#ifdef __EMSCRIPTEN__
+    app::platform::WasmLoadingManager::UpdateProgress(loading_handle, 0.10f);
+    app::platform::WasmLoadingManager::UpdateMessage(loading_handle,
+                                                     "Initializing editors...");
+    // Pass the loading handle to LoadAssets and dismiss our guard
+    // LoadAssets will manage closing the indicator when done
+    loading_guard.dismiss();
+    RETURN_IF_ERROR(LoadAssets(loading_handle));
+#else
     RETURN_IF_ERROR(LoadAssets());
+#endif
 
     // Hide welcome screen and show editor selection when ROM is loaded
     ui_coordinator_->SetWelcomeScreenVisible(false);

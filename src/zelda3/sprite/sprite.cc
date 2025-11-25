@@ -873,6 +873,11 @@ void Sprite::DrawSpriteTile(int x, int y, int srcx, int srcy, int pal,
     return;
   }
 
+  // Lazy allocate preview buffer on first use (saves ~1.4MB during load)
+  if (preview_gfx_.empty()) {
+    preview_gfx_.resize(64 * 64, 0xFF);
+  }
+
   // Validate input parameters
   if (sizex <= 0 || sizey <= 0) {
     return;

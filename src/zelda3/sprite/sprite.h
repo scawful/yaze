@@ -294,7 +294,7 @@ class Sprite : public GameEntity {
     y_ = map_y_;
     overworld_ = true;
     name_ = kSpriteDefaultNames[id];
-    preview_gfx_.resize(64 * 64, 0xFF);
+    // Defer preview_gfx_ allocation until DrawSpriteTile() is called
   }
 
   Sprite(uint8_t id, uint8_t x, uint8_t y, uint8_t subtype, uint8_t layer)
@@ -323,7 +323,7 @@ class Sprite : public GameEntity {
     name_ = kSpriteDefaultNames[id];
     map_x_ = map_x;
     map_y_ = map_y;
-    preview_gfx_.resize(64 * 64, 0xFF);
+    // Defer preview_gfx_ allocation until DrawSpriteTile() is called
   }
 
   void Draw();
