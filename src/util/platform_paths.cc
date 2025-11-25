@@ -95,8 +95,15 @@ absl::StatusOr<std::filesystem::path> PlatformPaths::GetAppDataDirectory() {
   }
   return app_data;
 #elif defined(__EMSCRIPTEN__)
-  // Emscripten: Use /saves for persistent data (mounted IDBFS)
-  std::filesystem::path app_data("/saves");
+  // Emscripten: Use /config for app data (mounted IDBFS)
+  // Note: The directory structure in WASM is:
+  //   /config   - Configuration files (IDBFS - persistent)
+  //   /saves    - Save files (IDBFS - persistent)
+  //   /projects - Project files (IDBFS - persistent)
+  //   /prompts  - Agent prompts (IDBFS - persistent)
+  //   /roms     - ROM files (MEMFS - loaded dynamically)
+  //   /temp     - Temporary files (MEMFS - non-persistent)
+  std::filesystem::path app_data("/config");
   // We assume the mount point exists or will be created by initialization
   return app_data;
 #else
@@ -136,6 +143,10 @@ absl::StatusOr<std::filesystem::path> PlatformPaths::GetUserDocumentsDirectory()
   if (!status.ok()) {
     return status;
   }
+  return docs_dir;
+#elif defined(__EMSCRIPTEN__)
+  // Emscripten: Use /projects for user documents (mounted IDBFS)
+  std::filesystem::path docs_dir("/projects");
   return docs_dir;
 #else
   // Unix/macOS: Use ~/Documents/Yaze
@@ -211,6 +222,10 @@ bool PlatformPaths::Exists(const std::filesystem::path& path) {
 }
 
 absl::StatusOr<std::filesystem::path> PlatformPaths::GetTempDirectory() {
+#ifdef __EMSCRIPTEN__
+  // Emscripten: Use /temp (mounted MEMFS - non-persistent)
+  return std::filesystem::path("/temp");
+#else
   std::error_code ec;
   std::filesystem::path temp_base = std::filesystem::temp_directory_path(ec);
 
@@ -227,6 +242,7 @@ absl::StatusOr<std::filesystem::path> PlatformPaths::GetTempDirectory() {
   }
 
   return yaze_temp;
+#endif
 }
 
 std::string PlatformPaths::NormalizePathForDisplay(
