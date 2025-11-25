@@ -48,6 +48,7 @@
 #include "core/features.h"
 #include "core/project.h"
 #include "imgui/imgui.h"
+#include "imgui/imgui_internal.h"
 #include "util/file_util.h"
 #include "util/log.h"
 #include "zelda3/screen/dungeon_map.h"
@@ -1777,6 +1778,17 @@ void EditorManager::JumpToOverworldMap(int map_id) {
 }
 
 void EditorManager::SwitchToEditor(EditorType editor_type) {
+  // Avoid touching ImGui docking state when we're outside a frame (e.g. WASM
+  // control API calls from JS). Defer the switch to the next UI tick so the
+  // dock space and ID stack are valid.
+  ImGuiContext* imgui_ctx = ImGui::GetCurrentContext();
+  const bool frame_active =
+      imgui_ctx != nullptr && imgui_ctx->WithinFrameScope;
+  if (!frame_active) {
+    QueueDeferredAction([this, editor_type]() { SwitchToEditor(editor_type); });
+    return;
+  }
+
   auto* editor_set = GetCurrentEditorSet();
   if (!editor_set)
     return;
