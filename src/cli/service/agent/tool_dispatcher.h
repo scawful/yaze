@@ -1,7 +1,9 @@
 #ifndef YAZE_SRC_CLI_SERVICE_AGENT_TOOL_DISPATCHER_H_
 #define YAZE_SRC_CLI_SERVICE_AGENT_TOOL_DISPATCHER_H_
 
+#include <optional>
 #include <string>
+#include <vector>
 
 #include "absl/status/statusor.h"
 #include "cli/service/ai/common.h"
@@ -15,6 +17,11 @@ namespace agent {
 
 enum class ToolCallType {
   kUnknown,
+  // Meta-tools for discoverability
+  kToolsList,
+  kToolsDescribe,
+  kToolsSearch,
+  // Resources
   kResourceList,
   kResourceSearch,
   // Dungeon
@@ -80,6 +87,12 @@ enum class ToolCallType {
   kMemoryCompare,
   kMemoryCheck,
   kMemoryRegions,
+  // Test Helper Tools
+  kToolsHelperList,
+  kToolsHarnessState,
+  kToolsExtractValues,
+  kToolsExtractGolden,
+  kToolsPatchV3,
 };
 
 class ToolDispatcher {
@@ -101,7 +114,63 @@ class ToolDispatcher {
     bool filesystem = true;
     bool build = true;
     bool memory_inspector = true;
+    bool test_helpers = true;
+    bool meta_tools = true;  // tools-list, tools-describe, tools-search
   };
+
+  /**
+   * @brief Tool information for discoverability
+   */
+  struct ToolInfo {
+    std::string name;
+    std::string category;
+    std::string description;
+    std::string usage;
+    std::vector<std::string> examples;
+    bool requires_rom;
+  };
+
+  /**
+   * @brief Get list of all available tools
+   */
+  std::vector<ToolInfo> GetAvailableTools() const;
+
+  /**
+   * @brief Get detailed information about a specific tool
+   */
+  std::optional<ToolInfo> GetToolInfo(const std::string& tool_name) const;
+
+  /**
+   * @brief Search tools by keyword
+   */
+  std::vector<ToolInfo> SearchTools(const std::string& query) const;
+
+  /**
+   * @brief Batch tool call request
+   */
+  struct BatchToolCall {
+    std::vector<ToolCall> calls;
+    bool parallel = false;  // If true, execute independent calls in parallel
+  };
+
+  /**
+   * @brief Result of a batch tool call
+   */
+  struct BatchResult {
+    std::vector<std::string> results;
+    std::vector<absl::Status> statuses;
+    double total_execution_time_ms = 0.0;
+    size_t successful_count = 0;
+    size_t failed_count = 0;
+  };
+
+  /**
+   * @brief Execute multiple tool calls in a batch
+   *
+   * When parallel=false, calls are executed sequentially.
+   * When parallel=true, calls are executed concurrently (if no dependencies).
+   */
+  BatchResult DispatchBatch(const BatchToolCall& batch);
 
   ToolDispatcher() = default;
 

@@ -2,6 +2,7 @@
 
 #include "cli/handlers/tools/gui_commands.h"
 #include "cli/handlers/tools/resource_commands.h"
+#include "cli/handlers/tools/test_helpers_commands.h"
 #ifdef YAZE_WITH_GRPC
 #include "cli/handlers/tools/emulator_commands.h"
 #endif
@@ -107,6 +108,13 @@ CreateAgentCommandHandlers() {
   handlers.push_back(std::make_unique<EmulatorGetRegistersCommandHandler>());
   handlers.push_back(std::make_unique<EmulatorGetMetricsCommandHandler>());
 #endif
+
+  // Test helper tools
+  handlers.push_back(std::make_unique<ToolsListCommandHandler>());
+  handlers.push_back(std::make_unique<ToolsHarnessStateCommandHandler>());
+  handlers.push_back(std::make_unique<ToolsExtractValuesCommandHandler>());
+  handlers.push_back(std::make_unique<ToolsExtractGoldenCommandHandler>());
+  handlers.push_back(std::make_unique<ToolsPatchV3CommandHandler>());
 
   return handlers;
 }
