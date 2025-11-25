@@ -11,6 +11,7 @@
 #include <iomanip>
 #include <sstream>
 
+#include "yaze.h"  // For YAZE_VERSION_STRING
 #include "app/emu/emulator.h"
 #include "app/emu/snes.h"
 #include "app/emu/video/ppu.h"
@@ -537,8 +538,96 @@ std::string getEmulatorVideoState() {
 }
 
 // =============================================================================
+// Version and Session Management
+// =============================================================================
+
+std::string getYazeVersion() {
+  return YAZE_VERSION_STRING;
+}
+
+std::string getRomSessions() {
+  std::ostringstream json;
+  auto* manager = yaze::app::GetGlobalEditorManager();
+
+  if (!manager) {
+    return "{\"error\":\"EditorManager not available\",\"sessions\":[]}";
+  }
+
+  json << "{";
+  json << "\"current_session\":" << manager->GetCurrentSessionId() << ",";
+
+  // Get current ROM info
+  auto* current_rom = manager->GetCurrentRom();
+  if (current_rom && current_rom->is_loaded()) {
+    json << "\"current_rom\":{";
+    json << "\"loaded\":true,";
+    json << "\"title\":\"" << current_rom->title() << "\",";
+    json << "\"filename\":\"" << current_rom->filename() << "\",";
+    json << "\"size\":" << current_rom->size();
+    json << "},";
+  } else {
+    json << "\"current_rom\":{\"loaded\":false},";
+  }
+
+  // Note: Full session enumeration would require exposing session_coordinator
+  // For now, provide current session info
+  json << "\"sessions\":[]";
+
+  json << "}";
+  return json.str();
+}
+
+std::string getFileManagerDebugInfo() {
+  std::ostringstream json;
+  auto* rom = yaze::cli::GetGlobalRom();
+
+  json << "{";
+  json << "\"global_rom_ptr\":" << (rom ? "true" : "false") << ",";
+
+  if (rom) {
+    json << "\"rom_loaded\":" << (rom->is_loaded() ? "true" : "false") << ",";
+    json << "\"rom_size\":" << rom->size() << ",";
+    json << "\"rom_filename\":\"" << rom->filename() << "\",";
+    json << "\"rom_title\":\"" << rom->title() << "\",";
+
+    // Add diagnostics if available
+    if (rom->is_loaded()) {
+      auto& diag = rom->GetDiagnostics();
+      json << "\"diagnostics\":{";
+      json << "\"header_stripped\":" << (diag.header_stripped ? "true" : "false") << ",";
+      json << "\"checksum_valid\":" << (diag.checksum_valid ? "true" : "false") << ",";
+      json << "\"sheets_loaded\":" << diag.sheets.size();
+      json << "}";
+    }
+  }
+
+  // EditorManager info
+  auto* manager = yaze::app::GetGlobalEditorManager();
+  if (manager) {
+    json << ",\"editor_manager\":{";
+    json << "\"session_count\":" << manager->session_count() << ",";
+    json << "\"current_session\":" << manager->GetCurrentSessionId() << ",";
+    json << "\"has_current_rom\":" << (manager->GetCurrentRom() ? "true" : "false");
+    json << "}";
+  } else {
+    json << ",\"editor_manager\":null";
+  }
+
+  json << "}";
+  return json.str();
+}
+
+// =============================================================================
 // Combined Debug State for AI Analysis
 // =============================================================================
+
+std::string getGraphicsDiagnostics() {
+  auto* rom = yaze::cli::GetGlobalRom();
+  if (!rom || !rom->is_loaded()) {
+    return "{\"error\":\"No ROM loaded\"}";
+  }
+  return rom->GetDiagnostics().ToJson();
+}
 
 std::string getFullDebugState() {
   std::ostringstream json;
@@ -610,4 +699,10 @@ EMSCRIPTEN_BINDINGS(yaze_debug_inspector) {
 
   // Combined state for AI
   function("getFullDebugState", &getFullDebugState);
+  function("getGraphicsDiagnostics", &getGraphicsDiagnostics);
+
+  // Version and session management
+  function("getYazeVersion", &getYazeVersion);
+  function("getRomSessions", &getRomSessions);
+  function("getFileManagerDebugInfo", &getFileManagerDebugInfo);
 }

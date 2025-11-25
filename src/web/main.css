@@ -184,6 +184,72 @@ body {
   text-shadow: 0 0 5px rgba(0, 204, 102, 0.2);
 }
 
+.version-badge {
+  font-size: 10px;
+  color: var(--text-muted);
+  background: var(--panel-darker);
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-left: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.version-badge:hover {
+  background: var(--panel-bg);
+  color: var(--text-secondary);
+}
+
+/* ROM Files Dropdown */
+.rom-dropdown {
+  position: relative;
+}
+
+.rom-files-dropdown {
+  min-width: 280px;
+  left: 0;
+  right: auto;
+}
+
+.rom-files-dropdown .rom-item {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.rom-files-dropdown .rom-item:hover {
+  background: var(--panel-hover);
+}
+
+.rom-files-dropdown .rom-item.active {
+  background: var(--panel-active);
+  color: var(--text-accent);
+}
+
+.rom-files-dropdown .rom-item .rom-icon {
+  margin-right: 8px;
+  font-size: 16px;
+}
+
+.rom-files-dropdown .rom-item .rom-info {
+  flex: 1;
+  overflow: hidden;
+}
+
+.rom-files-dropdown .rom-item .rom-name {
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rom-files-dropdown .rom-item .rom-details {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
 /* Toolbar */
 .toolbar-group {
   display: flex;

@@ -23,6 +23,7 @@
 #include "app/gfx/types/snes_color.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/gfx/types/snes_tile.h"
+#include "app/rom_diagnostics.h"
 #include "core/project.h"
 #include "util/macro.h"
 
@@ -233,6 +234,9 @@ class Rom {
   std::array<std::array<uint8_t, 4>, kNumSpritesets> spriteset_ids;
   std::array<std::array<uint8_t, 4>, kNumPalettesets> paletteset_ids;
 
+  const GraphicsLoadDiagnostics& GetDiagnostics() const { return diagnostics_; }
+  GraphicsLoadDiagnostics& GetMutableDiagnostics() { return diagnostics_; }
+
  private:
   // Size of the ROM data.
   unsigned long size_ = 0;
@@ -251,6 +255,9 @@ class Rom {
 
   // Full contiguous graphics space
   std::vector<uint8_t> graphics_buffer_;
+
+  // Diagnostics for graphics loading
+  GraphicsLoadDiagnostics diagnostics_;
 
   // Label manager for unique resource names.
   project::ResourceLabelManager resource_label_manager_;

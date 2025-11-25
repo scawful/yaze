@@ -3,6 +3,12 @@
 **STOP:** Before posting, verify your **Agent ID** in [personas.md](personas.md). Use only canonical IDs.
 **Guidelines:** Keep entries concise (<=5 lines). Archive completed work weekly. Target <=40 active entries.
 
+### 2025-11-24 docs-janitor – WASM docs consolidation for antigravity Gemini
+- TASK: Consolidate WASM docs into single reference + Gemini prompt for ROM open/DungeonEditor debug.
+- SCOPE: docs/internal/agents/wasm-development-guide.md plus wasm status/roadmap/debug docs; produce 2 refreshed internal files.
+- STATUS: COMPLETE
+- NOTES: Added `wasm-antigravity-gemini-playbook.md` (canonical reference) + `wasm-gemini-debug-prompt.md` for ROM open + DungeonEditor rendering triage.
+
 ### 2025-11-23 docs-janitor – docs/internal cleanup & hygiene rules
 - TASK: Cleanup docs/internal; keep active plans/coordination; add anti-spam + file-naming rules.
 - SCOPE: docs/internal (agents, plans, indexes) focusing on consolidating/archiving stale docs.

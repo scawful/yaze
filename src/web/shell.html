@@ -45,11 +45,39 @@
       <div class="header-left">
         <img src="assets/yaze.png" alt="yaze" class="logo-icon" style="height: 20px; width: 20px; margin-right: 8px;">
         <span class="logo">yaze</span>
+        <span id="version-badge" class="version-badge" title="Click for debug info">v0.3.9</span>
         <div class="toolbar-divider"></div>
         <div class="toolbar-group">
           <button class="nav-btn" onclick="document.getElementById('rom-input').click()" title="Open ROM (Ctrl+O)">
             <span class="material-symbols-outlined">folder_open</span>
           </button>
+          <!-- ROM Files Dropdown -->
+          <div class="dropdown rom-dropdown">
+            <button class="nav-btn" onclick="toggleRomFilesMenu()" title="ROM Files">
+              <span class="material-symbols-outlined">description</span>
+              <span class="material-symbols-outlined" style="font-size: 12px; margin-left: -4px;">arrow_drop_down</span>
+            </button>
+            <div id="rom-files-menu" class="dropdown-content rom-files-dropdown">
+              <div style="padding: 8px 12px; font-size: 10px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">ROM Files</div>
+              <div id="rom-files-list" style="max-height: 200px; overflow-y: auto;">
+                <div style="padding: 8px 12px; color: var(--text-muted); font-style: italic;">No ROM loaded</div>
+              </div>
+              <div class="dropdown-divider"></div>
+              <div style="padding: 8px 12px; font-size: 10px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Debug Info</div>
+              <a href="#" onclick="showFileManagerDebug(); return false;">
+                <span class="material-symbols-outlined" style="font-size: 16px; vertical-align: middle; margin-right: 4px;">bug_report</span>
+                File Manager Status
+              </a>
+              <a href="#" onclick="showRomDiagnostics(); return false;">
+                <span class="material-symbols-outlined" style="font-size: 16px; vertical-align: middle; margin-right: 4px;">memory</span>
+                Graphics Diagnostics
+              </a>
+              <a href="#" onclick="dumpDebugState(); return false;">
+                <span class="material-symbols-outlined" style="font-size: 16px; vertical-align: middle; margin-right: 4px;">download</span>
+                Dump Full State (Console)
+              </a>
+            </div>
+          </div>
           <button class="nav-btn" onclick="if(Module && Module._saveRom) Module._saveRom()" title="Save ROM (Ctrl+S)">
             <span class="material-symbols-outlined">save</span>
           </button>
@@ -323,12 +351,138 @@
       function toggleHelpMenu() {
         var menu = document.getElementById('help-menu');
         menu.classList.toggle('show');
+        // Close ROM files menu if open
+        var romMenu = document.getElementById('rom-files-menu');
+        if (romMenu) romMenu.classList.remove('show');
       }
+
+      function toggleRomFilesMenu() {
+        var menu = document.getElementById('rom-files-menu');
+        menu.classList.toggle('show');
+        // Close help menu if open
+        var helpMenu = document.getElementById('help-menu');
+        if (helpMenu) helpMenu.classList.remove('show');
+        // Refresh ROM info when opening
+        if (menu.classList.contains('show')) {
+          updateRomFilesList();
+        }
+      }
+
+      function updateRomFilesList() {
+        var listEl = document.getElementById('rom-files-list');
+        if (!listEl) return;
+
+        if (!window.yazeDebug || !window.yazeDebug.isReady()) {
+          listEl.innerHTML = '<div style="padding: 8px 12px; color: var(--text-muted); font-style: italic;">Module not ready</div>';
+          return;
+        }
+
+        try {
+          var sessions = JSON.parse(Module.getRomSessions());
+          var html = '';
+
+          if (sessions.current_rom && sessions.current_rom.loaded) {
+            html += '<div class="rom-item active">';
+            html += '<span class="material-symbols-outlined rom-icon">description</span>';
+            html += '<div class="rom-info">';
+            html += '<div class="rom-name">' + (sessions.current_rom.title || 'Unknown') + '</div>';
+            html += '<div class="rom-details">' + formatFileSize(sessions.current_rom.size) + ' - ' + (sessions.current_rom.filename || 'N/A') + '</div>';
+            html += '</div></div>';
+          } else {
+            html = '<div style="padding: 8px 12px; color: var(--text-muted); font-style: italic;">No ROM loaded</div>';
+          }
+
+          listEl.innerHTML = html;
+        } catch (e) {
+          listEl.innerHTML = '<div style="padding: 8px 12px; color: var(--status-error);">Error: ' + e.message + '</div>';
+        }
+      }
+
+      function formatFileSize(bytes) {
+        if (!bytes) return '0 B';
+        var k = 1024;
+        var sizes = ['B', 'KB', 'MB', 'GB'];
+        var i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+      }
+
+      function showFileManagerDebug() {
+        if (!window.yazeDebug || !window.yazeDebug.isReady()) {
+          console.log('Module not ready');
+          alert('WASM module not ready');
+          return;
+        }
+        try {
+          var info = JSON.parse(Module.getFileManagerDebugInfo());
+          console.log('=== File Manager Debug Info ===');
+          console.log(JSON.stringify(info, null, 2));
+          alert('File Manager Debug Info logged to console.\n\nGlobal ROM: ' + (info.global_rom_ptr ? 'Yes' : 'No') +
+                '\nROM Loaded: ' + (info.rom_loaded ? 'Yes' : 'No') +
+                '\nROM Size: ' + formatFileSize(info.rom_size) +
+                '\nFilename: ' + (info.rom_filename || 'N/A'));
+        } catch (e) {
+          console.error('Error getting file manager debug info:', e);
+          alert('Error: ' + e.message);
+        }
+      }
+
+      function showRomDiagnostics() {
+        if (!window.yazeDebug || !window.yazeDebug.isReady()) {
+          console.log('Module not ready');
+          alert('WASM module not ready');
+          return;
+        }
+        var diag = window.yazeDebug.graphics.getDiagnostics();
+        console.log('=== Graphics Diagnostics ===');
+        console.log(JSON.stringify(diag, null, 2));
+        if (diag.error) {
+          alert('Diagnostics Error: ' + diag.error);
+        } else {
+          var analysis = diag.analysis || {};
+          alert('Graphics Diagnostics logged to console.\n\n' +
+                'ROM Size: ' + formatFileSize(diag.rom_size) + '\n' +
+                'Header Stripped: ' + (diag.header_stripped ? 'Yes' : 'No') + '\n' +
+                'Checksum Valid: ' + (diag.checksum_valid ? 'Yes' : 'No') + '\n' +
+                'Sheets Loaded: ' + (diag.sheets ? diag.sheets.length : 0) + '\n\n' +
+                'Analysis:\n' +
+                '  All Sheets 0xFF: ' + (analysis.all_sheets_0xFF ? 'YES (PROBLEM!)' : 'No') + '\n' +
+                '  Size Param Zero Bug: ' + (analysis.size_param_zero_bug ? 'YES (PROBLEM!)' : 'No') + '\n' +
+                '  Header Misaligned: ' + (analysis.header_misaligned ? 'YES' : 'No') + '\n' +
+                '  Suspected Regression: ' + (analysis.suspected_regression ? 'YES' : 'No'));
+        }
+      }
+
+      function dumpDebugState() {
+        if (!window.yazeDebug) {
+          console.log('yazeDebug not available');
+          return;
+        }
+        console.log('=== Full Debug State Dump ===');
+        console.log(window.yazeDebug.dumpAll());
+        console.log(window.yazeDebug.formatForAI());
+        alert('Full debug state dumped to console. Open DevTools (F12) to view.');
+      }
+
+      // Update version badge from WASM when ready
+      function updateVersionBadge() {
+        var badge = document.getElementById('version-badge');
+        if (!badge) return;
+        if (typeof Module !== 'undefined' && Module.getYazeVersion) {
+          try {
+            badge.textContent = 'v' + Module.getYazeVersion();
+          } catch (e) {
+            // Keep default version
+          }
+        }
+      }
+
       // Close help menu when clicking outside
       document.addEventListener('click', function(e) {
         if (!e.target.closest('.dropdown')) {
           var menu = document.getElementById('help-menu');
           if (menu) menu.classList.remove('show');
+          var romMenu = document.getElementById('rom-files-menu');
+          if (romMenu) romMenu.classList.remove('show');
         }
       });
       // About modal
@@ -866,12 +1020,53 @@
       // to query debug state and analyze rendering issues.
       window.yazeDebug = {
         // Version and capability info
-        version: '1.0.0',
-        capabilities: ['palette', 'arena', 'timeline', 'pixel-inspector', 'rom', 'overworld'],
+        version: '1.1.0',
+        capabilities: ['palette', 'arena', 'graphics', 'timeline', 'pixel-inspector', 'rom', 'overworld', 'emulator', 'editor'],
 
         // Check if WASM module is ready
         isReady: function() {
           return typeof Module !== 'undefined' && Module.calledRun;
+        },
+
+        // --- Emulator Debug Functions ---
+        emulator: {
+          getStatus: function() {
+            if (!window.yazeDebug.isReady()) return { error: 'Module not ready' };
+            try { return JSON.parse(Module.getEmulatorStatus()); } catch(e) { return { error: e.message }; }
+          },
+          readMemory: function(addr, count) {
+            if (!window.yazeDebug.isReady()) return { error: 'Module not ready' };
+            try { return JSON.parse(Module.readEmulatorMemory(addr, count)); } catch(e) { return { error: e.message }; }
+          },
+          getVideoState: function() {
+            if (!window.yazeDebug.isReady()) return { error: 'Module not ready' };
+            try { return JSON.parse(Module.getEmulatorVideoState()); } catch(e) { return { error: e.message }; }
+          }
+        },
+
+        // --- Editor Debug Functions ---
+        editor: {
+          getState: function() {
+            if (!window.yazeDebug.isReady()) return { error: 'Module not ready' };
+            try { return JSON.parse(Module.getEditorState()); } catch(e) { return { error: e.message }; }
+          },
+          executeCommand: function(cmd) {
+            if (!window.yazeDebug.isReady()) return { error: 'Module not ready' };
+            return Module.executeCommand(cmd);
+          }
+        },
+
+        // --- Graphics Diagnostics ---
+        graphics: {
+          getDiagnostics: function() {
+            if (!window.yazeDebug.isReady()) return { error: 'Module not ready' };
+            try { return JSON.parse(Module.getGraphicsDiagnostics()); } catch(e) { return { error: e.message }; }
+          },
+          detect0xFFPattern: function() {
+             var diag = this.getDiagnostics();
+             if (diag.error) return false;
+             return diag.analysis && diag.analysis.all_sheets_0xFF;
+          }
         },
 
         // --- Palette Debug Functions ---
@@ -1067,6 +1262,9 @@
             timestamp: Date.now(),
             palette: this.palette.getFullState(),
             arena: this.arena.getStatus(),
+            graphics: this.graphics.getDiagnostics(),
+            emulator: this.emulator.getStatus(),
+            editor: this.editor.getState(),
             rom: this.rom.getStatus(),
             timeline: this.timeline.get(),
             summary: this.analysis.getSummary(),

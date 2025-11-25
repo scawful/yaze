@@ -333,3 +333,5 @@ Detailed architectural guides are available in `docs/internal/architecture/`:
 5. **Hardcoded colors**: Use `AgentUITheme` system, never raw `ImVec4` values
 6. **Blocking texture loads**: Use `gfx::Arena` deferred loading system
 7. **Missing ROM state checks**: Always verify `rom_->is_loaded()` before operations
+8. **DecompressV2 size parameter**: Always pass `0x800` for graphics decompression, never `0` (causes empty return). See `docs/internal/graphics-loading-regression-2024.md`
+9. **SMC header detection**: Use `size % 1MB == 512`, not `size % 32KB == 512` (causes false positives)
