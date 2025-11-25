@@ -39,6 +39,56 @@ cmake --preset mac-dbg -DYAZE_ENABLE_ROM_TESTS=ON -DYAZE_TEST_ROM_PATH=~/zelda3.
 ctest --test-dir build
 ```
 
+## Fast Test Builds (Recommended for Development)
+
+For rapid test iteration, use the dedicated fast test presets. These use `RelWithDebInfo` with optimized flags (`-O2 -g1`) which builds **2-3x faster** than Debug while retaining enough debug info for test failures.
+
+### Quick Commands (macOS)
+
+```bash
+# Configure with fast test preset
+cmake --preset mac-test
+
+# Build tests
+cmake --build --preset mac-test
+
+# Run stable tests with fast preset
+ctest --preset fast
+```
+
+### Platform-Specific Fast Test Presets
+
+| Platform | Configure Preset | Build Preset | Test Preset |
+|----------|-----------------|--------------|-------------|
+| macOS    | `mac-test`      | `mac-test`   | `fast`      |
+| Windows  | `win-test`      | `win-test`   | `fast-win`  |
+| Linux    | `lin-test`      | `lin-test`   | `fast-lin`  |
+
+### Example Workflow
+
+```bash
+# One-liner: Configure, build, and test (macOS)
+cmake --preset mac-test && cmake --build --preset mac-test && ctest --preset fast
+
+# Windows equivalent
+cmake --preset win-test && cmake --build --preset win-test && ctest --preset fast-win
+
+# Linux equivalent
+cmake --preset lin-test && cmake --build --preset lin-test && ctest --preset fast-lin
+```
+
+### z3ed CLI Self-Test
+
+The z3ed CLI includes a built-in self-test for quick verification:
+
+```bash
+# Run z3ed self-test diagnostics
+./build_test/bin/z3ed --self-test
+
+# The self-test is also included in ctest with label "z3ed"
+ctest --test-dir build_test -L z3ed
+```
+
 ## Test Structure
 
 ### Default Test Suite (Always Enabled)
@@ -142,6 +192,7 @@ Tests are organized by ctest labels for flexible execution. Labels determine whi
 |-------|-------------|-----------|----------|--------------|
 | `stable` | Core unit and integration tests (fast, reliable) | Yes | Yes | None |
 | `gui` | GUI smoke tests (ImGui framework validation) | Yes | Yes | SDL display or headless |
+| `z3ed` | z3ed CLI self-test and smoke tests | Yes | Yes | z3ed target built |
 | `rom_dependent` | Tests requiring actual Zelda3 ROM | No | Yes | `YAZE_ENABLE_ROM_TESTS=ON` + ROM path |
 | `experimental` | AI runtime features and experiments | No | Yes | `YAZE_ENABLE_AI_RUNTIME=ON` |
 | `benchmark` | Performance and optimization tests | No | Yes | None |
@@ -195,6 +246,7 @@ ctest --test-dir build
 
 | Preset | Stable | GUI | ROM-Dep | Experimental | Benchmark | Use Case |
 |--------|--------|-----|---------|--------------|-----------|----------|
+| `mac-test`, `lin-test`, `win-test` | ✓ | ✓ | ✗ | ✗ | ✓ | **Fast iteration** (2-3x faster than debug) |
 | `mac-dbg`, `lin-dbg`, `win-dbg` | ✓ | ✓ | ✗ | ✗ | ✓ | Default development builds |
 | `mac-rel`, `lin-rel`, `win-rel` | ✗ | ✗ | ✗ | ✗ | ✗ | Release binaries (no tests) |
 | `mac-ai`, `lin-ai`, `win-ai` | ✓ | ✓ | ✗ | ✓ | ✓ | AI/agent development with experiments |

@@ -9,7 +9,9 @@
     username: localStorage.getItem('collab-username') || '',
     password: '',
     serverUrl: (() => {
-      const cfg = (window.YAZE_CONFIG && window.YAZE_CONFIG.collaborationServerUrl) || '';
+      // Check correct config path first (collaboration.serverUrl)
+      const cfg = window.YAZE_CONFIG?.collaboration?.serverUrl ||
+                  window.YAZE_CONFIG?.collaborationServerUrl || ''; // Legacy fallback
       if (cfg) return cfg;
       const meta = document.querySelector('meta[name="yaze-collab-server"]');
       if (meta && meta.content) return meta.content;

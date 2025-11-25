@@ -187,7 +187,7 @@ body {
 .version-badge {
   font-size: 10px;
   color: var(--text-muted);
-  background: var(--panel-darker);
+  background: var(--bg-input);
   padding: 2px 6px;
   border-radius: 4px;
   margin-left: 4px;
@@ -196,7 +196,7 @@ body {
 }
 
 .version-badge:hover {
-  background: var(--panel-bg);
+  background: var(--bg-hover);
   color: var(--text-secondary);
 }
 
@@ -507,6 +507,8 @@ progress {
   width: 200px;
   height: 4px;
   margin-top: 8px;
+  -webkit-appearance: none;
+  -moz-appearance: none;
   appearance: none;
   background: var(--bg-input);
   border: none;

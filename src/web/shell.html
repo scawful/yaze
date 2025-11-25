@@ -326,7 +326,8 @@
     </div>
 
     <!-- Scripts -->
-    <!-- Core infrastructure -->
+    <!-- Core infrastructure (namespace.js MUST load first) -->
+    <script src="core/namespace.js"></script>
     <script src="core/config.js"></script>
     <script src="core/filesystem_manager.js"></script>
     <script src="core/loading_indicator.js"></script>
@@ -1248,12 +1249,37 @@
       // to query debug state and analyze rendering issues.
       window.yazeDebug = {
         // Version and capability info
-        version: '1.1.0',
-        capabilities: ['palette', 'arena', 'graphics', 'timeline', 'pixel-inspector', 'rom', 'overworld', 'emulator', 'editor'],
+        version: '1.2.0',
+        capabilities: ['palette', 'arena', 'graphics', 'timeline', 'pixel-inspector', 'rom', 'overworld', 'emulator', 'editor', 'workers'],
 
         // Check if WASM module is ready
         isReady: function() {
           return typeof Module !== 'undefined' && Module.calledRun;
+        },
+
+        // --- Worker Diagnostics ---
+        workers: {
+          getStatus: function() {
+            return {
+              spawnCount: window.YAZE_WORKER_SPAWN_COUNT || 0,
+              spawnLimit: window.YAZE_WORKER_SPAWN_LIMIT || 12,
+              errorCount: window.YAZE_WORKER_ERRORS || 0,
+              aborted: window.YAZE_WORKER_ABORTED || false,
+              lastSpawn: window.YAZE_WORKER_LAST_SPAWN || 0,
+              timeSinceLastSpawn: window.YAZE_WORKER_LAST_SPAWN ? (Date.now() - window.YAZE_WORKER_LAST_SPAWN) + 'ms' : 'never',
+              sharedArrayBuffer: typeof SharedArrayBuffer !== 'undefined',
+              crossOriginIsolated: window.crossOriginIsolated === true,
+              serviceWorkerController: !!navigator.serviceWorker?.controller,
+              hardwareConcurrency: navigator.hardwareConcurrency || 'unknown'
+            };
+          },
+          reset: function() {
+            window.YAZE_WORKER_SPAWN_COUNT = 0;
+            window.YAZE_WORKER_ERRORS = 0;
+            window.YAZE_WORKER_ABORTED = false;
+            console.log('[WORKER] Counters reset');
+            return this.getStatus();
+          }
         },
 
         // --- Emulator Debug Functions ---
