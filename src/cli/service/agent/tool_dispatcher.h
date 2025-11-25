@@ -93,6 +93,11 @@ enum class ToolCallType {
   kToolsExtractValues,
   kToolsExtractGolden,
   kToolsPatchV3,
+  // Visual Analysis
+  kVisualFindSimilarTiles,
+  kVisualAnalyzeSpritesheet,
+  kVisualPaletteUsage,
+  kVisualTileHistogram,
 };
 
 class ToolDispatcher {
@@ -116,6 +121,7 @@ class ToolDispatcher {
     bool memory_inspector = true;
     bool test_helpers = true;
     bool meta_tools = true;  // tools-list, tools-describe, tools-search
+    bool visual_analysis = true;
   };
 
   /**
