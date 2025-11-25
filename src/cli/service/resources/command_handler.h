@@ -114,6 +114,13 @@ class CommandHandler {
   virtual bool RequiresLabels() const { return false; }
 
   /**
+   * @brief Check if the command requires a loaded ROM
+   *
+   * Override to return false if ROM is not needed (e.g., filesystem tools).
+   */
+  virtual bool RequiresRom() const { return true; }
+
+  /**
    * @brief Get the default output format ("json" or "text")
    */
   virtual std::string GetDefaultFormat() const { return "json"; }
