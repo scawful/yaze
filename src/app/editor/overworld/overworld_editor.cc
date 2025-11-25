@@ -2779,36 +2779,36 @@ absl::Status OverworldEditor::UpdateUsageStats() {
     ImGui::TableNextRow();
 
     ImGui::TableNextColumn();
-    if (ImGui::BeginChild("UnusedSpritesetScroll", ImVec2(0, 0), true,
-                          ImGuiWindowFlags_HorizontalScrollbar)) {
-      for (int i = 0; i < 0x81; i++) {
-        auto entrance_name = rom_->resource_label()->CreateOrGetLabel(
-            "Dungeon Entrance Names", util::HexByte(i),
-            zelda3::kEntranceNames[i]);
-        std::string str = absl::StrFormat("%#x - %s", i, entrance_name);
-        if (ImGui::Selectable(str.c_str(), selected_entrance_ == i,
-                              overworld_.entrances().at(i).deleted
-                                  ? ImGuiSelectableFlags_Disabled
-                                  : 0)) {
-          selected_entrance_ = i;
-          selected_usage_map_ = overworld_.entrances().at(i).map_id_;
-          properties_canvas_.set_highlight_tile_id(selected_usage_map_);
-        }
-        if (ImGui::IsItemHovered()) {
-          ImGui::BeginTooltip();
-          ImGui::Text("Entrance ID: %d", i);
-          ImGui::Text("Map ID: %d", overworld_.entrances().at(i).map_id_);
-          ImGui::Text("Entrance ID: %d",
-                      overworld_.entrances().at(i).entrance_id_);
-          ImGui::Text("X: %d", overworld_.entrances().at(i).x_);
-          ImGui::Text("Y: %d", overworld_.entrances().at(i).y_);
-          ImGui::Text("Deleted? %s",
-                      overworld_.entrances().at(i).deleted ? "Yes" : "No");
-          ImGui::EndTooltip();
-        }
+    // Note: BeginChild must always have matching EndChild, even if it returns false
+    ImGui::BeginChild("UnusedSpritesetScroll", ImVec2(0, 0), true,
+                      ImGuiWindowFlags_HorizontalScrollbar);
+    for (int i = 0; i < 0x81; i++) {
+      auto entrance_name = rom_->resource_label()->CreateOrGetLabel(
+          "Dungeon Entrance Names", util::HexByte(i),
+          zelda3::kEntranceNames[i]);
+      std::string str = absl::StrFormat("%#x - %s", i, entrance_name);
+      if (ImGui::Selectable(str.c_str(), selected_entrance_ == i,
+                            overworld_.entrances().at(i).deleted
+                                ? ImGuiSelectableFlags_Disabled
+                                : 0)) {
+        selected_entrance_ = i;
+        selected_usage_map_ = overworld_.entrances().at(i).map_id_;
+        properties_canvas_.set_highlight_tile_id(selected_usage_map_);
       }
-      ImGui::EndChild();
+      if (ImGui::IsItemHovered()) {
+        ImGui::BeginTooltip();
+        ImGui::Text("Entrance ID: %d", i);
+        ImGui::Text("Map ID: %d", overworld_.entrances().at(i).map_id_);
+        ImGui::Text("Entrance ID: %d",
+                    overworld_.entrances().at(i).entrance_id_);
+        ImGui::Text("X: %d", overworld_.entrances().at(i).x_);
+        ImGui::Text("Y: %d", overworld_.entrances().at(i).y_);
+        ImGui::Text("Deleted? %s",
+                    overworld_.entrances().at(i).deleted ? "Yes" : "No");
+        ImGui::EndTooltip();
+      }
     }
+    ImGui::EndChild();
 
     ImGui::TableNextColumn();
     DrawUsageGrid();

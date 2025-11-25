@@ -10,6 +10,8 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 #endif
 
+#include "app/gui/core/style.h"
+#include "app/gui/core/theme_manager.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -60,45 +62,72 @@ class ToastManager {
     if (toasts_.empty())
       return;
     ImGuiIO& io = ImGui::GetIO();
-    ImVec2 pos(io.DisplaySize.x - 10.f, 40.f);
+    const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
+
+    // Position toasts from the top-right, below menu bar
+    ImVec2 pos(io.DisplaySize.x - 16.f, 48.f);
 
     // Iterate copy so we can mutate ttl while drawing ordered from newest.
     for (auto it = toasts_.begin(); it != toasts_.end();) {
       Toast& t = *it;
+
+      // Use theme colors for toast backgrounds
       ImVec4 bg;
+      ImVec4 text_color;
       switch (t.type) {
         case ToastType::kInfo:
-          bg = ImVec4(0.10f, 0.10f, 0.10f, 0.85f);
+          bg = gui::GetSurfaceContainerHighVec4();
+          bg.w = 0.95f;
+          text_color = gui::ConvertColorToImVec4(theme.text_primary);
           break;
         case ToastType::kSuccess:
-          bg = ImVec4(0.10f, 0.30f, 0.10f, 0.85f);
+          bg = gui::ConvertColorToImVec4(theme.success);
+          bg.w = 0.95f;
+          text_color = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
           break;
         case ToastType::kWarning:
-          bg = ImVec4(0.30f, 0.25f, 0.05f, 0.90f);
+          bg = gui::ConvertColorToImVec4(theme.warning);
+          bg.w = 0.95f;
+          text_color = ImVec4(0.0f, 0.0f, 0.0f, 1.0f);
           break;
         case ToastType::kError:
-          bg = ImVec4(0.40f, 0.10f, 0.10f, 0.90f);
+          bg = gui::ConvertColorToImVec4(theme.error);
+          bg.w = 0.95f;
+          text_color = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
           break;
       }
+
       ImGui::SetNextWindowBgAlpha(bg.w);
       ImGui::SetNextWindowPos(pos, ImGuiCond_Always, ImVec2(1.f, 0.f));
       ImGuiWindowFlags flags =
           ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize |
-          ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoNav;
+          ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoNav |
+          ImGuiWindowFlags_NoFocusOnAppearing;
+
       ImGui::PushStyleColor(ImGuiCol_WindowBg, bg);
-      if (ImGui::Begin("##toast", nullptr, flags)) {
+      ImGui::PushStyleColor(ImGuiCol_Text, text_color);
+      ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 6.0f);
+      ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(12.0f, 8.0f));
+
+      // Use unique window name per toast to allow multiple
+      char window_name[32];
+      snprintf(window_name, sizeof(window_name), "##toast_%p", (void*)&t);
+
+      if (ImGui::Begin(window_name, nullptr, flags)) {
         ImGui::TextUnformatted(t.message.c_str());
       }
       ImGui::End();
-      ImGui::PopStyleColor(1);
+
+      ImGui::PopStyleVar(2);
+      ImGui::PopStyleColor(2);
 
       // Decrease TTL
       t.ttl_seconds -= io.DeltaTime;
       if (t.ttl_seconds <= 0.f) {
         it = toasts_.erase(it);
       } else {
-        // Next toast stacks below
-        pos.y += ImGui::GetItemRectSize().y + 6.f;
+        // Next toast stacks below with proper spacing
+        pos.y += ImGui::GetItemRectSize().y + 8.f;
         ++it;
       }
     }

@@ -532,7 +532,7 @@ class EditorCardRegistry {
   static constexpr size_t kMaxRecentCategories = 5;
 
   // Sidebar state
-  bool sidebar_collapsed_ = false;
+  bool sidebar_collapsed_ = true;  // Start collapsed by default
 
   // Utility icon callbacks
   std::function<void()> on_show_emulator_;

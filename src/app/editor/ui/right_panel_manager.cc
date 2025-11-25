@@ -218,12 +218,11 @@ void RightPanelManager::DrawAgentChatPanel() {
 
 void RightPanelManager::DrawProposalsPanel() {
   if (proposal_drawer_) {
-    // Set ROM and draw
+    // Set ROM and draw content inside the panel (not a separate window)
     if (rom_) {
       proposal_drawer_->SetRom(rom_);
     }
-    proposal_drawer_->Show();
-    proposal_drawer_->Draw();
+    proposal_drawer_->DrawContent();
   } else {
     ImGui::TextDisabled("Proposal system not initialized");
   }
@@ -231,14 +230,14 @@ void RightPanelManager::DrawProposalsPanel() {
 
 void RightPanelManager::DrawSettingsPanel() {
   if (settings_editor_) {
-    // Draw settings directly in the panel
-    auto status = settings_editor_->Update();
-    if (!status.ok()) {
-      ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f), "Settings error: %s",
-                         status.message().data());
-    }
+    // Draw settings inline (no card windows)
+    settings_editor_->DrawInlineSettings();
   } else {
-    ImGui::TextDisabled("Settings not initialized");
+    ImGui::TextDisabled("Settings not available");
+    ImGui::Spacing();
+    ImGui::TextWrapped(
+        "Settings will be available once initialized. "
+        "This panel provides quick access to application settings.");
   }
 }
 

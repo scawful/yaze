@@ -64,10 +64,6 @@ EditorSelectionDialog::EditorSelectionDialog() {
       {EditorType::kAgent, "AI Agent", ICON_MD_SMART_TOY,
        "Configure AI agent, collaboration, and automation", "Ctrl+Shift+A",
        false, false, ImVec4(0.8f, 0.4f, 1.0f, 1.0f)},  // Purple/magenta
-
-      {EditorType::kSettings, "Settings", ICON_MD_SETTINGS,
-       "Configure ROM and project settings", "", false, true,
-       ImVec4(0.6f, 0.6f, 0.6f, 1.0f)},  // Gray
   };
 
   LoadRecentEditors();

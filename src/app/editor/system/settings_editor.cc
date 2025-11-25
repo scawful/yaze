@@ -28,56 +28,17 @@ using ImGui::TableNextColumn;
 using ImGui::TableSetupColumn;
 
 void SettingsEditor::Initialize() {
-  // Register cards with EditorCardRegistry (dependency injection)
-  if (!dependencies_.card_registry)
-    return;
-  auto* card_registry = dependencies_.card_registry;
+  // DEPRECATED: Card-based settings UI
+  // Settings are now displayed via RightPanelManager's settings panel.
+  // Use DrawInlineSettings() for embedded settings display.
+  //
+  // The card registration below is kept for backwards compatibility but
+  // should be removed in a future version. Users should access settings
+  // via the settings icon in the menu bar status cluster.
 
-  card_registry->RegisterCard({.card_id = MakeCardId("settings.general"),
-                               .display_name = "General Settings",
-                               .window_title = " Settings Navigation",
-                               .icon = ICON_MD_SETTINGS,
-                               .category = "System",
-                               .priority = 10});
-
-  card_registry->RegisterCard({.card_id = MakeCardId("settings.appearance"),
-                               .display_name = "Appearance",
-                               .window_title = " Settings Content",
-                               .icon = ICON_MD_PALETTE,
-                               .category = "System",
-                               .priority = 20});
-
-  card_registry->RegisterCard(
-      {.card_id = MakeCardId("settings.editor_behavior"),
-       .display_name = "Editor Behavior",
-       .window_title = " Editor Behavior",
-       .icon = ICON_MD_TUNE,
-       .category = "System",
-       .priority = 30});
-
-  card_registry->RegisterCard({.card_id = MakeCardId("settings.performance"),
-                               .display_name = "Performance",
-                               .window_title = " Performance",
-                               .icon = ICON_MD_SPEED,
-                               .category = "System",
-                               .priority = 40});
-
-  card_registry->RegisterCard({.card_id = MakeCardId("settings.ai_agent"),
-                               .display_name = "AI Agent",
-                               .window_title = " AI Agent",
-                               .icon = ICON_MD_SMART_TOY,
-                               .category = "System",
-                               .priority = 50});
-
-  card_registry->RegisterCard({.card_id = MakeCardId("settings.shortcuts"),
-                               .display_name = "Keyboard Shortcuts",
-                               .window_title = " Keyboard Shortcuts",
-                               .icon = ICON_MD_KEYBOARD,
-                               .category = "System",
-                               .priority = 60});
-
-  // Show general settings by default
-  card_registry->ShowCard(MakeCardId("settings.general"));
+  // Skip card registration - settings are in the right panel now
+  LOG_INFO("SettingsEditor",
+           "Initialize() called - settings available via right panel");
 }
 
 absl::Status SettingsEditor::Load() {
@@ -86,87 +47,13 @@ absl::Status SettingsEditor::Load() {
 }
 
 absl::Status SettingsEditor::Update() {
-  if (!dependencies_.card_registry)
-    return absl::OkStatus();
-  auto* card_registry = dependencies_.card_registry;
-
-  // General Settings Card - Check visibility flag and pass to Begin() for
-  // proper X button
-  bool* general_visible =
-      card_registry->GetVisibilityFlag(MakeCardId("settings.general"));
-  if (general_visible && *general_visible) {
-    static gui::EditorCard general_card("General Settings", ICON_MD_SETTINGS);
-    general_card.SetDefaultSize(600, 500);
-    if (general_card.Begin(general_visible)) {
-      DrawGeneralSettings();
-    }
-    general_card.End();
-  }
-
-  // Appearance Card (Themes + Font Manager combined) - Check visibility and
-  // pass flag
-  bool* appearance_visible =
-      card_registry->GetVisibilityFlag(MakeCardId("settings.appearance"));
-  if (appearance_visible && *appearance_visible) {
-    static gui::EditorCard appearance_card("Appearance", ICON_MD_PALETTE);
-    appearance_card.SetDefaultSize(600, 600);
-    if (appearance_card.Begin(appearance_visible)) {
-      DrawThemeSettings();
-      ImGui::Separator();
-      gui::DrawFontManager();
-    }
-    appearance_card.End();
-  }
-
-  // Editor Behavior Card - Check visibility and pass flag
-  bool* behavior_visible =
-      card_registry->GetVisibilityFlag(MakeCardId("settings.editor_behavior"));
-  if (behavior_visible && *behavior_visible) {
-    static gui::EditorCard behavior_card("Editor Behavior", ICON_MD_TUNE);
-    behavior_card.SetDefaultSize(600, 500);
-    if (behavior_card.Begin(behavior_visible)) {
-      DrawEditorBehavior();
-    }
-    behavior_card.End();
-  }
-
-  // Performance Card - Check visibility and pass flag
-  bool* perf_visible =
-      card_registry->GetVisibilityFlag(MakeCardId("settings.performance"));
-  if (perf_visible && *perf_visible) {
-    static gui::EditorCard perf_card("Performance", ICON_MD_SPEED);
-    perf_card.SetDefaultSize(600, 450);
-    if (perf_card.Begin(perf_visible)) {
-      DrawPerformanceSettings();
-    }
-    perf_card.End();
-  }
-
-  // AI Agent Settings Card - Check visibility and pass flag
-  bool* ai_visible =
-      card_registry->GetVisibilityFlag(MakeCardId("settings.ai_agent"));
-  if (ai_visible && *ai_visible) {
-    static gui::EditorCard ai_card("AI Agent", ICON_MD_SMART_TOY);
-    ai_card.SetDefaultSize(600, 550);
-    if (ai_card.Begin(ai_visible)) {
-      DrawAIAgentSettings();
-    }
-    ai_card.End();
-  }
-
-  // Keyboard Shortcuts Card - Check visibility and pass flag
-  bool* shortcuts_visible =
-      card_registry->GetVisibilityFlag(MakeCardId("settings.shortcuts"));
-  if (shortcuts_visible && *shortcuts_visible) {
-    static gui::EditorCard shortcuts_card("Keyboard Shortcuts",
-                                          ICON_MD_KEYBOARD);
-    shortcuts_card.SetDefaultSize(700, 600);
-    if (shortcuts_card.Begin(shortcuts_visible)) {
-      DrawKeyboardShortcuts();
-    }
-    shortcuts_card.End();
-  }
-
+  // DEPRECATED: Card-based settings UI has been removed.
+  // Settings are now displayed via RightPanelManager's settings panel.
+  // This method is kept for API compatibility but does nothing.
+  //
+  // To display settings:
+  // - Use the settings icon in the menu bar status cluster (right side)
+  // - Or call DrawInlineSettings() for embedded display
   return absl::OkStatus();
 }
 
@@ -478,6 +365,55 @@ void SettingsEditor::DrawPerformanceSettings() {
   Separator();
   Text("Current FPS: %.1f", ImGui::GetIO().Framerate);
   Text("Frame Time: %.3f ms", 1000.0f / ImGui::GetIO().Framerate);
+}
+
+void SettingsEditor::DrawInlineSettings() {
+  using namespace ImGui;
+
+  // Use collapsing headers for inline panel display
+  if (CollapsingHeader(ICON_MD_SETTINGS " General Settings",
+                       ImGuiTreeNodeFlags_DefaultOpen)) {
+    Indent();
+    DrawGeneralSettings();
+    Unindent();
+    Spacing();
+  }
+
+  if (CollapsingHeader(ICON_MD_PALETTE " Appearance")) {
+    Indent();
+    DrawThemeSettings();
+    Spacing();
+    gui::DrawFontManager();
+    Unindent();
+    Spacing();
+  }
+
+  if (CollapsingHeader(ICON_MD_TUNE " Editor Behavior")) {
+    Indent();
+    DrawEditorBehavior();
+    Unindent();
+    Spacing();
+  }
+
+  if (CollapsingHeader(ICON_MD_SPEED " Performance")) {
+    Indent();
+    DrawPerformanceSettings();
+    Unindent();
+    Spacing();
+  }
+
+  if (CollapsingHeader(ICON_MD_SMART_TOY " AI Agent")) {
+    Indent();
+    DrawAIAgentSettings();
+    Unindent();
+    Spacing();
+  }
+
+  if (CollapsingHeader(ICON_MD_KEYBOARD " Keyboard Shortcuts")) {
+    Indent();
+    DrawKeyboardShortcuts();
+    Unindent();
+  }
 }
 
 void SettingsEditor::DrawAIAgentSettings() {
