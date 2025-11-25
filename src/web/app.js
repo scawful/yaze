@@ -138,7 +138,7 @@ var Module = {
       if (loadingOverlay) loadingOverlay.style.display = 'none';
 
       // Resize canvas to fill container
-      resizeCanvasToContainer();
+      window.resizeCanvasToContainer();
 
       // Verify critical functions are available
       if (typeof Module._LoadRomFromWeb === 'undefined' && !Module.ccall) {
@@ -249,11 +249,12 @@ document.addEventListener('fullscreenchange', function() {
 // Listen for fullscreen changes to trigger resize
 document.addEventListener('fullscreenchange', function() {
   // Small delay to allow browser layout to settle
-  setTimeout(resizeCanvasToContainer, 100);
+  setTimeout(function() { window.resizeCanvasToContainer(); }, 100);
 });
 
 // Canvas resize function to fill container
-function resizeCanvasToContainer() {
+// Exposed globally for shell.html to use
+window.resizeCanvasToContainer = function resizeCanvasToContainer() {
   var canvas = document.getElementById('canvas');
   var container = document.getElementById('canvas-container');
   if (!canvas || !container) return;
@@ -291,8 +292,8 @@ function resizeCanvasToContainer() {
 }
 
 // Use throttled resize for real-time feedback and debounced resize for final adjustment
-const throttledResize = throttle(resizeCanvasToContainer, 100);
-const debouncedResize = debounce(resizeCanvasToContainer, 250);
+const throttledResize = throttle(window.resizeCanvasToContainer, 100);
+const debouncedResize = debounce(window.resizeCanvasToContainer, 250);
 
 // Resize canvas on window resize
 window.addEventListener('resize', function() {
@@ -345,7 +346,7 @@ function throttle(func, limit) {
 }
 
 // Initial resize after a short delay to ensure layout is complete
-setTimeout(resizeCanvasToContainer, 100);
+setTimeout(window.resizeCanvasToContainer, 100);
 
 
 // Service Worker & PWA Logic

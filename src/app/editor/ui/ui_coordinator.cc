@@ -208,7 +208,7 @@ void UICoordinator::DrawMenuBarExtras() {
                         gui::GetSurfaceContainerHighestVec4());
   ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
 
-  if (ImGui::SmallButton(ICON_MD_FULLSCREEN)) {
+  if (ImGui::SmallButton(ICON_MD_EXPAND_LESS)) {
     show_menu_bar_ = false;
   }
 

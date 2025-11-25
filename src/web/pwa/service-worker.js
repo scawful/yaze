@@ -17,8 +17,8 @@ const PRECACHE_ASSETS = [
   './yaze.wasm',
   // './yaze.data - cached on-demand, too large for precache
   './app.js',
-  // PWA files
-  './pwa/coi-serviceworker.js',
+  // PWA files (coi-serviceworker.js is at root for proper scope)
+  './coi-serviceworker.js',
   './pwa/offline.html',
   // Core infrastructure
   './core/config.js',

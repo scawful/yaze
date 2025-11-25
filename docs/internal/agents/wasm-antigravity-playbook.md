@@ -39,13 +39,16 @@ which emcmake  # verify it's available
 # Full debug build (SAFE_HEAP + ASSERTIONS for debugging)
 ./scripts/build-wasm.sh debug
 
+# Clean rebuild (after CMakePresets.json changes)
+./scripts/build-wasm.sh debug --clean
+
 # Incremental debug build (skips CMake cache, 30-60s faster after first build)
 ./scripts/build-wasm.sh debug --incremental
 
 # Release build (optimized for production)
 ./scripts/build-wasm.sh release
 
-# Serve locally
+# Serve locally (uses custom server with COOP/COEP headers)
 ./scripts/serve-wasm.sh --force 8080        # Release (default)
 ./scripts/serve-wasm.sh --debug --force 8080 # Debug build
 
@@ -54,7 +57,10 @@ cmake --preset wasm-debug
 cmake --build build-wasm-debug --parallel
 ```
 
-**Important:** Always serve from `dist/`, not `bin/`. The serve script handles this automatically.
+**Important:**
+- Always serve from `dist/`, not `bin/`. The serve script handles this automatically.
+- The serve script now uses a custom Python server that sets COOP/COEP headers for SharedArrayBuffer support.
+- Use `--clean` flag after modifying CMakePresets.json to ensure changes take effect.
 
 ---
 
@@ -479,6 +485,53 @@ For detailed information, consult:
 - Don't restart server after rebuild — it serves from `dist/` which gets updated automatically
 - Don't rebuild to test yazeDebug API — it's already in the running module
 - Batch multiple C++ fixes before rebuilding instead of rebuild-per-fix
+
+---
+
+## Troubleshooting Common Issues
+
+### SharedArrayBuffer / COI Reload Loop
+
+If the app is stuck in a reload loop or shows "SharedArrayBuffer unavailable":
+
+1. **Reset COI state:** Add `?reset-coi=1` to the URL (e.g., `http://localhost:8080?reset-coi=1`)
+2. **Clear browser state:**
+   - DevTools → Application → Service Workers → Unregister all
+   - DevTools → Application → Storage → Clear site data
+3. **Verify server headers:** The serve script should show "Server running with COOP/COEP headers enabled"
+
+### FS Not Available / ROM Loading Fails
+
+The `FS` object must be exported from the WASM module. If `window.FS` is undefined:
+
+1. Verify CMakePresets.json includes `EXPORTED_RUNTIME_METHODS=['FS','ccall','cwrap',...]`
+2. Check console for `[FilesystemManager] Aliasing Module.FS to window.FS`
+3. If missing, rebuild with `--clean` flag
+
+### Thread Pool Exhausted
+
+If you see "Tried to spawn a new thread, but the thread pool is exhausted":
+
+- Current setting: `PTHREAD_POOL_SIZE=8` in CMakePresets.json
+- If still insufficient, increase the value and rebuild with `--clean`
+
+### Canvas Resize Crash
+
+If resizing the terminal panel causes WASM abort with "attempt to write non-integer":
+
+- This was fixed by ensuring `Math.floor()` is used for canvas dimensions
+- Verify `src/web/app.js` and `src/web/shell.html` both use integer values for resize
+
+### Missing CSS Files (404)
+
+CSS files are in `src/web/styles/`. Component JS files that dynamically load CSS must use the correct path:
+
+```javascript
+// Correct:
+link.href = 'styles/shortcuts_overlay.css';
+// Wrong:
+link.href = 'shortcuts_overlay.css';
+```
 
 ---
 
