@@ -13,6 +13,7 @@ option(YAZE_BUILD_TESTS "Build test suite" ON)
 option(YAZE_ENABLE_GRPC "Enable gRPC agent support" ON)
 option(YAZE_ENABLE_JSON "Enable JSON support" ON)
 option(YAZE_ENABLE_AI "Enable AI agent features" OFF)
+option(YAZE_ENABLE_OPENCV "Enable OpenCV for advanced visual analysis" OFF)
 
 # Advanced feature toggles
 option(YAZE_ENABLE_REMOTE_AUTOMATION
@@ -110,6 +111,17 @@ if(YAZE_BUILD_AGENT_UI)
   add_compile_definitions(YAZE_BUILD_AGENT_UI)
 endif()
 
+if(YAZE_ENABLE_OPENCV)
+  find_package(OpenCV QUIET)
+  if(OpenCV_FOUND)
+    add_compile_definitions(YAZE_WITH_OPENCV)
+    message(STATUS "✓ OpenCV found: ${OpenCV_VERSION}")
+  else()
+    message(WARNING "OpenCV requested but not found - visual analysis will use fallback")
+    set(YAZE_ENABLE_OPENCV OFF CACHE BOOL "Enable OpenCV for advanced visual analysis" FORCE)
+  endif()
+endif()
+
 # Print configuration summary
 message(STATUS "=== YAZE Build Configuration ===")
 message(STATUS "GUI Application: ${YAZE_BUILD_GUI}")
@@ -134,5 +146,6 @@ message(STATUS "HTTP API Server: ${YAZE_ENABLE_HTTP_API}")
 message(STATUS "LTO: ${YAZE_ENABLE_LTO}")
 message(STATUS "Sanitizers: ${YAZE_ENABLE_SANITIZERS}")
 message(STATUS "Coverage: ${YAZE_ENABLE_COVERAGE}")
+message(STATUS "OpenCV Visual Analysis: ${YAZE_ENABLE_OPENCV}")
 message(STATUS "=================================")
 

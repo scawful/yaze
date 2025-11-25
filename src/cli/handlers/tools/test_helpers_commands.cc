@@ -33,8 +33,8 @@ using namespace zelda3;
 absl::Status ToolsHarnessStateCommandHandler::Execute(
     Rom* /*rom*/, const resources::ArgumentParser& parser,
     resources::OutputFormatter& formatter) {
-  std::string rom_path = parser.GetArg("rom");
-  std::string output_path = parser.GetArg("output");
+  std::string rom_path = parser.GetString("rom").value_or("");
+  std::string output_path = parser.GetString("output").value_or("");
 
   auto status = GenerateHarnessState(rom_path, output_path);
   if (!status.ok()) {
@@ -149,8 +149,8 @@ absl::Status ToolsHarnessStateCommandHandler::GenerateHarnessState(
 absl::Status ToolsExtractValuesCommandHandler::Execute(
     Rom* rom, const resources::ArgumentParser& parser,
     resources::OutputFormatter& formatter) {
-  std::string rom_path = parser.GetArg("rom");
-  std::string format = parser.GetArgWithDefault("format", "cpp");
+  std::string rom_path = parser.GetString("rom").value_or("");
+  std::string format = parser.GetString("format").value_or("cpp");
 
   // Load the ROM if not already loaded
   if (!rom || rom->size() == 0) {
@@ -242,8 +242,8 @@ absl::Status ToolsExtractValuesCommandHandler::Execute(
 absl::Status ToolsExtractGoldenCommandHandler::Execute(
     Rom* rom, const resources::ArgumentParser& parser,
     resources::OutputFormatter& formatter) {
-  std::string rom_path = parser.GetArg("rom");
-  std::string output_path = parser.GetArg("output");
+  std::string rom_path = parser.GetString("rom").value_or("");
+  std::string output_path = parser.GetString("output").value_or("");
 
   // Load ROM
   Rom loaded_rom;
@@ -410,8 +410,8 @@ void ToolsExtractGoldenCommandHandler::WriteFooter(std::ofstream& out) {
 absl::Status ToolsPatchV3CommandHandler::Execute(
     Rom* /*rom*/, const resources::ArgumentParser& parser,
     resources::OutputFormatter& formatter) {
-  std::string input_path = parser.GetArg("rom");
-  std::string output_path = parser.GetArg("output");
+  std::string input_path = parser.GetString("rom").value_or("");
+  std::string output_path = parser.GetString("output").value_or("");
 
   // Load the vanilla ROM
   Rom rom;

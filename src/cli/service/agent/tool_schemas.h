@@ -428,6 +428,104 @@ class ToolSchemaRegistry {
                              .required = true}},
               .examples = {"z3ed tools-extract-golden --rom=zelda3.sfc "
                            "--output=golden_data.h"}});
+
+    // Visual analysis tools
+    Register({.name = "visual-find-similar-tiles",
+              .category = "visual",
+              .description = "Find tiles with similar patterns to a reference",
+              .detailed_help =
+                  "Compares a reference tile against all tiles in graphics "
+                  "sheets and returns matches above the similarity threshold. "
+                  "Useful for finding duplicate or near-duplicate tiles for "
+                  "ROM optimization.",
+              .arguments = {{.name = "tile_id",
+                             .type = "number",
+                             .description = "Reference tile ID to compare",
+                             .required = true},
+                            {.name = "sheet",
+                             .type = "number",
+                             .description = "Graphics sheet index (0-222)",
+                             .required = false,
+                             .default_value = "0"},
+                            {.name = "threshold",
+                             .type = "number",
+                             .description = "Minimum similarity score (0-100)",
+                             .required = false,
+                             .default_value = "80"},
+                            {.name = "method",
+                             .type = "string",
+                             .description = "Comparison method",
+                             .required = false,
+                             .default_value = "structural",
+                             .enum_values = {"pixel", "structural"}}},
+              .examples = {"z3ed visual-find-similar-tiles --tile_id=42",
+                           "z3ed visual-find-similar-tiles --tile_id=10 "
+                           "--sheet=5 --threshold=90"},
+              .related_tools = {"visual-analyze-spritesheet",
+                               "visual-tile-histogram"}});
+
+    Register({.name = "visual-analyze-spritesheet",
+              .category = "visual",
+              .description = "Identify unused regions in graphics sheets",
+              .detailed_help =
+                  "Scans graphics sheets for contiguous empty regions that "
+                  "can be used for custom graphics in ROM hacking. Reports "
+                  "the location and size of each free region.",
+              .arguments = {{.name = "sheet",
+                             .type = "number",
+                             .description = "Specific sheet to analyze (all if omitted)",
+                             .required = false},
+                            {.name = "tile_size",
+                             .type = "number",
+                             .description = "Tile size to check (8 or 16)",
+                             .required = false,
+                             .default_value = "8",
+                             .enum_values = {"8", "16"}}},
+              .examples = {"z3ed visual-analyze-spritesheet",
+                           "z3ed visual-analyze-spritesheet --sheet=10 "
+                           "--tile_size=16"},
+              .related_tools = {"visual-find-similar-tiles"}});
+
+    Register({.name = "visual-palette-usage",
+              .category = "visual",
+              .description = "Analyze palette usage statistics across maps",
+              .detailed_help =
+                  "Analyzes which palette indices are used across overworld "
+                  "maps and dungeon rooms. Helps identify under-utilized "
+                  "palettes and optimization opportunities.",
+              .arguments = {{.name = "type",
+                             .type = "string",
+                             .description = "Map type to analyze",
+                             .required = false,
+                             .default_value = "all",
+                             .enum_values = {"overworld", "dungeon", "all"}}},
+              .examples = {"z3ed visual-palette-usage",
+                           "z3ed visual-palette-usage --type=dungeon"},
+              .related_tools = {"visual-tile-histogram"}});
+
+    Register({.name = "visual-tile-histogram",
+              .category = "visual",
+              .description = "Generate frequency histogram of tile usage",
+              .detailed_help =
+                  "Counts the frequency of each tile ID used across tilemaps "
+                  "to identify commonly and rarely used tiles. Useful for "
+                  "understanding tile distribution and finding candidates "
+                  "for replacement.",
+              .arguments = {{.name = "type",
+                             .type = "string",
+                             .description = "Map type to analyze",
+                             .required = false,
+                             .default_value = "overworld",
+                             .enum_values = {"overworld", "dungeon"}},
+                            {.name = "top",
+                             .type = "number",
+                             .description = "Number of top entries to return",
+                             .required = false,
+                             .default_value = "20"}},
+              .examples = {"z3ed visual-tile-histogram",
+                           "z3ed visual-tile-histogram --type=dungeon --top=50"},
+              .related_tools = {"visual-palette-usage",
+                               "visual-find-similar-tiles"}});
   }
 
   std::map<std::string, ToolSchema> schemas_;

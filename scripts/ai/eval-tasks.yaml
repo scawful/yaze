@@ -176,6 +176,53 @@ categories:
           accuracy_criteria: "Lists valid macOS presets"
           completeness_criteria: "Describes preset purposes"
 
+  visual_analysis:
+    description: "Tasks for visual analysis and pattern recognition"
+    tasks:
+      - id: "find_similar_tiles"
+        name: "Find Similar Tiles"
+        prompt: "Find tiles similar to tile 42 in the ROM. Use a similarity threshold of 85%."
+        expected_patterns:
+          - "similar|match|tile"
+          - "similarity|score|percent"
+        required_tool: "visual-find-similar-tiles"
+        scoring:
+          accuracy_criteria: "Uses visual-find-similar-tiles with correct parameters"
+          completeness_criteria: "Returns list of matching tiles with scores"
+        
+      - id: "analyze_spritesheet"
+        name: "Analyze Spritesheet"
+        prompt: "Analyze graphics sheet 10 to find unused regions that could be used for custom graphics."
+        expected_patterns:
+          - "unused|empty|free"
+          - "region|space|tile"
+        required_tool: "visual-analyze-spritesheet"
+        scoring:
+          accuracy_criteria: "Uses visual-analyze-spritesheet tool"
+          completeness_criteria: "Reports locations and sizes of free regions"
+        
+      - id: "palette_usage"
+        name: "Palette Usage Analysis"
+        prompt: "Analyze which palettes are used most frequently in the overworld maps."
+        expected_patterns:
+          - "palette|color"
+          - "usage|count|percent"
+        required_tool: "visual-palette-usage"
+        scoring:
+          accuracy_criteria: "Uses visual-palette-usage with overworld type"
+          completeness_criteria: "Shows palette usage statistics"
+        
+      - id: "tile_histogram"
+        name: "Tile Usage Histogram"
+        prompt: "Generate a histogram of the top 20 most used tiles in dungeon rooms."
+        expected_patterns:
+          - "tile|usage|histogram"
+          - "count|frequency|top"
+        required_tool: "visual-tile-histogram"
+        scoring:
+          accuracy_criteria: "Uses visual-tile-histogram with dungeon type"
+          completeness_criteria: "Lists top tiles with usage counts"
+
   conversation:
     description: "Tasks testing multi-turn dialog and context"
     tasks:

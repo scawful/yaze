@@ -24,6 +24,7 @@
 #include "cli/handlers/tools/resource_commands.h"
 #include "cli/service/agent/tools/filesystem_tool.h"
 #include "cli/service/agent/tools/memory_inspector_tool.h"
+#include "cli/service/agent/tools/visual_analysis_tool.h"
 #include "cli/service/resources/command_context.h"
 #include "cli/util/terminal_colors.h"
 
@@ -187,6 +188,16 @@ ToolCallType GetToolCallType(const std::string& tool_name) {
   if (tool_name == "tools-patch-v3")
     return ToolCallType::kToolsPatchV3;
 
+  // Visual analysis commands
+  if (tool_name == "visual-find-similar-tiles")
+    return ToolCallType::kVisualFindSimilarTiles;
+  if (tool_name == "visual-analyze-spritesheet")
+    return ToolCallType::kVisualAnalyzeSpritesheet;
+  if (tool_name == "visual-palette-usage")
+    return ToolCallType::kVisualPaletteUsage;
+  if (tool_name == "visual-tile-histogram")
+    return ToolCallType::kVisualTileHistogram;
+
   return ToolCallType::kUnknown;
 }
 
@@ -348,6 +359,16 @@ std::unique_ptr<resources::CommandHandler> CreateHandler(ToolCallType type) {
     case ToolCallType::kToolsPatchV3:
       return std::make_unique<ToolsPatchV3CommandHandler>();
 
+    // Visual analysis tools
+    case ToolCallType::kVisualFindSimilarTiles:
+      return std::make_unique<TileSimilarityTool>();
+    case ToolCallType::kVisualAnalyzeSpritesheet:
+      return std::make_unique<SpritesheetAnalysisTool>();
+    case ToolCallType::kVisualPaletteUsage:
+      return std::make_unique<PaletteUsageTool>();
+    case ToolCallType::kVisualTileHistogram:
+      return std::make_unique<TileHistogramTool>();
+
     default:
       return nullptr;
   }
@@ -474,6 +495,12 @@ bool ToolDispatcher::IsToolEnabled(ToolCallType type) const {
     case ToolCallType::kToolsExtractGolden:
     case ToolCallType::kToolsPatchV3:
       return preferences_.test_helpers;
+
+    case ToolCallType::kVisualFindSimilarTiles:
+    case ToolCallType::kVisualAnalyzeSpritesheet:
+    case ToolCallType::kVisualPaletteUsage:
+    case ToolCallType::kVisualTileHistogram:
+      return preferences_.visual_analysis;
 
     default:
       return true;
@@ -685,6 +712,31 @@ std::vector<ToolDispatcher::ToolInfo> ToolDispatcher::GetAvailableTools()
                      true});
     tools.push_back({"tools-patch-v3", "tools", "Create v3 patched ROM",
                      "tools-patch-v3 --rom=<input> --output=<output>", {},
+                     true});
+  }
+
+  // Visual analysis tools
+  if (preferences_.visual_analysis) {
+    tools.push_back({"visual-find-similar-tiles", "visual",
+                     "Find tiles with similar patterns",
+                     "visual-find-similar-tiles --tile_id=<id> [--sheet=<n>] "
+                     "[--threshold=<0-100>]",
+                     {"visual-find-similar-tiles --tile_id=42 --threshold=85"},
+                     true});
+    tools.push_back({"visual-analyze-spritesheet", "visual",
+                     "Identify unused regions in graphics sheets",
+                     "visual-analyze-spritesheet [--sheet=<n>] "
+                     "[--tile_size=<8|16>]",
+                     {"visual-analyze-spritesheet --sheet=10"}, true});
+    tools.push_back({"visual-palette-usage", "visual",
+                     "Analyze palette usage across maps",
+                     "visual-palette-usage [--type=<overworld|dungeon|all>]",
+                     {"visual-palette-usage --type=overworld"}, true});
+    tools.push_back({"visual-tile-histogram", "visual",
+                     "Generate tile usage frequency histogram",
+                     "visual-tile-histogram [--type=<overworld|dungeon>] "
+                     "[--top=<n>]",
+                     {"visual-tile-histogram --type=overworld --top=20"},
                      true});
   }
 
