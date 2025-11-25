@@ -11,14 +11,27 @@ Welcome to the `yaze` internal agent workspace. This directory contains the rule
 
 ## Documentation Index
 
+### Core Coordination (Keep Visible)
 | File | Purpose |
 |------|---------|
 | [AGENTS.md](../../../AGENTS.md) | **The Core Protocol.** Read this first. Defines how to work. |
 | [personas.md](./personas.md) | **Who is Who.** Canonical list of Agent IDs and their scopes. |
 | [.claude/agents/*](../../../.claude/agents) | **System Prompts.** Persona-specific prompts for all agents. |
 | [coordination-board.md](./coordination-board.md) | **The Live Board.** Shared state, active tasks, and requests. |
-| [agent-architecture.md](./agent-architecture.md) | **The Technical Manual.** How the agent tools (`z3ed agent`) work. |
-| [initiative-template.md](./initiative-template.md) | Template for tracking large, multi-day features. |
+| [collaboration-framework.md](./collaboration-framework.md) | **Team Organization.** Architecture vs Automation team structure and protocols. |
+
+### Active Projects
+| File | Purpose | Status |
+|------|---------|--------|
+| [initiative-v040.md](./initiative-v040.md) | v0.4.0 development plan with 5 parallel workstreams | ACTIVE |
+| [handoff-sidebar-menubar-sessions.md](./handoff-sidebar-menubar-sessions.md) | UI systems architecture reference | Active Reference |
+| [wasm-development-guide.md](./wasm-development-guide.md) | WASM build and development guide | UPDATED |
+| [wasm-antigravity-playbook.md](./wasm-antigravity-playbook.md) | WASM with Gemini integration and debugging | UPDATED |
+| [web-port-handoff.md](./web-port-handoff.md) | WASM web build status and blockers | IN_PROGRESS |
+
+### Documentation Hygiene
+| File | Purpose |
+|------|---------|
 | [doc-hygiene.md](./doc-hygiene.md) | Rules to keep specs/notes lean and archived on time. |
 
 ## Tools
@@ -44,4 +57,19 @@ Pick the persona that owns the dominant surface of your task; cross-surface work
 *   **Directory**: All artifacts go to `build_ai/`.
 
 ## Archive
-- Legacy docs (leaderboard, ai-infrastructure-initiative, coordination-improvements) now live under `archive/legacy-2025-11/`. Keep only active specs in this directory.
+
+This directory maintains a **lean, active documentation set**. Historical or reference-only documents are organized in `archive/`:
+
+### Archived Categories
+- **large-ref-docs/** (148KB) - Large reference documents (40KB+): dungeon rendering, ZSOW, design specs
+- **foundation-docs-old/** (68KB) - Older foundational docs (October) on agent architecture and CLI design
+- **utility-tools/** (52KB) - Tool documentation: filesystem, dev-assist, modularity, AI dev tools
+- **wasm-planning-2025/** (64KB) - Earlier WASM planning iterations
+- **testing-docs-2025/** (112KB) - Test infrastructure and CI documentation archives
+- **gemini-session-2025-11-23/** (40KB) - Gemini-specific session context and task planning
+- **plans-2025-11/** (56KB) - Completed or archived feature/project plans
+- **legacy-2025-11/** (28KB) - Completed initiatives and coordination improvements
+- **session-handoffs/** (24KB) - Agent handoff and onboarding documents
+- **reports/** (24KB) - Audit reports and documentation assessments
+
+**Target: 10-15 active files in root directory. Archive completed work within 1-2 weeks of completion.**
