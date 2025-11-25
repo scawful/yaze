@@ -263,7 +263,7 @@ class OverworldMap : public gfx::GfxContext {
   void LoadDeathMountainGFX();
 
   void ProcessGraphicsBuffer(int index, int static_graphics_offset, int size,
-                             uint8_t* all_gfx);
+                             const uint8_t* all_gfx);
   absl::StatusOr<gfx::SnesPalette> GetPalette(const gfx::PaletteGroup& group,
                                               int index, int previous_index,
                                               int limit);

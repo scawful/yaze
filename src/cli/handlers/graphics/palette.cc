@@ -154,7 +154,7 @@ absl::Status HandlePaletteImportLegacy(
         gfx::SnesColor(sdl_color.r, sdl_color.g, sdl_color.b));
   }
 
-  auto palette_group = rom.palette_group().get_group(group_name);
+  auto* palette_group = rom.mutable_palette_group()->get_group(group_name);
   if (!palette_group) {
     return absl::NotFoundError("Palette group not found.");
   }
