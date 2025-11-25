@@ -36,7 +36,16 @@ RoomSize CalculateRoomSize(Rom* rom, int room_id) {
   room_size.room_size_pointer = 0;
   room_size.room_size = 0;
 
+  if (!rom || !rom->is_loaded() || rom->size() == 0) {
+    return room_size;
+  }
+
   auto room_size_address = 0xF8000 + (room_id * 3);
+  
+  // Bounds check
+  if (room_size_address < 0 || room_size_address + 2 >= static_cast<int>(rom->size())) {
+    return room_size;
+  }
 
   // Reading bytes for long address construction
   uint8_t low = rom->data()[room_size_address];
@@ -57,6 +66,11 @@ RoomSize CalculateRoomSize(Rom* rom, int room_id) {
 
     int next_room_address = 0xF8000 + ((room_id + 1) * 3);
 
+    // Bounds check for next room address
+    if (next_room_address < 0 || next_room_address + 2 >= static_cast<int>(rom->size())) {
+        return room_size;
+    }
+
     // Reading bytes for long address construction
     uint8_t next_low = rom->data()[next_room_address];
     uint8_t next_high = rom->data()[next_room_address + 1];
@@ -73,19 +87,68 @@ RoomSize CalculateRoomSize(Rom* rom, int room_id) {
   return room_size;
 }
 
+// Loads a room from the ROM.
 Room LoadRoomFromRom(Rom* rom, int room_id) {
+  // Use the header loader to get the base room with properties
+  Room room = LoadRoomHeaderFromRom(rom, room_id);
+
+  // Load room objects
+  int object_pointer = SnesToPc(room_object_pointer);
+  int room_address = object_pointer + (room_id * 3);
+  int objects_location = SnesToPc(room_address);
+
+  // Load sprites
+  int spr_ptr = 0x040000 | rooms_sprite_pointer;
+  int sprite_address = SnesToPc(dungeon_spr_ptrs | spr_ptr + (room_id * 2));
+
+  // Load additional room features
+  room.LoadDoors();
+  room.LoadTorches();
+  room.LoadBlocks();
+  room.LoadPits();
+
+  room.SetLoaded(true);
+  return room;
+}
+
+Room LoadRoomHeaderFromRom(Rom* rom, int room_id) {
   Room room(room_id, rom);
+
+  if (!rom || !rom->is_loaded() || rom->size() == 0) {
+    return room;
+  }
+
+  // Validate kRoomHeaderPointer access
+  if (kRoomHeaderPointer < 0 || kRoomHeaderPointer + 2 >= static_cast<int>(rom->size())) {
+    return room;
+  }
 
   int header_pointer = (rom->data()[kRoomHeaderPointer + 2] << 16) +
                        (rom->data()[kRoomHeaderPointer + 1] << 8) +
                        (rom->data()[kRoomHeaderPointer]);
   header_pointer = SnesToPc(header_pointer);
 
+  // Validate kRoomHeaderPointerBank access
+  if (kRoomHeaderPointerBank < 0 || kRoomHeaderPointerBank >= static_cast<int>(rom->size())) {
+    return room;
+  }
+
+  // Validate header_pointer table access
+  int table_offset = (header_pointer) + (room_id * 2);
+  if (table_offset < 0 || table_offset + 1 >= static_cast<int>(rom->size())) {
+    return room;
+  }
+
   int address = (rom->data()[kRoomHeaderPointerBank] << 16) +
-                (rom->data()[(header_pointer + 1) + (room_id * 2)] << 8) +
-                rom->data()[(header_pointer) + (room_id * 2)];
+                (rom->data()[table_offset + 1] << 8) +
+                rom->data()[table_offset];
 
   auto header_location = SnesToPc(address);
+
+  // Validate header_location access (we read up to +13 bytes)
+  if (header_location < 0 || header_location + 13 >= static_cast<int>(rom->size())) {
+    return room;
+  }
 
   room.SetBg2((background2)((rom->data()[header_location] >> 5) & 0x07));
   room.SetCollision((CollisionKey)((rom->data()[header_location] >> 2) & 0x07));
@@ -115,18 +178,41 @@ Room LoadRoomFromRom(Rom* rom, int room_id) {
 
   // =====
 
+  // Validate kRoomHeaderPointer access (again, just in case)
+  if (kRoomHeaderPointer < 0 || kRoomHeaderPointer + 2 >= static_cast<int>(rom->size())) {
+    return room;
+  }
+
   int header_pointer_2 = (rom->data()[kRoomHeaderPointer + 2] << 16) +
                          (rom->data()[kRoomHeaderPointer + 1] << 8) +
                          (rom->data()[kRoomHeaderPointer]);
   header_pointer_2 = SnesToPc(header_pointer_2);
 
+  // Validate kRoomHeaderPointerBank access
+  if (kRoomHeaderPointerBank < 0 || kRoomHeaderPointerBank >= static_cast<int>(rom->size())) {
+    return room;
+  }
+
+  // Validate header_pointer_2 table access
+  int table_offset_2 = (header_pointer_2) + (room_id * 2);
+  if (table_offset_2 < 0 || table_offset_2 + 1 >= static_cast<int>(rom->size())) {
+    return room;
+  }
+
   int address_2 = (rom->data()[kRoomHeaderPointerBank] << 16) +
-                  (rom->data()[(header_pointer_2 + 1) + (room_id * 2)] << 8) +
-                  rom->data()[(header_pointer_2) + (room_id * 2)];
+                  (rom->data()[table_offset_2 + 1] << 8) +
+                  rom->data()[table_offset_2];
 
   room.SetMessageIdDirect(messages_id_dungeon + (room_id * 2));
 
   auto hpos = SnesToPc(address_2);
+  
+  // Validate hpos access (we read sequentially)
+  // We read about 14 bytes (hpos++ calls)
+  if (hpos < 0 || hpos + 14 >= static_cast<int>(rom->size())) {
+    return room;
+  }
+
   hpos++;
   uint8_t b = rom->data()[hpos];
 
@@ -172,24 +258,8 @@ Room LoadRoomFromRom(Rom* rom, int room_id) {
   room.SetStair3Target(rom->data()[hpos]);
   hpos++;
   room.SetStair4Target(rom->data()[hpos]);
-  hpos++;
-
-  // Load room objects
-  int object_pointer = SnesToPc(room_object_pointer);
-  int room_address = object_pointer + (room_id * 3);
-  int objects_location = SnesToPc(room_address);
-
-  // Load sprites
-  int spr_ptr = 0x040000 | rooms_sprite_pointer;
-  int sprite_address = SnesToPc(dungeon_spr_ptrs | spr_ptr + (room_id * 2));
-
-  // Load additional room features
-  room.LoadDoors();
-  room.LoadTorches();
-  room.LoadBlocks();
-  room.LoadPits();
-
-  room.SetLoaded(true);
+  
+  // Note: We do NOT set is_loaded_ to true here, as this is just the header
   return room;
 }
 

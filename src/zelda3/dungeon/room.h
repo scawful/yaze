@@ -478,6 +478,9 @@ class Room {
 // Loads a room from the ROM.
 Room LoadRoomFromRom(Rom* rom, int room_id);
 
+// Loads only the room header (metadata) from the ROM.
+Room LoadRoomHeaderFromRom(Rom* rom, int room_id);
+
 struct RoomSize {
   int64_t room_size_pointer;
   int64_t room_size;

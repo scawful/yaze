@@ -2,7 +2,7 @@
 
 **Date:** November 25, 2025 (Updated)
 **Status:** Current - Active debugging API
-**Version:** 2.2.0
+**Version:** 2.3.0
 **Purpose:** Comprehensive debug API for Gemini/Antigravity AI integration to analyze rendering issues and game state in the yaze web application.
 
 **Note:** This document is the high-level overview for WASM debugging. For detailed API reference, see `wasm-yazeDebug-api-reference.md`. For general WASM status and control APIs, see `wasm_dev_status.md`.
@@ -360,6 +360,59 @@ if (window.yaze.control.isReady()) {
   }
 }
 ```
+
+## Gemini Antigravity AI Integration
+
+The web interface includes dedicated tools for AI assistants that struggle to discover ImGui elements.
+
+### window.aiTools API
+
+High-level helper functions with console output for AI readability:
+
+```javascript
+// Get full application state (ROM, editor, cards, layouts)
+window.aiTools.getAppState()
+
+// Get current editor snapshot
+window.aiTools.getEditorState()
+
+// Card management
+window.aiTools.getVisibleCards()
+window.aiTools.getAvailableCards()
+window.aiTools.showCard('Room Selector')
+window.aiTools.hideCard('Object Editor')
+
+// Navigation
+window.aiTools.navigateTo('room:0')    // Go to dungeon room
+window.aiTools.navigateTo('map:5')     // Go to overworld map
+window.aiTools.navigateTo('Dungeon')   // Switch editor
+
+// Data access
+window.aiTools.getRoomData(0)          // Dungeon room data
+window.aiTools.getMapData(0)           // Overworld map data
+
+// Documentation
+window.aiTools.dumpAPIReference()      // Complete API reference
+```
+
+### Nav Bar Dropdowns
+
+The web UI includes four dedicated dropdown menus:
+
+| Dropdown | Purpose |
+|----------|---------|
+| **Editor** | Quick switch between all 13 editors |
+| **Emulator** | Show/Run/Pause/Step/Reset + Memory Viewer |
+| **Layouts** | Preset card configurations |
+| **AI Tools** | All `window.aiTools` functions via UI |
+
+### Command Palette (Ctrl+K)
+
+All AI tools accessible via palette:
+- `Editor: <name>` - Switch editors
+- `Emulator: <action>` - Control emulator
+- `AI: Get App State` - Application state
+- `AI: API Reference` - Full API documentation
 
 ## Future Enhancements
 

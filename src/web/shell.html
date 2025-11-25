@@ -53,7 +53,7 @@
           </button>
           <!-- ROM Files Dropdown -->
           <div class="dropdown rom-dropdown">
-            <button class="nav-btn" onclick="toggleRomFilesMenu()" title="ROM Files">
+            <button class="nav-btn" onclick="toggleRomFilesMenu(event)" title="ROM Files">
               <span class="material-symbols-outlined">description</span>
               <span class="material-symbols-outlined" style="font-size: 12px; margin-left: -4px;">arrow_drop_down</span>
             </button>
@@ -63,16 +63,21 @@
                 <div style="padding: 8px 12px; color: var(--text-muted); font-style: italic;">No ROM loaded</div>
               </div>
               <div class="dropdown-divider"></div>
+              <a href="#" onclick="event.stopPropagation(); fileManager.show(); closeAllDropdowns(); return false;">
+                <span class="material-symbols-outlined" style="font-size: 16px; vertical-align: middle; margin-right: 4px;">folder_managed</span>
+                File Manager
+              </a>
+              <div class="dropdown-divider"></div>
               <div style="padding: 8px 12px; font-size: 10px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Debug Info</div>
-              <a href="#" onclick="showFileManagerDebug(); return false;">
+              <a href="#" onclick="event.stopPropagation(); showFileManagerDebug(); closeAllDropdowns(); return false;">
                 <span class="material-symbols-outlined" style="font-size: 16px; vertical-align: middle; margin-right: 4px;">bug_report</span>
                 File Manager Status
               </a>
-              <a href="#" onclick="showRomDiagnostics(); return false;">
+              <a href="#" onclick="event.stopPropagation(); showRomDiagnostics(); closeAllDropdowns(); return false;">
                 <span class="material-symbols-outlined" style="font-size: 16px; vertical-align: middle; margin-right: 4px;">memory</span>
                 Graphics Diagnostics
               </a>
-              <a href="#" onclick="dumpDebugState(); return false;">
+              <a href="#" onclick="event.stopPropagation(); dumpDebugState(); closeAllDropdowns(); return false;">
                 <span class="material-symbols-outlined" style="font-size: 16px; vertical-align: middle; margin-right: 4px;">download</span>
                 Dump Full State (Console)
               </a>
@@ -88,11 +93,170 @@
         </div>
       </div>
       
+      <!-- Editor Switcher Dropdown -->
+      <div class="dropdown editor-dropdown">
+        <button class="nav-btn" onclick="toggleEditorMenu(event)" title="Switch Editor" id="editor-switcher-btn">
+          <span class="material-symbols-outlined">dashboard</span>
+          <span id="current-editor-name" style="font-size: 11px; margin-left: 4px;">Editor</span>
+          <span class="material-symbols-outlined" style="font-size: 12px; margin-left: -2px;">arrow_drop_down</span>
+        </button>
+        <div id="editor-menu" class="dropdown-content editor-menu-dropdown">
+          <div style="padding: 8px 12px; font-size: 10px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Editors</div>
+          <a href="#" class="editor-item" data-editor="Overworld" onclick="event.stopPropagation(); switchToEditor('Overworld'); return false;">
+            <span class="material-symbols-outlined">map</span> Overworld
+          </a>
+          <a href="#" class="editor-item" data-editor="Dungeon" onclick="event.stopPropagation(); switchToEditor('Dungeon'); return false;">
+            <span class="material-symbols-outlined">door_open</span> Dungeon
+          </a>
+          <a href="#" class="editor-item" data-editor="Graphics" onclick="event.stopPropagation(); switchToEditor('Graphics'); return false;">
+            <span class="material-symbols-outlined">image</span> Graphics
+          </a>
+          <a href="#" class="editor-item" data-editor="Palette" onclick="event.stopPropagation(); switchToEditor('Palette'); return false;">
+            <span class="material-symbols-outlined">palette</span> Palette
+          </a>
+          <a href="#" class="editor-item" data-editor="Sprite" onclick="event.stopPropagation(); switchToEditor('Sprite'); return false;">
+            <span class="material-symbols-outlined">animation</span> Sprite
+          </a>
+          <a href="#" class="editor-item" data-editor="Screen" onclick="event.stopPropagation(); switchToEditor('Screen'); return false;">
+            <span class="material-symbols-outlined">grid_view</span> Screen
+          </a>
+          <div class="dropdown-divider"></div>
+          <a href="#" class="editor-item" data-editor="Assembly" onclick="event.stopPropagation(); switchToEditor('Assembly'); return false;">
+            <span class="material-symbols-outlined">code</span> Assembly
+          </a>
+          <a href="#" class="editor-item" data-editor="Music" onclick="event.stopPropagation(); switchToEditor('Music'); return false;">
+            <span class="material-symbols-outlined">music_note</span> Music
+          </a>
+          <a href="#" class="editor-item" data-editor="Message" onclick="event.stopPropagation(); switchToEditor('Message'); return false;">
+            <span class="material-symbols-outlined">chat</span> Message
+          </a>
+          <div class="dropdown-divider"></div>
+          <a href="#" class="editor-item" data-editor="Hex" onclick="event.stopPropagation(); switchToEditor('Hex'); return false;">
+            <span class="material-symbols-outlined">data_object</span> Hex Editor
+          </a>
+          <a href="#" class="editor-item" data-editor="Settings" onclick="event.stopPropagation(); switchToEditor('Settings'); return false;">
+            <span class="material-symbols-outlined">settings</span> Settings
+          </a>
+        </div>
+      </div>
+
       <div class="header-center" id="header-status">
         Ready
       </div>
 
       <div class="header-right">
+        <!-- Emulator Controls -->
+        <div class="dropdown emulator-dropdown">
+          <button class="nav-btn" onclick="toggleEmulatorMenu(event)" title="Emulator Controls" id="emulator-btn">
+            <span class="material-symbols-outlined">sports_esports</span>
+            <span class="material-symbols-outlined" style="font-size: 12px; margin-left: -4px;">arrow_drop_down</span>
+          </button>
+          <div id="emulator-menu" class="dropdown-content emulator-menu-dropdown">
+            <div style="padding: 8px 12px; font-size: 10px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Emulator</div>
+            <a href="#" onclick="event.stopPropagation(); triggerEmulatorAction('show'); return false;">
+              <span class="material-symbols-outlined">open_in_new</span> Show Emulator Window
+            </a>
+            <div class="dropdown-divider"></div>
+            <div style="padding: 8px 12px; font-size: 10px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Controls</div>
+            <a href="#" onclick="event.stopPropagation(); triggerEmulatorAction('run'); return false;">
+              <span class="material-symbols-outlined">play_arrow</span> Run
+            </a>
+            <a href="#" onclick="event.stopPropagation(); triggerEmulatorAction('pause'); return false;">
+              <span class="material-symbols-outlined">pause</span> Pause
+            </a>
+            <a href="#" onclick="event.stopPropagation(); triggerEmulatorAction('step'); return false;">
+              <span class="material-symbols-outlined">skip_next</span> Step Frame
+            </a>
+            <a href="#" onclick="event.stopPropagation(); triggerEmulatorAction('reset'); return false;">
+              <span class="material-symbols-outlined">restart_alt</span> Reset
+            </a>
+            <div class="dropdown-divider"></div>
+            <div style="padding: 8px 12px; font-size: 10px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Debug Views</div>
+            <a href="#" onclick="event.stopPropagation(); triggerEmulatorAction('memory'); return false;">
+              <span class="material-symbols-outlined">memory</span> Memory Viewer
+            </a>
+            <a href="#" onclick="event.stopPropagation(); triggerEmulatorAction('disassembly'); return false;">
+              <span class="material-symbols-outlined">list_alt</span> Disassembly
+            </a>
+          </div>
+        </div>
+
+        <!-- Layouts Dropdown -->
+        <div class="dropdown layout-dropdown">
+          <button class="nav-btn" onclick="toggleLayoutMenu(event)" title="Layout Presets">
+            <span class="material-symbols-outlined">view_quilt</span>
+            <span class="material-symbols-outlined" style="font-size: 12px; margin-left: -4px;">arrow_drop_down</span>
+          </button>
+          <div id="layout-menu" class="dropdown-content layout-menu-dropdown">
+            <div style="padding: 8px 12px; font-size: 10px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Layout Presets</div>
+            <a href="#" onclick="event.stopPropagation(); setLayout('overworld_default'); return false;">
+              <span class="material-symbols-outlined">map</span> Overworld Default
+            </a>
+            <a href="#" onclick="event.stopPropagation(); setLayout('dungeon_default'); return false;">
+              <span class="material-symbols-outlined">door_open</span> Dungeon Default
+            </a>
+            <a href="#" onclick="event.stopPropagation(); setLayout('graphics_default'); return false;">
+              <span class="material-symbols-outlined">image</span> Graphics Default
+            </a>
+            <a href="#" onclick="event.stopPropagation(); setLayout('debug_default'); return false;">
+              <span class="material-symbols-outlined">bug_report</span> Debug Default
+            </a>
+            <div class="dropdown-divider"></div>
+            <a href="#" onclick="event.stopPropagation(); setLayout('minimal'); return false;">
+              <span class="material-symbols-outlined">minimize</span> Minimal
+            </a>
+            <a href="#" onclick="event.stopPropagation(); setLayout('all_cards'); return false;">
+              <span class="material-symbols-outlined">grid_view</span> All Cards
+            </a>
+          </div>
+        </div>
+
+        <!-- AI Tools Dropdown (for Gemini Antigravity) -->
+        <div class="dropdown ai-tools-dropdown">
+          <button class="nav-btn" onclick="toggleAIToolsMenu(event)" title="AI Assistant Tools" id="ai-tools-btn">
+            <span class="material-symbols-outlined">smart_toy</span>
+            <span class="material-symbols-outlined" style="font-size: 12px; margin-left: -4px;">arrow_drop_down</span>
+          </button>
+          <div id="ai-tools-menu" class="dropdown-content ai-tools-menu-dropdown">
+            <div style="padding: 8px 12px; font-size: 10px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">AI Assistant Tools</div>
+            <a href="#" onclick="event.stopPropagation(); aiTools.getAppState(); return false;">
+              <span class="material-symbols-outlined">analytics</span> Get App State
+            </a>
+            <a href="#" onclick="event.stopPropagation(); aiTools.getEditorState(); return false;">
+              <span class="material-symbols-outlined">description</span> Get Editor State
+            </a>
+            <a href="#" onclick="event.stopPropagation(); aiTools.getVisibleCards(); return false;">
+              <span class="material-symbols-outlined">dashboard</span> List Visible Cards
+            </a>
+            <a href="#" onclick="event.stopPropagation(); aiTools.getAvailableCards(); return false;">
+              <span class="material-symbols-outlined">widgets</span> List All Cards
+            </a>
+            <div class="dropdown-divider"></div>
+            <div style="padding: 8px 12px; font-size: 10px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Quick Actions</div>
+            <a href="#" onclick="event.stopPropagation(); aiTools.showCard(); return false;">
+              <span class="material-symbols-outlined">add_box</span> Show Card...
+            </a>
+            <a href="#" onclick="event.stopPropagation(); aiTools.hideCard(); return false;">
+              <span class="material-symbols-outlined">disabled_visible</span> Hide Card...
+            </a>
+            <a href="#" onclick="event.stopPropagation(); aiTools.navigateTo(); return false;">
+              <span class="material-symbols-outlined">navigation</span> Navigate To...
+            </a>
+            <div class="dropdown-divider"></div>
+            <div style="padding: 8px 12px; font-size: 10px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Data Access</div>
+            <a href="#" onclick="event.stopPropagation(); aiTools.getRoomData(); return false;">
+              <span class="material-symbols-outlined">meeting_room</span> Get Room Data
+            </a>
+            <a href="#" onclick="event.stopPropagation(); aiTools.getMapData(); return false;">
+              <span class="material-symbols-outlined">public</span> Get Map Data
+            </a>
+            <a href="#" onclick="event.stopPropagation(); aiTools.dumpAPIReference(); return false;">
+              <span class="material-symbols-outlined">api</span> Dump API Reference
+            </a>
+          </div>
+        </div>
+
+        <div class="toolbar-divider"></div>
         <div class="toolbar-group">
           <button class="nav-btn" onclick="palette.show()" title="Command Palette (Ctrl+K / Cmd+K)">
             <span class="material-symbols-outlined">keyboard_command_key</span>
@@ -115,23 +279,23 @@
         </div>
         <div class="toolbar-divider"></div>
         <div class="dropdown">
-          <button class="nav-btn" onclick="toggleHelpMenu()" title="Menu">
+          <button class="nav-btn" onclick="toggleHelpMenu(event)" title="Menu">
             <span class="material-symbols-outlined">menu</span>
           </button>
           <div id="help-menu" class="dropdown-content">
-            <a href="#" onclick="showSettings(); return false;">
+            <a href="#" onclick="event.stopPropagation(); showSettings(); closeAllDropdowns(); return false;">
               <span class="material-symbols-outlined" style="font-size: 16px; vertical-align: middle; margin-right: 4px;">settings</span>
               Settings
             </a>
             <div class="dropdown-divider"></div>
             <div style="padding: 8px 12px; font-size: 10px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Links</div>
-            <a href="https://halext.org" target="_blank" rel="noopener">halext.org</a>
-            <a href="./docs/" target="_blank" rel="noopener">Documentation</a>
-            <a href="https://github.com/scawful/yaze" target="_blank" rel="noopener">GitHub</a>
-            <a href="https://github.com/scawful/yaze/issues" target="_blank" rel="noopener">Report Bugs / Feedback</a>
+            <a href="https://halext.org" target="_blank" rel="noopener" onclick="event.stopPropagation(); closeAllDropdowns();">halext.org</a>
+            <a href="./docs/" target="_blank" rel="noopener" onclick="event.stopPropagation(); closeAllDropdowns();">Documentation</a>
+            <a href="https://github.com/scawful/yaze" target="_blank" rel="noopener" onclick="event.stopPropagation(); closeAllDropdowns();">GitHub</a>
+            <a href="https://github.com/scawful/yaze/issues" target="_blank" rel="noopener" onclick="event.stopPropagation(); closeAllDropdowns();">Report Bugs / Feedback</a>
             <div class="dropdown-divider"></div>
-            <a href="#" onclick="showShortcuts(); return false;">Shortcuts</a>
-            <a href="#" onclick="showAbout(); return false;">About</a>
+            <a href="#" onclick="event.stopPropagation(); showShortcuts(); closeAllDropdowns(); return false;">Shortcuts</a>
+            <a href="#" onclick="event.stopPropagation(); showAbout(); closeAllDropdowns(); return false;">About</a>
           </div>
         </div>
       </div>
@@ -235,6 +399,7 @@
         <div id="palette-results" class="palette-results">
           <div class="palette-item" data-action="open-rom">Open ROM</div>
           <div class="palette-item" data-action="save">Save ROM</div>
+          <div class="palette-item" data-action="file-manager">File Manager</div>
           <div class="palette-item" data-action="settings">Settings</div>
           <div class="palette-item" data-action="fullscreen">Toggle Fullscreen</div>
           <div class="palette-item" data-action="terminal">Toggle Terminal</div>
@@ -244,6 +409,26 @@
           <div class="palette-item" data-action="theme-halext">Theme: Halext Purple</div>
           <div class="palette-item" data-action="docs">Documentation</div>
           <div class="palette-item" data-action="about">About yaze</div>
+          <!-- Editor switching -->
+          <div class="palette-item" data-action="editor-overworld">Editor: Overworld</div>
+          <div class="palette-item" data-action="editor-dungeon">Editor: Dungeon</div>
+          <div class="palette-item" data-action="editor-graphics">Editor: Graphics</div>
+          <div class="palette-item" data-action="editor-palette">Editor: Palette</div>
+          <div class="palette-item" data-action="editor-sprite">Editor: Sprite</div>
+          <div class="palette-item" data-action="editor-screen">Editor: Screen</div>
+          <div class="palette-item" data-action="editor-assembly">Editor: Assembly</div>
+          <div class="palette-item" data-action="editor-music">Editor: Music</div>
+          <div class="palette-item" data-action="editor-message">Editor: Message</div>
+          <div class="palette-item" data-action="editor-hex">Editor: Hex</div>
+          <!-- Emulator -->
+          <div class="palette-item" data-action="emulator-show">Emulator: Show</div>
+          <div class="palette-item" data-action="emulator-run">Emulator: Run</div>
+          <div class="palette-item" data-action="emulator-pause">Emulator: Pause</div>
+          <div class="palette-item" data-action="emulator-reset">Emulator: Reset</div>
+          <!-- AI Tools -->
+          <div class="palette-item" data-action="ai-app-state">AI: Get App State</div>
+          <div class="palette-item" data-action="ai-editor-state">AI: Get Editor State</div>
+          <div class="palette-item" data-action="ai-api-ref">AI: Dump API Reference</div>
         </div>
       </div>
     </div>
@@ -321,6 +506,85 @@
         <div class="modal-footer">
           <button class="nav-btn" onclick="resetSettings()" style="margin-right: auto;">Reset to Defaults</button>
           <button class="nav-btn" onclick="hideSettings()">Done</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- File Manager Modal -->
+    <div id="file-manager-modal" class="modal" style="display: none;">
+      <div class="modal-content file-manager-content">
+        <div class="modal-header">
+          <h2>File Manager</h2>
+          <button class="nav-btn" onclick="fileManager.hide()"><span class="material-symbols-outlined">close</span></button>
+        </div>
+        <div class="file-manager-body">
+          <!-- Category Tabs -->
+          <div class="file-manager-tabs">
+            <button class="file-tab active" data-category="roms" onclick="fileManager.switchCategory('roms')">
+              <span class="material-symbols-outlined">memory</span> ROMs
+            </button>
+            <button class="file-tab" data-category="projects" onclick="fileManager.switchCategory('projects')">
+              <span class="material-symbols-outlined">folder</span> Projects
+            </button>
+            <button class="file-tab" data-category="saves" onclick="fileManager.switchCategory('saves')">
+              <span class="material-symbols-outlined">save</span> Saves
+            </button>
+            <button class="file-tab" data-category="recent" onclick="fileManager.switchCategory('recent')">
+              <span class="material-symbols-outlined">history</span> Recent
+            </button>
+          </div>
+          <!-- Storage Info -->
+          <div class="storage-info">
+            <span class="storage-label">Storage:</span>
+            <div class="storage-bar-container">
+              <div class="storage-bar" id="storage-bar" style="width: 0%;"></div>
+            </div>
+            <span class="storage-text" id="storage-text">Calculating...</span>
+          </div>
+          <!-- File List -->
+          <div class="file-list-header">
+            <span class="file-col-name">Name</span>
+            <span class="file-col-size">Size</span>
+            <span class="file-col-date">Modified</span>
+            <span class="file-col-actions">Actions</span>
+          </div>
+          <div class="file-list" id="file-list">
+            <div class="file-list-empty">No files found</div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="nav-btn" onclick="document.getElementById('file-upload-input').click()">
+            <span class="material-symbols-outlined">upload</span> Upload File
+          </button>
+          <input type="file" id="file-upload-input" style="display: none;" accept=".sfc,.smc,.srm,.sav,.yproj">
+          <button class="nav-btn" onclick="fileManager.hide()">Done</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Delete Confirmation Dialog -->
+    <div id="delete-confirm-dialog" class="modal" style="display: none;">
+      <div class="modal-content confirm-dialog-content">
+        <div class="confirm-dialog-icon">
+          <span class="material-symbols-outlined">warning</span>
+        </div>
+        <h3>Delete File?</h3>
+        <p id="delete-confirm-message">Are you sure you want to delete this file? This action cannot be undone.</p>
+        <div class="confirm-dialog-buttons">
+          <button class="nav-btn" onclick="fileManager.cancelDelete()">Cancel</button>
+          <button class="nav-btn danger-btn" onclick="fileManager.confirmDelete()">Delete</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Rename Dialog -->
+    <div id="rename-dialog" class="modal" style="display: none;">
+      <div class="modal-content rename-dialog-content">
+        <h3>Rename File</h3>
+        <input type="text" id="rename-input" class="rename-input" placeholder="Enter new name">
+        <div class="confirm-dialog-buttons">
+          <button class="nav-btn" onclick="fileManager.cancelRename()">Cancel</button>
+          <button class="nav-btn" onclick="fileManager.confirmRename()">Rename</button>
         </div>
       </div>
     </div>
@@ -478,8 +742,374 @@
         }
       })();
 
+      // Helper to close all dropdown menus
+      function closeAllDropdowns() {
+        var menus = ['help-menu', 'rom-files-menu', 'editor-menu', 'emulator-menu', 'layout-menu', 'ai-tools-menu'];
+        menus.forEach(function(id) {
+          var menu = document.getElementById(id);
+          if (menu) menu.classList.remove('show');
+        });
+      }
+
+      // Editor menu toggle
+      function toggleEditorMenu(e) {
+        if (e) e.stopPropagation();
+        var menu = document.getElementById('editor-menu');
+        var wasOpen = menu.classList.contains('show');
+        closeAllDropdowns();
+        if (!wasOpen) {
+          menu.classList.add('show');
+          updateEditorMenuState();
+        }
+      }
+
+      // Emulator menu toggle
+      function toggleEmulatorMenu(e) {
+        if (e) e.stopPropagation();
+        var menu = document.getElementById('emulator-menu');
+        var wasOpen = menu.classList.contains('show');
+        closeAllDropdowns();
+        if (!wasOpen) menu.classList.add('show');
+      }
+
+      // Layout menu toggle
+      function toggleLayoutMenu(e) {
+        if (e) e.stopPropagation();
+        var menu = document.getElementById('layout-menu');
+        var wasOpen = menu.classList.contains('show');
+        closeAllDropdowns();
+        if (!wasOpen) menu.classList.add('show');
+      }
+
+      // AI Tools menu toggle
+      function toggleAIToolsMenu(e) {
+        if (e) e.stopPropagation();
+        var menu = document.getElementById('ai-tools-menu');
+        var wasOpen = menu.classList.contains('show');
+        closeAllDropdowns();
+        if (!wasOpen) menu.classList.add('show');
+      }
+
+      // Switch to a specific editor using yaze.control API
+      function switchToEditor(editorName) {
+        closeAllDropdowns();
+        if (window.yaze && window.yaze.control && window.yaze.control.switchEditor) {
+          var result = window.yaze.control.switchEditor(editorName);
+          console.log('Switch to editor:', editorName, result);
+          updateCurrentEditorDisplay();
+        } else {
+          console.warn('yaze.control API not available');
+          // Fallback: Try direct Module call
+          if (typeof Module !== 'undefined' && Module.controlSwitchEditor) {
+            Module.controlSwitchEditor(editorName);
+            updateCurrentEditorDisplay();
+          }
+        }
+      }
+
+      // Update current editor name in header
+      function updateCurrentEditorDisplay() {
+        var nameEl = document.getElementById('current-editor-name');
+        if (!nameEl) return;
+
+        if (window.yaze && window.yaze.control && window.yaze.control.getCurrentEditor) {
+          var editor = window.yaze.control.getCurrentEditor();
+          if (editor && editor.name) {
+            nameEl.textContent = editor.name;
+          }
+        }
+      }
+
+      // Update editor menu to highlight current editor
+      function updateEditorMenuState() {
+        if (!window.yaze || !window.yaze.control) return;
+
+        var current = window.yaze.control.getCurrentEditor();
+        if (!current || !current.name) return;
+
+        document.querySelectorAll('.editor-item').forEach(function(item) {
+          var isActive = item.dataset.editor === current.name;
+          item.classList.toggle('active', isActive);
+        });
+      }
+
+      // Trigger emulator action
+      function triggerEmulatorAction(action) {
+        closeAllDropdowns();
+        var actionMap = {
+          'show': 'View.ShowEmulator',
+          'run': 'Emulator.Run',
+          'pause': 'Emulator.Pause',
+          'step': 'Emulator.Step',
+          'reset': 'Emulator.Reset',
+          'memory': 'View.ShowMemoryEditor',
+          'disassembly': 'View.ShowDisassembly'
+        };
+
+        var menuAction = actionMap[action];
+        if (menuAction && window.yaze && window.yaze.control && window.yaze.control.triggerMenuAction) {
+          var result = window.yaze.control.triggerMenuAction(menuAction);
+          console.log('Emulator action:', action, result);
+        } else {
+          console.warn('Action not available:', action);
+        }
+      }
+
+      // Set layout preset
+      function setLayout(layoutName) {
+        closeAllDropdowns();
+        if (window.yaze && window.yaze.control && window.yaze.control.setCardLayout) {
+          var result = window.yaze.control.setCardLayout(layoutName);
+          console.log('Set layout:', layoutName, result);
+        } else {
+          console.warn('Layout API not available');
+        }
+      }
+
+      // AI Tools object for Gemini Antigravity
+      var aiTools = {
+        // Get full application state
+        getAppState: function() {
+          closeAllDropdowns();
+          var state = {
+            timestamp: new Date().toISOString(),
+            moduleReady: typeof Module !== 'undefined' && Module.calledRun,
+            yazeApiReady: !!(window.yaze && window.yaze.control),
+            editor: null,
+            rom: null,
+            cards: null
+          };
+
+          if (window.yaze && window.yaze.control) {
+            state.editor = window.yaze.control.getCurrentEditor();
+            state.rom = window.yaze.control.getRomStatus ? window.yaze.control.getRomStatus() : null;
+            state.cards = window.yaze.control.getVisibleCards ? window.yaze.control.getVisibleCards() : null;
+          }
+
+          console.log('=== AI Tools: App State ===');
+          console.log(JSON.stringify(state, null, 2));
+          return state;
+        },
+
+        // Get current editor state
+        getEditorState: function() {
+          closeAllDropdowns();
+          var state = { error: 'API not ready' };
+
+          if (window.yaze && window.yaze.editor && window.yaze.editor.getSnapshot) {
+            state = window.yaze.editor.getSnapshot();
+          }
+
+          console.log('=== AI Tools: Editor State ===');
+          console.log(JSON.stringify(state, null, 2));
+          return state;
+        },
+
+        // List visible cards
+        getVisibleCards: function() {
+          closeAllDropdowns();
+          var cards = [];
+
+          if (window.yaze && window.yaze.control && window.yaze.control.getVisibleCards) {
+            cards = window.yaze.control.getVisibleCards();
+          }
+
+          console.log('=== AI Tools: Visible Cards ===');
+          console.log(JSON.stringify(cards, null, 2));
+          return cards;
+        },
+
+        // List all available cards
+        getAvailableCards: function() {
+          closeAllDropdowns();
+          var cards = [];
+
+          if (window.yaze && window.yaze.control && window.yaze.control.getAvailableCards) {
+            cards = window.yaze.control.getAvailableCards();
+          }
+
+          console.log('=== AI Tools: Available Cards ===');
+          console.log(JSON.stringify(cards, null, 2));
+          return cards;
+        },
+
+        // Show a card by prompting for ID
+        showCard: function() {
+          closeAllDropdowns();
+          var cards = this.getAvailableCards();
+          var cardList = cards.map ? cards.map(function(c) { return c.id || c; }).join(', ') : 'API not ready';
+          var cardId = prompt('Enter card ID to show:\n\nAvailable: ' + cardList);
+
+          if (cardId && window.yaze && window.yaze.control && window.yaze.control.openCard) {
+            var result = window.yaze.control.openCard(cardId);
+            console.log('Show card:', cardId, result);
+          }
+        },
+
+        // Hide a card by prompting for ID
+        hideCard: function() {
+          closeAllDropdowns();
+          var cards = this.getVisibleCards();
+          var cardList = cards.map ? cards.map(function(c) { return c.id || c; }).join(', ') : 'API not ready';
+          var cardId = prompt('Enter card ID to hide:\n\nVisible: ' + cardList);
+
+          if (cardId && window.yaze && window.yaze.control && window.yaze.control.closeCard) {
+            var result = window.yaze.control.closeCard(cardId);
+            console.log('Hide card:', cardId, result);
+          }
+        },
+
+        // Navigate to a specific location
+        navigateTo: function() {
+          closeAllDropdowns();
+          var location = prompt('Enter navigation target:\n\nExamples:\n- room:5 (dungeon room)\n- map:32 (overworld map)\n- editor:Graphics');
+
+          if (!location) return;
+
+          var parts = location.split(':');
+          if (parts.length !== 2) {
+            alert('Invalid format. Use: type:id (e.g., room:5)');
+            return;
+          }
+
+          var type = parts[0].toLowerCase();
+          var id = parts[1];
+
+          if (type === 'room') {
+            this.jumpToRoom(parseInt(id));
+          } else if (type === 'map') {
+            this.jumpToMap(parseInt(id));
+          } else if (type === 'editor') {
+            switchToEditor(id);
+          } else {
+            alert('Unknown navigation type: ' + type);
+          }
+        },
+
+        // Jump to dungeon room
+        jumpToRoom: function(roomId) {
+          if (window.yaze && window.yaze.control && window.yaze.control.triggerMenuAction) {
+            // Switch to dungeon editor first
+            window.yaze.control.switchEditor('Dungeon');
+            // Then navigate to room (via menu action or direct call)
+            console.log('Jump to room:', roomId);
+          }
+        },
+
+        // Jump to overworld map
+        jumpToMap: function(mapId) {
+          if (window.yaze && window.yaze.control && window.yaze.control.triggerMenuAction) {
+            window.yaze.control.switchEditor('Overworld');
+            console.log('Jump to map:', mapId);
+          }
+        },
+
+        // Get current room data (dungeon)
+        getRoomData: function() {
+          closeAllDropdowns();
+          var data = { error: 'API not ready' };
+
+          if (window.yaze && window.yaze.editor && window.yaze.editor.getCurrentRoom) {
+            data = window.yaze.editor.getCurrentRoom();
+          }
+
+          console.log('=== AI Tools: Room Data ===');
+          console.log(JSON.stringify(data, null, 2));
+          return data;
+        },
+
+        // Get current map data (overworld)
+        getMapData: function() {
+          closeAllDropdowns();
+          var data = { error: 'API not ready' };
+
+          if (window.yaze && window.yaze.editor && window.yaze.editor.getCurrentMap) {
+            data = window.yaze.editor.getCurrentMap();
+          }
+
+          console.log('=== AI Tools: Map Data ===');
+          console.log(JSON.stringify(data, null, 2));
+          return data;
+        },
+
+        // Dump complete API reference for AI assistants
+        dumpAPIReference: function() {
+          closeAllDropdowns();
+          var apiRef = {
+            description: 'YAZE Web Control API Reference',
+            namespace: 'window.yaze',
+            modules: {
+              control: {
+                description: 'Editor and UI control functions',
+                functions: [
+                  'switchEditor(name) - Switch to editor by name',
+                  'getCurrentEditor() - Get current active editor',
+                  'getAvailableEditors() - List all editors',
+                  'openCard(id) - Show a card panel',
+                  'closeCard(id) - Hide a card panel',
+                  'toggleCard(id) - Toggle card visibility',
+                  'getVisibleCards() - List open cards',
+                  'getAvailableCards() - List all cards',
+                  'setCardLayout(name) - Apply layout preset',
+                  'getAvailableLayouts() - List layout presets',
+                  'triggerMenuAction(path) - Trigger menu action',
+                  'getRomStatus() - Get ROM loaded state',
+                  'saveRom() - Save ROM changes'
+                ]
+              },
+              editor: {
+                description: 'Editor state access',
+                functions: [
+                  'getSnapshot() - Get overall editor state',
+                  'getCurrentRoom() - Get dungeon room info',
+                  'getCurrentMap() - Get overworld map info',
+                  'getSelection() - Get selected objects'
+                ]
+              },
+              data: {
+                description: 'Read-only data access',
+                functions: [
+                  'getRoomTiles(roomId) - Get room tile data',
+                  'getRoomObjects(roomId) - Get room objects',
+                  'getRoomProperties(roomId) - Get room metadata',
+                  'getMapTiles(mapId) - Get map tile data',
+                  'getMapEntities(mapId) - Get map entities',
+                  'getMapProperties(mapId) - Get map metadata',
+                  'getPalette(group, id) - Get palette colors'
+                ]
+              }
+            },
+            editors: [
+              'Overworld', 'Dungeon', 'Graphics', 'Palette',
+              'Sprite', 'Screen', 'Assembly', 'Music',
+              'Message', 'Hex', 'Settings', 'Agent', 'Emulator'
+            ],
+            layouts: [
+              'overworld_default', 'dungeon_default', 'graphics_default',
+              'debug_default', 'minimal', 'all_cards'
+            ]
+          };
+
+          console.log('=== AI Tools: API Reference ===');
+          console.log(JSON.stringify(apiRef, null, 2));
+
+          // Also copy to clipboard if available
+          if (navigator.clipboard) {
+            navigator.clipboard.writeText(JSON.stringify(apiRef, null, 2))
+              .then(function() { console.log('API reference copied to clipboard'); })
+              .catch(function() {});
+          }
+
+          return apiRef;
+        }
+      };
+
+      // Expose aiTools globally for easy access
+      window.aiTools = aiTools;
+
       // Help menu toggle
-      function toggleHelpMenu() {
+      function toggleHelpMenu(e) {
+        if (e) e.stopPropagation();
         var menu = document.getElementById('help-menu');
         menu.classList.toggle('show');
         // Close ROM files menu if open
@@ -487,7 +1117,8 @@
         if (romMenu) romMenu.classList.remove('show');
       }
 
-      function toggleRomFilesMenu() {
+      function toggleRomFilesMenu(e) {
+        if (e) e.stopPropagation();
         var menu = document.getElementById('rom-files-menu');
         menu.classList.toggle('show');
         // Close help menu if open
@@ -1151,9 +1782,360 @@
             case 'theme-halext': setTheme('halext'); break;
             case 'docs': window.open('./docs/', '_blank'); break;
             case 'about': showAbout(); break;
+            case 'file-manager': fileManager.show(); break;
+            // Editor switching
+            case 'editor-overworld': switchToEditor('Overworld'); break;
+            case 'editor-dungeon': switchToEditor('Dungeon'); break;
+            case 'editor-graphics': switchToEditor('Graphics'); break;
+            case 'editor-palette': switchToEditor('Palette'); break;
+            case 'editor-sprite': switchToEditor('Sprite'); break;
+            case 'editor-screen': switchToEditor('Screen'); break;
+            case 'editor-assembly': switchToEditor('Assembly'); break;
+            case 'editor-music': switchToEditor('Music'); break;
+            case 'editor-message': switchToEditor('Message'); break;
+            case 'editor-hex': switchToEditor('Hex'); break;
+            // Emulator
+            case 'emulator-show': triggerEmulatorAction('show'); break;
+            case 'emulator-run': triggerEmulatorAction('run'); break;
+            case 'emulator-pause': triggerEmulatorAction('pause'); break;
+            case 'emulator-reset': triggerEmulatorAction('reset'); break;
+            // AI Tools
+            case 'ai-app-state': aiTools.getAppState(); break;
+            case 'ai-editor-state': aiTools.getEditorState(); break;
+            case 'ai-api-ref': aiTools.dumpAPIReference(); break;
           }
         }
       };
+
+      // ========================
+      // File Manager
+      // ========================
+      var fileManager = {
+        el: null,
+        currentCategory: 'roms',
+        pendingDeletePath: null,
+        pendingRenamePath: null,
+
+        // Category to directory mapping
+        categoryDirs: {
+          roms: '/roms',
+          projects: '/projects',
+          saves: '/saves',
+          recent: null  // Special handling
+        },
+
+        // File extension icons
+        fileIcons: {
+          '.sfc': 'memory',
+          '.smc': 'memory',
+          '.srm': 'save',
+          '.sav': 'save',
+          '.yproj': 'folder',
+          '.md': 'description',
+          'default': 'insert_drive_file'
+        },
+
+        init: function() {
+          this.el = document.getElementById('file-manager-modal');
+
+          // Close on backdrop click
+          this.el.addEventListener('click', (e) => {
+            if (e.target === this.el) this.hide();
+          });
+
+          // Setup file upload handler
+          var uploadInput = document.getElementById('file-upload-input');
+          if (uploadInput) {
+            uploadInput.addEventListener('change', (e) => {
+              if (e.target.files && e.target.files[0]) {
+                this.handleUpload(e.target.files[0]);
+                e.target.value = ''; // Reset for re-upload
+              }
+            });
+          }
+
+          // Handle Enter key in rename input
+          var renameInput = document.getElementById('rename-input');
+          if (renameInput) {
+            renameInput.addEventListener('keydown', (e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                this.confirmRename();
+              } else if (e.key === 'Escape') {
+                this.cancelRename();
+              }
+            });
+          }
+        },
+
+        show: function() {
+          this.el.style.display = 'flex';
+          this.refreshList();
+          this.updateStorageInfo();
+        },
+
+        hide: function() {
+          this.el.style.display = 'none';
+        },
+
+        switchCategory: function(category) {
+          this.currentCategory = category;
+
+          // Update tab buttons
+          document.querySelectorAll('.file-tab').forEach(function(tab) {
+            tab.classList.toggle('active', tab.dataset.category === category);
+          });
+
+          this.refreshList();
+        },
+
+        refreshList: function() {
+          var listEl = document.getElementById('file-list');
+          if (!listEl) return;
+
+          // Check if filesystem is ready
+          if (!FilesystemManager.ensureReady(false)) {
+            listEl.innerHTML = '<div class="file-list-empty">Filesystem not ready. Please wait...</div>';
+            return;
+          }
+
+          var files = [];
+
+          if (this.currentCategory === 'recent') {
+            // Get recent files
+            var recent = FilesystemManager.getRecentFiles(20);
+            files = recent.map(function(r) {
+              var info = FilesystemManager.getFileInfo(r.filename);
+              return {
+                name: r.filename.split('/').pop(),
+                path: r.filename,
+                size: info ? info.size : 0,
+                mtime: r.timestamp ? new Date(r.timestamp) : null,
+                isDirectory: false
+              };
+            });
+          } else {
+            // Get files from directory
+            var dir = this.categoryDirs[this.currentCategory];
+            if (dir) {
+              files = FilesystemManager.getDirectoryListing(dir);
+            }
+          }
+
+          // Filter out directories and sort by name
+          files = files.filter(f => !f.isDirectory);
+          files.sort((a, b) => a.name.localeCompare(b.name));
+
+          if (files.length === 0) {
+            listEl.innerHTML = '<div class="file-list-empty">No files found</div>';
+            return;
+          }
+
+          var self = this;
+          var html = files.map(function(file) {
+            var icon = self.getFileIcon(file.name);
+            var size = self.formatSize(file.size);
+            var date = file.mtime ? self.formatDate(file.mtime) : '-';
+
+            return '<div class="file-item" data-path="' + self.escapeHtml(file.path) + '">' +
+              '<div class="file-item-name">' +
+                '<span class="material-symbols-outlined">' + icon + '</span>' +
+                '<span>' + self.escapeHtml(file.name) + '</span>' +
+              '</div>' +
+              '<div class="file-item-size">' + size + '</div>' +
+              '<div class="file-item-date">' + date + '</div>' +
+              '<div class="file-item-actions">' +
+                '<button class="file-action-btn" onclick="fileManager.renameFile(\'' + self.escapeHtml(file.path) + '\')" title="Rename">' +
+                  '<span class="material-symbols-outlined">edit</span>' +
+                '</button>' +
+                '<button class="file-action-btn" onclick="fileManager.downloadFile(\'' + self.escapeHtml(file.path) + '\')" title="Download">' +
+                  '<span class="material-symbols-outlined">download</span>' +
+                '</button>' +
+                '<button class="file-action-btn danger" onclick="fileManager.deleteFile(\'' + self.escapeHtml(file.path) + '\')" title="Delete">' +
+                  '<span class="material-symbols-outlined">delete</span>' +
+                '</button>' +
+              '</div>' +
+            '</div>';
+          }).join('');
+
+          listEl.innerHTML = html;
+        },
+
+        updateStorageInfo: function() {
+          FilesystemManager.getStorageUsage().then(function(info) {
+            var bar = document.getElementById('storage-bar');
+            var text = document.getElementById('storage-text');
+
+            if (bar) {
+              bar.style.width = info.percent + '%';
+              bar.classList.remove('warning', 'critical');
+              if (info.percent > 90) {
+                bar.classList.add('critical');
+              } else if (info.percent > 70) {
+                bar.classList.add('warning');
+              }
+            }
+
+            if (text) {
+              var usedMB = (info.usage / (1024 * 1024)).toFixed(1);
+              var totalMB = (info.quota / (1024 * 1024)).toFixed(0);
+              text.textContent = info.percent + '% (' + usedMB + 'MB / ' + totalMB + 'MB)';
+            }
+          });
+        },
+
+        getFileIcon: function(filename) {
+          var ext = filename.toLowerCase().match(/\.[^.]+$/);
+          ext = ext ? ext[0] : '';
+          return this.fileIcons[ext] || this.fileIcons['default'];
+        },
+
+        formatSize: function(bytes) {
+          if (!bytes) return '0 B';
+          var k = 1024;
+          var sizes = ['B', 'KB', 'MB', 'GB'];
+          var i = Math.floor(Math.log(bytes) / Math.log(k));
+          return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+        },
+
+        formatDate: function(date) {
+          if (!date || !(date instanceof Date)) return '-';
+          var year = date.getFullYear();
+          var month = String(date.getMonth() + 1).padStart(2, '0');
+          var day = String(date.getDate()).padStart(2, '0');
+          return year + '-' + month + '-' + day;
+        },
+
+        escapeHtml: function(text) {
+          var div = document.createElement('div');
+          div.textContent = text;
+          return div.innerHTML.replace(/'/g, "\\'");
+        },
+
+        // Delete file with confirmation
+        deleteFile: function(path) {
+          this.pendingDeletePath = path;
+          var filename = path.split('/').pop();
+          var msg = document.getElementById('delete-confirm-message');
+          if (msg) {
+            msg.textContent = 'Are you sure you want to delete "' + filename + '"? This action cannot be undone.';
+          }
+          document.getElementById('delete-confirm-dialog').style.display = 'flex';
+        },
+
+        confirmDelete: function() {
+          if (this.pendingDeletePath) {
+            var success = FilesystemManager.deleteFile(this.pendingDeletePath);
+            if (success) {
+              console.log('File deleted:', this.pendingDeletePath);
+            } else {
+              alert('Failed to delete file');
+            }
+            this.pendingDeletePath = null;
+          }
+          document.getElementById('delete-confirm-dialog').style.display = 'none';
+          this.refreshList();
+          this.updateStorageInfo();
+        },
+
+        cancelDelete: function() {
+          this.pendingDeletePath = null;
+          document.getElementById('delete-confirm-dialog').style.display = 'none';
+        },
+
+        // Rename file with dialog
+        renameFile: function(path) {
+          this.pendingRenamePath = path;
+          var filename = path.split('/').pop();
+          var input = document.getElementById('rename-input');
+          if (input) {
+            input.value = filename;
+            input.select();
+          }
+          document.getElementById('rename-dialog').style.display = 'flex';
+          if (input) input.focus();
+        },
+
+        confirmRename: function() {
+          var input = document.getElementById('rename-input');
+          var newName = input ? input.value.trim() : '';
+
+          if (!newName || !this.pendingRenamePath) {
+            alert('Please enter a valid filename');
+            return;
+          }
+
+          // Build new path
+          var oldPath = this.pendingRenamePath;
+          var dir = oldPath.substring(0, oldPath.lastIndexOf('/'));
+          var newPath = dir + '/' + newName;
+
+          if (oldPath !== newPath) {
+            var success = FilesystemManager.renameFile(oldPath, newPath);
+            if (success) {
+              console.log('File renamed:', oldPath, '->', newPath);
+            } else {
+              alert('Failed to rename file');
+            }
+          }
+
+          this.pendingRenamePath = null;
+          document.getElementById('rename-dialog').style.display = 'none';
+          this.refreshList();
+        },
+
+        cancelRename: function() {
+          this.pendingRenamePath = null;
+          document.getElementById('rename-dialog').style.display = 'none';
+        },
+
+        // Download file
+        downloadFile: function(path) {
+          FilesystemManager.downloadFile(path);
+        },
+
+        // Handle file upload
+        handleUpload: function(file) {
+          if (!FilesystemManager.ensureReady()) return;
+
+          var self = this;
+          var reader = new FileReader();
+
+          reader.onload = function(e) {
+            var data = new Uint8Array(e.target.result);
+            var dir = self.categoryDirs[self.currentCategory] || '/roms';
+            var filename = dir + '/' + file.name;
+
+            try {
+              // Ensure directory exists
+              try { FS.mkdir(dir); } catch(mkErr) {}
+
+              FS.writeFile(filename, data);
+              console.log('Uploaded file:', filename, data.length, 'bytes');
+
+              // Sync to IndexedDB
+              FilesystemManager.syncAll();
+
+              self.refreshList();
+              self.updateStorageInfo();
+            } catch (err) {
+              console.error('Upload error:', err);
+              alert('Failed to upload file: ' + err.message);
+            }
+          };
+
+          reader.onerror = function() {
+            alert('Failed to read file');
+          };
+
+          reader.readAsArrayBuffer(file);
+        }
+      };
+
+      // Initialize file manager on load
+      document.addEventListener('DOMContentLoaded', function() {
+        fileManager.init();
+      });
 
       // Global keyboard shortcuts
       document.addEventListener('keydown', function(e) {
