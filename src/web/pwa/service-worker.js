@@ -3,8 +3,8 @@
  * Provides offline support and caching for the web application
  */
 
-const CACHE_NAME = 'yaze-cache-v2';
-const RUNTIME_CACHE = 'yaze-runtime-v2';
+const CACHE_NAME = 'yaze-cache-v3';
+const RUNTIME_CACHE = 'yaze-runtime-v3';
 
 // List of assets to pre-cache during installation
 // Using relative paths for GitHub Pages subdirectory support
@@ -16,27 +16,30 @@ const PRECACHE_ASSETS = [
   './yaze.js',
   './yaze.wasm',
   // './yaze.data - cached on-demand, too large for precache
-  './coi-serviceworker.js',
   './app.js',
-  './main.css',
-  './loading_indicator.css',
-  './loading_indicator.js',
-  './error_handler.css',
-  './error_handler.js',
-  './config.js',
-  './shortcuts_overlay.js',
-  './shortcuts_overlay.css',
-  './terminal.js',
-  './terminal.css',
-  './collab_console.js',
-  './collab_console.css',
-  './touch_gestures.js',
-  './touch_gestures.css',
-  './drop_zone.js',
-  './drop_zone.css',
-  './collaboration_ui.js',
-  './collaboration_ui.css',
-  './offline.html'
+  // PWA files
+  './pwa/coi-serviceworker.js',
+  './pwa/offline.html',
+  // Core infrastructure
+  './core/config.js',
+  './core/filesystem_manager.js',
+  './core/loading_indicator.js',
+  './core/error_handler.js',
+  // UI Components
+  './components/shortcuts_overlay.js',
+  './components/terminal.js',
+  './components/collab_console.js',
+  './components/touch_gestures.js',
+  './components/drop_zone.js',
+  // Styles
+  './styles/main.css',
+  './styles/loading_indicator.css',
+  './styles/error_handler.css',
+  './styles/shortcuts_overlay.css',
+  './styles/terminal.css',
+  './styles/collab_console.css',
+  './styles/touch_gestures.css',
+  './styles/drop_zone.css'
 ];
 
 // Install event - pre-cache all static assets
