@@ -55,7 +55,7 @@ void PaletteDebugger::LogPaletteLoad(const std::string& location,
   event.message = absl::StrFormat("Loaded palette %d with %d colors %s",
                                   palette_id, event.color_count, sample_str);
 
-  events_.push_back(event);
+  AddEvent(event);
   LOG_INFO("PaletteDebug", "%s", event.message);
 }
 
@@ -73,7 +73,7 @@ void PaletteDebugger::LogPaletteApplication(const std::string& location,
               : absl::StrFormat("Failed to apply palette %d: %s", palette_id,
                                 reason);
 
-  events_.push_back(event);
+  AddEvent(event);
   if (success) {
     LOG_INFO("PaletteDebug", "%s", event.message);
   } else {
@@ -97,7 +97,7 @@ void PaletteDebugger::LogTextureCreation(const std::string& location,
           : "WARNING: Creating texture WITHOUT palette - will use default "
             "colors!";
 
-  events_.push_back(event);
+  AddEvent(event);
   if (!has_palette) {
     LOG_WARN("PaletteDebug", "%s", event.message);
   }
@@ -113,7 +113,7 @@ void PaletteDebugger::LogSurfaceState(const std::string& location,
   if (!surface) {
     event.level = PaletteDebugLevel::ERROR;
     event.message = "Surface is NULL!";
-    events_.push_back(event);
+    AddEvent(event);
     LOG_ERROR("PaletteDebug", "%s", event.message);
     return;
   }
@@ -121,7 +121,7 @@ void PaletteDebugger::LogSurfaceState(const std::string& location,
   if (!surface->format) {
     event.level = PaletteDebugLevel::ERROR;
     event.message = "Surface format is NULL!";
-    events_.push_back(event);
+    AddEvent(event);
     LOG_ERROR("PaletteDebug", "%s", event.message);
     return;
   }
@@ -159,7 +159,7 @@ void PaletteDebugger::LogSurfaceState(const std::string& location,
     }
   }
 
-  events_.push_back(event);
+  AddEvent(event);
   LOG_INFO("PaletteDebug", "%s: %s", location, event.message);
 }
 

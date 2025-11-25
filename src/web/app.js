@@ -1309,6 +1309,24 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 })();
 
+// Auto-resume audio context on user interaction
+(function autoResumeAudio() {
+  var resumed = false;
+  function resume() {
+    if (resumed) return;
+    if (typeof Module !== 'undefined' && Module.resumeAudioContext) {
+      Module.resumeAudioContext();
+      resumed = true;
+      // Remove listeners
+      ['click', 'keydown', 'touchstart'].forEach(evt => 
+        document.removeEventListener(evt, resume, {capture: true}));
+    }
+  }
+  
+  ['click', 'keydown', 'touchstart'].forEach(evt => 
+    document.addEventListener(evt, resume, {capture: true}));
+})();
+
 // Initialize Debug API wrapper
 window.yazeDebug = window.yazeDebug || {};
 

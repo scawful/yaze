@@ -8,13 +8,13 @@
 
   // Configuration
   const config = {
-    validExtensions: ['sfc', 'smc', 'zip'],
+    validExtensions: ['sfc', 'smc', 'zip', 'srm', 'sav', 'yproj'],
     maxFileSize: 10 * 1024 * 1024, // 10MB
     messages: {
-      dropHere: 'Drop ROM file here',
-      supported: 'Supported: .sfc, .smc, .zip',
-      loading: 'Loading ROM...',
-      invalidType: 'Invalid file type. Please drop a ROM file.',
+      dropHere: 'Drop file here',
+      supported: 'ROMs (.sfc), Saves (.srm), Projects (.yproj)',
+      loading: 'Processing file...',
+      invalidType: 'Invalid file type.',
       tooLarge: 'File too large. Maximum size is 10MB.',
       readError: 'Failed to read file.',
       multipleFiles: 'Please drop only one file at a time.'
@@ -302,22 +302,39 @@
     reader.onload = function() {
       hideLoading();
 
+      // Convert ArrayBuffer to Uint8Array
+      const data = new Uint8Array(reader.result);
+
       if (state.callbacks.onDrop) {
-        // Convert ArrayBuffer to Uint8Array
-        const data = new Uint8Array(reader.result);
         state.callbacks.onDrop(file.name, data);
       }
 
-      // If Module is available (Emscripten), use FilesystemManager to handle the ROM
-      // This writes to the VFS and calls LoadRomFromWeb
-      if (typeof Module !== 'undefined' && typeof FilesystemManager !== 'undefined') {
+      // Delegate to FilesystemManager based on extension
+      if (typeof FilesystemManager !== 'undefined') {
+        const ext = file.name.split('.').pop().toLowerCase();
         try {
-          // Use FilesystemManager which handles VFS write and WASM call
-          FilesystemManager.handleRomUpload(file);
-          console.log('[DropZone] ROM upload delegated to FilesystemManager');
+          if (['sfc', 'smc', 'zip'].includes(ext)) {
+             // ROM File
+             if (typeof Module !== 'undefined') {
+                FilesystemManager.handleRomData(file.name, data);
+                console.log('[DropZone] ROM data passed to FilesystemManager');
+             }
+          } else if (['srm', 'sav'].includes(ext)) {
+             // Save File - Write to /saves and sync
+             const savePath = '/saves/' + file.name;
+             FilesystemManager.writeFile(savePath, data);
+             FilesystemManager.syncAll();
+             alert('Save file imported: ' + file.name + '\nReload ROM to apply.');
+          } else if (ext === 'yproj') {
+             // Project File - Write to /projects
+             const projPath = '/projects/' + file.name;
+             FilesystemManager.writeFile(projPath, data);
+             FilesystemManager.syncAll();
+             alert('Project imported: ' + file.name);
+          }
         } catch (err) {
-          console.error('[DropZone] Error delegating to FilesystemManager:', err);
-          showError('Failed to process dropped file: ' + err.message);
+          console.error('[DropZone] Error processing file:', err);
+          showError('Failed to process file: ' + err.message);
         }
       }
     };

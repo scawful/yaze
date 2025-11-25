@@ -54,6 +54,7 @@ class Emulator {
 
   // Audio backend access
   audio::IAudioBackend* audio_backend() { return audio_backend_.get(); }
+  void ResumeAudio(); // For WASM/WebAudio context resumption
   void set_audio_buffer(int16_t* audio_buffer) { audio_buffer_ = audio_buffer; }
   auto set_audio_device_id(SDL_AudioDeviceID audio_device) {
     audio_device_ = audio_device;

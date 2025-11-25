@@ -25,7 +25,9 @@
     '/clear': clearTerminal,
     '/apikey': handleApiKey,
     '/history': showHistory,
-    '/version': showVersion
+    '/version': showVersion,
+    '/ai': handleAITools,
+    'ai': handleAITools // Alias without slash
   };
 
   /**
@@ -1054,6 +1056,84 @@
           console.debug('[Z3edTerminal] Z3edSetApiKey not available:', error.message);
         }
       }
+    }
+  }
+
+  /**
+   * Handle AI Tools commands
+   * @param {string[]} args
+   */
+  function handleAITools(args) {
+    if (!window.aiTools) {
+      this.printError('AI Tools not initialized (window.aiTools missing).');
+      return;
+    }
+
+    if (args.length === 0) {
+      this.printInfo('AI Tools - Client Side Debugging');
+      this.print('  /ai state       - Dump full app state');
+      this.print('  /ai editor      - Dump editor state');
+      this.print('  /ai cards       - List visible cards');
+      this.print('  /ai nav <tgt>   - Navigate (e.g., room:5)');
+      this.print('  /ai data <type> - Get data (room, map)');
+      return;
+    }
+
+    const sub = args[0].toLowerCase();
+    
+    try {
+      switch (sub) {
+        case 'state':
+          const appState = window.aiTools.getAppState();
+          this.printSuccess('App State dumped to console');
+          this.print(JSON.stringify(appState, null, 2));
+          break;
+        case 'editor':
+          const edState = window.aiTools.getEditorState();
+          this.printSuccess('Editor State dumped to console');
+          this.print(JSON.stringify(edState, null, 2));
+          break;
+        case 'cards':
+          const cards = window.aiTools.getVisibleCards();
+          this.print('Visible Cards:');
+          if (Array.isArray(cards)) {
+            cards.forEach(c => this.print(' - ' + (c.id || c)));
+          } else {
+            this.print(JSON.stringify(cards));
+          }
+          break;
+        case 'nav':
+          if (args[1]) {
+            // Parse target from remaining args
+            const target = args[1]; 
+            // aiTools.navigateTo usually prompts, but we can try to simulate or parse
+            if (target.includes(':')) {
+               const parts = target.split(':');
+               if (parts[0] === 'room') window.aiTools.jumpToRoom(parseInt(parts[1]));
+               else if (parts[0] === 'map') window.aiTools.jumpToMap(parseInt(parts[1]));
+               else if (parts[0] === 'editor') window.switchToEditor(parts[1]); // Global helper
+               this.printSuccess('Navigated to ' + target);
+            } else {
+               this.printWarning('Invalid format. Use type:id (e.g., room:5)');
+            }
+          } else {
+            window.aiTools.navigateTo(); // Opens prompt
+          }
+          break;
+        case 'data':
+           if (args[1] === 'room') {
+             this.print(JSON.stringify(window.aiTools.getRoomData(), null, 2));
+           } else if (args[1] === 'map') {
+             this.print(JSON.stringify(window.aiTools.getMapData(), null, 2));
+           } else {
+             this.print('Usage: /ai data [room|map]');
+           }
+           break;
+        default:
+          this.printError('Unknown AI subcommand: ' + sub);
+      }
+    } catch (e) {
+      this.printError('AI Tool Error: ' + e.message);
     }
   }
 

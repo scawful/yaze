@@ -640,6 +640,13 @@ std::string getFileManagerDebugInfo() {
   return json.str();
 }
 
+void resumeAudioContext() {
+  auto* emulator = GetGlobalEmulator();
+  if (emulator) {
+    emulator->ResumeAudio();
+  }
+}
+
 // =============================================================================
 // Combined Debug State for AI Analysis
 // =============================================================================
@@ -715,6 +722,7 @@ EMSCRIPTEN_BINDINGS(yaze_debug_inspector) {
   function("getEmulatorStatus", &getEmulatorStatus);
   function("readEmulatorMemory", &readEmulatorMemory);
   function("getEmulatorVideoState", &getEmulatorVideoState);
+  function("resumeAudioContext", &resumeAudioContext);
 
   // Editor state and command execution
   function("getEditorState", &getEditorState);
