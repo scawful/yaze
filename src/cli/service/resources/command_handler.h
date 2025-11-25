@@ -67,7 +67,8 @@ class CommandHandler {
    * 4. Business logic execution
    * 5. Output formatting
    */
-  absl::Status Run(const std::vector<std::string>& args, Rom* rom_context);
+  absl::Status Run(const std::vector<std::string>& args, Rom* rom_context,
+                   std::string* captured_output = nullptr);
 
   /**
    * @brief Get the command name

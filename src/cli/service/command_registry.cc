@@ -179,13 +179,14 @@ std::string CommandRegistry::GenerateCompleteHelp() const {
 
 absl::Status CommandRegistry::Execute(const std::string& name,
                                       const std::vector<std::string>& args,
-                                      Rom* rom_context) {
+                                      Rom* rom_context,
+                                      std::string* captured_output) {
   auto* handler = Get(name);
   if (!handler) {
     return absl::NotFoundError(absl::StrFormat("Command '%s' not found", name));
   }
 
-  return handler->Run(args, rom_context);
+  return handler->Run(args, rom_context, captured_output);
 }
 
 bool CommandRegistry::HasCommand(const std::string& name) const {

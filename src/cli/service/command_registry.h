@@ -100,7 +100,8 @@ class CommandRegistry {
    */
   absl::Status Execute(const std::string& name,
                        const std::vector<std::string>& args,
-                       Rom* rom_context = nullptr);
+                       Rom* rom_context = nullptr,
+                       std::string* captured_output = nullptr);
 
   /**
    * @brief Check if command exists

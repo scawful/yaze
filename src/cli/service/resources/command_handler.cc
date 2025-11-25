@@ -27,7 +27,8 @@ namespace cli {
 namespace resources {
 
 absl::Status CommandHandler::Run(const std::vector<std::string>& args,
-                                 Rom* rom_context) {
+                                 Rom* rom_context,
+                                 std::string* captured_output) {
   // 1. Parse arguments
   ArgumentParser parser(args);
 
@@ -84,7 +85,12 @@ absl::Status CommandHandler::Run(const std::vector<std::string>& args,
 
   // 10. Finalize and print output
   formatter.EndObject();
-  formatter.Print();
+  
+  if (captured_output) {
+    *captured_output = formatter.GetOutput();
+  } else {
+    formatter.Print();
+  }
 
   return absl::OkStatus();
 }

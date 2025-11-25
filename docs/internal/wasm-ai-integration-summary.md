@@ -129,7 +129,7 @@ WasmBrowserStorage::StoreApiKey("gemini", user_api_key);
     // Create AI service
     BrowserAIConfig config;
     config.api_key = WasmBrowserStorage::RetrieveApiKey("gemini").value();
-config.model = "gemini-2.0-flash-exp";
+config.model = "gemini-2.5-flash";
 
 auto http_client = std::make_unique<EmscriptenHttpClient>();
 BrowserAIService ai_service(config, std::move(http_client));
