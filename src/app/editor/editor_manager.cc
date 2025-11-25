@@ -1059,7 +1059,9 @@ absl::Status EditorManager::SaveRomAs(const std::string& filename) {
 }
 
 absl::Status EditorManager::OpenRomOrProject(const std::string& filename) {
+  LOG_INFO("EditorManager", "OpenRomOrProject called with: '%s'", filename.c_str());
   if (filename.empty()) {
+    LOG_INFO("EditorManager", "Empty filename provided, skipping load.");
     return absl::OkStatus();
   }
   if (absl::StrContains(filename, ".yaze")) {

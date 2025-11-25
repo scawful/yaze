@@ -176,8 +176,47 @@ std::string ProcessCommandInternal(const std::string& command_str) {
   }
 
   // Handle editor commands
-  if (args[0] == "editor" && args.size() > 2) {
-    if (args[1] == "debug" && args[2] == "toggle") {
+  if (args[0] == "editor") {
+    auto* editor_manager = yaze::app::GetGlobalEditorManager();
+    if (!editor_manager) return "Error: Editor manager not available";
+
+    if (args.size() > 2 && args[1] == "switch") {
+      std::string target = args[2];
+      for (size_t i = 0; i < yaze::editor::kEditorNames.size(); ++i) {
+        std::string name = yaze::editor::kEditorNames[i];
+        std::transform(name.begin(), name.end(), name.begin(), ::tolower);
+        std::transform(target.begin(), target.end(), target.begin(), ::tolower);
+        if (name == target) {
+          editor_manager->SwitchToEditor(static_cast<yaze::editor::EditorType>(i));
+          return "Switched to " + std::string(yaze::editor::kEditorNames[i]);
+        }
+      }
+      return "Unknown editor: " + args[2];
+    }
+
+    if (args.size() > 3 && args[1] == "card") {
+      // "editor card <name> <show/hide>"
+      // Name might be multi-word if parsed poorly, but let's assume simple args or quotes handled by caller (currently not)
+      // For simple support: "editor card object show"
+      std::string card_key = args[2];
+      std::string state = args[3];
+      bool visible = (state == "show" || state == "on" || state == "true");
+
+      auto* current_editor = editor_manager->GetCurrentEditor();
+      if (current_editor && current_editor->type() == yaze::editor::EditorType::kDungeon) {
+        auto* dungeon_editor = static_cast<yaze::editor::DungeonEditorV2*>(current_editor);
+        if (card_key == "object" || card_key == "objects") dungeon_editor->show_object_editor_ = visible;
+        else if (card_key == "room" || card_key == "selector") dungeon_editor->show_room_selector_ = visible;
+        else if (card_key == "graphics") dungeon_editor->show_room_graphics_ = visible;
+        else if (card_key == "debug") dungeon_editor->show_debug_controls_ = visible;
+        else return "Unknown card key for Dungeon Editor: " + card_key;
+        return "Card visibility updated";
+      }
+      return "Card control not supported for current editor";
+    }
+
+    if (args.size() > 2 && args[1] == "debug" && args[2] == "toggle") {
+      // ... legacy support ...
       auto* editor_manager = yaze::app::GetGlobalEditorManager();
       if (!editor_manager) {
         return "Error: Editor manager not available";
@@ -193,6 +232,41 @@ std::string ProcessCommandInternal(const std::string& command_str) {
       
       return std::string("Dungeon debug controls ") + 
              (dungeon_editor.show_debug_controls_ ? "enabled" : "disabled");
+    }
+  }
+
+  // Handle dungeon commands
+  if (args[0] == "dungeon") {
+    auto* editor_manager = yaze::app::GetGlobalEditorManager();
+    if (!editor_manager) return "Error: Editor manager not available";
+    
+    auto* current_editor = editor_manager->GetCurrentEditor();
+    if (!current_editor || current_editor->type() != yaze::editor::EditorType::kDungeon) {
+      // Auto-switch if possible? Or just fail.
+      return "Error: Dungeon editor is not active. Use 'editor switch dungeon' first.";
+    }
+    auto* dungeon_editor = static_cast<yaze::editor::DungeonEditorV2*>(current_editor);
+
+    if (args.size() > 2 && args[1] == "room") {
+      try {
+        int room_id = std::stoi(args[2], nullptr, 16);
+        dungeon_editor->FocusRoom(room_id);
+        return "Focused room " + args[2];
+      } catch (...) { return "Invalid room ID (hex required)"; }
+    }
+
+    if (args.size() > 2 && args[1] == "select_object") {
+      try {
+        int obj_id = std::stoi(args[2], nullptr, 16);
+        dungeon_editor->SelectObject(obj_id);
+        return "Selected object " + args[2];
+      } catch (...) { return "Invalid object ID (hex required)"; }
+    }
+
+    if (args.size() > 2 && args[1] == "agent_mode") {
+      bool enabled = (args[2] == "on" || args[2] == "true");
+      dungeon_editor->SetAgentMode(enabled);
+      return "Agent mode " + std::string(enabled ? "enabled" : "disabled");
     }
   }
 

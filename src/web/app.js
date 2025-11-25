@@ -241,16 +241,40 @@ function ensureFSReady(showAlert = true) {
   return false;
 }
 
+// C++ calls this when it has finished mounting filesystems
+Module.onFileSystemReady = function() {
+  console.log('[WASM] C++ signaled FileSystem Ready');
+  fsReady = true;
+  if (fsInitPromise) {
+    // If we were waiting on JS init, resolve it now
+    // We can't easily resolve an external promise, but we can update state
+    // The polling in initPersistentFS will catch it or we can just let it be
+  }
+  
+  // Update UI if needed
+  var status = document.getElementById('header-status');
+  if (status && status.textContent.includes('initializing')) {
+    status.textContent = 'Ready';
+    status.style.color = '';
+  }
+};
+
 function initPersistentFS() {
   if (fsInitPromise) return fsInitPromise;
   fsInitPromise = new Promise((resolve, reject) => {
     waitForModule(() => {
+      // If C++ already signaled ready, we are done
+      if (fsReady) {
+        resolve();
+        return;
+      }
+
       if (typeof FS === 'undefined') {
         fsInitAttempts++;
-        if (fsInitAttempts < 5) {
+        if (fsInitAttempts < 20) { // Increased retries
           console.warn('FS unavailable; retrying...', fsInitAttempts);
           fsInitPromise = null;
-          setTimeout(initPersistentFS, 100);
+          setTimeout(() => initPersistentFS().then(resolve).catch(reject), 100);
           return;
         }
         reject(new Error('FS unavailable during init'));
@@ -273,44 +297,52 @@ function initPersistentFS() {
         resolve();
         return;
       }
-
-      // IDBFS not available yet - might need to wait
-      if (typeof IDBFS === 'undefined') {
-        fsInitAttempts++;
-        if (fsInitAttempts < 5) {
-          console.warn('IDBFS unavailable; retrying...', fsInitAttempts);
-          fsInitPromise = null;
-          setTimeout(initPersistentFS, 100);
+      
+      // If we are here, C++ hasn't initialized FS yet, or we are responsible for it.
+      // In the new architecture, C++ (wasm_bootstrap.cc) handles MountFilesystems via EM_JS.
+      // So we should just wait for C++ to signal readiness via Module._SetFileSystemReady -> SetFileSystemReady -> (maybe callback to JS?)
+      
+      // Actually, wasm_bootstrap.cc calls SetFileSystemReady (C++) which logs.
+      // It doesn't explicitly call back into JS to set fsReady = true unless we bind it.
+      // But wait, `MountFilesystems` in `wasm_bootstrap.cc` calls `Module._SetFileSystemReady()`.
+      // We need to intercept that or have C++ call a JS function.
+      
+      // Let's rely on polling for now if we missed the event, or just wait.
+      // But better: let's try to mount if it looks like C++ failed or hasn't started.
+      
+      // Actually, `MountFilesystems` is an EM_JS function called by `InitializeWasmPlatform`.
+      // It should run early.
+      
+      console.log('[WASM] Waiting for C++ FS initialization...');
+      
+      // Poll for fsReady or /roms existence
+      var checkInterval = setInterval(() => {
+        if (fsReady) {
+          clearInterval(checkInterval);
+          resolve();
           return;
         }
-        // Fall back to in-memory FS
-        console.warn('[WASM] IDBFS unavailable, using in-memory FS');
-        fsReady = true;
-        resolve();
-        return;
-      }
-
-      try {
-        try { FS.mkdir('/roms'); } catch (e) {}
-        try { FS.mkdir('/saves'); } catch (e) {}
-        try { FS.mount(IDBFS, {}, '/roms'); } catch (e) { console.warn('Mount /roms failed (maybe already mounted):', e); }
-        try { FS.mount(IDBFS, {}, '/saves'); } catch (e) { console.warn('Mount /saves failed (maybe already mounted):', e); }
-      } catch (err) {
-        console.error('FS init error:', err);
-        reject(err);
-        return;
-      }
-
-      FS.syncfs(true, function(err) {
-        if (err) {
-          console.error('FS sync (pull) failed:', err);
-          reject(err);
-          return;
+        
+        try {
+          FS.stat('/roms');
+          console.log('[WASM] Detected /roms, marking FS ready');
+          fsReady = true;
+          clearInterval(checkInterval);
+          resolve();
+        } catch(e) {
+          // Still waiting
         }
-        fsReady = true;
-        console.log('[WASM] FS ready (IDBFS mounted)');
-        resolve();
-      });
+      }, 200);
+      
+      // Timeout after 10 seconds
+      setTimeout(() => {
+        if (!fsReady) {
+          clearInterval(checkInterval);
+          console.warn('[WASM] FS init timed out, forcing ready (might be MEMFS)');
+          fsReady = true; // Fallback
+          resolve();
+        }
+      }, 10000);
     });
   });
   return fsInitPromise;

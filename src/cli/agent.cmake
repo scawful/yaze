@@ -27,11 +27,13 @@ if(EMSCRIPTEN)
     cli/handlers/command_handlers_browser.cc
 
     # Basic handlers that don't require native dependencies
-    cli/handlers/game/dungeon.cc
-    cli/handlers/game/overworld.cc
+    cli/handlers/game/dungeon_commands.cc
+    cli/handlers/game/overworld_commands.cc
+    cli/handlers/game/overworld_inspect.cc
     cli/handlers/graphics/gfx.cc
     cli/handlers/rom/rom_commands.cc
     cli/handlers/rom/mock_rom.cc
+    cli/handlers/tools/resource_commands.cc
     
     # Explicitly supported handlers
     cli/handlers/graphics/hex_commands.cc
@@ -106,7 +108,6 @@ set(YAZE_AGENT_CORE_SOURCES
   cli/handlers/agent/todo_commands.cc
   cli/handlers/command_handlers.cc
   cli/handlers/game/dialogue_commands.cc
-  cli/handlers/game/dungeon.cc
   cli/handlers/game/dungeon_commands.cc
   cli/handlers/game/message.cc
   cli/handlers/game/message_commands.cc

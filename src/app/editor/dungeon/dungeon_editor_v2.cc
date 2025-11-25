@@ -514,6 +514,28 @@ void DungeonEditorV2::FocusRoom(int room_id) {
   }
 }
 
+void DungeonEditorV2::SelectObject(int obj_id) {
+  if (object_editor_card_) {
+    // Ensure object editor is visible
+    show_object_editor_ = true;
+    object_editor_card_->SelectObject(obj_id);
+  }
+}
+
+void DungeonEditorV2::SetAgentMode(bool enabled) {
+  if (enabled) {
+    // Open key cards for the agent
+    show_room_selector_ = true;
+    show_object_editor_ = true;
+    show_room_graphics_ = true;
+    
+    // Optimize layout in sub-components
+    if (object_editor_card_) {
+      object_editor_card_->SetAgentOptimizedLayout(true);
+    }
+  }
+}
+
 void DungeonEditorV2::DrawRoomsListCard() {
   gui::EditorCard selector_card(MakeCardTitle("Rooms List").c_str(),
                                 ICON_MD_LIST, &show_room_selector_);

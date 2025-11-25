@@ -82,6 +82,10 @@ class DungeonEditorV2 : public Editor {
   void add_room(int room_id);
   void FocusRoom(int room_id);
 
+  // Agent/Automation controls
+  void SelectObject(int obj_id);
+  void SetAgentMode(bool enabled);
+
   // ROM state
   bool IsRomLoaded() const override { return rom_ && rom_->is_loaded(); }
   std::string GetRomStatus() const override {

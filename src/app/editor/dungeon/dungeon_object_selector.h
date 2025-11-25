@@ -75,6 +75,9 @@ class DungeonObjectSelector {
   // AssetBrowser-style object selection
   void DrawObjectAssetBrowser();
 
+  // Programmatic selection
+  void SelectObject(int obj_id);
+
  private:
   void DrawRoomGraphics();
   bool MatchesObjectFilter(int obj_id, int filter_type);

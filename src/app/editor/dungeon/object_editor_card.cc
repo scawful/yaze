@@ -118,6 +118,19 @@ void ObjectEditorCard::Draw(bool* p_open) {
   card.End();
 }
 
+void ObjectEditorCard::SelectObject(int obj_id) {
+  object_selector_.SelectObject(obj_id);
+}
+
+void ObjectEditorCard::SetAgentOptimizedLayout(bool enabled) {
+  // In agent mode, we might force tabs open or change layout
+  // For now, ensure we are on the Browser tab if enabled
+  if (enabled) {
+    // This might need more logic to force tab selection if ImGui doesn't support programmatic tab switching easily
+    // But we can ensure the card is expanded/visible in the calling code
+  }
+}
+
 void ObjectEditorCard::DrawObjectSelector() {
   // Delegate to the robust DungeonObjectSelector component
   // This uses full graphics rendering instead of primitive colored squares

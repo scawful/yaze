@@ -24,6 +24,13 @@ EMSCRIPTEN_KEEPALIVE
 void SetFileSystemReady() {
   g_filesystem_ready = true;
   LOG_INFO("Wasm", "Filesystem sync complete.");
+  
+  // Notify JS that FS is ready
+  EM_ASM({
+    if (Module.onFileSystemReady) {
+      Module.onFileSystemReady();
+    }
+  });
 }
 
 EMSCRIPTEN_KEEPALIVE
@@ -84,6 +91,40 @@ EM_JS(void, MountFilesystems, (), {
   }
 });
 
+EM_JS(void, SetupYazeGlobalApi, (), {
+  if (typeof Module === 'undefined') return;
+  
+  // Initialize global API for agents/automation
+  window.yazeApp = {
+    execute: function(cmd) {
+      if (Module.executeCommand) {
+        return Module.executeCommand(cmd);
+      }
+      return "Error: bindings not ready";
+    },
+    
+    getState: function() {
+      if (Module.getFullDebugState) {
+        try { return JSON.parse(Module.getFullDebugState()); } catch(e) { return {}; }
+      }
+      return {};
+    },
+    
+    getEditorState: function() {
+        if (Module.getEditorState) {
+            try { return JSON.parse(Module.getEditorState()); } catch(e) { return {}; }
+        }
+        return {};
+    },
+    
+    loadRom: function(filename) {
+       return this.execute("rom load " + filename);
+    }
+  };
+  
+  console.log("[yaze] window.yazeApp API initialized for agents");
+});
+
 namespace yaze::app::wasm {
 
 bool IsFileSystemReady() {
@@ -113,6 +154,9 @@ void TriggerRomLoad(const std::string& path) {
 void InitializeWasmPlatform() {
   // Load WASM configuration from JavaScript
   app::platform::WasmConfig::Get().LoadFromJavaScript();
+  
+  // Setup global API
+  SetupYazeGlobalApi();
 
   // Initialize drop handler for Drag & Drop support
   auto& drop_handler = yaze::platform::WasmDropHandler::GetInstance();

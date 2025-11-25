@@ -18,6 +18,9 @@
 #include "app/rom.h"
 #include "zelda3/dungeon/palette_debug.h"
 
+#include "app/editor/editor_manager.h"
+#include "app/editor/editor.h"
+
 using namespace emscripten;
 
 // External function to get the global ROM (defined in wasm_terminal_bridge.cc)
@@ -28,6 +31,12 @@ extern Rom* GetGlobalRom();
 // External function to get the global emulator (defined in main.cc)
 namespace yaze::app {
 extern emu::Emulator* GetGlobalEmulator();
+extern editor::EditorManager* GetGlobalEditorManager();
+}
+
+extern "C" {
+// Forward declaration of Z3edProcessCommand from wasm_terminal_bridge.cc
+const char* Z3edProcessCommand(const char* command);
 }
 
 // Helper function to get the emulator for this file
@@ -36,6 +45,41 @@ yaze::emu::Emulator* GetGlobalEmulator() {
   return yaze::app::GetGlobalEmulator();
 }
 }  // namespace
+
+// =============================================================================
+// Editor State Functions
+// =============================================================================
+
+std::string getEditorState() {
+  std::ostringstream json;
+  auto* manager = yaze::app::GetGlobalEditorManager();
+  
+  if (!manager) {
+    return "{\"error\":\"EditorManager not available\"}";
+  }
+  
+  auto* editor = manager->GetCurrentEditor();
+  
+  json << "{";
+  json << "\"active_editor\":\"" << (editor ? yaze::editor::kEditorNames[(int)editor->type()] : "None") << "\",";
+  json << "\"session_id\":" << manager->GetCurrentSessionId() << ",";
+  json << "\"rom_loaded\":" << (manager->GetCurrentRom() && manager->GetCurrentRom()->is_loaded() ? "true" : "false");
+  
+  if (editor && editor->type() == yaze::editor::EditorType::kDungeon) {
+     // We can't easily cast to DungeonEditorV2 here without circular deps or massive includes
+     // But we can check if it exposes state via base class if we added virtuals? No.
+     // For now, just knowing it's the Dungeon Editor is a big help.
+  }
+  
+  json << "}";
+  return json.str();
+}
+
+std::string executeCommand(std::string command) {
+  // Wrapper around Z3edProcessCommand for easier JS usage
+  const char* result = Z3edProcessCommand(command.c_str());
+  return result ? std::string(result) : "";
+}
 
 // =============================================================================
 // Palette Debug Functions
@@ -559,6 +603,10 @@ EMSCRIPTEN_BINDINGS(yaze_debug_inspector) {
   function("getEmulatorStatus", &getEmulatorStatus);
   function("readEmulatorMemory", &readEmulatorMemory);
   function("getEmulatorVideoState", &getEmulatorVideoState);
+
+  // Editor state and command execution
+  function("getEditorState", &getEditorState);
+  function("executeCommand", &executeCommand);
 
   // Combined state for AI
   function("getFullDebugState", &getFullDebugState);
