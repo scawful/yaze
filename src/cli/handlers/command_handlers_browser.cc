@@ -3,8 +3,12 @@
 #include <memory>
 #include <vector>
 
+#include "cli/handlers/game/dungeon_commands.h"
+#include "cli/handlers/game/overworld_commands.h"
 #include "cli/handlers/graphics/hex_commands.h"
 #include "cli/handlers/graphics/palette_commands.h"
+#include "cli/handlers/rom/rom_commands.h"
+#include "cli/handlers/tools/resource_commands.h"
 
 namespace yaze {
 namespace cli {
@@ -24,6 +28,31 @@ CreateCliCommandHandlers() {
   handlers.push_back(std::make_unique<PaletteSetColorCommandHandler>());
   handlers.push_back(std::make_unique<PaletteAnalyzeCommandHandler>());
 
+  // Dungeon commands
+  handlers.push_back(std::make_unique<DungeonListSpritesCommandHandler>());
+  handlers.push_back(std::make_unique<DungeonDescribeRoomCommandHandler>());
+  handlers.push_back(std::make_unique<DungeonExportRoomCommandHandler>());
+  handlers.push_back(std::make_unique<DungeonListObjectsCommandHandler>());
+  handlers.push_back(std::make_unique<DungeonGetRoomTilesCommandHandler>());
+  handlers.push_back(std::make_unique<DungeonSetRoomPropertyCommandHandler>());
+
+  // Overworld commands
+  handlers.push_back(std::make_unique<OverworldFindTileCommandHandler>());
+  handlers.push_back(std::make_unique<OverworldDescribeMapCommandHandler>());
+  handlers.push_back(std::make_unique<OverworldListWarpsCommandHandler>());
+  handlers.push_back(std::make_unique<OverworldListSpritesCommandHandler>());
+  handlers.push_back(std::make_unique<OverworldGetEntranceCommandHandler>());
+  handlers.push_back(std::make_unique<OverworldTileStatsCommandHandler>());
+
+  // Resource commands
+  handlers.push_back(std::make_unique<ResourceListCommandHandler>());
+  handlers.push_back(std::make_unique<ResourceSearchCommandHandler>());
+
+  // ROM commands
+  handlers.push_back(std::make_unique<RomInfoCommandHandler>());
+  handlers.push_back(std::make_unique<RomValidateCommandHandler>());
+  handlers.push_back(std::make_unique<RomDiffCommandHandler>());
+  
   return handlers;
 }
 

@@ -47,6 +47,10 @@ class ObjectEditorCard {
   // Update current room context
   void SetCurrentRoom(int room_id) { current_room_id_ = room_id; }
 
+  // Programmatic controls for agents/automation
+  void SelectObject(int obj_id);
+  void SetAgentOptimizedLayout(bool enabled);
+
  private:
   void DrawObjectSelector();
   void DrawObjectTemplates();

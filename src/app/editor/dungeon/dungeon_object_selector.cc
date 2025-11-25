@@ -402,6 +402,25 @@ void DungeonObjectSelector::RenderObjectPrimitive(
   object_canvas_.DrawText(obj_text, x + obj_width + 2, y + 4);
 }
 
+void DungeonObjectSelector::SelectObject(int obj_id) {
+  selected_object_id_ = obj_id;
+
+  // Create and update preview object
+  preview_object_ = zelda3::RoomObject(obj_id, 0, 0, 0x12, 0);
+  preview_object_.set_rom(rom_);
+  if (rom_) {
+    auto palette =
+        rom_->palette_group().dungeon_main[current_palette_group_id_];
+    preview_palette_ = palette;
+  }
+  object_loaded_ = true;
+
+  // Notify callback
+  if (object_selected_callback_) {
+    object_selected_callback_(preview_object_);
+  }
+}
+
 void DungeonObjectSelector::DrawObjectAssetBrowser() {
   const auto& theme = AgentUI::GetTheme();
   ImGui::SeparatorText("Dungeon Objects");

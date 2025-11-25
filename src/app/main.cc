@@ -76,6 +76,7 @@ class Application {
   }
 
   void Initialize() {
+    LOG_INFO("App", "Initializing Application instance...");
     controller_ = std::make_unique<Controller>();
     
     // Process pending ROM load if we have one (from flags or queued web load)
@@ -83,6 +84,9 @@ class Application {
     if (!pending_rom_.empty()) {
       start_path = pending_rom_;
       pending_rom_.clear();
+      LOG_INFO("App", "Found pending ROM load: %s", start_path.c_str());
+    } else {
+      LOG_INFO("App", "No pending ROM, starting empty.");
     }
     
     // Always call OnEntry to initialize Window/Renderer, even with empty path
@@ -90,6 +94,7 @@ class Application {
     if (!status.ok()) {
        LOG_ERROR("App", "Failed to initialize controller: %s", std::string(status.message()).c_str());
     } else {
+       LOG_INFO("App", "Controller initialized successfully. Active: %s", controller_->IsActive() ? "Yes" : "No");
        // Controller is now active
        if (!start_path.empty()) {
            // Apply startup editor flags if set
@@ -104,8 +109,7 @@ class Application {
     if (!controller_) return;
 
 #ifdef __EMSCRIPTEN__
-    auto& wasm_collab = app::platform::GetWasmCollaborationInstance();
-    wasm_collab.SetRom(controller_->GetCurrentRom());
+// ... (keep existing code)
 #endif
 
     controller_->OnInput();
@@ -117,8 +121,14 @@ class Application {
 #endif
       return;
     }
+    
+    // Debug check if active state changed
+    if (!controller_->IsActive()) {
+        LOG_INFO("App", "Controller became inactive during Tick");
+    }
 
 #ifdef __EMSCRIPTEN__
+    auto& wasm_collab = app::platform::GetWasmCollaborationInstance();
     wasm_collab.ProcessPendingChanges();
 #endif
     controller_->DoRender();
@@ -221,6 +231,10 @@ void TickFrame() {
 
   if (!Application::Instance().IsReady() || !Application::Instance().GetController()->IsActive()) {
 #ifdef __EMSCRIPTEN__
+    LOG_INFO("App", "Shutdown triggered. Ready: %s, Active: %s", 
+             Application::Instance().IsReady() ? "Yes" : "No",
+             (Application::Instance().IsReady() && Application::Instance().GetController()->IsActive()) ? "Yes" : "No");
+             
     // Sync back to IDBFS on exit
     EM_ASM(
       FS.syncfs(false, function(err) {
