@@ -10,10 +10,9 @@ namespace yaze {
 namespace app {
 namespace platform {
 
-// Static member initialization
-std::atomic<WasmLoadingManager::LoadingHandle> WasmLoadingManager::arena_handle_{kInvalidHandle};
-
 // JavaScript interface functions
+// Note: These functions take uint32_t js_id, not the full 64-bit handle.
+// The JS layer only sees the low 32 bits which are unique IDs for UI elements.
 EM_JS(void, js_create_loading_indicator, (uint32_t id, const char* task_name), {
   if (typeof window.createLoadingIndicator === 'function') {
     window.createLoadingIndicator(id, UTF8ToString(task_name));
@@ -59,23 +58,34 @@ WasmLoadingManager::~WasmLoadingManager() {
   std::lock_guard<std::mutex> lock(mutex_);
   for (const auto& [handle, op] : operations_) {
     if (op && op->active) {
-      js_remove_loading_indicator(handle);
+      js_remove_loading_indicator(GetJsId(handle));
     }
   }
 }
 
 WasmLoadingManager::LoadingHandle WasmLoadingManager::BeginLoading(const std::string& task_name) {
   auto& instance = GetInstance();
-  LoadingHandle handle = instance.next_handle_.fetch_add(1);
+
+  // Generate unique JS ID and generation counter atomically
+  uint32_t js_id = instance.next_js_id_.fetch_add(1);
+  uint32_t generation = instance.generation_counter_.fetch_add(1);
+
+  // Create the full 64-bit handle
+  LoadingHandle handle = MakeHandle(js_id, generation);
+
   auto operation = std::make_unique<LoadingOperation>();
   operation->task_name = task_name;
   operation->active = true;
+  operation->generation = generation;
+
   {
     std::lock_guard<std::mutex> lock(instance.mutex_);
     instance.operations_[handle] = std::move(operation);
   }
-  js_create_loading_indicator(handle, task_name.c_str());
-  js_show_cancel_button(handle);
+
+  // JS functions receive only the 32-bit ID
+  js_create_loading_indicator(js_id, task_name.c_str());
+  js_show_cancel_button(js_id);
   return handle;
 }
 
@@ -83,6 +93,8 @@ void WasmLoadingManager::UpdateProgress(LoadingHandle handle, float progress) {
   if (handle == kInvalidHandle) return;
   auto& instance = GetInstance();
   std::string message;
+  uint32_t js_id = GetJsId(handle);
+
   {
     std::lock_guard<std::mutex> lock(instance.mutex_);
     auto it = instance.operations_.find(handle);
@@ -90,13 +102,16 @@ void WasmLoadingManager::UpdateProgress(LoadingHandle handle, float progress) {
     it->second->progress = progress;
     message = it->second->message;
   }
-  js_update_loading_progress(handle, progress, message.c_str());
+
+  js_update_loading_progress(js_id, progress, message.c_str());
 }
 
 void WasmLoadingManager::UpdateMessage(LoadingHandle handle, const std::string& message) {
   if (handle == kInvalidHandle) return;
   auto& instance = GetInstance();
   float progress = 0.0f;
+  uint32_t js_id = GetJsId(handle);
+
   {
     std::lock_guard<std::mutex> lock(instance.mutex_);
     auto it = instance.operations_.find(handle);
@@ -104,13 +119,18 @@ void WasmLoadingManager::UpdateMessage(LoadingHandle handle, const std::string& 
     it->second->message = message;
     progress = it->second->progress;
   }
-  js_update_loading_progress(handle, progress, message.c_str());
+
+  js_update_loading_progress(js_id, progress, message.c_str());
 }
 
 bool WasmLoadingManager::IsCancelled(LoadingHandle handle) {
   if (handle == kInvalidHandle) return false;
   auto& instance = GetInstance();
-  bool js_cancelled = js_check_loading_cancelled(handle);
+  uint32_t js_id = GetJsId(handle);
+
+  // Check JS cancellation state first (outside lock)
+  bool js_cancelled = js_check_loading_cancelled(js_id);
+
   {
     std::lock_guard<std::mutex> lock(instance.mutex_);
     auto it = instance.operations_.find(handle);
@@ -127,43 +147,94 @@ bool WasmLoadingManager::IsCancelled(LoadingHandle handle) {
 void WasmLoadingManager::EndLoading(LoadingHandle handle) {
   if (handle == kInvalidHandle) return;
   auto& instance = GetInstance();
+  uint32_t js_id = GetJsId(handle);
+
   {
     std::lock_guard<std::mutex> lock(instance.mutex_);
     auto it = instance.operations_.find(handle);
     if (it != instance.operations_.end()) {
+      // Mark inactive and erase immediately - no async delay.
+      // The 64-bit handle with generation counter ensures that even if
+      // a new operation starts immediately with the same js_id, it will
+      // have a different generation and thus a different full handle.
       it->second->active = false;
+
+      // Clear arena handle if it matches this handle
+      if (instance.arena_handle_ == handle) {
+        instance.arena_handle_ = kInvalidHandle;
+      }
+
+      // Erase synchronously - safe because generation counter prevents reuse
+      instance.operations_.erase(it);
     }
   }
-  js_remove_loading_indicator(handle);
-  emscripten_async_call(
-      [](void* arg) {
-        LoadingHandle h = static_cast<LoadingHandle>(reinterpret_cast<uintptr_t>(arg));
-        auto& inst = GetInstance();
-        std::lock_guard<std::mutex> lock(inst.mutex_);
-        inst.operations_.erase(h);
-      },
-      reinterpret_cast<void*>(static_cast<uintptr_t>(handle)), 100);
+
+  // Remove the JS UI element after releasing the lock
+  js_remove_loading_indicator(js_id);
 }
 
 bool WasmLoadingManager::ReportArenaProgress(int current, int total, const std::string& item_name) {
-  LoadingHandle handle = arena_handle_.load();
-  if (handle == kInvalidHandle) return true;
-  if (total > 0) {
-    float progress = static_cast<float>(current) / static_cast<float>(total);
-    UpdateProgress(handle, progress);
+  auto& instance = GetInstance();
+  LoadingHandle handle;
+  uint32_t js_id;
+  float progress = 0.0f;
+  bool should_update_progress = false;
+  bool should_update_message = false;
+  bool is_cancelled = false;
+
+  {
+    std::lock_guard<std::mutex> lock(instance.mutex_);
+    handle = instance.arena_handle_;
+    if (handle == kInvalidHandle) return true;
+
+    js_id = GetJsId(handle);
+
+    // Check if the operation still exists and is active
+    auto it = instance.operations_.find(handle);
+    if (it == instance.operations_.end() || !it->second->active) {
+      // Handle is stale, clear it and return
+      instance.arena_handle_ = kInvalidHandle;
+      return true;
+    }
+
+    // Update progress if applicable
+    if (total > 0) {
+      progress = static_cast<float>(current) / static_cast<float>(total);
+      it->second->progress = progress;
+      should_update_progress = true;
+    } else {
+      progress = it->second->progress;
+    }
+
+    // Update message if applicable
+    if (!item_name.empty()) {
+      it->second->message = item_name;
+      should_update_message = true;
+    }
+
+    // Check cancellation status
+    is_cancelled = it->second->cancelled.load();
   }
-  if (!item_name.empty()) {
-    UpdateMessage(handle, item_name);
+
+  // Perform JS calls outside the lock to avoid blocking
+  if (should_update_progress || should_update_message) {
+    js_update_loading_progress(js_id, progress,
+                               should_update_message ? item_name.c_str() : "");
   }
-  return !IsCancelled(handle);
+
+  return !is_cancelled;
 }
 
 void WasmLoadingManager::SetArenaHandle(LoadingHandle handle) {
-  arena_handle_.store(handle);
+  auto& instance = GetInstance();
+  std::lock_guard<std::mutex> lock(instance.mutex_);
+  instance.arena_handle_ = handle;
 }
 
 void WasmLoadingManager::ClearArenaHandle() {
-  arena_handle_.store(kInvalidHandle);
+  auto& instance = GetInstance();
+  std::lock_guard<std::mutex> lock(instance.mutex_);
+  instance.arena_handle_ = kInvalidHandle;
 }
 
 }  // namespace platform

@@ -5,6 +5,8 @@
 #include <emscripten.h>
 #include <fstream>
 #include <algorithm>
+#include <mutex>
+#include <queue>
 #include <vector>
 #include "app/platform/wasm/wasm_config.h"
 #include "app/platform/wasm/wasm_drop_handler.h"
@@ -14,7 +16,8 @@ namespace {
 
 bool g_filesystem_ready = false;
 std::function<void(std::string)> g_rom_load_handler;
-std::string g_pending_rom_load;
+std::queue<std::string> g_pending_rom_loads;
+std::mutex g_rom_load_mutex;
 
 } // namespace
 
@@ -39,8 +42,28 @@ void LoadRomFromWeb(const char* filename) {
     LOG_ERROR("Wasm", "LoadRomFromWeb called with null filename");
     return;
   }
-  
-  yaze::app::wasm::TriggerRomLoad(filename);
+
+  std::string path(filename);
+
+  // Validate path is not empty
+  if (path.empty()) {
+    LOG_ERROR("Wasm", "LoadRomFromWeb called with empty filename");
+    return;
+  }
+
+  // Validate path doesn't contain path traversal
+  if (path.find("..") != std::string::npos) {
+    LOG_ERROR("Wasm", "LoadRomFromWeb: path traversal not allowed: %s", filename);
+    return;
+  }
+
+  // Validate reasonable path length (max 512 chars)
+  if (path.length() > 512) {
+    LOG_ERROR("Wasm", "LoadRomFromWeb: path too long (%zu chars)", path.length());
+    return;
+  }
+
+  yaze::app::wasm::TriggerRomLoad(path);
 }
 
 } // extern "C"
@@ -132,22 +155,25 @@ bool IsFileSystemReady() {
 }
 
 void SetRomLoadHandler(std::function<void(std::string)> handler) {
+  std::lock_guard<std::mutex> lock(g_rom_load_mutex);
   g_rom_load_handler = handler;
-  
-  // Flush pending load if any
-  if (!g_pending_rom_load.empty()) {
-    LOG_INFO("Wasm", "Flushing pending ROM load: %s", g_pending_rom_load.c_str());
-    handler(g_pending_rom_load);
-    g_pending_rom_load.clear();
+
+  // Flush all pending ROM loads
+  while (!g_pending_rom_loads.empty()) {
+    std::string path = g_pending_rom_loads.front();
+    g_pending_rom_loads.pop();
+    LOG_INFO("Wasm", "Flushing pending ROM load: %s", path.c_str());
+    handler(path);
   }
 }
 
 void TriggerRomLoad(const std::string& path) {
+  std::lock_guard<std::mutex> lock(g_rom_load_mutex);
   if (g_rom_load_handler) {
     g_rom_load_handler(path);
   } else {
     LOG_INFO("Wasm", "Queuing ROM load (handler not ready): %s", path.c_str());
-    g_pending_rom_load = path;
+    g_pending_rom_loads.push(path);
   }
 }
 

@@ -24,6 +24,15 @@ namespace platform {
  * in the browser environment. It integrates with JavaScript UI to show progress
  * indicators with cancel capability.
  *
+ * Handle Design:
+ * The LoadingHandle is a 64-bit value composed of:
+ * - High 32 bits: Generation counter (prevents handle reuse after EndLoading)
+ * - Low 32 bits: Unique ID for JS interop
+ *
+ * This design eliminates race conditions where a new operation could reuse
+ * the same ID as a recently-ended operation. Operations are deleted
+ * synchronously in EndLoading() rather than using async callbacks.
+ *
  * Example usage:
  * @code
  * auto handle = WasmLoadingManager::BeginLoading("Loading Graphics");
@@ -43,13 +52,26 @@ class WasmLoadingManager {
  public:
   /**
    * @brief Handle for tracking a loading operation
+   *
+   * 64-bit handle with generation counter to prevent reuse race conditions:
+   * - High 32 bits: Generation counter
+   * - Low 32 bits: JS-visible ID
    */
-  using LoadingHandle = uint32_t;
+  using LoadingHandle = uint64_t;
 
   /**
    * @brief Invalid handle value
    */
   static constexpr LoadingHandle kInvalidHandle = 0;
+
+  /**
+   * @brief Extract the JS-visible ID from a handle (low 32 bits)
+   * @param handle The full 64-bit handle
+   * @return The 32-bit JS ID
+   */
+  static uint32_t GetJsId(LoadingHandle handle) {
+    return static_cast<uint32_t>(handle & 0xFFFFFFFF);
+  }
 
   /**
    * @brief Begin a new loading operation
@@ -124,6 +146,7 @@ class WasmLoadingManager {
     std::string message;
     std::atomic<bool> cancelled{false};
     bool active = true;
+    uint32_t generation = 0;  // Generation counter for validation
   };
 
   /**
@@ -148,12 +171,37 @@ class WasmLoadingManager {
   WasmLoadingManager& operator=(WasmLoadingManager&&) = delete;
 
   /**
-   * @brief Next available handle ID
+   * @brief Create a handle from JS ID and generation
    */
-  std::atomic<LoadingHandle> next_handle_{1};
+  static LoadingHandle MakeHandle(uint32_t js_id, uint32_t generation) {
+    return (static_cast<uint64_t>(generation) << 32) | js_id;
+  }
 
   /**
-   * @brief Active loading operations
+   * @brief Extract generation from handle (high 32 bits)
+   */
+  static uint32_t GetGeneration(LoadingHandle handle) {
+    return static_cast<uint32_t>(handle >> 32);
+  }
+
+  /**
+   * @brief Next available JS ID (low 32 bits of handle)
+   *
+   * This counter only increments, never wraps. With 32 bits, even at
+   * 1000 operations/second, it would take ~50 days to wrap.
+   */
+  std::atomic<uint32_t> next_js_id_{1};
+
+  /**
+   * @brief Generation counter to prevent handle reuse
+   *
+   * Incremented each time BeginLoading is called. Combined with js_id
+   * to create unique 64-bit handles that cannot be accidentally reused.
+   */
+  std::atomic<uint32_t> generation_counter_{1};
+
+  /**
+   * @brief Active loading operations, keyed by full 64-bit handle
    */
   std::unordered_map<LoadingHandle, std::unique_ptr<LoadingOperation>>
       operations_;
@@ -164,9 +212,12 @@ class WasmLoadingManager {
   std::mutex mutex_;
 
   /**
-   * @brief Global handle for Arena operations
+   * @brief Global handle for Arena operations (protected by mutex_)
+   *
+   * NOTE: This is a non-static member protected by mutex_ to prevent
+   * race conditions between ReportArenaProgress() and ClearArenaHandle().
    */
-  static std::atomic<LoadingHandle> arena_handle_;
+  LoadingHandle arena_handle_ = kInvalidHandle;
 };
 
 }  // namespace platform
