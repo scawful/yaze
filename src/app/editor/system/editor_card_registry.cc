@@ -617,11 +617,12 @@ void EditorCardRegistry::DrawSidebar(
       ImGui::Dummy(ImVec2(0, 2.0f));
 
       // Calculate available height for scrollable card region
-      // Reserve space for: utility icons (4 buttons * 36px + spacing) + collapse button + separators
-      const float utility_section_height = 4 * 40.0f + 80.0f;  // 4 utility buttons + collapse + separators
+      // Reserve space for: utility icons (4 buttons * 36px) + collapse button (36px) + separators/spacing (~50px)
+      const float utility_section_height = 4 * 36.0f + 36.0f + 60.0f;  // ~240px total
       const float current_y = ImGui::GetCursorPosY();
-      const float available_height = viewport_height - current_y - utility_section_height;
-      
+      const float window_padding = 8.0f * 2;  // Top + bottom padding
+      const float available_height = viewport_height - current_y - utility_section_height - window_padding;
+
       // Scrollable region for card buttons (only if there's room)
       if (available_height > 50.0f) {
         ImGui::BeginChild("##CardScrollRegion", ImVec2(42.0f, available_height), false,

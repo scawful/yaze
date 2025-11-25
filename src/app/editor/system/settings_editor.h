@@ -244,6 +244,14 @@ class SettingsEditor : public Editor {
     return true;
   }  // Allow access without ROM for global settings
 
+  /**
+   * @brief Draw settings inline without window wrappers
+   *
+   * Use this for embedding in panels like RightPanelManager.
+   * Unlike Update(), this does not create card windows.
+   */
+  void DrawInlineSettings();
+
  private:
   Rom* rom_;
   UserSettings* user_settings_;

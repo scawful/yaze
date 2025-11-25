@@ -661,13 +661,9 @@ absl::Status EditorManager::Update() {
   }
 
 #ifdef YAZE_WITH_GRPC
-  // Update agent editor dashboard
+  // Update agent editor dashboard (only when agent editor view is active)
+  // Note: AgentChatWidget is drawn through RightPanelManager, not here
   status_ = agent_editor_.Update();
-
-  // Draw chat widget separately (always visible when active)
-  if (agent_editor_.GetChatWidget()) {
-    agent_editor_.GetChatWidget()->Draw();
-  }
 #endif
 
   // Draw background grid effects for the entire viewport
@@ -820,8 +816,8 @@ absl::Status EditorManager::Update() {
     gfx::PerformanceDashboard::Get().Render();
   }
 
-  // Always draw proposal drawer (it manages its own visibility)
-  proposal_drawer_.Draw();
+  // Proposal drawer is now drawn through RightPanelManager
+  // Removed duplicate direct call - DrawProposalsPanel() in RightPanelManager handles it
 
 #ifdef YAZE_WITH_GRPC
   // Update ROM context for agent editor
@@ -1015,9 +1011,8 @@ void EditorManager::DrawMenuBar() {
   }
 #endif
 
-  // Agent proposal drawer (right side)
+  // Update proposal drawer ROM context (drawing handled by RightPanelManager)
   proposal_drawer_.SetRom(GetCurrentRom());
-  proposal_drawer_.Draw();
 
 #ifdef YAZE_WITH_GRPC
   // Agent chat history popup (left side)
@@ -1236,6 +1231,12 @@ absl::Status EditorManager::LoadAssets() {
 #ifdef __EMSCRIPTEN__
   update_progress("Finishing up...");
 #endif
+
+  // Set up RightPanelManager with session's settings editor
+  if (right_panel_manager_) {
+    right_panel_manager_->SetSettingsEditor(&current_editor_set->settings_editor_);
+  }
+
   gfx::PerformanceProfiler::Get().PrintSummary();
 
 #ifdef __EMSCRIPTEN__
@@ -1652,7 +1653,13 @@ void EditorManager::SwitchToSession(size_t index) {
 
   session_coordinator_->SwitchToSession(index);
 
-  // This logic is now handled by SessionCoordinator and GetCurrent... methods.
+  // Update RightPanelManager with the new session's settings editor
+  if (right_panel_manager_) {
+    auto* editor_set = GetCurrentEditorSet();
+    if (editor_set) {
+      right_panel_manager_->SetSettingsEditor(&editor_set->settings_editor_);
+    }
+  }
 
 #ifdef YAZE_ENABLE_TESTING
   test::TestManager::Get().SetCurrentRom(GetCurrentRom());

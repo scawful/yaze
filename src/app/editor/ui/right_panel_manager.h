@@ -159,10 +159,10 @@ class RightPanelManager {
   // Active panel
   PanelType active_panel_ = PanelType::kNone;
 
-  // Panel widths (customizable per panel type)
-  float agent_chat_width_ = 380.0f;
+  // Panel widths (customizable per panel type) - consistent sizing
+  float agent_chat_width_ = 420.0f;  // Match proposals for consistency
   float proposals_width_ = 420.0f;
-  float settings_width_ = 480.0f;
+  float settings_width_ = 420.0f;    // Same width for unified look
   float help_width_ = 350.0f;
 
   // Component references (not owned)
