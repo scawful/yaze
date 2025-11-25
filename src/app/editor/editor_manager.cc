@@ -210,6 +210,11 @@ EditorManager::EditorManager()
   // STEP 4.5: Initialize LayoutManager (DockBuilder layouts for editors)
   layout_manager_ = std::make_unique<LayoutManager>();
 
+  // STEP 4.6: Initialize RightPanelManager (right-side sliding panels)
+  right_panel_manager_ = std::make_unique<RightPanelManager>();
+  right_panel_manager_->SetToastManager(&toast_manager_);
+  right_panel_manager_->SetProposalDrawer(&proposal_drawer_);
+
   // STEP 5: ShortcutConfigurator created later in Initialize() method
   // It depends on all above coordinators being available
 }
@@ -368,6 +373,10 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
   if (agent_editor_.GetChatWidget()) {
     agent_editor_.GetChatWidget()->SetChatHistoryPopup(
         &agent_chat_history_popup_);
+    // Wire up right panel manager with agent chat widget
+    if (right_panel_manager_) {
+      right_panel_manager_->SetAgentChatWidget(agent_editor_.GetChatWidget());
+    }
   }
 #endif
 
@@ -686,6 +695,85 @@ absl::Status EditorManager::Update() {
     ui_coordinator_->DrawAllUI();
   }
 
+  // Get current editor set for sidebar/panel logic (needed before early return)
+  auto* current_editor_set = GetCurrentEditorSet();
+
+  // Draw sidebar BEFORE early return so it appears even when no ROM is loaded
+  // This fixes the issue where sidebar/panel drawing was unreachable without ROM
+  if (ui_coordinator_ && ui_coordinator_->IsCardSidebarVisible() &&
+      !card_registry_.IsSidebarCollapsed()) {
+    if (current_editor_set && session_coordinator_) {
+      // ROM is loaded - collect active card-based editors for full sidebar
+      std::vector<std::string> active_categories;
+      for (size_t session_idx = 0;
+           session_idx < session_coordinator_->GetTotalSessionCount();
+           ++session_idx) {
+        auto* session = static_cast<RomSession*>(
+            session_coordinator_->GetSession(session_idx));
+        if (!session || !session->rom.is_loaded())
+          continue;
+
+        for (auto editor : session->editors.active_editors_) {
+          if (*editor->active() && IsCardBasedEditor(editor->type())) {
+            std::string category =
+                EditorRegistry::GetEditorCategory(editor->type());
+            if (std::find(active_categories.begin(), active_categories.end(),
+                          category) == active_categories.end()) {
+              active_categories.push_back(category);
+            }
+          }
+        }
+      }
+
+      // Determine which category to show in sidebar
+      std::string sidebar_category;
+
+      // Priority 1: Use active_category from card manager (user's last
+      // interaction)
+      if (!card_registry_.GetActiveCategory().empty() &&
+          std::find(active_categories.begin(), active_categories.end(),
+                    card_registry_.GetActiveCategory()) !=
+              active_categories.end()) {
+        sidebar_category = card_registry_.GetActiveCategory();
+      }
+      // Priority 2: Use first active category
+      else if (!active_categories.empty()) {
+        sidebar_category = active_categories[0];
+        card_registry_.SetActiveCategory(sidebar_category);
+      }
+
+      // Draw sidebar with content if we have a category, or placeholder if not
+      if (!sidebar_category.empty()) {
+        // Callback to switch editors when category button is clicked
+        auto category_switch_callback =
+            [this](const std::string& new_category) {
+              EditorType editor_type =
+                  EditorRegistry::GetEditorTypeFromCategory(new_category);
+              if (editor_type != EditorType::kUnknown) {
+                SwitchToEditor(editor_type);
+              }
+            };
+
+        auto collapse_callback = []() {};
+
+        card_registry_.DrawSidebar(sidebar_category, active_categories,
+                                   category_switch_callback, collapse_callback);
+      } else {
+        // No active card-based editors - draw placeholder
+        DrawPlaceholderSidebar();
+      }
+    } else {
+      // No ROM loaded - draw placeholder sidebar with "Open ROM" hint
+      DrawPlaceholderSidebar();
+    }
+  }
+
+  // Draw right panel BEFORE early return (agent chat, proposals, settings)
+  if (right_panel_manager_) {
+    right_panel_manager_->SetRom(GetCurrentRom());
+    right_panel_manager_->Draw();
+  }
+
   // Autosave timer
   if (user_settings_.prefs().autosave_enabled && current_rom &&
       current_rom->dirty()) {
@@ -708,9 +796,9 @@ absl::Status EditorManager::Update() {
   }
 
   // Check if ROM is loaded before allowing editor updates
-  auto* current_editor_set = GetCurrentEditorSet();
   if (!current_editor_set) {
     // No ROM loaded - welcome screen shown by UICoordinator above
+    // Sidebar and right panel have already been drawn above
     return absl::OkStatus();
   }
 
@@ -742,72 +830,6 @@ absl::Status EditorManager::Update() {
   }
 #endif
 
-  // Draw unified sidebar LAST so it appears on top of all other windows
-  if (ui_coordinator_ && ui_coordinator_->IsCardSidebarVisible() &&
-      current_editor_set) {
-    // Using EditorCardRegistry directly
-
-    // Collect all active card-based editors
-    std::vector<std::string> active_categories;
-    if (session_coordinator_) {
-      for (size_t session_idx = 0; session_idx < session_coordinator_->GetTotalSessionCount();
-           ++session_idx) {
-        auto* session = static_cast<RomSession*>(session_coordinator_->GetSession(session_idx));
-        if (!session || !session->rom.is_loaded())
-          continue;
-
-        for (auto editor : session->editors.active_editors_) {
-          if (*editor->active() && IsCardBasedEditor(editor->type())) {
-            std::string category =
-                EditorRegistry::GetEditorCategory(editor->type());
-            if (std::find(active_categories.begin(), active_categories.end(),
-                          category) == active_categories.end()) {
-              active_categories.push_back(category);
-            }
-          }
-        }
-      }
-    }
-
-    // Determine which category to show in sidebar
-    std::string sidebar_category;
-
-    // Priority 1: Use active_category from card manager (user's last
-    // interaction)
-    if (!card_registry_.GetActiveCategory().empty() &&
-        std::find(active_categories.begin(), active_categories.end(),
-                  card_registry_.GetActiveCategory()) !=
-            active_categories.end()) {
-      sidebar_category = card_registry_.GetActiveCategory();
-    }
-    // Priority 2: Use first active category
-    else if (!active_categories.empty()) {
-      sidebar_category = active_categories[0];
-      card_registry_.SetActiveCategory(sidebar_category);
-    }
-
-    // Draw sidebar if we have a category
-    if (!sidebar_category.empty()) {
-      // Callback to switch editors when category button is clicked
-      auto category_switch_callback = [this](const std::string& new_category) {
-        EditorType editor_type =
-            EditorRegistry::GetEditorTypeFromCategory(new_category);
-        if (editor_type != EditorType::kUnknown) {
-          SwitchToEditor(editor_type);
-        }
-      };
-
-      // No-op collapse callback - sidebar_collapsed_ handles the collapsed state internally
-      // The collapsed sidebar strip is always shown when IsCardSidebarVisible() is true
-      auto collapse_callback = []() {
-        // Intentionally empty - collapse state is managed by EditorCardRegistry::sidebar_collapsed_
-      };
-
-      card_registry_.DrawSidebar(sidebar_category, active_categories,
-                                 category_switch_callback, collapse_callback);
-    }
-  }
-
   // Draw SessionCoordinator UI components
   if (session_coordinator_) {
     session_coordinator_->DrawSessionSwitcher();
@@ -819,6 +841,62 @@ absl::Status EditorManager::Update() {
 }
 
 // DrawContextSensitiveCardControl removed - card control is now in the sidebar
+
+void EditorManager::DrawPlaceholderSidebar() {
+  // Draw a placeholder sidebar when no ROM is loaded or no editor is active
+  // Sidebar fills full viewport height (menu bar is only in dockspace region)
+  const ImGuiViewport* viewport = ImGui::GetMainViewport();
+  const float viewport_height = viewport->WorkSize.y;
+  const float sidebar_width = EditorCardRegistry::GetSidebarWidth();
+
+  // Use theme colors for sidebar background
+  const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
+  ImVec4 sidebar_bg = gui::ConvertColorToImVec4(theme.surface);
+  ImVec4 sidebar_border = gui::ConvertColorToImVec4(theme.text_disabled);
+
+  ImGuiWindowFlags sidebar_flags =
+      ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
+      ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse |
+      ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoScrollbar |
+      ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoFocusOnAppearing |
+      ImGuiWindowFlags_NoNavFocus;
+
+  // Position at top-left corner, full height (no menu bar offset - menu bar is in dockspace)
+  ImGui::SetNextWindowPos(ImVec2(viewport->WorkPos.x, viewport->WorkPos.y));
+  ImGui::SetNextWindowSize(ImVec2(sidebar_width, viewport_height));
+
+  ImGui::PushStyleColor(ImGuiCol_WindowBg, sidebar_bg);
+  ImGui::PushStyleColor(ImGuiCol_Border, sidebar_border);
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4.0f, 8.0f));
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 2.0f);
+
+  if (ImGui::Begin("##PlaceholderSidebar", nullptr, sidebar_flags)) {
+    // Center the content vertically
+    float content_height = 80.0f;
+    ImGui::Dummy(ImVec2(0, (viewport_height - content_height) / 3.0f));
+
+    // "No ROM" indicator
+    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.5f, 0.5f, 0.5f, 1.0f));
+
+    // File icon
+    float icon_width = ImGui::CalcTextSize(ICON_MD_FOLDER_OPEN).x;
+    ImGui::SetCursorPosX((sidebar_width - icon_width) / 2.0f);
+    ImGui::Text("%s", ICON_MD_FOLDER_OPEN);
+
+    // Help text (rotated would be ideal but we'll use small text)
+    ImGui::Dummy(ImVec2(0, 8.0f));
+    ImGui::SetCursorPosX(4.0f);
+    ImGui::TextWrapped("Open");
+    ImGui::SetCursorPosX(4.0f);
+    ImGui::TextWrapped("ROM");
+
+    ImGui::PopStyleColor();
+  }
+  ImGui::End();
+
+  ImGui::PopStyleVar(2);
+  ImGui::PopStyleColor(2);
+}
 
 /**
  * @brief Draw the main menu bar
@@ -838,23 +916,29 @@ void EditorManager::DrawMenuBar() {
   static bool show_display_settings = false;
 
   if (ImGui::BeginMenuBar()) {
-    // Sidebar toggle icon (hamburger menu) - only shown when sidebar is collapsed
-    if (card_registry_.IsSidebarCollapsed()) {
-      ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
-      ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
-                            ImVec4(0.3f, 0.3f, 0.35f, 0.5f));
-      ImGui::PushStyleColor(ImGuiCol_ButtonActive,
-                            ImVec4(0.25f, 0.25f, 0.3f, 0.7f));
+    // Sidebar toggle - ALWAYS visible with dynamic icon based on state
+    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
+                          gui::GetSurfaceContainerHighVec4());
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive,
+                          gui::GetSurfaceContainerHighestVec4());
 
-      if (ImGui::SmallButton(ICON_MD_MENU)) {
-        card_registry_.SetSidebarCollapsed(false);
-      }
+    // Show different icon based on sidebar state
+    const char* sidebar_icon = card_registry_.IsSidebarCollapsed()
+                                   ? ICON_MD_MENU
+                                   : ICON_MD_MENU_OPEN;
 
-      ImGui::PopStyleColor(3);
+    if (ImGui::SmallButton(sidebar_icon)) {
+      card_registry_.ToggleSidebarCollapsed();
+    }
 
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Show Sidebar (Ctrl+B)");
-      }
+    ImGui::PopStyleColor(3);
+
+    if (ImGui::IsItemHovered()) {
+      const char* tooltip = card_registry_.IsSidebarCollapsed()
+                                ? "Show Sidebar (Ctrl+B)"
+                                : "Hide Sidebar (Ctrl+B)";
+      ImGui::SetTooltip("%s", tooltip);
     }
 
     // Delegate menu building to MenuOrchestrator

@@ -14,6 +14,7 @@
 #include "app/editor/editor.h"
 #include "app/editor/editor_manager.h"
 #include "app/editor/system/editor_registry.h"
+#include "app/editor/ui/right_panel_manager.h"
 #include "app/editor/system/popup_manager.h"
 #include "app/editor/system/project_manager.h"
 #include "app/editor/system/rom_file_manager.h"
@@ -148,20 +149,30 @@ void UICoordinator::DrawAllUI() {
 
 void UICoordinator::DrawMenuBarExtras() {
   // Compact right-aligned status cluster:
-  // [●][🔔][📄▾][v0.x.x]
-  // dirty bell session version
+  // [v0.x.x][●][📄▾][panels][🔔]
+  // version dirty session panels bell
 
   auto* current_rom = editor_manager_->GetCurrentRom();
   std::string version_text =
       absl::StrFormat("v%s", editor_manager_->version().c_str());
 
   // Calculate cluster width for right alignment
-  float cluster_width = 150.0f;
+  float cluster_width = 220.0f;
   ImGui::SameLine(ImGui::GetWindowWidth() - cluster_width);
 
-  // 1. Dirty badge - orange dot, only when ROM has unsaved changes
+  // Reduce spacing between elements for a more compact cluster
+  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(2.0f, 0.0f));
+
+  // 1. Version - always visible, subdued gray text (leftmost)
+  ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextDisabledVec4());
+  ImGui::Text("%s", version_text.c_str());
+  ImGui::PopStyleColor();
+  ImGui::SameLine();
+
+  // 2. Dirty badge - warning color dot, only when ROM has unsaved changes
   if (current_rom && current_rom->is_loaded() && current_rom->dirty()) {
-    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.6f, 0.2f, 1.0f));
+    const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
+    ImGui::PushStyleColor(ImGuiCol_Text, gui::ConvertColorToImVec4(theme.warning));
     ImGui::Text(ICON_MD_FIBER_MANUAL_RECORD);
     ImGui::PopStyleColor();
     if (ImGui::IsItemHovered()) {
@@ -170,20 +181,88 @@ void UICoordinator::DrawMenuBarExtras() {
     ImGui::SameLine();
   }
 
-  // 2. Notification bell - shows history dropdown
-  DrawNotificationBell();
-    ImGui::SameLine();
-
   // 3. Session button - layers icon, only if 2+ sessions open
   if (session_coordinator_.HasMultipleSessions()) {
     DrawSessionButton();
     ImGui::SameLine();
   }
 
-  // 4. Version - always visible, subdued gray text
-  ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextDisabledVec4());
-  ImGui::Text("%s", version_text.c_str());
-  ImGui::PopStyleColor();
+  // 4. Panel toggle buttons (Agent, Proposals, Settings) for right sidebar
+  if (editor_manager_->right_panel_manager()) {
+    editor_manager_->right_panel_manager()->DrawPanelToggleButtons();
+    ImGui::SameLine();
+  }
+
+  // 5. Notification bell - shows history dropdown (rightmost)
+  DrawNotificationBell();
+
+  ImGui::PopStyleVar();  // ItemSpacing
+
+#ifdef __EMSCRIPTEN__
+  // 6. Menu bar toggle button (WASM only) - allows hiding menu bar for clean web UI
+  ImGui::SameLine();
+  ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+  ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
+                        gui::GetSurfaceContainerHighVec4());
+  ImGui::PushStyleColor(ImGuiCol_ButtonActive,
+                        gui::GetSurfaceContainerHighestVec4());
+  ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
+
+  if (ImGui::SmallButton(ICON_MD_FULLSCREEN)) {
+    show_menu_bar_ = false;
+  }
+
+  ImGui::PopStyleColor(4);
+
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("Hide menu bar (Alt to restore)");
+  }
+#endif
+}
+
+void UICoordinator::DrawMenuBarRestoreButton() {
+  // Only draw when menu bar is hidden (primarily for WASM builds)
+  if (show_menu_bar_) {
+    return;
+  }
+
+  // Small floating button in top-left corner to restore menu bar
+  ImGuiWindowFlags flags = ImGuiWindowFlags_NoTitleBar |
+                           ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
+                           ImGuiWindowFlags_NoScrollbar |
+                           ImGuiWindowFlags_NoCollapse |
+                           ImGuiWindowFlags_AlwaysAutoResize |
+                           ImGuiWindowFlags_NoBackground |
+                           ImGuiWindowFlags_NoSavedSettings;
+
+  ImGui::SetNextWindowPos(ImVec2(8, 8));
+  ImGui::SetNextWindowBgAlpha(0.7f);
+
+  if (ImGui::Begin("##MenuBarRestore", nullptr, flags)) {
+    ImGui::PushStyleColor(ImGuiCol_Button, gui::GetSurfaceContainerVec4());
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
+                          gui::GetSurfaceContainerHighVec4());
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive,
+                          gui::GetSurfaceContainerHighestVec4());
+    ImGui::PushStyleColor(ImGuiCol_Text, gui::GetPrimaryVec4());
+
+    if (ImGui::Button(ICON_MD_FULLSCREEN_EXIT, ImVec2(32, 32))) {
+      show_menu_bar_ = true;
+    }
+
+    ImGui::PopStyleColor(4);
+
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Show menu bar (Alt)");
+    }
+  }
+  ImGui::End();
+
+  // Also check for Alt key to restore menu bar
+  if (ImGui::IsKeyPressed(ImGuiKey_LeftAlt) ||
+      ImGui::IsKeyPressed(ImGuiKey_RightAlt)) {
+    show_menu_bar_ = true;
+  }
 }
 
 void UICoordinator::DrawNotificationBell() {
@@ -202,20 +281,32 @@ void UICoordinator::DrawNotificationBell() {
     ImGui::PushStyleColor(ImGuiCol_ButtonActive, gui::GetSurfaceContainerHighestVec4());
   }
 
+  // Store button position for popup anchoring
+  ImVec2 button_min = ImGui::GetCursorScreenPos();
+
   if (ImGui::SmallButton(ICON_MD_NOTIFICATIONS)) {
     ImGui::OpenPopup("##NotificationHistory");
     toast_manager_.MarkAllRead();
   }
 
+  ImVec2 button_max = ImGui::GetItemRectMax();
+
   ImGui::PopStyleColor(4);
 
-    if (ImGui::IsItemHovered()) {
+  if (ImGui::IsItemHovered()) {
     if (unread > 0) {
       ImGui::SetTooltip("%zu new notification%s", unread, unread == 1 ? "" : "s");
     } else {
       ImGui::SetTooltip("No new notifications");
     }
   }
+
+  // Anchor popup to right edge - position so right edge aligns with screen edge
+  const float popup_width = 320.0f;
+  const float screen_width = ImGui::GetIO().DisplaySize.x;
+  const float popup_x = std::min(button_min.x, screen_width - popup_width - 10.0f);
+
+  ImGui::SetNextWindowPos(ImVec2(popup_x, button_max.y + 2.0f), ImGuiCond_Appearing);
 
   // Notification history dropdown popup
   if (ImGui::BeginPopup("##NotificationHistory")) {
@@ -231,25 +322,26 @@ void UICoordinator::DrawNotificationBell() {
       for (const auto& entry : history) {
         if (shown >= 15) break;
 
-        // Icon and color based on type
+        // Icon and color based on type - use theme colors
         const char* icon;
+        const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
         ImVec4 color;
         switch (entry.type) {
           case ToastType::kSuccess:
             icon = ICON_MD_CHECK_CIRCLE;
-            color = ImVec4(0.3f, 0.8f, 0.3f, 1.0f);
+            color = gui::ConvertColorToImVec4(theme.success);
             break;
           case ToastType::kWarning:
             icon = ICON_MD_WARNING;
-            color = ImVec4(1.0f, 0.7f, 0.2f, 1.0f);
+            color = gui::ConvertColorToImVec4(theme.warning);
             break;
           case ToastType::kError:
             icon = ICON_MD_ERROR;
-            color = ImVec4(1.0f, 0.3f, 0.3f, 1.0f);
+            color = gui::ConvertColorToImVec4(theme.error);
             break;
           default:
             icon = ICON_MD_INFO;
-            color = ImVec4(0.4f, 0.7f, 1.0f, 1.0f);
+            color = gui::ConvertColorToImVec4(theme.info);
             break;
         }
 
@@ -304,9 +396,14 @@ void UICoordinator::DrawSessionButton() {
   ImGui::PushStyleColor(ImGuiCol_ButtonHovered, gui::GetSurfaceContainerHighVec4());
   ImGui::PushStyleColor(ImGuiCol_ButtonActive, gui::GetSurfaceContainerHighestVec4());
 
+  // Store button position for popup anchoring
+  ImVec2 button_min = ImGui::GetCursorScreenPos();
+
   if (ImGui::SmallButton(ICON_MD_LAYERS)) {
     ImGui::OpenPopup("##SessionSwitcherPopup");
   }
+
+  ImVec2 button_max = ImGui::GetItemRectMax();
 
   ImGui::PopStyleColor(3);
 
@@ -318,6 +415,13 @@ void UICoordinator::DrawSessionButton() {
         tooltip.c_str(),
         session_coordinator_.GetActiveSessionCount());
   }
+
+  // Anchor popup to right edge - position so right edge aligns with button
+  const float popup_width = 250.0f;
+  const float screen_width = ImGui::GetIO().DisplaySize.x;
+  const float popup_x = std::min(button_min.x, screen_width - popup_width - 10.0f);
+
+  ImGui::SetNextWindowPos(ImVec2(popup_x, button_max.y + 2.0f), ImGuiCond_Appearing);
 
   // Session switcher popup
   if (ImGui::BeginPopup("##SessionSwitcherPopup")) {
@@ -434,6 +538,11 @@ void UICoordinator::DrawWelcomeScreen() {
 
   // Update recent projects before showing
   welcome_screen_->RefreshRecentProjects();
+
+  // Pass layout offsets so welcome screen centers within dockspace region
+  float left_offset = editor_manager_->GetLeftLayoutOffset();
+  float right_offset = editor_manager_->GetRightLayoutOffset();
+  welcome_screen_->SetLayoutOffsets(left_offset, right_offset);
 
   // Show the welcome screen window
   bool is_open = true;

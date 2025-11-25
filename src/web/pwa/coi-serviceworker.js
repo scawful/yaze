@@ -8,15 +8,27 @@
  * - Cross-Origin-Embedder-Policy: require-corp
  */
 
+// Allow users to reset COI state via URL parameter: ?reset-coi=1
+if (typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('reset-coi')) {
+    console.log('[COI] Resetting COI state...');
+    window.sessionStorage.removeItem("coiReloadedBySelf");
+    window.sessionStorage.removeItem("coiAttempted");
+    // Remove the parameter and reload
+    const url = new URL(window.location);
+    url.searchParams.delete('reset-coi');
+    window.location.replace(url);
+}
+
 // BLOCKING CHECK: If we need COI setup, stop everything immediately
 if (typeof window !== 'undefined' && typeof SharedArrayBuffer === 'undefined') {
     const n = navigator;
     const reloadedBySelf = window.sessionStorage.getItem("coiReloadedBySelf");
 
     if (reloadedBySelf) {
-        // Already reloaded but still no SAB - COI failed, let error show
-        console.error('[COI] Failed: SharedArrayBuffer unavailable after COI setup.');
-        window.YAZE_COI_FAILED = true;
+        // Already reloaded - give the SW time to take control
+        // Don't immediately fail; the deferred code will handle further checks
+        console.log('[COI] Waiting for service worker to take control...');
+        // Don't set YAZE_COI_FAILED here - let the page continue and check again
     } else if (n.serviceWorker?.controller) {
         // SW is controlling but SAB not available, reload to apply headers
         console.log('[COI] Blocking: SW controlling, reloading for headers...');
@@ -178,12 +190,14 @@ if (typeof window === 'undefined') {
 } else {
     (() => {
         const reloadedBySelf = window.sessionStorage.getItem("coiReloadedBySelf");
-        window.sessionStorage.removeItem("coiReloadedBySelf");
+        // DON'T remove the flag yet - only remove it once COI is confirmed working
+        // This prevents the reload loop where the flag gets cleared before the reload completes
         const coepDegrading = (reloadedBySelf === "coepDegrade");
 
-        // Clear coiAttempted on successful COI setup
+        // Clear session flags on successful COI setup
         if (window.crossOriginIsolated) {
             window.sessionStorage.removeItem("coiAttempted");
+            window.sessionStorage.removeItem("coiReloadedBySelf");
         }
 
         // Detect Firefox - it needs require-corp, not credentialless
@@ -232,9 +246,10 @@ if (typeof window === 'undefined') {
             return;
         }
 
-        // If COI is now working after our reload, clear the attempt marker
+        // If COI is now working after our reload, clear session markers
         if (window.crossOriginIsolated && window.SharedArrayBuffer !== undefined) {
             window.sessionStorage.removeItem("coiAttempted");
+            window.sessionStorage.removeItem("coiReloadedBySelf");
             if (!coi.quiet) console.log("COI: SharedArrayBuffer enabled successfully!");
             return;
         }
@@ -299,12 +314,54 @@ if (typeof window === 'undefined') {
                 value: coi.coepCredentialless() || coepDegrading,
             });
         } else if (n.serviceWorker) {
-            // shouldRegister() returned false - we already reloaded, just send config
+            // shouldRegister() returned false - we already reloaded
             if (!coi.quiet) console.log("COI: Skipping registration (already reloaded)");
+
+            // Send config to controller if available
             n.serviceWorker.controller?.postMessage({
                 type: "coepCredentialless",
                 value: coi.coepCredentialless() || coepDegrading,
             });
+
+            // If we've reloaded but SW still not controlling, wait for it
+            if (reloadedBySelf && !n.serviceWorker.controller) {
+                if (!coi.quiet) console.log("COI: Waiting for SW to take control...");
+
+                // Listen for controller change
+                n.serviceWorker.addEventListener('controllerchange', () => {
+                    if (!coi.quiet) console.log("COI: Controller changed, checking SAB...");
+
+                    // Give browser a moment to update isolation state
+                    setTimeout(() => {
+                        if (typeof SharedArrayBuffer !== 'undefined') {
+                            if (!coi.quiet) console.log("COI: SharedArrayBuffer now available!");
+                            window.sessionStorage.removeItem("coiReloadedBySelf");
+                            window.sessionStorage.removeItem("coiAttempted");
+                            window.location.reload();
+                        } else {
+                            // SW is controlling but SAB still not available
+                            // This means COI actually failed
+                            console.error('[COI] Failed: SW controlling but SharedArrayBuffer unavailable');
+                            window.YAZE_COI_FAILED = true;
+                            window.sessionStorage.removeItem("coiReloadedBySelf");
+                        }
+                    }, 100);
+                });
+
+                // Also set a timeout in case controllerchange never fires
+                setTimeout(() => {
+                    if (!n.serviceWorker.controller && typeof SharedArrayBuffer === 'undefined') {
+                        console.error('[COI] Timeout: SW failed to take control');
+                        window.YAZE_COI_FAILED = true;
+                        window.sessionStorage.removeItem("coiReloadedBySelf");
+                    }
+                }, 5000);
+            } else if (reloadedBySelf && n.serviceWorker.controller && typeof SharedArrayBuffer === 'undefined') {
+                // SW is controlling but COI failed
+                console.error('[COI] Failed: SW controlling but SharedArrayBuffer unavailable. Browser may not support credentialless COEP.');
+                window.YAZE_COI_FAILED = true;
+                window.sessionStorage.removeItem("coiReloadedBySelf");
+            }
         } else {
             if (!coi.quiet) {
                 console.warn("COI: Service workers are not supported in this environment.");

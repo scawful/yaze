@@ -485,13 +485,13 @@ void EditorCardRegistry::DrawSidebar(
   // Use ThemeManager for consistent theming
   const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
 
-  // Calculate full viewport height below menu bar
-  const float menu_bar_height = ImGui::GetFrameHeight();
-  const float viewport_height = ImGui::GetIO().DisplaySize.y - menu_bar_height;
+  // Use viewport for accurate positioning (sidebar fills full height)
+  const ImGuiViewport* viewport = ImGui::GetMainViewport();
+  const float viewport_height = viewport->WorkSize.y;
 
-  // VSCode-style dark sidebar background with visible border
-  ImVec4 sidebar_bg = ImVec4(0.18f, 0.18f, 0.20f, 1.0f);
-  ImVec4 sidebar_border = ImVec4(0.4f, 0.4f, 0.45f, 1.0f);
+  // Use theme colors for sidebar background
+  ImVec4 sidebar_bg = gui::ConvertColorToImVec4(theme.surface);
+  ImVec4 sidebar_border = gui::ConvertColorToImVec4(theme.text_disabled);
 
   ImGuiWindowFlags sidebar_flags =
       ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
@@ -508,7 +508,8 @@ void EditorCardRegistry::DrawSidebar(
   // Full sidebar (expanded state)
   const float sidebar_width = GetSidebarWidth();
 
-  ImGui::SetNextWindowPos(ImVec2(0, menu_bar_height));
+  // Position at top-left corner, full height (menu bar is in dockspace region, not sidebar)
+  ImGui::SetNextWindowPos(ImVec2(viewport->WorkPos.x, viewport->WorkPos.y));
   ImGui::SetNextWindowSize(ImVec2(sidebar_width, viewport_height));
 
   ImGui::PushStyleColor(ImGuiCol_WindowBg, sidebar_bg);
@@ -636,8 +637,16 @@ void EditorCardRegistry::DrawSidebar(
 
         bool is_active = card.visibility_flag && *card.visibility_flag;
 
+        // Check if card is enabled (nullptr = always enabled)
+        bool is_enabled = !card.enabled_condition || card.enabled_condition();
+
+        // Apply reduced opacity for disabled cards
+        if (!is_enabled) {
+          ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.4f);
+        }
+
         // Highlight active cards with accent color
-        if (is_active) {
+        if (is_active && is_enabled) {
           ImGui::PushStyleColor(
               ImGuiCol_Button,
               ImVec4(accent_color.x, accent_color.y, accent_color.z, 0.5f));
@@ -656,19 +665,37 @@ void EditorCardRegistry::DrawSidebar(
 
         // Icon-only button for each card
         if (ImGui::Button(card.icon.c_str(), ImVec2(40.0f, 40.0f))) {
-          ToggleCard(session_id, card.card_id);
-          SetActiveCategory(category);
+          // Only toggle if enabled
+          if (is_enabled) {
+            ToggleCard(session_id, card.card_id);
+            SetActiveCategory(category);
+          }
         }
 
         ImGui::PopStyleColor(3);
 
-        // Show tooltip with card name and shortcut
-        if (ImGui::IsItemHovered() || ImGui::IsItemActive()) {
+        if (!is_enabled) {
+          ImGui::PopStyleVar();  // Alpha
+        }
+
+        // Show tooltip with card name, shortcut, or disabled reason
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled) || ImGui::IsItemActive()) {
           SetActiveCategory(category);
 
-          ImGui::SetTooltip(
-              "%s\n%s", card.display_name.c_str(),
-              card.shortcut_hint.empty() ? "" : card.shortcut_hint.c_str());
+          if (!is_enabled && !card.disabled_tooltip.empty()) {
+            // Show disabled reason
+            ImGui::SetTooltip("%s\n(Disabled: %s)", card.display_name.c_str(),
+                              card.disabled_tooltip.c_str());
+          } else if (!is_enabled) {
+            // Default disabled tooltip
+            ImGui::SetTooltip("%s\n(Requires ROM to be loaded)",
+                              card.display_name.c_str());
+          } else {
+            // Normal tooltip
+            ImGui::SetTooltip(
+                "%s\n%s", card.display_name.c_str(),
+                card.shortcut_hint.empty() ? "" : card.shortcut_hint.c_str());
+          }
         }
 
         ImGui::PopID();
@@ -685,14 +712,12 @@ void EditorCardRegistry::DrawSidebar(
     ImGui::Separator();
     ImGui::Spacing();
 
-    // Utility button styling
-    ImVec4 utility_btn = ImVec4(0.22f, 0.22f, 0.24f, 0.9f);
-    ImVec4 utility_btn_hover = ImVec4(0.32f, 0.32f, 0.34f, 1.0f);
-    ImVec4 utility_btn_active = ImVec4(0.27f, 0.27f, 0.29f, 1.0f);
-
-    ImGui::PushStyleColor(ImGuiCol_Button, utility_btn);
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, utility_btn_hover);
-    ImGui::PushStyleColor(ImGuiCol_ButtonActive, utility_btn_active);
+    // Utility button styling - use theme colors
+    ImGui::PushStyleColor(ImGuiCol_Button, gui::GetSurfaceContainerVec4());
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
+                          gui::GetSurfaceContainerHighVec4());
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive,
+                          gui::GetSurfaceContainerHighestVec4());
 
     // Emulator button
     if (ImGui::Button(ICON_MD_PLAY_ARROW, ImVec2(40.0f, 36.0f))) {
@@ -732,12 +757,12 @@ void EditorCardRegistry::DrawSidebar(
     ImGui::Separator();
     ImGui::Spacing();
 
-    // Collapse button
-    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.2f, 0.22f, 0.9f));
+    // Collapse button - use theme colors
+    ImGui::PushStyleColor(ImGuiCol_Button, gui::GetSurfaceContainerVec4());
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
-                          ImVec4(0.3f, 0.3f, 0.32f, 1.0f));
+                          gui::GetSurfaceContainerHighVec4());
     ImGui::PushStyleColor(ImGuiCol_ButtonActive,
-                          ImVec4(0.25f, 0.25f, 0.27f, 1.0f));
+                          gui::GetSurfaceContainerHighestVec4());
 
     if (ImGui::Button(ICON_MD_KEYBOARD_ARROW_LEFT, ImVec2(40.0f, 36.0f))) {
       sidebar_collapsed_ = true;

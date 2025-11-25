@@ -53,6 +53,7 @@ set(
   app/editor/ui/editor_selection_dialog.cc
   app/editor/ui/layout_manager.cc
   app/editor/ui/layout_presets.cc
+  app/editor/ui/right_panel_manager.cc
   app/editor/ui/menu_builder.cc
   app/editor/ui/rom_load_options_dialog.cc
   app/editor/ui/ui_coordinator.cc

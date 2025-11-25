@@ -35,6 +35,10 @@ struct CardInfo {
   std::function<void()> on_hide;  // Callback when card is hidden
   int priority;                   // Display priority for menus (lower = higher)
 
+  // Disabled state support for IDE-like behavior
+  std::function<bool()> enabled_condition;  // Returns true if card is enabled (nullptr = always enabled)
+  std::string disabled_tooltip;             // Tooltip shown when hovering disabled card
+
   /**
    * @brief Get the effective window title for DockBuilder
    * @return window_title if set, otherwise generates from icon + display_name

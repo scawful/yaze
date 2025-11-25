@@ -77,6 +77,8 @@ void OverworldEditor::Initialize() {
       .category = "Overworld",
       .shortcut_hint = "Ctrl+Shift+O",
       .visibility_flag = &show_overworld_canvas_,
+      .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
+      .disabled_tooltip = "Load a ROM first",
       .priority = 5  // Show first, most important
   });
 
@@ -88,6 +90,8 @@ void OverworldEditor::Initialize() {
        .category = "Overworld",
        .shortcut_hint = "Ctrl+Alt+1",
        .visibility_flag = &show_tile16_selector_,
+       .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
+       .disabled_tooltip = "Load a ROM first",
        .priority = 10});
 
   card_registry->RegisterCard(
@@ -98,6 +102,8 @@ void OverworldEditor::Initialize() {
        .category = "Overworld",
        .shortcut_hint = "Ctrl+Alt+2",
        .visibility_flag = &show_tile8_selector_,
+       .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
+       .disabled_tooltip = "Load a ROM first",
        .priority = 20});
 
   card_registry->RegisterCard({.card_id = MakeCardId("overworld.area_graphics"),
@@ -107,6 +113,8 @@ void OverworldEditor::Initialize() {
                                .category = "Overworld",
                                .shortcut_hint = "Ctrl+Alt+3",
                                .visibility_flag = &show_area_gfx_,
+                               .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
+                               .disabled_tooltip = "Load a ROM first",
                                .priority = 30});
 
   card_registry->RegisterCard({.card_id = MakeCardId("overworld.scratch"),
@@ -116,6 +124,8 @@ void OverworldEditor::Initialize() {
                                .category = "Overworld",
                                .shortcut_hint = "Ctrl+Alt+4",
                                .visibility_flag = &show_scratch_,
+                               .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
+                               .disabled_tooltip = "Load a ROM first",
                                .priority = 40});
 
   card_registry->RegisterCard({.card_id = MakeCardId("overworld.gfx_groups"),
@@ -125,6 +135,8 @@ void OverworldEditor::Initialize() {
                                .category = "Overworld",
                                .shortcut_hint = "Ctrl+Alt+5",
                                .visibility_flag = &show_gfx_groups_,
+                               .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
+                               .disabled_tooltip = "Load a ROM first",
                                .priority = 50});
 
   card_registry->RegisterCard({.card_id = MakeCardId("overworld.usage_stats"),
@@ -134,6 +146,8 @@ void OverworldEditor::Initialize() {
                                .category = "Overworld",
                                .shortcut_hint = "Ctrl+Alt+6",
                                .visibility_flag = &show_usage_stats_,
+                               .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
+                               .disabled_tooltip = "Load a ROM first",
                                .priority = 60});
 
   card_registry->RegisterCard({.card_id = MakeCardId("overworld.v3_settings"),
@@ -143,6 +157,8 @@ void OverworldEditor::Initialize() {
                                .category = "Overworld",
                                .shortcut_hint = "Ctrl+Alt+7",
                                .visibility_flag = &show_v3_settings_,
+                               .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
+                               .disabled_tooltip = "Load a ROM first",
                                .priority = 70});
 
   // Original initialization code below:

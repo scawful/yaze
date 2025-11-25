@@ -157,12 +157,19 @@ bool WelcomeScreen::Show(bool* p_open) {
 
   bool action_taken = false;
 
-  // Center the window with responsive size (80% of viewport, max 1400x900)
+  // Center the window within the dockspace region (accounting for sidebars)
   ImGuiViewport* viewport = ImGui::GetMainViewport();
-  ImVec2 center = viewport->GetCenter();
-  ImVec2 viewport_size = viewport->Size;
+  ImVec2 viewport_size = viewport->WorkSize;
 
-  float width = std::min(viewport_size.x * 0.8f, 1400.0f);
+  // Calculate the dockspace region (excluding sidebars)
+  float dockspace_x = viewport->WorkPos.x + left_offset_;
+  float dockspace_width = viewport_size.x - left_offset_ - right_offset_;
+  float dockspace_center_x = dockspace_x + dockspace_width / 2.0f;
+  float dockspace_center_y = viewport->WorkPos.y + viewport_size.y / 2.0f;
+  ImVec2 center(dockspace_center_x, dockspace_center_y);
+
+  // Size based on dockspace region, not full viewport
+  float width = std::min(dockspace_width * 0.85f, 1400.0f);
   float height = std::min(viewport_size.y * 0.85f, 900.0f);
 
   ImGui::SetNextWindowPos(center, ImGuiCond_Always, ImVec2(0.5f, 0.5f));

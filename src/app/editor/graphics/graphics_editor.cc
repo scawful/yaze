@@ -54,28 +54,36 @@ void GraphicsEditor::Initialize() {
                                .icon = ICON_MD_EDIT,
                                .category = "Graphics",
                                .shortcut_hint = "Ctrl+Shift+1",
-                               .priority = 10});
+                               .priority = 10,
+                               .enabled_condition = [this]() { return rom()->is_loaded(); },
+                               .disabled_tooltip = "Load a ROM first"});
   card_registry->RegisterCard({.card_id = "graphics.sheet_browser",
                                .display_name = "Sheet Browser",
                                .window_title = " GFX Sheets",
                                .icon = ICON_MD_VIEW_LIST,
                                .category = "Graphics",
                                .shortcut_hint = "Ctrl+Shift+2",
-                               .priority = 20});
+                               .priority = 20,
+                               .enabled_condition = [this]() { return rom()->is_loaded(); },
+                               .disabled_tooltip = "Load a ROM first"});
   card_registry->RegisterCard({.card_id = "graphics.player_animations",
                                .display_name = "Player Animations",
                                .window_title = " Animations",
                                .icon = ICON_MD_PERSON,
                                .category = "Graphics",
                                .shortcut_hint = "Ctrl+Shift+3",
-                               .priority = 30});
+                               .priority = 30,
+                               .enabled_condition = [this]() { return rom()->is_loaded(); },
+                               .disabled_tooltip = "Load a ROM first"});
   card_registry->RegisterCard({.card_id = "graphics.prototype_viewer",
                                .display_name = "Prototype Viewer",
                                .window_title = " Prototype",
                                .icon = ICON_MD_CONSTRUCTION,
                                .category = "Graphics",
                                .shortcut_hint = "Ctrl+Shift+4",
-                               .priority = 40});
+                               .priority = 40,
+                               .enabled_condition = [this]() { return rom()->is_loaded(); },
+                               .disabled_tooltip = "Load a ROM first"});
 
   // Show sheet editor by default when Graphics Editor is activated
   card_registry->ShowCard("graphics.sheet_editor");

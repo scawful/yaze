@@ -469,28 +469,14 @@ void MenuOrchestrator::AddWindowMenuItems() {
             [this]() { OnHideAllWindows(); })
       .Separator();
 
-  // Cards submenu (editor cards) - requires ROM for meaningful content
-  if (HasActiveRom()) {
-    AddCardsSubmenu();
-  } else {
-    // Show disabled cards menu placeholder
-    if (ImGui::BeginMenu(absl::StrFormat("%s Cards", ICON_MD_DASHBOARD).c_str())) {
-      ImGui::MenuItem("(No ROM loaded)", nullptr, false, false);
-      ImGui::EndMenu();
-    }
-  }
-
-  // Card Browser (requires ROM)
+  // Card Browser (requires ROM) - Cards are accessible via the sidebar
   menu_builder_
       .Item(
           "Card Browser", ICON_MD_DASHBOARD, [this]() { OnShowCardBrowser(); },
           "Ctrl+Shift+B", [this]() { return HasActiveRom(); })
       .Separator();
 
-  // Panels submenu (right-side panels)
-  AddPanelsSubmenu();
-
-  menu_builder_.Separator();
+  // Note: Panel toggle buttons are on the right side of the menu bar
 
   // Workspace Presets
   menu_builder_
