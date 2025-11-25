@@ -425,7 +425,7 @@ if ('serviceWorker' in navigator) {
 
     // COI is ready, safe to register PWA SW
     try {
-      const registration = await navigator.serviceWorker.register('service-worker.js');
+      const registration = await navigator.serviceWorker.register('pwa/service-worker.js');
       console.log('[PWA] Service worker registered successfully');
 
       // Check for updates every hour
