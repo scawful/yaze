@@ -214,17 +214,10 @@ var FilesystemManager = {
           return;
         }
 
-        // Show loading indicator BEFORE the blocking WASM call
-        // On WASM, ROM loading is sequential and blocks the main thread
-        var loadingId = null;
-        if (typeof window.createLoadingIndicator === 'function') {
-          loadingId = window.createLoadingIndicator('rom-load', 'Loading ROM: ' + file.name);
-        }
-
-        // Use setTimeout to yield to browser so loading indicator can render
-        // before the blocking WASM call starts
+        // C++ handles the loading indicator via WasmLoadingManager
+        // Use setTimeout to yield to browser before the blocking WASM call
         setTimeout(function() {
-          self._executeRomLoad(filename, loadingId);
+          self._executeRomLoad(filename, null);
         }, 50); // Small delay to allow UI to update
 
       } catch(err) {

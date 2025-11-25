@@ -301,7 +301,8 @@ class EditorManager {
   // Draw placeholder sidebar when no ROM is loaded
   void DrawPlaceholderSidebar();
 
-  absl::Status LoadAssets();
+  // Optional loading_handle for WASM progress tracking (0 = create new)
+  absl::Status LoadAssets(uint64_t loading_handle = 0);
 
   // Testing system
   void InitializeTestSuites();
