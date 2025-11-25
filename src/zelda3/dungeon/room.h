@@ -198,7 +198,6 @@ class Room {
   void LoadTorches();
   void LoadBlocks();
   void LoadPits();
-  void LoadRoomLayout();
   void LoadLayoutTilesToBuffer();
 
   // Public getters and manipulators for sprites

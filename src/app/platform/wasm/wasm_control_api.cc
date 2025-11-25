@@ -1039,7 +1039,7 @@ std::string WasmControlApi::GetRoomTileData(int room_id) {
   // Load room from ROM
   zelda3::Room room = zelda3::LoadRoomFromRom(rom, room_id);
   room.LoadRoomGraphics();
-  room.LoadRoomLayout();
+  room.LoadObjects();
 
   result["room_id"] = room_id;
   result["width"] = 512;
@@ -1390,13 +1390,14 @@ std::string WasmControlApi::GetPaletteData(const std::string& group_name, int pa
       auto snes_color = color.snes();
       auto rgb_color = color.rgb();
 
-      color_data["r"] = rgb_color.red;
-      color_data["g"] = rgb_color.green;
-      color_data["b"] = rgb_color.blue;
-      color_data["hex"] = absl::StrFormat("#%02X%02X%02X",
-                                          rgb_color.red,
-                                          rgb_color.green,
-                                          rgb_color.blue);
+      // ImVec4 uses x,y,z,w for r,g,b,a in 0.0-1.0 range
+      int r = static_cast<int>(rgb_color.x * 255);
+      int g = static_cast<int>(rgb_color.y * 255);
+      int b = static_cast<int>(rgb_color.z * 255);
+      color_data["r"] = r;
+      color_data["g"] = g;
+      color_data["b"] = b;
+      color_data["hex"] = absl::StrFormat("#%02X%02X%02X", r, g, b);
       color_data["snes_value"] = snes_color;
 
       colors.push_back(color_data);
