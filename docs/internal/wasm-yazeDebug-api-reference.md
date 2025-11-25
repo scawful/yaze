@@ -12,9 +12,9 @@ The yaze WASM build exposes a comprehensive set of JavaScript APIs for programma
 
 ## API Version
 
-- Version: 2.1.0
+- Version: 2.2.0
 - Last Updated: 2025-11-25
-- Capabilities: `['palette', 'arena', 'graphics', 'timeline', 'pixel-inspector', 'rom', 'overworld', 'emulator', 'editor', 'control', 'data', 'gui']`
+- Capabilities: `['palette', 'arena', 'graphics', 'timeline', 'pixel-inspector', 'rom', 'overworld', 'emulator', 'editor', 'control', 'data', 'gui', 'loading-progress']`
 
 ## Build Requirements
 
@@ -24,9 +24,20 @@ The WASM module must be built with these Emscripten flags for full API access:
 -s MODULARIZE=1
 -s EXPORT_NAME='createYazeModule'
 -s EXPORTED_RUNTIME_METHODS=['FS','ccall','cwrap','lengthBytesUTF8','stringToUTF8','UTF8ToString','getValue','setValue']
+-s INITIAL_MEMORY=268435456   # 256MB initial heap
+-s ALLOW_MEMORY_GROWTH=1      # Dynamic heap growth
+-s MAXIMUM_MEMORY=1073741824  # 1GB max
+-s STACK_SIZE=8388608         # 8MB stack
 ```
 
 The dev server must set COOP/COEP headers for SharedArrayBuffer support. Use `./scripts/serve-wasm.sh` which handles this automatically.
+
+### Memory Configuration
+
+The WASM build uses optimized memory settings to reduce heap resize operations during ROM loading:
+- **Initial Memory**: 256MB - Reduces heap resizing during overworld map loading (~200MB required)
+- **Maximum Memory**: 1GB - Prevents runaway allocations
+- **Stack Size**: 8MB - Handles recursive operations during asset decompression
 
 ## Quick Start
 
@@ -712,7 +723,59 @@ console.log(window.yazeDebug.formatForAI())
 - **Stable** (v2.0): `window.yaze.control`, `window.yaze.editor`, `window.yaze.data`, `window.yazeDebug`
 - **Experimental** (v2.1): `window.yaze.gui` UI interaction methods
 
+## Loading Progress System
+
+The WASM build includes a comprehensive loading progress system that reports status during ROM loading.
+
+### JavaScript Loading Indicator API
+
+```javascript
+// These functions are called by C++ via WasmLoadingManager
+window.createLoadingIndicator(id, taskName)  // Creates loading overlay
+window.updateLoadingProgress(id, progress, message)  // Updates progress (0.0-1.0)
+window.removeLoadingIndicator(id)  // Removes loading overlay
+window.isLoadingCancelled(id)  // Check if user cancelled
+```
+
+### Loading Progress Flow
+
+When a ROM is loaded, progress updates occur at these stages:
+
+| Progress | Stage |
+|----------|-------|
+| 0% | Reading ROM file... |
+| 5% | Loading ROM data... |
+| 10% | Initializing editors... |
+| 18% | Loading graphics sheets... |
+| 26% | Loading overworld... |
+| 34% | Loading dungeons... |
+| 42% | Loading screen editor... |
+| 50%+ | Loading remaining editors... |
+| 100% | Complete |
+
+### Monitoring Loading in Console
+
+```javascript
+// Check if ROM is loaded
+window.yaze.control.getRomStatus()
+
+// Get current editor state after loading
+window.yaze.editor.getSnapshot()
+
+// Check arena status for graphics loading
+window.yazeDebug.arena.getStatus()
+```
+
+---
+
 ## Version History
+
+**2.2.0** (2025-11-25)
+- Added loading progress system documentation
+- Added memory configuration section (256MB initial, 1GB max)
+- C++ now manages loading indicator via WasmLoadingManager
+- Progress updates throughout ROM loading stages
+- Fixed loading indicator not being removed after ROM load
 
 **2.1.0** (2025-11-25)
 - Added build requirements section documenting required Emscripten flags

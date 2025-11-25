@@ -1,7 +1,8 @@
 # WASM Debug Infrastructure for AI Integration
 
-**Date:** November 24, 2025 (Updated)
+**Date:** November 25, 2025 (Updated)
 **Status:** Current - Active debugging API
+**Version:** 2.2.0
 **Purpose:** Comprehensive debug API for Gemini/Antigravity AI integration to analyze rendering issues and game state in the yaze web application.
 
 **Note:** This document is the high-level overview for WASM debugging. For detailed API reference, see `wasm-yazeDebug-api-reference.md`. For general WASM status and control APIs, see `wasm_dev_status.md`.
@@ -9,6 +10,63 @@
 ## Overview
 
 The WASM debug infrastructure provides JavaScript access to internal yaze data structures for AI-powered debugging of dungeon palette rendering issues and other visual artifacts.
+
+## Memory Configuration
+
+The WASM build uses optimized memory settings configured in `src/app/app.cmake`:
+
+| Setting | Value | Purpose |
+|---------|-------|---------|
+| `INITIAL_MEMORY` | 256MB | Reduces heap resizing during ROM load (~200MB needed for overworld) |
+| `MAXIMUM_MEMORY` | 1GB | Prevents runaway allocations |
+| `STACK_SIZE` | 8MB | Handles recursive operations during asset decompression |
+| `ALLOW_MEMORY_GROWTH` | 1 | Enables dynamic heap expansion |
+
+**Emscripten Flags:**
+```
+-s INITIAL_MEMORY=268435456 -s ALLOW_MEMORY_GROWTH=1 -s MAXIMUM_MEMORY=1073741824 -s STACK_SIZE=8388608
+```
+
+## ROM Loading Progress
+
+The WASM build reports loading progress through C++ `WasmLoadingManager`. Progress can be monitored in the browser UI or console.
+
+### Loading Stages
+
+| Progress | Stage |
+|----------|-------|
+| 0% | Reading ROM file... |
+| 5% | Loading ROM data... |
+| 10% | Initializing editors... |
+| 18% | Loading graphics sheets... |
+| 26% | Loading overworld... |
+| 34% | Loading dungeons... |
+| 42% | Loading screen editor... |
+| 50%+ | Loading remaining editors... |
+| 100% | Complete |
+
+### Monitoring Loading in Console
+
+```javascript
+// Check ROM loading status
+window.yaze.control.getRomStatus()
+
+// Check graphics loading status
+window.yazeDebug.arena.getStatus()
+
+// Get editor state after loading
+window.yaze.editor.getSnapshot()
+```
+
+### Loading Indicator JavaScript API
+
+```javascript
+// Called by C++ via WasmLoadingManager
+window.createLoadingIndicator(id, taskName)       // Creates loading overlay
+window.updateLoadingProgress(id, progress, msg)   // Updates progress (0.0-1.0)
+window.removeLoadingIndicator(id)                 // Removes loading overlay
+window.isLoadingCancelled(id)                     // Check if user cancelled
+```
 
 ## Files Modified/Created
 
@@ -246,9 +304,11 @@ For `getRomPaletteGroup(groupName, paletteIndex)`:
 # Build WASM with debug infrastructure
 ./scripts/build-wasm.sh debug
 
-# Serve locally
+# Serve locally (sets COOP/COEP headers for SharedArrayBuffer)
 ./scripts/serve-wasm.sh 8080
 ```
+
+**Important:** The dev server must set COOP/COEP headers for SharedArrayBuffer support. Use `./scripts/serve-wasm.sh` which handles this automatically.
 
 ## Testing the API
 
@@ -281,6 +341,25 @@ window.yazeDebug.dumpAll()
 3. **Palette sampling** works on the visible canvas area only
 4. **ROM byte reading** limited to 256 bytes per call to prevent large responses
 5. **Memory reading** from emulator limited to 256 bytes per call
+6. **Loading indicator** managed by C++ `WasmLoadingManager` - don't create separate JS indicators
+
+## Quick Start for AI Agents
+
+1. **Load a ROM**: Use the file picker or drag-and-drop a `.sfc` file
+2. **Wait for loading**: Monitor progress via loading overlay or `window.yaze.control.getRomStatus()`
+3. **Verify ready state**: `window.yaze.control.isReady()` should return `true`
+4. **Start debugging**: Use `window.yazeDebug.dumpAll()` for full state or specific APIs
+
+```javascript
+// Complete verification sequence
+if (window.yaze.control.isReady()) {
+  const status = window.yaze.control.getRomStatus();
+  if (status.loaded) {
+    console.log('ROM loaded:', status.filename);
+    console.log('AI-ready dump:', window.yazeDebug.formatForAI());
+  }
+}
+```
 
 ## Future Enhancements
 

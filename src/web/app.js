@@ -132,31 +132,95 @@ var Module = {
     var canvas = document.getElementById('canvas');
     canvas.addEventListener("webglcontextlost", function(e) { alert('WebGL context lost. You will need to reload the page.'); e.preventDefault(); }, false);
 
-    // WORKAROUND: Ensure all mouse events have defined coordinates to prevent
-    // SAFE_HEAP assertion failures in Emscripten's SDL event handler.
-    // Some browser events can have undefined coordinates in edge cases.
-    ['mousemove', 'mousedown', 'mouseup', 'mouseenter', 'mouseleave', 'wheel'].forEach(function(eventType) {
-      canvas.addEventListener(eventType, function(e) {
-        // Validate and fix event coordinates before Emscripten sees them
-        if (typeof e.clientX !== 'number' || isNaN(e.clientX)) {
-          Object.defineProperty(e, 'clientX', { value: 0, writable: false });
+    // WORKAROUND: Ensure all UI events have defined integer properties to prevent
+    // SAFE_HEAP assertion failures in Emscripten's SDL/HTML5 event handler.
+    // The error "attempt to write non-integer (undefined) into integer heap" occurs
+    // when browser events have undefined properties that SDL expects to be integers.
+
+    // Helper to safely define integer property with default value
+    function ensureIntProperty(event, prop, defaultValue) {
+      var val = event[prop];
+      if (typeof val !== 'number' || isNaN(val) || !isFinite(val)) {
+        try {
+          Object.defineProperty(event, prop, { value: defaultValue | 0, writable: false, configurable: true });
+        } catch (e) {
+          // Property might be non-configurable, ignore
         }
-        if (typeof e.clientY !== 'number' || isNaN(e.clientY)) {
-          Object.defineProperty(e, 'clientY', { value: 0, writable: false });
-        }
-        if (typeof e.offsetX !== 'number' || isNaN(e.offsetX)) {
-          Object.defineProperty(e, 'offsetX', { value: 0, writable: false });
-        }
-        if (typeof e.offsetY !== 'number' || isNaN(e.offsetY)) {
-          Object.defineProperty(e, 'offsetY', { value: 0, writable: false });
-        }
-        if (typeof e.movementX !== 'number' || isNaN(e.movementX)) {
-          Object.defineProperty(e, 'movementX', { value: 0, writable: false });
-        }
-        if (typeof e.movementY !== 'number' || isNaN(e.movementY)) {
-          Object.defineProperty(e, 'movementY', { value: 0, writable: false });
-        }
-      }, true); // Use capture phase to run before Emscripten's handlers
+      }
+    }
+
+    // Helper to sanitize all common integer properties on an event
+    function sanitizeEventIntegers(e) {
+      // Mouse/pointer coordinates
+      ensureIntProperty(e, 'clientX', 0);
+      ensureIntProperty(e, 'clientY', 0);
+      ensureIntProperty(e, 'offsetX', 0);
+      ensureIntProperty(e, 'offsetY', 0);
+      ensureIntProperty(e, 'pageX', 0);
+      ensureIntProperty(e, 'pageY', 0);
+      ensureIntProperty(e, 'screenX', 0);
+      ensureIntProperty(e, 'screenY', 0);
+      ensureIntProperty(e, 'movementX', 0);
+      ensureIntProperty(e, 'movementY', 0);
+      ensureIntProperty(e, 'x', 0);
+      ensureIntProperty(e, 'y', 0);
+
+      // Mouse button state
+      ensureIntProperty(e, 'button', 0);
+      ensureIntProperty(e, 'buttons', 0);
+      ensureIntProperty(e, 'which', 0);
+
+      // Wheel event properties
+      ensureIntProperty(e, 'deltaX', 0);
+      ensureIntProperty(e, 'deltaY', 0);
+      ensureIntProperty(e, 'deltaZ', 0);
+      ensureIntProperty(e, 'deltaMode', 0);
+      ensureIntProperty(e, 'wheelDelta', 0);
+      ensureIntProperty(e, 'wheelDeltaX', 0);
+      ensureIntProperty(e, 'wheelDeltaY', 0);
+
+      // Keyboard event properties
+      ensureIntProperty(e, 'keyCode', 0);
+      ensureIntProperty(e, 'charCode', 0);
+      ensureIntProperty(e, 'which', 0);
+      ensureIntProperty(e, 'location', 0);
+
+      // Touch/pointer event properties
+      ensureIntProperty(e, 'pointerId', 0);
+      ensureIntProperty(e, 'width', 1);
+      ensureIntProperty(e, 'height', 1);
+      ensureIntProperty(e, 'tiltX', 0);
+      ensureIntProperty(e, 'tiltY', 0);
+      ensureIntProperty(e, 'twist', 0);
+
+      // Pressure is a float but ensure it's defined
+      if (typeof e.pressure !== 'number' || isNaN(e.pressure)) {
+        try {
+          Object.defineProperty(e, 'pressure', { value: 0.0, writable: false, configurable: true });
+        } catch (ex) {}
+      }
+
+      // Detail (for click/dblclick)
+      ensureIntProperty(e, 'detail', 0);
+    }
+
+    // Apply to all relevant event types - use capture phase to run before Emscripten
+    var eventTypes = [
+      'mousemove', 'mousedown', 'mouseup', 'mouseenter', 'mouseleave', 'mouseover', 'mouseout',
+      'click', 'dblclick', 'contextmenu',
+      'wheel', 'mousewheel', 'DOMMouseScroll',
+      'pointerdown', 'pointerup', 'pointermove', 'pointerenter', 'pointerleave', 'pointerover', 'pointerout', 'pointercancel',
+      'keydown', 'keyup', 'keypress',
+      'focus', 'blur', 'focusin', 'focusout'
+    ];
+
+    eventTypes.forEach(function(eventType) {
+      canvas.addEventListener(eventType, sanitizeEventIntegers, true);
+    });
+
+    // Also sanitize at document level to catch events that might bubble
+    eventTypes.forEach(function(eventType) {
+      document.addEventListener(eventType, sanitizeEventIntegers, true);
     });
 
     return canvas;
@@ -223,8 +287,38 @@ var Module = {
   })],
   onAbort: function(what) {
     console.error('[WASM] Abort:', what);
+
+    // Try to trigger emergency save before showing error
+    try {
+      if (typeof Module._yazeEmergencySave === 'function') {
+        Module._yazeEmergencySave();
+        console.log('[WASM] Emergency save triggered on abort');
+      } else if (typeof Module.ccall === 'function') {
+        try {
+          Module.ccall('yazeEmergencySave', null, [], []);
+          console.log('[WASM] Emergency save triggered via ccall');
+        } catch (saveErr) {
+          console.warn('[WASM] ccall emergency save failed:', saveErr);
+        }
+      }
+    } catch (e) {
+      console.warn('[WASM] Emergency save failed:', e);
+    }
+
+    // Also try to sync IDBFS
+    try {
+      if (typeof FS !== 'undefined' && FS.syncfs) {
+        FS.syncfs(false, function(err) {
+          if (err) console.warn('[WASM] IDBFS sync on abort failed:', err);
+          else console.log('[WASM] IDBFS synced on abort');
+        });
+      }
+    } catch (e) {
+      console.warn('[WASM] IDBFS sync failed:', e);
+    }
+
     Module.setStatus('Fatal error: ' + what);
-    showFatalError('WASM Aborted', what || 'Unknown error');
+    showCrashRecoveryDialog(what || 'Unknown error');
   },
   onRuntimeInitialized: function() {
     try {
@@ -251,6 +345,9 @@ var Module = {
         console.warn('Persistent FS init failed; continuing with in-memory FS only.', err);
       });
 
+      // Check if we're recovering from a crash
+      checkCrashRecovery();
+
       console.log('[WASM] Initialization complete');
     } catch (err) {
       console.error('[WASM] Initialization error:', err);
@@ -261,13 +358,52 @@ var Module = {
 
 Module.setStatus('Downloading...');
 
-window.onerror = function(event) {
+window.onerror = function(message, source, lineno, colno, error) {
+  console.error('[WASM] Uncaught error:', message, 'at', source, ':', lineno, ':', colno);
+
+  // Check if this is a WASM abort/fatal error
+  var errorStr = String(message || '');
+  var isFatal = errorStr.indexOf('RuntimeError') !== -1 ||
+                errorStr.indexOf('Aborted') !== -1 ||
+                errorStr.indexOf('abort') !== -1 ||
+                errorStr.indexOf('unreachable') !== -1;
+
+  if (isFatal) {
+    // Try emergency save
+    try {
+      if (typeof Module !== 'undefined' && typeof Module._yazeEmergencySave === 'function') {
+        Module._yazeEmergencySave();
+      }
+    } catch (e) {}
+
+    // Show crash dialog for fatal errors
+    var fullError = errorStr;
+    if (source) fullError += '\nSource: ' + source + ':' + lineno + ':' + colno;
+    if (error && error.stack) fullError += '\nStack:\n' + error.stack;
+    showCrashRecoveryDialog(fullError);
+  }
+
   Module.setStatus('Exception thrown, see JavaScript console');
   if (spinnerElement) spinnerElement.style.display = 'none';
   Module.setStatus = function(text) {
     if (text) Module.printErr('[post-exception status] ' + text);
   };
 };
+
+// Also handle unhandled promise rejections
+window.addEventListener('unhandledrejection', function(event) {
+  console.error('[WASM] Unhandled promise rejection:', event.reason);
+
+  var reasonStr = String(event.reason || '');
+  if (reasonStr.indexOf('RuntimeError') !== -1 || reasonStr.indexOf('Aborted') !== -1) {
+    try {
+      if (typeof Module !== 'undefined' && typeof Module._yazeEmergencySave === 'function') {
+        Module._yazeEmergencySave();
+      }
+    } catch (e) {}
+    showCrashRecoveryDialog('Unhandled Promise Rejection: ' + reasonStr);
+  }
+});
 
 // Limit SDL/Emscripten keyboard capture to the canvas so text inputs stay usable
 function configureKeyboardCapture() {
@@ -452,6 +588,219 @@ function showFatalError(title, message) {
     loadingOv.style.display = 'flex';
   }
 }
+
+// Crash Recovery Dialog - shown when WASM aborts
+function showCrashRecoveryDialog(errorMessage) {
+  // Prevent multiple dialogs
+  if (document.getElementById('yaze-crash-dialog')) return;
+
+  // Create overlay
+  var overlay = document.createElement('div');
+  overlay.id = 'yaze-crash-dialog';
+  overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;z-index:100000;font-family:-apple-system,BlinkMacSystemFont,sans-serif;';
+
+  // Create dialog
+  var dialog = document.createElement('div');
+  dialog.style.cssText = 'background:#1e1e1e;border-radius:12px;padding:32px;max-width:500px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,0.5);color:#fff;';
+
+  // Title
+  var title = document.createElement('h2');
+  title.style.cssText = 'margin:0 0 16px 0;color:#f44;font-size:24px;display:flex;align-items:center;gap:12px;';
+  title.innerHTML = '<span style="font-size:32px;">⚠️</span> Editor Crashed';
+  dialog.appendChild(title);
+
+  // Message
+  var msg = document.createElement('p');
+  msg.style.cssText = 'margin:0 0 16px 0;color:#ccc;line-height:1.5;';
+  msg.textContent = 'The editor encountered a fatal error and had to stop. Your work may have been auto-saved.';
+  dialog.appendChild(msg);
+
+  // Error details (collapsible)
+  var details = document.createElement('details');
+  details.style.cssText = 'margin:0 0 24px 0;background:#2a2a2a;border-radius:8px;padding:12px;';
+  var summary = document.createElement('summary');
+  summary.style.cssText = 'cursor:pointer;color:#888;font-size:14px;';
+  summary.textContent = 'Technical Details';
+  details.appendChild(summary);
+  var errorText = document.createElement('pre');
+  errorText.style.cssText = 'margin:12px 0 0 0;padding:12px;background:#1a1a1a;border-radius:4px;overflow:auto;max-height:150px;font-size:12px;color:#f88;white-space:pre-wrap;word-break:break-all;';
+  errorText.textContent = errorMessage;
+  details.appendChild(errorText);
+  dialog.appendChild(details);
+
+  // Recovery info
+  var recoveryInfo = document.createElement('p');
+  recoveryInfo.style.cssText = 'margin:0 0 24px 0;color:#8c8;font-size:14px;background:#1a2a1a;padding:12px;border-radius:8px;';
+  recoveryInfo.innerHTML = '💾 <strong>Recovery:</strong> When you reload, the editor will check for auto-saved data and offer to restore your session.';
+  dialog.appendChild(recoveryInfo);
+
+  // Buttons
+  var btnContainer = document.createElement('div');
+  btnContainer.style.cssText = 'display:flex;gap:12px;justify-content:flex-end;';
+
+  var downloadBtn = document.createElement('button');
+  downloadBtn.style.cssText = 'padding:12px 20px;border:1px solid #555;background:#333;color:#fff;border-radius:6px;cursor:pointer;font-size:14px;';
+  downloadBtn.textContent = '📥 Download Error Log';
+  downloadBtn.onclick = function() {
+    var log = 'YAZE Crash Report\n';
+    log += '==================\n';
+    log += 'Time: ' + new Date().toISOString() + '\n';
+    log += 'URL: ' + window.location.href + '\n';
+    log += 'User Agent: ' + navigator.userAgent + '\n\n';
+    log += 'Error:\n' + errorMessage + '\n\n';
+    log += 'Console Log (recent):\n';
+    // Try to get any stored console logs
+    if (window._yazeConsoleLogs) {
+      log += window._yazeConsoleLogs.join('\n');
+    }
+    var blob = new Blob([log], { type: 'text/plain' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'yaze-crash-' + Date.now() + '.txt';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+  btnContainer.appendChild(downloadBtn);
+
+  var reloadBtn = document.createElement('button');
+  reloadBtn.style.cssText = 'padding:12px 24px;border:none;background:#4a9eff;color:#fff;border-radius:6px;cursor:pointer;font-size:14px;font-weight:600;';
+  reloadBtn.textContent = '🔄 Reload Editor';
+  reloadBtn.onclick = function() {
+    // Set a flag so we know we're recovering from a crash
+    try {
+      sessionStorage.setItem('yaze_crash_recovery', 'true');
+    } catch (e) {}
+    location.reload();
+  };
+  btnContainer.appendChild(reloadBtn);
+
+  dialog.appendChild(btnContainer);
+  overlay.appendChild(dialog);
+  document.body.appendChild(overlay);
+
+  // Stop propagation of events to prevent further errors
+  overlay.addEventListener('click', function(e) { e.stopPropagation(); }, true);
+  overlay.addEventListener('keydown', function(e) { e.stopPropagation(); }, true);
+}
+
+// Check if we're recovering from a previous crash
+function checkCrashRecovery() {
+  try {
+    var wasCrash = sessionStorage.getItem('yaze_crash_recovery') === 'true';
+    var hasRecoveryData = sessionStorage.getItem('yaze_has_recovery') === 'true';
+    var hasEmergencySave = localStorage.getItem('yaze_emergency_save') !== null;
+
+    // Clear the crash recovery flag
+    sessionStorage.removeItem('yaze_crash_recovery');
+
+    if (wasCrash && (hasRecoveryData || hasEmergencySave)) {
+      console.log('[Recovery] Detected crash recovery with available data');
+      showRecoveryPromptDialog();
+    } else if (hasRecoveryData || hasEmergencySave) {
+      // We have recovery data but didn't just crash - might be from a previous session
+      console.log('[Recovery] Found recovery data from previous session');
+      // Optionally show a subtle notification instead of a full dialog
+      if (typeof window.showYazeToast === 'function') {
+        window.showYazeToast('Recovery data available. Check File > Restore Session.', 'info', 5000);
+      }
+    }
+  } catch (e) {
+    console.warn('[Recovery] Error checking crash recovery:', e);
+  }
+}
+
+// Show the recovery prompt dialog after a crash
+function showRecoveryPromptDialog() {
+  var overlay = document.createElement('div');
+  overlay.id = 'yaze-recovery-dialog';
+  overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:99999;font-family:-apple-system,BlinkMacSystemFont,sans-serif;';
+
+  var dialog = document.createElement('div');
+  dialog.style.cssText = 'background:#1e1e1e;border-radius:12px;padding:32px;max-width:450px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,0.5);color:#fff;';
+
+  var title = document.createElement('h2');
+  title.style.cssText = 'margin:0 0 16px 0;color:#4a9eff;font-size:22px;display:flex;align-items:center;gap:12px;';
+  title.innerHTML = '<span style="font-size:28px;">💾</span> Session Recovery';
+  dialog.appendChild(title);
+
+  var msg = document.createElement('p');
+  msg.style.cssText = 'margin:0 0 24px 0;color:#ccc;line-height:1.6;';
+  msg.textContent = 'The editor was closed unexpectedly. Would you like to restore your previous session?';
+  dialog.appendChild(msg);
+
+  var btnContainer = document.createElement('div');
+  btnContainer.style.cssText = 'display:flex;gap:12px;justify-content:flex-end;';
+
+  var discardBtn = document.createElement('button');
+  discardBtn.style.cssText = 'padding:12px 20px;border:1px solid #555;background:#333;color:#fff;border-radius:6px;cursor:pointer;font-size:14px;';
+  discardBtn.textContent = 'Start Fresh';
+  discardBtn.onclick = function() {
+    // Clear recovery data
+    try {
+      sessionStorage.removeItem('yaze_has_recovery');
+      localStorage.removeItem('yaze_emergency_save');
+    } catch (e) {}
+    overlay.remove();
+    console.log('[Recovery] User chose to start fresh');
+  };
+  btnContainer.appendChild(discardBtn);
+
+  var restoreBtn = document.createElement('button');
+  restoreBtn.style.cssText = 'padding:12px 24px;border:none;background:#4a9eff;color:#fff;border-radius:6px;cursor:pointer;font-size:14px;font-weight:600;';
+  restoreBtn.textContent = 'Restore Session';
+  restoreBtn.onclick = function() {
+    overlay.remove();
+    console.log('[Recovery] User chose to restore session');
+
+    // Try to call the C++ recovery function
+    try {
+      if (typeof Module !== 'undefined' && typeof Module.ccall === 'function') {
+        Module.ccall('yazeRecoverSession', null, [], []);
+      }
+    } catch (e) {
+      console.warn('[Recovery] C++ recovery failed, trying JS fallback:', e);
+      // Fallback: just notify user that recovery data is available
+      if (typeof window.showYazeToast === 'function') {
+        window.showYazeToast('Recovery initiated. Reload your ROM to restore changes.', 'success', 5000);
+      }
+    }
+  };
+  btnContainer.appendChild(restoreBtn);
+
+  dialog.appendChild(btnContainer);
+  overlay.appendChild(dialog);
+  document.body.appendChild(overlay);
+}
+
+// Console log capture for crash reports
+(function captureLogs() {
+  window._yazeConsoleLogs = [];
+  var maxLogs = 100;
+
+  var originalLog = console.log;
+  var originalWarn = console.warn;
+  var originalError = console.error;
+
+  console.log = function() {
+    var msg = Array.prototype.slice.call(arguments).join(' ');
+    window._yazeConsoleLogs.push('[LOG] ' + msg);
+    if (window._yazeConsoleLogs.length > maxLogs) window._yazeConsoleLogs.shift();
+    return originalLog.apply(console, arguments);
+  };
+  console.warn = function() {
+    var msg = Array.prototype.slice.call(arguments).join(' ');
+    window._yazeConsoleLogs.push('[WARN] ' + msg);
+    if (window._yazeConsoleLogs.length > maxLogs) window._yazeConsoleLogs.shift();
+    return originalWarn.apply(console, arguments);
+  };
+  console.error = function() {
+    var msg = Array.prototype.slice.call(arguments).join(' ');
+    window._yazeConsoleLogs.push('[ERROR] ' + msg);
+    if (window._yazeConsoleLogs.length > maxLogs) window._yazeConsoleLogs.shift();
+    return originalError.apply(console, arguments);
+  };
+})();
 
 // Utility functions for debouncing and throttling
 function debounce(func, wait) {
