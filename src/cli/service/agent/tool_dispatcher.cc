@@ -22,8 +22,10 @@
 #endif
 #include "cli/handlers/tools/gui_commands.h"
 #include "cli/handlers/tools/resource_commands.h"
+#include "cli/service/agent/tools/code_gen_tool.h"
 #include "cli/service/agent/tools/filesystem_tool.h"
 #include "cli/service/agent/tools/memory_inspector_tool.h"
+#include "cli/service/agent/tools/project_tool.h"
 #include "cli/service/agent/tools/visual_analysis_tool.h"
 #include "cli/service/resources/command_context.h"
 #include "cli/util/terminal_colors.h"
@@ -198,6 +200,30 @@ ToolCallType GetToolCallType(const std::string& tool_name) {
   if (tool_name == "visual-tile-histogram")
     return ToolCallType::kVisualTileHistogram;
 
+  // Code generation commands
+  if (tool_name == "codegen-asm-hook")
+    return ToolCallType::kCodeGenAsmHook;
+  if (tool_name == "codegen-freespace-patch")
+    return ToolCallType::kCodeGenFreespacePatch;
+  if (tool_name == "codegen-sprite-template")
+    return ToolCallType::kCodeGenSpriteTemplate;
+  if (tool_name == "codegen-event-handler")
+    return ToolCallType::kCodeGenEventHandler;
+
+  // Project management commands
+  if (tool_name == "project-status")
+    return ToolCallType::kProjectStatus;
+  if (tool_name == "project-snapshot")
+    return ToolCallType::kProjectSnapshot;
+  if (tool_name == "project-restore")
+    return ToolCallType::kProjectRestore;
+  if (tool_name == "project-export")
+    return ToolCallType::kProjectExport;
+  if (tool_name == "project-import")
+    return ToolCallType::kProjectImport;
+  if (tool_name == "project-diff")
+    return ToolCallType::kProjectDiff;
+
   return ToolCallType::kUnknown;
 }
 
@@ -369,6 +395,30 @@ std::unique_ptr<resources::CommandHandler> CreateHandler(ToolCallType type) {
     case ToolCallType::kVisualTileHistogram:
       return std::make_unique<TileHistogramTool>();
 
+    // Code generation tools
+    case ToolCallType::kCodeGenAsmHook:
+      return std::make_unique<CodeGenAsmHookTool>();
+    case ToolCallType::kCodeGenFreespacePatch:
+      return std::make_unique<CodeGenFreespacePatchTool>();
+    case ToolCallType::kCodeGenSpriteTemplate:
+      return std::make_unique<CodeGenSpriteTemplateTool>();
+    case ToolCallType::kCodeGenEventHandler:
+      return std::make_unique<CodeGenEventHandlerTool>();
+
+    // Project management tools
+    case ToolCallType::kProjectStatus:
+      return std::make_unique<ProjectStatusTool>();
+    case ToolCallType::kProjectSnapshot:
+      return std::make_unique<ProjectSnapshotTool>();
+    case ToolCallType::kProjectRestore:
+      return std::make_unique<ProjectRestoreTool>();
+    case ToolCallType::kProjectExport:
+      return std::make_unique<ProjectExportTool>();
+    case ToolCallType::kProjectImport:
+      return std::make_unique<ProjectImportTool>();
+    case ToolCallType::kProjectDiff:
+      return std::make_unique<ProjectDiffTool>();
+
     default:
       return nullptr;
   }
@@ -501,6 +551,20 @@ bool ToolDispatcher::IsToolEnabled(ToolCallType type) const {
     case ToolCallType::kVisualPaletteUsage:
     case ToolCallType::kVisualTileHistogram:
       return preferences_.visual_analysis;
+
+    case ToolCallType::kCodeGenAsmHook:
+    case ToolCallType::kCodeGenFreespacePatch:
+    case ToolCallType::kCodeGenSpriteTemplate:
+    case ToolCallType::kCodeGenEventHandler:
+      return preferences_.code_gen;
+
+    case ToolCallType::kProjectStatus:
+    case ToolCallType::kProjectSnapshot:
+    case ToolCallType::kProjectRestore:
+    case ToolCallType::kProjectExport:
+    case ToolCallType::kProjectImport:
+    case ToolCallType::kProjectDiff:
+      return preferences_.project;
 
     default:
       return true;
@@ -737,6 +801,68 @@ std::vector<ToolDispatcher::ToolInfo> ToolDispatcher::GetAvailableTools()
                      "visual-tile-histogram [--type=<overworld|dungeon>] "
                      "[--top=<n>]",
                      {"visual-tile-histogram --type=overworld --top=20"},
+                     true});
+  }
+
+  // Code generation tools
+  if (preferences_.code_gen) {
+    tools.push_back({"codegen-asm-hook", "codegen",
+                     "Generate ASM hook at ROM address",
+                     "codegen-asm-hook --address=<hex> --label=<name> "
+                     "[--nop-fill=<n>]",
+                     {"codegen-asm-hook --address=0x02AB08 --label=MyHook"},
+                     true});
+    tools.push_back({"codegen-freespace-patch", "codegen",
+                     "Generate patch using detected free regions",
+                     "codegen-freespace-patch --label=<name> --size=<bytes> "
+                     "[--prefer-bank=<n>]",
+                     {"codegen-freespace-patch --label=MyCode --size=0x100"},
+                     true});
+    tools.push_back({"codegen-sprite-template", "codegen",
+                     "Generate sprite ASM from template",
+                     "codegen-sprite-template --name=<sprite> "
+                     "[--init-code=<asm>] [--main-code=<asm>]",
+                     {"codegen-sprite-template --name=CustomSprite"},
+                     false});
+    tools.push_back({"codegen-event-handler", "codegen",
+                     "Generate event handler code",
+                     "codegen-event-handler --type=<nmi|irq|reset> "
+                     "--label=<name> [--custom-code=<asm>]",
+                     {"codegen-event-handler --type=nmi --label=MyHandler"},
+                     false});
+  }
+
+  // Project management tools
+  if (preferences_.project) {
+    tools.push_back({"project-status", "project",
+                     "Show current project state and pending edits",
+                     "project-status",
+                     {"project-status"},
+                     true});
+    tools.push_back({"project-snapshot", "project",
+                     "Create named checkpoint with edit deltas",
+                     "project-snapshot --name=<name> [--description=<desc>]",
+                     {"project-snapshot --name=before-edit"},
+                     true});
+    tools.push_back({"project-restore", "project",
+                     "Restore ROM to named checkpoint",
+                     "project-restore --name=<name>",
+                     {"project-restore --name=before-edit"},
+                     true});
+    tools.push_back({"project-export", "project",
+                     "Export project as portable archive",
+                     "project-export --path=<file> [--include-rom]",
+                     {"project-export --path=myproject.tar.gz"},
+                     true});
+    tools.push_back({"project-import", "project",
+                     "Import project archive",
+                     "project-import --path=<file>",
+                     {"project-import --path=myproject.tar.gz"},
+                     false});
+    tools.push_back({"project-diff", "project",
+                     "Compare two project states",
+                     "project-diff --snapshot1=<name> --snapshot2=<name>",
+                     {"project-diff --snapshot1=v1 --snapshot2=v2"},
                      true});
   }
 

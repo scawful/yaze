@@ -136,7 +136,7 @@ absl::Status RomValidateTool::Execute(Rom* rom,
   auto size_issues = ValidateSize(rom);
   issues.insert(issues.end(), size_issues.begin(), size_issues.end());
 
-  std::string format = parser.GetArgWithDefault("format", "json");
+  std::string format = parser.GetString("format").value_or("json");
   if (format == "json") {
     std::cout << FormatIssuesAsJson(issues);
   } else {
@@ -277,7 +277,7 @@ absl::Status DataValidateTool::Execute(Rom* rom,
                                        const resources::ArgumentParser& parser,
                                        resources::OutputFormatter& formatter) {
   std::vector<ValidationIssue> issues;
-  std::string type = parser.GetArg("type");
+  std::string type = parser.GetString("type").value();
 
   if (type == "sprites" || type == "all") {
     auto sprite_issues = ValidateSprites(rom);
@@ -299,7 +299,7 @@ absl::Status DataValidateTool::Execute(Rom* rom,
     issues.insert(issues.end(), entrance_issues.begin(), entrance_issues.end());
   }
 
-  std::string format = parser.GetArgWithDefault("format", "json");
+  std::string format = parser.GetString("format").value_or("json");
   if (format == "json") {
     std::cout << FormatIssuesAsJson(issues);
   } else {
@@ -430,7 +430,7 @@ std::vector<ValidationIssue> DataValidateTool::ValidateEntrances(Rom* rom) {
 absl::Status PatchCheckTool::Execute(Rom* rom,
                                      const resources::ArgumentParser& parser,
                                      resources::OutputFormatter& formatter) {
-  std::string patch_path = parser.GetArg("patch");
+  std::string patch_path = parser.GetString("patch").value();
 
   std::vector<ValidationIssue> issues;
 
@@ -442,7 +442,7 @@ absl::Status PatchCheckTool::Execute(Rom* rom,
   auto hook_issues = CheckHooks(rom, patch_path);
   issues.insert(issues.end(), hook_issues.begin(), hook_issues.end());
 
-  std::string format = parser.GetArgWithDefault("format", "json");
+  std::string format = parser.GetString("format").value_or("json");
   if (format == "json") {
     std::cout << FormatIssuesAsJson(issues);
   } else {
@@ -558,7 +558,7 @@ absl::Status ValidateAllTool::Execute(Rom* rom,
                                       const resources::ArgumentParser& parser,
                                       resources::OutputFormatter& formatter) {
   std::vector<ValidationIssue> all_issues;
-  bool strict = parser.HasArg("strict");
+  bool strict = parser.HasFlag("strict");
 
   // Run ROM validation
   RomValidateTool rom_validator;
@@ -596,7 +596,7 @@ absl::Status ValidateAllTool::Execute(Rom* rom,
     }
   }
 
-  std::string format = parser.GetArgWithDefault("format", "json");
+  std::string format = parser.GetString("format").value_or("json");
   if (format == "json") {
     std::cout << FormatIssuesAsJson(all_issues);
   } else {
