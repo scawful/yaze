@@ -13,9 +13,9 @@ The yaze WASM build exposes a comprehensive set of JavaScript APIs for programma
 
 ## API Version
 
-- Version: 2.3.0
+- Version: 2.4.0
 - Last Updated: 2025-11-25
-- Capabilities: `['palette', 'arena', 'graphics', 'timeline', 'pixel-inspector', 'rom', 'overworld', 'emulator', 'editor', 'control', 'data', 'gui', 'loading-progress', 'ai-tools']`
+- Capabilities: `['palette', 'arena', 'graphics', 'timeline', 'pixel-inspector', 'rom', 'overworld', 'emulator', 'editor', 'control', 'data', 'gui', 'loading-progress', 'ai-tools', 'async-editor-switch', 'card-groups', 'tree-sidebar', 'properties-panel']`
 
 ## Build Requirements
 
@@ -487,6 +487,170 @@ Get precise bounds for a specific UI element.
 
 ---
 
+## window.yazeDebug - Extended UI Control APIs (v2.4)
+
+### Async Editor Switching
+
+#### switchToEditorAsync(editorName)
+
+Promise-based editor switching with operation tracking for reliable automation.
+
+```javascript
+const result = await window.yazeDebug.switchToEditorAsync('Dungeon');
+// Returns: { success: true, editor: "Dungeon", session_id: 1 }
+```
+
+**Parameters:**
+- `editorName` (string): One of 14 editor types: `Assembly`, `Dungeon`, `Graphics`, `Music`, `Overworld`, `Palette`, `Screen`, `Sprite`, `Message`, `Hex`, `Agent`, `Settings`, `World`, `Map`
+
+**Returns:** `Promise<{success, editor?, session_id?, error?}>`
+
+**Notes:**
+- 5-second timeout with proper error reporting
+- Polls internally at 16ms intervals for completion
+- Requires ROM to be loaded
+
+### Card Control API (`yazeDebug.cards`)
+
+#### yazeDebug.cards.show(cardId)
+
+```javascript
+yazeDebug.cards.show('dungeon.room_selector');
+// Returns: { success: true, card: "dungeon.room_selector", visible: true }
+```
+
+#### yazeDebug.cards.hide(cardId)
+
+```javascript
+yazeDebug.cards.hide('dungeon.object_editor');
+// Returns: { success: true, card: "dungeon.object_editor", visible: false }
+```
+
+#### yazeDebug.cards.toggle(cardId)
+
+```javascript
+yazeDebug.cards.toggle('dungeon.room_selector');
+// Returns: { success: true, card: "dungeon.room_selector", visible: true/false }
+```
+
+#### yazeDebug.cards.getState()
+
+```javascript
+const state = yazeDebug.cards.getState();
+// Returns: { cards: [{ id, visible, category }, ...] }
+```
+
+#### yazeDebug.cards.getInCategory(category)
+
+```javascript
+yazeDebug.cards.getInCategory('dungeon');
+// Returns: { cards: ["dungeon.room_selector", "dungeon.object_editor", ...] }
+```
+
+#### yazeDebug.cards.showGroup(groupName)
+
+Show predefined card groups:
+- `dungeon_editing` - Room selector, object editor, canvas
+- `dungeon_debug` - Debug visualization cards
+- `overworld_editing` - Map selector, tile editor, entity editor
+- `graphics_editing` - Sheet viewer, tile editor
+- `minimal` - Hide all cards
+
+```javascript
+yazeDebug.cards.showGroup('dungeon_editing');
+// Returns: { success: true, group: "dungeon_editing", cards_shown: 3 }
+```
+
+#### yazeDebug.cards.hideGroup(groupName)
+
+```javascript
+yazeDebug.cards.hideGroup('dungeon_debug');
+// Returns: { success: true, group: "dungeon_debug", cards_hidden: 2 }
+```
+
+#### yazeDebug.cards.getGroups()
+
+```javascript
+yazeDebug.cards.getGroups();
+// Returns: { groups: [{ name, cards: [...] }, ...] }
+```
+
+### Sidebar Control API (`yazeDebug.sidebar`)
+
+The left sidebar has two modes:
+- **Tree View** (200px): Hierarchical expandable categories with checkboxes
+- **Icon Mode** (48px): Compact icon-only view
+
+#### yazeDebug.sidebar.isTreeView()
+
+```javascript
+yazeDebug.sidebar.isTreeView();
+// Returns: boolean
+```
+
+#### yazeDebug.sidebar.setTreeView(enabled)
+
+```javascript
+yazeDebug.sidebar.setTreeView(true);  // Enable tree view (200px)
+yazeDebug.sidebar.setTreeView(false); // Enable icon mode (48px)
+// Returns: { success: true, mode: "tree" | "icon" }
+```
+
+#### yazeDebug.sidebar.toggle()
+
+```javascript
+yazeDebug.sidebar.toggle();
+// Returns: { success: true, mode: "tree" | "icon" }
+```
+
+#### yazeDebug.sidebar.getState()
+
+```javascript
+yazeDebug.sidebar.getState();
+// Returns: { available: true, mode: "tree", width: 200, collapsed: false }
+```
+
+### Right Panel Control API (`yazeDebug.rightPanel`)
+
+Panel types: `properties`, `agent`, `proposals`, `settings`, `help`
+
+#### yazeDebug.rightPanel.open(panelName)
+
+```javascript
+yazeDebug.rightPanel.open('properties');
+// Returns: { success: true, panel: "properties" }
+```
+
+#### yazeDebug.rightPanel.close()
+
+```javascript
+yazeDebug.rightPanel.close();
+// Returns: { success: true }
+```
+
+#### yazeDebug.rightPanel.toggle(panelName)
+
+```javascript
+yazeDebug.rightPanel.toggle('agent');
+// Returns: { success: true, state: "open" | "closed", panel?: "agent" }
+```
+
+#### yazeDebug.rightPanel.getState()
+
+```javascript
+yazeDebug.rightPanel.getState();
+// Returns: { available: true, active: "properties", expanded: true, width: 320 }
+```
+
+#### Convenience Methods
+
+```javascript
+yazeDebug.rightPanel.openProperties();  // Open properties panel
+yazeDebug.rightPanel.openAgent();       // Open agent chat panel
+```
+
+---
+
 ## window.yazeDebug - Debug API
 
 Debug utilities for analyzing ROM state, graphics pipeline, and emulator status.
@@ -955,6 +1119,15 @@ window.yazeDebug.arena.getStatus()
 ---
 
 ## Version History
+
+**2.4.0** (2025-11-25)
+- Added `yazeDebug.switchToEditorAsync()` - Promise-based editor switching with operation tracking
+- Added `yazeDebug.cards` namespace - Show/hide/toggle cards, card groups, category queries
+- Added `yazeDebug.sidebar` namespace - Tree view (200px) vs icon mode (48px) control
+- Added `yazeDebug.rightPanel` namespace - Properties, agent, proposals, settings, help panels
+- New tree view sidebar with hierarchical card navigation
+- New selection properties panel for context-aware entity editing
+- Supports all 14 editor types for switching
 
 **2.3.0** (2025-11-25)
 - Added `window.aiTools` API for Gemini Antigravity AI integration
