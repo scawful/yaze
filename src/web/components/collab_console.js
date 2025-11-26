@@ -139,6 +139,28 @@
   function sendChat() {
     const text = ui.chatInput.value.trim();
     if (!text) return;
+    const isAi = text.startsWith('/ai');
+    if (isAi) {
+      const prompt = text.replace(/^\/ai\s*/, '').trim();
+      if (!prompt) {
+        appendMsg('system', 'error', 'Usage: /ai <prompt>');
+        return;
+      }
+      // Broadcast the user question
+      send({
+        type: 'chat_message',
+        payload: {
+          sender: state.username || 'anon',
+          message: text,
+          message_type: 'chat',
+        },
+      });
+      ui.chatInput.value = '';
+      appendMsg('system', 'system', 'AI thinking…');
+      callAiAndBroadcast(prompt);
+      return;
+    }
+
     send({
       type: 'chat_message',
       payload: {
@@ -148,6 +170,100 @@
       },
     });
     ui.chatInput.value = '';
+  }
+
+  function getStoredApiConfig() {
+    const stores = [sessionStorage, localStorage];
+    let openaiKey = '';
+    let geminiKey = '';
+    for (const s of stores) {
+      try {
+        openaiKey = openaiKey || s.getItem('z3ed_openai_api_key') || s.getItem('OPENAI_API_KEY') || '';
+        geminiKey = geminiKey || s.getItem('z3ed_gemini_api_key') || s.getItem('GEMINI_API_KEY') || '';
+      } catch (_) {}
+    }
+    if (openaiKey) return { provider: 'openai', key: openaiKey, model: 'gpt-4o-mini' };
+    if (geminiKey) return { provider: 'gemini', key: geminiKey, model: 'gemini-1.5-flash' };
+    return null;
+  }
+
+  async function callAi(prompt) {
+    const cfg = getStoredApiConfig();
+    if (!cfg) throw new Error('No AI key set. Add GEMINI_API_KEY or OPENAI_API_KEY in browser storage.');
+
+    if (cfg.provider === 'openai') {
+      const body = {
+        model: cfg.model,
+        messages: [
+          { role: 'system', content: 'You are the YAZE collab AI assistant. Keep replies concise and actionable.' },
+          { role: 'user', content: prompt },
+        ],
+        max_tokens: 256,
+        temperature: 0.5,
+      };
+      const resp = await fetch((cfg.api_base || 'https://api.openai.com/v1') + '/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer ' + cfg.key,
+        },
+        body: JSON.stringify(body),
+      });
+      if (!resp.ok) throw new Error(`OpenAI error ${resp.status}`);
+      const json = await resp.json();
+      const choice = json?.choices?.[0];
+      const text = choice?.message?.content || '';
+      if (!text) throw new Error('OpenAI returned empty response');
+      return text;
+    }
+
+    // Gemini default
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${cfg.model}:generateContent?key=${cfg.key}`;
+    const body = {
+      contents: [
+        {
+          parts: [
+            {
+              text:
+                'You are the YAZE collab AI assistant. Keep replies concise and actionable.\n\n' +
+                prompt,
+            },
+          ],
+        },
+      ],
+      generationConfig: {
+        temperature: 0.5,
+        maxOutputTokens: 256,
+      },
+    };
+    const resp = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    if (!resp.ok) throw new Error(`Gemini error ${resp.status}`);
+    const json = await resp.json();
+    const text =
+      json?.candidates?.[0]?.content?.parts?.map((p) => p.text).join('') || '';
+    if (!text) throw new Error('Gemini returned empty response');
+    return text;
+  }
+
+  async function callAiAndBroadcast(prompt) {
+    try {
+      const reply = await callAi(prompt);
+      appendMsg('chat', 'AI', reply);
+      send({
+        type: 'chat_message',
+        payload: {
+          sender: 'AI',
+          message: reply,
+          message_type: 'chat',
+        },
+      });
+    } catch (err) {
+      appendMsg('system', 'error', `AI error: ${err.message || err}`);
+    }
   }
 
   function handleServer(msg) {
@@ -253,6 +369,7 @@
     inputRow.className = 'yaze-chat-input';
     inputRow.innerHTML = `
       <textarea id="yaze-chat-input" placeholder="Type a message. Enter to send, Shift+Enter for newline."></textarea>
+      <button id="yaze-chat-ai" class="yaze-icon-btn subtle" title="Ask AI (/ai prompt)"><span class="material-symbols-outlined">psychology</span></button>
       <button id="yaze-chat-send" class="yaze-icon-btn primary"><span class="material-symbols-outlined">send</span></button>
     `;
 
@@ -286,6 +403,7 @@
       container,
       chatBody: body,
       chatInput: inputRow.querySelector('#yaze-chat-input'),
+      chatAI: inputRow.querySelector('#yaze-chat-ai'),
       chatSend: inputRow.querySelector('#yaze-chat-send'),
       serverUrl: header.querySelector('#yaze-server-url'),
       sessionCode: header.querySelector('#yaze-session-code'),
@@ -318,6 +436,17 @@
     ui.disconnectBtn.addEventListener('click', () => disconnect('User'));
 
     ui.chatSend.addEventListener('click', sendChat);
+    if (ui.chatAI) {
+      ui.chatAI.addEventListener('click', () => {
+        const prompt = ui.chatInput.value.trim();
+        if (!prompt) {
+          appendMsg('system', 'error', 'Enter a prompt to ask the AI.');
+          return;
+        }
+        ui.chatInput.value = `/ai ${prompt}`;
+        sendChat();
+      });
+    }
     ui.chatInput.addEventListener('keydown', (e) => {
       // Keep input local but allow default typing
       e.stopPropagation();

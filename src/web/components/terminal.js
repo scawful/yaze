@@ -156,18 +156,29 @@
         this.inputElement.addEventListener('keydown', this._boundHandlers.keydown);
         this.inputElement.addEventListener('keyup', this._boundHandlers.keyup);
 
+        // React to WASM ready event so queued commands flush immediately
+        if (window.yaze && window.yaze.events && window.yaze.events.on) {
+          window.yaze.events.on(window.yaze.events.WASM_READY, (module) => {
+            // Prefer provided module instance
+            if (module && typeof module === 'object') {
+              window.Module = module;
+            }
+            this.onModuleReady();
+          });
+        }
+
         // Ensure emulator-level key listeners (SDL/Emscripten) don't steal terminal input
         // Use capture phase with stopImmediatePropagation for maximum isolation
         // Store handlers for cleanup
         this._boundHandlers.docKeydown = (event) => {
           if (event.target === self.inputElement) {
-            event.stopPropagation();
+            self.handleKeyDown(event);
             event.stopImmediatePropagation();
           }
         };
         this._boundHandlers.docKeyup = (event) => {
           if (event.target === self.inputElement) {
-            event.stopPropagation();
+            self.handleKeyUp(event);
             event.stopImmediatePropagation();
           }
         };
@@ -227,6 +238,15 @@
      * @returns {boolean}
      */
     checkModuleReady() {
+      // Prefer explicit ready flag from app bootstrap
+      if (window.yaze && window.yaze.core && window.yaze.core.state &&
+          window.yaze.core.state.wasmReady && typeof Module !== 'undefined') {
+        if (!this.isModuleReady) {
+          this.onModuleReady();
+        }
+        return true;
+      }
+
       if (typeof Module !== 'undefined') {
         // Check multiple indicators - modularized builds may not set calledRun
         const hasCalledRun = Module.calledRun === true;
@@ -285,6 +305,9 @@
      * @param {KeyboardEvent} event
      */
     handleKeyDown(event) {
+      if (event._z3edHandled) return;
+      event._z3edHandled = true;
+
       // Keep terminal input events local but allow default text entry
       event.stopPropagation();
 
@@ -345,6 +368,11 @@
      * @param {KeyboardEvent} event
      */
     handleKeyUp(event) {
+      if (event._z3edHandled) return;
+      event._z3edHandled = true;
+
+      event.stopPropagation();
+
       // Save current input when not navigating history
       if (this.historyIndex === -1) {
         this.currentInput = this.inputElement.value;
@@ -411,24 +439,30 @@
 
       // Check if Module is ready
       if (!this.isModuleReady) {
-        // Limit queue size to prevent memory growth if init fails
-        if (this.commandQueue.length >= 50) {
-          this.printError('Command queue full. WASM initialization may have failed.');
-          this.printInfo('Try refreshing the page or check console for errors.');
+        // If the global ready flag is set, fast-path to ready to avoid stale queues
+        if (window.yaze && window.yaze.core && window.yaze.core.state &&
+            window.yaze.core.state.wasmReady && typeof Module !== 'undefined') {
+          this.onModuleReady();
+        } else {
+          // Limit queue size to prevent memory growth if init fails
+          if (this.commandQueue.length >= 50) {
+            this.printError('Command queue full. WASM initialization may have failed.');
+            this.printInfo('Try refreshing the page or check console for errors.');
+            return;
+          }
+
+          // Add command with timestamp for timeout tracking
+          this.commandQueue.push({ command: command, timestamp: Date.now() });
+
+          // Clean old commands (older than 30 seconds)
+          const now = Date.now();
+          this.commandQueue = this.commandQueue.filter(function(item) {
+            return (now - item.timestamp) < 30000;
+          });
+
+          this.printInfo('WASM module loading... Command queued (' + this.commandQueue.length + ' pending).');
           return;
         }
-
-        // Add command with timestamp for timeout tracking
-        this.commandQueue.push({ command: command, timestamp: Date.now() });
-
-        // Clean old commands (older than 30 seconds)
-        const now = Date.now();
-        this.commandQueue = this.commandQueue.filter(function(item) {
-          return (now - item.timestamp) < 30000;
-        });
-
-        this.printInfo('WASM module loading... Command queued (' + this.commandQueue.length + ' pending).');
-        return;
       }
 
       // Call WASM function
