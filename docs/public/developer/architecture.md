@@ -2,25 +2,33 @@
 
 This guide summarizes the architecture and implementation standards used across the editor codebase.
 
-## Editor Status (October 2025)
+## Editor Status (November 2025)
 
-| Editor            | State        | Notes |
-|-------------------|--------------|-------|
-| Overworld         | Stable       | Full feature set; continue regression testing after palette fixes. |
-| Message           | Stable       | Re-test rendering after recent palette work. |
-| Emulator          | Stable       | UI and core subsystems aligned with production builds. |
-| Palette           | Stable       | Serves as the source of truth for palette helpers. |
-| Assembly          | Stable       | No outstanding refactors. |
-| Dungeon           | Experimental | Requires thorough manual coverage before release. |
-| Graphics          | Experimental | Large rendering changes in flight; validate texture pipeline. |
-| Sprite            | Experimental | UI patterns still migrating to the new card system. |
+| Editor            | State        | Cards | Notes |
+|-------------------|--------------|-------|-------|
+| Overworld         | Stable       | 8     | Full feature set with tile16 editor, scratch space. |
+| Message           | Stable       | 4     | Message list, editor, font atlas, dictionary cards. |
+| Emulator          | Stable       | 10    | CPU, PPU, Memory debuggers; AI agent integration. |
+| Palette           | Stable       | 11    | Source of truth for palette helpers. |
+| Assembly          | Stable       | 2     | File browser and editor cards. |
+| Dungeon           | Stable       | 8     | Room selector, matrix, graphics, object editor. |
+| Graphics          | Stable       | 4     | Sheet editor, browser, player animations. |
+| Sprite            | Stable       | 2     | Vanilla and custom sprite cards. |
+| Screen            | Stable       | 5     | Dungeon maps, inventory, title screen, etc. |
+| Music             | Experimental | 3     | Tracker, instrument editor, assembly view. |
 
-### Screen Editor Notes
+### Recent Improvements (v0.3.9)
 
-- **Title screen**: Vanilla ROM tilemap parsing remains broken. Implement a DMA
-  parser and confirm the welcome screen renders before enabling painting.
-- **Overworld map**: Mode 7 tiling, palette switching, and custom map import/export are in place. The next milestone is faster tile painting.
-- **Dungeon map**: Rendering is wired up; tile painting and ROM write-back are still pending.
+- **EditorManager Refactoring**: 90% feature parity with 44% code reduction
+- **Card-Based UI**: All 34 editor cards with X-button close, multi-session support
+- **SDL3 Backend Infrastructure**: 17 abstraction files for future migration
+- **WASM Web Port**: Real-time collaboration via WebSocket
+- **AI Agent Tools**: Phases 1-4 complete (meta-tools, schemas, validation)
+
+### Known Issues
+
+- **Dungeon object rendering**: Regression with object visibility
+- **ZSOW v3 palettes**: Large-area palette issues being investigated
 
 ## 1. Core Architectural Patterns
 
