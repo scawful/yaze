@@ -760,9 +760,22 @@ absl::Status Overworld::EnsureMapBuilt(int map_index) {
     world_type = 2;
   }
 
-  auto status = overworld_maps_[map_index].BuildMap(size, game_state_, world_type,
-                                                    tiles16_, GetMapTiles(world_type));
+  // Prepare graphics config to check cache (must call LoadAreaGraphics first)
+  overworld_maps_[map_index].LoadAreaGraphics();
+  uint64_t config_hash = ComputeGraphicsConfigHash(map_index);
+
+  // Try to use cached tileset for faster build
+  const std::vector<uint8_t>* cached_tileset = GetCachedTileset(config_hash);
+
+  auto status = overworld_maps_[map_index].BuildMapWithCache(
+      size, game_state_, world_type, tiles16_, GetMapTiles(world_type),
+      cached_tileset);
+
   if (status.ok()) {
+    // Cache the tileset if we didn't use cached data
+    if (!cached_tileset) {
+      CacheTileset(config_hash, overworld_maps_[map_index].current_graphics());
+    }
     // Add to front of LRU cache
     built_map_lru_.push_front(map_index);
   }
@@ -774,6 +787,53 @@ void Overworld::LoadTileTypes() {
     all_tiles_types_[i] =
         rom()->data()[rom()->version_constants().kOverworldTilesType + i];
   }
+}
+
+uint64_t Overworld::ComputeGraphicsConfigHash(int map_index) {
+  // Compute a hash from the static_graphics array (16 bytes)
+  // This determines which graphics sheets are used for this map's tileset
+  const auto* map = &overworld_maps_[map_index];
+  uint64_t hash = 0;
+
+  // Hash the 16 static graphics IDs that define the tileset configuration
+  for (int i = 0; i < 16; ++i) {
+    hash ^= static_cast<uint64_t>(map->static_graphics(i)) << ((i % 8) * 8);
+    hash *= 0x517cc1b727220a95ULL;  // FNV-like mixing
+  }
+
+  // Also include the area_graphics and main_gfx_id for complete config
+  hash ^= static_cast<uint64_t>(map->area_graphics()) << 48;
+  hash *= 0x517cc1b727220a95ULL;
+
+  return hash;
+}
+
+const std::vector<uint8_t>* Overworld::GetCachedTileset(uint64_t config_hash) {
+  auto it = gfx_config_cache_.find(config_hash);
+  if (it != gfx_config_cache_.end()) {
+    it->second.reference_count++;
+    return &it->second.current_gfx;
+  }
+  return nullptr;
+}
+
+void Overworld::CacheTileset(uint64_t config_hash,
+                             const std::vector<uint8_t>& tileset) {
+  // Limit cache size by evicting least-used entries
+  while (gfx_config_cache_.size() >= kMaxCachedConfigs) {
+    // Find entry with lowest reference count
+    auto min_it = gfx_config_cache_.begin();
+    for (auto it = gfx_config_cache_.begin(); it != gfx_config_cache_.end();
+         ++it) {
+      if (it->second.reference_count < min_it->second.reference_count) {
+        min_it = it;
+      }
+    }
+    gfx_config_cache_.erase(min_it);
+  }
+
+  // Cache the tileset
+  gfx_config_cache_[config_hash] = {tileset, 1};
 }
 
 absl::Status Overworld::LoadSprites() {

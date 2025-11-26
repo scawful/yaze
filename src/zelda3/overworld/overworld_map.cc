@@ -48,6 +48,15 @@ OverworldMap::OverworldMap(int index, Rom* rom)
 absl::Status OverworldMap::BuildMap(int count, int game_state, int world,
                                     std::vector<gfx::Tile16>& tiles16,
                                     OverworldBlockset& world_blockset) {
+  // Delegate to cached version with no cache
+  return BuildMapWithCache(count, game_state, world, tiles16, world_blockset,
+                           nullptr);
+}
+
+absl::Status OverworldMap::BuildMapWithCache(
+    int count, int game_state, int world, std::vector<gfx::Tile16>& tiles16,
+    OverworldBlockset& world_blockset,
+    const std::vector<uint8_t>* cached_tileset) {
   game_state_ = game_state;
   world_ = world;
   auto version = OverworldVersionHelper::GetVersion(*rom_);
@@ -77,7 +86,14 @@ absl::Status OverworldMap::BuildMap(int count, int game_state, int world,
   }
 
   LoadAreaGraphics();
-  RETURN_IF_ERROR(BuildTileset())
+
+  // Use cached tileset if available, otherwise build from scratch
+  if (cached_tileset && !cached_tileset->empty()) {
+    UseCachedTileset(*cached_tileset);
+  } else {
+    RETURN_IF_ERROR(BuildTileset())
+  }
+
   RETURN_IF_ERROR(BuildTiles16Gfx(tiles16, count))
   RETURN_IF_ERROR(LoadPalette());
   RETURN_IF_ERROR(LoadOverlay());

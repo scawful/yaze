@@ -219,8 +219,8 @@ void ObjectEditorCard::DrawObjectTemplates() {
 
       ImGui::PopID();
     }
-    ImGui::EndChild();
   }
+  ImGui::EndChild();
 }
 
 void ObjectEditorCard::DrawTemplateCreationModal() {

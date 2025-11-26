@@ -253,6 +253,17 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   void DrawUsageGrid();
   void DrawDebugWindow();
 
+  /**
+   * @brief Queue adjacent maps for background pre-loading
+   * @param center_map The map index to load neighbors for
+   */
+  void QueueAdjacentMapsForPreload(int center_map);
+
+  /**
+   * @brief Process one map from the preload queue (called each frame)
+   */
+  void ProcessPreloadQueue();
+
   enum class EditingMode {
     MOUSE,     // Navigation, selection, entity management via context menu
     DRAW_TILE  // Tile painting mode
@@ -328,6 +339,15 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   bool show_gfx_groups_ = false;
   bool show_usage_stats_ = false;
   bool show_v3_settings_ = false;
+
+  // Hover optimization - debounce map building during rapid hover
+  int last_hovered_map_ = -1;
+  float hover_time_ = 0.0f;
+  static constexpr float kHoverBuildDelay = 0.15f;  // 150ms delay before building
+
+  // Background pre-loading for adjacent maps
+  std::vector<int> preload_queue_;
+  static constexpr float kPreloadStartDelay = 0.3f;  // Start preloading after 300ms dwell
 
   // Map properties system for UI organization
   std::unique_ptr<MapPropertiesSystem> map_properties_system_;
