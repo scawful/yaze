@@ -9,6 +9,7 @@
 #include "app/gui/app/editor_layout.h"
 #include "app/gui/core/color.h"
 #include "app/gui/core/icons.h"
+#include "app/gui/core/popup_id.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -553,7 +554,9 @@ void PaletteEditor::DrawCustomPalette() {
       if (open_color_picker) {
         current_color_ = custom_palette_[i];
         edit_palette_index_ = i;
-        ImGui::OpenPopup("CustomPaletteColorEdit");
+        ImGui::OpenPopup(
+            gui::MakePopupId(gui::EditorNames::kPalette, "CustomPaletteColorEdit")
+                .c_str());
       }
 
       if (BeginPopupContextItem()) {
@@ -608,7 +611,9 @@ void PaletteEditor::DrawCustomPalette() {
   EndChild();
 
   // Color picker popup for custom palette editing
-  if (ImGui::BeginPopup("CustomPaletteColorEdit")) {
+  if (ImGui::BeginPopup(
+          gui::MakePopupId(gui::EditorNames::kPalette, "CustomPaletteColorEdit")
+              .c_str())) {
     if (edit_palette_index_ >= 0 &&
         edit_palette_index_ < custom_palette_.size()) {
       SnesColor original_color = custom_palette_[edit_palette_index_];
@@ -1089,7 +1094,10 @@ void PaletteEditor::DrawCustomPaletteCard() {
         if (open_color_picker) {
           current_color_ = custom_palette_[i];
           edit_palette_index_ = i;
-          ImGui::OpenPopup("CustomPaletteColorEdit");
+          ImGui::OpenPopup(
+              gui::MakePopupId(gui::EditorNames::kPalette,
+                               "CardCustomPaletteColorEdit")
+                  .c_str());
         }
 
         if (BeginPopupContextItem()) {
@@ -1155,7 +1163,9 @@ void PaletteEditor::DrawCustomPaletteCard() {
   card.End();
 
   // Color picker popup for custom palette editing
-  if (ImGui::BeginPopup("CustomPaletteColorEdit")) {
+  if (ImGui::BeginPopup(gui::MakePopupId(gui::EditorNames::kPalette,
+                                         "CardCustomPaletteColorEdit")
+                            .c_str())) {
     if (edit_palette_index_ >= 0 &&
         edit_palette_index_ < custom_palette_.size()) {
       SnesColor original_color = custom_palette_[edit_palette_index_];

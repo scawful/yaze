@@ -2,6 +2,7 @@
 
 #include "app/gui/core/icons.h"
 #include "app/gui/core/input.h"
+#include "app/gui/core/popup_id.h"
 #include "app/gui/core/style.h"
 #include "imgui.h"
 #include "util/hex.h"
@@ -88,8 +89,10 @@ bool DrawOverworldEntrancePopup(zelda3::OverworldEntrance& entrance) {
     return true;
   }
 
-  if (ImGui::BeginPopupModal("Entrance Editor", NULL,
-                             ImGuiWindowFlags_AlwaysAutoResize)) {
+  if (ImGui::BeginPopupModal(
+          gui::MakePopupId(gui::EditorNames::kOverworld, "Entrance Editor")
+              .c_str(),
+          NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
     if (ImGui::IsWindowAppearing()) {
       // Reset state if needed
     }
@@ -170,8 +173,9 @@ bool DrawExitEditorPopup(zelda3::OverworldExit& exit) {
     set_done = false;
     return true;
   }
-  if (ImGui::BeginPopupModal("Exit editor", NULL,
-                             ImGuiWindowFlags_AlwaysAutoResize)) {
+  if (ImGui::BeginPopupModal(
+          gui::MakePopupId(gui::EditorNames::kOverworld, "Exit Editor").c_str(),
+          NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
     // Normal door: None = 0, Wooden = 1, Bombable = 2
     static int doorType = 0;
     // Fancy door: None = 0, Sanctuary = 1, Palace = 2
@@ -352,8 +356,9 @@ void DrawItemInsertPopup() {
 // TODO: Implement deleting OverworldItem objects, currently only hides them
 bool DrawItemEditorPopup(zelda3::OverworldItem& item) {
   bool set_done = false;
-  if (ImGui::BeginPopupModal("Item editor", NULL,
-                             ImGuiWindowFlags_AlwaysAutoResize)) {
+  if (ImGui::BeginPopupModal(
+          gui::MakePopupId(gui::EditorNames::kOverworld, "Item Editor").c_str(),
+          NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
     BeginChild("ScrollRegion", ImVec2(150, 150), true,
                ImGuiWindowFlags_AlwaysVerticalScrollbar);
     ImGui::BeginGroup();
@@ -485,8 +490,10 @@ bool DrawSpriteEditorPopup(zelda3::Sprite& sprite) {
     set_done = false;
     return true;
   }
-  if (ImGui::BeginPopupModal("Sprite editor", NULL,
-                             ImGuiWindowFlags_AlwaysAutoResize)) {
+  if (ImGui::BeginPopupModal(
+          gui::MakePopupId(gui::EditorNames::kOverworld, "Sprite Editor")
+              .c_str(),
+          NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
     static int selected_id = 0;
     if (ImGui::IsWindowAppearing()) {
       selected_id = sprite.id();

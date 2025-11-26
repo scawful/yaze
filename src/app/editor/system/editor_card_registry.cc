@@ -2,12 +2,15 @@
 
 #include <algorithm>
 #include <cstdio>
+#include <fstream>
 
 #include "absl/strings/str_format.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/theme_manager.h"
 #include "imgui/imgui.h"
+#include "nlohmann/json.hpp"
 #include "util/log.h"
+#include "util/platform_paths.h"
 
 namespace yaze {
 namespace editor {
@@ -1313,13 +1316,99 @@ void EditorCardRegistry::UnregisterSessionCards(size_t session_id) {
 }
 
 void EditorCardRegistry::SavePresetsToFile() {
-  // TODO: Implement file I/O for presets
-  LOG_INFO("EditorCardRegistry", "SavePresetsToFile() - not yet implemented");
+  auto config_dir_result = util::PlatformPaths::GetConfigDirectory();
+  if (!config_dir_result.ok()) {
+    LOG_ERROR("EditorCardRegistry", "Failed to get config directory: %s",
+              config_dir_result.status().ToString().c_str());
+    return;
+  }
+
+  std::filesystem::path presets_file = *config_dir_result / "layout_presets.json";
+
+  try {
+    nlohmann::json j;
+    j["version"] = 1;
+    j["presets"] = nlohmann::json::object();
+
+    for (const auto& [name, preset] : presets_) {
+      nlohmann::json preset_json;
+      preset_json["name"] = preset.name;
+      preset_json["description"] = preset.description;
+      preset_json["visible_cards"] = preset.visible_cards;
+      j["presets"][name] = preset_json;
+    }
+
+    std::ofstream file(presets_file);
+    if (!file.is_open()) {
+      LOG_ERROR("EditorCardRegistry", "Failed to open file for writing: %s",
+                presets_file.string().c_str());
+      return;
+    }
+
+    file << j.dump(2);
+    file.close();
+
+    LOG_INFO("EditorCardRegistry", "Saved %zu presets to %s", presets_.size(),
+             presets_file.string().c_str());
+  } catch (const std::exception& e) {
+    LOG_ERROR("EditorCardRegistry", "Error saving presets: %s", e.what());
+  }
 }
 
 void EditorCardRegistry::LoadPresetsFromFile() {
-  // TODO: Implement file I/O for presets
-  LOG_INFO("EditorCardRegistry", "LoadPresetsFromFile() - not yet implemented");
+  auto config_dir_result = util::PlatformPaths::GetConfigDirectory();
+  if (!config_dir_result.ok()) {
+    LOG_WARN("EditorCardRegistry", "Failed to get config directory: %s",
+             config_dir_result.status().ToString().c_str());
+    return;
+  }
+
+  std::filesystem::path presets_file = *config_dir_result / "layout_presets.json";
+
+  if (!util::PlatformPaths::Exists(presets_file)) {
+    LOG_INFO("EditorCardRegistry", "No presets file found at %s",
+             presets_file.string().c_str());
+    return;
+  }
+
+  try {
+    std::ifstream file(presets_file);
+    if (!file.is_open()) {
+      LOG_WARN("EditorCardRegistry", "Failed to open presets file: %s",
+               presets_file.string().c_str());
+      return;
+    }
+
+    nlohmann::json j;
+    file >> j;
+    file.close();
+
+    if (!j.contains("presets")) {
+      LOG_WARN("EditorCardRegistry", "Invalid presets file format");
+      return;
+    }
+
+    size_t loaded_count = 0;
+    for (auto& [name, preset_json] : j["presets"].items()) {
+      WorkspacePreset preset;
+      preset.name = preset_json.value("name", name);
+      preset.description = preset_json.value("description", "");
+
+      if (preset_json.contains("visible_cards")) {
+        for (const auto& card : preset_json["visible_cards"]) {
+          preset.visible_cards.push_back(card.get<std::string>());
+        }
+      }
+
+      presets_[name] = preset;
+      loaded_count++;
+    }
+
+    LOG_INFO("EditorCardRegistry", "Loaded %zu presets from %s", loaded_count,
+             presets_file.string().c_str());
+  } catch (const std::exception& e) {
+    LOG_ERROR("EditorCardRegistry", "Error loading presets: %s", e.what());
+  }
 }
 
 void EditorCardRegistry::DrawCardMenuItem(const CardInfo& info) {

@@ -3,6 +3,7 @@
 
 #include <map>
 
+#include "app/gfx/backend/irenderer.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/gui/canvas/canvas.h"
 #include "app/rom.h"
@@ -33,6 +34,7 @@ class DungeonCanvasViewer {
 
   void SetRom(Rom* rom) { rom_ = rom; }
   Rom* rom() const { return rom_; }
+  void SetRenderer(gfx::IRenderer* renderer) { renderer_ = renderer; }
 
   // Room data access
   void SetRooms(std::array<zelda3::Room, 0x128>* rooms) { rooms_ = rooms; }
@@ -191,6 +193,8 @@ class DungeonCanvasViewer {
     bool show_layer2_objects = true;  // Layer 2 (BG3)
   };
   ObjectOutlineToggles object_outline_toggles_;
+
+  gfx::IRenderer* renderer_ = nullptr;
 };
 
 }  // namespace editor

@@ -36,6 +36,7 @@
 #include "app/gui/canvas/canvas.h"
 #include "app/gui/canvas/canvas_automation_api.h"
 #include "app/gui/core/icons.h"
+#include "app/gui/core/popup_id.h"
 #include "app/gui/core/style.h"
 #include "app/gui/core/ui_helpers.h"
 #include "app/gui/widgets/tile_selector_widget.h"
@@ -422,21 +423,29 @@ absl::Status OverworldEditor::Update() {
           case zelda3::GameEntity::EntityType::kExit:
             current_exit_ =
                 *static_cast<zelda3::OverworldExit*>(hovered_entity);
-            ImGui::OpenPopup("Exit editor");
+            ImGui::OpenPopup(
+                gui::MakePopupId(gui::EditorNames::kOverworld, "Exit Editor")
+                    .c_str());
             break;
           case zelda3::GameEntity::EntityType::kEntrance:
             current_entrance_ =
                 *static_cast<zelda3::OverworldEntrance*>(hovered_entity);
-            ImGui::OpenPopup("Entrance Editor");
+            ImGui::OpenPopup(
+                gui::MakePopupId(gui::EditorNames::kOverworld, "Entrance Editor")
+                    .c_str());
             break;
           case zelda3::GameEntity::EntityType::kItem:
             current_item_ =
                 *static_cast<zelda3::OverworldItem*>(hovered_entity);
-            ImGui::OpenPopup("Item editor");
+            ImGui::OpenPopup(
+                gui::MakePopupId(gui::EditorNames::kOverworld, "Item Editor")
+                    .c_str());
             break;
           case zelda3::GameEntity::EntityType::kSprite:
             current_sprite_ = *static_cast<zelda3::Sprite*>(hovered_entity);
-            ImGui::OpenPopup("Sprite editor");
+            ImGui::OpenPopup(
+                gui::MakePopupId(gui::EditorNames::kOverworld, "Sprite Editor")
+                    .c_str());
             break;
           default:
             break;

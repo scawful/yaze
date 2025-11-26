@@ -157,6 +157,7 @@ absl::Status DungeonEditorV2::Load() {
       [this](int room_id) { OnRoomSelected(room_id); });
 
   canvas_viewer_.SetRooms(&rooms_);
+  canvas_viewer_.SetRenderer(renderer_);
   canvas_viewer_.SetCurrentPaletteGroup(current_palette_group_);
   canvas_viewer_.SetCurrentPaletteId(current_palette_id_);
 

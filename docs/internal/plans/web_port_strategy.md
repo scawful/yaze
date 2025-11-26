@@ -1,35 +1,50 @@
 # Plan: Web Port Strategy
 
-**Status:** Active  
-**Owner (Agent ID):** ai-infra-architect (infra) / imgui-frontend-engineer (UI)  
-**Last Updated:** 2025-11-25  
-**Next Review:** 2025-12-02  
-**Coordination Board Entry:** link when claimed
+**Status:** COMPLETE (Milestones 0-4)  
+**Owner (Agent ID):** backend-infra-engineer, imgui-frontend-engineer  
+**Last Updated:** 2025-11-26  
+**Completed:** 2025-11-23  
 
 Goal: run Yaze in-browser via Emscripten without forking the desktop codebase. Desktop stays primary; the web build is a no-install demo that shares the ImGui UI.
 
-## Milestone 0: Toolchain + Preset
-- Add `wasm-release` to `CMakePresets.json` using the Emscripten toolchain. Flags: `-DYAZE_WITH_GRPC=OFF -DYAZE_ENABLE_TESTS=OFF -DYAZE_USE_NATIVE_FILE_DIALOG=OFF -DYAZE_WITH_JSON=ON -DYAZE_WITH_IMGUI=ON -DYAZE_WITH_SDL=ON`.
-- Set `CMAKE_CXX_STANDARD=20` and Emscripten flags: `-s USE_SDL=2 -s USE_FREETYPE=1 -s ALLOW_MEMORY_GROWTH=1 --preload-file assets@/assets`.
-- Keep desktop presets unchanged. Prefer `#ifdef __EMSCRIPTEN__` guards over separate sources so code paths stay aligned.
+## ✅ Milestone 0: Toolchain + Preset (COMPLETE)
+- ✅ Added `wasm-release` to `CMakePresets.json` using the Emscripten toolchain
+- ✅ Flags: `-DYAZE_WITH_GRPC=OFF -DYAZE_ENABLE_TESTS=OFF -DYAZE_USE_NATIVE_FILE_DIALOG=OFF -DYAZE_WITH_JSON=ON -DYAZE_WITH_IMGUI=ON -DYAZE_WITH_SDL=ON`
+- ✅ Set `CMAKE_CXX_STANDARD=20` and Emscripten flags
+- ✅ Desktop presets unchanged; `#ifdef __EMSCRIPTEN__` guards used
 
-## Milestone 1: Core Loop + Platform Shims
-- Extract a per-frame tick (e.g., `TickFrame()`); in `main.cc` choose `while (running)` for desktop vs. `emscripten_set_main_loop([]{ TickFrame(); }, 0, 1)` for web.
-- Guard or disable gRPC, crash handler bits, and other native-only systems under `#ifndef __EMSCRIPTEN__`.
-- Replace native dialogs with ImGui/Bespoke picker when `__EMSCRIPTEN__` (compile NFD out).
+## ✅ Milestone 1: Core Loop + Platform Shims (COMPLETE)
+- ✅ Extracted per-frame tick; Emscripten main loop implemented
+- ✅ gRPC, crash handler disabled under `#ifndef __EMSCRIPTEN__`
+- ✅ Native dialogs replaced with ImGui picker for web
 
-## Milestone 2: Filesystem, Paths, and Assets
-- Mount MEMFS at `/roms` for uploads and IDBFS at `/saves` for persistent SRAM/state; sync on startup/shutdown.
-- Keep desktop path logic intact; only gate web-specific mounts. Bundle fonts/icons via `--preload-file assets@/assets`.
-- Add thin helpers for ROM/SRAM path resolution so callers do not branch on platform.
+## ✅ Milestone 2: Filesystem, Paths, and Assets (COMPLETE)
+- ✅ MEMFS for uploads, IndexedDB for persistent storage
+- ✅ `src/app/platform/wasm/` implementation complete:
+  - `wasm_storage.{h,cc}` - IndexedDB integration
+  - `wasm_file_dialog.{h,cc}` - Web file picker
+  - `wasm_loading_manager.{h,cc}` - Progressive loading
+  - `wasm_settings.{h,cc}` - Local storage for settings
+  - `wasm_autosave.{h,cc}` - Auto-save functionality
+  - `wasm_worker_pool.{h,cc}` - Web worker threading
+  - `wasm_audio.{h,cc}` - WebAudio for SPC700
 
-## Milestone 3: Web Shell + ROM Flow
-- Add `src/web/shell.html` that hosts the canvas and two bridge buttons: Upload ROM → writes to `/roms/...` via `Module.FS`; Download ROM → reads `/roms/*.sfc` and triggers a blob download.
-- Keep UI inside ImGui; HTML only wraps the canvas and file bridges. Ensure IDBFS sync after saves to make downloads up to date.
+## ✅ Milestone 3: Web Shell + ROM Flow (COMPLETE)
+- ✅ `src/web/shell.html` with canvas and file bridges
+- ✅ ROM upload/download working
+- ✅ IDBFS sync after saves
 
-## Milestone 4: CI + Release
-- Add an opt-in nightly CI job to build `wasm-release` (non-blocking for desktop). Publish `index.html`, `.wasm`, `.data` bundle.
-- Provide a local `scripts/build-wasm.sh` helper to mirror the CI invocation and make artifacts easy to test.
+## ✅ Milestone 4: CI + Release (COMPLETE)
+- ✅ CI workflow for automated WASM builds
+- ✅ GitHub Pages deployment working
+- ✅ `scripts/build-wasm.sh` helper available
 
-## UX Positioning
-- Market as “try in browser” with slightly reduced features (no native dialogs/gRPC/heavy threads). Desktop remains the supported path for performance work.
+## Bonus: Real-Time Collaboration (COMPLETE)
+- ✅ WebSocket-based multi-user ROM editing
+- ✅ User presence and cursor tracking
+- ✅ `src/web/collaboration_ui.{js,css}` - Collaboration UI
+- ✅ `wasm_collaboration.{h,cc}` - C++ manager
+- ✅ Server deployed on halext-server (port 8765)
+
+## Canonical Reference
+See [wasm-antigravity-playbook.md](../agents/wasm-antigravity-playbook.md) for the consolidated WASM development guide.
