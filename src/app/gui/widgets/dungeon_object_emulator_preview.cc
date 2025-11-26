@@ -52,6 +52,26 @@ std::vector<uint8_t> ConvertLinear8bppToPlanar4bpp(
   return planar_data;
 }
 
+// Convert SNES LoROM address to PC (file) offset
+// ALTTP uses LoROM mapping:
+// - Banks $00-$3F: Address $8000-$FFFF maps to ROM
+// - Each bank contributes 32KB ($8000 bytes) of ROM data
+// - PC = (bank & 0x7F) * 0x8000 + (addr - 0x8000)
+// Takes a 24-bit SNES address (e.g., 0x018200 = bank $01, addr $8200)
+uint32_t SnesToPc(uint32_t snes_addr) {
+  uint8_t bank = (snes_addr >> 16) & 0xFF;
+  uint16_t addr = snes_addr & 0xFFFF;
+
+  // LoROM: banks $00-$3F map to ROM ($8000-$FFFF only)
+  // Each bank = 32KB of ROM, so multiply bank by 0x8000
+  // Formula: PC = (bank & 0x7F) * 0x8000 + (addr - 0x8000)
+  if (addr >= 0x8000) {
+    return (bank & 0x7F) * 0x8000 + (addr - 0x8000);
+  }
+  // For addresses below $8000, return as-is (WRAM/hardware regs)
+  return snes_addr;
+}
+
 }  // namespace
 
 namespace yaze {
@@ -341,10 +361,11 @@ void DungeonObjectEmulatorPreview::TriggerEmulatedRender() {
   }
 
   // Load sprite auxiliary palettes (palettes 6-7, indices 90-119)
-  // ROM $0D:D308 = Sprite aux palette group
-  constexpr uint32_t kSpriteAuxPaletteAddr = 0x0DD308;
+  // ROM $0D:D308 = Sprite aux palette group (SNES address, needs LoROM conversion)
+  constexpr uint32_t kSpriteAuxPaletteSnes = 0x0DD308;  // SNES: bank $0D, addr $D308
+  const uint32_t kSpriteAuxPalettePc = SnesToPc(kSpriteAuxPaletteSnes);  // PC: $65308
   for (int i = 0; i < 30; ++i) {
-    uint32_t addr = kSpriteAuxPaletteAddr + i * 2;
+    uint32_t addr = kSpriteAuxPalettePc + i * 2;
     if (addr + 1 < rom_->size()) {
       uint16_t snes_color = rom_->data()[addr] | (rom_->data()[addr + 1] << 8);
       ppu.cgram[90 + i] = snes_color;
@@ -379,28 +400,35 @@ void DungeonObjectEmulatorPreview::TriggerEmulatedRender() {
 
   // 5b. CRITICAL: Initialize zero-page tilemap pointers ($BF-$DD)
   // Handlers use indirect long addressing STA [$BF],Y which requires
-  // 24-bit pointers to be set. Load from RoomData_TilemapPointers at $01:86F8
-  // These are 11 x 3-byte long pointers pointing to WRAM tilemap locations
-  constexpr uint32_t kTilemapPointersAddr = 0x0186F8;
+  // 24-bit pointers to be set up. These are NOT stored in ROM - they're
+  // initialized dynamically by the game's room loading code.
+  // We manually set them to point to BG1 tilemap buffer rows.
+  //
+  // BG1 tilemap buffer is at $7E:2000, 64×64 entries (each 2 bytes)
+  // Each row = 64 × 2 = 128 bytes = $80 apart
+  // The 11 pointers at $BF, $C2, $C5... point to different row offsets
   constexpr uint8_t kPointerZeroPageAddrs[] = {0xBF, 0xC2, 0xC5, 0xC8, 0xCB,
                                                 0xCE, 0xD1, 0xD4, 0xD7, 0xDA,
                                                 0xDD};
 
+  // Base address for BG1 tilemap in WRAM: $7E2000
+  // Each pointer points to a different row offset for the drawing handlers
+  constexpr uint32_t kBG1TilemapBase = 0x7E2000;
+  constexpr uint32_t kRowStride = 0x80;  // 64 tiles × 2 bytes per tile
+
   for (int i = 0; i < 11; ++i) {
-    uint32_t ptr_addr = kTilemapPointersAddr + i * 3;
-    if (ptr_addr + 2 < rom_->size()) {
-      uint8_t lo = rom_->data()[ptr_addr];
-      uint8_t mid = rom_->data()[ptr_addr + 1];
-      uint8_t hi = rom_->data()[ptr_addr + 2];
+    uint32_t wram_addr = kBG1TilemapBase + (i * kRowStride);
+    uint8_t lo = wram_addr & 0xFF;
+    uint8_t mid = (wram_addr >> 8) & 0xFF;
+    uint8_t hi = (wram_addr >> 16) & 0xFF;
 
-      uint8_t zp_addr = kPointerZeroPageAddrs[i];
-      // Write to direct page in WRAM
-      snes_instance_->Write(0x7E0000 | zp_addr, lo);
-      snes_instance_->Write(0x7E0000 | (zp_addr + 1), mid);
-      snes_instance_->Write(0x7E0000 | (zp_addr + 2), hi);
+    uint8_t zp_addr = kPointerZeroPageAddrs[i];
+    // Write 24-bit pointer to direct page in WRAM
+    snes_instance_->Write(0x7E0000 | zp_addr, lo);
+    snes_instance_->Write(0x7E0000 | (zp_addr + 1), mid);
+    snes_instance_->Write(0x7E0000 | (zp_addr + 2), hi);
 
-      printf("[EMU] Tilemap ptr $%02X = $%02X%02X%02X\n", zp_addr, hi, mid, lo);
-    }
+    printf("[EMU] Tilemap ptr $%02X = $%06X\n", zp_addr, wram_addr);
   }
 
   // 6. Setup PPU registers for dungeon rendering
@@ -412,10 +440,38 @@ void DungeonObjectEmulatorPreview::TriggerEmulatedRender() {
   snes_instance_->Write(0x00212C, 0x03);  // Enable BG1+BG2 on main screen
   snes_instance_->Write(0x002100, 0x0F);  // Screen display on, full brightness
 
+  // 6b. CRITICAL: Mock APU I/O registers to prevent infinite handshake loop
+  // The APU handshake at $00:8891 waits for SPC700 to respond with $BBAA
+  // APU has SEPARATE read/write latches:
+  //   - Write() goes to in_ports_ (CPU→SPC direction)
+  //   - Read() returns from out_ports_ (SPC→CPU direction)
+  // We must set out_ports_ directly for the CPU to see the mock values!
+  auto& apu = snes_instance_->apu();
+  apu.out_ports_[0] = 0xAA;  // APU I/O port 0 - ready signal (SPC→CPU)
+  apu.out_ports_[1] = 0xBB;  // APU I/O port 1 - ready signal (SPC→CPU)
+  apu.out_ports_[2] = 0x00;  // APU I/O port 2
+  apu.out_ports_[3] = 0x00;  // APU I/O port 3
+  printf("[EMU] APU mock: out_ports_[0]=$AA, out_ports_[1]=$BB (SPC→CPU)\n");
+
   // 7. Setup WRAM variables for drawing context
   snes_instance_->Write(0x7E00AF, room_id_ & 0xFF);
   snes_instance_->Write(0x7E049C, 0x00);
   snes_instance_->Write(0x7E049E, 0x00);
+
+  // 7b. Object drawing parameters in zero-page
+  // These are expected by the drawing handlers
+  snes_instance_->Write(0x7E0004, GetObjectType(object_id_));  // Object type
+  uint16_t y_offset = object_y_ * 0x80;  // Tilemap Y offset
+  snes_instance_->Write(0x7E0008, y_offset & 0xFF);
+  snes_instance_->Write(0x7E0009, (y_offset >> 8) & 0xFF);
+  snes_instance_->Write(0x7E00B2, object_size_);  // Size X parameter
+  snes_instance_->Write(0x7E00B4, object_size_);  // Size Y parameter
+
+  // Room state variables
+  snes_instance_->Write(0x7E00A0, room_id_ & 0xFF);
+  snes_instance_->Write(0x7E00A1, (room_id_ >> 8) & 0xFF);
+  printf("[EMU] Object params: type=%d, y_offset=$%04X, size=%d\n",
+         GetObjectType(object_id_), y_offset, object_size_);
 
   // 8. Create object and encode to bytes
   zelda3::RoomObject obj(object_id_, object_x_, object_y_, object_size_, 0);
@@ -433,40 +489,44 @@ void DungeonObjectEmulatorPreview::TriggerEmulatedRender() {
   snes_instance_->Write(0x7E00B8, (object_data_addr >> 8) & 0xFF);
   snes_instance_->Write(0x7E00B9, (object_data_addr >> 16) & 0xFF);
 
-  // 10. Setup CPU state
-  cpu.PB = 0x01;
-  cpu.DB = 0x7E;
-  cpu.D = 0x0000;
-  cpu.SetSP(0x01FF);
-  cpu.status = 0x30;  // 8-bit mode
-
-  // Calculate X register (tilemap position)
-  cpu.X = (object_y_ * 0x80) + (object_x_ * 2);
-  cpu.Y = 0;  // Object data offset
-
-  // 11. Lookup the object's drawing handler
-  uint16_t handler_offset = 0;
+  // 10. Lookup the object's drawing handler using TWO-TABLE system
+  // Table 1: Data offset table (points into RoomDrawObjectData)
+  // Table 2: Handler routine table (address of drawing routine)
+  // All tables are in bank $01, need LoROM conversion to PC offset
   auto rom_data = rom_->data();
-  uint32_t table_addr = 0;
+  uint32_t data_table_snes = 0;
+  uint32_t handler_table_snes = 0;
 
   if (object_id_ < 0x100) {
-    table_addr = 0x018200 + (object_id_ * 2);
+    // Type 1 objects: $01:8000 (data), $01:8200 (handler)
+    data_table_snes = 0x018000 + (object_id_ * 2);
+    handler_table_snes = 0x018200 + (object_id_ * 2);
   } else if (object_id_ < 0x200) {
-    table_addr = 0x018470 + ((object_id_ - 0x100) * 2);
+    // Type 2 objects: $01:8370 (data), $01:8470 (handler)
+    data_table_snes = 0x018370 + ((object_id_ - 0x100) * 2);
+    handler_table_snes = 0x018470 + ((object_id_ - 0x100) * 2);
   } else {
-    table_addr = 0x0185F0 + ((object_id_ - 0x200) * 2);
+    // Type 3 objects: $01:84F0 (data), $01:85F0 (handler)
+    data_table_snes = 0x0184F0 + ((object_id_ - 0x200) * 2);
+    handler_table_snes = 0x0185F0 + ((object_id_ - 0x200) * 2);
   }
 
-  if (table_addr < rom_->size() - 1) {
-    uint8_t lo = rom_data[table_addr];
-    uint8_t hi = rom_data[table_addr + 1];
-    handler_offset = lo | (hi << 8);
+  // Convert SNES addresses to PC offsets for ROM reads
+  uint32_t data_table_pc = SnesToPc(data_table_snes);
+  uint32_t handler_table_pc = SnesToPc(handler_table_snes);
+
+  uint16_t data_offset = 0;
+  uint16_t handler_addr = 0;
+
+  if (data_table_pc + 1 < rom_->size() && handler_table_pc + 1 < rom_->size()) {
+    data_offset = rom_data[data_table_pc] | (rom_data[data_table_pc + 1] << 8);
+    handler_addr = rom_data[handler_table_pc] | (rom_data[handler_table_pc + 1] << 8);
   } else {
     last_error_ = "Object ID out of bounds for handler lookup";
     return;
   }
 
-  if (handler_offset == 0x0000) {
+  if (handler_addr == 0x0000) {
     char buf[256];
     snprintf(buf, sizeof(buf), "Object $%04X has no drawing routine",
              object_id_);
@@ -474,34 +534,81 @@ void DungeonObjectEmulatorPreview::TriggerEmulatedRender() {
     return;
   }
 
-  // 12. Setup return address and jump to handler
-  const uint16_t return_addr = 0x8000;
-  snes_instance_->Write(0x018000, 0x6B);  // RTL instruction (0x6B not 0x60!)
+  printf("[EMU] Two-table lookup (PC: $%04X, $%04X): data_offset=$%04X, handler=$%04X\n",
+         data_table_pc, handler_table_pc, data_offset, handler_addr);
 
-  // Push return address for RTL (3 bytes: bank, high, low)
+  // 11. Setup CPU state with correct register values
+  cpu.PB = 0x01;     // Program bank (handlers in bank $01)
+  cpu.DB = 0x7E;     // Data bank (WRAM for tilemap writes)
+  cpu.D = 0x0000;    // Direct page at $0000
+  cpu.SetSP(0x01FF); // Stack pointer
+  cpu.status = 0x30; // M=1, X=1 (8-bit A/X/Y mode)
+  cpu.E = 0;         // Native 65816 mode, not emulation mode
+
+  // X = data offset (into RoomDrawObjectData at bank $00:9B52)
+  cpu.X = data_offset;
+  // Y = tilemap buffer offset (position in tilemap)
+  cpu.Y = (object_y_ * 0x80) + (object_x_ * 2);
+
+  // 12. Setup return trap with STP instruction
+  // Use STP ($DB) instead of RTL for more reliable handler completion detection
+  // Place STP at $01:FF00 (unused area in bank $01)
+  const uint16_t trap_addr = 0xFF00;
+  snes_instance_->Write(0x01FF00, 0xDB);  // STP opcode - stops CPU
+
+  // Push return address for RTL (3 bytes: bank, high, low-1)
+  // RTL adds 1 to the address, so push trap_addr - 1
   uint16_t sp = cpu.SP();
-  snes_instance_->Write(0x010000 | sp--, 0x01);                    // Bank byte
-  snes_instance_->Write(0x010000 | sp--, (return_addr - 1) >> 8);  // High
-  snes_instance_->Write(0x010000 | sp--, (return_addr - 1) & 0xFF);  // Low
+  snes_instance_->Write(0x010000 | sp--, 0x01);                   // Bank byte
+  snes_instance_->Write(0x010000 | sp--, (trap_addr - 1) >> 8);   // High
+  snes_instance_->Write(0x010000 | sp--, (trap_addr - 1) & 0xFF); // Low
   cpu.SetSP(sp);
 
-  // Jump to handler (offset is relative to RoomDrawObjectData base)
-  cpu.PC = handler_offset;
+  // Jump to handler address in bank $01
+  cpu.PC = handler_addr;
 
   printf("[EMU] Rendering object $%04X at (%d,%d), handler=$%04X\n", object_id_,
-         object_x_, object_y_, handler_offset);
-  printf("[EMU] Handler table at $%06X, starting at PB:PC=$%02X:%04X\n",
-         table_addr, cpu.PB, cpu.PC);
+         object_x_, object_y_, handler_addr);
+  printf("[EMU] X=data_offset=$%04X, Y=tilemap_pos=$%04X, PB:PC=$%02X:%04X\n",
+         cpu.X, cpu.Y, cpu.PB, cpu.PC);
+  printf("[EMU] STP trap at $01:%04X for return detection\n", trap_addr);
 
-  // 13. Run emulator with timeout
-  // NOTE: RunCycle() only handles timing, not CPU execution!
-  // Must call cpu.RunOpcode() to actually execute instructions
+  // 13. Run emulator with STP detection
+  // Check for STP opcode BEFORE executing to catch the return trap
   int max_opcodes = 100000;
   int opcodes = 0;
   while (opcodes < max_opcodes) {
-    if (cpu.PB == 0x01 && cpu.PC == return_addr) {
-      break;  // Hit return address
+    // Check for STP trap - handler has returned
+    uint32_t current_addr = (cpu.PB << 16) | cpu.PC;
+    uint8_t current_opcode = snes_instance_->Read(current_addr);
+    if (current_opcode == 0xDB) {
+      printf("[EMU] STP trap hit at $%02X:%04X - handler completed!\n",
+             cpu.PB, cpu.PC);
+      break;
     }
+
+    // CRITICAL: Keep refreshing APU out_ports_ to counteract CatchUpApu()
+    // The APU code runs during Read() calls and may overwrite our mock values
+    // Refresh every 100 opcodes to ensure the handshake check passes
+    if ((opcodes & 0x3F) == 0) {  // Every 64 opcodes
+      apu.out_ports_[0] = 0xAA;
+      apu.out_ports_[1] = 0xBB;
+    }
+
+    // Detect APU handshake loop at $00:8891 and force skip it
+    // The loop reads $2140, compares to $AA, branches if not equal
+    if (cpu.PB == 0x00 && cpu.PC == 0x8891) {
+      // We're stuck in APU handshake - this shouldn't happen with the mock
+      // but if it does, force the check to pass by setting accumulator
+      static int apu_loop_count = 0;
+      if (++apu_loop_count > 100) {
+        printf("[EMU] WARNING: Stuck in APU loop at $00:8891, forcing skip\n");
+        // Skip past the loop by advancing PC (typical pattern is ~6 bytes)
+        cpu.PC = 0x8898;  // Approximate address after the handshake loop
+        apu_loop_count = 0;
+      }
+    }
+
     cpu.RunOpcode();
     opcodes++;
 
@@ -610,9 +717,11 @@ void DungeonObjectEmulatorPreview::TriggerStaticRender() {
 
   // Load sprite auxiliary palettes (90-119) from ROM $0D:D308
   // These are palettes 6-7 used by some dungeon tiles
-  constexpr uint32_t kSpriteAuxPaletteAddr = 0x0DD308;
+  // SNES address needs LoROM conversion to PC offset
+  constexpr uint32_t kSpriteAuxPaletteSnes = 0x0DD308;  // SNES: bank $0D, addr $D308
+  const uint32_t kSpriteAuxPalettePc = SnesToPc(kSpriteAuxPaletteSnes);  // PC: $65308
   for (int i = 0; i < 30; ++i) {
-    uint32_t addr = kSpriteAuxPaletteAddr + i * 2;
+    uint32_t addr = kSpriteAuxPalettePc + i * 2;
     if (addr + 1 < rom_->size()) {
       uint16_t snes_color = rom_->data()[addr] | (rom_->data()[addr + 1] << 8);
       palette.AddColor(gfx::SnesColor(snes_color));
