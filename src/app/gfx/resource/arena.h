@@ -58,6 +58,19 @@ class Arena {
   void QueueTextureCommand(TextureCommandType type, Bitmap* bitmap);
   void ProcessTextureQueue(IRenderer* renderer);
 
+  /**
+   * @brief Check if there are pending textures to process
+   * @return true if texture queue has pending commands
+   */
+  bool HasPendingTextures() const { return !texture_command_queue_.empty(); }
+
+  /**
+   * @brief Process a single texture command for frame-budget-aware loading
+   * @param renderer The renderer to use for texture operations
+   * @return true if a texture was processed, false if queue was empty
+   */
+  bool ProcessSingleTexture(IRenderer* renderer);
+
   // --- Surface Management (unchanged) ---
   SDL_Surface* AllocateSurface(int width, int height, int depth, int format);
   void FreeSurface(SDL_Surface* surface);

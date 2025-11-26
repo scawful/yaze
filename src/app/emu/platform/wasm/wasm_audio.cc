@@ -66,74 +66,126 @@ EM_JS(void*, wasm_audio_create_processor, (void* context_handle, int buffer_size
 
     const ctx = audio.context;
 
-    // Create ScriptProcessorNode for sample playback
-    // Note: ScriptProcessorNode is deprecated but AudioWorklet requires more setup
-    const processor = ctx.createScriptProcessor(buffer_size, 0, channels);
-
     // Create gain node for volume control
     const gainNode = ctx.createGain();
     gainNode.gain.value = audio.volume;
-
-    // Connect processor -> gain -> destination
-    processor.connect(gainNode);
-    gainNode.connect(ctx.destination);
-
-    // Store nodes
-    audio.processor = processor;
     audio.gainNode = gainNode;
 
-    // Setup audio processing callback
-    processor.onaudioprocess = function(e) {
-      const outputBuffer = e.outputBuffer;
-      const numChannels = outputBuffer.numberOfChannels;
-      const frameCount = outputBuffer.length;
-
-      if (!audio.isPlaying || audio.bufferQueue.length === 0) {
-        // Output silence
-        for (let ch = 0; ch < numChannels; ch++) {
-          const channel = outputBuffer.getChannelData(ch);
-          channel.fill(0);
+    // Try AudioWorklet first (modern, better performance)
+    // Fall back to ScriptProcessorNode if not available
+    const tryAudioWorklet = async () => {
+      try {
+        // Check if AudioWorklet is supported
+        if (typeof AudioWorkletNode === 'undefined' || !ctx.audioWorklet) {
+          throw new Error('AudioWorklet not supported');
         }
-        return;
-      }
 
-      // Process queued buffers
-      let framesWritten = 0;
-      while (framesWritten < frameCount && audio.bufferQueue.length > 0) {
-        const buffer = audio.bufferQueue[0];
-        const remainingInBuffer = buffer.length - buffer.position;
-        const framesToCopy = Math.min(frameCount - framesWritten, remainingInBuffer);
+        // Load the AudioWorklet processor module
+        await ctx.audioWorklet.addModule('core/audio_worklet_processor.js');
 
-        // Copy samples to output channels
-        for (let ch = 0; ch < numChannels; ch++) {
-          const outputChannel = outputBuffer.getChannelData(ch);
-          for (let i = 0; i < framesToCopy; i++) {
-            const sampleIndex = (buffer.position + i) * numChannels + ch;
-            outputChannel[framesWritten + i] = buffer.samples[sampleIndex] || 0;
+        // Create the worklet node
+        const workletNode = new AudioWorkletNode(ctx, 'snes-audio-processor', {
+          numberOfInputs: 0,
+          numberOfOutputs: 1,
+          outputChannelCount: [channels],
+          processorOptions: {
+            bufferSize: buffer_size * 4,  // Larger ring buffer
+            channels: channels
           }
-        }
+        });
 
-        buffer.position += framesToCopy;
-        framesWritten += framesToCopy;
+        // Connect worklet -> gain -> destination
+        workletNode.connect(gainNode);
+        gainNode.connect(ctx.destination);
 
-        // Remove buffer if fully consumed
-        if (buffer.position >= buffer.length) {
-          audio.bufferQueue.shift();
-        }
-      }
+        // Store worklet reference
+        audio.workletNode = workletNode;
+        audio.useWorklet = true;
 
-      // Fill remaining with silence if needed
-      if (framesWritten < frameCount) {
-        for (let ch = 0; ch < numChannels; ch++) {
-          const channel = outputBuffer.getChannelData(ch);
-          for (let i = framesWritten; i < frameCount; i++) {
-            channel[i] = 0;
+        // Handle messages from worklet
+        workletNode.port.onmessage = (event) => {
+          if (event.data.type === 'status') {
+            audio.workletStatus = event.data;
           }
-        }
+        };
+
+        console.log('[AudioWorklet] Created SNES audio processor with buffer size:', buffer_size);
+        return true;
+      } catch (e) {
+        console.warn('[AudioWorklet] Failed to initialize, falling back to ScriptProcessorNode:', e.message);
+        return false;
       }
     };
 
-    console.log('Created audio processor with buffer size:', buffer_size);
+    // Try AudioWorklet, fall back to ScriptProcessorNode
+    tryAudioWorklet().then(success => {
+      if (!success) {
+        // Fallback: Create ScriptProcessorNode (deprecated but widely supported)
+        const processor = ctx.createScriptProcessor(buffer_size, 0, channels);
+
+        // Connect processor -> gain -> destination
+        processor.connect(gainNode);
+        gainNode.connect(ctx.destination);
+
+        // Store nodes
+        audio.processor = processor;
+        audio.useWorklet = false;
+
+        // Setup audio processing callback
+        processor.onaudioprocess = function(e) {
+          const outputBuffer = e.outputBuffer;
+          const numChannels = outputBuffer.numberOfChannels;
+          const frameCount = outputBuffer.length;
+
+          if (!audio.isPlaying || audio.bufferQueue.length === 0) {
+            // Output silence
+            for (let ch = 0; ch < numChannels; ch++) {
+              const channel = outputBuffer.getChannelData(ch);
+              channel.fill(0);
+            }
+            return;
+          }
+
+          // Process queued buffers
+          let framesWritten = 0;
+          while (framesWritten < frameCount && audio.bufferQueue.length > 0) {
+            const buffer = audio.bufferQueue[0];
+            const remainingInBuffer = buffer.length - buffer.position;
+            const framesToCopy = Math.min(frameCount - framesWritten, remainingInBuffer);
+
+            // Copy samples to output channels
+            for (let ch = 0; ch < numChannels; ch++) {
+              const outputChannel = outputBuffer.getChannelData(ch);
+              for (let i = 0; i < framesToCopy; i++) {
+                const sampleIndex = (buffer.position + i) * numChannels + ch;
+                outputChannel[framesWritten + i] = buffer.samples[sampleIndex] || 0;
+              }
+            }
+
+            buffer.position += framesToCopy;
+            framesWritten += framesToCopy;
+
+            // Remove buffer if fully consumed
+            if (buffer.position >= buffer.length) {
+              audio.bufferQueue.shift();
+            }
+          }
+
+          // Fill remaining with silence if needed
+          if (framesWritten < frameCount) {
+            for (let ch = 0; ch < numChannels; ch++) {
+              const channel = outputBuffer.getChannelData(ch);
+              for (let i = framesWritten; i < frameCount; i++) {
+                channel[i] = 0;
+              }
+            }
+          }
+        };
+
+        console.log('[ScriptProcessor] Created audio processor with buffer size:', buffer_size);
+      }
+    });
+
     return context_handle; // Return same handle since processor is stored in audio object
   } catch (e) {
     console.error('Failed to create audio processor:', e);
@@ -152,17 +204,27 @@ EM_JS(void, wasm_audio_queue_samples, (void* context_handle, float* samples, int
     sampleArray[i] = HEAPF32[(samples >> 2) + i];
   }
 
-  // Add to buffer queue
-  audio.bufferQueue.push({
-    samples: sampleArray,
-    length: frame_count,
-    position: 0
-  });
+  // Route samples to appropriate backend
+  if (audio.useWorklet && audio.workletNode) {
+    // AudioWorklet: Send samples via MessagePort (more efficient)
+    audio.workletNode.port.postMessage({
+      type: 'samples',
+      samples: sampleArray,
+      frameCount: frame_count
+    });
+  } else {
+    // ScriptProcessorNode: Add to buffer queue
+    audio.bufferQueue.push({
+      samples: sampleArray,
+      length: frame_count,
+      position: 0
+    });
 
-  // Limit queue size to prevent excessive memory usage
-  const maxQueueSize = 32;
-  while (audio.bufferQueue.length > maxQueueSize) {
-    audio.bufferQueue.shift();
+    // Limit queue size to prevent excessive memory usage
+    const maxQueueSize = 32;
+    while (audio.bufferQueue.length > maxQueueSize) {
+      audio.bufferQueue.shift();
+    }
   }
 });
 
@@ -261,9 +323,20 @@ EM_JS(void, wasm_audio_shutdown, (void* context_handle), {
   const audio = window.yazeAudio[context_handle];
   if (!audio) return;
 
+  // Clean up AudioWorklet if used
+  if (audio.workletNode) {
+    audio.workletNode.port.postMessage({ type: 'clear' });
+    audio.workletNode.disconnect();
+    audio.workletNode = null;
+    audio.useWorklet = false;
+    console.log('[AudioWorklet] Processor disconnected');
+  }
+
+  // Clean up ScriptProcessorNode if used
   if (audio.processor) {
     audio.processor.disconnect();
     audio.processor = null;
+    console.log('[ScriptProcessor] Processor disconnected');
   }
 
   if (audio.gainNode) {

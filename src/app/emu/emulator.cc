@@ -268,16 +268,23 @@ void Emulator::Run(Rom* rom) {
       time_adder = wanted_frames_ * 3.0;
     }
 
-    // Track frames to skip for performance
+    // Track frames to skip for performance with progressive skip
     int frames_to_process = 0;
     while (time_adder >= wanted_frames_ - 0.002) {
       time_adder -= wanted_frames_;
       frames_to_process++;
     }
 
-    // Limit maximum frames to process (prevent spiral of death)
-    if (frames_to_process > 4) {
-      frames_to_process = 4;
+    // Progressive frame skip for smoother degradation:
+    // - 1 frame behind: process normally
+    // - 2-3 frames behind: process but skip some rendering
+    // - 4+ frames behind: hard cap to prevent spiral of death
+    int max_frames = 4;  // Hard cap
+    if (frames_to_process > max_frames) {
+      // When severely behind, drop extra accumulated time to catch up smoothly
+      // This prevents the "spiral of death" where we never catch up
+      time_adder = 0.0;
+      frames_to_process = max_frames;
     }
 
     if (snes_initialized_ && frames_to_process > 0) {
@@ -385,11 +392,14 @@ void Emulator::Run(Rom* rom) {
             snes_.SetPixels(static_cast<uint8_t*>(ppu_pixels_));
             renderer_->UnlockTexture(ppu_texture_);
 
+#ifndef __EMSCRIPTEN__
             // WORKAROUND: Tiny delay after texture unlock to prevent macOS
-            // Metal crash macOS CoreAnimation/Metal driver bug in
-            // layer_presented() callback Without this, rapid texture updates
-            // corrupt Metal's frame tracking
+            // Metal crash. macOS CoreAnimation/Metal driver bug in
+            // layer_presented() callback. Without this, rapid texture updates
+            // corrupt Metal's frame tracking.
+            // NOTE: Not needed in WASM builds (WebGL doesn't have this issue)
             SDL_Delay(1);
+#endif
           }
         }
       }

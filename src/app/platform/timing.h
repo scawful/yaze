@@ -84,6 +84,33 @@ class TimingManager {
     frame_count_ = 0;
     fps_ = 0.0f;
     last_delta_time_ = 0.0f;
+    frame_start_time_ = 0;
+  }
+
+  /**
+   * @brief Mark the start of a new frame for budget tracking
+   */
+  void BeginFrame() {
+    frame_start_time_ = SDL_GetPerformanceCounter();
+  }
+
+  /**
+   * @brief Get elapsed time within the current frame in milliseconds
+   * @return Milliseconds since BeginFrame() was called
+   */
+  float GetFrameElapsedMs() const {
+    if (frame_start_time_ == 0) return 0.0f;
+    uint64_t current = SDL_GetPerformanceCounter();
+    return ((current - frame_start_time_) * 1000.0f) / static_cast<float>(frequency_);
+  }
+
+  /**
+   * @brief Get remaining frame budget in milliseconds (targeting 60fps)
+   * @return Milliseconds remaining before frame deadline
+   */
+  float GetFrameBudgetRemainingMs() const {
+    constexpr float kTargetFrameTimeMs = 16.67f;  // 60fps target
+    return kTargetFrameTimeMs - GetFrameElapsedMs();
   }
 
  private:
@@ -100,6 +127,7 @@ class TimingManager {
   uint64_t frequency_;
   uint64_t first_time_;
   uint64_t last_time_;
+  uint64_t frame_start_time_ = 0;
   float accumulated_time_;
   uint32_t frame_count_;
   float fps_;
