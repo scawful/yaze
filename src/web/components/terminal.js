@@ -192,25 +192,33 @@
         this.headerElement.addEventListener('click', this._boundHandlers.headerClick);
       }
 
-      // Listen for Module ready state
-      if (typeof Module !== 'undefined' && Module.onRuntimeInitialized) {
-        const originalCallback = Module.onRuntimeInitialized;
+      // Use boot promise if available (preferred - no polling)
+      if (window.yaze && window.yaze.core && window.yaze.core.ready) {
         const self = this;
-        Module.onRuntimeInitialized = function() {
-          if (typeof originalCallback === 'function') {
-            originalCallback();
-          }
+        window.yaze.core.ready().then(function() {
           self.onModuleReady();
-        };
-      }
-
-      // Check periodically if Module becomes ready
-      this.moduleCheckInterval = setInterval(() => {
-        if (this.checkModuleReady()) {
-          clearInterval(this.moduleCheckInterval);
-          this.moduleCheckInterval = null;
+        });
+      } else {
+        // Fallback: Listen for Module ready state (legacy)
+        if (typeof Module !== 'undefined' && Module.onRuntimeInitialized) {
+          const originalCallback = Module.onRuntimeInitialized;
+          const self = this;
+          Module.onRuntimeInitialized = function() {
+            if (typeof originalCallback === 'function') {
+              originalCallback();
+            }
+            self.onModuleReady();
+          };
         }
-      }, 500);
+
+        // Fallback: Check periodically if Module becomes ready (legacy polling)
+        this.moduleCheckInterval = setInterval(() => {
+          if (this.checkModuleReady()) {
+            clearInterval(this.moduleCheckInterval);
+            this.moduleCheckInterval = null;
+          }
+        }, 500);
+      }
     }
 
     /**
@@ -240,10 +248,22 @@
      */
     onModuleReady() {
       this.isModuleReady = true;
+      console.log('[Terminal] Module ready, processing queued commands');
 
-      // Process any queued commands
+      // Process any queued commands (handles both old string format and new object format)
+      const now = Date.now();
       while (this.commandQueue.length > 0) {
-        const command = this.commandQueue.shift();
+        const item = this.commandQueue.shift();
+        // Support both old format (string) and new format ({command, timestamp})
+        const command = typeof item === 'string' ? item : item.command;
+        const timestamp = typeof item === 'object' ? item.timestamp : now;
+
+        // Skip commands older than 30 seconds
+        if ((now - timestamp) > 30000) {
+          console.log('[Terminal] Skipping expired command:', command);
+          continue;
+        }
+
         this.executeCommand(command);
       }
     }
@@ -391,8 +411,23 @@
 
       // Check if Module is ready
       if (!this.isModuleReady) {
-        this.printInfo('WASM module loading... Command queued.');
-        this.commandQueue.push(command);
+        // Limit queue size to prevent memory growth if init fails
+        if (this.commandQueue.length >= 50) {
+          this.printError('Command queue full. WASM initialization may have failed.');
+          this.printInfo('Try refreshing the page or check console for errors.');
+          return;
+        }
+
+        // Add command with timestamp for timeout tracking
+        this.commandQueue.push({ command: command, timestamp: Date.now() });
+
+        // Clean old commands (older than 30 seconds)
+        const now = Date.now();
+        this.commandQueue = this.commandQueue.filter(function(item) {
+          return (now - item.timestamp) < 30000;
+        });
+
+        this.printInfo('WASM module loading... Command queued (' + this.commandQueue.length + ' pending).');
         return;
       }
 

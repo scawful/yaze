@@ -289,6 +289,67 @@
   window.yaze.events.ROM_SAVED = 'rom:saved';
   window.yaze.events.ERROR = 'error';
 
+  // ============================================================
+  // Boot Promise Mechanism
+  // Provides a deterministic way to wait for WASM initialization
+  // instead of polling with setInterval.
+  // ============================================================
+
+  // Store resolvers for the boot promise (supports multiple awaits)
+  window.yaze.core._bootResolvers = [];
+  window.yaze.core._bootResolved = false;
+  window.yaze.core._bootModule = null;
+
+  // Create the boot promise
+  window.yaze.core.bootPromise = new Promise(function(resolve) {
+    // If already resolved (late subscriber), resolve immediately
+    if (window.yaze.core._bootResolved) {
+      resolve(window.yaze.core._bootModule);
+      return;
+    }
+    window.yaze.core._bootResolvers.push(resolve);
+  });
+
+  /**
+   * Returns a promise that resolves when WASM is ready.
+   * Safe to call multiple times - all callers get the same promise.
+   * @returns {Promise<Module>} Resolves with the WASM Module
+   */
+  window.yaze.core.ready = function() {
+    // Return new promise that resolves immediately if already booted
+    if (window.yaze.core._bootResolved) {
+      return Promise.resolve(window.yaze.core._bootModule);
+    }
+    return window.yaze.core.bootPromise;
+  };
+
+  /**
+   * Called by app.js when WASM Module is fully initialized.
+   * Resolves all pending boot promises.
+   * @param {Object} module - The WASM Module instance
+   */
+  window.yaze.core._resolveBoot = function(module) {
+    if (window.yaze.core._bootResolved) {
+      console.warn('[yaze] Boot already resolved, ignoring duplicate call');
+      return;
+    }
+
+    console.log('[yaze] Boot resolved - WASM ready');
+    window.yaze.core._bootResolved = true;
+    window.yaze.core._bootModule = module;
+    window.yaze.core.state.wasmReady = true;
+    window.yaze.core.Module = module;
+
+    // Resolve all pending promises
+    window.yaze.core._bootResolvers.forEach(function(resolve) {
+      resolve(module);
+    });
+    window.yaze.core._bootResolvers = [];
+
+    // Emit event for listeners using the event system
+    window.yaze.events.emit(window.yaze.events.WASM_READY, module);
+  };
+
   console.log('[yaze] Namespace initialized v' + window.yaze.version);
 })();
 

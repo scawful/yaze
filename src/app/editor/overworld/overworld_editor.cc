@@ -833,8 +833,13 @@ void OverworldEditor::DrawOverworldMaps() {
       EnsureMapTexture(world_index);
     }
 
-    // Only draw if the map has a texture or is the currently selected map
-    if (maps_bmp_[world_index].texture() || world_index == current_map_) {
+    // Only draw if the map has a valid texture AND is active (has bitmap data)
+    // The current_map_ check was causing crashes when hovering over unbuilt maps
+    // because the bitmap would be drawn before EnsureMapBuilt() was called
+    bool can_draw = maps_bmp_[world_index].texture() &&
+                    maps_bmp_[world_index].is_active();
+
+    if (can_draw) {
       // Draw without applying scale here - canvas handles zoom uniformly
       ow_map_canvas_.DrawBitmap(maps_bmp_[world_index], map_x, map_y, 1.0f);
     } else {

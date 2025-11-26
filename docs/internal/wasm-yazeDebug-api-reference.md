@@ -465,7 +465,7 @@ Get list of available palette groups.
 
 ## window.yaze.gui - GUI Automation API
 
-For LLM agents to interact with the ImGui UI. (Structure defined; interaction methods planned for v2.1)
+For LLM agents to interact with the ImGui UI.
 
 ### UI Discovery
 
@@ -484,6 +484,152 @@ const bounds = window.yaze.gui.getElementBounds('dungeon_room_selector')
 ```
 
 Get precise bounds for a specific UI element.
+
+#### waitForElement(elementId, timeoutMs)
+
+```javascript
+const bounds = await window.yaze.gui.waitForElement('dungeon_room_selector', 5000)
+```
+
+Wait for an element to appear.
+
+### Interaction
+
+#### click(target)
+
+```javascript
+window.yaze.gui.click('dungeon_room_selector')
+// OR
+window.yaze.gui.click({x: 100, y: 200})
+```
+
+Simulate a click at coordinates or on an element by ID.
+
+#### doubleClick(target)
+
+```javascript
+window.yaze.gui.doubleClick('dungeon_room_selector')
+```
+
+Simulate a double-click.
+
+#### drag(from, to, steps)
+
+```javascript
+window.yaze.gui.drag({x: 0, y: 0}, {x: 100, y: 100}, 10)
+```
+
+Simulate a drag operation.
+
+#### pressKey(key, modifiers)
+
+```javascript
+window.yaze.gui.pressKey('Enter', {ctrl: true})
+```
+
+Send a keyboard event to the canvas.
+
+#### type(text, delayMs)
+
+```javascript
+await window.yaze.gui.type('Hello World', 50)
+```
+
+Type a string of text.
+
+#### scroll(deltaX, deltaY)
+
+```javascript
+window.yaze.gui.scroll(0, 100)
+```
+
+Scroll the canvas.
+
+### Canvas & State
+
+#### takeScreenshot(format, quality)
+
+```javascript
+const dataUrl = window.yaze.gui.takeScreenshot('png', 0.92)
+```
+
+Take a screenshot of the canvas.
+
+#### getCanvasInfo()
+
+```javascript
+const info = window.yaze.gui.getCanvasInfo()
+```
+
+Get canvas dimensions and position.
+
+#### updateCanvasState()
+
+```javascript
+const state = window.yaze.gui.updateCanvasState()
+```
+
+Update canvas data-* attributes with current editor state.
+
+#### startAutoUpdate(intervalMs)
+
+```javascript
+window.yaze.gui.startAutoUpdate(500)
+```
+
+Start automatic canvas state updates.
+
+#### stopAutoUpdate()
+
+```javascript
+window.yaze.gui.stopAutoUpdate()
+```
+
+Stop automatic canvas state updates.
+
+### Card Management
+
+#### getAvailableCards()
+
+```javascript
+const cards = window.yaze.gui.getAvailableCards()
+```
+
+Get all available cards with their metadata.
+
+#### showCard(cardId)
+
+```javascript
+window.yaze.gui.showCard('dungeon.room_selector')
+```
+
+Show a specific card.
+
+#### hideCard(cardId)
+
+```javascript
+window.yaze.gui.hideCard('dungeon.room_selector')
+```
+
+Hide a specific card.
+
+### Selection
+
+#### getSelection()
+
+```javascript
+const selection = window.yaze.gui.getSelection()
+```
+
+Get the current selection in the active editor.
+
+#### setSelection(ids)
+
+```javascript
+window.yaze.gui.setSelection(['obj_1', 'obj_2'])
+```
+
+Set selection programmatically.
 
 ---
 
@@ -800,6 +946,114 @@ const memory = window.yazeDebug.emulator.readMemory(0x7E0000, 16)
 ```javascript
 const video = window.yazeDebug.emulator.getVideoState()
 ```
+
+---
+
+## window.aiTools - High-level AI Assistant Tools
+
+High-level tools designed for AI agents to inspect and control the application state.
+
+### State Inspection
+
+#### getAppState()
+
+```javascript
+const state = window.aiTools.getAppState()
+```
+
+Get full application state (timestamp, module ready, API ready, editor, ROM, cards).
+
+#### getEditorState()
+
+```javascript
+const state = window.aiTools.getEditorState()
+```
+
+Get current editor state snapshot.
+
+#### getVisibleCards()
+
+```javascript
+const cards = window.aiTools.getVisibleCards()
+```
+
+List visible cards.
+
+#### getAvailableCards()
+
+```javascript
+const cards = window.aiTools.getAvailableCards()
+```
+
+List all available cards.
+
+#### getRoomData()
+
+```javascript
+const data = window.aiTools.getRoomData()
+```
+
+Get current dungeon room data.
+
+#### getMapData()
+
+```javascript
+const data = window.aiTools.getMapData()
+```
+
+Get current overworld map data.
+
+### Navigation & Control
+
+#### navigateTo()
+
+```javascript
+window.aiTools.navigateTo()
+```
+
+Prompt for navigation target (interactive).
+
+#### jumpToRoom(roomId)
+
+```javascript
+window.aiTools.jumpToRoom(0)
+```
+
+Jump to a specific dungeon room.
+
+#### jumpToMap(mapId)
+
+```javascript
+window.aiTools.jumpToMap(0)
+```
+
+Jump to a specific overworld map.
+
+#### showCard()
+
+```javascript
+window.aiTools.showCard()
+```
+
+Prompt to show a card (interactive).
+
+#### hideCard()
+
+```javascript
+window.aiTools.hideCard()
+```
+
+Prompt to hide a card (interactive).
+
+### Documentation
+
+#### dumpAPIReference()
+
+```javascript
+const ref = window.aiTools.dumpAPIReference()
+```
+
+Dump complete API reference for AI assistants.
 
 ### Editor Debug
 
