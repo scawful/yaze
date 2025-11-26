@@ -34,6 +34,37 @@ ObjectEditorCard::ObjectEditorCard(
           object_editor_->SetCurrentObjectType(obj.id_);
         }
       });
+
+  // Wire up selection change callback for property panel sync
+  SetupSelectionCallbacks();
+}
+
+void ObjectEditorCard::SetupSelectionCallbacks() {
+  if (!canvas_viewer_ || selection_callbacks_setup_) return;
+
+  auto& interaction = canvas_viewer_->object_interaction();
+  interaction.SetSelectionChangeCallback([this]() { OnSelectionChanged(); });
+
+  selection_callbacks_setup_ = true;
+}
+
+void ObjectEditorCard::OnSelectionChanged() {
+  if (!canvas_viewer_) return;
+
+  auto& interaction = canvas_viewer_->object_interaction();
+  cached_selection_count_ = interaction.GetSelectionCount();
+
+  // Sync with backend editor if available
+  if (object_editor_) {
+    auto indices = interaction.GetSelectedObjectIndices();
+    // Clear backend selection first
+    (void)object_editor_->ClearSelection();
+
+    // Add each selected index to backend
+    for (size_t idx : indices) {
+      (void)object_editor_->AddToSelection(idx);
+    }
+  }
 }
 
 void ObjectEditorCard::Draw(bool* p_open) {
@@ -287,6 +318,45 @@ void ObjectEditorCard::DrawDeleteConfirmationModal() {
 
 void ObjectEditorCard::DrawSelectedObjectInfo() {
   const auto& theme = AgentUI::GetTheme();
+
+  // Show selection state at top
+  if (canvas_viewer_) {
+    auto& interaction = canvas_viewer_->object_interaction();
+    auto selected = interaction.GetSelectedObjectIndices();
+
+    if (!selected.empty()) {
+      // Show selection info
+      ImGui::TextColored(theme.status_success, ICON_MD_CHECK_CIRCLE " Selected:");
+      ImGui::SameLine();
+
+      if (selected.size() == 1) {
+        // Single selection - show detailed info
+        if (object_editor_) {
+          const auto& objects = object_editor_->GetObjects();
+          if (selected[0] < objects.size()) {
+            const auto& obj = objects[selected[0]];
+            ImGui::Text("Object #%zu (ID: 0x%02X)", selected[0], obj.id_);
+            ImGui::TextColored(theme.text_secondary_gray,
+                               "  Position: (%d, %d)  Size: 0x%02X  Layer: %s",
+                               obj.x_, obj.y_, obj.size_,
+                               obj.layer_ == zelda3::RoomObject::BG1   ? "BG1"
+                               : obj.layer_ == zelda3::RoomObject::BG2 ? "BG2"
+                                                                       : "BG3");
+          }
+        } else {
+          ImGui::Text("1 object");
+        }
+      } else {
+        // Multi-selection
+        ImGui::Text("%zu objects", selected.size());
+        ImGui::SameLine();
+        ImGui::TextColored(theme.text_secondary_gray,
+                           "(Shift+click to add, Ctrl+click to toggle)");
+      }
+      ImGui::Separator();
+    }
+  }
+
   ImGui::BeginGroup();
 
   // Show current object for placement
@@ -301,7 +371,7 @@ void ObjectEditorCard::DrawSelectedObjectInfo() {
                 : preview_object_.layer_ == zelda3::RoomObject::BG2 ? "BG2"
                                                                     : "BG3");
   }
-  
+
   ImGui::EndGroup();
   ImGui::Separator();
 
@@ -417,9 +487,7 @@ void ObjectEditorCard::SelectAllObjects() {
     all_indices.push_back(i);
   }
 
-  // TODO: Implement SetSelectedObjects in DungeonObjectInteraction
-  // interaction.SetSelectedObjects(all_indices);
-  (void)interaction;  // Suppress unused variable warning
+  interaction.SetSelectedObjects(all_indices);
 }
 
 void ObjectEditorCard::DeselectAllObjects() {
@@ -482,10 +550,7 @@ void ObjectEditorCard::DuplicateSelectedObjects() {
   }
 
   // Select the new objects
-  // TODO: Implement SetSelectedObjects in DungeonObjectInteraction
-  // interaction.SetSelectedObjects(new_indices);
-  (void)interaction;  // Suppress unused variable warning
-  (void)new_indices;
+  interaction.SetSelectedObjects(new_indices);
 }
 
 void ObjectEditorCard::CopySelectedObjects() {
@@ -508,9 +573,7 @@ void ObjectEditorCard::PasteObjects() {
 
   if (!new_indices.empty()) {
     // Select the pasted objects
-    // TODO: Implement SetSelectedObjects in DungeonObjectInteraction
-    // canvas_viewer_->object_interaction().SetSelectedObjects(new_indices);
-    (void)new_indices;
+    canvas_viewer_->object_interaction().SetSelectedObjects(new_indices);
   }
 }
 
@@ -540,10 +603,7 @@ void ObjectEditorCard::CycleObjectSelection(int direction) {
   size_t current_idx = selected.empty() ? 0 : selected.front();
   size_t next_idx = (current_idx + direction + total_objects) % total_objects;
 
-  // TODO: Implement SetSelectedObjects in DungeonObjectInteraction
-  // interaction.SetSelectedObjects({next_idx});
-  (void)interaction;
-  (void)next_idx;
+  interaction.SetSelectedObjects({next_idx});
 
   // Scroll to selected object
   // TODO: Re-enable when ScrollToObject is implemented

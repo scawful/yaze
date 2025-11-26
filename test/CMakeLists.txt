@@ -111,6 +111,7 @@ if(YAZE_BUILD_TESTS)
     unit/zelda3/dungeon/room_manipulation_test.cc
     unit/zelda3/dungeon/dungeon_save_test.cc
     unit/zelda3/dungeon/bpp_conversion_test.cc
+    unit/object_selection_test.cc
     # Agent Tools Tests
     unit/tools/build_tool_test.cc
     unit/tools/filesystem_tool_test.cc
@@ -135,6 +136,7 @@ if(YAZE_BUILD_TESTS)
     integration/zelda3/sprite_position_test.cc
     integration/zelda3/message_test.cc
     integration/palette_manager_test.cc
+    integration/object_selection_integration_test.cc
   )
   yaze_add_test_suite(yaze_test_stable "stable" OFF ${STABLE_TEST_SOURCES})
 

@@ -51,7 +51,12 @@ class ObjectEditorCard {
   void SelectObject(int obj_id);
   void SetAgentOptimizedLayout(bool enabled);
 
+  // Selection callback setup - wires ObjectSelection changes to UI updates
+  void SetupSelectionCallbacks();
+
  private:
+  // Selection change handler
+  void OnSelectionChanged();
   void DrawObjectSelector();
   void DrawObjectTemplates();
   void DrawTemplateCreationModal();
@@ -103,6 +108,10 @@ class ObjectEditorCard {
   bool has_preview_object_ = false;
   gfx::IRenderer* renderer_;
   std::shared_ptr<zelda3::DungeonObjectEditor> object_editor_;
+
+  // Selection state cache (updated via callback)
+  size_t cached_selection_count_ = 0;
+  bool selection_callbacks_setup_ = false;
 };
 
 }  // namespace editor
