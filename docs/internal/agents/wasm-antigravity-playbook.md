@@ -467,14 +467,13 @@ SUCCESS CRITERIA:
 
 ## Reference Documentation
 
-For detailed information, consult:
+For detailed information, consult these **three primary WASM docs**:
 
-- **Build troubleshooting:** `docs/internal/agents/wasm-development-guide.md`
-- **yazeDebug API reference:** `docs/internal/wasm-yazeDebug-api-reference.md` (detailed function signatures, examples)
-- **Debug infrastructure:** `docs/internal/wasm-debug-infrastructure.md` (FS fixes, debug inspector)
-- **AI integration:** `docs/internal/wasm-ai-integration-summary.md`
-- **Status + roadmap:** `docs/internal/wasm_dev_status.md`, `docs/internal/wasm-web-features-roadmap.md`
-- **Dungeon-specific debugging:** `docs/internal/wasm_dungeon_debugging.md`
+- **Build & Debug:** `docs/internal/agents/wasm-development-guide.md` - Build instructions, CMake config, debugging tips, performance best practices, ImGui ID conflict prevention
+- **API Reference:** `docs/internal/wasm-yazeDebug-api-reference.md` - Full JavaScript API documentation, including Agent Discoverability Infrastructure (widget overlay, canvas data attributes, card registry APIs)
+- **This Playbook:** AI agent workflows, Gemini integration, quick start guides
+
+**Archived docs** (for historical reference only): `docs/internal/agents/archive/wasm-docs-2025/`
 
 ---
 
