@@ -362,9 +362,10 @@ void WasmControlApi::SetupJavaScriptBindings() {
 // ============================================================================
 
 editor::EditorCardRegistry* WasmControlApi::GetCardRegistry() {
-  // Access card registry through workspace manager or directly
-  // For now, return nullptr - needs integration point
-  return nullptr;
+  if (!IsReady() || !editor_manager_) {
+    return nullptr;
+  }
+  return &editor_manager_->card_registry();
 }
 
 std::string WasmControlApi::EditorTypeToString(int type) {
@@ -503,34 +504,101 @@ std::string WasmControlApi::ToggleCard(const std::string& card_id) {
 
 std::string WasmControlApi::GetVisibleCards() {
   nlohmann::json result = nlohmann::json::array();
-  
+
   if (!IsReady()) {
     return result.dump();
   }
-  
-  // TODO: Get from EditorCardRegistry
+
+  auto* registry = GetCardRegistry();
+  if (!registry) {
+    return result.dump();
+  }
+
+  // Use default session ID (0) for WASM single-session mode
+  constexpr size_t session_id = 0;
+  auto card_ids = registry->GetCardsInSession(session_id);
+  for (const auto& card_id : card_ids) {
+    // Extract base card ID (remove session prefix like "s0.")
+    std::string base_id = card_id;
+    if (base_id.size() > 3 && base_id[0] == 's' && base_id[2] == '.') {
+      base_id = base_id.substr(3);
+    }
+    if (registry->IsCardVisible(session_id, base_id)) {
+      result.push_back(base_id);
+    }
+  }
+
   return result.dump();
 }
 
 std::string WasmControlApi::GetAvailableCards() {
   nlohmann::json result = nlohmann::json::array();
-  
+
   if (!IsReady()) {
     return result.dump();
   }
-  
-  // TODO: Get from EditorCardRegistry
+
+  auto* registry = GetCardRegistry();
+  if (!registry) {
+    return result.dump();
+  }
+
+  // Use default session ID (0) for WASM single-session mode
+  constexpr size_t session_id = 0;
+  auto categories = registry->GetAllCategories(session_id);
+
+  for (const auto& category : categories) {
+    auto cards = registry->GetCardsInCategory(session_id, category);
+    for (const auto& card : cards) {
+      nlohmann::json card_json;
+      card_json["id"] = card.card_id;
+      card_json["display_name"] = card.display_name;
+      card_json["window_title"] = card.window_title;
+      card_json["icon"] = card.icon;
+      card_json["category"] = card.category;
+      card_json["priority"] = card.priority;
+      card_json["visible"] = registry->IsCardVisible(session_id, card.card_id);
+      card_json["shortcut_hint"] = card.shortcut_hint;
+      if (card.enabled_condition) {
+        card_json["enabled"] = card.enabled_condition();
+      } else {
+        card_json["enabled"] = true;
+      }
+      result.push_back(card_json);
+    }
+  }
+
   return result.dump();
 }
 
 std::string WasmControlApi::GetCardsInCategory(const std::string& category) {
   nlohmann::json result = nlohmann::json::array();
-  
+
   if (!IsReady()) {
     return result.dump();
   }
-  
-  // TODO: Get from EditorCardRegistry
+
+  auto* registry = GetCardRegistry();
+  if (!registry) {
+    return result.dump();
+  }
+
+  // Use default session ID (0) for WASM single-session mode
+  constexpr size_t session_id = 0;
+  auto cards = registry->GetCardsInCategory(session_id, category);
+
+  for (const auto& card : cards) {
+    nlohmann::json card_json;
+    card_json["id"] = card.card_id;
+    card_json["display_name"] = card.display_name;
+    card_json["window_title"] = card.window_title;
+    card_json["icon"] = card.icon;
+    card_json["category"] = card.category;
+    card_json["priority"] = card.priority;
+    card_json["visible"] = registry->IsCardVisible(session_id, card.card_id);
+    result.push_back(card_json);
+  }
+
   return result.dump();
 }
 

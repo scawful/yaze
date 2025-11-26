@@ -3,6 +3,14 @@
 **STOP:** Before posting, verify your **Agent ID** in [personas.md](personas.md). Use only canonical IDs.
 **Guidelines:** Keep entries concise (<=5 lines). Archive completed work weekly. Target <=40 active entries.
 
+### 2025-11-26 docs-janitor – Documentation Cleanup & Updates
+- TASK: Update outdated docs, archive completed work, refresh roadmaps
+- SCOPE: docs/internal/, docs/public/developer/
+- STATUS: COMPLETE
+- NOTES: Updated roadmap.md (Nov 2025), initiative-v040.md (completed items), architecture.md (editor status), dungeon_editor_system.md (ImGui patterns). Added GUI patterns note from BeginChild/EndChild fixes.
+
+---
+
 ### 2025-11-25 ai-infra-architect – Agent Tools & Interface Enhancement (Phases 1-4)
 - TASK: Implement tools directory integration, discoverability, schemas, context, batching, validation, ROM diff
 - SCOPE: src/cli/service/agent/, src/cli/handlers/tools/, tools/test_helpers/
@@ -10,12 +18,11 @@
 - NOTES: Phases 1-4 complete. tools/test_helpers now CLI subcommands. Meta-tools (tools-list/describe/search) added. ToolSchemas for LLM docs. AgentContext for state. Batch execution. ValidationTool + RomDiffTool created.
 - HANDOFF: [phase5-advanced-tools-handoff.md](phase5-advanced-tools-handoff.md) – Visual Analysis, CodeGen, Project tools ready for implementation
 
-### 2025-01-24 ui-architect – Menu Bar & Sidebar UX Improvements
+### 2025-11-24 ui-architect – Menu Bar & Sidebar UX Improvements
 - TASK: Restructured menu bar status cluster, notification history, and sidebar collapse behavior
 - SCOPE: MenuOrchestrator, UICoordinator, EditorCardRegistry, ToastManager
 - STATUS: COMPLETE
 - NOTES: Merged Debug menu into Tools, added notification bell with history, fixed sidebar collapse to use menu bar hamburger. Handoff doc: [handoff-sidebar-menubar-sessions.md](handoff-sidebar-menubar-sessions.md)
-- NEXT: Improve disabled state behavior for menu items and sidebar cards when ROM not loaded
 
 ### 2025-11-24 docs-janitor – WASM docs consolidation for antigravity Gemini
 - TASK: Consolidate WASM docs into single canonical reference with integrated Gemini prompt.

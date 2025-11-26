@@ -337,7 +337,15 @@
       </div>
 
       <!-- Canvas is always visible, loading overlay covers it during init -->
-      <canvas class="emscripten" id="canvas" oncontextmenu="event.preventDefault()" tabindex=-1></canvas>
+      <!-- Data attributes updated by agent_automation.js for agent discoverability -->
+      <canvas class="emscripten yaze-main-canvas" id="canvas"
+              oncontextmenu="event.preventDefault()" tabindex=-1
+              data-editor-type=""
+              data-active-card=""
+              data-zoom-level="1.0"
+              data-visible-cards=""
+              data-session-id="0"
+              data-rom-loaded="false"></canvas>
 
       <!-- Pixel Inspector Overlay -->
       <div id="pixel-inspector" class="pixel-inspector" style="display: none;">
@@ -613,6 +621,9 @@
     <script src="core/filesystem_manager.js"></script>
     <script src="core/loading_indicator.js"></script>
     <script src="core/error_handler.js"></script>
+    <!-- Agent automation and accessibility -->
+    <script src="core/widget_overlay.js"></script>
+    <script src="core/agent_automation.js"></script>
     <!-- Main application -->
     <script src="app.js"></script>
     <!-- UI Components -->

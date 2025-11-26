@@ -567,7 +567,7 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     // ready This must happen before DrawRoomBackgroundLayers() attempts to draw
     // bitmaps
     if (rom_ && rom_->is_loaded()) {
-      gfx::Arena::Get().ProcessTextureQueue(nullptr);
+      gfx::Arena::Get().ProcessTextureQueue(renderer_);
     }
 
     // Draw the room's background layers to canvas

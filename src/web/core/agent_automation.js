@@ -378,7 +378,160 @@
     isReady: function() {
       return typeof Module !== 'undefined' &&
              typeof Module.guiGetUIElementTree === 'function';
-    }
+    },
+
+    /**
+     * Update canvas data-* attributes with current editor state
+     * Call this periodically (e.g., in requestAnimationFrame) for agent discoverability
+     * @returns {Object} Result with updated state or error
+     */
+    updateCanvasState: function() {
+      const canvas = document.getElementById('canvas');
+      if (!canvas) {
+        return { error: 'Canvas element not found' };
+      }
+
+      // Get editor state from control API
+      if (typeof Module !== 'undefined' && Module.controlGetCurrentEditor) {
+        try {
+          const editorResult = JSON.parse(Module.controlGetCurrentEditor());
+          if (editorResult && editorResult.name) {
+            canvas.dataset.editorType = editorResult.name;
+          }
+        } catch (e) {
+          // Silently ignore if not available
+        }
+      }
+
+      // Get visible cards
+      if (typeof Module !== 'undefined' && Module.controlGetVisibleCards) {
+        try {
+          const cardsResult = JSON.parse(Module.controlGetVisibleCards());
+          if (Array.isArray(cardsResult)) {
+            canvas.dataset.visibleCards = cardsResult.join(',');
+          }
+        } catch (e) {
+          // Silently ignore if not available
+        }
+      }
+
+      // Get ROM status
+      if (typeof Module !== 'undefined' && Module.controlGetRomStatus) {
+        try {
+          const romResult = JSON.parse(Module.controlGetRomStatus());
+          if (romResult) {
+            canvas.dataset.romLoaded = romResult.loaded ? 'true' : 'false';
+          }
+        } catch (e) {
+          // Silently ignore if not available
+        }
+      }
+
+      // Get session info
+      if (typeof Module !== 'undefined' && Module.controlGetSessionInfo) {
+        try {
+          const sessionResult = JSON.parse(Module.controlGetSessionInfo());
+          if (sessionResult && typeof sessionResult.session_id !== 'undefined') {
+            canvas.dataset.sessionId = sessionResult.session_id;
+          }
+        } catch (e) {
+          // Silently ignore if not available
+        }
+      }
+
+      return {
+        success: true,
+        editorType: canvas.dataset.editorType,
+        visibleCards: canvas.dataset.visibleCards,
+        romLoaded: canvas.dataset.romLoaded,
+        sessionId: canvas.dataset.sessionId
+      };
+    },
+
+    /**
+     * Get all available cards with their metadata
+     * @returns {Object} Cards array with id, name, visible, enabled, etc.
+     */
+    getAvailableCards: function() {
+      if (typeof Module === 'undefined' || !Module.controlGetAvailableCards) {
+        return { error: 'Module not ready', cards: [] };
+      }
+
+      try {
+        return JSON.parse(Module.controlGetAvailableCards());
+      } catch (e) {
+        return { error: e.message, cards: [] };
+      }
+    },
+
+    /**
+     * Show a specific card by ID
+     * @param {string} cardId - The card identifier
+     * @returns {Object} Result with success status
+     */
+    showCard: function(cardId) {
+      if (typeof Module === 'undefined' || !Module.controlOpenCard) {
+        return { error: 'Module not ready' };
+      }
+
+      try {
+        return JSON.parse(Module.controlOpenCard(cardId));
+      } catch (e) {
+        return { error: e.message };
+      }
+    },
+
+    /**
+     * Hide a specific card by ID
+     * @param {string} cardId - The card identifier
+     * @returns {Object} Result with success status
+     */
+    hideCard: function(cardId) {
+      if (typeof Module === 'undefined' || !Module.controlCloseCard) {
+        return { error: 'Module not ready' };
+      }
+
+      try {
+        return JSON.parse(Module.controlCloseCard(cardId));
+      } catch (e) {
+        return { error: e.message };
+      }
+    },
+
+    /**
+     * Start automatic canvas state updates
+     * @param {number} intervalMs - Update interval in milliseconds (default 500)
+     */
+    startAutoUpdate: function(intervalMs) {
+      intervalMs = intervalMs || 500;
+      const self = this;
+
+      if (this._autoUpdateInterval) {
+        clearInterval(this._autoUpdateInterval);
+      }
+
+      this._autoUpdateInterval = setInterval(function() {
+        self.updateCanvasState();
+        if (window.yaze.gui.widgetOverlay) {
+          window.yaze.gui.updateWidgetOverlay();
+        }
+      }, intervalMs);
+
+      return { success: true, intervalMs: intervalMs };
+    },
+
+    /**
+     * Stop automatic canvas state updates
+     */
+    stopAutoUpdate: function() {
+      if (this._autoUpdateInterval) {
+        clearInterval(this._autoUpdateInterval);
+        this._autoUpdateInterval = null;
+      }
+      return { success: true };
+    },
+
+    _autoUpdateInterval: null
   };
 
   console.log('[yaze] GUI Automation API loaded (window.yaze.gui)');
