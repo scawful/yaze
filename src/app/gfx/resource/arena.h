@@ -53,6 +53,7 @@ class Arena {
   struct TextureCommand {
     TextureCommandType type;
     Bitmap* bitmap;  // The bitmap that needs a texture operation
+    uint32_t generation;  // Generation at queue time for staleness detection
   };
 
   void QueueTextureCommand(TextureCommandType type, Bitmap* bitmap);

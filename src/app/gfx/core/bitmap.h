@@ -4,6 +4,7 @@
 #include "app/platform/sdl_compat.h"
 
 #include <cstdint>
+#include <memory>
 #include <span>
 #include <unordered_map>
 #include <vector>
@@ -301,6 +302,7 @@ class Bitmap {
   uint8_t at(int i) const { return data_[i]; }
   bool modified() const { return modified_; }
   bool is_active() const { return active_; }
+  uint32_t generation() const { return generation_; }
   void set_active(bool active) { active_ = active; }
   void set_data(const std::vector<uint8_t>& data);
   void set_modified(bool modified) { modified_ = modified; }
@@ -313,6 +315,11 @@ class Bitmap {
 
   bool active_ = false;
   bool modified_ = false;
+
+  // Generation counter for staleness detection in deferred operations
+  // Incremented on each Create() call to detect reused/reallocated bitmaps
+  uint32_t generation_ = 0;
+  static inline uint32_t next_generation_ = 1;
 
   // Pointer to the texture pixels
   void* texture_pixels = nullptr;
@@ -370,8 +377,9 @@ class Bitmap {
   static uint32_t HashColor(const ImVec4& color);
 };
 
-// Type alias for a table of bitmaps
-using BitmapTable = std::unordered_map<int, gfx::Bitmap>;
+// Type alias for a table of bitmaps - uses unique_ptr for stable pointers
+// across rehashes (prevents dangling pointers in deferred texture commands)
+using BitmapTable = std::unordered_map<int, std::unique_ptr<gfx::Bitmap>>;
 
 /**
  * @brief Get the SDL pixel format for a given bitmap format

@@ -19,6 +19,86 @@
 namespace yaze {
 namespace zelda3 {
 
+// Define room effect names in a single translation unit to avoid SIOF
+const std::string RoomEffect[8] = {
+    "Nothing",
+    "Nothing",
+    "Moving Floor",
+    "Moving Water",
+    "Trinexx Shell",
+    "Red Flashes",
+    "Light Torch to See Floor",
+    "Ganon's Darkness"
+};
+
+// Define room tag names in a single translation unit to avoid SIOF
+const std::string RoomTag[65] = {
+    "Nothing",
+    "NW Kill Enemy to Open",
+    "NE Kill Enemy to Open",
+    "SW Kill Enemy to Open",
+    "SE Kill Enemy to Open",
+    "W Kill Enemy to Open",
+    "E Kill Enemy to Open",
+    "N Kill Enemy to Open",
+    "S Kill Enemy to Open",
+    "Clear Quadrant to Open",
+    "Clear Full Tile to Open",
+    "NW Push Block to Open",
+    "NE Push Block to Open",
+    "SW Push Block to Open",
+    "SE Push Block to Open",
+    "W Push Block to Open",
+    "E Push Block to Open",
+    "N Push Block to Open",
+    "S Push Block to Open",
+    "Push Block to Open",
+    "Pull Lever to Open",
+    "Collect Prize to Open",
+    "Hold Switch Open Door",
+    "Toggle Switch to Open Door",
+    "Turn off Water",
+    "Turn on Water",
+    "Water Gate",
+    "Water Twin",
+    "Moving Wall Right",
+    "Moving Wall Left",
+    "Crash",
+    "Crash",
+    "Push Switch Exploding Wall",
+    "Holes 0",
+    "Open Chest (Holes 0)",
+    "Holes 1",
+    "Holes 2",
+    "Defeat Boss for Dungeon Prize",
+    "SE Kill Enemy to Push Block",
+    "Trigger Switch Chest",
+    "Pull Lever Exploding Wall",
+    "NW Kill Enemy for Chest",
+    "NE Kill Enemy for Chest",
+    "SW Kill Enemy for Chest",
+    "SE Kill Enemy for Chest",
+    "W Kill Enemy for Chest",
+    "E Kill Enemy for Chest",
+    "N Kill Enemy for Chest",
+    "S Kill Enemy for Chest",
+    "Clear Quadrant for Chest",
+    "Clear Full Tile for Chest",
+    "Light Torches to Open",
+    "Holes 3",
+    "Holes 4",
+    "Holes 5",
+    "Holes 6",
+    "Agahnim Room",
+    "Holes 7",
+    "Holes 8",
+    "Open Chest for Holes 8",
+    "Push Block for Chest",
+    "Clear Room for Triforce Door",
+    "Light Torches for Chest",
+    "Kill Boss Again"
+};
+
 RoomSize CalculateRoomSize(Rom* rom, int room_id) {
   // Calculate the size of the room based on how many objects are used per room
   // Some notes from hacker Zarby89
@@ -308,18 +388,12 @@ void Room::CopyRoomGraphicsToBuffer() {
     return;
   }
 
-  printf("[CopyRoomGraphicsToBuffer] Room %d: Converting 3BPP to 8BPP (Unpacked)\n",
+  printf("[CopyRoomGraphicsToBuffer] Room %d: Copying 8BPP graphics (Linear)\n",
          room_id_);
-
-  // Bit extraction mask (MSB to LSB)
-  static const uint8_t kBitMask[8] = {
-    0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01
-  };
 
   // Clear destination buffer
   std::fill(current_gfx16_.begin(), current_gfx16_.end(), 0);
 
-  int bytes_converted = 0;
   int dest_pos = 0;
 
   // Process each of the 16 graphics blocks
@@ -327,82 +401,33 @@ void Room::CopyRoomGraphicsToBuffer() {
     // Validate block index
     if (blocks_[block] < 0 || blocks_[block] > 255) {
       // Skip invalid blocks, but advance destination position
-      dest_pos += 4096;  // 64 tiles * 64 bytes per 8BPP tile
+      dest_pos += 4096;  // 4KB per 8BPP sheet (128x32 pixels)
       continue;
     }
 
-    // Source offset in ROM graphics buffer (3BPP format)
-    // Each 3BPP sheet is 1536 bytes (64 tiles * 24 bytes/tile)
-    int src_sheet_offset = blocks_[block] * 1536;
+    // Source offset in ROM graphics buffer (8BPP format)
+    // Each 8BPP sheet is 4096 bytes (128x32 pixels * 1 byte/pixel)
+    int src_sheet_offset = blocks_[block] * 4096;
 
     // Validate source bounds
     if (src_sheet_offset < 0 ||
-        src_sheet_offset + 1536 > static_cast<int>(gfx_buffer_data->size())) {
+        src_sheet_offset + 4096 > static_cast<int>(gfx_buffer_data->size())) {
       dest_pos += 4096;
       continue;
     }
 
-    // Convert 64 tiles per block (arranged as 16x4 grid in sheet)
-    for (int tile_row = 0; tile_row < 4; tile_row++) {       // 4 rows of tiles
-      for (int tile_col = 0; tile_col < 16; tile_col++) {    // 16 tiles per row
-        int tile_index = tile_row * 16 + tile_col;
-
-        // Source offset for this tile in 3BPP format
-        // ZScream formula: (i * 24) + (j * 384) where i=tile_col, j=tile_row
-        int tile_src = src_sheet_offset + (tile_col * 24) + (tile_row * 384);
-
-        // Convert 8 pixel rows
-        for (int row = 0; row < 8; row++) {
-          // Read 3 bitplanes from SNES planar format
-          // Planes 0-1 are interleaved at bytes 0-15
-          // Plane 2 is at bytes 16-23
-          uint8_t plane0 = (*gfx_buffer_data)[tile_src + (row * 2)];
-          uint8_t plane1 = (*gfx_buffer_data)[tile_src + (row * 2) + 1];
-          uint8_t plane2 = (*gfx_buffer_data)[tile_src + 16 + row];
-
-          // Convert 8 pixels to 4 nibble-pairs (4BPP packed format)
-          for (int nibble_pair = 0; nibble_pair < 4; nibble_pair++) {
-            uint8_t pix1 = 0;  // First pixel of pair
-            uint8_t pix2 = 0;  // Second pixel of pair
-
-            // Extract first pixel color from 3 bitplanes
-            int bit_index1 = nibble_pair * 2;
-            if (plane0 & kBitMask[bit_index1]) pix1 |= 1;
-            if (plane1 & kBitMask[bit_index1]) pix1 |= 2;
-            if (plane2 & kBitMask[bit_index1]) pix1 |= 4;
-
-            // Extract second pixel color from 3 bitplanes
-            int bit_index2 = nibble_pair * 2 + 1;
-            if (plane0 & kBitMask[bit_index2]) pix2 |= 1;
-            if (plane1 & kBitMask[bit_index2]) pix2 |= 2;
-            if (plane2 & kBitMask[bit_index2]) pix2 |= 4;
-
-            // Unpack to 8BPP (1 byte per pixel)
-            // Destination uses linear bitmap layout (128 pixels wide)
-            // (row * 128) + pixel_pair_offset + (tile_col * 8) + (tile_row * 1024) + (block * 4096)
-            int dest_base = (block * 4096) + (tile_row * 1024) + (tile_col * 8) + (row * 128);
-            
-            // pix1 (first pixel of pair)
-            int dest_index1 = dest_base + (nibble_pair * 2);
-            if (dest_index1 < static_cast<int>(current_gfx16_.size())) {
-              current_gfx16_[dest_index1] = pix1;
-              if (pix1 != 0) bytes_converted++;
-            }
-
-            // pix2 (second pixel of pair)
-            int dest_index2 = dest_base + (nibble_pair * 2) + 1;
-            if (dest_index2 < static_cast<int>(current_gfx16_.size())) {
-              current_gfx16_[dest_index2] = pix2;
-              if (pix2 != 0) bytes_converted++;
-            }
-          }
-        }
-      }
+    // Copy 4KB block directly
+    // We use the already converted 8BPP data from LoadAllGraphicsData
+    if (dest_pos + 4096 <= static_cast<int>(current_gfx16_.size())) {
+      std::memcpy(&current_gfx16_[dest_pos],
+                  &(*gfx_buffer_data)[src_sheet_offset], 4096);
     }
+
+    dest_pos += 4096;
   }
 
-  printf("[CopyRoomGraphicsToBuffer] Room %d: Converted %d non-zero pixel pairs\n",
-         room_id_, bytes_converted);
+  printf("[CopyRoomGraphicsToBuffer] Room %d: Copied graphics blocks\n",
+         room_id_);
 
   // DEBUG: Print first few bytes of converted graphics
   printf("[CopyRoomGraphicsToBuffer] First 16 bytes of current_gfx16_:\n");
@@ -769,15 +794,16 @@ void Room::LoadAnimatedGraphics() {
   }
 
   int data = 0;
-  while (data < 512) {
+  while (data < 1024) {
     // Validate buffer access for first operation
-    int first_offset = data + (92 * 2048) + (512 * animated_frame_);
+    // 92 * 4096 = 376832. 1024 * 10 = 10240. Total ~387KB.
+    int first_offset = data + (92 * 4096) + (1024 * animated_frame_);
     if (first_offset >= 0 &&
         first_offset < static_cast<int>(gfx_buffer_data->size())) {
       uint8_t map_byte = (*gfx_buffer_data)[first_offset];
 
       // Validate current_gfx16_ access
-      int gfx_offset = data + (7 * 2048);
+      int gfx_offset = data + (7 * 4096);
       if (gfx_offset >= 0 &&
           gfx_offset < static_cast<int>(sizeof(current_gfx16_))) {
         current_gfx16_[gfx_offset] = map_byte;
@@ -786,13 +812,13 @@ void Room::LoadAnimatedGraphics() {
 
     // Validate buffer access for second operation
     int tileset_index = rom_data[gfx_ptr + background_tileset_];
-    int second_offset = data + (tileset_index * 2048) + (512 * animated_frame_);
+    int second_offset = data + (tileset_index * 4096) + (1024 * animated_frame_);
     if (second_offset >= 0 &&
         second_offset < static_cast<int>(gfx_buffer_data->size())) {
       uint8_t map_byte = (*gfx_buffer_data)[second_offset];
 
       // Validate current_gfx16_ access
-      int gfx_offset = data + (7 * 2048) - 512;
+      int gfx_offset = data + (7 * 4096) - 1024;
       if (gfx_offset >= 0 &&
           gfx_offset < static_cast<int>(sizeof(current_gfx16_))) {
         current_gfx16_[gfx_offset] = map_byte;
