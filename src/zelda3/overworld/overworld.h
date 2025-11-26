@@ -3,6 +3,7 @@
 
 #include <array>
 #include <cstdint>
+#include <deque>
 #include <mutex>
 #include <vector>
 
@@ -348,6 +349,11 @@ class Overworld {
 
   // Thread safety for parallel operations
   mutable std::mutex map_tiles_mutex_;
+
+  // LRU cache for built maps to prevent memory exhaustion
+  // Max ~20 maps = ~25MB of memory (1.25MB per map)
+  static constexpr int kMaxBuiltMaps = 20;
+  std::deque<int> built_map_lru_;
 
   std::vector<OverworldMap> overworld_maps_;
   std::vector<OverworldEntrance> all_entrances_;
