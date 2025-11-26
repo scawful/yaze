@@ -101,7 +101,8 @@ absl::StatusOr<std::filesystem::path> PlatformPaths::GetAppDataDirectory() {
   //   /saves    - Save files (IDBFS - persistent)
   //   /projects - Project files (IDBFS - persistent)
   //   /prompts  - Agent prompts (IDBFS - persistent)
-  //   /roms     - ROM files (MEMFS - loaded dynamically)
+  //   /roms     - ROM files (IDBFS - persistent for session restore)
+  //   /recent   - Recent files metadata (IDBFS - persistent)
   //   /temp     - Temporary files (MEMFS - non-persistent)
   std::filesystem::path app_data("/config");
   // We assume the mount point exists or will be created by initialization

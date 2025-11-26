@@ -298,7 +298,7 @@ var FilesystemManager = {
       if (!this.fileExists(filename)) {
         console.warn('[FilesystemManager] ROM file not found:', filename);
         alert('ROM file not found: ' + filename.split('/').pop() +
-              '\n\nROMs are not persisted across page reloads. Please upload the ROM again.');
+              '\n\nThe file may have been deleted or browser storage was cleared. Please upload the ROM again.');
         if (loadingId && typeof window.removeLoadingIndicator === 'function') {
           window.removeLoadingIndicator(loadingId);
         }
