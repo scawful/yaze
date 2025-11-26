@@ -23,6 +23,12 @@ namespace editor {
  * Players move between these levels using stair objects that act as
  * transitions between the different object planes.
  */
+enum class ObjectRenderMode {
+  Manual,    // Use ObjectDrawer routines
+  Emulator,  // Use SNES emulator
+  Hybrid     // Emulator with manual fallback
+};
+
 class DungeonCanvasViewer {
  public:
   explicit DungeonCanvasViewer(Rom* rom = nullptr)
@@ -69,6 +75,10 @@ class DungeonCanvasViewer {
   bool IsObjectInteractionEnabled() const {
     return object_interaction_enabled_;
   }
+
+  // Set and get the object render mode
+  void SetObjectRenderMode(ObjectRenderMode mode) { object_render_mode_ = mode; }
+  ObjectRenderMode GetObjectRenderMode() const { return object_render_mode_; }
 
   // Layer visibility controls (per-room)
   void SetBG1Visible(int room_id, bool visible) {
@@ -182,6 +192,7 @@ class DungeonCanvasViewer {
   bool show_layer_info_ = false;
   int layout_override_ = -1;  // -1 for no override
   int custom_grid_size_ = 8;
+  ObjectRenderMode object_render_mode_ = ObjectRenderMode::Emulator; // Default to emulator rendering
 
   // Object outline filtering toggles
   struct ObjectOutlineToggles {

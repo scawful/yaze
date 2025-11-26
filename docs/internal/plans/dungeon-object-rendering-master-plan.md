@@ -23,20 +23,33 @@
 - Fix 2: Type 2 index mask 0x7F -> 0xFF
 - Fix 3: Type 3 threshold 0x200 -> 0xF80
 
+### Phase 4b: North/South Wall Draw Routines
+**Completed:** 2025-11-26
+- Fixed column-major tile ordering in DrawRightwards2x4 routines
+- Updated routines: DrawRightwards2x4_1to15or26, DrawRightwards2x4spaced4_1to16
+- Changed tile guard from 4 tiles to 8 tiles (column-major uses full 8 tiles)
+- Objects 0x01-0x06 now render correctly
+
+### Phase 4c: Corner Wall Objects (Partial)
+**Completed:** 2025-11-26
+- Mapped BothBG diagonal variants (objects 0x0C-0x20) to existing functions
+- Implemented DrawCorner4x4 for Type 2 corners (objects 0x40-0x4F)
+- Added routines 17-19 to draw routine registry
+
 ---
 
 ## Pending Phases
 
-### Phase 4b: North/South Wall Draw Routines
-**Status:** Not started
-**Priority:** High
+### Phase 4c: Corner Wall Objects (Remaining)
+**Status:** Deferred
+**Priority:** Medium
 
-**Problem:** North/south walls (Rightwards routines 0x01-0x04) don't render correctly. East/west walls (Downwards routines 0x60+) work fine.
+**Remaining work:**
+- Kinked corners (3x4 and 4x3) if needed after testing
+- Deep concave corners (2x2) if needed after testing
+- Note: Some corner IDs may overlap with diagonal objects; needs ZScream verification
 
-**ROOT CAUSE FOUND (ZScream Analysis):**
-The tile arrangement is **COLUMN-MAJOR**, not row-major!
-
-**ZScream Rightwards2x4 Pattern:**
+**Reference - Column-Major Pattern (implemented):**
 ```
 Column 0    Column 1
 [tile 0]    [tile 4]   <- Row 0
@@ -45,96 +58,17 @@ Column 0    Column 1
 [tile 3]    [tile 7]   <- Row 3
 ```
 
-**Current yaze implementation (WRONG):**
-```
-[tile 0] [tile 1]   <- Row 0
-[tile 2] [tile 3]   <- Row 1
-[tile 0] [tile 1]   <- Row 2 (repeat)
-[tile 2] [tile 3]   <- Row 3 (repeat)
-```
+**Implemented:**
+- Type 2 Corners (0x40-0x4F): DrawCorner4x4 - 4x4 column-major grid
+- Diagonal BothBG variants (0x0C-0x20): Mapped to existing diagonal functions
 
-**Fix Required:**
-```cpp
-// Column 0 (left), top to bottom
-WriteTile8(bg, obj.x_ + (s * 2), obj.y_, tiles[0]);
-WriteTile8(bg, obj.x_ + (s * 2), obj.y_ + 1, tiles[1]);
-WriteTile8(bg, obj.x_ + (s * 2), obj.y_ + 2, tiles[2]);
-WriteTile8(bg, obj.x_ + (s * 2), obj.y_ + 3, tiles[3]);
-// Column 1 (right), top to bottom
-WriteTile8(bg, obj.x_ + (s * 2) + 1, obj.y_, tiles[4]);
-WriteTile8(bg, obj.x_ + (s * 2) + 1, obj.y_ + 1, tiles[5]);
-WriteTile8(bg, obj.x_ + (s * 2) + 1, obj.y_ + 2, tiles[6]);
-WriteTile8(bg, obj.x_ + (s * 2) + 1, obj.y_ + 3, tiles[7]);
-```
+**Remaining (if needed after testing):**
+- Kinked N/S corners (0x10-0x13): 3x4 grid
+- Kinked E/W corners (0x14-0x17): 4x3 grid
+- Deep Concave corners (0x18-0x1B): 2x2 grid
 
-**Files:**
-- `src/zelda3/dungeon/object_drawer.cc` - DrawRightwards* routines
-- ZScream: `ZeldaFullEditor/Data/Types/DungeonObjectDraw.cs`
-
-**Objects affected:**
-- 0x01-0x02: North walls (routine 1) - 8 tiles
-- 0x03-0x04: South walls (routine 2) - 8 tiles
-- 0x05-0x06: Both-layer walls (routine 3) - 8 tiles
-
----
-
-### Phase 4c: Corner Wall Objects
-**Status:** Not started
-**Priority:** Medium
-
-**Problem:** Corner wall objects not yet implemented.
-
-**ZScream Analysis - Corner Object IDs:**
-
-**Type 2 Corners (Subtype 2) - Grid-based 4x4 drawing:**
-| ID Range | Type | Tiles | Description |
-|----------|------|-------|-------------|
-| 0x40-0x43 | Concave Top | 16 (4x4) | Inner corners |
-| 0x44-0x47 | Convex Top | 16 (4x4) | Outer corners |
-| 0x48-0x4B | Concave Bottom | 16 (4x4) | Inner corners (layer 2) |
-| 0x4C-0x4F | Convex Bottom | 16 (4x4) | Outer corners (layer 2) |
-| 0x10-0x13 | Kinked N/S | 12 (3x4) | Direction change corners |
-| 0x14-0x17 | Kinked E/W | 12 (4x3) | Direction change corners |
-| 0x18-0x1B | Deep Concave | 4 (2x2) | Depth effect corners |
-
-**Type 1 Diagonal Walls (0x09-0x20):**
-| ID Range | Direction | Draw Method |
-|----------|-----------|-------------|
-| 0x09, 0x0C, 0x0D, 0x10, 0x11, 0x14, 0x15, 0x18, 0x19, 0x1C, 0x1D, 0x20 | Rising | `draw_diagonal_up()` |
-| 0x0A, 0x0B, 0x0E, 0x0F, 0x12, 0x13, 0x16, 0x17, 0x1A, 0x1B, 0x1E, 0x1F | Falling | `draw_diagonal_down()` |
-
-**Diagonal Draw Pattern (5 tiles per column):**
-```cpp
-// draw_diagonal_up: Y decreases as X increases
-for (int s = 0; s < Size + 6; s++) {
-    draw_tile(tiles[0], s * 8, (0 - s) * 8);
-    draw_tile(tiles[1], s * 8, (1 - s) * 8);
-    draw_tile(tiles[2], s * 8, (2 - s) * 8);
-    draw_tile(tiles[3], s * 8, (3 - s) * 8);
-    draw_tile(tiles[4], s * 8, (4 - s) * 8);
-}
-
-// draw_diagonal_down: Y increases as X increases
-for (int s = 0; s < Size + 6; s++) {
-    draw_tile(tiles[0], s * 8, (0 + s) * 8);
-    draw_tile(tiles[1], s * 8, (1 + s) * 8);
-    // ... etc
-}
-```
-
-**Corner Draw Routine (Grid-based):**
-```cpp
-// Standard grid for 4x4 corners
-for (int xx = 0; xx < 4; xx++) {
-    for (int yy = 0; yy < 4; yy++) {
-        draw_tile(tiles[tid++], xx * 8, yy * 8);
-    }
-}
-```
-
-**Files:**
-- ZScream: `ZeldaFullEditor/Rooms/Object_Draw/Subtype2_Multiple.cs`
-- ZScream: `ZeldaFullEditor/Rooms/Room_Object.cs` (diagonal methods)
+**Note:** Objects 0x10-0x1B may be diagonals rather than corners based on ZScream analysis.
+Verify behavior with visual testing against ZScream output.
 
 ---
 

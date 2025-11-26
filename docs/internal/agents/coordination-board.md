@@ -9,6 +9,12 @@
 - STATUS: COMPLETE
 - NOTES: Updated roadmap.md (Nov 2025), initiative-v040.md (completed items), architecture.md (editor status), dungeon_editor_system.md (ImGui patterns). Added GUI patterns note from BeginChild/EndChild fixes.
 
+### 2025-11-26 ai-infra-architect – WASM z3ed console input fix
+- TASK: Investigate/fix web z3ed console enter key + autocomplete failures
+- SCOPE: src/web/components/terminal.js, WASM input wiring
+- STATUS: COMPLETE
+- NOTES: Terminal now handles keydown/keyup in capture and shell skips terminal gating, restoring Enter + autocomplete in wasm console.
+
 ---
 
 ### 2025-11-25 backend-infra-engineer – WASM release crash triage

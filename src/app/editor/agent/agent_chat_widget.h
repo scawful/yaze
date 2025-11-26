@@ -228,7 +228,7 @@ class AgentChatWidget {
 
   // Agent Configuration State
   struct AgentConfigState {
-    std::string ai_provider = "mock";  // mock, ollama, gemini
+    std::string ai_provider = "mock";  // mock, ollama, gemini, openai
     std::string ai_model;
     std::string ollama_host = "http://localhost:11434";
     std::string gemini_api_key;
