@@ -146,7 +146,24 @@ cp -r src/web/core/* build-wasm-debug/dist/core/
 
 Supported input formats:
 - **Drag/drop:** `.sfc`, `.smc`, or `.zip` files (writes to `/roms` in MEMFS)
-- **File dialog:** Via UI "Open ROM" button
+- **File dialog:** Via UI "Open ROM" button (Folder icon in Nav Bar)
+
+> [!IMPORTANT]
+> **Do not use `window.yazeApp.loadRom()` or other JS calls to programmatically open ROMs.**
+> These methods are unreliable because they bypass the browser's security model for file access or expect files to already exist in the virtual filesystem.
+> **Always ask the user to load the ROM using the UI.**
+
+### Async JavaScript Calls
+
+When using `execute_browser_javascript` or similar tools:
+- **Async Syntax:** If you need to use `await` (e.g., for `navigator.clipboard.writeText`), wrap your code in an async IIFE:
+  ```javascript
+  (async () => {
+    await someAsyncFunction();
+    return "done";
+  })();
+  ```
+- **Top-level await:** Direct top-level `await` is often not supported by runner contexts (like Playwright's `evaluate`).
 
 ### Filesystem Readiness
 

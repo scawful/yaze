@@ -11,6 +11,14 @@
 
 ---
 
+### 2025-11-25 backend-infra-engineer – WASM release crash triage
+- TASK: Investigate release WASM build crashing on ROM load while debug build works
+- SCOPE: build_wasm vs build-wasm-debug artifacts, emscripten flags, runtime logs
+- STATUS: IN_PROGRESS
+- NOTES: Repro via Playwright; release hits OOB in unordered_map<Bitmap> during load. Plan: `docs/internal/agents/wasm-release-crash-plan.md`.
+
+---
+
 ### 2025-11-25 ai-infra-architect – Agent Tools & Interface Enhancement (Phases 1-4)
 - TASK: Implement tools directory integration, discoverability, schemas, context, batching, validation, ROM diff
 - SCOPE: src/cli/service/agent/, src/cli/handlers/tools/, tools/test_helpers/
