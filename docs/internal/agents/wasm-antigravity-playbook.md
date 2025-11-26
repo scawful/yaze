@@ -80,6 +80,210 @@ cmake --build build-wasm-debug --parallel
 
 ---
 
+## Step-by-Step Workflow for AI Agents (Gemini)
+
+This section provides explicit, ordered steps for AI agents to navigate the application.
+
+### Phase 1: Verify Module Ready
+
+Before doing anything, verify the WASM module is initialized:
+
+```javascript
+// Step 1: Check module ready
+const moduleReady = window.Module?.calledRun === true;
+const apiReady = window.yaze?.control?.isReady?.() === true;
+console.log('Module ready:', moduleReady, 'API ready:', apiReady);
+
+// If not ready, wait and retry (poll every 500ms)
+// Expected: both should be true within 5 seconds of page load
+```
+
+### Phase 2: ROM Loading (User-Initiated)
+
+**CRITICAL:** ROM loading MUST be initiated by the user through the UI. Do NOT attempt programmatic ROM loading.
+
+**Step-by-step for guiding user:**
+
+1. **Locate the Open ROM button**: Look for the folder icon (📁) in the top navigation bar
+2. **Click "Open ROM"** or drag a `.sfc`/`.smc` file onto the canvas
+3. **Wait for loading overlay**: A progress indicator shows loading stages
+4. **Verify ROM loaded**:
+   ```javascript
+   // Check ROM status after user loads ROM
+   const status = window.yaze.control.getRomStatus();
+   console.log('ROM loaded:', status.loaded, 'Title:', status.title);
+   // Expected: { loaded: true, filename: "zelda3.sfc", title: "THE LEGEND OF ZELDA", ... }
+   ```
+
+**If ROM not loading:**
+- Check `FilesystemManager.ready === true`
+- Check browser console for errors
+- Try: `FS.stat('/roms')` - should not throw
+
+### Phase 3: Dismiss Welcome Screen / Initial View
+
+After ROM loads, the app may show a **Welcome screen** or **Settings editor** by default.
+
+**Switch to a working editor:**
+
+```javascript
+// Step 1: Check current editor
+const current = window.yaze.control.getCurrentEditor();
+console.log('Current editor:', current.name);
+
+// Step 2: Switch to Dungeon or Overworld editor
+window.yaze.control.switchEditor('Dungeon');
+// OR for async with confirmation:
+const result = await window.yazeDebug.switchToEditorAsync('Dungeon');
+console.log('Switch result:', result);
+// Expected: { success: true, editor: "Dungeon", session_id: 1 }
+
+// Step 3: Verify switch
+const newEditor = window.yaze.control.getCurrentEditor();
+console.log('Now in:', newEditor.name);
+```
+
+**Available editors:** `Overworld`, `Dungeon`, `Graphics`, `Palette`, `Sprite`, `Music`, `Message`, `Screen`, `Assembly`, `Hex`, `Agent`, `Settings`
+
+### Phase 4: Make Cards Visible
+
+After switching editors, the canvas may appear empty if no cards are visible.
+
+**Show essential cards for Dungeon editor:**
+
+```javascript
+// Option A: Show a predefined card group
+window.yazeDebug.cards.showGroup('dungeon_editing');
+// Shows: room_selector, object_editor, canvas
+
+// Option B: Show cards individually
+window.yazeDebug.cards.show('dungeon.room_selector');
+window.yazeDebug.cards.show('dungeon.object_editor');
+
+// Option C: Apply a layout preset
+window.yaze.control.setCardLayout('dungeon_default');
+```
+
+**Show essential cards for Overworld editor:**
+
+```javascript
+window.yazeDebug.cards.showGroup('overworld_editing');
+// OR
+window.yaze.control.setCardLayout('overworld_default');
+```
+
+**Query visible cards:**
+
+```javascript
+const visible = window.yaze.control.getVisibleCards();
+console.log('Visible cards:', visible);
+
+// Get all available cards for current editor
+const available = window.yaze.control.getAvailableCards();
+console.log('Available cards:', available);
+```
+
+### Phase 5: Verify Working State
+
+After completing setup, verify the editor is functional:
+
+```javascript
+// Full state check
+const state = window.aiTools.getAppState();
+// Logs: ROM Status, Current Editor, Visible Cards, Available Editors
+
+// Or get structured data:
+const snapshot = {
+  rom: window.yaze.control.getRomStatus(),
+  editor: window.yaze.control.getCurrentEditor(),
+  cards: window.yaze.control.getVisibleCards(),
+  session: window.yaze.control.getSessionInfo()
+};
+console.log(JSON.stringify(snapshot, null, 2));
+```
+
+**Expected successful state:**
+```json
+{
+  "rom": { "loaded": true, "title": "THE LEGEND OF ZELDA" },
+  "editor": { "name": "Dungeon", "active": true },
+  "cards": ["Room Selector", "Object Editor", ...],
+  "session": { "rom_loaded": true, "current_editor": "Dungeon" }
+}
+```
+
+---
+
+## Quick Command Reference for AI Agents
+
+Copy-paste ready commands for common operations:
+
+```javascript
+// ========== INITIAL SETUP ==========
+// 1. Verify ready state
+window.Module?.calledRun && window.yaze.control.isReady()
+
+// 2. Check ROM (after user loads it)
+window.yaze.control.getRomStatus()
+
+// 3. Switch editor (away from welcome/settings)
+await window.yazeDebug.switchToEditorAsync('Dungeon')
+
+// 4. Show cards
+window.yazeDebug.cards.showGroup('dungeon_editing')
+
+// 5. Full state dump
+window.aiTools.getAppState()
+
+// ========== NAVIGATION ==========
+// Switch editors
+window.yaze.control.switchEditor('Overworld')
+window.yaze.control.switchEditor('Dungeon')
+window.yaze.control.switchEditor('Graphics')
+
+// Jump to specific room/map
+window.aiTools.jumpToRoom(0)    // Dungeon room 0
+window.aiTools.jumpToMap(0)     // Overworld map 0
+
+// ========== CARD CONTROL ==========
+// Show/hide cards
+window.yazeDebug.cards.show('dungeon.room_selector')
+window.yazeDebug.cards.hide('dungeon.object_editor')
+window.yazeDebug.cards.toggle('dungeon.room_selector')
+
+// Card groups
+window.yazeDebug.cards.showGroup('dungeon_editing')
+window.yazeDebug.cards.showGroup('overworld_editing')
+window.yazeDebug.cards.showGroup('minimal')
+
+// Layout presets
+window.yaze.control.setCardLayout('dungeon_default')
+window.yaze.control.setCardLayout('overworld_default')
+window.yaze.control.getAvailableLayouts()
+
+// ========== DATA ACCESS ==========
+// Dungeon data
+window.yaze.data.getRoomTiles(0)
+window.yaze.data.getRoomObjects(0)
+window.yaze.data.getRoomProperties(0)
+
+// Overworld data
+window.yaze.data.getMapTiles(0)
+window.yaze.data.getMapEntities(0)
+window.yaze.data.getMapProperties(0)
+
+// ========== SIDEBAR/PANEL CONTROL ==========
+window.yazeDebug.sidebar.setTreeView(true)   // Expand sidebar
+window.yazeDebug.sidebar.setTreeView(false)  // Collapse to icons
+window.yazeDebug.rightPanel.open('properties')
+window.yazeDebug.rightPanel.close()
+
+// ========== SCREENSHOTS ==========
+window.yaze.gui.takeScreenshot()  // Returns { dataUrl: "data:image/png;base64,..." }
+```
+
+---
+
 ## Build and Serve Strategy
 
 ### Minimize Rebuild Time
@@ -465,46 +669,90 @@ Dungeon tile data           = $091B52
 Copy and customize this prompt when attaching Gemini to the WASM build:
 
 ```text
-You are debugging the yaze WASM build running at http://127.0.0.1:8080 (Antigravity browser).
-Stay in-browser; do not propose desktop-only fixes.
+You are operating the yaze WASM build at http://127.0.0.1:8080 in Antigravity browser.
+Stay in-browser; all fixes must be WASM-compatible.
 
-CRITICAL: File paths have been reorganized (November 2025):
-- Core JS: src/web/core/ (config.js, filesystem_manager.js, error_handler.js, loading_indicator.js)
-- Components: src/web/components/ (terminal.js, drop_zone.js, collab_console.js, etc.)
-- Styles: src/web/styles/ (main.css, terminal.css, etc.)
-- PWA: src/web/pwa/ (manifest.json, service-worker.js, coi-serviceworker.js)
-- Root: src/web/app.js, src/web/shell.html
+=== STARTUP SEQUENCE (Follow in order) ===
 
-CURRENT FOCUS: [Describe the specific debugging goal, e.g., "DungeonEditor rendering"]
+NOTE: All commands are SYNCHRONOUS unless marked (async).
+      For async, wrap in: (async () => { await ...; })()
 
-ENVIRONMENT & CHECKPOINTS:
-- Module readiness: window.Module?.calledRun === true, window.yazeDebug.isReady() === true
-- Filesystem: FilesystemManager.ready === true, FS.stat('/roms') succeeds
-- ROM loaded: window.yazeDebug.rom.getStatus() → { loaded: true, size: ..., title: ... }
-- Loading progress: Watch for WasmLoadingManager overlays during asset load
+STEP 1: Verify module ready
+  window.Module?.calledRun === true
+  window.yaze?.control?.isReady?.() === true
+  → If false, wait and retry
 
-BUILD PROFILE:
-- Debug: ./scripts/build-wasm.sh debug --incremental
-- Serve: ./scripts/serve-wasm.sh --debug --force 8080
-- JS/CSS changes: No rebuild needed, just copy files and refresh
+STEP 2: ROM Loading (USER MUST DO THIS)
+  - Tell user: "Please click the folder icon (📁) in the nav bar to load a ROM"
+  - Or tell user: "Drag your .sfc/.smc file onto the canvas"
+  - DO NOT attempt programmatic ROM loading - it won't work
 
-DEBUG WORKFLOW:
-1. Use window.yazeDebug API to gather state (see docs/internal/wasm-yazeDebug-api-reference.md)
-2. Console logs for validation: ROM load flow, graphics diagnostics, palette events
-3. If rendering broken: identify which sheet/palette is wrong and propose fix
-4. All changes must be WASM-safe (no desktop-only APIs)
+STEP 3: Verify ROM loaded
+  window.yaze.control.getRomStatus()
+  → Expected: { loaded: true, title: "THE LEGEND OF ZELDA" }
 
-EXPECTED DELIVERABLES:
-- Console logs showing ROM load → FilesystemManager → LoadRomFromWeb → LoadAssets progress
-- yazeDebug output for graphics diagnostics, palette events, pixel sampling
-- If rendering is wrong: identify root cause and propose fix
-- All code changes validated in WASM context
+STEP 4: Switch away from welcome/settings screen
+  window.yaze.control.switchEditor('Dungeon')   // ← SYNC, use this one
+  → Verify: window.yaze.control.getCurrentEditor()
 
-SUCCESS CRITERIA:
-- ROM loads with visible progress overlay ("Loading graphics...", "Loading dungeons...", etc.)
-- Editor opens and displays content
-- Rendering matches desktop client (or identifies specific divergence)
-- Provide verification logs from yazeDebug API calls
+STEP 5: Make cards visible (editor may appear empty without this!)
+  window.yaze.control.setCardLayout('dungeon_default')  // ← SYNC
+  → Verify: window.yaze.control.getVisibleCards()
+
+STEP 6: Confirm working state
+  window.aiTools.getAppState()  // Logs full state to console
+
+=== QUICK REFERENCE ===
+
+Check state:
+  window.yaze.control.getRomStatus()
+  window.yaze.control.getCurrentEditor()
+  window.yaze.control.getVisibleCards()
+  window.aiTools.getAppState()
+
+Switch editors:
+  window.yaze.control.switchEditor('Dungeon')
+  window.yaze.control.switchEditor('Overworld')
+  window.yaze.control.switchEditor('Graphics')
+
+Show cards:
+  window.yazeDebug.cards.showGroup('dungeon_editing')
+  window.yazeDebug.cards.showGroup('overworld_editing')
+  window.yaze.control.setCardLayout('dungeon_default')
+
+Navigate:
+  window.aiTools.jumpToRoom(0)  // Go to dungeon room 0
+  window.aiTools.jumpToMap(0)   // Go to overworld map 0
+
+Screenshot:
+  window.yaze.gui.takeScreenshot()
+
+=== COMMON ISSUES ===
+
+"Canvas is blank / no content visible"
+  → Run: window.yazeDebug.cards.showGroup('dungeon_editing')
+  → Or: window.yaze.control.setCardLayout('dungeon_default')
+
+"ROM not loading"
+  → User must load via UI (folder icon or drag-drop)
+  → Check: FilesystemManager.ready === true
+  → Check: FS.stat('/roms') should not throw
+
+"Still on welcome/settings screen"
+  → Run: window.yaze.control.switchEditor('Dungeon')
+
+"API calls return { error: ... }"
+  → Check: window.yaze.control.isReady()
+  → Check: window.yaze.control.getRomStatus().loaded
+
+=== CURRENT FOCUS ===
+[Describe the specific debugging goal, e.g., "DungeonEditor rendering"]
+
+=== SUCCESS CRITERIA ===
+1. ROM loaded (verified via getRomStatus)
+2. Editor switched (not on welcome/settings)
+3. Cards visible (content displaying)
+4. Specific goal achieved
 ```
 
 ---
