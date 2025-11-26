@@ -91,6 +91,146 @@ The `* 15` stride is **correct** for the 90-color packed format. The "wasted" co
 - **Context:** For `std::array<uint8_t, N>`, sizeof equals N (works), but this pattern is confusing and fragile.
 - **Fix:** Updated to use `current_gfx16_.size()` for clarity and maintainability.
 
+### 5. LoadRoomGraphics Entrance Blockset Condition (Not a Bug - 2025-11-26)
+- **File:** `src/zelda3/dungeon/room.cc:352`
+- **Observation:** Condition `if (i == 6)` applies entrance graphics only to block 6
+- **Status:** This is intentional behavior. The misleading "3-6" comment was removed.
+- **Note:** Changing to `i >= 3 && i <= 6` caused tiling artifacts - reverted.
+
+### 7. Layout Not Being Loaded (Fixed 2025-11-26) - MAJOR BREAKTHROUGH
+- **File:** `src/zelda3/dungeon/room.cc` - `LoadLayoutTilesToBuffer()`
+- **Issue:** `layout_.LoadLayout(layout)` was never called, so `layout_.GetObjects()` always returned empty
+- **Impact:** Only floor tiles were drawn, no layout tiles appeared
+- **Fix:** Added `layout_.set_rom(rom_)` and `layout_.LoadLayout(layout)` call before accessing layout objects
+- **Result:** **WALLS NOW RENDER CORRECTLY!** Left/right walls display properly.
+- **Remaining:** Some objects still don't look right - needs further investigation
+
+## Breakthrough Status (2025-11-26)
+
+### What's Working Now
+- ✅ Floor tiles render correctly
+- ✅ Layout tiles load from ROM
+- ✅ Left/right walls display correctly
+- ✅ Basic room structure visible
+
+### What Still Needs Work
+- ⚠️ Some objects don't render correctly
+- ⚠️ Need to verify object tile IDs and graphics lookup
+- ⚠️ May be palette or graphics sheet issues for specific object types
+
+### Next Investigation Steps
+1. Check which specific object types are rendering incorrectly
+2. Verify object tile IDs are being decoded correctly in `RoomObject::DecodeObjectFromBytes()`
+3. Compare object rendering with known good implementations (ZScream, etc.)
+4. Check if specific tile ranges (e.g., animated tiles 0xEC-0xFD) need special handling
+
+## Detailed Context for Next Session
+
+### Architecture Overview
+The dungeon rendering has TWO separate tile systems:
+
+1. **Layout Tiles** (`RoomLayout` class) - Pre-defined room templates (8 layouts total)
+   - Loaded from ROM via `kRoomLayoutPointers[]` in `dungeon_rom_addresses.h`
+   - Rendered by `LoadLayoutTilesToBuffer()` → `bg1_buffer_.SetTileAt()` / `bg2_buffer_.SetTileAt()`
+   - **NOW WORKING** after the LoadLayout fix
+
+2. **Object Tiles** (`RoomObject` class) - Placed objects (walls, doors, decorations, etc.)
+   - Loaded from ROM via `LoadObjects()` → `ParseObjectsFromLocation()`
+   - Rendered by `RenderObjectsToBackground()` → `ObjectDrawer::DrawObject()`
+   - **PARTIALLY WORKING** - walls visible but some objects look wrong
+
+### Key Files for Object Rendering
+| File | Purpose |
+|------|---------|
+| `room.cc:LoadObjects()` | Parses object data from ROM |
+| `room.cc:RenderObjectsToBackground()` | Iterates objects, calls ObjectDrawer |
+| `object_drawer.cc` | Main object rendering logic |
+| `object_drawer.cc:DrawTileToBitmap()` | Draws individual 8x8 tiles |
+| `room_object.cc:DecodeObjectFromBytes()` | Decodes 3-byte object format |
+| `room_object.cc:GetTile()` | Returns TileInfo for object tiles |
+
+### Object Encoding Format (3 bytes)
+```
+Byte 1: YYYYY XXX  (Y = tile Y position bits 4-0, X = tile X position bits 2-0)
+Byte 2: S XXX YYYY (S = size bit, X = tile X position bits 5-3, Y = tile Y position bits 8-5)
+Byte 3: OOOOOOOO  (Object ID)
+```
+
+### Potential Object Rendering Issues to Investigate
+
+1. **Tile ID Calculation**
+   - Objects use `GetTile(index)` to get TileInfo for each sub-tile
+   - The tile ID might be calculated incorrectly for some object types
+   - Check `RoomObject::EnsureTilesLoaded()` and tile lookup tables
+
+2. **Graphics Sheet Selection**
+   - Objects should use tiles from `current_gfx16_` (room-specific buffer)
+   - Different object types may need tiles from different sheet ranges:
+     - Blocks 0-7: Main dungeon graphics
+     - Blocks 8-11: Static sprites (pots, fairies, etc.)
+     - Blocks 12-15: Enemy sprites
+
+3. **Palette Assignment**
+   - Objects have a `palette_` field in TileInfo
+   - Dungeon palette has 6 groups × 15 colors = 90 colors
+   - Palette offset = `(palette_ & 0x07) * 15`
+   - Some objects might have wrong palette index
+
+4. **Object Type Handlers**
+   - `ObjectDrawer` has different draw methods for different object sizes
+   - `DrawSingle()`, `Draw2x2()`, `DrawVertical()`, `DrawHorizontal()`, etc.
+   - Some handlers might have bugs in tile placement
+
+### Debug Logging Currently Active
+- `[CopyRoomGraphicsToBuffer]` - Logs block/sheet IDs and first bytes
+- `[RenderRoomGraphics]` - Logs dirty flags and floor graphics
+- `[LoadLayoutTilesToBuffer]` - Logs layout object count
+- `[ObjectDrawer]` - Logs first 5 tile draws with position/palette info
+
+### Files Modified in This Session
+1. `src/zelda3/dungeon/room.cc:LoadLayoutTilesToBuffer()` - Added layout loading call
+2. `src/zelda3/dungeon/room.cc:LoadRoomGraphics()` - Fixed comment, kept i==6 condition
+3. `src/app/app.cmake` - Added z3ed WASM exports
+4. `src/app/editor/ui/ui_coordinator.cc` - Fixed menu bar right panel positioning
+
+### Quick Test Commands
+```bash
+# Build
+cmake --build build --target yaze -j4
+
+# Run with dungeon editor
+./build/bin/Debug/yaze.app/Contents/MacOS/yaze --rom_file=zelda3.sfc --editor=Dungeon
+```
+
+### 6. 2BPP Placeholder Sheets (Verified 2025-11-26)
+- **Sheets 113-114:** These are 2BPP font/title sheets loaded separately via Load2BppGraphics()
+- **In graphics_buffer:** They contain 0xFF placeholder data (4096 bytes each)
+- **Impact:** If blockset IDs accidentally point to 113-114, tiles render as solid color
+- **Status:** This is expected behavior, not a bug
+
+## Debugging the "Number-Like" Artifacts
+
+The observed "5, 7, 8" number patterns could indicate:
+
+1. **Font Sheet Access:** Blockset IDs pointing to font sheets (but sheets 113-114 have 0xFF, not font data)
+2. **Debug Rendering:** Tile IDs or coordinates rendered as text (check for printf to canvas)
+3. **Corrupted Offset:** Wrong src_index calculation causing read from arbitrary memory
+4. **Uninitialized blocks_:** If LoadRoomGraphics() not called before CopyRoomGraphicsToBuffer()
+
+### Debug Logging Added (room.cc)
+```cpp
+printf("[CopyRoomGraphicsToBuffer] Block %d (Sheet %d): Offset %d\n", block, sheet_id, src_sheet_offset);
+printf("  Bytes: %02X %02X %02X %02X %02X %02X %02X %02X\n", ...);
+```
+
+### Next Steps
+1. Run the application and check console output for:
+   - Sheet IDs for each block (should be 0-112 or 115-126 for valid dungeon graphics)
+   - First bytes of each sheet (should NOT be 0xFF for valid graphics)
+2. If sheet IDs are valid but graphics are wrong, check:
+   - LoadGfxGroups() output for blockset 0 (verify main_blockset_ids)
+   - GetGraphicsAddress() returning correct ROM offsets
+
 ## Graphics Buffer Layout
 
 ### Per-Sheet (4096 bytes each)
