@@ -184,6 +184,28 @@ void ObjectDrawer::InitializeDrawRoutines() {
     object_to_routine_map_[id] = 19;  // DrawCorner4x4
   }
 
+  // Floor object mappings (Phase 4d)
+  // Horizontal floor patterns (0x034 uses solid fill with +3 offset)
+  object_to_routine_map_[0x034] = 25;  // DrawRightwards1x1Solid_1to16_plus3
+
+  // SuperSquare floor objects (0x0C3-0x0CA) - 4x4 grid patterns
+  for (int id = 0x0C3; id <= 0x0CA; id++) {
+    object_to_routine_map_[id] = 19;  // DrawCorner4x4 (4x4 column-major)
+  }
+
+  // Spikes floor (0x0DF) - 4x4 pattern
+  object_to_routine_map_[0x0DF] = 19;  // DrawCorner4x4
+
+  // Additional decorative object mappings (Phase 6)
+  object_to_routine_map_[0x21] = 20;  // Edge 1x2
+  object_to_routine_map_[0x22] = 20;  // Edge 1x2
+  object_to_routine_map_[0x23] = 21;  // Edge with perimeter
+  object_to_routine_map_[0x24] = 21;  // Edge with perimeter
+  object_to_routine_map_[0x25] = 22;  // Edge variant
+  object_to_routine_map_[0x26] = 22;  // Edge variant
+  object_to_routine_map_[0x27] = 23;  // Top corners
+  object_to_routine_map_[0x28] = 24;  // Bottom corners
+
   // Initialize draw routine function array in the correct order
   draw_routines_.reserve(35);
 
@@ -306,6 +328,91 @@ void ObjectDrawer::InitializeDrawRoutines() {
                               gfx::BackgroundBuffer& bg,
                               std::span<const gfx::TileInfo> tiles) {
     self->DrawCorner4x4(obj, bg, tiles);
+  });
+
+  // Routine 20 - Edge objects 1x2 +2
+  draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
+                              gfx::BackgroundBuffer& bg,
+                              std::span<const gfx::TileInfo> tiles) {
+    self->DrawRightwards1x2_1to16_plus2(obj, bg, tiles);
+  });
+  // Routine 21 - Edge with perimeter 1x1 +3
+  draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
+                              gfx::BackgroundBuffer& bg,
+                              std::span<const gfx::TileInfo> tiles) {
+    self->DrawRightwardsHasEdge1x1_1to16_plus3(obj, bg, tiles);
+  });
+  // Routine 22 - Edge variant 1x1 +2
+  draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
+                              gfx::BackgroundBuffer& bg,
+                              std::span<const gfx::TileInfo> tiles) {
+    self->DrawRightwardsHasEdge1x1_1to16_plus2(obj, bg, tiles);
+  });
+  // Routine 23 - Top corners 1x2 +13
+  draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
+                              gfx::BackgroundBuffer& bg,
+                              std::span<const gfx::TileInfo> tiles) {
+    self->DrawRightwardsTopCorners1x2_1to16_plus13(obj, bg, tiles);
+  });
+  // Routine 24 - Bottom corners 1x2 +13
+  draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
+                              gfx::BackgroundBuffer& bg,
+                              std::span<const gfx::TileInfo> tiles) {
+    self->DrawRightwardsBottomCorners1x2_1to16_plus13(obj, bg, tiles);
+  });
+  // Routine 25 - Solid fill 1x1 +3 (floor patterns)
+  draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
+                              gfx::BackgroundBuffer& bg,
+                              std::span<const gfx::TileInfo> tiles) {
+    self->DrawRightwards1x1Solid_1to16_plus3(obj, bg, tiles);
+  });
+  // Routine 26 - Door switcherer
+  draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
+                              gfx::BackgroundBuffer& bg,
+                              std::span<const gfx::TileInfo> tiles) {
+    self->DrawDoorSwitcherer(obj, bg, tiles);
+  });
+  // Routine 27 - Decorations 4x4 spaced 2
+  draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
+                              gfx::BackgroundBuffer& bg,
+                              std::span<const gfx::TileInfo> tiles) {
+    self->DrawRightwardsDecor4x4spaced2_1to16(obj, bg, tiles);
+  });
+  // Routine 28 - Statues 2x3 spaced 2
+  draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
+                              gfx::BackgroundBuffer& bg,
+                              std::span<const gfx::TileInfo> tiles) {
+    self->DrawRightwardsStatue2x3spaced2_1to16(obj, bg, tiles);
+  });
+  // Routine 29 - Pillars 2x4 spaced 4
+  draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
+                              gfx::BackgroundBuffer& bg,
+                              std::span<const gfx::TileInfo> tiles) {
+    self->DrawRightwardsPillar2x4spaced4_1to16(obj, bg, tiles);
+  });
+  // Routine 30 - Decorations 4x3 spaced 4
+  draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
+                              gfx::BackgroundBuffer& bg,
+                              std::span<const gfx::TileInfo> tiles) {
+    self->DrawRightwardsDecor4x3spaced4_1to16(obj, bg, tiles);
+  });
+  // Routine 31 - Doubled 2x2 spaced 2
+  draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
+                              gfx::BackgroundBuffer& bg,
+                              std::span<const gfx::TileInfo> tiles) {
+    self->DrawRightwardsDoubled2x2spaced2_1to16(obj, bg, tiles);
+  });
+  // Routine 32 - Decorations 2x2 spaced 12
+  draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
+                              gfx::BackgroundBuffer& bg,
+                              std::span<const gfx::TileInfo> tiles) {
+    self->DrawRightwardsDecor2x2spaced12_1to16(obj, bg, tiles);
+  });
+  // Routine 33 - Custom draw (special cases)
+  draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
+                              gfx::BackgroundBuffer& bg,
+                              std::span<const gfx::TileInfo> tiles) {
+    self->CustomDraw(obj, bg, tiles);
   });
 
   routines_initialized_ = true;

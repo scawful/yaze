@@ -952,6 +952,8 @@ void Room::LoadObjects() {
 void Room::ParseObjectsFromLocation(int objects_location) {
   auto rom_data = rom()->vector();
 
+  // Clear existing objects before parsing to prevent accumulation on reload
+  tile_objects_.clear();
   z3_staircases_.clear();
   int nbr_of_staircase = 0;
 
@@ -1007,7 +1009,8 @@ void Room::ParseObjectsFromLocation(int objects_location) {
           b1, b2, b3, static_cast<uint8_t>(layer));
 
       // Validate object ID before adding to the room
-      if (r.id_ >= 0 && r.id_ <= 0x3FF) {
+      // Object IDs can be up to 12-bit (0xFFF) to support Type 3 objects
+      if (r.id_ >= 0 && r.id_ <= 0xFFF) {
         r.set_rom(rom_);
         tile_objects_.push_back(r);
 

@@ -136,7 +136,8 @@ absl::Status DungeonObjectEditor::InsertObject(int x, int y, int object_type,
   }
 
   // Validate parameters
-  if (object_type < 0 || object_type > 0x3FF) {
+  // Object IDs can be up to 12-bit (0xFFF) to support Type 3 objects
+  if (object_type < 0 || object_type > 0xFFF) {
     return absl::InvalidArgumentError("Invalid object type");
   }
 
@@ -590,7 +591,8 @@ absl::Status DungeonObjectEditor::ChangeObjectType(size_t object_index,
     return absl::OutOfRangeError("Object index out of range");
   }
 
-  if (new_type < 0 || new_type > 0x3FF) {
+  // Object IDs can be up to 12-bit (0xFFF) to support Type 3 objects
+  if (new_type < 0 || new_type > 0xFFF) {
     return absl::InvalidArgumentError("Invalid object type");
   }
 
@@ -1118,7 +1120,8 @@ void DungeonObjectEditor::SetCurrentLayer(int layer) {
 }
 
 void DungeonObjectEditor::SetCurrentObjectType(int object_type) {
-  if (object_type >= 0 && object_type <= 0x3FF) {
+  // Object IDs can be up to 12-bit (0xFFF) to support Type 3 objects
+  if (object_type >= 0 && object_type <= 0xFFF) {
     editing_state_.current_object_type = object_type;
     UpdatePreviewObject();
   }
