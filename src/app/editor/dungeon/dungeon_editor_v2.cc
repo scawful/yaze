@@ -32,6 +32,12 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
   room_window_class_.DockingAlwaysTabBar =
       true;  // Always show tabs when multiple rooms
 
+  // Show control panel and room selector by default when Dungeon Editor is
+  // activated. Set these BEFORE card registration so cards appear even if
+  // registry is unavailable.
+  show_control_panel_ = true;
+  show_room_selector_ = true;
+
   // Register all cards with EditorCardRegistry (dependency injection)
   if (!dependencies_.card_registry)
     return;
@@ -124,11 +130,6 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
                                .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
                                .disabled_tooltip = "Load a ROM to access debug controls",
                                .priority = 80});
-
-  // Show control panel and room selector by default when Dungeon Editor is
-  // activated
-  show_control_panel_ = true;
-  show_room_selector_ = true;
 }
 
 void DungeonEditorV2::Initialize() {}
@@ -934,10 +935,9 @@ void DungeonEditorV2::DrawRoomGraphicsCard() {
         blocks = room.blocks();
       }
 
-      // Only render room graphics if ROM is properly loaded
-      if (room.rom() && room.rom()->is_loaded()) {
-        room.RenderRoomGraphics();
-      }
+      // NOTE: Don't call RenderRoomGraphics() here - it's already handled in
+      // DrawRoomTab() when the room loads. Calling it every frame causes
+      // duplicate rendering and performance issues.
 
       int current_block = 0;
       constexpr int max_blocks_per_row = 2;
