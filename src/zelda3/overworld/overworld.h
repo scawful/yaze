@@ -265,16 +265,33 @@ class Overworld {
   }
 
   auto overworld_maps() const { return overworld_maps_; }
-  auto overworld_map(int i) const { return &overworld_maps_[i]; }
-  auto mutable_overworld_map(int i) { return &overworld_maps_[i]; }
+  auto overworld_map(int i) const {
+    if (i < 0 || i >= static_cast<int>(overworld_maps_.size())) {
+      return static_cast<const OverworldMap*>(nullptr);
+    }
+    return &overworld_maps_[i];
+  }
+  auto mutable_overworld_map(int i) {
+    if (i < 0 || i >= static_cast<int>(overworld_maps_.size())) {
+      return static_cast<OverworldMap*>(nullptr);
+    }
+    return &overworld_maps_[i];
+  }
   auto exits() const { return &all_exits_; }
   auto mutable_exits() { return &all_exits_; }
   std::vector<gfx::Tile16> tiles16() const { return tiles16_; }
   auto tiles32_unique() const { return tiles32_unique_; }
   auto mutable_tiles16() { return &tiles16_; }
-  auto sprites(int state) const { return all_sprites_[state]; }
-  auto mutable_sprites(int state) { return &all_sprites_[state]; }
+  auto sprites(int state) const {
+    if (state < 0 || state >= 3) return std::vector<Sprite>{};
+    return all_sprites_[state];
+  }
+  auto mutable_sprites(int state) {
+    if (state < 0 || state >= 3) return static_cast<std::vector<Sprite>*>(nullptr);
+    return &all_sprites_[state];
+  }
   auto current_graphics() const {
+    if (!is_current_map_valid()) return std::vector<uint8_t>{};
     return overworld_maps_[current_map_].current_graphics();
   }
   const std::vector<OverworldEntrance>& entrances() const {
@@ -288,13 +305,20 @@ class Overworld {
   auto deleted_entrances() const { return deleted_entrances_; }
   auto mutable_deleted_entrances() { return &deleted_entrances_; }
   auto current_area_palette() const {
+    if (!is_current_map_valid()) return gfx::SnesPalette{};
     return overworld_maps_[current_map_].current_palette();
   }
   auto current_map_bitmap_data() const {
+    if (!is_current_map_valid()) return std::vector<uint8_t>{};
     return overworld_maps_[current_map_].bitmap_data();
   }
   auto tile16_blockset_data() const {
+    if (!is_current_map_valid()) return std::vector<uint8_t>{};
     return overworld_maps_[current_map_].current_tile16_blockset();
+  }
+
+  bool is_current_map_valid() const {
+    return current_map_ >= 0 && current_map_ < static_cast<int>(overworld_maps_.size());
   }
   auto is_loaded() const { return is_loaded_; }
   auto expanded_tile16() const { return expanded_tile16_; }

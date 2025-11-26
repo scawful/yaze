@@ -175,7 +175,12 @@ void UICoordinator::DrawMenuBarExtras() {
                         panel_width + bell_width + padding;
 
   // Right-align without pushing menu bar wider
+  // Account for right panel width if a panel is open
   float menu_bar_end = ImGui::GetWindowWidth();
+  if (editor_manager_->right_panel_manager() &&
+      editor_manager_->right_panel_manager()->IsPanelExpanded()) {
+    menu_bar_end -= editor_manager_->right_panel_manager()->GetPanelWidth();
+  }
   float start_pos = menu_bar_end - cluster_width;
 
   // Ensure we don't overlap with menu items (leave at least 16px gap)

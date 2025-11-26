@@ -48,20 +48,20 @@
     doubleTapMaxDelay: 300,
     longPressDuration: 500,
 
-    // Distance thresholds (pixels)
-    tapMaxMovement: 10,
-    panThreshold: 10,
-    pinchThreshold: 5,
-    rotationThreshold: 0.1,  // radians
+    // Distance thresholds (pixels) - increased for better touch tolerance
+    tapMaxMovement: 20,      // Was 10, increased for finger jitter
+    panThreshold: 15,        // Was 10, reduced sensitivity
+    pinchThreshold: 8,       // Was 5, reduced sensitivity
+    rotationThreshold: 0.15, // Was 0.1, reduced sensitivity
 
     // Feature toggles
     enablePanZoom: true,
     enableRotation: false,
     enableInertia: true,
 
-    // Inertia settings
-    inertiaDeceleration: 0.95,
-    inertiaMinVelocity: 0.5,
+    // Inertia settings - reduced for less jumpy behavior
+    inertiaDeceleration: 0.92,   // Was 0.95, faster deceleration
+    inertiaMinVelocity: 1.0,     // Was 0.5, higher threshold to start inertia
 
     // Scale limits
     minZoom: 0.25,
@@ -69,7 +69,11 @@
 
     // Touch visual feedback
     showTouchRipples: true,
-    rippleDuration: 300
+    rippleDuration: 300,
+
+    // Smoothing settings (new)
+    positionSmoothing: 0.3,      // Interpolation factor (0 = max smooth, 1 = no smooth)
+    velocitySmoothing: 0.5       // Velocity averaging factor
   };
 
   // State tracking
@@ -358,6 +362,14 @@
     }
   }
 
+  // Smooth position interpolation to reduce jitter
+  function smoothPosition(current, target, factor) {
+    return {
+      x: current.x + (target.x - current.x) * factor,
+      y: current.y + (target.y - current.y) * factor
+    };
+  }
+
   // Handle touch move
   function handleTouchMove(event) {
     event.preventDefault();
@@ -369,13 +381,22 @@
       const touchData = state.touchPoints.get(touch.identifier);
 
       if (touchData) {
-        const pos = getCanvasCoordinates(touch);
+        const rawPos = getCanvasCoordinates(touch);
+
+        // Apply position smoothing to reduce jitter
+        const smoothedPos = smoothPosition(
+          touchData.current,
+          rawPos,
+          config.positionSmoothing
+        );
+
         touchData.previous = { ...touchData.current };
-        touchData.current = pos;
+        touchData.current = smoothedPos;
+        touchData.rawCurrent = rawPos; // Keep raw for gesture detection
         touchData.pressure = touch.force || 1.0;
 
-        // Send to C++
-        sendTouchEvent(1, touch.identifier, pos.x, pos.y, touch.force || 1.0, timestamp);
+        // Send smoothed position to C++
+        sendTouchEvent(1, touch.identifier, smoothedPos.x, smoothedPos.y, touch.force || 1.0, timestamp);
       }
     }
 
@@ -442,10 +463,16 @@
       } else if (isPan) {
         gestureType = GestureType.PAN;
 
-        // Track velocity for inertia
+        // Track velocity for inertia with smoothing to reduce jitter
         const prevCenter = midpoint(t1.previous, t2.previous);
-        state.velocityX = currentCenter.x - prevCenter.x;
-        state.velocityY = currentCenter.y - prevCenter.y;
+        const rawVelocityX = currentCenter.x - prevCenter.x;
+        const rawVelocityY = currentCenter.y - prevCenter.y;
+
+        // Smooth velocity to reduce jumpy inertia
+        state.velocityX = state.velocityX * (1 - config.velocitySmoothing) +
+                          rawVelocityX * config.velocitySmoothing;
+        state.velocityY = state.velocityY * (1 - config.velocitySmoothing) +
+                          rawVelocityY * config.velocitySmoothing;
 
         state.initialPanCenter = { ...currentCenter };
       }

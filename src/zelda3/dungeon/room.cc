@@ -388,44 +388,57 @@ void Room::CopyRoomGraphicsToBuffer() {
     return;
   }
 
-  printf("[CopyRoomGraphicsToBuffer] Room %d: Copying 8BPP graphics (Linear)\n",
-         room_id_);
+
+
+  printf("[CopyRoomGraphicsToBuffer] Room %d: Copying 8BPP graphics (Linear)\n", room_id_);
+  printf("[CopyRoomGraphicsToBuffer] Buffer size: %zu bytes\n", gfx_buffer_data->size());
 
   // Clear destination buffer
   std::fill(current_gfx16_.begin(), current_gfx16_.end(), 0);
 
-  int dest_pos = 0;
-
   // Process each of the 16 graphics blocks
   for (int block = 0; block < 16; block++) {
+    int sheet_id = blocks_[block];
+    
     // Validate block index
-    if (blocks_[block] < 0 || blocks_[block] > 255) {
-      // Skip invalid blocks, but advance destination position
-      dest_pos += 4096;  // 4KB per 8BPP sheet (128x32 pixels)
-      continue;
+    if (sheet_id >= 223) { // kNumGfxSheets
+       LOG_WARN("Room", "Invalid sheet index %d for block %d", sheet_id, block);
+       continue;
     }
 
-    // Source offset in ROM graphics buffer (8BPP format)
-    // Each 8BPP sheet is 4096 bytes (128x32 pixels * 1 byte/pixel)
-    int src_sheet_offset = blocks_[block] * 4096;
+    // Source offset in ROM graphics buffer (now 8BPP format)
+    // Each 8BPP sheet is 4096 bytes (128x32 pixels)
+    int src_sheet_offset = sheet_id * 4096;
 
     // Validate source bounds
-    if (src_sheet_offset < 0 ||
-        src_sheet_offset + 4096 > static_cast<int>(gfx_buffer_data->size())) {
-      dest_pos += 4096;
+    if (src_sheet_offset + 4096 > gfx_buffer_data->size()) {
+      LOG_ERROR("Room", "Graphics offset out of bounds: %d (size: %zu)", 
+                src_sheet_offset, gfx_buffer_data->size());
       continue;
     }
 
-    // Copy 4KB block directly
-    // We use the already converted 8BPP data from LoadAllGraphicsData
-    if (dest_pos + 4096 <= static_cast<int>(current_gfx16_.size())) {
-      std::memcpy(&current_gfx16_[dest_pos],
-                  &(*gfx_buffer_data)[src_sheet_offset], 4096);
+    // DEBUG: Log the first few bytes of the sheet to verify content
+    if (block < 4) { // Only log first few blocks to avoid spam
+      printf("[CopyRoomGraphicsToBuffer] Block %d (Sheet %d): Offset %d\n", 
+             block, sheet_id, src_sheet_offset);
+      printf("  Bytes: %02X %02X %02X %02X %02X %02X %02X %02X\n",
+             (*gfx_buffer_data)[src_sheet_offset],
+             (*gfx_buffer_data)[src_sheet_offset+1],
+             (*gfx_buffer_data)[src_sheet_offset+2],
+             (*gfx_buffer_data)[src_sheet_offset+3],
+             (*gfx_buffer_data)[src_sheet_offset+4],
+             (*gfx_buffer_data)[src_sheet_offset+5],
+             (*gfx_buffer_data)[src_sheet_offset+6],
+             (*gfx_buffer_data)[src_sheet_offset+7]);
     }
 
-    dest_pos += 4096;
+    // Copy 4096 bytes for the 8BPP sheet
+    int dest_index_base = block * 4096;
+    if (dest_index_base + 4096 <= current_gfx16_.size()) {
+      memcpy(current_gfx16_.data() + dest_index_base,
+             gfx_buffer_data->data() + src_sheet_offset, 4096);
+    }
   }
-
   printf("[CopyRoomGraphicsToBuffer] Room %d: Copied graphics blocks\n",
          room_id_);
 
@@ -805,7 +818,7 @@ void Room::LoadAnimatedGraphics() {
       // Validate current_gfx16_ access
       int gfx_offset = data + (7 * 4096);
       if (gfx_offset >= 0 &&
-          gfx_offset < static_cast<int>(sizeof(current_gfx16_))) {
+          gfx_offset < static_cast<int>(current_gfx16_.size())) {
         current_gfx16_[gfx_offset] = map_byte;
       }
     }
@@ -820,7 +833,7 @@ void Room::LoadAnimatedGraphics() {
       // Validate current_gfx16_ access
       int gfx_offset = data + (7 * 4096) - 1024;
       if (gfx_offset >= 0 &&
-          gfx_offset < static_cast<int>(sizeof(current_gfx16_))) {
+          gfx_offset < static_cast<int>(current_gfx16_.size())) {
         current_gfx16_[gfx_offset] = map_byte;
       }
     }

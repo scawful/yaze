@@ -278,7 +278,7 @@ struct PaletteGroup {
   // ========== Operator Overloads ==========
 
   SnesPalette operator[](int i) {
-    if (i >= palettes.size()) {
+    if (i < 0 || i >= static_cast<int>(palettes.size())) {
       std::cout << "PaletteGroup: Index " << i
                 << " out of bounds (size: " << palettes.size() << ")"
                 << std::endl;
@@ -288,7 +288,7 @@ struct PaletteGroup {
   }
 
   const SnesPalette& operator[](int i) const {
-    if (i >= palettes.size()) {
+    if (i < 0 || i >= static_cast<int>(palettes.size())) {
       std::cout << "PaletteGroup: Index " << i
                 << " out of bounds (size: " << palettes.size() << ")"
                 << std::endl;

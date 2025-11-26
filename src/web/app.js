@@ -199,6 +199,13 @@ var Module = {
     var canvas = document.getElementById('canvas');
     canvas.addEventListener("webglcontextlost", function(e) { alert('WebGL context lost. You will need to reload the page.'); e.preventDefault(); }, false);
 
+    // Prevent browser context menu on right-click - the app has its own context menu
+    canvas.addEventListener("contextmenu", function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      return false;
+    }, { capture: true, passive: false });
+
     // WORKAROUND: Ensure all UI events have defined integer properties to prevent
     // SAFE_HEAP assertion failures in Emscripten's SDL/HTML5 event handler.
     // The error "attempt to write non-integer (undefined) into integer heap" occurs
