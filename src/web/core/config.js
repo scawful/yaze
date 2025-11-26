@@ -170,6 +170,17 @@
     }
   }
 
+  // If still unset and running on a halext.org host, default to the same host's
+  // WebSocket endpoint under /ws so GH Pages (via yaze.halext.org) can talk to
+  // the collab server without hosting the WASM bundle locally.
+  if (!finalConfig.collaboration.serverUrl && typeof window !== 'undefined' && window.location) {
+    const host = window.location.host || '';
+    if (host.endsWith('halext.org')) {
+      const scheme = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      finalConfig.collaboration.serverUrl = `${scheme}//${host}/ws`;
+    }
+  }
+
   // Log configuration status
   if (finalConfig.collaboration.serverUrl) {
     console.log('[yaze] Collaboration server configured:',

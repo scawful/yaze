@@ -310,6 +310,7 @@
             <a href="https://github.com/scawful/yaze" target="_blank" rel="noopener" onclick="event.stopPropagation(); closeAllDropdowns();">GitHub</a>
             <a href="https://github.com/scawful/yaze/issues" target="_blank" rel="noopener" onclick="event.stopPropagation(); closeAllDropdowns();">Report Bugs / Feedback</a>
             <div class="dropdown-divider"></div>
+            <a href="#" onclick="event.stopPropagation(); hardResetApplication(); closeAllDropdowns(); return false;">Reset Application</a>
             <a href="#" onclick="event.stopPropagation(); showShortcuts(); closeAllDropdowns(); return false;">Shortcuts</a>
             <a href="#" onclick="event.stopPropagation(); showAbout(); closeAllDropdowns(); return false;">About</a>
           </div>
@@ -1289,6 +1290,59 @@
         console.log(window.yazeDebug.dumpAll());
         console.log(window.yazeDebug.formatForAI());
         alert('Full debug state dumped to console. Open DevTools (F12) to view.');
+      }
+
+      function hardResetApplication() {
+        if (!confirm('This will clear all cached data, unregister service workers, and reload the application. Unsaved changes may be lost. Continue?')) {
+          return;
+        }
+
+        console.log('[Reset] Starting hard reset...');
+
+        // 1. Clear Storage
+        try {
+          localStorage.clear();
+          sessionStorage.clear();
+          console.log('[Reset] Local/Session storage cleared');
+        } catch (e) {
+          console.error('[Reset] Storage clear failed:', e);
+        }
+
+        // 2. Clear Caches & Unregister SW
+        const clearPromises = [];
+
+        if ('caches' in window) {
+          clearPromises.push(
+            caches.keys().then(names => {
+              return Promise.all(names.map(name => {
+                console.log('[Reset] Deleting cache:', name);
+                return caches.delete(name);
+              }));
+            })
+          );
+        }
+
+        if ('serviceWorker' in navigator) {
+          clearPromises.push(
+            navigator.serviceWorker.getRegistrations().then(registrations => {
+              return Promise.all(registrations.map(registration => {
+                console.log('[Reset] Unregistering SW:', registration.scope);
+                return registration.unregister();
+              }));
+            })
+          );
+        }
+
+        // Wait for all cleanup tasks
+        Promise.all(clearPromises).then(() => {
+          console.log('[Reset] Cleanup complete, reloading...');
+          // Force reload ignoring cache
+          window.location.reload(true);
+        }).catch(err => {
+          console.error('[Reset] Cleanup failed:', err);
+          // Fallback reload
+          window.location.reload(true);
+        });
       }
 
       // Update version badge from WASM when ready

@@ -35,6 +35,67 @@ void Arena::QueueTextureCommand(TextureCommandType type, Bitmap* bitmap) {
   texture_command_queue_.push_back({type, bitmap});
 }
 
+bool Arena::ProcessSingleTexture(IRenderer* renderer) {
+  IRenderer* active_renderer = renderer ? renderer : renderer_;
+  if (!active_renderer || texture_command_queue_.empty()) {
+    return false;
+  }
+
+  auto it = texture_command_queue_.begin();
+  const auto& command = *it;
+  bool processed = false;
+
+  switch (command.type) {
+    case TextureCommandType::CREATE: {
+      if (command.bitmap && command.bitmap->surface() &&
+          command.bitmap->surface()->format && command.bitmap->is_active() &&
+          command.bitmap->width() > 0 && command.bitmap->height() > 0) {
+        try {
+          auto texture = active_renderer->CreateTexture(
+              command.bitmap->width(), command.bitmap->height());
+          if (texture) {
+            command.bitmap->set_texture(texture);
+            active_renderer->UpdateTexture(texture, *command.bitmap);
+            processed = true;
+          }
+        } catch (...) {
+          LOG_ERROR("Arena", "Exception during single texture creation");
+        }
+      }
+      break;
+    }
+    case TextureCommandType::UPDATE: {
+      if (command.bitmap->texture() && command.bitmap->surface() &&
+          command.bitmap->surface()->format && command.bitmap->is_active()) {
+        try {
+          active_renderer->UpdateTexture(command.bitmap->texture(),
+                                         *command.bitmap);
+          processed = true;
+        } catch (...) {
+          LOG_ERROR("Arena", "Exception during single texture update");
+        }
+      }
+      break;
+    }
+    case TextureCommandType::DESTROY: {
+      if (command.bitmap->texture()) {
+        try {
+          active_renderer->DestroyTexture(command.bitmap->texture());
+          command.bitmap->set_texture(nullptr);
+          processed = true;
+        } catch (...) {
+          LOG_ERROR("Arena", "Exception during single texture destruction");
+        }
+      }
+      break;
+    }
+  }
+
+  // Always remove the command after attempting (whether successful or not)
+  texture_command_queue_.erase(it);
+  return processed;
+}
+
 void Arena::ProcessTextureQueue(IRenderer* renderer) {
   // Use provided renderer if available, otherwise use stored renderer
   IRenderer* active_renderer = renderer ? renderer : renderer_;
