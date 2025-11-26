@@ -105,9 +105,6 @@ class UICoordinator {
   // Draw floating menu bar restore button (when menu bar is hidden)
   void DrawMenuBarRestoreButton();
 
-  // Draw panel toggle buttons as a fixed overlay (unaffected by dockspace resize)
-  void DrawPanelToggleOverlay();
-
   // Window visibility management
   void ShowAllWindows();
   void HideAllWindows();

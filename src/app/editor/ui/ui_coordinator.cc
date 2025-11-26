@@ -187,12 +187,12 @@ float UICoordinator::GetMenuBarIconButtonWidth() {
 }
 
 void UICoordinator::DrawMenuBarExtras() {
-  // Right-aligned status cluster with TWO regions:
-  // 1. FIXED region (right edge): Panel toggles - stays in place when panel opens
-  // 2. SHIFTING region: Version, dirty, session, bell - shifts left when panel opens
+  // Right-aligned status cluster: Version, dirty indicator, session, bell, panel toggles
+  // Panel toggles are positioned using SCREEN coordinates (from viewport) so they
+  // stay fixed even when the dockspace resizes due to panel open/close.
   //
-  // Layout: [v0.x.x][●][📄▾][🔔] | [panels][⬆]
-  //         ^^^ shifts left ^^^   ^^^ fixed ^^^
+  // Layout: [v0.x.x][●][📄▾][🔔] [panels][⬆]
+  //         ^^^ shifts with dockspace ^^^  ^^^ fixed screen position ^^^
 
   auto* current_rom = editor_manager_->GetCurrentRom();
   const std::string full_version =
@@ -202,10 +202,11 @@ void UICoordinator::DrawMenuBarExtras() {
   const float button_width = GetMenuBarIconButtonWidth();
   const float padding = 8.0f;
 
-  // =========================================================================
-  // FIXED REGION: Panel toggles (positioned from viewport right edge)
-  // These stay in place so users can easily close the panel
-  // =========================================================================
+  // Get TRUE viewport dimensions (not affected by dockspace resize)
+  const ImGuiViewport* viewport = ImGui::GetMainViewport();
+  const float true_viewport_right = viewport->WorkPos.x + viewport->WorkSize.x;
+
+  // Calculate panel toggle region width
   int panel_button_count = 0;
   if (editor_manager_->right_panel_manager()) {
 #ifdef YAZE_WITH_GRPC
@@ -215,34 +216,33 @@ void UICoordinator::DrawMenuBarExtras() {
 #endif
   }
 
-  float fixed_region_width = 0.0f;
+  float panel_region_width = 0.0f;
   if (panel_button_count > 0) {
-    fixed_region_width = (button_width * panel_button_count) +
+    panel_region_width = (button_width * panel_button_count) +
                          (item_spacing * (panel_button_count - 1)) + padding;
   }
-
 #ifdef __EMSCRIPTEN__
-  fixed_region_width += button_width + item_spacing;  // WASM toggle
+  panel_region_width += button_width + item_spacing;  // WASM toggle
 #endif
 
-  // Fixed region starts from the right edge of viewport (before any open panel)
-  const float viewport_width = ImGui::GetWindowWidth();
-  float fixed_start = viewport_width - fixed_region_width;
-
-  // If panel is open, position fixed region at the left edge of the panel
+  // Calculate screen X position for panel toggles (fixed at viewport right edge)
+  float panel_screen_x = true_viewport_right - panel_region_width;
   if (editor_manager_->right_panel_manager() &&
       editor_manager_->right_panel_manager()->IsPanelExpanded()) {
-    float panel_width = editor_manager_->right_panel_manager()->GetPanelWidth();
-    fixed_start = viewport_width - panel_width - fixed_region_width;
+    panel_screen_x -= editor_manager_->right_panel_manager()->GetPanelWidth();
   }
 
-  // =========================================================================
-  // SHIFTING REGION: Version, dirty, session, bell
-  // These shift left when the panel opens to avoid overlap
-  // =========================================================================
-  float shifting_region_end = fixed_start - item_spacing;
+  // Calculate available space for status cluster (version, dirty, session, bell)
+  // This ends where the panel toggle region begins
+  const float window_width = ImGui::GetWindowWidth();
+  const float window_screen_x = ImGui::GetWindowPos().x;
+  const float menu_items_end = ImGui::GetCursorPosX() + 16.0f;
 
-  // Calculate shifting region width
+  // Convert panel screen X to window-local coordinates for space calculation
+  float panel_local_x = panel_screen_x - window_screen_x;
+  float region_end = std::min(window_width - padding, panel_local_x - item_spacing);
+
+  // Calculate what elements to show
   bool show_dirty =
       current_rom && current_rom->is_loaded() && current_rom->dirty();
   float dirty_width =
@@ -253,32 +253,30 @@ void UICoordinator::DrawMenuBarExtras() {
   float version_width = ImGui::CalcTextSize(full_version.c_str()).x;
   bool has_multiple_sessions = session_coordinator_.HasMultipleSessions();
 
-  // Calculate minimum required width
-  float shifting_width = button_width;  // Bell is always shown
-  shifting_width += dirty_width;
+  // Calculate minimum required width (bell is always shown)
+  float required_width = button_width + dirty_width;
 
-  const float menu_items_end = ImGui::GetCursorPosX() + 16.0f;
-  const float available_shifting = shifting_region_end - menu_items_end - padding;
+  const float available_width = region_end - menu_items_end - padding;
 
-  // Determine what fits in the shifting region
-  bool show_version = (shifting_width + version_width + item_spacing) <= available_shifting;
+  // Determine what fits
+  bool show_version = (required_width + version_width + item_spacing) <= available_width;
   if (show_version) {
-    shifting_width += version_width + item_spacing;
+    required_width += version_width + item_spacing;
   }
 
   bool show_session = has_multiple_sessions &&
-                      (shifting_width + button_width + item_spacing) <= available_shifting;
+                      (required_width + button_width + item_spacing) <= available_width;
   if (show_session) {
-    shifting_width += button_width + item_spacing;
+    required_width += button_width + item_spacing;
   }
 
-  // Calculate shifting region start position
-  float shifting_start = std::max(menu_items_end, shifting_region_end - shifting_width);
+  // Calculate start position (right-align within available space)
+  float start_pos = std::max(menu_items_end, region_end - required_width);
 
   // =========================================================================
-  // DRAW SHIFTING REGION
+  // DRAW STATUS CLUSTER (shifts with dockspace)
   // =========================================================================
-  ImGui::SameLine(shifting_start);
+  ImGui::SameLine(start_pos);
   ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(item_spacing, 0.0f));
 
   // 1. Version - subdued gray text
@@ -313,17 +311,21 @@ void UICoordinator::DrawMenuBarExtras() {
   DrawNotificationBell();
 
   // =========================================================================
-  // DRAW FIXED REGION (Panel toggles)
+  // DRAW PANEL TOGGLES (fixed screen position, unaffected by dockspace resize)
   // =========================================================================
-  ImGui::SameLine(fixed_start);
-
-  // Panel toggle buttons - always visible, fixed position
   if (panel_button_count > 0) {
+    // Get current Y position within menu bar
+    float menu_bar_y = ImGui::GetCursorScreenPos().y;
+
+    // Position at fixed screen coordinates
+    ImGui::SetCursorScreenPos(ImVec2(panel_screen_x, menu_bar_y));
+
+    // Draw panel toggle buttons
     editor_manager_->right_panel_manager()->DrawPanelToggleButtons();
   }
 
 #ifdef __EMSCRIPTEN__
-  // WASM toggle button - always shown, fixed position
+  // WASM toggle button - also at fixed position
   ImGui::SameLine();
   if (DrawMenuBarIconButton(ICON_MD_EXPAND_LESS,
                             "Hide menu bar (Alt to restore)")) {
@@ -377,86 +379,6 @@ void UICoordinator::DrawMenuBarRestoreButton() {
       ImGui::IsKeyPressed(ImGuiKey_RightAlt)) {
     show_menu_bar_ = true;
   }
-}
-
-void UICoordinator::DrawPanelToggleOverlay() {
-  // Draw panel toggle buttons as a fixed overlay, unaffected by dockspace resize
-  // This keeps the buttons in a consistent position when panels open/close
-
-  auto* panel_manager = editor_manager_->right_panel_manager();
-  if (!panel_manager) {
-    return;
-  }
-
-  // Calculate button count based on build configuration
-  int panel_button_count = 0;
-#ifdef YAZE_WITH_GRPC
-  panel_button_count = 4;  // Agent, Proposals, Settings, Properties
-#else
-  panel_button_count = 3;  // Proposals, Settings, Properties
-#endif
-
-  if (panel_button_count == 0) {
-    return;
-  }
-
-  const float item_spacing = 6.0f;
-  const float button_width = GetMenuBarIconButtonWidth();
-  const float padding = 8.0f;
-
-  // Calculate overlay width
-  float overlay_width = (button_width * panel_button_count) +
-                        (item_spacing * (panel_button_count - 1)) + padding * 2;
-
-#ifdef __EMSCRIPTEN__
-  // Add space for WASM toggle button
-  overlay_width += button_width + item_spacing;
-#endif
-
-  // Get viewport for positioning
-  const ImGuiViewport* viewport = ImGui::GetMainViewport();
-  const float viewport_right = viewport->WorkPos.x + viewport->WorkSize.x;
-
-  // Position overlay at the right edge, accounting for panel width if open
-  float overlay_x = viewport_right - overlay_width;
-  if (panel_manager->IsPanelExpanded()) {
-    overlay_x -= panel_manager->GetPanelWidth();
-  }
-
-  // Y position: align with menu bar (a few pixels from the top)
-  const float menu_bar_y = viewport->WorkPos.y + 4.0f;
-
-  // Create overlay window
-  ImGuiWindowFlags flags = ImGuiWindowFlags_NoTitleBar |
-                           ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
-                           ImGuiWindowFlags_NoScrollbar |
-                           ImGuiWindowFlags_NoCollapse |
-                           ImGuiWindowFlags_AlwaysAutoResize |
-                           ImGuiWindowFlags_NoBackground |
-                           ImGuiWindowFlags_NoSavedSettings |
-                           ImGuiWindowFlags_NoFocusOnAppearing |
-                           ImGuiWindowFlags_NoBringToFrontOnFocus;
-
-  ImGui::SetNextWindowPos(ImVec2(overlay_x, menu_bar_y));
-
-  if (ImGui::Begin("##PanelToggleOverlay", nullptr, flags)) {
-    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(item_spacing, 0.0f));
-
-    // Draw panel toggle buttons
-    panel_manager->DrawPanelToggleButtons();
-
-#ifdef __EMSCRIPTEN__
-    // WASM toggle button
-    ImGui::SameLine();
-    if (DrawMenuBarIconButton(ICON_MD_EXPAND_LESS,
-                              "Hide menu bar (Alt to restore)")) {
-      show_menu_bar_ = false;
-    }
-#endif
-
-    ImGui::PopStyleVar();  // ItemSpacing
-  }
-  ImGui::End();
 }
 
 void UICoordinator::DrawNotificationBell() {
