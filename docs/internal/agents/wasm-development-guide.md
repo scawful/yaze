@@ -200,6 +200,9 @@ build-wasm/
 - **`src/app/platform/wasm/wasm_storage.cc`** - IndexedDB storage with memory-safe error handling
 - **`src/app/platform/wasm/wasm_error_handler.cc`** - Error handling with callback cleanup
 
+**GUI Utilities:**
+- **`src/app/gui/core/popup_id.h`** - Session-aware ImGui popup ID generation
+
 **CI/CD:**
 - **`.github/workflows/web-build.yml`** - CI/CD for GitHub Pages
 
@@ -246,6 +249,53 @@ The WASM build uses specific Emscripten flags in `src/app/app.cmake`:
    - Use `wasm-debug` preset for precise error locations
    - Check heap resize messages in console
    - Verify `INITIAL_MEMORY` is sufficient (64MB default)
+
+## ImGui ID Conflict Prevention
+
+When multiple editors are docked together, ImGui popup IDs must be unique to prevent undefined behavior. The `popup_id.h` utility provides session-aware ID generation.
+
+### Usage
+
+```cpp
+#include "app/gui/core/popup_id.h"
+
+// Generate unique popup ID (default session)
+std::string id = gui::MakePopupId(gui::EditorNames::kOverworld, "Entrance Editor");
+ImGui::OpenPopup(id.c_str());
+
+// Match in BeginPopupModal
+if (ImGui::BeginPopupModal(
+        gui::MakePopupId(gui::EditorNames::kOverworld, "Entrance Editor").c_str(),
+        nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+  // ...
+  ImGui::EndPopup();
+}
+
+// With explicit session ID for multi-session support
+std::string id = gui::MakePopupId(session_id, "Overworld", "Entrance Editor");
+```
+
+### ID Pattern
+
+Pattern: `s{session_id}.{editor}::{popup_name}`
+
+Examples:
+- `s0.Overworld::Entrance Editor`
+- `s0.Palette::CustomPaletteColorEdit`
+- `s1.Dungeon::Room Properties`
+
+### Available Editor Names
+
+Predefined constants in `gui::EditorNames`:
+- `kOverworld` - Overworld editor
+- `kPalette` - Palette editor
+- `kDungeon` - Dungeon editor
+- `kGraphics` - Graphics editor
+- `kSprite` - Sprite editor
+
+### Why This Matters
+
+Without unique IDs, clicking "Entrance Editor" popup in one docked window may open/close the popup in a different docked editor, causing confusing behavior. The session+editor prefix guarantees uniqueness.
 
 ## Deployment
 
@@ -471,6 +521,16 @@ async function getDiagnostic(roomId) {
 | Black squares | Wait for deferred texture loading |
 
 ## Additional Resources
+
+### Primary WASM Documentation (3 docs total)
+
+- **This Guide** - Building, debugging, CMake config, performance, ImGui ID conflict prevention
+- [WASM API Reference](../wasm-yazeDebug-api-reference.md) - Full JavaScript API documentation, Agent Discoverability Infrastructure
+- [WASM Antigravity Playbook](./wasm-antigravity-playbook.md) - AI agent workflows, Gemini integration, quick start guides
+
+**Archived:** `archive/wasm-docs-2025/` - Historical WASM docs
+
+### External Resources
 
 - [Emscripten Documentation](https://emscripten.org/docs/getting_started/index.html)
 - [WASM Memory Management](https://emscripten.org/docs/porting/emscripten-runtime-environment.html)

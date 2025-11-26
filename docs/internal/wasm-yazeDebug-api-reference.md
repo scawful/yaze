@@ -1118,7 +1118,160 @@ window.yazeDebug.arena.getStatus()
 
 ---
 
+## Agent Discoverability Infrastructure
+
+The WASM build includes infrastructure for external AI agents to discover and interact with ImGui elements that aren't natively part of the DOM.
+
+### Overview
+
+Since ImGui renders to a canvas element, traditional DOM queries can't find UI elements. The agent discoverability system bridges this gap by:
+
+1. Creating invisible DOM overlays that mirror ImGui widget state
+2. Exposing canvas data attributes for editor state
+3. Providing JavaScript APIs for card/widget queries
+
+### Components
+
+#### 1. Widget Overlay (`src/web/core/widget_overlay.js`)
+
+Creates invisible DOM elements mirroring ImGui widget state, enabling standard DOM queries for UI elements.
+
+```javascript
+// Access the overlay singleton
+const overlay = window.yaze.gui.widgetOverlay;
+
+// Query widgets by type
+const buttons = overlay.getWidgetsByType('button');
+const canvases = overlay.getWidgetsByType('canvas');
+
+// Query widgets by window
+const dungeonWidgets = overlay.getWidgetsByWindow('Dungeon Editor');
+
+// Get all visible widgets
+const visible = overlay.getVisibleWidgets();
+
+// Get a specific widget by ID
+const widget = overlay.getWidget('overworld_canvas');
+
+// Export current widget state
+const state = overlay.exportState();
+// Returns: { count: 42, widgets: [...], timestamp: 1732536000000 }
+```
+
+#### 2. Canvas Data Attributes (`src/web/shell.html`)
+
+The main canvas element exposes current editor state via data attributes:
+
+```html
+<canvas id="canvas"
+        data-editor-type="Overworld"
+        data-visible-cards="Map Properties,Entrance List"
+        data-rom-loaded="true"
+        data-session-id="0"
+        data-zoom-level="1.0">
+</canvas>
+```
+
+Query these attributes:
+
+```javascript
+const canvas = document.getElementById('canvas');
+console.log('Editor:', canvas.dataset.editorType);
+console.log('Visible Cards:', canvas.dataset.visibleCards);
+console.log('ROM Loaded:', canvas.dataset.romLoaded === 'true');
+console.log('Session ID:', canvas.dataset.sessionId);
+```
+
+#### 3. Card Registry APIs (`window.yaze.gui`)
+
+Query and control editor cards programmatically:
+
+```javascript
+// Get all available cards with metadata
+const cards = window.yaze.gui.getAvailableCards();
+// Returns array of: { id, display_name, window_title, icon, category, visible, enabled, priority }
+
+// Show/hide specific cards
+window.yaze.gui.showCard('Map Properties');
+window.yaze.gui.hideCard('Entrance Editor');
+
+// Sync canvas data attributes with current state
+window.yaze.gui.updateCanvasState();
+
+// Start automatic state updates (useful for agents monitoring state)
+window.yaze.gui.startAutoUpdate(500);  // Update every 500ms
+
+// Stop automatic updates
+window.yaze.gui.stopAutoUpdate();
+```
+
+### Usage Example
+
+```javascript
+// Full agent workflow example
+
+// 1. Start auto-updating canvas state and widget overlay
+window.yaze.gui.startAutoUpdate(500);
+
+// 2. Wait for a specific card to be visible
+const mapProps = await window.yaze.gui.waitForElement('Map Properties', 5000);
+if (mapProps) {
+  console.log('Map Properties card is visible at:', mapProps.x, mapProps.y);
+}
+
+// 3. Query current editor state from canvas
+const canvas = document.getElementById('canvas');
+console.log('Current editor:', canvas.dataset.editorType);
+
+// 4. Get all visible cards
+const visibleCards = canvas.dataset.visibleCards.split(',');
+console.log('Visible cards:', visibleCards);
+
+// 5. Click on a UI element
+window.yaze.gui.click('overworld_canvas');  // Click by element ID
+window.yaze.gui.click({ x: 100, y: 200 });  // Click by coordinates
+
+// 6. Take a screenshot for visual analysis
+const screenshot = window.yaze.gui.takeScreenshot();
+console.log('Screenshot:', screenshot.dataUrl);
+
+// 7. Stop auto-updates when done
+window.yaze.gui.stopAutoUpdate();
+```
+
+### Widget Overlay Data Attributes
+
+Each overlay element includes these data attributes for querying:
+
+| Attribute | Description |
+|-----------|-------------|
+| `data-widget-id` | Unique widget identifier |
+| `data-widget-type` | Widget type (button, canvas, input, etc.) |
+| `data-label` | Display label/text |
+| `data-visible` | "true" or "false" |
+| `data-enabled` | "true" or "false" |
+| `data-window` | Parent window name |
+| `data-x`, `data-y` | Position coordinates |
+| `data-width`, `data-height` | Dimensions |
+
+### C++ Integration
+
+The widget overlay system integrates with C++ via:
+
+- **`WasmControlApi::GetVisibleCards()`** - Returns JSON array of visible card IDs
+- **`WasmControlApi::GetAvailableCards()`** - Returns full card metadata
+- **`WasmControlApi::GetCardsInCategory(category)`** - Returns cards in a category
+- **`Module.guiGetUIElementTree()`** - Returns widget tree for overlay sync
+
+---
+
 ## Version History
+
+**2.5.0** (2025-11-25)
+- Added Agent Discoverability Infrastructure section
+- Documented Widget Overlay system (`widget_overlay.js`)
+- Documented Canvas Data Attributes for editor state exposure
+- Documented Card Registry APIs for programmatic card control
 
 **2.4.0** (2025-11-25)
 - Added `yazeDebug.switchToEditorAsync()` - Promise-based editor switching with operation tracking
@@ -1165,6 +1318,15 @@ window.yazeDebug.arena.getStatus()
 
 ## Related Documentation
 
-- [WASM Development Guide](./agents/wasm-development-guide.md) - Building and debugging WASM
+**Primary WASM Documentation (3 docs total):**
+
+- [WASM Development Guide](./agents/wasm-development-guide.md) - Building, debugging, CMake config, performance, ImGui ID conflict prevention
+- [WASM Antigravity Playbook](./agents/wasm-antigravity-playbook.md) - AI agent workflows, Gemini integration, quick start guides
+- This API Reference - JavaScript APIs, Agent Discoverability Infrastructure
+
+**General Documentation:**
+
 - [Architecture Documentation](./architecture/README.md) - System design details
 - [CI/CD Documentation](./ci-and-testing.md) - Build and test infrastructure
+
+**Archived:** `docs/internal/agents/archive/wasm-docs-2025/` - Historical WASM docs
