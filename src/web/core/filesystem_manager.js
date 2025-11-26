@@ -230,11 +230,20 @@ var FilesystemManager = {
           return;
         }
 
-        // C++ handles the loading indicator via WasmLoadingManager
-        // Use setTimeout to yield to browser before the blocking WASM call
-        setTimeout(function() {
-          self._executeRomLoad(filename, null);
-        }, 50); // Small delay to allow UI to update
+        // Show a simple loading overlay BEFORE the blocking WASM call
+        // This ensures something is visible while the main thread blocks
+        var overlay = document.createElement('div');
+        overlay.id = 'rom-loading-overlay';
+        overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:10000;';
+        overlay.innerHTML = '<div style="color:#fff;font-size:18px;text-align:center;"><div style="margin-bottom:10px;">Loading ROM...</div><div style="font-size:12px;opacity:0.7;">Please wait</div></div>';
+        document.body.appendChild(overlay);
+
+        // Use requestAnimationFrame + setTimeout to ensure the overlay is painted
+        requestAnimationFrame(function() {
+          setTimeout(function() {
+            self._executeRomLoad(filename, overlay);
+          }, 50);
+        });
 
       } catch(err) {
         console.error("File system error:", err);
@@ -276,10 +285,19 @@ var FilesystemManager = {
         return;
       }
 
-      // Execute ROM load after UI yield
-      setTimeout(function() {
-        self._executeRomLoad(fullPath, null);
-      }, 50);
+      // Show a simple loading overlay BEFORE the blocking WASM call
+      var overlay = document.createElement('div');
+      overlay.id = 'rom-loading-overlay';
+      overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:10000;';
+      overlay.innerHTML = '<div style="color:#fff;font-size:18px;text-align:center;"><div style="margin-bottom:10px;">Loading ROM...</div><div style="font-size:12px;opacity:0.7;">Please wait</div></div>';
+      document.body.appendChild(overlay);
+
+      // Use requestAnimationFrame + setTimeout to ensure overlay is painted
+      requestAnimationFrame(function() {
+        setTimeout(function() {
+          self._executeRomLoad(fullPath, overlay);
+        }, 50);
+      });
 
     } catch(err) {
       console.error("File system error:", err);
@@ -289,19 +307,27 @@ var FilesystemManager = {
 
   /**
    * Internal: Execute the actual ROM load (called after UI yield)
+   * @param {string} filename - Path to the ROM file
+   * @param {HTMLElement} overlay - Optional loading overlay element to remove when done
    * @private
    */
-  _executeRomLoad: function(filename, loadingId) {
+  _executeRomLoad: function(filename, overlay) {
     var self = this;
+
+    // Helper to remove overlay
+    var removeOverlay = function() {
+      if (overlay && overlay.parentNode) {
+        overlay.parentNode.removeChild(overlay);
+      }
+    };
+
     try {
       // Check if file exists before trying to load
       if (!this.fileExists(filename)) {
         console.warn('[FilesystemManager] ROM file not found:', filename);
         alert('ROM file not found: ' + filename.split('/').pop() +
               '\n\nThe file may have been deleted or browser storage was cleared. Please upload the ROM again.');
-        if (loadingId && typeof window.removeLoadingIndicator === 'function') {
-          window.removeLoadingIndicator(loadingId);
-        }
+        removeOverlay();
         return false;
       }
 
@@ -323,9 +349,7 @@ var FilesystemManager = {
       } else {
         console.error("LoadRomFromWeb function not available");
         alert("ROM loading not ready yet. Please wait for the app to initialize.");
-        if (loadingId && typeof window.removeLoadingIndicator === 'function') {
-          window.removeLoadingIndicator(loadingId);
-        }
+        removeOverlay();
         return;
       }
 
@@ -339,10 +363,8 @@ var FilesystemManager = {
         });
       }
 
-      // Remove loading indicator after load completes
-      if (loadingId && typeof window.removeLoadingIndicator === 'function') {
-        window.removeLoadingIndicator(loadingId);
-      }
+      // Remove loading overlay after load completes
+      removeOverlay();
     } catch (wasmErr) {
       console.error("WASM error loading ROM:", wasmErr);
       var errorMsg = "Failed to load ROM: ";
@@ -354,14 +376,10 @@ var FilesystemManager = {
         errorMsg += "Memory access error (ROM may be corrupted or invalid)";
       }
       alert(errorMsg);
-      // Try to get more details from the error
       if (wasmErr.stack) {
         console.error("Stack trace:", wasmErr.stack);
       }
-      // Remove loading indicator on error
-      if (loadingId && typeof window.removeLoadingIndicator === 'function') {
-        window.removeLoadingIndicator(loadingId);
-      }
+      removeOverlay();
     }
   },
 
