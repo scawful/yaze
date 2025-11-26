@@ -124,11 +124,15 @@ absl::Status DisplayPalette(gfx::SnesPalette& palette, bool loaded) {
   SameLine(0, GetStyle().ItemInnerSpacing.x);
   open_popup |= Button("Palette");
   if (open_popup) {
-    OpenPopup("mypicker");
+    OpenPopup(gui::MakePopupId(gui::EditorNames::kPalette,
+                               gui::PopupNames::kColorPicker)
+                  .c_str());
     backup_color = color;
   }
 
-  if (BeginPopup("mypicker")) {
+  if (BeginPopup(gui::MakePopupId(gui::EditorNames::kPalette,
+                                  gui::PopupNames::kColorPicker)
+                     .c_str())) {
     TEXT_WITH_SEPARATOR("Current Overworld Palette");
     ColorPicker4("##picker", (float*)&color,
                  misc_flags | ImGuiColorEditFlags_NoSidePreview |
@@ -728,8 +732,12 @@ absl::Status PaletteEditor::HandleColorPopup(gfx::SnesPalette& palette, int i,
   Separator();
 
   if (Button("Copy as..", ImVec2(-1, 0)))
-    OpenPopup("Copy");
-  if (BeginPopup("Copy")) {
+    OpenPopup(gui::MakePopupId(gui::EditorNames::kPalette,
+                               gui::PopupNames::kCopyPopup)
+                  .c_str());
+  if (BeginPopup(gui::MakePopupId(gui::EditorNames::kPalette,
+                                  gui::PopupNames::kCopyPopup)
+                     .c_str())) {
     CustomFormatString(buf, IM_ARRAYSIZE(buf), "(%.3ff, %.3ff, %.3ff)", col[0],
                        col[1], col[2]);
     if (Selectable(buf))
@@ -912,7 +920,10 @@ void PaletteEditor::DrawControlPanel() {
       auto status = gfx::PaletteManager::Get().SaveAllToRom();
       if (!status.ok()) {
         // TODO: Show error toast/notification
-        ImGui::OpenPopup("SaveError");
+        ImGui::OpenPopup(
+            gui::MakePopupId(gui::EditorNames::kPalette,
+                             gui::PopupNames::kSaveError)
+                .c_str());
       }
     }
     ImGui::EndDisabled();
@@ -927,7 +938,10 @@ void PaletteEditor::DrawControlPanel() {
 
     ImGui::BeginDisabled(!has_unsaved);
     if (ImGui::Button("Discard All Changes", ImVec2(-1, 0))) {
-      ImGui::OpenPopup("ConfirmDiscardAll");
+      ImGui::OpenPopup(
+          gui::MakePopupId(gui::EditorNames::kPalette,
+                           gui::PopupNames::kConfirmDiscardAll)
+              .c_str());
     }
     ImGui::EndDisabled();
 
@@ -940,8 +954,11 @@ void PaletteEditor::DrawControlPanel() {
     }
 
     // Confirmation popup for discard
-    if (ImGui::BeginPopupModal("ConfirmDiscardAll", nullptr,
-                               ImGuiWindowFlags_AlwaysAutoResize)) {
+    if (ImGui::BeginPopupModal(
+            gui::MakePopupId(gui::EditorNames::kPalette,
+                             gui::PopupNames::kConfirmDiscardAll)
+                .c_str(),
+            nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
       ImGui::Text("Discard all unsaved changes?");
       ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.0f, 1.0f),
                          "This will revert %zu modified colors.",
@@ -960,8 +977,11 @@ void PaletteEditor::DrawControlPanel() {
     }
 
     // Error popup for save failures
-    if (ImGui::BeginPopupModal("SaveError", nullptr,
-                               ImGuiWindowFlags_AlwaysAutoResize)) {
+    if (ImGui::BeginPopupModal(
+            gui::MakePopupId(gui::EditorNames::kPalette,
+                             gui::PopupNames::kSaveError)
+                .c_str(),
+            nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
       ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f),
                          "Failed to save changes");
       ImGui::Text("An error occurred while saving to ROM.");
@@ -977,10 +997,16 @@ void PaletteEditor::DrawControlPanel() {
 
     // Editor Manager Menu Button
     if (ImGui::Button(ICON_MD_DASHBOARD " Card Manager", ImVec2(-1, 0))) {
-      ImGui::OpenPopup("PaletteCardManager");
+      ImGui::OpenPopup(
+          gui::MakePopupId(gui::EditorNames::kPalette,
+                           gui::PopupNames::kPaletteCardManager)
+              .c_str());
     }
 
-    if (ImGui::BeginPopup("PaletteCardManager")) {
+    if (ImGui::BeginPopup(
+            gui::MakePopupId(gui::EditorNames::kPalette,
+                             gui::PopupNames::kPaletteCardManager)
+                .c_str())) {
       ImGui::TextColored(ImVec4(0.7f, 0.9f, 1.0f, 1.0f),
                          "%s Palette Card Manager", ICON_MD_PALETTE);
       ImGui::Separator();
