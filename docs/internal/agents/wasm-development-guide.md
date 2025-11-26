@@ -488,24 +488,24 @@ For debugging dungeon object rendering issues (objects appearing at wrong positi
 
 ```javascript
 // 1. Capture screenshot for visual analysis
-const canvas = document.getElementById('canvas');
-const dataUrl = canvas.toDataURL('image/png');
+const result = window.yaze.gui.takeScreenshot();
+const dataUrl = result.dataUrl;
 
 // 2. Get room data for comparison
-const objects = window.yaze.data.getRoomObjects(roomId);
-const tiles = window.yaze.data.getRoomTiles(roomId);
+const roomData = window.aiTools.getRoomData();
+const tiles = window.yaze.data.getRoomTiles(roomData.id || 0);
 
 // 3. Check graphics loading status
 const arena = window.yazeDebug.arena.getStatus();
 
-// 4. Full diagnostic dump (copies to clipboard)
+// 4. Full diagnostic dump
 async function getDiagnostic(roomId) {
   const data = {
     room_id: roomId,
     objects: window.yaze.data.getRoomObjects(roomId),
     properties: window.yaze.data.getRoomProperties(roomId),
     arena: window.yazeDebug?.arena?.getStatus(),
-    visible_cards: window.yaze.editor.getSnapshot()?.visible_cards
+    visible_cards: window.aiTools.getVisibleCards()
   };
   await navigator.clipboard.writeText(JSON.stringify(data, null, 2));
   return data;

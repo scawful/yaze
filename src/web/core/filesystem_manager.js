@@ -181,17 +181,23 @@ var FilesystemManager = {
   onFileSystemReady: function() {
     console.log('[WASM] C++ signaled FileSystem Ready');
     this.ready = true;
-    
+
     // Update UI if needed
     var status = document.getElementById('header-status');
     if (status) {
       status.textContent = 'Ready';
       status.style.color = '';
     }
-    
+
     // Refresh ROM list if menu is open
     if (typeof updateRomFilesList === 'function') {
       updateRomFilesList();
+    }
+
+    // Emit FS_READY event for components waiting on filesystem
+    if (window.yaze && window.yaze.events && window.yaze.events.emit) {
+      window.yaze.events.emit(window.yaze.events.FS_READY);
+      console.log('[FilesystemManager] FS_READY event emitted');
     }
   },
 
@@ -875,12 +881,26 @@ var FilesystemManager = {
   }
 };
 
-// Global helper for waitForModule if not already defined
+/**
+ * Wait for WASM Module to be ready.
+ * Uses the boot promise from namespace.js instead of polling.
+ * Falls back to polling if namespace not available (backward compatibility).
+ * @param {Function} cb - Callback to invoke when Module is ready
+ */
 function waitForModule(cb) {
+  // Prefer boot promise (deterministic, no polling)
+  if (window.yaze && window.yaze.core && window.yaze.core.ready) {
+    window.yaze.core.ready().then(function() {
+      cb();
+    });
+    return;
+  }
+
+  // Fallback to polling if namespace not available
   if (typeof Module !== 'undefined' && window.YAZE_MODULE_READY) {
     cb();
   } else {
-    setTimeout(() => waitForModule(cb), 30);
+    setTimeout(function() { waitForModule(cb); }, 30);
   }
 }
 

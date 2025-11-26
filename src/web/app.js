@@ -436,6 +436,13 @@ var Module = {
       }
 
       wasmReady = true;
+
+      // Resolve boot promise for components waiting on WASM
+      // This replaces polling-based initialization patterns
+      if (window.yaze && window.yaze.core && window.yaze.core._resolveBoot) {
+        window.yaze.core._resolveBoot(Module);
+      }
+
       FilesystemManager.initPersistentFS()
         .then(() => {
           // Check for recent files and offer to reopen last ROM
@@ -1458,6 +1465,31 @@ window.yazeDebug.setAgentMode = function(enabled) {
     return { error: "Not implemented" };
   }
   return { error: "Module not ready" };
+};
+
+// Add loadRomFromFile wrapper
+window.yazeDebug.loadRomFromFile = function(filepath) {
+  console.log('[yazeDebug] Loading ROM from file:', filepath);
+  if (typeof FilesystemManager !== 'undefined' && FilesystemManager._executeRomLoad) {
+    FilesystemManager._executeRomLoad(filepath, null);
+    return { success: true, message: 'ROM load initiated' };
+  }
+  return { error: 'FilesystemManager not ready' };
+};
+
+// Add selectDungeonRoom wrapper
+if (typeof window.yaze === 'undefined') window.yaze = {};
+window.yaze.selectDungeonRoom = function(roomId) {
+  console.log('[yaze] Selecting dungeon room:', roomId);
+  if (window.yazeDebug && window.yazeDebug.switchToEditorAsync) {
+    window.yazeDebug.switchToEditorAsync('Dungeon').then(() => {
+       // TODO: Actually select the room once editor is active
+       // We might need to expose a C++ function for this.
+       console.warn('[yaze] Room selection logic pending C++ implementation');
+    });
+  } else {
+    console.warn('[yaze] yazeDebug API not ready');
+  }
 };
 
 /**

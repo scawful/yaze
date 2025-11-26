@@ -318,13 +318,40 @@ window.yazeDebug.overworld.getTileInfo(mapId, x, y)
 ```
 
 ### DOM Hooks (for Antigravity)
-
 ```javascript
 document.getElementById('loading-overlay')  // Progress UI
 document.getElementById('status')           // Status text
 document.getElementById('header-status')    // Header status
 document.getElementById('canvas')           // Main canvas
 document.getElementById('rom-input')        // File input
+```
+
+### Quick Reference for Antigravity:
+
+```javascript
+// 1. Capture screenshot for visual analysis
+const result = window.yaze.gui.takeScreenshot();
+const dataUrl = result.dataUrl;
+
+// 2. Get room data for comparison
+const roomData = window.aiTools.getRoomData();
+const tiles = window.yaze.data.getRoomTiles(roomData.id || 0);
+
+// 3. Check graphics loading status
+const arena = window.yazeDebug.arena.getStatus();
+
+// 4. Full diagnostic dump
+async function getDiagnostic(roomId) {
+  const data = {
+    room_id: roomId,
+    objects: window.yaze.data.getRoomObjects(roomId),
+    properties: window.yaze.data.getRoomProperties(roomId),
+    arena: window.yazeDebug?.arena?.getStatus(),
+    visible_cards: window.aiTools.getVisibleCards()
+  };
+  await navigator.clipboard.writeText(JSON.stringify(data, null, 2));
+  return data;
+}
 ```
 
 ---
