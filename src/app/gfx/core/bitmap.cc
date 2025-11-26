@@ -504,12 +504,23 @@ void Bitmap::SetPaletteWithTransparent(const SnesPalette& palette, size_t index,
 }
 
 void Bitmap::SetPalette(const std::vector<SDL_Color>& palette) {
+  // CRITICAL: Validate surface and palette before accessing
+  if (!surface_ || !surface_->format || !surface_->format->palette) {
+    return;
+  }
+
+  SDL_Palette* sdl_palette = surface_->format->palette;
+  int max_colors = sdl_palette->ncolors;
+
   SDL_UnlockSurface(surface_);
   for (size_t i = 0; i < palette.size(); ++i) {
-    surface_->format->palette->colors[i].r = palette[i].r;
-    surface_->format->palette->colors[i].g = palette[i].g;
-    surface_->format->palette->colors[i].b = palette[i].b;
-    surface_->format->palette->colors[i].a = palette[i].a;
+    // Bounds check: don't write beyond palette capacity
+    if (static_cast<int>(i) >= max_colors) break;
+
+    sdl_palette->colors[i].r = palette[i].r;
+    sdl_palette->colors[i].g = palette[i].g;
+    sdl_palette->colors[i].b = palette[i].b;
+    sdl_palette->colors[i].a = palette[i].a;
   }
   SDL_LockSurface(surface_);
 }

@@ -101,16 +101,22 @@ class Arena {
   /**
    * @brief Get a specific graphics sheet by index
    * @param i Sheet index (0-222)
-   * @return Copy of the Bitmap at index i
+   * @return Copy of the Bitmap at index i, or empty Bitmap if out of bounds
    */
-  auto gfx_sheet(int i) { return gfx_sheets_[i]; }
+  auto gfx_sheet(int i) {
+    if (i < 0 || i >= 223) return gfx::Bitmap{};
+    return gfx_sheets_[i];
+  }
 
   /**
    * @brief Get mutable reference to a specific graphics sheet
    * @param i Sheet index (0-222)
-   * @return Pointer to mutable Bitmap at index i
+   * @return Pointer to mutable Bitmap at index i, or nullptr if out of bounds
    */
-  auto mutable_gfx_sheet(int i) { return &gfx_sheets_[i]; }
+  auto mutable_gfx_sheet(int i) {
+    if (i < 0 || i >= 223) return static_cast<gfx::Bitmap*>(nullptr);
+    return &gfx_sheets_[i];
+  }
 
   /**
    * @brief Get mutable reference to all graphics sheets
