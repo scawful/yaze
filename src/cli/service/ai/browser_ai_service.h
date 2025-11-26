@@ -30,8 +30,16 @@ struct ChatMessage;
  * @brief Configuration for browser-based AI service
  */
 struct BrowserAIConfig {
-  std::string api_key;                         // Gemini API key
+  // Provider selector: "gemini" (default) or "openai"
+  std::string provider = "gemini";
+
+  // API keys (provider-specific)
+  std::string api_key;  // Gemini/OpenAI API key
   std::string model = "gemini-2.5-flash";  // Default to latest flash model
+
+  // Optional custom endpoints (leave empty for defaults)
+  std::string api_base;  // e.g., "https://api.openai.com/v1"
+
   float temperature = 0.7f;
   int max_output_tokens = 2048;
   std::string system_instruction;  // System prompt
@@ -93,15 +101,15 @@ class BrowserAIService : public AIService {
 
   /**
    * @brief List available models for this service
-   * @return List of available Gemini models
+   * @return List of available models for the active provider
    */
   absl::StatusOr<std::vector<ModelInfo>> ListAvailableModels() override;
 
   /**
    * @brief Get the provider name
-   * @return "gemini" for browser-based Gemini service
+   * @return provider name for the browser AI service
    */
-  std::string GetProviderName() const override { return "gemini"; }
+  std::string GetProviderName() const override { return config_.provider; }
 
   /**
    * @brief Analyze an image with a text prompt (vision model)
@@ -139,7 +147,7 @@ class BrowserAIService : public AIService {
    * @return JSON request body as string
    */
   std::string BuildRequestBody(const std::string& prompt,
-                                bool include_system = true) const;
+                               bool include_system = true) const;
 
   /**
    * @brief Build multimodal request body (text + image)
@@ -149,8 +157,15 @@ class BrowserAIService : public AIService {
    * @return JSON request body as string
    */
   std::string BuildMultimodalRequestBody(const std::string& prompt,
-                                          const std::string& image_data,
-                                          const std::string& mime_type) const;
+                                         const std::string& image_data,
+                                         const std::string& mime_type) const;
+
+  /**
+   * @brief Build request body for OpenAI chat API
+   */
+  std::string BuildOpenAIRequestBody(
+      const std::string& prompt,
+      const std::vector<agent::ChatMessage>* history = nullptr) const;
 
   /**
    * @brief Parse Gemini API response
@@ -158,6 +173,12 @@ class BrowserAIService : public AIService {
    * @return Parsed agent response or error
    */
   absl::StatusOr<AgentResponse> ParseGeminiResponse(
+      const std::string& response_body) const;
+
+  /**
+   * @brief Parse OpenAI API response
+   */
+  absl::StatusOr<AgentResponse> ParseOpenAIResponse(
       const std::string& response_body) const;
 
   /**
@@ -192,6 +213,8 @@ class BrowserAIService : public AIService {
   // Gemini API base URL
   static constexpr const char* kGeminiApiBaseUrl =
       "https://generativelanguage.googleapis.com/v1beta/models/";
+  static constexpr const char* kOpenAIApiBaseUrl =
+      "https://api.openai.com/v1";
 
   // Mutex for thread safety
   mutable std::mutex mutex_;

@@ -23,11 +23,20 @@ std::unique_ptr<AIService> CreateAIService(const AIServiceConfig& config) {
   // The browser client handles API keys via config/JS
 
   BrowserAIConfig browser_config;
+  browser_config.provider = config.provider.empty() ? "gemini" : config.provider;
   browser_config.model = config.model;
   if (browser_config.model.empty()) {
-    browser_config.model = "gemini-1.5-flash";
+    browser_config.model =
+        (browser_config.provider == "openai") ? "gpt-4o-mini"
+                                              : "gemini-1.5-flash";
   }
-  browser_config.api_key = config.gemini_api_key;
+  if (browser_config.provider == "openai") {
+    browser_config.api_key = config.openai_api_key.empty()
+                                 ? config.gemini_api_key  // fallback
+                                 : config.openai_api_key;
+  } else {
+    browser_config.api_key = config.gemini_api_key;
+  }
   browser_config.verbose = config.verbose;
 
 #ifdef __EMSCRIPTEN__
@@ -47,4 +56,3 @@ absl::StatusOr<std::unique_ptr<AIService>> CreateAIServiceStrict(
 
 }  // namespace cli
 }  // namespace yaze
-
