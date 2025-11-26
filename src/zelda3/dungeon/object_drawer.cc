@@ -62,8 +62,20 @@ absl::Status ObjectDrawer::DrawObject(const RoomObject& object,
 
   LOG_DEBUG("ObjectDrawer", "Executing draw routine %d for object %04X",
             routine_id, object.id_);
-  // Execute the appropriate draw routine
-  draw_routines_[routine_id](this, object, target_bg, mutable_obj.tiles());
+
+  // Check if this is a BothBG routine (routines 3, 9, 17, 18)
+  // These routines should draw to both BG1 and BG2
+  bool is_both_bg = (routine_id == 3 || routine_id == 9 ||
+                     routine_id == 17 || routine_id == 18);
+
+  if (is_both_bg) {
+    // Draw to both background layers
+    draw_routines_[routine_id](this, object, bg1, mutable_obj.tiles());
+    draw_routines_[routine_id](this, object, bg2, mutable_obj.tiles());
+  } else {
+    // Execute the appropriate draw routine on target buffer only
+    draw_routines_[routine_id](this, object, target_bg, mutable_obj.tiles());
+  }
 
   return absl::OkStatus();
 }
@@ -185,16 +197,11 @@ void ObjectDrawer::InitializeDrawRoutines() {
   }
 
   // Floor object mappings (Phase 4d)
-  // Horizontal floor patterns (0x034 uses solid fill with +3 offset)
+  // NOTE: Most floor objects (0x0C3-0x0CA, 0x0DF) have incorrect tile counts
+  // for the draw routines they would need. These are left unmapped for now
+  // until proper draw routines can be implemented based on ZScream analysis.
+  // Object 0x034 has 1 tile - uses solid fill with +3 offset
   object_to_routine_map_[0x034] = 25;  // DrawRightwards1x1Solid_1to16_plus3
-
-  // SuperSquare floor objects (0x0C3-0x0CA) - 4x4 grid patterns
-  for (int id = 0x0C3; id <= 0x0CA; id++) {
-    object_to_routine_map_[id] = 19;  // DrawCorner4x4 (4x4 column-major)
-  }
-
-  // Spikes floor (0x0DF) - 4x4 pattern
-  object_to_routine_map_[0x0DF] = 19;  // DrawCorner4x4
 
   // Additional decorative object mappings (Phase 6)
   object_to_routine_map_[0x21] = 20;  // Edge 1x2
@@ -1081,9 +1088,15 @@ void ObjectDrawer::DrawTileToBitmap(gfx::Bitmap& bitmap,
   int tile_base_x = tile_col * 8;    // 8 bytes per tile horizontally
   int tile_base_y = tile_row * 1024; // 1024 bytes per tile row (8 rows * 128 bytes)
 
-  // Palette offset: Dungeon palette uses 15 colors per group (90 total)
+  // Palette offset: Dungeon palette uses 15 colors per group (90 total = 6 sub-palettes)
   // Pixel 0 is transparent and skipped. Pixel 1 maps to index 0.
-  uint8_t palette_offset = (tile_info.palette_ & 0x07) * 15;
+  // SNES tilemap allows palette 0-7, but we only have 6 sub-palettes (0-5).
+  // Clamp palette index to valid range to prevent out-of-bounds color access.
+  uint8_t pal = tile_info.palette_ & 0x07;
+  if (pal > 5) {
+    pal = pal % 6;  // Wrap palettes 6,7 to 0,1
+  }
+  uint8_t palette_offset = pal * 15;
 
   // Draw 8x8 pixels
   bool any_pixels_written = false;

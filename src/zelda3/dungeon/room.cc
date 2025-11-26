@@ -509,6 +509,10 @@ void Room::RenderRoomGraphics() {
             room_id_, graphics_dirty_, objects_dirty_, layout_dirty_,
             textures_dirty_);
 
+  // Capture dirty state BEFORE clearing flags (needed for floor/bg draw logic)
+  bool was_graphics_dirty = graphics_dirty_;
+  bool was_layout_dirty = layout_dirty_;
+
   // STEP 0: Load graphics if needed
   if (graphics_dirty_) {
     CopyRoomGraphicsToBuffer();
@@ -531,7 +535,7 @@ void Room::RenderRoomGraphics() {
 
   // STEP 2: Draw floor tiles to bitmaps (base layer) - if graphics changed OR
   // bitmaps not created yet
-  bool need_floor_draw = graphics_dirty_;
+  bool need_floor_draw = was_graphics_dirty;
   auto& bg1_bmp = bg1_buffer_.bitmap();
   auto& bg2_bmp = bg2_buffer_.bitmap();
 
@@ -552,7 +556,7 @@ void Room::RenderRoomGraphics() {
 
   // STEP 3: Draw background tiles (walls/structure) to buffers - if graphics
   // changed OR bitmaps just created
-  bool need_bg_draw = graphics_dirty_ || need_floor_draw;
+  bool need_bg_draw = was_graphics_dirty || need_floor_draw;
   if (need_bg_draw) {
     bg1_buffer_.DrawBackground(std::span<uint8_t>(current_gfx16_));
     bg2_buffer_.DrawBackground(std::span<uint8_t>(current_gfx16_));
