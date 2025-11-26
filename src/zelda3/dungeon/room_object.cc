@@ -16,12 +16,12 @@ struct SubtypeTableInfo {
 };
 
 SubtypeTableInfo GetSubtypeTable(int object_id) {
-  // Heuristic: 0x00-0xFF => subtype1, 0x100-0x1FF => subtype2, >=0x200 =>
-  // subtype3
-  if (object_id >= 0x200) {
+  // Heuristic: 0x00-0xFF => subtype1, 0x100-0x1FF => subtype2, >=0xF80 =>
+  // subtype3.  Type 3 IDs from decoding are 0xF80-0xFFF (b3 0xF8-0xFF shifted).
+  if (object_id >= 0xF80) {
     return SubtypeTableInfo(kRoomObjectSubtype3, 0xFF);
   } else if (object_id >= 0x100) {
-    return SubtypeTableInfo(kRoomObjectSubtype2, 0x7F);
+    return SubtypeTableInfo(kRoomObjectSubtype2, 0xFF);  // was 0x7F
   } else {
     return SubtypeTableInfo(kRoomObjectSubtype1, 0xFF);
   }
@@ -180,40 +180,42 @@ RoomObject RoomObject::DecodeObjectFromBytes(uint8_t b1, uint8_t b2, uint8_t b3,
   uint8_t size = 0;
   uint16_t id = 0;
 
-  // Follow ZScream's parsing logic exactly
-  if (b3 >= 0xF8) {
-    // Type 3: xxxxxxii yyyyyyii 11111iii
-    // ZScream: oid = (ushort)((b3 << 4) | 0x80 + (((b2 & 0x03) << 2) + ((b1 &
-    // 0x03))));
+  // IMPORTANT: Check Type 2 FIRST to avoid boundary collision with Type 3.
+  // Type 2 objects with certain Y positions can produce b3 >= 0xF8, which
+  // would incorrectly trigger Type 3 decoding if we checked b3 first.
+
+  // Type 2: 111111xx xxxxyyyy yyiiiiii
+  // Discriminator: b1 >= 0xFC (top 6 bits all 1)
+  if (b1 >= 0xFC) {
+    id = (b3 & 0x3F) | 0x100;
+    x = ((b2 & 0xF0) >> 4) | ((b1 & 0x03) << 4);
+    y = ((b2 & 0x0F) << 2) | ((b3 & 0xC0) >> 6);
+    size = 0;
+    LOG_DEBUG("ObjectParser",
+              "Type2: b1=%02X b2=%02X b3=%02X -> id=%04X x=%d y=%d size=%d",
+              b1, b2, b3, id, x, y, size);
+  }
+  // Type 3: xxxxxxii yyyyyyii 11111iii
+  // Discriminator: b3 >= 0xF8 (top 5 bits all 1)
+  else if (b3 >= 0xF8) {
     id = (static_cast<uint16_t>(b3) << 4) | 0x80 |
          ((static_cast<uint16_t>(b2 & 0x03) << 2) + (b1 & 0x03));
     x = (b1 & 0xFC) >> 2;
     y = (b2 & 0xFC) >> 2;
     size = ((b1 & 0x03) << 2) | (b2 & 0x03);
     LOG_DEBUG("ObjectParser",
-              "Type3: b1=%02X b2=%02X b3=%02X -> id=%04X x=%d y=%d size=%d", b1,
-              b2, b3, id, x, y, size);
-  } else {
-    // Type 1: xxxxxxss yyyyyyss iiiiiiii
+              "Type3: b1=%02X b2=%02X b3=%02X -> id=%04X x=%d y=%d size=%d",
+              b1, b2, b3, id, x, y, size);
+  }
+  // Type 1: xxxxxxss yyyyyyss iiiiiiii
+  else {
     id = b3;
     x = (b1 & 0xFC) >> 2;
     y = (b2 & 0xFC) >> 2;
     size = ((b1 & 0x03) << 2) | (b2 & 0x03);
-
-    // Check for Type 2 override: 111111xx xxxxyyyy yyiiiiii
-    if (b1 >= 0xFC) {
-      id = (b3 & 0x3F) | 0x100;
-      x = ((b2 & 0xF0) >> 4) | ((b1 & 0x03) << 4);
-      y = ((b2 & 0x0F) << 2) | ((b3 & 0xC0) >> 6);
-      size = 0;
-      LOG_DEBUG("ObjectParser",
-                "Type2: b1=%02X b2=%02X b3=%02X -> id=%04X x=%d y=%d size=%d",
-                b1, b2, b3, id, x, y, size);
-    } else {
-      LOG_DEBUG("ObjectParser",
-                "Type1: b1=%02X b2=%02X b3=%02X -> id=%04X x=%d y=%d size=%d",
-                b1, b2, b3, id, x, y, size);
-    }
+    LOG_DEBUG("ObjectParser",
+              "Type1: b1=%02X b2=%02X b3=%02X -> id=%04X x=%d y=%d size=%d",
+              b1, b2, b3, id, x, y, size);
   }
 
   return RoomObject(static_cast<int16_t>(id), x, y, size, layer);

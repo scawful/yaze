@@ -108,9 +108,9 @@ absl::StatusOr<ObjectSubtypeInfo> ObjectParser::GetObjectSubtype(
       break;
     }
     case 2: {
-      int index = object_id & 0x7F;
+      int index = (object_id - 0x100) & 0xFF;  // was: object_id & 0x7F
       info.subtype_ptr = kRoomObjectSubtype2 + (index * 2);
-      info.routine_ptr = kRoomObjectSubtype2 + 0x80 + (index * 2);
+      info.routine_ptr = kRoomObjectSubtype2 + 0x100 + (index * 2);  // adjusted for 256 entries
       info.max_tile_count = 8;
       break;
     }
@@ -179,7 +179,7 @@ absl::StatusOr<std::vector<gfx::TileInfo>> ObjectParser::ParseSubtype1(
 
 absl::StatusOr<std::vector<gfx::TileInfo>> ObjectParser::ParseSubtype2(
     int16_t object_id) {
-  int index = object_id & 0x7F;
+  int index = (object_id - 0x100) & 0xFF;  // was: object_id & 0x7F
   int tile_ptr = kRoomObjectSubtype2 + (index * 2);
 
   if (tile_ptr + 1 >= (int)rom_->size()) {
@@ -264,7 +264,8 @@ absl::StatusOr<std::vector<gfx::TileInfo>> ObjectParser::ReadTileData(
 }
 
 int ObjectParser::DetermineSubtype(int16_t object_id) const {
-  if (object_id >= 0x200) {
+  // Type 3 IDs from decoding are 0xF80-0xFFF (b3 0xF8-0xFF shifted).
+  if (object_id >= 0xF80) {
     return 3;
   } else if (object_id >= 0x100) {
     return 2;
