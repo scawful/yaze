@@ -130,6 +130,17 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
                                .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
                                .disabled_tooltip = "Load a ROM to access debug controls",
                                .priority = 80});
+
+  card_registry->RegisterCard({.card_id = MakeCardId("dungeon.emulator_preview"),
+                               .display_name = "SNES Object Preview",
+                               .window_title = " SNES Object Preview",
+                               .icon = ICON_MD_MONITOR,
+                               .category = "Dungeon",
+                               .shortcut_hint = "Ctrl+Shift+V",
+                               .visibility_flag = &show_emulator_preview_,
+                               .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
+                               .disabled_tooltip = "Load a ROM to use SNES emulator preview",
+                               .priority = 65});
 }
 
 void DungeonEditorV2::Initialize() {}
@@ -367,7 +378,18 @@ void DungeonEditorV2::DrawLayout() {
     DrawDebugControlsCard();
   }
 
-  // 8. Active Room Cards (independent, dockable, tracked for jump-to)
+  // 8. SNES Emulator Preview Card (standalone, easily accessible)
+  if (show_emulator_preview_) {
+    // Emulator preview renders itself as a window via Render()
+    object_emulator_preview_.set_visible(true);
+    object_emulator_preview_.Render();
+    // Sync visibility back if user closed window via X button
+    if (!object_emulator_preview_.is_visible()) {
+      show_emulator_preview_ = false;
+    }
+  }
+
+  // 9. Active Room Cards (independent, dockable, tracked for jump-to)
   for (int i = 0; i < active_rooms_.Size; i++) {
     int room_id = active_rooms_[i];
     bool open = true;

@@ -130,7 +130,9 @@ void Overworld::FetchLargeMaps() {
   overworld_maps_[138].SetAsLargeMap(129, 3);
   overworld_maps_[136].SetAsSmallMap();
 
-  std::array<bool, kNumMapsPerWorld> map_checked;
+  // Track visited maps across both worlds. Using kNumMapsPerWorld (64) here
+  // caused stack corruption when writing siblings at +64/+72/+73.
+  std::array<bool, kNumOverworldMaps> map_checked{};
   std::ranges::fill(map_checked, false);
 
   int xx = 0;
@@ -140,19 +142,37 @@ void Overworld::FetchLargeMaps() {
       if (overworld_maps_[i].is_large_map()) {
         map_checked[i] = true;
         overworld_maps_[i].SetAsLargeMap(i, 0);
-        overworld_maps_[i + 64].SetAsLargeMap(i + 64, 0);
+        if (i + 64 < kNumOverworldMaps) {
+          map_checked[i + 64] = true;
+          overworld_maps_[i + 64].SetAsLargeMap(i + 64, 0);
+        }
 
-        map_checked[i + 1] = true;
-        overworld_maps_[i + 1].SetAsLargeMap(i, 1);
-        overworld_maps_[i + 65].SetAsLargeMap(i + 64, 1);
+        if (i + 1 < kNumOverworldMaps) {
+          map_checked[i + 1] = true;
+          overworld_maps_[i + 1].SetAsLargeMap(i, 1);
+        }
+        if (i + 65 < kNumOverworldMaps) {
+          map_checked[i + 65] = true;
+          overworld_maps_[i + 65].SetAsLargeMap(i + 64, 1);
+        }
 
-        map_checked[i + 8] = true;
-        overworld_maps_[i + 8].SetAsLargeMap(i, 2);
-        overworld_maps_[i + 72].SetAsLargeMap(i + 64, 2);
+        if (i + 8 < kNumOverworldMaps) {
+          map_checked[i + 8] = true;
+          overworld_maps_[i + 8].SetAsLargeMap(i, 2);
+        }
+        if (i + 72 < kNumOverworldMaps) {
+          map_checked[i + 72] = true;
+          overworld_maps_[i + 72].SetAsLargeMap(i + 64, 2);
+        }
 
-        map_checked[i + 9] = true;
-        overworld_maps_[i + 9].SetAsLargeMap(i, 3);
-        overworld_maps_[i + 73].SetAsLargeMap(i + 64, 3);
+        if (i + 9 < kNumOverworldMaps) {
+          map_checked[i + 9] = true;
+          overworld_maps_[i + 9].SetAsLargeMap(i, 3);
+        }
+        if (i + 73 < kNumOverworldMaps) {
+          map_checked[i + 73] = true;
+          overworld_maps_[i + 73].SetAsLargeMap(i + 64, 3);
+        }
         xx++;
       } else {
         overworld_maps_[i].SetAsSmallMap();
