@@ -206,6 +206,16 @@ var Module = {
       return false;
     }, { capture: true, passive: false });
 
+    // Global context menu prevention for the entire window to be safe
+    window.addEventListener("contextmenu", function(e) {
+      // Only prevent if target is canvas or inside the app container
+      if (e.target.tagName === 'CANVAS' || e.target.closest('#canvas-container')) {
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
+      }
+    }, { capture: true, passive: false });
+
     // WORKAROUND: Ensure all UI events have defined integer properties to prevent
     // SAFE_HEAP assertion failures in Emscripten's SDL/HTML5 event handler.
     // The error "attempt to write non-integer (undefined) into integer heap" occurs
@@ -382,6 +392,27 @@ var Module = {
       }
 
       console.log('[WASM] Pre-run checks passed');
+
+      // Auto-load ROM for dev (localhost only)
+      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        console.log('[Dev] Auto-loading zelda3.sfc...');
+        // Use FS.createPreloadedFile to fetch and save the file
+        // This is async but Emscripten handles the dependency
+        try {
+          // Ensure FS is available
+          if (typeof FS !== 'undefined') {
+            FS.createPreloadedFile('/', 'zelda3.sfc', 'zelda3.sfc', true, true);
+            // Set arguments to load this ROM and open Dungeon editor
+            Module.arguments = ['--rom_file=zelda3.sfc', '--editor=Dungeon'];
+            console.log('[Dev] Auto-load configured. Arguments:', Module.arguments);
+          } else {
+             console.warn('[Dev] FS not available for auto-load');
+          }
+        } catch (e) {
+          console.warn('[Dev] Auto-load setup failed:', e);
+        }
+      }
+
     } catch (err) {
       console.error('[WASM] Pre-run check failed:', err);
       showFatalError('Startup Failed', err.message);

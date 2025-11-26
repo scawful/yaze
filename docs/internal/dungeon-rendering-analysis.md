@@ -117,12 +117,13 @@ The `* 15` stride is **correct** for the 90-color packed format. The "wasted" co
 - ⚠️ Some objects don't render correctly
 - ⚠️ Need to verify object tile IDs and graphics lookup
 - ⚠️ May be palette or graphics sheet issues for specific object types
+- ⚠️ Floor rendering (screenshot shows grid, need to confirm if floor tiles are actually rendering or if the grid is obscuring them)
 
 ### Next Investigation Steps
-1. Check which specific object types are rendering incorrectly
-2. Verify object tile IDs are being decoded correctly in `RoomObject::DecodeObjectFromBytes()`
-3. Compare object rendering with known good implementations (ZScream, etc.)
-4. Check if specific tile ranges (e.g., animated tiles 0xEC-0xFD) need special handling
+1. **Verify Floor Rendering:** Check if the floor tiles are actually rendering underneath the grid or if they are missing.
+2. **Check Object Types:** Identify which specific objects are rendering incorrectly (e.g., chests, pots, enemies).
+3. **Verify Tile IDs:** Check `RoomObject::DecodeObjectFromBytes()` and `GetTile()` to ensure correct tile IDs are being calculated.
+4. **Debug Logging:** Use the added logging to verify that the correct graphics sheets are being loaded for the objects.
 
 ## Detailed Context for Next Session
 
@@ -192,6 +193,7 @@ Byte 3: OOOOOOOO  (Object ID)
 2. `src/zelda3/dungeon/room.cc:LoadRoomGraphics()` - Fixed comment, kept i==6 condition
 3. `src/app/app.cmake` - Added z3ed WASM exports
 4. `src/app/editor/ui/ui_coordinator.cc` - Fixed menu bar right panel positioning
+5. `src/app/rom.cc` - Added debug logging for graphics loading
 
 ### Quick Test Commands
 ```bash
