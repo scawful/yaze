@@ -156,12 +156,38 @@ void UICoordinator::DrawMenuBarExtras() {
   std::string version_text =
       absl::StrFormat("v%s", editor_manager_->version().c_str());
 
-  // Calculate cluster width for right alignment
-  float cluster_width = 220.0f;
-  ImGui::SameLine(ImGui::GetWindowWidth() - cluster_width);
+  // Calculate actual content width dynamically (don't hardcode)
+  const float item_spacing = 6.0f;  // Spacing between elements
+  float version_width = ImGui::CalcTextSize(version_text.c_str()).x;
+  float dirty_width =
+      (current_rom && current_rom->is_loaded() && current_rom->dirty())
+          ? ImGui::CalcTextSize(ICON_MD_FIBER_MANUAL_RECORD).x + item_spacing
+          : 0.0f;
+  float session_width =
+      session_coordinator_.HasMultipleSessions() ? 28.0f + item_spacing : 0.0f;
+  float panel_width = editor_manager_->right_panel_manager()
+                          ? 72.0f + item_spacing
+                          : 0.0f;  // 3 toggle buttons
+  float bell_width = 24.0f;
+  float padding = 12.0f;  // Extra padding for margin
 
-  // Reduce spacing between elements for a more compact cluster
-  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(2.0f, 0.0f));
+  float cluster_width = version_width + dirty_width + session_width +
+                        panel_width + bell_width + padding;
+
+  // Right-align without pushing menu bar wider
+  float menu_bar_end = ImGui::GetWindowWidth();
+  float start_pos = menu_bar_end - cluster_width;
+
+  // Ensure we don't overlap with menu items (leave at least 16px gap)
+  float min_start = ImGui::GetCursorPosX() + 16.0f;
+  if (start_pos < min_start) {
+    start_pos = min_start;
+  }
+
+  ImGui::SameLine(start_pos);
+
+  // Use reasonable spacing between elements for readability
+  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(item_spacing, 0.0f));
 
   // 1. Version - always visible, subdued gray text (leftmost)
   ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextDisabledVec4());

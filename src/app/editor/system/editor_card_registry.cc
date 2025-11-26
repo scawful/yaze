@@ -16,6 +16,25 @@ namespace yaze {
 namespace editor {
 
 // ============================================================================
+// Category Icon Mapping
+// ============================================================================
+
+std::string EditorCardRegistry::GetCategoryIcon(const std::string& category) {
+  if (category == "Dungeon") return ICON_MD_CASTLE;
+  if (category == "Overworld") return ICON_MD_MAP;
+  if (category == "Graphics") return ICON_MD_IMAGE;
+  if (category == "Palette") return ICON_MD_PALETTE;
+  if (category == "Sprite") return ICON_MD_PERSON;
+  if (category == "Music") return ICON_MD_MUSIC_NOTE;
+  if (category == "Message") return ICON_MD_MESSAGE;
+  if (category == "Screen") return ICON_MD_TV;
+  if (category == "Emulator") return ICON_MD_VIDEOGAME_ASSET;
+  if (category == "Assembly") return ICON_MD_CODE;
+  if (category == "Settings") return ICON_MD_SETTINGS;
+  return ICON_MD_FOLDER;  // Default for unknown categories
+}
+
+// ============================================================================
 // Session Lifecycle Management
 // ============================================================================
 
@@ -477,6 +496,61 @@ void EditorCardRegistry::DrawViewMenuAll(size_t session_id) {
 }
 
 // ============================================================================
+// Sidebar Keyboard Navigation
+// ============================================================================
+
+void EditorCardRegistry::HandleSidebarKeyboardNav(
+    size_t session_id, const std::vector<CardInfo>& cards) {
+  // Click to focus - only focus if sidebar window is hovered and mouse clicked
+  if (!sidebar_has_focus_ && ImGui::IsWindowHovered(ImGuiHoveredFlags_None) &&
+      ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+    sidebar_has_focus_ = true;
+    focused_card_index_ = cards.empty() ? -1 : 0;
+  }
+
+  // No navigation if not focused or no cards
+  if (!sidebar_has_focus_ || cards.empty()) {
+    return;
+  }
+
+  // Escape to unfocus
+  if (ImGui::IsKeyPressed(ImGuiKey_Escape)) {
+    sidebar_has_focus_ = false;
+    focused_card_index_ = -1;
+    return;
+  }
+
+  int card_count = static_cast<int>(cards.size());
+
+  // Arrow keys / vim keys navigation
+  if (ImGui::IsKeyPressed(ImGuiKey_DownArrow) ||
+      ImGui::IsKeyPressed(ImGuiKey_J)) {
+    focused_card_index_ = std::min(focused_card_index_ + 1, card_count - 1);
+  }
+  if (ImGui::IsKeyPressed(ImGuiKey_UpArrow) ||
+      ImGui::IsKeyPressed(ImGuiKey_K)) {
+    focused_card_index_ = std::max(focused_card_index_ - 1, 0);
+  }
+
+  // Home/End for quick navigation
+  if (ImGui::IsKeyPressed(ImGuiKey_Home)) {
+    focused_card_index_ = 0;
+  }
+  if (ImGui::IsKeyPressed(ImGuiKey_End)) {
+    focused_card_index_ = card_count - 1;
+  }
+
+  // Enter/Space to toggle card visibility
+  if (focused_card_index_ >= 0 && focused_card_index_ < card_count) {
+    if (ImGui::IsKeyPressed(ImGuiKey_Enter) ||
+        ImGui::IsKeyPressed(ImGuiKey_Space)) {
+      const auto& card = cards[focused_card_index_];
+      ToggleCard(session_id, card.card_id);
+    }
+  }
+}
+
+// ============================================================================
 // VSCode-Style Sidebar
 // ============================================================================
 
@@ -530,6 +604,15 @@ void EditorCardRegistry::DrawSidebar(
       for (const auto& cat : active_categories) {
         bool is_current = (cat == category);
 
+        // Draw active indicator bar on left edge for current category
+        if (is_current) {
+          ImVec2 cursor = ImGui::GetCursorScreenPos();
+          ImGui::GetWindowDrawList()->AddRectFilled(
+              ImVec2(cursor.x - 2.0f, cursor.y),
+              ImVec2(cursor.x, cursor.y + 32.0f),
+              ImGui::ColorConvertFloat4ToU32(accent), 2.0f);
+        }
+
         // Highlight current category with accent color
         if (is_current) {
           ImGui::PushStyleColor(ImGuiCol_Button,
@@ -543,8 +626,8 @@ void EditorCardRegistry::DrawSidebar(
               gui::ConvertColorToImVec4(theme.button_hovered));
         }
 
-        // Show first letter of category as button label
-        std::string btn_label = cat.empty() ? "?" : std::string(1, cat[0]);
+        // Show category icon instead of first letter
+        std::string btn_label = GetCategoryIcon(cat);
         if (ImGui::Button(btn_label.c_str(), ImVec2(40.0f, 32.0f))) {
           // Switch to this category/editor
           if (on_category_switch) {
@@ -632,14 +715,20 @@ void EditorCardRegistry::DrawSidebar(
                           ImGuiChildFlags_None);
       }
 
+      // Handle keyboard navigation for sidebar
+      HandleSidebarKeyboardNav(session_id, cards);
+
       // Draw individual card toggle buttons
       ImVec4 accent_color = gui::ConvertColorToImVec4(theme.accent);
       ImVec4 button_bg = gui::ConvertColorToImVec4(theme.button);
 
+      int card_index = 0;
       for (const auto& card : cards) {
         ImGui::PushID(card.card_id.c_str());
 
         bool is_active = card.visibility_flag && *card.visibility_flag;
+        bool is_focused =
+            sidebar_has_focus_ && (card_index == focused_card_index_);
 
         // Check if card is enabled (nullptr = always enabled)
         bool is_enabled = !card.enabled_condition || card.enabled_condition();
@@ -676,6 +765,18 @@ void EditorCardRegistry::DrawSidebar(
           }
         }
 
+        // Draw focus ring for keyboard-navigated card
+        if (is_focused) {
+          ImVec2 item_min = ImGui::GetItemRectMin();
+          ImVec2 item_max = ImGui::GetItemRectMax();
+          ImU32 focus_color = ImGui::ColorConvertFloat4ToU32(
+              ImVec4(accent_color.x, accent_color.y, accent_color.z, 1.0f));
+          ImGui::GetWindowDrawList()->AddRect(
+              ImVec2(item_min.x - 2, item_min.y - 2),
+              ImVec2(item_max.x + 2, item_max.y + 2), focus_color, 4.0f, 0,
+              2.5f);
+        }
+
         ImGui::PopStyleColor(3);
 
         if (!is_enabled) {
@@ -703,6 +804,7 @@ void EditorCardRegistry::DrawSidebar(
         }
 
         ImGui::PopID();
+        card_index++;
       }
 
       // End scrollable region
@@ -840,6 +942,24 @@ void EditorCardRegistry::DrawTreeSidebar(
     ImGui::Separator();
     ImGui::Spacing();
 
+    // Search filter input
+    ImGui::SetNextItemWidth(sidebar_width - 52.0f);
+    ImGui::InputTextWithHint("##TreeSearch", ICON_MD_SEARCH " Filter...",
+                             tree_search_filter_, sizeof(tree_search_filter_));
+
+    // Clear button next to search
+    ImGui::SameLine();
+    if (tree_search_filter_[0] != '\0') {
+      if (ImGui::SmallButton(ICON_MD_CLOSE)) {
+        tree_search_filter_[0] = '\0';
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Clear filter");
+      }
+    }
+
+    ImGui::Spacing();
+
     // Calculate available height for tree (reserve space for bottom buttons)
     const float bottom_section_height = 100.0f;
     const float available_height =
@@ -875,22 +995,8 @@ void EditorCardRegistry::DrawTreeSidebar(
         ImGui::SetNextItemOpen(true, ImGuiCond_Once);
       }
 
-      // Category icon based on type
-      std::string cat_icon = ICON_MD_FOLDER;
-      if (category == "Dungeon")
-        cat_icon = ICON_MD_CASTLE;
-      else if (category == "Overworld")
-        cat_icon = ICON_MD_MAP;
-      else if (category == "Graphics")
-        cat_icon = ICON_MD_IMAGE;
-      else if (category == "Palette")
-        cat_icon = ICON_MD_PALETTE;
-      else if (category == "Sprite")
-        cat_icon = ICON_MD_PERSON;
-      else if (category == "Music")
-        cat_icon = ICON_MD_MUSIC_NOTE;
-      else if (category == "Message")
-        cat_icon = ICON_MD_MESSAGE;
+      // Category icon based on type (use the shared helper)
+      std::string cat_icon = GetCategoryIcon(category);
 
       // Draw category node with visible count badge
       std::string node_label =
@@ -908,8 +1014,23 @@ void EditorCardRegistry::DrawTreeSidebar(
       }
 
       if (node_open) {
+        // Prepare filter for case-insensitive comparison
+        std::string filter_lower = tree_search_filter_;
+        std::transform(filter_lower.begin(), filter_lower.end(),
+                       filter_lower.begin(), ::tolower);
+
         // Draw cards as checkbox items
         for (const auto& card : cards) {
+          // Apply search filter - skip non-matching cards
+          if (!filter_lower.empty()) {
+            std::string name_lower = card.display_name;
+            std::transform(name_lower.begin(), name_lower.end(),
+                           name_lower.begin(), ::tolower);
+            if (name_lower.find(filter_lower) == std::string::npos) {
+              continue;  // Skip this card - doesn't match filter
+            }
+          }
+
           ImGui::PushID(card.card_id.c_str());
 
           bool visible = card.visibility_flag ? *card.visibility_flag : false;

@@ -118,6 +118,24 @@ class EditorCard {
   EditorCard(const char* title, const char* icon = nullptr);
   EditorCard(const char* title, const char* icon, bool* p_open);
 
+  // Debug: Reset frame tracking (call once per frame from main loop)
+  static void ResetFrameTracking() {
+    last_frame_count_ = ImGui::GetFrameCount();
+    cards_begun_this_frame_.clear();
+  }
+
+  // Debug: Check if any card was rendered twice this frame
+  static bool HasDuplicateRendering() { return duplicate_detected_; }
+  static const std::string& GetDuplicateCardName() { return duplicate_card_name_; }
+
+ private:
+  static int last_frame_count_;
+  static std::vector<std::string> cards_begun_this_frame_;
+  static bool duplicate_detected_;
+  static std::string duplicate_card_name_;
+
+ public:
+
   // Set card properties
   void SetDefaultSize(float width, float height);
   void SetPosition(Position pos);
