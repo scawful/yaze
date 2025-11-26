@@ -215,11 +215,8 @@ void SpriteEditor::DrawSpriteCanvas() {
     }
 
     DrawAnimationFrames();
-
-    DrawCustomSpritesMetadata();
-
-    ImGui::EndChild();
   }
+  ImGui::EndChild();
 }
 
 void SpriteEditor::DrawCurrentSheets() {
@@ -264,8 +261,8 @@ void SpriteEditor::DrawSpritesList() {
       }
       i++;
     }
-    ImGui::EndChild();
   }
+  ImGui::EndChild();
 }
 
 void SpriteEditor::DrawAnimationFrames() {

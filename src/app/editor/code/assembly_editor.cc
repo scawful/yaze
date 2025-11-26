@@ -367,9 +367,8 @@ void AssemblyEditor::DrawCurrentFolder() {
 
       ImGui::EndTable();
     }
-
-    ImGui::EndChild();
   }
+  ImGui::EndChild();
 }
 
 void AssemblyEditor::DrawFileMenu() {

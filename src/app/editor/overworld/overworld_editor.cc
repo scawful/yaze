@@ -1285,8 +1285,36 @@ absl::Status OverworldEditor::CheckForCurrentMap() {
     current_map_ = hovered_map;
     current_parent_ = overworld_.overworld_map(current_map_)->parent();
 
-    // Ensure the current map is built (on-demand loading)
-    RETURN_IF_ERROR(overworld_.EnsureMapBuilt(current_map_));
+    // Hover debouncing: Only build expensive maps after dwelling on them
+    // This prevents lag when rapidly moving mouse across the overworld
+    bool should_build = false;
+    if (hovered_map != last_hovered_map_) {
+      // New map hovered - reset timer
+      last_hovered_map_ = hovered_map;
+      hover_time_ = 0.0f;
+      // Check if already built (instant display)
+      should_build = overworld_.overworld_map(hovered_map)->is_built();
+    } else {
+      // Same map - accumulate hover time
+      hover_time_ += ImGui::GetIO().DeltaTime;
+      // Build after delay OR if clicking
+      should_build = (hover_time_ >= kHoverBuildDelay) ||
+                     ImGui::IsMouseClicked(ImGuiMouseButton_Left) ||
+                     ImGui::IsMouseClicked(ImGuiMouseButton_Right);
+    }
+
+    // Only trigger expensive build if debounce threshold met
+    if (should_build) {
+      RETURN_IF_ERROR(overworld_.EnsureMapBuilt(current_map_));
+    }
+
+    // After dwelling longer, start pre-loading adjacent maps
+    if (hover_time_ >= kPreloadStartDelay && preload_queue_.empty()) {
+      QueueAdjacentMapsForPreload(current_map_);
+    }
+
+    // Process one preload per frame (background optimization)
+    ProcessPreloadQueue();
   }
 
   const int current_highlighted_map = current_map_;
@@ -1870,7 +1898,12 @@ absl::Status OverworldEditor::LoadGraphics() {
 
   // Phase 2: Create bitmaps only for essential maps initially
   // Non-essential maps will be created on-demand when accessed
-  constexpr int kEssentialMapsPerWorld = 8;
+  // IMPORTANT: Must match kEssentialMapsPerWorld in overworld.cc
+#ifdef __EMSCRIPTEN__
+  constexpr int kEssentialMapsPerWorld = 4;  // Match WASM build in overworld.cc
+#else
+  constexpr int kEssentialMapsPerWorld = 16; // Match native build in overworld.cc
+#endif
   constexpr int kLightWorldEssential = kEssentialMapsPerWorld;
   constexpr int kDarkWorldEssential =
       zelda3::kDarkWorldMapIdStart + kEssentialMapsPerWorld;
@@ -2053,6 +2086,64 @@ void OverworldEditor::EnsureMapTexture(int map_index) {
     // Queue texture creation for this map
     gfx::Arena::Get().QueueTextureCommand(
         gfx::Arena::TextureCommandType::CREATE, &bitmap);
+  }
+}
+
+void OverworldEditor::QueueAdjacentMapsForPreload(int center_map) {
+#ifdef __EMSCRIPTEN__
+  // WASM: Skip pre-loading entirely - it blocks the main thread and causes
+  // stuttering. The tileset cache and debouncing provide enough optimization.
+  return;
+#endif
+
+  preload_queue_.clear();
+
+  // Calculate grid position (8x8 maps per world)
+  int world_offset = (center_map / 64) * 64;
+  int local_index = center_map % 64;
+  int map_x = local_index % 8;
+  int map_y = local_index / 8;
+
+  // Add adjacent maps (4-connected neighbors)
+  static const int dx[] = {-1, 1, 0, 0};
+  static const int dy[] = {0, 0, -1, 1};
+
+  for (int i = 0; i < 4; ++i) {
+    int nx = map_x + dx[i];
+    int ny = map_y + dy[i];
+
+    // Check bounds (8x8 grid)
+    if (nx >= 0 && nx < 8 && ny >= 0 && ny < 8) {
+      int neighbor_index = world_offset + ny * 8 + nx;
+      // Only queue if not already built
+      if (!overworld_.overworld_map(neighbor_index)->is_built()) {
+        preload_queue_.push_back(neighbor_index);
+      }
+    }
+  }
+}
+
+void OverworldEditor::ProcessPreloadQueue() {
+#ifdef __EMSCRIPTEN__
+  // WASM: Pre-loading disabled - each EnsureMapBuilt call blocks for 100-200ms
+  // which causes unacceptable frame drops. Native builds use this for smoother UX.
+  return;
+#endif
+
+  if (preload_queue_.empty()) {
+    return;
+  }
+
+  // Process one map per frame to avoid blocking (native only)
+  int map_to_preload = preload_queue_.back();
+  preload_queue_.pop_back();
+
+  // Silent build - don't update UI state
+  auto status = overworld_.EnsureMapBuilt(map_to_preload);
+  if (!status.ok()) {
+    // Log but don't interrupt - this is background work
+    LOG_DEBUG("OverworldEditor", "Background preload of map %d failed: %s",
+              map_to_preload, status.message().data());
   }
 }
 

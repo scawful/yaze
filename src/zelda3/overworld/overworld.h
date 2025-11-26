@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <deque>
 #include <mutex>
+#include <unordered_map>
 #include <vector>
 
 #include "absl/status/status.h"
@@ -145,6 +146,22 @@ class Overworld {
    * if necessary. Used for lazy loading optimization.
    */
   absl::Status EnsureMapBuilt(int map_index);
+
+  /**
+   * @brief Compute hash of graphics configuration for cache lookup
+   */
+  uint64_t ComputeGraphicsConfigHash(int map_index);
+
+  /**
+   * @brief Try to get cached tileset data for a graphics configuration
+   * @return nullptr if not cached, pointer to cached data if available
+   */
+  const std::vector<uint8_t>* GetCachedTileset(uint64_t config_hash);
+
+  /**
+   * @brief Cache tileset data for future reuse
+   */
+  void CacheTileset(uint64_t config_hash, const std::vector<uint8_t>& tileset);
 
   absl::Status Save(Rom* rom);
   absl::Status SaveOverworldMaps();
@@ -354,6 +371,22 @@ class Overworld {
   // Max ~20 maps = ~25MB of memory (1.25MB per map)
   static constexpr int kMaxBuiltMaps = 20;
   std::deque<int> built_map_lru_;
+
+  // Graphics config cache for blockset reuse
+  // Key: Hash of static_graphics array, Value: Precomputed current_gfx data
+  // This avoids rebuilding the same tileset for maps with identical graphics
+  struct GraphicsConfigCache {
+    std::vector<uint8_t> current_gfx;  // 64KB tileset
+    int reference_count = 0;
+  };
+  std::unordered_map<uint64_t, GraphicsConfigCache> gfx_config_cache_;
+#ifdef __EMSCRIPTEN__
+  // WASM: Smaller cache to reduce memory pressure (4 × 64KB = 256KB)
+  static constexpr int kMaxCachedConfigs = 4;
+#else
+  // Native: Larger cache for better performance (8 × 64KB = 512KB)
+  static constexpr int kMaxCachedConfigs = 8;
+#endif
 
   std::vector<OverworldMap> overworld_maps_;
   std::vector<OverworldEntrance> all_entrances_;

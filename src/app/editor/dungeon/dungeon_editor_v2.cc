@@ -620,8 +620,8 @@ void DungeonEditorV2::DrawRoomsListCard() {
             OnRoomSelected(i);
           }
         }
-        ImGui::EndChild();
       }
+      ImGui::EndChild();
     }
   }
   selector_card.End();
@@ -731,8 +731,8 @@ void DungeonEditorV2::DrawEntrancesListCard() {
             OnEntranceSelected(i);
           }
         }
-        ImGui::EndChild();
       }
+      ImGui::EndChild();
     }
   }
   entrances_card.End();
