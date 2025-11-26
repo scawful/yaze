@@ -894,15 +894,26 @@ void ObjectDrawer::DrawTileToBitmap(gfx::Bitmap& bitmap,
   // Calculate tile position in 8BPP graphics buffer
   // Layout: 16 tiles per row, each tile is 8 pixels wide (8 bytes)
   // Row stride: 128 bytes (16 tiles * 8 bytes)
+  // Buffer size: 0x10000 (65536 bytes) = 64 tile rows max
+  constexpr int kGfxBufferSize = 0x10000;
+  constexpr int kMaxTileRow = 63;  // 64 rows (0-63), each 1024 bytes
+
   int tile_col = tile_info.id_ % 16;
   int tile_row = tile_info.id_ / 16;
+
+  // CRITICAL: Validate tile_row to prevent index out of bounds
+  if (tile_row > kMaxTileRow) {
+    LOG_DEBUG("ObjectDrawer", "Tile ID 0x%03X out of bounds (row %d > %d)",
+              tile_info.id_, tile_row, kMaxTileRow);
+    return;
+  }
+
   int tile_base_x = tile_col * 8;    // 8 bytes per tile horizontally
   int tile_base_y = tile_row * 1024; // 1024 bytes per tile row (8 rows * 128 bytes)
 
-  // Palette offset: 4BPP uses 16 colors per palette
-  // BUT the palette data is packed as 8 colors per group (3BPP source)
-  // So we use * 8 to index into the 90-color palette correctly
-  uint8_t palette_offset = (tile_info.palette_ & 0x07) * 8;
+  // Palette offset: Dungeon palette uses 15 colors per group (90 total)
+  // Pixel 0 is transparent and skipped. Pixel 1 maps to index 0.
+  uint8_t palette_offset = (tile_info.palette_ & 0x07) * 15;
 
   // DEBUG: Log tile info for first few tiles
   static int debug_tile_count = 0;
@@ -931,7 +942,8 @@ void ObjectDrawer::DrawTileToBitmap(gfx::Bitmap& bitmap,
       uint8_t pixel = tiledata[src_index];
 
       if (pixel != 0) {
-        uint8_t final_color = pixel + palette_offset;
+        // Pixel 0 is transparent. Pixel 1 maps to index 0 of the 15-color palette.
+        uint8_t final_color = (pixel - 1) + palette_offset;
         int dest_x = pixel_x + px;
         int dest_y = pixel_y + py;
 

@@ -42,35 +42,55 @@ void BackgroundBuffer::ClearBuffer() {
 void BackgroundBuffer::DrawTile(const TileInfo& tile, uint8_t* canvas,
                                 const uint8_t* tiledata, int indexoffset) {
   // tiledata is now 8BPP linear data (1 byte per pixel)
-  
+  // Buffer size: 0x10000 (65536 bytes) = 64 tile rows max
+  constexpr int kGfxBufferSize = 0x10000;
+  constexpr int kMaxTileRow = 63;  // 64 rows (0-63), each 1024 bytes
+
   // Calculate tile position in the 8BPP buffer
   int tile_col_idx = tile.id_ % 16;
   int tile_row_idx = tile.id_ / 16;
-  
+
+  // CRITICAL: Validate tile_row to prevent index out of bounds
+  if (tile_row_idx > kMaxTileRow) {
+    return;  // Skip invalid tiles silently
+  }
+
   int tile_base_x = tile_col_idx * 8;    // 8 pixels wide (8 bytes)
   int tile_base_y = tile_row_idx * 1024; // 8 rows * 128 bytes stride (sheet width)
-  
+
   // Palette handling
   uint8_t palette_idx = tile.palette_ & 0x0F;
-  uint8_t palette_offset = palette_idx * 8; // 8-color packed groups
+  // Dungeon palette is packed as 6 groups of 15 colors (90 total), skipping transparent.
+  uint8_t palette_offset = palette_idx * 15;
+
+  // Pre-calculate max valid destination index
+  int max_dest = width_ * height_;
 
   // Copy 8x8 pixels
   for (int py = 0; py < 8; py++) {
     int src_row = tile.vertical_mirror_ ? (7 - py) : py;
-    
+
     for (int px = 0; px < 8; px++) {
       int src_col = tile.horizontal_mirror_ ? (7 - px) : px;
-      
+
       // Calculate source index
       // Stride is 128 bytes (sheet width)
       int src_index = (src_row * 128) + src_col + tile_base_x + tile_base_y;
-      
+
+      // Bounds check source
+      if (src_index < 0 || src_index >= kGfxBufferSize) continue;
+
       uint8_t pixel = tiledata[src_index];
-      
+
       if (pixel != 0) {
-        uint8_t final_color = pixel + palette_offset;
+        // Pixel 0 is transparent. Pixel 1 maps to index 0 of the 15-color palette.
+        uint8_t final_color = (pixel - 1) + palette_offset;
         int dest_index = indexoffset + (py * width_) + px;
-        canvas[dest_index] = final_color;
+
+        // Bounds check destination
+        if (dest_index >= 0 && dest_index < max_dest) {
+          canvas[dest_index] = final_color;
+        }
       }
     }
   }
