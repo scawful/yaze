@@ -40,6 +40,31 @@ Run the static analysis script to find potentially dangerous patterns:
 **Issue:** `data[src_index]` accessed without checking data vector size
 **Fix:** Added `src_index >= 0 && src_index < data_size` validation
 
+### 6. overworld.h - Map Accessors (Fixed 2025-11-26)
+**File:** `src/zelda3/overworld/overworld.h`
+**Issue:** `overworld_map(int i)` and `mutable_overworld_map(int i)` accessed vector without bounds check
+**Fix:** Added bounds validation returning nullptr for invalid indices
+
+### 7. overworld.h - Sprite Accessors (Fixed 2025-11-26)
+**File:** `src/zelda3/overworld/overworld.h`
+**Issue:** `sprites(int state)` accessed array without validating state (0-2)
+**Fix:** Added bounds check returning empty vector for invalid state
+
+### 8. overworld.h - Current Map Accessors (Fixed 2025-11-26)
+**File:** `src/zelda3/overworld/overworld.h`
+**Issue:** `current_graphics()`, `current_area_palette()`, etc. accessed `overworld_maps_[current_map_]` without validating `current_map_`
+**Fix:** Added `is_current_map_valid()` helper and validation in all accessors
+
+### 9. snes_palette.h - PaletteGroup Negative Index (Fixed 2025-11-26)
+**File:** `src/app/gfx/types/snes_palette.h`
+**Issue:** `operator[]` only checked upper bound, not negative indices
+**Fix:** Added `i < 0` check to bounds validation
+
+### 10. room.cc - LoadAnimatedGraphics sizeof vs size() (Fixed 2025-11-26)
+**File:** `src/zelda3/dungeon/room.cc`
+**Issue:** Used `sizeof(current_gfx16_)` instead of `.size()` for bounds checking
+**Fix:** Changed to use `.size()` for clarity and maintainability
+
 ## Patterns Requiring Caution
 
 ### Critical Risk Patterns

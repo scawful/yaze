@@ -532,6 +532,7 @@ absl::StatusOr<std::array<gfx::Bitmap, kNumGfxSheets>> LoadAllGraphicsData(
         diag.sheets[i].decompression_succeeded = false;
         diag.sheets[i].decomp_size_param = 0x800;
       } else {
+
         // Decompress LC-LZ2 data to 0x800 byte buffer
         // CRITICAL: size parameter MUST be 0x800, not 0!
         // size=0 causes DecompressV2 to return empty data immediately.
@@ -542,8 +543,19 @@ absl::StatusOr<std::array<gfx::Bitmap, kNumGfxSheets>> LoadAllGraphicsData(
           bpp3 = true;
           diag.sheets[i].decompression_succeeded = true;
           diag.sheets[i].actual_decomp_size = sheet.size();
+          
+          // DEBUG: Log success for specific sheets
+          if (i == 73 || i == 115) {
+             printf("[LoadAllGraphicsData] Sheet %d: Decompressed successfully. Size: %zu. Offset: 0x%X\n", 
+                    i, sheet.size(), offset);
+          }
+
         } else {
           LOG_WARN("Rom", "Decompression failed for sheet %u: %s", i, decomp_result.status().message());
+          // DEBUG: Log failure
+          if (i == 73 || i == 115) {
+             printf("[LoadAllGraphicsData] Sheet %d: Decompression FAILED. Offset: 0x%X\n", i, offset);
+          }
           bpp3 = false;
           diag.sheets[i].decompression_succeeded = false;
         }
@@ -950,6 +962,14 @@ absl::Status Rom::LoadGfxGroups() {
       if (idx < rom_data_.size()) {
         main_blockset_ids[i][j] = rom_data_[idx];
       }
+    }
+    // DEBUG: Log first blockset to verify
+    if (i == 0) {
+      printf("[LoadGfxGroups] Blockset 0: %d %d %d %d %d %d %d %d\n",
+             main_blockset_ids[i][0], main_blockset_ids[i][1],
+             main_blockset_ids[i][2], main_blockset_ids[i][3],
+             main_blockset_ids[i][4], main_blockset_ids[i][5],
+             main_blockset_ids[i][6], main_blockset_ids[i][7]);
     }
   }
 
