@@ -41,64 +41,37 @@ void BackgroundBuffer::ClearBuffer() {
 
 void BackgroundBuffer::DrawTile(const TileInfo& tile, uint8_t* canvas,
                                 const uint8_t* tiledata, int indexoffset) {
-  // tiledata is a 128-pixel-wide indexed bitmap (16 tiles/row * 8 pixels/tile)
-  // Calculate tile position in the tilesheet
-  int tile_x = (tile.id_ % 16) * 8;  // 16 tiles per row, 8 pixels per tile
-  int tile_y = (tile.id_ / 16) * 8;  // Each row is 16 tiles
+  // tiledata is now 8BPP linear data (1 byte per pixel)
+  
+  // Calculate tile position in the 8BPP buffer
+  int tile_col_idx = tile.id_ % 16;
+  int tile_row_idx = tile.id_ / 16;
+  
+  int tile_base_x = tile_col_idx * 8;    // 8 pixels wide (8 bytes)
+  int tile_base_y = tile_row_idx * 1024; // 8 rows * 128 bytes stride (sheet width)
+  
+  // Palette handling
+  uint8_t palette_idx = tile.palette_ & 0x0F;
+  uint8_t palette_offset = palette_idx * 8; // 8-color packed groups
 
-  // DEBUG: For floor tiles, check what we're actually reading
-  static int debug_count = 0;
-  if (debug_count < 4 && (tile.id_ == 0xEC || tile.id_ == 0xED ||
-                          tile.id_ == 0xFC || tile.id_ == 0xFD)) {
-    LOG_DEBUG(
-        "[DrawTile]",
-        "Floor tile 0x%02X at sheet pos (%d,%d), palette=%d, mirror=(%d,%d)",
-        tile.id_, tile_x, tile_y, tile.palette_, tile.horizontal_mirror_,
-        tile.vertical_mirror_);
-    LOG_DEBUG("[DrawTile]", "First row (8 pixels): ");
-    for (int i = 0; i < 8; i++) {
-      int src_index = tile_y * 128 + (tile_x + i);
-      LOG_DEBUG("[DrawTile]", "%d ", tiledata[src_index]);
-    }
-    LOG_DEBUG("[DrawTile]", "Second row (8 pixels): ");
-    for (int i = 0; i < 8; i++) {
-      int src_index = (tile_y + 1) * 128 + (tile_x + i);
-      LOG_DEBUG("[DrawTile]", "%d ", tiledata[src_index]);
-    }
-    debug_count++;
-  }
-
-  // Dungeon graphics are 3BPP: 8 colors per palette (0-7, 8-15, 16-23, etc.)
-  // NOT 4BPP which would be 16 colors per palette!
-  // Clamp palette to 0-10 (90 colors / 8 = 11.25, so max palette is 10)
-  uint8_t clamped_palette = tile.palette_ & 0x0F;
-  if (clamped_palette > 10) {
-    clamped_palette = clamped_palette % 11;
-  }
-
-  // For 3BPP: palette offset = palette * 8 (not * 16!)
-  uint8_t palette_offset = (uint8_t)(clamped_palette * 8);
-
-  // Copy 8x8 pixels from tiledata to canvas
+  // Copy 8x8 pixels
   for (int py = 0; py < 8; py++) {
+    int src_row = tile.vertical_mirror_ ? (7 - py) : py;
+    
     for (int px = 0; px < 8; px++) {
-      // Apply mirroring
-      int src_x = tile.horizontal_mirror_ ? (7 - px) : px;
-      int src_y = tile.vertical_mirror_ ? (7 - py) : py;
-
-      // Read pixel from tiledata (128-pixel-wide bitmap)
-      int src_index = (tile_y + src_y) * 128 + (tile_x + src_x);
-      uint8_t pixel_index = tiledata[src_index];
-
-      // Apply palette offset and write to canvas
-      // For 3BPP: final color = base_pixel (0-7) + palette_offset (0, 8, 16,
-      // 24, ...)
-      if (pixel_index == 0) {
-        continue;
+      int src_col = tile.horizontal_mirror_ ? (7 - px) : px;
+      
+      // Calculate source index
+      // Stride is 128 bytes (sheet width)
+      int src_index = (src_row * 128) + src_col + tile_base_x + tile_base_y;
+      
+      uint8_t pixel = tiledata[src_index];
+      
+      if (pixel != 0) {
+        uint8_t final_color = pixel + palette_offset;
+        int dest_index = indexoffset + (py * width_) + px;
+        canvas[dest_index] = final_color;
       }
-      uint8_t final_color = pixel_index + palette_offset;
-      int dest_index = indexoffset + (py * width_) + px;
-      canvas[dest_index] = final_color;
     }
   }
 }

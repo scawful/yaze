@@ -95,7 +95,7 @@ void RenderCanvasLabels(ImDrawList* draw_list, const CanvasGeometry& geometry,
 void RenderBitmapOnCanvas(ImDrawList* draw_list, const CanvasGeometry& geometry,
                           gfx::Bitmap& bitmap, int /*border_offset*/,
                           float scale) {
-  if (!bitmap.is_active()) {
+  if (!bitmap.is_active() || !bitmap.texture()) {
     return;
   }
 
@@ -104,13 +104,15 @@ void RenderBitmapOnCanvas(ImDrawList* draw_list, const CanvasGeometry& geometry,
                       ImVec2(geometry.canvas_p0.x, geometry.canvas_p0.y),
                       ImVec2(geometry.canvas_p0.x + (bitmap.width() * scale),
                              geometry.canvas_p0.y + (bitmap.height() * scale)));
-  draw_list->AddRect(geometry.canvas_p0, geometry.canvas_p1, kWhiteColor);
+  // NOTE: Canvas border is drawn once by RenderCanvasBackground().
+  // Do NOT draw border here - this function is called per-bitmap, which would
+  // cause N stacked border rectangles (e.g., 64 in overworld editor).
 }
 
 void RenderBitmapOnCanvas(ImDrawList* draw_list, const CanvasGeometry& geometry,
                           gfx::Bitmap& bitmap, int x_offset, int y_offset,
                           float scale, int alpha) {
-  if (!bitmap.is_active()) {
+  if (!bitmap.is_active() || !bitmap.texture()) {
     return;
   }
 
@@ -136,7 +138,7 @@ void RenderBitmapOnCanvas(ImDrawList* draw_list, const CanvasGeometry& geometry,
 void RenderBitmapOnCanvas(ImDrawList* draw_list, const CanvasGeometry& geometry,
                           gfx::Bitmap& bitmap, ImVec2 dest_pos,
                           ImVec2 dest_size, ImVec2 src_pos, ImVec2 src_size) {
-  if (!bitmap.is_active()) {
+  if (!bitmap.is_active() || !bitmap.texture()) {
     return;
   }
 
