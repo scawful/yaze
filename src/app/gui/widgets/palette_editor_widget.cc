@@ -6,6 +6,7 @@
 #include "absl/strings/str_format.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gui/core/color.h"
+#include "app/gui/core/popup_id.h"
 #include "util/log.h"
 
 namespace yaze {
@@ -87,30 +88,39 @@ void PaletteEditorWidget::DrawColorPicker() {
   auto palette = dungeon_pal_group[current_palette_id_];
   auto original_color = palette[selected_color_index_];
 
-  if (ImGui::ColorEdit3(
-          "Color", &editing_color_.x,
+  // Use standardized SnesColorEdit4 for consistency
+  if (gui::SnesColorEdit4(
+          "Color", &palette[selected_color_index_],
           ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_PickerHueWheel)) {
-    int r = static_cast<int>(editing_color_.x * 31.0f);
-    int g = static_cast<int>(editing_color_.y * 31.0f);
-    int b = static_cast<int>(editing_color_.z * 31.0f);
-    uint16_t snes_color = (b << 10) | (g << 5) | r;
-
-    palette[selected_color_index_] = gfx::SnesColor(snes_color);
+    // Update the palette group with the modified palette
     dungeon_pal_group[current_palette_id_] = palette;
+
+    // Update editing_color_ to match (for consistency with other parts of the
+    // widget)
+    editing_color_ =
+        gui::ConvertSnesColorToImVec4(palette[selected_color_index_]);
 
     if (on_palette_changed_) {
       on_palette_changed_(current_palette_id_);
     }
   }
 
-  ImGui::Text("RGB (0-255): (%d, %d, %d)", (int)(editing_color_.x * 255),
-              (int)(editing_color_.y * 255), (int)(editing_color_.z * 255));
+  ImGui::Text("RGB (0-255): (%d, %d, %d)",
+              static_cast<int>(editing_color_.x * 255),
+              static_cast<int>(editing_color_.y * 255),
+              static_cast<int>(editing_color_.z * 255));
   ImGui::Text("SNES BGR555: 0x%04X", original_color.snes());
 
   if (ImGui::Button("Reset to Original")) {
-    editing_color_ =
-        ImVec4(original_color.rgb().x / 255.0f, original_color.rgb().y / 255.0f,
-               original_color.rgb().z / 255.0f, 1.0f);
+    editing_color_ = ImVec4(original_color.rgb().x / 255.0f,
+                            original_color.rgb().y / 255.0f,
+                            original_color.rgb().z / 255.0f, 1.0f);
+    // Also reset the actual palette color
+    palette[selected_color_index_] = original_color;
+    dungeon_pal_group[current_palette_id_] = palette;
+    if (on_palette_changed_) {
+      on_palette_changed_(current_palette_id_);
+    }
   }
 }
 
@@ -160,8 +170,7 @@ void PaletteEditorWidget::ShowPaletteEditor(gfx::SnesPalette& palette,
 }
 
 void PaletteEditorWidget::ShowROMPaletteManager() {
-  if (!show_rom_manager_)
-    return;
+  if (!show_rom_manager_) return;
 
   if (ImGui::Begin("ROM Palette Manager", &show_rom_manager_)) {
     if (!rom_) {
@@ -191,8 +200,7 @@ void PaletteEditorWidget::ShowROMPaletteManager() {
 
 void PaletteEditorWidget::ShowColorAnalysis(const gfx::Bitmap& bitmap,
                                             const std::string& title) {
-  if (!show_color_analysis_)
-    return;
+  if (!show_color_analysis_) return;
 
   if (ImGui::Begin(title.c_str(), &show_color_analysis_)) {
     ImGui::Text("Bitmap Color Analysis");
@@ -297,8 +305,7 @@ bool PaletteEditorWidget::RestorePaletteBackup(gfx::SnesPalette& palette) {
 // Unified grid drawing function
 void PaletteEditorWidget::DrawPaletteGrid(gfx::SnesPalette& palette, int cols) {
   for (int i = 0; i < static_cast<int>(palette.size()); i++) {
-    if (i % cols != 0)
-      ImGui::SameLine();
+    if (i % cols != 0) ImGui::SameLine();
 
     auto color = palette[i];
     ImVec4 display_color = color.rgb();
@@ -338,8 +345,12 @@ void PaletteEditorWidget::DrawPaletteGrid(gfx::SnesPalette& palette, int cols) {
   }
 
   if (editing_color_index_ >= 0) {
-    ImGui::OpenPopup("Edit Color");
-    if (ImGui::BeginPopupModal("Edit Color", nullptr,
+    // Use a unique ID for the popup to prevent conflicts
+    std::string popup_id =
+        gui::MakePopupIdWithInstance("PaletteEditorWidget", "EditColor", this);
+
+    ImGui::OpenPopup(popup_id.c_str());
+    if (ImGui::BeginPopupModal(popup_id.c_str(), nullptr,
                                ImGuiWindowFlags_AlwaysAutoResize)) {
       ImGui::Text("Editing Color %d", editing_color_index_);
       if (ImGui::ColorEdit4(

@@ -15,6 +15,40 @@ static constexpr int kRoomObjectSubtype2 = 0x0F83F0;      // SNES: $08:83F0
 static constexpr int kRoomObjectSubtype3 = 0x0F84F0;      // SNES: $08:84F0
 static constexpr int kRoomObjectTileAddress = 0x091B52;   // SNES: $09:1B52
 
+// Subtype 1 tile count lookup table (from ZScream's DungeonObjectData.cs)
+// Each entry specifies how many tiles to read for that object ID (0x00-0xF7)
+// Index directly by (object_id & 0xFF) for subtype 1 objects
+// clang-format off
+static constexpr uint8_t kSubtype1TileLengths[0xF8] = {
+     4,  8,  8,  8,  8,  8,  8,  4,  4,  5,  5,  5,  5,  5,  5,  5,  // 0x00-0x0F
+     5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  // 0x10-0x1F
+     5,  9,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  6,  // 0x20-0x2F
+     6,  1,  1, 16,  1,  1, 16, 16,  6,  8, 12, 12,  4,  8,  4,  3,  // 0x30-0x3F
+     3,  3,  3,  3,  3,  3,  3,  0,  0,  8,  8,  4,  9, 16, 16, 16,  // 0x40-0x4F
+     1, 18, 18,  4,  1,  8,  8,  1,  1,  1,  1, 18, 18, 15,  4,  3,  // 0x50-0x5F
+     4,  8,  8,  8,  8,  8,  8,  4,  4,  3,  1,  1,  6,  6,  1,  1,  // 0x60-0x6F
+    16,  1,  1, 16, 16,  8, 16, 16,  4,  1,  1,  4,  1,  4,  1,  8,  // 0x70-0x7F
+     8, 12, 12, 12, 12, 18, 18,  8, 12,  4,  3,  3,  3,  1,  1,  6,  // 0x80-0x8F
+     8,  8,  4,  4, 16,  4,  4,  1,  1,  1,  1,  1,  1,  1,  1,  1,  // 0x90-0x9F
+     1,  1,  1,  1, 24,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  // 0xA0-0xAF
+     1,  1, 16,  3,  3,  8,  8,  8,  4,  4, 16,  4,  4,  4,  1,  1,  // 0xB0-0xBF
+     1, 68,  1,  1,  8,  8,  8,  8,  8,  8,  8,  1,  1, 28, 28,  1,  // 0xC0-0xCF
+     1,  8,  8,  0,  0,  0,  0,  1,  8,  8,  8,  8, 21, 16,  4,  8,  // 0xD0-0xDF
+     8,  8,  8,  8,  8,  8,  8,  8,  8,  1,  1,  1,  1,  1,  1,  1,  // 0xE0-0xEF
+     1,  1,  1,  1,  1,  1,  1,  1                                   // 0xF0-0xF7
+};
+// clang-format on
+
+// Helper function to get tile count for Subtype 1 objects
+static inline int GetSubtype1TileCount(int object_id) {
+  int index = object_id & 0xFF;
+  if (index < 0xF8) {
+    int count = kSubtype1TileLengths[index];
+    return (count > 0) ? count : 8;  // Default to 8 if table has 0
+  }
+  return 8;  // Default for IDs >= 0xF8
+}
+
 namespace yaze {
 namespace zelda3 {
 
@@ -70,7 +104,7 @@ absl::StatusOr<ObjectSubtypeInfo> ObjectParser::GetObjectSubtype(
       int index = object_id & 0xFF;
       info.subtype_ptr = kRoomObjectSubtype1 + (index * 2);
       info.routine_ptr = kRoomObjectSubtype1 + 0x200 + (index * 2);
-      info.max_tile_count = 8;  // Most subtype 1 objects use 8 tiles
+      info.max_tile_count = GetSubtype1TileCount(object_id);  // Use lookup table
       break;
     }
     case 2: {
@@ -138,8 +172,9 @@ absl::StatusOr<std::vector<gfx::TileInfo>> ObjectParser::ParseSubtype1(
   uint8_t high = rom_->data()[tile_ptr + 1];
   int tile_data_ptr = kRoomObjectTileAddress + ((high << 8) | low);
 
-  // Read 8 tiles (most subtype 1 objects use 8 tiles)
-  return ReadTileData(tile_data_ptr, 8);
+  // Use lookup table for correct tile count per object ID
+  int tile_count = GetSubtype1TileCount(object_id);
+  return ReadTileData(tile_data_ptr, tile_count);
 }
 
 absl::StatusOr<std::vector<gfx::TileInfo>> ObjectParser::ParseSubtype2(
