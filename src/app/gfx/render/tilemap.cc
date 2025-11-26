@@ -135,9 +135,13 @@ std::vector<uint8_t> FetchTileDataFromGraphicsBuffer(
   int row_in_sheet = position_in_sheet / tiles_per_row;
   int column_in_sheet = position_in_sheet % tiles_per_row;
 
-  assert(sheet >= sheet_offset && sheet <= sheet_offset + 3);
+  // Bounds check for sheet range
+  if (sheet < sheet_offset || sheet > sheet_offset + 3) {
+    return std::vector<uint8_t>(tile_width * tile_height, 0);
+  }
 
-  std::vector<uint8_t> tile_data(tile_width * tile_height);
+  const int data_size = static_cast<int>(data.size());
+  std::vector<uint8_t> tile_data(tile_width * tile_height, 0);
   for (int y = 0; y < tile_height; ++y) {
     for (int x = 0; x < tile_width; ++x) {
       int src_x = column_in_sheet * tile_width + x;
@@ -145,7 +149,11 @@ std::vector<uint8_t> FetchTileDataFromGraphicsBuffer(
 
       int src_index = (src_y * buffer_width) + src_x;
       int dest_index = y * tile_width + x;
-      tile_data[dest_index] = data[src_index];
+
+      // Bounds check before access
+      if (src_index >= 0 && src_index < data_size) {
+        tile_data[dest_index] = data[src_index];
+      }
     }
   }
   return tile_data;
