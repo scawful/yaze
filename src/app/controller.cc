@@ -128,24 +128,8 @@ absl::Status Controller::OnLoad() {
 }
 
 void Controller::DoRender() const {
-  // Update timing at frame START for accurate delta detection
-  float delta_time = TimingManager::Get().Update();
-  TimingManager::Get().BeginFrame();
-
-  // Adaptive texture processing based on frame budget
-  // Process textures while we have time budget remaining (> 2ms before deadline)
-  constexpr float kMinBudgetMs = 2.0f;  // Reserve 2ms for rendering
-  int textures_processed = 0;
-
-  while (gfx::Arena::Get().HasPendingTextures() &&
-         TimingManager::Get().GetFrameBudgetRemainingMs() > kMinBudgetMs) {
-    if (!gfx::Arena::Get().ProcessSingleTexture(renderer_.get())) {
-      break;  // No more valid textures to process
-    }
-    textures_processed++;
-    // Safety cap to prevent infinite loops
-    if (textures_processed >= 32) break;
-  }
+  // Process pending texture commands (max 8 per frame for consistent performance)
+  gfx::Arena::Get().ProcessTextureQueue(renderer_.get());
 
   ImGui::Render();
   renderer_->Clear();
@@ -153,6 +137,9 @@ void Controller::DoRender() const {
       ImGui::GetDrawData(),
       static_cast<SDL_Renderer*>(renderer_->GetBackendRenderer()));
   renderer_->Present();
+
+  // Get delta time AFTER render for accurate measurement
+  float delta_time = TimingManager::Get().Update();
 
   // Gentle frame rate cap to prevent excessive CPU usage
   // Only delay if we're rendering faster than 144 FPS (< 7ms per frame)
