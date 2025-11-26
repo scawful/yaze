@@ -88,16 +88,16 @@ absl::Status ScreenEditor::Load() {
       tile16_blockset_, *rom(), rom()->graphics_buffer(), false));
 
   // Load graphics sheets and apply dungeon palette
-  sheets_.try_emplace(0, gfx::Arena::Get().gfx_sheets()[212]);
-  sheets_.try_emplace(1, gfx::Arena::Get().gfx_sheets()[213]);
-  sheets_.try_emplace(2, gfx::Arena::Get().gfx_sheets()[214]);
-  sheets_.try_emplace(3, gfx::Arena::Get().gfx_sheets()[215]);
+  sheets_[0] = std::make_unique<gfx::Bitmap>(gfx::Arena::Get().gfx_sheets()[212]);
+  sheets_[1] = std::make_unique<gfx::Bitmap>(gfx::Arena::Get().gfx_sheets()[213]);
+  sheets_[2] = std::make_unique<gfx::Bitmap>(gfx::Arena::Get().gfx_sheets()[214]);
+  sheets_[3] = std::make_unique<gfx::Bitmap>(gfx::Arena::Get().gfx_sheets()[215]);
 
   // Apply dungeon palette to all sheets
   for (int i = 0; i < 4; i++) {
-    sheets_[i].SetPalette(*rom()->mutable_dungeon_palette(3));
+    sheets_[i]->SetPalette(*rom()->mutable_dungeon_palette(3));
     gfx::Arena::Get().QueueTextureCommand(
-        gfx::Arena::TextureCommandType::CREATE, &sheets_[i]);
+        gfx::Arena::TextureCommandType::CREATE, sheets_[i].get());
   }
 
   // Create a single tilemap for tile8 graphics with on-demand texture creation
@@ -109,7 +109,7 @@ absl::Status ScreenEditor::Load() {
 
   // Copy data from all 4 sheets into the combined bitmap
   for (int sheet_idx = 0; sheet_idx < 4; sheet_idx++) {
-    const auto& sheet = sheets_[sheet_idx];
+    const auto& sheet = *sheets_[sheet_idx];
     int dest_y_offset = sheet_idx * 32;  // Each sheet is 32 pixels tall
 
     for (int y = 0; y < 32; y++) {
@@ -765,11 +765,11 @@ void ScreenEditor::LoadBinaryGfx() {
         for (int i = 0; i < 4; i++) {
           gfx_sheets.emplace_back(converted_bin.begin() + (i * 0x1000),
                                   converted_bin.begin() + ((i + 1) * 0x1000));
-          sheets_.emplace(i, gfx::Bitmap(128, 32, 8, gfx_sheets[i]));
-          sheets_[i].SetPalette(*rom()->mutable_dungeon_palette(3));
+          sheets_[i] = std::make_unique<gfx::Bitmap>(128, 32, 8, gfx_sheets[i]);
+          sheets_[i]->SetPalette(*rom()->mutable_dungeon_palette(3));
           // Queue texture creation via Arena's deferred system
           gfx::Arena::Get().QueueTextureCommand(
-              gfx::Arena::TextureCommandType::CREATE, &sheets_[i]);
+              gfx::Arena::TextureCommandType::CREATE, sheets_[i].get());
         }
         binary_gfx_loaded_ = true;
       } else {

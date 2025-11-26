@@ -32,7 +32,9 @@ Arena::~Arena() {
 }
 
 void Arena::QueueTextureCommand(TextureCommandType type, Bitmap* bitmap) {
-  texture_command_queue_.push_back({type, bitmap});
+  // Store generation at queue time for staleness detection
+  uint32_t gen = bitmap ? bitmap->generation() : 0;
+  texture_command_queue_.push_back({type, bitmap, gen});
 }
 
 bool Arena::ProcessSingleTexture(IRenderer* renderer) {
@@ -44,6 +46,14 @@ bool Arena::ProcessSingleTexture(IRenderer* renderer) {
   auto it = texture_command_queue_.begin();
   const auto& command = *it;
   bool processed = false;
+
+  // Skip stale commands where bitmap was reallocated since queuing
+  if (command.bitmap && command.bitmap->generation() != command.generation) {
+    LOG_DEBUG("Arena", "Skipping stale texture command (gen %u != %u)",
+              command.generation, command.bitmap->generation());
+    texture_command_queue_.erase(it);
+    return false;
+  }
 
   switch (command.type) {
     case TextureCommandType::CREATE: {
@@ -121,6 +131,14 @@ void Arena::ProcessTextureQueue(IRenderer* renderer) {
     const auto& command = *it;
     bool should_remove = true;
 
+    // Skip stale commands where bitmap was reallocated since queuing
+    if (command.bitmap && command.bitmap->generation() != command.generation) {
+      LOG_DEBUG("Arena", "Skipping stale texture command (gen %u != %u)",
+                command.generation, command.bitmap->generation());
+      it = texture_command_queue_.erase(it);
+      continue;
+    }
+
     // CRITICAL: Replicate the exact short-circuit evaluation from working code
     // We MUST check command.bitmap AND command.bitmap->surface() in one
     // expression to avoid dereferencing invalid pointers
@@ -151,25 +169,41 @@ void Arena::ProcessTextureQueue(IRenderer* renderer) {
             LOG_WARN("Arena",
                      "Creating texture from surface WITHOUT palette - "
                      "colors will be incorrect!");
+            zelda3::PaletteDebugger::Get().LogPaletteApplication(
+                "Arena::ProcessTextureQueue", 0, false, "Surface has NO palette");
           } else if (color_count < 90) {
             LOG_WARN("Arena",
                      "Creating texture with only %d palette colors (expected "
                      "90 for dungeon)",
                      color_count);
+            zelda3::PaletteDebugger::Get().LogPaletteApplication(
+                "Arena::ProcessTextureQueue", 0, false,
+                absl::StrFormat("Low color count: %d", color_count));
           }
 
           try {
+            zelda3::PaletteDebugger::Get().LogPaletteApplication(
+                "Arena::ProcessTextureQueue", 0, true, "Calling CreateTexture...");
+            
             auto texture = active_renderer->CreateTexture(
                 command.bitmap->width(), command.bitmap->height());
+            
             if (texture) {
+              zelda3::PaletteDebugger::Get().LogPaletteApplication(
+                  "Arena::ProcessTextureQueue", 0, true, "CreateTexture SUCCESS");
+              
               command.bitmap->set_texture(texture);
               active_renderer->UpdateTexture(texture, *command.bitmap);
               processed++;
             } else {
+              zelda3::PaletteDebugger::Get().LogPaletteApplication(
+                  "Arena::ProcessTextureQueue", 0, false, "CreateTexture returned NULL");
               should_remove = false;  // Retry next frame
             }
           } catch (...) {
             LOG_ERROR("Arena", "Exception during texture creation");
+            zelda3::PaletteDebugger::Get().LogPaletteApplication(
+                "Arena::ProcessTextureQueue", 0, false, "EXCEPTION during texture creation");
             should_remove = true;  // Remove bad command
           }
         }

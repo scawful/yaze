@@ -1064,12 +1064,16 @@ void Canvas::DrawBitmap(Bitmap& bitmap, ImVec2 dest_pos, ImVec2 dest_size,
 // TODO: Add parameters for sizing and positioning
 void Canvas::DrawBitmapTable(const BitmapTable& gfx_bin) {
   for (const auto& [key, value] : gfx_bin) {
+    // Skip null or inactive bitmaps without valid textures
+    if (!value || !value->is_active() || !value->texture()) {
+      continue;
+    }
     int offset = 0x40 * (key + 1);
     int top_left_y = canvas_p0_.y + 2;
     if (key >= 1) {
       top_left_y = canvas_p0_.y + 0x40 * key;
     }
-    draw_list_->AddImage((ImTextureID)(intptr_t)value.texture(),
+    draw_list_->AddImage((ImTextureID)(intptr_t)value->texture(),
                          ImVec2(canvas_p0_.x + 2, top_left_y),
                          ImVec2(canvas_p0_.x + 0x100, canvas_p0_.y + offset));
   }
@@ -1451,13 +1455,17 @@ void GraphicsBinCanvasPipeline(int width, int height, int tile_size,
     canvas.DrawContextMenu();
     if (is_loaded) {
       for (const auto& [key, value] : graphics_bin) {
+        // Skip null bitmaps
+        if (!value || !value->texture()) {
+          continue;
+        }
         int offset = height * (key + 1);
         int top_left_y = canvas.zero_point().y + 2;
         if (key >= 1) {
           top_left_y = canvas.zero_point().y + height * key;
         }
         canvas.draw_list()->AddImage(
-            (ImTextureID)(intptr_t)value.texture(),
+            (ImTextureID)(intptr_t)value->texture(),
             ImVec2(canvas.zero_point().x + 2, top_left_y),
             ImVec2(canvas.zero_point().x + 0x100,
                    canvas.zero_point().y + offset));

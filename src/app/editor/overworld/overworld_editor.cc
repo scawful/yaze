@@ -1802,13 +1802,13 @@ absl::Status OverworldEditor::DrawAreaGraphics() {
     if (!current_graphics_set_.contains(current_map_)) {
       overworld_.set_current_map(current_map_);
       palette_ = overworld_.current_area_palette();
-      gfx::Bitmap bmp;
-      bmp.Create(0x80, kOverworldMapSize, 0x08, overworld_.current_graphics());
-      bmp.SetPalette(palette_);
+      auto bmp = std::make_unique<gfx::Bitmap>();
+      bmp->Create(0x80, kOverworldMapSize, 0x08, overworld_.current_graphics());
+      bmp->SetPalette(palette_);
       current_graphics_set_[current_map_] = std::move(bmp);
       gfx::Arena::Get().QueueTextureCommand(
           gfx::Arena::TextureCommandType::CREATE,
-          &current_graphics_set_[current_map_]);
+          current_graphics_set_[current_map_].get());
     }
   }
 
@@ -1820,8 +1820,8 @@ absl::Status OverworldEditor::DrawAreaGraphics() {
   {
     current_gfx_canvas_.DrawContextMenu();
     if (current_graphics_set_.contains(current_map_) &&
-        current_graphics_set_[current_map_].is_active()) {
-      current_gfx_canvas_.DrawBitmap(current_graphics_set_[current_map_], 2, 2,
+        current_graphics_set_[current_map_]->is_active()) {
+      current_gfx_canvas_.DrawBitmap(*current_graphics_set_[current_map_], 2, 2,
                                      2.0f);
     }
     current_gfx_canvas_.DrawTileSelector(32.0f);
@@ -3264,7 +3264,10 @@ void OverworldEditor::HandleEntityInsertion(const std::string& entity_type) {
     if (result.ok()) {
       current_entrance_ = **result;
       current_entity_ = *result;
-      ImGui::OpenPopup("Entrance Editor");
+      ImGui::OpenPopup(
+          gui::MakePopupId(gui::EditorNames::kOverworld,
+                           gui::PopupNames::kEntranceEditor)
+              .c_str());
       rom_->set_dirty(true);
       LOG_DEBUG("OverworldEditor", "Entrance inserted successfully at map=%d",
                 current_map_);
@@ -3278,7 +3281,10 @@ void OverworldEditor::HandleEntityInsertion(const std::string& entity_type) {
     if (result.ok()) {
       current_entrance_ = **result;
       current_entity_ = *result;
-      ImGui::OpenPopup("Entrance Editor");
+      ImGui::OpenPopup(
+          gui::MakePopupId(gui::EditorNames::kOverworld,
+                           gui::PopupNames::kEntranceEditor)
+              .c_str());
       rom_->set_dirty(true);
       LOG_DEBUG("OverworldEditor", "Hole inserted successfully at map=%d",
                 current_map_);
@@ -3292,7 +3298,10 @@ void OverworldEditor::HandleEntityInsertion(const std::string& entity_type) {
     if (result.ok()) {
       current_exit_ = **result;
       current_entity_ = *result;
-      ImGui::OpenPopup("Exit editor");
+      ImGui::OpenPopup(
+          gui::MakePopupId(gui::EditorNames::kOverworld,
+                           gui::PopupNames::kExitEditor)
+              .c_str());
       rom_->set_dirty(true);
       LOG_DEBUG("OverworldEditor", "Exit inserted successfully at map=%d",
                 current_map_);
@@ -3306,7 +3315,10 @@ void OverworldEditor::HandleEntityInsertion(const std::string& entity_type) {
     if (result.ok()) {
       current_item_ = **result;
       current_entity_ = *result;
-      ImGui::OpenPopup("Item editor");
+      ImGui::OpenPopup(
+          gui::MakePopupId(gui::EditorNames::kOverworld,
+                           gui::PopupNames::kItemEditor)
+              .c_str());
       rom_->set_dirty(true);
       LOG_DEBUG("OverworldEditor", "Item inserted successfully at map=%d",
                 current_map_);
@@ -3321,7 +3333,10 @@ void OverworldEditor::HandleEntityInsertion(const std::string& entity_type) {
     if (result.ok()) {
       current_sprite_ = **result;
       current_entity_ = *result;
-      ImGui::OpenPopup("Sprite editor");
+      ImGui::OpenPopup(
+          gui::MakePopupId(gui::EditorNames::kOverworld,
+                           gui::PopupNames::kSpriteEditor)
+              .c_str());
       rom_->set_dirty(true);
       LOG_DEBUG("OverworldEditor", "Sprite inserted successfully at map=%d",
                 current_map_);

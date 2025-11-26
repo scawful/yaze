@@ -83,6 +83,17 @@ Bitmap::Bitmap(const Bitmap& other)
 
 Bitmap& Bitmap::operator=(const Bitmap& other) {
   if (this != &other) {
+    // CRITICAL: Release old resources before replacing to prevent leaks
+    // Queue texture destruction if we have one
+    if (texture_) {
+      Arena::Get().QueueTextureCommand(Arena::TextureCommandType::DESTROY, this);
+    }
+    // Free old surface through Arena
+    if (surface_) {
+      Arena::Get().FreeSurface(surface_);
+      surface_ = nullptr;
+    }
+
     width_ = other.width_;
     height_ = other.height_;
     depth_ = other.depth_;
@@ -90,6 +101,8 @@ Bitmap& Bitmap::operator=(const Bitmap& other) {
     modified_ = other.modified_;
     palette_ = other.palette_;
     data_ = other.data_;
+    // Assign new generation since this is effectively a new bitmap
+    generation_ = next_generation_++;
 
     // Copy the data and recreate surface/texture
     pixel_data_ = data_.data();
@@ -102,6 +115,7 @@ Bitmap& Bitmap::operator=(const Bitmap& other) {
         SDL_UnlockSurface(surface_);
       }
     }
+    texture_ = nullptr;  // Will be recreated on demand
   }
   return *this;
 }
@@ -112,6 +126,7 @@ Bitmap::Bitmap(Bitmap&& other) noexcept
       depth_(other.depth_),
       active_(other.active_),
       modified_(other.modified_),
+      generation_(other.generation_),
       texture_pixels(other.texture_pixels),
       pixel_data_(other.pixel_data_),
       palette_(std::move(other.palette_)),
@@ -124,6 +139,7 @@ Bitmap::Bitmap(Bitmap&& other) noexcept
   other.depth_ = 0;
   other.active_ = false;
   other.modified_ = false;
+  other.generation_ = 0;
   other.texture_pixels = nullptr;
   other.pixel_data_ = nullptr;
   other.surface_ = nullptr;
@@ -132,11 +148,22 @@ Bitmap::Bitmap(Bitmap&& other) noexcept
 
 Bitmap& Bitmap::operator=(Bitmap&& other) noexcept {
   if (this != &other) {
+    // CRITICAL: Release old resources before taking ownership of new ones
+    // Note: We can't queue texture destruction in noexcept move, so we rely on
+    // the Arena's deferred command system to handle stale textures via generation
+    // checking. The old texture will be orphaned but won't cause crashes.
+    // For proper cleanup, prefer copy assignment when explicit resource release
+    // is needed.
+    if (surface_) {
+      Arena::Get().FreeSurface(surface_);
+    }
+
     width_ = other.width_;
     height_ = other.height_;
     depth_ = other.depth_;
     active_ = other.active_;
     modified_ = other.modified_;
+    generation_ = other.generation_;  // Preserve generation from source
     texture_pixels = other.texture_pixels;
     pixel_data_ = other.pixel_data_;
     palette_ = std::move(other.palette_);
@@ -150,6 +177,7 @@ Bitmap& Bitmap::operator=(Bitmap&& other) noexcept {
     other.depth_ = 0;
     other.active_ = false;
     other.modified_ = false;
+    other.generation_ = 0;
     other.texture_pixels = nullptr;
     other.pixel_data_ = nullptr;
     other.surface_ = nullptr;
@@ -190,6 +218,8 @@ void Bitmap::Create(int width, int height, int depth, int format,
     return;
   }
   active_ = true;
+  // Assign new generation for staleness detection in deferred texture commands
+  generation_ = next_generation_++;
   width_ = width;
   height_ = height;
   depth_ = depth;
