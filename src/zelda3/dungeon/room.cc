@@ -349,11 +349,12 @@ void Room::LoadRoomGraphics(uint8_t entrance_blockset) {
 
   for (int i = 0; i < 8; i++) {
     blocks_[i] = rom()->main_blockset_ids[blockset][i];
-    if (i >= 6 && i <= 6) {
-      // 3-6
+    // Block 6 can be overridden by entrance-specific room graphics (index 3)
+    // Note: The "3-6" comment was misleading - only block 6 uses room_gfx
+    if (i == 6) {
       if (entrance_blockset != 0xFF &&
-          room_gfx[entrance_blockset][i - 3] != 0) {
-        blocks_[i] = room_gfx[entrance_blockset][i - 3];
+          room_gfx[entrance_blockset][3] != 0) {
+        blocks_[i] = room_gfx[entrance_blockset][3];
       }
     }
   }
@@ -665,6 +666,15 @@ void Room::LoadLayoutTilesToBuffer() {
 
   if (!rom_ || !rom_->is_loaded()) {
     LOG_DEBUG("RenderRoomGraphics", "ROM not loaded, aborting");
+    return;
+  }
+
+  // Load layout tiles from ROM if not already loaded
+  layout_.set_rom(rom_);
+  auto layout_status = layout_.LoadLayout(layout);
+  if (!layout_status.ok()) {
+    LOG_DEBUG("RenderRoomGraphics", "Failed to load layout %d: %s",
+              layout, layout_status.message().data());
     return;
   }
 
