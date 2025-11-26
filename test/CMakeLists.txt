@@ -142,6 +142,7 @@ if(YAZE_BUILD_TESTS)
   if(YAZE_ENABLE_ROM_TESTS)
     set(ROM_DEPENDENT_TEST_SOURCES
       integration/asar_rom_test.cc
+      integration/zelda3/dungeon_graphics_transparency_test.cc
       e2e/rom_dependent/e2e_rom_test.cc
       e2e/zscustomoverworld/zscustomoverworld_upgrade_test.cc
     )

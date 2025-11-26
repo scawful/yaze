@@ -298,6 +298,10 @@ void ObjectDrawer::DrawRightwards2x2_1to15or32(
   if (size == 0)
     size = 32;  // Special case for object 0x00
 
+  LOG_DEBUG("ObjectDrawer",
+            "DrawRightwards2x2: obj=%04X pos=(%d,%d) size=%d tiles=%zu",
+            obj.id_, obj.x_, obj.y_, size, tiles.size());
+
   for (int s = 0; s < size; s++) {
     if (tiles.size() >= 4) {
       // Draw 2x2 pattern using 8x8 tiles from the span
@@ -306,6 +310,10 @@ void ObjectDrawer::DrawRightwards2x2_1to15or32(
       WriteTile8(bg, obj.x_ + (s * 2), obj.y_ + 1, tiles[2]);  // Bottom-left
       WriteTile8(bg, obj.x_ + (s * 2) + 1, obj.y_ + 1,
                  tiles[3]);  // Bottom-right
+    } else {
+      LOG_DEBUG("ObjectDrawer",
+                "DrawRightwards2x2: SKIPPING - tiles.size()=%zu < 4",
+                tiles.size());
     }
   }
 }
@@ -317,6 +325,10 @@ void ObjectDrawer::DrawRightwards2x4_1to15or26(
   int size = obj.size_;
   if (size == 0)
     size = 26;  // Special case
+
+  LOG_DEBUG("ObjectDrawer",
+            "DrawRightwards2x4: obj=%04X pos=(%d,%d) size=%d tiles=%zu",
+            obj.id_, obj.x_, obj.y_, size, tiles.size());
 
   for (int s = 0; s < size; s++) {
     if (tiles.size() >= 4) {
@@ -915,18 +927,8 @@ void ObjectDrawer::DrawTileToBitmap(gfx::Bitmap& bitmap,
   // Pixel 0 is transparent and skipped. Pixel 1 maps to index 0.
   uint8_t palette_offset = (tile_info.palette_ & 0x07) * 15;
 
-  // DEBUG: Log tile info for first few tiles
-  static int debug_tile_count = 0;
-  if (debug_tile_count < 5) {
-    printf("[ObjectDrawer] DrawTile8BPP: id=0x%03X pos=(%d,%d) base=(%d,%d) pal=%d\n",
-           tile_info.id_, pixel_x, pixel_y, tile_base_x, tile_base_y,
-           tile_info.palette_);
-    debug_tile_count++;
-  }
-
   // Draw 8x8 pixels
-  int pixels_written = 0;
-  int pixels_transparent = 0;
+  bool any_pixels_written = false;
 
   for (int py = 0; py < 8; py++) {
     // Source row with vertical mirroring
@@ -953,24 +955,16 @@ void ObjectDrawer::DrawTileToBitmap(gfx::Bitmap& bitmap,
           if (dest_index >= 0 &&
               dest_index < static_cast<int>(bitmap.mutable_data().size())) {
             bitmap.mutable_data()[dest_index] = final_color;
-            pixels_written++;
+            any_pixels_written = true;
           }
         }
-      } else {
-        pixels_transparent++;
       }
     }
   }
 
   // Mark bitmap as modified if we wrote any pixels
-  if (pixels_written > 0) {
+  if (any_pixels_written) {
     bitmap.set_modified(true);
-  }
-
-  // DEBUG: Log pixel writing stats for first few tiles
-  if (debug_tile_count <= 5) {
-    printf("[ObjectDrawer] Tile 0x%03X: wrote %d pixels, %d transparent\n",
-           tile_info.id_, pixels_written, pixels_transparent);
   }
 }
 

@@ -908,34 +908,10 @@ void DungeonCanvasViewer::DrawRoomBackgroundLayers(int room_id) {
   auto& bg1_bitmap = room.bg1_buffer().bitmap();
   auto& bg2_bitmap = room.bg2_buffer().bitmap();
 
-  // Draw BG1 layer if visible and active
-  if (layer_settings.bg1_visible && bg1_bitmap.is_active() &&
-      bg1_bitmap.width() > 0 && bg1_bitmap.height() > 0) {
-    if (!bg1_bitmap.texture()) {
-      // Queue texture creation for background layer 1 via Arena's deferred
-      // system BATCHING FIX: Don't process immediately - let the main loop
-      // handle batching
-      gfx::Arena::Get().QueueTextureCommand(
-          gfx::Arena::TextureCommandType::CREATE, &bg1_bitmap);
+  // IMPORTANT: Draw BG2 FIRST (background layer), then BG1 (foreground with objects)
+  // BG1 contains the objects drawn by ObjectDrawer and should be on top
 
-      // Queue will be processed at the end of the frame in DrawDungeonCanvas()
-      // This allows multiple rooms to batch their texture operations together
-    }
-
-    // Only draw if texture was successfully created
-    if (bg1_bitmap.texture()) {
-      // Use canvas global scale so bitmap scales with zoom
-      float scale = canvas_.global_scale();
-      LOG_DEBUG("DungeonCanvasViewer",
-                "Drawing BG1 bitmap to canvas with texture %p, scale=%.2f",
-                bg1_bitmap.texture(), scale);
-      canvas_.DrawBitmap(bg1_bitmap, 0, 0, scale, 255);
-    } else {
-      LOG_DEBUG("DungeonCanvasViewer", "ERROR: BG1 bitmap has no texture!");
-    }
-  }
-
-  // Draw BG2 layer if visible and active
+  // Draw BG2 layer FIRST if visible and active (background - underneath)
   if (layer_settings.bg2_visible && bg2_bitmap.is_active() &&
       bg2_bitmap.width() > 0 && bg2_bitmap.height() > 0) {
     if (!bg2_bitmap.texture()) {
@@ -964,6 +940,33 @@ void DungeonCanvasViewer::DrawRoomBackgroundLayers(int room_id) {
       canvas_.DrawBitmap(bg2_bitmap, 0, 0, scale, alpha_value);
     } else {
       LOG_DEBUG("DungeonCanvasViewer", "ERROR: BG2 bitmap has no texture!");
+    }
+  }
+
+  // Draw BG1 layer SECOND if visible and active (foreground - on top)
+  if (layer_settings.bg1_visible && bg1_bitmap.is_active() &&
+      bg1_bitmap.width() > 0 && bg1_bitmap.height() > 0) {
+    if (!bg1_bitmap.texture()) {
+      // Queue texture creation for background layer 1 via Arena's deferred
+      // system BATCHING FIX: Don't process immediately - let the main loop
+      // handle batching
+      gfx::Arena::Get().QueueTextureCommand(
+          gfx::Arena::TextureCommandType::CREATE, &bg1_bitmap);
+
+      // Queue will be processed at the end of the frame in DrawDungeonCanvas()
+      // This allows multiple rooms to batch their texture operations together
+    }
+
+    // Only draw if texture was successfully created
+    if (bg1_bitmap.texture()) {
+      // Use canvas global scale so bitmap scales with zoom
+      float scale = canvas_.global_scale();
+      LOG_DEBUG("DungeonCanvasViewer",
+                "Drawing BG1 bitmap to canvas with texture %p, scale=%.2f",
+                bg1_bitmap.texture(), scale);
+      canvas_.DrawBitmap(bg1_bitmap, 0, 0, scale, 255);
+    } else {
+      LOG_DEBUG("DungeonCanvasViewer", "ERROR: BG1 bitmap has no texture!");
     }
   }
 

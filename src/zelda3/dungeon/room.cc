@@ -450,6 +450,15 @@ void Room::CopyRoomGraphicsToBuffer() {
   }
   printf("\n");
 
+  // DEBUG: Count how many zeros are in the buffer (should be many for transparent pixels)
+  int zero_count = 0;
+  for (size_t i = 0; i < current_gfx16_.size(); i++) {
+    if (current_gfx16_[i] == 0) zero_count++;
+  }
+  printf("[CopyRoomGraphicsToBuffer] Zero bytes (transparent): %d / %zu (%.1f%%)\n",
+         zero_count, current_gfx16_.size(),
+         100.0f * zero_count / current_gfx16_.size());
+
   LoadAnimatedGraphics();
 }
 
