@@ -2,12 +2,17 @@
 #define YAZE_APP_GUI_WIDGETS_DUNGEON_OBJECT_EMULATOR_PREVIEW_H_
 
 #include "app/emu/snes.h"
+#include "app/gfx/core/bitmap.h"
+#include "app/gfx/render/background_buffer.h"
 #include "app/rom.h"
 
 namespace yaze {
 namespace gfx {
 class IRenderer;
 }  // namespace gfx
+namespace zelda3 {
+class ObjectDrawer;
+}  // namespace zelda3
 }  // namespace yaze
 
 namespace yaze {
@@ -21,11 +26,18 @@ class DungeonObjectEmulatorPreview {
   void Initialize(gfx::IRenderer* renderer, Rom* rom);
   void Render();
 
+  // Visibility control for external toggling
+  void set_visible(bool visible) { show_window_ = visible; }
+  bool is_visible() const { return show_window_; }
+
  private:
   void RenderControls();
   void RenderObjectBrowser();
   void RenderStatusPanel();
   void TriggerEmulatedRender();
+
+  // ObjectDrawer-based rendering (static, works reliably)
+  void TriggerStaticRender();
 
   // Get object name from ID
   const char* GetObjectName(int id) const;
@@ -53,6 +65,17 @@ class DungeonObjectEmulatorPreview {
   // Lazy initialization flag - defer heavy SNES init until actually needed
   bool initialized_ = false;
   void EnsureInitialized();
+
+  // Rendering mode selection
+  enum class RenderMode { kStatic, kEmulator };
+  RenderMode render_mode_ = RenderMode::kStatic;  // Default to working mode
+
+  // Static rendering components (ObjectDrawer-based)
+  std::unique_ptr<zelda3::ObjectDrawer> object_drawer_;
+  gfx::BackgroundBuffer preview_bg1_;
+  gfx::BackgroundBuffer preview_bg2_;
+  gfx::Bitmap preview_bitmap_;
+  bool static_render_dirty_ = true;  // Need to re-render
 
   // Quick select presets
   struct ObjectPreset {

@@ -624,6 +624,7 @@
     <script src="core/error_handler.js"></script>
     <script src="core/crash_reporter.js"></script>
     <script src="core/wasm_recovery.js"></script>
+    <script src="core/debug.js"></script>
     <!-- Agent automation and accessibility -->
     <script src="core/widget_overlay.js"></script>
     <script src="core/agent_automation.js"></script>
@@ -1476,14 +1477,27 @@
           if ((panel || this.activeTab) === 'terminal') {
             focusTerminalInput();
           }
-          setTimeout(resizeCanvasToContainer, 200); // Resize canvas after transition
+          this.animateResize();
         },
 
         close: function() {
           this.height = this.container.offsetHeight || 250;
           this.container.classList.add('panel-collapsed');
           this.updateToggles();
-          setTimeout(resizeCanvasToContainer, 200); // Resize canvas after transition
+          this.animateResize();
+        },
+
+        animateResize: function() {
+          var start = Date.now();
+          var duration = 200; // Match CSS transition
+          function step() {
+            var now = Date.now();
+            resizeCanvasToContainer();
+            if (now - start < duration) {
+              requestAnimationFrame(step);
+            }
+          }
+          requestAnimationFrame(step);
         },
 
         switchTab: function(panel) {
@@ -2139,321 +2153,7 @@
         }
       };
 
-      // ==========================================================================
-      // AI Debug API for Gemini/Antigravity Integration
-      // ==========================================================================
-      // This global object provides a unified interface for AI assistants
-      // to query debug state and analyze rendering issues.
-      window.yazeDebug = Object.assign(window.yazeDebug || {}, {
-        // Version and capability info
-        version: '1.2.0',
-        capabilities: ['palette', 'arena', 'graphics', 'timeline', 'pixel-inspector', 'rom', 'overworld', 'emulator', 'editor', 'workers'],
 
-        // Check if WASM module is ready
-        isReady: function() {
-          return typeof Module !== 'undefined' && Module.calledRun;
-        },
-
-        // --- Worker Diagnostics ---
-        workers: {
-          getStatus: function() {
-            return {
-              spawnCount: window.YAZE_WORKER_SPAWN_COUNT || 0,
-              spawnLimit: window.YAZE_WORKER_SPAWN_LIMIT || 12,
-              errorCount: window.YAZE_WORKER_ERRORS || 0,
-              aborted: window.YAZE_WORKER_ABORTED || false,
-              lastSpawn: window.YAZE_WORKER_LAST_SPAWN || 0,
-              timeSinceLastSpawn: window.YAZE_WORKER_LAST_SPAWN ? (Date.now() - window.YAZE_WORKER_LAST_SPAWN) + 'ms' : 'never',
-              sharedArrayBuffer: typeof SharedArrayBuffer !== 'undefined',
-              crossOriginIsolated: window.crossOriginIsolated === true,
-              serviceWorkerController: !!navigator.serviceWorker?.controller,
-              hardwareConcurrency: navigator.hardwareConcurrency || 'unknown'
-            };
-          },
-          reset: function() {
-            window.YAZE_WORKER_SPAWN_COUNT = 0;
-            window.YAZE_WORKER_ERRORS = 0;
-            window.YAZE_WORKER_ABORTED = false;
-            console.log('[WORKER] Counters reset');
-            return this.getStatus();
-          }
-        },
-
-        // --- Emulator Debug Functions ---
-        emulator: {
-          getStatus: function() {
-            if (!window.yazeDebug.isReady()) return { error: 'Module not ready' };
-            try { return JSON.parse(Module.getEmulatorStatus()); } catch(e) { return { error: e.message }; }
-          },
-          readMemory: function(addr, count) {
-            if (!window.yazeDebug.isReady()) return { error: 'Module not ready' };
-            try { return JSON.parse(Module.readEmulatorMemory(addr, count)); } catch(e) { return { error: e.message }; }
-          },
-          getVideoState: function() {
-            if (!window.yazeDebug.isReady()) return { error: 'Module not ready' };
-            try { return JSON.parse(Module.getEmulatorVideoState()); } catch(e) { return { error: e.message }; }
-          }
-        },
-
-        // --- Editor Debug Functions ---
-        editor: {
-          getState: function() {
-            if (!window.yazeDebug.isReady()) return { error: 'Module not ready' };
-            try { return JSON.parse(Module.getEditorState()); } catch(e) { return { error: e.message }; }
-          },
-          executeCommand: function(cmd) {
-            if (!window.yazeDebug.isReady()) return { error: 'Module not ready' };
-            return Module.executeCommand(cmd);
-          }
-        },
-
-        // --- Graphics Diagnostics ---
-        graphics: {
-          getDiagnostics: function() {
-            if (!window.yazeDebug.isReady()) return { error: 'Module not ready' };
-            try { return JSON.parse(Module.getGraphicsDiagnostics()); } catch(e) { return { error: e.message }; }
-          },
-          detect0xFFPattern: function() {
-             var diag = this.getDiagnostics();
-             if (diag.error) return false;
-             return diag.analysis && diag.analysis.all_sheets_0xFF;
-          }
-        },
-
-        // --- Palette Debug Functions ---
-        palette: {
-          // Get all palette debug events
-          getEvents: function() {
-            if (!window.yazeDebug.isReady()) return { error: 'Module not ready' };
-            try {
-              return JSON.parse(Module.getDungeonPaletteEvents());
-            } catch (e) {
-              return { error: e.message };
-            }
-          },
-
-          // Get full palette state for AI analysis
-          getFullState: function() {
-            if (!window.yazeDebug.isReady()) return { error: 'Module not ready' };
-            try {
-              return JSON.parse(Module.getFullPaletteState());
-            } catch (e) {
-              return { error: e.message };
-            }
-          },
-
-          // Get palette data with all colors
-          getData: function() {
-            if (!window.yazeDebug.isReady()) return { error: 'Module not ready' };
-            try {
-              return JSON.parse(Module.getPaletteData());
-            } catch (e) {
-              return { error: e.message };
-            }
-          },
-
-          // Get color comparisons
-          getComparisons: function() {
-            if (!window.yazeDebug.isReady()) return { error: 'Module not ready' };
-            try {
-              return JSON.parse(Module.getColorComparisons());
-            } catch (e) {
-              return { error: e.message };
-            }
-          },
-
-          // Sample pixel at coordinates
-          samplePixel: function(x, y) {
-            if (!window.yazeDebug.isReady()) return { error: 'Module not ready' };
-            try {
-              return JSON.parse(Module.samplePixelAt(x, y));
-            } catch (e) {
-              return { error: e.message };
-            }
-          },
-
-          // Clear all debug events
-          clear: function() {
-            if (!window.yazeDebug.isReady()) return;
-            Module.clearPaletteDebugEvents();
-          }
-        },
-
-        // --- Arena/Graphics Debug Functions ---
-        arena: {
-          // Get arena status including texture queue and active sheets
-          getStatus: function() {
-            if (!window.yazeDebug.isReady()) return { error: 'Module not ready' };
-            try {
-              return JSON.parse(Module.getArenaStatus());
-            } catch (e) {
-              return { error: e.message };
-            }
-          },
-
-          // Get info about a specific graphics sheet
-          getSheetInfo: function(index) {
-            if (!window.yazeDebug.isReady()) return { error: 'Module not ready' };
-            try {
-              return JSON.parse(Module.getGfxSheetInfo(index));
-            } catch (e) {
-              return { error: e.message };
-            }
-          }
-        },
-
-        // --- ROM Debug Functions ---
-        rom: {
-          // Get ROM load status, size, title, and version
-          getStatus: function() {
-            if (!window.yazeDebug.isReady()) return { error: 'Module not ready' };
-            try {
-              return JSON.parse(Module.getRomStatus());
-            } catch (e) {
-              return { error: e.message };
-            }
-          },
-
-          // Read bytes from ROM at specified address
-          readBytes: function(address, count) {
-            if (!window.yazeDebug.isReady()) return { error: 'Module not ready' };
-            try {
-              count = count || 16; // Default to 16 bytes
-              return JSON.parse(Module.readRomBytes(address, count));
-            } catch (e) {
-              return { error: e.message };
-            }
-          },
-
-          // Get palette group data from ROM
-          getPaletteGroup: function(groupId, paletteIndex) {
-            if (!window.yazeDebug.isReady()) return { error: 'Module not ready' };
-            try {
-              return JSON.parse(Module.getRomPaletteGroup(groupId, paletteIndex));
-            } catch (e) {
-              return { error: e.message };
-            }
-          }
-        },
-
-        // --- Overworld Debug Functions ---
-        overworld: {
-          // Get overworld map info (size, parent, world type)
-          getMapInfo: function(mapId) {
-            if (!window.yazeDebug.isReady()) return { error: 'Module not ready' };
-            try {
-              return JSON.parse(Module.getOverworldMapInfo(mapId));
-            } catch (e) {
-              return { error: e.message };
-            }
-          },
-
-          // Get tile info at specific coordinates
-          getTileInfo: function(mapId, tileX, tileY) {
-            if (!window.yazeDebug.isReady()) return { error: 'Module not ready' };
-            try {
-              return JSON.parse(Module.getOverworldTileInfo(mapId, tileX, tileY));
-            } catch (e) {
-              return { error: e.message };
-            }
-          }
-        },
-
-        // --- Timeline Analysis ---
-        timeline: {
-          // Get event timeline for analyzing order of operations
-          get: function() {
-            if (!window.yazeDebug.isReady()) return { error: 'Module not ready' };
-            try {
-              return JSON.parse(Module.getEventTimeline());
-            } catch (e) {
-              return { error: e.message };
-            }
-          }
-        },
-
-        // --- AI Analysis Helpers ---
-        analysis: {
-          // Get diagnostic summary (human readable)
-          getSummary: function() {
-            if (!window.yazeDebug.isReady()) return 'Module not ready';
-            try {
-              return Module.getDiagnosticSummary();
-            } catch (e) {
-              return 'Error: ' + e.message;
-            }
-          },
-
-          // Get hypothesis analysis based on captured events
-          getHypothesis: function() {
-            if (!window.yazeDebug.isReady()) return 'Module not ready';
-            try {
-              return Module.getHypothesisAnalysis();
-            } catch (e) {
-              return 'Error: ' + e.message;
-            }
-          },
-
-          // Get complete debug state for AI consumption
-          getFullState: function() {
-            if (!window.yazeDebug.isReady()) return { error: 'Module not ready' };
-            try {
-              return JSON.parse(Module.getFullDebugState());
-            } catch (e) {
-              return { error: e.message };
-            }
-          }
-        },
-
-        // --- Convenience Methods ---
-        // Get everything for quick AI analysis
-        dumpAll: function() {
-          return {
-            ready: this.isReady(),
-            timestamp: Date.now(),
-            palette: this.palette.getFullState(),
-            arena: this.arena.getStatus(),
-            graphics: this.graphics.getDiagnostics(),
-            emulator: this.emulator.getStatus(),
-            editor: this.editor.getState(),
-            rom: this.rom.getStatus(),
-            timeline: this.timeline.get(),
-            summary: this.analysis.getSummary(),
-            hypothesis: this.analysis.getHypothesis()
-          };
-        },
-
-        // Format state as human-readable string for AI prompts
-        formatForAI: function() {
-          var state = this.dumpAll();
-          if (!state.ready) return 'WASM module not ready. Please load a ROM first.';
-
-          var lines = [
-            '=== YAZE Debug State ===',
-            'Timestamp: ' + new Date(state.timestamp).toISOString(),
-            '',
-            '--- ROM Status ---',
-            JSON.stringify(state.rom, null, 2),
-            '',
-            '--- Diagnostic Summary ---',
-            state.summary,
-            '',
-            '--- Hypothesis Analysis ---',
-            state.hypothesis,
-            '',
-            '--- Timeline ---',
-            JSON.stringify(state.timeline, null, 2),
-            '',
-            '--- Arena Status ---',
-            JSON.stringify(state.arena, null, 2)
-          ];
-
-          return lines.join('\n');
-        }
-      });
-
-      // Log API availability to console for debugging
-      console.log('yazeDebug API available. Use window.yazeDebug.dumpAll() for full state.');
     </script>
     <!-- Hold the generated WASM loader script until SharedArrayBuffer is available -->
     <template id="yaze-wasm-script">

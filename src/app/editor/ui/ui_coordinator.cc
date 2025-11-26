@@ -147,108 +147,191 @@ void UICoordinator::DrawAllUI() {
   DrawWindowManagementUI();      // Window management
 }
 
-void UICoordinator::DrawMenuBarExtras() {
-  // Compact right-aligned status cluster:
-  // [v0.x.x][●][📄▾][panels][🔔]
-  // version dirty session panels bell
+// =============================================================================
+// Menu Bar Helpers
+// =============================================================================
 
-  auto* current_rom = editor_manager_->GetCurrentRom();
-  std::string version_text =
-      absl::StrFormat("v%s", editor_manager_->version().c_str());
-
-  // Calculate actual content width dynamically (don't hardcode)
-  const float item_spacing = 6.0f;  // Spacing between elements
-  float version_width = ImGui::CalcTextSize(version_text.c_str()).x;
-  float dirty_width =
-      (current_rom && current_rom->is_loaded() && current_rom->dirty())
-          ? ImGui::CalcTextSize(ICON_MD_FIBER_MANUAL_RECORD).x + item_spacing
-          : 0.0f;
-  float session_width =
-      session_coordinator_.HasMultipleSessions() ? 28.0f + item_spacing : 0.0f;
-  float panel_width = editor_manager_->right_panel_manager()
-                          ? 72.0f + item_spacing
-                          : 0.0f;  // 3 toggle buttons
-  float bell_width = 24.0f;
-  float padding = 12.0f;  // Extra padding for margin
-
-  float cluster_width = version_width + dirty_width + session_width +
-                        panel_width + bell_width + padding;
-
-  // Right-align without pushing menu bar wider
-  // Account for right panel width if a panel is open
-  float menu_bar_end = ImGui::GetWindowWidth();
-  if (editor_manager_->right_panel_manager() &&
-      editor_manager_->right_panel_manager()->IsPanelExpanded()) {
-    menu_bar_end -= editor_manager_->right_panel_manager()->GetPanelWidth();
-  }
-  float start_pos = menu_bar_end - cluster_width;
-
-  // Ensure we don't overlap with menu items (leave at least 16px gap)
-  float min_start = ImGui::GetCursorPosX() + 16.0f;
-  if (start_pos < min_start) {
-    start_pos = min_start;
-  }
-
-  ImGui::SameLine(start_pos);
-
-  // Use reasonable spacing between elements for readability
-  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(item_spacing, 0.0f));
-
-  // 1. Version - always visible, subdued gray text (leftmost)
-  ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextDisabledVec4());
-  ImGui::Text("%s", version_text.c_str());
-  ImGui::PopStyleColor();
-  ImGui::SameLine();
-
-  // 2. Dirty badge - warning color dot, only when ROM has unsaved changes
-  if (current_rom && current_rom->is_loaded() && current_rom->dirty()) {
-    const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
-    ImGui::PushStyleColor(ImGuiCol_Text, gui::ConvertColorToImVec4(theme.warning));
-    ImGui::Text(ICON_MD_FIBER_MANUAL_RECORD);
-    ImGui::PopStyleColor();
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Unsaved changes: %s", current_rom->short_name().c_str());
-    }
-    ImGui::SameLine();
-  }
-
-  // 3. Session button - layers icon, only if 2+ sessions open
-  if (session_coordinator_.HasMultipleSessions()) {
-    DrawSessionButton();
-    ImGui::SameLine();
-  }
-
-  // 4. Panel toggle buttons (Agent, Proposals, Settings) for right sidebar
-  if (editor_manager_->right_panel_manager()) {
-    editor_manager_->right_panel_manager()->DrawPanelToggleButtons();
-    ImGui::SameLine();
-  }
-
-  // 5. Notification bell - shows history dropdown (rightmost)
-  DrawNotificationBell();
-
-  ImGui::PopStyleVar();  // ItemSpacing
-
-#ifdef __EMSCRIPTEN__
-  // 6. Menu bar toggle button (WASM only) - allows hiding menu bar for clean web UI
-  ImGui::SameLine();
+bool UICoordinator::DrawMenuBarIconButton(const char* icon, const char* tooltip,
+                                          bool is_active) {
+  // Push consistent button styling
   ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
   ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
                         gui::GetSurfaceContainerHighVec4());
   ImGui::PushStyleColor(ImGuiCol_ButtonActive,
                         gui::GetSurfaceContainerHighestVec4());
-  ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
 
-  if (ImGui::SmallButton(ICON_MD_EXPAND_LESS)) {
-    show_menu_bar_ = false;
+  // Active state uses primary color, inactive uses secondary text
+  if (is_active) {
+    ImGui::PushStyleColor(ImGuiCol_Text, gui::GetPrimaryVec4());
+  } else {
+    ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
   }
+
+  bool clicked = ImGui::SmallButton(icon);
 
   ImGui::PopStyleColor(4);
 
-  if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("Hide menu bar (Alt to restore)");
+  if (tooltip && ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("%s", tooltip);
+  }
+
+  return clicked;
+}
+
+float UICoordinator::GetMenuBarIconButtonWidth() {
+  // SmallButton width = text width + frame padding * 2
+  const float frame_padding = ImGui::GetStyle().FramePadding.x;
+  // Use a standard icon width (Material Design icons are uniform)
+  const float icon_width = ImGui::CalcTextSize(ICON_MD_SETTINGS).x;
+  return icon_width + frame_padding * 2.0f;
+}
+
+void UICoordinator::DrawMenuBarExtras() {
+  // Right-aligned status cluster with TWO regions:
+  // 1. FIXED region (right edge): Panel toggles - stays in place when panel opens
+  // 2. SHIFTING region: Version, dirty, session, bell - shifts left when panel opens
+  //
+  // Layout: [v0.x.x][●][📄▾][🔔] | [panels][⬆]
+  //         ^^^ shifts left ^^^   ^^^ fixed ^^^
+
+  auto* current_rom = editor_manager_->GetCurrentRom();
+  const std::string full_version =
+      absl::StrFormat("v%s", editor_manager_->version().c_str());
+
+  const float item_spacing = 6.0f;
+  const float button_width = GetMenuBarIconButtonWidth();
+  const float padding = 8.0f;
+
+  // =========================================================================
+  // FIXED REGION: Panel toggles (positioned from viewport right edge)
+  // These stay in place so users can easily close the panel
+  // =========================================================================
+  int panel_button_count = 0;
+  if (editor_manager_->right_panel_manager()) {
+#ifdef YAZE_WITH_GRPC
+    panel_button_count = 4;  // Agent, Proposals, Settings, Properties
+#else
+    panel_button_count = 3;  // Proposals, Settings, Properties
+#endif
+  }
+
+  float fixed_region_width = 0.0f;
+  if (panel_button_count > 0) {
+    fixed_region_width = (button_width * panel_button_count) +
+                         (item_spacing * (panel_button_count - 1)) + padding;
+  }
+
+#ifdef __EMSCRIPTEN__
+  fixed_region_width += button_width + item_spacing;  // WASM toggle
+#endif
+
+  // Fixed region starts from the right edge of viewport (before any open panel)
+  const float viewport_width = ImGui::GetWindowWidth();
+  float fixed_start = viewport_width - fixed_region_width;
+
+  // If panel is open, position fixed region at the left edge of the panel
+  if (editor_manager_->right_panel_manager() &&
+      editor_manager_->right_panel_manager()->IsPanelExpanded()) {
+    float panel_width = editor_manager_->right_panel_manager()->GetPanelWidth();
+    fixed_start = viewport_width - panel_width - fixed_region_width;
+  }
+
+  // =========================================================================
+  // SHIFTING REGION: Version, dirty, session, bell
+  // These shift left when the panel opens to avoid overlap
+  // =========================================================================
+  float shifting_region_end = fixed_start - item_spacing;
+
+  // Calculate shifting region width
+  bool show_dirty =
+      current_rom && current_rom->is_loaded() && current_rom->dirty();
+  float dirty_width =
+      show_dirty
+          ? ImGui::CalcTextSize(ICON_MD_FIBER_MANUAL_RECORD).x + item_spacing
+          : 0.0f;
+
+  float version_width = ImGui::CalcTextSize(full_version.c_str()).x;
+  bool has_multiple_sessions = session_coordinator_.HasMultipleSessions();
+
+  // Calculate minimum required width
+  float shifting_width = button_width;  // Bell is always shown
+  shifting_width += dirty_width;
+
+  const float menu_items_end = ImGui::GetCursorPosX() + 16.0f;
+  const float available_shifting = shifting_region_end - menu_items_end - padding;
+
+  // Determine what fits in the shifting region
+  bool show_version = (shifting_width + version_width + item_spacing) <= available_shifting;
+  if (show_version) {
+    shifting_width += version_width + item_spacing;
+  }
+
+  bool show_session = has_multiple_sessions &&
+                      (shifting_width + button_width + item_spacing) <= available_shifting;
+  if (show_session) {
+    shifting_width += button_width + item_spacing;
+  }
+
+  // Calculate shifting region start position
+  float shifting_start = std::max(menu_items_end, shifting_region_end - shifting_width);
+
+  // =========================================================================
+  // DRAW SHIFTING REGION
+  // =========================================================================
+  ImGui::SameLine(shifting_start);
+  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(item_spacing, 0.0f));
+
+  // 1. Version - subdued gray text
+  if (show_version) {
+    ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextDisabledVec4());
+    ImGui::Text("%s", full_version.c_str());
+    ImGui::PopStyleColor();
+    ImGui::SameLine();
+  }
+
+  // 2. Dirty badge - warning color dot
+  if (show_dirty) {
+    const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
+    ImGui::PushStyleColor(ImGuiCol_Text,
+                          gui::ConvertColorToImVec4(theme.warning));
+    ImGui::Text(ICON_MD_FIBER_MANUAL_RECORD);
+    ImGui::PopStyleColor();
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Unsaved changes: %s",
+                        current_rom->short_name().c_str());
+    }
+    ImGui::SameLine();
+  }
+
+  // 3. Session button - layers icon
+  if (show_session) {
+    DrawSessionButton();
+    ImGui::SameLine();
+  }
+
+  // 4. Notification bell
+  DrawNotificationBell();
+
+  // =========================================================================
+  // DRAW FIXED REGION (Panel toggles)
+  // =========================================================================
+  ImGui::SameLine(fixed_start);
+
+  // Panel toggle buttons - always visible, fixed position
+  if (panel_button_count > 0) {
+    editor_manager_->right_panel_manager()->DrawPanelToggleButtons();
+  }
+
+#ifdef __EMSCRIPTEN__
+  // WASM toggle button - always shown, fixed position
+  ImGui::SameLine();
+  if (DrawMenuBarIconButton(ICON_MD_EXPAND_LESS,
+                            "Hide menu bar (Alt to restore)")) {
+    show_menu_bar_ = false;
   }
 #endif
+
+  ImGui::PopStyleVar();  // ItemSpacing
 }
 
 void UICoordinator::DrawMenuBarRestoreButton() {
@@ -294,6 +377,86 @@ void UICoordinator::DrawMenuBarRestoreButton() {
       ImGui::IsKeyPressed(ImGuiKey_RightAlt)) {
     show_menu_bar_ = true;
   }
+}
+
+void UICoordinator::DrawPanelToggleOverlay() {
+  // Draw panel toggle buttons as a fixed overlay, unaffected by dockspace resize
+  // This keeps the buttons in a consistent position when panels open/close
+
+  auto* panel_manager = editor_manager_->right_panel_manager();
+  if (!panel_manager) {
+    return;
+  }
+
+  // Calculate button count based on build configuration
+  int panel_button_count = 0;
+#ifdef YAZE_WITH_GRPC
+  panel_button_count = 4;  // Agent, Proposals, Settings, Properties
+#else
+  panel_button_count = 3;  // Proposals, Settings, Properties
+#endif
+
+  if (panel_button_count == 0) {
+    return;
+  }
+
+  const float item_spacing = 6.0f;
+  const float button_width = GetMenuBarIconButtonWidth();
+  const float padding = 8.0f;
+
+  // Calculate overlay width
+  float overlay_width = (button_width * panel_button_count) +
+                        (item_spacing * (panel_button_count - 1)) + padding * 2;
+
+#ifdef __EMSCRIPTEN__
+  // Add space for WASM toggle button
+  overlay_width += button_width + item_spacing;
+#endif
+
+  // Get viewport for positioning
+  const ImGuiViewport* viewport = ImGui::GetMainViewport();
+  const float viewport_right = viewport->WorkPos.x + viewport->WorkSize.x;
+
+  // Position overlay at the right edge, accounting for panel width if open
+  float overlay_x = viewport_right - overlay_width;
+  if (panel_manager->IsPanelExpanded()) {
+    overlay_x -= panel_manager->GetPanelWidth();
+  }
+
+  // Y position: align with menu bar (a few pixels from the top)
+  const float menu_bar_y = viewport->WorkPos.y + 4.0f;
+
+  // Create overlay window
+  ImGuiWindowFlags flags = ImGuiWindowFlags_NoTitleBar |
+                           ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
+                           ImGuiWindowFlags_NoScrollbar |
+                           ImGuiWindowFlags_NoCollapse |
+                           ImGuiWindowFlags_AlwaysAutoResize |
+                           ImGuiWindowFlags_NoBackground |
+                           ImGuiWindowFlags_NoSavedSettings |
+                           ImGuiWindowFlags_NoFocusOnAppearing |
+                           ImGuiWindowFlags_NoBringToFrontOnFocus;
+
+  ImGui::SetNextWindowPos(ImVec2(overlay_x, menu_bar_y));
+
+  if (ImGui::Begin("##PanelToggleOverlay", nullptr, flags)) {
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(item_spacing, 0.0f));
+
+    // Draw panel toggle buttons
+    panel_manager->DrawPanelToggleButtons();
+
+#ifdef __EMSCRIPTEN__
+    // WASM toggle button
+    ImGui::SameLine();
+    if (DrawMenuBarIconButton(ICON_MD_EXPAND_LESS,
+                              "Hide menu bar (Alt to restore)")) {
+      show_menu_bar_ = false;
+    }
+#endif
+
+    ImGui::PopStyleVar();  // ItemSpacing
+  }
+  ImGui::End();
 }
 
 void UICoordinator::DrawNotificationBell() {
@@ -423,9 +586,13 @@ void UICoordinator::DrawNotificationBell() {
 void UICoordinator::DrawSessionButton() {
   auto* current_rom = editor_manager_->GetCurrentRom();
 
+  // Consistent button styling with other menubar buttons
   ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
-  ImGui::PushStyleColor(ImGuiCol_ButtonHovered, gui::GetSurfaceContainerHighVec4());
-  ImGui::PushStyleColor(ImGuiCol_ButtonActive, gui::GetSurfaceContainerHighestVec4());
+  ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
+                        gui::GetSurfaceContainerHighVec4());
+  ImGui::PushStyleColor(ImGuiCol_ButtonActive,
+                        gui::GetSurfaceContainerHighestVec4());
+  ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
 
   // Store button position for popup anchoring
   ImVec2 button_min = ImGui::GetCursorScreenPos();
@@ -436,15 +603,14 @@ void UICoordinator::DrawSessionButton() {
 
   ImVec2 button_max = ImGui::GetItemRectMax();
 
-  ImGui::PopStyleColor(3);
+  ImGui::PopStyleColor(4);
 
   if (ImGui::IsItemHovered()) {
     std::string tooltip = current_rom && current_rom->is_loaded()
-        ? current_rom->short_name()
-        : "No ROM loaded";
-    ImGui::SetTooltip("%s\n%zu sessions open (Ctrl+Tab)",
-        tooltip.c_str(),
-        session_coordinator_.GetActiveSessionCount());
+                              ? current_rom->short_name()
+                              : "No ROM loaded";
+    ImGui::SetTooltip("%s\n%zu sessions open (Ctrl+Tab)", tooltip.c_str(),
+                      session_coordinator_.GetActiveSessionCount());
   }
 
   // Anchor popup to right edge - position so right edge aligns with button

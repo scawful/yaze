@@ -96,6 +96,7 @@ if(YAZE_BUILD_TESTS)
     unit/gfx/snes_tile_test.cc
     unit/gfx/compression_test.cc
     unit/gfx/snes_palette_test.cc
+    unit/gfx/bpp_conversion_test.cc
     unit/snes_color_test.cc
     unit/gui/tile_selector_widget_test.cc
     unit/gui/canvas_automation_api_test.cc
@@ -145,6 +146,7 @@ if(YAZE_BUILD_TESTS)
     set(ROM_DEPENDENT_TEST_SOURCES
       integration/asar_rom_test.cc
       integration/zelda3/dungeon_graphics_transparency_test.cc
+      integration/emulator_object_preview_test.cc
       e2e/rom_dependent/e2e_rom_test.cc
       e2e/zscustomoverworld/zscustomoverworld_upgrade_test.cc
     )

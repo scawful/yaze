@@ -105,6 +105,9 @@ class UICoordinator {
   // Draw floating menu bar restore button (when menu bar is hidden)
   void DrawMenuBarRestoreButton();
 
+  // Draw panel toggle buttons as a fixed overlay (unaffected by dockspace resize)
+  void DrawPanelToggleOverlay();
+
   // Window visibility management
   void ShowAllWindows();
   void HideAllWindows();
@@ -219,6 +222,14 @@ class UICoordinator {
   void DrawSessionIndicator();
   void DrawSessionTabs();
   void DrawSessionBadges();
+
+  // Menu bar icon button helper - provides consistent styling for all menubar buttons
+  // Returns true if button was clicked
+  bool DrawMenuBarIconButton(const char* icon, const char* tooltip,
+                             bool is_active = false);
+
+  // Calculate width of a menubar icon button (icon + frame padding)
+  static float GetMenuBarIconButtonWidth();
 
   // Material Design component helpers
   void DrawMaterialButton(const std::string& text, const std::string& icon,

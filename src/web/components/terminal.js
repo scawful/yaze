@@ -994,17 +994,33 @@
      * @returns {string}
      */
     processColorCodes(text) {
-      // Basic ANSI code replacement (simplified)
-      // This is a simple implementation - could be expanded for full ANSI support
+      // Enhanced ANSI code replacement
       return text
+        // Styles
+        .replace(/\x1b\[1m/g, '<span class="terminal-bold">')
+        .replace(/\x1b\[2m/g, '<span class="terminal-dim">')
+        // Standard Colors
+        .replace(/\x1b\[30m/g, '<span class="terminal-dim">') // Black as dim
         .replace(/\x1b\[31m/g, '<span class="terminal-red">')
         .replace(/\x1b\[32m/g, '<span class="terminal-green">')
         .replace(/\x1b\[33m/g, '<span class="terminal-yellow">')
         .replace(/\x1b\[34m/g, '<span class="terminal-blue">')
         .replace(/\x1b\[35m/g, '<span class="terminal-magenta">')
         .replace(/\x1b\[36m/g, '<span class="terminal-cyan">')
+        .replace(/\x1b\[37m/g, '<span>') // White (default)
+        // Bright Colors
+        .replace(/\x1b\[90m/g, '<span class="terminal-dim">')
+        .replace(/\x1b\[91m/g, '<span class="terminal-red terminal-bold">')
+        .replace(/\x1b\[92m/g, '<span class="terminal-green terminal-bold">')
+        .replace(/\x1b\[93m/g, '<span class="terminal-yellow terminal-bold">')
+        .replace(/\x1b\[94m/g, '<span class="terminal-blue terminal-bold">')
+        .replace(/\x1b\[95m/g, '<span class="terminal-magenta terminal-bold">')
+        .replace(/\x1b\[96m/g, '<span class="terminal-cyan terminal-bold">')
+        .replace(/\x1b\[97m/g, '<span class="terminal-bold">')
+        // Reset
         .replace(/\x1b\[0m/g, '</span>')
-        .replace(/\x1b\[\d+m/g, ''); // Remove other codes
+        // Cleanup unsupported
+        .replace(/\x1b\[\d+(;\d+)*m/g, '');
     }
 
     /**

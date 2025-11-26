@@ -163,6 +163,15 @@ class RightPanelManager {
   void DrawHelpPanel();
   void DrawPropertiesPanel();
 
+  // Styling helpers for consistent panel UI
+  bool BeginPanelSection(const char* label, const char* icon = nullptr,
+                         bool default_open = true);
+  void EndPanelSection();
+  void DrawPanelDivider();
+  void DrawPanelLabel(const char* label);
+  void DrawPanelValue(const char* label, const char* value);
+  void DrawPanelDescription(const char* text);
+
   // Active panel
   PanelType active_panel_ = PanelType::kNone;
 
