@@ -64,10 +64,29 @@ constexpr const char* kEntity = "Entity";  // For entity.cc shared popups
 
 // Common popup names for consistency
 namespace PopupNames {
+// Entity editor popups
 constexpr const char* kEntranceEditor = "Entrance Editor";
 constexpr const char* kExitEditor = "Exit Editor";
 constexpr const char* kItemEditor = "Item Editor";
 constexpr const char* kSpriteEditor = "Sprite Editor";
+
+// Map properties popups
+constexpr const char* kGraphicsPopup = "GraphicsPopup";
+constexpr const char* kPalettesPopup = "PalettesPopup";
+constexpr const char* kConfigPopup = "ConfigPopup";
+constexpr const char* kViewPopup = "ViewPopup";
+constexpr const char* kQuickPopup = "QuickPopup";
+constexpr const char* kOverlayTypesHelp = "OverlayTypesHelp";
+constexpr const char* kInteractiveOverlayHelp = "InteractiveOverlayHelp";
+
+// Palette editor popups
+constexpr const char* kColorPicker = "ColorPicker";
+constexpr const char* kCopyPopup = "CopyPopup";
+constexpr const char* kSaveError = "SaveError";
+constexpr const char* kConfirmDiscardAll = "ConfirmDiscardAll";
+constexpr const char* kPaletteCardManager = "PaletteCardManager";
+
+// General popups
 constexpr const char* kColorEdit = "Color Edit";
 constexpr const char* kConfirmDelete = "Confirm Delete";
 constexpr const char* kConfirmDiscard = "Confirm Discard";

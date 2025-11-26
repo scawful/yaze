@@ -308,6 +308,35 @@ class EditorCardRegistry {
   static constexpr float GetCollapsedSidebarWidth() { return 16.0f; }
 
   /**
+   * @brief Get icon for editor category (used in sidebar category buttons)
+   * @param category Category name (e.g., "Dungeon", "Overworld")
+   * @return Material icon string
+   */
+  static std::string GetCategoryIcon(const std::string& category);
+
+  /**
+   * @brief Handle keyboard navigation in sidebar (click-to-focus modal)
+   *
+   * Click sidebar to focus, then use arrows/vim keys to navigate,
+   * Enter/Space to toggle cards, Escape to unfocus.
+   *
+   * @param session_id Current session ID
+   * @param cards Cards to navigate through
+   */
+  void HandleSidebarKeyboardNav(size_t session_id,
+                                const std::vector<CardInfo>& cards);
+
+  /**
+   * @brief Check if sidebar has keyboard focus
+   */
+  bool SidebarHasFocus() const { return sidebar_has_focus_; }
+
+  /**
+   * @brief Get currently focused card index
+   */
+  int GetFocusedCardIndex() const { return focused_card_index_; }
+
+  /**
    * @brief Draw tree view sidebar with hierarchical category/card structure
    *
    * A wider sidebar (200px) showing categories as expandable tree nodes
@@ -561,6 +590,13 @@ class EditorCardRegistry {
   // Sidebar state
   bool sidebar_collapsed_ = true;  // Start collapsed by default
   bool tree_view_mode_ = true;     // Start in tree view mode (user preference)
+
+  // Keyboard navigation state (click-to-focus modal)
+  int focused_card_index_ = -1;    // Currently focused card index (-1 = none)
+  bool sidebar_has_focus_ = false; // Whether sidebar has keyboard focus
+
+  // Tree view search filter
+  char tree_search_filter_[64] = "";
 
   // Utility icon callbacks
   std::function<void()> on_show_emulator_;

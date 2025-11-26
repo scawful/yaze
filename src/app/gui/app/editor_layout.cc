@@ -15,6 +15,14 @@ namespace yaze {
 namespace gui {
 
 // ============================================================================
+// EditorCard Static Variables (for duplicate rendering detection)
+// ============================================================================
+int EditorCard::last_frame_count_ = 0;
+std::vector<std::string> EditorCard::cards_begun_this_frame_;
+bool EditorCard::duplicate_detected_ = false;
+std::string EditorCard::duplicate_card_name_;
+
+// ============================================================================
 // Toolset Implementation
 // ============================================================================
 
@@ -251,6 +259,30 @@ bool EditorCard::Begin(bool* p_open) {
     imgui_begun_ = false;
     return false;
   }
+
+  // === DEBUG: Track duplicate rendering ===
+  int current_frame = ImGui::GetFrameCount();
+  if (current_frame != last_frame_count_) {
+    // New frame - reset tracking
+    last_frame_count_ = current_frame;
+    cards_begun_this_frame_.clear();
+    duplicate_detected_ = false;
+    duplicate_card_name_.clear();
+  }
+
+  // Check if this card was already begun this frame
+  for (const auto& card_name : cards_begun_this_frame_) {
+    if (card_name == window_name_) {
+      duplicate_detected_ = true;
+      duplicate_card_name_ = window_name_;
+      // Log the duplicate detection
+      fprintf(stderr, "[EditorCard] DUPLICATE DETECTED: '%s' Begin() called twice in frame %d\n",
+              window_name_.c_str(), current_frame);
+      break;
+    }
+  }
+  cards_begun_this_frame_.push_back(window_name_);
+  // === END DEBUG ===
 
   // Handle icon-collapsed state
   if (icon_collapsible_ && collapsed_to_icon_) {
