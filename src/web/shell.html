@@ -2349,7 +2349,7 @@
       // ==========================================================================
       // This global object provides a unified interface for AI assistants
       // to query debug state and analyze rendering issues.
-      window.yazeDebug = {
+      window.yazeDebug = Object.assign(window.yazeDebug || {}, {
         // Version and capability info
         version: '1.2.0',
         capabilities: ['palette', 'arena', 'graphics', 'timeline', 'pixel-inspector', 'rom', 'overworld', 'emulator', 'editor', 'workers'],

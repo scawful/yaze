@@ -294,6 +294,17 @@ var FilesystemManager = {
   _executeRomLoad: function(filename, loadingId) {
     var self = this;
     try {
+      // Check if file exists before trying to load
+      if (!this.fileExists(filename)) {
+        console.warn('[FilesystemManager] ROM file not found:', filename);
+        alert('ROM file not found: ' + filename.split('/').pop() +
+              '\n\nROMs are not persisted across page reloads. Please upload the ROM again.');
+        if (loadingId && typeof window.removeLoadingIndicator === 'function') {
+          window.removeLoadingIndicator(loadingId);
+        }
+        return false;
+      }
+
       if (Module.ccall) {
         // Use null (not 'null' string) for void return type
         Module.ccall('LoadRomFromWeb', null, ['string'], [filename]);
