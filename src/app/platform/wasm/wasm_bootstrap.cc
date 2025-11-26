@@ -87,7 +87,7 @@ void LoadRomFromWeb(const char* filename) {
 EM_JS(void, MountFilesystems, (), {
   // Create all required directories
   var directories = [
-    '/roms',       // ROM files (MEMFS - loaded dynamically)
+    '/roms',       // ROM files (IDBFS - persistent for session restore)
     '/saves',      // Save files (IDBFS - persistent)
     '/config',     // Configuration files (IDBFS - persistent)
     '/projects',   // Project files (IDBFS - persistent)
@@ -107,8 +107,7 @@ EM_JS(void, MountFilesystems, (), {
     }
   });
 
-  // Mount MEMFS for ROMs (loaded dynamically, not persisted)
-  FS.mount(MEMFS, {}, '/roms');
+  // Mount MEMFS for temporary files only
   FS.mount(MEMFS, {}, '/temp');
 
   // Check if IDBFS is available (try multiple ways to access it)
@@ -122,7 +121,7 @@ EM_JS(void, MountFilesystems, (), {
   }
 
   // Persistent directories to mount with IDBFS
-  var persistentDirs = ['/saves', '/config', '/projects', '/prompts', '/recent'];
+  var persistentDirs = ['/roms', '/saves', '/config', '/projects', '/prompts', '/recent'];
   var mountedCount = 0;
   var totalToMount = persistentDirs.length;
 
