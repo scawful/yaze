@@ -848,6 +848,14 @@ function checkRecentFilesOnStartup() {
     var lastRom = recentFiles[0];
     console.log('[Startup] Found recent ROM:', lastRom.filename);
 
+    // Check if the ROM file actually exists (ROMs are in MEMFS which isn't persistent)
+    if (!FilesystemManager.fileExists(lastRom.filename)) {
+      console.log('[Startup] Recent ROM file not found (not persisted):', lastRom.filename);
+      // Don't show the dialog since the file doesn't exist
+      // The user will need to upload the ROM again
+      return;
+    }
+
     // If auto-load is enabled, load directly
     if (autoLoadPref === 'always') {
       console.log('[Startup] Auto-loading last ROM');
