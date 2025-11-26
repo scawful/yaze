@@ -881,7 +881,7 @@ void ObjectDrawer::DrawTileToBitmap(gfx::Bitmap& bitmap,
                                     const gfx::TileInfo& tile_info, int pixel_x,
                                     int pixel_y, const uint8_t* tiledata) {
   // Draw an 8x8 tile directly to bitmap at pixel coordinates
-  // Graphics data is in 8BPP unpacked format (1 byte per pixel)
+  // Graphics data is in 8BPP linear format (1 pixel per byte)
   if (!tiledata) return;
 
   // DEBUG: Check if bitmap is valid
@@ -892,14 +892,16 @@ void ObjectDrawer::DrawTileToBitmap(gfx::Bitmap& bitmap,
   }
 
   // Calculate tile position in 8BPP graphics buffer
-  // Layout: 16 tiles per row, each tile is 8 bytes wide (8 pixels)
+  // Layout: 16 tiles per row, each tile is 8 pixels wide (8 bytes)
   // Row stride: 128 bytes (16 tiles * 8 bytes)
   int tile_col = tile_info.id_ % 16;
   int tile_row = tile_info.id_ / 16;
-  int tile_base_x = tile_col * 8;     // 8 bytes per tile horizontally
-  int tile_base_y = tile_row * 1024;  // 1024 bytes per tile row (8 rows * 128 bytes)
+  int tile_base_x = tile_col * 8;    // 8 bytes per tile horizontally
+  int tile_base_y = tile_row * 1024; // 1024 bytes per tile row (8 rows * 128 bytes)
 
-  // Palette offset: 3BPP uses 8 colors per palette (consistent with BackgroundBuffer)
+  // Palette offset: 4BPP uses 16 colors per palette
+  // BUT the palette data is packed as 8 colors per group (3BPP source)
+  // So we use * 8 to index into the 90-color palette correctly
   uint8_t palette_offset = (tile_info.palette_ & 0x07) * 8;
 
   // DEBUG: Log tile info for first few tiles
@@ -911,36 +913,39 @@ void ObjectDrawer::DrawTileToBitmap(gfx::Bitmap& bitmap,
     debug_tile_count++;
   }
 
-  int pixels_written = 0;
-
   // Draw 8x8 pixels
+  int pixels_written = 0;
+  int pixels_transparent = 0;
+
   for (int py = 0; py < 8; py++) {
     // Source row with vertical mirroring
     int src_row = tile_info.vertical_mirror_ ? (7 - py) : py;
-    int dst_y = pixel_y + py;
 
     for (int px = 0; px < 8; px++) {
       // Source column with horizontal mirroring
       int src_col = tile_info.horizontal_mirror_ ? (7 - px) : px;
-      int dst_x = pixel_x + px;
 
       // Calculate source index in 8BPP buffer
-      // Linear layout: (row * 128) + col + tile_base
+      // Stride is 128 bytes (sheet width)
       int src_index = (src_row * 128) + src_col + tile_base_x + tile_base_y;
       uint8_t pixel = tiledata[src_index];
 
-
-
-      // Write pixel to bitmap (0 is transparent)
       if (pixel != 0) {
-        if (dst_x >= 0 && dst_x < bitmap.width() &&
-            dst_y >= 0 && dst_y < bitmap.height()) {
-          int dest_index = dst_y * bitmap.width() + dst_x;
-          if (dest_index < static_cast<int>(bitmap.mutable_data().size())) {
-            bitmap.mutable_data()[dest_index] = pixel + palette_offset;
+        uint8_t final_color = pixel + palette_offset;
+        int dest_x = pixel_x + px;
+        int dest_y = pixel_y + py;
+
+        if (dest_x >= 0 && dest_x < bitmap.width() &&
+            dest_y >= 0 && dest_y < bitmap.height()) {
+          int dest_index = dest_y * bitmap.width() + dest_x;
+          if (dest_index >= 0 &&
+              dest_index < static_cast<int>(bitmap.mutable_data().size())) {
+            bitmap.mutable_data()[dest_index] = final_color;
             pixels_written++;
           }
         }
+      } else {
+        pixels_transparent++;
       }
     }
   }
@@ -948,6 +953,12 @@ void ObjectDrawer::DrawTileToBitmap(gfx::Bitmap& bitmap,
   // Mark bitmap as modified if we wrote any pixels
   if (pixels_written > 0) {
     bitmap.set_modified(true);
+  }
+
+  // DEBUG: Log pixel writing stats for first few tiles
+  if (debug_tile_count <= 5) {
+    printf("[ObjectDrawer] Tile 0x%03X: wrote %d pixels, %d transparent\n",
+           tile_info.id_, pixels_written, pixels_transparent);
   }
 }
 
