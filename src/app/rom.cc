@@ -410,10 +410,10 @@ absl::StatusOr<std::array<gfx::Bitmap, kNumGfxSheets>> LoadAllGraphicsData(
     app::platform::WasmLoadingManager::UpdateMessage(
         loading_handle, absl::StrFormat("Sheet %d/%d", i + 1, kNumGfxSheets));
 
-    // Note: We don't use emscripten_sleep(0) here because it conflicts with
-    // other async operations (like WasmLoadingManager::EndLoading which uses
-    // emscripten_async_call). The UpdateProgress calls already yield to the
-    // browser event loop via the JavaScript interface.
+    // Yield to browser every 10 sheets to allow UI updates (requires ASYNCIFY)
+    if (i % 10 == 0) {
+      emscripten_sleep(0);
+    }
 
     // Check for user cancellation
     if (app::platform::WasmLoadingManager::IsCancelled(loading_handle)) {
