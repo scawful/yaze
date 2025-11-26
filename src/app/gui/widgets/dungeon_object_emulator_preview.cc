@@ -2,11 +2,14 @@
 
 #include <cstdio>
 
+#include "app/editor/agent/agent_ui_theme.h"
 #include "app/gfx/backend/irenderer.h"
 #include "app/gui/automation/widget_auto_register.h"
 #include "app/platform/window.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_object.h"
+
+using namespace yaze::editor;
 
 namespace yaze {
 namespace gui {
@@ -38,112 +41,184 @@ void DungeonObjectEmulatorPreview::EnsureInitialized() {
   // Use const reference to avoid copying the ROM data
   const std::vector<uint8_t>& rom_data = rom_->vector();
   snes_instance_->Init(rom_data);
+
+  // Create texture for rendering output
+  if (renderer_ && !object_texture_) {
+    object_texture_ = renderer_->CreateTexture(256, 256);
+  }
+
   initialized_ = true;
 }
 
 void DungeonObjectEmulatorPreview::Render() {
-  if (!show_window_)
-    return;
+  if (!show_window_) return;
 
-  if (ImGui::Begin("Dungeon Object Emulator Preview", &show_window_,
-                   ImGuiWindowFlags_AlwaysAutoResize)) {
+  const auto& theme = AgentUI::GetTheme();
+
+  ImGui::SetNextWindowSize(ImVec2(500, 700), ImGuiCond_FirstUseEver);
+  if (ImGui::Begin("Dungeon Object Emulator Preview", &show_window_)) {
     AutoWidgetScope scope("DungeonEditor/EmulatorPreview");
 
-    // ROM status indicator
+    // ROM status indicator at top
     if (rom_ && rom_->is_loaded()) {
-      ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "ROM: Loaded ✓");
+      ImGui::TextColored(theme.status_success, "ROM: Loaded");
+      ImGui::SameLine();
+      ImGui::TextDisabled("Ready to render objects");
     } else {
-      ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "ROM: Not loaded ✗");
+      ImGui::TextColored(theme.status_error, "ROM: Not loaded");
+      ImGui::SameLine();
+      ImGui::TextDisabled("Load a ROM to use this tool");
     }
 
     ImGui::Separator();
+
+    // Two-column layout for better space usage
+    ImGui::BeginChild("LeftPanel", ImVec2(280, 0), true);
     RenderControls();
-    ImGui::Separator();
+    ImGui::EndChild();
 
+    ImGui::SameLine();
+
+    ImGui::BeginChild("RightPanel", ImVec2(0, 0), false);
     // Preview image with border
-    if (object_texture_) {
-      ImGui::BeginChild("PreviewRegion", ImVec2(260, 260), true,
-                        ImGuiWindowFlags_NoScrollbar);
-      ImGui::Image((ImTextureID)object_texture_, ImVec2(256, 256));
-      ImGui::EndChild();
-    } else {
-      ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f),
-                         "No texture available");
-    }
-
-    // Debug info section
+    AgentUI::PushPanelStyle();
+    ImGui::BeginChild("PreviewRegion", ImVec2(0, 280), true,
+                      ImGuiWindowFlags_NoScrollbar);
+    ImGui::TextColored(theme.text_info, "Preview");
     ImGui::Separator();
-    ImGui::Text("Execution:");
-    ImGui::Indent();
-    ImGui::Text("Cycles: %d %s", last_cycle_count_,
-                last_cycle_count_ >= 100000 ? "(TIMEOUT)" : "");
-    ImGui::Unindent();
+    if (object_texture_) {
+      ImVec2 available = ImGui::GetContentRegionAvail();
+      float scale = std::min(available.x / 256.0f, available.y / 256.0f);
+      ImVec2 preview_size(256 * scale, 256 * scale);
 
-    // Status with color coding
-    ImGui::Text("Status:");
-    ImGui::Indent();
-    if (last_error_.empty()) {
-      ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "✓ OK");
+      // Center the preview
+      float offset_x = (available.x - preview_size.x) * 0.5f;
+      if (offset_x > 0) ImGui::SetCursorPosX(ImGui::GetCursorPosX() + offset_x);
+
+      ImGui::Image((ImTextureID)object_texture_, preview_size);
     } else {
-      ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "✗ %s",
-                         last_error_.c_str());
+      ImGui::TextColored(theme.text_warning_yellow, "No texture available");
+      ImGui::TextWrapped("Click 'Render Object' to generate a preview");
     }
-    ImGui::Unindent();
+    ImGui::EndChild();
+    AgentUI::PopPanelStyle();
 
-    // Help text
+    AgentUI::VerticalSpacing(8);
+
+    // Status panel
+    RenderStatusPanel();
+
+    // Help text at bottom
+    AgentUI::VerticalSpacing(8);
+    ImGui::PushStyleColor(ImGuiCol_ChildBg, theme.box_bg_dark);
+    ImGui::BeginChild("HelpText", ImVec2(0, 0), true);
+    ImGui::TextColored(theme.text_info, "How it works:");
     ImGui::Separator();
     ImGui::TextWrapped(
-        "This tool uses the SNES emulator to render objects by "
-        "executing the game's native drawing routines from bank $01.");
+        "This tool uses the SNES emulator to render objects by executing the "
+        "game's native drawing routines from bank $01. This provides accurate "
+        "previews of how objects will appear in-game.");
+    ImGui::EndChild();
+    ImGui::PopStyleColor();
+
+    ImGui::EndChild();
   }
   ImGui::End();
+
+  // Render object browser if visible
+  if (show_browser_) {
+    RenderObjectBrowser();
+  }
 }
 
 void DungeonObjectEmulatorPreview::RenderControls() {
-  ImGui::Text("Object Configuration:");
-  ImGui::Indent();
+  const auto& theme = AgentUI::GetTheme();
 
-  // Object ID with hex display
+  // Object ID section with name lookup
+  ImGui::TextColored(theme.text_info, "Object Selection");
+  ImGui::Separator();
+
+  // Object ID input with hex display
   AutoInputInt("Object ID", &object_id_, 1, 10,
                ImGuiInputTextFlags_CharsHexadecimal);
   ImGui::SameLine();
-  ImGui::TextDisabled("($%03X)", object_id_);
+  ImGui::TextColored(theme.text_secondary_gray, "($%03X)", object_id_);
 
-  // Room context
-  AutoInputInt("Room Context", &room_id_, 1, 10);
+  // Display object name and type
+  const char* name = GetObjectName(object_id_);
+  int type = GetObjectType(object_id_);
+
+  ImGui::PushStyleColor(ImGuiCol_ChildBg, theme.panel_bg_darker);
+  ImGui::BeginChild("ObjectInfo", ImVec2(0, 60), true);
+  ImGui::TextColored(theme.accent_color, "Name:");
   ImGui::SameLine();
-  ImGui::TextDisabled("(for graphics/palette)");
+  ImGui::TextWrapped("%s", name);
+  ImGui::TextColored(theme.accent_color, "Type:");
+  ImGui::SameLine();
+  ImGui::Text("%d", type);
+  ImGui::EndChild();
+  ImGui::PopStyleColor();
 
-  // Position controls
+  AgentUI::VerticalSpacing(4);
+
+  // Quick select dropdown
+  if (ImGui::BeginCombo("Quick Select", "Choose preset...")) {
+    for (const auto& preset : kQuickPresets) {
+      if (ImGui::Selectable(preset.name, object_id_ == preset.id)) {
+        object_id_ = preset.id;
+      }
+      if (object_id_ == preset.id) {
+        ImGui::SetItemDefaultFocus();
+      }
+    }
+    ImGui::EndCombo();
+  }
+
+  AgentUI::VerticalSpacing(4);
+
+  // Browse button for full object list
+  if (AgentUI::StyledButton("Browse All Objects...", theme.accent_color,
+                            ImVec2(-1, 0))) {
+    show_browser_ = !show_browser_;
+  }
+
+  AgentUI::VerticalSpacing(8);
+  ImGui::Separator();
+
+  // Position and size controls
+  ImGui::TextColored(theme.text_info, "Position & Size");
+  ImGui::Separator();
+
   AutoSliderInt("X Position", &object_x_, 0, 63);
   AutoSliderInt("Y Position", &object_y_, 0, 63);
+  AutoSliderInt("Size", &object_size_, 0, 15);
+  ImGui::SameLine();
+  ImGui::TextDisabled("(?)");
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip(
+        "Size parameter for scalable objects.\nMany objects ignore this value.");
+  }
 
-  ImGui::Unindent();
+  AgentUI::VerticalSpacing(8);
+  ImGui::Separator();
+
+  // Room context
+  ImGui::TextColored(theme.text_info, "Rendering Context");
+  ImGui::Separator();
+
+  AutoInputInt("Room ID", &room_id_, 1, 10);
+  ImGui::SameLine();
+  ImGui::TextDisabled("(?)");
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("Room ID for graphics and palette context");
+  }
+
+  AgentUI::VerticalSpacing(12);
 
   // Render button - large and prominent
-  ImGui::Separator();
-  if (ImGui::Button("Render Object", ImVec2(-1, 0))) {
+  if (AgentUI::StyledButton("Render Object", theme.status_success,
+                            ImVec2(-1, 40))) {
     TriggerEmulatedRender();
-  }
-
-  // Quick test buttons
-  if (ImGui::BeginPopup("QuickTests")) {
-    if (ImGui::MenuItem("Floor tile (0x00)")) {
-      object_id_ = 0x00;
-      TriggerEmulatedRender();
-    }
-    if (ImGui::MenuItem("Wall N (0x60)")) {
-      object_id_ = 0x60;
-      TriggerEmulatedRender();
-    }
-    if (ImGui::MenuItem("Door (0xF0)")) {
-      object_id_ = 0xF0;
-      TriggerEmulatedRender();
-    }
-    ImGui::EndPopup();
-  }
-  if (ImGui::Button("Quick Tests...", ImVec2(-1, 0))) {
-    ImGui::OpenPopup("QuickTests");
   }
 }
 
@@ -219,7 +294,7 @@ void DungeonObjectEmulatorPreview::TriggerEmulatedRender() {
   snes_instance_->Write(0x7E049E, 0x00);
 
   // 8. Create object and encode to bytes
-  zelda3::RoomObject obj(object_id_, object_x_, object_y_, 0, 0);
+  zelda3::RoomObject obj(object_id_, object_x_, object_y_, object_size_, 0);
   auto bytes = obj.EncodeObjectToBytes();
 
   const uint32_t object_data_addr = 0x7E1000;
@@ -310,10 +385,35 @@ void DungeonObjectEmulatorPreview::TriggerEmulatedRender() {
 
   if (cycles >= max_cycles) {
     last_error_ = "Timeout: exceeded max cycles";
+    // Debug: Print some WRAM tilemap values to see if anything was written
+    printf("[EMU] WRAM BG1 tilemap sample at $7E2000:\n");
+    for (int i = 0; i < 16; i++) {
+      printf("  %04X", snes_instance_->Read(0x7E2000 + i * 2) |
+                           (snes_instance_->Read(0x7E2000 + i * 2 + 1) << 8));
+    }
+    printf("\n");
+    // Handler didn't complete - PPU state may be corrupted, skip rendering
+    // Reset SNES to clean state to prevent crash on destruction
+    snes_instance_->Reset(true);
     return;
   }
 
-  // 14. Force PPU to render the tilemaps
+  // 14. Copy WRAM tilemap buffers to VRAM
+  // Game drawing routines write to WRAM, but PPU reads from VRAM
+  // BG1: WRAM $7E2000 → VRAM $4000 (2KB = 32x32 tilemap)
+  for (uint32_t i = 0; i < 0x800; i++) {
+    uint8_t lo = snes_instance_->Read(0x7E2000 + i * 2);
+    uint8_t hi = snes_instance_->Read(0x7E2000 + i * 2 + 1);
+    ppu.vram[0x4000 + i] = lo | (hi << 8);
+  }
+  // BG2: WRAM $7E4000 → VRAM $4800 (2KB = 32x32 tilemap)
+  for (uint32_t i = 0; i < 0x800; i++) {
+    uint8_t lo = snes_instance_->Read(0x7E4000 + i * 2);
+    uint8_t hi = snes_instance_->Read(0x7E4000 + i * 2 + 1);
+    ppu.vram[0x4800 + i] = lo | (hi << 8);
+  }
+
+  // 15. Force PPU to render the tilemaps
   ppu.HandleFrameStart();
   for (int line = 0; line < 224; line++) {
     ppu.RunLine(line);
@@ -327,6 +427,165 @@ void DungeonObjectEmulatorPreview::TriggerEmulatedRender() {
     snes_instance_->SetPixels(static_cast<uint8_t*>(pixels));
     renderer_->UnlockTexture(object_texture_);
   }
+}
+
+const char* DungeonObjectEmulatorPreview::GetObjectName(int id) const {
+  if (id < 0) return "Invalid";
+
+  if (id < 0x100) {
+    // Type 1 objects (0x00-0xFF)
+    if (id < static_cast<int>(std::size(zelda3::Type1RoomObjectNames))) {
+      return zelda3::Type1RoomObjectNames[id];
+    }
+  } else if (id < 0x200) {
+    // Type 2 objects (0x100-0x1FF)
+    int index = id - 0x100;
+    if (index < static_cast<int>(std::size(zelda3::Type2RoomObjectNames))) {
+      return zelda3::Type2RoomObjectNames[index];
+    }
+  } else if (id < 0x300) {
+    // Type 3 objects (0x200-0x2FF)
+    int index = id - 0x200;
+    if (index < static_cast<int>(std::size(zelda3::Type3RoomObjectNames))) {
+      return zelda3::Type3RoomObjectNames[index];
+    }
+  }
+
+  return "Unknown Object";
+}
+
+int DungeonObjectEmulatorPreview::GetObjectType(int id) const {
+  if (id < 0x100) return 1;
+  if (id < 0x200) return 2;
+  if (id < 0x300) return 3;
+  return 0;
+}
+
+void DungeonObjectEmulatorPreview::RenderStatusPanel() {
+  const auto& theme = AgentUI::GetTheme();
+
+  AgentUI::PushPanelStyle();
+  ImGui::BeginChild("StatusPanel", ImVec2(0, 100), true);
+
+  ImGui::TextColored(theme.text_info, "Execution Status");
+  ImGui::Separator();
+
+  // Cycle count with status color
+  ImGui::Text("Cycles:");
+  ImGui::SameLine();
+  if (last_cycle_count_ >= 100000) {
+    ImGui::TextColored(theme.status_error, "%d (TIMEOUT)", last_cycle_count_);
+  } else if (last_cycle_count_ > 0) {
+    ImGui::TextColored(theme.status_success, "%d", last_cycle_count_);
+  } else {
+    ImGui::TextColored(theme.text_secondary_gray, "Not yet executed");
+  }
+
+  // Error status
+  ImGui::Text("Status:");
+  ImGui::SameLine();
+  if (last_error_.empty()) {
+    if (last_cycle_count_ > 0) {
+      ImGui::TextColored(theme.status_success, "OK");
+    } else {
+      ImGui::TextColored(theme.text_secondary_gray, "Ready");
+    }
+  } else {
+    ImGui::TextColored(theme.status_error, "%s", last_error_.c_str());
+  }
+
+  ImGui::EndChild();
+  AgentUI::PopPanelStyle();
+}
+
+void DungeonObjectEmulatorPreview::RenderObjectBrowser() {
+  const auto& theme = AgentUI::GetTheme();
+
+  ImGui::SetNextWindowSize(ImVec2(600, 500), ImGuiCond_FirstUseEver);
+  if (ImGui::Begin("Object Browser", &show_browser_)) {
+    ImGui::TextColored(theme.text_info,
+                       "Browse all dungeon objects by type and category");
+    ImGui::Separator();
+
+    if (ImGui::BeginTabBar("ObjectTypeTabs")) {
+      // Type 1 objects tab
+      if (ImGui::BeginTabItem("Type 1 (0x00-0xFF)")) {
+        ImGui::TextDisabled("Walls, floors, and common dungeon elements");
+        ImGui::Separator();
+
+        ImGui::BeginChild("Type1List", ImVec2(0, 0), false);
+        for (int i = 0; i < static_cast<int>(
+                                std::size(zelda3::Type1RoomObjectNames));
+             ++i) {
+          char label[256];
+          snprintf(label, sizeof(label), "0x%02X: %s", i,
+                   zelda3::Type1RoomObjectNames[i]);
+
+          if (ImGui::Selectable(label, object_id_ == i)) {
+            object_id_ = i;
+            show_browser_ = false;
+            TriggerEmulatedRender();
+          }
+        }
+        ImGui::EndChild();
+
+        ImGui::EndTabItem();
+      }
+
+      // Type 2 objects tab
+      if (ImGui::BeginTabItem("Type 2 (0x100-0x1FF)")) {
+        ImGui::TextDisabled("Corners, furniture, and special objects");
+        ImGui::Separator();
+
+        ImGui::BeginChild("Type2List", ImVec2(0, 0), false);
+        for (int i = 0; i < static_cast<int>(
+                                std::size(zelda3::Type2RoomObjectNames));
+             ++i) {
+          char label[256];
+          int id = 0x100 + i;
+          snprintf(label, sizeof(label), "0x%03X: %s", id,
+                   zelda3::Type2RoomObjectNames[i]);
+
+          if (ImGui::Selectable(label, object_id_ == id)) {
+            object_id_ = id;
+            show_browser_ = false;
+            TriggerEmulatedRender();
+          }
+        }
+        ImGui::EndChild();
+
+        ImGui::EndTabItem();
+      }
+
+      // Type 3 objects tab
+      if (ImGui::BeginTabItem("Type 3 (0x200-0x2FF)")) {
+        ImGui::TextDisabled("Interactive objects, chests, and special items");
+        ImGui::Separator();
+
+        ImGui::BeginChild("Type3List", ImVec2(0, 0), false);
+        for (int i = 0; i < static_cast<int>(
+                                std::size(zelda3::Type3RoomObjectNames));
+             ++i) {
+          char label[256];
+          int id = 0x200 + i;
+          snprintf(label, sizeof(label), "0x%03X: %s", id,
+                   zelda3::Type3RoomObjectNames[i]);
+
+          if (ImGui::Selectable(label, object_id_ == id)) {
+            object_id_ = id;
+            show_browser_ = false;
+            TriggerEmulatedRender();
+          }
+        }
+        ImGui::EndChild();
+
+        ImGui::EndTabItem();
+      }
+
+      ImGui::EndTabBar();
+    }
+  }
+  ImGui::End();
 }
 
 }  // namespace gui

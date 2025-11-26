@@ -23,7 +23,15 @@ class DungeonObjectEmulatorPreview {
 
  private:
   void RenderControls();
+  void RenderObjectBrowser();
+  void RenderStatusPanel();
   void TriggerEmulatedRender();
+
+  // Get object name from ID
+  const char* GetObjectName(int id) const;
+
+  // Get object type (1, 2, or 3) from ID
+  int GetObjectType(int id) const;
 
   gfx::IRenderer* renderer_ = nullptr;
   Rom* rom_ = nullptr;
@@ -34,7 +42,9 @@ class DungeonObjectEmulatorPreview {
   int room_id_ = 0;
   int object_x_ = 16;
   int object_y_ = 16;
+  int object_size_ = 0;  // Size parameter for rendering
   bool show_window_ = true;
+  bool show_browser_ = false;  // Toggle for object browser
 
   // Debug info
   int last_cycle_count_ = 0;
@@ -43,6 +53,22 @@ class DungeonObjectEmulatorPreview {
   // Lazy initialization flag - defer heavy SNES init until actually needed
   bool initialized_ = false;
   void EnsureInitialized();
+
+  // Quick select presets
+  struct ObjectPreset {
+    int id;
+    const char* name;
+  };
+  static constexpr ObjectPreset kQuickPresets[] = {
+    {0x00, "Ceiling"},
+    {0x01, "Wall (top, north)"},
+    {0x60, "Wall (top, west)"},
+    {0x96, "Ceiling (large)"},
+    {0xF8, "Chest"},
+    {0xF0, "Door"},
+    {0xEE, "Pot"},
+    {0x80, "Floor 1"},
+  };
 };
 
 }  // namespace gui
