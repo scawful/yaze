@@ -850,12 +850,15 @@ void EditorManager::DrawPlaceholderSidebar() {
   // Sidebar fills full viewport height (menu bar is only in dockspace region)
   const ImGuiViewport* viewport = ImGui::GetMainViewport();
   const float viewport_height = viewport->WorkSize.y;
-  const float sidebar_width = EditorCardRegistry::GetSidebarWidth();
+  // Use same width logic as GetLeftLayoutOffset() for consistency
+  const float sidebar_width = card_registry_.IsTreeViewMode()
+                                  ? EditorCardRegistry::GetTreeSidebarWidth()
+                                  : EditorCardRegistry::GetSidebarWidth();
 
   // Use theme colors for sidebar background
-  const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
-  ImVec4 sidebar_bg = gui::ConvertColorToImVec4(theme.surface);
-  ImVec4 sidebar_border = gui::ConvertColorToImVec4(theme.text_disabled);
+  // Use Surface Container for a distinct background from the main window
+  ImVec4 sidebar_bg = gui::GetSurfaceContainerVec4();
+  ImVec4 sidebar_border = gui::GetOutlineVec4();
 
   ImGuiWindowFlags sidebar_flags =
       ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
@@ -870,30 +873,40 @@ void EditorManager::DrawPlaceholderSidebar() {
 
   ImGui::PushStyleColor(ImGuiCol_WindowBg, sidebar_bg);
   ImGui::PushStyleColor(ImGuiCol_Border, sidebar_border);
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4.0f, 8.0f));
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 2.0f);
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8.0f, 8.0f));
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 1.0f);
 
   if (ImGui::Begin("##PlaceholderSidebar", nullptr, sidebar_flags)) {
     // Center the content vertically
-    float content_height = 80.0f;
+    float content_height = 120.0f;
     ImGui::Dummy(ImVec2(0, (viewport_height - content_height) / 3.0f));
 
     // "No ROM" indicator
-    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.5f, 0.5f, 0.5f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
 
     // File icon
     float icon_width = ImGui::CalcTextSize(ICON_MD_FOLDER_OPEN).x;
     ImGui::SetCursorPosX((sidebar_width - icon_width) / 2.0f);
     ImGui::Text("%s", ICON_MD_FOLDER_OPEN);
 
-    // Help text (rotated would be ideal but we'll use small text)
-    ImGui::Dummy(ImVec2(0, 8.0f));
-    ImGui::SetCursorPosX(4.0f);
-    ImGui::TextWrapped("Open");
-    ImGui::SetCursorPosX(4.0f);
-    ImGui::TextWrapped("ROM");
-
     ImGui::PopStyleColor();
+
+    ImGui::Dummy(ImVec2(0, 16.0f));
+
+    // Action Buttons
+    float button_width = sidebar_width - 16.0f;
+    ImGui::SetCursorPosX(8.0f);
+    
+    if (ImGui::Button("Open ROM", ImVec2(button_width, 32.0f))) {
+      LoadRom();
+    }
+    
+    ImGui::Dummy(ImVec2(0, 8.0f));
+    
+    ImGui::SetCursorPosX(8.0f);
+    if (ImGui::Button("New Project", ImVec2(button_width, 32.0f))) {
+      CreateNewProject();
+    }
   }
   ImGui::End();
 
@@ -920,11 +933,13 @@ void EditorManager::DrawMenuBar() {
 
   if (ImGui::BeginMenuBar()) {
     // Sidebar toggle - ALWAYS visible with dynamic icon based on state
+    // Consistent button styling with other menubar buttons
     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
                           gui::GetSurfaceContainerHighVec4());
     ImGui::PushStyleColor(ImGuiCol_ButtonActive,
                           gui::GetSurfaceContainerHighestVec4());
+    ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
 
     // Show different icon based on sidebar state
     const char* sidebar_icon = card_registry_.IsSidebarCollapsed()
@@ -935,7 +950,7 @@ void EditorManager::DrawMenuBar() {
       card_registry_.ToggleSidebarCollapsed();
     }
 
-    ImGui::PopStyleColor(3);
+    ImGui::PopStyleColor(4);
 
     if (ImGui::IsItemHovered()) {
       const char* tooltip = card_registry_.IsSidebarCollapsed()

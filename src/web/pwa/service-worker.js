@@ -41,6 +41,9 @@ const PRECACHE_ASSETS = [
   './core/filesystem_manager.js',
   './core/loading_indicator.js',
   './core/error_handler.js',
+  './core/crash_reporter.js',
+  './core/wasm_recovery.js',
+  './core/debug.js',
   // UI Components
   './components/shortcuts_overlay.js',
   './components/terminal.js',

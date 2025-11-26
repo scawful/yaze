@@ -127,6 +127,7 @@ source_group("Tests\\Integration" FILES
   integration/palette_manager_test.cc
   integration/memory_debugging_test.cc
   integration/wasm_message_queue_test.cc
+  integration/emulator_object_preview_test.cc
 )
 
 # Integration Tests (Zelda3)

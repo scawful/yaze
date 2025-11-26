@@ -119,39 +119,47 @@ void RightPanelManager::Draw() {
     return;
   }
 
+  // Handle Escape key to close panel
+  if (ImGui::IsKeyPressed(ImGuiKey_Escape)) {
+    ClosePanel();
+    return;
+  }
+
   const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
-  // Use viewport for accurate positioning (panel fills full height)
   const ImGuiViewport* viewport = ImGui::GetMainViewport();
   const float viewport_height = viewport->WorkSize.y;
   const float viewport_width = viewport->WorkSize.x;
   const float panel_width = GetPanelWidth();
 
-  // Use theme colors for panel background
-  ImVec4 panel_bg = gui::ConvertColorToImVec4(theme.surface);
-  ImVec4 panel_border = gui::ConvertColorToImVec4(theme.text_disabled);
+  // Use SurfaceContainer for slightly elevated panel background
+  ImVec4 panel_bg = gui::GetSurfaceContainerVec4();
+  ImVec4 panel_border = gui::GetOutlineVec4();
 
   ImGuiWindowFlags panel_flags =
       ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove |
       ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoDocking |
       ImGuiWindowFlags_NoNavFocus;
 
-  // Position panel on right edge, full height (menu bar is in dockspace region)
+  // Position panel on right edge, full height
   ImGui::SetNextWindowPos(
-      ImVec2(viewport->WorkPos.x + viewport_width - panel_width, viewport->WorkPos.y));
+      ImVec2(viewport->WorkPos.x + viewport_width - panel_width,
+             viewport->WorkPos.y));
   ImGui::SetNextWindowSize(ImVec2(panel_width, viewport_height));
 
   ImGui::PushStyleColor(ImGuiCol_WindowBg, panel_bg);
   ImGui::PushStyleColor(ImGuiCol_Border, panel_border);
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8.0f, 8.0f));
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
   ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 1.0f);
 
   if (ImGui::Begin("##RightPanel", nullptr, panel_flags)) {
-    // Draw panel header with close button
+    // Draw enhanced panel header
     DrawPanelHeader(GetPanelTypeName(active_panel_),
                     GetPanelTypeIcon(active_panel_));
 
-    ImGui::Separator();
-    ImGui::Spacing();
+    // Content area with padding
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(12.0f, 8.0f));
+    ImGui::BeginChild("##PanelContent", ImVec2(0, 0), false,
+                      ImGuiWindowFlags_AlwaysUseWindowPadding);
 
     // Draw panel content based on type
     switch (active_panel_) {
@@ -173,6 +181,9 @@ void RightPanelManager::Draw() {
       default:
         break;
     }
+
+    ImGui::EndChild();
+    ImGui::PopStyleVar();  // WindowPadding for content
   }
   ImGui::End();
 
@@ -182,31 +193,151 @@ void RightPanelManager::Draw() {
 
 void RightPanelManager::DrawPanelHeader(const char* title, const char* icon) {
   const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
+  const float header_height = 44.0f;
+  const float padding = 12.0f;
 
-  // Panel icon and title
+  // Header background - slightly elevated surface
+  ImVec2 header_min = ImGui::GetCursorScreenPos();
+  ImVec2 header_max = ImVec2(header_min.x + ImGui::GetWindowWidth(),
+                             header_min.y + header_height);
+
+  ImDrawList* draw_list = ImGui::GetWindowDrawList();
+  draw_list->AddRectFilled(header_min, header_max,
+                           ImGui::GetColorU32(gui::GetSurfaceContainerHighVec4()));
+
+  // Draw subtle bottom border
+  draw_list->AddLine(ImVec2(header_min.x, header_max.y),
+                     ImVec2(header_max.x, header_max.y),
+                     ImGui::GetColorU32(gui::GetOutlineVec4()), 1.0f);
+
+  // Position content within header
+  ImGui::SetCursorPosX(padding);
+  ImGui::SetCursorPosY(ImGui::GetCursorPosY() + (header_height - ImGui::GetTextLineHeight()) * 0.5f);
+
+  // Panel icon with primary color
   ImGui::PushStyleColor(ImGuiCol_Text, gui::GetPrimaryVec4());
   ImGui::Text("%s", icon);
   ImGui::PopStyleColor();
 
   ImGui::SameLine();
+
+  // Panel title (use current style text color)
+  ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_Text));
   ImGui::Text("%s", title);
+  ImGui::PopStyleColor();
 
-  // Close button (right-aligned)
-  ImGui::SameLine(ImGui::GetWindowWidth() - 40.0f);
+  // Close button (right-aligned, larger click area)
+  const float button_size = 28.0f;
+  ImGui::SameLine(ImGui::GetWindowWidth() - button_size - padding);
+  ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 4.0f);  // Center vertically
+
   ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
-  ImGui::PushStyleColor(ImGuiCol_ButtonHovered, gui::GetSurfaceContainerHighVec4());
-  ImGui::PushStyleColor(ImGuiCol_ButtonActive, gui::GetSurfaceContainerHighestVec4());
+  ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
+                        gui::GetSurfaceContainerHighestVec4());
+  ImGui::PushStyleColor(ImGuiCol_ButtonActive,
+                        ImVec4(gui::GetPrimaryVec4().x * 0.3f,
+                               gui::GetPrimaryVec4().y * 0.3f,
+                               gui::GetPrimaryVec4().z * 0.3f, 0.4f));
+  ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
+  ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 4.0f);
 
-  if (ImGui::SmallButton(ICON_MD_CLOSE)) {
+  if (ImGui::Button(ICON_MD_CLOSE, ImVec2(button_size, button_size))) {
     ClosePanel();
   }
 
-  ImGui::PopStyleColor(3);
+  ImGui::PopStyleVar();
+  ImGui::PopStyleColor(4);
 
   if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("Close Panel");
+    ImGui::SetTooltip("Close Panel (Esc)");
   }
+
+  // Move cursor past the header
+  ImGui::SetCursorPosY(header_height + 8.0f);
 }
+
+// =============================================================================
+// Panel Styling Helpers
+// =============================================================================
+
+bool RightPanelManager::BeginPanelSection(const char* label, const char* icon,
+                                          bool default_open) {
+  ImGui::PushStyleColor(ImGuiCol_Header, gui::GetSurfaceContainerHighVec4());
+  ImGui::PushStyleColor(ImGuiCol_HeaderHovered,
+                        gui::GetSurfaceContainerHighestVec4());
+  ImGui::PushStyleColor(ImGuiCol_HeaderActive,
+                        gui::GetSurfaceContainerHighestVec4());
+  ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(8.0f, 6.0f));
+  ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 4.0f);
+
+  // Build header text with icon if provided
+  std::string header_text;
+  if (icon) {
+    header_text = std::string(icon) + "  " + label;
+  } else {
+    header_text = label;
+  }
+
+  ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_Framed |
+                             ImGuiTreeNodeFlags_SpanAvailWidth |
+                             ImGuiTreeNodeFlags_AllowOverlap |
+                             ImGuiTreeNodeFlags_FramePadding;
+  if (default_open) {
+    flags |= ImGuiTreeNodeFlags_DefaultOpen;
+  }
+
+  bool is_open = ImGui::TreeNodeEx(header_text.c_str(), flags);
+
+  ImGui::PopStyleVar(2);
+  ImGui::PopStyleColor(3);
+
+  if (is_open) {
+    ImGui::Spacing();
+    ImGui::Indent(4.0f);
+  }
+
+  return is_open;
+}
+
+void RightPanelManager::EndPanelSection() {
+  ImGui::Unindent(4.0f);
+  ImGui::TreePop();
+  ImGui::Spacing();
+}
+
+void RightPanelManager::DrawPanelDivider() {
+  ImGui::Spacing();
+  ImGui::PushStyleColor(ImGuiCol_Separator, gui::GetOutlineVec4());
+  ImGui::Separator();
+  ImGui::PopStyleColor();
+  ImGui::Spacing();
+}
+
+void RightPanelManager::DrawPanelLabel(const char* label) {
+  ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
+  ImGui::TextUnformatted(label);
+  ImGui::PopStyleColor();
+}
+
+void RightPanelManager::DrawPanelValue(const char* label, const char* value) {
+  ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
+  ImGui::Text("%s:", label);
+  ImGui::PopStyleColor();
+  ImGui::SameLine();
+  ImGui::TextUnformatted(value);
+}
+
+void RightPanelManager::DrawPanelDescription(const char* text) {
+  ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextDisabledVec4());
+  ImGui::PushTextWrapPos(ImGui::GetContentRegionAvail().x);
+  ImGui::TextWrapped("%s", text);
+  ImGui::PopTextWrapPos();
+  ImGui::PopStyleColor();
+}
+
+// =============================================================================
+// Panel Content Drawing
+// =============================================================================
 
 void RightPanelManager::DrawAgentChatPanel() {
 #ifdef YAZE_WITH_GRPC
@@ -216,14 +347,22 @@ void RightPanelManager::DrawAgentChatPanel() {
     agent_chat_widget_->set_active(true);
     agent_chat_widget_->Draw();
   } else {
-    ImGui::TextDisabled("AI Agent not available");
-    ImGui::TextWrapped(
+    ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
+    ImGui::Text(ICON_MD_SMART_TOY " AI Agent Not Available");
+    ImGui::PopStyleColor();
+
+    ImGui::Spacing();
+    DrawPanelDescription(
         "The AI Agent requires gRPC support. "
         "Build with YAZE_WITH_GRPC=ON to enable.");
   }
 #else
-  ImGui::TextDisabled("AI Agent not available");
-  ImGui::TextWrapped(
+  ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
+  ImGui::Text(ICON_MD_SMART_TOY " AI Agent Not Available");
+  ImGui::PopStyleColor();
+
+  ImGui::Spacing();
+  DrawPanelDescription(
       "The AI Agent requires gRPC support. "
       "Build with YAZE_WITH_GRPC=ON to enable.");
 #endif
@@ -237,7 +376,14 @@ void RightPanelManager::DrawProposalsPanel() {
     }
     proposal_drawer_->DrawContent();
   } else {
-    ImGui::TextDisabled("Proposal system not initialized");
+    ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
+    ImGui::Text(ICON_MD_DESCRIPTION " Proposals Not Available");
+    ImGui::PopStyleColor();
+
+    ImGui::Spacing();
+    DrawPanelDescription(
+        "The proposal system is not initialized. "
+        "Proposals will appear here when the AI Agent creates them.");
   }
 }
 
@@ -246,43 +392,87 @@ void RightPanelManager::DrawSettingsPanel() {
     // Draw settings inline (no card windows)
     settings_editor_->DrawInlineSettings();
   } else {
-    ImGui::TextDisabled("Settings not available");
+    ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
+    ImGui::Text(ICON_MD_SETTINGS " Settings Not Available");
+    ImGui::PopStyleColor();
+
     ImGui::Spacing();
-    ImGui::TextWrapped(
+    DrawPanelDescription(
         "Settings will be available once initialized. "
         "This panel provides quick access to application settings.");
   }
 }
 
 void RightPanelManager::DrawHelpPanel() {
-  ImGui::Text(ICON_MD_HELP " Help & Documentation");
-  ImGui::Separator();
-  ImGui::Spacing();
+  // Quick Start section
+  if (BeginPanelSection("Quick Start", ICON_MD_ROCKET_LAUNCH, true)) {
+    ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_Text));
 
-  // Quick links section
-  if (ImGui::CollapsingHeader("Quick Start", ImGuiTreeNodeFlags_DefaultOpen)) {
-    ImGui::BulletText("Open a ROM file via File > Open ROM");
-    ImGui::BulletText("Select an editor from the editor selection dialog");
-    ImGui::BulletText("Use the sidebar to toggle editor cards");
-    ImGui::BulletText("Save your work via File > Save ROM");
+    ImGui::Bullet();
+    ImGui::TextWrapped("Open a ROM file via File > Open ROM");
+
+    ImGui::Bullet();
+    ImGui::TextWrapped("Select an editor from the editor selection dialog");
+
+    ImGui::Bullet();
+    ImGui::TextWrapped("Use the sidebar to toggle editor cards");
+
+    ImGui::Bullet();
+    ImGui::TextWrapped("Save your work via File > Save ROM");
+
+    ImGui::PopStyleColor();
+    EndPanelSection();
   }
 
-  if (ImGui::CollapsingHeader("Keyboard Shortcuts")) {
-    ImGui::BulletText("Ctrl+O: Open ROM");
-    ImGui::BulletText("Ctrl+S: Save ROM");
-    ImGui::BulletText("Ctrl+B: Toggle Sidebar");
-    ImGui::BulletText("Ctrl+1-9: Switch Editors");
-    ImGui::BulletText("Ctrl+Shift+P: Command Palette");
-    ImGui::BulletText("Ctrl+Shift+F: Global Search");
+  // Keyboard Shortcuts section
+  if (BeginPanelSection("Keyboard Shortcuts", ICON_MD_KEYBOARD, false)) {
+    // File operations
+    DrawPanelLabel("File Operations");
+    ImGui::Indent(8.0f);
+    DrawPanelValue("Ctrl+O", "Open ROM");
+    DrawPanelValue("Ctrl+S", "Save ROM");
+    ImGui::Unindent(8.0f);
+    ImGui::Spacing();
+
+    // Navigation
+    DrawPanelLabel("Navigation");
+    ImGui::Indent(8.0f);
+    DrawPanelValue("Ctrl+B", "Toggle Sidebar");
+    DrawPanelValue("Ctrl+1-9", "Switch Editors");
+    ImGui::Unindent(8.0f);
+    ImGui::Spacing();
+
+    // Tools
+    DrawPanelLabel("Tools");
+    ImGui::Indent(8.0f);
+    DrawPanelValue("Ctrl+Shift+P", "Command Palette");
+    DrawPanelValue("Ctrl+Shift+F", "Global Search");
+    DrawPanelValue("Esc", "Close Panel");
+    ImGui::Unindent(8.0f);
+
+    EndPanelSection();
   }
 
-  if (ImGui::CollapsingHeader("About")) {
+  // About section
+  if (BeginPanelSection("About", ICON_MD_INFO, false)) {
+    ImGui::PushStyleColor(ImGuiCol_Text, gui::GetPrimaryVec4());
     ImGui::Text("YAZE - Yet Another Zelda3 Editor");
-    ImGui::TextWrapped(
+    ImGui::PopStyleColor();
+
+    ImGui::Spacing();
+    DrawPanelDescription(
         "A comprehensive editor for The Legend of Zelda: "
         "A Link to the Past ROM files.");
+
+    DrawPanelDivider();
+
+    DrawPanelLabel("Links");
     ImGui::Spacing();
-    ImGui::TextDisabled("Visit github.com/scawful/yaze for more info");
+    ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
+    ImGui::Text(ICON_MD_LINK " github.com/scawful/yaze");
+    ImGui::PopStyleColor();
+
+    EndPanelSection();
   }
 }
 
@@ -291,133 +481,88 @@ void RightPanelManager::DrawPropertiesPanel() {
     properties_panel_->Draw();
   } else {
     // Placeholder when no properties panel is set
-    ImGui::TextDisabled("No Selection");
+    ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
+    ImGui::Text(ICON_MD_SELECT_ALL " No Selection");
+    ImGui::PopStyleColor();
+
     ImGui::Spacing();
-    ImGui::TextWrapped(
+    DrawPanelDescription(
         "Select an item in the editor to view and edit its properties here.");
-    ImGui::Spacing();
-    ImGui::Separator();
-    ImGui::Spacing();
+
+    DrawPanelDivider();
 
     // Show placeholder sections for what properties would look like
-    if (ImGui::CollapsingHeader("Position & Size",
-                                ImGuiTreeNodeFlags_DefaultOpen)) {
-      ImGui::TextDisabled("X: --");
-      ImGui::TextDisabled("Y: --");
-      ImGui::TextDisabled("Width: --");
-      ImGui::TextDisabled("Height: --");
+    if (BeginPanelSection("Position & Size", ICON_MD_STRAIGHTEN, true)) {
+      DrawPanelValue("X", "--");
+      DrawPanelValue("Y", "--");
+      DrawPanelValue("Width", "--");
+      DrawPanelValue("Height", "--");
+      EndPanelSection();
     }
 
-    if (ImGui::CollapsingHeader("Appearance")) {
-      ImGui::TextDisabled("Tile ID: --");
-      ImGui::TextDisabled("Palette: --");
-      ImGui::TextDisabled("Layer: --");
+    if (BeginPanelSection("Appearance", ICON_MD_PALETTE, false)) {
+      DrawPanelValue("Tile ID", "--");
+      DrawPanelValue("Palette", "--");
+      DrawPanelValue("Layer", "--");
+      EndPanelSection();
     }
 
-    if (ImGui::CollapsingHeader("Behavior")) {
-      ImGui::TextDisabled("Type: --");
-      ImGui::TextDisabled("Subtype: --");
-      ImGui::TextDisabled("Properties: --");
+    if (BeginPanelSection("Behavior", ICON_MD_SETTINGS, false)) {
+      DrawPanelValue("Type", "--");
+      DrawPanelValue("Subtype", "--");
+      DrawPanelValue("Properties", "--");
+      EndPanelSection();
     }
   }
 }
 
 bool RightPanelManager::DrawPanelToggleButtons() {
   bool clicked = false;
-  const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
 
-  // Style for panel toggle buttons
-  ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
-  ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
-                        gui::GetSurfaceContainerHighVec4());
-  ImGui::PushStyleColor(ImGuiCol_ButtonActive,
-                        gui::GetSurfaceContainerHighestVec4());
+  // Helper lambda for drawing panel toggle buttons with consistent styling
+  auto DrawPanelButton = [&](const char* icon, const char* tooltip,
+                             PanelType type) {
+    bool is_active = IsPanelActive(type);
+
+    // Consistent button styling - transparent background with hover states
+    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
+                          gui::GetSurfaceContainerHighVec4());
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive,
+                          gui::GetSurfaceContainerHighestVec4());
+    // Active = primary color, inactive = secondary text color
+    ImGui::PushStyleColor(
+        ImGuiCol_Text,
+        is_active ? gui::GetPrimaryVec4() : gui::GetTextSecondaryVec4());
+
+    if (ImGui::SmallButton(icon)) {
+      TogglePanel(type);
+      clicked = true;
+    }
+
+    ImGui::PopStyleColor(4);
+
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("%s", tooltip);
+    }
+  };
 
 #ifdef YAZE_WITH_GRPC
   // Agent Chat button
-  bool agent_active = IsPanelActive(PanelType::kAgentChat);
-  if (agent_active) {
-    ImGui::PushStyleColor(ImGuiCol_Text, gui::GetPrimaryVec4());
-  }
-
-  if (ImGui::SmallButton(ICON_MD_SMART_TOY)) {
-    TogglePanel(PanelType::kAgentChat);
-    clicked = true;
-  }
-
-  if (agent_active) {
-    ImGui::PopStyleColor();
-  }
-
-  if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("AI Agent Panel");
-  }
-
+  DrawPanelButton(ICON_MD_SMART_TOY, "AI Agent Panel", PanelType::kAgentChat);
   ImGui::SameLine();
 #endif
 
   // Proposals button
-  bool proposals_active = IsPanelActive(PanelType::kProposals);
-  if (proposals_active) {
-    ImGui::PushStyleColor(ImGuiCol_Text, gui::GetPrimaryVec4());
-  }
-
-  if (ImGui::SmallButton(ICON_MD_DESCRIPTION)) {
-    TogglePanel(PanelType::kProposals);
-    clicked = true;
-  }
-
-  if (proposals_active) {
-    ImGui::PopStyleColor();
-  }
-
-  if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("Proposals Panel");
-  }
-
+  DrawPanelButton(ICON_MD_DESCRIPTION, "Proposals Panel", PanelType::kProposals);
   ImGui::SameLine();
 
   // Settings button
-  bool settings_active = IsPanelActive(PanelType::kSettings);
-  if (settings_active) {
-    ImGui::PushStyleColor(ImGuiCol_Text, gui::GetPrimaryVec4());
-  }
-
-  if (ImGui::SmallButton(ICON_MD_SETTINGS)) {
-    TogglePanel(PanelType::kSettings);
-    clicked = true;
-  }
-
-  if (settings_active) {
-    ImGui::PopStyleColor();
-  }
-
-  if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("Settings Panel");
-  }
-
+  DrawPanelButton(ICON_MD_SETTINGS, "Settings Panel", PanelType::kSettings);
   ImGui::SameLine();
 
-  // Properties button
-  bool properties_active = IsPanelActive(PanelType::kProperties);
-  if (properties_active) {
-    ImGui::PushStyleColor(ImGuiCol_Text, gui::GetPrimaryVec4());
-  }
-
-  if (ImGui::SmallButton(ICON_MD_LIST_ALT)) {
-    TogglePanel(PanelType::kProperties);
-    clicked = true;
-  }
-
-  if (properties_active) {
-    ImGui::PopStyleColor();
-  }
-
-  if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("Properties Panel");
-  }
-
-  ImGui::PopStyleColor(3);
+  // Properties button (last button - no SameLine after)
+  DrawPanelButton(ICON_MD_LIST_ALT, "Properties Panel", PanelType::kProperties);
 
   return clicked;
 }
