@@ -29,6 +29,7 @@
 #include "app/editor/system/toast_manager.h"
 #include "app/gui/core/icons.h"
 #include "app/rom.h"
+#include "cli/service/ai/browser_ai_service.h"
 #include "cli/service/ai/gemini_ai_service.h"
 #include "cli/service/ai/model_registry.h"
 #include "cli/service/ai/ollama_ai_service.h"
@@ -37,6 +38,11 @@
 #include "imgui/imgui.h"
 #include "util/file_util.h"
 #include "util/platform_paths.h"
+
+#if defined(__EMSCRIPTEN__)
+#include <emscripten/emscripten.h>
+#include "app/net/wasm/emscripten_http_client.h"
+#endif
 
 #if defined(YAZE_WITH_GRPC)
 #include "app/test/test_manager.h"
@@ -913,6 +919,8 @@ void AgentChatWidget::Draw() {
                             ? ImVec4(0.2f, 0.8f, 0.4f, 1.0f)
                         : (agent_config_.ai_provider == "gemini")
                             ? ImVec4(0.196f, 0.6f, 0.8f, 1.0f)
+                        : (agent_config_.ai_provider == "openai")
+                            ? ImVec4(0.85f, 0.4f, 0.8f, 1.0f)
                             : ImVec4(0.6f, 0.6f, 0.6f, 1.0f);
   draw_list->AddRectFilled(bar_start,
                            ImVec2(bar_start.x + bar_size.x, bar_start.y + 3),
@@ -931,14 +939,16 @@ void AgentChatWidget::Draw() {
     ImGui::TextColored(accent_color, ICON_MD_SMART_TOY);
     ImGui::SameLine();
     ImGui::SetNextItemWidth(95);
-    const char* providers[] = {"Mock", "Ollama", "Gemini"};
+    const char* providers[] = {"Mock", "Ollama", "Gemini", "OpenAI"};
     int current_provider = (agent_config_.ai_provider == "mock")     ? 0
                            : (agent_config_.ai_provider == "ollama") ? 1
-                                                                     : 2;
-    if (ImGui::Combo("##main_provider", &current_provider, providers, 3)) {
+                           : (agent_config_.ai_provider == "gemini") ? 2
+                                                                     : 3;
+    if (ImGui::Combo("##main_provider", &current_provider, providers, 4)) {
       agent_config_.ai_provider = (current_provider == 0)   ? "mock"
                                   : (current_provider == 1) ? "ollama"
-                                                            : "gemini";
+                                  : (current_provider == 2) ? "gemini"
+                                                            : "openai";
       // Auto-populate default models
       if (agent_config_.ai_provider == "ollama") {
         strncpy(agent_config_.model_buffer, "qwen2.5-coder:7b",
@@ -946,6 +956,10 @@ void AgentChatWidget::Draw() {
         agent_config_.ai_model = agent_config_.model_buffer;
       } else if (agent_config_.ai_provider == "gemini") {
         strncpy(agent_config_.model_buffer, "gemini-2.5-flash",
+                sizeof(agent_config_.model_buffer) - 1);
+        agent_config_.ai_model = agent_config_.model_buffer;
+      } else if (agent_config_.ai_provider == "openai") {
+        strncpy(agent_config_.model_buffer, "gpt-4o-mini",
                 sizeof(agent_config_.model_buffer) - 1);
         agent_config_.ai_model = agent_config_.model_buffer;
       }
@@ -1998,9 +2012,16 @@ cli::AIServiceConfig AgentChatWidget::BuildAIServiceConfig() const {
   cli::AIServiceConfig cfg;
   cfg.provider =
       agent_config_.ai_provider.empty() ? "auto" : agent_config_.ai_provider;
+#if defined(__EMSCRIPTEN__)
+  // Prefer explicit Gemini provider in browser builds
+  if (cfg.provider == "auto" || cfg.provider.empty()) {
+    cfg.provider = "gemini";
+  }
+#endif
   cfg.model = agent_config_.ai_model;
   cfg.ollama_host = agent_config_.ollama_host;
   cfg.gemini_api_key = agent_config_.gemini_api_key;
+  cfg.openai_api_key = agent_config_.gemini_api_key;  // reuse until dedicated field exists
   cfg.verbose = agent_config_.verbose;
   return cfg;
 }
@@ -2024,6 +2045,53 @@ void AgentChatWidget::RefreshModels() {
 
   auto& registry = cli::ModelRegistry::GetInstance();
   registry.ClearServices();
+
+#if defined(__EMSCRIPTEN__)
+  // Browser build: use BrowserAIService (fetch-based, no gRPC)
+  cli::BrowserAIConfig browser_cfg;
+  browser_cfg.model = agent_config_.ai_model.empty() ? "gemini-1.5-flash"
+                                                     : agent_config_.ai_model;
+  browser_cfg.api_key = agent_config_.gemini_api_key;
+  browser_cfg.verbose = agent_config_.verbose;
+
+  auto http_client = std::make_unique<yaze::net::EmscriptenHttpClient>();
+  registry.RegisterService(std::make_shared<cli::BrowserAIService>(
+      browser_cfg, std::move(http_client)));
+
+  auto models_or = registry.ListAllModels();
+  models_loading_ = false;
+
+  if (!models_or.ok()) {
+    if (toast_manager_) {
+      toast_manager_->Show(absl::StrFormat("Model refresh failed: %s",
+                                           models_or.status().message()),
+                           ToastType::kWarning, 4.0f);
+    }
+    return;
+  }
+
+  model_info_cache_ = *models_or;
+  std::sort(model_info_cache_.begin(), model_info_cache_.end(),
+            [](const cli::ModelInfo& lhs, const cli::ModelInfo& rhs) {
+              if (lhs.provider != rhs.provider) {
+                return lhs.provider < rhs.provider;
+              }
+              return lhs.name < rhs.name;
+            });
+
+  model_name_cache_.clear();
+  for (const auto& info : model_info_cache_) {
+    model_name_cache_.push_back(info.name);
+  }
+
+  last_model_refresh_ = absl::Now();
+  if (toast_manager_) {
+    toast_manager_->Show(absl::StrFormat("Loaded %zu models (browser AI)",
+                                         model_info_cache_.size()),
+                         ToastType::kSuccess, 2.0f);
+  }
+  return;
+#endif
 
   // Register Ollama service
   if (!agent_config_.ollama_host.empty()) {
@@ -2083,6 +2151,31 @@ void AgentChatWidget::RefreshModels() {
 
 void AgentChatWidget::UpdateAgentConfig(const AgentConfigState& config) {
   agent_config_ = config;
+
+#if defined(__EMSCRIPTEN__)
+  // Pull browser-stored key if UI config is empty (set via terminal/settings)
+  if (agent_config_.gemini_api_key.empty()) {
+    char* key_ptr = reinterpret_cast<char*>(EM_ASM_PTR({
+      let k = sessionStorage.getItem('z3ed_gemini_api_key') ||
+              localStorage.getItem('z3ed_gemini_api_key') ||
+              sessionStorage.getItem('GEMINI_API_KEY') ||
+              localStorage.getItem('GEMINI_API_KEY') ||
+              sessionStorage.getItem('z3ed_openai_api_key') ||
+              localStorage.getItem('z3ed_openai_api_key') ||
+              sessionStorage.getItem('OPENAI_API_KEY') ||
+              localStorage.getItem('OPENAI_API_KEY') || '';
+      if (!k) return 0;
+      var len = lengthBytesUTF8(k) + 1;
+      var buf = _malloc(len);
+      stringToUTF8(k, buf, len);
+      return buf;
+    }));
+    if (key_ptr) {
+      agent_config_.gemini_api_key = key_ptr;
+      free(key_ptr);
+    }
+  }
+#endif
 
   // Apply configuration to the agent service
   cli::agent::AgentConfig service_config;
