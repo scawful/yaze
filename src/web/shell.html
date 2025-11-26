@@ -2054,7 +2054,10 @@
         var inPalette = t.closest && t.closest('#command-palette');
         var inModal = t.closest && t.closest('.modal');
 
-        if (isInput || inTerminal || inCollab || inPalette || inModal ||
+        // Terminal input handles its own capture in terminal.js to preserve Enter/autocomplete
+        if (inTerminal) return;
+
+        if (isInput || inCollab || inPalette || inModal ||
             t.id === 'yaze-chat-input' || t.id === 'terminal-input' ||
             t.id === 'palette-input') {
           e.stopPropagation();
@@ -2068,6 +2071,8 @@
         var t = e.target;
         if (!t) return;
         var isInput = t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable;
+        if (t.closest && t.closest('#panel-terminal')) return;
+
         if (isInput) {
           e.stopPropagation();
           e.stopImmediatePropagation();
@@ -2078,9 +2083,23 @@
         var t = e.target;
         if (!t) return;
         var isInput = t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable;
+        if (t.closest && t.closest('#panel-terminal')) return;
+
         if (isInput) {
           e.stopPropagation();
           e.stopImmediatePropagation();
+        }
+      }, true);
+
+      // Block browser context menu on the main WASM canvas (ImGui handles its own)
+      document.addEventListener('contextmenu', function(e) {
+        var target = e.target;
+        if (!target) return;
+        if (target.id === 'canvas' || (target.closest && target.closest('#canvas-container'))) {
+          e.preventDefault();
+          e.stopPropagation();
+          e.stopImmediatePropagation();
+          return false;
         }
       }, true);
 

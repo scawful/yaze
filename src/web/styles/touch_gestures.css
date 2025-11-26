@@ -48,9 +48,6 @@ canvas.emscripten {
 
   /* Disable tap highlight (Android Chrome) */
   -webkit-tap-highlight-color: transparent;
-
-  /* Prevent zoom on double-tap */
-  touch-action: manipulation;
 }
 
 /* When touch is active, hide the cursor on the canvas */
