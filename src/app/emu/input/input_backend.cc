@@ -12,6 +12,21 @@ namespace yaze {
 namespace emu {
 namespace input {
 
+void ApplyDefaultKeyBindings(InputConfig& config) {
+  if (config.key_a == 0) config.key_a = SDLK_x;
+  if (config.key_b == 0) config.key_b = SDLK_z;
+  if (config.key_x == 0) config.key_x = SDLK_s;
+  if (config.key_y == 0) config.key_y = SDLK_a;
+  if (config.key_l == 0) config.key_l = SDLK_d;
+  if (config.key_r == 0) config.key_r = SDLK_c;
+  if (config.key_start == 0) config.key_start = SDLK_RETURN;
+  if (config.key_select == 0) config.key_select = SDLK_RSHIFT;
+  if (config.key_up == 0) config.key_up = SDLK_UP;
+  if (config.key_down == 0) config.key_down = SDLK_DOWN;
+  if (config.key_left == 0) config.key_left = SDLK_LEFT;
+  if (config.key_right == 0) config.key_right = SDLK_RIGHT;
+}
+
 /**
  * @brief SDL2 input backend implementation
  */
@@ -28,21 +43,7 @@ class SDL2InputBackend : public IInputBackend {
 
     config_ = config;
 
-    // Set default SDL2 keycodes if not configured
-    if (config_.key_a == 0) {
-      config_.key_a = SDLK_x;
-      config_.key_b = SDLK_z;
-      config_.key_x = SDLK_s;
-      config_.key_y = SDLK_a;
-      config_.key_l = SDLK_d;
-      config_.key_r = SDLK_c;
-      config_.key_start = SDLK_RETURN;
-      config_.key_select = SDLK_RSHIFT;
-      config_.key_up = SDLK_UP;
-      config_.key_down = SDLK_DOWN;
-      config_.key_left = SDLK_LEFT;
-      config_.key_right = SDLK_RIGHT;
-    }
+    ApplyDefaultKeyBindings(config_);
 
     initialized_ = true;
     LOG_INFO("InputBackend", "SDL2 Input Backend initialized");
@@ -66,19 +67,9 @@ class SDL2InputBackend : public IInputBackend {
       // Continuous polling mode (for games)
       const uint8_t* keyboard_state = SDL_GetKeyboardState(nullptr);
 
-      // IMPORTANT: Only block input when actively typing in text fields
-      // Allow game input even when ImGui windows are open/focused
+      // Only block input when actively typing in text fields AND not overridden
       ImGuiIO& io = ImGui::GetIO();
-
-      // Only block if user is actively typing in a text input field
-      // WantTextInput is true only when an InputText widget is active
-      if (io.WantTextInput) {
-        // User is typing in a text field
-        // Return empty state to prevent game from processing input
-        static int text_input_log_count = 0;
-        if (text_input_log_count++ < 5) {
-          LOG_DEBUG("InputBackend", "Blocking game input - WantTextInput=true");
-        }
+      if (io.WantTextInput && !config_.ignore_imgui_text_input) {
         return ControllerState{};
       }
 
@@ -186,6 +177,7 @@ class NullInputBackend : public IInputBackend {
  public:
   bool Initialize(const InputConfig& config) override {
     config_ = config;
+    ApplyDefaultKeyBindings(config_);
     return true;
   }
   void Shutdown() override {}

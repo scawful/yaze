@@ -55,6 +55,11 @@ void Emulator::Cleanup() {
   audio_stream_active_ = false;
 }
 
+void Emulator::SetInputConfig(const input::InputConfig& config) {
+  input_config_ = config;
+  input_manager_.SetConfig(input_config_);
+}
+
 void Emulator::set_use_sdl_audio_stream(bool enabled) {
   if (use_sdl_audio_stream_ != enabled) {
     use_sdl_audio_stream_ = enabled;
@@ -182,13 +187,17 @@ void Emulator::Run(Rom* rom) {
 
   // Initialize input manager if not already done
   if (!input_manager_.IsInitialized()) {
+    input_manager_.SetConfig(input_config_);
     if (!input_manager_.Initialize(
             input::InputBackendFactory::BackendType::SDL2)) {
       LOG_ERROR("Emulator", "Failed to initialize input manager");
     } else {
+      input_config_ = input_manager_.GetConfig();
       LOG_INFO("Emulator", "Input manager initialized: %s",
                input_manager_.backend()->GetBackendName().c_str());
     }
+  } else {
+    input_config_ = input_manager_.GetConfig();
   }
 
   // Initialize SNES and create PPU texture on first run
@@ -818,7 +827,14 @@ void Emulator::RenderSaveStates() {
 
 void Emulator::RenderKeyboardConfig() {
   // Delegate to the input manager UI
-  ui::RenderKeyboardConfig(&input_manager_);
+  ui::RenderKeyboardConfig(
+      &input_manager_,
+      [this](const input::InputConfig& config) {
+        input_config_ = config;
+        if (input_config_changed_callback_) {
+          input_config_changed_callback_(config);
+        }
+      });
 }
 
 void Emulator::RenderApuDebugger() {

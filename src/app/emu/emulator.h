@@ -2,6 +2,7 @@
 #define YAZE_APP_CORE_EMULATOR_H
 
 #include <cstdint>
+#include <functional>
 #include <vector>
 
 #include "app/emu/audio/audio_backend.h"
@@ -46,6 +47,11 @@ class Emulator {
   // Card visibility managed by EditorCardRegistry (dependency injection)
   void set_card_registry(editor::EditorCardRegistry* registry) {
     card_registry_ = registry;
+  }
+  void SetInputConfig(const input::InputConfig& config);
+  void set_input_config_changed_callback(
+      std::function<void(const input::InputConfig&)> callback) {
+    input_config_changed_callback_ = std::move(callback);
   }
 
   auto snes() -> Snes& { return snes_; }
@@ -185,6 +191,8 @@ class Emulator {
 
   // Input handling (abstracted for SDL2/SDL3/custom backends)
   input::InputManager input_manager_;
+  input::InputConfig input_config_;
+  std::function<void(const input::InputConfig&)> input_config_changed_callback_;
 
   // Card registry for card visibility (injected)
   editor::EditorCardRegistry* card_registry_ = nullptr;
