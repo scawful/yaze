@@ -733,7 +733,21 @@ absl::Status Overworld::EnsureMapBuilt(int map_index) {
 
   // Check if map is already built
   if (overworld_maps_[map_index].is_built()) {
+    // Move to front of LRU (most recently used)
+    auto it = std::find(built_map_lru_.begin(), built_map_lru_.end(), map_index);
+    if (it != built_map_lru_.end()) {
+      built_map_lru_.erase(it);
+    }
+    built_map_lru_.push_front(map_index);
     return absl::OkStatus();
+  }
+
+  // Evict oldest maps if cache is full (LRU eviction)
+  while (static_cast<int>(built_map_lru_.size()) >= kMaxBuiltMaps) {
+    int oldest_map = built_map_lru_.back();
+    built_map_lru_.pop_back();
+    // Destroy the oldest map to free memory
+    overworld_maps_[oldest_map].Destroy();
   }
 
   // Build the map on-demand
@@ -746,8 +760,13 @@ absl::Status Overworld::EnsureMapBuilt(int map_index) {
     world_type = 2;
   }
 
-  return overworld_maps_[map_index].BuildMap(size, game_state_, world_type,
-                                             tiles16_, GetMapTiles(world_type));
+  auto status = overworld_maps_[map_index].BuildMap(size, game_state_, world_type,
+                                                    tiles16_, GetMapTiles(world_type));
+  if (status.ok()) {
+    // Add to front of LRU cache
+    built_map_lru_.push_front(map_index);
+  }
+  return status;
 }
 
 void Overworld::LoadTileTypes() {
