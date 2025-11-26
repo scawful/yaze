@@ -65,8 +65,9 @@ bool Arena::ProcessSingleTexture(IRenderer* renderer) {
       break;
     }
     case TextureCommandType::UPDATE: {
-      if (command.bitmap->texture() && command.bitmap->surface() &&
-          command.bitmap->surface()->format && command.bitmap->is_active()) {
+      if (command.bitmap && command.bitmap->texture() &&
+          command.bitmap->surface() && command.bitmap->surface()->format &&
+          command.bitmap->is_active()) {
         try {
           active_renderer->UpdateTexture(command.bitmap->texture(),
                                          *command.bitmap);
@@ -78,7 +79,7 @@ bool Arena::ProcessSingleTexture(IRenderer* renderer) {
       break;
     }
     case TextureCommandType::DESTROY: {
-      if (command.bitmap->texture()) {
+      if (command.bitmap && command.bitmap->texture()) {
         try {
           active_renderer->DestroyTexture(command.bitmap->texture());
           command.bitmap->set_texture(nullptr);
@@ -176,8 +177,9 @@ void Arena::ProcessTextureQueue(IRenderer* renderer) {
       }
       case TextureCommandType::UPDATE: {
         // Update existing texture with current bitmap data
-        if (command.bitmap->texture() && command.bitmap->surface() &&
-            command.bitmap->surface()->format && command.bitmap->is_active()) {
+        if (command.bitmap && command.bitmap->texture() &&
+            command.bitmap->surface() && command.bitmap->surface()->format &&
+            command.bitmap->is_active()) {
           try {
             active_renderer->UpdateTexture(command.bitmap->texture(),
                                            *command.bitmap);
@@ -189,7 +191,7 @@ void Arena::ProcessTextureQueue(IRenderer* renderer) {
         break;
       }
       case TextureCommandType::DESTROY: {
-        if (command.bitmap->texture()) {
+        if (command.bitmap && command.bitmap->texture()) {
           try {
             active_renderer->DestroyTexture(command.bitmap->texture());
             command.bitmap->set_texture(nullptr);

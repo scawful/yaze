@@ -48,6 +48,11 @@ yaze::emu::Emulator* GetGlobalEmulator() {
   return yaze::app::GetGlobalEmulator();
 }
 
+// Helper to access the live EditorManager without repeating the namespace
+yaze::editor::EditorManager* GetEditorManager() {
+  return yaze::app::GetGlobalEditorManager();
+}
+
 // =============================================================================
 // Async Operation Tracking
 // =============================================================================
