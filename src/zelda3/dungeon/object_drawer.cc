@@ -166,6 +166,24 @@ void ObjectDrawer::InitializeDrawRoutines() {
   object_to_routine_map_[0x33] = 16;
   object_to_routine_map_[0xC6] = 7;  // Vertical draw
 
+  // Diagonal walls - BothBG variants (based on ZScream patterns)
+  // Objects 0x0C-0x0D, 0x10-0x11, 0x14-0x15, 0x18-0x19, 0x1C-0x1D, 0x20
+  // map to acute diagonal BothBG
+  for (int id : {0x0C, 0x0D, 0x10, 0x11, 0x14, 0x15, 0x18, 0x19, 0x1C, 0x1D,
+                 0x20}) {
+    object_to_routine_map_[id] = 17;  // DrawDiagonalAcute_1to16_BothBG
+  }
+  // Objects 0x0E-0x0F, 0x12-0x13, 0x16-0x17, 0x1A-0x1B, 0x1E-0x1F
+  // map to grave diagonal BothBG
+  for (int id : {0x0E, 0x0F, 0x12, 0x13, 0x16, 0x17, 0x1A, 0x1B, 0x1E, 0x1F}) {
+    object_to_routine_map_[id] = 18;  // DrawDiagonalGrave_1to16_BothBG
+  }
+
+  // Type 2 corner objects (4x4 grid)
+  for (int id = 0x40; id <= 0x4F; id++) {
+    object_to_routine_map_[id] = 19;  // DrawCorner4x4
+  }
+
   // Initialize draw routine function array in the correct order
   draw_routines_.reserve(35);
 
@@ -271,6 +289,24 @@ void ObjectDrawer::InitializeDrawRoutines() {
                               std::span<const gfx::TileInfo> tiles) {
     self->DrawRightwards4x4_1to16(obj, bg, tiles);
   });
+  // Routine 17 - Diagonal Acute BothBG
+  draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
+                              gfx::BackgroundBuffer& bg,
+                              std::span<const gfx::TileInfo> tiles) {
+    self->DrawDiagonalAcute_1to16_BothBG(obj, bg, tiles);
+  });
+  // Routine 18 - Diagonal Grave BothBG
+  draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
+                              gfx::BackgroundBuffer& bg,
+                              std::span<const gfx::TileInfo> tiles) {
+    self->DrawDiagonalGrave_1to16_BothBG(obj, bg, tiles);
+  });
+  // Routine 19 - 4x4 Corner (Type 2 corners)
+  draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
+                              gfx::BackgroundBuffer& bg,
+                              std::span<const gfx::TileInfo> tiles) {
+    self->DrawCorner4x4(obj, bg, tiles);
+  });
 
   routines_initialized_ = true;
 }
@@ -322,6 +358,7 @@ void ObjectDrawer::DrawRightwards2x4_1to15or26(
     const RoomObject& obj, gfx::BackgroundBuffer& bg,
     std::span<const gfx::TileInfo> tiles) {
   // Pattern: Draws 2x4 tiles rightward (objects 0x01-0x02)
+  // Row-major ordering with 4 tiles repeated vertically
   int size = obj.size_;
   if (size == 0)
     size = 26;  // Special case
@@ -332,19 +369,18 @@ void ObjectDrawer::DrawRightwards2x4_1to15or26(
 
   for (int s = 0; s < size; s++) {
     if (tiles.size() >= 4) {
-      // For 2x4, we'll use the same tile pattern repeated
-      WriteTile8(bg, obj.x_ + (s * 2), obj.y_, tiles[0]);          // Top-left
-      WriteTile8(bg, obj.x_ + (s * 2) + 1, obj.y_, tiles[1]);      // Top-right
-      WriteTile8(bg, obj.x_ + (s * 2), obj.y_ + 1, tiles[2]);      // Mid-left
-      WriteTile8(bg, obj.x_ + (s * 2) + 1, obj.y_ + 1, tiles[3]);  // Mid-right
-      WriteTile8(bg, obj.x_ + (s * 2), obj.y_ + 2,
-                 tiles[0]);  // Bottom-left (repeat)
-      WriteTile8(bg, obj.x_ + (s * 2) + 1, obj.y_ + 2,
-                 tiles[1]);  // Bottom-right (repeat)
-      WriteTile8(bg, obj.x_ + (s * 2), obj.y_ + 3,
-                 tiles[2]);  // Bottom-left (repeat)
-      WriteTile8(bg, obj.x_ + (s * 2) + 1, obj.y_ + 3,
-                 tiles[3]);  // Bottom-right (repeat)
+      // Row 0
+      WriteTile8(bg, obj.x_ + (s * 2), obj.y_, tiles[0]);
+      WriteTile8(bg, obj.x_ + (s * 2) + 1, obj.y_, tiles[1]);
+      // Row 1
+      WriteTile8(bg, obj.x_ + (s * 2), obj.y_ + 1, tiles[2]);
+      WriteTile8(bg, obj.x_ + (s * 2) + 1, obj.y_ + 1, tiles[3]);
+      // Row 2 (repeat)
+      WriteTile8(bg, obj.x_ + (s * 2), obj.y_ + 2, tiles[0]);
+      WriteTile8(bg, obj.x_ + (s * 2) + 1, obj.y_ + 2, tiles[1]);
+      // Row 3 (repeat)
+      WriteTile8(bg, obj.x_ + (s * 2), obj.y_ + 3, tiles[2]);
+      WriteTile8(bg, obj.x_ + (s * 2) + 1, obj.y_ + 3, tiles[3]);
     }
   }
 }
@@ -353,23 +389,23 @@ void ObjectDrawer::DrawRightwards2x4spaced4_1to16(
     const RoomObject& obj, gfx::BackgroundBuffer& bg,
     std::span<const gfx::TileInfo> tiles) {
   // Pattern: Draws 2x4 tiles rightward with spacing (objects 0x03-0x04)
+  // Row-major ordering with 4 tiles repeated vertically
   int size = obj.size_ & 0x0F;
 
   for (int s = 0; s < size; s++) {
     if (tiles.size() >= 4) {
-      // Draw 2x4 pattern with spacing using 8x8 tiles from span
-      WriteTile8(bg, obj.x_ + (s * 6), obj.y_, tiles[0]);          // Top-left
-      WriteTile8(bg, obj.x_ + (s * 6) + 1, obj.y_, tiles[1]);      // Top-right
-      WriteTile8(bg, obj.x_ + (s * 6), obj.y_ + 1, tiles[2]);      // Mid-left
-      WriteTile8(bg, obj.x_ + (s * 6) + 1, obj.y_ + 1, tiles[3]);  // Mid-right
-      WriteTile8(bg, obj.x_ + (s * 6), obj.y_ + 2,
-                 tiles[0]);  // Bottom-left (repeat)
-      WriteTile8(bg, obj.x_ + (s * 6) + 1, obj.y_ + 2,
-                 tiles[1]);  // Bottom-right (repeat)
-      WriteTile8(bg, obj.x_ + (s * 6), obj.y_ + 3,
-                 tiles[2]);  // Bottom-left (repeat)
-      WriteTile8(bg, obj.x_ + (s * 6) + 1, obj.y_ + 3,
-                 tiles[3]);  // Bottom-right (repeat)
+      // Row 0
+      WriteTile8(bg, obj.x_ + (s * 6), obj.y_, tiles[0]);
+      WriteTile8(bg, obj.x_ + (s * 6) + 1, obj.y_, tiles[1]);
+      // Row 1
+      WriteTile8(bg, obj.x_ + (s * 6), obj.y_ + 1, tiles[2]);
+      WriteTile8(bg, obj.x_ + (s * 6) + 1, obj.y_ + 1, tiles[3]);
+      // Row 2 (repeat)
+      WriteTile8(bg, obj.x_ + (s * 6), obj.y_ + 2, tiles[0]);
+      WriteTile8(bg, obj.x_ + (s * 6) + 1, obj.y_ + 2, tiles[1]);
+      // Row 3 (repeat)
+      WriteTile8(bg, obj.x_ + (s * 6), obj.y_ + 3, tiles[2]);
+      WriteTile8(bg, obj.x_ + (s * 6) + 1, obj.y_ + 3, tiles[3]);
     }
   }
 }
@@ -448,6 +484,21 @@ void ObjectDrawer::DrawDiagonalGrave_1to16_BothBG(
     std::span<const gfx::TileInfo> tiles) {
   // Pattern: Diagonal grave for both BG layers (objects 0x16-0x20)
   DrawDiagonalGrave_1to16(obj, bg, tiles);
+}
+
+void ObjectDrawer::DrawCorner4x4(const RoomObject& obj,
+                                 gfx::BackgroundBuffer& bg,
+                                 std::span<const gfx::TileInfo> tiles) {
+  // Pattern: 4x4 grid corner (Type 2 corners 0x40-0x4F)
+  // Column-major ordering per ZScream: iterate columns first, then rows
+  if (tiles.size() >= 16) {
+    int tid = 0;
+    for (int xx = 0; xx < 4; xx++) {
+      for (int yy = 0; yy < 4; yy++) {
+        WriteTile8(bg, obj.x_ + xx, obj.y_ + yy, tiles[tid++]);
+      }
+    }
+  }
 }
 
 void ObjectDrawer::DrawRightwards1x2_1to16_plus2(
