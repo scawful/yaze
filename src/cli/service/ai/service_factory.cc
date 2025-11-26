@@ -39,6 +39,12 @@ std::unique_ptr<AIService> CreateAIService() {
     if (env_key)
       config.gemini_api_key = env_key;
   }
+  if (config.openai_api_key.empty()) {
+    const char* openai_key = std::getenv("OPENAI_API_KEY");
+    if (openai_key) {
+      config.openai_api_key = openai_key;
+    }
+  }
   if (config.model.empty()) {
     const char* env_model = std::getenv("OLLAMA_MODEL");
     if (env_model)
@@ -60,6 +66,13 @@ std::unique_ptr<AIService> CreateAIService(const AIServiceConfig& config) {
       std::cout << "🤖 Auto-detecting AI provider...\n";
       std::cout << "   Found Gemini API key, using Gemini\n";
       effective_config.provider = "gemini";
+    } else if (!effective_config.openai_api_key.empty()) {
+      std::cout << "🤖 Auto-detecting AI provider...\n";
+      std::cout << "   Found OpenAI API key, using OpenAI\n";
+      effective_config.provider = "openai";
+      if (effective_config.model.empty()) {
+        effective_config.model = "gpt-4o-mini";
+      }
     } else
 #endif
     {
@@ -78,7 +91,7 @@ std::unique_ptr<AIService> CreateAIService(const AIServiceConfig& config) {
         }
       } else {
         std::cout << "🤖 No AI provider configured, using MockAIService\n";
-        std::cout << "   Tip: Set GEMINI_API_KEY or start Ollama for real AI\n";
+        std::cout << "   Tip: Set GEMINI_API_KEY/OPENAI_API_KEY or start Ollama for real AI\n";
         effective_config.provider = "mock";
       }
     }
@@ -143,6 +156,15 @@ absl::StatusOr<std::unique_ptr<AIService>> CreateAIServiceStrict(
         absl::GetFlag(FLAGS_use_function_calling);
     gemini_config.verbose = config.verbose;
     return std::make_unique<GeminiAIService>(gemini_config);
+  }
+  if (provider == "openai") {
+    if (config.openai_api_key.empty()) {
+      return absl::FailedPreconditionError(
+          "OpenAI API key not provided. Set OPENAI_API_KEY.");
+    }
+    // Native OpenAI client not wired; browser path handles this provider.
+    return absl::FailedPreconditionError(
+        "OpenAI provider is only supported in browser/WASM builds.");
   }
 #else
   if (provider == "gemini") {
