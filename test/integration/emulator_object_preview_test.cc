@@ -458,5 +458,372 @@ TEST_F(EmulatorObjectPreviewTest, DISABLED_HandlerExecutionRequiresGameState) {
       << "Handler should write to tilemap (currently fails - needs game state)";
 }
 
+// =============================================================================
+// Emulator State Injection Tests
+// Tests for proper SNES state setup for isolated code execution
+// =============================================================================
+
+class EmulatorStateInjectionTest : public TestRomManager::BoundRomTest {
+ protected:
+  void SetUp() override {
+    BoundRomTest::SetUp();
+    snes_ = std::make_unique<emu::Snes>();
+    snes_->Init(rom()->vector());
+  }
+
+  void TearDown() override {
+    snes_.reset();
+    BoundRomTest::TearDown();
+  }
+
+  // Convert SNES LoROM address to PC offset
+  static uint32_t SnesToPc(uint32_t snes_addr) {
+    uint8_t bank = (snes_addr >> 16) & 0xFF;
+    uint16_t addr = snes_addr & 0xFFFF;
+    if (addr >= 0x8000) {
+      return (bank & 0x7F) * 0x8000 + (addr - 0x8000);
+    }
+    return snes_addr;
+  }
+
+  std::unique_ptr<emu::Snes> snes_;
+};
+
+// Test LoROM address conversion
+TEST_F(EmulatorStateInjectionTest, LoRomAddressConversion) {
+  // Bank $01 handler tables
+  EXPECT_EQ(SnesToPc(0x018000), 0x8000u) << "$01:8000 -> PC $8000";
+  EXPECT_EQ(SnesToPc(0x018200), 0x8200u) << "$01:8200 -> PC $8200";
+  EXPECT_EQ(SnesToPc(0x0186F8), 0x86F8u) << "$01:86F8 -> PC $86F8";
+
+  // Bank $00
+  EXPECT_EQ(SnesToPc(0x008000), 0x0000u) << "$00:8000 -> PC $0000";
+  EXPECT_EQ(SnesToPc(0x009B52), 0x1B52u) << "$00:9B52 -> PC $1B52";
+
+  // Bank $0D (palettes)
+  EXPECT_EQ(SnesToPc(0x0DD308), 0x6D308u) << "$0D:D308 -> PC $6D308";
+  EXPECT_EQ(SnesToPc(0x0DD734), 0x6D734u) << "$0D:D734 -> PC $6D734";
+
+  // Bank $02
+  EXPECT_EQ(SnesToPc(0x028000), 0x10000u) << "$02:8000 -> PC $10000";
+}
+
+// Test APU out_ports access
+TEST_F(EmulatorStateInjectionTest, ApuOutPortsAccess) {
+  auto& apu = snes_->apu();
+
+  // Set mock values
+  apu.out_ports_[0] = 0xAA;
+  apu.out_ports_[1] = 0xBB;
+  apu.out_ports_[2] = 0xCC;
+  apu.out_ports_[3] = 0xDD;
+
+  // Verify values are set
+  EXPECT_EQ(apu.out_ports_[0], 0xAA);
+  EXPECT_EQ(apu.out_ports_[1], 0xBB);
+  EXPECT_EQ(apu.out_ports_[2], 0xCC);
+  EXPECT_EQ(apu.out_ports_[3], 0xDD);
+}
+
+// Test that APU out_ports values can be read via CPU
+TEST_F(EmulatorStateInjectionTest, ApuOutPortsReadByCpu) {
+  auto& apu = snes_->apu();
+
+  // Set mock values
+  apu.out_ports_[0] = 0xAA;
+  apu.out_ports_[1] = 0xBB;
+
+  // Read via SNES Read() - this goes through the memory mapper
+  // NOTE: CatchUpApu() is called which may overwrite our values!
+  // This test documents the current behavior
+  uint8_t val0 = snes_->Read(0x002140);
+  uint8_t val1 = snes_->Read(0x002141);
+
+  printf("[TEST] APU read: $2140=$%02X (expected $AA), $2141=$%02X (expected $BB)\n",
+         val0, val1);
+
+  // These may NOT equal $AA/$BB due to CatchUpApu() running the APU
+  // Document current behavior rather than asserting
+  if (val0 != 0xAA || val1 != 0xBB) {
+    printf("[TEST] WARNING: CatchUpApu() may have overwritten mock values\n");
+  }
+}
+
+// Test handler table reading with correct LoROM conversion
+TEST_F(EmulatorStateInjectionTest, HandlerTableReadWithLoRom) {
+  auto rom_data = rom()->data();
+
+  // Read object 0x00 handler from the correct PC offset
+  uint32_t handler_table_snes = 0x018200;  // Type 1 handler table
+  uint32_t handler_table_pc = SnesToPc(handler_table_snes);
+
+  EXPECT_EQ(handler_table_pc, 0x8200u);
+
+  if (handler_table_pc + 1 < rom()->size()) {
+    uint16_t handler = rom_data[handler_table_pc] |
+                       (rom_data[handler_table_pc + 1] << 8);
+    printf("[TEST] Object 0x00 handler (from PC $%04X): $%04X\n",
+           handler_table_pc, handler);
+
+    // Handler should be in the $8xxx-$9xxx range (bank $01 code)
+    EXPECT_GE(handler, 0x8000u) << "Handler should be >= $8000";
+    EXPECT_LT(handler, 0x10000u) << "Handler should be < $10000";
+  } else {
+    FAIL() << "Handler table address out of ROM bounds";
+  }
+}
+
+// Test data offset table reading
+TEST_F(EmulatorStateInjectionTest, DataOffsetTableReadWithLoRom) {
+  auto rom_data = rom()->data();
+
+  // Read object 0x00 data offset
+  uint32_t data_table_snes = 0x018000;  // Type 1 data table
+  uint32_t data_table_pc = SnesToPc(data_table_snes);
+
+  EXPECT_EQ(data_table_pc, 0x8000u);
+
+  if (data_table_pc + 1 < rom()->size()) {
+    uint16_t data_offset = rom_data[data_table_pc] |
+                           (rom_data[data_table_pc + 1] << 8);
+    printf("[TEST] Object 0x00 data offset (from PC $%04X): $%04X\n",
+           data_table_pc, data_offset);
+
+    // Data offset is into RoomDrawObjectData, should be reasonable
+    EXPECT_LT(data_offset, 0x8000u) << "Data offset should be < $8000";
+  } else {
+    FAIL() << "Data table address out of ROM bounds";
+  }
+}
+
+// Test tilemap pointer setup
+TEST_F(EmulatorStateInjectionTest, TilemapPointerSetup) {
+  // Setup tilemap pointers in zero page
+  constexpr uint32_t kBG1TilemapBase = 0x7E2000;
+  constexpr uint32_t kRowStride = 0x80;
+  constexpr uint8_t kPointerAddrs[] = {0xBF, 0xC2, 0xC5, 0xC8, 0xCB,
+                                        0xCE, 0xD1, 0xD4, 0xD7, 0xDA, 0xDD};
+
+  for (int i = 0; i < 11; ++i) {
+    uint32_t wram_addr = kBG1TilemapBase + (i * kRowStride);
+    uint8_t lo = wram_addr & 0xFF;
+    uint8_t mid = (wram_addr >> 8) & 0xFF;
+    uint8_t hi = (wram_addr >> 16) & 0xFF;
+
+    uint8_t zp_addr = kPointerAddrs[i];
+    snes_->Write(0x7E0000 | zp_addr, lo);
+    snes_->Write(0x7E0000 | (zp_addr + 1), mid);
+    snes_->Write(0x7E0000 | (zp_addr + 2), hi);
+  }
+
+  // Verify pointers were written correctly
+  for (int i = 0; i < 11; ++i) {
+    uint8_t zp_addr = kPointerAddrs[i];
+    uint8_t lo = snes_->Read(0x7E0000 | zp_addr);
+    uint8_t mid = snes_->Read(0x7E0000 | (zp_addr + 1));
+    uint8_t hi = snes_->Read(0x7E0000 | (zp_addr + 2));
+
+    uint32_t ptr = lo | (mid << 8) | (hi << 16);
+    uint32_t expected = kBG1TilemapBase + (i * kRowStride);
+
+    EXPECT_EQ(ptr, expected) << "Tilemap ptr $" << std::hex << (int)zp_addr
+                             << " should be $" << expected;
+  }
+}
+
+// Test sprite auxiliary palette loading
+TEST_F(EmulatorStateInjectionTest, SpriteAuxPaletteLoading) {
+  auto rom_data = rom()->data();
+
+  // Sprite aux palettes at $0D:D308
+  uint32_t palette_snes = 0x0DD308;
+  uint32_t palette_pc = SnesToPc(palette_snes);
+
+  EXPECT_EQ(palette_pc, 0x6D308u);
+
+  if (palette_pc + 60 < rom()->size()) {
+    // Read first few palette colors
+    std::vector<uint16_t> colors;
+    for (int i = 0; i < 10; ++i) {
+      uint16_t color = rom_data[palette_pc + i * 2] |
+                       (rom_data[palette_pc + i * 2 + 1] << 8);
+      colors.push_back(color);
+    }
+
+    printf("[TEST] First 10 sprite aux palette colors:\n");
+    for (int i = 0; i < 10; ++i) {
+      printf("  [%d] $%04X\n", i, colors[i]);
+    }
+
+    // At least some colors should be non-zero
+    int nonzero = 0;
+    for (uint16_t c : colors) {
+      if (c != 0) nonzero++;
+    }
+    EXPECT_GT(nonzero, 0) << "Sprite aux palette should have some non-zero colors";
+  } else {
+    printf("[TEST] WARNING: Sprite aux palette address $%X out of bounds\n", palette_pc);
+  }
+}
+
+// Test CPU state setup for handler execution
+TEST_F(EmulatorStateInjectionTest, CpuStateSetup) {
+  snes_->Reset(true);
+  auto& cpu = snes_->cpu();
+
+  // Setup CPU state as we do in the preview
+  cpu.PB = 0x01;
+  cpu.DB = 0x7E;
+  cpu.D = 0x0000;
+  cpu.SetSP(0x01FF);
+  cpu.status = 0x30;
+  cpu.E = 0;
+  cpu.X = 0x03D8;  // Sample data offset
+  cpu.Y = 0x0820;  // Sample tilemap position
+  cpu.PC = 0x8B89; // Sample handler address
+
+  EXPECT_EQ(cpu.PB, 0x01);
+  EXPECT_EQ(cpu.DB, 0x7E);
+  EXPECT_EQ(cpu.D, 0x0000);
+  EXPECT_EQ(cpu.SP(), 0x01FF);
+  EXPECT_EQ(cpu.X, 0x03D8);
+  EXPECT_EQ(cpu.Y, 0x0820);
+  EXPECT_EQ(cpu.PC, 0x8B89);
+}
+
+// Test STP trap setup
+TEST_F(EmulatorStateInjectionTest, StpTrapSetup) {
+  // Write STP opcode to trap address
+  const uint32_t trap_addr = 0x01FF00;
+  snes_->Write(trap_addr, 0xDB);  // STP opcode
+
+  // Verify write
+  uint8_t opcode = snes_->Read(trap_addr);
+  EXPECT_EQ(opcode, 0xDB) << "STP opcode should be written to trap address";
+}
+
+// =============================================================================
+// Handler Execution Tracing Tests
+// These tests help diagnose why handlers fail to execute properly
+// =============================================================================
+
+class HandlerExecutionTraceTest : public TestRomManager::BoundRomTest {
+ protected:
+  void SetUp() override {
+    BoundRomTest::SetUp();
+    snes_ = std::make_unique<emu::Snes>();
+    snes_->Init(rom()->vector());
+  }
+
+  void TearDown() override {
+    snes_.reset();
+    BoundRomTest::TearDown();
+  }
+
+  // Convert SNES LoROM address to PC offset
+  static uint32_t SnesToPc(uint32_t snes_addr) {
+    uint8_t bank = (snes_addr >> 16) & 0xFF;
+    uint16_t addr = snes_addr & 0xFFFF;
+    if (addr >= 0x8000) {
+      return (bank & 0x7F) * 0x8000 + (addr - 0x8000);
+    }
+    return snes_addr;
+  }
+
+  // Trace first N opcodes of execution
+  void TraceExecution(int num_opcodes) {
+    auto& cpu = snes_->cpu();
+
+    printf("\n[TRACE] Starting execution trace from $%02X:%04X\n", cpu.PB, cpu.PC);
+    printf("        X=$%04X Y=$%04X A=$%04X SP=$%04X\n",
+           cpu.X, cpu.Y, cpu.A, cpu.SP());
+
+    for (int i = 0; i < num_opcodes; ++i) {
+      uint32_t addr = (cpu.PB << 16) | cpu.PC;
+      uint8_t opcode = snes_->Read(addr);
+
+      printf("[%4d] $%02X:%04X: %02X", i, cpu.PB, cpu.PC, opcode);
+
+      // Execute
+      cpu.RunOpcode();
+
+      printf(" -> $%02X:%04X (A=$%04X X=$%04X Y=$%04X)\n",
+             cpu.PB, cpu.PC, cpu.A, cpu.X, cpu.Y);
+
+      // Check for STP
+      if (opcode == 0xDB) {
+        printf("[TRACE] STP encountered, stopping\n");
+        break;
+      }
+
+      // Check if we hit APU loop
+      if (cpu.PB == 0x00 && cpu.PC == 0x8891) {
+        printf("[TRACE] Hit APU loop at $00:8891\n");
+        break;
+      }
+    }
+  }
+
+  std::unique_ptr<emu::Snes> snes_;
+};
+
+// Trace first few instructions of object 0x00 handler
+TEST_F(HandlerExecutionTraceTest, TraceObject00Handler) {
+  auto rom_data = rom()->data();
+
+  // Get handler address
+  uint32_t handler_table_pc = SnesToPc(0x018200);
+  uint16_t handler = rom_data[handler_table_pc] |
+                     (rom_data[handler_table_pc + 1] << 8);
+
+  printf("[TEST] Object 0x00 handler: $%04X\n", handler);
+
+  // Get data offset
+  uint32_t data_table_pc = SnesToPc(0x018000);
+  uint16_t data_offset = rom_data[data_table_pc] |
+                         (rom_data[data_table_pc + 1] << 8);
+
+  printf("[TEST] Object 0x00 data offset: $%04X\n", data_offset);
+
+  // Setup emulator state
+  snes_->Reset(true);
+  auto& cpu = snes_->cpu();
+  auto& apu = snes_->apu();
+
+  // Setup APU mock
+  apu.out_ports_[0] = 0xAA;
+  apu.out_ports_[1] = 0xBB;
+
+  // Setup tilemap pointers
+  constexpr uint32_t kBG1TilemapBase = 0x7E2000;
+  constexpr uint8_t kPointerAddrs[] = {0xBF, 0xC2, 0xC5, 0xC8, 0xCB,
+                                        0xCE, 0xD1, 0xD4, 0xD7, 0xDA, 0xDD};
+  for (int i = 0; i < 11; ++i) {
+    uint32_t wram_addr = kBG1TilemapBase + (i * 0x80);
+    snes_->Write(0x7E0000 | kPointerAddrs[i], wram_addr & 0xFF);
+    snes_->Write(0x7E0000 | (kPointerAddrs[i] + 1), (wram_addr >> 8) & 0xFF);
+    snes_->Write(0x7E0000 | (kPointerAddrs[i] + 2), (wram_addr >> 16) & 0xFF);
+  }
+
+  // Clear tilemap buffer
+  for (uint32_t i = 0; i < 0x2000; i++) {
+    snes_->Write(0x7E2000 + i, 0x00);
+  }
+
+  // Setup CPU for handler
+  cpu.PB = 0x01;
+  cpu.DB = 0x7E;
+  cpu.D = 0x0000;
+  cpu.SetSP(0x01FF);
+  cpu.status = 0x30;
+  cpu.E = 0;
+  cpu.X = data_offset;
+  cpu.Y = 0x0820;  // Tilemap position (16,16)
+  cpu.PC = handler;
+
+  // Trace first 20 instructions
+  TraceExecution(20);
+}
+
 }  // namespace test
 }  // namespace yaze
