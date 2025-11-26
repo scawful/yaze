@@ -1039,21 +1039,10 @@ void EditorManager::DrawMenuBar() {
   // Enhanced Global Search UI (managed by UICoordinator)
   // No longer here - handled by ui_coordinator_->DrawAllUI()
 
-  // Update all active editors
-  auto* current_editor_set = GetCurrentEditorSet();
-  if (current_editor_set) {
-    for (auto* editor : current_editor_set->active_editors_) {
-      if (editor && *editor->active()) {
-        status_ = editor->Update();
-        if (!status_.ok()) {
-          LOG_ERROR("EditorManager", "Editor update failed: %s",
-                    status_.message().data());
-          // If critical error, maybe deactivate?
-          // editor->set_active(false);
-        }
-      }
-    }
-  }
+  // NOTE: Editor updates are handled by SessionCoordinator::UpdateSessions()
+  // which is called in EditorManager::Update(). Removed duplicate update loop
+  // here that was causing EditorCard::Begin() to be called twice per frame,
+  // resulting in duplicate rendering detection logs.
 
   if (ui_coordinator_ && ui_coordinator_->IsResourceLabelManagerVisible() &&
       GetCurrentRom()) {

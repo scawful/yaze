@@ -8,6 +8,7 @@
 #include "app/gui/core/icons.h"
 #include "app/gui/core/input.h"
 #include "app/gui/core/layout_helpers.h"
+#include "app/gui/core/popup_id.h"
 #include "imgui/imgui.h"
 #include "zelda3/overworld/overworld_map.h"
 #include "zelda3/overworld/overworld_version_helper.h"
@@ -113,7 +114,10 @@ void MapPropertiesSystem::DrawSimplifiedMapSettings(
 
     TableNextColumn();
     if (ImGui::Button(ICON_MD_IMAGE " GFX", ImVec2(kTableButtonGraphics, 0))) {
-      ImGui::OpenPopup("GraphicsPopup");
+      ImGui::OpenPopup(
+          gui::MakePopupId(gui::EditorNames::kOverworld,
+                           gui::PopupNames::kGraphicsPopup)
+              .c_str());
     }
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip(
@@ -129,7 +133,10 @@ void MapPropertiesSystem::DrawSimplifiedMapSettings(
     TableNextColumn();
     if (ImGui::Button(ICON_MD_PALETTE " Palettes",
                       ImVec2(kTableButtonPalettes, 0))) {
-      ImGui::OpenPopup("PalettesPopup");
+      ImGui::OpenPopup(
+          gui::MakePopupId(gui::EditorNames::kOverworld,
+                           gui::PopupNames::kPalettesPopup)
+              .c_str());
     }
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip(
@@ -145,7 +152,10 @@ void MapPropertiesSystem::DrawSimplifiedMapSettings(
     TableNextColumn();
     if (ImGui::Button(ICON_MD_TUNE " Config",
                       ImVec2(kTableButtonProperties, 0))) {
-      ImGui::OpenPopup("ConfigPopup");
+      ImGui::OpenPopup(
+          gui::MakePopupId(gui::EditorNames::kOverworld,
+                           gui::PopupNames::kConfigPopup)
+              .c_str());
     }
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip(
@@ -167,7 +177,10 @@ void MapPropertiesSystem::DrawSimplifiedMapSettings(
     // View Controls
     if (ImGui::Button(ICON_MD_VISIBILITY " View",
                       ImVec2(kTableButtonView, 0))) {
-      ImGui::OpenPopup("ViewPopup");
+      ImGui::OpenPopup(
+          gui::MakePopupId(gui::EditorNames::kOverworld,
+                           gui::PopupNames::kViewPopup)
+              .c_str());
     }
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip(
@@ -182,7 +195,10 @@ void MapPropertiesSystem::DrawSimplifiedMapSettings(
     TableNextColumn();
     // Quick Access Tools
     if (ImGui::Button(ICON_MD_BOLT " Quick", ImVec2(kTableButtonQuick, 0))) {
-      ImGui::OpenPopup("QuickPopup");
+      ImGui::OpenPopup(
+          gui::MakePopupId(gui::EditorNames::kOverworld,
+                           gui::PopupNames::kQuickPopup)
+              .c_str());
     }
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip(
@@ -544,7 +560,10 @@ void MapPropertiesSystem::SetupCanvasContextMenu(
 
 // Private method implementations
 void MapPropertiesSystem::DrawGraphicsPopup(int current_map, int game_state) {
-  if (ImGui::BeginPopup("GraphicsPopup")) {
+  if (ImGui::BeginPopup(
+          gui::MakePopupId(gui::EditorNames::kOverworld,
+                           gui::PopupNames::kGraphicsPopup)
+              .c_str())) {
     ImGui::PushID("GraphicsPopup");  // Fix ImGui duplicate ID warnings
 
     // Use theme-aware spacing instead of hardcoded constants
@@ -653,7 +672,10 @@ void MapPropertiesSystem::DrawGraphicsPopup(int current_map, int game_state) {
 
 void MapPropertiesSystem::DrawPalettesPopup(int current_map, int game_state,
                                             bool& show_custom_bg_color_editor) {
-  if (ImGui::BeginPopup("PalettesPopup")) {
+  if (ImGui::BeginPopup(
+          gui::MakePopupId(gui::EditorNames::kOverworld,
+                           gui::PopupNames::kPalettesPopup)
+              .c_str())) {
     ImGui::PushID("PalettesPopup");  // Fix ImGui duplicate ID warnings
 
     // Use theme-aware spacing instead of hardcoded constants
@@ -720,7 +742,10 @@ void MapPropertiesSystem::DrawPropertiesPopup(int current_map,
                                               bool& show_map_properties_panel,
                                               bool& show_overlay_preview,
                                               int& game_state) {
-  if (ImGui::BeginPopup("ConfigPopup")) {
+  if (ImGui::BeginPopup(
+          gui::MakePopupId(gui::EditorNames::kOverworld,
+                           gui::PopupNames::kConfigPopup)
+              .c_str())) {
     ImGui::PushID("ConfigPopup");  // Fix ImGui duplicate ID warnings
 
     // Use theme-aware spacing instead of hardcoded constants
@@ -1427,10 +1452,16 @@ void MapPropertiesSystem::DrawOverlayControls(int current_map,
                        ICON_MD_HELP_OUTLINE " Visual Effects Overview");
     ImGui::SameLine();
     if (ImGui::Button(ICON_MD_INFO "##HelpButton")) {
-      ImGui::OpenPopup("OverlayTypesHelp");
+      ImGui::OpenPopup(
+          gui::MakePopupId(gui::EditorNames::kOverworld,
+                           gui::PopupNames::kOverlayTypesHelp)
+              .c_str());
     }
 
-    if (ImGui::BeginPopup("OverlayTypesHelp")) {
+    if (ImGui::BeginPopup(
+            gui::MakePopupId(gui::EditorNames::kOverworld,
+                             gui::PopupNames::kOverlayTypesHelp)
+                .c_str())) {
       ImGui::Text(ICON_MD_HELP " Understanding Overlay Types");
       ImGui::Separator();
 
@@ -1516,9 +1547,15 @@ void MapPropertiesSystem::DrawOverlayControls(int current_map,
                          ICON_MD_EDIT_NOTE " Map Overlay (Interactive)");
       ImGui::SameLine();
       if (ImGui::Button(ICON_MD_INFO "##MapOverlayHelp")) {
-        ImGui::OpenPopup("InteractiveOverlayHelp");
+        ImGui::OpenPopup(
+            gui::MakePopupId(gui::EditorNames::kOverworld,
+                             gui::PopupNames::kInteractiveOverlayHelp)
+                .c_str());
       }
-      if (ImGui::BeginPopup("InteractiveOverlayHelp")) {
+      if (ImGui::BeginPopup(
+              gui::MakePopupId(gui::EditorNames::kOverworld,
+                               gui::PopupNames::kInteractiveOverlayHelp)
+                  .c_str())) {
         ImGui::Text(ICON_MD_HELP " Map Overlays (Interactive Tile Changes)");
         ImGui::Separator();
         ImGui::TextWrapped(
@@ -1640,7 +1677,7 @@ void MapPropertiesSystem::DrawOverlayPreviewOnMap(int current_map,
 
   // Get the subscreen overlay map's bitmap
   const auto& overlay_bitmap = (*maps_bmp_)[overlay_map_index];
-  if (!overlay_bitmap.is_active())
+  if (!overlay_bitmap.is_active() || !overlay_bitmap.texture())
     return;
 
   // Calculate position for subscreen overlay preview on the current map
@@ -1678,7 +1715,10 @@ void MapPropertiesSystem::DrawOverlayPreviewOnMap(int current_map,
 }
 
 void MapPropertiesSystem::DrawViewPopup() {
-  if (ImGui::BeginPopup("ViewPopup")) {
+  if (ImGui::BeginPopup(
+          gui::MakePopupId(gui::EditorNames::kOverworld,
+                           gui::PopupNames::kViewPopup)
+              .c_str())) {
     ImGui::PushID("ViewPopup");  // Fix ImGui duplicate ID warnings
 
     // Use theme-aware spacing instead of hardcoded constants
@@ -1716,7 +1756,10 @@ void MapPropertiesSystem::DrawViewPopup() {
 }
 
 void MapPropertiesSystem::DrawQuickAccessPopup() {
-  if (ImGui::BeginPopup("QuickPopup")) {
+  if (ImGui::BeginPopup(
+          gui::MakePopupId(gui::EditorNames::kOverworld,
+                           gui::PopupNames::kQuickPopup)
+              .c_str())) {
     ImGui::PushID("QuickPopup");  // Fix ImGui duplicate ID warnings
 
     // Use theme-aware spacing instead of hardcoded constants

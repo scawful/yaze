@@ -232,40 +232,37 @@ class OverworldMap : public gfx::GfxContext {
 
   void SetParent(int parent_index) { parent_ = parent_index; }
 
+  /**
+   * @brief Free memory-heavy data while preserving map identity
+   *
+   * This method is called by LRU eviction to free memory.
+   * IMPORTANT: Do NOT reset index_, parent_, rom_, or other identity fields!
+   * The map must be rebuildable using EnsureMapBuilt() after eviction.
+   */
   void Destroy() {
+    // Free memory-heavy data
     current_blockset_.clear();
     current_gfx_.clear();
     bitmap_data_.clear();
     map_tiles_.light_world.clear();
     map_tiles_.dark_world.clear();
     map_tiles_.special_world.clear();
+
+    // Reset build state (allows rebuild)
     built_ = false;
     initialized_ = false;
-    large_map_ = false;
-    mosaic_ = false;
-    index_ = 0;
-    parent_ = 0;
-    large_index_ = 0;
+
+    // Reset runtime state (will be recomputed on rebuild)
     world_ = 0;
     game_state_ = 0;
     main_gfx_id_ = 0;
-    message_id_ = 0;
-    area_graphics_ = 0;
-    area_palette_ = 0;
-    main_palette_ = 0;
-    animated_gfx_ = 0;
-    subscreen_overlay_ = 0;
-    area_specific_bg_color_ = 0;
-    custom_gfx_ids_.fill(0);
-    sprite_graphics_.fill(0);
-    sprite_palette_.fill(0);
-    area_music_.fill(0);
-    static_graphics_.fill(0);
-    mosaic_expanded_.fill(false);
-    area_size_ = AreaSizeEnum::SmallArea;
-    overlay_id_ = 0;
-    has_overlay_ = false;
-    overlay_data_.clear();
+
+    // NOTE: Do NOT reset these identity fields - they are needed for rebuild:
+    // - index_: Map's position in overworld array (used for ROM lookups)
+    // - parent_: Map's parent relationship (for large maps)
+    // - rom_: ROM pointer (needed for data access)
+    // - large_map_, large_index_, area_size_: Map structure info
+    // - message_id_, area_graphics_, area_palette_, etc: Loaded from ROM on rebuild
   }
 
  private:
