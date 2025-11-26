@@ -216,6 +216,18 @@
       }
     },
     {
+      "name": "wasm-crash-repro",
+      "displayName": "WASM Crash Repro",
+      "description": "Sanitized release build for crash reproduction",
+      "inherits": "wasm-release",
+      "binaryDir": "${sourceDir}/build-wasm-repro",
+      "cacheVariables": {
+        "CMAKE_CXX_FLAGS": "-pthread -s USE_SDL=2 -s USE_FREETYPE=1 -s USE_PTHREADS=1 -s ALLOW_MEMORY_GROWTH=1 -s NO_DISABLE_EXCEPTION_CATCHING -O3 -s ASSERTIONS=2 -s SAFE_HEAP=1 -msimd128",
+        "CMAKE_C_FLAGS": "-pthread -s USE_PTHREADS=1 -O3 -s ASSERTIONS=2 -s SAFE_HEAP=1",
+        "CMAKE_EXE_LINKER_FLAGS": "-pthread -s USE_SDL=2 -s USE_FREETYPE=1 -s USE_PTHREADS=1 -s PTHREAD_POOL_SIZE=4 -s PTHREAD_POOL_SIZE_STRICT=0 -s PTHREAD_POOL_DELAY_LOAD=1 -s NO_DISABLE_EXCEPTION_CATCHING -s FORCE_FILESYSTEM=1 -O3 -s USE_OFFSET_CONVERTER=1 -s ASSERTIONS=2 -s SAFE_HEAP=1 -s OFFSCREENCANVAS_SUPPORT=1 -lidbfs.js --preload-file ${sourceDir}/assets@/assets"
+      }
+    },
+    {
       "name": "wasm-ai",
       "displayName": "Web Assembly with AI",
       "description": "Emscripten build with browser-based AI services",
@@ -944,6 +956,12 @@
       "name": "wasm-release",
       "configurePreset": "wasm-release",
       "displayName": "Web Assembly Release",
+      "jobs": 12
+    },
+    {
+      "name": "wasm-crash-repro",
+      "configurePreset": "wasm-crash-repro",
+      "displayName": "WASM Crash Repro",
       "jobs": 12
     },
     {
