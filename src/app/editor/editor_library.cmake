@@ -8,6 +8,7 @@ set(
   app/editor/dungeon/dungeon_editor_v2.cc
   app/editor/dungeon/dungeon_object_interaction.cc
   app/editor/dungeon/dungeon_object_selector.cc
+  app/editor/dungeon/object_selection.cc
   app/editor/dungeon/dungeon_room_loader.cc
   app/editor/dungeon/dungeon_room_selector.cc
   app/editor/dungeon/dungeon_toolset.cc

@@ -2,9 +2,10 @@
 #define YAZE_APP_EDITOR_DUNGEON_DUNGEON_OBJECT_INTERACTION_H
 
 #include <functional>
-#include <vector>
 #include <utility>
+#include <vector>
 
+#include "app/editor/dungeon/object_selection.h"
 #include "app/gui/canvas/canvas.h"
 #include "imgui/imgui.h"
 #include "zelda3/dungeon/dungeon_editor_system.h"
@@ -52,12 +53,36 @@ class DungeonObjectInteraction {
   void SetCurrentRoom(std::array<zelda3::Room, 0x128>* rooms, int room_id);
   void SetPreviewObject(const zelda3::RoomObject& object, bool loaded);
 
-  // Selection state
-  const std::vector<size_t>& GetSelectedObjectIndices() const {
-    return selected_object_indices_;
+  // Selection state - delegates to ObjectSelection
+  std::vector<size_t> GetSelectedObjectIndices() const {
+    return selection_.GetSelectedIndices();
   }
-  bool IsObjectSelectActive() const { return object_select_active_; }
+  void SetSelectedObjects(const std::vector<size_t>& indices) {
+    selection_.ClearSelection();
+    for (size_t idx : indices) {
+      selection_.SelectObject(idx, ObjectSelection::SelectionMode::Add);
+    }
+  }
+  bool IsObjectSelectActive() const {
+    return selection_.HasSelection() || selection_.IsRectangleSelectionActive();
+  }
   void ClearSelection();
+  bool IsObjectSelected(size_t index) const {
+    return selection_.IsObjectSelected(index);
+  }
+  size_t GetSelectionCount() const { return selection_.GetSelectionCount(); }
+
+  // Selection change notification
+  void SetSelectionChangeCallback(std::function<void()> callback) {
+    selection_.SetSelectionChangedCallback(std::move(callback));
+  }
+
+  // Helper for click selection with proper mode handling
+  bool TrySelectObjectAtCursor();
+
+  // Object manipulation
+  void HandleScrollWheelResize();  // Resize selected objects with scroll wheel
+  size_t GetHoveredObjectIndex() const;  // Get index of object under cursor
 
   // Context menu
   void ShowContextMenu();
@@ -91,20 +116,17 @@ class DungeonObjectInteraction {
   zelda3::RoomObject preview_object_{0, 0, 0, 0, 0};
   bool object_loaded_ = false;
 
-  // Drag and select infrastructure
+  // Unified selection system - replaces legacy selection state
+  ObjectSelection selection_;
+
+  // Drag infrastructure
   bool is_dragging_ = false;
-  bool is_selecting_ = false;
   ImVec2 drag_start_pos_;
   ImVec2 drag_current_pos_;
-  ImVec2 select_start_pos_;
-  ImVec2 select_current_pos_;
-  std::vector<int> selected_objects_;
 
-  // Object selection rectangle (like OverworldEditor)
-  bool object_select_active_ = false;
-  ImVec2 object_select_start_;
-  ImVec2 object_select_end_;
-  std::vector<size_t> selected_object_indices_;
+  // Hover detection for resize
+  size_t hovered_object_index_ = static_cast<size_t>(-1);
+  bool has_hovered_object_ = false;
 
   // Callbacks
   std::function<void(const zelda3::RoomObject&)> object_placed_callback_;

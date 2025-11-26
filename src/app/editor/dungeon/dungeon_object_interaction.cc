@@ -15,34 +15,37 @@ void DungeonObjectInteraction::HandleCanvasMouseInput() {
     return;
   }
 
+  // Handle scroll wheel for resizing selected objects
+  HandleScrollWheelResize();
+
   // Get mouse position relative to canvas
   ImVec2 mouse_pos = io.MousePos;
   ImVec2 canvas_pos = canvas_->zero_point();
-  ImVec2 canvas_size = canvas_->canvas_size();
 
   // Convert to canvas coordinates
   ImVec2 canvas_mouse_pos =
       ImVec2(mouse_pos.x - canvas_pos.x, mouse_pos.y - canvas_pos.y);
 
-  // Handle mouse clicks
+  // Handle left mouse click
   if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
-    if (ImGui::IsKeyDown(ImGuiKey_LeftCtrl) ||
-        ImGui::IsKeyDown(ImGuiKey_RightCtrl)) {
-      // Start selection box
-      is_selecting_ = true;
-      select_start_pos_ = canvas_mouse_pos;
-      select_current_pos_ = canvas_mouse_pos;
-      selected_objects_.clear();
+    if (object_loaded_) {
+      // Place mode: add object at clicked position
+      auto [room_x, room_y] =
+          CanvasToRoomCoordinates(static_cast<int>(canvas_mouse_pos.x),
+                                  static_cast<int>(canvas_mouse_pos.y));
+      PlaceObjectAtPosition(room_x, room_y);
     } else {
-      // Start dragging or place object
-      if (object_loaded_) {
-        // Convert canvas coordinates to room coordinates
-        auto [room_x, room_y] =
-            CanvasToRoomCoordinates(static_cast<int>(canvas_mouse_pos.x),
-                                    static_cast<int>(canvas_mouse_pos.y));
-        PlaceObjectAtPosition(room_x, room_y);
-      } else {
-        // Start dragging existing objects
+      // Selection mode: try to select object at cursor
+      if (!TrySelectObjectAtCursor()) {
+        // Clicked empty space
+        if (!io.KeyShift && !io.KeyCtrl) {
+          // Clear selection unless modifier held
+          selection_.ClearSelection();
+        }
+      }
+
+      // Start drag if we have selected objects
+      if (selection_.HasSelection()) {
         is_dragging_ = true;
         drag_start_pos_ = canvas_mouse_pos;
         drag_current_pos_ = canvas_mouse_pos;
@@ -50,42 +53,36 @@ void DungeonObjectInteraction::HandleCanvasMouseInput() {
     }
   }
 
-  // Handle mouse drag
-  if (is_selecting_ && ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
-    select_current_pos_ = canvas_mouse_pos;
-    UpdateSelectedObjects();
-  }
-
+  // Handle drag in progress
   if (is_dragging_ && ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
     drag_current_pos_ = canvas_mouse_pos;
     DrawDragPreview();
   }
 
-  // Handle mouse release
-  if (ImGui::IsMouseReleased(ImGuiMouseButton_Left)) {
-    if (is_selecting_) {
-      is_selecting_ = false;
-      UpdateSelectedObjects();
-    }
-    if (is_dragging_) {
-      is_dragging_ = false;
-      // Apply drag transformation to selected objects
-      if (!selected_object_indices_.empty() && rooms_ &&
-          current_room_id_ >= 0 && current_room_id_ < 296) {
-        if (mutation_hook_) {
-          mutation_hook_();
-        }
-        auto& room = (*rooms_)[current_room_id_];
-        ImVec2 drag_delta = ImVec2(drag_current_pos_.x - drag_start_pos_.x,
-                                   drag_current_pos_.y - drag_start_pos_.y);
+  // Handle mouse release - complete drag operation
+  if (ImGui::IsMouseReleased(ImGuiMouseButton_Left) && is_dragging_) {
+    is_dragging_ = false;
 
-        // Convert pixel delta to tile delta
-        int tile_delta_x = static_cast<int>(drag_delta.x) / 8;
-        int tile_delta_y = static_cast<int>(drag_delta.y) / 8;
+    // Apply drag transformation to selected objects
+    auto selected_indices = selection_.GetSelectedIndices();
+    if (!selected_indices.empty() && rooms_ && current_room_id_ >= 0 &&
+        current_room_id_ < 296) {
+      if (mutation_hook_) {
+        mutation_hook_();
+      }
 
-        // Move all selected objects
+      auto& room = (*rooms_)[current_room_id_];
+      ImVec2 drag_delta = ImVec2(drag_current_pos_.x - drag_start_pos_.x,
+                                 drag_current_pos_.y - drag_start_pos_.y);
+
+      // Convert pixel delta to tile delta
+      int tile_delta_x = static_cast<int>(drag_delta.x) / 8;
+      int tile_delta_y = static_cast<int>(drag_delta.y) / 8;
+
+      // Only apply if there's meaningful movement
+      if (tile_delta_x != 0 || tile_delta_y != 0) {
         auto& objects = room.GetTileObjects();
-        for (size_t index : selected_object_indices_) {
+        for (size_t index : selected_indices) {
           if (index < objects.size()) {
             objects[index].x_ += tile_delta_x;
             objects[index].y_ += tile_delta_y;
@@ -108,17 +105,14 @@ void DungeonObjectInteraction::HandleCanvasMouseInput() {
 }
 
 void DungeonObjectInteraction::CheckForObjectSelection() {
-  // Draw object selection rectangle similar to OverworldEditor
+  // Draw and handle object selection rectangle
   DrawObjectSelectRect();
-
-  // Handle object selection when rectangle is active
-  if (object_select_active_) {
-    SelectObjectsInRect();
-  }
 }
 
 void DungeonObjectInteraction::DrawObjectSelectRect() {
   if (!canvas_->IsMouseHovering())
+    return;
+  if (!rooms_ || current_room_id_ < 0 || current_room_id_ >= 296)
     return;
 
   const ImGuiIO& io = ImGui::GetIO();
@@ -126,75 +120,42 @@ void DungeonObjectInteraction::DrawObjectSelectRect() {
   const ImVec2 mouse_pos =
       ImVec2(io.MousePos.x - canvas_pos.x, io.MousePos.y - canvas_pos.y);
 
-  static bool dragging = false;
-  static ImVec2 drag_start_pos;
-
-  // Right click to start object selection
+  // Right click to start rectangle selection
   if (ImGui::IsMouseClicked(ImGuiMouseButton_Right) && !object_loaded_) {
-    drag_start_pos = mouse_pos;
-    object_select_start_ = mouse_pos;
-    selected_object_indices_.clear();
-    object_select_active_ = false;
-    dragging = false;
+    selection_.BeginRectangleSelection(static_cast<int>(mouse_pos.x),
+                                       static_cast<int>(mouse_pos.y));
   }
 
-  // Right drag to create selection rectangle
-  if (ImGui::IsMouseDragging(ImGuiMouseButton_Right) && !object_loaded_) {
-    object_select_end_ = mouse_pos;
-    dragging = true;
-
-    // Draw selection rectangle with theme colors
-    const auto& theme = AgentUI::GetTheme();
-    ImVec2 start =
-        ImVec2(canvas_pos.x + std::min(drag_start_pos.x, mouse_pos.x),
-               canvas_pos.y + std::min(drag_start_pos.y, mouse_pos.y));
-    ImVec2 end = ImVec2(canvas_pos.x + std::max(drag_start_pos.x, mouse_pos.x),
-                        canvas_pos.y + std::max(drag_start_pos.y, mouse_pos.y));
-
-    ImDrawList* draw_list = ImGui::GetWindowDrawList();
-    // Use accent color for selection box (high visibility at 0.85f alpha)
-    ImU32 selection_color = ImGui::ColorConvertFloat4ToU32(
-        ImVec4(theme.accent_color.x, theme.accent_color.y, theme.accent_color.z,
-               0.85f));
-    ImU32 selection_fill = ImGui::ColorConvertFloat4ToU32(
-        ImVec4(theme.accent_color.x, theme.accent_color.y, theme.accent_color.z,
-               0.15f));
-    draw_list->AddRect(start, end, selection_color, 0.0f, 0, 2.0f);
-    draw_list->AddRectFilled(start, end, selection_fill);
+  // Update rectangle during drag
+  if (selection_.IsRectangleSelectionActive() &&
+      ImGui::IsMouseDragging(ImGuiMouseButton_Right)) {
+    selection_.UpdateRectangleSelection(static_cast<int>(mouse_pos.x),
+                                        static_cast<int>(mouse_pos.y));
+    // Use ObjectSelection's drawing (themed, consistent)
+    selection_.DrawRectangleSelectionBox(canvas_);
   }
 
   // Complete selection on mouse release
-  if (dragging && !ImGui::IsMouseDown(ImGuiMouseButton_Right)) {
-    dragging = false;
-    object_select_active_ = true;
-    SelectObjectsInRect();
+  if (selection_.IsRectangleSelectionActive() &&
+      !ImGui::IsMouseDown(ImGuiMouseButton_Right)) {
+    auto& room = (*rooms_)[current_room_id_];
+
+    // Determine selection mode based on modifiers
+    ObjectSelection::SelectionMode mode = ObjectSelection::SelectionMode::Single;
+    if (io.KeyShift) {
+      mode = ObjectSelection::SelectionMode::Add;
+    } else if (io.KeyCtrl) {
+      mode = ObjectSelection::SelectionMode::Toggle;
+    }
+
+    selection_.EndRectangleSelection(room.GetTileObjects(), mode);
   }
 }
 
 void DungeonObjectInteraction::SelectObjectsInRect() {
-  if (!rooms_ || current_room_id_ < 0 || current_room_id_ >= 296)
-    return;
-
-  auto& room = (*rooms_)[current_room_id_];
-  selected_object_indices_.clear();
-
-  // Calculate selection bounds in room coordinates
-  auto [start_room_x, start_room_y] = CanvasToRoomCoordinates(
-      static_cast<int>(std::min(object_select_start_.x, object_select_end_.x)),
-      static_cast<int>(std::min(object_select_start_.y, object_select_end_.y)));
-  auto [end_room_x, end_room_y] = CanvasToRoomCoordinates(
-      static_cast<int>(std::max(object_select_start_.x, object_select_end_.x)),
-      static_cast<int>(std::max(object_select_start_.y, object_select_end_.y)));
-
-  // Find objects within selection rectangle
-  const auto& objects = room.GetTileObjects();
-  for (size_t i = 0; i < objects.size(); ++i) {
-    const auto& object = objects[i];
-    if (object.x_ >= start_room_x && object.x_ <= end_room_x &&
-        object.y_ >= start_room_y && object.y_ <= end_room_y) {
-      selected_object_indices_.push_back(i);
-    }
-  }
+  // Legacy method - rectangle selection is now handled by ObjectSelection
+  // in DrawObjectSelectRect() / EndRectangleSelection()
+  // This method is kept for API compatibility but does nothing
 }
 
 void DungeonObjectInteraction::DrawSelectionHighlights() {
@@ -204,56 +165,17 @@ void DungeonObjectInteraction::DrawSelectionHighlights() {
   auto& room = (*rooms_)[current_room_id_];
   const auto& objects = room.GetTileObjects();
 
-  // Draw highlights for all selected objects with theme colors
-  const auto& theme = AgentUI::GetTheme();
-  ImDrawList* draw_list = ImGui::GetWindowDrawList();
-  ImVec2 canvas_pos = canvas_->zero_point();
+  // Use ObjectSelection's rendering (handles pulsing border, corner handles)
+  selection_.DrawSelectionHighlights(canvas_, objects);
 
-  for (size_t index : selected_object_indices_) {
-    if (index < objects.size()) {
-      const auto& object = objects[index];
-      auto [canvas_x, canvas_y] = RoomToCanvasCoordinates(object.x_, object.y_);
-
-      // Calculate object size for highlight
-      int obj_width = 8 + (object.size_ & 0x0F) * 4;
-      int obj_height = 8 + ((object.size_ >> 4) & 0x0F) * 4;
-      obj_width = std::min(obj_width, 64);
-      obj_height = std::min(obj_height, 64);
-
-      // Draw selection highlight using accent color
-      ImVec2 obj_start(canvas_pos.x + canvas_x - 2,
-                       canvas_pos.y + canvas_y - 2);
-      ImVec2 obj_end(canvas_pos.x + canvas_x + obj_width + 2,
-                     canvas_pos.y + canvas_y + obj_height + 2);
-
-      // Animated selection (pulsing effect) with theme accent color
-      float pulse =
-          0.7f + 0.3f * std::sin(static_cast<float>(ImGui::GetTime()) * 4.0f);
-      ImU32 selection_color = ImGui::ColorConvertFloat4ToU32(
-          ImVec4(theme.accent_color.x * pulse, theme.accent_color.y * pulse,
-                 theme.accent_color.z * pulse, 0.85f));
-      draw_list->AddRect(obj_start, obj_end, selection_color, 0.0f, 0, 2.5f);
-
-      // Draw corner handles for selected objects (high-contrast cyan-white)
-      constexpr float handle_size = 4.0f;
-      // Entity visibility standard: Cyan-white at 0.85f alpha for high contrast
-      ImU32 handle_color = ImGui::GetColorU32(theme.dungeon_selection_handle);
-      draw_list->AddRectFilled(
-          ImVec2(obj_start.x - handle_size / 2, obj_start.y - handle_size / 2),
-          ImVec2(obj_start.x + handle_size / 2, obj_start.y + handle_size / 2),
-          handle_color);
-      draw_list->AddRectFilled(
-          ImVec2(obj_end.x - handle_size / 2, obj_start.y - handle_size / 2),
-          ImVec2(obj_end.x + handle_size / 2, obj_start.y + handle_size / 2),
-          handle_color);
-      draw_list->AddRectFilled(
-          ImVec2(obj_start.x - handle_size / 2, obj_end.y - handle_size / 2),
-          ImVec2(obj_start.x + handle_size / 2, obj_end.y + handle_size / 2),
-          handle_color);
-      draw_list->AddRectFilled(
-          ImVec2(obj_end.x - handle_size / 2, obj_end.y - handle_size / 2),
-          ImVec2(obj_end.x + handle_size / 2, obj_end.y + handle_size / 2),
-          handle_color);
+  // Interaction-specific: size tooltip when hovering over selected object
+  if (canvas_->IsMouseHovering()) {
+    size_t hovered_index = GetHoveredObjectIndex();
+    if (selection_.IsObjectSelected(hovered_index) &&
+        hovered_index < objects.size()) {
+      const auto& object = objects[hovered_index];
+      ImGui::SetTooltip("Size: %d (0x%02X)\nScroll wheel to resize",
+                        object.size_, object.size_);
     }
   }
 }
@@ -290,33 +212,17 @@ void DungeonObjectInteraction::PlaceObjectAtPosition(int room_x, int room_y) {
 }
 
 void DungeonObjectInteraction::DrawSelectBox() {
-  if (!is_selecting_)
-    return;
-
-  const auto& theme = AgentUI::GetTheme();
-  ImDrawList* draw_list = ImGui::GetWindowDrawList();
-  ImVec2 canvas_pos = canvas_->zero_point();
-
-  // Calculate select box bounds
-  ImVec2 start = ImVec2(
-      canvas_pos.x + std::min(select_start_pos_.x, select_current_pos_.x),
-      canvas_pos.y + std::min(select_start_pos_.y, select_current_pos_.y));
-  ImVec2 end = ImVec2(
-      canvas_pos.x + std::max(select_start_pos_.x, select_current_pos_.x),
-      canvas_pos.y + std::max(select_start_pos_.y, select_current_pos_.y));
-
-  // Draw selection box with theme colors
-  ImU32 selection_color = ImGui::ColorConvertFloat4ToU32(ImVec4(
-      theme.accent_color.x, theme.accent_color.y, theme.accent_color.z, 0.85f));
-  ImU32 selection_fill = ImGui::ColorConvertFloat4ToU32(ImVec4(
-      theme.accent_color.x, theme.accent_color.y, theme.accent_color.z, 0.15f));
-  draw_list->AddRect(start, end, selection_color, 0.0f, 0, 2.0f);
-  draw_list->AddRectFilled(start, end, selection_fill);
+  // Legacy method - rectangle selection now handled by ObjectSelection
+  // Delegates to ObjectSelection's DrawRectangleSelectionBox if active
+  if (selection_.IsRectangleSelectionActive()) {
+    selection_.DrawRectangleSelectionBox(canvas_);
+  }
 }
 
 void DungeonObjectInteraction::DrawDragPreview() {
   const auto& theme = AgentUI::GetTheme();
-  if (!is_dragging_ || selected_object_indices_.empty() || !rooms_)
+  auto selected_indices = selection_.GetSelectedIndices();
+  if (!is_dragging_ || selected_indices.empty() || !rooms_)
     return;
   if (current_room_id_ < 0 || current_room_id_ >= 296)
     return;
@@ -331,7 +237,7 @@ void DungeonObjectInteraction::DrawDragPreview() {
   const auto& objects = room.GetTileObjects();
 
   // Draw preview of where objects would be moved
-  for (size_t index : selected_object_indices_) {
+  for (size_t index : selected_indices) {
     if (index < objects.size()) {
       const auto& object = objects[index];
       auto [canvas_x, canvas_y] = RoomToCanvasCoordinates(object.x_, object.y_);
@@ -359,41 +265,15 @@ void DungeonObjectInteraction::DrawDragPreview() {
 }
 
 void DungeonObjectInteraction::UpdateSelectedObjects() {
-  if (!is_selecting_ || !rooms_)
-    return;
-
-  selected_objects_.clear();
-
-  if (current_room_id_ < 0 || current_room_id_ >= 296)
-    return;
-
-  auto& room = (*rooms_)[current_room_id_];
-
-  // Check each object in the room
-  for (const auto& object : room.GetTileObjects()) {
-    if (IsObjectInSelectBox(object)) {
-      selected_objects_.push_back(object.id_);
-    }
-  }
+  // Legacy method - selection now handled by ObjectSelection class
+  // Kept for API compatibility
 }
 
 bool DungeonObjectInteraction::IsObjectInSelectBox(
     const zelda3::RoomObject& object) const {
-  if (!is_selecting_)
-    return false;
-
-  // Convert object position to canvas coordinates
-  auto [canvas_x, canvas_y] = RoomToCanvasCoordinates(object.x_, object.y_);
-
-  // Calculate select box bounds
-  float min_x = std::min(select_start_pos_.x, select_current_pos_.x);
-  float max_x = std::max(select_start_pos_.x, select_current_pos_.x);
-  float min_y = std::min(select_start_pos_.y, select_current_pos_.y);
-  float max_y = std::max(select_start_pos_.y, select_current_pos_.y);
-
-  // Check if object is within select box
-  return (canvas_x >= min_x && canvas_x <= max_x && canvas_y >= min_y &&
-          canvas_y <= max_y);
+  // Legacy method - selection now handled by ObjectSelection class
+  // Kept for API compatibility
+  return false;
 }
 
 std::pair<int, int> DungeonObjectInteraction::RoomToCanvasCoordinates(
@@ -433,35 +313,79 @@ void DungeonObjectInteraction::SetPreviewObject(
 }
 
 void DungeonObjectInteraction::ClearSelection() {
-  selected_object_indices_.clear();
-  object_select_active_ = false;
-  is_selecting_ = false;
+  selection_.ClearSelection();
   is_dragging_ = false;
+}
+
+bool DungeonObjectInteraction::TrySelectObjectAtCursor() {
+  size_t hovered = GetHoveredObjectIndex();
+  if (hovered == static_cast<size_t>(-1)) {
+    return false;
+  }
+
+  const ImGuiIO& io = ImGui::GetIO();
+  ObjectSelection::SelectionMode mode = ObjectSelection::SelectionMode::Single;
+
+  if (io.KeyShift) {
+    mode = ObjectSelection::SelectionMode::Add;
+  } else if (io.KeyCtrl) {
+    mode = ObjectSelection::SelectionMode::Toggle;
+  }
+
+  selection_.SelectObject(hovered, mode);
+  return true;
 }
 
 void DungeonObjectInteraction::ShowContextMenu() {
   if (!canvas_->IsMouseHovering())
     return;
 
-  // Show context menu on right-click when not dragging
-  if (ImGui::IsMouseClicked(ImGuiMouseButton_Right) && !is_dragging_) {
+  // Show context menu on right-click when not dragging and not doing rectangle select
+  if (ImGui::IsMouseClicked(ImGuiMouseButton_Right) && !is_dragging_ &&
+      !selection_.IsRectangleSelectionActive()) {
     ImGui::OpenPopup("DungeonObjectContextMenu");
   }
 
   if (ImGui::BeginPopup("DungeonObjectContextMenu")) {
     // Show different options based on current state
-    if (!selected_object_indices_.empty()) {
-      if (ImGui::MenuItem("Delete Selected", "Del")) {
+    if (selection_.HasSelection()) {
+      const size_t selection_count = selection_.GetSelectionCount();
+
+      if (ImGui::MenuItem("Cut", "Ctrl+X")) {
+        HandleCopySelected();
         HandleDeleteSelected();
       }
-      if (ImGui::MenuItem("Copy Selected", "Ctrl+C")) {
+      if (ImGui::MenuItem("Copy", "Ctrl+C")) {
         HandleCopySelected();
       }
+      if (ImGui::MenuItem("Duplicate", "Ctrl+D")) {
+        // Copy then paste at offset location
+        HandleCopySelected();
+        HandlePasteObjects();
+      }
+      if (ImGui::MenuItem("Delete", "Del")) {
+        HandleDeleteSelected();
+      }
+
       ImGui::Separator();
+
+      // Properties dialog stub - only show for single selection
+      if (selection_count == 1 && ImGui::MenuItem("Properties...", nullptr, false, false)) {
+        // TODO: Implement properties dialog
+        // This would open a modal with:
+        // - Object ID (editable)
+        // - Position X, Y (editable)
+        // - Size value (editable with visual preview)
+        // - Layer selection (BG1, BG2, BG3)
+      }
+
+      ImGui::Separator();
+      ImGui::TextDisabled("%zu object%s selected", selection_count,
+                          selection_count == 1 ? "" : "s");
     }
 
     if (has_clipboard_data_) {
-      if (ImGui::MenuItem("Paste Objects", "Ctrl+V")) {
+      if (ImGui::MenuItem("Paste", "Ctrl+V")) {
         HandlePasteObjects();
       }
       ImGui::Separator();
@@ -472,9 +396,10 @@ void DungeonObjectInteraction::ShowContextMenu() {
       if (ImGui::MenuItem("Cancel Placement", "Esc")) {
         object_loaded_ = false;
       }
-    } else {
-      ImGui::Text("Right-click + drag to select");
-      ImGui::Text("Left-click + drag to move");
+    } else if (!selection_.HasSelection()) {
+      ImGui::TextDisabled("Right-click + drag to select");
+      ImGui::TextDisabled("Left-click + drag to move");
+      ImGui::TextDisabled("Scroll wheel to resize");
     }
 
     ImGui::EndPopup();
@@ -482,7 +407,8 @@ void DungeonObjectInteraction::ShowContextMenu() {
 }
 
 void DungeonObjectInteraction::HandleDeleteSelected() {
-  if (selected_object_indices_.empty() || !rooms_)
+  auto indices = selection_.GetSelectedIndices();
+  if (indices.empty() || !rooms_)
     return;
   if (current_room_id_ < 0 || current_room_id_ >= 296)
     return;
@@ -494,16 +420,15 @@ void DungeonObjectInteraction::HandleDeleteSelected() {
   auto& room = (*rooms_)[current_room_id_];
 
   // Sort indices in descending order to avoid index shifts during deletion
-  std::vector<size_t> sorted_indices = selected_object_indices_;
-  std::sort(sorted_indices.rbegin(), sorted_indices.rend());
+  std::sort(indices.rbegin(), indices.rend());
 
   // Delete selected objects using Room's RemoveTileObject method
-  for (size_t index : sorted_indices) {
+  for (size_t index : indices) {
     room.RemoveTileObject(index);
   }
 
   // Clear selection
-  ClearSelection();
+  selection_.ClearSelection();
 
   // Trigger cache invalidation and re-render
   if (cache_invalidation_callback_) {
@@ -512,7 +437,8 @@ void DungeonObjectInteraction::HandleDeleteSelected() {
 }
 
 void DungeonObjectInteraction::HandleCopySelected() {
-  if (selected_object_indices_.empty() || !rooms_)
+  auto indices = selection_.GetSelectedIndices();
+  if (indices.empty() || !rooms_)
     return;
   if (current_room_id_ < 0 || current_room_id_ >= 296)
     return;
@@ -522,7 +448,7 @@ void DungeonObjectInteraction::HandleCopySelected() {
 
   // Copy selected objects to clipboard
   clipboard_.clear();
-  for (size_t index : selected_object_indices_) {
+  for (size_t index : indices) {
     if (index < objects.size()) {
       clipboard_.push_back(objects[index]);
     }
@@ -661,6 +587,108 @@ void DungeonObjectInteraction::DrawGhostPreview() {
   draw_list->AddLine(ImVec2(center.x, center.y - crosshair_size),
                      ImVec2(center.x, center.y + crosshair_size), crosshair,
                      1.5f);
+}
+
+void DungeonObjectInteraction::HandleScrollWheelResize() {
+  const ImGuiIO& io = ImGui::GetIO();
+
+  // Only resize if mouse wheel is being used
+  if (io.MouseWheel == 0.0f)
+    return;
+
+  // Don't resize if placing an object
+  if (object_loaded_)
+    return;
+
+  // Check if cursor is over a selected object
+  if (!selection_.HasSelection())
+    return;
+
+  size_t hovered = GetHoveredObjectIndex();
+  if (hovered == static_cast<size_t>(-1))
+    return;
+
+  // Only resize if hovering over a selected object
+  if (!selection_.IsObjectSelected(hovered))
+    return;
+
+  if (!rooms_ || current_room_id_ < 0 || current_room_id_ >= 296)
+    return;
+
+  // Call mutation hook before changes
+  if (mutation_hook_) {
+    mutation_hook_();
+  }
+
+  auto& room = (*rooms_)[current_room_id_];
+  auto& objects = room.GetTileObjects();
+
+  // Determine resize delta (1 for scroll up, -1 for scroll down)
+  int resize_delta = (io.MouseWheel > 0.0f) ? 1 : -1;
+
+  // Resize all selected objects uniformly
+  auto selected_indices = selection_.GetSelectedIndices();
+  for (size_t index : selected_indices) {
+    if (index >= objects.size())
+      continue;
+
+    auto& object = objects[index];
+
+    // Current size value (0-15)
+    int current_size = static_cast<int>(object.size_);
+    int new_size = current_size + resize_delta;
+
+    // Clamp to valid range (0-15)
+    new_size = std::clamp(new_size, 0, 15);
+
+    // Update object size
+    object.size_ = static_cast<uint8_t>(new_size);
+  }
+
+  // Trigger cache invalidation and re-render
+  if (cache_invalidation_callback_) {
+    cache_invalidation_callback_();
+  }
+}
+
+size_t DungeonObjectInteraction::GetHoveredObjectIndex() const {
+  if (!rooms_ || current_room_id_ < 0 || current_room_id_ >= 296)
+    return static_cast<size_t>(-1);
+
+  // Get mouse position
+  const ImGuiIO& io = ImGui::GetIO();
+  ImVec2 canvas_pos = canvas_->zero_point();
+  ImVec2 mouse_pos = io.MousePos;
+  ImVec2 canvas_mouse_pos =
+      ImVec2(mouse_pos.x - canvas_pos.x, mouse_pos.y - canvas_pos.y);
+
+  // Convert to room coordinates
+  auto [room_x, room_y] =
+      CanvasToRoomCoordinates(static_cast<int>(canvas_mouse_pos.x),
+                              static_cast<int>(canvas_mouse_pos.y));
+
+  // Check all objects in reverse order (top to bottom, prioritize recent)
+  auto& room = (*rooms_)[current_room_id_];
+  const auto& objects = room.GetTileObjects();
+
+  for (size_t i = objects.size(); i > 0; --i) {
+    size_t index = i - 1;
+    const auto& object = objects[index];
+
+    // Calculate object bounds
+    int obj_x = object.x_;
+    int obj_y = object.y_;
+    int obj_width = 1 + (object.size_ & 0x0F);
+    int obj_height = 1 + ((object.size_ >> 4) & 0x0F);
+
+    // Check if mouse is within object bounds
+    if (room_x >= obj_x && room_x < obj_x + obj_width && room_y >= obj_y &&
+        room_y < obj_y + obj_height) {
+      return index;
+    }
+  }
+
+  return static_cast<size_t>(-1);
 }
 
 }  // namespace yaze::editor
