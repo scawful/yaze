@@ -24,6 +24,7 @@ below; detailed planning and AI-agent material lives in `docs/internal/`.
 - [Build Troubleshooting](build/troubleshooting.md)
 
 ## Usage Guides
+- [Web App (Preview)](usage/web-app.md)
 - [Dungeon Editor](usage/dungeon-editor.md)
 - [Overworld Loading](usage/overworld-loading.md)
 - [z3ed CLI](usage/z3ed-cli.md)
