@@ -317,6 +317,9 @@ class Ppu {
 
   void PutPixels(uint8_t* pixel_data);
 
+  // Debug: Dump PPU state to log
+  void DumpState() const;
+
   // Returns the pixel data for the current frame
   const std::vector<uint8_t>& GetFrameBuffer() const { return frame_buffer_; }
 
