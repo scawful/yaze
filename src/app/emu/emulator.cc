@@ -296,17 +296,28 @@ void Emulator::Run(Rom* rom) {
       frames_to_process = max_frames;
     }
 
+    // Turbo mode: run many frames without timing constraints
+    if (turbo_mode_ && snes_initialized_) {
+      constexpr int kTurboFrames = 8;  // Run 8 frames per iteration (~480 fps)
+      for (int i = 0; i < kTurboFrames; i++) {
+        snes_.RunFrame();
+        frame_count_++;
+      }
+      // Reset timing to prevent catch-up spiral after turbo
+      time_adder = 0.0;
+      frames_to_process = 1;  // Still render one frame
+    }
+
     if (snes_initialized_ && frames_to_process > 0) {
       // Process frames (skip rendering for all but last frame if falling
       // behind)
       for (int i = 0; i < frames_to_process; i++) {
         bool should_render = (i == frames_to_process - 1);
 
-        // Run frame
-        if (turbo_mode_) {
+        // Run frame (skip if already ran in turbo mode)
+        if (!turbo_mode_) {
           snes_.RunFrame();
         }
-        snes_.RunFrame();
 
         // Track FPS
         frame_count_++;
