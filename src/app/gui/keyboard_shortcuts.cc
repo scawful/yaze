@@ -7,6 +7,7 @@
 #include <cstring>
 
 #include "app/gui/core/color.h"
+#include "app/gui/core/platform_keys.h"
 #include "app/gui/core/theme_manager.h"
 #include "imgui/imgui.h"
 
@@ -15,11 +16,12 @@ namespace gui {
 
 namespace {
 
-// Key name lookup table
+// Key name lookup table (local to this file for Shortcut::GetDisplayString)
+// Note: gui::GetKeyName from platform_keys.h is the canonical version
 constexpr struct {
   ImGuiKey key;
   const char* name;
-} kKeyNames[] = {
+} kLocalKeyNames[] = {
     {ImGuiKey_Tab, "Tab"},
     {ImGuiKey_LeftArrow, "Left"},
     {ImGuiKey_RightArrow, "Right"},
@@ -96,8 +98,8 @@ constexpr struct {
     {ImGuiKey_GraveAccent, "`"},
 };
 
-const char* GetKeyName(ImGuiKey key) {
-  for (const auto& entry : kKeyNames) {
+const char* GetLocalKeyName(ImGuiKey key) {
+  for (const auto& entry : kLocalKeyNames) {
     if (entry.key == key) {
       return entry.name;
     }
@@ -110,19 +112,22 @@ const char* GetKeyName(ImGuiKey key) {
 std::string Shortcut::GetDisplayString() const {
   std::string result;
 
-#ifdef __APPLE__
-  // Use macOS-style modifiers
-  if (requires_ctrl) result += "Cmd+";
-  if (requires_alt) result += "Opt+";
-  if (requires_shift) result += "Shift+";
-#else
-  // Use Windows/Linux-style modifiers
-  if (requires_ctrl) result += "Ctrl+";
-  if (requires_alt) result += "Alt+";
-  if (requires_shift) result += "Shift+";
-#endif
+  // Use runtime platform detection for correct modifier names
+  // This handles native macOS, WASM on Mac browsers, and Windows/Linux
+  if (requires_ctrl) {
+    result += GetCtrlDisplayName();
+    result += "+";
+  }
+  if (requires_alt) {
+    result += GetAltDisplayName();
+    result += "+";
+  }
+  if (requires_shift) {
+    result += "Shift+";
+  }
 
-  result += GetKeyName(key);
+  // Use platform_keys.h GetKeyName for consistent key name formatting
+  result += gui::GetKeyName(key);
   return result;
 }
 

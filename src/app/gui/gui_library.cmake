@@ -18,6 +18,7 @@ set(GUI_CORE_SRC
   app/gui/core/color.cc
   app/gui/core/input.cc
   app/gui/core/layout_helpers.cc
+  app/gui/core/platform_keys.cc
   app/gui/core/style.cc
   app/gui/core/theme_manager.cc
   app/gui/core/touch_input.cc
