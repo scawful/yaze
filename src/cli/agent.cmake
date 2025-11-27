@@ -45,6 +45,27 @@ if(EMSCRIPTEN)
     # Proposal and Sandbox support (needed by yaze_editor)
     cli/service/planning/proposal_registry.cc
     cli/service/rom/rom_sandbox_manager.cc
+    # Core Agent Service (Critical for WASM Agent API)
+    cli/service/agent/conversational_agent_service.cc
+    cli/service/agent/tool_dispatcher.cc
+    cli/service/agent/learned_knowledge_service.cc
+    cli/service/agent/agent_pretraining.cc
+    cli/service/agent/proposal_executor.cc
+
+    # Additional Handlers required by ToolDispatcher
+    cli/handlers/game/message_commands.cc
+    cli/handlers/game/dialogue_commands.cc
+    cli/handlers/tools/gui_commands.cc
+    cli/handlers/game/music_commands.cc
+    cli/handlers/graphics/sprite_commands.cc
+    cli/service/agent/tools/filesystem_tool.cc
+    cli/service/agent/tools/memory_inspector_tool.cc
+    cli/service/agent/tools/visual_analysis_tool.cc
+    cli/service/agent/tools/code_gen_tool.cc
+    cli/service/agent/tools/project_tool.cc
+    cli/service/agent/tools/build_tool.cc
+    cli/service/agent/tools/rom_diff_tool.cc
+    cli/service/agent/tools/validation_tool.cc
   )
 
   add_library(yaze_agent STATIC ${YAZE_BROWSER_AI_SOURCES})
