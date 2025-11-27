@@ -165,6 +165,7 @@ void DoDma(Snes* snes, MemoryImpl* memory, int cpuCycles) {
   for (int i = 0; i < 8; i++) {
     if (!channel[i].dma_active)
       continue;
+
     // do channel i
     WaitCycle(snes, memory);  // overhead per channel
     int offIndex = 0;
@@ -364,8 +365,9 @@ void TransferByte(Snes* snes, MemoryImpl* memory, uint16_t aAdr, uint8_t aBank,
   } else {
     uint8_t val =
         validA ? snes->Read((aBank << 16) | aAdr) : memory->open_bus();
-    if (validB)
+    if (validB) {
       snes->WriteBBus(bAdr, val);
+    }
   }
 }
 

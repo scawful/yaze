@@ -118,6 +118,14 @@ absl::Status UserSettings::Load() {
         std::string card_id = key.substr(14);
         prefs_.card_shortcuts[card_id] = val;
       }
+      // Sidebar State
+      else if (key == "sidebar_visible") {
+        prefs_.sidebar_visible = (val == "1");
+      } else if (key == "sidebar_panel_expanded") {
+        prefs_.sidebar_panel_expanded = (val == "1");
+      } else if (key == "sidebar_active_category") {
+        prefs_.sidebar_active_category = val;
+      }
     }
     ImGui::GetIO().FontGlobalScale = prefs_.font_global_scale;
   } catch (const std::exception& e) {
@@ -177,6 +185,11 @@ absl::Status UserSettings::Save() {
     for (const auto& [card_id, shortcut] : prefs_.card_shortcuts) {
       ss << "card_shortcut." << card_id << "=" << shortcut << "\n";
     }
+
+    // Sidebar State
+    ss << "sidebar_visible=" << (prefs_.sidebar_visible ? 1 : 0) << "\n";
+    ss << "sidebar_panel_expanded=" << (prefs_.sidebar_panel_expanded ? 1 : 0) << "\n";
+    ss << "sidebar_active_category=" << prefs_.sidebar_active_category << "\n";
 
     util::SaveFile(settings_file_path_, ss.str());
   } catch (const std::exception& e) {

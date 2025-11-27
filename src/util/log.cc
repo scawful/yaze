@@ -4,6 +4,8 @@
 #include <iomanip>
 #include <iostream>
 
+#include "core/features.h"
+
 namespace yaze {
 namespace util {
 
@@ -102,11 +104,14 @@ void LogManager::log(LogLevel level, absl::string_view category,
       "[%02d:%02d:%02d.%03d] [%-5s] [%s] %s\n", now_tm.tm_hour, now_tm.tm_min,
       now_tm.tm_sec, ms.count(), LogLevelToString(level), category, message);
 
-  // 4. Write to the configured sink (file or stderr).
+  // 4. Write to the configured sink (file and/or stderr).
   if (log_stream_.is_open()) {
     log_stream_ << final_message;
     log_stream_.flush();  // Ensure immediate write for debugging.
-  } else {
+  }
+
+  // Also write to stderr if no file is open OR if console logging is enabled
+  if (!log_stream_.is_open() || core::FeatureFlags::get().kLogToConsole) {
     std::cerr << final_message;
   }
 

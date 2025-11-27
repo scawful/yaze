@@ -752,38 +752,9 @@ void Room::RenderObjectsToBackground() {
   }
 
   // Handle rendering based on mode (currently using emulator-based rendering)
-  if (false) {  // Manual mode disabled for now
-    LOG_DEBUG("[RenderObjectsToBackground]",
-              "Room %d: Manual rendering objects", room_id_);
-    auto& bg1_bmp = bg1_buffer_.bitmap();
-    // Simple manual rendering: draw a colored rectangle for each object
-    for (const auto& obj : tile_objects_) {
-      int x = obj.x() * 8;
-      int y = obj.y() * 8;
-      int width = 16;  // Default size for manual draw
-      int height = 16;
-
-      // Basic layer-based coloring for manual mode
-      uint8_t color_idx = 0; // Default transparent
-      if (obj.GetLayerValue() == 0) {
-        color_idx = 5; // Example: Reddish for Layer 0
-      } else if (obj.GetLayerValue() == 1) {
-        color_idx = 10; // Example: Greenish for Layer 1
-      } else {
-        color_idx = 15; // Example: Bluish for Layer 2
-      }
-      // Draw simple rectangle using WriteToBGRSurface
-      for (int py = y; py < y + height && py < bg1_bmp.height(); ++py) {
-        for (int px = x; px < x + width && px < bg1_bmp.width(); ++px) {
-          int pixel_offset = (py * bg1_bmp.width()) + px;
-          bg1_bmp.WriteToPixel(pixel_offset, color_idx);
-        }
-      }
-    }
-    objects_dirty_ = false; // Mark as clean after manual draw
-  } else { // Emulator or Hybrid mode (use ObjectDrawer)
-    LOG_DEBUG("[RenderObjectsToBackground]",
-              "Room %d: Emulator rendering objects", room_id_);
+  // Emulator or Hybrid mode (use ObjectDrawer)
+  LOG_DEBUG("[RenderObjectsToBackground]",
+            "Room %d: Emulator rendering objects", room_id_);
   // Get palette group for object rendering (use SAME lookup as
   // RenderRoomGraphics)
   auto& dungeon_pal_group = rom()->mutable_palette_group()->dungeon_main;
@@ -820,14 +791,42 @@ void Room::RenderObjectsToBackground() {
 
   // Log only failures, not successes
   if (!status.ok()) {
-    LOG_DEBUG("[RenderObjectsToBackground]", "ObjectDrawer failed: %s",
+    LOG_DEBUG("[RenderObjectsToBackground]", "ObjectDrawer failed: %s - FALLING BACK TO MANUAL",
               std::string(status.message().data(), status.message().size()).c_str());
+    
+    LOG_DEBUG("[RenderObjectsToBackground]",
+              "Room %d: Manual rendering objects (fallback)", room_id_);
+    auto& bg1_bmp = bg1_buffer_.bitmap();
+    // Simple manual rendering: draw a colored rectangle for each object
+    for (const auto& obj : tile_objects_) {
+      int x = obj.x() * 8;
+      int y = obj.y() * 8;
+      int width = 16;  // Default size for manual draw
+      int height = 16;
+
+      // Basic layer-based coloring for manual mode
+      uint8_t color_idx = 0; // Default transparent
+      if (obj.GetLayerValue() == 0) {
+        color_idx = 5; // Example: Reddish for Layer 0
+      } else if (obj.GetLayerValue() == 1) {
+        color_idx = 10; // Example: Greenish for Layer 1
+      } else {
+        color_idx = 15; // Example: Bluish for Layer 2
+      }
+      // Draw simple rectangle using WriteToBGRSurface
+      for (int py = y; py < y + height && py < bg1_bmp.height(); ++py) {
+        for (int px = x; px < x + width && px < bg1_bmp.width(); ++px) {
+          int pixel_offset = (py * bg1_bmp.width()) + px;
+          bg1_bmp.WriteToPixel(pixel_offset, color_idx);
+        }
+      }
+    }
+    objects_dirty_ = false; // Mark as clean after manual draw
   } else {
     // Mark objects as clean after successful render
     objects_dirty_ = false;
     LOG_DEBUG("[RenderObjectsToBackground]",
               "Room %d: Objects rendered successfully", room_id_);
-  }
   }
 }
 

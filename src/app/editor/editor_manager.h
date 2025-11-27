@@ -91,20 +91,27 @@ class EditorManager {
   const EditorCardRegistry& card_registry() const { return card_registry_; }
 
   // Layout offset calculation for dockspace adjustment
-  // Returns the left margin needed for sidebar
+  // Returns the left margin needed for sidebar (Activity Bar + Side Panel)
   float GetLeftLayoutOffset() const {
-    // Sidebar is visible when:
-    // 1. ui_coordinator exists
-    // 2. Card sidebar visibility is enabled
-    // 3. Sidebar is not collapsed
-    if (!ui_coordinator_ || !ui_coordinator_->IsCardSidebarVisible() ||
-        card_registry_.IsSidebarCollapsed()) {
+    // Global UI toggle override
+    if (!ui_coordinator_ || !ui_coordinator_->IsCardSidebarVisible()) {
       return 0.0f;
     }
-    // Return appropriate width based on view mode
-    return card_registry_.IsTreeViewMode()
-               ? EditorCardRegistry::GetTreeSidebarWidth()
-               : EditorCardRegistry::GetSidebarWidth();
+    
+    // Check Activity Bar visibility
+    if (!card_registry_.IsSidebarVisible()) {
+      return 0.0f;
+    }
+    
+    // Base width = Activity Bar
+    float width = EditorCardRegistry::GetSidebarWidth(); // 48px
+    
+    // Add Side Panel width if expanded
+    if (card_registry_.IsPanelExpanded()) {
+      width += EditorCardRegistry::GetSidePanelWidth();
+    }
+    
+    return width;
   }
 
   // Returns the right margin needed for panels
@@ -172,7 +179,7 @@ class EditorManager {
   // Jump-to functionality for cross-editor navigation
   void JumpToDungeonRoom(int room_id);
   void JumpToOverworldMap(int map_id);
-  void SwitchToEditor(EditorType editor_type);
+  void SwitchToEditor(EditorType editor_type, bool force_visible = false);
 
   // Card-based editor registry
   static bool IsCardBasedEditor(EditorType type);
@@ -304,9 +311,6 @@ class EditorManager {
  private:
   absl::Status DrawRomSelector() = delete;  // Moved to UICoordinator
   // DrawContextSensitiveCardControl removed - card control moved to sidebar
-
-  // Draw placeholder sidebar when no ROM is loaded
-  void DrawPlaceholderSidebar();
 
   // Optional loading_handle for WASM progress tracking (0 = create new)
   absl::Status LoadAssets(uint64_t loading_handle = 0);

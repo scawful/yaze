@@ -112,12 +112,22 @@ class Dsp {
   void GetSamples(int16_t* sample_data, int samples_per_frame, bool pal_timing);
   int CopyNativeFrame(int16_t* sample_data, bool pal_timing);
 
+  void SetChannelMute(int ch, bool mute) {
+    if (ch >= 0 && ch < 8) debug_mute_channels_[ch] = mute;
+  }
+  bool GetChannelMute(int ch) const {
+    if (ch >= 0 && ch < 8) return debug_mute_channels_[ch];
+    return false;
+  }
+
   InterpolationType interpolation_type = InterpolationType::Linear;
 
  private:
   // sample ring buffer (1024 samples, *2 for stereo)
   int16_t sampleBuffer[0x400 * 2];
   uint16_t sampleOffset;  // current offset in samplebuffer
+
+  bool debug_mute_channels_[8] = {false};
 
   std::vector<uint8_t>& aram_;
 

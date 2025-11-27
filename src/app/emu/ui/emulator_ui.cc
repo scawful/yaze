@@ -4,9 +4,11 @@
 
 #include "absl/strings/str_format.h"
 #include "app/emu/emulator.h"
+#include "app/emu/input/input_backend.h"
 #include "app/gui/core/color.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/theme_manager.h"
+#include "app/platform/sdl_compat.h"
 #include "imgui/imgui.h"
 #include "util/file_util.h"
 #include "util/log.h"
@@ -288,6 +290,25 @@ void RenderNavBar(Emulator* emu) {
         "Use if the game controls stop working while typing in other panels.");
   }
 
+  ImGui::SameLine();
+
+  // Option to disable ImGui keyboard navigation (prevents Tab from cycling UI)
+  static bool disable_nav = false;
+  if (ImGui::Checkbox("Disable Nav", &disable_nav)) {
+    ImGuiIO& imgui_io = ImGui::GetIO();
+    if (disable_nav) {
+      imgui_io.ConfigFlags &= ~ImGuiConfigFlags_NavEnableKeyboard;
+    } else {
+      imgui_io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+    }
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip(
+        "Disable ImGui keyboard navigation.\n"
+        "Prevents Tab from cycling through UI elements.\n"
+        "Enable this if Tab isn't working for turbo mode.");
+  }
+
   ImGui::PopStyleColor(3);
 }
 
@@ -544,8 +565,211 @@ void RenderEmulatorInterface(Emulator* emu) {
   RenderKeyboardShortcuts(&show_shortcuts);
 
   // Tab key: Hold for turbo mode
-  emu->set_turbo_mode(ImGui::IsKeyDown(ImGuiKey_Tab));
+  // Use SDL directly to bypass ImGui's keyboard navigation capture
+  const uint8_t* keyboard_state = SDL_GetKeyboardState(nullptr);
+  bool tab_pressed = keyboard_state[SDL_SCANCODE_TAB] != 0;
+  emu->set_turbo_mode(tab_pressed);
 
+  ImGui::PopStyleColor();
+}
+
+void RenderVirtualController(Emulator* emu) {
+  if (!emu)
+    return;
+
+  auto& theme_manager = ThemeManager::Get();
+  const auto& theme = theme_manager.GetCurrentTheme();
+
+  ImGui::PushStyleColor(ImGuiCol_ChildBg, ConvertColorToImVec4(theme.child_bg));
+  ImGui::BeginChild("##VirtualController", ImVec2(0, 0), true);
+
+  ImGui::TextColored(ConvertColorToImVec4(theme.accent),
+                     ICON_MD_SPORTS_ESPORTS " Virtual Controller");
+  ImGui::SameLine();
+  ImGui::TextColored(ConvertColorToImVec4(theme.text_disabled),
+                     "(Click to test input)");
+  ImGui::Separator();
+  ImGui::Spacing();
+
+  auto& input_mgr = emu->input_manager();
+
+  // Track which buttons are currently pressed via virtual controller
+  // Use a static to persist state across frames
+  static uint16_t virtual_buttons_pressed = 0;
+
+  // Helper lambda for controller buttons - press on mouse down, release on up
+  auto ControllerButton = [&](const char* label, input::SnesButton button,
+                               ImVec2 size = ImVec2(50, 40)) {
+    ImGui::PushID(static_cast<int>(button));
+
+    uint16_t button_mask = 1 << static_cast<uint8_t>(button);
+    bool was_pressed = (virtual_buttons_pressed & button_mask) != 0;
+
+    // Style the button if it's currently pressed
+    if (was_pressed) {
+      ImGui::PushStyleColor(ImGuiCol_Button,
+                            ConvertColorToImVec4(theme.accent));
+    }
+
+    // Render the button
+    ImGui::Button(label, size);
+
+    // Check if mouse is held down on THIS button (after rendering)
+    bool is_active = ImGui::IsItemActive();
+
+    // Update virtual button state
+    if (is_active) {
+      virtual_buttons_pressed |= button_mask;
+      input_mgr.PressButton(button);
+    } else if (was_pressed) {
+      // Only release if we were the ones who pressed it
+      virtual_buttons_pressed &= ~button_mask;
+      input_mgr.ReleaseButton(button);
+    }
+
+    if (was_pressed) {
+      ImGui::PopStyleColor();
+    }
+
+    ImGui::PopID();
+  };
+
+  // D-Pad layout
+  ImGui::Text("D-Pad:");
+  ImGui::Indent();
+
+  // Up
+  ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 55);
+  ControllerButton(ICON_MD_ARROW_UPWARD, input::SnesButton::UP);
+
+  // Left, (space), Right
+  ControllerButton(ICON_MD_ARROW_BACK, input::SnesButton::LEFT);
+  ImGui::SameLine();
+  ImGui::Dummy(ImVec2(50, 40));
+  ImGui::SameLine();
+  ControllerButton(ICON_MD_ARROW_FORWARD, input::SnesButton::RIGHT);
+
+  // Down
+  ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 55);
+  ControllerButton(ICON_MD_ARROW_DOWNWARD, input::SnesButton::DOWN);
+
+  ImGui::Unindent();
+  ImGui::Spacing();
+
+  // Face buttons (SNES layout: Y B on left, X A on right)
+  ImGui::Text("Face Buttons:");
+  ImGui::Indent();
+
+  // Top row: X
+  ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 55);
+  ControllerButton("X", input::SnesButton::X);
+
+  // Middle row: Y, A
+  ControllerButton("Y", input::SnesButton::Y);
+  ImGui::SameLine();
+  ImGui::Dummy(ImVec2(50, 40));
+  ImGui::SameLine();
+  ControllerButton("A", input::SnesButton::A);
+
+  // Bottom row: B
+  ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 55);
+  ControllerButton("B", input::SnesButton::B);
+
+  ImGui::Unindent();
+  ImGui::Spacing();
+
+  // Shoulder buttons
+  ImGui::Text("Shoulder:");
+  ControllerButton("L", input::SnesButton::L, ImVec2(70, 30));
+  ImGui::SameLine();
+  ControllerButton("R", input::SnesButton::R, ImVec2(70, 30));
+
+  ImGui::Spacing();
+
+  // Start/Select
+  ImGui::Text("Start/Select:");
+  ControllerButton("Select", input::SnesButton::SELECT, ImVec2(70, 30));
+  ImGui::SameLine();
+  ControllerButton("Start", input::SnesButton::START, ImVec2(70, 30));
+
+  ImGui::Spacing();
+  ImGui::Separator();
+
+  // Debug info - show current button state
+  ImGui::TextColored(ConvertColorToImVec4(theme.text_disabled), "Debug:");
+  uint16_t input_state = emu->snes().GetInput1State();
+  ImGui::Text("current_state: 0x%04X", input_state);
+  ImGui::Text("virtual_pressed: 0x%04X", virtual_buttons_pressed);
+  ImGui::Text("Input registered: %s", input_state != 0 ? "YES" : "NO");
+
+  // Show which buttons are detected
+  if (input_state != 0) {
+    ImGui::Text("Buttons:");
+    if (input_state & 0x0001) ImGui::SameLine(), ImGui::Text("B");
+    if (input_state & 0x0002) ImGui::SameLine(), ImGui::Text("Y");
+    if (input_state & 0x0004) ImGui::SameLine(), ImGui::Text("Sel");
+    if (input_state & 0x0008) ImGui::SameLine(), ImGui::Text("Sta");
+    if (input_state & 0x0010) ImGui::SameLine(), ImGui::Text("Up");
+    if (input_state & 0x0020) ImGui::SameLine(), ImGui::Text("Dn");
+    if (input_state & 0x0040) ImGui::SameLine(), ImGui::Text("Lt");
+    if (input_state & 0x0080) ImGui::SameLine(), ImGui::Text("Rt");
+    if (input_state & 0x0100) ImGui::SameLine(), ImGui::Text("A");
+    if (input_state & 0x0200) ImGui::SameLine(), ImGui::Text("X");
+    if (input_state & 0x0400) ImGui::SameLine(), ImGui::Text("L");
+    if (input_state & 0x0800) ImGui::SameLine(), ImGui::Text("R");
+  }
+
+  ImGui::Spacing();
+
+  // Show what the game actually reads ($4218/$4219)
+  auto& snes = emu->snes();
+  uint16_t port_read = snes.GetPortAutoRead(0);
+  ImGui::Text("port_auto_read[0]: 0x%04X", port_read);
+  ImGui::Text("auto_joy_read: %s", snes.IsAutoJoyReadEnabled() ? "ON" : "OFF");
+
+  // Show $4218/$4219 values (what game reads)
+  uint8_t reg_4218 = port_read & 0xFF;        // Low byte
+  uint8_t reg_4219 = (port_read >> 8) & 0xFF; // High byte
+  ImGui::Text("$4218: 0x%02X  $4219: 0x%02X", reg_4218, reg_4219);
+
+  // Decode $4218 (A, X, L, R in bits 7-4, unused 3-0)
+  ImGui::Text("$4218 bits: A=%d X=%d L=%d R=%d",
+              (reg_4218 >> 7) & 1, (reg_4218 >> 6) & 1,
+              (reg_4218 >> 5) & 1, (reg_4218 >> 4) & 1);
+
+  // Edge detection debug - track state changes
+  static uint16_t last_port_read = 0;
+  static int frames_a_pressed = 0;
+  static int frames_since_release = 0;
+  static bool detected_edge = false;
+
+  bool a_now = (port_read & 0x0080) != 0;
+  bool a_before = (last_port_read & 0x0080) != 0;
+
+  if (a_now && !a_before) {
+    detected_edge = true;
+    frames_a_pressed = 1;
+    frames_since_release = 0;
+  } else if (a_now) {
+    frames_a_pressed++;
+    detected_edge = false;
+  } else {
+    frames_a_pressed = 0;
+    frames_since_release++;
+    detected_edge = false;
+  }
+
+  last_port_read = port_read;
+
+  ImGui::Spacing();
+  ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Edge Detection:");
+  ImGui::Text("A held for: %d frames", frames_a_pressed);
+  ImGui::Text("Released for: %d frames", frames_since_release);
+  if (detected_edge) {
+    ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), ">>> EDGE DETECTED <<<");
+  }
+
+  ImGui::EndChild();
   ImGui::PopStyleColor();
 }
 

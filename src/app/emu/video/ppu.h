@@ -335,7 +335,7 @@ class Ppu {
   const int visibleScanlines = 224;   // SNES PPU renders 224 visible scanlines
 
   bool enable_forced_blanking_ = false;
-  bool enable_debug_dump_ = false;  // Set to true to enable PPU state dumps
+  bool enable_debug_dump_ = false;
 
   int cycle_count_ = 0;
   int current_scanline_ = 0;

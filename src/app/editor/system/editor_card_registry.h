@@ -301,10 +301,12 @@ class EditorCardRegistry {
       size_t session_id, const std::string& category,
       const std::vector<std::string>& active_categories = {},
       std::function<void(const std::string&)> on_category_switch = nullptr,
-      std::function<void()> on_collapse = nullptr);
+      std::function<void()> on_collapse = nullptr,
+      std::function<bool()> has_rom = nullptr);
 
   static constexpr float GetSidebarWidth() { return 48.0f; }
   static constexpr float GetTreeSidebarWidth() { return 200.0f; }
+  static constexpr float GetSidePanelWidth() { return 250.0f; }
   static constexpr float GetCollapsedSidebarWidth() { return 16.0f; }
 
   /**
@@ -345,37 +347,94 @@ class EditorCardRegistry {
   void DrawTreeSidebar(
       size_t session_id,
       const std::vector<std::string>& active_categories,
-      std::function<void(const std::string&)> on_category_switch = nullptr);
+      std::function<void(const std::string&)> on_category_switch = nullptr,
+      std::function<bool()> has_rom = nullptr);
 
   /**
-   * @brief Get whether tree view mode is enabled
+   * @brief Toggle sidebar visibility (0px vs visible)
    */
-  bool IsTreeViewMode() const { return tree_view_mode_; }
+  void ToggleSidebarVisibility() {
+    sidebar_visible_ = !sidebar_visible_;
+    if (on_sidebar_state_changed_) {
+      on_sidebar_state_changed_(sidebar_visible_, panel_expanded_);
+    }
+  }
 
   /**
-   * @brief Set tree view mode (true = tree view, false = icon sidebar)
+   * @brief Set sidebar visibility
    */
-  void SetTreeViewMode(bool enabled) { tree_view_mode_ = enabled; }
+  void SetSidebarVisible(bool visible) {
+    if (sidebar_visible_ != visible) {
+      sidebar_visible_ = visible;
+      if (on_sidebar_state_changed_) {
+        on_sidebar_state_changed_(sidebar_visible_, panel_expanded_);
+      }
+    }
+  }
 
   /**
-   * @brief Toggle between tree view and icon sidebar modes
+   * @brief Check if sidebar is visible
    */
-  void ToggleTreeViewMode() { tree_view_mode_ = !tree_view_mode_; }
+  bool IsSidebarVisible() const { return sidebar_visible_; }
 
   /**
-   * @brief Check if sidebar is collapsed
+   * @brief Toggle side panel expansion
    */
-  bool IsSidebarCollapsed() const { return sidebar_collapsed_; }
+  void TogglePanelExpanded() {
+    panel_expanded_ = !panel_expanded_;
+    if (on_sidebar_state_changed_) {
+      on_sidebar_state_changed_(sidebar_visible_, panel_expanded_);
+    }
+  }
 
   /**
-   * @brief Set sidebar collapsed state
+   * @brief Set side panel expansion
    */
-  void SetSidebarCollapsed(bool collapsed) { sidebar_collapsed_ = collapsed; }
+  void SetPanelExpanded(bool expanded) {
+    if (panel_expanded_ != expanded) {
+      panel_expanded_ = expanded;
+      if (on_sidebar_state_changed_) {
+        on_sidebar_state_changed_(sidebar_visible_, panel_expanded_);
+      }
+    }
+  }
 
   /**
-   * @brief Toggle sidebar collapsed state
+   * @brief Check if side panel is expanded
    */
-  void ToggleSidebarCollapsed() { sidebar_collapsed_ = !sidebar_collapsed_; }
+  bool IsPanelExpanded() const { return panel_expanded_; }
+
+  // ============================================================================
+  // UI Rendering (VSCode-style)
+  // ============================================================================
+
+  /**
+   * @brief Draw the Activity Bar (Icon Strip)
+   */
+  void DrawActivityBar(
+      size_t session_id, const std::string& active_category,
+      const std::vector<std::string>& active_categories,
+      std::function<void(const std::string&)> on_category_select,
+      std::function<bool()> has_rom);
+
+  /**
+   * @brief Draw the Side Panel (Content)
+   */
+  void DrawSidePanel(
+      size_t session_id, const std::string& category,
+      std::function<bool()> has_rom);
+
+  /**
+   * @brief Main render loop for sidebar
+   */
+  void Render(
+      size_t session_id, const std::string& category,
+      const std::vector<std::string>& active_categories,
+      std::function<void(const std::string&)> on_category_select,
+      std::function<bool()> has_rom);
+
+  // Legacy methods deprecated/removed...
+  // DrawSidebar and DrawTreeSidebar replaced by Render()
 
   // ============================================================================
   // Utility Icon Callbacks (for sidebar quick access buttons)
@@ -389,6 +448,23 @@ class EditorCardRegistry {
   }
   void SetShowCardBrowserCallback(std::function<void()> cb) {
     on_show_card_browser_ = std::move(cb);
+  }
+
+  /**
+   * @brief Set callback for sidebar state changes (visibility/expansion)
+   * @param cb Callback receiving (visible, expanded)
+   */
+  void SetSidebarStateChangedCallback(
+      std::function<void(bool, bool)> cb) {
+    on_sidebar_state_changed_ = std::move(cb);
+  }
+
+  /**
+   * @brief Set callback for category changes
+   * @param cb Callback receiving new category name
+   */
+  void SetCategoryChangedCallback(std::function<void(const std::string&)> cb) {
+    on_category_changed_ = std::move(cb);
   }
 
   // ============================================================================
@@ -522,7 +598,12 @@ class EditorCardRegistry {
    * @brief Set active category (for sidebar)
    */
   void SetActiveCategory(const std::string& category) {
-    active_category_ = category;
+    if (active_category_ != category) {
+      active_category_ = category;
+      if (on_category_changed_) {
+        on_category_changed_(category);
+      }
+    }
   }
 
   /**
@@ -556,9 +637,10 @@ class EditorCardRegistry {
       const std::string& category,
       const std::vector<std::string>& active_categories = {},
       std::function<void(const std::string&)> on_category_switch = nullptr,
-      std::function<void()> on_collapse = nullptr) {
+      std::function<void()> on_collapse = nullptr,
+      std::function<bool()> has_rom = nullptr) {
     DrawSidebar(active_session_, category, active_categories,
-                on_category_switch, on_collapse);
+                on_category_switch, on_collapse, has_rom);
   }
 
  private:
@@ -588,20 +670,21 @@ class EditorCardRegistry {
   static constexpr size_t kMaxRecentCategories = 5;
 
   // Sidebar state
-  bool sidebar_collapsed_ = true;  // Start collapsed by default
-  bool tree_view_mode_ = true;     // Start in tree view mode (user preference)
-
+  bool sidebar_visible_ = true;    // Controls Activity Bar visibility (0px vs 48px)
+  bool panel_expanded_ = true;     // Controls Side Panel visibility (0px vs 250px)
+  
   // Keyboard navigation state (click-to-focus modal)
   int focused_card_index_ = -1;    // Currently focused card index (-1 = none)
   bool sidebar_has_focus_ = false; // Whether sidebar has keyboard focus
-
-  // Tree view search filter
-  char tree_search_filter_[64] = "";
 
   // Utility icon callbacks
   std::function<void()> on_show_emulator_;
   std::function<void()> on_show_settings_;
   std::function<void()> on_show_card_browser_;
+
+  // State change callbacks
+  std::function<void(bool visible, bool expanded)> on_sidebar_state_changed_;
+  std::function<void(const std::string&)> on_category_changed_;
 
   // Helper methods
   void UpdateSessionCount();

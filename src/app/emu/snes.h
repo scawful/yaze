@@ -18,8 +18,9 @@ struct Input {
   uint8_t type;
   bool latch_line_;
   // for controller
-  uint16_t current_state_;  // actual state
-  uint16_t latched_state_;
+  uint16_t current_state_;   // actual state from this frame
+  uint16_t latched_state_;   // state being shifted out for serial read
+  uint16_t previous_state_;  // state from previous frame for edge detection
 };
 
 class Snes {
@@ -80,6 +81,14 @@ class Snes {
   auto memory() -> MemoryImpl& { return memory_; }
   auto get_ram() -> uint8_t* { return ram; }
   auto mutable_cycles() -> uint64_t& { return cycles_; }
+
+  // Input state accessors (for debugging UI)
+  uint16_t GetInput1State() const { return input1.current_state_; }
+  uint16_t GetInput2State() const { return input2.current_state_; }
+  uint16_t GetPortAutoRead(int index) const {
+    return (index >= 0 && index < 4) ? port_auto_read_[index] : 0;
+  }
+  bool IsAutoJoyReadEnabled() const { return auto_joy_read_; }
 
   // Audio debugging
   auto apu_handshake_tracker() -> debug::ApuHandshakeTracker& {

@@ -31,6 +31,7 @@ std::string EditorCardRegistry::GetCategoryIcon(const std::string& category) {
   if (category == "Emulator") return ICON_MD_VIDEOGAME_ASSET;
   if (category == "Assembly") return ICON_MD_CODE;
   if (category == "Settings") return ICON_MD_SETTINGS;
+  if (category == "Memory") return ICON_MD_MEMORY;
   return ICON_MD_FOLDER;  // Default for unknown categories
 }
 
@@ -551,574 +552,231 @@ void EditorCardRegistry::HandleSidebarKeyboardNav(
 }
 
 // ============================================================================
-// VSCode-Style Sidebar
+// VSCode-Style Sidebar (Activity Bar + Side Panel)
 // ============================================================================
 
-void EditorCardRegistry::DrawSidebar(
+void EditorCardRegistry::Render(
     size_t session_id, const std::string& category,
     const std::vector<std::string>& active_categories,
-    std::function<void(const std::string&)> on_category_switch,
-    std::function<void()> on_collapse) {
-  // Use ThemeManager for consistent theming
-  const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
+    std::function<void(const std::string&)> on_category_select,
+    std::function<bool()> has_rom) {
+  
+  if (!sidebar_visible_) return;
 
-  // Use viewport for accurate positioning (sidebar fills full height)
+  // Draw the Activity Bar (Icons)
+  DrawActivityBar(session_id, category, active_categories, on_category_select, has_rom);
+
+  // Draw the Side Panel (Content) if expanded
+  if (panel_expanded_) {
+    DrawSidePanel(session_id, category, has_rom);
+  }
+}
+
+void EditorCardRegistry::DrawActivityBar(
+    size_t session_id, const std::string& active_category,
+    const std::vector<std::string>& active_categories,
+    std::function<void(const std::string&)> on_category_select,
+    std::function<bool()> has_rom) {
+  
+  const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
   const ImGuiViewport* viewport = ImGui::GetMainViewport();
   const float viewport_height = viewport->WorkSize.y;
+  const float bar_width = 48.0f; // Fixed width for Activity Bar
 
-  // Use theme colors for sidebar background
-  ImVec4 sidebar_bg = gui::ConvertColorToImVec4(theme.surface);
-  ImVec4 sidebar_border = gui::ConvertColorToImVec4(theme.text_disabled);
+  // Position on left edge, full height
+  ImGui::SetNextWindowPos(ImVec2(viewport->WorkPos.x, viewport->WorkPos.y));
+  ImGui::SetNextWindowSize(ImVec2(bar_width, viewport_height));
 
-  ImGuiWindowFlags sidebar_flags =
+  ImVec4 bar_bg = gui::ConvertColorToImVec4(theme.surface);
+  ImVec4 bar_border = gui::ConvertColorToImVec4(theme.text_disabled);
+
+  ImGuiWindowFlags flags =
       ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
       ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse |
       ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoScrollbar |
-      ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoFocusOnAppearing |
-      ImGuiWindowFlags_NoNavFocus;
+      ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNavFocus | 
+      ImGuiWindowFlags_NoBringToFrontOnFocus;
 
-  // When collapsed, don't draw anything - the expand icon is in the menu bar
-  if (sidebar_collapsed_) {
-    return;
-  }
+  ImGui::PushStyleColor(ImGuiCol_WindowBg, bar_bg);
+  ImGui::PushStyleColor(ImGuiCol_Border, bar_border);
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 8.0f));
+  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 8.0f));
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 1.0f); // Right border only ideally
 
-  // Full sidebar (expanded state)
-  const float sidebar_width = GetSidebarWidth();
+  if (ImGui::Begin("##ActivityBar", nullptr, flags)) {
+    ImVec4 accent = gui::ConvertColorToImVec4(theme.accent);
+    ImVec4 inactive = gui::ConvertColorToImVec4(theme.text_secondary);
 
-  // Position at top-left corner, full height (menu bar is in dockspace region, not sidebar)
-  ImGui::SetNextWindowPos(ImVec2(viewport->WorkPos.x, viewport->WorkPos.y));
-  ImGui::SetNextWindowSize(ImVec2(sidebar_width, viewport_height));
+    for (const auto& cat : active_categories) {
+      bool is_active = (cat == active_category) && panel_expanded_;
+      
+      // ROM check - Emulator now treated same as others (requires ROM for enabled state)
+      bool rom_loaded = has_rom ? has_rom() : true;
+      bool category_enabled = rom_loaded; 
 
-  ImGui::PushStyleColor(ImGuiCol_WindowBg, sidebar_bg);
-  ImGui::PushStyleColor(ImGuiCol_Border, sidebar_border);
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4.0f, 8.0f));
-  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 6.0f));
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 2.0f);
+      // Active Indicator (Left Border)
+      if (cat == active_category && category_enabled) {
+        ImGui::GetWindowDrawList()->AddRectFilled(
+            ImGui::GetCursorScreenPos(),
+            ImVec2(ImGui::GetCursorScreenPos().x + 3.0f, ImGui::GetCursorScreenPos().y + 40.0f),
+            ImGui::ColorConvertFloat4ToU32(accent));
+      }
 
-  if (ImGui::Begin("##EditorCardSidebar", nullptr, sidebar_flags)) {
-    // Category switcher buttons at top (only if multiple editors are active)
-    if (active_categories.size() > 1) {
-      ImVec4 accent = gui::ConvertColorToImVec4(theme.accent);
-      ImVec4 inactive = gui::ConvertColorToImVec4(theme.button);
+      // Button Style
+      ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0,0,0,0));
+      ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(1,1,1,0.1f));
+      ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(1,1,1,0.2f));
+      
+      // Text/Icon Color
+      ImVec4 icon_color = (cat == active_category && category_enabled) ? accent : inactive;
+      if (!category_enabled) icon_color = ImVec4(inactive.x, inactive.y, inactive.z, 0.4f);
+      ImGui::PushStyleColor(ImGuiCol_Text, icon_color);
 
-      for (const auto& cat : active_categories) {
-        bool is_current = (cat == category);
-
-        // Draw active indicator bar on left edge for current category
-        if (is_current) {
-          ImVec2 cursor = ImGui::GetCursorScreenPos();
-          ImGui::GetWindowDrawList()->AddRectFilled(
-              ImVec2(cursor.x - 2.0f, cursor.y),
-              ImVec2(cursor.x, cursor.y + 32.0f),
-              ImGui::ColorConvertFloat4ToU32(accent), 2.0f);
-        }
-
-        // Highlight current category with accent color
-        if (is_current) {
-          ImGui::PushStyleColor(ImGuiCol_Button,
-                                ImVec4(accent.x, accent.y, accent.z, 0.8f));
-          ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
-                                ImVec4(accent.x, accent.y, accent.z, 1.0f));
-        } else {
-          ImGui::PushStyleColor(ImGuiCol_Button, inactive);
-          ImGui::PushStyleColor(
-              ImGuiCol_ButtonHovered,
-              gui::ConvertColorToImVec4(theme.button_hovered));
-        }
-
-        // Show category icon instead of first letter
-        std::string btn_label = GetCategoryIcon(cat);
-        if (ImGui::Button(btn_label.c_str(), ImVec2(40.0f, 32.0f))) {
-          // Switch to this category/editor
-          if (on_category_switch) {
-            on_category_switch(cat);
+      std::string icon = GetCategoryIcon(cat);
+      if (ImGui::Button(icon.c_str(), ImVec2(48.0f, 40.0f))) {
+        if (category_enabled) {
+          if (cat == active_category) {
+            // Toggle panel if clicking same category
+            TogglePanelExpanded();
           } else {
-            SetActiveCategory(cat);
+            // Switch category and ensure open
+            if (on_category_select) on_category_select(cat);
+            else SetActiveCategory(cat);
+            SetPanelExpanded(true);
           }
         }
-
-        ImGui::PopStyleColor(2);
-
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("%s Editor\nClick to switch", cat.c_str());
-        }
       }
 
-      ImGui::Dummy(ImVec2(0, 2.0f));
-      ImGui::Separator();
-      ImGui::Spacing();
-    }
-
-    // Get cards for current category
-    auto cards = GetCardsInCategory(session_id, category);
-
-    // Set this category as active when showing cards
-    if (!cards.empty()) {
-      SetActiveCategory(category);
-    }
-
-    // Close All and Show All buttons (only if cards exist)
-    if (!cards.empty()) {
-      ImVec4 error_color = gui::ConvertColorToImVec4(theme.error);
-      ImGui::PushStyleColor(ImGuiCol_Button,
-                            ImVec4(error_color.x * 0.6f, error_color.y * 0.6f,
-                                   error_color.z * 0.6f, 0.9f));
-      ImGui::PushStyleColor(ImGuiCol_ButtonHovered, error_color);
-      ImGui::PushStyleColor(ImGuiCol_ButtonActive,
-                            ImVec4(error_color.x * 1.2f, error_color.y * 1.2f,
-                                   error_color.z * 1.2f, 1.0f));
-
-      if (ImGui::Button(ICON_MD_CLOSE, ImVec2(40.0f, 36.0f))) {
-        HideAllCardsInCategory(session_id, category);
-      }
-
-      ImGui::PopStyleColor(3);
-
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Close All %s Cards", category.c_str());
-      }
-
-      // Show All button
-      ImVec4 success_color = gui::ConvertColorToImVec4(theme.success);
-      ImGui::PushStyleColor(
-          ImGuiCol_Button,
-          ImVec4(success_color.x * 0.6f, success_color.y * 0.6f,
-                 success_color.z * 0.6f, 0.7f));
-      ImGui::PushStyleColor(ImGuiCol_ButtonHovered, success_color);
-      ImGui::PushStyleColor(
-          ImGuiCol_ButtonActive,
-          ImVec4(success_color.x * 1.2f, success_color.y * 1.2f,
-                 success_color.z * 1.2f, 1.0f));
-
-      if (ImGui::Button(ICON_MD_DONE_ALL, ImVec2(40.0f, 36.0f))) {
-        ShowAllCardsInCategory(session_id, category);
-      }
-
-      ImGui::PopStyleColor(3);
-
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Show All %s Cards", category.c_str());
-      }
-
-      ImGui::Dummy(ImVec2(0, 2.0f));
-
-      // Calculate available height for scrollable card region
-      // Reserve space for: utility icons (4 buttons * 36px) + collapse button (36px) + separators/spacing (~50px)
-      const float utility_section_height = 4 * 36.0f + 36.0f + 60.0f;  // ~240px total
-      const float current_y = ImGui::GetCursorPosY();
-      const float window_padding = 8.0f * 2;  // Top + bottom padding
-      const float available_height = viewport_height - current_y - utility_section_height - window_padding;
-
-      // Scrollable region for card buttons (only if there's room)
-      if (available_height > 50.0f) {
-        ImGui::BeginChild("##CardScrollRegion", ImVec2(42.0f, available_height), false,
-                          ImGuiChildFlags_None);
-      }
-
-      // Handle keyboard navigation for sidebar
-      HandleSidebarKeyboardNav(session_id, cards);
-
-      // Draw individual card toggle buttons
-      ImVec4 accent_color = gui::ConvertColorToImVec4(theme.accent);
-      ImVec4 button_bg = gui::ConvertColorToImVec4(theme.button);
-
-      int card_index = 0;
-      for (const auto& card : cards) {
-        ImGui::PushID(card.card_id.c_str());
-
-        bool is_active = card.visibility_flag && *card.visibility_flag;
-        bool is_focused =
-            sidebar_has_focus_ && (card_index == focused_card_index_);
-
-        // Check if card is enabled (nullptr = always enabled)
-        bool is_enabled = !card.enabled_condition || card.enabled_condition();
-
-        // Apply reduced opacity for disabled cards
-        if (!is_enabled) {
-          ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.4f);
-        }
-
-        // Highlight active cards with accent color
-        if (is_active && is_enabled) {
-          ImGui::PushStyleColor(
-              ImGuiCol_Button,
-              ImVec4(accent_color.x, accent_color.y, accent_color.z, 0.5f));
-          ImGui::PushStyleColor(
-              ImGuiCol_ButtonHovered,
-              ImVec4(accent_color.x, accent_color.y, accent_color.z, 0.7f));
-          ImGui::PushStyleColor(ImGuiCol_ButtonActive, accent_color);
+      // Tooltip
+      if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+        ImGui::BeginTooltip();
+        ImGui::Text("%s %s", icon.c_str(), cat.c_str());
+        if (!category_enabled) {
+          ImGui::TextColored(gui::ConvertColorToImVec4(theme.warning), "Open ROM required");
         } else {
-          ImGui::PushStyleColor(ImGuiCol_Button, button_bg);
-          ImGui::PushStyleColor(
-              ImGuiCol_ButtonHovered,
-              gui::ConvertColorToImVec4(theme.button_hovered));
-          ImGui::PushStyleColor(ImGuiCol_ButtonActive,
-                                gui::ConvertColorToImVec4(theme.button_active));
+            ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
+            ImGui::TextUnformatted("Click to open");
+            ImGui::PopStyleColor();
         }
-
-        // Icon-only button for each card
-        if (ImGui::Button(card.icon.c_str(), ImVec2(40.0f, 40.0f))) {
-          // Only toggle if enabled
-          if (is_enabled) {
-            ToggleCard(session_id, card.card_id);
-            SetActiveCategory(category);
-          }
-        }
-
-        // Draw focus ring for keyboard-navigated card
-        if (is_focused) {
-          ImVec2 item_min = ImGui::GetItemRectMin();
-          ImVec2 item_max = ImGui::GetItemRectMax();
-          ImU32 focus_color = ImGui::ColorConvertFloat4ToU32(
-              ImVec4(accent_color.x, accent_color.y, accent_color.z, 1.0f));
-          ImGui::GetWindowDrawList()->AddRect(
-              ImVec2(item_min.x - 2, item_min.y - 2),
-              ImVec2(item_max.x + 2, item_max.y + 2), focus_color, 4.0f, 0,
-              2.5f);
-        }
-
-        ImGui::PopStyleColor(3);
-
-        if (!is_enabled) {
-          ImGui::PopStyleVar();  // Alpha
-        }
-
-        // Show tooltip with card name, shortcut, or disabled reason
-        if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled) || ImGui::IsItemActive()) {
-          SetActiveCategory(category);
-
-          if (!is_enabled && !card.disabled_tooltip.empty()) {
-            // Show disabled reason
-            ImGui::SetTooltip("%s\n(Disabled: %s)", card.display_name.c_str(),
-                              card.disabled_tooltip.c_str());
-          } else if (!is_enabled) {
-            // Default disabled tooltip
-            ImGui::SetTooltip("%s\n(Requires ROM to be loaded)",
-                              card.display_name.c_str());
-          } else {
-            // Normal tooltip
-            ImGui::SetTooltip(
-                "%s\n%s", card.display_name.c_str(),
-                card.shortcut_hint.empty() ? "" : card.shortcut_hint.c_str());
-          }
-        }
-
-        ImGui::PopID();
-        card_index++;
+        ImGui::EndTooltip();
       }
 
-      // End scrollable region
-      if (available_height > 50.0f) {
-        ImGui::EndChild();
-      }
-    }  // End if (!cards.empty())
+      ImGui::PopStyleColor(4); // Button colors + Text
+    }
 
-    // Utility icons section at bottom
-    ImGui::Dummy(ImVec2(0, 10.0f));
-    ImGui::Separator();
-    ImGui::Spacing();
+    // Bottom Section (Settings, Collapse)
+    float bottom_height = 40.0f + 8.0f; // Button + padding
+    float avail_y = ImGui::GetContentRegionAvail().y;
+    if (avail_y > bottom_height) {
+        ImGui::Dummy(ImVec2(0, avail_y - bottom_height));
+    }
 
-    // Utility button styling - use theme colors
-    ImGui::PushStyleColor(ImGuiCol_Button, gui::GetSurfaceContainerVec4());
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
-                          gui::GetSurfaceContainerHighVec4());
-    ImGui::PushStyleColor(ImGuiCol_ButtonActive,
-                          gui::GetSurfaceContainerHighestVec4());
+    // Collapse Button
+    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0,0,0,0));
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, gui::GetSurfaceContainerHighVec4());
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, gui::GetSurfaceContainerHighestVec4());
+    ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
 
-    // Emulator button
-    if (ImGui::Button(ICON_MD_PLAY_ARROW, ImVec2(40.0f, 36.0f))) {
-      if (on_show_emulator_) on_show_emulator_();
+    if (ImGui::Button(ICON_MD_CHEVRON_LEFT, ImVec2(48.0f, 40.0f))) {
+        SetSidebarVisible(false);
     }
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Emulator (Ctrl+Shift+E)");
+        ImGui::SetTooltip("Hide Activity Bar");
     }
 
-    // Hex Editor button
-    if (ImGui::Button(ICON_MD_MEMORY, ImVec2(40.0f, 36.0f))) {
-      ShowCard(session_id, "memory.hex_editor");
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Hex Editor (Ctrl+0)");
-    }
-
-    // Settings button
-    if (ImGui::Button(ICON_MD_SETTINGS, ImVec2(40.0f, 36.0f))) {
-      if (on_show_settings_) on_show_settings_();
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Settings");
-    }
-
-    // Card Browser button
-    if (ImGui::Button(ICON_MD_DASHBOARD, ImVec2(40.0f, 36.0f))) {
-      if (on_show_card_browser_) on_show_card_browser_();
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Card Browser (Ctrl+Shift+B)");
-    }
-
-    ImGui::PopStyleColor(3);
-
-    ImGui::Spacing();
-    ImGui::Separator();
-    ImGui::Spacing();
-
-    // Collapse button - use theme colors
-    ImGui::PushStyleColor(ImGuiCol_Button, gui::GetSurfaceContainerVec4());
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
-                          gui::GetSurfaceContainerHighVec4());
-    ImGui::PushStyleColor(ImGuiCol_ButtonActive,
-                          gui::GetSurfaceContainerHighestVec4());
-
-    if (ImGui::Button(ICON_MD_KEYBOARD_ARROW_LEFT, ImVec2(40.0f, 36.0f))) {
-      sidebar_collapsed_ = true;
-      // Don't call on_collapse() - we want the collapsed sidebar strip to remain visible
-      // The sidebar_collapsed_ flag handles the visual state internally
-    }
-
-    ImGui::PopStyleColor(3);
-
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Collapse Sidebar (Ctrl+B)");
-    }
-  }
-  ImGui::End();
-
-  ImGui::PopStyleVar(3);    // WindowPadding, ItemSpacing, WindowBorderSize
-  ImGui::PopStyleColor(2);  // WindowBg, Border
-}
-
-// ============================================================================
-// Tree View Sidebar
-// ============================================================================
-
-void EditorCardRegistry::DrawTreeSidebar(
-    size_t session_id, const std::vector<std::string>& active_categories,
-    std::function<void(const std::string&)> on_category_switch) {
-  const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
-
-  const ImGuiViewport* viewport = ImGui::GetMainViewport();
-  const float viewport_height = viewport->WorkSize.y;
-
-  ImVec4 sidebar_bg = gui::ConvertColorToImVec4(theme.surface);
-  ImVec4 sidebar_border = gui::ConvertColorToImVec4(theme.text_disabled);
-
-  ImGuiWindowFlags sidebar_flags =
-      ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
-      ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse |
-      ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoFocusOnAppearing |
-      ImGuiWindowFlags_NoNavFocus;
-
-  if (sidebar_collapsed_) {
-    return;
-  }
-
-  const float sidebar_width = GetTreeSidebarWidth();
-
-  ImGui::SetNextWindowPos(ImVec2(viewport->WorkPos.x, viewport->WorkPos.y));
-  ImGui::SetNextWindowSize(ImVec2(sidebar_width, viewport_height));
-
-  ImGui::PushStyleColor(ImGuiCol_WindowBg, sidebar_bg);
-  ImGui::PushStyleColor(ImGuiCol_Border, sidebar_border);
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8.0f, 8.0f));
-  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4.0f, 4.0f));
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 1.0f);
-
-  if (ImGui::Begin("##TreeSidebar", nullptr, sidebar_flags)) {
-    // Header with title and collapse button
-    ImGui::PushStyleColor(ImGuiCol_Text,
-                          gui::ConvertColorToImVec4(theme.text_primary));
-    ImGui::Text("%s Editors", ICON_MD_FOLDER_OPEN);
-    ImGui::PopStyleColor();
-
-    ImGui::SameLine(sidebar_width - 36.0f);
-    if (ImGui::Button(ICON_MD_KEYBOARD_ARROW_LEFT, ImVec2(24.0f, 24.0f))) {
-      sidebar_collapsed_ = true;
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Collapse Sidebar");
-    }
-
-    ImGui::Separator();
-    ImGui::Spacing();
-
-    // Search filter input
-    ImGui::SetNextItemWidth(sidebar_width - 52.0f);
-    ImGui::InputTextWithHint("##TreeSearch", ICON_MD_SEARCH " Filter...",
-                             tree_search_filter_, sizeof(tree_search_filter_));
-
-    // Clear button next to search
-    ImGui::SameLine();
-    if (tree_search_filter_[0] != '\0') {
-      if (ImGui::SmallButton(ICON_MD_CLOSE)) {
-        tree_search_filter_[0] = '\0';
-      }
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Clear filter");
-      }
-    }
-
-    ImGui::Spacing();
-
-    // Calculate available height for tree (reserve space for bottom buttons)
-    const float bottom_section_height = 100.0f;
-    const float available_height =
-        viewport_height - ImGui::GetCursorPosY() - bottom_section_height;
-
-    // Scrollable tree region
-    ImGui::BeginChild("##TreeContent", ImVec2(0, available_height), false,
-                      ImGuiChildFlags_None);
-
-    // Draw tree for each active category
-    for (const auto& category : active_categories) {
-      bool is_current = (category == active_category_);
-      auto cards = GetCardsInCategory(session_id, category);
-
-      if (cards.empty()) continue;
-
-      // Count visible cards
-      int visible_count = 0;
-      for (const auto& card : cards) {
-        if (card.visibility_flag && *card.visibility_flag) {
-          visible_count++;
-        }
-      }
-
-      // Tree node flags
-      ImGuiTreeNodeFlags node_flags =
-          ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth;
-      if (is_current) {
-        node_flags |= ImGuiTreeNodeFlags_Selected;
-      }
-      // Auto-expand current category
-      if (is_current) {
-        ImGui::SetNextItemOpen(true, ImGuiCond_Once);
-      }
-
-      // Category icon based on type (use the shared helper)
-      std::string cat_icon = GetCategoryIcon(category);
-
-      // Draw category node with visible count badge
-      std::string node_label =
-          absl::StrFormat("%s %s (%d/%zu)", cat_icon, category, visible_count,
-                          cards.size());
-
-      bool node_open = ImGui::TreeNodeEx(node_label.c_str(), node_flags);
-
-      // Click on category to switch editor
-      if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen()) {
-        if (on_category_switch) {
-          on_category_switch(category);
-        }
-        SetActiveCategory(category);
-      }
-
-      if (node_open) {
-        // Prepare filter for case-insensitive comparison
-        std::string filter_lower = tree_search_filter_;
-        std::transform(filter_lower.begin(), filter_lower.end(),
-                       filter_lower.begin(), ::tolower);
-
-        // Draw cards as checkbox items
-        for (const auto& card : cards) {
-          // Apply search filter - skip non-matching cards
-          if (!filter_lower.empty()) {
-            std::string name_lower = card.display_name;
-            std::transform(name_lower.begin(), name_lower.end(),
-                           name_lower.begin(), ::tolower);
-            if (name_lower.find(filter_lower) == std::string::npos) {
-              continue;  // Skip this card - doesn't match filter
-            }
-          }
-
-          ImGui::PushID(card.card_id.c_str());
-
-          bool visible = card.visibility_flag ? *card.visibility_flag : false;
-          bool is_enabled =
-              !card.enabled_condition || card.enabled_condition();
-
-          // Disable if condition not met
-          if (!is_enabled) {
-            ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.4f);
-            ImGui::BeginDisabled();
-          }
-
-          // Checkbox with icon and name
-          std::string item_label =
-              absl::StrFormat("%s %s", card.icon, card.display_name);
-
-          if (ImGui::Checkbox(item_label.c_str(), &visible)) {
-            if (card.visibility_flag) {
-              *card.visibility_flag = visible;
-              if (visible && card.on_show) {
-                card.on_show();
-              } else if (!visible && card.on_hide) {
-                card.on_hide();
-              }
-            }
-          }
-
-          // Tooltip with shortcut hint
-          if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
-            if (!is_enabled && !card.disabled_tooltip.empty()) {
-              ImGui::SetTooltip("%s", card.disabled_tooltip.c_str());
-            } else if (!card.shortcut_hint.empty()) {
-              ImGui::SetTooltip("%s", card.shortcut_hint.c_str());
-            }
-          }
-
-          if (!is_enabled) {
-            ImGui::EndDisabled();
-            ImGui::PopStyleVar();
-          }
-
-          ImGui::PopID();
-        }
-
-        ImGui::TreePop();
-      }
-    }
-
-    ImGui::EndChild();
-
-    // Bottom section with utility buttons
-    ImGui::Separator();
-    ImGui::Spacing();
-
-    // Show All / Hide All buttons
-    ImVec4 success_color = gui::ConvertColorToImVec4(theme.success);
-    ImVec4 error_color = gui::ConvertColorToImVec4(theme.error);
-
-    if (ImGui::Button(ICON_MD_DONE_ALL " Show All", ImVec2(88.0f, 28.0f))) {
-      ShowAllCardsInSession(session_id);
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Show all cards");
-    }
-
-    ImGui::SameLine();
-
-    if (ImGui::Button(ICON_MD_CLOSE " Hide All", ImVec2(88.0f, 28.0f))) {
-      HideAllCardsInSession(session_id);
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Hide all cards");
-    }
-
-    // Toggle to icon mode button
-    ImGui::Spacing();
-    if (ImGui::Button(ICON_MD_VIEW_COMPACT " Icon Mode",
-                      ImVec2(sidebar_width - 20.0f, 28.0f))) {
-      tree_view_mode_ = false;
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Switch to compact icon sidebar");
-    }
+    ImGui::PopStyleColor(4);
   }
   ImGui::End();
 
   ImGui::PopStyleVar(3);
   ImGui::PopStyleColor(2);
+}
+
+void EditorCardRegistry::DrawSidePanel(
+    size_t session_id, const std::string& category,
+    std::function<bool()> has_rom) {
+    
+  const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
+  const ImGuiViewport* viewport = ImGui::GetMainViewport();
+  const float bar_width = GetSidebarWidth();
+  const float panel_width = GetSidePanelWidth();
+
+  ImGui::SetNextWindowPos(ImVec2(viewport->WorkPos.x + bar_width, viewport->WorkPos.y));
+  ImGui::SetNextWindowSize(ImVec2(panel_width, viewport->WorkSize.y));
+
+  ImVec4 panel_bg = gui::ConvertColorToImVec4(theme.surface); 
+  
+  ImGuiWindowFlags flags =
+      ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
+      ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse |
+      ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoFocusOnAppearing;
+
+  ImGui::PushStyleColor(ImGuiCol_WindowBg, panel_bg);
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 1.0f); // Right border
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(12.0f, 12.0f)); // Consistent padding
+
+  if (ImGui::Begin("##SidePanel", nullptr, flags)) {
+    // Header
+    ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[0]);  // Use default font
+    ImGui::Text("%s", category.c_str());
+    ImGui::PopFont();
+
+    // Close button aligned to right
+    float avail_width = ImGui::GetContentRegionAvail().x;
+    ImGui::SameLine(ImGui::GetCursorPosX() + avail_width - 28.0f);
+    ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 4.0f);  // Center vertically with text
+    if (ImGui::Button(ICON_MD_CLOSE, ImVec2(24.0f, 24.0f))) {
+      SetPanelExpanded(false);
+    }
+
+    ImGui::Spacing();
+    ImGui::Separator();
+    ImGui::Spacing();
+
+    // Disable non-emulator categories when no ROM is loaded
+    const bool rom_loaded = has_rom ? has_rom() : true;
+    const bool disable_cards = !rom_loaded && category != "Emulator";
+    if (disable_cards) {
+      ImGui::TextUnformatted(
+          ICON_MD_FOLDER_OPEN " Open a ROM to enable this category");
+      ImGui::Spacing();
+    }
+
+    if (disable_cards) {
+      ImGui::BeginDisabled();
+    }
+
+    // Content - Reusing GetCardsInCategory logic
+    auto cards = GetCardsInCategory(session_id, category);
+
+    ImGui::BeginChild("##PanelContent", ImVec2(0, 0), false,
+                      ImGuiWindowFlags_None);
+    for (const auto& card : cards) {
+      bool visible = card.visibility_flag ? *card.visibility_flag : false;
+
+      // Card Item with Icon
+      std::string label =
+          absl::StrFormat("%s  %s", card.icon.c_str(), card.display_name.c_str());
+      if (ImGui::Selectable(label.c_str(), visible)) {
+        ToggleCard(session_id, card.card_id);
+      }
+
+      // Shortcut Hint
+      if (ImGui::IsItemHovered() && !card.shortcut_hint.empty()) {
+        ImGui::SetTooltip("%s", card.shortcut_hint.c_str());
+      }
+    }
+    ImGui::EndChild();
+
+    if (disable_cards) {
+      ImGui::EndDisabled();
+    }
+  }
+  ImGui::End();
+
+  ImGui::PopStyleVar(3);
+  ImGui::PopStyleColor(1);
 }
 
 // ============================================================================

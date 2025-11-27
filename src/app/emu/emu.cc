@@ -13,6 +13,7 @@
 #include "absl/flags/flag.h"
 #include "absl/flags/parse.h"
 #include "app/emu/snes.h"
+#include "app/emu/input/input_manager.h"
 #include "app/gfx/backend/irenderer.h"
 #include "app/gfx/backend/renderer_factory.h"
 #include "app/rom.h"
@@ -132,6 +133,10 @@ int main(int argc, char** argv) {
   yaze::Rom rom_;
   yaze::emu::Snes snes_;
   std::vector<uint8_t> rom_data_;
+  yaze::emu::input::InputManager input_manager_;
+
+  // Initialize input manager
+  input_manager_.Initialize(yaze::emu::input::InputBackendFactory::BackendType::SDL2);
 
   // Emulator state
   bool running = true;
@@ -225,6 +230,8 @@ int main(int argc, char** argv) {
       time_adder -= wanted_frame_time;
 
       if (loaded) {
+        // Poll input before each frame for proper edge detection
+        input_manager_.Poll(&snes_, 1);
         snes_.RunFrame();
         frame_count++;
 

@@ -263,8 +263,9 @@ void Emulator::Run(Rom* rom) {
   // Users can manually pause with Space if they want to save CPU/battery
 
   if (running_) {
-    // Poll input and update SNES controller state
-    input_manager_.Poll(&snes_, 1);  // Player 1
+    // NOTE: Input polling moved inside frame loops below to ensure fresh
+    // input state for each SNES frame. This is critical for edge detection
+    // (naming screen) when multiple SNES frames run per GUI frame.
 
     uint64_t current_count = SDL_GetPerformanceCounter();
     uint64_t delta = current_count - last_count;
@@ -300,6 +301,8 @@ void Emulator::Run(Rom* rom) {
     if (turbo_mode_ && snes_initialized_) {
       constexpr int kTurboFrames = 8;  // Run 8 frames per iteration (~480 fps)
       for (int i = 0; i < kTurboFrames; i++) {
+        // Poll input BEFORE each frame for proper edge detection
+        input_manager_.Poll(&snes_, 1);
         snes_.RunFrame();
         frame_count_++;
       }
@@ -314,8 +317,11 @@ void Emulator::Run(Rom* rom) {
       for (int i = 0; i < frames_to_process; i++) {
         bool should_render = (i == frames_to_process - 1);
 
-        // Run frame (skip if already ran in turbo mode)
+        // Poll input BEFORE each frame for proper edge detection
+        // This ensures the game sees button release between frames
+        // Critical for naming screen A button registration
         if (!turbo_mode_) {
+          input_manager_.Poll(&snes_, 1);
           snes_.RunFrame();
         }
 
@@ -527,6 +533,18 @@ void Emulator::RenderEmulatorInterface() {
       keyboard_card.End();
     }
 
+    static gui::EditorCard controller_card("Virtual Controller",
+                                           ICON_MD_SPORTS_ESPORTS);
+    controller_card.SetDefaultSize(250, 450);
+    bool* virtual_controller_visible =
+        card_registry_->GetVisibilityFlag("emulator.virtual_controller");
+    if (virtual_controller_visible && *virtual_controller_visible) {
+      if (controller_card.Begin(virtual_controller_visible)) {
+        ui::RenderVirtualController(this);
+      }
+      controller_card.End();
+    }
+
     bool* apu_debugger_visible =
         card_registry_->GetVisibilityFlag("emulator.apu_debugger");
     if (apu_debugger_visible && *apu_debugger_visible) {
@@ -540,7 +558,7 @@ void Emulator::RenderEmulatorInterface() {
         card_registry_->GetVisibilityFlag("emulator.audio_mixer");
     if (audio_mixer_visible && *audio_mixer_visible) {
       if (audio_card.Begin(audio_mixer_visible)) {
-        // RenderAudioMixer();
+        RenderAudioMixer();
       }
       audio_card.End();
     }
@@ -851,6 +869,42 @@ void Emulator::RenderKeyboardConfig() {
 void Emulator::RenderApuDebugger() {
   // Delegate to UI layer
   ui::RenderApuDebugger(this);
+}
+
+void Emulator::RenderAudioMixer() {
+  if (!audio_backend_) return;
+
+  // Master Volume
+  float volume = audio_backend_->GetVolume();
+  if (ImGui::SliderFloat("Master Volume", &volume, 0.0f, 1.0f, "%.2f")) {
+    audio_backend_->SetVolume(volume);
+  }
+
+  ImGui::Separator();
+  ImGui::Text("Channel Mutes (Debug)");
+
+  auto& dsp = snes_.apu().dsp();
+
+  if (ImGui::BeginTable("AudioChannels", 4)) {
+    for (int i = 0; i < 8; ++i) {
+      ImGui::TableNextColumn();
+      bool mute = dsp.GetChannelMute(i);
+      std::string label = "Ch " + std::to_string(i + 1);
+      if (ImGui::Checkbox(label.c_str(), &mute)) {
+        dsp.SetChannelMute(i, mute);
+      }
+    }
+    ImGui::EndTable();
+  }
+
+  ImGui::Separator();
+  if (ImGui::Button("Mute All")) {
+    for (int i = 0; i < 8; ++i) dsp.SetChannelMute(i, true);
+  }
+  ImGui::SameLine();
+  if (ImGui::Button("Unmute All")) {
+    for (int i = 0; i < 8; ++i) dsp.SetChannelMute(i, false);
+  }
 }
 
 }  // namespace emu

@@ -64,13 +64,25 @@ class SDL2InputBackend : public IInputBackend {
     ControllerState state;
 
     if (config_.continuous_polling) {
+      // Pump events to update keyboard state - critical for edge detection
+      // when multiple emulated frames run per host frame
+      SDL_PumpEvents();
+
       // Continuous polling mode (for games)
       const uint8_t* keyboard_state = SDL_GetKeyboardState(nullptr);
 
       // Only block input when actively typing in text fields AND not overridden
-      ImGuiIO& io = ImGui::GetIO();
-      if (io.WantTextInput && !config_.ignore_imgui_text_input) {
-        return ControllerState{};
+      // Check if ImGui context exists (may not exist in standalone emulator)
+      if (ImGui::GetCurrentContext() != nullptr) {
+        ImGuiIO& io = ImGui::GetIO();
+        if (io.WantTextInput && !config_.ignore_imgui_text_input) {
+          static int block_count = 0;
+          if (block_count++ % 300 == 0) {
+            LOG_DEBUG("InputBackend", "Input BLOCKED by WantTextInput=%d ignore=%d",
+                      io.WantTextInput ? 1 : 0, config_.ignore_imgui_text_input ? 1 : 0);
+          }
+          return ControllerState{};
+        }
       }
 
       // Map keyboard to SNES buttons
@@ -101,6 +113,13 @@ class SDL2InputBackend : public IInputBackend {
                       keyboard_state[SDL_GetScancodeFromKey(config_.key_l)]);
       state.SetButton(SnesButton::R,
                       keyboard_state[SDL_GetScancodeFromKey(config_.key_r)]);
+
+      // Debug: Log when any button is pressed
+      static int button_log_count = 0;
+      if (state.buttons != 0 && button_log_count++ < 100) {
+        LOG_DEBUG("InputBackend", "SDL2 Poll: buttons=0x%04X (keyboard detected)",
+                  state.buttons);
+      }
     } else {
       // Event-based mode (use cached event state)
       state = event_state_;
