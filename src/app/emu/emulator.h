@@ -1,6 +1,7 @@
 #ifndef YAZE_APP_CORE_EMULATOR_H
 #define YAZE_APP_CORE_EMULATOR_H
 
+#include <array>
 #include <cstdint>
 #include <functional>
 #include <vector>
@@ -119,6 +120,16 @@ class Emulator {
             .cpu_pb = snes_.cpu().PB};
   }
 
+  // Performance history (for ImPlot)
+  std::vector<float> FrameTimeHistory() const;
+  std::vector<float> FpsHistory() const;
+  std::vector<float> AudioQueueHistory() const;
+  std::vector<float> DmaBytesHistory() const;
+  std::vector<float> VramBytesHistory() const;
+  std::vector<float> AudioRmsLeftHistory() const;
+  std::vector<float> AudioRmsRightHistory() const;
+  std::vector<float> RomBankFreeBytes() const;
+
  private:
   void RenderNavBar();
   void RenderEmulatorInterface();
@@ -164,6 +175,23 @@ class Emulator {
   int frame_count_ = 0;
   double fps_timer_ = 0.0;
   double current_fps_ = 0.0;
+
+  // Recent history for plotting (public for helper functions)
+ public:
+  static constexpr int kMetricHistorySize = 240;
+ private:
+  std::array<float, kMetricHistorySize> frame_time_history_{};
+  std::array<float, kMetricHistorySize> fps_history_{};
+  std::array<float, kMetricHistorySize> audio_queue_history_{};
+  std::array<float, kMetricHistorySize> dma_bytes_history_{};
+  std::array<float, kMetricHistorySize> vram_bytes_history_{};
+  std::array<float, kMetricHistorySize> audio_rms_left_history_{};
+  std::array<float, kMetricHistorySize> audio_rms_right_history_{};
+  int metric_history_head_ = 0;
+  int metric_history_count_ = 0;
+  void PushFrameMetrics(float frame_ms, uint32_t audio_frames,
+                        uint64_t dma_bytes, uint64_t vram_bytes,
+                        float audio_rms_left, float audio_rms_right);
 
   int16_t* audio_buffer_;
   SDL_AudioDeviceID audio_device_;
