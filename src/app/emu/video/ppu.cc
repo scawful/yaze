@@ -656,10 +656,12 @@ void Ppu::HandleVblank() {
   frame_interlace = interlace;  // set if we have a interlaced frame
 
   // Debug: Dump PPU state every 120 frames (~2 seconds)
-  static int vblank_dump_counter = 0;
-  if (++vblank_dump_counter >= 120) {
-    vblank_dump_counter = 0;
-    DumpState();
+  if (enable_debug_dump_) {
+    static int vblank_dump_counter = 0;
+    if (++vblank_dump_counter >= 120) {
+      vblank_dump_counter = 0;
+      DumpState();
+    }
   }
 }
 
@@ -1155,9 +1157,48 @@ void Ppu::DumpState() const {
            bg_layer_[i].hScroll, bg_layer_[i].vScroll,
            bg_layer_[i].bigTiles ? 1 : 0);
   }
-  // Check first few CGRAM entries (palette)
-  printf("CGRAM[0-7]: %04X %04X %04X %04X %04X %04X %04X %04X\n", cgram[0],
-         cgram[1], cgram[2], cgram[3], cgram[4], cgram[5], cgram[6], cgram[7]);
+  // Check VRAM at BG1 tilemap address first to get actual palette number
+  uint16_t tm_addr = bg_layer_[0].tilemapAdr;
+  uint16_t first_entry = vram[tm_addr];
+  int actual_pal = (first_entry >> 10) & 7;
+  printf("First tilemap entry: $%04X (tile=$%03X, pal=%d, pri=%d, hflip=%d, "
+         "vflip=%d)\n",
+         first_entry, first_entry & 0x3FF, actual_pal,
+         (first_entry >> 13) & 1, (first_entry >> 14) & 1,
+         (first_entry >> 15) & 1);
+  // Check palette entries - dump palette 0 and the actual palette being used
+  printf("CGRAM Pal0[0-15]: %04X %04X %04X %04X %04X %04X %04X %04X "
+         "%04X %04X %04X %04X %04X %04X %04X %04X\n",
+         cgram[0], cgram[1], cgram[2], cgram[3], cgram[4], cgram[5], cgram[6],
+         cgram[7], cgram[8], cgram[9], cgram[10], cgram[11], cgram[12],
+         cgram[13], cgram[14], cgram[15]);
+  // Dump the ACTUAL palette being used by the first tile
+  int pal_start = actual_pal * 16;
+  printf("CGRAM Pal%d[0-15]: %04X %04X %04X %04X %04X %04X %04X %04X "
+         "%04X %04X %04X %04X %04X %04X %04X %04X\n",
+         actual_pal, cgram[pal_start], cgram[pal_start + 1],
+         cgram[pal_start + 2], cgram[pal_start + 3], cgram[pal_start + 4],
+         cgram[pal_start + 5], cgram[pal_start + 6], cgram[pal_start + 7],
+         cgram[pal_start + 8], cgram[pal_start + 9], cgram[pal_start + 10],
+         cgram[pal_start + 11], cgram[pal_start + 12], cgram[pal_start + 13],
+         cgram[pal_start + 14], cgram[pal_start + 15]);
+  // Check VRAM at BG1 tilemap address (first 8 words)
+  printf("VRAM@$%04X (BG1 tilemap): %04X %04X %04X %04X %04X %04X %04X %04X\n",
+         tm_addr, vram[tm_addr], vram[tm_addr + 1], vram[tm_addr + 2],
+         vram[tm_addr + 3], vram[tm_addr + 4], vram[tm_addr + 5],
+         vram[tm_addr + 6], vram[tm_addr + 7]);
+  // Check actual tile data for tile index from tilemap (4bpp = 16 words/tile)
+  uint16_t first_tile = vram[tm_addr] & 0x3FF;  // Lower 10 bits = tile index
+  uint16_t actual_tile_addr = bg_layer_[0].tileAdr + (first_tile * 16);
+  printf("Tile $%03X @ VRAM $%04X: %04X %04X %04X %04X %04X %04X %04X %04X\n",
+         first_tile, actual_tile_addr, vram[actual_tile_addr & 0x7FFF],
+         vram[(actual_tile_addr + 1) & 0x7FFF],
+         vram[(actual_tile_addr + 2) & 0x7FFF],
+         vram[(actual_tile_addr + 3) & 0x7FFF],
+         vram[(actual_tile_addr + 4) & 0x7FFF],
+         vram[(actual_tile_addr + 5) & 0x7FFF],
+         vram[(actual_tile_addr + 6) & 0x7FFF],
+         vram[(actual_tile_addr + 7) & 0x7FFF]);
   printf("=== End PPU Dump ===\n");
   fflush(stdout);
 }
