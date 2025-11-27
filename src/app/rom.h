@@ -34,6 +34,18 @@ constexpr uint32_t kNumLinkSheets = 14;
 constexpr uint32_t kTile16Ptr = 0x78000;
 constexpr uint32_t kNormalGfxSpaceStart = 0x87000;
 constexpr uint32_t kNormalGfxSpaceEnd = 0xC4200;
+
+/// @brief Calculates ROM offset for a graphics sheet using pointer tables.
+/// @param data ROM data buffer
+/// @param addr Sheet index (0-222)
+/// @param ptr1 Bank byte pointer table offset
+/// @param ptr2 High byte pointer table offset
+/// @param ptr3 Low byte pointer table offset
+/// @param rom_size ROM size for bounds checking (unused)
+/// @return PC address (offset from start of ROM)
+uint32_t GetGraphicsAddress(const uint8_t* data, uint8_t addr, uint32_t ptr1,
+                            uint32_t ptr2, uint32_t ptr3, size_t rom_size);
+
 constexpr uint32_t kFontSpriteLocation = 0x70000;
 constexpr uint32_t kGfxGroupsPointer = 0x6237;
 constexpr uint32_t kUncompressedSheetSize = 0x0800;

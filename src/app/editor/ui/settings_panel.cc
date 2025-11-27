@@ -77,27 +77,27 @@ void SettingsPanel::DrawGeneralSettings() {
   ImGui::TextDisabled("Feature Flags configuration");
   ImGui::Spacing();
 
-  if (ImGui::TreeNode("System Flags")) {
+  if (ImGui::TreeNode(ICON_MD_FLAG " System Flags")) {
     flags.DrawSystemFlags();
     ImGui::TreePop();
   }
 
-  if (ImGui::TreeNode("Overworld Flags")) {
+  if (ImGui::TreeNode(ICON_MD_MAP " Overworld Flags")) {
     flags.DrawOverworldFlags();
     ImGui::TreePop();
   }
 
-  if (ImGui::TreeNode("ZSCustomOverworld Enable Flags")) {
+  if (ImGui::TreeNode(ICON_MD_EXTENSION " ZSCustomOverworld Enable Flags")) {
     flags.DrawZSCustomOverworldFlags(rom_);
     ImGui::TreePop();
   }
 
-  if (ImGui::TreeNode("Dungeon Flags")) {
+  if (ImGui::TreeNode(ICON_MD_CASTLE " Dungeon Flags")) {
     flags.DrawDungeonFlags();
     ImGui::TreePop();
   }
 
-  if (ImGui::TreeNode("Resource Flags")) {
+  if (ImGui::TreeNode(ICON_MD_FOLDER_SPECIAL " Resource Flags")) {
     flags.DrawResourceFlags();
     ImGui::TreePop();
   }
@@ -309,7 +309,7 @@ void SettingsPanel::DrawAIAgentSettings() {
 }
 
 void SettingsPanel::DrawKeyboardShortcuts() {
-  if (ImGui::TreeNodeEx("Card Shortcuts", ImGuiTreeNodeFlags_DefaultOpen)) {
+  if (ImGui::TreeNodeEx(ICON_MD_KEYBOARD " Card Shortcuts", ImGuiTreeNodeFlags_DefaultOpen)) {
     DrawCardShortcuts();
     ImGui::TreePop();
   }
