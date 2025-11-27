@@ -790,5 +790,175 @@ int Dsp::CopyNativeFrame(int16_t* sample_data, bool pal_timing) {
   return total_samples / 2;  // return frames per channel
 }
 
+void Dsp::SaveState(std::ostream& stream) {
+  stream.write(reinterpret_cast<const char*>(ram), sizeof(ram));
+  auto write_bool = [&](bool value) {
+    uint8_t encoded = value ? 1 : 0;
+    stream.write(reinterpret_cast<const char*>(&encoded), sizeof(encoded));
+  };
+  auto write_channel = [&](const DspChannel& ch) {
+    stream.write(reinterpret_cast<const char*>(&ch.pitch), sizeof(ch.pitch));
+    stream.write(reinterpret_cast<const char*>(&ch.pitchCounter),
+                 sizeof(ch.pitchCounter));
+    write_bool(ch.pitchModulation);
+    stream.write(reinterpret_cast<const char*>(ch.decodeBuffer),
+                 sizeof(ch.decodeBuffer));
+    stream.write(reinterpret_cast<const char*>(&ch.bufferOffset),
+                 sizeof(ch.bufferOffset));
+    stream.write(reinterpret_cast<const char*>(&ch.srcn), sizeof(ch.srcn));
+    stream.write(reinterpret_cast<const char*>(&ch.decodeOffset),
+                 sizeof(ch.decodeOffset));
+    stream.write(reinterpret_cast<const char*>(&ch.blockOffset),
+                 sizeof(ch.blockOffset));
+    stream.write(reinterpret_cast<const char*>(&ch.brrHeader),
+                 sizeof(ch.brrHeader));
+    write_bool(ch.useNoise);
+    stream.write(reinterpret_cast<const char*>(&ch.startDelay),
+                 sizeof(ch.startDelay));
+    stream.write(reinterpret_cast<const char*>(ch.adsrRates),
+                 sizeof(ch.adsrRates));
+    stream.write(reinterpret_cast<const char*>(&ch.adsrState),
+                 sizeof(ch.adsrState));
+    stream.write(reinterpret_cast<const char*>(&ch.sustainLevel),
+                 sizeof(ch.sustainLevel));
+    stream.write(reinterpret_cast<const char*>(&ch.gainSustainLevel),
+                 sizeof(ch.gainSustainLevel));
+    write_bool(ch.useGain);
+    stream.write(reinterpret_cast<const char*>(&ch.gainMode),
+                 sizeof(ch.gainMode));
+    write_bool(ch.directGain);
+    stream.write(reinterpret_cast<const char*>(&ch.gainValue),
+                 sizeof(ch.gainValue));
+    stream.write(reinterpret_cast<const char*>(&ch.preclampGain),
+                 sizeof(ch.preclampGain));
+    stream.write(reinterpret_cast<const char*>(&ch.gain), sizeof(ch.gain));
+    write_bool(ch.keyOn);
+    write_bool(ch.keyOff);
+    stream.write(reinterpret_cast<const char*>(&ch.sampleOut),
+                 sizeof(ch.sampleOut));
+    stream.write(reinterpret_cast<const char*>(&ch.volumeL),
+                 sizeof(ch.volumeL));
+    stream.write(reinterpret_cast<const char*>(&ch.volumeR),
+                 sizeof(ch.volumeR));
+    write_bool(ch.echoEnable);
+  };
+  for (const auto& ch : channel) {
+    write_channel(ch);
+  }
+  
+  stream.write(reinterpret_cast<const char*>(&counter), sizeof(counter));
+  stream.write(reinterpret_cast<const char*>(&dirPage), sizeof(dirPage));
+  stream.write(reinterpret_cast<const char*>(&evenCycle), sizeof(evenCycle));
+  stream.write(reinterpret_cast<const char*>(&mute), sizeof(mute));
+  stream.write(reinterpret_cast<const char*>(&reset), sizeof(reset));
+  stream.write(reinterpret_cast<const char*>(&masterVolumeL), sizeof(masterVolumeL));
+  stream.write(reinterpret_cast<const char*>(&masterVolumeR), sizeof(masterVolumeR));
+  
+  stream.write(reinterpret_cast<const char*>(&sampleOutL), sizeof(sampleOutL));
+  stream.write(reinterpret_cast<const char*>(&sampleOutR), sizeof(sampleOutR));
+  stream.write(reinterpret_cast<const char*>(&echoOutL), sizeof(echoOutL));
+  stream.write(reinterpret_cast<const char*>(&echoOutR), sizeof(echoOutR));
+  
+  stream.write(reinterpret_cast<const char*>(&noiseSample), sizeof(noiseSample));
+  stream.write(reinterpret_cast<const char*>(&noiseRate), sizeof(noiseRate));
+  
+  stream.write(reinterpret_cast<const char*>(&echoWrites), sizeof(echoWrites));
+  stream.write(reinterpret_cast<const char*>(&echoVolumeL), sizeof(echoVolumeL));
+  stream.write(reinterpret_cast<const char*>(&echoVolumeR), sizeof(echoVolumeR));
+  stream.write(reinterpret_cast<const char*>(&feedbackVolume), sizeof(feedbackVolume));
+  stream.write(reinterpret_cast<const char*>(&echoBufferAdr), sizeof(echoBufferAdr));
+  stream.write(reinterpret_cast<const char*>(&echoDelay), sizeof(echoDelay));
+  stream.write(reinterpret_cast<const char*>(&echoLength), sizeof(echoLength));
+  stream.write(reinterpret_cast<const char*>(&echoBufferIndex), sizeof(echoBufferIndex));
+  stream.write(reinterpret_cast<const char*>(&firBufferIndex), sizeof(firBufferIndex));
+  
+  stream.write(reinterpret_cast<const char*>(firValues), sizeof(firValues));
+  stream.write(reinterpret_cast<const char*>(firBufferL), sizeof(firBufferL));
+  stream.write(reinterpret_cast<const char*>(firBufferR), sizeof(firBufferR));
+  
+  stream.write(reinterpret_cast<const char*>(&lastFrameBoundary), sizeof(lastFrameBoundary));
+}
+
+void Dsp::LoadState(std::istream& stream) {
+  stream.read(reinterpret_cast<char*>(ram), sizeof(ram));
+  auto read_bool = [&](bool* value) {
+    uint8_t encoded = 0;
+    stream.read(reinterpret_cast<char*>(&encoded), sizeof(encoded));
+    *value = encoded != 0;
+  };
+  auto read_channel = [&](DspChannel& ch) {
+    stream.read(reinterpret_cast<char*>(&ch.pitch), sizeof(ch.pitch));
+    stream.read(reinterpret_cast<char*>(&ch.pitchCounter),
+                sizeof(ch.pitchCounter));
+    read_bool(&ch.pitchModulation);
+    stream.read(reinterpret_cast<char*>(ch.decodeBuffer),
+                sizeof(ch.decodeBuffer));
+    stream.read(reinterpret_cast<char*>(&ch.bufferOffset),
+                sizeof(ch.bufferOffset));
+    stream.read(reinterpret_cast<char*>(&ch.srcn), sizeof(ch.srcn));
+    stream.read(reinterpret_cast<char*>(&ch.decodeOffset),
+                sizeof(ch.decodeOffset));
+    stream.read(reinterpret_cast<char*>(&ch.blockOffset),
+                sizeof(ch.blockOffset));
+    stream.read(reinterpret_cast<char*>(&ch.brrHeader), sizeof(ch.brrHeader));
+    read_bool(&ch.useNoise);
+    stream.read(reinterpret_cast<char*>(&ch.startDelay), sizeof(ch.startDelay));
+    stream.read(reinterpret_cast<char*>(ch.adsrRates), sizeof(ch.adsrRates));
+    stream.read(reinterpret_cast<char*>(&ch.adsrState), sizeof(ch.adsrState));
+    stream.read(reinterpret_cast<char*>(&ch.sustainLevel),
+                sizeof(ch.sustainLevel));
+    stream.read(reinterpret_cast<char*>(&ch.gainSustainLevel),
+                sizeof(ch.gainSustainLevel));
+    read_bool(&ch.useGain);
+    stream.read(reinterpret_cast<char*>(&ch.gainMode), sizeof(ch.gainMode));
+    read_bool(&ch.directGain);
+    stream.read(reinterpret_cast<char*>(&ch.gainValue), sizeof(ch.gainValue));
+    stream.read(reinterpret_cast<char*>(&ch.preclampGain),
+                sizeof(ch.preclampGain));
+    stream.read(reinterpret_cast<char*>(&ch.gain), sizeof(ch.gain));
+    read_bool(&ch.keyOn);
+    read_bool(&ch.keyOff);
+    stream.read(reinterpret_cast<char*>(&ch.sampleOut), sizeof(ch.sampleOut));
+    stream.read(reinterpret_cast<char*>(&ch.volumeL), sizeof(ch.volumeL));
+    stream.read(reinterpret_cast<char*>(&ch.volumeR), sizeof(ch.volumeR));
+    read_bool(&ch.echoEnable);
+  };
+  for (auto& ch : channel) {
+    read_channel(ch);
+  }
+  
+  stream.read(reinterpret_cast<char*>(&counter), sizeof(counter));
+  stream.read(reinterpret_cast<char*>(&dirPage), sizeof(dirPage));
+  stream.read(reinterpret_cast<char*>(&evenCycle), sizeof(evenCycle));
+  stream.read(reinterpret_cast<char*>(&mute), sizeof(mute));
+  stream.read(reinterpret_cast<char*>(&reset), sizeof(reset));
+  stream.read(reinterpret_cast<char*>(&masterVolumeL), sizeof(masterVolumeL));
+  stream.read(reinterpret_cast<char*>(&masterVolumeR), sizeof(masterVolumeR));
+  
+  stream.read(reinterpret_cast<char*>(&sampleOutL), sizeof(sampleOutL));
+  stream.read(reinterpret_cast<char*>(&sampleOutR), sizeof(sampleOutR));
+  stream.read(reinterpret_cast<char*>(&echoOutL), sizeof(echoOutL));
+  stream.read(reinterpret_cast<char*>(&echoOutR), sizeof(echoOutR));
+  
+  stream.read(reinterpret_cast<char*>(&noiseSample), sizeof(noiseSample));
+  stream.read(reinterpret_cast<char*>(&noiseRate), sizeof(noiseRate));
+  
+  stream.read(reinterpret_cast<char*>(&echoWrites), sizeof(echoWrites));
+  stream.read(reinterpret_cast<char*>(&echoVolumeL), sizeof(echoVolumeL));
+  stream.read(reinterpret_cast<char*>(&echoVolumeR), sizeof(echoVolumeR));
+  stream.read(reinterpret_cast<char*>(&feedbackVolume), sizeof(feedbackVolume));
+  stream.read(reinterpret_cast<char*>(&echoBufferAdr), sizeof(echoBufferAdr));
+  stream.read(reinterpret_cast<char*>(&echoDelay), sizeof(echoDelay));
+  stream.read(reinterpret_cast<char*>(&echoLength), sizeof(echoLength));
+  stream.read(reinterpret_cast<char*>(&echoBufferIndex), sizeof(echoBufferIndex));
+  stream.read(reinterpret_cast<char*>(&firBufferIndex), sizeof(firBufferIndex));
+  
+  stream.read(reinterpret_cast<char*>(firValues), sizeof(firValues));
+  stream.read(reinterpret_cast<char*>(firBufferL), sizeof(firBufferL));
+  stream.read(reinterpret_cast<char*>(firBufferR), sizeof(firBufferR));
+  
+  stream.read(reinterpret_cast<char*>(&lastFrameBoundary), sizeof(lastFrameBoundary));
+}
+
 }  // namespace emu
 }  // namespace yaze

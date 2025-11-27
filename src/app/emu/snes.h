@@ -5,6 +5,8 @@
 #include <functional>
 #include <memory>
 
+#include "absl/status/status.h"
+
 #include "app/emu/audio/apu.h"
 #include "app/emu/cpu/cpu.h"
 #include "app/emu/debug/apu_debugger.h"
@@ -71,8 +73,9 @@ class Snes {
   void SetPixels(uint8_t* pixel_data);
   void SetButtonState(int player, int button, bool pressed);
 
-  void loadState(const std::string& path);
-  void saveState(const std::string& path);
+  absl::Status loadState(const std::string& path);
+  absl::Status saveState(const std::string& path);
+  absl::Status LoadLegacyState(std::istream& file);
 
   bool running() const { return running_; }
   auto cpu() -> Cpu& { return cpu_; }

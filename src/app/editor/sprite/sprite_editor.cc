@@ -1,7 +1,9 @@
 #include "sprite_editor.h"
 
 #include <algorithm>
+#include <cstring>
 
+#include "app/editor/sprite/sprite_drawer.h"
 #include "app/editor/sprite/zsprite.h"
 #include "app/editor/system/editor_card_registry.h"
 #include "app/gfx/debug/performance/performance_profiler.h"
@@ -185,6 +187,28 @@ void SpriteEditor::DrawSpriteCanvas() {
                         ImGui::GetContentRegionAvail(), true)) {
     sprite_canvas_.DrawBackground();
     sprite_canvas_.DrawContextMenu();
+
+    // Render vanilla sprite if layout exists
+    if (current_sprite_id_ >= 0) {
+      const auto* layout =
+          zelda3::SpriteOamRegistry::GetLayout(static_cast<uint8_t>(current_sprite_id_));
+      if (layout) {
+        // Load required sheets for this sprite
+        LoadSheetsForSprite(layout->required_sheets);
+        RenderVanillaSprite(*layout);
+
+        // Draw the preview bitmap centered on canvas
+        if (vanilla_preview_bitmap_.is_active()) {
+          sprite_canvas_.DrawBitmap(vanilla_preview_bitmap_, 64, 64, 2.0f);
+        }
+
+        // Show sprite info
+        ImGui::SetCursorPos(ImVec2(10, 10));
+        Text("Sprite: %s (0x%02X)", layout->name, layout->sprite_id);
+        Text("Tiles: %zu", layout->tiles.size());
+      }
+    }
+
     sprite_canvas_.DrawGrid();
     sprite_canvas_.DrawOverlay();
 
@@ -237,11 +261,24 @@ void SpriteEditor::DrawCurrentSheets() {
   if (ImGui::BeginChild(gui::GetID("sheet_label"),
                         ImVec2(ImGui::GetContentRegionAvail().x, 0), true,
                         ImGuiWindowFlags_NoDecoration)) {
+    // Track previous sheet values for change detection
+    static uint8_t prev_sheets[8] = {0};
+    bool sheets_changed = false;
+
     for (int i = 0; i < 8; i++) {
       std::string sheet_label = absl::StrFormat("Sheet %d", i);
-      gui::InputHexByte(sheet_label.c_str(), &current_sheets_[i]);
+      if (gui::InputHexByte(sheet_label.c_str(), &current_sheets_[i])) {
+        sheets_changed = true;
+      }
       if (i % 2 == 0)
         ImGui::SameLine();
+    }
+
+    // Reload graphics buffer if sheets changed
+    if (sheets_changed || std::memcmp(prev_sheets, current_sheets_, 8) != 0) {
+      std::memcpy(prev_sheets, current_sheets_, 8);
+      gfx_buffer_loaded_ = false;
+      preview_needs_update_ = true;
     }
 
     graphics_sheet_canvas_.DrawBackground();
@@ -268,7 +305,10 @@ void SpriteEditor::DrawSpritesList() {
           current_sprite_id_ == i, "Sprite Names", util::HexByte(i),
           zelda3::kSpriteDefaultNames[i].data());
       if (ImGui::IsItemClicked()) {
-        current_sprite_id_ = i;
+        if (current_sprite_id_ != i) {
+          current_sprite_id_ = i;
+          vanilla_preview_needs_update_ = true;
+        }
         if (!active_sprites_.contains(i)) {
           active_sprites_.push_back(i);
         }
@@ -894,6 +934,175 @@ void SpriteEditor::DrawUserRoutinesPanel() {
 }
 
 // ============================================================
+// Graphics Pipeline
+// ============================================================
+
+void SpriteEditor::LoadSpriteGraphicsBuffer() {
+  // Combine selected sheets (current_sheets_[0-7]) into single 8BPP buffer
+  // Layout: 16 tiles per row, 8 rows per sheet, 8 sheets total = 64 tile rows
+  // Buffer size: 0x10000 bytes (65536)
+
+  sprite_gfx_buffer_.resize(0x10000, 0);
+
+  // Each sheet is 128x32 pixels (128 bytes per row, 32 rows) = 4096 bytes
+  // We combine 8 sheets vertically: 128x256 pixels total
+  constexpr int kSheetWidth = 128;
+  constexpr int kSheetHeight = 32;
+  constexpr int kRowStride = 128;
+
+  for (int sheet_idx = 0; sheet_idx < 8; sheet_idx++) {
+    uint8_t sheet_id = current_sheets_[sheet_idx];
+    if (sheet_id >= gfx::Arena::Get().gfx_sheets().size()) {
+      continue;
+    }
+
+    auto& sheet = gfx::Arena::Get().gfx_sheets().at(sheet_id);
+    if (!sheet.is_active() || sheet.size() == 0) {
+      continue;
+    }
+
+    // Copy sheet data to buffer at appropriate offset
+    // Each sheet occupies 8 tile rows (8 * 8 scanlines = 64 scanlines)
+    // Offset = sheet_idx * (8 tile rows * 1024 bytes per tile row)
+    // But sheets are 32 pixels tall (4 tile rows), so:
+    // Offset = sheet_idx * 4 * 1024 = sheet_idx * 4096
+    int dest_offset = sheet_idx * (kSheetHeight * kRowStride);
+
+    const uint8_t* src_data = sheet.data();
+    size_t copy_size =
+        std::min(sheet.size(), static_cast<size_t>(kSheetWidth * kSheetHeight));
+
+    if (dest_offset + copy_size <= sprite_gfx_buffer_.size()) {
+      std::memcpy(sprite_gfx_buffer_.data() + dest_offset, src_data, copy_size);
+    }
+  }
+
+  // Update drawer with new buffer
+  sprite_drawer_.SetGraphicsBuffer(sprite_gfx_buffer_.data());
+  gfx_buffer_loaded_ = true;
+}
+
+void SpriteEditor::LoadSpritePalettes() {
+  // Load sprite palettes from ROM palette groups
+  // ALTTP sprites use a combination of palette groups:
+  // - Rows 0-1: Global sprite palettes (shared by all sprites)
+  // - Rows 2-7: Aux palettes (vary by sprite type)
+  //
+  // For simplicity, we load global_sprites which contains the main
+  // sprite palettes. More accurate rendering would require looking up
+  // which aux palette group each sprite type uses.
+
+  if (!rom_ || !rom_->is_loaded()) {
+    return;
+  }
+
+  // Build combined sprite palette from global + aux groups
+  sprite_palettes_.clear();
+
+  // Add global sprite palettes (typically 2 palettes, 16 colors each)
+  const auto& global = rom_->palette_group().global_sprites;
+  for (size_t i = 0; i < global.size() && i < 8; i++) {
+    sprite_palettes_.AddPalette(global.palette(i));
+  }
+
+  // If we don't have 8 palettes yet, fill with aux palettes
+  const auto& aux1 = rom_->palette_group().sprites_aux1;
+  const auto& aux2 = rom_->palette_group().sprites_aux2;
+  const auto& aux3 = rom_->palette_group().sprites_aux3;
+
+  // Pad to 8 palettes total for proper OAM palette mapping
+  while (sprite_palettes_.size() < 8) {
+    if (sprite_palettes_.size() < 4 && aux1.size() > 0) {
+      sprite_palettes_.AddPalette(aux1.palette(sprite_palettes_.size() % aux1.size()));
+    } else if (sprite_palettes_.size() < 6 && aux2.size() > 0) {
+      sprite_palettes_.AddPalette(aux2.palette((sprite_palettes_.size() - 4) % aux2.size()));
+    } else if (aux3.size() > 0) {
+      sprite_palettes_.AddPalette(aux3.palette((sprite_palettes_.size() - 6) % aux3.size()));
+    } else {
+      // Fallback: add empty palette
+      sprite_palettes_.AddPalette(gfx::SnesPalette());
+    }
+  }
+
+  sprite_drawer_.SetPalettes(&sprite_palettes_);
+}
+
+void SpriteEditor::LoadSheetsForSprite(const std::array<uint8_t, 4>& sheets) {
+  // Load the required sheets for a vanilla sprite
+  bool changed = false;
+  for (int i = 0; i < 4; i++) {
+    if (sheets[i] != 0 && current_sheets_[i] != sheets[i]) {
+      current_sheets_[i] = sheets[i];
+      changed = true;
+    }
+  }
+
+  if (changed) {
+    gfx_buffer_loaded_ = false;
+    vanilla_preview_needs_update_ = true;
+  }
+}
+
+void SpriteEditor::RenderVanillaSprite(const zelda3::SpriteOamLayout& layout) {
+  // Ensure graphics buffer is loaded
+  if (!gfx_buffer_loaded_ && sheets_loaded_) {
+    LoadSpriteGraphicsBuffer();
+    LoadSpritePalettes();
+  }
+
+  // Initialize vanilla preview bitmap if needed
+  if (!vanilla_preview_bitmap_.is_active()) {
+    vanilla_preview_bitmap_.Create(128, 128, 8, sprite_gfx_buffer_);
+    vanilla_preview_bitmap_.Reformat(8);
+  }
+
+  if (!sprite_drawer_.IsReady() || !vanilla_preview_needs_update_) {
+    return;
+  }
+
+  // Clear and render
+  sprite_drawer_.ClearBitmap(vanilla_preview_bitmap_);
+
+  // Origin is center of bitmap
+  int origin_x = 64;
+  int origin_y = 64;
+
+  // Convert SpriteOamLayout tiles to zsprite::OamTile and draw
+  for (const auto& entry : layout.tiles) {
+    zsprite::OamTile tile;
+    tile.x = static_cast<uint8_t>(entry.x_offset + 128);  // Convert to unsigned
+    tile.y = static_cast<uint8_t>(entry.y_offset + 128);
+    tile.id = entry.tile_id;
+    tile.palette = entry.palette;
+    tile.size = entry.size_16x16;
+    tile.mirror_x = entry.flip_x;
+    tile.mirror_y = entry.flip_y;
+    tile.priority = 0;
+
+    sprite_drawer_.DrawOamTile(vanilla_preview_bitmap_, tile, origin_x, origin_y);
+  }
+
+  // Build combined 128-color palette (8 sub-palettes × 16 colors)
+  // and apply to bitmap for proper color rendering
+  if (sprite_palettes_.size() > 0) {
+    gfx::SnesPalette combined_palette;
+    for (size_t pal_idx = 0; pal_idx < 8 && pal_idx < sprite_palettes_.size(); pal_idx++) {
+      const auto& sub_pal = sprite_palettes_.palette(pal_idx);
+      for (size_t col_idx = 0; col_idx < 16 && col_idx < sub_pal.size(); col_idx++) {
+        combined_palette.AddColor(sub_pal[col_idx]);
+      }
+      // Pad to 16 if sub-palette is smaller
+      while (combined_palette.size() < (pal_idx + 1) * 16) {
+        combined_palette.AddColor(gfx::SnesColor(0));
+      }
+    }
+    vanilla_preview_bitmap_.SetPalette(combined_palette);
+  }
+
+  vanilla_preview_needs_update_ = false;
+}
+
+// ============================================================
 // Canvas Rendering
 // ============================================================
 
@@ -910,26 +1119,71 @@ void SpriteEditor::RenderZSpriteFrame(int frame_index) {
 
   auto& frame = sprite.editor.Frames[frame_index];
 
-  // Draw each tile in the frame
-  for (const auto& tile : frame.Tiles) {
-    // Calculate source position in sheet
-    // sheet_x = (tile.id % 16) * 8
-    // sheet_y = (tile.id / 16) * 8
-    int tile_size = tile.size ? 16 : 8;
+  // Ensure graphics buffer is loaded
+  if (!gfx_buffer_loaded_ && sheets_loaded_) {
+    LoadSpriteGraphicsBuffer();
+    LoadSpritePalettes();
+  }
 
-    // Get the graphics sheet
-    uint8_t sheet_index = current_sheets_[tile.palette % 8];
-    if (sheet_index >= gfx::Arena::Get().gfx_sheets().size()) {
-      continue;
+  // Initialize preview bitmap if needed
+  if (!sprite_preview_bitmap_.is_active()) {
+    sprite_preview_bitmap_.Create(256, 256, 8, sprite_gfx_buffer_);
+    sprite_preview_bitmap_.Reformat(8);
+  }
+
+  // Only render if drawer is ready
+  if (sprite_drawer_.IsReady() && preview_needs_update_) {
+    // Clear and render to preview bitmap
+    sprite_drawer_.ClearBitmap(sprite_preview_bitmap_);
+
+    // Origin is center of canvas (128, 128 for 256x256 bitmap)
+    sprite_drawer_.DrawFrame(sprite_preview_bitmap_, frame, 128, 128);
+
+    // Build combined 128-color palette and apply to bitmap
+    if (sprite_palettes_.size() > 0) {
+      gfx::SnesPalette combined_palette;
+      for (size_t pal_idx = 0; pal_idx < 8 && pal_idx < sprite_palettes_.size(); pal_idx++) {
+        const auto& sub_pal = sprite_palettes_.palette(pal_idx);
+        for (size_t col_idx = 0; col_idx < 16 && col_idx < sub_pal.size(); col_idx++) {
+          combined_palette.AddColor(sub_pal[col_idx]);
+        }
+        // Pad to 16 if sub-palette is smaller
+        while (combined_palette.size() < (pal_idx + 1) * 16) {
+          combined_palette.AddColor(gfx::SnesColor(0));
+        }
+      }
+      sprite_preview_bitmap_.SetPalette(combined_palette);
     }
 
-    // Draw tile on canvas at tile.x, tile.y with flip settings
-    // The actual bitmap drawing would need to extract tile data
-    // and apply palette/flip transformations
+    // Mark as updated
+    preview_needs_update_ = false;
+  }
 
-    // For now, draw a placeholder rectangle
-    sprite_canvas_.DrawRect(tile.x, tile.y, tile_size, tile_size,
-                            ImVec4(1.0f, 1.0f, 0.0f, 0.5f));
+  // Draw the preview bitmap on canvas
+  if (sprite_preview_bitmap_.is_active()) {
+    sprite_canvas_.DrawBitmap(sprite_preview_bitmap_, 0, 0, 2.0f);
+  }
+
+  // Draw tile outlines for selection (over the bitmap)
+  if (show_tile_grid_) {
+    for (size_t i = 0; i < frame.Tiles.size(); i++) {
+      const auto& tile = frame.Tiles[i];
+      int tile_size = tile.size ? 16 : 8;
+
+      // Convert signed tile position to canvas position
+      int8_t signed_x = static_cast<int8_t>(tile.x);
+      int8_t signed_y = static_cast<int8_t>(tile.y);
+
+      int canvas_x = 128 + signed_x;
+      int canvas_y = 128 + signed_y;
+
+      // Highlight selected tile
+      ImVec4 color = (selected_tile_index_ == static_cast<int>(i))
+                         ? ImVec4(0.0f, 1.0f, 0.0f, 0.8f)   // Green for selected
+                         : ImVec4(1.0f, 1.0f, 0.0f, 0.3f);  // Yellow for others
+
+      sprite_canvas_.DrawRect(canvas_x, canvas_y, tile_size, tile_size, color);
+    }
   }
 }
 

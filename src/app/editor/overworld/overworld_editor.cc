@@ -2413,10 +2413,10 @@ void OverworldEditor::RefreshMultiAreaMapsSafely(int map_index,
                 maps_bmp_[sibling].set_data(sibling_map->bitmap_data());
 
                 // SAFETY: Only set palette if bitmap has a valid surface
+                // Use sibling map's own loaded palette, not current map's
                 if (maps_bmp_[sibling].is_active() &&
                     maps_bmp_[sibling].surface()) {
-                  maps_bmp_[sibling].SetPalette(
-                      overworld_.current_area_palette());
+                  maps_bmp_[sibling].SetPalette(sibling_map->current_palette());
                 }
                 maps_bmp_[sibling].set_modified(false);
 
@@ -2491,14 +2491,14 @@ absl::Status OverworldEditor::RefreshMapPalette() {
           break;
       }
 
-      // Update palette for all siblings
+      // Update palette for all siblings - each uses its own loaded palette
       for (int sibling_index : sibling_maps) {
         if (sibling_index < 0 || sibling_index >= zelda3::kNumOverworldMaps) {
           continue;
         }
-        RETURN_IF_ERROR(
-            overworld_.mutable_overworld_map(sibling_index)->LoadPalette());
-        maps_bmp_[sibling_index].SetPalette(current_map_palette);
+        auto* sibling_map = overworld_.mutable_overworld_map(sibling_index);
+        RETURN_IF_ERROR(sibling_map->LoadPalette());
+        maps_bmp_[sibling_index].SetPalette(sibling_map->current_palette());
       }
     } else {
       // Small area - only update current map
@@ -2513,13 +2513,14 @@ absl::Status OverworldEditor::RefreshMapPalette() {
             overworld_.overworld_map(current_map_)->parent() + i;
         if (i >= 2)
           sibling_index += 6;
-        RETURN_IF_ERROR(
-            overworld_.mutable_overworld_map(sibling_index)->LoadPalette());
+        auto* sibling_map = overworld_.mutable_overworld_map(sibling_index);
+        RETURN_IF_ERROR(sibling_map->LoadPalette());
 
         // SAFETY: Only set palette if bitmap has a valid surface
+        // Use sibling map's own loaded palette
         if (maps_bmp_[sibling_index].is_active() &&
             maps_bmp_[sibling_index].surface()) {
-          maps_bmp_[sibling_index].SetPalette(current_map_palette);
+          maps_bmp_[sibling_index].SetPalette(sibling_map->current_palette());
         }
       }
     }

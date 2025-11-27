@@ -264,6 +264,10 @@ class Ppu {
   }
 
   void Reset();
+  
+  void SaveState(std::ostream& stream);
+  void LoadState(std::istream& stream);
+
   void HandleFrameStart();
   void StartLine(int line);
   void CatchUp(int h_pos);

@@ -1466,5 +1466,53 @@ void Spc700::LogInstruction(uint16_t initial_pc, uint8_t opcode) {
                                    ss.str());
 }
 
+void Spc700::SaveState(std::ostream& stream) {
+  stream.write(reinterpret_cast<const char*>(&stopped_), sizeof(stopped_));
+  stream.write(reinterpret_cast<const char*>(&reset_wanted_), sizeof(reset_wanted_));
+  
+  stream.write(reinterpret_cast<const char*>(&opcode), sizeof(opcode));
+  stream.write(reinterpret_cast<const char*>(&step), sizeof(step));
+  stream.write(reinterpret_cast<const char*>(&bstep), sizeof(bstep));
+  stream.write(reinterpret_cast<const char*>(&adr), sizeof(adr));
+  stream.write(reinterpret_cast<const char*>(&adr1), sizeof(adr1));
+  stream.write(reinterpret_cast<const char*>(&dat), sizeof(dat));
+  stream.write(reinterpret_cast<const char*>(&dat16), sizeof(dat16));
+  stream.write(reinterpret_cast<const char*>(&param), sizeof(param));
+  stream.write(reinterpret_cast<const char*>(&extra_cycles_), sizeof(extra_cycles_));
+  stream.write(reinterpret_cast<const char*>(&last_opcode_cycles_), sizeof(last_opcode_cycles_));
+  
+  stream.write(reinterpret_cast<const char*>(&A), sizeof(A));
+  stream.write(reinterpret_cast<const char*>(&X), sizeof(X));
+  stream.write(reinterpret_cast<const char*>(&Y), sizeof(Y));
+  stream.write(reinterpret_cast<const char*>(&YA), sizeof(YA));
+  stream.write(reinterpret_cast<const char*>(&PC), sizeof(PC));
+  stream.write(reinterpret_cast<const char*>(&SP), sizeof(SP));
+  stream.write(reinterpret_cast<const char*>(&PSW), sizeof(PSW));
+}
+
+void Spc700::LoadState(std::istream& stream) {
+  stream.read(reinterpret_cast<char*>(&stopped_), sizeof(stopped_));
+  stream.read(reinterpret_cast<char*>(&reset_wanted_), sizeof(reset_wanted_));
+  
+  stream.read(reinterpret_cast<char*>(&opcode), sizeof(opcode));
+  stream.read(reinterpret_cast<char*>(&step), sizeof(step));
+  stream.read(reinterpret_cast<char*>(&bstep), sizeof(bstep));
+  stream.read(reinterpret_cast<char*>(&adr), sizeof(adr));
+  stream.read(reinterpret_cast<char*>(&adr1), sizeof(adr1));
+  stream.read(reinterpret_cast<char*>(&dat), sizeof(dat));
+  stream.read(reinterpret_cast<char*>(&dat16), sizeof(dat16));
+  stream.read(reinterpret_cast<char*>(&param), sizeof(param));
+  stream.read(reinterpret_cast<char*>(&extra_cycles_), sizeof(extra_cycles_));
+  stream.read(reinterpret_cast<char*>(&last_opcode_cycles_), sizeof(last_opcode_cycles_));
+  
+  stream.read(reinterpret_cast<char*>(&A), sizeof(A));
+  stream.read(reinterpret_cast<char*>(&X), sizeof(X));
+  stream.read(reinterpret_cast<char*>(&Y), sizeof(Y));
+  stream.read(reinterpret_cast<char*>(&YA), sizeof(YA));
+  stream.read(reinterpret_cast<char*>(&PC), sizeof(PC));
+  stream.read(reinterpret_cast<char*>(&SP), sizeof(SP));
+  stream.read(reinterpret_cast<char*>(&PSW), sizeof(PSW));
+}
+
 }  // namespace emu
 }  // namespace yaze
