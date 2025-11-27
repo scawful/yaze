@@ -778,8 +778,7 @@ void MenuOrchestrator::OnShowSessionSwitcher() {
 }
 
 void MenuOrchestrator::OnShowSessionManager() {
-  // TODO: Show session manager dialog
-  toast_manager_.Show("Session Manager", ToastType::kInfo);
+  popup_manager_.Show(PopupID::kSessionManager);
 }
 
 // Window management menu actions
@@ -822,8 +821,7 @@ void MenuOrchestrator::OnLoadWorkspaceLayout() {
 }
 
 void MenuOrchestrator::OnShowLayoutPresets() {
-  // TODO: Show layout presets dialog
-  toast_manager_.Show("Layout Presets", ToastType::kInfo);
+  popup_manager_.Show(PopupID::kLayoutPresets);
 }
 
 void MenuOrchestrator::OnLoadDeveloperLayout() {

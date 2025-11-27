@@ -86,6 +86,8 @@ constexpr const char* kFeatureFlags = "Feature Flags";
 constexpr const char* kWorkspaceHelp = "Workspace Help";
 constexpr const char* kSessionLimitWarning = "Session Limit Warning";
 constexpr const char* kLayoutResetConfirm = "Reset Layout Confirmation";
+constexpr const char* kLayoutPresets = "Layout Presets";
+constexpr const char* kSessionManager = "Session Manager";
 
 // Debug/Testing
 constexpr const char* kDataIntegrity = "Data Integrity Check";
@@ -163,6 +165,8 @@ class PopupManager {
   void DrawWorkspaceHelpPopup();
   void DrawSessionLimitWarningPopup();
   void DrawLayoutResetConfirmPopup();
+  void DrawLayoutPresetsPopup();
+  void DrawSessionManagerPopup();
 
   // Settings popups (accessible without ROM)
   void DrawDisplaySettingsPopup();

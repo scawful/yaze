@@ -31,10 +31,10 @@ CardLayoutPreset LayoutPresets::GetDefaultPreset(EditorType type) {
       preset.default_visible_cards = {
           Cards::kDungeonControlPanel,
           Cards::kDungeonRoomSelector,
-          Cards::kDungeonObjectEditor,
-          Cards::kDungeonPaletteEditor,
       };
       preset.optional_cards = {
+          Cards::kDungeonObjectEditor,
+          Cards::kDungeonPaletteEditor,
           Cards::kDungeonRoomMatrix,
           Cards::kDungeonEntrances,
           Cards::kDungeonRoomGraphics,
@@ -44,13 +44,13 @@ CardLayoutPreset LayoutPresets::GetDefaultPreset(EditorType type) {
 
     case EditorType::kGraphics:
       preset.name = "Graphics Default";
-      preset.description = "Sheet browser with editor and animations";
+      preset.description = "Sheet browser with editor";
       preset.default_visible_cards = {
           Cards::kGraphicsSheetBrowser,
           Cards::kGraphicsSheetEditor,
-          Cards::kGraphicsPlayerAnimations,
       };
       preset.optional_cards = {
+          Cards::kGraphicsPlayerAnimations,
           Cards::kGraphicsPrototypeViewer,
       };
       break;
@@ -61,9 +61,9 @@ CardLayoutPreset LayoutPresets::GetDefaultPreset(EditorType type) {
       preset.default_visible_cards = {
           Cards::kPaletteControlPanel,
           Cards::kPaletteOwMain,
-          Cards::kPaletteQuickAccess,
       };
       preset.optional_cards = {
+          Cards::kPaletteQuickAccess,
           Cards::kPaletteOwAnimated,
           Cards::kPaletteDungeonMain,
           Cards::kPaletteSprites,
@@ -80,9 +80,10 @@ CardLayoutPreset LayoutPresets::GetDefaultPreset(EditorType type) {
       preset.description = "Sprite browser with editor";
       preset.default_visible_cards = {
           Cards::kSpriteVanillaEditor,
+      };
+      preset.optional_cards = {
           Cards::kSpriteCustomEditor,
       };
-      preset.optional_cards = {};
       break;
 
     case EditorType::kScreen:
@@ -90,9 +91,9 @@ CardLayoutPreset LayoutPresets::GetDefaultPreset(EditorType type) {
       preset.description = "Screen browser with tileset editor";
       preset.default_visible_cards = {
           Cards::kScreenDungeonMaps,
-          Cards::kScreenTitleScreen,
       };
       preset.optional_cards = {
+          Cards::kScreenTitleScreen,
           Cards::kScreenInventoryMenu,
           Cards::kScreenOverworldMap,
           Cards::kScreenNamingScreen,
@@ -104,9 +105,9 @@ CardLayoutPreset LayoutPresets::GetDefaultPreset(EditorType type) {
       preset.description = "Song list with sequencer";
       preset.default_visible_cards = {
           Cards::kMusicTracker,
-          Cards::kMusicInstrumentEditor,
       };
       preset.optional_cards = {
+          Cards::kMusicInstrumentEditor,
           Cards::kMusicAssembly,
       };
       break;
@@ -129,20 +130,21 @@ CardLayoutPreset LayoutPresets::GetDefaultPreset(EditorType type) {
       preset.description = "Assembly editor with file browser";
       preset.default_visible_cards = {
           Cards::kAssemblyEditor,
+      };
+      preset.optional_cards = {
           Cards::kAssemblyFileBrowser,
       };
-      preset.optional_cards = {};
       break;
 
     case EditorType::kEmulator:
       preset.name = "Emulator Default";
       preset.description = "Emulator with debugger tools";
       preset.default_visible_cards = {
-          Cards::kEmulatorCpuDebugger,
           Cards::kEmulatorPpuViewer,
-          Cards::kEmulatorMemoryViewer,
       };
       preset.optional_cards = {
+          Cards::kEmulatorCpuDebugger,
+          Cards::kEmulatorMemoryViewer,
           Cards::kEmulatorBreakpoints,
           Cards::kEmulatorPerformance,
           Cards::kEmulatorAiAgent,
@@ -204,10 +206,20 @@ bool LayoutPresets::IsDefaultCard(EditorType type, const std::string& card_id) {
 CardLayoutPreset LayoutPresets::GetMinimalPreset() {
   CardLayoutPreset preset;
   preset.name = "Minimal";
-  preset.description = "Minimal cards for focused editing";
+  preset.description = "Essential cards only for focused editing";
   preset.editor_type = EditorType::kUnknown;  // Applies to all
-  // Only the main canvas/editor for each type
-  preset.default_visible_cards = {};
+  // Core editing cards across editors
+  preset.default_visible_cards = {
+      Cards::kOverworldCanvas,
+      Cards::kDungeonControlPanel,
+      Cards::kGraphicsSheetEditor,
+      Cards::kPaletteControlPanel,
+      Cards::kSpriteVanillaEditor,
+      Cards::kMusicTracker,
+      Cards::kMessageEditor,
+      Cards::kAssemblyEditor,
+      Cards::kEmulatorPpuViewer,
+  };
   return preset;
 }
 
@@ -217,13 +229,19 @@ CardLayoutPreset LayoutPresets::GetDeveloperPreset() {
   preset.description = "Debug and development focused layout";
   preset.editor_type = EditorType::kUnknown;  // Applies to all
   preset.default_visible_cards = {
-      // Emulator/debug cards always visible
+      // Emulator/debug cards
       Cards::kEmulatorCpuDebugger,
       Cards::kEmulatorPpuViewer,
       Cards::kEmulatorMemoryViewer,
       Cards::kEmulatorBreakpoints,
       Cards::kEmulatorPerformance,
+      Cards::kEmulatorApuDebugger,
       Cards::kMemoryHexEditor,
+      // Assembly editing
+      Cards::kAssemblyEditor,
+      Cards::kAssemblyFileBrowser,
+      // Dungeon debug controls
+      Cards::kDungeonDebugControls,
       // AI Agent for debugging assistance
       Cards::kEmulatorAiAgent,
   };
@@ -236,16 +254,24 @@ CardLayoutPreset LayoutPresets::GetDesignerPreset() {
   preset.description = "Visual and artistic focused layout";
   preset.editor_type = EditorType::kUnknown;  // Applies to all
   preset.default_visible_cards = {
-      // Graphics and palette cards
+      // Graphics cards
       Cards::kGraphicsSheetBrowser,
       Cards::kGraphicsSheetEditor,
       Cards::kGraphicsPlayerAnimations,
+      Cards::kGraphicsPrototypeViewer,
+      // Palette cards
       Cards::kPaletteControlPanel,
       Cards::kPaletteOwMain,
+      Cards::kPaletteOwAnimated,
+      Cards::kPaletteDungeonMain,
+      Cards::kPaletteSprites,
       Cards::kPaletteQuickAccess,
       // Sprite cards
       Cards::kSpriteVanillaEditor,
       Cards::kSpriteCustomEditor,
+      // Screen editing for menus/title
+      Cards::kScreenTitleScreen,
+      Cards::kScreenInventoryMenu,
   };
   return preset;
 }
@@ -259,17 +285,124 @@ CardLayoutPreset LayoutPresets::GetModderPreset() {
       // Overworld cards
       Cards::kOverworldCanvas,
       Cards::kOverworldTile16Selector,
+      Cards::kOverworldTile8Selector,
       Cards::kOverworldAreaGraphics,
+      Cards::kOverworldGfxGroups,
       // Dungeon cards
       Cards::kDungeonControlPanel,
       Cards::kDungeonRoomSelector,
       Cards::kDungeonObjectEditor,
       Cards::kDungeonPaletteEditor,
+      Cards::kDungeonEntrances,
       // Graphics cards
       Cards::kGraphicsSheetBrowser,
       Cards::kGraphicsSheetEditor,
+      // Palette cards
+      Cards::kPaletteControlPanel,
+      Cards::kPaletteOwMain,
+      // Sprite cards
+      Cards::kSpriteVanillaEditor,
+      // Message editing
+      Cards::kMessageList,
+      Cards::kMessageEditor,
       // AI Agent for assistance
       Cards::kEmulatorAiAgent,
+  };
+  return preset;
+}
+
+CardLayoutPreset LayoutPresets::GetOverworldExpertPreset() {
+  CardLayoutPreset preset;
+  preset.name = "Overworld Expert";
+  preset.description = "Complete overworld editing toolkit";
+  preset.editor_type = EditorType::kOverworld;
+  preset.default_visible_cards = {
+      // All overworld cards
+      Cards::kOverworldCanvas,
+      Cards::kOverworldTile16Selector,
+      Cards::kOverworldTile8Selector,
+      Cards::kOverworldAreaGraphics,
+      Cards::kOverworldScratch,
+      Cards::kOverworldGfxGroups,
+      Cards::kOverworldUsageStats,
+      Cards::kOverworldV3Settings,
+      // Palette support
+      Cards::kPaletteControlPanel,
+      Cards::kPaletteOwMain,
+      Cards::kPaletteOwAnimated,
+      // Graphics for tile editing
+      Cards::kGraphicsSheetBrowser,
+      Cards::kGraphicsSheetEditor,
+  };
+  return preset;
+}
+
+CardLayoutPreset LayoutPresets::GetDungeonExpertPreset() {
+  CardLayoutPreset preset;
+  preset.name = "Dungeon Expert";
+  preset.description = "Complete dungeon editing toolkit";
+  preset.editor_type = EditorType::kDungeon;
+  preset.default_visible_cards = {
+      // All dungeon cards
+      Cards::kDungeonControlPanel,
+      Cards::kDungeonRoomSelector,
+      Cards::kDungeonRoomMatrix,
+      Cards::kDungeonEntrances,
+      Cards::kDungeonRoomGraphics,
+      Cards::kDungeonObjectEditor,
+      Cards::kDungeonPaletteEditor,
+      Cards::kDungeonDebugControls,
+      // Palette support
+      Cards::kPaletteControlPanel,
+      Cards::kPaletteDungeonMain,
+      // Graphics for room editing
+      Cards::kGraphicsSheetBrowser,
+      Cards::kGraphicsSheetEditor,
+      // Screen maps for dungeon navigation
+      Cards::kScreenDungeonMaps,
+  };
+  return preset;
+}
+
+CardLayoutPreset LayoutPresets::GetTestingPreset() {
+  CardLayoutPreset preset;
+  preset.name = "Testing";
+  preset.description = "Quality assurance and ROM testing layout";
+  preset.editor_type = EditorType::kEmulator;
+  preset.default_visible_cards = {
+      // Emulator core
+      Cards::kEmulatorPpuViewer,
+      Cards::kEmulatorSaveStates,
+      Cards::kEmulatorKeyboardConfig,
+      Cards::kEmulatorPerformance,
+      // Debug tools
+      Cards::kEmulatorCpuDebugger,
+      Cards::kEmulatorBreakpoints,
+      Cards::kEmulatorMemoryViewer,
+      // Memory inspection
+      Cards::kMemoryHexEditor,
+      // AI Agent for test assistance
+      Cards::kEmulatorAiAgent,
+  };
+  return preset;
+}
+
+CardLayoutPreset LayoutPresets::GetAudioPreset() {
+  CardLayoutPreset preset;
+  preset.name = "Audio";
+  preset.description = "Music and sound editing layout";
+  preset.editor_type = EditorType::kMusic;
+  preset.default_visible_cards = {
+      // Music editing
+      Cards::kMusicTracker,
+      Cards::kMusicInstrumentEditor,
+      Cards::kMusicAssembly,
+      // Audio debugging
+      Cards::kEmulatorApuDebugger,
+      Cards::kEmulatorAudioMixer,
+      // Assembly for custom sound code
+      Cards::kAssemblyEditor,
+      Cards::kAssemblyFileBrowser,
   };
   return preset;
 }

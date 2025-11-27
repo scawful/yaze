@@ -35,6 +35,7 @@
 #include "app/editor/system/menu_orchestrator.h"
 #include "app/editor/system/popup_manager.h"
 #include "app/editor/system/shortcut_configurator.h"
+#include "app/editor/ui/layout_presets.h"
 #include "app/editor/ui/editor_selection_dialog.h"
 #include "app/editor/ui/ui_coordinator.h"
 #include "app/emu/emulator.h"
@@ -129,10 +130,10 @@ void EditorManager::ResetWorkspaceLayout() {
   if (!layout_manager_) {
     return;
   }
-  
+
   layout_manager_->ClearInitializationFlags();
   layout_manager_->RequestRebuild();
-  
+
   // Force immediate rebuild for active context (don't use InitializeEditorLayout - use RebuildLayout)
   ImGuiContext* imgui_ctx = ImGui::GetCurrentContext();
   if (imgui_ctx && imgui_ctx->WithinFrameScope) {
