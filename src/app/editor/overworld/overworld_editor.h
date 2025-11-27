@@ -1,7 +1,9 @@
 #ifndef YAZE_APP_EDITOR_OVERWORLDEDITOR_H
 #define YAZE_APP_EDITOR_OVERWORLDEDITOR_H
 
+#include <chrono>
 #include <mutex>
+#include <optional>
 
 #include "absl/status/status.h"
 #include "app/editor/editor.h"
@@ -79,8 +81,8 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   void Initialize() override;
   absl::Status Load() override;
   absl::Status Update() final;
-  absl::Status Undo() override { return absl::UnimplementedError("Undo"); }
-  absl::Status Redo() override { return absl::UnimplementedError("Redo"); }
+  absl::Status Undo() override;
+  absl::Status Redo() override;
   absl::Status Cut() override { return absl::UnimplementedError("Cut"); }
   absl::Status Copy() override;
   absl::Status Paste() override;
@@ -117,6 +119,8 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   // Jump-to functionality
   void set_current_map(int map_id) {
     if (map_id >= 0 && map_id < zelda3::kNumOverworldMaps) {
+      // Finalize any pending paint operation before switching maps
+      FinalizePaintOperation();
       current_map_ = map_id;
       current_world_ =
           map_id / 0x40;  // Calculate which world the map belongs to
@@ -269,6 +273,21 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
     DRAW_TILE  // Tile painting mode
   };
 
+  // Undo/Redo system for tile painting operations
+  struct OverworldUndoPoint {
+    int map_id = 0;
+    int world = 0;  // 0=Light, 1=Dark, 2=Special
+    std::vector<std::pair<std::pair<int, int>, int>>
+        tile_changes;  // ((x,y), old_tile_id)
+    std::chrono::steady_clock::time_point timestamp;
+  };
+
+  // Undo/Redo helper methods
+  void CreateUndoPoint(int map_id, int world, int x, int y, int old_tile_id);
+  void FinalizePaintOperation();
+  void ApplyUndoPoint(const OverworldUndoPoint& point);
+  auto& GetWorldTiles(int world);
+
   EditingMode current_mode = EditingMode::DRAW_TILE;
   EditingMode previous_mode = EditingMode::DRAW_TILE;
 
@@ -420,6 +439,14 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
                               gui::CanvasGridSize::k32x32};
 
   absl::Status status_;
+
+  // Undo/Redo state for tile painting
+  std::vector<OverworldUndoPoint> undo_stack_;
+  std::vector<OverworldUndoPoint> redo_stack_;
+  std::optional<OverworldUndoPoint> current_paint_operation_;
+  std::chrono::steady_clock::time_point last_paint_time_;
+  static constexpr size_t kMaxUndoHistory = 50;
+  static constexpr auto kPaintBatchTimeout = std::chrono::milliseconds(500);
 };
 }  // namespace editor
 }  // namespace yaze
