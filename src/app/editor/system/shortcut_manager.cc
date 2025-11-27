@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "app/gui/core/input.h"
+#include "app/gui/core/platform_keys.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -88,14 +89,9 @@ constexpr const char* GetKeyName(ImGuiKey key) {
 }  // namespace
 
 std::string PrintShortcut(const std::vector<ImGuiKey>& keys) {
-  std::string shortcut;
-  for (size_t i = keys.size(); i > 0; --i) {
-    shortcut += GetKeyName(keys[i - 1]);
-    if (i > 1) {
-      shortcut += "+";
-    }
-  }
-  return shortcut;
+  // Use the platform-aware FormatShortcut from platform_keys.h
+  // This handles Ctrl→Cmd and Alt→Opt conversions for macOS/WASM
+  return gui::FormatShortcut(keys);
 }
 
 const static std::string kCtrlKey = "Ctrl";

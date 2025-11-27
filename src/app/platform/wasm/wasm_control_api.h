@@ -343,6 +343,25 @@ class WasmControlApi {
    */
   static std::string SetSelection(const std::string& ids_json);
 
+  // ============================================================================
+  // Platform Info API
+  // ============================================================================
+
+  /**
+   * @brief Get platform information for keyboard shortcuts and UI display
+   * @return JSON with platform name, is_mac, ctrl_name, alt_name
+   *
+   * Example response:
+   * {
+   *   "platform": "WebMac",
+   *   "is_mac": true,
+   *   "ctrl_display": "Cmd",
+   *   "alt_display": "Opt",
+   *   "shift_display": "Shift"
+   * }
+   */
+  static std::string GetPlatformInfo();
+
  private:
   static editor::EditorManager* editor_manager_;
   static bool initialized_;
@@ -416,6 +435,8 @@ class WasmControlApi {
   static std::string GetUIElementTree() { return "{}"; }
   static std::string GetUIElementBounds(const std::string&) { return "{}"; }
   static std::string SetSelection(const std::string&) { return "{}"; }
+  // Platform Info API
+  static std::string GetPlatformInfo() { return "{}"; }
 };
 
 }  // namespace platform

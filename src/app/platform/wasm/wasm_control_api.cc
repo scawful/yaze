@@ -15,6 +15,7 @@
 #include "app/editor/system/editor_card_registry.h"
 #include "app/gui/automation/widget_id_registry.h"
 #include "app/gui/automation/widget_measurement.h"
+#include "app/gui/core/platform_keys.h"
 #include "app/platform/wasm/wasm_settings.h"
 #include "app/rom.h"
 #include "nlohmann/json.hpp"
@@ -223,6 +224,15 @@ EM_JS(void, SetupYazeControlApi, (), {
     // Utility
     isReady: function() {
       return Module.controlIsReady ? Module.controlIsReady() : false;
+    },
+
+    // Platform info - returns detected platform and keyboard modifier names
+    getPlatformInfo: function() {
+      if (Module.controlGetPlatformInfo) {
+        try { return JSON.parse(Module.controlGetPlatformInfo()); }
+        catch(e) { return {error: e.message}; }
+      }
+      return {error: "API not ready"};
     }
   };
 
@@ -1657,6 +1667,52 @@ std::string WasmControlApi::SetSelection(const std::string& ids_json) {
 }
 
 // ============================================================================
+// Platform Info API Implementation
+// ============================================================================
+
+std::string WasmControlApi::GetPlatformInfo() {
+  nlohmann::json result;
+
+  // Get current platform from runtime detection
+  auto platform = gui::GetCurrentPlatform();
+
+  // Convert platform enum to string
+  switch (platform) {
+    case gui::Platform::kWindows:
+      result["platform"] = "Windows";
+      break;
+    case gui::Platform::kMacOS:
+      result["platform"] = "macOS";
+      break;
+    case gui::Platform::kLinux:
+      result["platform"] = "Linux";
+      break;
+    case gui::Platform::kWebMac:
+      result["platform"] = "WebMac";
+      break;
+    case gui::Platform::kWebOther:
+      result["platform"] = "WebOther";
+      break;
+    default:
+      result["platform"] = "Unknown";
+      break;
+  }
+
+  // Get platform-specific display names for modifiers
+  result["is_mac"] = gui::IsMacPlatform();
+  result["ctrl_display"] = gui::GetCtrlDisplayName();
+  result["alt_display"] = gui::GetAltDisplayName();
+  result["shift_display"] = "Shift";
+
+  // Example shortcut formatting
+  result["example_save"] = gui::FormatCtrlShortcut(ImGuiKey_S);
+  result["example_open"] = gui::FormatCtrlShortcut(ImGuiKey_O);
+  result["example_command_palette"] = gui::FormatCtrlShiftShortcut(ImGuiKey_P);
+
+  return result.dump();
+}
+
+// ============================================================================
 // Emscripten Bindings
 // ============================================================================
 
@@ -1708,6 +1764,9 @@ EMSCRIPTEN_BINDINGS(wasm_control_api) {
   // Settings APIs
   emscripten::function("settingsGetCurrentThemeData", &yaze::platform::WasmSettings::GetCurrentThemeData);
   emscripten::function("settingsLoadFont", &WasmControlApi::LoadFont);
+
+  // Platform Info API
+  emscripten::function("controlGetPlatformInfo", &WasmControlApi::GetPlatformInfo);
 }
 
 }  // namespace platform
