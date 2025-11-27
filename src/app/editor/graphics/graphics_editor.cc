@@ -25,7 +25,7 @@
 #include "app/snes.h"
 #include "imgui/imgui.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
-#include "imgui_memory_editor.h"
+#include "app/gui/imgui_memory_editor.h"
 #include "util/file_util.h"
 #include "util/log.h"
 
@@ -53,10 +53,12 @@ void GraphicsEditor::Initialize() {
   sheet_browser_panel_ = std::make_unique<SheetBrowserPanel>(&state_);
   pixel_editor_panel_ = std::make_unique<PixelEditorPanel>(&state_, rom_);
   palette_controls_panel_ = std::make_unique<PaletteControlsPanel>(&state_, rom_);
+  link_sprite_panel_ = std::make_unique<LinkSpritePanel>(&state_, rom_);
 
   sheet_browser_panel_->Initialize();
   pixel_editor_panel_->Initialize();
   palette_controls_panel_->Initialize();
+  link_sprite_panel_->Initialize();
 
   // Register new panel-based cards
   card_registry->RegisterCard({.card_id = "graphics.sheet_browser_v2",
@@ -84,6 +86,15 @@ void GraphicsEditor::Initialize() {
                                .category = "Graphics",
                                .shortcut_hint = "Ctrl+Shift+3",
                                .priority = 30,
+                               .enabled_condition = [this]() { return rom()->is_loaded(); },
+                               .disabled_tooltip = "Load a ROM first"});
+  card_registry->RegisterCard({.card_id = "graphics.link_sprite_editor",
+                               .display_name = "Link Sprite Editor",
+                               .window_title = ICON_MD_PERSON " Link Sprite Editor",
+                               .icon = ICON_MD_PERSON,
+                               .category = "Graphics",
+                               .shortcut_hint = "Ctrl+Shift+L",
+                               .priority = 35,
                                .enabled_condition = [this]() { return rom()->is_loaded(); },
                                .disabled_tooltip = "Load a ROM first"});
 
@@ -291,6 +302,21 @@ absl::Status GraphicsEditor::Update() {
       }
     }
     palette_controls_card.End();
+  }
+
+  // Link Sprite Editor Panel
+  static gui::EditorCard link_sprite_card("Link Sprite Editor", ICON_MD_PERSON);
+  link_sprite_card.SetDefaultSize(600, 500);
+
+  bool* link_sprite_visible =
+      card_registry->GetVisibilityFlag("graphics.link_sprite_editor");
+  if (link_sprite_visible && *link_sprite_visible) {
+    if (link_sprite_card.Begin(link_sprite_visible)) {
+      if (link_sprite_panel_) {
+        status_ = link_sprite_panel_->Update();
+      }
+    }
+    link_sprite_card.End();
   }
 
   // --- Legacy Cards (kept for backward compatibility) ---
@@ -1087,7 +1113,7 @@ absl::Status GraphicsEditor::DrawExperimentalFeatures() {
 absl::Status GraphicsEditor::DrawMemoryEditor() {
   std::string title = "Memory Editor";
   if (is_open_) {
-    static MemoryEditor mem_edit;
+    static yaze::gui::MemoryEditorWidget mem_edit;
     mem_edit.DrawWindow(title.c_str(), temp_rom_.mutable_data(),
                         temp_rom_.size());
   }

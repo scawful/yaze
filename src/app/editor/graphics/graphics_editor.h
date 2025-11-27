@@ -7,6 +7,7 @@
 #include "absl/status/status.h"
 #include "app/editor/editor.h"
 #include "app/editor/graphics/graphics_editor_state.h"
+#include "app/editor/graphics/link_sprite_panel.h"
 #include "app/editor/graphics/palette_controls_panel.h"
 #include "app/editor/graphics/pixel_editor_panel.h"
 #include "app/editor/graphics/sheet_browser_panel.h"
@@ -18,7 +19,7 @@
 #include "app/gui/widgets/asset_browser.h"
 #include "app/rom.h"
 #include "imgui/imgui.h"
-#include "imgui_memory_editor.h"
+#include "app/gui/imgui_memory_editor.h"
 #include "zelda3/overworld/overworld.h"
 
 namespace yaze {
@@ -96,6 +97,7 @@ class GraphicsEditor : public Editor {
   std::unique_ptr<SheetBrowserPanel> sheet_browser_panel_;
   std::unique_ptr<PixelEditorPanel> pixel_editor_panel_;
   std::unique_ptr<PaletteControlsPanel> palette_controls_panel_;
+  std::unique_ptr<LinkSpritePanel> link_sprite_panel_;
 
   // Graphics Editor Tab
   absl::Status UpdateGfxEdit();
@@ -184,8 +186,8 @@ class GraphicsEditor : public Editor {
   Rom temp_rom_;
   Rom tilemap_rom_;
   zelda3::Overworld overworld_{&temp_rom_};
-  MemoryEditor cgx_memory_editor_;
-  MemoryEditor col_memory_editor_;
+  gui::MemoryEditorWidget cgx_memory_editor_;
+  gui::MemoryEditorWidget col_memory_editor_;
   PaletteEditor palette_editor_;
   std::vector<uint8_t> import_data_;
   std::vector<uint8_t> graphics_buffer_;
