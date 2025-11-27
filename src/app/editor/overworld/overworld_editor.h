@@ -447,6 +447,9 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   std::chrono::steady_clock::time_point last_paint_time_;
   static constexpr size_t kMaxUndoHistory = 50;
   static constexpr auto kPaintBatchTimeout = std::chrono::milliseconds(500);
+
+  // Palette change notification listener
+  int palette_listener_id_ = -1;
 };
 }  // namespace editor
 }  // namespace yaze

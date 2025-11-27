@@ -226,6 +226,27 @@ absl::Status OverworldEditor::Load() {
   }
 
   ASSIGN_OR_RETURN(entrance_tiletypes_, zelda3::LoadEntranceTileTypes(rom_));
+
+  // Register as palette listener to refresh graphics when palettes change
+  if (palette_listener_id_ < 0) {
+    palette_listener_id_ = gfx::Arena::Get().RegisterPaletteListener(
+        [this](const std::string& group_name, int palette_index) {
+          // Only respond to overworld-related palette changes
+          if (group_name == "ow_main" || group_name == "ow_animated" ||
+              group_name == "ow_aux" || group_name == "grass") {
+            LOG_DEBUG("OverworldEditor",
+                      "Palette change detected: %s, refreshing current map",
+                      group_name.c_str());
+            // Refresh current map graphics to reflect palette changes
+            if (current_map_ >= 0 && all_gfx_loaded_) {
+              RefreshOverworldMap();
+            }
+          }
+        });
+    LOG_DEBUG("OverworldEditor", "Registered as palette listener (ID: %d)",
+              palette_listener_id_);
+  }
+
   all_gfx_loaded_ = true;
   return absl::OkStatus();
 }
@@ -3194,6 +3215,12 @@ void OverworldEditor::DrawDebugWindow() {
 }
 
 absl::Status OverworldEditor::Clear() {
+  // Unregister palette listener
+  if (palette_listener_id_ >= 0) {
+    gfx::Arena::Get().UnregisterPaletteListener(palette_listener_id_);
+    palette_listener_id_ = -1;
+  }
+
   overworld_.Destroy();
   current_graphics_set_.clear();
   all_gfx_loaded_ = false;
