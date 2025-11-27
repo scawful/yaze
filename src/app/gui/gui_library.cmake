@@ -25,6 +25,10 @@ set(GUI_CORE_SRC
   app/gui/keyboard_shortcuts.cc
 )
 
+list(APPEND GUI_CORE_SRC
+  app/gui/plots/implot_support.cc
+)
+
 # build_cleaner:auto-maintain
 set(CANVAS_SRC
   app/gui/canvas/bpp_format_ui.cc
