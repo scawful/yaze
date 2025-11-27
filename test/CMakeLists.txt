@@ -150,6 +150,7 @@ if(YAZE_BUILD_TESTS)
       integration/emulator_render_service_test.cc
       integration/save_state_generation_test.cc
       e2e/rom_dependent/e2e_rom_test.cc
+      e2e/rom_dependent/graphics_editor_save_test.cc
       e2e/zscustomoverworld/zscustomoverworld_upgrade_test.cc
     )
     yaze_add_test_suite(yaze_test_rom_dependent "rom_dependent" OFF ${ROM_DEPENDENT_TEST_SOURCES})
