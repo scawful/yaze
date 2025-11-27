@@ -199,6 +199,31 @@ class Bitmap {
   void WriteToPixel(int position, uint8_t value);
 
   /**
+   * @brief Write a palette index to a pixel at the given x,y coordinates
+   * @param x X coordinate (0 to width-1)
+   * @param y Y coordinate (0 to height-1)
+   * @param value Palette index (0-255)
+   */
+  void WriteToPixel(int x, int y, uint8_t value) {
+    if (x >= 0 && x < width_ && y >= 0 && y < height_) {
+      WriteToPixel(y * width_ + x, value);
+    }
+  }
+
+  /**
+   * @brief Get the palette index at the given x,y coordinates
+   * @param x X coordinate (0 to width-1)
+   * @param y Y coordinate (0 to height-1)
+   * @return Palette index at the position, or 0 if out of bounds
+   */
+  uint8_t GetPixel(int x, int y) const {
+    if (x >= 0 && x < width_ && y >= 0 && y < height_) {
+      return data_[y * width_ + x];
+    }
+    return 0;
+  }
+
+  /**
    * @brief Write a color to a pixel at the given position
    */
   void WriteColor(int position, const ImVec4& color);

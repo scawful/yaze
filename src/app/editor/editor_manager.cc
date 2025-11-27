@@ -383,7 +383,7 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
   // Register memory/hex editor card
   card_registry_.RegisterCard({.card_id = "memory.hex_editor",
                                .display_name = "Hex Editor",
-                               .window_title = " Hex Editor",
+                               .window_title = ICON_MD_MEMORY " Hex Editor",
                                .icon = ICON_MD_MEMORY,
                                .category = "Memory",
                                .priority = 10});

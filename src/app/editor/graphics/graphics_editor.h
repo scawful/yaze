@@ -1,10 +1,15 @@
 #ifndef YAZE_APP_EDITOR_GRAPHICS_EDITOR_H
 #define YAZE_APP_EDITOR_GRAPHICS_EDITOR_H
 
+#include <memory>
 #include <stack>
 
 #include "absl/status/status.h"
 #include "app/editor/editor.h"
+#include "app/editor/graphics/graphics_editor_state.h"
+#include "app/editor/graphics/palette_controls_panel.h"
+#include "app/editor/graphics/pixel_editor_panel.h"
+#include "app/editor/graphics/sheet_browser_panel.h"
 #include "app/editor/palette/palette_editor.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/types/snes_tile.h"
@@ -63,7 +68,7 @@ class GraphicsEditor : public Editor {
 
   void Initialize() override;
   absl::Status Load() override;
-  absl::Status Save() override { return absl::UnimplementedError("Save"); }
+  absl::Status Save() override;
   absl::Status Update() override;
   absl::Status Cut() override { return absl::UnimplementedError("Cut"); }
   absl::Status Copy() override { return absl::UnimplementedError("Copy"); }
@@ -79,11 +84,18 @@ class GraphicsEditor : public Editor {
   Rom* rom() const { return rom_; }
 
  private:
+  // Legacy mode enum (kept for backward compatibility)
   enum class GfxEditMode {
     kSelect,
     kPencil,
     kFill,
   };
+
+  // --- New Panel-Based Architecture ---
+  GraphicsEditorState state_;
+  std::unique_ptr<SheetBrowserPanel> sheet_browser_panel_;
+  std::unique_ptr<PixelEditorPanel> pixel_editor_panel_;
+  std::unique_ptr<PaletteControlsPanel> palette_controls_panel_;
 
   // Graphics Editor Tab
   absl::Status UpdateGfxEdit();

@@ -18,7 +18,10 @@ set(
   app/editor/session_types.cc
   app/editor/graphics/gfx_group_editor.cc
   app/editor/graphics/graphics_editor.cc
+  app/editor/graphics/palette_controls_panel.cc
+  app/editor/graphics/pixel_editor_panel.cc
   app/editor/graphics/screen_editor.cc
+  app/editor/graphics/sheet_browser_panel.cc
   app/editor/message/message_data.cc
   app/editor/message/message_editor.cc
   app/editor/message/message_preview.cc
