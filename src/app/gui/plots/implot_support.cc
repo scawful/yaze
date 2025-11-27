@@ -112,8 +112,9 @@ ImPlotStyle BuildStyleFromTheme(const EnhancedTheme& theme,
 
 PlotStyleScope::PlotStyleScope(const EnhancedTheme& theme,
                                const PlotStyleConfig& config)
-    : previous_style_(ImPlot::GetStyle()) {
+    : previous_style_() {
   EnsureImPlotContext();
+  previous_style_ = ImPlot::GetStyle();
   ImPlot::GetStyle() = BuildBaseStyle(theme, config);
 }
 
