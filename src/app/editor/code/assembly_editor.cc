@@ -220,8 +220,12 @@ void AssemblyEditor::Update(bool& is_loaded) {
   if (ImGui::BeginMenuBar()) {
     DrawFileMenu();
     DrawEditMenu();
+    DrawAssembleMenu();
     ImGui::EndMenuBar();
   }
+
+  // Draw symbol panel if visible
+  DrawSymbolPanel();
 
   auto cpos = text_editor_.GetCursorPosition();
   ImGui::Text("%6d/%-6d %6d lines  | %s | %s | %s | %s", cpos.mLine + 1,
@@ -373,11 +377,11 @@ void AssemblyEditor::DrawCurrentFolder() {
 
 void AssemblyEditor::DrawFileMenu() {
   if (ImGui::BeginMenu("File")) {
-    if (ImGui::MenuItem("Open", "Ctrl+O")) {
+    if (ImGui::MenuItem(ICON_MD_FILE_OPEN " Open", "Ctrl+O")) {
       auto filename = util::FileDialogWrapper::ShowOpenFileDialog();
       ChangeActiveFile(filename);
     }
-    if (ImGui::MenuItem("Save", "Ctrl+S")) {
+    if (ImGui::MenuItem(ICON_MD_SAVE " Save", "Ctrl+S")) {
       // TODO: Implement this
     }
     ImGui::EndMenu();
@@ -386,24 +390,24 @@ void AssemblyEditor::DrawFileMenu() {
 
 void AssemblyEditor::DrawEditMenu() {
   if (ImGui::BeginMenu("Edit")) {
-    if (ImGui::MenuItem("Undo", "Ctrl+Z")) {
+    if (ImGui::MenuItem(ICON_MD_UNDO " Undo", "Ctrl+Z")) {
       text_editor_.Undo();
     }
-    if (ImGui::MenuItem("Redo", "Ctrl+Y")) {
+    if (ImGui::MenuItem(ICON_MD_REDO " Redo", "Ctrl+Y")) {
       text_editor_.Redo();
     }
     ImGui::Separator();
-    if (ImGui::MenuItem("Cut", "Ctrl+X")) {
+    if (ImGui::MenuItem(ICON_MD_CONTENT_CUT " Cut", "Ctrl+X")) {
       text_editor_.Cut();
     }
-    if (ImGui::MenuItem("Copy", "Ctrl+C")) {
+    if (ImGui::MenuItem(ICON_MD_CONTENT_COPY " Copy", "Ctrl+C")) {
       text_editor_.Copy();
     }
-    if (ImGui::MenuItem("Paste", "Ctrl+V")) {
+    if (ImGui::MenuItem(ICON_MD_CONTENT_PASTE " Paste", "Ctrl+V")) {
       text_editor_.Paste();
     }
     ImGui::Separator();
-    if (ImGui::MenuItem("Find", "Ctrl+F")) {
+    if (ImGui::MenuItem(ICON_MD_SEARCH " Find", "Ctrl+F")) {
       // TODO: Implement this.
     }
     ImGui::EndMenu();
@@ -469,6 +473,237 @@ absl::Status AssemblyEditor::Redo() {
 
 absl::Status AssemblyEditor::Update() {
   return absl::OkStatus();
+}
+
+// ============================================================================
+// Asar Integration Implementation
+// ============================================================================
+
+absl::Status AssemblyEditor::ValidateCurrentFile() {
+  if (active_file_id_ == -1 || active_file_id_ >= open_files_.size()) {
+    return absl::FailedPreconditionError("No file is currently active");
+  }
+
+  // Initialize Asar if not already done
+  if (!asar_initialized_) {
+    auto status = asar_.Initialize();
+    if (!status.ok()) {
+      return status;
+    }
+    asar_initialized_ = true;
+  }
+
+  // Get the file path
+  const std::string& file_path = files_[active_file_id_];
+
+  // Validate the assembly
+  auto status = asar_.ValidateAssembly(file_path);
+
+  // Update error markers based on result
+  if (!status.ok()) {
+    // Get the error messages and show them
+    last_errors_.clear();
+    last_errors_.push_back(std::string(status.message()));
+    // Parse and update error markers
+    TextEditor::ErrorMarkers markers;
+    // Asar errors typically contain line numbers we can parse
+    for (const auto& error : last_errors_) {
+      // Simple heuristic: look for "line X" or ":X:" pattern
+      size_t line_pos = error.find(':');
+      if (line_pos != std::string::npos) {
+        size_t num_start = line_pos + 1;
+        size_t num_end = error.find(':', num_start);
+        if (num_end != std::string::npos) {
+          std::string line_str = error.substr(num_start, num_end - num_start);
+          try {
+            int line = std::stoi(line_str);
+            markers[line] = error;
+          } catch (...) {
+            // Not a line number, skip
+          }
+        }
+      }
+    }
+    open_files_[active_file_id_].SetErrorMarkers(markers);
+    return status;
+  }
+
+  // Clear any previous error markers
+  ClearErrorMarkers();
+  return absl::OkStatus();
+}
+
+absl::Status AssemblyEditor::ApplyPatchToRom() {
+  if (!rom_ || !rom_->is_loaded()) {
+    return absl::FailedPreconditionError("No ROM is loaded");
+  }
+
+  if (active_file_id_ == -1 || active_file_id_ >= open_files_.size()) {
+    return absl::FailedPreconditionError("No file is currently active");
+  }
+
+  // Initialize Asar if not already done
+  if (!asar_initialized_) {
+    auto status = asar_.Initialize();
+    if (!status.ok()) {
+      return status;
+    }
+    asar_initialized_ = true;
+  }
+
+  // Get the file path
+  const std::string& file_path = files_[active_file_id_];
+
+  // Get ROM data as vector for patching
+  std::vector<uint8_t> rom_data = rom_->vector();
+
+  // Apply the patch
+  auto result = asar_.ApplyPatch(file_path, rom_data);
+
+  if (!result.ok()) {
+    UpdateErrorMarkers(*result);
+    return result.status();
+  }
+
+  if (result->success) {
+    // Update the ROM with the patched data
+    rom_->LoadFromData(rom_data);
+
+    // Store symbols for lookup
+    symbols_ = asar_.GetSymbolTable();
+    last_errors_.clear();
+    last_warnings_ = result->warnings;
+
+    // Clear error markers
+    ClearErrorMarkers();
+
+    return absl::OkStatus();
+  } else {
+    UpdateErrorMarkers(*result);
+    return absl::InternalError("Patch application failed");
+  }
+}
+
+void AssemblyEditor::UpdateErrorMarkers(const core::AsarPatchResult& result) {
+  last_errors_ = result.errors;
+  last_warnings_ = result.warnings;
+
+  if (active_file_id_ == -1 || active_file_id_ >= open_files_.size()) {
+    return;
+  }
+
+  TextEditor::ErrorMarkers markers;
+
+  // Parse error messages to extract line numbers
+  for (const auto& error : result.errors) {
+    // Asar error format is typically: "filename:line:column: message"
+    size_t first_colon = error.find(':');
+    if (first_colon != std::string::npos) {
+      size_t second_colon = error.find(':', first_colon + 1);
+      if (second_colon != std::string::npos) {
+        std::string line_str =
+            error.substr(first_colon + 1, second_colon - first_colon - 1);
+        try {
+          int line = std::stoi(line_str);
+          markers[line] = error;
+        } catch (...) {
+          // Not a valid line number
+        }
+      }
+    }
+  }
+
+  open_files_[active_file_id_].SetErrorMarkers(markers);
+}
+
+void AssemblyEditor::ClearErrorMarkers() {
+  last_errors_.clear();
+
+  if (active_file_id_ == -1 || active_file_id_ >= open_files_.size()) {
+    return;
+  }
+
+  TextEditor::ErrorMarkers empty_markers;
+  open_files_[active_file_id_].SetErrorMarkers(empty_markers);
+}
+
+void AssemblyEditor::DrawAssembleMenu() {
+  if (ImGui::BeginMenu("Assemble")) {
+    bool has_active_file =
+        (active_file_id_ != -1 && active_file_id_ < open_files_.size());
+    bool has_rom = (rom_ && rom_->is_loaded());
+
+    if (ImGui::MenuItem(ICON_MD_CHECK_CIRCLE " Validate", "Ctrl+B", false, has_active_file)) {
+      auto status = ValidateCurrentFile();
+      if (status.ok()) {
+        // Show success notification (could add toast notification here)
+      }
+    }
+
+    if (ImGui::MenuItem(ICON_MD_BUILD " Apply to ROM", "Ctrl+Shift+B", false,
+                        has_active_file && has_rom)) {
+      auto status = ApplyPatchToRom();
+      if (status.ok()) {
+        // Show success notification
+      }
+    }
+
+    ImGui::Separator();
+
+    if (ImGui::MenuItem(ICON_MD_LIST " Show Symbols", nullptr, show_symbol_panel_)) {
+      show_symbol_panel_ = !show_symbol_panel_;
+    }
+
+    ImGui::Separator();
+
+    // Show last error/warning count
+    ImGui::TextDisabled("Errors: %zu, Warnings: %zu", last_errors_.size(),
+                        last_warnings_.size());
+
+    ImGui::EndMenu();
+  }
+}
+
+void AssemblyEditor::DrawSymbolPanel() {
+  if (!show_symbol_panel_) {
+    return;
+  }
+
+  ImGui::SetNextWindowSize(ImVec2(350, 400), ImGuiCond_FirstUseEver);
+  if (ImGui::Begin("Symbols", &show_symbol_panel_)) {
+    if (symbols_.empty()) {
+      ImGui::TextDisabled("No symbols loaded.");
+      ImGui::TextDisabled("Apply a patch to load symbols.");
+    } else {
+      // Search filter
+      static char filter[256] = "";
+      ImGui::InputTextWithHint("##symbol_filter", "Filter symbols...", filter,
+                               sizeof(filter));
+
+      ImGui::Separator();
+
+      if (ImGui::BeginChild("##symbol_list", ImVec2(0, 0), true)) {
+        for (const auto& [name, symbol] : symbols_) {
+          // Apply filter
+          if (filter[0] != '\0' &&
+              name.find(filter) == std::string::npos) {
+            continue;
+          }
+
+          ImGui::PushID(name.c_str());
+          if (ImGui::Selectable(name.c_str())) {
+            // Could jump to symbol definition if line info is available
+            // For now, just select it
+          }
+          ImGui::SameLine(200);
+          ImGui::TextDisabled("$%06X", symbol.address);
+          ImGui::PopID();
+        }
+      }
+      ImGui::EndChild();
+    }
+  }
+  ImGui::End();
 }
 
 }  // namespace yaze::editor
