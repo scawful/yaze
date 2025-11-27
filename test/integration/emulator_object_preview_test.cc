@@ -692,14 +692,26 @@ TEST_F(EmulatorStateInjectionTest, CpuStateSetup) {
 }
 
 // Test STP trap setup
+// NOTE: Writing to bank $01 ROM space doesn't persist - ROM is read-only.
+// This test verifies we can write STP to WRAM instead for trap detection.
 TEST_F(EmulatorStateInjectionTest, StpTrapSetup) {
-  // Write STP opcode to trap address
-  const uint32_t trap_addr = 0x01FF00;
-  snes_->Write(trap_addr, 0xDB);  // STP opcode
+  // $01:FF00 is ROM space - writes don't persist
+  // Instead, use a WRAM address for trap setup
+  const uint32_t wram_trap_addr = 0x7EFF00;  // High WRAM
+  snes_->Write(wram_trap_addr, 0xDB);        // STP opcode
 
-  // Verify write
-  uint8_t opcode = snes_->Read(trap_addr);
-  EXPECT_EQ(opcode, 0xDB) << "STP opcode should be written to trap address";
+  // Verify write to WRAM succeeds
+  uint8_t opcode = snes_->Read(wram_trap_addr);
+  EXPECT_EQ(opcode, 0xDB) << "STP opcode should be written to WRAM trap address";
+
+  // Document the ROM write limitation
+  const uint32_t rom_trap_addr = 0x01FF00;
+  snes_->Write(rom_trap_addr, 0xDB);
+  uint8_t rom_opcode = snes_->Read(rom_trap_addr);
+  // This will NOT equal 0xDB because ROM is read-only
+  // The actual value depends on what's in the ROM at that address
+  EXPECT_NE(rom_opcode, 0xDB)
+      << "ROM space writes should NOT persist (ROM is read-only)";
 }
 
 // =============================================================================

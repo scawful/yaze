@@ -53,7 +53,7 @@ const std::unordered_map<EditorType, bool> EditorRegistry::kCardBasedEditors = {
     {EditorType::kHex, true},
     {EditorType::kAgent, false},  // Agent: Traditional UI
     {EditorType::kSettings,
-     true}  // Settings: Now card-based for better organization
+     false}  // Settings: Sidebar panel
 };
 
 bool EditorRegistry::IsCardBasedEditor(EditorType type) {

@@ -116,6 +116,18 @@ class HeadlessEmulator {
           stuck_counter_ = 0;
         }
         last_pc_ = current_pc;
+
+        // Debug: Log ALTTP game module ($7E0010) - check every frame
+        uint8_t game_module = snes_->get_ram()[0x10];
+        uint8_t submodule = snes_->get_ram()[0x11];
+        static uint8_t last_module = 0xFF;
+        static uint8_t last_submodule = 0xFF;
+        if (game_module != last_module || submodule != last_submodule) {
+          printf("[GAME] Frame %d: Module 0x%02X -> 0x%02X, Sub 0x%02X -> 0x%02X\n",
+                 frame, last_module, game_module, last_submodule, submodule);
+          last_module = game_module;
+          last_submodule = submodule;
+        }
       }
     }
 

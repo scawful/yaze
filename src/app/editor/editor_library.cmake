@@ -45,7 +45,6 @@ set(
   app/editor/system/project_manager.cc
   app/editor/system/proposal_drawer.cc
   app/editor/system/rom_file_manager.cc
-  app/editor/system/settings_editor.cc
   app/editor/system/shortcut_manager.cc
   app/editor/system/session_coordinator.cc
   app/editor/system/user_settings.cc
@@ -55,6 +54,7 @@ set(
   app/editor/ui/layout_manager.cc
   app/editor/ui/layout_presets.cc
   app/editor/ui/right_panel_manager.cc
+  app/editor/ui/settings_panel.cc
   app/editor/ui/selection_properties_panel.cc
   app/editor/ui/menu_builder.cc
   app/editor/ui/rom_load_options_dialog.cc

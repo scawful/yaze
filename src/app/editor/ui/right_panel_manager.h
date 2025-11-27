@@ -16,7 +16,7 @@ namespace editor {
 class ProposalDrawer;
 class ToastManager;
 class AgentChatWidget;
-class SettingsEditor;
+class SettingsPanel;
 class SelectionPropertiesPanel;
 
 /**
@@ -62,7 +62,7 @@ class RightPanelManager {
 
   void SetAgentChatWidget(AgentChatWidget* widget) { agent_chat_widget_ = widget; }
   void SetProposalDrawer(ProposalDrawer* drawer) { proposal_drawer_ = drawer; }
-  void SetSettingsEditor(SettingsEditor* editor) { settings_editor_ = editor; }
+  void SetSettingsPanel(SettingsPanel* panel) { settings_panel_ = panel; }
   void SetPropertiesPanel(SelectionPropertiesPanel* panel) {
     properties_panel_ = panel;
   }
@@ -152,7 +152,7 @@ class RightPanelManager {
 
   AgentChatWidget* agent_chat_widget() const { return agent_chat_widget_; }
   ProposalDrawer* proposal_drawer() const { return proposal_drawer_; }
-  SettingsEditor* settings_editor() const { return settings_editor_; }
+  SettingsPanel* settings_panel() const { return settings_panel_; }
   SelectionPropertiesPanel* properties_panel() const { return properties_panel_; }
 
  private:
@@ -185,7 +185,7 @@ class RightPanelManager {
   // Component references (not owned)
   AgentChatWidget* agent_chat_widget_ = nullptr;
   ProposalDrawer* proposal_drawer_ = nullptr;
-  SettingsEditor* settings_editor_ = nullptr;
+  SettingsPanel* settings_panel_ = nullptr;
   SelectionPropertiesPanel* properties_panel_ = nullptr;
   ToastManager* toast_manager_ = nullptr;
   Rom* rom_ = nullptr;

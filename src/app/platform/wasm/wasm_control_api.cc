@@ -15,6 +15,7 @@
 #include "app/editor/system/editor_card_registry.h"
 #include "app/gui/automation/widget_id_registry.h"
 #include "app/gui/automation/widget_measurement.h"
+#include "app/platform/wasm/wasm_settings.h"
 #include "app/rom.h"
 #include "nlohmann/json.hpp"
 #include "util/log.h"
@@ -1504,6 +1505,18 @@ std::string WasmControlApi::ListPaletteGroups() {
   return result.dump();
 }
 
+std::string WasmControlApi::LoadFont(const std::string& name, const std::string& data, float size) {
+  nlohmann::json result;
+  auto status = yaze::platform::WasmSettings::LoadUserFont(name, data, size);
+  if (status.ok()) {
+    result["success"] = true;
+  } else {
+    result["success"] = false;
+    result["error"] = status.ToString();
+  }
+  return result.dump();
+}
+
 // ============================================================================
 // GUI Automation APIs Implementation
 // ============================================================================
@@ -1691,6 +1704,10 @@ EMSCRIPTEN_BINDINGS(wasm_control_api) {
   emscripten::function("guiGetUIElementTree", &WasmControlApi::GetUIElementTree);
   emscripten::function("guiGetUIElementBounds", &WasmControlApi::GetUIElementBounds);
   emscripten::function("guiSetSelection", &WasmControlApi::SetSelection);
+
+  // Settings APIs
+  emscripten::function("settingsGetCurrentThemeData", &yaze::platform::WasmSettings::GetCurrentThemeData);
+  emscripten::function("settingsLoadFont", &WasmControlApi::LoadFont);
 }
 
 }  // namespace platform

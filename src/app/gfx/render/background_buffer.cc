@@ -15,6 +15,8 @@ BackgroundBuffer::BackgroundBuffer(int width, int height)
   // Initialize buffer with size for SNES layers
   const int total_tiles = (width / 8) * (height / 8);
   buffer_.resize(total_tiles, 0);
+  // Note: bitmap_ is NOT initialized here to avoid circular dependency
+  // with Arena::Get(). Call EnsureBitmapInitialized() before accessing bitmap().
 }
 
 void BackgroundBuffer::SetTileAt(int x, int y, uint16_t value) {
@@ -37,6 +39,13 @@ uint16_t BackgroundBuffer::GetTileAt(int x, int y) const {
 
 void BackgroundBuffer::ClearBuffer() {
   std::ranges::fill(buffer_, 0);
+}
+
+void BackgroundBuffer::EnsureBitmapInitialized() {
+  if (!bitmap_.is_active() || bitmap_.width() == 0) {
+    bitmap_.Create(width_, height_, 8,
+                   std::vector<uint8_t>(width_ * height_, 0));
+  }
 }
 
 void BackgroundBuffer::DrawTile(const TileInfo& tile, uint8_t* canvas,

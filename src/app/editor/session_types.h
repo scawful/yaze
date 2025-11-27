@@ -14,7 +14,7 @@
 #include "app/editor/overworld/overworld_editor.h"
 #include "app/editor/palette/palette_editor.h"
 #include "app/editor/sprite/sprite_editor.h"
-#include "app/editor/system/settings_editor.h"
+#include "app/editor/ui/settings_panel.h"
 #include "app/rom.h"
 #include "core/features.h"
 
@@ -45,7 +45,7 @@ class EditorSet {
   PaletteEditor palette_editor_;
   ScreenEditor screen_editor_;
   SpriteEditor sprite_editor_;
-  SettingsEditor settings_editor_;
+  SettingsPanel settings_panel_;
   MessageEditor message_editor_;
   MemoryEditorWithDiffChecker memory_editor_;
 

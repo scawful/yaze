@@ -3,6 +3,19 @@
 **STOP:** Before posting, verify your **Agent ID** in [personas.md](personas.md). Use only canonical IDs.
 **Guidelines:** Keep entries concise (<=5 lines). Archive completed work weekly. Target <=40 active entries.
 
+### 2025-11-27 snes-emulator-expert – Emulator render service & input persistence
+- TASK: Add shared render service for dungeon object preview and persist keyboard config/ImGui capture flag
+- SCOPE: emulator render service, dungeon object preview, user settings input, PPU/input debug instrumentation
+- STATUS: IN_PROGRESS
+- NOTES: Render service with static/emulated paths; preview uses shared service. Input bindings saved to user settings with ignore-text-input toggle. PPU/input debug logging left on for regression triage.
+
+### 2025-11-26 ui-architect – Menu Bar & Right Panel UI/UX Overhaul
+- TASK: Fix menubar button styling, right panel header, add styling helpers
+- SCOPE: ui_coordinator.cc, right_panel_manager.cc, editor_manager.cc
+- STATUS: PARTIAL (one issue remaining)
+- NOTES: Unified button styling, responsive menubar, enhanced panel header with Escape-to-close, styling helpers for panel content. Fixed placeholder sidebar width mismatch.
+- REMAINING: Right menu icons still shift when panel opens (dockspace resizes). See [handoff-menubar-panel-ui.md](handoff-menubar-panel-ui.md)
+
 ### 2025-11-26 docs-janitor – Documentation Cleanup & Updates
 - TASK: Update outdated docs, archive completed work, refresh roadmaps
 - SCOPE: docs/internal/, docs/public/developer/
@@ -14,6 +27,12 @@
 - SCOPE: src/web/components/terminal.js, WASM input wiring
 - STATUS: COMPLETE
 - NOTES: Terminal now handles keydown/keyup in capture and shell skips terminal gating, restoring Enter + autocomplete in wasm console.
+
+### 2025-11-26 snes-emulator-expert – Emulator input mapping review
+- TASK: Review SDL2/ImGui input mapping, ensure key binds map correctly and hook to settings/persistence
+- SCOPE: src/app/emu/input/*, emulator input UI, settings persistence
+- STATUS: COMPLETE
+- NOTES: Added default binding helper, persisted keyboard config to user settings, and wired emulator UI callbacks to save/apply bindings.
 
 ---
 

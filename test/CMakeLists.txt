@@ -147,6 +147,7 @@ if(YAZE_BUILD_TESTS)
       integration/asar_rom_test.cc
       integration/zelda3/dungeon_graphics_transparency_test.cc
       integration/emulator_object_preview_test.cc
+      integration/emulator_render_service_test.cc
       e2e/rom_dependent/e2e_rom_test.cc
       e2e/zscustomoverworld/zscustomoverworld_upgrade_test.cc
     )

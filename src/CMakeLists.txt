@@ -33,6 +33,9 @@ set(
   app/emu/ui/emulator_ui.cc
   app/emu/ui/input_handler.cc
   app/emu/video/ppu.cc
+  app/emu/render/render_context.cc
+  app/emu/render/emulator_render_service.cc
+  app/emu/render/save_state_manager.cc
 )
 
 # Add SDL3-specific backends when SDL3 is enabled

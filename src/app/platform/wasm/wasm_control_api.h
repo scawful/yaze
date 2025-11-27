@@ -310,6 +310,15 @@ class WasmControlApi {
    */
   static std::string ListPaletteGroups();
 
+  /**
+   * @brief Load a font from binary data
+   * @param name Font name
+   * @param data Binary font data
+   * @param size Font size
+   * @return JSON result with success/error
+   */
+  static std::string LoadFont(const std::string& name, const std::string& data, float size);
+
   // ============================================================================
   // GUI Automation APIs (for LLM agents)
   // ============================================================================

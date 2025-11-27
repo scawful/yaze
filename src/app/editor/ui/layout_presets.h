@@ -179,14 +179,6 @@ class LayoutPresets {
 
     // Memory cards (editor_manager.cc)
     static constexpr const char* kMemoryHexEditor = "memory.hex_editor";
-
-    // Settings cards (settings_editor.cc)
-    static constexpr const char* kSettingsGeneral = "settings.general";
-    static constexpr const char* kSettingsAppearance = "settings.appearance";
-    static constexpr const char* kSettingsEditorBehavior = "settings.editor_behavior";
-    static constexpr const char* kSettingsPerformance = "settings.performance";
-    static constexpr const char* kSettingsAiAgent = "settings.ai_agent";
-    static constexpr const char* kSettingsShortcuts = "settings.shortcuts";
   };
 };
 

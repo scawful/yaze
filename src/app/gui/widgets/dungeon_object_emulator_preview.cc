@@ -1,8 +1,11 @@
 #include "app/gui/widgets/dungeon_object_emulator_preview.h"
 
 #include <cstdio>
+#include <cstring>
 
 #include "app/editor/agent/agent_ui_theme.h"
+#include "app/emu/render/emulator_render_service.h"
+#include "app/emu/render/render_context.h"
 #include "app/gfx/backend/irenderer.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/types/snes_palette.h"
@@ -87,10 +90,12 @@ DungeonObjectEmulatorPreview::~DungeonObjectEmulatorPreview() {
   // }
 }
 
-void DungeonObjectEmulatorPreview::Initialize(gfx::IRenderer* renderer,
-                                              Rom* rom) {
+void DungeonObjectEmulatorPreview::Initialize(
+    gfx::IRenderer* renderer, Rom* rom,
+    emu::render::EmulatorRenderService* render_service) {
   renderer_ = renderer;
   rom_ = rom;
+  render_service_ = render_service;
   // Defer SNES initialization until EnsureInitialized() is called
   // This avoids a ~2MB ROM copy during startup
   // object_texture_ = renderer_->CreateTexture(256, 256);
@@ -323,6 +328,50 @@ void DungeonObjectEmulatorPreview::TriggerEmulatedRender() {
     return;
   }
 
+  // Use shared render service if available (set to emulated mode)
+  if (render_service_ && render_service_->IsReady()) {
+    // Temporarily switch to emulated mode
+    auto prev_mode = render_service_->GetRenderMode();
+    render_service_->SetRenderMode(emu::render::RenderMode::kEmulated);
+
+    emu::render::RenderRequest request;
+    request.type = emu::render::RenderTargetType::kDungeonObject;
+    request.entity_id = object_id_;
+    request.x = object_x_;
+    request.y = object_y_;
+    request.size = object_size_;
+    request.room_id = room_id_;
+    request.output_width = 256;
+    request.output_height = 256;
+
+    auto result = render_service_->Render(request);
+
+    // Restore previous mode
+    render_service_->SetRenderMode(prev_mode);
+
+    if (result.ok() && result->success) {
+      last_cycle_count_ = result->cycles_executed;
+      // Update texture with rendered pixels
+      if (!object_texture_) {
+        object_texture_ = renderer_->CreateTexture(256, 256);
+      }
+      void* pixels = nullptr;
+      int pitch = 0;
+      if (renderer_->LockTexture(object_texture_, nullptr, &pixels, &pitch)) {
+        memcpy(pixels, result->rgba_pixels.data(), result->rgba_pixels.size());
+        renderer_->UnlockTexture(object_texture_);
+      }
+      printf("[SERVICE-EMU] Rendered object $%04X via EmulatorRenderService\n",
+             object_id_);
+      return;
+    } else {
+      printf("[SERVICE-EMU] Emulated render failed, falling back to legacy: %s\n",
+             result.ok() ? result->error.c_str()
+                         : std::string(result.status().message()).c_str());
+    }
+  }
+
+  // Legacy emulated rendering path
   // Lazy initialize the SNES emulator on first use
   EnsureInitialized();
   if (!snes_instance_) {
@@ -689,6 +738,43 @@ void DungeonObjectEmulatorPreview::TriggerStaticRender() {
 
   last_error_.clear();
 
+  // Use shared render service if available
+  if (render_service_ && render_service_->IsReady()) {
+    emu::render::RenderRequest request;
+    request.type = emu::render::RenderTargetType::kDungeonObject;
+    request.entity_id = object_id_;
+    request.x = object_x_;
+    request.y = object_y_;
+    request.size = object_size_;
+    request.room_id = room_id_;
+    request.output_width = 256;
+    request.output_height = 256;
+
+    auto result = render_service_->Render(request);
+    if (result.ok() && result->success) {
+      // Update texture with rendered pixels
+      if (!object_texture_) {
+        object_texture_ = renderer_->CreateTexture(256, 256);
+      }
+      void* pixels = nullptr;
+      int pitch = 0;
+      if (renderer_->LockTexture(object_texture_, nullptr, &pixels, &pitch)) {
+        // Copy RGBA pixels to texture
+        memcpy(pixels, result->rgba_pixels.data(), result->rgba_pixels.size());
+        renderer_->UnlockTexture(object_texture_);
+      }
+      printf("[SERVICE] Rendered object $%04X via EmulatorRenderService\n",
+             object_id_);
+      return;
+    } else {
+      // Fall through to legacy rendering
+      printf("[SERVICE] Render failed, falling back to legacy: %s\n",
+             result.ok() ? result->error.c_str()
+                         : std::string(result.status().message()).c_str());
+    }
+  }
+
+  // Legacy rendering path (when no render service is available)
   // Load room for palette/graphics context
   zelda3::Room room = zelda3::LoadRoomFromRom(rom_, room_id_);
 

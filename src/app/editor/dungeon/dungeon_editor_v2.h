@@ -8,6 +8,7 @@
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
 #include "app/editor/editor.h"
+#include "app/emu/render/emulator_render_service.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/gui/app/editor_layout.h"
 #include "app/gui/widgets/dungeon_object_emulator_preview.h"
@@ -74,7 +75,12 @@ class DungeonEditorV2 : public Editor {
     room_loader_ = DungeonRoomLoader(rom);
     room_selector_.set_rom(rom);
     canvas_viewer_.SetRom(rom);
-    object_emulator_preview_.Initialize(renderer_, rom);
+    // Create render service if needed
+    if (rom && rom->is_loaded() && !render_service_) {
+      render_service_ = std::make_unique<emu::render::EmulatorRenderService>(rom);
+      render_service_->Initialize();
+    }
+    object_emulator_preview_.Initialize(renderer_, rom, render_service_.get());
   }
   Rom* rom() const { return rom_; }
 
@@ -163,6 +169,7 @@ class DungeonEditorV2 : public Editor {
   std::unique_ptr<ObjectEditorCard>
       object_editor_card_;  // Unified object editor
   std::unique_ptr<zelda3::DungeonEditorSystem> dungeon_editor_system_;
+  std::unique_ptr<emu::render::EmulatorRenderService> render_service_;
 
   bool is_loaded_ = false;
 

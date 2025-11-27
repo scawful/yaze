@@ -256,8 +256,10 @@ class EditorManager {
   }
   void ShowHexEditor();
   void ShowEmulator() {
-    if (ui_coordinator_)
+    if (ui_coordinator_) {
       ui_coordinator_->SetEmulatorVisible(true);
+      card_registry_.SetActiveCategory("Emulator");
+    }
   }
   void ShowMemoryEditor() {
     if (ui_coordinator_)
@@ -385,6 +387,9 @@ class EditorManager {
   std::unique_ptr<RightPanelManager>
       right_panel_manager_;  // Right-side panel system
   WorkspaceManager workspace_manager_{&toast_manager_};
+
+  emu::input::InputConfig BuildInputConfigFromSettings() const;
+  void PersistInputConfig(const emu::input::InputConfig& config);
 
   float autosave_timer_ = 0.0f;
 

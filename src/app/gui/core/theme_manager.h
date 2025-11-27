@@ -220,6 +220,9 @@ class ThemeManager {
   Color GetWelcomeScreenBorder() const;
   Color GetWelcomeScreenAccent() const;
 
+  // Export current theme as JSON string for Web/WASM sync
+  std::string ExportCurrentThemeJson() const;
+
   // Convenient theme color access interface
   Color GetThemeColor(const std::string& color_name) const;
   ImVec4 GetThemeColorVec4(const std::string& color_name) const;
