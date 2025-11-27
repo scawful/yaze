@@ -81,6 +81,7 @@ set(GFX_UTIL_SRC
   app/gfx/util/compression.cc
   app/gfx/util/palette_manager.cc
   app/gfx/util/scad_format.cc
+  app/gfx/util/zspr_loader.cc
 )
 
 # build_cleaner:auto-maintain
