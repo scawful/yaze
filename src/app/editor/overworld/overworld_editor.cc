@@ -46,7 +46,7 @@
 #include "core/features.h"
 #include "editor/overworld/overworld_entity_renderer.h"
 #include "imgui/imgui.h"
-#include "imgui_memory_editor.h"
+#include "app/gui/imgui_memory_editor.h"
 #include "util/file_util.h"
 #include "util/hex.h"
 #include "util/log.h"
@@ -3180,7 +3180,7 @@ void OverworldEditor::DrawDebugWindow() {
               (int)overworld_.mutable_map_tiles()->special_world.size());
 
   static bool view_lw_map_tiles = false;
-  static MemoryEditor mem_edit;
+  static yaze::gui::MemoryEditorWidget mem_edit;
   // Let's create buttons which let me view containers in the memory editor
   if (ImGui::Button("View Light World Map Tiles")) {
     view_lw_map_tiles = !view_lw_map_tiles;

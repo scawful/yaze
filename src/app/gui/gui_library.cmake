@@ -87,7 +87,7 @@ add_library(yaze_gui_automation STATIC ${GUI_AUTOMATION_SRC})
 add_library(yaze_gui_app STATIC ${GUI_APP_SRC})
 
 # Link dependencies between the new libraries
-target_link_libraries(yaze_gui_core PUBLIC yaze_util ImGui nlohmann_json::nlohmann_json)
+target_link_libraries(yaze_gui_core PUBLIC yaze_util ImGui ImPlot nlohmann_json::nlohmann_json)
 target_link_libraries(yaze_canvas PUBLIC yaze_gui_core yaze_gfx)
 target_link_libraries(yaze_gui_widgets PUBLIC yaze_gui_core yaze_gfx)
 target_link_libraries(yaze_gui_automation PUBLIC yaze_gui_core)

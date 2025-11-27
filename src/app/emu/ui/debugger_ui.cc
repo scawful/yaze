@@ -8,7 +8,7 @@
 #include "app/gui/core/input.h"
 #include "app/gui/core/theme_manager.h"
 #include "imgui/imgui.h"
-#include "imgui_memory_editor.h"
+#include "app/gui/imgui_memory_editor.h"
 #include "util/log.h"
 
 namespace yaze {
@@ -294,7 +294,7 @@ void RenderMemoryViewer(Emulator* emu) {
   auto& theme_manager = ThemeManager::Get();
   const auto& theme = theme_manager.GetCurrentTheme();
 
-  static MemoryEditor mem_edit;
+  static yaze::gui::MemoryEditorWidget mem_edit;
 
   ImGui::PushStyleColor(ImGuiCol_ChildBg, ConvertColorToImVec4(theme.child_bg));
   ImGui::BeginChild("##MemoryViewer", ImVec2(0, 0), true);
