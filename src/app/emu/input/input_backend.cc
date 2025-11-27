@@ -117,7 +117,7 @@ class SDL2InputBackend : public IInputBackend {
       // Debug: Log when any button is pressed
       static int button_log_count = 0;
       if (state.buttons != 0 && button_log_count++ < 100) {
-        LOG_DEBUG("InputBackend", "SDL2 Poll: buttons=0x%04X (keyboard detected)",
+        LOG_INFO("InputBackend", "SDL2 Poll: buttons=0x%04X (keyboard detected)",
                   state.buttons);
       }
     } else {
