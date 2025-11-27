@@ -190,6 +190,11 @@ absl::Status OverworldEditor::Load() {
     return absl::FailedPreconditionError("ROM not loaded");
   }
 
+  // Clear undo/redo state when loading new ROM data
+  undo_stack_.clear();
+  redo_stack_.clear();
+  current_paint_operation_.reset();
+
   RETURN_IF_ERROR(LoadGraphics());
   RETURN_IF_ERROR(
       tile16_editor_.Initialize(tile16_blockset_bmp_, current_gfx_bmp_,
@@ -809,6 +814,22 @@ void OverworldEditor::DrawToolset() {
     if (ImGui::IsKeyDown(ImGuiKey_T) && ImGui::IsKeyDown(ImGuiKey_LeftCtrl)) {
       show_tile16_editor_ = !show_tile16_editor_;
     }
+
+    // Undo/Redo shortcuts (Ctrl+Z, Ctrl+Y, Ctrl+Shift+Z)
+    if (ImGui::IsKeyDown(ImGuiKey_LeftCtrl) ||
+        ImGui::IsKeyDown(ImGuiKey_RightCtrl)) {
+      if (ImGui::IsKeyPressed(ImGuiKey_Z, false)) {
+        if (ImGui::IsKeyDown(ImGuiKey_LeftShift) ||
+            ImGui::IsKeyDown(ImGuiKey_RightShift)) {
+          status_ = Redo();  // Ctrl+Shift+Z = Redo
+        } else {
+          status_ = Undo();  // Ctrl+Z = Undo
+        }
+      }
+      if (ImGui::IsKeyPressed(ImGuiKey_Y, false)) {
+        status_ = Redo();  // Ctrl+Y = Redo (Windows style)
+      }
+    }
   }
 }
 
@@ -930,6 +951,14 @@ void OverworldEditor::DrawOverworldEdits() {
 
   int index_x = superX * 32 + tile16_x;
   int index_y = superY * 32 + tile16_y;
+
+  // Get old tile value for undo tracking
+  int old_tile_id = selected_world[index_x][index_y];
+
+  // Only record undo if tile is actually changing
+  if (old_tile_id != current_tile16_) {
+    CreateUndoPoint(current_map_, current_world_, index_x, index_y, old_tile_id);
+  }
 
   selected_world[index_x][index_y] = current_tile16_;
 }
@@ -1103,6 +1132,13 @@ void OverworldEditor::CheckForOverworldEdits() {
           if (in_same_local_map && index_x >= 0 &&
               (index_x + rect_width - 1) < 0x200 && index_y >= 0 &&
               (index_y + rect_height - 1) < 0x200) {
+            // Get old tile value for undo tracking
+            int old_tile_id = selected_world[index_x][index_y];
+            if (old_tile_id != tile16_id) {
+              CreateUndoPoint(current_map_, current_world_, index_x, index_y,
+                              old_tile_id);
+            }
+
             selected_world[index_x][index_y] = tile16_id;
 
             // CRITICAL FIX: Also update the bitmap directly like single tile
@@ -1124,6 +1160,9 @@ void OverworldEditor::CheckForOverworldEdits() {
           }
         }
       }
+
+      // Finalize the undo batch operation after all tiles are placed
+      FinalizePaintOperation();
 
       RefreshOverworldMap();
       // Clear the rectangle selection after applying
@@ -1855,6 +1894,157 @@ absl::Status OverworldEditor::Save() {
   }
   return absl::OkStatus();
 }
+
+// ============================================================================
+// Undo/Redo System Implementation
+// ============================================================================
+
+auto& OverworldEditor::GetWorldTiles(int world) {
+  switch (world) {
+    case 0:
+      return overworld_.mutable_map_tiles()->light_world;
+    case 1:
+      return overworld_.mutable_map_tiles()->dark_world;
+    default:
+      return overworld_.mutable_map_tiles()->special_world;
+  }
+}
+
+void OverworldEditor::CreateUndoPoint(int map_id, int world, int x, int y,
+                                       int old_tile_id) {
+  auto now = std::chrono::steady_clock::now();
+
+  // Check if we should batch with current operation (same map, same world,
+  // within timeout)
+  if (current_paint_operation_.has_value() &&
+      current_paint_operation_->map_id == map_id &&
+      current_paint_operation_->world == world &&
+      (now - last_paint_time_) < kPaintBatchTimeout) {
+    // Add to existing operation
+    current_paint_operation_->tile_changes.emplace_back(
+        std::make_pair(x, y), old_tile_id);
+  } else {
+    // Finalize any pending operation before starting a new one
+    FinalizePaintOperation();
+
+    // Start new operation
+    current_paint_operation_ = OverworldUndoPoint{
+        .map_id = map_id,
+        .world = world,
+        .tile_changes = {{{x, y}, old_tile_id}},
+        .timestamp = now};
+  }
+
+  last_paint_time_ = now;
+}
+
+void OverworldEditor::FinalizePaintOperation() {
+  if (!current_paint_operation_.has_value()) {
+    return;
+  }
+
+  // Clear redo stack when new action is performed
+  redo_stack_.clear();
+
+  // Add to undo stack
+  undo_stack_.push_back(std::move(*current_paint_operation_));
+  current_paint_operation_.reset();
+
+  // Limit stack size
+  while (undo_stack_.size() > kMaxUndoHistory) {
+    undo_stack_.erase(undo_stack_.begin());
+  }
+}
+
+void OverworldEditor::ApplyUndoPoint(const OverworldUndoPoint& point) {
+  auto& world_tiles = GetWorldTiles(point.world);
+
+  // Apply all tile changes
+  for (const auto& [coords, tile_id] : point.tile_changes) {
+    auto [x, y] = coords;
+    world_tiles[x][y] = tile_id;
+  }
+
+  // Refresh the map visuals
+  RefreshOverworldMap();
+}
+
+absl::Status OverworldEditor::Undo() {
+  // Finalize any pending paint operation first
+  FinalizePaintOperation();
+
+  if (undo_stack_.empty()) {
+    return absl::FailedPreconditionError("Nothing to undo");
+  }
+
+  OverworldUndoPoint point = std::move(undo_stack_.back());
+  undo_stack_.pop_back();
+
+  // Create redo point with current tile values before restoring
+  OverworldUndoPoint redo_point{.map_id = point.map_id,
+                                 .world = point.world,
+                                 .tile_changes = {},
+                                 .timestamp = std::chrono::steady_clock::now()};
+
+  auto& world_tiles = GetWorldTiles(point.world);
+
+  // Swap tiles and record for redo
+  for (const auto& [coords, old_tile_id] : point.tile_changes) {
+    auto [x, y] = coords;
+    int current_tile_id = world_tiles[x][y];
+
+    // Record current value for redo
+    redo_point.tile_changes.emplace_back(coords, current_tile_id);
+
+    // Restore old value
+    world_tiles[x][y] = old_tile_id;
+  }
+
+  redo_stack_.push_back(std::move(redo_point));
+
+  // Refresh the map visuals
+  RefreshOverworldMap();
+
+  return absl::OkStatus();
+}
+
+absl::Status OverworldEditor::Redo() {
+  if (redo_stack_.empty()) {
+    return absl::FailedPreconditionError("Nothing to redo");
+  }
+
+  OverworldUndoPoint point = std::move(redo_stack_.back());
+  redo_stack_.pop_back();
+
+  // Create undo point with current tile values
+  OverworldUndoPoint undo_point{.map_id = point.map_id,
+                                 .world = point.world,
+                                 .tile_changes = {},
+                                 .timestamp = std::chrono::steady_clock::now()};
+
+  auto& world_tiles = GetWorldTiles(point.world);
+
+  // Swap tiles and record for undo
+  for (const auto& [coords, tile_id] : point.tile_changes) {
+    auto [x, y] = coords;
+    int current_tile_id = world_tiles[x][y];
+
+    // Record current value for undo
+    undo_point.tile_changes.emplace_back(coords, current_tile_id);
+
+    // Apply redo value
+    world_tiles[x][y] = tile_id;
+  }
+
+  undo_stack_.push_back(std::move(undo_point));
+
+  // Refresh the map visuals
+  RefreshOverworldMap();
+
+  return absl::OkStatus();
+}
+
+// ============================================================================
 
 absl::Status OverworldEditor::LoadGraphics() {
   gfx::ScopedTimer timer("LoadGraphics");
