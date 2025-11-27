@@ -362,6 +362,87 @@ class WasmControlApi {
    */
   static std::string GetPlatformInfo();
 
+  // ============================================================================
+  // Agent API (for AI/LLM agent integration)
+  // ============================================================================
+
+  /**
+   * @brief Check if agent system is ready
+   * @return true if agent is initialized and available
+   */
+  static bool AgentIsReady();
+
+  /**
+   * @brief Send a message to the AI agent
+   * @param message User message to send
+   * @return JSON with response, status, proposals (if any)
+   */
+  static std::string AgentSendMessage(const std::string& message);
+
+  /**
+   * @brief Get chat history
+   * @return JSON array of chat messages
+   */
+  static std::string AgentGetChatHistory();
+
+  /**
+   * @brief Get current agent configuration
+   * @return JSON with provider, model, host, etc.
+   */
+  static std::string AgentGetConfig();
+
+  /**
+   * @brief Set agent configuration
+   * @param config_json JSON configuration object
+   * @return JSON result with success/error
+   */
+  static std::string AgentSetConfig(const std::string& config_json);
+
+  /**
+   * @brief Get available AI providers
+   * @return JSON array of provider info
+   */
+  static std::string AgentGetProviders();
+
+  /**
+   * @brief Get list of pending/recent proposals
+   * @return JSON array of proposal info
+   */
+  static std::string AgentGetProposals();
+
+  /**
+   * @brief Accept a proposal by ID
+   * @param proposal_id Proposal ID to accept
+   * @return JSON result with success/error
+   */
+  static std::string AgentAcceptProposal(const std::string& proposal_id);
+
+  /**
+   * @brief Reject a proposal by ID
+   * @param proposal_id Proposal ID to reject
+   * @return JSON result with success/error
+   */
+  static std::string AgentRejectProposal(const std::string& proposal_id);
+
+  /**
+   * @brief Get detailed proposal information
+   * @param proposal_id Proposal ID
+   * @return JSON with proposal details, diff, etc.
+   */
+  static std::string AgentGetProposalDetails(const std::string& proposal_id);
+
+  /**
+   * @brief Open the agent sidebar
+   * @return JSON result with success/error
+   */
+  static std::string AgentOpenSidebar();
+
+  /**
+   * @brief Close the agent sidebar
+   * @return JSON result with success/error
+   */
+  static std::string AgentCloseSidebar();
+
  private:
   static editor::EditorManager* editor_manager_;
   static bool initialized_;
@@ -437,6 +518,19 @@ class WasmControlApi {
   static std::string SetSelection(const std::string&) { return "{}"; }
   // Platform Info API
   static std::string GetPlatformInfo() { return "{}"; }
+  // Agent API
+  static bool AgentIsReady() { return false; }
+  static std::string AgentSendMessage(const std::string&) { return "{}"; }
+  static std::string AgentGetChatHistory() { return "[]"; }
+  static std::string AgentGetConfig() { return "{}"; }
+  static std::string AgentSetConfig(const std::string&) { return "{}"; }
+  static std::string AgentGetProviders() { return "[]"; }
+  static std::string AgentGetProposals() { return "[]"; }
+  static std::string AgentAcceptProposal(const std::string&) { return "{}"; }
+  static std::string AgentRejectProposal(const std::string&) { return "{}"; }
+  static std::string AgentGetProposalDetails(const std::string&) { return "{}"; }
+  static std::string AgentOpenSidebar() { return "{}"; }
+  static std::string AgentCloseSidebar() { return "{}"; }
 };
 
 }  // namespace platform

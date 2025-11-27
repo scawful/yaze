@@ -8,14 +8,15 @@ The yaze WASM build exposes a comprehensive set of JavaScript APIs for programma
 - **`window.yaze.editor`** - Query current editor state
 - **`window.yaze.data`** - Read-only access to ROM data
 - **`window.yaze.gui`** - GUI automation and interaction
+- **`window.yaze.agent`** - AI agent integration (chat, proposals, configuration)
 - **`window.yazeDebug`** - Debug utilities and diagnostics
 - **`window.aiTools`** - High-level AI assistant tools (Gemini Antigravity)
 
 ## API Version
 
-- Version: 2.4.0
-- Last Updated: 2025-11-25
-- Capabilities: `['palette', 'arena', 'graphics', 'timeline', 'pixel-inspector', 'rom', 'overworld', 'emulator', 'editor', 'control', 'data', 'gui', 'loading-progress', 'ai-tools', 'async-editor-switch', 'card-groups', 'tree-sidebar', 'properties-panel']`
+- Version: 2.5.0
+- Last Updated: 2025-11-27
+- Capabilities: `['palette', 'arena', 'graphics', 'timeline', 'pixel-inspector', 'rom', 'overworld', 'emulator', 'editor', 'control', 'data', 'gui', 'agent', 'loading-progress', 'ai-tools', 'async-editor-switch', 'card-groups', 'tree-sidebar', 'properties-panel']`
 
 ## Build Requirements
 
@@ -630,6 +631,297 @@ window.yaze.gui.setSelection(['obj_1', 'obj_2'])
 ```
 
 Set selection programmatically.
+
+---
+
+## window.yaze.agent - AI Agent Integration API
+
+Provides programmatic control over the AI agent system from JavaScript. Enables browser-based AI agents to interact with the built-in chat, manage proposals, and configure AI providers.
+
+### Utility
+
+#### isReady()
+
+```javascript
+const ready = window.yaze.agent.isReady()
+// Returns: boolean
+```
+
+Checks if the agent system is initialized and ready for use. Requires ROM to be loaded.
+
+### Chat Operations
+
+#### sendMessage(message)
+
+```javascript
+const result = window.yaze.agent.sendMessage("Help me analyze dungeon room 0")
+```
+
+Send a message to the AI agent chat.
+
+**Parameters:**
+- `message` (string): User message to send
+
+**Returns:**
+```json
+{
+  "success": true,
+  "status": "queued",
+  "message": "Help me analyze dungeon room 0"
+}
+```
+
+#### getChatHistory()
+
+```javascript
+const history = window.yaze.agent.getChatHistory()
+```
+
+Get the chat message history.
+
+**Returns:**
+```json
+[
+  {"role": "user", "content": "Hello"},
+  {"role": "assistant", "content": "Hi! How can I help?"}
+]
+```
+
+### Configuration
+
+#### getConfig()
+
+```javascript
+const config = window.yaze.agent.getConfig()
+```
+
+Get current agent configuration.
+
+**Returns:**
+```json
+{
+  "provider": "mock",
+  "model": "",
+  "ollama_host": "http://localhost:11434",
+  "verbose": false,
+  "show_reasoning": true,
+  "max_tool_iterations": 4
+}
+```
+
+#### setConfig(config)
+
+```javascript
+window.yaze.agent.setConfig({
+  provider: "ollama",
+  model: "llama3",
+  ollama_host: "http://localhost:11434",
+  verbose: true
+})
+```
+
+Update agent configuration.
+
+**Parameters:**
+- `config` (object): Configuration object with optional fields:
+  - `provider`: AI provider ID ("mock", "ollama", "gemini")
+  - `model`: Model name/ID
+  - `ollama_host`: Ollama server URL
+  - `verbose`: Enable verbose logging
+  - `show_reasoning`: Show AI reasoning in responses
+  - `max_tool_iterations`: Max tool call iterations
+
+**Returns:**
+```json
+{
+  "success": true
+}
+```
+
+#### getProviders()
+
+```javascript
+const providers = window.yaze.agent.getProviders()
+```
+
+Get list of available AI providers.
+
+**Returns:**
+```json
+[
+  {
+    "id": "mock",
+    "name": "Mock Provider",
+    "description": "Testing provider that echoes messages"
+  },
+  {
+    "id": "ollama",
+    "name": "Ollama",
+    "description": "Local Ollama server",
+    "requires_host": true
+  },
+  {
+    "id": "gemini",
+    "name": "Google Gemini",
+    "description": "Google's Gemini API",
+    "requires_api_key": true
+  }
+]
+```
+
+### Proposal Management
+
+#### getProposals()
+
+```javascript
+const proposals = window.yaze.agent.getProposals()
+```
+
+Get list of pending/recent code proposals.
+
+**Returns:**
+```json
+[
+  {
+    "id": "proposal-123",
+    "status": "pending",
+    "summary": "Modify room palette"
+  }
+]
+```
+
+#### acceptProposal(proposalId)
+
+```javascript
+window.yaze.agent.acceptProposal("proposal-123")
+```
+
+Accept a proposal and apply its changes.
+
+**Parameters:**
+- `proposalId` (string): Proposal ID to accept
+
+**Returns:**
+```json
+{
+  "success": true,
+  "proposal_id": "proposal-123"
+}
+```
+
+#### rejectProposal(proposalId)
+
+```javascript
+window.yaze.agent.rejectProposal("proposal-123")
+```
+
+Reject a proposal.
+
+**Parameters:**
+- `proposalId` (string): Proposal ID to reject
+
+**Returns:**
+```json
+{
+  "success": true,
+  "proposal_id": "proposal-123"
+}
+```
+
+#### getProposalDetails(proposalId)
+
+```javascript
+const details = window.yaze.agent.getProposalDetails("proposal-123")
+```
+
+Get detailed information about a proposal including diff.
+
+**Parameters:**
+- `proposalId` (string): Proposal ID
+
+**Returns:**
+```json
+{
+  "id": "proposal-123",
+  "status": "pending",
+  "summary": "Modify room palette",
+  "diff": "- old value\n+ new value",
+  "affected_areas": ["Room 0 palette"]
+}
+```
+
+### Sidebar Control
+
+#### openSidebar()
+
+```javascript
+window.yaze.agent.openSidebar()
+```
+
+Open the agent chat sidebar.
+
+**Returns:**
+```json
+{
+  "success": true,
+  "sidebar_open": true
+}
+```
+
+#### closeSidebar()
+
+```javascript
+window.yaze.agent.closeSidebar()
+```
+
+Close the agent chat sidebar.
+
+**Returns:**
+```json
+{
+  "success": true,
+  "sidebar_open": false
+}
+```
+
+### Complete Example
+
+```javascript
+// Full agent workflow
+async function agentWorkflow() {
+  // 1. Check readiness
+  if (!window.yaze.agent.isReady()) {
+    console.log("Agent not ready - load a ROM first");
+    return;
+  }
+
+  // 2. Configure for Ollama
+  window.yaze.agent.setConfig({
+    provider: "ollama",
+    model: "codellama",
+    verbose: true
+  });
+
+  // 3. Open sidebar
+  window.yaze.agent.openSidebar();
+
+  // 4. Send a request
+  const result = window.yaze.agent.sendMessage(
+    "Analyze dungeon room 0 and suggest improvements"
+  );
+  console.log("Message queued:", result);
+
+  // 5. Check for proposals (after response)
+  setTimeout(() => {
+    const proposals = window.yaze.agent.getProposals();
+    if (proposals.length > 0) {
+      console.log("Proposals available:", proposals);
+    }
+  }, 5000);
+}
+
+agentWorkflow();
+```
 
 ---
 
@@ -1520,6 +1812,13 @@ The widget overlay system integrates with C++ via:
 ---
 
 ## Version History
+
+**2.5.1** (2025-11-27)
+- Added `window.yaze.agent` API namespace for AI agent integration
+- 12 new agent methods: isReady, sendMessage, getChatHistory, getConfig, setConfig,
+  getProviders, getProposals, acceptProposal, rejectProposal, getProposalDetails,
+  openSidebar, closeSidebar
+- New testing guide: `wasm-agent-api-testing-guide.md`
 
 **2.5.0** (2025-11-25)
 - Added Agent Discoverability Infrastructure section

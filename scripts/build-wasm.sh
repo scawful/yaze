@@ -3,11 +3,11 @@ set -e
 
 usage() {
     cat <<'EOF'
-Usage: scripts/build-wasm.sh [debug|release] [--incremental] [--clean]
+Usage: scripts/build-wasm.sh [debug|release|ai] [--incremental] [--clean]
 Options:
-  debug|release   Build mode (default: release)
-  --incremental   Skip cleaning CMake cache/files to speed up incremental builds
-  --clean         Completely remove build directory and start fresh
+  debug|release|ai  Build mode (default: release). Use 'ai' for agent-enabled web build.
+  --incremental     Skip cleaning CMake cache/files to speed up incremental builds
+  --clean           Completely remove build directory and start fresh
 EOF
 }
 
@@ -18,7 +18,7 @@ FULL_CLEAN=false
 
 for arg in "$@"; do
     case "$arg" in
-        debug|release)
+        debug|release|ai)
             BUILD_MODE="$arg"
             ;;
         --incremental)
@@ -47,6 +47,9 @@ PROJECT_ROOT="$DIR/.."
 if [ "$BUILD_MODE" = "debug" ]; then
     BUILD_DIR="$PROJECT_ROOT/build-wasm-debug"
     CMAKE_PRESET="wasm-debug"
+elif [ "$BUILD_MODE" = "ai" ]; then
+    BUILD_DIR="$PROJECT_ROOT/build_wasm_ai"
+    CMAKE_PRESET="wasm-ai"
 else
     BUILD_DIR="$PROJECT_ROOT/build-wasm"
     CMAKE_PRESET="wasm-release"
