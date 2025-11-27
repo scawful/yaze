@@ -26,6 +26,7 @@ class UserSettings {
     std::string last_project_path;
     bool show_welcome_on_startup = true;
     bool restore_last_session = true;
+    bool prefer_hmagic_sprite_names = true;
 
     // Editor Behavior
     bool backup_before_save = true;

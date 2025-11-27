@@ -1,4 +1,5 @@
 #include "sprite.h"
+#include "sprite_names.h"
 
 #include <cstdint>
 #include <iostream>
@@ -266,6 +267,25 @@ const std::string kSpriteDefaultNames[256] = {
     "FF",
 };
 
+static bool g_prefer_hmagic_sprite_names = true;
+
+void SetPreferHmagicSpriteNames(bool prefer) { g_prefer_hmagic_sprite_names = prefer; }
+bool PreferHmagicSpriteNames() { return g_prefer_hmagic_sprite_names; }
+
+const char* ResolveSpriteName(uint16_t id) {
+  if (g_prefer_hmagic_sprite_names && id < kSpriteNameCount) {
+    return kSpriteNames[id];
+  }
+  if (id < 256) {
+    return kSpriteDefaultNames[id].c_str();
+  }
+  return "Unknown";
+}
+
+// hmagic-derived expanded names (0x11c entries), see tools/decode_sprname.py.
+extern const char* const kSpriteNames[];
+extern const size_t kSpriteNameCount;
+
 // Define overlord names in a single translation unit to avoid SIOF
 const std::string kOverlordNames[26] = {
     "Overlord_SpritePositionTarget",
@@ -300,7 +320,7 @@ void Sprite::UpdateMapProperties(uint16_t map_id, const void* context) {
   (void)context;  // Not used by sprites currently
   map_x_ = x_;
   map_y_ = y_;
-  name_ = kSpriteDefaultNames[id_];
+  name_ = ResolveSpriteName(id_);
 }
 
 void Sprite::UpdateCoordinates(int map_x, int map_y) {
