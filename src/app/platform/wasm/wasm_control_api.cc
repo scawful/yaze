@@ -120,6 +120,46 @@ EM_JS(void, SetupYazeControlApi, (), {
       }
       return {error: "API not ready"};
     },
+
+    showAllCards: function() {
+      if (Module.controlShowAllCards) {
+        try { return JSON.parse(Module.controlShowAllCards()); }
+        catch(e) { return {error: e.message}; }
+      }
+      return {error: "API not ready"};
+    },
+
+    hideAllCards: function() {
+      if (Module.controlHideAllCards) {
+        try { return JSON.parse(Module.controlHideAllCards()); }
+        catch(e) { return {error: e.message}; }
+      }
+      return {error: "API not ready"};
+    },
+
+    showAllCardsInCategory: function(category) {
+      if (Module.controlShowAllCardsInCategory) {
+        try { return JSON.parse(Module.controlShowAllCardsInCategory(category)); }
+        catch(e) { return {error: e.message}; }
+      }
+      return {error: "API not ready"};
+    },
+
+    hideAllCardsInCategory: function(category) {
+      if (Module.controlHideAllCardsInCategory) {
+        try { return JSON.parse(Module.controlHideAllCardsInCategory(category)); }
+        catch(e) { return {error: e.message}; }
+      }
+      return {error: "API not ready"};
+    },
+
+    showOnlyCard: function(cardId) {
+      if (Module.controlShowOnlyCard) {
+        try { return JSON.parse(Module.controlShowOnlyCard(cardId)); }
+        catch(e) { return {error: e.message}; }
+      }
+      return {error: "API not ready"};
+    },
     
     // Layout control
     setCardLayout: function(layoutName) {
@@ -578,11 +618,22 @@ std::string WasmControlApi::OpenCard(const std::string& card_id) {
     return result.dump();
   }
   
-  // TODO: Integrate with EditorCardRegistry through EditorManager
-  // For now, return a placeholder
-  result["success"] = true;
-  result["card_id"] = card_id;
-  result["visible"] = true;
+  auto* registry = GetCardRegistry();
+  if (registry) {
+    // Use default session ID (0) for WASM single-session mode
+    constexpr size_t session_id = 0;
+    bool found = registry->ShowCard(session_id, card_id);
+    
+    result["success"] = found;
+    result["card_id"] = card_id;
+    result["visible"] = true;
+    if (!found) {
+      result["error"] = "Card not found";
+    }
+  } else {
+    result["success"] = false;
+    result["error"] = "Card registry not available";
+  }
   
   LOG_INFO("WasmControlApi", "OpenCard: %s", card_id.c_str());
   return result.dump();
@@ -597,9 +648,21 @@ std::string WasmControlApi::CloseCard(const std::string& card_id) {
     return result.dump();
   }
   
-  result["success"] = true;
-  result["card_id"] = card_id;
-  result["visible"] = false;
+  auto* registry = GetCardRegistry();
+  if (registry) {
+    constexpr size_t session_id = 0;
+    bool found = registry->HideCard(session_id, card_id);
+    
+    result["success"] = found;
+    result["card_id"] = card_id;
+    result["visible"] = false;
+    if (!found) {
+      result["error"] = "Card not found";
+    }
+  } else {
+    result["success"] = false;
+    result["error"] = "Card registry not available";
+  }
   
   LOG_INFO("WasmControlApi", "CloseCard: %s", card_id.c_str());
   return result.dump();
@@ -614,8 +677,22 @@ std::string WasmControlApi::ToggleCard(const std::string& card_id) {
     return result.dump();
   }
   
-  result["success"] = true;
-  result["card_id"] = card_id;
+  auto* registry = GetCardRegistry();
+  if (registry) {
+    constexpr size_t session_id = 0;
+    bool found = registry->ToggleCard(session_id, card_id);
+    
+    result["success"] = found;
+    result["card_id"] = card_id;
+    if (!found) {
+      result["error"] = "Card not found";
+    } else {
+      result["visible"] = registry->IsCardVisible(session_id, card_id);
+    }
+  } else {
+    result["success"] = false;
+    result["error"] = "Card registry not available";
+  }
   
   LOG_INFO("WasmControlApi", "ToggleCard: %s", card_id.c_str());
   return result.dump();
@@ -718,6 +795,119 @@ std::string WasmControlApi::GetCardsInCategory(const std::string& category) {
     result.push_back(card_json);
   }
 
+  return result.dump();
+}
+
+std::string WasmControlApi::ShowAllCards() {
+  nlohmann::json result;
+  
+  if (!IsReady()) {
+    result["success"] = false;
+    result["error"] = "Control API not initialized";
+    return result.dump();
+  }
+  
+  auto* registry = GetCardRegistry();
+  if (registry) {
+    constexpr size_t session_id = 0;
+    registry->ShowAllCardsInSession(session_id);
+    result["success"] = true;
+  } else {
+    result["success"] = false;
+    result["error"] = "Card registry not available";
+  }
+  
+  return result.dump();
+}
+
+std::string WasmControlApi::HideAllCards() {
+  nlohmann::json result;
+  
+  if (!IsReady()) {
+    result["success"] = false;
+    result["error"] = "Control API not initialized";
+    return result.dump();
+  }
+  
+  auto* registry = GetCardRegistry();
+  if (registry) {
+    constexpr size_t session_id = 0;
+    registry->HideAllCardsInSession(session_id);
+    result["success"] = true;
+  } else {
+    result["success"] = false;
+    result["error"] = "Card registry not available";
+  }
+  
+  return result.dump();
+}
+
+std::string WasmControlApi::ShowAllCardsInCategory(const std::string& category) {
+  nlohmann::json result;
+  
+  if (!IsReady()) {
+    result["success"] = false;
+    result["error"] = "Control API not initialized";
+    return result.dump();
+  }
+  
+  auto* registry = GetCardRegistry();
+  if (registry) {
+    constexpr size_t session_id = 0;
+    registry->ShowAllCardsInCategory(session_id, category);
+    result["success"] = true;
+    result["category"] = category;
+  } else {
+    result["success"] = false;
+    result["error"] = "Card registry not available";
+  }
+  
+  return result.dump();
+}
+
+std::string WasmControlApi::HideAllCardsInCategory(const std::string& category) {
+  nlohmann::json result;
+  
+  if (!IsReady()) {
+    result["success"] = false;
+    result["error"] = "Control API not initialized";
+    return result.dump();
+  }
+  
+  auto* registry = GetCardRegistry();
+  if (registry) {
+    constexpr size_t session_id = 0;
+    registry->HideAllCardsInCategory(session_id, category);
+    result["success"] = true;
+    result["category"] = category;
+  } else {
+    result["success"] = false;
+    result["error"] = "Card registry not available";
+  }
+  
+  return result.dump();
+}
+
+std::string WasmControlApi::ShowOnlyCard(const std::string& card_id) {
+  nlohmann::json result;
+  
+  if (!IsReady()) {
+    result["success"] = false;
+    result["error"] = "Control API not initialized";
+    return result.dump();
+  }
+  
+  auto* registry = GetCardRegistry();
+  if (registry) {
+    constexpr size_t session_id = 0;
+    registry->ShowOnlyCard(session_id, card_id);
+    result["success"] = true;
+    result["card_id"] = card_id;
+  } else {
+    result["success"] = false;
+    result["error"] = "Card registry not available";
+  }
+  
   return result.dump();
 }
 

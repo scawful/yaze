@@ -126,6 +126,39 @@ class WasmControlApi {
    */
   static std::string GetCardsInCategory(const std::string& category);
 
+  /**
+   * @brief Show all cards in the current session
+   * @return JSON result with success/error
+   */
+  static std::string ShowAllCards();
+
+  /**
+   * @brief Hide all cards in the current session
+   * @return JSON result with success/error
+   */
+  static std::string HideAllCards();
+
+  /**
+   * @brief Show all cards in a specific category
+   * @param category Category name
+   * @return JSON result with success/error
+   */
+  static std::string ShowAllCardsInCategory(const std::string& category);
+
+  /**
+   * @brief Hide all cards in a specific category
+   * @param category Category name
+   * @return JSON result with success/error
+   */
+  static std::string HideAllCardsInCategory(const std::string& category);
+
+  /**
+   * @brief Show only one card, hiding all others in its category
+   * @param card_id Card identifier
+   * @return JSON result with success/error
+   */
+  static std::string ShowOnlyCard(const std::string& card_id);
+
   // ============================================================================
   // Layout Control
   // ============================================================================
@@ -486,6 +519,11 @@ class WasmControlApi {
   static std::string GetVisibleCards() { return "[]"; }
   static std::string GetAvailableCards() { return "[]"; }
   static std::string GetCardsInCategory(const std::string&) { return "[]"; }
+  static std::string ShowAllCards() { return "{}"; }
+  static std::string HideAllCards() { return "{}"; }
+  static std::string ShowAllCardsInCategory(const std::string&) { return "{}"; }
+  static std::string HideAllCardsInCategory(const std::string&) { return "{}"; }
+  static std::string ShowOnlyCard(const std::string&) { return "{}"; }
   static std::string SetCardLayout(const std::string&) { return "{}"; }
   static std::string GetAvailableLayouts() { return "[]"; }
   static std::string SaveCurrentLayout(const std::string&) { return "{}"; }
