@@ -43,6 +43,17 @@ class ShortcutManager {
     shortcuts_[name] = {name, {key}, callback};
   }
 
+  /**
+   * @brief Register a command without keyboard shortcut (command palette only)
+   *
+   * These commands appear in the command palette but have no keyboard binding.
+   * Useful for layout presets and other infrequently used commands.
+   */
+  void RegisterCommand(const std::string& name,
+                       std::function<void()> callback) {
+    shortcuts_[name] = {name, {}, callback};  // Empty key vector
+  }
+
   void ExecuteShortcut(const std::string& name) const {
     shortcuts_.at(name).callback();
   }

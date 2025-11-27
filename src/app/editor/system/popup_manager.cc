@@ -1,7 +1,10 @@
 #include "popup_manager.h"
 
+#include <functional>
+
 #include "absl/strings/str_format.h"
 #include "app/editor/editor_manager.h"
+#include "app/editor/ui/layout_presets.h"
 #include "app/gui/app/feature_flags_menu.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/style.h"
@@ -126,6 +129,14 @@ void PopupManager::Initialize() {
                                            false, [this]() {
                                              DrawLayoutResetConfirmPopup();
                                            }};
+
+  popups_[PopupID::kLayoutPresets] = {PopupID::kLayoutPresets,
+                                      PopupType::kSettings, false, false,
+                                      [this]() { DrawLayoutPresetsPopup(); }};
+
+  popups_[PopupID::kSessionManager] = {PopupID::kSessionManager,
+                                       PopupType::kSettings, false, true,
+                                       [this]() { DrawSessionManagerPopup(); }};
 
   // Debug/Testing
   popups_[PopupID::kDataIntegrity] = {PopupID::kDataIntegrity, PopupType::kInfo,
@@ -716,6 +727,193 @@ void PopupManager::DrawLayoutResetConfirmPopup() {
   SameLine();
   if (Button("Cancel", gui::kDefaultModalSize)) {
     Hide("Layout Reset Confirm");
+  }
+}
+
+void PopupManager::DrawLayoutPresetsPopup() {
+  TextColored(ImVec4(0.4f, 0.8f, 1.0f, 1.0f), "%s Layout Presets",
+              ICON_MD_DASHBOARD);
+  Separator();
+  Spacing();
+
+  TextWrapped("Choose a workspace preset to quickly configure your layout:");
+  Spacing();
+
+  // Get named presets from LayoutPresets
+  struct PresetInfo {
+    const char* name;
+    const char* icon;
+    const char* description;
+    std::function<CardLayoutPreset()> getter;
+  };
+
+  PresetInfo presets[] = {
+      {"Minimal", ICON_MD_CROP_FREE,
+       "Essential cards only - maximum editing space",
+       []() { return LayoutPresets::GetMinimalPreset(); }},
+      {"Developer", ICON_MD_BUG_REPORT,
+       "Debug and development focused - CPU/Memory/Breakpoints",
+       []() { return LayoutPresets::GetDeveloperPreset(); }},
+      {"Designer", ICON_MD_PALETTE,
+       "Visual and artistic focused - Graphics/Palettes/Sprites",
+       []() { return LayoutPresets::GetDesignerPreset(); }},
+      {"Modder", ICON_MD_BUILD,
+       "Full-featured - All tools available for comprehensive editing",
+       []() { return LayoutPresets::GetModderPreset(); }},
+      {"Overworld Expert", ICON_MD_MAP,
+       "Complete overworld editing toolkit with all map tools",
+       []() { return LayoutPresets::GetOverworldExpertPreset(); }},
+      {"Dungeon Expert", ICON_MD_DOOR_SLIDING,
+       "Complete dungeon editing toolkit with room tools",
+       []() { return LayoutPresets::GetDungeonExpertPreset(); }},
+      {"Testing", ICON_MD_SCIENCE,
+       "Quality assurance and ROM testing layout",
+       []() { return LayoutPresets::GetTestingPreset(); }},
+      {"Audio", ICON_MD_MUSIC_NOTE,
+       "Music and sound editing layout",
+       []() { return LayoutPresets::GetAudioPreset(); }},
+  };
+
+  constexpr int kPresetCount = 8;
+
+  // Draw preset buttons in a grid
+  float button_width = 200.0f;
+  float button_height = 50.0f;
+
+  for (int i = 0; i < kPresetCount; i++) {
+    if (i % 2 != 0) SameLine();
+
+    PushStyleVar(ImGuiStyleVar_ButtonTextAlign, ImVec2(0.0f, 0.5f));
+    if (Button(absl::StrFormat("%s %s", presets[i].icon, presets[i].name).c_str(),
+               ImVec2(button_width, button_height))) {
+      // Apply the preset
+      auto preset = presets[i].getter();
+      auto& card_registry = editor_manager_->card_registry();
+      // Hide all cards first
+      card_registry.HideAll();
+      // Show preset cards
+      for (const auto& card_id : preset.default_visible_cards) {
+        card_registry.ShowCard(card_id);
+      }
+      Hide(PopupID::kLayoutPresets);
+    }
+    PopStyleVar();
+
+    if (IsItemHovered()) {
+      BeginTooltip();
+      TextUnformatted(presets[i].description);
+      EndTooltip();
+    }
+  }
+
+  Spacing();
+  Separator();
+  Spacing();
+
+  // Reset current editor to defaults
+  if (Button(absl::StrFormat("%s Reset Current Editor", ICON_MD_REFRESH).c_str(),
+             ImVec2(-1, 0))) {
+    auto& card_registry = editor_manager_->card_registry();
+    auto* current_editor = editor_manager_->GetCurrentEditor();
+    if (current_editor) {
+      auto current_type = current_editor->type();
+      card_registry.ResetToDefaults(0, current_type);
+    }
+    Hide(PopupID::kLayoutPresets);
+  }
+
+  Spacing();
+  if (Button("Close", ImVec2(-1, 0))) {
+    Hide(PopupID::kLayoutPresets);
+  }
+}
+
+void PopupManager::DrawSessionManagerPopup() {
+  TextColored(ImVec4(0.4f, 0.8f, 1.0f, 1.0f), "%s Session Manager",
+              ICON_MD_TAB);
+  Separator();
+  Spacing();
+
+  size_t session_count = editor_manager_->GetActiveSessionCount();
+  size_t active_session = editor_manager_->GetCurrentSessionId();
+
+  Text("Active Sessions: %zu", session_count);
+  Spacing();
+
+  // Session table
+  if (BeginTable("SessionTable", 4,
+                 ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg)) {
+    TableSetupColumn("#", ImGuiTableColumnFlags_WidthFixed, 30.0f);
+    TableSetupColumn("ROM", ImGuiTableColumnFlags_WidthStretch);
+    TableSetupColumn("Status", ImGuiTableColumnFlags_WidthFixed, 80.0f);
+    TableSetupColumn("Actions", ImGuiTableColumnFlags_WidthFixed, 120.0f);
+    TableHeadersRow();
+
+    for (size_t i = 0; i < session_count; i++) {
+      TableNextRow();
+
+      // Session number
+      TableSetColumnIndex(0);
+      Text("%zu", i + 1);
+
+      // ROM name (simplified - show current ROM for active session)
+      TableSetColumnIndex(1);
+      if (i == active_session) {
+        auto* rom = editor_manager_->GetCurrentRom();
+        if (rom && rom->is_loaded()) {
+          TextUnformatted(rom->filename().c_str());
+        } else {
+          TextDisabled("(No ROM loaded)");
+        }
+      } else {
+        TextDisabled("Session %zu", i + 1);
+      }
+
+      // Status indicator
+      TableSetColumnIndex(2);
+      if (i == active_session) {
+        TextColored(ImVec4(0.2f, 0.8f, 0.2f, 1.0f), "%s Active",
+                    ICON_MD_CHECK_CIRCLE);
+      } else {
+        TextDisabled("Inactive");
+      }
+
+      // Actions
+      TableSetColumnIndex(3);
+      PushID(static_cast<int>(i));
+
+      if (i != active_session) {
+        if (SmallButton("Switch")) {
+          editor_manager_->SwitchToSession(i);
+        }
+        SameLine();
+      }
+
+      BeginDisabled(session_count <= 1);
+      if (SmallButton("Close")) {
+        editor_manager_->RemoveSession(i);
+      }
+      EndDisabled();
+
+      PopID();
+    }
+
+    EndTable();
+  }
+
+  Spacing();
+  Separator();
+  Spacing();
+
+  // New session button
+  if (Button(absl::StrFormat("%s New Session", ICON_MD_ADD).c_str(),
+             ImVec2(-1, 0))) {
+    editor_manager_->CreateNewSession();
+  }
+
+  Spacing();
+  if (Button("Close", ImVec2(-1, 0))) {
+    Hide(PopupID::kSessionManager);
   }
 }
 

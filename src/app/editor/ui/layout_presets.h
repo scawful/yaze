@@ -96,6 +96,26 @@ class LayoutPresets {
    */
   static CardLayoutPreset GetModderPreset();
 
+  /**
+   * @brief Get the "overworld expert" workspace preset
+   */
+  static CardLayoutPreset GetOverworldExpertPreset();
+
+  /**
+   * @brief Get the "dungeon expert" workspace preset
+   */
+  static CardLayoutPreset GetDungeonExpertPreset();
+
+  /**
+   * @brief Get the "testing" workspace preset (QA focused)
+   */
+  static CardLayoutPreset GetTestingPreset();
+
+  /**
+   * @brief Get the "audio" workspace preset (music focused)
+   */
+  static CardLayoutPreset GetAudioPreset();
+
   // ============================================================================
   // Card ID Constants - synced with actual editor registrations
   // ============================================================================

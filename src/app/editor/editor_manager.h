@@ -222,6 +222,10 @@ class EditorManager {
   void LoadDesignerLayout() { window_delegate_.LoadDesignerLayout(); }
   void LoadModderLayout() { window_delegate_.LoadModderLayout(); }
 
+  // Card layout presets (command palette accessible)
+  void ApplyLayoutPreset(const std::string& preset_name);
+  void ResetCurrentEditorLayout();
+
   // Helper methods
   std::string GenerateUniqueEditorTitle(EditorType type,
                                         size_t session_index) const;

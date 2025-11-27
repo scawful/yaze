@@ -1,12 +1,30 @@
 #include "app/editor/ui/layout_manager.h"
 
 #include "app/editor/system/editor_card_registry.h"
+#include "app/editor/ui/layout_presets.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
 #include "util/log.h"
 
 namespace yaze {
 namespace editor {
+
+namespace {
+
+// Helper function to show default cards from LayoutPresets
+void ShowDefaultCardsForEditor(EditorCardRegistry* registry, EditorType type) {
+  if (!registry) return;
+
+  auto default_cards = LayoutPresets::GetDefaultCards(type);
+  for (const auto& card_id : default_cards) {
+    registry->ShowCard(card_id);
+  }
+
+  LOG_INFO("LayoutManager", "Showing %zu default cards for editor type %d",
+           default_cards.size(), static_cast<int>(type));
+}
+
+}  // namespace
 
 void LayoutManager::InitializeEditorLayout(EditorType type,
                                            ImGuiID dockspace_id) {
@@ -34,101 +52,45 @@ void LayoutManager::InitializeEditorLayout(EditorType type,
   switch (type) {
     case EditorType::kOverworld:
       BuildOverworldLayout(dockspace_id);
-      if (card_registry_) {
-        card_registry_->ShowCard("overworld.canvas");
-        card_registry_->ShowCard("overworld.tile16_selector");
-      }
       break;
     case EditorType::kDungeon:
       BuildDungeonLayout(dockspace_id);
-      if (card_registry_) {
-        card_registry_->ShowCard("dungeon.room_list");
-        card_registry_->ShowCard("dungeon.canvas");
-        card_registry_->ShowCard("dungeon.object_editor");
-      }
       break;
     case EditorType::kGraphics:
       BuildGraphicsLayout(dockspace_id);
-      if (card_registry_) {
-        card_registry_->ShowCard("graphics.sheet_browser");
-        card_registry_->ShowCard("graphics.sheet_editor");
-      }
       break;
     case EditorType::kPalette:
       BuildPaletteLayout(dockspace_id);
-      if (card_registry_) {
-        card_registry_->ShowCard("palette.group_manager");
-        card_registry_->ShowCard("palette.rom_browser");
-        card_registry_->ShowCard("palette.main_editor");
-        card_registry_->ShowCard("palette.snes_palette");
-        card_registry_->ShowCard("palette.color_harmony");
-      }
       break;
     case EditorType::kScreen:
       BuildScreenLayout(dockspace_id);
-      if (card_registry_) {
-        card_registry_->ShowCard("screen.dungeon_map");
-        card_registry_->ShowCard("screen.title");
-        card_registry_->ShowCard("screen.inventory");
-        card_registry_->ShowCard("screen.naming");
-      }
       break;
     case EditorType::kMusic:
       BuildMusicLayout(dockspace_id);
-      if (card_registry_) {
-        card_registry_->ShowCard("music.tracker");
-        card_registry_->ShowCard("music.instrument");
-        card_registry_->ShowCard("music.assembly");
-      }
       break;
     case EditorType::kSprite:
       BuildSpriteLayout(dockspace_id);
-      if (card_registry_) {
-        card_registry_->ShowCard("sprite.vanilla");
-        card_registry_->ShowCard("sprite.custom");
-      }
       break;
     case EditorType::kMessage:
       BuildMessageLayout(dockspace_id);
-      if (card_registry_) {
-        card_registry_->ShowCard("message.list");
-        card_registry_->ShowCard("message.editor");
-        card_registry_->ShowCard("message.font");
-        card_registry_->ShowCard("message.dictionary");
-      }
       break;
     case EditorType::kAssembly:
       BuildAssemblyLayout(dockspace_id);
-      if (card_registry_) {
-        card_registry_->ShowCard("assembly.editor");
-        card_registry_->ShowCard("assembly.output");
-        card_registry_->ShowCard("assembly.docs");
-      }
       break;
     case EditorType::kSettings:
       BuildSettingsLayout(dockspace_id);
-      if (card_registry_) {
-        card_registry_->ShowCard("settings.navigation");
-        card_registry_->ShowCard("settings.content");
-      }
       break;
     case EditorType::kEmulator:
       BuildEmulatorLayout(dockspace_id);
-      if (card_registry_) {
-        card_registry_->ShowCard("emulator.cpu_debugger");
-        card_registry_->ShowCard("emulator.memory_viewer");
-        card_registry_->ShowCard("emulator.ppu_viewer");
-        card_registry_->ShowCard("emulator.audio_mixer");
-        card_registry_->ShowCard("emulator.breakpoints");
-        card_registry_->ShowCard("emulator.performance");
-        card_registry_->ShowCard("emulator.virtual_controller");
-      }
       break;
     default:
       LOG_WARN("LayoutManager", "No layout defined for editor type %d",
                static_cast<int>(type));
       break;
   }
+
+  // Show default cards from LayoutPresets (single source of truth)
+  ShowDefaultCardsForEditor(card_registry_, type);
 
   // Finalize the layout
   ImGui::DockBuilderFinish(dockspace_id);
@@ -165,101 +127,45 @@ void LayoutManager::RebuildLayout(EditorType type, ImGuiID dockspace_id) {
   switch (type) {
     case EditorType::kOverworld:
       BuildOverworldLayout(dockspace_id);
-      if (card_registry_) {
-        card_registry_->ShowCard("overworld.canvas");
-        card_registry_->ShowCard("overworld.tile16_selector");
-      }
       break;
     case EditorType::kDungeon:
       BuildDungeonLayout(dockspace_id);
-      if (card_registry_) {
-        card_registry_->ShowCard("dungeon.room_list");
-        card_registry_->ShowCard("dungeon.canvas");
-        card_registry_->ShowCard("dungeon.object_editor");
-      }
       break;
     case EditorType::kGraphics:
       BuildGraphicsLayout(dockspace_id);
-      if (card_registry_) {
-        card_registry_->ShowCard("graphics.sheet_browser");
-        card_registry_->ShowCard("graphics.sheet_editor");
-      }
       break;
     case EditorType::kPalette:
       BuildPaletteLayout(dockspace_id);
-      if (card_registry_) {
-        card_registry_->ShowCard("palette.group_manager");
-        card_registry_->ShowCard("palette.rom_browser");
-        card_registry_->ShowCard("palette.main_editor");
-        card_registry_->ShowCard("palette.snes_palette");
-        card_registry_->ShowCard("palette.color_harmony");
-      }
       break;
     case EditorType::kScreen:
       BuildScreenLayout(dockspace_id);
-      if (card_registry_) {
-        card_registry_->ShowCard("screen.dungeon_map");
-        card_registry_->ShowCard("screen.title");
-        card_registry_->ShowCard("screen.inventory");
-        card_registry_->ShowCard("screen.naming");
-      }
       break;
     case EditorType::kMusic:
       BuildMusicLayout(dockspace_id);
-      if (card_registry_) {
-        card_registry_->ShowCard("music.tracker");
-        card_registry_->ShowCard("music.instrument");
-        card_registry_->ShowCard("music.assembly");
-      }
       break;
     case EditorType::kSprite:
       BuildSpriteLayout(dockspace_id);
-      if (card_registry_) {
-        card_registry_->ShowCard("sprite.vanilla");
-        card_registry_->ShowCard("sprite.custom");
-      }
       break;
     case EditorType::kMessage:
       BuildMessageLayout(dockspace_id);
-      if (card_registry_) {
-        card_registry_->ShowCard("message.list");
-        card_registry_->ShowCard("message.editor");
-        card_registry_->ShowCard("message.font");
-        card_registry_->ShowCard("message.dictionary");
-      }
       break;
     case EditorType::kAssembly:
       BuildAssemblyLayout(dockspace_id);
-      if (card_registry_) {
-        card_registry_->ShowCard("assembly.editor");
-        card_registry_->ShowCard("assembly.output");
-        card_registry_->ShowCard("assembly.docs");
-      }
       break;
     case EditorType::kSettings:
       BuildSettingsLayout(dockspace_id);
-      if (card_registry_) {
-        card_registry_->ShowCard("settings.navigation");
-        card_registry_->ShowCard("settings.content");
-      }
       break;
     case EditorType::kEmulator:
       BuildEmulatorLayout(dockspace_id);
-      if (card_registry_) {
-        card_registry_->ShowCard("emulator.cpu_debugger");
-        card_registry_->ShowCard("emulator.memory_viewer");
-        card_registry_->ShowCard("emulator.ppu_viewer");
-        card_registry_->ShowCard("emulator.audio_mixer");
-        card_registry_->ShowCard("emulator.breakpoints");
-        card_registry_->ShowCard("emulator.performance");
-        card_registry_->ShowCard("emulator.virtual_controller");
-      }
       break;
     default:
       LOG_WARN("LayoutManager", "No layout defined for editor type %d",
                static_cast<int>(type));
       break;
   }
+
+  // Show default cards from LayoutPresets (single source of truth)
+  ShowDefaultCardsForEditor(card_registry_, type);
 
   // Finalize the layout
   ImGui::DockBuilderFinish(dockspace_id);
@@ -296,29 +202,23 @@ void LayoutManager::BuildOverworldLayout(ImGuiID dockspace_id) {
 
 void LayoutManager::BuildDungeonLayout(ImGuiID dockspace_id) {
   // Default Dungeon Editor Layout:
-  // - Left 20%: Room Selector (list of dungeon rooms)
-  // - Center 60%: Room Canvas (main editing area)
-  // - Right 20%: Object Editor (for placing/editing objects)
+  // - Left 15%: Room Selector (list of dungeon rooms)
+  // - Center 85%: Room Canvas (main editing area, maximized)
   //
-  // Other cards (Entrances, Palette Editor, Room Matrix) start hidden
+  // Other cards (Object Editor, Entrances, Palette Editor, Room Matrix) start hidden
 
   ImGuiID dock_left_id = 0;
   ImGuiID dock_center_id = 0;
-  ImGuiID dock_right_id = 0;
 
-  // Split dockspace: Left 20% | Center 60% | Right 20%
-  dock_left_id = ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Left, 0.20f,
-                                             nullptr, &dockspace_id);
-  dock_right_id = ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Right,
-                                              0.25f, nullptr, &dockspace_id);
-  dock_center_id = dockspace_id;
+  // Split dockspace: Left 15% | Center 85%
+  dock_left_id = ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Left, 0.15f,
+                                             nullptr, &dock_center_id);
 
   // Dock main windows
   ImGui::DockBuilderDockWindow(" Rooms List", dock_left_id);
   ImGui::DockBuilderDockWindow(" Dungeon Controls", dock_center_id);
-  ImGui::DockBuilderDockWindow(" Object Editor", dock_right_id);
 
-  // Note: Other cards (Entrances, Palette Editor, Room Matrix, Room Graphics)
+  // Note: Other cards (Object Editor, Entrances, Palette Editor, Room Matrix, Room Graphics)
   // are not docked by default - they can be opened from the sidebar/menu
 }
 
@@ -346,37 +246,21 @@ void LayoutManager::BuildGraphicsLayout(ImGuiID dockspace_id) {
 
 void LayoutManager::BuildPaletteLayout(ImGuiID dockspace_id) {
   // Layout:
-  // - Left 25%: Group Manager (top) + ROM Palette Browser (bottom)
-  // - Center 50%: Palette Editor
-  // - Right 25%: SNES Palette (top) + Color Harmony (bottom)
+  // - Left 20%: Control Panel
+  // - Center 80%: Palette Editor (maximized)
+  //
+  // Other cards (ROM Browser, SNES Palette, Color Harmony) start hidden
 
   ImGuiID dock_left_id = 0;
   ImGuiID dock_center_id = 0;
-  ImGuiID dock_right_id = 0;
 
-  // Split dockspace: Left 25% | Center 50% | Right 25%
-  dock_left_id = ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Left, 0.25f,
-                                             nullptr, &dockspace_id);
-  dock_right_id = ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Right,
-                                              0.33f, nullptr, &dockspace_id);
-  dock_center_id = dockspace_id;
-
-  // Split left panel: Group Manager (top) and ROM Browser (bottom)
-  ImGuiID dock_left_top = 0;
-  ImGuiID dock_left_bottom = ImGui::DockBuilderSplitNode(
-      dock_left_id, ImGuiDir_Down, 0.50f, nullptr, &dock_left_top);
-
-  // Split right panel: SNES Palette (top) and Color Tools (bottom)
-  ImGuiID dock_right_top = 0;
-  ImGuiID dock_right_bottom = ImGui::DockBuilderSplitNode(
-      dock_right_id, ImGuiDir_Down, 0.50f, nullptr, &dock_right_top);
+  // Split dockspace: Left 20% | Center 80%
+  dock_left_id = ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Left, 0.20f,
+                                             nullptr, &dock_center_id);
 
   // Dock windows
-  ImGui::DockBuilderDockWindow(" Group Manager", dock_left_top);
-  ImGui::DockBuilderDockWindow(" ROM Palette Browser", dock_left_bottom);
-  ImGui::DockBuilderDockWindow(" Palette Editor", dock_center_id);
-  ImGui::DockBuilderDockWindow(" SNES Palette", dock_right_top);
-  ImGui::DockBuilderDockWindow(" Color Harmony", dock_right_bottom);
+  ImGui::DockBuilderDockWindow(" Palette Control Panel", dock_left_id);
+  ImGui::DockBuilderDockWindow(" OW Main Palette", dock_center_id);
 }
 
 void LayoutManager::BuildScreenLayout(ImGuiID dockspace_id) {
@@ -501,44 +385,12 @@ void LayoutManager::BuildSettingsLayout(ImGuiID dockspace_id) {
 
 void LayoutManager::BuildEmulatorLayout(ImGuiID dockspace_id) {
   // Layout:
-  // - Left 30%: CPU Debugger (top) + Memory Viewer (bottom)
-  // - Center 50%: PPU Viewer (Game Screen)
-  // - Right 20%: Audio Mixer (top) + Breakpoints (middle) + Virtual Controller (bottom)
+  // - Center 100%: PPU Viewer (Game Screen, maximized)
+  //
+  // Other cards (CPU Debugger, Memory Viewer, etc.) start hidden
 
-  ImGuiID dock_left_id = 0;
-  ImGuiID dock_center_id = 0;
-  ImGuiID dock_right_id = 0;
-
-  // Split dockspace: Left 30% | Center 50% | Right 20%
-  dock_left_id = ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Left, 0.30f,
-                                             nullptr, &dockspace_id);
-  dock_right_id = ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Right,
-                                              0.28f, nullptr, &dockspace_id);
-  dock_center_id = dockspace_id;
-
-  // Split left panel: CPU Debugger (top) and Memory Viewer (bottom)
-  ImGuiID dock_left_top = 0;
-  ImGuiID dock_left_bottom = ImGui::DockBuilderSplitNode(
-      dock_left_id, ImGuiDir_Down, 0.50f, nullptr, &dock_left_top);
-
-  // Split right panel: Audio Mixer (top), Breakpoints (middle), Virtual Controller (bottom)
-  ImGuiID dock_right_top = 0;
-  ImGuiID dock_right_rest = ImGui::DockBuilderSplitNode(
-      dock_right_id, ImGuiDir_Down, 0.33f, nullptr, &dock_right_top);
-  
-  ImGuiID dock_right_middle = 0;
-  ImGuiID dock_right_bottom = ImGui::DockBuilderSplitNode(
-      dock_right_rest, ImGuiDir_Down, 0.50f, nullptr, &dock_right_middle);
-
-  // Dock windows
-  ImGui::DockBuilderDockWindow(" CPU Debugger", dock_left_top);
-  ImGui::DockBuilderDockWindow(" Memory Viewer", dock_left_bottom);
-  ImGui::DockBuilderDockWindow(" PPU Viewer", dock_center_id);
-  ImGui::DockBuilderDockWindow(" Audio Mixer", dock_right_top);
-  ImGui::DockBuilderDockWindow(" Performance", dock_right_top); // Tab with Audio Mixer
-  ImGui::DockBuilderDockWindow(" Breakpoints", dock_right_middle);
-  ImGui::DockBuilderDockWindow(" Virtual Controller", dock_right_bottom);
-  ImGui::DockBuilderDockWindow(" Keyboard Config", dock_right_bottom); // Tab with Virtual Controller
+  // Just dock the PPU viewer in the full dockspace - maximized game screen
+  ImGui::DockBuilderDockWindow(" PPU Viewer", dockspace_id);
 }
 
 void LayoutManager::SaveCurrentLayout(const std::string& name) {

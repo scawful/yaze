@@ -253,6 +253,64 @@ void ConfigureEditorShortcuts(const ShortcutDependencies& deps,
                     }
                   });
 #endif
+
+  // ============================================================================
+  // Layout Presets (command palette only - no keyboard shortcuts)
+  // ============================================================================
+  shortcut_manager->RegisterCommand("Layout: Apply Minimal Preset",
+                                    [editor_manager]() {
+                                      if (editor_manager) {
+                                        editor_manager->ApplyLayoutPreset("Minimal");
+                                      }
+                                    });
+  shortcut_manager->RegisterCommand("Layout: Apply Developer Preset",
+                                    [editor_manager]() {
+                                      if (editor_manager) {
+                                        editor_manager->ApplyLayoutPreset("Developer");
+                                      }
+                                    });
+  shortcut_manager->RegisterCommand("Layout: Apply Designer Preset",
+                                    [editor_manager]() {
+                                      if (editor_manager) {
+                                        editor_manager->ApplyLayoutPreset("Designer");
+                                      }
+                                    });
+  shortcut_manager->RegisterCommand("Layout: Apply Modder Preset",
+                                    [editor_manager]() {
+                                      if (editor_manager) {
+                                        editor_manager->ApplyLayoutPreset("Modder");
+                                      }
+                                    });
+  shortcut_manager->RegisterCommand("Layout: Apply Overworld Expert Preset",
+                                    [editor_manager]() {
+                                      if (editor_manager) {
+                                        editor_manager->ApplyLayoutPreset("Overworld Expert");
+                                      }
+                                    });
+  shortcut_manager->RegisterCommand("Layout: Apply Dungeon Expert Preset",
+                                    [editor_manager]() {
+                                      if (editor_manager) {
+                                        editor_manager->ApplyLayoutPreset("Dungeon Expert");
+                                      }
+                                    });
+  shortcut_manager->RegisterCommand("Layout: Apply Testing Preset",
+                                    [editor_manager]() {
+                                      if (editor_manager) {
+                                        editor_manager->ApplyLayoutPreset("Testing");
+                                      }
+                                    });
+  shortcut_manager->RegisterCommand("Layout: Apply Audio Preset",
+                                    [editor_manager]() {
+                                      if (editor_manager) {
+                                        editor_manager->ApplyLayoutPreset("Audio");
+                                      }
+                                    });
+  shortcut_manager->RegisterCommand("Layout: Reset Current Editor",
+                                    [editor_manager]() {
+                                      if (editor_manager) {
+                                        editor_manager->ResetCurrentEditorLayout();
+                                      }
+                                    });
 }
 
 void ConfigureMenuShortcuts(const ShortcutDependencies& deps,

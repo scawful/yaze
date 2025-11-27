@@ -5,6 +5,8 @@
 #include <fstream>
 
 #include "absl/strings/str_format.h"
+#include "app/editor/system/editor_registry.h"
+#include "app/editor/ui/layout_presets.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/theme_manager.h"
 #include "imgui/imgui.h"
@@ -1129,6 +1131,36 @@ void EditorCardRegistry::ResetToDefaults(size_t session_id) {
   // TODO: Load default visibility from config file or hardcoded defaults
   LOG_INFO("EditorCardRegistry", "Reset to defaults for session %zu",
            session_id);
+}
+
+void EditorCardRegistry::ResetToDefaults(size_t session_id,
+                                         EditorType editor_type) {
+  // Get category for this editor
+  std::string category = EditorRegistry::GetEditorCategory(editor_type);
+  if (category.empty()) {
+    LOG_WARN("EditorCardRegistry",
+             "No category found for editor type %d, skipping reset",
+             static_cast<int>(editor_type));
+    return;
+  }
+
+  // Hide all cards in this category first
+  HideAllCardsInCategory(session_id, category);
+
+  // Get default cards from LayoutPresets
+  auto default_cards = LayoutPresets::GetDefaultCards(editor_type);
+
+  // Show each default card
+  for (const auto& card_id : default_cards) {
+    if (ShowCard(session_id, card_id)) {
+      LOG_INFO("EditorCardRegistry", "Showing default card: %s",
+               card_id.c_str());
+    }
+  }
+
+  LOG_INFO("EditorCardRegistry",
+           "Reset %s editor to defaults (%zu cards visible)", category.c_str(),
+           default_cards.size());
 }
 
 // ============================================================================

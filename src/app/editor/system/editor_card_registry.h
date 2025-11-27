@@ -13,8 +13,9 @@
 namespace yaze {
 namespace editor {
 
-// Forward declaration
+// Forward declarations
 class EditorCard;
+enum class EditorType;
 
 /**
  * @struct CardInfo
@@ -548,6 +549,17 @@ class EditorCardRegistry {
   void ShowAll(size_t session_id);
   void HideAll(size_t session_id);
   void ResetToDefaults(size_t session_id);
+
+  /**
+   * @brief Reset cards for a specific editor to their default visibility
+   * @param session_id Session identifier
+   * @param editor_type The editor type to reset defaults for
+   *
+   * Uses LayoutPresets to determine which cards should be visible by default
+   * for the given editor type. Hides all cards in the editor's category first,
+   * then shows only the default cards.
+   */
+  void ResetToDefaults(size_t session_id, EditorType editor_type);
 
   // ============================================================================
   // Statistics
