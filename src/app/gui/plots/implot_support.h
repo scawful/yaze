@@ -38,12 +38,12 @@ ImPlotStyle BuildStyleFromTheme(const EnhancedTheme& theme,
 
 class PlotStyleScope {
  public:
-  PlotStyleScope(const EnhancedTheme& theme,
+ PlotStyleScope(const EnhancedTheme& theme,
                  const PlotStyleConfig& config = {});
   ~PlotStyleScope();
 
  private:
-  ImPlotStyle previous_style_;
+  ImPlotStyle previous_style_{};
 };
 
 class PlotGuard {
