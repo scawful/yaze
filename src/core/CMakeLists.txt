@@ -8,13 +8,12 @@
 # Dependencies: yaze_util, yaze_zelda3, asar, absl
 # ==============================================================================
 
-# Add ASAR library subdirectory
-# TODO: Fix ASAR CMakeLists.txt macro errors
-# add_subdirectory(${CMAKE_SOURCE_DIR}/ext/asar/src/asar ${CMAKE_BINARY_DIR}/asar)
+# Include Asar configuration
+include(${CMAKE_SOURCE_DIR}/cmake/asar.cmake)
 
 # Core library sources
 set(YAZE_CORE_LIB_SOURCES
-  asar_wrapper.cc  # Has stub implementations until ASAR build is fixed
+  asar_wrapper.cc
   project.cc
 )
 
@@ -40,10 +39,14 @@ target_include_directories(yaze_core_lib PUBLIC
 target_link_libraries(yaze_core_lib PUBLIC
   yaze_util          # Logging, file I/O, platform paths
   yaze_zelda3        # Zelda3 labels for embedded project labels
-  # asar-static      # Assembly patching - TODO: Fix ASAR build
   ${ABSL_TARGETS}    # Abseil for Status/StatusOr
   ${CMAKE_DL_LIBS}   # Dynamic library loading
 )
+
+# Add Asar support (links asar-static and adds YAZE_ENABLE_ASAR definition)
+if(ASAR_FOUND)
+  yaze_add_asar_support(yaze_core_lib)
+endif()
 
 # Precompiled headers for faster builds
 target_precompile_headers(yaze_core_lib PRIVATE

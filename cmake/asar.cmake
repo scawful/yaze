@@ -16,8 +16,8 @@ endif()
 # Set Asar source directory
 set(ASAR_SRC_DIR "${CMAKE_SOURCE_DIR}/ext/asar/src")
 
-# Add Asar as subdirectory
-add_subdirectory(${ASAR_SRC_DIR} EXCLUDE_FROM_ALL)
+# Add Asar as subdirectory with explicit binary directory
+add_subdirectory(${ASAR_SRC_DIR} ${CMAKE_BINARY_DIR}/asar EXCLUDE_FROM_ALL)
 
 # Create modern CMake target for Asar integration
 if(TARGET asar-static)

@@ -1,9 +1,6 @@
 [submodule "ext/imgui"]
 	path = ext/imgui
 	url = https://github.com/ocornut/imgui.git
-[submodule "assets/asm/alttp-hacker-workspace"]
-	path = assets/asm/alttp-hacker-workspace
-	url = https://github.com/scawful/alttp-hacker-workspace.git
 [submodule "ext/SDL"]
 	path = ext/SDL
 	url = https://github.com/libsdl-org/SDL.git
