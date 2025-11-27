@@ -58,6 +58,10 @@ class Apu {
   void Reset();
 
   void RunCycles(uint64_t cycles);
+  
+  void SaveState(std::ostream& stream);
+  void LoadState(std::istream& stream);
+
   uint8_t SpcRead(uint16_t address);
   void SpcWrite(uint16_t address, uint8_t data);
   void SpcIdle(bool waiting);

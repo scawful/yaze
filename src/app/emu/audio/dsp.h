@@ -91,6 +91,9 @@ class Dsp {
   void NewFrame();
 
   void Reset();
+  
+  void SaveState(std::ostream& stream);
+  void LoadState(std::istream& stream);
 
   void Cycle();
 

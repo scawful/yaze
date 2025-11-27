@@ -57,7 +57,11 @@ int main(int argc, char** argv) {
     snes.Init(rom_data);
 
     if (!absl::GetFlag(FLAGS_emu_load_state).empty()) {
-      snes.loadState(absl::GetFlag(FLAGS_emu_load_state));
+      auto status = snes.loadState(absl::GetFlag(FLAGS_emu_load_state));
+      if (!status.ok()) {
+        printf("Failed to load state: %s\n", std::string(status.message()).c_str());
+        return EXIT_FAILURE;
+      }
     }
 
     for (int i = 0; i < absl::GetFlag(FLAGS_emu_frames); ++i) {
@@ -65,7 +69,11 @@ int main(int argc, char** argv) {
     }
 
     if (!absl::GetFlag(FLAGS_emu_dump_state).empty()) {
-      snes.saveState(absl::GetFlag(FLAGS_emu_dump_state));
+      auto status = snes.saveState(absl::GetFlag(FLAGS_emu_dump_state));
+      if (!status.ok()) {
+        printf("Failed to save state: %s\n", std::string(status.message()).c_str());
+        return EXIT_FAILURE;
+      }
     }
 
     return EXIT_SUCCESS;

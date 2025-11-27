@@ -2,6 +2,7 @@
 
 #include "app/platform/sdl_compat.h"
 
+#include <algorithm>
 #include <cstdint>
 #include <vector>
 
@@ -367,6 +368,58 @@ void Apu::SpcWrite(uint16_t adr, uint8_t val) {
 
 void Apu::SpcIdle(bool waiting) {
   Cycle();
+}
+
+void Apu::SaveState(std::ostream& stream) {
+  stream.write(reinterpret_cast<const char*>(&rom_readable_), sizeof(rom_readable_));
+  stream.write(reinterpret_cast<const char*>(&dsp_adr_), sizeof(dsp_adr_));
+  stream.write(reinterpret_cast<const char*>(&cycles_), sizeof(cycles_));
+  stream.write(reinterpret_cast<const char*>(&transfer_size_), sizeof(transfer_size_));
+  stream.write(reinterpret_cast<const char*>(&in_transfer_), sizeof(in_transfer_));
+  
+  stream.write(reinterpret_cast<const char*>(timer_.data()), sizeof(timer_));
+  
+  stream.write(reinterpret_cast<const char*>(in_ports_.data()), sizeof(in_ports_));
+  stream.write(reinterpret_cast<const char*>(out_ports_.data()), sizeof(out_ports_));
+  
+  constexpr uint32_t kMaxRamSize = 0x10000;
+  uint32_t ram_size = static_cast<uint32_t>(std::min<uint32_t>(ram.size(), kMaxRamSize));
+  stream.write(reinterpret_cast<const char*>(&ram_size), sizeof(ram_size));
+  if (ram_size > 0) {
+    stream.write(reinterpret_cast<const char*>(ram.data()), ram_size * sizeof(uint8_t));
+  }
+  
+  dsp_.SaveState(stream);
+  spc700_.SaveState(stream);
+}
+
+void Apu::LoadState(std::istream& stream) {
+  stream.read(reinterpret_cast<char*>(&rom_readable_), sizeof(rom_readable_));
+  stream.read(reinterpret_cast<char*>(&dsp_adr_), sizeof(dsp_adr_));
+  stream.read(reinterpret_cast<char*>(&cycles_), sizeof(cycles_));
+  stream.read(reinterpret_cast<char*>(&transfer_size_), sizeof(transfer_size_));
+  stream.read(reinterpret_cast<char*>(&in_transfer_), sizeof(in_transfer_));
+  
+  stream.read(reinterpret_cast<char*>(timer_.data()), sizeof(timer_));
+  
+  stream.read(reinterpret_cast<char*>(in_ports_.data()), sizeof(in_ports_));
+  stream.read(reinterpret_cast<char*>(out_ports_.data()), sizeof(out_ports_));
+
+  uint32_t ram_size;
+  stream.read(reinterpret_cast<char*>(&ram_size), sizeof(ram_size));
+  constexpr uint32_t kMaxRamSize = 0x10000;
+  uint32_t safe_size = std::min<uint32_t>(ram_size, kMaxRamSize);
+  ram.resize(safe_size);
+  if (safe_size > 0) {
+    stream.read(reinterpret_cast<char*>(ram.data()), safe_size * sizeof(uint8_t));
+  }
+  if (ram_size > safe_size) {
+    std::vector<char> discard((ram_size - safe_size) * sizeof(uint8_t));
+    stream.read(discard.data(), discard.size());
+  }
+  
+  dsp_.LoadState(stream);
+  spc700_.LoadState(stream);
 }
 
 }  // namespace emu

@@ -2,11 +2,52 @@
 
 #include <cstdio>
 #include <cstdlib>
-#include <filesystem>
 #include <fstream>
+#include <sys/stat.h>
+
+#ifndef __EMSCRIPTEN__
+#include <filesystem>
+#endif
 
 #include "app/emu/snes.h"
 #include "app/rom.h"
+
+namespace {
+
+#ifdef __EMSCRIPTEN__
+// Simple path utilities for WASM builds
+std::string GetParentPath(const std::string& path) {
+  size_t pos = path.find_last_of("/\\");
+  if (pos == std::string::npos) return "";
+  return path.substr(0, pos);
+}
+
+bool FileExists(const std::string& path) {
+  std::ifstream f(path);
+  return f.good();
+}
+
+void CreateDirectories(const std::string& path) {
+  // In WASM/Emscripten, directories are typically auto-created
+  // or we use MEMFS which doesn't require explicit directory creation
+  (void)path;
+}
+#else
+std::string GetParentPath(const std::string& path) {
+  std::filesystem::path p(path);
+  return p.parent_path().string();
+}
+
+bool FileExists(const std::string& path) {
+  return std::filesystem::exists(path);
+}
+
+void CreateDirectories(const std::string& path) {
+  std::filesystem::create_directories(path);
+}
+#endif
+
+}  // namespace
 
 namespace yaze {
 namespace emu {
@@ -37,7 +78,7 @@ absl::Status SaveStateManager::Initialize() {
   }
 
   // Ensure state directory exists
-  std::filesystem::create_directories(state_directory_);
+  CreateDirectories(state_directory_);
   printf("[StateManager] State directory: %s\n", state_directory_.c_str());
 
   return absl::OkStatus();
@@ -46,13 +87,13 @@ absl::Status SaveStateManager::Initialize() {
 absl::Status SaveStateManager::LoadState(StateType type, int context_id) {
   std::string path = GetStatePath(type, context_id);
 
-  if (!std::filesystem::exists(path)) {
+  if (!FileExists(path)) {
     return absl::NotFoundError("State file not found: " + path);
   }
 
   // Load metadata and check compatibility
   std::string meta_path = GetMetadataPath(type, context_id);
-  if (std::filesystem::exists(meta_path)) {
+  if (FileExists(meta_path)) {
     auto meta_result = GetStateMetadata(type, context_id);
     if (meta_result.ok() && !IsStateCompatible(*meta_result)) {
       return absl::FailedPreconditionError(
@@ -132,7 +173,7 @@ absl::Status SaveStateManager::GenerateAllBaselineStates() {
 
 bool SaveStateManager::HasCachedState(StateType type, int context_id) const {
   std::string path = GetStatePath(type, context_id);
-  return std::filesystem::exists(path);
+  return FileExists(path);
 }
 
 absl::StatusOr<StateMetadata> SaveStateManager::GetStateMetadata(
@@ -161,13 +202,26 @@ absl::StatusOr<StateMetadata> SaveStateManager::GetStateMetadata(
     file.read(metadata.description.data(), desc_len);
   }
 
+  if (!file) {
+    return absl::InternalError("Failed to read metadata");
+  }
+
   return metadata;
 }
 
 absl::Status SaveStateManager::SaveStateToFile(const std::string& path,
                                                 const StateMetadata& metadata) {
+  // Ensure directory exists
+  std::string parent_path = GetParentPath(path);
+  if (!parent_path.empty()) {
+    CreateDirectories(parent_path);
+  }
+
   // Save SNES state using existing method
-  snes_->saveState(path);
+  auto save_status = snes_->saveState(path);
+  if (!save_status.ok()) {
+    return save_status;
+  }
 
   // Save metadata
   std::string meta_path = path + ".meta";
@@ -191,12 +245,18 @@ absl::Status SaveStateManager::SaveStateToFile(const std::string& path,
   meta_file.write(reinterpret_cast<const char*>(&desc_len), sizeof(desc_len));
   meta_file.write(metadata.description.data(), desc_len);
 
+  if (!meta_file) {
+    return absl::InternalError("Failed while writing metadata");
+  }
   printf("[StateManager] Saved state to %s\n", path.c_str());
   return absl::OkStatus();
 }
 
 absl::Status SaveStateManager::LoadStateFromFile(const std::string& path) {
-  snes_->loadState(path);
+  auto status = snes_->loadState(path);
+  if (!status.ok()) {
+    return status;
+  }
   printf("[StateManager] Loaded state from %s\n", path.c_str());
   return absl::OkStatus();
 }
@@ -211,39 +271,70 @@ uint32_t SaveStateManager::CalculateRomChecksum() const {
 absl::Status SaveStateManager::BootToTitleScreen() {
   snes_->Reset(true);
 
-  // Run frames until title screen appears (module 0x01)
-  // ALTTP shows title screen after ~200 frames
-  const int kMaxFrames = 400;
+  // Run frames until we reach File Select (module 0x01)
+  // In ALTTP, Module 0x00 is Intro, which transitions to 0x14 (Attract)
+  // unless Start is pressed, which goes to 0x01 (File Select).
+  const int kMaxFrames = 2000;
   for (int i = 0; i < kMaxFrames; ++i) {
     snes_->RunFrame();
     uint8_t module = GetGameModule();
-    // Module 0x01 = title screen, but we may also see 0x00 during init
+
+    if (i % 60 == 0) {
+      printf("[StateManager] Frame %d: module=0x%02X\n", i, module);
+    }
+
+    // Reached File Select
     if (module == 0x01) {
-      printf("[StateManager] Reached title screen (module 0x%02X) at frame %d\n",
-             module, i);
+      printf("[StateManager] Reached File Select (module 0x01) at frame %d\n", i);
       return absl::OkStatus();
+    }
+
+    // If we hit Attract Mode (0x14), press Start to go to File Select
+    if (module == 0x14) {
+      // Hold Start for 10 frames every 60 frames
+      if ((i % 60) < 10) {
+        if (i % 60 == 0) printf("[StateManager] In Attract Mode, holding Start...\n");
+        snes_->SetButtonState(0, buttons::kStart, true);
+      } else {
+        snes_->SetButtonState(0, buttons::kStart, false);
+      }
+    }
+    // Also try pressing Start during Intro (after some initial frames)
+    // Submodule 8 (FadeLogoIn) is when input is accepted
+    else if (module == 0x00 && i > 300) {
+      // Hold Start for 10 frames every 60 frames
+      if ((i % 60) < 10) {
+        if (i % 60 == 0) printf("[StateManager] In Intro, holding Start...\n");
+        snes_->SetButtonState(0, buttons::kStart, true);
+      } else {
+        snes_->SetButtonState(0, buttons::kStart, false);
+      }
     }
   }
 
-  // Even if we didn't detect module 0x01, continue if we're past init
-  printf("[StateManager] Title screen timeout, module=0x%02X (continuing)\n",
-         GetGameModule());
-  return absl::OkStatus();
+  printf("[StateManager] Boot timeout, module=0x%02X\n", GetGameModule());
+  return absl::DeadlineExceededError("Failed to reach File Select");
 }
 
 absl::Status SaveStateManager::NavigateToFileSelect() {
-  // Press Start to go to file select
-  PressButton(buttons::kStart, 2);
-
-  // Wait for file select module (0x02)
+  // We should already be at File Select (0x01) from BootToTitleScreen
+  // But if not, press Start
+  
   const int kMaxFrames = 120;
   for (int i = 0; i < kMaxFrames; ++i) {
-    snes_->RunFrame();
     uint8_t module = GetGameModule();
-    if (module == 0x02) {
-      printf("[StateManager] Navigated to file select (module 0x%02X)\n", module);
+    if (module == 0x01) {
+      printf("[StateManager] Navigated to file select (module 0x01)\n");
       return absl::OkStatus();
     }
+    
+    // If in Intro or Attract, press Start
+    if (module == 0x00 || module == 0x14) {
+       snes_->SetButtonState(0, buttons::kStart, true);
+    }
+    
+    snes_->RunFrame();
+    snes_->SetButtonState(0, buttons::kStart, false);
   }
 
   printf("[StateManager] File select timeout, module=0x%02X (continuing)\n",
@@ -252,29 +343,75 @@ absl::Status SaveStateManager::NavigateToFileSelect() {
 }
 
 absl::Status SaveStateManager::StartNewGame() {
-  // Select first file slot (empty slot creates new game)
-  PressButton(buttons::kA, 2);
-  WaitFrames(30);
+  printf("[StateManager] Starting new game sequence...\n");
 
-  // Confirm selection (starts name entry or uses default name)
-  PressButton(buttons::kA, 2);
-  WaitFrames(30);
-
-  // If we hit name entry, press Start to accept default name
-  // Then press A again to confirm
-  PressButton(buttons::kStart, 2);
-  WaitFrames(30);
-  PressButton(buttons::kA, 2);
-  WaitFrames(30);
-
-  // Wait for gameplay module (0x07=dungeon or 0x09=overworld)
-  const int kMaxFrames = 300;
-  for (int i = 0; i < kMaxFrames; ++i) {
+  // Phase 1: File Select (0x01) -> Name Entry (0x04)
+  // Try to select the first file and confirm
+  const int kFileSelectTimeout = 600;
+  for (int i = 0; i < kFileSelectTimeout; ++i) {
     snes_->RunFrame();
     uint8_t module = GetGameModule();
+
+    if (module == 0x04) {
+      printf("[StateManager] Reached Name Entry (module 0x04) at frame %d\n", i);
+      break;
+    }
+    
+    // If we are in File Select (0x01), press A to select/confirm
+    if (module == 0x01) {
+      if (i % 60 < 10) { // Press A for 10 frames every 60 frames
+        snes_->SetButtonState(0, buttons::kA, true);
+      } else {
+        snes_->SetButtonState(0, buttons::kA, false);
+      }
+    } else if (module == 0x03) { // Copy File (shouldn't happen but just in case)
+       // ...
+    }
+    
+    if (i == kFileSelectTimeout - 1) {
+       printf("[StateManager] Timeout waiting for Name Entry (current: 0x%02X)\n", module);
+       // Don't fail yet, maybe we skipped it?
+    }
+  }
+
+  // Phase 2: Name Entry (0x04) -> Game Load (0x07/0x09)
+  // Accept default name (Start) and confirm (A)
+  const int kNameEntryTimeout = 2000;
+  for (int i = 0; i < kNameEntryTimeout; ++i) {
+    snes_->RunFrame();
+    uint8_t module = GetGameModule();
+
     if (module == 0x07 || module == 0x09) {
-      printf("[StateManager] Started new game (module 0x%02X)\n", module);
+      printf("[StateManager] Started new game (module 0x%02X) at frame %d\n", module, i);
       return absl::OkStatus();
+    }
+
+    // If we are in Name Entry (0x04), press Start then A
+    if (module == 0x04) {
+      // If we've been in Name Entry for a while (e.g. > 600 frames), try to force transition
+      if (i > 600) {
+         printf("[StateManager] Stuck in Name Entry, forcing Module 0x05 (Load Level)...\n");
+         snes_->Write(0x7E0010, 0x05); // Force Load Level module
+         
+         // Also set a safe room to load (Link's House = 0x0104)
+         // Or just let it use whatever is in 0xA0 (usually 0)
+         // But we want to exit Name Entry.
+         continue;
+      }
+    
+      int cycle = i % 120; // Slower cycle
+      if (cycle < 20) {
+        // Press Start to accept name
+        snes_->SetButtonState(0, buttons::kStart, true);
+        snes_->SetButtonState(0, buttons::kA, false);
+      } else if (cycle >= 60 && cycle < 80) {
+        // Press A to confirm
+        snes_->SetButtonState(0, buttons::kStart, false);
+        snes_->SetButtonState(0, buttons::kA, true);
+      } else {
+        snes_->SetButtonState(0, buttons::kStart, false);
+        snes_->SetButtonState(0, buttons::kA, false);
+      }
     }
   }
 
@@ -305,7 +442,8 @@ absl::Status SaveStateManager::TeleportToRoomViaWram(int room_id) {
   snes_->Write(0x7E001B, is_dungeon ? 0x01 : 0x00);
 
   // Trigger room transition by setting loading module
-  snes_->Write(0x7E0010, 0x05);  // Loading module
+  // Module 0x06 = Underworld Load (0x05 is Load File, which resets state)
+  snes_->Write(0x7E0010, 0x06);  // Loading module
 
   // Set safe center position for Link
   snes_->Write(0x7E0022, 0x80);  // X low
@@ -314,9 +452,20 @@ absl::Status SaveStateManager::TeleportToRoomViaWram(int room_id) {
   snes_->Write(0x7E0021, 0x00);  // Y high
 
   // Wait for room to fully load
-  const int kMaxFrames = 300;
+  const int kMaxFrames = 600;
   for (int i = 0; i < kMaxFrames; ++i) {
     snes_->RunFrame();
+
+    // Force write the room ID every frame to prevent it from being overwritten
+    snes_->Write(0x7E00A0, room_id & 0xFF);
+    snes_->Write(0x7E00A1, (room_id >> 8) & 0xFF);
+    snes_->Write(0x7E001B, (room_id < 0x128) ? 0x01 : 0x00);
+
+    if (i % 60 == 0) {
+      uint8_t submodule = ReadWram(0x7E0011);
+      printf("[StateManager] Teleport wait frame %d: module=0x%02X, sub=0x%02X, room=0x%04X\n", 
+             i, GetGameModule(), submodule, GetCurrentRoom());
+    }
 
     if (IsRoomFullyLoaded() && GetCurrentRoom() == room_id) {
       printf("[StateManager] WRAM teleport to room 0x%04X successful\n",
@@ -406,7 +555,9 @@ bool SaveStateManager::IsRoomFullyLoaded() {
   // Also verify submodule is 0x00 (fully loaded, not transitioning)
   uint8_t module = GetGameModule();
   uint8_t submodule = ReadWram(0x7E0011);
-  return (module == 0x07 || module == 0x09) && (submodule == 0x00);
+  // Submodule 0x00 is normal gameplay
+  // Submodule 0x0F is often "Spotlight Open" or similar stable state in dungeons
+  return (module == 0x07 || module == 0x09) && (submodule == 0x00 || submodule == 0x0F);
 }
 
 std::string SaveStateManager::GetStatePath(StateType type,

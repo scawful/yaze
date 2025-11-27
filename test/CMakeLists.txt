@@ -148,6 +148,7 @@ if(YAZE_BUILD_TESTS)
       integration/zelda3/dungeon_graphics_transparency_test.cc
       integration/emulator_object_preview_test.cc
       integration/emulator_render_service_test.cc
+      integration/save_state_generation_test.cc
       e2e/rom_dependent/e2e_rom_test.cc
       e2e/zscustomoverworld/zscustomoverworld_upgrade_test.cc
     )

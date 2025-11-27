@@ -33,13 +33,11 @@ OverworldMap::OverworldMap(int index, Rom* rom)
   }
 
   if (version != OverworldVersion::kVanilla) {
-    if (version == OverworldVersion::kZSCustomV3) {
-      LoadCustomOverworldData();
-    } else {
-      SetupCustomTileset(OverworldVersionHelper::GetAsmVersion(*rom_));
-    }
+    // For ALL custom ASM versions (v1-v3), read from custom arrays
+    // SetupCustomTileset checks enable flags and falls back to vanilla if disabled
+    SetupCustomTileset(OverworldVersionHelper::GetAsmVersion(*rom_));
   } else if (core::FeatureFlags::get().overworld.kLoadCustomOverworld) {
-    // Pure vanilla ROM but flag enabled - set up custom data manually
+    // Pure vanilla ROM but flag enabled - set up hardcoded vanilla defaults
     LoadCustomOverworldData();
   }
   // For pure vanilla ROMs, LoadAreaInfo already handles everything
@@ -447,31 +445,95 @@ void OverworldMap::LoadCustomOverworldData() {
 }
 
 void OverworldMap::SetupCustomTileset(uint8_t asm_version) {
-  // Load custom palette and mosaic settings
-  main_palette_ = (*rom_)[OverworldCustomMainPaletteArray + index_];
-  mosaic_ = (*rom_)[OverworldCustomMosaicArray + index_] != 0x00;
-
-  uint8_t mosaicByte = (*rom_)[OverworldCustomMosaicArray + index_];
-  mosaic_expanded_ = {(mosaicByte & 0x08) != 0x00, (mosaicByte & 0x04) != 0x00,
-                      (mosaicByte & 0x02) != 0x00, (mosaicByte & 0x01) != 0x00};
-
   // Load area size for v3
-  if (OverworldVersionHelper::SupportsAreaEnum(OverworldVersionHelper::GetVersion(*rom_))) {
+  if (OverworldVersionHelper::SupportsAreaEnum(
+          OverworldVersionHelper::GetVersion(*rom_))) {
     uint8_t size_byte = (*rom_)[kOverworldScreenSize + index_];
     area_size_ = static_cast<AreaSizeEnum>(size_byte);
     large_map_ = (area_size_ == AreaSizeEnum::LargeArea);
   }
 
-  // Load custom GFX groups based on ASM version
-  if (asm_version >= 0x01 && asm_version != 0xFF) {
-    // Load from custom GFX group array
+  // Main Palette - check enable flag before reading from custom array
+  if ((*rom_)[OverworldCustomMainPaletteEnabled] != 0x00) {
+    main_palette_ = (*rom_)[OverworldCustomMainPaletteArray + index_];
+  } else {
+    // Fall back to world-based hardcoded logic
+    if (index_ < 0x40 || index_ == 0x95) {  // LW
+      main_palette_ = 0;
+    } else if ((index_ >= 0x40 && index_ < 0x80) || index_ == 0x96) {  // DW
+      main_palette_ = 1;
+    } else if (index_ >= 0x80 && index_ < 0xA0) {  // SW
+      main_palette_ = 0;
+    }
+    // Death mountain overrides
+    if (index_ == 0x03 || index_ == 0x05 || index_ == 0x07) {
+      main_palette_ = 2;
+    } else if (index_ == 0x43 || index_ == 0x45 || index_ == 0x47) {
+      main_palette_ = 3;
+    } else if (index_ == 0x88 || index_ == 0x93) {
+      main_palette_ = 4;
+    }
+  }
+
+  // Mosaic - check enable flag before reading from custom array
+  if ((*rom_)[OverworldCustomMosaicEnabled] != 0x00) {
+    mosaic_ = (*rom_)[OverworldCustomMosaicArray + index_] != 0x00;
+    uint8_t mosaicByte = (*rom_)[OverworldCustomMosaicArray + index_];
+    mosaic_expanded_ = {(mosaicByte & 0x08) != 0x00,
+                        (mosaicByte & 0x04) != 0x00,
+                        (mosaicByte & 0x02) != 0x00,
+                        (mosaicByte & 0x01) != 0x00};
+  } else {
+    // Fall back to hardcoded vanilla mosaic values
+    mosaic_ = false;
+    mosaic_expanded_ = {false, false, false, false};
+    switch (index_) {
+      case 0x00:  // Leaving Skull Woods / Lost Woods
+      case 0x40:
+        mosaic_expanded_ = {false, true, false, true};
+        break;
+      case 0x02:  // Going into Skull woods / Lost Woods west
+      case 0x0A:
+      case 0x42:
+      case 0x4A:
+        mosaic_expanded_ = {false, false, true, false};
+        break;
+      case 0x0F:  // Going into Zora's Domain North
+      case 0x10:  // Going into Skull Woods / Lost Woods North
+      case 0x11:
+      case 0x50:
+      case 0x51:
+        mosaic_expanded_ = {true, false, false, false};
+        break;
+      case 0x80:  // Leaving Zora's Domain, Master Sword area, Triforce area
+      case 0x81:
+      case 0x88:
+        mosaic_expanded_ = {false, true, false, false};
+        break;
+    }
+  }
+
+  // Animated GFX - check enable flag before reading from custom array
+  if ((*rom_)[OverworldCustomAnimatedGFXEnabled] != 0x00) {
+    animated_gfx_ = (*rom_)[OverworldCustomAnimatedGFXArray + index_];
+  } else {
+    // Death mountain uses 0x59, others use 0x5B
+    if (index_ == 0x03 || index_ == 0x05 || index_ == 0x07 || index_ == 0x43 ||
+        index_ == 0x45 || index_ == 0x47 || index_ == 0x95) {
+      animated_gfx_ = 0x59;
+    } else {
+      animated_gfx_ = 0x5B;
+    }
+  }
+
+  // Tile GFX Groups - check enable flag before reading from custom array
+  if ((*rom_)[OverworldCustomTileGFXGroupEnabled] != 0x00) {
     for (int i = 0; i < 8; i++) {
       custom_gfx_ids_[i] =
           (*rom_)[OverworldCustomTileGFXGroupArray + (index_ * 8) + i];
     }
-    animated_gfx_ = (*rom_)[OverworldCustomAnimatedGFXArray + index_];
   } else {
-    // Fallback to vanilla logic for ROMs without custom ASM
+    // Fall back to world-based GFX groups
     int index_world = 0x20;
     if (parent_ >= kDarkWorldMapIdStart &&
         parent_ < kSpecialWorldMapIdStart) {  // DW
@@ -520,19 +582,41 @@ void OverworldMap::SetupCustomTileset(uint8_t asm_version) {
     } else {
       custom_gfx_ids_[6] = 0xFF;
     }
-
-    // Set the animated GFX values
-    if (index_ == 0x03 || index_ == 0x05 || index_ == 0x07 || index_ == 0x43 ||
-        index_ == 0x45 || index_ == 0x47) {
-      animated_gfx_ = 0x59;
-    } else {
-      animated_gfx_ = 0x5B;
-    }
   }
 
-  // Load subscreen overlay
-  subscreen_overlay_ =
-      (*rom_)[OverworldCustomSubscreenOverlayArray + (index_ * 2)];
+  // Subscreen Overlay - check enable flag before reading from custom array
+  if ((*rom_)[OverworldCustomSubscreenOverlayEnabled] != 0x00) {
+    subscreen_overlay_ =
+        (*rom_)[OverworldCustomSubscreenOverlayArray + (index_ * 2)] |
+        ((*rom_)[OverworldCustomSubscreenOverlayArray + (index_ * 2) + 1] << 8);
+  } else {
+    // Fall back to hardcoded overlay values
+    subscreen_overlay_ = 0x00FF;
+    if (index_ == 0x00 || index_ == 0x01 || index_ == 0x08 || index_ == 0x09 ||
+        index_ == 0x40 || index_ == 0x41 || index_ == 0x48 || index_ == 0x49) {
+      // Add fog 2 to the lost woods and skull woods
+      subscreen_overlay_ = 0x009D;
+    } else if (index_ == 0x03 || index_ == 0x04 || index_ == 0x0B ||
+               index_ == 0x0C || index_ == 0x05 || index_ == 0x06 ||
+               index_ == 0x0D || index_ == 0x0E || index_ == 0x07) {
+      // Add the sky BG to LW death mountain
+      subscreen_overlay_ = 0x0095;
+    } else if (index_ == 0x43 || index_ == 0x44 || index_ == 0x4B ||
+               index_ == 0x4C || index_ == 0x45 || index_ == 0x46 ||
+               index_ == 0x4D || index_ == 0x4E || index_ == 0x47) {
+      // Add the lava to DW death mountain
+      subscreen_overlay_ = 0x009C;
+    } else if (index_ == 0x5B || index_ == 0x5C || index_ == 0x63 ||
+               index_ == 0x64) {
+      subscreen_overlay_ = 0x0096;
+    } else if (index_ == 0x80) {
+      // Add fog 1 to the master sword area
+      subscreen_overlay_ = 0x0097;
+    } else if (index_ == 0x88) {
+      // Add the triforce room curtains to the triforce room
+      subscreen_overlay_ = 0x0093;
+    }
+  }
 }
 
 void OverworldMap::LoadMainBlocksetId() {

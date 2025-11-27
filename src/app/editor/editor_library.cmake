@@ -33,6 +33,7 @@ set(
   app/editor/palette/palette_editor.cc
   app/editor/palette/palette_group_card.cc
   app/editor/palette/palette_utility.cc
+  app/editor/sprite/sprite_drawer.cc
   app/editor/sprite/sprite_editor.cc
   app/editor/system/command_manager.cc
   app/editor/system/command_palette.cc

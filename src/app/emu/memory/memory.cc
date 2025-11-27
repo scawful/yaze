@@ -113,6 +113,9 @@ uint8_t MemoryImpl::cart_readLorom(uint8_t bank, uint16_t adr) {
   bank &= 0x7f;
   if (adr >= 0x8000 || bank >= 0x40) {
     uint32_t rom_offset = ((bank << 15) | (adr & 0x7fff)) & (rom_size_ - 1);
+    if (rom_offset >= rom_.size()) {
+      return open_bus_;
+    }
     return rom_[rom_offset];
   }
 

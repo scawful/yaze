@@ -7,8 +7,11 @@
 
 #include "absl/status/status.h"
 #include "app/editor/editor.h"
+#include "app/editor/sprite/sprite_drawer.h"
 #include "app/editor/sprite/zsprite.h"
+#include "zelda3/sprite/sprite_oam_tables.h"
 #include "app/gfx/core/bitmap.h"
+#include "app/gfx/types/snes_palette.h"
 #include "app/gui/app/editor_layout.h"
 #include "app/gui/canvas/canvas.h"
 #include "app/rom.h"
@@ -98,6 +101,12 @@ class SpriteEditor : public Editor {
   void RenderZSpriteFrame(int frame_index);
   void DrawZSpriteOnCanvas();
 
+  // Graphics pipeline
+  void LoadSpriteGraphicsBuffer();
+  void LoadSpritePalettes();
+  void RenderVanillaSprite(const zelda3::SpriteOamLayout& layout);
+  void LoadSheetsForSprite(const std::array<uint8_t, 4>& sheets);
+
   // ============================================================
   // Vanilla Sprite State
   // ============================================================
@@ -118,6 +127,8 @@ class SpriteEditor : public Editor {
   };
   OAMConfig oam_config_;
   gfx::Bitmap oam_bitmap_;
+  gfx::Bitmap vanilla_preview_bitmap_;
+  bool vanilla_preview_needs_update_ = true;
 
   // ============================================================
   // Custom ZSM Sprite State
@@ -142,6 +153,14 @@ class SpriteEditor : public Editor {
   // Sprite preview bitmap (rendered from OAM tiles)
   gfx::Bitmap sprite_preview_bitmap_;
   bool preview_needs_update_ = true;
+
+  // ============================================================
+  // Graphics Pipeline State
+  // ============================================================
+  SpriteDrawer sprite_drawer_;
+  std::vector<uint8_t> sprite_gfx_buffer_;  // 8BPP combined sheets buffer
+  gfx::PaletteGroup sprite_palettes_;       // Loaded sprite palettes
+  bool gfx_buffer_loaded_ = false;
 
   // ============================================================
   // Canvas
