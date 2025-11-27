@@ -79,6 +79,24 @@ EditorType EditorRegistry::GetEditorTypeFromCategory(
   return EditorType::kSettings;  // Default fallback
 }
 
+std::vector<std::string> EditorRegistry::GetAllEditorCategories() {
+  // Returns all editor categories in preferred display order for the sidebar
+  // This is a fixed list to ensure consistent ordering
+  return {
+      "Overworld",  // Primary map editing
+      "Dungeon",    // Dungeon/room editing
+      "Graphics",   // Graphics sheet editing
+      "Palette",    // Color palette editing
+      "Sprite",     // Sprite editing
+      "Message",    // Text/dialogue editing
+      "Screen",     // Screen/title editing
+      "Music",      // Music/SPC editing
+      "Assembly",   // Code editing
+      "Memory",     // Hex editor (uses "Memory" category for cards)
+      "Emulator"    // Game testing
+  };
+}
+
 void EditorRegistry::JumpToDungeonRoom(int room_id) {
   auto it = registered_editors_.find(EditorType::kDungeon);
   if (it != registered_editors_.end() && it->second) {

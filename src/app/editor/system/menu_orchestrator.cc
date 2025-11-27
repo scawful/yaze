@@ -135,14 +135,10 @@ void MenuOrchestrator::AddEditMenuItems() {
           [this]() { return HasCurrentEditor(); })
       .Separator();
 
-  // Search operations
-  menu_builder_
-      .Item(
-          "Find", ICON_MD_SEARCH, [this]() { OnFind(); }, "Ctrl+F",
-          [this]() { return HasCurrentEditor(); })
-      .Item(
-          "Find in Files", ICON_MD_SEARCH, [this]() { OnShowGlobalSearch(); },
-          "Ctrl+Shift+F");
+  // Search operations (Find in Files moved to Tools > Global Search)
+  menu_builder_.Item(
+      "Find", ICON_MD_SEARCH, [this]() { OnFind(); }, "Ctrl+F",
+      [this]() { return HasCurrentEditor(); });
 }
 
 void MenuOrchestrator::BuildViewMenu() {
@@ -495,11 +491,10 @@ void MenuOrchestrator::BuildHelpMenu() {
 }
 
 void MenuOrchestrator::AddHelpMenuItems() {
+  // Note: Asar Integration moved to Tools menu to reduce redundancy
   menu_builder_
       .Item("Getting Started", ICON_MD_PLAY_ARROW,
             [this]() { OnShowGettingStarted(); })
-      .Item("Asar Integration", ICON_MD_CODE,
-            [this]() { OnShowAsarIntegration(); })
       .Item("Build Instructions", ICON_MD_BUILD,
             [this]() { OnShowBuildInstructions(); })
       .Item("CLI Usage", ICON_MD_TERMINAL, [this]() { OnShowCLIUsage(); })
