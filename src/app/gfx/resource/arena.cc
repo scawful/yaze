@@ -337,5 +337,39 @@ void Arena::NotifySheetModified(int sheet_index) {
   }
 }
 
+// ========== Palette Change Notification System ==========
+
+void Arena::NotifyPaletteModified(const std::string& group_name,
+                                  int palette_index) {
+  LOG_DEBUG("Arena", "Palette modified: group='%s', palette=%d",
+            group_name.c_str(), palette_index);
+
+  // Notify all registered listeners
+  for (const auto& [id, callback] : palette_listeners_) {
+    try {
+      callback(group_name, palette_index);
+    } catch (const std::exception& e) {
+      LOG_ERROR("Arena", "Exception in palette listener %d: %s", id, e.what());
+    }
+  }
+
+  LOG_DEBUG("Arena", "Notified %zu palette listeners", palette_listeners_.size());
+}
+
+int Arena::RegisterPaletteListener(PaletteChangeCallback callback) {
+  int id = next_palette_listener_id_++;
+  palette_listeners_[id] = std::move(callback);
+  LOG_DEBUG("Arena", "Registered palette listener with ID %d", id);
+  return id;
+}
+
+void Arena::UnregisterPaletteListener(int listener_id) {
+  auto it = palette_listeners_.find(listener_id);
+  if (it != palette_listeners_.end()) {
+    palette_listeners_.erase(it);
+    LOG_DEBUG("Arena", "Unregistered palette listener with ID %d", listener_id);
+  }
+}
+
 }  // namespace gfx
 }  // namespace yaze

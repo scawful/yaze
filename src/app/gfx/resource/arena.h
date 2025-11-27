@@ -3,8 +3,10 @@
 
 #include <array>
 #include <cstdint>
+#include <functional>
 #include <memory>
 #include <mutex>
+#include <string>
 #include <tuple>
 #include <unordered_map>
 #include <vector>
@@ -131,6 +133,36 @@ class Arena {
    */
   void NotifySheetModified(int sheet_index);
 
+  // ========== Palette Change Notification System ==========
+
+  /// Callback type for palette change listeners
+  /// @param group_name The palette group that changed (e.g., "ow_main")
+  /// @param palette_index The specific palette that changed, or -1 for all
+  using PaletteChangeCallback =
+      std::function<void(const std::string& group_name, int palette_index)>;
+
+  /**
+   * @brief Notify all listeners that a palette has been modified
+   * @param group_name The palette group name (e.g., "ow_main", "dungeon_main")
+   * @param palette_index Specific palette index, or -1 for entire group
+   * @details This triggers bitmap refresh in editors using these palettes
+   */
+  void NotifyPaletteModified(const std::string& group_name,
+                             int palette_index = -1);
+
+  /**
+   * @brief Register a callback for palette change notifications
+   * @param callback Function to call when palettes change
+   * @return Unique ID for this listener (use to unregister)
+   */
+  int RegisterPaletteListener(PaletteChangeCallback callback);
+
+  /**
+   * @brief Unregister a palette change listener
+   * @param listener_id The ID returned from RegisterPaletteListener
+   */
+  void UnregisterPaletteListener(int listener_id);
+
   // Background buffer access for SNES layer rendering
   /**
    * @brief Get reference to background layer 1 buffer
@@ -183,6 +215,10 @@ class Arena {
 
   std::vector<TextureCommand> texture_command_queue_;
   IRenderer* renderer_ = nullptr;
+
+  // Palette change notification system
+  std::unordered_map<int, PaletteChangeCallback> palette_listeners_;
+  int next_palette_listener_id_ = 1;
 };
 
 }  // namespace gfx

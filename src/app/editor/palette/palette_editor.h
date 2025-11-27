@@ -91,10 +91,10 @@ class PaletteEditor : public Editor {
   absl::Status Cut() override { return absl::OkStatus(); }
   absl::Status Copy() override { return absl::OkStatus(); }
   absl::Status Paste() override { return absl::OkStatus(); }
-  absl::Status Undo() override { return absl::OkStatus(); }
-  absl::Status Redo() override { return absl::OkStatus(); }
+  absl::Status Undo() override;
+  absl::Status Redo() override;
   absl::Status Find() override { return absl::OkStatus(); }
-  absl::Status Save() override { return absl::UnimplementedError("Save"); }
+  absl::Status Save() override;
 
   void set_rom(Rom* rom) { rom_ = rom; }
   Rom* rom() const { return rom_; }
@@ -111,6 +111,12 @@ class PaletteEditor : public Editor {
   void DrawControlPanel();
   void DrawQuickAccessCard();
   void DrawCustomPaletteCard();
+
+  // Category and search UI methods
+  void DrawCategorizedPaletteList();
+  void DrawSearchBar();
+  bool PassesSearchFilter(const std::string& group_name) const;
+  bool* GetShowFlagForGroup(const std::string& group_name);
 
   // Legacy methods (for backward compatibility if needed)
   void DrawQuickAccessTab();
@@ -137,6 +143,9 @@ class PaletteEditor : public Editor {
   palette_internal::PaletteEditorHistory history_;
 
   Rom* rom_;
+
+  // Search filter for palette groups
+  char search_buffer_[256] = "";
 
   // Card visibility flags (registered with EditorCardManager)
   bool show_control_panel_ = true;

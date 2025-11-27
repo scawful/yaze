@@ -3,6 +3,7 @@
 #include <chrono>
 
 #include "absl/strings/str_format.h"
+#include "app/gfx/resource/arena.h"
 #include "app/gfx/types/snes_palette.h"
 #include "util/macro.h"
 
@@ -274,6 +275,9 @@ absl::Status PaletteManager::SaveGroup(const std::string& group_name) {
                            -1, -1};
   NotifyListeners(event);
 
+  // Notify Arena for bitmap propagation to other editors
+  Arena::Get().NotifyPaletteModified(group_name, -1);
+
   return absl::OkStatus();
 }
 
@@ -288,6 +292,30 @@ absl::Status PaletteManager::SaveAllToRom() {
   }
 
   // Notify listeners
+  PaletteChangeEvent event{PaletteChangeEvent::Type::kAllSaved, "", -1, -1};
+  NotifyListeners(event);
+
+  return absl::OkStatus();
+}
+
+absl::Status PaletteManager::ApplyPreviewChanges() {
+  if (!IsInitialized()) {
+    return absl::FailedPreconditionError("PaletteManager not initialized");
+  }
+
+  // Get all modified groups and notify Arena for each
+  // This triggers bitmap refresh in other editors WITHOUT saving to ROM
+  auto modified_groups = GetModifiedGroups();
+
+  if (modified_groups.empty()) {
+    return absl::OkStatus();  // Nothing to preview
+  }
+
+  for (const auto& group_name : modified_groups) {
+    Arena::Get().NotifyPaletteModified(group_name, -1);
+  }
+
+  // Notify listeners that preview was applied
   PaletteChangeEvent event{PaletteChangeEvent::Type::kAllSaved, "", -1, -1};
   NotifyListeners(event);
 
