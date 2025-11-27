@@ -6,6 +6,9 @@
 #include "app/editor/system/user_settings.h"
 
 namespace yaze {
+
+class Rom;
+
 namespace editor {
 
 class EditorCardRegistry;
@@ -25,9 +28,10 @@ class EditorCardRegistry;
 class SettingsPanel {
  public:
   SettingsPanel() = default;
-  
+
   void SetUserSettings(UserSettings* settings) { user_settings_ = settings; }
   void SetCardRegistry(EditorCardRegistry* registry) { card_registry_ = registry; }
+  void SetRom(Rom* rom) { rom_ = rom; }
 
   // Main draw entry point
   void Draw();
@@ -43,6 +47,7 @@ class SettingsPanel {
 
   UserSettings* user_settings_ = nullptr;
   EditorCardRegistry* card_registry_ = nullptr;
+  Rom* rom_ = nullptr;
 
   // Shortcut editing state
   char shortcut_edit_buffer_[64] = {};

@@ -252,6 +252,9 @@ absl::Status Tile16Editor::Update() {
   // Draw palette settings popup if enabled
   DrawPaletteSettings();
 
+  // Update live preview if dirty
+  RETURN_IF_ERROR(UpdateLivePreview());
+
   return absl::OkStatus();
 }
 
@@ -739,12 +742,131 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
     ImGui::TableNextColumn();
     ImGui::BeginGroup();
 
+    // Navigation header with tile info
     ImGui::TextColored(ImVec4(0.9f, 0.9f, 0.9f, 1.0f), "Tile16 Blockset");
+    ImGui::SameLine();
+
+    // Show current tile and total tiles
+    int total_tiles = tile16_blockset_ ? static_cast<int>(tile16_blockset_->atlas.size()) : 0;
+    if (total_tiles == 0) total_tiles = zelda3::kNumTile16Individual;
+    ImGui::TextDisabled("(%d / %d)", current_tile16_, total_tiles);
+
+    // Navigation controls row
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 4));
+
+    // Jump to Tile ID input
+    ImGui::SetNextItemWidth(80);
+    if (ImGui::InputInt("##JumpToTile", &jump_to_tile_id_, 0, 0,
+                        ImGuiInputTextFlags_EnterReturnsTrue)) {
+      if (jump_to_tile_id_ >= 0 && jump_to_tile_id_ < total_tiles) {
+        auto status = SetCurrentTile(jump_to_tile_id_);
+        if (status.ok()) {
+          scroll_to_current_ = true;
+          current_page_ = jump_to_tile_id_ / kTilesPerPage;
+        }
+      }
+      jump_to_tile_id_ = current_tile16_;  // Reset to current
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Enter tile ID (0-%d) and press Enter", total_tiles - 1);
+    }
+
+    ImGui::SameLine();
+    if (ImGui::Button("Go")) {
+      if (jump_to_tile_id_ >= 0 && jump_to_tile_id_ < total_tiles) {
+        auto status = SetCurrentTile(jump_to_tile_id_);
+        if (status.ok()) {
+          scroll_to_current_ = true;
+          current_page_ = jump_to_tile_id_ / kTilesPerPage;
+        }
+      }
+    }
+
+    ImGui::SameLine();
+    ImGui::TextDisabled("|");
+    ImGui::SameLine();
+
+    // Page navigation
+    int total_pages = (total_tiles + kTilesPerPage - 1) / kTilesPerPage;
+    current_page_ = current_tile16_ / kTilesPerPage;
+
+    if (ImGui::Button("<<")) {
+      int new_tile = 0;
+      if (new_tile >= 0 && new_tile < total_tiles) {
+        auto status = SetCurrentTile(new_tile);
+        if (status.ok()) scroll_to_current_ = true;
+      }
+    }
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("First page");
+
+    ImGui::SameLine();
+    if (ImGui::Button("<")) {
+      int new_tile = std::max(0, current_tile16_ - kTilesPerPage);
+      if (new_tile >= 0 && new_tile < total_tiles) {
+        auto status = SetCurrentTile(new_tile);
+        if (status.ok()) scroll_to_current_ = true;
+      }
+    }
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("Previous page (PageUp)");
+
+    ImGui::SameLine();
+    ImGui::TextDisabled("Page %d/%d", current_page_ + 1, total_pages);
+
+    ImGui::SameLine();
+    if (ImGui::Button(">")) {
+      int new_tile = std::min(total_tiles - 1, current_tile16_ + kTilesPerPage);
+      if (new_tile >= 0 && new_tile < total_tiles) {
+        auto status = SetCurrentTile(new_tile);
+        if (status.ok()) scroll_to_current_ = true;
+      }
+    }
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("Next page (PageDown)");
+
+    ImGui::SameLine();
+    if (ImGui::Button(">>")) {
+      int new_tile = total_tiles - 1;
+      if (new_tile >= 0 && new_tile < total_tiles) {
+        auto status = SetCurrentTile(new_tile);
+        if (status.ok()) scroll_to_current_ = true;
+      }
+    }
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("Last page");
+
+    // Handle keyboard shortcuts for page navigation
+    if (ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows)) {
+      if (ImGui::IsKeyPressed(ImGuiKey_PageUp)) {
+        int new_tile = std::max(0, current_tile16_ - kTilesPerPage);
+        auto status = SetCurrentTile(new_tile);
+        if (status.ok()) scroll_to_current_ = true;
+      }
+      if (ImGui::IsKeyPressed(ImGuiKey_PageDown)) {
+        int new_tile = std::min(total_tiles - 1, current_tile16_ + kTilesPerPage);
+        auto status = SetCurrentTile(new_tile);
+        if (status.ok()) scroll_to_current_ = true;
+      }
+      if (ImGui::IsKeyPressed(ImGuiKey_Home)) {
+        auto status = SetCurrentTile(0);
+        if (status.ok()) scroll_to_current_ = true;
+      }
+      if (ImGui::IsKeyPressed(ImGuiKey_End)) {
+        auto status = SetCurrentTile(total_tiles - 1);
+        if (status.ok()) scroll_to_current_ = true;
+      }
+    }
+
+    ImGui::PopStyleVar();
 
     // Blockset canvas with scrolling
     if (BeginChild("##BlocksetScrollable",
                    ImVec2(0, ImGui::GetContentRegionAvail().y), true,
                    ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
+      // Handle scroll-to-current request
+      if (scroll_to_current_) {
+        int tile_row = current_tile16_ / kTilesPerRow;
+        float tile_y = tile_row * 32.0f * blockset_canvas_.GetGlobalScale();
+        ImGui::SetScrollY(tile_y);
+        scroll_to_current_ = false;
+      }
       blockset_canvas_.DrawBackground();
       blockset_canvas_.DrawContextMenu();
 
@@ -1808,13 +1930,19 @@ absl::Status Tile16Editor::SaveTile16ToROM() {
     return absl::FailedPreconditionError("No active tile16 to save");
   }
 
+  // Write the tile16 data to ROM first
+  RETURN_IF_ERROR(UpdateROMTile16Data());
+
   // Update the tile16 blockset with current changes
   RETURN_IF_ERROR(UpdateOverworldTilemap());
 
   // Commit changes to the tile16 blockset
   RETURN_IF_ERROR(CommitChangesToBlockset());
 
-  // Mark ROM as dirty to ensure saving
+  // Mark ROM as dirty so changes persist when saving
+  rom_->set_dirty(true);
+
+  util::logf("Tile16 %d saved to ROM", current_tile16_);
   return absl::OkStatus();
 }
 
@@ -2592,6 +2720,50 @@ void Tile16Editor::DrawManualTile8Inputs() {
 
     ImGui::EndPopup();
   }
+}
+
+absl::Status Tile16Editor::UpdateLivePreview() {
+  // Skip if live preview is disabled
+  if (!live_preview_enabled_) {
+    return absl::OkStatus();
+  }
+
+  // Check if preview needs updating
+  if (!preview_dirty_) {
+    return absl::OkStatus();
+  }
+
+  // Ensure we have valid tile data
+  if (!current_tile16_bmp_.is_active()) {
+    preview_dirty_ = false;
+    return absl::OkStatus();
+  }
+
+  // Update the preview bitmap from current tile16
+  if (!preview_tile16_.is_active()) {
+    preview_tile16_.Create(16, 16, 8, current_tile16_bmp_.vector());
+  } else {
+    // Recreate with updated data
+    preview_tile16_.Create(16, 16, 8, current_tile16_bmp_.vector());
+  }
+
+  // Apply the current palette
+  if (rom_) {
+    const auto& ow_main_pal_group = rom_->palette_group().overworld_main;
+    if (ow_main_pal_group.size() > current_palette_) {
+      preview_tile16_.SetPaletteWithTransparent(ow_main_pal_group[0],
+                                                current_palette_);
+    }
+  }
+
+  // Queue texture update
+  gfx::Arena::Get().QueueTextureCommand(gfx::Arena::TextureCommandType::UPDATE,
+                                        &preview_tile16_);
+
+  // Clear the dirty flag
+  preview_dirty_ = false;
+
+  return absl::OkStatus();
 }
 
 }  // namespace editor

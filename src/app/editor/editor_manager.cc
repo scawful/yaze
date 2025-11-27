@@ -1254,6 +1254,7 @@ absl::Status EditorManager::LoadAssets(uint64_t passed_handle) {
   // Configure settings panel
   current_editor_set->settings_panel_.SetUserSettings(&user_settings_);
   current_editor_set->settings_panel_.SetCardRegistry(&card_registry_);
+  current_editor_set->settings_panel_.SetRom(current_rom);
 
   // Initialize the dungeon editor with the renderer
   current_editor_set->dungeon_editor_.Initialize(renderer_, current_rom);

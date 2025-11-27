@@ -285,13 +285,14 @@ void MapPropertiesSystem::DrawCustomBackgroundColorEditor(
   Text("Custom Background Color Editor");
   Separator();
 
-  // Enable/disable area-specific background color
-  static bool use_area_specific_bg_color = false;
+  // Read enable flag from ROM (not static - must reflect current ROM state)
+  bool use_area_specific_bg_color =
+      (*rom_)[zelda3::OverworldCustomAreaSpecificBGEnabled] != 0x00;
   if (ImGui::Checkbox("Use Area-Specific Background Color",
                       &use_area_specific_bg_color)) {
-    // Update ROM data
+    // Update ROM data when checkbox is toggled
     (*rom_)[zelda3::OverworldCustomAreaSpecificBGEnabled] =
-        use_area_specific_bg_color ? 1 : 0;
+        use_area_specific_bg_color ? 0x01 : 0x00;
   }
 
   if (use_area_specific_bg_color) {
@@ -368,13 +369,14 @@ void MapPropertiesSystem::DrawOverlayEditor(int current_map,
     ImGui::Separator();
   }
 
-  // Enable/disable subscreen overlay
-  static bool use_subscreen_overlay = false;
+  // Read enable flag from ROM (not static - must reflect current ROM state)
+  bool use_subscreen_overlay =
+      (*rom_)[zelda3::OverworldCustomSubscreenOverlayEnabled] != 0x00;
   if (ImGui::Checkbox(ICON_MD_VISIBILITY " Enable Visual Effect for This Area",
                       &use_subscreen_overlay)) {
-    // Update ROM data
+    // Update ROM data when checkbox is toggled
     (*rom_)[zelda3::OverworldCustomSubscreenOverlayEnabled] =
-        use_subscreen_overlay ? 1 : 0;
+        use_subscreen_overlay ? 0x01 : 0x00;
   }
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip("Enable/disable visual effect overlay for this map area");

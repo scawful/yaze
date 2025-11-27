@@ -3,8 +3,13 @@
 
 #include "core/features.h"
 #include "imgui/imgui.h"
+#include "zelda3/overworld/overworld_map.h"
+#include "zelda3/overworld/overworld_version_helper.h"
 
 namespace yaze {
+
+class Rom;  // Forward declaration
+
 namespace gui {
 
 using ImGui::BeginMenu;
@@ -67,6 +72,91 @@ struct FlagsMenu {
     // Use the viewer's UI controls to enable/disable recording if needed
     Checkbox("Use Native File Dialog (NFD)",
              &core::FeatureFlags::get().kUseNativeFileDialog);
+  }
+
+  // ZSCustomOverworld ROM-level enable flags (requires loaded ROM)
+  void DrawZSCustomOverworldFlags(Rom* rom) {
+    if (!rom || !rom->is_loaded()) {
+      ImGui::TextDisabled("Load a ROM to configure ZSCustomOverworld flags");
+      return;
+    }
+
+    auto rom_version = zelda3::OverworldVersionHelper::GetVersion(*rom);
+    if (!zelda3::OverworldVersionHelper::SupportsCustomBGColors(rom_version)) {
+      ImGui::TextDisabled("ROM does not support ZSCustomOverworld (v2+ required)");
+      return;
+    }
+
+    ImGui::TextWrapped(
+        "These flags globally enable/disable ZSCustomOverworld features. "
+        "When disabled, the game uses vanilla behavior.");
+    ImGui::Spacing();
+
+    // Area-Specific Background Color
+    bool bg_enabled =
+        (*rom)[zelda3::OverworldCustomAreaSpecificBGEnabled] != 0x00;
+    if (Checkbox("Area Background Colors", &bg_enabled)) {
+      (*rom)[zelda3::OverworldCustomAreaSpecificBGEnabled] =
+          bg_enabled ? 0x01 : 0x00;
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Enable per-area custom background color (v2+)");
+    }
+
+    // Main Palette
+    bool main_pal_enabled =
+        (*rom)[zelda3::OverworldCustomMainPaletteEnabled] != 0x00;
+    if (Checkbox("Custom Main Palette", &main_pal_enabled)) {
+      (*rom)[zelda3::OverworldCustomMainPaletteEnabled] =
+          main_pal_enabled ? 0x01 : 0x00;
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Enable per-area custom main palette (v2+)");
+    }
+
+    // Mosaic
+    bool mosaic_enabled =
+        (*rom)[zelda3::OverworldCustomMosaicEnabled] != 0x00;
+    if (Checkbox("Custom Mosaic Effects", &mosaic_enabled)) {
+      (*rom)[zelda3::OverworldCustomMosaicEnabled] =
+          mosaic_enabled ? 0x01 : 0x00;
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Enable per-area mosaic effect control (v2+)");
+    }
+
+    // Animated GFX
+    bool anim_enabled =
+        (*rom)[zelda3::OverworldCustomAnimatedGFXEnabled] != 0x00;
+    if (Checkbox("Custom Animated GFX", &anim_enabled)) {
+      (*rom)[zelda3::OverworldCustomAnimatedGFXEnabled] =
+          anim_enabled ? 0x01 : 0x00;
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Enable per-area animated tile graphics (v3+)");
+    }
+
+    // Subscreen Overlay
+    bool overlay_enabled =
+        (*rom)[zelda3::OverworldCustomSubscreenOverlayEnabled] != 0x00;
+    if (Checkbox("Custom Subscreen Overlay", &overlay_enabled)) {
+      (*rom)[zelda3::OverworldCustomSubscreenOverlayEnabled] =
+          overlay_enabled ? 0x01 : 0x00;
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Enable per-area visual effect overlays (v3+)");
+    }
+
+    // Tile GFX Groups
+    bool tile_gfx_enabled =
+        (*rom)[zelda3::OverworldCustomTileGFXGroupEnabled] != 0x00;
+    if (Checkbox("Custom Tile GFX Groups", &tile_gfx_enabled)) {
+      (*rom)[zelda3::OverworldCustomTileGFXGroupEnabled] =
+          tile_gfx_enabled ? 0x01 : 0x00;
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Enable per-area custom tile graphics groups (v3+)");
+    }
   }
 };
 

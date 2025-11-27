@@ -81,17 +81,22 @@ void SettingsPanel::DrawGeneralSettings() {
     flags.DrawSystemFlags();
     ImGui::TreePop();
   }
-  
+
   if (ImGui::TreeNode("Overworld Flags")) {
     flags.DrawOverworldFlags();
     ImGui::TreePop();
   }
-  
+
+  if (ImGui::TreeNode("ZSCustomOverworld Enable Flags")) {
+    flags.DrawZSCustomOverworldFlags(rom_);
+    ImGui::TreePop();
+  }
+
   if (ImGui::TreeNode("Dungeon Flags")) {
     flags.DrawDungeonFlags();
     ImGui::TreePop();
   }
-  
+
   if (ImGui::TreeNode("Resource Flags")) {
     flags.DrawResourceFlags();
     ImGui::TreePop();
