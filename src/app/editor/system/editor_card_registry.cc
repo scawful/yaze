@@ -557,14 +557,19 @@ void EditorCardRegistry::HandleSidebarKeyboardNav(
 
 void EditorCardRegistry::Render(
     size_t session_id, const std::string& category,
-    const std::vector<std::string>& active_categories,
+    const std::vector<std::string>& all_categories,
+    const std::unordered_set<std::string>& active_editor_categories,
     std::function<void(const std::string&)> on_category_select,
     std::function<bool()> has_rom) {
   
   if (!sidebar_visible_) return;
 
+  // Store active editors for visual feedback
+  active_editor_categories_ = active_editor_categories;
+
   // Draw the Activity Bar (Icons)
-  DrawActivityBar(session_id, category, active_categories, on_category_select, has_rom);
+  DrawActivityBar(session_id, category, all_categories, active_editor_categories,
+                  on_category_select, has_rom);
 
   // Draw the Side Panel (Content) if expanded
   if (panel_expanded_) {
@@ -572,11 +577,103 @@ void EditorCardRegistry::Render(
   }
 }
 
+void EditorCardRegistry::DrawUtilityButtons(std::function<bool()> has_rom) {
+  const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
+  bool rom_loaded = has_rom ? has_rom() : false;
+
+  ImVec4 inactive = gui::ConvertColorToImVec4(theme.text_secondary);
+  ImVec4 disabled = ImVec4(inactive.x, inactive.y, inactive.z, 0.4f);
+
+  // Button style - transparent background
+  ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+  ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(1, 1, 1, 0.1f));
+  ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(1, 1, 1, 0.2f));
+
+  // Save ROM button
+  {
+    ImVec4 color = rom_loaded ? inactive : disabled;
+    ImGui::PushStyleColor(ImGuiCol_Text, color);
+    if (ImGui::Button(ICON_MD_SAVE, ImVec2(48.0f, 32.0f))) {
+      if (rom_loaded && on_save_rom_) on_save_rom_();
+    }
+    ImGui::PopStyleColor();
+    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+      ImGui::SetTooltip("Save ROM (Ctrl+S)");
+    }
+  }
+
+  // Undo button
+  {
+    ImVec4 color = rom_loaded ? inactive : disabled;
+    ImGui::PushStyleColor(ImGuiCol_Text, color);
+    if (ImGui::Button(ICON_MD_UNDO, ImVec2(48.0f, 32.0f))) {
+      if (rom_loaded && on_undo_) on_undo_();
+    }
+    ImGui::PopStyleColor();
+    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+      ImGui::SetTooltip("Undo (Ctrl+Z)");
+    }
+  }
+
+  // Redo button
+  {
+    ImVec4 color = rom_loaded ? inactive : disabled;
+    ImGui::PushStyleColor(ImGuiCol_Text, color);
+    if (ImGui::Button(ICON_MD_REDO, ImVec2(48.0f, 32.0f))) {
+      if (rom_loaded && on_redo_) on_redo_();
+    }
+    ImGui::PopStyleColor();
+    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+      ImGui::SetTooltip("Redo (Ctrl+Y)");
+    }
+  }
+
+  // Global Search button
+  {
+    ImGui::PushStyleColor(ImGuiCol_Text, inactive);
+    if (ImGui::Button(ICON_MD_SEARCH, ImVec2(48.0f, 32.0f))) {
+      if (on_show_search_) on_show_search_();
+    }
+    ImGui::PopStyleColor();
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Global Search (Ctrl+Shift+F)");
+    }
+  }
+
+  // Help button
+  {
+    ImGui::PushStyleColor(ImGuiCol_Text, inactive);
+    if (ImGui::Button(ICON_MD_HELP_OUTLINE, ImVec2(48.0f, 32.0f))) {
+      if (on_show_help_) on_show_help_();
+    }
+    ImGui::PopStyleColor();
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Help (F1)");
+    }
+  }
+
+  ImGui::PopStyleColor(3);
+
+  // Separator line between utility buttons and editor categories
+  ImGui::Spacing();
+  ImVec2 sep_p1 = ImGui::GetCursorScreenPos();
+  ImVec2 sep_p2 = ImVec2(sep_p1.x + 48.0f, sep_p1.y);
+  ImGui::GetWindowDrawList()->AddLine(
+      sep_p1, sep_p2, 
+      ImGui::ColorConvertFloat4ToU32(gui::ConvertColorToImVec4(theme.border)),
+      1.0f);
+  ImGui::Spacing();
+}
+
 void EditorCardRegistry::DrawActivityBar(
     size_t session_id, const std::string& active_category,
-    const std::vector<std::string>& active_categories,
+    const std::vector<std::string>& all_categories,
+    const std::unordered_set<std::string>& active_editor_categories,
     std::function<void(const std::string&)> on_category_select,
     std::function<bool()> has_rom) {
+  // on_category_select is reserved for future use (e.g., "Open Editor" button in panel header)
+  (void)session_id;
+  (void)on_category_select;
   
   const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
   const ImGuiViewport* viewport = ImGui::GetMainViewport();
@@ -600,91 +697,96 @@ void EditorCardRegistry::DrawActivityBar(
   ImGui::PushStyleColor(ImGuiCol_WindowBg, bar_bg);
   ImGui::PushStyleColor(ImGuiCol_Border, bar_border);
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 8.0f));
-  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 8.0f));
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 1.0f); // Right border only ideally
+  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 4.0f));
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 1.0f);
 
   if (ImGui::Begin("##ActivityBar", nullptr, flags)) {
+    // Draw utility action buttons at the top
+    DrawUtilityButtons(has_rom);
+
     ImVec4 accent = gui::ConvertColorToImVec4(theme.accent);
     ImVec4 inactive = gui::ConvertColorToImVec4(theme.text_secondary);
+    ImVec4 disabled = ImVec4(inactive.x, inactive.y, inactive.z, 0.4f);
 
-    for (const auto& cat : active_categories) {
-      bool is_active = (cat == active_category) && panel_expanded_;
+    bool rom_loaded = has_rom ? has_rom() : false;
+
+    // Draw ALL editor categories (not just active ones)
+    for (const auto& cat : all_categories) {
+      bool is_selected = (cat == active_category) && panel_expanded_;
+      bool has_active_editor = active_editor_categories.count(cat) > 0;
       
-      // ROM check - Emulator now treated same as others (requires ROM for enabled state)
-      bool rom_loaded = has_rom ? has_rom() : true;
-      bool category_enabled = rom_loaded; 
+      // Emulator is always available, others require ROM
+      bool category_enabled = rom_loaded || (cat == "Emulator");
 
-      // Active Indicator (Left Border)
-      if (cat == active_category && category_enabled) {
+      // Active Indicator (Left Border) - shown when category is selected
+      if (is_selected && category_enabled) {
         ImGui::GetWindowDrawList()->AddRectFilled(
             ImGui::GetCursorScreenPos(),
-            ImVec2(ImGui::GetCursorScreenPos().x + 3.0f, ImGui::GetCursorScreenPos().y + 40.0f),
+            ImVec2(ImGui::GetCursorScreenPos().x + 3.0f, 
+                   ImGui::GetCursorScreenPos().y + 40.0f),
             ImGui::ColorConvertFloat4ToU32(accent));
       }
 
       // Button Style
-      ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0,0,0,0));
-      ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(1,1,1,0.1f));
-      ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(1,1,1,0.2f));
+      ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+      ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(1, 1, 1, 0.1f));
+      ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(1, 1, 1, 0.2f));
       
-      // Text/Icon Color
-      ImVec4 icon_color = (cat == active_category && category_enabled) ? accent : inactive;
-      if (!category_enabled) icon_color = ImVec4(inactive.x, inactive.y, inactive.z, 0.4f);
+      // Determine icon color based on state:
+      // - Selected (focused): accent color
+      // - Has active editor (open but not focused): normal text color
+      // - Inactive (no editor open): dimmed text color
+      // - Disabled (no ROM): very dimmed
+      ImVec4 icon_color;
+      if (!category_enabled) {
+        icon_color = disabled;
+      } else if (is_selected) {
+        icon_color = accent;
+      } else if (has_active_editor) {
+        icon_color = gui::ConvertColorToImVec4(theme.text_primary);  // Full brightness
+      } else {
+        icon_color = inactive;  // Dimmed for inactive editors
+      }
       ImGui::PushStyleColor(ImGuiCol_Text, icon_color);
 
       std::string icon = GetCategoryIcon(cat);
       if (ImGui::Button(icon.c_str(), ImVec2(48.0f, 40.0f))) {
         if (category_enabled) {
-          if (cat == active_category) {
-            // Toggle panel if clicking same category
+          if (cat == active_category && panel_expanded_) {
+            // Toggle panel if clicking same category when already open
             TogglePanelExpanded();
           } else {
-            // Switch category and ensure open
-            if (on_category_select) on_category_select(cat);
-            else SetActiveCategory(cat);
+            // Switch category view (NOT the editor) and ensure panel is open
+            // Clicking sidebar icons only changes which category panel is shown
+            // Use on_category_select to switch editors only from side panel
+            SetActiveCategory(cat);
             SetPanelExpanded(true);
           }
         }
       }
 
-      // Tooltip
+      // Tooltip with status information
       if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
         ImGui::BeginTooltip();
         ImGui::Text("%s %s", icon.c_str(), cat.c_str());
         if (!category_enabled) {
-          ImGui::TextColored(gui::ConvertColorToImVec4(theme.warning), "Open ROM required");
+          ImGui::TextColored(gui::ConvertColorToImVec4(theme.warning), 
+                            "Open ROM required");
+        } else if (has_active_editor) {
+          ImGui::PushStyleColor(ImGuiCol_Text, gui::ConvertColorToImVec4(theme.success));
+          ImGui::TextUnformatted("Editor open");
+          ImGui::PopStyleColor();
         } else {
-            ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
-            ImGui::TextUnformatted("Click to open");
-            ImGui::PopStyleColor();
+          ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
+          ImGui::TextUnformatted("Click to view cards");
+          ImGui::PopStyleColor();
         }
         ImGui::EndTooltip();
       }
 
       ImGui::PopStyleColor(4); // Button colors + Text
     }
-
-    // Bottom Section (Settings, Collapse)
-    float bottom_height = 40.0f + 8.0f; // Button + padding
-    float avail_y = ImGui::GetContentRegionAvail().y;
-    if (avail_y > bottom_height) {
-        ImGui::Dummy(ImVec2(0, avail_y - bottom_height));
-    }
-
-    // Collapse Button
-    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0,0,0,0));
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, gui::GetSurfaceContainerHighVec4());
-    ImGui::PushStyleColor(ImGuiCol_ButtonActive, gui::GetSurfaceContainerHighestVec4());
-    ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
-
-    if (ImGui::Button(ICON_MD_CHEVRON_LEFT, ImVec2(48.0f, 40.0f))) {
-        SetSidebarVisible(false);
-    }
-    if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Hide Activity Bar");
-    }
-
-    ImGui::PopStyleColor(4);
+    // Note: Collapse button moved to menu bar for better UX
   }
   ImGui::End();
 
@@ -722,12 +824,15 @@ void EditorCardRegistry::DrawSidePanel(
     ImGui::Text("%s", category.c_str());
     ImGui::PopFont();
 
-    // Close button aligned to right
+    // Collapse panel button aligned to right
     float avail_width = ImGui::GetContentRegionAvail().x;
     ImGui::SameLine(ImGui::GetCursorPosX() + avail_width - 28.0f);
     ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 4.0f);  // Center vertically with text
-    if (ImGui::Button(ICON_MD_CLOSE, ImVec2(24.0f, 24.0f))) {
+    if (ImGui::Button(ICON_MD_KEYBOARD_DOUBLE_ARROW_LEFT, ImVec2(24.0f, 24.0f))) {
       SetPanelExpanded(false);
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Collapse Panel");
     }
 
     ImGui::Spacing();

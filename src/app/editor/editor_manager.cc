@@ -7,6 +7,7 @@
 #include <memory>
 #include <sstream>
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 #ifdef __EMSCRIPTEN__
@@ -532,6 +533,54 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
     }
   });
 
+  // Set up sidebar action button callbacks
+  card_registry_.SetSaveRomCallback([this]() {
+    if (GetCurrentRom() && GetCurrentRom()->is_loaded()) {
+      auto status = SaveRom();
+      if (status.ok()) {
+        toast_manager_.Show("ROM saved successfully", ToastType::kSuccess);
+      } else {
+        toast_manager_.Show(
+            absl::StrFormat("Failed to save ROM: %s", status.message()),
+            ToastType::kError);
+      }
+    }
+  });
+
+  card_registry_.SetUndoCallback([this]() {
+    if (auto* current_editor = GetCurrentEditor()) {
+      auto status = current_editor->Undo();
+      if (!status.ok()) {
+        toast_manager_.Show(
+            absl::StrFormat("Undo failed: %s", status.message()),
+            ToastType::kError);
+      }
+    }
+  });
+
+  card_registry_.SetRedoCallback([this]() {
+    if (auto* current_editor = GetCurrentEditor()) {
+      auto status = current_editor->Redo();
+      if (!status.ok()) {
+        toast_manager_.Show(
+            absl::StrFormat("Redo failed: %s", status.message()),
+            ToastType::kError);
+      }
+    }
+  });
+
+  card_registry_.SetShowSearchCallback([this]() {
+    if (ui_coordinator_) {
+      ui_coordinator_->ShowGlobalSearch();
+    }
+  });
+
+  card_registry_.SetShowHelpCallback([this]() {
+    if (popup_manager_) {
+      popup_manager_->Show(PopupID::kAbout);
+    }
+  });
+
   // Set up sidebar state change callbacks for persistence
   // IMPORTANT: Register callbacks BEFORE applying state to avoid triggering Save() during init
   card_registry_.SetSidebarStateChangedCallback(
@@ -778,107 +827,66 @@ absl::Status EditorManager::Update() {
   // Draw sidebar BEFORE early return so it appears even when no ROM is loaded
   // This fixes the issue where sidebar/panel drawing was unreachable without ROM
   if (ui_coordinator_ && ui_coordinator_->IsCardSidebarVisible()) {
+    // Get ALL editor categories (static list, always shown)
+    auto all_categories = EditorRegistry::GetAllEditorCategories();
+
+    // Track which editors are currently active (for visual highlighting)
+    std::unordered_set<std::string> active_editor_categories;
+
     if (current_editor_set && session_coordinator_) {
-      // ROM is loaded - collect active card-based editors for full sidebar
-      std::vector<std::string> active_categories;
+      // ROM is loaded - collect active editors for highlighting
       for (size_t session_idx = 0;
            session_idx < session_coordinator_->GetTotalSessionCount();
            ++session_idx) {
         auto* session = static_cast<RomSession*>(
             session_coordinator_->GetSession(session_idx));
-        if (!session || !session->rom.is_loaded())
+        if (!session || !session->rom.is_loaded()) {
           continue;
+        }
 
-        for (auto editor : session->editors.active_editors_) {
+        for (auto* editor : session->editors.active_editors_) {
           if (*editor->active() && IsCardBasedEditor(editor->type())) {
             std::string category =
                 EditorRegistry::GetEditorCategory(editor->type());
-            if (std::find(active_categories.begin(), active_categories.end(),
-                          category) == active_categories.end()) {
-              active_categories.push_back(category);
-            }
+            active_editor_categories.insert(category);
           }
         }
       }
 
       // Add Emulator to active categories when it's visible
       if (ui_coordinator_->IsEmulatorVisible()) {
-        if (std::find(active_categories.begin(), active_categories.end(),
-                      "Emulator") == active_categories.end()) {
-          active_categories.push_back("Emulator");
-        }
+        active_editor_categories.insert("Emulator");
       }
-
-      // Add Memory (Hex Editor) to active categories
-      if (std::find(active_categories.begin(), active_categories.end(),
-                    "Memory") == active_categories.end()) {
-        active_categories.push_back("Memory");
-      }
-
-      // Determine which category to show in sidebar
-      std::string sidebar_category;
-
-      // Priority 1: Use active_category from card manager (user's last
-      // interaction)
-      if (!card_registry_.GetActiveCategory().empty() &&
-          std::find(active_categories.begin(), active_categories.end(),
-                    card_registry_.GetActiveCategory()) !=
-              active_categories.end()) {
-        sidebar_category = card_registry_.GetActiveCategory();
-      }
-      // Priority 2: Use first active category
-      else if (!active_categories.empty()) {
-        sidebar_category = active_categories[0];
-        card_registry_.SetActiveCategory(sidebar_category);
-      }
-
-      // Draw sidebar with content if we have a category, or placeholder if not
-      if (!sidebar_category.empty()) {
-        // Callback to switch editors when category button is clicked
-        auto category_switch_callback =
-            [this](const std::string& new_category) {
-              EditorType editor_type =
-                  EditorRegistry::GetEditorTypeFromCategory(new_category);
-              if (editor_type != EditorType::kUnknown) {
-                SwitchToEditor(editor_type);
-              }
-            };
-
-        // Callback to check if ROM is loaded (for category enabled state)
-        auto has_rom_callback = [this]() -> bool {
-          auto* rom = GetCurrentRom();
-          return rom && rom->is_loaded();
-        };
-
-        // Draw VSCode-style sidebar (Activity Bar + Side Panel)
-        card_registry_.Render(GetCurrentSessionId(), sidebar_category,
-                              active_categories, category_switch_callback,
-                              has_rom_callback);
-      } else {
-        // No active card-based editors - but still draw Activity Bar
-        card_registry_.Render(GetCurrentSessionId(), "",
-                              active_categories, nullptr,
-                              [this]() { return GetCurrentRom() && GetCurrentRom()->is_loaded(); });
-      }
-    } else {
-      // No ROM loaded - draw Activity Bar with global categories (disabled state)
-      auto categories = card_registry_.GetAllCategories();
-      // Ensure Emulator is in the list
-      if (std::find(categories.begin(), categories.end(), "Emulator") == categories.end()) {
-        categories.push_back("Emulator");
-      }
-      
-      auto has_rom_callback = []() { return false; };
-      auto category_switch_callback = [this](const std::string& cat) {
-         if (cat == "Emulator") SwitchToEditor(EditorType::kEmulator);
-      };
-      
-      card_registry_.Render(0, 
-                            card_registry_.GetActiveCategory(),
-                            categories,
-                            category_switch_callback,
-                            has_rom_callback);
     }
+
+    // Determine which category to show in sidebar
+    std::string sidebar_category = card_registry_.GetActiveCategory();
+
+    // If no active category, default to first in list
+    if (sidebar_category.empty() && !all_categories.empty()) {
+      sidebar_category = all_categories[0];
+      card_registry_.SetActiveCategory(sidebar_category);
+    }
+
+    // Callback to switch editors when category button is clicked
+    auto category_switch_callback = [this](const std::string& new_category) {
+      EditorType editor_type =
+          EditorRegistry::GetEditorTypeFromCategory(new_category);
+      if (editor_type != EditorType::kUnknown) {
+        SwitchToEditor(editor_type);
+      }
+    };
+
+    // Callback to check if ROM is loaded (for category enabled state)
+    auto has_rom_callback = [this]() -> bool {
+      auto* rom = GetCurrentRom();
+      return rom && rom->is_loaded();
+    };
+
+    // Draw VSCode-style sidebar with ALL categories (highlighting active ones)
+    card_registry_.Render(GetCurrentSessionId(), sidebar_category,
+                          all_categories, active_editor_categories,
+                          category_switch_callback, has_rom_callback);
   }
 
   // Draw right panel BEFORE early return (agent chat, proposals, settings)

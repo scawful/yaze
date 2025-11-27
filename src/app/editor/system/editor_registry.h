@@ -30,6 +30,12 @@ class EditorRegistry {
   static std::string GetEditorCategory(EditorType type);
   static EditorType GetEditorTypeFromCategory(const std::string& category);
 
+  /**
+   * @brief Get all editor categories in display order for sidebar
+   * @return Vector of category names in preferred display order
+   */
+  static std::vector<std::string> GetAllEditorCategories();
+
   // Editor navigation
   void JumpToDungeonRoom(int room_id);
   void JumpToOverworldMap(int map_id);

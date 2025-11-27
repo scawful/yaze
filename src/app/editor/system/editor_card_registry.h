@@ -5,6 +5,7 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include "imgui/imgui.h"
@@ -410,12 +411,25 @@ class EditorCardRegistry {
 
   /**
    * @brief Draw the Activity Bar (Icon Strip)
+   * @param session_id Current session ID
+   * @param active_category Currently selected/focused category
+   * @param all_categories All editor categories to display
+   * @param active_editor_categories Categories with active editors (for highlighting)
+   * @param on_category_select Callback when category is clicked
+   * @param has_rom Callback to check if ROM is loaded
    */
   void DrawActivityBar(
       size_t session_id, const std::string& active_category,
-      const std::vector<std::string>& active_categories,
+      const std::vector<std::string>& all_categories,
+      const std::unordered_set<std::string>& active_editor_categories,
       std::function<void(const std::string&)> on_category_select,
       std::function<bool()> has_rom);
+
+  /**
+   * @brief Draw utility action buttons at top of Activity Bar
+   * @param has_rom Callback to check if ROM is loaded (for button enabled state)
+   */
+  void DrawUtilityButtons(std::function<bool()> has_rom);
 
   /**
    * @brief Draw the Side Panel (Content)
@@ -426,10 +440,17 @@ class EditorCardRegistry {
 
   /**
    * @brief Main render loop for sidebar
+   * @param session_id Current session ID
+   * @param category Currently selected category
+   * @param all_categories All available editor categories (always shown)
+   * @param active_editor_categories Categories with currently active/open editors (for highlighting)
+   * @param on_category_select Callback when category is clicked
+   * @param has_rom Callback to check if ROM is loaded
    */
   void Render(
       size_t session_id, const std::string& category,
-      const std::vector<std::string>& active_categories,
+      const std::vector<std::string>& all_categories,
+      const std::unordered_set<std::string>& active_editor_categories,
       std::function<void(const std::string&)> on_category_select,
       std::function<bool()> has_rom);
 
@@ -448,6 +469,21 @@ class EditorCardRegistry {
   }
   void SetShowCardBrowserCallback(std::function<void()> cb) {
     on_show_card_browser_ = std::move(cb);
+  }
+  void SetSaveRomCallback(std::function<void()> cb) {
+    on_save_rom_ = std::move(cb);
+  }
+  void SetUndoCallback(std::function<void()> cb) {
+    on_undo_ = std::move(cb);
+  }
+  void SetRedoCallback(std::function<void()> cb) {
+    on_redo_ = std::move(cb);
+  }
+  void SetShowSearchCallback(std::function<void()> cb) {
+    on_show_search_ = std::move(cb);
+  }
+  void SetShowHelpCallback(std::function<void()> cb) {
+    on_show_help_ = std::move(cb);
   }
 
   /**
@@ -681,10 +717,18 @@ class EditorCardRegistry {
   std::function<void()> on_show_emulator_;
   std::function<void()> on_show_settings_;
   std::function<void()> on_show_card_browser_;
+  std::function<void()> on_save_rom_;
+  std::function<void()> on_undo_;
+  std::function<void()> on_redo_;
+  std::function<void()> on_show_search_;
+  std::function<void()> on_show_help_;
 
   // State change callbacks
   std::function<void(bool visible, bool expanded)> on_sidebar_state_changed_;
   std::function<void(const std::string&)> on_category_changed_;
+
+  // Tracking active editor categories for visual feedback
+  std::unordered_set<std::string> active_editor_categories_;
 
   // Helper methods
   void UpdateSessionCount();
