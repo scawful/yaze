@@ -245,6 +245,13 @@ class Tile16Editor : public gfx::GfxContext {
   std::chrono::steady_clock::time_point last_edit_time_;
   bool batch_mode_ = false;
 
+  // Navigation controls for expanded tile support
+  int jump_to_tile_id_ = 0;       // Input field for jump to tile ID
+  bool scroll_to_current_ = false; // Flag to scroll to current tile
+  int current_page_ = 0;          // Current page (64 tiles per page)
+  static constexpr int kTilesPerPage = 64;  // 8x8 tiles per page
+  static constexpr int kTilesPerRow = 8;    // Tiles per row in grid
+
   util::NotifyValue<uint32_t> notify_tile16;
   util::NotifyValue<uint8_t> notify_palette;
 
