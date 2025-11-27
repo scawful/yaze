@@ -102,7 +102,6 @@ source_group("Tests\\Unit" FILES
   unit/emu/step_controller_test.cc
   unit/emu/apu_dsp_test.cc
   unit/emu/apu_ipl_handshake_test.cc
-  unit/emu/ppu_catchup_test.cc
   unit/emu/spc700_reset_test.cc
   unit/tools/build_tool_test.cc
   unit/tools/filesystem_tool_test.cc
@@ -128,6 +127,7 @@ source_group("Tests\\Integration" FILES
   integration/memory_debugging_test.cc
   integration/wasm_message_queue_test.cc
   integration/emulator_object_preview_test.cc
+  integration/emulator_render_service_test.cc
 )
 
 # Integration Tests (Zelda3)

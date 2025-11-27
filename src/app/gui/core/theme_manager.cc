@@ -983,6 +983,69 @@ std::string ThemeManager::SerializeTheme(const EnhancedTheme& theme) const {
   return ss.str();
 }
 
+std::string ThemeManager::ExportCurrentThemeJson() const {
+  nlohmann::json j;
+  const auto& t = current_theme_;
+
+  j["name"] = t.name;
+  j["description"] = t.description;
+  j["author"] = t.author;
+
+  // Helper to convert Color to hex string (#RRGGBB or #RRGGBBAA)
+  auto colorToHex = [](const Color& c) -> std::string {
+    int r = static_cast<int>(c.red * 255.0f);
+    int g = static_cast<int>(c.green * 255.0f);
+    int b = static_cast<int>(c.blue * 255.0f);
+    int a = static_cast<int>(c.alpha * 255.0f);
+    if (a == 255) {
+      return absl::StrFormat("#%02X%02X%02X", r, g, b);
+    }
+    return absl::StrFormat("#%02X%02X%02X%02X", r, g, b, a);
+  };
+
+  j["colors"] = {
+      {"primary", colorToHex(t.primary)},
+      {"secondary", colorToHex(t.secondary)},
+      {"accent", colorToHex(t.accent)},
+      {"background", colorToHex(t.background)},
+      {"surface", colorToHex(t.surface)},
+      {"error", colorToHex(t.error)},
+      {"warning", colorToHex(t.warning)},
+      {"success", colorToHex(t.success)},
+      {"info", colorToHex(t.info)},
+      {"text_primary", colorToHex(t.text_primary)},
+      {"text_secondary", colorToHex(t.text_secondary)},
+      {"text_disabled", colorToHex(t.text_disabled)},
+      {"window_bg", colorToHex(t.window_bg)},
+      {"child_bg", colorToHex(t.child_bg)},
+      {"popup_bg", colorToHex(t.popup_bg)},
+      {"modal_bg", colorToHex(t.modal_bg)},
+      {"button", colorToHex(t.button)},
+      {"button_hovered", colorToHex(t.button_hovered)},
+      {"button_active", colorToHex(t.button_active)},
+      {"header", colorToHex(t.header)},
+      {"header_hovered", colorToHex(t.header_hovered)},
+      {"header_active", colorToHex(t.header_active)},
+      {"border", colorToHex(t.border)},
+      {"border_shadow", colorToHex(t.border_shadow)},
+      {"separator", colorToHex(t.separator)},
+      // Editor semantic colors
+      {"editor_background", colorToHex(t.editor_background)},
+      {"editor_grid", colorToHex(t.editor_grid)},
+      {"editor_cursor", colorToHex(t.editor_cursor)},
+      {"editor_selection", colorToHex(t.editor_selection)},
+      // Enhanced semantic colors
+      {"code_background", colorToHex(t.code_background)},
+      {"text_highlight", colorToHex(t.text_highlight)},
+      {"link_hover", colorToHex(t.link_hover)}};
+
+  j["style"] = {{"window_rounding", t.window_rounding},
+                {"frame_rounding", t.frame_rounding},
+                {"compact_factor", t.compact_factor}};
+
+  return j.dump();
+}
+
 absl::Status ThemeManager::SaveThemeToFile(const EnhancedTheme& theme,
                                            const std::string& filepath) const {
   std::string theme_content = SerializeTheme(theme);

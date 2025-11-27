@@ -8,6 +8,8 @@
 
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
+#include "app/gui/core/theme_manager.h"
+#include "app/platform/font_loader.h"
 #include "app/platform/wasm/wasm_storage.h"
 
 namespace yaze {
@@ -84,6 +86,15 @@ std::string WasmSettings::LoadTheme() {
   std::string result(theme);
   free(theme);
   return result;
+}
+
+std::string WasmSettings::GetCurrentThemeData() {
+  return gui::ThemeManager::Get().ExportCurrentThemeJson();
+}
+
+absl::Status WasmSettings::LoadUserFont(const std::string& name,
+                                        const std::string& data, float size) {
+  return LoadFontFromMemory(name, data, size);
 }
 
 // Recent Files Management

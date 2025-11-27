@@ -39,6 +39,21 @@ class WasmSettings {
    */
   static std::string LoadTheme();
 
+  /**
+   * @brief Get the full JSON data for the current theme
+   * @return JSON string containing all theme colors and style settings
+   */
+  static std::string GetCurrentThemeData();
+
+  /**
+   * @brief Load a user-provided font from binary data
+   * @param name Font name
+   * @param data Binary font data (TTF/OTF)
+   * @param size Font size in pixels
+   */
+  static absl::Status LoadUserFont(const std::string& name,
+                                   const std::string& data, float size);
+
   // Recent Files Management
 
   /**

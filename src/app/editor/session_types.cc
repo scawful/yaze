@@ -15,17 +15,16 @@ EditorSet::EditorSet(Rom* rom, UserSettings* user_settings, size_t session_id)
       palette_editor_(rom),
       screen_editor_(rom),
       sprite_editor_(rom),
-      settings_editor_(rom, user_settings),
       message_editor_(rom),
       memory_editor_(rom) {
   active_editors_ = {&overworld_editor_, &dungeon_editor_, &graphics_editor_,
                      &palette_editor_,   &sprite_editor_,  &message_editor_,
-                     &music_editor_,     &screen_editor_,  &settings_editor_,
+                     &music_editor_,     &screen_editor_,
                      &assembly_editor_};
 }
 
 void EditorSet::set_user_settings(UserSettings* settings) {
-  settings_editor_.set_user_settings(settings);
+  settings_panel_.SetUserSettings(settings);
 }
 
 void EditorSet::ApplyDependencies(const EditorDependencies& dependencies) {

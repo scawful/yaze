@@ -2,9 +2,9 @@
 
 #include "app/editor/agent/agent_chat_widget.h"
 #include "app/editor/system/proposal_drawer.h"
-#include "app/editor/system/settings_editor.h"
 #include "app/editor/system/toast_manager.h"
 #include "app/editor/ui/selection_properties_panel.h"
+#include "app/editor/ui/settings_panel.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/style.h"
 #include "app/gui/core/theme_manager.h"
@@ -388,9 +388,9 @@ void RightPanelManager::DrawProposalsPanel() {
 }
 
 void RightPanelManager::DrawSettingsPanel() {
-  if (settings_editor_) {
+  if (settings_panel_) {
     // Draw settings inline (no card windows)
-    settings_editor_->DrawInlineSettings();
+    settings_panel_->Draw();
   } else {
     ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
     ImGui::Text(ICON_MD_SETTINGS " Settings Not Available");

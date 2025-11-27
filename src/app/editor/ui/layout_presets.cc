@@ -153,21 +153,6 @@ CardLayoutPreset LayoutPresets::GetDefaultPreset(EditorType type) {
       };
       break;
 
-    case EditorType::kSettings:
-      preset.name = "Settings Default";
-      preset.description = "Settings panels";
-      preset.default_visible_cards = {
-          Cards::kSettingsGeneral,
-          Cards::kSettingsAppearance,
-      };
-      preset.optional_cards = {
-          Cards::kSettingsEditorBehavior,
-          Cards::kSettingsPerformance,
-          Cards::kSettingsAiAgent,
-          Cards::kSettingsShortcuts,
-      };
-      break;
-
     default:
       preset.name = "Default";
       preset.description = "No specific layout";
@@ -190,7 +175,6 @@ std::unordered_map<EditorType, CardLayoutPreset> LayoutPresets::GetAllPresets() 
   presets[EditorType::kMessage] = GetDefaultPreset(EditorType::kMessage);
   presets[EditorType::kAssembly] = GetDefaultPreset(EditorType::kAssembly);
   presets[EditorType::kEmulator] = GetDefaultPreset(EditorType::kEmulator);
-  presets[EditorType::kSettings] = GetDefaultPreset(EditorType::kSettings);
 
   return presets;
 }

@@ -189,8 +189,19 @@ absl::Status DungeonEditorV2::Load() {
   canvas_viewer_.object_interaction().SetObjectPlacedCallback(
       [this](const zelda3::RoomObject& obj) { HandleObjectPlaced(obj); });
 
-  // NOW initialize emulator preview with loaded ROM
-  object_emulator_preview_.Initialize(renderer_, rom_);
+  // Create render service if not already created (set_rom() may have created it)
+  if (!render_service_) {
+    render_service_ = std::make_unique<emu::render::EmulatorRenderService>(rom_);
+    auto status = render_service_->Initialize();
+    if (!status.ok()) {
+      LOG_ERROR("DungeonEditorV2", "Failed to initialize render service: %s",
+                status.message().data());
+      // Non-fatal - preview will fall back to legacy mode
+    }
+  }
+
+  // NOW initialize emulator preview with loaded ROM and render service
+  object_emulator_preview_.Initialize(renderer_, rom_, render_service_.get());
 
   // Initialize centralized PaletteManager with ROM data
   // This MUST be done before initializing palette_editor_

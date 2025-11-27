@@ -13,6 +13,11 @@ class IRenderer;
 namespace zelda3 {
 class ObjectDrawer;
 }  // namespace zelda3
+namespace emu {
+namespace render {
+class EmulatorRenderService;
+}  // namespace render
+}  // namespace emu
 }  // namespace yaze
 
 namespace yaze {
@@ -23,7 +28,10 @@ class DungeonObjectEmulatorPreview {
   DungeonObjectEmulatorPreview();
   ~DungeonObjectEmulatorPreview();
 
-  void Initialize(gfx::IRenderer* renderer, Rom* rom);
+  // Initialize with optional shared render service
+  // If render_service is nullptr, uses local SNES instance (legacy mode)
+  void Initialize(gfx::IRenderer* renderer, Rom* rom,
+                  emu::render::EmulatorRenderService* render_service = nullptr);
   void Render();
 
   // Visibility control for external toggling
@@ -47,7 +55,8 @@ class DungeonObjectEmulatorPreview {
 
   gfx::IRenderer* renderer_ = nullptr;
   Rom* rom_ = nullptr;
-  std::unique_ptr<emu::Snes> snes_instance_;
+  emu::render::EmulatorRenderService* render_service_ = nullptr;  // Shared service (optional)
+  std::unique_ptr<emu::Snes> snes_instance_;  // Legacy local instance
   void* object_texture_ = nullptr;
 
   int object_id_ = 0;

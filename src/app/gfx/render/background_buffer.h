@@ -28,6 +28,10 @@ class BackgroundBuffer {
   void DrawFloor(const std::vector<uint8_t>& rom_data, int tile_address,
                  int tile_address_floor, uint8_t floor_graphics);
 
+  // Ensure bitmap is initialized before accessing
+  // Call this before using bitmap() if the buffer was created standalone
+  void EnsureBitmapInitialized();
+
   // Accessors
   auto buffer() { return buffer_; }
   auto& bitmap() { return bitmap_; }
