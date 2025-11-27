@@ -1,5 +1,6 @@
 #include "app/emu/ui/emulator_ui.h"
 
+#include <algorithm>
 #include <fstream>
 
 #include "absl/strings/str_format.h"
@@ -8,6 +9,7 @@
 #include "app/gui/core/color.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/theme_manager.h"
+#include "app/gui/plots/implot_support.h"
 #include "app/platform/sdl_compat.h"
 #include "imgui/imgui.h"
 #include "util/file_util.h"
@@ -405,7 +407,122 @@ void RenderPerformanceMonitor(Emulator* emu) {
     ImGui::Text("Target: %.2f FPS",
                 emu->snes().memory().pal_timing() ? 50.0 : 60.0);
 
-    // TODO: Add FPS graph with ImPlot
+    const float target_ms =
+        emu->snes().memory().pal_timing() ? 1000.0f / 50.0f : 1000.0f / 60.0f;
+    auto frame_ms = emu->FrameTimeHistory();
+    auto fps_history = emu->FpsHistory();
+    if (!frame_ms.empty()) {
+      plotting::PlotStyleScope plot_style(theme);
+      plotting::PlotConfig config{
+          .id = "Frame Times",
+          .y_label = "ms",
+          .flags = ImPlotFlags_NoLegend,
+          .x_axis_flags = ImPlotAxisFlags_NoTickLabels |
+                          ImPlotAxisFlags_NoGridLines |
+                          ImPlotAxisFlags_NoTickMarks,
+          .y_axis_flags = ImPlotAxisFlags_AutoFit};
+      plotting::PlotGuard plot(config);
+      if (plot) {
+        ImPlot::SetupAxisLimits(ImAxis_Y1, 0.0f, target_ms * 2.5f,
+                                ImGuiCond_Always);
+        ImPlot::PlotLine("Frame ms", frame_ms.data(),
+                         static_cast<int>(frame_ms.size()));
+        ImPlot::PlotInfLines("Target", &target_ms, 1);
+      }
+    }
+
+    if (!fps_history.empty()) {
+      plotting::PlotStyleScope plot_style(theme);
+      plotting::PlotConfig fps_config{
+          .id = "FPS History",
+          .y_label = "fps",
+          .flags = ImPlotFlags_NoLegend,
+          .x_axis_flags = ImPlotAxisFlags_NoTickLabels |
+                          ImPlotAxisFlags_NoGridLines |
+                          ImPlotAxisFlags_NoTickMarks,
+          .y_axis_flags = ImPlotAxisFlags_AutoFit};
+      plotting::PlotGuard plot(fps_config);
+      if (plot) {
+        ImPlot::SetupAxisLimits(ImAxis_Y1, 0.0f, 75.0f, ImGuiCond_Always);
+        ImPlot::PlotLine("FPS", fps_history.data(),
+                         static_cast<int>(fps_history.size()));
+        const float target_fps = emu->snes().memory().pal_timing() ? 50.0f
+                                                                   : 60.0f;
+        ImPlot::PlotInfLines("Target", &target_fps, 1);
+      }
+    }
+  }
+
+  if (ImGui::CollapsingHeader(ICON_MD_DATA_USAGE " DMA / VRAM Activity",
+                              ImGuiTreeNodeFlags_DefaultOpen)) {
+    auto dma_hist = emu->DmaBytesHistory();
+    auto vram_hist = emu->VramBytesHistory();
+    if (!dma_hist.empty() || !vram_hist.empty()) {
+      plotting::PlotStyleScope plot_style(theme);
+      plotting::PlotConfig dma_config{
+          .id = "DMA/VRAM Bytes",
+          .y_label = "bytes/frame",
+          .flags = ImPlotFlags_NoLegend,
+          .x_axis_flags = ImPlotAxisFlags_NoTickLabels |
+                          ImPlotAxisFlags_NoGridLines |
+                          ImPlotAxisFlags_NoTickMarks,
+          .y_axis_flags = ImPlotAxisFlags_AutoFit};
+      plotting::PlotGuard plot(dma_config);
+      if (plot) {
+        // Calculate max_val before any plotting to avoid locking setup
+        float max_val = 512.0f;
+        if (!dma_hist.empty()) {
+          max_val = std::max(max_val,
+                             *std::max_element(dma_hist.begin(), dma_hist.end()));
+        }
+        if (!vram_hist.empty()) {
+          max_val = std::max(max_val, *std::max_element(vram_hist.begin(),
+                                                        vram_hist.end()));
+        }
+        // Setup must be called before any PlotX functions
+        ImPlot::SetupAxisLimits(ImAxis_Y1, 0.0f, max_val * 1.2f,
+                                ImGuiCond_Always);
+        // Now do the plotting
+        if (!dma_hist.empty()) {
+          ImPlot::PlotLine("DMA", dma_hist.data(),
+                           static_cast<int>(dma_hist.size()));
+        }
+        if (!vram_hist.empty()) {
+          ImPlot::PlotLine("VRAM", vram_hist.data(),
+                           static_cast<int>(vram_hist.size()));
+        }
+      }
+    } else {
+      ImGui::TextDisabled("No DMA activity recorded yet");
+    }
+  }
+
+  if (ImGui::CollapsingHeader(ICON_MD_STORAGE " ROM Free Space",
+                              ImGuiTreeNodeFlags_DefaultOpen)) {
+    auto free_bytes = emu->RomBankFreeBytes();
+    if (!free_bytes.empty()) {
+      plotting::PlotStyleScope plot_style(theme);
+      plotting::PlotConfig free_config{
+          .id = "ROM Free Bytes",
+          .y_label = "bytes (0xFF)",
+          .flags = ImPlotFlags_NoLegend | ImPlotFlags_NoBoxSelect,
+          .x_axis_flags = ImPlotAxisFlags_AutoFit,
+          .y_axis_flags = ImPlotAxisFlags_AutoFit};
+      plotting::PlotGuard plot(free_config);
+      if (plot) {
+        std::vector<double> x(free_bytes.size());
+        std::vector<double> y(free_bytes.size());
+        for (size_t i = 0; i < free_bytes.size(); ++i) {
+          x[i] = static_cast<double>(i);
+          y[i] = static_cast<double>(free_bytes[i]);
+        }
+        ImPlot::PlotBars("Free", x.data(), y.data(),
+                         static_cast<int>(free_bytes.size()), 0.67, 0.0,
+                         ImPlotBarsFlags_None);
+      }
+    } else {
+      ImGui::TextDisabled("Load a ROM to analyze free space.");
+    }
   }
 
   // CPU Stats
@@ -424,6 +541,56 @@ void RenderPerformanceMonitor(Emulator* emu) {
                   emu->audio_backend()->GetBackendName().c_str());
       ImGui::Text("Queued: %u frames", audio_status.queued_frames);
       ImGui::Text("Playing: %s", audio_status.is_playing ? "YES" : "NO");
+
+      auto audio_history = emu->AudioQueueHistory();
+      if (!audio_history.empty()) {
+        plotting::PlotStyleScope plot_style(theme);
+        plotting::PlotConfig audio_config{
+            .id = "Audio Queue Depth",
+            .y_label = "frames",
+            .flags = ImPlotFlags_NoLegend,
+            .x_axis_flags = ImPlotAxisFlags_NoTickLabels |
+                            ImPlotAxisFlags_NoGridLines |
+                            ImPlotAxisFlags_NoTickMarks,
+            .y_axis_flags = ImPlotAxisFlags_AutoFit};
+        plotting::PlotGuard plot(audio_config);
+        if (plot) {
+          ImPlot::SetupAxisLimits(ImAxis_Y1, 0.0f,
+                                  std::max(512.0f,
+                                           *std::max_element(audio_history.begin(),
+                                                             audio_history.end()) *
+                                               1.2f),
+                                  ImGuiCond_Always);
+          ImPlot::PlotLine("Queued", audio_history.data(),
+                           static_cast<int>(audio_history.size()));
+        }
+      }
+
+      auto audio_l = emu->AudioRmsLeftHistory();
+      auto audio_r = emu->AudioRmsRightHistory();
+      if (!audio_l.empty() || !audio_r.empty()) {
+        plotting::PlotStyleScope plot_style(theme);
+        plotting::PlotConfig audio_level_config{
+            .id = "Audio Levels (RMS)",
+            .y_label = "normalized",
+            .flags = ImPlotFlags_NoLegend,
+            .x_axis_flags = ImPlotAxisFlags_NoTickLabels |
+                            ImPlotAxisFlags_NoGridLines |
+                            ImPlotAxisFlags_NoTickMarks,
+            .y_axis_flags = ImPlotAxisFlags_AutoFit};
+        plotting::PlotGuard plot(audio_level_config);
+        if (plot) {
+          ImPlot::SetupAxisLimits(ImAxis_Y1, 0.0f, 1.0f, ImGuiCond_Always);
+          if (!audio_l.empty()) {
+            ImPlot::PlotLine("L", audio_l.data(),
+                             static_cast<int>(audio_l.size()));
+          }
+          if (!audio_r.empty()) {
+            ImPlot::PlotLine("R", audio_r.data(),
+                             static_cast<int>(audio_r.size()));
+          }
+        }
+      }
     } else {
       ImGui::TextColored(ConvertColorToImVec4(theme.error), "No audio backend");
     }

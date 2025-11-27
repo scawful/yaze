@@ -1,5 +1,6 @@
 #include "app/emu/emulator.h"
 
+#include <cmath>
 #include <cstdint>
 #include <cstdlib>
 #include <fstream>
@@ -237,6 +238,8 @@ void Emulator::Run(Rom* rom) {
     frame_count_ = 0;
     fps_timer_ = 0.0;
     current_fps_ = 0.0;
+    metric_history_head_ = 0;
+    metric_history_count_ = 0;
 
     // Start emulator in running state by default
     // User can press Space to pause if needed
@@ -302,7 +305,8 @@ void Emulator::Run(Rom* rom) {
       constexpr int kTurboFrames = 8;  // Run 8 frames per iteration (~480 fps)
       for (int i = 0; i < kTurboFrames; i++) {
         // Poll input BEFORE each frame for proper edge detection
-        input_manager_.Poll(&snes_, 1);
+        // Poll player 0 (controller 1) so JOY1* latches correct state
+        input_manager_.Poll(&snes_, 0);
         snes_.RunFrame();
         frame_count_++;
       }
@@ -315,13 +319,19 @@ void Emulator::Run(Rom* rom) {
       // Process frames (skip rendering for all but last frame if falling
       // behind)
       for (int i = 0; i < frames_to_process; i++) {
+        snes_.ResetFrameMetrics();
+        uint64_t frame_start = SDL_GetPerformanceCounter();
         bool should_render = (i == frames_to_process - 1);
+        uint32_t queued_frames = 0;
+        float audio_rms_left = 0.0f;
+        float audio_rms_right = 0.0f;
 
         // Poll input BEFORE each frame for proper edge detection
         // This ensures the game sees button release between frames
         // Critical for naming screen A button registration
         if (!turbo_mode_) {
-          input_manager_.Poll(&snes_, 1);
+          // Poll player 0 (controller 1) for correct JOY1* state
+          input_manager_.Poll(&snes_, 0);
           snes_.RunFrame();
         }
 
@@ -361,7 +371,7 @@ void Emulator::Run(Rom* rom) {
                 audio_backend_->SupportsAudioStream();
 
             auto audio_status = audio_backend_->GetStatus();
-            uint32_t queued_frames = audio_status.queued_frames;
+            queued_frames = audio_status.queued_frames;
 
             // Synchronize DSP frame boundary for resampling
             snes_.apu().dsp().NewFrame();
@@ -371,15 +381,37 @@ void Emulator::Run(Rom* rom) {
 
             if (queued_frames < max_buffer) {
               bool queue_ok = true;
+              auto compute_rms = [&](int total_samples) {
+                if (total_samples <= 0 || audio_buffer_ == nullptr) {
+                  audio_rms_left = 0.0f;
+                  audio_rms_right = 0.0f;
+                  return;
+                }
+                double sum_l = 0.0;
+                double sum_r = 0.0;
+                const int frames = total_samples / 2;
+                for (int s = 0; s < frames; ++s) {
+                  const float l = static_cast<float>(audio_buffer_[2 * s]);
+                  const float r = static_cast<float>(audio_buffer_[2 * s + 1]);
+                  sum_l += l * l;
+                  sum_r += r * r;
+                }
+                audio_rms_left =
+                    frames > 0 ? std::sqrt(sum_l / frames) / 32768.0f : 0.0f;
+                audio_rms_right =
+                    frames > 0 ? std::sqrt(sum_r / frames) / 32768.0f : 0.0f;
+              };
 
               if (use_native_stream) {
                 const int frames_native = snes_.apu().dsp().CopyNativeFrame(
                     audio_buffer_, snes_.memory().pal_timing());
+                compute_rms(frames_native * 2);
                 queue_ok = audio_backend_->QueueSamplesNative(
                     audio_buffer_, frames_native, 2, kNativeSampleRate);
               } else {
                 snes_.SetSamples(audio_buffer_, wanted_samples_);
                 const int num_samples = wanted_samples_ * 2;  // Stereo
+                compute_rms(num_samples);
                 queue_ok =
                     audio_backend_->QueueSamples(audio_buffer_, num_samples);
               }
@@ -410,6 +442,18 @@ void Emulator::Run(Rom* rom) {
             }
           }
 
+          // Record frame timing and audio queue depth for plots
+          {
+            const uint64_t frame_end = SDL_GetPerformanceCounter();
+            const double elapsed_ms =
+                1000.0 *
+                (static_cast<double>(frame_end - frame_start) /
+                 static_cast<double>(count_frequency));
+            PushFrameMetrics(static_cast<float>(elapsed_ms), queued_frames,
+                             snes_.dma_bytes_frame(), snes_.vram_bytes_frame(),
+                             audio_rms_left, audio_rms_right);
+          }
+
           // Update PPU texture only on rendered frames
           void* ppu_pixels_;
           int ppu_pitch_;
@@ -433,6 +477,97 @@ void Emulator::Run(Rom* rom) {
   }
 
   RenderEmulatorInterface();
+}
+
+void Emulator::PushFrameMetrics(float frame_ms, uint32_t audio_frames,
+                                uint64_t dma_bytes, uint64_t vram_bytes,
+                                float audio_rms_left, float audio_rms_right) {
+  frame_time_history_[metric_history_head_] = frame_ms;
+  fps_history_[metric_history_head_] = static_cast<float>(current_fps_);
+  audio_queue_history_[metric_history_head_] =
+      static_cast<float>(audio_frames);
+  dma_bytes_history_[metric_history_head_] =
+      static_cast<float>(dma_bytes);
+  vram_bytes_history_[metric_history_head_] =
+      static_cast<float>(vram_bytes);
+  audio_rms_left_history_[metric_history_head_] = audio_rms_left;
+  audio_rms_right_history_[metric_history_head_] = audio_rms_right;
+  metric_history_head_ =
+      (metric_history_head_ + 1) % kMetricHistorySize;
+  if (metric_history_count_ < kMetricHistorySize) {
+    metric_history_count_++;
+  }
+}
+
+namespace {
+std::vector<float> CopyHistoryOrdered(const std::array<float, Emulator::kMetricHistorySize>& data,
+                                      int head, int count) {
+  std::vector<float> out;
+  out.reserve(count);
+  int start = (head - count + Emulator::kMetricHistorySize) %
+              Emulator::kMetricHistorySize;
+  for (int i = 0; i < count; ++i) {
+    int idx = (start + i) % Emulator::kMetricHistorySize;
+    out.push_back(data[idx]);
+  }
+  return out;
+}
+}  // namespace
+
+std::vector<float> Emulator::FrameTimeHistory() const {
+  return CopyHistoryOrdered(frame_time_history_, metric_history_head_,
+                            metric_history_count_);
+}
+
+std::vector<float> Emulator::FpsHistory() const {
+  return CopyHistoryOrdered(fps_history_, metric_history_head_,
+                            metric_history_count_);
+}
+
+std::vector<float> Emulator::AudioQueueHistory() const {
+  return CopyHistoryOrdered(audio_queue_history_, metric_history_head_,
+                            metric_history_count_);
+}
+
+std::vector<float> Emulator::DmaBytesHistory() const {
+  return CopyHistoryOrdered(dma_bytes_history_, metric_history_head_,
+                            metric_history_count_);
+}
+
+std::vector<float> Emulator::VramBytesHistory() const {
+  return CopyHistoryOrdered(vram_bytes_history_, metric_history_head_,
+                            metric_history_count_);
+}
+
+std::vector<float> Emulator::AudioRmsLeftHistory() const {
+  return CopyHistoryOrdered(audio_rms_left_history_, metric_history_head_,
+                            metric_history_count_);
+}
+
+std::vector<float> Emulator::AudioRmsRightHistory() const {
+  return CopyHistoryOrdered(audio_rms_right_history_, metric_history_head_,
+                            metric_history_count_);
+}
+
+std::vector<float> Emulator::RomBankFreeBytes() const {
+  constexpr size_t kBankSize = 0x8000;  // LoROM bank size (32KB)
+  if (rom_data_.empty()) {
+    return {};
+  }
+  const size_t bank_count = rom_data_.size() / kBankSize;
+  std::vector<float> free_bytes;
+  free_bytes.reserve(bank_count);
+  for (size_t bank = 0; bank < bank_count; ++bank) {
+    size_t free_count = 0;
+    const size_t base = bank * kBankSize;
+    for (size_t i = 0; i < kBankSize && (base + i) < rom_data_.size(); ++i) {
+      if (rom_data_[base + i] == 0xFF) {
+        free_count++;
+      }
+    }
+    free_bytes.push_back(static_cast<float>(free_count));
+  }
+  return free_bytes;
 }
 
 void Emulator::RenderEmulatorInterface() {

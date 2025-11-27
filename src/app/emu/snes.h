@@ -93,6 +93,16 @@ class Snes {
   }
   bool IsAutoJoyReadEnabled() const { return auto_joy_read_; }
 
+  // Frame metrics
+  void ResetFrameMetrics() {
+    dma_bytes_frame_ = 0;
+    vram_bytes_frame_ = 0;
+  }
+  void AccumulateDmaBytes(uint32_t bytes) { dma_bytes_frame_ += bytes; }
+  void AccumulateVramBytes(uint32_t bytes) { vram_bytes_frame_ += bytes; }
+  uint64_t dma_bytes_frame() const { return dma_bytes_frame_; }
+  uint64_t vram_bytes_frame() const { return vram_bytes_frame_; }
+
   // Audio debugging
   auto apu_handshake_tracker() -> debug::ApuHandshakeTracker& {
     return apu_handshake_tracker_;
@@ -118,6 +128,8 @@ class Snes {
   uint32_t frames_ = 0;
   uint64_t cycles_ = 0;
   uint64_t sync_cycle_ = 0;
+  uint64_t dma_bytes_frame_ = 0;
+  uint64_t vram_bytes_frame_ = 0;
   double apu_catchup_cycles_;
   uint32_t next_horiz_event;
 
