@@ -2,11 +2,13 @@
 #define YAZE_APP_EDITOR_SPRITE_EDITOR_H
 
 #include <cstdint>
+#include <string>
 #include <vector>
 
 #include "absl/status/status.h"
 #include "app/editor/editor.h"
 #include "app/editor/sprite/zsprite.h"
+#include "app/gfx/core/bitmap.h"
 #include "app/gui/app/editor_layout.h"
 #include "app/gui/canvas/canvas.h"
 #include "app/rom.h"
@@ -33,6 +35,7 @@ constexpr ImGuiTableFlags kSpriteTableFlags =
  *
  * This class provides functionality for updating the sprite editor, drawing the
  * editor table, drawing the sprite canvas, and drawing the current sheets.
+ * Supports both vanilla ROM sprites and custom ZSM format sprites.
  */
 class SpriteEditor : public Editor {
  public:
@@ -49,73 +52,111 @@ class SpriteEditor : public Editor {
   absl::Status Copy() override { return absl::UnimplementedError("Copy"); }
   absl::Status Paste() override { return absl::UnimplementedError("Paste"); }
   absl::Status Find() override { return absl::UnimplementedError("Find"); }
-  absl::Status Save() override { return absl::UnimplementedError("Save"); }
+  absl::Status Save() override;
 
-  // Set the ROM pointer
   void set_rom(Rom* rom) { rom_ = rom; }
-
-  // Get the ROM pointer
   Rom* rom() const { return rom_; }
 
  private:
+  // ============================================================
+  // Vanilla Sprite Editor Methods
+  // ============================================================
   void DrawVanillaSpriteEditor();
-
-  /**
-   * @brief Draws the sprites list.
-   */
   void DrawSpritesList();
-
-  /**
-   * @brief Draws the sprite canvas.
-   */
   void DrawSpriteCanvas();
-
-  /**
-   * @brief Draws the current sheets.
-   */
   void DrawCurrentSheets();
-  void DrawCustomSprites();
-  void DrawCustomSpritesMetadata();
-
-  /**
-   * @brief Draws the animation frames manager.
-   */
-  void DrawAnimationFrames();
   void DrawToolset();
 
-  ImVector<int> active_sprites_; /**< Active sprites. */
+  // ============================================================
+  // Custom ZSM Sprite Editor Methods
+  // ============================================================
+  void DrawCustomSprites();
+  void DrawCustomSpritesMetadata();
+  void DrawAnimationFrames();
 
-  int current_sprite_id_; /**< Current sprite ID. */
+  // File operations
+  void CreateNewZSprite();
+  void LoadZsmFile(const std::string& path);
+  void SaveZsmFile(const std::string& path);
+  void SaveZsmFileAs();
+
+  // Properties panel
+  void DrawSpritePropertiesPanel();
+  void DrawBooleanProperties();
+  void DrawStatProperties();
+
+  // Animation panel
+  void DrawAnimationPanel();
+  void DrawAnimationList();
+  void DrawFrameEditor();
+  void UpdateAnimationPlayback(float delta_time);
+
+  // User routines panel
+  void DrawUserRoutinesPanel();
+
+  // Canvas rendering
+  void RenderZSpriteFrame(int frame_index);
+  void DrawZSpriteOnCanvas();
+
+  // ============================================================
+  // Vanilla Sprite State
+  // ============================================================
+  ImVector<int> active_sprites_;
+  int current_sprite_id_ = 0;
   uint8_t current_sheets_[8] = {0x00, 0x0A, 0x06, 0x07, 0x00, 0x00, 0x00, 0x00};
-  bool sheets_loaded_ =
-      false; /**< Flag indicating whether the sheets are loaded or not. */
+  bool sheets_loaded_ = false;
 
-  // OAM Configuration
+  // OAM Configuration for vanilla sprites
   struct OAMConfig {
-    uint16_t x;       /**< X offset. */
-    uint16_t y;       /**< Y offset. */
-    uint8_t tile;     /**< Tile number. */
-    uint8_t palette;  /**< Palette number. */
-    uint8_t priority; /**< Priority. */
-    bool flip_x;      /**< Flip X. */
-    bool flip_y;      /**< Flip Y. */
+    uint16_t x = 0;
+    uint16_t y = 0;
+    uint8_t tile = 0;
+    uint8_t palette = 0;
+    uint8_t priority = 0;
+    bool flip_x = false;
+    bool flip_y = false;
   };
+  OAMConfig oam_config_;
+  gfx::Bitmap oam_bitmap_;
 
-  OAMConfig oam_config_;   /**< OAM configuration. */
-  gui::Bitmap oam_bitmap_; /**< OAM bitmap. */
+  // ============================================================
+  // Custom ZSM Sprite State
+  // ============================================================
+  std::vector<zsprite::ZSprite> custom_sprites_;
+  int current_custom_sprite_index_ = -1;
+  std::string current_zsm_path_;
+  bool zsm_dirty_ = false;
 
-  gui::Canvas sprite_canvas_{
-      "SpriteCanvas", ImVec2(0x200, 0x200),
-      gui::CanvasGridSize::k32x32}; /**< Sprite canvas. */
+  // Animation playback state
+  bool animation_playing_ = false;
+  int current_frame_ = 0;
+  int current_animation_index_ = 0;
+  float frame_timer_ = 0.0f;
+  float last_frame_time_ = 0.0f;
 
-  gui::Canvas graphics_sheet_canvas_{
-      "GraphicsSheetCanvas", ImVec2(0x80 * 2 + 2, 0x40 * 8 + 2),
-      gui::CanvasGridSize::k16x16}; /**< Graphics sheet canvas. */
+  // UI state
+  int selected_routine_index_ = -1;
+  int selected_tile_index_ = -1;
+  bool show_tile_grid_ = true;
 
-  std::vector<zsprite::ZSprite> custom_sprites_; /**< Sprites. */
+  // Sprite preview bitmap (rendered from OAM tiles)
+  gfx::Bitmap sprite_preview_bitmap_;
+  bool preview_needs_update_ = true;
 
-  absl::Status status_; /**< Status. */
+  // ============================================================
+  // Canvas
+  // ============================================================
+  gui::Canvas sprite_canvas_{"SpriteCanvas", ImVec2(0x200, 0x200),
+                             gui::CanvasGridSize::k32x32};
 
+  gui::Canvas graphics_sheet_canvas_{"GraphicsSheetCanvas",
+                                     ImVec2(0x80 * 2 + 2, 0x40 * 8 + 2),
+                                     gui::CanvasGridSize::k16x16};
+
+  // ============================================================
+  // Common State
+  // ============================================================
+  absl::Status status_;
   Rom* rom_;
 };
 
