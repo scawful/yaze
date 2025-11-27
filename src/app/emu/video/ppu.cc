@@ -1,11 +1,11 @@
 #include "app/emu/video/ppu.h"
 
 #include <cstdint>
+#include <cstdio>
 #include <iostream>
 #include <vector>
 
 #include "app/emu/memory/memory.h"
-#include "util/log.h"
 
 namespace yaze {
 namespace emu {
@@ -1132,35 +1132,34 @@ void Ppu::PutPixels(uint8_t* pixels) {
 }
 
 void Ppu::DumpState() const {
-  LOG_INFO("PPU", "=== PPU State Dump ===");
-  LOG_INFO("PPU", "$2100: forced_blank=%d brightness=%d", forced_blank_ ? 1 : 0,
-           brightness);
-  LOG_INFO("PPU", "$2105: mode=%d bg3priority=%d", mode, bg3priority ? 1 : 0);
-  LOG_INFO("PPU", "$212C (Main Screen): BG1=%d BG2=%d BG3=%d BG4=%d OBJ=%d",
-           layer_[0].mainScreenEnabled ? 1 : 0,
-           layer_[1].mainScreenEnabled ? 1 : 0,
-           layer_[2].mainScreenEnabled ? 1 : 0,
-           layer_[3].mainScreenEnabled ? 1 : 0,
-           layer_[4].mainScreenEnabled ? 1 : 0);
-  LOG_INFO("PPU", "$212D (Sub Screen): BG1=%d BG2=%d BG3=%d BG4=%d OBJ=%d",
-           layer_[0].subScreenEnabled ? 1 : 0,
-           layer_[1].subScreenEnabled ? 1 : 0,
-           layer_[2].subScreenEnabled ? 1 : 0,
-           layer_[3].subScreenEnabled ? 1 : 0,
-           layer_[4].subScreenEnabled ? 1 : 0);
+  printf("=== PPU State Dump ===\n");
+  printf("$2100: forced_blank=%d brightness=%d\n", forced_blank_ ? 1 : 0,
+         brightness);
+  printf("$2105: mode=%d bg3priority=%d\n", mode, bg3priority ? 1 : 0);
+  printf("$212C (Main Screen): BG1=%d BG2=%d BG3=%d BG4=%d OBJ=%d\n",
+         layer_[0].mainScreenEnabled ? 1 : 0,
+         layer_[1].mainScreenEnabled ? 1 : 0,
+         layer_[2].mainScreenEnabled ? 1 : 0,
+         layer_[3].mainScreenEnabled ? 1 : 0,
+         layer_[4].mainScreenEnabled ? 1 : 0);
+  printf("$212D (Sub Screen): BG1=%d BG2=%d BG3=%d BG4=%d OBJ=%d\n",
+         layer_[0].subScreenEnabled ? 1 : 0,
+         layer_[1].subScreenEnabled ? 1 : 0,
+         layer_[2].subScreenEnabled ? 1 : 0,
+         layer_[3].subScreenEnabled ? 1 : 0,
+         layer_[4].subScreenEnabled ? 1 : 0);
   for (int i = 0; i < 4; i++) {
-    LOG_INFO("PPU",
-             "BG%d: tilemapAdr=$%04X tileAdr=$%04X hScroll=%d vScroll=%d "
-             "bigTiles=%d",
-             i + 1, bg_layer_[i].tilemapAdr, bg_layer_[i].tileAdr,
-             bg_layer_[i].hScroll, bg_layer_[i].vScroll,
-             bg_layer_[i].bigTiles ? 1 : 0);
+    printf("BG%d: tilemapAdr=$%04X tileAdr=$%04X hScroll=%d vScroll=%d "
+           "bigTiles=%d\n",
+           i + 1, bg_layer_[i].tilemapAdr, bg_layer_[i].tileAdr,
+           bg_layer_[i].hScroll, bg_layer_[i].vScroll,
+           bg_layer_[i].bigTiles ? 1 : 0);
   }
   // Check first few CGRAM entries (palette)
-  LOG_INFO("PPU", "CGRAM[0-7]: %04X %04X %04X %04X %04X %04X %04X %04X",
-           cgram[0], cgram[1], cgram[2], cgram[3], cgram[4], cgram[5], cgram[6],
-           cgram[7]);
-  LOG_INFO("PPU", "=== End PPU Dump ===");
+  printf("CGRAM[0-7]: %04X %04X %04X %04X %04X %04X %04X %04X\n", cgram[0],
+         cgram[1], cgram[2], cgram[3], cgram[4], cgram[5], cgram[6], cgram[7]);
+  printf("=== End PPU Dump ===\n");
+  fflush(stdout);
 }
 
 }  // namespace emu

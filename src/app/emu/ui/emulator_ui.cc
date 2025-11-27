@@ -543,6 +543,9 @@ void RenderEmulatorInterface(Emulator* emu) {
   }
   RenderKeyboardShortcuts(&show_shortcuts);
 
+  // Tab key: Hold for turbo mode
+  emu->set_turbo_mode(ImGui::IsKeyDown(ImGuiKey_Tab));
+
   ImGui::PopStyleColor();
 }
 

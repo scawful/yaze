@@ -64,8 +64,8 @@
 #endif
 
 #include "app/editor/editor.h"
-#include "app/editor/system/settings_editor.h"
 #include "app/editor/system/toast_manager.h"
+#include "app/editor/ui/settings_panel.h"
 #include "app/gfx/debug/performance/performance_dashboard.h"
 
 #ifdef YAZE_WITH_GRPC
@@ -260,7 +260,6 @@ constexpr const char* kPaletteEditorName = ICON_MD_PALETTE " Palette Editor";
 constexpr const char* kScreenEditorName = ICON_MD_SCREENSHOT " Screen Editor";
 constexpr const char* kSpriteEditorName = ICON_MD_SMART_TOY " Sprite Editor";
 constexpr const char* kMessageEditorName = ICON_MD_MESSAGE " Message Editor";
-constexpr const char* kSettingsEditorName = ICON_MD_SETTINGS " Settings Editor";
 constexpr const char* kAssemblyEditorName = ICON_MD_CODE " Assembly Editor";
 constexpr const char* kDungeonEditorName = ICON_MD_CASTLE " Dungeon Editor";
 constexpr const char* kMusicEditorName = ICON_MD_MUSIC_NOTE " Music Editor";
@@ -347,9 +346,12 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
                                .category = "Emulator",
                                .priority = 100});
 
-  // Show CPU debugger and PPU viewer by default for emulator
+  // Show useful emulator cards by default
   card_registry_.ShowCard("emulator.cpu_debugger");
   card_registry_.ShowCard("emulator.ppu_viewer");
+  card_registry_.ShowCard("emulator.performance");
+  card_registry_.ShowCard("emulator.save_states");
+  card_registry_.ShowCard("emulator.keyboard_config");
 
   // Register memory/hex editor card
   card_registry_.RegisterCard({.card_id = "memory.hex_editor",
@@ -1208,8 +1210,11 @@ absl::Status EditorManager::LoadAssets(uint64_t passed_handle) {
   current_editor_set->palette_editor_.Initialize();
   current_editor_set->assembly_editor_.Initialize();
   current_editor_set->music_editor_.Initialize();
-  current_editor_set->settings_editor_
-      .Initialize();  // Initialize settings editor to register System cards
+  
+  // Configure settings panel
+  current_editor_set->settings_panel_.SetUserSettings(&user_settings_);
+  current_editor_set->settings_panel_.SetCardRegistry(&card_registry_);
+
   // Initialize the dungeon editor with the renderer
   current_editor_set->dungeon_editor_.Initialize(renderer_, current_rom);
 
@@ -1237,7 +1242,8 @@ absl::Status EditorManager::LoadAssets(uint64_t passed_handle) {
 #ifdef __EMSCRIPTEN__
   update_progress("Loading settings...");
 #endif
-  RETURN_IF_ERROR(current_editor_set->settings_editor_.Load());
+  // Settings panel doesn't need Load()
+  // RETURN_IF_ERROR(current_editor_set->settings_editor_.Load());
 
 #ifdef __EMSCRIPTEN__
   update_progress("Loading sprites...");
@@ -1265,7 +1271,7 @@ absl::Status EditorManager::LoadAssets(uint64_t passed_handle) {
 
   // Set up RightPanelManager with session's settings editor
   if (right_panel_manager_) {
-    right_panel_manager_->SetSettingsEditor(&current_editor_set->settings_editor_);
+    right_panel_manager_->SetSettingsPanel(&current_editor_set->settings_panel_);
   }
 
   gfx::PerformanceProfiler::Get().PrintSummary();
@@ -1724,7 +1730,7 @@ void EditorManager::SwitchToSession(size_t index) {
   if (right_panel_manager_) {
     auto* editor_set = GetCurrentEditorSet();
     if (editor_set) {
-      right_panel_manager_->SetSettingsEditor(&editor_set->settings_editor_);
+      right_panel_manager_->SetSettingsPanel(&editor_set->settings_panel_);
     }
   }
 
@@ -1849,6 +1855,16 @@ void EditorManager::SwitchToEditor(EditorType editor_type) {
           !ui_coordinator_->IsEmulatorVisible());
       if (ui_coordinator_->IsEmulatorVisible()) {
         card_registry_.SetActiveCategory("Emulator");
+      }
+    }
+  } else if (editor_type == EditorType::kSettings) {
+    if (right_panel_manager_) {
+      // Toggle settings panel
+      if (right_panel_manager_->GetActivePanel() ==
+          RightPanelManager::PanelType::kSettings) {
+        right_panel_manager_->ClosePanel();
+      } else {
+        right_panel_manager_->OpenPanel(RightPanelManager::PanelType::kSettings);
       }
     }
   }
