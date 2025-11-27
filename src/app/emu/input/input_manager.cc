@@ -77,8 +77,9 @@ void InputManager::Poll(Snes* snes, int player) {
 
   // Debug: Log complete button state when any button is pressed
   static int poll_log_count = 0;
-  if (final_state.buttons != 0 && poll_log_count++ < 30) {
-    LOG_DEBUG("InputManager", "Poll: buttons=0x%04X", final_state.buttons);
+  if (final_state.buttons != 0 && poll_log_count++ < 50) {
+    LOG_INFO("InputManager", "Poll: buttons=0x%04X (passed to SetButtonState)",
+             final_state.buttons);
   }
 }
 

@@ -154,18 +154,6 @@ void Snes::HandleInput() {
   // This data persists until the next call, allowing NMI to read it
   memset(port_auto_read_, 0, sizeof(port_auto_read_));
 
-  // Debug: Log ALL HandleInput calls to track edge detection
-  static int handle_input_call = 0;
-  static uint16_t last_current = 0xFFFF;
-  handle_input_call++;
-
-  // Log when state changes (to catch the release)
-  if (input1.current_state_ != last_current) {
-    LOG_INFO("SNES",
-              "HandleInput #%d: current_state CHANGED 0x%04X -> 0x%04X",
-              handle_input_call, last_current, input1.current_state_);
-    last_current = input1.current_state_;
-  }
 
   // latch controllers
   input_latch(&input1, true);
@@ -185,14 +173,6 @@ void Snes::HandleInput() {
   input1.previous_state_ = prev1;
   input2.previous_state_ = prev2;
 
-  // Debug: Log result after latching (port_auto_read now updated)
-  static uint16_t last_port = 0xFFFF;
-  if (port_auto_read_[0] != last_port) {
-    LOG_INFO("SNES",
-              "HandleInput #%d RESULT: port_auto_read CHANGED 0x%04X -> 0x%04X",
-              handle_input_call, last_port, port_auto_read_[0]);
-    last_port = port_auto_read_[0];
-  }
 }
 
 void Snes::RunCycle() {
@@ -449,15 +429,6 @@ uint8_t Snes::ReadReg(uint16_t adr) {
     case 0x421c:
     case 0x421e: {
       uint8_t result = port_auto_read_[(adr - 0x4218) / 2] & 0xff;
-      // Debug: Log ALL reads from NMI_ReadJoypads area (PC=$83D0-$83FF)
-      static int read_count = 0;
-      if (adr == 0x4218 && cpu_.PB == 0x00 && cpu_.PC >= 0x83D0 && cpu_.PC <= 0x83FF &&
-          read_count++ < 500) {
-        LOG_INFO("SNES",
-                  ">>> NMI $4218 READ = $%02X (port_auto_read=$%04X, A_reg=$%02X) "
-                  "at PC=$00:%04X <<<",
-                  result, port_auto_read_[0], cpu_.A & 0xFF, cpu_.PC);
-      }
       return result;
     }
     case 0x4219:
@@ -713,7 +684,7 @@ void Snes::Write(uint32_t adr, uint8_t val) {
     bool is_cur = (low_word == 0x00F2 || low_word == 0x01F2);
     uint8_t* last = is_cur ? &last_f2 : &last_f6;
     if (val != *last || val != 0) {
-      LOG_INFO("SNES", "NMI JOYPAD[$%04X] %s = $%02X at PC=$00:%04X A=$%04X X=$%04X Y=$%04X",
+      LOG_DEBUG("SNES", "NMI JOYPAD[$%04X] %s = $%02X at PC=$00:%04X A=$%04X X=$%04X Y=$%04X",
                 low_word, name, val, cpu_.PC, cpu_.A, cpu_.X, cpu_.Y);
       *last = val;
     }
