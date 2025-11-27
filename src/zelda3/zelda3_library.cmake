@@ -12,6 +12,7 @@ set(
   zelda3/dungeon/palette_debug.cc
   zelda3/dungeon/room_layout.cc
   zelda3/dungeon/room_object.cc
+  zelda3/formats/offsets.cc
   zelda3/music/tracker.cc
   zelda3/overworld/overworld.cc
   zelda3/overworld/overworld_map.cc
@@ -25,6 +26,7 @@ set(
   zelda3/screen/overworld_map_screen.cc
   zelda3/sprite/sprite.cc
   zelda3/sprite/sprite_builder.cc
+  zelda3/sprite/sprite_names.h
   zelda3/zelda3_labels.cc
 )
 

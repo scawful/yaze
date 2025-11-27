@@ -416,6 +416,9 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
     LOG_WARN("EditorManager", "Failed to load user settings: %s",
              status_.ToString().c_str());
   }
+  // Apply sprite naming preference globally.
+  yaze::zelda3::SetPreferHmagicSpriteNames(
+      user_settings_.prefs().prefer_hmagic_sprite_names);
 
   // Initialize WASM control and session APIs for browser/agent integration
 #ifdef __EMSCRIPTEN__

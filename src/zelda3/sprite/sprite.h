@@ -15,6 +15,18 @@ namespace zelda3 {
 
 // Sprite names defined in sprite.cc to avoid static initialization order issues
 extern const std::string kSpriteDefaultNames[256];
+// Expanded names (from hmagic sprname.dat, 0x11c entries). Might differ in
+// wording/coverage; consumers can choose which to use.
+extern const char* const kSpriteNames[];
+extern const size_t kSpriteNameCount;
+
+// Global preference for using hmagic names when available.
+void SetPreferHmagicSpriteNames(bool prefer);
+bool PreferHmagicSpriteNames();
+
+// Utility to resolve a sprite name; uses hmagic list when enabled and in range,
+// otherwise falls back to the 256-entry defaults.
+const char* ResolveSpriteName(uint16_t id);
 
 /**
  * @class Sprite
@@ -37,7 +49,7 @@ class Sprite : public GameEntity {
     x_ = map_x_;
     y_ = map_y_;
     overworld_ = true;
-    name_ = kSpriteDefaultNames[id];
+    name_ = ResolveSpriteName(id);
     // Defer preview_gfx_ allocation until DrawSpriteTile() is called
   }
 
@@ -45,7 +57,7 @@ class Sprite : public GameEntity {
       : id_(id), nx_(x), ny_(y), subtype_(subtype), layer_(layer) {
     x_ = x;
     y_ = y;
-    name_ = kSpriteDefaultNames[id];
+    name_ = ResolveSpriteName(id);
     if (((subtype & 0x07) == 0x07) && id > 0 && id <= 0x1A) {
       name_ = kOverlordNames[id - 1];
       overlord_ = 1;
@@ -64,7 +76,7 @@ class Sprite : public GameEntity {
     y_ = map_y_;
     nx_ = x;
     ny_ = y;
-    name_ = kSpriteDefaultNames[id];
+    name_ = ResolveSpriteName(id);
     map_x_ = map_x;
     map_y_ = map_y;
     // Defer preview_gfx_ allocation until DrawSpriteTile() is called

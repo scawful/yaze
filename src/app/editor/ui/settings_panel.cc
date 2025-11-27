@@ -14,6 +14,7 @@
 #include "imgui/imgui.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
 #include "util/log.h"
+#include "zelda3/sprite/sprite.h"
 
 namespace yaze {
 namespace editor {
@@ -174,6 +175,14 @@ void SettingsPanel::DrawEditorBehavior() {
   const char* editors[] = {"None", "Overworld", "Dungeon", "Graphics"};
   if (ImGui::Combo("##DefaultEditor", &user_settings_->prefs().default_editor,
             editors, IM_ARRAYSIZE(editors))) {
+    user_settings_->Save();
+  }
+
+  ImGui::Spacing();
+  ImGui::Text("%s Sprite Names", ICON_MD_LABEL);
+  ImGui::Separator();
+  if (ImGui::Checkbox("Use HMagic sprite names (expanded)", &user_settings_->prefs().prefer_hmagic_sprite_names)) {
+    yaze::zelda3::SetPreferHmagicSpriteNames(user_settings_->prefs().prefer_hmagic_sprite_names);
     user_settings_->Save();
   }
 }

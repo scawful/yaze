@@ -62,6 +62,8 @@ absl::Status UserSettings::Load() {
         prefs_.show_welcome_on_startup = (val == "1");
       } else if (key == "restore_last_session") {
         prefs_.restore_last_session = (val == "1");
+      } else if (key == "prefer_hmagic_sprite_names") {
+        prefs_.prefer_hmagic_sprite_names = (val == "1");
       }
       // Editor Behavior
       else if (key == "backup_before_save") {
@@ -150,6 +152,8 @@ absl::Status UserSettings::Save() {
     ss << "show_welcome_on_startup=" << (prefs_.show_welcome_on_startup ? 1 : 0)
        << "\n";
     ss << "restore_last_session=" << (prefs_.restore_last_session ? 1 : 0)
+       << "\n";
+    ss << "prefer_hmagic_sprite_names=" << (prefs_.prefer_hmagic_sprite_names ? 1 : 0)
        << "\n";
 
     // Editor Behavior
