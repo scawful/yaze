@@ -184,6 +184,17 @@ class PaletteManager {
    */
   void DiscardAllChanges();
 
+  // ========== Preview Mode ==========
+
+  /**
+   * @brief Apply preview changes to other editors without saving to ROM
+   * @details This triggers bitmap propagation notification so other editors
+   *          can refresh their visuals with the modified palettes.
+   *          Use this for "live preview" functionality before committing to ROM.
+   * @return Status of the operation
+   */
+  absl::Status ApplyPreviewChanges();
+
   // ========== Undo/Redo ==========
 
   /**

@@ -2,6 +2,7 @@
 
 #include "absl/status/status.h"
 #include "absl/strings/str_cat.h"
+#include "app/editor/palette/palette_category.h"
 #include "app/editor/system/editor_card_registry.h"
 #include "app/gfx/debug/performance/performance_profiler.h"
 #include "app/gfx/types/snes_palette.h"
@@ -10,6 +11,7 @@
 #include "app/gui/core/color.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/popup_id.h"
+#include "app/gui/core/search.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -350,6 +352,38 @@ absl::Status PaletteEditor::Load() {
   sprites_aux3_card_ = std::make_unique<SpritesAux3PaletteCard>(rom_);
   equipment_card_ = std::make_unique<EquipmentPaletteCard>(rom_);
 
+  return absl::OkStatus();
+}
+
+absl::Status PaletteEditor::Save() {
+  if (!rom_ || !rom_->is_loaded()) {
+    return absl::FailedPreconditionError("ROM not loaded");
+  }
+
+  // Delegate to PaletteManager for centralized save
+  RETURN_IF_ERROR(gfx::PaletteManager::Get().SaveAllToRom());
+
+  // Mark ROM as needing file save
+  rom_->set_dirty(true);
+
+  return absl::OkStatus();
+}
+
+absl::Status PaletteEditor::Undo() {
+  if (!gfx::PaletteManager::Get().IsInitialized()) {
+    return absl::FailedPreconditionError("PaletteManager not initialized");
+  }
+
+  gfx::PaletteManager::Get().Undo();
+  return absl::OkStatus();
+}
+
+absl::Status PaletteEditor::Redo() {
+  if (!gfx::PaletteManager::Get().IsInitialized()) {
+    return absl::FailedPreconditionError("PaletteManager not initialized");
+  }
+
+  gfx::PaletteManager::Get().Redo();
   return absl::OkStatus();
 }
 
@@ -822,44 +856,8 @@ void PaletteEditor::DrawControlPanel() {
 
     ImGui::Separator();
 
-    // Quick toggle checkboxes in a table
-    ImGui::Text("Palette Groups:");
-    if (ImGui::BeginTable("##PaletteToggles", 2,
-                          ImGuiTableFlags_SizingStretchSame)) {
-      ImGui::TableNextRow();
-      ImGui::TableNextColumn();
-      ImGui::Checkbox("OW Main", &show_ow_main_card_);
-      ImGui::TableNextColumn();
-      ImGui::Checkbox("OW Animated", &show_ow_animated_card_);
-
-      ImGui::TableNextRow();
-      ImGui::TableNextColumn();
-      ImGui::Checkbox("Dungeon", &show_dungeon_main_card_);
-      ImGui::TableNextColumn();
-      ImGui::Checkbox("Sprites", &show_sprite_card_);
-
-      ImGui::TableNextRow();
-      ImGui::TableNextColumn();
-      ImGui::Checkbox("Equipment", &show_equipment_card_);
-      ImGui::TableNextColumn();
-      // Empty cell
-
-      ImGui::EndTable();
-    }
-
-    ImGui::Separator();
-
-    ImGui::Text("Utilities:");
-    if (ImGui::BeginTable("##UtilityToggles", 2,
-                          ImGuiTableFlags_SizingStretchSame)) {
-      ImGui::TableNextRow();
-      ImGui::TableNextColumn();
-      ImGui::Checkbox("Quick Access", &show_quick_access_);
-      ImGui::TableNextColumn();
-      ImGui::Checkbox("Custom", &show_custom_palette_);
-
-      ImGui::EndTable();
-    }
+    // Categorized palette list with search
+    DrawCategorizedPaletteList();
 
     ImGui::Separator();
 
@@ -915,7 +913,9 @@ void PaletteEditor::DrawControlPanel() {
 
     ImGui::BeginDisabled(!has_unsaved);
     if (ImGui::Button(
-            absl::StrFormat("Save All (%zu colors)", modified_count).c_str(),
+            absl::StrFormat(ICON_MD_SAVE " Save All (%zu colors)",
+                            modified_count)
+                .c_str(),
             ImVec2(-1, 0))) {
       auto status = gfx::PaletteManager::Get().SaveAllToRom();
       if (!status.ok()) {
@@ -936,8 +936,30 @@ void PaletteEditor::DrawControlPanel() {
       }
     }
 
+    // Apply to Editors button - preview changes without saving to ROM
     ImGui::BeginDisabled(!has_unsaved);
-    if (ImGui::Button("Discard All Changes", ImVec2(-1, 0))) {
+    if (ImGui::Button(ICON_MD_VISIBILITY " Apply to Editors", ImVec2(-1, 0))) {
+      auto status = gfx::PaletteManager::Get().ApplyPreviewChanges();
+      if (!status.ok()) {
+        ImGui::OpenPopup(
+            gui::MakePopupId(gui::EditorNames::kPalette,
+                             gui::PopupNames::kSaveError)
+                .c_str());
+      }
+    }
+    ImGui::EndDisabled();
+
+    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+      if (has_unsaved) {
+        ImGui::SetTooltip(
+            "Preview palette changes in other editors without saving to ROM");
+      } else {
+        ImGui::SetTooltip("No changes to preview");
+      }
+    }
+
+    ImGui::BeginDisabled(!has_unsaved);
+    if (ImGui::Button(ICON_MD_UNDO " Discard All Changes", ImVec2(-1, 0))) {
       ImGui::OpenPopup(
           gui::MakePopupId(gui::EditorNames::kPalette,
                            gui::PopupNames::kConfirmDiscardAll)
@@ -1271,6 +1293,106 @@ void PaletteEditor::JumpToPalette(const std::string& group_name,
 
   // Show control panel too for easy navigation
   show_control_panel_ = true;
+}
+
+// ============================================================================
+// Category and Search UI Methods
+// ============================================================================
+
+void PaletteEditor::DrawSearchBar() {
+  ImGui::SetNextItemWidth(-1);
+  if (ImGui::InputTextWithHint("##PaletteSearch",
+                               ICON_MD_SEARCH " Search palettes...",
+                               search_buffer_, sizeof(search_buffer_))) {
+    // Search text changed - UI will update automatically
+  }
+}
+
+bool PaletteEditor::PassesSearchFilter(const std::string& group_name) const {
+  if (search_buffer_[0] == '\0') return true;
+
+  // Check if group name or display name matches
+  return gui::FuzzyMatch(search_buffer_, group_name) ||
+         gui::FuzzyMatch(search_buffer_, GetGroupDisplayName(group_name));
+}
+
+bool* PaletteEditor::GetShowFlagForGroup(const std::string& group_name) {
+  if (group_name == "ow_main") return &show_ow_main_card_;
+  if (group_name == "ow_animated") return &show_ow_animated_card_;
+  if (group_name == "dungeon_main") return &show_dungeon_main_card_;
+  if (group_name == "global_sprites") return &show_sprite_card_;
+  if (group_name == "sprites_aux1") return &show_sprites_aux1_card_;
+  if (group_name == "sprites_aux2") return &show_sprites_aux2_card_;
+  if (group_name == "sprites_aux3") return &show_sprites_aux3_card_;
+  if (group_name == "armors") return &show_equipment_card_;
+  return nullptr;
+}
+
+void PaletteEditor::DrawCategorizedPaletteList() {
+  // Search bar at top
+  DrawSearchBar();
+  ImGui::Separator();
+
+  const auto& categories = GetPaletteCategories();
+
+  for (size_t cat_idx = 0; cat_idx < categories.size(); cat_idx++) {
+    const auto& cat = categories[cat_idx];
+
+    // Check if any items in category match search
+    bool has_visible_items = false;
+    for (const auto& group_name : cat.group_names) {
+      if (PassesSearchFilter(group_name)) {
+        has_visible_items = true;
+        break;
+      }
+    }
+
+    if (!has_visible_items) continue;
+
+    ImGui::PushID(static_cast<int>(cat_idx));
+
+    // Collapsible header for category with icon
+    std::string header_text =
+        absl::StrFormat("%s %s", cat.icon, cat.display_name);
+    bool open = ImGui::CollapsingHeader(header_text.c_str(),
+                                        ImGuiTreeNodeFlags_DefaultOpen);
+
+    if (open) {
+      ImGui::Indent(10.0f);
+      for (const auto& group_name : cat.group_names) {
+        if (!PassesSearchFilter(group_name)) continue;
+
+        bool* show_flag = GetShowFlagForGroup(group_name);
+        if (show_flag) {
+          std::string label = GetGroupDisplayName(group_name);
+
+          // Show modified indicator
+          if (gfx::PaletteManager::Get().IsGroupModified(group_name)) {
+            label += " *";
+            ImGui::PushStyleColor(ImGuiCol_Text,
+                                  ImVec4(1.0f, 0.6f, 0.0f, 1.0f));
+          }
+
+          ImGui::Checkbox(label.c_str(), show_flag);
+
+          if (gfx::PaletteManager::Get().IsGroupModified(group_name)) {
+            ImGui::PopStyleColor();
+          }
+        }
+      }
+      ImGui::Unindent(10.0f);
+    }
+    ImGui::PopID();
+  }
+
+  ImGui::Separator();
+
+  // Utilities section
+  ImGui::Text("Utilities:");
+  ImGui::Indent(10.0f);
+  ImGui::Checkbox("Quick Access", &show_quick_access_);
+  ImGui::Checkbox("Custom Palette", &show_custom_palette_);
+  ImGui::Unindent(10.0f);
 }
 
 }  // namespace editor

@@ -6,7 +6,9 @@
 #include "absl/strings/str_format.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gui/core/color.h"
+#include "app/gui/core/theme_manager.h"
 #include "app/gui/core/popup_id.h"
+#include "app/gui/plots/implot_support.h"
 #include "util/log.h"
 
 namespace yaze {
@@ -227,28 +229,26 @@ void PaletteEditorWidget::ShowColorAnalysis(const gfx::Bitmap& bitmap,
     ImGui::Text("Pixel Distribution:");
 
     int total_pixels = static_cast<int>(data.size());
+    plotting::PlotStyleScope plot_style(gui::ThemeManager::Get().GetCurrentTheme());
+    plotting::PlotConfig plot_cfg{
+        .id = "Pixel Distribution",
+        .x_label = "Palette Index",
+        .y_label = "Count",
+        .flags = ImPlotFlags_NoBoxSelect,
+        .x_axis_flags = ImPlotAxisFlags_AutoFit,
+        .y_axis_flags = ImPlotAxisFlags_AutoFit};
+    std::vector<double> x;
+    std::vector<double> y;
+    x.reserve(pixel_counts.size());
+    y.reserve(pixel_counts.size());
     for (const auto& [index, count] : pixel_counts) {
-      float percentage = (static_cast<float>(count) / total_pixels) * 100.0f;
-      ImGui::Text("Index %d: %d pixels (%.1f%%)", index, count, percentage);
-
-      ImGui::SameLine();
-      ImGui::ProgressBar(percentage / 100.0f, ImVec2(100, 0));
-
-      if (index < static_cast<int>(bitmap.palette().size())) {
-        ImGui::SameLine();
-        auto color = bitmap.palette()[index];
-        ImVec4 display_color = color.rgb();
-        ImGui::ColorButton(("##color" + std::to_string(index)).c_str(),
-                           display_color, ImGuiColorEditFlags_NoTooltip,
-                           ImVec2(20, 20));
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("SNES Color: 0x%04X\nRGB: (%d, %d, %d)",
-                            color.snes(),
-                            static_cast<int>(display_color.x * 255),
-                            static_cast<int>(display_color.y * 255),
-                            static_cast<int>(display_color.z * 255));
-        }
-      }
+      x.push_back(static_cast<double>(index));
+      y.push_back(static_cast<double>(count));
+    }
+    plotting::PlotGuard plot(plot_cfg);
+    if (plot && !x.empty()) {
+      ImPlot::PlotBars("Usage", x.data(), y.data(), static_cast<int>(x.size()),
+                       0.67, 0.0, ImPlotBarsFlags_None);
     }
   }
   ImGui::End();
@@ -475,6 +475,31 @@ void PaletteEditorWidget::DrawPaletteAnalysis(const gfx::SnesPalette& palette) {
         }
       }
       ImGui::TreePop();
+    }
+  }
+
+  // Visual histogram of color reuse
+  {
+    plotting::PlotStyleScope plot_style(gui::ThemeManager::Get().GetCurrentTheme());
+    plotting::PlotConfig plot_cfg{
+        .id = "Palette Color Frequency",
+        .x_label = "Color Index",
+        .y_label = "Count",
+        .flags = ImPlotFlags_NoBoxSelect,
+        .x_axis_flags = ImPlotAxisFlags_AutoFit,
+        .y_axis_flags = ImPlotAxisFlags_AutoFit};
+    std::vector<double> x;
+    std::vector<double> y;
+    x.reserve(color_frequency.size());
+    y.reserve(color_frequency.size());
+    for (const auto& [snes_color, count] : color_frequency) {
+      x.push_back(static_cast<double>(snes_color));
+      y.push_back(static_cast<double>(count));
+    }
+    plotting::PlotGuard plot(plot_cfg);
+    if (plot && !x.empty()) {
+      ImPlot::PlotBars("Count", x.data(), y.data(), static_cast<int>(x.size()),
+                       0.5, 0.0, ImPlotBarsFlags_None);
     }
   }
 
