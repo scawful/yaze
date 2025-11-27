@@ -8,7 +8,7 @@
 #include "app/gfx/types/snes_tile.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
-#include "imgui_memory_editor.h"
+#include "app/gui/imgui_memory_editor.h"
 
 template <class... Ts>
 struct overloaded : Ts... {
@@ -455,7 +455,7 @@ bool OpenUrl(const std::string& url) {
 
 void MemoryEditorPopup(const std::string& label, std::span<uint8_t> memory) {
   static bool open = false;
-  static MemoryEditor editor;
+  static yaze::gui::MemoryEditorWidget editor;
   if (ImGui::Button("View Data")) {
     open = true;
   }

@@ -25,7 +25,7 @@
 #include "app/rom.h"
 #include "core/asar_wrapper.h"
 #include "imgui/imgui.h"
-#include "imgui_memory_editor.h"
+#include "app/gui/imgui_memory_editor.h"
 #include "util/hex.h"
 #include "util/log.h"
 #include "util/macro.h"

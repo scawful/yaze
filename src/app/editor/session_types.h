@@ -47,7 +47,7 @@ class EditorSet {
   SpriteEditor sprite_editor_;
   SettingsPanel settings_panel_;
   MessageEditor message_editor_;
-  MemoryEditorWithDiffChecker memory_editor_;
+  MemoryEditor memory_editor_;
 
   std::vector<Editor*> active_editors_;
 
