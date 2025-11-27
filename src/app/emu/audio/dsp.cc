@@ -299,11 +299,14 @@ void Dsp::CycleChannel(int ch) {
   ram[(ch << 4) | 8] = channel[ch].gain >> 4;
   ram[(ch << 4) | 9] = sample >> 8;
   channel[ch].sampleOut = sample;
-  sampleOutL = clamp16(sampleOutL + ((sample * channel[ch].volumeL) >> 7));
-  sampleOutR = clamp16(sampleOutR + ((sample * channel[ch].volumeR) >> 7));
-  if (channel[ch].echoEnable) {
-    echoOutL = clamp16(echoOutL + ((sample * channel[ch].volumeL) >> 7));
-    echoOutR = clamp16(echoOutR + ((sample * channel[ch].volumeR) >> 7));
+
+  if (!debug_mute_channels_[ch]) {
+    sampleOutL = clamp16(sampleOutL + ((sample * channel[ch].volumeL) >> 7));
+    sampleOutR = clamp16(sampleOutR + ((sample * channel[ch].volumeR) >> 7));
+    if (channel[ch].echoEnable) {
+      echoOutL = clamp16(echoOutL + ((sample * channel[ch].volumeL) >> 7));
+      echoOutR = clamp16(echoOutR + ((sample * channel[ch].volumeR) >> 7));
+    }
   }
 }
 

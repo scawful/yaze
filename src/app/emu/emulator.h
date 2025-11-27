@@ -132,6 +132,7 @@ class Emulator {
   void RenderSaveStates();
   void RenderKeyboardConfig();
   void RenderApuDebugger();
+  void RenderAudioMixer();
 
   struct Bookmark {
     std::string name;

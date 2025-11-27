@@ -98,101 +98,105 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     static int prev_layout = -1;
     static int prev_spriteset = -1;
 
-    // Room properties in organized table
-    if (ImGui::BeginTable(
-            "##RoomProperties", 4,
-            ImGuiTableFlags_SizingStretchSame | ImGuiTableFlags_Borders)) {
-      ImGui::TableSetupColumn("Graphics");
-      ImGui::TableSetupColumn("Layout");
-      ImGui::TableSetupColumn("Floors");
-      ImGui::TableSetupColumn("Message");
-      ImGui::TableHeadersRow();
+    // Organized Room Properties using Tabs
+    if (ImGui::BeginTabBar("##RoomPropertiesTabs")) {
+      
+      // Tab 1: Graphics & Core
+      if (ImGui::BeginTabItem("Graphics")) {
+        if (ImGui::BeginTable("GfxTable", 2, ImGuiTableFlags_Borders)) {
+          ImGui::TableSetupColumn("Property");
+          ImGui::TableSetupColumn("Value");
+          
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn(); ImGui::Text("Blockset");
+          ImGui::TableNextColumn(); gui::InputHexByte("##Blockset", &room.blockset);
 
-      ImGui::TableNextRow();
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn(); ImGui::Text("Spriteset");
+          ImGui::TableNextColumn(); gui::InputHexByte("##Spriteset", &room.spriteset);
 
-      // Column 1: Graphics (Blockset, Spriteset, Palette)
-      ImGui::TableNextColumn();
-      gui::InputHexByte("Gfx", &room.blockset, 50.f);
-      gui::InputHexByte("Sprite", &room.spriteset, 50.f);
-      gui::InputHexByte("Palette", &room.palette, 50.f);
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn(); ImGui::Text("Palette");
+          ImGui::TableNextColumn(); gui::InputHexByte("##Palette", &room.palette);
 
-      // Column 2: Layout
-      ImGui::TableNextColumn();
-      gui::InputHexByte("Layout", &room.layout, 50.f);
-
-      // Column 3: Floors
-      ImGui::TableNextColumn();
-      uint8_t floor1_val = room.floor1();
-      uint8_t floor2_val = room.floor2();
-      if (gui::InputHexByte("Floor1", &floor1_val, 50.f) &&
-          ImGui::IsItemDeactivatedAfterEdit()) {
-        room.set_floor1(floor1_val);
-        if (room.rom() && room.rom()->is_loaded()) {
-          room.RenderRoomGraphics();
+          ImGui::EndTable();
         }
-      }
-      if (gui::InputHexByte("Floor2", &floor2_val, 50.f) &&
-          ImGui::IsItemDeactivatedAfterEdit()) {
-        room.set_floor2(floor2_val);
-        if (room.rom() && room.rom()->is_loaded()) {
-          room.RenderRoomGraphics();
-        }
+        ImGui::EndTabItem();
       }
 
-      // Column 4: Message
-      ImGui::TableNextColumn();
-      gui::InputHexWord("MsgID", &room.message_id_, 70.f);
+      // Tab 2: Layout & Floors
+      if (ImGui::BeginTabItem("Layout")) {
+        if (ImGui::BeginTable("LayoutTable", 2, ImGuiTableFlags_Borders)) {
+           ImGui::TableSetupColumn("Property");
+           ImGui::TableSetupColumn("Value");
 
-      ImGui::EndTable();
+           ImGui::TableNextRow();
+           ImGui::TableNextColumn(); ImGui::Text("Layout ID");
+           ImGui::TableNextColumn(); gui::InputHexByte("##Layout", &room.layout);
+
+           ImGui::TableNextRow();
+           ImGui::TableNextColumn(); ImGui::Text("Floor 1");
+           ImGui::TableNextColumn();
+           uint8_t floor1_val = room.floor1();
+           if (gui::InputHexByte("##Floor1", &floor1_val) && ImGui::IsItemDeactivatedAfterEdit()) {
+             room.set_floor1(floor1_val);
+             if (room.rom() && room.rom()->is_loaded()) room.RenderRoomGraphics();
+           }
+
+           ImGui::TableNextRow();
+           ImGui::TableNextColumn(); ImGui::Text("Floor 2");
+           ImGui::TableNextColumn();
+           uint8_t floor2_val = room.floor2();
+           if (gui::InputHexByte("##Floor2", &floor2_val) && ImGui::IsItemDeactivatedAfterEdit()) {
+             room.set_floor2(floor2_val);
+             if (room.rom() && room.rom()->is_loaded()) room.RenderRoomGraphics();
+           }
+
+           ImGui::EndTable();
+        }
+        ImGui::EndTabItem();
+      }
+
+      // Tab 3: Advanced (Effects, Tags, Messages)
+      if (ImGui::BeginTabItem("Advanced")) {
+        gui::InputHexWord("Message ID", &room.message_id_);
+        
+        ImGui::Separator();
+        ImGui::Text("Effect:");
+        const char* effect_names[] = {
+            "Nothing", "One", "Moving Floor", "Moving Water",
+            "Four", "Red Flashes", "Torch Show Floor", "Ganon Room"};
+        int effect_val = static_cast<int>(room.effect());
+        if (ImGui::Combo("##Effect", &effect_val, effect_names, 8)) {
+          room.SetEffect(static_cast<zelda3::EffectKey>(effect_val));
+        }
+
+        ImGui::Text("Tag 1:");
+        const char* tag_names[] = {
+            "Nothing", "NW Kill", "NE Kill", "SW Kill", "SE Kill",
+            "W Kill", "E Kill", "N Kill", "S Kill",
+            "Clear Quad", "Clear Room", "NW Push", "NE Push",
+            "SW Push", "SE Push", "W Push", "E Push",
+            "N Push", "S Push", "Push Block", "Pull Lever",
+            "Clear Level", "Switch Hold", "Switch Toggle"};
+        int tag1_val = static_cast<int>(room.tag1());
+        if (ImGui::Combo("##Tag1", &tag1_val, tag_names, 24)) {
+          room.SetTag1(static_cast<zelda3::TagKey>(tag1_val));
+        }
+
+        ImGui::Text("Tag 2:");
+        int tag2_val = static_cast<int>(room.tag2());
+        if (ImGui::Combo("##Tag2", &tag2_val, tag_names, 24)) {
+          room.SetTag2(static_cast<zelda3::TagKey>(tag2_val));
+        }
+
+        ImGui::EndTabItem();
+      }
+
+      ImGui::EndTabBar();
     }
 
-    // Advanced room properties (Effect, Tags, Layer Merge)
-    ImGui::Separator();
-    if (ImGui::BeginTable(
-            "##AdvancedProperties", 3,
-            ImGuiTableFlags_SizingStretchSame | ImGuiTableFlags_Borders)) {
-      ImGui::TableSetupColumn("Effect");
-      ImGui::TableSetupColumn("Tag 1");
-      ImGui::TableSetupColumn("Tag 2");
-      ImGui::TableHeadersRow();
-
-      ImGui::TableNextRow();
-
-      // Effect dropdown
-      ImGui::TableNextColumn();
-      const char* effect_names[] = {
-          "Nothing", "One",         "Moving Floor",     "Moving Water",
-          "Four",    "Red Flashes", "Torch Show Floor", "Ganon Room"};
-      int effect_val = static_cast<int>(room.effect());
-      if (ImGui::Combo("##Effect", &effect_val, effect_names, 8)) {
-        room.SetEffect(static_cast<zelda3::EffectKey>(effect_val));
-      }
-
-      // Tag 1 dropdown (abbreviated for space)
-      ImGui::TableNextColumn();
-      const char* tag_names[] = {
-          "Nothing",    "NW Kill",     "NE Kill",     "SW Kill",
-          "SE Kill",    "W Kill",      "E Kill",      "N Kill",
-          "S Kill",     "Clear Quad",  "Clear Room",  "NW Push",
-          "NE Push",    "SW Push",     "SE Push",     "W Push",
-          "E Push",     "N Push",      "S Push",      "Push Block",
-          "Pull Lever", "Clear Level", "Switch Hold", "Switch Toggle"};
-      int tag1_val = static_cast<int>(room.tag1());
-      if (ImGui::Combo("##Tag1", &tag1_val, tag_names, 24)) {
-        room.SetTag1(static_cast<zelda3::TagKey>(tag1_val));
-      }
-
-      // Tag 2 dropdown
-      ImGui::TableNextColumn();
-      int tag2_val = static_cast<int>(room.tag2());
-      if (ImGui::Combo("##Tag2", &tag2_val, tag_names, 24)) {
-        room.SetTag2(static_cast<zelda3::TagKey>(tag2_val));
-      }
-
-      ImGui::EndTable();
-    }
-
-    // Layer visibility and merge controls
+    // Layer visibility and merge controls (Global)
     ImGui::Separator();
     if (ImGui::BeginTable("##LayerControls", 4,
                           ImGuiTableFlags_SizingStretchSame)) {

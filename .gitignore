@@ -38,10 +38,6 @@ test_screenshots/
 test_temp_rom.sfc
 zelda3_v3_test.sfc
 
-# Logs
-yaze_log.txt
-*.log
-
 # vcpkg
 vcpkg_installed/
 

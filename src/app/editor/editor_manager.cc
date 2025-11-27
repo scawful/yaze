@@ -125,11 +125,31 @@ void EditorManager::ShowHexEditor() {
 
 void EditorManager::ResetWorkspaceLayout() {
   // Clear all layout initialization flags and request rebuild
-  if (layout_manager_) {
-    layout_manager_->ClearInitializationFlags();
-    layout_manager_->RequestRebuild();
+  if (!layout_manager_) {
+    return;
   }
-  LOG_INFO("EditorManager", "Workspace layout reset - will rebuild on next editor switch");
+  
+  layout_manager_->ClearInitializationFlags();
+  layout_manager_->RequestRebuild();
+  
+  // Force immediate rebuild for active context (don't use InitializeEditorLayout - use RebuildLayout)
+  ImGuiContext* imgui_ctx = ImGui::GetCurrentContext();
+  if (imgui_ctx && imgui_ctx->WithinFrameScope) {
+    ImGuiID dockspace_id = ImGui::GetID("MainDockSpace");
+    
+    // Determine which layout to rebuild
+    if (ui_coordinator_ && ui_coordinator_->IsEmulatorVisible()) {
+      layout_manager_->RebuildLayout(EditorType::kEmulator, dockspace_id);
+      LOG_INFO("EditorManager", "Emulator layout reset complete");
+    } else if (current_editor_ && IsCardBasedEditor(current_editor_->type())) {
+      layout_manager_->RebuildLayout(current_editor_->type(), dockspace_id);
+      LOG_INFO("EditorManager", "Editor layout reset complete for type %d",
+               static_cast<int>(current_editor_->type()));
+    }
+  } else {
+    // Not in frame scope - rebuild will happen on next Update() tick via RequestRebuild()
+    LOG_INFO("EditorManager", "Layout reset queued for next frame");
+  }
 }
 
 #ifdef YAZE_WITH_GRPC
@@ -333,6 +353,12 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
                                .icon = ICON_MD_KEYBOARD,
                                .category = "Emulator",
                                .priority = 80});
+  card_registry_.RegisterCard({.card_id = "emulator.virtual_controller",
+                               .display_name = "Virtual Controller",
+                               .window_title = " Virtual Controller",
+                               .icon = ICON_MD_SPORTS_ESPORTS,
+                               .category = "Emulator",
+                               .priority = 85});
   card_registry_.RegisterCard({.card_id = "emulator.apu_debugger",
                                .display_name = "APU Debugger",
                                .window_title = " APU Debugger",
@@ -352,6 +378,7 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
   card_registry_.ShowCard("emulator.performance");
   card_registry_.ShowCard("emulator.save_states");
   card_registry_.ShowCard("emulator.keyboard_config");
+  card_registry_.ShowCard("emulator.virtual_controller");
 
   // Register memory/hex editor card
   card_registry_.RegisterCard({.card_id = "memory.hex_editor",
@@ -502,6 +529,28 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
     }
   });
 
+  // Set up sidebar state change callbacks for persistence
+  // IMPORTANT: Register callbacks BEFORE applying state to avoid triggering Save() during init
+  card_registry_.SetSidebarStateChangedCallback(
+      [this](bool visible, bool expanded) {
+        user_settings_.prefs().sidebar_visible = visible;
+        user_settings_.prefs().sidebar_panel_expanded = expanded;
+        PRINT_IF_ERROR(user_settings_.Save());
+      });
+
+  card_registry_.SetCategoryChangedCallback([this](const std::string& category) {
+    user_settings_.prefs().sidebar_active_category = category;
+    PRINT_IF_ERROR(user_settings_.Save());
+  });
+
+  // Apply sidebar state from settings AFTER registering callbacks
+  // This triggers the callbacks but they should be safe now
+  card_registry_.SetSidebarVisible(user_settings_.prefs().sidebar_visible);
+  card_registry_.SetPanelExpanded(user_settings_.prefs().sidebar_panel_expanded);
+  if (!user_settings_.prefs().sidebar_active_category.empty()) {
+    card_registry_.SetActiveCategory(user_settings_.prefs().sidebar_active_category);
+  }
+
   // Initialize testing system only when tests are enabled
 #ifdef YAZE_ENABLE_TESTING
   InitializeTestSuites();
@@ -631,6 +680,32 @@ absl::Status EditorManager::Update() {
   // This fixes animation timing issues that occur when mouse isn't moving
   TimingManager::Get().Update();
 
+  // Check for layout rebuild requests and execute if needed
+  if (layout_manager_ && layout_manager_->IsRebuildRequested()) {
+    // Only rebuild if we're in a valid ImGui frame with dockspace
+    ImGuiContext* imgui_ctx = ImGui::GetCurrentContext();
+    if (imgui_ctx && imgui_ctx->WithinFrameScope) {
+      ImGuiID dockspace_id = ImGui::GetID("MainDockSpace");
+      
+      // Determine which editor layout to rebuild
+      EditorType rebuild_type = EditorType::kUnknown;
+      if (ui_coordinator_ && ui_coordinator_->IsEmulatorVisible()) {
+        rebuild_type = EditorType::kEmulator;
+      } else if (current_editor_) {
+        rebuild_type = current_editor_->type();
+      }
+      
+      // Execute rebuild if we have a valid editor type
+      if (rebuild_type != EditorType::kUnknown) {
+        layout_manager_->RebuildLayout(rebuild_type, dockspace_id);
+        LOG_INFO("EditorManager", "Layout rebuilt for editor type %d",
+                 static_cast<int>(rebuild_type));
+      }
+      
+      layout_manager_->ClearRebuildRequest();
+    }
+  }
+
   // Delegate to PopupManager for modal dialog rendering
   popup_manager_->DrawPopups();
 
@@ -699,8 +774,7 @@ absl::Status EditorManager::Update() {
 
   // Draw sidebar BEFORE early return so it appears even when no ROM is loaded
   // This fixes the issue where sidebar/panel drawing was unreachable without ROM
-  if (ui_coordinator_ && ui_coordinator_->IsCardSidebarVisible() &&
-      !card_registry_.IsSidebarCollapsed()) {
+  if (ui_coordinator_ && ui_coordinator_->IsCardSidebarVisible()) {
     if (current_editor_set && session_coordinator_) {
       // ROM is loaded - collect active card-based editors for full sidebar
       std::vector<std::string> active_categories;
@@ -722,6 +796,20 @@ absl::Status EditorManager::Update() {
             }
           }
         }
+      }
+
+      // Add Emulator to active categories when it's visible
+      if (ui_coordinator_->IsEmulatorVisible()) {
+        if (std::find(active_categories.begin(), active_categories.end(),
+                      "Emulator") == active_categories.end()) {
+          active_categories.push_back("Emulator");
+        }
+      }
+
+      // Add Memory (Hex Editor) to active categories
+      if (std::find(active_categories.begin(), active_categories.end(),
+                    "Memory") == active_categories.end()) {
+        active_categories.push_back("Memory");
       }
 
       // Determine which category to show in sidebar
@@ -753,23 +841,40 @@ absl::Status EditorManager::Update() {
               }
             };
 
-        auto collapse_callback = []() {};
+        // Callback to check if ROM is loaded (for category enabled state)
+        auto has_rom_callback = [this]() -> bool {
+          auto* rom = GetCurrentRom();
+          return rom && rom->is_loaded();
+        };
 
-        // Draw appropriate sidebar based on view mode
-        if (card_registry_.IsTreeViewMode()) {
-          card_registry_.DrawTreeSidebar(
-              GetCurrentSessionId(), active_categories, category_switch_callback);
-        } else {
-          card_registry_.DrawSidebar(sidebar_category, active_categories,
-                                     category_switch_callback, collapse_callback);
-        }
+        // Draw VSCode-style sidebar (Activity Bar + Side Panel)
+        card_registry_.Render(GetCurrentSessionId(), sidebar_category,
+                              active_categories, category_switch_callback,
+                              has_rom_callback);
       } else {
-        // No active card-based editors - draw placeholder
-        DrawPlaceholderSidebar();
+        // No active card-based editors - but still draw Activity Bar
+        card_registry_.Render(GetCurrentSessionId(), "",
+                              active_categories, nullptr,
+                              [this]() { return GetCurrentRom() && GetCurrentRom()->is_loaded(); });
       }
     } else {
-      // No ROM loaded - draw placeholder sidebar with "Open ROM" hint
-      DrawPlaceholderSidebar();
+      // No ROM loaded - draw Activity Bar with global categories (disabled state)
+      auto categories = card_registry_.GetAllCategories();
+      // Ensure Emulator is in the list
+      if (std::find(categories.begin(), categories.end(), "Emulator") == categories.end()) {
+        categories.push_back("Emulator");
+      }
+      
+      auto has_rom_callback = []() { return false; };
+      auto category_switch_callback = [this](const std::string& cat) {
+         if (cat == "Emulator") SwitchToEditor(EditorType::kEmulator);
+      };
+      
+      card_registry_.Render(0, 
+                            card_registry_.GetActiveCategory(),
+                            categories,
+                            category_switch_callback,
+                            has_rom_callback);
     }
   }
 
@@ -847,75 +952,6 @@ absl::Status EditorManager::Update() {
 
 // DrawContextSensitiveCardControl removed - card control is now in the sidebar
 
-void EditorManager::DrawPlaceholderSidebar() {
-  // Draw a placeholder sidebar when no ROM is loaded or no editor is active
-  // Sidebar fills full viewport height (menu bar is only in dockspace region)
-  const ImGuiViewport* viewport = ImGui::GetMainViewport();
-  const float viewport_height = viewport->WorkSize.y;
-  // Use same width logic as GetLeftLayoutOffset() for consistency
-  const float sidebar_width = card_registry_.IsTreeViewMode()
-                                  ? EditorCardRegistry::GetTreeSidebarWidth()
-                                  : EditorCardRegistry::GetSidebarWidth();
-
-  // Use theme colors for sidebar background
-  // Use Surface Container for a distinct background from the main window
-  ImVec4 sidebar_bg = gui::GetSurfaceContainerVec4();
-  ImVec4 sidebar_border = gui::GetOutlineVec4();
-
-  ImGuiWindowFlags sidebar_flags =
-      ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
-      ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse |
-      ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoScrollbar |
-      ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoFocusOnAppearing |
-      ImGuiWindowFlags_NoNavFocus;
-
-  // Position at top-left corner, full height (no menu bar offset - menu bar is in dockspace)
-  ImGui::SetNextWindowPos(ImVec2(viewport->WorkPos.x, viewport->WorkPos.y));
-  ImGui::SetNextWindowSize(ImVec2(sidebar_width, viewport_height));
-
-  ImGui::PushStyleColor(ImGuiCol_WindowBg, sidebar_bg);
-  ImGui::PushStyleColor(ImGuiCol_Border, sidebar_border);
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8.0f, 8.0f));
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 1.0f);
-
-  if (ImGui::Begin("##PlaceholderSidebar", nullptr, sidebar_flags)) {
-    // Center the content vertically
-    float content_height = 120.0f;
-    ImGui::Dummy(ImVec2(0, (viewport_height - content_height) / 3.0f));
-
-    // "No ROM" indicator
-    ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
-
-    // File icon
-    float icon_width = ImGui::CalcTextSize(ICON_MD_FOLDER_OPEN).x;
-    ImGui::SetCursorPosX((sidebar_width - icon_width) / 2.0f);
-    ImGui::Text("%s", ICON_MD_FOLDER_OPEN);
-
-    ImGui::PopStyleColor();
-
-    ImGui::Dummy(ImVec2(0, 16.0f));
-
-    // Action Buttons
-    float button_width = sidebar_width - 16.0f;
-    ImGui::SetCursorPosX(8.0f);
-    
-    if (ImGui::Button("Open ROM", ImVec2(button_width, 32.0f))) {
-      LoadRom();
-    }
-    
-    ImGui::Dummy(ImVec2(0, 8.0f));
-    
-    ImGui::SetCursorPosX(8.0f);
-    if (ImGui::Button("New Project", ImVec2(button_width, 32.0f))) {
-      CreateNewProject();
-    }
-  }
-  ImGui::End();
-
-  ImGui::PopStyleVar(2);
-  ImGui::PopStyleColor(2);
-}
-
 /**
  * @brief Draw the main menu bar
  *
@@ -934,30 +970,31 @@ void EditorManager::DrawMenuBar() {
   static bool show_display_settings = false;
 
   if (ImGui::BeginMenuBar()) {
-    // Sidebar toggle - ALWAYS visible with dynamic icon based on state
+    // Sidebar toggle - Activity Bar visibility
     // Consistent button styling with other menubar buttons
     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
                           gui::GetSurfaceContainerHighVec4());
     ImGui::PushStyleColor(ImGuiCol_ButtonActive,
                           gui::GetSurfaceContainerHighestVec4());
-    ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
+    
+    // Highlight when active/visible
+    if (card_registry_.IsSidebarVisible()) {
+      ImGui::PushStyleColor(ImGuiCol_Text, gui::GetPrimaryVec4());
+    } else {
+      ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
+    }
 
-    // Show different icon based on sidebar state
-    const char* sidebar_icon = card_registry_.IsSidebarCollapsed()
-                                   ? ICON_MD_MENU
-                                   : ICON_MD_MENU_OPEN;
-
-    if (ImGui::SmallButton(sidebar_icon)) {
-      card_registry_.ToggleSidebarCollapsed();
+    if (ImGui::SmallButton(ICON_MD_MENU)) {
+      card_registry_.ToggleSidebarVisibility();
     }
 
     ImGui::PopStyleColor(4);
 
     if (ImGui::IsItemHovered()) {
-      const char* tooltip = card_registry_.IsSidebarCollapsed()
-                                ? "Show Sidebar (Ctrl+B)"
-                                : "Hide Sidebar (Ctrl+B)";
+      const char* tooltip = card_registry_.IsSidebarVisible()
+                                ? "Hide Activity Bar (Ctrl+B)"
+                                : "Show Activity Bar (Ctrl+B)";
       ImGui::SetTooltip("%s", tooltip);
     }
 
@@ -1793,7 +1830,7 @@ void EditorManager::JumpToOverworldMap(int map_id) {
   GetCurrentEditorSet()->overworld_editor_.set_current_map(map_id);
 }
 
-void EditorManager::SwitchToEditor(EditorType editor_type) {
+void EditorManager::SwitchToEditor(EditorType editor_type, bool force_visible) {
   // Avoid touching ImGui docking state when we're outside a frame (e.g. WASM
   // control API calls from JS). Defer the switch to the next UI tick so the
   // dock space and ID stack are valid.
@@ -1801,7 +1838,7 @@ void EditorManager::SwitchToEditor(EditorType editor_type) {
   const bool frame_active =
       imgui_ctx != nullptr && imgui_ctx->WithinFrameScope;
   if (!frame_active) {
-    QueueDeferredAction([this, editor_type]() { SwitchToEditor(editor_type); });
+    QueueDeferredAction([this, editor_type, force_visible]() { SwitchToEditor(editor_type, force_visible); });
     return;
   }
 
@@ -1812,7 +1849,11 @@ void EditorManager::SwitchToEditor(EditorType editor_type) {
   // Toggle the editor
   for (auto* editor : editor_set->active_editors_) {
     if (editor->type() == editor_type) {
-      editor->toggle_active();
+      if (force_visible) {
+        editor->set_active(true);
+      } else {
+        editor->toggle_active();
+      }
 
       if (IsCardBasedEditor(editor_type)) {
         // Using EditorCardRegistry directly
@@ -1851,17 +1892,33 @@ void EditorManager::SwitchToEditor(EditorType editor_type) {
           !ui_coordinator_->IsAsmEditorVisible());
   } else if (editor_type == EditorType::kEmulator) {
     if (ui_coordinator_) {
-      ui_coordinator_->SetEmulatorVisible(
-          !ui_coordinator_->IsEmulatorVisible());
-      if (ui_coordinator_->IsEmulatorVisible()) {
+      bool is_visible = !ui_coordinator_->IsEmulatorVisible();
+      if (force_visible) is_visible = true; // Manual override
+      
+      ui_coordinator_->SetEmulatorVisible(is_visible);
+      
+      if (is_visible) {
         card_registry_.SetActiveCategory("Emulator");
+        
+        // Always initialize default layout for Emulator on activation
+        // Check if we're in a valid ImGui frame before initializing
+        ImGuiContext* imgui_ctx = ImGui::GetCurrentContext();
+        if (layout_manager_ && imgui_ctx && imgui_ctx->WithinFrameScope) {
+          ImGuiID dockspace_id = ImGui::GetID("MainDockSpace");
+          if (!layout_manager_->IsLayoutInitialized(EditorType::kEmulator)) {
+            layout_manager_->InitializeEditorLayout(EditorType::kEmulator, dockspace_id);
+            LOG_INFO("EditorManager", "Initialized emulator layout");
+          }
+        }
       }
     }
+  } else if (editor_type == EditorType::kHex) {
+    ShowHexEditor();
   } else if (editor_type == EditorType::kSettings) {
     if (right_panel_manager_) {
       // Toggle settings panel
       if (right_panel_manager_->GetActivePanel() ==
-          RightPanelManager::PanelType::kSettings) {
+          RightPanelManager::PanelType::kSettings && !force_visible) {
         right_panel_manager_->ClosePanel();
       } else {
         right_panel_manager_->OpenPanel(RightPanelManager::PanelType::kSettings);

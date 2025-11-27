@@ -58,7 +58,8 @@ class UICoordinator {
   void DrawBackground();
   void DrawAllUI();
   void DrawMenuBarExtras();
-  void DrawNotificationBell();
+  void DrawNotificationBell(bool show_dirty, bool has_dirty_rom,
+                            bool show_session, bool has_multiple_sessions);
   void DrawSessionButton();
 
   // Core UI components (actual ImGui rendering moved from EditorManager)

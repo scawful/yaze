@@ -61,6 +61,9 @@ class DungeonRoomSelector {
 
   // Callback for room selection events
   std::function<void(int)> room_selected_callback_;
+
+  ImGuiTextFilter room_filter_;
+  ImGuiTextFilter entrance_filter_;
 };
 
 }  // namespace editor

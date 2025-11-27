@@ -67,6 +67,8 @@ void Snes::Reset(bool hard) {
   input2.current_state_ = 0;  // Clear current button states
   input1.latched_state_ = 0;
   input2.latched_state_ = 0;
+  input1.previous_state_ = 0;
+  input2.previous_state_ = 0;
   if (hard)
     memset(ram, 0, sizeof(ram));
   ram_adr_ = 0;
@@ -143,17 +145,26 @@ void Snes::CatchUpApu() {
 }
 
 void Snes::HandleInput() {
+  // Save previous frame's latched state before updating
+  // Games use edge detection: newly_pressed = current & ~previous
+  uint16_t prev1 = input1.latched_state_;
+  uint16_t prev2 = input2.latched_state_;
+
   // IMPORTANT: Clear and repopulate auto-read data
   // This data persists until the next call, allowing NMI to read it
   memset(port_auto_read_, 0, sizeof(port_auto_read_));
 
-  // Debug: Log input state when A button is active
-  static int debug_count = 0;
-  if ((input1.current_state_ & 0x0100) != 0 && debug_count++ < 30) {
-    LOG_DEBUG(
-        "SNES",
-        "HandleInput: current_state=0x%04X auto_joy_read_=%d (A button active)",
-        input1.current_state_, auto_joy_read_ ? 1 : 0);
+  // Debug: Log ALL HandleInput calls to track edge detection
+  static int handle_input_call = 0;
+  static uint16_t last_current = 0xFFFF;
+  handle_input_call++;
+
+  // Log when state changes (to catch the release)
+  if (input1.current_state_ != last_current) {
+    LOG_INFO("SNES",
+              "HandleInput #%d: current_state CHANGED 0x%04X -> 0x%04X",
+              handle_input_call, last_current, input1.current_state_);
+    last_current = input1.current_state_;
   }
 
   // latch controllers
@@ -170,15 +181,17 @@ void Snes::HandleInput() {
     port_auto_read_[3] |= (((val >> 1) & 1) << (15 - i));
   }
 
-  // Debug: Log auto-read result when A button was active
-  static int debug_result_count = 0;
-  if ((input1.current_state_ & 0x0100) != 0) {
-    if (debug_result_count++ < 30) {
-      LOG_DEBUG("SNES",
-                "HandleInput END: current_state=0x%04X, "
-                "port_auto_read[0]=0x%04X (A button status)",
-                input1.current_state_, port_auto_read_[0]);
-    }
+  // Store previous state after latching completes (for edge detection)
+  input1.previous_state_ = prev1;
+  input2.previous_state_ = prev2;
+
+  // Debug: Log result after latching (port_auto_read now updated)
+  static uint16_t last_port = 0xFFFF;
+  if (port_auto_read_[0] != last_port) {
+    LOG_INFO("SNES",
+              "HandleInput #%d RESULT: port_auto_read CHANGED 0x%04X -> 0x%04X",
+              handle_input_call, last_port, port_auto_read_[0]);
+    last_port = port_auto_read_[0];
   }
 }
 
@@ -436,14 +449,14 @@ uint8_t Snes::ReadReg(uint16_t adr) {
     case 0x421c:
     case 0x421e: {
       uint8_t result = port_auto_read_[(adr - 0x4218) / 2] & 0xff;
-      // Debug: Log reads when port_auto_read has data (non-zero)
+      // Debug: Log ALL reads from NMI_ReadJoypads area (PC=$83D0-$83FF)
       static int read_count = 0;
-      if (adr == 0x4218 && port_auto_read_[0] != 0 && read_count++ < 200) {
-        LOG_DEBUG("SNES",
-                  ">>> Game read $4218 = $%02X (port_auto_read[0]=$%04X, "
-                  "current=$%04X) at PC=$%02X:%04X <<<",
-                  result, port_auto_read_[0], input1.current_state_, cpu_.PB,
-                  cpu_.PC);
+      if (adr == 0x4218 && cpu_.PB == 0x00 && cpu_.PC >= 0x83D0 && cpu_.PC <= 0x83FF &&
+          read_count++ < 500) {
+        LOG_INFO("SNES",
+                  ">>> NMI $4218 READ = $%02X (port_auto_read=$%04X, A_reg=$%02X) "
+                  "at PC=$00:%04X <<<",
+                  result, port_auto_read_[0], cpu_.A & 0xFF, cpu_.PC);
       }
       return result;
     }
@@ -455,7 +468,7 @@ uint8_t Snes::ReadReg(uint16_t adr) {
       // Debug: Log reads when port_auto_read has data (non-zero)
       static int read_count = 0;
       if (adr == 0x4219 && port_auto_read_[0] != 0 && read_count++ < 200) {
-        LOG_DEBUG("SNES",
+        LOG_INFO("SNES",
                   ">>> Game read $4219 = $%02X (port_auto_read[0]=$%04X, "
                   "current=$%04X) at PC=$%02X:%04X <<<",
                   result, port_auto_read_[0], input1.current_state_, cpu_.PB,
@@ -484,6 +497,13 @@ uint8_t Snes::Rread(uint32_t adr) {
     }
     if (adr == 0x4016) {
       uint8_t result = input_read(&input1) | (memory_.open_bus() & 0xfc);
+      // Debug: Log serial joypad reads to trace where button values come from
+      // input_read() returns bit 0 of latched_state_, then shifts it right
+      static int serial_log = 0;
+      if (serial_log++ < 100) {
+        LOG_INFO("SNES", "$4016 serial read: bit=%d latched=$%04X current=$%04X at PC=$%02X:%04X",
+                  result & 1, input1.latched_state_, input1.current_state_, cpu_.PB, cpu_.PC);
+      }
       return result;
     }
     if (adr == 0x4017) {
@@ -681,19 +701,74 @@ void Snes::WriteReg(uint16_t adr, uint8_t val) {
 
 void Snes::Write(uint32_t adr, uint8_t val) {
   memory_.set_open_bus(val);
+
+  // Debug: Catch writes to ALTTP joypad RAM from NMI handler (bank $00)
+  // NOTE: D=$0000 during NMI, so joypad RAM is at $00F0-$00FA, NOT $01F0-$01FA!
+  uint16_t low_word = adr & 0xFFFF;
+  if ((low_word == 0x00F2 || low_word == 0x00F6 || low_word == 0x01F2 || low_word == 0x01F6) &&
+      cpu_.PB == 0x00 && cpu_.PC >= 0x80D0 && cpu_.PC <= 0x83F0) {
+    const char* name = (low_word == 0x00F2 || low_word == 0x01F2) ? "cur_lo" : "new_lo";
+    // Only log changes or non-zero values to reduce spam
+    static uint8_t last_f2 = 0, last_f6 = 0;
+    bool is_cur = (low_word == 0x00F2 || low_word == 0x01F2);
+    uint8_t* last = is_cur ? &last_f2 : &last_f6;
+    if (val != *last || val != 0) {
+      LOG_INFO("SNES", "NMI JOYPAD[$%04X] %s = $%02X at PC=$00:%04X A=$%04X X=$%04X Y=$%04X",
+                low_word, name, val, cpu_.PC, cpu_.A, cpu_.X, cpu_.Y);
+      *last = val;
+    }
+  }
+
   uint8_t bank = adr >> 16;
   adr &= 0xffff;
   if (bank == 0x7e || bank == 0x7f) {
+    // Debug: Log writes to joypad RAM in bank $7E
+    static int bank7e_joy_log = 0;
+    static uint8_t last_7e_f2 = 0, last_7e_f6 = 0;
+    if (adr == 0x00F2 && val != last_7e_f2 && bank7e_joy_log++ < 200) {
+      LOG_DEBUG("SNES", "RAM[$7E:00F2] cur_lo: $%02X -> $%02X at PC=$%02X:%04X",
+                last_7e_f2, val, cpu_.PB, cpu_.PC);
+      last_7e_f2 = val;
+    }
+    if (adr == 0x00F6 && val != last_7e_f6 && bank7e_joy_log++ < 200) {
+      LOG_DEBUG("SNES", "RAM[$7E:00F6] new_lo: $%02X -> $%02X at PC=$%02X:%04X",
+                last_7e_f6, val, cpu_.PB, cpu_.PC);
+      last_7e_f6 = val;
+    }
     ram[((bank & 1) << 16) | adr] = val;  // ram
   }
   if (bank < 0x40 || (bank >= 0x80 && bank < 0xc0)) {
     if (adr < 0x2000) {
+      // Debug: Log writes to ALTTP joypad RAM locations
+      // $F0=current high, $F2=current low, $F4=new high, $F6=new low, $F8=prev high, $FA=prev low
+      static int joypad_ram_log = 0;
+      static uint8_t last_f2 = 0, last_f6 = 0;
+      if (adr == 0x00F2 && val != last_f2) {
+        if (joypad_ram_log++ < 200) {
+          LOG_DEBUG("SNES", "RAM[$F2] cur_lo: $%02X -> $%02X at PC=$%02X:%04X",
+                    last_f2, val, cpu_.PB, cpu_.PC);
+        }
+        last_f2 = val;
+      }
+      if (adr == 0x00F6 && val != last_f6) {
+        if (joypad_ram_log++ < 200) {
+          LOG_DEBUG("SNES", "RAM[$F6] new_lo: $%02X -> $%02X (EDGE DETECT) at PC=$%02X:%04X",
+                    last_f6, val, cpu_.PB, cpu_.PC);
+        }
+        last_f6 = val;
+      }
       ram[adr] = val;  // ram mirror
     }
     if (adr >= 0x2100 && adr < 0x2200) {
       WriteBBus(adr & 0xff, val);  // B-bus
     }
     if (adr == 0x4016) {
+      // Debug: Log when game latches the controller (starts serial read sequence)
+      static int latch_log = 0;
+      if (latch_log++ < 100) {
+        LOG_INFO("SNES", "$4016 WRITE (latch=%d) current=$%04X at PC=$%02X:%04X",
+                  val & 1, input1.current_state_, cpu_.PB, cpu_.PC);
+      }
       input_latch(&input1, val & 1);  // input latch
       input_latch(&input2, val & 1);
     }

@@ -242,32 +242,40 @@ void UICoordinator::DrawMenuBarExtras() {
   float panel_local_x = panel_screen_x - window_screen_x;
   float region_end = std::min(window_width - padding, panel_local_x - item_spacing);
 
-  // Calculate what elements to show
-  bool show_dirty =
-      current_rom && current_rom->is_loaded() && current_rom->dirty();
-  float dirty_width =
-      show_dirty
-          ? ImGui::CalcTextSize(ICON_MD_FIBER_MANUAL_RECORD).x + item_spacing
-          : 0.0f;
-
-  float version_width = ImGui::CalcTextSize(full_version.c_str()).x;
+  // Calculate what elements to show - progressive hiding when space is tight
+  bool has_dirty_rom = current_rom && current_rom->is_loaded() && current_rom->dirty();
   bool has_multiple_sessions = session_coordinator_.HasMultipleSessions();
-
-  // Calculate minimum required width (bell is always shown)
-  float required_width = button_width + dirty_width;
+  
+  float version_width = ImGui::CalcTextSize(full_version.c_str()).x;
+  float dirty_width = ImGui::CalcTextSize(ICON_MD_FIBER_MANUAL_RECORD).x + item_spacing;
+  float session_width = button_width;
 
   const float available_width = region_end - menu_items_end - padding;
+  
+  // Minimum required width: just the bell (always visible)
+  float required_width = button_width;
 
-  // Determine what fits
+  // Progressive show/hide based on available space
+  // Priority (highest to lowest): Bell > Dirty > Session > Version
+  
+  // Try to fit version (lowest priority - hide first when tight)
   bool show_version = (required_width + version_width + item_spacing) <= available_width;
   if (show_version) {
     required_width += version_width + item_spacing;
   }
 
+  // Try to fit session button (medium priority)
   bool show_session = has_multiple_sessions &&
-                      (required_width + button_width + item_spacing) <= available_width;
+                      (required_width + session_width + item_spacing) <= available_width;
   if (show_session) {
-    required_width += button_width + item_spacing;
+    required_width += session_width + item_spacing;
+  }
+
+  // Try to fit dirty indicator (high priority - only hide if extremely tight)
+  bool show_dirty = has_dirty_rom &&
+                    (required_width + dirty_width) <= available_width;
+  if (show_dirty) {
+    required_width += dirty_width;
   }
 
   // Calculate start position (right-align within available space)
@@ -307,8 +315,8 @@ void UICoordinator::DrawMenuBarExtras() {
     ImGui::SameLine();
   }
 
-  // 4. Notification bell
-  DrawNotificationBell();
+  // 4. Notification bell (pass visibility flags for enhanced tooltip)
+  DrawNotificationBell(show_dirty, has_dirty_rom, show_session, has_multiple_sessions);
 
   // =========================================================================
   // DRAW PANEL TOGGLES (fixed screen position, unaffected by dockspace resize)
@@ -381,8 +389,10 @@ void UICoordinator::DrawMenuBarRestoreButton() {
   }
 }
 
-void UICoordinator::DrawNotificationBell() {
+void UICoordinator::DrawNotificationBell(bool show_dirty, bool has_dirty_rom, 
+                                         bool show_session, bool has_multiple_sessions) {
   size_t unread = toast_manager_.GetUnreadCount();
+  auto* current_rom = editor_manager_->GetCurrentRom();
 
   // Bell icon with accent color when there are unread notifications
   if (unread > 0) {
@@ -409,12 +419,45 @@ void UICoordinator::DrawNotificationBell() {
 
   ImGui::PopStyleColor(4);
 
+  // Enhanced tooltip showing notifications + hidden status items
   if (ImGui::IsItemHovered()) {
+    ImGui::BeginTooltip();
+    
+    // Notifications
     if (unread > 0) {
-      ImGui::SetTooltip("%zu new notification%s", unread, unread == 1 ? "" : "s");
+      ImGui::PushStyleColor(ImGuiCol_Text, gui::GetPrimaryVec4());
+      ImGui::Text("%s %zu new notification%s", ICON_MD_NOTIFICATIONS, 
+                  unread, unread == 1 ? "" : "s");
+      ImGui::PopStyleColor();
     } else {
-      ImGui::SetTooltip("No new notifications");
+      ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
+      ImGui::Text(ICON_MD_NOTIFICATIONS " No new notifications");
+      ImGui::PopStyleColor();
     }
+    
+    // Show hidden status items if any
+    if (!show_dirty && has_dirty_rom) {
+      ImGui::Separator();
+      ImGui::PushStyleColor(ImGuiCol_Text, gui::ConvertColorToImVec4(
+          gui::ThemeManager::Get().GetCurrentTheme().warning));
+      ImGui::Text(ICON_MD_FIBER_MANUAL_RECORD " Unsaved changes: %s", 
+                  current_rom->short_name().c_str());
+      ImGui::PopStyleColor();
+    }
+    
+    if (!show_session && has_multiple_sessions) {
+      if (!show_dirty && has_dirty_rom) {
+        // Already had a separator
+      } else {
+        ImGui::Separator();
+      }
+      ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
+      ImGui::Text(ICON_MD_LAYERS " %zu sessions active", 
+                  session_coordinator_.GetActiveSessionCount());
+      ImGui::PopStyleColor();
+    }
+    
+    ImGui::EndTooltip();
   }
 
   // Anchor popup to right edge - position so right edge aligns with screen edge

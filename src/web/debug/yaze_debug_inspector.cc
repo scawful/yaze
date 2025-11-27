@@ -528,7 +528,8 @@ std::string getCardGroups() {
 bool isTreeViewMode() {
   auto* editor_manager = GetEditorManager();
   if (!editor_manager) return false;
-  return editor_manager->card_registry().IsTreeViewMode();
+  // Map legacy \"tree\" terminology to the new expanded side panel state
+  return editor_manager->card_registry().IsPanelExpanded();
 }
 
 /**
@@ -539,7 +540,8 @@ std::string setTreeViewMode(bool enabled) {
   if (!editor_manager) {
     return R"({"success":false,"error":"Editor manager not available"})";
   }
-  editor_manager->card_registry().SetTreeViewMode(enabled);
+  // Tree mode previously meant expanded sidebar; map to panel expansion
+  editor_manager->card_registry().SetPanelExpanded(enabled);
   return enabled ? R"({"success":true,"mode":"tree"})"
                  : R"({"success":true,"mode":"icon"})";
 }
@@ -552,10 +554,11 @@ std::string toggleTreeViewMode() {
   if (!editor_manager) {
     return R"({"success":false,"error":"Editor manager not available"})";
   }
-  editor_manager->card_registry().ToggleTreeViewMode();
-  bool is_tree = editor_manager->card_registry().IsTreeViewMode();
-  return is_tree ? R"({"success":true,"mode":"tree"})"
-                 : R"({"success":true,"mode":"icon"})";
+  auto& registry = editor_manager->card_registry();
+  registry.TogglePanelExpanded();
+  bool is_expanded = registry.IsPanelExpanded();
+  return is_expanded ? R"({"success":true,"mode":"tree"})"
+                     : R"({"success":true,"mode":"icon"})";
 }
 
 /**
@@ -568,17 +571,22 @@ std::string getSidebarState() {
   }
 
   auto& registry = editor_manager->card_registry();
-  bool is_tree = registry.IsTreeViewMode();
-  float width = is_tree
-                    ? yaze::editor::EditorCardRegistry::GetTreeSidebarWidth()
-                    : yaze::editor::EditorCardRegistry::GetSidebarWidth();
+  bool is_expanded = registry.IsPanelExpanded();
+  bool is_visible = registry.IsSidebarVisible();
+
+  float width = 0.0f;
+  if (is_visible) {
+    width = yaze::editor::EditorCardRegistry::GetSidebarWidth();
+    if (is_expanded) {
+      width += yaze::editor::EditorCardRegistry::GetSidePanelWidth();
+    }
+  }
 
   std::ostringstream json;
   json << "{\"available\":true,";
-  json << "\"mode\":\"" << (is_tree ? "tree" : "icon") << "\",";
+  json << "\"mode\":\"" << (is_expanded ? "tree" : "icon") << "\",";
   json << "\"width\":" << width << ",";
-  json << "\"collapsed\":" << (registry.IsSidebarCollapsed() ? "true" : "false")
-       << "}";
+  json << "\"collapsed\":" << (is_visible ? "false" : "true") << "}";
   return json.str();
 }
 

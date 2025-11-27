@@ -154,8 +154,7 @@ void LayoutOrchestrator::ApplyDockLayout(EditorType type) {
       layout_type = LayoutType::kSettings;
       break;
     case EditorType::kEmulator:
-      // Use default for emulator
-      layout_type = LayoutType::kDefault;
+      layout_type = LayoutType::kEmulator;
       break;
     default:
       layout_type = LayoutType::kDefault;

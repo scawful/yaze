@@ -59,6 +59,11 @@ class UserSettings {
     // Card Shortcuts
     // Maps card_id -> shortcut string (e.g., "dungeon.room_selector" -> "Ctrl+Shift+R")
     std::unordered_map<std::string, std::string> card_shortcuts;
+
+    // Sidebar State
+    bool sidebar_visible = true;         // Controls Activity Bar visibility
+    bool sidebar_panel_expanded = true;  // Controls Side Panel visibility
+    std::string sidebar_active_category; // Last active category
   };
 
   UserSettings();

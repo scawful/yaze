@@ -28,7 +28,8 @@ enum class LayoutType {
   kSprite,
   kMessage,
   kAssembly,
-  kSettings
+  kSettings,
+  kEmulator
 };
 
 /**
@@ -71,6 +72,16 @@ class LayoutManager {
    * @param dockspace_id The ImGui dockspace ID to build the layout in
    */
   void InitializeEditorLayout(EditorType type, ImGuiID dockspace_id);
+
+  /**
+   * @brief Force rebuild of layout for a specific editor type
+   * @param type The editor type to rebuild
+   * @param dockspace_id The ImGui dockspace ID to build the layout in
+   * 
+   * This method rebuilds the layout even if it was already initialized.
+   * Useful for resetting layouts to their default state.
+   */
+  void RebuildLayout(EditorType type, ImGuiID dockspace_id);
 
   /**
    * @brief Save the current layout with a custom name
@@ -153,6 +164,7 @@ class LayoutManager {
   void BuildMessageLayout(ImGuiID dockspace_id);
   void BuildAssemblyLayout(ImGuiID dockspace_id);
   void BuildSettingsLayout(ImGuiID dockspace_id);
+  void BuildEmulatorLayout(ImGuiID dockspace_id);
 
   // Track which layouts have been initialized
   std::unordered_map<EditorType, bool> layouts_initialized_;
@@ -165,6 +177,12 @@ class LayoutManager {
 
   // Rebuild flag
   bool rebuild_requested_ = false;
+
+  // Last used dockspace ID (for rebuild operations)
+  ImGuiID last_dockspace_id_ = 0;
+
+  // Current editor type being displayed
+  EditorType current_editor_type_ = EditorType::kUnknown;
 };
 
 }  // namespace editor
