@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "app/emu/memory/memory.h"
+#include "util/log.h"
 
 namespace yaze {
 namespace emu {
@@ -653,6 +654,13 @@ void Ppu::HandleVblank() {
     oam_second_write_ = false;
   }
   frame_interlace = interlace;  // set if we have a interlaced frame
+
+  // Debug: Dump PPU state every 120 frames (~2 seconds)
+  static int vblank_dump_counter = 0;
+  if (++vblank_dump_counter >= 120) {
+    vblank_dump_counter = 0;
+    DumpState();
+  }
 }
 
 uint8_t Ppu::Read(uint8_t adr, bool latch) {
@@ -1121,6 +1129,38 @@ void Ppu::PutPixels(uint8_t* pixels) {
     memset(pixels + (2 * 2048), 0, 2048 * 14);
     memset(pixels + (464 * 2048), 0, 2048 * 16);
   }
+}
+
+void Ppu::DumpState() const {
+  LOG_INFO("PPU", "=== PPU State Dump ===");
+  LOG_INFO("PPU", "$2100: forced_blank=%d brightness=%d", forced_blank_ ? 1 : 0,
+           brightness);
+  LOG_INFO("PPU", "$2105: mode=%d bg3priority=%d", mode, bg3priority ? 1 : 0);
+  LOG_INFO("PPU", "$212C (Main Screen): BG1=%d BG2=%d BG3=%d BG4=%d OBJ=%d",
+           layer_[0].mainScreenEnabled ? 1 : 0,
+           layer_[1].mainScreenEnabled ? 1 : 0,
+           layer_[2].mainScreenEnabled ? 1 : 0,
+           layer_[3].mainScreenEnabled ? 1 : 0,
+           layer_[4].mainScreenEnabled ? 1 : 0);
+  LOG_INFO("PPU", "$212D (Sub Screen): BG1=%d BG2=%d BG3=%d BG4=%d OBJ=%d",
+           layer_[0].subScreenEnabled ? 1 : 0,
+           layer_[1].subScreenEnabled ? 1 : 0,
+           layer_[2].subScreenEnabled ? 1 : 0,
+           layer_[3].subScreenEnabled ? 1 : 0,
+           layer_[4].subScreenEnabled ? 1 : 0);
+  for (int i = 0; i < 4; i++) {
+    LOG_INFO("PPU",
+             "BG%d: tilemapAdr=$%04X tileAdr=$%04X hScroll=%d vScroll=%d "
+             "bigTiles=%d",
+             i + 1, bg_layer_[i].tilemapAdr, bg_layer_[i].tileAdr,
+             bg_layer_[i].hScroll, bg_layer_[i].vScroll,
+             bg_layer_[i].bigTiles ? 1 : 0);
+  }
+  // Check first few CGRAM entries (palette)
+  LOG_INFO("PPU", "CGRAM[0-7]: %04X %04X %04X %04X %04X %04X %04X %04X",
+           cgram[0], cgram[1], cgram[2], cgram[3], cgram[4], cgram[5], cgram[6],
+           cgram[7]);
+  LOG_INFO("PPU", "=== End PPU Dump ===");
 }
 
 }  // namespace emu

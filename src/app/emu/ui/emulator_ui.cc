@@ -248,7 +248,8 @@ void RenderNavBar(Emulator* emu) {
 
   // Input capture status indicator (like modern emulators)
   ImGuiIO& io = ImGui::GetIO();
-  if (io.WantCaptureKeyboard) {
+  const auto input_config = emu->input_manager().GetConfig();
+  if (io.WantCaptureKeyboard && !input_config.ignore_imgui_text_input) {
     // ImGui is capturing keyboard (typing in UI)
     ImGui::TextColored(ConvertColorToImVec4(theme.warning),
                        ICON_MD_KEYBOARD " UI");
@@ -257,11 +258,34 @@ void RenderNavBar(Emulator* emu) {
     }
   } else {
     // Emulator can receive input
-    ImGui::TextColored(ConvertColorToImVec4(theme.success),
-                       ICON_MD_SPORTS_ESPORTS " Game");
+    ImVec4 state_color = input_config.ignore_imgui_text_input
+                             ? ConvertColorToImVec4(theme.accent)
+                             : ConvertColorToImVec4(theme.success);
+    ImGui::TextColored(
+        state_color,
+        input_config.ignore_imgui_text_input
+            ? ICON_MD_SPORTS_ESPORTS " Game (Forced)"
+            : ICON_MD_SPORTS_ESPORTS " Game");
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Game input active\nPress F1 for controls");
+      ImGui::SetTooltip(
+          input_config.ignore_imgui_text_input
+              ? "Game input forced on (ignores ImGui text capture)\nPress F1 "
+                "for controls"
+              : "Game input active\nPress F1 for controls");
     }
+  }
+
+  ImGui::SameLine();
+  bool force_game_input = input_config.ignore_imgui_text_input;
+  if (ImGui::Checkbox("Force Game Input", &force_game_input)) {
+    auto cfg = input_config;
+    cfg.ignore_imgui_text_input = force_game_input;
+    emu->SetInputConfig(cfg);
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip(
+        "When enabled, emulator input is not blocked by ImGui text widgets.\n"
+        "Use if the game controls stop working while typing in other panels.");
   }
 
   ImGui::PopStyleColor(3);
