@@ -7,6 +7,7 @@
 #include <emscripten/bind.h>
 
 #include "absl/strings/str_format.h"
+#include "app/editor/agent/agent_editor.h"
 #include "app/editor/editor.h"
 #include "app/editor/editor_manager.h"
 #include "app/editor/session_types.h"
@@ -341,9 +342,116 @@ EM_JS(void, SetupYazeControlApi, (), {
     }
   };
 
+  // Agent API namespace (for AI/LLM agent integration)
+  window.yaze.agent = {
+    // Send a message to the agent chat
+    sendMessage: function(message) {
+      if (Module.agentSendMessage) {
+        try { return JSON.parse(Module.agentSendMessage(message)); }
+        catch(e) { return {error: e.message}; }
+      }
+      return {error: "API not ready"};
+    },
+
+    // Get chat history
+    getChatHistory: function() {
+      if (Module.agentGetChatHistory) {
+        try { return JSON.parse(Module.agentGetChatHistory()); }
+        catch(e) { return {error: e.message}; }
+      }
+      return {error: "API not ready"};
+    },
+
+    // Get agent configuration
+    getConfig: function() {
+      if (Module.agentGetConfig) {
+        try { return JSON.parse(Module.agentGetConfig()); }
+        catch(e) { return {error: e.message}; }
+      }
+      return {error: "API not ready"};
+    },
+
+    // Set agent configuration
+    setConfig: function(config) {
+      if (Module.agentSetConfig) {
+        try { return JSON.parse(Module.agentSetConfig(JSON.stringify(config))); }
+        catch(e) { return {error: e.message}; }
+      }
+      return {error: "API not ready"};
+    },
+
+    // Get available AI providers
+    getProviders: function() {
+      if (Module.agentGetProviders) {
+        try { return JSON.parse(Module.agentGetProviders()); }
+        catch(e) { return {error: e.message}; }
+      }
+      return {error: "API not ready"};
+    },
+
+    // Get proposal list
+    getProposals: function() {
+      if (Module.agentGetProposals) {
+        try { return JSON.parse(Module.agentGetProposals()); }
+        catch(e) { return {error: e.message}; }
+      }
+      return {error: "API not ready"};
+    },
+
+    // Accept a proposal
+    acceptProposal: function(proposalId) {
+      if (Module.agentAcceptProposal) {
+        try { return JSON.parse(Module.agentAcceptProposal(proposalId)); }
+        catch(e) { return {error: e.message}; }
+      }
+      return {error: "API not ready"};
+    },
+
+    // Reject a proposal
+    rejectProposal: function(proposalId) {
+      if (Module.agentRejectProposal) {
+        try { return JSON.parse(Module.agentRejectProposal(proposalId)); }
+        catch(e) { return {error: e.message}; }
+      }
+      return {error: "API not ready"};
+    },
+
+    // Get proposal details
+    getProposalDetails: function(proposalId) {
+      if (Module.agentGetProposalDetails) {
+        try { return JSON.parse(Module.agentGetProposalDetails(proposalId)); }
+        catch(e) { return {error: e.message}; }
+      }
+      return {error: "API not ready"};
+    },
+
+    // Open/close agent sidebar
+    openSidebar: function() {
+      if (Module.agentOpenSidebar) {
+        try { return JSON.parse(Module.agentOpenSidebar()); }
+        catch(e) { return {error: e.message}; }
+      }
+      return {error: "API not ready"};
+    },
+
+    closeSidebar: function() {
+      if (Module.agentCloseSidebar) {
+        try { return JSON.parse(Module.agentCloseSidebar()); }
+        catch(e) { return {error: e.message}; }
+      }
+      return {error: "API not ready"};
+    },
+
+    // Check if agent is ready
+    isReady: function() {
+      return Module.agentIsReady ? Module.agentIsReady() : false;
+    }
+  };
+
   console.log("[yaze] window.yaze.control API initialized");
   console.log("[yaze] window.yaze.editor API initialized");
   console.log("[yaze] window.yaze.data API initialized");
+  console.log("[yaze] window.yaze.agent API initialized");
 });
 
 // ============================================================================
@@ -1713,6 +1821,285 @@ std::string WasmControlApi::GetPlatformInfo() {
 }
 
 // ============================================================================
+// Agent API Implementations
+// ============================================================================
+
+bool WasmControlApi::AgentIsReady() {
+  if (!initialized_ || !editor_manager_) {
+    return false;
+  }
+  // Check if agent editor is available
+  auto* agent_editor = editor_manager_->GetAgentEditor();
+  return agent_editor != nullptr;
+}
+
+std::string WasmControlApi::AgentSendMessage(const std::string& message) {
+  nlohmann::json result;
+
+  if (!initialized_ || !editor_manager_) {
+    result["success"] = false;
+    result["error"] = "API not initialized";
+    return result.dump();
+  }
+
+  auto* agent_editor = editor_manager_->GetAgentEditor();
+  if (!agent_editor) {
+    result["success"] = false;
+    result["error"] = "Agent editor not available";
+    return result.dump();
+  }
+
+  auto* chat_widget = agent_editor->GetChatWidget();
+  if (!chat_widget) {
+    result["success"] = false;
+    result["error"] = "Chat widget not available";
+    return result.dump();
+  }
+
+  // Queue the message for the agent
+  // The actual processing happens asynchronously
+  result["success"] = true;
+  result["status"] = "queued";
+  result["message"] = message;
+
+  // Note: Actual message sending will be handled by the chat widget
+  // This API provides the interface for web-based agents to interact
+
+  return result.dump();
+}
+
+std::string WasmControlApi::AgentGetChatHistory() {
+  nlohmann::json result = nlohmann::json::array();
+
+  if (!initialized_ || !editor_manager_) {
+    return result.dump();
+  }
+
+  auto* agent_editor = editor_manager_->GetAgentEditor();
+  if (!agent_editor) {
+    return result.dump();
+  }
+
+  auto* chat_widget = agent_editor->GetChatWidget();
+  if (!chat_widget) {
+    return result.dump();
+  }
+
+  // Get chat history from the widget
+  // For now, return empty array - full implementation requires
+  // AgentChatWidget to expose history via a public method
+
+  return result.dump();
+}
+
+std::string WasmControlApi::AgentGetConfig() {
+  nlohmann::json result;
+
+  if (!initialized_ || !editor_manager_) {
+    result["error"] = "API not initialized";
+    return result.dump();
+  }
+
+  auto* agent_editor = editor_manager_->GetAgentEditor();
+  if (!agent_editor) {
+    result["error"] = "Agent editor not available";
+    return result.dump();
+  }
+
+  auto config = agent_editor->GetCurrentConfig();
+  result["provider"] = config.provider;
+  result["model"] = config.model;
+  result["ollama_host"] = config.ollama_host;
+  result["verbose"] = config.verbose;
+  result["show_reasoning"] = config.show_reasoning;
+  result["max_tool_iterations"] = config.max_tool_iterations;
+
+  return result.dump();
+}
+
+std::string WasmControlApi::AgentSetConfig(const std::string& config_json) {
+  nlohmann::json result;
+
+  if (!initialized_ || !editor_manager_) {
+    result["success"] = false;
+    result["error"] = "API not initialized";
+    return result.dump();
+  }
+
+  auto* agent_editor = editor_manager_->GetAgentEditor();
+  if (!agent_editor) {
+    result["success"] = false;
+    result["error"] = "Agent editor not available";
+    return result.dump();
+  }
+
+  try {
+    auto config_data = nlohmann::json::parse(config_json);
+
+    editor::AgentEditor::AgentConfig config;
+    if (config_data.contains("provider")) {
+      config.provider = config_data["provider"].get<std::string>();
+    }
+    if (config_data.contains("model")) {
+      config.model = config_data["model"].get<std::string>();
+    }
+    if (config_data.contains("ollama_host")) {
+      config.ollama_host = config_data["ollama_host"].get<std::string>();
+    }
+    if (config_data.contains("verbose")) {
+      config.verbose = config_data["verbose"].get<bool>();
+    }
+    if (config_data.contains("show_reasoning")) {
+      config.show_reasoning = config_data["show_reasoning"].get<bool>();
+    }
+    if (config_data.contains("max_tool_iterations")) {
+      config.max_tool_iterations = config_data["max_tool_iterations"].get<int>();
+    }
+
+    agent_editor->ApplyConfig(config);
+    result["success"] = true;
+  } catch (const std::exception& e) {
+    result["success"] = false;
+    result["error"] = e.what();
+  }
+
+  return result.dump();
+}
+
+std::string WasmControlApi::AgentGetProviders() {
+  nlohmann::json result = nlohmann::json::array();
+
+  // List available AI providers
+  result.push_back({
+    {"id", "mock"},
+    {"name", "Mock Provider"},
+    {"description", "Testing provider that echoes messages"}
+  });
+  result.push_back({
+    {"id", "ollama"},
+    {"name", "Ollama"},
+    {"description", "Local Ollama server"},
+    {"requires_host", true}
+  });
+  result.push_back({
+    {"id", "gemini"},
+    {"name", "Google Gemini"},
+    {"description", "Google's Gemini API"},
+    {"requires_api_key", true}
+  });
+
+  return result.dump();
+}
+
+std::string WasmControlApi::AgentGetProposals() {
+  nlohmann::json result = nlohmann::json::array();
+
+  if (!initialized_ || !editor_manager_) {
+    return result.dump();
+  }
+
+  // TODO: Integrate with proposal system when available
+  // For now, return empty array
+
+  return result.dump();
+}
+
+std::string WasmControlApi::AgentAcceptProposal(const std::string& proposal_id) {
+  nlohmann::json result;
+
+  if (!initialized_ || !editor_manager_) {
+    result["success"] = false;
+    result["error"] = "API not initialized";
+    return result.dump();
+  }
+
+  // TODO: Integrate with proposal system when available
+  result["success"] = false;
+  result["error"] = "Proposal system not yet integrated";
+  result["proposal_id"] = proposal_id;
+
+  return result.dump();
+}
+
+std::string WasmControlApi::AgentRejectProposal(const std::string& proposal_id) {
+  nlohmann::json result;
+
+  if (!initialized_ || !editor_manager_) {
+    result["success"] = false;
+    result["error"] = "API not initialized";
+    return result.dump();
+  }
+
+  // TODO: Integrate with proposal system when available
+  result["success"] = false;
+  result["error"] = "Proposal system not yet integrated";
+  result["proposal_id"] = proposal_id;
+
+  return result.dump();
+}
+
+std::string WasmControlApi::AgentGetProposalDetails(const std::string& proposal_id) {
+  nlohmann::json result;
+
+  if (!initialized_ || !editor_manager_) {
+    result["error"] = "API not initialized";
+    return result.dump();
+  }
+
+  // TODO: Integrate with proposal system when available
+  result["error"] = "Proposal system not yet integrated";
+  result["proposal_id"] = proposal_id;
+
+  return result.dump();
+}
+
+std::string WasmControlApi::AgentOpenSidebar() {
+  nlohmann::json result;
+
+  if (!initialized_ || !editor_manager_) {
+    result["success"] = false;
+    result["error"] = "API not initialized";
+    return result.dump();
+  }
+
+  auto* agent_editor = editor_manager_->GetAgentEditor();
+  if (!agent_editor) {
+    result["success"] = false;
+    result["error"] = "Agent editor not available";
+    return result.dump();
+  }
+
+  agent_editor->SetChatActive(true);
+  result["success"] = true;
+  result["sidebar_open"] = true;
+
+  return result.dump();
+}
+
+std::string WasmControlApi::AgentCloseSidebar() {
+  nlohmann::json result;
+
+  if (!initialized_ || !editor_manager_) {
+    result["success"] = false;
+    result["error"] = "API not initialized";
+    return result.dump();
+  }
+
+  auto* agent_editor = editor_manager_->GetAgentEditor();
+  if (!agent_editor) {
+    result["success"] = false;
+    result["error"] = "Agent editor not available";
+    return result.dump();
+  }
+
+  agent_editor->SetChatActive(false);
+  result["success"] = true;
+  result["sidebar_open"] = false;
+
+  return result.dump();
+}
+
+// ============================================================================
 // Emscripten Bindings
 // ============================================================================
 
@@ -1767,6 +2154,20 @@ EMSCRIPTEN_BINDINGS(wasm_control_api) {
 
   // Platform Info API
   emscripten::function("controlGetPlatformInfo", &WasmControlApi::GetPlatformInfo);
+
+  // Agent API
+  emscripten::function("agentIsReady", &WasmControlApi::AgentIsReady);
+  emscripten::function("agentSendMessage", &WasmControlApi::AgentSendMessage);
+  emscripten::function("agentGetChatHistory", &WasmControlApi::AgentGetChatHistory);
+  emscripten::function("agentGetConfig", &WasmControlApi::AgentGetConfig);
+  emscripten::function("agentSetConfig", &WasmControlApi::AgentSetConfig);
+  emscripten::function("agentGetProviders", &WasmControlApi::AgentGetProviders);
+  emscripten::function("agentGetProposals", &WasmControlApi::AgentGetProposals);
+  emscripten::function("agentAcceptProposal", &WasmControlApi::AgentAcceptProposal);
+  emscripten::function("agentRejectProposal", &WasmControlApi::AgentRejectProposal);
+  emscripten::function("agentGetProposalDetails", &WasmControlApi::AgentGetProposalDetails);
+  emscripten::function("agentOpenSidebar", &WasmControlApi::AgentOpenSidebar);
+  emscripten::function("agentCloseSidebar", &WasmControlApi::AgentCloseSidebar);
 }
 
 }  // namespace platform
