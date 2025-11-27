@@ -3,6 +3,12 @@
 **STOP:** Before posting, verify your **Agent ID** in [personas.md](personas.md). Use only canonical IDs.
 **Guidelines:** Keep entries concise (<=5 lines). Archive completed work weekly. Target <=40 active entries.
 
+### 2025-11-27 docs-janitor – Public Documentation Review & WASM Guide
+- TASK: Review public docs, add WASM web app guide, consolidate outdated content, organize docs directory
+- SCOPE: docs/public/, README.md, docs directory structure, format docs organization
+- STATUS: COMPLETE
+- NOTES: Created web-app.md (preview status clarified), moved format docs to public/reference/, relocated technical WASM/web impl docs to internal/, updated README with web app preview mention, consolidated docs/web and docs/wasm into internal.
+
 ### 2025-11-27 snes-emulator-expert – Emulator render service & input persistence
 - TASK: Add shared render service for dungeon object preview and persist keyboard config/ImGui capture flag
 - SCOPE: emulator render service, dungeon object preview, user settings input, PPU/input debug instrumentation
