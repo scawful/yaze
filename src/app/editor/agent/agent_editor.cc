@@ -8,6 +8,9 @@
 // Centralized UI theme
 #include "app/gui/style/theme.h"
 
+#include "app/editor/system/editor_card_registry.h"
+#include "app/gui/app/editor_layout.h"
+
 #include "absl/strings/match.h"
 #include "absl/strings/str_format.h"
 #include "absl/time/clock.h"
@@ -87,6 +90,102 @@ AgentEditor::~AgentEditor() = default;
 void AgentEditor::Initialize() {
   // Base initialization
   EnsureProfilesDirectory();
+
+  // Register cards with the card registry
+  RegisterCards();
+}
+
+void AgentEditor::RegisterCards() {
+  if (!dependencies_.card_registry) return;
+  auto* card_registry = dependencies_.card_registry;
+
+  // Agent Configuration Card
+  card_registry->RegisterCard({
+      .card_id = MakeCardId("agent.configuration"),
+      .display_name = "AI Configuration",
+      .window_title = " AI Configuration",
+      .icon = ICON_MD_SETTINGS,
+      .category = "Agent",
+      .shortcut_hint = "",
+      .visibility_flag = &show_config_card_,
+      .priority = 10});
+
+  // Agent Status Card
+  card_registry->RegisterCard({
+      .card_id = MakeCardId("agent.status"),
+      .display_name = "Agent Status",
+      .window_title = " Agent Status",
+      .icon = ICON_MD_INFO,
+      .category = "Agent",
+      .shortcut_hint = "",
+      .visibility_flag = &show_status_card_,
+      .priority = 20});
+
+  // System Prompt Editor Card
+  card_registry->RegisterCard({
+      .card_id = MakeCardId("agent.prompt_editor"),
+      .display_name = "Prompt Editor",
+      .window_title = " Prompt Editor",
+      .icon = ICON_MD_EDIT,
+      .category = "Agent",
+      .shortcut_hint = "",
+      .visibility_flag = &show_prompt_editor_card_,
+      .priority = 30});
+
+  // Bot Profiles Card
+  card_registry->RegisterCard({
+      .card_id = MakeCardId("agent.profiles"),
+      .display_name = "Bot Profiles",
+      .window_title = " Bot Profiles",
+      .icon = ICON_MD_FOLDER,
+      .category = "Agent",
+      .shortcut_hint = "",
+      .visibility_flag = &show_profiles_card_,
+      .priority = 40});
+
+  // Chat History Card
+  card_registry->RegisterCard({
+      .card_id = MakeCardId("agent.history"),
+      .display_name = "Chat History",
+      .window_title = " Chat History",
+      .icon = ICON_MD_HISTORY,
+      .category = "Agent",
+      .shortcut_hint = "",
+      .visibility_flag = &show_history_card_,
+      .priority = 50});
+
+  // Metrics Dashboard Card
+  card_registry->RegisterCard({
+      .card_id = MakeCardId("agent.metrics"),
+      .display_name = "Metrics Dashboard",
+      .window_title = " Metrics Dashboard",
+      .icon = ICON_MD_ANALYTICS,
+      .category = "Agent",
+      .shortcut_hint = "",
+      .visibility_flag = &show_metrics_card_,
+      .priority = 60});
+
+  // Agent Builder Card
+  card_registry->RegisterCard({
+      .card_id = MakeCardId("agent.builder"),
+      .display_name = "Agent Builder",
+      .window_title = " Agent Builder",
+      .icon = ICON_MD_AUTO_FIX_HIGH,
+      .category = "Agent",
+      .shortcut_hint = "",
+      .visibility_flag = &show_builder_card_,
+      .priority = 70});
+
+  // Chat Window Card
+  card_registry->RegisterCard({
+      .card_id = MakeCardId("agent.chat"),
+      .display_name = "Agent Chat",
+      .window_title = " Agent Chat",
+      .icon = ICON_MD_CHAT,
+      .category = "Agent",
+      .shortcut_hint = "Ctrl+Shift+A",
+      .visibility_flag = &show_chat_card_,
+      .priority = 5});
 }
 
 absl::Status AgentEditor::Load() {
@@ -136,6 +235,19 @@ void AgentEditor::InitializeWithDependencies(ToastManager* toast_manager,
   proposal_drawer_ = proposal_drawer;
   rom_ = rom;
 
+  // Auto-load API keys from environment
+  if (const char* gemini_key = std::getenv("GEMINI_API_KEY")) {
+    current_profile_.gemini_api_key = gemini_key;
+    current_config_.gemini_api_key = gemini_key;
+    // Auto-select gemini provider if key is available and no provider set
+    if (current_profile_.provider == "mock") {
+      current_profile_.provider = "gemini";
+      current_profile_.model = "gemini-2.5-flash";
+      current_config_.provider = "gemini";
+      current_config_.model = "gemini-2.5-flash";
+    }
+  }
+
   if (chat_widget_) {
     chat_widget_->SetToastManager(toast_manager);
     chat_widget_->SetProposalDrawer(proposal_drawer);
@@ -164,183 +276,115 @@ void AgentEditor::SetRomContext(Rom* rom) {
 }
 
 void AgentEditor::DrawDashboard() {
-  if (!active_)
+  if (!active_) {
     return;
+  }
 
   // Animate retro effects
-  ImGuiIO& io = ImGui::GetIO();
-  pulse_animation_ += io.DeltaTime * 2.0f;
-  scanline_offset_ += io.DeltaTime * 0.4f;
-  if (scanline_offset_ > 1.0f)
+  ImGuiIO& imgui_io = ImGui::GetIO();
+  pulse_animation_ += imgui_io.DeltaTime * 2.0f;
+  scanline_offset_ += imgui_io.DeltaTime * 0.4f;
+  if (scanline_offset_ > 1.0f) {
     scanline_offset_ -= 1.0f;
-  glitch_timer_ += io.DeltaTime * 5.0f;
+  }
+  glitch_timer_ += imgui_io.DeltaTime * 5.0f;
   blink_counter_ = static_cast<int>(pulse_animation_ * 2.0f) % 2;
 
-  // Pulsing glow for window
-  float pulse = 0.5f + 0.5f * std::sin(pulse_animation_);
-  // Apply theme primary color with pulsing effect
-  const auto& theme = yaze::gui::style::DefaultTheme();
-  ImGui::PushStyleColor(ImGuiCol_TitleBgActive,
-                        ImVec4(theme.primary.x + 0.1f * pulse,
-                               theme.primary.y + 0.15f * pulse,
-                               theme.primary.z + 0.2f * pulse, 1.0f));
+  // Draw all agent cards as independent EditorCards
+  // Each card is accessible via the activity bar and can be docked/floated
 
-  ImGui::SetNextWindowSize(ImVec2(1200, 800), ImGuiCond_FirstUseEver);
-  ImGui::Begin(ICON_MD_SMART_TOY " AI AGENT PLATFORM [v0.4.x]", &active_,
-               ImGuiWindowFlags_MenuBar);
-
-  // Menu bar
-  if (ImGui::BeginMenuBar()) {
-    if (ImGui::BeginMenu(ICON_MD_MENU " File")) {
-      if (ImGui::MenuItem(ICON_MD_SAVE " Save Profile")) {
-        Save();
-        if (toast_manager_) {
-          toast_manager_->Show("Bot profile saved", ToastType::kSuccess);
-        }
-      }
-      if (ImGui::MenuItem(ICON_MD_FILE_UPLOAD " Export Profile...")) {
-        // TODO: Open file dialog for export
-        if (toast_manager_) {
-          toast_manager_->Show("Export functionality coming soon",
-                               ToastType::kInfo);
-        }
-      }
-      if (ImGui::MenuItem(ICON_MD_FILE_DOWNLOAD " Import Profile...")) {
-        // TODO: Open file dialog for import
-        if (toast_manager_) {
-          toast_manager_->Show("Import functionality coming soon",
-                               ToastType::kInfo);
-        }
-      }
-      ImGui::EndMenu();
+  // 1. AI Configuration Card (provider, model, API key settings)
+  if (show_config_card_) {
+    gui::EditorCard config_card(MakeCardTitle("AI Configuration").c_str(),
+                                 ICON_MD_SETTINGS);
+    config_card.SetDefaultSize(350, 500);
+    if (config_card.Begin(&show_config_card_)) {
+      DrawConfigurationPanel();
     }
-
-    if (ImGui::BeginMenu(ICON_MD_VIEW_LIST " View")) {
-      if (ImGui::MenuItem(ICON_MD_CHAT " Open Chat Window", "Ctrl+Shift+A")) {
-        OpenChatWindow();
-      }
-      ImGui::Separator();
-      ImGui::MenuItem(ICON_MD_EDIT " Show Prompt Editor", nullptr,
-                      &show_prompt_editor_);
-      ImGui::MenuItem(ICON_MD_FOLDER " Show Bot Profiles", nullptr,
-                      &show_bot_profiles_);
-      ImGui::MenuItem(ICON_MD_HISTORY " Show Chat History", nullptr,
-                      &show_chat_history_);
-      ImGui::MenuItem(ICON_MD_ANALYTICS " Show Metrics Dashboard", nullptr,
-                      &show_metrics_dashboard_);
-      ImGui::EndMenu();
-    }
-
-    ImGui::EndMenuBar();
+    config_card.End();
   }
 
-  // Compact tabbed interface (combined tabs)
-  if (ImGui::BeginTabBar("AgentEditorTabs", ImGuiTabBarFlags_None)) {
-    // Bot Studio Tab - Modular 3-column layout
-    if (ImGui::BeginTabItem(ICON_MD_SMART_TOY " Bot Studio")) {
-      ImGui::Spacing();
+  // 2. Agent Status Card (chat status, ROM context, tips)
+  if (show_status_card_) {
+    gui::EditorCard status_card(MakeCardTitle("Agent Status").c_str(),
+                                 ICON_MD_INFO);
+    status_card.SetDefaultSize(350, 400);
+    if (status_card.Begin(&show_status_card_)) {
+      DrawStatusPanel();
+    }
+    status_card.End();
+  }
 
-      // Three-column layout: Config+Status | Editors | Profiles
-      ImGuiTableFlags table_flags = ImGuiTableFlags_Resizable |
-                                    ImGuiTableFlags_BordersInnerV |
-                                    ImGuiTableFlags_SizingStretchProp;
-
-      if (ImGui::BeginTable("BotStudioLayout", 3, table_flags)) {
-        ImGui::TableSetupColumn("Settings", ImGuiTableColumnFlags_WidthFixed,
-                                320.0f);
-        ImGui::TableSetupColumn("Editors", ImGuiTableColumnFlags_WidthStretch);
-        ImGui::TableSetupColumn("Profiles", ImGuiTableColumnFlags_WidthFixed,
-                                280.0f);
-        ImGui::TableNextRow();
-
-        // Column 1: AI Provider, Behavior, ROM, Tips, Metrics (merged!)
-        ImGui::TableNextColumn();
-        ImGui::PushID("SettingsColumn");
-
-        // Provider settings (always visible)
-        DrawConfigurationPanel();
-        ImGui::Spacing();
-
-        // Status cards (always visible)
-        DrawStatusPanel();
-
-        ImGui::PopID();
-
-        // Column 2: Tabbed Editors
-        ImGui::TableNextColumn();
-        ImGui::PushID("EditorsColumn");
-
-        if (ImGui::BeginTabBar("EditorTabs", ImGuiTabBarFlags_None)) {
-          if (ImGui::BeginTabItem(ICON_MD_EDIT " System Prompt")) {
+  // 3. System Prompt Editor Card
+  if (show_prompt_editor_card_) {
+    gui::EditorCard prompt_card(MakeCardTitle("Prompt Editor").c_str(),
+                                 ICON_MD_EDIT);
+    prompt_card.SetDefaultSize(600, 500);
+    if (prompt_card.Begin(&show_prompt_editor_card_)) {
             DrawPromptEditorPanel();
-            ImGui::EndTabItem();
-          }
-
-          if (ImGui::BeginTabItem(ICON_MD_GRID_ON " Common Tiles")) {
-            DrawCommonTilesEditor();
-            ImGui::EndTabItem();
-          }
-
-          if (ImGui::BeginTabItem(ICON_MD_ADD " New Prompt")) {
-            DrawNewPromptCreator();
-            ImGui::EndTabItem();
-          }
-
-          ImGui::EndTabBar();
-        }
-
-        ImGui::PopID();
-
-        // Column 3: Bot Profiles
-        ImGui::TableNextColumn();
-        ImGui::PushID("ProfilesColumn");
-        DrawBotProfilesPanel();
-        ImGui::PopID();
-
-        ImGui::EndTable();
-      }
-
-      ImGui::EndTabItem();
     }
-
-    // Session Manager Tab (combines History + Metrics)
-    if (ImGui::BeginTabItem(ICON_MD_HISTORY " Sessions & History")) {
-      ImGui::Spacing();
-
-      // Two-column layout
-      if (ImGui::BeginTable(
-              "SessionLayout", 2,
-              ImGuiTableFlags_Resizable | ImGuiTableFlags_BordersInnerV)) {
-        ImGui::TableSetupColumn("History", ImGuiTableColumnFlags_WidthStretch,
-                                0.6f);
-        ImGui::TableSetupColumn("Metrics", ImGuiTableColumnFlags_WidthStretch,
-                                0.4f);
-        ImGui::TableNextRow();
-
-        // LEFT: Chat History
-        ImGui::TableSetColumnIndex(0);
-        DrawChatHistoryViewer();
-
-        // RIGHT: Metrics
-        ImGui::TableSetColumnIndex(1);
-        DrawAdvancedMetricsPanel();
-
-        ImGui::EndTable();
-      }
-
-      ImGui::EndTabItem();
-    }
-
-    if (ImGui::BeginTabItem(ICON_MD_AUTO_FIX_HIGH " Agent Builder")) {
-      DrawAgentBuilderPanel();
-      ImGui::EndTabItem();
-    }
-
-    ImGui::EndTabBar();
+    prompt_card.End();
   }
 
-  ImGui::End();
-  ImGui::PopStyleColor();  // Pop TitleBgActive pushed at start of DrawDashboard
+  // 4. Bot Profiles Card
+  if (show_profiles_card_) {
+    gui::EditorCard profiles_card(MakeCardTitle("Bot Profiles").c_str(),
+                                   ICON_MD_FOLDER);
+    profiles_card.SetDefaultSize(320, 500);
+    if (profiles_card.Begin(&show_profiles_card_)) {
+      DrawBotProfilesPanel();
+    }
+    profiles_card.End();
+  }
+
+  // 5. Chat History Card
+  if (show_history_card_) {
+    gui::EditorCard history_card(MakeCardTitle("Chat History").c_str(),
+                                  ICON_MD_HISTORY);
+    history_card.SetDefaultSize(500, 400);
+    if (history_card.Begin(&show_history_card_)) {
+      DrawChatHistoryViewer();
+    }
+    history_card.End();
+  }
+
+  // 6. Metrics Dashboard Card
+  if (show_metrics_card_) {
+    gui::EditorCard metrics_card(MakeCardTitle("Metrics Dashboard").c_str(),
+                                  ICON_MD_ANALYTICS);
+    metrics_card.SetDefaultSize(500, 400);
+    if (metrics_card.Begin(&show_metrics_card_)) {
+        DrawAdvancedMetricsPanel();
+    }
+    metrics_card.End();
+  }
+
+  // 7. Agent Builder Card (wizard for creating custom agents)
+  if (show_builder_card_) {
+    gui::EditorCard builder_card(MakeCardTitle("Agent Builder").c_str(),
+                                  ICON_MD_AUTO_FIX_HIGH);
+    builder_card.SetDefaultSize(800, 600);
+    if (builder_card.Begin(&show_builder_card_)) {
+      DrawAgentBuilderPanel();
+    }
+    builder_card.End();
+  }
+
+  // 8. Agent Chat Card (the main chat interface)
+  if (show_chat_card_) {
+    gui::EditorCard chat_card(MakeCardTitle("Agent Chat").c_str(),
+                               ICON_MD_CHAT, &show_chat_card_);
+    chat_card.SetDefaultSize(600, 700);
+    if (chat_card.Begin(&show_chat_card_)) {
+      if (chat_widget_) {
+        chat_widget_->set_active(true);
+        chat_widget_->Draw();
+      } else {
+        ImGui::TextDisabled("Chat widget not available");
+      }
+    }
+    chat_card.End();
+  }
 }
 
 void AgentEditor::DrawConfigurationPanel() {
@@ -1680,6 +1724,8 @@ void AgentEditor::ApplyConfig(const AgentConfig& config) {
     chat_config.max_tool_iterations = config.max_tool_iterations;
     chat_widget_->UpdateAgentConfig(chat_config);
   }
+
+  // Note: Config sync to shared context is now handled by AgentUiController
 }
 
 bool AgentEditor::IsChatActive() const {
