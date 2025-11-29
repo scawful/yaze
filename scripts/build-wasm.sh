@@ -211,6 +211,11 @@ if [ -f "$PROJECT_ROOT/src/web/app.js" ]; then
     copy_item "$PROJECT_ROOT/src/web/app.js" dist/
 fi
 
+# Copy shell UI helpers (dropdown/menu handlers referenced from HTML)
+if [ -f "$PROJECT_ROOT/src/web/shell_ui.js" ]; then
+    copy_item "$PROJECT_ROOT/src/web/shell_ui.js" dist/
+fi
+
 # Copy icons directory
 if [ -d "$PROJECT_ROOT/src/web/icons" ]; then
     echo "Copying icons..."
