@@ -829,10 +829,11 @@ void AgentChatWidget::Draw() {
   // Poll for new messages in collaborative sessions
   PollSharedHistory();
 
-  ImGui::SetNextWindowSize(ImVec2(1400, 1000), ImGuiCond_FirstUseEver);
-  ImGui::Begin(title_.c_str(), &active_, ImGuiWindowFlags_MenuBar);
-
-  // Simplified menu bar
+  // Note: We assume this is called inside an EditorCard or similar container
+  // that handles the main window. We just draw the content.
+  
+  // Simplified menu bar (only if not embedded in sidebar/card that has one)
+  // Or we can use BeginMenuBar if the parent window has the flag.
   if (ImGui::BeginMenuBar()) {
     if (ImGui::BeginMenu(ICON_MD_MENU " Actions")) {
       if (ImGui::MenuItem(ICON_MD_DELETE_FOREVER " Clear History")) {
@@ -906,6 +907,12 @@ void AgentChatWidget::Draw() {
   ImDrawList* draw_list = ImGui::GetWindowDrawList();
   ImVec2 bar_start = ImGui::GetCursorScreenPos();
   ImVec2 bar_size(ImGui::GetContentRegionAvail().x, 60);  // Increased from 55
+
+  // Ensure minimum size to prevent rendering issues
+  if (bar_size.x < 10 || bar_size.y < 10) {
+    bar_size.x = std::max(bar_size.x, 300.0f);
+    bar_size.y = std::max(bar_size.y, 60.0f);
+  }
 
   // Gradient background
   ImU32 color_top = ImGui::GetColorU32(ImVec4(0.18f, 0.22f, 0.28f, 1.0f));
@@ -1176,8 +1183,6 @@ void AgentChatWidget::Draw() {
 
     ImGui::EndTable();
   }
-
-  ImGui::End();
 }
 
 void AgentChatWidget::RenderCollaborationPanel() {
@@ -2091,7 +2096,7 @@ void AgentChatWidget::RefreshModels() {
                          ToastType::kSuccess, 2.0f);
   }
   return;
-#endif
+#else
 
   // Register Ollama service
   if (!agent_config_.ollama_host.empty()) {
@@ -2147,6 +2152,7 @@ void AgentChatWidget::RefreshModels() {
                                          model_info_cache_.size()),
                          ToastType::kSuccess, 2.0f);
   }
+#endif
 }
 
 void AgentChatWidget::UpdateAgentConfig(const AgentConfigState& config) {

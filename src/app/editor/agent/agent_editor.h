@@ -105,6 +105,10 @@ class AgentEditor : public Editor {
     absl::Time modified_at = absl::Now();
   };
 
+  // Profile accessor for external sync (used by AgentUiController)
+  const BotProfile& GetCurrentProfile() const { return current_profile_; }
+  BotProfile& GetCurrentProfile() { return current_profile_; }
+
   // Legacy support
   struct AgentConfig {
     std::string provider = "mock";
@@ -157,7 +161,6 @@ class AgentEditor : public Editor {
   absl::Status LoadBotProfile(const std::string& name);
   absl::Status DeleteBotProfile(const std::string& name);
   std::vector<BotProfile> GetAllProfiles() const;
-  BotProfile GetCurrentProfile() const { return current_profile_; }
   void SetCurrentProfile(const BotProfile& profile);
   absl::Status ExportProfile(const BotProfile& profile,
                              const std::filesystem::path& path);
@@ -259,6 +262,7 @@ class AgentEditor : public Editor {
   ToastManager* toast_manager_ = nullptr;
   ProposalDrawer* proposal_drawer_ = nullptr;
   Rom* rom_ = nullptr;
+  // Note: Config syncing is managed by AgentUiController
 
   // Configuration state (legacy)
   AgentConfig current_config_;
@@ -283,13 +287,26 @@ class AgentEditor : public Editor {
   std::string current_session_name_;
   std::vector<std::string> current_participants_;
 
-  // UI state
+  // UI state (legacy)
   bool show_advanced_settings_ = false;
   bool show_prompt_editor_ = false;
   bool show_bot_profiles_ = false;
   bool show_chat_history_ = false;
   bool show_metrics_dashboard_ = false;
   int selected_tab_ = 0;  // 0=Config, 1=Prompts, 2=Bots, 3=History, 4=Metrics
+
+  // Card-based UI visibility flags
+  bool show_config_card_ = true;
+  bool show_status_card_ = true;
+  bool show_prompt_editor_card_ = false;
+  bool show_profiles_card_ = false;
+  bool show_history_card_ = false;
+  bool show_metrics_card_ = false;
+  bool show_builder_card_ = false;
+  bool show_chat_card_ = true;
+
+  // Card registration helper
+  void RegisterCards();
 
   // Chat history viewer state
   std::vector<cli::agent::ChatMessage> cached_history_;

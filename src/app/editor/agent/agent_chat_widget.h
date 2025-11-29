@@ -159,6 +159,13 @@ class AgentChatWidget {
   bool* active() { return &active_; }
   bool is_active() const { return active_; }
   void set_active(bool active) { active_ = active; }
+
+  /**
+   * @brief Get the agent service for sharing with other components
+   */
+  cli::agent::ConversationalAgentService* GetAgentService() {
+    return &agent_service_;
+  }
   enum class CollaborationMode {
     kLocal = 0,   // Filesystem-based collaboration
     kNetwork = 1  // WebSocket-based collaboration
