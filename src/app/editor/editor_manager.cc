@@ -289,6 +289,7 @@ EditorManager::EditorManager()
   right_panel_manager_ = std::make_unique<RightPanelManager>();
   right_panel_manager_->SetToastManager(&toast_manager_);
   right_panel_manager_->SetProposalDrawer(&proposal_drawer_);
+  right_panel_manager_->SetPropertiesPanel(&selection_properties_panel_);
 
   // STEP 5: ShortcutConfigurator created later in Initialize() method
   // It depends on all above coordinators being available
@@ -1856,6 +1857,9 @@ void EditorManager::SwitchToSession(size_t index) {
     }
   }
 
+  // Update properties panel with new ROM
+  selection_properties_panel_.SetRom(GetCurrentRom());
+
 #ifdef YAZE_ENABLE_TESTING
   test::TestManager::Get().SetCurrentRom(GetCurrentRom());
 #endif
@@ -2086,6 +2090,11 @@ void EditorManager::ConfigureEditorDependencies(EditorSet* editor_set, Rom* rom,
   deps.renderer = renderer_;
 
   editor_set->ApplyDependencies(deps);
+
+  // If configuring the active session, update the properties panel
+  if (session_id == GetCurrentSessionId()) {
+    selection_properties_panel_.SetRom(rom);
+  }
 }
 
 }  // namespace editor
