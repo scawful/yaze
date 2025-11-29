@@ -63,6 +63,10 @@ absl::Status Tile16Editor::Initialize(
   tile16_edit_canvas_.InitializeDefaults();
   tile8_source_canvas_.InitializeDefaults();
 
+  // Attach blockset canvas to the selector widget
+  blockset_selector_.AttachCanvas(&blockset_canvas_);
+  blockset_selector_.SetTileCount(512);
+
   // Configure canvases with proper initialization
   tile16_edit_canvas_.SetAutoResize(false);
   tile8_source_canvas_.SetAutoResize(false);
@@ -340,44 +344,20 @@ absl::Status Tile16Editor::UpdateBlockset() {
 
   blockset_canvas_.DrawContextMenu();
 
-  // CRITICAL FIX: Handle single clicks properly like the overworld editor
-  bool tile_selected = false;
-
-  // First, call DrawTileSelector for visual feedback
-  blockset_canvas_.DrawTileSelector(32.0f);
-
-  // Then check for single click to update tile selection
-  if (ImGui::IsItemClicked(ImGuiMouseButton_Left) &&
-      blockset_canvas_.IsMouseHovering()) {
-    tile_selected = true;
+  // Ensure selector is synced with current selection
+  if (blockset_selector_.GetSelectedTileID() != current_tile16_) {
+    blockset_selector_.SetSelectedTile(current_tile16_);
   }
 
-  if (tile_selected) {
-    // Get mouse position relative to canvas
-    const ImGuiIO& io = ImGui::GetIO();
-    ImVec2 canvas_pos = blockset_canvas_.zero_point();
-    ImVec2 mouse_pos =
-        ImVec2(io.MousePos.x - canvas_pos.x, io.MousePos.y - canvas_pos.y);
+  // Render the selector widget (handles bitmap, grid, highlights, interaction)
+  auto result = blockset_selector_.Render(tile16_blockset_bmp_, true);
 
-    // Calculate grid position (32x32 tiles in blockset)
-    int grid_x = static_cast<int>(mouse_pos.x / 32);
-    int grid_y = static_cast<int>(mouse_pos.y / 32);
-    int selected_tile = grid_x + grid_y * 8;  // 8 tiles per row in blockset
-
-    // Blockset canvas displays 512 tiles (8x64 grid)
-    // Navigation beyond 512 uses arrow keys/page controls
-    if (selected_tile != current_tile16_ && selected_tile >= 0 &&
-        selected_tile < 512) {
-      // Use RequestTileSwitch to handle pending changes confirmation
-      RequestTileSwitch(selected_tile);
-      util::logf("Selected Tile16 from blockset: %d (grid: %d,%d)",
-                 selected_tile, grid_x, grid_y);
-    }
+  if (result.selection_changed) {
+    // Use RequestTileSwitch to handle pending changes confirmation
+    RequestTileSwitch(result.selected_tile);
+    util::logf("Selected Tile16 from blockset: %d", result.selected_tile);
   }
-  blockset_canvas_.DrawBitmap(tile16_blockset_bmp_, 0, true,
-                              blockset_canvas_.GetGlobalScale());
-  blockset_canvas_.DrawGrid();
-  blockset_canvas_.DrawOverlay();
+
   EndChild();
 
   return absl::OkStatus();

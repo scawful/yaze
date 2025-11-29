@@ -486,11 +486,10 @@ void Bitmap::SetPaletteWithTransparent(const SnesPalette& palette, size_t index,
   // Update palette cache with full palette (for color lookup)
   InvalidatePaletteCache();
 
-  // Apply the 8-color SNES sub-palette to SDL surface
+  // Apply the SNES sub-palette to SDL surface (supports 3bpp=8 and 4bpp=16)
   SDL_UnlockSurface(surface_);
-  for (int color_index = 0;
-       color_index < 8 && color_index < static_cast<int>(colors.size());
-       ++color_index) {
+  const int num_colors = static_cast<int>(colors.size());
+  for (int color_index = 0; color_index < num_colors; ++color_index) {
     if (color_index < surface_->format->palette->ncolors) {
       surface_->format->palette->colors[color_index].r =
           static_cast<Uint8>(colors[color_index].x * 255.0f);
