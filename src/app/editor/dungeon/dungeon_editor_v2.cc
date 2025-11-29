@@ -22,6 +22,14 @@ namespace yaze::editor {
 void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
   renderer_ = renderer;
   rom_ = rom;
+
+  // Propagate ROM to all rooms
+  if (rom_) {
+    for (auto& room : rooms_) {
+      room.SetRom(rom_);
+    }
+  }
+
   // Don't initialize emulator preview yet - ROM might not be loaded
   // Will be initialized in Load() instead
 

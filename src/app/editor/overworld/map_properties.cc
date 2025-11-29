@@ -496,6 +496,18 @@ void MapPropertiesSystem::SetupCanvasContextMenu(
     entity_menu.subitems.push_back(sprite_item);
 
     canvas.AddContextMenuItem(entity_menu);
+
+    // Add "Edit Tile16" option in MOUSE mode
+    if (edit_tile16_callback_) {
+      gui::CanvasMenuItem tile16_edit_item;
+      tile16_edit_item.label = ICON_MD_GRID_VIEW " Edit Tile16";
+      tile16_edit_item.callback = [this]() {
+        if (edit_tile16_callback_) {
+          edit_tile16_callback_();
+        }
+      };
+      canvas.AddContextMenuItem(tile16_edit_item);
+    }
   }
 
   // Add overworld-specific context menu items

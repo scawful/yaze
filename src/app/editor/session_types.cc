@@ -6,32 +6,37 @@
 namespace yaze::editor {
 
 EditorSet::EditorSet(Rom* rom, UserSettings* user_settings, size_t session_id)
-    : session_id_(session_id),
-      assembly_editor_(rom),
-      dungeon_editor_(rom),
-      graphics_editor_(rom),
-      music_editor_(rom),
-      overworld_editor_(rom),
-      palette_editor_(rom),
-      screen_editor_(rom),
-      sprite_editor_(rom),
-      message_editor_(rom),
-      memory_editor_(rom) {
-  active_editors_ = {&overworld_editor_, &dungeon_editor_, &graphics_editor_,
-                     &palette_editor_,   &sprite_editor_,  &message_editor_,
-                     &music_editor_,     &screen_editor_,
-                     &assembly_editor_};
+    : session_id_(session_id) {
+  assembly_editor_ = std::make_unique<AssemblyEditor>(rom);
+  dungeon_editor_ = std::make_unique<DungeonEditorV2>(rom);
+  graphics_editor_ = std::make_unique<GraphicsEditor>(rom);
+  music_editor_ = std::make_unique<MusicEditor>(rom);
+  overworld_editor_ = std::make_unique<OverworldEditor>(rom);
+  palette_editor_ = std::make_unique<PaletteEditor>(rom);
+  screen_editor_ = std::make_unique<ScreenEditor>(rom);
+  sprite_editor_ = std::make_unique<SpriteEditor>(rom);
+  message_editor_ = std::make_unique<MessageEditor>(rom);
+  memory_editor_ = std::make_unique<MemoryEditor>(rom);
+  settings_panel_ = std::make_unique<SettingsPanel>();
+
+  active_editors_ = {overworld_editor_.get(), dungeon_editor_.get(),
+                     graphics_editor_.get(),  palette_editor_.get(),
+                     sprite_editor_.get(),    message_editor_.get(),
+                     music_editor_.get(),     screen_editor_.get(),
+                     assembly_editor_.get()};
 }
 
+EditorSet::~EditorSet() = default;
+
 void EditorSet::set_user_settings(UserSettings* settings) {
-  settings_panel_.SetUserSettings(settings);
+  settings_panel_->SetUserSettings(settings);
 }
 
 void EditorSet::ApplyDependencies(const EditorDependencies& dependencies) {
   for (auto* editor : active_editors_) {
     editor->SetDependencies(dependencies);
   }
-  memory_editor_.set_rom(dependencies.rom);
+  memory_editor_->set_rom(dependencies.rom);
 }
 
 RomSession::RomSession(Rom&& r, UserSettings* user_settings, size_t session_id)

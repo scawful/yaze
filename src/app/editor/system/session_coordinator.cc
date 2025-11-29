@@ -558,7 +558,7 @@ void SessionCoordinator::UpdateSessions() {
           auto& overworld_editor = static_cast<OverworldEditor&>(*editor);
           if (overworld_editor.jump_to_tab() != -1) {
             // Set the dungeon editor to the jump to tab
-            session->editors.dungeon_editor_.add_room(
+            session->editors.GetDungeonEditor()->add_room(
                 overworld_editor.jump_to_tab());
             overworld_editor.jump_to_tab_ = -1;
           }

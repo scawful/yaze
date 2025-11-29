@@ -18,53 +18,70 @@ namespace platform {
 std::atomic<bool> WasmStorage::initialized_{false};
 
 // JavaScript IndexedDB interface using EM_JS
+// All functions use yazeAsyncQueue to serialize async operations
 EM_JS(int, idb_open_database, (const char* db_name, int version), {
   return Asyncify.handleAsync(function() {
-    return new Promise(function(resolve, reject) {
-      var request = indexedDB.open(UTF8ToString(db_name), version);
-      request.onerror = function() {
-        console.error('Failed to open IndexedDB:', request.error);
-        resolve(-1);
-      };
-      request.onsuccess = function() {
-        var db = request.result;
-        Module._yazeDB = db;
-        resolve(0);
-      };
-      request.onupgradeneeded = function(event) {
-        var db = event.target.result;
-        if (!db.objectStoreNames.contains('roms')) {
-          db.createObjectStore('roms');
-        }
-        if (!db.objectStoreNames.contains('projects')) {
-          db.createObjectStore('projects');
-        }
-        if (!db.objectStoreNames.contains('preferences')) {
-          db.createObjectStore('preferences');
-        }
-      };
-    });
+    var dbName = UTF8ToString(db_name);  // Must convert before queueing!
+    var operation = function() {
+      return new Promise(function(resolve, reject) {
+        var request = indexedDB.open(dbName, version);
+        request.onerror = function() {
+          console.error('Failed to open IndexedDB:', request.error);
+          resolve(-1);
+        };
+        request.onsuccess = function() {
+          var db = request.result;
+          Module._yazeDB = db;
+          resolve(0);
+        };
+        request.onupgradeneeded = function(event) {
+          var db = event.target.result;
+          if (!db.objectStoreNames.contains('roms')) {
+            db.createObjectStore('roms');
+          }
+          if (!db.objectStoreNames.contains('projects')) {
+            db.createObjectStore('projects');
+          }
+          if (!db.objectStoreNames.contains('preferences')) {
+            db.createObjectStore('preferences');
+          }
+        };
+      });
+    };
+    // Use async queue if available to prevent concurrent Asyncify operations
+    if (window.yazeAsyncQueue) {
+      return window.yazeAsyncQueue.enqueue(operation);
+    }
+    return operation();
   });
 });
 
 EM_JS(int, idb_save_binary, (const char* store_name, const char* key, const uint8_t* data, size_t size), {
   return Asyncify.handleAsync(function() {
-    return new Promise(function(resolve, reject) {
-      if (!Module._yazeDB) {
-        console.error('Database not initialized');
-        resolve(-1);
-        return;
-      }
-      var transaction = Module._yazeDB.transaction([UTF8ToString(store_name)], 'readwrite');
-      var store = transaction.objectStore(UTF8ToString(store_name));
-      var dataArray = new Uint8Array(HEAPU8.subarray(data, data + size));
-      var request = store.put(dataArray, UTF8ToString(key));
-      request.onsuccess = function() { resolve(0); };
-      request.onerror = function() {
-        console.error('Failed to save data:', request.error);
-        resolve(-1);
-      };
-    });
+    var storeName = UTF8ToString(store_name);
+    var keyStr = UTF8ToString(key);
+    var dataArray = new Uint8Array(HEAPU8.subarray(data, data + size));
+    var operation = function() {
+      return new Promise(function(resolve, reject) {
+        if (!Module._yazeDB) {
+          console.error('Database not initialized');
+          resolve(-1);
+          return;
+        }
+        var transaction = Module._yazeDB.transaction([storeName], 'readwrite');
+        var store = transaction.objectStore(storeName);
+        var request = store.put(dataArray, keyStr);
+        request.onsuccess = function() { resolve(0); };
+        request.onerror = function() {
+          console.error('Failed to save data:', request.error);
+          resolve(-1);
+        };
+      });
+    };
+    if (window.yazeAsyncQueue) {
+      return window.yazeAsyncQueue.enqueue(operation);
+    }
+    return operation();
   });
 });
 
@@ -74,48 +91,65 @@ EM_JS(int, idb_load_binary, (const char* store_name, const char* key, uint8_t** 
       console.error('Database not initialized');
       return -1;
     }
-    return new Promise(function(resolve) {
-      var transaction = Module._yazeDB.transaction([UTF8ToString(store_name)], 'readonly');
-      var store = transaction.objectStore(UTF8ToString(store_name));
-      var request = store.get(UTF8ToString(key));
-      request.onsuccess = function() {
-        var result = request.result;
-        if (result && result instanceof Uint8Array) {
-          var size = result.length;
-          var ptr = Module._malloc(size);
-          Module.HEAPU8.set(result, ptr);
-          Module.HEAPU32[out_data >> 2] = ptr;
-          Module.HEAPU32[out_size >> 2] = size;
-          resolve(0);
-        } else {
-          resolve(-2);
-        }
-      };
-      request.onerror = function() {
-        console.error('Failed to load data:', request.error);
-        resolve(-1);
-      };
-    });
+    var storeName = UTF8ToString(store_name);
+    var keyStr = UTF8ToString(key);
+    var operation = function() {
+      return new Promise(function(resolve) {
+        var transaction = Module._yazeDB.transaction([storeName], 'readonly');
+        var store = transaction.objectStore(storeName);
+        var request = store.get(keyStr);
+        request.onsuccess = function() {
+          var result = request.result;
+          if (result && result instanceof Uint8Array) {
+            var size = result.length;
+            var ptr = Module._malloc(size);
+            Module.HEAPU8.set(result, ptr);
+            Module.HEAPU32[out_data >> 2] = ptr;
+            Module.HEAPU32[out_size >> 2] = size;
+            resolve(0);
+          } else {
+            resolve(-2);
+          }
+        };
+        request.onerror = function() {
+          console.error('Failed to load data:', request.error);
+          resolve(-1);
+        };
+      });
+    };
+    if (window.yazeAsyncQueue) {
+      return window.yazeAsyncQueue.enqueue(operation);
+    }
+    return operation();
   });
 });
 
 EM_JS(int, idb_save_string, (const char* store_name, const char* key, const char* value), {
   return Asyncify.handleAsync(function() {
-    return new Promise(function(resolve, reject) {
-      if (!Module._yazeDB) {
-        console.error('Database not initialized');
-        resolve(-1);
-        return;
-      }
-      var transaction = Module._yazeDB.transaction([UTF8ToString(store_name)], 'readwrite');
-      var store = transaction.objectStore(UTF8ToString(store_name));
-      var request = store.put(UTF8ToString(value), UTF8ToString(key));
-      request.onsuccess = function() { resolve(0); };
-      request.onerror = function() {
-        console.error('Failed to save string:', request.error);
-        resolve(-1);
-      };
-    });
+    var storeName = UTF8ToString(store_name);
+    var keyStr = UTF8ToString(key);
+    var valueStr = UTF8ToString(value);
+    var operation = function() {
+      return new Promise(function(resolve, reject) {
+        if (!Module._yazeDB) {
+          console.error('Database not initialized');
+          resolve(-1);
+          return;
+        }
+        var transaction = Module._yazeDB.transaction([storeName], 'readwrite');
+        var store = transaction.objectStore(storeName);
+        var request = store.put(valueStr, keyStr);
+        request.onsuccess = function() { resolve(0); };
+        request.onerror = function() {
+          console.error('Failed to save string:', request.error);
+          resolve(-1);
+        };
+      });
+    };
+    if (window.yazeAsyncQueue) {
+      return window.yazeAsyncQueue.enqueue(operation);
+    }
+    return operation();
   });
 });
 
@@ -125,46 +159,62 @@ EM_JS(char*, idb_load_string, (const char* store_name, const char* key), {
       console.error('Database not initialized');
       return 0;
     }
-    return new Promise(function(resolve) {
-      var transaction = Module._yazeDB.transaction([UTF8ToString(store_name)], 'readonly');
-      var store = transaction.objectStore(UTF8ToString(store_name));
-      var request = store.get(UTF8ToString(key));
-      request.onsuccess = function() {
-        var result = request.result;
-        if (result && typeof result === 'string') {
-          var len = lengthBytesUTF8(result) + 1;
-          var ptr = Module._malloc(len);
-          stringToUTF8(result, ptr, len);
-          resolve(ptr);
-        } else {
+    var storeName = UTF8ToString(store_name);
+    var keyStr = UTF8ToString(key);
+    var operation = function() {
+      return new Promise(function(resolve) {
+        var transaction = Module._yazeDB.transaction([storeName], 'readonly');
+        var store = transaction.objectStore(storeName);
+        var request = store.get(keyStr);
+        request.onsuccess = function() {
+          var result = request.result;
+          if (result && typeof result === 'string') {
+            var len = lengthBytesUTF8(result) + 1;
+            var ptr = Module._malloc(len);
+            stringToUTF8(result, ptr, len);
+            resolve(ptr);
+          } else {
+            resolve(0);
+          }
+        };
+        request.onerror = function() {
+          console.error('Failed to load string:', request.error);
           resolve(0);
-        }
-      };
-      request.onerror = function() {
-        console.error('Failed to load string:', request.error);
-        resolve(0);
-      };
-    });
+        };
+      });
+    };
+    if (window.yazeAsyncQueue) {
+      return window.yazeAsyncQueue.enqueue(operation);
+    }
+    return operation();
   });
 });
 
 EM_JS(int, idb_delete_entry, (const char* store_name, const char* key), {
   return Asyncify.handleAsync(function() {
-    return new Promise(function(resolve, reject) {
-      if (!Module._yazeDB) {
-        console.error('Database not initialized');
-        resolve(-1);
-        return;
-      }
-      var transaction = Module._yazeDB.transaction([UTF8ToString(store_name)], 'readwrite');
-      var store = transaction.objectStore(UTF8ToString(store_name));
-      var request = store.delete(UTF8ToString(key));
-      request.onsuccess = function() { resolve(0); };
-      request.onerror = function() {
-        console.error('Failed to delete entry:', request.error);
-        resolve(-1);
-      };
-    });
+    var storeName = UTF8ToString(store_name);
+    var keyStr = UTF8ToString(key);
+    var operation = function() {
+      return new Promise(function(resolve, reject) {
+        if (!Module._yazeDB) {
+          console.error('Database not initialized');
+          resolve(-1);
+          return;
+        }
+        var transaction = Module._yazeDB.transaction([storeName], 'readwrite');
+        var store = transaction.objectStore(storeName);
+        var request = store.delete(keyStr);
+        request.onsuccess = function() { resolve(0); };
+        request.onerror = function() {
+          console.error('Failed to delete entry:', request.error);
+          resolve(-1);
+        };
+      });
+    };
+    if (window.yazeAsyncQueue) {
+      return window.yazeAsyncQueue.enqueue(operation);
+    }
+    return operation();
   });
 });
 
@@ -174,23 +224,30 @@ EM_JS(char*, idb_list_keys, (const char* store_name), {
       console.error('Database not initialized');
       return 0;
     }
-    return new Promise(function(resolve) {
-      var transaction = Module._yazeDB.transaction([UTF8ToString(store_name)], 'readonly');
-      var store = transaction.objectStore(UTF8ToString(store_name));
-      var request = store.getAllKeys();
-      request.onsuccess = function() {
-        var keys = request.result;
-        var jsonStr = JSON.stringify(keys);
-        var len = lengthBytesUTF8(jsonStr) + 1;
-        var ptr = Module._malloc(len);
-        stringToUTF8(jsonStr, ptr, len);
-        resolve(ptr);
-      };
-      request.onerror = function() {
-        console.error('Failed to list keys:', request.error);
-        resolve(0);
-      };
-    });
+    var storeName = UTF8ToString(store_name);
+    var operation = function() {
+      return new Promise(function(resolve) {
+        var transaction = Module._yazeDB.transaction([storeName], 'readonly');
+        var store = transaction.objectStore(storeName);
+        var request = store.getAllKeys();
+        request.onsuccess = function() {
+          var keys = request.result;
+          var jsonStr = JSON.stringify(keys);
+          var len = lengthBytesUTF8(jsonStr) + 1;
+          var ptr = Module._malloc(len);
+          stringToUTF8(jsonStr, ptr, len);
+          resolve(ptr);
+        };
+        request.onerror = function() {
+          console.error('Failed to list keys:', request.error);
+          resolve(0);
+        };
+      });
+    };
+    if (window.yazeAsyncQueue) {
+      return window.yazeAsyncQueue.enqueue(operation);
+    }
+    return operation();
   });
 });
 
@@ -200,44 +257,50 @@ EM_JS(size_t, idb_get_storage_usage, (), {
       console.error('Database not initialized');
       return 0;
     }
-    return new Promise(function(resolve) {
-      var totalSize = 0;
-      var storeNames = ['roms', 'projects', 'preferences'];
-      var completed = 0;
+    var operation = function() {
+      return new Promise(function(resolve) {
+        var totalSize = 0;
+        var storeNames = ['roms', 'projects', 'preferences'];
+        var completed = 0;
 
-      storeNames.forEach(function(storeName) {
-        var transaction = Module._yazeDB.transaction([storeName], 'readonly');
-        var store = transaction.objectStore(storeName);
-        var request = store.openCursor();
+        storeNames.forEach(function(storeName) {
+          var transaction = Module._yazeDB.transaction([storeName], 'readonly');
+          var store = transaction.objectStore(storeName);
+          var request = store.openCursor();
 
-        request.onsuccess = function(event) {
-          var cursor = event.target.result;
-          if (cursor) {
-            var value = cursor.value;
-            if (value instanceof Uint8Array) {
-              totalSize += value.length;
-            } else if (typeof value === 'string') {
-              totalSize += value.length * 2;  // UTF-16 estimation
-            } else if (value) {
-              totalSize += JSON.stringify(value).length * 2;
+          request.onsuccess = function(event) {
+            var cursor = event.target.result;
+            if (cursor) {
+              var value = cursor.value;
+              if (value instanceof Uint8Array) {
+                totalSize += value.length;
+              } else if (typeof value === 'string') {
+                totalSize += value.length * 2;  // UTF-16 estimation
+              } else if (value) {
+                totalSize += JSON.stringify(value).length * 2;
+              }
+              cursor.continue();
+            } else {
+              completed++;
+              if (completed === storeNames.length) {
+                resolve(totalSize);
+              }
             }
-            cursor.continue();
-          } else {
+          };
+
+          request.onerror = function() {
             completed++;
             if (completed === storeNames.length) {
               resolve(totalSize);
             }
-          }
-        };
-
-        request.onerror = function() {
-          completed++;
-          if (completed === storeNames.length) {
-            resolve(totalSize);
-          }
-        };
+          };
+        });
       });
-    });
+    };
+    if (window.yazeAsyncQueue) {
+      return window.yazeAsyncQueue.enqueue(operation);
+    }
+    return operation();
   });
 });
 

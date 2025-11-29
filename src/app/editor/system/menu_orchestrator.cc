@@ -720,44 +720,56 @@ void MenuOrchestrator::OnShowDisplaySettings() {
 void MenuOrchestrator::OnShowHexEditor() {
   // Show hex editor card via EditorCardManager
   if (editor_manager_) {
-    editor_manager_->ShowHexEditor();
+    editor_manager_->card_registry().ShowCard(editor_manager_->GetCurrentSessionId(), "Hex Editor");
   }
 }
 
 void MenuOrchestrator::OnShowEmulator() {
   if (editor_manager_) {
-    editor_manager_->ShowEmulator();
+    if (auto* ui = editor_manager_->ui_coordinator()) {
+      ui->SetEmulatorVisible(true);
+    }
   }
 }
 
 void MenuOrchestrator::OnShowCardBrowser() {
   if (editor_manager_) {
-    editor_manager_->ShowCardBrowser();
+    if (auto* ui = editor_manager_->ui_coordinator()) {
+      ui->SetCardBrowserVisible(true);
+    }
   }
 }
 
 void MenuOrchestrator::OnShowWelcomeScreen() {
   if (editor_manager_) {
-    editor_manager_->ShowWelcomeScreen();
+    if (auto* ui = editor_manager_->ui_coordinator()) {
+      ui->SetWelcomeScreenVisible(true);
+    }
   }
 }
 
 #ifdef YAZE_BUILD_AGENT_UI
 void MenuOrchestrator::OnShowAIAgent() {
   if (editor_manager_) {
-    editor_manager_->ShowAIAgent();
+    if (auto* ui = editor_manager_->ui_coordinator()) {
+      ui->SetAIAgentVisible(true);
+    }
   }
 }
 
 void MenuOrchestrator::OnShowChatHistory() {
   if (editor_manager_) {
-    editor_manager_->ShowChatHistory();
+    if (auto* ui = editor_manager_->ui_coordinator()) {
+      ui->SetChatHistoryVisible(true);
+    }
   }
 }
 
 void MenuOrchestrator::OnShowProposalDrawer() {
   if (editor_manager_) {
-    editor_manager_->ShowProposalDrawer();
+    if (auto* ui = editor_manager_->ui_coordinator()) {
+      ui->SetProposalDrawerVisible(true);
+    }
   }
 }
 #endif
@@ -796,7 +808,9 @@ void MenuOrchestrator::OnShowSessionManager() {
 void MenuOrchestrator::OnShowAllWindows() {
   // Delegate to EditorManager
   if (editor_manager_) {
-    editor_manager_->ShowAllWindows();
+    if (auto* ui = editor_manager_->ui_coordinator()) {
+      ui->ShowAllWindows();
+    }
   }
 }
 
@@ -856,19 +870,25 @@ void MenuOrchestrator::OnLoadModderLayout() {
 // Tool menu actions
 void MenuOrchestrator::OnShowGlobalSearch() {
   if (editor_manager_) {
-    editor_manager_->ShowGlobalSearch();
+    if (auto* ui = editor_manager_->ui_coordinator()) {
+      ui->ShowGlobalSearch();
+    }
   }
 }
 
 void MenuOrchestrator::OnShowCommandPalette() {
   if (editor_manager_) {
-    editor_manager_->ShowCommandPalette();
+    if (auto* ui = editor_manager_->ui_coordinator()) {
+      ui->ShowCommandPalette();
+    }
   }
 }
 
 void MenuOrchestrator::OnShowPerformanceDashboard() {
   if (editor_manager_) {
-    editor_manager_->ShowPerformanceDashboard();
+    if (auto* ui = editor_manager_->ui_coordinator()) {
+      ui->SetPerformanceDashboardVisible(true);
+    }
   }
 }
 
@@ -886,13 +906,15 @@ void MenuOrchestrator::OnShowImGuiMetrics() {
 
 void MenuOrchestrator::OnShowMemoryEditor() {
   if (editor_manager_) {
-    editor_manager_->ShowMemoryEditor();
+    editor_manager_->card_registry().ShowCard(editor_manager_->GetCurrentSessionId(), "Memory Editor");
   }
 }
 
 void MenuOrchestrator::OnShowResourceLabelManager() {
   if (editor_manager_) {
-    editor_manager_->ShowResourceLabelManager();
+    if (auto* ui = editor_manager_->ui_coordinator()) {
+      ui->SetResourceLabelManagerVisible(true);
+    }
   }
 }
 

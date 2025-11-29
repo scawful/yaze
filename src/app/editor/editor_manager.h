@@ -137,7 +137,7 @@ class EditorManager {
   UICoordinator* ui_coordinator() { return ui_coordinator_.get(); }
   auto overworld() const -> yaze::zelda3::Overworld* {
     if (auto* editor_set = GetCurrentEditorSet()) {
-      return &editor_set->overworld_editor_.overworld();
+      return &editor_set->GetOverworldEditor()->overworld();
     }
     return nullptr;
   }
@@ -245,18 +245,6 @@ class EditorManager {
   // UI visibility controls (public for MenuOrchestrator)
   // UI visibility controls - inline for performance (single-line wrappers
   // delegating to UICoordinator)
-  void ShowGlobalSearch() {
-    if (ui_coordinator_)
-      ui_coordinator_->ShowGlobalSearch();
-  }
-  void ShowCommandPalette() {
-    if (ui_coordinator_)
-      ui_coordinator_->ShowCommandPalette();
-  }
-  void ShowPerformanceDashboard() {
-    if (ui_coordinator_)
-      ui_coordinator_->SetPerformanceDashboardVisible(true);
-  }
   void ShowImGuiDemo() {
     if (ui_coordinator_)
       ui_coordinator_->SetImGuiDemoVisible(true);
@@ -264,29 +252,6 @@ class EditorManager {
   void ShowImGuiMetrics() {
     if (ui_coordinator_)
       ui_coordinator_->SetImGuiMetricsVisible(true);
-  }
-  void ShowHexEditor();
-  void ShowEmulator() {
-    if (ui_coordinator_) {
-      ui_coordinator_->SetEmulatorVisible(true);
-      card_registry_.SetActiveCategory("Emulator");
-    }
-  }
-  void ShowMemoryEditor() {
-    if (ui_coordinator_)
-      ui_coordinator_->SetMemoryEditorVisible(true);
-  }
-  void ShowResourceLabelManager() {
-    if (ui_coordinator_)
-      ui_coordinator_->SetResourceLabelManagerVisible(true);
-  }
-  void ShowCardBrowser() {
-    if (ui_coordinator_)
-      ui_coordinator_->ShowCardBrowser();
-  }
-  void ShowWelcomeScreen() {
-    if (ui_coordinator_)
-      ui_coordinator_->SetWelcomeScreenVisible(true);
   }
 
 #ifdef YAZE_ENABLE_TESTING

@@ -14,135 +14,158 @@ namespace app {
 namespace platform {
 
 // JavaScript IndexedDB interface for message queue persistence
+// All functions use yazeAsyncQueue to serialize async operations
 EM_JS(int, mq_save_queue, (const char* key, const char* json_data), {
   return Asyncify.handleAsync(function() {
-    return new Promise(function(resolve) {
-      try {
-        // Open or create the database
-        var request = indexedDB.open('YazeMessageQueue', 1);
+    var keyStr = UTF8ToString(key);
+    var jsonStr = UTF8ToString(json_data);
+    var operation = function() {
+      return new Promise(function(resolve) {
+        try {
+          // Open or create the database
+          var request = indexedDB.open('YazeMessageQueue', 1);
 
-        request.onerror = function() {
-          console.error('Failed to open message queue database:', request.error);
-          resolve(-1);
-        };
-
-        request.onupgradeneeded = function(event) {
-          var db = event.target.result;
-          if (!db.objectStoreNames.contains('queues')) {
-            db.createObjectStore('queues');
-          }
-        };
-
-        request.onsuccess = function() {
-          var db = request.result;
-          var transaction = db.transaction(['queues'], 'readwrite');
-          var store = transaction.objectStore('queues');
-          var putRequest = store.put(UTF8ToString(json_data), UTF8ToString(key));
-
-          putRequest.onsuccess = function() {
-            db.close();
-            resolve(0);
-          };
-
-          putRequest.onerror = function() {
-            console.error('Failed to save message queue:', putRequest.error);
-            db.close();
+          request.onerror = function() {
+            console.error('Failed to open message queue database:', request.error);
             resolve(-1);
           };
-        };
-      } catch (e) {
-        console.error('Exception in mq_save_queue:', e);
-        resolve(-1);
-      }
-    });
+
+          request.onupgradeneeded = function(event) {
+            var db = event.target.result;
+            if (!db.objectStoreNames.contains('queues')) {
+              db.createObjectStore('queues');
+            }
+          };
+
+          request.onsuccess = function() {
+            var db = request.result;
+            var transaction = db.transaction(['queues'], 'readwrite');
+            var store = transaction.objectStore('queues');
+            var putRequest = store.put(jsonStr, keyStr);
+
+            putRequest.onsuccess = function() {
+              db.close();
+              resolve(0);
+            };
+
+            putRequest.onerror = function() {
+              console.error('Failed to save message queue:', putRequest.error);
+              db.close();
+              resolve(-1);
+            };
+          };
+        } catch (e) {
+          console.error('Exception in mq_save_queue:', e);
+          resolve(-1);
+        }
+      });
+    };
+    if (window.yazeAsyncQueue) {
+      return window.yazeAsyncQueue.enqueue(operation);
+    }
+    return operation();
   });
 });
 
 EM_JS(char*, mq_load_queue, (const char* key), {
   return Asyncify.handleAsync(function() {
-    return new Promise(function(resolve) {
-      try {
-        var request = indexedDB.open('YazeMessageQueue', 1);
+    var keyStr = UTF8ToString(key);
+    var operation = function() {
+      return new Promise(function(resolve) {
+        try {
+          var request = indexedDB.open('YazeMessageQueue', 1);
 
-        request.onerror = function() {
-          console.error('Failed to open message queue database:', request.error);
-          resolve(0);
-        };
+          request.onerror = function() {
+            console.error('Failed to open message queue database:', request.error);
+            resolve(0);
+          };
 
-        request.onupgradeneeded = function(event) {
-          var db = event.target.result;
-          if (!db.objectStoreNames.contains('queues')) {
-            db.createObjectStore('queues');
-          }
-        };
-
-        request.onsuccess = function() {
-          var db = request.result;
-          var transaction = db.transaction(['queues'], 'readonly');
-          var store = transaction.objectStore('queues');
-          var getRequest = store.get(UTF8ToString(key));
-
-          getRequest.onsuccess = function() {
-            var result = getRequest.result;
-            db.close();
-
-            if (result && typeof result === 'string') {
-              var len = lengthBytesUTF8(result) + 1;
-              var ptr = Module._malloc(len);
-              stringToUTF8(result, ptr, len);
-              resolve(ptr);
-            } else {
-              resolve(0);
+          request.onupgradeneeded = function(event) {
+            var db = event.target.result;
+            if (!db.objectStoreNames.contains('queues')) {
+              db.createObjectStore('queues');
             }
           };
 
-          getRequest.onerror = function() {
-            console.error('Failed to load message queue:', getRequest.error);
-            db.close();
-            resolve(0);
+          request.onsuccess = function() {
+            var db = request.result;
+            var transaction = db.transaction(['queues'], 'readonly');
+            var store = transaction.objectStore('queues');
+            var getRequest = store.get(keyStr);
+
+            getRequest.onsuccess = function() {
+              var result = getRequest.result;
+              db.close();
+
+              if (result && typeof result === 'string') {
+                var len = lengthBytesUTF8(result) + 1;
+                var ptr = Module._malloc(len);
+                stringToUTF8(result, ptr, len);
+                resolve(ptr);
+              } else {
+                resolve(0);
+              }
+            };
+
+            getRequest.onerror = function() {
+              console.error('Failed to load message queue:', getRequest.error);
+              db.close();
+              resolve(0);
+            };
           };
-        };
-      } catch (e) {
-        console.error('Exception in mq_load_queue:', e);
-        resolve(0);
-      }
-    });
+        } catch (e) {
+          console.error('Exception in mq_load_queue:', e);
+          resolve(0);
+        }
+      });
+    };
+    if (window.yazeAsyncQueue) {
+      return window.yazeAsyncQueue.enqueue(operation);
+    }
+    return operation();
   });
 });
 
 EM_JS(int, mq_clear_queue, (const char* key), {
   return Asyncify.handleAsync(function() {
-    return new Promise(function(resolve) {
-      try {
-        var request = indexedDB.open('YazeMessageQueue', 1);
+    var keyStr = UTF8ToString(key);
+    var operation = function() {
+      return new Promise(function(resolve) {
+        try {
+          var request = indexedDB.open('YazeMessageQueue', 1);
 
-        request.onerror = function() {
-          console.error('Failed to open message queue database:', request.error);
-          resolve(-1);
-        };
-
-        request.onsuccess = function() {
-          var db = request.result;
-          var transaction = db.transaction(['queues'], 'readwrite');
-          var store = transaction.objectStore('queues');
-          var deleteRequest = store.delete(UTF8ToString(key));
-
-          deleteRequest.onsuccess = function() {
-            db.close();
-            resolve(0);
-          };
-
-          deleteRequest.onerror = function() {
-            console.error('Failed to clear message queue:', deleteRequest.error);
-            db.close();
+          request.onerror = function() {
+            console.error('Failed to open message queue database:', request.error);
             resolve(-1);
           };
-        };
-      } catch (e) {
-        console.error('Exception in mq_clear_queue:', e);
-        resolve(-1);
-      }
-    });
+
+          request.onsuccess = function() {
+            var db = request.result;
+            var transaction = db.transaction(['queues'], 'readwrite');
+            var store = transaction.objectStore('queues');
+            var deleteRequest = store.delete(keyStr);
+
+            deleteRequest.onsuccess = function() {
+              db.close();
+              resolve(0);
+            };
+
+            deleteRequest.onerror = function() {
+              console.error('Failed to clear message queue:', deleteRequest.error);
+              db.close();
+              resolve(-1);
+            };
+          };
+        } catch (e) {
+          console.error('Exception in mq_clear_queue:', e);
+          resolve(-1);
+        }
+      });
+    };
+    if (window.yazeAsyncQueue) {
+      return window.yazeAsyncQueue.enqueue(operation);
+    }
+    return operation();
   });
 });
 

@@ -223,6 +223,11 @@ absl::Status OverworldEditor::Load() {
         [this](const std::string& entity_type) {
           HandleEntityInsertion(entity_type);
         });
+
+    // Set up tile16 edit callback for context menu in MOUSE mode
+    map_properties_system_->SetTile16EditCallback([this]() {
+      HandleTile16Edit();
+    });
   }
 
   ASSIGN_OR_RETURN(entrance_tiletypes_, zelda3::LoadEntranceTileTypes(rom_));
@@ -256,6 +261,10 @@ absl::Status OverworldEditor::Update() {
 
   // Process deferred textures for smooth loading
   ProcessDeferredTextures();
+
+  // TODO: Re-enable after fixing crash
+  // Update blockset atlas with any pending tile16 changes for live preview
+  // UpdateBlocksetWithPendingTileChanges();
 
   if (overworld_canvas_fullscreen_) {
     DrawFullscreenCanvas();
@@ -1810,12 +1819,10 @@ absl::Status OverworldEditor::DrawTile16Selector() {
 
   if (result.selection_changed) {
     current_tile16_ = result.selected_tile;
+    // Set the current tile in the editor (original behavior)
     auto status = tile16_editor_.SetCurrentTile(current_tile16_);
     if (!status.ok()) {
-      // Store error but ensure we close the child before returning
-      ImGui::EndChild();
-      ImGui::EndGroup();
-      return status;
+      util::logf("Failed to set tile16: %s", status.message().data());
     }
     // Note: We do NOT auto-scroll here because it breaks user interaction.
     // The canvas should only scroll when explicitly requested (e.g., when
@@ -2668,6 +2675,9 @@ absl::Status OverworldEditor::RefreshMapPalette() {
   RETURN_IF_ERROR(
       overworld_.mutable_overworld_map(current_map_)->LoadPalette());
   const auto current_map_palette = overworld_.current_area_palette();
+  palette_ = current_map_palette;
+  // Keep tile16 editor in sync with the currently active overworld palette
+  tile16_editor_.set_palette(current_map_palette);
 
   // Use centralized version detection
   auto rom_version = zelda3::OverworldVersionHelper::GetVersion(*rom_);
@@ -2899,6 +2909,7 @@ absl::Status OverworldEditor::RefreshTile16Blockset() {
 
   overworld_.set_current_map(current_map_);
   palette_ = overworld_.current_area_palette();
+  tile16_editor_.set_palette(palette_);
 
   const auto tile16_data = overworld_.tile16_blockset_data();
 
@@ -2917,6 +2928,84 @@ absl::Status OverworldEditor::RefreshTile16Blockset() {
   }
 
   return absl::OkStatus();
+}
+
+void OverworldEditor::UpdateBlocksetWithPendingTileChanges() {
+  // Skip if blockset not loaded or no pending changes
+  if (!map_blockset_loaded_) {
+    return;
+  }
+
+  if (!tile16_editor_.has_pending_changes()) {
+    return;
+  }
+
+  // Validate the atlas bitmap before modifying
+  if (!tile16_blockset_.atlas.is_active() ||
+      tile16_blockset_.atlas.vector().empty() ||
+      tile16_blockset_.atlas.width() == 0 ||
+      tile16_blockset_.atlas.height() == 0) {
+    return;
+  }
+
+  // Calculate tile positions in the atlas (8 tiles per row, each 16x16)
+  constexpr int kTilesPerRow = 8;
+  constexpr int kTileSize = 16;
+  int atlas_width = tile16_blockset_.atlas.width();
+  int atlas_height = tile16_blockset_.atlas.height();
+
+  bool atlas_modified = false;
+
+  // Iterate through all possible tile IDs to check for modifications
+  // Note: This is a brute-force approach; a more efficient method would
+  // maintain a list of modified tile IDs
+  for (int tile_id = 0; tile_id < zelda3::kNumTile16Individual; ++tile_id) {
+    if (!tile16_editor_.is_tile_modified(tile_id)) {
+      continue;
+    }
+
+    // Get the pending bitmap for this tile
+    const gfx::Bitmap* pending_bmp = tile16_editor_.GetPendingTileBitmap(tile_id);
+    if (!pending_bmp || !pending_bmp->is_active() ||
+        pending_bmp->vector().empty()) {
+      continue;
+    }
+
+    // Calculate position in the atlas
+    int tile_x = (tile_id % kTilesPerRow) * kTileSize;
+    int tile_y = (tile_id / kTilesPerRow) * kTileSize;
+
+    // Validate tile position is within atlas bounds
+    if (tile_x + kTileSize > atlas_width || tile_y + kTileSize > atlas_height) {
+      continue;
+    }
+
+    // Copy pending bitmap data into the atlas at the correct position
+    auto& atlas_data = tile16_blockset_.atlas.mutable_data();
+    const auto& pending_data = pending_bmp->vector();
+
+    for (int y = 0; y < kTileSize && y < pending_bmp->height(); ++y) {
+      for (int x = 0; x < kTileSize && x < pending_bmp->width(); ++x) {
+        int atlas_idx = (tile_y + y) * atlas_width + (tile_x + x);
+        int pending_idx = y * pending_bmp->width() + x;
+
+        if (atlas_idx >= 0 &&
+            atlas_idx < static_cast<int>(atlas_data.size()) &&
+            pending_idx >= 0 &&
+            pending_idx < static_cast<int>(pending_data.size())) {
+          atlas_data[atlas_idx] = pending_data[pending_idx];
+          atlas_modified = true;
+        }
+      }
+    }
+  }
+
+  // Only queue texture update if we actually modified something
+  if (atlas_modified && tile16_blockset_.atlas.texture()) {
+    tile16_blockset_.atlas.set_modified(true);
+    gfx::Arena::Get().QueueTextureCommand(
+        gfx::Arena::TextureCommandType::UPDATE, &tile16_blockset_.atlas);
+  }
 }
 
 void OverworldEditor::HandleMapInteraction() {
@@ -2947,7 +3036,7 @@ void OverworldEditor::HandleMapInteraction() {
     }
   }
 
-  // Handle double-click to open properties panel
+  // Handle double-click to open properties panel (original behavior)
   if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left) &&
       ImGui::IsItemHovered()) {
     show_map_properties_panel_ = true;
@@ -3566,6 +3655,17 @@ void OverworldEditor::HandleEntityInsertion(const std::string& entity_type) {
   } else {
     LOG_WARN("OverworldEditor", "Unknown entity type: %s", entity_type.c_str());
   }
+}
+
+void OverworldEditor::HandleTile16Edit() {
+  if (!overworld_.is_loaded() || !map_blockset_loaded_) {
+    LOG_ERROR("OverworldEditor", "Cannot edit tile16: overworld or blockset not loaded");
+    return;
+  }
+
+  // Simply open the tile16 editor - don't try to switch tiles here
+  // The tile16 editor will use its current tile, user can select a different one
+  show_tile16_editor_ = true;
 }
 
 }  // namespace yaze::editor

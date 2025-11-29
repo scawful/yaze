@@ -450,24 +450,26 @@ void Bitmap::SetPaletteWithTransparent(const SnesPalette& palette, size_t index,
     throw std::invalid_argument("Invalid palette index");
   }
 
-  if (length < 0 || length > 7) {
+  if (length < 0 || length > 15) {
     throw std::invalid_argument(
-        "Invalid palette length (must be 0-7 for SNES palettes)");
+        "Invalid palette length (must be 0-15 for SNES palettes)");
   }
 
   if (index + length > palette.size()) {
     throw std::invalid_argument("Palette index + length exceeds size");
   }
 
-  // Build 8-color SNES sub-palette
+  // Build SNES sub-palette (up to 16 colors: transparent + length entries)
   std::vector<ImVec4> colors;
 
   // Color 0: Transparent (SNES hardware requirement)
   colors.push_back(ImVec4(0, 0, 0, 0));  // Transparent black
 
-  // Colors 1-7: Extract from source palette
+  // Colors 1-15: Extract from source palette
   // NOTE: palette[i].rgb() returns 0-255 values in ImVec4 (unconventional!)
-  for (size_t i = 0; i < 7 && (index + i) < palette.size(); ++i) {
+  for (size_t i = 0; i < static_cast<size_t>(length) &&
+                     (index + i) < palette.size();
+       ++i) {
     const auto& pal_color = palette[index + i];
     ImVec4 rgb_255 = pal_color.rgb();  // 0-255 range (unconventional storage)
 
@@ -476,8 +478,8 @@ void Bitmap::SetPaletteWithTransparent(const SnesPalette& palette, size_t index,
                             rgb_255.z / 255.0f, 1.0f));  // Always opaque
   }
 
-  // Ensure we have exactly 8 colors
-  while (colors.size() < 8) {
+  // Ensure we have exactly 1 + length colors (transparent + requested entries)
+  while (colors.size() < static_cast<size_t>(length + 1)) {
     colors.push_back(ImVec4(0, 0, 0, 1.0f));  // Fill with opaque black
   }
 

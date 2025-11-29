@@ -116,10 +116,7 @@ void EditorManager::HideCurrentEditorCards() {
   card_registry_.HideAllCardsInCategory(category);
 }
 
-void EditorManager::ShowHexEditor() {
-  // Using EditorCardRegistry directly
-  card_registry_.ShowCard("memory.hex_editor");
-}
+
 
 void EditorManager::ResetWorkspaceLayout() {
   // Clear all layout initialization flags and request rebuild
@@ -661,7 +658,7 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
         if (category == "Assembly") {
           // Open the file in the Assembly editor
           if (auto* editor_set = GetCurrentEditorSet()) {
-            editor_set->assembly_editor_.ChangeActiveFile(path);
+            editor_set->GetAssemblyEditor()->ChangeActiveFile(path);
             // Make sure Assembly editor is active
             SwitchToEditor(EditorType::kAssembly, true);
           }
@@ -745,21 +742,21 @@ void EditorManager::OpenEditorAndCardsFromFlags(const std::string& editor_name,
                   card_name.c_str());
 
         if (card_name == "Rooms List") {
-          editor_set->dungeon_editor_.show_room_selector_ = true;
+          editor_set->GetDungeonEditor()->show_room_selector_ = true;
         } else if (card_name == "Room Matrix") {
-          editor_set->dungeon_editor_.show_room_matrix_ = true;
+          editor_set->GetDungeonEditor()->show_room_matrix_ = true;
         } else if (card_name == "Entrances List") {
-          editor_set->dungeon_editor_.show_entrances_list_ = true;
+          editor_set->GetDungeonEditor()->show_entrances_list_ = true;
         } else if (card_name == "Room Graphics") {
-          editor_set->dungeon_editor_.show_room_graphics_ = true;
+          editor_set->GetDungeonEditor()->show_room_graphics_ = true;
         } else if (card_name == "Object Editor") {
-          editor_set->dungeon_editor_.show_object_editor_ = true;
+          editor_set->GetDungeonEditor()->show_object_editor_ = true;
         } else if (card_name == "Palette Editor") {
-          editor_set->dungeon_editor_.show_palette_editor_ = true;
+          editor_set->GetDungeonEditor()->show_palette_editor_ = true;
         } else if (absl::StartsWith(card_name, "Room ")) {
           try {
             int room_id = std::stoi(card_name.substr(5));
-            editor_set->dungeon_editor_.add_room(room_id);
+            editor_set->GetDungeonEditor()->add_room(room_id);
           } catch (const std::exception& e) {
             LOG_WARN("EditorManager", "Invalid room ID format: %s",
                      card_name.c_str());
@@ -1125,12 +1122,12 @@ void EditorManager::DrawMenuBar() {
     bool* hex_visibility =
         card_registry_.GetVisibilityFlag("memory.hex_editor");
     if (hex_visibility && *hex_visibility) {
-      editor_set->memory_editor_.Update(*hex_visibility);
+      editor_set->GetMemoryEditor()->Update(*hex_visibility);
     }
 
     if (ui_coordinator_ && ui_coordinator_->IsAsmEditorVisible()) {
       bool visible = true;
-      editor_set->assembly_editor_.Update(visible);
+      editor_set->GetAssemblyEditor()->Update(visible);
       if (!visible) {
         ui_coordinator_->SetAsmEditorVisible(false);
       }
@@ -1322,22 +1319,22 @@ absl::Status EditorManager::LoadAssets(uint64_t passed_handle) {
 
   // Initialize all editors - this registers their cards with EditorCardRegistry
   // and sets up any editor-specific resources. Must be called before Load().
-  current_editor_set->overworld_editor_.Initialize();
-  current_editor_set->message_editor_.Initialize();
-  current_editor_set->graphics_editor_.Initialize();
-  current_editor_set->screen_editor_.Initialize();
-  current_editor_set->sprite_editor_.Initialize();
-  current_editor_set->palette_editor_.Initialize();
-  current_editor_set->assembly_editor_.Initialize();
-  current_editor_set->music_editor_.Initialize();
+  current_editor_set->GetOverworldEditor()->Initialize();
+  current_editor_set->GetMessageEditor()->Initialize();
+  current_editor_set->GetGraphicsEditor()->Initialize();
+  current_editor_set->GetScreenEditor()->Initialize();
+  current_editor_set->GetSpriteEditor()->Initialize();
+  current_editor_set->GetPaletteEditor()->Initialize();
+  current_editor_set->GetAssemblyEditor()->Initialize();
+  current_editor_set->GetMusicEditor()->Initialize();
   
   // Configure settings panel
-  current_editor_set->settings_panel_.SetUserSettings(&user_settings_);
-  current_editor_set->settings_panel_.SetCardRegistry(&card_registry_);
-  current_editor_set->settings_panel_.SetRom(current_rom);
+  current_editor_set->GetSettingsPanel()->SetUserSettings(&user_settings_);
+  current_editor_set->GetSettingsPanel()->SetCardRegistry(&card_registry_);
+  current_editor_set->GetSettingsPanel()->SetRom(current_rom);
 
   // Initialize the dungeon editor with the renderer
-  current_editor_set->dungeon_editor_.Initialize(renderer_, current_rom);
+  current_editor_set->GetDungeonEditor()->Initialize(renderer_, current_rom);
 
 #ifdef __EMSCRIPTEN__
   update_progress("Loading graphics sheets...");
@@ -1348,17 +1345,17 @@ absl::Status EditorManager::LoadAssets(uint64_t passed_handle) {
 #ifdef __EMSCRIPTEN__
   update_progress("Loading overworld...");
 #endif
-  RETURN_IF_ERROR(current_editor_set->overworld_editor_.Load());
+  RETURN_IF_ERROR(current_editor_set->GetOverworldEditor()->Load());
 
 #ifdef __EMSCRIPTEN__
   update_progress("Loading dungeons...");
 #endif
-  RETURN_IF_ERROR(current_editor_set->dungeon_editor_.Load());
+  RETURN_IF_ERROR(current_editor_set->GetDungeonEditor()->Load());
 
 #ifdef __EMSCRIPTEN__
   update_progress("Loading screen editor...");
 #endif
-  RETURN_IF_ERROR(current_editor_set->screen_editor_.Load());
+  RETURN_IF_ERROR(current_editor_set->GetScreenEditor()->Load());
 
 #ifdef __EMSCRIPTEN__
   update_progress("Loading settings...");
@@ -1369,22 +1366,22 @@ absl::Status EditorManager::LoadAssets(uint64_t passed_handle) {
 #ifdef __EMSCRIPTEN__
   update_progress("Loading sprites...");
 #endif
-  RETURN_IF_ERROR(current_editor_set->sprite_editor_.Load());
+  RETURN_IF_ERROR(current_editor_set->GetSpriteEditor()->Load());
 
 #ifdef __EMSCRIPTEN__
   update_progress("Loading messages...");
 #endif
-  RETURN_IF_ERROR(current_editor_set->message_editor_.Load());
+  RETURN_IF_ERROR(current_editor_set->GetMessageEditor()->Load());
 
 #ifdef __EMSCRIPTEN__
   update_progress("Loading music...");
 #endif
-  RETURN_IF_ERROR(current_editor_set->music_editor_.Load());
+  RETURN_IF_ERROR(current_editor_set->GetMusicEditor()->Load());
 
 #ifdef __EMSCRIPTEN__
   update_progress("Loading palettes...");
 #endif
-  RETURN_IF_ERROR(current_editor_set->palette_editor_.Load());
+  RETURN_IF_ERROR(current_editor_set->GetPaletteEditor()->Load());
 
 #ifdef __EMSCRIPTEN__
   update_progress("Finishing up...");
@@ -1392,7 +1389,7 @@ absl::Status EditorManager::LoadAssets(uint64_t passed_handle) {
 
   // Set up RightPanelManager with session's settings editor
   if (right_panel_manager_) {
-    right_panel_manager_->SetSettingsPanel(&current_editor_set->settings_panel_);
+    right_panel_manager_->SetSettingsPanel(current_editor_set->GetSettingsPanel());
   }
 
   gfx::PerformanceProfiler::Get().PrintSummary();
@@ -1436,10 +1433,10 @@ absl::Status EditorManager::SaveRom() {
   // Save editor-specific data first
   if (core::FeatureFlags::get().kSaveDungeonMaps) {
     RETURN_IF_ERROR(zelda3::SaveDungeonMaps(
-        *current_rom, current_editor_set->screen_editor_.dungeon_maps_));
+        *current_rom, current_editor_set->GetScreenEditor()->dungeon_maps_));
   }
 
-  RETURN_IF_ERROR(current_editor_set->overworld_editor_.Save());
+  RETURN_IF_ERROR(current_editor_set->GetOverworldEditor()->Save());
 
   if (core::FeatureFlags::get().kSaveGraphicsSheet)
     RETURN_IF_ERROR(
@@ -1458,10 +1455,10 @@ absl::Status EditorManager::SaveRomAs(const std::string& filename) {
 
   if (core::FeatureFlags::get().kSaveDungeonMaps) {
     RETURN_IF_ERROR(zelda3::SaveDungeonMaps(
-        *current_rom, current_editor_set->screen_editor_.dungeon_maps_));
+        *current_rom, current_editor_set->GetScreenEditor()->dungeon_maps_));
   }
 
-  RETURN_IF_ERROR(current_editor_set->overworld_editor_.Save());
+  RETURN_IF_ERROR(current_editor_set->GetOverworldEditor()->Save());
 
   if (core::FeatureFlags::get().kSaveGraphicsSheet)
     RETURN_IF_ERROR(
@@ -1545,7 +1542,7 @@ absl::Status EditorManager::OpenRomOrProject(const std::string& filename) {
 
     if (auto* editor_set = GetCurrentEditorSet();
         editor_set && !current_project_.code_folder.empty()) {
-      editor_set->assembly_editor_.OpenFolder(current_project_.code_folder);
+      editor_set->GetAssemblyEditor()->OpenFolder(current_project_.code_folder);
       // Also set the sidebar file browser path
       card_registry_.SetFileBrowserPath("Assembly", current_project_.code_folder);
     }
@@ -1639,7 +1636,7 @@ absl::Status EditorManager::OpenProject() {
 
     if (auto* editor_set = GetCurrentEditorSet();
         editor_set && !current_project_.code_folder.empty()) {
-      editor_set->assembly_editor_.OpenFolder(current_project_.code_folder);
+      editor_set->GetAssemblyEditor()->OpenFolder(current_project_.code_folder);
       // Also set the sidebar file browser path
       card_registry_.SetFileBrowserPath("Assembly", current_project_.code_folder);
     }
@@ -1855,7 +1852,7 @@ void EditorManager::SwitchToSession(size_t index) {
   if (right_panel_manager_) {
     auto* editor_set = GetCurrentEditorSet();
     if (editor_set) {
-      right_panel_manager_->SetSettingsPanel(&editor_set->settings_panel_);
+      right_panel_manager_->SetSettingsPanel(editor_set->GetSettingsPanel());
     }
   }
 
@@ -1904,7 +1901,7 @@ void EditorManager::JumpToDungeonRoom(int room_id) {
   SwitchToEditor(EditorType::kDungeon);
 
   // Open the room in the dungeon editor
-  GetCurrentEditorSet()->dungeon_editor_.add_room(room_id);
+  GetCurrentEditorSet()->GetDungeonEditor()->add_room(room_id);
 }
 
 void EditorManager::JumpToOverworldMap(int map_id) {
@@ -1915,7 +1912,7 @@ void EditorManager::JumpToOverworldMap(int map_id) {
   SwitchToEditor(EditorType::kOverworld);
 
   // Set the current map in the overworld editor
-  GetCurrentEditorSet()->overworld_editor_.set_current_map(map_id);
+  GetCurrentEditorSet()->GetOverworldEditor()->set_current_map(map_id);
 }
 
 void EditorManager::SwitchToEditor(EditorType editor_type, bool force_visible) {
@@ -2001,7 +1998,7 @@ void EditorManager::SwitchToEditor(EditorType editor_type, bool force_visible) {
       }
     }
   } else if (editor_type == EditorType::kHex) {
-    ShowHexEditor();
+    card_registry_.ShowCard(GetCurrentSessionId(), "Hex Editor");
   } else if (editor_type == EditorType::kSettings) {
     if (right_panel_manager_) {
       // Toggle settings panel

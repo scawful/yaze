@@ -69,6 +69,8 @@ if (EMSCRIPTEN)
     app/platform/wasm/wasm_collaboration.cc
     # WASM Message Queue for offline support
     app/platform/wasm/wasm_message_queue.cc
+    # WASM Async Guard for Asyncify operation serialization
+    app/platform/wasm/wasm_async_guard.cc
     # WASM Bootstrap (Platform Init)
     app/platform/wasm/wasm_bootstrap.cc
     # WASM Control API for editor/UI control from browser
