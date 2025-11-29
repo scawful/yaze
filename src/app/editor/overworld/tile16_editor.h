@@ -15,6 +15,7 @@
 #include "app/gfx/types/snes_tile.h"
 #include "app/gui/canvas/canvas.h"
 #include "app/gui/core/input.h"
+#include "app/gui/widgets/tile_selector_widget.h"
 #include "app/rom.h"
 #include "imgui/imgui.h"
 #include "util/log.h"
@@ -298,6 +299,7 @@ class Tile16Editor : public gfx::GfxContext {
   gui::Canvas blockset_canvas_{
       "blocksetCanvas", ImVec2(kTilesheetEditorWidth, kTilesheetEditorHeight),
       gui::CanvasGridSize::k32x32};
+  gui::TileSelectorWidget blockset_selector_{"Tile16BlocksetSelector"};
   gfx::Bitmap tile16_blockset_bmp_;
 
   // Canvas for editing the selected tile - optimized for 2x2 grid of 8x8 tiles
