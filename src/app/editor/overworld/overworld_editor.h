@@ -147,6 +147,13 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
    */
   void HandleEntityInsertion(const std::string& entity_type);
 
+  /**
+   * @brief Handle tile16 editing from context menu (MOUSE mode)
+   *
+   * Gets the tile16 under the cursor and opens the Tile16Editor focused on it.
+   */
+  void HandleTile16Edit();
+
  private:
   void DrawFullscreenCanvas();
   void DrawToolset();
@@ -159,6 +166,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   absl::Status RefreshMapPalette();
   void RefreshMapProperties();
   absl::Status RefreshTile16Blockset();
+  void UpdateBlocksetWithPendingTileChanges();
   void ForceRefreshGraphics(int map_index);
   void RefreshSiblingMapGraphics(int map_index, bool include_self = false);
 

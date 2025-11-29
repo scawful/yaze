@@ -395,6 +395,7 @@ class Room {
   auto& mutable_blocks() { return blocks_; }
   auto rom() { return rom_; }
   auto mutable_rom() { return rom_; }
+  void SetRom(Rom* rom) { rom_ = rom; }
   const std::array<uint8_t, 0x10000>& get_gfx_buffer() const {
     return current_gfx16_;
   }

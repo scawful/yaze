@@ -3,6 +3,46 @@
  * Handles Emscripten Module integration, UI binding, and PWA features.
  */
 
+// CRITICAL: Early context menu prevention - must run before any async code
+// This prevents the browser context menu from appearing on the canvas area
+// even during the loading phase before the canvas element is fully initialized
+(function() {
+  document.addEventListener("contextmenu", function(e) {
+    var target = e.target;
+    if (!target) return;
+    // Block context menu for canvas and anything inside canvas-container
+    if (target.tagName === 'CANVAS' ||
+        target.id === 'canvas' ||
+        (target.closest && target.closest('#canvas-container'))) {
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      return false;
+    }
+  }, { capture: true, passive: false });
+
+  // Also prevent drag operations on canvas (stops "Copy image" drag)
+  document.addEventListener("dragstart", function(e) {
+    var target = e.target;
+    if (!target) return;
+    if (target.tagName === 'CANVAS' ||
+        target.id === 'canvas' ||
+        (target.closest && target.closest('#canvas-container'))) {
+      e.preventDefault();
+      return false;
+    }
+  }, { capture: true });
+
+  // Visibility change handler for tab switching
+  document.addEventListener("visibilitychange", function() {
+    if (document.hidden) {
+      console.log('[yaze] Tab hidden');
+    } else {
+      console.log('[yaze] Tab visible');
+    }
+  });
+})();
+
 var statusElement = document.getElementById('status');
 var progressElement = document.getElementById('progress');
 var spinnerElement = document.getElementById('spinner');

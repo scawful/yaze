@@ -53,6 +53,11 @@ class MapPropertiesSystem {
     entity_insert_callback_ = std::move(insert_callback);
   }
 
+  // Set callback for tile16 editing from context menu
+  void SetTile16EditCallback(std::function<void()> callback) {
+    edit_tile16_callback_ = std::move(callback);
+  }
+
   // Main interface methods
   void DrawSimplifiedMapSettings(int& current_world, int& current_map,
                                  bool& current_map_lock,
@@ -129,6 +134,9 @@ class MapPropertiesSystem {
 
   // Callback for entity insertion (generic, editor handles entity types)
   std::function<void(const std::string&)> entity_insert_callback_;
+
+  // Callback for tile16 editing from context menu
+  std::function<void()> edit_tile16_callback_;
 
   // Using centralized UI constants from ui_constants.h
 };

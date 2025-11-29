@@ -53,6 +53,9 @@ class DungeonEditorV2 : public Editor {
     type_ = EditorType::kDungeon;
     if (rom) {
         dungeon_editor_system_ = zelda3::CreateDungeonEditorSystem(rom);
+        for (auto& room : rooms_) {
+          room.SetRom(rom);
+        }
     }
   }
 
@@ -75,6 +78,14 @@ class DungeonEditorV2 : public Editor {
     room_loader_ = DungeonRoomLoader(rom);
     room_selector_.set_rom(rom);
     canvas_viewer_.SetRom(rom);
+    
+    // Propagate ROM to all rooms
+    if (rom) {
+      for (auto& room : rooms_) {
+        room.SetRom(rom);
+      }
+    }
+
     // Create render service if needed
     if (rom && rom->is_loaded() && !render_service_) {
       render_service_ = std::make_unique<emu::render::EmulatorRenderService>(rom);

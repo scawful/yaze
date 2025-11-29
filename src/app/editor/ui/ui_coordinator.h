@@ -136,6 +136,9 @@ class UICoordinator {
   bool IsResourceLabelManagerVisible() const {
     return show_resource_label_manager_;
   }
+  bool IsAIAgentVisible() const { return show_ai_agent_; }
+  bool IsChatHistoryVisible() const { return show_chat_history_; }
+  bool IsProposalDrawerVisible() const { return show_proposal_drawer_; }
 
   // UI state setters (for programmatic control)
   void SetEditorSelectionVisible(bool visible) {
@@ -169,6 +172,9 @@ class UICoordinator {
   void SetResourceLabelManagerVisible(bool visible) {
     show_resource_label_manager_ = visible;
   }
+  void SetAIAgentVisible(bool visible) { show_ai_agent_ = visible; }
+  void SetChatHistoryVisible(bool visible) { show_chat_history_ = visible; }
+  void SetProposalDrawerVisible(bool visible) { show_proposal_drawer_ = visible; }
 
   // Note: Theme styling is handled by ThemeManager, not UICoordinator
 
@@ -203,6 +209,9 @@ class UICoordinator {
   bool show_asm_editor_ = false;
   bool show_palette_editor_ = false;
   bool show_resource_label_manager_ = false;
+  bool show_ai_agent_ = false;
+  bool show_chat_history_ = false;
+  bool show_proposal_drawer_ = false;
   bool show_save_workspace_preset_ = false;
   bool show_load_workspace_preset_ = false;
   bool show_card_sidebar_ = true;  // Show sidebar by default

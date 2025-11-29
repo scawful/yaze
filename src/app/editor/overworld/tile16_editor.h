@@ -4,6 +4,7 @@
 #include <array>
 #include <chrono>
 #include <functional>
+#include <map>
 #include <vector>
 
 #include "absl/status/status.h"
@@ -63,6 +64,9 @@ class Tile16Editor : public gfx::GfxContext {
 
   absl::Status SetCurrentTile(int id);
 
+  // Request a tile switch - shows confirmation dialog if current tile has pending changes
+  void RequestTileSwitch(int target_tile_id);
+
   // New methods for clipboard and scratch space
   absl::Status CopyTile16ToClipboard(int tile_id);
   absl::Status PasteTile16FromClipboard();
@@ -107,6 +111,23 @@ class Tile16Editor : public gfx::GfxContext {
   absl::Status CommitChangesToBlockset();
   absl::Status CommitChangesToOverworld();
   absl::Status DiscardChanges();
+
+  // Pending changes system for batch preview/commit workflow
+  bool has_pending_changes() const { return !pending_tile16_changes_.empty(); }
+  int pending_changes_count() const {
+    return static_cast<int>(pending_tile16_changes_.size());
+  }
+  bool is_tile_modified(int tile_id) const {
+    return pending_tile16_changes_.find(tile_id) != pending_tile16_changes_.end();
+  }
+  const gfx::Bitmap* GetPendingTileBitmap(int tile_id) const {
+    auto it = pending_tile16_bitmaps_.find(tile_id);
+    return it != pending_tile16_bitmaps_.end() ? &it->second : nullptr;
+  }
+  absl::Status CommitAllChanges();
+  void DiscardAllChanges();
+  void DiscardCurrentTileChanges();
+  void MarkCurrentTileModified();
 
   // Helper methods for palette management
   absl::Status UpdateTile8Palette(int tile8_id);
@@ -221,6 +242,7 @@ class Tile16Editor : public gfx::GfxContext {
   bool live_preview_enabled_ = true;
   gfx::Bitmap preview_tile16_;
   bool preview_dirty_ = false;
+  gfx::Bitmap tile8_preview_bmp_;  // Persistent preview to keep arena commands valid
 
   // Selection system
   std::vector<int> selected_tiles_;
@@ -244,6 +266,12 @@ class Tile16Editor : public gfx::GfxContext {
   // Performance tracking
   std::chrono::steady_clock::time_point last_edit_time_;
   bool batch_mode_ = false;
+
+  // Pending changes system for batch preview/commit workflow
+  std::map<int, gfx::Tile16> pending_tile16_changes_;
+  std::map<int, gfx::Bitmap> pending_tile16_bitmaps_;
+  bool show_unsaved_changes_dialog_ = false;
+  int pending_tile_switch_target_ = -1;  // Target tile for pending switch
 
   // Navigation controls for expanded tile support
   int jump_to_tile_id_ = 0;       // Input field for jump to tile ID
@@ -295,6 +323,10 @@ class Tile16Editor : public gfx::GfxContext {
 
   // Instance variable to store current tile16 data for proper persistence
   gfx::Tile16 current_tile16_data_;
+
+  // Apply the active palette (overworld area if available) to the current
+  // tile16 bitmap using sheet-aware offsets.
+  void ApplyPaletteToCurrentTile16Bitmap();
 };
 
 }  // namespace editor

@@ -391,6 +391,8 @@ input[type="file"] {
   overflow: hidden;
   min-height: 0;
   width: 100%;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 canvas.emscripten {
@@ -403,6 +405,7 @@ canvas.emscripten {
   width: 100%;
   height: 100%;
   object-fit: contain;
+  touch-action: none; /* Prevent default touch behaviors, let ImGui handle */
 }
 
 /* Loading Overlay */
@@ -414,6 +417,12 @@ canvas.emscripten {
   align-items: center;
   justify-content: center;
   z-index: 50;
+  pointer-events: auto; /* Block events when visible */
+}
+
+/* When loading overlay is hidden, ensure it doesn't capture pointer events */
+#loading-overlay[style*="display: none"] {
+  pointer-events: none;
 }
 
 /* Welcome Screen */
