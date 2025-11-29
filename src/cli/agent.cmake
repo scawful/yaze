@@ -44,6 +44,7 @@ if(EMSCRIPTEN)
     
     # Proposal and Sandbox support (needed by yaze_editor)
     cli/service/planning/proposal_registry.cc
+    cli/service/planning/tile16_proposal_generator.cc
     cli/service/rom/rom_sandbox_manager.cc
     # Core Agent Service (Critical for WASM Agent API)
     cli/service/agent/conversational_agent_service.cc
