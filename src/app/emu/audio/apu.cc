@@ -422,5 +422,46 @@ void Apu::LoadState(std::istream& stream) {
   spc700_.LoadState(stream);
 }
 
+void Apu::BootstrapDirect(uint16_t entry_point) {
+  LOG_INFO("APU", "BootstrapDirect: Setting PC to $%04X", entry_point);
+
+  // 1. Disable IPL ROM by setting the control bit
+  //    Writing 0x80 to $F1 disables IPL ROM mapping at $FFC0-$FFFF
+  ram[0xF1] = 0x80;
+  rom_readable_ = false;
+
+  // 2. Set SPC700 PC to driver entry point
+  spc700_.PC = entry_point;
+
+  // 3. Initialize SPC state for driver execution
+  spc700_.SP = 0xEF;  // Stack pointer at typical location
+  spc700_.A = 0;
+  spc700_.X = 0;
+  spc700_.Y = 0;
+
+  // 4. Clear flags
+  spc700_.PSW.N = false;
+  spc700_.PSW.V = false;
+  spc700_.PSW.P = false;
+  spc700_.PSW.B = false;
+  spc700_.PSW.H = false;
+  spc700_.PSW.I = false;
+  spc700_.PSW.Z = false;
+  spc700_.PSW.C = false;
+
+  // 5. Clear ports for fresh communication
+  for (int i = 0; i < 4; i++) {
+    in_ports_[i] = 0;
+    out_ports_[i] = 0;
+  }
+
+  // 6. Reset transfer tracking state
+  in_transfer_ = false;
+  transfer_size_ = 0;
+
+  LOG_INFO("APU", "BootstrapDirect complete: IPL ROM disabled, driver ready at $%04X",
+           entry_point);
+}
+
 }  // namespace emu
 }  // namespace yaze

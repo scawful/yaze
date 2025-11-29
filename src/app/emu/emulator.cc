@@ -143,6 +143,118 @@ void Emulator::Initialize(gfx::IRenderer* renderer,
   initialized_ = true;
 }
 
+bool Emulator::EnsureInitialized(Rom* rom) {
+  if (!rom || !rom->is_loaded()) {
+    return false;
+  }
+
+  // Initialize audio backend if not already done
+  if (!audio_backend_) {
+#ifdef __EMSCRIPTEN__
+    audio_backend_ = audio::AudioBackendFactory::Create(
+        audio::AudioBackendFactory::BackendType::WASM);
+#else
+    audio_backend_ = audio::AudioBackendFactory::Create(
+        audio::AudioBackendFactory::BackendType::SDL2);
+#endif
+
+    audio::AudioConfig config;
+    config.sample_rate = 48000;
+    config.channels = 2;
+    config.buffer_frames = 1024;
+    config.format = audio::SampleFormat::INT16;
+
+    if (!audio_backend_->Initialize(config)) {
+      LOG_ERROR("Emulator", "Failed to initialize audio backend");
+      return false;
+    }
+    LOG_INFO("Emulator", "Audio backend initialized for headless mode");
+  }
+
+  // Initialize SNES if not already done
+  if (!snes_initialized_) {
+    if (rom_data_.empty()) {
+      rom_data_ = rom->vector();
+    }
+    snes_.Init(rom_data_);
+
+    wanted_frames_ = 1.0 / (snes_.memory().pal_timing() ? 50.0 : 60.0);
+    wanted_samples_ = 48000 / (snes_.memory().pal_timing() ? 50 : 60);
+    snes_initialized_ = true;
+
+    count_frequency = SDL_GetPerformanceFrequency();
+    last_count = SDL_GetPerformanceCounter();
+    time_adder = 0.0;
+
+    LOG_INFO("Emulator", "SNES initialized for headless mode");
+  }
+
+  return true;
+}
+
+void Emulator::RunFrameOnly() {
+  if (!snes_initialized_ || !running_) {
+    return;
+  }
+
+  // Calculate timing
+  uint64_t current_count = SDL_GetPerformanceCounter();
+  uint64_t delta = current_count - last_count;
+  last_count = current_count;
+  double seconds = delta / (double)count_frequency;
+
+  // Apply playback speed multiplier to time accumulation
+  // Lower speed = less time added = fewer frames processed = slower playback
+  time_adder += seconds * static_cast<double>(playback_speed_);
+
+  // Cap time accumulation to prevent runaway (max 2 frames worth)
+  double max_accumulation = wanted_frames_ * 2.0;
+  if (time_adder > max_accumulation) {
+    time_adder = max_accumulation;
+  }
+
+  // Process frames - limit to 2 frames max per update to prevent fast-forward
+  int frames_processed = 0;
+  constexpr int kMaxFramesPerUpdate = 2;
+
+  // Local buffer for native sample path (641 * 2 channels = 1282 samples max)
+  static int16_t native_audio_buffer[1284];
+
+  while (time_adder >= wanted_frames_ && frames_processed < kMaxFramesPerUpdate) {
+    time_adder -= wanted_frames_;
+    frames_processed++;
+
+    // Run SNES frame (generates audio samples)
+    snes_.RunFrame();
+
+    // Queue audio samples using native sample rate path
+    // This lets SDL resample 32kHz -> 48kHz correctly, fixing the 1.5x speed issue
+    if (audio_backend_) {
+      auto status = audio_backend_->GetStatus();
+      // Native samples per frame: 534 (NTSC) or 641 (PAL)
+      const int native_per_frame = snes_.memory().pal_timing() ? 641 : 534;
+      if (status.queued_frames < static_cast<uint32_t>(native_per_frame * 4)) {
+        const int frames_native = snes_.apu().dsp().CopyNativeFrame(
+            native_audio_buffer, snes_.memory().pal_timing());
+        audio_backend_->QueueSamplesNative(
+            native_audio_buffer, frames_native, 2, kNativeSampleRate);
+      }
+    }
+  }
+}
+
+void Emulator::ResetFrameTiming() {
+  // Reset timing state to prevent accumulated time from causing fast playback
+  count_frequency = SDL_GetPerformanceFrequency();
+  last_count = SDL_GetPerformanceCounter();
+  time_adder = 0.0;
+
+  // Clear audio buffer to prevent static from stale data
+  if (audio_backend_) {
+    audio_backend_->Clear();
+  }
+}
+
 void Emulator::Run(Rom* rom) {
   if (!audio_stream_env_checked_) {
     const char* env_value = std::getenv("YAZE_USE_SDL_AUDIO_STREAM");

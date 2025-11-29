@@ -27,6 +27,11 @@ set(
   app/editor/message/message_editor.cc
   app/editor/message/message_preview.cc
   app/editor/music/music_editor.cc
+  app/editor/music/instrument_editor_view.cc
+  app/editor/music/piano_roll_view.cc
+  app/editor/music/sample_editor_view.cc
+  app/editor/music/song_browser_view.cc
+  app/editor/music/tracker_view.cc
   app/editor/overworld/entity.cc
   app/editor/overworld/entity_operations.cc
   app/editor/overworld/map_properties.cc
@@ -47,7 +52,7 @@ set(
   app/editor/system/extension_manager.cc
   app/editor/system/layout_orchestrator.cc
   app/editor/menu/menu_orchestrator.cc
-  app/editor/system/popup_manager.cc
+  app/editor/ui/popup_manager.cc
   app/editor/system/project_manager.cc
   app/editor/system/proposal_drawer.cc
   app/editor/system/rom_file_manager.cc
