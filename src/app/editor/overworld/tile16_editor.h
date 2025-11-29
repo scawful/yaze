@@ -1,6 +1,7 @@
 #ifndef YAZE_APP_EDITOR_TILE16EDITOR_H
 #define YAZE_APP_EDITOR_TILE16EDITOR_H
 
+#include <algorithm>
 #include <array>
 #include <chrono>
 #include <functional>
@@ -197,6 +198,14 @@ class Tile16Editor : public gfx::GfxContext {
   void set_on_changes_committed(std::function<absl::Status()> callback) {
     on_changes_committed_ = callback;
   }
+
+  // Accessors for testing and external use
+  int current_palette() const { return current_palette_; }
+  void set_current_palette(int palette) {
+    current_palette_ = static_cast<uint8_t>(std::clamp(palette, 0, 7));
+  }
+  int current_tile16() const { return current_tile16_; }
+  int current_tile8() const { return current_tile8_; }
 
  private:
   Rom* rom_ = nullptr;

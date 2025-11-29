@@ -2678,6 +2678,13 @@ absl::Status OverworldEditor::RefreshMapPalette() {
   palette_ = current_map_palette;
   // Keep tile16 editor in sync with the currently active overworld palette
   tile16_editor_.set_palette(current_map_palette);
+  // Ensure source graphics bitmap uses the refreshed palette so tile8 selector isn't blank.
+  if (current_gfx_bmp_.is_active()) {
+    current_gfx_bmp_.SetPalette(palette_);
+    current_gfx_bmp_.set_modified(true);
+    gfx::Arena::Get().QueueTextureCommand(
+        gfx::Arena::TextureCommandType::UPDATE, &current_gfx_bmp_);
+  }
 
   // Use centralized version detection
   auto rom_version = zelda3::OverworldVersionHelper::GetVersion(*rom_);
@@ -2910,6 +2917,12 @@ absl::Status OverworldEditor::RefreshTile16Blockset() {
   overworld_.set_current_map(current_map_);
   palette_ = overworld_.current_area_palette();
   tile16_editor_.set_palette(palette_);
+  if (current_gfx_bmp_.is_active()) {
+    current_gfx_bmp_.SetPalette(palette_);
+    current_gfx_bmp_.set_modified(true);
+    gfx::Arena::Get().QueueTextureCommand(
+        gfx::Arena::TextureCommandType::UPDATE, &current_gfx_bmp_);
+  }
 
   const auto tile16_data = overworld_.tile16_blockset_data();
 
