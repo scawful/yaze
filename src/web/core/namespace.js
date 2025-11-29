@@ -338,7 +338,8 @@
     window.yaze.core._bootResolved = true;
     window.yaze.core._bootModule = module;
     window.yaze.core.state.wasmReady = true;
-    window.yaze.core.Module = module;
+    // Note: window.yaze.core.Module is a getter that returns window.Module
+    // which is set automatically by Emscripten, so no need to set it here
 
     // Resolve all pending promises
     window.yaze.core._bootResolvers.forEach(function(resolve) {
