@@ -46,7 +46,7 @@ void LayoutManager::InitializeEditorLayout(EditorType type,
   // Clear existing layout for this dockspace
   ImGui::DockBuilderRemoveNode(dockspace_id);
   ImGui::DockBuilderAddNode(dockspace_id, ImGuiDockNodeFlags_DockSpace);
-  ImGui::DockBuilderSetNodeSize(dockspace_id, ImGui::GetMainViewport()->Size);
+  ImGui::DockBuilderSetNodeSize(dockspace_id, ImGui::GetMainViewport()->WorkSize);
 
   // Build layout based on editor type using generic builder
   BuildLayoutFromPreset(type, dockspace_id);
@@ -83,7 +83,7 @@ void LayoutManager::RebuildLayout(EditorType type, ImGuiID dockspace_id) {
   // Clear existing layout for this dockspace
   ImGui::DockBuilderRemoveNode(dockspace_id);
   ImGui::DockBuilderAddNode(dockspace_id, ImGuiDockNodeFlags_DockSpace);
-  ImGui::DockBuilderSetNodeSize(dockspace_id, ImGui::GetMainViewport()->Size);
+  ImGui::DockBuilderSetNodeSize(dockspace_id, ImGui::GetMainViewport()->WorkSize);
 
   // Build layout based on editor type using generic builder
   BuildLayoutFromPreset(type, dockspace_id);

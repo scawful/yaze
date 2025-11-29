@@ -12,7 +12,7 @@
 #include "app/gui/core/icons.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"  // For ImGuiWindow and FindWindowByName
-#include "nlohmann/json.hpp"
+#include "util/json.h"
 #include "util/log.h"
 #include "util/platform_paths.h"
 
@@ -756,12 +756,12 @@ void EditorCardRegistry::SavePresetsToFile() {
   std::filesystem::path presets_file = *config_dir_result / "layout_presets.json";
 
   try {
-    nlohmann::json j;
+    yaze::Json j;
     j["version"] = 1;
-    j["presets"] = nlohmann::json::object();
+    j["presets"] = yaze::Json::object();
 
     for (const auto& [name, preset] : presets_) {
-      nlohmann::json preset_json;
+      yaze::Json preset_json;
       preset_json["name"] = preset.name;
       preset_json["description"] = preset.description;
       preset_json["visible_cards"] = preset.visible_cards;
@@ -809,7 +809,7 @@ void EditorCardRegistry::LoadPresetsFromFile() {
       return;
     }
 
-    nlohmann::json j;
+    yaze::Json j;
     file >> j;
     file.close();
 
@@ -819,14 +819,25 @@ void EditorCardRegistry::LoadPresetsFromFile() {
     }
 
     size_t loaded_count = 0;
+    // Note: iterating over yaze::Json or nlohmann::json requires standard loop if using alias
+    // However, yaze::Json alias is just nlohmann::json when enabled.
+    // When disabled, the loop will just not execute or stub loop.
+    // But wait, nlohmann::json iterators return key/value pair or special iterator.
+    // Let's check how the loop was written: for (auto& [name, preset_json] : j["presets"].items())
+    // My stub has items(), but nlohmann::json uses items() too.
     for (auto& [name, preset_json] : j["presets"].items()) {
       WorkspacePreset preset;
       preset.name = preset_json.value("name", name);
       preset.description = preset_json.value("description", "");
 
       if (preset_json.contains("visible_cards")) {
-        for (const auto& card : preset_json["visible_cards"]) {
-          preset.visible_cards.push_back(card.get<std::string>());
+        yaze::Json visible_cards = preset_json["visible_cards"];
+        if (visible_cards.is_array()) {
+          for (const auto& card : visible_cards) {
+            if (card.is_string()) {
+              preset.visible_cards.push_back(card.get<std::string>());
+            }
+          }
         }
       }
 

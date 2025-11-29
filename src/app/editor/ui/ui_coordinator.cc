@@ -15,11 +15,11 @@
 #include "app/editor/editor_manager.h"
 #include "app/editor/system/editor_registry.h"
 #include "app/editor/menu/right_panel_manager.h"
-#include "app/editor/system/popup_manager.h"
+#include "app/editor/ui/popup_manager.h"
 #include "app/editor/system/project_manager.h"
 #include "app/editor/system/rom_file_manager.h"
 #include "app/editor/system/session_coordinator.h"
-#include "app/editor/system/toast_manager.h"
+#include "app/editor/ui/toast_manager.h"
 #include "app/editor/system/window_delegate.h"
 #include "app/editor/ui/welcome_screen.h"
 #include "app/gui/core/background_renderer.h"
@@ -154,6 +154,10 @@ void UICoordinator::DrawAllUI() {
   DrawWelcomeScreen();           // Welcome screen
   DrawProjectHelp();             // Project help
   DrawWindowManagementUI();      // Window management
+  
+  // Draw popups and toasts
+  DrawAllPopups();
+  toast_manager_.Draw();
 }
 
 // =============================================================================
@@ -825,18 +829,6 @@ void UICoordinator::HideAllWindows() {
   window_delegate_.HideAllWindows();
 }
 
-// Helper methods for drawing operations
-void UICoordinator::DrawSessionIndicator() {
-  // TODO: [EditorManagerRefactor] Implement session indicator in menu bar
-}
-
-void UICoordinator::DrawSessionTabs() {
-  // TODO: [EditorManagerRefactor] Implement session tabs UI
-}
-
-void UICoordinator::DrawSessionBadges() {
-  // TODO: [EditorManagerRefactor] Implement session status badges
-}
 
 // Material Design component helpers
 void UICoordinator::DrawMaterialButton(const std::string& text,
@@ -879,48 +871,6 @@ void UICoordinator::SetWindowSize(const std::string& window_name, float width,
   ImGui::SetNextWindowSize(ImVec2(width, height), ImGuiCond_FirstUseEver);
 }
 
-// Icon and theming helpers
-std::string UICoordinator::GetIconForEditor(EditorType type) const {
-  switch (type) {
-    case EditorType::kDungeon:
-      return ICON_MD_CASTLE;
-    case EditorType::kOverworld:
-      return ICON_MD_MAP;
-    case EditorType::kGraphics:
-      return ICON_MD_IMAGE;
-    case EditorType::kPalette:
-      return ICON_MD_PALETTE;
-    case EditorType::kSprite:
-      return ICON_MD_TOYS;
-    case EditorType::kScreen:
-      return ICON_MD_TV;
-    case EditorType::kMessage:
-      return ICON_MD_CHAT_BUBBLE;
-    case EditorType::kMusic:
-      return ICON_MD_MUSIC_NOTE;
-    case EditorType::kAssembly:
-      return ICON_MD_CODE;
-    case EditorType::kHex:
-      return ICON_MD_DATA_ARRAY;
-    case EditorType::kEmulator:
-      return ICON_MD_PLAY_ARROW;
-    case EditorType::kSettings:
-      return ICON_MD_SETTINGS;
-    default:
-      return ICON_MD_HELP;
-  }
-}
-
-std::string UICoordinator::GetColorForEditor(EditorType type) const {
-  // TODO: [EditorManagerRefactor] Map editor types to theme colors
-  // Use ThemeManager to get Material Design color names
-  return "primary";
-}
-
-void UICoordinator::ApplyEditorTheme(EditorType type) {
-  // TODO: [EditorManagerRefactor] Apply editor-specific theme overrides
-  // Use ThemeManager to push/pop style colors based on editor type
-}
 
 void UICoordinator::DrawCommandPalette() {
   if (!show_command_palette_)

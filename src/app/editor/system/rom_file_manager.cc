@@ -5,7 +5,7 @@
 #include <fstream>
 
 #include "absl/strings/str_format.h"
-#include "app/editor/system/toast_manager.h"
+#include "app/editor/ui/toast_manager.h"
 #include "app/rom.h"
 #include "util/file_util.h"
 

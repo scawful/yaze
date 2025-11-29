@@ -21,12 +21,12 @@
 #include "app/editor/session_types.h"
 #include "app/editor/system/editor_card_registry.h"
 #include "app/editor/system/editor_registry.h"
-#include "app/editor/system/popup_manager.h"
+#include "app/editor/ui/popup_manager.h"
 #include "app/editor/system/project_manager.h"
 #include "app/editor/system/proposal_drawer.h"
 #include "app/editor/system/rom_file_manager.h"
 #include "app/editor/system/session_coordinator.h"
-#include "app/editor/system/toast_manager.h"
+#include "app/editor/ui/toast_manager.h"
 #include "app/editor/system/user_settings.h"
 #include "app/editor/system/window_delegate.h"
 #include "app/editor/ui/editor_selection_dialog.h"
@@ -181,7 +181,8 @@ class EditorManager {
   // Jump-to functionality for cross-editor navigation
   void JumpToDungeonRoom(int room_id);
   void JumpToOverworldMap(int map_id);
-  void SwitchToEditor(EditorType editor_type, bool force_visible = false);
+  void SwitchToEditor(EditorType editor_type, bool force_visible = false,
+                      bool from_dialog = false);
 
   // Card-based editor registry
   static bool IsCardBasedEditor(EditorType type);

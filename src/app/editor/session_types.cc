@@ -37,10 +37,20 @@ void EditorSet::ApplyDependencies(const EditorDependencies& dependencies) {
     editor->SetDependencies(dependencies);
   }
   memory_editor_->set_rom(dependencies.rom);
+  if (music_editor_) {
+    music_editor_->SetProject(dependencies.project);
+  }
 
   // MusicEditor needs emulator for audio playback
   if (dependencies.emulator) {
     music_editor_->set_emulator(dependencies.emulator);
+  }
+
+  // Configure SettingsPanel
+  if (settings_panel_) {
+    settings_panel_->SetRom(dependencies.rom);
+    settings_panel_->SetUserSettings(dependencies.user_settings);
+    settings_panel_->SetCardRegistry(dependencies.card_registry);
   }
 }
 

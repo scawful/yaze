@@ -188,6 +188,7 @@ class EditorCardRegistry {
   void TriggerRedo() { if (on_redo_) on_redo_(); }
   void TriggerShowSearch() { if (on_show_search_) on_show_search_(); }
   void TriggerShowHelp() { if (on_show_help_) on_show_help_(); }
+  void TriggerOpenRom() { if (on_open_rom_) on_open_rom_(); }
   void TriggerCardClicked(const std::string& category) { if (on_card_clicked_) on_card_clicked_(category); }
 
   // ============================================================================
@@ -217,6 +218,9 @@ class EditorCardRegistry {
   }
   void SetShowHelpCallback(std::function<void()> cb) {
     on_show_help_ = std::move(cb);
+  }
+  void SetOpenRomCallback(std::function<void()> cb) {
+    on_open_rom_ = std::move(cb);
   }
   void SetSidebarStateChangedCallback(
       std::function<void(bool, bool)> cb) {
@@ -414,6 +418,7 @@ class EditorCardRegistry {
   std::function<void()> on_redo_;
   std::function<void()> on_show_search_;
   std::function<void()> on_show_help_;
+  std::function<void()> on_open_rom_;
 
   // State change callbacks
   std::function<void(bool visible, bool expanded)> on_sidebar_state_changed_;
