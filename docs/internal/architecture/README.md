@@ -13,6 +13,18 @@ This directory contains detailed architectural documentation for the YAZE (Yet A
   - Canvas interactions and drawing operations
   - Best practices for graphics modifications
 
+### UI and Layout System
+
+- **[editor_card_layout_system.md](editor_card_layout_system.md)** - Card-based editor and layout architecture
+  - EditorCardRegistry for centralized card management
+  - LayoutManager for ImGui DockBuilder layouts
+  - LayoutPresets for default per-editor configurations
+  - VSCode-style Activity Bar and Side Panel
+  - Agent UI system (multi-agent sessions, pop-out cards)
+  - Card validation system for development debugging
+  - Session-aware card ID prefixing
+  - Workspace preset save/load
+
 ### Editors
 
 #### Dungeon Editor
@@ -86,6 +98,16 @@ This directory contains detailed architectural documentation for the YAZE (Yet A
 - Key Classes: DungeonObjectEditor (UndoPoint structure)
 - Key Files: `dungeon_object_editor.h`
 
+### UI/Layout System (`src/app/editor/system/`, `src/app/editor/ui/`)
+- See: [editor_card_layout_system.md](editor_card_layout_system.md)
+- Key Classes: EditorCardRegistry, LayoutManager, LayoutPresets, UICoordinator
+- Key Files: `editor_card_registry.h`, `layout_manager.h`, `layout_presets.h`, `ui_coordinator.h`
+
+### Agent UI System (`src/app/editor/agent/`)
+- See: [editor_card_layout_system.md](editor_card_layout_system.md#agent-ui-system)
+- Key Classes: AgentUiController, AgentSessionManager, AgentSidebar, AgentChatCard, AgentChatView
+- Key Files: `agent_ui_controller.h`, `agent_session.h`, `agent_sidebar.h`, `agent_chat_card.h`
+
 ### ZSCustomOverworld
 - See: [zscustomoverworld_integration.md](zscustomoverworld_integration.md), [overworld_map_data.md](overworld_map_data.md)
 - Key Classes: OverworldMap, Overworld, OverworldVersionHelper
@@ -119,6 +141,18 @@ State snapshots before destructive operations:
 - Example: UndoPoint structure captures entire room object state
 - See: [undo_redo_system.md](undo_redo_system.md)
 
+### 6. Card-Based UI Architecture
+VSCode-style dockable card system with centralized registry:
+- Example: EditorCardRegistry manages all editor window metadata
+- Example: LayoutManager uses DockBuilder to arrange cards
+- See: [editor_card_layout_system.md](editor_card_layout_system.md)
+
+### 7. Multi-Session State Management
+Support for multiple concurrent sessions (ROMs, agents):
+- Example: AgentSessionManager maintains multiple agent sessions with shared context
+- Example: Card IDs prefixed with session ID for isolation
+- See: [editor_card_layout_system.md](editor_card_layout_system.md#session-aware-card-ids)
+
 ## Contributing Guidelines
 
 When adding new functionality:
@@ -147,6 +181,9 @@ This architecture reflects the project's maturity at the time of documentation. 
 - **Arena System**: Centralized graphics resource management replacing scattered SDL operations
 - **ZSCustomOverworld v3 Support**: Extended OverworldMap and Overworld to support expanded ROM features
 - **Progressive Loading**: Deferred texture creation to prevent UI freezes during large ROM loads
+- **EditorCardRegistry**: VSCode-style card management replacing ad-hoc window visibility tracking
+- **Multi-Agent Sessions**: Support for concurrent AI agents with shared context and pop-out cards
+- **Unified Visibility Management**: Single source of truth for component visibility (emulator, cards)
 
 ## Status and Maintenance
 
