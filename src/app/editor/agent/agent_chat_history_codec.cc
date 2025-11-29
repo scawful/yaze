@@ -316,6 +316,7 @@ absl::StatusOr<AgentChatHistoryCodec::Snapshot> AgentChatHistoryCodec::Load(
         AgentConfigSnapshot::ModelPreset preset;
         preset.name = preset_json.value("name", "");
         preset.model = preset_json.value("model", "");
+        preset.provider = preset_json.value("provider", "");
         preset.host = preset_json.value("host", "");
         preset.pinned = preset_json.value("pinned", false);
         if (preset_json.contains("tags") && preset_json["tags"].is_array()) {
@@ -478,6 +479,7 @@ absl::Status AgentChatHistoryCodec::Save(const std::filesystem::path& path,
       Json preset_json;
       preset_json["name"] = preset.name;
       preset_json["model"] = preset.model;
+      preset_json["provider"] = preset.provider;
       preset_json["host"] = preset.host;
       preset_json["tags"] = preset.tags;
       preset_json["pinned"] = preset.pinned;

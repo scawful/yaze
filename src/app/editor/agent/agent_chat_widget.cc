@@ -26,7 +26,7 @@
 #include "app/editor/agent/agent_chat_history_popup.h"
 #include "app/editor/agent/agent_ui_theme.h"
 #include "app/editor/system/proposal_drawer.h"
-#include "app/editor/system/toast_manager.h"
+#include "app/editor/ui/toast_manager.h"
 #include "app/gui/core/icons.h"
 #include "app/rom.h"
 #include "cli/service/ai/browser_ai_service.h"
@@ -158,7 +158,6 @@ namespace editor {
 AgentChatWidget::AgentChatWidget() {
   title_ = "Agent Chat";
   memset(input_buffer_, 0, sizeof(input_buffer_));
-  history_path_ = ResolveHistoryPath();
   history_supported_ = AgentChatHistoryCodec::Available();
   automation_state_.recent_tests.reserve(8);
 
@@ -169,11 +168,41 @@ AgentChatWidget::AgentChatWidget() {
   }
 }
 
+AgentChatWidget::ChatSession& AgentChatWidget::CurrentSession() {
+  if (chat_sessions_.empty()) {
+    chat_sessions_.emplace_back("default", "Main Session");
+    active_session_index_ = 0;
+  }
+  if (active_session_index_ >= static_cast<int>(chat_sessions_.size())) {
+    active_session_index_ = 0;
+  }
+  auto& session = chat_sessions_[active_session_index_];
+  if (session.history_path.empty()) {
+    session.history_path = ResolveHistoryPath(session.id);
+  }
+  return session;
+}
+
+const AgentChatWidget::ChatSession& AgentChatWidget::CurrentSession() const {
+  if (chat_sessions_.empty()) {
+    static ChatSession fallback("default", "Main Session");
+    return fallback;
+  }
+  if (active_session_index_ >= static_cast<int>(chat_sessions_.size())) {
+    return chat_sessions_.front();
+  }
+  return chat_sessions_[active_session_index_];
+}
+
+cli::agent::ConversationalAgentService& AgentChatWidget::CurrentService() {
+  return CurrentSession().agent_service;
+}
+
 void AgentChatWidget::SetRomContext(Rom* rom) {
   // Track if we've already initialized labels for this ROM instance
   static Rom* last_rom_initialized = nullptr;
 
-  agent_service_.SetRomContext(rom);
+  CurrentService().SetRomContext(rom);
 
   // Only initialize labels ONCE per ROM instance
   if (rom && rom->is_loaded() && rom->resource_label() &&
@@ -229,7 +258,7 @@ void AgentChatWidget::SetChatHistoryPopup(AgentChatHistoryPopup* popup) {
   chat_history_popup_->SetSendMessageCallback(
       [this](const std::string& message) {
         // Send message through the agent service
-        auto response = agent_service_.SendMessage(message);
+        auto response = CurrentService().SendMessage(message);
         HandleAgentResponse(response);
         PersistHistory();
       });
@@ -259,13 +288,14 @@ void AgentChatWidget::SetChatHistoryPopup(AgentChatHistoryPopup* popup) {
 }
 
 void AgentChatWidget::EnsureHistoryLoaded() {
-  if (history_loaded_) {
+  auto& session = CurrentSession();
+  if (session.history_loaded) {
     return;
   }
-  history_loaded_ = true;
+  session.history_loaded = true;
 
   std::error_code ec;
-  auto directory = history_path_.parent_path();
+  auto directory = session.history_path.parent_path();
   if (!directory.empty()) {
     std::filesystem::create_directories(directory, ec);
     if (ec) {
@@ -287,7 +317,7 @@ void AgentChatWidget::EnsureHistoryLoaded() {
   }
 
   absl::StatusOr<AgentChatHistoryCodec::Snapshot> result =
-      AgentChatHistoryCodec::Load(history_path_);
+      AgentChatHistoryCodec::Load(session.history_path);
   if (!result.ok()) {
     if (result.status().code() == absl::StatusCode::kUnimplemented) {
       history_supported_ = false;
@@ -311,11 +341,11 @@ void AgentChatWidget::EnsureHistoryLoaded() {
   AgentChatHistoryCodec::Snapshot snapshot = std::move(result.value());
 
   if (!snapshot.history.empty()) {
-    agent_service_.ReplaceHistory(std::move(snapshot.history));
-    last_history_size_ = agent_service_.GetHistory().size();
-    last_proposal_count_ = CountKnownProposals();
-    history_dirty_ = false;
-    last_persist_time_ = absl::Now();
+    CurrentService().ReplaceHistory(std::move(snapshot.history));
+    session.last_history_size = CurrentService().GetHistory().size();
+    session.last_proposal_count = CountKnownProposals();
+    session.history_dirty = false;
+    session.last_persist_time = absl::Now();
     if (toast_manager_) {
       toast_manager_->Show("Restored chat history", ToastType::kInfo, 3.5f);
     }
@@ -341,12 +371,13 @@ void AgentChatWidget::EnsureHistoryLoaded() {
 }
 
 void AgentChatWidget::PersistHistory() {
-  if (!history_loaded_ || !history_dirty_) {
+  auto& session = CurrentSession();
+  if (!session.history_loaded || !session.history_dirty) {
     return;
   }
 
   if (!history_supported_) {
-    history_dirty_ = false;
+    session.history_dirty = false;
     if (!history_warning_displayed_ && toast_manager_) {
       toast_manager_->Show(
           "Chat history requires gRPC/JSON support and is disabled",
@@ -357,7 +388,7 @@ void AgentChatWidget::PersistHistory() {
   }
 
   AgentChatHistoryCodec::Snapshot snapshot;
-  snapshot.history = agent_service_.GetHistory();
+  snapshot.history = CurrentService().GetHistory();
   snapshot.collaboration.active = collaboration_state_.active;
   snapshot.collaboration.session_id = collaboration_state_.session_id;
   snapshot.collaboration.session_name = collaboration_state_.session_name;
@@ -374,7 +405,7 @@ void AgentChatWidget::PersistHistory() {
     snapshot.agent_config = BuildHistoryAgentConfig();
   }
 
-  absl::Status status = AgentChatHistoryCodec::Save(history_path_, snapshot);
+  absl::Status status = AgentChatHistoryCodec::Save(session.history_path, snapshot);
   if (!status.ok()) {
     if (status.code() == absl::StatusCode::kUnimplemented) {
       history_supported_ = false;
@@ -384,7 +415,7 @@ void AgentChatWidget::PersistHistory() {
             ToastType::kWarning, 5.0f);
         history_warning_displayed_ = true;
       }
-      history_dirty_ = false;
+      session.history_dirty = false;
       return;
     }
 
@@ -396,13 +427,13 @@ void AgentChatWidget::PersistHistory() {
     return;
   }
 
-  history_dirty_ = false;
-  last_persist_time_ = absl::Now();
+  session.history_dirty = false;
+  session.last_persist_time = absl::Now();
 }
 
 int AgentChatWidget::CountKnownProposals() const {
   int total = 0;
-  const auto& history = agent_service_.GetHistory();
+  const auto& history = CurrentSession().agent_service.GetHistory();
   for (const auto& message : history) {
     if (message.metrics.has_value()) {
       total = std::max(total, message.metrics->total_proposals);
@@ -425,7 +456,8 @@ void AgentChatWidget::FocusProposalDrawer(const std::string& proposal_id) {
 
 void AgentChatWidget::NotifyProposalCreated(const ChatMessage& msg,
                                             int new_total_proposals) {
-  int delta = std::max(1, new_total_proposals - last_proposal_count_);
+  auto& session = CurrentSession();
+  int delta = std::max(1, new_total_proposals - session.last_proposal_count);
   if (toast_manager_) {
     if (msg.proposal.has_value()) {
       const auto& proposal = *msg.proposal;
@@ -464,10 +496,11 @@ void AgentChatWidget::HandleAgentResponse(
     total = std::max(total, message.metrics->total_proposals);
   }
 
-  if (total > last_proposal_count_) {
+  if (total > CurrentSession().last_proposal_count) {
     NotifyProposalCreated(message, total);
   }
-  last_proposal_count_ = std::max(last_proposal_count_, total);
+  CurrentSession().last_proposal_count =
+      std::max(CurrentSession().last_proposal_count, total);
 
   MarkPresetUsage(agent_config_.ai_model);
   // Sync history to popup after response
@@ -615,7 +648,7 @@ void AgentChatWidget::RenderProposalQuickActions(const ChatMessage& msg,
 
 void AgentChatWidget::RenderHistory() {
   const auto& theme = AgentUI::GetTheme();
-  const auto& history = agent_service_.GetHistory();
+  const auto& history = CurrentService().GetHistory();
   float reserved_height = ImGui::GetFrameHeightWithSpacing() * 4.0f;
   reserved_height += 100.0f;  // Reduced to 100 for much taller chat area
 
@@ -642,13 +675,13 @@ void AgentChatWidget::RenderHistory() {
       ImGui::PopStyleVar();
     }
 
-    if (history.size() > last_history_size_) {
+    if (history.size() > CurrentSession().last_history_size) {
       ImGui::SetScrollHereY(1.0f);
     }
   }
   ImGui::EndChild();
   ImGui::PopStyleColor();  // Pop the color we pushed at line 531
-  last_history_size_ = history.size();
+  CurrentSession().last_history_size = history.size();
 }
 
 void AgentChatWidget::RenderInputBox() {
@@ -681,7 +714,7 @@ void AgentChatWidget::RenderInputBox() {
                     ImVec2(140, 0)) ||
       send) {
     if (std::strlen(input_buffer_) > 0 && !waiting_for_response_) {
-      history_dirty_ = true;
+      CurrentSession().history_dirty = true;
       EnsureHistoryLoaded();
       pending_message_ = input_buffer_;
       waiting_for_response_ = true;
@@ -689,7 +722,7 @@ void AgentChatWidget::RenderInputBox() {
 
       // Send in next frame to avoid blocking
       // For now, send synchronously but show thinking indicator
-      auto response = agent_service_.SendMessage(pending_message_);
+      auto response = CurrentService().SendMessage(pending_message_);
       HandleAgentResponse(response);
       PersistHistory();
       waiting_for_response_ = false;
@@ -709,7 +742,7 @@ void AgentChatWidget::RenderInputBox() {
   ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
                         ImVec4(1.0f, 0.843f, 0.0f, 0.9f));
   if (ImGui::SmallButton(ICON_MD_DELETE_FOREVER " Clear")) {
-    agent_service_.ResetConversation();
+    CurrentService().ResetConversation();
     if (toast_manager_) {
       toast_manager_->Show("Conversation cleared", ToastType::kSuccess);
     }
@@ -837,7 +870,7 @@ void AgentChatWidget::Draw() {
   if (ImGui::BeginMenuBar()) {
     if (ImGui::BeginMenu(ICON_MD_MENU " Actions")) {
       if (ImGui::MenuItem(ICON_MD_DELETE_FOREVER " Clear History")) {
-        agent_service_.ResetConversation();
+        CurrentService().ResetConversation();
         SyncHistoryToPopup();
         if (toast_manager_) {
           toast_manager_->Show("Chat history cleared", ToastType::kInfo, 2.5f);
@@ -845,7 +878,7 @@ void AgentChatWidget::Draw() {
       }
       ImGui::Separator();
       if (ImGui::MenuItem(ICON_MD_REFRESH " Reset Conversation")) {
-        agent_service_.ResetConversation();
+        CurrentService().ResetConversation();
         SyncHistoryToPopup();
         if (toast_manager_) {
           toast_manager_->Show("Conversation reset", ToastType::kInfo, 2.5f);
@@ -886,7 +919,7 @@ void AgentChatWidget::Draw() {
         if (ImGui::MenuItem(chat_sessions_[i].name.c_str(), nullptr,
                             is_active)) {
           active_session_index_ = i;
-          history_loaded_ = false;  // Trigger reload
+          chat_sessions_[i].history_loaded = false;  // Trigger reload
           SyncHistoryToPopup();
         }
         if (is_active) {
@@ -946,12 +979,28 @@ void AgentChatWidget::Draw() {
     ImGui::TextColored(accent_color, ICON_MD_SMART_TOY);
     ImGui::SameLine();
     ImGui::SetNextItemWidth(95);
-    const char* providers[] = {"Mock", "Ollama", "Gemini", "OpenAI"};
+    const char* providers[] = {
+        "Mock", "Ollama", "Gemini"
+#if defined(__EMSCRIPTEN__)
+        , "OpenAI"
+#endif
+    };
     int current_provider = (agent_config_.ai_provider == "mock")     ? 0
                            : (agent_config_.ai_provider == "ollama") ? 1
                            : (agent_config_.ai_provider == "gemini") ? 2
-                                                                     : 3;
-    if (ImGui::Combo("##main_provider", &current_provider, providers, 4)) {
+#if defined(__EMSCRIPTEN__)
+                                                                     : 3
+#else
+                                                                     : 0
+#endif
+        ;
+    if (ImGui::Combo("##main_provider", &current_provider, providers,
+#if defined(__EMSCRIPTEN__)
+                     4
+#else
+                     3
+#endif
+                     )) {
       agent_config_.ai_provider = (current_provider == 0)   ? "mock"
                                   : (current_provider == 1) ? "ollama"
                                   : (current_provider == 2) ? "gemini"
@@ -965,11 +1014,14 @@ void AgentChatWidget::Draw() {
         strncpy(agent_config_.model_buffer, "gemini-2.5-flash",
                 sizeof(agent_config_.model_buffer) - 1);
         agent_config_.ai_model = agent_config_.model_buffer;
-      } else if (agent_config_.ai_provider == "openai") {
+      }
+#if defined(__EMSCRIPTEN__)
+      else if (agent_config_.ai_provider == "openai") {
         strncpy(agent_config_.model_buffer, "gpt-4o-mini",
                 sizeof(agent_config_.model_buffer) - 1);
         agent_config_.ai_model = agent_config_.model_buffer;
       }
+#endif
     }
 
     ImGui::SameLine();
@@ -1922,29 +1974,31 @@ void AgentChatWidget::ApplyCollaborationSession(
 }
 
 void AgentChatWidget::MarkHistoryDirty() {
-  history_dirty_ = true;
+  auto& session = CurrentSession();
+  session.history_dirty = true;
   const absl::Time now = absl::Now();
-  if (last_persist_time_ == absl::InfinitePast() ||
-      now - last_persist_time_ > absl::Seconds(2)) {
+  if (session.last_persist_time == absl::InfinitePast() ||
+      now - session.last_persist_time > absl::Seconds(2)) {
     PersistHistory();
   }
 }
 
 void AgentChatWidget::SwitchToSharedHistory(const std::string& session_id) {
   // Save current local history before switching
-  if (history_loaded_ && history_dirty_) {
+  auto& session = CurrentSession();
+  if (session.history_loaded && session.history_dirty) {
     PersistHistory();
   }
 
   // Switch to shared history path
-  history_path_ = ResolveHistoryPath(session_id);
-  history_loaded_ = false;
+  session.history_path = ResolveHistoryPath(session_id);
+  session.history_loaded = false;
 
   // Load shared history
   EnsureHistoryLoaded();
 
   // Initialize polling state
-  last_known_history_size_ = agent_service_.GetHistory().size();
+  session.last_known_history_size = CurrentService().GetHistory().size();
   last_shared_history_poll_ = absl::Now();
 
   if (toast_manager_) {
@@ -1957,13 +2011,14 @@ void AgentChatWidget::SwitchToSharedHistory(const std::string& session_id) {
 
 void AgentChatWidget::SwitchToLocalHistory() {
   // Save shared history before switching
-  if (history_loaded_ && history_dirty_) {
+  auto& session = CurrentSession();
+  if (session.history_loaded && session.history_dirty) {
     PersistHistory();
   }
 
   // Switch back to local history
-  history_path_ = ResolveHistoryPath("");
-  history_loaded_ = false;
+  session.history_path = ResolveHistoryPath("");
+  session.history_loaded = false;
 
   // Load local history
   EnsureHistoryLoaded();
@@ -1989,7 +2044,8 @@ void AgentChatWidget::PollSharedHistory() {
   last_shared_history_poll_ = now;
 
   // Check if the shared history file has been updated
-  auto result = AgentChatHistoryCodec::Load(history_path_);
+  auto& session = CurrentSession();
+  auto result = AgentChatHistoryCodec::Load(session.history_path);
   if (!result.ok()) {
     return;  // File might not exist yet or be temporarily locked
   }
@@ -1997,12 +2053,12 @@ void AgentChatWidget::PollSharedHistory() {
   const size_t new_size = result->history.size();
 
   // If history has grown, reload it
-  if (new_size > last_known_history_size_) {
-    const size_t new_messages = new_size - last_known_history_size_;
+  if (new_size > session.last_known_history_size) {
+    const size_t new_messages = new_size - session.last_known_history_size;
 
-    agent_service_.ReplaceHistory(std::move(result->history));
-    last_history_size_ = new_size;
-    last_known_history_size_ = new_size;
+    CurrentService().ReplaceHistory(std::move(result->history));
+    session.last_history_size = new_size;
+    session.last_known_history_size = new_size;
 
     if (toast_manager_) {
       toast_manager_->Show(
@@ -2022,11 +2078,23 @@ cli::AIServiceConfig AgentChatWidget::BuildAIServiceConfig() const {
   if (cfg.provider == "auto" || cfg.provider.empty()) {
     cfg.provider = "gemini";
   }
+#else
+  // Native builds: avoid slow auto-detection on startup; stay on mock until the
+  // user explicitly opts into a provider.
+  if (cfg.provider == "auto" || cfg.provider.empty()) {
+    cfg.provider = "mock";
+  }
+  if (cfg.provider == "openai") {
+    LOG_WARN("AgentChatWidget",
+             "OpenAI provider is only supported in browser builds; falling back "
+             "to mock");
+    cfg.provider = "mock";
+  }
 #endif
   cfg.model = agent_config_.ai_model;
   cfg.ollama_host = agent_config_.ollama_host;
   cfg.gemini_api_key = agent_config_.gemini_api_key;
-  cfg.openai_api_key = agent_config_.gemini_api_key;  // reuse until dedicated field exists
+  cfg.openai_api_key.clear();
   cfg.verbose = agent_config_.verbose;
   return cfg;
 }
@@ -2042,14 +2110,26 @@ void AgentChatWidget::ApplyToolPreferences() {
   prefs.music = agent_config_.tool_config.music;
   prefs.sprite = agent_config_.tool_config.sprite;
   prefs.emulator = agent_config_.tool_config.emulator;
-  agent_service_.SetToolPreferences(prefs);
+  CurrentService().SetToolPreferences(prefs);
 }
 
-void AgentChatWidget::RefreshModels() {
+void AgentChatWidget::RefreshModels(bool force) {
+  // Use cached list if recent and not forced.
+  if (!force && !model_info_cache_.empty() &&
+      (absl::Now() - last_model_refresh_) < absl::Minutes(5)) {
+    models_loading_ = false;
+    return;
+  }
+
   models_loading_ = true;
 
   auto& registry = cli::ModelRegistry::GetInstance();
-  registry.ClearServices();
+  auto cached_models = model_info_cache_;
+  auto cached_names = model_name_cache_;
+
+  if (force) {
+    registry.ClearServices();
+  }
 
 #if defined(__EMSCRIPTEN__)
   // Browser build: use BrowserAIService (fetch-based, no gRPC)
@@ -2071,6 +2151,11 @@ void AgentChatWidget::RefreshModels() {
       toast_manager_->Show(absl::StrFormat("Model refresh failed: %s",
                                            models_or.status().message()),
                            ToastType::kWarning, 4.0f);
+    }
+    // Keep previous cache if discovery fails.
+    if (!cached_models.empty()) {
+      model_info_cache_ = std::move(cached_models);
+      model_name_cache_ = std::move(cached_names);
     }
     return;
   }
@@ -2126,6 +2211,10 @@ void AgentChatWidget::RefreshModels() {
       toast_manager_->Show(absl::StrFormat("Model refresh failed: %s",
                                            models_or.status().message()),
                            ToastType::kWarning, 4.0f);
+    }
+    if (!cached_models.empty()) {
+      model_info_cache_ = std::move(cached_models);
+      model_name_cache_ = std::move(cached_names);
     }
     return;
   }
@@ -2190,10 +2279,10 @@ void AgentChatWidget::UpdateAgentConfig(const AgentConfigState& config) {
   service_config.max_tool_iterations = config.max_tool_iterations;
   service_config.max_retry_attempts = config.max_retry_attempts;
 
-  agent_service_.SetConfig(service_config);
+  CurrentService().SetConfig(service_config);
 
   auto provider_config = BuildAIServiceConfig();
-  absl::Status status = agent_service_.ConfigureProvider(provider_config);
+  absl::Status status = CurrentService().ConfigureProvider(provider_config);
   if (!status.ok()) {
     if (toast_manager_) {
       toast_manager_->Show(
@@ -2350,7 +2439,7 @@ void AgentChatWidget::RenderModelConfigControls() {
                            IM_ARRAYSIZE(model_search_buffer_));
   ImGui::SameLine();
   if (ImGui::Button(models_loading_ ? ICON_MD_SYNC : ICON_MD_REFRESH)) {
-    RefreshModels();
+    RefreshModels(true);
   }
 
   // Use theme color for model list background
@@ -2362,14 +2451,18 @@ void AgentChatWidget::RenderModelConfigControls() {
     ImGui::TextDisabled("No cached models. Refresh to discover.");
   } else {
     // Helper lambda to get provider color
-    auto get_provider_color = [&theme](const std::string& provider) -> ImVec4 {
-      if (provider == "ollama") {
-        return theme.provider_ollama;
-      } else if (provider == "gemini") {
-        return theme.provider_gemini;
-      }
-      return theme.provider_mock;
-    };
+  auto get_provider_color = [&theme](const std::string& provider) -> ImVec4 {
+    if (provider == "ollama") {
+      return theme.provider_ollama;
+    } else if (provider == "gemini") {
+      return theme.provider_gemini;
+#if defined(__EMSCRIPTEN__)
+    } else if (provider == "openai") {
+      return theme.provider_gemini;
+#endif
+    }
+    return theme.provider_mock;
+  };
 
     // Prefer rich metadata if available
     if (!model_info_cache_.empty()) {
@@ -2461,12 +2554,13 @@ void AgentChatWidget::RenderModelConfigControls() {
         // Preset button
         ImGui::SameLine();
         if (ImGui::SmallButton(ICON_MD_NOTE_ADD)) {
-          AgentConfigState::ModelPreset preset;
-          preset.name = info.name;
-          preset.model = info.name;
-          preset.host =
-              (info.provider == "ollama") ? agent_config_.ollama_host : "";
-          preset.tags = {info.provider};
+      AgentConfigState::ModelPreset preset;
+      preset.name = info.name;
+      preset.model = info.name;
+      preset.provider = info.provider;
+      preset.host =
+          (info.provider == "ollama") ? agent_config_.ollama_host : "";
+      preset.tags = {info.provider};
           preset.last_used = absl::Now();
           agent_config_.model_presets.push_back(std::move(preset));
           if (toast_manager_) {
@@ -2801,7 +2895,9 @@ void AgentChatWidget::RenderPersonaSummary() {
 
 void AgentChatWidget::ApplyModelPreset(
     const AgentConfigState::ModelPreset& preset) {
-  agent_config_.ai_provider = "ollama";
+  if (!preset.provider.empty()) {
+    agent_config_.ai_provider = preset.provider;
+  }
   agent_config_.ollama_host =
       preset.host.empty() ? agent_config_.ollama_host : preset.host;
   agent_config_.ai_model = preset.model;
@@ -2864,6 +2960,7 @@ AgentChatWidget::BuildHistoryAgentConfig() const {
     AgentChatHistoryCodec::AgentConfigSnapshot::ModelPreset stored;
     stored.name = preset.name;
     stored.model = preset.model;
+    stored.provider = preset.provider;
     stored.host = preset.host;
     stored.tags = preset.tags;
     stored.pinned = preset.pinned;
@@ -2904,6 +3001,7 @@ void AgentChatWidget::ApplyHistoryAgentConfig(
     AgentConfigState::ModelPreset preset;
     preset.name = stored.name;
     preset.model = stored.model;
+    preset.provider = stored.provider;
     preset.host = stored.host;
     preset.tags = stored.tags;
     preset.pinned = stored.pinned;
@@ -3844,6 +3942,10 @@ void AgentChatWidget::LoadAgentSettingsFromProject(
   strncpy(agent_config_.gemini_key_buffer, agent_config_.gemini_api_key.c_str(),
           sizeof(agent_config_.gemini_key_buffer) - 1);
 
+  // Apply the loaded settings so the agent service is configured when the UI
+  // opens.
+  UpdateAgentConfig(agent_config_);
+
   // Load custom system prompt if specified
   if (project.agent_settings.use_custom_prompt &&
       !project.agent_settings.custom_system_prompt.empty()) {
@@ -4024,7 +4126,7 @@ void AgentChatWidget::SyncHistoryToPopup() {
   }
 
   // Get the current chat history from the agent service
-  const auto& history = agent_service_.GetHistory();
+  const auto& history = CurrentService().GetHistory();
 
   // Update the popup with the latest history
   chat_history_popup_->UpdateHistory(history);

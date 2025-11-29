@@ -37,32 +37,37 @@ void ActivityBar::DrawUtilityButtons(std::function<bool()> has_rom) {
 
   // Save ROM button
   {
-    if (gui::TransparentIconButton(ICON_MD_SAVE, ImVec2(48.0f, 32.0f), 
-                                                "Save ROM (Ctrl+S)", false)) {
+    if (gui::TransparentIconButton(ICON_MD_FOLDER_OPEN, ImVec2(48.0f, 40.0f),
+                                   "Open ROM (Ctrl+O)", false)) {
+      card_registry_.TriggerOpenRom();
+    }
+
+    if (gui::TransparentIconButton(ICON_MD_SAVE, ImVec2(48.0f, 40.0f),
+                                   "Save ROM (Ctrl+S)", false)) {
       if (rom_loaded) card_registry_.TriggerSaveRom();
     }
 
     // Undo
-    if (gui::TransparentIconButton(ICON_MD_UNDO, ImVec2(48.0f, 32.0f), 
-                                                "Undo (Ctrl+Z)", false)) {
+    if (gui::TransparentIconButton(ICON_MD_UNDO, ImVec2(48.0f, 40.0f),
+                                   "Undo (Ctrl+Z)", false)) {
       if (rom_loaded) card_registry_.TriggerUndo();
     }
 
     // Redo
-    if (gui::TransparentIconButton(ICON_MD_REDO, ImVec2(48.0f, 32.0f), 
-                                                "Redo (Ctrl+Y)", false)) {
+    if (gui::TransparentIconButton(ICON_MD_REDO, ImVec2(48.0f, 40.0f),
+                                   "Redo (Ctrl+Y)", false)) {
       if (rom_loaded) card_registry_.TriggerRedo();
     }
 
     // Search
-    if (gui::TransparentIconButton(ICON_MD_SEARCH, ImVec2(48.0f, 32.0f), 
-                                                "Global Search (Ctrl+Shift+F)", false)) {
+    if (gui::TransparentIconButton(ICON_MD_SEARCH, ImVec2(48.0f, 40.0f),
+                                   "Global Search (Ctrl+Shift+F)", false)) {
       card_registry_.TriggerShowSearch();
     }
 
     // Help
-    if (gui::TransparentIconButton(ICON_MD_HELP_OUTLINE, ImVec2(48.0f, 32.0f), 
-                                                "Help (F1)", false)) {
+    if (gui::TransparentIconButton(ICON_MD_HELP_OUTLINE, ImVec2(48.0f, 40.0f),
+                                   "Help (F1)", false)) {
       card_registry_.TriggerShowHelp();
     }
   }
@@ -171,11 +176,14 @@ void ActivityBar::DrawActivityBarStrip(
   // Draw "More Actions" button at the bottom
   ImGui::SetCursorPosY(viewport_height - 48.0f);
   
-  if (gui::TransparentIconButton(ICON_MD_MORE_HORIZ, ImVec2(48.0f, 40.0f))) {
+  if (gui::TransparentIconButton(ICON_MD_MORE_HORIZ, ImVec2(48.0f, 48.0f))) {
     ImGui::OpenPopup("ActivityBarMoreMenu");
   }
 
   if (ImGui::BeginPopup("ActivityBarMoreMenu")) {
+    if (ImGui::MenuItem(ICON_MD_FOLDER_OPEN " Open ROM")) {
+      card_registry_.TriggerOpenRom();
+    }
     if (ImGui::MenuItem(ICON_MD_SETTINGS " Settings")) {
       card_registry_.TriggerShowSettings();
     }

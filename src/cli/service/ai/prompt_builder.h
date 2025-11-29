@@ -1,15 +1,16 @@
 #ifndef YAZE_CLI_SERVICE_PROMPT_BUILDER_H_
 #define YAZE_CLI_SERVICE_PROMPT_BUILDER_H_
 
-// PromptBuilder requires JSON and YAML support for catalogue loading
-// If you see linker errors, enable Z3ED_AI or YAZE_WITH_JSON in CMake
+// PromptBuilder requires JSON and YAML support for catalogue loading.
+// Enable YAZE_WITH_JSON and ensure yaml-cpp is available (the mac-ai preset
+// already sets these).
 #if !defined(YAZE_WITH_JSON)
 #ifdef _MSC_VER
 #pragma message( \
-    "PromptBuilder requires JSON support. Build with -DZ3ED_AI=ON or -DYAZE_WITH_JSON=ON")
+    "PromptBuilder requires JSON support. Build with -DYAZE_WITH_JSON=ON (or -DZ3ED_AI=ON) and ensure yaml-cpp is available.")
 #else
 #warning \
-    "PromptBuilder requires JSON support. Build with -DZ3ED_AI=ON or -DYAZE_WITH_JSON=ON"
+    "PromptBuilder requires JSON support. Build with -DYAZE_WITH_JSON=ON (or -DZ3ED_AI=ON) and ensure yaml-cpp is available."
 #endif
 #endif
 

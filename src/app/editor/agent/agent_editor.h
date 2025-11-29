@@ -100,6 +100,10 @@ class AgentEditor : public Editor {
     bool show_reasoning = true;
     int max_tool_iterations = 4;
     int max_retry_attempts = 3;
+    float temperature = 0.25f;
+    float top_p = 0.95f;
+    int max_output_tokens = 2048;
+    bool stream_responses = false;
     std::vector<std::string> tags;
     absl::Time created_at = absl::Now();
     absl::Time modified_at = absl::Now();
@@ -118,6 +122,11 @@ class AgentEditor : public Editor {
     bool verbose = false;
     bool show_reasoning = true;
     int max_tool_iterations = 4;
+    int max_retry_attempts = 3;
+    float temperature = 0.25f;
+    float top_p = 0.95f;
+    int max_output_tokens = 2048;
+    bool stream_responses = false;
   };
 
   struct AgentBuilderState {

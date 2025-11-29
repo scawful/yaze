@@ -9,7 +9,7 @@
 #include "app/editor/agent/agent_session.h"
 #include "app/editor/agent/agent_sidebar.h"
 #include "app/editor/system/proposal_drawer.h"
-#include "app/editor/system/toast_manager.h"
+#include "app/editor/ui/toast_manager.h"
 #include "app/editor/menu/right_panel_manager.h"
 #include "app/rom.h"
 #include "util/log.h"
@@ -19,12 +19,21 @@ namespace editor {
 
 void AgentUiController::Initialize(ToastManager* toast_manager,
                                    ProposalDrawer* proposal_drawer,
-                                   RightPanelManager* right_panel_manager) {
+                                   RightPanelManager* right_panel_manager,
+                                   EditorCardRegistry* card_registry) {
   toast_manager_ = toast_manager;
   right_panel_manager_ = right_panel_manager;
 
   // Create initial agent session
   session_manager_.CreateSession("Agent 1");
+
+  // Provide minimal dependencies so cards register with the activity bar
+  if (card_registry) {
+    EditorDependencies deps;
+    deps.card_registry = card_registry;
+    deps.toast_manager = toast_manager;
+    agent_editor_.SetDependencies(deps);
+  }
 
   // Initialize the AgentEditor
   agent_editor_.Initialize();

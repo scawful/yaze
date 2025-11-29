@@ -42,7 +42,8 @@ class AgentUiController {
  public:
   void Initialize(ToastManager* toast_manager,
                   ProposalDrawer* proposal_drawer,
-                  RightPanelManager* right_panel_manager);
+                  RightPanelManager* right_panel_manager,
+                  EditorCardRegistry* card_registry);
 
   void SetRomContext(Rom* rom);
 

@@ -9,7 +9,7 @@
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_format.h"
-#include "app/editor/system/popup_manager.h"
+#include "app/editor/ui/popup_manager.h"
 #include "app/editor/system/shortcut_manager.h"
 
 namespace yaze {
@@ -22,6 +22,9 @@ class IRenderer;
 namespace emu {
 class Emulator;
 }
+namespace project {
+struct YazeProject;
+}  // namespace project
 
 /**
  * @namespace yaze::editor
@@ -86,6 +89,7 @@ struct EditorDependencies {
   ShortcutManager* shortcut_manager = nullptr;
   SharedClipboard* shared_clipboard = nullptr;
   UserSettings* user_settings = nullptr;
+  project::YazeProject* project = nullptr;
   size_t session_id = 0;
 
   gfx::IRenderer* renderer = nullptr;

@@ -129,6 +129,11 @@ bool EditorSelectionDialog::Show(bool* p_open) {
           if (selection_callback_) {
             selection_callback_(selected_editor_);
           }
+          // Auto-dismiss after selection
+          is_open_ = false;
+          if (p_open) {
+            *p_open = false;
+          }
         }
       }
       ImGui::EndTable();
@@ -141,11 +146,8 @@ bool EditorSelectionDialog::Show(bool* p_open) {
     is_open_ = false;
   }
 
-  if (editor_selected) {
-    is_open_ = false;
-    if (p_open)
-      *p_open = false;
-  }
+  // DO NOT auto-dismiss here. Let the callback/EditorManager handle it.
+  // This allows the dialog to be used as a persistent switcher if desired.
 
   return editor_selected;
 }
