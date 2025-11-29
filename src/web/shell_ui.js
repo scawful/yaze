@@ -99,10 +99,31 @@ function resetSettings() {
 
 // Theme management
 function setTheme(theme) {
-  // Clear inline styles from sync (except potentially font-size if set on root, but here mostly colors)
+  // Use unified theme definitions if available
+  if (window.YazeThemes && window.YazeThemes.applyTheme) {
+    // Map legacy theme names to new unified names
+    var themeMap = {
+      'default': 'hacker_green',
+      'modern': 'modern',
+      'halext': 'halext',
+      'synced': 'synced'
+    };
+    var unifiedTheme = themeMap[theme] || theme;
+
+    if (unifiedTheme === 'synced') {
+      syncTheme();
+      return;
+    }
+
+    if (window.YazeThemes.applyTheme(unifiedTheme)) {
+      return;
+    }
+  }
+
+  // Fallback: Clear inline styles from sync
   // Note: We reset properties we override
   var root = document.documentElement;
-  var props = ['--bg-app', '--bg-header', '--bg-panel', '--bg-input', '--bg-hover', '--bg-selected', 
+  var props = ['--bg-app', '--bg-header', '--bg-panel', '--bg-input', '--bg-hover', '--bg-selected',
                '--text-primary', '--text-secondary', '--text-muted', '--text-accent',
                '--accent-primary', '--accent-hover', '--accent-dim',
                '--border-color', '--border-focus',
@@ -123,10 +144,18 @@ function setTheme(theme) {
   }
 }
 
-function syncTheme() {
+async function syncTheme() {
+  // Use unified theme system if available
+  if (window.YazeThemes && window.YazeThemes.syncFromCpp) {
+    if (window.YazeThemes.syncFromCpp()) {
+      return true;
+    }
+  }
+
+  // Fallback to direct Module call
   if (typeof Module !== 'undefined' && Module.settingsGetCurrentThemeData) {
     try {
-      var data = Module.settingsGetCurrentThemeData();
+      var data = await Module.settingsGetCurrentThemeData();
       if (data) {
         applyThemeFromData(data);
         // Ensure storage is updated
@@ -200,7 +229,7 @@ function loadUserFont() {
   var file = input.files[0];
   var reader = new FileReader();
   
-  reader.onload = function(e) {
+  reader.onload = async function(e) {
     var arrayBuffer = e.target.result;
     var uint8Array = new Uint8Array(arrayBuffer);
     
@@ -212,16 +241,16 @@ function loadUserFont() {
     }
     
     if (Module.settingsLoadFont) {
-      var resultStr = Module.settingsLoadFont(file.name, binaryString, 16.0);
       try {
-          var result = JSON.parse(resultStr);
-          if (result.success) {
-              alert("Font loaded successfully! Note: Texture atlas rebuild required.");
-          } else {
-              alert("Failed to load font: " + result.error);
-          }
+        var resultStr = await Module.settingsLoadFont(file.name, binaryString, 16.0);
+        var result = JSON.parse(resultStr);
+        if (result.success) {
+            alert("Font loaded successfully! Note: Texture atlas rebuild required.");
+        } else {
+            alert("Failed to load font: " + result.error);
+        }
       } catch(e) {
-          alert("Error parsing result: " + e.message);
+          alert("Error loading font: " + e.message);
       }
     } else {
       alert("Module.settingsLoadFont not available");
@@ -325,12 +354,16 @@ function toggleAIToolsMenu(e) {
 }
 
 // Switch to a specific editor using yaze.control API
-function switchToEditor(editorName) {
+async function switchToEditor(editorName) {
   closeAllDropdowns();
   if (window.yaze && window.yaze.control && window.yaze.control.switchEditor) {
-    var result = window.yaze.control.switchEditor(editorName);
-    console.log('Switch to editor:', editorName, result);
-    updateCurrentEditorDisplay();
+    try {
+      var result = await window.yaze.control.switchEditor(editorName);
+      console.log('Switch to editor:', editorName, result);
+      updateCurrentEditorDisplay();
+    } catch (e) {
+      console.error('Error switching editor:', e);
+    }
   } else {
     console.warn('yaze.control API not available');
     // Fallback: Try direct Module call
@@ -368,7 +401,7 @@ function updateEditorMenuState() {
 }
 
 // Trigger emulator action
-function triggerEmulatorAction(action) {
+async function triggerEmulatorAction(action) {
   closeAllDropdowns();
   var actionMap = {
     'show': 'View.ShowEmulator',
@@ -382,19 +415,27 @@ function triggerEmulatorAction(action) {
 
   var menuAction = actionMap[action];
   if (menuAction && window.yaze && window.yaze.control && window.yaze.control.triggerMenuAction) {
-    var result = window.yaze.control.triggerMenuAction(menuAction);
-    console.log('Emulator action:', action, result);
+    try {
+      var result = await window.yaze.control.triggerMenuAction(menuAction);
+      console.log('Emulator action:', action, result);
+    } catch (e) {
+      console.error('Error triggering emulator action:', e);
+    }
   } else {
     console.warn('Action not available:', action);
   }
 }
 
 // Set layout preset
-function setLayout(layoutName) {
+async function setLayout(layoutName) {
   closeAllDropdowns();
   if (window.yaze && window.yaze.control && window.yaze.control.setCardLayout) {
-    var result = window.yaze.control.setCardLayout(layoutName);
-    console.log('Set layout:', layoutName, result);
+    try {
+      var result = await window.yaze.control.setCardLayout(layoutName);
+      console.log('Set layout:', layoutName, result);
+    } catch (e) {
+      console.error('Error setting layout:', e);
+    }
   } else {
     console.warn('Layout API not available');
   }
@@ -424,7 +465,7 @@ function toggleRomFilesMenu(e) {
   }
 }
 
-function updateRomFilesList() {
+async function updateRomFilesList() {
   var listEl = document.getElementById('rom-files-list');
   if (!listEl) return;
 
@@ -434,7 +475,8 @@ function updateRomFilesList() {
   }
 
   try {
-    var sessions = JSON.parse(Module.getRomSessions());
+    var sessionsStr = await Module.getRomSessions();
+    var sessions = JSON.parse(sessionsStr);
     var html = '';
 
     if (sessions.current_rom && sessions.current_rom.loaded) {
@@ -511,14 +553,15 @@ function loadRecentFile(filepath) {
   }
 }
 
-function showFileManagerDebug() {
+async function showFileManagerDebug() {
   if (!window.yazeDebug || !window.yazeDebug.isReady()) {
     console.log('Module not ready');
     alert('WASM module not ready');
     return;
   }
   try {
-    var info = JSON.parse(Module.getFileManagerDebugInfo());
+    var infoStr = await Module.getFileManagerDebugInfo();
+    var info = JSON.parse(infoStr);
     console.log('=== File Manager Debug Info ===');
     console.log(JSON.stringify(info, null, 2));
     alert('File Manager Debug Info logged to console.\n\nGlobal ROM: ' + (info.global_rom_ptr ? 'Yes' : 'No') +
@@ -786,17 +829,9 @@ document.addEventListener('keypress', function(e) {
   }
 }, true);
 
-// Block browser context menu on the main WASM canvas (ImGui handles its own)
-document.addEventListener('contextmenu', function(e) {
-  var target = e.target;
-  if (!target) return;
-  if (target.id === 'canvas' || (target.closest && target.closest('#canvas-container'))) {
-    e.preventDefault();
-    e.stopPropagation();
-    e.stopImmediatePropagation();
-    return false;
-  }
-}, true);
+// NOTE: Context menu prevention is handled by the early IIFE in app.js (lines 6-22)
+// which uses capture phase to intercept events before any other handlers.
+// No additional handlers are needed here.
 
 // Status bar helpers (called from WASM)
 window.yazeStatus = {

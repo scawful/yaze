@@ -245,22 +245,9 @@ var Module = {
     var canvas = document.getElementById('canvas');
     canvas.addEventListener("webglcontextlost", function(e) { alert('WebGL context lost. You will need to reload the page.'); e.preventDefault(); }, false);
 
-    // Prevent browser context menu on right-click - the app has its own context menu
-    canvas.addEventListener("contextmenu", function(e) {
-      e.preventDefault();
-      e.stopPropagation();
-      return false;
-    }, { capture: true, passive: false });
-
-    // Global context menu prevention for the entire window to be safe
-    window.addEventListener("contextmenu", function(e) {
-      // Only prevent if target is canvas or inside the app container
-      if (e.target.tagName === 'CANVAS' || e.target.closest('#canvas-container')) {
-        e.preventDefault();
-        e.stopPropagation();
-        return false;
-      }
-    }, { capture: true, passive: false });
+    // NOTE: Context menu prevention is handled by the early IIFE at the top of this file
+    // (lines 6-22) which uses capture phase to intercept events before any other handlers.
+    // No additional handlers are needed here.
 
     // WORKAROUND: Ensure all UI events have defined integer properties to prevent
     // SAFE_HEAP assertion failures in Emscripten's SDL/HTML5 event handler.
@@ -732,28 +719,73 @@ window.resizeCanvasToContainer = function resizeCanvasToContainer() {
   // console.log('Canvas resized to:', width, 'x', height);
 }
 
-// Use throttled resize for real-time feedback and debounced resize for final adjustment
-const throttledResize = throttle(window.resizeCanvasToContainer, 100);
-const debouncedResize = debounce(window.resizeCanvasToContainer, 250);
+// ResizeObserver-based resize system for smoother canvas updates
+// Replaces throttle+debounce approach to avoid race conditions
+let resizeRAF = null;
+let lastResizeTime = 0;
+const MIN_RESIZE_INTERVAL = 16; // ~60fps max
 
-// Resize canvas on window resize
-window.addEventListener('resize', function(e) {
+function scheduleResize() {
+  const now = performance.now();
+
+  // Cancel any pending resize
+  if (resizeRAF) {
+    cancelAnimationFrame(resizeRAF);
+    resizeRAF = null;
+  }
+
+  // Rate limit to prevent too frequent updates
+  const elapsed = now - lastResizeTime;
+  if (elapsed < MIN_RESIZE_INTERVAL) {
+    // Schedule for next frame
+    resizeRAF = requestAnimationFrame(function() {
+      lastResizeTime = performance.now();
+      window.resizeCanvasToContainer();
+      resizeRAF = null;
+    });
+  } else {
+    // Execute immediately in next frame
+    resizeRAF = requestAnimationFrame(function() {
+      lastResizeTime = performance.now();
+      window.resizeCanvasToContainer();
+      resizeRAF = null;
+    });
+  }
+}
+
+// Use ResizeObserver for accurate container size monitoring
+if (typeof ResizeObserver !== 'undefined') {
+  const canvasContainer = document.getElementById('canvas-container');
+  if (canvasContainer) {
+    const resizeObserver = new ResizeObserver(function(entries) {
+      // Only resize if container is visible and has valid dimensions
+      for (const entry of entries) {
+        if (entry.contentRect.width > 0 && entry.contentRect.height > 0) {
+          scheduleResize();
+        }
+      }
+    });
+    resizeObserver.observe(canvasContainer);
+  }
+}
+
+// Fallback for browsers without ResizeObserver (very old browsers)
+window.addEventListener('resize', function() {
   // Validate window dimensions before processing resize
   if (typeof window.innerWidth !== 'number' || isNaN(window.innerWidth) ||
       typeof window.innerHeight !== 'number' || isNaN(window.innerHeight)) {
     console.warn('[Resize] Invalid window dimensions, skipping');
     return;
   }
-  throttledResize();  // Immediate feedback
-  debouncedResize();  // Final adjustment
+  scheduleResize();
 });
 
-// Handle mobile orientation changes (separate from resize for better timing)
+// Handle mobile orientation changes
 window.addEventListener('orientationchange', function() {
   // Delay resize to allow browser layout to settle after orientation change
   setTimeout(function() {
     console.log('[Resize] Orientation changed, resizing canvas');
-    window.resizeCanvasToContainer();
+    scheduleResize();
   }, 150);
 });
 

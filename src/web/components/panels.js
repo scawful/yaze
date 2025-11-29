@@ -45,7 +45,12 @@ var panels = {
     var duration = 200; // Match CSS transition
     function step() {
       var now = Date.now();
-      resizeCanvasToContainer();
+      // Use scheduleResize if available (uses ResizeObserver/RAF), otherwise fallback
+      if (typeof scheduleResize === 'function') {
+        scheduleResize();
+      } else if (typeof resizeCanvasToContainer === 'function') {
+        resizeCanvasToContainer();
+      }
       if (now - start < duration) {
         requestAnimationFrame(step);
       }
@@ -81,6 +86,7 @@ var panels = {
     } else if (this.activeTab === 'problems') {
       var list = document.getElementById('problems-list');
       if (list) list.innerHTML = '<div class="problems-empty">No problems detected</div>';
+      this.clearProblemBadge();
     } else if (this.activeTab === 'output') {
       var log = document.getElementById('output-log');
       if (log) log.innerHTML = '';
@@ -137,15 +143,53 @@ var panels = {
     var empty = list.querySelector('.problems-empty');
     if (empty) empty.remove();
     var item = document.createElement('div');
-    item.className = 'problem-item' + (type === 'warning' ? ' warning' : '');
+    item.className = 'problem-item' + (type === 'warning' ? ' warning' : type === 'info' ? ' info' : '');
     item.textContent = message;
     list.appendChild(item);
+    this.updateProblemBadge();
   },
 
   addOutput: function(message) {
     var log = document.getElementById('output-log');
     log.textContent += message + '\n';
     log.scrollTop = log.scrollHeight;
+  },
+
+  // Update problem count badge on the Problems tab
+  updateProblemBadge: function() {
+    var list = document.getElementById('problems-list');
+    var tab = document.querySelector('.panel-tab[data-panel="problems"]');
+    if (!list || !tab) return;
+
+    // Count problems
+    var errorCount = list.querySelectorAll('.problem-item:not(.warning):not(.info)').length;
+    var warningCount = list.querySelectorAll('.problem-item.warning').length;
+
+    // Remove existing badge
+    var existingBadge = tab.querySelector('.badge');
+    if (existingBadge) existingBadge.remove();
+
+    // Add badge if there are problems
+    if (errorCount > 0) {
+      var badge = document.createElement('span');
+      badge.className = 'badge';
+      badge.textContent = errorCount;
+      tab.appendChild(badge);
+    } else if (warningCount > 0) {
+      var badge = document.createElement('span');
+      badge.className = 'badge warning';
+      badge.textContent = warningCount;
+      tab.appendChild(badge);
+    }
+  },
+
+  // Clear problem badge
+  clearProblemBadge: function() {
+    var tab = document.querySelector('.panel-tab[data-panel="problems"]');
+    if (tab) {
+      var badge = tab.querySelector('.badge');
+      if (badge) badge.remove();
+    }
   }
 };
 

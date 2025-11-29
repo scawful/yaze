@@ -73,7 +73,15 @@
 
     // Smoothing settings (new)
     positionSmoothing: 0.3,      // Interpolation factor (0 = max smooth, 1 = no smooth)
-    velocitySmoothing: 0.5       // Velocity averaging factor
+    velocitySmoothing: 0.5,      // Velocity averaging factor
+
+    // Edge gesture prevention (for iOS swipe-back)
+    edgeGestureThreshold: 25,    // Pixels from screen edge to detect edge gestures
+    preventEdgeGestures: true,   // Prevent iOS swipe-back and other edge gestures
+
+    // Mobile-specific settings
+    mobileDoubleTapZoom: true,   // Enable double-tap to zoom
+    mobilePanSensitivity: 1.5    // Increased pan sensitivity for mobile
   };
 
   // State tracking
@@ -307,8 +315,26 @@
     return [touches[0] || null, touches[1] || null];
   }
 
+  // Check if touch is near screen edge (for iOS swipe-back prevention)
+  function isTouchNearEdge(touch) {
+    if (!config.preventEdgeGestures) return false;
+    const threshold = config.edgeGestureThreshold;
+    return touch.clientX < threshold ||
+           touch.clientX > window.innerWidth - threshold;
+  }
+
   // Handle touch start
   function handleTouchStart(event) {
+    // Prevent iOS swipe-back gesture when touching near edges
+    if (config.preventEdgeGestures) {
+      for (let i = 0; i < event.touches.length; i++) {
+        if (isTouchNearEdge(event.touches[i])) {
+          event.preventDefault();
+          break;
+        }
+      }
+    }
+
     event.preventDefault();
     stopInertia();
 
