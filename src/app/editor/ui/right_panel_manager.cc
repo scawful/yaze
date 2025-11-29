@@ -192,6 +192,8 @@ void RightPanelManager::Draw() {
   ImGui::PopStyleColor(2);
 }
 
+
+
 void RightPanelManager::DrawPanelHeader(const char* title, const char* icon) {
   const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
   const float header_height = 44.0f;
@@ -227,9 +229,12 @@ void RightPanelManager::DrawPanelHeader(const char* title, const char* icon) {
   ImGui::Text("%s", title);
   ImGui::PopStyleColor();
 
-  // Close button (right-aligned, larger click area)
+  // Right-aligned buttons
   const float button_size = 28.0f;
-  ImGui::SameLine(ImGui::GetWindowWidth() - button_size - padding);
+  float current_x = ImGui::GetWindowWidth() - button_size - padding;
+
+  // Close button
+  ImGui::SameLine(current_x);
   ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 4.0f);  // Center vertically
 
   ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
@@ -245,13 +250,32 @@ void RightPanelManager::DrawPanelHeader(const char* title, const char* icon) {
   if (ImGui::Button(ICON_MD_CLOSE, ImVec2(button_size, button_size))) {
     ClosePanel();
   }
-
-  ImGui::PopStyleVar();
-  ImGui::PopStyleColor(4);
-
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip("Close Panel (Esc)");
   }
+
+  // Lock Toggle (Only for Properties Panel)
+  if (active_panel_ == PanelType::kProperties) {
+    current_x -= (button_size + 4.0f);
+    ImGui::SameLine(current_x);
+    
+    // TODO: Hook up to actual lock state in SelectionPropertiesPanel
+    static bool is_locked = false; 
+    ImVec4 lock_color = is_locked ? gui::GetPrimaryVec4() : gui::GetTextSecondaryVec4();
+    ImGui::PushStyleColor(ImGuiCol_Text, lock_color);
+    
+    if (ImGui::Button(is_locked ? ICON_MD_LOCK : ICON_MD_LOCK_OPEN, ImVec2(button_size, button_size))) {
+      is_locked = !is_locked;
+    }
+    ImGui::PopStyleColor();
+    
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip(is_locked ? "Unlock Selection" : "Lock Selection");
+    }
+  }
+
+  ImGui::PopStyleVar();
+  ImGui::PopStyleColor(4);
 
   // Move cursor past the header
   ImGui::SetCursorPosY(header_height + 8.0f);
@@ -556,9 +580,7 @@ bool RightPanelManager::DrawPanelToggleButtons() {
   ImGui::SameLine();
 #endif
 
-  // Proposals button
-  DrawPanelButton(ICON_MD_DESCRIPTION, "Proposals Panel", PanelType::kProposals);
-  ImGui::SameLine();
+
 
   // Settings button
   DrawPanelButton(ICON_MD_SETTINGS, "Settings Panel", PanelType::kSettings);

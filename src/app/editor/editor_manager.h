@@ -30,6 +30,7 @@
 #include "app/editor/ui/layout_manager.h"
 #include "app/editor/ui/layout_presets.h"
 #include "app/editor/ui/right_panel_manager.h"
+#include "app/editor/ui/selection_properties_panel.h"
 #include "app/editor/ui/menu_builder.h"
 #include "app/editor/ui/rom_load_options_dialog.h"
 #include "app/editor/ui/ui_coordinator.h"
@@ -321,6 +322,9 @@ class EditorManager {
   WelcomeScreen welcome_screen_;
   RomLoadOptionsDialog rom_load_options_dialog_;
   bool show_rom_load_options_ = false;
+
+  // Properties panel for selection editing
+  SelectionPropertiesPanel selection_properties_panel_;
 
 #ifdef YAZE_WITH_GRPC
   std::unique_ptr<yaze::agent::AgentControlServer> agent_control_server_;

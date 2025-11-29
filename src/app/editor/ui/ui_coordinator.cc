@@ -219,9 +219,9 @@ void UICoordinator::DrawMenuBarExtras() {
   int panel_button_count = 0;
   if (editor_manager_->right_panel_manager()) {
 #ifdef YAZE_WITH_GRPC
-    panel_button_count = 4;  // Agent, Proposals, Settings, Properties
+    panel_button_count = 3;  // Agent, Settings, Properties
 #else
-    panel_button_count = 3;  // Proposals, Settings, Properties
+    panel_button_count = 2;  // Settings, Properties
 #endif
   }
 
