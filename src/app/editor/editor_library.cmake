@@ -42,6 +42,7 @@ set(
   app/editor/system/command_manager.cc
   app/editor/system/command_palette.cc
   app/editor/system/editor_card_registry.cc
+  app/editor/system/file_browser.cc
   app/editor/system/editor_registry.cc
   app/editor/system/extension_manager.cc
   app/editor/system/layout_orchestrator.cc
@@ -75,12 +76,18 @@ list(APPEND YAZE_APP_EDITOR_SRC
 
 if(YAZE_BUILD_AGENT_UI)
   list(APPEND YAZE_APP_EDITOR_SRC
-    app/editor/agent/agent_editor.cc
-    app/editor/agent/agent_chat_widget.cc
+    app/editor/agent/agent_chat_card.cc
     app/editor/agent/agent_chat_history_popup.cc
+    app/editor/agent/agent_chat_view.cc
+    app/editor/agent/agent_chat_widget.cc
     app/editor/agent/agent_collaboration_coordinator.cc
-    app/editor/agent/network_collaboration_coordinator.cc
+    app/editor/agent/agent_editor.cc
+    app/editor/agent/agent_proposals_panel.cc
+    app/editor/agent/agent_session.cc
+    app/editor/agent/agent_sidebar.cc
+    app/editor/agent/agent_ui_controller.cc
     app/editor/agent/automation_bridge.cc
+    app/editor/agent/network_collaboration_coordinator.cc
   )
 endif()
 

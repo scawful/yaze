@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "absl/status/status.h"
+#include "app/editor/agent/agent_ui_controller.h"
 #include "app/editor/code/project_file_editor.h"
 #include "app/editor/editor.h"
 #include "app/editor/session_types.h"
@@ -41,15 +42,14 @@
 #include "yaze_config.h"
 #include "zelda3/overworld/overworld.h"
 
-#ifdef YAZE_WITH_GRPC
-#include "app/editor/agent/agent_chat_history_popup.h"
-#include "app/editor/agent/agent_editor.h"
-
 // Forward declarations for gRPC-dependent types
 namespace yaze::agent {
 class AgentControlServer;
 }
-#endif
+
+namespace yaze::editor {
+class AgentEditor;
+}
 
 namespace yaze {
 namespace editor {
@@ -293,9 +293,14 @@ class EditorManager {
   void ShowTestDashboard() { show_test_dashboard_ = true; }
 #endif
 
-#ifdef YAZE_WITH_GRPC
+#ifdef YAZE_BUILD_AGENT_UI
   void ShowAIAgent();
   void ShowChatHistory();
+  AgentEditor* GetAgentEditor() { return agent_ui_.GetAgentEditor(); }
+#else
+  AgentEditor* GetAgentEditor() { return nullptr; }
+#endif
+#ifdef YAZE_BUILD_AGENT_UI
   void ShowProposalDrawer() { proposal_drawer_.Show(); }
 #endif
 
@@ -339,11 +344,8 @@ class EditorManager {
   ProposalDrawer proposal_drawer_;
   bool show_proposal_drawer_ = false;
 
-#ifdef YAZE_WITH_GRPC
-  // Agent chat history popup
-  AgentChatHistoryPopup agent_chat_history_popup_;
-  bool show_chat_history_popup_ = false;
-#endif
+  // Agent UI (chat + editor), no-op when agent UI is disabled
+  AgentUiController agent_ui_;
 
   // Project file editor
   ProjectFileEditor project_file_editor_;
@@ -356,8 +358,6 @@ class EditorManager {
   bool show_rom_load_options_ = false;
 
 #ifdef YAZE_WITH_GRPC
-  // Agent editor - manages chat, collaboration, and network coordination
-  AgentEditor agent_editor_;
   std::unique_ptr<yaze::agent::AgentControlServer> agent_control_server_;
 #endif
 

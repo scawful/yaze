@@ -18,7 +18,6 @@ class RomFileManager;
 class ProjectManager;
 class EditorRegistry;
 class EditorCardRegistry;
-class LayoutOrchestrator;
 class SessionCoordinator;
 class ToastManager;
 class PopupManager;
@@ -50,7 +49,6 @@ class MenuOrchestrator {
 
   // Set optional dependencies for advanced features
   void SetCardRegistry(EditorCardRegistry* registry) { card_registry_ = registry; }
-  void SetLayoutOrchestrator(LayoutOrchestrator* orchestrator) { layout_orchestrator_ = orchestrator; }
 
   // Non-copyable due to reference members
   MenuOrchestrator(const MenuOrchestrator&) = delete;
@@ -95,7 +93,7 @@ class MenuOrchestrator {
   void OnShowCardBrowser();
   void OnShowWelcomeScreen();
 
-#ifdef YAZE_WITH_GRPC
+#ifdef YAZE_BUILD_AGENT_UI
   void OnShowAIAgent();
   void OnShowChatHistory();
   void OnShowProposalDrawer();
@@ -192,7 +190,6 @@ class MenuOrchestrator {
 
   // Optional dependencies for advanced features
   EditorCardRegistry* card_registry_ = nullptr;
-  LayoutOrchestrator* layout_orchestrator_ = nullptr;
 
   // Menu state
   bool menu_needs_refresh_ = false;
@@ -208,7 +205,6 @@ class MenuOrchestrator {
   // Auto-generated menu helpers
   void AddCardsSubmenu();
   void AddPanelsSubmenu();
-  void AddLayoutPresetsSubmenu();
 
   // Menu item validation helpers
   bool CanSaveRom() const;

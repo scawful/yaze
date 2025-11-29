@@ -592,6 +592,17 @@ void WelcomeScreen::DrawQuickActions() {
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip(ICON_MD_INFO " Create a new ROM hacking project");
   }
+
+  ImGui::Spacing();
+
+  // AI Agent button - Purple like magic
+  if (draw_action_button(ICON_MD_SMART_TOY, "AI Agent", kGanonPurple, true,
+                         open_agent_callback_)) {
+    // Handled by callback
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip(ICON_MD_INFO " Open AI Agent for natural language ROM editing");
+  }
 }
 
 void WelcomeScreen::DrawRecentProjects() {

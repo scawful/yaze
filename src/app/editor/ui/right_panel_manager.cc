@@ -1,6 +1,7 @@
 #include "app/editor/ui/right_panel_manager.h"
 
 #include "app/editor/agent/agent_chat_widget.h"
+#include "app/editor/agent/agent_sidebar.h"
 #include "app/editor/system/proposal_drawer.h"
 #include "app/editor/system/toast_manager.h"
 #include "app/editor/ui/selection_properties_panel.h"
@@ -340,10 +341,12 @@ void RightPanelManager::DrawPanelDescription(const char* text) {
 // =============================================================================
 
 void RightPanelManager::DrawAgentChatPanel() {
-#ifdef YAZE_WITH_GRPC
-  if (agent_chat_widget_) {
-    // Set active state and draw the chat widget content
-    // The widget will draw its own UI
+#ifdef YAZE_BUILD_AGENT_UI
+  // Prefer AgentSidebar if available (cleaner UI for sidebar)
+  if (agent_sidebar_) {
+    agent_sidebar_->Draw();
+  } else if (agent_chat_widget_) {
+    // Fallback to full AgentChatWidget
     agent_chat_widget_->set_active(true);
     agent_chat_widget_->Draw();
   } else {
@@ -353,8 +356,8 @@ void RightPanelManager::DrawAgentChatPanel() {
 
     ImGui::Spacing();
     DrawPanelDescription(
-        "The AI Agent requires gRPC support. "
-        "Build with YAZE_WITH_GRPC=ON to enable.");
+        "The AI Agent is not initialized. "
+        "Open the AI Agent from View menu or use Ctrl+Shift+A.");
   }
 #else
   ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
@@ -363,8 +366,8 @@ void RightPanelManager::DrawAgentChatPanel() {
 
   ImGui::Spacing();
   DrawPanelDescription(
-      "The AI Agent requires gRPC support. "
-      "Build with YAZE_WITH_GRPC=ON to enable.");
+      "The AI Agent requires agent UI support. "
+      "Build with YAZE_BUILD_AGENT_UI=ON to enable.");
 #endif
 }
 

@@ -111,6 +111,15 @@ UICoordinator::UICoordinator(
       }
     }
   });
+
+  welcome_screen_->SetOpenAgentCallback([this]() {
+    if (editor_manager_) {
+#ifdef YAZE_BUILD_AGENT_UI
+      editor_manager_->ShowAIAgent();
+#endif
+      // Keep welcome screen visible - user may want to do other things
+    }
+  });
 }
 
 void UICoordinator::DrawBackground() {
@@ -1279,6 +1288,18 @@ void UICoordinator::DrawGlobalSearch() {
   if (!show_search) {
     SetGlobalSearchVisible(false);
   }
+}
+
+// =============================================================================
+// Emulator Visibility (delegates to EditorCardRegistry - single source of truth)
+// =============================================================================
+
+bool UICoordinator::IsEmulatorVisible() const {
+  return card_registry_.IsEmulatorVisible();
+}
+
+void UICoordinator::SetEmulatorVisible(bool visible) {
+  card_registry_.SetEmulatorVisible(visible);
 }
 
 }  // namespace editor
