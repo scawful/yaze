@@ -1,3 +1,5 @@
+#define IMGUI_DEFINE_MATH_OPERATORS
+
 #include "app/editor/system/editor_card_registry.h"
 
 #include <algorithm>
@@ -10,6 +12,7 @@
 #include "app/gui/core/icons.h"
 #include "app/gui/core/theme_manager.h"
 #include "imgui/imgui.h"
+#include "imgui/imgui_internal.h"  // For ImGuiWindow and FindWindowByName
 #include "nlohmann/json.hpp"
 #include "util/log.h"
 #include "util/platform_paths.h"
@@ -34,6 +37,7 @@ std::string EditorCardRegistry::GetCategoryIcon(const std::string& category) {
   if (category == "Assembly") return ICON_MD_CODE;
   if (category == "Settings") return ICON_MD_SETTINGS;
   if (category == "Memory") return ICON_MD_MEMORY;
+  if (category == "Agent") return ICON_MD_SMART_TOY;
   return ICON_MD_FOLDER;  // Default for unknown categories
 }
 
@@ -857,7 +861,16 @@ void EditorCardRegistry::DrawSidePanel(
     // Content - Reusing GetCardsInCategory logic
     auto cards = GetCardsInCategory(session_id, category);
 
-    ImGui::BeginChild("##PanelContent", ImVec2(0, 0), false,
+    // Calculate available height for cards vs file browser
+    float available_height = ImGui::GetContentRegionAvail().y;
+    bool has_file_browser =
+        category_file_browsers_.find(category) != category_file_browsers_.end();
+    float cards_height =
+        has_file_browser ? available_height * 0.4f : available_height;
+    float file_browser_height = available_height - cards_height - 30.0f;
+
+    // Cards section
+    ImGui::BeginChild("##PanelContent", ImVec2(0, cards_height), false,
                       ImGuiWindowFlags_None);
     for (const auto& card : cards) {
       bool visible = card.visibility_flag ? *card.visibility_flag : false;
@@ -866,7 +879,22 @@ void EditorCardRegistry::DrawSidePanel(
       std::string label =
           absl::StrFormat("%s  %s", card.icon.c_str(), card.display_name.c_str());
       if (ImGui::Selectable(label.c_str(), visible)) {
+        // Toggle visibility
         ToggleCard(session_id, card.card_id);
+
+        // Get the new visibility state after toggle
+        bool new_visible = card.visibility_flag ? *card.visibility_flag : false;
+
+        if (new_visible) {
+          // Card was just shown - activate the associated editor
+          if (on_card_clicked_) {
+            on_card_clicked_(card.category);
+          }
+
+          // Focus the card window so it comes to front
+          std::string window_title = card.GetWindowTitle();
+          ImGui::SetWindowFocus(window_title.c_str());
+        }
       }
 
       // Shortcut Hint
@@ -875,6 +903,31 @@ void EditorCardRegistry::DrawSidePanel(
       }
     }
     ImGui::EndChild();
+
+    // File browser section (if enabled for this category)
+    if (has_file_browser) {
+      ImGui::Spacing();
+      ImGui::Separator();
+
+      // Collapsible header for file browser
+      ImGui::PushStyleColor(ImGuiCol_Header,
+                            gui::GetSurfaceContainerHighVec4());
+      ImGui::PushStyleColor(ImGuiCol_HeaderHovered,
+                            gui::GetSurfaceContainerHighestVec4());
+      bool files_expanded = ImGui::CollapsingHeader(
+          ICON_MD_FOLDER " Files", ImGuiTreeNodeFlags_DefaultOpen);
+      ImGui::PopStyleColor(2);
+
+      if (files_expanded) {
+        ImGui::BeginChild("##FileBrowser", ImVec2(0, file_browser_height),
+                          false, ImGuiWindowFlags_None);
+        auto* browser = category_file_browsers_[category].get();
+        if (browser) {
+          browser->DrawCompact();
+        }
+        ImGui::EndChild();
+      }
+    }
 
     if (disable_cards) {
       ImGui::EndDisabled();
@@ -1365,12 +1418,217 @@ void EditorCardRegistry::DrawCardInSidebar(const CardInfo& info,
       } else if (!*info.visibility_flag && info.on_hide) {
         info.on_hide();
       }
+
+      // If card is being shown, activate the corresponding editor
+      if (*info.visibility_flag && on_card_clicked_) {
+        on_card_clicked_(info.category);
+      }
     }
   }
 
   if (is_active) {
     ImGui::PopStyleColor();
   }
+}
+
+// =============================================================================
+// File Browser Integration
+// =============================================================================
+
+FileBrowser* EditorCardRegistry::GetFileBrowser(const std::string& category) {
+  auto it = category_file_browsers_.find(category);
+  if (it != category_file_browsers_.end()) {
+    return it->second.get();
+  }
+  return nullptr;
+}
+
+void EditorCardRegistry::EnableFileBrowser(const std::string& category,
+                                           const std::string& root_path) {
+  if (category_file_browsers_.find(category) == category_file_browsers_.end()) {
+    auto browser = std::make_unique<FileBrowser>();
+
+    // Set callback to forward file clicks
+    browser->SetFileClickedCallback(
+        [this, category](const std::string& path) {
+          if (on_file_clicked_) {
+            on_file_clicked_(category, path);
+          }
+          // Also activate the editor for this category
+          if (on_card_clicked_) {
+            on_card_clicked_(category);
+          }
+        });
+
+    if (!root_path.empty()) {
+      browser->SetRootPath(root_path);
+    }
+
+    // Set defaults for Assembly file browser
+    if (category == "Assembly") {
+      browser->SetFileFilter({".asm", ".s", ".65c816", ".inc", ".h"});
+    }
+
+    category_file_browsers_[category] = std::move(browser);
+    LOG_INFO("EditorCardRegistry", "Enabled file browser for category: %s",
+             category.c_str());
+  }
+}
+
+void EditorCardRegistry::DisableFileBrowser(const std::string& category) {
+  category_file_browsers_.erase(category);
+}
+
+bool EditorCardRegistry::HasFileBrowser(const std::string& category) const {
+  return category_file_browsers_.find(category) !=
+         category_file_browsers_.end();
+}
+
+void EditorCardRegistry::SetFileBrowserPath(const std::string& category,
+                                            const std::string& path) {
+  auto it = category_file_browsers_.find(category);
+  if (it != category_file_browsers_.end()) {
+    it->second->SetRootPath(path);
+  }
+}
+
+// =============================================================================
+// Card Validation
+// =============================================================================
+
+EditorCardRegistry::CardValidationResult EditorCardRegistry::ValidateCard(
+    const std::string& card_id) const {
+  CardValidationResult result;
+  result.card_id = card_id;
+
+  auto it = cards_.find(card_id);
+  if (it == cards_.end()) {
+    result.expected_title = "";
+    result.found_in_imgui = false;
+    result.message = "Card not registered";
+    return result;
+  }
+
+  const CardInfo& info = it->second;
+  result.expected_title = info.GetWindowTitle();
+
+  // Check if ImGui has a window with this title
+  ImGuiWindow* window = ImGui::FindWindowByName(result.expected_title.c_str());
+  result.found_in_imgui = (window != nullptr);
+
+  if (result.found_in_imgui) {
+    result.message = "OK - Window found";
+  } else {
+    result.message = "FAIL - No window with title: " + result.expected_title;
+  }
+
+  return result;
+}
+
+std::vector<EditorCardRegistry::CardValidationResult>
+EditorCardRegistry::ValidateCards() const {
+  std::vector<CardValidationResult> results;
+  results.reserve(cards_.size());
+
+  for (const auto& [card_id, info] : cards_) {
+    results.push_back(ValidateCard(card_id));
+  }
+
+  return results;
+}
+
+void EditorCardRegistry::DrawValidationReport(bool* p_open) {
+  if (!p_open || !*p_open) {
+    return;
+  }
+
+  ImGui::SetNextWindowSize(ImVec2(600, 400), ImGuiCond_FirstUseEver);
+  if (!ImGui::Begin("Card Validation Report", p_open)) {
+    ImGui::End();
+    return;
+  }
+
+  ImGui::TextWrapped(
+      "This report shows registered cards and whether their window titles "
+      "match actual ImGui windows. Failed cards may have typos in their "
+      "window_title or the window may not have been drawn yet.");
+
+  ImGui::Separator();
+
+  // Refresh button
+  static std::vector<CardValidationResult> cached_results;
+  if (ImGui::Button(ICON_MD_REFRESH " Refresh")) {
+    cached_results = ValidateCards();
+  }
+
+  ImGui::SameLine();
+  ImGui::TextDisabled("(%zu cards registered)", cards_.size());
+
+  ImGui::Separator();
+
+  // Results table
+  if (ImGui::BeginTable("ValidationTable", 4,
+                        ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg |
+                            ImGuiTableFlags_Resizable |
+                            ImGuiTableFlags_ScrollY)) {
+    ImGui::TableSetupScrollFreeze(0, 1);
+    ImGui::TableSetupColumn("Status", ImGuiTableColumnFlags_WidthFixed, 60.0f);
+    ImGui::TableSetupColumn("Card ID", ImGuiTableColumnFlags_WidthStretch);
+    ImGui::TableSetupColumn("Window Title", ImGuiTableColumnFlags_WidthStretch);
+    ImGui::TableSetupColumn("Message", ImGuiTableColumnFlags_WidthStretch);
+    ImGui::TableHeadersRow();
+
+    for (const auto& result : cached_results) {
+      ImGui::TableNextRow();
+
+      // Status column
+      ImGui::TableNextColumn();
+      if (result.found_in_imgui) {
+        ImGui::TextColored(ImVec4(0.2f, 0.8f, 0.2f, 1.0f), ICON_MD_CHECK_CIRCLE);
+      } else {
+        ImGui::TextColored(ImVec4(0.8f, 0.2f, 0.2f, 1.0f), ICON_MD_ERROR);
+      }
+
+      // Card ID column
+      ImGui::TableNextColumn();
+      ImGui::TextUnformatted(result.card_id.c_str());
+
+      // Window Title column
+      ImGui::TableNextColumn();
+      ImGui::TextUnformatted(result.expected_title.c_str());
+
+      // Message column
+      ImGui::TableNextColumn();
+      if (!result.found_in_imgui) {
+        ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.5f, 1.0f), "%s",
+                           result.message.c_str());
+      } else {
+        ImGui::TextUnformatted(result.message.c_str());
+      }
+    }
+
+    ImGui::EndTable();
+  }
+
+  // Summary
+  int pass_count = 0;
+  int fail_count = 0;
+  for (const auto& result : cached_results) {
+    if (result.found_in_imgui) {
+      pass_count++;
+    } else {
+      fail_count++;
+    }
+  }
+
+  ImGui::Separator();
+  ImGui::Text("Summary: ");
+  ImGui::SameLine();
+  ImGui::TextColored(ImVec4(0.2f, 0.8f, 0.2f, 1.0f), "%d passed", pass_count);
+  ImGui::SameLine();
+  ImGui::TextColored(ImVec4(0.8f, 0.2f, 0.2f, 1.0f), "%d failed", fail_count);
+
+  ImGui::End();
 }
 
 }  // namespace editor

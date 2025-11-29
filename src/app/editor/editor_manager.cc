@@ -1,5 +1,7 @@
 #include "editor_manager.h"
 
+#include "cli/service/agent/agent_control_server.h"
+
 #include <algorithm>
 #include <chrono>
 #include <cstring>
@@ -64,20 +66,14 @@
 #ifdef YAZE_ENABLE_GTEST
 #include "app/test/unit_test_suite.h"
 #endif
+#ifdef YAZE_WITH_GRPC
+#include "app/test/z3ed_test_suite.h"
+#endif
 
 #include "app/editor/editor.h"
 #include "app/editor/system/toast_manager.h"
 #include "app/editor/ui/settings_panel.h"
 #include "app/gfx/debug/performance/performance_dashboard.h"
-
-#ifdef YAZE_WITH_GRPC
-#include "app/editor/agent/agent_chat_widget.h"
-#include "app/editor/agent/automation_bridge.h"
-#include "app/test/z3ed_test_suite.h"
-#include "cli/service/agent/agent_control_server.h"
-#include "cli/service/agent/conversational_agent_service.h"
-#include "cli/service/ai/gemini_ai_service.h"
-#endif
 
 #include "imgui/misc/cpp/imgui_stdlib.h"
 #include "util/macro.h"
@@ -138,7 +134,7 @@ void EditorManager::ResetWorkspaceLayout() {
   ImGuiContext* imgui_ctx = ImGui::GetCurrentContext();
   if (imgui_ctx && imgui_ctx->WithinFrameScope) {
     ImGuiID dockspace_id = ImGui::GetID("MainDockSpace");
-    
+
     // Determine which layout to rebuild
     if (ui_coordinator_ && ui_coordinator_->IsEmulatorVisible()) {
       layout_manager_->RebuildLayout(EditorType::kEmulator, dockspace_id);
@@ -154,13 +150,72 @@ void EditorManager::ResetWorkspaceLayout() {
   }
 }
 
-#ifdef YAZE_WITH_GRPC
+void EditorManager::ApplyLayoutPreset(const std::string& preset_name) {
+  CardLayoutPreset preset;
+
+  // Get the preset by name
+  if (preset_name == "Minimal") {
+    preset = LayoutPresets::GetMinimalPreset();
+  } else if (preset_name == "Developer") {
+    preset = LayoutPresets::GetDeveloperPreset();
+  } else if (preset_name == "Designer") {
+    preset = LayoutPresets::GetDesignerPreset();
+  } else if (preset_name == "Modder") {
+    preset = LayoutPresets::GetModderPreset();
+  } else if (preset_name == "Overworld Expert") {
+    preset = LayoutPresets::GetOverworldExpertPreset();
+  } else if (preset_name == "Dungeon Expert") {
+    preset = LayoutPresets::GetDungeonExpertPreset();
+  } else if (preset_name == "Testing") {
+    preset = LayoutPresets::GetTestingPreset();
+  } else if (preset_name == "Audio") {
+    preset = LayoutPresets::GetAudioPreset();
+  } else {
+    LOG_WARN("EditorManager", "Unknown layout preset: %s", preset_name.c_str());
+    toast_manager_.Show(absl::StrFormat("Unknown preset: %s", preset_name),
+                        ToastType::kWarning);
+    return;
+  }
+
+  // Hide all cards first
+  card_registry_.HideAll();
+
+  // Show only the cards defined in the preset
+  for (const auto& card_id : preset.default_visible_cards) {
+    card_registry_.ShowCard(card_id);
+  }
+
+  LOG_INFO("EditorManager", "Applied layout preset: %s", preset_name.c_str());
+  toast_manager_.Show(absl::StrFormat("Layout: %s", preset_name),
+                      ToastType::kSuccess);
+}
+
+void EditorManager::ResetCurrentEditorLayout() {
+  if (!current_editor_) {
+    toast_manager_.Show("No active editor to reset", ToastType::kWarning);
+    return;
+  }
+
+  EditorType type = current_editor_->type();
+
+  // Get the default preset for the current editor
+  auto preset = LayoutPresets::GetDefaultPreset(type);
+
+  // Reset cards to defaults
+  card_registry_.ResetToDefaults(GetCurrentSessionId(), type);
+
+  LOG_INFO("EditorManager", "Reset editor layout to defaults for type %d",
+           static_cast<int>(type));
+  toast_manager_.Show("Layout reset to defaults", ToastType::kSuccess);
+}
+
+#ifdef YAZE_BUILD_AGENT_UI
 void EditorManager::ShowAIAgent() {
-  agent_editor_.set_active(true);
+  agent_ui_.ShowAgent();
 }
 
 void EditorManager::ShowChatHistory() {
-  agent_chat_history_popup_.Toggle();
+  agent_ui_.ShowChatHistory();
 }
 #endif
 
@@ -393,24 +448,9 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
   // Initialize project file editor
   project_file_editor_.SetToastManager(&toast_manager_);
 
-#ifdef YAZE_WITH_GRPC
-  // Initialize the agent editor as a proper Editor (configuration dashboard)
-  // TODO: pass agent editor dependencies once agent editor is modernized
-  agent_editor_.Initialize();
-  agent_editor_.InitializeWithDependencies(&toast_manager_, &proposal_drawer_,
-                                           nullptr);
-
-  // Initialize and connect the chat history popup
-  agent_chat_history_popup_.SetToastManager(&toast_manager_);
-  if (agent_editor_.GetChatWidget()) {
-    agent_editor_.GetChatWidget()->SetChatHistoryPopup(
-        &agent_chat_history_popup_);
-    // Wire up right panel manager with agent chat widget
-    if (right_panel_manager_) {
-      right_panel_manager_->SetAgentChatWidget(agent_editor_.GetChatWidget());
-    }
-  }
-#endif
+  // Initialize agent UI (no-op when agent UI is disabled)
+  agent_ui_.Initialize(&toast_manager_, &proposal_drawer_,
+                       right_panel_manager_.get());
 
   // Load critical user settings first
   status_ = user_settings_.Load();
@@ -498,6 +538,13 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
       ui_coordinator_->SetWelcomeScreenVisible(false);
       ui_coordinator_->SetWelcomeScreenManuallyClosed(true);
     }
+  });
+
+  welcome_screen_.SetOpenAgentCallback([this]() {
+#ifdef YAZE_BUILD_AGENT_UI
+    ShowAIAgent();
+#endif
+    // Keep welcome screen visible - user may want to do other things
   });
 
   // Initialize editor selection dialog callback
@@ -595,6 +642,31 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
     user_settings_.prefs().sidebar_active_category = category;
     PRINT_IF_ERROR(user_settings_.Save());
   });
+
+  card_registry_.SetOnCardClickedCallback([this](const std::string& category) {
+    EditorType type = EditorRegistry::GetEditorTypeFromCategory(category);
+    // Switch to the editor associated with this card's category
+    // This ensures clicking a card opens/focuses the parent editor
+    if (type != EditorType::kSettings && type != EditorType::kUnknown) {
+      SwitchToEditor(type, true);
+    }
+  });
+
+  // Enable file browser for Assembly category
+  card_registry_.EnableFileBrowser("Assembly");
+
+  // Set up file clicked callback to open files in Assembly editor
+  card_registry_.SetFileClickedCallback(
+      [this](const std::string& category, const std::string& path) {
+        if (category == "Assembly") {
+          // Open the file in the Assembly editor
+          if (auto* editor_set = GetCurrentEditorSet()) {
+            editor_set->assembly_editor_.ChangeActiveFile(path);
+            // Make sure Assembly editor is active
+            SwitchToEditor(EditorType::kAssembly, true);
+          }
+        }
+      });
 
   // Apply sidebar state from settings AFTER registering callbacks
   // This triggers the callbacks but they should be safe now
@@ -791,11 +863,8 @@ absl::Status EditorManager::Update() {
     }
   }
 
-#ifdef YAZE_WITH_GRPC
-  // Update agent editor dashboard (only when agent editor view is active)
-  // Note: AgentChatWidget is drawn through RightPanelManager, not here
-  status_ = agent_editor_.Update();
-#endif
+  // Update agent editor dashboard (chat drawn via RightPanelManager)
+  status_ = agent_ui_.Update();
 
   // Draw background grid effects for the entire viewport
   if (ui_coordinator_) {
@@ -945,12 +1014,10 @@ absl::Status EditorManager::Update() {
   // Proposal drawer is now drawn through RightPanelManager
   // Removed duplicate direct call - DrawProposalsPanel() in RightPanelManager handles it
 
-#ifdef YAZE_WITH_GRPC
-  // Update ROM context for agent editor
+  // Update ROM context for agent UI
   if (current_rom && current_rom->is_loaded()) {
-    agent_editor_.SetRomContext(current_rom);
+    agent_ui_.SetRomContext(current_rom);
   }
-#endif
 
   // Draw SessionCoordinator UI components
   if (session_coordinator_) {
@@ -997,8 +1064,14 @@ void EditorManager::DrawMenuBar() {
       ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
     }
 
-    if (ImGui::SmallButton(ICON_MD_MENU)) {
-      card_registry_.ToggleSidebarVisibility();
+    if (ui_coordinator_ && ui_coordinator_->IsCardSidebarVisible()) {
+      if (ImGui::SmallButton(ICON_MD_MENU)) {
+        card_registry_.ToggleSidebarVisibility();
+      }
+    } else {
+      if (ImGui::SmallButton(ICON_MD_MENU_OPEN)) {
+        card_registry_.ToggleSidebarVisibility();
+      }
     }
 
     ImGui::PopStyleColor(4);
@@ -1087,10 +1160,8 @@ void EditorManager::DrawMenuBar() {
   // Update proposal drawer ROM context (drawing handled by RightPanelManager)
   proposal_drawer_.SetRom(GetCurrentRom());
 
-#ifdef YAZE_WITH_GRPC
   // Agent chat history popup (left side)
-  agent_chat_history_popup_.Draw();
-#endif
+  agent_ui_.DrawPopups();
 
   // Welcome screen is now drawn by UICoordinator::DrawAllUI()
   // Removed duplicate call to avoid showing welcome screen twice
@@ -1475,6 +1546,8 @@ absl::Status EditorManager::OpenRomOrProject(const std::string& filename) {
     if (auto* editor_set = GetCurrentEditorSet();
         editor_set && !current_project_.code_folder.empty()) {
       editor_set->assembly_editor_.OpenFolder(current_project_.code_folder);
+      // Also set the sidebar file browser path
+      card_registry_.SetFileBrowserPath("Assembly", current_project_.code_folder);
     }
 
 #ifdef __EMSCRIPTEN__
@@ -1567,6 +1640,8 @@ absl::Status EditorManager::OpenProject() {
     if (auto* editor_set = GetCurrentEditorSet();
         editor_set && !current_project_.code_folder.empty()) {
       editor_set->assembly_editor_.OpenFolder(current_project_.code_folder);
+      // Also set the sidebar file browser path
+      card_registry_.SetFileBrowserPath("Assembly", current_project_.code_folder);
     }
 
     RETURN_IF_ERROR(LoadAssets());
@@ -1938,6 +2013,11 @@ void EditorManager::SwitchToEditor(EditorType editor_type, bool force_visible) {
       }
     }
   }
+#ifdef YAZE_BUILD_AGENT_UI
+  else if (editor_type == EditorType::kAgent) {
+    ShowAIAgent();
+  }
+#endif
 }
 
 void EditorManager::ConfigureSession(RomSession* session) {

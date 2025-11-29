@@ -8,6 +8,7 @@
 #include <unordered_set>
 #include <vector>
 
+#include "app/editor/system/file_browser.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -496,6 +497,45 @@ class EditorCardRegistry {
     on_sidebar_state_changed_ = std::move(cb);
   }
 
+  // ============================================================================
+  // Unified Visibility Management (single source of truth)
+  // ============================================================================
+
+  /**
+   * @brief Check if emulator is visible
+   * @return Current visibility state
+   */
+  bool IsEmulatorVisible() const { return emulator_visible_; }
+
+  /**
+   * @brief Set emulator visibility
+   * @param visible New visibility state
+   *
+   * This is the single source of truth for emulator visibility.
+   * All other components should read from this via IsEmulatorVisible().
+   */
+  void SetEmulatorVisible(bool visible) {
+    if (emulator_visible_ != visible) {
+      emulator_visible_ = visible;
+      if (on_emulator_visibility_changed_) {
+        on_emulator_visibility_changed_(visible);
+      }
+    }
+  }
+
+  /**
+   * @brief Toggle emulator visibility
+   */
+  void ToggleEmulatorVisible() { SetEmulatorVisible(!emulator_visible_); }
+
+  /**
+   * @brief Set callback for emulator visibility changes
+   * @param cb Callback receiving new visibility state
+   */
+  void SetEmulatorVisibilityChangedCallback(std::function<void(bool)> cb) {
+    on_emulator_visibility_changed_ = std::move(cb);
+  }
+
   /**
    * @brief Set callback for category changes
    * @param cb Callback receiving new category name
@@ -541,6 +581,48 @@ class EditorCardRegistry {
   bool LoadPreset(const std::string& name);
   void DeletePreset(const std::string& name);
   std::vector<WorkspacePreset> GetPresets() const;
+
+  // ============================================================================
+  // Card Validation (for catching window title mismatches)
+  // ============================================================================
+
+  /**
+   * @brief Validation result for a single card
+   */
+  struct CardValidationResult {
+    std::string card_id;
+    std::string expected_title;  // From CardInfo::GetWindowTitle()
+    bool found_in_imgui;         // Whether ImGui found a window with this title
+    std::string message;         // Human-readable status
+  };
+
+  /**
+   * @brief Validate all registered cards against active ImGui windows
+   * @return Vector of validation results
+   *
+   * This method checks that each registered card's window_title matches
+   * an actual ImGui window. Useful for catching typos and mismatches
+   * that can cause DockBuilder issues.
+   *
+   * Call this during development/debugging, not in production hot paths.
+   */
+  std::vector<CardValidationResult> ValidateCards() const;
+
+  /**
+   * @brief Validate a single card's window title
+   * @param card_id The card ID to validate
+   * @return Validation result
+   */
+  CardValidationResult ValidateCard(const std::string& card_id) const;
+
+  /**
+   * @brief Draw validation report window
+   * @param p_open Pointer to visibility bool
+   *
+   * Shows all registered cards with pass/fail status for each.
+   * Failed cards are shown in red with their expected titles.
+   */
+  void DrawValidationReport(bool* p_open);
 
   // ============================================================================
   // Quick Actions
@@ -691,6 +773,56 @@ class EditorCardRegistry {
                 on_category_switch, on_collapse, has_rom);
   }
 
+  /**
+   * @brief Set callback for when a card is clicked in the sidebar
+   */
+  void SetOnCardClickedCallback(std::function<void(const std::string&)> callback) {
+    on_card_clicked_ = std::move(callback);
+  }
+
+  // ============================================================================
+  // File Browser Integration
+  // ============================================================================
+
+  /**
+   * @brief Get the file browser for a category
+   * @param category Category name (e.g., "Assembly")
+   * @return Pointer to FileBrowser, or nullptr if not enabled
+   */
+  FileBrowser* GetFileBrowser(const std::string& category);
+
+  /**
+   * @brief Enable file browser for a category
+   * @param category Category name
+   * @param root_path Initial root path (can be empty)
+   */
+  void EnableFileBrowser(const std::string& category,
+                         const std::string& root_path = "");
+
+  /**
+   * @brief Disable file browser for a category
+   */
+  void DisableFileBrowser(const std::string& category);
+
+  /**
+   * @brief Check if file browser is enabled for a category
+   */
+  bool HasFileBrowser(const std::string& category) const;
+
+  /**
+   * @brief Set the root path for a category's file browser
+   */
+  void SetFileBrowserPath(const std::string& category, const std::string& path);
+
+  /**
+   * @brief Set callback for when a file is clicked in the browser
+   */
+  void SetFileClickedCallback(
+      std::function<void(const std::string& category, const std::string& path)>
+          callback) {
+    on_file_clicked_ = std::move(callback);
+  }
+
  private:
   // Core card storage (prefixed IDs → CardInfo)
   std::unordered_map<std::string, CardInfo> cards_;
@@ -720,10 +852,13 @@ class EditorCardRegistry {
   // Sidebar state
   bool sidebar_visible_ = true;    // Controls Activity Bar visibility (0px vs 48px)
   bool panel_expanded_ = true;     // Controls Side Panel visibility (0px vs 250px)
-  
+
   // Keyboard navigation state (click-to-focus modal)
   int focused_card_index_ = -1;    // Currently focused card index (-1 = none)
   bool sidebar_has_focus_ = false; // Whether sidebar has keyboard focus
+
+  // Unified visibility state (single source of truth)
+  bool emulator_visible_ = false;  // Emulator window visibility
 
   // Utility icon callbacks
   std::function<void()> on_show_emulator_;
@@ -738,6 +873,13 @@ class EditorCardRegistry {
   // State change callbacks
   std::function<void(bool visible, bool expanded)> on_sidebar_state_changed_;
   std::function<void(const std::string&)> on_category_changed_;
+  std::function<void(const std::string&)> on_card_clicked_;
+  std::function<void(bool)> on_emulator_visibility_changed_;
+  std::function<void(const std::string&, const std::string&)> on_file_clicked_;
+
+  // File browser for categories that support it (e.g., Assembly)
+  std::unordered_map<std::string, std::unique_ptr<FileBrowser>>
+      category_file_browsers_;
 
   // Tracking active editor categories for visual feedback
   std::unordered_set<std::string> active_editor_categories_;

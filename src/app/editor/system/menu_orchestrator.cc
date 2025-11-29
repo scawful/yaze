@@ -5,7 +5,6 @@
 #include "app/editor/editor_manager.h"
 #include "app/editor/system/editor_card_registry.h"
 #include "app/editor/system/editor_registry.h"
-#include "app/editor/system/layout_orchestrator.h"
 #include "app/editor/system/popup_manager.h"
 #include "app/editor/system/project_manager.h"
 #include "app/editor/system/rom_file_manager.h"
@@ -200,13 +199,13 @@ void MenuOrchestrator::AddViewMenuItems() {
       .Separator();
 
   // Special Editors
-#ifdef YAZE_WITH_GRPC
+#ifdef YAZE_BUILD_AGENT_UI
   menu_builder_
       .Item(
           "AI Agent", ICON_MD_SMART_TOY, [this]() { OnShowAIAgent(); },
           "Ctrl+Shift+A")
       .Item(
-          "Chat History", ICON_MD_CHAT, [this]() { OnShowChatHistory(); },
+          "Agent Sidebar", ICON_MD_CHAT, [this]() { OnShowChatHistory(); },
           "Ctrl+H")
       .Item(
           "Proposal Drawer", ICON_MD_PREVIEW,
@@ -235,16 +234,18 @@ void MenuOrchestrator::AddCardsSubmenu() {
     return;
   }
 
+  const size_t session_id = session_coordinator_.GetActiveSessionIndex();
+  auto categories = card_registry_->GetAllCategories(session_id);
+  if (categories.empty()) {
+    return;
+  }
+
   // Using raw ImGui for conditional submenus
   if (ImGui::BeginMenu(absl::StrFormat("%s Cards", ICON_MD_DASHBOARD).c_str())) {
-    // Get all categories from the card registry (across all sessions)
-    auto categories = card_registry_->GetAllCategories();
-
     for (const auto& category : categories) {
       if (ImGui::BeginMenu(category.c_str())) {
         // Draw all cards in this category
-        // Using session_id 0 for global cards, individual sessions will have their own menus
-        card_registry_->DrawViewMenuSection(0, category);
+        card_registry_->DrawViewMenuSection(session_id, category);
         ImGui::EndMenu();
       }
     }
@@ -256,14 +257,14 @@ void MenuOrchestrator::AddCardsSubmenu() {
 void MenuOrchestrator::AddPanelsSubmenu() {
   // Using raw ImGui for panels submenu
   if (ImGui::BeginMenu(absl::StrFormat("%s Panels", ICON_MD_VIEW_SIDEBAR).c_str())) {
-#ifdef YAZE_WITH_GRPC
+#ifdef YAZE_BUILD_AGENT_UI
     if (ImGui::MenuItem(absl::StrFormat("%s AI Agent", ICON_MD_SMART_TOY).c_str(),
                         "Ctrl+Shift+A")) {
       OnShowAIAgent();
     }
 #endif
 
-#ifdef YAZE_WITH_GRPC
+#ifdef YAZE_BUILD_AGENT_UI
     if (ImGui::MenuItem(absl::StrFormat("%s Proposals", ICON_MD_DESCRIPTION).c_str(),
                         "Ctrl+Shift+R")) {
       OnShowProposalDrawer();
@@ -278,30 +279,6 @@ void MenuOrchestrator::AddPanelsSubmenu() {
 
     if (ImGui::MenuItem(absl::StrFormat("%s Help", ICON_MD_HELP).c_str(), "F1")) {
       OnShowAbout();
-    }
-
-    ImGui::EndMenu();
-  }
-}
-
-void MenuOrchestrator::AddLayoutPresetsSubmenu() {
-  // Using raw ImGui for conditional submenu
-  if (ImGui::BeginMenu(absl::StrFormat("%s Layout Presets", ICON_MD_VIEW_QUILT).c_str())) {
-    if (ImGui::MenuItem(absl::StrFormat("%s Reset to Default", ICON_MD_REFRESH).c_str())) {
-      OnResetWorkspaceLayout();
-    }
-
-    ImGui::Separator();
-
-    // Named Presets
-    if (ImGui::MenuItem(absl::StrFormat("%s Developer", ICON_MD_CODE).c_str())) {
-      OnLoadDeveloperLayout();
-    }
-    if (ImGui::MenuItem(absl::StrFormat("%s Designer", ICON_MD_BRUSH).c_str())) {
-      OnLoadDesignerLayout();
-    }
-    if (ImGui::MenuItem(absl::StrFormat("%s Modder", ICON_MD_BUILD).c_str())) {
-      OnLoadModderLayout();
     }
 
     ImGui::EndMenu();
@@ -444,6 +421,18 @@ void MenuOrchestrator::AddWindowMenuItems() {
       .Separator();
 
   // Layout Management
+  const auto layout_actions_enabled = [this]() { return HasCurrentEditor(); };
+  const auto apply_preset = [this](const char* preset_name) {
+    if (editor_manager_) {
+      editor_manager_->ApplyLayoutPreset(preset_name);
+    }
+  };
+  const auto reset_editor_layout = [this]() {
+    if (editor_manager_) {
+      editor_manager_->ResetCurrentEditorLayout();
+    }
+  };
+
   menu_builder_
       .Item(
           "Save Layout", ICON_MD_SAVE, [this]() { OnSaveWorkspaceLayout(); },
@@ -453,8 +442,39 @@ void MenuOrchestrator::AddWindowMenuItems() {
           [this]() { OnLoadWorkspaceLayout(); }, "Ctrl+Shift+O")
       .Item("Reset Layout", ICON_MD_RESET_TV,
             [this]() { OnResetWorkspaceLayout(); })
-      .Item("Layout Presets", ICON_MD_BOOKMARK,
+      .BeginSubMenu("Layout Presets", ICON_MD_VIEW_QUILT)
+      .Item("Reset Active Editor Layout", ICON_MD_REFRESH,
+            [reset_editor_layout]() { reset_editor_layout(); }, nullptr,
+            layout_actions_enabled)
+      .Separator()
+      .Item("Minimal", ICON_MD_VIEW_COMPACT,
+            [apply_preset]() { apply_preset("Minimal"); }, nullptr,
+            layout_actions_enabled)
+      .Item("Developer", ICON_MD_DEVELOPER_MODE,
+            [apply_preset]() { apply_preset("Developer"); }, nullptr,
+            layout_actions_enabled)
+      .Item("Designer", ICON_MD_DESIGN_SERVICES,
+            [apply_preset]() { apply_preset("Designer"); }, nullptr,
+            layout_actions_enabled)
+      .Item("Modder", ICON_MD_BUILD,
+            [apply_preset]() { apply_preset("Modder"); }, nullptr,
+            layout_actions_enabled)
+      .Item("Overworld Expert", ICON_MD_MAP,
+            [apply_preset]() { apply_preset("Overworld Expert"); }, nullptr,
+            layout_actions_enabled)
+      .Item("Dungeon Expert", ICON_MD_CASTLE,
+            [apply_preset]() { apply_preset("Dungeon Expert"); }, nullptr,
+            layout_actions_enabled)
+      .Item("Testing", ICON_MD_SCIENCE,
+            [apply_preset]() { apply_preset("Testing"); }, nullptr,
+            layout_actions_enabled)
+      .Item("Audio", ICON_MD_MUSIC_NOTE,
+            [apply_preset]() { apply_preset("Audio"); }, nullptr,
+            layout_actions_enabled)
+      .Separator()
+      .Item("Manage Presets...", ICON_MD_TUNE,
             [this]() { OnShowLayoutPresets(); })
+      .EndMenu()
       .Separator();
 
   // Window Visibility
@@ -473,15 +493,6 @@ void MenuOrchestrator::AddWindowMenuItems() {
       .Separator();
 
   // Note: Panel toggle buttons are on the right side of the menu bar
-
-  // Workspace Presets
-  menu_builder_
-      .Item("Developer Layout", ICON_MD_DEVELOPER_MODE,
-            [this]() { OnLoadDeveloperLayout(); })
-      .Item("Designer Layout", ICON_MD_DESIGN_SERVICES,
-            [this]() { OnLoadDesignerLayout(); })
-      .Item("Modder Layout", ICON_MD_CONSTRUCTION,
-            [this]() { OnLoadModderLayout(); });
 }
 
 void MenuOrchestrator::BuildHelpMenu() {
@@ -731,7 +742,7 @@ void MenuOrchestrator::OnShowWelcomeScreen() {
   }
 }
 
-#ifdef YAZE_WITH_GRPC
+#ifdef YAZE_BUILD_AGENT_UI
 void MenuOrchestrator::OnShowAIAgent() {
   if (editor_manager_) {
     editor_manager_->ShowAIAgent();
@@ -826,19 +837,19 @@ void MenuOrchestrator::OnShowLayoutPresets() {
 
 void MenuOrchestrator::OnLoadDeveloperLayout() {
   if (editor_manager_) {
-    editor_manager_->LoadDeveloperLayout();
+    editor_manager_->ApplyLayoutPreset("Developer");
   }
 }
 
 void MenuOrchestrator::OnLoadDesignerLayout() {
   if (editor_manager_) {
-    editor_manager_->LoadDesignerLayout();
+    editor_manager_->ApplyLayoutPreset("Designer");
   }
 }
 
 void MenuOrchestrator::OnLoadModderLayout() {
   if (editor_manager_) {
-    editor_manager_->LoadModderLayout();
+    editor_manager_->ApplyLayoutPreset("Modder");
   }
 }
 

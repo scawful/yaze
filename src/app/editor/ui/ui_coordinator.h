@@ -128,7 +128,8 @@ class UICoordinator {
   bool IsCardSidebarVisible() const { return show_card_sidebar_; }
   bool IsImGuiDemoVisible() const { return show_imgui_demo_; }
   bool IsImGuiMetricsVisible() const { return show_imgui_metrics_; }
-  bool IsEmulatorVisible() const { return show_emulator_; }
+  // Emulator visibility delegates to EditorCardRegistry (single source of truth)
+  bool IsEmulatorVisible() const;
   bool IsMemoryEditorVisible() const { return show_memory_editor_; }
   bool IsAsmEditorVisible() const { return show_asm_editor_; }
   bool IsPaletteEditorVisible() const { return show_palette_editor_; }
@@ -160,7 +161,8 @@ class UICoordinator {
   void SetCardSidebarVisible(bool visible) { show_card_sidebar_ = visible; }
   void SetImGuiDemoVisible(bool visible) { show_imgui_demo_ = visible; }
   void SetImGuiMetricsVisible(bool visible) { show_imgui_metrics_ = visible; }
-  void SetEmulatorVisible(bool visible) { show_emulator_ = visible; }
+  // Emulator visibility delegates to EditorCardRegistry (single source of truth)
+  void SetEmulatorVisible(bool visible);
   void SetMemoryEditorVisible(bool visible) { show_memory_editor_ = visible; }
   void SetAsmEditorVisible(bool visible) { show_asm_editor_ = visible; }
   void SetPaletteEditorVisible(bool visible) { show_palette_editor_ = visible; }
@@ -196,7 +198,7 @@ class UICoordinator {
   bool show_test_dashboard_ = false;
   bool show_card_browser_ = false;
   bool show_command_palette_ = false;
-  bool show_emulator_ = false;
+  // show_emulator_ removed - now managed by EditorCardRegistry
   bool show_memory_editor_ = false;
   bool show_asm_editor_ = false;
   bool show_palette_editor_ = false;

@@ -51,7 +51,7 @@ const std::unordered_map<EditorType, bool> EditorRegistry::kCardBasedEditors = {
     {EditorType::kAssembly, true},
     {EditorType::kEmulator, true},
     {EditorType::kHex, true},
-    {EditorType::kAgent, false},  // Agent: Traditional UI
+    {EditorType::kAgent, true},  // Agent: Card-based UI
     {EditorType::kSettings,
      false}  // Settings: Sidebar panel
 };
@@ -93,7 +93,8 @@ std::vector<std::string> EditorRegistry::GetAllEditorCategories() {
       "Music",      // Music/SPC editing
       "Assembly",   // Code editing
       "Memory",     // Hex editor (uses "Memory" category for cards)
-      "Emulator"    // Game testing
+      "Emulator",   // Game testing
+      "Agent"       // AI Agent
   };
 }
 

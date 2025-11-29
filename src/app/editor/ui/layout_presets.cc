@@ -155,6 +155,22 @@ CardLayoutPreset LayoutPresets::GetDefaultPreset(EditorType type) {
       };
       break;
 
+    case EditorType::kAgent:
+      preset.name = "Agent";
+      preset.description = "AI Agent Configuration and Chat";
+      preset.default_visible_cards = {
+          "agent.configuration",
+          "agent.status",
+          "agent.chat",
+      };
+      preset.optional_cards = {
+          "agent.prompt_editor",
+          "agent.profiles",
+          "agent.history",
+          "agent.metrics",
+          "agent.builder"};
+      break;
+
     default:
       preset.name = "Default";
       preset.description = "No specific layout";
@@ -177,6 +193,7 @@ std::unordered_map<EditorType, CardLayoutPreset> LayoutPresets::GetAllPresets() 
   presets[EditorType::kMessage] = GetDefaultPreset(EditorType::kMessage);
   presets[EditorType::kAssembly] = GetDefaultPreset(EditorType::kAssembly);
   presets[EditorType::kEmulator] = GetDefaultPreset(EditorType::kEmulator);
+  presets[EditorType::kAgent] = GetDefaultPreset(EditorType::kAgent);
 
   return presets;
 }

@@ -228,7 +228,7 @@ void ConfigureEditorShortcuts(const ShortcutDependencies& deps,
         [card_registry]() { card_registry->ShowAllCardsInCategory("Screen"); });
   }
 
-#ifdef YAZE_WITH_GRPC
+#ifdef YAZE_BUILD_AGENT_UI
   RegisterIfValid(shortcut_manager, "Agent Editor",
                   {ImGuiMod_Ctrl, ImGuiMod_Shift, ImGuiKey_A},
                   [editor_manager]() {
@@ -237,7 +237,7 @@ void ConfigureEditorShortcuts(const ShortcutDependencies& deps,
                     }
                   });
 
-  RegisterIfValid(shortcut_manager, "Agent Chat History",
+  RegisterIfValid(shortcut_manager, "Agent Sidebar",
                   {ImGuiMod_Ctrl, ImGuiKey_H}, [editor_manager]() {
                     if (editor_manager) {
                       editor_manager->ShowChatHistory();

@@ -69,6 +69,13 @@ class WelcomeScreen {
   }
 
   /**
+   * @brief Set callback for opening AI Agent
+   */
+  void SetOpenAgentCallback(std::function<void()> callback) {
+    open_agent_callback_ = callback;
+  }
+
+  /**
    * @brief Refresh recent projects list from the project manager
    */
   void RefreshRecentProjects();
@@ -121,6 +128,7 @@ class WelcomeScreen {
   std::function<void()> new_project_callback_;
   std::function<void(const std::string&)> open_project_callback_;
   std::function<void(const std::string&)> new_project_with_template_callback_;
+  std::function<void()> open_agent_callback_;
 
   // UI state
   int selected_template_ = 0;
