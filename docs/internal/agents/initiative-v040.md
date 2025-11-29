@@ -1,7 +1,7 @@
 # Initiative: YAZE v0.4.0 - SDL3 Modernization & Emulator Accuracy
 
 **Created**: 2025-11-23  
-**Last Updated**: 2025-11-26  
+**Last Updated**: 2025-11-27  
 **Owner**: Multi-agent coordination  
 **Status**: ACTIVE  
 **Target Release**: Q1 2026
@@ -25,17 +25,21 @@ This initiative coordinates 7 specialized agents across 5 parallel workstreams.
 - ✅ Card-based UI system functional (EditorManager refactoring complete)
 - ✅ Emulator debugging framework established
 - ✅ CI/CD pipeline optimized (PR runs ~5-10 min)
-- ✅ WASM web port complete with real-time collaboration
+- ✅ WASM web port complete (experimental/preview - editors incomplete)
 - ✅ SDL3 backend infrastructure complete (17 abstraction files)
 - ✅ Semantic Inspection API Phase 1 complete
-- 🟡 Known issues: Dungeon object rendering, ZSOW v3 palettes
+- ✅ Public documentation reviewed and updated (web app guide added)
+- 🟡 Active work: Emulator render service, input persistence, UI refinements
+- 🟡 Known issues: Dungeon object rendering, ZSOW v3 palettes, WASM release crash
 
-### Recently Completed Infrastructure
+### Recently Completed Infrastructure (November 2025)
 - SDL3 backend interfaces (IWindowBackend/IAudioBackend/IInputBackend/IRenderer)
-- WASM platform layer (8 phases complete)
+- WASM platform layer (8 phases complete, experimental/preview status)
 - AI agent tools (meta-tools, schemas, context, batching, validation)
 - EditorManager delegation architecture (8 specialized managers)
 - GUI bug fixes (BeginChild/EndChild patterns, duplicate rendering)
+- Documentation cleanup and web app user guide
+- Format documentation organization (moved to public/reference/)
 
 ---
 
@@ -240,13 +244,14 @@ Week 7-8:
 
 ### v0.4.0 Release Readiness
 - [ ] PPU catch-up renders raster effects correctly
-- [ ] Semantic API provides structured game state
+- [ ] Semantic API provides structured game state (Phase 1 ✅, Phase 2 pending)
 - [ ] State injection enables "test sprite" workflow
 - [ ] Audio system functional
 - [ ] SDL3 builds pass on Windows, macOS, Linux
 - [ ] No performance regression vs v0.3.x
-- [ ] All known editor bugs fixed
-- [ ] Documentation updated for new APIs
+- [ ] Critical editor bugs resolved (dungeon rendering, ZSOW v3 palettes)
+- [ ] WASM release build stabilized
+- [x] Documentation updated for v0.3.9 features (web app, format specs)
 
 ---
 

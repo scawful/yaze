@@ -1,16 +1,27 @@
 # Roadmap
 
-**Last Updated: November 26, 2025**
+**Last Updated: November 27, 2025**
 
 This roadmap tracks upcoming releases and major ongoing initiatives.
 
 ## Current Focus (v0.4.0)
 
-- **SDL3 Backend Infrastructure**: Complete (17 new files for IWindowBackend/IAudioBackend/IInputBackend/IRenderer interfaces)
-- **WASM Web Port**: Complete (Milestones 0-4 shipped, real-time collaboration active)
-- **EditorManager Refactoring**: Complete (90% feature parity, 44% code reduction)
-- **AI Agent Tools**: Phases 1-4 complete (meta-tools, schemas, context, batching, validation)
-- **GUI Bug Fixes**: BeginChild/EndChild patterns, duplicate rendering issues resolved
+- **SDL3 Backend Infrastructure**: ✅ Complete (17 new files for IWindowBackend/IAudioBackend/IInputBackend/IRenderer interfaces)
+- **WASM Web Port**: ✅ Complete - EXPERIMENTAL/PREVIEW (see note below)
+- **EditorManager Refactoring**: ✅ Complete (90% feature parity, 44% code reduction)
+- **AI Agent Tools**: ✅ Phases 1-4 complete (meta-tools, schemas, context, batching, validation)
+- **Documentation**: ✅ Public docs reviewed, web app guide added, format docs organized
+- **Emulator Input/Render**: 🟡 In Progress (input persistence, render service for dungeon preview)
+- **GUI Bug Fixes**: ✅ BeginChild/EndChild patterns, duplicate rendering resolved
+
+### WASM Web Port Status
+
+**Status**: Technically complete but **EXPERIMENTAL/PREVIEW**
+- ✅ Build system, file loading, basic editors functional
+- ⚠️ Editors are incomplete/preview quality - not production-ready
+- ⚠️ Missing features: emulator audio, plugins, advanced editing
+- **Recommendation**: Desktop build for serious ROM hacking
+- **Documentation**: See `docs/public/usage/web-app.md`
 
 ## 0.4.0 (Next Major Release) - SDL3 Modernization & Core Improvements
 
@@ -24,7 +35,7 @@ This roadmap tracks upcoming releases and major ongoing initiatives.
 - ✅ IWindowBackend/IAudioBackend/IInputBackend/IRenderer interfaces (commit a5dc884612)
 - ✅ 17 new abstraction files in `src/app/platform/`
 
-#### WASM Web Port
+#### WASM Web Port (Experimental)
 - ✅ Emscripten build preset (`wasm-release`)
 - ✅ Web shell with ROM upload/download
 - ✅ IndexedDB file system integration
@@ -33,6 +44,8 @@ This roadmap tracks upcoming releases and major ongoing initiatives.
 - ✅ Offline support via service workers
 - ✅ WebAudio for SPC700 playback
 - ✅ CI workflow for automated builds and GitHub Pages deployment
+- ✅ Public documentation (web-app.md) with preview status
+- ⚠️ **Note**: Infrastructure complete but editors are preview/incomplete quality
 
 #### EditorManager Refactoring
 - ✅ Delegated architecture (8 specialized managers)
@@ -53,14 +66,18 @@ This roadmap tracks upcoming releases and major ongoing initiatives.
 
 ### In Progress 🟡
 
-#### Emulator Accuracy
+#### Emulator System
 - 🟡 PPU JIT catch-up integration
-- 🟡 Semantic API for AI agents
+- 🟡 Shared render service for dungeon object preview
+- 🟡 Input persistence (keyboard config, ImGui capture flag)
+- 🟡 Semantic API for AI agents (Phase 1 complete, Phase 2 planned)
 - 🟡 State injection improvements
 
 #### Editor Fixes
-- 🟡 Dungeon object rendering regression
-- 🟡 ZSOW v3 large-area palette issues
+- 🟡 Dungeon object rendering regression (under investigation)
+
+#### UI/UX Improvements
+- 🟡 Menu bar and panel styling refinements
 
 ### Remaining Work
 
@@ -115,12 +132,13 @@ This roadmap tracks upcoming releases and major ongoing initiatives.
 ## Recently Completed
 
 ### v0.3.9 (November 2025)
-- WASM web port with real-time collaboration
+- WASM web port with real-time collaboration (experimental/preview)
 - SDL3 backend infrastructure
 - EditorManager refactoring (90% feature parity)
 - AI agent tools Phases 1-4
 - CI optimization (PR runs ~5-10 min, was 15-20)
 - Test suite gating (optional tests OFF by default)
+- Documentation cleanup and public web app guide
 
 ### v0.3.3 (October 2025)
 - Vim mode for `simple-chat`: modal editing, navigation, history, autocomplete
