@@ -10,7 +10,7 @@
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
 #include "app/editor/agent/agent_ui_theme.h"
-#include "app/editor/system/toast_manager.h"
+#include "app/editor/ui/toast_manager.h"
 #include "app/gui/core/icons.h"
 #include "app/rom.h"
 #include "imgui/imgui.h"
