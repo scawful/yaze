@@ -17,11 +17,13 @@
   // ==========================================================================
   
   Object.assign(window.yazeDebug, {
-    version: '1.2.0',
+    version: '1.3.0',
     capabilities: [
-      'palette', 'arena', 'graphics', 'timeline', 'pixel-inspector', 
+      'palette', 'arena', 'graphics', 'timeline', 'pixel-inspector',
       'rom', 'overworld', 'emulator', 'editor', 'workers',
-      'cards', 'sidebar', 'rightPanel'
+      'cards', 'cards.discover', 'cards.search', 'cards.events',
+      'layouts', 'layouts.save', 'layouts.custom',
+      'sidebar', 'rightPanel', 'themes'
     ],
 
     /**
@@ -194,6 +196,199 @@
     getGroups: function() {
       if (!window.Module || !window.Module.getCardGroups) return { error: 'Module not ready' };
       try { return JSON.parse(window.Module.getCardGroups()); } catch (e) { return { error: e.message }; }
+    },
+
+    // Card Discovery API
+    discover: function() {
+      // Get all available cards with full metadata
+      var result = {
+        timestamp: Date.now(),
+        categories: {},
+        allCards: []
+      };
+
+      if (!window.Module || !window.Module.getCardState) {
+        return { error: 'Module not ready' };
+      }
+
+      try {
+        var state = JSON.parse(window.Module.getCardState());
+        if (state.cards) {
+          result.allCards = state.cards;
+          // Group by category
+          state.cards.forEach(function(card) {
+            var cat = card.category || 'Other';
+            if (!result.categories[cat]) {
+              result.categories[cat] = [];
+            }
+            result.categories[cat].push(card);
+          });
+        }
+        return result;
+      } catch (e) {
+        return { error: e.message };
+      }
+    },
+
+    // Find cards by pattern
+    search: function(pattern) {
+      var discovered = this.discover();
+      if (discovered.error) return discovered;
+
+      var regex = new RegExp(pattern, 'i');
+      var matches = discovered.allCards.filter(function(card) {
+        return regex.test(card.id) ||
+               regex.test(card.name) ||
+               regex.test(card.category || '');
+      });
+
+      return { pattern: pattern, matches: matches, count: matches.length };
+    },
+
+    // Get visible cards only
+    getVisible: function() {
+      var discovered = this.discover();
+      if (discovered.error) return discovered;
+
+      return discovered.allCards.filter(function(card) {
+        return card.visible === true;
+      });
+    },
+
+    // Event subscription (stores callbacks, emits when C++ calls back)
+    _visibilityCallbacks: [],
+    onVisibilityChange: function(callback) {
+      if (typeof callback === 'function') {
+        this._visibilityCallbacks.push(callback);
+      }
+    },
+    _emitVisibilityChange: function(cardId, visible) {
+      this._visibilityCallbacks.forEach(function(cb) {
+        try { cb({ cardId: cardId, visible: visible }); } catch (e) { console.error('Card callback error:', e); }
+      });
+    }
+  };
+
+  // ==========================================================================
+  // Layout Presets API
+  // ==========================================================================
+
+  window.yazeDebug.layouts = {
+    // Get available layout presets
+    list: function() {
+      // Built-in presets (these match the C++ defaults)
+      var presets = [
+        { name: 'overworld_default', description: 'Default overworld editing layout', cards: ['map_selector', 'tile_selector', 'entity_editor'] },
+        { name: 'dungeon_default', description: 'Default dungeon editing layout', cards: ['room_selector', 'object_editor', 'tile_selector'] },
+        { name: 'graphics_default', description: 'Default graphics editing layout', cards: ['sheet_viewer', 'palette_editor', 'tile_editor'] },
+        { name: 'debug_default', description: 'Debug-focused layout', cards: ['emulator', 'memory_viewer', 'disassembly'] },
+        { name: 'minimal', description: 'Minimal canvas-only layout', cards: [] },
+        { name: 'all_cards', description: 'Show all available cards', cards: 'all' }
+      ];
+
+      // Try to get from C++ if available
+      if (window.Module && window.Module.getAvailableLayouts) {
+        try {
+          var cppLayouts = JSON.parse(window.Module.getAvailableLayouts());
+          if (cppLayouts && cppLayouts.presets) {
+            presets = cppLayouts.presets;
+          }
+        } catch (e) {
+          console.warn('Could not get layouts from C++:', e);
+        }
+      }
+
+      return { presets: presets };
+    },
+
+    // Apply a layout preset
+    apply: function(presetName) {
+      if (window.Module && window.Module.setCardLayout) {
+        try {
+          return JSON.parse(window.Module.setCardLayout(presetName));
+        } catch (e) {
+          return { error: e.message };
+        }
+      }
+
+      // Fallback: manual card show/hide
+      var presets = this.list().presets;
+      var preset = presets.find(function(p) { return p.name === presetName; });
+
+      if (!preset) {
+        return { error: 'Preset not found: ' + presetName };
+      }
+
+      // Hide all then show preset cards
+      if (preset.cards === 'all') {
+        // Show all available cards
+        var discovered = window.yazeDebug.cards.discover();
+        if (!discovered.error) {
+          discovered.allCards.forEach(function(card) {
+            window.yazeDebug.cards.show(card.id);
+          });
+        }
+      } else {
+        // Apply specific preset
+        preset.cards.forEach(function(cardId) {
+          window.yazeDebug.cards.show(cardId);
+        });
+      }
+
+      return { success: true, applied: presetName };
+    },
+
+    // Save current layout as a preset (localStorage)
+    save: function(name) {
+      var visible = window.yazeDebug.cards.getVisible();
+      if (!Array.isArray(visible)) {
+        return { error: 'Could not get visible cards' };
+      }
+
+      var preset = {
+        name: name,
+        description: 'Custom layout saved at ' + new Date().toISOString(),
+        cards: visible.map(function(c) { return c.id; }),
+        savedAt: Date.now()
+      };
+
+      // Load existing custom presets
+      var customPresets = [];
+      try {
+        var stored = localStorage.getItem('yaze-custom-layouts');
+        if (stored) {
+          customPresets = JSON.parse(stored);
+        }
+      } catch (e) { /* ignore */ }
+
+      // Update or add
+      var existingIndex = customPresets.findIndex(function(p) { return p.name === name; });
+      if (existingIndex >= 0) {
+        customPresets[existingIndex] = preset;
+      } else {
+        customPresets.push(preset);
+      }
+
+      localStorage.setItem('yaze-custom-layouts', JSON.stringify(customPresets));
+      return { success: true, preset: preset };
+    },
+
+    // Get custom saved layouts
+    getCustom: function() {
+      try {
+        var stored = localStorage.getItem('yaze-custom-layouts');
+        return stored ? JSON.parse(stored) : [];
+      } catch (e) {
+        return [];
+      }
+    },
+
+    // Delete a custom layout
+    deleteCustom: function(name) {
+      var customPresets = this.getCustom();
+      var filtered = customPresets.filter(function(p) { return p.name !== name; });
+      localStorage.setItem('yaze-custom-layouts', JSON.stringify(filtered));
+      return { success: true, deleted: name };
     }
   };
 

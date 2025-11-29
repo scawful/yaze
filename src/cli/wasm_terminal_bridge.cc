@@ -227,11 +227,13 @@ std::string ProcessCommandInternal(const std::string& command_str) {
         return "Error: No active editor set (ROM might not be loaded)";
       }
       
-      auto& dungeon_editor = editor_set->dungeon_editor_;
-      dungeon_editor.show_debug_controls_ = !dungeon_editor.show_debug_controls_;
-      
-      return std::string("Dungeon debug controls ") + 
-             (dungeon_editor.show_debug_controls_ ? "enabled" : "disabled");
+      auto* dungeon_editor = editor_set->GetDungeonEditor();
+      if (dungeon_editor) {
+        dungeon_editor->show_debug_controls_ = !dungeon_editor->show_debug_controls_;
+        return std::string("Dungeon debug controls ") + 
+               (dungeon_editor->show_debug_controls_ ? "enabled" : "disabled");
+      }
+      return "Error: Dungeon editor not available";
     }
   }
 

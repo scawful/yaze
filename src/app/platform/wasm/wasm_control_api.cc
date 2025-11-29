@@ -985,10 +985,10 @@ std::string WasmControlApi::TriggerMenuAction(const std::string& action_path) {
       result["error"] = status.ToString();
     }
   } else if (action_path == "View.ShowEmulator") {
-    editor_manager_->ShowEmulator();
+    editor_manager_->ui_coordinator()->SetEmulatorVisible(true);
     result["success"] = true;
   } else if (action_path == "View.ShowWelcome") {
-    editor_manager_->ShowWelcomeScreen();
+    editor_manager_->ui_coordinator()->SetWelcomeScreenVisible(true);
     result["success"] = true;
   } else {
     result["success"] = false;
@@ -1264,21 +1264,25 @@ std::string WasmControlApi::GetEditorSnapshot() {
   auto* editor_set = editor_manager_->GetCurrentEditorSet();
 
   if (current->type() == editor::EditorType::kDungeon && editor_set) {
-    auto& dungeon = editor_set->dungeon_editor_;
-    active_data["current_room_id"] = dungeon.current_room_id();
+    auto* dungeon = editor_set->GetDungeonEditor();
+    if (dungeon) {
+      active_data["current_room_id"] = dungeon->current_room_id();
 
-    nlohmann::json active_rooms = nlohmann::json::array();
-    for (int i = 0; i < dungeon.active_rooms().size(); ++i) {
-      active_rooms.push_back(dungeon.active_rooms()[i]);
+      nlohmann::json active_rooms = nlohmann::json::array();
+      for (int i = 0; i < dungeon->active_rooms().size(); ++i) {
+        active_rooms.push_back(dungeon->active_rooms()[i]);
+      }
+      active_data["active_rooms"] = active_rooms;
+      active_data["room_count"] = dungeon->active_rooms().size();
     }
-    active_data["active_rooms"] = active_rooms;
-    active_data["room_count"] = dungeon.active_rooms().size();
 
   } else if (current->type() == editor::EditorType::kOverworld && editor_set) {
-    auto& overworld = editor_set->overworld_editor_;
-    active_data["current_map"] = overworld.overworld().current_map_id();
-    active_data["current_world"] = overworld.overworld().current_world();
-    active_data["map_count"] = zelda3::kNumOverworldMaps;
+    auto* overworld = editor_set->GetOverworldEditor();
+    if (overworld) {
+      active_data["current_map"] = overworld->overworld().current_map_id();
+      active_data["current_world"] = overworld->overworld().current_world();
+      active_data["map_count"] = zelda3::kNumOverworldMaps;
+    }
   }
 
   result["active_data"] = active_data;
@@ -1307,27 +1311,31 @@ std::string WasmControlApi::GetCurrentDungeonRoom() {
     return result.dump();
   }
 
-  auto& dungeon = editor_set->dungeon_editor_;
-  result["room_id"] = dungeon.current_room_id();
+  auto* dungeon = editor_set->GetDungeonEditor();
+  if (!dungeon) {
+    result["error"] = "Dungeon editor not available";
+    return result.dump();
+  }
+  result["room_id"] = dungeon->current_room_id();
 
   // Get active rooms list
   nlohmann::json active_rooms = nlohmann::json::array();
-  for (int i = 0; i < dungeon.active_rooms().size(); ++i) {
-    active_rooms.push_back(dungeon.active_rooms()[i]);
+  for (int i = 0; i < dungeon->active_rooms().size(); ++i) {
+    active_rooms.push_back(dungeon->active_rooms()[i]);
   }
   result["active_rooms"] = active_rooms;
-  result["room_count"] = dungeon.active_rooms().size();
+  result["room_count"] = dungeon->active_rooms().size();
 
   // Card visibility state
   nlohmann::json cards;
-  cards["room_selector"] = dungeon.show_room_selector_;
-  cards["room_matrix"] = dungeon.show_room_matrix_;
-  cards["entrances_list"] = dungeon.show_entrances_list_;
-  cards["room_graphics"] = dungeon.show_room_graphics_;
-  cards["object_editor"] = dungeon.show_object_editor_;
-  cards["palette_editor"] = dungeon.show_palette_editor_;
-  cards["debug_controls"] = dungeon.show_debug_controls_;
-  cards["control_panel"] = dungeon.show_control_panel_;
+  cards["room_selector"] = dungeon->show_room_selector_;
+  cards["room_matrix"] = dungeon->show_room_matrix_;
+  cards["entrances_list"] = dungeon->show_entrances_list_;
+  cards["room_graphics"] = dungeon->show_room_graphics_;
+  cards["object_editor"] = dungeon->show_object_editor_;
+  cards["palette_editor"] = dungeon->show_palette_editor_;
+  cards["debug_controls"] = dungeon->show_debug_controls_;
+  cards["control_panel"] = dungeon->show_control_panel_;
   result["visible_cards"] = cards;
 
   return result.dump();
@@ -1354,8 +1362,12 @@ std::string WasmControlApi::GetCurrentOverworldMap() {
     return result.dump();
   }
 
-  auto& overworld = editor_set->overworld_editor_;
-  auto& ow_data = overworld.overworld();
+  auto* overworld = editor_set->GetOverworldEditor();
+  if (!overworld) {
+    result["error"] = "Overworld editor not available";
+    return result.dump();
+  }
+  auto& ow_data = overworld->overworld();
 
   result["map_id"] = ow_data.current_map_id();
   result["world"] = ow_data.current_world();
