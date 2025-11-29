@@ -9,6 +9,7 @@
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
+#include "absl/strings/string_view.h"
 #include "core/features.h"
 
 namespace yaze {
@@ -37,6 +38,7 @@ struct ProjectMetadata {
   std::vector<std::string> tags;
   std::string author;
   std::string license;
+  std::string project_id;
 
   // ZScream compatibility
   bool zscream_compatible = false;
@@ -108,10 +110,15 @@ struct YazeProject {
   std::string build_script;
   std::string output_folder;
   std::vector<std::string> build_configurations;
+  std::string build_target;
+  std::string asm_entry_point;
+  std::vector<std::string> asm_sources;
 
   // Version control integration
   std::string git_repository;
   bool track_changes = true;
+  std::string last_build_hash;
+  int build_number = 0;
 
   // AI Agent Settings
   struct AgentSettings {
@@ -149,6 +156,13 @@ struct YazeProject {
   std::string zscream_project_file;  // Path to original .zsproj if importing
   std::map<std::string, std::string> zscream_mappings;  // Field mappings
 
+  // WASM persistence (project + music state in IndexedDB)
+  struct MusicPersistence {
+    bool persist_custom_music = true;
+    std::string storage_key;
+    std::string last_saved_at;
+  } music_persistence;
+
   // Methods
   absl::Status Create(const std::string& project_name,
                       const std::string& base_path);
@@ -178,11 +192,14 @@ struct YazeProject {
   std::string GetRelativePath(const std::string& absolute_path) const;
   std::string GetAbsolutePath(const std::string& relative_path) const;
   bool IsEmpty() const;
+  std::string MakeStorageKey(absl::string_view suffix) const;
 
   // Project state
   bool project_opened() const { return !name.empty() && !filepath.empty(); }
 
  private:
+  absl::StatusOr<std::string> SerializeToString() const;
+  absl::Status ParseFromString(const std::string& content);
   absl::Status LoadFromYazeFormat(const std::string& project_path);
   absl::Status SaveToYazeFormat();
   absl::Status ImportFromZScreamFormat(const std::string& project_path);
