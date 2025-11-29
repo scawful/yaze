@@ -13,6 +13,8 @@ set(
   zelda3/dungeon/room_layout.cc
   zelda3/dungeon/room_object.cc
   zelda3/formats/offsets.cc
+  zelda3/music/music_bank.cc
+  zelda3/music/spc_parser.cc
   zelda3/music/tracker.cc
   zelda3/overworld/overworld.cc
   zelda3/overworld/overworld_map.cc
@@ -64,6 +66,8 @@ target_link_libraries(yaze_zelda3 PUBLIC
   yaze_common
   ${ABSL_TARGETS}
   nlohmann_json::nlohmann_json
+  ImGui
+  ${YAZE_IMPLOT_TARGETS}
 )
 
 set_target_properties(yaze_zelda3 PROPERTIES

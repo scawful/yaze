@@ -1,5 +1,6 @@
 #include "input.h"
 
+#include <algorithm>
 #include <functional>
 #include <string>
 #include <variant>
@@ -510,6 +511,38 @@ bool InputHexWordCustom(const char* label, uint16_t* data, float input_width) {
   }
 
   ImGui::PopID();
+  return changed;
+}
+
+bool SliderFloatWheel(const char* label, float* v, float v_min, float v_max,
+                      const char* format, float wheel_step,
+                      ImGuiSliderFlags flags) {
+  bool changed = ImGui::SliderFloat(label, v, v_min, v_max, format, flags);
+
+  // Handle mouse wheel when hovering
+  if (ImGui::IsItemHovered()) {
+    float wheel = ImGui::GetIO().MouseWheel;
+    if (wheel != 0.0f) {
+      *v = std::clamp(*v + wheel * wheel_step, v_min, v_max);
+      changed = true;
+    }
+  }
+  return changed;
+}
+
+bool SliderIntWheel(const char* label, int* v, int v_min, int v_max,
+                    const char* format, int wheel_step, ImGuiSliderFlags flags) {
+  bool changed = ImGui::SliderInt(label, v, v_min, v_max, format, flags);
+
+  // Handle mouse wheel when hovering
+  if (ImGui::IsItemHovered()) {
+    float wheel = ImGui::GetIO().MouseWheel;
+    if (wheel != 0.0f) {
+      int delta = static_cast<int>(wheel) * wheel_step;
+      *v = std::clamp(*v + delta, v_min, v_max);
+      changed = true;
+    }
+  }
   return changed;
 }
 

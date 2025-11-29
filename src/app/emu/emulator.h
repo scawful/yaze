@@ -59,6 +59,14 @@ class Emulator {
   auto running() const -> bool { return running_; }
   void set_running(bool running) { running_ = running; }
 
+  // Headless mode for background audio (music editor)
+  // Initializes SNES and audio without requiring visible emulator window
+  bool EnsureInitialized(Rom* rom);
+  // Runs emulator frame without UI rendering (for background audio)
+  void RunFrameOnly();
+  // Reset frame timing (call before starting playback to prevent time buildup)
+  void ResetFrameTiming();
+
   // Audio backend access
   audio::IAudioBackend* audio_backend() { return audio_backend_.get(); }
   void ResumeAudio(); // For WASM/WebAudio context resumption
@@ -78,6 +86,10 @@ class Emulator {
   // Turbo mode
   bool is_turbo_mode() const { return turbo_mode_; }
   void set_turbo_mode(bool turbo) { turbo_mode_ = turbo; }
+
+  // Playback speed control (for music editor)
+  float playback_speed() const { return playback_speed_; }
+  void set_playback_speed(float speed) { playback_speed_ = std::clamp(speed, 0.25f, 2.0f); }
 
   // Debugger access
   BreakpointManager& breakpoint_manager() { return breakpoint_manager_; }
@@ -162,6 +174,7 @@ class Emulator {
 
   float wanted_frames_;
   int wanted_samples_;
+  float playback_speed_ = 1.0f;  // Speed multiplier (1.0 = normal)
 
   uint8_t manual_pb_ = 0;
   uint16_t manual_pc_ = 0;

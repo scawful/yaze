@@ -123,6 +123,18 @@ class Dsp {
     return false;
   }
 
+  // Accessor for visualization
+  const DspChannel& GetChannel(int ch) const {
+    // Safety clamp
+    if (ch < 0) ch = 0;
+    if (ch > 7) ch = 7;
+    return channel[ch];
+  }
+
+  // Accessor for master buffer (for oscilloscope)
+  const int16_t* GetSampleBuffer() const { return sampleBuffer; }
+  uint16_t GetSampleOffset() const { return sampleOffset; }
+
   InterpolationType interpolation_type = InterpolationType::Linear;
 
  private:

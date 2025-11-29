@@ -91,6 +91,37 @@ class Apu {
     }
   }
 
+  /**
+   * @brief Bootstrap SPC directly to driver code (bypasses IPL ROM handshake)
+   *
+   * This method allows direct control of the SPC700 by:
+   * 1. Disabling the IPL ROM
+   * 2. Setting PC to the driver entry point
+   * 3. Initializing SPC state for driver execution
+   *
+   * Use this after uploading audio driver code via WriteDma() to bypass
+   * the normal IPL ROM handshake protocol.
+   *
+   * @param entry_point The ARAM address where the driver code starts (typically $0800)
+   */
+  void BootstrapDirect(uint16_t entry_point);
+
+  /**
+   * @brief Check if SPC has completed IPL ROM boot and is running driver code
+   * @return true if IPL ROM is disabled and SPC is executing from RAM
+   */
+  bool IsDriverRunning() const { return !rom_readable_; }
+
+  /**
+   * @brief Write directly to DSP register
+   * Used for direct instrument/note preview without going through driver
+   */
+  void WriteToDsp(uint8_t address, uint8_t value) {
+    if (address < 0x80) {
+      dsp_.Write(address, value);
+    }
+  }
+
   // Port buffers (equivalent to $2140 to $2143 for the main CPU)
   std::array<uint8_t, 6> in_ports_;  // includes 2 bytes of ram
   std::array<uint8_t, 4> out_ports_;

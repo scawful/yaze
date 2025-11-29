@@ -81,6 +81,15 @@ IMGUI_API bool OpenUrl(const std::string& url);
 
 void MemoryEditorPopup(const std::string& label, std::span<uint8_t> memory);
 
+// Slider with mouse wheel support
+IMGUI_API bool SliderFloatWheel(const char* label, float* v, float v_min,
+                                float v_max, const char* format = "%.3f",
+                                float wheel_step = 0.05f,
+                                ImGuiSliderFlags flags = 0);
+IMGUI_API bool SliderIntWheel(const char* label, int* v, int v_min, int v_max,
+                              const char* format = "%d", int wheel_step = 1,
+                              ImGuiSliderFlags flags = 0);
+
 }  // namespace gui
 }  // namespace yaze
 
