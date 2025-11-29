@@ -187,8 +187,11 @@ ChatMessage CreateMessage(ChatMessage::Sender sender,
 }  // namespace
 
 ConversationalAgentService::ConversationalAgentService() {
-  provider_config_.provider = "auto";
-  ai_service_ = CreateAIService();
+  // Default to a lightweight mock provider to avoid slow network checks during
+  // startup (especially on mac-ai builds). The real provider is created when
+  // ConfigureProvider is called from the UI.
+  provider_config_.provider = "mock";
+  ai_service_ = std::make_unique<MockAIService>();
   tool_dispatcher_.SetToolPreferences(tool_preferences_);
 
 #ifdef Z3ED_AI
@@ -210,8 +213,10 @@ ConversationalAgentService::ConversationalAgentService() {
 ConversationalAgentService::ConversationalAgentService(
     const AgentConfig& config)
     : config_(config) {
-  provider_config_.provider = "auto";
-  ai_service_ = CreateAIService();
+  // Avoid auto-detecting providers (which can block on network) until the UI
+  // applies an explicit configuration.
+  provider_config_.provider = "mock";
+  ai_service_ = std::make_unique<MockAIService>();
   tool_dispatcher_.SetToolPreferences(tool_preferences_);
 
 #ifdef Z3ED_AI
@@ -559,6 +564,15 @@ absl::Status ConversationalAgentService::ConfigureProvider(
     const AIServiceConfig& config) {
   auto service_or = CreateAIServiceStrict(config);
   if (!service_or.ok()) {
+    // Keep the existing service running and fall back to mock so the UI stays
+    // responsive.
+    std::cerr << "Provider configuration failed: " << service_or.status()
+              << " — falling back to mock" << std::endl;
+    ai_service_ = std::make_unique<MockAIService>();
+    provider_config_.provider = "mock";
+    if (rom_context_) {
+      ai_service_->SetRomContext(rom_context_);
+    }
     return service_or.status();
   }
 

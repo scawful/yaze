@@ -164,7 +164,7 @@ class AgentChatWidget {
    * @brief Get the agent service for sharing with other components
    */
   cli::agent::ConversationalAgentService* GetAgentService() {
-    return &agent_service_;
+    return &CurrentSession().agent_service;
   }
   enum class CollaborationMode {
     kLocal = 0,   // Filesystem-based collaboration
@@ -258,6 +258,7 @@ class AgentChatWidget {
     struct ModelPreset {
       std::string name;
       std::string model;
+      std::string provider;
       std::string host;
       std::vector<std::string> tags;
       bool pinned = false;
@@ -364,7 +365,7 @@ class AgentChatWidget {
   void HandleSnapshotReceived(const std::string& snapshot_data,
                               const std::string& snapshot_type);
   void HandleProposalReceived(const std::string& proposal_data);
-  void RefreshModels();
+  void RefreshModels(bool force = false);
   cli::AIServiceConfig BuildAIServiceConfig() const;
   void ApplyToolPreferences();
   void ApplyHistoryAgentConfig(
@@ -390,6 +391,8 @@ class AgentChatWidget {
     size_t last_history_size = 0;
     bool history_loaded = false;
     bool history_dirty = false;
+    size_t last_known_history_size = 0;
+    int last_proposal_count = 0;
     std::filesystem::path history_path;
     absl::Time created_at = absl::Now();
     absl::Time last_persist_time = absl::InfinitePast();
@@ -403,27 +406,22 @@ class AgentChatWidget {
   void DeleteChatSession(const std::string& session_id);
   std::vector<std::string> GetSavedSessions();
   std::filesystem::path GetSessionsDirectory();
+  ChatSession& CurrentSession();
+  const ChatSession& CurrentSession() const;
+  cli::agent::ConversationalAgentService& CurrentService();
 
   std::vector<ChatSession> chat_sessions_;
   int active_session_index_ = 0;
 
-  // Legacy single session support (will migrate to sessions)
-  cli::agent::ConversationalAgentService agent_service_;
   char input_buffer_[1024];
   bool active_ = false;
   std::string title_;
-  size_t last_history_size_ = 0;
-  bool history_loaded_ = false;
-  bool history_dirty_ = false;
   bool history_supported_ = true;
   bool history_warning_displayed_ = false;
-  std::filesystem::path history_path_;
-  int last_proposal_count_ = 0;
   ToastManager* toast_manager_ = nullptr;
   ProposalDrawer* proposal_drawer_ = nullptr;
   AgentChatHistoryPopup* chat_history_popup_ = nullptr;
   std::string pending_focus_proposal_id_;
-  absl::Time last_persist_time_ = absl::InfinitePast();
 
   // Main state
   CollaborationState collaboration_state_;
@@ -457,7 +455,6 @@ class AgentChatWidget {
   // Timing
   absl::Time last_collaboration_action_ = absl::InfinitePast();
   absl::Time last_shared_history_poll_ = absl::InfinitePast();
-  size_t last_known_history_size_ = 0;
 
   // UI state
   int active_tab_ = 0;  // 0=Chat, 1=Config, 2=Commands, 3=Collab, 4=ROM Sync,

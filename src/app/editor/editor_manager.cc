@@ -23,6 +23,7 @@
 #include "absl/strings/match.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
+#include "app/editor/agent/agent_chat_widget.h"
 #include "app/editor/code/assembly_editor.h"
 #include "app/editor/dungeon/dungeon_editor_v2.h"
 #include "app/editor/graphics/graphics_editor.h"
@@ -36,7 +37,7 @@
 #include "app/editor/sprite/sprite_editor.h"
 #include "app/editor/system/editor_card_registry.h"
 #include "app/editor/system/editor_registry.h"
-#include "app/editor/system/popup_manager.h"
+#include "app/editor/ui/popup_manager.h"
 #include "app/editor/system/shortcut_configurator.h"
 #include "app/editor/ui/layout_presets.h"
 #include "app/editor/ui/editor_selection_dialog.h"
@@ -72,7 +73,7 @@
 #endif
 
 #include "app/editor/editor.h"
-#include "app/editor/system/toast_manager.h"
+#include "app/editor/ui/toast_manager.h"
 #include "app/editor/ui/settings_panel.h"
 #include "app/gfx/debug/performance/performance_dashboard.h"
 
@@ -209,6 +210,15 @@ void EditorManager::ResetCurrentEditorLayout() {
 
 #ifdef YAZE_BUILD_AGENT_UI
 void EditorManager::ShowAIAgent() {
+  // Apply saved agent settings from the current project when opening the Agent
+  // UI to respect the user's preferred provider/model.
+  if (current_project_.project_opened()) {
+    if (auto* agent_editor = agent_ui_.GetAgentEditor()) {
+      if (auto* chat_widget = agent_editor->GetChatWidget()) {
+        chat_widget->LoadAgentSettingsFromProject(current_project_);
+      }
+    }
+  }
   agent_ui_.ShowAgent();
 }
 
@@ -452,7 +462,7 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
 
   // Initialize agent UI (no-op when agent UI is disabled)
   agent_ui_.Initialize(&toast_manager_, &proposal_drawer_,
-                       right_panel_manager_.get());
+                       right_panel_manager_.get(), &card_registry_);
 
   // Load critical user settings first
   status_ = user_settings_.Load();
@@ -552,7 +562,8 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
   // Initialize editor selection dialog callback
   editor_selection_dialog_.SetSelectionCallback([this](EditorType type) {
     editor_selection_dialog_.MarkRecentlyUsed(type);
-    SwitchToEditor(type);  // Use centralized method
+    // Pass true for from_dialog so the dialog isn't automatically dismissed
+    SwitchToEditor(type, /*force_visible=*/false, /*from_dialog=*/true);
   });
 
   // Load user settings - this must happen after context is initialized
@@ -834,14 +845,8 @@ absl::Status EditorManager::Update() {
     }
   }
 
-  // Delegate to PopupManager for modal dialog rendering
-  popup_manager_->DrawPopups();
-
   // Execute keyboard shortcuts (registered via ShortcutConfigurator)
   ExecuteShortcuts(shortcut_manager_);
-
-  // Delegate to ToastManager for notification rendering
-  toast_manager_.Draw();
 
   // Draw editor selection dialog (managed by UICoordinator)
   if (ui_coordinator_ && ui_coordinator_->IsEditorSelectionVisible()) {
@@ -1333,11 +1338,6 @@ absl::Status EditorManager::LoadAssets(uint64_t passed_handle) {
   current_editor_set->GetAssemblyEditor()->Initialize();
   current_editor_set->GetMusicEditor()->Initialize();
   
-  // Configure settings panel
-  current_editor_set->GetSettingsPanel()->SetUserSettings(&user_settings_);
-  current_editor_set->GetSettingsPanel()->SetCardRegistry(&card_registry_);
-  current_editor_set->GetSettingsPanel()->SetRom(current_rom);
-
   // Initialize the dungeon editor with the renderer
   current_editor_set->GetDungeonEditor()->Initialize(renderer_, current_rom);
 
@@ -1923,7 +1923,7 @@ void EditorManager::JumpToOverworldMap(int map_id) {
   GetCurrentEditorSet()->GetOverworldEditor()->set_current_map(map_id);
 }
 
-void EditorManager::SwitchToEditor(EditorType editor_type, bool force_visible) {
+void EditorManager::SwitchToEditor(EditorType editor_type, bool force_visible, bool from_dialog) {
   // Avoid touching ImGui docking state when we're outside a frame (e.g. WASM
   // control API calls from JS). Defer the switch to the next UI tick so the
   // dock space and ID stack are valid.
@@ -1931,8 +1931,13 @@ void EditorManager::SwitchToEditor(EditorType editor_type, bool force_visible) {
   const bool frame_active =
       imgui_ctx != nullptr && imgui_ctx->WithinFrameScope;
   if (!frame_active) {
-    QueueDeferredAction([this, editor_type, force_visible]() { SwitchToEditor(editor_type, force_visible); });
+    QueueDeferredAction([this, editor_type, force_visible, from_dialog]() { SwitchToEditor(editor_type, force_visible, from_dialog); });
     return;
+  }
+
+  // If we are NOT coming from the dialog, close it
+  if (!from_dialog && ui_coordinator_) {
+    ui_coordinator_->SetEditorSelectionVisible(false);
   }
 
   auto* editor_set = GetCurrentEditorSet();
@@ -1959,8 +1964,13 @@ void EditorManager::SwitchToEditor(EditorType editor_type, bool force_visible) {
           // Initialize default layout on first activation
           if (layout_manager_ &&
               !layout_manager_->IsLayoutInitialized(editor_type)) {
-            ImGuiID dockspace_id = ImGui::GetID("MainDockSpace");
-            layout_manager_->InitializeEditorLayout(editor_type, dockspace_id);
+            // Defer layout initialization to ensure we are in the correct scope
+            QueueDeferredAction([this, editor_type]() {
+              if (layout_manager_ && !layout_manager_->IsLayoutInitialized(editor_type)) {
+                ImGuiID dockspace_id = ImGui::GetID("MainDockSpace");
+                layout_manager_->InitializeEditorLayout(editor_type, dockspace_id);
+              }
+            });
           }
         } else {
           // Editor deactivated - switch to another active card-based editor
@@ -1995,14 +2005,17 @@ void EditorManager::SwitchToEditor(EditorType editor_type, bool force_visible) {
         
         // Always initialize default layout for Emulator on activation
         // Check if we're in a valid ImGui frame before initializing
-        ImGuiContext* imgui_ctx = ImGui::GetCurrentContext();
-        if (layout_manager_ && imgui_ctx && imgui_ctx->WithinFrameScope) {
-          ImGuiID dockspace_id = ImGui::GetID("MainDockSpace");
-          if (!layout_manager_->IsLayoutInitialized(EditorType::kEmulator)) {
-            layout_manager_->InitializeEditorLayout(EditorType::kEmulator, dockspace_id);
-            LOG_INFO("EditorManager", "Initialized emulator layout");
+        // Defer layout initialization to ensure we are in the correct scope
+        QueueDeferredAction([this]() {
+          ImGuiContext* imgui_ctx = ImGui::GetCurrentContext();
+          if (layout_manager_ && imgui_ctx && imgui_ctx->WithinFrameScope) {
+            ImGuiID dockspace_id = ImGui::GetID("MainDockSpace");
+            if (!layout_manager_->IsLayoutInitialized(EditorType::kEmulator)) {
+              layout_manager_->InitializeEditorLayout(EditorType::kEmulator, dockspace_id);
+              LOG_INFO("EditorManager", "Initialized emulator layout");
+            }
           }
-        }
+        });
       }
     }
   } else if (editor_type == EditorType::kHex) {
@@ -2092,6 +2105,7 @@ void EditorManager::ConfigureEditorDependencies(EditorSet* editor_set, Rom* rom,
   deps.shortcut_manager = &shortcut_manager_;
   deps.shared_clipboard = &shared_clipboard_;
   deps.user_settings = &user_settings_;
+  deps.project = &current_project_;
   deps.renderer = renderer_;
   deps.emulator = &emulator_;
 

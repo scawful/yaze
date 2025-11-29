@@ -18,7 +18,7 @@
 #include "app/editor/agent/agent_chat_widget.h"
 #include "app/editor/agent/agent_collaboration_coordinator.h"
 #include "app/editor/system/proposal_drawer.h"
-#include "app/editor/system/toast_manager.h"
+#include "app/editor/ui/toast_manager.h"
 #include "app/gui/core/icons.h"
 #include "app/platform/asset_loader.h"
 #include "app/rom.h"
@@ -596,6 +596,11 @@ void AgentEditor::DrawConfigurationPanel() {
     current_config_.verbose = current_profile_.verbose;
     current_config_.show_reasoning = current_profile_.show_reasoning;
     current_config_.max_tool_iterations = current_profile_.max_tool_iterations;
+    current_config_.max_retry_attempts = current_profile_.max_retry_attempts;
+    current_config_.temperature = current_profile_.temperature;
+    current_config_.top_p = current_profile_.top_p;
+    current_config_.max_output_tokens = current_profile_.max_output_tokens;
+    current_config_.stream_responses = current_profile_.stream_responses;
 
     ApplyConfig(current_config_);
     Save();
@@ -1522,6 +1527,11 @@ absl::Status AgentEditor::LoadBotProfile(const std::string& name) {
   current_config_.verbose = profile.verbose;
   current_config_.show_reasoning = profile.show_reasoning;
   current_config_.max_tool_iterations = profile.max_tool_iterations;
+  current_config_.max_retry_attempts = profile.max_retry_attempts;
+  current_config_.temperature = profile.temperature;
+  current_config_.top_p = profile.top_p;
+  current_config_.max_output_tokens = profile.max_output_tokens;
+  current_config_.stream_responses = profile.stream_responses;
 
   // Apply to chat widget
   ApplyConfig(current_config_);
@@ -1563,6 +1573,11 @@ void AgentEditor::SetCurrentProfile(const BotProfile& profile) {
   current_config_.verbose = profile.verbose;
   current_config_.show_reasoning = profile.show_reasoning;
   current_config_.max_tool_iterations = profile.max_tool_iterations;
+  current_config_.max_retry_attempts = profile.max_retry_attempts;
+  current_config_.temperature = profile.temperature;
+  current_config_.top_p = profile.top_p;
+  current_config_.max_output_tokens = profile.max_output_tokens;
+  current_config_.stream_responses = profile.stream_responses;
 }
 
 absl::Status AgentEditor::ExportProfile(const BotProfile& profile,
@@ -1639,6 +1654,10 @@ std::string AgentEditor::ProfileToJson(const BotProfile& profile) const {
   json["show_reasoning"] = profile.show_reasoning;
   json["max_tool_iterations"] = profile.max_tool_iterations;
   json["max_retry_attempts"] = profile.max_retry_attempts;
+  json["temperature"] = profile.temperature;
+  json["top_p"] = profile.top_p;
+  json["max_output_tokens"] = profile.max_output_tokens;
+  json["stream_responses"] = profile.stream_responses;
   json["tags"] = profile.tags;
   json["created_at"] = absl::FormatTime(absl::RFC3339_full, profile.created_at,
                                         absl::UTCTimeZone());
@@ -1669,6 +1688,10 @@ absl::StatusOr<AgentEditor::BotProfile> AgentEditor::JsonToProfile(
     profile.show_reasoning = json.value("show_reasoning", true);
     profile.max_tool_iterations = json.value("max_tool_iterations", 4);
     profile.max_retry_attempts = json.value("max_retry_attempts", 3);
+    profile.temperature = json.value("temperature", 0.25f);
+    profile.top_p = json.value("top_p", 0.95f);
+    profile.max_output_tokens = json.value("max_output_tokens", 2048);
+    profile.stream_responses = json.value("stream_responses", false);
 
     if (json.contains("tags") && json["tags"].is_array()) {
       for (const auto& tag : json["tags"]) {
@@ -1717,13 +1740,18 @@ void AgentEditor::ApplyConfig(const AgentConfig& config) {
     AgentChatWidget::AgentConfigState chat_config;
     chat_config.ai_provider = config.provider;
     chat_config.ai_model = config.model;
-    chat_config.ollama_host = config.ollama_host;
-    chat_config.gemini_api_key = config.gemini_api_key;
-    chat_config.verbose = config.verbose;
-    chat_config.show_reasoning = config.show_reasoning;
-    chat_config.max_tool_iterations = config.max_tool_iterations;
-    chat_widget_->UpdateAgentConfig(chat_config);
-  }
+  chat_config.ollama_host = config.ollama_host;
+  chat_config.gemini_api_key = config.gemini_api_key;
+  chat_config.verbose = config.verbose;
+  chat_config.show_reasoning = config.show_reasoning;
+  chat_config.max_tool_iterations = config.max_tool_iterations;
+  chat_config.max_retry_attempts = config.max_retry_attempts;
+  chat_config.temperature = config.temperature;
+  chat_config.top_p = config.top_p;
+  chat_config.max_output_tokens = config.max_output_tokens;
+  chat_config.stream_responses = config.stream_responses;
+  chat_widget_->UpdateAgentConfig(chat_config);
+}
 
   // Note: Config sync to shared context is now handled by AgentUiController
 }

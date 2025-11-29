@@ -53,6 +53,7 @@ if(_YAZE_USE_SYSTEM_YAML)
   if(yaml-cpp_FOUND)
     message(STATUS "Using system yaml-cpp")
     add_library(yaze_yaml INTERFACE)
+    target_compile_definitions(yaze_yaml INTERFACE YAZE_HAS_YAML_CPP=1)
     if(TARGET yaml-cpp::yaml-cpp)
       message(STATUS "Linking yaze_yaml against yaml-cpp::yaml-cpp")
       target_link_libraries(yaze_yaml INTERFACE yaml-cpp::yaml-cpp)
@@ -96,6 +97,7 @@ endif()
 # Create convenience targets for the rest of the project
 add_library(yaze_yaml INTERFACE)
 target_link_libraries(yaze_yaml INTERFACE yaml-cpp)
+target_compile_definitions(yaze_yaml INTERFACE YAZE_HAS_YAML_CPP=1)
 
 # Export yaml-cpp targets for use in other CMake files
 set(YAZE_YAML_TARGETS yaze_yaml)

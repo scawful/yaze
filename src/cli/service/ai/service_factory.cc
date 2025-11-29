@@ -76,24 +76,9 @@ std::unique_ptr<AIService> CreateAIService(const AIServiceConfig& config) {
     } else
 #endif
     {
-      OllamaConfig test_config;
-      test_config.base_url = effective_config.ollama_host;
-      if (!effective_config.model.empty()) {
-        test_config.model = effective_config.model;
-      }
-      auto tester = std::make_unique<OllamaAIService>(test_config);
-      if (tester->CheckAvailability().ok()) {
-        std::cout << "🤖 Auto-detecting AI provider...\n";
-        std::cout << "   Ollama available, using Ollama\n";
-        effective_config.provider = "ollama";
-        if (effective_config.model.empty()) {
-          effective_config.model = test_config.model;
-        }
-      } else {
-        std::cout << "🤖 No AI provider configured, using MockAIService\n";
-        std::cout << "   Tip: Set GEMINI_API_KEY/OPENAI_API_KEY or start Ollama for real AI\n";
-        effective_config.provider = "mock";
-      }
+      std::cout << "🤖 No AI provider configured, using MockAIService\n";
+      std::cout << "   Tip: Set GEMINI_API_KEY/OPENAI_API_KEY or start Ollama for real AI\n";
+      effective_config.provider = "mock";
     }
   }
 
@@ -132,12 +117,7 @@ absl::StatusOr<std::unique_ptr<AIService>> CreateAIServiceStrict(
       ollama_config.model = env_model;
     }
 
-    auto service = std::make_unique<OllamaAIService>(ollama_config);
-    auto status = service->CheckAvailability();
-    if (!status.ok()) {
-      return status;
-    }
-    return service;
+    return std::make_unique<OllamaAIService>(ollama_config);
   }
 
 #ifdef YAZE_WITH_JSON
