@@ -37,6 +37,11 @@ void EditorSet::ApplyDependencies(const EditorDependencies& dependencies) {
     editor->SetDependencies(dependencies);
   }
   memory_editor_->set_rom(dependencies.rom);
+
+  // MusicEditor needs emulator for audio playback
+  if (dependencies.emulator) {
+    music_editor_->set_emulator(dependencies.emulator);
+  }
 }
 
 RomSession::RomSession(Rom&& r, UserSettings* user_settings, size_t session_id)

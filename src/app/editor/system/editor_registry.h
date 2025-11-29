@@ -41,6 +41,14 @@ class EditorRegistry {
   void JumpToOverworldMap(int map_id);
   void SwitchToEditor(EditorType editor_type);
 
+  // Callbacks for navigation
+  void SetJumpToDungeonRoomCallback(std::function<void(int)> callback) {
+    jump_to_room_callback_ = std::move(callback);
+  }
+  void SetJumpToOverworldMapCallback(std::function<void(int)> callback) {
+    jump_to_map_callback_ = std::move(callback);
+  }
+
   // Editor card management
   void HideCurrentEditorCards();
   void ShowEditorCards(EditorType editor_type);
@@ -70,6 +78,10 @@ class EditorRegistry {
 
   // Registered editors
   std::unordered_map<EditorType, Editor*> registered_editors_;
+
+  // Navigation callbacks
+  std::function<void(int)> jump_to_room_callback_;
+  std::function<void(int)> jump_to_map_callback_;
 
   // Helper methods
   bool IsValidEditorType(EditorType type) const;

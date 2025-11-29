@@ -154,6 +154,9 @@ class LayoutManager {
 
  private:
   // DockBuilder layout implementations for each editor type
+  void BuildLayoutFromPreset(EditorType type, ImGuiID dockspace_id);
+
+  // Deprecated individual builders - kept for compatibility or as wrappers
   void BuildOverworldLayout(ImGuiID dockspace_id);
   void BuildDungeonLayout(ImGuiID dockspace_id);
   void BuildGraphicsLayout(ImGuiID dockspace_id);

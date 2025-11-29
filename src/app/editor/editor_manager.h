@@ -14,10 +14,13 @@
 #include "app/editor/agent/agent_ui_controller.h"
 #include "app/editor/code/project_file_editor.h"
 #include "app/editor/editor.h"
+#include "app/editor/menu/activity_bar.h"
+#include "app/editor/menu/menu_builder.h"
+#include "app/editor/menu/menu_orchestrator.h"
+#include "app/editor/menu/right_panel_manager.h"
 #include "app/editor/session_types.h"
 #include "app/editor/system/editor_card_registry.h"
 #include "app/editor/system/editor_registry.h"
-#include "app/editor/system/menu_orchestrator.h"
 #include "app/editor/system/popup_manager.h"
 #include "app/editor/system/project_manager.h"
 #include "app/editor/system/proposal_drawer.h"
@@ -29,10 +32,8 @@
 #include "app/editor/ui/editor_selection_dialog.h"
 #include "app/editor/ui/layout_manager.h"
 #include "app/editor/ui/layout_presets.h"
-#include "app/editor/ui/right_panel_manager.h"
-#include "app/editor/ui/selection_properties_panel.h"
-#include "app/editor/ui/menu_builder.h"
 #include "app/editor/ui/rom_load_options_dialog.h"
+#include "app/editor/ui/selection_properties_panel.h"
 #include "app/editor/ui/ui_coordinator.h"
 #include "app/editor/ui/welcome_screen.h"
 #include "app/editor/ui/workspace_manager.h"
@@ -363,6 +364,7 @@ class EditorManager {
       layout_manager_;  // DockBuilder layout management
   std::unique_ptr<RightPanelManager>
       right_panel_manager_;  // Right-side panel system
+  std::unique_ptr<ActivityBar> activity_bar_;
   WorkspaceManager workspace_manager_{&toast_manager_};
 
   emu::input::InputConfig BuildInputConfigFromSettings() const;

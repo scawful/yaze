@@ -1,5 +1,5 @@
-#ifndef YAZE_APP_EDITOR_UI_RIGHT_PANEL_MANAGER_H_
-#define YAZE_APP_EDITOR_UI_RIGHT_PANEL_MANAGER_H_
+#ifndef YAZE_APP_EDITOR_MENU_RIGHT_PANEL_MANAGER_H_
+#define YAZE_APP_EDITOR_MENU_RIGHT_PANEL_MANAGER_H_
 
 #include <functional>
 #include <string>
@@ -212,5 +212,5 @@ const char* GetPanelTypeIcon(RightPanelManager::PanelType type);
 }  // namespace editor
 }  // namespace yaze
 
-#endif  // YAZE_APP_EDITOR_UI_RIGHT_PANEL_MANAGER_H_
+#endif  // YAZE_APP_EDITOR_MENU_RIGHT_PANEL_MANAGER_H_
 

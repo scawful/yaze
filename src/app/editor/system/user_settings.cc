@@ -26,9 +26,16 @@ UserSettings::UserSettings() {
 
 absl::Status UserSettings::Load() {
   try {
+    // If file doesn't exist, save defaults immediately
+    if (!util::PlatformPaths::Exists(settings_file_path_)) {
+      LOG_INFO("UserSettings", "Settings file not found, creating defaults at: %s", 
+               settings_file_path_.c_str());
+      return Save();
+    }
+
     auto data = util::LoadFile(settings_file_path_);
     if (data.empty()) {
-      return absl::OkStatus();  // No settings file yet, use defaults.
+      return absl::OkStatus();  // Empty file, use defaults.
     }
 
     std::istringstream ss(data);

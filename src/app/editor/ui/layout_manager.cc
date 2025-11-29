@@ -48,46 +48,8 @@ void LayoutManager::InitializeEditorLayout(EditorType type,
   ImGui::DockBuilderAddNode(dockspace_id, ImGuiDockNodeFlags_DockSpace);
   ImGui::DockBuilderSetNodeSize(dockspace_id, ImGui::GetMainViewport()->Size);
 
-  // Build layout based on editor type
-  switch (type) {
-    case EditorType::kOverworld:
-      BuildOverworldLayout(dockspace_id);
-      break;
-    case EditorType::kDungeon:
-      BuildDungeonLayout(dockspace_id);
-      break;
-    case EditorType::kGraphics:
-      BuildGraphicsLayout(dockspace_id);
-      break;
-    case EditorType::kPalette:
-      BuildPaletteLayout(dockspace_id);
-      break;
-    case EditorType::kScreen:
-      BuildScreenLayout(dockspace_id);
-      break;
-    case EditorType::kMusic:
-      BuildMusicLayout(dockspace_id);
-      break;
-    case EditorType::kSprite:
-      BuildSpriteLayout(dockspace_id);
-      break;
-    case EditorType::kMessage:
-      BuildMessageLayout(dockspace_id);
-      break;
-    case EditorType::kAssembly:
-      BuildAssemblyLayout(dockspace_id);
-      break;
-    case EditorType::kSettings:
-      BuildSettingsLayout(dockspace_id);
-      break;
-    case EditorType::kEmulator:
-      BuildEmulatorLayout(dockspace_id);
-      break;
-    default:
-      LOG_WARN("LayoutManager", "No layout defined for editor type %d",
-               static_cast<int>(type));
-      break;
-  }
+  // Build layout based on editor type using generic builder
+  BuildLayoutFromPreset(type, dockspace_id);
 
   // Show default cards from LayoutPresets (single source of truth)
   ShowDefaultCardsForEditor(card_registry_, type);
@@ -123,46 +85,8 @@ void LayoutManager::RebuildLayout(EditorType type, ImGuiID dockspace_id) {
   ImGui::DockBuilderAddNode(dockspace_id, ImGuiDockNodeFlags_DockSpace);
   ImGui::DockBuilderSetNodeSize(dockspace_id, ImGui::GetMainViewport()->Size);
 
-  // Build layout based on editor type
-  switch (type) {
-    case EditorType::kOverworld:
-      BuildOverworldLayout(dockspace_id);
-      break;
-    case EditorType::kDungeon:
-      BuildDungeonLayout(dockspace_id);
-      break;
-    case EditorType::kGraphics:
-      BuildGraphicsLayout(dockspace_id);
-      break;
-    case EditorType::kPalette:
-      BuildPaletteLayout(dockspace_id);
-      break;
-    case EditorType::kScreen:
-      BuildScreenLayout(dockspace_id);
-      break;
-    case EditorType::kMusic:
-      BuildMusicLayout(dockspace_id);
-      break;
-    case EditorType::kSprite:
-      BuildSpriteLayout(dockspace_id);
-      break;
-    case EditorType::kMessage:
-      BuildMessageLayout(dockspace_id);
-      break;
-    case EditorType::kAssembly:
-      BuildAssemblyLayout(dockspace_id);
-      break;
-    case EditorType::kSettings:
-      BuildSettingsLayout(dockspace_id);
-      break;
-    case EditorType::kEmulator:
-      BuildEmulatorLayout(dockspace_id);
-      break;
-    default:
-      LOG_WARN("LayoutManager", "No layout defined for editor type %d",
-               static_cast<int>(type));
-      break;
-  }
+  // Build layout based on editor type using generic builder
+  BuildLayoutFromPreset(type, dockspace_id);
 
   // Show default cards from LayoutPresets (single source of truth)
   ShowDefaultCardsForEditor(card_registry_, type);
@@ -177,221 +101,68 @@ void LayoutManager::RebuildLayout(EditorType type, ImGuiID dockspace_id) {
            static_cast<int>(type));
 }
 
-void LayoutManager::BuildOverworldLayout(ImGuiID dockspace_id) {
-  // Default Overworld Editor Layout:
-  // - Center 75%: Overworld Canvas (main editing area, maximized)
-  // - Right 25%: Tile16 Selector
-  //
-  // Other cards (Tile8, Area Graphics, GFX Groups, etc.) start hidden
-  // and can be opened via sidebar or View menu
-
-  ImGuiID dock_center_id = 0;
-  ImGuiID dock_right_id = 0;
-
-  // Split dockspace: Center 75% | Right 25%
-  dock_right_id = ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Right,
-                                              0.25f, nullptr, &dock_center_id);
-
-  // Dock main windows
-  ImGui::DockBuilderDockWindow(" Overworld Canvas", dock_center_id);
-  ImGui::DockBuilderDockWindow(" Tile16 Selector", dock_right_id);
-
-  // Note: Other cards (Tile8 Selector, Area Graphics, Scratch Pad, GFX Groups)
-  // are not docked by default - they can be opened from the sidebar/menu
-}
-
-void LayoutManager::BuildDungeonLayout(ImGuiID dockspace_id) {
-  // Default Dungeon Editor Layout:
-  // - Left 15%: Room Selector (list of dungeon rooms)
-  // - Center 85%: Room Canvas (main editing area, maximized)
-  //
-  // Other cards (Object Editor, Entrances, Palette Editor, Room Matrix) start hidden
-
-  ImGuiID dock_left_id = 0;
-  ImGuiID dock_center_id = 0;
-
-  // Split dockspace: Left 15% | Center 85%
-  dock_left_id = ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Left, 0.15f,
-                                             nullptr, &dock_center_id);
-
-  // Dock main windows
-  ImGui::DockBuilderDockWindow(" Rooms List", dock_left_id);
-  ImGui::DockBuilderDockWindow(" Dungeon Controls", dock_center_id);
-
-  // Note: Other cards (Object Editor, Entrances, Palette Editor, Room Matrix, Room Graphics)
-  // are not docked by default - they can be opened from the sidebar/menu
-}
-
-void LayoutManager::BuildGraphicsLayout(ImGuiID dockspace_id) {
-  // Default Graphics Editor Layout:
-  // - Left 25%: Sheet Browser (list of all GFX sheets)
-  // - Center 75%: Sheet Editor (main editing canvas with tabs)
-  //
-  // Other cards (Player Animations, Prototype Viewer) start hidden
-
-  ImGuiID dock_left_id = 0;
-  ImGuiID dock_center_id = 0;
-
-  // Split dockspace: Left 25% | Center 75%
-  dock_left_id = ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Left, 0.25f,
-                                             nullptr, &dock_center_id);
-
-  // Dock main windows
-  ImGui::DockBuilderDockWindow(" GFX Sheets", dock_left_id);
-  ImGui::DockBuilderDockWindow(" Sheet Editor", dock_center_id);
-
-  // Note: Player Animations and Prototype Viewer are not docked by default
-  // They can be opened from the sidebar/menu
-}
-
-void LayoutManager::BuildPaletteLayout(ImGuiID dockspace_id) {
-  // Layout:
-  // - Left 20%: Control Panel
-  // - Center 80%: Palette Editor (maximized)
-  //
-  // Other cards (ROM Browser, SNES Palette, Color Harmony) start hidden
-
-  ImGuiID dock_left_id = 0;
-  ImGuiID dock_center_id = 0;
-
-  // Split dockspace: Left 20% | Center 80%
-  dock_left_id = ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Left, 0.20f,
-                                             nullptr, &dock_center_id);
-
-  // Dock windows
-  ImGui::DockBuilderDockWindow(" Palette Control Panel", dock_left_id);
-  ImGui::DockBuilderDockWindow(" OW Main Palette", dock_center_id);
-}
-
-void LayoutManager::BuildScreenLayout(ImGuiID dockspace_id) {
-  // Layout:
-  // - Grid layout with Dungeon Map Editor in center
-  // - Title Screen, Inventory Menu, Naming Screen as tabs or separate
-
-  ImGuiID dock_main_id = dockspace_id;
-  ImGuiID dock_right_id = ImGui::DockBuilderSplitNode(
-      dock_main_id, ImGuiDir_Right, 0.40f, nullptr, &dock_main_id);
+void LayoutManager::BuildLayoutFromPreset(EditorType type, ImGuiID dockspace_id) {
+  auto preset = LayoutPresets::GetDefaultPreset(type);
+  
+  // Define standard splits
+  ImGuiID dock_center = dockspace_id;
+  ImGuiID dock_left = ImGui::DockBuilderSplitNode(dock_center, ImGuiDir_Left, 0.20f, nullptr, &dock_center);
+  ImGuiID dock_right = ImGui::DockBuilderSplitNode(dock_center, ImGuiDir_Right, 0.25f, nullptr, &dock_center);
+  ImGuiID dock_bottom = ImGui::DockBuilderSplitNode(dock_center, ImGuiDir_Down, 0.25f, nullptr, &dock_center);
+  ImGuiID dock_top = ImGui::DockBuilderSplitNode(dock_center, ImGuiDir_Up, 0.20f, nullptr, &dock_center);
+  
+  // Secondary splits for more complex layouts
+  ImGuiID dock_left_top = 0;
+  ImGuiID dock_left_bottom = ImGui::DockBuilderSplitNode(dock_left, ImGuiDir_Down, 0.5f, nullptr, &dock_left_top);
   
   ImGuiID dock_right_top = 0;
-  ImGuiID dock_right_bottom = ImGui::DockBuilderSplitNode(
-      dock_right_id, ImGuiDir_Down, 0.50f, nullptr, &dock_right_top);
+  ImGuiID dock_right_bottom = ImGui::DockBuilderSplitNode(dock_right, ImGuiDir_Down, 0.5f, nullptr, &dock_right_top);
+  
+  // Assign initial values if split failed or wasn't needed? 
+  // Actually DockBuilderSplitNode handles creating new nodes.
+  // We need to be careful about order of splitting to preserve the center.
 
-  // Dock windows
-  ImGui::DockBuilderDockWindow(" Dungeon Map Editor", dock_main_id);
-  ImGui::DockBuilderDockWindow(" Title Screen", dock_right_top);
-  ImGui::DockBuilderDockWindow(" Inventory Menu", dock_right_bottom);
-  ImGui::DockBuilderDockWindow(" Naming Screen", dock_right_bottom);
+  // Map DockPosition to ImGuiID
+  auto get_dock_id = [&](DockPosition pos) -> ImGuiID {
+    switch (pos) {
+      case DockPosition::Center: return dock_center;
+      case DockPosition::Left: return dock_left;
+      case DockPosition::Right: return dock_right;
+      case DockPosition::Bottom: return dock_bottom;
+      case DockPosition::Top: return dock_top;
+      case DockPosition::LeftTop: return dock_left_top ? dock_left_top : dock_left; // Fallback
+      case DockPosition::LeftBottom: return dock_left_bottom;
+      case DockPosition::RightTop: return dock_right_top ? dock_right_top : dock_right; // Fallback
+      case DockPosition::RightBottom: return dock_right_bottom;
+      default: return dock_center;
+    }
+  };
+
+  // Iterate through positioned cards and dock them
+  for (const auto& [card_id, position] : preset.card_positions) {
+    std::string window_title = GetWindowTitle(card_id);
+    if (window_title.empty()) {
+      // If we can't find the title, try to infer it or skip
+      // For now, we skip as we need the title for DockBuilder
+      continue;
+    }
+    
+    ImGui::DockBuilderDockWindow(window_title.c_str(), get_dock_id(position));
+  }
 }
 
-void LayoutManager::BuildMusicLayout(ImGuiID dockspace_id) {
-  // Layout:
-  // - Left 30%: Music Tracker
-  // - Center 45%: Instrument Editor
-  // - Right 25%: Assembly/Export
-
-  ImGuiID dock_left_id = 0;
-  ImGuiID dock_center_id = 0;
-  ImGuiID dock_right_id = 0;
-
-  // Split dockspace
-  dock_left_id = ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Left, 0.30f,
-                                             nullptr, &dockspace_id);
-  dock_right_id = ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Right,
-                                              0.36f, nullptr, &dockspace_id);
-  dock_center_id = dockspace_id;
-
-  // Dock windows
-  ImGui::DockBuilderDockWindow(" Music Tracker", dock_left_id);
-  ImGui::DockBuilderDockWindow(" Instrument Editor", dock_center_id);
-  ImGui::DockBuilderDockWindow(" Music Assembly", dock_right_id);
-}
-
-void LayoutManager::BuildSpriteLayout(ImGuiID dockspace_id) {
-  // Layout:
-  // - Left 50%: Vanilla Sprites
-  // - Right 50%: Custom Sprites
-
-  ImGuiID dock_left_id = 0;
-  ImGuiID dock_right_id = ImGui::DockBuilderSplitNode(
-      dockspace_id, ImGuiDir_Right, 0.50f, nullptr, &dock_left_id);
-
-  // Dock windows
-  ImGui::DockBuilderDockWindow(" Vanilla Sprites", dock_left_id);
-  ImGui::DockBuilderDockWindow(" Custom Sprites", dock_right_id);
-}
-
-void LayoutManager::BuildMessageLayout(ImGuiID dockspace_id) {
-  // Layout:
-  // - Left 25%: Message List
-  // - Center 50%: Message Editor
-  // - Right 25%: Font Atlas (top) + Dictionary (bottom)
-
-  ImGuiID dock_left_id = 0;
-  ImGuiID dock_center_id = 0;
-  ImGuiID dock_right_id = 0;
-
-  // Split dockspace
-  dock_left_id = ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Left, 0.25f,
-                                             nullptr, &dockspace_id);
-  dock_right_id = ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Right,
-                                              0.33f, nullptr, &dockspace_id);
-  dock_center_id = dockspace_id;
-
-  // Split right panel
-  ImGuiID dock_right_top = 0;
-  ImGuiID dock_right_bottom = ImGui::DockBuilderSplitNode(
-      dock_right_id, ImGuiDir_Down, 0.50f, nullptr, &dock_right_top);
-
-  // Dock windows
-  ImGui::DockBuilderDockWindow(" Message List", dock_left_id);
-  ImGui::DockBuilderDockWindow(" Message Editor", dock_center_id);
-  ImGui::DockBuilderDockWindow(" Font Atlas", dock_right_top);
-  ImGui::DockBuilderDockWindow(" Dictionary", dock_right_bottom);
-}
-
-void LayoutManager::BuildAssemblyLayout(ImGuiID dockspace_id) {
-  // Layout:
-  // - Left 60%: Code Editor
-  // - Right 40%: Output/Errors (top) + Documentation (bottom)
-
-  ImGuiID dock_left_id = 0;
-  ImGuiID dock_right_id = ImGui::DockBuilderSplitNode(
-      dockspace_id, ImGuiDir_Right, 0.40f, nullptr, &dock_left_id);
-
-  // Split right panel
-  ImGuiID dock_right_top = 0;
-  ImGuiID dock_right_bottom = ImGui::DockBuilderSplitNode(
-      dock_right_id, ImGuiDir_Down, 0.50f, nullptr, &dock_right_top);
-
-  // Dock windows
-  ImGui::DockBuilderDockWindow(" Assembly Editor", dock_left_id);
-  ImGui::DockBuilderDockWindow(" Assembly Output", dock_right_top);
-  ImGui::DockBuilderDockWindow(" Assembly Docs", dock_right_bottom);
-}
-
-void LayoutManager::BuildSettingsLayout(ImGuiID dockspace_id) {
-  // Layout:
-  // - Left 25%: Category navigation
-  // - Right 75%: Settings content
-
-  ImGuiID dock_left_id = 0;
-  ImGuiID dock_right_id = ImGui::DockBuilderSplitNode(
-      dockspace_id, ImGuiDir_Right, 0.75f, nullptr, &dock_left_id);
-
-  // Dock windows
-  ImGui::DockBuilderDockWindow(" Settings Navigation", dock_left_id);
-  ImGui::DockBuilderDockWindow(" Settings Content", dock_right_id);
-}
-
-void LayoutManager::BuildEmulatorLayout(ImGuiID dockspace_id) {
-  // Layout:
-  // - Center 100%: PPU Viewer (Game Screen, maximized)
-  //
-  // Other cards (CPU Debugger, Memory Viewer, etc.) start hidden
-
-  // Just dock the PPU viewer in the full dockspace - maximized game screen
-  ImGui::DockBuilderDockWindow(" PPU Viewer", dockspace_id);
-}
+// Deprecated individual build methods - redirected to generic or kept empty
+void LayoutManager::BuildOverworldLayout(ImGuiID dockspace_id) { BuildLayoutFromPreset(EditorType::kOverworld, dockspace_id); }
+void LayoutManager::BuildDungeonLayout(ImGuiID dockspace_id) { BuildLayoutFromPreset(EditorType::kDungeon, dockspace_id); }
+void LayoutManager::BuildGraphicsLayout(ImGuiID dockspace_id) { BuildLayoutFromPreset(EditorType::kGraphics, dockspace_id); }
+void LayoutManager::BuildPaletteLayout(ImGuiID dockspace_id) { BuildLayoutFromPreset(EditorType::kPalette, dockspace_id); }
+void LayoutManager::BuildScreenLayout(ImGuiID dockspace_id) { BuildLayoutFromPreset(EditorType::kScreen, dockspace_id); }
+void LayoutManager::BuildMusicLayout(ImGuiID dockspace_id) { BuildLayoutFromPreset(EditorType::kMusic, dockspace_id); }
+void LayoutManager::BuildSpriteLayout(ImGuiID dockspace_id) { BuildLayoutFromPreset(EditorType::kSprite, dockspace_id); }
+void LayoutManager::BuildMessageLayout(ImGuiID dockspace_id) { BuildLayoutFromPreset(EditorType::kMessage, dockspace_id); }
+void LayoutManager::BuildAssemblyLayout(ImGuiID dockspace_id) { BuildLayoutFromPreset(EditorType::kAssembly, dockspace_id); }
+void LayoutManager::BuildSettingsLayout(ImGuiID dockspace_id) { BuildLayoutFromPreset(EditorType::kSettings, dockspace_id); }
+void LayoutManager::BuildEmulatorLayout(ImGuiID dockspace_id) { BuildLayoutFromPreset(EditorType::kEmulator, dockspace_id); }
 
 void LayoutManager::SaveCurrentLayout(const std::string& name) {
   // TODO: [EditorManagerRefactor] Implement layout saving to file

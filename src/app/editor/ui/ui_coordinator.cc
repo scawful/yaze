@@ -14,7 +14,7 @@
 #include "app/editor/editor.h"
 #include "app/editor/editor_manager.h"
 #include "app/editor/system/editor_registry.h"
-#include "app/editor/ui/right_panel_manager.h"
+#include "app/editor/menu/right_panel_manager.h"
 #include "app/editor/system/popup_manager.h"
 #include "app/editor/system/project_manager.h"
 #include "app/editor/system/rom_file_manager.h"

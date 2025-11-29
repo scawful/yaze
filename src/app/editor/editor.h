@@ -19,6 +19,9 @@ class Rom;
 namespace gfx {
 class IRenderer;
 }
+namespace emu {
+class Emulator;
+}
 
 /**
  * @namespace yaze::editor
@@ -86,6 +89,7 @@ struct EditorDependencies {
   size_t session_id = 0;
 
   gfx::IRenderer* renderer = nullptr;
+  emu::Emulator* emulator = nullptr;
 
   void* custom_data = nullptr;
 };

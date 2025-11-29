@@ -1,5 +1,5 @@
-#ifndef YAZE_APP_EDITOR_SYSTEM_MENU_ORCHESTRATOR_H_
-#define YAZE_APP_EDITOR_SYSTEM_MENU_ORCHESTRATOR_H_
+#ifndef YAZE_APP_EDITOR_MENU_MENU_ORCHESTRATOR_H_
+#define YAZE_APP_EDITOR_MENU_MENU_ORCHESTRATOR_H_
 
 #include <functional>
 #include <string>
@@ -7,7 +7,7 @@
 #include "absl/status/status.h"
 #include "app/editor/editor.h"
 #include "app/editor/system/session_coordinator.h"
-#include "app/editor/ui/menu_builder.h"
+#include "app/editor/menu/menu_builder.h"
 
 namespace yaze {
 namespace editor {
@@ -227,4 +227,4 @@ class MenuOrchestrator {
 }  // namespace editor
 }  // namespace yaze
 
-#endif  // YAZE_APP_EDITOR_SYSTEM_MENU_ORCHESTRATOR_H_
+#endif  // YAZE_APP_EDITOR_MENU_MENU_ORCHESTRATOR_H_

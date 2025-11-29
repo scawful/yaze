@@ -5,7 +5,7 @@
 #include "absl/strings/str_split.h"
 #include "app/editor/editor_manager.h"
 #include "app/editor/system/editor_card_registry.h"
-#include "app/editor/system/menu_orchestrator.h"
+#include "app/editor/menu/menu_orchestrator.h"
 #include "app/editor/system/popup_manager.h"
 #include "app/editor/system/proposal_drawer.h"
 #include "app/editor/system/rom_file_manager.h"

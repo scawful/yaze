@@ -46,7 +46,7 @@ set(
   app/editor/system/editor_registry.cc
   app/editor/system/extension_manager.cc
   app/editor/system/layout_orchestrator.cc
-  app/editor/system/menu_orchestrator.cc
+  app/editor/menu/menu_orchestrator.cc
   app/editor/system/popup_manager.cc
   app/editor/system/project_manager.cc
   app/editor/system/proposal_drawer.cc
@@ -59,10 +59,11 @@ set(
   app/editor/ui/editor_selection_dialog.cc
   app/editor/ui/layout_manager.cc
   app/editor/ui/layout_presets.cc
-  app/editor/ui/right_panel_manager.cc
+  app/editor/menu/right_panel_manager.cc
   app/editor/ui/settings_panel.cc
   app/editor/ui/selection_properties_panel.cc
-  app/editor/ui/menu_builder.cc
+  app/editor/menu/menu_builder.cc
+  app/editor/menu/activity_bar.cc
   app/editor/ui/rom_load_options_dialog.cc
   app/editor/ui/ui_coordinator.cc
   app/editor/ui/welcome_screen.cc
