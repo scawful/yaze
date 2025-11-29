@@ -364,6 +364,8 @@ absl::Status Tile16Editor::UpdateBlockset() {
     int grid_y = static_cast<int>(mouse_pos.y / 32);
     int selected_tile = grid_x + grid_y * 8;  // 8 tiles per row in blockset
 
+    // Blockset canvas displays 512 tiles (8x64 grid)
+    // Navigation beyond 512 uses arrow keys/page controls
     if (selected_tile != current_tile16_ && selected_tile >= 0 &&
         selected_tile < 512) {
       // Use RequestTileSwitch to handle pending changes confirmation
@@ -908,6 +910,13 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
     }
     if (ImGui::IsItemHovered()) ImGui::SetTooltip("Last page");
 
+    // Display current tile info (sheet and palette)
+    ImGui::SameLine();
+    ImGui::TextDisabled("|");
+    ImGui::SameLine();
+    int sheet_idx = GetSheetIndexForTile8(current_tile8_);
+    ImGui::Text("Sheet: %d | Palette: %d", sheet_idx, current_palette_);
+
     // Handle keyboard shortcuts for page navigation
     if (ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows)) {
       if (ImGui::IsKeyPressed(ImGuiKey_PageUp)) {
@@ -927,6 +936,34 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
       if (ImGui::IsKeyPressed(ImGuiKey_End)) {
         RequestTileSwitch(total_tiles - 1);
         scroll_to_current_ = true;
+      }
+
+      // Arrow keys for single-tile navigation (when Ctrl not held)
+      if (!ImGui::GetIO().KeyCtrl) {
+        if (ImGui::IsKeyPressed(ImGuiKey_LeftArrow)) {
+          if (current_tile16_ > 0) {
+            RequestTileSwitch(current_tile16_ - 1);
+            scroll_to_current_ = true;
+          }
+        }
+        if (ImGui::IsKeyPressed(ImGuiKey_RightArrow)) {
+          if (current_tile16_ < total_tiles - 1) {
+            RequestTileSwitch(current_tile16_ + 1);
+            scroll_to_current_ = true;
+          }
+        }
+        if (ImGui::IsKeyPressed(ImGuiKey_UpArrow)) {
+          if (current_tile16_ >= kTilesPerRow) {
+            RequestTileSwitch(current_tile16_ - kTilesPerRow);
+            scroll_to_current_ = true;
+          }
+        }
+        if (ImGui::IsKeyPressed(ImGuiKey_DownArrow)) {
+          if (current_tile16_ + kTilesPerRow < total_tiles) {
+            RequestTileSwitch(current_tile16_ + kTilesPerRow);
+            scroll_to_current_ = true;
+          }
+        }
       }
     }
 
@@ -1078,21 +1115,17 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
           display_palette = &current_gfx_individual_[current_tile8_].palette();
         }
 
-        const int sheet_index = GetSheetIndexForTile8(current_tile8_);
-        const int palette_slot =
-            GetActualPaletteSlot(static_cast<int>(current_palette_),
-                                 sheet_index);
-        size_t palette_offset =
-            palette_slot >= 0 ? static_cast<size_t>(palette_slot) : 0;
-
         if (display_palette && !display_palette->empty()) {
-          if (palette_offset + 15 <= display_palette->size()) {
-            tile8_preview_bmp_.SetPaletteWithTransparent(*display_palette,
-                                                         palette_offset, 15);
-          } else {
+          // Calculate palette slot for the selected tile8
+          int sheet_index = GetSheetIndexForTile8(current_tile8_);
+          int palette_slot = GetActualPaletteSlot(current_palette_, sheet_index);
+
+          if (palette_slot >= 0 &&
+              static_cast<size_t>(palette_slot + 15) <= display_palette->size()) {
             tile8_preview_bmp_.SetPaletteWithTransparent(
-                *display_palette, 0,
-                std::min(15, static_cast<int>(display_palette->size())));
+                *display_palette, static_cast<size_t>(palette_slot), 15);
+          } else {
+            tile8_preview_bmp_.SetPaletteWithTransparent(*display_palette, 0, 15);
           }
         }
 
@@ -1609,6 +1642,7 @@ absl::Status Tile16Editor::SetCurrentTile(int tile_id) {
         palette_slot >= 0 ? static_cast<size_t>(palette_slot) : 0;
 
     // Ensure the palette offset is within bounds
+    // SNES 4BPP uses 16 colors total (transparent + 15)
     if (palette_offset + 15 <= display_palette.size()) {
       // Apply the correct sub-palette with transparency
       current_tile16_bmp_.SetPaletteWithTransparent(display_palette,
@@ -1618,9 +1652,7 @@ absl::Status Tile16Editor::SetCurrentTile(int tile_id) {
       util::logf(
           "Warning: palette offset %zu exceeds palette size %zu, using offset 0",
           palette_offset, display_palette.size());
-      current_tile16_bmp_.SetPaletteWithTransparent(
-          display_palette, 0,
-          std::min(15, static_cast<int>(display_palette.size() - 1)));
+      current_tile16_bmp_.SetPaletteWithTransparent(display_palette, 0, 15);
     }
   } else {
     util::logf("Warning: No valid palette available for Tile16 %d, skipping palette setup", tile_id);
@@ -2385,35 +2417,26 @@ int Tile16Editor::GetPaletteSlotForSheet(int sheet_index) const {
 }
 
 // NEW: Get the actual palette slot for a given palette button and sheet index
+// This now uses row-based addressing to match the overworld's approach:
+// The 256-color palette is organized as 16 rows of 16 colors each.
+// Rows 0-1: HUD, Rows 2-7: BG palettes, Rows 8+: Sprite palettes
+// Palette buttons 0-7 select rows 2-9 (skipping HUD rows).
 int Tile16Editor::GetActualPaletteSlot(int palette_button,
                                        int sheet_index) const {
   const int clamped_button = std::clamp(palette_button, 0, 7);
 
-  // Mappings derived from overworld palette layout (see tile16-palette-system)
-  static constexpr std::array<int, 8> kAux1Slots = {136, 138, 140, 142, 144, 146,
-                                                    148, 150};
-  static constexpr std::array<int, 8> kMainSlots = {32, 39, 46, 53,
-                                                    60, 67, 74, 81};
-  static constexpr std::array<int, 8> kAux2Slots = {152, 154, 156, 158,
-                                                    160, 162, 164, 166};
-  static constexpr std::array<int, 8> kAnimatedSlots = {112, 113, 114, 115,
-                                                        116, 117, 118, 119};
+  // Use row-based addressing like the overworld: (row * 16)
+  // BG palettes start at row 2 (index 32), so button 0 → row 2, etc.
+  // This matches the overworld's BuildTiles16Gfx: (palette_ * 0x10)
+  //
+  // Note: Different sheets may visually favor different palette regions
+  // (MAIN vs AUX), but all use the same row-based palette structure.
+  // The interleaved MAIN/AUX layout means pixels 1-7 use one set and
+  // pixels 9-15 use another within each 16-color row.
 
-  switch (sheet_index) {
-    case 0:
-    case 3:
-    case 4:
-      return kAux1Slots[clamped_button];
-    case 5:
-    case 6:
-      return kAux2Slots[clamped_button];
-    case 7:
-      return kAnimatedSlots[clamped_button];
-    case 1:
-    case 2:
-    default:
-      return kMainSlots[clamped_button];
-  }
+  // Start at row 2 (index 32) to skip HUD palettes in rows 0-1
+  constexpr int kBaseRow = 2;
+  return (kBaseRow + clamped_button) * 16;
 }
 
 // NEW: Get the sheet index for a given tile8 ID
@@ -2492,17 +2515,16 @@ void Tile16Editor::ApplyPaletteToCurrentTile16Bitmap() {
   }
 
   const int palette_slot = GetActualPaletteSlotForCurrentTile16();
-  const size_t palette_offset =
-      palette_slot >= 0 ? static_cast<size_t>(palette_slot) : 0;
 
-    if (palette_offset + 15 <= display_palette->size()) {
-      current_tile16_bmp_.SetPaletteWithTransparent(*display_palette,
-                                                    palette_offset, 15);
-    } else {
-      current_tile16_bmp_.SetPaletteWithTransparent(
-          *display_palette, 0,
-          std::min(15, static_cast<int>(display_palette->size())));
-    }
+  // Apply sub-palette with transparent color 0 using computed slot
+  // SNES 4BPP uses 16 colors (transparent + 15)
+  if (palette_slot >= 0 &&
+      static_cast<size_t>(palette_slot + 15) <= display_palette->size()) {
+    current_tile16_bmp_.SetPaletteWithTransparent(
+        *display_palette, static_cast<size_t>(palette_slot), 15);
+  } else {
+    current_tile16_bmp_.SetPaletteWithTransparent(*display_palette, 0, 15);
+  }
 
   current_tile16_bmp_.set_modified(true);
   gfx::Arena::Get().QueueTextureCommand(
@@ -2555,17 +2577,8 @@ absl::Status Tile16Editor::UpdateTile8Palette(int tile8_id) {
     const size_t palette_offset =
         palette_slot >= 0 ? static_cast<size_t>(palette_slot) : 0;
 
-    if (palette_slot >= 0 && palette_offset + 15 < display_palette.size()) {
-      current_gfx_individual_[tile8_id].SetPaletteWithTransparent(
-          display_palette, palette_offset, 15);
-    } else {
-      util::logf(
-          "Warning: palette slot %d out of range for display palette size %zu",
-          palette_slot, display_palette.size());
-      current_gfx_individual_[tile8_id].SetPaletteWithTransparent(
-          display_palette, 0,
-          std::min(15, static_cast<int>(display_palette.size())));
-    }
+    // Use the full 256-color palette; tile pixel data already contains the palette slot.
+    current_gfx_individual_[tile8_id].SetPalette(display_palette);
   }
 
   current_gfx_individual_[tile8_id].set_modified(true);
@@ -2620,47 +2633,64 @@ absl::Status Tile16Editor::RefreshAllPalettes() {
     return absl::FailedPreconditionError("Display palette empty");
   }
 
-  // CRITICAL FIX: Use the same palette system as the overworld
-  // The overworld system applies the complete 256-color palette to the main
-  // graphics bitmap Individual tile8 graphics use the same palette but with
-  // proper color mapping
+  // CRITICAL FIX: Use the full 256-color palette for the source bitmap.
+  // The source bitmap contains ALL graphics sheets (0-7) with raw pixel values 0-15.
+  // Different sheets need different palette regions (MAIN, AUX1, AUX2, ANIMATED),
+  // but a single bitmap can only have one palette. We apply the full 256-color
+  // palette so the bitmap displays consistently. The individual tile8 bitmaps
+  // (current_gfx_individual_) use per-tile subpalettes for correct per-sheet colors.
 
   if (current_gfx_bmp_.is_active()) {
-    // Apply the complete 256-color palette to the source bitmap (same as
-    // overworld)
+    // Apply the full 256-color palette to the source bitmap
+    // Raw pixel values 0-15 will use colors 0-15 from the palette
     current_gfx_bmp_.SetPalette(display_palette);
+
     current_gfx_bmp_.set_modified(true);
     // Queue texture update via Arena's deferred system
     gfx::Arena::Get().QueueTextureCommand(
         gfx::Arena::TextureCommandType::UPDATE, &current_gfx_bmp_);
-    util::logf(
-        "Applied complete 256-color palette to source bitmap (same as "
-        "overworld)");
+    util::logf("Applied full 256-color palette to source bitmap");
   }
 
   // Update current tile16 being edited with sheet-aware palette offset
   if (current_tile16_bmp_.is_active()) {
-    ApplyPaletteToCurrentTile16Bitmap();
+    // Use sheet-aware palette slot for current tile16
+    int palette_slot = GetActualPaletteSlotForCurrentTile16();
+
+    if (palette_slot >= 0 &&
+        static_cast<size_t>(palette_slot + 15) <= display_palette.size()) {
+      current_tile16_bmp_.SetPaletteWithTransparent(
+          display_palette, static_cast<size_t>(palette_slot), 15);
+    } else {
+      current_tile16_bmp_.SetPaletteWithTransparent(display_palette, 0, 15);
+    }
+
+    current_tile16_bmp_.set_modified(true);
+    gfx::Arena::Get().QueueTextureCommand(
+        gfx::Arena::TextureCommandType::UPDATE, &current_tile16_bmp_);
   }
 
   // CRITICAL FIX: Update individual tile8 graphics with correct per-sheet
   // palette offsets (uses overworld area palette + palette button)
+  // SNES 4BPP uses 16 colors (transparent + 15)
   for (size_t i = 0; i < current_gfx_individual_.size(); ++i) {
     if (current_gfx_individual_[i].is_active()) {
-      const int palette_slot = GetActualPaletteSlot(
-          static_cast<int>(current_palette_),
-          GetSheetIndexForTile8(static_cast<int>(i)));
-      const size_t palette_offset =
-          palette_slot >= 0 ? static_cast<size_t>(palette_slot) : 0;
+      // Calculate per-tile8 palette slot based on which sheet it belongs to
+      int sheet_index = GetSheetIndexForTile8(static_cast<int>(i));
+      int palette_slot = GetActualPaletteSlot(current_palette_, sheet_index);
 
-      if (palette_offset + 7 <= display_palette.size()) {
+      // Apply sub-palette with transparent color 0
+      // Extract 15 colors from display_palette starting at palette_slot
+      if (palette_slot >= 0 &&
+          static_cast<size_t>(palette_slot + 15) <= display_palette.size()) {
         current_gfx_individual_[i].SetPaletteWithTransparent(
-            display_palette, palette_offset, 7);
+            display_palette, static_cast<size_t>(palette_slot), 15);
       } else {
-        current_gfx_individual_[i].SetPaletteWithTransparent(
-            display_palette, 0,
-            std::min(7, static_cast<int>(display_palette.size())));
+        // Fallback to slot 0 if computed slot exceeds palette bounds
+        current_gfx_individual_[i].SetPaletteWithTransparent(display_palette, 0,
+                                                             15);
       }
+
       current_gfx_individual_[i].set_modified(true);
       // Queue texture update via Arena's deferred system
       gfx::Arena::Get().QueueTextureCommand(
