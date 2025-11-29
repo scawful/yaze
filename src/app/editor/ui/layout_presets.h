@@ -11,6 +11,22 @@ namespace yaze {
 namespace editor {
 
 /**
+ * @enum DockPosition
+ * @brief Preferred dock position for a card in a layout
+ */
+enum class DockPosition {
+  Center,
+  Left,
+  Right,
+  Bottom,
+  Top,
+  LeftBottom,
+  RightBottom,
+  RightTop,
+  LeftTop
+};
+
+/**
  * @struct CardLayoutPreset
  * @brief Defines default card visibility for an editor type
  */
@@ -20,6 +36,7 @@ struct CardLayoutPreset {
   EditorType editor_type;
   std::vector<std::string> default_visible_cards;
   std::vector<std::string> optional_cards;  // Available but hidden by default
+  std::unordered_map<std::string, DockPosition> card_positions;
 };
 
 /**

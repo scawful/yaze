@@ -27,6 +27,8 @@
 #include "app/editor/dungeon/dungeon_editor_v2.h"
 #include "app/editor/graphics/graphics_editor.h"
 #include "app/editor/graphics/screen_editor.h"
+#include "app/editor/menu/activity_bar.h"
+#include "app/editor/menu/menu_orchestrator.h"
 #include "app/editor/music/music_editor.h"
 #include "app/editor/overworld/overworld_editor.h"
 #include "app/editor/palette/palette_editor.h"
@@ -34,7 +36,6 @@
 #include "app/editor/sprite/sprite_editor.h"
 #include "app/editor/system/editor_card_registry.h"
 #include "app/editor/system/editor_registry.h"
-#include "app/editor/system/menu_orchestrator.h"
 #include "app/editor/system/popup_manager.h"
 #include "app/editor/system/shortcut_configurator.h"
 #include "app/editor/ui/layout_presets.h"
@@ -290,6 +291,9 @@ EditorManager::EditorManager()
   right_panel_manager_->SetToastManager(&toast_manager_);
   right_panel_manager_->SetProposalDrawer(&proposal_drawer_);
   right_panel_manager_->SetPropertiesPanel(&selection_properties_panel_);
+
+  // STEP 4.7: Initialize ActivityBar
+  activity_bar_ = std::make_unique<ActivityBar>(card_registry_);
 
   // STEP 5: ShortcutConfigurator created later in Initialize() method
   // It depends on all above coordinators being available
@@ -801,6 +805,7 @@ absl::Status EditorManager::Update() {
 
   // Update timing manager for accurate delta time across the application
   // This fixes animation timing issues that occur when mouse isn't moving
+  // or window loses focus
   TimingManager::Get().Update();
 
   // Check for layout rebuild requests and execute if needed
@@ -855,7 +860,9 @@ absl::Status EditorManager::Update() {
   // Draw card browser (managed by UICoordinator)
   if (ui_coordinator_ && ui_coordinator_->IsCardBrowserVisible()) {
     bool show = true;
-    card_registry_.DrawCardBrowser(&show);
+    if (activity_bar_) {
+      activity_bar_->DrawCardBrowser(GetCurrentSessionId(), &show);
+    }
     if (!show) {
       ui_coordinator_->SetCardBrowserVisible(false);
     }
@@ -936,15 +943,6 @@ absl::Status EditorManager::Update() {
       card_registry_.SetActiveCategory(sidebar_category);
     }
 
-    // Callback to switch editors when category button is clicked
-    auto category_switch_callback = [this](const std::string& new_category) {
-      EditorType editor_type =
-          EditorRegistry::GetEditorTypeFromCategory(new_category);
-      if (editor_type != EditorType::kUnknown) {
-        SwitchToEditor(editor_type);
-      }
-    };
-
     // Callback to check if ROM is loaded (for category enabled state)
     auto has_rom_callback = [this]() -> bool {
       auto* rom = GetCurrentRom();
@@ -952,9 +950,11 @@ absl::Status EditorManager::Update() {
     };
 
     // Draw VSCode-style sidebar with ALL categories (highlighting active ones)
-    card_registry_.Render(GetCurrentSessionId(), sidebar_category,
-                          all_categories, active_editor_categories,
-                          category_switch_callback, has_rom_callback);
+    if (activity_bar_) {
+        activity_bar_->Render(GetCurrentSessionId(), sidebar_category,
+                              all_categories, active_editor_categories,
+                              has_rom_callback);
+    }
   }
 
   // Draw right panel BEFORE early return (agent chat, proposals, settings)
@@ -1164,10 +1164,14 @@ void EditorManager::DrawMenuBar() {
   // Welcome screen is now drawn by UICoordinator::DrawAllUI()
   // Removed duplicate call to avoid showing welcome screen twice
 
-  // TODO: Fix emulator not appearing
-  if (ui_coordinator_ && ui_coordinator_->IsEmulatorVisible()) {
-    if (auto* current_rom = GetCurrentRom()) {
+  // Emulator handling - run with UI when visible, or headless when running in background
+  if (auto* current_rom = GetCurrentRom()) {
+    if (ui_coordinator_ && ui_coordinator_->IsEmulatorVisible()) {
+      // Full emulator with UI
       emulator_.Run(current_rom);
+    } else if (emulator_.running() && emulator_.is_snes_initialized()) {
+      // Emulator running in background (e.g., for music editor playback)
+      emulator_.RunFrameOnly();
     }
   }
 
@@ -2071,6 +2075,7 @@ bool EditorManager::HasDuplicateSession(const std::string& filepath) {
  * - shared_clipboard: For cross-editor data sharing (e.g. tile copying)
  * - user_settings: For accessing user preferences
  * - renderer: For graphics operations (dungeon/overworld editors)
+ * - emulator: For accessing emulator functionality (music editor playback)
  */
 void EditorManager::ConfigureEditorDependencies(EditorSet* editor_set, Rom* rom,
                                                 size_t session_id) {
@@ -2088,6 +2093,7 @@ void EditorManager::ConfigureEditorDependencies(EditorSet* editor_set, Rom* rom,
   deps.shared_clipboard = &shared_clipboard_;
   deps.user_settings = &user_settings_;
   deps.renderer = renderer_;
+  deps.emulator = &emulator_;
 
   editor_set->ApplyDependencies(deps);
 

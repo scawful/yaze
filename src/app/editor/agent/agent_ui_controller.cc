@@ -10,7 +10,7 @@
 #include "app/editor/agent/agent_sidebar.h"
 #include "app/editor/system/proposal_drawer.h"
 #include "app/editor/system/toast_manager.h"
-#include "app/editor/ui/right_panel_manager.h"
+#include "app/editor/menu/right_panel_manager.h"
 #include "app/rom.h"
 #include "util/log.h"
 

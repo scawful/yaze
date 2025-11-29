@@ -11,7 +11,7 @@
 #include "app/editor/system/session_coordinator.h"
 #include "app/editor/system/toast_manager.h"
 #include "app/editor/ui/layout_presets.h"
-#include "app/editor/ui/menu_builder.h"
+#include "app/editor/menu/menu_builder.h"
 #include "app/gui/core/icons.h"
 #include "app/rom.h"
 #include "core/features.h"
@@ -245,7 +245,16 @@ void MenuOrchestrator::AddCardsSubmenu() {
     for (const auto& category : categories) {
       if (ImGui::BeginMenu(category.c_str())) {
         // Draw all cards in this category
-        card_registry_->DrawViewMenuSection(session_id, category);
+        auto cards = card_registry_->GetCardsInCategory(session_id, category);
+        for (const auto& card : cards) {
+          bool visible = card.visibility_flag ? *card.visibility_flag : false;
+          std::string label = absl::StrFormat("%s %s", card.icon.c_str(), card.display_name.c_str());
+          const char* shortcut = card.shortcut_hint.empty() ? nullptr : card.shortcut_hint.c_str();
+          
+          if (ImGui::MenuItem(label.c_str(), shortcut, visible)) {
+             card_registry_->ToggleCard(session_id, card.card_id);
+          }
+        }
         ImGui::EndMenu();
       }
     }

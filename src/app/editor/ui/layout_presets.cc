@@ -15,6 +15,13 @@ CardLayoutPreset LayoutPresets::GetDefaultPreset(EditorType type) {
           Cards::kOverworldCanvas,
           Cards::kOverworldTile16Selector,
       };
+      preset.card_positions = {
+          {Cards::kOverworldCanvas, DockPosition::Center},
+          {Cards::kOverworldTile16Selector, DockPosition::Right},
+          {Cards::kOverworldTile8Selector, DockPosition::Right},
+          {Cards::kOverworldAreaGraphics, DockPosition::Left},
+          {Cards::kOverworldScratch, DockPosition::Bottom},
+      };
       preset.optional_cards = {
           Cards::kOverworldTile8Selector,
           Cards::kOverworldAreaGraphics,
@@ -31,6 +38,14 @@ CardLayoutPreset LayoutPresets::GetDefaultPreset(EditorType type) {
       preset.default_visible_cards = {
           Cards::kDungeonControlPanel,
           Cards::kDungeonRoomSelector,
+      };
+      preset.card_positions = {
+          {Cards::kDungeonControlPanel, DockPosition::Center}, // Controls implies canvas usually
+          {Cards::kDungeonRoomSelector, DockPosition::Left},
+          {Cards::kDungeonRoomMatrix, DockPosition::RightTop},
+          {Cards::kDungeonEntrances, DockPosition::RightBottom},
+          {Cards::kDungeonObjectEditor, DockPosition::Right},
+          {Cards::kDungeonPaletteEditor, DockPosition::Bottom},
       };
       preset.optional_cards = {
           Cards::kDungeonObjectEditor,
@@ -49,6 +64,12 @@ CardLayoutPreset LayoutPresets::GetDefaultPreset(EditorType type) {
           Cards::kGraphicsSheetBrowser,
           Cards::kGraphicsSheetEditor,
       };
+      preset.card_positions = {
+          {Cards::kGraphicsSheetEditor, DockPosition::Center},
+          {Cards::kGraphicsSheetBrowser, DockPosition::Left},
+          {Cards::kGraphicsPlayerAnimations, DockPosition::Bottom},
+          {Cards::kGraphicsPrototypeViewer, DockPosition::Right},
+      };
       preset.optional_cards = {
           Cards::kGraphicsPlayerAnimations,
           Cards::kGraphicsPrototypeViewer,
@@ -61,6 +82,11 @@ CardLayoutPreset LayoutPresets::GetDefaultPreset(EditorType type) {
       preset.default_visible_cards = {
           Cards::kPaletteControlPanel,
           Cards::kPaletteOwMain,
+      };
+      preset.card_positions = {
+          {Cards::kPaletteOwMain, DockPosition::Center},
+          {Cards::kPaletteControlPanel, DockPosition::Left},
+          {Cards::kPaletteQuickAccess, DockPosition::Right},
       };
       preset.optional_cards = {
           Cards::kPaletteQuickAccess,
@@ -81,6 +107,10 @@ CardLayoutPreset LayoutPresets::GetDefaultPreset(EditorType type) {
       preset.default_visible_cards = {
           Cards::kSpriteVanillaEditor,
       };
+      preset.card_positions = {
+          {Cards::kSpriteVanillaEditor, DockPosition::Left},
+          {Cards::kSpriteCustomEditor, DockPosition::Right},
+      };
       preset.optional_cards = {
           Cards::kSpriteCustomEditor,
       };
@@ -91,6 +121,12 @@ CardLayoutPreset LayoutPresets::GetDefaultPreset(EditorType type) {
       preset.description = "Screen browser with tileset editor";
       preset.default_visible_cards = {
           Cards::kScreenDungeonMaps,
+      };
+      preset.card_positions = {
+          {Cards::kScreenDungeonMaps, DockPosition::Center},
+          {Cards::kScreenTitleScreen, DockPosition::RightTop},
+          {Cards::kScreenInventoryMenu, DockPosition::RightBottom},
+          {Cards::kScreenNamingScreen, DockPosition::RightBottom},
       };
       preset.optional_cards = {
           Cards::kScreenTitleScreen,
@@ -106,6 +142,11 @@ CardLayoutPreset LayoutPresets::GetDefaultPreset(EditorType type) {
       preset.default_visible_cards = {
           Cards::kMusicTracker,
       };
+      preset.card_positions = {
+          {Cards::kMusicTracker, DockPosition::Left},
+          {Cards::kMusicInstrumentEditor, DockPosition::Center},
+          {Cards::kMusicAssembly, DockPosition::Right},
+      };
       preset.optional_cards = {
           Cards::kMusicInstrumentEditor,
           Cards::kMusicAssembly,
@@ -119,6 +160,12 @@ CardLayoutPreset LayoutPresets::GetDefaultPreset(EditorType type) {
           Cards::kMessageList,
           Cards::kMessageEditor,
       };
+      preset.card_positions = {
+          {Cards::kMessageEditor, DockPosition::Center},
+          {Cards::kMessageList, DockPosition::Left},
+          {Cards::kMessageFontAtlas, DockPosition::RightTop},
+          {Cards::kMessageDictionary, DockPosition::RightBottom},
+      };
       preset.optional_cards = {
           Cards::kMessageFontAtlas,
           Cards::kMessageDictionary,
@@ -131,6 +178,10 @@ CardLayoutPreset LayoutPresets::GetDefaultPreset(EditorType type) {
       preset.default_visible_cards = {
           Cards::kAssemblyEditor,
       };
+      preset.card_positions = {
+          {Cards::kAssemblyEditor, DockPosition::Left},
+          {Cards::kAssemblyFileBrowser, DockPosition::RightBottom},
+      };
       preset.optional_cards = {
           Cards::kAssemblyFileBrowser,
       };
@@ -141,6 +192,12 @@ CardLayoutPreset LayoutPresets::GetDefaultPreset(EditorType type) {
       preset.description = "Emulator with debugger tools";
       preset.default_visible_cards = {
           Cards::kEmulatorPpuViewer,
+      };
+      preset.card_positions = {
+          {Cards::kEmulatorPpuViewer, DockPosition::Center},
+          {Cards::kEmulatorCpuDebugger, DockPosition::Right},
+          {Cards::kEmulatorMemoryViewer, DockPosition::Bottom},
+          {Cards::kEmulatorAiAgent, DockPosition::RightBottom},
       };
       preset.optional_cards = {
           Cards::kEmulatorCpuDebugger,

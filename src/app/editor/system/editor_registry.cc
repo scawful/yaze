@@ -99,20 +99,26 @@ std::vector<std::string> EditorRegistry::GetAllEditorCategories() {
 }
 
 void EditorRegistry::JumpToDungeonRoom(int room_id) {
-  auto it = registered_editors_.find(EditorType::kDungeon);
-  if (it != registered_editors_.end() && it->second) {
-    // TODO: Implement dungeon room jumping
-    // This would typically call a method on the dungeon editor
-    printf("[EditorRegistry] Jumping to dungeon room %d\n", room_id);
+  if (jump_to_room_callback_) {
+    jump_to_room_callback_(room_id);
+  } else {
+    auto it = registered_editors_.find(EditorType::kDungeon);
+    if (it != registered_editors_.end() && it->second) {
+      // Fallback logging if no callback registered
+      printf("[EditorRegistry] JumpToDungeonRoom(%d) called (no callback)\n", room_id);
+    }
   }
 }
 
 void EditorRegistry::JumpToOverworldMap(int map_id) {
-  auto it = registered_editors_.find(EditorType::kOverworld);
-  if (it != registered_editors_.end() && it->second) {
-    // TODO: Implement overworld map jumping
-    // This would typically call a method on the overworld editor
-    printf("[EditorRegistry] Jumping to overworld map %d\n", map_id);
+  if (jump_to_map_callback_) {
+    jump_to_map_callback_(map_id);
+  } else {
+    auto it = registered_editors_.find(EditorType::kOverworld);
+    if (it != registered_editors_.end() && it->second) {
+      // Fallback logging if no callback registered
+      printf("[EditorRegistry] JumpToOverworldMap(%d) called (no callback)\n", map_id);
+    }
   }
 }
 

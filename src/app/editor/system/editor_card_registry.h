@@ -9,7 +9,6 @@
 #include <vector>
 
 #include "app/editor/system/file_browser.h"
-#include "imgui/imgui.h"
 
 namespace yaze {
 namespace editor {
@@ -21,9 +20,6 @@ enum class EditorType;
 /**
  * @struct CardInfo
  * @brief Metadata for an editor card
- *
- * Describes a registerable UI card that can be shown/hidden,
- * organized by category, and controlled programmatically.
  */
 struct CardInfo {
   std::string card_id;       // Unique identifier (e.g., "dungeon.room_selector")
@@ -59,49 +55,13 @@ struct CardInfo {
  * @class EditorCardRegistry
  * @brief Central registry for all editor cards with session awareness and
  * dependency injection
- *
- * This class combines the functionality of EditorCardManager (global card
- * management) and SessionCardRegistry (session-aware prefixing) into a single,
- * dependency-injected component that can be passed to editors.
- *
- * Design Philosophy:
- * - Dependency injection (no singleton pattern)
- * - Session-aware card ID prefixing for multi-session support
- * - Centralized visibility management
- * - View menu integration
- * - Workspace preset system
- * - No direct GUI dependency in registration logic
- *
- * Session-Aware Card IDs:
- * - Single session: "dungeon.room_selector"
- * - Multiple sessions: "s0.dungeon.room_selector", "s1.dungeon.room_selector"
- *
- * Usage:
- * ```cpp
- * // In EditorManager:
- * EditorCardRegistry card_registry;
- * EditorDependencies deps;
- * deps.card_registry = &card_registry;
- *
- * // In Editor:
- * deps.card_registry->RegisterCard(deps.session_id, {
- *     .card_id = "dungeon.room_selector",
- *     .display_name = "Room Selector",
- *     .icon = ICON_MD_LIST,
- *     .category = "Dungeon",
- *     .on_show = []() {  }
- * });
- *
- * // Programmatic control:
- * deps.card_registry->ShowCard(deps.session_id, "dungeon.room_selector");
- * ```
  */
 class EditorCardRegistry {
  public:
   EditorCardRegistry() = default;
   ~EditorCardRegistry() = default;
 
-  // Non-copyable, non-movable (manages pointers and callbacks)
+  // Non-copyable, non-movable
   EditorCardRegistry(const EditorCardRegistry&) = delete;
   EditorCardRegistry& operator=(const EditorCardRegistry&) = delete;
   EditorCardRegistry(EditorCardRegistry&&) = delete;
@@ -111,49 +71,16 @@ class EditorCardRegistry {
   // Session Lifecycle Management
   // ============================================================================
 
-  /**
-   * @brief Register a new session in the registry
-   * @param session_id Unique session identifier
-   *
-   * Creates internal tracking structures for the session.
-   * Must be called before registering cards for a session.
-   */
   void RegisterSession(size_t session_id);
-
-  /**
-   * @brief Unregister a session and all its cards
-   * @param session_id Session identifier to remove
-   *
-   * Automatically unregisters all cards associated with the session.
-   */
   void UnregisterSession(size_t session_id);
-
-  /**
-   * @brief Set the currently active session
-   * @param session_id Session to make active
-   *
-   * Used for determining whether to apply card ID prefixing.
-   */
   void SetActiveSession(size_t session_id);
 
   // ============================================================================
   // Card Registration
   // ============================================================================
 
-  /**
-   * @brief Register a card for a specific session
-   * @param session_id Session this card belongs to
-   * @param base_info Card metadata (ID will be automatically prefixed if
-   * needed)
-   *
-   * The card_id in base_info should be the unprefixed ID. This method
-   * automatically applies session prefixing when multiple sessions exist.
-   */
   void RegisterCard(size_t session_id, const CardInfo& base_info);
 
-  /**
-   * @brief Register a card with inline parameters (convenience method)
-   */
   void RegisterCard(size_t session_id, const std::string& card_id,
                     const std::string& display_name, const std::string& icon,
                     const std::string& category,
@@ -162,200 +89,57 @@ class EditorCardRegistry {
                     std::function<void()> on_hide = nullptr,
                     bool visible_by_default = false);
 
-  /**
-   * @brief Unregister a specific card
-   * @param session_id Session the card belongs to
-   * @param base_card_id Unprefixed card ID
-   */
   void UnregisterCard(size_t session_id, const std::string& base_card_id);
-
-  /**
-   * @brief Unregister all cards with a given prefix
-   * @param prefix Prefix to match (e.g., "s0" or "s1.dungeon")
-   *
-   * Useful for cleaning up session cards or category cards.
-   */
   void UnregisterCardsWithPrefix(const std::string& prefix);
-
-  /**
-   * @brief Remove all registered cards (use with caution)
-   */
   void ClearAllCards();
 
   // ============================================================================
-  // Card Control (Programmatic, No GUI)
+  // Card Control (Programmatic)
   // ============================================================================
 
-  /**
-   * @brief Show a card programmatically
-   * @param session_id Session the card belongs to
-   * @param base_card_id Unprefixed card ID
-   * @return true if card was found and shown
-   */
   bool ShowCard(size_t session_id, const std::string& base_card_id);
-
-  /**
-   * @brief Hide a card programmatically
-   */
   bool HideCard(size_t session_id, const std::string& base_card_id);
-
-  /**
-   * @brief Toggle a card's visibility
-   */
   bool ToggleCard(size_t session_id, const std::string& base_card_id);
-
-  /**
-   * @brief Check if a card is currently visible
-   */
   bool IsCardVisible(size_t session_id, const std::string& base_card_id) const;
-
-  /**
-   * @brief Get visibility flag pointer for a card
-   * @return Pointer to bool controlling card visibility (for passing to
-   * EditorCard::Begin)
-   */
   bool* GetVisibilityFlag(size_t session_id, const std::string& base_card_id);
 
   // ============================================================================
   // Batch Operations
   // ============================================================================
 
-  /**
-   * @brief Show all cards in a specific session
-   */
   void ShowAllCardsInSession(size_t session_id);
-
-  /**
-   * @brief Hide all cards in a specific session
-   */
   void HideAllCardsInSession(size_t session_id);
-
-  /**
-   * @brief Show all cards in a category for a session
-   */
   void ShowAllCardsInCategory(size_t session_id, const std::string& category);
-
-  /**
-   * @brief Hide all cards in a category for a session
-   */
   void HideAllCardsInCategory(size_t session_id, const std::string& category);
-
-  /**
-   * @brief Show only one card, hiding all others in its category
-   */
   void ShowOnlyCard(size_t session_id, const std::string& base_card_id);
 
   // ============================================================================
   // Query Methods
   // ============================================================================
 
-  /**
-   * @brief Get all cards registered for a session
-   * @return Vector of prefixed card IDs
-   */
   std::vector<std::string> GetCardsInSession(size_t session_id) const;
-
-  /**
-   * @brief Get cards in a specific category for a session
-   */
   std::vector<CardInfo> GetCardsInCategory(size_t session_id,
                                            const std::string& category) const;
-
-  /**
-   * @brief Get all categories for a session
-   */
   std::vector<std::string> GetAllCategories(size_t session_id) const;
-
-  /**
-   * @brief Get card metadata
-   * @param session_id Session the card belongs to
-   * @param base_card_id Unprefixed card ID
-   */
   const CardInfo* GetCardInfo(size_t session_id,
                               const std::string& base_card_id) const;
-
-  /**
-   * @brief Get all registered categories across all sessions
-   */
   std::vector<std::string> GetAllCategories() const;
 
-  // ============================================================================
-  // View Menu Integration
-  // ============================================================================
-
-  /**
-   * @brief Draw view menu section for a category
-   */
-  void DrawViewMenuSection(size_t session_id, const std::string& category);
-
-  /**
-   * @brief Draw all categories as view menu submenus
-   */
-  void DrawViewMenuAll(size_t session_id);
-
-  // ============================================================================
-  // VSCode-Style Sidebar
-  // ============================================================================
-
-  /**
-   * @brief Draw sidebar for a category with session filtering
-   */
-  void DrawSidebar(
-      size_t session_id, const std::string& category,
-      const std::vector<std::string>& active_categories = {},
-      std::function<void(const std::string&)> on_category_switch = nullptr,
-      std::function<void()> on_collapse = nullptr,
-      std::function<bool()> has_rom = nullptr);
-
   static constexpr float GetSidebarWidth() { return 48.0f; }
-  static constexpr float GetTreeSidebarWidth() { return 200.0f; }
   static constexpr float GetSidePanelWidth() { return 250.0f; }
   static constexpr float GetCollapsedSidebarWidth() { return 16.0f; }
 
-  /**
-   * @brief Get icon for editor category (used in sidebar category buttons)
-   * @param category Category name (e.g., "Dungeon", "Overworld")
-   * @return Material icon string
-   */
   static std::string GetCategoryIcon(const std::string& category);
 
   /**
    * @brief Handle keyboard navigation in sidebar (click-to-focus modal)
-   *
-   * Click sidebar to focus, then use arrows/vim keys to navigate,
-   * Enter/Space to toggle cards, Escape to unfocus.
-   *
-   * @param session_id Current session ID
-   * @param cards Cards to navigate through
    */
   void HandleSidebarKeyboardNav(size_t session_id,
                                 const std::vector<CardInfo>& cards);
 
-  /**
-   * @brief Check if sidebar has keyboard focus
-   */
   bool SidebarHasFocus() const { return sidebar_has_focus_; }
-
-  /**
-   * @brief Get currently focused card index
-   */
   int GetFocusedCardIndex() const { return focused_card_index_; }
 
-  /**
-   * @brief Draw tree view sidebar with hierarchical category/card structure
-   *
-   * A wider sidebar (200px) showing categories as expandable tree nodes
-   * with checkboxes for each card. More detailed than icon sidebar.
-   */
-  void DrawTreeSidebar(
-      size_t session_id,
-      const std::vector<std::string>& active_categories,
-      std::function<void(const std::string&)> on_category_switch = nullptr,
-      std::function<bool()> has_rom = nullptr);
-
-  /**
-   * @brief Toggle sidebar visibility (0px vs visible)
-   */
   void ToggleSidebarVisibility() {
     sidebar_visible_ = !sidebar_visible_;
     if (on_sidebar_state_changed_) {
@@ -363,9 +147,6 @@ class EditorCardRegistry {
     }
   }
 
-  /**
-   * @brief Set sidebar visibility
-   */
   void SetSidebarVisible(bool visible) {
     if (sidebar_visible_ != visible) {
       sidebar_visible_ = visible;
@@ -375,14 +156,8 @@ class EditorCardRegistry {
     }
   }
 
-  /**
-   * @brief Check if sidebar is visible
-   */
   bool IsSidebarVisible() const { return sidebar_visible_; }
 
-  /**
-   * @brief Toggle side panel expansion
-   */
   void TogglePanelExpanded() {
     panel_expanded_ = !panel_expanded_;
     if (on_sidebar_state_changed_) {
@@ -390,9 +165,6 @@ class EditorCardRegistry {
     }
   }
 
-  /**
-   * @brief Set side panel expansion
-   */
   void SetPanelExpanded(bool expanded) {
     if (panel_expanded_ != expanded) {
       panel_expanded_ = expanded;
@@ -402,62 +174,21 @@ class EditorCardRegistry {
     }
   }
 
-  /**
-   * @brief Check if side panel is expanded
-   */
   bool IsPanelExpanded() const { return panel_expanded_; }
 
   // ============================================================================
-  // UI Rendering (VSCode-style)
+  // Triggers (exposed for ActivityBar)
   // ============================================================================
 
-  /**
-   * @brief Draw the Activity Bar (Icon Strip)
-   * @param session_id Current session ID
-   * @param active_category Currently selected/focused category
-   * @param all_categories All editor categories to display
-   * @param active_editor_categories Categories with active editors (for highlighting)
-   * @param on_category_select Callback when category is clicked
-   * @param has_rom Callback to check if ROM is loaded
-   */
-  void DrawActivityBar(
-      size_t session_id, const std::string& active_category,
-      const std::vector<std::string>& all_categories,
-      const std::unordered_set<std::string>& active_editor_categories,
-      std::function<void(const std::string&)> on_category_select,
-      std::function<bool()> has_rom);
-
-  /**
-   * @brief Draw utility action buttons at top of Activity Bar
-   * @param has_rom Callback to check if ROM is loaded (for button enabled state)
-   */
-  void DrawUtilityButtons(std::function<bool()> has_rom);
-
-  /**
-   * @brief Draw the Side Panel (Content)
-   */
-  void DrawSidePanel(
-      size_t session_id, const std::string& category,
-      std::function<bool()> has_rom);
-
-  /**
-   * @brief Main render loop for sidebar
-   * @param session_id Current session ID
-   * @param category Currently selected category
-   * @param all_categories All available editor categories (always shown)
-   * @param active_editor_categories Categories with currently active/open editors (for highlighting)
-   * @param on_category_select Callback when category is clicked
-   * @param has_rom Callback to check if ROM is loaded
-   */
-  void Render(
-      size_t session_id, const std::string& category,
-      const std::vector<std::string>& all_categories,
-      const std::unordered_set<std::string>& active_editor_categories,
-      std::function<void(const std::string&)> on_category_select,
-      std::function<bool()> has_rom);
-
-  // Legacy methods deprecated/removed...
-  // DrawSidebar and DrawTreeSidebar replaced by Render()
+  void TriggerShowEmulator() { if (on_show_emulator_) on_show_emulator_(); }
+  void TriggerShowSettings() { if (on_show_settings_) on_show_settings_(); }
+  void TriggerShowCardBrowser() { if (on_show_card_browser_) on_show_card_browser_(); }
+  void TriggerSaveRom() { if (on_save_rom_) on_save_rom_(); }
+  void TriggerUndo() { if (on_undo_) on_undo_(); }
+  void TriggerRedo() { if (on_redo_) on_redo_(); }
+  void TriggerShowSearch() { if (on_show_search_) on_show_search_(); }
+  void TriggerShowHelp() { if (on_show_help_) on_show_help_(); }
+  void TriggerCardClicked(const std::string& category) { if (on_card_clicked_) on_card_clicked_(category); }
 
   // ============================================================================
   // Utility Icon Callbacks (for sidebar quick access buttons)
@@ -487,11 +218,6 @@ class EditorCardRegistry {
   void SetShowHelpCallback(std::function<void()> cb) {
     on_show_help_ = std::move(cb);
   }
-
-  /**
-   * @brief Set callback for sidebar state changes (visibility/expansion)
-   * @param cb Callback receiving (visible, expanded)
-   */
   void SetSidebarStateChangedCallback(
       std::function<void(bool, bool)> cb) {
     on_sidebar_state_changed_ = std::move(cb);
@@ -501,19 +227,7 @@ class EditorCardRegistry {
   // Unified Visibility Management (single source of truth)
   // ============================================================================
 
-  /**
-   * @brief Check if emulator is visible
-   * @return Current visibility state
-   */
   bool IsEmulatorVisible() const { return emulator_visible_; }
-
-  /**
-   * @brief Set emulator visibility
-   * @param visible New visibility state
-   *
-   * This is the single source of truth for emulator visibility.
-   * All other components should read from this via IsEmulatorVisible().
-   */
   void SetEmulatorVisible(bool visible) {
     if (emulator_visible_ != visible) {
       emulator_visible_ = visible;
@@ -522,50 +236,13 @@ class EditorCardRegistry {
       }
     }
   }
-
-  /**
-   * @brief Toggle emulator visibility
-   */
   void ToggleEmulatorVisible() { SetEmulatorVisible(!emulator_visible_); }
-
-  /**
-   * @brief Set callback for emulator visibility changes
-   * @param cb Callback receiving new visibility state
-   */
   void SetEmulatorVisibilityChangedCallback(std::function<void(bool)> cb) {
     on_emulator_visibility_changed_ = std::move(cb);
   }
-
-  /**
-   * @brief Set callback for category changes
-   * @param cb Callback receiving new category name
-   */
   void SetCategoryChangedCallback(std::function<void(const std::string&)> cb) {
     on_category_changed_ = std::move(cb);
   }
-
-  // ============================================================================
-  // Compact Controls for Menu Bar
-  // ============================================================================
-
-  /**
-   * @brief Draw compact card control for active editor's cards
-   */
-  void DrawCompactCardControl(size_t session_id, const std::string& category);
-
-  /**
-   * @brief Draw minimal inline card toggles
-   */
-  void DrawInlineCardToggles(size_t session_id, const std::string& category);
-
-  // ============================================================================
-  // Card Browser UI
-  // ============================================================================
-
-  /**
-   * @brief Draw visual card browser/toggler
-   */
-  void DrawCardBrowser(size_t session_id, bool* p_open);
 
   // ============================================================================
   // Workspace Presets
@@ -586,9 +263,6 @@ class EditorCardRegistry {
   // Card Validation (for catching window title mismatches)
   // ============================================================================
 
-  /**
-   * @brief Validation result for a single card
-   */
   struct CardValidationResult {
     std::string card_id;
     std::string expected_title;  // From CardInfo::GetWindowTitle()
@@ -596,33 +270,8 @@ class EditorCardRegistry {
     std::string message;         // Human-readable status
   };
 
-  /**
-   * @brief Validate all registered cards against active ImGui windows
-   * @return Vector of validation results
-   *
-   * This method checks that each registered card's window_title matches
-   * an actual ImGui window. Useful for catching typos and mismatches
-   * that can cause DockBuilder issues.
-   *
-   * Call this during development/debugging, not in production hot paths.
-   */
   std::vector<CardValidationResult> ValidateCards() const;
-
-  /**
-   * @brief Validate a single card's window title
-   * @param card_id The card ID to validate
-   * @return Validation result
-   */
   CardValidationResult ValidateCard(const std::string& card_id) const;
-
-  /**
-   * @brief Draw validation report window
-   * @param p_open Pointer to visibility bool
-   *
-   * Shows all registered cards with pass/fail status for each.
-   * Failed cards are shown in red with their expected titles.
-   */
-  void DrawValidationReport(bool* p_open);
 
   // ============================================================================
   // Quick Actions
@@ -631,16 +280,6 @@ class EditorCardRegistry {
   void ShowAll(size_t session_id);
   void HideAll(size_t session_id);
   void ResetToDefaults(size_t session_id);
-
-  /**
-   * @brief Reset cards for a specific editor to their default visibility
-   * @param session_id Session identifier
-   * @param editor_type The editor type to reset defaults for
-   *
-   * Uses LayoutPresets to determine which cards should be visible by default
-   * for the given editor type. Hides all cards in the editor's category first,
-   * then shows only the default cards.
-   */
   void ResetToDefaults(size_t session_id, EditorType editor_type);
 
   // ============================================================================
@@ -655,78 +294,29 @@ class EditorCardRegistry {
   // Session Prefixing Utilities
   // ============================================================================
 
-  /**
-   * @brief Generate session-aware card ID
-   * @param session_id Session identifier
-   * @param base_id Unprefixed card ID
-   * @return Prefixed ID if multiple sessions, otherwise base ID
-   *
-   * Examples:
-   * - Single session: "dungeon.room_selector" → "dungeon.room_selector"
-   * - Multi-session: "dungeon.room_selector" → "s0.dungeon.room_selector"
-   */
   std::string MakeCardId(size_t session_id, const std::string& base_id) const;
-
-  /**
-   * @brief Check if card IDs should be prefixed
-   * @return true if session_count > 1
-   */
   bool ShouldPrefixCards() const { return session_count_ > 1; }
 
   // ============================================================================
   // Convenience Methods (for EditorManager direct usage without session_id)
   // ============================================================================
 
-  /**
-   * @brief Register card for active session (convenience)
-   */
   void RegisterCard(const CardInfo& base_info) {
     RegisterCard(active_session_, base_info);
   }
-
-  /**
-   * @brief Show card in active session (convenience)
-   */
   bool ShowCard(const std::string& base_card_id) {
     return ShowCard(active_session_, base_card_id);
   }
-
-  /**
-   * @brief Hide card in active session (convenience)
-   */
   bool HideCard(const std::string& base_card_id) {
     return HideCard(active_session_, base_card_id);
   }
-
-  /**
-   * @brief Check if card is visible in active session (convenience)
-   */
   bool IsCardVisible(const std::string& base_card_id) const {
     return IsCardVisible(active_session_, base_card_id);
   }
-
-  /**
-   * @brief Hide all cards in category for active session (convenience)
-   */
   void HideAllCardsInCategory(const std::string& category) {
     HideAllCardsInCategory(active_session_, category);
   }
-
-  /**
-   * @brief Draw card browser for active session (convenience)
-   */
-  void DrawCardBrowser(bool* p_open) {
-    DrawCardBrowser(active_session_, p_open);
-  }
-
-  /**
-   * @brief Get active category (for sidebar)
-   */
   std::string GetActiveCategory() const { return active_category_; }
-
-  /**
-   * @brief Set active category (for sidebar)
-   */
   void SetActiveCategory(const std::string& category) {
     if (active_category_ != category) {
       active_category_ = category;
@@ -735,47 +325,14 @@ class EditorCardRegistry {
       }
     }
   }
-
-  /**
-   * @brief Show all cards in category for active session (convenience)
-   */
   void ShowAllCardsInCategory(const std::string& category) {
     ShowAllCardsInCategory(active_session_, category);
   }
-
-  /**
-   * @brief Get visibility flag for active session (convenience)
-   */
   bool* GetVisibilityFlag(const std::string& base_card_id) {
     return GetVisibilityFlag(active_session_, base_card_id);
   }
-
-  /**
-   * @brief Show all cards for active session (convenience)
-   */
   void ShowAll() { ShowAll(active_session_); }
-
-  /**
-   * @brief Hide all cards for active session (convenience)
-   */
   void HideAll() { HideAll(active_session_); }
-
-  /**
-   * @brief Draw sidebar for active session (convenience)
-   */
-  void DrawSidebar(
-      const std::string& category,
-      const std::vector<std::string>& active_categories = {},
-      std::function<void(const std::string&)> on_category_switch = nullptr,
-      std::function<void()> on_collapse = nullptr,
-      std::function<bool()> has_rom = nullptr) {
-    DrawSidebar(active_session_, category, active_categories,
-                on_category_switch, on_collapse, has_rom);
-  }
-
-  /**
-   * @brief Set callback for when a card is clicked in the sidebar
-   */
   void SetOnCardClickedCallback(std::function<void(const std::string&)> callback) {
     on_card_clicked_ = std::move(callback);
   }
@@ -784,48 +341,36 @@ class EditorCardRegistry {
   // File Browser Integration
   // ============================================================================
 
-  /**
-   * @brief Get the file browser for a category
-   * @param category Category name (e.g., "Assembly")
-   * @return Pointer to FileBrowser, or nullptr if not enabled
-   */
   FileBrowser* GetFileBrowser(const std::string& category);
-
-  /**
-   * @brief Enable file browser for a category
-   * @param category Category name
-   * @param root_path Initial root path (can be empty)
-   */
   void EnableFileBrowser(const std::string& category,
                          const std::string& root_path = "");
-
-  /**
-   * @brief Disable file browser for a category
-   */
   void DisableFileBrowser(const std::string& category);
-
-  /**
-   * @brief Check if file browser is enabled for a category
-   */
   bool HasFileBrowser(const std::string& category) const;
-
-  /**
-   * @brief Set the root path for a category's file browser
-   */
   void SetFileBrowserPath(const std::string& category, const std::string& path);
-
-  /**
-   * @brief Set callback for when a file is clicked in the browser
-   */
   void SetFileClickedCallback(
       std::function<void(const std::string& category, const std::string& path)>
           callback) {
     on_file_clicked_ = std::move(callback);
   }
 
+  // ============================================================================
+  // Favorites and Recent
+  // ============================================================================
+
+  void ToggleFavorite(const std::string& card_id);
+  bool IsFavorite(const std::string& card_id) const;
+  void AddToRecent(const std::string& card_id);
+  const std::vector<std::string>& GetRecentCards() const { return recent_cards_; }
+  const std::unordered_set<std::string>& GetFavoriteCards() const { return favorite_cards_; }
+
  private:
   // Core card storage (prefixed IDs → CardInfo)
   std::unordered_map<std::string, CardInfo> cards_;
+
+  // Favorites and Recent tracking
+  std::unordered_set<std::string> favorite_cards_;
+  std::vector<std::string> recent_cards_;
+  static constexpr size_t kMaxRecentCards = 10;
 
   // Centralized visibility flags for cards without external flags
   std::unordered_map<std::string, bool> centralized_visibility_;
@@ -891,10 +436,6 @@ class EditorCardRegistry {
   void UnregisterSessionCards(size_t session_id);
   void SavePresetsToFile();
   void LoadPresetsFromFile();
-
-  // UI drawing helpers (internal)
-  void DrawCardMenuItem(const CardInfo& info);
-  void DrawCardInSidebar(const CardInfo& info, bool is_active);
 };
 
 }  // namespace editor

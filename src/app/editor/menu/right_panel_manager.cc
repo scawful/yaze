@@ -1,4 +1,4 @@
-#include "app/editor/ui/right_panel_manager.h"
+#include "app/editor/menu/right_panel_manager.h"
 
 #include "app/editor/agent/agent_chat_widget.h"
 #include "app/editor/agent/agent_sidebar.h"

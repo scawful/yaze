@@ -1,5 +1,5 @@
-#ifndef YAZE_APP_EDITOR_UI_MENU_BUILDER_H_
-#define YAZE_APP_EDITOR_UI_MENU_BUILDER_H_
+#ifndef YAZE_APP_EDITOR_MENU_MENU_BUILDER_H_
+#define YAZE_APP_EDITOR_MENU_MENU_BUILDER_H_
 
 #include <functional>
 #include <string>
@@ -128,4 +128,4 @@ class MenuBuilder {
 }  // namespace editor
 }  // namespace yaze
 
-#endif  // YAZE_APP_EDITOR_UI_MENU_BUILDER_H_
+#endif  // YAZE_APP_EDITOR_MENU_MENU_BUILDER_H_
