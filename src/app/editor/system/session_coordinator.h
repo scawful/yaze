@@ -8,7 +8,7 @@
 
 #include "absl/status/status.h"
 #include "app/editor/session_types.h"
-#include "app/editor/system/toast_manager.h"
+#include "app/editor/ui/toast_manager.h"
 #include "app/rom.h"
 #include "imgui/imgui.h"
 

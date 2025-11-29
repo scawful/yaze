@@ -1,17 +1,21 @@
 #include "app/editor/code/project_file_editor.h"
 
+#include <filesystem>
 #include <fstream>
 #include <sstream>
 
 #include "absl/strings/match.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_split.h"
-#include "app/editor/system/toast_manager.h"
+#include "app/editor/ui/toast_manager.h"
 #include "app/gui/core/icons.h"
 #include "core/project.h"
 #include "imgui/imgui.h"
 #include "util/file_util.h"
 
+#ifdef __EMSCRIPTEN__
+#include "app/platform/wasm/wasm_storage.h"
+#endif
 namespace yaze {
 namespace editor {
 
@@ -132,6 +136,21 @@ void ProjectFileEditor::Draw() {
 }
 
 absl::Status ProjectFileEditor::LoadFile(const std::string& filepath) {
+#ifdef __EMSCRIPTEN__
+  std::string key = std::filesystem::path(filepath).stem().string();
+  if (key.empty()) {
+    key = "project";
+  }
+  auto storage_or = platform::WasmStorage::LoadProject(key);
+  if (storage_or.ok()) {
+    text_editor_.SetText(storage_or.value());
+    filepath_ = filepath;
+    modified_ = false;
+    ValidateContent();
+    return absl::OkStatus();
+  }
+#endif
+
   std::ifstream file(filepath);
   if (!file.is_open()) {
     return absl::InvalidArgumentError(
@@ -166,6 +185,24 @@ absl::Status ProjectFileEditor::SaveFileAs(const std::string& filepath) {
     final_path += ".yaze";
   }
 
+#ifdef __EMSCRIPTEN__
+  std::string key = std::filesystem::path(final_path).stem().string();
+  if (key.empty()) {
+    key = "project";
+  }
+  auto storage_status =
+      platform::WasmStorage::SaveProject(key, text_editor_.GetText());
+  if (!storage_status.ok()) {
+    return storage_status;
+  }
+  filepath_ = final_path;
+  modified_ = false;
+  auto& recent_mgr = project::RecentFilesManager::GetInstance();
+  recent_mgr.AddFile(filepath_);
+  recent_mgr.Save();
+  return absl::OkStatus();
+#endif
+
   std::ofstream file(final_path);
   if (!file.is_open()) {
     return absl::InvalidArgumentError(
@@ -193,6 +230,7 @@ void ProjectFileEditor::NewFile() {
 
 [project]
 name=New Project
+project_id=
 description=
 author=
 license=
@@ -200,7 +238,14 @@ version=1.0
 created_date=
 last_modified=
 yaze_version=0.4.0
+created_by=YAZE
 tags=
+
+[agent_settings]
+ai_provider=auto
+ai_model=
+ollama_host=http://localhost:11434
+use_custom_prompt=false
 
 [files]
 rom_filename=
@@ -219,11 +264,25 @@ kSaveDungeonMaps=true
 kSaveGraphicsSheet=true
 kLoadCustomOverworld=false
 
-[workspace_settings]
+[workspace]
 font_global_scale=1.0
 autosave_enabled=true
 autosave_interval_secs=300
 theme=dark
+
+[build]
+build_script=
+output_folder=build
+build_target=
+asm_entry_point=asm/main.asm
+asm_sources=asm
+build_number=0
+last_build_hash=
+
+[music]
+persist_custom_music=true
+storage_key=
+last_saved_at=
 )";
 
   text_editor_.SetText(template_content);
@@ -261,8 +320,11 @@ void ProjectFileEditor::ValidateContent() {
       // Validate known sections
       if (current_section != "project" && current_section != "files" &&
           current_section != "feature_flags" &&
+          current_section != "workspace" &&
           current_section != "workspace_settings" &&
-          current_section != "build_settings") {
+          current_section != "build" && current_section != "agent_settings" &&
+          current_section != "music" && current_section != "keybindings" &&
+          current_section != "editor_visibility") {
         validation_errors_.push_back(absl::StrFormat(
             "Line %d: Unknown section [%s]", line_num, current_section));
       }

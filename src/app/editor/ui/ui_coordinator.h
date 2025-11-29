@@ -6,7 +6,7 @@
 
 #include "absl/status/status.h"
 #include "app/editor/editor.h"
-#include "app/editor/system/popup_manager.h"
+#include "app/editor/ui/popup_manager.h"
 #include "app/editor/ui/welcome_screen.h"
 #include "app/gui/core/icons.h"
 
@@ -227,10 +227,6 @@ class UICoordinator {
   // Welcome screen component
   std::unique_ptr<WelcomeScreen> welcome_screen_;
 
-  // Helper methods for drawing operations
-  void DrawSessionIndicator();
-  void DrawSessionTabs();
-  void DrawSessionBadges();
 
   // Menu bar icon button helper - provides consistent styling for all menubar buttons
   // Returns true if button was clicked
@@ -250,10 +246,6 @@ class UICoordinator {
   void PositionWindow(const std::string& window_name, float x, float y);
   void SetWindowSize(const std::string& window_name, float width, float height);
 
-  // Icon and theming helpers
-  std::string GetIconForEditor(EditorType type) const;
-  std::string GetColorForEditor(EditorType type) const;
-  void ApplyEditorTheme(EditorType type);
 };
 
 }  // namespace editor

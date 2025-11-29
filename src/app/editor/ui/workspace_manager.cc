@@ -4,7 +4,7 @@
 
 #include "absl/strings/str_format.h"
 #include "app/editor/system/editor_card_registry.h"
-#include "app/editor/system/toast_manager.h"
+#include "app/editor/ui/toast_manager.h"
 #include "app/rom.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"

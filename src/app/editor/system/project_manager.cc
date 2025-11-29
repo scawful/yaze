@@ -4,7 +4,7 @@
 #include <fstream>
 
 #include "absl/strings/str_format.h"
-#include "app/editor/system/toast_manager.h"
+#include "app/editor/ui/toast_manager.h"
 #include "core/project.h"
 
 namespace yaze {
@@ -52,31 +52,25 @@ absl::Status ProjectManager::LoadProjectFromFile(const std::string& filename) {
         absl::StrFormat("Invalid project file: %s", filename));
   }
 
-  try {
-    // TODO: Implement actual project loading from JSON/YAML
-    // For now, create a basic project structure
-
-    current_project_ = project::YazeProject();
-    current_project_.filepath = filename;
-    current_project_.name = std::filesystem::path(filename).stem().string();
-
+  auto status = current_project_.Open(filename);
+  if (!status.ok()) {
     if (toast_manager_) {
       toast_manager_->Show(
-          absl::StrFormat("Project loaded: %s", current_project_.name),
-          ToastType::kSuccess);
-    }
-
-    return absl::OkStatus();
-
-  } catch (const std::exception& e) {
-    if (toast_manager_) {
-      toast_manager_->Show(
-          absl::StrFormat("Failed to load project: %s", e.what()),
+          absl::StrFormat("Failed to load project: %s",
+                          status.message()),
           ToastType::kError);
     }
-    return absl::InternalError(
-        absl::StrFormat("Failed to load project: %s", e.what()));
+    return status;
   }
+
+  if (toast_manager_) {
+    toast_manager_->Show(
+        absl::StrFormat("Project loaded: %s",
+                        current_project_.GetDisplayName()),
+        ToastType::kSuccess);
+  }
+
+  return absl::OkStatus();
 }
 
 absl::Status ProjectManager::SaveProject() {
@@ -97,28 +91,22 @@ absl::Status ProjectManager::SaveProjectAs(const std::string& filename) {
 }
 
 absl::Status ProjectManager::SaveProjectToFile(const std::string& filename) {
-  try {
-    // TODO: Implement actual project saving to JSON/YAML
-    // For now, just update the filepath
-
-    current_project_.filepath = filename;
-
-    if (toast_manager_) {
-      toast_manager_->Show(absl::StrFormat("Project saved: %s", filename),
-                           ToastType::kSuccess);
-    }
-
-    return absl::OkStatus();
-
-  } catch (const std::exception& e) {
+  auto status = current_project_.SaveAs(filename);
+  if (!status.ok()) {
     if (toast_manager_) {
       toast_manager_->Show(
-          absl::StrFormat("Failed to save project: %s", e.what()),
+          absl::StrFormat("Failed to save project: %s", status.message()),
           ToastType::kError);
     }
-    return absl::InternalError(
-        absl::StrFormat("Failed to save project: %s", e.what()));
+    return status;
   }
+
+  if (toast_manager_) {
+    toast_manager_->Show(absl::StrFormat("Project saved: %s", filename),
+                         ToastType::kSuccess);
+  }
+
+  return absl::OkStatus();
 }
 
 absl::Status ProjectManager::ImportProject(const std::string& project_path) {
@@ -126,10 +114,12 @@ absl::Status ProjectManager::ImportProject(const std::string& project_path) {
     return absl::InvalidArgumentError("No project path provided");
   }
 
+#ifndef __EMSCRIPTEN__
   if (!std::filesystem::exists(project_path)) {
     return absl::NotFoundError(
         absl::StrFormat("Project path does not exist: %s", project_path));
   }
+#endif
 
   // TODO: Implement project import logic
   // This would typically copy project files and update paths
@@ -252,9 +242,11 @@ bool ProjectManager::IsValidProjectFile(const std::string& filename) const {
     return false;
   }
 
+#ifndef __EMSCRIPTEN__
   if (!std::filesystem::exists(filename)) {
     return false;
   }
+#endif
 
   // Check file extension
   std::string extension = std::filesystem::path(filename).extension().string();
@@ -263,19 +255,21 @@ bool ProjectManager::IsValidProjectFile(const std::string& filename) const {
 
 absl::Status ProjectManager::InitializeProjectStructure(
     const std::string& project_path) {
+#ifdef __EMSCRIPTEN__
+  // WASM uses virtual storage; nothing to provision eagerly.
+  return absl::OkStatus();
+#else
   try {
-    // Create project directory structure
     std::filesystem::create_directories(project_path);
     std::filesystem::create_directories(project_path + "/assets");
     std::filesystem::create_directories(project_path + "/scripts");
     std::filesystem::create_directories(project_path + "/output");
-
     return absl::OkStatus();
-
   } catch (const std::exception& e) {
     return absl::InternalError(
         absl::StrFormat("Failed to create project structure: %s", e.what()));
   }
+#endif
 }
 
 // ============================================================================
@@ -287,10 +281,12 @@ absl::Status ProjectManager::SetProjectRom(const std::string& rom_path) {
     return absl::InvalidArgumentError("ROM path cannot be empty");
   }
 
+#ifndef __EMSCRIPTEN__
   if (!std::filesystem::exists(rom_path)) {
     return absl::NotFoundError(
         absl::StrFormat("ROM file not found: %s", rom_path));
   }
+#endif
 
   current_project_.rom_filename = rom_path;
   pending_rom_selection_ = false;
@@ -323,13 +319,15 @@ absl::Status ProjectManager::FinalizeProjectCreation(
   pending_template_name_.clear();
 
   // Initialize project structure if we have a directory
-  std::string project_dir = std::filesystem::path(current_project_.filepath)
-                                .parent_path()
-                                .string();
+  std::string project_dir;
+#ifndef __EMSCRIPTEN__
+  project_dir = std::filesystem::path(current_project_.filepath)
+                    .parent_path()
+                    .string();
+#endif
   if (!project_dir.empty()) {
     auto status = InitializeProjectStructure(project_dir);
     if (!status.ok()) {
-      // Non-fatal, just log warning
       if (toast_manager_) {
         toast_manager_->Show("Could not create project directories", 
                              ToastType::kWarning);
