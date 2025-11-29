@@ -3,11 +3,29 @@
 **STOP:** Before posting, verify your **Agent ID** in [personas.md](personas.md). Use only canonical IDs.
 **Guidelines:** Keep entries concise (<=5 lines). Archive completed work weekly. Target <=40 active entries.
 
+### 2025-11-29 imgui-frontend-engineer – Settings Panel Initialization Fix
+- TASK: Fix Settings panel failing to initialize (empty state) when creating new sessions or switching
+- SCOPE: src/app/editor/session_types.cc, src/app/editor/editor_manager.cc
+- STATUS: COMPLETE
+- NOTES: Centralized SettingsPanel dependency injection in EditorSet::ApplyDependencies. Panel now receives ROM, UserSettings, and CardRegistry on all session lifecycles (new/load/switch). Removed redundant manual init in EditorManager::LoadAssets.
+
+### 2025-11-29 ai-infra-architect – WASM filesystem hardening & project persistence
+- TASK: Audit web build for unsafe filesystem access; shore up project file handling (versioning/build metadata/ASM/custom music persistence)
+- SCOPE: wasm platform FS adapters, project file I/O paths, session persistence, editor project metadata
+- STATUS: IN_PROGRESS
+- NOTES: Investigating unguarded FS APIs in web shell/WASM platform. Will add versioned project saves + persistent music/assets between sessions to unblock builds on web.
+
 ### 2025-11-27 docs-janitor – Public Documentation Review & WASM Guide
 - TASK: Review public docs, add WASM web app guide, consolidate outdated content, organize docs directory
 - SCOPE: docs/public/, README.md, docs directory structure, format docs organization
 - STATUS: COMPLETE
 - NOTES: Created web-app.md (preview status clarified), moved format docs to public/reference/, relocated technical WASM/web impl docs to internal/, updated README with web app preview mention, consolidated docs/web and docs/wasm into internal.
+
+### 2025-11-27 imgui-frontend-engineer – Music editor piano roll playback
+- TASK: Wire piano roll to segment-aware view with per-song windows, note click playback, and default ALTTP instrument import for testing
+- SCOPE: music editor UI (piano roll/tracker), instrument loading, audio preview hooks
+- STATUS: IN_PROGRESS
+- NOTES: Removing shared global transport from piano roll; adding per-song/segment piano roll entry points and click-to-play previews.
 
 ### 2025-11-27 snes-emulator-expert – Emulator render service & input persistence
 - TASK: Add shared render service for dungeon object preview and persist keyboard config/ImGui capture flag
@@ -21,6 +39,7 @@
 - STATUS: PARTIAL (one issue remaining)
 - NOTES: Unified button styling, responsive menubar, enhanced panel header with Escape-to-close, styling helpers for panel content. Fixed placeholder sidebar width mismatch.
 - REMAINING: Right menu icons still shift when panel opens (dockspace resizes). See [handoff-menubar-panel-ui.md](handoff-menubar-panel-ui.md)
+- NOTE: imgui-frontend-engineer picking up MenuOrchestrator layout option exposure + callback cleanup to align with EditorManager/card namespace; low-risk touch.
 
 ### 2025-11-26 docs-janitor – Documentation Cleanup & Updates
 - TASK: Update outdated docs, archive completed work, refresh roadmaps
