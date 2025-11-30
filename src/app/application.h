@@ -1,0 +1,91 @@
+#ifndef YAZE_APP_APPLICATION_H_
+#define YAZE_APP_APPLICATION_H_
+
+#include <memory>
+#include <string>
+#include <vector>
+
+#include "absl/status/status.h"
+#include "app/controller.h"
+#include "yaze_config.h"
+
+namespace yaze {
+
+/**
+ * @brief Configuration options for the application startup
+ */
+struct AppConfig {
+  // File loading
+  std::string rom_file;
+  std::string log_file;
+  bool debug = false;
+  std::string log_categories;
+
+  // Startup navigation
+  std::string startup_editor;            // Editor to open (e.g., "Dungeon")
+  std::vector<std::string> open_cards;   // Card IDs to show (e.g., "dungeon.room_list")
+  
+  // Jump targets
+  int jump_to_room = -1;  // Dungeon room ID (-1 to ignore)
+  int jump_to_map = -1;   // Overworld map ID (-1 to ignore)
+  
+  // Services
+  bool enable_api = false;
+  int api_port = 8080;
+  bool enable_test_harness = false;
+  int test_harness_port = 50051;
+};
+
+/**
+ * @class Application
+ * @brief Main application singleton managing lifecycle and global state
+ */
+class Application {
+ public:
+  static Application& Instance();
+
+  // Initialize the application with configuration
+  void Initialize(const AppConfig& config);
+  
+  // Default initialization (empty config)
+  void Initialize() { Initialize(AppConfig{}); }
+
+  // Main loop tick
+  void Tick();
+  
+  // Shutdown application
+  void Shutdown();
+
+  // Unified ROM loading
+  void LoadRom(const std::string& path);
+  
+  // Accessors
+  Controller* GetController() { return controller_.get(); }
+  bool IsReady() const { return controller_ != nullptr; }
+  const AppConfig& GetConfig() const { return config_; }
+
+ private:
+  Application() = default;
+  ~Application() = default;
+  
+  // Non-copyable
+  Application(const Application&) = delete;
+  Application& operator=(const Application&) = delete;
+
+  std::unique_ptr<Controller> controller_;
+  AppConfig config_;
+  
+#ifndef __EMSCRIPTEN__
+  // For non-WASM builds, we need a local queue for ROMs requested before
+  // the controller is initialized.
+  std::string pending_rom_;
+#endif
+
+  // Helper to run startup actions (jumps, card opening) after ROM load
+  void RunStartupActions();
+};
+
+}  // namespace yaze
+
+#endif  // YAZE_APP_APPLICATION_H_
+
