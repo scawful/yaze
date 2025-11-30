@@ -54,13 +54,15 @@ set(GFX_TYPES_SRC
 )
 
 # build_cleaner:auto-maintain
-set(GFX_BACKEND_SRC
-  app/gfx/backend/sdl2_renderer.cc
-)
-
-# Conditionally add SDL3 renderer when YAZE_USE_SDL3 is enabled
+# Renderer backend: SDL2 or SDL3 (mutually exclusive)
 if(YAZE_USE_SDL3)
-  list(APPEND GFX_BACKEND_SRC app/gfx/backend/sdl3_renderer.cc)
+  set(GFX_BACKEND_SRC
+    app/gfx/backend/sdl3_renderer.cc
+  )
+else()
+  set(GFX_BACKEND_SRC
+    app/gfx/backend/sdl2_renderer.cc
+  )
 endif()
 
 # build_cleaner:auto-maintain

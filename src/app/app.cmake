@@ -23,6 +23,7 @@ endif()
 # Including it in yaze_app_core_lib would create a dependency cycle:
 # yaze_agent -> yaze_app_core_lib -> yaze_editor -> yaze_agent
 set(YAZE_APP_EXECUTABLE_SRC
+  app/application.cc
   app/main.cc
   app/controller.cc
 )
@@ -32,6 +33,7 @@ if(EMSCRIPTEN)
 endif()
 
 if (APPLE)
+  list(APPEND YAZE_APP_EXECUTABLE_SRC app/platform/app_delegate.mm)
   add_executable(yaze MACOSX_BUNDLE ${YAZE_APP_EXECUTABLE_SRC} ${YAZE_RESOURCE_FILES})
 
   set(ICON_FILE "${CMAKE_SOURCE_DIR}/assets/yaze.icns")
