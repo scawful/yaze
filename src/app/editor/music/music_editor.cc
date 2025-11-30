@@ -1482,15 +1482,26 @@ void MusicEditor::PreviewSegment(const zelda3::music::MusicSong& song,
 }
 
 void MusicEditor::PreviewInstrument(int instrument_index) {
-  if (!EnsureAudioReady()) return;
+  // Use preview mode which doesn't require a song to be loaded
+  if (!EnsurePreviewReady()) {
+    LOG_WARN("MusicEditor", "Cannot preview instrument - preview mode not ready");
+    return;
+  }
 
   auto& apu = emulator_->snes().apu();
   auto* instrument = music_bank_.GetInstrument(instrument_index);
   if (!instrument) return;
 
+  LOG_INFO("MusicEditor", "Previewing instrument %d: %s", instrument_index,
+           instrument->name.c_str());
+
   // Use Channel 0 for preview
   int ch = 0;
   int ch_base = ch * 0x10;
+
+  // Key off first to stop any previous preview
+  apu.WriteToDsp(0x5C, 1 << ch);  // KOFF channel
+  for (int i = 0; i < 100; ++i) apu.Cycle();  // Let it release
 
   // Setup instrument on channel 0
   apu.WriteToDsp(ch_base + 0x04, instrument->sample_index);  // SRCN
@@ -1513,26 +1524,65 @@ void MusicEditor::PreviewInstrument(int instrument_index) {
   // Key On
   apu.WriteToDsp(0x4C, 1 << ch);
 
-  // Run some cycles
-  for (int i = 0; i < 5000; ++i) apu.Cycle();
+  // Generate audio samples by running APU cycles
+  auto* audio = emulator_->audio_backend();
+  if (!audio) return;
 
-  if (auto* audio = emulator_->audio_backend()) audio->Play();
-  emulator_->set_running(true);
+  auto& dsp = apu.dsp();
+
+  // Generate ~0.5 seconds of audio across multiple frames
+  // SNES runs at 60fps, ~534 samples per frame at 32kHz
+  constexpr int kPreviewFrames = 30;  // ~0.5 seconds at 60fps
+  constexpr int kSamplesPerFrame = 534;
+  constexpr int kCyclesPerFrame = 534 * 32;  // APU cycles per frame
+
+  std::vector<int16_t> output_buffer;
+  output_buffer.reserve(kPreviewFrames * kSamplesPerFrame * 2);  // Stereo
+
+  for (int frame = 0; frame < kPreviewFrames; ++frame) {
+    // Run APU cycles for one frame
+    for (int c = 0; c < kCyclesPerFrame; ++c) {
+      apu.Cycle();
+    }
+
+    // Mark frame boundary for sample buffer
+    dsp.NewFrame();
+
+    // Extract samples from this frame
+    std::vector<int16_t> frame_samples(kSamplesPerFrame * 2);
+    dsp.GetSamples(frame_samples.data(), kSamplesPerFrame, false);
+
+    // Append to output buffer
+    output_buffer.insert(output_buffer.end(), frame_samples.begin(),
+                         frame_samples.end());
+  }
+
+  // Queue the generated samples
+  audio->Clear();
+  audio->QueueSamples(output_buffer.data(), static_cast<int>(output_buffer.size()));
+  audio->Play();
 }
 
 void MusicEditor::PreviewSample(int sample_index) {
-  if (!EnsureAudioReady()) return;
+  // Use preview mode which doesn't require a song to be loaded
+  if (!EnsurePreviewReady()) {
+    LOG_WARN("MusicEditor", "Cannot preview sample - preview mode not ready");
+    return;
+  }
 
   auto& apu = emulator_->snes().apu();
   auto* sample = music_bank_.GetSample(sample_index);
   if (!sample) return;
 
-  // Upload to temp area ($8000)
+  LOG_INFO("MusicEditor", "Previewing sample %d: %s", sample_index,
+           sample->name.c_str());
+
+  // Upload sample to temp area ($8000) - this overwrites any previous preview
   uint16_t temp_addr = 0x8000;
   UploadSongToAram(sample->brr_data, temp_addr);
 
-  // Update DIR[0] (Instrument 0's sample) to point to temp buffer
-  // Loop point is relative, convert to absolute ARAM address
+  // Update DIR[0] (sample 0's pointers) to point to temp buffer
+  // Loop point is relative within BRR data, convert to absolute ARAM address
   uint16_t loop_addr_aram = temp_addr + sample->loop_point;
 
   std::vector<uint8_t> dir_entry = {
@@ -1540,14 +1590,18 @@ void MusicEditor::PreviewSample(int sample_index) {
       static_cast<uint8_t>(temp_addr >> 8),
       static_cast<uint8_t>(loop_addr_aram & 0xFF),
       static_cast<uint8_t>(loop_addr_aram >> 8)};
-  UploadSongToAram(dir_entry, 0x3C00);
+  UploadSongToAram(dir_entry, 0x3C00);  // DIR starts at $3C00
 
   // Use Channel 0
   int ch = 0;
   int ch_base = ch * 0x10;
 
+  // Key off first to stop any previous preview
+  apu.WriteToDsp(0x5C, 1 << ch);  // KOFF channel
+  for (int i = 0; i < 100; ++i) apu.Cycle();  // Let it release
+
   // Setup for raw sample playback
-  apu.WriteToDsp(ch_base + 0x04, 0x00);  // SRCN 0
+  apu.WriteToDsp(ch_base + 0x04, 0x00);  // SRCN 0 (use the directory entry we just set)
   apu.WriteToDsp(ch_base + 0x05, 0xFF);  // ADSR1 (On, fast attack)
   apu.WriteToDsp(ch_base + 0x06, 0xE0);  // ADSR2 (Max sustain)
   apu.WriteToDsp(ch_base + 0x07, 0xFF);  // GAIN (Max)
@@ -1556,14 +1610,49 @@ void MusicEditor::PreviewSample(int sample_index) {
   apu.WriteToDsp(ch_base + 0x02, pitch & 0xFF);
   apu.WriteToDsp(ch_base + 0x03, (pitch >> 8) & 0x3F);
 
+  // Max volume
   apu.WriteToDsp(ch_base + 0x00, 0x7F);
   apu.WriteToDsp(ch_base + 0x01, 0x7F);
 
+  // Key On
   apu.WriteToDsp(0x4C, 1 << ch);
 
-  for (int i = 0; i < 5000; ++i) apu.Cycle();
-  if (auto* audio = emulator_->audio_backend()) audio->Play();
-  emulator_->set_running(true);
+  // Generate audio samples by running APU cycles
+  auto* audio = emulator_->audio_backend();
+  if (!audio) return;
+
+  auto& dsp = apu.dsp();
+
+  // Generate ~0.5 seconds of audio across multiple frames
+  constexpr int kPreviewFrames = 30;  // ~0.5 seconds at 60fps
+  constexpr int kSamplesPerFrame = 534;
+  constexpr int kCyclesPerFrame = 534 * 32;
+
+  std::vector<int16_t> output_buffer;
+  output_buffer.reserve(kPreviewFrames * kSamplesPerFrame * 2);  // Stereo
+
+  for (int frame = 0; frame < kPreviewFrames; ++frame) {
+    // Run APU cycles for one frame
+    for (int c = 0; c < kCyclesPerFrame; ++c) {
+      apu.Cycle();
+    }
+
+    // Mark frame boundary for sample buffer
+    dsp.NewFrame();
+
+    // Extract samples from this frame
+    std::vector<int16_t> frame_samples(kSamplesPerFrame * 2);
+    dsp.GetSamples(frame_samples.data(), kSamplesPerFrame, false);
+
+    // Append to output buffer
+    output_buffer.insert(output_buffer.end(), frame_samples.begin(),
+                         frame_samples.end());
+  }
+
+  // Queue the generated samples
+  audio->Clear();
+  audio->QueueSamples(output_buffer.data(), static_cast<int>(output_buffer.size()));
+  audio->Play();
 }
 
 // ============================================================================
@@ -1701,6 +1790,84 @@ bool MusicEditor::EnsureAudioReady() {
   return true;
 }
 
+bool MusicEditor::EnsurePreviewReady() {
+  if (!emulator_ || !rom_) {
+    LOG_WARN("MusicEditor", "EnsurePreviewReady: No emulator or ROM");
+    return false;
+  }
+
+  // Initialize emulator if needed
+  if (!emulator_->is_snes_initialized()) {
+    if (!emulator_->EnsureInitialized(rom_)) {
+      LOG_ERROR("MusicEditor", "EnsurePreviewReady: Failed to initialize emulator");
+      return false;
+    }
+    LOG_INFO("MusicEditor", "EnsurePreviewReady: Emulator initialized");
+  }
+
+  // Initialize preview mode (uploads sample data, no driver)
+  if (!preview_initialized_) {
+    InitializePreviewMode();
+    if (!preview_initialized_) {
+      LOG_ERROR("MusicEditor", "EnsurePreviewReady: Failed to initialize preview mode");
+      return false;
+    }
+  }
+
+  // Set interpolation type
+  emulator_->set_interpolation_type(interpolation_type_);
+
+  // Ensure audio backend exists
+  if (!emulator_->audio_backend()) {
+    LOG_ERROR("MusicEditor", "EnsurePreviewReady: No audio backend available");
+    return false;
+  }
+
+  return true;
+}
+
+void MusicEditor::InitializePreviewMode() {
+  if (!emulator_ || !rom_) return;
+  if (preview_initialized_) return;
+
+  auto& apu = emulator_->snes().apu();
+
+  LOG_INFO("MusicEditor", "Initializing preview mode (no driver)");
+
+  // Preview mode and SPC driver mode are mutually exclusive
+  // Reset SPC state since we won't be running the driver
+  spc_initialized_ = false;
+
+  // 1. Reset APU to clean state
+  apu.Reset();
+
+  // 2. Upload common bank (Bank 0) - contains sample data
+  UploadSoundBankFromRom(GetBankRomOffset(0));
+
+  // 3. Set up DSP for direct control (no driver)
+  //    Set DIR (sample directory) to $3C00
+  apu.WriteToDsp(0x5D, 0x3C);  // DIR = $3C00 >> 8
+
+  // 4. Reset all channels
+  apu.WriteToDsp(0x4C, 0x00);  // KOFF all
+  apu.WriteToDsp(0x5C, 0x00);  // Clear end flags
+
+  // 5. Set master volume and echo off
+  apu.WriteToDsp(0x0C, 0x7F);  // Master volume L
+  apu.WriteToDsp(0x1C, 0x7F);  // Master volume R
+  apu.WriteToDsp(0x2C, 0x00);  // Echo volume L
+  apu.WriteToDsp(0x3C, 0x00);  // Echo volume R
+  apu.WriteToDsp(0x6C, 0x20);  // FLG: Disable echo, mute off
+
+  // 6. Run a few cycles to stabilize
+  for (int i = 0; i < 1000; i++) {
+    apu.Cycle();
+  }
+
+  preview_initialized_ = true;
+  LOG_INFO("MusicEditor", "Preview mode initialized - direct DSP control ready");
+}
+
 void MusicEditor::InitializeDirectSpc() {
   if (!emulator_ || !rom_) return;
   if (spc_initialized_) return;
@@ -1708,6 +1875,10 @@ void MusicEditor::InitializeDirectSpc() {
   auto& apu = emulator_->snes().apu();
 
   LOG_INFO("MusicEditor", "Initializing direct SPC playback");
+
+  // SPC driver mode and preview mode are mutually exclusive
+  // Reset preview state since we'll be running the driver
+  preview_initialized_ = false;
 
   // 1. Reset APU to clean state
   apu.Reset();

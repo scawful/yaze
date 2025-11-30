@@ -188,6 +188,8 @@ int main(int argc, char** argv) {
     TickFrame();
   };
   
+  // Use 0 for frame rate to enable requestAnimationFrame (better performance)
+  // The third parameter (1) simulates infinite loop
   emscripten_set_main_loop(WasmMainLoop, 0, 1);
 #else
   // Desktop Main Loop (Linux/Windows)

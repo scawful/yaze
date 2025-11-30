@@ -255,6 +255,7 @@ class MusicEditor : public Editor {
   // Direct SPC playback (bypasses game music system)
   bool use_direct_spc_ = true;      // Use direct SPC vs game-based playback
   bool spc_initialized_ = false;    // Track if SPC has sound bank loaded
+  bool preview_initialized_ = false; // Track if preview mode is ready (no driver)
   bool audio_ready_ = false;        // Track if audio system is fully initialized
   uint8_t current_spc_bank_ = 0xFF; // Currently loaded bank (0xFF = none)
   float playback_speed_ = 1.0f;     // Playback speed multiplier (0.25 - 2.0)
@@ -262,6 +263,10 @@ class MusicEditor : public Editor {
 
   // Single call site for audio initialization
   bool EnsureAudioReady();
+
+  // Standalone preview initialization (no driver, direct DSP control)
+  bool EnsurePreviewReady();
+  void InitializePreviewMode();
 
   void InitializeDirectSpc();
   void PlaySongDirect(int song_id);
