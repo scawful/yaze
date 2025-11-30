@@ -217,7 +217,7 @@ void AgentChatView::RenderMessage(const cli::agent::ChatMessage& msg,
 
   // Message bubble styling
   float window_width = ImGui::GetContentRegionAvail().x;
-  float bubble_max_width = window_width * (compact_mode_ ? 0.95f : 0.85f);
+  float bubble_max_width = window_width * (compact_mode_ ? 0.95f : 0.80f);
 
   // Align user messages to right, agent to left
   if (from_user) {
@@ -226,26 +226,31 @@ void AgentChatView::RenderMessage(const cli::agent::ChatMessage& msg,
     ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10.0f);
   }
 
-  ImVec4 bg_color = from_user ? ImVec4(0.2f, 0.4f, 0.8f, 0.2f)
-                              : ImVec4(0.3f, 0.3f, 0.3f, 0.2f);
-  ImVec4 border_color = from_user ? ImVec4(0.3f, 0.5f, 0.9f, 0.5f)
-                                  : ImVec4(0.4f, 0.4f, 0.4f, 0.5f);
+  // More distinct colors with higher opacity for better readability
+  ImVec4 bg_color = from_user ? ImVec4(0.15f, 0.35f, 0.75f, 0.3f)
+                              : ImVec4(0.25f, 0.35f, 0.25f, 0.3f);
+  ImVec4 border_color = from_user ? ImVec4(0.3f, 0.5f, 0.9f, 0.6f)
+                                  : ImVec4(0.4f, 0.6f, 0.4f, 0.6f);
 
   // Using Group + Rect approach for dynamic height bubbles
   ImGui::BeginGroup();
 
-  // Header
+  // Header (Sender + Time)
   const ImVec4 header_color =
       from_user ? theme.user_message_color : theme.agent_message_color;
-  const char* header_label = from_user ? "You" : "Agent";
+  
+  // User friendly name
+  std::string sender_name = from_user ? "You" : (msg.model_metadata.has_value() ? msg.model_metadata->model : "Agent");
+  if (!from_user && sender_name.empty()) sender_name = "Agent";
 
-  ImGui::TextColored(header_color, "%s", header_label);
+  ImGui::TextColored(header_color, "%s", sender_name.c_str());
+  
   ImGui::SameLine();
   ImGui::TextDisabled(
-      "%s",
+      " %s",
       absl::FormatTime("%H:%M", msg.timestamp, absl::LocalTimeZone()).c_str());
 
-  // Copy button (small and subtle)
+  // Copy button (small and subtle) - moved to right of header
   if (!compact_mode_) {
     ImGui::SameLine();
     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
@@ -262,12 +267,16 @@ void AgentChatView::RenderMessage(const cli::agent::ChatMessage& msg,
     ImGui::PopStyleColor();
   }
 
+  // Separator for cleanliness
+  ImGui::Spacing();
+
   // Content
   if (msg.table_data.has_value()) {
     RenderTable(*msg.table_data);
   } else if (msg.json_pretty.has_value()) {
     ImGui::PushStyleColor(ImGuiCol_Text, theme.json_text_color);
     ImGui::TextDisabled(ICON_MD_DATA_OBJECT " (Structured Data)");
+    ImGui::TextWrapped("%s", msg.json_pretty->c_str());
     ImGui::PopStyleColor();
   } else {
     // Parse message for code blocks
@@ -284,24 +293,27 @@ void AgentChatView::RenderMessage(const cli::agent::ChatMessage& msg,
 
   // Proposal quick actions
   if (msg.proposal.has_value()) {
+    ImGui::Spacing();
     RenderProposalQuickActions(msg, index);
   }
 
   ImGui::EndGroup();
 
-  // Draw background rect
+  // Draw background rect with rounded corners
   ImVec2 p_min = ImGui::GetItemRectMin();
   ImVec2 p_max = ImGui::GetItemRectMax();
-  p_min.x -= 8;
-  p_min.y -= 4;
-  p_max.x += 8;
-  p_max.y += 4;
+  p_min.x -= 12.0f;
+  p_min.y -= 8.0f;
+  p_max.x += 12.0f;
+  p_max.y += 8.0f;
 
   ImGui::GetWindowDrawList()->AddRectFilled(p_min, p_max,
-                                            ImGui::GetColorU32(bg_color), 8.0f);
+                                            ImGui::GetColorU32(bg_color), 12.0f);
   ImGui::GetWindowDrawList()->AddRect(p_min, p_max,
-                                      ImGui::GetColorU32(border_color), 8.0f);
+                                      ImGui::GetColorU32(border_color), 12.0f);
 
+  // Extra spacing between messages
+  ImGui::Spacing();
   ImGui::Spacing();
   ImGui::Spacing();
   ImGui::PopID();
