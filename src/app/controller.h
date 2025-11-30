@@ -8,7 +8,7 @@
 #include "absl/status/status.h"
 #include "app/editor/editor_manager.h"
 #include "app/gfx/backend/irenderer.h"
-#include "app/platform/window.h"
+#include "app/platform/iwindow.h"
 #include "app/rom.h"
 
 int main(int argc, char** argv);
@@ -34,7 +34,9 @@ class Controller {
   void SetStartupEditor(const std::string& editor_name,
                         const std::string& cards);
 
-  auto window() -> SDL_Window* { return window_.window_.get(); }
+  auto window() -> SDL_Window* {
+    return window_backend_ ? window_backend_->GetNativeWindow() : nullptr;
+  }
   void set_active(bool active) { active_ = active; }
   auto active() const { return active_; }
   auto overworld() -> yaze::zelda3::Overworld* {
@@ -46,6 +48,9 @@ class Controller {
   // Test-friendly accessors for GUI testing with ImGuiTestEngine
   editor::EditorManager* editor_manager() { return &editor_manager_; }
 
+  // Window backend accessor
+  platform::IWindowBackend* window_backend() { return window_backend_.get(); }
+
   // Load a ROM file and initialize all editors for testing
   // This performs the full initialization flow including LoadAssets()
   absl::Status LoadRomForTesting(const std::string& rom_path);
@@ -54,7 +59,7 @@ class Controller {
   friend int ::main(int argc, char** argv);
 
   bool active_ = false;
-  core::Window window_;
+  std::unique_ptr<platform::IWindowBackend> window_backend_;
   editor::EditorManager editor_manager_;
   std::unique_ptr<gfx::IRenderer> renderer_;
 };
