@@ -63,6 +63,11 @@ void InstrumentEditorView::DrawProperties(MusicInstrument& instrument, MusicBank
     changed = true;
   }
 
+  ImGui::SameLine();
+  if (ImGui::Button(" Preview")) {
+    if (on_preview_) on_preview_(selected_instrument_index_);
+  }
+
   // Sample Selection
   if (ImGui::BeginCombo("Sample", absl::StrFormat("%02X", instrument.sample_index).c_str())) {
     for (size_t i = 0; i < bank.GetSampleCount(); ++i) {

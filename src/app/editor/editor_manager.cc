@@ -1197,7 +1197,12 @@ void EditorManager::DrawMenuBar() {
       emulator_.Run(current_rom);
     } else if (emulator_.running() && emulator_.is_snes_initialized()) {
       // Emulator running in background (e.g., for music editor playback)
-      emulator_.RunFrameOnly();
+      // Use audio-focused mode when available for lower overhead and authentic sound
+      if (emulator_.is_audio_focus_mode()) {
+        emulator_.RunAudioFrame();
+      } else {
+        emulator_.RunFrameOnly();
+      }
     }
   }
 

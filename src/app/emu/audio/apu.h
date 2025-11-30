@@ -72,6 +72,7 @@ class Apu {
   void Write(uint16_t address, uint8_t data);
 
   auto dsp() -> Dsp& { return dsp_; }
+  auto dsp() const -> const Dsp& { return dsp_; }
   auto spc700() -> Spc700& { return spc700_; }
 
   uint64_t GetCycles() const { return cycles_; }

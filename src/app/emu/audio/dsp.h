@@ -10,6 +10,7 @@ namespace emu {
 enum class InterpolationType {
   Linear,
   Hermite,  // Used by bsnes/Snes9x - better quality than linear
+  Gaussian, // SNES hardware accurate
   Cosine,
   Cubic,
 };
@@ -135,7 +136,8 @@ class Dsp {
   const int16_t* GetSampleBuffer() const { return sampleBuffer; }
   uint16_t GetSampleOffset() const { return sampleOffset; }
 
-  InterpolationType interpolation_type = InterpolationType::Linear;
+  // Default to Gaussian for authentic SNES sound
+  InterpolationType interpolation_type = InterpolationType::Gaussian;
 
  private:
   // sample ring buffer (1024 samples, *2 for stereo)

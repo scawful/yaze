@@ -5,6 +5,7 @@
 
 #include "absl/strings/str_format.h"
 #include "app/gui/plots/implot_support.h"
+#include "app/gui/core/icons.h"
 #include "imgui/imgui.h"
 #include "implot.h"
 
@@ -52,6 +53,12 @@ void SampleEditorView::DrawSampleList(MusicBank& bank) {
 }
 
 void SampleEditorView::DrawWaveform(const MusicSample& sample) {
+  if (ImGui::Button(ICON_MD_PLAY_ARROW " Play Sample")) {
+    if (on_preview_) on_preview_(selected_sample_index_);
+  }
+  ImGui::SameLine();
+  ImGui::Text("%s (%zu bytes)", sample.name.c_str(), sample.brr_data.size());
+
   if (sample.pcm_data.empty()) {
     ImGui::TextDisabled("Empty sample (No PCM data)");
     return;
