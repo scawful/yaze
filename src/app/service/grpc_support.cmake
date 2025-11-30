@@ -18,6 +18,7 @@ set(
   app/service/imgui_test_harness_service.cc
   app/service/widget_discovery_service.cc
   app/service/screenshot_utils.cc
+  app/service/rom_service_impl.cc
   
   # Test infrastructure
   app/test/test_recorder.cc
@@ -50,6 +51,7 @@ target_link_libraries(yaze_grpc_support PUBLIC
   yaze_gfx
   yaze_gui
   yaze_emulator
+  yaze_net
   ${ABSL_TARGETS}
   ${YAZE_SDL2_TARGETS}
 )

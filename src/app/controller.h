@@ -15,6 +15,8 @@ int main(int argc, char** argv);
 
 namespace yaze {
 
+class CanvasAutomationServiceImpl;
+
 /**
  * @brief Main controller for the application.
  *
@@ -54,6 +56,12 @@ class Controller {
   // Load a ROM file and initialize all editors for testing
   // This performs the full initialization flow including LoadAssets()
   absl::Status LoadRomForTesting(const std::string& rom_path);
+
+#ifdef YAZE_WITH_GRPC
+  void SetCanvasAutomationService(CanvasAutomationServiceImpl* service) {
+    editor_manager_.SetCanvasAutomationService(service);
+  }
+#endif
 
  private:
   friend int ::main(int argc, char** argv);

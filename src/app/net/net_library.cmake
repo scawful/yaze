@@ -130,12 +130,6 @@ if(YAZE_WITH_JSON)
   endif()
 endif()
 
-# Add gRPC support for ROM service
-if(YAZE_WITH_GRPC)
-  target_link_libraries(yaze_net PUBLIC yaze_grpc_support)
-  message(STATUS "  - gRPC ROM service enabled")
-endif()
-
 set_target_properties(yaze_net PROPERTIES
   POSITION_INDEPENDENT_CODE ON
   ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"

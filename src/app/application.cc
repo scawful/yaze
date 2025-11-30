@@ -3,6 +3,12 @@
 #include "absl/strings/str_cat.h"
 #include "util/log.h"
 
+#ifdef YAZE_WITH_GRPC
+#include "app/service/canvas_automation_service.h"
+#include "app/service/unified_grpc_server.h"
+#include "app/test/test_manager.h"
+#endif
+
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
 #include "app/platform/wasm/wasm_bootstrap.h"
@@ -19,8 +25,47 @@ Application& Application::Instance() {
 void Application::Initialize(const AppConfig& config) {
   config_ = config;
   LOG_INFO("App", "Initializing Application instance...");
+
+#ifdef YAZE_WITH_GRPC
+  // Initialize gRPC server if enabled
+  if (config_.enable_test_harness) {
+    LOG_INFO("App", "Initializing gRPC automation services...");
+    canvas_automation_service_ = std::make_unique<CanvasAutomationServiceImpl>();
+    grpc_server_ = std::make_unique<YazeGRPCServer>();
+    
+    // Initialize server with all services
+    // Note: RomService and ProposalApprovalManager will be connected later 
+    // when we have a session context, but we can start the server now.
+    auto status = grpc_server_->Initialize(
+        config_.test_harness_port,
+        &yaze::test::TestManager::Get(),
+        nullptr, // ROM not loaded yet
+        nullptr, // Version manager not ready
+        nullptr, // Approval manager not ready
+        canvas_automation_service_.get()
+    );
+
+    if (status.ok()) {
+      status = grpc_server_->StartAsync(); // Start in background thread
+      if (!status.ok()) {
+        LOG_ERROR("App", "Failed to start gRPC server: %s", std::string(status.message()).c_str());
+      } else {
+        LOG_INFO("App", "gRPC server started on port %d", config_.test_harness_port);
+      }
+    } else {
+      LOG_ERROR("App", "Failed to initialize gRPC server: %s", std::string(status.message()).c_str());
+    }
+  }
+#endif
   
   controller_ = std::make_unique<Controller>();
+
+#ifdef YAZE_WITH_GRPC
+  // Connect services to controller/editor manager
+  if (canvas_automation_service_) {
+    controller_->SetCanvasAutomationService(canvas_automation_service_.get());
+  }
+#endif
 
   // Process pending ROM load if we have one (from flags/config - non-WASM only)
   std::string start_path = config_.rom_file;
@@ -147,12 +192,24 @@ void Application::RunStartupActions() {
   manager->ProcessStartupActions(config_);
 }
 
+#ifdef __EMSCRIPTEN__
+extern "C" void SyncFilesystem();
+#endif
+
 void Application::Shutdown() {
 #ifdef __EMSCRIPTEN__
   // Sync IDBFS to persist any changes before shutdown
   LOG_INFO("App", "Syncing filesystem before shutdown...");
-  extern "C" void SyncFilesystem();
   SyncFilesystem();
+#endif
+
+#ifdef YAZE_WITH_GRPC
+  if (grpc_server_) {
+    LOG_INFO("App", "Shutting down gRPC server...");
+    grpc_server_->Shutdown();
+    grpc_server_.reset();
+  }
+  canvas_automation_service_.reset();
 #endif
 
   if (controller_) {

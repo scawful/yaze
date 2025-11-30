@@ -8,7 +8,7 @@
 #include <thread>
 
 #include "absl/strings/str_format.h"
-#include "app/net/rom_service_impl.h"
+#include "app/service/rom_service_impl.h"
 #include "app/rom.h"
 #include "app/service/canvas_automation_service.h"
 #include "app/service/imgui_test_harness_service.h"
@@ -62,8 +62,7 @@ absl::Status YazeGRPCServer::Initialize(
   // Create Canvas Automation service if canvas_service provided
   if (config_.enable_canvas_automation && canvas_service) {
     // Store the provided service (not owned by us)
-    canvas_service_ =
-        std::unique_ptr<CanvasAutomationServiceImpl>(canvas_service);
+    canvas_service_ = canvas_service;
     std::cout << "✓ Canvas Automation service initialized\n";
   } else if (config_.enable_canvas_automation) {
     std::cout << "⚠ Canvas Automation requested but no service provided\n";
@@ -160,7 +159,7 @@ absl::Status YazeGRPCServer::BuildServer() {
     std::cout << "  Registering Canvas Automation service...\n";
     // Create gRPC wrapper using factory function
     canvas_grpc_service_ =
-        CreateCanvasAutomationServiceGrpc(canvas_service_.get());
+        CreateCanvasAutomationServiceGrpc(canvas_service_);
     builder.RegisterService(canvas_grpc_service_.get());
   }
 

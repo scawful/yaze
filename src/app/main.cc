@@ -21,14 +21,10 @@
 #include "util/platform_paths.h"
 #include "yaze.h"
 
-#ifdef YAZE_WITH_GRPC
-#include "app/service/imgui_test_harness_service.h"
-#include "app/test/test_manager.h"
-#endif
-
-// Enhanced flags for debugging
-DEFINE_FLAG(std::string, rom_file, "", "The ROM file to load.");
+// ============================================================================
+// Global Accessors for WASM Integration
 DEFINE_FLAG(std::string, log_file, "", "Output log file path for debugging.");
+DEFINE_FLAG(std::string, rom_file, "", "ROM file to load on startup.");
 DEFINE_FLAG(bool, debug, false, "Enable debug logging and verbose output.");
 DEFINE_FLAG(
     std::string, log_categories, "",
@@ -161,24 +157,6 @@ int main(int argc, char** argv) {
   config.test_harness_port = FLAGS_test_harness_port->Get();
 #endif
 
-#ifdef YAZE_WITH_GRPC
-#ifndef __EMSCRIPTEN__
-  if (config.enable_test_harness) {
-    auto& test_manager = yaze::test::TestManager::Get();
-    auto& server = yaze::test::ImGuiTestHarnessServer::Instance();
-    int port = config.test_harness_port;
-
-    std::cout << "\n🚀 Starting ImGui Test Harness on port " << port << "..." << std::endl;
-    auto status = server.Start(port, &test_manager);
-    if (!status.ok()) {
-      std::cerr << "❌ ERROR: Failed to start test harness server: " << status.message() << std::endl;
-      return 1;
-    }
-    std::cout << "✅ Test harness ready on 127.0.0.1:" << port << std::endl;
-  }
-#endif
-#endif
-
 #ifdef __APPLE__
   return yaze_run_cocoa_app_delegate(config);
 #elif defined(_WIN32)
@@ -237,10 +215,6 @@ int main(int argc, char** argv) {
   if (api_server) {
     api_server->Stop();
   }
-
-#ifdef YAZE_WITH_GRPC
-  yaze::test::ImGuiTestHarnessServer::Instance().Shutdown();
-#endif
 
 #endif // __EMSCRIPTEN__
 
