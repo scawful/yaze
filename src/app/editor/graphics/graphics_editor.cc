@@ -54,6 +54,7 @@ void GraphicsEditor::Initialize() {
   pixel_editor_panel_ = std::make_unique<PixelEditorPanel>(&state_, rom_);
   palette_controls_panel_ = std::make_unique<PaletteControlsPanel>(&state_, rom_);
   link_sprite_panel_ = std::make_unique<LinkSpritePanel>(&state_, rom_);
+  polyhedral_panel_ = std::make_unique<PolyhedralEditorPanel>(rom_);
 
   sheet_browser_panel_->Initialize();
   pixel_editor_panel_->Initialize();
@@ -95,6 +96,15 @@ void GraphicsEditor::Initialize() {
                                .category = "Graphics",
                                .shortcut_hint = "Ctrl+Shift+L",
                                .priority = 35,
+                               .enabled_condition = [this]() { return rom()->is_loaded(); },
+                               .disabled_tooltip = "Load a ROM first"});
+  card_registry->RegisterCard({.card_id = "graphics.polyhedral_editor",
+                               .display_name = "3D Objects",
+                               .window_title = ICON_MD_VIEW_IN_AR " 3D Objects",
+                               .icon = ICON_MD_VIEW_IN_AR,
+                               .category = "Graphics",
+                               .shortcut_hint = "Ctrl+Shift+0",
+                               .priority = 38,
                                .enabled_condition = [this]() { return rom()->is_loaded(); },
                                .disabled_tooltip = "Load a ROM first"});
 
@@ -139,6 +149,7 @@ void GraphicsEditor::Initialize() {
   // Show new pixel editor by default when Graphics Editor is activated
   card_registry->ShowCard("graphics.pixel_editor");
   card_registry->ShowCard("graphics.sheet_browser_v2");
+  card_registry->ShowCard("graphics.polyhedral_editor");
 }
 
 absl::Status GraphicsEditor::Load() {
@@ -174,6 +185,11 @@ absl::Status GraphicsEditor::Load() {
 
     LOG_INFO("GraphicsEditor", "Queued texture creation for %d graphics sheets",
              sheets_queued);
+  }
+
+  if (polyhedral_panel_) {
+    polyhedral_panel_->SetRom(rom_);
+    RETURN_IF_ERROR(polyhedral_panel_->Load());
   }
 
   return absl::OkStatus();
@@ -263,10 +279,12 @@ absl::Status GraphicsEditor::Update() {
   static gui::EditorCard sheet_browser_v2_card("Sheet Browser", ICON_MD_VIEW_LIST);
   static gui::EditorCard pixel_editor_card("Pixel Editor", ICON_MD_DRAW);
   static gui::EditorCard palette_controls_card("Palette Controls", ICON_MD_PALETTE);
+  static gui::EditorCard polyhedral_card("3D Objects", ICON_MD_VIEW_IN_AR);
 
   sheet_browser_v2_card.SetDefaultSize(350, 600);
   pixel_editor_card.SetDefaultSize(800, 600);
   palette_controls_card.SetDefaultSize(300, 500);
+  polyhedral_card.SetDefaultSize(600, 520);
 
   // Sheet Browser Panel (new)
   bool* sheet_browser_v2_visible =
@@ -317,6 +335,18 @@ absl::Status GraphicsEditor::Update() {
       }
     }
     link_sprite_card.End();
+  }
+
+  // Polyhedral (3D object) editor
+  bool* polyhedral_visible =
+      card_registry->GetVisibilityFlag("graphics.polyhedral_editor");
+  if (polyhedral_visible && *polyhedral_visible) {
+    if (polyhedral_card.Begin(polyhedral_visible)) {
+      if (polyhedral_panel_) {
+        status_ = polyhedral_panel_->Update();
+      }
+    }
+    polyhedral_card.End();
   }
 
   // --- Legacy Cards (kept for backward compatibility) ---

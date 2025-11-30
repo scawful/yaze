@@ -680,8 +680,11 @@ inline int16_t InterpolateHermite(int16_t p0, int16_t p1, int16_t p2,
 
 void Dsp::GetSamples(int16_t* sample_data, int samples_per_frame,
                      bool pal_timing) {
-  // Resample from native samples-per-frame (NTSC: ~534, PAL: ~641)
-  const double native_per_frame = pal_timing ? 641.0 : 534.0;
+  // Resample from native samples-per-frame
+  // NTSC: 32040 Hz / 60.0988 fps ≈ 533.1 samples
+  // PAL:  32040 Hz / 50.007 fps ≈ 640.7 samples
+  // Using slightly higher values to ensure we don't underrun the ring buffer
+  const double native_per_frame = pal_timing ? 641.0 : 533.0;
   const double step = native_per_frame / static_cast<double>(samples_per_frame);
 
   // Start reading one native frame behind the frame boundary

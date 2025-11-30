@@ -8,6 +8,7 @@
 #include "app/editor/editor.h"
 #include "app/editor/graphics/graphics_editor_state.h"
 #include "app/editor/graphics/link_sprite_panel.h"
+#include "app/editor/graphics/polyhedral_editor_panel.h"
 #include "app/editor/graphics/palette_controls_panel.h"
 #include "app/editor/graphics/pixel_editor_panel.h"
 #include "app/editor/graphics/sheet_browser_panel.h"
@@ -98,6 +99,7 @@ class GraphicsEditor : public Editor {
   std::unique_ptr<PixelEditorPanel> pixel_editor_panel_;
   std::unique_ptr<PaletteControlsPanel> palette_controls_panel_;
   std::unique_ptr<LinkSpritePanel> link_sprite_panel_;
+  std::unique_ptr<PolyhedralEditorPanel> polyhedral_panel_;
 
   // Graphics Editor Tab
   absl::Status UpdateGfxEdit();
