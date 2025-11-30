@@ -230,7 +230,7 @@ class Emulator {
   bool debugging_ = false;
   gfx::IRenderer* renderer_ = nullptr;
   void* ppu_texture_ = nullptr;
-  bool use_sdl_audio_stream_ = false;
+  bool use_sdl_audio_stream_ = true;  // Enable resampling by default (32kHz -> 48kHz)
   bool audio_stream_config_dirty_ = false;
   bool audio_stream_active_ = false;
   bool audio_stream_env_checked_ = false;

@@ -196,7 +196,11 @@ bool Emulator::EnsureInitialized(Rom* rom) {
     snes_.Init(rom_data_);
 
     wanted_frames_ = 1.0 / (snes_.memory().pal_timing() ? 50.0 : 60.0);
-    wanted_samples_ = audio_backend_->GetConfig().sample_rate / (snes_.memory().pal_timing() ? 50 : 60);
+    // When resampling is enabled (which we just did above), we need to generate
+    // samples at the NATIVE rate (32kHz). The backend will resample them to 48kHz.
+    // If we used the backend rate (48kHz) here, we'd generate too many samples,
+    // and the backend would resample them to even more, causing fast playback.
+    wanted_samples_ = kNativeSampleRate / (snes_.memory().pal_timing() ? 50 : 60);
     snes_initialized_ = true;
 
     count_frequency = SDL_GetPerformanceFrequency();
@@ -459,7 +463,9 @@ void Emulator::Run(Rom* rom) {
     // texture
 
     wanted_frames_ = 1.0 / (snes_.memory().pal_timing() ? 50.0 : 60.0);
-    wanted_samples_ = audio_backend_->GetConfig().sample_rate / (snes_.memory().pal_timing() ? 50 : 60);
+    // Use native SNES sample rate (32kHz), not backend rate (48kHz)
+    // The audio backend handles resampling from 32kHz -> 48kHz
+    wanted_samples_ = kNativeSampleRate / (snes_.memory().pal_timing() ? 50 : 60);
     snes_initialized_ = true;
 
     count_frequency = SDL_GetPerformanceFrequency();

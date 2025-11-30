@@ -138,17 +138,23 @@ CardLayoutPreset LayoutPresets::GetDefaultPreset(EditorType type) {
 
     case EditorType::kMusic:
       preset.name = "Music Default";
-      preset.description = "Song list with sequencer";
+      preset.description = "Song browser with playback control and piano roll";
       preset.default_visible_cards = {
-          Cards::kMusicTracker,
+          Cards::kMusicSongBrowser,
+          Cards::kMusicPlaybackControl,
+          Cards::kMusicPianoRoll,
       };
       preset.card_positions = {
-          {Cards::kMusicTracker, DockPosition::Left},
-          {Cards::kMusicInstrumentEditor, DockPosition::Center},
-          {Cards::kMusicAssembly, DockPosition::Right},
+          {Cards::kMusicSongBrowser, DockPosition::Left},
+          {Cards::kMusicPlaybackControl, DockPosition::Top},
+          {Cards::kMusicPianoRoll, DockPosition::Center},
+          {Cards::kMusicInstrumentEditor, DockPosition::Right},
+          {Cards::kMusicSampleEditor, DockPosition::RightBottom},
+          {Cards::kMusicAssembly, DockPosition::Bottom},
       };
       preset.optional_cards = {
           Cards::kMusicInstrumentEditor,
+          Cards::kMusicSampleEditor,
           Cards::kMusicAssembly,
       };
       break;
@@ -289,7 +295,8 @@ CardLayoutPreset LayoutPresets::GetMinimalPreset() {
       Cards::kGraphicsSheetEditor,
       Cards::kPaletteControlPanel,
       Cards::kSpriteVanillaEditor,
-      Cards::kMusicTracker,
+      Cards::kMusicSongBrowser,
+      Cards::kMusicPlaybackControl,
       Cards::kMessageEditor,
       Cards::kAssemblyEditor,
       Cards::kEmulatorPpuViewer,
@@ -468,8 +475,11 @@ CardLayoutPreset LayoutPresets::GetAudioPreset() {
   preset.editor_type = EditorType::kMusic;
   preset.default_visible_cards = {
       // Music editing
-      Cards::kMusicTracker,
+      Cards::kMusicSongBrowser,
+      Cards::kMusicPlaybackControl,
+      Cards::kMusicPianoRoll,
       Cards::kMusicInstrumentEditor,
+      Cards::kMusicSampleEditor,
       Cards::kMusicAssembly,
       // Audio debugging
       Cards::kEmulatorApuDebugger,
@@ -477,6 +487,16 @@ CardLayoutPreset LayoutPresets::GetAudioPreset() {
       // Assembly for custom sound code
       Cards::kAssemblyEditor,
       Cards::kAssemblyFileBrowser,
+  };
+  preset.card_positions = {
+      {Cards::kMusicSongBrowser, DockPosition::Left},
+      {Cards::kMusicPlaybackControl, DockPosition::Top},
+      {Cards::kMusicPianoRoll, DockPosition::Center},
+      {Cards::kMusicInstrumentEditor, DockPosition::Right},
+      {Cards::kMusicSampleEditor, DockPosition::RightBottom},
+      {Cards::kMusicAssembly, DockPosition::Bottom},
+      {Cards::kEmulatorApuDebugger, DockPosition::LeftBottom},
+      {Cards::kEmulatorAudioMixer, DockPosition::RightTop},
   };
   return preset;
 }
