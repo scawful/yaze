@@ -40,7 +40,7 @@
 
     <title>yaze</title>
   </head>
-  <body>
+  <body oncontextmenu="return false;">
     <div id="header">
       <div class="header-left">
         <img src="assets/yaze.png" alt="yaze" class="logo-icon" style="height: 20px; width: 20px; margin-right: 8px;">
@@ -331,7 +331,7 @@
       <button class="nav-btn" onclick="dismissUpdate()" style="height: 24px; font-size: 11px;">Dismiss</button>
     </div>
 
-    <div id="canvas-container">
+    <div id="canvas-container" oncontextmenu="return false;">
       <div id="loading-overlay" style="display: flex;">
         <div class="loading-content">
           <div class="spinner" id="spinner"></div>
@@ -344,6 +344,7 @@
       <!-- Data attributes updated by agent_automation.js for agent discoverability -->
       <canvas class="emscripten yaze-main-canvas" id="canvas"
               tabindex=-1
+              oncontextmenu="return false;"
               data-editor-type=""
               data-active-card=""
               data-zoom-level="1.0"
