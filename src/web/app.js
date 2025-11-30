@@ -224,7 +224,20 @@ window.yazeFrameTiming = {
 // Ensure loading overlay is visible initially
 if (loadingOverlay) loadingOverlay.style.display = 'flex';
 
+// ASYNCIFY support: Initialize asyncifyStubs in multiple ways to ensure Emscripten can find it
+// Emscripten's generated code with MODULARIZE=1 and ASYNCIFY may access this in different ways
+// during the createYazeModule function definition
+var asyncifyStubs = {};
+window.asyncifyStubs = asyncifyStubs; // Global variable
+if (typeof window.Module === 'undefined') {
+  window.Module = {};
+}
+window.Module.asyncifyStubs = asyncifyStubs; // On global Module object
+
 var Module = {
+  // ASYNCIFY support: Initialize asyncifyStubs before yaze.js loads
+  // Emscripten's generated code with MODULARIZE=1 and ASYNCIFY expects this to exist
+  asyncifyStubs: asyncifyStubs, // Use the same object reference
   print: (function() {
     return function(text) {
       if (arguments.length > 1) text = Array.prototype.slice.call(arguments).join(' ');
@@ -1507,10 +1520,24 @@ document.addEventListener('DOMContentLoaded', function() {
         clearTimeout(initTimeout);
         initTimeout = null;
       }
+      // With MODULARIZE=1 and ASYNCIFY, asyncifyStubs is already defined in Module object
+      // Emscripten will populate it during module creation
       createYazeModule(Module).then(function(instance) {
         console.log('[WASM] Module initialized successfully');
         window.Module = instance;
         window.YAZE_MODULE_READY = true;
+        
+        // Register AI driver after module is ready (fallback if shell.html registration fails)
+        setTimeout(function() {
+          if (window.Module && window.Module.registerExternalAiDriver) {
+            try {
+              const result = window.Module.registerExternalAiDriver();
+              console.log('[WASM] AI driver registration:', result);
+            } catch (e) {
+              console.warn('[WASM] AI driver registration failed:', e);
+            }
+          }
+        }, 1000); // Wait 1 second for EditorManager to be fully initialized
       }).catch(function(err) {
         console.error('[WASM] Module initialization failed:', err);
         showFatalError('WASM Initialization Failed', err.message || err.toString());
