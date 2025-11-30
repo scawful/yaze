@@ -1,25 +1,25 @@
 # Roadmap
 
-**Last Updated: November 27, 2025**
+**Last Updated: November 29, 2025**
 
 This roadmap tracks upcoming releases and major ongoing initiatives.
 
 ## Current Focus (v0.4.0)
 
-- **SDL3 Backend Infrastructure**: ✅ Complete (17 new files for IWindowBackend/IAudioBackend/IInputBackend/IRenderer interfaces)
-- **WASM Web Port**: ✅ Complete - EXPERIMENTAL/PREVIEW (see note below)
-- **EditorManager Refactoring**: ✅ Complete (90% feature parity, 44% code reduction)
-- **AI Agent Tools**: ✅ Phases 1-4 complete (meta-tools, schemas, context, batching, validation)
-- **Documentation**: ✅ Public docs reviewed, web app guide added, format docs organized
-- **Emulator Input/Render**: 🟡 In Progress (input persistence, render service for dungeon preview)
-- **GUI Bug Fixes**: ✅ BeginChild/EndChild patterns, duplicate rendering resolved
+- **WASM Web App UX/Stability**: ✅ Command palette, file manager, pixel inspector, shell UI refresh, theme updates; async queue + gesture/input fixes reduce Asyncify crashes; GH Pages deploy stabilized via updated web-build workflow; browser `yaze_agent` build enabled.
+- **AI Agent UX Revamp**: ✅ Dedicated chat/proposals panels with session-aware chat, provider hardening, and YAML autodetect for safer prompts.
+- **Music Editor Overhaul**: 🟡 Tracker + piano roll + instrument/sample editors with SPC parser/bank loader and emulator audio hooks; regression tests added.
+- **Tile16 & Project Persistence**: 🟡 Pending-change workflow, overworld context menus, 16-color palettes; project metadata refactor + JSON helper; tile16/music integration/unit tests.
+- **SDL3 Backend Infrastructure**: ✅ Groundwork landed (IWindow/IAudio/IInput/IRenderer); SDL3 readiness report + entry-point/flag cleanup owned by another agent.
+- **Emulator Input/Render**: 🟡 PPU catch-up, dungeon preview render service, and input persistence still in flight.
 
 ### WASM Web Port Status
 
 **Status**: Technically complete but **EXPERIMENTAL/PREVIEW**
-- ✅ Build system, file loading, basic editors functional
-- ⚠️ Editors are incomplete/preview quality - not production-ready
-- ⚠️ Missing features: emulator audio, plugins, advanced editing
+- ✅ Build system, file loading, basic editors functional; GH Pages deploy path hardened (web-build caching/branch gating, updated `src/web/` structure).
+- ✅ New browser UI: command palette, file manager, pixel inspector, panelized shell UI, theme definitions, touch gesture support, and expanded debug hooks.
+- ✅ Async queue/serialization guard to avoid Asyncify crashes; browser `yaze_agent` build enabled with web AI providers.
+- ⚠️ Editors are incomplete/preview quality - not production-ready; emulator audio/plugins/advanced editing still missing; WASM FS/persistence hardening in progress (another agent).
 - **Recommendation**: Desktop build for serious ROM hacking
 - **Documentation**: See `docs/public/usage/web-app.md`
 
@@ -64,20 +64,40 @@ This roadmap tracks upcoming releases and major ongoing initiatives.
 - ✅ ValidationTool + RomDiffTool
 - ✅ Semantic Inspection API Phase 1
 
+#### AI Agent UX & Browser Support
+- ✅ Dedicated chat/proposals panels, agent sessions, and configuration UI with session-aware chat history, safer provider handling, and YAML autodetect.
+- ✅ `yaze_agent` builds enabled in the browser shell with web AI providers wired through the WASM build.
+
+#### WASM Web UX & Stability
+- ✅ Command palette, file manager, pixel inspector, panelized shell UI, theme definitions, touch gestures, and debug overlays added to the web app.
+- ✅ Async queue/serialization guard to prevent Asyncify crashes; WASM control API and message queue refactors to harden async flows.
+- ✅ Web architecture/card layout documentation added; web-build workflow updated for new `src/web/` structure and GH Pages caching/branch gating.
+
+#### Editor Layout & Menu Refactor
+- ✅ Activity bar/right panel rebuild with menu assets moved under the menu namespace; layout presets documented and popup/toast managers reorganized under UI.
+- ✅ Project file/editor refactors and card registry cleanup to reduce coupling; JSON abstraction helper added for consistent serialization.
+
+#### Testing
+- ✅ New integration/unit coverage for Tile16 editor workflows and music parsing/playback (SPC parser, music bank, editor integration).
+
 ### In Progress 🟡
 
-#### Emulator System
+#### Emulator & SDL3 Readiness
 - 🟡 PPU JIT catch-up integration
 - 🟡 Shared render service for dungeon object preview
 - 🟡 Input persistence (keyboard config, ImGui capture flag)
-- 🟡 Semantic API for AI agents (Phase 1 complete, Phase 2 planned)
+- 🟡 Semantic API for AI agents (Phase 2 planned)
 - 🟡 State injection improvements
+- 🟡 SDL3 readiness report plus entry-point/flag cleanup (owned by another agent)
+
+#### Music Editor Overhaul
+- 🟡 Tracker + piano roll + instrument/sample editors are in-flight; stabilize playback/export paths and polish UI/shortcuts.
+
+#### Tile16 Editor & Project Persistence
+- 🟡 Finalize pending-change workflow UX, palette handling, and overworld context menus; align project metadata/JSON refactor with WASM FS persistence work (ai-infra-architect).
 
 #### Editor Fixes
 - 🟡 Dungeon object rendering regression (under investigation)
-
-#### UI/UX Improvements
-- 🟡 Menu bar and panel styling refinements
 
 ### Remaining Work
 
@@ -99,6 +119,11 @@ This roadmap tracks upcoming releases and major ongoing initiatives.
 - Editors function on the new backend
 - Emulator audio/input verified
 - Documentation and migration guide updated
+
+### CI/CD & Release Health
+- Release workflow repairs (cache key/cleanup, Windows crash handler) merged; v0.3.9-hotfix rerun in progress—monitor GH Actions to confirm all jobs finish green.
+- Web-build workflow updated for new `src/web/` layout with caching/branch gating; GH Pages WASM deploys expected to remain stable after recent async/UI hardening.
+- CI workflows consolidated with standardized Doxygen 1.10 install; PR CI still optimized (~5–10 minutes) with nightly schedule currently disabled.
 
 **Breaking Changes:**
 - SDL2 → SDL3 (requires recompilation)
@@ -130,6 +155,14 @@ This roadmap tracks upcoming releases and major ongoing initiatives.
 ---
 
 ## Recently Completed
+
+### Post-v0.3.9 mainline snapshot (Nov 29, 2025)
+- Music editor rebuild with tracker/piano roll/instrument/sample views, SPC parser/bank loader, and emulator audio hooks.
+- AI agent UX revamp (dedicated chat/proposals, session-aware chat, provider safeguards/YAML autodetect) plus browser `yaze_agent` build.
+- WASM web app stabilization (command palette, file manager, pixel inspector, shell UI, async queue/gesture fixes, theme/debug updates) and hardened web-build workflow for GH Pages deploys.
+- Tile16 workflow and project persistence upgrades (pending-change workflow, 16-color palettes, project metadata refactor, JSON helper).
+- Regression coverage added for Tile16 and music (integration + unit tests).
+- Editor menu/layout refactor with ActivityBar + layout presets and card layout architecture documentation.
 
 ### v0.3.9 (November 2025)
 - WASM web port with real-time collaboration (experimental/preview)
