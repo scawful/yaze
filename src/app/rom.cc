@@ -176,7 +176,10 @@ uint32_t GetGraphicsAddress(const uint8_t* data, uint8_t addr, uint32_t ptr1,
                             uint32_t ptr2, uint32_t ptr3, size_t rom_size) {
   // Bounds check: ensure all pointer table accesses are within ROM bounds
   // This prevents WASM "index out of bounds" errors when assertions are enabled
-  if (ptr1 + addr >= rom_size || ptr2 + addr >= rom_size || ptr3 + addr >= rom_size) {
+  // Also check for integer overflow before accessing arrays
+  if (ptr1 > UINT32_MAX - addr || ptr1 + addr >= rom_size ||
+      ptr2 > UINT32_MAX - addr || ptr2 + addr >= rom_size ||
+      ptr3 > UINT32_MAX - addr || ptr3 + addr >= rom_size) {
     // Return rom_size as sentinel value (callers check offset < rom.size())
     return static_cast<uint32_t>(rom_size);
   }
@@ -981,19 +984,27 @@ absl::Status Rom::LoadGfxGroups() {
 
   // Bounds check for room blocksets
   if (kEntranceGfxGroup >= rom_data_.size()) {
-     // Log warning?
+     LOG_WARN("Rom", "Entrance graphics group pointer out of bounds: %u >= %zu",
+              kEntranceGfxGroup, rom_data_.size());
   } else {
-      uint32_t room_blockset_end = kEntranceGfxGroup + (kNumRoomBlocksets * 4);
-      if (room_blockset_end <= rom_data_.size()) {
-          for (uint32_t i = 0; i < kNumRoomBlocksets; i++) {
-            for (int j = 0; j < 4; j++) {
-              uint32_t idx = kEntranceGfxGroup + (i * 4) + j;
-              // Per-access bounds check for WASM safety
-              if (idx < rom_data_.size()) {
-                room_blockset_ids[i][j] = rom_data_[idx];
+      // Check for integer overflow before calculating end
+      const uint32_t room_blockset_size = kNumRoomBlocksets * 4;
+      if (kEntranceGfxGroup > UINT32_MAX - room_blockset_size) {
+        LOG_WARN("Rom", "Room blockset pointer would overflow: %u + %u", 
+                 kEntranceGfxGroup, room_blockset_size);
+      } else {
+        uint32_t room_blockset_end = kEntranceGfxGroup + room_blockset_size;
+        if (room_blockset_end <= rom_data_.size()) {
+            for (uint32_t i = 0; i < kNumRoomBlocksets; i++) {
+              for (int j = 0; j < 4; j++) {
+                uint32_t idx = kEntranceGfxGroup + (i * 4) + j;
+                // Per-access bounds check for WASM safety
+                if (idx < rom_data_.size()) {
+                  room_blockset_ids[i][j] = rom_data_[idx];
+                }
               }
             }
-          }
+        }
       }
   }
 
@@ -1001,33 +1012,47 @@ absl::Status Rom::LoadGfxGroups() {
   
   // Bounds check for sprite blocksets
   if (vc.kSpriteBlocksetPointer < rom_data_.size()) {
-      uint32_t sprite_blockset_end = vc.kSpriteBlocksetPointer + (kNumSpritesets * 4);
-      if (sprite_blockset_end <= rom_data_.size()) {
-          for (uint32_t i = 0; i < kNumSpritesets; i++) {
-            for (int j = 0; j < 4; j++) {
-              uint32_t idx = vc.kSpriteBlocksetPointer + (i * 4) + j;
-              // Per-access bounds check for WASM safety
-              if (idx < rom_data_.size()) {
-                spriteset_ids[i][j] = rom_data_[idx];
+      // Check for integer overflow before calculating end
+      const uint32_t sprite_blockset_size = kNumSpritesets * 4;
+      if (vc.kSpriteBlocksetPointer > UINT32_MAX - sprite_blockset_size) {
+        LOG_WARN("Rom", "Sprite blockset pointer would overflow: %u + %u", 
+                 vc.kSpriteBlocksetPointer, sprite_blockset_size);
+      } else {
+        uint32_t sprite_blockset_end = vc.kSpriteBlocksetPointer + sprite_blockset_size;
+        if (sprite_blockset_end <= rom_data_.size()) {
+            for (uint32_t i = 0; i < kNumSpritesets; i++) {
+              for (int j = 0; j < 4; j++) {
+                uint32_t idx = vc.kSpriteBlocksetPointer + (i * 4) + j;
+                // Per-access bounds check for WASM safety
+                if (idx < rom_data_.size()) {
+                  spriteset_ids[i][j] = rom_data_[idx];
+                }
               }
             }
-          }
+        }
       }
   }
 
   // Bounds check for palette sets
   if (vc.kDungeonPalettesGroups < rom_data_.size()) {
-      uint32_t palette_end = vc.kDungeonPalettesGroups + (kNumPalettesets * 4);
-      if (palette_end <= rom_data_.size()) {
-          for (uint32_t i = 0; i < kNumPalettesets; i++) {
-            for (int j = 0; j < 4; j++) {
-              uint32_t idx = vc.kDungeonPalettesGroups + (i * 4) + j;
-              // Per-access bounds check for WASM safety
-              if (idx < rom_data_.size()) {
-                paletteset_ids[i][j] = rom_data_[idx];
+      // Check for integer overflow before calculating end
+      const uint32_t palette_size = kNumPalettesets * 4;
+      if (vc.kDungeonPalettesGroups > UINT32_MAX - palette_size) {
+        LOG_WARN("Rom", "Palette groups pointer would overflow: %u + %u", 
+                 vc.kDungeonPalettesGroups, palette_size);
+      } else {
+        uint32_t palette_end = vc.kDungeonPalettesGroups + palette_size;
+        if (palette_end <= rom_data_.size()) {
+            for (uint32_t i = 0; i < kNumPalettesets; i++) {
+              for (int j = 0; j < 4; j++) {
+                uint32_t idx = vc.kDungeonPalettesGroups + (i * 4) + j;
+                // Per-access bounds check for WASM safety
+                if (idx < rom_data_.size()) {
+                  paletteset_ids[i][j] = rom_data_[idx];
+                }
               }
             }
-          }
+        }
       }
   }
 
