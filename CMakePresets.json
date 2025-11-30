@@ -984,7 +984,8 @@
       "inherits": "mac-base", 
       "cacheVariables": {
         "YAZE_ENABLE_AI": "OFF", 
-        "YAZE_ENABLE_GRPC": "OFF", 
+        "YAZE_ENABLE_GRPC": "ON", 
+        "YAZE_PREFER_SYSTEM_GRPC": "ON",
         "YAZE_BUILD_AGENT_UI": "ON", 
         "YAZE_BUILD_TESTS": "ON", 
         "CMAKE_BUILD_TYPE": "Debug", 
@@ -999,7 +1000,7 @@
         "rhs": "Darwin", 
         "lhs": "${hostSystemName}"
       }, 
-      "description": "Debug build for macOS"
+      "description": "Debug build for macOS (uses Homebrew gRPC)"
     }, 
     {
       "inherits": "mac-dbg", 
@@ -1066,7 +1067,8 @@
         "YAZE_ENABLE_REMOTE_AUTOMATION": "ON", 
         "YAZE_ENABLE_ROM_TESTS": "ON", 
         "YAZE_ENABLE_JSON": "ON", 
-        "YAZE_ENABLE_AI_RUNTIME": "ON"
+        "YAZE_ENABLE_AI_RUNTIME": "ON",
+        "YAZE_USE_SDL3": "ON"
       }, 
       "displayName": "macOS AI Development", 
       "name": "mac-ai", 

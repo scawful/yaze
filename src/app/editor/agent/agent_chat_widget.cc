@@ -4139,7 +4139,7 @@ void AgentChatWidget::LoadScreenshotPreview(
   UnloadScreenshotPreview();
 
   // Load the image using SDL
-  SDL_Surface* surface = SDL_LoadBMP(image_path.string().c_str());
+  SDL_Surface* surface = platform::LoadBMP(image_path.string().c_str());
   if (!surface) {
     if (toast_manager_) {
       toast_manager_->Show(
@@ -4161,7 +4161,7 @@ void AgentChatWidget::LoadScreenshotPreview(
   }
 
   if (!renderer) {
-    SDL_FreeSurface(surface);
+    platform::DestroySurface(surface);
     if (toast_manager_) {
       toast_manager_->Show("Failed to get SDL renderer", ToastType::kError,
                            3.0f);
@@ -4172,7 +4172,7 @@ void AgentChatWidget::LoadScreenshotPreview(
   // Create texture from surface
   SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
   if (!texture) {
-    SDL_FreeSurface(surface);
+    platform::DestroySurface(surface);
     if (toast_manager_) {
       toast_manager_->Show(
           absl::StrFormat("Failed to create texture: %s", SDL_GetError()),
@@ -4188,7 +4188,7 @@ void AgentChatWidget::LoadScreenshotPreview(
   multimodal_state_.preview.loaded = true;
   multimodal_state_.preview.show_preview = true;
 
-  SDL_FreeSurface(surface);
+  platform::DestroySurface(surface);
 
   if (toast_manager_) {
     toast_manager_->Show(absl::StrFormat("Screenshot preview loaded (%dx%d)",
@@ -4390,7 +4390,7 @@ void AgentChatWidget::CaptureSelectedRegion() {
   // Get renderer size
   int full_width = 0;
   int full_height = 0;
-  if (SDL_GetRendererOutputSize(renderer, &full_width, &full_height) != 0) {
+  if (platform::GetRendererOutputSize(renderer, &full_width, &full_height) != 0) {
     if (toast_manager_) {
       toast_manager_->Show(
           absl::StrFormat("Failed to get renderer size: %s", SDL_GetError()),
@@ -4413,24 +4413,11 @@ void AgentChatWidget::CaptureSelectedRegion() {
     return;
   }
 
-  // Create surface for the capture region
-  SDL_Surface* surface =
-      SDL_CreateRGBSurface(0, capture_width, capture_height, 32, 0x00FF0000,
-                           0x0000FF00, 0x000000FF, 0xFF000000);
-  if (!surface) {
-    if (toast_manager_) {
-      toast_manager_->Show(
-          absl::StrFormat("Failed to create surface: %s", SDL_GetError()),
-          ToastType::kError, 3.0f);
-    }
-    return;
-  }
-
   // Read pixels from the selected region
   SDL_Rect region_rect = {capture_x, capture_y, capture_width, capture_height};
-  if (SDL_RenderReadPixels(renderer, &region_rect, SDL_PIXELFORMAT_ARGB8888,
-                           surface->pixels, surface->pitch) != 0) {
-    SDL_FreeSurface(surface);
+  SDL_Surface* surface = platform::ReadPixelsToSurface(renderer, capture_width, capture_height, &region_rect);
+
+  if (!surface) {
     if (toast_manager_) {
       toast_manager_->Show(
           absl::StrFormat("Failed to read pixels: %s", SDL_GetError()),
@@ -4453,7 +4440,7 @@ void AgentChatWidget::CaptureSelectedRegion() {
 
   // Save the cropped image
   if (SDL_SaveBMP(surface, output_path.string().c_str()) != 0) {
-    SDL_FreeSurface(surface);
+    platform::DestroySurface(surface);
     if (toast_manager_) {
       toast_manager_->Show(
           absl::StrFormat("Failed to save screenshot: %s", SDL_GetError()),
@@ -4462,7 +4449,7 @@ void AgentChatWidget::CaptureSelectedRegion() {
     return;
   }
 
-  SDL_FreeSurface(surface);
+  platform::DestroySurface(surface);
 
   // Store the capture path and load preview
   multimodal_state_.last_capture_path = output_path;

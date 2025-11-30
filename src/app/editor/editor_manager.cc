@@ -23,6 +23,7 @@
 #include "absl/strings/match.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
+#include "app/application.h"
 #include "app/editor/agent/agent_chat_widget.h"
 #include "app/editor/code/assembly_editor.h"
 #include "app/editor/dungeon/dungeon_editor_v2.h"
@@ -783,6 +784,26 @@ void EditorManager::OpenEditorAndCardsFromFlags(const std::string& editor_name,
         }
       }
     }
+  }
+}
+
+void EditorManager::ProcessStartupActions(const AppConfig& config) {
+  // Handle startup editor and cards (existing helper)
+  if (!config.startup_editor.empty()) {
+    std::string cards_str;
+    for (size_t i = 0; i < config.open_cards.size(); ++i) {
+      if (i > 0) cards_str += ",";
+      cards_str += config.open_cards[i];
+    }
+    OpenEditorAndCardsFromFlags(config.startup_editor, cards_str);
+  }
+
+  // Handle jump targets
+  if (config.jump_to_room >= 0) {
+    JumpToDungeonRoom(config.jump_to_room);
+  }
+  if (config.jump_to_map >= 0) {
+    JumpToOverworldMap(config.jump_to_map);
   }
 }
 

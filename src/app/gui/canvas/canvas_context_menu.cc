@@ -7,6 +7,7 @@
 #include "app/gui/core/color.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/widgets/palette_editor_widget.h"
+#include "app/platform/sdl_compat.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -278,9 +279,13 @@ void CanvasContextMenu::RenderBitmapOperationsMenu(gfx::Bitmap* bitmap) {
 
   if (ImGui::BeginMenu(ICON_MD_IMAGE " Bitmap Properties")) {
     ImGui::Text("Size: %d x %d", bitmap->width(), bitmap->height());
-    ImGui::Text("Pitch: %d", bitmap->surface()->pitch);
-    ImGui::Text("BitsPerPixel: %d", bitmap->surface()->format->BitsPerPixel);
-    ImGui::Text("BytesPerPixel: %d", bitmap->surface()->format->BytesPerPixel);
+    if (auto* surface = bitmap->surface()) {
+      ImGui::Text("Pitch: %d", surface->pitch);
+      ImGui::Text("BitsPerPixel: %d",
+                  platform::GetSurfaceBitsPerPixel(surface));
+      ImGui::Text("BytesPerPixel: %d",
+                  platform::GetSurfaceBytesPerPixel(surface));
+    }
 
     if (ImGui::BeginMenu("Format")) {
       if (ImGui::MenuItem("Indexed")) {
