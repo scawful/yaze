@@ -1532,12 +1532,27 @@ document.addEventListener('DOMContentLoaded', function() {
           if (window.Module && window.Module.registerExternalAiDriver) {
             try {
               const result = window.Module.registerExternalAiDriver();
-              console.log('[WASM] AI driver registration:', result);
+              // Handle both string and Promise returns (Emscripten may wrap in Promise with Asyncify)
+              if (result && typeof result.then === 'function') {
+                result.then(function(str) {
+                  console.log('[WASM] AI driver registration:', str || '(empty)');
+                  if (!str || str.trim() === '') {
+                    console.warn('[WASM] AI driver registration returned empty string - may need to retry');
+                  }
+                }).catch(function(err) {
+                  console.warn('[WASM] AI driver registration failed:', err);
+                });
+              } else {
+                console.log('[WASM] AI driver registration:', result || '(empty)');
+                if (!result || result.trim() === '') {
+                  console.warn('[WASM] AI driver registration returned empty string - may need to retry');
+                }
+              }
             } catch (e) {
               console.warn('[WASM] AI driver registration failed:', e);
             }
           }
-        }, 1000); // Wait 1 second for EditorManager to be fully initialized
+        }, 2000); // Wait 2 seconds for EditorManager and AgentSessionManager to be fully initialized
       }).catch(function(err) {
         console.error('[WASM] Module initialization failed:', err);
         showFatalError('WASM Initialization Failed', err.message || err.toString());
