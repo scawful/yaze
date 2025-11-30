@@ -25,6 +25,54 @@ namespace audio {
 // SDL2AudioBackend Implementation
 // ============================================================================
 
+#ifdef YAZE_USE_SDL3
+
+// SDL2 backend is not available in SDL3 builds; provide stubs to satisfy
+// legacy interfaces while deferring to SDL3AudioBackend in the factory.
+SDL2AudioBackend::~SDL2AudioBackend() = default;
+
+bool SDL2AudioBackend::Initialize(const AudioConfig& /*config*/) {
+  LOG_ERROR("AudioBackend",
+            "SDL2AudioBackend is unavailable when building with SDL3");
+  return false;
+}
+
+void SDL2AudioBackend::Shutdown() {}
+void SDL2AudioBackend::Play() {}
+void SDL2AudioBackend::Pause() {}
+void SDL2AudioBackend::Stop() {}
+void SDL2AudioBackend::Clear() {}
+
+bool SDL2AudioBackend::QueueSamples(const int16_t* /*samples*/,
+                                    int /*num_samples*/) {
+  return false;
+}
+
+bool SDL2AudioBackend::QueueSamples(const float* /*samples*/,
+                                    int /*num_samples*/) {
+  return false;
+}
+
+bool SDL2AudioBackend::QueueSamplesNative(const int16_t* /*samples*/,
+                                          int /*frames_per_channel*/,
+                                          int /*channels*/,
+                                          int /*native_rate*/) {
+  return false;
+}
+
+AudioStatus SDL2AudioBackend::GetStatus() const { return {}; }
+bool SDL2AudioBackend::IsInitialized() const { return false; }
+AudioConfig SDL2AudioBackend::GetConfig() const { return config_; }
+
+void SDL2AudioBackend::SetVolume(float /*volume*/) {}
+float SDL2AudioBackend::GetVolume() const { return 0.0f; }
+
+void SDL2AudioBackend::SetAudioStreamResampling(bool /*enable*/,
+                                                int /*native_rate*/,
+                                                int /*channels*/) {}
+
+#else
+
 SDL2AudioBackend::~SDL2AudioBackend() {
   Shutdown();
 }
@@ -334,6 +382,8 @@ float SDL2AudioBackend::GetVolume() const {
   return volume_;
 }
 
+#endif  // YAZE_USE_SDL3
+
 // ============================================================================
 // AudioBackendFactory Implementation
 // ============================================================================
@@ -341,7 +391,12 @@ float SDL2AudioBackend::GetVolume() const {
 std::unique_ptr<IAudioBackend> AudioBackendFactory::Create(BackendType type) {
   switch (type) {
     case BackendType::SDL2:
+#ifdef YAZE_USE_SDL3
+      // Prefer SDL3 backend when SDL3 is in use.
+      return std::make_unique<SDL3AudioBackend>();
+#else
       return std::make_unique<SDL2AudioBackend>();
+#endif
 
     case BackendType::SDL3:
 #ifdef YAZE_USE_SDL3
@@ -365,8 +420,12 @@ std::unique_ptr<IAudioBackend> AudioBackendFactory::Create(BackendType type) {
       return std::make_unique<SDL2AudioBackend>();
 
     default:
-      LOG_ERROR("AudioBackend", "Unknown backend type, using SDL2");
+      LOG_ERROR("AudioBackend", "Unknown backend type, using default backend");
+#ifdef YAZE_USE_SDL3
+      return std::make_unique<SDL3AudioBackend>();
+#else
       return std::make_unique<SDL2AudioBackend>();
+#endif
   }
 }
 

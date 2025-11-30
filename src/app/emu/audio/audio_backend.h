@@ -120,11 +120,15 @@ class SDL2AudioBackend : public IAudioBackend {
   std::string GetBackendName() const override { return "SDL2"; }
 
  private:
-  uint32_t device_id_ = 0;
+ uint32_t device_id_ = 0;
   AudioConfig config_;
   bool initialized_ = false;
   float volume_ = 1.0f;
+#ifdef YAZE_USE_SDL3
+  SDL_AudioFormat device_format_ = SDL_AUDIO_S16;
+#else
   SDL_AudioFormat device_format_ = AUDIO_S16;
+#endif
   int device_channels_ = 2;
   int device_freq_ = 48000;
   bool audio_stream_enabled_ = false;
