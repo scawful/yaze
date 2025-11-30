@@ -226,6 +226,12 @@ class IWindowBackend {
    */
   virtual void NewImGuiFrame() = 0;
 
+  /**
+   * @brief Render ImGui draw data (and viewports if enabled)
+   * @param renderer The renderer to use for drawing (needed to get backend renderer)
+   */
+  virtual void RenderImGui(gfx::IRenderer* renderer) = 0;
+
   // =========================================================================
   // Audio Support (Legacy compatibility)
   // =========================================================================
