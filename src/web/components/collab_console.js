@@ -139,25 +139,34 @@
   function sendChat() {
     const text = ui.chatInput.value.trim();
     if (!text) return;
-    const isAi = text.startsWith('/ai');
+    const isAi = text.startsWith('/ai') || text.startsWith('/ask');
     if (isAi) {
-      const prompt = text.replace(/^\/ai\s*/, '').trim();
+      const prompt = text.replace(/^(\/ai|\/ask)\s*/, '').trim();
       if (!prompt) {
         appendMsg('system', 'error', 'Usage: /ai <prompt>');
         return;
       }
-      // Broadcast the user question
-      send({
-        type: 'chat_message',
-        payload: {
-          sender: state.username || 'anon',
-          message: text,
-          message_type: 'chat',
-        },
-      });
-      ui.chatInput.value = '';
-      appendMsg('system', 'system', 'AI thinking…');
-      callAiAndBroadcast(prompt);
+
+      // Check if we are the host
+      const isHost = (ui.mode.value === 'host');
+
+      if (isHost) {
+        // Host: Execute locally and broadcast result
+        ui.chatInput.value = '';
+        appendMsg('system', 'system', 'AI thinking (Host)...');
+        callAiAndBroadcast(prompt);
+      } else {
+        // Client: Send request to host
+        ui.chatInput.value = '';
+        appendMsg('system', 'system', 'Requesting AI response from Host...');
+        send({
+          type: 'ai_request',
+          payload: {
+            sender: state.username || 'anon',
+            prompt: prompt
+          }
+        });
+      }
       return;
     }
 
@@ -188,6 +197,16 @@
   }
 
   async function callAi(prompt) {
+    // Try to use central AiManager first (handles BYOK and refresh tokens)
+    if (window.yaze && window.yaze.ai) {
+      try {
+        return await window.yaze.ai.generateContent(prompt);
+      } catch (e) {
+        console.warn('AiManager failed, falling back to local config:', e);
+        // Fallthrough to local logic
+      }
+    }
+
     const cfg = getStoredApiConfig();
     if (!cfg) throw new Error('No AI key set. Add GEMINI_API_KEY or OPENAI_API_KEY in browser storage.');
 
@@ -289,6 +308,26 @@
         break;
       case 'chat_message':
         appendMsg('chat', msg.payload.sender, msg.payload.message || '');
+        break;
+      case 'ai_request':
+        // Received a request for AI processing
+        // Only the Host should respond to this
+        if (ui.mode.value === 'host') {
+          const prompt = msg.payload.prompt;
+          const requestor = msg.payload.sender;
+          logConsole(`AI Request from ${requestor}: ${prompt}`);
+          // Acknowledge receipt
+          send({
+            type: 'chat_message',
+            payload: {
+              sender: 'System',
+              message: `Processing AI request from ${requestor}...`,
+              message_type: 'system'
+            }
+          });
+          // Execute and broadcast
+          callAiAndBroadcast(prompt);
+        }
         break;
       case 'participant_joined':
       case 'participant_left':

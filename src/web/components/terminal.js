@@ -27,7 +27,10 @@
     '/history': showHistory,
     '/version': showVersion,
     '/ai': handleAITools,
-    'ai': handleAITools // Alias without slash
+    'ai': handleAITools, // Alias without slash
+    '/login': handleLogin,
+    '/ask': handleAsk,
+    'ask': handleAsk
   };
 
   /**
@@ -1261,6 +1264,91 @@
       this.printWarning('WASM module not yet loaded.');
     }
     this.print('');
+  }
+
+  /**
+   * Handle Gemini Login
+   */
+  async function handleLogin(args) {
+    if (!window.yaze.ai) {
+      this.printError('AI Manager not initialized.');
+      return;
+    }
+
+    // If args[0] is 'clear' or 'logout', clear tokens
+    if (args[0] === 'clear' || args[0] === 'logout') {
+      window.yaze.ai.logout();
+      this.printSuccess('Logged out from AI service.');
+      return;
+    }
+
+    try {
+      this.printInfo('Initiating Device Auth...');
+      const data = await window.yaze.ai.startDeviceAuth();
+      
+      this.print('--------------------------------------------------');
+      this.print('Please authenticate with Google to use Gemini API:');
+      this.print(`1. Go to: ${data.verification_url}`);
+      this.print(`2. Enter code: ${data.user_code}`);
+      this.print('--------------------------------------------------');
+      
+      this.printInfo('Waiting for authentication...');
+      const tokens = await window.yaze.ai.pollForToken();
+      
+      this.printSuccess('Authentication successful!');
+      this.printInfo(`Access Token: ${tokens.access_token.substring(0, 10)}...`);
+      
+    } catch (e) {
+      this.printError('Login failed: ' + e.message);
+    }
+  }
+
+  /**
+   * Handle Ask Gemini
+   */
+  async function handleAsk(args) {
+    if (args.length === 0) {
+      this.print('Usage: /ask <your question>');
+      return;
+    }
+
+    const prompt = args.join(' ');
+
+    // If in a collaboration session, route through collab console to support host-based AI
+    // We need to check if we are connected to a session but NOT the host
+    // Accessing collab state is tricky from here without a clean API.
+    // Let's check if the collab console is available and connected
+    if (window.yazeCollab && window.yazeCollab.state && window.yazeCollab.state.isConnected) {
+        // We are in a session. Delegate to collab console logic which handles
+        // Host vs Client routing.
+        // We simulate typing /ask in the chat input
+        const collabInput = document.getElementById('yaze-chat-input');
+        const collabSend = document.getElementById('yaze-chat-send');
+        if (collabInput && collabSend) {
+            this.printInfo('Routing request through collaboration session...');
+            collabInput.value = `/ask ${prompt}`;
+            collabSend.click();
+            return;
+        }
+    }
+
+    // Fallback to local execution (standard behavior)
+    if (!window.yaze.ai) {
+      this.printError('AI Manager not initialized.');
+      return;
+    }
+
+    this.printInfo('Asking Gemini (Local)...');
+    
+    try {
+      const response = await window.yaze.ai.generateContent(prompt);
+      this.print('Gemini: ' + response);
+    } catch (e) {
+      this.printError('Error: ' + e.message);
+      if (e.message.includes('No credentials')) {
+        this.printInfo('Try running /login first.');
+      }
+    }
   }
 
   // ============================================================

@@ -269,6 +269,10 @@
             <a href="#" onclick="event.stopPropagation(); aiTools.dumpAPIReference(); return false;">
               <span class="material-symbols-outlined">api</span> Dump API Reference
             </a>
+            <div class="dropdown-divider"></div>
+            <a href="#" onclick="event.stopPropagation(); showAiSetup(); closeAllDropdowns(); return false;">
+              <span class="material-symbols-outlined">settings_input_component</span> Setup AI (BYOK)
+            </a>
           </div>
         </div>
 
@@ -603,6 +607,54 @@
       </div>
     </div>
 
+    <!-- AI Setup Modal -->
+    <div id="ai-setup-modal" class="modal" style="display: none;">
+      <div class="modal-content settings-content" style="width: 600px;">
+        <div class="modal-header">
+          <h2>Setup AI (Bring Your Own Key)</h2>
+          <button class="nav-btn" onclick="hideAiSetup()"><span class="material-symbols-outlined">close</span></button>
+        </div>
+        <div class="settings-body">
+          <p style="color: var(--text-secondary);">
+            YAZE supports using your own Google Gemini quota directly from the browser. 
+            This requires a Google Cloud Project with the Gemini API enabled.
+          </p>
+          
+          <div class="setting-section">
+            <h3 class="setting-section-title">Prerequisites</h3>
+            <ol style="font-size: 12px; color: var(--text-secondary); margin-left: 20px; padding: 0;">
+              <li>Create a project in <a href="https://console.cloud.google.com" target="_blank" style="color: var(--accent-primary);">Google Cloud Console</a>.</li>
+              <li>Enable the <strong>Generative Language API</strong> (search for it in the API Library).</li>
+              <li>Go to <strong>APIs & Services > Credentials</strong>.</li>
+              <li>Click <strong>+ Create Credentials > OAuth client ID</strong>.</li>
+              <li>For "Application type", select <strong>Desktop App</strong>.</li>
+              <li>Give it a descriptive name (e.g., "YAZE Desktop Client").</li>
+              <li>Click <strong>Create</strong>. You will be given a <strong>Client ID</strong>.</li>
+              <li>Copy this <strong>Client ID</strong>.</li>
+            </ol>
+          </div>
+
+          <div class="setting-section">
+            <h3 class="setting-section-title">Configuration</h3>
+            <div class="setting-group">
+              <label for="ai-client-id">OAuth 2.0 Client ID</label>
+              <input type="text" id="ai-client-id" placeholder="e.g., 123456789-abc...apps.googleusercontent.com" style="width: 100%;">
+            </div>
+          </div>
+
+          <div class="setting-section">
+            <h3 class="setting-section-title">Usage</h3>
+            <p style="font-size: 12px; color: var(--text-secondary);">
+              Once configured, open the Terminal and type <code>/login</code> to authenticate.
+            </p>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="nav-btn" onclick="saveAiConfig()">Save & Close</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Delete Confirmation Dialog -->
     <div id="delete-confirm-dialog" class="modal" style="display: none;">
       <div class="modal-content confirm-dialog-content">
@@ -645,6 +697,7 @@
     <script src="core/widget_overlay.js"></script>
     <script src="core/agent_automation.js"></script>
     <script src="core/ai_tools.js"></script>
+    <script src="core/ai_manager.js"></script>
     <!-- Async queue for WASM Asyncify operations (must load before app.js) -->
     <script src="core/async_queue.js"></script>
     <!-- Main application -->
@@ -659,9 +712,23 @@
     <script src="components/panels.js"></script>
     <script src="components/command_palette.js"></script>
     <script src="components/file_manager_ui.js"></script>
-    <script src="shell_ui.js"></script>
-
-    <!-- Hold the generated WASM loader script until SharedArrayBuffer is available -->
+        <script src="shell_ui.js"></script>
+    
+        <script>
+          // Register AI Driver when WASM is ready
+          if (window.yaze && window.yaze.core && window.yaze.core.ready) {
+            window.yaze.core.ready().then(() => {
+              console.log('[AI] Registering external driver...');
+              if (window.Module && window.Module.registerExternalAiDriver) {
+                const result = window.Module.registerExternalAiDriver();
+                console.log('[AI] Registration result:', result);
+              }
+            });
+          }
+        </script>
+                                                                                        
+        <!-- Hold the generated WASM loader script until SharedArrayBuffer is available 
+    -->
     <template id="yaze-wasm-script">
     {{{ SCRIPT }}}
     </template>
