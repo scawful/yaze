@@ -58,9 +58,11 @@ void SDL3Renderer::Shutdown() {
  */
 TextureHandle SDL3Renderer::CreateTexture(int width, int height) {
   // SDL3 texture creation is largely unchanged from SDL2.
-  return static_cast<TextureHandle>(
-      SDL_CreateTexture(renderer_, SDL_PIXELFORMAT_RGBA8888,
-                        SDL_TEXTUREACCESS_STREAMING, width, height));
+  return static_cast<TextureHandle>(SDL_CreateTexture(
+      renderer_,
+      static_cast<SDL_PixelFormat>(SDL_PIXELFORMAT_RGBA8888),
+      static_cast<SDL_TextureAccess>(SDL_TEXTUREACCESS_STREAMING), width,
+      height));
 }
 
 /**
@@ -73,7 +75,9 @@ TextureHandle SDL3Renderer::CreateTextureWithFormat(int width, int height,
                                                     uint32_t format,
                                                     int access) {
   return static_cast<TextureHandle>(
-      SDL_CreateTexture(renderer_, format, access, width, height));
+      SDL_CreateTexture(renderer_,
+                        static_cast<SDL_PixelFormat>(format),
+                        static_cast<SDL_TextureAccess>(access), width, height));
 }
 
 /**

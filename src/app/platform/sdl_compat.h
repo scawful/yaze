@@ -65,6 +65,42 @@ constexpr auto kEventControllerDeviceRemoved = SDL_CONTROLLERDEVICEREMOVED;
 #endif
 
 // ============================================================================
+// Key Constants
+// ============================================================================
+
+#ifdef YAZE_USE_SDL3
+constexpr auto kKeyA = SDLK_A;
+constexpr auto kKeyB = SDLK_B;
+constexpr auto kKeyC = SDLK_C;
+constexpr auto kKeyD = SDLK_D;
+constexpr auto kKeyS = SDLK_S;
+constexpr auto kKeyX = SDLK_X;
+constexpr auto kKeyY = SDLK_Y;
+constexpr auto kKeyZ = SDLK_Z;
+constexpr auto kKeyReturn = SDLK_RETURN;
+constexpr auto kKeyRShift = SDLK_RSHIFT;
+constexpr auto kKeyUp = SDLK_UP;
+constexpr auto kKeyDown = SDLK_DOWN;
+constexpr auto kKeyLeft = SDLK_LEFT;
+constexpr auto kKeyRight = SDLK_RIGHT;
+#else
+constexpr auto kKeyA = SDLK_a;
+constexpr auto kKeyB = SDLK_b;
+constexpr auto kKeyC = SDLK_c;
+constexpr auto kKeyD = SDLK_d;
+constexpr auto kKeyS = SDLK_s;
+constexpr auto kKeyX = SDLK_x;
+constexpr auto kKeyY = SDLK_y;
+constexpr auto kKeyZ = SDLK_z;
+constexpr auto kKeyReturn = SDLK_RETURN;
+constexpr auto kKeyRShift = SDLK_RSHIFT;
+constexpr auto kKeyUp = SDLK_UP;
+constexpr auto kKeyDown = SDLK_DOWN;
+constexpr auto kKeyLeft = SDLK_LEFT;
+constexpr auto kKeyRight = SDLK_RIGHT;
+#endif
+
+// ============================================================================
 // Keyboard Helpers
 // ============================================================================
 
@@ -78,6 +114,19 @@ inline SDL_Keycode GetKeyFromEvent(const SDL_Event& event) {
   return event.key.key;
 #else
   return event.key.keysym.sym;
+#endif
+}
+
+/**
+ * @brief Get scancode from keycode
+ * @param key The keycode
+ * @return The corresponding scancode
+ */
+inline SDL_Scancode GetScancodeFromKey(SDL_Keycode key) {
+#ifdef YAZE_USE_SDL3
+  return SDL_GetScancodeFromKey(key, nullptr);
+#else
+  return SDL_GetScancodeFromKey(key);
 #endif
 }
 
@@ -311,9 +360,65 @@ inline SDL_Surface* ConvertSurfaceFormat(SDL_Surface* surface, uint32_t format,
   if (!surface) return nullptr;
 #ifdef YAZE_USE_SDL3
   (void)flags;  // SDL3 removed flags parameter
-  return SDL_ConvertSurface(surface, format);
+  return SDL_ConvertSurface(surface, static_cast<SDL_PixelFormat>(format));
 #else
   return SDL_ConvertSurfaceFormat(surface, format, flags);
+#endif
+}
+
+/**
+ * @brief Get the palette attached to a surface.
+ */
+inline SDL_Palette* GetSurfacePalette(SDL_Surface* surface) {
+  if (!surface) return nullptr;
+#ifdef YAZE_USE_SDL3
+  return SDL_GetSurfacePalette(surface);
+#else
+  return surface->format ? surface->format->palette : nullptr;
+#endif
+}
+
+/**
+ * @brief Get the pixel format of a surface as Uint32.
+ * 
+ * Note: SDL2 uses Uint32 for pixel format, SDL3 uses SDL_PixelFormat enum.
+ * This function returns Uint32 for cross-version compatibility.
+ */
+inline Uint32 GetSurfaceFormat(SDL_Surface* surface) {
+#ifdef YAZE_USE_SDL3
+  return surface ? static_cast<Uint32>(surface->format) : SDL_PIXELFORMAT_UNKNOWN;
+#else
+  return (surface && surface->format) ? surface->format->format
+                                      : SDL_PIXELFORMAT_UNKNOWN;
+#endif
+}
+
+/**
+ * @brief Map an RGB color to the surface's pixel format.
+ */
+inline Uint32 MapRGB(SDL_Surface* surface, Uint8 r, Uint8 g, Uint8 b) {
+  if (!surface) return 0;
+#ifdef YAZE_USE_SDL3
+  const SDL_PixelFormatDetails* details =
+      SDL_GetPixelFormatDetails(surface->format);
+  if (!details) return 0;
+  SDL_Palette* palette = SDL_GetSurfacePalette(surface);
+  return SDL_MapRGB(details, palette, r, g, b);
+#else
+  return SDL_MapRGB(surface->format, r, g, b);
+#endif
+}
+
+/**
+ * @brief Create a surface using the appropriate API.
+ */
+inline SDL_Surface* CreateSurface(int width, int height, int depth,
+                                  uint32_t format) {
+#ifdef YAZE_USE_SDL3
+  (void)depth;  // SDL3 infers depth from format
+  return SDL_CreateSurface(width, height, static_cast<SDL_PixelFormat>(format));
+#else
+  return SDL_CreateRGBSurfaceWithFormat(0, width, height, depth, format);
 #endif
 }
 
@@ -501,6 +606,90 @@ inline uint32_t GetDefaultInitFlags() {
   return SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_EVENTS;
 #else
   return SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_TIMER | SDL_INIT_EVENTS;
+#endif
+}
+
+// ============================================================================
+// Surface Helpers
+// ============================================================================
+
+/**
+ * @brief Create an RGB surface
+ */
+inline SDL_Surface* CreateRGBSurface(Uint32 flags, int width, int height, int depth,
+                                     Uint32 Rmask, Uint32 Gmask, Uint32 Bmask,
+                                     Uint32 Amask) {
+#ifdef YAZE_USE_SDL3
+  // SDL3 uses SDL_CreateSurface with pixel format
+  return SDL_CreateSurface(width, height,
+                           SDL_GetPixelFormatForMasks(depth, Rmask, Gmask, Bmask, Amask));
+#else
+  return SDL_CreateRGBSurface(flags, width, height, depth, Rmask, Gmask, Bmask,
+                              Amask);
+#endif
+}
+
+/**
+ * @brief Destroy a surface
+ */
+inline void DestroySurface(SDL_Surface* surface) {
+#ifdef YAZE_USE_SDL3
+  SDL_DestroySurface(surface);
+#else
+  SDL_FreeSurface(surface);
+#endif
+}
+
+// ============================================================================
+// Renderer Helpers
+// ============================================================================
+
+/**
+ * @brief Get renderer output size
+ */
+inline int GetRendererOutputSize(SDL_Renderer* renderer, int* w, int* h) {
+#ifdef YAZE_USE_SDL3
+  return SDL_GetCurrentRenderOutputSize(renderer, w, h);
+#else
+  return SDL_GetRendererOutputSize(renderer, w, h);
+#endif
+}
+
+/**
+ * @brief Read pixels from renderer to a surface
+ *
+ * SDL3: Returns a new surface
+ * SDL2: We manually create surface and read into it to match SDL3 behavior
+ */
+inline SDL_Surface* ReadPixelsToSurface(SDL_Renderer* renderer, int width,
+                                        int height, const SDL_Rect* rect) {
+#ifdef YAZE_USE_SDL3
+  return SDL_RenderReadPixels(renderer, rect);
+#else
+  // Create surface to read into (ARGB8888 to match typical screenshot needs)
+  SDL_Surface* surface = SDL_CreateRGBSurface(0, width, height, 32, 0x00FF0000,
+                                              0x0000FF00, 0x000000FF, 0xFF000000);
+  if (!surface) return nullptr;
+
+  if (SDL_RenderReadPixels(renderer, rect, SDL_PIXELFORMAT_ARGB8888,
+                           surface->pixels, surface->pitch) != 0) {
+    SDL_FreeSurface(surface);
+    return nullptr;
+  }
+  return surface;
+#endif
+}
+
+
+
+/**
+ * @brief Load a BMP file
+ */
+inline SDL_Surface* LoadBMP(const char* file) {
+#ifdef YAZE_USE_SDL3
+  return SDL_LoadBMP(file);
+#else
+  return SDL_LoadBMP(file);
 #endif
 }
 
