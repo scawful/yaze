@@ -96,32 +96,22 @@ std::string registerExternalAiDriver() {
 
 #if defined(YAZE_BUILD_AGENT_UI)
   auto& sessions = agent_ui->GetSessionManager();
-  // Get current session ID
-  // AgentUiController doesn't expose "current session ID" easily, but we can iterate
-  // For simplicity, we'll register for ALL sessions for now
-  // In a real multi-agent scenario, we might want to target specific ones.
   
-  // Note: This registers for currently EXISTING sessions.
-  // Ideally, we should hook into session creation.
-  
-  // For now, let's just get the "default" session or first one
-  // AgentSessionManager::GetSession(id)
-  // We'll iterate if possible, or just hook "default"
-  
-  // Hack: We don't have an iterator exposed on SessionManager in the header I read.
-  // But we can try to get "default" or just rely on the user creating one.
-  
-  // Better: Expose a way to set a "Global Driver Factory".
-  // But we are doing instance-based injection.
-  
-  // Let's just return success and wait for a session to be active?
-  // No, we need to actually set the callback.
-  
-  // Let's assume "default" agent exists or will be created.
-  auto* session = sessions.GetSession("default");
+  // Get the active session (AgentSessionManager creates a session on startup)
+  // This is more reliable than looking for a "default" session ID
+  yaze::editor::AgentSession* session = sessions.GetActiveSession();
   if (!session) {
-     // Try to create it if not exists? No, that might have side effects.
-     return "{\"error\":\"No 'default' agent session found\"}";
+    // Fallback: if no active session but sessions exist, use the first one
+    // This shouldn't happen normally since the constructor creates an active session
+    if (sessions.GetSessionCount() == 0) {
+      return "{\"error\":\"No agent sessions available\"}";
+    }
+    // Get the first session as fallback
+    auto& all_sessions = sessions.GetAllSessions();
+    if (all_sessions.empty()) {
+      return "{\"error\":\"No agent sessions available\"}";
+    }
+    session = &all_sessions[0];
   }
   
   // Access agent service through AgentEditor -> AgentChatWidget

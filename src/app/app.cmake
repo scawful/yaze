@@ -119,6 +119,31 @@ if(EMSCRIPTEN)
   # - ALLOW_MEMORY_GROWTH: Allow heap to grow beyond initial size
   # - STACK_SIZE: 8MB stack for recursive operations (overworld loading, etc.)
   # - MAXIMUM_MEMORY: Cap at 1GB to prevent runaway allocations
+  # Create pre-js file for asyncifyStubs initialization (needed for workers)
+  # Use CMAKE_CURRENT_BINARY_DIR which works in both local builds and CI
+  # This file will be prepended to yaze.js, ensuring asyncifyStubs is available
+  # in both the main thread and Web Workers before Emscripten's code runs
+  set(ASYNCIFY_PRE_JS "${CMAKE_CURRENT_BINARY_DIR}/asyncify_pre.js")
+  file(WRITE ${ASYNCIFY_PRE_JS}
+    "// Auto-generated: Initialize asyncifyStubs for ASYNCIFY support\n"
+    "// This is needed in both main thread and Web Workers\n"
+    "// Emscripten's generated code with MODULARIZE=1 and ASYNCIFY accesses this during script initialization\n"
+    "if (typeof asyncifyStubs === 'undefined') {\n"
+    "  var asyncifyStubs = {};\n"
+    "}\n"
+    "if (typeof Module === 'undefined') {\n"
+    "  var Module = {};\n"
+    "}\n"
+    "if (!Module.asyncifyStubs) {\n"
+    "  Module.asyncifyStubs = asyncifyStubs;\n"
+    "}\n"
+  )
+  
+  # Append --pre-js to CMAKE_EXE_LINKER_FLAGS to ensure it's included even when presets set it
+  # This ensures the pre-js file is prepended to the generated yaze.js
+  # CMake will merge this with any flags set by presets (like wasm-ai)
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --pre-js ${ASYNCIFY_PRE_JS}" CACHE STRING "Linker flags" FORCE)
+  
   set_target_properties(yaze PROPERTIES
     LINK_FLAGS "--bind -s MODULARIZE=1 -s EXPORT_NAME='createYazeModule' -s INITIAL_MEMORY=268435456 -s ALLOW_MEMORY_GROWTH=1 -s MAXIMUM_MEMORY=1073741824 -s STACK_SIZE=16777216 -s USE_OFFSET_CONVERTER=1 -s EXPORTED_RUNTIME_METHODS='[\"ccall\",\"cwrap\",\"stringToUTF8\",\"UTF8ToString\",\"lengthBytesUTF8\",\"FS\",\"IDBFS\",\"allocateUTF8\",\"getValue\",\"setValue\",\"Asyncify\"]' -s EXPORTED_FUNCTIONS='[\"_main\",\"_SetFileSystemReady\",\"_SyncFilesystem\",\"_LoadRomFromWeb\",\"_yazeHandleDroppedFile\",\"_yazeHandleDropError\",\"_yazeHandleDragEnter\",\"_yazeHandleDragLeave\",\"_yazeEmergencySave\",\"_yazeRecoverSession\",\"_yazeHasRecoveryData\",\"_yazeClearRecoveryData\",\"_Z3edProcessCommand\",\"_Z3edIsReady\",\"_Z3edGetCompletions\",\"_Z3edSetApiKey\",\"_Z3edLoadRomData\",\"_Z3edGetRomInfo\",\"_Z3edQueryResource\",\"_OnTouchEvent\",\"_OnGestureEvent\",\"_malloc\",\"_free\",\"_emscripten_stack_get_base\",\"_emscripten_stack_get_end\"]' --shell-file ${CMAKE_SOURCE_DIR}/src/web/shell.html"
   )

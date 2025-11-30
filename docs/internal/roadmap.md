@@ -4,14 +4,12 @@
 
 This roadmap tracks upcoming releases and major ongoing initiatives.
 
-## Current Focus (v0.4.0)
+## Current Focus (v0.5.0)
 
-- **WASM Web App UX/Stability**: ✅ Command palette, file manager, pixel inspector, shell UI refresh, theme updates; async queue + gesture/input fixes reduce Asyncify crashes; GH Pages deploy stabilized via updated web-build workflow; browser `yaze_agent` build enabled.
-- **AI Agent UX Revamp**: ✅ Dedicated chat/proposals panels with session-aware chat, provider hardening, and YAML autodetect for safer prompts.
-- **Music Editor Overhaul**: 🟡 Tracker + piano roll + instrument/sample editors with SPC parser/bank loader and emulator audio hooks; regression tests added.
-- **Tile16 & Project Persistence**: 🟡 Pending-change workflow, overworld context menus, 16-color palettes; project metadata refactor + JSON helper; tile16/music integration/unit tests.
-- **SDL3 Backend Infrastructure**: ✅ Groundwork landed (IWindow/IAudio/IInput/IRenderer); SDL3 readiness report + entry-point/flag cleanup owned by another agent.
-- **Emulator Input/Render**: 🟡 PPU catch-up, dungeon preview render service, and input persistence still in flight.
+- **SDL3 Migration**: Switch to SDL3 with GPU-based rendering, port editors to new backend
+- **Plugin Architecture**: Initial framework for community extensions
+- **Editor Polish**: Tile16 palette fixes, overworld sprite workflow, dungeon editor improvements
+- **Emulator Input/Render**: PPU catch-up, dungeon preview render service, and input persistence
 
 ### WASM Web Port Status
 
@@ -23,15 +21,34 @@ This roadmap tracks upcoming releases and major ongoing initiatives.
 - **Recommendation**: Desktop build for serious ROM hacking
 - **Documentation**: See `docs/public/usage/web-app.md`
 
-## 0.4.0 (Next Major Release) - SDL3 Modernization & Core Improvements
+## 0.4.0 (Current Release) - Music Editor & UI Polish
 
-**Status:** In Progress  
-**Type:** Major Breaking Release  
-**Target:** Q1 2026
+**Status:** Released
+**Type:** Feature Release
+**Released:** November 2025
+
+### Highlights
+
+#### Music Editor (New!)
+- ✅ Complete SPC music editing with tracker and piano roll views
+- ✅ Authentic N-SPC audio preview with ADSR envelopes
+- ✅ Instrument and sample editors with bank management
+- ✅ Piano roll with playback cursor, note editing, and velocity control
+- ✅ ASM export/import for custom music integration
+- ✅ Per-song tracker windows (like dungeon room cards)
+- ✅ Layout system integration with staggered default positions
 
 ### Completed ✅
 
-#### SDL3 Backend Infrastructure
+#### Music Editor Infrastructure
+- ✅ SPC parser and music bank loader
+- ✅ N-SPC pitch table for authentic note playback
+- ✅ Single call site audio initialization (EnsureAudioReady)
+- ✅ DSP interpolation type control (Linear/Hermite/Cosine/Cubic)
+- ✅ Playback position tracking with cursor visualization
+- ✅ Segment seeking and preview callbacks
+
+#### SDL3 Backend Infrastructure (Groundwork)
 - ✅ IWindowBackend/IAudioBackend/IInputBackend/IRenderer interfaces (commit a5dc884612)
 - ✅ 17 new abstraction files in `src/app/platform/`
 
@@ -99,13 +116,7 @@ This roadmap tracks upcoming releases and major ongoing initiatives.
 #### Editor Fixes
 - 🟡 Dungeon object rendering regression (under investigation)
 
-### Remaining Work
-
-#### SDL3 Core Migration
-- Switch to SDL3 with GPU-based rendering
-- Port editors to new backend
-- Implement SDL3 audio/input backends
-- Benchmark and tune performance
+### Remaining Work (Deferred to 0.5.0)
 
 #### Editor Polish
 - Resolve remaining Tile16 palette inconsistencies
@@ -113,27 +124,25 @@ This roadmap tracks upcoming releases and major ongoing initiatives.
 - Improve dungeon editor labels and tab management
 - Add lazy loading for rooms
 
-### Success Criteria
-- SDL3 builds pass on Windows, macOS, Linux
-- No performance regression versus v0.3.x
-- Editors function on the new backend
-- Emulator audio/input verified
-- Documentation and migration guide updated
-
 ### CI/CD & Release Health
-- Release workflow repairs (cache key/cleanup, Windows crash handler) merged; v0.3.9-hotfix rerun in progress—monitor GH Actions to confirm all jobs finish green.
-- Web-build workflow updated for new `src/web/` layout with caching/branch gating; GH Pages WASM deploys expected to remain stable after recent async/UI hardening.
-- CI workflows consolidated with standardized Doxygen 1.10 install; PR CI still optimized (~5–10 minutes) with nightly schedule currently disabled.
-
-**Breaking Changes:**
-- SDL2 → SDL3 (requires recompilation)
-- Directory restructure (requires submodule re-init)
-- API changes in graphics backend (for extensions)
+- Release workflow repairs (cache key/cleanup, Windows crash handler) merged
+- Web-build workflow updated for new `src/web/` layout with caching/branch gating
+- CI workflows consolidated with standardized Doxygen 1.10 install
 
 ---
 
-## 0.5.X - Feature Expansion
+## 0.5.0 - SDL3 Migration & Feature Expansion
 
+**Status:** Planning
+**Type:** Major Breaking Release
+
+### SDL3 Core Migration (Postponed from 0.4.0)
+- Switch to SDL3 with GPU-based rendering
+- Port editors to new backend
+- Implement SDL3 audio/input backends
+- Benchmark and tune performance
+
+### Feature Expansion
 - **Plugin Architecture**: Initial framework for community extensions
 - **Advanced Graphics Editing**: Edit and re-import full graphics sheets
 - **`z3ed` AI Agent Enhancements**:
@@ -141,13 +150,17 @@ This roadmap tracks upcoming releases and major ongoing initiatives.
   - Multi-modal input with screenshot context for Gemini
   - Visual Analysis Tool (Phase 5 ready for implementation)
 
+### Breaking Changes (Planned)
+- SDL2 → SDL3 (requires recompilation)
+- API changes in graphics backend (for extensions)
+
 ---
 
 ## 0.6.X - Content & Integration
 
 - **Advanced Content Editors**:
-  - Music editing UI
   - Enhanced Hex Editor with search and data interpretation
+  - Advanced message editor with font preview
 - **Documentation Overhaul**:
   - Auto-generated C++ API documentation
   - Comprehensive user guide for ROM hackers
@@ -156,13 +169,16 @@ This roadmap tracks upcoming releases and major ongoing initiatives.
 
 ## Recently Completed
 
-### Post-v0.3.9 mainline snapshot (Nov 29, 2025)
-- Music editor rebuild with tracker/piano roll/instrument/sample views, SPC parser/bank loader, and emulator audio hooks.
-- AI agent UX revamp (dedicated chat/proposals, session-aware chat, provider safeguards/YAML autodetect) plus browser `yaze_agent` build.
-- WASM web app stabilization (command palette, file manager, pixel inspector, shell UI, async queue/gesture fixes, theme/debug updates) and hardened web-build workflow for GH Pages deploys.
-- Tile16 workflow and project persistence upgrades (pending-change workflow, 16-color palettes, project metadata refactor, JSON helper).
-- Regression coverage added for Tile16 and music (integration + unit tests).
-- Editor menu/layout refactor with ActivityBar + layout presets and card layout architecture documentation.
+### v0.4.0 (November 2025)
+- **Music Editor** - Complete SPC music editing with tracker and piano roll views, authentic N-SPC audio preview, instrument/sample editors
+- Piano roll with playback cursor, note editing, velocity/duration control
+- Per-song tracker windows with layout system integration
+- Single call site audio initialization (EnsureAudioReady)
+- DSP interpolation type control for audio quality
+- AI agent UX revamp (dedicated chat/proposals, session-aware chat, provider safeguards)
+- WASM web app stabilization and hardened web-build workflow
+- Tile16 workflow and project persistence upgrades
+- Editor menu/layout refactor with ActivityBar + layout presets
 
 ### v0.3.9 (November 2025)
 - WASM web port with real-time collaboration (experimental/preview)

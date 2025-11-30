@@ -167,13 +167,19 @@ RomLoadOptions RomLoadOptions::RawDataOnly() {
 /// @param ptr1      Offset of low-byte pointer table in ROM
 /// @param ptr2      Offset of high-byte pointer table in ROM
 /// @param ptr3      Offset of bank-byte pointer table in ROM
-/// @param rom_size  ROM size (unused, kept for API compatibility)
-/// @return          PC offset where the graphics sheet data begins
+/// @param rom_size  ROM size for bounds checking
+/// @return          PC offset where the graphics sheet data begins, or rom_size if out of bounds
 ///
 /// @warning Callers must verify the returned offset is within ROM bounds
 ///          before attempting to read or decompress data at that location.
 uint32_t GetGraphicsAddress(const uint8_t* data, uint8_t addr, uint32_t ptr1,
-                            uint32_t ptr2, uint32_t ptr3, size_t /*rom_size*/) {
+                            uint32_t ptr2, uint32_t ptr3, size_t rom_size) {
+  // Bounds check: ensure all pointer table accesses are within ROM bounds
+  // This prevents WASM "index out of bounds" errors when assertions are enabled
+  if (ptr1 + addr >= rom_size || ptr2 + addr >= rom_size || ptr3 + addr >= rom_size) {
+    // Return rom_size as sentinel value (callers check offset < rom.size())
+    return static_cast<uint32_t>(rom_size);
+  }
   return SnesToPc(AddressFromBytes(data[ptr1 + addr], data[ptr2 + addr],
                                    data[ptr3 + addr]));
 }
@@ -981,7 +987,11 @@ absl::Status Rom::LoadGfxGroups() {
       if (room_blockset_end <= rom_data_.size()) {
           for (uint32_t i = 0; i < kNumRoomBlocksets; i++) {
             for (int j = 0; j < 4; j++) {
-              room_blockset_ids[i][j] = rom_data_[kEntranceGfxGroup + (i * 4) + j];
+              uint32_t idx = kEntranceGfxGroup + (i * 4) + j;
+              // Per-access bounds check for WASM safety
+              if (idx < rom_data_.size()) {
+                room_blockset_ids[i][j] = rom_data_[idx];
+              }
             }
           }
       }
@@ -995,7 +1005,11 @@ absl::Status Rom::LoadGfxGroups() {
       if (sprite_blockset_end <= rom_data_.size()) {
           for (uint32_t i = 0; i < kNumSpritesets; i++) {
             for (int j = 0; j < 4; j++) {
-              spriteset_ids[i][j] = rom_data_[vc.kSpriteBlocksetPointer + (i * 4) + j];
+              uint32_t idx = vc.kSpriteBlocksetPointer + (i * 4) + j;
+              // Per-access bounds check for WASM safety
+              if (idx < rom_data_.size()) {
+                spriteset_ids[i][j] = rom_data_[idx];
+              }
             }
           }
       }
@@ -1007,7 +1021,11 @@ absl::Status Rom::LoadGfxGroups() {
       if (palette_end <= rom_data_.size()) {
           for (uint32_t i = 0; i < kNumPalettesets; i++) {
             for (int j = 0; j < 4; j++) {
-              paletteset_ids[i][j] = rom_data_[vc.kDungeonPalettesGroups + (i * 4) + j];
+              uint32_t idx = vc.kDungeonPalettesGroups + (i * 4) + j;
+              // Per-access bounds check for WASM safety
+              if (idx < rom_data_.size()) {
+                paletteset_ids[i][j] = rom_data_[idx];
+              }
             }
           }
       }
