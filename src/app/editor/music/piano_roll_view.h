@@ -4,8 +4,9 @@
 #include <functional>
 
 #include "imgui/imgui.h"
-#include "zelda3/music/song_data.h"
+#include "app/editor/music/music_constants.h"
 #include "zelda3/music/music_bank.h"
+#include "zelda3/music/song_data.h"
 
 namespace yaze {
 namespace editor {
@@ -79,6 +80,16 @@ class PianoRollView {
   // Input Handling
   void HandleMouseInput(zelda3::music::MusicSong* song, int active_channel, int active_segment,
                         const ImVec2& grid_origin, const ImVec2& grid_size);
+
+  struct RollCanvasContext {
+    ImVec2 canvas_pos = ImVec2(0, 0);
+    ImVec2 canvas_size = ImVec2(0, 0);
+    float scroll_x = 0.0f;
+    float scroll_y = 0.0f;
+  };
+
+  bool BeginRollCanvas(const char* id, RollCanvasContext* ctx);
+  void EndRollCanvas();
 
   // Layout constants
   static constexpr float kToolbarHeight = 32.0f;

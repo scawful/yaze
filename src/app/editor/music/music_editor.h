@@ -22,6 +22,7 @@
 #include "zelda3/music/asm_importer.h"
 #include "zelda3/music/music_bank.h"
 #include "zelda3/music/spc_serializer.h"
+#include "app/editor/music/music_player.h"
 
 namespace yaze {
 
@@ -112,16 +113,10 @@ class MusicEditor : public Editor {
   void set_emulator(emu::Emulator* emulator) { emulator_ = emulator; }
   emu::Emulator* emulator() const { return emulator_; }
 
-  // Audio control methods
-  void PlaySong(int song_id);
-  void PauseSong();
-  void ResumeSong();
-  void StopSong();
-  void SetVolume(float volume);  // 0.0 to 1.0
   void SetProject(project::YazeProject* project);
   
   // API for sub-views
-  void LoadSong(int index);
+
 
   // Song window management (like dungeon rooms)
   void OpenSong(int song_index);
@@ -143,9 +138,7 @@ class MusicEditor : public Editor {
   void MarkMusicDirty();
 
   // Playback Control
-  void StartPlayback();
-  void StopPlayback();
-  void UpdatePlayback();
+  // Delegated to music_player_
 
   AssemblyEditor assembly_editor_;
   
@@ -172,12 +165,9 @@ class MusicEditor : public Editor {
 
   // UI State
   int current_song_index_ = 0;      // Selected song in browser (UI selection)
-  int playing_song_index_ = -1;     // Currently playing song (-1 = none)
   int current_pattern_index_ = 0;
   int current_channel_index_ = 0;
   int current_segment_index_ = 0;
-  bool is_playing_ = false;
-  bool is_paused_ = false;  // Track pause state separate from stop
   std::vector<bool> channel_muted_ = std::vector<bool>(8, false);
   std::vector<bool> channel_soloed_ = std::vector<bool>(8, false);
   std::vector<std::string> song_names_;
@@ -221,15 +211,6 @@ class MusicEditor : public Editor {
   // Docking class for song windows to dock together
   ImGuiWindowClass song_window_class_;
 
-  // Audio preview (uses authentic SPC emulation)
-  void PreviewNote(const zelda3::music::MusicSong& song,
-                   const zelda3::music::TrackEvent& event, int segment_index,
-                   int channel_index);
-  void PreviewSegment(const zelda3::music::MusicSong& song,
-                      int segment_index);
-  const zelda3::music::MusicInstrument* ResolveInstrumentForEvent(
-      const zelda3::music::MusicSegment& segment, int channel_index,
-      uint16_t tick) const;
   void OpenSongPianoRoll(int song_index);
 
   // ASM export/import
@@ -238,54 +219,15 @@ class MusicEditor : public Editor {
   bool ImportAsmBufferToSong(int song_index);
   void DrawAsmPopups();
 
-  // Instrument/Sample Preview
-  void PreviewInstrument(int instrument_index);
-  void PreviewSample(int sample_index);
-
   std::string asm_buffer_;              // Buffer for ASM text
   bool show_asm_export_popup_ = false;  // Show export dialog
   bool show_asm_import_popup_ = false;  // Show import dialog
   int asm_import_target_index_ = -1;    // Song index for import target
   std::string asm_import_error_;        // Last ASM import error (UI)
-
-  // Custom song preview (in-memory, no ROM save required)
-  void PreviewCustomSong(int song_index);
-  void UploadSongToAram(const std::vector<uint8_t>& data, uint16_t aram_address);
-
-  // Direct SPC playback (bypasses game music system)
-  bool use_direct_spc_ = true;      // Use direct SPC vs game-based playback
-  bool spc_initialized_ = false;    // Track if SPC has sound bank loaded
-  bool preview_initialized_ = false; // Track if preview mode is ready (no driver)
-  bool audio_ready_ = false;        // Track if audio system is fully initialized
-  uint8_t current_spc_bank_ = 0xFF; // Currently loaded bank (0xFF = none)
-  float playback_speed_ = 1.0f;     // Playback speed multiplier (0.25 - 2.0)
-  int interpolation_type_ = 2;      // Default to Gaussian (2) for authentic sound
-
-  // Single call site for audio initialization
-  bool EnsureAudioReady();
-
-  // Standalone preview initialization (no driver, direct DSP control)
-  bool EnsurePreviewReady();
-  void InitializePreviewMode();
-
-  void InitializeDirectSpc();
-  void PlaySongDirect(int song_id);
-  void UploadSoundBankFromRom(uint32_t rom_offset);
-  uint32_t GetBankRomOffset(uint8_t bank) const;
-  int GetSongIndexInBank(int song_id, uint8_t bank) const;
-
-  // Playback position tracking for piano roll cursor
-  std::chrono::steady_clock::time_point playback_start_time_;
-  uint32_t playback_start_tick_ = 0;    // Tick offset when playback started
-  float ticks_per_second_ = 0.0f;       // Calculated from tempo
-  int playback_segment_index_ = 0;      // Which segment is playing
-
-  void UpdatePlaybackPosition();
-  uint32_t GetCurrentPlaybackTick() const;
-  float CalculateTicksPerSecond(uint8_t tempo) const;
-
   // Segment seeking
   void SeekToSegment(int segment_index);
+
+  std::unique_ptr<editor::music::MusicPlayer> music_player_;
 };
 
 }  // namespace editor

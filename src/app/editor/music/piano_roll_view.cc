@@ -2,11 +2,13 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cfloat>
 
 #include "absl/strings/str_format.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/theme_manager.h"
 #include "imgui/imgui.h"
+#include "zelda3/music/song_data.h"
 
 namespace yaze {
 namespace editor {
@@ -103,7 +105,6 @@ void PianoRollView::Draw(MusicSong* song, const MusicBank* bank) {
                  static_cast<int>(song->segments.size()) - 1);
   active_channel_index_ = std::clamp(active_channel_index_, 0, 7);
 
-  // === TOOLBAR (Fixed Height) ===
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8, 4));
   if (ImGui::BeginChild("##PianoRollToolbar", ImVec2(0, kToolbarHeight), 
                         ImGuiChildFlags_AlwaysUseWindowPadding, 
@@ -115,38 +116,60 @@ void PianoRollView::Draw(MusicSong* song, const MusicBank* bank) {
 
   ImGui::Separator();
 
-  // === MAIN CONTENT ===
-  if (ImGui::BeginTable("PianoRollLayout", 2, 
-                        ImGuiTableFlags_Resizable | ImGuiTableFlags_BordersInnerV)) {
-    ImGui::TableSetupColumn("Channels", ImGuiTableColumnFlags_WidthFixed, kChannelListWidth);
-    ImGui::TableSetupColumn("Roll", ImGuiTableColumnFlags_WidthStretch);
-    ImGui::TableNextRow();
+  ImGuiStyle& style = ImGui::GetStyle();
+  float available_height = ImGui::GetContentRegionAvail().y;
+  float reserved_for_status = kStatusBarHeight + style.ItemSpacing.y;
+  float main_height = std::max(0.0f, available_height - reserved_for_status);
 
-    // --- Left Column: Channel List ---
-    ImGui::TableSetColumnIndex(0);
-    DrawChannelList(song);
+  if (ImGui::BeginChild("PianoRollMain", ImVec2(0, main_height), ImGuiChildFlags_None,
+                        ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse)) {
+    // === MAIN CONTENT ===
+    const float layout_height = ImGui::GetContentRegionAvail().y;
+    const ImGuiTableFlags table_flags =
+        ImGuiTableFlags_Resizable | ImGuiTableFlags_SizingStretchProp |
+        ImGuiTableFlags_BordersInnerV | ImGuiTableFlags_NoPadOuterX |
+        ImGuiTableFlags_NoPadInnerX;
+    if (ImGui::BeginTable("PianoRollLayout", 2, table_flags,
+                          ImVec2(-FLT_MIN, layout_height))) {
+      ImGui::TableSetupColumn("Channels",
+                              ImGuiTableColumnFlags_NoHide |
+                              ImGuiTableColumnFlags_NoReorder,
+                              kChannelListWidth);
+      ImGui::TableSetupColumn("Roll", ImGuiTableColumnFlags_WidthStretch);
+      ImGui::TableNextRow(ImGuiTableRowFlags_None, layout_height);
 
-    // --- Right Column: Piano Roll ---
-    ImGui::TableSetColumnIndex(1);
-    
-    float total_height = (kNoteMaxPitch - kNoteMinPitch + 1) * key_height_;
-    const auto& segment = song->segments[active_segment_index_];
+      // --- Left Column: Channel List ---
+      ImGui::TableSetColumnIndex(0);
+      const ImGuiChildFlags channel_child_flags =
+          ImGuiChildFlags_Border | ImGuiChildFlags_AlwaysUseWindowPadding |
+          ImGuiChildFlags_ResizeY;
+      if (ImGui::BeginChild("PianoRollChannelList", ImVec2(0, 0), channel_child_flags,
+                            ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
+        DrawChannelList(song);
+      }
+      ImGui::EndChild();
 
-    hovered_event_index_ = -1;
-    hovered_channel_index_ = -1;
-    hovered_segment_index_ = -1;
+      // --- Right Column: Piano Roll ---
+      ImGui::TableSetColumnIndex(1);
 
-    // Use AlwaysVerticalScrollbar to ensure proper scroll behavior on resize
-    // AlwaysUseWindowPadding helps with consistent layout
-    if (ImGui::BeginChild("PianoRollCanvas", ImVec2(0, -kStatusBarHeight),
-                          ImGuiChildFlags_Borders | ImGuiChildFlags_AlwaysUseWindowPadding,
-                          ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
+      float total_height = (kNoteMaxPitch - kNoteMinPitch + 1) * key_height_;
+      const auto& segment = song->segments[active_segment_index_];
+
+      hovered_event_index_ = -1;
+      hovered_channel_index_ = -1;
+      hovered_segment_index_ = -1;
+
+      RollCanvasContext canvas_ctx;
+      bool canvas_open = BeginRollCanvas("PianoRollCanvas", &canvas_ctx);
+      if (canvas_open) {
         ImDrawList* draw_list = ImGui::GetWindowDrawList();
-        ImVec2 canvas_pos = ImGui::GetCursorScreenPos();
-        ImVec2 canvas_size = ImGui::GetContentRegionAvail();
-        
-        float scroll_x = ImGui::GetScrollX();
-        float scroll_y = ImGui::GetScrollY();
+        ImVec2 canvas_pos = canvas_ctx.canvas_pos;
+        ImVec2 canvas_size = canvas_ctx.canvas_size;
+        float scroll_x = canvas_ctx.scroll_x;
+        float scroll_y = canvas_ctx.scroll_y;
+
+        ImVec2 key_origin(canvas_pos.x, canvas_pos.y - scroll_y);
+        ImVec2 grid_origin(key_origin.x + key_width_ - scroll_x, key_origin.y);
 
         // Mouse wheel zoom support (Ctrl+Wheel = horizontal, Shift+Wheel = vertical)
         if (ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows)) {
@@ -161,7 +184,8 @@ void PianoRollView::Draw(MusicSong* song, const MusicBank* bank) {
               // Adjust scroll to keep mouse position stable
               ImVec2 mouse = ImGui::GetMousePos();
               float rel_x = mouse.x - canvas_pos.x + scroll_x;
-              float new_scroll_x = rel_x * (pixels_per_tick_ / old_ppt) - (mouse.x - canvas_pos.x);
+              float new_scroll_x =
+                  rel_x * (pixels_per_tick_ / old_ppt) - (mouse.x - canvas_pos.x);
               ImGui::SetScrollX(std::max(0.0f, new_scroll_x));
             } else if (shift) {
               // Vertical zoom
@@ -170,7 +194,8 @@ void PianoRollView::Draw(MusicSong* song, const MusicBank* bank) {
               // Adjust scroll to keep mouse position stable
               ImVec2 mouse = ImGui::GetMousePos();
               float rel_y = mouse.y - canvas_pos.y + scroll_y;
-              float new_scroll_y = rel_y * (key_height_ / old_kh) - (mouse.y - canvas_pos.y);
+              float new_scroll_y =
+                  rel_y * (key_height_ / old_kh) - (mouse.y - canvas_pos.y);
               ImGui::SetScrollY(std::max(0.0f, new_scroll_y));
             }
             // Note: Without modifiers, let ImGui handle normal scrolling
@@ -185,20 +210,20 @@ void PianoRollView::Draw(MusicSong* song, const MusicBank* bank) {
         duration += 48;  // padding for edits
         float content_width = duration * pixels_per_tick_;
         
-        ImGui::Dummy(ImVec2(content_width + key_width_, total_height));
-        
-        ImVec2 key_origin = ImVec2(canvas_pos.x - scroll_x, canvas_pos.y - scroll_y);
-        ImVec2 grid_origin = ImVec2(key_origin.x + key_width_, key_origin.y);
+        ImGui::Dummy(ImVec2(key_width_ + content_width, total_height));
         
         int start_key_idx = static_cast<int>(scroll_y / key_height_);
         int num_keys = kNoteMaxPitch - kNoteMinPitch + 1;
         // Only calculate visible keys based on actual content height, not canvas size
-        float visible_content_height = std::min(canvas_size.y, total_height - scroll_y);
-        int visible_keys = static_cast<int>(visible_content_height / key_height_) + 2;
-        visible_keys = std::min(visible_keys, num_keys - start_key_idx);
+        float visible_content_height =
+            std::min(canvas_size.y, std::max(0.0f, total_height - scroll_y));
+        int visible_keys =
+            std::min(static_cast<int>(visible_content_height / key_height_) + 2,
+                     num_keys - start_key_idx);
         
         // Clip all drawing to the actual content bounds
-        float clip_bottom = std::min(canvas_pos.y + canvas_size.y, key_origin.y + total_height);
+        float clip_bottom =
+            std::min(canvas_pos.y + canvas_size.y, key_origin.y + total_height);
         
         // Key lane background - only fill actual content area
         draw_list->AddRectFilled(ImVec2(key_origin.x, std::max(key_origin.y, canvas_pos.y)),
@@ -229,15 +254,17 @@ void PianoRollView::Draw(MusicSong* song, const MusicBank* bank) {
         draw_list->PopClipRect();
         
         // Push clip rect for the entire grid area (notes + grid lines)
-        draw_list->PushClipRect(ImVec2(canvas_pos.x + key_width_, canvas_pos.y),
-                                ImVec2(canvas_pos.x + canvas_size.x, clip_bottom),
+        draw_list->PushClipRect(
+            ImVec2(canvas_pos.x + key_width_, canvas_pos.y),
+            ImVec2(canvas_pos.x + canvas_size.x, clip_bottom),
                                 true);
         
         // Draw grid and beat markers
         int ticks_per_beat = 72;
         int ticks_per_bar = ticks_per_beat * 4; // 4 beats per bar
         int start_tick = std::max(0, static_cast<int>(scroll_x / pixels_per_tick_) - 1);
-        int visible_ticks = static_cast<int>(canvas_size.x / pixels_per_tick_) + 2;
+        int visible_ticks =
+            static_cast<int>(canvas_size.x / pixels_per_tick_) + 2;
         
         // Beat markers (major grid lines) - clipped to content height
         float grid_clip_bottom = std::min(grid_origin.y + total_height, clip_bottom);
@@ -275,8 +302,9 @@ void PianoRollView::Draw(MusicSong* song, const MusicBank* bank) {
         }
         
         // Push clip rect for note rendering (same as grid area)
-        draw_list->PushClipRect(ImVec2(canvas_pos.x + key_width_, canvas_pos.y),
-                                ImVec2(canvas_pos.x + canvas_size.x, clip_bottom),
+        draw_list->PushClipRect(
+            ImVec2(canvas_pos.x + key_width_, canvas_pos.y),
+            ImVec2(canvas_pos.x + canvas_size.x, clip_bottom),
                                 true);
 
         // Check for any solo'd channels
@@ -454,10 +482,12 @@ void PianoRollView::Draw(MusicSong* song, const MusicBank* bank) {
           }
         }
       }
-      ImGui::EndChild();
+      EndRollCanvas();
     
     ImGui::EndTable();
+    }
   }
+  ImGui::EndChild();
 
   // === STATUS BAR (Fixed Height) ===
   ImGui::Separator();
@@ -665,12 +695,12 @@ void PianoRollView::DrawToolbar(const MusicSong* song, const MusicBank* bank) {
   // --- Zoom Group ---
   ImGui::TextDisabled(ICON_MD_ZOOM_IN);
   ImGui::SameLine();
-  ImGui::SetNextItemWidth(80);
+  ImGui::SetNextItemWidth(ImGui::GetFontSize() * 4.0f);
   ImGui::SliderFloat("##ZoomX", &pixels_per_tick_, 0.5f, 10.0f, "%.1f");
   if (ImGui::IsItemHovered()) ImGui::SetTooltip("Horizontal Zoom (px/tick)");
   
   ImGui::SameLine();
-  ImGui::SetNextItemWidth(60);
+  ImGui::SetNextItemWidth(ImGui::GetFontSize() * 3.0f);
   ImGui::SliderFloat("##ZoomY", &key_height_, 6.0f, 20.0f, "%.0f");
   if (ImGui::IsItemHovered()) ImGui::SetTooltip("Vertical Zoom (px/key)");
 
@@ -694,7 +724,7 @@ void PianoRollView::DrawToolbar(const MusicSong* song, const MusicBank* bank) {
   }
   
   ImGui::SameLine();
-  ImGui::SetNextItemWidth(70);
+  ImGui::SetNextItemWidth(ImGui::GetFontSize() * 2.5f);
   const char* snap_labels[] = {"1/4", "1/8", "1/16"};
   int snap_idx = 2;
   if (snap_ticks_ == kDurationQuarter) snap_idx = 0;
@@ -939,6 +969,24 @@ void PianoRollView::HandleMouseInput(MusicSong* song, int active_channel, int ac
     }
   }
 }
+
+bool PianoRollView::BeginRollCanvas(const char* id, RollCanvasContext* ctx) {
+  const ImGuiChildFlags child_flags =
+      ImGuiChildFlags_Border | ImGuiChildFlags_AlwaysUseWindowPadding |
+      ImGuiChildFlags_ResizeY;
+  const ImGuiWindowFlags window_flags =
+      ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_AlwaysVerticalScrollbar;
+  bool open = ImGui::BeginChild(id, ImVec2(0, 0), child_flags, window_flags);
+  if (!open) return false;
+
+  ctx->canvas_pos = ImGui::GetCursorScreenPos();
+  ctx->canvas_size = ImGui::GetContentRegionAvail();
+  ctx->scroll_x = ImGui::GetScrollX();
+  ctx->scroll_y = ImGui::GetScrollY();
+  return true;
+}
+
+void PianoRollView::EndRollCanvas() { ImGui::EndChild(); }
 
 void PianoRollView::DrawPlaybackCursor(ImDrawList* draw_list,
                                         const ImVec2& grid_origin,

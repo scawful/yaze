@@ -19,6 +19,7 @@ set(
   app/editor/graphics/gfx_group_editor.cc
   app/editor/graphics/graphics_editor.cc
   app/editor/graphics/link_sprite_panel.cc
+  app/editor/graphics/polyhedral_editor_panel.cc
   app/editor/graphics/palette_controls_panel.cc
   app/editor/graphics/pixel_editor_panel.cc
   app/editor/graphics/screen_editor.cc
@@ -27,6 +28,7 @@ set(
   app/editor/message/message_editor.cc
   app/editor/message/message_preview.cc
   app/editor/music/music_editor.cc
+  app/editor/music/music_player.cc
   app/editor/music/instrument_editor_view.cc
   app/editor/music/piano_roll_view.cc
   app/editor/music/sample_editor_view.cc
