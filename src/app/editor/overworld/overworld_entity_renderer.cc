@@ -30,6 +30,9 @@ ImVec4 GetItemColor() {
 ImVec4 GetSpriteColor() {
   return ImVec4{1.0f, 0.0f, 1.0f, 1.0f};
 }  // Solid magenta (#FF00FFFF, fully opaque)
+ImVec4 GetDiggableTileColor() {
+  return ImVec4{0.6f, 0.4f, 0.2f, 0.5f};
+}  // Semi-transparent brown for diggable ground
 }  // namespace
 
 void OverworldEntityRenderer::DrawEntrances(ImVec2 canvas_p0, ImVec2 scrolling,
@@ -144,6 +147,48 @@ void OverworldEntityRenderer::DrawSprites(int current_world, int game_state,
       sprite.y_ = original_y;
     }
     i++;
+  }
+}
+
+void OverworldEntityRenderer::DrawDiggableTileHighlights(int current_world,
+                                                          int current_map) {
+  if (!show_diggable_tiles_) {
+    return;
+  }
+
+  const auto& diggable_tiles = overworld_->diggable_tiles();
+  const auto& map_tiles = overworld_->GetMapTiles(current_world);
+
+  // Calculate map bounds based on current_map
+  // Each map is 32x32 tiles (512x512 pixels)
+  // Maps are arranged in an 8x8 grid per world
+  int map_x = (current_map % 8) * 32;  // Tile position in world
+  int map_y = (current_map / 8) * 32;
+
+  // Iterate through the 32x32 tiles in this map
+  for (int ty = 0; ty < 32; ++ty) {
+    for (int tx = 0; tx < 32; ++tx) {
+      int world_tx = map_x + tx;
+      int world_ty = map_y + ty;
+
+      // Get the Map16 tile ID at this position
+      // Map tiles are stored [y][x]
+      if (world_ty >= 256 || world_tx >= 256) {
+        continue;  // Out of bounds
+      }
+
+      uint16_t tile_id = map_tiles[world_ty][world_tx];
+
+      // Check if this tile is marked as diggable
+      if (diggable_tiles.IsDiggable(tile_id)) {
+        // Calculate pixel position (each tile is 16x16 pixels)
+        int pixel_x = world_tx * 16;
+        int pixel_y = world_ty * 16;
+
+        // Draw a semi-transparent highlight
+        canvas_->DrawRect(pixel_x, pixel_y, 16, 16, GetDiggableTileColor());
+      }
+    }
   }
 }
 

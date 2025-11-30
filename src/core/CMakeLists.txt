@@ -15,6 +15,8 @@ include(${CMAKE_SOURCE_DIR}/cmake/asar.cmake)
 set(YAZE_CORE_LIB_SOURCES
   asar_wrapper.cc
   project.cc
+  patch/asm_patch.cc
+  patch/patch_manager.cc
 )
 
 # Create the static library

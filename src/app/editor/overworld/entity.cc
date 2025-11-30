@@ -498,7 +498,7 @@ bool DrawSpriteEditorPopup(zelda3::Sprite& sprite) {
     if (ImGui::IsWindowAppearing()) {
       selected_id = sprite.id();
     }
-                             
+
     BeginChild("ScrollRegion", ImVec2(350, 350), true,
                ImGuiWindowFlags_AlwaysVerticalScrollbar);
     ImGui::BeginGroup();
@@ -529,6 +529,186 @@ bool DrawSpriteEditorPopup(zelda3::Sprite& sprite) {
 
     ImGui::EndPopup();
   }
+  return set_done;
+}
+
+bool DrawDiggableTilesEditorPopup(
+    zelda3::DiggableTiles* diggable_tiles,
+    const std::vector<gfx::Tile16>& tiles16,
+    const std::array<uint8_t, 0x200>& all_tiles_types) {
+  static bool set_done = false;
+  if (set_done) {
+    set_done = false;
+    return true;
+  }
+
+  if (ImGui::BeginPopupModal(
+          gui::MakePopupId(gui::EditorNames::kOverworld, "Diggable Tiles Editor")
+              .c_str(),
+          NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+    static ImGuiTextFilter filter;
+    static int patch_mode = 0;  // 0=Vanilla, 1=ZS Compatible, 2=Custom
+    static zelda3::DiggableTilesPatchConfig patch_config;
+
+    // Stats header
+    int diggable_count = diggable_tiles->GetDiggableCount();
+    Text("Diggable Tiles: %d / 512", diggable_count);
+    ImGui::Separator();
+
+    // Filter
+    filter.Draw("Filter by Tile ID", 200);
+    SameLine();
+    if (Button("Clear Filter")) {
+      filter.Clear();
+    }
+
+    // Scrollable tile list
+    BeginChild("TileList", ImVec2(400, 300), true,
+               ImGuiWindowFlags_AlwaysVerticalScrollbar);
+
+    // Display tiles in a grid-like format
+    int cols = 8;
+    int col = 0;
+    for (uint16_t tile_id = 0;
+         tile_id < zelda3::kMaxDiggableTileId && tile_id < tiles16.size();
+         ++tile_id) {
+      char id_str[16];
+      snprintf(id_str, sizeof(id_str), "$%03X", tile_id);
+
+      if (!filter.PassFilter(id_str)) {
+        continue;
+      }
+
+      bool is_diggable = diggable_tiles->IsDiggable(tile_id);
+      bool would_be_diggable = zelda3::DiggableTiles::IsTile16Diggable(
+          tiles16[tile_id], all_tiles_types);
+
+      // Color coding: green if auto-detected, yellow if manually set
+      if (is_diggable) {
+        if (would_be_diggable) {
+          ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.2f, 0.8f, 0.2f, 1.0f));
+        } else {
+          ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.8f, 0.8f, 0.2f, 1.0f));
+        }
+      }
+
+      if (Checkbox(id_str, &is_diggable)) {
+        diggable_tiles->SetDiggable(tile_id, is_diggable);
+      }
+
+      if (is_diggable) {
+        ImGui::PopStyleColor();
+      }
+
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Tile $%03X - %s",
+                          tile_id,
+                          would_be_diggable ? "Auto-detected as diggable"
+                                            : "Manually configured");
+      }
+
+      col++;
+      if (col < cols) {
+        SameLine();
+      } else {
+        col = 0;
+      }
+    }
+
+    EndChild();
+
+    ImGui::Separator();
+
+    // Action buttons
+    if (Button(ICON_MD_AUTO_FIX_HIGH " Auto-Detect")) {
+      diggable_tiles->Clear();
+      for (uint16_t tile_id = 0;
+           tile_id < zelda3::kMaxDiggableTileId && tile_id < tiles16.size();
+           ++tile_id) {
+        if (zelda3::DiggableTiles::IsTile16Diggable(tiles16[tile_id],
+                                                    all_tiles_types)) {
+          diggable_tiles->SetDiggable(tile_id, true);
+        }
+      }
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip(
+          "Set diggable status based on tile types.\n"
+          "A tile is diggable if all 4 component tiles\n"
+          "have type 0x48 or 0x4A (diggable ground).");
+    }
+
+    SameLine();
+    if (Button(ICON_MD_RESTART_ALT " Vanilla Defaults")) {
+      diggable_tiles->SetVanillaDefaults();
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Reset to vanilla diggable tiles:\n$034, $035, $071, "
+                        "$0DA, $0E1, $0E2, $0F8, $10D, $10E, $10F");
+    }
+
+    SameLine();
+    if (Button(ICON_MD_CLEAR " Clear All")) {
+      diggable_tiles->Clear();
+    }
+
+    ImGui::Separator();
+
+    // Patch export section
+    if (ImGui::CollapsingHeader("ASM Patch Export")) {
+      ImGui::Indent();
+
+      Text("Patch Mode:");
+      ImGui::RadioButton("Vanilla", &patch_mode, 0);
+      SameLine();
+      ImGui::RadioButton("ZS Compatible", &patch_mode, 1);
+      SameLine();
+      ImGui::RadioButton("Custom", &patch_mode, 2);
+
+      patch_config.use_zs_compatible_mode = (patch_mode == 1);
+
+      if (patch_mode == 2) {
+        // Custom address inputs
+        static int hook_addr = patch_config.hook_address;
+        static int table_addr = patch_config.table_address;
+        static int freespace_addr = patch_config.freespace_address;
+
+        gui::InputHex("Hook Address", &hook_addr);
+        gui::InputHex("Table Address", &table_addr);
+        gui::InputHex("Freespace", &freespace_addr);
+
+        patch_config.hook_address = hook_addr;
+        patch_config.table_address = table_addr;
+        patch_config.freespace_address = freespace_addr;
+      }
+
+      if (Button(ICON_MD_FILE_DOWNLOAD " Export .asm Patch")) {
+        // TODO: Open file dialog and export
+        // For now, generate to a default location
+        std::string patch_content =
+            zelda3::DiggableTilesPatch::GeneratePatch(*diggable_tiles,
+                                                      patch_config);
+        // Would normally open a save dialog here
+      }
+
+      ImGui::Unindent();
+    }
+
+    ImGui::Separator();
+
+    // Save/Cancel buttons
+    if (Button(ICON_MD_DONE " Save")) {
+      set_done = true;
+      ImGui::CloseCurrentPopup();
+    }
+    SameLine();
+    if (Button(ICON_MD_CANCEL " Cancel")) {
+      ImGui::CloseCurrentPopup();
+    }
+
+    ImGui::EndPopup();
+  }
+
   return set_done;
 }
 

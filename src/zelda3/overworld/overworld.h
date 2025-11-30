@@ -14,6 +14,7 @@
 #include "app/rom.h"
 #include "imgui.h"
 #include "zelda3/common.h"
+#include "zelda3/overworld/diggable_tiles.h"
 #include "zelda3/overworld/overworld_entrance.h"
 #include "zelda3/overworld/overworld_exit.h"
 #include "zelda3/overworld/overworld_item.h"
@@ -354,6 +355,13 @@ class Overworld {
   auto mutable_all_tiles_types() { return &all_tiles_types_; }
   auto all_sprites() const { return all_sprites_; }
 
+  // Diggable tiles management
+  const DiggableTiles& diggable_tiles() const { return diggable_tiles_; }
+  DiggableTiles* mutable_diggable_tiles() { return &diggable_tiles_; }
+  absl::Status LoadDiggableTiles();
+  absl::Status SaveDiggableTiles();
+  absl::Status AutoDetectDiggableTiles();
+
  private:
   enum Dimension {
     map32TilesTL = 0,
@@ -428,6 +436,7 @@ class Overworld {
   std::array<uint8_t, kNumOverworldMaps> map_parent_ = {0};
   std::array<uint8_t, kNumTileTypes> all_tiles_types_ = {0};
   std::array<std::vector<Sprite>, 3> all_sprites_;
+  DiggableTiles diggable_tiles_;
   std::array<std::vector<uint8_t>, kNumOverworldMaps> map_data_p1;
   std::array<std::vector<uint8_t>, kNumOverworldMaps> map_data_p2;
   std::array<int, kNumOverworldMaps> map_pointers1_id;

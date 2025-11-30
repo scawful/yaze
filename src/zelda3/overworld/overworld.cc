@@ -85,6 +85,11 @@ absl::Status Overworld::Load(Rom* rom) {
     }
 
     {
+      gfx::ScopedTimer diggable_tiles_timer("LoadDiggableTiles");
+      RETURN_IF_ERROR(LoadDiggableTiles());
+    }
+
+    {
       gfx::ScopedTimer entrances_timer("LoadEntrances");
       ASSIGN_OR_RETURN(all_entrances_, LoadEntrances(rom_));
     }
@@ -966,6 +971,7 @@ absl::Status Overworld::Save(Rom* rom) {
   RETURN_IF_ERROR(SaveItems())
   RETURN_IF_ERROR(SaveMapOverlays())
   RETURN_IF_ERROR(SaveOverworldTilesType())
+  RETURN_IF_ERROR(SaveDiggableTiles())
   RETURN_IF_ERROR(SaveAreaSpecificBGColors())
   RETURN_IF_ERROR(SaveMusic())
   RETURN_IF_ERROR(SaveAreaSizes())
@@ -2683,6 +2689,66 @@ absl::Status Overworld::SaveOverworldTilesType() {
         rom()->WriteByte(overworldTilesType + i, all_tiles_types_[i]));
   }
 
+  return absl::OkStatus();
+}
+
+absl::Status Overworld::LoadDiggableTiles() {
+  util::logf("Loading Diggable Tiles");
+
+  // Check if custom diggable tiles are enabled
+  ASSIGN_OR_RETURN(uint8_t enable_flag,
+                   rom()->ReadByte(kOverworldCustomDiggableTilesEnabled));
+
+  if (enable_flag != 0x00 && enable_flag != 0xFF) {
+    // Custom table is enabled, load from ROM
+    std::array<uint8_t, kDiggableTilesBitfieldSize> bitfield;
+    for (int i = 0; i < kDiggableTilesBitfieldSize; ++i) {
+      ASSIGN_OR_RETURN(bitfield[i],
+                       rom()->ReadByte(kOverworldCustomDiggableTilesArray + i));
+    }
+    diggable_tiles_.FromBytes(bitfield.data());
+  } else {
+    // Use vanilla defaults
+    diggable_tiles_.SetVanillaDefaults();
+  }
+
+  return absl::OkStatus();
+}
+
+absl::Status Overworld::SaveDiggableTiles() {
+  util::logf("Saving Diggable Tiles");
+
+  // Write enable flag
+  RETURN_IF_ERROR(
+      rom()->WriteByte(kOverworldCustomDiggableTilesEnabled, 0xFF));
+
+  // Write the 64-byte bitfield
+  const auto& bitfield = diggable_tiles_.GetRawData();
+  for (int i = 0; i < kDiggableTilesBitfieldSize; ++i) {
+    RETURN_IF_ERROR(
+        rom()->WriteByte(kOverworldCustomDiggableTilesArray + i, bitfield[i]));
+  }
+
+  return absl::OkStatus();
+}
+
+absl::Status Overworld::AutoDetectDiggableTiles() {
+  util::logf("Auto-detecting Diggable Tiles");
+
+  diggable_tiles_.Clear();
+
+  // Iterate through all Map16 tiles and check if they're diggable
+  for (uint16_t tile_id = 0;
+       tile_id < static_cast<uint16_t>(tiles16_.size()) &&
+       tile_id < kMaxDiggableTileId;
+       ++tile_id) {
+    if (DiggableTiles::IsTile16Diggable(tiles16_[tile_id], all_tiles_types_)) {
+      diggable_tiles_.SetDiggable(tile_id, true);
+    }
+  }
+
+  util::logf("Auto-detected %d diggable tiles",
+             diggable_tiles_.GetDiggableCount());
   return absl::OkStatus();
 }
 
