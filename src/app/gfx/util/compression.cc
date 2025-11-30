@@ -1,5 +1,6 @@
 #include "compression.h"
 
+#include <climits>
 #include <iostream>
 #include <memory>
 #include <string>
@@ -1434,6 +1435,24 @@ absl::StatusOr<std::vector<uint8_t>> DecompressV2(const uint8_t* data,
     }
     length += 1;  // each commands is at least of size 1 even if index 00
 
+    // CRITICAL: Check and resize buffer BEFORE any command writes
+    // This prevents WASM "index out of bounds" errors
+    // The buffer may need to grow if decompressed data exceeds initial size
+    if (buffer_pos + length > static_cast<unsigned int>(size)) {
+      // Double the buffer size (with overflow protection)
+      int new_size = size;
+      while (buffer_pos + length > static_cast<unsigned int>(new_size)) {
+        if (new_size > INT_MAX / 2) {
+          return absl::ResourceExhaustedError(
+              absl::StrFormat("DecompressV2: Buffer size overflow at pos %u, length %u",
+                              buffer_pos, length));
+        }
+        new_size *= 2;
+      }
+      size = new_size;
+      buffer.resize(size);
+    }
+
     switch (command) {
       case kCommandDirectCopy:  // Does not advance in the ROM
         // Bounds check for direct copy
@@ -1509,10 +1528,7 @@ absl::StatusOr<std::vector<uint8_t>> DecompressV2(const uint8_t* data,
                               "(Offset : %#04x | Pos : %#06x)\n",
                               addr, offset));
         }
-        if (buffer_pos + length >= static_cast<unsigned int>(size)) {
-          size *= 2;
-          buffer.resize(size);
-        }
+        // Buffer resize already done above, no need to check again
         memcpy(buffer.data() + buffer_pos, buffer.data() + addr, length);
         buffer_pos += length;
         offset += 2;

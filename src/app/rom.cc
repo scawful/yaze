@@ -351,6 +351,10 @@ absl::StatusOr<gfx::Bitmap> LoadFontGraphics(const Rom& rom) {
 ///          solid purple/brown (0xFF fill).
 absl::StatusOr<std::array<gfx::Bitmap, kNumGfxSheets>> LoadAllGraphicsData(
     Rom& rom, bool defer_render) {
+#ifdef __EMSCRIPTEN__
+  EM_ASM({ console.log('[C++] LoadAllGraphicsData START - ROM size:', $0); }, rom.size());
+#endif
+
   std::array<gfx::Bitmap, kNumGfxSheets> graphics_sheets;
   std::vector<uint8_t> sheet;
   bool bpp3 = false;
@@ -846,6 +850,10 @@ absl::Status Rom::LoadZelda3(const RomLoadOptions& options) {
     return absl::FailedPreconditionError("ROM data is empty");
   }
 
+#ifdef __EMSCRIPTEN__
+  EM_ASM({ console.log('[C++] LoadZelda3 START - size:', $0); }, size_);
+#endif
+
   LOG_INFO("Rom", "LoadZelda3: Initial size=%lu bytes (0x%lX)", size_, size_);
 
   if (options.strip_header) {
@@ -900,14 +908,26 @@ absl::Status Rom::LoadZelda3(const RomLoadOptions& options) {
   }
 
   if (options.populate_palettes) {
+#ifdef __EMSCRIPTEN__
+    EM_ASM({ console.log('[C++] LoadZelda3 - Loading palettes...'); });
+#endif
     palette_groups_.clear();
     RETURN_IF_ERROR(gfx::LoadAllPalettes(rom_data_, palette_groups_));
+#ifdef __EMSCRIPTEN__
+    EM_ASM({ console.log('[C++] LoadZelda3 - Palettes loaded successfully'); });
+#endif
   } else {
     palette_groups_.clear();
   }
 
   if (options.populate_gfx_groups) {
+#ifdef __EMSCRIPTEN__
+    EM_ASM({ console.log('[C++] LoadZelda3 - Loading gfx groups...'); });
+#endif
     RETURN_IF_ERROR(LoadGfxGroups());
+#ifdef __EMSCRIPTEN__
+    EM_ASM({ console.log('[C++] LoadZelda3 - Gfx groups loaded successfully'); });
+#endif
   } else {
     main_blockset_ids = {};
     room_blockset_ids = {};
