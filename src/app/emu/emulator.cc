@@ -262,24 +262,15 @@ void Emulator::RunFrameOnly() {
     // Run SNES frame (generates audio samples)
     snes_.RunFrame();
 
-    // Queue audio samples
+    // Queue audio samples (always resampled to backend rate)
     if (audio_backend_) {
       auto status = audio_backend_->GetStatus();
-      const int native_per_frame = snes_.memory().pal_timing() ? 641 : 534;
+      const uint32_t max_buffer = static_cast<uint32_t>(samples_to_generate * 6);
 
-      if (status.queued_frames < static_cast<uint32_t>(native_per_frame * 4)) {
-        // Try native sample rate path first (proper 32kHz -> 48kHz resampling)
-        const int frames_native = snes_.apu().dsp().CopyNativeFrame(
-            native_audio_buffer, snes_.memory().pal_timing());
-        bool queue_ok = audio_backend_->QueueSamplesNative(
-            native_audio_buffer, frames_native, 2, kNativeSampleRate);
-
-        // Fallback to resampled path if native fails
-        if (!queue_ok) {
-          // Use dynamic sample count for Varispeed
-          snes_.SetSamples(native_audio_buffer, samples_to_generate);
-          audio_backend_->QueueSamples(native_audio_buffer, samples_to_generate * 2);
-        }
+      if (status.queued_frames < max_buffer) {
+        snes_.SetSamples(native_audio_buffer, samples_to_generate);
+        audio_backend_->QueueSamples(native_audio_buffer,
+                                     samples_to_generate * 2);
       }
     }
   }
@@ -368,23 +359,15 @@ void Emulator::RunAudioFrame() {
     // Run SNES audio-focused frame (skips PPU rendering)
     snes_.RunAudioFrame();
 
-    // Queue audio samples
+    // Queue audio samples (always resampled to backend rate)
     if (audio_backend_) {
       auto status = audio_backend_->GetStatus();
-      const int native_per_frame = snes_.memory().pal_timing() ? 641 : 534;
+      const uint32_t max_buffer = static_cast<uint32_t>(samples_to_generate * 6);
 
-      if (status.queued_frames < static_cast<uint32_t>(native_per_frame * 4)) {
-        // Use native 32kHz sample rate path for authentic sound
-        const int frames_native = snes_.apu().dsp().CopyNativeFrame(
-            native_audio_buffer, snes_.memory().pal_timing());
-        bool queue_ok = audio_backend_->QueueSamplesNative(
-            native_audio_buffer, frames_native, 2, kNativeSampleRate);
-
-        // Fallback to resampled path if native fails
-        if (!queue_ok) {
-          snes_.SetSamples(native_audio_buffer, samples_to_generate);
-          audio_backend_->QueueSamples(native_audio_buffer, samples_to_generate * 2);
-        }
+      if (status.queued_frames < max_buffer) {
+        snes_.SetSamples(native_audio_buffer, samples_to_generate);
+        audio_backend_->QueueSamples(native_audio_buffer,
+                                     samples_to_generate * 2);
       }
     }
   }
@@ -623,8 +606,10 @@ void Emulator::Run(Rom* rom) {
             // Synchronize DSP frame boundary for resampling
             snes_.apu().dsp().NewFrame();
 
-            // Target buffer: 2.0 frames for low latency with safety margin
-            const uint32_t max_buffer = wanted_samples_ * 4;
+            // Target buffer: ~6 frames scaled by playback speed
+            const uint32_t samples_per_frame =
+                static_cast<uint32_t>(wanted_samples_ / playback_speed_);
+            const uint32_t max_buffer = samples_per_frame * 6;
 
             if (queued_frames < max_buffer) {
               bool queue_ok = true;
@@ -649,29 +634,13 @@ void Emulator::Run(Rom* rom) {
                     frames > 0 ? std::sqrt(sum_r / frames) / 32768.0f : 0.0f;
               };
 
-              if (use_native_stream) {
-                const int frames_native = snes_.apu().dsp().CopyNativeFrame(
-                    audio_buffer_, snes_.memory().pal_timing());
-                compute_rms(frames_native * 2);
-                queue_ok = audio_backend_->QueueSamplesNative(
-                    audio_buffer_, frames_native, 2, kNativeSampleRate);
-              } else {
-                // Dynamic sample count for Varispeed
-                int samples_to_generate = static_cast<int>(wanted_samples_ / playback_speed_);
-                snes_.SetSamples(audio_buffer_, samples_to_generate);
-                const int num_samples = samples_to_generate * 2;  // Stereo
-                compute_rms(num_samples);
-                queue_ok =
-                    audio_backend_->QueueSamples(audio_buffer_, num_samples);
-              }
-
-              if (!queue_ok && use_native_stream) {
-                int samples_to_generate = static_cast<int>(wanted_samples_ / playback_speed_);
-                snes_.SetSamples(audio_buffer_, samples_to_generate);
-                const int num_samples = samples_to_generate * 2;
-                queue_ok =
-                    audio_backend_->QueueSamples(audio_buffer_, num_samples);
-              }
+              // Always resample to backend rate for consistent tempo
+              int samples_to_generate =
+                  static_cast<int>(wanted_samples_ / playback_speed_);
+              snes_.SetSamples(audio_buffer_, samples_to_generate);
+              const int num_samples = samples_to_generate * 2;  // Stereo
+              compute_rms(num_samples);
+              queue_ok = audio_backend_->QueueSamples(audio_buffer_, num_samples);
 
               if (!queue_ok) {
                 static int error_count = 0;
