@@ -1,6 +1,6 @@
 #include "zelda3/dungeon/palette_debug.h"
 
-#include <SDL.h>
+#include "app/platform/sdl_compat.h"
 
 #include <algorithm>
 #include <chrono>
@@ -118,18 +118,19 @@ void PaletteDebugger::LogSurfaceState(const std::string& location,
     return;
   }
 
-  if (!surface->format) {
+  Uint32 fmt = platform::GetSurfaceFormat(surface);
+  if (fmt == SDL_PIXELFORMAT_UNKNOWN) {
     event.level = PaletteDebugLevel::ERROR;
-    event.message = "Surface format is NULL!";
+    event.message = "Surface format is unknown!";
     AddEvent(event);
     LOG_ERROR("PaletteDebug", "%s", event.message);
     return;
   }
 
-  bool is_indexed =
-      (surface->format->format == SDL_PIXELFORMAT_INDEX8);
-  bool has_palette = (surface->format->palette != nullptr);
-  int ncolors = has_palette ? surface->format->palette->ncolors : 0;
+  bool is_indexed = (fmt == SDL_PIXELFORMAT_INDEX8);
+  SDL_Palette* palette = platform::GetSurfacePalette(surface);
+  bool has_palette = (palette != nullptr);
+  int ncolors = has_palette ? palette->ncolors : 0;
 
   event.color_count = ncolors;
 
@@ -137,7 +138,7 @@ void PaletteDebugger::LogSurfaceState(const std::string& location,
     event.level = PaletteDebugLevel::WARNING;
     event.message = absl::StrFormat(
         "Surface is NOT indexed (format=0x%08X). Palette will be ignored!",
-        surface->format->format);
+        fmt);
   } else if (!has_palette) {
     event.level = PaletteDebugLevel::WARNING;
     event.message = "Surface is indexed but has NO palette attached!";
@@ -151,8 +152,8 @@ void PaletteDebugger::LogSurfaceState(const std::string& location,
         "Surface OK: indexed format, %d-color palette attached", ncolors);
 
     // Sample color 56 (palette 7, offset 0) for verification
-    if (ncolors > 56) {
-      auto& c = surface->format->palette->colors[56];
+    if (palette && ncolors > 56) {
+      auto& c = palette->colors[56];
       event.sample_colors = {c.r, c.g, c.b};
       event.message += absl::StrFormat(" [Color56: R=%d G=%d B=%d]", c.r, c.g,
                                        c.b);
@@ -215,9 +216,9 @@ ColorComparison PaletteDebugger::SamplePixelAt(int x, int y) const {
   }
 
   // Get actual color from SDL surface palette
-  if (surface->format && surface->format->palette &&
-      comp.palette_index < surface->format->palette->ncolors) {
-    auto& c = surface->format->palette->colors[comp.palette_index];
+  SDL_Palette* palette = platform::GetSurfacePalette(surface);
+  if (palette && comp.palette_index < palette->ncolors) {
+    auto& c = palette->colors[comp.palette_index];
     comp.actual_r = c.r;
     comp.actual_g = c.g;
     comp.actual_b = c.b;

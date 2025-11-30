@@ -4,6 +4,7 @@
 #include <string>
 
 #include "app/editor/system/user_settings.h"
+#include "core/patch/patch_manager.h"
 
 namespace yaze {
 
@@ -44,6 +45,10 @@ class SettingsPanel {
   void DrawAIAgentSettings();
   void DrawKeyboardShortcuts();
   void DrawCardShortcuts();
+  void DrawPatchSettings();
+  void DrawPatchList(const std::string& folder);
+  void DrawPatchDetails();
+  void DrawParameterWidget(core::PatchParameter* param);
 
   UserSettings* user_settings_ = nullptr;
   EditorCardRegistry* card_registry_ = nullptr;
@@ -53,6 +58,12 @@ class SettingsPanel {
   char shortcut_edit_buffer_[64] = {};
   std::string editing_card_id_;
   bool is_editing_shortcut_ = false;
+
+  // Patch system state
+  core::PatchManager patch_manager_;
+  std::string selected_folder_;
+  core::AsmPatch* selected_patch_ = nullptr;
+  bool patches_loaded_ = false;
 };
 
 }  // namespace editor

@@ -8,6 +8,7 @@
 #include "absl/strings/str_cat.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/types/snes_palette.h"
+#include "app/platform/sdl_compat.h"
 #include "app/rom.h"
 #include "app/snes.h"
 #include "util/log.h"
@@ -611,28 +612,31 @@ void Room::RenderRoomGraphics() {
 
     // DEBUG: Verify palette was applied to SDL surface
     auto* surface = bg1_bmp.surface();
-    if (surface && surface->format && surface->format->palette) {
-      PaletteDebugger::Get().LogPaletteApplication(
-          "Room::RenderRoomGraphics (BG1)", palette_id, true);
+    if (surface) {
+      SDL_Palette* palette = platform::GetSurfacePalette(surface);
+      if (palette) {
+        PaletteDebugger::Get().LogPaletteApplication(
+            "Room::RenderRoomGraphics (BG1)", palette_id, true);
 
-      // Log surface state for detailed debugging
-      PaletteDebugger::Get().LogSurfaceState(
-          "Room::RenderRoomGraphics (after SetPalette)", surface);
+        // Log surface state for detailed debugging
+        PaletteDebugger::Get().LogSurfaceState(
+            "Room::RenderRoomGraphics (after SetPalette)", surface);
 
-      // Sample color 56 (pal=7, offset 0)
-      if (surface->format->palette->ncolors > 56) {
-        auto& c = surface->format->palette->colors[56];
-        if (c.r != 156 || c.g != 107 || c.b != 107) {
-          PaletteDebugger::Get().LogPaletteApplication(
-              "Room::RenderRoomGraphics", palette_id, false,
-              absl::StrFormat("Color 56 mismatch: got R=%d G=%d B=%d", c.r, c.g,
-                              c.b));
+        // Sample color 56 (pal=7, offset 0)
+        if (palette->ncolors > 56) {
+          auto& c = palette->colors[56];
+          if (c.r != 156 || c.g != 107 || c.b != 107) {
+            PaletteDebugger::Get().LogPaletteApplication(
+                "Room::RenderRoomGraphics", palette_id, false,
+                absl::StrFormat("Color 56 mismatch: got R=%d G=%d B=%d", c.r,
+                                c.g, c.b));
+          }
         }
+      } else {
+        PaletteDebugger::Get().LogPaletteApplication(
+            "Room::RenderRoomGraphics", palette_id, false,
+            "SDL surface has no palette!");
       }
-    } else {
-      PaletteDebugger::Get().LogPaletteApplication(
-          "Room::RenderRoomGraphics", palette_id, false,
-          "SDL surface has no palette!");
     }
   }
 

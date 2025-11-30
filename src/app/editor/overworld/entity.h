@@ -1,8 +1,14 @@
 #ifndef YAZE_APP_EDITOR_OVERWORLD_ENTITY_H
 #define YAZE_APP_EDITOR_OVERWORLD_ENTITY_H
 
+#include <array>
+#include <vector>
+
+#include "app/gfx/types/snes_tile.h"
 #include "imgui/imgui.h"
 #include "zelda3/common.h"
+#include "zelda3/overworld/diggable_tiles.h"
+#include "zelda3/overworld/diggable_tiles_patch.h"
 #include "zelda3/overworld/overworld_entrance.h"
 #include "zelda3/overworld/overworld_exit.h"
 #include "zelda3/overworld/overworld_item.h"
@@ -76,6 +82,24 @@ struct SpriteItem {
 void DrawSpriteTable(std::function<void(int)> onSpriteSelect, int& selected_id);
 void DrawSpriteInserterPopup();
 bool DrawSpriteEditorPopup(zelda3::Sprite& sprite);
+
+/**
+ * @brief Draw popup dialog for editing diggable tiles configuration.
+ *
+ * Provides UI for:
+ * - Viewing/editing which Map16 tiles are diggable
+ * - Auto-detecting diggable tiles from tile types
+ * - Exporting ASM patch for the digging routine
+ *
+ * @param diggable_tiles Pointer to the DiggableTiles instance to edit
+ * @param tiles16 Vector of Map16 tile definitions
+ * @param all_tiles_types Array of tile type bytes for auto-detection
+ * @return true if changes were saved, false otherwise
+ */
+bool DrawDiggableTilesEditorPopup(
+    zelda3::DiggableTiles* diggable_tiles,
+    const std::vector<gfx::Tile16>& tiles16,
+    const std::array<uint8_t, 0x200>& all_tiles_types);
 
 }  // namespace editor
 }  // namespace yaze

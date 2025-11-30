@@ -74,6 +74,7 @@ source_group("Tests\\Framework" FILES
 # Unit Tests
 source_group("Tests\\Unit" FILES
   unit/core/asar_wrapper_test.cc
+  unit/core/asm_patch_test.cc
   unit/core/hex_test.cc
   unit/cli/resource_catalog_test.cc
   unit/cli/rom_debug_agent_test.cc
@@ -89,6 +90,7 @@ source_group("Tests\\Unit" FILES
   unit/zelda3/overworld_test.cc
   unit/zelda3/overworld_regression_test.cc
   unit/zelda3/overworld_version_helper_test.cc
+  unit/diggable_tiles_test.cc
   unit/zelda3/object_parser_test.cc
   unit/zelda3/object_parser_structs_test.cc
   unit/zelda3/sprite_builder_test.cc

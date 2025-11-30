@@ -1,5 +1,6 @@
 #include "app/editor/ui/settings_panel.h"
 
+#include <algorithm>
 #include <cstdlib>
 #include <cstring>
 #include <filesystem>
@@ -11,9 +12,13 @@
 #include "app/gui/core/icons.h"
 #include "app/gui/core/style.h"
 #include "app/gui/core/theme_manager.h"
+#include "app/rom.h"
+#include "core/patch/asm_patch.h"
+#include "core/patch/patch_manager.h"
 #include "imgui/imgui.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
 #include "util/log.h"
+#include "util/platform_paths.h"
 #include "zelda3/sprite/sprite.h"
 
 namespace yaze {
@@ -66,6 +71,13 @@ void SettingsPanel::Draw() {
   if (ImGui::CollapsingHeader(ICON_MD_KEYBOARD " Keyboard Shortcuts")) {
     ImGui::Indent();
     DrawKeyboardShortcuts();
+    ImGui::Unindent();
+    ImGui::Spacing();
+  }
+
+  if (ImGui::CollapsingHeader(ICON_MD_EXTENSION " ASM Patches")) {
+    ImGui::Indent();
+    DrawPatchSettings();
     ImGui::Unindent();
   }
 }
@@ -380,6 +392,242 @@ void SettingsPanel::DrawCardShortcuts() {
       ImGui::TreePop();
     }
   }
+}
+
+void SettingsPanel::DrawPatchSettings() {
+  // Load patches on first access
+  if (!patches_loaded_) {
+    // Try to load from default patches location
+    std::string patches_dir = util::GetAssetsPath() + "/patches";
+    if (std::filesystem::exists(patches_dir)) {
+      auto status = patch_manager_.LoadPatches(patches_dir);
+      if (status.ok()) {
+        patches_loaded_ = true;
+        if (!patch_manager_.folders().empty()) {
+          selected_folder_ = patch_manager_.folders()[0];
+        }
+      }
+    }
+  }
+
+  ImGui::Text("%s ZScream Patch System", ICON_MD_EXTENSION);
+  ImGui::Separator();
+
+  if (!patches_loaded_) {
+    ImGui::TextDisabled("No patches loaded");
+    ImGui::TextDisabled("Place .asm patches in assets/patches/");
+
+    if (ImGui::Button("Browse for Patches Folder...")) {
+      // TODO: File browser for patches folder
+    }
+    return;
+  }
+
+  // Status line
+  int enabled_count = patch_manager_.GetEnabledPatchCount();
+  int total_count = static_cast<int>(patch_manager_.patches().size());
+  ImGui::Text("Loaded: %d patches (%d enabled)", total_count, enabled_count);
+
+  ImGui::Spacing();
+
+  // Folder tabs
+  if (ImGui::BeginTabBar("##PatchFolders", ImGuiTabBarFlags_FittingPolicyScroll)) {
+    for (const auto& folder : patch_manager_.folders()) {
+      if (ImGui::BeginTabItem(folder.c_str())) {
+        selected_folder_ = folder;
+        DrawPatchList(folder);
+        ImGui::EndTabItem();
+      }
+    }
+    ImGui::EndTabBar();
+  }
+
+  ImGui::Spacing();
+  ImGui::Separator();
+
+  // Selected patch details
+  if (selected_patch_) {
+    DrawPatchDetails();
+  } else {
+    ImGui::TextDisabled("Select a patch to view details");
+  }
+
+  ImGui::Spacing();
+  ImGui::Separator();
+
+  // Action buttons
+  if (ImGui::Button(ICON_MD_CHECK " Apply Patches to ROM")) {
+    if (rom_ && rom_->is_loaded()) {
+      auto status = patch_manager_.ApplyEnabledPatches(rom_);
+      if (!status.ok()) {
+        LOG_ERROR("Settings", "Failed to apply patches: %s", status.message());
+      } else {
+        LOG_INFO("Settings", "Applied %d patches successfully", enabled_count);
+      }
+    } else {
+      LOG_WARN("Settings", "No ROM loaded");
+    }
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("Apply all enabled patches to the loaded ROM");
+  }
+
+  ImGui::SameLine();
+  if (ImGui::Button(ICON_MD_SAVE " Save All")) {
+    auto status = patch_manager_.SaveAllPatches();
+    if (!status.ok()) {
+      LOG_ERROR("Settings", "Failed to save patches: %s", status.message());
+    }
+  }
+
+  if (ImGui::Button(ICON_MD_REFRESH " Reload Patches")) {
+    patches_loaded_ = false;
+    selected_patch_ = nullptr;
+  }
+}
+
+void SettingsPanel::DrawPatchList(const std::string& folder) {
+  auto patches = patch_manager_.GetPatchesInFolder(folder);
+
+  if (patches.empty()) {
+    ImGui::TextDisabled("No patches in this folder");
+    return;
+  }
+
+  // Use a child region for scrolling
+  float available_height = std::min(200.0f, patches.size() * 25.0f + 10.0f);
+  if (ImGui::BeginChild("##PatchList", ImVec2(0, available_height), true)) {
+    for (auto* patch : patches) {
+      ImGui::PushID(patch->filename().c_str());
+
+      bool enabled = patch->enabled();
+      if (ImGui::Checkbox("##Enabled", &enabled)) {
+        patch->set_enabled(enabled);
+      }
+
+      ImGui::SameLine();
+
+      // Highlight selected patch
+      bool is_selected = (selected_patch_ == patch);
+      if (ImGui::Selectable(patch->name().c_str(), is_selected)) {
+        selected_patch_ = patch;
+      }
+
+      ImGui::PopID();
+    }
+  }
+  ImGui::EndChild();
+}
+
+void SettingsPanel::DrawPatchDetails() {
+  if (!selected_patch_) return;
+
+  ImGui::Text("%s %s", ICON_MD_INFO, selected_patch_->name().c_str());
+
+  if (!selected_patch_->author().empty()) {
+    ImGui::TextDisabled("by %s", selected_patch_->author().c_str());
+  }
+
+  if (!selected_patch_->version().empty()) {
+    ImGui::SameLine();
+    ImGui::TextDisabled("v%s", selected_patch_->version().c_str());
+  }
+
+  // Description
+  if (!selected_patch_->description().empty()) {
+    ImGui::Spacing();
+    ImGui::TextWrapped("%s", selected_patch_->description().c_str());
+  }
+
+  // Parameters
+  auto& params = selected_patch_->mutable_parameters();
+  if (!params.empty()) {
+    ImGui::Spacing();
+    ImGui::Text("%s Parameters", ICON_MD_TUNE);
+    ImGui::Separator();
+
+    for (auto& param : params) {
+      DrawParameterWidget(&param);
+    }
+  }
+}
+
+void SettingsPanel::DrawParameterWidget(core::PatchParameter* param) {
+  if (!param) return;
+
+  ImGui::PushID(param->define_name.c_str());
+
+  switch (param->type) {
+    case core::PatchParameterType::kByte:
+    case core::PatchParameterType::kWord:
+    case core::PatchParameterType::kLong: {
+      int value = param->value;
+      const char* format = param->use_decimal ? "%d" : "$%X";
+
+      ImGui::Text("%s", param->display_name.c_str());
+      ImGui::SetNextItemWidth(100);
+      if (ImGui::InputInt("##Value", &value, 1, 16)) {
+        param->value = std::clamp(value, param->min_value, param->max_value);
+      }
+
+      // Show range hint
+      if (param->min_value != 0 || param->max_value != 0xFF) {
+        ImGui::SameLine();
+        ImGui::TextDisabled("(%d-%d)", param->min_value, param->max_value);
+      }
+      break;
+    }
+
+    case core::PatchParameterType::kBool: {
+      bool checked = (param->value == param->checked_value);
+      if (ImGui::Checkbox(param->display_name.c_str(), &checked)) {
+        param->value = checked ? param->checked_value : param->unchecked_value;
+      }
+      break;
+    }
+
+    case core::PatchParameterType::kChoice: {
+      ImGui::Text("%s", param->display_name.c_str());
+      for (size_t i = 0; i < param->choices.size(); ++i) {
+        bool selected = (param->value == static_cast<int>(i));
+        if (ImGui::RadioButton(param->choices[i].c_str(), selected)) {
+          param->value = static_cast<int>(i);
+        }
+      }
+      break;
+    }
+
+    case core::PatchParameterType::kBitfield: {
+      ImGui::Text("%s", param->display_name.c_str());
+      for (size_t i = 0; i < param->choices.size(); ++i) {
+        if (param->choices[i].empty() || param->choices[i] == "_EMPTY") {
+          continue;
+        }
+        bool bit_set = (param->value & (1 << i)) != 0;
+        if (ImGui::Checkbox(param->choices[i].c_str(), &bit_set)) {
+          if (bit_set) {
+            param->value |= (1 << i);
+          } else {
+            param->value &= ~(1 << i);
+          }
+        }
+      }
+      break;
+    }
+
+    case core::PatchParameterType::kItem: {
+      ImGui::Text("%s", param->display_name.c_str());
+      // TODO: Implement item dropdown using game item names
+      ImGui::SetNextItemWidth(150);
+      if (ImGui::InputInt("Item ID", &param->value)) {
+        param->value = std::clamp(param->value, 0, 255);
+      }
+      break;
+    }
+  }
+
+  ImGui::PopID();
+  ImGui::Spacing();
 }
 
 }  // namespace editor
