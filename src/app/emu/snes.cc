@@ -237,6 +237,28 @@ void Snes::RunFrame() {
   }
 }
 
+void Snes::RunAudioFrame() {
+  // Audio-focused frame execution: runs CPU+APU but skips PPU rendering
+  // This maintains CPU-APU communication timing while reducing overhead
+  // Used by MusicEditor for authentic audio playback
+
+  audio_only_mode_ = true;
+
+  // Run through vblank if we're in it
+  while (in_vblank_) {
+    cpu_.RunOpcode();
+  }
+
+  uint32_t frame = frames_;
+
+  // Run until next vblank
+  while (!in_vblank_ && frame == frames_) {
+    cpu_.RunOpcode();
+  }
+
+  audio_only_mode_ = false;
+}
+
 void Snes::CatchUpApu() {
   // Bring APU up to the same master cycle count since last catch-up.
   // cycles_ is monotonically increasing in RunCycle().
@@ -300,19 +322,22 @@ void Snes::RunCycle() {
           memory_.init_hdma_request();
 
         // Start PPU line rendering (setup for JIT rendering)
-        if (!in_vblank_ && memory_.v_pos() > 0)
+        // Skip in audio-only mode for performance
+        if (!audio_only_mode_ && !in_vblank_ && memory_.v_pos() > 0)
           ppu_.StartLine(memory_.v_pos());
       } break;
       case 512: {
         next_horiz_event = 1104;
         // Render the line halfway of the screen for better compatibility
         // Using CatchUp instead of RunLine for progressive rendering
-        if (!in_vblank_ && memory_.v_pos() > 0)
+        // Skip in audio-only mode for performance
+        if (!audio_only_mode_ && !in_vblank_ && memory_.v_pos() > 0)
           ppu_.CatchUp(512);
       } break;
       case 1104: {
         // Finish rendering the visible line
-        if (!in_vblank_ && memory_.v_pos() > 0)
+        // Skip in audio-only mode for performance
+        if (!audio_only_mode_ && !in_vblank_ && memory_.v_pos() > 0)
           ppu_.CatchUp(1104);
 
         if (!in_vblank_)
@@ -575,7 +600,8 @@ void Snes::WriteBBus(uint8_t adr, uint8_t val) {
   if (adr < 0x40) {
     // PPU Register write - catch up rendering first to ensure mid-scanline effects work
     // Only needed if we are in the visible portion of a visible scanline
-    if (!in_vblank_ && memory_.v_pos() > 0 && memory_.h_pos() < 1100) {
+    // Skip in audio-only mode for performance (no video output needed)
+    if (!audio_only_mode_ && !in_vblank_ && memory_.v_pos() > 0 && memory_.h_pos() < 1100) {
       ppu_.CatchUp(memory_.h_pos());
     }
     ppu_.Write(adr, val);

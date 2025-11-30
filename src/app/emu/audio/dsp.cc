@@ -734,6 +734,38 @@ void Dsp::GetSamples(int16_t* sample_data, int samples_per_frame,
             InterpolateHermite(p0_r, p1_r, p2_r, p3_r, frac);
         break;
       }
+      case InterpolationType::Gaussian: {
+        const int offset = static_cast<int>(frac * 256.0) & 0xff;
+        const int idx0 = (idx - 1 + 0x400) & 0x3ff;
+        const int idx1 = idx & 0x3ff;
+        const int idx2 = (idx + 1) & 0x3ff;
+        const int idx3 = (idx + 2) & 0x3ff;
+
+        // Left channel
+        const int16_t p0_l = sampleBuffer[(idx0 * 2) + 0];
+        const int16_t p1_l = sampleBuffer[(idx1 * 2) + 0];
+        const int16_t p2_l = sampleBuffer[(idx2 * 2) + 0];
+        const int16_t p3_l = sampleBuffer[(idx3 * 2) + 0];
+
+        int out_l = (gaussValues[0xff - offset] * p0_l) >> 11;
+        out_l += (gaussValues[0x1ff - offset] * p1_l) >> 11;
+        out_l += (gaussValues[0x100 + offset] * p2_l) >> 11;
+        out_l = clip16(out_l) + ((gaussValues[offset] * p3_l) >> 11);
+        sample_data[(i * 2) + 0] = clamp16(out_l) & ~1;
+
+        // Right channel
+        const int16_t p0_r = sampleBuffer[(idx0 * 2) + 1];
+        const int16_t p1_r = sampleBuffer[(idx1 * 2) + 1];
+        const int16_t p2_r = sampleBuffer[(idx2 * 2) + 1];
+        const int16_t p3_r = sampleBuffer[(idx3 * 2) + 1];
+
+        int out_r = (gaussValues[0xff - offset] * p0_r) >> 11;
+        out_r += (gaussValues[0x1ff - offset] * p1_r) >> 11;
+        out_r += (gaussValues[0x100 + offset] * p2_r) >> 11;
+        out_r = clip16(out_r) + ((gaussValues[offset] * p3_r) >> 11);
+        sample_data[(i * 2) + 1] = clamp16(out_r) & ~1;
+        break;
+      }
       case InterpolationType::Cosine: {
         const int next_idx = (idx + 1) & 0x3ff;
         const int16_t s0_l = sampleBuffer[(idx * 2) + 0];

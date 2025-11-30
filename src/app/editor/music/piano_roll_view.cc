@@ -22,8 +22,11 @@ struct RollPalette {
   ImU32 grid_minor;
   ImU32 note;
   ImU32 note_hover;
+  ImU32 note_shadow;
   ImU32 background;
   ImU32 key_label;
+  ImU32 beat_marker;
+  ImU32 octave_line;
 };
 
 RollPalette GetPalette() {
@@ -40,11 +43,23 @@ RollPalette GetPalette() {
   auto hover = theme.accent;
   hover.alpha = 0.85f;
   p.note_hover = ImGui::GetColorU32(gui::ConvertColorToImVec4(hover));
+  // Shadow for notes - darker version of background
+  auto shadow = theme.border_shadow;
+  shadow.alpha = 0.4f;
+  p.note_shadow = ImGui::GetColorU32(gui::ConvertColorToImVec4(shadow));
   p.background =
       ImGui::GetColorU32(gui::ConvertColorToImVec4(theme.editor_background));
   auto label = theme.text_secondary;
   label.alpha = 0.85f;
   p.key_label = ImGui::GetColorU32(gui::ConvertColorToImVec4(label));
+  // Beat markers - slightly brighter than grid
+  auto beat = theme.accent;
+  beat.alpha = 0.25f;
+  p.beat_marker = ImGui::GetColorU32(gui::ConvertColorToImVec4(beat));
+  // Octave divider lines
+  auto octave = theme.separator;
+  octave.alpha = 0.5f;
+  p.octave_line = ImGui::GetColorU32(gui::ConvertColorToImVec4(octave));
   return p;
 }
 
@@ -52,6 +67,15 @@ bool IsBlackKey(int semitone) {
   int s = semitone % 12;
   return (s == 1 || s == 3 || s == 6 || s == 8 || s == 10);
 }
+
+int CountNotesInTrack(const MusicTrack& track) {
+  int count = 0;
+  for (const auto& evt : track.events) {
+    if (evt.type == TrackEvent::Type::Note) count++;
+  }
+  return count;
+}
+
 }  // namespace
 
 void PianoRollView::Draw(MusicSong* song, const MusicBank* bank) {
@@ -63,14 +87,14 @@ void PianoRollView::Draw(MusicSong* song, const MusicBank* bank) {
   // Initialize channel colors if needed
   if (channel_colors_.empty()) {
     channel_colors_.resize(8);
-    channel_colors_[0] = 0xFF5555FF; // Red
-    channel_colors_[1] = 0xFF55FF55; // Green
-    channel_colors_[2] = 0xFFFF5555; // Blue
-    channel_colors_[3] = 0xFFFFFF55; // Yellow
-    channel_colors_[4] = 0xFF55FFFF; // Cyan
-    channel_colors_[5] = 0xFFFF55FF; // Magenta
-    channel_colors_[6] = 0xFFFFAA55; // Orange
-    channel_colors_[7] = 0xFFAAFF55; // Lime
+    channel_colors_[0] = 0xFFFF6B6B; // Coral Red
+    channel_colors_[1] = 0xFF4ECDC4; // Teal
+    channel_colors_[2] = 0xFF45B7D1; // Sky Blue
+    channel_colors_[3] = 0xFFF7DC6F; // Soft Yellow
+    channel_colors_[4] = 0xFFBB8FCE; // Lavender
+    channel_colors_[5] = 0xFF82E0AA; // Mint Green
+    channel_colors_[6] = 0xFFF8B500; // Amber
+    channel_colors_[7] = 0xFFE59866; // Peach
   }
 
   const RollPalette palette = GetPalette();
@@ -79,48 +103,28 @@ void PianoRollView::Draw(MusicSong* song, const MusicBank* bank) {
                  static_cast<int>(song->segments.size()) - 1);
   active_channel_index_ = std::clamp(active_channel_index_, 0, 7);
 
-  DrawToolbar(song, bank);
-  
-  // Main Layout Table
-  if (ImGui::BeginTable("PianoRollLayout", 2, ImGuiTableFlags_Resizable | ImGuiTableFlags_BordersInnerV)) {
-    ImGui::TableSetupColumn("Channels", ImGuiTableColumnFlags_WidthFixed, 150.0f);
+  // === TOOLBAR (Fixed Height) ===
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8, 4));
+  if (ImGui::BeginChild("##PianoRollToolbar", ImVec2(0, kToolbarHeight), 
+                        ImGuiChildFlags_AlwaysUseWindowPadding, 
+                        ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse)) {
+    DrawToolbar(song, bank);
+  }
+  ImGui::EndChild();
+  ImGui::PopStyleVar();
+
+  ImGui::Separator();
+
+  // === MAIN CONTENT ===
+  if (ImGui::BeginTable("PianoRollLayout", 2, 
+                        ImGuiTableFlags_Resizable | ImGuiTableFlags_BordersInnerV)) {
+    ImGui::TableSetupColumn("Channels", ImGuiTableColumnFlags_WidthFixed, kChannelListWidth);
     ImGui::TableSetupColumn("Roll", ImGuiTableColumnFlags_WidthStretch);
     ImGui::TableNextRow();
 
     // --- Left Column: Channel List ---
     ImGui::TableSetColumnIndex(0);
-    
-    ImGui::TextDisabled("CHANNELS");
-    ImGui::Separator();
-    
-    for (int i = 0; i < 8; ++i) {
-      ImGui::PushID(i);
-      
-      // Visibility toggle
-      bool visible = channel_visible_[i];
-      if (ImGui::Checkbox("##Vis", &visible)) {
-        channel_visible_[i] = visible;
-      }
-      ImGui::SameLine();
-      
-      // Color picker
-      ImVec4 col_v4 = ImGui::ColorConvertU32ToFloat4(channel_colors_[i]);
-      if (ImGui::ColorEdit4("##Col", (float*)&col_v4, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel | ImGuiColorEditFlags_AlphaPreviewHalf)) {
-        channel_colors_[i] = ImGui::ColorConvertFloat4ToU32(col_v4);
-      }
-      ImGui::SameLine();
-      
-      // Selection
-      std::string label = absl::StrFormat("Ch %d", i + 1);
-      bool is_active = (active_channel_index_ == i);
-      if (ImGui::Selectable(label.c_str(), is_active)) {
-        active_channel_index_ = i;
-        // Ensure active channel is visible
-        channel_visible_[i] = true;
-      }
-      
-      ImGui::PopID();
-    }
+    DrawChannelList(song);
 
     // --- Right Column: Piano Roll ---
     ImGui::TableSetColumnIndex(1);
@@ -132,156 +136,279 @@ void PianoRollView::Draw(MusicSong* song, const MusicBank* bank) {
     hovered_channel_index_ = -1;
     hovered_segment_index_ = -1;
 
-    if (ImGui::BeginChild("PianoRollCanvas", ImVec2(0, 0), true, ImGuiWindowFlags_HorizontalScrollbar)) {
-      ImDrawList* draw_list = ImGui::GetWindowDrawList();
-      ImVec2 canvas_pos = ImGui::GetCursorScreenPos();
-      ImVec2 canvas_size = ImGui::GetContentRegionAvail();
-      
-      float scroll_x = ImGui::GetScrollX();
-      float scroll_y = ImGui::GetScrollY();
-      
-      uint32_t duration = segment.GetDuration();
-      if (duration == 0) duration = 1000; // fallback
-      duration += 48;  // padding for edits
-      float content_width = duration * pixels_per_tick_;
-      
-      ImGui::Dummy(ImVec2(content_width + key_width_, total_height));
-      
-      ImVec2 key_origin = ImVec2(canvas_pos.x - scroll_x, canvas_pos.y - scroll_y);
-      ImVec2 grid_origin = ImVec2(key_origin.x + key_width_, key_origin.y);
-      
-      int start_key_idx = (int)(scroll_y / key_height_);
-      int visible_keys = (int)(canvas_size.y / key_height_) + 1;
-      int num_keys = kNoteMaxPitch - kNoteMinPitch + 1;
-      
-      // key lane background
-      draw_list->AddRectFilled(key_origin,
-                               ImVec2(key_origin.x + key_width_, key_origin.y + total_height),
-                               palette.background);
-      draw_list->PushClipRect(ImVec2(canvas_pos.x, canvas_pos.y),
-                              ImVec2(canvas_pos.x + key_width_, canvas_pos.y + total_height),
-                              true);
-      
-      for (int i = start_key_idx; i < std::min(num_keys, start_key_idx + visible_keys); ++i) {
-        float y = total_height - (i + 1) * key_height_;
-        ImVec2 k_min = ImVec2(key_origin.x, key_origin.y + y);
-        ImVec2 k_max = ImVec2(key_origin.x + key_width_, key_origin.y + y + key_height_);
+    if (ImGui::BeginChild("PianoRollCanvas", ImVec2(0, -kStatusBarHeight), 
+                          ImGuiChildFlags_Borders, 
+                          ImGuiWindowFlags_HorizontalScrollbar)) {
+        ImDrawList* draw_list = ImGui::GetWindowDrawList();
+        ImVec2 canvas_pos = ImGui::GetCursorScreenPos();
+        ImVec2 canvas_size = ImGui::GetContentRegionAvail();
         
-        int note_val = kNoteMinPitch + i;
-        bool is_black = IsBlackKey(note_val);
+        float scroll_x = ImGui::GetScrollX();
+        float scroll_y = ImGui::GetScrollY();
         
-        draw_list->AddRectFilled(k_min, k_max, is_black ? palette.black_key : palette.white_key);
-        draw_list->AddRect(k_min, k_max, palette.grid_minor);
+        uint32_t duration = segment.GetDuration();
+        if (duration == 0) duration = 1000; // fallback
+        duration += 48;  // padding for edits
+        float content_width = duration * pixels_per_tick_;
         
-        if (note_val % 12 == 0) {
-          Note n; n.pitch = note_val;
-          draw_list->AddText(ImVec2(k_min.x + 4, k_min.y), palette.key_label, n.GetNoteName().c_str());
-        }
-      }
-      draw_list->PopClipRect();
-      
-      int ticks_per_beat = 72;
-      int start_tick = (int)(scroll_x / pixels_per_tick_);
-      int visible_ticks = (int)(canvas_size.x / pixels_per_tick_) + 2;
-      
-      for (int t = start_tick; t < start_tick + visible_ticks; ++t) {
-          if (t % ticks_per_beat == 0) {
-              float x = grid_origin.x + t * pixels_per_tick_;
-              draw_list->AddLine(ImVec2(x, grid_origin.y), ImVec2(x, grid_origin.y + total_height), palette.grid_major);
-          }
-      }
-      
-      for (int i = start_key_idx; i < std::min(num_keys, start_key_idx + visible_keys); ++i) {
+        ImGui::Dummy(ImVec2(content_width + key_width_, total_height));
+        
+        ImVec2 key_origin = ImVec2(canvas_pos.x - scroll_x, canvas_pos.y - scroll_y);
+        ImVec2 grid_origin = ImVec2(key_origin.x + key_width_, key_origin.y);
+        
+        int start_key_idx = static_cast<int>(scroll_y / key_height_);
+        int num_keys = kNoteMaxPitch - kNoteMinPitch + 1;
+        // Only calculate visible keys based on actual content height, not canvas size
+        float visible_content_height = std::min(canvas_size.y, total_height - scroll_y);
+        int visible_keys = static_cast<int>(visible_content_height / key_height_) + 2;
+        visible_keys = std::min(visible_keys, num_keys - start_key_idx);
+        
+        // Clip all drawing to the actual content bounds
+        float clip_bottom = std::min(canvas_pos.y + canvas_size.y, key_origin.y + total_height);
+        
+        // Key lane background - only fill actual content area
+        draw_list->AddRectFilled(ImVec2(key_origin.x, std::max(key_origin.y, canvas_pos.y)),
+                                 ImVec2(key_origin.x + key_width_, clip_bottom),
+                                 palette.background);
+        draw_list->PushClipRect(ImVec2(canvas_pos.x, canvas_pos.y),
+                                ImVec2(canvas_pos.x + key_width_, clip_bottom),
+                                true);
+        
+        // Draw piano keys
+        for (int i = start_key_idx; i < std::min(num_keys, start_key_idx + visible_keys); ++i) {
           float y = total_height - (i + 1) * key_height_;
-          draw_list->AddLine(ImVec2(grid_origin.x, key_origin.y + y), 
-                             ImVec2(grid_origin.x + content_width, key_origin.y + y), palette.grid_minor);
-      }
-
-      // Render channels
-      // Pass 1: Inactive channels (ghost notes)
-      for (int ch = 0; ch < 8; ++ch) {
-        if (ch == active_channel_index_ || !channel_visible_[ch]) continue;
-        
-        const auto& track = segment.tracks[ch];
-        ImU32 base_color = channel_colors_[ch];
-        ImVec4 c = ImGui::ColorConvertU32ToFloat4(base_color);
-        c.w = 0.3f; // Reduced opacity
-        ImU32 ghost_color = ImGui::ColorConvertFloat4ToU32(c);
-
-        for (const auto& event : track.events) {
-          if (event.type == TrackEvent::Type::Note) {
-            int key_idx = event.note.pitch - kNoteMinPitch;
-            float y = total_height - (key_idx + 1) * key_height_;
-            float x = event.tick * pixels_per_tick_;
-            float w = event.note.duration * pixels_per_tick_;
-
-            ImVec2 p_min = ImVec2(grid_origin.x + x, grid_origin.y + y);
-            ImVec2 p_max = ImVec2(p_min.x + w, p_min.y + key_height_);
-            
-            // Simple render for ghost notes
-            draw_list->AddRectFilled(p_min, p_max, ghost_color, 3.0f);
+          ImVec2 k_min = ImVec2(key_origin.x, key_origin.y + y);
+          ImVec2 k_max = ImVec2(key_origin.x + key_width_, key_origin.y + y + key_height_);
+          
+          int note_val = kNoteMinPitch + i;
+          bool is_black = IsBlackKey(note_val);
+          
+          draw_list->AddRectFilled(k_min, k_max, is_black ? palette.black_key : palette.white_key);
+          draw_list->AddRect(k_min, k_max, palette.grid_minor);
+          
+          // Show labels for all white keys (black keys are too narrow)
+          if (!is_black) {
+            Note n; n.pitch = static_cast<uint8_t>(note_val);
+            draw_list->AddText(ImVec2(k_min.x + 4, k_min.y + 1), palette.key_label, n.GetNoteName().c_str());
           }
         }
-      }
+        draw_list->PopClipRect();
+        
+        // Push clip rect for the entire grid area (notes + grid lines)
+        draw_list->PushClipRect(ImVec2(canvas_pos.x + key_width_, canvas_pos.y),
+                                ImVec2(canvas_pos.x + canvas_size.x, clip_bottom),
+                                true);
+        
+        // Draw grid and beat markers
+        int ticks_per_beat = 72;
+        int ticks_per_bar = ticks_per_beat * 4; // 4 beats per bar
+        int start_tick = std::max(0, static_cast<int>(scroll_x / pixels_per_tick_) - 1);
+        int visible_ticks = static_cast<int>(canvas_size.x / pixels_per_tick_) + 2;
+        
+        // Beat markers (major grid lines) - clipped to content height
+        float grid_clip_bottom = std::min(grid_origin.y + total_height, clip_bottom);
+        for (int t = start_tick; t < start_tick + visible_ticks; ++t) {
+          if (t % ticks_per_beat == 0) {
+            float x = grid_origin.x + t * pixels_per_tick_;
+            bool is_bar = (t % ticks_per_bar == 0);
+            draw_list->AddLine(ImVec2(x, std::max(grid_origin.y, canvas_pos.y)), 
+                               ImVec2(x, grid_clip_bottom), 
+                               is_bar ? palette.beat_marker : palette.grid_major,
+                               is_bar ? 2.0f : 1.0f);
+            
+            // Draw bar/beat number at top
+            if (is_bar && x > grid_origin.x) {
+              int bar_num = t / ticks_per_bar + 1;
+              std::string bar_label = absl::StrFormat("%d", bar_num);
+              draw_list->AddText(ImVec2(x + 2, std::max(grid_origin.y, canvas_pos.y) + 2), 
+                                 palette.key_label, bar_label.c_str());
+            }
+          }
+        }
+        
+        // Horizontal key lines with octave emphasis
+        for (int i = start_key_idx; i < start_key_idx + visible_keys && i < num_keys; ++i) {
+          float y = total_height - (i + 1) * key_height_;
+          float line_y = key_origin.y + y;
+          if (line_y < canvas_pos.y || line_y > clip_bottom) continue;
+          
+          int note_val = kNoteMinPitch + i;
+          bool is_octave = (note_val % 12 == 0);
+          draw_list->AddLine(ImVec2(grid_origin.x, line_y), 
+                             ImVec2(grid_origin.x + content_width, line_y), 
+                             is_octave ? palette.octave_line : palette.grid_minor,
+                             is_octave ? 1.5f : 1.0f);
+        }
+        
+        // Push clip rect for note rendering (same as grid area)
+        draw_list->PushClipRect(ImVec2(canvas_pos.x + key_width_, canvas_pos.y),
+                                ImVec2(canvas_pos.x + canvas_size.x, clip_bottom),
+                                true);
 
-      // Pass 2: Active channel (interactive)
-      if (channel_visible_[active_channel_index_]) {
-        const auto& track = segment.tracks[active_channel_index_];
-        ImU32 active_color = channel_colors_[active_channel_index_];
-        ImU32 hover_color = palette.note_hover;
+        // Check for any solo'd channels
+        bool any_solo = false;
+        for (int ch = 0; ch < 8; ++ch) {
+          if (channel_solo_[ch]) { any_solo = true; break; }
+        }
 
-        for (size_t idx = 0; idx < track.events.size(); ++idx) {
-          const auto& event = track.events[idx];
-          if (event.type == TrackEvent::Type::Note) {
-            int key_idx = event.note.pitch - kNoteMinPitch;
-            float y = total_height - (key_idx + 1) * key_height_;
-            float x = event.tick * pixels_per_tick_;
-            float w = event.note.duration * pixels_per_tick_;
+        // Render channels
+        // Pass 1: Inactive channels (ghost notes)
+        for (int ch = 0; ch < 8; ++ch) {
+          if (ch == active_channel_index_ || !channel_visible_[ch]) continue;
+          if (channel_muted_[ch]) continue;
+          if (any_solo && !channel_solo_[ch]) continue;
+          
+          const auto& track = segment.tracks[ch];
+          ImU32 base_color = channel_colors_[ch];
+          ImVec4 c = ImGui::ColorConvertU32ToFloat4(base_color);
+          c.w = 0.3f; // Reduced opacity for ghost notes
+          ImU32 ghost_color = ImGui::ColorConvertFloat4ToU32(c);
 
-            ImVec2 p_min = ImVec2(grid_origin.x + x, grid_origin.y + y);
-            ImVec2 p_max = ImVec2(p_min.x + w, p_min.y + key_height_);
-            bool hovered = ImGui::IsMouseHoveringRect(p_min, p_max);
-            ImU32 color = hovered ? hover_color : active_color;
+          for (const auto& event : track.events) {
+            if (event.type == TrackEvent::Type::Note) {
+              int key_idx = event.note.pitch - kNoteMinPitch;
+              float y = total_height - (key_idx + 1) * key_height_;
+              float x = event.tick * pixels_per_tick_;
+              float w = std::max(2.0f, event.note.duration * pixels_per_tick_);
 
-            ImGui::GetWindowDrawList()->AddRectFilled(p_min, p_max, color, 3.0f);
-            ImGui::GetWindowDrawList()->AddRect(p_min, p_max, palette.grid_major, 3.0f);
+              ImVec2 p_min = ImVec2(grid_origin.x + x, grid_origin.y + y + 1);
+              ImVec2 p_max = ImVec2(p_min.x + w, p_min.y + key_height_ - 2);
+              
+              draw_list->AddRectFilled(p_min, p_max, ghost_color, 2.0f);
+            }
+          }
+        }
 
-            if (hovered) {
-              hovered_event_index_ = static_cast<int>(idx);
-              hovered_channel_index_ = active_channel_index_;
-              hovered_segment_index_ = active_segment_index_;
-              ImGui::SetTooltip("Ch %d\nPitch: %s\nTick: %d\nDur: %d",
-                                active_channel_index_ + 1,
-                                event.note.GetNoteName().c_str(), event.tick,
-                                event.note.duration);
+        // Pass 2: Active channel (interactive)
+        if (channel_visible_[active_channel_index_] && 
+            !channel_muted_[active_channel_index_] &&
+            (!any_solo || channel_solo_[active_channel_index_])) {
+          const auto& track = segment.tracks[active_channel_index_];
+          ImU32 active_color = channel_colors_[active_channel_index_];
+          ImU32 hover_color = palette.note_hover;
+
+          for (size_t idx = 0; idx < track.events.size(); ++idx) {
+            const auto& event = track.events[idx];
+            if (event.type == TrackEvent::Type::Note) {
+              int key_idx = event.note.pitch - kNoteMinPitch;
+              float y = total_height - (key_idx + 1) * key_height_;
+              float x = event.tick * pixels_per_tick_;
+              float w = std::max(4.0f, event.note.duration * pixels_per_tick_);
+
+              ImVec2 p_min = ImVec2(grid_origin.x + x, grid_origin.y + y + 1);
+              ImVec2 p_max = ImVec2(p_min.x + w, p_min.y + key_height_ - 2);
+              bool hovered = ImGui::IsMouseHoveringRect(p_min, p_max);
+              ImU32 color = hovered ? hover_color : active_color;
+
+              // Draw shadow
+              ImVec2 shadow_offset(2, 2);
+              draw_list->AddRectFilled(
+                  ImVec2(p_min.x + shadow_offset.x, p_min.y + shadow_offset.y),
+                  ImVec2(p_max.x + shadow_offset.x, p_max.y + shadow_offset.y),
+                  palette.note_shadow, 3.0f);
+              
+              // Draw note
+              draw_list->AddRectFilled(p_min, p_max, color, 3.0f);
+              draw_list->AddRect(p_min, p_max, palette.grid_major, 3.0f);
+              
+              // Draw resize handles for larger notes
+              if (w > 10) {
+                float handle_w = 4.0f;
+                // Left handle indicator
+                draw_list->AddRectFilled(
+                    ImVec2(p_min.x, p_min.y), 
+                    ImVec2(p_min.x + handle_w, p_max.y),
+                    IM_COL32(255, 255, 255, 40), 2.0f);
+                // Right handle indicator
+                draw_list->AddRectFilled(
+                    ImVec2(p_max.x - handle_w, p_min.y), 
+                    ImVec2(p_max.x, p_max.y),
+                    IM_COL32(255, 255, 255, 40), 2.0f);
+              }
+
+              if (hovered) {
+                hovered_event_index_ = static_cast<int>(idx);
+                hovered_channel_index_ = active_channel_index_;
+                hovered_segment_index_ = active_segment_index_;
+                ImGui::SetTooltip("Ch %d | %s\nTick: %d | Dur: %d",
+                                  active_channel_index_ + 1,
+                                  event.note.GetNoteName().c_str(), 
+                                  event.tick,
+                                  event.note.duration);
+              }
+            }
+          }
+        }
+        
+        // Crosshair under mouse for alignment
+        if (ImGui::IsWindowHovered()) {
+          ImVec2 mp = ImGui::GetMousePos();
+          float rel_x = mp.x - grid_origin.x;
+          float rel_y = mp.y - grid_origin.y;
+          
+          // Update status bar info
+          if (rel_x >= 0 && rel_y >= 0 && rel_y <= total_height) {
+            status_tick_ = static_cast<int>(rel_x / pixels_per_tick_);
+            int pitch_idx = static_cast<int>(rel_y / key_height_);
+            status_pitch_ = kNoteMaxPitch - pitch_idx;
+            Note temp_note; temp_note.pitch = static_cast<uint8_t>(status_pitch_);
+            status_note_name_ = temp_note.GetNoteName();
+            
+            // Draw crosshair - clipped to content area
+            ImU32 crosshair_color = IM_COL32(255, 255, 255, 60);
+            float crosshair_top = std::max(grid_origin.y, canvas_pos.y);
+            float crosshair_bottom = std::min(grid_origin.y + total_height, clip_bottom);
+            draw_list->AddLine(ImVec2(mp.x, crosshair_top),
+                               ImVec2(mp.x, crosshair_bottom),
+                               crosshair_color);
+            draw_list->AddLine(ImVec2(grid_origin.x, mp.y),
+                               ImVec2(grid_origin.x + content_width, mp.y),
+                               crosshair_color);
+          } else {
+            status_tick_ = -1;
+            status_pitch_ = -1;
+          }
+        } else {
+          status_tick_ = -1;
+          status_pitch_ = -1;
+        }
+        
+        draw_list->PopClipRect();  // End note rendering clip
+
+        HandleMouseInput(song, active_channel_index_, active_segment_index_, grid_origin, ImVec2(content_width, total_height));
+
+        // Draw playback cursor (on top of everything) - show even when paused
+        if (is_playing_ || is_paused_) {
+          // Calculate segment start tick for current segment
+          uint32_t segment_start = 0;
+          for (int i = 0; i < active_segment_index_; ++i) {
+            segment_start += song->segments[i].GetDuration();
+          }
+          DrawPlaybackCursor(draw_list, grid_origin, total_height, segment_start);
+
+          // Auto-scroll to follow playback if enabled (only when actively playing)
+          if (is_playing_ && !is_paused_ && follow_playback_ &&
+              playback_tick_ >= segment_start) {
+            uint32_t local_tick = playback_tick_ - segment_start;
+            float cursor_x = local_tick * pixels_per_tick_;
+            float visible_width = canvas_size.x - key_width_;
+            if (cursor_x > scroll_x + visible_width - 100 ||
+                cursor_x < scroll_x + 50) {
+              ImGui::SetScrollX(std::max(0.0f, cursor_x - visible_width / 3));
             }
           }
         }
       }
-      
-      // Crosshair under mouse for alignment
-      if (ImGui::IsWindowHovered()) {
-        ImVec2 mp = ImGui::GetMousePos();
-        float rel_x = mp.x - grid_origin.x;
-        float rel_y = mp.y - grid_origin.y;
-        if (rel_x >= 0 && rel_y >= 0 && rel_y <= total_height) {
-          draw_list->AddLine(ImVec2(mp.x, grid_origin.y),
-                             ImVec2(mp.x, grid_origin.y + total_height),
-                             palette.grid_minor);
-          draw_list->AddLine(ImVec2(grid_origin.x, mp.y),
-                             ImVec2(grid_origin.x + content_width, mp.y),
-                             palette.grid_minor);
-        }
-      }
-
-      HandleMouseInput(song, active_channel_index_, active_segment_index_, grid_origin, ImVec2(content_width, total_height));
-    }
-    ImGui::EndChild();
+      ImGui::EndChild();
     
     ImGui::EndTable();
   }
 
-  // Context menu for notes
+  // === STATUS BAR (Fixed Height) ===
+  ImGui::Separator();
+  DrawStatusBar(song);
+
+  // Context menus
   if (ImGui::BeginPopup("PianoRollNoteContext")) {
     if (song && context_target_.segment >= 0 && context_target_.channel >= 0 &&
         context_target_.event_index >= 0 &&
@@ -290,24 +417,72 @@ void PianoRollView::Draw(MusicSong* song, const MusicBank* bank) {
       if (context_target_.event_index < (int)track.events.size()) {
         auto& evt = track.events[context_target_.event_index];
         if (evt.type == TrackEvent::Type::Note) {
-          ImGui::Text("Note %s", evt.note.GetNoteName().c_str());
+          ImGui::Text(ICON_MD_MUSIC_NOTE " Note %s", evt.note.GetNoteName().c_str());
+          ImGui::Text("Tick: %d", evt.tick);
           ImGui::Separator();
-          if (ImGui::MenuItem("Delete")) {
-            track.RemoveEvent(context_target_.event_index);
+
+          // Velocity slider (0-127)
+          ImGui::Text("Velocity:");
+          ImGui::SameLine();
+          int velocity = evt.note.velocity;
+          ImGui::SetNextItemWidth(120);
+          if (ImGui::SliderInt("##velocity", &velocity, 0, 127)) {
+            evt.note.velocity = static_cast<uint8_t>(velocity);
             if (on_edit_) on_edit_();
           }
-          if (ImGui::MenuItem("Set Quarter")) {
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("Articulation/velocity (0 = default)");
+          }
+
+          // Duration slider (1-192 ticks, quarter = 72)
+          ImGui::Text("Duration:");
+          ImGui::SameLine();
+          int duration = evt.note.duration;
+          ImGui::SetNextItemWidth(120);
+          if (ImGui::SliderInt("##duration", &duration, 1, 192)) {
+            evt.note.duration = static_cast<uint8_t>(duration);
+            if (on_edit_) on_edit_();
+          }
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("Duration in ticks (quarter = 72)");
+          }
+
+          ImGui::Separator();
+          ImGui::Text("Quick Duration:");
+          if (ImGui::MenuItem("Whole (288)")) {
+            evt.note.duration = 0xFE;  // Max duration
+            if (on_edit_) on_edit_();
+          }
+          if (ImGui::MenuItem("Half (144)")) {
+            evt.note.duration = 144;
+            if (on_edit_) on_edit_();
+          }
+          if (ImGui::MenuItem("Quarter (72)")) {
             evt.note.duration = kDurationQuarter;
             if (on_edit_) on_edit_();
           }
-          if (ImGui::MenuItem("Set Eighth")) {
+          if (ImGui::MenuItem("Eighth (36)")) {
             evt.note.duration = kDurationEighth;
             if (on_edit_) on_edit_();
           }
-          if (ImGui::MenuItem("Duplicate")) {
+          if (ImGui::MenuItem("Sixteenth (18)")) {
+            evt.note.duration = kDurationSixteenth;
+            if (on_edit_) on_edit_();
+          }
+          if (ImGui::MenuItem("32nd (9)")) {
+            evt.note.duration = kDurationThirtySecond;
+            if (on_edit_) on_edit_();
+          }
+
+          ImGui::Separator();
+          if (ImGui::MenuItem(ICON_MD_CONTENT_COPY " Duplicate")) {
             TrackEvent copy = evt;
             copy.tick += evt.note.duration;
             track.InsertEvent(copy);
+            if (on_edit_) on_edit_();
+          }
+          if (ImGui::MenuItem(ICON_MD_DELETE " Delete", "Del")) {
+            track.RemoveEvent(context_target_.event_index);
             if (on_edit_) on_edit_();
           }
         }
@@ -321,25 +496,36 @@ void PianoRollView::Draw(MusicSong* song, const MusicBank* bank) {
         empty_context_.segment < (int)song->segments.size() &&
         empty_context_.channel >= 0 && empty_context_.channel < 8 &&
         empty_context_.tick >= 0) {
-      ImGui::Text("Add note");
+      ImGui::Text(ICON_MD_ADD " Add Note");
       ImGui::Separator();
-      if (ImGui::MenuItem("Insert default note")) {
-        auto& t =
-            song->segments[empty_context_.segment].tracks[empty_context_.channel];
-        TrackEvent evt = TrackEvent::MakeNote(empty_context_.tick,
-                                              empty_context_.pitch,
-                                              snap_enabled_ ? snap_ticks_ : kDurationQuarter);
-        t.InsertEvent(evt);
-        if (on_edit_) on_edit_();
-        if (on_note_preview_) on_note_preview_(evt, empty_context_.segment,
-                                               empty_context_.channel);
-      }
-      if (ImGui::MenuItem("Insert quarter")) {
+      if (ImGui::MenuItem("Quarter note")) {
         auto& t =
             song->segments[empty_context_.segment].tracks[empty_context_.channel];
         TrackEvent evt = TrackEvent::MakeNote(empty_context_.tick,
                                               empty_context_.pitch,
                                               kDurationQuarter);
+        t.InsertEvent(evt);
+        if (on_edit_) on_edit_();
+        if (on_note_preview_) on_note_preview_(evt, empty_context_.segment,
+                                               empty_context_.channel);
+      }
+      if (ImGui::MenuItem("Eighth note")) {
+        auto& t =
+            song->segments[empty_context_.segment].tracks[empty_context_.channel];
+        TrackEvent evt = TrackEvent::MakeNote(empty_context_.tick,
+                                              empty_context_.pitch,
+                                              kDurationEighth);
+        t.InsertEvent(evt);
+        if (on_edit_) on_edit_();
+        if (on_note_preview_) on_note_preview_(evt, empty_context_.segment,
+                                               empty_context_.channel);
+      }
+      if (ImGui::MenuItem("Sixteenth note")) {
+        auto& t =
+            song->segments[empty_context_.segment].tracks[empty_context_.channel];
+        TrackEvent evt = TrackEvent::MakeNote(empty_context_.tick,
+                                              empty_context_.pitch,
+                                              kDurationSixteenth);
         t.InsertEvent(evt);
         if (on_edit_) on_edit_();
         if (on_note_preview_) on_note_preview_(evt, empty_context_.segment,
@@ -351,17 +537,29 @@ void PianoRollView::Draw(MusicSong* song, const MusicBank* bank) {
 }
 
 void PianoRollView::DrawToolbar(const MusicSong* song, const MusicBank* bank) {
-  ImGui::Text("Piano Roll");
+  // --- Transport Group ---
   if (song) {
-    ImGui::SameLine();
-    ImGui::TextDisabled("| %s", song->name.c_str());
+    if (ImGui::Button(ICON_MD_PLAY_ARROW)) {
+      if (on_segment_preview_) {
+        on_segment_preview_(*song, active_segment_index_);
+      }
+    }
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("Play Segment");
   }
 
-  // Segment selector
+  ImGui::SameLine();
+  ImGui::TextDisabled("|");
+  ImGui::SameLine();
+
+  // --- Song/Segment Group ---
   if (song) {
+    ImGui::TextDisabled(ICON_MD_MUSIC_NOTE);
     ImGui::SameLine();
-    ImGui::SetNextItemWidth(140.0f);
-    std::string seg_label = absl::StrFormat("Segment %d/%d##SegSelect",
+    ImGui::Text("%s", song->name.empty() ? "Untitled" : song->name.c_str());
+    
+    ImGui::SameLine();
+    ImGui::SetNextItemWidth(100.0f);
+    std::string seg_label = absl::StrFormat("Seg %d/%d",
                                             active_segment_index_ + 1,
                                             (int)song->segments.size());
     if (ImGui::BeginCombo("##SegmentSelect", seg_label.c_str())) {
@@ -377,10 +575,15 @@ void PianoRollView::DrawToolbar(const MusicSong* song, const MusicBank* bank) {
     }
   }
 
-  // Instrument Selector (New)
+  // --- Instrument Group ---
   if (bank) {
     ImGui::SameLine();
-    ImGui::SetNextItemWidth(150.0f);
+    ImGui::TextDisabled("|");
+    ImGui::SameLine();
+    
+    ImGui::TextDisabled(ICON_MD_PIANO);
+    ImGui::SameLine();
+    ImGui::SetNextItemWidth(120.0f);
     const auto* inst = bank->GetInstrument(preview_instrument_index_);
     std::string preview = inst ? absl::StrFormat("%02X: %s", preview_instrument_index_, inst->name.c_str()) 
                                : absl::StrFormat("%02X", preview_instrument_index_);
@@ -396,46 +599,170 @@ void PianoRollView::DrawToolbar(const MusicSong* song, const MusicBank* bank) {
       ImGui::EndCombo();
     }
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Select instrument for new notes / preview");
-    }
-  }
-
-  if (song) {
-    ImGui::SameLine();
-    if (ImGui::Button(ICON_MD_PLAY_ARROW " Play Segment")) {
-      if (on_segment_preview_) {
-        on_segment_preview_(*song, active_segment_index_);
-      }
+      ImGui::SetTooltip("Instrument for new notes");
     }
   }
 
   ImGui::SameLine();
-  ImGui::PushItemWidth(110);
-  ImGui::SliderFloat("Zoom X", &pixels_per_tick_, 0.5f, 10.0f, "%.1f px/tick");
+  ImGui::TextDisabled("|");
   ImGui::SameLine();
-  ImGui::SliderFloat("Zoom Y", &key_height_, 6.0f, 20.0f, "%.0f px/key");
-  ImGui::PopItemWidth();
+
+  // --- Zoom Group ---
+  ImGui::TextDisabled(ICON_MD_ZOOM_IN);
+  ImGui::SameLine();
+  ImGui::SetNextItemWidth(80);
+  ImGui::SliderFloat("##ZoomX", &pixels_per_tick_, 0.5f, 10.0f, "%.1f");
+  if (ImGui::IsItemHovered()) ImGui::SetTooltip("Horizontal Zoom (px/tick)");
+  
+  ImGui::SameLine();
+  ImGui::SetNextItemWidth(60);
+  ImGui::SliderFloat("##ZoomY", &key_height_, 6.0f, 20.0f, "%.0f");
+  if (ImGui::IsItemHovered()) ImGui::SetTooltip("Vertical Zoom (px/key)");
 
   ImGui::SameLine();
-  ImGui::Checkbox("Snap", &snap_enabled_);
+  ImGui::TextDisabled("|");
   ImGui::SameLine();
-  ImGui::SetNextItemWidth(120);
-  const char* snap_labels[] = {"1/4", "1/8", "1/16", "Off"};
+
+  // --- Snap/Grid Group ---
+  ImGui::TextDisabled(ICON_MD_GRID_ON);
+  ImGui::SameLine();
+  
+  bool snap_active = snap_enabled_;
+  if (snap_active) {
+    ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive));
+  }
+  if (ImGui::Button("Snap")) {
+    snap_enabled_ = !snap_enabled_;
+  }
+  if (snap_active) {
+    ImGui::PopStyleColor();
+  }
+  
+  ImGui::SameLine();
+  ImGui::SetNextItemWidth(70);
+  const char* snap_labels[] = {"1/4", "1/8", "1/16"};
   int snap_idx = 2;
   if (snap_ticks_ == kDurationQuarter) snap_idx = 0;
   else if (snap_ticks_ == kDurationEighth) snap_idx = 1;
-  else if (!snap_enabled_) snap_idx = 3;
 
   if (ImGui::Combo("##SnapValue", &snap_idx, snap_labels, IM_ARRAYSIZE(snap_labels))) {
-    if (snap_idx == 3) {
-      snap_enabled_ = false;
-    } else {
-      snap_enabled_ = true;
-      snap_ticks_ = (snap_idx == 0) ? kDurationQuarter
-                  : (snap_idx == 1) ? kDurationEighth
-                                    : kDurationSixteenth;
-    }
+    snap_enabled_ = true;
+    snap_ticks_ = (snap_idx == 0) ? kDurationQuarter
+                : (snap_idx == 1) ? kDurationEighth
+                                  : kDurationSixteenth;
   }
+}
+
+void PianoRollView::DrawChannelList(const MusicSong* song) {
+  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 2));
+  
+  ImGui::TextDisabled(ICON_MD_QUEUE_MUSIC " CHANNELS");
+  ImGui::Separator();
+  
+  const auto& segment = song->segments[active_segment_index_];
+  
+  for (int i = 0; i < 8; ++i) {
+    ImGui::PushID(i);
+    
+    bool is_active = (active_channel_index_ == i);
+    int note_count = CountNotesInTrack(segment.tracks[i]);
+    
+    // Highlight active channel row
+    if (is_active) {
+      ImVec2 row_min = ImGui::GetCursorScreenPos();
+      ImVec2 row_max = ImVec2(row_min.x + ImGui::GetContentRegionAvail().x, 
+                              row_min.y + ImGui::GetTextLineHeightWithSpacing() + 4);
+      ImGui::GetWindowDrawList()->AddRectFilled(row_min, row_max, 
+          IM_COL32(255, 255, 255, 20), 3.0f);
+    }
+    
+    // Color indicator
+    ImVec4 col_v4 = ImGui::ColorConvertU32ToFloat4(channel_colors_[i]);
+    if (ImGui::ColorButton("##Col", col_v4, 
+                           ImGuiColorEditFlags_NoTooltip | ImGuiColorEditFlags_NoBorder,
+                           ImVec2(14, 14))) {
+      ImGui::OpenPopup("ChannelColorPicker");
+    }
+    if (ImGui::BeginPopup("ChannelColorPicker")) {
+      if (ImGui::ColorPicker4("##picker", (float*)&col_v4, 
+                              ImGuiColorEditFlags_NoSidePreview | ImGuiColorEditFlags_NoSmallPreview)) {
+        channel_colors_[i] = ImGui::ColorConvertFloat4ToU32(col_v4);
+      }
+      ImGui::EndPopup();
+    }
+    ImGui::SameLine();
+    
+    // Visibility toggle
+    const char* vis_icon = channel_visible_[i] ? ICON_MD_VISIBILITY : ICON_MD_VISIBILITY_OFF;
+    if (ImGui::SmallButton(vis_icon)) {
+      channel_visible_[i] = !channel_visible_[i];
+    }
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("Toggle visibility");
+    ImGui::SameLine();
+    
+    // Mute button
+    bool muted = channel_muted_[i];
+    if (muted) ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.3f, 0.3f, 1.0f));
+    if (ImGui::SmallButton("M")) {
+      channel_muted_[i] = !channel_muted_[i];
+    }
+    if (muted) ImGui::PopStyleColor();
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("Mute");
+    ImGui::SameLine();
+    
+    // Solo button
+    bool solo = channel_solo_[i];
+    if (solo) ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.9f, 0.2f, 1.0f));
+    if (ImGui::SmallButton("S")) {
+      channel_solo_[i] = !channel_solo_[i];
+    }
+    if (solo) ImGui::PopStyleColor();
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("Solo");
+    ImGui::SameLine();
+    
+    // Channel name + note count
+    std::string label = absl::StrFormat("Ch%d", i + 1);
+    if (ImGui::Selectable(label.c_str(), is_active, 0, ImVec2(35, 0))) {
+      active_channel_index_ = i;
+      channel_visible_[i] = true;
+    }
+    
+    // Note count badge
+    ImGui::SameLine();
+    ImGui::TextDisabled("(%d)", note_count);
+    
+    ImGui::PopID();
+  }
+  
+  ImGui::PopStyleVar();
+  
+  // Channel controls legend
+  ImGui::Spacing();
+  ImGui::Separator();
+  ImGui::TextDisabled("M=Mute S=Solo");
+}
+
+void PianoRollView::DrawStatusBar(const MusicSong* /*song*/) {
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8, 4));
+  if (ImGui::BeginChild("##PianoRollStatusBar", ImVec2(0, kStatusBarHeight), 
+                        ImGuiChildFlags_AlwaysUseWindowPadding,
+                        ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse)) {
+    
+    // Mouse position info
+    if (status_tick_ >= 0 && status_pitch_ >= 0) {
+      ImGui::Text(ICON_MD_MOUSE " Tick: %d | Pitch: %s (%d)", 
+                  status_tick_, status_note_name_.c_str(), status_pitch_);
+    } else {
+      ImGui::TextDisabled(ICON_MD_MOUSE " Hover over grid...");
+    }
+    
+    ImGui::SameLine(ImGui::GetContentRegionAvail().x - 300);
+    
+    // Keyboard hints
+    ImGui::TextDisabled("Click: Add note | Drag: Move | Edges: Resize");
+  }
+  ImGui::EndChild();
+  ImGui::PopStyleVar();
 }
 
 void PianoRollView::HandleMouseInput(MusicSong* song, int active_channel, int active_segment,
@@ -445,9 +772,6 @@ void PianoRollView::HandleMouseInput(MusicSong* song, int active_channel, int ac
   auto& track = song->segments[active_segment].tracks[active_channel];
 
   ImVec2 mouse_pos = ImGui::GetMousePos();
-  float content_width = grid_size.x;
-  float total_height = grid_size.y;
-  int num_keys = static_cast<int>(total_height / key_height_);
 
   // Mouse to grid conversion
   float rel_x = mouse_pos.x - grid_origin.x;
@@ -455,6 +779,7 @@ void PianoRollView::HandleMouseInput(MusicSong* song, int active_channel, int ac
   int tick = static_cast<int>(std::lround(rel_x / pixels_per_tick_));
   int pitch_idx = static_cast<int>(std::lround(rel_y / key_height_));
   uint8_t pitch = static_cast<uint8_t>(kNoteMaxPitch - pitch_idx);
+  (void)grid_size;  // Used for bounds reference
 
   auto snap_tick = [this](int t) {
     if (!snap_enabled_) return t;
@@ -548,13 +873,73 @@ void PianoRollView::HandleMouseInput(MusicSong* song, int active_channel, int ac
       return;
     }
 
-    // Otherwise add a note
-    TrackEvent new_note = TrackEvent::MakeNote(tick, pitch, kDurationQuarter);
+    // Otherwise add a note with snap
+    int snapped_tick = snap_enabled_ ? snap_tick(tick) : tick;
+    TrackEvent new_note = TrackEvent::MakeNote(snapped_tick, pitch, 
+                                               snap_enabled_ ? snap_ticks_ : kDurationQuarter);
     track.InsertEvent(new_note);
     if (on_edit_) on_edit_();
     if (on_note_preview_) {
       on_note_preview_(new_note, active_segment, active_channel);
     }
+  }
+}
+
+void PianoRollView::DrawPlaybackCursor(ImDrawList* draw_list,
+                                        const ImVec2& grid_origin,
+                                        float grid_height,
+                                        uint32_t segment_start_tick) {
+  // Only draw if playback tick is in or past current segment
+  if (playback_tick_ < segment_start_tick) return;
+
+  // Calculate cursor position relative to segment start
+  uint32_t local_tick = playback_tick_ - segment_start_tick;
+  float cursor_x = grid_origin.x + local_tick * pixels_per_tick_;
+
+  // Different colors for playing vs paused state
+  ImU32 cursor_color, glow_color;
+  if (is_paused_) {
+    // Orange/amber for paused state
+    cursor_color = IM_COL32(255, 180, 50, 255);
+    glow_color = IM_COL32(255, 180, 50, 80);
+  } else {
+    // Bright red for active playback
+    cursor_color = IM_COL32(255, 100, 100, 255);
+    glow_color = IM_COL32(255, 100, 100, 80);
+  }
+
+  // Glow layer (thicker, semi-transparent)
+  draw_list->AddLine(ImVec2(cursor_x, grid_origin.y),
+                     ImVec2(cursor_x, grid_origin.y + grid_height),
+                     glow_color, 6.0f);
+
+  // Main cursor line
+  draw_list->AddLine(ImVec2(cursor_x, grid_origin.y),
+                     ImVec2(cursor_x, grid_origin.y + grid_height),
+                     cursor_color, 2.0f);
+
+  // Top indicator - triangle when playing, pause bars when paused
+  const float tri_size = 8.0f;
+  if (is_paused_) {
+    // Pause bars indicator
+    const float bar_width = 3.0f;
+    const float bar_height = tri_size * 1.5f;
+    const float bar_gap = 4.0f;
+    draw_list->AddRectFilled(
+        ImVec2(cursor_x - bar_gap - bar_width, grid_origin.y - bar_height),
+        ImVec2(cursor_x - bar_gap, grid_origin.y),
+        cursor_color);
+    draw_list->AddRectFilled(
+        ImVec2(cursor_x + bar_gap, grid_origin.y - bar_height),
+        ImVec2(cursor_x + bar_gap + bar_width, grid_origin.y),
+        cursor_color);
+  } else {
+    // Triangle indicator for active playback
+    draw_list->AddTriangleFilled(
+        ImVec2(cursor_x, grid_origin.y),
+        ImVec2(cursor_x - tri_size, grid_origin.y - tri_size),
+        ImVec2(cursor_x + tri_size, grid_origin.y - tri_size),
+        cursor_color);
   }
 }
 

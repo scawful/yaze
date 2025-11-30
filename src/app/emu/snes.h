@@ -47,6 +47,7 @@ class Snes {
   void Init(const std::vector<uint8_t>& rom_data);
   void Reset(bool hard = false);
   void RunFrame();
+  void RunAudioFrame();  // Audio-focused frame: runs CPU+APU, skips PPU rendering
   void CatchUpApu();
   void HandleInput();
   void RunCycle();
@@ -78,9 +79,12 @@ class Snes {
   absl::Status LoadLegacyState(std::istream& file);
 
   bool running() const { return running_; }
+  bool audio_only_mode() const { return audio_only_mode_; }
+  void set_audio_only_mode(bool mode) { audio_only_mode_ = mode; }
   auto cpu() -> Cpu& { return cpu_; }
   auto ppu() -> Ppu& { return ppu_; }
   auto apu() -> Apu& { return apu_; }
+  auto apu() const -> const Apu& { return apu_; }
   auto memory() -> MemoryImpl& { return memory_; }
   auto get_ram() -> uint8_t* { return ram; }
   auto mutable_cycles() -> uint64_t& { return cycles_; }
@@ -119,6 +123,7 @@ class Snes {
   std::vector<uint8_t> rom_data;
 
   bool running_ = false;
+  bool audio_only_mode_ = false;  // Skip PPU rendering for audio-focused playback
 
   // ram
   uint8_t ram[0x20000];

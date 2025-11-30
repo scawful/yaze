@@ -13,8 +13,11 @@ set(
   zelda3/dungeon/room_layout.cc
   zelda3/dungeon/room_object.cc
   zelda3/formats/offsets.cc
+  zelda3/music/asm_exporter.cc
+  zelda3/music/asm_importer.cc
   zelda3/music/music_bank.cc
   zelda3/music/spc_parser.cc
+  zelda3/music/spc_serializer.cc
   zelda3/music/tracker.cc
   zelda3/overworld/diggable_tiles.cc
   zelda3/overworld/diggable_tiles_patch.cc

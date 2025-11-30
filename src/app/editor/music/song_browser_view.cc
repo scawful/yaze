@@ -19,6 +19,82 @@ void SongBrowserView::Draw(MusicBank& bank) {
   ImGui::InputTextWithHint("##SongFilter", ICON_MD_SEARCH " Search songs...",
                            search_buffer_, sizeof(search_buffer_));
 
+  // Bank Space Management Section
+  if (ImGui::CollapsingHeader(ICON_MD_STORAGE " Bank Space")) {
+    ImGui::Indent(8.0f);
+
+    // Check for expanded music patch
+    if (bank.HasExpandedMusicPatch()) {
+      ImGui::TextColored(ImVec4(0.4f, 0.8f, 0.4f, 1.0f),
+                         ICON_MD_CHECK_CIRCLE " Oracle of Secrets expanded music detected");
+      const auto& info = bank.GetExpandedBankInfo();
+      ImGui::TextDisabled("Expanded bank at $%06X, Aux at $%06X",
+                          info.main_rom_offset, info.aux_rom_offset);
+      ImGui::Spacing();
+    }
+
+    // Display space for each bank
+    static const char* bank_names[] = {"Overworld", "Dungeon", "Credits",
+                                        "Expanded", "Auxiliary"};
+    static const MusicBank::Bank banks[] = {
+        MusicBank::Bank::Overworld, MusicBank::Bank::Dungeon,
+        MusicBank::Bank::Credits, MusicBank::Bank::OverworldExpanded,
+        MusicBank::Bank::Auxiliary};
+
+    int num_banks = bank.HasExpandedMusicPatch() ? 5 : 3;
+
+    for (int i = 0; i < num_banks; ++i) {
+      auto space = bank.CalculateSpaceUsage(banks[i]);
+      if (space.total_bytes == 0) continue;  // Skip empty/invalid banks
+
+      // Progress bar color based on usage
+      ImVec4 bar_color;
+      if (space.is_critical) {
+        bar_color = ImVec4(0.9f, 0.2f, 0.2f, 1.0f);  // Red
+      } else if (space.is_warning) {
+        bar_color = ImVec4(0.9f, 0.7f, 0.2f, 1.0f);  // Yellow
+      } else {
+        bar_color = ImVec4(0.3f, 0.7f, 0.3f, 1.0f);  // Green
+      }
+
+      ImGui::Text("%s:", bank_names[i]);
+      ImGui::SameLine(100);
+
+      // Progress bar
+      ImGui::PushStyleColor(ImGuiCol_PlotHistogram, bar_color);
+      float fraction = space.usage_percent / 100.0f;
+      std::string overlay = absl::StrFormat(
+          "%d / %d bytes (%.1f%%)", space.used_bytes, space.total_bytes,
+          space.usage_percent);
+      ImGui::ProgressBar(fraction, ImVec2(-1, 0), overlay.c_str());
+      ImGui::PopStyleColor();
+
+      // Warning/critical messages
+      if (space.is_critical) {
+        ImGui::TextColored(ImVec4(0.9f, 0.3f, 0.3f, 1.0f),
+                           ICON_MD_ERROR " %s", space.recommendation.c_str());
+      } else if (space.is_warning) {
+        ImGui::TextColored(ImVec4(0.9f, 0.7f, 0.2f, 1.0f),
+                           ICON_MD_WARNING " %s", space.recommendation.c_str());
+      }
+    }
+
+    // Overall status
+    ImGui::Spacing();
+    if (!bank.AllSongsFit()) {
+      ImGui::TextColored(ImVec4(0.9f, 0.3f, 0.3f, 1.0f),
+                         ICON_MD_ERROR " Some banks are overflowing!");
+      ImGui::TextDisabled("Songs won't fit in ROM. Remove or shorten songs.");
+    } else {
+      ImGui::TextColored(ImVec4(0.4f, 0.8f, 0.4f, 1.0f),
+                         ICON_MD_CHECK " All songs fit in ROM");
+    }
+
+    ImGui::Unindent(8.0f);
+  }
+
+  ImGui::Separator();
+
   // Toolbar
   if (ImGui::Button(ICON_MD_ADD " New Song")) {
     int new_idx = bank.CreateNewSong("New Song", MusicBank::Bank::Dungeon);
@@ -79,6 +155,10 @@ void SongBrowserView::Draw(MusicBank& bank) {
           bank.DuplicateSong(static_cast<int>(i));
           if (on_edit_) on_edit_();
         }
+        ImGui::Separator();
+        if (ImGui::MenuItem(ICON_MD_FILE_DOWNLOAD " Export to ASM...")) {
+          if (on_export_asm_) on_export_asm_(static_cast<int>(i));
+        }
         ImGui::EndPopup();
       }
     }
@@ -136,6 +216,13 @@ void SongBrowserView::Draw(MusicBank& bank) {
         if (ImGui::MenuItem(ICON_MD_DRIVE_FILE_RENAME_OUTLINE " Rename")) {
           rename_target_index_ = static_cast<int>(i);
           // TODO: Open rename popup
+        }
+        ImGui::Separator();
+        if (ImGui::MenuItem(ICON_MD_FILE_DOWNLOAD " Export to ASM...")) {
+          if (on_export_asm_) on_export_asm_(static_cast<int>(i));
+        }
+        if (ImGui::MenuItem(ICON_MD_FILE_UPLOAD " Import from ASM...")) {
+          if (on_import_asm_) on_import_asm_(static_cast<int>(i));
         }
         ImGui::Separator();
         if (ImGui::MenuItem(ICON_MD_DELETE " Delete")) {

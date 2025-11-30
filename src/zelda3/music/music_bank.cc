@@ -162,12 +162,19 @@ absl::Status MusicBank::LoadFromRom(Rom& rom) {
   songs_.clear();
   instruments_.clear();
   samples_.clear();
+  expanded_bank_info_ = ExpandedBankInfo{};
+  expanded_song_count_ = 0;
+  auxiliary_song_count_ = 0;
 
   std::vector<MusicSong> custom_songs;
   custom_songs.reserve(8);
 
-  // Load songs from each bank
-  auto status = LoadSongTable(rom, Bank::Overworld, &custom_songs);
+  // Detect Oracle of Secrets expanded music patch
+  auto status = DetectExpandedMusicPatch(rom);
+  if (!status.ok()) return status;
+
+  // Load songs from each vanilla bank
+  status = LoadSongTable(rom, Bank::Overworld, &custom_songs);
   if (!status.ok()) return status;
 
   status = LoadSongTable(rom, Bank::Dungeon, &custom_songs);
@@ -175,6 +182,12 @@ absl::Status MusicBank::LoadFromRom(Rom& rom) {
 
   status = LoadSongTable(rom, Bank::Credits, &custom_songs);
   if (!status.ok()) return status;
+
+  // Load expanded bank songs if patch detected
+  if (expanded_bank_info_.detected) {
+    status = LoadExpandedSongTable(rom, &custom_songs);
+    if (!status.ok()) return status;
+  }
 
   for (auto& song : custom_songs) {
     songs_.push_back(std::move(song));
@@ -390,6 +403,23 @@ MusicBank::SpaceInfo MusicBank::CalculateSpaceUsage(Bank bank) const {
       ? (100.0f * info.used_bytes / info.total_bytes)
       : 0.0f;
 
+  // Set warning/critical flags
+  info.is_warning = info.usage_percent > 75.0f;
+  info.is_critical = info.usage_percent > 90.0f;
+
+  // Generate recommendations
+  if (info.is_critical) {
+    if (bank == Bank::Overworld && expanded_bank_info_.detected) {
+      info.recommendation = "Move songs to Expanded bank";
+    } else if (bank == Bank::OverworldExpanded) {
+      info.recommendation = "Move songs to Auxiliary bank";
+    } else {
+      info.recommendation = "Remove or shorten songs";
+    }
+  } else if (info.is_warning) {
+    info.recommendation = "Approaching bank limit";
+  }
+
   return info;
 }
 
@@ -404,6 +434,8 @@ int MusicBank::GetBankMaxSize(Bank bank) {
     case Bank::Overworld: return kOverworldBankMaxSize;
     case Bank::Dungeon: return kDungeonBankMaxSize;
     case Bank::Credits: return kCreditsBankMaxSize;
+    case Bank::OverworldExpanded: return kExpandedOverworldBankMaxSize;
+    case Bank::Auxiliary: return kAuxBankMaxSize;
   }
   return 0;
 }
@@ -413,6 +445,8 @@ uint32_t MusicBank::GetBankRomAddress(Bank bank) {
     case Bank::Overworld: return kOverworldBankRom;
     case Bank::Dungeon: return kDungeonBankRom;
     case Bank::Credits: return kCreditsBankRom;
+    case Bank::OverworldExpanded: return kExpandedOverworldBankRom;
+    case Bank::Auxiliary: return kExpandedAuxBankRom;
   }
   return 0;
 }
@@ -440,6 +474,156 @@ void MusicBank::ClearModifications() {
 // =============================================================================
 // Private Methods
 // =============================================================================
+
+absl::Status MusicBank::DetectExpandedMusicPatch(Rom& rom) {
+  // Reset expanded bank info
+  expanded_bank_info_ = ExpandedBankInfo{};
+
+  // Check if ROM has the Oracle of Secrets expanded music hook at $008919
+  // The vanilla code at this address is NOT a JSL, but the expanded patch
+  // replaces it with: JSL LoadOverworldSongsExpanded
+  if (kExpandedMusicHookAddress >= rom.size()) {
+    return absl::OkStatus();  // ROM too small, no expanded patch
+  }
+
+  auto opcode_result = rom.ReadByte(kExpandedMusicHookAddress);
+  if (!opcode_result.ok()) {
+    return absl::OkStatus();  // Can't read, assume no patch
+  }
+
+  if (opcode_result.value() != kJslOpcode) {
+    return absl::OkStatus();  // Not a JSL, no expanded patch
+  }
+
+  // Read the JSL target address (3 bytes: low, mid, bank)
+  auto addr_low = rom.ReadByte(kExpandedMusicHookAddress + 1);
+  auto addr_mid = rom.ReadByte(kExpandedMusicHookAddress + 2);
+  auto addr_bank = rom.ReadByte(kExpandedMusicHookAddress + 3);
+
+  if (!addr_low.ok() || !addr_mid.ok() || !addr_bank.ok()) {
+    return absl::OkStatus();  // Can't read address, assume no patch
+  }
+
+  // Construct the 24-bit SNES address
+  uint32_t jsl_target = static_cast<uint32_t>(addr_low.value()) |
+                        (static_cast<uint32_t>(addr_mid.value()) << 8) |
+                        (static_cast<uint32_t>(addr_bank.value()) << 16);
+
+  // Validate the JSL target is in a reasonable range (freespace or bank $1A-$1B)
+  // Oracle of Secrets typically places the hook handler in bank $00 or $1A
+  uint8_t target_bank = (jsl_target >> 16) & 0xFF;
+  if (target_bank > 0x3F && target_bank < 0x80) {
+    return absl::OkStatus();  // Invalid bank range
+  }
+
+  // Expanded patch detected!
+  expanded_bank_info_.detected = true;
+  expanded_bank_info_.hook_address = jsl_target;
+
+  // Use known Oracle of Secrets bank locations
+  // These are the standard locations used by the Oracle of Secrets expanded music patch
+  expanded_bank_info_.main_rom_offset = kExpandedOverworldBankRom;
+  expanded_bank_info_.aux_rom_offset = kExpandedAuxBankRom;
+  expanded_bank_info_.aux_aram_address = kAuxSongTableAram;
+
+  return absl::OkStatus();
+}
+
+absl::Status MusicBank::LoadExpandedSongTable(
+    Rom& rom, std::vector<MusicSong>* custom_songs) {
+  if (!expanded_bank_info_.detected) {
+    return absl::OkStatus();  // No expanded patch, nothing to load
+  }
+
+  // Load songs from the expanded overworld bank
+  // This bank contains the Dark World songs in Oracle of Secrets
+  const uint32_t expanded_rom_offset = expanded_bank_info_.main_rom_offset;
+
+  // Read the block header: size (2 bytes) + ARAM dest (2 bytes)
+  if (expanded_rom_offset + 4 >= rom.size()) {
+    return absl::OkStatus();  // Can't read header
+  }
+
+  auto header_result = rom.ReadByteVector(expanded_rom_offset, 4);
+  if (!header_result.ok()) {
+    return absl::OkStatus();  // Can't read header
+  }
+
+  const auto& header = header_result.value();
+  uint16_t block_size = static_cast<uint16_t>(header[0]) |
+                        (static_cast<uint16_t>(header[1]) << 8);
+  uint16_t aram_dest = static_cast<uint16_t>(header[2]) |
+                       (static_cast<uint16_t>(header[3]) << 8);
+
+  // Verify this looks like a valid song bank block (dest should be $D000)
+  if (aram_dest != kSongTableAram || block_size == 0 ||
+      block_size > kExpandedOverworldBankMaxSize) {
+    return absl::OkStatus();  // Invalid header, skip expanded loading
+  }
+
+  // Use SPC bank ID 4 for expanded (same format as overworld bank 1)
+  const uint8_t expanded_spc_bank = 4;
+
+  // Read song pointers from the expanded bank
+  // Each entry is 2 bytes, count entries until we hit song data or null
+  const int max_songs = 16;  // Oracle of Secrets uses ~15 songs in expanded bank
+  auto pointer_result = SpcParser::ReadSongPointerTable(
+      rom, kSongTableAram, expanded_spc_bank, max_songs);
+
+  if (!pointer_result.ok()) {
+    // Failed to read pointers, but don't fail completely
+    return absl::OkStatus();
+  }
+
+  std::vector<uint16_t> song_addresses = std::move(pointer_result.value());
+
+  // Parse each song in the expanded bank
+  int expanded_index = 0;
+  for (const uint16_t spc_address : song_addresses) {
+    if (spc_address == 0) continue;  // Skip null entries
+
+    MusicSong song;
+    auto parsed_song =
+        SpcParser::ParseSong(rom, spc_address, expanded_spc_bank);
+    if (parsed_song.ok()) {
+      song = std::move(parsed_song.value());
+    } else {
+      // Create empty placeholder on parse failure
+      MusicSegment segment;
+      for (auto& track : segment.tracks) {
+        track.is_empty = true;
+        track.events.push_back(TrackEvent::MakeEnd(0));
+      }
+      song.segments.push_back(std::move(segment));
+    }
+
+    song.name = absl::StrFormat("Expanded Song %d", ++expanded_index);
+    song.bank = static_cast<uint8_t>(Bank::OverworldExpanded);
+    song.modified = false;
+
+    if (custom_songs) {
+      custom_songs->push_back(std::move(song));
+    } else {
+      songs_.push_back(std::move(song));
+    }
+  }
+
+  expanded_song_count_ = expanded_index;
+
+  // TODO: Load auxiliary bank songs from $2B00 if needed
+  // For now, we only load the main expanded bank
+
+  return absl::OkStatus();
+}
+
+bool MusicBank::IsExpandedSong(int index) const {
+  if (index < 0 || index >= static_cast<int>(songs_.size())) {
+    return false;
+  }
+  const auto& song = songs_[index];
+  return song.bank == static_cast<uint8_t>(Bank::OverworldExpanded) ||
+         song.bank == static_cast<uint8_t>(Bank::Auxiliary);
+}
 
 absl::Status MusicBank::LoadSongTable(Rom& rom, Bank bank,
                                       std::vector<MusicSong>* custom_songs) {
@@ -705,17 +889,65 @@ absl::Status MusicBank::SaveInstruments(Rom& rom) {
 absl::Status MusicBank::LoadSamples(Rom& rom) {
   samples_.clear();
 
-  // TODO: Load and decode BRR samples from ROM
-  // For now, create placeholders large enough for all instruments plus headroom
-  const size_t sample_count =
-      instruments_.empty() ? 32 : std::max<size_t>(instruments_.size(), 32);
-  samples_.reserve(sample_count);
+  // Read sample directory (DIR) at $3C00 in ARAM (Bank 0)
+  // Each entry is 4 bytes: [StartAddr:2][LoopAddr:2]
+  const uint16_t dir_address = kSampleTableAram;
+  int dir_length = 0;
+  const uint8_t* dir_data =
+      SpcParser::GetSpcData(rom, dir_address, 0, &dir_length);
 
-  for (size_t i = 0; i < sample_count; ++i) {
+  if (!dir_data) {
+    return absl::InternalError("Failed to locate sample directory in ROM");
+  }
+
+  // Scan directory to find max valid sample index
+  // Max size is 256 bytes (64 samples), but often smaller
+  const int max_samples = std::min(64, dir_length / 4);
+
+  for (int i = 0; i < max_samples; ++i) {
+    uint16_t start_addr = dir_data[i * 4] | (dir_data[i * 4 + 1] << 8);
+    uint16_t loop_addr = dir_data[i * 4 + 2] | (dir_data[i * 4 + 3] << 8);
+
     MusicSample sample;
-    sample.name = absl::StrFormat("Sample %02X", static_cast<int>(i));
+    sample.name = absl::StrFormat("Sample %02X", i);
+    // Store loop point as relative offset from start
+    sample.loop_point = (loop_addr >= start_addr) ? (loop_addr - start_addr) : 0;
+
+    // Resolve start address to ROM offset
+    uint32_t rom_offset = SpcParser::SpcAddressToRomOffset(rom, start_addr, 0);
+
+    if (rom_offset == 0 || rom_offset >= rom.size()) {
+      // Invalid or empty sample slot
+      samples_.push_back(std::move(sample));
+      continue;
+    }
+
+    // Read BRR blocks until END bit is set
+    const uint8_t* rom_ptr = rom.data() + rom_offset;
+    size_t remaining = rom.size() - rom_offset;
+
+    while (remaining >= 9) {
+      // Append block to BRR data
+      sample.brr_data.insert(sample.brr_data.end(), rom_ptr, rom_ptr + 9);
+
+      // Check END bit in header (bit 0)
+      if (rom_ptr[0] & 0x01) {
+        sample.loops = (rom_ptr[0] & 0x02) != 0;
+        break;
+      }
+
+      rom_ptr += 9;
+      remaining -= 9;
+    }
+
+    // Decode to PCM for visualization/editing
+    if (!sample.brr_data.empty()) {
+      sample.pcm_data = BrrCodec::Decode(sample.brr_data);
+    }
+
     samples_.push_back(std::move(sample));
   }
+
   return absl::OkStatus();
 }
 

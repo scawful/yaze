@@ -30,7 +30,9 @@ class MusicBank {
   enum class Bank : uint8_t {
     Overworld = 0,
     Dungeon = 1,
-    Credits = 2
+    Credits = 2,
+    OverworldExpanded = 3,  // Oracle of Secrets expanded dark world bank
+    Auxiliary = 4           // SONG_POINTERS_AUX bank at $2B00
   };
 
   // Space usage information
@@ -39,6 +41,18 @@ class MusicBank {
     int free_bytes;
     int total_bytes;
     float usage_percent;
+    bool is_warning = false;   // >75% usage
+    bool is_critical = false;  // >90% usage
+    std::string recommendation;
+  };
+
+  // Expanded bank detection info (Oracle of Secrets format)
+  struct ExpandedBankInfo {
+    uint32_t main_rom_offset = 0;      // SongBank_OverworldExpanded_Main
+    uint32_t aux_rom_offset = 0;       // SongBank_Overworld_Auxiliary
+    uint16_t aux_aram_address = 0;     // SONG_POINTERS_AUX ($2B00)
+    uint32_t hook_address = 0;         // LoadOverworldSongsExpanded location
+    bool detected = false;
   };
 
   MusicBank() = default;
@@ -125,6 +139,27 @@ class MusicBank {
    * @return True if vanilla, false if custom.
    */
   bool IsVanilla(int index) const;
+
+  /**
+   * @brief Check if the ROM has the Oracle of Secrets expanded music patch.
+   * @return True if expanded music is detected.
+   */
+  bool HasExpandedMusicPatch() const { return expanded_bank_info_.detected; }
+
+  /**
+   * @brief Check if a song is from an expanded bank.
+   * @param index The song index to check.
+   * @return True if the song is in OverworldExpanded or Auxiliary bank.
+   */
+  bool IsExpandedSong(int index) const;
+
+  /**
+   * @brief Get information about the expanded bank configuration.
+   * @return ExpandedBankInfo with detection details.
+   */
+  const ExpandedBankInfo& GetExpandedBankInfo() const {
+    return expanded_bank_info_;
+  }
 
   /**
    * @brief Get all songs in a specific bank.
@@ -229,6 +264,11 @@ class MusicBank {
   absl::Status LoadInstruments(Rom& rom);
   absl::Status LoadSamples(Rom& rom);
 
+  // Expanded bank detection and loading
+  absl::Status DetectExpandedMusicPatch(Rom& rom);
+  absl::Status LoadExpandedSongTable(Rom& rom,
+                                     std::vector<MusicSong>* custom_songs);
+
   // Internal saving methods
   absl::Status SaveSongTable(Rom& rom, Bank bank);
   absl::Status SaveInstruments(Rom& rom);
@@ -251,6 +291,11 @@ class MusicBank {
   int overworld_song_count_ = 0;
   int dungeon_song_count_ = 0;
   int credits_song_count_ = 0;
+  int expanded_song_count_ = 0;
+  int auxiliary_song_count_ = 0;
+
+  // Expanded bank info (Oracle of Secrets format)
+  ExpandedBankInfo expanded_bank_info_;
 
   // Helper metadata for ROM banks
   struct BankSongRange {

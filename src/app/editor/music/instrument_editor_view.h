@@ -32,6 +32,13 @@ class InstrumentEditorView {
    */
   void SetOnEditCallback(std::function<void()> callback) { on_edit_ = callback; }
 
+  /**
+   * @brief Set callback for instrument preview.
+   */
+  void SetOnPreviewCallback(std::function<void(int)> callback) {
+    on_preview_ = callback;
+  }
+
  private:
   // UI Helper methods
   void DrawInstrumentList(MusicBank& bank);
@@ -47,6 +54,7 @@ class InstrumentEditorView {
 
   // Callbacks
   std::function<void()> on_edit_;
+  std::function<void(int)> on_preview_;
 };
 
 }  // namespace music

@@ -15,6 +15,12 @@
 - STATUS: IN_PROGRESS
 - NOTES: Investigating unguarded FS APIs in web shell/WASM platform. Will add versioned project saves + persistent music/assets between sessions to unblock builds on web.
 
+### 2025-11-29 docs-janitor – Roadmap refresh (post-v0.3.9)
+- TASK: Analyze commits since v0.3.9 and refresh roadmap with new features (WASM stability, AI agent UI, music/tile16 editors), CI/release status, and GH Pages WASM build notes.
+- SCOPE: docs/internal/roadmap.md; recent commit history; CI/release workflow and web-build status
+- STATUS: IN_PROGRESS
+- NOTES: Coordinating with entry-point/flag refactor + SDL3 readiness report owned by another agent; documentation-only changes.
+
 ### 2025-11-27 docs-janitor – Public Documentation Review & WASM Guide
 - TASK: Review public docs, add WASM web app guide, consolidate outdated content, organize docs directory
 - SCOPE: docs/public/, README.md, docs directory structure, format docs organization

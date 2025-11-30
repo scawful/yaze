@@ -17,6 +17,7 @@
 #include "app/gui/core/theme_manager.h"
 #include "app/gui/core/ui_helpers.h"
 #include "imgui/imgui.h"
+#include "imgui/misc/cpp/imgui_stdlib.h"
 #include "core/project.h"
 #include "nlohmann/json.hpp"
 #include "util/log.h"
@@ -28,6 +29,29 @@
 
 namespace yaze {
 namespace editor {
+
+namespace {
+
+// Helper to extract tempo from a song's track events
+// Searches first segment for SetTempo (0xE7) command
+uint8_t GetSongTempo(const zelda3::music::MusicSong& song) {
+  constexpr uint8_t kDefaultTempo = 150;  // Default ~60 BPM
+
+  if (song.segments.empty()) return kDefaultTempo;
+
+  const auto& segment = song.segments[0];
+  for (const auto& track : segment.tracks) {
+    for (const auto& event : track.events) {
+      if (event.type == zelda3::music::TrackEvent::Type::Command &&
+          event.command.opcode == 0xE7) {  // SetTempo
+        return event.command.params[0];
+      }
+    }
+  }
+  return kDefaultTempo;
+}
+
+}  // namespace
 
 void MusicEditor::Initialize() {
   // Configure docking class for song tracker windows (like dungeon rooms)
@@ -215,6 +239,8 @@ absl::Status MusicEditor::Update() {
   if (instrument_visible && *instrument_visible) {
     if (instrument_card.Begin(instrument_visible)) {
       instrument_editor_view_.SetOnEditCallback([this]() { PushUndoState(); });
+      instrument_editor_view_.SetOnPreviewCallback(
+          [this](int index) { PreviewInstrument(index); });
       DrawInstrumentEditor();
     }
     instrument_card.End();
@@ -226,6 +252,8 @@ absl::Status MusicEditor::Update() {
   if (sample_visible && *sample_visible) {
     if (sample_card.Begin(sample_visible)) {
       sample_editor_view_.SetOnEditCallback([this]() { PushUndoState(); });
+      sample_editor_view_.SetOnPreviewCallback(
+          [this](int index) { PreviewSample(index); });
       DrawSampleEditor();
     }
     sample_card.End();
@@ -313,6 +341,9 @@ absl::Status MusicEditor::Update() {
             if (!target) return;
             PreviewSegment(*target, segment_idx);
           });
+      // Update playback state for cursor visualization
+      window.view->SetPlaybackState(is_playing_, is_paused_,
+                                    GetCurrentPlaybackTick());
       window.view->Draw(song);
     }
     window.card->End();
@@ -323,6 +354,8 @@ absl::Status MusicEditor::Update() {
       ++it;
     }
   }
+
+  DrawAsmPopups();
 
   return absl::OkStatus();
 }
@@ -560,8 +593,8 @@ void MusicEditor::DrawSongTrackerWindow(int song_index) {
 
   // Compact toolbar for this song window
   bool can_play = emulator_ && rom_;
-  bool is_playing_this_song = is_playing_ && (current_song_index_ == song_index);
-  bool is_paused_this_song = is_paused_ && (current_song_index_ == song_index);
+  bool is_playing_this_song = is_playing_ && (playing_song_index_ == song_index);
+  bool is_paused_this_song = is_paused_ && (playing_song_index_ == song_index);
 
   // === Row 1: Playback Transport ===
   if (!can_play) ImGui::BeginDisabled();
@@ -583,8 +616,7 @@ void MusicEditor::DrawSongTrackerWindow(int song_index) {
     ImGui::PopStyleColor(2);
   } else {
     if (ImGui::Button(ICON_MD_PLAY_ARROW " Play")) {
-      current_song_index_ = song_index;
-      PlaySong(song_index + 1);
+      PlaySong(song_index + 1);  // Don't modify selection, just play
     }
   }
 
@@ -605,8 +637,7 @@ void MusicEditor::DrawSongTrackerWindow(int song_index) {
       } else if (is_paused_this_song) {
         ResumeSong();
       } else {
-        current_song_index_ = song_index;
-        PlaySong(song_index + 1);
+        PlaySong(song_index + 1);  // Don't modify selection, just play
       }
     }
     // Escape: Stop
@@ -775,6 +806,9 @@ void MusicEditor::DrawPianoRollView() {
         PreviewSegment(*target, segment_idx);
       });
 
+  // Update playback state for cursor visualization
+  piano_roll_view_.SetPlaybackState(is_playing_, is_paused_, GetCurrentPlaybackTick());
+
   piano_roll_view_.Draw(song, &music_bank_);
   current_segment_index_ = piano_roll_view_.GetActiveSegment();
   current_channel_index_ = piano_roll_view_.GetActiveChannel();
@@ -859,14 +893,16 @@ void MusicEditor::DrawToolset() {
   }
   if (ImGui::IsItemHovered()) ImGui::SetTooltip("Reload from ROM");
 
-  // Interpolation Control
+  // Interpolation Control (uses member variable, synced via EnsureAudioReady)
   ImGui::SameLine();
   ImGui::SetNextItemWidth(100);
-  if (emulator_) {
-    int current_interp = emulator_->get_interpolation_type();
-    const char* items[] = {"Linear", "Hermite", "Cosine", "Cubic (Gauss)"};
-    if (ImGui::Combo("##Interp", &current_interp, items, IM_ARRAYSIZE(items))) {
-      emulator_->set_interpolation_type(current_interp);
+  {
+    const char* items[] = {"Linear", "Hermite", "Gaussian", "Cosine", "Cubic"};
+    if (ImGui::Combo("##Interp", &interpolation_type_, items, IM_ARRAYSIZE(items))) {
+      // Apply immediately if emulator is ready
+      if (emulator_ && emulator_->is_snes_initialized()) {
+        emulator_->set_interpolation_type(interpolation_type_);
+      }
     }
     if (ImGui::IsItemHovered()) ImGui::SetTooltip("Audio Interpolation Quality");
   }
@@ -1034,6 +1070,11 @@ void MusicEditor::PlaySong(int song_id) {
     return;
   }
 
+  // Stop any existing playback before starting new song
+  if (is_playing_) {
+    StopSong();
+  }
+
   // Use direct SPC mode by default (bypasses game, immediate playback)
   if (use_direct_spc_) {
     PlaySongDirect(song_id);
@@ -1041,7 +1082,7 @@ void MusicEditor::PlaySong(int song_id) {
   }
 
   // Fallback: game-based playback (requires game to be running)
-  // Auto-initialize emulator if needed
+  // Note: Game-based mode doesn't use direct SPC, so we only init emulator
   if (!emulator_->is_snes_initialized()) {
     if (!emulator_->EnsureInitialized(rom_)) {
       LOG_ERROR("MusicEditor", "Failed to initialize emulator for playback");
@@ -1049,6 +1090,9 @@ void MusicEditor::PlaySong(int song_id) {
     }
     LOG_INFO("MusicEditor", "Auto-initialized emulator for music playback");
   }
+
+  // Set interpolation type (consistent with direct SPC mode)
+  emulator_->set_interpolation_type(interpolation_type_);
 
   // Start emulator running if not already
   if (!emulator_->running()) {
@@ -1072,6 +1116,16 @@ void MusicEditor::PlaySong(int song_id) {
     LOG_INFO("MusicEditor", "Requested song %d (game-based)", song_id);
 
     is_playing_ = true;
+    is_paused_ = false;
+    playing_song_index_ = song_id - 1;  // Track which song is playing (0-based)
+
+    // Initialize playback tracking for UI cursors
+    playback_start_time_ = std::chrono::steady_clock::now();
+    playback_start_tick_ = 0;
+    playback_segment_index_ = 0;
+    auto* song = music_bank_.GetSong(playing_song_index_);
+    uint8_t tempo = song ? GetSongTempo(*song) : 150;
+    ticks_per_second_ = CalculateTicksPerSecond(tempo);
   } catch (const std::exception& e) {
     LOG_ERROR("MusicEditor", "Failed to play song: %s", e.what());
   }
@@ -1087,6 +1141,7 @@ void MusicEditor::PauseSong() {
     audio->Pause();
   }
 
+  playback_start_tick_ = GetCurrentPlaybackTick();
   is_paused_ = true;
   LOG_INFO("MusicEditor", "Paused playback");
 }
@@ -1103,6 +1158,7 @@ void MusicEditor::ResumeSong() {
     audio->Play();
   }
 
+  playback_start_time_ = std::chrono::steady_clock::now();
   is_paused_ = false;
   LOG_INFO("MusicEditor", "Resumed playback");
 }
@@ -1140,6 +1196,10 @@ void MusicEditor::StopSong() {
 
     is_playing_ = false;
     is_paused_ = false;
+    playing_song_index_ = -1;  // No song playing
+    playback_start_tick_ = 0;
+    playback_segment_index_ = 0;
+    ticks_per_second_ = 0.0f;
   } catch (const std::exception& e) {
     LOG_ERROR("MusicEditor", "Failed to stop song: %s", e.what());
   }
@@ -1180,19 +1240,16 @@ const zelda3::music::MusicInstrument* MusicEditor::ResolveInstrumentForEvent(
 void MusicEditor::PreviewNote(const zelda3::music::MusicSong& song,
                               const zelda3::music::TrackEvent& event,
                               int segment_index, int channel_index) {
-  // Authentic SPC preview - requires emulator and ROM
-  if (!emulator_ || !rom_) {
-    LOG_DEBUG("MusicEditor", "Note preview requires ROM to be loaded");
-    return;
-  }
-
   if (event.type != zelda3::music::TrackEvent::Type::Note ||
       !event.note.IsNote()) {
     return;
   }
 
-  // Ensure SPC is initialized with driver
-  InitializeDirectSpc();
+  // Single call site for audio initialization
+  if (!EnsureAudioReady()) {
+    LOG_DEBUG("MusicEditor", "Note preview: audio not ready");
+    return;
+  }
 
   auto& apu = emulator_->snes().apu();
 
@@ -1224,9 +1281,8 @@ void MusicEditor::PreviewNote(const zelda3::music::MusicSong& song,
   int inst_idx = instrument ? instrument->sample_index : 0;
   apu.WriteToDsp(ch_base + 0x04, inst_idx);  // SRCN
 
-  // Convert note pitch to SPC pitch format
-  // Note: This is a simplified conversion; actual N-SPC uses pitch tables
-  uint16_t pitch = static_cast<uint16_t>(event.note.pitch) << 4;
+  // Convert note pitch to SPC pitch format using N-SPC pitch table
+  uint16_t pitch = zelda3::music::LookupNSpcPitch(event.note.pitch);
   apu.WriteToDsp(ch_base + 0x02, pitch & 0xFF);        // P(L)
   apu.WriteToDsp(ch_base + 0x03, (pitch >> 8) & 0x3F); // P(H)
 
@@ -1234,9 +1290,14 @@ void MusicEditor::PreviewNote(const zelda3::music::MusicSong& song,
   apu.WriteToDsp(ch_base + 0x00, 0x7F);  // VOL(L)
   apu.WriteToDsp(ch_base + 0x01, 0x7F);  // VOL(R)
 
-  // Set ADSR for quick attack
-  apu.WriteToDsp(ch_base + 0x05, 0xFF);  // ADSR1: Enable ADSR, fast attack
-  apu.WriteToDsp(ch_base + 0x06, 0xE0);  // ADSR2: Sustain level
+  // Set ADSR from instrument (or use default for quick attack)
+  if (instrument) {
+    apu.WriteToDsp(ch_base + 0x05, instrument->GetADByte());  // ADSR1
+    apu.WriteToDsp(ch_base + 0x06, instrument->GetSRByte());  // ADSR2
+  } else {
+    apu.WriteToDsp(ch_base + 0x05, 0xFF);  // ADSR1: Enable ADSR, fast attack
+    apu.WriteToDsp(ch_base + 0x06, 0xE0);  // ADSR2: High sustain level
+  }
 
   // Trigger key-on for this channel only
   apu.WriteToDsp(0x4C, 1 << channel_index);  // KON register
@@ -1276,6 +1337,91 @@ void MusicEditor::PreviewSegment(const zelda3::music::MusicSong& song,
   if (song_id >= 0 && song_id < static_cast<int>(music_bank_.GetSongCount())) {
     PlaySongDirect(song_id);
   }
+}
+
+void MusicEditor::PreviewInstrument(int instrument_index) {
+  if (!EnsureAudioReady()) return;
+
+  auto& apu = emulator_->snes().apu();
+  auto* instrument = music_bank_.GetInstrument(instrument_index);
+  if (!instrument) return;
+
+  // Use Channel 0 for preview
+  int ch = 0;
+  int ch_base = ch * 0x10;
+
+  // Setup instrument on channel 0
+  apu.WriteToDsp(ch_base + 0x04, instrument->sample_index);  // SRCN
+  apu.WriteToDsp(ch_base + 0x05, instrument->GetADByte());   // ADSR1
+  apu.WriteToDsp(ch_base + 0x06, instrument->GetSRByte());   // ADSR2
+  apu.WriteToDsp(ch_base + 0x07, instrument->gain);          // GAIN
+
+  // Default middle C (C4)
+  uint16_t pitch = zelda3::music::LookupNSpcPitch(0x80 + 36);  // C4
+  // Apply pitch multiplier
+  pitch = (static_cast<uint32_t>(pitch) * instrument->pitch_mult) >> 12;
+
+  apu.WriteToDsp(ch_base + 0x02, pitch & 0xFF);
+  apu.WriteToDsp(ch_base + 0x03, (pitch >> 8) & 0x3F);
+
+  // Max volume
+  apu.WriteToDsp(ch_base + 0x00, 0x7F);
+  apu.WriteToDsp(ch_base + 0x01, 0x7F);
+
+  // Key On
+  apu.WriteToDsp(0x4C, 1 << ch);
+
+  // Run some cycles
+  for (int i = 0; i < 5000; ++i) apu.Cycle();
+
+  if (auto* audio = emulator_->audio_backend()) audio->Play();
+  emulator_->set_running(true);
+}
+
+void MusicEditor::PreviewSample(int sample_index) {
+  if (!EnsureAudioReady()) return;
+
+  auto& apu = emulator_->snes().apu();
+  auto* sample = music_bank_.GetSample(sample_index);
+  if (!sample) return;
+
+  // Upload to temp area ($8000)
+  uint16_t temp_addr = 0x8000;
+  UploadSongToAram(sample->brr_data, temp_addr);
+
+  // Update DIR[0] (Instrument 0's sample) to point to temp buffer
+  // Loop point is relative, convert to absolute ARAM address
+  uint16_t loop_addr_aram = temp_addr + sample->loop_point;
+
+  std::vector<uint8_t> dir_entry = {
+      static_cast<uint8_t>(temp_addr & 0xFF),
+      static_cast<uint8_t>(temp_addr >> 8),
+      static_cast<uint8_t>(loop_addr_aram & 0xFF),
+      static_cast<uint8_t>(loop_addr_aram >> 8)};
+  UploadSongToAram(dir_entry, 0x3C00);
+
+  // Use Channel 0
+  int ch = 0;
+  int ch_base = ch * 0x10;
+
+  // Setup for raw sample playback
+  apu.WriteToDsp(ch_base + 0x04, 0x00);  // SRCN 0
+  apu.WriteToDsp(ch_base + 0x05, 0xFF);  // ADSR1 (On, fast attack)
+  apu.WriteToDsp(ch_base + 0x06, 0xE0);  // ADSR2 (Max sustain)
+  apu.WriteToDsp(ch_base + 0x07, 0xFF);  // GAIN (Max)
+
+  uint16_t pitch = 0x1000;  // 1.0 rate
+  apu.WriteToDsp(ch_base + 0x02, pitch & 0xFF);
+  apu.WriteToDsp(ch_base + 0x03, (pitch >> 8) & 0x3F);
+
+  apu.WriteToDsp(ch_base + 0x00, 0x7F);
+  apu.WriteToDsp(ch_base + 0x01, 0x7F);
+
+  apu.WriteToDsp(0x4C, 1 << ch);
+
+  for (int i = 0; i < 5000; ++i) apu.Cycle();
+  if (auto* audio = emulator_->audio_backend()) audio->Play();
+  emulator_->set_running(true);
 }
 
 // ============================================================================
@@ -1370,6 +1516,49 @@ void MusicEditor::UploadSoundBankFromRom(uint32_t rom_offset) {
   LOG_INFO("MusicEditor", "Uploaded %d blocks to ARAM", block_count);
 }
 
+bool MusicEditor::EnsureAudioReady() {
+  if (!emulator_ || !rom_) {
+    LOG_WARN("MusicEditor", "EnsureAudioReady: No emulator or ROM");
+    return false;
+  }
+
+  // Initialize emulator if needed
+  if (!emulator_->is_snes_initialized()) {
+    if (!emulator_->EnsureInitialized(rom_)) {
+      LOG_ERROR("MusicEditor", "EnsureAudioReady: Failed to initialize emulator");
+      return false;
+    }
+    LOG_INFO("MusicEditor", "EnsureAudioReady: Emulator initialized");
+  }
+
+  // Initialize SPC with sound banks
+  if (!spc_initialized_) {
+    InitializeDirectSpc();
+    if (!spc_initialized_) {
+      LOG_ERROR("MusicEditor", "EnsureAudioReady: Failed to initialize SPC");
+      return false;
+    }
+  }
+
+  // Set interpolation type (can be changed on the fly now)
+  emulator_->set_interpolation_type(interpolation_type_);
+
+  // Ensure audio backend exists and is ready
+  if (auto* audio = emulator_->audio_backend()) {
+    // Stop any other audio that might be playing from other editors
+    // This ensures only the music editor controls audio
+    if (!audio_ready_) {
+      LOG_INFO("MusicEditor", "EnsureAudioReady: Audio system ready");
+      audio_ready_ = true;
+    }
+  } else {
+    LOG_ERROR("MusicEditor", "EnsureAudioReady: No audio backend available");
+    return false;
+  }
+
+  return true;
+}
+
 void MusicEditor::InitializeDirectSpc() {
   if (!emulator_ || !rom_) return;
   if (spc_initialized_) return;
@@ -1406,21 +1595,11 @@ void MusicEditor::InitializeDirectSpc() {
 }
 
 void MusicEditor::PlaySongDirect(int song_id) {
-  if (!emulator_ || !rom_) {
-    LOG_WARN("MusicEditor", "Cannot play direct - no emulator/ROM");
+  // Single call site for audio initialization
+  if (!EnsureAudioReady()) {
+    LOG_WARN("MusicEditor", "Cannot play direct - audio not ready");
     return;
   }
-
-  // Ensure emulator is initialized
-  if (!emulator_->is_snes_initialized()) {
-    if (!emulator_->EnsureInitialized(rom_)) {
-      LOG_ERROR("MusicEditor", "Failed to initialize emulator");
-      return;
-    }
-  }
-
-  // Initialize SPC with common bank and bootstrap driver if needed
-  InitializeDirectSpc();
 
   // Get song info
   auto* song = music_bank_.GetSong(song_id - 1);  // Convert to 0-based index
@@ -1538,9 +1717,18 @@ void MusicEditor::PlaySongDirect(int song_id) {
   emulator_->set_running(true);
   is_playing_ = true;
   is_paused_ = false;
+  playing_song_index_ = song_id - 1;  // Track which song is playing (0-based)
 
-  LOG_INFO("MusicEditor", "PlaySongDirect complete - audio focus mode, %.2fx speed",
-           playback_speed_);
+  // Initialize playback position tracking for piano roll cursor
+  playback_start_time_ = std::chrono::steady_clock::now();
+  playback_start_tick_ = 0;
+  playback_segment_index_ = 0;
+  uint8_t tempo = GetSongTempo(*song);
+  ticks_per_second_ = CalculateTicksPerSecond(tempo);
+
+  LOG_INFO("MusicEditor", "PlaySongDirect complete - audio focus mode, %.2fx speed, "
+           "tempo=%d (%.1f ticks/sec)",
+           playback_speed_, tempo, ticks_per_second_);
 }
 
 // ============================================================================
@@ -1588,18 +1776,32 @@ void MusicEditor::ExportSongToAsm(int song_index) {
 }
 
 void MusicEditor::ImportSongFromAsm(int song_index) {
-  auto* song = music_bank_.GetSong(song_index);
-  if (!song) {
-    LOG_WARN("MusicEditor", "ImportSongFromAsm: Invalid song index %d", song_index);
+  asm_import_target_index_ = song_index;
+
+  // If no source is present, open the import dialog for user input
+  if (asm_buffer_.empty()) {
+    LOG_INFO("MusicEditor", "No ASM source to import - showing import dialog");
+    asm_import_error_.clear();
+    show_asm_import_popup_ = true;
     return;
   }
 
-  // Check if we have ASM source to import
-  if (asm_buffer_.empty()) {
-    LOG_INFO("MusicEditor", "No ASM source to import - showing import dialog");
+  // Attempt immediate import using existing buffer
+  if (!ImportAsmBufferToSong(song_index)) {
     show_asm_import_popup_ = true;
-    asm_import_target_index_ = song_index;
     return;
+  }
+
+  show_asm_import_popup_ = false;
+  asm_import_target_index_ = -1;
+}
+
+bool MusicEditor::ImportAsmBufferToSong(int song_index) {
+  auto* song = music_bank_.GetSong(song_index);
+  if (!song) {
+    asm_import_error_ = absl::StrFormat("Invalid song index %d", song_index);
+    LOG_WARN("MusicEditor", "%s", asm_import_error_.c_str());
+    return false;
   }
 
   // Configure import options
@@ -1611,9 +1813,10 @@ void MusicEditor::ImportSongFromAsm(int song_index) {
   zelda3::music::AsmImporter importer;
   auto result = importer.ImportSong(asm_buffer_, options);
   if (!result.ok()) {
+    asm_import_error_ = result.status().message();
     LOG_ERROR("MusicEditor", "ImportSongFromAsm failed: %s",
-              result.status().message().data());
-    return;
+              asm_import_error_.c_str());
+    return false;
   }
 
   // Log any warnings
@@ -1635,6 +1838,8 @@ void MusicEditor::ImportSongFromAsm(int song_index) {
 
   // Notify that edits occurred
   PushUndoState();
+  asm_import_error_.clear();
+  return true;
 }
 
 // ============================================================================
@@ -1648,18 +1853,10 @@ void MusicEditor::PreviewCustomSong(int song_index) {
     return;
   }
 
-  if (!emulator_ || !rom_) {
-    LOG_WARN("MusicEditor", "PreviewCustomSong: No emulator/ROM available");
+  // Single call site for audio initialization
+  if (!EnsureAudioReady()) {
+    LOG_WARN("MusicEditor", "PreviewCustomSong: audio not ready");
     return;
-  }
-
-  // Ensure emulator is initialized with sound bank
-  if (!spc_initialized_) {
-    InitializeDirectSpc();
-    if (!spc_initialized_) {
-      LOG_ERROR("MusicEditor", "Failed to initialize SPC for custom preview");
-      return;
-    }
   }
 
   // Serialize the song to N-SPC format
@@ -1710,8 +1907,17 @@ void MusicEditor::PreviewCustomSong(int song_index) {
   emulator_->set_running(true);
   is_playing_ = true;
   is_paused_ = false;
+  playing_song_index_ = song_index;  // Track which song is playing (0-based)
 
-  LOG_INFO("MusicEditor", "Custom song preview started - audio focus mode");
+  // Initialize playback position tracking for piano roll cursor
+  playback_start_time_ = std::chrono::steady_clock::now();
+  playback_start_tick_ = 0;
+  playback_segment_index_ = 0;
+  uint8_t tempo = GetSongTempo(*song);
+  ticks_per_second_ = CalculateTicksPerSecond(tempo);
+
+  LOG_INFO("MusicEditor", "Custom song preview started - audio focus mode, "
+           "tempo=%d (%.1f ticks/sec)", tempo, ticks_per_second_);
 }
 
 void MusicEditor::UploadSongToAram(const std::vector<uint8_t>& data,
@@ -1730,6 +1936,216 @@ void MusicEditor::UploadSongToAram(const std::vector<uint8_t>& data,
 
   LOG_INFO("MusicEditor", "Uploaded %zu bytes to ARAM $%04X",
            data.size(), aram_address);
+}
+
+// ============================================================================
+// Playback Position Tracking
+// ============================================================================
+
+float MusicEditor::CalculateTicksPerSecond(uint8_t tempo) const {
+  // N-SPC tempo formula:
+  // - Tempo value is in units of 0.4 BPM
+  // - So BPM = tempo * 0.4
+  // - Ticks per beat = 72 (quarter note in N-SPC)
+  //
+  // Examples:
+  //   tempo = 150 -> BPM = 60, ticks/sec = 72
+  //   tempo = 250 -> BPM = 100, ticks/sec = 120
+  //   tempo = 100 -> BPM = 40, ticks/sec = 48
+
+  if (tempo == 0) return 72.0f;  // Default to 60 BPM equivalent
+
+  float bpm = tempo * 0.4f;
+  float beats_per_second = bpm / 60.0f;
+  return beats_per_second * 72.0f;  // 72 ticks per quarter note
+}
+
+void MusicEditor::UpdatePlaybackPosition() {
+  if (!is_playing_ || is_paused_) return;
+
+  // Calculate elapsed time since playback started
+  auto now = std::chrono::steady_clock::now();
+  auto elapsed = std::chrono::duration<float>(now - playback_start_time_);
+
+  // Apply playback speed multiplier
+  float effective_elapsed = elapsed.count() * playback_speed_;
+
+  // Convert to ticks
+  uint32_t elapsed_ticks = static_cast<uint32_t>(effective_elapsed * ticks_per_second_);
+
+  // Current tick is start tick + elapsed ticks
+  // (Note: for now we don't track segment boundaries, but this provides
+  // a foundation for the piano roll cursor)
+}
+
+uint32_t MusicEditor::GetCurrentPlaybackTick() const {
+  if (!is_playing_) return 0;
+  if (is_paused_) return playback_start_tick_;
+
+  auto now = std::chrono::steady_clock::now();
+  auto elapsed = std::chrono::duration<float>(now - playback_start_time_);
+
+  // Apply playback speed
+  float effective_elapsed = elapsed.count() * playback_speed_;
+
+  // Convert to ticks and add to start position
+  uint32_t elapsed_ticks = static_cast<uint32_t>(effective_elapsed * ticks_per_second_);
+  return playback_start_tick_ + elapsed_ticks;
+}
+
+void MusicEditor::SeekToSegment(int segment_index) {
+  auto* song = music_bank_.GetSong(current_song_index_);
+  if (!song || segment_index < 0 ||
+      segment_index >= static_cast<int>(song->segments.size())) {
+    LOG_WARN("MusicEditor", "SeekToSegment: Invalid segment %d", segment_index);
+    return;
+  }
+
+  if (!emulator_ || !spc_initialized_) {
+    LOG_WARN("MusicEditor", "SeekToSegment: Emulator not ready");
+    return;
+  }
+
+  // Calculate tick offset for this segment
+  uint32_t tick_offset = 0;
+  for (int i = 0; i < segment_index; ++i) {
+    tick_offset += song->segments[i].GetDuration();
+  }
+
+  // Update segment tracking
+  playback_segment_index_ = segment_index;
+  playback_start_tick_ = tick_offset;
+
+  // Serialize from this segment onwards
+  uint16_t base_aram_address = zelda3::music::kSongTableAram;
+  auto result = zelda3::music::SpcSerializer::SerializeSongFromSegment(
+      *song, segment_index, base_aram_address);
+
+  if (!result.ok()) {
+    LOG_ERROR("MusicEditor", "SeekToSegment: Serialize failed: %s",
+              result.status().message().data());
+    return;
+  }
+
+  // Stop current playback
+  auto& apu = emulator_->snes().apu();
+  apu.in_ports_[0] = 0x00;  // Stop
+  apu.in_ports_[1] = 0xFF;
+  for (int i = 0; i < 8000; i++) {
+    apu.Cycle();
+  }
+
+  // Upload new data
+  UploadSongToAram(result->data, result->base_address);
+
+  // Restart playback
+  static uint8_t trigger_byte = 0x00;
+  trigger_byte ^= 0x01;
+  apu.in_ports_[0] = 1;
+  apu.in_ports_[1] = trigger_byte;
+
+  // Run cycles to start
+  for (int i = 0; i < 16000; i++) {
+    apu.Cycle();
+  }
+
+  // Reset timing from this segment
+  playback_start_time_ = std::chrono::steady_clock::now();
+
+  // Update tempo from segment (use first track's tempo if available)
+  const auto& segment = song->segments[segment_index];
+  if (!segment.tracks.empty()) {
+    for (const auto& event : segment.tracks[0].events) {
+      if (event.type == zelda3::music::TrackEvent::Type::Command &&
+          event.command.opcode == 0xE7) {  // Tempo command
+        ticks_per_second_ = CalculateTicksPerSecond(event.command.params[0]);
+        break;
+      }
+    }
+  }
+
+  LOG_INFO("MusicEditor", "Seeked to segment %d (tick %u)",
+           segment_index, tick_offset);
+}
+
+void MusicEditor::DrawAsmPopups() {
+  if (show_asm_export_popup_) {
+    ImGui::OpenPopup("Export Song ASM");
+    show_asm_export_popup_ = false;
+  }
+  if (show_asm_import_popup_) {
+    ImGui::OpenPopup("Import Song ASM");
+    // Keep flag true until user closes
+  }
+
+  if (ImGui::BeginPopupModal("Export Song ASM", nullptr,
+                             ImGuiWindowFlags_AlwaysAutoResize)) {
+    ImGui::TextWrapped("Copy the generated ASM below or tweak before saving.");
+    ImGui::InputTextMultiline("##AsmExportText", &asm_buffer_,
+                              ImVec2(520, 260),
+                              ImGuiInputTextFlags_AllowTabInput);
+
+    if (ImGui::Button("Copy to Clipboard")) {
+      ImGui::SetClipboardText(asm_buffer_.c_str());
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Close")) {
+      ImGui::CloseCurrentPopup();
+    }
+
+    ImGui::EndPopup();
+  }
+
+  if (ImGui::BeginPopupModal("Import Song ASM", nullptr,
+                             ImGuiWindowFlags_AlwaysAutoResize)) {
+    int song_slot = (asm_import_target_index_ >= 0)
+                        ? asm_import_target_index_ + 1
+                        : -1;
+    if (song_slot > 0) {
+      ImGui::Text("Target Song: [%02X]", song_slot);
+    } else {
+      ImGui::TextDisabled("Select a song to import into");
+    }
+    ImGui::TextWrapped("Paste Oracle of Secrets-compatible ASM here.");
+
+    ImGui::InputTextMultiline("##AsmImportText", &asm_buffer_,
+                              ImVec2(520, 260),
+                              ImGuiInputTextFlags_AllowTabInput);
+
+    if (!asm_import_error_.empty()) {
+      ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.9f, 0.3f, 0.3f, 1.0f));
+      ImGui::TextWrapped("%s", asm_import_error_.c_str());
+      ImGui::PopStyleColor();
+    }
+
+    bool can_import = asm_import_target_index_ >= 0 && !asm_buffer_.empty();
+    if (!can_import) {
+      ImGui::BeginDisabled();
+    }
+    if (ImGui::Button("Import")) {
+      if (ImportAsmBufferToSong(asm_import_target_index_)) {
+        show_asm_import_popup_ = false;
+        asm_import_target_index_ = -1;
+        ImGui::CloseCurrentPopup();
+      }
+    }
+    if (!can_import) {
+      ImGui::EndDisabled();
+    }
+
+    ImGui::SameLine();
+    if (ImGui::Button("Cancel")) {
+      asm_import_error_.clear();
+      show_asm_import_popup_ = false;
+      asm_import_target_index_ = -1;
+      ImGui::CloseCurrentPopup();
+    }
+
+    ImGui::EndPopup();
+  } else if (!show_asm_import_popup_) {
+    // Clear stale error when popup is closed
+    asm_import_error_.clear();
+  }
 }
 
 }  // namespace editor

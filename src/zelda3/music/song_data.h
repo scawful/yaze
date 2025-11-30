@@ -90,6 +90,62 @@ constexpr int kDungeonBankMaxSize = 11200;
 constexpr int kCreditsBankMaxSize = 4200;
 
 // =============================================================================
+// N-SPC Pitch Table
+// =============================================================================
+
+// N-SPC pitch table - maps note values 0x80-0xC7 to DSP pitch register values.
+// The DSP pitch is a 14-bit value where 0x1000 = base sample rate (32kHz).
+// Values derived from ALTTP N-SPC driver analysis.
+// Notes: C1 ($80) through B6 ($C7) = 72 entries, each octave doubles.
+constexpr uint16_t kNSpcPitchTable[72] = {
+    // Octave 1: C1-B1 (note $80-$8B)
+    0x0086, 0x008E, 0x0096, 0x009F, 0x00A9, 0x00B3,
+    0x00BE, 0x00C9, 0x00D6, 0x00E3, 0x00F1, 0x00FF,
+    // Octave 2: C2-B2 (note $8C-$97)
+    0x010C, 0x011C, 0x012C, 0x013E, 0x0152, 0x0166,
+    0x017C, 0x0192, 0x01AC, 0x01C6, 0x01E2, 0x01FE,
+    // Octave 3: C3-B3 (note $98-$A3)
+    0x0218, 0x0238, 0x0258, 0x027C, 0x02A4, 0x02CC,
+    0x02F8, 0x0324, 0x0358, 0x038C, 0x03C4, 0x03FC,
+    // Octave 4: C4-B4 (note $A4-$AF)
+    0x0430, 0x0470, 0x04B0, 0x04F8, 0x0548, 0x0598,
+    0x05F0, 0x0648, 0x06B0, 0x0718, 0x0788, 0x07F8,
+    // Octave 5: C5-B5 (note $B0-$BB)
+    0x0860, 0x08E0, 0x0960, 0x09F0, 0x0A90, 0x0B30,
+    0x0BE0, 0x0C90, 0x0D60, 0x0E30, 0x0F10, 0x0FF0,
+    // Octave 6: C6-B6 (note $BC-$C7)
+    0x10C0, 0x11C0, 0x12C0, 0x13E0, 0x1520, 0x1660,
+    0x17C0, 0x1920, 0x1AC0, 0x1C60, 0x1E20, 0x1FE0,
+};
+
+/**
+ * @brief Look up the DSP pitch value for an N-SPC note byte.
+ * @param note_byte The note value (0x80-0xC7 for C1-B6).
+ * @return The DSP pitch register value, or 0x1000 (base) for invalid notes.
+ */
+inline uint16_t LookupNSpcPitch(uint8_t note_byte) {
+  if (note_byte < kNoteMinPitch || note_byte > kNoteMaxPitch) {
+    return 0x1000;  // Base pitch for invalid notes
+  }
+  return kNSpcPitchTable[note_byte - kNoteMinPitch];
+}
+
+// =============================================================================
+// Expanded Bank Constants (Oracle of Secrets format)
+// =============================================================================
+
+// Oracle of Secrets expanded music system addresses
+constexpr uint32_t kExpandedOverworldBankRom = 0x1A9EF5;  // SongBank_OverworldExpanded_Main
+constexpr uint32_t kExpandedAuxBankRom = 0x1ACCA7;        // SongBank_Overworld_Auxiliary
+constexpr uint16_t kAuxSongTableAram = 0x2B00;            // SONG_POINTERS_AUX
+constexpr int kExpandedOverworldBankMaxSize = 0x2DAE;     // ~11KB
+constexpr int kAuxBankMaxSize = 0x0688;                   // ~1.6KB
+
+// Hook point for expanded music detection
+constexpr uint32_t kExpandedMusicHookAddress = 0x008919;  // LoadOverworldSongs
+constexpr uint8_t kJslOpcode = 0x22;                      // JSL instruction
+
+// =============================================================================
 // Command Types
 // =============================================================================
 

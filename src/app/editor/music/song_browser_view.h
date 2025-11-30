@@ -54,6 +54,20 @@ class SongBrowserView {
     on_open_piano_roll_ = callback;
   }
 
+  /**
+   * @brief Set callback for exporting a song to ASM.
+   */
+  void SetOnExportAsm(std::function<void(int)> callback) {
+    on_export_asm_ = callback;
+  }
+
+  /**
+   * @brief Set callback for importing ASM to a song.
+   */
+  void SetOnImportAsm(std::function<void(int)> callback) {
+    on_import_asm_ = callback;
+  }
+
   int GetSelectedSongIndex() const { return selected_song_index_; }
   void SetSelectedSongIndex(int index) { selected_song_index_ = index; }
 
@@ -70,6 +84,8 @@ class SongBrowserView {
   std::function<void(int)> on_song_selected_;
   std::function<void(int)> on_open_tracker_;
   std::function<void(int)> on_open_piano_roll_;
+  std::function<void(int)> on_export_asm_;
+  std::function<void(int)> on_import_asm_;
   std::function<void()> on_edit_;
   
   // State

@@ -56,13 +56,34 @@ class PianoRollView {
   // Get the selected instrument for preview/insertion
   int GetPreviewInstrument() const { return preview_instrument_index_; }
 
+  // Playback cursor support
+  void SetPlaybackState(bool is_playing, bool is_paused, uint32_t current_tick) {
+    is_playing_ = is_playing;
+    is_paused_ = is_paused;
+    playback_tick_ = current_tick;
+  }
+
+  void SetFollowPlayback(bool follow) { follow_playback_ = follow; }
+  bool IsFollowingPlayback() const { return follow_playback_; }
+  bool IsPlaying() const { return is_playing_; }
+  bool IsPaused() const { return is_paused_; }
+
  private:
   // UI Helper methods
   void DrawToolbar(const zelda3::music::MusicSong* song, const zelda3::music::MusicBank* bank);
+  void DrawChannelList(const zelda3::music::MusicSong* song);
+  void DrawStatusBar(const zelda3::music::MusicSong* song);
+  void DrawPlaybackCursor(ImDrawList* draw_list, const ImVec2& grid_origin,
+                          float grid_height, uint32_t segment_start_tick);
 
   // Input Handling
   void HandleMouseInput(zelda3::music::MusicSong* song, int active_channel, int active_segment,
                         const ImVec2& grid_origin, const ImVec2& grid_size);
+
+  // Layout constants
+  static constexpr float kToolbarHeight = 32.0f;
+  static constexpr float kStatusBarHeight = 24.0f;
+  static constexpr float kChannelListWidth = 180.0f;
 
   // State
   int active_channel_index_ = 0;
@@ -79,6 +100,8 @@ class PianoRollView {
 
   // Channel State
   std::vector<bool> channel_visible_ = std::vector<bool>(8, true);
+  std::vector<bool> channel_muted_ = std::vector<bool>(8, false);
+  std::vector<bool> channel_solo_ = std::vector<bool>(8, false);
   std::vector<ImU32> channel_colors_;
 
   // Editing State
@@ -89,6 +112,11 @@ class PianoRollView {
   int hovered_event_index_ = -1;
   int hovered_channel_index_ = -1;
   int hovered_segment_index_ = -1;
+
+  // Status bar state (mouse position in grid coordinates)
+  int status_tick_ = -1;
+  int status_pitch_ = -1;
+  std::string status_note_name_;
 
   // Drag state for HandleMouseInput
   int dragging_event_index_ = -1;
@@ -117,6 +145,11 @@ class PianoRollView {
   std::function<void(const zelda3::music::TrackEvent&, int segment_index, int channel_index)>
       on_note_preview_;
   std::function<void(const zelda3::music::MusicSong&, int segment_index)> on_segment_preview_;
+
+  // Playback state
+  bool is_playing_ = false;
+  bool is_paused_ = false;
+  uint32_t playback_tick_ = 0;
 };
 
 }  // namespace music
