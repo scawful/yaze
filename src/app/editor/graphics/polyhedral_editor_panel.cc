@@ -242,6 +242,8 @@ void PolyhedralEditorPanel::DrawShapeEditor(PolyShape& shape) {
     ImGui::TableNextColumn();
     DrawPlot("XY (X vs Y)", PlotPlane::kXY, shape);
     DrawPlot("XZ (X vs Z)", PlotPlane::kXZ, shape);
+    ImGui::Spacing();
+    DrawPreview(shape);
     ImGui::EndTable();
   }
 }
@@ -377,6 +379,138 @@ void PolyhedralEditorPanel::DrawPlot(const char* label, PlotPlane plane,
         }
       }
     }
+    ImPlot::EndPlot();
+  }
+}
+
+void PolyhedralEditorPanel::DrawPreview(PolyShape& shape) {
+  if (shape.vertices.empty() || shape.faces.empty()) {
+    return;
+  }
+
+  static float rot_x = 0.35f;
+  static float rot_y = -0.4f;
+  static float rot_z = 0.0f;
+  static float zoom = 1.0f;
+
+  ImGui::TextUnformatted("Preview (orthographic)");
+  ImGui::SetNextItemWidth(120);
+  ImGui::SliderFloat("Rot X", &rot_x, -3.14f, 3.14f, "%.2f");
+  ImGui::SameLine();
+  ImGui::SetNextItemWidth(120);
+  ImGui::SliderFloat("Rot Y", &rot_y, -3.14f, 3.14f, "%.2f");
+  ImGui::SameLine();
+  ImGui::SetNextItemWidth(120);
+  ImGui::SliderFloat("Rot Z", &rot_z, -3.14f, 3.14f, "%.2f");
+  ImGui::SameLine();
+  ImGui::SetNextItemWidth(100);
+  ImGui::SliderFloat("Zoom", &zoom, 0.5f, 3.0f, "%.2f");
+
+  // Precompute rotated vertices
+  struct RotV {
+    double x;
+    double y;
+    double z;
+  };
+  std::vector<RotV> rotated(shape.vertices.size());
+
+  const double cx = std::cos(rot_x);
+  const double sx = std::sin(rot_x);
+  const double cy = std::cos(rot_y);
+  const double sy = std::sin(rot_y);
+  const double cz = std::cos(rot_z);
+  const double sz = std::sin(rot_z);
+
+  for (size_t i = 0; i < shape.vertices.size(); ++i) {
+    const auto& v = shape.vertices[i];
+    double x = v.x;
+    double y = v.y;
+    double z = v.z;
+
+    // Rotate around X
+    double y1 = y * cx - z * sx;
+    double z1 = y * sx + z * cx;
+    // Rotate around Y
+    double x2 = x * cy + z1 * sy;
+    double z2 = -x * sy + z1 * cy;
+    // Rotate around Z
+    double x3 = x2 * cz - y1 * sz;
+    double y3 = x2 * sz + y1 * cz;
+
+    rotated[i] = {x3 * zoom, y3 * zoom, z2 * zoom};
+  }
+
+  struct FaceDepth {
+    double depth;
+    size_t idx;
+  };
+  std::vector<FaceDepth> order;
+  order.reserve(shape.faces.size());
+  for (size_t i = 0; i < shape.faces.size(); ++i) {
+    double accum = 0.0;
+    for (auto idx : shape.faces[i].vertex_indices) {
+      if (idx < rotated.size()) {
+        accum += rotated[idx].z;
+      }
+    }
+    double avg = shape.faces[i].vertex_indices.empty()
+                     ? 0.0
+                     : accum / static_cast<double>(shape.faces[i].vertex_indices.size());
+    order.push_back({avg, i});
+  }
+
+  std::sort(order.begin(), order.end(),
+            [](const FaceDepth& a, const FaceDepth& b) {
+              return a.depth < b.depth;  // back to front
+            });
+
+  ImVec2 preview_size(-1, 260);
+  ImPlotFlags flags = ImPlotFlags_NoLegend | ImPlotFlags_Equal;
+  if (ImPlot::BeginPlot("PreviewXY", preview_size, flags)) {
+    ImPlot::SetupAxes(nullptr, nullptr, ImPlotAxisFlags_NoDecorations,
+                      ImPlotAxisFlags_NoDecorations);
+    ImPlot::SetupAxisLimits(ImAxis_X1, -120, 120, ImGuiCond_Always);
+    ImPlot::SetupAxisLimits(ImAxis_Y1, -120, 120, ImGuiCond_Always);
+
+    ImDrawList* dl = ImPlot::GetPlotDrawList();
+    ImVec4 base_color = ImVec4(0.8f, 0.9f, 1.0f, 0.55f);
+
+    for (const auto& fd : order) {
+      const auto& face = shape.faces[fd.idx];
+      if (face.vertex_indices.size() < 3) {
+        continue;
+      }
+
+      std::vector<ImVec2> pts;
+      pts.reserve(face.vertex_indices.size());
+
+      for (auto idx : face.vertex_indices) {
+        if (idx >= rotated.size()) {
+          continue;
+        }
+        ImVec2 p = ImPlot::PlotToPixels(rotated[idx].x, rotated[idx].y);
+        pts.push_back(p);
+      }
+
+      if (pts.size() < 3) {
+        continue;
+      }
+
+      ImU32 fill_col = ImGui::GetColorU32(base_color);
+      ImU32 line_col = ImGui::GetColorU32(ImVec4(0.2f, 0.4f, 0.6f, 1.0f));
+      dl->AddConvexPolyFilled(pts.data(), static_cast<int>(pts.size()),
+                              fill_col);
+      dl->AddPolyline(pts.data(), static_cast<int>(pts.size()), line_col,
+                      ImDrawFlags_Closed, 2.0f);
+    }
+
+    // Draw vertices as dots
+    for (size_t i = 0; i < rotated.size(); ++i) {
+      ImVec2 p = ImPlot::PlotToPixels(rotated[i].x, rotated[i].y);
+      ImU32 col = ImGui::GetColorU32(kVertexColor);
+      dl->AddCircleFilled(p, 4.0f, col);
+    }
+
     ImPlot::EndPlot();
   }
 }

@@ -53,6 +53,7 @@ class PolyhedralEditorPanel {
   void DrawVertexList(PolyShape& shape);
   void DrawFaceList(PolyShape& shape);
   void DrawPlot(const char* label, PlotPlane plane, PolyShape& shape);
+  void DrawPreview(PolyShape& shape);
 
   uint32_t TablePc() const;
 
