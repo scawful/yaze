@@ -136,16 +136,50 @@ void PianoRollView::Draw(MusicSong* song, const MusicBank* bank) {
     hovered_channel_index_ = -1;
     hovered_segment_index_ = -1;
 
-    if (ImGui::BeginChild("PianoRollCanvas", ImVec2(0, -kStatusBarHeight), 
-                          ImGuiChildFlags_Borders, 
-                          ImGuiWindowFlags_HorizontalScrollbar)) {
+    // Use AlwaysVerticalScrollbar to ensure proper scroll behavior on resize
+    // AlwaysUseWindowPadding helps with consistent layout
+    if (ImGui::BeginChild("PianoRollCanvas", ImVec2(0, -kStatusBarHeight),
+                          ImGuiChildFlags_Borders | ImGuiChildFlags_AlwaysUseWindowPadding,
+                          ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
         ImDrawList* draw_list = ImGui::GetWindowDrawList();
         ImVec2 canvas_pos = ImGui::GetCursorScreenPos();
         ImVec2 canvas_size = ImGui::GetContentRegionAvail();
         
         float scroll_x = ImGui::GetScrollX();
         float scroll_y = ImGui::GetScrollY();
-        
+
+        // Mouse wheel zoom support (Ctrl+Wheel = horizontal, Shift+Wheel = vertical)
+        if (ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows)) {
+          float wheel = ImGui::GetIO().MouseWheel;
+          if (wheel != 0.0f) {
+            bool ctrl = ImGui::GetIO().KeyCtrl;
+            bool shift = ImGui::GetIO().KeyShift;
+            if (ctrl) {
+              // Horizontal zoom
+              float old_ppt = pixels_per_tick_;
+              pixels_per_tick_ = std::clamp(pixels_per_tick_ + wheel * 0.5f, 0.5f, 10.0f);
+              // Adjust scroll to keep mouse position stable
+              ImVec2 mouse = ImGui::GetMousePos();
+              float rel_x = mouse.x - canvas_pos.x + scroll_x;
+              float new_scroll_x = rel_x * (pixels_per_tick_ / old_ppt) - (mouse.x - canvas_pos.x);
+              ImGui::SetScrollX(std::max(0.0f, new_scroll_x));
+            } else if (shift) {
+              // Vertical zoom
+              float old_kh = key_height_;
+              key_height_ = std::clamp(key_height_ + wheel * 2.0f, 6.0f, 20.0f);
+              // Adjust scroll to keep mouse position stable
+              ImVec2 mouse = ImGui::GetMousePos();
+              float rel_y = mouse.y - canvas_pos.y + scroll_y;
+              float new_scroll_y = rel_y * (key_height_ / old_kh) - (mouse.y - canvas_pos.y);
+              ImGui::SetScrollY(std::max(0.0f, new_scroll_y));
+            }
+            // Note: Without modifiers, let ImGui handle normal scrolling
+          }
+        }
+
+        // Recalculate total_height after potential zoom changes
+        total_height = (kNoteMaxPitch - kNoteMinPitch + 1) * key_height_;
+
         uint32_t duration = segment.GetDuration();
         if (duration == 0) duration = 1000; // fallback
         duration += 48;  // padding for edits
@@ -253,6 +287,8 @@ void PianoRollView::Draw(MusicSong* song, const MusicBank* bank) {
 
         // Render channels
         // Pass 1: Inactive channels (ghost notes)
+        int end_tick = start_tick + visible_ticks;
+        
         for (int ch = 0; ch < 8; ++ch) {
           if (ch == active_channel_index_ || !channel_visible_[ch]) continue;
           if (channel_muted_[ch]) continue;
@@ -264,9 +300,19 @@ void PianoRollView::Draw(MusicSong* song, const MusicBank* bank) {
           c.w = 0.3f; // Reduced opacity for ghost notes
           ImU32 ghost_color = ImGui::ColorConvertFloat4ToU32(c);
 
-          for (const auto& event : track.events) {
+          // Optimization: Only draw visible notes
+          auto it = std::lower_bound(track.events.begin(), track.events.end(), start_tick,
+              [](const TrackEvent& e, int tick) { return e.tick + e.note.duration < tick; });
+
+          for (; it != track.events.end(); ++it) {
+            const auto& event = *it;
+            if (event.tick > end_tick) break; // Stop if we're past the visible area
+
             if (event.type == TrackEvent::Type::Note) {
               int key_idx = event.note.pitch - kNoteMinPitch;
+              // Simple culling for vertical visibility
+              if (key_idx < start_key_idx || key_idx > start_key_idx + visible_keys) continue;
+
               float y = total_height - (key_idx + 1) * key_height_;
               float x = event.tick * pixels_per_tick_;
               float w = std::max(2.0f, event.note.duration * pixels_per_tick_);
@@ -287,10 +333,19 @@ void PianoRollView::Draw(MusicSong* song, const MusicBank* bank) {
           ImU32 active_color = channel_colors_[active_channel_index_];
           ImU32 hover_color = palette.note_hover;
 
-          for (size_t idx = 0; idx < track.events.size(); ++idx) {
+          // Optimization: Only draw visible notes
+          auto it = std::lower_bound(track.events.begin(), track.events.end(), start_tick,
+              [](const TrackEvent& e, int tick) { return e.tick + e.note.duration < tick; });
+
+          for (size_t idx = std::distance(track.events.begin(), it); idx < track.events.size(); ++idx) {
             const auto& event = track.events[idx];
+            if (event.tick > end_tick) break; // Stop if we're past the visible area
+
             if (event.type == TrackEvent::Type::Note) {
               int key_idx = event.note.pitch - kNoteMinPitch;
+              // Simple culling for vertical visibility
+              if (key_idx < start_key_idx || key_idx > start_key_idx + visible_keys) continue;
+
               float y = total_height - (key_idx + 1) * key_height_;
               float x = event.tick * pixels_per_tick_;
               float w = std::max(4.0f, event.note.duration * pixels_per_tick_);
@@ -756,10 +811,10 @@ void PianoRollView::DrawStatusBar(const MusicSong* /*song*/) {
       ImGui::TextDisabled(ICON_MD_MOUSE " Hover over grid...");
     }
     
-    ImGui::SameLine(ImGui::GetContentRegionAvail().x - 300);
-    
+    ImGui::SameLine(ImGui::GetContentRegionAvail().x - 420);
+
     // Keyboard hints
-    ImGui::TextDisabled("Click: Add note | Drag: Move | Edges: Resize");
+    ImGui::TextDisabled("Click: Add | Drag: Move | Ctrl+Wheel: Zoom X | Shift+Wheel: Zoom Y");
   }
   ImGui::EndChild();
   ImGui::PopStyleVar();

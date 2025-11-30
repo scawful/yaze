@@ -41,6 +41,7 @@ class SampleEditorView {
  private:
   // UI Helper methods
   void DrawSampleList(MusicBank& bank);
+  void DrawProperties(MusicSample& sample);
   void DrawWaveform(const MusicSample& sample);
 
   // State

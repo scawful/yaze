@@ -106,6 +106,12 @@ void MusicEditor::Initialize() {
                                .category = "Music",
                                .shortcut_hint = "Ctrl+Shift+A",
                                .priority = 30});
+  card_registry->RegisterCard({.card_id = "music.help",
+                               .display_name = "Help",
+                               .window_title = " Music Editor Help",
+                               .icon = ICON_MD_HELP,
+                               .category = "Music",
+                               .priority = 99});
 }
 
 void MusicEditor::SetProject(project::YazeProject* project) {
@@ -183,13 +189,31 @@ absl::Status MusicEditor::Update() {
   static gui::EditorCard instrument_card("Instrument Editor", ICON_MD_SPEAKER);
   static gui::EditorCard sample_card("Sample Editor", ICON_MD_WAVES);
   static gui::EditorCard assembly_card("Assembly View", ICON_MD_CODE);
+  static gui::EditorCard help_card("Music Editor Help", ICON_MD_HELP);
+  static bool cards_initialized = false;
 
-  song_browser_card.SetDefaultSize(300, 700);
-  playback_card.SetDefaultSize(400, 350);
-  piano_roll_card.SetDefaultSize(900, 400);
-  instrument_card.SetDefaultSize(600, 500);
-  sample_card.SetDefaultSize(600, 500);
-  assembly_card.SetDefaultSize(700, 600);
+  // Initialize card sizes and positions once
+  if (!cards_initialized) {
+    cards_initialized = true;
+
+    // Set default sizes for cards
+    song_browser_card.SetDefaultSize(300, 700);
+    playback_card.SetDefaultSize(400, 350);
+    piano_roll_card.SetDefaultSize(900, 400);
+    instrument_card.SetDefaultSize(600, 500);
+    sample_card.SetDefaultSize(600, 500);
+    assembly_card.SetDefaultSize(700, 600);
+    help_card.SetDefaultSize(400, 500);
+
+    // Set default positions so cards don't stack on top of each other
+    song_browser_card.SetPosition(gui::EditorCard::Position::Left);
+    playback_card.SetPosition(gui::EditorCard::Position::Floating);
+    piano_roll_card.SetPosition(gui::EditorCard::Position::Floating);
+    instrument_card.SetPosition(gui::EditorCard::Position::Right);
+    sample_card.SetPosition(gui::EditorCard::Position::Floating);
+    assembly_card.SetPosition(gui::EditorCard::Position::Bottom);
+    help_card.SetPosition(gui::EditorCard::Position::Floating);
+  }
 
   // Song Browser Card (Activity Bar)
   bool* browser_visible = card_registry->GetVisibilityFlag("music.song_browser");
@@ -218,6 +242,8 @@ absl::Status MusicEditor::Update() {
     tracker_auto_shown_ = true;
   }
   if (playback_visible && *playback_visible) {
+    // Set initial position: top area, next to song browser
+    ImGui::SetNextWindowPos(ImVec2(320, 40), ImGuiCond_FirstUseEver);
     if (playback_card.Begin(playback_visible)) {
       DrawPlaybackControl();
     }
@@ -225,8 +251,15 @@ absl::Status MusicEditor::Update() {
   }
 
   // Piano Roll Card
+  static bool piano_roll_auto_shown = false;
   bool* piano_roll_visible = card_registry->GetVisibilityFlag("music.piano_roll");
+  if (piano_roll_visible && !piano_roll_auto_shown) {
+    *piano_roll_visible = true;
+    piano_roll_auto_shown = true;
+  }
   if (piano_roll_visible && *piano_roll_visible) {
+    // Set initial position: center area, below playback control
+    ImGui::SetNextWindowPos(ImVec2(320, 410), ImGuiCond_FirstUseEver);
     if (piano_roll_card.Begin(piano_roll_visible)) {
       DrawPianoRollView();
     }
@@ -250,6 +283,8 @@ absl::Status MusicEditor::Update() {
   bool* sample_visible =
       card_registry->GetVisibilityFlag("music.sample_editor");
   if (sample_visible && *sample_visible) {
+    // Set initial position: offset from instrument editor
+    ImGui::SetNextWindowPos(ImVec2(750, 320), ImGuiCond_FirstUseEver);
     if (sample_card.Begin(sample_visible)) {
       sample_editor_view_.SetOnEditCallback([this]() { PushUndoState(); });
       sample_editor_view_.SetOnPreviewCallback(
@@ -266,6 +301,40 @@ absl::Status MusicEditor::Update() {
       assembly_editor_.InlineUpdate();
     }
     assembly_card.End();
+  }
+
+  // Help Card
+  bool* help_visible = card_registry->GetVisibilityFlag("music.help");
+  if (help_visible && *help_visible) {
+    if (help_card.Begin(help_visible)) {
+      ImGui::Text("Yaze Music Editor Guide");
+      ImGui::Separator();
+      
+      if (ImGui::CollapsingHeader("Overview", ImGuiTreeNodeFlags_DefaultOpen)) {
+        ImGui::TextWrapped("The Music Editor allows you to create and modify SNES music for Zelda 3.");
+        ImGui::BulletText("Song Browser: Select and manage songs.");
+        ImGui::BulletText("Tracker/Piano Roll: Edit note data.");
+        ImGui::BulletText("Instrument Editor: Configure ADSR envelopes.");
+        ImGui::BulletText("Sample Editor: Import and preview BRR samples.");
+      }
+
+      if (ImGui::CollapsingHeader("Tracker / Piano Roll")) {
+        ImGui::Text("Controls:");
+        ImGui::BulletText("Space: Play/Pause");
+        ImGui::BulletText("Z, S, X...: Keyboard piano (C, C#, D...)");
+        ImGui::BulletText("Shift+Arrows: Range selection");
+        ImGui::BulletText("Ctrl+C/V: Copy/Paste (WIP)");
+        ImGui::BulletText("Ctrl+Wheel: Zoom (Piano Roll)");
+      }
+
+      if (ImGui::CollapsingHeader("Instruments & Samples")) {
+        ImGui::TextWrapped("Instruments use BRR samples with an ADSR volume envelope.");
+        ImGui::BulletText("ADSR: Attack, Decay, Sustain, Release.");
+        ImGui::BulletText("Loop Points: Define where the sample loops (in blocks of 16 samples).");
+        ImGui::BulletText("Tuning: Adjust pitch multiplier ($1000 = 1.0x).");
+      }
+    }
+    help_card.End();
   }
 
   // Per-Song Tracker Windows (like dungeon room cards)
@@ -759,9 +828,18 @@ void MusicEditor::DrawPlaybackControl() {
   ImGui::Separator();
 
   // Help text
-  ImGui::TextWrapped(
-      "Double-click a song in the Song Browser to open a dedicated "
-      "tracker window for editing. Use this panel for playback controls.");
+  if (ImGui::CollapsingHeader(ICON_MD_HELP " Help & Tips")) {
+    ImGui::TextWrapped(
+        "Double-click a song in the Song Browser to open a dedicated "
+        "tracker window for editing.");
+    ImGui::BulletText("Navigation: Arrow keys to move, Shift+Arrows to select.");
+    ImGui::BulletText("Editing: Enter notes with keyboard (Z=C, S=C#, etc).");
+    ImGui::BulletText("Delete: Backspace or Delete to clear events.");
+    ImGui::BulletText("Playback: Space to Play/Pause.");
+    ImGui::BulletText("Zoom: Ctrl+Wheel in Piano Roll.");
+    ImGui::Spacing();
+    ImGui::TextDisabled("For advanced editing, use the Assembly View.");
+  }
 
   // Quick action buttons
   ImGui::Spacing();
@@ -1321,22 +1399,86 @@ void MusicEditor::PreviewNote(const zelda3::music::MusicSong& song,
 
 void MusicEditor::PreviewSegment(const zelda3::music::MusicSong& song,
                                  int segment_index) {
-  // N-SPC driver doesn't support seeking to arbitrary segments.
-  // For authentic playback, we play the full song using the SPC emulator.
-  // Parameters kept for API compatibility.
-  (void)song;
-  (void)segment_index;
+  if (!EnsureAudioReady()) return;
 
-  if (!emulator_ || !rom_) {
-    LOG_DEBUG("MusicEditor", "Segment preview requires ROM to be loaded");
+  if (segment_index < 0 || segment_index >= static_cast<int>(song.segments.size())) {
     return;
   }
 
-  // Play the song using authentic SPC emulation
-  int song_id = current_song_index_;
-  if (song_id >= 0 && song_id < static_cast<int>(music_bank_.GetSongCount())) {
-    PlaySongDirect(song_id);
+  // Create a temporary song with just this segment
+  zelda3::music::MusicSong temp_song;
+  temp_song.name = "Preview Segment";
+  temp_song.bank = song.bank;
+  temp_song.segments.push_back(song.segments[segment_index]);
+  temp_song.loop_point = -1; // Play once, don't loop
+
+  // Serialize the song to N-SPC format
+  // Use the standard song table address
+  uint16_t base_aram_address = zelda3::music::kSongTableAram;
+
+  auto result = zelda3::music::SpcSerializer::SerializeSong(temp_song, base_aram_address);
+  if (!result.ok()) {
+    LOG_ERROR("MusicEditor", "Failed to serialize segment preview: %s",
+              result.status().message().data());
+    return;
   }
+
+  LOG_INFO("MusicEditor", "Previewing segment %d (%zu bytes)", 
+           segment_index, result->data.size());
+
+  // Upload to ARAM
+  UploadSongToAram(result->data, result->base_address);
+
+  // Trigger playback via SPC ports
+  auto& apu = emulator_->snes().apu();
+  static uint8_t trigger_byte = 0x00;
+  trigger_byte ^= 0x01;
+
+  apu.in_ports_[0] = 1;  // Song index 1 (our temp song)
+  apu.in_ports_[1] = trigger_byte;
+
+  // Run cycles to let driver process the command
+  for (int i = 0; i < 16000; i++) {
+    apu.Cycle();
+  }
+
+  // Reset timing and start playback
+  emulator_->ResetFrameTiming();
+  emulator_->set_playback_speed(playback_speed_);
+
+  if (auto* audio = emulator_->audio_backend()) {
+    auto status = audio->GetStatus();
+    if (!status.is_playing) {
+      audio->Play();
+    }
+  }
+
+  emulator_->set_audio_focus_mode(true);
+  emulator_->set_running(true);
+  
+  // Update UI state to reflect playback
+  is_playing_ = true;
+  is_paused_ = false;
+  // We don't set playing_song_index_ because we aren't playing the full song
+  // But we want the cursor to work? 
+  // For now, let's leave playing_song_index_ alone or set to -1 to avoid confusion
+  // If we set it to -1, the cursor won't draw.
+  // If we leave it, it might draw incorrectly if we are previewing a different song than selected.
+  // Let's set it to the current song index so the cursor works for the current song.
+  playing_song_index_ = current_song_index_;
+
+  // Calculate start tick for this segment so cursor appears at correct position
+  uint32_t segment_start_tick = 0;
+  for (int i = 0; i < segment_index; ++i) {
+    segment_start_tick += song.segments[i].GetDuration();
+  }
+  
+  playback_start_time_ = std::chrono::steady_clock::now();
+  playback_start_tick_ = segment_start_tick;
+  playback_segment_index_ = segment_index;
+  
+  uint8_t tempo = GetSongTempo(song);
+  ticks_per_second_ = CalculateTicksPerSecond(tempo);
 }
 
 void MusicEditor::PreviewInstrument(int instrument_index) {

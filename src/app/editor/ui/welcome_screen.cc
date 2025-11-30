@@ -945,16 +945,16 @@ void WelcomeScreen::DrawWhatsNew() {
   };
 
   Feature features[] = {
+      {ICON_MD_MUSIC_NOTE, "Music Editor",
+       "Complete SPC music editing with piano roll and tracker views", kTriforceGold},
+      {ICON_MD_PIANO, "Piano Roll & Playback",
+       "Visual note editing with authentic N-SPC audio preview", kMasterSwordBlue},
+      {ICON_MD_SPEAKER, "Instrument Editor",
+       "Edit ADSR envelopes, samples, and instrument banks", kHyruleGreen},
       {ICON_MD_PSYCHOLOGY, "AI Agent Integration",
        "Natural language ROM editing with z3ed agent", kGanonPurple},
-      {ICON_MD_CLOUD_SYNC, "Collaboration Features",
-       "Real-time ROM collaboration via yaze-server", kMasterSwordBlue},
-      {ICON_MD_HISTORY, "Version Management",
-       "ROM snapshots, rollback, corruption detection", kHyruleGreen},
-      {ICON_MD_PALETTE, "Enhanced Palette Editor",
-       "Advanced color tools with ROM palette browser", kSpiritOrange},
       {ICON_MD_SPEED, "Performance Improvements",
-       "Faster dungeon loading with parallel processing", kTriforceGold},
+       "Improved graphics arena and faster loading", kSpiritOrange},
   };
 
   for (const auto& feature : features) {

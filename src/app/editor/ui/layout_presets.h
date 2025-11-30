@@ -188,8 +188,11 @@ class LayoutPresets {
     static constexpr const char* kScreenNamingScreen = "screen.naming_screen";
 
     // Music cards (music_editor.cc)
-    static constexpr const char* kMusicTracker = "music.tracker";
+    static constexpr const char* kMusicSongBrowser = "music.song_browser";
+    static constexpr const char* kMusicPlaybackControl = "music.tracker";  // Playback control panel
+    static constexpr const char* kMusicPianoRoll = "music.piano_roll";
     static constexpr const char* kMusicInstrumentEditor = "music.instrument_editor";
+    static constexpr const char* kMusicSampleEditor = "music.sample_editor";
     static constexpr const char* kMusicAssembly = "music.assembly";
 
     // Message cards (message_editor.cc)
