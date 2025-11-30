@@ -23,6 +23,9 @@
 
 #include "app/editor/editor_manager.h"
 #include "app/editor/editor.h"
+#include "app/editor/agent/agent_session.h"
+#include "cli/service/agent/conversational_agent_service.h"
+#include "nlohmann/json.hpp"
 
 using namespace emscripten;
 
@@ -51,6 +54,124 @@ yaze::emu::Emulator* GetGlobalEmulator() {
 // Helper to access the live EditorManager without repeating the namespace
 yaze::editor::EditorManager* GetEditorManager() {
   return yaze::app::GetGlobalEditorManager();
+}
+
+// =============================================================================
+// AI Driver Bridge (WASM <-> JS)
+// =============================================================================
+
+// JS function to call the AI Manager
+EM_JS(void, CallJsAiDriver, (const char* history_json), {
+  if (window.yaze && window.yaze.ai && window.yaze.ai.processAgentRequest) {
+    window.yaze.ai.processAgentRequest(UTF8ToString(history_json));
+  } else {
+    console.error("AI Driver not found in window.yaze.ai.processAgentRequest");
+    // Try to recover or notify C++
+  }
+});
+
+// Helper to serialize ChatMessage
+nlohmann::json MessageToJson(const yaze::cli::agent::ChatMessage& msg) {
+  nlohmann::json j;
+  j["role"] = (msg.sender == yaze::cli::agent::ChatMessage::Sender::kUser) ? "user" : "model";
+  
+  // Convert parts (text, internal logs)
+  // Simplification: just send message content for now
+  j["parts"] = nlohmann::json::array({ {{"text", msg.message}} });
+  
+  return j;
+}
+
+// Register the external driver for the active session
+std::string registerExternalAiDriver() {
+  auto* manager = GetEditorManager();
+  if (!manager) return "{\"error\":\"EditorManager not available\"}";
+
+  auto* agent_ui = manager->GetAgentUiController();
+  if (!agent_ui) return "{\"error\":\"AgentUiController not available\"}";
+
+#if defined(YAZE_BUILD_AGENT_UI)
+  auto& sessions = agent_ui->GetSessionManager();
+  // Get current session ID
+  // AgentUiController doesn't expose "current session ID" easily, but we can iterate
+  // For simplicity, we'll register for ALL sessions for now
+  // In a real multi-agent scenario, we might want to target specific ones.
+  
+  // Note: This registers for currently EXISTING sessions.
+  // Ideally, we should hook into session creation.
+  
+  // For now, let's just get the "default" session or first one
+  // AgentSessionManager::GetSession(id)
+  // We'll iterate if possible, or just hook "default"
+  
+  // Hack: We don't have an iterator exposed on SessionManager in the header I read.
+  // But we can try to get "default" or just rely on the user creating one.
+  
+  // Better: Expose a way to set a "Global Driver Factory".
+  // But we are doing instance-based injection.
+  
+  // Let's just return success and wait for a session to be active?
+  // No, we need to actually set the callback.
+  
+  // Let's assume "default" agent exists or will be created.
+  auto* session = sessions.GetSession("default");
+  if (!session) {
+     // Try to create it if not exists? No, that might have side effects.
+     return "{\"error\":\"No 'default' agent session found\"}";
+  }
+  
+  session->agent_service.SetExternalDriver([](const std::vector<yaze::cli::agent::ChatMessage>& history) {
+    nlohmann::json j_history = nlohmann::json::array();
+    for (const auto& msg : history) {
+      j_history.push_back(MessageToJson(msg));
+    }
+    CallJsAiDriver(j_history.dump().c_str());
+  });
+  
+  return "{\"success\":true}";
+#else
+  return "{\"error\":\"Agent UI disabled in build\"}";
+#endif
+}
+
+// Handle response from JS
+void onExternalAiResponse(std::string response_json) {
+  auto* manager = GetEditorManager();
+  if (!manager) return;
+  auto* agent_ui = manager->GetAgentUiController();
+  if (!agent_ui) return;
+
+#if defined(YAZE_BUILD_AGENT_UI)
+  auto& sessions = agent_ui->GetSessionManager();
+  auto* session = sessions.GetSession("default");
+  if (!session) return;
+
+  try {
+    auto j = nlohmann::json::parse(response_json);
+    yaze::cli::agent::AgentResponse response;
+    
+    if (j.contains("text")) response.text_response = j["text"].get<std::string>();
+    
+    // Parse tool calls
+    if (j.contains("tool_calls")) {
+        for (const auto& tc : j["tool_calls"]) {
+            yaze::cli::agent::ToolCall call;
+            call.tool_name = tc["name"].get<std::string>();
+            if (tc.contains("args")) {
+                for (const auto& [k, v] : tc["args"].items()) {
+                    call.args[k] = v.is_string() ? v.get<std::string>() : v.dump();
+                }
+            }
+            response.tool_calls.push_back(call);
+        }
+    }
+    
+    session->agent_service.HandleExternalResponse(response);
+    
+  } catch (const std::exception& e) {
+    printf("Error parsing AI response: %s\n", e.what());
+  }
+#endif
 }
 
 // =============================================================================
@@ -1390,4 +1511,8 @@ EMSCRIPTEN_BINDINGS(yaze_debug_inspector) {
   function("getYazeVersion", &getYazeVersion);
   function("getRomSessions", &getRomSessions);
   function("getFileManagerDebugInfo", &getFileManagerDebugInfo);
+
+  // AI Driver Bridge
+  function("registerExternalAiDriver", &registerExternalAiDriver);
+  function("onExternalAiResponse", &onExternalAiResponse);
 }
