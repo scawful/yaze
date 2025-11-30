@@ -6,6 +6,7 @@
  * Gemini/Antigravity AI integration to analyze rendering issues and game state.
  */
 
+#include <emscripten.h>
 #include <emscripten/bind.h>
 
 #include <atomic>
@@ -24,7 +25,10 @@
 #include "app/editor/editor_manager.h"
 #include "app/editor/editor.h"
 #include "app/editor/agent/agent_session.h"
+#include "app/editor/agent/agent_editor.h"
+#include "app/editor/agent/agent_chat_widget.h"
 #include "cli/service/agent/conversational_agent_service.h"
+#include "cli/service/ai/common.h"
 #include "nlohmann/json.hpp"
 
 using namespace emscripten;
@@ -120,7 +124,24 @@ std::string registerExternalAiDriver() {
      return "{\"error\":\"No 'default' agent session found\"}";
   }
   
-  session->agent_service.SetExternalDriver([](const std::vector<yaze::cli::agent::ChatMessage>& history) {
+  // Access agent service through AgentEditor -> AgentChatWidget
+  // The new architecture doesn't store agent_service directly in AgentSession
+  auto* agent_editor = manager->GetAgentEditor();
+  if (!agent_editor) {
+    return "{\"error\":\"AgentEditor not available\"}";
+  }
+  
+  auto* chat_widget = agent_editor->GetChatWidget();
+  if (!chat_widget) {
+    return "{\"error\":\"AgentChatWidget not available\"}";
+  }
+  
+  auto* agent_service = chat_widget->GetAgentService();
+  if (!agent_service) {
+    return "{\"error\":\"AgentService not available\"}";
+  }
+  
+  agent_service->SetExternalDriver([](const std::vector<yaze::cli::agent::ChatMessage>& history) {
     nlohmann::json j_history = nlohmann::json::array();
     for (const auto& msg : history) {
       j_history.push_back(MessageToJson(msg));
@@ -146,16 +167,26 @@ void onExternalAiResponse(std::string response_json) {
   auto* session = sessions.GetSession("default");
   if (!session) return;
 
+  // Access agent service through AgentEditor -> AgentChatWidget
+  auto* agent_editor = manager->GetAgentEditor();
+  if (!agent_editor) return;
+  
+  auto* chat_widget = agent_editor->GetChatWidget();
+  if (!chat_widget) return;
+  
+  auto* agent_service = chat_widget->GetAgentService();
+  if (!agent_service) return;
+
   try {
     auto j = nlohmann::json::parse(response_json);
-    yaze::cli::agent::AgentResponse response;
+    yaze::cli::AgentResponse response;
     
     if (j.contains("text")) response.text_response = j["text"].get<std::string>();
     
     // Parse tool calls
     if (j.contains("tool_calls")) {
         for (const auto& tc : j["tool_calls"]) {
-            yaze::cli::agent::ToolCall call;
+            yaze::cli::ToolCall call;
             call.tool_name = tc["name"].get<std::string>();
             if (tc.contains("args")) {
                 for (const auto& [k, v] : tc["args"].items()) {
@@ -166,7 +197,7 @@ void onExternalAiResponse(std::string response_json) {
         }
     }
     
-    session->agent_service.HandleExternalResponse(response);
+    agent_service->HandleExternalResponse(response);
     
   } catch (const std::exception& e) {
     printf("Error parsing AI response: %s\n", e.what());
