@@ -301,7 +301,7 @@ AudioStatus SDL3AudioBackend::GetStatus() const {
   }
 
   // Check if device is playing
-  status.is_playing = device_id_ && !SDL_IsAudioDevicePaused(device_id_);
+  status.is_playing = device_id_ && !SDL_AudioDevicePaused(device_id_);
 
   // Get queued audio size from stream
   if (audio_stream_) {

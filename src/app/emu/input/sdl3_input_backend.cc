@@ -222,8 +222,7 @@ void SDL3InputBackend::HandleGamepadEvent(const SDL_Event& event) {
       if (!gamepads_[i]) {
         gamepads_[i] = SDL_OpenGamepad(event.gdevice.which);
         if (gamepads_[i]) {
-          LOG_INFO("InputBackend", "SDL3 Gamepad connected for player " +
-                                       std::to_string(i + 1));
+          LOG_INFO("InputBackend", "SDL3 Gamepad connected for player %d", i + 1);
         }
         break;
       }
@@ -235,8 +234,7 @@ void SDL3InputBackend::HandleGamepadEvent(const SDL_Event& event) {
           SDL_GetGamepadID(gamepads_[i]) == event.gdevice.which) {
         SDL_CloseGamepad(gamepads_[i]);
         gamepads_[i] = nullptr;
-        LOG_INFO("InputBackend", "SDL3 Gamepad disconnected for player " +
-                                     std::to_string(i + 1));
+        LOG_INFO("InputBackend", "SDL3 Gamepad disconnected for player %d", i + 1);
         break;
       }
     }
