@@ -7,11 +7,14 @@
 #include "app/gfx/resource/arena.h"
 #include "app/gui/core/style.h"
 #include "app/platform/font_loader.h"
-#include "imgui/backends/imgui_impl_sdl2.h"
-#include "imgui/backends/imgui_impl_sdlrenderer2.h"
 #include "imgui/imgui.h"
 #include "util/log.h"
 #include "util/sdl_deleter.h"
+
+#ifndef YAZE_USE_SDL3
+#include "imgui/backends/imgui_impl_sdl2.h"
+#include "imgui/backends/imgui_impl_sdlrenderer2.h"
+#endif
 
 namespace {
 // Custom ImGui assertion handler to prevent crashes
@@ -57,6 +60,10 @@ namespace core {
 bool g_window_is_resizing = false;
 
 absl::Status CreateWindow(Window& window, gfx::IRenderer* renderer, int flags) {
+#ifdef YAZE_USE_SDL3
+  return absl::FailedPreconditionError(
+      "Legacy SDL2 window path is unavailable when building with SDL3");
+#else
   if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_TIMER) != 0) {
     return absl::InternalError(
         absl::StrFormat("SDL_Init: %s\n", SDL_GetError()));
@@ -128,18 +135,23 @@ absl::Status CreateWindow(Window& window, gfx::IRenderer* renderer, int flags) {
     window.audio_buffer_ = std::shared_ptr<int16_t>(
         new int16_t[buffer_size], std::default_delete<int16_t[]>());
 
-    // Note: Actual audio device is created by Emulator's IAudioBackend
-    // This maintains compatibility with existing code paths
-    LOG_INFO(
-        "Window",
-        "Audio buffer allocated: %zu int16_t samples (backend in Emulator)",
-        buffer_size);
+  // Note: Actual audio device is created by Emulator's IAudioBackend
+  // This maintains compatibility with existing code paths
+  LOG_INFO(
+      "Window",
+      "Audio buffer allocated: %zu int16_t samples (backend in Emulator)",
+      buffer_size);
   }
 
   return absl::OkStatus();
+#endif  // YAZE_USE_SDL3
 }
 
 absl::Status ShutdownWindow(Window& window) {
+#ifdef YAZE_USE_SDL3
+  return absl::FailedPreconditionError(
+      "Legacy SDL2 window path is unavailable when building with SDL3");
+#else
   SDL_PauseAudioDevice(window.audio_device_, 1);
   SDL_CloseAudioDevice(window.audio_device_);
 
@@ -177,9 +189,14 @@ absl::Status ShutdownWindow(Window& window) {
 
   LOG_INFO("Window", "Shutdown complete");
   return absl::OkStatus();
+#endif  // YAZE_USE_SDL3
 }
 
 absl::Status HandleEvents(Window& window) {
+#ifdef YAZE_USE_SDL3
+  return absl::FailedPreconditionError(
+      "Legacy SDL2 window path is unavailable when building with SDL3");
+#else
   SDL_Event event;
   ImGuiIO& io = ImGui::GetIO();
 
@@ -236,6 +253,7 @@ absl::Status HandleEvents(Window& window) {
   int wheel = 0;
   io.MouseWheel = static_cast<float>(wheel);
   return absl::OkStatus();
+#endif  // YAZE_USE_SDL3
 }
 
 }  // namespace core
