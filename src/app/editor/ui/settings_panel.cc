@@ -398,9 +398,9 @@ void SettingsPanel::DrawPatchSettings() {
   // Load patches on first access
   if (!patches_loaded_) {
     // Try to load from default patches location
-    std::string patches_dir = util::GetAssetsPath() + "/patches";
-    if (std::filesystem::exists(patches_dir)) {
-      auto status = patch_manager_.LoadPatches(patches_dir);
+    auto patches_dir_status = util::PlatformPaths::FindAsset("patches");
+    if (patches_dir_status.ok()) {
+      auto status = patch_manager_.LoadPatches(patches_dir_status->string());
       if (status.ok()) {
         patches_loaded_ = true;
         if (!patch_manager_.folders().empty()) {

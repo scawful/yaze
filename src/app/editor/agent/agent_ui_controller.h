@@ -24,6 +24,13 @@ namespace editor {
 class ToastManager;
 class ProposalDrawer;
 class RightPanelManager;
+class EditorCardRegistry;
+
+// Forward declarations for when YAZE_BUILD_AGENT_UI is not defined
+#if !defined(YAZE_BUILD_AGENT_UI)
+class AgentEditor;
+class AgentSidebar;
+#endif
 
 /**
  * @class AgentUiController
@@ -118,7 +125,8 @@ class AgentUiController {
 // =============================================================================
 #if !defined(YAZE_BUILD_AGENT_UI)
 inline void AgentUiController::Initialize(ToastManager*, ProposalDrawer*,
-                                          RightPanelManager*) {}
+                                          RightPanelManager*,
+                                          EditorCardRegistry*) {}
 inline void AgentUiController::SetRomContext(Rom*) {}
 inline absl::Status AgentUiController::Update() { return absl::OkStatus(); }
 inline void AgentUiController::ShowAgent() {}

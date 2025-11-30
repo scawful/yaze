@@ -201,8 +201,7 @@ absl::Status ProjectFileEditor::SaveFileAs(const std::string& filepath) {
   recent_mgr.AddFile(filepath_);
   recent_mgr.Save();
   return absl::OkStatus();
-#endif
-
+#else
   std::ofstream file(final_path);
   if (!file.is_open()) {
     return absl::InvalidArgumentError(
@@ -221,6 +220,7 @@ absl::Status ProjectFileEditor::SaveFileAs(const std::string& filepath) {
   recent_mgr.Save();
 
   return absl::OkStatus();
+#endif
 }
 
 void ProjectFileEditor::NewFile() {
