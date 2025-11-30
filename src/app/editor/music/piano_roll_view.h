@@ -120,7 +120,7 @@ class PianoRollView {
   // Layout constants
   static constexpr float kToolbarHeight = 32.0f;
   static constexpr float kStatusBarHeight = 24.0f;
-  static constexpr float kChannelListWidth = 50.0f;
+  static constexpr float kChannelListWidth = 80.0f;
 
   // State
   int active_channel_index_ = 0;

@@ -121,6 +121,7 @@ void PianoRollView::Draw(MusicSong* song, const MusicBank* bank) {
       ImGui::TableSetupColumn("Channels",
                               ImGuiTableColumnFlags_WidthFixed |
                               ImGuiTableColumnFlags_NoHide |
+                              ImGuiTableColumnFlags_NoResize |
                               ImGuiTableColumnFlags_NoReorder,
                               kChannelListWidth);
       ImGui::TableSetupColumn("Roll", ImGuiTableColumnFlags_WidthStretch);
@@ -549,7 +550,7 @@ void PianoRollView::DrawChannelList(const MusicSong* song) {
     // Mute button (small)
     bool muted = channel_muted_[i];
     if (muted) ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.3f, 0.3f, 1.0f));
-    if (ImGui::SmallButton(muted ? "M" : " ")) {
+    if (ImGui::SmallButton(muted ? "M##Mute" : " ##Mute")) {
       channel_muted_[i] = !channel_muted_[i];
     }
     if (muted) ImGui::PopStyleColor();
@@ -560,7 +561,7 @@ void PianoRollView::DrawChannelList(const MusicSong* song) {
     // Solo button (small)
     bool solo = channel_solo_[i];
     if (solo) ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.9f, 0.2f, 1.0f));
-    if (ImGui::SmallButton(solo ? "S" : " ")) {
+    if (ImGui::SmallButton(solo ? "S##Solo" : " ##Solo")) {
       channel_solo_[i] = !channel_solo_[i];
     }
     if (solo) ImGui::PopStyleColor();
@@ -724,7 +725,7 @@ bool PianoRollView::BeginRollCanvas(const char* id, RollCanvasContext* ctx) {
   const ImGuiChildFlags child_flags =
       ImGuiChildFlags_Border | ImGuiChildFlags_AlwaysUseWindowPadding;
   const ImGuiWindowFlags window_flags =
-      ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_AlwaysVerticalScrollbar;
+      ImGuiWindowFlags_HorizontalScrollbar;
   bool open = ImGui::BeginChild(id, ImVec2(0, 0), child_flags, window_flags);
   if (!open) return false;
 
