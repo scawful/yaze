@@ -59,6 +59,9 @@ void SampleEditorView::DrawWaveform(const MusicSample& sample) {
   ImGui::SameLine();
   ImGui::Text("%s (%zu bytes)", sample.name.c_str(), sample.brr_data.size());
 
+  // Ensure ImPlot context exists before plotting
+  yaze::gui::plotting::EnsureImPlotContext();
+
   if (sample.pcm_data.empty()) {
     ImGui::TextDisabled("Empty sample (No PCM data)");
     return;
@@ -91,4 +94,3 @@ void SampleEditorView::DrawWaveform(const MusicSample& sample) {
 }  // namespace music
 }  // namespace editor
 }  // namespace yaze
-

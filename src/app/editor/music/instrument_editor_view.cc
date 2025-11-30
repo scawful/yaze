@@ -129,6 +129,9 @@ void InstrumentEditorView::DrawAdsrGraph(const MusicInstrument& instrument) {
   // Attack: Linear increase to max
   // Decay: Exponential decrease to Sustain Level
   // Sustain: Exponential decrease at Sustain Rate
+
+  // Ensure ImPlot context exists before plotting
+  yaze::gui::plotting::EnsureImPlotContext();
   
   // Helper to convert SNES rates to time/slope
   // (Simplified for visualization)
@@ -192,4 +195,3 @@ void InstrumentEditorView::DrawAdsrGraph(const MusicInstrument& instrument) {
 }  // namespace music
 }  // namespace editor
 }  // namespace yaze
-
