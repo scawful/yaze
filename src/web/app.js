@@ -10,13 +10,16 @@
   document.addEventListener("contextmenu", function(e) {
     var target = e.target;
     if (!target) return;
-    // Block context menu for canvas and anything inside canvas-container
-    if (target.tagName === 'CANVAS' ||
-        target.id === 'canvas' ||
-        (target.closest && target.closest('#canvas-container'))) {
+    
+    // Only block context menu for the canvas element itself
+    // This prevents browser context menu but allows ImGui to handle right-clicks
+    // via SDL mouse events (mousedown/mouseup with button=2)
+    var isCanvas = target.tagName === 'CANVAS' || target.id === 'canvas';
+    
+    if (isCanvas) {
+      // Prevent browser context menu - this doesn't affect mousedown/mouseup events
+      // which SDL/ImGui use to detect right-clicks
       e.preventDefault();
-      e.stopPropagation();
-      e.stopImmediatePropagation();
       return false;
     }
   }, { capture: true, passive: false });
