@@ -28,7 +28,7 @@ struct WindowConfig {
   bool resizable = true;
   bool maximized = false;
   bool fullscreen = false;
-  bool high_dpi = true;
+  bool high_dpi = false;  // Disabled by default - causes issues on macOS Retina with SDL_Renderer
 };
 
 /**

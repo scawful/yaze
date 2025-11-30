@@ -92,7 +92,7 @@ int main(int argc, char** argv) {
   config.width = 512;
   config.height = 480;
   config.resizable = true;
-  config.high_dpi = true;
+  config.high_dpi = false;  // Disabled - causes issues on macOS Retina with SDL_Renderer
 
   if (!window_backend->Initialize(config).ok()) {
     printf("Failed to initialize window backend\n");
