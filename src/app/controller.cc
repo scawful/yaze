@@ -6,32 +6,47 @@
 
 #include "absl/status/status.h"
 #include "app/editor/editor_manager.h"
-#include "app/gfx/backend/renderer_factory.h"  // Use renderer factory for SDL2/SDL3 selection
-#include "app/gfx/resource/arena.h"         // Add include for Arena
+#include "app/gfx/backend/renderer_factory.h"
+#include "app/gfx/resource/arena.h"
 #include "app/gui/automation/widget_id_registry.h"
 #include "app/gui/core/background_renderer.h"
 #include "app/gui/core/theme_manager.h"
+#include "app/platform/iwindow.h"
 #include "app/platform/timing.h"
-#include "app/platform/window.h"
-#include "imgui/backends/imgui_impl_sdl2.h"
-#include "imgui/backends/imgui_impl_sdlrenderer2.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
 
 absl::Status Controller::OnEntry(std::string filename) {
-  // Create renderer FIRST (uses factory for SDL2/SDL3 selection)
-  renderer_ = gfx::RendererFactory::Create();
+  // Create window backend using factory (auto-selects SDL2 or SDL3)
+  window_backend_ = platform::WindowBackendFactory::Create(
+      platform::WindowBackendFactory::GetDefaultType());
 
-  // Call CreateWindow with our renderer
-  RETURN_IF_ERROR(CreateWindow(window_, renderer_.get(), SDL_WINDOW_RESIZABLE));
+  platform::WindowConfig config;
+  config.title = "Yet Another Zelda3 Editor";
+  config.resizable = true;
+  config.high_dpi = true;
+
+  RETURN_IF_ERROR(window_backend_->Initialize(config));
+
+  // Create renderer via factory (auto-selects SDL2 or SDL3)
+  renderer_ = gfx::RendererFactory::Create();
+  if (!window_backend_->InitializeRenderer(renderer_.get())) {
+    return absl::InternalError("Failed to initialize renderer");
+  }
+
+  // Initialize ImGui via backend (handles SDL2/SDL3 automatically)
+  RETURN_IF_ERROR(window_backend_->InitializeImGui(renderer_.get()));
 
   // Initialize the graphics Arena with the renderer
   gfx::Arena::Get().Initialize(renderer_.get());
 
-  // Set up audio for emulator
-  editor_manager_.emulator().set_audio_buffer(window_.audio_buffer_.get());
-  editor_manager_.emulator().set_audio_device_id(window_.audio_device_);
+  // Set up audio for emulator (using backend's audio resources)
+  auto audio_buffer = window_backend_->GetAudioBuffer();
+  if (audio_buffer) {
+    editor_manager_.emulator().set_audio_buffer(audio_buffer.get());
+  }
+  editor_manager_.emulator().set_audio_device_id(window_backend_->GetAudioDevice());
 
   // Initialize editor manager with renderer
   editor_manager_.Initialize(renderer_.get(), filename);
@@ -50,18 +65,36 @@ void Controller::SetStartupEditor(const std::string& editor_name,
 }
 
 void Controller::OnInput() {
-  PRINT_IF_ERROR(HandleEvents(window_));
+  if (!window_backend_) return;
+
+  platform::WindowEvent event;
+  while (window_backend_->PollEvent(event)) {
+    switch (event.type) {
+      case platform::WindowEventType::Quit:
+      case platform::WindowEventType::Close:
+        active_ = false;
+        break;
+      default:
+        // Other events are handled by ImGui via ProcessNativeEvent
+        // which is called inside PollEvent
+        break;
+    }
+  }
 }
 
 absl::Status Controller::OnLoad() {
-  if (editor_manager_.quit() || !window_.active_) {
+  if (!window_backend_) {
+    return absl::InternalError("Window backend not initialized");
+  }
+
+  if (editor_manager_.quit() || !window_backend_->IsActive()) {
     active_ = false;
     return absl::OkStatus();
   }
 
 #if TARGET_OS_IPHONE != 1
-  ImGui_ImplSDLRenderer2_NewFrame();
-  ImGui_ImplSDL2_NewFrame();
+  // Start new ImGui frame via backend (handles SDL2/SDL3 automatically)
+  window_backend_->NewImGuiFrame();
   ImGui::NewFrame();
 
   const ImGuiViewport* viewport = ImGui::GetMainViewport();
@@ -128,14 +161,16 @@ absl::Status Controller::OnLoad() {
 }
 
 void Controller::DoRender() const {
+  if (!window_backend_ || !renderer_) return;
+
   // Process pending texture commands (max 8 per frame for consistent performance)
   gfx::Arena::Get().ProcessTextureQueue(renderer_.get());
 
-  ImGui::Render();
   renderer_->Clear();
-  ImGui_ImplSDLRenderer2_RenderDrawData(
-      ImGui::GetDrawData(),
-      static_cast<SDL_Renderer*>(renderer_->GetBackendRenderer()));
+  
+  // Render ImGui draw data and handle viewports via backend
+  window_backend_->RenderImGui(renderer_.get());
+
   renderer_->Present();
 
   // Get delta time AFTER render for accurate measurement
@@ -149,8 +184,12 @@ void Controller::DoRender() const {
 }
 
 void Controller::OnExit() {
-  renderer_->Shutdown();
-  PRINT_IF_ERROR(ShutdownWindow(window_));
+  if (renderer_) {
+    renderer_->Shutdown();
+  }
+  if (window_backend_) {
+    window_backend_->Shutdown();
+  }
 }
 
 absl::Status Controller::LoadRomForTesting(const std::string& rom_path) {
