@@ -149,13 +149,14 @@ void Arena::ProcessTextureQueue(IRenderer* renderer) {
         // Use short-circuit evaluation - if bitmap is invalid, never call
         // ->surface()
         if (command.bitmap && command.bitmap->surface() &&
-            command.bitmap->surface()->format && command.bitmap->is_active() &&
-            command.bitmap->width() > 0 && command.bitmap->height() > 0) {
+            command.bitmap->is_active() && command.bitmap->width() > 0 &&
+            command.bitmap->height() > 0) {
 
           // DEBUG: Log texture creation with palette validation
           auto* surf = command.bitmap->surface();
-          bool has_palette = surf->format->palette != nullptr;
-          int color_count = has_palette ? surf->format->palette->ncolors : 0;
+          SDL_Palette* palette = platform::GetSurfacePalette(surf);
+          bool has_palette = palette != nullptr;
+          int color_count = has_palette ? palette->ncolors : 0;
 
           // Log detailed surface state for debugging
           zelda3::PaletteDebugger::Get().LogSurfaceState(
@@ -263,7 +264,7 @@ SDL_Surface* Arena::AllocateSurface(int width, int height, int depth,
   // Create new surface if none available in pool
   Uint32 sdl_format = GetSnesPixelFormat(format);
   SDL_Surface* surface =
-      SDL_CreateRGBSurfaceWithFormat(0, width, height, depth, sdl_format);
+      platform::CreateSurface(width, height, depth, sdl_format);
 
   if (surface) {
     auto surface_ptr =
