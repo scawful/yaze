@@ -168,6 +168,11 @@ bool Emulator::EnsureInitialized(Rom* rom) {
       LOG_ERROR("Emulator", "Failed to initialize audio backend");
       return false;
     }
+
+    // Enable audio stream resampling for proper 32kHz -> 48kHz conversion
+    if (audio_backend_->SupportsAudioStream()) {
+      audio_backend_->SetAudioStreamResampling(true, kNativeSampleRate, 2);
+    }
     LOG_INFO("Emulator", "Audio backend initialized for headless mode");
   }
 
@@ -179,7 +184,7 @@ bool Emulator::EnsureInitialized(Rom* rom) {
     snes_.Init(rom_data_);
 
     wanted_frames_ = 1.0 / (snes_.memory().pal_timing() ? 50.0 : 60.0);
-    wanted_samples_ = 48000 / (snes_.memory().pal_timing() ? 50 : 60);
+    wanted_samples_ = audio_backend_->GetConfig().sample_rate / (snes_.memory().pal_timing() ? 50 : 60);
     snes_initialized_ = true;
 
     count_frequency = SDL_GetPerformanceFrequency();
@@ -224,20 +229,29 @@ void Emulator::RunFrameOnly() {
     time_adder -= wanted_frames_;
     frames_processed++;
 
+    // Mark frame boundary for DSP sample reading
+    snes_.apu().dsp().NewFrame();
+
     // Run SNES frame (generates audio samples)
     snes_.RunFrame();
 
-    // Queue audio samples using native sample rate path
-    // This lets SDL resample 32kHz -> 48kHz correctly, fixing the 1.5x speed issue
+    // Queue audio samples
     if (audio_backend_) {
       auto status = audio_backend_->GetStatus();
-      // Native samples per frame: 534 (NTSC) or 641 (PAL)
       const int native_per_frame = snes_.memory().pal_timing() ? 641 : 534;
+
       if (status.queued_frames < static_cast<uint32_t>(native_per_frame * 4)) {
+        // Try native sample rate path first (proper 32kHz -> 48kHz resampling)
         const int frames_native = snes_.apu().dsp().CopyNativeFrame(
             native_audio_buffer, snes_.memory().pal_timing());
-        audio_backend_->QueueSamplesNative(
+        bool queue_ok = audio_backend_->QueueSamplesNative(
             native_audio_buffer, frames_native, 2, kNativeSampleRate);
+
+        // Fallback to resampled path if native fails
+        if (!queue_ok) {
+          snes_.SetSamples(native_audio_buffer, wanted_samples_);
+          audio_backend_->QueueSamples(native_audio_buffer, wanted_samples_ * 2);
+        }
       }
     }
   }
@@ -341,7 +355,7 @@ void Emulator::Run(Rom* rom) {
     // texture
 
     wanted_frames_ = 1.0 / (snes_.memory().pal_timing() ? 50.0 : 60.0);
-    wanted_samples_ = 48000 / (snes_.memory().pal_timing() ? 50 : 60);
+    wanted_samples_ = audio_backend_->GetConfig().sample_rate / (snes_.memory().pal_timing() ? 50 : 60);
     snes_initialized_ = true;
 
     count_frequency = SDL_GetPerformanceFrequency();
