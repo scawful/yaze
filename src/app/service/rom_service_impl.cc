@@ -31,20 +31,19 @@ grpc::Status RomServiceImpl::ReadBytes(grpc::ServerContext* context,
                         "ROM not loaded");
   }
 
-  uint32_t address = request->address();
+  uint32_t offset = request->offset();
   uint32_t length = request->length();
 
   // Validate range
-  if (address + length > rom_->size()) {
+  if (offset + length > rom_->size()) {
     return grpc::Status(grpc::StatusCode::OUT_OF_RANGE,
                         absl::StrFormat("Read beyond ROM: 0x%X+%d > %d",
-                                        address, length, rom_->size()));
+                                        offset, length, rom_->size()));
   }
 
   // Read data
-  const auto* data = rom_->data() + address;
+  const auto* data = rom_->data() + offset;
   response->set_data(data, length);
-  response->set_success(true);
 
   return grpc::Status::OK;
 }
@@ -57,31 +56,26 @@ grpc::Status RomServiceImpl::WriteBytes(
                         "ROM not loaded");
   }
 
-  uint32_t address = request->address();
+  uint32_t offset = request->offset();
   const std::string& data = request->data();
 
   // Validate range
-  if (address + data.size() > rom_->size()) {
+  if (offset + data.size() > rom_->size()) {
     return grpc::Status(grpc::StatusCode::OUT_OF_RANGE,
                         absl::StrFormat("Write beyond ROM: 0x%X+%zu > %d",
-                                        address, data.size(), rom_->size()));
+                                        offset, data.size(), rom_->size()));
   }
 
   // Check if approval required
   if (config_.require_approval_for_writes && approval_mgr_) {
     // Create a proposal for this write
     std::string proposal_id =
-        absl::StrFormat("write_0x%X_%zu_bytes", address, data.size());
-
-    if (request->has_proposal_id()) {
-      proposal_id = request->proposal_id();
-    }
+        absl::StrFormat("write_0x%X_%zu_bytes", offset, data.size());
 
     // Check if proposal is approved
-    auto status = approval_mgr_->GetProposalStatus(proposal_id);
-    if (status != ProposalApprovalManager::ApprovalStatus::kApproved) {
+    if (!approval_mgr_->IsProposalApproved(proposal_id)) {
       response->set_success(false);
-      response->set_message("Write requires approval");
+      response->set_error("Write requires approval");
       response->set_proposal_id(proposal_id);
       return grpc::Status::OK;  // Not an error, just needs approval
     }
@@ -90,18 +84,15 @@ grpc::Status RomServiceImpl::WriteBytes(
   // Create snapshot before write
   if (version_mgr_) {
     std::string snapshot_desc = absl::StrFormat(
-        "Before write to 0x%X (%zu bytes)", address, data.size());
-    auto snapshot_result = version_mgr_->CreateSnapshot(snapshot_desc);
-    if (snapshot_result.ok()) {
-      response->set_snapshot_id(std::to_string(snapshot_result.value()));
-    }
+        "Before write to 0x%X (%zu bytes)", offset, data.size());
+    // Creator is "system" for now, could be passed in context
+    version_mgr_->CreateSnapshot(snapshot_desc, "system");
   }
 
   // Perform write
-  std::memcpy(rom_->mutable_data() + address, data.data(), data.size());
+  std::memcpy(rom_->mutable_data() + offset, data.data(), data.size());
 
   response->set_success(true);
-  response->set_message("Write successful");
 
   return grpc::Status::OK;
 }
@@ -114,69 +105,73 @@ grpc::Status RomServiceImpl::GetRomInfo(
                         "ROM not loaded");
   }
 
-  auto* info = response->mutable_info();
-  info->set_title(rom_->title());
-  info->set_size(rom_->size());
-  info->set_is_loaded(rom_->is_loaded());
-  info->set_filename(rom_->filename());
+  response->set_title(rom_->title());
+  response->set_size(rom_->size());
+  // response->set_is_loaded(rom_->is_loaded()); // Not in proto
+  // response->set_filename(rom_->filename()); // Not in proto
+  // Proto has: title, size, checksum, is_expanded, version
 
   return grpc::Status::OK;
 }
 
-grpc::Status RomServiceImpl::GetTileData(
-    grpc::ServerContext* context, const rom_svc::GetTileDataRequest* request,
-    rom_svc::GetTileDataResponse* response) {
-  return grpc::Status(grpc::StatusCode::UNIMPLEMENTED,
-                      "GetTileData not yet implemented");
+grpc::Status RomServiceImpl::ReadOverworldMap(
+    grpc::ServerContext* context, const rom_svc::ReadOverworldMapRequest* request,
+    rom_svc::ReadOverworldMapResponse* response) {
+  return grpc::Status(grpc::StatusCode::UNIMPLEMENTED, "Not implemented");
 }
 
-grpc::Status RomServiceImpl::SetTileData(
-    grpc::ServerContext* context, const rom_svc::SetTileDataRequest* request,
-    rom_svc::SetTileDataResponse* response) {
-  return grpc::Status(grpc::StatusCode::UNIMPLEMENTED,
-                      "SetTileData not yet implemented");
+grpc::Status RomServiceImpl::ReadDungeonRoom(
+    grpc::ServerContext* context, const rom_svc::ReadDungeonRoomRequest* request,
+    rom_svc::ReadDungeonRoomResponse* response) {
+  return grpc::Status(grpc::StatusCode::UNIMPLEMENTED, "Not implemented");
 }
 
-grpc::Status RomServiceImpl::GetMapData(
-    grpc::ServerContext* context, const rom_svc::GetMapDataRequest* request,
-    rom_svc::GetMapDataResponse* response) {
-  return grpc::Status(grpc::StatusCode::UNIMPLEMENTED,
-                      "GetMapData not yet implemented");
+grpc::Status RomServiceImpl::ReadSprite(
+    grpc::ServerContext* context, const rom_svc::ReadSpriteRequest* request,
+    rom_svc::ReadSpriteResponse* response) {
+  return grpc::Status(grpc::StatusCode::UNIMPLEMENTED, "Not implemented");
 }
 
-grpc::Status RomServiceImpl::SetMapData(
-    grpc::ServerContext* context, const rom_svc::SetMapDataRequest* request,
-    rom_svc::SetMapDataResponse* response) {
-  return grpc::Status(grpc::StatusCode::UNIMPLEMENTED,
-                      "SetMapData not yet implemented");
+grpc::Status RomServiceImpl::WriteOverworldTile(
+    grpc::ServerContext* context, const rom_svc::WriteOverworldTileRequest* request,
+    rom_svc::WriteOverworldTileResponse* response) {
+  return grpc::Status(grpc::StatusCode::UNIMPLEMENTED, "Not implemented");
 }
 
-grpc::Status RomServiceImpl::GetSpriteData(
-    grpc::ServerContext* context, const rom_svc::GetSpriteDataRequest* request,
-    rom_svc::GetSpriteDataResponse* response) {
-  return grpc::Status(grpc::StatusCode::UNIMPLEMENTED,
-                      "GetSpriteData not yet implemented");
+grpc::Status RomServiceImpl::WriteDungeonTile(
+    grpc::ServerContext* context, const rom_svc::WriteDungeonTileRequest* request,
+    rom_svc::WriteDungeonTileResponse* response) {
+  return grpc::Status(grpc::StatusCode::UNIMPLEMENTED, "Not implemented");
 }
 
-grpc::Status RomServiceImpl::SetSpriteData(
-    grpc::ServerContext* context, const rom_svc::SetSpriteDataRequest* request,
-    rom_svc::SetSpriteDataResponse* response) {
-  return grpc::Status(grpc::StatusCode::UNIMPLEMENTED,
-                      "SetSpriteData not yet implemented");
+grpc::Status RomServiceImpl::SubmitRomProposal(
+    grpc::ServerContext* context, const rom_svc::SubmitRomProposalRequest* request,
+    rom_svc::SubmitRomProposalResponse* response) {
+  return grpc::Status(grpc::StatusCode::UNIMPLEMENTED, "Not implemented");
 }
 
-grpc::Status RomServiceImpl::GetDialogue(
-    grpc::ServerContext* context, const rom_svc::GetDialogueRequest* request,
-    rom_svc::GetDialogueResponse* response) {
-  return grpc::Status(grpc::StatusCode::UNIMPLEMENTED,
-                      "GetDialogue not yet implemented");
+grpc::Status RomServiceImpl::GetProposalStatus(
+    grpc::ServerContext* context, const rom_svc::GetProposalStatusRequest* request,
+    rom_svc::GetProposalStatusResponse* response) {
+  return grpc::Status(grpc::StatusCode::UNIMPLEMENTED, "Not implemented");
 }
 
-grpc::Status RomServiceImpl::SetDialogue(
-    grpc::ServerContext* context, const rom_svc::SetDialogueRequest* request,
-    rom_svc::SetDialogueResponse* response) {
-  return grpc::Status(grpc::StatusCode::UNIMPLEMENTED,
-                      "SetDialogue not yet implemented");
+grpc::Status RomServiceImpl::CreateSnapshot(
+    grpc::ServerContext* context, const rom_svc::CreateSnapshotRequest* request,
+    rom_svc::CreateSnapshotResponse* response) {
+  return grpc::Status(grpc::StatusCode::UNIMPLEMENTED, "Not implemented");
+}
+
+grpc::Status RomServiceImpl::RestoreSnapshot(
+    grpc::ServerContext* context, const rom_svc::RestoreSnapshotRequest* request,
+    rom_svc::RestoreSnapshotResponse* response) {
+  return grpc::Status(grpc::StatusCode::UNIMPLEMENTED, "Not implemented");
+}
+
+grpc::Status RomServiceImpl::ListSnapshots(
+    grpc::ServerContext* context, const rom_svc::ListSnapshotsRequest* request,
+    rom_svc::ListSnapshotsResponse* response) {
+  return grpc::Status(grpc::StatusCode::UNIMPLEMENTED, "Not implemented");
 }
 
 }  // namespace net
