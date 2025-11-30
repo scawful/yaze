@@ -64,6 +64,9 @@ class Emulator {
   bool EnsureInitialized(Rom* rom);
   // Runs emulator frame without UI rendering (for background audio)
   void RunFrameOnly();
+  // Runs audio-focused frame: CPU+APU cycles without PPU rendering
+  // Used by MusicEditor for authentic, low-overhead audio playback
+  void RunAudioFrame();
   // Reset frame timing (call before starting playback to prevent time buildup)
   void ResetFrameTiming();
 
@@ -87,9 +90,17 @@ class Emulator {
   bool is_turbo_mode() const { return turbo_mode_; }
   void set_turbo_mode(bool turbo) { turbo_mode_ = turbo; }
 
+  // Audio focus mode - use RunAudioFrame() for lower overhead audio playback
+  bool is_audio_focus_mode() const { return audio_focus_mode_; }
+  void set_audio_focus_mode(bool focus) { audio_focus_mode_ = focus; }
+
   // Playback speed control (for music editor)
   float playback_speed() const { return playback_speed_; }
   void set_playback_speed(float speed) { playback_speed_ = std::clamp(speed, 0.25f, 2.0f); }
+
+  // Audio settings
+  void set_interpolation_type(int type);
+  int get_interpolation_type() const;
 
   // Debugger access
   BreakpointManager& breakpoint_manager() { return breakpoint_manager_; }
@@ -171,6 +182,7 @@ class Emulator {
   bool loading_ = false;
   bool running_ = false;
   bool turbo_mode_ = false;
+  bool audio_focus_mode_ = false;  // Skip PPU rendering for audio playback
 
   float wanted_frames_;
   int wanted_samples_;

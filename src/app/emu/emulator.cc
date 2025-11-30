@@ -78,6 +78,18 @@ void Emulator::ResumeAudio() {
 #endif
 }
 
+void Emulator::set_interpolation_type(int type) {
+  if (!snes_initialized_) return;
+  // Clamp to valid range (0-3)
+  int safe_type = std::clamp(type, 0, 3);
+  snes_.apu().dsp().interpolation_type = static_cast<InterpolationType>(safe_type);
+}
+
+int Emulator::get_interpolation_type() const {
+  if (!snes_initialized_) return 0; // Default to Linear if not initialized
+  return static_cast<int>(snes_.apu().dsp().interpolation_type);
+}
+
 void Emulator::Initialize(gfx::IRenderer* renderer,
                           const std::vector<uint8_t>& rom_data) {
   // This method is now optional - emulator can be initialized lazily in Run()
@@ -208,9 +220,10 @@ void Emulator::RunFrameOnly() {
   last_count = current_count;
   double seconds = delta / (double)count_frequency;
 
-  // Apply playback speed multiplier to time accumulation
-  // Lower speed = less time added = fewer frames processed = slower playback
-  time_adder += seconds * static_cast<double>(playback_speed_);
+  // Note: playback_speed_ is NOT applied to frame timing here.
+  // Variable speed requires proper audio time-stretching or tempo control.
+  // For now, run at real-time to ensure consistent audio sample generation.
+  time_adder += seconds;
 
   // Cap time accumulation to prevent runaway (max 2 frames worth)
   double max_accumulation = wanted_frames_ * 2.0;
@@ -229,8 +242,8 @@ void Emulator::RunFrameOnly() {
     time_adder -= wanted_frames_;
     frames_processed++;
 
-    // Mark frame boundary for DSP sample reading
-    snes_.apu().dsp().NewFrame();
+    // Note: NewFrame() is called internally by Snes::RunCycle() at vblank start
+    // Do NOT call it here - duplicate calls reset the frame boundary incorrectly
 
     // Run SNES frame (generates audio samples)
     snes_.RunFrame();
@@ -266,6 +279,71 @@ void Emulator::ResetFrameTiming() {
   // Clear audio buffer to prevent static from stale data
   if (audio_backend_) {
     audio_backend_->Clear();
+  }
+}
+
+void Emulator::RunAudioFrame() {
+  // Audio-focused frame execution for music editor
+  // Runs CPU+APU without PPU rendering for lower overhead and authentic sound
+
+  if (!snes_initialized_ || !running_) {
+    return;
+  }
+
+  // Calculate timing
+  uint64_t current_count = SDL_GetPerformanceCounter();
+  uint64_t delta = current_count - last_count;
+  last_count = current_count;
+  double seconds = delta / (double)count_frequency;
+
+  // Note: playback_speed_ is NOT applied to frame timing here.
+  // Variable speed requires proper audio time-stretching or tempo control,
+  // which would need N-SPC driver modification. For now, run at real-time
+  // to ensure consistent audio sample generation.
+  time_adder += seconds;
+
+  // Cap time accumulation to prevent runaway (max 2 frames worth)
+  double max_accumulation = wanted_frames_ * 2.0;
+  if (time_adder > max_accumulation) {
+    time_adder = max_accumulation;
+  }
+
+  // Process frames - limit to 2 frames max per update
+  int frames_processed = 0;
+  constexpr int kMaxFramesPerUpdate = 2;
+
+  // Local buffer for native sample path
+  static int16_t native_audio_buffer[1284];
+
+  while (time_adder >= wanted_frames_ && frames_processed < kMaxFramesPerUpdate) {
+    time_adder -= wanted_frames_;
+    frames_processed++;
+
+    // Note: NewFrame() is called internally by Snes::RunCycle() at vblank start
+    // No need to call it here - duplicate calls can cause timing issues
+
+    // Run SNES audio-focused frame (skips PPU rendering)
+    snes_.RunAudioFrame();
+
+    // Queue audio samples
+    if (audio_backend_) {
+      auto status = audio_backend_->GetStatus();
+      const int native_per_frame = snes_.memory().pal_timing() ? 641 : 534;
+
+      if (status.queued_frames < static_cast<uint32_t>(native_per_frame * 4)) {
+        // Use native 32kHz sample rate path for authentic sound
+        const int frames_native = snes_.apu().dsp().CopyNativeFrame(
+            native_audio_buffer, snes_.memory().pal_timing());
+        bool queue_ok = audio_backend_->QueueSamplesNative(
+            native_audio_buffer, frames_native, 2, kNativeSampleRate);
+
+        // Fallback to resampled path if native fails
+        if (!queue_ok) {
+          snes_.SetSamples(native_audio_buffer, wanted_samples_);
+          audio_backend_->QueueSamples(native_audio_buffer, wanted_samples_ * 2);
+        }
+      }
+    }
   }
 }
 

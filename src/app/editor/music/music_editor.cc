@@ -179,6 +179,8 @@ absl::Status MusicEditor::Update() {
       song_browser_view_.SetOnSongSelected([this](int index) { OpenSong(index); });
       song_browser_view_.SetOnOpenTracker([this](int index) { OpenSong(index); });
       song_browser_view_.SetOnOpenPianoRoll([this](int index) { OpenSongPianoRoll(index); });
+      song_browser_view_.SetOnExportAsm([this](int index) { ExportSongToAsm(index); });
+      song_browser_view_.SetOnImportAsm([this](int index) { ImportSongFromAsm(index); });
       song_browser_view_.SetOnEdit([this]() { PushUndoState(); });
       DrawSongBrowser();
     }
@@ -659,9 +661,15 @@ void MusicEditor::DrawSongTrackerWindow(int song_index) {
   if (ImGui::IsItemHovered()) ImGui::SetTooltip("Open Piano Roll view");
 
   // === Row 2: Song Info ===
-  const char* bank_name = song->bank == 0   ? "Overworld"
-                         : song->bank == 1 ? "Dungeon"
-                                           : "Credits";
+  const char* bank_name = nullptr;
+  switch (song->bank) {
+    case 0: bank_name = "Overworld"; break;
+    case 1: bank_name = "Dungeon"; break;
+    case 2: bank_name = "Credits"; break;
+    case 3: bank_name = "Expanded"; break;
+    case 4: bank_name = "Auxiliary"; break;
+    default: bank_name = "Unknown"; break;
+  }
   ImGui::TextColored(ImVec4(0.6f, 0.6f, 0.6f, 1.0f), "[%02X]", song_index + 1);
   ImGui::SameLine();
   ImGui::Text("%s", song->name.c_str());
@@ -845,17 +853,23 @@ void MusicEditor::DrawToolset() {
   if (ImGui::IsItemHovered()) ImGui::SetTooltip("Volume - use wheel");
 
   ImGui::SameLine();
-  if (!can_play) {
-    ImGui::BeginDisabled();
-    if (ImGui::Button(ICON_MD_REFRESH)) {}
-    ImGui::EndDisabled();
-  } else {
-    if (ImGui::Button(ICON_MD_REFRESH)) {
-      music_bank_.LoadFromRom(*rom_);
-      song_names_.clear();
-    }
+  if (ImGui::Button(ICON_MD_REFRESH)) {
+    music_bank_.LoadFromRom(*rom_);
+    song_names_.clear();
   }
   if (ImGui::IsItemHovered()) ImGui::SetTooltip("Reload from ROM");
+
+  // Interpolation Control
+  ImGui::SameLine();
+  ImGui::SetNextItemWidth(100);
+  if (emulator_) {
+    int current_interp = emulator_->get_interpolation_type();
+    const char* items[] = {"Linear", "Hermite", "Cosine", "Cubic (Gauss)"};
+    if (ImGui::Combo("##Interp", &current_interp, items, IM_ARRAYSIZE(items))) {
+      emulator_->set_interpolation_type(current_interp);
+    }
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("Audio Interpolation Quality");
+  }
 
   ImGui::Separator();
 
@@ -1118,6 +1132,7 @@ void MusicEditor::StopSong() {
 
     // Actually stop the emulator, not just pause audio
     emulator_->set_running(false);
+    emulator_->set_audio_focus_mode(false);  // Disable audio focus mode
 
     if (auto* audio = emulator_->audio_backend()) {
       audio->Stop();  // Full stop, not just pause
@@ -1271,11 +1286,13 @@ uint32_t MusicEditor::GetBankRomOffset(uint8_t bank) const {
   // ROM offsets for sound bank block headers
   // Each bank has blocks: [size:2][aram_addr:2][data:size]
   //
-  // IMPORTANT: The 'bank' parameter here is the ROM bank index (0-3):
+  // IMPORTANT: The 'bank' parameter here is the ROM bank index (0-5):
   //   0 = Common bank (driver, samples, instruments) at 0xC8000
   //   1 = Overworld song data at 0xD1EF5
   //   2 = Dungeon song data at 0xD8000
   //   3 = Credits song data at 0xD5380
+  //   4 = Expanded Overworld (Oracle of Secrets) at 0x1A9EF5
+  //   5 = Auxiliary bank (Oracle of Secrets) at 0x1ACCA7
   //
   // This is DIFFERENT from song.bank enum values (0=overworld, 1=dungeon, 2=credits)!
   // Use GetSongBankRomOffset() to convert song.bank to ROM offset.
@@ -1283,10 +1300,12 @@ uint32_t MusicEditor::GetBankRomOffset(uint8_t bank) const {
       0xC8000,   // ROM Bank 0 (common) - driver + samples + instruments
       0xD1EF5,   // ROM Bank 1 (overworld songs)
       0xD8000,   // ROM Bank 2 (dungeon songs)
-      0xD5380    // ROM Bank 3 (credits songs)
+      0xD5380,   // ROM Bank 3 (credits songs)
+      0x1A9EF5,  // ROM Bank 4 (expanded overworld - Oracle of Secrets)
+      0x1ACCA7   // ROM Bank 5 (auxiliary - Oracle of Secrets)
   };
 
-  if (bank < 4) {
+  if (bank < 6) {
     return kSoundBankOffsets[bank];
   }
   return kSoundBankOffsets[0];  // Default to common bank
@@ -1410,45 +1429,88 @@ void MusicEditor::PlaySongDirect(int song_id) {
     return;
   }
 
-  // song.bank is the enum value: 0=overworld, 1=dungeon, 2=credits
+  // Check if song is modified or custom - use in-memory preview
+  // This allows previewing imported ASM songs before saving to ROM
+  if (song->modified || !music_bank_.IsVanilla(song_id - 1)) {
+    LOG_INFO("MusicEditor", "Song %d is modified/custom - using in-memory preview",
+             song_id);
+    PreviewCustomSong(song_id - 1);
+    return;
+  }
+
+  // song.bank is the enum value:
+  //   0 = overworld
+  //   1 = dungeon
+  //   2 = credits
+  //   3 = expanded overworld (Oracle of Secrets)
+  //   4 = auxiliary (Oracle of Secrets)
   uint8_t song_bank = song->bank;
-  LOG_INFO("MusicEditor", "Playing song %d (%s) from song_bank=%d",
-           song_id, song->name.c_str(), song_bank);
+  bool is_expanded = (song_bank == 3 || song_bank == 4);
+
+  LOG_INFO("MusicEditor", "Playing song %d (%s) from song_bank=%d%s",
+           song_id, song->name.c_str(), song_bank,
+           is_expanded ? " (expanded)" : "");
 
   auto& apu = emulator_->snes().apu();
 
   // Upload song bank if different from current
   // Map song.bank enum to ROM bank offset index:
-  //   song.bank 0 (overworld) → ROM bank 1 (0xD1EF5)
-  //   song.bank 1 (dungeon)   → ROM bank 2 (0xD8000)
-  //   song.bank 2 (credits)   → ROM bank 3 (0xD5380)
+  //   song.bank 0 (overworld)         → ROM bank 1 (0xD1EF5)
+  //   song.bank 1 (dungeon)           → ROM bank 2 (0xD8000)
+  //   song.bank 2 (credits)           → ROM bank 3 (0xD5380)
+  //   song.bank 3 (expanded overworld) → ROM bank 4 (0x1A9EF5)
+  //   song.bank 4 (auxiliary)          → ROM bank 5 (0x1ACCA7)
   if (current_spc_bank_ != song_bank) {
-    uint8_t rom_bank = song_bank + 1;  // Convert: 0→1, 1→2, 2→3
+    uint8_t rom_bank = song_bank + 1;  // Convert: 0→1, 1→2, 2→3, 3→4, 4→5
     LOG_INFO("MusicEditor", "Uploading song bank: song_bank=%d -> rom_bank=%d",
              song_bank, rom_bank);
+
+    // For expanded banks, first check if the patch is detected
+    if (is_expanded && !music_bank_.HasExpandedMusicPatch()) {
+      LOG_WARN("MusicEditor",
+               "Expanded song requested but ROM doesn't have expanded patch");
+      // Fall back to overworld bank
+      rom_bank = 1;
+      song_bank = 0;
+    }
+
     UploadSoundBankFromRom(GetBankRomOffset(rom_bank));
     current_spc_bank_ = song_bank;
   }
 
-  // ALTTP N-SPC expects the global song ID (1-based), not bank-local index
-  // The driver internally maps this to the correct bank and song data
-  //
+  // Determine the song index to send to the SPC driver
+  // For vanilla banks, ALTTP N-SPC expects the global song ID (1-based)
+  // For expanded banks, we need to use the bank-local index since the
+  // expanded bank replaces $D000 just like vanilla banks
+  uint8_t spc_song_index;
+  if (is_expanded) {
+    // For expanded banks, the song pointer table at $D000 uses 0-based indexing
+    // We need to find the song's position within the expanded bank
+    // For now, use the song's index in the expanded bank (which we stored during load)
+    // The expanded bank songs are loaded after vanilla songs
+    int vanilla_count = 34;  // Total vanilla songs
+    int expanded_index = (song_id - 1) - vanilla_count;  // 0-based index in expanded
+    spc_song_index = static_cast<uint8_t>(expanded_index + 1);  // 1-based for driver
+    LOG_INFO("MusicEditor", "Expanded song: global_id=%d -> expanded_index=%d",
+             song_id, expanded_index);
+  } else {
+    // Vanilla: use global song ID directly
+    spc_song_index = static_cast<uint8_t>(song_id);
+  }
+
   // N-SPC port protocol:
-  // Port $F4 (in_ports_[0]): Global song ID (1-34 for vanilla songs)
+  // Port $F4 (in_ports_[0]): Song ID (1-based)
   // Port $F5 (in_ports_[1]): Command/acknowledge byte
   //
-  // Note: Setting in_ports_[1] to a non-matching value triggers the change
-  uint8_t global_song_id = static_cast<uint8_t>(song_id);
-
   // Toggle port 1 to trigger driver to notice the change
   static uint8_t trigger_byte = 0x00;
   trigger_byte ^= 0x01;  // Alternate between 0x00 and 0x01
 
-  apu.in_ports_[0] = global_song_id;
+  apu.in_ports_[0] = spc_song_index;
   apu.in_ports_[1] = trigger_byte;
 
-  LOG_INFO("MusicEditor", "Sent play command: global_song_id=%d (0x%02X) to SPC ports",
-           global_song_id, global_song_id);
+  LOG_INFO("MusicEditor", "Sent play command: spc_song_index=%d (0x%02X) to SPC ports",
+           spc_song_index, spc_song_index);
 
   // Run cycles to let driver process the command
   // The SPC700 runs at ~1.024MHz, so ~32000 cycles per frame at 60fps
@@ -1471,13 +1533,203 @@ void MusicEditor::PlaySongDirect(int song_id) {
     }
   }
 
-  // Ensure emulator is running
+  // Ensure emulator is running with audio focus mode for authentic sound
+  emulator_->set_audio_focus_mode(true);  // Skip PPU for lower overhead
   emulator_->set_running(true);
   is_playing_ = true;
   is_paused_ = false;
 
-  LOG_INFO("MusicEditor", "PlaySongDirect complete - emulator running at %.2fx speed",
+  LOG_INFO("MusicEditor", "PlaySongDirect complete - audio focus mode, %.2fx speed",
            playback_speed_);
+}
+
+// ============================================================================
+// ASM Export/Import
+// ============================================================================
+
+void MusicEditor::ExportSongToAsm(int song_index) {
+  auto* song = music_bank_.GetSong(song_index);
+  if (!song) {
+    LOG_WARN("MusicEditor", "ExportSongToAsm: Invalid song index %d", song_index);
+    return;
+  }
+
+  // Configure export options
+  zelda3::music::AsmExportOptions options;
+  options.label_prefix = song->name;
+  // Remove spaces and special characters from label
+  std::replace(options.label_prefix.begin(), options.label_prefix.end(), ' ', '_');
+  options.include_comments = true;
+  options.use_instrument_macros = true;
+
+  // Set ARAM address based on bank
+  if (music_bank_.IsExpandedSong(song_index)) {
+    options.base_aram_address = zelda3::music::kAuxSongTableAram;
+  } else {
+    options.base_aram_address = zelda3::music::kSongTableAram;
+  }
+
+  // Export to string
+  zelda3::music::AsmExporter exporter;
+  auto result = exporter.ExportSong(*song, options);
+  if (!result.ok()) {
+    LOG_ERROR("MusicEditor", "ExportSongToAsm failed: %s",
+              result.status().message().data());
+    return;
+  }
+
+  // For now, copy to assembly editor buffer
+  // TODO: Add native file dialog for export path selection
+  asm_buffer_ = *result;
+  show_asm_export_popup_ = true;
+
+  LOG_INFO("MusicEditor", "Exported song '%s' to ASM (%zu bytes)",
+           song->name.c_str(), asm_buffer_.size());
+}
+
+void MusicEditor::ImportSongFromAsm(int song_index) {
+  auto* song = music_bank_.GetSong(song_index);
+  if (!song) {
+    LOG_WARN("MusicEditor", "ImportSongFromAsm: Invalid song index %d", song_index);
+    return;
+  }
+
+  // Check if we have ASM source to import
+  if (asm_buffer_.empty()) {
+    LOG_INFO("MusicEditor", "No ASM source to import - showing import dialog");
+    show_asm_import_popup_ = true;
+    asm_import_target_index_ = song_index;
+    return;
+  }
+
+  // Configure import options
+  zelda3::music::AsmImportOptions options;
+  options.strict_mode = false;
+  options.verbose_errors = true;
+
+  // Parse the ASM source
+  zelda3::music::AsmImporter importer;
+  auto result = importer.ImportSong(asm_buffer_, options);
+  if (!result.ok()) {
+    LOG_ERROR("MusicEditor", "ImportSongFromAsm failed: %s",
+              result.status().message().data());
+    return;
+  }
+
+  // Log any warnings
+  for (const auto& warning : result->warnings) {
+    LOG_WARN("MusicEditor", "ASM import warning: %s", warning.c_str());
+  }
+
+  // Copy parsed song data to target song
+  // Keep original name if import didn't provide one
+  std::string original_name = song->name;
+  *song = result->song;
+  if (song->name.empty()) {
+    song->name = original_name;
+  }
+  song->modified = true;
+
+  LOG_INFO("MusicEditor", "Imported ASM to song '%s' (%d lines, %d bytes)",
+           song->name.c_str(), result->lines_parsed, result->bytes_generated);
+
+  // Notify that edits occurred
+  PushUndoState();
+}
+
+// ============================================================================
+// Custom Song Preview (In-Memory Playback)
+// ============================================================================
+
+void MusicEditor::PreviewCustomSong(int song_index) {
+  auto* song = music_bank_.GetSong(song_index);
+  if (!song) {
+    LOG_WARN("MusicEditor", "PreviewCustomSong: Invalid song index %d", song_index);
+    return;
+  }
+
+  if (!emulator_ || !rom_) {
+    LOG_WARN("MusicEditor", "PreviewCustomSong: No emulator/ROM available");
+    return;
+  }
+
+  // Ensure emulator is initialized with sound bank
+  if (!spc_initialized_) {
+    InitializeDirectSpc();
+    if (!spc_initialized_) {
+      LOG_ERROR("MusicEditor", "Failed to initialize SPC for custom preview");
+      return;
+    }
+  }
+
+  // Serialize the song to N-SPC format
+  uint16_t base_aram_address = zelda3::music::kSongTableAram;  // $D000
+
+  auto result = zelda3::music::SpcSerializer::SerializeSong(*song, base_aram_address);
+  if (!result.ok()) {
+    LOG_ERROR("MusicEditor", "Failed to serialize song: %s",
+              result.status().message().data());
+    return;
+  }
+
+  LOG_INFO("MusicEditor", "Serialized song '%s': %zu bytes at ARAM $%04X",
+           song->name.c_str(), result->data.size(), result->base_address);
+
+  // Upload to ARAM
+  UploadSongToAram(result->data, result->base_address);
+
+  // Trigger playback via SPC ports
+  // The song data is now at the song table address, use index 1
+  auto& apu = emulator_->snes().apu();
+
+  static uint8_t trigger_byte = 0x00;
+  trigger_byte ^= 0x01;  // Toggle to trigger driver
+
+  apu.in_ports_[0] = 1;  // Song index 1 (first song in our uploaded table)
+  apu.in_ports_[1] = trigger_byte;
+
+  // Run cycles to let driver process the command
+  for (int i = 0; i < 16000; i++) {
+    apu.Cycle();
+  }
+
+  // Reset frame timing to prevent accumulated time issues
+  emulator_->ResetFrameTiming();
+  emulator_->set_playback_speed(playback_speed_);
+
+  // Start audio backend
+  if (auto* audio = emulator_->audio_backend()) {
+    auto status = audio->GetStatus();
+    if (!status.is_playing) {
+      audio->Play();
+    }
+  }
+
+  // Ensure emulator is running with audio focus mode
+  emulator_->set_audio_focus_mode(true);  // Skip PPU for lower overhead
+  emulator_->set_running(true);
+  is_playing_ = true;
+  is_paused_ = false;
+
+  LOG_INFO("MusicEditor", "Custom song preview started - audio focus mode");
+}
+
+void MusicEditor::UploadSongToAram(const std::vector<uint8_t>& data,
+                                    uint16_t aram_address) {
+  if (!emulator_) {
+    LOG_WARN("MusicEditor", "UploadSongToAram: No emulator available");
+    return;
+  }
+
+  auto& apu = emulator_->snes().apu();
+
+  // Direct ARAM write
+  for (size_t i = 0; i < data.size(); ++i) {
+    apu.ram[aram_address + i] = data[i];
+  }
+
+  LOG_INFO("MusicEditor", "Uploaded %zu bytes to ARAM $%04X",
+           data.size(), aram_address);
 }
 
 }  // namespace editor
