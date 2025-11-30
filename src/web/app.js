@@ -7,21 +7,24 @@
 // This prevents the browser context menu from appearing on the canvas area
 // even during the loading phase before the canvas element is fully initialized
 (function() {
+  // Block context menu on the entire document for the yaze app
+  // ImGui handles right-click via SDL mouse events (mousedown/mouseup with button=2)
+  // which are separate from the contextmenu event
   document.addEventListener("contextmenu", function(e) {
-    var target = e.target;
-    if (!target) return;
-    
-    // Only block context menu for the canvas element itself
-    // This prevents browser context menu but allows ImGui to handle right-clicks
-    // via SDL mouse events (mousedown/mouseup with button=2)
-    var isCanvas = target.tagName === 'CANVAS' || target.id === 'canvas';
-    
-    if (isCanvas) {
-      // Prevent browser context menu - this doesn't affect mousedown/mouseup events
-      // which SDL/ImGui use to detect right-clicks
-      e.preventDefault();
-      return false;
-    }
+    // Always prevent context menu - yaze is a full-screen app
+    // The browser context menu is never useful here
+    e.preventDefault();
+    e.stopPropagation();
+    e.stopImmediatePropagation();
+    return false;
+  }, { capture: true, passive: false });
+
+  // Also attach directly to window to catch any events that might bubble
+  window.addEventListener("contextmenu", function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    e.stopImmediatePropagation();
+    return false;
   }, { capture: true, passive: false });
 
   // Also prevent drag operations on canvas (stops "Copy image" drag)
