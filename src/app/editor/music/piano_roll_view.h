@@ -12,6 +12,20 @@ namespace yaze {
 namespace editor {
 namespace music {
 
+struct RollPalette {
+  ImU32 white_key;
+  ImU32 black_key;
+  ImU32 grid_major;
+  ImU32 grid_minor;
+  ImU32 note;
+  ImU32 note_hover;
+  ImU32 note_shadow;
+  ImU32 background;
+  ImU32 key_label;
+  ImU32 beat_marker;
+  ImU32 octave_line;
+};
+
 /**
  * @brief UI component for displaying and editing music tracks as a piano roll.
  */
@@ -74,6 +88,18 @@ class PianoRollView {
   void DrawToolbar(const zelda3::music::MusicSong* song, const zelda3::music::MusicBank* bank);
   void DrawChannelList(const zelda3::music::MusicSong* song);
   void DrawStatusBar(const zelda3::music::MusicSong* song);
+  
+  // Drawing Helpers
+  void DrawPianoKeys(ImDrawList* draw_list, const ImVec2& key_origin, float total_height, 
+                     int start_key_idx, int visible_keys, const RollPalette& palette);
+  void DrawGrid(ImDrawList* draw_list, const ImVec2& grid_origin, const ImVec2& canvas_pos,
+                const ImVec2& canvas_size, float total_height, float clip_bottom,
+                int start_tick, int visible_ticks, int start_key_idx, int visible_keys,
+                float content_width, const RollPalette& palette);
+  void DrawNotes(ImDrawList* draw_list, const zelda3::music::MusicSong* song,
+                 const ImVec2& grid_origin, float total_height,
+                 int start_tick, int end_tick, int start_key_idx, int visible_keys,
+                 const RollPalette& palette);
   void DrawPlaybackCursor(ImDrawList* draw_list, const ImVec2& grid_origin,
                           float grid_height, uint32_t segment_start_tick);
 
@@ -94,7 +120,7 @@ class PianoRollView {
   // Layout constants
   static constexpr float kToolbarHeight = 32.0f;
   static constexpr float kStatusBarHeight = 24.0f;
-  static constexpr float kChannelListWidth = 180.0f;
+  static constexpr float kChannelListWidth = 50.0f;
 
   // State
   int active_channel_index_ = 0;
@@ -102,7 +128,7 @@ class PianoRollView {
   int preview_instrument_index_ = 0; // Selected instrument for new notes
   float pixels_per_tick_ = 2.0f;
   float key_height_ = 12.0f;
-  float key_width_ = 60.0f;
+  float key_width_ = 40.0f;
   int scroll_x_ = 0;
   int scroll_y_ = 0; // Scroll offset in keys (from top C-1)
   bool snap_enabled_ = true;

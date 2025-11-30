@@ -82,11 +82,8 @@ constexpr int kSpcStopCycles = 16000;
 constexpr int kSpcInitCycles = 16000;
 
 // Piano Roll Layout
-constexpr int kNoteMinPitch = 0;
-constexpr int kNoteMaxPitch = 127;
 constexpr int kToolbarHeight = 32;
 constexpr int kStatusBarHeight = 24;
-constexpr int kChannelListWidth = 180;
 
 // Bank Offsets
 constexpr uint32_t kSoundBankOffsets[] = {
