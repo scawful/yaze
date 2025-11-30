@@ -380,7 +380,8 @@ absl::Status SDL2WindowBackend::InitializeImGui(gfx::IRenderer* renderer) {
   ImGuiIO& io = ImGui::GetIO();
   io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
   io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-  io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+  // Note: ViewportsEnable is intentionally NOT set for SDL2 + SDL_Renderer
+  // It causes scaling issues on macOS Retina displays
 
   // Initialize ImGui backends
   SDL_Renderer* sdl_renderer =
@@ -432,6 +433,9 @@ void SDL2WindowBackend::NewImGuiFrame() {
 
   ImGui_ImplSDLRenderer2_NewFrame();
   ImGui_ImplSDL2_NewFrame();
+  // ImGui_ImplSDL2_NewFrame() automatically handles DisplaySize and
+  // DisplayFramebufferScale via ImGui_ImplSDL2_GetWindowSizeAndFramebufferScale()
+  // which uses SDL_GetRendererOutputSize() when renderer is available.
 }
 
 void SDL2WindowBackend::RenderImGui(gfx::IRenderer* renderer) {

@@ -25,7 +25,7 @@ absl::Status Controller::OnEntry(std::string filename) {
   platform::WindowConfig config;
   config.title = "Yet Another Zelda3 Editor";
   config.resizable = true;
-  config.high_dpi = true;
+  config.high_dpi = false;  // Disabled to match legacy behavior (SDL_WINDOW_RESIZABLE only)
 
   RETURN_IF_ERROR(window_backend_->Initialize(config));
 
