@@ -389,6 +389,20 @@ void AgentEditor::DrawDashboard() {
 
 void AgentEditor::DrawConfigurationPanel() {
   const auto& theme = yaze::gui::style::DefaultTheme();
+  
+  // Helper for tooltips
+  auto HelpMarker = [](const char* desc) {
+    ImGui::SameLine();
+    ImGui::TextDisabled("(?)");
+    if (ImGui::IsItemHovered()) {
+      ImGui::BeginTooltip();
+      ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+      ImGui::TextUnformatted(desc);
+      ImGui::PopTextWrapPos();
+      ImGui::EndTooltip();
+    }
+  };
+
   // AI Provider Configuration
   if (ImGui::CollapsingHeader(ICON_MD_SETTINGS " AI Provider",
                               ImGuiTreeNodeFlags_DefaultOpen)) {
@@ -397,19 +411,24 @@ void AgentEditor::DrawConfigurationPanel() {
     ImGui::Spacing();
 
     // Provider buttons (large, visual)
-    ImVec2 button_size(ImGui::GetContentRegionAvail().x / 3 - 8, 60);
+    float avail_width = ImGui::GetContentRegionAvail().x;
+    // 4 buttons now: Mock, Ollama, Gemini, Local CLI
+    // Adjust sizing for 2 rows of 2 or 1 row of 4? 
+    // Let's do 2x2 grid for better touch targets
+    ImVec2 button_size(avail_width / 2 - 8, 50);
 
     bool is_mock = (current_profile_.provider == "mock");
     bool is_ollama = (current_profile_.provider == "ollama");
     bool is_gemini = (current_profile_.provider == "gemini");
+    bool is_gemini_cli = (current_profile_.provider == "gemini-cli");
 
-    if (is_mock)
-      ImGui::PushStyleColor(ImGuiCol_Button, theme.secondary);
+    // Row 1
+    if (is_mock) ImGui::PushStyleColor(ImGuiCol_Button, theme.secondary);
     if (ImGui::Button(ICON_MD_SETTINGS " Mock", button_size)) {
       current_profile_.provider = "mock";
     }
-    if (is_mock)
-      ImGui::PopStyleColor();
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("Offline testing mode (no AI)");
+    if (is_mock) ImGui::PopStyleColor();
 
     ImGui::SameLine();
     if (is_ollama)
@@ -419,17 +438,24 @@ void AgentEditor::DrawConfigurationPanel() {
     if (ImGui::Button(ICON_MD_CLOUD " Ollama", button_size)) {
       current_profile_.provider = "ollama";
     }
-    if (is_ollama)
-      ImGui::PopStyleColor();
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("Local LLM via Ollama (e.g. Llama 3, Qwen)");
+    if (is_ollama) ImGui::PopStyleColor();
 
-    ImGui::SameLine();
-    if (is_gemini)
-      ImGui::PushStyleColor(ImGuiCol_Button, theme.primary);
-    if (ImGui::Button(ICON_MD_SMART_TOY " Gemini", button_size)) {
+    // Row 2
+    if (is_gemini) ImGui::PushStyleColor(ImGuiCol_Button, theme.primary);
+    if (ImGui::Button(ICON_MD_SMART_TOY " Gemini API", button_size)) {
       current_profile_.provider = "gemini";
     }
-    if (is_gemini)
-      ImGui::PopStyleColor();
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("Google Gemini API (Requires Key)");
+    if (is_gemini) ImGui::PopStyleColor();
+
+    ImGui::SameLine();
+    if (is_gemini_cli) ImGui::PushStyleColor(ImGuiCol_Button, theme.primary);
+    if (ImGui::Button(ICON_MD_TERMINAL " Local CLI", button_size)) {
+      current_profile_.provider = "gemini-cli";
+    }
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("Uses local 'gemini' CLI tool (BYOK/Google One)");
+    if (is_gemini_cli) ImGui::PopStyleColor();
 
     ImGui::Separator();
     ImGui::Spacing();
@@ -461,10 +487,10 @@ void AgentEditor::DrawConfigurationPanel() {
       }
     } else if (current_profile_.provider == "gemini") {
       ImGui::TextColored(ImVec4(0.196f, 0.6f, 0.8f, 1.0f),
-                         ICON_MD_SMART_TOY " Gemini Settings");
+                         ICON_MD_SMART_TOY " Gemini API Settings");
 
       // Load from environment button
-      if (ImGui::Button(ICON_MD_REFRESH " Load from Environment")) {
+      if (ImGui::Button(ICON_MD_REFRESH " Load from Env (GEMINI_API_KEY)")) {
         const char* gemini_key = std::getenv("GEMINI_API_KEY");
         if (gemini_key) {
           current_profile_.gemini_api_key = gemini_key;
@@ -479,6 +505,7 @@ void AgentEditor::DrawConfigurationPanel() {
           }
         }
       }
+      HelpMarker("Loads key from system environment variable GEMINI_API_KEY");
 
       ImGui::Spacing();
 
@@ -509,6 +536,25 @@ void AgentEditor::DrawConfigurationPanel() {
         ImGui::TextColored(theme.success,
                            ICON_MD_CHECK_CIRCLE " API key configured");
       }
+    } else if (current_profile_.provider == "gemini-cli") {
+      ImGui::TextColored(ImVec4(0.8f, 0.4f, 0.8f, 1.0f),
+                         ICON_MD_TERMINAL " Local Gemini CLI Settings");
+      
+      ImGui::TextWrapped("Uses the locally installed 'gemini' CLI tool. Ensure it is authenticated.");
+      HelpMarker("Run 'gemini auth login' in your terminal first to set up credentials (e.g. Google One).");
+      
+      ImGui::Spacing();
+      ImGui::Text("Model:");
+      ImGui::SetNextItemWidth(-1);
+      static char model_buf[128] = "gemini-2.5-flash";
+      if (!current_profile_.model.empty()) {
+        strncpy(model_buf, current_profile_.model.c_str(),
+                sizeof(model_buf) - 1);
+      }
+      if (ImGui::InputTextWithHint("##gemini_cli_model", "e.g., gemini-2.5-flash",
+                                   model_buf, sizeof(model_buf))) {
+        current_profile_.model = model_buf;
+      }
     } else {
       ImGui::TextDisabled(ICON_MD_INFO " Mock mode - no configuration needed");
     }
@@ -519,12 +565,19 @@ void AgentEditor::DrawConfigurationPanel() {
                               ImGuiTreeNodeFlags_DefaultOpen)) {
     ImGui::Checkbox(ICON_MD_VISIBILITY " Show Reasoning",
                     &current_profile_.show_reasoning);
+    HelpMarker("Display the chain-of-thought reasoning process from the model before the final answer.");
+
     ImGui::Checkbox(ICON_MD_ANALYTICS " Verbose Output",
                     &current_profile_.verbose);
+    HelpMarker("Show detailed technical logs, including raw tool inputs/outputs and API latencies.");
+
     ImGui::SliderInt(ICON_MD_LOOP " Max Tool Iterations",
                      &current_profile_.max_tool_iterations, 1, 10);
+    HelpMarker("Maximum number of times the agent can call tools in a loop to solve a single request.");
+
     ImGui::SliderInt(ICON_MD_REFRESH " Max Retry Attempts",
                      &current_profile_.max_retry_attempts, 1, 10);
+    HelpMarker("Number of times to retry API calls on failure.");
   }
 
   // Profile Metadata
@@ -619,8 +672,8 @@ void AgentEditor::DrawStatusPanel() {
   // Always visible status cards (no collapsing)
 
   // Chat Status Card
-  ImGui::BeginChild("ChatStatusCard", ImVec2(0, 100), true);
-  ImGui::TextColored(ImVec4(1.0f, 0.843f, 0.0f, 1.0f), ICON_MD_CHAT " Chat");
+  ImGui::BeginChild("ChatStatusCard", ImVec2(0, 120), true);
+  ImGui::TextColored(ImVec4(1.0f, 0.843f, 0.0f, 1.0f), ICON_MD_CHAT " Chat Status");
   ImGui::Separator();
 
   if (chat_widget_ && chat_widget_->is_active()) {
@@ -628,12 +681,18 @@ void AgentEditor::DrawStatusPanel() {
                        ICON_MD_CHECK_CIRCLE " Active");
   } else {
     ImGui::TextDisabled(ICON_MD_CANCEL " Inactive");
+    ImGui::SameLine();
+    if (ImGui::SmallButton("Open")) {
+      OpenChatWindow();
+    }
+  }
+  
+  ImGui::Spacing();
+  ImGui::Text("Provider: %s", current_profile_.provider.c_str());
+  if (!current_profile_.model.empty()) {
+    ImGui::TextDisabled("Model: %s", current_profile_.model.c_str());
   }
 
-  ImGui::Spacing();
-  if (ImGui::Button(ICON_MD_OPEN_IN_NEW " Open", ImVec2(-1, 0))) {
-    OpenChatWindow();
-  }
   ImGui::EndChild();
 
   ImGui::Spacing();

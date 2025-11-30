@@ -202,6 +202,7 @@ if(YAZE_ENABLE_AI_RUNTIME)
     cli/service/ai/ai_action_parser.cc
     cli/service/ai/ai_gui_controller.cc
     cli/service/ai/ollama_ai_service.cc
+    cli/service/ai/local_gemini_cli_service.cc
     cli/service/ai/prompt_builder.cc
     cli/service/ai/service_factory.cc
     cli/service/ai/vision_action_refiner.cc
@@ -221,6 +222,7 @@ if(YAZE_ENABLE_REMOTE_AUTOMATION)
     cli/service/agent/emulator_service_impl.cc
     cli/handlers/tools/emulator_commands.cc
     cli/service/gui/gui_automation_client.cc
+    cli/service/gui/canvas_automation_client.cc
     cli/service/planning/tile16_proposal_generator.cc
   )
 endif()
