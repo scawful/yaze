@@ -733,8 +733,9 @@ void RenderEmulatorInterface(Emulator* emu) {
 
   // Tab key: Hold for turbo mode
   // Use SDL directly to bypass ImGui's keyboard navigation capture
-  const uint8_t* keyboard_state = SDL_GetKeyboardState(nullptr);
-  bool tab_pressed = keyboard_state[SDL_SCANCODE_TAB] != 0;
+  // Use SDL directly to bypass ImGui's keyboard navigation capture
+  platform::KeyboardState keyboard_state = SDL_GetKeyboardState(nullptr);
+  bool tab_pressed = platform::IsKeyPressed(keyboard_state, SDL_SCANCODE_TAB);
   emu->set_turbo_mode(tab_pressed);
 
   ImGui::PopStyleColor();

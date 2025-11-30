@@ -126,7 +126,7 @@ class Emulator {
     return {.fps = current_fps_,
             .cycles = snes_.mutable_cycles(),
             .audio_frames_queued =
-                SDL_GetQueuedAudioSize(audio_device_) / (wanted_samples_ * 4),
+                audio_backend_ ? audio_backend_->GetStatus().queued_frames : 0,
             .is_running = running_,
             .cpu_pc = snes_.cpu().PC,
             .cpu_pb = snes_.cpu().PB};
