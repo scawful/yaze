@@ -110,7 +110,21 @@
       endpoint: '',
 
       // Maximum response length (characters)
-      maxResponseLength: 4096
+      maxResponseLength: 4096,
+
+      // Authentication settings for client-side Gemini API usage
+      auth: {
+        // Google OAuth2 Client ID (for Device Flow or Implicit Flow)
+        // Defaulting to a placeholder - user must configure this for BYOK
+        clientId: '',
+        
+        // OAuth2 Endpoints
+        deviceEndpoint: 'https://oauth2.googleapis.com/device/code',
+        tokenEndpoint: 'https://oauth2.googleapis.com/token',
+        
+        // Scopes required for Gemini API
+        scopes: 'https://www.googleapis.com/auth/generative-language.retriever'
+      }
     },
 
     // Server deployment info (read-only, for diagnostics)

@@ -695,6 +695,54 @@ function hideAbout() {
   document.getElementById('about-modal').style.display = 'none';
 }
 
+// AI Setup Modal
+function showAiSetup() {
+  const modal = document.getElementById('ai-setup-modal');
+  modal.style.display = 'flex';
+  
+  // Load existing Client ID
+  let clientId = '';
+  // Check config
+  if (window.YAZE_CONFIG && window.YAZE_CONFIG.ai && window.YAZE_CONFIG.ai.auth) {
+    clientId = window.YAZE_CONFIG.ai.auth.clientId || '';
+  }
+  // Check storage override
+  const stored = localStorage.getItem('yaze_ai_client_id');
+  if (stored) clientId = stored;
+  
+  document.getElementById('ai-client-id').value = clientId;
+}
+
+function hideAiSetup() {
+  document.getElementById('ai-setup-modal').style.display = 'none';
+}
+
+function saveAiConfig() {
+  const clientId = document.getElementById('ai-client-id').value.trim();
+  if (!clientId) {
+    alert('Please enter a Client ID');
+    return;
+  }
+  
+  // Save to storage
+  localStorage.setItem('yaze_ai_client_id', clientId);
+  
+  // Update runtime config
+  if (!window.YAZE_CONFIG) window.YAZE_CONFIG = {};
+  if (!window.YAZE_CONFIG.ai) window.YAZE_CONFIG.ai = {};
+  if (!window.YAZE_CONFIG.ai.auth) window.YAZE_CONFIG.ai.auth = {};
+  
+  window.YAZE_CONFIG.ai.auth.clientId = clientId;
+  
+  // Force update AiManager if initialized
+  if (window.yaze && window.yaze.ai) {
+    window.yaze.ai.authConfig.clientId = clientId;
+  }
+  
+  alert('Configuration saved. You can now use /login in the terminal.');
+  hideAiSetup();
+}
+
 // Shortcuts (uses existing overlay)
 function showShortcuts() {
   if (window.yazeShortcuts) window.yazeShortcuts.show();
