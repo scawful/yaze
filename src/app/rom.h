@@ -222,6 +222,7 @@ class Rom {
   auto begin() { return rom_data_.begin(); }
   auto end() { return rom_data_.end(); }
   const auto& vector() const { return rom_data_; }
+  auto& mutable_vector() { return rom_data_; }
   auto filename() const { return filename_; }
   auto set_filename(std::string_view name) { filename_ = name; }
   auto short_name() const { return short_name_; }

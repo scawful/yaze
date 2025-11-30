@@ -126,9 +126,8 @@ absl::Status MusicEditor::Load() {
 
 absl::Status MusicEditor::Update() {
   // Run emulator frames when playing music (generates audio samples)
-  if (is_playing_ && emulator_ && emulator_->running()) {
-    emulator_->RunFrameOnly();
-  }
+  // NOTE: EditorManager::Update() calls emulator_.RunFrameOnly() or Run()
+  // so we don't need to call it here. Double-calling causes speedup issues.
 
 #ifdef __EMSCRIPTEN__
   if (persist_custom_music_ && !music_storage_key_.empty()) {

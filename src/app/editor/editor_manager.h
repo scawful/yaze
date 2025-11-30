@@ -54,6 +54,10 @@ class AgentEditor;
 }
 
 namespace yaze {
+
+// Forward declaration for AppConfig
+struct AppConfig;
+
 namespace editor {
 
 /**
@@ -79,6 +83,10 @@ class EditorManager {
   // Processes startup flags to open a specific editor and cards.
   void OpenEditorAndCardsFromFlags(const std::string& editor_name,
                                    const std::string& cards_str);
+                                   
+  // Apply startup actions based on AppConfig
+  void ProcessStartupActions(const AppConfig& config);
+                                   
   absl::Status Update();
   void DrawMenuBar();
 
