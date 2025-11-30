@@ -9,6 +9,7 @@
 #include "absl/strings/ascii.h"
 #include "absl/strings/str_format.h"
 #include "cli/service/ai/ai_service.h"
+#include "cli/service/ai/local_gemini_cli_service.h"
 #include "cli/service/ai/ollama_ai_service.h"
 
 #ifdef YAZE_WITH_JSON
@@ -118,6 +119,11 @@ absl::StatusOr<std::unique_ptr<AIService>> CreateAIServiceStrict(
     }
 
     return std::make_unique<OllamaAIService>(ollama_config);
+  }
+
+  if (provider == "gemini-cli" || provider == "local-gemini") {
+    return std::make_unique<LocalGeminiCliService>(
+        config.model.empty() ? "gemini-2.5-flash" : config.model);
   }
 
 #ifdef YAZE_WITH_JSON
