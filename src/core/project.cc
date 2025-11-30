@@ -1687,8 +1687,7 @@ void RecentFilesManager::Load() {
       recent_files_.push_back(line);
     }
   }
-  return;
-#endif
+#else
   std::string filepath = GetFilePath();
   std::ifstream file(filepath);
   if (!file.is_open()) {
@@ -1703,6 +1702,7 @@ void RecentFilesManager::Load() {
       recent_files_.push_back(line);
     }
   }
+#endif
 }
 
 }  // namespace project

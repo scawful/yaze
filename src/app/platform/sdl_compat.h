@@ -12,6 +12,7 @@
 
 #ifdef YAZE_USE_SDL3
 #include <SDL3/SDL.h>
+#include <SDL3/SDL_gamepad.h>
 #else
 #include <SDL.h>
 #endif
@@ -69,14 +70,16 @@ constexpr auto kEventControllerDeviceRemoved = SDL_CONTROLLERDEVICEREMOVED;
 // ============================================================================
 
 #ifdef YAZE_USE_SDL3
-constexpr auto kKeyA = SDLK_A;
-constexpr auto kKeyB = SDLK_B;
-constexpr auto kKeyC = SDLK_C;
-constexpr auto kKeyD = SDLK_D;
-constexpr auto kKeyS = SDLK_S;
-constexpr auto kKeyX = SDLK_X;
-constexpr auto kKeyY = SDLK_Y;
-constexpr auto kKeyZ = SDLK_Z;
+#include <SDL3/SDL_keycode.h>
+
+constexpr auto kKeyA = 'a';
+constexpr auto kKeyB = 'b';
+constexpr auto kKeyC = 'c';
+constexpr auto kKeyD = 'd';
+constexpr auto kKeyS = 's';
+constexpr auto kKeyX = 'x';
+constexpr auto kKeyY = 'y';
+constexpr auto kKeyZ = 'z';
 constexpr auto kKeyReturn = SDLK_RETURN;
 constexpr auto kKeyRShift = SDLK_RSHIFT;
 constexpr auto kKeyUp = SDLK_UP;
