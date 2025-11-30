@@ -1399,6 +1399,13 @@ absl::StatusOr<std::vector<uint8_t>> DecompressV2(const uint8_t* data,
   unsigned int length = 0;
   unsigned int buffer_pos = 0;
   uint8_t command = 0;
+
+  // Bounds check before initial header read
+  if (rom_size != static_cast<size_t>(-1) && static_cast<size_t>(offset) >= rom_size) {
+    return absl::OutOfRangeError(
+        absl::StrFormat("DecompressV2: Initial offset %d exceeds ROM size %zu",
+                        offset, rom_size));
+  }
   uint8_t header = data[offset];
 
   while (header != kSnesByteMax) {
@@ -1408,7 +1415,7 @@ absl::StatusOr<std::vector<uint8_t>> DecompressV2(const uint8_t* data,
           absl::StrFormat("DecompressV2: Offset %d exceeds ROM size %zu while reading command",
                           offset, rom_size));
     }
-    
+
     if ((header & kExpandedMod) == kExpandedMod) {
       // Expanded Command - needs 2 bytes
       if (rom_size != static_cast<size_t>(-1) && static_cast<size_t>(offset + 1) >= rom_size) {
@@ -1429,29 +1436,64 @@ absl::StatusOr<std::vector<uint8_t>> DecompressV2(const uint8_t* data,
 
     switch (command) {
       case kCommandDirectCopy:  // Does not advance in the ROM
+        // Bounds check for direct copy
+        if (rom_size != static_cast<size_t>(-1) &&
+            static_cast<size_t>(offset + length) > rom_size) {
+          return absl::OutOfRangeError(
+              absl::StrFormat("DecompressV2: DirectCopy offset %d + length %u exceeds ROM size %zu",
+                              offset, length, rom_size));
+        }
         memcpy(buffer.data() + buffer_pos, data + offset, length);
         buffer_pos += length;
         offset += length;
         break;
       case kCommandByteFill:
+        // Bounds check for byte fill
+        if (rom_size != static_cast<size_t>(-1) &&
+            static_cast<size_t>(offset) >= rom_size) {
+          return absl::OutOfRangeError(
+              absl::StrFormat("DecompressV2: ByteFill offset %d exceeds ROM size %zu",
+                              offset, rom_size));
+        }
         memset(buffer.data() + buffer_pos, (int)(data[offset]), length);
         buffer_pos += length;
         offset += 1;  // Advances 1 byte in the ROM
         break;
       case kCommandWordFill:
+        // Bounds check for word fill (needs 2 bytes)
+        if (rom_size != static_cast<size_t>(-1) &&
+            static_cast<size_t>(offset + 1) >= rom_size) {
+          return absl::OutOfRangeError(
+              absl::StrFormat("DecompressV2: WordFill offset %d+1 exceeds ROM size %zu",
+                              offset, rom_size));
+        }
         memfill(data, buffer, buffer_pos, offset, length);
         buffer_pos += length;
         offset += 2;  // Advance 2 byte in the ROM
         break;
       case kCommandIncreasingFill: {
+        // Bounds check for increasing fill
+        if (rom_size != static_cast<size_t>(-1) &&
+            static_cast<size_t>(offset) >= rom_size) {
+          return absl::OutOfRangeError(
+              absl::StrFormat("DecompressV2: IncreasingFill offset %d exceeds ROM size %zu",
+                              offset, rom_size));
+        }
         auto inc_byte = data[offset];
-        for (int i = 0; i < length; i++) {
+        for (unsigned int i = 0; i < length; i++) {
           buffer[buffer_pos] = inc_byte++;
           buffer_pos++;
         }
         offset += 1;  // Advance 1 byte in the ROM
       } break;
       case kCommandRepeatingBytes: {
+        // Bounds check for repeating bytes (needs 2 bytes)
+        if (rom_size != static_cast<size_t>(-1) &&
+            static_cast<size_t>(offset + 1) >= rom_size) {
+          return absl::OutOfRangeError(
+              absl::StrFormat("DecompressV2: RepeatingBytes offset %d+1 exceeds ROM size %zu",
+                              offset, rom_size));
+        }
         uint16_t s1 = ((data[offset + 1] & kSnesByteMax) << 8);
         uint16_t s2 = (data[offset] & kSnesByteMax);
         int addr = (s1 | s2);
@@ -1467,7 +1509,7 @@ absl::StatusOr<std::vector<uint8_t>> DecompressV2(const uint8_t* data,
                               "(Offset : %#04x | Pos : %#06x)\n",
                               addr, offset));
         }
-        if (buffer_pos + length >= size) {
+        if (buffer_pos + length >= static_cast<unsigned int>(size)) {
           size *= 2;
           buffer.resize(size);
         }
@@ -1481,7 +1523,13 @@ absl::StatusOr<std::vector<uint8_t>> DecompressV2(const uint8_t* data,
             offset, command);
       } break;
     }
-    // check next byte
+    // Bounds check before reading next header byte
+    if (rom_size != static_cast<size_t>(-1) &&
+        static_cast<size_t>(offset) >= rom_size) {
+      return absl::OutOfRangeError(
+          absl::StrFormat("DecompressV2: Offset %d exceeds ROM size %zu while reading next header",
+                          offset, rom_size));
+    }
     header = data[offset];
   }
 
