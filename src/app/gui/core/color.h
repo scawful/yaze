@@ -16,6 +16,8 @@ struct Color {
   float green;
   float blue;
   float alpha;
+
+  operator ImVec4() const { return ImVec4(red, green, blue, alpha); }
 };
 
 inline ImVec4 ConvertColorToImVec4(const Color& color) {
