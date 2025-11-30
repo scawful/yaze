@@ -49,6 +49,10 @@ namespace yaze::agent {
 class AgentControlServer;
 }
 
+namespace yaze {
+class CanvasAutomationServiceImpl;
+}
+
 namespace yaze::editor {
 class AgentEditor;
 }
@@ -253,6 +257,12 @@ class EditorManager {
   // Public for SessionCoordinator to configure new sessions
   void ConfigureSession(RomSession* session);
 
+#ifdef YAZE_WITH_GRPC
+  void SetCanvasAutomationService(CanvasAutomationServiceImpl* service) {
+    canvas_automation_service_ = service;
+  }
+#endif
+
   // UI visibility controls (public for MenuOrchestrator)
   // UI visibility controls - inline for performance (single-line wrappers
   // delegating to UICoordinator)
@@ -273,8 +283,10 @@ class EditorManager {
   void ShowAIAgent();
   void ShowChatHistory();
   AgentEditor* GetAgentEditor() { return agent_ui_.GetAgentEditor(); }
+  AgentUiController* GetAgentUiController() { return &agent_ui_; }
 #else
   AgentEditor* GetAgentEditor() { return nullptr; }
+  AgentUiController* GetAgentUiController() { return nullptr; }
 #endif
 #ifdef YAZE_BUILD_AGENT_UI
   void ShowProposalDrawer() { proposal_drawer_.Show(); }
@@ -383,6 +395,10 @@ class EditorManager {
 
   // Deferred action queue - executed at the start of each frame
   std::vector<std::function<void()>> deferred_actions_;
+
+#ifdef YAZE_WITH_GRPC
+  CanvasAutomationServiceImpl* canvas_automation_service_ = nullptr;
+#endif
 
   // RAII helper for clean session context switching
   class SessionScope {

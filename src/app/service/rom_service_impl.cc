@@ -1,4 +1,4 @@
-#include "app/net/rom_service_impl.h"
+#include "app/service/rom_service_impl.h"
 
 #ifdef YAZE_WITH_GRPC
 

@@ -9,6 +9,11 @@
 #include "app/controller.h"
 #include "yaze_config.h"
 
+#ifdef YAZE_WITH_GRPC
+#include "app/service/unified_grpc_server.h"
+#include "app/service/canvas_automation_service.h"
+#endif
+
 namespace yaze {
 
 /**
@@ -83,6 +88,11 @@ class Application {
 
   // Helper to run startup actions (jumps, card opening) after ROM load
   void RunStartupActions();
+
+#ifdef YAZE_WITH_GRPC
+  std::unique_ptr<YazeGRPCServer> grpc_server_;
+  std::unique_ptr<CanvasAutomationServiceImpl> canvas_automation_service_;
+#endif
 };
 
 }  // namespace yaze
