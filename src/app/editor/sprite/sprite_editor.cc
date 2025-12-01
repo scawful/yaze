@@ -5,7 +5,7 @@
 
 #include "app/editor/sprite/sprite_drawer.h"
 #include "app/editor/sprite/zsprite.h"
-#include "app/editor/system/editor_card_registry.h"
+#include "app/editor/system/panel_manager.h"
 #include "app/gfx/debug/performance/performance_profiler.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gui/core/icons.h"
@@ -30,11 +30,11 @@ using ImGui::TableSetupColumn;
 using ImGui::Text;
 
 void SpriteEditor::Initialize() {
-  if (!dependencies_.card_registry)
+  if (!dependencies_.panel_manager)
     return;
-  auto* card_registry = dependencies_.card_registry;
+  auto* panel_manager = dependencies_.panel_manager;
 
-  card_registry->RegisterCard({.card_id = "sprite.vanilla_editor",
+  panel_manager->RegisterPanel({.card_id = "sprite.vanilla_editor",
                                .display_name = "Vanilla Sprites",
                                .window_title = " Vanilla Sprites",
                                .icon = ICON_MD_SMART_TOY,
@@ -43,7 +43,7 @@ void SpriteEditor::Initialize() {
                                .priority = 10,
                                .enabled_condition = [this]() { return rom_->is_loaded(); },
                                .disabled_tooltip = "Load a ROM first"});
-  card_registry->RegisterCard({.card_id = "sprite.custom_editor",
+  panel_manager->RegisterPanel({.card_id = "sprite.custom_editor",
                                .display_name = "Custom Sprites",
                                .window_title = " Custom Sprites",
                                .icon = ICON_MD_ADD_CIRCLE,
@@ -53,7 +53,13 @@ void SpriteEditor::Initialize() {
                                .enabled_condition = [this]() { return rom_->is_loaded(); },
                                .disabled_tooltip = "Load a ROM first"});
 
-  card_registry->ShowCard("sprite.vanilla_editor");
+  // Register EditorPanel implementations
+  panel_manager->RegisterEditorPanel(std::make_unique<VanillaSpriteEditorPanel>(
+      [this]() { DrawVanillaSpriteEditor(); }));
+  panel_manager->RegisterEditorPanel(std::make_unique<CustomSpriteEditorPanel>(
+      [this]() { DrawCustomSprites(); }));
+
+  panel_manager->ShowPanel(0, "sprite.vanilla_editor");
 }
 
 absl::Status SpriteEditor::Load() {
@@ -72,27 +78,29 @@ absl::Status SpriteEditor::Update() {
   last_frame_time_ = current_time;
   UpdateAnimationPlayback(delta_time);
 
-  if (!dependencies_.card_registry)
+  if (!dependencies_.panel_manager)
     return absl::OkStatus();
-  auto* card_registry = dependencies_.card_registry;
+  auto* panel_manager = dependencies_.panel_manager;
 
-  static gui::EditorCard vanilla_card("Vanilla Sprites", ICON_MD_SMART_TOY);
-  static gui::EditorCard custom_card("Custom Sprites", ICON_MD_ADD_CIRCLE);
+  static gui::PanelWindow sprite_card("Sprites", ICON_MD_BUG_REPORT);
+  sprite_card.SetPosition(gui::PanelWindow::Position::Left);
+  static gui::PanelWindow custom_card("Custom Sprites", ICON_MD_ADD_CIRCLE);
+  custom_card.SetPosition(gui::PanelWindow::Position::Left);
 
-  vanilla_card.SetDefaultSize(900, 700);
+  sprite_card.SetDefaultSize(900, 700);
   custom_card.SetDefaultSize(1000, 700);
 
   bool* vanilla_visible =
-      card_registry->GetVisibilityFlag("sprite.vanilla_editor");
+      panel_manager->GetVisibilityFlag(0, "sprite.vanilla_editor");
   if (vanilla_visible && *vanilla_visible) {
-    if (vanilla_card.Begin(vanilla_visible)) {
+    if (sprite_card.Begin(vanilla_visible)) {
       DrawVanillaSpriteEditor();
     }
-    vanilla_card.End();
+    sprite_card.End();
   }
 
   bool* custom_visible =
-      card_registry->GetVisibilityFlag("sprite.custom_editor");
+      panel_manager->GetVisibilityFlag(0, "sprite.custom_editor");
   if (custom_visible && *custom_visible) {
     if (custom_card.Begin(custom_visible)) {
       DrawCustomSprites();
