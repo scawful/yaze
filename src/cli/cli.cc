@@ -7,7 +7,6 @@
 #include "cli/handlers/command_handlers.h"
 #include "cli/service/command_registry.h"
 #ifndef __EMSCRIPTEN__
-#include "cli/tui/chat_tui.h"
 #include "ftxui/dom/elements.hpp"
 #include "ftxui/dom/table.hpp"
 #endif
@@ -36,30 +35,17 @@ absl::Status ModernCLI::Run(int argc, char* argv[]) {
     args.push_back(argv[i]);
   }
 
-  // Handle --tui flag
-#ifndef __EMSCRIPTEN__
-  if (args[0] == "--tui") {
-    Rom rom;
-    // Attempt to load a ROM from the current directory or a well-known path
-    auto rom_status = rom.LoadFromFile("zelda3.sfc");
-    if (!rom_status.ok()) {
-      // Try assets directory as a fallback
-      rom_status = rom.LoadFromFile("assets/zelda3.sfc");
-    }
-
-    tui::ChatTUI chat_tui(rom.is_loaded() ? &rom : nullptr);
-    chat_tui.Run();
-    return absl::OkStatus();
-  }
-#else
-  if (args[0] == "--tui") {
-    return absl::UnimplementedError("TUI mode is not available in WASM builds");
-  }
-#endif
-
   if (args[0] == "help") {
     if (args.size() > 1) {
-      ShowCategoryHelp(args[1]);
+      const std::string& target = args[1];
+      auto& registry = CommandRegistry::Instance();
+      if (target == "all") {
+        std::cout << registry.GenerateCompleteHelp() << "\n";
+      } else if (registry.HasCommand(target)) {
+        std::cout << registry.GenerateHelp(target) << "\n";
+      } else {
+        ShowCategoryHelp(target);
+      }
     } else {
       ShowHelp();
     }

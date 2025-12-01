@@ -11,6 +11,7 @@
 #include "absl/strings/str_format.h"
 #include "app/rom.h"
 #include "cli/cli.h"
+#include "cli/service/command_registry.h"
 #ifndef __EMSCRIPTEN__
 #include "cli/tui/tui.h"
 #endif
@@ -127,32 +128,27 @@ int RunSelfTest() {
 }
 
 void PrintCompactHelp() {
+  auto& registry = yaze::cli::CommandRegistry::Instance();
+  auto categories = registry.GetCategories();
+
   std::cout << yaze::cli::GetColoredLogo() << "\n";
   std::cout
       << "  \033[1;37mYet Another Zelda3 Editor - AI-Powered CLI\033[0m\n\n";
 
   std::cout << "\033[1;36mUSAGE:\033[0m\n";
   std::cout << "  z3ed [command] [flags]\n";
-  std::cout << "  z3ed --tui              # Interactive TUI mode\n";
-  std::cout << "  z3ed --version          # Show version\n";
-  std::cout << "  z3ed --help <category>  # Category help\n\n";
+  std::cout << "  z3ed --tui                    # Interactive TUI mode\n";
+  std::cout << "  z3ed help <command|category>  # Scoped help\n";
+  std::cout << "  z3ed --export-schemas         # JSON schemas for agents\n";
+  std::cout << "  z3ed --version                # Show version\n\n";
 
-  std::cout << "\033[1;36mCOMMANDS:\033[0m\n";
-  std::cout << "  \033[1;33magent\033[0m       AI conversational agent for ROM "
-               "inspection\n";
-  std::cout << "  \033[1;33mrom\033[0m         ROM operations (info, validate, "
-               "diff)\n";
-  std::cout
-      << "  \033[1;33mdungeon\033[0m     Dungeon inspection and editing\n";
-  std::cout
-      << "  \033[1;33moverworld\033[0m   Overworld inspection and editing\n";
-  std::cout << "  \033[1;33mmessage\033[0m     Message/dialogue inspection\n";
-  std::cout << "  \033[1;33mgfx\033[0m         Graphics operations (export, "
-               "import)\n";
-  std::cout << "  \033[1;33mpalette\033[0m     Palette operations\n";
-  std::cout << "  \033[1;33mpatch\033[0m       Apply patches (BPS, Asar)\n";
-  std::cout
-      << "  \033[1;33mproject\033[0m     Project management (init, build)\n\n";
+  std::cout << "\033[1;36mCATEGORIES:\033[0m\n";
+  for (const auto& category : categories) {
+    auto commands = registry.GetCommandsInCategory(category);
+    std::cout << "  \033[1;33m" << category << "\033[0m (" << commands.size()
+              << " commands)\n";
+  }
+  std::cout << "\n";
 
   std::cout << "\033[1;36mCOMMON FLAGS:\033[0m\n";
   std::cout << "  --rom=<path>           Path to ROM file\n";
@@ -160,7 +156,8 @@ void PrintCompactHelp() {
   std::cout << "  --quiet, -q            Suppress output\n";
   std::cout << "  --version              Show version\n";
   std::cout << "  --self-test            Run self-test diagnostics\n";
-  std::cout << "  --help <category>      Show category help\n";
+  std::cout << "  --help <scope>         Show help for command or category\n";
+  std::cout << "  --export-schemas       Export command schemas as JSON\n";
 #ifdef YAZE_HTTP_API_ENABLED
   std::cout << "  --http-port=<port>     HTTP API server port (0=disabled)\n";
   std::cout
@@ -175,7 +172,7 @@ void PrintCompactHelp() {
                "Sword\"\n";
   std::cout << "  z3ed dungeon export --rom=zelda3.sfc --id=1\n\n";
 
-  std::cout << "For detailed help: z3ed --help <command>\n";
+  std::cout << "For detailed help: z3ed help <command>\n";
   std::cout << "For all commands:  z3ed --list-commands\n\n";
 }
 
@@ -185,7 +182,8 @@ struct ParsedGlobals {
   bool show_version = false;
   bool list_commands = false;
   bool self_test = false;
-  std::optional<std::string> help_category;
+  bool export_schemas = false;
+  std::optional<std::string> help_target;
   std::optional<std::string> error;
 };
 
@@ -212,9 +210,9 @@ ParsedGlobals ParseGlobalFlags(int argc, char* argv[]) {
 
       // Help flags
       if (absl::StartsWith(token, "--help=")) {
-        std::string category(token.substr(7));
-        if (!category.empty()) {
-          result.help_category = category;
+        std::string target(token.substr(7));
+        if (!target.empty()) {
+          result.help_target = target;
         } else {
           result.show_help = true;
         }
@@ -222,7 +220,7 @@ ParsedGlobals ParseGlobalFlags(int argc, char* argv[]) {
       }
       if (token == "--help" || token == "-h") {
         if (i + 1 < argc && argv[i + 1][0] != '-') {
-          result.help_category = std::string(argv[++i]);
+          result.help_target = std::string(argv[++i]);
         } else {
           result.show_help = true;
         }
@@ -238,6 +236,12 @@ ParsedGlobals ParseGlobalFlags(int argc, char* argv[]) {
       // List commands
       if (token == "--list-commands" || token == "--list") {
         result.list_commands = true;
+        continue;
+      }
+
+      // Schema export
+      if (token == "--export-schemas" || token == "--export_schemas") {
+        result.export_schemas = true;
         continue;
       }
 
@@ -454,6 +458,13 @@ int main(int argc, char* argv[]) {
     return RunSelfTest();
   }
 
+  auto& registry = yaze::cli::CommandRegistry::Instance();
+
+  if (globals.export_schemas) {
+    std::cout << registry.ExportFunctionSchemas() << "\n";
+    return EXIT_SUCCESS;
+  }
+
 #ifdef YAZE_HTTP_API_ENABLED
   // Start HTTP API server if requested
   std::unique_ptr<yaze::cli::api::HttpServer> http_server;
@@ -509,9 +520,21 @@ int main(int argc, char* argv[]) {
   // Create CLI instance
   yaze::cli::ModernCLI cli;
 
-  // Handle category-specific help
-  if (globals.help_category.has_value()) {
-    cli.PrintCategoryHelp(*globals.help_category);
+  // Handle targeted help (command or category)
+  if (globals.help_target.has_value()) {
+    const std::string& target = *globals.help_target;
+    if (target == "all") {
+      std::cout << registry.GenerateCompleteHelp() << "\n";
+    } else if (registry.HasCommand(target)) {
+      std::cout << registry.GenerateHelp(target) << "\n";
+    } else if (!registry.GetCommandsInCategory(target).empty()) {
+      cli.PrintCategoryHelp(target);
+    } else {
+      std::cerr << "\n\033[1;31mError:\033[0m Unknown command or category '"
+                << target << "'\n";
+      std::cerr << "Use --list-commands for a full command list.\n";
+      return EXIT_FAILURE;
+    }
     return EXIT_SUCCESS;
   }
 
