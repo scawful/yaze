@@ -166,6 +166,72 @@ absl::Status PolyhedralEditorPanel::WriteShape(const PolyShape& shape) {
   return rom_->WriteVector(ToPc(shape.face_ptr), std::move(face_blob));
 }
 
+void PolyhedralEditorPanel::Draw(bool* p_open) {
+  // EditorPanel interface - delegate to existing Update() logic
+  if (!rom_ || !rom_->is_loaded()) {
+    ImGui::TextUnformatted("Load a ROM to edit 3D objects.");
+    return;
+  }
+
+  if (!data_loaded_) {
+    auto status = LoadShapes();
+    if (!status.ok()) {
+      ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f),
+                         "Failed to load shapes: %s", status.message().data());
+      return;
+    }
+  }
+
+  gui::plotting::EnsureImPlotContext();
+
+  ImGui::Text("ALTTP polyhedral data @ $09:%04X (PC $%05X), %u bytes",
+              static_cast<uint16_t>(kPolyTableSnes & 0xFFFF), TablePc(),
+              kPolyRegionSize);
+  ImGui::TextUnformatted(
+      "Shapes: 0 = Crystal, 1 = Triforce (IDs used by POLYSHAPE)");
+
+  // Shape selector
+  if (!shapes_.empty()) {
+    ImGui::SetNextItemWidth(180);
+    if (ImGui::BeginCombo("Shape", shapes_[selected_shape_].name.c_str())) {
+      for (size_t i = 0; i < shapes_.size(); ++i) {
+        bool selected = static_cast<int>(i) == selected_shape_;
+        if (ImGui::Selectable(shapes_[i].name.c_str(), selected)) {
+          selected_shape_ = static_cast<int>(i);
+          selected_vertex_ = 0;
+        }
+      }
+      ImGui::EndCombo();
+    }
+  }
+
+  if (ImGui::Button(ICON_MD_REFRESH " Reload from ROM")) {
+    auto status = LoadShapes();
+    if (!status.ok()) {
+      ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f),
+                         "Reload failed: %s", status.message().data());
+    }
+  }
+  ImGui::SameLine();
+  ImGui::BeginDisabled(!dirty_);
+  if (ImGui::Button(ICON_MD_SAVE " Save 3D objects")) {
+    auto status = SaveShapes();
+    if (!status.ok()) {
+      ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f),
+                         "Save failed: %s", status.message().data());
+    }
+  }
+  ImGui::EndDisabled();
+
+  if (shapes_.empty()) {
+    ImGui::TextUnformatted("No polyhedral shapes found.");
+    return;
+  }
+
+  ImGui::Separator();
+  DrawShapeEditor(shapes_[selected_shape_]);
+}
+
 absl::Status PolyhedralEditorPanel::Update() {
   if (!rom_ || !rom_->is_loaded()) {
     ImGui::TextUnformatted("Load a ROM to edit 3D objects.");

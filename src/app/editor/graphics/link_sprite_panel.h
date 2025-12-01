@@ -6,9 +6,11 @@
 
 #include "absl/status/status.h"
 #include "app/editor/graphics/graphics_editor_state.h"
+#include "app/editor/system/editor_panel.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/util/zspr_loader.h"
 #include "app/gui/canvas/canvas.h"
+#include "app/gui/core/icons.h"
 
 namespace yaze {
 
@@ -26,7 +28,7 @@ namespace editor {
  * - Integration with main pixel editor
  * - Reset to vanilla option
  */
-class LinkSpritePanel {
+class LinkSpritePanel : public EditorPanel {
  public:
   static constexpr int kNumLinkSheets = 14;
 
@@ -42,13 +44,32 @@ class LinkSpritePanel {
 
   LinkSpritePanel(GraphicsEditorState* state, Rom* rom);
 
+  // ==========================================================================
+  // EditorPanel Identity
+  // ==========================================================================
+
+  std::string GetId() const override { return "graphics.link_sprite"; }
+  std::string GetDisplayName() const override { return "Link Sprite"; }
+  std::string GetIcon() const override { return ICON_MD_PERSON; }
+  std::string GetEditorCategory() const override { return "Graphics"; }
+  int GetPriority() const override { return 40; }
+
+  // ==========================================================================
+  // EditorPanel Lifecycle
+  // ==========================================================================
+
   /**
    * @brief Initialize the panel and load Link sheets
    */
   void Initialize();
 
   /**
-   * @brief Render the panel UI
+   * @brief Draw the panel UI (EditorPanel interface)
+   */
+  void Draw(bool* p_open) override;
+
+  /**
+   * @brief Legacy Update method for backward compatibility
    * @return Status of the render operation
    */
   absl::Status Update();

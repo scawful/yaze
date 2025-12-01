@@ -3,6 +3,8 @@
 
 #include "absl/status/status.h"
 #include "app/editor/graphics/graphics_editor_state.h"
+#include "app/editor/system/editor_panel.h"
+#include "app/gui/core/icons.h"
 #include "app/rom.h"
 
 namespace yaze {
@@ -14,10 +16,24 @@ namespace editor {
  * Provides palette group selection, quick presets, and
  * apply-to-sheet functionality.
  */
-class PaletteControlsPanel {
+class PaletteControlsPanel : public EditorPanel {
  public:
   explicit PaletteControlsPanel(GraphicsEditorState* state, Rom* rom)
       : state_(state), rom_(rom) {}
+
+  // ==========================================================================
+  // EditorPanel Identity
+  // ==========================================================================
+
+  std::string GetId() const override { return "graphics.palette_controls"; }
+  std::string GetDisplayName() const override { return "Palette Controls"; }
+  std::string GetIcon() const override { return ICON_MD_PALETTE; }
+  std::string GetEditorCategory() const override { return "Graphics"; }
+  int GetPriority() const override { return 30; }
+
+  // ==========================================================================
+  // EditorPanel Lifecycle
+  // ==========================================================================
 
   /**
    * @brief Initialize the panel
@@ -25,7 +41,12 @@ class PaletteControlsPanel {
   void Initialize();
 
   /**
-   * @brief Render the palette controls UI
+   * @brief Draw the palette controls UI (EditorPanel interface)
+   */
+  void Draw(bool* p_open) override;
+
+  /**
+   * @brief Legacy Update method for backward compatibility
    * @return Status of the render operation
    */
   absl::Status Update();

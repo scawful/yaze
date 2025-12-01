@@ -3,8 +3,10 @@
 
 #include "absl/status/status.h"
 #include "app/editor/graphics/graphics_editor_state.h"
+#include "app/editor/system/editor_panel.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gui/canvas/canvas.h"
+#include "app/gui/core/icons.h"
 #include "app/rom.h"
 
 namespace yaze {
@@ -16,10 +18,24 @@ namespace editor {
  * Provides a full-featured pixel editor with tools for drawing,
  * selecting, and manipulating graphics data.
  */
-class PixelEditorPanel {
+class PixelEditorPanel : public EditorPanel {
  public:
   explicit PixelEditorPanel(GraphicsEditorState* state, Rom* rom)
       : state_(state), rom_(rom) {}
+
+  // ==========================================================================
+  // EditorPanel Identity
+  // ==========================================================================
+
+  std::string GetId() const override { return "graphics.pixel_editor"; }
+  std::string GetDisplayName() const override { return "Pixel Editor"; }
+  std::string GetIcon() const override { return ICON_MD_BRUSH; }
+  std::string GetEditorCategory() const override { return "Graphics"; }
+  int GetPriority() const override { return 20; }
+
+  // ==========================================================================
+  // EditorPanel Lifecycle
+  // ==========================================================================
 
   /**
    * @brief Initialize the panel
@@ -27,7 +43,12 @@ class PixelEditorPanel {
   void Initialize();
 
   /**
-   * @brief Render the pixel editor UI
+   * @brief Draw the pixel editor UI (EditorPanel interface)
+   */
+  void Draw(bool* p_open) override;
+
+  /**
+   * @brief Legacy Update method for backward compatibility
    * @return Status of the render operation
    */
   absl::Status Update();

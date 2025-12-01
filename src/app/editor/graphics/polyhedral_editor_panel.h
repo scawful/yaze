@@ -5,6 +5,8 @@
 #include <vector>
 
 #include "absl/status/status.h"
+#include "app/editor/system/editor_panel.h"
+#include "app/gui/core/icons.h"
 #include "app/rom.h"
 
 namespace yaze {
@@ -31,9 +33,23 @@ struct PolyShape {
   std::vector<PolyFace> faces;
 };
 
-class PolyhedralEditorPanel {
+class PolyhedralEditorPanel : public EditorPanel {
  public:
   explicit PolyhedralEditorPanel(Rom* rom = nullptr) : rom_(rom) {}
+
+  // ==========================================================================
+  // EditorPanel Identity
+  // ==========================================================================
+
+  std::string GetId() const override { return "graphics.polyhedral"; }
+  std::string GetDisplayName() const override { return "Polyhedral Editor"; }
+  std::string GetIcon() const override { return ICON_MD_VIEW_IN_AR; }
+  std::string GetEditorCategory() const override { return "Graphics"; }
+  int GetPriority() const override { return 50; }
+
+  // ==========================================================================
+  // EditorPanel Lifecycle
+  // ==========================================================================
 
   void SetRom(Rom* rom) {
     rom_ = rom;
@@ -41,6 +57,15 @@ class PolyhedralEditorPanel {
   }
 
   absl::Status Load();
+
+  /**
+   * @brief Draw the polyhedral editor UI (EditorPanel interface)
+   */
+  void Draw(bool* p_open) override;
+
+  /**
+   * @brief Legacy Update method for backward compatibility
+   */
   absl::Status Update();
 
  private:

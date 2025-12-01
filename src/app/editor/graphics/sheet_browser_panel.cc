@@ -18,6 +18,15 @@ void SheetBrowserPanel::Initialize() {
   columns_ = 2;
 }
 
+void SheetBrowserPanel::Draw(bool* p_open) {
+  // EditorPanel interface - delegate to existing Update() logic
+  DrawSearchBar();
+  ImGui::Separator();
+  DrawBatchOperations();
+  ImGui::Separator();
+  DrawSheetGrid();
+}
+
 absl::Status SheetBrowserPanel::Update() {
   DrawSearchBar();
   ImGui::Separator();
