@@ -13,7 +13,7 @@
 #include "app/editor/session_types.h"
 #include "app/editor/dungeon/dungeon_editor_v2.h"
 #include "app/editor/overworld/overworld_editor.h"
-#include "app/editor/system/editor_card_registry.h"
+#include "app/editor/system/panel_manager.h"
 #include "app/gui/automation/widget_id_registry.h"
 #include "app/gui/automation/widget_measurement.h"
 #include "app/gui/core/platform_keys.h"
@@ -72,7 +72,7 @@ EM_JS(void, SetupYazeControlApi, (), {
       return {error: "API not ready"};
     },
     
-    // Card control
+    // Panel control (card naming kept for backward compatibility)
     openCard: function(cardId) {
       if (Module.controlOpenCard) {
         try { return JSON.parse(Module.controlOpenCard(cardId)); }
@@ -96,79 +96,102 @@ EM_JS(void, SetupYazeControlApi, (), {
       }
       return {error: "API not ready"};
     },
+
+    // Panel aliases
+    openPanel: function(panelId) { return this.openCard(panelId); },
+    closePanel: function(panelId) { return this.closeCard(panelId); },
+    togglePanel: function(panelId) { return this.toggleCard(panelId); },
     
     getVisibleCards: function() {
-      if (Module.controlGetVisibleCards) {
-        try { return JSON.parse(Module.controlGetVisibleCards()); }
+      if (Module.controlGetVisiblePanels) {
+        try { return JSON.parse(Module.controlGetVisiblePanels()); }
         catch(e) { return {error: e.message}; }
       }
       return {error: "API not ready"};
     },
+
+    getVisiblePanels: function() { return this.getVisibleCards(); },
     
     getAvailableCards: function() {
-      if (Module.controlGetAvailableCards) {
-        try { return JSON.parse(Module.controlGetAvailableCards()); }
+      if (Module.controlGetAvailablePanels) {
+        try { return JSON.parse(Module.controlGetAvailablePanels()); }
         catch(e) { return {error: e.message}; }
       }
       return {error: "API not ready"};
     },
+
+    getAvailablePanels: function() { return this.getAvailableCards(); },
     
     getCardsInCategory: function(category) {
-      if (Module.controlGetCardsInCategory) {
-        try { return JSON.parse(Module.controlGetCardsInCategory(category)); }
+      if (Module.controlGetPanelsInCategory) {
+        try { return JSON.parse(Module.controlGetPanelsInCategory(category)); }
         catch(e) { return {error: e.message}; }
       }
       return {error: "API not ready"};
     },
+
+    getPanelsInCategory: function(category) { return this.getCardsInCategory(category); },
 
     showAllCards: function() {
-      if (Module.controlShowAllCards) {
-        try { return JSON.parse(Module.controlShowAllCards()); }
+      if (Module.controlShowAllPanels) {
+        try { return JSON.parse(Module.controlShowAllPanels()); }
         catch(e) { return {error: e.message}; }
       }
       return {error: "API not ready"};
     },
 
+    showAllPanels: function() { return this.showAllCards(); },
+    
     hideAllCards: function() {
-      if (Module.controlHideAllCards) {
-        try { return JSON.parse(Module.controlHideAllCards()); }
+      if (Module.controlHideAllPanels) {
+        try { return JSON.parse(Module.controlHideAllPanels()); }
         catch(e) { return {error: e.message}; }
       }
       return {error: "API not ready"};
     },
 
+    hideAllPanels: function() { return this.hideAllCards(); },
+    
     showAllCardsInCategory: function(category) {
-      if (Module.controlShowAllCardsInCategory) {
-        try { return JSON.parse(Module.controlShowAllCardsInCategory(category)); }
+      if (Module.controlShowAllPanelsInCategory) {
+        try { return JSON.parse(Module.controlShowAllPanelsInCategory(category)); }
         catch(e) { return {error: e.message}; }
       }
       return {error: "API not ready"};
     },
 
+    showAllPanelsInCategory: function(category) { return this.showAllCardsInCategory(category); },
+    
     hideAllCardsInCategory: function(category) {
-      if (Module.controlHideAllCardsInCategory) {
-        try { return JSON.parse(Module.controlHideAllCardsInCategory(category)); }
+      if (Module.controlHideAllPanelsInCategory) {
+        try { return JSON.parse(Module.controlHideAllPanelsInCategory(category)); }
         catch(e) { return {error: e.message}; }
       }
       return {error: "API not ready"};
     },
+
+    hideAllPanelsInCategory: function(category) { return this.hideAllCardsInCategory(category); },
 
     showOnlyCard: function(cardId) {
-      if (Module.controlShowOnlyCard) {
-        try { return JSON.parse(Module.controlShowOnlyCard(cardId)); }
+      if (Module.controlShowOnlyPanel) {
+        try { return JSON.parse(Module.controlShowOnlyPanel(cardId)); }
         catch(e) { return {error: e.message}; }
       }
       return {error: "API not ready"};
     },
+
+    showOnlyPanel: function(panelId) { return this.showOnlyCard(panelId); },
     
     // Layout control
     setCardLayout: function(layoutName) {
-      if (Module.controlSetCardLayout) {
-        try { return JSON.parse(Module.controlSetCardLayout(layoutName)); }
+      if (Module.controlSetPanelLayout) {
+        try { return JSON.parse(Module.controlSetPanelLayout(layoutName)); }
         catch(e) { return {error: e.message}; }
       }
       return {error: "API not ready"};
     },
+
+    setPanelLayout: function(layoutName) { return this.setCardLayout(layoutName); },
     
     getAvailableLayouts: function() {
       if (Module.controlGetAvailableLayouts) {
@@ -520,7 +543,7 @@ void WasmControlApi::SetupJavaScriptBindings() {
 // Helper Methods
 // ============================================================================
 
-editor::EditorCardRegistry* WasmControlApi::GetCardRegistry() {
+editor::PanelManager* WasmControlApi::GetCardRegistry() {
   if (!IsReady() || !editor_manager_) {
     return nullptr;
   }
@@ -2313,10 +2336,10 @@ EMSCRIPTEN_BINDINGS(wasm_control_api) {
   emscripten::function("controlOpenCard", &WasmControlApi::OpenCard);
   emscripten::function("controlCloseCard", &WasmControlApi::CloseCard);
   emscripten::function("controlToggleCard", &WasmControlApi::ToggleCard);
-  emscripten::function("controlGetVisibleCards", &WasmControlApi::GetVisibleCards);
-  emscripten::function("controlGetAvailableCards", &WasmControlApi::GetAvailableCards);
-  emscripten::function("controlGetCardsInCategory", &WasmControlApi::GetCardsInCategory);
-  emscripten::function("controlSetCardLayout", &WasmControlApi::SetCardLayout);
+  emscripten::function("controlGetVisiblePanels", &WasmControlApi::GetVisibleCards);
+  emscripten::function("controlGetAvailablePanels", &WasmControlApi::GetAvailableCards);
+  emscripten::function("controlGetPanelsInCategory", &WasmControlApi::GetCardsInCategory);
+  emscripten::function("controlSetPanelLayout", &WasmControlApi::SetCardLayout);
   emscripten::function("controlGetAvailableLayouts", &WasmControlApi::GetAvailableLayouts);
   emscripten::function("controlSaveCurrentLayout", &WasmControlApi::SaveCurrentLayout);
   emscripten::function("controlTriggerMenuAction", &WasmControlApi::TriggerMenuAction);
@@ -2377,4 +2400,3 @@ EMSCRIPTEN_BINDINGS(wasm_control_api) {
 }  // namespace yaze
 
 #endif  // __EMSCRIPTEN__
-

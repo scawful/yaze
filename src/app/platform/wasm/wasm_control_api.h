@@ -16,7 +16,7 @@ class Rom;
 
 namespace editor {
 class EditorManager;
-class EditorCardRegistry;
+class PanelManager;
 }  // namespace editor
 
 namespace app {
@@ -30,15 +30,15 @@ namespace platform {
  *
  * API Surface:
  * - window.yaze.control.switchEditor("Overworld")
- * - window.yaze.control.openCard("dungeon.room_selector")
- * - window.yaze.control.closeCard("dungeon.room_selector")
- * - window.yaze.control.toggleCard("dungeon.room_selector")
+ * - window.yaze.control.openPanel("dungeon.room_selector")
+ * - window.yaze.control.closePanel("dungeon.room_selector")
+ * - window.yaze.control.togglePanel("dungeon.room_selector")
  * - window.yaze.control.triggerMenuAction("File.Save")
- * - window.yaze.control.setCardLayout("dungeon_default")
- * - window.yaze.control.getVisibleCards()
+ * - window.yaze.control.setPanelLayout("dungeon_default")
+ * - window.yaze.control.getVisiblePanels()
  * - window.yaze.control.getCurrentEditor()
  * - window.yaze.control.getAvailableEditors()
- * - window.yaze.control.getAvailableCards()
+ * - window.yaze.control.getAvailablePanels()
  */
 class WasmControlApi {
  public:
@@ -83,92 +83,92 @@ class WasmControlApi {
   static std::string GetAvailableEditors();
 
   // ============================================================================
-  // Card Control
+  // Panel Control
   // ============================================================================
 
   /**
-   * @brief Open/show a card by ID
-   * @param card_id Card identifier (e.g., "dungeon.room_selector")
+   * @brief Open/show a panel by ID
+   * @param card_id Panel identifier (e.g., "dungeon.room_selector")
    * @return JSON result with success/error
    */
   static std::string OpenCard(const std::string& card_id);
 
   /**
-   * @brief Close/hide a card by ID
-   * @param card_id Card identifier
+   * @brief Close/hide a panel by ID
+   * @param card_id Panel identifier
    * @return JSON result with success/error
    */
   static std::string CloseCard(const std::string& card_id);
 
   /**
-   * @brief Toggle a card's visibility
-   * @param card_id Card identifier
+   * @brief Toggle a panel's visibility
+   * @param card_id Panel identifier
    * @return JSON result with new visibility state
    */
   static std::string ToggleCard(const std::string& card_id);
 
   /**
-   * @brief Get list of currently visible cards
-   * @return JSON array of visible card IDs
+   * @brief Get list of currently visible panels
+   * @return JSON array of visible panel IDs
    */
-  static std::string GetVisibleCards();
+  static std::string GetVisiblePanels();
 
   /**
-   * @brief Get all available cards for current session
-   * @return JSON array of card info objects
+   * @brief Get all available panels for current session
+   * @return JSON array of panel info objects
    */
-  static std::string GetAvailableCards();
+  static std::string GetAvailablePanels();
 
   /**
-   * @brief Get cards for a specific category
+   * @brief Get panels for a specific category
    * @param category Category name (e.g., "Dungeon", "Overworld")
-   * @return JSON array of card info objects
+   * @return JSON array of panel info objects
    */
-  static std::string GetCardsInCategory(const std::string& category);
+  static std::string GetPanelsInCategory(const std::string& category);
 
   /**
-   * @brief Show all cards in the current session
+   * @brief Show all panels in the current session
    * @return JSON result with success/error
    */
-  static std::string ShowAllCards();
+  static std::string ShowAllPanels();
 
   /**
-   * @brief Hide all cards in the current session
+   * @brief Hide all panels in the current session
    * @return JSON result with success/error
    */
-  static std::string HideAllCards();
+  static std::string HideAllPanels();
 
   /**
-   * @brief Show all cards in a specific category
+   * @brief Show all panels in a specific category
    * @param category Category name
    * @return JSON result with success/error
    */
-  static std::string ShowAllCardsInCategory(const std::string& category);
+  static std::string ShowAllPanelsInCategory(const std::string& category);
 
   /**
-   * @brief Hide all cards in a specific category
+   * @brief Hide all panels in a specific category
    * @param category Category name
    * @return JSON result with success/error
    */
-  static std::string HideAllCardsInCategory(const std::string& category);
+  static std::string HideAllPanelsInCategory(const std::string& category);
 
   /**
-   * @brief Show only one card, hiding all others in its category
-   * @param card_id Card identifier
+   * @brief Show only one panel, hiding all others in its category
+   * @param card_id Panel identifier
    * @return JSON result with success/error
    */
-  static std::string ShowOnlyCard(const std::string& card_id);
+  static std::string ShowOnlyPanel(const std::string& card_id);
 
   // ============================================================================
   // Layout Control
   // ============================================================================
 
   /**
-   * @brief Apply a predefined card layout
+   * @brief Apply a predefined panel layout
    * @param layout_name Layout preset name ("dungeon_default", "overworld_default", etc.)
    * @return JSON result with success/error
    */
-  static std::string SetCardLayout(const std::string& layout_name);
+  static std::string SetPanelLayout(const std::string& layout_name);
 
   /**
    * @brief Get list of available layout presets
@@ -177,7 +177,7 @@ class WasmControlApi {
   static std::string GetAvailableLayouts();
 
   /**
-   * @brief Save current card visibility as a custom layout
+   * @brief Save current panel visibility as a custom layout
    * @param layout_name Name for the new layout
    * @return JSON result with success/error
    */
@@ -481,7 +481,7 @@ class WasmControlApi {
   static bool initialized_;
 
   // Helper to get card registry
-  static editor::EditorCardRegistry* GetCardRegistry();
+  static editor::PanelManager* GetCardRegistry();
 
   // Helper to convert EditorType to string
   static std::string EditorTypeToString(int type);
@@ -516,15 +516,15 @@ class WasmControlApi {
   static std::string OpenCard(const std::string&) { return "{}"; }
   static std::string CloseCard(const std::string&) { return "{}"; }
   static std::string ToggleCard(const std::string&) { return "{}"; }
-  static std::string GetVisibleCards() { return "[]"; }
-  static std::string GetAvailableCards() { return "[]"; }
-  static std::string GetCardsInCategory(const std::string&) { return "[]"; }
-  static std::string ShowAllCards() { return "{}"; }
-  static std::string HideAllCards() { return "{}"; }
-  static std::string ShowAllCardsInCategory(const std::string&) { return "{}"; }
-  static std::string HideAllCardsInCategory(const std::string&) { return "{}"; }
-  static std::string ShowOnlyCard(const std::string&) { return "{}"; }
-  static std::string SetCardLayout(const std::string&) { return "{}"; }
+  static std::string GetVisiblePanels() { return "[]"; }
+  static std::string GetAvailablePanels() { return "[]"; }
+  static std::string GetPanelsInCategory(const std::string&) { return "[]"; }
+  static std::string ShowAllPanels() { return "{}"; }
+  static std::string HideAllPanels() { return "{}"; }
+  static std::string ShowAllPanelsInCategory(const std::string&) { return "{}"; }
+  static std::string HideAllPanelsInCategory(const std::string&) { return "{}"; }
+  static std::string ShowOnlyPanel(const std::string&) { return "{}"; }
+  static std::string SetPanelLayout(const std::string&) { return "{}"; }
   static std::string GetAvailableLayouts() { return "[]"; }
   static std::string SaveCurrentLayout(const std::string&) { return "{}"; }
   static std::string TriggerMenuAction(const std::string&) { return "{}"; }
@@ -578,4 +578,3 @@ class WasmControlApi {
 #endif  // __EMSCRIPTEN__
 
 #endif  // YAZE_APP_PLATFORM_WASM_CONTROL_API_H_
-
