@@ -7,6 +7,7 @@
 
 #include "absl/status/status.h"
 #include "app/editor/editor.h"
+#include "app/editor/sprite/panels/sprite_editor_panels.h"
 #include "app/editor/sprite/sprite_drawer.h"
 #include "app/editor/sprite/zsprite.h"
 #include "zelda3/sprite/sprite_oam_tables.h"
