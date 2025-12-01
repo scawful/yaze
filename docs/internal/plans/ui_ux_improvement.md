@@ -1,5 +1,9 @@
 # UI/UX Improvement Plan: IDE-like Interface
 
+> Terminology update: ongoing refactor renames Card → Panel. References to
+> `CardInfo`/`EditorCardRegistry` should be read as
+> `PanelDescriptor`/`PanelManager` going forward.
+
 **Created**: 2025-01-25
 **Status**: Design Phase
 **Priority**: High

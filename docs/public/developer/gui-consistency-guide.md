@@ -1,4 +1,8 @@
-# G5 - GUI Consistency and Card-Based Architecture Guide
+# G5 - GUI Consistency and Panel-Based Architecture Guide
+
+> Note: The project is migrating from **Card** terminology to **Panel**
+> (`PanelWindow`, `PanelManager`, `PanelDescriptor`). This guide still shows
+> legacy names; mentally substitute Panel for Card while Phase 2 lands.
 
 This guide establishes standards for GUI consistency across all yaze editors, focusing on the modern card-based architecture, theming system, and layout patterns.
 
@@ -1626,4 +1630,3 @@ For questions or suggestions about GUI consistency, please open an issue on GitH
 ---
 
 **Last Updated**: November 26, 2025
-
