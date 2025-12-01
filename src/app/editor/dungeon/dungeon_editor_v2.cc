@@ -6,6 +6,7 @@
 #include "absl/strings/str_format.h"
 #include "app/editor/dungeon/panels/dungeon_debug_controls_panel.h"
 #include "app/editor/dungeon/panels/dungeon_emulator_preview_panel.h"
+#include "app/editor/dungeon/panels/dungeon_entrance_list_panel.h"
 #include "app/editor/dungeon/panels/dungeon_entrances_panel.h"
 #include "app/editor/dungeon/panels/dungeon_object_editor_panel.h"
 #include "app/editor/dungeon/panels/dungeon_palette_editor_panel.h"
@@ -71,8 +72,8 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
                                .priority = 10});
 
   panel_manager->RegisterPanel({.card_id = MakeCardId("dungeon.room_selector"),
-                               .display_name = "Room Selector",
-                               .window_title = " Rooms List",
+                               .display_name = "Room List",
+                               .window_title = " Room List",
                                .icon = ICON_MD_LIST,
                                .category = "Dungeon",
                                .shortcut_hint = "Ctrl+Shift+R",
@@ -80,6 +81,28 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
                                .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
                                .disabled_tooltip = "Load a ROM to browse dungeon rooms",
                                .priority = 20});
+
+  panel_manager->RegisterPanel({.card_id = MakeCardId("dungeon.entrance_list"),
+                               .display_name = "Entrance List",
+                               .window_title = " Entrance List",
+                               .icon = ICON_MD_DOOR_FRONT,
+                               .category = "Dungeon",
+                               .shortcut_hint = "Ctrl+Shift+E",
+                               .visibility_flag = &show_entrances_list_,
+                               .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
+                               .disabled_tooltip = "Load a ROM to browse dungeon entrances",
+                               .priority = 25});
+
+  panel_manager->RegisterPanel({.card_id = MakeCardId("dungeon.entrance_properties"),
+                               .display_name = "Entrance Properties",
+                               .window_title = " Entrance Properties",
+                               .icon = ICON_MD_TUNE,
+                               .category = "Dungeon",
+                               .shortcut_hint = "",
+                               .visibility_flag = nullptr,
+                               .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
+                               .disabled_tooltip = "Load a ROM to edit entrance properties",
+                               .priority = 26});
 
   panel_manager->RegisterPanel({.card_id = MakeCardId("dungeon.room_matrix"),
                                .display_name = "Room Matrix",
@@ -91,17 +114,6 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
                                .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
                                .disabled_tooltip = "Load a ROM to view the room matrix",
                                .priority = 30});
-
-  panel_manager->RegisterPanel({.card_id = MakeCardId("dungeon.entrances"),
-                               .display_name = "Entrances",
-                               .window_title = " Entrances",
-                               .icon = ICON_MD_DOOR_FRONT,
-                               .category = "Dungeon",
-                               .shortcut_hint = "Ctrl+Shift+E",
-                               .visibility_flag = &show_entrances_list_,
-                               .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
-                               .disabled_tooltip = "Load a ROM to view dungeon entrances",
-                               .priority = 40});
 
   panel_manager->RegisterPanel({.card_id = MakeCardId("dungeon.room_graphics"),
                                .display_name = "Room Graphics",
@@ -164,11 +176,17 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
   // These panels wrap existing components with the EditorPanel interface.
   // ============================================================================
 
-  // Room Selector Panel - wraps DungeonRoomSelector
+  // Room Selector Panel - room list with filter
   panel_manager->RegisterEditorPanel(
       std::make_unique<DungeonRoomSelectorPanel>(
           &room_selector_,
           [this](int room_id) { OnRoomSelected(room_id); }));
+
+  // Entrance List Panel - entrance list with filter (separate from properties)
+  panel_manager->RegisterEditorPanel(
+      std::make_unique<DungeonEntranceListPanel>(
+          &room_selector_,
+          [this](int entrance_id) { OnEntranceSelected(entrance_id); }));
 
   // Room Matrix Panel - 16x19 visual grid for room navigation
   panel_manager->RegisterEditorPanel(
@@ -177,7 +195,7 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
           &active_rooms_,
           [this](int room_id) { OnRoomSelected(room_id); }));
 
-  // Entrances Panel - entrance list with properties
+  // Entrances Properties Panel - entrance properties editor
   panel_manager->RegisterEditorPanel(
       std::make_unique<DungeonEntrancesPanel>(
           &entrances_,
@@ -342,12 +360,9 @@ absl::Status DungeonEditorV2::Update() {
   // No parent wrapper - this allows closing control panel without affecting
   // rooms
 
-  // Phase 4: Central drawing via EditorPanel instances
-  // This draws panels registered via RegisterEditorPanel() using their
-  // EditorPanel::Draw() implementations. Eventually replaces manual DrawLayout().
-  if (dependencies_.panel_manager) {
-    dependencies_.panel_manager->DrawAllVisiblePanels();
-  }
+  // Note: Central drawing via EditorPanel instances is now handled by
+  // EditorManager::Update() calling PanelManager::DrawAllVisiblePanels()
+  // once per frame for all editors.
 
   DrawLayout();
 
@@ -430,9 +445,39 @@ void DungeonEditorV2::DrawLayout() {
   // ============================================================================
 
   // Dynamic Room Cards - each open room gets its own dockable card
-  // TODO(Phase 6): Migrate to DungeonRoomPanel (ResourcePanel) with LRU limits
+  // Synced with PanelManager for Activity Bar visibility and category filtering
   for (int i = 0; i < active_rooms_.Size; i++) {
     int room_id = active_rooms_[i];
+    // Use base ID - PanelManager handles session prefixing
+    std::string card_id = absl::StrFormat("dungeon.room_%d", room_id);
+    
+    // Check if panel was hidden via Activity Bar
+    bool panel_visible = true;
+    if (dependencies_.panel_manager) {
+      panel_visible = dependencies_.panel_manager->IsPanelVisible(card_id);
+    }
+    
+    // If hidden via Activity Bar, close the room
+    if (!panel_visible) {
+      dependencies_.panel_manager->UnregisterPanel(card_id);
+      room_cards_.erase(room_id);
+      active_rooms_.erase(active_rooms_.Data + i);
+      i--;
+      continue;
+    }
+    
+    // Category filtering: only draw if Dungeon is active OR panel is pinned
+    bool is_pinned = dependencies_.panel_manager && 
+                     dependencies_.panel_manager->IsPanelPinned(card_id);
+    std::string active_category = dependencies_.panel_manager ? 
+                                  dependencies_.panel_manager->GetActiveCategory() : "";
+    
+    if (active_category != "Dungeon" && !is_pinned) {
+      // Not in Dungeon editor and not pinned - skip drawing but keep registered
+      // Panel will reappear when user returns to Dungeon editor
+      continue;
+    }
+    
     bool open = true;
 
     // Create session-aware card title with room ID prominent
@@ -473,6 +518,11 @@ void DungeonEditorV2::DrawLayout() {
     room_card->End();
 
     if (!open) {
+      // Unregister from PanelManager so it's removed from Activity Bar
+      if (dependencies_.panel_manager) {
+        dependencies_.panel_manager->UnregisterPanel(card_id);
+      }
+      
       room_cards_.erase(room_id);
       active_rooms_.erase(active_rooms_.Data + i);
       i--;
@@ -577,6 +627,37 @@ void DungeonEditorV2::OnRoomSelected(int room_id) {
   // Add new room to be opened as a card
   active_rooms_.push_back(room_id);
   room_selector_.set_active_rooms(active_rooms_);
+
+  // Register with PanelManager so it appears in Activity Bar
+  if (dependencies_.panel_manager) {
+    std::string room_name;
+    if (room_id >= 0 &&
+        static_cast<size_t>(room_id) < std::size(zelda3::kRoomNames)) {
+      room_name = absl::StrFormat("[%03X] %s", room_id,
+                                  zelda3::kRoomNames[room_id].data());
+    } else {
+      room_name = absl::StrFormat("Room %03X", room_id);
+    }
+
+    // Use base ID - RegisterPanel handles session prefixing internally
+    std::string base_card_id = absl::StrFormat("dungeon.room_%d", room_id);
+    
+    dependencies_.panel_manager->RegisterPanel(
+        {.card_id = base_card_id,
+         .display_name = room_name,
+         .window_title = ICON_MD_GRID_ON " " + room_name,
+         .icon = ICON_MD_GRID_ON,
+         .category = "Dungeon",
+         .shortcut_hint = "",
+         .visibility_flag = nullptr,  // PanelManager creates this
+         .priority = 200 + room_id});  // After static panels
+    
+    // Show the panel immediately - this sets visibility to true
+    dependencies_.panel_manager->ShowPanel(base_card_id);
+    
+    // NOT auto-pinned - user must explicitly pin to persist across editors
+    // Unpinned resource panels close when switching to another editor
+  }
 }
 
 void DungeonEditorV2::OnEntranceSelected(int entrance_id) {

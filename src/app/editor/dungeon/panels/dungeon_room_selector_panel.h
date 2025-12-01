@@ -13,16 +13,14 @@ namespace editor {
 
 /**
  * @class DungeonRoomSelectorPanel
- * @brief EditorPanel wrapper for DungeonRoomSelector
+ * @brief EditorPanel for room list selection
  *
- * This panel provides room and entrance selection UI for the Dungeon Editor.
- * It wraps the existing DungeonRoomSelector component and integrates it with
- * the central panel drawing system.
+ * This panel provides room selection UI for the Dungeon Editor.
+ * Selecting a room will open/focus the room's resource panel.
  *
  * @section Features
  * - Room list with search/filter
- * - Entrance list with search/filter
- * - Room selection callback support
+ * - Click to open room as resource panel
  *
  * @see DungeonRoomSelector - The underlying component
  * @see EditorPanel - Base interface
@@ -32,22 +30,27 @@ class DungeonRoomSelectorPanel : public EditorPanel {
   /**
    * @brief Construct a new panel wrapping a DungeonRoomSelector
    * @param selector The room selector component (must outlive this panel)
-   * @param on_room_selected Optional callback when a room is selected
+   * @param on_room_selected Callback when a room is selected (opens resource panel)
    */
   explicit DungeonRoomSelectorPanel(
       DungeonRoomSelector* selector,
       std::function<void(int)> on_room_selected = nullptr)
-      : selector_(selector), on_room_selected_(std::move(on_room_selected)) {}
+      : selector_(selector), on_room_selected_(std::move(on_room_selected)) {
+    // Wire up the callback directly to the selector
+    if (selector_ && on_room_selected_) {
+      selector_->set_room_selected_callback(on_room_selected_);
+    }
+  }
 
   // ==========================================================================
   // EditorPanel Identity
   // ==========================================================================
 
   std::string GetId() const override { return "dungeon.room_selector"; }
-  std::string GetDisplayName() const override { return "Room Selector"; }
+  std::string GetDisplayName() const override { return "Room List"; }
   std::string GetIcon() const override { return ICON_MD_LIST; }
   std::string GetEditorCategory() const override { return "Dungeon"; }
-  int GetPriority() const override { return 10; }
+  int GetPriority() const override { return 20; }
 
   // ==========================================================================
   // EditorPanel Drawing
@@ -56,17 +59,8 @@ class DungeonRoomSelectorPanel : public EditorPanel {
   void Draw(bool* p_open) override {
     if (!selector_) return;
 
-    // Track current room before drawing
-    int prev_room = selector_->current_room_id();
-
-    // Draw the selector UI
-    selector_->Draw();
-
-    // Check if room selection changed
-    int curr_room = selector_->current_room_id();
-    if (curr_room != prev_room && on_room_selected_) {
-      on_room_selected_(curr_room);
-    }
+    // Draw just the room selector (no tabs)
+    selector_->DrawRoomSelector();
   }
 
   // ==========================================================================
@@ -79,6 +73,9 @@ class DungeonRoomSelectorPanel : public EditorPanel {
    */
   void SetRoomSelectedCallback(std::function<void(int)> callback) {
     on_room_selected_ = std::move(callback);
+    if (selector_) {
+      selector_->set_room_selected_callback(on_room_selected_);
+    }
   }
 
   /**

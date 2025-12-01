@@ -3,6 +3,7 @@
 #include "app/gui/core/input.h"
 #include "imgui/imgui.h"
 #include "util/hex.h"
+#include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_entrance.h"
 
@@ -13,17 +14,9 @@ using ImGui::EndChild;
 using ImGui::SameLine;
 
 void DungeonRoomSelector::Draw() {
-  if (ImGui::BeginTabBar("##DungeonRoomTabBar")) {
-    if (ImGui::BeginTabItem("Rooms")) {
-      DrawRoomSelector();
-      ImGui::EndTabItem();
-    }
-    if (ImGui::BeginTabItem("Entrances")) {
-      DrawEntranceSelector();
-      ImGui::EndTabItem();
-    }
-    ImGui::EndTabBar();
-  }
+  // Legacy combined view - prefer using DrawRoomSelector() and 
+  // DrawEntranceSelector() separately via their own EditorPanels
+  DrawRoomSelector();
 }
 
 void DungeonRoomSelector::DrawRoomSelector() {
@@ -44,10 +37,13 @@ void DungeonRoomSelector::DrawRoomSelector() {
     ImGui::TableSetupColumn("Name");
     ImGui::TableHeadersRow();
 
-    int i = 0;
-    for (const auto each_room_name : zelda3::kRoomNames) {
+    // Use kNumberOfRooms (296) as limit - rooms_ array is 0x128 elements
+    // kRoomNames has 297 entries but room 296 has no actual room data
+    for (int i = 0; i < zelda3::kNumberOfRooms; ++i) {
+      std::string_view room_name = (static_cast<size_t>(i) < zelda3::kRoomNames.size())
+          ? zelda3::kRoomNames[i] : "Unknown";
       std::string display_name = rom_->resource_label()->CreateOrGetLabel(
-          "Dungeon Room Names", util::HexByte(i), each_room_name.data());
+          "Dungeon Room Names", util::HexWord(i), std::string(room_name));
 
       if (room_filter_.PassFilter(display_name.c_str())) {
         ImGui::TableNextRow();
@@ -66,7 +62,6 @@ void DungeonRoomSelector::DrawRoomSelector() {
         ImGui::TableNextColumn();
         ImGui::TextUnformatted(display_name.c_str());
       }
-      i += 1;
     }
     ImGui::EndTable();
   }
@@ -174,7 +169,10 @@ void DungeonRoomSelector::DrawEntranceSelector() {
           current_entrance_id_ = i;
           if (i < entrances_->size()) {
             int room_id = (*entrances_)[i].room_;
-            if (room_selected_callback_) {
+            // Use entrance callback if set, otherwise fall back to room callback
+            if (entrance_selected_callback_) {
+              entrance_selected_callback_(i);
+            } else if (room_selected_callback_) {
               room_selected_callback_(room_id);
             }
           }

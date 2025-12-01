@@ -36,11 +36,11 @@ class DungeonEntrancesPanel : public EditorPanel {
   // EditorPanel Identity
   // ==========================================================================
 
-  std::string GetId() const override { return "dungeon.entrances"; }
-  std::string GetDisplayName() const override { return "Entrances"; }
-  std::string GetIcon() const override { return ICON_MD_DOOR_FRONT; }
+  std::string GetId() const override { return "dungeon.entrance_properties"; }
+  std::string GetDisplayName() const override { return "Entrance Properties"; }
+  std::string GetIcon() const override { return ICON_MD_TUNE; }
   std::string GetEditorCategory() const override { return "Dungeon"; }
-  int GetPriority() const override { return 40; }
+  int GetPriority() const override { return 26; }
 
   // ==========================================================================
   // EditorPanel Drawing
