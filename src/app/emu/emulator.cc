@@ -6,7 +6,7 @@
 #include <fstream>
 #include <vector>
 
-#include "app/editor/system/editor_card_registry.h"
+#include "app/editor/system/panel_manager.h"
 #include "app/platform/window.h"
 #include "util/log.h"
 
@@ -33,7 +33,9 @@ namespace emu {
 
 namespace {
 // SNES audio native sample rate (APU/DSP output rate)
-constexpr int kNativeSampleRate = 32000;
+// The actual SNES APU runs at 32040 Hz (not 32000 Hz).
+// Using 32040 ensures we generate enough samples to prevent buffer underruns.
+constexpr int kNativeSampleRate = 32040;
 
 // Accurate SNES frame rates based on master clock calculations
 // NTSC: 21477272 Hz / (262 * 341) = ~60.0988 Hz
@@ -193,11 +195,6 @@ bool Emulator::EnsureInitialized(Rom* rom) {
       LOG_ERROR("Emulator", "Failed to initialize audio backend");
       return false;
     }
-
-    // Enable audio stream resampling for proper 32kHz -> 48kHz conversion
-    if (audio_backend_->SupportsAudioStream()) {
-      audio_backend_->SetAudioStreamResampling(true, kNativeSampleRate, 2);
-    }
     LOG_INFO("Emulator", "Audio backend initialized for headless mode");
   }
 
@@ -230,6 +227,19 @@ bool Emulator::EnsureInitialized(Rom* rom) {
 void Emulator::RunFrameOnly() {
   if (!snes_initialized_ || !running_) {
     return;
+  }
+
+  // Ensure audio stream resampling is configured (32040 Hz -> 48000 Hz)
+  // Without this, samples are fed at wrong rate causing 1.5x speedup
+  if (audio_backend_ && audio_stream_config_dirty_) {
+    if (use_sdl_audio_stream_ && audio_backend_->SupportsAudioStream()) {
+      audio_backend_->SetAudioStreamResampling(true, kNativeSampleRate, 2);
+      audio_stream_active_ = true;
+    } else {
+      audio_backend_->SetAudioStreamResampling(false, kNativeSampleRate, 2);
+      audio_stream_active_ = false;
+    }
+    audio_stream_config_dirty_ = false;
   }
 
   // Calculate timing
@@ -275,7 +285,7 @@ void Emulator::RunFrameOnly() {
     frames_processed++;
 
     // Mark frame boundary for DSP sample reading
-    snes_.apu().dsp().NewFrame();
+    // snes_.apu().dsp().NewFrame(); // Removed in favor of readOffset tracking
 
     // Run SNES frame (generates audio samples)
     snes_.RunFrame();
@@ -287,8 +297,14 @@ void Emulator::RunFrameOnly() {
 
       if (status.queued_frames < max_buffer) {
         snes_.SetSamples(native_audio_buffer, samples_to_generate);
-        audio_backend_->QueueSamples(native_audio_buffer,
-                                     samples_to_generate * 2);
+        // Try native rate resampling first (if audio stream is enabled)
+        // Falls back to direct queueing if not available
+        if (!audio_backend_->QueueSamplesNative(native_audio_buffer,
+                                                samples_to_generate, 2,
+                                                kNativeSampleRate)) {
+          audio_backend_->QueueSamples(native_audio_buffer,
+                                       samples_to_generate * 2);
+        }
       }
     }
   }
@@ -312,6 +328,19 @@ void Emulator::RunAudioFrame() {
 
   if (!snes_initialized_ || !running_) {
     return;
+  }
+
+  // Ensure audio stream resampling is configured (32040 Hz -> 48000 Hz)
+  // Without this, samples are fed at wrong rate causing 1.5x speedup
+  if (audio_backend_ && audio_stream_config_dirty_) {
+    if (use_sdl_audio_stream_ && audio_backend_->SupportsAudioStream()) {
+      audio_backend_->SetAudioStreamResampling(true, kNativeSampleRate, 2);
+      audio_stream_active_ = true;
+    } else {
+      audio_backend_->SetAudioStreamResampling(false, kNativeSampleRate, 2);
+      audio_stream_active_ = false;
+    }
+    audio_stream_config_dirty_ = false;
   }
 
   // --- Varispeed Audio Logic ---
@@ -362,6 +391,9 @@ void Emulator::RunAudioFrame() {
     time_adder -= wanted_frames_;
     frames_processed++;
 
+    // Mark frame boundary for DSP sample reading (required for GetSamples)
+    snes_.apu().dsp().NewFrame();
+
     // Run SNES audio-focused frame (skips PPU rendering for performance)
     snes_.RunAudioFrame();
 
@@ -375,7 +407,33 @@ void Emulator::RunAudioFrame() {
       
       if (status.queued_frames < target_buffer) {
         snes_.SetSamples(native_audio_buffer, samples_to_generate);
-        audio_backend_->QueueSamples(native_audio_buffer, samples_to_generate * 2);
+        
+        // Dynamic Rate Control (DRC)
+        // Adjust output rate based on buffer fill level to prevent drift
+        // NOTE: effective_rate is ALWAYS the native rate. Speed changes happen
+        // because we generate MORE/LESS data (samples_to_generate) for the same
+        // real-time interval. Multiplying by playback_speed_ here would double-apply
+        // the speed change (once in content generation, once in resampling).
+        int effective_rate = kNativeSampleRate;
+        const uint32_t optimal_buffer = 2048; // ~40ms target latency
+        
+        // Feedback loop:
+        // Buffer too full? -> Play faster (increase rate) -> Drains buffer
+        // Buffer too empty? -> Play slower (decrease rate) -> Fills buffer
+        if (status.queued_frames > optimal_buffer + 512) {
+           effective_rate += 100; // Speed up consumption
+        } else if (status.queued_frames < optimal_buffer - 512) {
+           effective_rate -= 100; // Slow down consumption
+        }
+
+        // Try native rate resampling first (if audio stream is enabled)
+        // Falls back to direct queueing if not available
+        if (!audio_backend_->QueueSamplesNative(native_audio_buffer,
+                                                samples_to_generate, 2,
+                                                effective_rate)) {
+          audio_backend_->QueueSamples(native_audio_buffer,
+                                       samples_to_generate * 2);
+        }
       }
     }
   }
@@ -597,10 +655,12 @@ void Emulator::Run(Rom* rom) {
             if (audio_stream_config_dirty_) {
               if (use_sdl_audio_stream_ &&
                   audio_backend_->SupportsAudioStream()) {
+                LOG_INFO("Emulator", "Enabling audio stream resampling (32040Hz -> Device Rate)");
                 audio_backend_->SetAudioStreamResampling(true,
                                                          kNativeSampleRate, 2);
                 audio_stream_active_ = true;
               } else {
+                LOG_INFO("Emulator", "Disabling audio stream resampling");
                 audio_backend_->SetAudioStreamResampling(false,
                                                          kNativeSampleRate, 2);
                 audio_stream_active_ = false;
@@ -652,7 +712,26 @@ void Emulator::Run(Rom* rom) {
               snes_.SetSamples(audio_buffer_, samples_to_generate);
               const int num_samples = samples_to_generate * 2;  // Stereo
               compute_rms(num_samples);
-              queue_ok = audio_backend_->QueueSamples(audio_buffer_, num_samples);
+              
+              // Dynamic Rate Control (DRC)
+              // NOTE: effective_rate is ALWAYS the native rate. Speed changes happen
+              // because we generate MORE/LESS data for the same real-time interval.
+              int effective_rate = kNativeSampleRate;
+              const uint32_t optimal_buffer = 2048; // ~40ms
+              
+              if (queued_frames > optimal_buffer + 256) {
+                 effective_rate += 60; // Subtle speed up
+              } else if (queued_frames < optimal_buffer - 256) {
+                 effective_rate -= 60; // Subtle slow down
+              }
+
+              // Try native rate resampling first (if audio stream is enabled)
+              // Falls back to direct queueing if not available
+              queue_ok = audio_backend_->QueueSamplesNative(
+                  audio_buffer_, samples_to_generate, 2, effective_rate);
+              if (!queue_ok) {
+                queue_ok = audio_backend_->QueueSamples(audio_buffer_, num_samples);
+              }
 
               if (!queue_ok) {
                 static int error_count = 0;
@@ -803,19 +882,19 @@ std::vector<float> Emulator::RomBankFreeBytes() const {
 
 void Emulator::RenderEmulatorInterface() {
   try {
-    if (!card_registry_)
+    if (!panel_manager_)
       return;  // Card registry must be injected
 
-    static gui::EditorCard cpu_card("CPU Debugger", ICON_MD_MEMORY);
-    static gui::EditorCard ppu_card("PPU Viewer", ICON_MD_VIDEOGAME_ASSET);
-    static gui::EditorCard memory_card("Memory Viewer", ICON_MD_MEMORY);
-    static gui::EditorCard breakpoints_card("Breakpoints", ICON_MD_STOP);
-    static gui::EditorCard performance_card("Performance", ICON_MD_SPEED);
-    static gui::EditorCard ai_card("AI Agent", ICON_MD_SMART_TOY);
-    static gui::EditorCard save_states_card("Save States", ICON_MD_SAVE);
-    static gui::EditorCard keyboard_card("Keyboard Config", ICON_MD_KEYBOARD);
-    static gui::EditorCard apu_card("APU Debugger", ICON_MD_MUSIC_NOTE);
-    static gui::EditorCard audio_card("Audio Mixer", ICON_MD_AUDIO_FILE);
+    static gui::PanelWindow cpu_card("CPU Debugger", ICON_MD_MEMORY);
+    static gui::PanelWindow ppu_card("PPU Viewer", ICON_MD_VIDEOGAME_ASSET);
+    static gui::PanelWindow memory_card("Memory Viewer", ICON_MD_MEMORY);
+    static gui::PanelWindow breakpoints_card("Breakpoints", ICON_MD_STOP);
+    static gui::PanelWindow performance_card("Performance", ICON_MD_SPEED);
+    static gui::PanelWindow ai_card("AI Agent", ICON_MD_SMART_TOY);
+    static gui::PanelWindow save_states_card("Save States", ICON_MD_SAVE);
+    static gui::PanelWindow keyboard_card("Keyboard Config", ICON_MD_KEYBOARD);
+    static gui::PanelWindow apu_card("APU Debugger", ICON_MD_MUSIC_NOTE);
+    static gui::PanelWindow audio_card("Audio Mixer", ICON_MD_AUDIO_FILE);
 
     cpu_card.SetDefaultSize(400, 500);
     ppu_card.SetDefaultSize(550, 520);
@@ -827,7 +906,7 @@ void Emulator::RenderEmulatorInterface() {
     // button functionality This ensures each card window can be closed by the
     // user via the window close button
     bool* cpu_visible =
-        card_registry_->GetVisibilityFlag("emulator.cpu_debugger");
+        panel_manager_->GetVisibilityFlag("emulator.cpu_debugger");
     if (cpu_visible && *cpu_visible) {
       if (cpu_card.Begin(cpu_visible)) {
         RenderModernCpuDebugger();
@@ -836,7 +915,7 @@ void Emulator::RenderEmulatorInterface() {
     }
 
     bool* ppu_visible =
-        card_registry_->GetVisibilityFlag("emulator.ppu_viewer");
+        panel_manager_->GetVisibilityFlag("emulator.ppu_viewer");
     if (ppu_visible && *ppu_visible) {
       if (ppu_card.Begin(ppu_visible)) {
         RenderNavBar();
@@ -846,7 +925,7 @@ void Emulator::RenderEmulatorInterface() {
     }
 
     bool* memory_visible =
-        card_registry_->GetVisibilityFlag("emulator.memory_viewer");
+        panel_manager_->GetVisibilityFlag("emulator.memory_viewer");
     if (memory_visible && *memory_visible) {
       if (memory_card.Begin(memory_visible)) {
         RenderMemoryViewer();
@@ -855,7 +934,7 @@ void Emulator::RenderEmulatorInterface() {
     }
 
     bool* breakpoints_visible =
-        card_registry_->GetVisibilityFlag("emulator.breakpoints");
+        panel_manager_->GetVisibilityFlag("emulator.breakpoints");
     if (breakpoints_visible && *breakpoints_visible) {
       if (breakpoints_card.Begin(breakpoints_visible)) {
         RenderBreakpointList();
@@ -864,7 +943,7 @@ void Emulator::RenderEmulatorInterface() {
     }
 
     bool* performance_visible =
-        card_registry_->GetVisibilityFlag("emulator.performance");
+        panel_manager_->GetVisibilityFlag("emulator.performance");
     if (performance_visible && *performance_visible) {
       if (performance_card.Begin(performance_visible)) {
         RenderPerformanceMonitor();
@@ -873,7 +952,7 @@ void Emulator::RenderEmulatorInterface() {
     }
 
     bool* ai_agent_visible =
-        card_registry_->GetVisibilityFlag("emulator.ai_agent");
+        panel_manager_->GetVisibilityFlag("emulator.ai_agent");
     if (ai_agent_visible && *ai_agent_visible) {
       if (ai_card.Begin(ai_agent_visible)) {
         RenderAIAgentPanel();
@@ -882,7 +961,7 @@ void Emulator::RenderEmulatorInterface() {
     }
 
     bool* save_states_visible =
-        card_registry_->GetVisibilityFlag("emulator.save_states");
+        panel_manager_->GetVisibilityFlag("emulator.save_states");
     if (save_states_visible && *save_states_visible) {
       if (save_states_card.Begin(save_states_visible)) {
         RenderSaveStates();
@@ -891,7 +970,7 @@ void Emulator::RenderEmulatorInterface() {
     }
 
     bool* keyboard_config_visible =
-        card_registry_->GetVisibilityFlag("emulator.keyboard_config");
+        panel_manager_->GetVisibilityFlag("emulator.keyboard_config");
     if (keyboard_config_visible && *keyboard_config_visible) {
       if (keyboard_card.Begin(keyboard_config_visible)) {
         RenderKeyboardConfig();
@@ -899,11 +978,11 @@ void Emulator::RenderEmulatorInterface() {
       keyboard_card.End();
     }
 
-    static gui::EditorCard controller_card("Virtual Controller",
+    static gui::PanelWindow controller_card("Virtual Controller",
                                            ICON_MD_SPORTS_ESPORTS);
     controller_card.SetDefaultSize(250, 450);
     bool* virtual_controller_visible =
-        card_registry_->GetVisibilityFlag("emulator.virtual_controller");
+        panel_manager_->GetVisibilityFlag("emulator.virtual_controller");
     if (virtual_controller_visible && *virtual_controller_visible) {
       if (controller_card.Begin(virtual_controller_visible)) {
         ui::RenderVirtualController(this);
@@ -912,7 +991,7 @@ void Emulator::RenderEmulatorInterface() {
     }
 
     bool* apu_debugger_visible =
-        card_registry_->GetVisibilityFlag("emulator.apu_debugger");
+        panel_manager_->GetVisibilityFlag("emulator.apu_debugger");
     if (apu_debugger_visible && *apu_debugger_visible) {
       if (apu_card.Begin(apu_debugger_visible)) {
         RenderApuDebugger();
@@ -921,7 +1000,7 @@ void Emulator::RenderEmulatorInterface() {
     }
 
     bool* audio_mixer_visible =
-        card_registry_->GetVisibilityFlag("emulator.audio_mixer");
+        panel_manager_->GetVisibilityFlag("emulator.audio_mixer");
     if (audio_mixer_visible && *audio_mixer_visible) {
       if (audio_card.Begin(audio_mixer_visible)) {
         RenderAudioMixer();
