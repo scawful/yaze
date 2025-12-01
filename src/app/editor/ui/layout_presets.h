@@ -27,23 +27,23 @@ enum class DockPosition {
 };
 
 /**
- * @struct CardLayoutPreset
- * @brief Defines default card visibility for an editor type
+ * @struct PanelLayoutPreset
+ * @brief Defines default panel visibility for an editor type
  */
-struct CardLayoutPreset {
+struct PanelLayoutPreset {
   std::string name;
   std::string description;
   EditorType editor_type;
-  std::vector<std::string> default_visible_cards;
-  std::vector<std::string> optional_cards;  // Available but hidden by default
-  std::unordered_map<std::string, DockPosition> card_positions;
+  std::vector<std::string> default_visible_panels;
+  std::vector<std::string> optional_panels;  // Available but hidden by default
+  std::unordered_map<std::string, DockPosition> panel_positions;
 };
 
 /**
  * @class LayoutPresets
  * @brief Centralized definition of default layouts per editor
  *
- * Provides default card configurations for each editor type:
+ * Provides default panel configurations for each editor type:
  * - Overworld: Main canvas, Tile16 list (already good per user)
  * - Dungeon: Room selector, Object editor, Properties panel
  * - Graphics: Sheet browser, Palette editor, Preview pane
@@ -57,37 +57,37 @@ class LayoutPresets {
   /**
    * @brief Get the default layout preset for an editor type
    * @param type The editor type
-   * @return CardLayoutPreset with default cards
+   * @return PanelLayoutPreset with default panels
    */
-  static CardLayoutPreset GetDefaultPreset(EditorType type);
+  static PanelLayoutPreset GetDefaultPreset(EditorType type);
 
   /**
    * @brief Get all available presets
    * @return Map of editor type to preset
    */
-  static std::unordered_map<EditorType, CardLayoutPreset> GetAllPresets();
+  static std::unordered_map<EditorType, PanelLayoutPreset> GetAllPresets();
 
   /**
-   * @brief Get default visible cards for an editor
+   * @brief Get default visible panels for an editor
    * @param type The editor type
-   * @return Vector of card IDs that should be visible by default
+   * @return Vector of panel IDs that should be visible by default
    */
-  static std::vector<std::string> GetDefaultCards(EditorType type);
+  static std::vector<std::string> GetDefaultPanels(EditorType type);
 
   /**
-   * @brief Get all available cards for an editor (visible + hidden)
+   * @brief Get all available panels for an editor (visible + hidden)
    * @param type The editor type
-   * @return Vector of all card IDs available for this editor
+   * @return Vector of all panel IDs available for this editor
    */
-  static std::vector<std::string> GetAllCardsForEditor(EditorType type);
+  static std::vector<std::string> GetAllPanelsForEditor(EditorType type);
 
   /**
-   * @brief Check if a card should be visible by default
+   * @brief Check if a panel should be visible by default
    * @param type The editor type
-   * @param card_id The card ID to check
-   * @return True if card should be visible by default
+   * @param panel_id The panel ID to check
+   * @return True if panel should be visible by default
    */
-  static bool IsDefaultCard(EditorType type, const std::string& card_id);
+  static bool IsDefaultPanel(EditorType type, const std::string& panel_id);
 
   // ============================================================================
   // Named Workspace Presets
@@ -96,42 +96,45 @@ class LayoutPresets {
   /**
    * @brief Get the "minimal" workspace preset (minimal cards)
    */
-  static CardLayoutPreset GetMinimalPreset();
+  static PanelLayoutPreset GetMinimalPreset();
 
   /**
    * @brief Get the "developer" workspace preset (debug-focused)
    */
-  static CardLayoutPreset GetDeveloperPreset();
+  static PanelLayoutPreset GetDeveloperPreset();
 
   /**
    * @brief Get the "designer" workspace preset (visual-focused)
    */
-  static CardLayoutPreset GetDesignerPreset();
+  static PanelLayoutPreset GetDesignerPreset();
 
   /**
    * @brief Get the "modder" workspace preset (full-featured)
    */
-  static CardLayoutPreset GetModderPreset();
+  static PanelLayoutPreset GetModderPreset();
 
   /**
    * @brief Get the "overworld expert" workspace preset
    */
-  static CardLayoutPreset GetOverworldExpertPreset();
+  static PanelLayoutPreset GetOverworldExpertPreset();
 
   /**
    * @brief Get the "dungeon expert" workspace preset
    */
-  static CardLayoutPreset GetDungeonExpertPreset();
+  static PanelLayoutPreset GetDungeonExpertPreset();
 
   /**
    * @brief Get the "testing" workspace preset (QA focused)
    */
-  static CardLayoutPreset GetTestingPreset();
+  static PanelLayoutPreset GetTestingPreset();
 
   /**
    * @brief Get the "audio" workspace preset (music focused)
    */
-  static CardLayoutPreset GetAudioPreset();
+  static PanelLayoutPreset GetAudioPreset();
+
+  // Legacy alias to ease Card → Panel migration; prefer PanelLayoutPreset.
+  using CardLayoutPreset = PanelLayoutPreset;
 
   // ============================================================================
   // Card ID Constants - synced with actual editor registrations

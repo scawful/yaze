@@ -15,12 +15,12 @@ namespace yaze {
 namespace gui {
 
 // ============================================================================
-// EditorCard Static Variables (for duplicate rendering detection)
+// PanelWindow Static Variables (for duplicate rendering detection)
 // ============================================================================
-int EditorCard::last_frame_count_ = 0;
-std::vector<std::string> EditorCard::cards_begun_this_frame_;
-bool EditorCard::duplicate_detected_ = false;
-std::string EditorCard::duplicate_card_name_;
+int PanelWindow::last_frame_count_ = 0;
+std::vector<std::string> PanelWindow::panels_begun_this_frame_;
+bool PanelWindow::duplicate_detected_ = false;
+std::string PanelWindow::duplicate_panel_name_;
 
 // ============================================================================
 // Toolset Implementation
@@ -231,30 +231,34 @@ bool Toolset::AddUsageStatsButton(const char* tooltip) {
 }
 
 // ============================================================================
-// EditorCard Implementation
+// PanelWindow Implementation
 // ============================================================================
 
-EditorCard::EditorCard(const char* title, const char* icon)
+PanelWindow::PanelWindow(const char* title, const char* icon)
     : title_(title), icon_(icon ? icon : ""), default_size_(400, 300) {
   window_name_ = icon_.empty() ? title_ : icon_ + " " + title_;
 }
 
-EditorCard::EditorCard(const char* title, const char* icon, bool* p_open)
+PanelWindow::PanelWindow(const char* title, const char* icon, bool* p_open)
     : title_(title), icon_(icon ? icon : ""), default_size_(400, 300) {
   p_open_ = p_open;
   window_name_ = icon_.empty() ? title_ : icon_ + " " + title_;
 }
 
-void EditorCard::SetDefaultSize(float width, float height) {
+void PanelWindow::SetDefaultSize(float width, float height) {
   default_size_ = ImVec2(width, height);
 }
 
-void EditorCard::SetPosition(Position pos) {
+void PanelWindow::SetPosition(Position pos) {
   position_ = pos;
 }
 
-bool EditorCard::Begin(bool* p_open) {
-  // Check visibility flag first - if provided and false, don't show the card
+void PanelWindow::AddHeaderButton(const char* icon, const char* tooltip, std::function<void()> callback) {
+  header_buttons_.push_back({icon, tooltip, callback});
+}
+
+bool PanelWindow::Begin(bool* p_open) {
+  // Check visibility flag first - if provided and false, don't show the panel
   if (p_open && !*p_open) {
     imgui_begun_ = false;
     return false;
@@ -265,23 +269,23 @@ bool EditorCard::Begin(bool* p_open) {
   if (current_frame != last_frame_count_) {
     // New frame - reset tracking
     last_frame_count_ = current_frame;
-    cards_begun_this_frame_.clear();
+    panels_begun_this_frame_.clear();
     duplicate_detected_ = false;
-    duplicate_card_name_.clear();
+    duplicate_panel_name_.clear();
   }
 
-  // Check if this card was already begun this frame
-  for (const auto& card_name : cards_begun_this_frame_) {
-    if (card_name == window_name_) {
+  // Check if this panel was already begun this frame
+  for (const auto& panel_name : panels_begun_this_frame_) {
+    if (panel_name == window_name_) {
       duplicate_detected_ = true;
-      duplicate_card_name_ = window_name_;
+      duplicate_panel_name_ = window_name_;
       // Log the duplicate detection
-      fprintf(stderr, "[EditorCard] DUPLICATE DETECTED: '%s' Begin() called twice in frame %d\n",
+      fprintf(stderr, "[PanelWindow] DUPLICATE DETECTED: '%s' Begin() called twice in frame %d\n",
               window_name_.c_str(), current_frame);
       break;
     }
   }
-  cards_begun_this_frame_.push_back(window_name_);
+  panels_begun_this_frame_.push_back(window_name_);
   // === END DEBUG ===
 
   // Handle icon-collapsed state
@@ -323,6 +327,9 @@ bool EditorCard::Begin(bool* p_open) {
             ImVec2(10, display_height - default_size_.y - 10),
             ImGuiCond_FirstUseEver);
         break;
+      case Position::Top:
+        ImGui::SetNextWindowPos(ImVec2(10, 30), ImGuiCond_FirstUseEver);
+        break;
       case Position::Floating:
       case Position::Free:
         ImGui::SetNextWindowPos(
@@ -339,7 +346,7 @@ bool EditorCard::Begin(bool* p_open) {
   // Create window title with icon
   std::string window_title = icon_.empty() ? title_ : icon_ + " " + title_;
 
-  // Modern card styling
+  // Modern panel styling
   ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 8.0f);
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(10, 10));
   ImGui::PushStyleColor(ImGuiCol_TitleBg, GetThemeColor(ImGuiCol_TitleBg));
@@ -355,18 +362,23 @@ bool EditorCard::Begin(bool* p_open) {
   // Mark that ImGui::Begin() was called - End() must always be called now
   imgui_begun_ = true;
 
-  // Register card window for test automation
+  // Draw custom header buttons if visible
+  if (visible) {
+    DrawHeaderButtons();
+  }
+
+  // Register panel window for test automation
   if (ImGui::GetCurrentWindow() && ImGui::GetCurrentWindow()->ID != 0) {
-    std::string card_path = absl::StrFormat("EditorCard:%s", title_.c_str());
+    std::string panel_path = absl::StrFormat("PanelWindow:%s", title_.c_str());
     WidgetIdRegistry::Instance().RegisterWidget(
-        card_path, "window", ImGui::GetCurrentWindow()->ID,
-        absl::StrFormat("Editor card: %s", title_.c_str()));
+        panel_path, "window", ImGui::GetCurrentWindow()->ID,
+        absl::StrFormat("Editor panel: %s", title_.c_str()));
   }
 
   return visible;
 }
 
-void EditorCard::End() {
+void PanelWindow::End() {
   // Only call ImGui::End() and pop styles if ImGui::Begin() was called
   if (imgui_begun_) {
     // Check if window was focused this frame
@@ -379,13 +391,13 @@ void EditorCard::End() {
   }
 }
 
-void EditorCard::Focus() {
+void PanelWindow::Focus() {
   // Set window focus using ImGui's focus system
   ImGui::SetWindowFocus(window_name_.c_str());
   focused_ = true;
 }
 
-void EditorCard::DrawFloatingIconButton() {
+void PanelWindow::DrawFloatingIconButton() {
   // Draw a small floating button with the icon
   ImGui::SetNextWindowPos(saved_icon_pos_, ImGuiCond_Always);
   ImGui::SetNextWindowSize(ImVec2(50, 50));
@@ -417,6 +429,53 @@ void EditorCard::DrawFloatingIconButton() {
   ImGui::End();
 }
 
+void PanelWindow::DrawHeaderButtons() {
+  // Calculate position for buttons (top right, left of close button)
+  ImGuiWindow* window = ImGui::GetCurrentWindow();
+  float button_size = ImGui::GetFrameHeight();
+  float button_y = window->TitleBarHeight * 0.5f - button_size * 0.5f;
+
+  // Start from right side, accounting for close button/collapse button
+  float right_offset = window->TitleBarHeight * 2.0f; // Approximate space for X and collapse
+  
+  // Add pin button if pinnable
+  if (pinnable_) {
+    ImGui::SameLine(window->Size.x - right_offset - button_size);
+    
+    // Use a different icon/color if pinned
+    const char* pin_icon = pinned_ ? ICON_MD_PUSH_PIN : ICON_MD_PUSH_PIN; // TODO: Use outline/filled variant
+    if (pinned_) {
+      ImGui::PushStyleColor(ImGuiCol_Text, GetAccentColor());
+    }
+    
+    if (ImGui::SmallButton(pin_icon)) {
+      pinned_ = !pinned_;
+    }
+    
+    if (pinned_) {
+      ImGui::PopStyleColor();
+    }
+    
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip(pinned_ ? "Unpin from this editor" : "Pin to keep visible across editors");
+    }
+    
+    right_offset += button_size + 4.0f;
+  }
+  
+  // Draw custom header buttons
+  for (const auto& btn : header_buttons_) {
+    ImGui::SameLine(window->Size.x - right_offset - button_size);
+    if (ImGui::SmallButton(btn.icon.c_str())) {
+      if (btn.callback) btn.callback();
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("%s", btn.tooltip.c_str());
+    }
+    right_offset += button_size + 4.0f;
+  }
+}
+
 // ============================================================================
 // EditorLayout Implementation
 // ============================================================================
@@ -440,8 +499,8 @@ void EditorLayout::EndMainCanvas() {
   ImGui::EndChild();
 }
 
-void EditorLayout::RegisterCard(EditorCard* card) {
-  cards_.push_back(card);
+void EditorLayout::RegisterPanel(PanelWindow* panel) {
+  panels_.push_back(panel);
 }
 
 }  // namespace gui

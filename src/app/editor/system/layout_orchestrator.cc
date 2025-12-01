@@ -1,20 +1,21 @@
 #include "app/editor/system/layout_orchestrator.h"
 
+#include "absl/strings/str_format.h"
+
 namespace yaze {
 namespace editor {
 
 LayoutOrchestrator::LayoutOrchestrator(LayoutManager* layout_manager,
-                                       EditorCardRegistry* card_registry)
-    : layout_manager_(layout_manager), card_registry_(card_registry) {}
+                                       PanelManager* panel_manager)
+    : layout_manager_(layout_manager), panel_manager_(panel_manager) {}
 
 void LayoutOrchestrator::Initialize(LayoutManager* layout_manager,
-                                    EditorCardRegistry* card_registry) {
+                                    PanelManager* panel_manager) {
   layout_manager_ = layout_manager;
-  card_registry_ = card_registry;
+  panel_manager_ = panel_manager;
 }
 
-void LayoutOrchestrator::ApplyPreset(EditorType type,
-                                     const std::string& session_id) {
+void LayoutOrchestrator::ApplyPreset(EditorType type, size_t session_id) {
   if (!IsInitialized()) {
     return;
   }
@@ -22,23 +23,23 @@ void LayoutOrchestrator::ApplyPreset(EditorType type,
   // Get the default preset for this editor type
   auto preset = LayoutPresets::GetDefaultPreset(type);
 
-  // Show default cards
-  ShowPresetCards(preset, session_id);
+  // Show default panels
+  ShowPresetPanels(preset, session_id, type);
 
-  // Hide optional cards
-  HideOptionalCards(type, session_id);
+  // Hide optional panels
+  HideOptionalPanels(type, session_id);
 
   // Apply DockBuilder layout
   ApplyDockLayout(type);
 }
 
 void LayoutOrchestrator::ApplyNamedPreset(const std::string& preset_name,
-                                          const std::string& session_id) {
+                                          size_t session_id) {
   if (!IsInitialized()) {
     return;
   }
 
-  CardLayoutPreset preset;
+  PanelLayoutPreset preset;
   if (preset_name == "Minimal") {
     preset = LayoutPresets::GetMinimalPreset();
   } else if (preset_name == "Developer") {
@@ -52,23 +53,21 @@ void LayoutOrchestrator::ApplyNamedPreset(const std::string& preset_name,
     preset = LayoutPresets::GetMinimalPreset();
   }
 
-  ShowPresetCards(preset, session_id);
+  ShowPresetPanels(preset, session_id, EditorType::kUnknown);
 }
 
-void LayoutOrchestrator::ResetToDefault(EditorType type,
-                                        const std::string& session_id) {
+void LayoutOrchestrator::ResetToDefault(EditorType type, size_t session_id) {
   ApplyPreset(type, session_id);
   RequestLayoutRebuild();
 }
 
 std::string LayoutOrchestrator::GetWindowTitle(
-    const std::string& card_id, const std::string& session_id) const {
-  if (!card_registry_) {
+    const std::string& card_id, size_t session_id) const {
+  if (!panel_manager_) {
     return "";
   }
 
-  // Try to get card info (using session_id 0 for global lookup)
-  auto* info = card_registry_->GetCardInfo(0, card_id);
+  auto* info = panel_manager_->GetPanelDescriptor(session_id, card_id);
   if (info) {
     return info->GetWindowTitle();
   }
@@ -76,35 +75,34 @@ std::string LayoutOrchestrator::GetWindowTitle(
   return "";
 }
 
-std::vector<std::string> LayoutOrchestrator::GetVisibleCards(
-    const std::string& session_id) const {
+std::vector<std::string> LayoutOrchestrator::GetVisiblePanels(
+    size_t session_id) const {
   // Return empty since this requires more complex session handling
-  // This can be implemented later when session-aware card visibility is needed
+  // This can be implemented later when session-aware panel visibility is needed
   return {};
 }
 
-void LayoutOrchestrator::ShowPresetCards(const CardLayoutPreset& preset,
-                                         const std::string& session_id) {
-  if (!card_registry_) {
+void LayoutOrchestrator::ShowPresetPanels(const PanelLayoutPreset& preset,
+                                          size_t session_id,
+                                          EditorType editor_type) {
+  if (!panel_manager_) {
     return;
   }
 
-  for (const auto& card_id : preset.default_visible_cards) {
-    std::string prefixed_id = GetPrefixedCardId(card_id, session_id);
-    card_registry_->ShowCard(prefixed_id);
+  for (const auto& panel_id : preset.default_visible_panels) {
+    panel_manager_->ShowPanel(session_id, panel_id);
   }
 }
 
-void LayoutOrchestrator::HideOptionalCards(EditorType type,
-                                           const std::string& session_id) {
-  if (!card_registry_) {
+void LayoutOrchestrator::HideOptionalPanels(EditorType type,
+                                            size_t session_id) {
+  if (!panel_manager_) {
     return;
   }
 
   auto preset = LayoutPresets::GetDefaultPreset(type);
-  for (const auto& card_id : preset.optional_cards) {
-    std::string prefixed_id = GetPrefixedCardId(card_id, session_id);
-    card_registry_->HideCard(prefixed_id);
+  for (const auto& panel_id : preset.optional_panels) {
+    panel_manager_->HidePanel(session_id, panel_id);
   }
 }
 
@@ -166,13 +164,15 @@ void LayoutOrchestrator::ApplyDockLayout(EditorType type) {
 }
 
 std::string LayoutOrchestrator::GetPrefixedCardId(
-    const std::string& card_id, const std::string& session_id) const {
-  if (session_id.empty()) {
+    const std::string& card_id, size_t session_id) const {
+  if (panel_manager_) {
+    return panel_manager_->MakePanelId(session_id, card_id);
+  }
+  if (session_id == 0) {
     return card_id;
   }
-  return session_id + "." + card_id;
+  return absl::StrFormat("s%zu.%s", session_id, card_id);
 }
 
 }  // namespace editor
 }  // namespace yaze
-
