@@ -84,6 +84,7 @@ class LogManager {
   // Configuration state
   std::atomic<LogLevel> min_level_;
   std::set<std::string> enabled_categories_;
+  std::set<std::string> disabled_categories_;
   std::atomic<bool> all_categories_enabled_;
 
   // Output sink

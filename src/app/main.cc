@@ -28,9 +28,10 @@ DEFINE_FLAG(std::string, rom_file, "", "ROM file to load on startup.");
 DEFINE_FLAG(bool, debug, false, "Enable debug logging and verbose output.");
 DEFINE_FLAG(
     std::string, log_categories, "",
-    "Comma-separated list of log categories to enable. "
-    "If empty, all categories are logged. "
-    "Example: --log_categories=\"Room,DungeonEditor\" to filter noisy logs.");
+    "Comma-separated list of log categories to enable or disable. "
+    "Prefix with '-' to disable a category. "
+    "Example: \"Room,DungeonEditor\" (allowlist) or \"-Input,-Graphics\" "
+    "(blocklist).");
 
 // Navigation flags
 DEFINE_FLAG(std::string, editor, "",
