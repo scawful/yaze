@@ -1,14 +1,21 @@
 #include "music_editor.h"
 
-#include <iomanip>
+#include <algorithm>
+#include <cmath>
 #include <ctime>
+#include <iomanip>
 #include <sstream>
 
 #include "absl/strings/str_format.h"
-#include <algorithm>
-#include <cmath>
 #include "app/editor/code/assembly_editor.h"
-#include "app/editor/system/editor_card_registry.h"
+#include "app/editor/music/panels/music_assembly_panel.h"
+#include "app/editor/music/panels/music_help_panel.h"
+#include "app/editor/music/panels/music_instrument_editor_panel.h"
+#include "app/editor/music/panels/music_piano_roll_panel.h"
+#include "app/editor/music/panels/music_playback_control_panel.h"
+#include "app/editor/music/panels/music_sample_editor_panel.h"
+#include "app/editor/music/panels/music_song_browser_panel.h"
+#include "app/editor/system/panel_manager.h"
 #include "app/emu/audio/audio_backend.h"
 #include "app/emu/emulator.h"
 #include "app/gfx/debug/performance/performance_profiler.h"
@@ -43,58 +50,102 @@ void MusicEditor::Initialize() {
   // MusicPlayer now owns its own dedicated emulator for audio playback
   if (rom_) music_player_->SetRom(rom_);
 
-  if (!dependencies_.card_registry)
+  if (!dependencies_.panel_manager)
     return;
-  auto* card_registry = dependencies_.card_registry;
+  auto* panel_manager = dependencies_.panel_manager;
 
-  card_registry->RegisterCard({.card_id = "music.song_browser",
-                               .display_name = "Song Browser",
-                               .window_title = " Song Browser",
-                               .icon = ICON_MD_LIBRARY_MUSIC,
-                               .category = "Music",
-                               .shortcut_hint = "Ctrl+Shift+B",
-                               .priority = 5});
-  card_registry->RegisterCard({.card_id = "music.tracker",
-                               .display_name = "Playback Control",
-                               .window_title = " Playback Control",
-                               .icon = ICON_MD_PLAY_CIRCLE,
-                               .category = "Music",
-                               .shortcut_hint = "Ctrl+Shift+M",
-                               .priority = 10});
-  card_registry->RegisterCard({.card_id = "music.piano_roll",
-                               .display_name = "Piano Roll",
-                               .window_title = " Piano Roll",
-                               .icon = ICON_MD_PIANO,
-                               .category = "Music",
-                               .shortcut_hint = "Ctrl+Shift+P",
-                               .priority = 15});
-  card_registry->RegisterCard({.card_id = "music.instrument_editor",
-                               .display_name = "Instrument Editor",
-                               .window_title = " Instrument Editor",
-                               .icon = ICON_MD_SPEAKER,
-                               .category = "Music",
-                               .shortcut_hint = "Ctrl+Shift+I",
-                               .priority = 20});
-  card_registry->RegisterCard({.card_id = "music.sample_editor",
-                               .display_name = "Sample Editor",
-                               .window_title = " Sample Editor",
-                               .icon = ICON_MD_WAVES,
-                               .category = "Music",
-                               .shortcut_hint = "Ctrl+Shift+S",
-                               .priority = 25});
-  card_registry->RegisterCard({.card_id = "music.assembly",
-                               .display_name = "Assembly View",
-                               .window_title = " Music Assembly",
-                               .icon = ICON_MD_CODE,
-                               .category = "Music",
-                               .shortcut_hint = "Ctrl+Shift+A",
-                               .priority = 30});
-  card_registry->RegisterCard({.card_id = "music.help",
-                               .display_name = "Help",
-                               .window_title = " Music Editor Help",
-                               .icon = ICON_MD_HELP,
-                               .category = "Music",
-                               .priority = 99});
+  // Register PanelDescriptors for menu/sidebar visibility
+  panel_manager->RegisterPanel({.card_id = "music.song_browser",
+                                .display_name = "Song Browser",
+                                .window_title = " Song Browser",
+                                .icon = ICON_MD_LIBRARY_MUSIC,
+                                .category = "Music",
+                                .shortcut_hint = "Ctrl+Shift+B",
+                                .priority = 5});
+  panel_manager->RegisterPanel({.card_id = "music.tracker",
+                                .display_name = "Playback Control",
+                                .window_title = " Playback Control",
+                                .icon = ICON_MD_PLAY_CIRCLE,
+                                .category = "Music",
+                                .shortcut_hint = "Ctrl+Shift+M",
+                                .priority = 10});
+  panel_manager->RegisterPanel({.card_id = "music.piano_roll",
+                                .display_name = "Piano Roll",
+                                .window_title = " Piano Roll",
+                                .icon = ICON_MD_PIANO,
+                                .category = "Music",
+                                .shortcut_hint = "Ctrl+Shift+P",
+                                .priority = 15});
+  panel_manager->RegisterPanel({.card_id = "music.instrument_editor",
+                                .display_name = "Instrument Editor",
+                                .window_title = " Instrument Editor",
+                                .icon = ICON_MD_SPEAKER,
+                                .category = "Music",
+                                .shortcut_hint = "Ctrl+Shift+I",
+                                .priority = 20});
+  panel_manager->RegisterPanel({.card_id = "music.sample_editor",
+                                .display_name = "Sample Editor",
+                                .window_title = " Sample Editor",
+                                .icon = ICON_MD_WAVES,
+                                .category = "Music",
+                                .shortcut_hint = "Ctrl+Shift+S",
+                                .priority = 25});
+  panel_manager->RegisterPanel({.card_id = "music.assembly",
+                                .display_name = "Assembly View",
+                                .window_title = " Music Assembly",
+                                .icon = ICON_MD_CODE,
+                                .category = "Music",
+                                .shortcut_hint = "Ctrl+Shift+A",
+                                .priority = 30});
+  panel_manager->RegisterPanel({.card_id = "music.help",
+                                .display_name = "Help",
+                                .window_title = " Music Editor Help",
+                                .icon = ICON_MD_HELP,
+                                .category = "Music",
+                                .priority = 99});
+
+  // ==========================================================================
+  // Phase 5: Create and register EditorPanel instances
+  // Note: Callbacks are set up on the view classes during Draw() since
+  // PanelManager takes ownership of the panels.
+  // ==========================================================================
+
+  // Song Browser Panel - callbacks are set on song_browser_view_ directly
+  auto song_browser = std::make_unique<MusicSongBrowserPanel>(
+      &music_bank_, &current_song_index_, &song_browser_view_);
+  panel_manager->RegisterEditorPanel(std::move(song_browser));
+
+  // Playback Control Panel
+  auto playback_control = std::make_unique<MusicPlaybackControlPanel>(
+      &music_bank_, &current_song_index_, music_player_.get());
+  playback_control->SetOnOpenSong([this](int index) { OpenSong(index); });
+  playback_control->SetOnOpenPianoRoll(
+      [this](int index) { OpenSongPianoRoll(index); });
+  panel_manager->RegisterEditorPanel(std::move(playback_control));
+
+  // Piano Roll Panel
+  auto piano_roll = std::make_unique<MusicPianoRollPanel>(
+      &music_bank_, &current_song_index_, &current_segment_index_,
+      &current_channel_index_, &piano_roll_view_, music_player_.get());
+  panel_manager->RegisterEditorPanel(std::move(piano_roll));
+
+  // Instrument Editor Panel - callbacks set on instrument_editor_view_
+  auto instrument_editor = std::make_unique<MusicInstrumentEditorPanel>(
+      &music_bank_, &instrument_editor_view_);
+  panel_manager->RegisterEditorPanel(std::move(instrument_editor));
+
+  // Sample Editor Panel - callbacks set on sample_editor_view_
+  auto sample_editor = std::make_unique<MusicSampleEditorPanel>(
+      &music_bank_, &sample_editor_view_);
+  panel_manager->RegisterEditorPanel(std::move(sample_editor));
+
+  // Assembly Panel
+  auto assembly = std::make_unique<MusicAssemblyPanel>(&assembly_editor_);
+  panel_manager->RegisterEditorPanel(std::move(assembly));
+
+  // Help Panel
+  auto help = std::make_unique<MusicHelpPanel>();
+  panel_manager->RegisterEditorPanel(std::move(help));
 }
 
 void MusicEditor::SetProject(project::YazeProject* project) {
@@ -138,6 +189,38 @@ absl::Status MusicEditor::Load() {
   return absl::OkStatus();
 }
 
+void MusicEditor::TogglePlayPause() {
+  if (!music_player_) return;
+  auto state = music_player_->GetState();
+  if (state.is_playing && !state.is_paused) {
+    music_player_->Pause();
+  } else if (state.is_paused) {
+    music_player_->Resume();
+  } else {
+    music_player_->PlaySong(state.playing_song_index);
+  }
+}
+
+void MusicEditor::StopPlayback() {
+  if (music_player_) {
+    music_player_->Stop();
+  }
+}
+
+void MusicEditor::SpeedUp(float delta) {
+  if (music_player_) {
+    auto state = music_player_->GetState();
+    music_player_->SetPlaybackSpeed(state.playback_speed + delta);
+  }
+}
+
+void MusicEditor::SlowDown(float delta) {
+  if (music_player_) {
+    auto state = music_player_->GetState();
+    music_player_->SetPlaybackSpeed(state.playback_speed - delta);
+  }
+}
+
 absl::Status MusicEditor::Update() {
   // Update MusicPlayer - this runs the dedicated audio emulator's frame
   // to generate audio samples. MusicPlayer has its own emulator instance
@@ -150,8 +233,7 @@ absl::Status MusicEditor::Update() {
       music_dirty_ = true;
     }
     auto now = std::chrono::steady_clock::now();
-    const auto elapsed =
-        now - last_music_persist_;
+    const auto elapsed = now - last_music_persist_;
     if (music_dirty_ &&
         (last_music_persist_.time_since_epoch().count() == 0 ||
          elapsed > std::chrono::seconds(3))) {
@@ -164,167 +246,41 @@ absl::Status MusicEditor::Update() {
   }
 #endif
 
-  if (!dependencies_.card_registry)
+  if (!dependencies_.panel_manager)
     return absl::OkStatus();
-  auto* card_registry = dependencies_.card_registry;
+  auto* panel_manager = dependencies_.panel_manager;
 
-  static gui::EditorCard song_browser_card("Song Browser", ICON_MD_LIBRARY_MUSIC);
-  static gui::EditorCard playback_card("Playback Control", ICON_MD_PLAY_CIRCLE);
-  static gui::EditorCard piano_roll_card("Piano Roll", ICON_MD_PIANO);
-  static gui::EditorCard instrument_card("Instrument Editor", ICON_MD_SPEAKER);
-  static gui::EditorCard sample_card("Sample Editor", ICON_MD_WAVES);
-  static gui::EditorCard assembly_card("Assembly View", ICON_MD_CODE);
-  static gui::EditorCard help_card("Music Editor Help", ICON_MD_HELP);
-  static bool cards_initialized = false;
+  // ==========================================================================
+  // Phase 5 Complete: Static panels now drawn by DrawAllVisiblePanels()
+  // Only auto-show logic and dynamic song windows remain here
+  // ==========================================================================
 
-  // Initialize card sizes and positions once
-  if (!cards_initialized) {
-    cards_initialized = true;
-
-    // Set default sizes for cards
-    song_browser_card.SetDefaultSize(300, 700);
-    playback_card.SetDefaultSize(400, 350);
-    piano_roll_card.SetDefaultSize(900, 400);
-    instrument_card.SetDefaultSize(600, 500);
-    sample_card.SetDefaultSize(600, 500);
-    assembly_card.SetDefaultSize(700, 600);
-    help_card.SetDefaultSize(400, 500);
-
-    // Set default positions so cards don't stack on top of each other
-    song_browser_card.SetPosition(gui::EditorCard::Position::Left);
-    playback_card.SetPosition(gui::EditorCard::Position::Floating);
-    piano_roll_card.SetPosition(gui::EditorCard::Position::Floating);
-    instrument_card.SetPosition(gui::EditorCard::Position::Right);
-    sample_card.SetPosition(gui::EditorCard::Position::Floating);
-    assembly_card.SetPosition(gui::EditorCard::Position::Bottom);
-    help_card.SetPosition(gui::EditorCard::Position::Floating);
-  }
-
-  // Song Browser Card (Activity Bar)
-  bool* browser_visible = card_registry->GetVisibilityFlag("music.song_browser");
+  // Auto-show Song Browser on first load
+  bool* browser_visible = panel_manager->GetVisibilityFlag("music.song_browser");
   if (browser_visible && !song_browser_auto_shown_) {
     *browser_visible = true;
     song_browser_auto_shown_ = true;
   }
-  if (browser_visible && *browser_visible) {
-    if (song_browser_card.Begin(browser_visible)) {
-      // Double-click opens unique tracker window (like dungeon rooms)
-      song_browser_view_.SetOnSongSelected([this](int index) { OpenSong(index); });
-      song_browser_view_.SetOnOpenTracker([this](int index) { OpenSong(index); });
-      song_browser_view_.SetOnOpenPianoRoll([this](int index) { OpenSongPianoRoll(index); });
-      song_browser_view_.SetOnExportAsm([this](int index) { ExportSongToAsm(index); });
-      song_browser_view_.SetOnImportAsm([this](int index) { ImportSongFromAsm(index); });
-      song_browser_view_.SetOnEdit([this]() { PushUndoState(); });
-      DrawSongBrowser();
-    }
-    song_browser_card.End();
-  }
 
-  // Playback Control Card - Shows playback controls and current song status
-  bool* playback_visible = card_registry->GetVisibilityFlag("music.tracker");
+  // Auto-show Playback Control on first load
+  bool* playback_visible = panel_manager->GetVisibilityFlag("music.tracker");
   if (playback_visible && !tracker_auto_shown_) {
     *playback_visible = true;
     tracker_auto_shown_ = true;
   }
-  if (playback_visible && *playback_visible) {
-    // Set initial position: top area, next to song browser
-    ImGui::SetNextWindowPos(ImVec2(320, 40), ImGuiCond_FirstUseEver);
-    if (playback_card.Begin(playback_visible)) {
-      DrawPlaybackControl();
-    }
-    playback_card.End();
-  }
 
-  // Piano Roll Card
+  // Auto-show Piano Roll on first load
   static bool piano_roll_auto_shown = false;
-  bool* piano_roll_visible = card_registry->GetVisibilityFlag("music.piano_roll");
+  bool* piano_roll_visible = panel_manager->GetVisibilityFlag("music.piano_roll");
   if (piano_roll_visible && !piano_roll_auto_shown) {
     *piano_roll_visible = true;
     piano_roll_auto_shown = true;
   }
-  if (piano_roll_visible && *piano_roll_visible) {
-    // Set initial position: center area, below playback control
-    ImGui::SetNextWindowPos(ImVec2(320, 410), ImGuiCond_FirstUseEver);
-    if (piano_roll_card.Begin(piano_roll_visible)) {
-      DrawPianoRollView();
-    }
-    piano_roll_card.End();
-  }
 
-  // Instrument Editor Card
-  bool* instrument_visible =
-      card_registry->GetVisibilityFlag("music.instrument_editor");
-  if (instrument_visible && *instrument_visible) {
-    if (instrument_card.Begin(instrument_visible)) {
-      instrument_editor_view_.SetOnEditCallback([this]() { PushUndoState(); });
-      instrument_editor_view_.SetOnPreviewCallback(
-          [this](int index) {
-            if (music_player_) music_player_->PreviewInstrument(index);
-          });
-      DrawInstrumentEditor();
-    }
-    instrument_card.End();
-  }
-
-  // Sample Editor Card
-  bool* sample_visible =
-      card_registry->GetVisibilityFlag("music.sample_editor");
-  if (sample_visible && *sample_visible) {
-    // Set initial position: offset from instrument editor
-    ImGui::SetNextWindowPos(ImVec2(750, 320), ImGuiCond_FirstUseEver);
-    if (sample_card.Begin(sample_visible)) {
-      sample_editor_view_.SetOnEditCallback([this]() { PushUndoState(); });
-      sample_editor_view_.SetOnPreviewCallback(
-          [this](int index) {
-            if (music_player_) music_player_->PreviewSample(index);
-          });
-      DrawSampleEditor();
-    }
-    sample_card.End();
-  }
-
-  // Assembly View Card
-  bool* assembly_visible = card_registry->GetVisibilityFlag("music.assembly");
-  if (assembly_visible && *assembly_visible) {
-    if (assembly_card.Begin(assembly_visible)) {
-      assembly_editor_.InlineUpdate();
-    }
-    assembly_card.End();
-  }
-
-  // Help Card
-  bool* help_visible = card_registry->GetVisibilityFlag("music.help");
-  if (help_visible && *help_visible) {
-    if (help_card.Begin(help_visible)) {
-      ImGui::Text("Yaze Music Editor Guide");
-      ImGui::Separator();
-      
-      if (ImGui::CollapsingHeader("Overview", ImGuiTreeNodeFlags_DefaultOpen)) {
-        ImGui::TextWrapped("The Music Editor allows you to create and modify SNES music for Zelda 3.");
-        ImGui::BulletText("Song Browser: Select and manage songs.");
-        ImGui::BulletText("Tracker/Piano Roll: Edit note data.");
-        ImGui::BulletText("Instrument Editor: Configure ADSR envelopes.");
-        ImGui::BulletText("Sample Editor: Import and preview BRR samples.");
-      }
-
-      if (ImGui::CollapsingHeader("Tracker / Piano Roll")) {
-        ImGui::Text("Controls:");
-        ImGui::BulletText("Space: Play/Pause");
-        ImGui::BulletText("Z, S, X...: Keyboard piano (C, C#, D...)");
-        ImGui::BulletText("Shift+Arrows: Range selection");
-        ImGui::BulletText("Ctrl+C/V: Copy/Paste (WIP)");
-        ImGui::BulletText("Ctrl+Wheel: Zoom (Piano Roll)");
-      }
-
-      if (ImGui::CollapsingHeader("Instruments & Samples")) {
-        ImGui::TextWrapped("Instruments use BRR samples with an ADSR volume envelope.");
-        ImGui::BulletText("ADSR: Attack, Decay, Sustain, Release.");
-        ImGui::BulletText("Loop Points: Define where the sample loops (in blocks of 16 samples).");
-        ImGui::BulletText("Tuning: Adjust pitch multiplier ($1000 = 1.0x).");
-      }
-    }
-    help_card.End();
-  }
+  // ==========================================================================
+  // Dynamic Per-Song Windows (like dungeon room cards)
+  // TODO(Phase 6): Migrate to ResourcePanel with LRU limits
+  // ==========================================================================
 
   // Per-Song Tracker Windows (like dungeon room cards)
   for (int i = 0; i < active_songs_.Size; i++) {
@@ -341,7 +297,7 @@ absl::Status MusicEditor::Update() {
     // Create card instance if needed
     if (song_cards_.find(song_index) == song_cards_.end()) {
       song_cards_[song_index] =
-          std::make_shared<gui::EditorCard>(card_title.c_str(), ICON_MD_MUSIC_NOTE, &open);
+          std::make_shared<gui::PanelWindow>(card_title.c_str(), ICON_MD_MUSIC_NOTE, &open);
       song_cards_[song_index]->SetDefaultSize(900, 700);
 
       // Create dedicated tracker view for this song
@@ -633,7 +589,7 @@ void MusicEditor::OpenSongPianoRoll(int song_index) {
   SongPianoRollWindow window;
   window.visible_flag = new bool(true);
   window.card =
-      std::make_shared<gui::EditorCard>(card_title.c_str(), ICON_MD_PIANO,
+      std::make_shared<gui::PanelWindow>(card_title.c_str(), ICON_MD_PIANO,
                                         window.visible_flag);
   window.card->SetDefaultSize(900, 450);
   window.view = std::make_unique<editor::music::PianoRollView>();
@@ -690,29 +646,20 @@ void MusicEditor::DrawSongTrackerWindow(int song_index) {
 
   // Keyboard shortcuts (when window is focused)
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows) && can_play) {
-    // Space: Play/Pause toggle
+    // Focused-window shortcuts remain as fallbacks; also registered with ShortcutManager.
     if (ImGui::IsKeyPressed(ImGuiKey_Space, false)) {
-      if (is_playing_this_song && !is_paused_this_song) {
-        music_player_->Pause();
-      } else if (is_paused_this_song) {
-        music_player_->Resume();
-      } else {
-        music_player_->PlaySong(song_index);
-      }
+      TogglePlayPause();
     }
-    // Escape: Stop
     if (ImGui::IsKeyPressed(ImGuiKey_Escape, false)) {
-      music_player_->Stop();
+      StopPlayback();
     }
-    // +/=: Speed up (both + and = since + requires shift on most keyboards)
     if (ImGui::IsKeyPressed(ImGuiKey_Equal, false) ||
         ImGui::IsKeyPressed(ImGuiKey_KeypadAdd, false)) {
-      music_player_->SetPlaybackSpeed(state.playback_speed + 0.1f);
+      SpeedUp();
     }
-    // -: Speed down
     if (ImGui::IsKeyPressed(ImGuiKey_Minus, false) ||
         ImGui::IsKeyPressed(ImGuiKey_KeypadSubtract, false)) {
-      music_player_->SetPlaybackSpeed(state.playback_speed - 0.1f);
+      SlowDown();
     }
   }
 

@@ -114,6 +114,12 @@ class MusicEditor : public Editor {
   emu::Emulator* emulator() const { return emulator_; }
 
   void SetProject(project::YazeProject* project);
+
+  // Scoped editor actions (for ShortcutManager)
+  void TogglePlayPause();
+  void StopPlayback();
+  void SpeedUp(float delta = 0.1f);
+  void SlowDown(float delta = 0.1f);
   
   // API for sub-views
 
@@ -198,11 +204,11 @@ class MusicEditor : public Editor {
 
   // Per-song tracker windows (like dungeon room cards)
   ImVector<int> active_songs_;  // Song indices that are currently open
-  std::unordered_map<int, std::shared_ptr<gui::EditorCard>> song_cards_;
+  std::unordered_map<int, std::shared_ptr<gui::PanelWindow>> song_cards_;
   std::unordered_map<int, std::unique_ptr<editor::music::TrackerView>>
       song_trackers_;
   struct SongPianoRollWindow {
-    std::shared_ptr<gui::EditorCard> card;
+    std::shared_ptr<gui::PanelWindow> card;
     std::unique_ptr<editor::music::PianoRollView> view;
     bool* visible_flag = nullptr;
   };
@@ -228,6 +234,8 @@ class MusicEditor : public Editor {
   void SeekToSegment(int segment_index);
 
   std::unique_ptr<editor::music::MusicPlayer> music_player_;
+
+  // Note: EditorPanel instances are owned by PanelManager after registration
 };
 
 }  // namespace editor
