@@ -60,7 +60,7 @@ struct PaletteGroupMetadata {
  * - Modified state tracking with visual indicators
  * - Save/discard workflow
  * - Common toolbar and color picker UI
- * - EditorCardRegistry integration
+ * - PanelManager integration
  *
  * Derived classes implement specific grid layouts and palette access.
  */

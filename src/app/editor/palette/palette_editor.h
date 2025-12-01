@@ -9,6 +9,7 @@
 #include "app/editor/editor.h"
 #include "app/editor/graphics/gfx_group_editor.h"
 #include "app/editor/palette/palette_group_card.h"
+#include "app/editor/palette/panels/palette_card_panels.h"
 #include "app/gfx/types/snes_color.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/rom.h"
@@ -147,8 +148,11 @@ class PaletteEditor : public Editor {
   // Search filter for palette groups
   char search_buffer_[256] = "";
 
-  // Card visibility flags (registered with EditorCardManager)
+  // Panel visibility flags (legacy; superseded by PanelManager visibility)
   bool show_control_panel_ = true;
+  bool control_panel_minimized_ = false;
+
+  // Palette panel visibility flags
   bool show_ow_main_card_ = false;
   bool show_ow_animated_card_ = false;
   bool show_dungeon_main_card_ = false;
@@ -159,7 +163,6 @@ class PaletteEditor : public Editor {
   bool show_equipment_card_ = false;
   bool show_quick_access_ = false;
   bool show_custom_palette_ = false;
-  bool control_panel_minimized_ = false;
 
   // Palette card instances
   std::unique_ptr<OverworldMainPaletteCard> ow_main_card_;
