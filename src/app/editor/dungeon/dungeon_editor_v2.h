@@ -128,17 +128,14 @@ class DungeonEditorV2 : public Editor {
   // Public accessors for WASM API and automation
   int current_room_id() const { return room_selector_.current_room_id(); }
   const ImVector<int>& active_rooms() const { return room_selector_.active_rooms(); }
+  ObjectEditorCard* object_editor_card() const { return object_editor_card_.get(); }
 
  private:
   gfx::IRenderer* renderer_ = nullptr;
-  // Simple UI layout
+
+  // UI drawing (Phase 4: Static panels now use EditorPanel, only dynamic rooms here)
   void DrawLayout();
   void DrawRoomTab(int room_id);
-  void DrawRoomMatrixCard();
-  void DrawRoomsListCard();
-  void DrawEntrancesListCard();
-  void DrawRoomGraphicsCard();
-  void DrawDebugControlsCard();
 
   // Texture processing (critical for rendering)
   void ProcessDeferredTextures();
@@ -160,7 +157,9 @@ class DungeonEditorV2 : public Editor {
 
   // Active room tabs and card tracking for jump-to
   ImVector<int> active_rooms_;
-  std::unordered_map<int, std::shared_ptr<gui::EditorCard>> room_cards_;
+  // Panels
+  gui::PanelWindow room_properties_card_{"Room Properties", ICON_MD_TUNE};
+  gui::PanelWindow object_tool_card_{"Object Tools", ICON_MD_BUILD};
   int current_room_id_ = 0;
 
   bool control_panel_minimized_ = false;
@@ -186,6 +185,9 @@ class DungeonEditorV2 : public Editor {
 
   // Docking class for room windows to dock together
   ImGuiWindowClass room_window_class_;
+
+  // Dynamic room cards - created per open room
+  std::unordered_map<int, std::shared_ptr<gui::PanelWindow>> room_cards_;
 
   // Undo/Redo history: store snapshots of room objects
   std::unordered_map<int, std::vector<std::vector<zelda3::RoomObject>>>

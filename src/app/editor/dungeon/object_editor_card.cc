@@ -69,9 +69,10 @@ void ObjectEditorCard::OnSelectionChanged() {
 
 void ObjectEditorCard::Draw(bool* p_open) {
   const auto& theme = AgentUI::GetTheme();
-  gui::EditorCard card("Object Editor", ICON_MD_CONSTRUCTION, p_open);
-  card.SetDefaultSize(450, 750);
-  card.SetPosition(gui::EditorCard::Position::Right);
+  gui::PanelWindow card(gui::MakeCardTitle("Object Tools").c_str(), ICON_MD_BUILD,
+                       p_open);
+  card.SetDefaultSize(350, 600);
+  card.SetPosition(gui::PanelWindow::Position::Right);
 
   if (card.Begin(p_open)) {
     // Interaction mode controls at top (moved from tab)
