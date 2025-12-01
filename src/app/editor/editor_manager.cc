@@ -36,12 +36,12 @@
 #include "app/editor/palette/palette_editor.h"
 #include "app/editor/session_types.h"
 #include "app/editor/sprite/sprite_editor.h"
-#include "app/editor/system/editor_card_registry.h"
+#include "app/editor/system/panel_manager.h"
 #include "app/editor/system/editor_registry.h"
 #include "app/editor/ui/popup_manager.h"
 #include "app/editor/system/shortcut_configurator.h"
 #include "app/editor/ui/layout_presets.h"
-#include "app/editor/ui/editor_selection_dialog.h"
+#include "app/editor/ui/dashboard_panel.h"
 #include "app/editor/ui/ui_coordinator.h"
 #include "app/emu/emulator.h"
 #include "app/gfx/debug/performance/performance_profiler.h"
@@ -113,10 +113,10 @@ void EditorManager::HideCurrentEditorCards() {
     return;
   }
 
-  // Using EditorCardRegistry directly
+  // Using PanelManager directly
   std::string category =
       editor_registry_.GetEditorCategory(current_editor_->type());
-  card_registry_.HideAllCardsInCategory(category);
+  panel_manager_.HideAllPanelsInCategory(GetCurrentSessionId(), category);
 }
 
 
@@ -151,7 +151,7 @@ void EditorManager::ResetWorkspaceLayout() {
 }
 
 void EditorManager::ApplyLayoutPreset(const std::string& preset_name) {
-  CardLayoutPreset preset;
+  yaze::editor::PanelLayoutPreset preset;
 
   // Get the preset by name
   if (preset_name == "Minimal") {
@@ -178,11 +178,12 @@ void EditorManager::ApplyLayoutPreset(const std::string& preset_name) {
   }
 
   // Hide all cards first
-  card_registry_.HideAll();
+  panel_manager_.HideAll();
 
-  // Show only the cards defined in the preset
-  for (const auto& card_id : preset.default_visible_cards) {
-    card_registry_.ShowCard(card_id);
+  // Show only the panels defined in the preset
+  size_t session_id = GetCurrentSessionId();
+  for (const auto& panel_id : preset.default_visible_panels) {
+    panel_manager_.ShowPanel(session_id, panel_id);
   }
 
   LOG_INFO("EditorManager", "Applied layout preset: %s", preset_name.c_str());
@@ -202,7 +203,7 @@ void EditorManager::ResetCurrentEditorLayout() {
   auto preset = LayoutPresets::GetDefaultPreset(type);
 
   // Reset cards to defaults
-  card_registry_.ResetToDefaults(GetCurrentSessionId(), type);
+  panel_manager_.ResetToDefaults(GetCurrentSessionId(), type);
 
   LOG_INFO("EditorManager", "Reset editor layout to defaults for type %d",
            static_cast<int>(type));
@@ -245,7 +246,7 @@ EditorManager::EditorManager()
   // - UICoordinator: UI drawing and state management
   // - RomFileManager: ROM file I/O operations
   // - ProjectManager: Project file operations
-  // - EditorCardRegistry: Card-based editor UI management
+  // - PanelManager: Card-based editor UI management
   // - ShortcutConfigurator: Keyboard shortcut registration
   // - WindowDelegate: Window layout operations
   // - PopupManager: Modal popup/dialog management
@@ -274,7 +275,7 @@ EditorManager::EditorManager()
 
   // STEP 2: Initialize SessionCoordinator (independent of popups)
   session_coordinator_ = std::make_unique<SessionCoordinator>(
-      &card_registry_, &toast_manager_, &user_settings_);
+      &panel_manager_, &toast_manager_, &user_settings_);
 
   // STEP 3: Initialize MenuOrchestrator (depends on popup_manager_,
   // session_coordinator_)
@@ -283,15 +284,15 @@ EditorManager::EditorManager()
       editor_registry_, *session_coordinator_, toast_manager_, *popup_manager_);
   
   // Wire up card registry for Cards submenu in View menu
-  menu_orchestrator_->SetCardRegistry(&card_registry_);
+  menu_orchestrator_->SetPanelManager(&panel_manager_);
 
   session_coordinator_->SetEditorManager(this);
 
   // STEP 4: Initialize UICoordinator (depends on popup_manager_,
-  // session_coordinator_, card_registry_)
+  // session_coordinator_, panel_manager_)
   ui_coordinator_ = std::make_unique<UICoordinator>(
       this, rom_file_manager_, project_manager_, editor_registry_,
-      card_registry_, *session_coordinator_, window_delegate_, toast_manager_,
+      panel_manager_, *session_coordinator_, window_delegate_, toast_manager_,
       *popup_manager_, shortcut_manager_);
 
   // STEP 4.5: Initialize LayoutManager (DockBuilder layouts for editors)
@@ -304,7 +305,19 @@ EditorManager::EditorManager()
   right_panel_manager_->SetPropertiesPanel(&selection_properties_panel_);
 
   // STEP 4.7: Initialize ActivityBar
-  activity_bar_ = std::make_unique<ActivityBar>(card_registry_);
+  activity_bar_ = std::make_unique<ActivityBar>(panel_manager_);
+
+  // STEP 4.8: Initialize DashboardPanel
+  dashboard_panel_ = std::make_unique<DashboardPanel>(this);
+  panel_manager_.RegisterPanel({.card_id = "dashboard.main",
+                               .display_name = "Dashboard",
+                               .window_title = " Dashboard",
+                               .icon = ICON_MD_DASHBOARD,
+                               .category = "Dashboard",
+                               .shortcut_hint = "F1",
+                               .visibility_flag = dashboard_panel_->visibility_flag(),
+                               .card_instance = nullptr,
+                               .priority = 0});
 
   // STEP 5: ShortcutConfigurator created later in Initialize() method
   // It depends on all above coordinators being available
@@ -359,8 +372,8 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
   renderer_ = renderer;
 
   // Inject card_registry into emulator and workspace_manager
-  emulator_.set_card_registry(&card_registry_);
-  workspace_manager_.set_card_registry(&card_registry_);
+  emulator_.set_panel_manager(&panel_manager_);
+  workspace_manager_.set_panel_manager(&panel_manager_);
 
   // Point to a blank editor set when no ROM is loaded
   // current_editor_set_ = &blank_editor_set_;
@@ -374,96 +387,108 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
   // popup_manager_.Show()
 
   // Register emulator cards early (emulator Initialize might not be called)
-  // Using EditorCardRegistry directly
-  card_registry_.RegisterCard({.card_id = "emulator.cpu_debugger",
+  // Using PanelManager directly
+  panel_manager_.RegisterPanel({.card_id = "emulator.cpu_debugger",
                                .display_name = "CPU Debugger",
                                .window_title = " CPU Debugger",
                                .icon = ICON_MD_BUG_REPORT,
                                .category = "Emulator",
-                               .priority = 10});
-  card_registry_.RegisterCard({.card_id = "emulator.ppu_viewer",
+                               .priority = 10,
+                               .card_instance = nullptr});
+  panel_manager_.RegisterPanel({.card_id = "emulator.ppu_viewer",
                                .display_name = "PPU Viewer",
                                .window_title = " PPU Viewer",
                                .icon = ICON_MD_VIDEOGAME_ASSET,
                                .category = "Emulator",
-                               .priority = 20});
-  card_registry_.RegisterCard({.card_id = "emulator.memory_viewer",
+                               .priority = 20,
+                               .card_instance = nullptr});
+  panel_manager_.RegisterPanel({.card_id = "emulator.memory_viewer",
                                .display_name = "Memory Viewer",
                                .window_title = " Memory Viewer",
                                .icon = ICON_MD_MEMORY,
                                .category = "Emulator",
-                               .priority = 30});
-  card_registry_.RegisterCard({.card_id = "emulator.breakpoints",
+                               .priority = 30,
+                               .card_instance = nullptr});
+  panel_manager_.RegisterPanel({.card_id = "emulator.breakpoints",
                                .display_name = "Breakpoints",
                                .window_title = " Breakpoints",
                                .icon = ICON_MD_STOP,
                                .category = "Emulator",
-                               .priority = 40});
-  card_registry_.RegisterCard({.card_id = "emulator.performance",
+                               .priority = 40,
+                               .card_instance = nullptr});
+  panel_manager_.RegisterPanel({.card_id = "emulator.performance",
                                .display_name = "Performance",
                                .window_title = " Performance",
                                .icon = ICON_MD_SPEED,
                                .category = "Emulator",
-                               .priority = 50});
-  card_registry_.RegisterCard({.card_id = "emulator.ai_agent",
+                               .priority = 50,
+                               .card_instance = nullptr});
+  panel_manager_.RegisterPanel({.card_id = "emulator.ai_agent",
                                .display_name = "AI Agent",
                                .window_title = " AI Agent",
                                .icon = ICON_MD_SMART_TOY,
                                .category = "Emulator",
-                               .priority = 60});
-  card_registry_.RegisterCard({.card_id = "emulator.save_states",
+                               .priority = 60,
+                               .card_instance = nullptr});
+  panel_manager_.RegisterPanel({.card_id = "emulator.save_states",
                                .display_name = "Save States",
                                .window_title = " Save States",
                                .icon = ICON_MD_SAVE,
                                .category = "Emulator",
-                               .priority = 70});
-  card_registry_.RegisterCard({.card_id = "emulator.keyboard_config",
+                               .priority = 70,
+                               .card_instance = nullptr});
+  panel_manager_.RegisterPanel({.card_id = "emulator.keyboard_config",
                                .display_name = "Keyboard Config",
                                .window_title = " Keyboard Config",
                                .icon = ICON_MD_KEYBOARD,
                                .category = "Emulator",
-                               .priority = 80});
-  card_registry_.RegisterCard({.card_id = "emulator.virtual_controller",
+                               .priority = 80,
+                               .card_instance = nullptr});
+  panel_manager_.RegisterPanel({.card_id = "emulator.virtual_controller",
                                .display_name = "Virtual Controller",
                                .window_title = " Virtual Controller",
                                .icon = ICON_MD_SPORTS_ESPORTS,
                                .category = "Emulator",
-                               .priority = 85});
-  card_registry_.RegisterCard({.card_id = "emulator.apu_debugger",
+                               .priority = 85,
+                               .card_instance = nullptr});
+  panel_manager_.RegisterPanel({.card_id = "emulator.apu_debugger",
                                .display_name = "APU Debugger",
                                .window_title = " APU Debugger",
                                .icon = ICON_MD_AUDIOTRACK,
                                .category = "Emulator",
-                               .priority = 90});
-  card_registry_.RegisterCard({.card_id = "emulator.audio_mixer",
+                               .priority = 90,
+                               .card_instance = nullptr});
+  panel_manager_.RegisterPanel({.card_id = "emulator.audio_mixer",
                                .display_name = "Audio Mixer",
                                .window_title = " Audio Mixer",
                                .icon = ICON_MD_AUDIO_FILE,
                                .category = "Emulator",
-                               .priority = 100});
+                               .priority = 100,
+                               .card_instance = nullptr});
 
   // Show useful emulator cards by default
-  card_registry_.ShowCard("emulator.cpu_debugger");
-  card_registry_.ShowCard("emulator.ppu_viewer");
-  card_registry_.ShowCard("emulator.performance");
-  card_registry_.ShowCard("emulator.save_states");
-  card_registry_.ShowCard("emulator.keyboard_config");
-  card_registry_.ShowCard("emulator.virtual_controller");
+  // panel_manager_.ShowPanel("emulator.cpu_debugger");
+  // panel_manager_.ShowPanel("emulator.ppu_viewer");
+  // panel_manager_.ShowPanel("emulator.performance");
+  // panel_manager_.ShowPanel("emulator.save_states");
+  // panel_manager_.ShowPanel("emulator.keyboard_config");
+  // panel_manager_.ShowPanel("emulator.virtual_controller");
 
   // Register memory/hex editor card
-  card_registry_.RegisterCard({.card_id = "memory.hex_editor",
+  panel_manager_.RegisterPanel({.card_id = "memory.hex_editor",
                                .display_name = "Hex Editor",
                                .window_title = ICON_MD_MEMORY " Hex Editor",
                                .icon = ICON_MD_MEMORY,
                                .category = "Memory",
-                               .priority = 10});
+                               .priority = 10,
+                               .card_instance = nullptr});
 
   // Initialize project file editor
   project_file_editor_.SetToastManager(&toast_manager_);
 
   // Initialize agent UI (no-op when agent UI is disabled)
   agent_ui_.Initialize(&toast_manager_, &proposal_drawer_,
-                       right_panel_manager_.get(), &card_registry_);
+                       right_panel_manager_.get(), &panel_manager_);
 
   // Load critical user settings first
   status_ = user_settings_.Load();
@@ -512,7 +537,7 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
         // Close dialog and show editor selection
         show_rom_load_options_ = false;
         if (ui_coordinator_) {
-          editor_selection_dialog_.ClearRecentEditors();
+          // dashboard_panel_->ClearRecentEditors();
           ui_coordinator_->SetEditorSelectionVisible(true);
         }
 
@@ -561,11 +586,11 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
   });
 
   // Initialize editor selection dialog callback
-  editor_selection_dialog_.SetSelectionCallback([this](EditorType type) {
-    editor_selection_dialog_.MarkRecentlyUsed(type);
-    // Pass true for from_dialog so the dialog isn't automatically dismissed
-    SwitchToEditor(type, /*force_visible=*/false, /*from_dialog=*/true);
-  });
+  // editor_selection_dialog_.SetSelectionCallback([this](EditorType type) {
+  //   editor_selection_dialog_.MarkRecentlyUsed(type);
+  //   // Pass true for from_dialog so the dialog isn't automatically dismissed
+  //   SwitchToEditor(type, /*force_visible=*/false, /*from_dialog=*/true);
+  // });
 
   // Load user settings - this must happen after context is initialized
   // Apply font scale after loading
@@ -581,22 +606,22 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
   // This will be called lazily when workspace features are accessed
 
   // Set up sidebar utility icon callbacks
-  card_registry_.SetShowEmulatorCallback([this]() {
+  panel_manager_.SetShowEmulatorCallback([this]() {
     if (ui_coordinator_) {
       ui_coordinator_->SetEmulatorVisible(true);
     }
   });
-  card_registry_.SetShowSettingsCallback([this]() {
+  panel_manager_.SetShowSettingsCallback([this]() {
     SwitchToEditor(EditorType::kSettings);
   });
-  card_registry_.SetShowCardBrowserCallback([this]() {
+  panel_manager_.SetShowCardBrowserCallback([this]() {
     if (ui_coordinator_) {
       ui_coordinator_->ShowCardBrowser();
     }
   });
 
   // Set up sidebar action button callbacks
-  card_registry_.SetSaveRomCallback([this]() {
+  panel_manager_.SetSaveRomCallback([this]() {
     if (GetCurrentRom() && GetCurrentRom()->is_loaded()) {
       auto status = SaveRom();
       if (status.ok()) {
@@ -609,7 +634,7 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
     }
   });
 
-  card_registry_.SetUndoCallback([this]() {
+  panel_manager_.SetUndoCallback([this]() {
     if (auto* current_editor = GetCurrentEditor()) {
       auto status = current_editor->Undo();
       if (!status.ok()) {
@@ -620,7 +645,7 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
     }
   });
 
-  card_registry_.SetRedoCallback([this]() {
+  panel_manager_.SetRedoCallback([this]() {
     if (auto* current_editor = GetCurrentEditor()) {
       auto status = current_editor->Redo();
       if (!status.ok()) {
@@ -631,13 +656,13 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
     }
   });
 
-  card_registry_.SetShowSearchCallback([this]() {
+  panel_manager_.SetShowSearchCallback([this]() {
     if (ui_coordinator_) {
       ui_coordinator_->ShowGlobalSearch();
     }
   });
 
-  card_registry_.SetShowHelpCallback([this]() {
+  panel_manager_.SetShowHelpCallback([this]() {
     if (popup_manager_) {
       popup_manager_->Show(PopupID::kAbout);
     }
@@ -645,19 +670,19 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
 
   // Set up sidebar state change callbacks for persistence
   // IMPORTANT: Register callbacks BEFORE applying state to avoid triggering Save() during init
-  card_registry_.SetSidebarStateChangedCallback(
+  panel_manager_.SetSidebarStateChangedCallback(
       [this](bool visible, bool expanded) {
         user_settings_.prefs().sidebar_visible = visible;
         user_settings_.prefs().sidebar_panel_expanded = expanded;
         PRINT_IF_ERROR(user_settings_.Save());
       });
 
-  card_registry_.SetCategoryChangedCallback([this](const std::string& category) {
+  panel_manager_.SetCategoryChangedCallback([this](const std::string& category) {
     user_settings_.prefs().sidebar_active_category = category;
     PRINT_IF_ERROR(user_settings_.Save());
   });
 
-  card_registry_.SetOnCardClickedCallback([this](const std::string& category) {
+  panel_manager_.SetOnCardClickedCallback([this](const std::string& category) {
     EditorType type = EditorRegistry::GetEditorTypeFromCategory(category);
     // Switch to the editor associated with this card's category
     // This ensures clicking a card opens/focuses the parent editor
@@ -667,10 +692,10 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
   });
 
   // Enable file browser for Assembly category
-  card_registry_.EnableFileBrowser("Assembly");
+  panel_manager_.EnableFileBrowser("Assembly");
 
   // Set up file clicked callback to open files in Assembly editor
-  card_registry_.SetFileClickedCallback(
+  panel_manager_.SetFileClickedCallback(
       [this](const std::string& category, const std::string& path) {
         if (category == "Assembly") {
           // Open the file in the Assembly editor
@@ -684,10 +709,10 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
 
   // Apply sidebar state from settings AFTER registering callbacks
   // This triggers the callbacks but they should be safe now
-  card_registry_.SetSidebarVisible(user_settings_.prefs().sidebar_visible);
-  card_registry_.SetPanelExpanded(user_settings_.prefs().sidebar_panel_expanded);
+  panel_manager_.SetSidebarVisible(user_settings_.prefs().sidebar_visible);
+  panel_manager_.SetPanelExpanded(user_settings_.prefs().sidebar_panel_expanded);
   if (!user_settings_.prefs().sidebar_active_category.empty()) {
-    card_registry_.SetActiveCategory(user_settings_.prefs().sidebar_active_category);
+    panel_manager_.SetActiveCategory(user_settings_.prefs().sidebar_active_category);
   }
 
   // Initialize testing system only when tests are enabled
@@ -817,7 +842,7 @@ void EditorManager::ProcessStartupActions(const AppConfig& config) {
  * 4. Draw toasts (ToastManager) - user notifications
  * 5. Iterate all sessions and update active editors
  * 6. Draw session UI (SessionCoordinator) - session switcher, manager
- * 7. Draw sidebar (EditorCardRegistry) - card-based editor UI
+ * 7. Draw sidebar (PanelManager) - card-based editor UI
  *
  * Note: EditorManager retains the main loop to coordinate multi-session
  * updates, but delegates specific drawing/state operations to specialized
@@ -871,9 +896,9 @@ absl::Status EditorManager::Update() {
 
   // Draw editor selection dialog (managed by UICoordinator)
   if (ui_coordinator_ && ui_coordinator_->IsEditorSelectionVisible()) {
-    bool show = true;
-    editor_selection_dialog_.Show(&show);
-    if (!show) {
+    dashboard_panel_->Show();
+    dashboard_panel_->Draw();
+    if (!dashboard_panel_->IsVisible()) {
       ui_coordinator_->SetEditorSelectionVisible(false);
     }
   }
@@ -961,12 +986,12 @@ absl::Status EditorManager::Update() {
     }
 
     // Determine which category to show in sidebar
-    std::string sidebar_category = card_registry_.GetActiveCategory();
+    std::string sidebar_category = panel_manager_.GetActiveCategory();
 
     // If no active category, default to first in list
     if (sidebar_category.empty() && !all_categories.empty()) {
       sidebar_category = all_categories[0];
-      card_registry_.SetActiveCategory(sidebar_category);
+      panel_manager_.SetActiveCategory(sidebar_category);
     }
 
     // Callback to check if ROM is loaded (for category enabled state)
@@ -1082,7 +1107,7 @@ void EditorManager::DrawMenuBar() {
                           gui::GetSurfaceContainerHighestVec4());
     
     // Highlight when active/visible
-    if (card_registry_.IsSidebarVisible()) {
+    if (panel_manager_.IsSidebarVisible()) {
       ImGui::PushStyleColor(ImGuiCol_Text, gui::GetPrimaryVec4());
     } else {
       ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
@@ -1090,18 +1115,18 @@ void EditorManager::DrawMenuBar() {
 
     if (ui_coordinator_ && ui_coordinator_->IsCardSidebarVisible()) {
       if (ImGui::SmallButton(ICON_MD_MENU)) {
-        card_registry_.ToggleSidebarVisibility();
+        panel_manager_.ToggleSidebarVisibility();
       }
     } else {
       if (ImGui::SmallButton(ICON_MD_MENU_OPEN)) {
-        card_registry_.ToggleSidebarVisibility();
+        panel_manager_.ToggleSidebarVisibility();
       }
     }
 
     ImGui::PopStyleColor(4);
 
     if (ImGui::IsItemHovered()) {
-      const char* tooltip = card_registry_.IsSidebarVisible()
+      const char* tooltip = panel_manager_.IsSidebarVisible()
                                 ? "Hide Activity Bar (Ctrl+B)"
                                 : "Show Activity Bar (Ctrl+B)";
       ImGui::SetTooltip("%s", tooltip);
@@ -1143,11 +1168,11 @@ void EditorManager::DrawMenuBar() {
     }
   }
 
-  // Using EditorCardRegistry directly
+  // Using PanelManager directly
   if (auto* editor_set = GetCurrentEditorSet()) {
     // Pass the actual visibility flag pointer so the X button works
     bool* hex_visibility =
-        card_registry_.GetVisibilityFlag("memory.hex_editor");
+        panel_manager_.GetVisibilityFlag("memory.hex_editor");
     if (hex_visibility && *hex_visibility) {
       editor_set->GetMemoryEditor()->Update(*hex_visibility);
     }
@@ -1353,7 +1378,7 @@ absl::Status EditorManager::LoadAssets(uint64_t passed_handle) {
     emulator_.set_renderer(renderer_);
   }
 
-  // Initialize all editors - this registers their cards with EditorCardRegistry
+  // Initialize all editors - this registers their cards with PanelManager
   // and sets up any editor-specific resources. Must be called before Load().
   current_editor_set->GetOverworldEditor()->Initialize();
   current_editor_set->GetMessageEditor()->Initialize();
@@ -1575,7 +1600,7 @@ absl::Status EditorManager::OpenRomOrProject(const std::string& filename) {
         editor_set && !current_project_.code_folder.empty()) {
       editor_set->GetAssemblyEditor()->OpenFolder(current_project_.code_folder);
       // Also set the sidebar file browser path
-      card_registry_.SetFileBrowserPath("Assembly", current_project_.code_folder);
+      panel_manager_.SetFileBrowserPath("Assembly", current_project_.code_folder);
     }
 
 #ifdef __EMSCRIPTEN__
@@ -1592,7 +1617,7 @@ absl::Status EditorManager::OpenRomOrProject(const std::string& filename) {
 
     // Hide welcome screen and show editor selection when ROM is loaded
     ui_coordinator_->SetWelcomeScreenVisible(false);
-    editor_selection_dialog_.ClearRecentEditors();
+    // dashboard_panel_->ClearRecentEditors();
     ui_coordinator_->SetEditorSelectionVisible(true);
   }
   return absl::OkStatus();
@@ -1669,14 +1694,14 @@ absl::Status EditorManager::OpenProject() {
         editor_set && !current_project_.code_folder.empty()) {
       editor_set->GetAssemblyEditor()->OpenFolder(current_project_.code_folder);
       // Also set the sidebar file browser path
-      card_registry_.SetFileBrowserPath("Assembly", current_project_.code_folder);
+      panel_manager_.SetFileBrowserPath("Assembly", current_project_.code_folder);
     }
 
     RETURN_IF_ERROR(LoadAssets());
 
     // Hide welcome screen and show editor selection when project ROM is loaded
     ui_coordinator_->SetWelcomeScreenVisible(false);
-    editor_selection_dialog_.ClearRecentEditors();
+    // dashboard_panel_->ClearRecentEditors();
     ui_coordinator_->SetEditorSelectionVisible(true);
   }
 
@@ -1980,11 +2005,11 @@ void EditorManager::SwitchToEditor(EditorType editor_type, bool force_visible, b
       }
 
       if (IsCardBasedEditor(editor_type)) {
-        // Using EditorCardRegistry directly
+        // Using PanelManager directly
 
         if (*editor->active()) {
           // Editor activated - set its category
-          card_registry_.SetActiveCategory(
+          panel_manager_.SetActiveCategory(
               EditorRegistry::GetEditorCategory(editor_type));
 
           // Initialize default layout on first activation
@@ -2003,7 +2028,7 @@ void EditorManager::SwitchToEditor(EditorType editor_type, bool force_visible, b
           for (auto* other : editor_set->active_editors_) {
             if (*other->active() && IsCardBasedEditor(other->type()) &&
                 other != editor) {
-              card_registry_.SetActiveCategory(
+              panel_manager_.SetActiveCategory(
                   EditorRegistry::GetEditorCategory(other->type()));
               break;
             }
@@ -2027,7 +2052,7 @@ void EditorManager::SwitchToEditor(EditorType editor_type, bool force_visible, b
       ui_coordinator_->SetEmulatorVisible(is_visible);
       
       if (is_visible) {
-        card_registry_.SetActiveCategory("Emulator");
+        panel_manager_.SetActiveCategory("Emulator");
         
         // Always initialize default layout for Emulator on activation
         // Check if we're in a valid ImGui frame before initializing
@@ -2045,7 +2070,7 @@ void EditorManager::SwitchToEditor(EditorType editor_type, bool force_visible, b
       }
     }
   } else if (editor_type == EditorType::kHex) {
-    card_registry_.ShowCard(GetCurrentSessionId(), "Hex Editor");
+    panel_manager_.ShowPanel(GetCurrentSessionId(), "Hex Editor");
   } else if (editor_type == EditorType::kSettings) {
     if (right_panel_manager_) {
       // Toggle settings panel
@@ -2125,7 +2150,7 @@ void EditorManager::ConfigureEditorDependencies(EditorSet* editor_set, Rom* rom,
   EditorDependencies deps;
   deps.rom = rom;
   deps.session_id = session_id;
-  deps.card_registry = &card_registry_;
+  deps.panel_manager = &panel_manager_;
   deps.toast_manager = &toast_manager_;
   deps.popup_manager = popup_manager_.get();
   deps.shortcut_manager = &shortcut_manager_;

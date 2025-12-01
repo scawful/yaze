@@ -17,7 +17,7 @@ class EditorManager;
 class RomFileManager;
 class ProjectManager;
 class EditorRegistry;
-class EditorCardRegistry;
+class PanelManager;
 class SessionCoordinator;
 class ToastManager;
 class PopupManager;
@@ -48,7 +48,7 @@ class MenuOrchestrator {
   ~MenuOrchestrator() = default;
 
   // Set optional dependencies for advanced features
-  void SetCardRegistry(EditorCardRegistry* registry) { card_registry_ = registry; }
+  void SetPanelManager(PanelManager* manager) { panel_manager_ = manager; }
 
   // Non-copyable due to reference members
   MenuOrchestrator(const MenuOrchestrator&) = delete;
@@ -90,7 +90,7 @@ class MenuOrchestrator {
   void OnShowDisplaySettings();  // Display settings popup
   void OnShowHexEditor();
   void OnShowEmulator();
-  void OnShowCardBrowser();
+  void OnShowPanelBrowser();
   void OnShowWelcomeScreen();
 
 #ifdef YAZE_BUILD_AGENT_UI
@@ -189,7 +189,7 @@ class MenuOrchestrator {
   PopupManager& popup_manager_;
 
   // Optional dependencies for advanced features
-  EditorCardRegistry* card_registry_ = nullptr;
+  PanelManager* panel_manager_ = nullptr;
 
   // Menu state
   bool menu_needs_refresh_ = false;
