@@ -5,6 +5,7 @@
 
 #include "absl/status/status.h"
 #include "app/editor/editor.h"
+#include "app/editor/graphics/panels/screen_editor_panels.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/render/tilemap.h"
 #include "app/gfx/types/snes_palette.h"
