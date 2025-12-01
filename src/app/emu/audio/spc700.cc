@@ -6,7 +6,7 @@
 #include <string>
 
 #include "app/emu/audio/internal/opcodes.h"
-#include "app/emu/audio/internal/spc700_accurate_cycles.h"
+#include "app/emu/audio/internal/spc700_cycles.h"
 #include "core/features.h"
 #include "util/log.h"
 
@@ -62,7 +62,7 @@ int Spc700::Step() {
   uint8_t opcode = ReadOpcode();
 
   // Get base cycle count from the new accurate lookup table
-  int cycles = spc700_accurate_cycles[opcode];
+  int cycles = spc700_cycles[opcode];
 
   // Execute the instruction completely (atomic execution)
   // This will set extra_cycles_ if a branch is taken
@@ -131,7 +131,7 @@ void Spc700::RunOpcode() {
     if (bstep == 0) {
       opcode = ReadOpcode();
       // Set base cycle count from lookup table
-      last_opcode_cycles_ = spc700_accurate_cycles[opcode];
+      last_opcode_cycles_ = spc700_cycles[opcode];
     } else {
       if (spc_exec_count < 5) {
         LOG_DEBUG("SPC",
