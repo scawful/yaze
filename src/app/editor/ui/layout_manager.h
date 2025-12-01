@@ -11,7 +11,7 @@ namespace yaze {
 namespace editor {
 
 // Forward declaration
-class EditorCardRegistry;
+class PanelManager;
 
 /**
  * @enum LayoutType
@@ -45,7 +45,7 @@ enum class LayoutType {
  * - Layout persistence and restoration
  * - Workspace presets (Developer, Designer, Modder)
  * - Dynamic layout initialization on first editor switch
- * - Card registry integration for window title lookups
+ * - Panel manager integration for window title lookups
  */
 class LayoutManager {
  public:
@@ -53,18 +53,18 @@ class LayoutManager {
   ~LayoutManager() = default;
 
   /**
-   * @brief Set the card registry for window title lookups
-   * @param registry Pointer to the EditorCardRegistry
+   * @brief Set the panel manager for window title lookups
+   * @param registry Pointer to the PanelManager
    */
-  void SetCardRegistry(EditorCardRegistry* registry) {
-    card_registry_ = registry;
+  void SetPanelManager(PanelManager* manager) {
+    panel_manager_ = manager;
   }
 
   /**
-   * @brief Get the card registry
-   * @return Pointer to the EditorCardRegistry
+   * @brief Get the panel manager
+   * @return Pointer to the PanelManager
    */
-  EditorCardRegistry* card_registry() const { return card_registry_; }
+  PanelManager* panel_manager() const { return panel_manager_; }
 
   /**
    * @brief Initialize the default layout for a specific editor type
@@ -172,8 +172,8 @@ class LayoutManager {
   // Track which layouts have been initialized
   std::unordered_map<EditorType, bool> layouts_initialized_;
 
-  // Card registry for window title lookups
-  EditorCardRegistry* card_registry_ = nullptr;
+  // Panel manager for window title lookups
+  PanelManager* panel_manager_ = nullptr;
 
   // Current layout type
   LayoutType current_layout_type_ = LayoutType::kDefault;

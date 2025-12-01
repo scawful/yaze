@@ -1,6 +1,6 @@
 #include "app/editor/ui/layout_manager.h"
 
-#include "app/editor/system/editor_card_registry.h"
+#include "app/editor/system/panel_manager.h"
 #include "app/editor/ui/layout_presets.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
@@ -12,16 +12,16 @@ namespace editor {
 namespace {
 
 // Helper function to show default cards from LayoutPresets
-void ShowDefaultCardsForEditor(EditorCardRegistry* registry, EditorType type) {
+void ShowDefaultPanelsForEditor(PanelManager* registry, EditorType type) {
   if (!registry) return;
 
-  auto default_cards = LayoutPresets::GetDefaultCards(type);
-  for (const auto& card_id : default_cards) {
-    registry->ShowCard(card_id);
+  auto default_panels = LayoutPresets::GetDefaultPanels(type);
+  for (const auto& panel_id : default_panels) {
+    registry->ShowPanel(panel_id);
   }
 
-  LOG_INFO("LayoutManager", "Showing %zu default cards for editor type %d",
-           default_cards.size(), static_cast<int>(type));
+  LOG_INFO("LayoutManager", "Showing %zu default panels for editor type %d",
+           default_panels.size(), static_cast<int>(type));
 }
 
 }  // namespace
@@ -52,7 +52,7 @@ void LayoutManager::InitializeEditorLayout(EditorType type,
   BuildLayoutFromPreset(type, dockspace_id);
 
   // Show default cards from LayoutPresets (single source of truth)
-  ShowDefaultCardsForEditor(card_registry_, type);
+  ShowDefaultPanelsForEditor(panel_manager_, type);
 
   // Finalize the layout
   ImGui::DockBuilderFinish(dockspace_id);
@@ -89,7 +89,7 @@ void LayoutManager::RebuildLayout(EditorType type, ImGuiID dockspace_id) {
   BuildLayoutFromPreset(type, dockspace_id);
 
   // Show default cards from LayoutPresets (single source of truth)
-  ShowDefaultCardsForEditor(card_registry_, type);
+  ShowDefaultPanelsForEditor(panel_manager_, type);
 
   // Finalize the layout
   ImGui::DockBuilderFinish(dockspace_id);
@@ -138,15 +138,15 @@ void LayoutManager::BuildLayoutFromPreset(EditorType type, ImGuiID dockspace_id)
     }
   };
 
-  // Iterate through positioned cards and dock them
-  for (const auto& [card_id, position] : preset.card_positions) {
-    std::string window_title = GetWindowTitle(card_id);
+  // Iterate through positioned panels and dock them
+  for (const auto& [panel_id, position] : preset.panel_positions) {
+    std::string window_title = GetWindowTitle(panel_id);
     if (window_title.empty()) {
       // If we can't find the title, try to infer it or skip
       // For now, we skip as we need the title for DockBuilder
       continue;
     }
-    
+
     ImGui::DockBuilderDockWindow(window_title.c_str(), get_dock_id(position));
   }
 }
@@ -199,12 +199,12 @@ void LayoutManager::ClearInitializationFlags() {
 }
 
 std::string LayoutManager::GetWindowTitle(const std::string& card_id) const {
-  if (!card_registry_) {
+  if (!panel_manager_) {
     return "";
   }
 
-  // Look up the card info in the registry (using session_id 0 for global lookup)
-  auto* info = card_registry_->GetCardInfo(0, card_id);
+  // Look up the panel descriptor in the manager (session 0 by default)
+  auto* info = panel_manager_->GetPanelDescriptor(0, card_id);
   if (info) {
     return info->GetWindowTitle();
   }

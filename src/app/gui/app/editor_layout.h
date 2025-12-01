@@ -83,10 +83,10 @@ class Toolset {
 };
 
 /**
- * @class EditorCard
- * @brief Draggable, dockable card for editor sub-windows
+ * @class PanelWindow
+ * @brief Draggable, dockable panel for editor sub-windows
  *
- * Replaces traditional child windows with modern cards that can be:
+ * Replaces traditional child windows with modern panels that can be:
  * - Dragged and positioned freely
  * - Docked to edges (optional)
  * - Minimized to title bar
@@ -95,48 +95,50 @@ class Toolset {
  *
  * Usage:
  * ```cpp
- * EditorCard tile_card("Tile Selector", ICON_MD_GRID_VIEW);
- * tile_card.SetDefaultSize(300, 400);
- * tile_card.SetPosition(CardPosition::Right);
+ * PanelWindow tile_panel("Tile Selector", ICON_MD_GRID_VIEW);
+ * tile_panel.SetDefaultSize(300, 400);
+ * tile_panel.SetPosition(PanelWindow::Position::Right);
  *
- * if (tile_card.Begin()) {
+ * if (tile_panel.Begin()) {
  *   // Draw tile selector content when visible
  * }
- * tile_card.End();  // Always call End() after Begin()
+ * tile_panel.End();  // Always call End() after Begin()
  * ```
  */
-class EditorCard {
+class PanelWindow {
  public:
   enum class Position {
     Free,      // Floating window
     Right,     // Docked to right side
     Left,      // Docked to left side
     Bottom,    // Docked to bottom
+    Top,       // Docked to top
+    Center,    // Docked to center
     Floating,  // Floating but position saved
   };
 
-  EditorCard(const char* title, const char* icon = nullptr);
-  EditorCard(const char* title, const char* icon, bool* p_open);
+  explicit PanelWindow(const char* title, const char* icon = nullptr);
+  PanelWindow(const char* title, const char* icon, bool* p_open);
 
   // Debug: Reset frame tracking (call once per frame from main loop)
   static void ResetFrameTracking() {
     last_frame_count_ = ImGui::GetFrameCount();
-    cards_begun_this_frame_.clear();
+    panels_begun_this_frame_.clear();
   }
 
-  // Debug: Check if any card was rendered twice this frame
+  // Debug: Check if any panel was rendered twice this frame
   static bool HasDuplicateRendering() { return duplicate_detected_; }
-  static const std::string& GetDuplicateCardName() { return duplicate_card_name_; }
+  static const std::string& GetDuplicatePanelName() { return duplicate_panel_name_; }
 
  private:
   static int last_frame_count_;
-  static std::vector<std::string> cards_begun_this_frame_;
+  static std::vector<std::string> panels_begun_this_frame_;
   static bool duplicate_detected_;
-  static std::string duplicate_card_name_;
+  static std::string duplicate_panel_name_;
 
  public:
 
-  // Set card properties
+  // Set panel properties
   void SetDefaultSize(float width, float height);
   void SetPosition(Position pos);
   void SetMinimizable(bool minimizable) { minimizable_ = minimizable; }
@@ -144,8 +146,13 @@ class EditorCard {
   void SetHeadless(bool headless) { headless_ = headless; }
   void SetDockingAllowed(bool allowed) { docking_allowed_ = allowed; }
   void SetIconCollapsible(bool collapsible) { icon_collapsible_ = collapsible; }
+  void SetPinnable(bool pinnable) { pinnable_ = pinnable; }
 
-  // Begin drawing the card
+  // Custom Title Bar Buttons (e.g., Pin, Help, Settings)
+  // These will be drawn in the window header or top-right corner.
+  void AddHeaderButton(const char* icon, const char* tooltip, std::function<void()> callback);
+
+  // Begin drawing the panel
   bool Begin(bool* p_open = nullptr);
 
   // End drawing
@@ -155,7 +162,11 @@ class EditorCard {
   void SetMinimized(bool minimized) { minimized_ = minimized; }
   bool IsMinimized() const { return minimized_; }
 
-  // Focus the card window (bring to front and set focused)
+  // Pin management
+  void SetPinned(bool pinned) { pinned_ = pinned; }
+  bool IsPinned() const { return pinned_; }
+
+  // Focus the panel window (bring to front and set focused)
   void Focus();
   bool IsFocused() const { return focused_; }
 
@@ -182,8 +193,21 @@ class EditorCard {
   bool icon_collapsible_ = false;            // Can collapse to floating icon
   bool collapsed_to_icon_ = false;           // Currently collapsed
   ImVec2 saved_icon_pos_ = ImVec2(10, 100);  // Position when collapsed to icon
+  
+  // Pinning support
+  bool pinnable_ = false;
+  bool pinned_ = false;
+  
+  // Header buttons
+  struct HeaderButton {
+    std::string icon;
+    std::string tooltip;
+    std::function<void()> callback;
+  };
+  std::vector<HeaderButton> header_buttons_;
 
   void DrawFloatingIconButton();
+  void DrawHeaderButtons();
 };
 
 /**
@@ -193,7 +217,7 @@ class EditorCard {
  * Manages the overall editor layout with:
  * - Compact toolbar at top
  * - Main canvas in center
- * - Floating/docked cards for tools
+ * - Floating/docked panels for tools
  * - No redundant headers
  * - Responsive sizing
  */
@@ -214,12 +238,12 @@ class EditorLayout {
   void BeginMainCanvas();
   void EndMainCanvas();
 
-  // Register a card (for layout management)
-  void RegisterCard(EditorCard* card);
+  // Register a panel (for layout management)
+  void RegisterPanel(PanelWindow* panel);
 
  private:
   Toolset toolbar_;
-  std::vector<EditorCard*> cards_;
+  std::vector<PanelWindow*> panels_;
   bool in_layout_ = false;
 };
 
