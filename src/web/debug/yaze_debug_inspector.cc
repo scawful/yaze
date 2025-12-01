@@ -718,9 +718,9 @@ std::string getSidebarState() {
 
   float width = 0.0f;
   if (is_visible) {
-    width = yaze::editor::EditorCardRegistry::GetSidebarWidth();
+    width = yaze::editor::PanelManager::GetSidebarWidth();
     if (is_expanded) {
-      width += yaze::editor::EditorCardRegistry::GetSidePanelWidth();
+      width += yaze::editor::PanelManager::GetSidePanelWidth();
     }
   }
 

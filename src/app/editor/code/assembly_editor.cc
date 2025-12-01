@@ -6,7 +6,7 @@
 
 #include "absl/strings/match.h"
 #include "absl/strings/str_cat.h"
-#include "app/editor/system/editor_card_registry.h"
+#include "app/editor/system/panel_manager.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/ui_helpers.h"
 #include "app/gui/widgets/text_editor.h"
@@ -177,37 +177,27 @@ FolderItem LoadFolder(const std::string& folder) {
 void AssemblyEditor::Initialize() {
   text_editor_.SetLanguageDefinition(GetAssemblyLanguageDef());
 
-  // Register cards with EditorCardManager
-  if (!dependencies_.card_registry)
+  // Register panels with PanelManager
+  if (!dependencies_.panel_manager)
     return;
-  auto* card_registry = dependencies_.card_registry;
-  card_registry->RegisterCard({.card_id = "assembly.editor",
-                               .display_name = "Assembly Editor",
-                               .window_title = " Assembly Editor",
-                               .icon = ICON_MD_CODE,
-                               .category = "Assembly",
-                               .shortcut_hint = "",
-                               .priority = 10});
-  card_registry->RegisterCard({.card_id = "assembly.file_browser",
-                               .display_name = "File Browser",
-                               .window_title = " File Browser",
-                               .icon = ICON_MD_FOLDER_OPEN,
-                               .category = "Assembly",
-                               .shortcut_hint = "",
-                               .priority = 20});
+  auto* panel_manager = dependencies_.panel_manager;
 
-  // Don't show by default - only show when user explicitly opens Assembly
-  // Editor
+  panel_manager->RegisterPanel({.card_id = "assembly.editor",
+                                .display_name = "Assembly Editor",
+                                .window_title = " Assembly Editor",
+                                .icon = ICON_MD_CODE,
+                                .category = "Assembly",
+                                .priority = 10});
+  panel_manager->RegisterPanel({.card_id = "assembly.file_browser",
+                                .display_name = "File Browser",
+                                .window_title = " File Browser",
+                                .icon = ICON_MD_FOLDER_OPEN,
+                                .category = "Assembly",
+                                .priority = 20});
 }
 
 absl::Status AssemblyEditor::Load() {
-  // Register cards with EditorCardRegistry (dependency injection)
-  // Note: Assembly editor uses dynamic file tabs, so we register the main
-  // editor window
-  if (!dependencies_.card_registry)
-    return absl::OkStatus();
-  auto* card_registry = dependencies_.card_registry;
-
+  // Assembly editor doesn't require ROM data - files are loaded independently
   return absl::OkStatus();
 }
 
@@ -256,7 +246,7 @@ void AssemblyEditor::UpdateCodeView() {
   gui::VerticalSpacing(2.0f);
 
   // Create session-aware card (non-static for multi-session support)
-  gui::EditorCard file_browser_card(MakeCardTitle("File Browser").c_str(),
+  gui::PanelWindow file_browser_card(MakeCardTitle("File Browser").c_str(),
                                     ICON_MD_FOLDER);
   bool file_browser_open = true;
   if (file_browser_card.Begin(&file_browser_open)) {
@@ -287,7 +277,7 @@ void AssemblyEditor::UpdateCodeView() {
 
     // Create session-aware card title for each file
     std::string card_name = MakeCardTitle(files_[file_id]);
-    gui::EditorCard file_card(card_name.c_str(), ICON_MD_DESCRIPTION, &open);
+    gui::PanelWindow file_card(card_name.c_str(), ICON_MD_DESCRIPTION, &open);
     if (file_card.Begin()) {
       if (ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows)) {
         active_file_id_ = file_id;
