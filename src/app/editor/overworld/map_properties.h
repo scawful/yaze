@@ -6,6 +6,7 @@
 #include "app/gui/canvas/canvas.h"
 #include "app/rom.h"
 #include "zelda3/overworld/overworld.h"
+#include "app/editor/overworld/ui_constants.h"
 
 // Forward declaration
 namespace yaze {
@@ -59,13 +60,13 @@ class MapPropertiesSystem {
   }
 
   // Main interface methods
-  void DrawSimplifiedMapSettings(int& current_world, int& current_map,
-                                 bool& current_map_lock,
-                                 bool& show_map_properties_panel,
-                                 bool& show_custom_bg_color_editor,
-                                 bool& show_overlay_editor,
-                                 bool& show_overlay_preview, int& game_state,
-                                 int& current_mode);
+  void DrawCanvasToolbar(int& current_world, int& current_map,
+                         bool& current_map_lock,
+                         bool& show_map_properties_panel,
+                         bool& show_custom_bg_color_editor,
+                         bool& show_overlay_editor, bool& show_overlay_preview,
+                         int& game_state, EditingMode& current_mode,
+                         EntityEditMode& entity_edit_mode);
 
   void DrawMapPropertiesPanel(int current_map, bool& show_map_properties_panel);
 
@@ -84,6 +85,16 @@ class MapPropertiesSystem {
                               bool& show_map_properties_panel,
                               bool& show_custom_bg_color_editor,
                               bool& show_overlay_editor, int current_mode = 0);
+
+  // Utility methods - now call the callbacks
+  void RefreshMapProperties();
+  void RefreshOverworldMap();
+  absl::Status RefreshMapPalette();
+  absl::Status RefreshTile16Blockset();
+  void ForceRefreshGraphics(int map_index);
+
+  // Helper to refresh sibling map graphics for multi-area maps
+  void RefreshSiblingMapGraphics(int map_index, bool include_self = false);
 
  private:
   // Property category drawers
@@ -109,16 +120,6 @@ class MapPropertiesSystem {
   void DrawCustomFeaturesTab(int current_map);
   void DrawTileGraphicsTab(int current_map);
   void DrawMusicTab(int current_map);
-
-  // Utility methods - now call the callbacks
-  void RefreshMapProperties();
-  void RefreshOverworldMap();
-  absl::Status RefreshMapPalette();
-  absl::Status RefreshTile16Blockset();
-  void ForceRefreshGraphics(int map_index);
-
-  // Helper to refresh sibling map graphics for multi-area maps
-  void RefreshSiblingMapGraphics(int map_index, bool include_self = false);
 
   zelda3::Overworld* overworld_;
   Rom* rom_;
