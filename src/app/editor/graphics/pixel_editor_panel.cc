@@ -16,6 +16,39 @@ void PixelEditorPanel::Initialize() {
   // Canvas is initialized via member initializer list
 }
 
+void PixelEditorPanel::Draw(bool* p_open) {
+  // EditorPanel interface - delegate to existing Update() logic
+  // Top toolbar
+  DrawToolbar();
+  ImGui::SameLine();
+  DrawViewControls();
+
+  ImGui::Separator();
+
+  // Main content area with canvas and side panels
+  ImGui::BeginChild("##PixelEditorContent", ImVec2(0, -24), false);
+
+  // Color picker on the left
+  ImGui::BeginChild("##ColorPickerSide", ImVec2(120, 0), true);
+  DrawColorPicker();
+  ImGui::Separator();
+  DrawMiniMap();
+  ImGui::EndChild();
+
+  ImGui::SameLine();
+
+  // Main canvas
+  ImGui::BeginChild("##CanvasArea", ImVec2(0, 0), true,
+                    ImGuiWindowFlags_HorizontalScrollbar);
+  DrawCanvas();
+  ImGui::EndChild();
+
+  ImGui::EndChild();
+
+  // Status bar
+  DrawStatusBar();
+}
+
 absl::Status PixelEditorPanel::Update() {
   // Top toolbar
   DrawToolbar();

@@ -82,6 +82,10 @@ class GraphicsEditor : public Editor {
   // Set the ROM pointer
   void set_rom(Rom* rom) { rom_ = rom; }
 
+  // Editor shortcuts
+  void NextSheet();
+  void PrevSheet();
+
   // Get the ROM pointer
   Rom* rom() const { return rom_; }
 

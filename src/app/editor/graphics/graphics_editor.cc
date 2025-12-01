@@ -5,7 +5,7 @@
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
-#include "app/editor/system/editor_card_registry.h"
+#include "app/editor/system/panel_manager.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/debug/performance/performance_profiler.h"
 #include "app/gfx/resource/arena.h"
@@ -45,9 +45,10 @@ constexpr ImGuiTableFlags kGfxEditTableFlags =
     ImGuiTableFlags_SizingFixedFit;
 
 void GraphicsEditor::Initialize() {
-  if (!dependencies_.card_registry)
+  if (!dependencies_.panel_manager)
     return;
-  auto* card_registry = dependencies_.card_registry;
+  auto* panel_manager = dependencies_.panel_manager;
+  const size_t session_id = dependencies_.session_id;
 
   // Initialize panel components
   sheet_browser_panel_ = std::make_unique<SheetBrowserPanel>(&state_);
@@ -62,7 +63,7 @@ void GraphicsEditor::Initialize() {
   link_sprite_panel_->Initialize();
 
   // Register new panel-based cards
-  card_registry->RegisterCard({.card_id = "graphics.sheet_browser_v2",
+  panel_manager->RegisterPanel({.card_id = "graphics.sheet_browser_v2",
                                .display_name = "Sheet Browser",
                                .window_title = ICON_MD_VIEW_LIST " Sheet Browser",
                                .icon = ICON_MD_VIEW_LIST,
@@ -71,7 +72,7 @@ void GraphicsEditor::Initialize() {
                                .priority = 10,
                                .enabled_condition = [this]() { return rom()->is_loaded(); },
                                .disabled_tooltip = "Load a ROM first"});
-  card_registry->RegisterCard({.card_id = "graphics.pixel_editor",
+  panel_manager->RegisterPanel({.card_id = "graphics.pixel_editor",
                                .display_name = "Pixel Editor",
                                .window_title = ICON_MD_DRAW " Pixel Editor",
                                .icon = ICON_MD_DRAW,
@@ -80,7 +81,7 @@ void GraphicsEditor::Initialize() {
                                .priority = 20,
                                .enabled_condition = [this]() { return rom()->is_loaded(); },
                                .disabled_tooltip = "Load a ROM first"});
-  card_registry->RegisterCard({.card_id = "graphics.palette_controls",
+  panel_manager->RegisterPanel({.card_id = "graphics.palette_controls",
                                .display_name = "Palette Controls",
                                .window_title = ICON_MD_PALETTE " Palette Controls",
                                .icon = ICON_MD_PALETTE,
@@ -89,7 +90,7 @@ void GraphicsEditor::Initialize() {
                                .priority = 30,
                                .enabled_condition = [this]() { return rom()->is_loaded(); },
                                .disabled_tooltip = "Load a ROM first"});
-  card_registry->RegisterCard({.card_id = "graphics.link_sprite_editor",
+  panel_manager->RegisterPanel({.card_id = "graphics.link_sprite_editor",
                                .display_name = "Link Sprite Editor",
                                .window_title = ICON_MD_PERSON " Link Sprite Editor",
                                .icon = ICON_MD_PERSON,
@@ -98,7 +99,7 @@ void GraphicsEditor::Initialize() {
                                .priority = 35,
                                .enabled_condition = [this]() { return rom()->is_loaded(); },
                                .disabled_tooltip = "Load a ROM first"});
-  card_registry->RegisterCard({.card_id = "graphics.polyhedral_editor",
+  panel_manager->RegisterPanel({.card_id = "graphics.polyhedral_editor",
                                .display_name = "3D Objects",
                                .window_title = ICON_MD_VIEW_IN_AR " 3D Objects",
                                .icon = ICON_MD_VIEW_IN_AR,
@@ -109,7 +110,7 @@ void GraphicsEditor::Initialize() {
                                .disabled_tooltip = "Load a ROM first"});
 
   // Legacy cards (kept for backward compatibility)
-  card_registry->RegisterCard({.card_id = "graphics.sheet_editor",
+  panel_manager->RegisterPanel({.card_id = "graphics.sheet_editor",
                                .display_name = "Sheet Editor (Legacy)",
                                .window_title = " Sheet Editor",
                                .icon = ICON_MD_EDIT,
@@ -118,7 +119,7 @@ void GraphicsEditor::Initialize() {
                                .priority = 100,
                                .enabled_condition = [this]() { return rom()->is_loaded(); },
                                .disabled_tooltip = "Load a ROM first"});
-  card_registry->RegisterCard({.card_id = "graphics.sheet_browser",
+  panel_manager->RegisterPanel({.card_id = "graphics.sheet_browser",
                                .display_name = "Asset Browser (Legacy)",
                                .window_title = " GFX Sheets",
                                .icon = ICON_MD_VIEW_LIST,
@@ -127,7 +128,7 @@ void GraphicsEditor::Initialize() {
                                .priority = 101,
                                .enabled_condition = [this]() { return rom()->is_loaded(); },
                                .disabled_tooltip = "Load a ROM first"});
-  card_registry->RegisterCard({.card_id = "graphics.player_animations",
+  panel_manager->RegisterPanel({.card_id = "graphics.player_animations",
                                .display_name = "Player Animations",
                                .window_title = " Animations",
                                .icon = ICON_MD_PERSON,
@@ -136,7 +137,7 @@ void GraphicsEditor::Initialize() {
                                .priority = 40,
                                .enabled_condition = [this]() { return rom()->is_loaded(); },
                                .disabled_tooltip = "Load a ROM first"});
-  card_registry->RegisterCard({.card_id = "graphics.prototype_viewer",
+  panel_manager->RegisterPanel({.card_id = "graphics.prototype_viewer",
                                .display_name = "Prototype Viewer",
                                .window_title = " Prototype",
                                .icon = ICON_MD_CONSTRUCTION,
@@ -147,9 +148,9 @@ void GraphicsEditor::Initialize() {
                                .disabled_tooltip = "Load a ROM first"});
 
   // Show new pixel editor by default when Graphics Editor is activated
-  card_registry->ShowCard("graphics.pixel_editor");
-  card_registry->ShowCard("graphics.sheet_browser_v2");
-  card_registry->ShowCard("graphics.polyhedral_editor");
+  panel_manager->ShowPanel(session_id, "graphics.pixel_editor");
+  panel_manager->ShowPanel(session_id, "graphics.sheet_browser_v2");
+  panel_manager->ShowPanel(session_id, "graphics.polyhedral_editor");
 }
 
 absl::Status GraphicsEditor::Load() {
@@ -271,15 +272,18 @@ absl::Status GraphicsEditor::Save() {
 }
 
 absl::Status GraphicsEditor::Update() {
-  if (!dependencies_.card_registry)
+  if (!dependencies_.panel_manager)
     return absl::OkStatus();
-  auto* card_registry = dependencies_.card_registry;
+  auto* panel_manager = dependencies_.panel_manager;
+  const size_t session_id = dependencies_.session_id;
 
   // --- New Panel-Based Cards ---
-  static gui::EditorCard sheet_browser_v2_card("Sheet Browser", ICON_MD_VIEW_LIST);
-  static gui::EditorCard pixel_editor_card("Pixel Editor", ICON_MD_DRAW);
-  static gui::EditorCard palette_controls_card("Palette Controls", ICON_MD_PALETTE);
-  static gui::EditorCard polyhedral_card("3D Objects", ICON_MD_VIEW_IN_AR);
+  static gui::PanelWindow sheet_browser_v2_card("Sheet Browser", ICON_MD_VIEW_LIST);
+  static gui::PanelWindow pixel_editor_card("Pixel Editor", ICON_MD_DRAW);
+  static gui::PanelWindow gfx_card("Graphics", ICON_MD_IMAGE);
+  gfx_card.SetPosition(gui::PanelWindow::Position::Left);
+  static gui::PanelWindow palette_controls_card("Palette Controls", ICON_MD_PALETTE);
+  static gui::PanelWindow polyhedral_card("3D Objects", ICON_MD_VIEW_IN_AR);
 
   sheet_browser_v2_card.SetDefaultSize(350, 600);
   pixel_editor_card.SetDefaultSize(800, 600);
@@ -288,7 +292,7 @@ absl::Status GraphicsEditor::Update() {
 
   // Sheet Browser Panel (new)
   bool* sheet_browser_v2_visible =
-      card_registry->GetVisibilityFlag("graphics.sheet_browser_v2");
+      panel_manager->GetVisibilityFlag(session_id, "graphics.sheet_browser_v2");
   if (sheet_browser_v2_visible && *sheet_browser_v2_visible) {
     if (sheet_browser_v2_card.Begin(sheet_browser_v2_visible)) {
       if (sheet_browser_panel_) {
@@ -300,7 +304,7 @@ absl::Status GraphicsEditor::Update() {
 
   // Pixel Editor Panel (new)
   bool* pixel_editor_visible =
-      card_registry->GetVisibilityFlag("graphics.pixel_editor");
+      panel_manager->GetVisibilityFlag(session_id, "graphics.pixel_editor");
   if (pixel_editor_visible && *pixel_editor_visible) {
     if (pixel_editor_card.Begin(pixel_editor_visible)) {
       if (pixel_editor_panel_) {
@@ -312,7 +316,7 @@ absl::Status GraphicsEditor::Update() {
 
   // Palette Controls Panel (new)
   bool* palette_controls_visible =
-      card_registry->GetVisibilityFlag("graphics.palette_controls");
+      panel_manager->GetVisibilityFlag(session_id, "graphics.palette_controls");
   if (palette_controls_visible && *palette_controls_visible) {
     if (palette_controls_card.Begin(palette_controls_visible)) {
       if (palette_controls_panel_) {
@@ -323,11 +327,11 @@ absl::Status GraphicsEditor::Update() {
   }
 
   // Link Sprite Editor Panel
-  static gui::EditorCard link_sprite_card("Link Sprite Editor", ICON_MD_PERSON);
+  static gui::PanelWindow link_sprite_card("Link Sprite Editor", ICON_MD_PERSON);
   link_sprite_card.SetDefaultSize(600, 500);
 
   bool* link_sprite_visible =
-      card_registry->GetVisibilityFlag("graphics.link_sprite_editor");
+      panel_manager->GetVisibilityFlag(session_id, "graphics.link_sprite_editor");
   if (link_sprite_visible && *link_sprite_visible) {
     if (link_sprite_card.Begin(link_sprite_visible)) {
       if (link_sprite_panel_) {
@@ -339,7 +343,7 @@ absl::Status GraphicsEditor::Update() {
 
   // Polyhedral (3D object) editor
   bool* polyhedral_visible =
-      card_registry->GetVisibilityFlag("graphics.polyhedral_editor");
+      panel_manager->GetVisibilityFlag(session_id, "graphics.polyhedral_editor");
   if (polyhedral_visible && *polyhedral_visible) {
     if (polyhedral_card.Begin(polyhedral_visible)) {
       if (polyhedral_panel_) {
@@ -350,10 +354,10 @@ absl::Status GraphicsEditor::Update() {
   }
 
   // --- Legacy Cards (kept for backward compatibility) ---
-  static gui::EditorCard sheet_editor_card("Sheet Editor", ICON_MD_EDIT);
-  static gui::EditorCard sheet_browser_card("Asset Browser", ICON_MD_VIEW_LIST);
-  static gui::EditorCard player_anims_card("Player Animations", ICON_MD_PERSON);
-  static gui::EditorCard prototype_card("Prototype Viewer",
+  static gui::PanelWindow sheet_editor_card("Sheet Editor", ICON_MD_EDIT);
+  static gui::PanelWindow sheet_browser_card("Asset Browser", ICON_MD_VIEW_LIST);
+  static gui::PanelWindow player_anims_card("Player Animations", ICON_MD_PERSON);
+  static gui::PanelWindow prototype_card("Prototype Viewer",
                                         ICON_MD_CONSTRUCTION);
 
   sheet_editor_card.SetDefaultSize(900, 700);
@@ -363,7 +367,7 @@ absl::Status GraphicsEditor::Update() {
 
   // Sheet Editor Card (Legacy)
   bool* sheet_editor_visible =
-      card_registry->GetVisibilityFlag("graphics.sheet_editor");
+      panel_manager->GetVisibilityFlag(session_id, "graphics.sheet_editor");
   if (sheet_editor_visible && *sheet_editor_visible) {
     if (sheet_editor_card.Begin(sheet_editor_visible)) {
       status_ = UpdateGfxEdit();
@@ -373,7 +377,7 @@ absl::Status GraphicsEditor::Update() {
 
   // Sheet Browser Card (Legacy)
   bool* sheet_browser_visible =
-      card_registry->GetVisibilityFlag("graphics.sheet_browser");
+      panel_manager->GetVisibilityFlag(session_id, "graphics.sheet_browser");
   if (sheet_browser_visible && *sheet_browser_visible) {
     if (sheet_browser_card.Begin(sheet_browser_visible)) {
       if (asset_browser_.Initialized == false) {
@@ -386,7 +390,7 @@ absl::Status GraphicsEditor::Update() {
 
   // Player Animations Card
   bool* player_anims_visible =
-      card_registry->GetVisibilityFlag("graphics.player_animations");
+      panel_manager->GetVisibilityFlag(session_id, "graphics.player_animations");
   if (player_anims_visible && *player_anims_visible) {
     if (player_anims_card.Begin(player_anims_visible)) {
       status_ = UpdateLinkGfxView();
@@ -396,7 +400,7 @@ absl::Status GraphicsEditor::Update() {
 
   // Prototype Viewer Card
   bool* prototype_visible =
-      card_registry->GetVisibilityFlag("graphics.prototype_viewer");
+      panel_manager->GetVisibilityFlag(session_id, "graphics.prototype_viewer");
   if (prototype_visible && *prototype_visible) {
     if (prototype_card.Begin(prototype_visible)) {
       status_ = UpdateScadView();
@@ -1234,6 +1238,18 @@ absl::Status GraphicsEditor::DecompressSuperDonkey() {
   num_sheets_to_load_ = i;
 
   return absl::OkStatus();
+}
+
+void GraphicsEditor::NextSheet() {
+  if (state_.current_sheet_id + 1 < kNumGfxSheets) {
+    state_.current_sheet_id++;
+  }
+}
+
+void GraphicsEditor::PrevSheet() {
+  if (state_.current_sheet_id > 0) {
+    state_.current_sheet_id--;
+  }
 }
 
 }  // namespace editor

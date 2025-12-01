@@ -19,6 +19,43 @@ void LinkSpritePanel::Initialize() {
   preview_canvas_.SetCanvasSize(ImVec2(128 * preview_zoom_, 32 * preview_zoom_));
 }
 
+void LinkSpritePanel::Draw(bool* p_open) {
+  // EditorPanel interface - delegate to existing Update() logic
+  // Lazy-load Link sheets on first update
+  if (!sheets_loaded_ && rom_ && rom_->is_loaded()) {
+    auto status = LoadLinkSheets();
+    if (!status.ok()) {
+      ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f),
+                         "Failed to load Link sheets: %s",
+                         status.message().data());
+      return;
+    }
+  }
+
+  DrawToolbar();
+  ImGui::Separator();
+
+  // Split layout: left side grid, right side preview
+  float panel_width = ImGui::GetContentRegionAvail().x;
+  float grid_width = std::min(300.0f, panel_width * 0.4f);
+
+  // Left column: Sheet grid
+  ImGui::BeginChild("##LinkSheetGrid", ImVec2(grid_width, 0), true);
+  DrawSheetGrid();
+  ImGui::EndChild();
+
+  ImGui::SameLine();
+
+  // Right column: Preview and controls
+  ImGui::BeginChild("##LinkPreviewArea", ImVec2(0, 0), true);
+  DrawPreviewCanvas();
+  ImGui::Separator();
+  DrawPaletteSelector();
+  ImGui::Separator();
+  DrawInfoPanel();
+  ImGui::EndChild();
+}
+
 absl::Status LinkSpritePanel::Update() {
   // Lazy-load Link sheets on first update
   if (!sheets_loaded_ && rom_ && rom_->is_loaded()) {

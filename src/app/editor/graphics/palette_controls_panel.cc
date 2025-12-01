@@ -19,6 +19,22 @@ void PaletteControlsPanel::Initialize() {
   state_->sub_palette_index = 0;
 }
 
+void PaletteControlsPanel::Draw(bool* p_open) {
+  // EditorPanel interface - delegate to existing Update() logic
+  if (!rom_ || !rom_->is_loaded()) {
+    ImGui::TextDisabled("Load a ROM to manage palettes");
+    return;
+  }
+
+  DrawPresets();
+  ImGui::Separator();
+  DrawPaletteGroupSelector();
+  ImGui::Separator();
+  DrawPaletteDisplay();
+  ImGui::Separator();
+  DrawApplyButtons();
+}
+
 absl::Status PaletteControlsPanel::Update() {
   if (!rom_ || !rom_->is_loaded()) {
     ImGui::TextDisabled("Load a ROM to manage palettes");
