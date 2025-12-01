@@ -41,10 +41,13 @@ void input_latch(Input* input, bool value) {
 uint8_t input_read(Input* input) {
   if (input->latch_line_)
     input->latched_state_ = input->current_state_;
-  uint8_t ret = input->latched_state_ & 1;
+  
+  // Invert state for serial line: 1 (Pressed) -> 0, 0 (Released) -> 1
+  // This matches SNES hardware Active Low logic.
+  // Also ensures shifting in 0s results in 1s (Released) for bits 17+.
+  uint8_t ret = (~input->latched_state_) & 1;
 
   input->latched_state_ >>= 1;
-  input->latched_state_ |= 0x8000;
   return ret;
 }
 
@@ -268,34 +271,31 @@ void Snes::CatchUpApu() {
 }
 
 void Snes::HandleInput() {
-  // Save previous frame's latched state before updating
-  // Games use edge detection: newly_pressed = current & ~previous
-  uint16_t prev1 = input1.latched_state_;
-  uint16_t prev2 = input2.latched_state_;
-
   // IMPORTANT: Clear and repopulate auto-read data
   // This data persists until the next call, allowing NMI to read it
   memset(port_auto_read_, 0, sizeof(port_auto_read_));
 
-
-  // latch controllers
-  input_latch(&input1, true);
-  input_latch(&input2, true);
-  input_latch(&input1, false);
-  input_latch(&input2, false);
+  // Populate port_auto_read_ non-destructively by reading current_state_ directly.
+  // The SNES shifts out 16 bits: B, Y, Select, Start, Up, Down, Left, Right, A, X, L, R, 0, 0, 0, 0
+  // This corresponds to bits 0-11 of our input state.
+  // Note: This assumes current_state_ matches the SNES controller bit order:
+  // Bit 0: B, 1: Y, 2: Select, 3: Start, 4: Up, 5: Down, 6: Left, 7: Right, 8: A, 9: X, 10: L, 11: R
   for (int i = 0; i < 16; i++) {
-    uint8_t val = input_read(&input1);
-    port_auto_read_[0] |= ((val & 1) << (15 - i));
-    port_auto_read_[2] |= (((val >> 1) & 1) << (15 - i));
-    val = input_read(&input2);
-    port_auto_read_[1] |= ((val & 1) << (15 - i));
-    port_auto_read_[3] |= (((val >> 1) & 1) << (15 - i));
+    // Read bit i from current state (0 for bits >= 12)
+    uint8_t val1 = (input1.current_state_ >> i) & 1;
+    uint8_t val2 = (input2.current_state_ >> i) & 1;
+
+    // Store in port_auto_read_ (Big Endian format for registers $4218-$421F)
+    // port_auto_read_[0/1] gets bits 0-15 shifted into position
+    port_auto_read_[0] |= (val1 << (15 - i));
+    port_auto_read_[1] |= (val2 << (15 - i));
+    // port_auto_read_[2/3] remain 0 as standard controllers don't use them
   }
 
-  // Store previous state after latching completes (for edge detection)
-  input1.previous_state_ = prev1;
-  input2.previous_state_ = prev2;
-
+  // Store previous state for edge detection
+  // Do this here instead of after a destructive latch sequence
+  input1.previous_state_ = input1.current_state_;
+  input2.previous_state_ = input2.current_state_;
 }
 
 void Snes::RunCycle() {

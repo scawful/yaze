@@ -19,7 +19,7 @@ class IRenderer;
 }  // namespace gfx
 
 namespace editor {
-class EditorCardRegistry;
+class PanelManager;
 }  // namespace editor
 
 /**
@@ -45,9 +45,9 @@ class Emulator {
   void Run(Rom* rom);
   void Cleanup();
 
-  // Card visibility managed by EditorCardRegistry (dependency injection)
-  void set_card_registry(editor::EditorCardRegistry* registry) {
-    card_registry_ = registry;
+  // Card visibility managed by PanelManager (dependency injection)
+  void set_panel_manager(editor::PanelManager* manager) {
+    panel_manager_ = manager;
   }
   void SetInputConfig(const input::InputConfig& config);
   void set_input_config_changed_callback(
@@ -231,7 +231,7 @@ class Emulator {
   gfx::IRenderer* renderer_ = nullptr;
   void* ppu_texture_ = nullptr;
   bool use_sdl_audio_stream_ = true;  // Enable resampling by default (32kHz -> 48kHz)
-  bool audio_stream_config_dirty_ = false;
+  bool audio_stream_config_dirty_ = true;  // Start dirty to ensure setup on first use
   bool audio_stream_active_ = false;
   bool audio_stream_env_checked_ = false;
 
@@ -248,8 +248,8 @@ class Emulator {
   input::InputConfig input_config_;
   std::function<void(const input::InputConfig&)> input_config_changed_callback_;
 
-  // Card registry for card visibility (injected)
-  editor::EditorCardRegistry* card_registry_ = nullptr;
+  // Panel manager for card visibility (injected)
+  editor::PanelManager* panel_manager_ = nullptr;
 };
 
 }  // namespace emu
