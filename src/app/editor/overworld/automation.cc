@@ -71,16 +71,34 @@ int OverworldEditor::AutomationGetTile(int x, int y) {
 }
 
 void OverworldEditor::HandleEntityInsertion(const std::string& entity_type) {
-  if (!overworld_.is_loaded()) {
-    LOG_ERROR("OverworldEditor", "Cannot insert entity: overworld not loaded");
+  // Store for deferred processing outside context menu
+  // This is needed because ImGui::OpenPopup() doesn't work correctly when
+  // called from within another popup's callback (the context menu)
+  pending_entity_insert_type_ = entity_type;
+  pending_entity_insert_pos_ = ow_map_canvas_.hover_mouse_pos();
+  
+  LOG_DEBUG("OverworldEditor",
+            "HandleEntityInsertion: queued type='%s' at pos=(%.0f,%.0f)",
+            entity_type.c_str(), pending_entity_insert_pos_.x, 
+            pending_entity_insert_pos_.y);
+}
+
+void OverworldEditor::ProcessPendingEntityInsertion() {
+  if (pending_entity_insert_type_.empty()) {
     return;
   }
 
-  // Get mouse position from canvas (in world coordinates)
-  ImVec2 mouse_pos = ow_map_canvas_.hover_mouse_pos();
+  if (!overworld_.is_loaded()) {
+    LOG_ERROR("OverworldEditor", "Cannot insert entity: overworld not loaded");
+    pending_entity_insert_type_.clear();
+    return;
+  }
+
+  const std::string& entity_type = pending_entity_insert_type_;
+  ImVec2 mouse_pos = pending_entity_insert_pos_;
 
   LOG_DEBUG("OverworldEditor",
-            "HandleEntityInsertion called: type='%s' at pos=(%.0f,%.0f) map=%d",
+            "ProcessPendingEntityInsertion: type='%s' at pos=(%.0f,%.0f) map=%d",
             entity_type.c_str(), mouse_pos.x, mouse_pos.y, current_map_);
 
   if (entity_type == "entrance") {
@@ -96,6 +114,9 @@ void OverworldEditor::HandleEntityInsertion(const std::string& entity_type) {
       LOG_DEBUG("OverworldEditor", "Entrance inserted successfully at map=%d",
                 current_map_);
     } else {
+      entity_insert_error_message_ = 
+          "Cannot insert entrance: " + std::string(result.status().message());
+      ImGui::OpenPopup("Entity Insert Error");
       LOG_ERROR("OverworldEditor", "Failed to insert entrance: %s",
                 result.status().message().data());
     }
@@ -113,6 +134,9 @@ void OverworldEditor::HandleEntityInsertion(const std::string& entity_type) {
       LOG_DEBUG("OverworldEditor", "Hole inserted successfully at map=%d",
                 current_map_);
     } else {
+      entity_insert_error_message_ = 
+          "Cannot insert hole: " + std::string(result.status().message());
+      ImGui::OpenPopup("Entity Insert Error");
       LOG_ERROR("OverworldEditor", "Failed to insert hole: %s",
                 result.status().message().data());
     }
@@ -130,6 +154,9 @@ void OverworldEditor::HandleEntityInsertion(const std::string& entity_type) {
       LOG_DEBUG("OverworldEditor", "Exit inserted successfully at map=%d",
                 current_map_);
     } else {
+      entity_insert_error_message_ = 
+          "Cannot insert exit: " + std::string(result.status().message());
+      ImGui::OpenPopup("Entity Insert Error");
       LOG_ERROR("OverworldEditor", "Failed to insert exit: %s",
                 result.status().message().data());
     }
@@ -147,6 +174,9 @@ void OverworldEditor::HandleEntityInsertion(const std::string& entity_type) {
       LOG_DEBUG("OverworldEditor", "Item inserted successfully at map=%d",
                 current_map_);
     } else {
+      entity_insert_error_message_ = 
+          "Cannot insert item: " + std::string(result.status().message());
+      ImGui::OpenPopup("Entity Insert Error");
       LOG_ERROR("OverworldEditor", "Failed to insert item: %s",
                 result.status().message().data());
     }
@@ -165,6 +195,9 @@ void OverworldEditor::HandleEntityInsertion(const std::string& entity_type) {
       LOG_DEBUG("OverworldEditor", "Sprite inserted successfully at map=%d",
                 current_map_);
     } else {
+      entity_insert_error_message_ = 
+          "Cannot insert sprite: " + std::string(result.status().message());
+      ImGui::OpenPopup("Entity Insert Error");
       LOG_ERROR("OverworldEditor", "Failed to insert sprite: %s",
                 result.status().message().data());
     }
@@ -172,6 +205,9 @@ void OverworldEditor::HandleEntityInsertion(const std::string& entity_type) {
   } else {
     LOG_WARN("OverworldEditor", "Unknown entity type: %s", entity_type.c_str());
   }
+
+  // Clear the pending state after processing
+  pending_entity_insert_type_.clear();
 }
 
 void OverworldEditor::HandleTile16Edit() {

@@ -153,6 +153,15 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   void HandleEntityInsertion(const std::string& entity_type);
 
   /**
+   * @brief Process any pending entity insertion request
+   *
+   * Called from Update() outside of context menu to properly open popups.
+   * This is needed because ImGui::OpenPopup() doesn't work correctly when
+   * called from within another popup's callback.
+   */
+  void ProcessPendingEntityInsertion();
+
+  /**
    * @brief Handle tile16 editing from context menu (MOUSE mode)
    *
    * Gets the tile16 under the cursor and opens the Tile16Editor focused on it.
@@ -254,7 +263,9 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
 
   // Canvas pan/zoom helpers (Overworld Refactoring)
   void HandleOverworldPan();
-  void HandleOverworldZoom();
+  void HandleOverworldZoom();  // No-op, use ZoomIn/ZoomOut instead
+  void ZoomIn();
+  void ZoomOut();
   void ResetOverworldView();
   void CenterOverworldView();
 
@@ -441,6 +452,14 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
 
   zelda3::GameEntity* current_entity_ = nullptr;
   zelda3::GameEntity* dragged_entity_ = nullptr;
+
+  // Deferred entity insertion (context menu -> popup flow)
+  // Needed because ImGui::OpenPopup() doesn't work from within another popup
+  std::string pending_entity_insert_type_;  // "entrance", "exit", "item", "sprite", "hole", or ""
+  ImVec2 pending_entity_insert_pos_;
+
+  // Entity insertion error message popup
+  std::string entity_insert_error_message_;
 
   gui::Canvas ow_map_canvas_{"OwMap", kOverworldCanvasSize,
                              gui::CanvasGridSize::k64x64};

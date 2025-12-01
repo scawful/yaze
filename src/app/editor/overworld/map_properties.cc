@@ -1686,22 +1686,21 @@ void MapPropertiesSystem::DrawViewPopup() {
 
     // Horizontal layout for view controls
     if (ImGui::Button(ICON_MD_ZOOM_OUT, ImVec2(kIconButtonWidth, 0))) {
-      // This would need to be connected to the canvas zoom function
-      // For now, just show the option
+      float new_scale = std::max(0.1f, canvas_->global_scale() - 0.25f);
+      canvas_->set_global_scale(new_scale);
     }
     HOVER_HINT("Zoom out on the canvas");
     ImGui::SameLine();
     if (ImGui::Button(ICON_MD_ZOOM_IN, ImVec2(kIconButtonWidth, 0))) {
-      // This would need to be connected to the canvas zoom function
-      // For now, just show the option
+      float new_scale = std::min(5.0f, canvas_->global_scale() + 0.25f);
+      canvas_->set_global_scale(new_scale);
     }
     HOVER_HINT("Zoom in on the canvas");
     ImGui::SameLine();
     if (ImGui::Button(ICON_MD_OPEN_IN_FULL, ImVec2(kIconButtonWidth, 0))) {
-      // This would need to be connected to the fullscreen toggle
-      // For now, just show the option
+      canvas_->set_global_scale(1.0f);
     }
-    HOVER_HINT("Toggle fullscreen canvas (F11)");
+    HOVER_HINT("Reset zoom to 100%");
 
     ImGui::PopStyleVar(2);  // Pop the 2 style variables we pushed
     ImGui::PopID();         // Pop ViewPopup ID scope

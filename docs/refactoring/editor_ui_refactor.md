@@ -106,9 +106,10 @@ This document proposes a refactoring of yaze's editor panel system to eliminate 
 | Panel ID | Display Name | Icon | Purpose | Default Visible |
 |:---------|:-------------|:-----|:--------|:----------------|
 | `dungeon.control_panel` | Dungeon Controls | CASTLE | Mode and tool selection | ✅ |
-| `dungeon.room_selector` | Room Selector | LIST | Room list with search/navigation | ✅ |
+| `dungeon.room_selector` | Room Selector | LIST | Room list with search/filter (296 rooms) | ✅ |
+| `dungeon.entrance_list` | Entrance List | DOOR_FRONT | Entrance list with search/filter | ✅ |
 | `dungeon.room_matrix` | Room Matrix | GRID_VIEW | Visual 16x16 room layout | ✅ |
-| `dungeon.entrances` | Entrances | DOOR_FRONT | Dungeon entrance management | ❌ |
+| `dungeon.entrances` | Entrance Properties | DOOR_SLIDING | Selected entrance property editor | ❌ |
 | `dungeon.room_graphics` | Room Graphics | IMAGE | Room GFX sheet preview | ✅ |
 | `dungeon.object_editor` | Object Editor | CONSTRUCTION | Object placement/editing | ✅ |
 | `dungeon.palette_editor` | Palette Editor | PALETTE | Room palette selection | ❌ |
@@ -737,7 +738,7 @@ class PanelManager {
 
 ### Current Status (December 2024)
 
-**✅ PHASES 1-5 COMPLETE** - All 49 static panels migrated to EditorPanel system.
+**✅ PHASES 1-8 COMPLETE** - Full panel system migration complete including resource panels and cross-editor features.
 
 | Phase | Status | Description |
 |:------|:-------|:------------|
@@ -746,27 +747,27 @@ class PanelManager {
 | Phase 3 | ✅ Complete | `EditorPanel` interface defined with central drawing |
 | Phase 4 | ✅ Complete | Dungeon Editor migrated (9 panels) |
 | Phase 5 | ✅ Complete | All remaining editors migrated (40 panels) |
-| Phase 6 | 🔄 Planned | Resource panels with LRU logic |
-| Phase 7 | 🔄 Planned | Cross-editor features (Pin-to-Persist, OnEditorSwitch) |
-| Phase 8 | 🔄 Planned | Multi-session verification and testing |
+| Phase 6 | ✅ Complete | Resource panels with LRU logic |
+| Phase 7 | ✅ Complete | Cross-editor features (Pin-to-Persist, OnEditorSwitch) |
+| Phase 8 | ✅ Complete | Multi-session verification and testing |
 
 ### Phase 5 Completion Details
 
 All editors now use the EditorPanel architecture:
 
-| Editor | Panels | Status | Pattern Used |
-|:-------|:-------|:-------|:-------------|
-| **Dungeon Editor** | 9 | ✅ Complete | Callback pattern |
-| **Graphics Editor** | 5 | ✅ Complete | Direct interface implementation |
-| **Music Editor** | 7 | ✅ Complete | Callback pattern |
-| **Palette Editor** | 11 | ✅ Complete | Callback pattern |
-| **Agent Editor** | 8 | ✅ Complete | Callback pattern |
-| **Sprite Editor** | 2 | ✅ Complete | Callback pattern |
-| **Screen Editor** | 5 | ✅ Complete | Callback pattern |
-| **Message Editor** | 4 | ✅ Complete | Callback pattern |
-| **Overworld Editor** | 9 | ✅ Complete | Direct pointer pattern |
+| Editor | Static Panels | Resource Panels | Status | Pattern Used |
+|:-------|:--------------|:----------------|:-------|:-------------|
+| **Dungeon Editor** | 10 | `dungeon.room_{id}` | ✅ Complete | Callback + Resource |
+| **Graphics Editor** | 5 | — | ✅ Complete | Direct interface |
+| **Music Editor** | 7 | `music.song_{id}`, `music.piano_roll_{id}` | ✅ Complete | Callback + Resource |
+| **Palette Editor** | 11 | — | ✅ Complete | Callback pattern |
+| **Agent Editor** | 8 | — | ✅ Complete | Callback pattern |
+| **Sprite Editor** | 2 | — | ✅ Complete | Callback pattern |
+| **Screen Editor** | 5 | — | ✅ Complete | Callback pattern |
+| **Message Editor** | 4 | — | ✅ Complete | Callback pattern |
+| **Overworld Editor** | 9 | — | ✅ Complete | Direct pointer pattern |
 
-**Total: 49 EditorPanel implementations**
+**Total: 61 static EditorPanel implementations + dynamic resource panels**
 
 ### Overworld Editor Migration Details
 
@@ -854,29 +855,269 @@ b652636618 refactor(editor): remove deprecated EditorCardRegistry
 
 ---
 
-### Next Steps (Phases 6-8)
+### Phase 6-8 Completion Details
 
-### Phase 6: Implement Resource Panels (8-12 hours)
+### Phase 6: Resource Panels ✅ Complete
 
-1. Create `ResourcePanel` base class
-2. Implement session-aware ID generation
-3. Add resource panel limits and LRU cleanup
-4. Migrate Dungeon room panels first (proof of concept)
-5. Add resource panel management to sidebar
+**Implemented Features:**
+- `ResourcePanel` base class in `resource_panel.h`
+- Dynamic room panels (`DungeonRoomPanel`) created on-demand when rooms selected
+- Dynamic song panels (`MusicSongPanel`) and piano roll panels for music editor
+- Session-aware ID generation via `MakePanelId()`
+- LRU eviction in `EnforceResourceLimits()` respects pinned panels
+- Resource panels appear in Activity Bar under their editor category
+- Room selector properly limited to 296 rooms (kNumberOfRooms)
 
-### Phase 7: Implement Cross-Editor Features (4-6 hours)
+**Key Implementation Details:**
+```cpp
+// Resource panels use BASE IDs - PanelManager handles session prefixing
+std::string card_id = absl::StrFormat("dungeon.room_%d", room_id);
+panel_manager->RegisterPanel({.card_id = card_id, ...});
+panel_manager->ShowPanel(card_id);  // Sets visibility immediately
+```
 
-1. Add pin-to-persist UI
-2. Implement `OnEditorSwitch()` with pin respect
-3. Add optional cascade close for related panels
-4. Document all cascade relationships
+**Important:** Do NOT use `MakeCardId()` for resource panels - it causes double-prefixing since `RegisterPanel()` already calls `MakePanelId()` internally.
 
-### Phase 8: Multi-Session Testing (4-6 hours)
+### Phase 7: Cross-Editor Features ✅ Complete
 
-1. Test dual-ROM editing with same resource open
-2. Verify session cleanup on ROM close
-3. Test resource panel limits and LRU behavior
-4. Verify window titles distinguish sessions
+**Implemented Features:**
+1. **Pin-to-Persist UI** - Pin button in Activity Bar sidebar (not title bar due to ImGui limitations)
+2. **`OnEditorSwitch()`** - Hides non-pinned panels from previous category, shows defaults for new
+3. **Dashboard Category** - `kDashboardCategory` suppresses all panels until editor selected
+4. **Category Filtering** - Resource panels only visible when their category is active OR pinned
+
+**Key Implementation Details:**
+```cpp
+// In PanelManager::DrawAllVisiblePanels()
+if (active_category_.empty() || active_category_ == kDashboardCategory) {
+  return;  // Suppress panels when no editor selected
+}
+
+// Resource panels check category + pin status
+if (panel->GetEditorCategory() == active_category_ || 
+    IsPanelPinned(panel_id) ||
+    panel->GetPanelCategory() == PanelCategory::Persistent) {
+  // Draw panel
+}
+```
+
+### Phase 8: Multi-Session Support ✅ Complete
+
+**Verified Behaviors:**
+- Session-aware panel IDs: `s0.dungeon.room_42` vs `s1.dungeon.room_42`
+- Resource panels properly scoped to their session
+- Fixed double-prefix bug (resource panels use base IDs, not `MakeCardId()`)
+- Window titles include session suffix when multiple ROMs open
+
+**Dungeon Editor Panels (11 total):**
+| Panel | ID | Type |
+|:------|:---|:-----|
+| Control Panel | `dungeon.control_panel` | Static |
+| Room Selector | `dungeon.room_selector` | Static |
+| Entrance List | `dungeon.entrance_list` | Static |
+| Room Matrix | `dungeon.room_matrix` | Static |
+| Entrances Properties | `dungeon.entrances` | Static |
+| Room Graphics | `dungeon.room_graphics` | Static |
+| Object Editor | `dungeon.object_editor` | Static |
+| Debug Controls | `dungeon.debug_controls` | Static |
+| Room {id} | `dungeon.room_{id}` | Resource (dynamic) |
+
+**Music Editor Resource Panels:**
+| Panel | ID Pattern | Type |
+|:------|:-----------|:-----|
+| Song Tracker | `music.song_{id}` | Resource (dynamic) |
+| Piano Roll | `music.piano_roll_{id}` | Resource (dynamic) |
+
+---
+
+### Remaining Work / Future Enhancements
+
+The core panel system refactor is complete. The following are optional enhancements:
+
+| Enhancement | Priority | Effort | Description |
+|:------------|:---------|:-------|:------------|
+| Overworld Resource Panels | Medium | 4-6h | Create `overworld.map_{id}` panels for per-map editing |
+| Graphics Resource Panels | Medium | 4-6h | Create `graphics.sheet_{id}` panels for per-sheet editing |
+| Sprite Resource Panels | Low | 2-4h | Create `sprite.vanilla_{id}` panels |
+| Cascade Close | Low | 2-3h | Implement parent-child panel relationships |
+| Panel State Persistence | Low | 2-3h | Save/restore pinned state and visibility to config |
+| Keyboard Shortcuts | Low | 1-2h | Add configurable shortcuts for common panels |
+
+**Known Limitations:**
+- Pin button is in Activity Bar sidebar, not panel title bar (ImGui docking limitation)
+- Resource panel limits are enforced but may need tuning based on user feedback
+- Some editors (Assembly, Agent) have minimal panel integration
+
+---
+
+### Troubleshooting: Common Panel Visibility Issues
+
+When panels don't respect visibility or appear duplicated, check for these common issues:
+
+#### Issue 1: Duplicate Panel Drawing (DUPLICATE DETECTED warnings)
+
+**Symptom:** Console shows `[PanelWindow] DUPLICATE DETECTED: 'Panel Name' Begin() called twice`
+
+**Cause:** Panel is being drawn by BOTH:
+- Central `PanelManager::DrawAllVisiblePanels()` (via EditorPanel)
+- Local `gui::PanelWindow` code in the editor's `Update()` method
+
+**Fix:** Remove the local drawing code. When using `RegisterEditorPanel()`, the central drawing handles everything:
+
+```cpp
+// WRONG - draws twice
+void MyEditor::Initialize() {
+  panel_manager->RegisterEditorPanel(std::make_unique<MyPanel>(...));
+}
+void MyEditor::Update() {
+  gui::PanelWindow panel("My Panel", ICON);
+  if (panel.Begin(&show_panel_)) { DrawContent(); }
+  panel.End();
+}
+
+// CORRECT - draws once via central system
+void MyEditor::Initialize() {
+  panel_manager->RegisterEditorPanel(std::make_unique<MyPanel>([this]() {
+    DrawContent();
+  }));
+}
+void MyEditor::Update() {
+  // No local drawing - handled by PanelManager::DrawAllVisiblePanels()
+  return absl::OkStatus();
+}
+```
+
+#### Issue 2: Duplicate Registration (RegisterPanel + RegisterEditorPanel)
+
+**Symptom:** Panel appears twice in Activity Bar, or metadata conflicts
+
+**Cause:** Both `RegisterPanel()` AND `RegisterEditorPanel()` called for same panel
+
+**Fix:** Use only `RegisterEditorPanel()` - the EditorPanel class provides all metadata:
+
+```cpp
+// WRONG - duplicate registration
+panel_manager->RegisterPanel({.card_id = "editor.my_panel", ...});
+panel_manager->RegisterEditorPanel(std::make_unique<MyPanel>(...));
+
+// CORRECT - EditorPanel provides metadata via GetId(), GetDisplayName(), etc.
+panel_manager->RegisterEditorPanel(std::make_unique<MyPanel>(...));
+```
+
+#### Issue 3: Resource Panel Double-Prefixing
+
+**Symptom:** Resource panels (rooms, songs) don't appear or have wrong IDs like `s0.s0.dungeon.room_42`
+
+**Cause:** Using `MakeCardId()` for resource panels when `RegisterPanel()` already adds session prefix
+
+**Fix:** Use base IDs for resource panels - `RegisterPanel()` handles prefixing:
+
+```cpp
+// WRONG - double prefix
+std::string card_id = MakeCardId(absl::StrFormat("dungeon.room_%d", room_id));
+panel_manager->RegisterPanel({.card_id = card_id, ...});
+
+// CORRECT - let RegisterPanel handle prefixing
+std::string card_id = absl::StrFormat("dungeon.room_%d", room_id);
+panel_manager->RegisterPanel({.card_id = card_id, ...});
+panel_manager->ShowPanel(card_id);  // Uses same base ID
+```
+
+#### Issue 4: Context Menu Popups Don't Open
+
+**Symptom:** Clicking context menu items doesn't open the expected popup (e.g., entity editor)
+
+**Cause:** `ImGui::OpenPopup()` called from within another popup's callback doesn't work
+
+**Fix:** Use deferred popup pattern - store request and process outside popup context:
+
+```cpp
+// WRONG - OpenPopup inside context menu callback fails
+entity_menu.callback = [this]() {
+  InsertEntity();
+  ImGui::OpenPopup("Entity Editor");  // Won't work!
+};
+
+// CORRECT - defer popup opening
+void MyEditor::HandleEntityInsert(const std::string& type) {
+  pending_insert_type_ = type;  // Store for later
+}
+
+void MyEditor::Update() {
+  ProcessPendingInsert();  // Called outside popup context
+  // ... draw popups here, OpenPopup() works now
+}
+```
+
+#### Issue 5: Panels Visible Before Editor Selected
+
+**Symptom:** Panels from other editors appear when on Dashboard
+
+**Cause:** `active_category_` not set to Dashboard, or missing category check
+
+**Fix:** Ensure `SetActiveCategory(kDashboardCategory)` when ROM loaded but no editor selected:
+
+```cpp
+void EditorManager::LoadRom() {
+  // After loading...
+  panel_manager_.SetActiveCategory(PanelManager::kDashboardCategory);
+}
+
+void EditorManager::SwitchToEditor(EditorType type) {
+  panel_manager_.SetActiveCategory(EditorRegistry::GetEditorCategory(type));
+}
+```
+
+#### Issue 6: Resource Panels Always Visible (Act Like Pinned)
+
+**Symptom:** Resource panels (rooms, songs) don't hide when switching editors
+
+**Cause:** Missing category filtering in the editor's drawing loop
+
+**Fix:** Add category + pin check before drawing resource panels:
+
+```cpp
+// In editor's DrawLayout() for dynamic resource panels:
+for (auto& resource : active_resources_) {
+  std::string card_id = absl::StrFormat("editor.resource_%d", resource.id);
+  
+  // Skip if not in category AND not pinned
+  if (panel_manager->GetActiveCategory() != "MyEditor" &&
+      !panel_manager->IsPanelPinned(card_id)) {
+    continue;
+  }
+  
+  // Draw the resource panel...
+}
+```
+
+### Checklist for Migrating an Editor to EditorPanel System
+
+1. **Create EditorPanel classes** in `panels/` subdirectory
+   - Implement `GetId()`, `GetDisplayName()`, `GetIcon()`, `GetEditorCategory()`, `GetPriority()`
+   - Implement `Draw(bool* p_open)` with content drawing
+
+2. **Update Initialize()**
+   - Call `RegisterEditorPanel()` for each panel
+   - Remove any `RegisterPanel()` calls (EditorPanel provides metadata)
+   - Call `ShowPanel()` for default-visible panels
+
+3. **Update Update()**
+   - Remove ALL local `gui::PanelWindow` drawing code
+   - Central `PanelManager::DrawAllVisiblePanels()` handles drawing
+   - Keep only non-panel logic (popup modals, shortcuts, etc.)
+
+4. **For Resource Panels** (dynamic, per-resource)
+   - Use base IDs (no `MakeCardId()`)
+   - Add category filtering before drawing
+   - Register on-demand when resource opened
+   - Unregister when resource closed
+
+5. **Test**
+   - Verify no DUPLICATE DETECTED warnings
+   - Verify panels appear/hide on editor switch
+   - Verify Activity Bar shows correct panels
+   - Verify pinning works across editor switches
 
 ---
 

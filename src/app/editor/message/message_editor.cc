@@ -69,35 +69,7 @@ void MessageEditor::Initialize() {
   auto* panel_manager = dependencies_.panel_manager;
   const size_t session_id = dependencies_.session_id;
 
-  panel_manager->RegisterPanel({.card_id = MakeCardId("message.message_list"),
-                               .display_name = "Message List",
-                               .window_title = " Message List",
-                               .icon = ICON_MD_LIST,
-                               .category = "Message",
-                               .priority = 10});
-
-  panel_manager->RegisterPanel({.card_id = MakeCardId("message.message_editor"),
-                               .display_name = "Message Editor",
-                               .window_title = " Message Editor",
-                               .icon = ICON_MD_EDIT,
-                               .category = "Message",
-                               .priority = 20});
-
-  panel_manager->RegisterPanel({.card_id = MakeCardId("message.font_atlas"),
-                               .display_name = "Font Atlas",
-                               .window_title = " Font Atlas",
-                               .icon = ICON_MD_FONT_DOWNLOAD,
-                               .category = "Message",
-                               .priority = 30});
-
-  panel_manager->RegisterPanel({.card_id = MakeCardId("message.dictionary"),
-                               .display_name = "Dictionary",
-                               .window_title = " Dictionary",
-                               .icon = ICON_MD_BOOK,
-                               .category = "Message",
-                               .priority = 40});
-
-  // Register EditorPanel implementations
+  // Register EditorPanel implementations (they provide both metadata and drawing)
   panel_manager->RegisterEditorPanel(std::make_unique<MessageListPanel>(
       [this]() { DrawMessageList(); }));
   panel_manager->RegisterEditorPanel(std::make_unique<MessageEditorPanel>(
@@ -113,7 +85,7 @@ void MessageEditor::Initialize() {
   }));
 
   // Show message list by default
-  panel_manager->ShowPanel(session_id, MakeCardId("message.message_list"));
+  panel_manager->ShowPanel(session_id, "message.message_list");
 
   for (int i = 0; i < kWidthArraySize; i++) {
     message_preview_.width_array[i] = rom()->data()[kCharactersWidth + i];
@@ -159,68 +131,9 @@ absl::Status MessageEditor::Load() {
 }
 
 absl::Status MessageEditor::Update() {
-  if (!dependencies_.panel_manager)
-    return absl::OkStatus();
-
-  auto* panel_manager = dependencies_.panel_manager;
-  const size_t session_id = dependencies_.session_id;
-
-  // Message List panel - Get visibility flag and pass to Begin() for proper X
-  // button
-  bool* list_visible =
-      panel_manager->GetVisibilityFlag(session_id, MakeCardId("message.message_list"));
-  if (list_visible && *list_visible) {
-    static gui::PanelWindow msg_card("Messages", ICON_MD_MESSAGE);
-  msg_card.SetPosition(gui::PanelWindow::Position::Bottom);
-    msg_card.SetDefaultSize(400, 600);
-    if (msg_card.Begin(list_visible)) {
-      DrawMessageList();
-    }
-    msg_card.End();
-  }
-
-  // Message Editor panel - Get visibility flag and pass to Begin() for proper X
-  // button
-  bool* editor_visible =
-      panel_manager->GetVisibilityFlag(session_id, MakeCardId("message.message_editor"));
-  if (editor_visible && *editor_visible) {
-    static gui::PanelWindow editor_card("Message Editor", ICON_MD_EDIT);
-    editor_card.SetDefaultSize(500, 600);
-    if (editor_card.Begin(editor_visible)) {
-      DrawCurrentMessage();
-    }
-    editor_card.End();
-  }
-
-  // Font Atlas panel - Get visibility flag and pass to Begin() for proper X
-  // button
-  bool* font_visible =
-      panel_manager->GetVisibilityFlag(session_id, MakeCardId("message.font_atlas"));
-  if (font_visible && *font_visible) {
-    static gui::PanelWindow font_card("Font Atlas", ICON_MD_FONT_DOWNLOAD);
-    font_card.SetDefaultSize(400, 500);
-    if (font_card.Begin(font_visible)) {
-      DrawFontAtlas();
-      DrawExpandedMessageSettings();
-    }
-    font_card.End();
-  }
-
-  // Dictionary panel - Get visibility flag and pass to Begin() for proper X
-  // button
-  bool* dict_visible =
-      panel_manager->GetVisibilityFlag(session_id, MakeCardId("message.dictionary"));
-  if (dict_visible && *dict_visible) {
-    static gui::PanelWindow dict_card("Dictionary", ICON_MD_BOOK);
-    dict_card.SetDefaultSize(400, 500);
-    if (dict_card.Begin(dict_visible)) {
-      DrawTextCommands();
-      DrawSpecialCharacters();
-      DrawDictionary();
-    }
-    dict_card.End();
-  }
-
+  // Panel drawing is handled centrally by PanelManager::DrawAllVisiblePanels()
+  // via the EditorPanel implementations registered in Initialize().
+  // No local drawing needed here.
   return absl::OkStatus();
 }
 

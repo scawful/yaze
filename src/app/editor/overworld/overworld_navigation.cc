@@ -14,12 +14,19 @@ void OverworldEditor::HandleOverworldPan() {
 }
 
 void OverworldEditor::HandleOverworldZoom() {
-  if (ImGui::GetIO().MouseWheel != 0.0f && ow_map_canvas_.IsMouseHovering()) {
-    float zoom_delta = ImGui::GetIO().MouseWheel * 0.1f;
-    float new_scale = ow_map_canvas_.global_scale() + zoom_delta;
-    new_scale = std::clamp(new_scale, 0.1f, 5.0f);
-    ow_map_canvas_.set_global_scale(new_scale);
-  }
+  // Scroll wheel zoom disabled - use toolbar buttons or context menu instead
+  // Context menu provides: Zoom In, Zoom Out, Reset View
+  // Toolbar provides: zoom buttons
+}
+
+void OverworldEditor::ZoomIn() {
+  float new_scale = std::min(5.0f, ow_map_canvas_.global_scale() + 0.25f);
+  ow_map_canvas_.set_global_scale(new_scale);
+}
+
+void OverworldEditor::ZoomOut() {
+  float new_scale = std::max(0.1f, ow_map_canvas_.global_scale() - 0.25f);
+  ow_map_canvas_.set_global_scale(new_scale);
 }
 
 void OverworldEditor::ResetOverworldView() {
