@@ -5,7 +5,7 @@
 #include <string>
 
 #include "absl/strings/str_format.h"
-#include "app/editor/system/editor_card_registry.h"
+#include "app/editor/system/panel_manager.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/debug/performance/performance_profiler.h"
 #include "app/gfx/resource/arena.h"
@@ -25,58 +25,70 @@ namespace editor {
 constexpr uint32_t kRedPen = 0xFF0000FF;
 
 void ScreenEditor::Initialize() {
-  if (!dependencies_.card_registry)
+  if (!dependencies_.panel_manager)
     return;
-  auto* card_registry = dependencies_.card_registry;
+  auto* panel_manager = dependencies_.panel_manager;
 
-  card_registry->RegisterCard({.card_id = "screen.dungeon_maps",
-                               .display_name = "Dungeon Maps",
-                               .window_title = " Dungeon Map Editor",
-                               .icon = ICON_MD_MAP,
-                               .category = "Screen",
-                               .shortcut_hint = "Alt+1",
-                               .priority = 10,
-                               .enabled_condition = [this]() { return rom()->is_loaded(); },
-                               .disabled_tooltip = "Load a ROM first"});
-  card_registry->RegisterCard({.card_id = "screen.inventory_menu",
-                               .display_name = "Inventory Menu",
-                               .window_title = " Inventory Menu",
-                               .icon = ICON_MD_INVENTORY,
-                               .category = "Screen",
-                               .shortcut_hint = "Alt+2",
-                               .priority = 20,
-                               .enabled_condition = [this]() { return rom()->is_loaded(); },
-                               .disabled_tooltip = "Load a ROM first"});
-  card_registry->RegisterCard({.card_id = "screen.overworld_map",
-                               .display_name = "Overworld Map",
-                               .window_title = " Overworld Map",
-                               .icon = ICON_MD_PUBLIC,
-                               .category = "Screen",
-                               .shortcut_hint = "Alt+3",
-                               .priority = 30,
-                               .enabled_condition = [this]() { return rom()->is_loaded(); },
-                               .disabled_tooltip = "Load a ROM first"});
-  card_registry->RegisterCard({.card_id = "screen.title_screen",
-                               .display_name = "Title Screen",
-                               .window_title = " Title Screen",
-                               .icon = ICON_MD_TITLE,
-                               .category = "Screen",
-                               .shortcut_hint = "Alt+4",
-                               .priority = 40,
-                               .enabled_condition = [this]() { return rom()->is_loaded(); },
-                               .disabled_tooltip = "Load a ROM first"});
-  card_registry->RegisterCard({.card_id = "screen.naming_screen",
-                               .display_name = "Naming Screen",
-                               .window_title = " Naming Screen",
-                               .icon = ICON_MD_EDIT,
-                               .category = "Screen",
-                               .shortcut_hint = "Alt+5",
-                               .priority = 50,
-                               .enabled_condition = [this]() { return rom()->is_loaded(); },
-                               .disabled_tooltip = "Load a ROM first"});
+  panel_manager->RegisterPanel({.card_id = "screen.dungeon_maps",
+                                .display_name = "Dungeon Maps",
+                                .window_title = " Dungeon Map Editor",
+                                .icon = ICON_MD_MAP,
+                                .category = "Screen",
+                                .shortcut_hint = "Alt+1",
+                                .priority = 10,
+                                .enabled_condition = [this]() { return rom()->is_loaded(); },
+                                .disabled_tooltip = "Load a ROM first"});
+  panel_manager->RegisterPanel({.card_id = "screen.inventory_menu",
+                                .display_name = "Inventory Menu",
+                                .window_title = " Inventory Menu",
+                                .icon = ICON_MD_INVENTORY,
+                                .category = "Screen",
+                                .shortcut_hint = "Alt+2",
+                                .priority = 20,
+                                .enabled_condition = [this]() { return rom()->is_loaded(); },
+                                .disabled_tooltip = "Load a ROM first"});
+  panel_manager->RegisterPanel({.card_id = "screen.overworld_map",
+                                .display_name = "Overworld Map",
+                                .window_title = " Overworld Map",
+                                .icon = ICON_MD_PUBLIC,
+                                .category = "Screen",
+                                .shortcut_hint = "Alt+3",
+                                .priority = 30,
+                                .enabled_condition = [this]() { return rom()->is_loaded(); },
+                                .disabled_tooltip = "Load a ROM first"});
+  panel_manager->RegisterPanel({.card_id = "screen.title_screen",
+                                .display_name = "Title Screen",
+                                .window_title = " Title Screen",
+                                .icon = ICON_MD_TITLE,
+                                .category = "Screen",
+                                .shortcut_hint = "Alt+4",
+                                .priority = 40,
+                                .enabled_condition = [this]() { return rom()->is_loaded(); },
+                                .disabled_tooltip = "Load a ROM first"});
+  panel_manager->RegisterPanel({.card_id = "screen.naming_screen",
+                                .display_name = "Naming Screen",
+                                .window_title = " Naming Screen",
+                                .icon = ICON_MD_EDIT,
+                                .category = "Screen",
+                                .shortcut_hint = "Alt+5",
+                                .priority = 50,
+                                .enabled_condition = [this]() { return rom()->is_loaded(); },
+                                .disabled_tooltip = "Load a ROM first"});
+
+  // Register EditorPanel implementations
+  panel_manager->RegisterEditorPanel(std::make_unique<DungeonMapsPanel>(
+      [this]() { DrawDungeonMapsEditor(); }));
+  panel_manager->RegisterEditorPanel(std::make_unique<InventoryMenuPanel>(
+      [this]() { DrawInventoryMenuEditor(); }));
+  panel_manager->RegisterEditorPanel(std::make_unique<OverworldMapScreenPanel>(
+      [this]() { DrawOverworldMapEditor(); }));
+  panel_manager->RegisterEditorPanel(std::make_unique<TitleScreenPanel>(
+      [this]() { DrawTitleScreenEditor(); }));
+  panel_manager->RegisterEditorPanel(std::make_unique<NamingScreenPanel>(
+      [this]() { DrawNamingScreenEditor(); }));
 
   // Show title screen by default
-  card_registry->ShowCard("screen.title_screen");
+  panel_manager->ShowPanel("screen.title_screen");
 }
 
 absl::Status ScreenEditor::Load() {
@@ -137,16 +149,18 @@ absl::Status ScreenEditor::Load() {
 }
 
 absl::Status ScreenEditor::Update() {
-  if (!dependencies_.card_registry)
+  if (!dependencies_.panel_manager)
     return absl::OkStatus();
-  auto* card_registry = dependencies_.card_registry;
+  auto* panel_manager = dependencies_.panel_manager;
 
-  static gui::EditorCard dungeon_maps_card("Dungeon Maps", ICON_MD_MAP);
-  static gui::EditorCard inventory_menu_card("Inventory Menu",
+  static gui::PanelWindow dungeon_maps_card("Dungeon Maps", ICON_MD_MAP);
+  static gui::PanelWindow inventory_menu_card("Inventory Menu",
                                              ICON_MD_INVENTORY);
-  static gui::EditorCard overworld_map_card("Overworld Map", ICON_MD_PUBLIC);
-  static gui::EditorCard title_screen_card("Title Screen", ICON_MD_TITLE);
-  static gui::EditorCard naming_screen_card("Naming Screen",
+  static gui::PanelWindow overworld_map_card("Overworld Map", ICON_MD_PUBLIC);
+  static gui::PanelWindow screen_card("Screen", ICON_MD_DESKTOP_MAC);
+  screen_card.SetPosition(gui::PanelWindow::Position::Floating);
+  static gui::PanelWindow title_screen_card("Title Screen", ICON_MD_TITLE);
+  static gui::PanelWindow naming_screen_card("Naming Screen",
                                             ICON_MD_EDIT_ATTRIBUTES);
 
   dungeon_maps_card.SetDefaultSize(800, 600);
@@ -158,7 +172,7 @@ absl::Status ScreenEditor::Update() {
   // Dungeon Maps Card - Check visibility flag exists and is true before
   // rendering
   bool* dungeon_maps_visible =
-      card_registry->GetVisibilityFlag("screen.dungeon_maps");
+      panel_manager->GetVisibilityFlag("screen.dungeon_maps");
   if (dungeon_maps_visible && *dungeon_maps_visible) {
     if (dungeon_maps_card.Begin(dungeon_maps_visible)) {
       DrawDungeonMapsEditor();
@@ -169,7 +183,7 @@ absl::Status ScreenEditor::Update() {
   // Inventory Menu Card - Check visibility flag exists and is true before
   // rendering
   bool* inventory_menu_visible =
-      card_registry->GetVisibilityFlag("screen.inventory_menu");
+      panel_manager->GetVisibilityFlag("screen.inventory_menu");
   if (inventory_menu_visible && *inventory_menu_visible) {
     if (inventory_menu_card.Begin(inventory_menu_visible)) {
       DrawInventoryMenuEditor();
@@ -180,7 +194,7 @@ absl::Status ScreenEditor::Update() {
   // Overworld Map Card - Check visibility flag exists and is true before
   // rendering
   bool* overworld_map_visible =
-      card_registry->GetVisibilityFlag("screen.overworld_map");
+      panel_manager->GetVisibilityFlag("screen.overworld_map");
   if (overworld_map_visible && *overworld_map_visible) {
     if (overworld_map_card.Begin(overworld_map_visible)) {
       DrawOverworldMapEditor();
@@ -191,7 +205,7 @@ absl::Status ScreenEditor::Update() {
   // Title Screen Card - Check visibility flag exists and is true before
   // rendering
   bool* title_screen_visible =
-      card_registry->GetVisibilityFlag("screen.title_screen");
+      panel_manager->GetVisibilityFlag("screen.title_screen");
   if (title_screen_visible && *title_screen_visible) {
     if (title_screen_card.Begin(title_screen_visible)) {
       DrawTitleScreenEditor();
@@ -202,7 +216,7 @@ absl::Status ScreenEditor::Update() {
   // Naming Screen Card - Check visibility flag exists and is true before
   // rendering
   bool* naming_screen_visible =
-      card_registry->GetVisibilityFlag("screen.naming_screen");
+      panel_manager->GetVisibilityFlag("screen.naming_screen");
   if (naming_screen_visible && *naming_screen_visible) {
     if (naming_screen_card.Begin(naming_screen_visible)) {
       DrawNamingScreenEditor();
