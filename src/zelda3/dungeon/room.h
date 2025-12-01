@@ -493,7 +493,7 @@ RoomSize CalculateRoomSize(Rom* rom, int room_id);
 // RoomEffect names defined in room.cc to avoid static initialization order issues
 extern const std::string RoomEffect[8];
 
-constexpr std::string_view kRoomNames[] = {
+constexpr std::array<std::string_view, 297> kRoomNames = {
     "Ganon",
     "Hyrule Castle (North Corridor)",
     "Behind Sanctuary (Switch)",

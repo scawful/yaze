@@ -49,6 +49,11 @@ class DungeonRoomSelector {
   void set_room_selected_callback(std::function<void(int)> callback) {
     room_selected_callback_ = callback;
   }
+  
+  // Callback for entrance selection events (triggers room opening)
+  void set_entrance_selected_callback(std::function<void(int)> callback) {
+    entrance_selected_callback_ = callback;
+  }
 
  private:
   Rom* rom_ = nullptr;
@@ -61,6 +66,9 @@ class DungeonRoomSelector {
 
   // Callback for room selection events
   std::function<void(int)> room_selected_callback_;
+  
+  // Callback for entrance selection events
+  std::function<void(int)> entrance_selected_callback_;
 
   ImGuiTextFilter room_filter_;
   ImGuiTextFilter entrance_filter_;

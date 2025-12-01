@@ -282,9 +282,42 @@ absl::Status MusicEditor::Update() {
   // TODO(Phase 6): Migrate to ResourcePanel with LRU limits
   // ==========================================================================
 
-  // Per-Song Tracker Windows (like dungeon room cards)
+  // Per-Song Tracker Windows - synced with PanelManager for Activity Bar
   for (int i = 0; i < active_songs_.Size; i++) {
     int song_index = active_songs_[i];
+    // Use base ID - PanelManager handles session prefixing
+    std::string card_id = absl::StrFormat("music.song_%d", song_index);
+    
+    // Check if panel was hidden via Activity Bar
+    bool panel_visible = true;
+    if (dependencies_.panel_manager) {
+      panel_visible = dependencies_.panel_manager->IsPanelVisible(card_id);
+    }
+    
+    // If hidden via Activity Bar, close the song
+    if (!panel_visible) {
+      if (dependencies_.panel_manager) {
+        dependencies_.panel_manager->UnregisterPanel(card_id);
+      }
+      song_cards_.erase(song_index);
+      song_trackers_.erase(song_index);
+      active_songs_.erase(active_songs_.Data + i);
+      i--;
+      continue;
+    }
+    
+    // Category filtering: only draw if Music is active OR panel is pinned
+    bool is_pinned = dependencies_.panel_manager && 
+                     dependencies_.panel_manager->IsPanelPinned(card_id);
+    std::string active_category = dependencies_.panel_manager ? 
+                                  dependencies_.panel_manager->GetActiveCategory() : "";
+    
+    if (active_category != "Music" && !is_pinned) {
+      // Not in Music editor and not pinned - skip drawing but keep registered
+      // Panel will reappear when user returns to Music editor
+      continue;
+    }
+    
     bool open = true;
 
     // Get song name for window title (icon is handled by EditorCard)
@@ -317,6 +350,10 @@ absl::Status MusicEditor::Update() {
 
     // Handle close button
     if (!open) {
+      // Unregister from PanelManager
+      if (dependencies_.panel_manager) {
+        dependencies_.panel_manager->UnregisterPanel(card_id);
+      }
       song_cards_.erase(song_index);
       song_trackers_.erase(song_index);
       active_songs_.erase(active_songs_.Data + i);
@@ -324,17 +361,51 @@ absl::Status MusicEditor::Update() {
     }
   }
 
-  // Per-song piano roll windows
+  // Per-song piano roll windows - synced with PanelManager for Activity Bar
   for (auto it = song_piano_rolls_.begin(); it != song_piano_rolls_.end();) {
     int song_index = it->first;
     auto& window = it->second;
     auto* song = music_bank_.GetSong(song_index);
-    bool open = true;
+    // Use base ID - PanelManager handles session prefixing
+    std::string card_id = absl::StrFormat("music.piano_roll_%d", song_index);
 
     if (!song || !window.card || !window.view) {
+      if (dependencies_.panel_manager) {
+        dependencies_.panel_manager->UnregisterPanel(card_id);
+      }
       it = song_piano_rolls_.erase(it);
       continue;
     }
+    
+    // Check if panel was hidden via Activity Bar
+    bool panel_visible = true;
+    if (dependencies_.panel_manager) {
+      panel_visible = dependencies_.panel_manager->IsPanelVisible(card_id);
+    }
+    
+    // If hidden via Activity Bar, close the piano roll
+    if (!panel_visible) {
+      if (dependencies_.panel_manager) {
+        dependencies_.panel_manager->UnregisterPanel(card_id);
+      }
+      delete window.visible_flag;
+      it = song_piano_rolls_.erase(it);
+      continue;
+    }
+    
+    // Category filtering: only draw if Music is active OR panel is pinned
+    bool is_pinned = dependencies_.panel_manager && 
+                     dependencies_.panel_manager->IsPanelPinned(card_id);
+    std::string active_category = dependencies_.panel_manager ? 
+                                  dependencies_.panel_manager->GetActiveCategory() : "";
+    
+    if (active_category != "Music" && !is_pinned) {
+      // Not in Music editor and not pinned - skip drawing but keep registered
+      ++it;
+      continue;
+    }
+    
+    bool open = true;
 
     // Use same docking class as tracker windows so they can dock together
     ImGui::SetNextWindowClass(&song_window_class_);
@@ -364,6 +435,11 @@ absl::Status MusicEditor::Update() {
     window.card->End();
 
     if (!open) {
+      // Unregister from PanelManager
+      if (dependencies_.panel_manager) {
+        dependencies_.panel_manager->UnregisterPanel(card_id);
+      }
+      delete window.visible_flag;
       it = song_piano_rolls_.erase(it);
     } else {
       ++it;
@@ -556,6 +632,29 @@ void MusicEditor::OpenSong(int song_index) {
 
   // Add new song to active list
   active_songs_.push_back(song_index);
+  
+  // Register with PanelManager so it appears in Activity Bar
+  if (dependencies_.panel_manager) {
+    auto* song = music_bank_.GetSong(song_index);
+    std::string song_name = song ? song->name : absl::StrFormat("Song %02X", song_index);
+    // Use base ID - RegisterPanel handles session prefixing
+    std::string card_id = absl::StrFormat("music.song_%d", song_index);
+    
+    dependencies_.panel_manager->RegisterPanel(
+        {.card_id = card_id,
+         .display_name = song_name,
+         .window_title = ICON_MD_MUSIC_NOTE " " + song_name,
+         .icon = ICON_MD_MUSIC_NOTE,
+         .category = "Music",
+         .shortcut_hint = "",
+         .visibility_flag = nullptr,
+         .priority = 200 + song_index});
+    
+    dependencies_.panel_manager->ShowPanel(card_id);
+    
+    // NOT auto-pinned - user must explicitly pin to persist across editors
+  }
+  
   LOG_INFO("MusicEditor", "Opened song %d tracker window", song_index);
 }
 
@@ -582,9 +681,10 @@ void MusicEditor::OpenSongPianoRoll(int song_index) {
   }
 
   auto* song = music_bank_.GetSong(song_index);
+  std::string song_name = song ? song->name : absl::StrFormat("Song %02X", song_index);
   std::string card_title = absl::StrFormat(
       "[%02X] %s - Piano Roll###SongPianoRoll%d", song_index + 1,
-      song ? song->name.c_str() : "Unknown", song_index);
+      song_name, song_index);
 
   SongPianoRollWindow window;
   window.visible_flag = new bool(true);
@@ -597,6 +697,25 @@ void MusicEditor::OpenSongPianoRoll(int song_index) {
   window.view->SetActiveSegment(0);
 
   song_piano_rolls_[song_index] = std::move(window);
+  
+  // Register with PanelManager so it appears in Activity Bar
+  if (dependencies_.panel_manager) {
+    // Use base ID - RegisterPanel handles session prefixing
+    std::string card_id = absl::StrFormat("music.piano_roll_%d", song_index);
+    
+    dependencies_.panel_manager->RegisterPanel(
+        {.card_id = card_id,
+         .display_name = song_name + " (Piano)",
+         .window_title = ICON_MD_PIANO " " + song_name + " (Piano)",
+         .icon = ICON_MD_PIANO,
+         .category = "Music",
+         .shortcut_hint = "",
+         .visibility_flag = nullptr,
+         .priority = 250 + song_index});
+    
+    dependencies_.panel_manager->ShowPanel(card_id);
+    // NOT auto-pinned - user must explicitly pin to persist across editors
+  }
 }
 
 void MusicEditor::DrawSongTrackerWindow(int song_index) {
