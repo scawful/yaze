@@ -352,7 +352,9 @@ absl::Status OverworldEditor::Update() {
   // ===========================================================================
   // Centralized Entity Interaction Logic
   // ===========================================================================
-  zelda3::GameEntity* hovered_entity = nullptr;
+  // Get hovered entity from previous frame's rendering pass
+  zelda3::GameEntity* hovered_entity = 
+      entity_renderer_ ? entity_renderer_->hovered_entity() : nullptr;
 
   // Handle all MOUSE mode interactions here
   if (current_mode == EditingMode::MOUSE) {
@@ -408,6 +410,10 @@ absl::Status OverworldEditor::Update() {
     }
   }
 
+  // Process any pending entity insertion from context menu
+  // This must be called outside the context menu popup context for OpenPopup to work
+  ProcessPendingEntityInsertion();
+
   // --- DRAW POPUPS ---
   if (DrawExitEditorPopup(current_exit_)) {
     if (current_entity_ && current_entity_->entity_type_ ==
@@ -437,6 +443,23 @@ absl::Status OverworldEditor::Update() {
       *static_cast<zelda3::Sprite*>(current_entity_) = current_sprite_;
       rom_->set_dirty(true);
     }
+  }
+
+  // Entity insertion error popup
+  if (ImGui::BeginPopupModal("Entity Insert Error", nullptr,
+                             ImGuiWindowFlags_AlwaysAutoResize)) {
+    ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f), 
+                       ICON_MD_ERROR " Entity Insertion Failed");
+    ImGui::Separator();
+    ImGui::TextWrapped("%s", entity_insert_error_message_.c_str());
+    ImGui::Separator();
+    ImGui::TextDisabled("Tip: Delete an existing entity to free up a slot.");
+    ImGui::Spacing();
+    if (ImGui::Button("OK", ImVec2(120, 0))) {
+      entity_insert_error_message_.clear();
+      ImGui::CloseCurrentPopup();
+    }
+    ImGui::EndPopup();
   }
   // --- END CENTRALIZED LOGIC ---
 

@@ -50,6 +50,7 @@ class OverworldEntityRenderer {
   void DrawDiggableTileHighlights(int current_world, int current_map);
 
   auto hovered_entity() const { return hovered_entity_; }
+  void ResetHoveredEntity() { hovered_entity_ = nullptr; }
   bool show_diggable_tiles() const { return show_diggable_tiles_; }
   void set_show_diggable_tiles(bool show) { show_diggable_tiles_ = show; }
 
