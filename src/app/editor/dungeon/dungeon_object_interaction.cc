@@ -166,7 +166,14 @@ void DungeonObjectInteraction::DrawSelectionHighlights() {
   const auto& objects = room.GetTileObjects();
 
   // Use ObjectSelection's rendering (handles pulsing border, corner handles)
-  selection_.DrawSelectionHighlights(canvas_, objects);
+  selection_.DrawSelectionHighlights(
+      canvas_, objects, [this](const zelda3::RoomObject& obj) {
+        if (object_drawer_) {
+          return object_drawer_->CalculateObjectDimensions(obj);
+        }
+        // Fallback if no drawer available
+        return std::make_pair(16, 16);
+      });
 
   // Interaction-specific: size tooltip when hovering over selected object
   if (canvas_->IsMouseHovering()) {
@@ -651,6 +658,22 @@ void DungeonObjectInteraction::HandleScrollWheelResize() {
   }
 }
 
+std::pair<int, int> DungeonObjectInteraction::CalculateObjectBounds(
+    const zelda3::RoomObject& object) {
+  // If we have a ROM, use ObjectDrawer to calculate accurate dimensions
+  if (rom_) {
+    if (!object_drawer_) {
+      object_drawer_ = std::make_unique<zelda3::ObjectDrawer>(rom_);
+    }
+    return object_drawer_->CalculateObjectDimensions(object);
+  }
+
+  // Fallback to naive calculation if no ROM available
+  int width = 8 + (object.size_ & 0x0F) * 4;
+  int height = 8 + ((object.size_ >> 4) & 0x0F) * 4;
+  return {width, height};
+}
+
 size_t DungeonObjectInteraction::GetHoveredObjectIndex() const {
   if (!rooms_ || current_room_id_ < 0 || current_room_id_ >= 296)
     return static_cast<size_t>(-1);
@@ -671,19 +694,39 @@ size_t DungeonObjectInteraction::GetHoveredObjectIndex() const {
   auto& room = (*rooms_)[current_room_id_];
   const auto& objects = room.GetTileObjects();
 
+  // We need to cast away constness to call CalculateObjectBounds which might
+  // initialize the drawer. This is safe as it doesn't modify logical state.
+  auto* mutable_this = const_cast<DungeonObjectInteraction*>(this);
+
   for (size_t i = objects.size(); i > 0; --i) {
     size_t index = i - 1;
     const auto& object = objects[index];
 
-    // Calculate object bounds
+    // Calculate object bounds using accurate logic
+    auto [width, height] = mutable_this->CalculateObjectBounds(object);
+    
+    // Convert width/height (pixels) to tiles for comparison with room_x/room_y
+    // room_x/room_y are in tiles (8x8 pixels)
+    // object.x_/y_ are in tiles
+    
     int obj_x = object.x_;
     int obj_y = object.y_;
-    int obj_width = 1 + (object.size_ & 0x0F);
-    int obj_height = 1 + ((object.size_ >> 4) & 0x0F);
-
+    
     // Check if mouse is within object bounds
-    if (room_x >= obj_x && room_x < obj_x + obj_width && room_y >= obj_y &&
-        room_y < obj_y + obj_height) {
+    // Note: room_x/y are tile coordinates. width/height are pixels.
+    // We need to check pixel coordinates or convert width/height to tiles.
+    // Let's check pixel coordinates for better precision if needed, 
+    // but room_x/y are integers (tiles).
+    
+    // Convert mouse to pixels relative to room origin
+    int mouse_pixel_x = static_cast<int>(canvas_mouse_pos.x);
+    int mouse_pixel_y = static_cast<int>(canvas_mouse_pos.y);
+    
+    int obj_pixel_x = obj_x * 8;
+    int obj_pixel_y = obj_y * 8;
+    
+    if (mouse_pixel_x >= obj_pixel_x && mouse_pixel_x < obj_pixel_x + width &&
+        mouse_pixel_y >= obj_pixel_y && mouse_pixel_y < obj_pixel_y + height) {
       return index;
     }
   }

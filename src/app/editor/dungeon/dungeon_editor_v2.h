@@ -48,8 +48,7 @@ class DungeonEditorV2 : public Editor {
       : rom_(rom),
         room_loader_(rom),
         room_selector_(rom),
-        canvas_viewer_(rom),
-        object_emulator_preview_() {
+        canvas_viewer_(rom) {
     type_ = EditorType::kDungeon;
     if (rom) {
         dungeon_editor_system_ = zelda3::CreateDungeonEditorSystem(rom);
@@ -91,7 +90,7 @@ class DungeonEditorV2 : public Editor {
       render_service_ = std::make_unique<emu::render::EmulatorRenderService>(rom);
       render_service_->Initialize();
     }
-    object_emulator_preview_.Initialize(renderer_, rom, render_service_.get());
+
   }
   Rom* rom() const { return rom_; }
 
@@ -123,7 +122,7 @@ class DungeonEditorV2 : public Editor {
   bool show_palette_editor_ = false;  // Palette editor card
   bool show_debug_controls_ = false;   // Debug controls card
   bool show_control_panel_ = true;     // Control panel (visible by default)
-  bool show_emulator_preview_ = false; // Emulator preview card (standalone)
+
 
   // Public accessors for WASM API and automation
   int current_room_id() const { return room_selector_.current_room_id(); }
@@ -174,7 +173,7 @@ class DungeonEditorV2 : public Editor {
   DungeonRoomLoader room_loader_;
   DungeonRoomSelector room_selector_;
   DungeonCanvasViewer canvas_viewer_;
-  gui::DungeonObjectEmulatorPreview object_emulator_preview_;
+
   gui::PaletteEditorWidget palette_editor_;
   std::unique_ptr<ObjectEditorCard>
       object_editor_card_;  // Unified object editor

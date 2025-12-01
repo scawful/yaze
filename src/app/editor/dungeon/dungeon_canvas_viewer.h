@@ -32,13 +32,18 @@ enum class ObjectRenderMode {
 class DungeonCanvasViewer {
  public:
   explicit DungeonCanvasViewer(Rom* rom = nullptr)
-      : rom_(rom), object_interaction_(&canvas_) {}
+      : rom_(rom), object_interaction_(&canvas_) {
+    object_interaction_.SetRom(rom);
+  }
 
   // DrawDungeonTabView() removed - using EditorCard system instead
   void DrawDungeonCanvas(int room_id);
   void Draw(int room_id);
 
-  void SetRom(Rom* rom) { rom_ = rom; }
+  void SetRom(Rom* rom) { 
+    rom_ = rom; 
+    object_interaction_.SetRom(rom);
+  }
   Rom* rom() const { return rom_; }
   void SetRenderer(gfx::IRenderer* renderer) { renderer_ = renderer; }
 

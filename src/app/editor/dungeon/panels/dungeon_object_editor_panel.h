@@ -21,17 +21,17 @@ namespace editor {
  * @see ObjectEditorCard - The underlying component
  * @see EditorPanel - Base interface
  */
-class DungeonObjectEditorPanel : public EditorPanel {
+class DungeonObjectToolsPanel : public EditorPanel {
  public:
-  explicit DungeonObjectEditorPanel(ObjectEditorCard* object_editor)
+  explicit DungeonObjectToolsPanel(ObjectEditorCard* object_editor)
       : object_editor_(object_editor) {}
 
   // ==========================================================================
   // EditorPanel Identity
   // ==========================================================================
 
-  std::string GetId() const override { return "dungeon.object_editor"; }
-  std::string GetDisplayName() const override { return "Object Editor"; }
+  std::string GetId() const override { return "dungeon.object_tools"; }
+  std::string GetDisplayName() const override { return "Object Tools"; }
   std::string GetIcon() const override { return ICON_MD_CONSTRUCTION; }
   std::string GetEditorCategory() const override { return "Dungeon"; }
   int GetPriority() const override { return 60; }

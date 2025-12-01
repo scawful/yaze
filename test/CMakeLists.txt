@@ -114,6 +114,7 @@ if(YAZE_BUILD_TESTS)
     unit/zelda3/dungeon/room_manipulation_test.cc
     unit/zelda3/dungeon/dungeon_save_test.cc
     unit/zelda3/dungeon/bpp_conversion_test.cc
+    unit/zelda3/dungeon/object_dimensions_test.cc
     unit/object_selection_test.cc
     # Agent Tools Tests
     unit/tools/build_tool_test.cc

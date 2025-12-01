@@ -176,7 +176,9 @@ std::tuple<int, int, int, int> ObjectSelection::GetRectangleSelectionBounds()
 // ============================================================================
 
 void ObjectSelection::DrawSelectionHighlights(
-    gui::Canvas* canvas, const std::vector<zelda3::RoomObject>& objects) {
+    gui::Canvas* canvas, const std::vector<zelda3::RoomObject>& objects,
+    std::function<std::pair<int, int>(const zelda3::RoomObject&)>
+        dimension_calculator) {
   if (selected_indices_.empty() || !canvas) {
     return;
   }
@@ -197,9 +199,17 @@ void ObjectSelection::DrawSelectionHighlights(
     auto [obj_x, obj_y] = RoomToCanvasCoordinates(object.x_, object.y_);
 
     // Calculate object dimensions
-    auto [tile_x, tile_y, tile_width, tile_height] = GetObjectBounds(object);
-    int pixel_width = tile_width * 8;
-    int pixel_height = tile_height * 8;
+    int pixel_width, pixel_height;
+    if (dimension_calculator) {
+      auto dims = dimension_calculator(object);
+      pixel_width = dims.first;
+      pixel_height = dims.second;
+    } else {
+      // Fallback to old logic if no calculator provided
+      auto [tile_x, tile_y, tile_width, tile_height] = GetObjectBounds(object);
+      pixel_width = tile_width * 8;
+      pixel_height = tile_height * 8;
+    }
 
     // Apply scale and canvas offset
     ImVec2 obj_start(canvas_pos.x + obj_x * scale,

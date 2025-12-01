@@ -123,8 +123,8 @@ void DungeonObjectEmulatorPreview::Render() {
 
   const auto& theme = AgentUI::GetTheme();
 
-  ImGui::SetNextWindowSize(ImVec2(500, 700), ImGuiCond_FirstUseEver);
-  if (ImGui::Begin("Dungeon Object Emulator Preview", &show_window_)) {
+  // No window creation - embedded in parent
+  {
     AutoWidgetScope scope("DungeonEditor/EmulatorPreview");
 
     // ROM status indicator at top
@@ -140,14 +140,12 @@ void DungeonObjectEmulatorPreview::Render() {
 
     ImGui::Separator();
 
-    // Two-column layout for better space usage
-    ImGui::BeginChild("LeftPanel", ImVec2(280, 0), true);
+    // Vertical layout for narrow panels
     RenderControls();
-    ImGui::EndChild();
 
-    ImGui::SameLine();
+    AgentUI::VerticalSpacing(8);
+    ImGui::Separator();
 
-    ImGui::BeginChild("RightPanel", ImVec2(0, 0), false);
     // Preview image with border
     AgentUI::PushPanelStyle();
     ImGui::BeginChild("PreviewRegion", ImVec2(0, 280), true,
@@ -188,10 +186,7 @@ void DungeonObjectEmulatorPreview::Render() {
         "previews of how objects will appear in-game.");
     ImGui::EndChild();
     ImGui::PopStyleColor();
-
-    ImGui::EndChild();
   }
-  ImGui::End();
 
   // Render object browser if visible
   if (show_browser_) {
