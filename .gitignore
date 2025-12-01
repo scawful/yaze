@@ -118,5 +118,7 @@ logs/build-logs-Windows 2022 (Clang)/cmake_config.log
 logs/build-logs-Windows 2022 (Clang-CL)/build.log
 logs/build-logs-Windows 2022 (Clang-CL)/cmake_config.log
 vanilla.sfc
+zelda3.sfc
 yaze_manual.log
 yaze_startup.log
+roms/
