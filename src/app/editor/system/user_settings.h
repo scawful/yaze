@@ -57,9 +57,13 @@ class UserSettings {
     bool log_gui_automation = true;
     bool log_proposals = true;
 
-    // Card Shortcuts
-    // Maps card_id -> shortcut string (e.g., "dungeon.room_selector" -> "Ctrl+Shift+R")
-    std::unordered_map<std::string, std::string> card_shortcuts;
+    // Shortcut Overrides
+    // Maps panel_id -> shortcut string (e.g., "dungeon.room_selector" -> "Ctrl+Shift+R")
+    std::unordered_map<std::string, std::string> panel_shortcuts;
+    // Maps global action id -> shortcut string (e.g., "Open", "Save")
+    std::unordered_map<std::string, std::string> global_shortcuts;
+    // Maps editor-scoped action id -> shortcut string (keyed by editor namespace)
+    std::unordered_map<std::string, std::string> editor_shortcuts;
 
     // Sidebar State
     bool sidebar_visible = true;         // Controls Activity Bar visibility

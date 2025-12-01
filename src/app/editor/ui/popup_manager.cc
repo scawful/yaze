@@ -744,7 +744,7 @@ void PopupManager::DrawLayoutPresetsPopup() {
     const char* name;
     const char* icon;
     const char* description;
-    std::function<CardLayoutPreset()> getter;
+    std::function<PanelLayoutPreset()> getter;
   };
 
   PresetInfo presets[] = {
@@ -788,12 +788,12 @@ void PopupManager::DrawLayoutPresetsPopup() {
                ImVec2(button_width, button_height))) {
       // Apply the preset
       auto preset = presets[i].getter();
-      auto& card_registry = editor_manager_->card_registry();
-      // Hide all cards first
-      card_registry.HideAll();
-      // Show preset cards
-      for (const auto& card_id : preset.default_visible_cards) {
-        card_registry.ShowCard(card_id);
+      auto& panel_manager = editor_manager_->panel_manager();
+      // Hide all panels first
+      panel_manager.HideAll();
+      // Show preset panels
+      for (const auto& panel_id : preset.default_visible_panels) {
+        panel_manager.ShowPanel(panel_id);
       }
       Hide(PopupID::kLayoutPresets);
     }
@@ -813,11 +813,11 @@ void PopupManager::DrawLayoutPresetsPopup() {
   // Reset current editor to defaults
   if (Button(absl::StrFormat("%s Reset Current Editor", ICON_MD_REFRESH).c_str(),
              ImVec2(-1, 0))) {
-    auto& card_registry = editor_manager_->card_registry();
+    auto& panel_manager = editor_manager_->card_registry();
     auto* current_editor = editor_manager_->GetCurrentEditor();
     if (current_editor) {
       auto current_type = current_editor->type();
-      card_registry.ResetToDefaults(0, current_type);
+      panel_manager.ResetToDefaults(0, current_type);
     }
     Hide(PopupID::kLayoutPresets);
   }

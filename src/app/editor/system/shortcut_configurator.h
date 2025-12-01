@@ -19,7 +19,7 @@ class UICoordinator;
 class WorkspaceManager;
 class PopupManager;
 class ToastManager;
-class EditorCardRegistry;
+class PanelManager;
 
 // Forward declaration
 class UserSettings;
@@ -35,7 +35,7 @@ struct ShortcutDependencies {
   WorkspaceManager* workspace_manager = nullptr;
   PopupManager* popup_manager = nullptr;
   ToastManager* toast_manager = nullptr;
-  EditorCardRegistry* card_registry = nullptr;
+  PanelManager* panel_manager = nullptr;
   UserSettings* user_settings = nullptr;
 };
 
@@ -46,16 +46,16 @@ void ConfigureMenuShortcuts(const ShortcutDependencies& deps,
                             ShortcutManager* shortcut_manager);
 
 /**
- * @brief Register configurable card shortcuts from user settings
+ * @brief Register configurable panel shortcuts from user settings
  * @param deps Shortcut dependencies
  * @param shortcut_manager The shortcut manager to register with
  *
- * This function reads card shortcuts from UserSettings and registers them
- * with the shortcut manager. It falls back to CardInfo.shortcut_hint if
- * no custom shortcut is defined for a card.
+ * This function reads panel shortcuts from UserSettings and registers them
+ * with the shortcut manager. It falls back to PanelDescriptor.shortcut_hint if
+ * no custom shortcut is defined for a panel.
  */
-void ConfigureCardShortcuts(const ShortcutDependencies& deps,
-                            ShortcutManager* shortcut_manager);
+void ConfigurePanelShortcuts(const ShortcutDependencies& deps,
+                             ShortcutManager* shortcut_manager);
 
 }  // namespace editor
 }  // namespace yaze

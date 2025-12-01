@@ -12,7 +12,8 @@ class Rom;
 
 namespace editor {
 
-class EditorCardRegistry;
+class PanelManager;
+class ShortcutManager;
 
 /**
  * @class SettingsPanel
@@ -31,7 +32,10 @@ class SettingsPanel {
   SettingsPanel() = default;
 
   void SetUserSettings(UserSettings* settings) { user_settings_ = settings; }
-  void SetCardRegistry(EditorCardRegistry* registry) { card_registry_ = registry; }
+  void SetPanelManager(PanelManager* registry) { panel_manager_ = registry; }
+  // Legacy alias during Card→Panel rename.
+  void SetCardRegistry(PanelManager* registry) { SetPanelManager(registry); }
+  void SetShortcutManager(ShortcutManager* manager) { shortcut_manager_ = manager; }
   void SetRom(Rom* rom) { rom_ = rom; }
 
   // Main draw entry point
@@ -44,14 +48,17 @@ class SettingsPanel {
   void DrawPerformanceSettings();
   void DrawAIAgentSettings();
   void DrawKeyboardShortcuts();
-  void DrawCardShortcuts();
+  void DrawGlobalShortcuts();
+  void DrawEditorShortcuts();
+  void DrawPanelShortcuts();
   void DrawPatchSettings();
   void DrawPatchList(const std::string& folder);
   void DrawPatchDetails();
   void DrawParameterWidget(core::PatchParameter* param);
 
   UserSettings* user_settings_ = nullptr;
-  EditorCardRegistry* card_registry_ = nullptr;
+  PanelManager* panel_manager_ = nullptr;
+  ShortcutManager* shortcut_manager_ = nullptr;
   Rom* rom_ = nullptr;
 
   // Shortcut editing state

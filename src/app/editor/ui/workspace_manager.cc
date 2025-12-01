@@ -3,7 +3,7 @@
 #include "app/editor/ui/workspace_manager.h"
 
 #include "absl/strings/str_format.h"
-#include "app/editor/system/editor_card_registry.h"
+#include "app/editor/system/panel_manager.h"
 #include "app/editor/ui/toast_manager.h"
 #include "app/rom.h"
 #include "imgui/imgui.h"
@@ -131,8 +131,8 @@ void WorkspaceManager::LoadModderLayout() {
 }
 
 void WorkspaceManager::ShowAllWindows() {
-  if (card_registry_) {
-    card_registry_->ShowAll();
+  if (panel_manager_) {
+    panel_manager_->ShowAll();
   }
   if (toast_manager_) {
     toast_manager_->Show("All windows shown", ToastType::kInfo);
@@ -140,8 +140,8 @@ void WorkspaceManager::ShowAllWindows() {
 }
 
 void WorkspaceManager::HideAllWindows() {
-  if (card_registry_) {
-    card_registry_->HideAll();
+  if (panel_manager_) {
+    panel_manager_->HideAll();
   }
   if (toast_manager_) {
     toast_manager_->Show("All windows hidden", ToastType::kInfo);

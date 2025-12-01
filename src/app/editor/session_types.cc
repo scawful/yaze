@@ -50,7 +50,8 @@ void EditorSet::ApplyDependencies(const EditorDependencies& dependencies) {
   if (settings_panel_) {
     settings_panel_->SetRom(dependencies.rom);
     settings_panel_->SetUserSettings(dependencies.user_settings);
-    settings_panel_->SetCardRegistry(dependencies.card_registry);
+    settings_panel_->SetCardRegistry(dependencies.panel_manager);
+    settings_panel_->SetShortcutManager(dependencies.shortcut_manager);
   }
 }
 
