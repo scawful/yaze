@@ -1056,6 +1056,10 @@ absl::Status EditorManager::Update() {
     session_coordinator_->UpdateSessions();
   }
 
+  // Central panel drawing - once per frame for all EditorPanel instances
+  // This draws panels based on active category, respecting pinned and persistent panels
+  panel_manager_.DrawAllVisiblePanels();
+
   if (ui_coordinator_ && ui_coordinator_->IsPerformanceDashboardVisible()) {
     gfx::PerformanceDashboard::Get().Render();
   }
@@ -1619,6 +1623,9 @@ absl::Status EditorManager::OpenRomOrProject(const std::string& filename) {
     ui_coordinator_->SetWelcomeScreenVisible(false);
     // dashboard_panel_->ClearRecentEditors();
     ui_coordinator_->SetEditorSelectionVisible(true);
+    
+    // Set Dashboard category to suppress panel drawing until user selects an editor
+    panel_manager_.SetActiveCategory(PanelManager::kDashboardCategory);
   }
   return absl::OkStatus();
 }
@@ -1703,6 +1710,9 @@ absl::Status EditorManager::OpenProject() {
     ui_coordinator_->SetWelcomeScreenVisible(false);
     // dashboard_panel_->ClearRecentEditors();
     ui_coordinator_->SetEditorSelectionVisible(true);
+    
+    // Set Dashboard category to suppress panel drawing until user selects an editor
+    panel_manager_.SetActiveCategory(PanelManager::kDashboardCategory);
   }
 
   // Apply workspace settings
@@ -2008,9 +2018,14 @@ void EditorManager::SwitchToEditor(EditorType editor_type, bool force_visible, b
         // Using PanelManager directly
 
         if (*editor->active()) {
-          // Editor activated - set its category
-          panel_manager_.SetActiveCategory(
-              EditorRegistry::GetEditorCategory(editor_type));
+          // Editor activated - trigger panel visibility switch
+          std::string old_category = panel_manager_.GetActiveCategory();
+          std::string new_category = EditorRegistry::GetEditorCategory(editor_type);
+          
+          // Only trigger OnEditorSwitch if category actually changes
+          if (old_category != new_category) {
+            panel_manager_.OnEditorSwitch(old_category, new_category);
+          }
 
           // Initialize default layout on first activation
           if (layout_manager_ &&
@@ -2028,8 +2043,11 @@ void EditorManager::SwitchToEditor(EditorType editor_type, bool force_visible, b
           for (auto* other : editor_set->active_editors_) {
             if (*other->active() && IsCardBasedEditor(other->type()) &&
                 other != editor) {
-              panel_manager_.SetActiveCategory(
-                  EditorRegistry::GetEditorCategory(other->type()));
+              std::string old_category = panel_manager_.GetActiveCategory();
+              std::string new_category = EditorRegistry::GetEditorCategory(other->type());
+              if (old_category != new_category) {
+                panel_manager_.OnEditorSwitch(old_category, new_category);
+              }
               break;
             }
           }

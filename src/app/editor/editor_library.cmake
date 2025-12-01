@@ -47,6 +47,7 @@ set(
   app/editor/overworld/panels/area_graphics_panel.cc
   app/editor/overworld/panels/tile16_selector_panel.cc
   app/editor/overworld/panels/map_properties_panel.cc
+  app/editor/overworld/panels/overworld_canvas_panel.cc
   app/editor/overworld/panels/scratch_space_panel.cc
   app/editor/overworld/panels/usage_statistics_panel.cc
   app/editor/overworld/panels/tile8_selector_panel.cc

@@ -127,13 +127,23 @@ class ResourcePanel : public EditorPanel {
   // ==========================================================================
 
   /**
-   * @brief Resource panels are always editor-bound by default
-   * @return PanelCategory::EditorBound
+   * @brief Resource panels use CrossEditor category for opt-in persistence
+   * @return PanelCategory::CrossEditor
    *
-   * Resource panels typically don't make sense outside their editor context.
+   * Resource panels (rooms, songs, etc.) can be pinned to persist across
+   * editor switches. By default, they're NOT pinned and will be hidden
+   * (but not closed) when switching to another editor.
+   *
+   * Pin behavior:
+   * - Open a room → NOT pinned, hidden when switching editors
+   * - Pin it → stays visible across all editors
+   * - Unpin it → hidden when switching editors
+   * - Close via X → fully removed regardless of pin state
+   *
+   * The drawing loops in each editor handle the category filtering.
    */
   PanelCategory GetPanelCategory() const override {
-    return PanelCategory::EditorBound;
+    return PanelCategory::CrossEditor;
   }
 
   /**

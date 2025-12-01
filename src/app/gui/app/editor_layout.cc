@@ -430,50 +430,17 @@ void PanelWindow::DrawFloatingIconButton() {
 }
 
 void PanelWindow::DrawHeaderButtons() {
-  // Calculate position for buttons (top right, left of close button)
-  ImGuiWindow* window = ImGui::GetCurrentWindow();
-  float button_size = ImGui::GetFrameHeight();
-  float button_y = window->TitleBarHeight * 0.5f - button_size * 0.5f;
-
-  // Start from right side, accounting for close button/collapse button
-  float right_offset = window->TitleBarHeight * 2.0f; // Approximate space for X and collapse
+  // Note: Drawing buttons in docked window title bars is problematic with ImGui's
+  // docking system. The pin functionality is better managed through the Activity Bar
+  // sidebar where each panel entry can have a pin toggle. This avoids layout issues
+  // with docked windows and provides a cleaner UI.
+  //
+  // For now, pin state is tracked internally but the button is not rendered.
+  // Right-click context menu in Activity Bar can be used for pinning.
   
-  // Add pin button if pinnable
-  if (pinnable_) {
-    ImGui::SameLine(window->Size.x - right_offset - button_size);
-    
-    // Use a different icon/color if pinned
-    const char* pin_icon = pinned_ ? ICON_MD_PUSH_PIN : ICON_MD_PUSH_PIN; // TODO: Use outline/filled variant
-    if (pinned_) {
-      ImGui::PushStyleColor(ImGuiCol_Text, GetAccentColor());
-    }
-    
-    if (ImGui::SmallButton(pin_icon)) {
-      pinned_ = !pinned_;
-    }
-    
-    if (pinned_) {
-      ImGui::PopStyleColor();
-    }
-    
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(pinned_ ? "Unpin from this editor" : "Pin to keep visible across editors");
-    }
-    
-    right_offset += button_size + 4.0f;
-  }
-  
-  // Draw custom header buttons
-  for (const auto& btn : header_buttons_) {
-    ImGui::SameLine(window->Size.x - right_offset - button_size);
-    if (ImGui::SmallButton(btn.icon.c_str())) {
-      if (btn.callback) btn.callback();
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("%s", btn.tooltip.c_str());
-    }
-    right_offset += button_size + 4.0f;
-  }
+  // Skip drawing header buttons in content area - they interfere with docking
+  // and take up vertical space. The pin state is still tracked and used by
+  // PanelManager for category filtering.
 }
 
 // ============================================================================

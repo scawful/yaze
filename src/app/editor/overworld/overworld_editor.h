@@ -176,6 +176,8 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   UsageStatisticsCard* usage_stats_card() { return usage_stats_card_.get(); }
   DebugWindowCard* debug_window_card() { return debug_window_card_.get(); }
 
+  void DrawOverworldCanvas();
+
  private:
   void DrawFullscreenCanvas();
   // void DrawToolset(); // Removed in favor of OverworldToolbar
@@ -222,7 +224,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
    */
   absl::Status CheckForCurrentMap();
   void CheckForMousePan();
-  void DrawOverworldCanvas();
+
 
   void UpdateBlocksetSelectorState();
 

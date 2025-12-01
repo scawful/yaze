@@ -165,6 +165,9 @@ class PanelWindow {
   // Pin management
   void SetPinned(bool pinned) { pinned_ = pinned; }
   bool IsPinned() const { return pinned_; }
+  void SetPinChangedCallback(std::function<void(bool)> callback) {
+    on_pin_changed_ = std::move(callback);
+  }
 
   // Focus the panel window (bring to front and set focused)
   void Focus();
@@ -197,6 +200,7 @@ class PanelWindow {
   // Pinning support
   bool pinnable_ = false;
   bool pinned_ = false;
+  std::function<void(bool)> on_pin_changed_;
   
   // Header buttons
   struct HeaderButton {

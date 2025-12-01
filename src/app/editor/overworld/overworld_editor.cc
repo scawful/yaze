@@ -29,6 +29,7 @@
 #include "app/editor/overworld/overworld_sidebar.h"
 #include "app/editor/overworld/overworld_toolbar.h"
 #include "app/editor/overworld/panels/area_graphics_panel.h"
+#include "app/editor/overworld/panels/overworld_canvas_panel.h"
 #include "app/editor/overworld/panels/tile16_selector_panel.h"
 #include "app/editor/overworld/panels/map_properties_panel.h"
 #include "app/editor/overworld/panels/scratch_space_panel.h"
@@ -109,129 +110,13 @@ void OverworldEditor::Initialize() {
   panel_manager->RegisterEditorPanel(
       std::make_unique<V3SettingsPanel>(this));
 
-  // Legacy panel descriptors for Activity Bar
-  panel_manager->RegisterPanel({
-      .card_id = MakeCardId("overworld.canvas"),
-      .display_name = "Overworld Canvas",
-      .window_title = " Overworld Canvas",
-      .icon = ICON_MD_MAP,
-      .category = "Overworld",
-      .shortcut_hint = "Ctrl+Shift+O",
-      .visibility_flag = &show_overworld_canvas_,
-      .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
-      .disabled_tooltip = "Load a ROM first",
-      .priority = 5  // Show first, most important
-  });
+  panel_manager->RegisterEditorPanel(
+      std::make_unique<OverworldCanvasPanel>(this));
 
-  panel_manager->RegisterPanel(
-      {.card_id = MakeCardId("overworld.tile16_selector"),
-       .display_name = "Tile16 Selector",
-       .window_title = " Tile16 Selector",
-       .icon = ICON_MD_GRID_ON,
-       .category = "Overworld",
-       .shortcut_hint = "Ctrl+Alt+1",
-       .priority = 10,
-       .visibility_flag = &show_tile16_selector_,
-       .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
-       .disabled_tooltip = "Load a ROM first",
-       .card_instance = nullptr});
-
-  panel_manager->RegisterPanel(
-      {.card_id = MakeCardId("overworld.tile8_selector"),
-       .display_name = "Tile8 Selector",
-       .window_title = " Tile8 Selector",
-       .icon = ICON_MD_GRID_3X3,
-       .category = "Overworld",
-       .shortcut_hint = "Ctrl+Alt+2",
-       .priority = 20,
-       .visibility_flag = &show_tile8_selector_,
-       .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
-       .disabled_tooltip = "Load a ROM first",
-       .card_instance = nullptr});
-
-  panel_manager->RegisterPanel({.card_id = MakeCardId("overworld.area_graphics"),
-                               .display_name = "Area Graphics",
-                               .window_title = " Area Graphics",
-                               .icon = ICON_MD_IMAGE,
-                               .category = "Overworld",
-                               .shortcut_hint = "Ctrl+Alt+3",
-                               .priority = 30,
-                               .visibility_flag = &show_area_gfx_,
-                               .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
-                               .disabled_tooltip = "Load a ROM first",
-                               .card_instance = nullptr});
-
-  panel_manager->RegisterPanel({.card_id = MakeCardId("overworld.scratch"),
-                               .display_name = "Scratch Workspace",
-                               .window_title = " Scratch Pad",
-                               .icon = ICON_MD_DRAW,
-                               .category = "Overworld",
-                               .shortcut_hint = "Ctrl+Alt+4",
-                               .priority = 40,
-                               .visibility_flag = &show_scratch_,
-                               .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
-                               .disabled_tooltip = "Load a ROM first",
-                               .card_instance = nullptr});
-
-  panel_manager->RegisterPanel({.card_id = MakeCardId("overworld.gfx_groups"),
-                               .display_name = "GFX Groups",
-                               .window_title = " GFX Groups",
-                               .icon = ICON_MD_FOLDER,
-                               .category = "Overworld",
-                               .shortcut_hint = "Ctrl+Alt+5",
-                               .priority = 50,
-                               .visibility_flag = &show_gfx_groups_,
-                               .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
-                               .disabled_tooltip = "Load a ROM first",
-                               .card_instance = nullptr});
-
-  panel_manager->RegisterPanel({.card_id = MakeCardId("overworld.usage_stats"),
-                               .display_name = "Usage Statistics",
-                               .window_title = " Usage Statistics",
-                               .icon = ICON_MD_ANALYTICS,
-                               .category = "Overworld",
-                               .shortcut_hint = "Ctrl+Alt+6",
-                               .priority = 60,
-                               .visibility_flag = &show_usage_stats_,
-                               .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
-                               .disabled_tooltip = "Load a ROM first",
-                               .card_instance = nullptr});
-
-  panel_manager->RegisterPanel({.card_id = MakeCardId("overworld.v3_settings"),
-                               .display_name = "v3 Settings",
-                               .window_title = " v3 Settings",
-                               .icon = ICON_MD_SETTINGS,
-                               .category = "Overworld",
-                               .shortcut_hint = "Ctrl+Alt+7",
-                               .priority = 70,
-                               .visibility_flag = &show_v3_settings_,
-                               .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
-                               .disabled_tooltip = "Load a ROM first",
-                               .card_instance = nullptr});
-
-  panel_manager->RegisterPanel({.card_id = MakeCardId("overworld.properties"),
-                               .display_name = "Map Properties",
-                               .window_title = " Map Properties",
-                               .icon = ICON_MD_TUNE,
-                               .category = "Overworld",
-                               .shortcut_hint = "Ctrl+Alt+P",
-                               .priority = 15,
-                               .visibility_flag = &show_map_properties_panel_,
-                               .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
-                               .disabled_tooltip = "Load a ROM first",
-                               .card_instance = nullptr});
-                               
-  panel_manager->RegisterPanel({.card_id = MakeCardId("overworld.debug"),
-                               .display_name = "Debug Window",
-                               .window_title = " Debug Window",
-                               .icon = ICON_MD_BUG_REPORT,
-                               .category = "Overworld",
-                               .shortcut_hint = "Ctrl+Alt+D",
-                               .priority = 80,
-                               .visibility_flag = &show_debug_window_,
-                               .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
-                               .disabled_tooltip = "Load a ROM first",
-                               .card_instance = nullptr});
+  // Note: Legacy RegisterPanel() calls removed.
+  // RegisterEditorPanel() auto-creates PanelDescriptor entries for each panel,
+  // eliminating the dual registration problem identified in the panel system audit.
+  // Panel visibility is now managed centrally through PanelManager.
 
   // Original initialization code below:
   // Initialize MapPropertiesSystem with canvas and bitmap data
@@ -372,95 +257,52 @@ absl::Status OverworldEditor::Update() {
   // Update blockset atlas with any pending tile16 changes for live preview
   // UpdateBlocksetWithPendingTileChanges();
 
-  if (overworld_canvas_fullscreen_) {
-
+  // Early return if panel_manager is not available
+  // (panels won't be drawn without it, so no point continuing)
+  if (!dependencies_.panel_manager) {
     return status_;
   }
 
-  // Create session-aware cards (non-static for multi-session support)
-  gui::PanelWindow tile16_card(MakeCardTitle("Tile16 Selector").c_str(),
-                              ICON_MD_GRID_3X3);
-  gui::PanelWindow tile8_card(MakeCardTitle("Tile8 Selector").c_str(),
-                             ICON_MD_GRID_4X4);
-  gui::PanelWindow area_gfx_card(MakeCardTitle("Area Graphics").c_str(),
-                                ICON_MD_IMAGE);
-  gui::PanelWindow scratch_card(MakeCardTitle("Scratch Space").c_str(),
-                               ICON_MD_BRUSH);
-  gui::PanelWindow tile16_editor_card(MakeCardTitle("Tile16 Editor").c_str(),
-                                     ICON_MD_GRID_ON);
-  gui::PanelWindow gfx_groups_card(MakeCardTitle("Graphics Groups").c_str(),
-                                  ICON_MD_COLLECTIONS);
-  gui::PanelWindow usage_stats_card(MakeCardTitle("Usage Statistics").c_str(),
-                                   ICON_MD_ANALYTICS);
-  gui::PanelWindow v3_settings_card(MakeCardTitle("v3 Settings").c_str(),
-                                   ICON_MD_TUNE);
-
-  // Configure card positions (these settings persist via imgui.ini)
-  static bool cards_configured = false;
-  if (!cards_configured) {
-    // Position cards for optimal workflow
-    tile16_card.SetDefaultSize(300, 600);
-    tile16_card.SetPosition(gui::PanelWindow::Position::Right);
-
-    tile8_card.SetDefaultSize(280, 500);
-    tile8_card.SetPosition(gui::PanelWindow::Position::Right);
-
-    area_gfx_card.SetDefaultSize(300, 400);
-    area_gfx_card.SetPosition(gui::PanelWindow::Position::Right);
-
-    scratch_card.SetDefaultSize(350, 500);
-    scratch_card.SetPosition(gui::PanelWindow::Position::Right);
-
-    tile16_editor_card.SetDefaultSize(800, 600);
-    tile16_editor_card.SetPosition(gui::PanelWindow::Position::Floating);
-
-    gfx_groups_card.SetDefaultSize(700, 550);
-    gfx_groups_card.SetPosition(gui::PanelWindow::Position::Floating);
-
-    usage_stats_card.SetDefaultSize(600, 500);
-    usage_stats_card.SetPosition(gui::PanelWindow::Position::Floating);
-
-    v3_settings_card.SetDefaultSize(500, 600);
-    v3_settings_card.SetPosition(gui::PanelWindow::Position::Floating);
-
-    cards_configured = true;
+  if (overworld_canvas_fullscreen_) {
+    return status_;
   }
 
+  // ===========================================================================
+  // Main Overworld Canvas
+  // ===========================================================================
+  // The panels (Tile16 Selector, Area Graphics, etc.) are now managed by
+  // EditorPanel/PanelManager and drawn automatically. This section only
+  // handles the main canvas and toolbar.
+  
   // Main canvas (full width when cards are docked)
+  // Main canvas (full width when cards are docked)
+  // Now handled by OverworldCanvasPanel
+  /*
   if (show_overworld_canvas_) {
+    // TEMPORARILY USING LOCAL FLAG TO ISOLATE CRASH
     // Use the registered panel ID for visibility management
-    bool* p_open = dependencies_.panel_manager
-                       ? dependencies_.panel_manager->GetVisibilityFlag(
-                             dependencies_.session_id, "overworld.canvas")
-                       : &show_overworld_canvas_;
+    //bool* p_open = dependencies_.panel_manager
+    //                   ? dependencies_.panel_manager->GetVisibilityFlag(
+    //                         dependencies_.session_id, "overworld.canvas")
+    //                   : &show_overworld_canvas_;
+    bool* p_open = &show_overworld_canvas_;
 
     if (p_open && *p_open) {
       if (toolbar_) {
         bool has_selection = ow_map_canvas_.select_rect_active() &&
                              !ow_map_canvas_.selected_tiles().empty();
-        // Check if current scratch slot has data (simplified check)
+        // Check if current scratch slot has data
         bool scratch_has_data = false;
         if (current_scratch_slot_ >= 0 && current_scratch_slot_ < 4) {
-             // Check if any tile in the 32x32 grid is non-zero
-             // This is a bit expensive to do every frame, maybe cache it?
-             // For now, let's just assume true if it's not empty, or check a flag
-             // Actually, let's just check if the vector is not empty and has non-zero
-             // But scratch_spaces_ is a struct with a 2D array.
-             // Let's add a helper or just check the first tile for now as a proxy?
-             // No, that's bad.
-             // Let's check a flag that we maintain, or just iterate (32x32 is small enough? 1024 iters)
-             // Optimization: Add `has_data` flag to ScratchSpaceSlot
-             
-             // For now, let's iterate. 1024 checks is nothing for modern CPU.
-             for(int x=0; x<32; ++x) {
-                 for(int y=0; y<32; ++y) {
-                     if(scratch_spaces_[current_scratch_slot_].tile_data[x][y] != 0) {
-                         scratch_has_data = true;
-                         break;
-                     }
-                 }
-                 if(scratch_has_data) break;
-             }
+          for(int x=0; x<32; ++x) {
+            for(int y=0; y<32; ++y) {
+              if(scratch_spaces_[current_scratch_slot_].tile_data[x][y] != 0) {
+                scratch_has_data = true;
+                break;
+              }
+            }
+            if(scratch_has_data) break;
+          }
         }
 
         toolbar_->Draw(current_world_, current_map_, current_map_lock_,
@@ -471,105 +313,14 @@ absl::Status OverworldEditor::Update() {
       }
       DrawOverworldCanvas();
     }
-    // End() not needed as we are not using the local card wrapper anymore
   }
+  */
 
-  // Floating tile selector cards (4 tabs converted to separate cards)
-  if (show_tile16_selector_) {
-    if (tile16_card.Begin(&show_tile16_selector_)) {
-      status_ = DrawTile16Selector();
-    }
-    tile16_card.End();  // ALWAYS call End after Begin
-  }
-
-  if (show_tile8_selector_) {
-    if (tile8_card.Begin(&show_tile8_selector_)) {
-      gui::BeginPadding(3);
-      gui::BeginChildWithScrollbar("##Tile8SelectorScrollRegion");
-      DrawTile8Selector();
-      ImGui::EndChild();
-      gui::EndNoPadding();
-    }
-    tile8_card.End();  // ALWAYS call End after Begin
-  }
-
-  if (show_area_gfx_) {
-    if (area_gfx_card.Begin(&show_area_gfx_)) {
-      status_ = DrawAreaGraphics();
-    }
-    area_gfx_card.End();  // ALWAYS call End after Begin
-  }
-
-  if (show_scratch_) {
-    if (scratch_card.Begin(&show_scratch_)) {
-      status_ = DrawScratchSpace();
-    }
-    scratch_card.End();  // ALWAYS call End after Begin
-  }
-
-  // Tile16 Editor popup-only (no tab)
-  if (show_tile16_editor_) {
-    if (tile16_editor_card.Begin(&show_tile16_editor_)) {
-      if (rom_->is_loaded()) {
-        status_ = tile16_editor_.Update();
-      } else {
-        gui::CenterText("No ROM loaded");
-      }
-    }
-    tile16_editor_card.End();  // ALWAYS call End after Begin
-  }
-
-  // Graphics Groups popup
-  if (show_gfx_groups_) {
-    if (gfx_groups_card.Begin(&show_gfx_groups_)) {
-      if (rom_->is_loaded()) {
-        status_ = gfx_group_editor_.Update();
-      } else {
-        gui::CenterText("No ROM loaded");
-      }
-    }
-    gfx_groups_card.End();  // ALWAYS call End after Begin
-  }
-
-
-
-  // Area Configuration Panel (detailed editing)
-  if (show_map_properties_panel_) {
-    ImGui::SetNextWindowSize(ImVec2(400, 600), ImGuiCond_FirstUseEver);
-    if (ImGui::Begin("Area Configuration", &show_map_properties_panel_)) {
-      static bool show_custom_bg_color_editor = false;
-      static bool show_overlay_editor = false;
-      static int game_state = 0; // 0=Beginning, 1=Zelda Saved, 2=Master Sword
-
-      if (sidebar_) {
-        sidebar_->Draw(current_world_, current_map_, current_map_lock_,
-                       game_state, show_custom_bg_color_editor,
-                       show_overlay_editor);
-      }
-
-      // Draw popups if triggered from sidebar
-      if (show_custom_bg_color_editor) {
-        ImGui::OpenPopup("CustomBGColorEditor");
-      }
-      if (show_overlay_editor) {
-        ImGui::OpenPopup("OverlayEditor");
-      }
-
-      if (ImGui::BeginPopup("CustomBGColorEditor")) {
-        map_properties_system_->DrawCustomBackgroundColorEditor(
-            current_map_, show_custom_bg_color_editor);
-        ImGui::EndPopup();
-      }
-
-      if (ImGui::BeginPopup("OverlayEditor")) {
-        map_properties_system_->DrawOverlayEditor(current_map_,
-                                                  show_overlay_editor);
-        ImGui::EndPopup();
-      }
-    }
-    ImGui::End();
-  }
-
+  // ===========================================================================
+  // Non-Panel Windows (not managed by EditorPanel system)
+  // ===========================================================================
+  // These are separate feature windows, not part of the panel system
+  
   // Custom Background Color Editor
   if (show_custom_bg_color_editor_) {
     ImGui::SetNextWindowSize(ImVec2(400, 500), ImGuiCond_FirstUseEver);
@@ -598,41 +349,10 @@ absl::Status OverworldEditor::Update() {
     ImGui::End();
   }
 
-  // Map Properties Card (Sidebar)
-  if (show_map_properties_panel_) {
-    // We use the same flag as the old panel, but now it's a card
-    gui::PanelWindow properties_card(MakeCardTitle("Map Properties").c_str(),
-                                    ICON_MD_TUNE);
-    // Configure default position if not already configured
-    static bool props_card_configured = false;
-    if (!props_card_configured) {
-      properties_card.SetDefaultSize(300, 700);
-      properties_card.SetPosition(gui::PanelWindow::Position::Left);
-      props_card_configured = true;
-    }
-
-    if (properties_card.Begin(&show_map_properties_panel_)) {
-      if (sidebar_) {
-        sidebar_->Draw(current_world_, current_map_, current_map_lock_,
-                       game_state_, show_custom_bg_color_editor_,
-                       show_overlay_editor_);
-      }
-    }
-    properties_card.End();
-  }
-
-  // Usage Statistics Card
-  if (show_usage_stats_ && usage_stats_card_) {
-    usage_stats_card_->Draw(&show_usage_stats_);
-  }
-
-  // Debug Window Card
-  if (show_debug_window_ && debug_window_card_) {
-    debug_window_card_->Draw(&show_debug_window_);
-  }
-
-  // --- BEGIN CENTRALIZED INTERACTION LOGIC ---
-  auto* hovered_entity = entity_renderer_ ? entity_renderer_->hovered_entity() : nullptr;
+  // ===========================================================================
+  // Centralized Entity Interaction Logic
+  // ===========================================================================
+  zelda3::GameEntity* hovered_entity = nullptr;
 
   // Handle all MOUSE mode interactions here
   if (current_mode == EditingMode::MOUSE) {
@@ -855,6 +575,7 @@ absl::Status OverworldEditor::Update() {
       }
     }
   }
+  return absl::OkStatus();
 }
 
 void OverworldEditor::DrawOverworldMaps() {
@@ -1586,11 +1307,32 @@ void OverworldEditor::DrawOverworldCanvas() {
   // Simplified map settings - compact row with popup panels for detailed
   // editing
   if (rom_->is_loaded() && overworld_.is_loaded() && map_properties_system_) {
-    map_properties_system_->DrawCanvasToolbar(
-        current_world_, current_map_, current_map_lock_,
-        show_map_properties_panel_, show_custom_bg_color_editor_,
-        show_overlay_editor_, show_overlay_preview_, game_state_, current_mode,
-        entity_edit_mode_);
+    // map_properties_system_->DrawCanvasToolbar(
+    //     current_world_, current_map_, current_map_lock_,
+    //     show_map_properties_panel_, show_custom_bg_color_editor_,
+    //     show_overlay_editor_, show_overlay_preview_, game_state_, current_mode,
+    //     entity_edit_mode_);
+    bool has_selection = ow_map_canvas_.select_rect_active() &&
+                             !ow_map_canvas_.selected_tiles().empty();
+        // Check if current scratch slot has data
+        bool scratch_has_data = false;
+        if (current_scratch_slot_ >= 0 && current_scratch_slot_ < 4) {
+          for(int x=0; x<32; ++x) {
+            for(int y=0; y<32; ++y) {
+              if(scratch_spaces_[current_scratch_slot_].tile_data[x][y] != 0) {
+                scratch_has_data = true;
+                break;
+              }
+            }
+            if(scratch_has_data) break;
+          }
+        }
+
+        toolbar_->Draw(current_world_, current_map_, current_map_lock_,
+                       current_mode, entity_edit_mode_,
+                       show_map_properties_panel_, show_scratch_,
+                       current_scratch_slot_, has_selection, scratch_has_data,
+                       rom_, &overworld_);
   }
 
   gui::BeginNoPadding();
