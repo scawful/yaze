@@ -20,17 +20,17 @@ namespace editor {
 void AgentUiController::Initialize(ToastManager* toast_manager,
                                    ProposalDrawer* proposal_drawer,
                                    RightPanelManager* right_panel_manager,
-                                   EditorCardRegistry* card_registry) {
+                                   PanelManager* panel_manager) {
   toast_manager_ = toast_manager;
   right_panel_manager_ = right_panel_manager;
 
   // Create initial agent session
   session_manager_.CreateSession("Agent 1");
 
-  // Provide minimal dependencies so cards register with the activity bar
-  if (card_registry) {
+  // Provide minimal dependencies so panels register with the activity bar
+  if (panel_manager) {
     EditorDependencies deps;
-    deps.card_registry = card_registry;
+    deps.panel_manager = panel_manager;
     deps.toast_manager = toast_manager;
     agent_editor_.SetDependencies(deps);
   }
