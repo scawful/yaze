@@ -132,23 +132,42 @@ void Dsp::NewFrame() {
 }
 
 void Dsp::Cycle() {
+  // ========================================================================
+  // DSP Mixing Pipeline
+  // The S-DSP generates samples for 8 voices, applies effects, and mixes
+  // them into a final stereo output. This runs at 32000Hz.
+  // ========================================================================
+
+  // 1. Clear mixing accumulators for the new sample period
   sampleOutL = 0;
   sampleOutR = 0;
   echoOutL = 0;
   echoOutR = 0;
+
+  // 2. Process all 8 voices (generate samples, pitch, envelope)
   for (int i = 0; i < 8; i++) {
     CycleChannel(i);
   }
+
+  // 3. Apply Echo (FIR Filter) and mix into main output
   HandleEcho();  // also applies master volume
+
+  // 4. Update Noise Generator (LFSR)
+  // Counter runs at 32000Hz, noise rate divisor determines update freq
   counter = counter == 0 ? 30720 : counter - 1;
   HandleNoise();
-  evenCycle = !evenCycle;
-  // handle mute flag
+
+  // 5. Update State Flags
+  evenCycle = !evenCycle; // Used for Key On/Off timing (every other sample)
+
+  // 6. Apply Mute Flag (FLG bit 6)
   if (mute) {
     sampleOutL = 0;
     sampleOutR = 0;
   }
-  // put final sample in the ring buffer and advance pointer
+
+  // 7. Output Stage
+  // Store final stereo sample in ring buffer for the APU/Emulator to read
   sampleBuffer[(sampleOffset & 0x3ff) * 2] = sampleOutL;
   sampleBuffer[(sampleOffset & 0x3ff) * 2 + 1] = sampleOutR;
   sampleOffset = (sampleOffset + 1) & 0x3ff;
@@ -178,7 +197,9 @@ void Dsp::HandleEcho() {
   firBufferL[firBufferIndex] = ramSample >> 1;
   ramSample = aram_[(adr + 2) & 0xffff] | (aram_[(adr + 3) & 0xffff] << 8);
   firBufferR[firBufferIndex] = ramSample >> 1;
-  // calculate FIR-sum
+  
+  // Calculate FIR-sum (Finite Impulse Response Filter)
+  // 8-tap filter applied to echo buffer history
   int sumL = 0, sumR = 0;
   for (int i = 0; i < 8; i++) {
     sumL += (firBufferL[(firBufferIndex + i + 1) & 0x7] * firValues[i]) >> 6;
@@ -191,15 +212,19 @@ void Dsp::HandleEcho() {
   }
   sumL = clamp16(sumL) & ~1;
   sumR = clamp16(sumR) & ~1;
-  // apply master volume and modify output with sum
+  
+  // Apply master volume and mix echo into main output
+  // sampleOutL/R currently holds the sum of all voices
   sampleOutL = clamp16(((sampleOutL * masterVolumeL) >> 7) +
                        ((sumL * echoVolumeL) >> 7));
   sampleOutR = clamp16(((sampleOutR * masterVolumeR) >> 7) +
                        ((sumR * echoVolumeR) >> 7));
-  // get echo value
+  
+  // Calculate echo feedback for next pass
   int echoL = clamp16(echoOutL + clip16((sumL * feedbackVolume) >> 7)) & ~1;
   int echoR = clamp16(echoOutR + clip16((sumR * feedbackVolume) >> 7)) & ~1;
-  // write it to ram
+  
+  // Write feedback to echo buffer in RAM
   if (echoWrites) {
     aram_[adr] = echoL & 0xff;
     aram_[(adr + 1) & 0xffff] = echoL >> 8;
@@ -252,9 +277,13 @@ void Dsp::CycleChannel(int ch) {
   if (channel[ch].useNoise) {
     sample = clip16(noiseSample * 2);
   } else {
-    sample = GetSample(ch);
+    sample = GetSample(ch); // Interpolated sample from BRR buffer
   }
+
+  // Apply Gain/Envelope (16-bit * 11-bit -> ~27-bit, scaled back to 16-bit)
+  // The & ~1 clears the bottom bit, a quirk of the SNES DSP
   sample = ((sample * channel[ch].gain) >> 11) & ~1;
+
   // handle reset and release
   if (reset || (channel[ch].brrHeader & 0x03) == 1) {
     channel[ch].adsrState = 3;  // go to release
@@ -295,12 +324,15 @@ void Dsp::CycleChannel(int ch) {
   channel[ch].pitchCounter += pitch;
   if (channel[ch].pitchCounter > 0x7fff)
     channel[ch].pitchCounter = 0x7fff;
+  
   // set outputs
   ram[(ch << 4) | 8] = channel[ch].gain >> 4;
   ram[(ch << 4) | 9] = sample >> 8;
   channel[ch].sampleOut = sample;
 
   if (!debug_mute_channels_[ch]) {
+    // Mix into main output accumulator (with clipping)
+    // (sample * volume) >> 7 scales 16-bit * 7-bit to roughly 16-bit
     sampleOutL = clamp16(sampleOutL + ((sample * channel[ch].volumeL) >> 7));
     sampleOutR = clamp16(sampleOutR + ((sample * channel[ch].volumeR) >> 7));
     if (channel[ch].echoEnable) {
@@ -375,6 +407,7 @@ void Dsp::HandleGain(int ch) {
 }
 
 int16_t Dsp::GetSample(int ch) {
+  // Gaussian interpolation using a 512-entry lookup table
   int pos = (channel[ch].pitchCounter >> 12) + channel[ch].bufferOffset;
   int offset = (channel[ch].pitchCounter >> 4) & 0xff;
   int16_t news = channel[ch].decodeBuffer[(pos + 3) % 12];

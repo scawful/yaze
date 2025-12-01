@@ -73,6 +73,11 @@ int Spc700::Step() {
 }
 
 void Spc700::RunOpcode() {
+  // Multi-stage instruction execution
+  // step 0: Fetch opcode and initialize instruction (only if previous instruction complete)
+  // step 1: Execute instruction logic (may require multiple calls/cycles for complex ops)
+  // bstep: Tracks sub-steps within a single instruction execution (e.g., read low byte, read high byte)
+  
   static int entry_log = 0;
   if ((PC >= 0xFFF0 && PC <= 0xFFFF) && entry_log++ < 5) {
     LOG_DEBUG("SPC", "RunOpcode ENTRY: PC=$%04X step=%d bstep=%d", PC, step,
