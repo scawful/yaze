@@ -241,6 +241,8 @@ void Snes::RunAudioFrame() {
   // Audio-focused frame execution: runs CPU+APU but skips PPU rendering
   // This maintains CPU-APU communication timing while reducing overhead
   // Used by MusicEditor for authentic audio playback
+  // Note: PPU registers are still writable, but rendering logic (StartLine/RunLine)
+  // in RunCycle() is skipped when audio_only_mode_ is true.
 
   audio_only_mode_ = true;
 

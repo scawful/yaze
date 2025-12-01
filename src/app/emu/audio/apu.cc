@@ -93,8 +93,11 @@ void Apu::RunCycles(uint64_t master_cycles) {
   g_last_master_cycles = master_cycles;
 
   // Convert CPU master cycles to APU cycles using fixed-point ratio (no
-  // floating-point drift) target_apu_cycles = cycles_ + (master_delta *
-  // numerator) / denominator
+  // floating-point drift) 
+  // Target APU cycle count is derived from master clock ratio:
+  // APU Clock (~1.024MHz) / Master Clock (~21.477MHz)
+  // target_apu_cycles = cycles_ + (master_delta * numerator) / denominator
+  // This ensures the APU stays perfectly synchronized with the CPU over long periods.
   uint64_t numerator =
       memory_.pal_timing() ? kApuCyclesNumeratorPal : kApuCyclesNumerator;
   uint64_t denominator =
