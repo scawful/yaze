@@ -582,6 +582,13 @@ absl::StatusOr<std::array<gfx::Bitmap, kNumGfxSheets>> LoadAllGraphicsData(
       // Convert from SNES 3BPP planar format to linear 8BPP indexed format
       auto converted_sheet = gfx::SnesTo8bppSheet(sheet, 3);
 
+      // CRITICAL: Enforce 4096-byte size (64 tiles * 64 bytes) for 8BPP sheets
+      // This ensures fixed-stride indexing (sheet_id * 4096) works correctly.
+      // 3BPP decompression might produce slightly more/less data, so we must normalize.
+      if (converted_sheet.size() != 4096) {
+        converted_sheet.resize(4096, 0);
+      }
+
       // Create bitmap from converted pixel data
       graphics_sheets[i].Create(gfx::kTilesheetWidth, gfx::kTilesheetHeight,
                                 gfx::kTilesheetDepth, converted_sheet);
@@ -626,8 +633,8 @@ absl::StatusOr<std::array<gfx::Bitmap, kNumGfxSheets>> LoadAllGraphicsData(
       // Create placeholder bitmap for skipped/failed sheets (2BPP sheets, etc.)
       // This ensures the bitmap exists even if empty, preventing index out of
       // bounds errors when editors iterate over all sheets.
-      constexpr size_t kPlaceholderSize =
-          gfx::kTilesheetWidth * gfx::kTilesheetHeight;
+      // 128x32 pixels * 1 byte/pixel = 4096 bytes
+      constexpr size_t kPlaceholderSize = 4096; 
       std::vector<uint8_t> placeholder_data(kPlaceholderSize, 0xFF);
       graphics_sheets[i].Create(gfx::kTilesheetWidth, gfx::kTilesheetHeight,
                                 gfx::kTilesheetDepth, std::move(placeholder_data));

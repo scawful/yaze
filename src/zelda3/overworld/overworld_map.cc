@@ -444,6 +444,30 @@ void OverworldMap::LoadCustomOverworldData() {
   }
 }
 
+uint8_t OverworldMap::ComputeWorldBasedMainPalette() const {
+  uint8_t palette = 0;
+
+  // Base world selection
+  if (index_ < 0x40 || index_ == 0x95) {  // LW
+    palette = 0;
+  } else if ((index_ >= 0x40 && index_ < 0x80) || index_ == 0x96) {  // DW
+    palette = 1;
+  } else if (index_ >= 0x80 && index_ < 0xA0) {  // SW
+    palette = 0;
+  }
+
+  // Death Mountain / special overrides
+  if (index_ == 0x03 || index_ == 0x05 || index_ == 0x07) {
+    palette = 2;
+  } else if (index_ == 0x43 || index_ == 0x45 || index_ == 0x47) {
+    palette = 3;
+  } else if (index_ == 0x88 || index_ == 0x93) {
+    palette = 4;
+  }
+
+  return palette;
+}
+
 void OverworldMap::SetupCustomTileset(uint8_t asm_version) {
   // Load area size for v3
   if (OverworldVersionHelper::SupportsAreaEnum(
@@ -458,21 +482,7 @@ void OverworldMap::SetupCustomTileset(uint8_t asm_version) {
     main_palette_ = (*rom_)[OverworldCustomMainPaletteArray + index_];
   } else {
     // Fall back to world-based hardcoded logic
-    if (index_ < 0x40 || index_ == 0x95) {  // LW
-      main_palette_ = 0;
-    } else if ((index_ >= 0x40 && index_ < 0x80) || index_ == 0x96) {  // DW
-      main_palette_ = 1;
-    } else if (index_ >= 0x80 && index_ < 0xA0) {  // SW
-      main_palette_ = 0;
-    }
-    // Death mountain overrides
-    if (index_ == 0x03 || index_ == 0x05 || index_ == 0x07) {
-      main_palette_ = 2;
-    } else if (index_ == 0x43 || index_ == 0x45 || index_ == 0x47) {
-      main_palette_ = 3;
-    } else if (index_ == 0x88 || index_ == 0x93) {
-      main_palette_ = 4;
-    }
+    main_palette_ = ComputeWorldBasedMainPalette();
   }
 
   // Mosaic - check enable flag before reading from custom array
@@ -705,6 +715,19 @@ void OverworldMap::LoadAreaGraphics() {
   LoadMainBlocksets();
   LoadAreaGraphicsBlocksets();
   LoadDeathMountainGFX();
+
+  // v3 custom tile GFX groups: override main sheets when enabled
+  if (OverworldVersionHelper::SupportsCustomTileGFX(
+          OverworldVersionHelper::GetVersion(*rom_)) &&
+      (*rom_)[OverworldCustomTileGFXGroupEnabled] != 0x00) {
+    for (int i = 0; i < 8; i++) {
+      uint8_t custom_sheet = custom_gfx_ids_[i];
+      if (custom_sheet == 0x00 || custom_sheet == 0xFF) {
+        continue;  // 0/FF = don't load/override this slot
+      }
+      static_graphics_[i] = custom_sheet;
+    }
+  }
 }
 
 namespace palette_internal {
@@ -844,13 +867,13 @@ absl::StatusOr<gfx::SnesPalette> OverworldMap::GetPalette(
 
 absl::Status OverworldMap::LoadPalette() {
   uint8_t asm_version = (*rom_)[OverworldCustomASMHasBeenApplied];
+  auto version = OverworldVersionHelper::GetVersion(*rom_);
 
   int previous_pal_id = 0;
   int previous_spr_pal_id = 0;
 
   if (index_ > 0) {
     // Load previous palette ID based on ASM version
-    auto version = OverworldVersionHelper::GetVersion(*rom_);
     if (OverworldVersionHelper::SupportsAreaEnum(version)) {
       // v3 uses expanded palette table
       previous_pal_id = (*rom_)[kOverworldPalettesScreenToSetNew + parent_ - 1];
@@ -902,6 +925,7 @@ absl::Status OverworldMap::LoadPalette() {
 
   // Set background color based on world type and area-specific settings
   bool use_area_specific_bg =
+      OverworldVersionHelper::SupportsCustomBGColors(version) &&
       (*rom_)[OverworldCustomAreaSpecificBGEnabled] != 0x00;
   if (use_area_specific_bg) {
     // Use area-specific background color from custom array
@@ -924,6 +948,10 @@ absl::Status OverworldMap::LoadPalette() {
   }
 
   // Use main palette from the overworld map data (matches ZScream logic)
+  if (version == OverworldVersion::kVanilla) {
+    // Vanilla ROMs never write main_palette_ elsewhere; ensure world defaults
+    main_palette_ = ComputeWorldBasedMainPalette();
+  }
   pal0 = main_palette_;
 
   auto ow_main_pal_group = rom_->palette_group().overworld_main;

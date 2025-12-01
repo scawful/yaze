@@ -48,6 +48,30 @@ struct FlagsMenu {
     }
     Checkbox("Apply ZSCustomOverworld ASM",
              &core::FeatureFlags::get().overworld.kApplyZSCustomOverworldASM);
+    
+    Separator();
+    ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.2f, 1.0f), "Experimental");
+    
+    Checkbox("Enable Special World Tail (0xA0-0xBF)",
+             &core::FeatureFlags::get().overworld.kEnableSpecialWorldExpansion);
+    ImGui::SameLine();
+    if (ImGui::Button("?##TailHelp")) {
+      ImGui::OpenPopup("TailExpansionHelp");
+    }
+    if (ImGui::BeginPopup("TailExpansionHelp")) {
+      ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f), "EXPERIMENTAL FEATURE");
+      ImGui::Separator();
+      ImGui::Text("Enables access to special world tail maps (0xA0-0xBF).");
+      ImGui::Text("These are unused map slots that can be made editable.");
+      ImGui::Spacing();
+      ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f), "REQUIRES:");
+      ImGui::BulletText("ZSCustomOverworld v3 ASM");
+      ImGui::BulletText("Pointer table expansion ASM patch");
+      ImGui::Spacing();
+      ImGui::Text("Without proper ASM patches, tail maps will show");
+      ImGui::Text("blank tiles (safe fallback behavior).");
+      ImGui::EndPopup();
+    }
   }
 
   void DrawDungeonFlags() {

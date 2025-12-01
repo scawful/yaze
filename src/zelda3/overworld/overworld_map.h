@@ -275,6 +275,7 @@ class OverworldMap : public gfx::GfxContext {
   void LoadMainBlocksets();
   void LoadAreaGraphicsBlocksets();
   void LoadDeathMountainGFX();
+  uint8_t ComputeWorldBasedMainPalette() const;
 
   void ProcessGraphicsBuffer(int index, int static_graphics_offset, int size,
                              const uint8_t* all_gfx);
