@@ -645,7 +645,7 @@ std::string WasmControlApi::OpenCard(const std::string& card_id) {
   if (registry) {
     // Use default session ID (0) for WASM single-session mode
     constexpr size_t session_id = 0;
-    bool found = registry->ShowCard(session_id, card_id);
+    bool found = registry->ShowPanel(session_id, card_id);
     
     result["success"] = found;
     result["card_id"] = card_id;
@@ -674,7 +674,7 @@ std::string WasmControlApi::CloseCard(const std::string& card_id) {
   auto* registry = GetCardRegistry();
   if (registry) {
     constexpr size_t session_id = 0;
-    bool found = registry->HideCard(session_id, card_id);
+    bool found = registry->HidePanel(session_id, card_id);
     
     result["success"] = found;
     result["card_id"] = card_id;
@@ -703,14 +703,14 @@ std::string WasmControlApi::ToggleCard(const std::string& card_id) {
   auto* registry = GetCardRegistry();
   if (registry) {
     constexpr size_t session_id = 0;
-    bool found = registry->ToggleCard(session_id, card_id);
-    
+    bool found = registry->TogglePanel(session_id, card_id);
+
     result["success"] = found;
     result["card_id"] = card_id;
     if (!found) {
       result["error"] = "Card not found";
     } else {
-      result["visible"] = registry->IsCardVisible(session_id, card_id);
+      result["visible"] = registry->IsPanelVisible(session_id, card_id);
     }
   } else {
     result["success"] = false;
@@ -721,7 +721,7 @@ std::string WasmControlApi::ToggleCard(const std::string& card_id) {
   return result.dump();
 }
 
-std::string WasmControlApi::GetVisibleCards() {
+std::string WasmControlApi::GetVisiblePanels() {
   nlohmann::json result = nlohmann::json::array();
 
   if (!IsReady()) {
@@ -735,14 +735,14 @@ std::string WasmControlApi::GetVisibleCards() {
 
   // Use default session ID (0) for WASM single-session mode
   constexpr size_t session_id = 0;
-  auto card_ids = registry->GetCardsInSession(session_id);
+  auto card_ids = registry->GetPanelsInSession(session_id);
   for (const auto& card_id : card_ids) {
     // Extract base card ID (remove session prefix like "s0.")
     std::string base_id = card_id;
     if (base_id.size() > 3 && base_id[0] == 's' && base_id[2] == '.') {
       base_id = base_id.substr(3);
     }
-    if (registry->IsCardVisible(session_id, base_id)) {
+    if (registry->IsPanelVisible(session_id, base_id)) {
       result.push_back(base_id);
     }
   }
@@ -750,7 +750,7 @@ std::string WasmControlApi::GetVisibleCards() {
   return result.dump();
 }
 
-std::string WasmControlApi::GetAvailableCards() {
+std::string WasmControlApi::GetAvailablePanels() {
   nlohmann::json result = nlohmann::json::array();
 
   if (!IsReady()) {
@@ -767,19 +767,19 @@ std::string WasmControlApi::GetAvailableCards() {
   auto categories = registry->GetAllCategories(session_id);
 
   for (const auto& category : categories) {
-    auto cards = registry->GetCardsInCategory(session_id, category);
-    for (const auto& card : cards) {
+    auto panels = registry->GetPanelsInCategory(session_id, category);
+    for (const auto& panel : panels) {
       nlohmann::json card_json;
-      card_json["id"] = card.card_id;
-      card_json["display_name"] = card.display_name;
-      card_json["window_title"] = card.window_title;
-      card_json["icon"] = card.icon;
-      card_json["category"] = card.category;
-      card_json["priority"] = card.priority;
-      card_json["visible"] = registry->IsCardVisible(session_id, card.card_id);
-      card_json["shortcut_hint"] = card.shortcut_hint;
-      if (card.enabled_condition) {
-        card_json["enabled"] = card.enabled_condition();
+      card_json["id"] = panel.card_id;
+      card_json["display_name"] = panel.display_name;
+      card_json["window_title"] = panel.window_title;
+      card_json["icon"] = panel.icon;
+      card_json["category"] = panel.category;
+      card_json["priority"] = panel.priority;
+      card_json["visible"] = registry->IsPanelVisible(session_id, panel.card_id);
+      card_json["shortcut_hint"] = panel.shortcut_hint;
+      if (panel.enabled_condition) {
+        card_json["enabled"] = panel.enabled_condition();
       } else {
         card_json["enabled"] = true;
       }
@@ -790,7 +790,7 @@ std::string WasmControlApi::GetAvailableCards() {
   return result.dump();
 }
 
-std::string WasmControlApi::GetCardsInCategory(const std::string& category) {
+std::string WasmControlApi::GetPanelsInCategory(const std::string& category) {
   nlohmann::json result = nlohmann::json::array();
 
   if (!IsReady()) {
@@ -804,24 +804,24 @@ std::string WasmControlApi::GetCardsInCategory(const std::string& category) {
 
   // Use default session ID (0) for WASM single-session mode
   constexpr size_t session_id = 0;
-  auto cards = registry->GetCardsInCategory(session_id, category);
+  auto panels = registry->GetPanelsInCategory(session_id, category);
 
-  for (const auto& card : cards) {
+  for (const auto& panel : panels) {
     nlohmann::json card_json;
-    card_json["id"] = card.card_id;
-    card_json["display_name"] = card.display_name;
-    card_json["window_title"] = card.window_title;
-    card_json["icon"] = card.icon;
-    card_json["category"] = card.category;
-    card_json["priority"] = card.priority;
-    card_json["visible"] = registry->IsCardVisible(session_id, card.card_id);
+    card_json["id"] = panel.card_id;
+    card_json["display_name"] = panel.display_name;
+    card_json["window_title"] = panel.window_title;
+    card_json["icon"] = panel.icon;
+    card_json["category"] = panel.category;
+    card_json["priority"] = panel.priority;
+    card_json["visible"] = registry->IsPanelVisible(session_id, panel.card_id);
     result.push_back(card_json);
   }
 
   return result.dump();
 }
 
-std::string WasmControlApi::ShowAllCards() {
+std::string WasmControlApi::ShowAllPanels() {
   nlohmann::json result;
   
   if (!IsReady()) {
@@ -833,104 +833,104 @@ std::string WasmControlApi::ShowAllCards() {
   auto* registry = GetCardRegistry();
   if (registry) {
     constexpr size_t session_id = 0;
-    registry->ShowAllCardsInSession(session_id);
+    registry->ShowAllPanelsInSession(session_id);
     result["success"] = true;
   } else {
     result["success"] = false;
     result["error"] = "Card registry not available";
   }
-  
+
   return result.dump();
 }
 
-std::string WasmControlApi::HideAllCards() {
+std::string WasmControlApi::HideAllPanels() {
   nlohmann::json result;
-  
+
   if (!IsReady()) {
     result["success"] = false;
     result["error"] = "Control API not initialized";
     return result.dump();
   }
-  
+
   auto* registry = GetCardRegistry();
   if (registry) {
     constexpr size_t session_id = 0;
-    registry->HideAllCardsInSession(session_id);
+    registry->HideAllPanelsInSession(session_id);
     result["success"] = true;
   } else {
     result["success"] = false;
     result["error"] = "Card registry not available";
   }
-  
+
   return result.dump();
 }
 
-std::string WasmControlApi::ShowAllCardsInCategory(const std::string& category) {
+std::string WasmControlApi::ShowAllPanelsInCategory(const std::string& category) {
   nlohmann::json result;
-  
+
   if (!IsReady()) {
     result["success"] = false;
     result["error"] = "Control API not initialized";
     return result.dump();
   }
-  
-  auto* registry = GetCardRegistry();
-  if (registry) {
-    constexpr size_t session_id = 0;
-    registry->ShowAllCardsInCategory(session_id, category);
-    result["success"] = true;
-    result["category"] = category;
-  } else {
-    result["success"] = false;
-    result["error"] = "Card registry not available";
-  }
-  
-  return result.dump();
-}
 
-std::string WasmControlApi::HideAllCardsInCategory(const std::string& category) {
-  nlohmann::json result;
-  
-  if (!IsReady()) {
-    result["success"] = false;
-    result["error"] = "Control API not initialized";
-    return result.dump();
-  }
-  
   auto* registry = GetCardRegistry();
   if (registry) {
     constexpr size_t session_id = 0;
-    registry->HideAllCardsInCategory(session_id, category);
+    registry->ShowAllPanelsInCategory(session_id, category);
     result["success"] = true;
     result["category"] = category;
   } else {
     result["success"] = false;
     result["error"] = "Card registry not available";
   }
-  
+
   return result.dump();
 }
 
-std::string WasmControlApi::ShowOnlyCard(const std::string& card_id) {
+std::string WasmControlApi::HideAllPanelsInCategory(const std::string& category) {
   nlohmann::json result;
-  
+
   if (!IsReady()) {
     result["success"] = false;
     result["error"] = "Control API not initialized";
     return result.dump();
   }
-  
+
   auto* registry = GetCardRegistry();
   if (registry) {
     constexpr size_t session_id = 0;
-    registry->ShowOnlyCard(session_id, card_id);
+    registry->HideAllPanelsInCategory(session_id, category);
+    result["success"] = true;
+    result["category"] = category;
+  } else {
+    result["success"] = false;
+    result["error"] = "Card registry not available";
+  }
+
+  return result.dump();
+}
+
+std::string WasmControlApi::ShowOnlyPanel(const std::string& card_id) {
+  nlohmann::json result;
+
+  if (!IsReady()) {
+    result["success"] = false;
+    result["error"] = "Control API not initialized";
+    return result.dump();
+  }
+
+  auto* registry = GetCardRegistry();
+  if (registry) {
+    constexpr size_t session_id = 0;
+    registry->ShowOnlyPanel(session_id, card_id);
     result["success"] = true;
     result["card_id"] = card_id;
   } else {
     result["success"] = false;
     result["error"] = "Card registry not available";
   }
-  
+
   return result.dump();
 }
 
@@ -938,7 +938,7 @@ std::string WasmControlApi::ShowOnlyCard(const std::string& card_id) {
 // Layout Control Implementation
 // ============================================================================
 
-std::string WasmControlApi::SetCardLayout(const std::string& layout_name) {
+std::string WasmControlApi::SetPanelLayout(const std::string& layout_name) {
   nlohmann::json result;
   
   if (!IsReady()) {
@@ -951,7 +951,7 @@ std::string WasmControlApi::SetCardLayout(const std::string& layout_name) {
   result["success"] = true;
   result["layout"] = layout_name;
   
-  LOG_INFO("WasmControlApi", "SetCardLayout: %s", layout_name.c_str());
+  LOG_INFO("WasmControlApi", "SetPanelLayout: %s", layout_name.c_str());
   return result.dump();
 }
 
@@ -2336,10 +2336,10 @@ EMSCRIPTEN_BINDINGS(wasm_control_api) {
   emscripten::function("controlOpenCard", &WasmControlApi::OpenCard);
   emscripten::function("controlCloseCard", &WasmControlApi::CloseCard);
   emscripten::function("controlToggleCard", &WasmControlApi::ToggleCard);
-  emscripten::function("controlGetVisiblePanels", &WasmControlApi::GetVisibleCards);
-  emscripten::function("controlGetAvailablePanels", &WasmControlApi::GetAvailableCards);
-  emscripten::function("controlGetPanelsInCategory", &WasmControlApi::GetCardsInCategory);
-  emscripten::function("controlSetPanelLayout", &WasmControlApi::SetCardLayout);
+  emscripten::function("controlGetVisiblePanels", &WasmControlApi::GetVisiblePanels);
+  emscripten::function("controlGetAvailablePanels", &WasmControlApi::GetAvailablePanels);
+  emscripten::function("controlGetPanelsInCategory", &WasmControlApi::GetPanelsInCategory);
+  emscripten::function("controlSetPanelLayout", &WasmControlApi::SetPanelLayout);
   emscripten::function("controlGetAvailableLayouts", &WasmControlApi::GetAvailableLayouts);
   emscripten::function("controlSaveCurrentLayout", &WasmControlApi::SaveCurrentLayout);
   emscripten::function("controlTriggerMenuAction", &WasmControlApi::TriggerMenuAction);
