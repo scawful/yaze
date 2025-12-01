@@ -19,7 +19,7 @@
 #include "app/editor/menu/menu_orchestrator.h"
 #include "app/editor/menu/right_panel_manager.h"
 #include "app/editor/session_types.h"
-#include "app/editor/system/editor_card_registry.h"
+#include "app/editor/system/panel_manager.h"
 #include "app/editor/system/editor_registry.h"
 #include "app/editor/ui/popup_manager.h"
 #include "app/editor/system/project_manager.h"
@@ -29,7 +29,7 @@
 #include "app/editor/ui/toast_manager.h"
 #include "app/editor/system/user_settings.h"
 #include "app/editor/system/window_delegate.h"
-#include "app/editor/ui/editor_selection_dialog.h"
+#include "app/editor/ui/dashboard_panel.h"
 #include "app/editor/ui/layout_manager.h"
 #include "app/editor/ui/layout_presets.h"
 #include "app/editor/ui/rom_load_options_dialog.h"
@@ -101,8 +101,13 @@ class EditorManager {
   MenuBuilder& menu_builder() { return menu_builder_; }
   WorkspaceManager* workspace_manager() { return &workspace_manager_; }
   RightPanelManager* right_panel_manager() { return right_panel_manager_.get(); }
-  EditorCardRegistry& card_registry() { return card_registry_; }
-  const EditorCardRegistry& card_registry() const { return card_registry_; }
+  PanelManager* GetPanelManager() { return &panel_manager_; }
+  PanelManager& panel_manager() { return panel_manager_; }
+  const PanelManager& panel_manager() const { return panel_manager_; }
+  
+  // Deprecated compatibility wrappers
+  PanelManager& card_registry() { return panel_manager_; }
+  const PanelManager& card_registry() const { return panel_manager_; }
 
   // Layout offset calculation for dockspace adjustment
   // Returns the left margin needed for sidebar (Activity Bar + Side Panel)
@@ -113,16 +118,16 @@ class EditorManager {
     }
     
     // Check Activity Bar visibility
-    if (!card_registry_.IsSidebarVisible()) {
+    if (!panel_manager_.IsSidebarVisible()) {
       return 0.0f;
     }
     
     // Base width = Activity Bar
-    float width = EditorCardRegistry::GetSidebarWidth(); // 48px
+    float width = PanelManager::GetSidebarWidth(); // 48px
     
     // Add Side Panel width if expanded
-    if (card_registry_.IsPanelExpanded()) {
-      width += EditorCardRegistry::GetSidePanelWidth();
+    if (panel_manager_.IsPanelExpanded()) {
+      width += PanelManager::GetSidePanelWidth();
     }
     
     return width;
@@ -340,7 +345,7 @@ class EditorManager {
 
   // Note: Editor selection dialog and welcome screen are now managed by
   // UICoordinator Kept here for backward compatibility during transition
-  EditorSelectionDialog editor_selection_dialog_;
+  std::unique_ptr<DashboardPanel> dashboard_panel_;
   WelcomeScreen welcome_screen_;
   RomLoadOptionsDialog rom_load_options_dialog_;
   bool show_rom_load_options_ = false;
@@ -373,7 +378,7 @@ class EditorManager {
   UserSettings user_settings_;
 
   // New delegated components (dependency injection architecture)
-  EditorCardRegistry card_registry_;  // Card management with session awareness
+  PanelManager panel_manager_;  // Card management with session awareness
   EditorRegistry editor_registry_;
   std::unique_ptr<MenuOrchestrator> menu_orchestrator_;
   ProjectManager project_manager_;

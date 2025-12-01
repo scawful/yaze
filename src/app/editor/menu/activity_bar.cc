@@ -3,7 +3,7 @@
 #include <algorithm>
 
 #include "absl/strings/str_format.h"
-#include "app/editor/system/editor_card_registry.h"
+#include "app/editor/system/panel_manager.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/theme_manager.h"
 #include "app/gui/widgets/themed_widgets.h"
@@ -13,20 +13,20 @@
 namespace yaze {
 namespace editor {
 
-ActivityBar::ActivityBar(EditorCardRegistry& card_registry)
-    : card_registry_(card_registry) {}
+ActivityBar::ActivityBar(PanelManager& panel_manager)
+    : panel_manager_(panel_manager) {}
 
 void ActivityBar::Render(size_t session_id,
                          const std::string& active_category,
                          const std::vector<std::string>& all_categories,
                          const std::unordered_set<std::string>& active_editor_categories,
                          std::function<bool()> has_rom) {
-  if (!card_registry_.IsSidebarVisible()) return;
+  if (!panel_manager_.IsSidebarVisible()) return;
 
   DrawActivityBarStrip(session_id, active_category, all_categories,
                        active_editor_categories, has_rom);
 
-  if (card_registry_.IsPanelExpanded()) {
+  if (panel_manager_.IsPanelExpanded()) {
     DrawSidePanel(session_id, active_category, has_rom);
   }
 }
@@ -39,36 +39,36 @@ void ActivityBar::DrawUtilityButtons(std::function<bool()> has_rom) {
   {
     if (gui::TransparentIconButton(ICON_MD_FOLDER_OPEN, ImVec2(48.0f, 40.0f),
                                    "Open ROM (Ctrl+O)", false)) {
-      card_registry_.TriggerOpenRom();
+      panel_manager_.TriggerOpenRom();
     }
 
     if (gui::TransparentIconButton(ICON_MD_SAVE, ImVec2(48.0f, 40.0f),
                                    "Save ROM (Ctrl+S)", false)) {
-      if (rom_loaded) card_registry_.TriggerSaveRom();
+      if (rom_loaded) panel_manager_.TriggerSaveRom();
     }
 
     // Undo
     if (gui::TransparentIconButton(ICON_MD_UNDO, ImVec2(48.0f, 40.0f),
                                    "Undo (Ctrl+Z)", false)) {
-      if (rom_loaded) card_registry_.TriggerUndo();
+      if (rom_loaded) panel_manager_.TriggerUndo();
     }
 
     // Redo
     if (gui::TransparentIconButton(ICON_MD_REDO, ImVec2(48.0f, 40.0f),
                                    "Redo (Ctrl+Y)", false)) {
-      if (rom_loaded) card_registry_.TriggerRedo();
+      if (rom_loaded) panel_manager_.TriggerRedo();
     }
 
     // Search
     if (gui::TransparentIconButton(ICON_MD_SEARCH, ImVec2(48.0f, 40.0f),
                                    "Global Search (Ctrl+Shift+F)", false)) {
-      card_registry_.TriggerShowSearch();
+      panel_manager_.TriggerShowSearch();
     }
 
     // Help
     if (gui::TransparentIconButton(ICON_MD_HELP_OUTLINE, ImVec2(48.0f, 40.0f),
                                    "Help (F1)", false)) {
-      card_registry_.TriggerShowHelp();
+      panel_manager_.TriggerShowHelp();
     }
   }
 
@@ -122,7 +122,7 @@ void ActivityBar::DrawActivityBarStrip(
 
     // Draw ALL editor categories (not just active ones)
     for (const auto& cat : all_categories) {
-      bool is_selected = (cat == active_category) && card_registry_.IsPanelExpanded();
+      bool is_selected = (cat == active_category) && panel_manager_.IsPanelExpanded();
       bool has_active_editor = active_editor_categories.count(cat) > 0;
       
       // Emulator is always available, others require ROM
@@ -137,17 +137,17 @@ void ActivityBar::DrawActivityBarStrip(
             ImGui::ColorConvertFloat4ToU32(gui::ConvertColorToImVec4(theme.primary))); 
       }
 
-      std::string icon = EditorCardRegistry::GetCategoryIcon(cat);
+      std::string icon = PanelManager::GetCategoryIcon(cat);
       
       // Use ThemedWidgets for consistent styling
       if (gui::TransparentIconButton(icon.c_str(), ImVec2(48.0f, 40.0f), 
                                                   nullptr, is_selected)) {
         if (category_enabled) {
-          if (cat == active_category && card_registry_.IsPanelExpanded()) {
-            card_registry_.TogglePanelExpanded();
+          if (cat == active_category && panel_manager_.IsPanelExpanded()) {
+            panel_manager_.TogglePanelExpanded();
           } else {
-            card_registry_.SetActiveCategory(cat);
-            card_registry_.SetPanelExpanded(true);
+            panel_manager_.SetActiveCategory(cat);
+            panel_manager_.SetPanelExpanded(true);
           }
         }
       }
@@ -182,13 +182,13 @@ void ActivityBar::DrawActivityBarStrip(
 
   if (ImGui::BeginPopup("ActivityBarMoreMenu")) {
     if (ImGui::MenuItem(ICON_MD_FOLDER_OPEN " Open ROM")) {
-      card_registry_.TriggerOpenRom();
+      panel_manager_.TriggerOpenRom();
     }
     if (ImGui::MenuItem(ICON_MD_SETTINGS " Settings")) {
-      card_registry_.TriggerShowSettings();
+      panel_manager_.TriggerShowSettings();
     }
     if (ImGui::MenuItem(ICON_MD_HELP_OUTLINE " Help")) {
-      card_registry_.TriggerShowHelp();
+      panel_manager_.TriggerShowHelp();
     }
     ImGui::Separator();
     if (ImGui::MenuItem("Reset Layout")) {
@@ -209,8 +209,8 @@ void ActivityBar::DrawSidePanel(
     
   const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
   const ImGuiViewport* viewport = ImGui::GetMainViewport();
-  const float bar_width = EditorCardRegistry::GetSidebarWidth();
-  const float panel_width = EditorCardRegistry::GetSidePanelWidth();
+  const float bar_width = PanelManager::GetSidebarWidth();
+  const float panel_width = PanelManager::GetSidePanelWidth();
 
   ImGui::SetNextWindowPos(ImVec2(viewport->WorkPos.x + bar_width, viewport->WorkPos.y));
   ImGui::SetNextWindowSize(ImVec2(panel_width, viewport->WorkSize.y));
@@ -243,7 +243,7 @@ void ActivityBar::DrawSidePanel(
     ImGui::SameLine(current_x);
     ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 4.0f);
     if (ImGui::Button(ICON_MD_KEYBOARD_DOUBLE_ARROW_LEFT, ImVec2(button_size, button_size))) {
-      card_registry_.SetPanelExpanded(false);
+      panel_manager_.SetPanelExpanded(false);
     }
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("Collapse Panel");
@@ -253,7 +253,7 @@ void ActivityBar::DrawSidePanel(
     current_x -= (button_size + spacing);
     ImGui::SameLine(current_x);
     if (ImGui::Button(ICON_MD_CLOSE_FULLSCREEN, ImVec2(button_size, button_size))) {
-      card_registry_.HideAllCardsInCategory(session_id, category);
+      panel_manager_.HideAllPanelsInCategory(session_id, category);
     }
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("Close All Cards in Category");
@@ -282,17 +282,17 @@ void ActivityBar::DrawSidePanel(
       ImGui::BeginDisabled();
     }
 
-    // Note: Favorites and Recent logic uses private members of EditorCardRegistry.
-    // We need to expose them via public methods in EditorCardRegistry.
-    const auto& favorite_cards = card_registry_.GetFavoriteCards();
-    const auto& recent_cards = card_registry_.GetRecentCards();
+    // Note: Favorites and Recent logic uses private members of PanelManager.
+    // We need to expose them via public methods in PanelManager.
+    const auto& favorite_cards = panel_manager_.GetFavoriteCards();
+    const auto& recent_cards = panel_manager_.GetRecentCards();
 
     // --- Favorites Section ---
     if (sidebar_search[0] == '\0' && !favorite_cards.empty()) {
       bool has_favorites_in_category = false;
       // Check if there are any favorites in this category
       for (const auto& card_id : favorite_cards) {
-        const auto* card = card_registry_.GetCardInfo(session_id, card_id);
+        const auto* card = panel_manager_.GetPanelDescriptor(session_id, card_id);
         if (card && card->category == category) {
           has_favorites_in_category = true;
           break;
@@ -302,7 +302,7 @@ void ActivityBar::DrawSidePanel(
       if (has_favorites_in_category) {
         if (ImGui::CollapsingHeader(ICON_MD_STAR " Favorites", ImGuiTreeNodeFlags_DefaultOpen)) {
           for (const auto& card_id : favorite_cards) {
-            const auto* card = card_registry_.GetCardInfo(session_id, card_id);
+            const auto* card = panel_manager_.GetPanelDescriptor(session_id, card_id);
             if (!card || card->category != category) continue;
             
             bool visible = card->visibility_flag ? *card->visibility_flag : false;
@@ -310,7 +310,7 @@ void ActivityBar::DrawSidePanel(
             // Star button (filled)
             ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.8f, 0.0f, 1.0f)); // Gold
             if (ImGui::SmallButton((std::string(ICON_MD_STAR "##fav_") + card->card_id).c_str())) {
-              card_registry_.ToggleFavorite(card->card_id);
+              panel_manager_.ToggleFavorite(card->card_id);
             }
             ImGui::PopStyleColor();
             
@@ -319,11 +319,11 @@ void ActivityBar::DrawSidePanel(
             // Card Item
             std::string label = absl::StrFormat("%s  %s", card->icon.c_str(), card->display_name.c_str());
             if (ImGui::Selectable(label.c_str(), visible)) {
-              card_registry_.ToggleCard(session_id, card->card_id);
+              panel_manager_.TogglePanel(session_id, card->card_id);
               
               bool new_visible = card->visibility_flag ? *card->visibility_flag : false;
               if (new_visible) {
-                card_registry_.TriggerCardClicked(card->category);
+                panel_manager_.TriggerPanelClicked(card->category);
                 ImGui::SetWindowFocus(card->GetWindowTitle().c_str());
               }
             }
@@ -339,7 +339,7 @@ void ActivityBar::DrawSidePanel(
     if (sidebar_search[0] == '\0' && !recent_cards.empty()) {
       bool has_recents_in_category = false;
       for (const auto& card_id : recent_cards) {
-        const auto* card = card_registry_.GetCardInfo(session_id, card_id);
+        const auto* card = panel_manager_.GetPanelDescriptor(session_id, card_id);
         if (card && card->category == category) {
           has_recents_in_category = true;
           break;
@@ -349,24 +349,24 @@ void ActivityBar::DrawSidePanel(
       if (has_recents_in_category) {
         if (ImGui::CollapsingHeader(ICON_MD_HISTORY " Recent", ImGuiTreeNodeFlags_DefaultOpen)) {
           for (const auto& card_id : recent_cards) {
-            const auto* card = card_registry_.GetCardInfo(session_id, card_id);
+            const auto* card = panel_manager_.GetPanelDescriptor(session_id, card_id);
             if (!card || card->category != category) continue;
             
             bool visible = card->visibility_flag ? *card->visibility_flag : false;
             
             // Favorite Toggle Button
-            bool is_fav = card_registry_.IsFavorite(card->card_id);
+            bool is_fav = panel_manager_.IsFavorite(card->card_id);
             ImGui::PushID((std::string("recent_") + card->card_id).c_str());
             if (is_fav) {
               ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.8f, 0.0f, 1.0f)); // Gold
               if (ImGui::SmallButton(ICON_MD_STAR)) {
-                card_registry_.ToggleFavorite(card->card_id);
+                panel_manager_.ToggleFavorite(card->card_id);
               }
               ImGui::PopStyleColor();
             } else {
               ImGui::PushStyleColor(ImGuiCol_Text, gui::ConvertColorToImVec4(theme.text_disabled));
               if (ImGui::SmallButton(ICON_MD_STAR_BORDER)) {
-                card_registry_.ToggleFavorite(card->card_id);
+                panel_manager_.ToggleFavorite(card->card_id);
               }
               ImGui::PopStyleColor();
             }
@@ -376,12 +376,12 @@ void ActivityBar::DrawSidePanel(
             // Card Item
             std::string label = absl::StrFormat("%s  %s", card->icon.c_str(), card->display_name.c_str());
             if (ImGui::Selectable(label.c_str(), visible)) {
-              card_registry_.ToggleCard(session_id, card->card_id);
+              panel_manager_.TogglePanel(session_id, card->card_id);
               
               bool new_visible = card->visibility_flag ? *card->visibility_flag : false;
               if (new_visible) {
-                card_registry_.AddToRecent(card->card_id); // Move to top
-                card_registry_.TriggerCardClicked(card->category);
+                panel_manager_.AddToRecent(card->card_id); // Move to top
+                panel_manager_.TriggerPanelClicked(card->category);
                 ImGui::SetWindowFocus(card->GetWindowTitle().c_str());
               }
             }
@@ -393,12 +393,12 @@ void ActivityBar::DrawSidePanel(
       }
     }
 
-    // Content - Reusing GetCardsInCategory logic
-    auto cards = card_registry_.GetCardsInCategory(session_id, category);
+    // Content - Reusing GetPanelsInCategory logic
+    auto cards = panel_manager_.GetPanelsInCategory(session_id, category);
 
     // Calculate available height for cards vs file browser
     float available_height = ImGui::GetContentRegionAvail().y;
-    bool has_file_browser = card_registry_.HasFileBrowser(category);
+    bool has_file_browser = panel_manager_.HasFileBrowser(category);
     float cards_height =
         has_file_browser ? available_height * 0.4f : available_height;
     float file_browser_height = available_height - cards_height - 30.0f;
@@ -421,18 +421,18 @@ void ActivityBar::DrawSidePanel(
       bool visible = card.visibility_flag ? *card.visibility_flag : false;
 
       // Favorite Toggle Button
-      bool is_fav = card_registry_.IsFavorite(card.card_id);
+      bool is_fav = panel_manager_.IsFavorite(card.card_id);
       ImGui::PushID(card.card_id.c_str());
       if (is_fav) {
         ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.8f, 0.0f, 1.0f)); // Gold
         if (ImGui::SmallButton(ICON_MD_STAR)) {
-          card_registry_.ToggleFavorite(card.card_id);
+          panel_manager_.ToggleFavorite(card.card_id);
         }
         ImGui::PopStyleColor();
       } else {
         ImGui::PushStyleColor(ImGuiCol_Text, gui::ConvertColorToImVec4(theme.text_disabled));
         if (ImGui::SmallButton(ICON_MD_STAR_BORDER)) {
-          card_registry_.ToggleFavorite(card.card_id);
+          panel_manager_.ToggleFavorite(card.card_id);
         }
         ImGui::PopStyleColor();
       }
@@ -444,16 +444,16 @@ void ActivityBar::DrawSidePanel(
           absl::StrFormat("%s  %s", card.icon.c_str(), card.display_name.c_str());
       if (ImGui::Selectable(label.c_str(), visible)) {
         // Toggle visibility
-        card_registry_.ToggleCard(session_id, card.card_id);
+        panel_manager_.TogglePanel(session_id, card.card_id);
 
         // Get the new visibility state after toggle
         bool new_visible = card.visibility_flag ? *card.visibility_flag : false;
 
         if (new_visible) {
-          card_registry_.AddToRecent(card.card_id); // Track recent
+          panel_manager_.AddToRecent(card.card_id); // Track recent
 
           // Card was just shown - activate the associated editor
-          card_registry_.TriggerCardClicked(card.category);
+          panel_manager_.TriggerPanelClicked(card.category);
 
           // Focus the card window so it comes to front
           std::string window_title = card.GetWindowTitle();
@@ -485,7 +485,7 @@ void ActivityBar::DrawSidePanel(
       if (files_expanded) {
         ImGui::BeginChild("##FileBrowser", ImVec2(0, file_browser_height),
                           false, ImGuiWindowFlags_None);
-        auto* browser = card_registry_.GetFileBrowser(category);
+        auto* browser = panel_manager_.GetFileBrowser(category);
         if (browser) {
           browser->DrawCompact();
         }
@@ -527,7 +527,7 @@ void ActivityBar::DrawCardBrowser(size_t session_id, bool* p_open) {
         category_filter = "All";
       }
 
-      auto categories = card_registry_.GetAllCategories(session_id);
+      auto categories = panel_manager_.GetAllCategories(session_id);
       for (const auto& cat : categories) {
         if (ImGui::Selectable(cat.c_str(), category_filter == cat)) {
           category_filter = cat;
@@ -550,18 +550,18 @@ void ActivityBar::DrawCardBrowser(size_t session_id, bool* p_open) {
                               100);
       ImGui::TableHeadersRow();
 
-      auto cards = (category_filter == "All") ? card_registry_.GetCardsInSession(session_id)
+      auto cards = (category_filter == "All") ? panel_manager_.GetPanelsInSession(session_id)
                                               : std::vector<std::string>{};
 
       if (category_filter != "All") {
-        auto cat_cards = card_registry_.GetCardsInCategory(session_id, category_filter);
+        auto cat_cards = panel_manager_.GetPanelsInCategory(session_id, category_filter);
         for (const auto& card : cat_cards) {
           cards.push_back(card.card_id);
         }
       }
 
       for (const auto& card_id : cards) {
-        const auto* card = card_registry_.GetCardInfo(session_id, card_id);
+        const auto* card = panel_manager_.GetPanelDescriptor(session_id, card_id);
         if (!card)
           continue;
 
@@ -587,8 +587,8 @@ void ActivityBar::DrawCardBrowser(size_t session_id, bool* p_open) {
           if (ImGui::Checkbox(
                   absl::StrFormat("##vis_%s", card->card_id.c_str()).c_str(),
                   &visible)) {
-            card_registry_.ToggleCard(session_id, card->card_id);
-            // Note: ToggleCard handles callbacks
+            panel_manager_.TogglePanel(session_id, card->card_id);
+            // Note: TogglePanel handles callbacks
           }
         }
 

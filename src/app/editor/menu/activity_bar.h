@@ -9,11 +9,11 @@
 namespace yaze {
 namespace editor {
 
-class EditorCardRegistry;
+class PanelManager;
 
 class ActivityBar {
  public:
-  explicit ActivityBar(EditorCardRegistry& card_registry);
+  explicit ActivityBar(PanelManager& panel_manager);
   
   void Render(size_t session_id, 
               const std::string& active_category,
@@ -33,7 +33,7 @@ class ActivityBar {
   void DrawSidePanel(size_t session_id, const std::string& category,
                      std::function<bool()> has_rom);
   
-  EditorCardRegistry& card_registry_;
+  PanelManager& panel_manager_;
 };
 
 } // namespace editor

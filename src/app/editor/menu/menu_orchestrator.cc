@@ -3,7 +3,7 @@
 #include "absl/strings/str_format.h"
 #include "app/editor/editor.h"
 #include "app/editor/editor_manager.h"
-#include "app/editor/system/editor_card_registry.h"
+#include "app/editor/system/panel_manager.h"
 #include "app/editor/system/editor_registry.h"
 #include "app/editor/ui/popup_manager.h"
 #include "app/editor/system/project_manager.h"
@@ -230,12 +230,13 @@ void MenuOrchestrator::AddViewMenuItems() {
 }
 
 void MenuOrchestrator::AddCardsSubmenu() {
-  if (!card_registry_) {
+  if (!panel_manager_) {
     return;
   }
 
   const size_t session_id = session_coordinator_.GetActiveSessionIndex();
-  auto categories = card_registry_->GetAllCategories(session_id);
+  // Get all categories from registry
+  auto categories = panel_manager_->GetAllCategories(session_id);
   if (categories.empty()) {
     return;
   }
@@ -245,14 +246,12 @@ void MenuOrchestrator::AddCardsSubmenu() {
     for (const auto& category : categories) {
       if (ImGui::BeginMenu(category.c_str())) {
         // Draw all cards in this category
-        auto cards = card_registry_->GetCardsInCategory(session_id, category);
+        auto cards = panel_manager_->GetPanelsInCategory(session_id, category);
         for (const auto& card : cards) {
-          bool visible = card.visibility_flag ? *card.visibility_flag : false;
-          std::string label = absl::StrFormat("%s %s", card.icon.c_str(), card.display_name.c_str());
+          bool is_visible = panel_manager_->IsPanelVisible(session_id, card.card_id);
           const char* shortcut = card.shortcut_hint.empty() ? nullptr : card.shortcut_hint.c_str();
-          
-          if (ImGui::MenuItem(label.c_str(), shortcut, visible)) {
-             card_registry_->ToggleCard(session_id, card.card_id);
+          if (ImGui::MenuItem(card.display_name.c_str(), shortcut, &is_visible)) {
+            panel_manager_->TogglePanel(session_id, card.card_id);
           }
         }
         ImGui::EndMenu();
@@ -494,10 +493,10 @@ void MenuOrchestrator::AddWindowMenuItems() {
             [this]() { OnHideAllWindows(); })
       .Separator();
 
-  // Card Browser (requires ROM) - Cards are accessible via the sidebar
+  // Panel Browser (requires ROM) - Panels are accessible via the sidebar
   menu_builder_
       .Item(
-          "Card Browser", ICON_MD_DASHBOARD, [this]() { OnShowCardBrowser(); },
+          "Panel Browser", ICON_MD_DASHBOARD, [this]() { OnShowPanelBrowser(); },
           "Ctrl+Shift+B", [this]() { return HasActiveRom(); })
       .Separator();
 
@@ -515,6 +514,8 @@ void MenuOrchestrator::AddHelpMenuItems() {
   menu_builder_
       .Item("Getting Started", ICON_MD_PLAY_ARROW,
             [this]() { OnShowGettingStarted(); })
+      .Item("Keyboard Shortcuts", ICON_MD_KEYBOARD,
+            [this]() { OnShowSettings(); })
       .Item("Build Instructions", ICON_MD_BUILD,
             [this]() { OnShowBuildInstructions(); })
       .Item("CLI Usage", ICON_MD_TERMINAL, [this]() { OnShowCLIUsage(); })
@@ -729,7 +730,7 @@ void MenuOrchestrator::OnShowDisplaySettings() {
 void MenuOrchestrator::OnShowHexEditor() {
   // Show hex editor card via EditorCardManager
   if (editor_manager_) {
-    editor_manager_->card_registry().ShowCard(editor_manager_->GetCurrentSessionId(), "Hex Editor");
+    editor_manager_->panel_manager().ShowPanel(editor_manager_->GetCurrentSessionId(), "Hex Editor");
   }
 }
 
@@ -741,7 +742,7 @@ void MenuOrchestrator::OnShowEmulator() {
   }
 }
 
-void MenuOrchestrator::OnShowCardBrowser() {
+void MenuOrchestrator::OnShowPanelBrowser() {
   if (editor_manager_) {
     if (auto* ui = editor_manager_->ui_coordinator()) {
       ui->SetCardBrowserVisible(true);
@@ -915,7 +916,7 @@ void MenuOrchestrator::OnShowImGuiMetrics() {
 
 void MenuOrchestrator::OnShowMemoryEditor() {
   if (editor_manager_) {
-    editor_manager_->card_registry().ShowCard(editor_manager_->GetCurrentSessionId(), "Memory Editor");
+    editor_manager_->panel_manager().ShowPanel(editor_manager_->GetCurrentSessionId(), "Memory Editor");
   }
 }
 
