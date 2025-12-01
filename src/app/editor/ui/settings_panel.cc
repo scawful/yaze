@@ -149,6 +149,23 @@ void SettingsPanel::DrawAppearanceSettings() {
 
   ImGui::Spacing();
   gui::DrawFontManager();
+
+  ImGui::Spacing();
+  ImGui::Text("%s Status Bar", ICON_MD_HORIZONTAL_RULE);
+  ImGui::Separator();
+
+  bool show_status_bar = user_settings_->prefs().show_status_bar;
+  if (ImGui::Checkbox("Show Status Bar", &show_status_bar)) {
+    user_settings_->prefs().show_status_bar = show_status_bar;
+    user_settings_->Save();
+    // Immediately apply to status bar if status_bar_ is available
+    if (status_bar_) {
+      status_bar_->SetEnabled(show_status_bar);
+    }
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("Display ROM, session, cursor, and zoom info at bottom of window");
+  }
 }
 
 void SettingsPanel::DrawEditorBehavior() {

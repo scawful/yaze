@@ -69,6 +69,9 @@ class UserSettings {
     bool sidebar_visible = true;         // Controls Activity Bar visibility
     bool sidebar_panel_expanded = true;  // Controls Side Panel visibility
     std::string sidebar_active_category; // Last active category
+
+    // Status Bar
+    bool show_status_bar = false;  // Show status bar at bottom (disabled by default)
   };
 
   UserSettings();

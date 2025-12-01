@@ -4,6 +4,7 @@
 #include <functional>
 #include <string>
 
+#include "app/editor/editor.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -47,7 +48,8 @@ class RightPanelManager {
     kProposals,
     kSettings,
     kHelp,
-    kProperties  // New: Full-editing properties panel
+    kNotifications,  // Full notification history panel
+    kProperties      // Full-editing properties panel
   };
 
   RightPanelManager() = default;
@@ -70,6 +72,12 @@ class RightPanelManager {
   }
   void SetToastManager(ToastManager* manager) { toast_manager_ = manager; }
   void SetRom(Rom* rom) { rom_ = rom; }
+
+  /**
+   * @brief Set the active editor for context-aware help content
+   * @param type The currently active editor type
+   */
+  void SetActiveEditor(EditorType type) { active_editor_type_ = type; }
 
   // ============================================================================
   // Panel Control
@@ -164,7 +172,16 @@ class RightPanelManager {
   void DrawProposalsPanel();
   void DrawSettingsPanel();
   void DrawHelpPanel();
+  void DrawNotificationsPanel();
   void DrawPropertiesPanel();
+
+  // Help panel helpers for context-aware content
+  void DrawEditorContextHeader();
+  void DrawGlobalShortcuts();
+  void DrawEditorSpecificShortcuts();
+  void DrawEditorSpecificHelp();
+  void DrawQuickActionButtons();
+  void DrawAboutSection();
 
   // Styling helpers for consistent panel UI
   bool BeginPanelSection(const char* label, const char* icon = nullptr,
@@ -178,11 +195,15 @@ class RightPanelManager {
   // Active panel
   PanelType active_panel_ = PanelType::kNone;
 
+  // Active editor for context-aware help
+  EditorType active_editor_type_ = EditorType::kUnknown;
+
   // Panel widths (customizable per panel type) - consistent sizing
   float agent_chat_width_ = 420.0f;  // Match proposals for consistency
   float proposals_width_ = 420.0f;
   float settings_width_ = 420.0f;    // Same width for unified look
-  float help_width_ = 350.0f;
+  float help_width_ = 380.0f;        // Wider for better readability
+  float notifications_width_ = 420.0f;
   float properties_width_ = 320.0f;  // Narrower for properties
 
   // Component references (not owned)

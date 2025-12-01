@@ -99,16 +99,18 @@ absl::Status Controller::OnLoad() {
 
   const ImGuiViewport* viewport = ImGui::GetMainViewport();
 
-  // Calculate layout offsets for sidebars
+  // Calculate layout offsets for sidebars and status bar
   const float left_offset = editor_manager_.GetLeftLayoutOffset();
   const float right_offset = editor_manager_.GetRightLayoutOffset();
+  const float bottom_offset = editor_manager_.GetBottomLayoutOffset();
 
-  // Adjust dockspace position and size for sidebars
+  // Adjust dockspace position and size for sidebars and status bar
   ImVec2 dockspace_pos = viewport->WorkPos;
   ImVec2 dockspace_size = viewport->WorkSize;
 
   dockspace_pos.x += left_offset;
   dockspace_size.x -= (left_offset + right_offset);
+  dockspace_size.y -= bottom_offset;  // Reserve space for status bar at bottom
 
   ImGui::SetNextWindowPos(dockspace_pos);
   ImGui::SetNextWindowSize(dockspace_size);
