@@ -219,6 +219,22 @@ bool ToggleIconButton(const char* icon_on, const char* icon_off, bool* state,
   return result;
 }
 
+bool ToggleButton(const char* label, bool active, const ImVec2& size) {
+  if (active) {
+    ImGui::PushStyleColor(ImGuiCol_Button, GetAccentColor());
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, GetAccentColor());
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, GetAccentColor());
+  }
+
+  bool result = ImGui::Button(label, size);
+
+  if (active) {
+    ImGui::PopStyleColor(3);
+  }
+
+  return result;
+}
+
 void HelpMarker(const char* desc) {
   ImGui::TextDisabled(ICON_MD_HELP_OUTLINE);
   if (ImGui::IsItemHovered()) {
