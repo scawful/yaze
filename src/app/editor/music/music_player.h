@@ -9,16 +9,13 @@
 
 #include "absl/status/status.h"
 #include "app/editor/music/music_constants.h"
+#include "app/emu/emulator.h"
 #include "zelda3/music/music_bank.h"
 #include "zelda3/music/song_data.h"
 
 namespace yaze {
 
 class Rom;
-
-namespace emu {
-class Emulator;
-}
 
 namespace editor {
 namespace music {
@@ -77,8 +74,10 @@ class MusicPlayer {
   ~MusicPlayer();
 
   // === Dependency Injection ===
-  void SetEmulator(emu::Emulator* emulator);
   void SetRom(Rom* rom);
+
+  // Access the dedicated audio emulator (for visualization, etc.)
+  emu::Emulator* audio_emulator() { return audio_emulator_.get(); }
 
   // === Main Update Loop ===
   /**
@@ -229,7 +228,7 @@ class MusicPlayer {
 
   // === Dependencies ===
   zelda3::music::MusicBank* music_bank_ = nullptr;
-  emu::Emulator* emulator_ = nullptr;
+  std::unique_ptr<emu::Emulator> audio_emulator_;  // Dedicated emulator for audio playback
   Rom* rom_ = nullptr;
 
   // === Playback State ===
