@@ -4,7 +4,15 @@
 #include <cstdio>
 
 #include "absl/strings/str_format.h"
-#include "app/editor/system/editor_card_registry.h"
+#include "app/editor/dungeon/panels/dungeon_debug_controls_panel.h"
+#include "app/editor/dungeon/panels/dungeon_emulator_preview_panel.h"
+#include "app/editor/dungeon/panels/dungeon_entrances_panel.h"
+#include "app/editor/dungeon/panels/dungeon_object_editor_panel.h"
+#include "app/editor/dungeon/panels/dungeon_palette_editor_panel.h"
+#include "app/editor/dungeon/panels/dungeon_room_graphics_panel.h"
+#include "app/editor/dungeon/panels/dungeon_room_matrix_panel.h"
+#include "app/editor/dungeon/panels/dungeon_room_selector_panel.h"
+#include "app/editor/system/panel_manager.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/gfx/util/palette_manager.h"
@@ -46,12 +54,12 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
   show_control_panel_ = true;
   show_room_selector_ = true;
 
-  // Register all cards with EditorCardRegistry (dependency injection)
-  if (!dependencies_.card_registry)
+  // Register all cards with PanelManager (dependency injection)
+  if (!dependencies_.panel_manager)
     return;
-  auto* card_registry = dependencies_.card_registry;
+  auto* panel_manager = dependencies_.panel_manager;
 
-  card_registry->RegisterCard({.card_id = MakeCardId("dungeon.control_panel"),
+  panel_manager->RegisterPanel({.card_id = MakeCardId("dungeon.control_panel"),
                                .display_name = "Dungeon Controls",
                                .window_title = " Dungeon Controls",
                                .icon = ICON_MD_CASTLE,
@@ -62,7 +70,7 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
                                .disabled_tooltip = "Load a ROM to access dungeon controls",
                                .priority = 10});
 
-  card_registry->RegisterCard({.card_id = MakeCardId("dungeon.room_selector"),
+  panel_manager->RegisterPanel({.card_id = MakeCardId("dungeon.room_selector"),
                                .display_name = "Room Selector",
                                .window_title = " Rooms List",
                                .icon = ICON_MD_LIST,
@@ -73,7 +81,7 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
                                .disabled_tooltip = "Load a ROM to browse dungeon rooms",
                                .priority = 20});
 
-  card_registry->RegisterCard({.card_id = MakeCardId("dungeon.room_matrix"),
+  panel_manager->RegisterPanel({.card_id = MakeCardId("dungeon.room_matrix"),
                                .display_name = "Room Matrix",
                                .window_title = " Room Matrix",
                                .icon = ICON_MD_GRID_VIEW,
@@ -84,7 +92,7 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
                                .disabled_tooltip = "Load a ROM to view the room matrix",
                                .priority = 30});
 
-  card_registry->RegisterCard({.card_id = MakeCardId("dungeon.entrances"),
+  panel_manager->RegisterPanel({.card_id = MakeCardId("dungeon.entrances"),
                                .display_name = "Entrances",
                                .window_title = " Entrances",
                                .icon = ICON_MD_DOOR_FRONT,
@@ -95,7 +103,7 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
                                .disabled_tooltip = "Load a ROM to view dungeon entrances",
                                .priority = 40});
 
-  card_registry->RegisterCard({.card_id = MakeCardId("dungeon.room_graphics"),
+  panel_manager->RegisterPanel({.card_id = MakeCardId("dungeon.room_graphics"),
                                .display_name = "Room Graphics",
                                .window_title = " Room Graphics",
                                .icon = ICON_MD_IMAGE,
@@ -106,7 +114,7 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
                                .disabled_tooltip = "Load a ROM to view room graphics",
                                .priority = 50});
 
-  card_registry->RegisterCard({.card_id = MakeCardId("dungeon.object_editor"),
+  panel_manager->RegisterPanel({.card_id = MakeCardId("dungeon.object_editor"),
                                .display_name = "Object Editor",
                                .window_title = " Object Editor",
                                .icon = ICON_MD_CONSTRUCTION,
@@ -117,7 +125,7 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
                                .disabled_tooltip = "Load a ROM to edit dungeon objects",
                                .priority = 60});
 
-  card_registry->RegisterCard({.card_id = MakeCardId("dungeon.palette_editor"),
+  panel_manager->RegisterPanel({.card_id = MakeCardId("dungeon.palette_editor"),
                                .display_name = "Palette Editor",
                                .window_title = " Palette Editor",
                                .icon = ICON_MD_PALETTE,
@@ -128,7 +136,7 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
                                .disabled_tooltip = "Load a ROM to edit dungeon palettes",
                                .priority = 70});
 
-  card_registry->RegisterCard({.card_id = MakeCardId("dungeon.debug_controls"),
+  panel_manager->RegisterPanel({.card_id = MakeCardId("dungeon.debug_controls"),
                                .display_name = "Debug Controls",
                                .window_title = " Debug Controls",
                                .icon = ICON_MD_BUG_REPORT,
@@ -139,7 +147,7 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
                                .disabled_tooltip = "Load a ROM to access debug controls",
                                .priority = 80});
 
-  card_registry->RegisterCard({.card_id = MakeCardId("dungeon.emulator_preview"),
+  panel_manager->RegisterPanel({.card_id = MakeCardId("dungeon.emulator_preview"),
                                .display_name = "SNES Object Preview",
                                .window_title = " SNES Object Preview",
                                .icon = ICON_MD_MONITOR,
@@ -149,6 +157,61 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
                                .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
                                .disabled_tooltip = "Load a ROM to use SNES emulator preview",
                                .priority = 65});
+
+  // ============================================================================
+  // Phase 5: Full EditorPanel Registration
+  // Register EditorPanel instances for central drawing via DrawAllVisiblePanels()
+  // These panels wrap existing components with the EditorPanel interface.
+  // ============================================================================
+
+  // Room Selector Panel - wraps DungeonRoomSelector
+  panel_manager->RegisterEditorPanel(
+      std::make_unique<DungeonRoomSelectorPanel>(
+          &room_selector_,
+          [this](int room_id) { OnRoomSelected(room_id); }));
+
+  // Room Matrix Panel - 16x19 visual grid for room navigation
+  panel_manager->RegisterEditorPanel(
+      std::make_unique<DungeonRoomMatrixPanel>(
+          &current_room_id_,
+          &active_rooms_,
+          [this](int room_id) { OnRoomSelected(room_id); }));
+
+  // Entrances Panel - entrance list with properties
+  panel_manager->RegisterEditorPanel(
+      std::make_unique<DungeonEntrancesPanel>(
+          &entrances_,
+          &current_entrance_id_,
+          [this](int entrance_id) { OnEntranceSelected(entrance_id); }));
+
+  // Room Graphics Panel - displays room graphics blocks
+  panel_manager->RegisterEditorPanel(
+      std::make_unique<DungeonRoomGraphicsPanel>(
+          &current_room_id_,
+          &rooms_));
+
+  // Palette Editor Panel - wraps PaletteEditorWidget
+  panel_manager->RegisterEditorPanel(
+      std::make_unique<DungeonPaletteEditorPanel>(&palette_editor_));
+
+  // Debug Controls Panel - debug tools and rendering controls
+  panel_manager->RegisterEditorPanel(
+      std::make_unique<DungeonDebugControlsPanel>(
+          &current_room_id_,
+          &rooms_,
+          renderer_,
+          [this]() { return Save(); },
+          [this](int room_id) { return room_loader_.LoadRoom(room_id, rooms_[room_id]); },
+          [this]() {
+            active_rooms_.clear();
+            room_cards_.clear();
+          }));
+
+  // Emulator Preview Panel - SNES object preview
+  panel_manager->RegisterEditorPanel(
+      std::make_unique<DungeonEmulatorPreviewPanel>(&object_emulator_preview_));
+
+  // NOTE: DungeonObjectEditorPanel is registered in Load() after object_editor_card_ is created
 }
 
 void DungeonEditorV2::Initialize() {}
@@ -227,6 +290,12 @@ absl::Status DungeonEditorV2::Load() {
   object_editor_card_ = std::make_unique<ObjectEditorCard>(
       renderer_, rom_, &canvas_viewer_, dungeon_editor_system_->GetObjectEditor());
 
+  // Register ObjectEditorPanel (deferred from Initialize() because object_editor_card_ is created here)
+  if (dependencies_.panel_manager) {
+    dependencies_.panel_manager->RegisterEditorPanel(
+        std::make_unique<DungeonObjectEditorPanel>(object_editor_card_.get()));
+  }
+
   // Link editor system to canvas viewer for interactions
   if (dungeon_editor_system_) {
     canvas_viewer_.SetEditorSystem(dungeon_editor_system_.get());
@@ -257,7 +326,7 @@ absl::Status DungeonEditorV2::Update() {
 
   if (!is_loaded_) {
     // CARD-BASED EDITOR: Create a minimal loading card
-    gui::EditorCard loading_card("Dungeon Editor Loading", ICON_MD_CASTLE);
+    gui::PanelWindow loading_card("Dungeon Editor Loading", ICON_MD_CASTLE);
     loading_card.SetDefaultSize(400, 200);
     if (loading_card.Begin()) {
       ImGui::TextColored(theme.text_secondary_gray,
@@ -272,6 +341,13 @@ absl::Status DungeonEditorV2::Update() {
   // CARD-BASED EDITOR: All windows are independent top-level cards
   // No parent wrapper - this allows closing control panel without affecting
   // rooms
+
+  // Phase 4: Central drawing via EditorPanel instances
+  // This draws panels registered via RegisterEditorPanel() using their
+  // EditorPanel::Draw() implementations. Eventually replaces manual DrawLayout().
+  if (dependencies_.panel_manager) {
+    dependencies_.panel_manager->DrawAllVisiblePanels();
+  }
 
   DrawLayout();
 
@@ -348,67 +424,13 @@ absl::Status DungeonEditorV2::Save() {
 }
 
 void DungeonEditorV2::DrawLayout() {
-  // NO TABLE LAYOUT - All independent dockable EditorCards
-  // All cards check their visibility flags and can be closed with X button
+  // ============================================================================
+  // Phase 4 Complete: Static panels now drawn by DrawAllVisiblePanels()
+  // Only dynamic room cards remain here (will migrate to ResourcePanel in Phase 6)
+  // ============================================================================
 
-  // 1. Room Selector Card (independent, dockable)
-  if (show_room_selector_) {
-    DrawRoomsListCard();
-    // Card handles its own closing via &show_room_selector_ in constructor
-  }
-
-  // 2. Room Matrix Card (visual navigation)
-  if (show_room_matrix_) {
-    DrawRoomMatrixCard();
-    // Card handles its own closing via &show_room_matrix_ in constructor
-  }
-
-  // 3. Entrances List Card
-  if (show_entrances_list_) {
-    DrawEntrancesListCard();
-    // Card handles its own closing via &show_entrances_list_ in constructor
-  }
-
-  // 4. Room Graphics Card
-  if (show_room_graphics_) {
-    DrawRoomGraphicsCard();
-    // Card handles its own closing via &show_room_graphics_ in constructor
-  }
-
-  // 5. Unified Object Editor Card
-  if (show_object_editor_ && object_editor_card_) {
-    object_editor_card_->Draw(&show_object_editor_);
-    // ObjectEditorCard handles closing via p_open parameter
-  }
-
-  // 6. Palette Editor Card (independent, dockable)
-  if (show_palette_editor_) {
-    gui::EditorCard palette_card(MakeCardTitle("Palette Editor").c_str(),
-                                 ICON_MD_PALETTE, &show_palette_editor_);
-    if (palette_card.Begin()) {
-      palette_editor_.Draw();
-    }
-    palette_card.End();
-    // Card handles its own closing via &show_palette_editor_ in constructor
-  }
-
-  // 7. Debug Controls Card (independent, dockable)
-  if (show_debug_controls_) {
-    DrawDebugControlsCard();
-  }
-
-  // 8. SNES Emulator Preview Card (standalone, easily accessible)
-  if (show_emulator_preview_) {
-    // Emulator preview renders itself as a window via Render()
-    object_emulator_preview_.set_visible(true);
-    object_emulator_preview_.Render();
-    // Sync visibility back if user closed window via X button
-    if (!object_emulator_preview_.is_visible()) {
-      show_emulator_preview_ = false;
-    }
-  }
-
-  // 9. Active Room Cards (independent, dockable, tracked for jump-to)
+  // Dynamic Room Cards - each open room gets its own dockable card
+  // TODO(Phase 6): Migrate to DungeonRoomPanel (ResourcePanel) with LRU limits
   for (int i = 0; i < active_rooms_.Size; i++) {
     int room_id = active_rooms_[i];
     bool open = true;
@@ -428,13 +450,13 @@ void DungeonEditorV2::DrawLayout() {
 
     // Track or create card for jump-to functionality
     if (room_cards_.find(room_id) == room_cards_.end()) {
-      room_cards_[room_id] = std::make_shared<gui::EditorCard>(
+      room_cards_[room_id] = std::make_shared<gui::PanelWindow>(
           card_name_str.c_str(), ICON_MD_GRID_ON, &open);
       room_cards_[room_id]->SetDefaultSize(700, 600);
 
       // Set default position for first room to be docked with main window
       if (active_rooms_.Size == 1) {
-        room_cards_[room_id]->SetPosition(gui::EditorCard::Position::Floating);
+        room_cards_[room_id]->SetPosition(gui::PanelWindow::Position::Floating);
       }
     }
 
@@ -595,7 +617,7 @@ void DungeonEditorV2::SetAgentMode(bool enabled) {
     show_room_selector_ = true;
     show_object_editor_ = true;
     show_room_graphics_ = true;
-    
+
     // Optimize layout in sub-components
     if (object_editor_card_) {
       object_editor_card_->SetAgentOptimizedLayout(true);
@@ -603,591 +625,12 @@ void DungeonEditorV2::SetAgentMode(bool enabled) {
   }
 }
 
-void DungeonEditorV2::DrawRoomsListCard() {
-  gui::EditorCard selector_card(MakeCardTitle("Rooms List").c_str(),
-                                ICON_MD_LIST, &show_room_selector_);
-
-  selector_card.SetDefaultSize(350, 600);
-
-  if (selector_card.Begin()) {
-    if (!rom_ || !rom_->is_loaded()) {
-      ImGui::Text("ROM not loaded");
-    } else {
-      // Add text filter
-      static char room_filter[256] = "";
-      ImGui::SetNextItemWidth(-1);
-      if (ImGui::InputTextWithHint("##RoomFilter",
-                                   ICON_MD_SEARCH " Filter rooms...",
-                                   room_filter, sizeof(room_filter))) {
-        // Filter updated
-      }
-
-      ImGui::Separator();
-
-      // Scrollable room list - simple and reliable
-      if (ImGui::BeginChild("##RoomsList", ImVec2(0, 0), true,
-                            ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
-        std::string filter_str = room_filter;
-        std::transform(filter_str.begin(), filter_str.end(), filter_str.begin(),
-                       ::tolower);
-
-        for (int i = 0; i < zelda3::NumberOfRooms; i++) {
-          // Get room name
-          std::string room_name;
-          if (i < static_cast<int>(std::size(zelda3::kRoomNames))) {
-            room_name = std::string(zelda3::kRoomNames[i]);
-          } else {
-            room_name = absl::StrFormat("Room %03X", i);
-          }
-
-          // Apply filter
-          if (!filter_str.empty()) {
-            std::string name_lower = room_name;
-            std::transform(name_lower.begin(), name_lower.end(),
-                           name_lower.begin(), ::tolower);
-            if (name_lower.find(filter_str) == std::string::npos) {
-              continue;
-            }
-          }
-
-          // Simple selectable with room ID and name
-          std::string label =
-              absl::StrFormat("[%03X] %s", i, room_name.c_str());
-          bool is_selected = (current_room_id_ == i);
-
-          if (ImGui::Selectable(label.c_str(), is_selected)) {
-            OnRoomSelected(i);
-          }
-
-          if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(0)) {
-            OnRoomSelected(i);
-          }
-        }
-      }
-      ImGui::EndChild();
-    }
-  }
-  selector_card.End();
-}
-
-void DungeonEditorV2::DrawEntrancesListCard() {
-  gui::EditorCard entrances_card(MakeCardTitle("Entrances").c_str(),
-                                 ICON_MD_DOOR_FRONT, &show_entrances_list_);
-
-  entrances_card.SetDefaultSize(400, 700);
-
-  if (entrances_card.Begin()) {
-    if (!rom_ || !rom_->is_loaded()) {
-      ImGui::Text("ROM not loaded");
-    } else {
-      // Full entrance configuration UI (matching dungeon_room_selector layout)
-      auto& current_entrance = entrances_[current_entrance_id_];
-
-      gui::InputHexWord("Entrance ID", &current_entrance.entrance_id_);
-      gui::InputHexWord("Room ID",
-                        reinterpret_cast<uint16_t*>(&current_entrance.room_));
-      ImGui::SameLine();
-      gui::InputHexByte("Dungeon ID", &current_entrance.dungeon_id_, 50.f,
-                        true);
-
-      gui::InputHexByte("Blockset", &current_entrance.blockset_, 50.f, true);
-      ImGui::SameLine();
-      gui::InputHexByte("Music", &current_entrance.music_, 50.f, true);
-      ImGui::SameLine();
-      gui::InputHexByte("Floor", &current_entrance.floor_);
-
-      ImGui::Separator();
-
-      gui::InputHexWord("Player X   ", &current_entrance.x_position_);
-      ImGui::SameLine();
-      gui::InputHexWord("Player Y   ", &current_entrance.y_position_);
-
-      gui::InputHexWord("Camera X", &current_entrance.camera_trigger_x_);
-      ImGui::SameLine();
-      gui::InputHexWord("Camera Y", &current_entrance.camera_trigger_y_);
-
-      gui::InputHexWord("Scroll X    ", &current_entrance.camera_x_);
-      ImGui::SameLine();
-      gui::InputHexWord("Scroll Y    ", &current_entrance.camera_y_);
-
-      gui::InputHexWord("Exit",
-                        reinterpret_cast<uint16_t*>(&current_entrance.exit_),
-                        50.f, true);
-
-      ImGui::Separator();
-      ImGui::Text("Camera Boundaries");
-      ImGui::Separator();
-      ImGui::Text("\t\t\t\t\tNorth         East         South         West");
-
-      gui::InputHexByte("Quadrant", &current_entrance.camera_boundary_qn_, 50.f,
-                        true);
-      ImGui::SameLine();
-      gui::InputHexByte("##QE", &current_entrance.camera_boundary_qe_, 50.f,
-                        true);
-      ImGui::SameLine();
-      gui::InputHexByte("##QS", &current_entrance.camera_boundary_qs_, 50.f,
-                        true);
-      ImGui::SameLine();
-      gui::InputHexByte("##QW", &current_entrance.camera_boundary_qw_, 50.f,
-                        true);
-
-      gui::InputHexByte("Full room", &current_entrance.camera_boundary_fn_,
-                        50.f, true);
-      ImGui::SameLine();
-      gui::InputHexByte("##FE", &current_entrance.camera_boundary_fe_, 50.f,
-                        true);
-      ImGui::SameLine();
-      gui::InputHexByte("##FS", &current_entrance.camera_boundary_fs_, 50.f,
-                        true);
-      ImGui::SameLine();
-      gui::InputHexByte("##FW", &current_entrance.camera_boundary_fw_, 50.f,
-                        true);
-
-      ImGui::Separator();
-
-      // Entrance list - simple and reliable
-      if (ImGui::BeginChild("##EntrancesList", ImVec2(0, 0), true,
-                            ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
-        for (int i = 0; i < 0x8C; i++) {
-          // The last seven are spawn points
-          std::string entrance_name;
-          if (i < 0x85) {
-            entrance_name = std::string(zelda3::kEntranceNames[i]);
-          } else {
-            entrance_name = absl::StrFormat("Spawn Point %d", i - 0x85);
-          }
-
-          // Get associated room name
-          int room_id = entrances_[i].room_;
-          std::string room_name = "Unknown";
-          if (room_id >= 0 &&
-              room_id < static_cast<int>(std::size(zelda3::kRoomNames))) {
-            room_name = std::string(zelda3::kRoomNames[room_id]);
-          }
-
-          std::string label = absl::StrFormat(
-              "[%02X] %s -> %s", i, entrance_name.c_str(), room_name.c_str());
-
-          bool is_selected = (current_entrance_id_ == i);
-          if (ImGui::Selectable(label.c_str(), is_selected)) {
-            current_entrance_id_ = i;
-            OnEntranceSelected(i);
-          }
-        }
-      }
-      ImGui::EndChild();
-    }
-  }
-  entrances_card.End();
-}
-
-void DungeonEditorV2::DrawRoomMatrixCard() {
-  const auto& theme = AgentUI::GetTheme();
-  gui::EditorCard matrix_card(MakeCardTitle("Room Matrix").c_str(),
-                              ICON_MD_GRID_VIEW, &show_room_matrix_);
-
-  matrix_card.SetDefaultSize(440, 520);
-
-  if (matrix_card.Begin()) {
-    // 16 wide x 19 tall = 304 cells (296 rooms + 8 empty)
-    constexpr int kRoomsPerRow = 16;
-    constexpr int kRoomsPerCol = 19;
-    constexpr int kTotalRooms = 0x128;      // 296 rooms (0x00-0x127)
-    constexpr float kRoomCellSize = 24.0f;  // Smaller cells like ZScream
-    constexpr float kCellSpacing = 1.0f;    // Tighter spacing
-
-    ImDrawList* draw_list = ImGui::GetWindowDrawList();
-    ImVec2 canvas_pos = ImGui::GetCursorScreenPos();
-
-    int room_index = 0;
-    for (int row = 0; row < kRoomsPerCol; row++) {
-      for (int col = 0; col < kRoomsPerRow; col++) {
-        int room_id = room_index;
-        bool is_valid_room = (room_id < kTotalRooms);
-
-        ImVec2 cell_min =
-            ImVec2(canvas_pos.x + col * (kRoomCellSize + kCellSpacing),
-                   canvas_pos.y + row * (kRoomCellSize + kCellSpacing));
-        ImVec2 cell_max =
-            ImVec2(cell_min.x + kRoomCellSize, cell_min.y + kRoomCellSize);
-
-        if (is_valid_room) {
-          // Use simple deterministic color based on room ID (no loading needed)
-          ImU32 bg_color;
-
-          // Generate color from room ID - much faster than loading
-          int hue = (room_id * 37) % 360;  // Distribute colors across spectrum
-          int saturation = 40 + (room_id % 3) * 15;
-          int brightness = 50 + (room_id % 5) * 10;
-
-          // Convert HSV to RGB
-          float h = hue / 60.0f;
-          float s = saturation / 100.0f;
-          float v = brightness / 100.0f;
-
-          int i = static_cast<int>(h);
-          float f = h - i;
-          int p = static_cast<int>(v * (1 - s) * 255);
-          int q = static_cast<int>(v * (1 - s * f) * 255);
-          int t = static_cast<int>(v * (1 - s * (1 - f)) * 255);
-          int val = static_cast<int>(v * 255);
-
-          switch (i % 6) {
-            case 0:
-              bg_color = IM_COL32(val, t, p, 255);
-              break;
-            case 1:
-              bg_color = IM_COL32(q, val, p, 255);
-              break;
-            case 2:
-              bg_color = IM_COL32(p, val, t, 255);
-              break;
-            case 3:
-              bg_color = IM_COL32(p, q, val, 255);
-              break;
-            case 4:
-              bg_color = IM_COL32(t, p, val, 255);
-              break;
-            case 5:
-              bg_color = IM_COL32(val, p, q, 255);
-              break;
-            default: {
-              const auto& theme = AgentUI::GetTheme();
-              bg_color = ImGui::GetColorU32(theme.panel_bg_darker);
-              break;
-            }
-          }
-
-          // Check if room is currently selected
-          bool is_current = (current_room_id_ == room_id);
-
-          // Check if room is open in a card
-          bool is_open = false;
-          for (int i = 0; i < active_rooms_.Size; i++) {
-            if (active_rooms_[i] == room_id) {
-              is_open = true;
-              break;
-            }
-          }
-
-          // Draw cell background with palette color
-          draw_list->AddRectFilled(cell_min, cell_max, bg_color);
-
-          // Draw outline ONLY for current/open rooms
-          if (is_current) {
-            // Light green for current room
-            draw_list->AddRect(cell_min, cell_max, ImGui::GetColorU32(theme.dungeon_grid_cell_highlight),
-                               0.0f, 0, 2.5f);
-          } else if (is_open) {
-            // Green for open rooms
-            draw_list->AddRect(cell_min, cell_max, ImGui::GetColorU32(theme.dungeon_grid_cell_selected),
-                               0.0f, 0, 2.0f);
-          } else {
-            // Subtle gray border for all rooms
-            draw_list->AddRect(cell_min, cell_max, ImGui::GetColorU32(theme.dungeon_grid_cell_border),
-                               0.0f, 0, 1.0f);
-          }
-
-          // Draw room ID (small text)
-          std::string room_label = absl::StrFormat("%02X", room_id);
-          ImVec2 text_size = ImGui::CalcTextSize(room_label.c_str());
-          ImVec2 text_pos =
-              ImVec2(cell_min.x + (kRoomCellSize - text_size.x) * 0.5f,
-                     cell_min.y + (kRoomCellSize - text_size.y) * 0.5f);
-
-          // Use smaller font if available
-          draw_list->AddText(text_pos, ImGui::GetColorU32(theme.dungeon_grid_text),
-                             room_label.c_str());
-
-          // Handle clicks
-          ImGui::SetCursorScreenPos(cell_min);
-          ImGui::InvisibleButton(absl::StrFormat("##room%d", room_id).c_str(),
-                                 ImVec2(kRoomCellSize, kRoomCellSize));
-
-          if (ImGui::IsItemClicked()) {
-            OnRoomSelected(room_id);
-          }
-
-          // Hover tooltip with room name and status
-          if (ImGui::IsItemHovered()) {
-            ImGui::BeginTooltip();
-            if (room_id < static_cast<int>(std::size(zelda3::kRoomNames))) {
-              ImGui::Text("%s", zelda3::kRoomNames[room_id].data());
-            } else {
-              ImGui::Text("Room %03X", room_id);
-            }
-            ImGui::Text("Status: %s", is_open      ? "Open"
-                                      : is_current ? "Current"
-                                                   : "Closed");
-            ImGui::Text("Click to %s", is_open ? "focus" : "open");
-            ImGui::EndTooltip();
-          }
-        } else {
-          // Empty cell
-          draw_list->AddRectFilled(cell_min, cell_max,
-                                   ImGui::GetColorU32(theme.dungeon_room_border));
-          draw_list->AddRect(cell_min, cell_max, ImGui::GetColorU32(theme.dungeon_room_border_dark));
-        }
-
-        room_index++;
-      }
-    }
-
-    // Advance cursor past the grid
-    ImGui::Dummy(ImVec2(kRoomsPerRow * (kRoomCellSize + kCellSpacing),
-                        kRoomsPerCol * (kRoomCellSize + kCellSpacing)));
-  }
-  matrix_card.End();
-}
-
-void DungeonEditorV2::DrawRoomGraphicsCard() {
-  const auto& theme = AgentUI::GetTheme();
-  gui::EditorCard graphics_card(MakeCardTitle("Room Graphics").c_str(),
-                                ICON_MD_IMAGE, &show_room_graphics_);
-
-  graphics_card.SetDefaultSize(350, 500);
-  graphics_card.SetPosition(gui::EditorCard::Position::Right);
-
-  if (graphics_card.Begin()) {
-    if (!rom_ || !rom_->is_loaded()) {
-      ImGui::Text("ROM not loaded");
-    } else if (current_room_id_ >= 0 &&
-               current_room_id_ < static_cast<int>(rooms_.size())) {
-      // Show graphics for current room
-      auto& room = rooms_[current_room_id_];
-
-      ImGui::Text("Room %03X Graphics", current_room_id_);
-      ImGui::Text("Blockset: %02X", room.blockset);
-      ImGui::Separator();
-
-      // Create a canvas for displaying room graphics (16 blocks, 2 columns, 8
-      // rows) Each block is 128x32, so 2 cols = 256 wide, 8 rows = 256 tall
-      static gui::Canvas room_gfx_canvas("##RoomGfxCanvas",
-                                         ImVec2(256 + 1, 256 + 1));
-
-      room_gfx_canvas.DrawBackground();
-      room_gfx_canvas.DrawContextMenu();
-      room_gfx_canvas.DrawTileSelector(32);
-
-      auto blocks = room.blocks();
-
-      // Load graphics for this room if not already loaded
-      if (blocks.empty()) {
-        room.LoadRoomGraphics(room.blockset);
-        blocks = room.blocks();
-      }
-
-      // NOTE: Don't call RenderRoomGraphics() here - it's already handled in
-      // DrawRoomTab() when the room loads. Calling it every frame causes
-      // duplicate rendering and performance issues.
-
-      int current_block = 0;
-      constexpr int max_blocks_per_row = 2;
-      constexpr int block_width = 128;
-      constexpr int block_height = 32;
-
-      for (int block : blocks) {
-        if (current_block >= 16)
-          break;  // Show first 16 blocks
-
-        // Ensure the graphics sheet is loaded
-        if (block < static_cast<int>(gfx::Arena::Get().gfx_sheets().size())) {
-          auto& gfx_sheet = gfx::Arena::Get().gfx_sheets()[block];
-
-          // Create texture if it doesn't exist
-          if (!gfx_sheet.texture() && gfx_sheet.is_active() &&
-              gfx_sheet.width() > 0) {
-            gfx::Arena::Get().QueueTextureCommand(
-                gfx::Arena::TextureCommandType::CREATE, &gfx_sheet);
-            gfx::Arena::Get().ProcessTextureQueue(nullptr);
-          }
-
-          // Calculate grid position
-          int row = current_block / max_blocks_per_row;
-          int col = current_block % max_blocks_per_row;
-
-          int x = room_gfx_canvas.zero_point().x + 2 + (col * block_width);
-          int y = room_gfx_canvas.zero_point().y + 2 + (row * block_height);
-
-          // Draw if texture is valid
-          if (gfx_sheet.texture() != 0) {
-            room_gfx_canvas.draw_list()->AddImage(
-                (ImTextureID)(intptr_t)gfx_sheet.texture(), ImVec2(x, y),
-                ImVec2(x + block_width, y + block_height));
-          } else {
-            // Draw placeholder for missing graphics
-            room_gfx_canvas.draw_list()->AddRectFilled(
-                ImVec2(x, y), ImVec2(x + block_width, y + block_height),
-                ImGui::GetColorU32(theme.panel_bg_darker));
-            room_gfx_canvas.draw_list()->AddText(ImVec2(x + 10, y + 10),
-                                                 ImGui::GetColorU32(theme.text_primary),
-                                                 "No Graphics");
-          }
-        }
-        current_block++;
-      }
-
-      room_gfx_canvas.DrawGrid(32.0f);
-      room_gfx_canvas.DrawOverlay();
-    } else {
-      ImGui::TextDisabled("No room selected");
-    }
-  }
-  graphics_card.End();
-}
-
-void DungeonEditorV2::DrawDebugControlsCard() {
-  gui::EditorCard debug_card(MakeCardTitle("Debug Controls").c_str(),
-                             ICON_MD_BUG_REPORT, &show_debug_controls_);
-
-  debug_card.SetDefaultSize(350, 500);
-
-  if (debug_card.Begin()) {
-    ImGui::TextWrapped("Runtime debug controls for development");
-    ImGui::Separator();
-
-    // ===== LOGGING CONTROLS =====
-    ImGui::SeparatorText(ICON_MD_TERMINAL " Logging");
-
-    bool debug_enabled = util::LogManager::instance().IsDebugEnabled();
-    if (ImGui::Checkbox("Enable DEBUG Logs", &debug_enabled)) {
-      if (debug_enabled) {
-        util::LogManager::instance().EnableDebugLogging();
-        LOG_INFO("DebugControls", "DEBUG logging ENABLED");
-      } else {
-        util::LogManager::instance().DisableDebugLogging();
-        LOG_INFO("DebugControls", "DEBUG logging DISABLED");
-      }
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Toggle LOG_DEBUG visibility\nShortcut: Ctrl+Shift+D");
-    }
-
-    // Log level selector
-    const char* log_levels[] = {"DEBUG", "INFO", "WARNING", "ERROR", "FATAL"};
-    int current_level =
-        static_cast<int>(util::LogManager::instance().GetLogLevel());
-    if (ImGui::Combo("Log Level", &current_level, log_levels, 5)) {
-      util::LogManager::instance().SetLogLevel(
-          static_cast<util::LogLevel>(current_level));
-      LOG_INFO("DebugControls", "Log level set to %s",
-               log_levels[current_level]);
-    }
-
-    ImGui::Separator();
-
-    // ===== ROOM RENDERING CONTROLS =====
-    ImGui::SeparatorText(ICON_MD_IMAGE " Rendering");
-
-    if (current_room_id_ >= 0 &&
-        current_room_id_ < static_cast<int>(rooms_.size())) {
-      auto& room = rooms_[current_room_id_];
-
-      ImGui::Text("Current Room: %03X", current_room_id_);
-      ImGui::Text("Objects: %zu", room.GetTileObjects().size());
-      ImGui::Text("Sprites: %zu", room.GetSprites().size());
-
-      if (ImGui::Button(ICON_MD_REFRESH " Force Re-render",
-                        ImVec2(-FLT_MIN, 0))) {
-        room.LoadRoomGraphics(room.blockset);
-        room.LoadObjects();
-        room.RenderRoomGraphics();
-        LOG_INFO("DebugControls", "Forced re-render of room %03X",
-                 current_room_id_);
-      }
-
-      if (ImGui::Button(ICON_MD_CLEANING_SERVICES " Clear Room Buffers",
-                        ImVec2(-FLT_MIN, 0))) {
-        room.ClearTileObjects();
-        LOG_INFO("DebugControls", "Cleared room %03X buffers",
-                 current_room_id_);
-      }
-
-      ImGui::Separator();
-
-      // Floor graphics override
-      ImGui::Text("Floor Graphics Override:");
-      uint8_t floor1 = room.floor1();
-      uint8_t floor2 = room.floor2();
-      static uint8_t floor_min = 0;
-      static uint8_t floor_max = 15;
-      if (ImGui::SliderScalar("Floor1", ImGuiDataType_U8, &floor1, &floor_min,
-                              &floor_max)) {
-        room.set_floor1(floor1);
-        if (room.rom() && room.rom()->is_loaded()) {
-          room.RenderRoomGraphics();
-        }
-      }
-      if (ImGui::SliderScalar("Floor2", ImGuiDataType_U8, &floor2, &floor_min,
-                              &floor_max)) {
-        room.set_floor2(floor2);
-        if (room.rom() && room.rom()->is_loaded()) {
-          room.RenderRoomGraphics();
-        }
-      }
-    } else {
-      ImGui::TextDisabled("No room selected");
-    }
-
-    ImGui::Separator();
-
-    // ===== TEXTURE CONTROLS =====
-    ImGui::SeparatorText(ICON_MD_TEXTURE " Textures");
-
-    if (ImGui::Button(ICON_MD_DELETE_SWEEP " Process Texture Queue",
-                      ImVec2(-FLT_MIN, 0))) {
-      gfx::Arena::Get().ProcessTextureQueue(renderer_);
-      LOG_INFO("DebugControls", "Manually processed texture queue");
-    }
-
-    // Texture stats
-    ImGui::Text("Arena Graphics Sheets: %zu",
-                gfx::Arena::Get().gfx_sheets().size());
-
-    ImGui::Separator();
-
-    // ===== MEMORY CONTROLS =====
-    ImGui::SeparatorText(ICON_MD_MEMORY " Memory");
-
-    size_t active_rooms_count = active_rooms_.Size;
-    ImGui::Text("Active Rooms: %zu", active_rooms_count);
-    ImGui::Text("Estimated Memory: ~%zu MB",
-                active_rooms_count * 2);  // 2MB per room
-
-    if (ImGui::Button(ICON_MD_CLOSE " Close All Rooms", ImVec2(-FLT_MIN, 0))) {
-      active_rooms_.clear();
-      room_cards_.clear();
-      LOG_INFO("DebugControls", "Closed all room cards");
-    }
-
-    ImGui::Separator();
-
-    // ===== QUICK ACTIONS =====
-    ImGui::SeparatorText(ICON_MD_FLASH_ON " Quick Actions");
-
-    if (ImGui::Button(ICON_MD_SAVE " Save All Rooms", ImVec2(-FLT_MIN, 0))) {
-      auto status = Save();
-      if (status.ok()) {
-        LOG_INFO("DebugControls", "Saved all rooms");
-      } else {
-        LOG_ERROR("DebugControls", "Save failed: %s", status.message().data());
-      }
-    }
-
-    if (ImGui::Button(ICON_MD_REPLAY " Reload Current Room",
-                      ImVec2(-FLT_MIN, 0))) {
-      if (current_room_id_ >= 0 &&
-          current_room_id_ < static_cast<int>(rooms_.size())) {
-        auto status =
-            room_loader_.LoadRoom(current_room_id_, rooms_[current_room_id_]);
-        if (status.ok()) {
-          LOG_INFO("DebugControls", "Reloaded room %03X", current_room_id_);
-        }
-      }
-    }
-  }
-  debug_card.End();
-}
+// =============================================================================
+// Phase 4 Complete: Static panel drawing methods removed
+// All static panels (RoomsList, Entrances, RoomMatrix, RoomGraphics, Debug)
+// are now handled by EditorPanel implementations and drawn via
+// PanelManager::DrawAllVisiblePanels()
+// =============================================================================
 
 void DungeonEditorV2::ProcessDeferredTextures() {
   // Process queued texture commands via Arena's deferred system

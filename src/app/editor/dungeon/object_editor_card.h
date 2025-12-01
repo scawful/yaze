@@ -54,6 +54,16 @@ class ObjectEditorCard {
   // Selection callback setup - wires ObjectSelection changes to UI updates
   void SetupSelectionCallbacks();
 
+  // Keyboard shortcuts and interaction modes (public for ShortcutManager)
+  void SetInteractionModeSelect() { interaction_mode_ = InteractionMode::Select; }
+  void SetInteractionModePlace() { interaction_mode_ = InteractionMode::Place; }
+  void SetInteractionModeDelete() { interaction_mode_ = InteractionMode::Delete; }
+  void CycleObjectSelection(int direction);
+  void SelectAllObjects();
+  void DeleteSelectedObjects();
+  void CopySelectedObjects();
+  void PasteObjects();
+
  private:
   // Selection change handler
   void OnSelectionChanged();
@@ -67,15 +77,10 @@ class ObjectEditorCard {
 
   // Keyboard shortcuts
   void HandleKeyboardShortcuts();
-  void SelectAllObjects();
   void DeselectAllObjects();
-  void DeleteSelectedObjects();
   void PerformDelete(); // Helper for actual deletion
   void DuplicateSelectedObjects();
-  void CopySelectedObjects();
-  void PasteObjects();
   void NudgeSelectedObjects(int dx, int dy);
-  void CycleObjectSelection(int direction);
   void ScrollToObject(size_t index);
 
   Rom* rom_;
