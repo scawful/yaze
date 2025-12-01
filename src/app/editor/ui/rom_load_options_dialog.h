@@ -35,6 +35,7 @@ class RomLoadOptionsDialog {
     // ZSCustomOverworld options
     bool upgrade_to_zscustom = false;
     int target_zso_version = 3;  // 2 or 3
+    bool enable_tail_expansion = false;  // Special world tail (0xA0-0xBF)
     
     // Feature flags to apply
     bool enable_custom_overworld = false;

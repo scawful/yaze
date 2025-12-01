@@ -205,6 +205,20 @@ void RomLoadOptionsDialog::DrawUpgradeOptions() {
       ImGui::TextColored(ImVec4(0.6f, 0.6f, 0.6f, 1.0f),
                          "v3: + wide/tall areas, animated GFX, overlays");
       
+      // Tail expansion option (only for v3)
+      if (options_.target_zso_version == 3) {
+        ImGui::Spacing();
+        ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.2f, 1.0f), "Experimental:");
+        ImGui::Checkbox("Enable special world tail (0xA0-0xBF)",
+                        &options_.enable_tail_expansion);
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip(
+              "Enables access to unused special world map slots.\n"
+              "REQUIRES additional ASM patch for pointer table expansion.\n"
+              "Without the patch, maps will show blank tiles (safe).");
+        }
+      }
+      
       ImGui::Unindent();
     }
   } else {
@@ -420,6 +434,7 @@ void RomLoadOptionsDialog::ApplyOptionsToFeatureFlags() {
   flags.overworld.kSaveOverworldExits = options_.save_overworld_exits;
   flags.overworld.kSaveOverworldItems = options_.save_overworld_items;
   flags.overworld.kLoadCustomOverworld = options_.enable_custom_overworld;
+  flags.overworld.kEnableSpecialWorldExpansion = options_.enable_tail_expansion;
   flags.kSaveDungeonMaps = options_.save_dungeon_maps;
   flags.kSaveAllPalettes = options_.save_all_palettes;
   flags.kSaveGfxGroups = options_.save_gfx_groups;

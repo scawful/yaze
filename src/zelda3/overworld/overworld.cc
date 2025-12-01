@@ -574,6 +574,38 @@ void Overworld::AssignWorldTiles(int x, int y, int sx, int sy, int tpos,
   world[position_x2][position_y2] = tiles32_unique_[tpos].tile3_;
 }
 
+OverworldBlockset& Overworld::SelectWorldBlockset(int world_type) {
+  switch (world_type) {
+    case 0:
+      return map_tiles_.light_world;
+    case 1:
+      return map_tiles_.dark_world;
+    default:
+      return map_tiles_.special_world;
+  }
+}
+
+void Overworld::FillBlankMapTiles(int map_index) {
+  int world_type = 0;
+  if (map_index >= kDarkWorldMapIdStart && map_index < kSpecialWorldMapIdStart) {
+    world_type = 1;
+  } else if (map_index >= kSpecialWorldMapIdStart) {
+    world_type = 2;
+  }
+
+  int local_index = map_index % 64;
+  int sx = local_index % 8;
+  int sy = local_index / 8;
+
+  auto& world = SelectWorldBlockset(world_type);
+  // Fill the 32x32 tile16 region for this map with tile 0
+  for (int y = 0; y < 32; ++y) {
+    for (int x = 0; x < 32; ++x) {
+      world[(sx * 32) + x][(sy * 32) + y] = 0;
+    }
+  }
+}
+
 void Overworld::OrganizeMapTiles(std::vector<uint8_t>& bytes,
                                  std::vector<uint8_t>& bytes2, int i, int sx,
                                  int sy, int& ttpos) {
@@ -610,14 +642,53 @@ absl::Status Overworld::DecompressAllMapTilesParallel() {
   int sx = 0;
   int sy = 0;
   int c = 0;
+  const bool allow_special_tail =
+      core::FeatureFlags::get().overworld.kEnableSpecialWorldExpansion;
 
   for (int i = 0; i < kNumOverworldMaps; i++) {
+    // Optional guard: skip building tail special maps unless explicitly enabled
+    if (!allow_special_tail &&
+        i >= kSpecialWorldMapIdStart + 0x20) {  // 0xA0-0xBF
+      FillBlankMapTiles(i);
+      sx++;
+      if (sx >= 8) {
+        sy++;
+        sx = 0;
+      }
+      c++;
+      if (c >= 64) {
+        sx = 0;
+        sy = 0;
+        c = 0;
+      }
+      continue;
+    }
+
     auto p1 = get_ow_map_gfx_ptr(
         i, rom()->version_constants().kCompressedAllMap32PointersHigh);
     auto p2 = get_ow_map_gfx_ptr(
         i, rom()->version_constants().kCompressedAllMap32PointersLow);
 
     int ttpos = 0;
+
+    bool pointers_valid = (p1 > 0 && p2 > 0 && p1 < rom()->size() &&
+                           p2 < rom()->size());
+    if (!pointers_valid) {
+      // Missing/invalid pointers -> use blank map tiles to avoid crashes
+      FillBlankMapTiles(i);
+      sx++;
+      if (sx >= 8) {
+        sy++;
+        sx = 0;
+      }
+      c++;
+      if (c >= 64) {
+        sx = 0;
+        sy = 0;
+        c = 0;
+      }
+      continue;
+    }
 
     if (p1 >= highest)
       highest = p1;
@@ -632,7 +703,13 @@ absl::Status Overworld::DecompressAllMapTilesParallel() {
     int size1, size2;
     auto bytes = gfx::HyruleMagicDecompress(rom()->data() + p2, &size1, 1);
     auto bytes2 = gfx::HyruleMagicDecompress(rom()->data() + p1, &size2, 1);
-    OrganizeMapTiles(bytes, bytes2, i, sx, sy, ttpos);
+
+    // If decompression fails, use blank tiles to keep map index usable
+    if (bytes.empty() || bytes2.empty()) {
+      FillBlankMapTiles(i);
+    } else {
+      OrganizeMapTiles(bytes, bytes2, i, sx, sy, ttpos);
+    }
 
     sx++;
     if (sx >= 8) {
@@ -698,8 +775,16 @@ absl::Status Overworld::LoadOverworldMaps() {
         world_type = 2;
       }
 
-      RETURN_IF_ERROR(overworld_maps_[i].BuildMap(size, game_state_, world_type,
-                                                  tiles16_, GetMapTiles(world_type)));
+      // Reuse cached tilesets to reduce load time on WASM
+      overworld_maps_[i].LoadAreaGraphics();
+      uint64_t config_hash = ComputeGraphicsConfigHash(i);
+      const std::vector<uint8_t>* cached_tileset = GetCachedTileset(config_hash);
+      RETURN_IF_ERROR(overworld_maps_[i].BuildMapWithCache(
+          size, game_state_, world_type, tiles16_, GetMapTiles(world_type),
+          cached_tileset));
+      if (!cached_tileset) {
+        CacheTileset(config_hash, overworld_maps_[i].current_graphics());
+      }
     } else {
       overworld_maps_[i].SetNotBuilt();
     }
@@ -754,6 +839,15 @@ absl::Status Overworld::LoadOverworldMaps() {
 absl::Status Overworld::EnsureMapBuilt(int map_index) {
   if (map_index < 0 || map_index >= kNumOverworldMaps) {
     return absl::InvalidArgumentError("Invalid map index");
+  }
+
+  const bool allow_special_tail =
+      core::FeatureFlags::get().overworld.kEnableSpecialWorldExpansion;
+  if (!allow_special_tail &&
+      map_index >= kSpecialWorldMapIdStart + 0x20) {  // 0xA0-0xBF
+    // Do not attempt to build disabled special-tail maps; keep them blank-safe.
+    FillBlankMapTiles(map_index);
+    return absl::OkStatus();
   }
 
   // Check if map is already built

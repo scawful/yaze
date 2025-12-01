@@ -1098,6 +1098,13 @@ absl::Status OverworldEditor::CheckForCurrentMap() {
     return absl::OkStatus();
   }
 
+  const bool allow_special_tail =
+      core::FeatureFlags::get().overworld.kEnableSpecialWorldExpansion;
+  if (!allow_special_tail && current_world_ == 2 && map_y >= 4) {
+    // Special world is only 4 rows high unless expansion is enabled
+    return absl::OkStatus();
+  }
+
   // Calculate the index of the map in the `maps_bmp_` vector
   int hovered_map = map_x + map_y * 8;
   if (current_world_ == 1) {
@@ -2076,6 +2083,10 @@ void OverworldEditor::QueueAdjacentMapsForPreload(int center_map) {
   return;
 #endif
 
+  if (center_map < 0 || center_map >= zelda3::kNumOverworldMaps) {
+    return;
+  }
+
   preload_queue_.clear();
 
   // Calculate grid position (8x8 maps per world)
@@ -2083,6 +2094,7 @@ void OverworldEditor::QueueAdjacentMapsForPreload(int center_map) {
   int local_index = center_map % 64;
   int map_x = local_index % 8;
   int map_y = local_index / 8;
+  int max_rows = (center_map >= zelda3::kSpecialWorldMapIdStart) ? 4 : 8;
 
   // Add adjacent maps (4-connected neighbors)
   static const int dx[] = {-1, 1, 0, 0};
@@ -2092,11 +2104,13 @@ void OverworldEditor::QueueAdjacentMapsForPreload(int center_map) {
     int nx = map_x + dx[i];
     int ny = map_y + dy[i];
 
-    // Check bounds (8x8 grid)
-    if (nx >= 0 && nx < 8 && ny >= 0 && ny < 8) {
+    // Check bounds (world grid; special world is only 4 rows high)
+    if (nx >= 0 && nx < 8 && ny >= 0 && ny < max_rows) {
       int neighbor_index = world_offset + ny * 8 + nx;
       // Only queue if not already built
-      if (!overworld_.overworld_map(neighbor_index)->is_built()) {
+      if (neighbor_index >= 0 &&
+          neighbor_index < zelda3::kNumOverworldMaps &&
+          !overworld_.overworld_map(neighbor_index)->is_built()) {
         preload_queue_.push_back(neighbor_index);
       }
     }

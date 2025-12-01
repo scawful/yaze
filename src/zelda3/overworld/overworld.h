@@ -378,6 +378,8 @@ class Overworld {
   absl::Status AssembleMap16Tiles();
   void AssignWorldTiles(int x, int y, int sx, int sy, int tpos,
                         OverworldBlockset& world);
+  void FillBlankMapTiles(int map_index);
+  OverworldBlockset& SelectWorldBlockset(int world_type);
   void OrganizeMapTiles(std::vector<uint8_t>& bytes,
                         std::vector<uint8_t>& bytes2, int i, int sx, int sy,
                         int& ttpos);
