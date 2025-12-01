@@ -117,8 +117,8 @@ bool SDL2AudioBackend::Initialize(const AudioConfig& config) {
   }
 
   LOG_INFO("AudioBackend",
-           "SDL2 audio initialized: %dHz, %d channels, %d samples buffer",
-           have.freq, have.channels, have.samples);
+           "SDL2 audio initialized: %dHz, %d channels, buffer: want=%d, have=%d",
+           have.freq, have.channels, want.samples, have.samples);
 
   initialized_ = true;
   audio_stream_enabled_ = false;
@@ -367,6 +367,9 @@ void SDL2AudioBackend::SetAudioStreamResampling(bool enable, int native_rate,
     stream_native_rate_ = 0;
     return;
   }
+
+  LOG_INFO("AudioBackend", "SDL_AudioStream created: %dHz %dch -> %dHz %dch",
+           native_rate, channels, device_freq_, device_channels_);
 
   SDL_AudioStreamClear(audio_stream_);
   audio_stream_enabled_ = true;
