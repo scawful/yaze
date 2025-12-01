@@ -6,7 +6,7 @@
 #include "absl/status/status.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
-#include "app/editor/system/editor_card_registry.h"
+#include "app/editor/system/panel_manager.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/debug/performance/performance_profiler.h"
 #include "app/gfx/resource/arena.h"
@@ -62,42 +62,58 @@ constexpr ImGuiTableFlags kMessageTableFlags = ImGuiTableFlags_Hideable |
                                                ImGuiTableFlags_Resizable;
 
 void MessageEditor::Initialize() {
-  // Register cards with EditorCardRegistry (dependency injection)
-  if (!dependencies_.card_registry)
+  // Register panels with PanelManager (dependency injection)
+  if (!dependencies_.panel_manager)
     return;
 
-  auto* card_registry = dependencies_.card_registry;
+  auto* panel_manager = dependencies_.panel_manager;
+  const size_t session_id = dependencies_.session_id;
 
-  card_registry->RegisterCard({.card_id = MakeCardId("message.message_list"),
+  panel_manager->RegisterPanel({.card_id = MakeCardId("message.message_list"),
                                .display_name = "Message List",
                                .window_title = " Message List",
                                .icon = ICON_MD_LIST,
                                .category = "Message",
                                .priority = 10});
 
-  card_registry->RegisterCard({.card_id = MakeCardId("message.message_editor"),
+  panel_manager->RegisterPanel({.card_id = MakeCardId("message.message_editor"),
                                .display_name = "Message Editor",
                                .window_title = " Message Editor",
                                .icon = ICON_MD_EDIT,
                                .category = "Message",
                                .priority = 20});
 
-  card_registry->RegisterCard({.card_id = MakeCardId("message.font_atlas"),
+  panel_manager->RegisterPanel({.card_id = MakeCardId("message.font_atlas"),
                                .display_name = "Font Atlas",
                                .window_title = " Font Atlas",
                                .icon = ICON_MD_FONT_DOWNLOAD,
                                .category = "Message",
                                .priority = 30});
 
-  card_registry->RegisterCard({.card_id = MakeCardId("message.dictionary"),
+  panel_manager->RegisterPanel({.card_id = MakeCardId("message.dictionary"),
                                .display_name = "Dictionary",
                                .window_title = " Dictionary",
                                .icon = ICON_MD_BOOK,
                                .category = "Message",
                                .priority = 40});
 
+  // Register EditorPanel implementations
+  panel_manager->RegisterEditorPanel(std::make_unique<MessageListPanel>(
+      [this]() { DrawMessageList(); }));
+  panel_manager->RegisterEditorPanel(std::make_unique<MessageEditorPanel>(
+      [this]() { DrawCurrentMessage(); }));
+  panel_manager->RegisterEditorPanel(std::make_unique<FontAtlasPanel>([this]() {
+    DrawFontAtlas();
+    DrawExpandedMessageSettings();
+  }));
+  panel_manager->RegisterEditorPanel(std::make_unique<DictionaryPanel>([this]() {
+    DrawTextCommands();
+    DrawSpecialCharacters();
+    DrawDictionary();
+  }));
+
   // Show message list by default
-  card_registry->ShowCard(MakeCardId("message.message_list"));
+  panel_manager->ShowPanel(session_id, MakeCardId("message.message_list"));
 
   for (int i = 0; i < kWidthArraySize; i++) {
     message_preview_.width_array[i] = rom()->data()[kCharactersWidth + i];
@@ -143,30 +159,32 @@ absl::Status MessageEditor::Load() {
 }
 
 absl::Status MessageEditor::Update() {
-  if (!dependencies_.card_registry)
+  if (!dependencies_.panel_manager)
     return absl::OkStatus();
 
-  auto* card_registry = dependencies_.card_registry;
+  auto* panel_manager = dependencies_.panel_manager;
+  const size_t session_id = dependencies_.session_id;
 
-  // Message List Card - Get visibility flag and pass to Begin() for proper X
+  // Message List panel - Get visibility flag and pass to Begin() for proper X
   // button
   bool* list_visible =
-      card_registry->GetVisibilityFlag(MakeCardId("message.message_list"));
+      panel_manager->GetVisibilityFlag(session_id, MakeCardId("message.message_list"));
   if (list_visible && *list_visible) {
-    static gui::EditorCard list_card("Message List", ICON_MD_LIST);
-    list_card.SetDefaultSize(400, 600);
-    if (list_card.Begin(list_visible)) {
+    static gui::PanelWindow msg_card("Messages", ICON_MD_MESSAGE);
+  msg_card.SetPosition(gui::PanelWindow::Position::Bottom);
+    msg_card.SetDefaultSize(400, 600);
+    if (msg_card.Begin(list_visible)) {
       DrawMessageList();
     }
-    list_card.End();
+    msg_card.End();
   }
 
-  // Message Editor Card - Get visibility flag and pass to Begin() for proper X
+  // Message Editor panel - Get visibility flag and pass to Begin() for proper X
   // button
   bool* editor_visible =
-      card_registry->GetVisibilityFlag(MakeCardId("message.message_editor"));
+      panel_manager->GetVisibilityFlag(session_id, MakeCardId("message.message_editor"));
   if (editor_visible && *editor_visible) {
-    static gui::EditorCard editor_card("Message Editor", ICON_MD_EDIT);
+    static gui::PanelWindow editor_card("Message Editor", ICON_MD_EDIT);
     editor_card.SetDefaultSize(500, 600);
     if (editor_card.Begin(editor_visible)) {
       DrawCurrentMessage();
@@ -174,12 +192,12 @@ absl::Status MessageEditor::Update() {
     editor_card.End();
   }
 
-  // Font Atlas Card - Get visibility flag and pass to Begin() for proper X
+  // Font Atlas panel - Get visibility flag and pass to Begin() for proper X
   // button
   bool* font_visible =
-      card_registry->GetVisibilityFlag(MakeCardId("message.font_atlas"));
+      panel_manager->GetVisibilityFlag(session_id, MakeCardId("message.font_atlas"));
   if (font_visible && *font_visible) {
-    static gui::EditorCard font_card("Font Atlas", ICON_MD_FONT_DOWNLOAD);
+    static gui::PanelWindow font_card("Font Atlas", ICON_MD_FONT_DOWNLOAD);
     font_card.SetDefaultSize(400, 500);
     if (font_card.Begin(font_visible)) {
       DrawFontAtlas();
@@ -188,12 +206,12 @@ absl::Status MessageEditor::Update() {
     font_card.End();
   }
 
-  // Dictionary Card - Get visibility flag and pass to Begin() for proper X
+  // Dictionary panel - Get visibility flag and pass to Begin() for proper X
   // button
   bool* dict_visible =
-      card_registry->GetVisibilityFlag(MakeCardId("message.dictionary"));
+      panel_manager->GetVisibilityFlag(session_id, MakeCardId("message.dictionary"));
   if (dict_visible && *dict_visible) {
-    static gui::EditorCard dict_card("Dictionary", ICON_MD_BOOK);
+    static gui::PanelWindow dict_card("Dictionary", ICON_MD_BOOK);
     dict_card.SetDefaultSize(400, 500);
     if (dict_card.Begin(dict_visible)) {
       DrawTextCommands();
