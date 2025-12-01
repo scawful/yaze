@@ -283,20 +283,32 @@ void PanelManager::EnforceResourceLimits(const std::string& resource_type) {
   else if (resource_type == "sheet") limit = ResourcePanelLimits::kMaxSheetPanels;
   else if (resource_type == "map") limit = ResourcePanelLimits::kMaxMapPanels;
 
-  // Evict oldest panels until we have room for one more (current count < limit)
-  // We need count to be at most limit-1 so we can add the new one
+  // Evict panels until we have room for one more (current count < limit)
+  // Prioritize evicting non-pinned panels first, then oldest pinned ones
   while (panel_list.size() >= limit) {
-    std::string lru_panel_id = panel_list.front();
-    LOG_INFO("PanelManager", "Evicting LRU resource panel: %s (type: %s)",
-             lru_panel_id.c_str(), resource_type.c_str());
+    // First pass: find oldest non-pinned panel
+    std::string panel_to_evict;
+    for (const auto& panel_id : panel_list) {
+      if (!IsPanelPinned(panel_id)) {
+        panel_to_evict = panel_id;
+        break;
+      }
+    }
     
-    UnregisterEditorPanel(lru_panel_id);
-    // UnregisterEditorPanel calls OnClose and removes from panel_instances_
-    // We also need to remove from resource_panels_ list, which happens below
-    // But wait, UnregisterEditorPanel doesn't know about resource_panels_ list removal
-    // So we should probably handle list removal in UnregisterEditorPanel or here.
-    // If UnregisterEditorPanel is called externally, we need to handle it there too.
-    // So let's update UnregisterEditorPanel to handle cleanup.
+    // If all are pinned, evict the oldest (front of list) anyway
+    if (panel_to_evict.empty()) {
+      panel_to_evict = panel_list.front();
+      LOG_INFO("PanelManager", "All %s panels pinned, evicting oldest: %s",
+               resource_type.c_str(), panel_to_evict.c_str());
+    } else {
+      LOG_INFO("PanelManager", "Evicting non-pinned resource panel: %s (type: %s)",
+               panel_to_evict.c_str(), resource_type.c_str());
+    }
+    
+    // Remove from LRU list first to avoid iterator issues
+    panel_list.remove(panel_to_evict);
+    
+    UnregisterEditorPanel(panel_to_evict);
   }
 }
 
@@ -335,28 +347,51 @@ EditorPanel* PanelManager::GetEditorPanel(const std::string& panel_id) {
 }
 
 void PanelManager::DrawAllVisiblePanels() {
+  // Suppress panel drawing when dashboard is active (no editor selected yet)
+  // This ensures panels don't appear until user selects an editor
+  if (active_category_.empty() || active_category_ == kDashboardCategory) {
+    return;
+  }
+
   for (auto& [panel_id, panel] : panel_instances_) {
     // Check visibility via PanelDescriptor
     if (!IsPanelVisible(panel_id)) {
       continue;
     }
 
+    // Category filtering: only draw if matches active category, pinned, or persistent
+    bool should_draw = false;
+    if (panel->GetEditorCategory() == active_category_) {
+      should_draw = true;
+    } else if (IsPanelPinned(panel_id)) {
+      should_draw = true;
+    } else if (panel->GetPanelCategory() == PanelCategory::Persistent) {
+      should_draw = true;
+    }
+
+    if (!should_draw) {
+      continue;
+    }
+
     // Get visibility flag for the panel window
     bool* visibility_flag = GetVisibilityFlag(panel_id);
 
-    // Get window title from descriptor
-    const PanelDescriptor* descriptor =
-        GetPanelDescriptor(active_session_, panel_id);
-    std::string window_title;
-    if (descriptor) {
-      window_title = descriptor->GetWindowTitle();
-    } else {
-      window_title = panel->GetIcon() + " " + panel->GetDisplayName();
-    }
+    // Get display name without icon - PanelWindow will add the icon
+    // This fixes the double-icon issue where both descriptor and PanelWindow added icons
+    std::string display_name = panel->GetDisplayName();
 
     // Create PanelWindow and draw content
-    gui::PanelWindow window(window_title.c_str(), panel->GetIcon().c_str(),
+    gui::PanelWindow window(display_name.c_str(), panel->GetIcon().c_str(),
                             visibility_flag);
+
+    // Enable pin functionality for cross-editor persistence
+    window.SetPinnable(true);
+    window.SetPinned(IsPanelPinned(panel_id));
+
+    // Wire up pin state change callback to persist to PanelManager
+    window.SetPinChangedCallback([this, panel_id](bool pinned) {
+      SetPanelPinned(panel_id, pinned);
+    });
 
     if (window.Begin(visibility_flag)) {
       panel->Draw(visibility_flag);
@@ -368,6 +403,35 @@ void PanelManager::DrawAllVisiblePanels() {
       panel->OnClose();
     }
   }
+}
+
+void PanelManager::OnEditorSwitch(const std::string& from_category,
+                                  const std::string& to_category) {
+  if (from_category == to_category) {
+    return;  // No switch needed
+  }
+
+  LOG_INFO("PanelManager", "Switching from category '%s' to '%s'",
+           from_category.c_str(), to_category.c_str());
+
+  // Hide non-pinned, non-persistent panels from previous category
+  for (const auto& [panel_id, panel] : panel_instances_) {
+    if (panel->GetEditorCategory() == from_category &&
+        !IsPanelPinned(panel_id) &&
+        panel->GetPanelCategory() != PanelCategory::Persistent) {
+      HidePanel(panel_id);
+    }
+  }
+
+  // Show default panels for new category
+  EditorType editor_type = EditorRegistry::GetEditorTypeFromCategory(to_category);
+  auto defaults = LayoutPresets::GetDefaultPanels(editor_type);
+  for (const auto& panel_id : defaults) {
+    ShowPanel(panel_id);
+  }
+
+  // Update active category
+  SetActiveCategory(to_category);
 }
 
 // ============================================================================

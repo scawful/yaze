@@ -93,6 +93,9 @@ class PanelManager {
   PanelManager(PanelManager&&) = delete;
   PanelManager& operator=(PanelManager&&) = delete;
 
+  // Special category for dashboard/welcome screen - suppresses panel drawing
+  static constexpr const char* kDashboardCategory = "Dashboard";
+
   // ============================================================================
   // Session Lifecycle Management
   // ============================================================================
@@ -155,6 +158,19 @@ class PanelManager {
    * (they use manual drawing).
    */
   void DrawAllVisiblePanels();
+
+  /**
+   * @brief Handle editor/category switching for panel visibility
+   * @param from_category The category being switched away from
+   * @param to_category The category being switched to
+   *
+   * This method:
+   * 1. Hides non-pinned, non-persistent panels from the previous category
+   * 2. Shows default panels for the new category
+   * 3. Updates the active category
+   */
+  void OnEditorSwitch(const std::string& from_category,
+                      const std::string& to_category);
 
   // ============================================================================
   // Card Control (Programmatic)
@@ -371,6 +387,9 @@ class PanelManager {
 
   void RegisterPanel(const PanelDescriptor& base_info) {
     RegisterPanel(active_session_, base_info);
+  }
+  void UnregisterPanel(const std::string& base_card_id) {
+    UnregisterPanel(active_session_, base_card_id);
   }
   bool ShowPanel(const std::string& base_card_id) {
     return ShowPanel(active_session_, base_card_id);

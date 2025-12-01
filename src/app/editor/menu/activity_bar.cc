@@ -282,37 +282,38 @@ void ActivityBar::DrawSidePanel(
       ImGui::BeginDisabled();
     }
 
-    // Note: Favorites and Recent logic uses private members of PanelManager.
-    // We need to expose them via public methods in PanelManager.
-    const auto& favorite_cards = panel_manager_.GetFavoriteCards();
+    // Get pinned and recent panels
+    const auto pinned_cards = panel_manager_.GetPinnedPanels();
     const auto& recent_cards = panel_manager_.GetRecentCards();
 
-    // --- Favorites Section ---
-    if (sidebar_search[0] == '\0' && !favorite_cards.empty()) {
-      bool has_favorites_in_category = false;
-      // Check if there are any favorites in this category
-      for (const auto& card_id : favorite_cards) {
+    // --- Pinned Section (panels that persist across editors) ---
+    if (sidebar_search[0] == '\0' && !pinned_cards.empty()) {
+      bool has_pinned_in_category = false;
+      for (const auto& card_id : pinned_cards) {
         const auto* card = panel_manager_.GetPanelDescriptor(session_id, card_id);
         if (card && card->category == category) {
-          has_favorites_in_category = true;
+          has_pinned_in_category = true;
           break;
         }
       }
 
-      if (has_favorites_in_category) {
-        if (ImGui::CollapsingHeader(ICON_MD_STAR " Favorites", ImGuiTreeNodeFlags_DefaultOpen)) {
-          for (const auto& card_id : favorite_cards) {
+      if (has_pinned_in_category) {
+        if (ImGui::CollapsingHeader(ICON_MD_PUSH_PIN " Pinned", ImGuiTreeNodeFlags_DefaultOpen)) {
+          for (const auto& card_id : pinned_cards) {
             const auto* card = panel_manager_.GetPanelDescriptor(session_id, card_id);
             if (!card || card->category != category) continue;
             
             bool visible = card->visibility_flag ? *card->visibility_flag : false;
             
-            // Star button (filled)
-            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.8f, 0.0f, 1.0f)); // Gold
-            if (ImGui::SmallButton((std::string(ICON_MD_STAR "##fav_") + card->card_id).c_str())) {
-              panel_manager_.ToggleFavorite(card->card_id);
+            // Unpin button
+            ImGui::PushStyleColor(ImGuiCol_Text, gui::ConvertColorToImVec4(theme.primary));
+            if (ImGui::SmallButton((std::string(ICON_MD_PUSH_PIN "##pin_") + card->card_id).c_str())) {
+              panel_manager_.SetPanelPinned(card->card_id, false);
             }
             ImGui::PopStyleColor();
+            if (ImGui::IsItemHovered()) {
+              ImGui::SetTooltip("Unpin panel");
+            }
             
             ImGui::SameLine();
             
@@ -354,19 +355,19 @@ void ActivityBar::DrawSidePanel(
             
             bool visible = card->visibility_flag ? *card->visibility_flag : false;
             
-            // Favorite Toggle Button
-            bool is_fav = panel_manager_.IsFavorite(card->card_id);
+            // Pin Toggle Button
+            bool is_pinned = panel_manager_.IsPanelPinned(card->card_id);
             ImGui::PushID((std::string("recent_") + card->card_id).c_str());
-            if (is_fav) {
-              ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.8f, 0.0f, 1.0f)); // Gold
-              if (ImGui::SmallButton(ICON_MD_STAR)) {
-                panel_manager_.ToggleFavorite(card->card_id);
+            if (is_pinned) {
+              ImGui::PushStyleColor(ImGuiCol_Text, gui::ConvertColorToImVec4(theme.primary));
+              if (ImGui::SmallButton(ICON_MD_PUSH_PIN)) {
+                panel_manager_.SetPanelPinned(card->card_id, false);
               }
               ImGui::PopStyleColor();
             } else {
               ImGui::PushStyleColor(ImGuiCol_Text, gui::ConvertColorToImVec4(theme.text_disabled));
-              if (ImGui::SmallButton(ICON_MD_STAR_BORDER)) {
-                panel_manager_.ToggleFavorite(card->card_id);
+              if (ImGui::SmallButton(ICON_MD_PUSH_PIN)) {
+                panel_manager_.SetPanelPinned(card->card_id, true);
               }
               ImGui::PopStyleColor();
             }
@@ -420,21 +421,28 @@ void ActivityBar::DrawSidePanel(
 
       bool visible = card.visibility_flag ? *card.visibility_flag : false;
 
-      // Favorite Toggle Button
-      bool is_fav = panel_manager_.IsFavorite(card.card_id);
+      // Pin Toggle Button (replaces favorites - more useful for panel management)
+      // Use active session to avoid potential session ID issues
+      bool is_pinned = panel_manager_.IsPanelPinned(card.card_id);
       ImGui::PushID(card.card_id.c_str());
-      if (is_fav) {
-        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.8f, 0.0f, 1.0f)); // Gold
-        if (ImGui::SmallButton(ICON_MD_STAR)) {
-          panel_manager_.ToggleFavorite(card.card_id);
+      if (is_pinned) {
+        ImGui::PushStyleColor(ImGuiCol_Text, gui::ConvertColorToImVec4(theme.primary));
+        if (ImGui::SmallButton(ICON_MD_PUSH_PIN)) {
+          panel_manager_.SetPanelPinned(card.card_id, false);
         }
         ImGui::PopStyleColor();
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("Unpin - panel will hide when switching editors");
+        }
       } else {
         ImGui::PushStyleColor(ImGuiCol_Text, gui::ConvertColorToImVec4(theme.text_disabled));
-        if (ImGui::SmallButton(ICON_MD_STAR_BORDER)) {
-          panel_manager_.ToggleFavorite(card.card_id);
+        if (ImGui::SmallButton(ICON_MD_PUSH_PIN)) {
+          panel_manager_.SetPanelPinned(card.card_id, true);
         }
         ImGui::PopStyleColor();
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("Pin - keep visible across all editors");
+        }
       }
       ImGui::PopID();
       ImGui::SameLine();
@@ -461,7 +469,7 @@ void ActivityBar::DrawSidePanel(
         }
       }
 
-      // Shortcut Hint
+      // Shortcut hint on hover
       if (ImGui::IsItemHovered() && !card.shortcut_hint.empty()) {
         ImGui::SetTooltip("%s", card.shortcut_hint.c_str());
       }
