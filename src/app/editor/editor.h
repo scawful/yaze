@@ -33,7 +33,7 @@ struct YazeProject;
 namespace editor {
 
 // Forward declarations
-class EditorCardRegistry;
+class PanelManager;
 class ToastManager;
 class UserSettings;
 
@@ -56,7 +56,7 @@ class UserSettings;
  * ```cpp
  * EditorDependencies deps;
  * deps.rom = current_rom;
- * deps.card_registry = &card_registry_;
+ * deps.panel_manager = &panel_manager_;
  * deps.session_id = session_index;
  *
  * // Standard editor
@@ -83,7 +83,7 @@ struct EditorDependencies {
   };
 
   Rom* rom = nullptr;
-  EditorCardRegistry* card_registry = nullptr;
+  PanelManager* panel_manager = nullptr;
   ToastManager* toast_manager = nullptr;
   PopupManager* popup_manager = nullptr;
   ShortcutManager* shortcut_manager = nullptr;

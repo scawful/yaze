@@ -34,13 +34,28 @@ set(
   app/editor/music/sample_editor_view.cc
   app/editor/music/song_browser_view.cc
   app/editor/music/tracker_view.cc
+  app/editor/overworld/automation.cc
+  app/editor/overworld/debug_window_card.cc
   app/editor/overworld/entity.cc
   app/editor/overworld/entity_operations.cc
   app/editor/overworld/map_properties.cc
   app/editor/overworld/overworld_editor.cc
   app/editor/overworld/overworld_entity_renderer.cc
+  app/editor/overworld/overworld_navigation.cc
+  app/editor/overworld/overworld_sidebar.cc
+  app/editor/overworld/overworld_toolbar.cc
+  app/editor/overworld/panels/area_graphics_panel.cc
+  app/editor/overworld/panels/tile16_selector_panel.cc
+  app/editor/overworld/panels/map_properties_panel.cc
+  app/editor/overworld/panels/scratch_space_panel.cc
+  app/editor/overworld/panels/usage_statistics_panel.cc
+  app/editor/overworld/panels/tile8_selector_panel.cc
+  app/editor/overworld/panels/debug_window_panel.cc
+  app/editor/overworld/panels/gfx_groups_panel.cc
+  app/editor/overworld/panels/v3_settings_panel.cc
   app/editor/overworld/scratch_space.cc
   app/editor/overworld/tile16_editor.cc
+  app/editor/overworld/usage_statistics_card.cc
   app/editor/palette/palette_editor.cc
   app/editor/palette/palette_group_card.cc
   app/editor/palette/palette_utility.cc
@@ -48,7 +63,7 @@ set(
   app/editor/sprite/sprite_editor.cc
   app/editor/system/command_manager.cc
   app/editor/system/command_palette.cc
-  app/editor/system/editor_card_registry.cc
+  app/editor/system/panel_manager.cc
   app/editor/system/file_browser.cc
   app/editor/system/editor_registry.cc
   app/editor/system/extension_manager.cc
@@ -63,6 +78,7 @@ set(
   app/editor/system/user_settings.cc
   app/editor/system/window_delegate.cc
   app/editor/system/shortcut_configurator.cc
+  app/editor/ui/dashboard_panel.cc
   app/editor/ui/editor_selection_dialog.cc
   app/editor/ui/layout_manager.cc
   app/editor/ui/layout_presets.cc
@@ -96,6 +112,7 @@ if(YAZE_BUILD_AGENT_UI)
     app/editor/agent/agent_ui_controller.cc
     app/editor/agent/automation_bridge.cc
     app/editor/agent/network_collaboration_coordinator.cc
+    app/editor/agent/panels/agent_editor_panels.cc
   )
 endif()
 
