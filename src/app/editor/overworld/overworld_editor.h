@@ -8,9 +8,14 @@
 #include "absl/status/status.h"
 #include "app/editor/editor.h"
 #include "app/editor/graphics/gfx_group_editor.h"
+#include "app/editor/overworld/debug_window_card.h"
 #include "app/editor/overworld/map_properties.h"
 #include "app/editor/overworld/overworld_entity_renderer.h"
+#include "app/editor/overworld/overworld_sidebar.h"
+#include "app/editor/overworld/overworld_toolbar.h"
 #include "app/editor/overworld/tile16_editor.h"
+#include "app/editor/overworld/ui_constants.h"
+#include "app/editor/overworld/usage_statistics_card.h"
 #include "app/editor/palette/palette_editor.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/render/tilemap.h"
@@ -77,7 +82,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
     dependencies_ = deps;
   }
 
-  void Initialize(gfx::IRenderer* renderer, Rom* rom);
+
   void Initialize() override;
   absl::Status Load() override;
   absl::Status Update() final;
@@ -153,10 +158,27 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
    * Gets the tile16 under the cursor and opens the Tile16Editor focused on it.
    */
   void HandleTile16Edit();
+  // Editor shortcut helpers
+  void ToggleBrushTool();
+  void ActivateFillTool();
+  void CycleTileSelection(int delta);
+  
+  // Panel drawing methods (called by panel classes)
+  absl::Status DrawAreaGraphics();
+  absl::Status DrawTile16Selector();
+  void DrawMapProperties();
+  absl::Status DrawScratchSpace();
+  void DrawTile8Selector();
+  absl::Status UpdateGfxGroupEditor();
+  void DrawV3Settings();
+  
+  // Panel component accessors
+  UsageStatisticsCard* usage_stats_card() { return usage_stats_card_.get(); }
+  DebugWindowCard* debug_window_card() { return debug_window_card_.get(); }
 
  private:
   void DrawFullscreenCanvas();
-  void DrawToolset();
+  // void DrawToolset(); // Removed in favor of OverworldToolbar
 
   void RefreshChildMap(int map_index);
   void RefreshOverworldMap();
@@ -202,9 +224,6 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   void CheckForMousePan();
   void DrawOverworldCanvas();
 
-  absl::Status DrawTile16Selector();
-  void DrawTile8Selector();
-  absl::Status DrawAreaGraphics();
   void UpdateBlocksetSelectorState();
 
   absl::Status LoadSpriteGraphics();
@@ -250,8 +269,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
    */
   void ScrollBlocksetCanvasToCurrentTile();
 
-  // Scratch space canvas methods
-  absl::Status DrawScratchSpace();
+  // Scratch space canvas methods (DrawScratchSpace is declared above)
   absl::Status SaveCurrentSelectionToScratch(int slot);
   absl::Status LoadScratchToSelection(int slot);
   absl::Status ClearScratchSpace(int slot);
@@ -261,9 +279,8 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   void UpdateScratchBitmapTile(int tile_x, int tile_y, int tile_id,
                                int slot = -1);
 
-  absl::Status UpdateUsageStats();
-  void DrawUsageGrid();
-  void DrawDebugWindow();
+
+
 
   /**
    * @brief Queue adjacent maps for background pre-loading
@@ -276,10 +293,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
    */
   void ProcessPreloadQueue();
 
-  enum class EditingMode {
-    MOUSE,     // Navigation, selection, entity management via context menu
-    DRAW_TILE  // Tile painting mode
-  };
+
 
   // Undo/Redo system for tile painting operations
   struct OverworldUndoPoint {
@@ -298,18 +312,6 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
 
   EditingMode current_mode = EditingMode::DRAW_TILE;
   EditingMode previous_mode = EditingMode::DRAW_TILE;
-
-  // Entity editing state (managed via context menu now)
-  enum class EntityEditMode {
-    NONE,
-    ENTRANCES,
-    EXITS,
-    ITEMS,
-    SPRITES,
-    TRANSPORTS,
-    MUSIC
-  };
-
   EntityEditMode entity_edit_mode_ = EntityEditMode::NONE;
 
   enum OverworldProperty {
@@ -346,6 +348,8 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   bool show_tile16_editor_ = false;
   bool show_gfx_group_editor_ = false;
   bool show_properties_editor_ = false;
+
+
   bool overworld_canvas_fullscreen_ = false;
   bool middle_mouse_dragging_ = false;
   bool is_dragging_entity_ = false;
@@ -366,6 +370,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   bool show_gfx_groups_ = false;
   bool show_usage_stats_ = false;
   bool show_v3_settings_ = false;
+  bool show_debug_window_ = false;
 
   // Hover optimization - debounce map building during rapid hover
   int last_hovered_map_ = -1;
@@ -378,7 +383,9 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
 
   // Map properties system for UI organization
   std::unique_ptr<MapPropertiesSystem> map_properties_system_;
+  std::unique_ptr<OverworldSidebar> sidebar_;
   std::unique_ptr<OverworldEntityRenderer> entity_renderer_;
+  std::unique_ptr<OverworldToolbar> toolbar_;
 
   // Scratch space for large layouts
   // Scratch space canvas for tile16 drawing (like a mini overworld)
@@ -445,6 +452,9 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   gui::Canvas properties_canvas_;
   gui::Canvas scratch_canvas_{"ScratchSpace", ImVec2(320, 480),
                               gui::CanvasGridSize::k32x32};
+  // Panels
+  std::unique_ptr<UsageStatisticsCard> usage_stats_card_;
+  std::unique_ptr<DebugWindowCard> debug_window_card_;
 
   absl::Status status_;
 

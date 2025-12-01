@@ -9,6 +9,7 @@
 #include "app/gui/core/input.h"
 #include "app/gui/core/layout_helpers.h"
 #include "app/gui/core/popup_id.h"
+#include "app/gui/core/ui_helpers.h"
 #include "imgui/imgui.h"
 #include "zelda3/overworld/overworld_map.h"
 #include "zelda3/overworld/overworld_version_helper.h"
@@ -24,16 +25,18 @@ using ImGui::Text;
 
 // Using centralized UI constants
 
-void MapPropertiesSystem::DrawSimplifiedMapSettings(
+void MapPropertiesSystem::DrawCanvasToolbar(
     int& current_world, int& current_map, bool& current_map_lock,
     bool& show_map_properties_panel, bool& show_custom_bg_color_editor,
     bool& show_overlay_editor, bool& show_overlay_preview, int& game_state,
-    int& current_mode) {
+    EditingMode& current_mode, EntityEditMode& entity_edit_mode) {
   (void)show_overlay_editor;  // Reserved for future use
-  (void)current_mode;         // Reserved for future use
-  // Enhanced settings table with popup buttons for quick access and integrated
-  // toolset
-  if (BeginTable("SimplifiedMapSettings", 9,
+  (void)show_custom_bg_color_editor; // Now handled by sidebar
+  (void)game_state; // Now handled by sidebar
+  (void)show_overlay_preview; // Reserved
+
+  // Simplified canvas toolbar - Navigation and Mode controls
+  if (BeginTable("CanvasToolbar", 7,
                  ImGuiTableFlags_Borders | ImGuiTableFlags_SizingFixedFit,
                  ImVec2(0, 0), -1)) {
     ImGui::TableSetupColumn("World", ImGuiTableColumnFlags_WidthFixed,
@@ -44,16 +47,10 @@ void MapPropertiesSystem::DrawSimplifiedMapSettings(
                             kTableColumnAreaSize);
     ImGui::TableSetupColumn("Lock", ImGuiTableColumnFlags_WidthFixed,
                             kTableColumnLock);
-    ImGui::TableSetupColumn("Graphics", ImGuiTableColumnFlags_WidthFixed,
-                            kTableColumnGraphics);
-    ImGui::TableSetupColumn("Palettes", ImGuiTableColumnFlags_WidthFixed,
-                            kTableColumnPalettes);
-    ImGui::TableSetupColumn("Properties", ImGuiTableColumnFlags_WidthFixed,
-                            kTableColumnProperties);
-    ImGui::TableSetupColumn("View", ImGuiTableColumnFlags_WidthFixed,
-                            kTableColumnView);
-    ImGui::TableSetupColumn("Quick", ImGuiTableColumnFlags_WidthFixed,
-                            kTableColumnQuick);
+    ImGui::TableSetupColumn("Mode", ImGuiTableColumnFlags_WidthFixed,
+                            80.0f); // Mouse/Paint
+    ImGui::TableSetupColumn("Entity", ImGuiTableColumnFlags_WidthStretch); // Entity status
+    ImGui::TableSetupColumn("Sidebar", ImGuiTableColumnFlags_WidthFixed, 40.0f);
 
     TableNextColumn();
     ImGui::SetNextItemWidth(kComboWorldWidth);
@@ -113,102 +110,45 @@ void MapPropertiesSystem::DrawSimplifiedMapSettings(
     HOVER_HINT(current_map_lock ? "Unlock Map" : "Lock Map");
 
     TableNextColumn();
-    if (ImGui::Button(ICON_MD_IMAGE " GFX", ImVec2(kTableButtonGraphics, 0))) {
-      ImGui::OpenPopup(
-          gui::MakePopupId(gui::EditorNames::kOverworld,
-                           gui::PopupNames::kGraphicsPopup)
-              .c_str());
+    // Mode Controls
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
+    if (gui::ToggleButton(ICON_MD_MOUSE, current_mode == EditingMode::MOUSE, ImVec2(30, 0))) {
+      current_mode = EditingMode::MOUSE;
+      canvas_->SetUsageMode(gui::CanvasUsage::kEntityManipulation);
     }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(
-          "Graphics Settings\n\n"
-          "Configure:\n"
-          "  • Area graphics (tileset)\n"
-          "  • Sprite graphics sheets\n"
-          "  • Animated graphics (v3+)\n"
-          "  • Custom tile16 sheets (8 slots)");
+    HOVER_HINT("Mouse Mode (1)\nNavigate, pan, and manage entities");
+    
+    ImGui::SameLine();
+    if (gui::ToggleButton(ICON_MD_DRAW, current_mode == EditingMode::DRAW_TILE, ImVec2(30, 0))) {
+      current_mode = EditingMode::DRAW_TILE;
+      canvas_->SetUsageMode(gui::CanvasUsage::kTilePainting);
     }
-    DrawGraphicsPopup(current_map, game_state);
+    HOVER_HINT("Tile Paint Mode (2)\nDraw tiles on the map");
+    ImGui::PopStyleVar();
 
     TableNextColumn();
-    if (ImGui::Button(ICON_MD_PALETTE " Palettes",
-                      ImVec2(kTableButtonPalettes, 0))) {
-      ImGui::OpenPopup(
-          gui::MakePopupId(gui::EditorNames::kOverworld,
-                           gui::PopupNames::kPalettesPopup)
-              .c_str());
+    // Entity Status
+    if (entity_edit_mode != EntityEditMode::NONE) {
+      const char* entity_icon = "";
+      const char* entity_label = "";
+      switch (entity_edit_mode) {
+        case EntityEditMode::ENTRANCES: entity_icon = ICON_MD_DOOR_FRONT; entity_label = "Entrances"; break;
+        case EntityEditMode::EXITS: entity_icon = ICON_MD_DOOR_BACK; entity_label = "Exits"; break;
+        case EntityEditMode::ITEMS: entity_icon = ICON_MD_GRASS; entity_label = "Items"; break;
+        case EntityEditMode::SPRITES: entity_icon = ICON_MD_PEST_CONTROL_RODENT; entity_label = "Sprites"; break;
+        case EntityEditMode::TRANSPORTS: entity_icon = ICON_MD_ADD_LOCATION; entity_label = "Transports"; break;
+        case EntityEditMode::MUSIC: entity_icon = ICON_MD_MUSIC_NOTE; entity_label = "Music"; break;
+        default: break;
+      }
+      ImGui::TextColored(ImVec4(0.4f, 0.8f, 1.0f, 1.0f), "%s %s", entity_icon, entity_label);
     }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(
-          "Palette Settings\n\n"
-          "Configure:\n"
-          "  • Area palette (background colors)\n"
-          "  • Main palette (v2+)\n"
-          "  • Sprite palettes\n"
-          "  • Custom background colors");
-    }
-    DrawPalettesPopup(current_map, game_state, show_custom_bg_color_editor);
 
     TableNextColumn();
-    if (ImGui::Button(ICON_MD_TUNE " Config",
-                      ImVec2(kTableButtonProperties, 0))) {
-      ImGui::OpenPopup(
-          gui::MakePopupId(gui::EditorNames::kOverworld,
-                           gui::PopupNames::kConfigPopup)
-              .c_str());
+    // Sidebar Toggle
+    if (ImGui::Button(ICON_MD_TUNE, ImVec2(40, 0))) {
+      show_map_properties_panel = !show_map_properties_panel;
     }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(
-          "Area Configuration\n\n"
-          "Quick access to:\n"
-          "  • Message ID\n"
-          "  • Game state settings\n"
-          "  • Area size (v3+)\n"
-          "  • Mosaic effects\n"
-          "  • Visual effect overlays\n"
-          "  • Map overlay info\n\n"
-          "Click 'Full Configuration Panel' for\n"
-          "comprehensive editing with all tabs.");
-    }
-    DrawPropertiesPopup(current_map, show_map_properties_panel,
-                        show_overlay_preview, game_state);
-
-    TableNextColumn();
-    // View Controls
-    if (ImGui::Button(ICON_MD_VISIBILITY " View",
-                      ImVec2(kTableButtonView, 0))) {
-      ImGui::OpenPopup(
-          gui::MakePopupId(gui::EditorNames::kOverworld,
-                           gui::PopupNames::kViewPopup)
-              .c_str());
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(
-          "View Controls\n\n"
-          "Canvas controls:\n"
-          "  • Zoom in/out\n"
-          "  • Toggle fullscreen\n"
-          "  • Reset view");
-    }
-    DrawViewPopup();
-
-    TableNextColumn();
-    // Quick Access Tools
-    if (ImGui::Button(ICON_MD_BOLT " Quick", ImVec2(kTableButtonQuick, 0))) {
-      ImGui::OpenPopup(
-          gui::MakePopupId(gui::EditorNames::kOverworld,
-                           gui::PopupNames::kQuickPopup)
-              .c_str());
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(
-          "Quick Access Tools\n\n"
-          "Shortcuts to:\n"
-          "  • Tile16 editor (Ctrl+T)\n"
-          "  • Copy current map\n"
-          "  • Lock/unlock map (Ctrl+L)");
-    }
-    DrawQuickAccessPopup();
+    HOVER_HINT("Toggle Map Properties Sidebar");
 
     ImGui::EndTable();
   }

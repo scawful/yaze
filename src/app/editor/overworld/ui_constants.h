@@ -57,6 +57,18 @@ inline constexpr float kCompactFramePadding = 2.f;
 
 // Map Size Constants - using the one from overworld_editor.h
 
+enum class EditingMode { MOUSE = 0, DRAW_TILE = 1 };
+
+enum class EntityEditMode {
+  NONE = 0,
+  ENTRANCES = 1,
+  EXITS = 2,
+  ITEMS = 3,
+  SPRITES = 4,
+  TRANSPORTS = 5,
+  MUSIC = 6
+};
+
 }  // namespace editor
 }  // namespace yaze
 

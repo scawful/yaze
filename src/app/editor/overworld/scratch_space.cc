@@ -55,74 +55,26 @@ absl::Status OverworldEditor::DrawScratchSpace() {
   }
 
   SameLine();
-  if (Button("Save Selection")) {
-    RETURN_IF_ERROR(SaveCurrentSelectionToScratch(current_scratch_slot_));
-  }
-  SameLine();
-  if (Button("Load")) {
-    RETURN_IF_ERROR(LoadScratchToSelection(current_scratch_slot_));
-  }
-  SameLine();
   if (Button("Clear")) {
     RETURN_IF_ERROR(ClearScratchSpace(current_scratch_slot_));
   }
+  HOVER_HINT("Clear current scratch slot");
 
-  // Selection transfer buttons
-  Separator();
-  Text("Selection Transfer:");
-  if (Button(ICON_MD_DOWNLOAD " From Overworld")) {
-    // Transfer current overworld selection to scratch space
-    if (ow_map_canvas_.select_rect_active() &&
-        !ow_map_canvas_.selected_tiles().empty()) {
-      RETURN_IF_ERROR(SaveCurrentSelectionToScratch(current_scratch_slot_));
-    }
-  }
-  HOVER_HINT("Copy current overworld selection to this scratch slot");
-
-  SameLine();
-  if (Button(ICON_MD_UPLOAD " To Clipboard")) {
-    // Copy scratch selection to clipboard for pasting in overworld
-    if (scratch_canvas_.select_rect_active() &&
-        !scratch_canvas_.selected_tiles().empty()) {
-      // Copy scratch selection to clipboard
-      std::vector<int> scratch_tile_ids;
-      for (const auto& tile_pos : scratch_canvas_.selected_tiles()) {
-        int tile_x = static_cast<int>(tile_pos.x) / 32;
-        int tile_y = static_cast<int>(tile_pos.y) / 32;
-        if (tile_x >= 0 && tile_x < 32 && tile_y >= 0 && tile_y < 32) {
-          scratch_tile_ids.push_back(
-              scratch_spaces_[current_scratch_slot_].tile_data[tile_x][tile_y]);
-        }
-      }
-      if (!scratch_tile_ids.empty() && dependencies_.shared_clipboard) {
-        const auto& points = scratch_canvas_.selected_points();
-        int width =
-            std::abs(static_cast<int>((points[1].x - points[0].x) / 32)) + 1;
-        int height =
-            std::abs(static_cast<int>((points[1].y - points[0].y) / 32)) + 1;
-        dependencies_.shared_clipboard->overworld_tile16_ids =
-            std::move(scratch_tile_ids);
-        dependencies_.shared_clipboard->overworld_width = width;
-        dependencies_.shared_clipboard->overworld_height = height;
-        dependencies_.shared_clipboard->has_overworld_tile16 = true;
-      }
-    }
-  }
-  HOVER_HINT("Copy scratch selection to clipboard for pasting in overworld");
-
-  if (dependencies_.shared_clipboard &&
-      dependencies_.shared_clipboard->has_overworld_tile16) {
-    Text(ICON_MD_CONTENT_PASTE
-         " Pattern ready! Use Shift+Click to stamp, or paste in overworld");
-  }
-
+  // Status info
   Text("Slot %d: %s (%dx%d)", current_scratch_slot_ + 1,
        scratch_spaces_[current_scratch_slot_].name.c_str(),
        scratch_spaces_[current_scratch_slot_].width,
        scratch_spaces_[current_scratch_slot_].height);
-  Text(
-      "Select tiles from Tile16 tab or make selections in overworld, then draw "
-      "here!");
+
+  // Interaction hints
+  if (ow_map_canvas_.select_rect_active() &&
+      !ow_map_canvas_.selected_tiles().empty()) {
+    TextColored(ImVec4(0.4f, 1.0f, 0.4f, 1.0f),
+                ICON_MD_CONTENT_PASTE " Overworld selection active! Click in scratch space to stamp.");
+  } else {
+    Text("Left-click to paint with current tile.");
+    Text("Right-click to select tiles.");
+  }
 
   // Initialize scratch bitmap with proper size based on scratch space
   // dimensions
@@ -163,13 +115,34 @@ absl::Status OverworldEditor::DrawScratchSpace() {
     scratch_canvas_.DrawBitmap(current_slot.scratch_bitmap, 2, 2, 1.0f);
   }
 
-  // Simplified scratch space - just basic tile drawing like the original
+  // Draw Tile Selector (for painting)
   if (map_blockset_loaded_) {
     scratch_canvas_.DrawTileSelector(32.0f);
   }
 
   scratch_canvas_.DrawGrid();
   scratch_canvas_.DrawOverlay();
+
+  // Handle Interactions
+  if (scratch_canvas_.IsMouseHovering()) {
+    // 1. Stamping from Overworld Selection
+    if (ow_map_canvas_.select_rect_active() &&
+        !ow_map_canvas_.selected_tiles().empty()) {
+      // Preview and Stamp logic would go here
+      // For now, we reuse the pattern drawing logic but source it from OW selection directly
+      // We need to populate shared_clipboard or pass OW selection to DrawScratchSpacePattern
+      
+      // Temporary: Auto-populate clipboard for seamless feel
+      // (In a real refactor, we'd pass the selection directly)
+      if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+         RETURN_IF_ERROR(SaveCurrentSelectionToScratch(current_scratch_slot_));
+      }
+    }
+    // 2. Painting with Current Tile
+    else if (current_mode == EditingMode::DRAW_TILE || ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
+       DrawScratchSpaceEdits();
+    }
+  }
 
   EndChild();
   ImGui::EndGroup();
