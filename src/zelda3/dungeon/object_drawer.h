@@ -82,6 +82,13 @@ class ObjectDrawer {
   void DrawTileToBitmap(gfx::Bitmap& bitmap, const gfx::TileInfo& tile_info,
                         int pixel_x, int pixel_y, const uint8_t* tiledata);
 
+  /**
+   * @brief Calculate the dimensions (width, height) of an object in pixels
+   * @param object The object to calculate dimensions for
+   * @return Pair of (width, height) in pixels
+   */
+  std::pair<int, int> CalculateObjectDimensions(const RoomObject& object);
+
  private:
   // Draw routine function type
   using DrawRoutine = std::function<void(ObjectDrawer*, const RoomObject&,
@@ -187,6 +194,23 @@ class ObjectDrawer {
   void DrawDownwardsRightCorners2x1_1to16_plus12(
       const RoomObject& obj, gfx::BackgroundBuffer& bg,
       std::span<const gfx::TileInfo> tiles);
+
+  // Type 3 / Special Routines
+  void DrawSomariaLine(const RoomObject& obj, gfx::BackgroundBuffer& bg,
+                       std::span<const gfx::TileInfo> tiles);
+  void DrawWaterFace(const RoomObject& obj, gfx::BackgroundBuffer& bg,
+                     std::span<const gfx::TileInfo> tiles);
+  void Draw4x4Corner_BothBG(const RoomObject& obj, gfx::BackgroundBuffer& bg,
+                            std::span<const gfx::TileInfo> tiles);
+  void DrawWeirdCornerBottom_BothBG(const RoomObject& obj,
+                                    gfx::BackgroundBuffer& bg,
+                                    std::span<const gfx::TileInfo> tiles);
+  void DrawWeirdCornerTop_BothBG(const RoomObject& obj,
+                                 gfx::BackgroundBuffer& bg,
+                                 std::span<const gfx::TileInfo> tiles);
+  void DrawLargeCanvasObject(const RoomObject& obj, gfx::BackgroundBuffer& bg,
+                             std::span<const gfx::TileInfo> tiles, int width,
+                             int height);
 
   // Utility methods
   void WriteTile8(gfx::BackgroundBuffer& bg, int tile_x, int tile_y,

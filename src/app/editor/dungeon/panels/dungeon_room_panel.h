@@ -124,6 +124,44 @@ class DungeonRoomPanel : public ResourcePanel {
     ImGui::SameLine();
     ImGui::TextDisabled("Objects: %zu", room_->GetTileObjects().size());
 
+    // Room Controls
+    if (ImGui::CollapsingHeader("Room Controls")) {
+      if (ImGui::Button(ICON_MD_REFRESH " Reload Graphics & Objects", ImVec2(-FLT_MIN, 0))) {
+        room_->LoadRoomGraphics(room_->blockset);
+        room_->LoadObjects();
+        room_->RenderRoomGraphics();
+      }
+
+      if (ImGui::Button(ICON_MD_CLEANING_SERVICES " Clear Room Buffers",
+                        ImVec2(-FLT_MIN, 0))) {
+        room_->ClearTileObjects();
+      }
+
+      ImGui::Separator();
+      ImGui::Text("Floor Graphics Override:");
+      
+      uint8_t floor1 = room_->floor1();
+      uint8_t floor2 = room_->floor2();
+      static uint8_t floor_min = 0;
+      static uint8_t floor_max = 15;
+      
+      bool changed = false;
+      if (ImGui::SliderScalar("Floor1", ImGuiDataType_U8, &floor1, &floor_min,
+                              &floor_max)) {
+        room_->set_floor1(floor1);
+        changed = true;
+      }
+      if (ImGui::SliderScalar("Floor2", ImGuiDataType_U8, &floor2, &floor_min,
+                              &floor_max)) {
+        room_->set_floor2(floor2);
+        changed = true;
+      }
+      
+      if (changed && room_->rom() && room_->rom()->is_loaded()) {
+        room_->RenderRoomGraphics();
+      }
+    }
+
     ImGui::Separator();
 
     // Draw the room canvas

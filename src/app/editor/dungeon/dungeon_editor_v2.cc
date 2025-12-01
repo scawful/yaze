@@ -4,8 +4,7 @@
 #include <cstdio>
 
 #include "absl/strings/str_format.h"
-#include "app/editor/dungeon/panels/dungeon_debug_controls_panel.h"
-#include "app/editor/dungeon/panels/dungeon_emulator_preview_panel.h"
+
 #include "app/editor/dungeon/panels/dungeon_entrance_list_panel.h"
 #include "app/editor/dungeon/panels/dungeon_entrances_panel.h"
 #include "app/editor/dungeon/panels/dungeon_object_editor_panel.h"
@@ -126,9 +125,9 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
                                .disabled_tooltip = "Load a ROM to view room graphics",
                                .priority = 50});
 
-  panel_manager->RegisterPanel({.card_id = MakeCardId("dungeon.object_editor"),
-                               .display_name = "Object Editor",
-                               .window_title = " Object Editor",
+  panel_manager->RegisterPanel({.card_id = MakeCardId("dungeon.object_tools"),
+                               .display_name = "Object Tools",
+                               .window_title = " Object Tools",
                                .icon = ICON_MD_CONSTRUCTION,
                                .category = "Dungeon",
                                .shortcut_hint = "Ctrl+Shift+O",
@@ -148,27 +147,9 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
                                .disabled_tooltip = "Load a ROM to edit dungeon palettes",
                                .priority = 70});
 
-  panel_manager->RegisterPanel({.card_id = MakeCardId("dungeon.debug_controls"),
-                               .display_name = "Debug Controls",
-                               .window_title = " Debug Controls",
-                               .icon = ICON_MD_BUG_REPORT,
-                               .category = "Dungeon",
-                               .shortcut_hint = "Ctrl+Shift+B",
-                               .visibility_flag = &show_debug_controls_,
-                               .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
-                               .disabled_tooltip = "Load a ROM to access debug controls",
-                               .priority = 80});
 
-  panel_manager->RegisterPanel({.card_id = MakeCardId("dungeon.emulator_preview"),
-                               .display_name = "SNES Object Preview",
-                               .window_title = " SNES Object Preview",
-                               .icon = ICON_MD_MONITOR,
-                               .category = "Dungeon",
-                               .shortcut_hint = "Ctrl+Shift+V",
-                               .visibility_flag = &show_emulator_preview_,
-                               .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
-                               .disabled_tooltip = "Load a ROM to use SNES emulator preview",
-                               .priority = 65});
+
+
 
   // ============================================================================
   // Phase 5: Full EditorPanel Registration
@@ -212,22 +193,9 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
   panel_manager->RegisterEditorPanel(
       std::make_unique<DungeonPaletteEditorPanel>(&palette_editor_));
 
-  // Debug Controls Panel - debug tools and rendering controls
-  panel_manager->RegisterEditorPanel(
-      std::make_unique<DungeonDebugControlsPanel>(
-          &current_room_id_,
-          &rooms_,
-          renderer_,
-          [this]() { return Save(); },
-          [this](int room_id) { return room_loader_.LoadRoom(room_id, rooms_[room_id]); },
-          [this]() {
-            active_rooms_.clear();
-            room_cards_.clear();
-          }));
 
-  // Emulator Preview Panel - SNES object preview
-  panel_manager->RegisterEditorPanel(
-      std::make_unique<DungeonEmulatorPreviewPanel>(&object_emulator_preview_));
+
+
 
   // NOTE: DungeonObjectEditorPanel is registered in Load() after object_editor_card_ is created
 }
@@ -289,8 +257,7 @@ absl::Status DungeonEditorV2::Load() {
     }
   }
 
-  // NOW initialize emulator preview with loaded ROM and render service
-  object_emulator_preview_.Initialize(renderer_, rom_, render_service_.get());
+
 
   // Initialize centralized PaletteManager with ROM data
   // This MUST be done before initializing palette_editor_
@@ -311,7 +278,7 @@ absl::Status DungeonEditorV2::Load() {
   // Register ObjectEditorPanel (deferred from Initialize() because object_editor_card_ is created here)
   if (dependencies_.panel_manager) {
     dependencies_.panel_manager->RegisterEditorPanel(
-        std::make_unique<DungeonObjectEditorPanel>(object_editor_card_.get()));
+        std::make_unique<DungeonObjectToolsPanel>(object_editor_card_.get()));
   }
 
   // Link editor system to canvas viewer for interactions
@@ -657,6 +624,36 @@ void DungeonEditorV2::OnRoomSelected(int room_id) {
     
     // NOT auto-pinned - user must explicitly pin to persist across editors
     // Unpinned resource panels close when switching to another editor
+  }
+
+  // Update palette based on room
+  if (room_id >= 0 && room_id < (int)rooms_.size()) {
+    auto& room = rooms_[room_id];
+    // Ensure room header is loaded to get palette ID
+    if (!room.IsLoaded()) {
+      // Load just enough to get palette if possible, or trigger load
+      // For now, we rely on room_loader to be fast enough or cached
+      room_loader_.LoadRoom(room_id, room);
+    }
+
+    if (room.IsLoaded()) {
+      current_palette_id_ = room.palette;
+
+      // Update palette editor
+      palette_editor_.SetCurrentPaletteId(current_palette_id_);
+
+      // Update canvas viewer
+      canvas_viewer_.SetCurrentPaletteId(current_palette_id_);
+
+      // Update current palette group
+      auto dungeon_main_pal_group = rom_->palette_group().dungeon_main;
+      if (current_palette_id_ < (int)dungeon_main_pal_group.size()) {
+        current_palette_ = dungeon_main_pal_group[current_palette_id_];
+        // Propagate to canvas viewer
+        canvas_viewer_.SetCurrentPaletteGroup(
+            gfx::CreatePaletteGroupFromLargePalette(current_palette_).value());
+      }
+    }
   }
 }
 

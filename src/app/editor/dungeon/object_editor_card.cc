@@ -69,12 +69,9 @@ void ObjectEditorCard::OnSelectionChanged() {
 
 void ObjectEditorCard::Draw(bool* p_open) {
   const auto& theme = AgentUI::GetTheme();
-  gui::PanelWindow card(gui::MakeCardTitle("Object Tools").c_str(), ICON_MD_BUILD,
-                       p_open);
-  card.SetDefaultSize(350, 600);
-  card.SetPosition(gui::PanelWindow::Position::Right);
-
-  if (card.Begin(p_open)) {
+  // PanelManager handles the window creation (Begin/End)
+  // We just draw the content
+  {
     // Interaction mode controls at top (moved from tab)
     ImGui::TextColored(theme.text_secondary_gray, "Mode:");
     ImGui::SameLine();
@@ -117,27 +114,40 @@ void ObjectEditorCard::Draw(bool* p_open) {
 
     ImGui::Separator();
 
-    // Tabbed interface for Browser and Preview
-    if (ImGui::BeginTabBar("##ObjectEditorTabs", ImGuiTabBarFlags_None)) {
-      // Tab 1: Object Browser
-      if (ImGui::BeginTabItem(ICON_MD_LIST " Browser")) {
-        DrawObjectSelector();
-        ImGui::EndTabItem();
-      }
+    // -----------------------------------------------------------------------
+    // Emulator Preview (Collapsible)
+    // -----------------------------------------------------------------------
+    // Use the header open state to drive the preview visibility
+    bool preview_open = ImGui::CollapsingHeader(ICON_MD_MONITOR " Preview");
+    show_emulator_preview_ = preview_open;
+    
+    if (preview_open) {
+      ImGui::PushID("PreviewSection");
+      DrawEmulatorPreview();
+      ImGui::PopID();
+    }
 
-      // Tab 2: Templates
-      if (ImGui::BeginTabItem(ICON_MD_DASHBOARD " Templates")) {
+    // -----------------------------------------------------------------------
+    // Templates (Collapsible)
+    // -----------------------------------------------------------------------
+    if (ImGui::CollapsingHeader(ICON_MD_DASHBOARD " Templates")) {
+      ImGui::PushID("TemplatesSection");
+      // Fixed height for templates to avoid taking too much space
+      if (ImGui::BeginChild("TemplateList", ImVec2(0, 150), true)) {
         DrawObjectTemplates();
-        ImGui::EndTabItem();
       }
+      ImGui::EndChild();
+      ImGui::PopID();
+    }
 
-      // Tab 3: Emulator Preview (enhanced)
-      if (ImGui::BeginTabItem(ICON_MD_MONITOR " Preview")) {
-        DrawEmulatorPreview();
-        ImGui::EndTabItem();
-      }
-
-      ImGui::EndTabBar();
+    // -----------------------------------------------------------------------
+    // Object Browser (Collapsible, Fills remaining space)
+    // -----------------------------------------------------------------------
+    if (ImGui::CollapsingHeader(ICON_MD_LIST " Object Browser", ImGuiTreeNodeFlags_DefaultOpen)) {
+      // Use remaining space for browser
+      ImGui::BeginChild("ObjectBrowserRegion", ImVec2(0, 0), true);
+      DrawObjectSelector();
+      ImGui::EndChild();
     }
 
     // Draw modals
@@ -147,7 +157,6 @@ void ObjectEditorCard::Draw(bool* p_open) {
     // Handle keyboard shortcuts
     HandleKeyboardShortcuts();
   }
-  card.End();
 }
 
 void ObjectEditorCard::SelectObject(int obj_id) {
@@ -171,33 +180,24 @@ void ObjectEditorCard::DrawObjectSelector() {
 
 void ObjectEditorCard::DrawEmulatorPreview() {
   const auto& theme = AgentUI::GetTheme();
+  
+  // Informational text
   ImGui::TextColored(theme.text_secondary_gray,
                      ICON_MD_INFO " Real-time object rendering preview");
-  ImGui::Separator();
-
-  // Toggle emulator preview visibility
-  ImGui::Checkbox("Enable Preview", &show_emulator_preview_);
-  ImGui::SameLine();
   gui::HelpMarker(
       "Uses SNES emulation to render objects accurately.\n"
       "May impact performance.");
+  
+  ImGui::Separator();
 
-  if (show_emulator_preview_) {
-    ImGui::Separator();
+  // Embed the emulator preview with improved layout
+  // Use a fixed height for the preview area to ensure it doesn't jump around
+  // 256px height is enough for the SNES preview (usually 224 or 239 lines)
+  ImGui::BeginChild("##EmulatorPreviewRegion", ImVec2(0, 260), true);
 
-    // Embed the emulator preview with improved layout
-    ImGui::BeginChild("##EmulatorPreviewRegion", ImVec2(0, 0), true);
+  emulator_preview_.Render();
 
-    emulator_preview_.Render();
-
-    ImGui::EndChild();
-  } else {
-    ImGui::Separator();
-    ImGui::TextDisabled(ICON_MD_PREVIEW " Preview disabled for performance");
-    ImGui::TextWrapped(
-        "Enable to see accurate object rendering using "
-        "SNES emulation.");
-  }
+  ImGui::EndChild();
 }
 
 // DrawInteractionControls removed - controls moved to top of card

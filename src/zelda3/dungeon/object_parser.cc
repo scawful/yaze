@@ -316,41 +316,114 @@ ObjectDrawInfo ObjectParser::GetObjectDrawInfo(int16_t object_id) const {
     info.routine_name = "DiagonalGrave_1to16";
     info.tile_count = 5;
     info.is_horizontal = false;
-  } else if (object_id >= 0x15 && object_id <= 0x1F) {
-    info.draw_routine_id = 7;  // RoomDraw_DiagonalAcute_1to16_BothBG
+  } else if (object_id >= 0x0C && object_id <= 0x0D) {
+    info.draw_routine_id = 17; // RoomDraw_DiagonalAcute_1to16_BothBG
     info.routine_name = "DiagonalAcute_1to16_BothBG";
     info.tile_count = 5;
     info.is_horizontal = false;
     info.both_layers = true;
-  } else if (object_id >= 0x16 && object_id <= 0x20) {
-    info.draw_routine_id = 8;  // RoomDraw_DiagonalGrave_1to16_BothBG
+  } else if (object_id >= 0x0E && object_id <= 0x0F) {
+    info.draw_routine_id = 18; // RoomDraw_DiagonalGrave_1to16_BothBG
     info.routine_name = "DiagonalGrave_1to16_BothBG";
     info.tile_count = 5;
     info.is_horizontal = false;
     info.both_layers = true;
+  } else if (object_id >= 0x10 && object_id <= 0x11) {
+    info.draw_routine_id = 17; // RoomDraw_DiagonalAcute_1to16_BothBG
+    info.routine_name = "DiagonalAcute_1to16_BothBG";
+    info.tile_count = 5;
+    info.is_horizontal = false;
+    info.both_layers = true;
+  } else if (object_id >= 0x12 && object_id <= 0x13) {
+    info.draw_routine_id = 18; // RoomDraw_DiagonalGrave_1to16_BothBG
+    info.routine_name = "DiagonalGrave_1to16_BothBG";
+    info.tile_count = 5;
+    info.is_horizontal = false;
+    info.both_layers = true;
+  } else if (object_id >= 0x14 && object_id <= 0x15) {
+    info.draw_routine_id = 17; // RoomDraw_DiagonalAcute_1to16_BothBG
+    info.routine_name = "DiagonalAcute_1to16_BothBG";
+    info.tile_count = 5;
+    info.is_horizontal = false;
+    info.both_layers = true;
+  } else if (object_id >= 0x16 && object_id <= 0x17) {
+    info.draw_routine_id = 18; // RoomDraw_DiagonalGrave_1to16_BothBG
+    info.routine_name = "DiagonalGrave_1to16_BothBG";
+    info.tile_count = 5;
+    info.is_horizontal = false;
+    info.both_layers = true;
+  } else if (object_id >= 0x18 && object_id <= 0x19) {
+    info.draw_routine_id = 17; // RoomDraw_DiagonalAcute_1to16_BothBG
+    info.routine_name = "DiagonalAcute_1to16_BothBG";
+    info.tile_count = 5;
+    info.is_horizontal = false;
+    info.both_layers = true;
+  } else if (object_id >= 0x1A && object_id <= 0x1B) {
+    info.draw_routine_id = 18; // RoomDraw_DiagonalGrave_1to16_BothBG
+    info.routine_name = "DiagonalGrave_1to16_BothBG";
+    info.tile_count = 5;
+    info.is_horizontal = false;
+    info.both_layers = true;
+  } else if (object_id >= 0x1C && object_id <= 0x1D) {
+    info.draw_routine_id = 17; // RoomDraw_DiagonalAcute_1to16_BothBG
+    info.routine_name = "DiagonalAcute_1to16_BothBG";
+    info.tile_count = 5;
+    info.is_horizontal = false;
+    info.both_layers = true;
+  } else if (object_id >= 0x1E && object_id <= 0x1F) {
+    info.draw_routine_id = 18; // RoomDraw_DiagonalGrave_1to16_BothBG
+    info.routine_name = "DiagonalGrave_1to16_BothBG";
+    info.tile_count = 5;
+    info.is_horizontal = false;
+    info.both_layers = true;
+  } else if (object_id == 0x20) {
+    info.draw_routine_id = 17; // RoomDraw_DiagonalAcute_1to16_BothBG
+    info.routine_name = "DiagonalAcute_1to16_BothBG";
+    info.tile_count = 5;
+    info.is_horizontal = false;
+    info.both_layers = true;
   } else if (object_id == 0x21) {
-    info.draw_routine_id = 9;  // RoomDraw_Rightwards1x2_1to16_plus2
+    info.draw_routine_id = 20;  // RoomDraw_Rightwards1x2_1to16_plus2
     info.routine_name = "Rightwards1x2_1to16_plus2";
     info.tile_count = 2;
     info.is_horizontal = true;
   } else if (object_id == 0x22) {
-    info.draw_routine_id = 10;  // RoomDraw_RightwardsHasEdge1x1_1to16_plus3
+    info.draw_routine_id = 20;  // RoomDraw_Rightwards1x2_1to16_plus2
+    info.routine_name = "Rightwards1x2_1to16_plus2";
+    info.tile_count = 2;
+    info.is_horizontal = true;
+  } else if (object_id >= 0x23 && object_id <= 0x24) {
+    info.draw_routine_id = 21;  // RoomDraw_RightwardsHasEdge1x1_1to16_plus3
     info.routine_name = "RightwardsHasEdge1x1_1to16_plus3";
     info.tile_count = 1;
     info.is_horizontal = true;
-  } else if (object_id >= 0x23 && object_id <= 0x2E) {
-    info.draw_routine_id = 11;  // RoomDraw_RightwardsHasEdge1x1_1to16_plus2
+  } else if (object_id >= 0x25 && object_id <= 0x26) {
+    info.draw_routine_id = 22;  // RoomDraw_RightwardsHasEdge1x1_1to16_plus2
+    info.routine_name = "RightwardsHasEdge1x1_1to16_plus2";
+    info.tile_count = 1;
+    info.is_horizontal = true;
+  } else if (object_id == 0x27) {
+    info.draw_routine_id = 23;  // RoomDraw_RightwardsTopCorners1x2_1to16_plus13
+    info.routine_name = "RightwardsTopCorners1x2_1to16_plus13";
+    info.tile_count = 2;
+    info.is_horizontal = true;
+  } else if (object_id == 0x28) {
+    info.draw_routine_id = 24;  // RoomDraw_RightwardsBottomCorners1x2_1to16_plus13
+    info.routine_name = "RightwardsBottomCorners1x2_1to16_plus13";
+    info.tile_count = 2;
+    info.is_horizontal = true;
+  } else if (object_id >= 0x29 && object_id <= 0x2E) {
+    info.draw_routine_id = 22;  // RoomDraw_RightwardsHasEdge1x1_1to16_plus2
     info.routine_name = "RightwardsHasEdge1x1_1to16_plus2";
     info.tile_count = 1;
     info.is_horizontal = true;
   } else if (object_id == 0x2F) {
-    info.draw_routine_id = 12;  // RoomDraw_RightwardsTopCorners1x2_1to16_plus13
+    info.draw_routine_id = 23;  // RoomDraw_RightwardsTopCorners1x2_1to16_plus13
     info.routine_name = "RightwardsTopCorners1x2_1to16_plus13";
     info.tile_count = 2;
     info.is_horizontal = true;
   } else if (object_id == 0x30) {
-    info.draw_routine_id =
-        13;  // RoomDraw_RightwardsBottomCorners1x2_1to16_plus13
+    info.draw_routine_id = 24;  // RoomDraw_RightwardsBottomCorners1x2_1to16_plus13
     info.routine_name = "RightwardsBottomCorners1x2_1to16_plus13";
     info.tile_count = 2;
     info.is_horizontal = true;
@@ -359,58 +432,120 @@ ObjectDrawInfo ObjectParser::GetObjectDrawInfo(int16_t object_id) const {
     info.routine_name = "CustomDraw";
     info.tile_count = 1;
   } else if (object_id == 0x33) {
-    info.draw_routine_id = 15;  // RoomDraw_Rightwards4x4_1to16
+    info.draw_routine_id = 16;  // RoomDraw_Rightwards4x4_1to16
     info.routine_name = "Rightwards4x4_1to16";
     info.tile_count = 16;
     info.is_horizontal = true;
   } else if (object_id == 0x34) {
-    info.draw_routine_id = 16;  // RoomDraw_Rightwards1x1Solid_1to16_plus3
+    info.draw_routine_id = 25;  // RoomDraw_Rightwards1x1Solid_1to16_plus3
     info.routine_name = "Rightwards1x1Solid_1to16_plus3";
     info.tile_count = 1;
     info.is_horizontal = true;
   } else if (object_id == 0x35) {
-    info.draw_routine_id = 17;  // RoomDraw_DoorSwitcherer
+    info.draw_routine_id = 26;  // RoomDraw_DoorSwitcherer
     info.routine_name = "DoorSwitcherer";
     info.tile_count = 1;
   } else if (object_id >= 0x36 && object_id <= 0x37) {
-    info.draw_routine_id = 18;  // RoomDraw_RightwardsDecor4x4spaced2_1to16
+    info.draw_routine_id = 27;  // RoomDraw_RightwardsDecor4x4spaced2_1to16
     info.routine_name = "RightwardsDecor4x4spaced2_1to16";
     info.tile_count = 16;
     info.is_horizontal = true;
   } else if (object_id == 0x38) {
-    info.draw_routine_id = 19;  // RoomDraw_RightwardsStatue2x3spaced2_1to16
+    info.draw_routine_id = 28;  // RoomDraw_RightwardsStatue2x3spaced2_1to16
     info.routine_name = "RightwardsStatue2x3spaced2_1to16";
     info.tile_count = 6;
     info.is_horizontal = true;
   } else if (object_id == 0x39 || object_id == 0x3D) {
-    info.draw_routine_id = 20;  // RoomDraw_RightwardsPillar2x4spaced4_1to16
+    info.draw_routine_id = 29;  // RoomDraw_RightwardsPillar2x4spaced4_1to16
     info.routine_name = "RightwardsPillar2x4spaced4_1to16";
     info.tile_count = 8;
     info.is_horizontal = true;
   } else if (object_id >= 0x3A && object_id <= 0x3B) {
-    info.draw_routine_id = 21;  // RoomDraw_RightwardsDecor4x3spaced4_1to16
+    info.draw_routine_id = 30;  // RoomDraw_RightwardsDecor4x3spaced4_1to16
     info.routine_name = "RightwardsDecor4x3spaced4_1to16";
     info.tile_count = 12;
     info.is_horizontal = true;
   } else if (object_id == 0x3C) {
-    info.draw_routine_id = 22;  // RoomDraw_RightwardsDoubled2x2spaced2_1to16
+    info.draw_routine_id = 31;  // RoomDraw_RightwardsDoubled2x2spaced2_1to16
     info.routine_name = "RightwardsDoubled2x2spaced2_1to16";
     info.tile_count = 8;
     info.is_horizontal = true;
   } else if (object_id == 0x3E) {
-    info.draw_routine_id = 23;  // RoomDraw_RightwardsDecor2x2spaced12_1to16
+    info.draw_routine_id = 32;  // RoomDraw_RightwardsDecor2x2spaced12_1to16
     info.routine_name = "RightwardsDecor2x2spaced12_1to16";
     info.tile_count = 4;
     info.is_horizontal = true;
   } else if (object_id >= 0x3F && object_id <= 0x40) {
-    info.draw_routine_id =
-        24;  // RoomDraw_RightwardsHasEdge1x1_1to16_plus2 (variant)
-    info.routine_name = "RightwardsHasEdge1x1_1to16_plus2_variant";
+    info.draw_routine_id = 22;  // RoomDraw_RightwardsHasEdge1x1_1to16_plus2 (variant)
+    info.routine_name = "RightwardsHasEdge1x1_1to16_plus2";
     info.tile_count = 1;
     info.is_horizontal = true;
+  } else if (object_id >= 0x40 && object_id <= 0x4F) {
+    info.draw_routine_id = 19;  // RoomDraw_Corner4x4 (Type 2 corners)
+    info.routine_name = "Corner4x4";
+    info.tile_count = 16;
+    info.is_horizontal = true;
+  } else if (object_id >= 0x60 && object_id <= 0x6F) {
+      // Vertical objects (Subtype 1)
+      if (object_id == 0x60) {
+          info.draw_routine_id = 7; // RoomDraw_Downwards2x2_1to15or32
+          info.routine_name = "Downwards2x2_1to15or32";
+          info.tile_count = 4;
+          info.is_horizontal = false;
+      } else if (object_id >= 0x61 && object_id <= 0x62) {
+          info.draw_routine_id = 8; // RoomDraw_Downwards4x2_1to15or26
+          info.routine_name = "Downwards4x2_1to15or26";
+          info.tile_count = 8;
+          info.is_horizontal = false;
+      } else if (object_id >= 0x63 && object_id <= 0x64) {
+          info.draw_routine_id = 9; // RoomDraw_Downwards4x2_1to16_BothBG
+          info.routine_name = "Downwards4x2_1to16_BothBG";
+          info.tile_count = 8;
+          info.is_horizontal = false;
+          info.both_layers = true;
+      } else if (object_id >= 0x65 && object_id <= 0x66) {
+          info.draw_routine_id = 10; // RoomDraw_DownwardsDecor4x2spaced4_1to16
+          info.routine_name = "DownwardsDecor4x2spaced4_1to16";
+          info.tile_count = 8;
+          info.is_horizontal = false;
+      } else if (object_id >= 0x67 && object_id <= 0x68) {
+          info.draw_routine_id = 11; // RoomDraw_Downwards2x2_1to16
+          info.routine_name = "Downwards2x2_1to16";
+          info.tile_count = 4;
+          info.is_horizontal = false;
+      } else if (object_id == 0x69) {
+          info.draw_routine_id = 12; // RoomDraw_DownwardsHasEdge1x1_1to16_plus3
+          info.routine_name = "DownwardsHasEdge1x1_1to16_plus3";
+          info.tile_count = 1;
+          info.is_horizontal = false;
+      } else if (object_id >= 0x6A && object_id <= 0x6B) {
+          info.draw_routine_id = 13; // RoomDraw_DownwardsEdge1x1_1to16
+          info.routine_name = "DownwardsEdge1x1_1to16";
+          info.tile_count = 1;
+          info.is_horizontal = false;
+      } else if (object_id == 0x6C) {
+          info.draw_routine_id = 14; // RoomDraw_DownwardsLeftCorners2x1_1to16_plus12
+          info.routine_name = "DownwardsLeftCorners2x1_1to16_plus12";
+          info.tile_count = 2;
+          info.is_horizontal = false;
+      } else if (object_id == 0x6D) {
+          info.draw_routine_id = 15; // RoomDraw_DownwardsRightCorners2x1_1to16_plus12
+          info.routine_name = "DownwardsRightCorners2x1_1to16_plus12";
+          info.tile_count = 2;
+          info.is_horizontal = false;
+      } else {
+          info.draw_routine_id = 16; // Default
+          info.routine_name = "DefaultSolid";
+          info.tile_count = 1;
+      }
+  } else if (object_id >= 0x100 && object_id <= 0x10F) {
+      info.draw_routine_id = 16; // RoomDraw_Rightwards4x4_1to16 (Type 2)
+      info.routine_name = "Rightwards4x4_1to16";
+      info.tile_count = 16;
+      info.is_horizontal = true;
   } else {
     // Default to simple 1x1 solid for unmapped objects
-    info.draw_routine_id = 16;  // Use solid block routine
+    info.draw_routine_id = 25;  // Use solid block routine (0x34)
     info.routine_name = "DefaultSolid";
     info.tile_count = 1;
     info.is_horizontal = true;

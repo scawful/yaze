@@ -148,7 +148,67 @@ void ObjectDrawer::InitializeDrawRoutines() {
     object_to_routine_map_[id] = 6;
   }
 
-  // Subtype 1 Object Mappings (Vertical)
+  // Diagonal walls - BothBG variants (0x0C-0x20)
+  // Acute Diagonals (/)
+  for (int id : {0x0C, 0x0D, 0x10, 0x11, 0x14, 0x15, 0x18, 0x19, 0x1C, 0x1D, 0x20}) {
+    object_to_routine_map_[id] = 17;
+  }
+  // Grave Diagonals (\)
+  for (int id : {0x0E, 0x0F, 0x12, 0x13, 0x16, 0x17, 0x1A, 0x1B, 0x1E, 0x1F}) {
+    object_to_routine_map_[id] = 18;
+  }
+
+  // Edge and Corner Objects (0x21-0x30)
+  object_to_routine_map_[0x21] = 20;  // Edge 1x2
+  object_to_routine_map_[0x22] = 20;  // Edge 1x2
+  object_to_routine_map_[0x23] = 21;  // Edge with perimeter
+  object_to_routine_map_[0x24] = 21;  // Edge with perimeter
+  object_to_routine_map_[0x25] = 22;  // Edge variant
+  object_to_routine_map_[0x26] = 22;  // Edge variant
+  object_to_routine_map_[0x27] = 23;  // Top corners
+  object_to_routine_map_[0x28] = 24;  // Bottom corners
+  for (int id = 0x29; id <= 0x2E; id++) {
+    object_to_routine_map_[id] = 22;  // Edge variant
+  }
+  object_to_routine_map_[0x2F] = 23;  // Top corners
+  object_to_routine_map_[0x30] = 24;  // Bottom corners
+
+  // Custom/Special Objects (0x31-0x3E)
+  object_to_routine_map_[0x31] = 14; // Custom
+  object_to_routine_map_[0x32] = 14; // Custom
+  object_to_routine_map_[0x33] = 16; // 4x4 Block
+  object_to_routine_map_[0x34] = 25; // Solid 1x1
+  object_to_routine_map_[0x35] = 26; // Door Switcher
+  object_to_routine_map_[0x36] = 27; // Decor 4x4
+  object_to_routine_map_[0x37] = 27; // Decor 4x4
+  object_to_routine_map_[0x38] = 28; // Statue 2x3
+  object_to_routine_map_[0x39] = 29; // Pillar 2x4
+  object_to_routine_map_[0x3A] = 30; // Decor 4x3
+  object_to_routine_map_[0x3B] = 30; // Decor 4x3
+  object_to_routine_map_[0x3C] = 31; // Doubled 2x2
+  object_to_routine_map_[0x3D] = 29; // Pillar 2x4
+  object_to_routine_map_[0x3E] = 32; // Decor 2x2
+
+  // Type 2 Corners & Misc (0x40-0x4F) - FIXED MAPPINGS
+  for (int id = 0x40; id <= 0x46; id++) {
+    object_to_routine_map_[id] = 22; // Edge variant (RightwardsHasEdge1x1_1to16_plus2)
+  }
+  // 0x47-0x48 Waterfalls - map to 1x1 for now or custom if implemented
+  object_to_routine_map_[0x47] = 25; 
+  object_to_routine_map_[0x48] = 25;
+  // 0x49-0x4A Floor Tile 4x2
+  object_to_routine_map_[0x49] = 1; // 2x4 (close enough)
+  object_to_routine_map_[0x4A] = 1;
+  // 0x4B Decor 2x2 spaced 12
+  object_to_routine_map_[0x4B] = 32;
+  // 0x4C Bar 4x3
+  object_to_routine_map_[0x4C] = 30; // Decor 4x3
+  // 0x4D-0x4F Shelf 4x4
+  object_to_routine_map_[0x4D] = 16; // 4x4
+  object_to_routine_map_[0x4E] = 16;
+  object_to_routine_map_[0x4F] = 16;
+
+  // Subtype 1 Object Mappings (Vertical 0x60-0x6F)
   object_to_routine_map_[0x60] = 7;
   for (int id = 0x61; id <= 0x62; id++) {
     object_to_routine_map_[id] = 8;
@@ -169,52 +229,130 @@ void ObjectDrawer::InitializeDrawRoutines() {
   object_to_routine_map_[0x6C] = 14;
   object_to_routine_map_[0x6D] = 15;
 
-  // Subtype 2 Object Mappings
-  for (int id = 0x100; id <= 0x10F; id++) {
+  // Subtype 2 Object Mappings (0x100-0x1FF)
+  for (int id = 0x100; id <= 0x107; id++) {
+    object_to_routine_map_[id] = 16; // 4x4
+  }
+  for (int id = 0x108; id <= 0x10F; id++) {
+    object_to_routine_map_[id] = 35; // 4x4 Corner BothBG
+  }
+  for (int id = 0x110; id <= 0x113; id++) {
+    object_to_routine_map_[id] = 36; // Weird Corner Bottom
+  }
+  for (int id = 0x114; id <= 0x117; id++) {
+    object_to_routine_map_[id] = 37; // Weird Corner Top
+  }
+  // 0x118-0x11B Rightwards 2x2
+  for (int id = 0x118; id <= 0x11B; id++) {
+    object_to_routine_map_[id] = 4; // Rightwards 2x2
+  }
+  // 0x11C 4x4
+  object_to_routine_map_[0x11C] = 16;
+  // 0x11D Single 2x3 Pillar -> Map to 2x3 Statue (28)
+  object_to_routine_map_[0x11D] = 28;
+  // 0x11E Single 2x2 -> Map to 2x2 (4)
+  object_to_routine_map_[0x11E] = 4;
+  // 0x11F Star Switch -> Map to 1x1 (25)
+  object_to_routine_map_[0x11F] = 25;
+  // 0x120 Torch -> Map to 1x1 (25)
+  object_to_routine_map_[0x120] = 25;
+  // 0x121 Single 2x3 Pillar -> Map to 2x3 Statue (28)
+  object_to_routine_map_[0x121] = 28;
+  // 0x122 Bed 4x5 -> Map to 4x4 (16)
+  object_to_routine_map_[0x122] = 16;
+  // 0x123 Table 4x3 -> Map to 4x3 (30)
+  object_to_routine_map_[0x123] = 30;
+  // 0x124-0x125 4x4
+  object_to_routine_map_[0x124] = 16;
+  object_to_routine_map_[0x125] = 16;
+  // 0x126 Single 2x3 -> Map to 2x3 (28)
+  object_to_routine_map_[0x126] = 28;
+  // 0x127 Rightwards 2x2 -> Map to 2x2 (4)
+  object_to_routine_map_[0x127] = 4;
+  // 0x128 Bed 4x5 -> Map to 4x4 (16)
+  object_to_routine_map_[0x128] = 16;
+  // 0x129 4x4
+  object_to_routine_map_[0x129] = 16;
+  // 0x12A Mario -> Map to 2x2 (4)
+  object_to_routine_map_[0x12A] = 4;
+  // 0x12B Rightwards 2x2 -> Map to 2x2 (4)
+  object_to_routine_map_[0x12B] = 4;
+  // 0x12C 3x6 -> Map to 4x4 (16)
+  object_to_routine_map_[0x12C] = 16;
+  // 0x12D-0x12F Stairs -> Map to 4x4 (16)
+  object_to_routine_map_[0x12D] = 16;
+  object_to_routine_map_[0x12E] = 16;
+  object_to_routine_map_[0x12F] = 16;
+  // 0x130-0x133 Stairs -> Map to 4x4 (16)
+  for (int id = 0x130; id <= 0x133; id++) {
     object_to_routine_map_[id] = 16;
   }
-
-  // Additional object mappings from logs
-  object_to_routine_map_[0x33] = 16;
-  object_to_routine_map_[0xC6] = 7;  // Vertical draw
-
-  // Diagonal walls - BothBG variants (based on ZScream patterns)
-  // Objects 0x0C-0x0D, 0x10-0x11, 0x14-0x15, 0x18-0x19, 0x1C-0x1D, 0x20
-  // map to acute diagonal BothBG
-  for (int id : {0x0C, 0x0D, 0x10, 0x11, 0x14, 0x15, 0x18, 0x19, 0x1C, 0x1D,
-                 0x20}) {
-    object_to_routine_map_[id] = 17;  // DrawDiagonalAcute_1to16_BothBG
+  // 0x134 Rightwards 2x2 -> Map to 2x2 (4)
+  object_to_routine_map_[0x134] = 4;
+  // 0x135-0x136 Water Stairs -> Map to 4x4 (16)
+  object_to_routine_map_[0x135] = 16;
+  object_to_routine_map_[0x136] = 16;
+  // 0x137 Dam -> Map to 4x4 (16)
+  object_to_routine_map_[0x137] = 16;
+  // 0x138-0x13B Spiral Stairs -> Map to 4x4 (16)
+  for (int id = 0x138; id <= 0x13B; id++) {
+    object_to_routine_map_[id] = 16;
   }
-  // Objects 0x0E-0x0F, 0x12-0x13, 0x16-0x17, 0x1A-0x1B, 0x1E-0x1F
-  // map to grave diagonal BothBG
-  for (int id : {0x0E, 0x0F, 0x12, 0x13, 0x16, 0x17, 0x1A, 0x1B, 0x1E, 0x1F}) {
-    object_to_routine_map_[id] = 18;  // DrawDiagonalGrave_1to16_BothBG
+  // 0x13C Sanctuary Wall -> Map to 4x4 (16)
+  object_to_routine_map_[0x13C] = 16;
+  // 0x13D Table 4x3 -> Map to 4x3 (30)
+  object_to_routine_map_[0x13D] = 30;
+  // 0x13E Utility 6x3 -> Map to 4x3 (30)
+  object_to_routine_map_[0x13E] = 30;
+  // 0x13F Magic Bat Altar -> Map to 4x4 (16)
+  object_to_routine_map_[0x13F] = 16;
+
+  // Subtype 3 Object Mappings (0x200-0x2FF)
+  object_to_routine_map_[0x200] = 34; // Water Face
+  object_to_routine_map_[0x201] = 34;
+  object_to_routine_map_[0x202] = 34;
+  for (int id = 0x203; id <= 0x209; id++) {
+    object_to_routine_map_[id] = 33; // Somaria Line
   }
-
-  // Type 2 corner objects (4x4 grid)
-  for (int id = 0x40; id <= 0x4F; id++) {
-    object_to_routine_map_[id] = 19;  // DrawCorner4x4
+  for (int id = 0x20A; id <= 0x20C; id++) {
+    object_to_routine_map_[id] = 33;
   }
-
-  // Floor object mappings (Phase 4d)
-  // NOTE: Most floor objects (0x0C3-0x0CA, 0x0DF) have incorrect tile counts
-  // for the draw routines they would need. These are left unmapped for now
-  // until proper draw routines can be implemented based on ZScream analysis.
-  // Object 0x034 has 1 tile - uses solid fill with +3 offset
-  object_to_routine_map_[0x034] = 25;  // DrawRightwards1x1Solid_1to16_plus3
-
-  // Additional decorative object mappings (Phase 6)
-  object_to_routine_map_[0x21] = 20;  // Edge 1x2
-  object_to_routine_map_[0x22] = 20;  // Edge 1x2
-  object_to_routine_map_[0x23] = 21;  // Edge with perimeter
-  object_to_routine_map_[0x24] = 21;  // Edge with perimeter
-  object_to_routine_map_[0x25] = 22;  // Edge variant
-  object_to_routine_map_[0x26] = 22;  // Edge variant
-  object_to_routine_map_[0x27] = 23;  // Top corners
-  object_to_routine_map_[0x28] = 24;  // Bottom corners
+  object_to_routine_map_[0x20E] = 33;
+  object_to_routine_map_[0x20F] = 33;
+  for (int id = 0x210; id <= 0x213; id++) {
+    object_to_routine_map_[id] = 16; // 4x4
+  }
+  object_to_routine_map_[0x214] = 33; // Somaria Line
+  object_to_routine_map_[0x215] = 16;
+  object_to_routine_map_[0x216] = 16;
+  for (int id = 0x217; id <= 0x21A; id++) {
+    object_to_routine_map_[id] = 16;
+  }
+  for (int id = 0x21B; id <= 0x21D; id++) {
+    object_to_routine_map_[id] = 35; // 4x4 Corner BothBG
+  }
+  for (int id = 0x21E; id <= 0x221; id++) {
+    object_to_routine_map_[id] = 36; // Weird Corner Bottom
+  }
+  for (int id = 0x222; id <= 0x225; id++) {
+    object_to_routine_map_[id] = 37; // Weird Corner Top
+  }
+  for (int id = 0x226; id <= 0x229; id++) {
+    object_to_routine_map_[id] = 4; // Rightwards 2x2
+  }
+  object_to_routine_map_[0x22B] = 16;
+  object_to_routine_map_[0x22C] = 16;
+  object_to_routine_map_[0x22F] = 16;
+  object_to_routine_map_[0x230] = 16;
+  object_to_routine_map_[0x231] = 16;
+  object_to_routine_map_[0x232] = 16;
+  object_to_routine_map_[0x233] = 35; // 4x4 Corner BothBG
+  for (int id = 0x234; id <= 0x239; id++) {
+    object_to_routine_map_[id] = 34; // Water Face
+  }
 
   // Initialize draw routine function array in the correct order
-  draw_routines_.reserve(35);
+  draw_routines_.reserve(40);
 
   // Routine 0
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
@@ -415,11 +553,35 @@ void ObjectDrawer::InitializeDrawRoutines() {
                               std::span<const gfx::TileInfo> tiles) {
     self->DrawRightwardsDecor2x2spaced12_1to16(obj, bg, tiles);
   });
-  // Routine 33 - Custom draw (special cases)
+  // Routine 33 - Somaria Line
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
                               gfx::BackgroundBuffer& bg,
                               std::span<const gfx::TileInfo> tiles) {
-    self->CustomDraw(obj, bg, tiles);
+    self->DrawSomariaLine(obj, bg, tiles);
+  });
+  // Routine 34 - Water Face
+  draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
+                              gfx::BackgroundBuffer& bg,
+                              std::span<const gfx::TileInfo> tiles) {
+    self->DrawWaterFace(obj, bg, tiles);
+  });
+  // Routine 35 - 4x4 Corner BothBG
+  draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
+                              gfx::BackgroundBuffer& bg,
+                              std::span<const gfx::TileInfo> tiles) {
+    self->Draw4x4Corner_BothBG(obj, bg, tiles);
+  });
+  // Routine 36 - Weird Corner Bottom BothBG
+  draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
+                              gfx::BackgroundBuffer& bg,
+                              std::span<const gfx::TileInfo> tiles) {
+    self->DrawWeirdCornerBottom_BothBG(obj, bg, tiles);
+  });
+  // Routine 37 - Weird Corner Top BothBG
+  draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
+                              gfx::BackgroundBuffer& bg,
+                              std::span<const gfx::TileInfo> tiles) {
+    self->DrawWeirdCornerTop_BothBG(obj, bg, tiles);
   });
 
   routines_initialized_ = true;
@@ -1139,5 +1301,160 @@ void ObjectDrawer::DrawTileToBitmap(gfx::Bitmap& bitmap,
   }
 }
 
+// ============================================================================
+// Type 3 / Special Routine Implementations
+// ============================================================================
+
+void ObjectDrawer::DrawSomariaLine(const RoomObject& obj,
+                                   gfx::BackgroundBuffer& bg,
+                                   std::span<const gfx::TileInfo> tiles) {
+  // Pattern: Somaria Line (objects 0x203-0x209, etc.)
+  // Draws a line of tiles based on size/direction
+  // Simplified implementation: Draw 1x1 tiles along the path
+  // Real implementation involves complex state machine for path following
+  int size = obj.size_;
+  
+  // For now, draw a simple 2x2 block at the start position to indicate presence
+  if (tiles.size() >= 4) {
+      WriteTile8(bg, obj.x_, obj.y_, tiles[0]);
+      WriteTile8(bg, obj.x_ + 1, obj.y_, tiles[1]);
+      WriteTile8(bg, obj.x_, obj.y_ + 1, tiles[2]);
+      WriteTile8(bg, obj.x_ + 1, obj.y_ + 1, tiles[3]);
+  }
+}
+
+void ObjectDrawer::DrawWaterFace(const RoomObject& obj,
+                                 gfx::BackgroundBuffer& bg,
+                                 std::span<const gfx::TileInfo> tiles) {
+  // Pattern: Water Face (objects 0x200-0x202)
+  // Draws a 2x2 face
+  if (tiles.size() >= 4) {
+    WriteTile8(bg, obj.x_, obj.y_, tiles[0]);
+    WriteTile8(bg, obj.x_ + 1, obj.y_, tiles[1]);
+    WriteTile8(bg, obj.x_, obj.y_ + 1, tiles[2]);
+    WriteTile8(bg, obj.x_ + 1, obj.y_ + 1, tiles[3]);
+  }
+}
+
+void ObjectDrawer::Draw4x4Corner_BothBG(const RoomObject& obj,
+                                        gfx::BackgroundBuffer& bg,
+                                        std::span<const gfx::TileInfo> tiles) {
+  // Pattern: 4x4 Corner for Both BG (objects 0x108-0x10F)
+  // Simplified: Draw 4x4 to current BG
+  DrawCorner4x4(obj, bg, tiles);
+}
+
+void ObjectDrawer::DrawWeirdCornerBottom_BothBG(
+    const RoomObject& obj, gfx::BackgroundBuffer& bg,
+    std::span<const gfx::TileInfo> tiles) {
+  // Pattern: Weird Corner Bottom (objects 0x110-0x113)
+  // Simplified: Draw 4x4 to current BG
+  DrawCorner4x4(obj, bg, tiles);
+}
+
+void ObjectDrawer::DrawWeirdCornerTop_BothBG(
+    const RoomObject& obj, gfx::BackgroundBuffer& bg,
+    std::span<const gfx::TileInfo> tiles) {
+  // Pattern: Weird Corner Top (objects 0x114-0x117)
+  // Simplified: Draw 4x4 to current BG
+  DrawCorner4x4(obj, bg, tiles);
+}
+
+void ObjectDrawer::DrawLargeCanvasObject(const RoomObject& obj,
+                                         gfx::BackgroundBuffer& bg,
+                                         std::span<const gfx::TileInfo> tiles,
+                                         int width, int height) {
+  // Generic large object drawer
+  if (tiles.size() >= static_cast<size_t>(width * height)) {
+    for (int y = 0; y < height; ++y) {
+      for (int x = 0; x < width; ++x) {
+        WriteTile8(bg, obj.x_ + x, obj.y_ + y, tiles[y * width + x]);
+      }
+    }
+  }
+}
+
 }  // namespace zelda3
 }  // namespace yaze
+
+std::pair<int, int> yaze::zelda3::ObjectDrawer::CalculateObjectDimensions(const RoomObject& object) {
+  if (!routines_initialized_) {
+    InitializeDrawRoutines();
+  }
+
+  // Default size 16x16 (2x2 tiles)
+  int width = 16;
+  int height = 16;
+
+  int routine_id = GetDrawRoutineId(object.id_);
+  int size = object.size_;
+
+  // Based on routine ID, calculate dimensions
+  // This logic must match the draw routines
+  switch (routine_id) {
+    case 0: // DrawRightwards2x2_1to15or32
+    case 4: // DrawRightwards2x2_1to16
+    case 7: // DrawDownwards2x2_1to15or32
+    case 11: // DrawDownwards2x2_1to16
+      // 2x2 tiles repeated
+      if (routine_id == 0 || routine_id == 7) {
+        if (size == 0) size = 32;
+      } else {
+        size = size & 0x0F;
+        if (size == 0) size = 16; // 0 usually means 16 for 1to16 routines
+      }
+      
+      if (routine_id == 0 || routine_id == 4) {
+        // Rightwards: size * 2 tiles width, 2 tiles height
+        width = size * 16;
+        height = 16;
+      } else {
+        // Downwards: 2 tiles width, size * 2 tiles height
+        width = 16;
+        height = size * 16;
+      }
+      break;
+
+    case 5: // DrawDiagonalAcute_1to16
+    case 6: // DrawDiagonalGrave_1to16
+    case 17: // DrawDiagonalAcute_1to16_BothBG
+    case 18: // DrawDiagonalGrave_1to16_BothBG
+      // Diagonal patterns (Walls 0x10-0x1F map here)
+      // Logic: iterates s from 0 to size + 6
+      // Each step advances X by 1 tile.
+      // Y changes by 1 tile per step (up or down).
+      // Total width/height approx (size + 6) * 8
+      size = size & 0x0F;
+      width = (size + 6) * 8;
+      height = (size + 6) * 8;
+      break;
+      
+    case 16: // DrawRightwards4x4_1to16 (Routine 16)
+    case 33: // Somaria Line (Routine 33) - approximated as 4x4 for now
+    case 35: // 4x4 Corner BothBG
+      // 4x4 tiles (32x32 pixels)
+      width = 32;
+      height = 32;
+      break;
+
+    case 25: // Solid 1x1
+    case 20: // Edge 1x2
+    case 21: // Edge 1x1
+    case 22: // Edge 1x1
+      // 1x1 or 1x2
+      width = 8;
+      height = 8;
+      if (routine_id == 20) height = 16;
+      break;
+      
+    // Add more cases as needed for accuracy
+    default:
+      // Fallback to naive calculation if not handled
+      // Try to match old DungeonCanvasViewer logic for unhandled cases
+      width = 8 + (object.size_ & 0x0F) * 4;
+      height = 8 + ((object.size_ >> 4) & 0x0F) * 4;
+      break;
+  }
+
+  return {width, height};
+}

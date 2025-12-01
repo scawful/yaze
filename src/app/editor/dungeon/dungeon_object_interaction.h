@@ -10,7 +10,10 @@
 #include "imgui/imgui.h"
 #include "zelda3/dungeon/dungeon_editor_system.h"
 #include "zelda3/dungeon/room.h"
+#include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_object.h"
+#include "zelda3/dungeon/object_drawer.h"
+#include "app/rom.h"
 
 namespace yaze {
 namespace editor {
@@ -26,6 +29,8 @@ namespace editor {
 class DungeonObjectInteraction {
  public:
   explicit DungeonObjectInteraction(gui::Canvas* canvas) : canvas_(canvas) {}
+  
+  void SetRom(Rom* rom) { rom_ = rom; }
 
   // Main interaction handling
   void HandleCanvasMouseInput();
@@ -111,6 +116,11 @@ class DungeonObjectInteraction {
   zelda3::DungeonEditorSystem* editor_system_ = nullptr;
   std::array<zelda3::Room, 0x128>* rooms_ = nullptr;
   int current_room_id_ = 0;
+  Rom* rom_ = nullptr;
+  std::unique_ptr<zelda3::ObjectDrawer> object_drawer_;
+
+  // Helper to calculate object bounds
+  std::pair<int, int> CalculateObjectBounds(const zelda3::RoomObject& object);
 
   // Preview object state
   zelda3::RoomObject preview_object_{0, 0, 0, 0, 0};
