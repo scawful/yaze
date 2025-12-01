@@ -176,6 +176,16 @@ void ExecuteShortcuts(const ShortcutManager& shortcut_manager) {
   }
 }
 
+bool ShortcutManager::UpdateShortcutKeys(const std::string& name,
+                                         const std::vector<ImGuiKey>& keys) {
+  auto it = shortcuts_.find(name);
+  if (it == shortcuts_.end()) {
+    return false;
+  }
+  it->second.keys = keys;
+  return true;
+}
+
 }  // namespace editor
 }  // namespace yaze
 

@@ -37,14 +37,14 @@ namespace editor {
 UICoordinator::UICoordinator(
     EditorManager* editor_manager, RomFileManager& rom_manager,
     ProjectManager& project_manager, EditorRegistry& editor_registry,
-    EditorCardRegistry& card_registry, SessionCoordinator& session_coordinator,
+    PanelManager& panel_manager, SessionCoordinator& session_coordinator,
     WindowDelegate& window_delegate, ToastManager& toast_manager,
     PopupManager& popup_manager, ShortcutManager& shortcut_manager)
     : editor_manager_(editor_manager),
       rom_manager_(rom_manager),
       project_manager_(project_manager),
       editor_registry_(editor_registry),
-      card_registry_(card_registry),
+      panel_manager_(panel_manager),
       session_coordinator_(session_coordinator),
       window_delegate_(window_delegate),
       toast_manager_(toast_manager),
@@ -660,6 +660,21 @@ void UICoordinator::SetSessionSwitcherVisible(bool visible) {
   }
 }
 
+// Emulator visibility delegates to PanelManager (single source of truth)
+bool UICoordinator::IsEmulatorVisible() const {
+  size_t session_id = session_coordinator_.GetActiveSessionIndex();
+  return panel_manager_.IsPanelVisible(session_id, "emulator.cpu_debugger");
+}
+
+void UICoordinator::SetEmulatorVisible(bool visible) {
+  size_t session_id = session_coordinator_.GetActiveSessionIndex();
+  if (visible) {
+    panel_manager_.ShowPanel(session_id, "emulator.cpu_debugger");
+  } else {
+    panel_manager_.HidePanel(session_id, "emulator.cpu_debugger");
+  }
+}
+
 // ============================================================================
 // Layout and Window Management UI
 // ============================================================================
@@ -816,9 +831,10 @@ void UICoordinator::HideCurrentEditorCards() {
 
   std::string category =
       editor_registry_.GetEditorCategory(current_editor->type());
-  card_registry_.HideAllCardsInCategory(category);
+  size_t session_id = session_coordinator_.GetActiveSessionIndex();
+  panel_manager_.HideAllPanelsInCategory(session_id, category);
 
-  LOG_INFO("UICoordinator", "Hid all cards in category: %s", category.c_str());
+  LOG_INFO("UICoordinator", "Hid all panels in category: %s", category.c_str());
 }
 
 void UICoordinator::ShowAllWindows() {
@@ -1240,17 +1256,7 @@ void UICoordinator::DrawGlobalSearch() {
   }
 }
 
-// =============================================================================
-// Emulator Visibility (delegates to EditorCardRegistry - single source of truth)
-// =============================================================================
 
-bool UICoordinator::IsEmulatorVisible() const {
-  return card_registry_.IsEmulatorVisible();
-}
-
-void UICoordinator::SetEmulatorVisible(bool visible) {
-  card_registry_.SetEmulatorVisible(visible);
-}
 
 }  // namespace editor
 }  // namespace yaze

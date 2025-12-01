@@ -16,10 +16,10 @@
 namespace yaze {
 namespace editor {
 
-SessionCoordinator::SessionCoordinator(EditorCardRegistry* card_registry,
+SessionCoordinator::SessionCoordinator(PanelManager* panel_manager,
                                        ToastManager* toast_manager,
                                        UserSettings* user_settings)
-    : card_registry_(card_registry),
+    : panel_manager_(panel_manager),
       toast_manager_(toast_manager),
       user_settings_(user_settings) {}
 
@@ -102,8 +102,8 @@ void SessionCoordinator::CloseSession(size_t index) {
   }
 
   // Unregister cards for this session
-  if (card_registry_) {
-    card_registry_->UnregisterSession(index);
+  if (panel_manager_) {
+    panel_manager_->UnregisterSession(index);
   }
 
   // Remove session (safe now with unique_ptr!)
@@ -131,8 +131,8 @@ void SessionCoordinator::SwitchToSession(size_t index) {
 
   active_session_index_ = index;
 
-  if (card_registry_) {
-    card_registry_->SetActiveSession(index);
+  if (panel_manager_) {
+    panel_manager_->SetActiveSession(index); // Assuming new_session_id was a typo and meant index
   }
 }
 
@@ -510,27 +510,28 @@ void SessionCoordinator::UpdateSessionCount() {
   session_count_ = sessions_.size();
 }
 
-void SessionCoordinator::ShowAllCardsInActiveSession() {
-  if (card_registry_) {
-    card_registry_->ShowAllCardsInSession(active_session_index_);
+// Panel coordination across sessions
+void SessionCoordinator::ShowAllPanelsInActiveSession() {
+  if (panel_manager_) {
+    panel_manager_->ShowAllPanelsInSession(active_session_index_);
   }
 }
 
-void SessionCoordinator::HideAllCardsInActiveSession() {
-  if (card_registry_) {
-    card_registry_->HideAllCardsInSession(active_session_index_);
+void SessionCoordinator::HideAllPanelsInActiveSession() {
+  if (panel_manager_) {
+    panel_manager_->HideAllPanelsInSession(active_session_index_);
   }
 }
 
-void SessionCoordinator::ShowCardsInCategory(const std::string& category) {
-  if (card_registry_) {
-    card_registry_->ShowAllCardsInCategory(active_session_index_, category);
+void SessionCoordinator::ShowPanelsInCategory(const std::string& category) {
+  if (panel_manager_) {
+    panel_manager_->ShowAllPanelsInCategory(active_session_index_, category);
   }
 }
 
-void SessionCoordinator::HideCardsInCategory(const std::string& category) {
-  if (card_registry_) {
-    card_registry_->HideAllCardsInCategory(active_session_index_, category);
+void SessionCoordinator::HidePanelsInCategory(const std::string& category) {
+  if (panel_manager_) {
+    panel_manager_->HideAllPanelsInCategory(active_session_index_, category);
   }
 }
 
@@ -736,9 +737,9 @@ void SessionCoordinator::ClearAllSessions() {
     return;
 
   // Unregister all session cards
-  if (card_registry_) {
+  if (panel_manager_) {
     for (size_t i = 0; i < sessions_.size(); ++i) {
-      card_registry_->UnregisterSession(i);
+      panel_manager_->UnregisterSession(i);
     }
   }
 

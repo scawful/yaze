@@ -44,7 +44,7 @@ class UICoordinator {
   UICoordinator(EditorManager* editor_manager, RomFileManager& rom_manager,
                 ProjectManager& project_manager,
                 EditorRegistry& editor_registry,
-                EditorCardRegistry& card_registry,
+                PanelManager& card_registry,
                 SessionCoordinator& session_coordinator,
                 WindowDelegate& window_delegate, ToastManager& toast_manager,
                 PopupManager& popup_manager, ShortcutManager& shortcut_manager);
@@ -93,7 +93,9 @@ class UICoordinator {
   // Session switcher is now managed by SessionCoordinator
   void ShowSessionSwitcher();
   void HideCurrentEditorCards();
-  void ToggleCardSidebar() { show_card_sidebar_ = !show_card_sidebar_; }
+  void TogglePanelSidebar() { show_card_sidebar_ = !show_card_sidebar_; }
+  // Legacy alias during Card→Panel rename.
+  void ToggleCardSidebar() { TogglePanelSidebar(); }
   void ShowGlobalSearch() { show_global_search_ = true; }
   void ShowCommandPalette() { show_command_palette_ = true; }
   void ShowCardBrowser() { show_card_browser_ = true; }
@@ -125,10 +127,12 @@ class UICoordinator {
   }
   bool IsCardBrowserVisible() const { return show_card_browser_; }
   bool IsCommandPaletteVisible() const { return show_command_palette_; }
-  bool IsCardSidebarVisible() const { return show_card_sidebar_; }
+  bool IsPanelSidebarVisible() const { return show_card_sidebar_; }
+  // Legacy alias during Card→Panel rename.
+  bool IsCardSidebarVisible() const { return IsPanelSidebarVisible(); }
   bool IsImGuiDemoVisible() const { return show_imgui_demo_; }
   bool IsImGuiMetricsVisible() const { return show_imgui_metrics_; }
-  // Emulator visibility delegates to EditorCardRegistry (single source of truth)
+  // Emulator visibility delegates to PanelManager (single source of truth)
   bool IsEmulatorVisible() const;
   bool IsMemoryEditorVisible() const { return show_memory_editor_; }
   bool IsAsmEditorVisible() const { return show_asm_editor_; }
@@ -161,10 +165,12 @@ class UICoordinator {
   void SetCommandPaletteVisible(bool visible) {
     show_command_palette_ = visible;
   }
-  void SetCardSidebarVisible(bool visible) { show_card_sidebar_ = visible; }
+  void SetPanelSidebarVisible(bool visible) { show_card_sidebar_ = visible; }
+  // Legacy alias during Card→Panel rename.
+  void SetCardSidebarVisible(bool visible) { SetPanelSidebarVisible(visible); }
   void SetImGuiDemoVisible(bool visible) { show_imgui_demo_ = visible; }
   void SetImGuiMetricsVisible(bool visible) { show_imgui_metrics_ = visible; }
-  // Emulator visibility delegates to EditorCardRegistry (single source of truth)
+  // Emulator visibility delegates to PanelManager (single source of truth)
   void SetEmulatorVisible(bool visible);
   void SetMemoryEditorVisible(bool visible) { show_memory_editor_ = visible; }
   void SetAsmEditorVisible(bool visible) { show_asm_editor_ = visible; }
@@ -184,7 +190,7 @@ class UICoordinator {
   RomFileManager& rom_manager_;
   ProjectManager& project_manager_;
   EditorRegistry& editor_registry_;
-  EditorCardRegistry& card_registry_;
+  PanelManager& panel_manager_;
   SessionCoordinator& session_coordinator_;
   WindowDelegate& window_delegate_;
   ToastManager& toast_manager_;
@@ -204,7 +210,7 @@ class UICoordinator {
   bool show_test_dashboard_ = false;
   bool show_card_browser_ = false;
   bool show_command_palette_ = false;
-  // show_emulator_ removed - now managed by EditorCardRegistry
+  // show_emulator_ removed - now managed by PanelManager
   bool show_memory_editor_ = false;
   bool show_asm_editor_ = false;
   bool show_palette_editor_ = false;

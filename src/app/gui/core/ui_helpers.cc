@@ -573,5 +573,9 @@ bool IconCombo(const char* icon, const char* label, int* current,
   return ImGui::Combo(label, current, items, count);
 }
 
+std::string MakeCardTitle(const std::string& title) {
+  return title;
+}
+
 }  // namespace gui
 }  // namespace yaze

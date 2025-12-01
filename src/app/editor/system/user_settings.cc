@@ -122,10 +122,15 @@ absl::Status UserSettings::Load() {
       } else if (key == "log_proposals") {
         prefs_.log_proposals = (val == "1");
       }
-      // Card Shortcuts (format: card_shortcut.card_id=shortcut)
+      // Panel Shortcuts (format: panel_shortcut.panel_id=shortcut)
+      else if (key.substr(0, 15) == "panel_shortcut.") {
+        std::string panel_id = key.substr(15);
+        prefs_.panel_shortcuts[panel_id] = val;
+      }
+      // Backward compatibility for card_shortcut
       else if (key.substr(0, 14) == "card_shortcut.") {
-        std::string card_id = key.substr(14);
-        prefs_.card_shortcuts[card_id] = val;
+        std::string panel_id = key.substr(14);
+        prefs_.panel_shortcuts[panel_id] = val;
       }
       // Sidebar State
       else if (key == "sidebar_visible") {
@@ -192,9 +197,9 @@ absl::Status UserSettings::Save() {
     ss << "log_gui_automation=" << (prefs_.log_gui_automation ? 1 : 0) << "\n";
     ss << "log_proposals=" << (prefs_.log_proposals ? 1 : 0) << "\n";
 
-    // Card Shortcuts
-    for (const auto& [card_id, shortcut] : prefs_.card_shortcuts) {
-      ss << "card_shortcut." << card_id << "=" << shortcut << "\n";
+    // Panel Shortcuts
+    for (const auto& [panel_id, shortcut] : prefs_.panel_shortcuts) {
+      ss << "panel_shortcut." << panel_id << "=" << shortcut << "\n";
     }
 
     // Sidebar State

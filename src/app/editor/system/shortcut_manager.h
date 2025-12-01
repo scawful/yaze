@@ -17,7 +17,13 @@ namespace yaze {
 namespace editor {
 
 struct Shortcut {
+  enum class Scope {
+    kGlobal,
+    kEditor,
+    kPanel
+  };
   std::string name;
+  Scope scope = Scope::kGlobal;
   std::vector<ImGuiKey> keys;
   std::function<void()> callback;
 };
@@ -29,18 +35,21 @@ std::string PrintShortcut(const std::vector<ImGuiKey>& keys);
 class ShortcutManager {
  public:
   void RegisterShortcut(const std::string& name,
-                        const std::vector<ImGuiKey>& keys) {
-    shortcuts_[name] = {name, keys};
+                        const std::vector<ImGuiKey>& keys,
+                        Shortcut::Scope scope = Shortcut::Scope::kGlobal) {
+    shortcuts_[name] = {name, scope, keys};
   }
   void RegisterShortcut(const std::string& name,
                         const std::vector<ImGuiKey>& keys,
-                        std::function<void()> callback) {
-    shortcuts_[name] = {name, keys, callback};
+                        std::function<void()> callback,
+                        Shortcut::Scope scope = Shortcut::Scope::kGlobal) {
+    shortcuts_[name] = {name, scope, keys, callback};
   }
 
   void RegisterShortcut(const std::string& name, ImGuiKey key,
-                        std::function<void()> callback) {
-    shortcuts_[name] = {name, {key}, callback};
+                        std::function<void()> callback,
+                        Shortcut::Scope scope = Shortcut::Scope::kGlobal) {
+    shortcuts_[name] = {name, scope, {key}, callback};
   }
 
   /**
@@ -50,8 +59,9 @@ class ShortcutManager {
    * Useful for layout presets and other infrequently used commands.
    */
   void RegisterCommand(const std::string& name,
-                       std::function<void()> callback) {
-    shortcuts_[name] = {name, {}, callback};  // Empty key vector
+                       std::function<void()> callback,
+                       Shortcut::Scope scope = Shortcut::Scope::kGlobal) {
+    shortcuts_[name] = {name, scope, {}, callback};  // Empty key vector
   }
 
   void ExecuteShortcut(const std::string& name) const {
@@ -73,6 +83,16 @@ class ShortcutManager {
   }
 
   auto GetShortcuts() const { return shortcuts_; }
+  bool UpdateShortcutKeys(const std::string& name,
+                          const std::vector<ImGuiKey>& keys);
+  std::vector<Shortcut> GetShortcutsByScope(Shortcut::Scope scope) const {
+    std::vector<Shortcut> result;
+    result.reserve(shortcuts_.size());
+    for (const auto& [_, sc] : shortcuts_) {
+      if (sc.scope == scope) result.push_back(sc);
+    }
+    return result;
+  }
 
   // Convenience methods for registering common shortcuts
   void RegisterStandardShortcuts(std::function<void()> save_callback,

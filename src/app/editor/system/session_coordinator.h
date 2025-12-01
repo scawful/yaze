@@ -7,8 +7,9 @@
 #include <memory>
 
 #include "absl/status/status.h"
-#include "app/editor/session_types.h"
+#include "app/editor/system/panel_manager.h"
 #include "app/editor/ui/toast_manager.h"
+#include "app/editor/session_types.h"
 #include "app/rom.h"
 #include "imgui/imgui.h"
 
@@ -18,7 +19,7 @@ class Rom;
 namespace editor {
 class EditorManager;
 class EditorSet;
-class EditorCardRegistry;
+class PanelManager;
 }  // namespace editor
 }  // namespace yaze
 
@@ -42,7 +43,7 @@ class ToastManager;
  */
 class SessionCoordinator {
  public:
-  explicit SessionCoordinator(EditorCardRegistry* card_registry,
+  explicit SessionCoordinator(PanelManager* panel_manager,
                               ToastManager* toast_manager,
                               UserSettings* user_settings);
   ~SessionCoordinator() = default;
@@ -88,11 +89,11 @@ class SessionCoordinator {
   void SetActiveSessionIndex(size_t index);
   void UpdateSessionCount();
 
-  // Card coordination across sessions
-  void ShowAllCardsInActiveSession();
-  void HideAllCardsInActiveSession();
-  void ShowCardsInCategory(const std::string& category);
-  void HideCardsInCategory(const std::string& category);
+  // Panel coordination across sessions
+  void ShowAllPanelsInActiveSession();
+  void HideAllPanelsInActiveSession();
+  void ShowPanelsInCategory(const std::string& category);
+  void HidePanelsInCategory(const std::string& category);
 
   // Session validation
   bool IsValidSessionIndex(size_t index) const;
@@ -160,7 +161,7 @@ class SessionCoordinator {
   // Core dependencies
   EditorManager* editor_manager_ = nullptr;
   std::vector<std::unique_ptr<RomSession>> sessions_;
-  EditorCardRegistry* card_registry_;
+  PanelManager* panel_manager_;
   ToastManager* toast_manager_;
   UserSettings* user_settings_;
 

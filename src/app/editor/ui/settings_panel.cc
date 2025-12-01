@@ -7,7 +7,8 @@
 #include <set>
 #include <vector>
 
-#include "app/editor/system/editor_card_registry.h"
+#include "app/editor/system/panel_manager.h"
+#include "app/editor/system/shortcut_manager.h"
 #include "app/gui/app/feature_flags_menu.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/style.h"
@@ -321,24 +322,135 @@ void SettingsPanel::DrawAIAgentSettings() {
 }
 
 void SettingsPanel::DrawKeyboardShortcuts() {
-  if (ImGui::TreeNodeEx(ICON_MD_KEYBOARD " Card Shortcuts", ImGuiTreeNodeFlags_DefaultOpen)) {
-    DrawCardShortcuts();
+  if (ImGui::TreeNodeEx(ICON_MD_KEYBOARD " Shortcuts", ImGuiTreeNodeFlags_DefaultOpen)) {
+    if (ImGui::TreeNode("Global Shortcuts")) {
+      DrawGlobalShortcuts();
+      ImGui::TreePop();
+    }
+    if (ImGui::TreeNode("Editor Shortcuts")) {
+      DrawEditorShortcuts();
+      ImGui::TreePop();
+    }
+    if (ImGui::TreeNode("Panel Shortcuts")) {
+      DrawPanelShortcuts();
+      ImGui::TreePop();
+    }
     ImGui::TreePop();
   }
 }
 
-void SettingsPanel::DrawCardShortcuts() {
-  if (!card_registry_ || !user_settings_) {
+void SettingsPanel::DrawGlobalShortcuts() {
+  if (!shortcut_manager_ || !user_settings_) {
+    ImGui::TextDisabled("Not available");
+    return;
+  }
+
+  auto shortcuts = shortcut_manager_->GetShortcutsByScope(Shortcut::Scope::kGlobal);
+  if (shortcuts.empty()) {
+    ImGui::TextDisabled("No global shortcuts registered.");
+    return;
+  }
+
+  static std::unordered_map<std::string, std::string> editing;
+
+  for (const auto& sc : shortcuts) {
+    auto it = editing.find(sc.name);
+    if (it == editing.end()) {
+      std::string current = PrintShortcut(sc.keys);
+      // Use user override if present
+      auto u = user_settings_->prefs().global_shortcuts.find(sc.name);
+      if (u != user_settings_->prefs().global_shortcuts.end()) {
+        current = u->second;
+      }
+      editing[sc.name] = current;
+    }
+
+    ImGui::PushID(sc.name.c_str());
+    ImGui::Text("%s", sc.name.c_str());
+    ImGui::SameLine();
+    ImGui::SetNextItemWidth(180);
+    std::string& value = editing[sc.name];
+    if (ImGui::InputText("##global", &value,
+                         ImGuiInputTextFlags_EnterReturnsTrue |
+                             ImGuiInputTextFlags_AutoSelectAll)) {
+      auto parsed = ParseShortcut(value);
+      if (!parsed.empty() || value.empty()) {
+        // Empty string clears the shortcut
+        shortcut_manager_->UpdateShortcutKeys(sc.name, parsed);
+        if (value.empty()) {
+          user_settings_->prefs().global_shortcuts.erase(sc.name);
+        } else {
+          user_settings_->prefs().global_shortcuts[sc.name] = value;
+        }
+        user_settings_->Save();
+      }
+    }
+    ImGui::PopID();
+  }
+}
+
+void SettingsPanel::DrawEditorShortcuts() {
+  if (!shortcut_manager_ || !user_settings_) {
+    ImGui::TextDisabled("Not available");
+    return;
+  }
+
+  auto shortcuts = shortcut_manager_->GetShortcutsByScope(Shortcut::Scope::kEditor);
+  std::map<std::string, std::vector<Shortcut>> grouped;
+  static std::unordered_map<std::string, std::string> editing;
+  
+  for (const auto& sc : shortcuts) {
+    auto pos = sc.name.find(".");
+    std::string group = pos != std::string::npos ? sc.name.substr(0, pos) : "general";
+    grouped[group].push_back(sc);
+  }
+  for (const auto& [group, list] : grouped) {
+    if (ImGui::TreeNode(group.c_str())) {
+      for (const auto& sc : list) {
+        ImGui::PushID(sc.name.c_str());
+        ImGui::Text("%s", sc.name.c_str());
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(180);
+        std::string& value = editing[sc.name];
+        if (value.empty()) {
+          value = PrintShortcut(sc.keys);
+          // Apply user override if present
+          auto u = user_settings_->prefs().editor_shortcuts.find(sc.name);
+          if (u != user_settings_->prefs().editor_shortcuts.end()) {
+            value = u->second;
+          }
+        }
+        if (ImGui::InputText("##editor", &value, ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_AutoSelectAll)) {
+          auto parsed = ParseShortcut(value);
+          if (!parsed.empty() || value.empty()) {
+            shortcut_manager_->UpdateShortcutKeys(sc.name, parsed);
+            if (value.empty()) {
+              user_settings_->prefs().editor_shortcuts.erase(sc.name);
+            } else {
+              user_settings_->prefs().editor_shortcuts[sc.name] = value;
+            }
+            user_settings_->Save();
+          }
+        }
+        ImGui::PopID();
+      }
+      ImGui::TreePop();
+    }
+  }
+}
+
+void SettingsPanel::DrawPanelShortcuts() {
+  if (!panel_manager_ || !user_settings_) {
     ImGui::TextDisabled("Registry not available");
     return;
   }
 
   // Simplified shortcut editor for sidebar
-  auto categories = card_registry_->GetAllCategories();
+  auto categories = panel_manager_->GetAllCategories();
 
   for (const auto& category : categories) {
     if (ImGui::TreeNode(category.c_str())) {
-      auto cards = card_registry_->GetCardsInCategory(0, category);
+      auto cards = panel_manager_->GetPanelsInCategory(0, category);
 
       for (const auto& card : cards) {
         ImGui::PushID(card.card_id.c_str());
@@ -346,8 +458,8 @@ void SettingsPanel::DrawCardShortcuts() {
         ImGui::Text("%s %s", card.icon.c_str(), card.display_name.c_str());
         
         std::string current_shortcut;
-        auto it = user_settings_->prefs().card_shortcuts.find(card.card_id);
-        if (it != user_settings_->prefs().card_shortcuts.end()) {
+        auto it = user_settings_->prefs().panel_shortcuts.find(card.card_id);
+        if (it != user_settings_->prefs().panel_shortcuts.end()) {
           current_shortcut = it->second;
         } else if (!card.shortcut_hint.empty()) {
           current_shortcut = card.shortcut_hint;
@@ -362,9 +474,9 @@ void SettingsPanel::DrawCardShortcuts() {
                                  sizeof(shortcut_edit_buffer_), 
                                  ImGuiInputTextFlags_EnterReturnsTrue)) {
               if (strlen(shortcut_edit_buffer_) > 0) {
-                user_settings_->prefs().card_shortcuts[card.card_id] = shortcut_edit_buffer_;
+                user_settings_->prefs().panel_shortcuts[card.card_id] = shortcut_edit_buffer_;
               } else {
-                user_settings_->prefs().card_shortcuts.erase(card.card_id);
+                user_settings_->prefs().panel_shortcuts.erase(card.card_id);
               }
               user_settings_->Save();
               is_editing_shortcut_ = false;
