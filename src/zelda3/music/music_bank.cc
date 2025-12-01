@@ -1,12 +1,24 @@
 #include "zelda3/music/music_bank.h"
 
+#include "absl/status/status.h"
+#include "absl/status/statusor.h"
+
 #include <algorithm>
+#include <array>
+#include <cmath>
+#include <cstdint>
 #include <cstring>
+#include <exception>
+#include <string>
+#include <utility>
+#include <vector>
 
 #include "absl/strings/str_format.h"
-#include "zelda3/music/spc_parser.h"
-#include "util/macro.h"
+#include "app/rom.h"
 #include "nlohmann/json.hpp"
+#include "util/macro.h"
+#include "zelda3/music/song_data.h"
+#include "zelda3/music/spc_parser.h"
 
 namespace yaze {
 namespace zelda3 {
