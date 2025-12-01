@@ -8,7 +8,7 @@
 // Centralized UI theme
 #include "app/gui/style/theme.h"
 
-#include "app/editor/system/editor_card_registry.h"
+#include "app/editor/system/panel_manager.h"
 #include "app/gui/app/editor_layout.h"
 
 #include "absl/strings/match.h"
@@ -92,15 +92,38 @@ void AgentEditor::Initialize() {
   EnsureProfilesDirectory();
 
   // Register cards with the card registry
-  RegisterCards();
+  RegisterPanels();
+
+  // Register EditorPanel instances with PanelManager
+  if (dependencies_.panel_manager) {
+    auto* panel_manager = dependencies_.panel_manager;
+
+    // Register all agent EditorPanels with callbacks
+    panel_manager->RegisterEditorPanel(std::make_unique<AgentConfigurationPanel>(
+        [this]() { DrawConfigurationPanel(); }));
+    panel_manager->RegisterEditorPanel(std::make_unique<AgentStatusPanel>(
+        [this]() { DrawStatusPanel(); }));
+    panel_manager->RegisterEditorPanel(std::make_unique<AgentPromptEditorPanel>(
+        [this]() { DrawPromptEditorPanel(); }));
+    panel_manager->RegisterEditorPanel(std::make_unique<AgentBotProfilesPanel>(
+        [this]() { DrawBotProfilesPanel(); }));
+    panel_manager->RegisterEditorPanel(std::make_unique<AgentChatHistoryPanel>(
+        [this]() { DrawChatHistoryViewer(); }));
+    panel_manager->RegisterEditorPanel(std::make_unique<AgentMetricsDashboardPanel>(
+        [this]() { DrawAdvancedMetricsPanel(); }));
+    panel_manager->RegisterEditorPanel(std::make_unique<AgentBuilderPanel>(
+        [this]() { DrawAgentBuilderPanel(); }));
+    panel_manager->RegisterEditorPanel(
+        std::make_unique<AgentChatPanel>(chat_widget_.get()));
+  }
 }
 
-void AgentEditor::RegisterCards() {
-  if (!dependencies_.card_registry) return;
-  auto* card_registry = dependencies_.card_registry;
+void AgentEditor::RegisterPanels() {
+  if (!dependencies_.panel_manager) return;
+  auto* panel_manager = dependencies_.panel_manager;
 
   // Agent Configuration Card
-  card_registry->RegisterCard({
+  panel_manager->RegisterPanel({
       .card_id = MakeCardId("agent.configuration"),
       .display_name = "AI Configuration",
       .window_title = " AI Configuration",
@@ -108,10 +131,11 @@ void AgentEditor::RegisterCards() {
       .category = "Agent",
       .shortcut_hint = "",
       .visibility_flag = &show_config_card_,
-      .priority = 10});
+      .priority = 10,
+      .card_instance = nullptr});
 
   // Agent Status Card
-  card_registry->RegisterCard({
+  panel_manager->RegisterPanel({
       .card_id = MakeCardId("agent.status"),
       .display_name = "Agent Status",
       .window_title = " Agent Status",
@@ -119,10 +143,11 @@ void AgentEditor::RegisterCards() {
       .category = "Agent",
       .shortcut_hint = "",
       .visibility_flag = &show_status_card_,
-      .priority = 20});
+      .priority = 20,
+      .card_instance = nullptr});
 
   // System Prompt Editor Card
-  card_registry->RegisterCard({
+  panel_manager->RegisterPanel({
       .card_id = MakeCardId("agent.prompt_editor"),
       .display_name = "Prompt Editor",
       .window_title = " Prompt Editor",
@@ -130,10 +155,11 @@ void AgentEditor::RegisterCards() {
       .category = "Agent",
       .shortcut_hint = "",
       .visibility_flag = &show_prompt_editor_card_,
-      .priority = 30});
+      .priority = 30,
+      .card_instance = nullptr});
 
   // Bot Profiles Card
-  card_registry->RegisterCard({
+  panel_manager->RegisterPanel({
       .card_id = MakeCardId("agent.profiles"),
       .display_name = "Bot Profiles",
       .window_title = " Bot Profiles",
@@ -141,10 +167,11 @@ void AgentEditor::RegisterCards() {
       .category = "Agent",
       .shortcut_hint = "",
       .visibility_flag = &show_profiles_card_,
-      .priority = 40});
+      .priority = 40,
+      .card_instance = nullptr});
 
   // Chat History Card
-  card_registry->RegisterCard({
+  panel_manager->RegisterPanel({
       .card_id = MakeCardId("agent.history"),
       .display_name = "Chat History",
       .window_title = " Chat History",
@@ -155,7 +182,7 @@ void AgentEditor::RegisterCards() {
       .priority = 50});
 
   // Metrics Dashboard Card
-  card_registry->RegisterCard({
+  panel_manager->RegisterPanel({
       .card_id = MakeCardId("agent.metrics"),
       .display_name = "Metrics Dashboard",
       .window_title = " Metrics Dashboard",
@@ -166,7 +193,7 @@ void AgentEditor::RegisterCards() {
       .priority = 60});
 
   // Agent Builder Card
-  card_registry->RegisterCard({
+  panel_manager->RegisterPanel({
       .card_id = MakeCardId("agent.builder"),
       .display_name = "Agent Builder",
       .window_title = " Agent Builder",
@@ -177,7 +204,7 @@ void AgentEditor::RegisterCards() {
       .priority = 70});
 
   // Chat Window Card
-  card_registry->RegisterCard({
+  panel_manager->RegisterPanel({
       .card_id = MakeCardId("agent.chat"),
       .display_name = "Agent Chat",
       .window_title = " Agent Chat",
@@ -295,7 +322,7 @@ void AgentEditor::DrawDashboard() {
 
   // 1. AI Configuration Card (provider, model, API key settings)
   if (show_config_card_) {
-    gui::EditorCard config_card(MakeCardTitle("AI Configuration").c_str(),
+    gui::PanelWindow config_card(MakeCardTitle("AI Configuration").c_str(),
                                  ICON_MD_SETTINGS);
     config_card.SetDefaultSize(350, 500);
     if (config_card.Begin(&show_config_card_)) {
@@ -306,7 +333,7 @@ void AgentEditor::DrawDashboard() {
 
   // 2. Agent Status Card (chat status, ROM context, tips)
   if (show_status_card_) {
-    gui::EditorCard status_card(MakeCardTitle("Agent Status").c_str(),
+    gui::PanelWindow status_card(MakeCardTitle("Agent Status").c_str(),
                                  ICON_MD_INFO);
     status_card.SetDefaultSize(350, 400);
     if (status_card.Begin(&show_status_card_)) {
@@ -317,7 +344,7 @@ void AgentEditor::DrawDashboard() {
 
   // 3. System Prompt Editor Card
   if (show_prompt_editor_card_) {
-    gui::EditorCard prompt_card(MakeCardTitle("Prompt Editor").c_str(),
+    gui::PanelWindow prompt_card(MakeCardTitle("Prompt Editor").c_str(),
                                  ICON_MD_EDIT);
     prompt_card.SetDefaultSize(600, 500);
     if (prompt_card.Begin(&show_prompt_editor_card_)) {
@@ -328,7 +355,7 @@ void AgentEditor::DrawDashboard() {
 
   // 4. Bot Profiles Card
   if (show_profiles_card_) {
-    gui::EditorCard profiles_card(MakeCardTitle("Bot Profiles").c_str(),
+    gui::PanelWindow profiles_card(MakeCardTitle("Bot Profiles").c_str(),
                                    ICON_MD_FOLDER);
     profiles_card.SetDefaultSize(320, 500);
     if (profiles_card.Begin(&show_profiles_card_)) {
@@ -339,7 +366,7 @@ void AgentEditor::DrawDashboard() {
 
   // 5. Chat History Card
   if (show_history_card_) {
-    gui::EditorCard history_card(MakeCardTitle("Chat History").c_str(),
+    gui::PanelWindow history_card(MakeCardTitle("Chat History").c_str(),
                                   ICON_MD_HISTORY);
     history_card.SetDefaultSize(500, 400);
     if (history_card.Begin(&show_history_card_)) {
@@ -350,7 +377,7 @@ void AgentEditor::DrawDashboard() {
 
   // 6. Metrics Dashboard Card
   if (show_metrics_card_) {
-    gui::EditorCard metrics_card(MakeCardTitle("Metrics Dashboard").c_str(),
+    gui::PanelWindow metrics_card(MakeCardTitle("Metrics Dashboard").c_str(),
                                   ICON_MD_ANALYTICS);
     metrics_card.SetDefaultSize(500, 400);
     if (metrics_card.Begin(&show_metrics_card_)) {
@@ -361,7 +388,7 @@ void AgentEditor::DrawDashboard() {
 
   // 7. Agent Builder Card (wizard for creating custom agents)
   if (show_builder_card_) {
-    gui::EditorCard builder_card(MakeCardTitle("Agent Builder").c_str(),
+    gui::PanelWindow builder_card(MakeCardTitle("Agent Builder").c_str(),
                                   ICON_MD_AUTO_FIX_HIGH);
     builder_card.SetDefaultSize(800, 600);
     if (builder_card.Begin(&show_builder_card_)) {
@@ -372,8 +399,8 @@ void AgentEditor::DrawDashboard() {
 
   // 8. Agent Chat Card (the main chat interface)
   if (show_chat_card_) {
-    gui::EditorCard chat_card(MakeCardTitle("Agent Chat").c_str(),
-                               ICON_MD_CHAT, &show_chat_card_);
+   static gui::PanelWindow chat_card("Agent Chat", ICON_MD_CHAT);
+  chat_card.SetPosition(gui::PanelWindow::Position::Right);
     chat_card.SetDefaultSize(600, 700);
     if (chat_card.Begin(&show_chat_card_)) {
       if (chat_widget_) {
