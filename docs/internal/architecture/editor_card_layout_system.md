@@ -1,4 +1,8 @@
-# Editor Card and Layout System Architecture
+# Editor Panel (Card) and Layout System Architecture
+
+> Migration note: Phase 2 renames Card → Panel (`PanelWindow`, `PanelManager`,
+> `PanelDescriptor`). The concepts below still use legacy Card naming; apply the
+> new Panel terms when implementing changes.
 
 This document describes the yaze editor's card-based UI system, layout management, and how they integrate with the agent system.
 
@@ -178,7 +182,7 @@ void DrawValidationReport(bool* p_open);
 Each editor type has a defined set of default and optional cards:
 
 ```cpp
-struct CardLayoutPreset {
+struct PanelLayoutPreset {
   std::string name;                           // "Overworld Default"
   std::string description;                    // Human-readable
   EditorType editor_type;                     // EditorType::kOverworld

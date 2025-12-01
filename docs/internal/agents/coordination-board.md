@@ -3,6 +3,12 @@
 **STOP:** Before posting, verify your **Agent ID** in [personas.md](personas.md). Use only canonical IDs.
 **Guidelines:** Keep entries concise (<=5 lines). Archive completed work weekly. Target <=40 active entries.
 
+### 2025-11-30 CLAUDE_OPUS – Card→Panel Terminology Refactor (Continuation)
+- TASK: Complete remaining Card→Panel rename across codebase after multi-agent refactor
+- SCOPE: editor_manager.cc, layout_manager.cc, layout_orchestrator.cc/.h, popup_manager.cc, panel_manager.cc
+- STATUS: COMPLETE
+- NOTES: Fixed field renames (default_visible_cards→default_visible_panels, card_positions→panel_positions, optional_cards→optional_panels), method renames (GetDefaultCards→GetDefaultPanels, ShowPresetCards→ShowPresetPanels, GetVisibleCards→GetVisiblePanels, HideOptionalCards→HideOptionalPanels), and call sites. Build successful 510/510.
+
 ### 2025-11-29 imgui-frontend-engineer – Settings Panel Initialization Fix
 - TASK: Fix Settings panel failing to initialize (empty state) when creating new sessions or switching
 - SCOPE: src/app/editor/session_types.cc, src/app/editor/editor_manager.cc
@@ -32,6 +38,7 @@
 - SCOPE: music editor UI (piano roll/tracker), instrument loading, audio preview hooks
 - STATUS: IN_PROGRESS
 - NOTES: Removing shared global transport from piano roll; adding per-song/segment piano roll entry points and click-to-play previews.
+- UPDATE: imgui-frontend-engineer refactoring piano roll canvas sizing/scroll (custom draw, channel column cleanup) to fix stretching/cutoff when docked.
 
 ### 2025-11-27 snes-emulator-expert – Emulator render service & input persistence
 - TASK: Add shared render service for dungeon object preview and persist keyboard config/ImGui capture flag
