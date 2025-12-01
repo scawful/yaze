@@ -88,6 +88,8 @@ class PianoRollView {
   void DrawToolbar(const zelda3::music::MusicSong* song, const zelda3::music::MusicBank* bank);
   void DrawChannelList(const zelda3::music::MusicSong* song);
   void DrawStatusBar(const zelda3::music::MusicSong* song);
+  void DrawRollCanvas(zelda3::music::MusicSong* song, const RollPalette& palette,
+                      const ImVec2& canvas_size);
   
   // Drawing Helpers
   void DrawPianoKeys(ImDrawList* draw_list, const ImVec2& key_origin, float total_height, 
@@ -105,22 +107,12 @@ class PianoRollView {
 
   // Input Handling
   void HandleMouseInput(zelda3::music::MusicSong* song, int active_channel, int active_segment,
-                        const ImVec2& grid_origin, const ImVec2& grid_size);
-
-  struct RollCanvasContext {
-    ImVec2 canvas_pos = ImVec2(0, 0);
-    ImVec2 canvas_size = ImVec2(0, 0);
-    float scroll_x = 0.0f;
-    float scroll_y = 0.0f;
-  };
-
-  bool BeginRollCanvas(const char* id, RollCanvasContext* ctx);
-  void EndRollCanvas();
+                        const ImVec2& grid_origin, const ImVec2& grid_size, bool is_hovered);
 
   // Layout constants
   static constexpr float kToolbarHeight = 32.0f;
   static constexpr float kStatusBarHeight = 24.0f;
-  static constexpr float kChannelListWidth = 80.0f;
+  static constexpr float kChannelListWidth = 140.0f;
 
   // State
   int active_channel_index_ = 0;
@@ -129,8 +121,8 @@ class PianoRollView {
   float pixels_per_tick_ = 2.0f;
   float key_height_ = 12.0f;
   float key_width_ = 40.0f;
-  int scroll_x_ = 0;
-  int scroll_y_ = 0; // Scroll offset in keys (from top C-1)
+  float scroll_x_px_ = 0.0f;
+  float scroll_y_px_ = 0.0f;  // Scroll offsets in pixels
   bool snap_enabled_ = true;
   int snap_ticks_ = zelda3::music::kDurationSixteenth;
   bool follow_playback_ = false;

@@ -40,7 +40,7 @@ void MusicEditor::Initialize() {
   song_window_class_.DockNodeFlagsOverrideSet = ImGuiDockNodeFlags_None;
 
   music_player_ = std::make_unique<editor::music::MusicPlayer>(&music_bank_);
-  if (emulator_) music_player_->SetEmulator(emulator_);
+  // MusicPlayer now owns its own dedicated emulator for audio playback
   if (rom_) music_player_->SetRom(rom_);
 
   if (!dependencies_.card_registry)
@@ -139,9 +139,9 @@ absl::Status MusicEditor::Load() {
 }
 
 absl::Status MusicEditor::Update() {
-  // Run emulator frames when playing music (generates audio samples)
-  // NOTE: EditorManager::Update() calls emulator_.RunFrameOnly() or Run()
-  // so we don't need to call it here. Double-calling causes speedup issues.
+  // Update MusicPlayer - this runs the dedicated audio emulator's frame
+  // to generate audio samples. MusicPlayer has its own emulator instance
+  // separate from the main emulator, so no conflict with EditorManager.
   if (music_player_) music_player_->Update();
 
 #ifdef __EMSCRIPTEN__
@@ -1069,11 +1069,13 @@ void MusicEditor::DrawToolset() {
 
     // Master Oscilloscope (Column 0)
     ImGui::TableSetColumnIndex(0);
-    if (emulator_) {
-      auto& dsp = emulator_->snes().apu().dsp();
-      
+    // Use MusicPlayer's dedicated audio emulator for visualization
+    emu::Emulator* audio_emu = music_player_ ? music_player_->audio_emulator() : nullptr;
+    if (audio_emu && audio_emu->is_snes_initialized()) {
+      auto& dsp = audio_emu->snes().apu().dsp();
+
       ImGui::Text("Scope");
-      
+
       // Oscilloscope
       const int16_t* buffer = dsp.GetSampleBuffer();
       uint16_t offset = dsp.GetSampleOffset();
@@ -1092,9 +1094,9 @@ void MusicEditor::DrawToolset() {
     // Channel Strips (Columns 1-8)
     for (int i = 0; i < 8; i++) {
       ImGui::TableSetColumnIndex(i + 1);
-      
-      if (emulator_) {
-        auto& dsp = emulator_->snes().apu().dsp();
+
+      if (audio_emu && audio_emu->is_snes_initialized()) {
+        auto& dsp = audio_emu->snes().apu().dsp();
         const auto& ch = dsp.GetChannel(i);
         
         // Mute/Solo Buttons
@@ -1149,22 +1151,73 @@ void MusicEditor::DrawToolset() {
         ImGui::TextDisabled("Offline");
       }
     }
-    
+
     ImGui::EndTable();
+  }
+
+  // Audio Debug Settings (collapsed by default)
+  if (ImGui::CollapsingHeader(ICON_MD_BUG_REPORT " Audio Debug")) {
+    emu::Emulator* debug_emu = music_player_ ? music_player_->audio_emulator() : nullptr;
+    if (debug_emu && debug_emu->is_snes_initialized()) {
+      auto* audio_backend = debug_emu->audio_backend();
+      if (audio_backend) {
+        auto status = audio_backend->GetStatus();
+        auto config = audio_backend->GetConfig();
+
+        ImGui::Text("Audio Backend: %s", audio_backend->GetBackendName().c_str());
+        ImGui::Text("Device Rate: %d Hz", config.sample_rate);
+        ImGui::Text("Native Rate: 32040 Hz (SPC700)");
+        ImGui::Text("Channels: %d", config.channels);
+        ImGui::Text("Buffer Frames: %d", config.buffer_frames);
+
+        ImGui::Separator();
+        ImGui::Text("Status: %s", status.is_playing ? "Playing" : "Stopped");
+        ImGui::Text("Queued Frames: %u", status.queued_frames);
+        ImGui::Text("Queued Bytes: %u", status.queued_bytes);
+        if (status.has_underrun) {
+          ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f), "Underrun detected!");
+        }
+
+        ImGui::Separator();
+        ImGui::Text("Resampling: %s",
+                    audio_backend->SupportsAudioStream() ? "Enabled (32040->48000)" : "Disabled");
+
+        // Playback speed info
+        auto player_state = music_player_ ? music_player_->GetState() : editor::music::PlaybackState{};
+        ImGui::Text("Playback Speed: %.2fx", player_state.playback_speed);
+        ImGui::Text("Effective Rate: %.0f Hz", 32040.0f * player_state.playback_speed);
+      }
+    } else {
+      ImGui::TextDisabled("Audio emulator not initialized");
+      ImGui::TextDisabled("Play a song to initialize audio");
+    }
   }
 }
 
 void MusicEditor::DrawChannelOverview() {
-  if (!music_player_ || !music_player_->IsAudioReady()) {
-    ImGui::TextDisabled("Audio not ready");
+  if (!music_player_) {
+    ImGui::TextDisabled("Music player not initialized");
+    return;
+  }
+
+  // Check if audio emulator is initialized (created on first play)
+  auto* audio_emu = music_player_->audio_emulator();
+  if (!audio_emu || !audio_emu->is_snes_initialized()) {
+    ImGui::TextDisabled("Play a song to see channel activity");
+    return;
+  }
+
+  // Check available space to avoid ImGui table assertion
+  ImVec2 avail = ImGui::GetContentRegionAvail();
+  if (avail.y < 50.0f) {
+    ImGui::TextDisabled("(Channel view - expand for details)");
     return;
   }
 
   auto channel_states = music_player_->GetChannelStates();
 
   if (ImGui::BeginTable("ChannelOverview", 9,
-                        ImGuiTableFlags_Borders | ImGuiTableFlags_SizingStretchProp |
-                            ImGuiTableFlags_NoHostExtendY)) {
+                        ImGuiTableFlags_Borders | ImGuiTableFlags_SizingStretchProp)) {
     ImGui::TableSetupColumn("Master", ImGuiTableColumnFlags_WidthFixed, 70.0f);
     for (int i = 0; i < 8; i++) {
       ImGui::TableSetupColumn(absl::StrFormat("Ch %d", i + 1).c_str());
