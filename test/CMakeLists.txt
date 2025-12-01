@@ -101,6 +101,7 @@ if(YAZE_BUILD_TESTS)
     unit/gui/tile_selector_widget_test.cc
     unit/gui/canvas_automation_api_test.cc
     unit/editor/message/message_data_test.cc
+    unit/editor/panel_system_test.cc
     unit/zelda3/overworld_test.cc
     unit/zelda3/overworld_regression_test.cc
     unit/zelda3/overworld_version_helper_test.cc
