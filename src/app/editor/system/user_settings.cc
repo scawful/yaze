@@ -140,6 +140,10 @@ absl::Status UserSettings::Load() {
       } else if (key == "sidebar_active_category") {
         prefs_.sidebar_active_category = val;
       }
+      // Status Bar
+      else if (key == "show_status_bar") {
+        prefs_.show_status_bar = (val == "1");
+      }
     }
     ImGui::GetIO().FontGlobalScale = prefs_.font_global_scale;
   } catch (const std::exception& e) {
@@ -206,6 +210,9 @@ absl::Status UserSettings::Save() {
     ss << "sidebar_visible=" << (prefs_.sidebar_visible ? 1 : 0) << "\n";
     ss << "sidebar_panel_expanded=" << (prefs_.sidebar_panel_expanded ? 1 : 0) << "\n";
     ss << "sidebar_active_category=" << prefs_.sidebar_active_category << "\n";
+
+    // Status Bar
+    ss << "show_status_bar=" << (prefs_.show_status_bar ? 1 : 0) << "\n";
 
     util::SaveFile(settings_file_path_, ss.str());
   } catch (const std::exception& e) {

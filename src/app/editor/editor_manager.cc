@@ -285,6 +285,8 @@ EditorManager::EditorManager()
   
   // Wire up card registry for Cards submenu in View menu
   menu_orchestrator_->SetPanelManager(&panel_manager_);
+  menu_orchestrator_->SetStatusBar(&status_bar_);
+  menu_orchestrator_->SetUserSettings(&user_settings_);
 
   session_coordinator_->SetEditorManager(this);
 
@@ -306,6 +308,18 @@ EditorManager::EditorManager()
 
   // STEP 4.7: Initialize ActivityBar
   activity_bar_ = std::make_unique<ActivityBar>(panel_manager_);
+
+  // Wire up PanelManager callbacks for ActivityBar buttons
+  panel_manager_.SetShowHelpCallback([this]() {
+    if (right_panel_manager_) {
+      right_panel_manager_->TogglePanel(RightPanelManager::PanelType::kHelp);
+    }
+  });
+  panel_manager_.SetShowSettingsCallback([this]() {
+    if (right_panel_manager_) {
+      right_panel_manager_->TogglePanel(RightPanelManager::PanelType::kSettings);
+    }
+  });
 
   // STEP 4.8: Initialize DashboardPanel
   dashboard_panel_ = std::make_unique<DashboardPanel>(this);
@@ -1014,6 +1028,14 @@ absl::Status EditorManager::Update() {
     right_panel_manager_->Draw();
   }
 
+  // Update and draw status bar
+  status_bar_.SetRom(GetCurrentRom());
+  if (session_coordinator_) {
+    status_bar_.SetSessionInfo(GetCurrentSessionId(),
+                               session_coordinator_->GetActiveSessionCount());
+  }
+  status_bar_.Draw();
+
   // Autosave timer
   if (user_settings_.prefs().autosave_enabled && current_rom &&
       current_rom->dirty()) {
@@ -1451,6 +1473,14 @@ absl::Status EditorManager::LoadAssets(uint64_t passed_handle) {
   if (right_panel_manager_) {
     right_panel_manager_->SetSettingsPanel(current_editor_set->GetSettingsPanel());
   }
+
+  // Set up StatusBar reference on settings panel for live toggling
+  if (auto* settings = current_editor_set->GetSettingsPanel()) {
+    settings->SetStatusBar(&status_bar_);
+  }
+
+  // Apply user preferences to status bar
+  status_bar_.SetEnabled(user_settings_.prefs().show_status_bar);
 
   gfx::PerformanceProfiler::Get().PrintSummary();
 
@@ -1919,6 +1949,10 @@ void EditorManager::SwitchToSession(size_t index) {
     auto* editor_set = GetCurrentEditorSet();
     if (editor_set) {
       right_panel_manager_->SetSettingsPanel(editor_set->GetSettingsPanel());
+      // Set up StatusBar reference for live toggling
+      if (auto* settings = editor_set->GetSettingsPanel()) {
+        settings->SetStatusBar(&status_bar_);
+      }
     }
   }
 

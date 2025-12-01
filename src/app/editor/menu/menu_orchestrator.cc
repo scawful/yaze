@@ -206,16 +206,33 @@ void MenuOrchestrator::AddViewMenuItems() {
           "Ctrl+Shift+A")
       .Item(
           "Agent Sidebar", ICON_MD_CHAT, [this]() { OnShowChatHistory(); },
-          "Ctrl+H")
-      .Item(
-          "Proposal Drawer", ICON_MD_PREVIEW,
-          [this]() { OnShowProposalDrawer(); }, "Ctrl+Shift+R");
+          "Ctrl+H");
 #endif
 
   menu_builder_
       .Item(
           "Emulator", ICON_MD_VIDEOGAME_ASSET, [this]() { OnShowEmulator(); },
           "Ctrl+Shift+E", [this]() { return HasActiveRom(); })
+      .Separator();
+
+  // UI Layout - Using Item with checked callback for toggle behavior
+  menu_builder_
+      .Item("Show Sidebar", ICON_MD_VIEW_SIDEBAR,
+            [this]() { if (panel_manager_) panel_manager_->ToggleSidebarVisibility(); },
+            nullptr, nullptr,
+            [this]() { return panel_manager_ && panel_manager_->IsSidebarVisible(); })
+      .Item("Show Status Bar", ICON_MD_HORIZONTAL_RULE,
+            [this]() {
+              if (user_settings_) {
+                user_settings_->prefs().show_status_bar = !user_settings_->prefs().show_status_bar;
+                user_settings_->Save();
+                if (status_bar_) {
+                  status_bar_->SetEnabled(user_settings_->prefs().show_status_bar);
+                }
+              }
+            },
+            nullptr, nullptr,
+            [this]() { return user_settings_ && user_settings_->prefs().show_status_bar; })
       .Separator();
 
   // Settings and UI

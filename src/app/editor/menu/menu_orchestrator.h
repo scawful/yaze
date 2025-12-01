@@ -6,8 +6,10 @@
 
 #include "absl/status/status.h"
 #include "app/editor/editor.h"
-#include "app/editor/system/session_coordinator.h"
 #include "app/editor/menu/menu_builder.h"
+#include "app/editor/menu/status_bar.h"
+#include "app/editor/system/session_coordinator.h"
+#include "app/editor/system/user_settings.h"
 
 namespace yaze {
 namespace editor {
@@ -49,6 +51,8 @@ class MenuOrchestrator {
 
   // Set optional dependencies for advanced features
   void SetPanelManager(PanelManager* manager) { panel_manager_ = manager; }
+  void SetStatusBar(StatusBar* bar) { status_bar_ = bar; }
+  void SetUserSettings(UserSettings* settings) { user_settings_ = settings; }
 
   // Non-copyable due to reference members
   MenuOrchestrator(const MenuOrchestrator&) = delete;
@@ -190,6 +194,8 @@ class MenuOrchestrator {
 
   // Optional dependencies for advanced features
   PanelManager* panel_manager_ = nullptr;
+  StatusBar* status_bar_ = nullptr;
+  UserSettings* user_settings_ = nullptr;
 
   // Menu state
   bool menu_needs_refresh_ = false;

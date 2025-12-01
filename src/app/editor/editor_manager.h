@@ -18,6 +18,7 @@
 #include "app/editor/menu/menu_builder.h"
 #include "app/editor/menu/menu_orchestrator.h"
 #include "app/editor/menu/right_panel_manager.h"
+#include "app/editor/menu/status_bar.h"
 #include "app/editor/session_types.h"
 #include "app/editor/system/panel_manager.h"
 #include "app/editor/system/editor_registry.h"
@@ -101,6 +102,7 @@ class EditorManager {
   MenuBuilder& menu_builder() { return menu_builder_; }
   WorkspaceManager* workspace_manager() { return &workspace_manager_; }
   RightPanelManager* right_panel_manager() { return right_panel_manager_.get(); }
+  StatusBar* status_bar() { return &status_bar_; }
   PanelManager* GetPanelManager() { return &panel_manager_; }
   PanelManager& panel_manager() { return panel_manager_; }
   const PanelManager& panel_manager() const { return panel_manager_; }
@@ -138,6 +140,11 @@ class EditorManager {
     return right_panel_manager_ ? right_panel_manager_->GetPanelWidth() : 0.0f;
   }
 
+  // Returns the bottom margin needed for status bar
+  float GetBottomLayoutOffset() const {
+    return status_bar_.GetHeight();
+  }
+
   absl::Status SetCurrentRom(Rom* rom);
   auto GetCurrentRom() const -> Rom* {
     return session_coordinator_ ? session_coordinator_->GetCurrentRom()
@@ -148,7 +155,13 @@ class EditorManager {
                                 : nullptr;
   }
   auto GetCurrentEditor() const -> Editor* { return current_editor_; }
-  void SetCurrentEditor(Editor* editor) { current_editor_ = editor; }
+  void SetCurrentEditor(Editor* editor) {
+    current_editor_ = editor;
+    // Update help panel's editor context for context-aware help
+    if (right_panel_manager_ && editor) {
+      right_panel_manager_->SetActiveEditor(editor->type());
+    }
+  }
   size_t GetCurrentSessionId() const {
     return session_coordinator_ ? session_coordinator_->GetActiveSessionIndex()
                                 : 0;
@@ -390,6 +403,7 @@ class EditorManager {
       layout_manager_;  // DockBuilder layout management
   std::unique_ptr<RightPanelManager>
       right_panel_manager_;  // Right-side panel system
+  StatusBar status_bar_;    // Bottom status bar
   std::unique_ptr<ActivityBar> activity_bar_;
   WorkspaceManager workspace_manager_{&toast_manager_};
 

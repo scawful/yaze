@@ -406,9 +406,14 @@ void UICoordinator::DrawNotificationBell(bool show_dirty, bool has_dirty_rom,
                                          bool show_session, bool has_multiple_sessions) {
   size_t unread = toast_manager_.GetUnreadCount();
   auto* current_rom = editor_manager_->GetCurrentRom();
+  auto* right_panel = editor_manager_->right_panel_manager();
 
-  // Bell icon with accent color when there are unread notifications
-  if (unread > 0) {
+  // Check if notifications panel is active
+  bool is_active = right_panel && 
+      right_panel->IsPanelActive(RightPanelManager::PanelType::kNotifications);
+
+  // Bell icon with accent color when there are unread notifications or panel is active
+  if (unread > 0 || is_active) {
     ImGui::PushStyleColor(ImGuiCol_Text, gui::GetPrimaryVec4());
     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered, gui::GetSurfaceContainerHighVec4());
@@ -420,15 +425,13 @@ void UICoordinator::DrawNotificationBell(bool show_dirty, bool has_dirty_rom,
     ImGui::PushStyleColor(ImGuiCol_ButtonActive, gui::GetSurfaceContainerHighestVec4());
   }
 
-  // Store button position for popup anchoring
-  ImVec2 button_min = ImGui::GetCursorScreenPos();
-
+  // Bell button - opens notifications panel in right sidebar
   if (ImGui::SmallButton(ICON_MD_NOTIFICATIONS)) {
-    ImGui::OpenPopup("##NotificationHistory");
-    toast_manager_.MarkAllRead();
+    if (right_panel) {
+      right_panel->TogglePanel(RightPanelManager::PanelType::kNotifications);
+      toast_manager_.MarkAllRead();
+    }
   }
-
-  ImVec2 button_max = ImGui::GetItemRectMax();
 
   ImGui::PopStyleColor(4);
 
@@ -447,6 +450,8 @@ void UICoordinator::DrawNotificationBell(bool show_dirty, bool has_dirty_rom,
       ImGui::Text(ICON_MD_NOTIFICATIONS " No new notifications");
       ImGui::PopStyleColor();
     }
+    
+    ImGui::TextDisabled("Click to open Notifications panel");
     
     // Show hidden status items if any
     if (!show_dirty && has_dirty_rom) {
@@ -471,93 +476,6 @@ void UICoordinator::DrawNotificationBell(bool show_dirty, bool has_dirty_rom,
     }
     
     ImGui::EndTooltip();
-  }
-
-  // Anchor popup to right edge - position so right edge aligns with screen edge
-  const float popup_width = 320.0f;
-  const float screen_width = ImGui::GetIO().DisplaySize.x;
-  const float popup_x = std::min(button_min.x, screen_width - popup_width - 10.0f);
-
-  ImGui::SetNextWindowPos(ImVec2(popup_x, button_max.y + 2.0f), ImGuiCond_Appearing);
-
-  // Notification history dropdown popup
-  if (ImGui::BeginPopup("##NotificationHistory")) {
-    ImGui::Text(ICON_MD_NOTIFICATIONS " Notifications");
-    ImGui::Separator();
-
-    const auto& history = toast_manager_.GetHistory();
-    if (history.empty()) {
-      ImGui::TextDisabled("No notifications");
-    } else {
-      // Show most recent notifications (up to 15)
-      size_t shown = 0;
-      for (const auto& entry : history) {
-        if (shown >= 15) break;
-
-        // Icon and color based on type - use theme colors
-        const char* icon;
-        const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
-        ImVec4 color;
-        switch (entry.type) {
-          case ToastType::kSuccess:
-            icon = ICON_MD_CHECK_CIRCLE;
-            color = gui::ConvertColorToImVec4(theme.success);
-            break;
-          case ToastType::kWarning:
-            icon = ICON_MD_WARNING;
-            color = gui::ConvertColorToImVec4(theme.warning);
-            break;
-          case ToastType::kError:
-            icon = ICON_MD_ERROR;
-            color = gui::ConvertColorToImVec4(theme.error);
-            break;
-          default:
-            icon = ICON_MD_INFO;
-            color = gui::ConvertColorToImVec4(theme.info);
-            break;
-        }
-
-        ImGui::PushStyleColor(ImGuiCol_Text, color);
-        ImGui::Text("%s", icon);
-    ImGui::PopStyleColor();
-        ImGui::SameLine();
-
-        // Message (truncated if too long)
-        std::string msg = entry.message;
-        if (msg.length() > 40) {
-          msg = msg.substr(0, 37) + "...";
-        }
-        ImGui::TextUnformatted(msg.c_str());
-
-        // Timestamp (relative)
-        auto now = std::chrono::system_clock::now();
-        auto diff = std::chrono::duration_cast<std::chrono::seconds>(
-            now - entry.timestamp).count();
-
-        std::string time_str;
-        if (diff < 60) {
-          time_str = "just now";
-        } else if (diff < 3600) {
-          time_str = absl::StrFormat("%dm ago", diff / 60);
-        } else if (diff < 86400) {
-          time_str = absl::StrFormat("%dh ago", diff / 3600);
-  } else {
-          time_str = absl::StrFormat("%dd ago", diff / 86400);
-        }
-
-        ImGui::SameLine(ImGui::GetWindowWidth() - 60);
-        ImGui::TextDisabled("%s", time_str.c_str());
-
-        ++shown;
-      }
-    }
-
-    ImGui::Separator();
-    if (ImGui::MenuItem(ICON_MD_DELETE " Clear All")) {
-      toast_manager_.ClearHistory();
-    }
-
-    ImGui::EndPopup();
   }
 }
 

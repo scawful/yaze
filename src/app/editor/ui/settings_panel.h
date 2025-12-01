@@ -3,6 +3,7 @@
 
 #include <string>
 
+#include "app/editor/menu/status_bar.h"
 #include "app/editor/system/user_settings.h"
 #include "core/patch/patch_manager.h"
 
@@ -36,6 +37,7 @@ class SettingsPanel {
   // Legacy alias during Card→Panel rename.
   void SetCardRegistry(PanelManager* registry) { SetPanelManager(registry); }
   void SetShortcutManager(ShortcutManager* manager) { shortcut_manager_ = manager; }
+  void SetStatusBar(StatusBar* bar) { status_bar_ = bar; }
   void SetRom(Rom* rom) { rom_ = rom; }
 
   // Main draw entry point
@@ -59,6 +61,7 @@ class SettingsPanel {
   UserSettings* user_settings_ = nullptr;
   PanelManager* panel_manager_ = nullptr;
   ShortcutManager* shortcut_manager_ = nullptr;
+  StatusBar* status_bar_ = nullptr;
   Rom* rom_ = nullptr;
 
   // Shortcut editing state
