@@ -185,6 +185,9 @@ Room LoadRoomFromRom(Rom* rom, int room_id) {
 
   // Load additional room features
   room.LoadDoors();
+  room.LoadPotItems();
+  room.LoadTorches();
+  room.LoadTorches();
   room.LoadTorches();
   room.LoadBlocks();
   room.LoadPits();
@@ -349,6 +352,10 @@ void Room::LoadRoomGraphics(uint8_t entrance_blockset) {
   const auto& room_gfx = rom()->room_blockset_ids;
   const auto& sprite_gfx = rom()->spriteset_ids;
 
+  // DEBUG: Log blockset being used
+  printf("[LoadRoomGraphics] Room %d: blockset=%d, spriteset=%d, palette=%d\n",
+         room_id_, blockset, spriteset, palette);
+
   for (int i = 0; i < 8; i++) {
     blocks_[i] = rom()->main_blockset_ids[blockset][i];
     // Block 6 can be overridden by entrance-specific room graphics (index 3)
@@ -368,6 +375,14 @@ void Room::LoadRoomGraphics(uint8_t entrance_blockset) {
   for (int i = 0; i < 4; i++) {
     blocks_[12 + i] = (uint8_t)(sprite_gfx[spriteset + 64][i] + 115);
   }  // 12-16 sprites
+
+  // DEBUG: Log sheet IDs being used for this room
+  printf("[LoadRoomGraphics] Sheet IDs for blocks 0-15:\n");
+  printf("  BG blocks 0-7: ");
+  for (int i = 0; i < 8; i++) printf("%3d ", blocks_[i]);
+  printf("\n  Sprite blocks 8-15: ");
+  for (int i = 8; i < 16; i++) printf("%3d ", blocks_[i]);
+  printf("\n");
 }
 
 constexpr int kGfxBufferOffset = 92 * 2048;
@@ -516,6 +531,9 @@ void Room::RenderRoomGraphics() {
 
   // STEP 0: Load graphics if needed
   if (graphics_dirty_) {
+    // Ensure blocks_[] array is properly initialized before copying graphics
+    // LoadRoomGraphics sets up which sheets go into which blocks
+    LoadRoomGraphics(blockset);
     CopyRoomGraphicsToBuffer();
     graphics_dirty_ = false;
   }
@@ -555,9 +573,13 @@ void Room::RenderRoomGraphics() {
                           floor2_graphics_);
   }
 
-  // STEP 3: Draw background tiles (walls/structure) to buffers - if graphics
-  // changed OR bitmaps just created
-  bool need_bg_draw = was_graphics_dirty || need_floor_draw;
+  // STEP 3: Load layout tiles (walls/structure) ON TOP of floor
+  if (layout_dirty_ || need_floor_draw) {
+    LoadLayoutTilesToBuffer();
+  }
+
+  // STEP 4: Draw background tiles to buffers
+  bool need_bg_draw = was_graphics_dirty || need_floor_draw || layout_dirty_;
   if (need_bg_draw) {
     bg1_buffer_.DrawBackground(std::span<uint8_t>(current_gfx16_));
     bg2_buffer_.DrawBackground(std::span<uint8_t>(current_gfx16_));
@@ -607,8 +629,34 @@ void Room::RenderRoomGraphics() {
 
   if (bg1_palette.size() > 0) {
     // Apply FULL 90-color dungeon palette
-    bg1_bmp.SetPalette(bg1_palette);
-    bg2_bmp.SetPalette(bg1_palette);
+    // Define helper to set full dungeon palette with shifted indices
+    auto set_dungeon_palette = [](gfx::Bitmap& bmp, const gfx::SnesPalette& pal) {
+      std::vector<SDL_Color> colors(256);
+      // Index 0 is transparent (will be set by SetColorKey)
+      colors[0] = {0, 0, 0, 0};
+      
+      // Map palette colors to indices 1..N
+      for (size_t i = 0; i < pal.size() && i < 255; ++i) {
+        ImVec4 rgb = pal[i].rgb();
+        colors[i + 1] = {
+            static_cast<Uint8>(rgb.x),
+            static_cast<Uint8>(rgb.y),
+            static_cast<Uint8>(rgb.z),
+            255 // Opaque
+        };
+      }
+      
+      bmp.SetPalette(colors);
+      if (bmp.surface()) {
+        SDL_SetColorKey(bmp.surface(), SDL_TRUE, 0);
+        SDL_SetSurfaceBlendMode(bmp.surface(), SDL_BLENDMODE_BLEND);
+      }
+    };
+
+    set_dungeon_palette(bg1_bmp, bg1_palette);
+    set_dungeon_palette(bg2_bmp, bg1_palette);
+    set_dungeon_palette(object_bg1_buffer_.bitmap(), bg1_palette);
+    set_dungeon_palette(object_bg2_buffer_.bitmap(), bg1_palette);
 
     // DEBUG: Verify palette was applied to SDL surface
     auto* surface = bg1_bmp.surface();
@@ -638,6 +686,28 @@ void Room::RenderRoomGraphics() {
             "SDL surface has no palette!");
       }
     }
+
+    // Apply Layer Merge effects (Transparency/Blending) to BG2
+    if (layer_merging_.Layer2Translucent) {
+      // Set alpha mod for translucency (50%)
+      if (bg2_bmp.surface()) {
+        SDL_SetSurfaceAlphaMod(bg2_bmp.surface(), 128);
+      }
+      if (object_bg2_buffer_.bitmap().surface()) {
+        SDL_SetSurfaceAlphaMod(object_bg2_buffer_.bitmap().surface(), 128);
+      }
+
+      // Check for Addition mode (ID 0x05)
+      if (layer_merging_.ID == 0x05) {
+        if (bg2_bmp.surface()) {
+          SDL_SetSurfaceBlendMode(bg2_bmp.surface(), SDL_BLENDMODE_ADD);
+        }
+        if (object_bg2_buffer_.bitmap().surface()) {
+          SDL_SetSurfaceBlendMode(object_bg2_buffer_.bitmap().surface(),
+                                  SDL_BLENDMODE_ADD);
+        }
+      }
+    }
   }
 
   // Render objects ON TOP of background tiles (AFTER palette is set)
@@ -657,6 +727,10 @@ void Room::RenderRoomGraphics() {
         gfx::Arena::TextureCommandType::UPDATE, &bg1_bmp);
     gfx::Arena::Get().QueueTextureCommand(
         gfx::Arena::TextureCommandType::UPDATE, &bg2_bmp);
+    gfx::Arena::Get().QueueTextureCommand(
+        gfx::Arena::TextureCommandType::UPDATE, &object_bg1_buffer_.bitmap());
+    gfx::Arena::Get().QueueTextureCommand(
+        gfx::Arena::TextureCommandType::UPDATE, &object_bg2_buffer_.bitmap());
   } else {
     // No texture yet - CREATE it
     LOG_DEBUG("[RenderRoomGraphics]",
@@ -665,6 +739,10 @@ void Room::RenderRoomGraphics() {
         gfx::Arena::TextureCommandType::CREATE, &bg1_bmp);
     gfx::Arena::Get().QueueTextureCommand(
         gfx::Arena::TextureCommandType::CREATE, &bg2_bmp);
+    gfx::Arena::Get().QueueTextureCommand(
+        gfx::Arena::TextureCommandType::CREATE, &object_bg1_buffer_.bitmap());
+    gfx::Arena::Get().QueueTextureCommand(
+        gfx::Arena::TextureCommandType::CREATE, &object_bg2_buffer_.bitmap());
   }
 
   // Mark textures as clean after successful queuing
@@ -678,6 +756,8 @@ void Room::RenderRoomGraphics() {
             "Texture commands queued for batch processing");
 }
 
+
+
 void Room::LoadLayoutTilesToBuffer() {
   LOG_DEBUG("RenderRoomGraphics", "LoadLayoutTilesToBuffer START for room %d",
             room_id_);
@@ -686,6 +766,10 @@ void Room::LoadLayoutTilesToBuffer() {
     LOG_DEBUG("RenderRoomGraphics", "ROM not loaded, aborting");
     return;
   }
+
+  // Clear layout buffers before loading
+  bg1_buffer_.bitmap().Fill(0);
+  bg2_buffer_.bitmap().Fill(0);
 
   // Load layout tiles from ROM if not already loaded
   layout_.set_rom(rom_);
@@ -790,8 +874,58 @@ void Room::RenderObjectsToBackground() {
   // Pass the room-specific graphics buffer (current_gfx16_) so objects use
   // correct tiles
   ObjectDrawer drawer(rom_, current_gfx16_.data());
-  auto status = drawer.DrawObjectList(tile_objects_, bg1_buffer_, bg2_buffer_,
+  
+  // Clear object buffers before rendering
+  object_bg1_buffer_.EnsureBitmapInitialized();
+  object_bg2_buffer_.EnsureBitmapInitialized();
+  object_bg1_buffer_.bitmap().Fill(0);
+  object_bg2_buffer_.bitmap().Fill(0);
+  
+  // Render objects to appropriate buffers
+  // BG1 = Floor/Main (Layer 0, 2)
+  // BG2 = Overlay (Layer 1)
+  auto status = drawer.DrawObjectList(tile_objects_, object_bg1_buffer_, object_bg2_buffer_,
                                       palette_group);
+
+  // Render doors
+  for (const auto& door : doors_) {
+    ObjectDrawer::DoorDef door_def;
+    door_def.type = door.type;
+    door_def.direction = door.direction;
+    door_def.position = door.position;
+    drawer.DrawDoor(door_def, object_bg1_buffer_, object_bg2_buffer_);
+  }
+
+  // Render pot items
+  // Iterate objects to find pots/bushes and assign items
+  int item_idx = 0;
+  for (const auto& obj : tile_objects_) {
+    // Check if object is a pot (0x11E) or bush (0x11F)
+    // TODO: Verify exact IDs for liftable objects
+    if (obj.id_ == 0x11E || obj.id_ == 0x11F) {
+      if (item_idx < (int)pot_items_.size()) {
+        uint8_t item = pot_items_[item_idx];
+        // Draw item visualization over the object
+        // Use BG1 buffer for now
+        drawer.DrawPotItem(item, obj.x_, obj.y_, object_bg1_buffer_);
+        item_idx++;
+      }
+    }
+  }
+
+  // Render sprites (for key drops)
+  // We don't have full sprite rendering yet, but we can visualize key drops
+  for (const auto& sprite : sprites_) {
+    if (sprite.key_drop() > 0) {
+      // Draw key drop visualization
+      // Use a special item ID or just draw a key icon
+      // We can reuse DrawPotItem with a special ID for key
+      // Or add DrawKeyDrop to ObjectDrawer
+      // For now, let's use DrawPotItem with ID 0xFD (Small Key) or 0xFE (Big Key)
+      uint8_t key_item = (sprite.key_drop() == 1) ? 0xFD : 0xFE;
+      drawer.DrawPotItem(key_item, sprite.x(), sprite.y(), object_bg1_buffer_);
+    }
+  }
 
   // Log only failures, not successes
   if (!status.ok()) {
@@ -961,6 +1095,7 @@ void Room::ParseObjectsFromLocation(int objects_location) {
 
   // Clear existing objects before parsing to prevent accumulation on reload
   tile_objects_.clear();
+  doors_.clear();
   z3_staircases_.clear();
   int nbr_of_staircase = 0;
 
@@ -1025,11 +1160,14 @@ void Room::ParseObjectsFromLocation(int objects_location) {
         HandleSpecialObjects(r.id_, r.x(), r.y(), nbr_of_staircase);
       }
     } else {
-      // Handle door objects (placeholder for future implementation)
-      // tile_objects_.push_back(z3_object_door(static_cast<short>((b2 << 8) +
-      // b1),
-      //                                        0, 0, 0,
-      //                                        static_cast<uint8_t>(layer)));
+      // Handle door objects
+      Door d;
+      d.byte1 = b1;
+      d.byte2 = b2;
+      d.position = b1;
+      d.type = (b2 & 0xF0) >> 4;
+      d.direction = b2 & 0x0F;
+      doors_.push_back(d);
     }
   }
 }
@@ -1595,6 +1733,34 @@ void Room::LoadBlocks() {
 
       LOG_DEBUG("Room", "Loaded block at (%d,%d) layer=%d", px, py, layer);
     }
+  }
+}
+
+void Room::LoadPotItems() {
+  if (!rom_ || !rom_->is_loaded()) return;
+  auto rom_data = rom()->vector();
+
+  // Load pot items
+  // kRoomItemsPointers is a table of pointers (2 bytes) indexed by room ID
+  int table_addr = kRoomItemsPointers; // 0x01DB69
+  
+  // Read pointer for this room
+  // Address is table_addr + room_id * 2
+  int ptr_addr = table_addr + (room_id_ * 2);
+  if (ptr_addr + 1 >= (int)rom_data.size()) return;
+  
+  uint16_t item_ptr = (rom_data[ptr_addr + 1] << 8) | rom_data[ptr_addr];
+  
+  // Convert to PC address (Bank 01 offset)
+  int item_addr = SnesToPc(0x010000 | item_ptr); 
+  
+  // Read items until 0xFF
+  pot_items_.clear();
+  while (item_addr < (int)rom_data.size()) {
+    uint8_t item = rom_data[item_addr];
+    if (item == 0xFF) break;
+    pot_items_.push_back(item);
+    item_addr++;
   }
 }
 

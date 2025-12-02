@@ -7,13 +7,11 @@
 #include "util/log.h"
 #include "zelda3/dungeon/room_object.h"
 
-// ROM addresses for object data (PC addresses, not SNES)
-// ALTTP US 1.0 ROM addresses - these are the actual addresses from the game
-// SNES addresses are shown in comments for reference
-static constexpr int kRoomObjectSubtype1 = 0x0F8000;      // SNES: $08:8000
-static constexpr int kRoomObjectSubtype2 = 0x0F83F0;      // SNES: $08:83F0
-static constexpr int kRoomObjectSubtype3 = 0x0F84F0;      // SNES: $08:84F0
-static constexpr int kRoomObjectTileAddress = 0x091B52;   // SNES: $09:1B52
+// ROM addresses for object data are defined in room_object.h:
+// - kRoomObjectSubtype1 = 0x8000 (SNES $01:8000)
+// - kRoomObjectSubtype2 = 0x83F0 (SNES $01:83F0)
+// - kRoomObjectSubtype3 = 0x84F0 (SNES $01:84F0)
+// - kRoomObjectTileAddress = 0x1B52 (SNES $00:9B52)
 
 // Subtype 1 tile count lookup table (from ZScream's DungeonObjectData.cs)
 // Each entry specifies how many tiles to read for that object ID (0x00-0xF7)
@@ -167,10 +165,37 @@ absl::StatusOr<std::vector<gfx::TileInfo>> ObjectParser::ParseSubtype1(
         absl::StrFormat("Tile pointer out of range: %#06x", tile_ptr));
   }
 
-  // Read tile data pointer
+  // Read tile data pointer (16-bit little-endian offset)
   uint8_t low = rom_->data()[tile_ptr];
   uint8_t high = rom_->data()[tile_ptr + 1];
-  int tile_data_ptr = kRoomObjectTileAddress + ((high << 8) | low);
+  int16_t offset = (int16_t)((high << 8) | low);  // Signed offset!
+  int tile_data_ptr = kRoomObjectTileAddress + offset;
+
+  // DEBUG: Log first few object tile lookups with verification
+  static int debug_count = 0;
+  if (debug_count < 10) {
+    printf("[ParseSubtype1] obj=0x%02X: tile_ptr=0x%04X (SNES $01:%04X)\n",
+           object_id, tile_ptr, tile_ptr);
+    printf("  ROM[0x%04X..0x%04X] = 0x%02X 0x%02X -> offset=%d (0x%04X)\n",
+           tile_ptr, tile_ptr+1, low, high, offset, (uint16_t)offset);
+    printf("  tile_data_ptr = 0x%04X + 0x%04X = 0x%04X (SNES $00:%04X)\n",
+           kRoomObjectTileAddress, (uint16_t)offset, tile_data_ptr,
+           tile_data_ptr + 0x8000);
+
+    // Show first 4 tile words at the tile data location
+    if (tile_data_ptr + 8 < (int)rom_->size()) {
+      printf("  Tile data at 0x%04X: ", tile_data_ptr);
+      for (int i = 0; i < 4; i++) {
+        uint16_t tw = rom_->data()[tile_data_ptr + i*2] |
+                      (rom_->data()[tile_data_ptr + i*2 + 1] << 8);
+        uint16_t tid = tw & 0x3FF;
+        uint8_t pal = (tw >> 10) & 0x07;
+        printf("$%04X(id=%d,p=%d) ", tw, tid, pal);
+      }
+      printf("\n");
+    }
+    debug_count++;
+  }
 
   // Use lookup table for correct tile count per object ID
   int tile_count = GetSubtype1TileCount(object_id);
