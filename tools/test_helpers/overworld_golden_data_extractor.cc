@@ -6,7 +6,7 @@
 #include <string>
 #include <filesystem>
 
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "zelda3/overworld/overworld.h"
 #include "zelda3/overworld/overworld_map.h"
 
