@@ -24,11 +24,15 @@
         element.className = classes;
       }
     }
-    if (content !== undefined) {
+    // Only append when content is defined and not null; this avoids
+    // `appendChild(null)` crashes when callers pass null/undefined.
+    if (content !== undefined && content !== null) {
       if (typeof content === 'string') {
         element.innerHTML = content;
-      } else {
+      } else if (content instanceof Node) {
         element.appendChild(content);
+      } else {
+        element.textContent = String(content);
       }
     }
     return element;
