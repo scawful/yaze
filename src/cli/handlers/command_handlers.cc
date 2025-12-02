@@ -1,10 +1,13 @@
 #include "cli/handlers/command_handlers.h"
 
+#include "cli/handlers/tools/dungeon_doctor_commands.h"
 #include "cli/handlers/tools/gui_commands.h"
-#include "cli/handlers/tools/resource_commands.h"
-#include "cli/handlers/tools/overworld_validate_commands.h"
 #include "cli/handlers/tools/overworld_doctor_commands.h"
+#include "cli/handlers/tools/overworld_validate_commands.h"
+#include "cli/handlers/tools/resource_commands.h"
 #include "cli/handlers/tools/rom_compare_commands.h"
+#include "cli/handlers/tools/rom_doctor_commands.h"
+#include "cli/handlers/tools/test_cli_commands.h"
 #include "cli/handlers/tools/test_helpers_commands.h"
 #ifdef YAZE_WITH_GRPC
 #include "cli/handlers/tools/emulator_commands.h"
@@ -58,9 +61,11 @@ CreateCliCommandHandlers() {
   handlers.push_back(std::make_unique<MessageReadCommandHandler>());
   handlers.push_back(std::make_unique<MessageSearchCommandHandler>());
 
-  // Overworld validation and repair tools
+  // Validation and repair tools (doctor suite)
   handlers.push_back(std::make_unique<OverworldValidateCommandHandler>());
   handlers.push_back(std::make_unique<OverworldDoctorCommandHandler>());
+  handlers.push_back(std::make_unique<DungeonDoctorCommandHandler>());
+  handlers.push_back(std::make_unique<RomDoctorCommandHandler>());
   handlers.push_back(std::make_unique<RomCompareCommandHandler>());
 
   return handlers;
@@ -123,6 +128,11 @@ CreateAgentCommandHandlers() {
   handlers.push_back(std::make_unique<ToolsExtractValuesCommandHandler>());
   handlers.push_back(std::make_unique<ToolsExtractGoldenCommandHandler>());
   handlers.push_back(std::make_unique<ToolsPatchV3CommandHandler>());
+
+  // Test CLI commands
+  handlers.push_back(std::make_unique<TestListCommandHandler>());
+  handlers.push_back(std::make_unique<TestRunCommandHandler>());
+  handlers.push_back(std::make_unique<TestStatusCommandHandler>());
 
   return handlers;
 }

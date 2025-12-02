@@ -2,6 +2,7 @@
 #define YAZE_CLI_HANDLERS_TOOLS_DIAGNOSTIC_TYPES_H
 
 #include <cstdint>
+#include <map>
 #include <string>
 #include <vector>
 
@@ -255,10 +256,16 @@ constexpr uint32_t kCustomAnimatedGFXPos = 0x140146;
 constexpr uint32_t kCustomOverlayPos = 0x140147;
 constexpr uint32_t kCustomTileGFXPos = 0x140148;
 
-// ASM expansion markers (for future tail map support)
-// When ASM patch is applied, this location will contain the magic byte
-constexpr uint32_t kExpandedPtrTableMarker = 0x142400;
-constexpr uint8_t kExpandedPtrTableMagic = 0xEA;
+// ASM expansion markers for tail map support
+// When TailMapExpansion.asm patch is applied, these locations will be set:
+// - Marker byte at 0x1423FF ($28:A3FF) = 0xEA to indicate expansion
+// - New High table at 0x142400 ($28:A400) with 192 entries
+// - New Low table at 0x142640 ($28:A640) with 192 entries
+constexpr uint32_t kExpandedPtrTableMarker = 0x1423FF;  // Marker location
+constexpr uint8_t kExpandedPtrTableMagic = 0xEA;        // Marker value
+constexpr uint32_t kExpandedPtrTableHigh = 0x142400;    // New high table
+constexpr uint32_t kExpandedPtrTableLow = 0x142640;     // New low table
+constexpr int kExpandedMapCount = 192;                  // 0x00-0xBF
 
 // Known problematic addresses in tile16 region (from previous corruption)
 const uint32_t kProblemAddresses[] = {

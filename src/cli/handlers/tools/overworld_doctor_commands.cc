@@ -11,6 +11,7 @@
 #include "absl/strings/str_format.h"
 #include "app/rom.h"
 #include "cli/handlers/tools/diagnostic_types.h"
+#include "core/asar_wrapper.h"
 #include "zelda3/overworld/overworld_entrance.h"
 #include "zelda3/overworld/overworld_exit.h"
 #include "zelda3/overworld/overworld_item.h"
@@ -309,7 +310,7 @@ absl::Status RepairTile16Region(Rom* rom, const DiagnosticReport& report,
   if (!report.tile16_status.corruption_detected) {
     return absl::OkStatus();
   }
-  
+
   for (uint32_t addr : report.tile16_status.corrupted_addresses) {
     if (!dry_run) {
     for (int i = 0; i < 8 && addr + i < rom->size(); ++i) {
@@ -317,7 +318,91 @@ absl::Status RepairTile16Region(Rom* rom, const DiagnosticReport& report,
     }
     }
   }
-  
+
+  return absl::OkStatus();
+}
+
+// Apply tail map expansion ASM patch
+absl::Status ApplyTailExpansion(Rom* rom, bool dry_run, bool verbose) {
+  // Check if already applied
+  if (kExpandedPtrTableMarker < rom->size() &&
+      rom->data()[kExpandedPtrTableMarker] == kExpandedPtrTableMagic) {
+    return absl::AlreadyExistsError(
+        "Tail map expansion already applied (marker 0xEA found at 0x1423FF)");
+  }
+
+  // Check if ZSCustomOverworld v3 is present (required prerequisite)
+  if (kZSCustomVersionPos < rom->size()) {
+    uint8_t version = rom->data()[kZSCustomVersionPos];
+    if (version < 3 && version != 0xFF && version != 0x00) {
+      return absl::FailedPreconditionError(
+          "Tail map expansion requires ZSCustomOverworld v3 or later. "
+          "Apply ZSCustomOverworld v3 first.");
+    }
+  }
+
+  if (dry_run) {
+    return absl::OkStatus();
+  }
+
+  // Find the patch file in standard locations
+  std::vector<std::string> patch_locations = {
+      "assets/patches/Overworld/TailMapExpansion.asm",
+      "../assets/patches/Overworld/TailMapExpansion.asm",
+      "TailMapExpansion.asm"
+  };
+
+  std::string patch_path;
+  for (const auto& loc : patch_locations) {
+    std::ifstream probe(loc);
+    if (probe.good()) {
+      patch_path = loc;
+      break;
+    }
+  }
+
+  if (patch_path.empty()) {
+    return absl::NotFoundError(
+        "TailMapExpansion.asm patch file not found. "
+        "Expected locations: assets/patches/Overworld/TailMapExpansion.asm");
+  }
+
+  // Apply the patch using Asar
+  core::AsarWrapper asar;
+  RETURN_IF_ERROR(asar.Initialize());
+
+  std::vector<uint8_t> rom_data(rom->data(), rom->data() + rom->size());
+  auto result = asar.ApplyPatch(patch_path, rom_data);
+
+  if (!result.ok()) {
+    return result.status();
+  }
+
+  if (!result->success) {
+    std::string error_msg = "Asar patch failed:";
+    for (const auto& err : result->errors) {
+      error_msg += " " + err;
+    }
+    return absl::InternalError(error_msg);
+  }
+
+  // Copy patched data back to ROM
+  if (rom_data.size() != rom->size()) {
+    return absl::InternalError(
+        absl::StrFormat("ROM size changed unexpectedly: %zu -> %zu",
+                        rom->size(), rom_data.size()));
+  }
+
+  for (size_t i = 0; i < rom_data.size(); ++i) {
+    (*rom)[i] = rom_data[i];
+  }
+
+  // Verify marker was written
+  if (rom->data()[kExpandedPtrTableMarker] != kExpandedPtrTableMagic) {
+    return absl::InternalError(
+        "Patch applied but marker not found. Patch may be incomplete.");
+  }
+
   return absl::OkStatus();
 }
 
@@ -466,6 +551,7 @@ absl::Status OverworldDoctorCommandHandler::Execute(
     Rom* rom, const resources::ArgumentParser& parser,
     resources::OutputFormatter& formatter) {
   bool fix_mode = parser.HasFlag("fix");
+  bool apply_tail_expansion = parser.HasFlag("apply-tail-expansion");
   bool dry_run = parser.HasFlag("dry-run");
   bool verbose = parser.HasFlag("verbose");
   auto output_path = parser.GetString("output");
@@ -494,7 +580,9 @@ absl::Status OverworldDoctorCommandHandler::Execute(
     finding.message = "Tail maps (0xA0-0xBF) not available";
     finding.location = "";
     finding.suggested_action =
-        "Apply ASM patch to expand pointer tables to 192 entries";
+        "Apply TailMapExpansion.asm patch (after ZSCustomOverworld v3) to "
+        "expand pointer tables to 192 entries. Use: z3ed overworld-doctor "
+        "--apply-tail-expansion or apply manually with Asar.";
     finding.fixable = false;
     report.AddFinding(finding);
   }
@@ -551,6 +639,52 @@ absl::Status OverworldDoctorCommandHandler::Execute(
 
     if (baseline_rom) {
       std::cout << absl::StrFormat("  Baseline used: %s\n", resolved_baseline);
+    }
+  }
+
+  // Apply tail expansion if requested
+  if (apply_tail_expansion) {
+    if (dry_run) {
+      if (!is_json) {
+        std::cout << "\n=== Dry Run - Tail Map Expansion ===\n";
+        if (report.features.has_expanded_pointer_tables) {
+          std::cout << "  Tail expansion already applied.\n";
+        } else {
+          std::cout << "  Would apply TailMapExpansion.asm patch.\n";
+          std::cout << "  This will:\n";
+          std::cout << "    - Relocate pointer tables to $28:A400\n";
+          std::cout << "    - Expand from 160 to 192 map entries\n";
+          std::cout << "    - Write marker byte 0xEA at $28:A3FF\n";
+          std::cout << "    - Add blank map data at $30:8000\n";
+        }
+        std::cout << "\nNo changes made (dry run).\n";
+      }
+      formatter.AddField("dry_run_tail_expansion", true);
+    } else {
+      auto status = ApplyTailExpansion(rom, false, verbose);
+      if (status.ok()) {
+        if (!is_json) {
+          std::cout << "\n=== Tail Map Expansion Applied ===\n";
+          std::cout << "  Pointer tables relocated to $28:A400/$28:A640\n";
+          std::cout << "  Maps 0xA0-0xBF now available for editing\n";
+        }
+        formatter.AddField("tail_expansion_applied", true);
+
+        // Re-detect features after patch
+        report.features = DetectRomFeatures(rom);
+      } else if (absl::IsAlreadyExists(status)) {
+        if (!is_json) {
+          std::cout << "\n[INFO] Tail expansion already applied.\n";
+        }
+        formatter.AddField("tail_expansion_already_applied", true);
+      } else {
+        if (!is_json) {
+          std::cout << "\n[ERROR] Failed to apply tail expansion: "
+                    << status.message() << "\n";
+        }
+        formatter.AddField("tail_expansion_error", std::string(status.message()));
+        // Continue with diagnostics, don't fail the whole command
+      }
     }
   }
 

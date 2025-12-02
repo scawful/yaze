@@ -27,7 +27,8 @@ class OverworldDoctorCommandHandler : public resources::CommandHandler {
 
   std::string GetUsage() const override {
     return "overworld-doctor --rom <path> [--baseline <path>] [--fix] "
-           "[--dry-run] [--output <path>] [--format json|text] [--verbose]";
+           "[--apply-tail-expansion] [--dry-run] [--output <path>] "
+           "[--format json|text] [--verbose]";
   }
 
   std::string GetDefaultFormat() const override { return "text"; }

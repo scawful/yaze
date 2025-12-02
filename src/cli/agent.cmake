@@ -147,12 +147,15 @@ set(YAZE_AGENT_CORE_SOURCES
   cli/handlers/rom/mock_rom.cc
   cli/handlers/rom/project_commands.cc
   cli/handlers/rom/rom_commands.cc
+  cli/handlers/tools/dungeon_doctor_commands.cc
   cli/handlers/tools/gui_commands.cc
-  cli/handlers/tools/resource_commands.cc
-  cli/handlers/tools/test_helpers_commands.cc
-  cli/handlers/tools/overworld_validate_commands.cc
   cli/handlers/tools/overworld_doctor_commands.cc
+  cli/handlers/tools/overworld_validate_commands.cc
+  cli/handlers/tools/resource_commands.cc
   cli/handlers/tools/rom_compare_commands.cc
+  cli/handlers/tools/rom_doctor_commands.cc
+  cli/handlers/tools/test_cli_commands.cc
+  cli/handlers/tools/test_helpers_commands.cc
   cli/service/agent/conversational_agent_service.cc
   cli/service/agent/dev_assist_agent.cc
   cli/service/agent/enhanced_tui.cc
