@@ -13,16 +13,17 @@
 #include "app/gui/app/editor_layout.h"
 #include "app/gui/widgets/dungeon_object_emulator_preview.h"
 #include "app/gui/widgets/palette_editor_widget.h"
-#include "app/rom.h"
 #include "dungeon_canvas_viewer.h"
 #include "dungeon_object_selector.h"
 #include "dungeon_room_loader.h"
 #include "dungeon_room_selector.h"
 #include "imgui/imgui.h"
 #include "object_editor_card.h"
+#include "rom/rom.h"
 #include "zelda3/dungeon/dungeon_editor_system.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_entrance.h"
+#include "zelda3/game_data.h"
 #include "zelda3/dungeon/dungeon_editor_system.h"
 
 namespace yaze {
@@ -55,6 +56,19 @@ class DungeonEditorV2 : public Editor {
         for (auto& room : rooms_) {
           room.SetRom(rom);
         }
+    }
+  }
+  
+  void set_game_data(zelda3::GameData* game_data) {
+    game_data_ = game_data;
+    dependencies_.game_data = game_data;  // Also set base class dependency
+    room_loader_.SetGameData(game_data);
+    canvas_viewer_.SetGameData(game_data);
+    if (dungeon_editor_system_) {
+      dungeon_editor_system_->set_game_data(game_data);
+    }
+    for (auto& room : rooms_) {
+      room.SetGameData(game_data);
     }
   }
 
@@ -148,6 +162,7 @@ class DungeonEditorV2 : public Editor {
 
   // Data
   Rom* rom_;
+  zelda3::GameData* game_data_ = nullptr;
   std::array<zelda3::Room, 0x128> rooms_;
   std::array<zelda3::RoomEntrance, 0x8C> entrances_;
 
