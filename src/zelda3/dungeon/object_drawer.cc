@@ -215,6 +215,34 @@ void ObjectDrawer::InitializeDrawRoutines() {
   object_to_routine_map_[0x4E] = 16;
   object_to_routine_map_[0x4F] = 16;
 
+  // 0x50-0x5F Objects (based on tile counts from kSubtype1TileLengths)
+  // 0x50: 1 tile
+  object_to_routine_map_[0x50] = 25;  // 1x1
+  // 0x51-0x52: 18 tiles (2x9 or similar)
+  object_to_routine_map_[0x51] = 1;   // 2x4 (best fit for elongated)
+  object_to_routine_map_[0x52] = 1;
+  // 0x53: 4 tiles
+  object_to_routine_map_[0x53] = 4;   // 2x2
+  // 0x54: 1 tile
+  object_to_routine_map_[0x54] = 25;  // 1x1
+  // 0x55-0x56: 8 tiles
+  object_to_routine_map_[0x55] = 1;   // 2x4
+  object_to_routine_map_[0x56] = 1;
+  // 0x57-0x5A: 1 tile each
+  object_to_routine_map_[0x57] = 25;  // 1x1
+  object_to_routine_map_[0x58] = 25;
+  object_to_routine_map_[0x59] = 25;
+  object_to_routine_map_[0x5A] = 25;
+  // 0x5B-0x5C: 18 tiles
+  object_to_routine_map_[0x5B] = 1;   // 2x4
+  object_to_routine_map_[0x5C] = 1;
+  // 0x5D: 15 tiles
+  object_to_routine_map_[0x5D] = 30;  // 4x3 (closest fit)
+  // 0x5E: 4 tiles
+  object_to_routine_map_[0x5E] = 4;   // 2x2
+  // 0x5F: 3 tiles
+  object_to_routine_map_[0x5F] = 22;  // edge 1x1
+
   // Subtype 1 Object Mappings (Vertical 0x60-0x6F)
   object_to_routine_map_[0x60] = 7;
   for (int id = 0x61; id <= 0x62; id++) {
@@ -235,6 +263,181 @@ void ObjectDrawer::InitializeDrawRoutines() {
   }
   object_to_routine_map_[0x6C] = 14;
   object_to_routine_map_[0x6D] = 15;
+  // 0x6E-0x6F: 1 tile each
+  object_to_routine_map_[0x6E] = 25;  // 1x1
+  object_to_routine_map_[0x6F] = 25;
+
+  // 0x70-0x7F Objects (based on tile counts from kSubtype1TileLengths)
+  // 0x70: 16 tiles
+  object_to_routine_map_[0x70] = 16;  // 4x4
+  // 0x71-0x72: 1 tile each
+  object_to_routine_map_[0x71] = 25;  // 1x1
+  object_to_routine_map_[0x72] = 25;
+  // 0x73-0x74: 16 tiles each
+  object_to_routine_map_[0x73] = 16;  // 4x4
+  object_to_routine_map_[0x74] = 16;
+  // 0x75: 8 tiles
+  object_to_routine_map_[0x75] = 1;   // 2x4
+  // 0x76-0x77: 16 tiles each
+  object_to_routine_map_[0x76] = 16;  // 4x4
+  object_to_routine_map_[0x77] = 16;
+  // 0x78: 4 tiles
+  object_to_routine_map_[0x78] = 4;   // 2x2
+  // 0x79-0x7A: 1 tile each
+  object_to_routine_map_[0x79] = 25;  // 1x1
+  object_to_routine_map_[0x7A] = 25;
+  // 0x7B: 4 tiles
+  object_to_routine_map_[0x7B] = 4;   // 2x2
+  // 0x7C: 1 tile
+  object_to_routine_map_[0x7C] = 25;  // 1x1
+  // 0x7D: 4 tiles
+  object_to_routine_map_[0x7D] = 4;   // 2x2
+  // 0x7E: 1 tile
+  object_to_routine_map_[0x7E] = 25;  // 1x1
+  // 0x7F: 8 tiles
+  object_to_routine_map_[0x7F] = 1;   // 2x4
+
+  // 0x80-0x8F Objects (based on tile counts from kSubtype1TileLengths)
+  // 0x80: 8 tiles
+  object_to_routine_map_[0x80] = 8;   // 4x2 (vertical)
+  // 0x81-0x84: 12 tiles each
+  object_to_routine_map_[0x81] = 30;  // 4x3
+  object_to_routine_map_[0x82] = 30;
+  object_to_routine_map_[0x83] = 30;
+  object_to_routine_map_[0x84] = 30;
+  // 0x85-0x86: 18 tiles each
+  object_to_routine_map_[0x85] = 8;   // 4x2 (best fit for vertical elongated)
+  object_to_routine_map_[0x86] = 8;
+  // 0x87: 8 tiles
+  object_to_routine_map_[0x87] = 8;   // 4x2
+  // 0x88: 12 tiles
+  object_to_routine_map_[0x88] = 30;  // 4x3
+  // 0x89: 4 tiles
+  object_to_routine_map_[0x89] = 11;  // 2x2 downwards
+  // 0x8A-0x8C: 3 tiles each
+  object_to_routine_map_[0x8A] = 22;  // edge 1x1
+  object_to_routine_map_[0x8B] = 22;
+  object_to_routine_map_[0x8C] = 22;
+  // 0x8D-0x8E: 1 tile each
+  object_to_routine_map_[0x8D] = 25;  // 1x1
+  object_to_routine_map_[0x8E] = 25;
+  // 0x8F: 6 tiles
+  object_to_routine_map_[0x8F] = 28;  // 2x3
+
+  // 0x90-0x9F Objects (based on tile counts from kSubtype1TileLengths)
+  // 0x90-0x91: 8 tiles each
+  object_to_routine_map_[0x90] = 8;   // 4x2
+  object_to_routine_map_[0x91] = 8;
+  // 0x92-0x93: 4 tiles each
+  object_to_routine_map_[0x92] = 11;  // 2x2 downwards
+  object_to_routine_map_[0x93] = 11;
+  // 0x94: 16 tiles
+  object_to_routine_map_[0x94] = 16;  // 4x4
+  // 0x95-0x96: 4 tiles each
+  object_to_routine_map_[0x95] = 11;  // 2x2
+  object_to_routine_map_[0x96] = 11;
+  // 0x97-0x9F: 1 tile each
+  for (int id = 0x97; id <= 0x9F; id++) {
+    object_to_routine_map_[id] = 25;  // 1x1
+  }
+
+  // 0xA0-0xAF Objects (mostly 1 tile each, except 0xA4 with 24 tiles)
+  for (int id = 0xA0; id <= 0xAF; id++) {
+    if (id == 0xA4) {
+      object_to_routine_map_[id] = 16;  // 4x4 (best fit for 24 tiles)
+    } else {
+      object_to_routine_map_[id] = 25;  // 1x1
+    }
+  }
+
+  // 0xB0-0xBF Objects (based on tile counts from kSubtype1TileLengths)
+  // 0xB0-0xB1: 1 tile each
+  object_to_routine_map_[0xB0] = 25;  // 1x1
+  object_to_routine_map_[0xB1] = 25;
+  // 0xB2: 16 tiles
+  object_to_routine_map_[0xB2] = 16;  // 4x4
+  // 0xB3-0xB4: 3 tiles each
+  object_to_routine_map_[0xB3] = 22;  // edge 1x1
+  object_to_routine_map_[0xB4] = 22;
+  // 0xB5-0xB7: 8 tiles each
+  object_to_routine_map_[0xB5] = 8;   // 4x2
+  object_to_routine_map_[0xB6] = 8;
+  object_to_routine_map_[0xB7] = 8;
+  // 0xB8-0xB9: 4 tiles each
+  object_to_routine_map_[0xB8] = 11;  // 2x2
+  object_to_routine_map_[0xB9] = 11;
+  // 0xBA: 16 tiles
+  object_to_routine_map_[0xBA] = 16;  // 4x4
+  // 0xBB-0xBD: 4 tiles each
+  object_to_routine_map_[0xBB] = 11;  // 2x2
+  object_to_routine_map_[0xBC] = 11;
+  object_to_routine_map_[0xBD] = 11;
+  // 0xBE-0xBF: 1 tile each
+  object_to_routine_map_[0xBE] = 25;  // 1x1
+  object_to_routine_map_[0xBF] = 25;
+
+  // 0xC0-0xCF Objects (based on tile counts from kSubtype1TileLengths)
+  // 0xC0: 1 tile
+  object_to_routine_map_[0xC0] = 25;  // 1x1
+  // 0xC1: 68 tiles (special large object)
+  object_to_routine_map_[0xC1] = 16;  // 4x4 fallback
+  // 0xC2-0xC3: 1 tile each
+  object_to_routine_map_[0xC2] = 25;  // 1x1
+  object_to_routine_map_[0xC3] = 25;
+  // 0xC4-0xCA: 8 tiles each
+  for (int id = 0xC4; id <= 0xCA; id++) {
+    object_to_routine_map_[id] = 8;   // 4x2
+  }
+  // 0xCB-0xCC: 1 tile each
+  object_to_routine_map_[0xCB] = 25;  // 1x1
+  object_to_routine_map_[0xCC] = 25;
+  // 0xCD-0xCE: 28 tiles each (large objects)
+  object_to_routine_map_[0xCD] = 16;  // 4x4 fallback
+  object_to_routine_map_[0xCE] = 16;
+  // 0xCF: 1 tile
+  object_to_routine_map_[0xCF] = 25;  // 1x1
+
+  // 0xD0-0xDF Objects (based on tile counts from kSubtype1TileLengths)
+  // 0xD0: 1 tile
+  object_to_routine_map_[0xD0] = 25;  // 1x1
+  // 0xD1-0xD2: 8 tiles each
+  object_to_routine_map_[0xD1] = 8;   // 4x2
+  object_to_routine_map_[0xD2] = 8;
+  // 0xD3-0xD6: 0 tiles (special/empty)
+  object_to_routine_map_[0xD3] = 25;  // fallback 1x1
+  object_to_routine_map_[0xD4] = 25;
+  object_to_routine_map_[0xD5] = 25;
+  object_to_routine_map_[0xD6] = 25;
+  // 0xD7: 1 tile
+  object_to_routine_map_[0xD7] = 25;  // 1x1
+  // 0xD8-0xDB: 8 tiles each
+  object_to_routine_map_[0xD8] = 8;   // 4x2
+  object_to_routine_map_[0xD9] = 8;
+  object_to_routine_map_[0xDA] = 8;
+  object_to_routine_map_[0xDB] = 8;
+  // 0xDC: 21 tiles
+  object_to_routine_map_[0xDC] = 16;  // 4x4 fallback
+  // 0xDD: 16 tiles
+  object_to_routine_map_[0xDD] = 16;  // 4x4
+  // 0xDE: 4 tiles
+  object_to_routine_map_[0xDE] = 11;  // 2x2
+  // 0xDF: 8 tiles
+  object_to_routine_map_[0xDF] = 8;   // 4x2
+
+  // 0xE0-0xEF Objects (based on tile counts from kSubtype1TileLengths)
+  // 0xE0-0xE8: 8 tiles each
+  for (int id = 0xE0; id <= 0xE8; id++) {
+    object_to_routine_map_[id] = 8;   // 4x2
+  }
+  // 0xE9-0xEF: 1 tile each
+  for (int id = 0xE9; id <= 0xEF; id++) {
+    object_to_routine_map_[id] = 25;  // 1x1
+  }
+
+  // 0xF0-0xF7 Objects (all 1 tile)
+  for (int id = 0xF0; id <= 0xF7; id++) {
+    object_to_routine_map_[id] = 25;  // 1x1
+  }
 
   // Subtype 2 Object Mappings (0x100-0x1FF)
   for (int id = 0x100; id <= 0x107; id++) {
