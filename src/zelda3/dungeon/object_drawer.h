@@ -45,6 +45,30 @@ class ObjectDrawer {
                           gfx::BackgroundBuffer& bg2,
                           const gfx::PaletteGroup& palette_group);
 
+  struct DoorDef {
+      uint8_t type;
+      uint8_t direction;
+      uint8_t position;
+  };
+
+  /**
+   * @brief Draw a door to background buffers
+   * @param door Door definition (type, direction, position)
+   * @param bg1 Background layer 1 buffer
+   * @param bg2 Background layer 2 buffer
+   */
+  void DrawDoor(const DoorDef& door, gfx::BackgroundBuffer& bg1,
+                gfx::BackgroundBuffer& bg2);
+
+  /**
+   * @brief Draw a pot item visualization
+   * @param item_id Item ID
+   * @param x X coordinate (pixels)
+   * @param y Y coordinate (pixels)
+   * @param bg Background buffer
+   */
+  void DrawPotItem(uint8_t item_id, int x, int y, gfx::BackgroundBuffer& bg);
+
   /**
    * @brief Draw all objects in a room
    * @param objects Vector of room objects

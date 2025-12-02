@@ -40,9 +40,9 @@ namespace editor {
 
 
 void MusicEditor::Initialize() {
-  // Configure docking class for song tracker windows (like dungeon rooms)
-  // Allow docking with any window for flexibility
-  song_window_class_.ClassId = ImGui::GetID("SongTrackerWindowClass");
+  // Note: song_window_class_ initialization is deferred to first Update() call
+  // because ImGui::GetID() requires a valid window context which doesn't exist
+  // during Initialize()
   song_window_class_.DockingAllowUnclassed = true;
   song_window_class_.DockNodeFlagsOverrideSet = ImGuiDockNodeFlags_None;
 
@@ -222,6 +222,12 @@ void MusicEditor::SlowDown(float delta) {
 }
 
 absl::Status MusicEditor::Update() {
+  // Deferred initialization: Initialize song_window_class_.ClassId on first Update()
+  // because ImGui::GetID() requires a valid window context
+  if (song_window_class_.ClassId == 0) {
+    song_window_class_.ClassId = ImGui::GetID("SongTrackerWindowClass");
+  }
+
   // Update MusicPlayer - this runs the dedicated audio emulator's frame
   // to generate audio samples. MusicPlayer has its own emulator instance
   // separate from the main emulator, so no conflict with EditorManager.

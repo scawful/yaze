@@ -5,6 +5,7 @@
 #include "absl/strings/str_format.h"
 #include "app/gfx/types/snes_tile.h"
 #include "util/log.h"
+#include "zelda3/dungeon/dungeon_rom_addresses.h"
 
 namespace yaze {
 namespace zelda3 {
@@ -65,7 +66,8 @@ absl::Status ObjectDrawer::DrawObject(const RoomObject& object,
 
   // Check if this is a BothBG routine (routines 3, 9, 17, 18)
   // These routines should draw to both BG1 and BG2
-  bool is_both_bg = (routine_id == 3 || routine_id == 9 ||
+  // We now use the all_bgs flag from the object itself, which is set during decoding
+  bool is_both_bg = object.all_bgs_ || (routine_id == 3 || routine_id == 9 ||
                      routine_id == 17 || routine_id == 18);
 
   if (is_both_bg) {
@@ -148,30 +150,35 @@ void ObjectDrawer::InitializeDrawRoutines() {
     object_to_routine_map_[id] = 6;
   }
 
-  // Diagonal walls - BothBG variants (0x0C-0x20)
-  // Acute Diagonals (/)
-  for (int id : {0x0C, 0x0D, 0x10, 0x11, 0x14, 0x15, 0x18, 0x19, 0x1C, 0x1D, 0x20}) {
-    object_to_routine_map_[id] = 17;
+  // Diagonal walls (0x0C-0x20) - Verified against bank_01.asm
+  // Non-BothBG diagonals: 0x0C-0x14 (matching assembly lines 280-289)
+  // Acute Diagonals (/) - NON-BothBG
+  for (int id : {0x0C, 0x0D, 0x10, 0x11, 0x14}) {
+    object_to_routine_map_[id] = 5;  // DiagonalAcute_1to16 (non-BothBG)
   }
-  // Grave Diagonals (\)
-  for (int id : {0x0E, 0x0F, 0x12, 0x13, 0x16, 0x17, 0x1A, 0x1B, 0x1E, 0x1F}) {
-    object_to_routine_map_[id] = 18;
+  // Grave Diagonals (\) - NON-BothBG
+  for (int id : {0x0E, 0x0F, 0x12, 0x13}) {
+    object_to_routine_map_[id] = 6;  // DiagonalGrave_1to16 (non-BothBG)
+  }
+  // BothBG diagonals start at 0x15 (matching assembly lines 289-300)
+  // Acute Diagonals (/) - BothBG
+  for (int id : {0x15, 0x18, 0x19, 0x1C, 0x1D, 0x20}) {
+    object_to_routine_map_[id] = 17;  // DiagonalAcute_1to16_BothBG
+  }
+  // Grave Diagonals (\) - BothBG
+  for (int id : {0x16, 0x17, 0x1A, 0x1B, 0x1E, 0x1F}) {
+    object_to_routine_map_[id] = 18;  // DiagonalGrave_1to16_BothBG
   }
 
-  // Edge and Corner Objects (0x21-0x30)
-  object_to_routine_map_[0x21] = 20;  // Edge 1x2
-  object_to_routine_map_[0x22] = 20;  // Edge 1x2
-  object_to_routine_map_[0x23] = 21;  // Edge with perimeter
-  object_to_routine_map_[0x24] = 21;  // Edge with perimeter
-  object_to_routine_map_[0x25] = 22;  // Edge variant
-  object_to_routine_map_[0x26] = 22;  // Edge variant
-  object_to_routine_map_[0x27] = 23;  // Top corners
-  object_to_routine_map_[0x28] = 24;  // Bottom corners
-  for (int id = 0x29; id <= 0x2E; id++) {
-    object_to_routine_map_[id] = 22;  // Edge variant
+  // Edge and Corner Objects (0x21-0x30) - Verified against bank_01.asm lines 302-317
+  object_to_routine_map_[0x21] = 20;  // RoomDraw_Rightwards1x2_1to16_plus2
+  object_to_routine_map_[0x22] = 21;  // RoomDraw_RightwardsHasEdge1x1_1to16_plus3
+  // 0x23-0x2E all use RoomDraw_RightwardsHasEdge1x1_1to16_plus2
+  for (int id = 0x23; id <= 0x2E; id++) {
+    object_to_routine_map_[id] = 22;
   }
-  object_to_routine_map_[0x2F] = 23;  // Top corners
-  object_to_routine_map_[0x30] = 24;  // Bottom corners
+  object_to_routine_map_[0x2F] = 23;  // RoomDraw_RightwardsTopCorners1x2_1to16_plus13
+  object_to_routine_map_[0x30] = 24;  // RoomDraw_RightwardsBottomCorners1x2_1to16_plus13
 
   // Custom/Special Objects (0x31-0x3E)
   object_to_routine_map_[0x31] = 14; // Custom
@@ -189,9 +196,9 @@ void ObjectDrawer::InitializeDrawRoutines() {
   object_to_routine_map_[0x3D] = 29; // Pillar 2x4
   object_to_routine_map_[0x3E] = 32; // Decor 2x2
 
-  // Type 2 Corners & Misc (0x40-0x4F) - FIXED MAPPINGS
-  for (int id = 0x40; id <= 0x46; id++) {
-    object_to_routine_map_[id] = 22; // Edge variant (RightwardsHasEdge1x1_1to16_plus2)
+  // 0x3F-0x46 all use RoomDraw_RightwardsHasEdge1x1_1to16_plus2 (verified bank_01.asm lines 332-338)
+  for (int id = 0x3F; id <= 0x46; id++) {
+    object_to_routine_map_[id] = 22;
   }
   // 0x47-0x48 Waterfalls - map to 1x1 for now or custom if implemented
   object_to_routine_map_[0x47] = 25; 
@@ -294,9 +301,9 @@ void ObjectDrawer::InitializeDrawRoutines() {
   object_to_routine_map_[0x136] = 16;
   // 0x137 Dam -> Map to 4x4 (16)
   object_to_routine_map_[0x137] = 16;
-  // 0x138-0x13B Spiral Stairs -> Map to 4x4 (16)
+  // 0x138-0x13B Spiral Stairs -> Map to 2x2 (4)
   for (int id = 0x138; id <= 0x13B; id++) {
-    object_to_routine_map_[id] = 16;
+    object_to_routine_map_[id] = 4;
   }
   // 0x13C Sanctuary Wall -> Map to 4x4 (16)
   object_to_routine_map_[0x13C] = 16;
@@ -306,6 +313,28 @@ void ObjectDrawer::InitializeDrawRoutines() {
   object_to_routine_map_[0x13E] = 30;
   // 0x13F Magic Bat Altar -> Map to 4x4 (16)
   object_to_routine_map_[0x13F] = 16;
+
+  // 0x140-0x14F Big Chests -> Map to 4x4 (16)
+  for (int id = 0x140; id <= 0x14F; id++) {
+    object_to_routine_map_[id] = 16;
+  }
+  // 0x150-0x15F Small Chests -> Map to 2x2 (4)
+  for (int id = 0x150; id <= 0x15F; id++) {
+    object_to_routine_map_[id] = 4;
+  }
+  // 0x160-0x1FF Misc Objects (Pots, etc.)
+  // Pots (0x160-0x16F) -> Map to 1x1 (25)
+  for (int id = 0x160; id <= 0x16F; id++) {
+    object_to_routine_map_[id] = 25;
+  }
+  // 0x170-0x17F ? -> Map to 4x4 (16) as fallback
+  for (int id = 0x170; id <= 0x17F; id++) {
+    object_to_routine_map_[id] = 16;
+  }
+  // 0x180-0x1FF ? -> Map to 4x4 (16) as fallback
+  for (int id = 0x180; id <= 0x1FF; id++) {
+    object_to_routine_map_[id] = 16;
+  }
 
   // Subtype 3 Object Mappings (0x200-0x2FF)
   object_to_routine_map_[0x200] = 34; // Water Face
@@ -606,6 +635,7 @@ void ObjectDrawer::DrawRightwards2x2_1to15or32(
     std::span<const gfx::TileInfo> tiles) {
   // Pattern: Draws 2x2 tiles rightward (object 0x00)
   // Size byte determines how many times to repeat (1-15 or 32)
+  // ROM tile order is COLUMN-MAJOR: [col0_row0, col0_row1, col1_row0, col1_row1]
   int size = obj.size_;
   if (size == 0)
     size = 32;  // Special case for object 0x00
@@ -616,12 +646,16 @@ void ObjectDrawer::DrawRightwards2x2_1to15or32(
 
   for (int s = 0; s < size; s++) {
     if (tiles.size() >= 4) {
-      // Draw 2x2 pattern using 8x8 tiles from the span
-      WriteTile8(bg, obj.x_ + (s * 2), obj.y_, tiles[0]);      // Top-left
-      WriteTile8(bg, obj.x_ + (s * 2) + 1, obj.y_, tiles[1]);  // Top-right
-      WriteTile8(bg, obj.x_ + (s * 2), obj.y_ + 1, tiles[2]);  // Bottom-left
+      // Draw 2x2 pattern in COLUMN-MAJOR order (matching assembly)
+      // tiles[0] → $BF → (col 0, row 0) = top-left
+      // tiles[1] → $CB → (col 0, row 1) = bottom-left
+      // tiles[2] → $C2 → (col 1, row 0) = top-right
+      // tiles[3] → $CE → (col 1, row 1) = bottom-right
+      WriteTile8(bg, obj.x_ + (s * 2), obj.y_, tiles[0]);      // col 0, row 0
+      WriteTile8(bg, obj.x_ + (s * 2), obj.y_ + 1, tiles[1]);  // col 0, row 1
+      WriteTile8(bg, obj.x_ + (s * 2) + 1, obj.y_, tiles[2]);  // col 1, row 0
       WriteTile8(bg, obj.x_ + (s * 2) + 1, obj.y_ + 1,
-                 tiles[3]);  // Bottom-right
+                 tiles[3]);  // col 1, row 1
     } else {
       LOG_DEBUG("ObjectDrawer",
                 "DrawRightwards2x2: SKIPPING - tiles.size()=%zu < 4",
@@ -634,7 +668,8 @@ void ObjectDrawer::DrawRightwards2x4_1to15or26(
     const RoomObject& obj, gfx::BackgroundBuffer& bg,
     std::span<const gfx::TileInfo> tiles) {
   // Pattern: Draws 2x4 tiles rightward (objects 0x01-0x02)
-  // Row-major ordering with 4 tiles repeated vertically
+  // Uses RoomDraw_Nx4 with N=2, tiles are COLUMN-MAJOR:
+  // [col0_row0, col0_row1, col0_row2, col0_row3, col1_row0, col1_row1, col1_row2, col1_row3]
   int size = obj.size_;
   if (size == 0)
     size = 26;  // Special case
@@ -644,18 +679,27 @@ void ObjectDrawer::DrawRightwards2x4_1to15or26(
             obj.id_, obj.x_, obj.y_, size, tiles.size());
 
   for (int s = 0; s < size; s++) {
-    if (tiles.size() >= 4) {
-      // Row 0
+    if (tiles.size() >= 8) {
+      // Draw 2x4 pattern in COLUMN-MAJOR order (matching RoomDraw_Nx4)
+      // Column 0 (tiles 0-3)
+      WriteTile8(bg, obj.x_ + (s * 2), obj.y_, tiles[0]);      // col 0, row 0
+      WriteTile8(bg, obj.x_ + (s * 2), obj.y_ + 1, tiles[1]);  // col 0, row 1
+      WriteTile8(bg, obj.x_ + (s * 2), obj.y_ + 2, tiles[2]);  // col 0, row 2
+      WriteTile8(bg, obj.x_ + (s * 2), obj.y_ + 3, tiles[3]);  // col 0, row 3
+      // Column 1 (tiles 4-7)
+      WriteTile8(bg, obj.x_ + (s * 2) + 1, obj.y_, tiles[4]);      // col 1, row 0
+      WriteTile8(bg, obj.x_ + (s * 2) + 1, obj.y_ + 1, tiles[5]);  // col 1, row 1
+      WriteTile8(bg, obj.x_ + (s * 2) + 1, obj.y_ + 2, tiles[6]);  // col 1, row 2
+      WriteTile8(bg, obj.x_ + (s * 2) + 1, obj.y_ + 3, tiles[7]);  // col 1, row 3
+    } else if (tiles.size() >= 4) {
+      // Fallback: repeat first 4 tiles for both columns
       WriteTile8(bg, obj.x_ + (s * 2), obj.y_, tiles[0]);
-      WriteTile8(bg, obj.x_ + (s * 2) + 1, obj.y_, tiles[1]);
-      // Row 1
-      WriteTile8(bg, obj.x_ + (s * 2), obj.y_ + 1, tiles[2]);
-      WriteTile8(bg, obj.x_ + (s * 2) + 1, obj.y_ + 1, tiles[3]);
-      // Row 2 (repeat)
-      WriteTile8(bg, obj.x_ + (s * 2), obj.y_ + 2, tiles[0]);
-      WriteTile8(bg, obj.x_ + (s * 2) + 1, obj.y_ + 2, tiles[1]);
-      // Row 3 (repeat)
-      WriteTile8(bg, obj.x_ + (s * 2), obj.y_ + 3, tiles[2]);
+      WriteTile8(bg, obj.x_ + (s * 2), obj.y_ + 1, tiles[1]);
+      WriteTile8(bg, obj.x_ + (s * 2), obj.y_ + 2, tiles[2]);
+      WriteTile8(bg, obj.x_ + (s * 2), obj.y_ + 3, tiles[3]);
+      WriteTile8(bg, obj.x_ + (s * 2) + 1, obj.y_, tiles[0]);
+      WriteTile8(bg, obj.x_ + (s * 2) + 1, obj.y_ + 1, tiles[1]);
+      WriteTile8(bg, obj.x_ + (s * 2) + 1, obj.y_ + 2, tiles[2]);
       WriteTile8(bg, obj.x_ + (s * 2) + 1, obj.y_ + 3, tiles[3]);
     }
   }
@@ -665,22 +709,35 @@ void ObjectDrawer::DrawRightwards2x4spaced4_1to16(
     const RoomObject& obj, gfx::BackgroundBuffer& bg,
     std::span<const gfx::TileInfo> tiles) {
   // Pattern: Draws 2x4 tiles rightward with spacing (objects 0x03-0x04)
-  // Row-major ordering with 4 tiles repeated vertically
+  // Uses RoomDraw_Nx4 with N=2, tiles are COLUMN-MAJOR, spacing of 4 tiles
   int size = obj.size_ & 0x0F;
 
-  for (int s = 0; s < size; s++) {
-    if (tiles.size() >= 4) {
-      // Row 0
+  // Assembly: JSR RoomDraw_GetSize_1to16
+  // GetSize_1to16: count = size + 1
+  int count = size + 1;
+
+  for (int s = 0; s < count; s++) {
+    if (tiles.size() >= 8) {
+      // Draw 2x4 pattern in COLUMN-MAJOR order with 4-tile spacing
+      // Column 0 (tiles 0-3)
+      WriteTile8(bg, obj.x_ + (s * 6), obj.y_, tiles[0]);      // col 0, row 0
+      WriteTile8(bg, obj.x_ + (s * 6), obj.y_ + 1, tiles[1]);  // col 0, row 1
+      WriteTile8(bg, obj.x_ + (s * 6), obj.y_ + 2, tiles[2]);  // col 0, row 2
+      WriteTile8(bg, obj.x_ + (s * 6), obj.y_ + 3, tiles[3]);  // col 0, row 3
+      // Column 1 (tiles 4-7)
+      WriteTile8(bg, obj.x_ + (s * 6) + 1, obj.y_, tiles[4]);      // col 1, row 0
+      WriteTile8(bg, obj.x_ + (s * 6) + 1, obj.y_ + 1, tiles[5]);  // col 1, row 1
+      WriteTile8(bg, obj.x_ + (s * 6) + 1, obj.y_ + 2, tiles[6]);  // col 1, row 2
+      WriteTile8(bg, obj.x_ + (s * 6) + 1, obj.y_ + 3, tiles[7]);  // col 1, row 3
+    } else if (tiles.size() >= 4) {
+      // Fallback: repeat first 4 tiles for both columns
       WriteTile8(bg, obj.x_ + (s * 6), obj.y_, tiles[0]);
-      WriteTile8(bg, obj.x_ + (s * 6) + 1, obj.y_, tiles[1]);
-      // Row 1
-      WriteTile8(bg, obj.x_ + (s * 6), obj.y_ + 1, tiles[2]);
-      WriteTile8(bg, obj.x_ + (s * 6) + 1, obj.y_ + 1, tiles[3]);
-      // Row 2 (repeat)
-      WriteTile8(bg, obj.x_ + (s * 6), obj.y_ + 2, tiles[0]);
-      WriteTile8(bg, obj.x_ + (s * 6) + 1, obj.y_ + 2, tiles[1]);
-      // Row 3 (repeat)
-      WriteTile8(bg, obj.x_ + (s * 6), obj.y_ + 3, tiles[2]);
+      WriteTile8(bg, obj.x_ + (s * 6), obj.y_ + 1, tiles[1]);
+      WriteTile8(bg, obj.x_ + (s * 6), obj.y_ + 2, tiles[2]);
+      WriteTile8(bg, obj.x_ + (s * 6), obj.y_ + 3, tiles[3]);
+      WriteTile8(bg, obj.x_ + (s * 6) + 1, obj.y_, tiles[0]);
+      WriteTile8(bg, obj.x_ + (s * 6) + 1, obj.y_ + 1, tiles[1]);
+      WriteTile8(bg, obj.x_ + (s * 6) + 1, obj.y_ + 2, tiles[2]);
       WriteTile8(bg, obj.x_ + (s * 6) + 1, obj.y_ + 3, tiles[3]);
     }
   }
@@ -698,16 +755,21 @@ void ObjectDrawer::DrawRightwards2x2_1to16(
     const RoomObject& obj, gfx::BackgroundBuffer& bg,
     std::span<const gfx::TileInfo> tiles) {
   // Pattern: Draws 2x2 tiles rightward (objects 0x07-0x08)
+  // ROM tile order is COLUMN-MAJOR: [col0_row0, col0_row1, col1_row0, col1_row1]
   int size = obj.size_ & 0x0F;
 
-  for (int s = 0; s < size; s++) {
+  // Assembly: JSR RoomDraw_GetSize_1to16
+  // GetSize_1to16: count = size + 1
+  int count = size + 1;
+
+  for (int s = 0; s < count; s++) {
     if (tiles.size() >= 4) {
-      // Draw 2x2 pattern using 8x8 tiles from span
-      WriteTile8(bg, obj.x_ + (s * 2), obj.y_, tiles[0]);      // Top-left
-      WriteTile8(bg, obj.x_ + (s * 2) + 1, obj.y_, tiles[1]);  // Top-right
-      WriteTile8(bg, obj.x_ + (s * 2), obj.y_ + 1, tiles[2]);  // Bottom-left
+      // Draw 2x2 pattern in COLUMN-MAJOR order (matching assembly)
+      WriteTile8(bg, obj.x_ + (s * 2), obj.y_, tiles[0]);      // col 0, row 0
+      WriteTile8(bg, obj.x_ + (s * 2), obj.y_ + 1, tiles[1]);  // col 0, row 1
+      WriteTile8(bg, obj.x_ + (s * 2) + 1, obj.y_, tiles[2]);  // col 1, row 0
       WriteTile8(bg, obj.x_ + (s * 2) + 1, obj.y_ + 1,
-                 tiles[3]);  // Bottom-right
+                 tiles[3]);  // col 1, row 1
     }
   }
 }
@@ -715,51 +777,113 @@ void ObjectDrawer::DrawRightwards2x2_1to16(
 void ObjectDrawer::DrawDiagonalAcute_1to16(
     const RoomObject& obj, gfx::BackgroundBuffer& bg,
     std::span<const gfx::TileInfo> tiles) {
-  // Pattern: Diagonal line going down-right (/) (object 0x09)
+  // Pattern: Diagonal acute (/) - draws 5 tiles vertically, moves up-right
+  // Based on bank_01.asm RoomDraw_DiagonalAcute_1to16 at $018C58
+  // Uses RoomDraw_2x2and1 to draw 5 tiles at rows 0-4, then moves Y -= $7E
   int size = obj.size_ & 0x0F;
 
-  for (int s = 0; s < size + 6; s++) {
-    if (tiles.size() >= 4) {
-      // Use first tile span for diagonal pattern
-      for (int i = 0; i < 5; i++) {
-        // Cycle through the 4 tiles in the span
-        const gfx::TileInfo& tile_info = tiles[i % 4];
-        WriteTile8(bg, obj.x_ + s, obj.y_ + (i - s), tile_info);
-      }
-    }
+  // Assembly: LDA #$0007; JSR RoomDraw_GetSize_1to16_timesA
+  // GetSize_1to16_timesA formula: ((B2 << 2) | B4) + A
+  // Since size_ already contains ((B2 << 2) | B4), count = size + 7
+  int count = size + 7;
+
+  if (tiles.size() < 5) return;
+
+  for (int s = 0; s < count; s++) {
+    // Draw 5 tiles in a vertical column (RoomDraw_2x2and1 pattern)
+    // Assembly stores to [$BF],Y, [$CB],Y, [$D7],Y, [$DA],Y, [$DD],Y
+    // These are rows 0, 1, 2, 3, 4 at the same X position
+    int tile_x = obj.x_ + s;      // Move right each iteration
+    int tile_y = obj.y_ - s;      // Move up each iteration (acute = /)
+
+    WriteTile8(bg, tile_x, tile_y + 0, tiles[0]);
+    WriteTile8(bg, tile_x, tile_y + 1, tiles[1]);
+    WriteTile8(bg, tile_x, tile_y + 2, tiles[2]);
+    WriteTile8(bg, tile_x, tile_y + 3, tiles[3]);
+    WriteTile8(bg, tile_x, tile_y + 4, tiles[4]);
   }
 }
 
 void ObjectDrawer::DrawDiagonalGrave_1to16(
     const RoomObject& obj, gfx::BackgroundBuffer& bg,
     std::span<const gfx::TileInfo> tiles) {
-  // Pattern: Diagonal line going down-left (\) (objects 0x0A-0x0B)
+  // Pattern: Diagonal grave (\) - draws 5 tiles vertically, moves down-right
+  // Based on bank_01.asm RoomDraw_DiagonalGrave_1to16 at $018C61
+  // Uses RoomDraw_2x2and1 to draw 5 tiles at rows 0-4, then moves Y += $82
   int size = obj.size_ & 0x0F;
 
-  for (int s = 0; s < size + 6; s++) {
-    if (tiles.size() >= 4) {
-      // Use first tile span for diagonal pattern
-      for (int i = 0; i < 5; i++) {
-        // Cycle through the 4 tiles in the span
-        const gfx::TileInfo& tile_info = tiles[i % 4];
-        WriteTile8(bg, obj.x_ + s, obj.y_ + (i + s), tile_info);
-      }
-    }
+  // Assembly: LDA #$0007; JSR RoomDraw_GetSize_1to16_timesA
+  // GetSize_1to16_timesA formula: ((B2 << 2) | B4) + A
+  // Since size_ already contains ((B2 << 2) | B4), count = size + 7
+  int count = size + 7;
+
+  if (tiles.size() < 5) return;
+
+  for (int s = 0; s < count; s++) {
+    // Draw 5 tiles in a vertical column (RoomDraw_2x2and1 pattern)
+    // Assembly stores to [$BF],Y, [$CB],Y, [$D7],Y, [$DA],Y, [$DD],Y
+    // These are rows 0, 1, 2, 3, 4 at the same X position
+    int tile_x = obj.x_ + s;      // Move right each iteration
+    int tile_y = obj.y_ + s;      // Move down each iteration (grave = \)
+
+    WriteTile8(bg, tile_x, tile_y + 0, tiles[0]);
+    WriteTile8(bg, tile_x, tile_y + 1, tiles[1]);
+    WriteTile8(bg, tile_x, tile_y + 2, tiles[2]);
+    WriteTile8(bg, tile_x, tile_y + 3, tiles[3]);
+    WriteTile8(bg, tile_x, tile_y + 4, tiles[4]);
   }
 }
 
 void ObjectDrawer::DrawDiagonalAcute_1to16_BothBG(
     const RoomObject& obj, gfx::BackgroundBuffer& bg,
     std::span<const gfx::TileInfo> tiles) {
-  // Pattern: Diagonal acute for both BG layers (objects 0x15-0x1F)
-  DrawDiagonalAcute_1to16(obj, bg, tiles);
+  // Pattern: Diagonal acute (/) for both BG layers (objects 0x15, 0x18-0x1D, 0x20)
+  // Based on bank_01.asm RoomDraw_DiagonalAcute_1to16_BothBG at $018C6A
+  // Assembly: LDA #$0006; JSR RoomDraw_GetSize_1to16_timesA
+  // GetSize_1to16_timesA formula: ((B2 << 2) | B4) + A
+  // Since size_ already contains ((B2 << 2) | B4), count = size + 6
+  int size = obj.size_ & 0x0F;
+  int count = size + 6;
+
+  if (tiles.size() < 5) return;
+
+  for (int s = 0; s < count; s++) {
+    int tile_x = obj.x_ + s;
+    int tile_y = obj.y_ - s;
+
+    WriteTile8(bg, tile_x, tile_y + 0, tiles[0]);
+    WriteTile8(bg, tile_x, tile_y + 1, tiles[1]);
+    WriteTile8(bg, tile_x, tile_y + 2, tiles[2]);
+    WriteTile8(bg, tile_x, tile_y + 3, tiles[3]);
+    WriteTile8(bg, tile_x, tile_y + 4, tiles[4]);
+  }
+  // Note: BothBG should write to both BG1 and BG2 - handled by DrawObject caller
 }
 
 void ObjectDrawer::DrawDiagonalGrave_1to16_BothBG(
     const RoomObject& obj, gfx::BackgroundBuffer& bg,
     std::span<const gfx::TileInfo> tiles) {
-  // Pattern: Diagonal grave for both BG layers (objects 0x16-0x20)
-  DrawDiagonalGrave_1to16(obj, bg, tiles);
+  // Pattern: Diagonal grave (\) for both BG layers (objects 0x16-0x17, 0x1A-0x1B, 0x1E-0x1F)
+  // Based on bank_01.asm RoomDraw_DiagonalGrave_1to16_BothBG at $018CB9
+  // Assembly: LDA #$0006; JSR RoomDraw_GetSize_1to16_timesA
+  // GetSize_1to16_timesA formula: ((B2 << 2) | B4) + A
+  // Since size_ already contains ((B2 << 2) | B4), count = size + 6
+  int size = obj.size_ & 0x0F;
+  int count = size + 6;
+
+  if (tiles.size() < 5) return;
+
+  for (int s = 0; s < count; s++) {
+    int tile_x = obj.x_ + s;
+    int tile_y = obj.y_ + s;
+
+    WriteTile8(bg, tile_x, tile_y + 0, tiles[0]);
+    WriteTile8(bg, tile_x, tile_y + 1, tiles[1]);
+    WriteTile8(bg, tile_x, tile_y + 2, tiles[2]);
+    WriteTile8(bg, tile_x, tile_y + 3, tiles[3]);
+    WriteTile8(bg, tile_x, tile_y + 4, tiles[4]);
+  }
+  // Note: BothBG should write to both BG1 and BG2 - handled by DrawObject caller
 }
 
 void ObjectDrawer::DrawCorner4x4(const RoomObject& obj,
@@ -783,7 +907,10 @@ void ObjectDrawer::DrawRightwards1x2_1to16_plus2(
   // Pattern: 1x2 tiles rightward with +2 offset (object 0x21)
   int size = obj.size_ & 0x0F;
 
-  for (int s = 0; s < size; s++) {
+  // Assembly: (size << 1) + 1 = (size * 2) + 1
+  int count = (size * 2) + 1;
+
+  for (int s = 0; s < count; s++) {
     if (tiles.size() >= 2) {
       // Use first tile span for 1x2 pattern
       WriteTile8(bg, obj.x_ + s + 2, obj.y_, tiles[0]);
@@ -798,7 +925,10 @@ void ObjectDrawer::DrawRightwardsHasEdge1x1_1to16_plus3(
   // Pattern: 1x1 tiles with edge detection +3 offset (object 0x22)
   int size = obj.size_ & 0x0F;
 
-  for (int s = 0; s < size; s++) {
+  // Assembly: GetSize_1to16_timesA(2), so count = size + 2
+  int count = size + 2;
+
+  for (int s = 0; s < count; s++) {
     if (tiles.size() >= 1) {
       // Use first 8x8 tile from span
       WriteTile8(bg, obj.x_ + s + 3, obj.y_, tiles[0]);
@@ -809,10 +939,13 @@ void ObjectDrawer::DrawRightwardsHasEdge1x1_1to16_plus3(
 void ObjectDrawer::DrawRightwardsHasEdge1x1_1to16_plus2(
     const RoomObject& obj, gfx::BackgroundBuffer& bg,
     std::span<const gfx::TileInfo> tiles) {
-  // Pattern: 1x1 tiles with edge detection +2 offset (objects 0x23-0x2E)
+  // Pattern: 1x1 tiles with edge detection +2 offset (objects 0x23-0x2E, 0x3F-0x46)
   int size = obj.size_ & 0x0F;
 
-  for (int s = 0; s < size; s++) {
+  // Assembly: GetSize_1to16, so count = size + 1
+  int count = size + 1;
+
+  for (int s = 0; s < count; s++) {
     if (tiles.size() >= 1) {
       // Use first 8x8 tile from span
       WriteTile8(bg, obj.x_ + s + 2, obj.y_, tiles[0]);
@@ -826,7 +959,10 @@ void ObjectDrawer::DrawRightwardsTopCorners1x2_1to16_plus13(
   // Pattern: Top corner 1x2 tiles with +13 offset (object 0x2F)
   int size = obj.size_ & 0x0F;
 
-  for (int s = 0; s < size; s++) {
+  // Assembly: GetSize_1to16_timesA(0x0A), so count = size + 10
+  int count = size + 10;
+
+  for (int s = 0; s < count; s++) {
     if (tiles.size() >= 2) {
       // Use first tile span for 1x2 pattern
       WriteTile8(bg, obj.x_ + s + 13, obj.y_, tiles[0]);
@@ -841,7 +977,10 @@ void ObjectDrawer::DrawRightwardsBottomCorners1x2_1to16_plus13(
   // Pattern: Bottom corner 1x2 tiles with +13 offset (object 0x30)
   int size = obj.size_ & 0x0F;
 
-  for (int s = 0; s < size; s++) {
+  // Assembly: GetSize_1to16_timesA(0x0A), so count = size + 10
+  int count = size + 10;
+
+  for (int s = 0; s < count; s++) {
     if (tiles.size() >= 2) {
       // Use first tile span for 1x2 pattern
       WriteTile8(bg, obj.x_ + s + 13, obj.y_ + 1, tiles[0]);
@@ -866,12 +1005,16 @@ void ObjectDrawer::DrawRightwards4x4_1to16(
   // Pattern: 4x4 block rightward (object 0x33)
   int size = obj.size_ & 0x0F;
 
-  for (int s = 0; s < size; s++) {
+  // Assembly: GetSize_1to16, so count = size + 1
+  int count = size + 1;
+
+  for (int s = 0; s < count; s++) {
     if (tiles.size() >= 16) {
-      // Draw 4x4 pattern using 8x8 tiles from span
-      for (int y = 0; y < 4; ++y) {
-        for (int x = 0; x < 4; ++x) {
-          WriteTile8(bg, obj.x_ + (s * 4) + x, obj.y_ + y, tiles[y * 4 + x]);
+      // Draw 4x4 pattern in COLUMN-MAJOR order (matching assembly)
+      // Iterate columns (x) first, then rows (y) within each column
+      for (int x = 0; x < 4; ++x) {
+        for (int y = 0; y < 4; ++y) {
+          WriteTile8(bg, obj.x_ + (s * 4) + x, obj.y_ + y, tiles[x * 4 + y]);
         }
       }
     }
@@ -884,7 +1027,10 @@ void ObjectDrawer::DrawRightwards1x1Solid_1to16_plus3(
   // Pattern: 1x1 solid tiles +3 offset (object 0x34)
   int size = obj.size_ & 0x0F;
 
-  for (int s = 0; s < size; s++) {
+  // Assembly: GetSize_1to16_timesA(4), so count = size + 4
+  int count = size + 4;
+
+  for (int s = 0; s < count; s++) {
     if (tiles.size() >= 1) {
       // Use first 8x8 tile from span
       WriteTile8(bg, obj.x_ + s + 3, obj.y_, tiles[0]);
@@ -909,12 +1055,15 @@ void ObjectDrawer::DrawRightwardsDecor4x4spaced2_1to16(
   // Pattern: 4x4 decoration with spacing (objects 0x36-0x37)
   int size = obj.size_ & 0x0F;
 
-  for (int s = 0; s < size; s++) {
+  // Assembly: GetSize_1to16, so count = size + 1
+  int count = size + 1;
+
+  for (int s = 0; s < count; s++) {
     if (tiles.size() >= 16) {
-      // Draw 4x4 pattern with spacing using 8x8 tiles from span
-      for (int y = 0; y < 4; ++y) {
-        for (int x = 0; x < 4; ++x) {
-          WriteTile8(bg, obj.x_ + (s * 6) + x, obj.y_ + y, tiles[y * 4 + x]);
+      // Draw 4x4 pattern with spacing in COLUMN-MAJOR order (matching assembly)
+      for (int x = 0; x < 4; ++x) {
+        for (int y = 0; y < 4; ++y) {
+          WriteTile8(bg, obj.x_ + (s * 6) + x, obj.y_ + y, tiles[x * 4 + y]);
         }
       }
     }
@@ -925,14 +1074,18 @@ void ObjectDrawer::DrawRightwardsStatue2x3spaced2_1to16(
     const RoomObject& obj, gfx::BackgroundBuffer& bg,
     std::span<const gfx::TileInfo> tiles) {
   // Pattern: 2x3 statue with spacing (object 0x38)
+  // 2 columns × 3 rows = 6 tiles in COLUMN-MAJOR order
   int size = obj.size_ & 0x0F;
 
-  for (int s = 0; s < size; s++) {
+  // Assembly: GetSize_1to16, so count = size + 1
+  int count = size + 1;
+
+  for (int s = 0; s < count; s++) {
     if (tiles.size() >= 6) {
-      // Draw 2x3 pattern using 8x8 tiles from span
-      for (int y = 0; y < 3; ++y) {
-        for (int x = 0; x < 2; ++x) {
-          WriteTile8(bg, obj.x_ + (s * 4) + x, obj.y_ + y, tiles[y * 2 + x]);
+      // Draw 2x3 pattern in COLUMN-MAJOR order (matching assembly)
+      for (int x = 0; x < 2; ++x) {
+        for (int y = 0; y < 3; ++y) {
+          WriteTile8(bg, obj.x_ + (s * 4) + x, obj.y_ + y, tiles[x * 3 + y]);
         }
       }
     }
@@ -943,14 +1096,18 @@ void ObjectDrawer::DrawRightwardsPillar2x4spaced4_1to16(
     const RoomObject& obj, gfx::BackgroundBuffer& bg,
     std::span<const gfx::TileInfo> tiles) {
   // Pattern: 2x4 pillar with spacing (objects 0x39, 0x3D)
+  // 2 columns × 4 rows = 8 tiles in COLUMN-MAJOR order
   int size = obj.size_ & 0x0F;
 
-  for (int s = 0; s < size; s++) {
+  // Assembly: GetSize_1to16, so count = size + 1
+  int count = size + 1;
+
+  for (int s = 0; s < count; s++) {
     if (tiles.size() >= 8) {
-      // Draw 2x4 pattern using 8x8 tiles from span
-      for (int y = 0; y < 4; ++y) {
-        for (int x = 0; x < 2; ++x) {
-          WriteTile8(bg, obj.x_ + (s * 6) + x, obj.y_ + y, tiles[y * 2 + x]);
+      // Draw 2x4 pattern in COLUMN-MAJOR order (matching assembly)
+      for (int x = 0; x < 2; ++x) {
+        for (int y = 0; y < 4; ++y) {
+          WriteTile8(bg, obj.x_ + (s * 6) + x, obj.y_ + y, tiles[x * 4 + y]);
         }
       }
     }
@@ -961,14 +1118,18 @@ void ObjectDrawer::DrawRightwardsDecor4x3spaced4_1to16(
     const RoomObject& obj, gfx::BackgroundBuffer& bg,
     std::span<const gfx::TileInfo> tiles) {
   // Pattern: 4x3 decoration with spacing (objects 0x3A-0x3B)
+  // 4 columns × 3 rows = 12 tiles in COLUMN-MAJOR order
   int size = obj.size_ & 0x0F;
 
-  for (int s = 0; s < size; s++) {
+  // Assembly: GetSize_1to16, so count = size + 1
+  int count = size + 1;
+
+  for (int s = 0; s < count; s++) {
     if (tiles.size() >= 12) {
-      // Draw 4x3 pattern using 8x8 tiles from span
-      for (int y = 0; y < 3; ++y) {
-        for (int x = 0; x < 4; ++x) {
-          WriteTile8(bg, obj.x_ + (s * 6) + x, obj.y_ + y, tiles[y * 4 + x]);
+      // Draw 4x3 pattern in COLUMN-MAJOR order (matching assembly)
+      for (int x = 0; x < 4; ++x) {
+        for (int y = 0; y < 3; ++y) {
+          WriteTile8(bg, obj.x_ + (s * 6) + x, obj.y_ + y, tiles[x * 3 + y]);
         }
       }
     }
@@ -979,14 +1140,18 @@ void ObjectDrawer::DrawRightwardsDoubled2x2spaced2_1to16(
     const RoomObject& obj, gfx::BackgroundBuffer& bg,
     std::span<const gfx::TileInfo> tiles) {
   // Pattern: Doubled 2x2 with spacing (object 0x3C)
+  // 4 columns × 2 rows = 8 tiles in COLUMN-MAJOR order
   int size = obj.size_ & 0x0F;
 
-  for (int s = 0; s < size; s++) {
+  // Assembly: GetSize_1to16, so count = size + 1
+  int count = size + 1;
+
+  for (int s = 0; s < count; s++) {
     if (tiles.size() >= 8) {
-      // Draw doubled 2x2 pattern using 8x8 tiles from span
-      for (int y = 0; y < 2; ++y) {
-        for (int x = 0; x < 4; ++x) {  // Draw a 4x2 area
-          WriteTile8(bg, obj.x_ + (s * 6) + x, obj.y_ + y, tiles[y * 4 + x]);
+      // Draw doubled 2x2 pattern in COLUMN-MAJOR order (matching assembly)
+      for (int x = 0; x < 4; ++x) {
+        for (int y = 0; y < 2; ++y) {
+          WriteTile8(bg, obj.x_ + (s * 6) + x, obj.y_ + y, tiles[x * 2 + y]);
         }
       }
     }
@@ -999,20 +1164,26 @@ void ObjectDrawer::DrawRightwardsDecor2x2spaced12_1to16(
   // Pattern: 2x2 decoration with large spacing (object 0x3E)
   int size = obj.size_ & 0x0F;
 
-  for (int s = 0; s < size; s++) {
+  // Assembly: GetSize_1to16, so count = size + 1
+  int count = size + 1;
+
+  for (int s = 0; s < count; s++) {
     if (tiles.size() >= 4) {
-      // Draw 2x2 decoration with 12-tile spacing using 8x8 tiles from span
-      WriteTile8(bg, obj.x_ + (s * 14), obj.y_, tiles[0]);      // Top-left
-      WriteTile8(bg, obj.x_ + (s * 14) + 1, obj.y_, tiles[1]);  // Top-right
-      WriteTile8(bg, obj.x_ + (s * 14), obj.y_ + 1, tiles[2]);  // Bottom-left
-      WriteTile8(bg, obj.x_ + (s * 14) + 1, obj.y_ + 1,
-                 tiles[3]);  // Bottom-right
+      // Draw 2x2 pattern in COLUMN-MAJOR order (matching assembly)
+      // tiles[0] → col 0, row 0 = top-left
+      // tiles[1] → col 0, row 1 = bottom-left
+      // tiles[2] → col 1, row 0 = top-right
+      // tiles[3] → col 1, row 1 = bottom-right
+      WriteTile8(bg, obj.x_ + (s * 14), obj.y_, tiles[0]);      // col 0, row 0
+      WriteTile8(bg, obj.x_ + (s * 14), obj.y_ + 1, tiles[1]);  // col 0, row 1
+      WriteTile8(bg, obj.x_ + (s * 14) + 1, obj.y_, tiles[2]);      // col 1, row 0
+      WriteTile8(bg, obj.x_ + (s * 14) + 1, obj.y_ + 1, tiles[3]);  // col 1, row 1
     }
   }
 }
 
 // ============================================================================
-// Downwards Draw Routines (Missing Implementation)
+// Downwards Draw Routines
 // ============================================================================
 
 void ObjectDrawer::DrawDownwards2x2_1to15or32(
@@ -1026,12 +1197,17 @@ void ObjectDrawer::DrawDownwards2x2_1to15or32(
 
   for (int s = 0; s < size; s++) {
     if (tiles.size() >= 4) {
-      // Draw 2x2 pattern using 8x8 tiles from the span
-      WriteTile8(bg, obj.x_, obj.y_ + (s * 2), tiles[0]);      // Top-left
-      WriteTile8(bg, obj.x_ + 1, obj.y_ + (s * 2), tiles[1]);  // Top-right
-      WriteTile8(bg, obj.x_, obj.y_ + (s * 2) + 1, tiles[2]);  // Bottom-left
+      // Draw 2x2 pattern in COLUMN-MAJOR order (matching assembly)
+      // Assembly uses indirect pointers: $BF, $CB, $C2, $CE
+      // tiles[0] → $BF → (col 0, row 0) = top-left
+      // tiles[1] → $CB → (col 0, row 1) = bottom-left
+      // tiles[2] → $C2 → (col 1, row 0) = top-right
+      // tiles[3] → $CE → (col 1, row 1) = bottom-right
+      WriteTile8(bg, obj.x_, obj.y_ + (s * 2), tiles[0]);      // col 0, row 0
+      WriteTile8(bg, obj.x_, obj.y_ + (s * 2) + 1, tiles[1]);  // col 0, row 1
+      WriteTile8(bg, obj.x_ + 1, obj.y_ + (s * 2), tiles[2]);  // col 1, row 0
       WriteTile8(bg, obj.x_ + 1, obj.y_ + (s * 2) + 1,
-                 tiles[3]);  // Bottom-right
+                 tiles[3]);  // col 1, row 1
     }
   }
 }
@@ -1040,6 +1216,7 @@ void ObjectDrawer::DrawDownwards4x2_1to15or26(
     const RoomObject& obj, gfx::BackgroundBuffer& bg,
     std::span<const gfx::TileInfo> tiles) {
   // Pattern: Draws 4x2 tiles downward (objects 0x61-0x62)
+  // This is 4 columns × 2 rows = 8 tiles in COLUMN-MAJOR order
   int size = obj.size_;
   if (size == 0)
     size = 26;  // Special case
@@ -1050,32 +1227,29 @@ void ObjectDrawer::DrawDownwards4x2_1to15or26(
 
   for (int s = 0; s < size; s++) {
     if (tiles.size() >= 8) {
-      // Draw 4x2 pattern using 8 tiles from span
-      // Top row: tiles 0,1,2,3
-      WriteTile8(bg, obj.x_, obj.y_ + (s * 2), tiles[0]);      // Top-left
-      WriteTile8(bg, obj.x_ + 1, obj.y_ + (s * 2), tiles[1]);  // Top-right
-      WriteTile8(bg, obj.x_ + 2, obj.y_ + (s * 2),
-                 tiles[2]);  // Top-middle-left
-      WriteTile8(bg, obj.x_ + 3, obj.y_ + (s * 2),
-                 tiles[3]);  // Top-middle-right
-
-      // Bottom row: tiles 4,5,6,7
-      WriteTile8(bg, obj.x_, obj.y_ + (s * 2) + 1, tiles[4]);  // Bottom-left
-      WriteTile8(bg, obj.x_ + 1, obj.y_ + (s * 2) + 1,
-                 tiles[5]);  // Bottom-right
-      WriteTile8(bg, obj.x_ + 2, obj.y_ + (s * 2) + 1,
-                 tiles[6]);  // Bottom-middle-left
-      WriteTile8(bg, obj.x_ + 3, obj.y_ + (s * 2) + 1,
-                 tiles[7]);  // Bottom-middle-right
+      // Draw 4x2 pattern in COLUMN-MAJOR order (matching assembly)
+      // Column 0 (tiles 0-1)
+      WriteTile8(bg, obj.x_, obj.y_ + (s * 2), tiles[0]);      // col 0, row 0
+      WriteTile8(bg, obj.x_, obj.y_ + (s * 2) + 1, tiles[1]);  // col 0, row 1
+      // Column 1 (tiles 2-3)
+      WriteTile8(bg, obj.x_ + 1, obj.y_ + (s * 2), tiles[2]);      // col 1, row 0
+      WriteTile8(bg, obj.x_ + 1, obj.y_ + (s * 2) + 1, tiles[3]);  // col 1, row 1
+      // Column 2 (tiles 4-5)
+      WriteTile8(bg, obj.x_ + 2, obj.y_ + (s * 2), tiles[4]);      // col 2, row 0
+      WriteTile8(bg, obj.x_ + 2, obj.y_ + (s * 2) + 1, tiles[5]);  // col 2, row 1
+      // Column 3 (tiles 6-7)
+      WriteTile8(bg, obj.x_ + 3, obj.y_ + (s * 2), tiles[6]);      // col 3, row 0
+      WriteTile8(bg, obj.x_ + 3, obj.y_ + (s * 2) + 1, tiles[7]);  // col 3, row 1
     } else if (tiles.size() >= 4) {
-      // Fallback: use only first 4 tiles and repeat
-      WriteTile8(bg, obj.x_, obj.y_ + (s * 2), tiles[0]);
-      WriteTile8(bg, obj.x_ + 1, obj.y_ + (s * 2), tiles[1]);
+      // Fallback: use only first 4 tiles (2 columns) in column-major order
+      WriteTile8(bg, obj.x_, obj.y_ + (s * 2), tiles[0]);      // col 0, row 0
+      WriteTile8(bg, obj.x_, obj.y_ + (s * 2) + 1, tiles[1]);  // col 0, row 1
+      WriteTile8(bg, obj.x_ + 1, obj.y_ + (s * 2), tiles[2]);      // col 1, row 0
+      WriteTile8(bg, obj.x_ + 1, obj.y_ + (s * 2) + 1, tiles[3]);  // col 1, row 1
+      // Repeat columns 0-1 for columns 2-3
       WriteTile8(bg, obj.x_ + 2, obj.y_ + (s * 2), tiles[0]);
-      WriteTile8(bg, obj.x_ + 3, obj.y_ + (s * 2), tiles[1]);
-      WriteTile8(bg, obj.x_, obj.y_ + (s * 2) + 1, tiles[2]);
-      WriteTile8(bg, obj.x_ + 1, obj.y_ + (s * 2) + 1, tiles[3]);
-      WriteTile8(bg, obj.x_ + 2, obj.y_ + (s * 2) + 1, tiles[2]);
+      WriteTile8(bg, obj.x_ + 2, obj.y_ + (s * 2) + 1, tiles[1]);
+      WriteTile8(bg, obj.x_ + 3, obj.y_ + (s * 2), tiles[2]);
       WriteTile8(bg, obj.x_ + 3, obj.y_ + (s * 2) + 1, tiles[3]);
     }
   }
@@ -1093,19 +1267,27 @@ void ObjectDrawer::DrawDownwardsDecor4x2spaced4_1to16(
     const RoomObject& obj, gfx::BackgroundBuffer& bg,
     std::span<const gfx::TileInfo> tiles) {
   // Pattern: Draws 4x2 decoration downward with spacing (objects 0x65-0x66)
+  // This is 4 columns × 2 rows = 8 tiles in COLUMN-MAJOR order with 4-tile spacing
   int size = obj.size_ & 0x0F;
 
-  for (int s = 0; s < size; s++) {
+  // Assembly: GetSize_1to16, so count = size + 1
+  int count = size + 1;
+
+  for (int s = 0; s < count; s++) {
     if (tiles.size() >= 8) {
-      // Draw 4x2 pattern with spacing using 8x8 tiles from span
-      WriteTile8(bg, obj.x_, obj.y_ + (s * 6), tiles[0]);
-      WriteTile8(bg, obj.x_ + 1, obj.y_ + (s * 6), tiles[1]);
-      WriteTile8(bg, obj.x_ + 2, obj.y_ + (s * 6), tiles[2]);
-      WriteTile8(bg, obj.x_ + 3, obj.y_ + (s * 6), tiles[3]);
-      WriteTile8(bg, obj.x_, obj.y_ + (s * 6) + 1, tiles[4]);
-      WriteTile8(bg, obj.x_ + 1, obj.y_ + (s * 6) + 1, tiles[5]);
-      WriteTile8(bg, obj.x_ + 2, obj.y_ + (s * 6) + 1, tiles[6]);
-      WriteTile8(bg, obj.x_ + 3, obj.y_ + (s * 6) + 1, tiles[7]);
+      // Draw 4x2 pattern in COLUMN-MAJOR order with spacing
+      // Column 0 (tiles 0-1)
+      WriteTile8(bg, obj.x_, obj.y_ + (s * 6), tiles[0]);      // col 0, row 0
+      WriteTile8(bg, obj.x_, obj.y_ + (s * 6) + 1, tiles[1]);  // col 0, row 1
+      // Column 1 (tiles 2-3)
+      WriteTile8(bg, obj.x_ + 1, obj.y_ + (s * 6), tiles[2]);      // col 1, row 0
+      WriteTile8(bg, obj.x_ + 1, obj.y_ + (s * 6) + 1, tiles[3]);  // col 1, row 1
+      // Column 2 (tiles 4-5)
+      WriteTile8(bg, obj.x_ + 2, obj.y_ + (s * 6), tiles[4]);      // col 2, row 0
+      WriteTile8(bg, obj.x_ + 2, obj.y_ + (s * 6) + 1, tiles[5]);  // col 2, row 1
+      // Column 3 (tiles 6-7)
+      WriteTile8(bg, obj.x_ + 3, obj.y_ + (s * 6), tiles[6]);      // col 3, row 0
+      WriteTile8(bg, obj.x_ + 3, obj.y_ + (s * 6) + 1, tiles[7]);  // col 3, row 1
     }
   }
 }
@@ -1116,13 +1298,20 @@ void ObjectDrawer::DrawDownwards2x2_1to16(
   // Pattern: Draws 2x2 tiles downward (objects 0x67-0x68)
   int size = obj.size_ & 0x0F;
 
-  for (int s = 0; s < size; s++) {
+  // Assembly: GetSize_1to16, so count = size + 1
+  int count = size + 1;
+
+  for (int s = 0; s < count; s++) {
     if (tiles.size() >= 4) {
-      // Draw 2x2 pattern using 8x8 tiles from span
-      WriteTile8(bg, obj.x_, obj.y_ + (s * 2), tiles[0]);
-      WriteTile8(bg, obj.x_ + 1, obj.y_ + (s * 2), tiles[1]);
-      WriteTile8(bg, obj.x_, obj.y_ + (s * 2) + 1, tiles[2]);
-      WriteTile8(bg, obj.x_ + 1, obj.y_ + (s * 2) + 1, tiles[3]);
+      // Draw 2x2 pattern in COLUMN-MAJOR order (matching assembly)
+      // tiles[0] → col 0, row 0 = top-left
+      // tiles[1] → col 0, row 1 = bottom-left
+      // tiles[2] → col 1, row 0 = top-right
+      // tiles[3] → col 1, row 1 = bottom-right
+      WriteTile8(bg, obj.x_, obj.y_ + (s * 2), tiles[0]);      // col 0, row 0
+      WriteTile8(bg, obj.x_, obj.y_ + (s * 2) + 1, tiles[1]);  // col 0, row 1
+      WriteTile8(bg, obj.x_ + 1, obj.y_ + (s * 2), tiles[2]);      // col 1, row 0
+      WriteTile8(bg, obj.x_ + 1, obj.y_ + (s * 2) + 1, tiles[3]);  // col 1, row 1
     }
   }
 }
@@ -1133,7 +1322,10 @@ void ObjectDrawer::DrawDownwardsHasEdge1x1_1to16_plus3(
   // Pattern: 1x1 tiles with edge detection +3 offset downward (object 0x69)
   int size = obj.size_ & 0x0F;
 
-  for (int s = 0; s < size; s++) {
+  // Assembly: GetSize_1to16_timesA(2), so count = size + 2
+  int count = size + 2;
+
+  for (int s = 0; s < count; s++) {
     if (tiles.size() >= 1) {
       // Use first 8x8 tile from span
       WriteTile8(bg, obj.x_ + 3, obj.y_ + s, tiles[0]);
@@ -1147,7 +1339,10 @@ void ObjectDrawer::DrawDownwardsEdge1x1_1to16(
   // Pattern: 1x1 edge tiles downward (objects 0x6A-0x6B)
   int size = obj.size_ & 0x0F;
 
-  for (int s = 0; s < size; s++) {
+  // Assembly: GetSize_1to16, so count = size + 1
+  int count = size + 1;
+
+  for (int s = 0; s < count; s++) {
     if (tiles.size() >= 1) {
       // Use first 8x8 tile from span
       WriteTile8(bg, obj.x_, obj.y_ + s, tiles[0]);
@@ -1161,7 +1356,10 @@ void ObjectDrawer::DrawDownwardsLeftCorners2x1_1to16_plus12(
   // Pattern: Left corner 2x1 tiles with +12 offset downward (object 0x6C)
   int size = obj.size_ & 0x0F;
 
-  for (int s = 0; s < size; s++) {
+  // Assembly: GetSize_1to16_timesA(0x0A), so count = size + 10
+  int count = size + 10;
+
+  for (int s = 0; s < count; s++) {
     if (tiles.size() >= 2) {
       // Use first tile span for 2x1 pattern
       WriteTile8(bg, obj.x_ + 12, obj.y_ + s, tiles[0]);
@@ -1176,7 +1374,10 @@ void ObjectDrawer::DrawDownwardsRightCorners2x1_1to16_plus12(
   // Pattern: Right corner 2x1 tiles with +12 offset downward (object 0x6D)
   int size = obj.size_ & 0x0F;
 
-  for (int s = 0; s < size; s++) {
+  // Assembly: GetSize_1to16_timesA(0x0A), so count = size + 10
+  int count = size + 10;
+
+  for (int s = 0; s < count; s++) {
     if (tiles.size() >= 2) {
       // Use first tile span for 2x1 pattern
       WriteTile8(bg, obj.x_ + 12, obj.y_ + s, tiles[0]);
@@ -1250,6 +1451,20 @@ void ObjectDrawer::DrawTileToBitmap(gfx::Bitmap& bitmap,
   int tile_base_x = tile_col * 8;    // 8 bytes per tile horizontally
   int tile_base_y = tile_row * 1024; // 1024 bytes per tile row (8 rows * 128 bytes)
 
+  // DEBUG: Log first few tiles being drawn with their graphics data
+  static int draw_debug_count = 0;
+  if (draw_debug_count < 5) {
+    int sample_index = tile_base_y + tile_base_x;
+    printf("[DrawTile] id=%d (col=%d,row=%d) -> gfx offset=%d (0x%04X)\n",
+           tile_info.id_, tile_col, tile_row, sample_index, sample_index);
+    printf("  First 8 pixels at tile: ");
+    for (int i = 0; i < 8; i++) {
+      printf("%02X ", tiledata[sample_index + i]);
+    }
+    printf("\n");
+    draw_debug_count++;
+  }
+
   // Palette offset: Dungeon palette uses 15 colors per group (90 total = 6 sub-palettes)
   // Pixel 0 is transparent and skipped. Pixel 1 maps to index 0.
   // SNES tilemap allows palette 0-7, but we only have 6 sub-palettes (0-5).
@@ -1312,14 +1527,16 @@ void ObjectDrawer::DrawSomariaLine(const RoomObject& obj,
   // Draws a line of tiles based on size/direction
   // Simplified implementation: Draw 1x1 tiles along the path
   // Real implementation involves complex state machine for path following
-  int size = obj.size_;
+  int length = (obj.size_ & 0x0F) + 1; // Size 0 = 1 tile? Or size+1? Usually size+1.
   
-  // For now, draw a simple 2x2 block at the start position to indicate presence
-  if (tiles.size() >= 4) {
-      WriteTile8(bg, obj.x_, obj.y_, tiles[0]);
-      WriteTile8(bg, obj.x_ + 1, obj.y_, tiles[1]);
-      WriteTile8(bg, obj.x_, obj.y_ + 1, tiles[2]);
-      WriteTile8(bg, obj.x_ + 1, obj.y_ + 1, tiles[3]);
+  // For now, draw a horizontal line. 
+  // TODO: Determine direction based on ID (0x203=H, 0x204=V, etc.)
+  if (!tiles.empty()) {
+    for (int i = 0; i < length; ++i) {
+      // Use the first tile for the line
+      // Somaria paths usually use the same tile repeated
+      WriteTile8(bg, obj.x_ + i, obj.y_, tiles[0]);
+    }
   }
 }
 
@@ -1327,12 +1544,12 @@ void ObjectDrawer::DrawWaterFace(const RoomObject& obj,
                                  gfx::BackgroundBuffer& bg,
                                  std::span<const gfx::TileInfo> tiles) {
   // Pattern: Water Face (objects 0x200-0x202)
-  // Draws a 2x2 face
+  // Draws a 2x2 face in COLUMN-MAJOR order
   if (tiles.size() >= 4) {
-    WriteTile8(bg, obj.x_, obj.y_, tiles[0]);
-    WriteTile8(bg, obj.x_ + 1, obj.y_, tiles[1]);
-    WriteTile8(bg, obj.x_, obj.y_ + 1, tiles[2]);
-    WriteTile8(bg, obj.x_ + 1, obj.y_ + 1, tiles[3]);
+    WriteTile8(bg, obj.x_, obj.y_, tiles[0]);      // col 0, row 0
+    WriteTile8(bg, obj.x_, obj.y_ + 1, tiles[1]);  // col 0, row 1
+    WriteTile8(bg, obj.x_ + 1, obj.y_, tiles[2]);      // col 1, row 0
+    WriteTile8(bg, obj.x_ + 1, obj.y_ + 1, tiles[3]);  // col 1, row 1
   }
 }
 
@@ -1376,6 +1593,140 @@ void ObjectDrawer::DrawLargeCanvasObject(const RoomObject& obj,
 
 }  // namespace zelda3
 }  // namespace yaze
+
+void yaze::zelda3::ObjectDrawer::DrawDoor(const DoorDef& door,
+                                          gfx::BackgroundBuffer& bg1,
+                                          gfx::BackgroundBuffer& bg2) {
+  if (!rom_ || !rom_->is_loaded()) return;
+
+  // Determine graphics address based on direction
+  int gfx_addr = 0;
+  switch (door.direction) {
+    case 0: gfx_addr = kDoorGfxUp; break;    // North
+    case 1: gfx_addr = kDoorGfxDown; break;  // South
+    case 2: gfx_addr = kDoorGfxLeft; break;  // West
+    case 3: gfx_addr = kDoorGfxRight; break; // East
+    default: return;
+  }
+
+  // Convert to PC address
+  // Door graphics are in bank 01? No, 0x4D9E is bank 00 or 01.
+  // kDoorGfxUp = 0x4D9E. This is likely a PC address or short address in bank 01.
+  // If it's short, it's 01:4D9E -> PC 0x00CD9E?
+  // Let's assume it's a PC address or we need to convert.
+  // dungeon_rom_addresses.h says: kDoorGfxUp = 0x4D9E.
+  // This looks like a SNES address in bank 00/01.
+  // Let's try to use it as an offset in the ROM if it's small, or convert.
+  // 0x4D9E is small.
+  // Actually, let's look at how other addresses are used.
+  // kTileAddress = 0x001B52.
+  // These look like PC addresses (offsets).
+  
+  // Read door tiles
+  // Doors are typically 4x4 or 3x4.
+  // Let's assume 4x4 (16 tiles) for safety.
+  // Each tile is 2 bytes (TileInfo).
+  // So read 32 bytes?
+  // No, graphics pointers usually point to TILE DATA (pixels) or TILE MAP (indices).
+  // In ALTTP, door graphics are usually tile maps.
+  // So we read 16 words (32 bytes).
+  
+  int tile_map_addr = gfx_addr; // + (door.type * ...)?
+  // For now, ignore type and just draw the base door for the direction.
+  
+  // Read door tiles
+  auto tile_data_status = rom_->ReadByteVector(gfx_addr, 32); // 16 tiles * 2 bytes
+  if (!tile_data_status.ok()) return;
+  std::vector<uint8_t> tile_data = tile_data_status.value();
+  if (tile_data.size() < 32) return;
+
+  // Draw 4x4 grid
+  // Door positions are usually in 8x8 units or 16x16?
+  // Spec says "Door position (0-255)".
+  // If it's 0-63 (like objects), it's 16x16 units?
+  // Objects use X/Y in 0-63 range.
+  // Doors use a single byte position.
+  // We need to convert door.position to X/Y.
+  // If position is 0-0x3F, it might be an index into a position table.
+  // kDoorPosUp = 0x197E.
+  // Let's assume we need to look up position.
+  
+  // Position lookup
+  int pos_table_addr = 0;
+  switch (door.direction) {
+    case 0: pos_table_addr = kDoorPosUp; break;
+    case 1: pos_table_addr = kDoorPosDown; break;
+    case 2: pos_table_addr = kDoorPosLeft; break;
+    case 3: pos_table_addr = kDoorPosRight; break;
+  }
+  
+  // Read position from table
+  // Table is likely indexed by door.position
+  // Each entry is 2 bytes (Low/High) for SNES address?
+  // Or just a single byte coordinate?
+  // Spec says "Byte 1: Door position (0-255)".
+  // If it's an index, we read 2 bytes from table?
+  // Let's assume it's a direct coordinate for now, or use the table if we can.
+  // But we don't have the table logic fully reversed here.
+  
+  // Fallback: Decode position from byte 1 like objects?
+  // posX = (b1 & 0xFC) >> 2 ?
+  // Let's try that.
+  int x = (door.position & 0xFC) >> 2; // This is just a guess
+  int y = (door.position & 0xFC) >> 2; // This is definitely wrong
+  
+  // Actually, let's look at the spec again.
+  // "Byte 1: Door position (0-255)"
+  // "kDoorPosUp = 0x197E"
+  // This suggests a table.
+  // Let's try to read from the table.
+  // Table size? 256 entries?
+  // If we read 2 bytes at pos_table_addr + (door.position * 2), we get a word.
+  // That word is likely the VRAM address or Tilemap index.
+  // From that we can get X/Y.
+  // Tilemap index = Y * 32 + X.
+  
+  if (pos_table_addr != 0) {
+      auto pos_word = rom_->ReadWord(pos_table_addr + (door.position * 2));
+      if (pos_word.ok()) {
+          uint16_t addr = pos_word.value();
+          // Convert VRAM address to X/Y
+          // BG1 starts at 0.
+          // Address is usually offset in bytes.
+          // Each tile is 2 bytes.
+          // So tile_index = addr / 2.
+          // x = tile_index % 32;
+          // y = tile_index / 32;
+          int tile_index = addr / 2;
+          x = tile_index % 32; // 0-31 (8x8 tiles)
+          y = tile_index / 32; // 0-31
+          
+          // But wait, objects use 0-63 coordinates which are 16x16?
+          // No, objects use 0-63 which are 8x8?
+          // RoomObject::x_ is 0-63.
+          // If x is 0-31, it's 16x16?
+          // Let's assume x, y are in 16x16 units if they are 0-31.
+          // So multiply by 2 to get 8x8 units.
+          x *= 2;
+          y *= 2;
+      }
+  }
+
+  // Draw tiles
+  int tid = 0;
+  for (int row = 0; row < 4; ++row) {
+    for (int col = 0; col < 4; ++col) {
+      if (tid >= 16) break;
+      
+      uint8_t t1 = tile_data[tid * 2];
+      uint8_t t2 = tile_data[tid * 2 + 1];
+      gfx::TileInfo tile(t1, t2);
+      
+      WriteTile8(bg1, x + col, y + row, tile);
+      tid++;
+    }
+  }
+}
 
 std::pair<int, int> yaze::zelda3::ObjectDrawer::CalculateObjectDimensions(const RoomObject& object) {
   if (!routines_initialized_) {
@@ -1450,11 +1801,23 @@ std::pair<int, int> yaze::zelda3::ObjectDrawer::CalculateObjectDimensions(const 
     // Add more cases as needed for accuracy
     default:
       // Fallback to naive calculation if not handled
-      // Try to match old DungeonCanvasViewer logic for unhandled cases
-      width = 8 + (object.size_ & 0x0F) * 4;
-      height = 8 + ((object.size_ >> 4) & 0x0F) * 4;
+      // Matches DungeonCanvasViewer::DrawRoomObjects logic
+      {
+        int size_h = (object.size_ & 0x0F);
+        int size_v = (object.size_ >> 4) & 0x0F;
+        width = (size_h + 1) * 8;
+        height = (size_v + 1) * 8;
+      }
       break;
   }
 
   return {width, height};
+}
+
+void yaze::zelda3::ObjectDrawer::DrawPotItem(uint8_t item_id, int x, int y,
+                                             gfx::BackgroundBuffer& bg) {
+  // TODO: Implement pot item visualization
+  // For now, just log it
+  // We could draw a small icon or text here
+  // LOG_DEBUG("ObjectDrawer", "Drawing pot item %d at (%d, %d)", item_id, x, y);
 }
