@@ -10,7 +10,7 @@
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "zelda3/common.h"
 
 namespace yaze {

@@ -8,8 +8,9 @@
 #include <vector>
 
 #include "app/gfx/render/background_buffer.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
+#include "zelda3/game_data.h"
 #include "zelda3/dungeon/room_layout.h"
 #include "zelda3/dungeon/room_object.h"
 #include "zelda3/sprite/sprite.h"
@@ -183,7 +184,8 @@ enum TagKey {
 class Room {
  public:
   Room() = default;
-  Room(int room_id, Rom* rom) : room_id_(room_id), rom_(rom) {}
+  Room(int room_id, Rom* rom, GameData* game_data = nullptr) 
+      : room_id_(room_id), rom_(rom), game_data_(game_data) {}
 
   void LoadRoomGraphics(uint8_t entrance_blockset = 0xFF);
   void CopyRoomGraphicsToBuffer();
@@ -409,6 +411,13 @@ class Room {
   auto rom() { return rom_; }
   auto mutable_rom() { return rom_; }
   void SetRom(Rom* rom) { rom_ = rom; }
+  auto game_data() { return game_data_; }
+  void SetGameData(GameData* data) { game_data_ = data; }
+  
+  // Helper to get version constants from game_data or default to US
+  zelda3_version_pointers version_constants() const {
+    return kVersionConstantsMap.at(game_data_ ? game_data_->version : zelda3_version::US);
+  }
   const std::array<uint8_t, 0x10000>& get_gfx_buffer() const {
     return current_gfx16_;
   }
@@ -425,6 +434,7 @@ class Room {
 
  private:
   Rom* rom_;
+  GameData* game_data_ = nullptr;
 
   std::array<uint8_t, 0x10000> current_gfx16_;
 

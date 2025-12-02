@@ -1,7 +1,7 @@
 #include "room_layout.h"
 
 #include "absl/strings/str_format.h"
-#include "app/snes.h"
+#include "rom/snes.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 
 namespace yaze::zelda3 {

@@ -12,10 +12,11 @@
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/platform/window.h"
-#include "app/rom.h"
 #include "dungeon_object_editor.h"
+#include "rom/rom.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_object.h"
+#include "zelda3/game_data.h"
 #include "zelda3/sprite/sprite.h"
 
 namespace yaze {
@@ -152,8 +153,10 @@ class DungeonEditorSystem {
     std::unordered_map<std::string, std::string> properties;
   };
 
-  explicit DungeonEditorSystem(Rom* rom);
+  explicit DungeonEditorSystem(Rom* rom, GameData* game_data = nullptr);
   ~DungeonEditorSystem() = default;
+  
+  void set_game_data(GameData* game_data) { game_data_ = game_data; }
 
   // System initialization and management
   absl::Status Initialize();
@@ -362,6 +365,7 @@ class DungeonEditorSystem {
 
   // Member variables
   Rom* rom_;
+  GameData* game_data_ = nullptr;
   std::shared_ptr<DungeonObjectEditor> object_editor_;
 
   EditorState editor_state_;
@@ -413,7 +417,8 @@ class DungeonEditorSystem {
 /**
  * @brief Factory function to create dungeon editor system
  */
-std::unique_ptr<DungeonEditorSystem> CreateDungeonEditorSystem(Rom* rom);
+std::unique_ptr<DungeonEditorSystem> CreateDungeonEditorSystem(
+    Rom* rom, GameData* game_data = nullptr);
 
 /**
  * @brief Sprite type utilities

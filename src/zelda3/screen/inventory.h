@@ -6,7 +6,8 @@
 #include "app/gfx/types/snes_palette.h"
 #include "app/gfx/types/snes_tile.h"
 #include "app/gui/canvas/canvas.h"
-#include "app/rom.h"
+#include "rom/rom.h"
+#include "zelda3/game_data.h"
 
 namespace yaze {
 namespace zelda3 {
@@ -37,8 +38,9 @@ class Inventory {
   /**
    * @brief Initialize and load inventory screen data from ROM
    * @param rom ROM instance to read data from
+   * @param game_data GameData instance for palette access
    */
-  absl::Status Create(Rom* rom);
+  absl::Status Create(Rom* rom, GameData* game_data = nullptr);
 
   auto& bitmap() { return bitmap_; }
   auto& tilesheet() { return tilesheets_bmp_; }
@@ -69,6 +71,7 @@ class Inventory {
   gui::Canvas canvas_;
   std::vector<gfx::TileInfo> tiles_;
   std::vector<ItemIcon> item_icons_;
+  GameData* game_data_ = nullptr;
 };
 
 }  // namespace zelda3

@@ -12,7 +12,7 @@
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/platform/window.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "zelda3/dungeon/dungeon_validator.h"
 #include "zelda3/dungeon/object_templates.h"
 #include "zelda3/dungeon/room.h"

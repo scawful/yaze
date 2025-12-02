@@ -7,9 +7,11 @@
 #include "absl/status/status.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/render/tilemap.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 
 namespace yaze::zelda3 {
+
+struct GameData;  // Forward declaration
 
 constexpr int kDungeonMapRoomsPtr = 0x57605;  // 14 pointers of map data
 constexpr int kDungeonMapFloors = 0x575D9;    // 14 words values
@@ -86,6 +88,7 @@ absl::Status SaveDungeonMaps(Rom& rom, std::vector<DungeonMap>& dungeon_maps);
  * @param bin_mode
  */
 absl::Status LoadDungeonMapTile16(gfx::Tilemap& tile16_blockset, Rom& rom,
+                                  GameData* game_data,
                                   const std::vector<uint8_t>& gfx_data,
                                   bool bin_mode);
 
@@ -105,7 +108,7 @@ absl::Status SaveDungeonMapTile16(gfx::Tilemap& tile16_blockset, Rom& rom);
  * @param sheets
  * @param gfx_bin_data
  */
-absl::Status LoadDungeonMapGfxFromBinary(Rom& rom,
+absl::Status LoadDungeonMapGfxFromBinary(Rom& rom, GameData* game_data,
                                          gfx::Tilemap& tile16_blockset,
                                          std::array<gfx::Bitmap, 4>& sheets,
                                          std::vector<uint8_t>& gfx_bin_data);

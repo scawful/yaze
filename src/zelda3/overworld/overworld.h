@@ -11,9 +11,10 @@
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "app/gfx/types/snes_tile.h"
-#include "app/rom.h"
 #include "imgui.h"
+#include "rom/rom.h"
 #include "zelda3/common.h"
+#include "zelda3/game_data.h"
 #include "zelda3/overworld/diggable_tiles.h"
 #include "zelda3/overworld/overworld_entrance.h"
 #include "zelda3/overworld/overworld_exit.h"
@@ -138,8 +139,16 @@ constexpr int kNumMapsPerWorld = 0x40;
  */
 class Overworld {
  public:
-  Overworld(Rom* rom) : rom_(rom) {}
+  Overworld(Rom* rom, GameData* game_data = nullptr) 
+      : rom_(rom), game_data_(game_data) {}
 
+  void set_game_data(GameData* game_data) { game_data_ = game_data; }
+  
+  // Helper to get version constants from game_data or default to US
+  zelda3_version_pointers version_constants() const {
+    return kVersionConstantsMap.at(game_data_ ? game_data_->version : zelda3_version::US);
+  }
+  
   absl::Status Load(Rom* rom);
   absl::Status LoadOverworldMaps();
   void LoadTileTypes();
@@ -408,6 +417,7 @@ class Overworld {
   absl::Status DecompressAllMapTilesParallel();
 
   Rom* rom_;
+  GameData* game_data_ = nullptr;
 
   bool is_loaded_ = false;
   bool expanded_tile16_ = false;

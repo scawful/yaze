@@ -6,8 +6,8 @@
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
-#include "app/rom.h"
-#include "app/snes.h"
+#include "rom/rom.h"
+#include "rom/snes.h"
 #include "util/log.h"
 #include "util/macro.h"
 #include "zelda3/common.h"

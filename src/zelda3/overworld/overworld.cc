@@ -18,8 +18,8 @@
 #include "app/gfx/debug/performance/performance_profiler.h"
 #include "app/gfx/types/snes_tile.h"
 #include "app/gfx/util/compression.h"
-#include "app/rom.h"
-#include "app/snes.h"
+#include "rom/rom.h"
+#include "rom/snes.h"
 #include "core/features.h"
 #include "util/hex.h"
 #include "util/log.h"
@@ -58,7 +58,7 @@ absl::Status Overworld::Load(Rom* rom) {
   {
     gfx::ScopedTimer map_creation_timer("CreateOverworldMapObjects");
     for (int map_index = 0; map_index < kNumOverworldMaps; ++map_index)
-      overworld_maps_.emplace_back(map_index, rom_);
+      overworld_maps_.emplace_back(map_index, rom_, game_data_);
 
     // Populate map_parent_ array with parent information from each map
     for (int map_index = 0; map_index < kNumOverworldMaps; ++map_index) {
@@ -460,10 +460,10 @@ absl::StatusOr<uint16_t> Overworld::GetTile16ForTile32(
 absl::Status Overworld::AssembleMap32Tiles() {
   constexpr int kMap32TilesLength = 0x33F0;
   int num_tile32 = kMap32TilesLength;
-  uint32_t map32address[4] = {rom()->version_constants().kMap32TileTL,
-                              rom()->version_constants().kMap32TileTR,
-                              rom()->version_constants().kMap32TileBL,
-                              rom()->version_constants().kMap32TileBR};
+  uint32_t map32address[4] = {version_constants().kMap32TileTL,
+                              version_constants().kMap32TileTR,
+                              version_constants().kMap32TileBL,
+                              version_constants().kMap32TileBR};
 
   // Check if expanded tile32 data is actually present in ROM
   // The flag position should contain 0x04 for vanilla, something else for
@@ -477,7 +477,7 @@ absl::Status Overworld::AssembleMap32Tiles() {
   if (expanded_flag != 0x04 ||
       OverworldVersionHelper::SupportsAreaEnum(version)) {
     // ROM has expanded tile32 data - use expanded addresses
-    map32address[0] = rom()->version_constants().kMap32TileTL;
+    map32address[0] = version_constants().kMap32TileTL;
     map32address[1] = kMap32TileTRExpanded;
     map32address[2] = kMap32TileBLExpanded;
     map32address[3] = kMap32TileBRExpanded;
@@ -669,9 +669,9 @@ absl::Status Overworld::DecompressAllMapTilesParallel() {
     }
 
     auto p1 = get_ow_map_gfx_ptr(
-        i, rom()->version_constants().kCompressedAllMap32PointersHigh);
+        i, version_constants().kCompressedAllMap32PointersHigh);
     auto p2 = get_ow_map_gfx_ptr(
-        i, rom()->version_constants().kCompressedAllMap32PointersLow);
+        i, version_constants().kCompressedAllMap32PointersLow);
 
     int ttpos = 0;
 
@@ -914,7 +914,7 @@ absl::Status Overworld::EnsureMapBuilt(int map_index) {
 void Overworld::LoadTileTypes() {
   for (int i = 0; i < kNumTileTypes; ++i) {
     all_tiles_types_[i] =
-        rom()->data()[rom()->version_constants().kOverworldTilesType + i];
+        rom()->data()[version_constants().kOverworldTilesType + i];
   }
 }
 
@@ -1163,7 +1163,7 @@ absl::Status Overworld::SaveOverworldMaps() {
       util::logf("Saving map pointers1 and compressed data for map %s at %s",
                  util::HexByte(i), util::HexLong(snes_pos));
       RETURN_IF_ERROR(rom()->WriteLong(
-          rom()->version_constants().kCompressedAllMap32PointersLow + (3 * i),
+          version_constants().kCompressedAllMap32PointersLow + (3 * i),
           snes_pos));
       RETURN_IF_ERROR(rom()->WriteVector(pos, a));
       pos += size_a;
@@ -1173,7 +1173,7 @@ absl::Status Overworld::SaveOverworldMaps() {
       util::logf("Saving map pointers1 for map %s at %s", util::HexByte(i),
                  util::HexLong(snes_pos));
       RETURN_IF_ERROR(rom()->WriteLong(
-          rom()->version_constants().kCompressedAllMap32PointersLow + (3 * i),
+          version_constants().kCompressedAllMap32PointersLow + (3 * i),
           snes_pos));
     }
 
@@ -1195,7 +1195,7 @@ absl::Status Overworld::SaveOverworldMaps() {
       util::logf("Saving map pointers2 and compressed data for map %s at %s",
                  util::HexByte(i), util::HexLong(snes_pos));
       RETURN_IF_ERROR(rom()->WriteLong(
-          rom()->version_constants().kCompressedAllMap32PointersHigh + (3 * i),
+          version_constants().kCompressedAllMap32PointersHigh + (3 * i),
           snes_pos));
       RETURN_IF_ERROR(rom()->WriteVector(pos, b));
       pos += size_b;
@@ -1205,7 +1205,7 @@ absl::Status Overworld::SaveOverworldMaps() {
       util::logf("Saving map pointers2 for map %s at %s", util::HexByte(i),
                  util::HexLong(snes_pos));
       RETURN_IF_ERROR(rom()->WriteLong(
-          rom()->version_constants().kCompressedAllMap32PointersHigh + (3 * i),
+          version_constants().kCompressedAllMap32PointersHigh + (3 * i),
           snes_pos));
     }
   }
@@ -2338,7 +2338,7 @@ absl::Status Overworld::SaveMap32Expanded() {
     }
 
     // Top Left.
-    auto top_left = rom()->version_constants().kMap32TileTL;
+    auto top_left = version_constants().kMap32TileTL;
     RETURN_IF_ERROR(rom()->WriteByte(
         top_left + i,
         (uint8_t)(tiles32_unique_[unique_tile_index].tile0_ & 0xFF)));
@@ -2465,7 +2465,7 @@ absl::Status Overworld::SaveMap32Tiles() {
     }
 
     // Top Left.
-    auto top_left = rom()->version_constants().kMap32TileTL;
+    auto top_left = version_constants().kMap32TileTL;
 
     RETURN_IF_ERROR(rom()->WriteByte(
         top_left + i,
@@ -2493,7 +2493,7 @@ absl::Status Overworld::SaveMap32Tiles() {
                    0x0F))));
 
     // Top Right.
-    auto top_right = rom()->version_constants().kMap32TileTR;
+    auto top_right = version_constants().kMap32TileTR;
     RETURN_IF_ERROR(rom()->WriteByte(
         top_right + i,
         (uint8_t)(tiles32_unique_[unique_tile_index].tile1_ & 0xFF)));
@@ -2520,7 +2520,7 @@ absl::Status Overworld::SaveMap32Tiles() {
                    0x0F))));
 
     // Bottom Left.
-    const auto map32TilesBL = rom()->version_constants().kMap32TileBL;
+    const auto map32TilesBL = version_constants().kMap32TileBL;
     RETURN_IF_ERROR(rom()->WriteByte(
         map32TilesBL + i,
         (uint8_t)(tiles32_unique_[unique_tile_index].tile2_ & 0xFF)));
@@ -2547,7 +2547,7 @@ absl::Status Overworld::SaveMap32Tiles() {
                    0x0F))));
 
     // Bottom Right.
-    const auto map32TilesBR = rom()->version_constants().kMap32TileBR;
+    const auto map32TilesBR = version_constants().kMap32TileBR;
     RETURN_IF_ERROR(rom()->WriteByte(
         map32TilesBR + i,
         (uint8_t)(tiles32_unique_[unique_tile_index].tile3_ & 0xFF)));

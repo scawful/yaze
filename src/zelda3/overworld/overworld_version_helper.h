@@ -3,7 +3,7 @@
 
 #include <cstdint>
 
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "zelda3/common.h"
 
 namespace yaze::zelda3 {

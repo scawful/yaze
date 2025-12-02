@@ -9,7 +9,8 @@
 #include "absl/status/status.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/gfx/types/snes_tile.h"
-#include "app/rom.h"
+#include "rom/rom.h"
+#include "zelda3/game_data.h"
 #include "zelda3/overworld/overworld_version_helper.h"
 
 namespace yaze {
@@ -98,7 +99,9 @@ typedef struct OverworldMapTiles {
 class OverworldMap : public gfx::GfxContext {
  public:
   OverworldMap() = default;
-  OverworldMap(int index, Rom* rom);
+  OverworldMap(int index, Rom* rom, GameData* game_data = nullptr);
+
+  void set_game_data(GameData* game_data) { game_data_ = game_data; }
 
   absl::Status BuildMap(int count, int game_state, int world,
                         std::vector<gfx::Tile16>& tiles16,
@@ -283,7 +286,13 @@ class OverworldMap : public gfx::GfxContext {
                                               int index, int previous_index,
                                               int limit);
 
+  // Helper to get version constants from game_data or default to US
+  zelda3_version_pointers version_constants() const {
+    return kVersionConstantsMap.at(game_data_ ? game_data_->version : zelda3_version::US);
+  }
+
   Rom* rom_;
+  GameData* game_data_ = nullptr;
 
   bool built_ = false;
   bool large_map_ = false;

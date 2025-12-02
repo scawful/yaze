@@ -9,7 +9,7 @@
 #include "app/gfx/render/background_buffer.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/gfx/types/snes_tile.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "zelda3/dungeon/room_object.h"
 
 namespace yaze {

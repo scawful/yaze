@@ -9,8 +9,8 @@
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/platform/sdl_compat.h"
-#include "app/rom.h"
-#include "app/snes.h"
+#include "rom/rom.h"
+#include "rom/snes.h"
 #include "util/log.h"
 #include "zelda3/dungeon/object_drawer.h"
 #include "zelda3/dungeon/room_object.h"
@@ -349,15 +349,15 @@ Room LoadRoomHeaderFromRom(Rom* rom, int room_id) {
 }
 
 void Room::LoadRoomGraphics(uint8_t entrance_blockset) {
-  const auto& room_gfx = rom()->room_blockset_ids;
-  const auto& sprite_gfx = rom()->spriteset_ids;
+  const auto& room_gfx = game_data()->room_blockset_ids;
+  const auto& sprite_gfx = game_data()->spriteset_ids;
 
   // DEBUG: Log blockset being used
   printf("[LoadRoomGraphics] Room %d: blockset=%d, spriteset=%d, palette=%d\n",
          room_id_, blockset, spriteset, palette);
 
   for (int i = 0; i < 8; i++) {
-    blocks_[i] = rom()->main_blockset_ids[blockset][i];
+    blocks_[i] = game_data()->main_blockset_ids[blockset][i];
     // Block 6 can be overridden by entrance-specific room graphics (index 3)
     // Note: The "3-6" comment was misleading - only block 6 uses room_gfx
     if (i == 6) {
@@ -400,9 +400,13 @@ void Room::CopyRoomGraphicsToBuffer() {
     return;
   }
 
-  auto gfx_buffer_data = rom()->mutable_graphics_buffer();
-  if (!gfx_buffer_data || gfx_buffer_data->empty()) {
-    printf("[CopyRoomGraphicsToBuffer] Graphics buffer is null or empty\n");
+  if (!game_data_) {
+    printf("[CopyRoomGraphicsToBuffer] GameData not set\n");
+    return;
+  }
+  auto* gfx_buffer_data = &game_data_->graphics_buffer;
+  if (gfx_buffer_data->empty()) {
+    printf("[CopyRoomGraphicsToBuffer] Graphics buffer is empty\n");
     return;
   }
 
@@ -587,15 +591,16 @@ void Room::RenderRoomGraphics() {
 
   // Get and apply palette BEFORE rendering objects (so objects use correct
   // colors)
-  auto& dungeon_pal_group = rom()->mutable_palette_group()->dungeon_main;
+  if (!game_data_) return;
+  auto& dungeon_pal_group = game_data_->palette_groups.dungeon_main;
   int num_palettes = dungeon_pal_group.size();
 
   // Use palette indirection table lookup (same as dungeon_canvas_viewer.cc line
   // 854)
   int palette_id = palette;  // Default fallback
-  if (palette < rom()->paletteset_ids.size() &&
-      !rom()->paletteset_ids[palette].empty()) {
-    auto dungeon_palette_ptr = rom()->paletteset_ids[palette][0];
+  if (palette < game_data()->paletteset_ids.size() &&
+      !game_data()->paletteset_ids[palette].empty()) {
+    auto dungeon_palette_ptr = game_data()->paletteset_ids[palette][0];
     auto palette_word = rom()->ReadWord(0xDEC4B + dungeon_palette_ptr);
     if (palette_word.ok()) {
       palette_id =
@@ -845,14 +850,15 @@ void Room::RenderObjectsToBackground() {
             "Room %d: Emulator rendering objects", room_id_);
   // Get palette group for object rendering (use SAME lookup as
   // RenderRoomGraphics)
-  auto& dungeon_pal_group = rom()->mutable_palette_group()->dungeon_main;
+  if (!game_data_) return;
+  auto& dungeon_pal_group = game_data_->palette_groups.dungeon_main;
   int num_palettes = dungeon_pal_group.size();
 
   // Use palette indirection table lookup
   int palette_id = palette;
-  if (palette < rom()->paletteset_ids.size() &&
-      !rom()->paletteset_ids[palette].empty()) {
-    auto dungeon_palette_ptr = rom()->paletteset_ids[palette][0];
+  if (palette < game_data()->paletteset_ids.size() &&
+      !game_data()->paletteset_ids[palette].empty()) {
+    auto dungeon_palette_ptr = game_data()->paletteset_ids[palette][0];
     auto palette_word = rom()->ReadWord(0xDEC4B + dungeon_palette_ptr);
     if (palette_word.ok()) {
       palette_id = palette_word.value() / 180;
@@ -976,8 +982,11 @@ void Room::LoadAnimatedGraphics() {
     return;
   }
 
-  auto gfx_buffer_data = rom()->mutable_graphics_buffer();
-  if (!gfx_buffer_data || gfx_buffer_data->empty()) {
+  if (!game_data_) {
+    return;
+  }
+  auto* gfx_buffer_data = &game_data_->graphics_buffer;
+  if (gfx_buffer_data->empty()) {
     return;
   }
 
@@ -996,7 +1005,7 @@ void Room::LoadAnimatedGraphics() {
     return;
   }
 
-  int gfx_ptr = SnesToPc(rom()->version_constants().kGfxAnimatedPointer);
+  int gfx_ptr = SnesToPc(version_constants().kGfxAnimatedPointer);
   if (gfx_ptr < 0 || gfx_ptr >= static_cast<int>(rom_data.size())) {
     return;
   }
