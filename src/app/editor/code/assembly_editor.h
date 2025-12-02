@@ -10,7 +10,7 @@
 #include "app/gui/app/editor_layout.h"
 #include "app/gui/core/style.h"
 #include "app/gui/widgets/text_editor.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "core/asar_wrapper.h"
 
 namespace yaze {

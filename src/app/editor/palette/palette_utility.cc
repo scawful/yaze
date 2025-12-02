@@ -4,7 +4,7 @@
 #include "app/editor/palette/palette_editor.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/gui/core/icons.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -101,13 +101,13 @@ void DrawColorInfoTooltip(const gfx::SnesColor& color) {
 }
 
 void DrawPalettePreview(const std::string& group_name, int palette_index,
-                        Rom* rom) {
-  if (!rom || !rom->is_loaded()) {
-    ImGui::TextDisabled("(ROM not loaded)");
+                        zelda3::GameData* game_data) {
+  if (!game_data) {
+    ImGui::TextDisabled("(GameData not loaded)");
     return;
   }
 
-  auto* group = rom->mutable_palette_group()->get_group(group_name);
+  auto* group = game_data->palette_groups.get_group(group_name);
   if (!group || palette_index >= group->size()) {
     ImGui::TextDisabled("(Palette not found)");
     return;

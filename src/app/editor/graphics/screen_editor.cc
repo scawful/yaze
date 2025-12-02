@@ -97,7 +97,8 @@ absl::Status ScreenEditor::Load() {
   ASSIGN_OR_RETURN(dungeon_maps_,
                    zelda3::LoadDungeonMaps(*rom(), dungeon_map_labels_));
   RETURN_IF_ERROR(zelda3::LoadDungeonMapTile16(
-      tile16_blockset_, *rom(), rom()->graphics_buffer(), false));
+      tile16_blockset_, *rom(), game_data(), game_data()->graphics_buffer,
+      false));
 
   // Load graphics sheets and apply dungeon palette
   sheets_[0] = std::make_unique<gfx::Bitmap>(gfx::Arena::Get().gfx_sheets()[212]);
@@ -107,7 +108,7 @@ absl::Status ScreenEditor::Load() {
 
   // Apply dungeon palette to all sheets
   for (int i = 0; i < 4; i++) {
-    sheets_[i]->SetPalette(*rom()->mutable_dungeon_palette(3));
+    sheets_[i]->SetPalette(*game_data()->palette_groups.dungeon_main.mutable_palette(3));
     gfx::Arena::Get().QueueTextureCommand(
         gfx::Arena::TextureCommandType::CREATE, sheets_[i].get());
   }
@@ -140,7 +141,7 @@ absl::Status ScreenEditor::Load() {
   tile8_tilemap_.tile_size = {8, 8};
   tile8_tilemap_.map_size = {256, 256};  // Logical size for tile count
   tile8_tilemap_.atlas.Create(tile8_width, tile8_height, 8, tile8_data);
-  tile8_tilemap_.atlas.SetPalette(*rom()->mutable_dungeon_palette(3));
+  tile8_tilemap_.atlas.SetPalette(*game_data()->palette_groups.dungeon_main.mutable_palette(3));
 
   // Queue single texture creation for the atlas (not individual tiles)
   gfx::Arena::Get().QueueTextureCommand(gfx::Arena::TextureCommandType::CREATE,
@@ -234,8 +235,8 @@ void ScreenEditor::DrawToolset() {
 
 void ScreenEditor::DrawInventoryMenuEditor() {
   static bool create = false;
-  if (!create && rom()->is_loaded()) {
-    status_ = inventory_.Create(rom());
+  if (!create && rom()->is_loaded() && game_data()) {
+    status_ = inventory_.Create(rom(), game_data());
     if (status_.ok()) {
       palette_ = inventory_.palette();
       create = true;
@@ -638,7 +639,7 @@ void ScreenEditor::DrawDungeonMapsRoomGfx() {
         if (current_tile_canvas_.DrawTilePainter(*cached_tile8, 16)) {
           // Modify the tile16 based on the selected tile and
           // current_tile16_info
-          gfx::ModifyTile16(tile16_blockset_, rom()->graphics_buffer(),
+          gfx::ModifyTile16(tile16_blockset_, game_data()->graphics_buffer,
                             current_tile16_info[0], current_tile16_info[1],
                             current_tile16_info[2], current_tile16_info[3], 212,
                             selected_tile16_);
@@ -668,7 +669,7 @@ void ScreenEditor::DrawDungeonMapsRoomGfx() {
     gui::InputTileInfo("BR", &current_tile16_info[3]);
 
     if (ImGui::Button("Modify Tile16")) {
-      gfx::ModifyTile16(tile16_blockset_, rom()->graphics_buffer(),
+      gfx::ModifyTile16(tile16_blockset_, game_data()->graphics_buffer,
                         current_tile16_info[0], current_tile16_info[1],
                         current_tile16_info[2], current_tile16_info[3], 212,
                         selected_tile16_);
@@ -771,8 +772,8 @@ void ScreenEditor::LoadBinaryGfx() {
       std::vector<uint8_t> bin_data((std::istreambuf_iterator<char>(file)),
                                     std::istreambuf_iterator<char>());
       if (auto converted_bin = gfx::SnesTo8bppSheet(bin_data, 4, 4);
-          zelda3::LoadDungeonMapTile16(tile16_blockset_, *rom(), converted_bin,
-                                       true)
+          zelda3::LoadDungeonMapTile16(tile16_blockset_, *rom(), game_data(),
+                                       converted_bin, true)
               .ok()) {
         sheets_.clear();
         std::vector<std::vector<uint8_t>> gfx_sheets;
@@ -780,7 +781,7 @@ void ScreenEditor::LoadBinaryGfx() {
           gfx_sheets.emplace_back(converted_bin.begin() + (i * 0x1000),
                                   converted_bin.begin() + ((i + 1) * 0x1000));
           sheets_[i] = std::make_unique<gfx::Bitmap>(128, 32, 8, gfx_sheets[i]);
-          sheets_[i]->SetPalette(*rom()->mutable_dungeon_palette(3));
+          sheets_[i]->SetPalette(*game_data()->palette_groups.dungeon_main.mutable_palette(3));
           // Queue texture creation via Arena's deferred system
           gfx::Arena::Get().QueueTextureCommand(
               gfx::Arena::TextureCommandType::CREATE, sheets_[i].get());
@@ -796,8 +797,8 @@ void ScreenEditor::LoadBinaryGfx() {
 
 void ScreenEditor::DrawTitleScreenEditor() {
   // Initialize title screen on first draw
-  if (!title_screen_loaded_ && rom()->is_loaded()) {
-    status_ = title_screen_.Create(rom());
+  if (!title_screen_loaded_ && rom()->is_loaded() && game_data()) {
+    status_ = title_screen_.Create(rom(), game_data());
     if (!status_.ok()) {
       ImGui::TextColored(ImVec4(1, 0, 0, 1), "Error loading title screen: %s",
                          status_.message().data());

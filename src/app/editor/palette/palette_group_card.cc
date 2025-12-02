@@ -22,8 +22,10 @@ using gui::ThemedButton;
 using gui::ThemedIconButton;
 
 PaletteGroupCard::PaletteGroupCard(const std::string& group_name,
-                                   const std::string& display_name, Rom* rom)
-    : group_name_(group_name), display_name_(display_name), rom_(rom) {
+                                   const std::string& display_name, Rom* rom,
+                                   zelda3::GameData* game_data)
+    : group_name_(group_name), display_name_(display_name), rom_(rom),
+      game_data_(game_data) {
   // Note: We can't call GetPaletteGroup() here because it's a pure virtual
   // function and the derived class isn't fully constructed yet. Original
   // palettes will be loaded on first Draw() call instead.
@@ -608,13 +610,13 @@ PaletteGroupMetadata OverworldMainPaletteCard::InitializeMetadata() {
 }
 
 gfx::PaletteGroup* OverworldMainPaletteCard::GetPaletteGroup() {
-  return rom_->mutable_palette_group()->get_group("ow_main");
+  if (!game_data_) return nullptr;
+  return game_data_->palette_groups.get_group("ow_main");
 }
 
 const gfx::PaletteGroup* OverworldMainPaletteCard::GetPaletteGroup() const {
-  // Note: rom_->palette_group() returns by value, so we need to use the mutable
-  // version
-  return const_cast<Rom*>(rom_)->mutable_palette_group()->get_group("ow_main");
+  if (!game_data_) return nullptr;
+  return const_cast<zelda3::GameData*>(game_data_)->palette_groups.get_group("ow_main");
 }
 
 void OverworldMainPaletteCard::DrawPaletteGrid() {
@@ -681,11 +683,13 @@ PaletteGroupMetadata OverworldAnimatedPaletteCard::InitializeMetadata() {
 }
 
 gfx::PaletteGroup* OverworldAnimatedPaletteCard::GetPaletteGroup() {
-  return rom_->mutable_palette_group()->get_group("ow_animated");
+  if (!game_data_) return nullptr;
+  return game_data_->palette_groups.get_group("ow_animated");
 }
 
 const gfx::PaletteGroup* OverworldAnimatedPaletteCard::GetPaletteGroup() const {
-  return const_cast<Rom*>(rom_)->mutable_palette_group()->get_group(
+  if (!game_data_) return nullptr;
+  return const_cast<zelda3::GameData*>(game_data_)->palette_groups.get_group(
       "ow_animated");
 }
 
@@ -756,11 +760,13 @@ PaletteGroupMetadata DungeonMainPaletteCard::InitializeMetadata() {
 }
 
 gfx::PaletteGroup* DungeonMainPaletteCard::GetPaletteGroup() {
-  return rom_->mutable_palette_group()->get_group("dungeon_main");
+  if (!game_data_) return nullptr;
+  return game_data_->palette_groups.get_group("dungeon_main");
 }
 
 const gfx::PaletteGroup* DungeonMainPaletteCard::GetPaletteGroup() const {
-  return const_cast<Rom*>(rom_)->mutable_palette_group()->get_group(
+  if (!game_data_) return nullptr;
+  return const_cast<zelda3::GameData*>(game_data_)->palette_groups.get_group(
       "dungeon_main");
 }
 
@@ -832,11 +838,13 @@ PaletteGroupMetadata SpritePaletteCard::InitializeMetadata() {
 }
 
 gfx::PaletteGroup* SpritePaletteCard::GetPaletteGroup() {
-  return rom_->mutable_palette_group()->get_group("global_sprites");
+  if (!game_data_) return nullptr;
+  return game_data_->palette_groups.get_group("global_sprites");
 }
 
 const gfx::PaletteGroup* SpritePaletteCard::GetPaletteGroup() const {
-  return const_cast<Rom*>(rom_)->mutable_palette_group()->get_group(
+  if (!game_data_) return nullptr;
+  return const_cast<zelda3::GameData*>(game_data_)->palette_groups.get_group(
       "global_sprites");
 }
 
@@ -940,11 +948,13 @@ PaletteGroupMetadata EquipmentPaletteCard::InitializeMetadata() {
 }
 
 gfx::PaletteGroup* EquipmentPaletteCard::GetPaletteGroup() {
-  return rom_->mutable_palette_group()->get_group("armors");
+  if (!game_data_) return nullptr;
+  return game_data_->palette_groups.get_group("armors");
 }
 
 const gfx::PaletteGroup* EquipmentPaletteCard::GetPaletteGroup() const {
-  return const_cast<Rom*>(rom_)->mutable_palette_group()->get_group("armors");
+  if (!game_data_) return nullptr;
+  return const_cast<zelda3::GameData*>(game_data_)->palette_groups.get_group("armors");
 }
 
 void EquipmentPaletteCard::DrawPaletteGrid() {
@@ -1006,11 +1016,13 @@ PaletteGroupMetadata SpritesAux1PaletteCard::InitializeMetadata() {
 }
 
 gfx::PaletteGroup* SpritesAux1PaletteCard::GetPaletteGroup() {
-  return rom_->mutable_palette_group()->get_group("sprites_aux1");
+  if (!game_data_) return nullptr;
+  return game_data_->palette_groups.get_group("sprites_aux1");
 }
 
 const gfx::PaletteGroup* SpritesAux1PaletteCard::GetPaletteGroup() const {
-  return const_cast<Rom*>(rom_)->mutable_palette_group()->get_group(
+  if (!game_data_) return nullptr;
+  return const_cast<zelda3::GameData*>(game_data_)->palette_groups.get_group(
       "sprites_aux1");
 }
 
@@ -1073,11 +1085,13 @@ PaletteGroupMetadata SpritesAux2PaletteCard::InitializeMetadata() {
 }
 
 gfx::PaletteGroup* SpritesAux2PaletteCard::GetPaletteGroup() {
-  return rom_->mutable_palette_group()->get_group("sprites_aux2");
+  if (!game_data_) return nullptr;
+  return game_data_->palette_groups.get_group("sprites_aux2");
 }
 
 const gfx::PaletteGroup* SpritesAux2PaletteCard::GetPaletteGroup() const {
-  return const_cast<Rom*>(rom_)->mutable_palette_group()->get_group(
+  if (!game_data_) return nullptr;
+  return const_cast<zelda3::GameData*>(game_data_)->palette_groups.get_group(
       "sprites_aux2");
 }
 
@@ -1157,11 +1171,13 @@ PaletteGroupMetadata SpritesAux3PaletteCard::InitializeMetadata() {
 }
 
 gfx::PaletteGroup* SpritesAux3PaletteCard::GetPaletteGroup() {
-  return rom_->mutable_palette_group()->get_group("sprites_aux3");
+  if (!game_data_) return nullptr;
+  return game_data_->palette_groups.get_group("sprites_aux3");
 }
 
 const gfx::PaletteGroup* SpritesAux3PaletteCard::GetPaletteGroup() const {
-  return const_cast<Rom*>(rom_)->mutable_palette_group()->get_group(
+  if (!game_data_) return nullptr;
+  return const_cast<zelda3::GameData*>(game_data_)->palette_groups.get_group(
       "sprites_aux3");
 }
 

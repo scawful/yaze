@@ -21,8 +21,8 @@
 #include "app/gui/core/ui_helpers.h"
 #include "app/gui/widgets/asset_browser.h"
 #include "app/platform/window.h"
-#include "app/rom.h"
-#include "app/snes.h"
+#include "rom/rom.h"
+#include "rom/snes.h"
 #include "imgui/imgui.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
 #include "app/gui/imgui_memory_editor.h"
@@ -167,10 +167,10 @@ absl::Status GraphicsEditor::Load() {
     // Sheets 128-222: Use auxiliary/menu palettes
 
     LOG_INFO("GraphicsEditor", "Initializing textures for %d graphics sheets",
-             kNumGfxSheets);
+             zelda3::kNumGfxSheets);
 
     int sheets_queued = 0;
-    for (int i = 0; i < kNumGfxSheets; i++) {
+    for (int i = 0; i < zelda3::kNumGfxSheets; i++) {
       if (!sheets[i].is_active() || !sheets[i].surface()) {
         continue;  // Skip inactive or surface-less sheets
       }
@@ -213,7 +213,7 @@ absl::Status GraphicsEditor::Save() {
   auto& sheets = gfx::Arena::Get().gfx_sheets();
 
   for (uint16_t sheet_id : state_.modified_sheets) {
-    if (sheet_id >= kNumGfxSheets) continue;
+    if (sheet_id >= zelda3::kNumGfxSheets) continue;
 
     auto& sheet = sheets[sheet_id];
     if (!sheet.is_active()) continue;
@@ -249,11 +249,13 @@ absl::Status GraphicsEditor::Save() {
     }
 
     // Calculate ROM offset for this sheet
-    uint32_t offset = GetGraphicsAddress(
+    // Get version constants from game_data
+    auto vc = zelda3::kVersionConstantsMap.at(game_data()->version);
+    uint32_t offset = zelda3::GetGraphicsAddress(
         rom_->data(), static_cast<uint8_t>(sheet_id),
-        rom_->version_constants().kOverworldGfxPtr1,
-        rom_->version_constants().kOverworldGfxPtr2,
-        rom_->version_constants().kOverworldGfxPtr3, rom_->size());
+        vc.kOverworldGfxPtr1,
+        vc.kOverworldGfxPtr2,
+        vc.kOverworldGfxPtr3, rom_->size());
 
     // Write data to ROM buffer
     for (size_t i = 0; i < final_data.size(); i++) {
@@ -555,10 +557,10 @@ absl::Status GraphicsEditor::UpdateGfxSheetList() {
   ImGuiMultiSelectFlags flags =
       ImGuiMultiSelectFlags_ClearOnEscape | ImGuiMultiSelectFlags_BoxSelect1d;
   ImGuiMultiSelectIO* ms_io =
-      ImGui::BeginMultiSelect(flags, selection.Size, kNumGfxSheets);
+      ImGui::BeginMultiSelect(flags, selection.Size, zelda3::kNumGfxSheets);
   selection.ApplyRequests(ms_io);
   ImGuiListClipper clipper;
-  clipper.Begin(kNumGfxSheets);
+  clipper.Begin(zelda3::kNumGfxSheets);
   if (ms_io->RangeSrcItem != -1)
     clipper.IncludeItemByIndex(
         (int)ms_io->RangeSrcItem);  // Ensure RangeSrc item is not clipped.
@@ -733,8 +735,8 @@ absl::Status GraphicsEditor::UpdateGfxTabView() {
 }
 
 absl::Status GraphicsEditor::UpdatePaletteColumn() {
-  if (rom()->is_loaded()) {
-    auto palette_group = *rom()->palette_group().get_group(
+  if (rom()->is_loaded() && game_data()) {
+    auto palette_group = *game_data()->palette_groups.get_group(
         kPaletteGroupAddressesKeys[edit_palette_group_name_index_]);
     auto palette = palette_group.palette(edit_palette_index_);
     gui::TextWithSeparators("ROM Palette Management");
@@ -767,7 +769,7 @@ absl::Status GraphicsEditor::UpdatePaletteColumn() {
     ImGui::SameLine();
     if (ImGui::Button("Apply to All Sheets")) {
       // Apply current palette to all active sheets
-      for (int i = 0; i < kNumGfxSheets; i++) {
+      for (int i = 0; i < zelda3::kNumGfxSheets; i++) {
         auto& sheet = gfx::Arena::Get().mutable_gfx_sheets()->data()[i];
         if (sheet.is_active() && sheet.surface()) {
           sheet.SetPaletteWithTransparent(palette, edit_palette_sub_index_);
@@ -832,9 +834,9 @@ absl::Status GraphicsEditor::UpdateLinkGfxView() {
 
     ImGui::TableNextColumn();
     if (ImGui::Button("Load Link Graphics (Experimental)")) {
-      if (rom()->is_loaded()) {
+      if (rom()->is_loaded() && game_data()) {
         // Load Links graphics from the ROM
-        ASSIGN_OR_RETURN(link_sheets_, LoadLinkGraphics(*rom()));
+        link_sheets_ = game_data()->link_graphics;
 
         // Split it into the pose data frames
         // Create an animation step display for the poses
@@ -887,7 +889,7 @@ absl::Status GraphicsEditor::UpdateScadView() {
   if (super_donkey_) {
     // TODO: Implement the Super Donkey 1 graphics decompression
     // if (refresh_graphics_) {
-    //   for (int i = 0; i < kNumGfxSheets; i++) {
+    //   for (int i = 0; i < zelda3::kNumGfxSheets; i++) {
     //     status_ = graphics_bin_[i].SetPalette(
     //         col_file_palette_group_[current_palette_index_]);
     //     Renderer::Get().UpdateBitmap(&graphics_bin_[i]);
@@ -985,8 +987,7 @@ absl::Status GraphicsEditor::DrawPaletteControls() {
     auto filename = util::FileDialogWrapper::ShowOpenFileDialog();
     col_file_name_ = filename;
     col_file_path_ = std::filesystem::absolute(filename).string();
-    status_ = temp_rom_.LoadFromFile(col_file_path_,
-                                     /*z3_load=*/false);
+    status_ = temp_rom_.LoadFromFile(col_file_path_);
     auto col_data_ = gfx::GetColFileData(temp_rom_.mutable_data());
     if (col_file_palette_group_.size() != 0) {
       col_file_palette_group_.clear();
@@ -1163,8 +1164,8 @@ absl::Status GraphicsEditor::DecompressImportData(int size) {
   bin_bitmap_.Create(gfx::kTilesheetWidth, 0x2000, gfx::kTilesheetDepth,
                      converted_sheet);
 
-  if (rom()->is_loaded()) {
-    auto palette_group = rom()->palette_group().overworld_animated;
+  if (rom()->is_loaded() && game_data()) {
+    auto palette_group = game_data()->palette_groups.overworld_animated;
     z3_rom_palette_ = palette_group[current_palette_];
     if (col_file_) {
       bin_bitmap_.SetPalette(col_file_palette_);
@@ -1197,8 +1198,10 @@ absl::Status GraphicsEditor::DecompressSuperDonkey() {
           col_file_palette_group_[current_palette_index_]);
     } else {
       // ROM palette
-
-      auto palette_group = rom()->palette_group().get_group(
+      if (!game_data()) {
+        return absl::FailedPreconditionError("GameData not available");
+      }
+      auto palette_group = game_data()->palette_groups.get_group(
           kPaletteGroupAddressesKeys[current_palette_]);
       z3_rom_palette_ = palette_group->palette(current_palette_index_);
       gfx_sheets_[i].SetPalette(z3_rom_palette_);
@@ -1224,10 +1227,12 @@ absl::Status GraphicsEditor::DecompressSuperDonkey() {
           col_file_palette_group_[current_palette_index_]);
     } else {
       // ROM palette
-      auto palette_group = rom()->palette_group().get_group(
-          kPaletteGroupAddressesKeys[current_palette_]);
-      z3_rom_palette_ = palette_group->palette(current_palette_index_);
-      gfx_sheets_[i].SetPalette(z3_rom_palette_);
+      if (game_data()) {
+        auto palette_group = game_data()->palette_groups.get_group(
+            kPaletteGroupAddressesKeys[current_palette_]);
+        z3_rom_palette_ = palette_group->palette(current_palette_index_);
+        gfx_sheets_[i].SetPalette(z3_rom_palette_);
+      }
     }
 
     gfx::Arena::Get().QueueTextureCommand(
@@ -1241,7 +1246,7 @@ absl::Status GraphicsEditor::DecompressSuperDonkey() {
 }
 
 void GraphicsEditor::NextSheet() {
-  if (state_.current_sheet_id + 1 < kNumGfxSheets) {
+  if (state_.current_sheet_id + 1 < zelda3::kNumGfxSheets) {
     state_.current_sheet_id++;
   }
 }

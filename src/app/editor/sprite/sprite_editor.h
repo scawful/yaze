@@ -15,7 +15,7 @@
 #include "app/gfx/types/snes_palette.h"
 #include "app/gui/app/editor_layout.h"
 #include "app/gui/canvas/canvas.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 
 namespace yaze {
 namespace editor {

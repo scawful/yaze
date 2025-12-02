@@ -5,7 +5,7 @@
 #include "app/gui/core/icons.h"
 #include "app/gui/core/style.h"
 #include "util/file_util.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "imgui/imgui.h"
 #include "util/log.h"
 
@@ -353,7 +353,7 @@ absl::Status LinkSpritePanel::LoadLinkSheets() {
   }
 
   // Use the existing LoadLinkGraphics function
-  auto result = LoadLinkGraphics(*rom_);
+  auto result = zelda3::LoadLinkGraphics(*rom_);
   if (!result.ok()) {
     return result.status();
   }
@@ -361,7 +361,7 @@ absl::Status LinkSpritePanel::LoadLinkSheets() {
   link_sheets_ = std::move(result.value());
   sheets_loaded_ = true;
 
-  LOG_INFO("LinkSpritePanel", "Loaded %d Link graphics sheets", kNumLinkSheets);
+  LOG_INFO("LinkSpritePanel", "Loaded %d Link graphics sheets", zelda3::kNumLinkSheets);
 
   // Apply default palette for display
   ApplySelectedPalette();

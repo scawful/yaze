@@ -16,12 +16,16 @@
 #include "app/gui/canvas/canvas.h"
 #include "app/gui/core/input.h"
 #include "app/gui/widgets/tile_selector_widget.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "imgui/imgui.h"
 #include "util/log.h"
 #include "util/notify.h"
 
 namespace yaze {
+namespace zelda3 {
+struct GameData;
+}  // namespace zelda3
+
 namespace editor {
 
 // Constants for tile editing
@@ -162,6 +166,8 @@ class Tile16Editor : public gfx::GfxContext {
 
   void set_rom(Rom* rom) { rom_ = rom; }
   Rom* rom() const { return rom_; }
+  void set_game_data(zelda3::GameData* game_data) { game_data_ = game_data; }
+  zelda3::GameData* game_data() const { return game_data_; }
 
   // Set the palette from overworld to ensure color consistency
   void set_palette(const gfx::SnesPalette& palette) {
@@ -210,6 +216,7 @@ class Tile16Editor : public gfx::GfxContext {
 
  private:
   Rom* rom_ = nullptr;
+  zelda3::GameData* game_data_ = nullptr;
   bool map_blockset_loaded_ = false;
   bool x_flip = false;
   bool y_flip = false;

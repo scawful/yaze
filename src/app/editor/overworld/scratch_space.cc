@@ -22,7 +22,7 @@
 #include "app/gui/core/input.h"
 #include "app/gui/core/style.h"
 #include "app/platform/window.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "core/asar_wrapper.h"
 #include "imgui/imgui.h"
 #include "app/gui/imgui_memory_editor.h"

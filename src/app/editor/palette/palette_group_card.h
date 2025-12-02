@@ -11,8 +11,9 @@
 #include "absl/status/status.h"
 #include "app/gfx/types/snes_color.h"
 #include "app/gfx/types/snes_palette.h"
-#include "app/rom.h"
 #include "imgui/imgui.h"
+#include "rom/rom.h"
+#include "zelda3/game_data.h"
 
 namespace yaze {
 namespace editor {
@@ -72,9 +73,13 @@ class PaletteGroupCard {
    * "dungeon_main")
    * @param display_name Human-readable name for UI
    * @param rom ROM instance for reading/writing palettes
+   * @param game_data GameData instance for palette access
    */
   PaletteGroupCard(const std::string& group_name,
-                   const std::string& display_name, Rom* rom);
+                   const std::string& display_name, Rom* rom,
+                   zelda3::GameData* game_data = nullptr);
+  
+  void set_game_data(zelda3::GameData* game_data) { game_data_ = game_data; }
 
   virtual ~PaletteGroupCard() = default;
 
@@ -249,6 +254,7 @@ class PaletteGroupCard {
   std::string group_name_;    // Internal name (e.g., "ow_main")
   std::string display_name_;  // Display name (e.g., "Overworld Main")
   Rom* rom_;                  // ROM instance
+  zelda3::GameData* game_data_ = nullptr;  // GameData instance
   bool show_ = false;         // Visibility flag
 
   // Selection state

@@ -21,7 +21,7 @@
 #include "app/editor/ui/toast_manager.h"
 #include "app/gui/core/icons.h"
 #include "app/platform/asset_loader.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "app/service/screenshot_utils.h"
 #include "app/test/test_manager.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"

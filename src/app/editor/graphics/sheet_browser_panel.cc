@@ -104,7 +104,7 @@ void SheetBrowserPanel::DrawSheetGrid() {
   columns_ = std::max(1, static_cast<int>(available_width / (thumb_width + padding * 2)));
 
   int col = 0;
-  for (int i = filter_min_; i <= filter_max_ && i < kNumGfxSheets; i++) {
+  for (int i = filter_min_; i <= filter_max_ && i < zelda3::kNumGfxSheets; i++) {
     // Filter by modification state if enabled
     if (show_only_modified_ &&
         state_->modified_sheets.find(static_cast<uint16_t>(i)) ==

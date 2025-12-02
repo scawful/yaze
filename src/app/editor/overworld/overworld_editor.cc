@@ -55,7 +55,7 @@
 #include "app/gui/core/style.h"
 #include "app/gui/core/ui_helpers.h"
 #include "app/gui/widgets/tile_selector_widget.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "canvas/canvas_usage_tracker.h"
 #include "core/asar_wrapper.h"
 #include "core/features.h"
@@ -3037,7 +3037,7 @@ absl::Status OverworldEditor::ApplyZSCustomOverworldASM(int target_version) {
     }
 
     // Update ROM with patched data
-    RETURN_IF_ERROR(rom_->LoadFromData(working_rom_data, false));
+    RETURN_IF_ERROR(rom_->LoadFromData(working_rom_data));
 
     // Update version marker and feature flags
     RETURN_IF_ERROR(UpdateROMVersionMarkers(target_version));
@@ -3061,7 +3061,7 @@ absl::Status OverworldEditor::ApplyZSCustomOverworldASM(int target_version) {
 
   } catch (const std::exception& e) {
     // Restore original ROM data on any exception
-    auto restore_result = rom_->LoadFromData(original_rom_data, false);
+    auto restore_result = rom_->LoadFromData(original_rom_data);
     if (!restore_result.ok()) {
       LOG_ERROR("OverworldEditor", "Failed to restore ROM data: %s",
                 restore_result.message().data());

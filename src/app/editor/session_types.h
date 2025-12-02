@@ -15,7 +15,8 @@
 #include "app/editor/palette/palette_editor.h"
 #include "app/editor/sprite/sprite_editor.h"
 #include "app/editor/ui/settings_panel.h"
-#include "app/rom.h"
+#include "rom/rom.h"
+#include "zelda3/game_data.h"
 #include "core/features.h"
 
 namespace yaze::editor {
@@ -28,7 +29,7 @@ class EditorDependencies;
  */
 class EditorSet {
  public:
-  explicit EditorSet(Rom* rom = nullptr, UserSettings* user_settings = nullptr,
+  explicit EditorSet(Rom* rom = nullptr, zelda3::GameData* game_data = nullptr, UserSettings* user_settings = nullptr,
                      size_t session_id = 0);
   ~EditorSet();
 
@@ -55,6 +56,7 @@ class EditorSet {
 
  private:
   size_t session_id_ = 0;
+  zelda3::GameData* game_data_ = nullptr;
 
   std::unique_ptr<AssemblyEditor> assembly_editor_;
   std::unique_ptr<DungeonEditorV2> dungeon_editor_;
@@ -76,6 +78,7 @@ class EditorSet {
  */
 struct RomSession {
   Rom rom;
+  zelda3::GameData game_data;
   EditorSet editors;
   std::string custom_name;  // User-defined session name
   std::string filepath;     // ROM filepath for duplicate detection

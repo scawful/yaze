@@ -6,11 +6,12 @@
 #include "app/gfx/backend/irenderer.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/gui/canvas/canvas.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "dungeon_object_interaction.h"
 #include "imgui/imgui.h"
 #include "zelda3/dungeon/dungeon_editor_system.h"
 #include "zelda3/dungeon/room.h"
+#include "zelda3/game_data.h"
 
 namespace yaze {
 namespace editor {
@@ -40,11 +41,13 @@ class DungeonCanvasViewer {
   void DrawDungeonCanvas(int room_id);
   void Draw(int room_id);
 
-  void SetRom(Rom* rom) { 
-    rom_ = rom; 
+  void SetRom(Rom* rom) {
+    rom_ = rom;
     object_interaction_.SetRom(rom);
   }
   Rom* rom() const { return rom_; }
+  void SetGameData(zelda3::GameData* game_data) { game_data_ = game_data; }
+  zelda3::GameData* game_data() const { return game_data_; }
   void SetRenderer(gfx::IRenderer* renderer) { renderer_ = renderer; }
 
   // Room data access
@@ -145,6 +148,7 @@ class DungeonCanvasViewer {
   void DrawRoomBackgroundLayers(int room_id);  // Draw room buffers to canvas
 
   Rom* rom_ = nullptr;
+  zelda3::GameData* game_data_ = nullptr;
   gui::Canvas canvas_{"##DungeonCanvas", ImVec2(0x200, 0x200)};
   // ObjectRenderer removed - use ObjectDrawer for rendering (production system)
   DungeonObjectInteraction object_interaction_;

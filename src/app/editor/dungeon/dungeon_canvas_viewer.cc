@@ -4,7 +4,7 @@
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/gui/core/input.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "app/editor/agent/agent_ui_theme.h"
 #include "imgui/imgui.h"
 #include "util/log.h"
@@ -892,16 +892,20 @@ absl::Status DungeonCanvasViewer::LoadAndRenderRoomGraphics(int room_id) {
   LOG_DEBUG("[LoadAndRender]", "Graphics loaded");
 
   // Load the room's palette with bounds checking
-  if (room.palette < rom_->paletteset_ids.size() &&
-      !rom_->paletteset_ids[room.palette].empty()) {
-    auto dungeon_palette_ptr = rom_->paletteset_ids[room.palette][0];
+  if (!game_data_) {
+    LOG_ERROR("[LoadAndRender]", "GameData not available");
+    return absl::FailedPreconditionError("GameData not available");
+  }
+  if (room.palette < game_data_->paletteset_ids.size() &&
+      !game_data_->paletteset_ids[room.palette].empty()) {
+    auto dungeon_palette_ptr = game_data_->paletteset_ids[room.palette][0];
     auto palette_id = rom_->ReadWord(0xDEC4B + dungeon_palette_ptr);
     if (palette_id.ok()) {
       current_palette_group_id_ = palette_id.value() / 180;
       if (current_palette_group_id_ <
-          rom_->palette_group().dungeon_main.size()) {
+          game_data_->palette_groups.dungeon_main.size()) {
         auto full_palette =
-            rom_->palette_group().dungeon_main[current_palette_group_id_];
+            game_data_->palette_groups.dungeon_main[current_palette_group_id_];
         // TODO: Fix palette assignment to buffer.
         ASSIGN_OR_RETURN(
             current_palette_group_,

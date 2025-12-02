@@ -5,7 +5,8 @@
 #include "app/editor/graphics/graphics_editor_state.h"
 #include "app/editor/system/editor_panel.h"
 #include "app/gui/core/icons.h"
-#include "app/rom.h"
+#include "rom/rom.h"
+#include "zelda3/game_data.h"
 
 namespace yaze {
 namespace editor {
@@ -18,8 +19,11 @@ namespace editor {
  */
 class PaletteControlsPanel : public EditorPanel {
  public:
-  explicit PaletteControlsPanel(GraphicsEditorState* state, Rom* rom)
-      : state_(state), rom_(rom) {}
+  explicit PaletteControlsPanel(GraphicsEditorState* state, Rom* rom,
+                                zelda3::GameData* game_data = nullptr)
+      : state_(state), rom_(rom), game_data_(game_data) {}
+  
+  void set_game_data(zelda3::GameData* game_data) { game_data_ = game_data; }
 
   // ==========================================================================
   // EditorPanel Identity
@@ -84,6 +88,7 @@ class PaletteControlsPanel : public EditorPanel {
 
   GraphicsEditorState* state_;
   Rom* rom_;
+  zelda3::GameData* game_data_ = nullptr;
 };
 
 }  // namespace editor

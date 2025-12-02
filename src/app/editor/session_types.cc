@@ -5,8 +5,9 @@
 
 namespace yaze::editor {
 
-EditorSet::EditorSet(Rom* rom, UserSettings* user_settings, size_t session_id)
-    : session_id_(session_id) {
+EditorSet::EditorSet(Rom* rom, zelda3::GameData* game_data,
+                     UserSettings* user_settings, size_t session_id)
+    : session_id_(session_id), game_data_(game_data) {
   assembly_editor_ = std::make_unique<AssemblyEditor>(rom);
   dungeon_editor_ = std::make_unique<DungeonEditorV2>(rom);
   graphics_editor_ = std::make_unique<GraphicsEditor>(rom);
@@ -18,6 +19,13 @@ EditorSet::EditorSet(Rom* rom, UserSettings* user_settings, size_t session_id)
   message_editor_ = std::make_unique<MessageEditor>(rom);
   memory_editor_ = std::make_unique<MemoryEditor>(rom);
   settings_panel_ = std::make_unique<SettingsPanel>();
+
+  // Propagate game_data to editors that need it
+  if (game_data) {
+    dungeon_editor_->set_game_data(game_data);
+    graphics_editor_->set_game_data(game_data);
+    overworld_editor_->set_game_data(game_data);
+  }
 
   active_editors_ = {overworld_editor_.get(), dungeon_editor_.get(),
                      graphics_editor_.get(),  palette_editor_.get(),
@@ -56,7 +64,9 @@ void EditorSet::ApplyDependencies(const EditorDependencies& dependencies) {
 }
 
 RomSession::RomSession(Rom&& r, UserSettings* user_settings, size_t session_id)
-    : rom(std::move(r)), editors(&rom, user_settings, session_id) {
+    : rom(std::move(r)),
+      game_data(&rom),
+      editors(&rom, &game_data, user_settings, session_id) {
   filepath = rom.filename();
   feature_flags = core::FeatureFlags::Flags{};
 }

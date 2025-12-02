@@ -160,6 +160,11 @@ Rom* SessionCoordinator::GetCurrentRom() const {
   return session ? &session->rom : nullptr;
 }
 
+zelda3::GameData* SessionCoordinator::GetCurrentGameData() const {
+  auto* session = GetActiveRomSession();
+  return session ? &session->game_data : nullptr;
+}
+
 EditorSet* SessionCoordinator::GetCurrentEditorSet() const {
   auto* session = GetActiveRomSession();
   return session ? &session->editors : nullptr;

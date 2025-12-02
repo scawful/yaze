@@ -1008,15 +1008,16 @@ void SpriteEditor::LoadSpritePalettes() {
   sprite_palettes_.clear();
 
   // Add global sprite palettes (typically 2 palettes, 16 colors each)
-  const auto& global = rom_->palette_group().global_sprites;
+  if (!game_data()) return;
+  const auto& global = game_data()->palette_groups.global_sprites;
   for (size_t i = 0; i < global.size() && i < 8; i++) {
     sprite_palettes_.AddPalette(global.palette(i));
   }
 
   // If we don't have 8 palettes yet, fill with aux palettes
-  const auto& aux1 = rom_->palette_group().sprites_aux1;
-  const auto& aux2 = rom_->palette_group().sprites_aux2;
-  const auto& aux3 = rom_->palette_group().sprites_aux3;
+  const auto& aux1 = game_data()->palette_groups.sprites_aux1;
+  const auto& aux2 = game_data()->palette_groups.sprites_aux2;
+  const auto& aux3 = game_data()->palette_groups.sprites_aux3;
 
   // Pad to 8 palettes total for proper OAM palette mapping
   while (sprite_palettes_.size() < 8) {

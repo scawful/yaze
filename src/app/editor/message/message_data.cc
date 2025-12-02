@@ -3,7 +3,7 @@
 #include <optional>
 #include <string>
 
-#include "app/snes.h"
+#include "rom/snes.h"
 #include "util/hex.h"
 #include "util/log.h"
 
@@ -437,7 +437,7 @@ absl::Status LoadExpandedMessages(std::string& expanded_message_path,
                                   std::vector<MessageData>& expanded_messages,
                                   std::vector<DictionaryEntry>& dictionary) {
   static Rom expanded_message_rom;
-  if (!expanded_message_rom.LoadFromFile(expanded_message_path, false).ok()) {
+  if (!expanded_message_rom.LoadFromFile(expanded_message_path).ok()) {
     return absl::InternalError("Failed to load expanded message ROM");
   }
   expanded_messages = ReadAllTextData(expanded_message_rom.mutable_data(), 0);

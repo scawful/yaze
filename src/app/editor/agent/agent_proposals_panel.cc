@@ -12,7 +12,7 @@
 #include "app/editor/agent/agent_ui_theme.h"
 #include "app/editor/ui/toast_manager.h"
 #include "app/gui/core/icons.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "imgui/imgui.h"
 
 namespace yaze {

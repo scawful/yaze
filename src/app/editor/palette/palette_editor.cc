@@ -585,13 +585,13 @@ void PaletteEditor::DrawCustomPalette() {
 
 absl::Status PaletteEditor::DrawPaletteGroup(int category,
                                              bool /*right_side*/) {
-  if (!rom()->is_loaded()) {
+  if (!rom()->is_loaded() || !game_data()) {
     return absl::NotFoundError("ROM not open, no palettes to display");
   }
 
   auto palette_group_name = kPaletteGroupNames[category];
   gfx::PaletteGroup* palette_group =
-      rom()->mutable_palette_group()->get_group(palette_group_name.data());
+      game_data()->palette_groups.get_group(palette_group_name.data());
   const auto size = palette_group->size();
 
   for (int j = 0; j < size; j++) {

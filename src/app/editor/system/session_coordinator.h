@@ -10,7 +10,7 @@
 #include "app/editor/system/panel_manager.h"
 #include "app/editor/ui/toast_manager.h"
 #include "app/editor/session_types.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "imgui/imgui.h"
 
 // Forward declarations
@@ -65,6 +65,7 @@ class SessionCoordinator {
   void* GetActiveSession() const;
   RomSession* GetActiveRomSession() const;
   Rom* GetCurrentRom() const;
+  zelda3::GameData* GetCurrentGameData() const;
   EditorSet* GetCurrentEditorSet() const;
   void* GetSession(size_t index) const;
   bool HasMultipleSessions() const;
