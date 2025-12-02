@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "app/gfx/types/snes_palette.h"
 #include "util/log.h"
 

@@ -6,9 +6,10 @@
 
 #include <cstdio>
 
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "zelda3/dungeon/object_drawer.h"
 #include "zelda3/dungeon/room.h"
+#include "zelda3/game_data.h"
 
 namespace yaze {
 namespace zelda3 {
@@ -29,22 +30,22 @@ class DungeonGraphicsTransparencyTest : public ::testing::Test {
       GTEST_SKIP() << "ROM file not available: " << status.message();
     }
 
-    // Load all graphics data to populate graphics_buffer_
-    auto gfx_result = LoadAllGraphicsData(*rom_);
-    if (!gfx_result.ok()) {
-      GTEST_SKIP() << "Graphics loading failed: " << gfx_result.status().message();
+    // Load all Zelda3 game data (metadata, palettes, gfx groups, graphics)
+    auto load_status = LoadGameData(*rom_, game_data_);
+    if (!load_status.ok()) {
+      GTEST_SKIP() << "Graphics loading failed: " << load_status.message();
     }
   }
 
   std::unique_ptr<Rom> rom_;
+  GameData game_data_;
 };
 
 // Test 1: Verify graphics buffer has transparent pixels
 TEST_F(DungeonGraphicsTransparencyTest, GraphicsBufferHasTransparentPixels) {
   // The graphics buffer should contain many 0s representing transparent pixels
-  auto* gfx_buffer = rom_->mutable_graphics_buffer();
-  ASSERT_NE(gfx_buffer, nullptr);
-  ASSERT_GT(gfx_buffer->size(), 0);
+  auto& gfx_buffer = game_data_.graphics_buffer;
+  ASSERT_GT(gfx_buffer.size(), 0);
 
   // Count zeros in first 10 sheets (dungeon graphics)
   int zero_count = 0;
@@ -54,10 +55,10 @@ TEST_F(DungeonGraphicsTransparencyTest, GraphicsBufferHasTransparentPixels) {
 
   for (int sheet = 0; sheet < sheets_to_check; sheet++) {
     int offset = sheet * pixels_per_sheet;
-    if (offset + pixels_per_sheet > static_cast<int>(gfx_buffer->size())) break;
+    if (offset + pixels_per_sheet > static_cast<int>(gfx_buffer.size())) break;
 
     for (int i = 0; i < pixels_per_sheet; i++) {
-      if ((*gfx_buffer)[offset + i] == 0) zero_count++;
+      if (gfx_buffer[offset + i] == 0) zero_count++;
       total_pixels++;
     }
   }
@@ -282,7 +283,7 @@ TEST_F(DungeonGraphicsTransparencyTest, ObjectsDrawToBitmap) {
 
   // Create a palette group (needed for draw)
   gfx::PaletteGroup palette_group;
-  auto& dungeon_pal = rom_->mutable_palette_group()->dungeon_main;
+  auto& dungeon_pal = game_data_.palette_groups.dungeon_main;
   if (!dungeon_pal.empty()) {
     palette_group.AddPalette(dungeon_pal[0]);
   }

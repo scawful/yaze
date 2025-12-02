@@ -6,7 +6,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "test/mocks/mock_rom.h"
 
 namespace yaze {

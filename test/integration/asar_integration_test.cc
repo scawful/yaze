@@ -5,7 +5,7 @@
 #include <fstream>
 
 #include "absl/status/status.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "core/asar_wrapper.h"
 #include "testing.h"
 

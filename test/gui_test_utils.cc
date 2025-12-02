@@ -2,7 +2,7 @@
 
 #include "app/controller.h"
 #include "app/editor/editor_manager.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 
 namespace yaze {
 namespace test {

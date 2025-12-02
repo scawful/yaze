@@ -10,7 +10,7 @@
 
 #include "app/gfx/background_buffer.h"
 #include "app/gfx/snes_palette.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "test_utils.h"
 #include "testing.h"
 #include "zelda3/dungeon/object_drawer.h"

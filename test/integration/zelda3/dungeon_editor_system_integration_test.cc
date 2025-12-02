@@ -5,7 +5,7 @@
 #include <memory>
 #include <vector>
 
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "zelda3/dungeon/dungeon_editor_system.h"
 #include "zelda3/dungeon/dungeon_object_editor.h"
 #include "zelda3/dungeon/room.h"

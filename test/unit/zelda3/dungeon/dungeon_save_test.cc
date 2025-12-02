@@ -2,7 +2,7 @@
 #include <vector>
 #include <memory>
 
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 
@@ -16,7 +16,7 @@ class DungeonSaveTest : public ::testing::Test {
     rom_ = std::make_unique<Rom>();
     // Create a minimal ROM for testing (2MB)
     std::vector<uint8_t> dummy_data(0x200000, 0);
-    rom_->LoadFromData(dummy_data, false);
+    rom_->LoadFromData(dummy_data);
 
     SetupRoomObjectPointers();
     SetupSpritePointers();

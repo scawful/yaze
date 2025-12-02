@@ -4,7 +4,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "testing.h"
 
 namespace yaze {
@@ -31,7 +31,7 @@ class MockRom : public Rom {
    * @return Status of the operation
    */
   absl::Status SetTestData(const std::vector<uint8_t>& data) {
-    auto status = LoadFromData(data, false);  // Don't load Zelda3 specific data
+    auto status = LoadFromData(data);  // Don't load Zelda3 specific data
     if (status.ok()) {
       test_data_loaded_ = true;
     }

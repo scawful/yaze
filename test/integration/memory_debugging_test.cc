@@ -14,7 +14,7 @@
 #include "app/emu/snes.h"
 #include "app/emu/debug/breakpoint_manager.h"
 #include "app/emu/debug/watchpoint_manager.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 
 namespace yaze {
 namespace emu {

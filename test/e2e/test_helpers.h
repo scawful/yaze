@@ -7,7 +7,7 @@
 #include <vector>
 
 #include "app/editor/editor.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "imgui/imgui.h"
 #include "imgui_test_engine/imgui_te_context.h"
 

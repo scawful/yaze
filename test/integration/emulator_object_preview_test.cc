@@ -14,7 +14,7 @@
 #include "app/emu/render/save_state_manager.h"
 
 #include "app/emu/snes.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "test_utils.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_object.h"
