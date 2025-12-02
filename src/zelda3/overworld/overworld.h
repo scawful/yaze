@@ -103,6 +103,14 @@ constexpr int overworldSpecialSpritePaletteExpandedTemp = 0x016701;
 
 constexpr int ExpandedOverlaySpace = 0x120000;
 
+// Expanded pointer table markers for tail map support (maps 0xA0-0xBF)
+// Set by TailMapExpansion.asm patch after ZSCustomOverworld v3
+constexpr int kExpandedPtrTableMarker = 0x1423FF;   // Location of marker byte
+constexpr uint8_t kExpandedPtrTableMagic = 0xEA;    // Marker value when applied
+constexpr int kExpandedPtrTableHigh = 0x142400;     // New high table location
+constexpr int kExpandedPtrTableLow = 0x142640;      // New low table location
+constexpr int kExpandedMapCount = 192;              // 0x00-0xBF
+
 constexpr int overworldTilesType = 0x071459;
 constexpr int overworldMessages = 0x03F51D;
 constexpr int overworldMessagesExpanded = 0x1417F8;
@@ -224,6 +232,20 @@ class Overworld {
 
   auto rom() const { return rom_; }
   auto mutable_rom() { return rom_; }
+
+  /**
+   * @brief Check if the ROM has expanded pointer tables for tail maps
+   *
+   * Returns true if the TailMapExpansion.asm patch has been applied,
+   * enabling support for maps 0xA0-0xBF. Detection is based on the
+   * marker byte at 0x1423FF being 0xEA.
+   */
+  bool HasExpandedPointerTables() const {
+    if (!rom_ || kExpandedPtrTableMarker >= rom_->size()) {
+      return false;
+    }
+    return rom_->data()[kExpandedPtrTableMarker] == kExpandedPtrTableMagic;
+  }
 
   void Destroy() {
     for (auto& map : overworld_maps_) {
