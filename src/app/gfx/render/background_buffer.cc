@@ -67,10 +67,14 @@ void BackgroundBuffer::DrawTile(const TileInfo& tile, uint8_t* canvas,
   int tile_base_x = tile_col_idx * 8;    // 8 pixels wide (8 bytes)
   int tile_base_y = tile_row_idx * 1024; // 8 rows * 128 bytes stride (sheet width)
 
-  // Palette handling
-  uint8_t palette_idx = tile.palette_ & 0x0F;
-  // Dungeon palette is packed as 6 groups of 15 colors (90 total), skipping transparent.
-  uint8_t palette_offset = palette_idx * 15;
+  // Palette handling - aligned with ObjectDrawer::DrawTileToBitmap
+  // Dungeon palettes have 6 groups of 15 colors (90 total).
+  // Palette index from tile (3 bits, 0-7) may exceed valid range 0-5.
+  uint8_t pal = tile.palette_ & 0x07;
+  if (pal > 5) {
+    pal = pal % 6;  // Wrap palettes 6,7 to 0,1
+  }
+  uint8_t palette_offset = pal * 15;
 
   // Pre-calculate max valid destination index
   int max_dest = width_ * height_;
@@ -92,7 +96,8 @@ void BackgroundBuffer::DrawTile(const TileInfo& tile, uint8_t* canvas,
       uint8_t pixel = tiledata[src_index];
 
       if (pixel != 0) {
-        // Pixel 0 is transparent. Pixel 1 maps to index 0 of the 15-color palette.
+        // Pixel 0 is transparent. Pixel 1 maps to palette index 0.
+        // This matches ObjectDrawer::DrawTileToBitmap formula.
         uint8_t final_color = (pixel - 1) + palette_offset;
         int dest_index = indexoffset + (py * width_) + px;
 
@@ -142,10 +147,12 @@ void BackgroundBuffer::DrawBackground(std::span<uint8_t> gfx16_data) {
 
       // Skip floor tiles (0xEC-0xFD) - don't overwrite DrawFloor's work
       // These are the animated floor tiles, already drawn by DrawFloor
-      if (tile.id_ >= 0xEC && tile.id_ <= 0xFD) {
-        skipped_count++;
-        continue;
-      }
+      // Skip floor tiles (0xEC-0xFD) - don't overwrite DrawFloor's work
+      // These are the animated floor tiles, already drawn by DrawFloor
+      // if (tile.id_ >= 0xEC && tile.id_ <= 0xFD) {
+      //   skipped_count++;
+      //   continue;
+      // }
 
       // Calculate pixel offset for tile position (xx, yy) in the 512x512 bitmap
       // Each tile is 8x8, so pixel Y = yy * 8, pixel X = xx * 8
