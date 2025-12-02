@@ -9,7 +9,7 @@
 #include <string>
 #include <vector>
 
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "cli/tui/chat_tui.h"
 #include "cli/tui/hex_viewer.h"
 

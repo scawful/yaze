@@ -18,7 +18,7 @@
 #include "app/gfx/backend/irenderer.h"
 #include "app/gfx/backend/renderer_factory.h"
 #include "app/platform/iwindow.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "util/sdl_deleter.h"
 #include "imgui/imgui.h"
 

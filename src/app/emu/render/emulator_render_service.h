@@ -12,6 +12,9 @@
 namespace yaze {
 
 class Rom;
+namespace zelda3 {
+struct GameData;
+}  // namespace zelda3
 
 namespace emu {
 class Snes;
@@ -55,7 +58,7 @@ enum class RenderMode {
 //   }
 class EmulatorRenderService {
  public:
-  explicit EmulatorRenderService(Rom* rom);
+  explicit EmulatorRenderService(Rom* rom, zelda3::GameData* game_data = nullptr);
   ~EmulatorRenderService();
 
   // Non-copyable
@@ -115,6 +118,7 @@ class EmulatorRenderService {
   std::vector<uint8_t> ExtractPixelsFromPpu();
 
   Rom* rom_ = nullptr;
+  zelda3::GameData* game_data_ = nullptr;
   std::unique_ptr<emu::Snes> snes_;
   std::unique_ptr<SaveStateManager> state_manager_;
 

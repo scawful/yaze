@@ -10,7 +10,7 @@
 #import "app/application.h"
 #import "util/file_util.h"
 #import "app/editor/editor.h"
-#import "app/rom.h"
+#import "rom/rom.h"
 #include <vector>
 
 #if defined(__APPLE__) && defined(__MACH__)

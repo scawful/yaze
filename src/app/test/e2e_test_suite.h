@@ -6,9 +6,9 @@
 
 #include "absl/strings/str_format.h"
 #include "app/gui/core/icons.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "app/test/test_manager.h"
-#include "app/transaction.h"
+#include "rom/transaction.h"
 
 namespace yaze {
 namespace test {

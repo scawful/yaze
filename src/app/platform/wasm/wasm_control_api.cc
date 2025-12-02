@@ -18,7 +18,7 @@
 #include "app/gui/automation/widget_measurement.h"
 #include "app/gui/core/platform_keys.h"
 #include "app/platform/wasm/wasm_settings.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "nlohmann/json.hpp"
 #include "util/log.h"
 #include "zelda3/dungeon/room.h"
@@ -1775,8 +1775,12 @@ std::string WasmControlApi::GetPaletteData(const std::string& group_name, int pa
   result["palette_id"] = palette_id;
 
   try {
-    auto palette_groups = rom->palette_group();
-    auto* group = palette_groups.get_group(group_name);
+    auto* game_data = editor_manager_->GetCurrentGameData();
+    if (!game_data) {
+      result["error"] = "GameData not available";
+      return result.dump();
+    }
+    auto* group = game_data->palette_groups.get_group(group_name);
 
     if (!group) {
       result["error"] = "Invalid palette group name";

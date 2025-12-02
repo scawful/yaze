@@ -12,8 +12,6 @@
 
 set(
   YAZE_APP_CORE_SRC
-  app/rom.cc
-  app/rom_diagnostics.cc
   # Note: controller.cc is built directly into the yaze executable (not this library)
   # because it depends on yaze_editor and yaze_gui, which would create a cycle:
   # yaze_agent -> yaze_app_core_lib -> yaze_editor -> yaze_agent
@@ -158,6 +156,7 @@ target_link_libraries(yaze_app_core_lib PUBLIC
   yaze_gui         # Safe to include - yaze_gui doesn't link to yaze_agent
   yaze_zelda3
   yaze_common
+  yaze_rom         # Generic ROM library
   # Note: yaze_editor is linked at executable level to avoid dependency cycle:
   # yaze_agent -> yaze_app_core_lib -> yaze_editor -> yaze_agent
   ImGui

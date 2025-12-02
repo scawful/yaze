@@ -63,13 +63,22 @@ if(YAZE_WITH_JSON)
   target_compile_definitions(yaze_grpc_support PUBLIC YAZE_WITH_JSON)
 endif()
 
-# Add ALL protobuf definitions (consolidated from multiple libraries)
-target_add_protobuf(yaze_grpc_support
+# Create a separate OBJECT library for proto files to break dependency cycles
+# This allows yaze_agent to depend on the protos without depending on yaze_grpc_support
+add_library(yaze_proto_gen OBJECT)
+target_add_protobuf(yaze_proto_gen
   ${PROJECT_SOURCE_DIR}/src/protos/rom_service.proto
   ${PROJECT_SOURCE_DIR}/src/protos/canvas_automation.proto
   ${PROJECT_SOURCE_DIR}/src/protos/imgui_test_harness.proto
   ${PROJECT_SOURCE_DIR}/src/protos/emulator_service.proto
 )
+
+# Link proto gen to protobuf
+target_link_libraries(yaze_proto_gen PUBLIC ${YAZE_PROTOBUF_TARGETS})
+
+# Add proto objects to grpc_support
+target_sources(yaze_grpc_support PRIVATE $<TARGET_OBJECTS:yaze_proto_gen>)
+target_include_directories(yaze_grpc_support PUBLIC ${CMAKE_BINARY_DIR}/gens)
 
 # Resolve gRPC targets (FetchContent builds expose bare names, vcpkg uses
 # the gRPC:: namespace). Fallback gracefully.

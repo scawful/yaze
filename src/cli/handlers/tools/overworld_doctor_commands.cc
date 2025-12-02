@@ -9,7 +9,7 @@
 
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "cli/handlers/tools/diagnostic_types.h"
 #include "core/asar_wrapper.h"
 #include "zelda3/overworld/overworld_entrance.h"
@@ -741,7 +741,6 @@ absl::Status OverworldDoctorCommandHandler::Execute(
   if (output_path.has_value()) {
     Rom::SaveSettings settings;
     settings.filename = output_path.value();
-        settings.z3_save = false;
     RETURN_IF_ERROR(rom->SaveToFile(settings));
         if (!is_json) {
           std::cout << absl::StrFormat("\nSaved fixed ROM to: %s\n",

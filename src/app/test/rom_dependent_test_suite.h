@@ -7,7 +7,8 @@
 #include "absl/strings/str_format.h"
 #include "app/editor/overworld/tile16_editor.h"
 #include "app/gui/core/icons.h"
-#include "app/rom.h"
+#include "rom/rom.h"
+#include "zelda3/game_data.h"
 #include "app/test/test_manager.h"
 #include "zelda3/overworld/overworld.h"
 
@@ -270,9 +271,10 @@ class RomDependentTestSuite : public TestSuite {
           "Graphics extraction testing disabled in configuration";
     } else {
       try {
-        auto graphics_result = LoadAllGraphicsData(*rom);
-        if (graphics_result.ok()) {
-          auto& sheets = graphics_result.value();
+        zelda3::GameData game_data;
+        auto load_status = zelda3::LoadGameData(*rom, game_data);
+        if (load_status.ok()) {
+          auto& sheets = game_data.gfx_bitmaps;
           size_t loaded_sheets = 0;
           for (const auto& sheet : sheets) {
             if (sheet.is_active()) {
@@ -288,7 +290,7 @@ class RomDependentTestSuite : public TestSuite {
           result.status = TestStatus::kFailed;
           result.error_message =
               "Graphics extraction failed: " +
-              std::string(graphics_result.status().message());
+              std::string(load_status.message());
         }
       } catch (const std::exception& e) {
         result.status = TestStatus::kFailed;
@@ -419,8 +421,12 @@ class RomDependentTestSuite : public TestSuite {
     result.timestamp = start_time;
 
     try {
+      // Load game data for palette access
+      zelda3::GameData game_data;
+      auto load_status = zelda3::LoadGameData(*rom, game_data);
+      
       // Verify ROM and palette data
-      if (rom->palette_group().overworld_main.size() > 0) {
+      if (load_status.ok() && game_data.palette_groups.overworld_main.size() > 0) {
         // Test Tile16 editor functionality with real ROM data
         editor::Tile16Editor tile16_editor(rom, nullptr);
 
@@ -434,9 +440,9 @@ class RomDependentTestSuite : public TestSuite {
         test_gfx_bmp.Create(256, 256, 8, test_gfx_data);
 
         // Set realistic palettes
-        if (rom->palette_group().overworld_main.size() > 0) {
-          test_blockset_bmp.SetPalette(rom->palette_group().overworld_main[0]);
-          test_gfx_bmp.SetPalette(rom->palette_group().overworld_main[0]);
+        if (game_data.palette_groups.overworld_main.size() > 0) {
+          test_blockset_bmp.SetPalette(game_data.palette_groups.overworld_main[0]);
+          test_gfx_bmp.SetPalette(game_data.palette_groups.overworld_main[0]);
         }
 
         std::array<uint8_t, 0x200> tile_types{};
@@ -460,12 +466,12 @@ class RomDependentTestSuite : public TestSuite {
             result.error_message = absl::StrFormat(
                 "Tile16Editor working correctly (ROM: %s, Palette groups: %zu)",
                 rom->title().c_str(),
-                rom->palette_group().overworld_main.size());
+                game_data.palette_groups.overworld_main.size());
           }
         }
       } else {
         result.status = TestStatus::kSkipped;
-        result.error_message = "ROM palette data not available";
+        result.error_message = "ROM palette data not available or failed to load game data";
       }
     } catch (const std::exception& e) {
       result.status = TestStatus::kFailed;

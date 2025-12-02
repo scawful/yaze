@@ -25,7 +25,7 @@
 #endif
 
 #include "app/net/rom_version_manager.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 
 namespace yaze {
 

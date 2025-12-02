@@ -6,7 +6,7 @@
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
 #include "app/gfx/util/compression.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "cli/handlers/tools/diagnostic_types.h"
 #include "zelda3/overworld/overworld.h"
 
@@ -97,9 +97,9 @@ absl::StatusOr<MapValidationResult> ValidateMapPointers(
   }
 
   const auto ptr_low_base =
-      overworld.rom()->version_constants().kCompressedAllMap32PointersLow;
+      overworld.version_constants().kCompressedAllMap32PointersLow;
   const auto ptr_high_base =
-      overworld.rom()->version_constants().kCompressedAllMap32PointersHigh;
+      overworld.version_constants().kCompressedAllMap32PointersHigh;
 
   auto read_ptr = [&](uint32_t base) -> uint32_t {
     uint8_t byte0 = overworld.rom()->data()[base + (3 * map_id)];

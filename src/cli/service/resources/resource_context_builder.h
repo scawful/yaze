@@ -5,7 +5,7 @@
 #include <string>
 
 #include "absl/status/statusor.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 
 namespace yaze {
 namespace cli {

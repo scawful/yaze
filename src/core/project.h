@@ -178,7 +178,10 @@ struct YazeProject {
   absl::Status ResetToDefaults();
 
   // Labels management
-  absl::Status InitializeEmbeddedLabels();  // Load all default Zelda3 labels
+  absl::Status InitializeEmbeddedLabels(
+      const std::unordered_map<std::string,
+                               std::unordered_map<std::string, std::string>>&
+          labels);  // Load all default Zelda3 labels
   std::string GetLabel(const std::string& resource_type, int id,
                        const std::string& default_value = "") const;
 

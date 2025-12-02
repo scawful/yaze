@@ -9,7 +9,7 @@
 
 #include "absl/strings/str_format.h"
 #include "app/service/rom_service_impl.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "app/service/canvas_automation_service.h"
 #include "app/service/imgui_test_harness_service.h"
 #include "protos/canvas_automation.grpc.pb.h"

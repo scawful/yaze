@@ -13,7 +13,7 @@
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_join.h"
 #include "absl/strings/str_replace.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 
 namespace yaze {
 namespace cli {

@@ -7,7 +7,7 @@
 
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_join.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "core/asar_wrapper.h"
 
 namespace yaze::core {

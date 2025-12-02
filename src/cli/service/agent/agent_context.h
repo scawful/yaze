@@ -16,7 +16,7 @@
 #include <string>
 #include <vector>
 
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "cli/service/ai/common.h"
 
 namespace yaze {

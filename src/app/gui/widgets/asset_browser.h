@@ -5,8 +5,9 @@
 #include <string>
 
 #include "app/gfx/core/bitmap.h"
-#include "app/rom.h"
 #include "imgui/imgui.h"
+#include "rom/rom.h"
+#include "zelda3/game_data.h"
 
 #define IM_MIN(A, B) (((A) < (B)) ? (A) : (B))
 #define IM_MAX(A, B) (((A) >= (B)) ? (A) : (B))
@@ -189,9 +190,9 @@ struct GfxSheetAssetBrowser {
   int LayoutLineCount = 0;
   bool Initialized = false;
 
-  void Initialize(const std::array<gfx::Bitmap, kNumGfxSheets>& bmp_manager) {
+  void Initialize(const std::array<gfx::Bitmap, zelda3::kNumGfxSheets>& bmp_manager) {
     // Load the assets
-    for (int i = 0; i < kNumGfxSheets; i++) {
+    for (int i = 0; i < zelda3::kNumGfxSheets; i++) {
       Items.push_back(UnsortedAsset(i));
     }
     Initialized = true;
@@ -241,7 +242,7 @@ struct GfxSheetAssetBrowser {
     LayoutOuterPadding = floorf(LayoutItemSpacing * 0.5f);
   }
 
-  void Draw(const std::array<gfx::Bitmap, kNumGfxSheets>& bmp_manager);
+  void Draw(const std::array<gfx::Bitmap, zelda3::kNumGfxSheets>& bmp_manager);
 };
 
 }  // namespace gui

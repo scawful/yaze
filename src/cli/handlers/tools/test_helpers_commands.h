@@ -20,7 +20,7 @@
 
 #include "absl/status/status.h"
 #include "app/emu/snes.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "cli/service/resources/command_handler.h"
 #include "zelda3/overworld/overworld.h"
 #include "zelda3/overworld/overworld_map.h"

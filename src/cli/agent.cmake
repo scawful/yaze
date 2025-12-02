@@ -349,6 +349,14 @@ if(YAZE_ENABLE_REMOTE_AUTOMATION)
   # Link to consolidated gRPC support library
   target_link_libraries(yaze_agent PUBLIC yaze_grpc_support)
   
+  # Ensure proto files are generated before yaze_agent compiles
+  # yaze_proto_gen is an OBJECT library that generates the proto headers
+  # This breaks the dependency cycle by separating proto generation from yaze_grpc_support
+  if(TARGET yaze_proto_gen)
+    add_dependencies(yaze_agent yaze_proto_gen)
+    target_include_directories(yaze_agent PUBLIC ${CMAKE_BINARY_DIR}/gens)
+  endif()
+  
   # Note: YAZE_WITH_GRPC is defined globally via add_compile_definitions in options.cmake
   # This ensures #ifdef YAZE_WITH_GRPC works in all translation units
   message(STATUS "✓ gRPC GUI automation enabled for yaze_agent")

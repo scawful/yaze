@@ -5,7 +5,7 @@
 #include <vector>
 
 #include "absl/status/status.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "cli/service/resources/command_context.h"
 
 namespace yaze {

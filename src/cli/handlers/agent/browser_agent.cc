@@ -14,7 +14,7 @@
 #include "cli/service/ai/browser_ai_service.h"
 #include "cli/service/agent/conversational_agent_service.h"
 #include "cli/service/resources/resource_catalog.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 
 namespace yaze {
 namespace cli {

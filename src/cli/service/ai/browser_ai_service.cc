@@ -8,7 +8,7 @@
 #include "absl/strings/ascii.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_join.h"
-#include "app/rom.h"  // Full definition needed for Rom member access
+#include "rom/rom.h"  // Full definition needed for Rom member access
 #include "cli/service/agent/conversational_agent_service.h"
 
 namespace yaze {

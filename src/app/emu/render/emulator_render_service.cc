@@ -4,16 +4,18 @@
 
 #include "app/emu/render/save_state_manager.h"
 #include "app/emu/snes.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "zelda3/dungeon/object_drawer.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_object.h"
+#include "zelda3/game_data.h"
 
 namespace yaze {
 namespace emu {
 namespace render {
 
-EmulatorRenderService::EmulatorRenderService(Rom* rom) : rom_(rom) {}
+EmulatorRenderService::EmulatorRenderService(Rom* rom, zelda3::GameData* game_data)
+    : rom_(rom), game_data_(game_data) {}
 
 EmulatorRenderService::~EmulatorRenderService() = default;
 
@@ -163,7 +165,10 @@ absl::StatusOr<RenderResult> EmulatorRenderService::RenderDungeonObjectStatic(
   room.CopyRoomGraphicsToBuffer();
 
   // Get palette group and specific palette for color conversion
-  auto& dungeon_main_pal_group = rom_->palette_group().dungeon_main;
+  if (!game_data_) {
+    return absl::FailedPreconditionError("GameData not available");
+  }
+  auto& dungeon_main_pal_group = game_data_->palette_groups.dungeon_main;
   uint8_t palette_id = req.use_room_defaults ? room.palette : req.palette;
   if (palette_id >= dungeon_main_pal_group.size()) {
     palette_id = 0;
@@ -259,7 +264,8 @@ void EmulatorRenderService::InjectRoomContext(int room_id, uint8_t blockset,
   zelda3::Room room = zelda3::LoadRoomFromRom(rom_, room_id);
 
   // Load palette into CGRAM (palettes 0-5, 90 colors)
-  auto dungeon_main_pal_group = rom_->palette_group().dungeon_main;
+  if (!game_data_) return;
+  auto dungeon_main_pal_group = game_data_->palette_groups.dungeon_main;
   if (palette < dungeon_main_pal_group.size()) {
     auto base_palette = dungeon_main_pal_group[palette];
     for (size_t i = 0; i < base_palette.size() && i < 90; ++i) {
@@ -306,7 +312,8 @@ void EmulatorRenderService::InjectRoomContext(int room_id, uint8_t blockset,
 
 void EmulatorRenderService::LoadPaletteIntoCgram(int palette_id) {
   auto& ppu = snes_->ppu();
-  auto dungeon_main_pal_group = rom_->palette_group().dungeon_main;
+  if (!game_data_) return;
+  auto dungeon_main_pal_group = game_data_->palette_groups.dungeon_main;
 
   if (palette_id >= 0 &&
       palette_id < static_cast<int>(dungeon_main_pal_group.size())) {

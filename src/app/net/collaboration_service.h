@@ -8,7 +8,7 @@
 #include "absl/status/status.h"
 #include "app/net/rom_version_manager.h"
 #include "app/net/websocket_client.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 
 namespace yaze {
 

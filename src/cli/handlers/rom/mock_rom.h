@@ -2,7 +2,7 @@
 #define YAZE_CLI_HANDLERS_MOCK_ROM_H
 
 #include "absl/status/status.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 
 namespace yaze {
 namespace cli {

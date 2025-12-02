@@ -18,6 +18,7 @@
 #include "absl/strings/ascii.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_split.h"
+#include "util/macro.h"
 
 namespace yaze {
 namespace cli {

@@ -34,13 +34,13 @@ int GetTileIdFromPosition(ImVec2 mouse_pos, float tile_size, float scale,
   return tile_x + (tile_y * tiles_per_row);
 }
 
-bool LoadROMPaletteGroups(Rom* rom, CanvasPaletteManager& palette_manager) {
-  if (!rom || palette_manager.palettes_loaded) {
+bool LoadROMPaletteGroups(zelda3::GameData* game_data, CanvasPaletteManager& palette_manager) {
+  if (!game_data || palette_manager.palettes_loaded) {
     return palette_manager.palettes_loaded;
   }
 
   try {
-    const auto& palette_groups = rom->palette_group();
+    const auto& palette_groups = game_data->palette_groups;
     palette_manager.rom_palette_groups.clear();
     palette_manager.palette_group_names.clear();
 
