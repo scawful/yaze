@@ -109,15 +109,30 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
           
           ImGui::TableNextRow();
           ImGui::TableNextColumn(); ImGui::Text("Blockset");
-          ImGui::TableNextColumn(); gui::InputHexByte("##Blockset", &room.blockset);
+          ImGui::TableNextColumn();
+          uint8_t blockset_val = room.blockset;
+          if (gui::InputHexByte("##Blockset", &blockset_val) && ImGui::IsItemDeactivatedAfterEdit()) {
+            room.SetBlockset(blockset_val);
+            if (room.rom() && room.rom()->is_loaded()) room.RenderRoomGraphics();
+          }
 
           ImGui::TableNextRow();
           ImGui::TableNextColumn(); ImGui::Text("Spriteset");
-          ImGui::TableNextColumn(); gui::InputHexByte("##Spriteset", &room.spriteset);
+          ImGui::TableNextColumn();
+          uint8_t spriteset_val = room.spriteset;
+          if (gui::InputHexByte("##Spriteset", &spriteset_val) && ImGui::IsItemDeactivatedAfterEdit()) {
+            room.SetSpriteset(spriteset_val);
+            if (room.rom() && room.rom()->is_loaded()) room.RenderRoomGraphics();
+          }
 
           ImGui::TableNextRow();
           ImGui::TableNextColumn(); ImGui::Text("Palette");
-          ImGui::TableNextColumn(); gui::InputHexByte("##Palette", &room.palette);
+          ImGui::TableNextColumn();
+          uint8_t palette_val = room.palette;
+          if (gui::InputHexByte("##Palette", &palette_val) && ImGui::IsItemDeactivatedAfterEdit()) {
+            room.SetPalette(palette_val);
+            if (room.rom() && room.rom()->is_loaded()) room.RenderRoomGraphics();
+          }
 
           ImGui::EndTable();
         }
@@ -132,7 +147,13 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
 
            ImGui::TableNextRow();
            ImGui::TableNextColumn(); ImGui::Text("Layout ID");
-           ImGui::TableNextColumn(); gui::InputHexByte("##Layout", &room.layout);
+           ImGui::TableNextColumn();
+           uint8_t layout_val = room.layout;
+           if (gui::InputHexByte("##Layout", &layout_val) && ImGui::IsItemDeactivatedAfterEdit()) {
+             room.layout = layout_val;
+             room.MarkLayoutDirty();
+             if (room.rom() && room.rom()->is_loaded()) room.RenderRoomGraphics();
+           }
 
            ImGui::TableNextRow();
            ImGui::TableNextColumn(); ImGui::Text("Floor 1");
@@ -915,63 +936,94 @@ void DungeonCanvasViewer::DrawRoomBackgroundLayers(int room_id) {
   // IMPORTANT: Draw BG2 FIRST (background layer), then BG1 (foreground with objects)
   // BG1 contains the objects drawn by ObjectDrawer and should be on top
 
-  // Draw BG2 layer FIRST if visible and active (background - underneath)
-  if (layer_settings.bg2_visible && bg2_bitmap.is_active() &&
-      bg2_bitmap.width() > 0 && bg2_bitmap.height() > 0) {
-    if (!bg2_bitmap.texture()) {
-      // Queue texture creation for background layer 2 via Arena's deferred
-      // system BATCHING FIX: Don't process immediately - let the main loop
-      // handle batching
-      gfx::Arena::Get().QueueTextureCommand(
-          gfx::Arena::TextureCommandType::CREATE, &bg2_bitmap);
+  // Determine drawing order based on Layer2OnTop flag
+  bool bg2_on_top = room.layer_merging().Layer2OnTop;
 
-      // Queue will be processed at the end of the frame in DrawDungeonCanvas()
-      // This allows multiple rooms to batch their texture operations together
+  auto draw_bg1 = [&]() {
+    if (layer_settings.bg1_visible) {
+      // Draw BG1 Layout
+      if (bg1_bitmap.is_active() && bg1_bitmap.width() > 0 &&
+          bg1_bitmap.height() > 0) {
+        if (!bg1_bitmap.texture()) {
+          gfx::Arena::Get().QueueTextureCommand(
+              gfx::Arena::TextureCommandType::CREATE, &bg1_bitmap);
+        }
+
+        if (bg1_bitmap.texture()) {
+          float scale = canvas_.global_scale();
+          LOG_DEBUG("DungeonCanvasViewer",
+                    "Drawing BG1 bitmap to canvas with texture %p, scale=%.2f",
+                    bg1_bitmap.texture(), scale);
+          canvas_.DrawBitmap(bg1_bitmap, 0, 0, scale, 255);
+        }
+      }
+
+      // Draw BG1 Objects (Layer 0, 2)
+      auto& object_bg1 = room.object_bg1_buffer().bitmap();
+      if (object_bg1.is_active() && object_bg1.width() > 0 &&
+          object_bg1.height() > 0) {
+        if (!object_bg1.texture()) {
+          gfx::Arena::Get().QueueTextureCommand(
+              gfx::Arena::TextureCommandType::CREATE, &object_bg1);
+        }
+
+        if (object_bg1.texture()) {
+          float scale = canvas_.global_scale();
+          canvas_.DrawBitmap(object_bg1, 0, 0, scale, 255);
+        }
+      }
     }
+  };
 
-    // Only draw if texture was successfully created
-    if (bg2_bitmap.texture()) {
-      // Use the selected BG2 layer type alpha value
-      const int bg2_alpha_values[] = {255, 191, 127, 64, 0};
-      int alpha_value =
-          bg2_alpha_values[std::min(layer_settings.bg2_layer_type, 4)];
-      // Use canvas global scale so bitmap scales with zoom
-      float scale = canvas_.global_scale();
-      LOG_DEBUG(
-          "DungeonCanvasViewer",
-          "Drawing BG2 bitmap to canvas with texture %p, alpha=%d, scale=%.2f",
-          bg2_bitmap.texture(), alpha_value, scale);
-      canvas_.DrawBitmap(bg2_bitmap, 0, 0, scale, alpha_value);
-    } else {
-      LOG_DEBUG("DungeonCanvasViewer", "ERROR: BG2 bitmap has no texture!");
+  auto draw_bg2 = [&]() {
+    if (layer_settings.bg2_visible) {
+      // Draw BG2 Layout
+      if (bg2_bitmap.is_active() && bg2_bitmap.width() > 0 &&
+          bg2_bitmap.height() > 0) {
+        if (!bg2_bitmap.texture()) {
+          gfx::Arena::Get().QueueTextureCommand(
+              gfx::Arena::TextureCommandType::CREATE, &bg2_bitmap);
+        }
+
+        if (bg2_bitmap.texture()) {
+          const int bg2_alpha_values[] = {255, 191, 127, 64, 0};
+          int alpha_value =
+              bg2_alpha_values[std::min(layer_settings.bg2_layer_type, 4)];
+          float scale = canvas_.global_scale();
+          LOG_DEBUG("DungeonCanvasViewer",
+                    "Drawing BG2 bitmap to canvas with texture %p, alpha=%d, scale=%.2f",
+                    bg2_bitmap.texture(), alpha_value, scale);
+          canvas_.DrawBitmap(bg2_bitmap, 0, 0, scale, alpha_value);
+        }
+      }
+
+      // Draw BG2 Objects (Layer 1)
+      auto& object_bg2 = room.object_bg2_buffer().bitmap();
+      if (object_bg2.is_active() && object_bg2.width() > 0 &&
+          object_bg2.height() > 0) {
+        if (!object_bg2.texture()) {
+          gfx::Arena::Get().QueueTextureCommand(
+              gfx::Arena::TextureCommandType::CREATE, &object_bg2);
+        }
+
+        if (object_bg2.texture()) {
+          // Apply same alpha as BG2 layout
+          const int bg2_alpha_values[] = {255, 191, 127, 64, 0};
+          int alpha_value =
+              bg2_alpha_values[std::min(layer_settings.bg2_layer_type, 4)];
+          float scale = canvas_.global_scale();
+          canvas_.DrawBitmap(object_bg2, 0, 0, scale, alpha_value);
+        }
+      }
     }
-  }
+  };
 
-  // Draw BG1 layer SECOND if visible and active (foreground - on top)
-  if (layer_settings.bg1_visible && bg1_bitmap.is_active() &&
-      bg1_bitmap.width() > 0 && bg1_bitmap.height() > 0) {
-    if (!bg1_bitmap.texture()) {
-      // Queue texture creation for background layer 1 via Arena's deferred
-      // system BATCHING FIX: Don't process immediately - let the main loop
-      // handle batching
-      gfx::Arena::Get().QueueTextureCommand(
-          gfx::Arena::TextureCommandType::CREATE, &bg1_bitmap);
-
-      // Queue will be processed at the end of the frame in DrawDungeonCanvas()
-      // This allows multiple rooms to batch their texture operations together
-    }
-
-    // Only draw if texture was successfully created
-    if (bg1_bitmap.texture()) {
-      // Use canvas global scale so bitmap scales with zoom
-      float scale = canvas_.global_scale();
-      LOG_DEBUG("DungeonCanvasViewer",
-                "Drawing BG1 bitmap to canvas with texture %p, scale=%.2f",
-                bg1_bitmap.texture(), scale);
-      canvas_.DrawBitmap(bg1_bitmap, 0, 0, scale, 255);
-    } else {
-      LOG_DEBUG("DungeonCanvasViewer", "ERROR: BG1 bitmap has no texture!");
-    }
+  if (bg2_on_top) {
+    draw_bg1();
+    draw_bg2();
+  } else {
+    draw_bg2();
+    draw_bg1();
   }
 
   // DEBUG: Check if background buffers have content

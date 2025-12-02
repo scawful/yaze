@@ -218,7 +218,23 @@ RoomObject RoomObject::DecodeObjectFromBytes(uint8_t b1, uint8_t b2, uint8_t b3,
               b1, b2, b3, id, x, y, size);
   }
 
-  return RoomObject(static_cast<int16_t>(id), x, y, size, layer);
+  auto obj = RoomObject(static_cast<int16_t>(id), x, y, size, layer);
+
+  // Set all_bgs flag for objects that draw to both BG1 and BG2
+  // Based on ZScream/ObjectDrawer logic
+  if ((id >= 0x03 && id <= 0x04) ||  // Routine 3
+      (id >= 0x63 && id <= 0x64) ||  // Routine 9
+      // Routine 17 (Acute Diagonals)
+      id == 0x0C || id == 0x0D || id == 0x10 || id == 0x11 || id == 0x14 ||
+      id == 0x15 || id == 0x18 || id == 0x19 || id == 0x1C || id == 0x1D ||
+      id == 0x20 ||
+      // Routine 18 (Grave Diagonals)
+      id == 0x0E || id == 0x0F || id == 0x12 || id == 0x13 || id == 0x16 ||
+      id == 0x17 || id == 0x1A || id == 0x1B || id == 0x1E || id == 0x1F) {
+    obj.all_bgs_ = true;
+  }
+
+  return obj;
 }
 
 RoomObject::ObjectBytes RoomObject::EncodeObjectToBytes() const {

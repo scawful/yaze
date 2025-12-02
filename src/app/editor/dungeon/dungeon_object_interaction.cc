@@ -358,6 +358,23 @@ void DungeonObjectInteraction::ShowContextMenu() {
     if (selection_.HasSelection()) {
       const size_t selection_count = selection_.GetSelectionCount();
 
+      // Show object details for single selection
+      if (selection_count == 1) {
+        size_t index = *selection_.GetSelectedIndices().begin();
+        if (rooms_ && current_room_id_ >= 0 && current_room_id_ < 296) {
+          auto& room = (*rooms_)[current_room_id_];
+          const auto& objects = room.GetTileObjects();
+          if (index < objects.size()) {
+            const auto& object = objects[index];
+            // Layer 1 is BG2, others (0, 2) are BG1
+            const char* layer_name =
+                (object.GetLayerValue() == 1) ? "BG2" : "BG1";
+            ImGui::Text("Object ID: 0x%02X (%s)", object.id_, layer_name);
+            ImGui::Separator();
+          }
+        }
+      }
+
       if (ImGui::MenuItem("Cut", "Ctrl+X")) {
         HandleCopySelected();
         HandleDeleteSelected();
@@ -669,8 +686,11 @@ std::pair<int, int> DungeonObjectInteraction::CalculateObjectBounds(
   }
 
   // Fallback to naive calculation if no ROM available
-  int width = 8 + (object.size_ & 0x0F) * 4;
-  int height = 8 + ((object.size_ >> 4) & 0x0F) * 4;
+  // Matches DungeonCanvasViewer::DrawRoomObjects logic
+  int size_h = (object.size_ & 0x0F);
+  int size_v = (object.size_ >> 4) & 0x0F;
+  int width = (size_h + 1) * 8;
+  int height = (size_v + 1) * 8;
   return {width, height};
 }
 
