@@ -76,10 +76,15 @@ endforeach()
 
 # Include modular libraries
 include(util/util.cmake)
-include(zelda3/zelda3_library.cmake)
 
 # Add foundational core library (project management, asar wrapper)
 add_subdirectory(core)
+
+# Add ROM library (generic SNES ROM handling)
+add_subdirectory(rom)
+
+# Add Zelda3-specific game logic (depends on yaze_rom)
+include(zelda3/zelda3_library.cmake)
 
 # App-specific libraries
 include(app/gfx/gfx_library.cmake)
@@ -132,6 +137,7 @@ if (YAZE_BUILD_LIB)
   add_library(yaze_core INTERFACE)
   target_link_libraries(yaze_core INTERFACE
     yaze_util
+    yaze_rom
     yaze_gfx
     yaze_gui
     yaze_zelda3
