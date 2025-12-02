@@ -48,6 +48,12 @@ target_link_libraries(yaze_core_lib PUBLIC
 # Add Asar support (links asar-static and adds YAZE_ENABLE_ASAR definition)
 if(ASAR_FOUND)
   yaze_add_asar_support(yaze_core_lib)
+  if(TARGET asar-standalone)
+    add_dependencies(yaze_core_lib asar-standalone)
+    # Embed the bundled Asar CLI path for fallback patching
+    target_compile_definitions(yaze_core_lib PRIVATE
+      YAZE_ASAR_STANDALONE_PATH=\"$<TARGET_FILE:asar-standalone>\")
+  endif()
 endif()
 
 # Precompiled headers for faster builds
@@ -72,4 +78,3 @@ elseif(WIN32)
 endif()
 
 message(STATUS "✓ yaze_core_lib configured (foundational project management)")
-
