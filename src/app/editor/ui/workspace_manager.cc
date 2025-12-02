@@ -5,7 +5,7 @@
 #include "absl/strings/str_format.h"
 #include "app/editor/system/panel_manager.h"
 #include "app/editor/ui/toast_manager.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
 #include "util/file_util.h"

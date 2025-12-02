@@ -7,7 +7,7 @@
 #include "app/gui/canvas/canvas.h"
 #include "app/gui/core/color.h"
 #include "app/gui/core/input.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -102,7 +102,7 @@ void GfxGroupEditor::DrawBlocksetViewer(bool sheet_only) {
         for (int i = 0; i < 8; i++) {
           SetNextItemWidth(100.f);
           gui::InputHexByte(("0x" + std::to_string(i)).c_str(),
-                            &rom()->main_blockset_ids[selected_blockset_][i]);
+                            &game_data()->main_blockset_ids[selected_blockset_][i]);
         }
         EndGroup();
       }
@@ -111,7 +111,7 @@ void GfxGroupEditor::DrawBlocksetViewer(bool sheet_only) {
     {
       BeginGroup();
       for (int i = 0; i < 8; i++) {
-        int sheet_id = rom()->main_blockset_ids[selected_blockset_][i];
+        int sheet_id = game_data()->main_blockset_ids[selected_blockset_][i];
         auto& sheet = gfx::Arena::Get().mutable_gfx_sheets()->at(sheet_id);
         gui::BitmapCanvasPipeline(blockset_canvas_, sheet, 256, 0x10 * 0x04,
                                   0x20, true, false, 22);
@@ -156,7 +156,7 @@ void GfxGroupEditor::DrawRoomsetViewer() {
       for (int i = 0; i < 4; i++) {
         SetNextItemWidth(100.f);
         gui::InputHexByte(("0x" + std::to_string(i)).c_str(),
-                          &rom()->room_blockset_ids[selected_roomset_][i]);
+                          &game_data()->room_blockset_ids[selected_roomset_][i]);
       }
       EndGroup();
     }
@@ -164,7 +164,7 @@ void GfxGroupEditor::DrawRoomsetViewer() {
     {
       BeginGroup();
       for (int i = 0; i < 4; i++) {
-        int sheet_id = rom()->room_blockset_ids[selected_roomset_][i];
+        int sheet_id = game_data()->room_blockset_ids[selected_roomset_][i];
         auto& sheet = gfx::Arena::Get().mutable_gfx_sheets()->at(sheet_id);
         gui::BitmapCanvasPipeline(roomset_canvas_, sheet, 256, 0x10 * 0x04,
                                   0x20, true, false, 23);
@@ -193,7 +193,7 @@ void GfxGroupEditor::DrawSpritesetViewer(bool sheet_only) {
         for (int i = 0; i < 4; i++) {
           SetNextItemWidth(100.f);
           gui::InputHexByte(("0x" + std::to_string(i)).c_str(),
-                            &rom()->spriteset_ids[selected_spriteset_][i]);
+                            &game_data()->spriteset_ids[selected_spriteset_][i]);
         }
         EndGroup();
       }
@@ -202,7 +202,7 @@ void GfxGroupEditor::DrawSpritesetViewer(bool sheet_only) {
     {
       BeginGroup();
       for (int i = 0; i < 4; i++) {
-        int sheet_id = rom()->spriteset_ids[selected_spriteset_][i];
+        int sheet_id = game_data()->spriteset_ids[selected_spriteset_][i];
         auto& sheet =
             gfx::Arena::Get().mutable_gfx_sheets()->at(115 + sheet_id);
         gui::BitmapCanvasPipeline(spriteset_canvas_, sheet, 256, 0x10 * 0x04,
@@ -248,28 +248,28 @@ void GfxGroupEditor::DrawPaletteViewer() {
       "Paletteset " + std::to_string(selected_paletteset_));
 
   uint8_t& dungeon_main_palette_val =
-      rom()->paletteset_ids[selected_paletteset_][0];
+      game_data()->paletteset_ids[selected_paletteset_][0];
   uint8_t& dungeon_spr_pal_1_val =
-      rom()->paletteset_ids[selected_paletteset_][1];
+      game_data()->paletteset_ids[selected_paletteset_][1];
   uint8_t& dungeon_spr_pal_2_val =
-      rom()->paletteset_ids[selected_paletteset_][2];
+      game_data()->paletteset_ids[selected_paletteset_][2];
   uint8_t& dungeon_spr_pal_3_val =
-      rom()->paletteset_ids[selected_paletteset_][3];
+      game_data()->paletteset_ids[selected_paletteset_][3];
 
   gui::InputHexByte("Dungeon Main", &dungeon_main_palette_val);
 
   rom()->resource_label()->SelectableLabelWithNameEdit(
       false, kPaletteGroupNames[PaletteCategory::kDungeons].data(),
       std::to_string(dungeon_main_palette_val), "Unnamed dungeon palette");
-  auto& palette = *rom()->mutable_palette_group()->dungeon_main.mutable_palette(
-      rom()->paletteset_ids[selected_paletteset_][0]);
+  auto& palette = *game_data()->palette_groups.dungeon_main.mutable_palette(
+      game_data()->paletteset_ids[selected_paletteset_][0]);
   DrawPaletteFromPaletteGroup(palette);
   Separator();
 
   gui::InputHexByte("Dungeon Spr Pal 1", &dungeon_spr_pal_1_val);
   auto& spr_aux_pal1 =
-      *rom()->mutable_palette_group()->sprites_aux1.mutable_palette(
-          rom()->paletteset_ids[selected_paletteset_][1]);
+      *game_data()->palette_groups.sprites_aux1.mutable_palette(
+          game_data()->paletteset_ids[selected_paletteset_][1]);
   DrawPaletteFromPaletteGroup(spr_aux_pal1);
   SameLine();
   rom()->resource_label()->SelectableLabelWithNameEdit(
@@ -279,8 +279,8 @@ void GfxGroupEditor::DrawPaletteViewer() {
 
   gui::InputHexByte("Dungeon Spr Pal 2", &dungeon_spr_pal_2_val);
   auto& spr_aux_pal2 =
-      *rom()->mutable_palette_group()->sprites_aux2.mutable_palette(
-          rom()->paletteset_ids[selected_paletteset_][2]);
+      *game_data()->palette_groups.sprites_aux2.mutable_palette(
+          game_data()->paletteset_ids[selected_paletteset_][2]);
   DrawPaletteFromPaletteGroup(spr_aux_pal2);
   SameLine();
   rom()->resource_label()->SelectableLabelWithNameEdit(
@@ -290,8 +290,8 @@ void GfxGroupEditor::DrawPaletteViewer() {
 
   gui::InputHexByte("Dungeon Spr Pal 3", &dungeon_spr_pal_3_val);
   auto& spr_aux_pal3 =
-      *rom()->mutable_palette_group()->sprites_aux3.mutable_palette(
-          rom()->paletteset_ids[selected_paletteset_][3]);
+      *game_data()->palette_groups.sprites_aux3.mutable_palette(
+          game_data()->paletteset_ids[selected_paletteset_][3]);
   DrawPaletteFromPaletteGroup(spr_aux_pal3);
   SameLine();
   rom()->resource_label()->SelectableLabelWithNameEdit(

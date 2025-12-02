@@ -2,7 +2,7 @@
 #define YAZE_APP_EDITOR_OVERWORLD_SIDEBAR_H
 
 #include "app/editor/overworld/map_properties.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "zelda3/overworld/overworld.h"
 
 namespace yaze {

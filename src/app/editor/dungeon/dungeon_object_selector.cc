@@ -10,7 +10,7 @@
 #include "app/gui/canvas/canvas.h"
 #include "app/gui/widgets/asset_browser.h"
 #include "app/platform/window.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "app/editor/agent/agent_ui_theme.h"
 #include "imgui/imgui.h"
 #include "zelda3/dungeon/dungeon_editor_system.h"
@@ -408,9 +408,9 @@ void DungeonObjectSelector::SelectObject(int obj_id) {
   // Create and update preview object
   preview_object_ = zelda3::RoomObject(obj_id, 0, 0, 0x12, 0);
   preview_object_.set_rom(rom_);
-  if (rom_) {
+  if (game_data_) {
     auto palette =
-        rom_->palette_group().dungeon_main[current_palette_group_id_];
+        game_data_->palette_groups.dungeon_main[current_palette_group_id_];
     preview_palette_ = palette;
   }
   object_loaded_ = true;
@@ -476,9 +476,9 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
       // Create and update preview object
       preview_object_ = zelda3::RoomObject(obj_id, 0, 0, 0x12, 0);
       preview_object_.set_rom(rom_);
-      if (rom_) {
+      if (game_data_) {
         auto palette =
-            rom_->palette_group().dungeon_main[current_palette_group_id_];
+            game_data_->palette_groups.dungeon_main[current_palette_group_id_];
         preview_palette_ = palette;
       }
       object_loaded_ = true;

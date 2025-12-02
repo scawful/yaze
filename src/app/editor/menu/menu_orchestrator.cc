@@ -13,7 +13,7 @@
 #include "app/editor/ui/layout_presets.h"
 #include "app/editor/menu/menu_builder.h"
 #include "app/gui/core/icons.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "core/features.h"
 #include "zelda3/overworld/overworld_map.h"
 

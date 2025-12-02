@@ -39,7 +39,7 @@
 #include "app/editor/ui/welcome_screen.h"
 #include "app/editor/ui/workspace_manager.h"
 #include "app/emu/emulator.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "core/project.h"
 #include "imgui/imgui.h"
 #include "yaze_config.h"
@@ -148,6 +148,10 @@ class EditorManager {
   absl::Status SetCurrentRom(Rom* rom);
   auto GetCurrentRom() const -> Rom* {
     return session_coordinator_ ? session_coordinator_->GetCurrentRom()
+                                : nullptr;
+  }
+  auto GetCurrentGameData() const -> zelda3::GameData* {
+    return session_coordinator_ ? session_coordinator_->GetCurrentGameData()
                                 : nullptr;
   }
   auto GetCurrentEditorSet() const -> EditorSet* {

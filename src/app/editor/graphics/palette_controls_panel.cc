@@ -130,8 +130,9 @@ void PaletteControlsPanel::DrawPaletteGroupSelector() {
 void PaletteControlsPanel::DrawPaletteDisplay() {
   gui::TextWithSeparators("Current Palette");
 
-  // Get the current palette from ROM
-  auto palette_group_result = rom_->palette_group().get_group(
+  // Get the current palette from GameData
+  if (!game_data_) return;
+  auto palette_group_result = game_data_->palette_groups.get_group(
       kPaletteGroupAddressesKeys[state_->palette_group_index]);
   if (!palette_group_result) {
     ImGui::TextDisabled("Invalid palette group");
@@ -257,9 +258,9 @@ void PaletteControlsPanel::DrawApplyButtons() {
 }
 
 void PaletteControlsPanel::ApplyPaletteToSheet(uint16_t sheet_id) {
-  if (!rom_ || !rom_->is_loaded()) return;
+  if (!rom_ || !rom_->is_loaded() || !game_data_) return;
 
-  auto palette_group_result = rom_->palette_group().get_group(
+  auto palette_group_result = game_data_->palette_groups.get_group(
       kPaletteGroupAddressesKeys[state_->palette_group_index]);
   if (!palette_group_result) return;
 
@@ -276,9 +277,9 @@ void PaletteControlsPanel::ApplyPaletteToSheet(uint16_t sheet_id) {
 }
 
 void PaletteControlsPanel::ApplyPaletteToAllSheets() {
-  if (!rom_ || !rom_->is_loaded()) return;
+  if (!rom_ || !rom_->is_loaded() || !game_data_) return;
 
-  auto palette_group_result = rom_->palette_group().get_group(
+  auto palette_group_result = game_data_->palette_groups.get_group(
       kPaletteGroupAddressesKeys[state_->palette_group_index]);
   if (!palette_group_result) return;
 
@@ -287,7 +288,7 @@ void PaletteControlsPanel::ApplyPaletteToAllSheets() {
 
   auto palette = palette_group.palette(state_->palette_index);
 
-  for (int i = 0; i < kNumGfxSheets; i++) {
+  for (int i = 0; i < zelda3::kNumGfxSheets; i++) {
     auto& sheet = gfx::Arena::Get().mutable_gfx_sheets()->data()[i];
     if (sheet.is_active() && sheet.surface()) {
       sheet.SetPaletteWithTransparent(palette, state_->sub_palette_index);

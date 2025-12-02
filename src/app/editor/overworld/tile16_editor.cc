@@ -11,7 +11,8 @@
 #include "app/gui/canvas/canvas.h"
 #include "app/gui/core/input.h"
 #include "app/gui/core/style.h"
-#include "app/rom.h"
+#include "rom/rom.h"
+#include "zelda3/game_data.h"
 #include "imgui/imgui.h"
 #include "util/hex.h"
 #include "util/log.h"
@@ -204,7 +205,7 @@ absl::Status Tile16Editor::Update() {
     if (Button("Save & Continue", ImVec2(120, 0))) {
       // Commit just the current tile change
       if (auto* tile_data = GetCurrentTile16Data()) {
-        auto status = rom_->WriteTile16(current_tile16_, *tile_data);
+        auto status = rom_->WriteTile16(current_tile16_, zelda3::kTile16Ptr, *tile_data);
         if (status.ok()) {
           // Remove from pending
           pending_tile16_changes_.erase(current_tile16_);
@@ -370,7 +371,7 @@ gfx::Tile16* Tile16Editor::GetCurrentTile16Data() {
   }
 
   // Read the current tile16 data from ROM
-  auto tile_result = rom_->ReadTile16(current_tile16_);
+  auto tile_result = rom_->ReadTile16(current_tile16_, zelda3::kTile16Ptr);
   if (!tile_result.ok()) {
     return nullptr;
   }
@@ -387,7 +388,7 @@ absl::Status Tile16Editor::UpdateROMTile16Data() {
   }
 
   // Write the modified tile16 data back to ROM
-  RETURN_IF_ERROR(rom_->WriteTile16(current_tile16_, *tile_data));
+  RETURN_IF_ERROR(rom_->WriteTile16(current_tile16_, zelda3::kTile16Ptr, *tile_data));
 
   util::logf("ROM Tile16 data written for tile %d", current_tile16_);
   return absl::OkStatus();
@@ -1514,9 +1515,9 @@ absl::Status Tile16Editor::LoadTile8() {
           // The pixel data already contains correct color indices for the
           // 256-color palette
           tile_bitmap.SetPalette(overworld_palette_);
-        } else if (rom() && rom()->palette_group().overworld_main.size() > 0) {
-          // Fallback to ROM palette
-          tile_bitmap.SetPalette(rom()->palette_group().overworld_main[0]);
+        } else if (game_data() && game_data()->palette_groups.overworld_main.size() > 0) {
+          // Fallback to GameData palette
+          tile_bitmap.SetPalette(game_data()->palette_groups.overworld_main[0]);
         }
         // Queue texture creation via Arena's deferred system
         gfx::Arena::Get().QueueTextureCommand(
@@ -1559,7 +1560,7 @@ absl::Status Tile16Editor::SetCurrentTile(int tile_id) {
   jump_to_tile_id_ = tile_id;  // Sync input field with current tile
 
   // Initialize the instance variable with current ROM data
-  auto tile_result = rom_->ReadTile16(current_tile16_);
+  auto tile_result = rom_->ReadTile16(current_tile16_, zelda3::kTile16Ptr);
   if (tile_result.ok()) {
     current_tile16_data_ = tile_result.value();
   }
@@ -1611,8 +1612,8 @@ absl::Status Tile16Editor::SetCurrentTile(int tile_id) {
     display_palette = overworld_palette_;
   } else if (palette_.size() >= 256) {
     display_palette = palette_;
-  } else if (rom()->palette_group().overworld_main.size() > 0) {
-    display_palette = rom()->palette_group().overworld_main[0];
+  } else if (game_data() && game_data()->palette_groups.overworld_main.size() > 0) {
+    display_palette = game_data()->palette_groups.overworld_main[0];
   }
 
   // CRITICAL FIX: Validate palette before attempting to use it
@@ -1970,7 +1971,8 @@ absl::Status Tile16Editor::PreviewPaletteChange(uint8_t palette_id) {
     preview_tile16_.Create(16, 16, 8, current_tile16_bmp_.vector());
   }
 
-  const auto& ow_main_pal_group = rom()->palette_group().overworld_main;
+  if (!game_data()) return absl::FailedPreconditionError("GameData not available");
+  const auto& ow_main_pal_group = game_data()->palette_groups.overworld_main;
   if (ow_main_pal_group.size() > palette_id) {
     preview_tile16_.SetPaletteWithTransparent(ow_main_pal_group[0], palette_id);
     // Queue texture update via Arena's deferred system
@@ -2248,7 +2250,7 @@ absl::Status Tile16Editor::CommitAllChanges() {
 
   // Write all pending changes to ROM
   for (const auto& [tile_id, tile_data] : pending_tile16_changes_) {
-    auto status = rom_->WriteTile16(tile_id, tile_data);
+    auto status = rom_->WriteTile16(tile_id, zelda3::kTile16Ptr, tile_data);
     if (!status.ok()) {
       util::logf("Failed to write tile16 %d: %s", tile_id,
                  status.message().data());
@@ -2486,8 +2488,8 @@ void Tile16Editor::ApplyPaletteToCurrentTile16Bitmap() {
     display_palette = &overworld_palette_;
   } else if (palette_.size() >= 256) {
     display_palette = &palette_;
-  } else if (rom() && !rom()->palette_group().overworld_main.empty()) {
-    display_palette = &rom()->palette_group().overworld_main[0];
+  } else if (game_data() && !game_data()->palette_groups.overworld_main.empty()) {
+    display_palette = &game_data()->palette_groups.overworld_main.palette_ref(0);
   }
 
   if (!display_palette || display_palette->empty()) {
@@ -2532,9 +2534,9 @@ absl::Status Tile16Editor::UpdateTile8Palette(int tile8_id) {
     display_palette = overworld_palette_;
   } else if (palette_.size() >= 256) {
     display_palette = palette_;
-  } else {
-    // Fallback to ROM palette
-    const auto& palette_groups = rom()->palette_group();
+  } else if (game_data()) {
+    // Fallback to GameData palette
+    const auto& palette_groups = game_data()->palette_groups;
     if (palette_groups.overworld_main.size() > 0) {
       display_palette = palette_groups.overworld_main[0];
     } else {
@@ -2597,9 +2599,9 @@ absl::Status Tile16Editor::RefreshAllPalettes() {
     display_palette = palette_;
     util::logf("Using fallback complete palette with %zu colors",
                display_palette.size());
-  } else {
-    // Last resort: Use ROM palette groups
-    const auto& palette_groups = rom()->palette_group();
+  } else if (game_data()) {
+    // Last resort: Use GameData palette groups
+    const auto& palette_groups = game_data()->palette_groups;
     if (palette_groups.overworld_main.size() > 0) {
       display_palette = palette_groups.overworld_main[0];
       util::logf("Warning: Using ROM main palette with %zu colors",
@@ -3024,8 +3026,8 @@ absl::Status Tile16Editor::UpdateLivePreview() {
   }
 
   // Apply the current palette
-  if (rom_) {
-    const auto& ow_main_pal_group = rom_->palette_group().overworld_main;
+  if (game_data()) {
+    const auto& ow_main_pal_group = game_data()->palette_groups.overworld_main;
     if (ow_main_pal_group.size() > current_palette_) {
       preview_tile16_.SetPaletteWithTransparent(ow_main_pal_group[0],
                                                 current_palette_);

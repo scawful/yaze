@@ -10,7 +10,7 @@
 #include "app/editor/code/assembly_editor.h"
 #include "app/editor/editor.h"
 #include "app/gui/app/editor_layout.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "app/emu/audio/audio_backend.h"
 #include "imgui/imgui.h"
 #include "app/editor/music/instrument_editor_view.h"

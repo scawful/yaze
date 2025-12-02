@@ -4,7 +4,8 @@
 #include "absl/status/status.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/gui/canvas/canvas.h"
-#include "app/rom.h"
+#include "rom/rom.h"
+#include "zelda3/game_data.h"
 
 namespace yaze {
 namespace editor {
@@ -29,6 +30,8 @@ class GfxGroupEditor {
   }
   void set_rom(Rom* rom) { rom_ = rom; }
   Rom* rom() const { return rom_; }
+  void set_game_data(zelda3::GameData* data) { game_data_ = data; }
+  zelda3::GameData* game_data() const { return game_data_; }
 
  private:
   uint8_t selected_blockset_ = 0;
@@ -42,6 +45,7 @@ class GfxGroupEditor {
 
   gfx::SnesPalette palette_;
   Rom* rom_ = nullptr;
+  zelda3::GameData* game_data_ = nullptr;
 };
 
 }  // namespace editor

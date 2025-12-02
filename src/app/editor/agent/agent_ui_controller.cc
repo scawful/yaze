@@ -11,7 +11,7 @@
 #include "app/editor/system/proposal_drawer.h"
 #include "app/editor/ui/toast_manager.h"
 #include "app/editor/menu/right_panel_manager.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "util/log.h"
 
 namespace yaze {

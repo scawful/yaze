@@ -154,6 +154,7 @@ target_include_directories(yaze_editor PUBLIC
 
 target_link_libraries(yaze_editor PUBLIC
   yaze_app_core_lib
+  yaze_rom
   yaze_gfx
   yaze_gui
   yaze_zelda3

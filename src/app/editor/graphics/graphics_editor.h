@@ -18,9 +18,10 @@
 #include "app/gui/app/editor_layout.h"
 #include "app/gui/canvas/canvas.h"
 #include "app/gui/widgets/asset_browser.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "imgui/imgui.h"
 #include "app/gui/imgui_memory_editor.h"
+#include "zelda3/game_data.h"
 #include "zelda3/overworld/overworld.h"
 
 namespace yaze {
@@ -81,6 +82,9 @@ class GraphicsEditor : public Editor {
 
   // Set the ROM pointer
   void set_rom(Rom* rom) { rom_ = rom; }
+  
+  // Set the game data pointer
+  void set_game_data(zelda3::GameData* game_data) { game_data_ = game_data; }
 
   // Editor shortcuts
   void NextSheet();
@@ -207,8 +211,8 @@ class GraphicsEditor : public Editor {
   gfx::Bitmap scr_bitmap_;
   gfx::Bitmap bin_bitmap_;
   gfx::Bitmap link_full_sheet_;
-  std::array<gfx::Bitmap, kNumGfxSheets> gfx_sheets_;
-  std::array<gfx::Bitmap, kNumLinkSheets> link_sheets_;
+  std::array<gfx::Bitmap, zelda3::kNumGfxSheets> gfx_sheets_;
+  std::array<gfx::Bitmap, zelda3::kNumLinkSheets> link_sheets_;
 
   gfx::PaletteGroup col_file_palette_group_;
   gfx::SnesPalette z3_rom_palette_;
@@ -227,6 +231,7 @@ class GraphicsEditor : public Editor {
   absl::Status status_;
 
   Rom* rom_;
+  zelda3::GameData* game_data_ = nullptr;
 };
 
 }  // namespace editor

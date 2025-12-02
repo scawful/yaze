@@ -11,7 +11,7 @@
 #include "app/gfx/types/snes_palette.h"
 #include "app/gui/app/editor_layout.h"
 #include "app/gui/canvas/canvas.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "imgui/imgui.h"
 #include "zelda3/screen/dungeon_map.h"
 #include "zelda3/screen/inventory.h"

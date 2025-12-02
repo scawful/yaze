@@ -16,7 +16,7 @@
 #include "app/gui/core/icons.h"
 #include "app/gui/core/input.h"
 #include "app/gui/core/style.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "imgui.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
 #include "util/file_util.h"
@@ -93,7 +93,9 @@ void MessageEditor::Initialize() {
 
   message_preview_.all_dictionaries_ = BuildDictionaryEntries(rom());
   list_of_texts_ = ReadAllTextData(rom()->mutable_data());
-  font_preview_colors_ = rom()->palette_group().hud.palette(0);
+  if (game_data()) {
+    font_preview_colors_ = game_data()->palette_groups.hud.palette(0);
+  }
 
   for (int i = 0; i < 0x4000; i++) {
     raw_font_gfx_data_[i] = rom()->data()[kGfxFont + i];
@@ -114,7 +116,7 @@ void MessageEditor::Initialize() {
   LOG_INFO("MessageEditor", "Font bitmap created and texture queued");
   *current_font_gfx16_bitmap_.mutable_palette() = font_preview_colors_;
 
-  auto load_font = LoadFontGraphics(*rom());
+  auto load_font = zelda3::LoadFontGraphics(*rom());
   if (load_font.ok()) {
     message_preview_.font_gfx16_data_2_ = load_font.value().vector();
   }
@@ -470,7 +472,7 @@ absl::Status MessageEditor::SaveExpandedMessages() {
      // If we are just writing raw data, maybe we don't need a full ROM load if we just write bytes?
      // But SaveToFile expects a loaded ROM structure.
      // Let's try to load it first.
-     auto status = expanded_message_bin_.LoadFromFile(expanded_message_path_, false);
+     auto status = expanded_message_bin_.LoadFromFile(expanded_message_path_);
      if (!status.ok()) {
          // If file doesn't exist, maybe we should create a buffer?
          // For now, let's propagate error if we can't load it to update it.
@@ -501,7 +503,7 @@ absl::Status MessageEditor::SaveExpandedMessages() {
 
   expanded_message_bin_.set_filename(expanded_message_path_);
   RETURN_IF_ERROR(expanded_message_bin_.SaveToFile(
-      Rom::SaveSettings{.backup = true, .save_new = false, .z3_save = false}));
+      Rom::SaveSettings{.backup = true, .save_new = false}));
   return absl::OkStatus();
 }
 

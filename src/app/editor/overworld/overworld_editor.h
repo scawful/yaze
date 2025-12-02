@@ -23,7 +23,7 @@
 #include "app/gui/canvas/canvas.h"
 #include "app/gui/core/input.h"
 #include "app/gui/widgets/tile_selector_widget.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "imgui/imgui.h"
 #include "zelda3/overworld/overworld.h"
 
@@ -82,6 +82,10 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
     dependencies_ = deps;
   }
 
+  void set_game_data(zelda3::GameData* game_data) {
+    game_data_ = game_data;
+    overworld_.set_game_data(game_data);
+  }
 
   void Initialize() override;
   absl::Status Load() override;
@@ -420,6 +424,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   gfx::Tilemap tile16_blockset_;
 
   Rom* rom_;
+  zelda3::GameData* game_data_ = nullptr;
 
   gfx::IRenderer* renderer_;
   Tile16Editor tile16_editor_{rom_, &tile16_blockset_};

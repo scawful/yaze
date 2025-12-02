@@ -28,7 +28,7 @@
 #include "app/editor/system/proposal_drawer.h"
 #include "app/editor/ui/toast_manager.h"
 #include "app/gui/core/icons.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "cli/service/ai/browser_ai_service.h"
 #include "cli/service/ai/gemini_ai_service.h"
 #include "cli/service/ai/model_registry.h"
@@ -36,6 +36,7 @@
 #include "cli/service/ai/service_factory.h"
 #include "core/project.h"
 #include "imgui/imgui.h"
+#include "zelda3/zelda3_labels.h"
 #include "util/file_util.h"
 #include "util/platform_paths.h"
 
@@ -210,7 +211,8 @@ void AgentChatWidget::SetRomContext(Rom* rom) {
     project::YazeProject project;
     project.use_embedded_labels = true;
 
-    auto labels_status = project.InitializeEmbeddedLabels();
+    auto labels = zelda3::Zelda3Labels::ToResourceLabels();
+    auto labels_status = project.InitializeEmbeddedLabels(labels);
 
     if (labels_status.ok()) {
       rom->resource_label()->labels_ = project.resource_labels;

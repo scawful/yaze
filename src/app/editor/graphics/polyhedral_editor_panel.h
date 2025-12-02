@@ -7,7 +7,7 @@
 #include "absl/status/status.h"
 #include "app/editor/system/editor_panel.h"
 #include "app/gui/core/icons.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 
 namespace yaze {
 namespace editor {

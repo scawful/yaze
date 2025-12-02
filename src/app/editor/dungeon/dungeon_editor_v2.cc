@@ -212,7 +212,10 @@ absl::Status DungeonEditorV2::Load() {
   RETURN_IF_ERROR(room_loader_.LoadRoomEntrances(entrances_));
 
   // Load palette group
-  auto dungeon_main_pal_group = rom_->palette_group().dungeon_main;
+  if (!game_data()) {
+    return absl::FailedPreconditionError("GameData not available");
+  }
+  auto dungeon_main_pal_group = game_data()->palette_groups.dungeon_main;
   current_palette_ = dungeon_main_pal_group[current_palette_group_id_];
   ASSIGN_OR_RETURN(current_palette_group_,
                    gfx::CreatePaletteGroupFromLargePalette(current_palette_));
@@ -646,7 +649,8 @@ void DungeonEditorV2::OnRoomSelected(int room_id) {
       canvas_viewer_.SetCurrentPaletteId(current_palette_id_);
 
       // Update current palette group
-      auto dungeon_main_pal_group = rom_->palette_group().dungeon_main;
+      if (!game_data()) return;
+      auto dungeon_main_pal_group = game_data()->palette_groups.dungeon_main;
       if (current_palette_id_ < (int)dungeon_main_pal_group.size()) {
         current_palette_ = dungeon_main_pal_group[current_palette_id_];
         // Propagate to canvas viewer

@@ -10,7 +10,7 @@
 #include "absl/strings/str_format.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/plots/implot_support.h"
-#include "app/snes.h"
+#include "rom/snes.h"
 #include "imgui/imgui.h"
 #include "implot.h"
 #include "util/macro.h"

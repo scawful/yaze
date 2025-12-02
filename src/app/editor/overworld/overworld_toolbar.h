@@ -7,7 +7,7 @@
 #include "app/editor/overworld/ui_constants.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/ui_helpers.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "imgui/imgui.h"
 #include "zelda3/overworld/overworld.h"
 

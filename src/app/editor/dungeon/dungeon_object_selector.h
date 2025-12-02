@@ -6,7 +6,8 @@
 #include "app/gui/canvas/canvas.h"
 #include "app/gui/widgets/asset_browser.h"
 #include "app/platform/window.h"
-#include "app/rom.h"
+#include "rom/rom.h"
+#include "zelda3/game_data.h"
 // object_renderer.h removed - using ObjectDrawer for production rendering
 #include "imgui/imgui.h"
 #include "zelda3/dungeon/dungeon_editor_system.h"
@@ -32,6 +33,9 @@ class DungeonObjectSelector {
   void set_rom(Rom* rom) { rom_ = rom; }
   void SetRom(Rom* rom) { rom_ = rom; }
   Rom* rom() const { return rom_; }
+
+  void SetGameData(zelda3::GameData* game_data) { game_data_ = game_data; }
+  zelda3::GameData* game_data() const { return game_data_; }
 
   // Editor system access
   void set_dungeon_editor_system(
@@ -100,6 +104,7 @@ class DungeonObjectSelector {
   void RenderObjectPrimitive(const zelda3::RoomObject& object, int x, int y);
 
   Rom* rom_ = nullptr;
+  zelda3::GameData* game_data_ = nullptr;
   gui::Canvas room_gfx_canvas_{"##RoomGfxCanvas",
                                ImVec2(0x100 + 1, 0x10 * 0x40 + 1)};
   gui::Canvas object_canvas_;
