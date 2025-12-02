@@ -642,11 +642,15 @@ absl::Status Overworld::DecompressAllMapTilesParallel() {
   int sx = 0;
   int sy = 0;
   int c = 0;
+  // Tail maps (0xA0-0xBF) require BOTH:
+  // 1. Feature flag enabled in settings
+  // 2. TailMapExpansion.asm patch applied to ROM (marker at 0x1423FF)
   const bool allow_special_tail =
-      core::FeatureFlags::get().overworld.kEnableSpecialWorldExpansion;
+      core::FeatureFlags::get().overworld.kEnableSpecialWorldExpansion &&
+      HasExpandedPointerTables();
 
   for (int i = 0; i < kNumOverworldMaps; i++) {
-    // Optional guard: skip building tail special maps unless explicitly enabled
+    // Guard: skip building tail special maps unless expansion is available
     if (!allow_special_tail &&
         i >= kSpecialWorldMapIdStart + 0x20) {  // 0xA0-0xBF
       FillBlankMapTiles(i);
@@ -841,11 +845,17 @@ absl::Status Overworld::EnsureMapBuilt(int map_index) {
     return absl::InvalidArgumentError("Invalid map index");
   }
 
+  // Tail maps (0xA0-0xBF) require BOTH:
+  // 1. Feature flag enabled in settings
+  // 2. TailMapExpansion.asm patch applied to ROM (marker at 0x1423FF)
   const bool allow_special_tail =
-      core::FeatureFlags::get().overworld.kEnableSpecialWorldExpansion;
+      core::FeatureFlags::get().overworld.kEnableSpecialWorldExpansion &&
+      HasExpandedPointerTables();
   if (!allow_special_tail &&
       map_index >= kSpecialWorldMapIdStart + 0x20) {  // 0xA0-0xBF
     // Do not attempt to build disabled special-tail maps; keep them blank-safe.
+    // This prevents pointer table corruption from attempting to access
+    // non-existent entries beyond vanilla's 160-entry limit.
     FillBlankMapTiles(map_index);
     return absl::OkStatus();
   }
