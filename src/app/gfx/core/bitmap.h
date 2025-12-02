@@ -138,6 +138,14 @@ class Bitmap {
   void Reformat(int format);
 
   /**
+   * @brief Fill the bitmap with a specific value
+   */
+  void Fill(uint8_t value) {
+    std::fill(data_.begin(), data_.end(), value);
+    modified_ = true;
+  }
+
+  /**
    * @brief Creates the underlying SDL_Texture to be displayed.
    */
   void CreateTexture();
