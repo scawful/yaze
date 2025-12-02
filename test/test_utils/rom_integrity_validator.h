@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-#include "app/rom.h"
+#include "rom/rom.h"
 
 namespace yaze {
 namespace test {

@@ -56,7 +56,7 @@
 #include "app/controller.h"
 #include "app/editor/dungeon/dungeon_editor_v2.h"
 #include "app/platform/window.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "imgui.h"
 #include "imgui_test_engine/imgui_te_context.h"
 #include "imgui_test_engine/imgui_te_engine.h"

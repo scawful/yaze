@@ -5,7 +5,7 @@
 #include <gtest/gtest.h>
 
 #include "app/emu/emulator.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "zelda3/music/music_bank.h"
 #include "zelda3/music/song_data.h"
 #include "zelda3/music/spc_parser.h"

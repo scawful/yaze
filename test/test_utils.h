@@ -15,7 +15,7 @@
 #include <vector>
 
 #include "absl/strings/str_format.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "imgui_test_engine/imgui_te_context.h"
 
 namespace yaze {

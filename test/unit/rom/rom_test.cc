@@ -1,11 +1,11 @@
-#include "app/rom.h"
+#include "rom/rom.h"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
-#include "app/transaction.h"
+#include "rom/transaction.h"
 #include "mocks/mock_rom.h"
 #include "testing.h"
 
@@ -53,7 +53,7 @@ TEST_F(RomTest, LoadFromFileEmpty) {
 }
 
 TEST_F(RomTest, ReadByteOk) {
-  EXPECT_OK(rom_.LoadFromData(kMockRomData, false));
+  EXPECT_OK(rom_.LoadFromData(kMockRomData));
 
   for (size_t i = 0; i < kMockRomData.size(); ++i) {
     uint8_t byte;
@@ -68,7 +68,7 @@ TEST_F(RomTest, ReadByteInvalid) {
 }
 
 TEST_F(RomTest, ReadWordOk) {
-  EXPECT_OK(rom_.LoadFromData(kMockRomData, false));
+  EXPECT_OK(rom_.LoadFromData(kMockRomData));
 
   for (size_t i = 0; i < kMockRomData.size(); i += 2) {
     // Little endian
@@ -84,7 +84,7 @@ TEST_F(RomTest, ReadWordInvalid) {
 }
 
 TEST_F(RomTest, ReadLongOk) {
-  EXPECT_OK(rom_.LoadFromData(kMockRomData, false));
+  EXPECT_OK(rom_.LoadFromData(kMockRomData));
 
   for (size_t i = 0; i < kMockRomData.size(); i += 4) {
     // Little endian
@@ -96,7 +96,7 @@ TEST_F(RomTest, ReadLongOk) {
 }
 
 TEST_F(RomTest, ReadBytesOk) {
-  EXPECT_OK(rom_.LoadFromData(kMockRomData, false));
+  EXPECT_OK(rom_.LoadFromData(kMockRomData));
 
   std::vector<uint8_t> bytes;
   ASSERT_OK_AND_ASSIGN(bytes, rom_.ReadByteVector(0, kMockRomData.size()));
@@ -104,7 +104,7 @@ TEST_F(RomTest, ReadBytesOk) {
 }
 
 TEST_F(RomTest, ReadBytesOutOfRange) {
-  EXPECT_OK(rom_.LoadFromData(kMockRomData, false));
+  EXPECT_OK(rom_.LoadFromData(kMockRomData));
 
   std::vector<uint8_t> bytes;
   EXPECT_THAT(rom_.ReadByteVector(kMockRomData.size() + 1, 1).status(),
@@ -112,7 +112,7 @@ TEST_F(RomTest, ReadBytesOutOfRange) {
 }
 
 TEST_F(RomTest, WriteByteOk) {
-  EXPECT_OK(rom_.LoadFromData(kMockRomData, false));
+  EXPECT_OK(rom_.LoadFromData(kMockRomData));
 
   for (size_t i = 0; i < kMockRomData.size(); ++i) {
     EXPECT_OK(rom_.WriteByte(i, 0xFF));
@@ -123,7 +123,7 @@ TEST_F(RomTest, WriteByteOk) {
 }
 
 TEST_F(RomTest, WriteWordOk) {
-  EXPECT_OK(rom_.LoadFromData(kMockRomData, false));
+  EXPECT_OK(rom_.LoadFromData(kMockRomData));
 
   for (size_t i = 0; i < kMockRomData.size(); i += 2) {
     EXPECT_OK(rom_.WriteWord(i, 0xFFFF));
@@ -134,7 +134,7 @@ TEST_F(RomTest, WriteWordOk) {
 }
 
 TEST_F(RomTest, WriteLongOk) {
-  EXPECT_OK(rom_.LoadFromData(kMockRomData, false));
+  EXPECT_OK(rom_.LoadFromData(kMockRomData));
 
   for (size_t i = 0; i < kMockRomData.size(); i += 4) {
     EXPECT_OK(rom_.WriteLong(i, 0xFFFFFF));
@@ -146,7 +146,7 @@ TEST_F(RomTest, WriteLongOk) {
 
 TEST_F(RomTest, WriteTransactionSuccess) {
   MockRom mock_rom;
-  EXPECT_OK(mock_rom.LoadFromData(kMockRomData, false));
+  EXPECT_OK(mock_rom.LoadFromData(kMockRomData));
 
   EXPECT_CALL(mock_rom, WriteHelper(_))
       .WillRepeatedly(Return(absl::OkStatus()));
@@ -159,7 +159,7 @@ TEST_F(RomTest, WriteTransactionSuccess) {
 
 TEST_F(RomTest, WriteTransactionFailure) {
   MockRom mock_rom;
-  EXPECT_OK(mock_rom.LoadFromData(kMockRomData, false));
+  EXPECT_OK(mock_rom.LoadFromData(kMockRomData));
 
   EXPECT_CALL(mock_rom, WriteHelper(_))
       .WillOnce(Return(absl::OkStatus()))
@@ -173,7 +173,7 @@ TEST_F(RomTest, WriteTransactionFailure) {
 
 TEST_F(RomTest, ReadTransactionSuccess) {
   MockRom mock_rom;
-  EXPECT_OK(mock_rom.LoadFromData(kMockRomData, false));
+  EXPECT_OK(mock_rom.LoadFromData(kMockRomData));
   uint8_t byte_val;
   uint16_t word_val;
 
@@ -185,7 +185,7 @@ TEST_F(RomTest, ReadTransactionSuccess) {
 
 TEST_F(RomTest, ReadTransactionFailure) {
   MockRom mock_rom;
-  EXPECT_OK(mock_rom.LoadFromData(kMockRomData, false));
+  EXPECT_OK(mock_rom.LoadFromData(kMockRomData));
   uint8_t byte_val;
 
   EXPECT_EQ(mock_rom.ReadTransaction(byte_val, 0x1000),
@@ -198,12 +198,11 @@ TEST_F(RomTest, SaveTruncatesExistingFile) {
 #endif
   // Prepare ROM data and save to a temp file twice; second save should
   // overwrite, not append
-  EXPECT_OK(rom_.LoadFromData(kMockRomData, /*z3_load=*/false));
+  EXPECT_OK(rom_.LoadFromData(kMockRomData));
 
   const char* tmp_name = "test_temp_rom.sfc";
   yaze::Rom::SaveSettings settings;
   settings.filename = tmp_name;
-  settings.z3_save = false;
 
   // First save
   EXPECT_OK(rom_.SaveToFile(settings));
@@ -215,7 +214,7 @@ TEST_F(RomTest, SaveTruncatesExistingFile) {
   // Load the saved file and verify size equals original data size and first
   // byte matches
   Rom verify;
-  EXPECT_OK(verify.LoadFromFile(tmp_name, /*z3_load=*/false));
+  EXPECT_OK(verify.LoadFromFile(tmp_name));
   EXPECT_EQ(verify.size(), kMockRomData.size());
   auto b0 = verify.ReadByte(0);
   ASSERT_TRUE(b0.ok());
@@ -223,7 +222,7 @@ TEST_F(RomTest, SaveTruncatesExistingFile) {
 }
 
 TEST_F(RomTest, TransactionRollbackRestoresOriginals) {
-  EXPECT_OK(rom_.LoadFromData(kMockRomData, /*z3_load=*/false));
+  EXPECT_OK(rom_.LoadFromData(kMockRomData));
   // Force an out-of-range write to trigger failure after a successful write
   yaze::Transaction tx{rom_};
   auto status =

@@ -1,7 +1,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "zelda3/dungeon/room.h"
 
 namespace yaze {

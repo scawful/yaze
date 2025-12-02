@@ -9,7 +9,9 @@
 
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/util/compression.h"
-#include "app/rom.h"
+#include "rom/rom.h"
+#include "zelda3/game_data.h"
+#include "zelda3/game_data.h"
 #include "testing.h"
 
 namespace yaze {
@@ -79,16 +81,13 @@ class GraphicsEditorSaveTest : public ::testing::Test {
 
   // Helper to load graphics sheets from ROM into Arena
   static absl::Status LoadGraphicsFromRom(Rom& rom) {
-    auto graphics_result = LoadAllGraphicsData(rom);
-    if (!graphics_result.ok()) {
-      return graphics_result.status();
-    }
+    zelda3::GameData game_data;
+    RETURN_IF_ERROR(zelda3::LoadGameData(rom, game_data));
 
     // Copy loaded sheets to Arena
     auto& arena_sheets = gfx::Arena::Get().gfx_sheets();
-    auto& loaded_sheets = graphics_result.value();
-    for (size_t i = 0; i < kNumGfxSheets; i++) {
-      arena_sheets[i] = std::move(loaded_sheets[i]);
+    for (size_t i = 0; i < zelda3::kNumGfxSheets; i++) {
+      arena_sheets[i] = std::move(game_data.gfx_bitmaps[i]);
     }
 
     return absl::OkStatus();
@@ -96,7 +95,7 @@ class GraphicsEditorSaveTest : public ::testing::Test {
 
   // Helper to save modified sheets to ROM (mirrors GraphicsEditor::Save())
   static absl::Status SaveSheetToRom(Rom& rom, uint16_t sheet_id) {
-    if (sheet_id >= kNumGfxSheets) {
+    if (sheet_id >= zelda3::kNumGfxSheets) {
       return absl::InvalidArgumentError("Sheet ID out of range");
     }
 
@@ -138,11 +137,12 @@ class GraphicsEditorSaveTest : public ::testing::Test {
     }
 
     // Calculate ROM offset for this sheet
-    uint32_t offset = GetGraphicsAddress(
+    // Use JP version constants as default for vanilla ROM
+    const auto& vc = zelda3::kVersionConstantsMap.at(zelda3_version::JP);
+    uint32_t offset = zelda3::GetGraphicsAddress(
         rom.data(), static_cast<uint8_t>(sheet_id),
-        rom.version_constants().kOverworldGfxPtr1,
-        rom.version_constants().kOverworldGfxPtr2,
-        rom.version_constants().kOverworldGfxPtr3, rom.size());
+        vc.kOverworldGfxPtr1, vc.kOverworldGfxPtr2,
+        vc.kOverworldGfxPtr3, rom.size());
 
     // Write data to ROM buffer
     for (size_t i = 0; i < final_data.size(); i++) {
