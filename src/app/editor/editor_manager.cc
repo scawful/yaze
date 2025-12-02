@@ -50,7 +50,8 @@
 #include "app/gui/core/input.h"
 #include "app/gui/core/theme_manager.h"
 #include "app/platform/timing.h"
-#include "app/rom.h"
+#include "rom/rom.h"
+#include "zelda3/game_data.h"
 #include "app/test/test_manager.h"
 #include "core/features.h"
 #include "core/project.h"
@@ -1421,8 +1422,26 @@ absl::Status EditorManager::LoadAssets(uint64_t passed_handle) {
 #ifdef __EMSCRIPTEN__
   update_progress("Loading graphics sheets...");
 #endif
-  ASSIGN_OR_RETURN(*gfx::Arena::Get().mutable_gfx_sheets(),
-                   LoadAllGraphicsData(*current_rom));
+  // Get current session's GameData and load Zelda3-specific game data
+  auto* current_session = session_coordinator_->GetActiveRomSession();
+  if (!current_session) {
+    return absl::FailedPreconditionError("No active ROM session");
+  }
+
+  // Load all Zelda3-specific data (metadata, palettes, gfx groups, graphics)
+  RETURN_IF_ERROR(zelda3::LoadGameData(*current_rom, current_session->game_data));
+
+  // Copy loaded graphics to Arena for global access
+  *gfx::Arena::Get().mutable_gfx_sheets() = current_session->game_data.gfx_bitmaps;
+
+  // Propagate GameData to all editors that need it
+  auto* game_data = &current_session->game_data;
+  current_editor_set->GetDungeonEditor()->set_game_data(game_data);
+  current_editor_set->GetOverworldEditor()->set_game_data(game_data);
+  current_editor_set->GetGraphicsEditor()->set_game_data(game_data);
+  current_editor_set->GetScreenEditor()->set_game_data(game_data);
+  current_editor_set->GetPaletteEditor()->set_game_data(game_data);
+  current_editor_set->GetSpriteEditor()->set_game_data(game_data);
 
 #ifdef __EMSCRIPTEN__
   update_progress("Loading overworld...");
@@ -1530,7 +1549,7 @@ absl::Status EditorManager::SaveRom() {
 
   if (core::FeatureFlags::get().kSaveGraphicsSheet)
     RETURN_IF_ERROR(
-        SaveAllGraphicsData(*current_rom, gfx::Arena::Get().gfx_sheets()));
+        zelda3::SaveAllGraphicsData(*current_rom, gfx::Arena::Get().gfx_sheets()));
 
   // Delegate final ROM file writing to RomFileManager
   return rom_file_manager_.SaveRom(current_rom);
@@ -1552,7 +1571,7 @@ absl::Status EditorManager::SaveRomAs(const std::string& filename) {
 
   if (core::FeatureFlags::get().kSaveGraphicsSheet)
     RETURN_IF_ERROR(
-        SaveAllGraphicsData(*current_rom, gfx::Arena::Get().gfx_sheets()));
+        zelda3::SaveAllGraphicsData(*current_rom, gfx::Arena::Get().gfx_sheets()));
 
   auto save_status = rom_file_manager_.SaveRomAs(current_rom, filename);
   if (save_status.ok()) {

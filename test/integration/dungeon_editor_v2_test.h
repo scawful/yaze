@@ -5,9 +5,10 @@
 #include <string>
 
 #include "app/editor/dungeon/dungeon_editor_v2.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "gtest/gtest.h"
 #include "imgui.h"
+#include "zelda3/game_data.h"
 
 namespace yaze {
 namespace test {
@@ -25,7 +26,7 @@ class DungeonEditorV2IntegrationTest : public ::testing::Test {
     ImGuiIO& io = ImGui::GetIO();
     io.DisplaySize = ImVec2(1920, 1080);
     io.DeltaTime = 1.0f / 60.0f;
-    
+
     // Build font atlas to satisfy NewFrame
     unsigned char* pixels;
     int width, height;
@@ -45,20 +46,29 @@ class DungeonEditorV2IntegrationTest : public ::testing::Test {
     }
     ASSERT_TRUE(status.ok()) << "Could not load zelda3.sfc from any location";
 
-    // Create V2 editor with ROM
+    // Load Zelda3-specific game data
+    game_data_ = std::make_unique<zelda3::GameData>(rom_.get());
+    auto load_game_data_status = zelda3::LoadGameData(*rom_, *game_data_);
+    ASSERT_TRUE(load_game_data_status.ok())
+        << "Failed to load game data: " << load_game_data_status.message();
+
+    // Create V2 editor with ROM and GameData
     dungeon_editor_v2_ = std::make_unique<editor::DungeonEditorV2>(rom_.get());
+    dungeon_editor_v2_->set_game_data(game_data_.get());
   }
 
   void TearDown() override {
     dungeon_editor_v2_.reset();
+    game_data_.reset();
     rom_.reset();
-    
+
     // End frame and cleanup ImGui context
     ImGui::Render();
     ImGui::DestroyContext();
   }
 
   std::unique_ptr<Rom> rom_;
+  std::unique_ptr<zelda3::GameData> game_data_;
   std::unique_ptr<editor::DungeonEditorV2> dungeon_editor_v2_;
 
   static constexpr int kTestRoomId = 0x01;
