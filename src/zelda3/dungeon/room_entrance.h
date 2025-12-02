@@ -3,7 +3,7 @@
 
 #include <cstdint>
 
-#include "app/rom.h"
+#include "rom/rom.h"
 
 namespace yaze {
 namespace zelda3 {

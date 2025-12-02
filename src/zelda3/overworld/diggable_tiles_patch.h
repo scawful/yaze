@@ -5,7 +5,7 @@
 #include <string>
 
 #include "absl/status/status.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "zelda3/overworld/diggable_tiles.h"
 
 namespace yaze::zelda3 {

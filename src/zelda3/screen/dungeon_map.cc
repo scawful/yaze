@@ -9,9 +9,10 @@
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/types/snes_tile.h"
 #include "app/platform/window.h"
-#include "app/snes.h"
+#include "rom/snes.h"
 #include "util/file_util.h"
 #include "util/hex.h"
+#include "zelda3/game_data.h"
 
 namespace yaze::zelda3 {
 
@@ -99,6 +100,7 @@ absl::Status SaveDungeonMaps(Rom& rom, std::vector<DungeonMap>& dungeon_maps) {
 }
 
 absl::Status LoadDungeonMapTile16(gfx::Tilemap& tile16_blockset, Rom& rom,
+                                  GameData* game_data,
                                   const std::vector<uint8_t>& gfx_data,
                                   bool bin_mode) {
   tile16_blockset.tile_size = {16, 16};
@@ -131,7 +133,10 @@ absl::Status LoadDungeonMapTile16(gfx::Tilemap& tile16_blockset, Rom& rom,
     ComposeTile16(tile16_blockset, gfx_data, t1, t2, t3, t4, sheet_offset);
   }
 
-  tile16_blockset.atlas.SetPalette(*rom.mutable_dungeon_palette(3));
+  if (game_data) {
+    tile16_blockset.atlas.SetPalette(
+        *game_data->palette_groups.dungeon_main.mutable_palette(3));
+  }
 
   // Queue texture creation via Arena's deferred system
   gfx::Arena::Get().QueueTextureCommand(gfx::Arena::TextureCommandType::CREATE,
@@ -167,7 +172,7 @@ absl::Status SaveDungeonMapTile16(gfx::Tilemap& tile16_blockset, Rom& rom) {
   return absl::OkStatus();
 }
 
-absl::Status LoadDungeonMapGfxFromBinary(Rom& rom,
+absl::Status LoadDungeonMapGfxFromBinary(Rom& rom, GameData* game_data,
                                          gfx::Tilemap& tile16_blockset,
                                          std::array<gfx::Bitmap, 4>& sheets,
                                          std::vector<uint8_t>& gfx_bin_data) {
@@ -186,13 +191,17 @@ absl::Status LoadDungeonMapGfxFromBinary(Rom& rom,
                                 std::istreambuf_iterator<char>());
   auto converted_bin = gfx::SnesTo8bppSheet(bin_data, 4, 4);
   gfx_bin_data = converted_bin;
-  if (LoadDungeonMapTile16(tile16_blockset, rom, converted_bin, true).ok()) {
+  if (LoadDungeonMapTile16(tile16_blockset, rom, game_data, converted_bin, true)
+          .ok()) {
     std::vector<std::vector<uint8_t>> gfx_sheets;
     for (int i = 0; i < 4; i++) {
       gfx_sheets.emplace_back(converted_bin.begin() + (i * 0x1000),
                               converted_bin.begin() + ((i + 1) * 0x1000));
       sheets[i] = gfx::Bitmap(128, 32, 8, gfx_sheets[i]);
-      sheets[i].SetPalette(*rom.mutable_dungeon_palette(3));
+      if (game_data) {
+        sheets[i].SetPalette(
+            *game_data->palette_groups.dungeon_main.mutable_palette(3));
+      }
 
       // Queue texture creation via Arena's deferred system
       gfx::Arena::Get().QueueTextureCommand(

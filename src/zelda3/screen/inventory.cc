@@ -5,16 +5,17 @@
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/types/snes_tile.h"
 #include "app/platform/window.h"
-#include "app/rom.h"
-#include "app/snes.h"
+#include "rom/rom.h"
+#include "rom/snes.h"
 
 namespace yaze {
 namespace zelda3 {
 
-absl::Status Inventory::Create(Rom* rom) {
+absl::Status Inventory::Create(Rom* rom, GameData* game_data) {
   if (!rom || !rom->is_loaded()) {
     return absl::InvalidArgumentError("ROM is not loaded");
   }
+  game_data_ = game_data;
 
   // Build the tileset first (loads 2BPP graphics)
   RETURN_IF_ERROR(BuildTileset(rom));
@@ -52,7 +53,10 @@ absl::Status Inventory::BuildTileset(Rom* rom) {
     test_.push_back(tilesheets_[i]);
   }
   tilesheets_bmp_.Create(128, 0x130, 64, test_);
-  auto hud_pal_group = rom->palette_group().hud;
+  if (!game_data_) {
+    return absl::FailedPreconditionError("GameData not set for Inventory");
+  }
+  auto& hud_pal_group = game_data_->palette_groups.hud;
   palette_ = hud_pal_group[0];
   tilesheets_bmp_.SetPalette(palette_);
 

@@ -5,7 +5,7 @@
 #include <vector>
 
 #include "absl/status/statusor.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "zelda3/music/song_data.h"
 
 namespace yaze {

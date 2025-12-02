@@ -1,6 +1,7 @@
 set(
   YAZE_APP_ZELDA3_SRC
   zelda3/common.cc
+  zelda3/game_data.cc
   zelda3/dungeon/dungeon_editor_system.cc
   zelda3/dungeon/dungeon_object_editor.cc
   zelda3/dungeon/dungeon_object_registry.cc
@@ -66,6 +67,7 @@ target_include_directories(yaze_zelda3 PUBLIC
 )
 
 target_link_libraries(yaze_zelda3 PUBLIC
+  yaze_rom
   yaze_gfx
   yaze_util
   yaze_common

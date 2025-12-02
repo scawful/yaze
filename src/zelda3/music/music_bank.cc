@@ -14,7 +14,7 @@
 #include <vector>
 
 #include "absl/strings/str_format.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "nlohmann/json.hpp"
 #include "util/macro.h"
 #include "zelda3/music/song_data.h"

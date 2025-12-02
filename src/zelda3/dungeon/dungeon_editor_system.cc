@@ -8,7 +8,8 @@
 namespace yaze {
 namespace zelda3 {
 
-DungeonEditorSystem::DungeonEditorSystem(Rom* rom) : rom_(rom) {}
+DungeonEditorSystem::DungeonEditorSystem(Rom* rom, GameData* game_data) 
+    : rom_(rom), game_data_(game_data) {}
 
 absl::Status DungeonEditorSystem::Initialize() {
   if (rom_ == nullptr) {
@@ -97,7 +98,7 @@ absl::StatusOr<Room> DungeonEditorSystem::GetRoom(int room_id) {
   }
 
   // TODO: Load room from ROM or return cached room
-  return Room(room_id, rom_);
+  return Room(room_id, rom_, game_data_);
 }
 
 absl::Status DungeonEditorSystem::CreateRoom(int room_id,
@@ -1035,7 +1036,8 @@ void DungeonEditorSystem::SetExternalRoom(Room* room) {
 }
 
 // Factory function
-std::unique_ptr<DungeonEditorSystem> CreateDungeonEditorSystem(Rom* rom) {
+std::unique_ptr<DungeonEditorSystem> CreateDungeonEditorSystem(Rom* rom,
+                                                                GameData* game_data) {
   return std::make_unique<DungeonEditorSystem>(rom);
 }
 

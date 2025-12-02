@@ -6,7 +6,7 @@
 #include <vector>
 
 #include "app/gfx/types/snes_tile.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "zelda3/dungeon/object_parser.h"
 
 namespace yaze {

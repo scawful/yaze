@@ -12,7 +12,7 @@
 #include "app/gfx/types/snes_color.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/gfx/types/snes_tile.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "core/features.h"
 #include "util/macro.h"
 #include "zelda3/common.h"
@@ -21,8 +21,8 @@
 
 namespace yaze::zelda3 {
 
-OverworldMap::OverworldMap(int index, Rom* rom)
-    : index_(index), parent_(index), rom_(rom) {
+OverworldMap::OverworldMap(int index, Rom* rom, GameData* game_data)
+    : index_(index), parent_(index), rom_(rom), game_data_(game_data) {
   LoadAreaInfo();
   // Load parent ID from ROM data if available (for custom ASM versions)
   auto version = OverworldVersionHelper::GetVersion(*rom_);
@@ -366,8 +366,7 @@ void OverworldMap::LoadCustomOverworldData() {
     index_world = 0x24;
   }
 
-  const auto overworld_gfx_groups2 =
-      rom_->version_constants().kOverworldGfxGroups2;
+  const auto overworld_gfx_groups2 = version_constants().kOverworldGfxGroups2;
 
   // Main Blocksets
   for (int i = 0; i < 8; i++) {
@@ -375,8 +374,7 @@ void OverworldMap::LoadCustomOverworldData() {
         (uint8_t)(*rom_)[overworld_gfx_groups2 + (index_world * 8) + i];
   }
 
-  const auto overworldgfxGroups =
-      rom_->version_constants().kOverworldGfxGroups1;
+  const auto overworldgfxGroups = version_constants().kOverworldGfxGroups1;
 
   // Replace the variable tiles with the variable ones
   uint8_t temp = (*rom_)[overworldgfxGroups + (area_graphics_ * 4)];
@@ -555,12 +553,12 @@ void OverworldMap::SetupCustomTileset(uint8_t asm_version) {
     // Main Blocksets
     for (int i = 0; i < 8; i++) {
       custom_gfx_ids_[i] =
-          (uint8_t)(*rom_)[rom_->version_constants().kOverworldGfxGroups2 +
+          (uint8_t)(*rom_)[version_constants().kOverworldGfxGroups2 +
                            (index_world * 8) + i];
     }
 
     const auto overworldgfxGroups =
-        rom_->version_constants().kOverworldGfxGroups1;
+        version_constants().kOverworldGfxGroups1;
 
     // Replace the variable tiles with the variable ones
     // If the variable is 00 set it to 0xFF which is the new "don't load
@@ -656,7 +654,7 @@ void OverworldMap::LoadSpritesBlocksets() {
 
   for (int i = 0; i < 4; i++) {
     static_graphics_[12 + i] =
-        ((*rom_)[rom_->version_constants().kSpriteBlocksetPointer +
+        ((*rom_)[version_constants().kSpriteBlocksetPointer +
                  (sprite_graphics_[game_state_] * 4) + i] +
          static_graphics_base);
   }
@@ -665,7 +663,7 @@ void OverworldMap::LoadSpritesBlocksets() {
 void OverworldMap::LoadMainBlocksets() {
   for (int i = 0; i < 8; i++) {
     static_graphics_[i] =
-        (*rom_)[rom_->version_constants().kOverworldGfxGroups2 +
+        (*rom_)[version_constants().kOverworldGfxGroups2 +
                 (main_gfx_id_ * 8) + i];
   }
 }
@@ -689,7 +687,7 @@ void OverworldMap::DrawAnimatedTiles() {
 
 void OverworldMap::LoadAreaGraphicsBlocksets() {
   for (int i = 0; i < 4; i++) {
-    uint8_t value = (*rom_)[rom_->version_constants().kOverworldGfxGroups1 +
+    uint8_t value = (*rom_)[version_constants().kOverworldGfxGroups1 +
                             (area_graphics_ * 4) + i];
     if (value != 0) {
       static_graphics_[3 + i] = value;
@@ -732,7 +730,8 @@ void OverworldMap::LoadAreaGraphics() {
 
 namespace palette_internal {
 
-absl::Status SetColorsPalette(Rom& rom, int index, gfx::SnesPalette& current,
+absl::Status SetColorsPalette(Rom& rom, GameData* game_data, int index,
+                              gfx::SnesPalette& current,
                               gfx::SnesPalette main, gfx::SnesPalette animated,
                               gfx::SnesPalette aux1, gfx::SnesPalette aux2,
                               gfx::SnesPalette hud, gfx::SnesColor bgrcolor,
@@ -792,7 +791,7 @@ absl::Status SetColorsPalette(Rom& rom, int index, gfx::SnesPalette& current,
   k = 0;
   for (int y = 8; y < 9; y++) {
     for (int x = 1; x < 8; x++) {
-      new_palette[x + (16 * y)] = rom.palette_group().sprites_aux1[1][k];
+      new_palette[x + (16 * y)] = game_data->palette_groups.sprites_aux1[1][k];
       k++;
     }
   }
@@ -801,7 +800,7 @@ absl::Status SetColorsPalette(Rom& rom, int index, gfx::SnesPalette& current,
   k = 0;
   for (int y = 8; y < 9; y++) {
     for (int x = 9; x < 16; x++) {
-      new_palette[x + (16 * y)] = rom.palette_group().sprites_aux3[0][k];
+      new_palette[x + (16 * y)] = game_data->palette_groups.sprites_aux3[0][k];
       k++;
     }
   }
@@ -810,7 +809,7 @@ absl::Status SetColorsPalette(Rom& rom, int index, gfx::SnesPalette& current,
   k = 0;
   for (int y = 9; y < 13; y++) {
     for (int x = 1; x < 16; x++) {
-      new_palette[x + (16 * y)] = rom.palette_group().global_sprites[0][k];
+      new_palette[x + (16 * y)] = game_data->palette_groups.global_sprites[0][k];
       k++;
     }
   }
@@ -837,7 +836,7 @@ absl::Status SetColorsPalette(Rom& rom, int index, gfx::SnesPalette& current,
   k = 0;
   for (int y = 15; y < 16; y++) {
     for (int x = 1; x < 16; x++) {
-      new_palette[x + (16 * y)] = rom.palette_group().armors[0][k];
+      new_palette[x + (16 * y)] = game_data->palette_groups.armors[0][k];
       k++;
     }
   }
@@ -856,7 +855,7 @@ absl::StatusOr<gfx::SnesPalette> OverworldMap::GetPalette(
     const gfx::PaletteGroup& palette_group, int index, int previous_index,
     int limit) {
   if (index == 255) {
-    index = (*rom_)[rom_->version_constants().kOverworldMapPaletteGroup +
+    index = (*rom_)[version_constants().kOverworldMapPaletteGroup +
                     (previous_index * 4)];
   }
   if (index >= limit) {
@@ -887,37 +886,37 @@ absl::Status OverworldMap::LoadPalette() {
   area_palette_ = std::min((int)area_palette_, 0xA3);
 
   uint8_t pal0 = 0;
-  uint8_t pal1 = (*rom_)[rom_->version_constants().kOverworldMapPaletteGroup +
+  uint8_t pal1 = (*rom_)[version_constants().kOverworldMapPaletteGroup +
                          (area_palette_ * 4)];
-  uint8_t pal2 = (*rom_)[rom_->version_constants().kOverworldMapPaletteGroup +
+  uint8_t pal2 = (*rom_)[version_constants().kOverworldMapPaletteGroup +
                          (area_palette_ * 4) + 1];
-  uint8_t pal3 = (*rom_)[rom_->version_constants().kOverworldMapPaletteGroup +
+  uint8_t pal3 = (*rom_)[version_constants().kOverworldMapPaletteGroup +
                          (area_palette_ * 4) + 2];
   uint8_t pal4 = (*rom_)[kOverworldSpritePaletteGroup +
                          (sprite_palette_[game_state_] * 2)];
   uint8_t pal5 = (*rom_)[kOverworldSpritePaletteGroup +
                          (sprite_palette_[game_state_] * 2) + 1];
 
-  auto grass_pal_group = rom_->palette_group().grass;
+  auto& grass_pal_group = game_data_->palette_groups.grass;
   auto bgr = grass_pal_group[0][0];
 
   // Handle 0xFF palette references (use previous palette)
   if (pal1 == 0xFF) {
-    pal1 = (*rom_)[rom_->version_constants().kOverworldMapPaletteGroup +
+    pal1 = (*rom_)[version_constants().kOverworldMapPaletteGroup +
                    (previous_pal_id * 4)];
   }
 
   if (pal2 == 0xFF) {
-    pal2 = (*rom_)[rom_->version_constants().kOverworldMapPaletteGroup +
+    pal2 = (*rom_)[version_constants().kOverworldMapPaletteGroup +
                    (previous_pal_id * 4) + 1];
   }
 
   if (pal3 == 0xFF) {
-    pal3 = (*rom_)[rom_->version_constants().kOverworldMapPaletteGroup +
+    pal3 = (*rom_)[version_constants().kOverworldMapPaletteGroup +
                    (previous_pal_id * 4) + 2];
   }
 
-  auto ow_aux_pal_group = rom_->palette_group().overworld_aux;
+  auto& ow_aux_pal_group = game_data_->palette_groups.overworld_aux;
   ASSIGN_OR_RETURN(gfx::SnesPalette aux1,
                    GetPalette(ow_aux_pal_group, pal1, previous_pal_id, 20));
   ASSIGN_OR_RETURN(gfx::SnesPalette aux2,
@@ -954,15 +953,15 @@ absl::Status OverworldMap::LoadPalette() {
   }
   pal0 = main_palette_;
 
-  auto ow_main_pal_group = rom_->palette_group().overworld_main;
+  auto& ow_main_pal_group = game_data_->palette_groups.overworld_main;
   ASSIGN_OR_RETURN(gfx::SnesPalette main,
                    GetPalette(ow_main_pal_group, pal0, previous_pal_id, 255));
-  auto ow_animated_pal_group = rom_->palette_group().overworld_animated;
+  auto& ow_animated_pal_group = game_data_->palette_groups.overworld_animated;
   ASSIGN_OR_RETURN(gfx::SnesPalette animated,
                    GetPalette(ow_animated_pal_group, std::min((int)pal3, 13),
                               previous_pal_id, 14));
 
-  auto hud_pal_group = rom_->palette_group().hud;
+  auto& hud_pal_group = game_data_->palette_groups.hud;
   gfx::SnesPalette hud = hud_pal_group[0];
 
   // Handle 0xFF sprite palette references (use previous sprite palette)
@@ -984,15 +983,15 @@ absl::Status OverworldMap::LoadPalette() {
   }
 
   ASSIGN_OR_RETURN(gfx::SnesPalette spr,
-                   GetPalette(rom_->palette_group().sprites_aux3, pal4,
+                   GetPalette(game_data_->palette_groups.sprites_aux3, pal4,
                               previous_spr_pal_id, 24));
   ASSIGN_OR_RETURN(gfx::SnesPalette spr2,
-                   GetPalette(rom_->palette_group().sprites_aux3, pal5,
+                   GetPalette(game_data_->palette_groups.sprites_aux3, pal5,
                               previous_spr_pal_id, 24));
 
   RETURN_IF_ERROR(palette_internal::SetColorsPalette(
-      *rom_, parent_, current_palette_, main, animated, aux1, aux2, hud, bgr,
-      spr, spr2));
+      *rom_, game_data_, parent_, current_palette_, main, animated, aux1, aux2,
+      hud, bgr, spr, spr2));
 
   if (palettesets_.count(area_palette_) == 0) {
     palettesets_[area_palette_] = gfx::Paletteset{
@@ -1143,7 +1142,7 @@ void OverworldMap::ProcessGraphicsBuffer(int index, int static_graphics_offset,
                                          int size, const uint8_t* all_gfx) {
   // Ensure we don't go out of bounds
   int max_offset = static_graphics_offset * size + size;
-  if (max_offset > rom_->graphics_buffer().size()) {
+  if (!game_data_ || max_offset > game_data_->graphics_buffer.size()) {
     // Fill with zeros if out of bounds
     for (int i = 0; i < size; i++) {
       current_gfx_[(index * size) + i] = 0x00;
@@ -1169,11 +1168,15 @@ absl::Status OverworldMap::BuildTileset() {
   if (current_gfx_.size() == 0)
     current_gfx_.resize(0x10000, 0x00);
 
+  if (!game_data_) {
+    return absl::FailedPreconditionError("GameData not set");
+  }
+
   // Process the 8 main graphics sheets (slots 0-7)
   for (int i = 0; i < 8; i++) {
     if (static_graphics_[i] != 0) {
       ProcessGraphicsBuffer(i, static_graphics_[i], 0x1000,
-                            rom_->graphics_buffer().data());
+                            game_data_->graphics_buffer.data());
     }
   }
 
@@ -1181,14 +1184,14 @@ absl::Status OverworldMap::BuildTileset() {
   for (int i = 8; i < 16; i++) {
     if (static_graphics_[i] != 0) {
       ProcessGraphicsBuffer(i, static_graphics_[i], 0x1000,
-                            rom_->graphics_buffer().data());
+                            game_data_->graphics_buffer.data());
     }
   }
 
   // Process animated graphics if available (slot 16)
   if (static_graphics_[16] != 0) {
     ProcessGraphicsBuffer(7, static_graphics_[16], 0x1000,
-                          rom_->graphics_buffer().data());
+                          game_data_->graphics_buffer.data());
   }
 
   return absl::OkStatus();
