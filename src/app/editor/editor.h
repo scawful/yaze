@@ -25,6 +25,9 @@ class Emulator;
 namespace project {
 struct YazeProject;
 }  // namespace project
+namespace zelda3 {
+struct GameData;
+}  // namespace zelda3
 
 /**
  * @namespace yaze::editor
@@ -83,6 +86,7 @@ struct EditorDependencies {
   };
 
   Rom* rom = nullptr;
+  zelda3::GameData* game_data = nullptr;  // Zelda3-specific game state
   PanelManager* panel_manager = nullptr;
   ToastManager* toast_manager = nullptr;
   PopupManager* popup_manager = nullptr;
@@ -134,6 +138,11 @@ class Editor {
 
   void SetDependencies(const EditorDependencies& deps) { dependencies_ = deps; }
 
+  // Set GameData for Zelda3-specific data access
+  virtual void set_game_data(zelda3::GameData* game_data) {
+    dependencies_.game_data = game_data;
+  }
+
   // Initialization of the editor, no ROM assets.
   virtual void Initialize() = 0;
 
@@ -168,6 +177,10 @@ class Editor {
   virtual std::string GetRomStatus() const {
     return "ROM state not implemented";
   }
+
+  // Accessors for common dependencies
+  Rom* rom() const { return dependencies_.rom; }
+  zelda3::GameData* game_data() const { return dependencies_.game_data; }
 
  protected:
   bool active_ = false;
