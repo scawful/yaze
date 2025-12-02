@@ -54,9 +54,16 @@ void SDL2Renderer::Shutdown() {
 TextureHandle SDL2Renderer::CreateTexture(int width, int height) {
   // The TextureHandle is a void*, so we cast the SDL_Texture* to it.
   // SDL2's SDL_CreateTexture takes Uint32 for format
-  return static_cast<TextureHandle>(SDL_CreateTexture(
+  // SDL2's SDL_CreateTexture takes Uint32 for format
+  SDL_Texture* texture = SDL_CreateTexture(
       renderer_.get(), SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING,
-      width, height));
+      width, height);
+  
+  if (texture) {
+    SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
+  }
+  
+  return static_cast<TextureHandle>(texture);
 }
 
 /**
