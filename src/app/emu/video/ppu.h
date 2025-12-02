@@ -7,7 +7,7 @@
 
 #include "app/emu/memory/memory.h"
 #include "app/emu/video/ppu_registers.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 
 namespace yaze {
 namespace emu {

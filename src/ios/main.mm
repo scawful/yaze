@@ -36,7 +36,7 @@
 #include "app/platform/app_delegate.h"
 #include "app/platform/font_loader.h"
 #include "app/platform/window.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 
 #include "app/platform/sdl_compat.h"
 

@@ -8,7 +8,7 @@
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "absl/time/time.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "cli/tui/autocomplete_ui.h"
 #include "cli/tui/tui.h"
 #include "ftxui/component/component.hpp"

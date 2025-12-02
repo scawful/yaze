@@ -24,7 +24,7 @@
 #include "absl/status/status.h"
 #include "absl/strings/str_split.h"
 #include "absl/strings/str_join.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "app/net/wasm/emscripten_http_client.h"
 #include "app/platform/wasm/wasm_bootstrap.h"
 #include "cli/service/command_registry.h"

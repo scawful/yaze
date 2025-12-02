@@ -13,7 +13,7 @@
 #include "absl/status/statusor.h"
 #include "absl/strings/string_view.h"
 #include "absl/time/time.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 
 namespace yaze {
 namespace cli {

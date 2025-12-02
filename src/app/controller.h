@@ -9,7 +9,7 @@
 #include "app/editor/editor_manager.h"
 #include "app/gfx/backend/irenderer.h"
 #include "app/platform/iwindow.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 
 int main(int argc, char** argv);
 

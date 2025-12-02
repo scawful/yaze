@@ -4,7 +4,8 @@
 #include "app/emu/snes.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/render/background_buffer.h"
-#include "app/rom.h"
+#include "rom/rom.h"
+#include "zelda3/game_data.h"
 
 namespace yaze {
 namespace gfx {
@@ -31,6 +32,7 @@ class DungeonObjectEmulatorPreview {
   // Initialize with optional shared render service
   // If render_service is nullptr, uses local SNES instance (legacy mode)
   void Initialize(gfx::IRenderer* renderer, Rom* rom,
+                  zelda3::GameData* game_data = nullptr,
                   emu::render::EmulatorRenderService* render_service = nullptr);
   void Render();
 
@@ -55,6 +57,7 @@ class DungeonObjectEmulatorPreview {
 
   gfx::IRenderer* renderer_ = nullptr;
   Rom* rom_ = nullptr;
+  zelda3::GameData* game_data_ = nullptr;
   emu::render::EmulatorRenderService* render_service_ = nullptr;  // Shared service (optional)
   std::unique_ptr<emu::Snes> snes_instance_;  // Legacy local instance
   void* object_texture_ = nullptr;

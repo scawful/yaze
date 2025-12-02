@@ -19,8 +19,9 @@
 #include "app/emu/snes.h"
 #include "app/emu/video/ppu.h"
 #include "app/gfx/resource/arena.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "zelda3/dungeon/palette_debug.h"
+#include "zelda3/game_data.h"
 
 #include "app/editor/editor_manager.h"
 #include "app/editor/editor.h"
@@ -1038,10 +1039,14 @@ std::string getRomPaletteGroup(const std::string& group_name, int palette_index)
 
   json << "{\"group_name\":\"" << group_name << "\",\"palette_index\":" << palette_index;
 
-  // Get palette colors from the ROM's palette groups
+  // Get palette colors from GameData
   try {
-    auto palette_group = rom->palette_group();
-    auto* group = palette_group.get_group(group_name);
+    yaze::zelda3::GameData game_data;
+    auto load_status = yaze::zelda3::LoadGameData(*rom, game_data);
+    if (!load_status.ok()) {
+      return "{\"error\":\"Failed to load game data\"}";
+    }
+    auto* group = game_data.palette_groups.get_group(group_name);
     if (group) {
       if (palette_index >= 0 && palette_index < static_cast<int>(group->size())) {
         auto palette = (*group)[palette_index];

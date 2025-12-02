@@ -7,7 +7,7 @@
 #include <string>
 #include <vector>
 
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "cli/service/agent/conversational_agent_service.h"
 #include "cli/util/autocomplete.h"
 

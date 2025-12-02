@@ -4,7 +4,7 @@
 
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "cli/handlers/tools/diagnostic_types.h"
 
 namespace yaze::cli {

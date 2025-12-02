@@ -7,7 +7,7 @@
 
 #include "absl/status/status.h"
 #include "app/net/rom_version_manager.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "imgui/imgui.h"
 
 #ifdef YAZE_WITH_JSON

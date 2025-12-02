@@ -11,7 +11,7 @@
 #include "app/emu/debug/disassembly_viewer.h"
 #include "app/emu/input/input_manager.h"
 #include "app/emu/snes.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 
 namespace yaze {
 namespace gfx {

@@ -7,8 +7,9 @@
 
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/types/snes_palette.h"
-#include "app/rom.h"
 #include "imgui/imgui.h"
+#include "rom/rom.h"
+#include "zelda3/game_data.h"
 
 namespace yaze {
 namespace gui {
@@ -17,7 +18,8 @@ class PaletteEditorWidget {
  public:
   PaletteEditorWidget() = default;
 
-  void Initialize(Rom* rom);
+  void Initialize(zelda3::GameData* game_data);
+  void Initialize(Rom* rom);  // Legacy, deprecated
 
   // Embedded drawing function, like the old PaletteEditorWidget
   void Draw();
@@ -57,7 +59,8 @@ class PaletteEditorWidget {
   void DrawPaletteSelector();
   void DrawColorPicker();
 
-  Rom* rom_ = nullptr;
+  zelda3::GameData* game_data_ = nullptr;
+  Rom* rom_ = nullptr;  // Legacy, deprecated
   std::vector<gfx::SnesPalette> rom_palette_groups_;
   std::vector<std::string> palette_group_names_;
   gfx::SnesPalette backup_palette_;

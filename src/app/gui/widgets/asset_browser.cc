@@ -10,7 +10,7 @@ using namespace ImGui;
 const ImGuiTableSortSpecs* AssetObject::s_current_sort_specs = NULL;
 
 void GfxSheetAssetBrowser::Draw(
-    const std::array<gfx::Bitmap, kNumGfxSheets>& bmp_manager) {
+    const std::array<gfx::Bitmap, zelda3::kNumGfxSheets>& bmp_manager) {
   PushItemWidth(GetFontSize() * 10);
   SeparatorText("Contents");
   Checkbox("Show Type Overlay", &ShowTypeOverlay);

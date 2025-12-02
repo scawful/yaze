@@ -6,9 +6,10 @@
 #include <vector>
 
 #include "app/editor/message/message_data.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "yaze.h"
 #include "yaze_config.h"
+#include "zelda3/game_data.h"
 #include "zelda3/overworld/overworld.h"
 
 // Static variables for library state
@@ -120,9 +121,17 @@ zelda3_rom* yaze_load_rom(const char* filename) {
     return nullptr;
   }
 
+  // Create and load GameData
+  auto internal_game_data = std::make_unique<yaze::zelda3::GameData>();
+  auto load_status = yaze::zelda3::LoadGameData(*internal_rom, *internal_game_data);
+  if (!load_status.ok()) {
+    return nullptr;
+  }
+
   auto* rom = new zelda3_rom();
   rom->filename = filename;
   rom->impl = internal_rom.release();  // Transfer ownership
+  rom->game_data = internal_game_data.release();  // Transfer ownership
   rom->data = const_cast<uint8_t*>(static_cast<yaze::Rom*>(rom->impl)->data());
   rom->size = static_cast<yaze::Rom*>(rom->impl)->size();
   rom->version = ZELDA3_VERSION_US;  // Default, should be detected
@@ -138,6 +147,11 @@ void yaze_unload_rom(zelda3_rom* rom) {
   if (rom->impl != nullptr) {
     delete static_cast<yaze::Rom*>(rom->impl);
     rom->impl = nullptr;
+  }
+
+  if (rom->game_data != nullptr) {
+    delete static_cast<yaze::zelda3::GameData*>(rom->game_data);
+    rom->game_data = nullptr;
   }
 
   delete rom;
@@ -181,10 +195,10 @@ snes_color yaze_get_color_from_paletteset(const zelda3_rom* rom,
   color_struct.green = 0;
   color_struct.blue = 0;
 
-  if (rom->impl) {
-    yaze::Rom* internal_rom = static_cast<yaze::Rom*>(rom->impl);
+  if (rom->game_data) {
+    auto* game_data = static_cast<yaze::zelda3::GameData*>(rom->game_data);
     auto get_color =
-        internal_rom->palette_group()
+        game_data->palette_groups
             .get_group(yaze::gfx::kPaletteGroupAddressesKeys[palette_set])
             ->palette(palette)[color];
     color_struct = get_color.rom_color();
@@ -201,7 +215,8 @@ zelda3_overworld* yaze_load_overworld(const zelda3_rom* rom) {
   }
 
   yaze::Rom* internal_rom = static_cast<yaze::Rom*>(rom->impl);
-  auto internal_overworld = new yaze::zelda3::Overworld(internal_rom);
+  auto* game_data = static_cast<yaze::zelda3::GameData*>(rom->game_data);
+  auto internal_overworld = new yaze::zelda3::Overworld(internal_rom, game_data);
   if (!internal_overworld->Load(internal_rom).ok()) {
     return nullptr;
   }

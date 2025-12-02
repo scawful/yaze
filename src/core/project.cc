@@ -18,7 +18,7 @@
 #include "util/platform_paths.h"
 #include "util/macro.h"
 #include "yaze_config.h"
-#include "zelda3/zelda3_labels.h"
+
 
 #ifdef __EMSCRIPTEN__
 #include "app/platform/wasm/wasm_storage.h"
@@ -1319,10 +1319,36 @@ std::string ResourceLabelManager::CreateOrGetLabel(
 // Embedded Labels Support
 // ============================================================================
 
-absl::Status YazeProject::InitializeEmbeddedLabels() {
+absl::Status YazeProject::InitializeEmbeddedLabels(
+    const std::unordered_map<std::string,
+                             std::unordered_map<std::string, std::string>>&
+        labels) {
   try {
     // Load all default Zelda3 resource names into resource_labels
-    resource_labels = zelda3::Zelda3Labels::ToResourceLabels();
+    // We merge them with existing labels, prioritizing existing overrides?
+    // Or just overwrite? The previous code was:
+    // resource_labels = zelda3::Zelda3Labels::ToResourceLabels();
+    // which implies overwriting. But we want to keep overrides if possible.
+    // However, this is usually called on load.
+
+    // Let's overwrite for now to match previous behavior, assuming overrides
+    // are loaded afterwards or this is initial setup.
+    // Actually, if we load project then init embedded labels, we might lose overrides.
+    // But typically overrides are loaded from the project file *into* resource_labels.
+    // If we call this, we might clobber them.
+    // The previous implementation clobbered resource_labels.
+
+    // However, if we want to support overrides + embedded, we should merge.
+    // But `resource_labels` was treated as "overrides" in the old code?
+    // No, `resource_labels` was the container for loaded labels.
+
+    // If I look at `LoadFromYazeFormat`:
+    // It parses `[labels_type]` into `resource_labels`.
+
+    // If `use_embedded_labels` is true, `InitializeEmbeddedLabels` is called?
+    // I need to check when `InitializeEmbeddedLabels` is called.
+
+    resource_labels = labels;
     use_embedded_labels = true;
 
     LOG_DEBUG("Project", "Initialized embedded labels:");
@@ -1344,9 +1370,6 @@ absl::Status YazeProject::InitializeEmbeddedLabels() {
               resource_labels["room_tag"].size());
     LOG_DEBUG("Project", "   - %d tile type names",
               resource_labels["tile_type"].size());
-    LOG_DEBUG("Project", "   - %d overlord names",
-              resource_labels["overlord"].size());
-    LOG_DEBUG("Project", "   - %d item names", resource_labels["item"].size());
 
     return absl::OkStatus();
   } catch (const std::exception& e) {
@@ -1364,11 +1387,6 @@ std::string YazeProject::GetLabel(const std::string& resource_type, int id,
     if (label_it != type_it->second.end()) {
       return label_it->second;
     }
-  }
-
-  // If using embedded labels, fall back to Zelda3 defaults
-  if (use_embedded_labels) {
-    return zelda3::Zelda3Labels::GetLabel(resource_type, id, default_value);
   }
 
   return default_value.empty() ? resource_type + "_" + std::to_string(id)

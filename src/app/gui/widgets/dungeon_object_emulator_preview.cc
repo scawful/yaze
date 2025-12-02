@@ -91,10 +91,11 @@ DungeonObjectEmulatorPreview::~DungeonObjectEmulatorPreview() {
 }
 
 void DungeonObjectEmulatorPreview::Initialize(
-    gfx::IRenderer* renderer, Rom* rom,
+    gfx::IRenderer* renderer, Rom* rom, zelda3::GameData* game_data,
     emu::render::EmulatorRenderService* render_service) {
   renderer_ = renderer;
   rom_ = rom;
+  game_data_ = game_data;
   render_service_ = render_service;
   // Defer SNES initialization until EnsureInitialized() is called
   // This avoids a ~2MB ROM copy during startup
@@ -387,7 +388,11 @@ void DungeonObjectEmulatorPreview::TriggerEmulatedRender() {
   zelda3::Room default_room = zelda3::LoadRoomFromRom(rom_, room_id_);
 
   // 3. Load palette into CGRAM (full 120 colors including sprite aux)
-  auto dungeon_main_pal_group = rom_->palette_group().dungeon_main;
+  if (!game_data_) {
+    last_error_ = "GameData not available";
+    return;
+  }
+  auto dungeon_main_pal_group = game_data_->palette_groups.dungeon_main;
 
   // Validate and clamp palette ID
   int palette_id = default_room.palette;
@@ -774,7 +779,11 @@ void DungeonObjectEmulatorPreview::TriggerStaticRender() {
   zelda3::Room room = zelda3::LoadRoomFromRom(rom_, room_id_);
 
   // Get dungeon main palette (palettes 0-5, 90 colors)
-  auto dungeon_main_pal_group = rom_->palette_group().dungeon_main;
+  if (!game_data_) {
+    last_error_ = "GameData not available";
+    return;
+  }
+  auto dungeon_main_pal_group = game_data_->palette_groups.dungeon_main;
   int palette_id = room.palette;
   if (palette_id < 0 ||
       palette_id >= static_cast<int>(dungeon_main_pal_group.size())) {

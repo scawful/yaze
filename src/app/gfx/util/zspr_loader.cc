@@ -5,7 +5,7 @@
 
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "util/log.h"
 
 namespace yaze {

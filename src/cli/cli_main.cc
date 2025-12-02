@@ -9,7 +9,7 @@
 #include "absl/flags/flag.h"
 #include "absl/strings/match.h"
 #include "absl/strings/str_format.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "cli/cli.h"
 #include "cli/service/command_registry.h"
 #ifndef __EMSCRIPTEN__

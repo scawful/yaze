@@ -16,8 +16,9 @@
 #include "absl/status/status.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
+#include "app/gfx/resource/arena.h"
 #include "app/gfx/types/snes_tile.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 
 namespace yaze {
 namespace cli {
@@ -140,29 +141,33 @@ absl::StatusOr<std::vector<uint8_t>> VisualAnalysisBase::ExtractTileAtPosition(
   // decompression. For now, return a placeholder that indicates
   // we need ROM context with loaded graphics.
 
-  // Access the graphics buffer if available
-  const auto& gfx_buffer = rom->graphics_buffer();
-  if (gfx_buffer.empty()) {
+  // Access graphics from Arena if available
+  const auto& gfx_sheets = gfx::Arena::Get().gfx_sheets();
+  if (gfx_sheets.empty() || !gfx_sheets[0].is_active()) {
     return absl::FailedPreconditionError(
         "Graphics not loaded. Load ROM with graphics first.");
   }
 
-  // Calculate offset into graphics buffer
-  // Each sheet is 128x32 pixels at 8bpp = 4096 bytes
-  size_t sheet_size = kSheetWidth * kSheetHeight;
-  size_t sheet_offset = sheet_index * sheet_size;
-
-  if (sheet_offset + sheet_size > gfx_buffer.size()) {
+  // Check sheet index is valid
+  if (sheet_index >= static_cast<int>(gfx_sheets.size())) {
     return absl::OutOfRangeError(
         absl::StrCat("Sheet ", sheet_index, " out of range"));
   }
 
+  const auto& sheet = gfx_sheets[sheet_index];
+  if (!sheet.is_active()) {
+    return absl::FailedPreconditionError(
+        absl::StrCat("Sheet ", sheet_index, " is not loaded"));
+  }
+
+  const auto& sheet_data = sheet.vector();
+
   // Extract 8x8 tile from the sheet
   for (int row = 0; row < kTileHeight; ++row) {
-    size_t src_offset = sheet_offset + (y + row) * kSheetWidth + x;
+    size_t src_offset = (y + row) * kSheetWidth + x;
     for (int col = 0; col < kTileWidth; ++col) {
-      if (src_offset + col < gfx_buffer.size()) {
-        tile_data[row * kTileWidth + col] = gfx_buffer[src_offset + col];
+      if (src_offset + col < sheet_data.size()) {
+        tile_data[row * kTileWidth + col] = sheet_data[src_offset + col];
       }
     }
   }

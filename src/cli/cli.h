@@ -9,8 +9,8 @@
 #include <vector>
 
 #include "absl/status/status.h"
-#include "app/rom.h"
-#include "app/snes.h"
+#include "rom/rom.h"
+#include "rom/snes.h"
 #include "util/macro.h"
 
 // Forward declarations

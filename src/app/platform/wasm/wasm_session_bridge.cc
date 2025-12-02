@@ -9,7 +9,7 @@
 #include "absl/strings/str_format.h"
 #include "app/editor/editor.h"
 #include "app/editor/editor_manager.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "nlohmann/json.hpp"
 #include "util/log.h"
 

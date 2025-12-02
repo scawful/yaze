@@ -20,7 +20,7 @@
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "cli/service/ai/common.h"
 #include "cli/service/resources/resource_context_builder.h"
 #include "nlohmann/json_fwd.hpp"

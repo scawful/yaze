@@ -4,7 +4,7 @@
 
 #include "absl/strings/str_format.h"
 #include "app/net/rom_version_manager.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 
 // Proto namespace alias for convenience
 namespace rom_svc = ::yaze::proto;

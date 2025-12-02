@@ -5,7 +5,7 @@
 #include <vector>
 
 #include "app/gui/core/color.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "imgui/imgui.h"
 
 namespace yaze {

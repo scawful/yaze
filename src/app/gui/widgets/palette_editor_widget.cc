@@ -16,20 +16,30 @@ namespace gui {
 
 // Merged implementation from PaletteWidget and PaletteEditorWidget
 
-void PaletteEditorWidget::Initialize(Rom* rom) {
-  rom_ = rom;
+void PaletteEditorWidget::Initialize(zelda3::GameData* game_data) {
+  game_data_ = game_data;
+  rom_ = nullptr;
   rom_palettes_loaded_ = false;
-  if (rom_) {
+  if (game_data_) {
     LoadROMPalettes();
   }
   current_palette_id_ = 0;
   selected_color_index_ = -1;
 }
 
+void PaletteEditorWidget::Initialize(Rom* rom) {
+  rom_ = rom;
+  game_data_ = nullptr;
+  rom_palettes_loaded_ = false;
+  // Legacy mode - no palette loading without game_data
+  current_palette_id_ = 0;
+  selected_color_index_ = -1;
+}
+
 // --- Embedded Draw Method (from simple editor) ---
 void PaletteEditorWidget::Draw() {
-  if (!rom_ || !rom_->is_loaded()) {
-    ImGui::TextColored(ImVec4(1, 0, 0, 1), "ROM not loaded");
+  if (!game_data_) {
+    ImGui::TextColored(ImVec4(1, 0, 0, 1), "GameData not loaded");
     return;
   }
 
@@ -38,7 +48,7 @@ void PaletteEditorWidget::Draw() {
   DrawPaletteSelector();
   ImGui::Separator();
 
-  auto& dungeon_pal_group = rom_->mutable_palette_group()->dungeon_main;
+  auto& dungeon_pal_group = game_data_->palette_groups.dungeon_main;
   if (current_palette_id_ >= 0 &&
       current_palette_id_ < (int)dungeon_pal_group.size()) {
     auto palette = dungeon_pal_group[current_palette_id_];
@@ -58,7 +68,8 @@ void PaletteEditorWidget::Draw() {
 }
 
 void PaletteEditorWidget::DrawPaletteSelector() {
-  auto& dungeon_pal_group = rom_->mutable_palette_group()->dungeon_main;
+  if (!game_data_) return;
+  auto& dungeon_pal_group = game_data_->palette_groups.dungeon_main;
   int num_palettes = dungeon_pal_group.size();
 
   ImGui::Text("Dungeon Palette:");
@@ -83,10 +94,11 @@ void PaletteEditorWidget::DrawPaletteSelector() {
 }
 
 void PaletteEditorWidget::DrawColorPicker() {
+  if (!game_data_) return;
   ImGui::SeparatorText(
       absl::StrFormat("Edit Color %d", selected_color_index_).c_str());
 
-  auto& dungeon_pal_group = rom_->mutable_palette_group()->dungeon_main;
+  auto& dungeon_pal_group = game_data_->palette_groups.dungeon_main;
   auto palette = dungeon_pal_group[current_palette_id_];
   auto original_color = palette[selected_color_index_];
 
@@ -527,11 +539,11 @@ void PaletteEditorWidget::DrawPaletteAnalysis(const gfx::SnesPalette& palette) {
 }
 
 void PaletteEditorWidget::LoadROMPalettes() {
-  if (!rom_ || rom_palettes_loaded_)
+  if (!game_data_ || rom_palettes_loaded_)
     return;
 
   try {
-    const auto& palette_groups = rom_->palette_group();
+    const auto& palette_groups = game_data_->palette_groups;
     rom_palette_groups_.clear();
     palette_group_names_.clear();
 

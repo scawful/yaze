@@ -24,7 +24,7 @@
 #include "app/gui/canvas/canvas_usage_tracker.h"
 #include "app/gui/canvas/canvas_utils.h"
 #include "app/gui/widgets/palette_editor_widget.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
