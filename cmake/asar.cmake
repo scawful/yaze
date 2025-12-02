@@ -2,7 +2,9 @@
 # Improved cross-platform support for macOS, Linux, and Windows
 
 # Configure Asar build options
-set(ASAR_GEN_EXE OFF CACHE BOOL "Build Asar standalone executable")
+# Build the standalone executable so we can fall back to a bundled CLI when the
+# static library misbehaves.
+set(ASAR_GEN_EXE ON CACHE BOOL "Build Asar standalone executable")
 set(ASAR_GEN_DLL ON CACHE BOOL "Build Asar shared library")
 set(ASAR_GEN_LIB ON CACHE BOOL "Build Asar static library")
 set(ASAR_GEN_EXE_TEST OFF CACHE BOOL "Build Asar executable tests")
