@@ -386,18 +386,32 @@ absl::Status ApplyTailExpansion(Rom* rom, bool dry_run, bool verbose) {
     return absl::InternalError(error_msg);
   }
 
-  // Copy patched data back to ROM
-  if (rom_data.size() != rom->size()) {
+  // Handle ROM size changes - patches may expand the ROM for custom code
+  if (rom_data.size() > rom->size()) {
+    if (verbose) {
+      std::cout << absl::StrFormat("  Expanding ROM from %zu to %zu bytes\n",
+                                   rom->size(), rom_data.size());
+    }
+    rom->Expand(static_cast<int>(rom_data.size()));
+  } else if (rom_data.size() < rom->size()) {
+    // ROM shrinking is unexpected and likely an error
     return absl::InternalError(
-        absl::StrFormat("ROM size changed unexpectedly: %zu -> %zu",
+        absl::StrFormat("ROM size decreased unexpectedly: %zu -> %zu",
                         rom->size(), rom_data.size()));
   }
 
+  // Copy patched data back to ROM
   for (size_t i = 0; i < rom_data.size(); ++i) {
     (*rom)[i] = rom_data[i];
   }
 
-  // Verify marker was written
+  // Verify marker was written (with bounds check to prevent buffer overflow)
+  if (kExpandedPtrTableMarker >= rom->size()) {
+    return absl::InternalError(
+        absl::StrFormat("ROM too small for expansion marker at 0x%06X "
+                        "(ROM size: 0x%06zX). Patch may have failed.",
+                        kExpandedPtrTableMarker, rom->size()));
+  }
   if (rom->data()[kExpandedPtrTableMarker] != kExpandedPtrTableMagic) {
     return absl::InternalError(
         "Patch applied but marker not found. Patch may be incomplete.");
