@@ -3,7 +3,8 @@
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/types/snes_tile.h"
 #include "zelda3/dungeon/object_drawer.h"
-#include "app/rom.h"
+#include "zelda3/game_data.h"
+#include "rom/rom.h"
 
 namespace yaze {
 namespace zelda3 {
@@ -15,10 +16,12 @@ class DungeonPaletteTest : public ::testing::Test {
     // Mock ROM is not strictly needed for DrawTileToBitmap if we pass tiledata
     // but ObjectDrawer constructor needs it.
     rom_ = std::make_unique<Rom>();
+    game_data_ = std::make_unique<GameData>(rom_.get());
     drawer_ = std::make_unique<ObjectDrawer>(rom_.get());
   }
 
   std::unique_ptr<Rom> rom_;
+  std::unique_ptr<GameData> game_data_;
   std::unique_ptr<ObjectDrawer> drawer_;
 };
 
@@ -117,8 +120,14 @@ TEST_F(DungeonPaletteTest, InspectActualPaletteColors) {
     GTEST_SKIP() << "ROM file not found, skipping";
   }
 
+  // Load game data (palettes, etc.)
+  auto game_data_result = LoadGameData(*rom_, *game_data_);
+  if (!game_data_result.ok()) {
+    GTEST_SKIP() << "Failed to load game data: " << game_data_result.message();
+  }
+
   // Get dungeon main palette group
-  const auto& dungeon_pal_group = rom_->palette_group().dungeon_main;
+  const auto& dungeon_pal_group = game_data_->palette_groups.dungeon_main;
   
   ASSERT_FALSE(dungeon_pal_group.empty()) << "Dungeon palette group is empty!";
   
