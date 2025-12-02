@@ -66,12 +66,15 @@ absl::Status CommandHandler::Run(const std::vector<std::string>& args,
 
   CommandContext context(config);
 
-  // 6. Get ROM (loads if needed)
-  ASSIGN_OR_RETURN(Rom * rom, context.GetRom());
+  // 6. Get ROM (loads if needed) - only if command requires it
+  Rom* rom = nullptr;
+  if (RequiresRom()) {
+    ASSIGN_OR_RETURN(rom, context.GetRom());
 
-  // 7. Ensure labels are loaded if required
-  if (RequiresLabels()) {
-    RETURN_IF_ERROR(context.EnsureLabelsLoaded(rom));
+    // 7. Ensure labels are loaded if required
+    if (RequiresLabels()) {
+      RETURN_IF_ERROR(context.EnsureLabelsLoaded(rom));
+    }
   }
 
   // 8. Begin output formatting
