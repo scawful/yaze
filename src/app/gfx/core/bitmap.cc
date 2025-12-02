@@ -502,6 +502,11 @@ void Bitmap::SetPaletteWithTransparent(const SnesPalette& palette, size_t index,
     }
   }
   SDL_LockSurface(surface_);
+
+  // CRITICAL FIX: Enable RLE acceleration and set color key for transparency
+  // SDL ignores palette alpha for INDEX8 unless color key is set or blending is enabled
+  SDL_SetColorKey(surface_, SDL_TRUE, 0);
+  SDL_SetSurfaceBlendMode(surface_, SDL_BLENDMODE_BLEND);
 }
 
 void Bitmap::SetPalette(const std::vector<SDL_Color>& palette) {
