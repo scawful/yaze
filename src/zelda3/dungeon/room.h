@@ -194,11 +194,13 @@ class Room {
   void LoadObjects();
   void LoadSprites();
   void LoadChests();
+  void LoadPotItems();
   void LoadDoors();
   void LoadTorches();
   void LoadBlocks();
   void LoadPits();
   void LoadLayoutTilesToBuffer();
+  void ReloadGraphics(uint8_t entrance_blockset = 0xFF);
 
   // Public getters and manipulators for sprites
   const std::vector<zelda3::Sprite>& GetSprites() const { return sprites_; }
@@ -211,6 +213,17 @@ class Room {
   // Public getters and manipulators for stairs
   const std::vector<staircase>& GetStairs() const { return z3_staircases_; }
   std::vector<staircase>& GetStairs() { return z3_staircases_; }
+
+  struct Door {
+    uint8_t position;
+    uint8_t type;
+    uint8_t direction;
+    uint8_t byte1; // Original byte 1
+    uint8_t byte2; // Original byte 2
+  };
+
+  const std::vector<Door>& GetDoors() const { return doors_; }
+  std::vector<Door>& GetDoors() { return doors_; }
 
   const RoomLayout& GetLayout() const { return layout_; }
 
@@ -405,6 +418,10 @@ class Room {
   auto& bg2_buffer() { return bg2_buffer_; }
   const auto& bg1_buffer() const { return bg1_buffer_; }
   const auto& bg2_buffer() const { return bg2_buffer_; }
+  auto& object_bg1_buffer() { return object_bg1_buffer_; }
+  const auto& object_bg1_buffer() const { return object_bg1_buffer_; }
+  auto& object_bg2_buffer() { return object_bg2_buffer_; }
+  const auto& object_bg2_buffer() const { return object_bg2_buffer_; }
 
  private:
   Rom* rom_;
@@ -412,8 +429,11 @@ class Room {
   std::array<uint8_t, 0x10000> current_gfx16_;
 
   // Each room has its OWN background buffers and bitmaps
+  // Each room has its OWN background buffers and bitmaps
   gfx::BackgroundBuffer bg1_buffer_{512, 512};
   gfx::BackgroundBuffer bg2_buffer_{512, 512};
+  gfx::BackgroundBuffer object_bg1_buffer_{512, 512};
+  gfx::BackgroundBuffer object_bg2_buffer_{512, 512};
 
   bool is_light_;
   bool is_loaded_ = false;
@@ -460,6 +480,8 @@ class Room {
   std::vector<zelda3::Sprite> sprites_;
   std::vector<staircase> z3_staircases_;
   std::vector<chest_data> chests_in_room_;
+  std::vector<Door> doors_;
+  std::vector<uint8_t> pot_items_;
   RoomLayout layout_;
 
   LayerMergeType layer_merging_;

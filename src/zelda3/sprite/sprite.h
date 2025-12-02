@@ -112,6 +112,7 @@ class Sprite : public GameEntity {
   auto deleted() const { return deleted_; }
   auto set_deleted(bool deleted) { deleted_ = deleted; }
   auto set_key_drop(int key) { key_drop_ = key; }
+  auto key_drop() const { return key_drop_; }
 
  private:
   uint8_t map_id_;
