@@ -1,159 +1,233 @@
-# Dungeon Tile Rendering - Debugging Strategy & Next Steps
+# Dungeon Tile Rendering - Progress & Next Steps
 
-**Date**: 2025-12-01
-**Status**: Partially Fixed - Floor/Wall tiles working, object sizes need attention
+**Last Updated**: 2025-12-01
+**Status**: Major Progress - Floor/Walls working, object mappings expanded
 
 ## Summary
 
-Fixed a critical graphics loading order bug that caused dungeon tiles to display incorrect graphics. Floor tiles, most walls, and special tiles now render correctly. However, several objects still have incorrect sizes or excessive transparent tiles.
+Fixed multiple critical bugs in dungeon tile rendering:
+1. **Graphics sheet loading order** - Sheets now load before buffer copy
+2. **Missing object mappings** - Added 168 previously unmapped object IDs (0x50-0xF7)
 
-## What Was Fixed
+Floor tiles, walls, and most objects now render with correct graphics. Some objects still have sizing or transparency issues that need attention.
 
-### Root Cause: Graphics Sheet Loading Order
-The `blocks_[]` array (which maps slots 0-15 to graphics sheet IDs) was being read BEFORE it was initialized by `LoadRoomGraphics()`.
+---
 
-**Before (broken)**:
+## Completed Fixes
+
+### Fix 1: Graphics Sheet Loading Order (984d3e02cd)
+**Root Cause**: `blocks_[]` array was read BEFORE `LoadRoomGraphics()` initialized it.
+
 ```cpp
+// Before (broken): CopyRoomGraphicsToBuffer used stale blocks_[]
+// After (fixed): LoadRoomGraphics(blockset) called FIRST
 void Room::RenderRoomGraphics() {
   if (graphics_dirty_) {
-    CopyRoomGraphicsToBuffer();  // Uses stale blocks_[] values!
-    graphics_dirty_ = false;
-  }
-  // LoadRoomGraphics was called elsewhere, too late
-}
-```
-
-**After (fixed)**:
-```cpp
-void Room::RenderRoomGraphics() {
-  if (graphics_dirty_) {
-    LoadRoomGraphics(blockset);  // Initialize blocks_[] FIRST
-    CopyRoomGraphicsToBuffer();  // Now uses correct sheet IDs
+    LoadRoomGraphics(blockset);    // Initialize blocks_[] FIRST
+    CopyRoomGraphicsToBuffer();    // Now uses correct sheet IDs
     graphics_dirty_ = false;
   }
 }
 ```
 
-### Files Modified
-1. **`src/zelda3/dungeon/room.cc`** - Main fix + debug logging
-2. **`src/zelda3/dungeon/object_drawer.cc`** - Enhanced draw routines
-3. **`src/zelda3/dungeon/object_parser.cc`** - Debug logging for tile lookups
-4. **`src/app/editor/music/music_editor.cc`** - Fixed SIGSEGV crash (unrelated)
+### Fix 2: Missing Object-to-Routine Mappings (1d77f34f99)
+**Root Cause**: Objects 0x50-0xF7 had no draw routine mappings, falling through to 1x1 fallback.
 
-## Debugging Strategy Used
+**Added mappings for 168 object IDs**:
+| Range | Count | Description |
+|-------|-------|-------------|
+| 0x50-0x5F | 16 | Floor/decoration objects |
+| 0x6E-0x6F | 2 | Edge objects |
+| 0x70-0x7F | 16 | Mixed 4x4, 2x2, 2x4 |
+| 0x80-0x8F | 16 | 4x2, 4x3, 2x3 objects |
+| 0x90-0x9F | 16 | 4x2, 2x2, 1x1 objects |
+| 0xA0-0xAF | 16 | Mostly 1x1 |
+| 0xB0-0xBF | 16 | Mixed sizes |
+| 0xC0-0xCF | 16 | 1x1, 4x2, 4x4 |
+| 0xD0-0xDF | 16 | 1x1, 4x2, 4x4, 2x2 |
+| 0xE0-0xF7 | 24 | 4x2 and 1x1 |
 
-### 1. Trace the Data Flow
-Added printf logging at key points to trace the tile rendering pipeline:
+### Fix 3: MusicEditor Crash (984d3e02cd)
+**Root Cause**: `ImGui::GetID()` called without valid window context during initialization.
+**Fix**: Deferred `ClassId` initialization to first `Update()` call.
 
-```
-[LoadRoomGraphics] Room 0: blockset=19
-[LoadRoomGraphics] Sheet IDs: 0, 1, 16, 9, 14, 42, 23, 15
-[CopyRoomGraphicsToBuffer] Block 0=Sheet 0, Block 1=Sheet 1...
-[ParseSubtype1] obj=0x00: tile_ptr=0x8000, offset=...
-[DrawTile] id=200 (col=8,row=12) -> gfx offset=...
-```
+---
 
-### 2. Verify ROM Address Calculations
-Cross-referenced with ALTTP disassembly:
-- `kRoomObjectSubtype1` = 0x8000 (SNES $01:8000) - subtype 1 object table
-- `kRoomObjectTileAddress` = 0x1B52 (SNES $00:9B52) - RoomDrawObjectData
+## Remaining Issues
 
-### 3. Compare Execution Order
-The critical insight came from comparing the order of debug messages:
-- **Broken**: CopyRoomGraphicsToBuffer ran BEFORE LoadRoomGraphics
-- **Fixed**: LoadRoomGraphics initializes blocks_[] BEFORE copy
+### 1. Objects with Excessive Transparency
+**Symptoms**: Objects render with mostly transparent tiles, appearing as partial/broken shapes.
 
-### 4. Key Debugging Locations
+**Likely Causes**:
+- Tile data contains pixel value 0 (transparent) for most pixels
+- Palette index mismatch - pixels reference wrong sub-palette
+- Tile ID points to blank/unused tile in graphics buffer
 
-| File | Function | What to Log |
-|------|----------|-------------|
-| room.cc | LoadRoomGraphics() | Blockset ID, sheet IDs for blocks_[0-15] |
-| room.cc | CopyRoomGraphicsToBuffer() | Which sheets being copied to which slots |
-| object_parser.cc | ParseSubtype1() | Tile pointer addresses, offsets, tile words |
-| object_drawer.cc | DrawTileToBitmap() | Tile ID, palette, pixel data |
-
-## Remaining Issues to Fix
-
-### 1. Type 2 Object Size Bug (CRITICAL)
-**Location**: `room_object.cc:193`
-
-Type 2 objects (0x100-0x13F, e.g., chests, stairs) have `size = 0` hardcoded!
-
+**Debug Strategy**:
 ```cpp
-// Type 2: 111111xx xxxxyyyy yyiiiiii
-if (b1 >= 0xFC) {
-    id = (b3 & 0x3F) | 0x100;
-    x = ((b2 & 0xF0) >> 4) | ((b1 & 0x03) << 4);
-    y = ((b2 & 0x0F) << 2) | ((b3 & 0xC0) >> 6);
-    size = 0;  // <-- BUG: Size is always 0!
+// In DrawTileToBitmap, log pixel distribution
+int transparent_count = 0, opaque_count = 0;
+for (int py = 0; py < 8; py++) {
+  for (int px = 0; px < 8; px++) {
+    if (pixel == 0) transparent_count++;
+    else opaque_count++;
+  }
+}
+printf("[Tile %d] transparent=%d opaque=%d\n", tile_info.id_, transparent_count, opaque_count);
+```
+
+### 2. Objects with Incorrect Sizes
+**Symptoms**: Objects appear smaller or larger than expected.
+
+**Likely Causes**:
+- Draw routine assigned doesn't match object's tile layout
+- Tile count in `kSubtype1TileLengths` incorrect for object
+- Size repetition count wrong (size+1 vs size+7 etc.)
+
+**Debug Strategy**:
+```cpp
+// Log object dimensions vs expected
+printf("[Object 0x%03X] routine=%d expected_tiles=%d actual=%zu size=%d\n",
+       obj.id_, routine_id, expected_tile_count, tiles.size(), obj.size_);
+```
+
+### 3. Subtype 2/3 Objects Need Attention
+Type 2 (0x100-0x13F) and Type 3 (0xF80-0xFFF) objects use different ROM tables and may have unique tile layouts.
+
+**Note**: Type 2 `size = 0` is **intentional** - these are fixed-size objects (chests, stairs) that don't repeat.
+
+### 4. Tile Count Table Accuracy
+The `kSubtype1TileLengths[0xF8]` table determines how many tiles to read per object. Some entries may be incorrect.
+
+**Verification Method**: Compare with ZScream's `DungeonObjectData.cs` and ALTTP disassembly.
+
+---
+
+## Testing Strategy
+
+### Manual Testing Checklist
+1. **Room 000 (Ganon's Room)**: Verify floor pattern, walls, center platform
+2. **Room 104**: Check grass/garden tiles, walls, water features
+3. **Room with chests**: Verify Type 2 objects (chests render correctly)
+4. **Room with stairs**: Check spiral stairs, layer switching objects
+5. **Room with pots**: Verify pot objects (0x160-0x16F range)
+
+### Systematic Testing Approach
+```bash
+# Test specific rooms via CLI
+./yaze --rom_file=zelda3.sfc --editor=Dungeon
+
+# Add this to room.cc for batch testing
+for (int room_id = 0; room_id < 296; room_id++) {
+  LoadRoom(room_id);
+  int missing_objects = CountObjectsWithFallbackDrawing();
+  if (missing_objects > 0) {
+    printf("Room %d: %d objects using fallback\n", room_id, missing_objects);
+  }
 }
 ```
 
-**Impact**: Type 2 objects only draw 1 repetition regardless of actual encoded size.
+### Reference Rooms for Testing
+| Room ID | Description | Key Objects |
+|---------|-------------|-------------|
+| 0 | Ganon's Room | Floor tiles, walls, platform |
+| 2 | Sanctuary | Walls, altar, decoration |
+| 18 | Eastern Palace | Pillars, statues |
+| 89 | Desert Palace | Sand tiles, pillars |
+| 104 | Garden | Grass, bushes, walls |
 
-**Fix Options**:
-1. Research original ALTTP assembly to determine if Type 2 objects have encoded size
-2. If Type 2 objects don't use size encoding, update draw routines to not rely on size
-3. Cross-reference with ZScream's handling of Type 2 objects
+---
 
-### 2. Inconsistent Size Masking
-Draw routines inconsistently handle size values:
+## UI/UX Improvements for Dungeon Editor
 
-| Pattern | Issue |
-|---------|-------|
-| `int size = obj.size_;` | Uses raw value (can be 0-255) |
-| `int size = obj.size_ & 0x0F;` | Masks to 0-15 (more correct) |
-| `if (size == 0) size = 32;` | Special case for specific objects |
+### Object Selection Enhancements
 
-**Example inconsistencies**:
-```cpp
-// DrawRightwards2x2_1to15or32 - uses raw obj.size_
-int size = obj.size_;
-if (size == 0) size = 32;
-
-// DrawRightwards2x2_1to16 - masks to 4 bits
-int size = obj.size_ & 0x0F;
-int count = size + 1;
+#### 1. Object Palette Panel
+```
+┌─────────────────────────────────────┐
+│ Object Palette                  [x] │
+├─────────────────────────────────────┤
+│ Category: [Walls ▼]                 │
+│                                     │
+│ ┌───┬───┬───┬───┐                   │
+│ │0x0│0x1│0x2│0x3│  ← Visual tiles   │
+│ └───┴───┴───┴───┘                   │
+│ ┌───┬───┬───┬───┐                   │
+│ │0x4│0x5│0x6│0x7│                   │
+│ └───┴───┴───┴───┘                   │
+│                                     │
+│ Selected: Wall Corner (0x07)        │
+│ Size: 2x2 tiles, Repeatable: Yes    │
+└─────────────────────────────────────┘
 ```
 
-**Fix**: Standardize on `obj.size_ & 0x0F` for all routines unless specific object needs special handling.
+#### 2. Object Categories
+- **Walls**: 0x00-0x20 (horizontal/vertical walls, corners)
+- **Floors**: 0x33, 0x49-0x4F (floor tiles, patterns)
+- **Decoration**: 0x36-0x3E (statues, pillars, tables)
+- **Interactive**: 0x100+ (chests, switches, stairs)
+- **Special**: 0xF80+ (water, Somaria paths)
 
-### 3. Object Size Decoding for Type 1 Objects
-Type 1 decoding extracts size correctly but may have edge cases:
-
-```cpp
-// Type 1: xxxxxxss yyyyyyss iiiiiiii
-size = ((b1 & 0x03) << 2) | (b2 & 0x03);  // 4 bits = 0-15
+#### 3. Object Inspector Panel
+```
+┌─────────────────────────────────────┐
+│ Object Properties                   │
+├─────────────────────────────────────┤
+│ ID: 0x07        Type: Wall Corner   │
+│ Position: (12, 8)  Size: 3          │
+│ Layer: BG1      All BGs: No         │
+│                                     │
+│ Tile Preview:                       │
+│ ┌───┬───┐                           │
+│ │ A │ B │  A=0xC8, B=0xC2           │
+│ ├───┼───┤  C=0xCB, D=0xCE           │
+│ │ C │ D │                           │
+│ └───┴───┘                           │
+│                                     │
+│ [Edit Tiles] [Copy] [Delete]        │
+└─────────────────────────────────────┘
 ```
 
-This gives size 0-15, but some objects expect size 0 to mean "draw 32 times".
-**Verify**: Cross-reference with game assembly to confirm which objects have special size=0 handling.
+### Canvas Improvements
 
-### 4. Subtype 2/3 Tile Count Issues
-Subtype 2 (0x100-0x13F) and Subtype 3 (0x200-0x2FF) objects may have different tile lookup logic.
+#### 1. Object Highlighting
+- Hover: Light outline around object bounds
+- Selected: Solid highlight with resize handles
+- Multi-select: Dashed outline for group selection
 
-**Investigate**:
-- `ParseSubtype2()` and `ParseSubtype3()` in object_parser.cc
-- These use different ROM table addresses
-- May need different tile count tables (currently hardcoded to 8)
+#### 2. Grid Overlay Options
+- 8x8 tile grid (fine)
+- 16x16 block grid (standard)
+- 32x32 supertile grid (layout)
 
-### 3. Tile Count Table Accuracy
-The `kSubtype1TileLengths[0xF8]` table was derived from ZScream but may have errors.
+#### 3. Layer Visibility
+- BG1 toggle (walls, floors)
+- BG2 toggle (overlays, transparency)
+- Objects only view
+- Collision overlay
 
-**Verify**: Cross-reference with original game assembly for each object type.
+### Workflow Improvements
 
-### 4. Routine-to-Object Mapping Gaps
-Some objects fall through to the fallback 1x1 drawing routine.
-
-```cpp
-// object_drawer.cc lines 53-62
-if (routine_id < 0 || routine_id >= ...) {
-    // Fallback to simple 1x1 drawing
-    WriteTile8(target_bg, object.x_, object.y_, tiles[0]);
-}
+#### 1. Object Placement Mode
+```
+[Draw] [Select] [Move] [Resize] [Delete]
+         │
+         └── Click to select objects
+             Drag to move
+             Shift+drag to copy
 ```
 
-**Fix**: Add missing entries to `object_to_routine_map_`.
+#### 2. Object Size Adjustment
+- Drag object edge to resize (increases size repetition)
+- Ctrl+scroll to adjust size value
+- Number keys 1-9 for quick size presets
+
+#### 3. Undo/Redo System
+- Track object add/remove/move/resize
+- Snapshot-based for complex operations
+- 50-step undo history
+
+---
 
 ## Architecture Reference
 
@@ -168,46 +242,73 @@ current_gfx16_ (room-specific 64KB buffer)
 bg1_bitmap / bg2_bitmap (512×512 room canvas)
 ```
 
-### Tile Info Format (SNES Tilemap Word)
-```
-vhopppcccccccccc
-v = vertical flip
-h = horizontal flip
-o = priority
-ppp = palette (0-7, but dungeon uses 0-5)
-cccccccccc = tile ID (0-1023)
-```
-
 ### Object Subtypes
 | Subtype | ID Range | ROM Table | Description |
 |---------|----------|-----------|-------------|
-| 1 | 0x00-0xF7 | $01:8000 | Most dungeon objects (walls, floors, etc.) |
+| 1 | 0x00-0xF7 | $01:8000 | Standard objects (walls, floors) |
 | 2 | 0x100-0x13F | $01:83F0 | Special objects (chests, stairs) |
-| 3 | 0x200-0x2FF | $01:84F0 | Complex objects (water faces, Somaria paths) |
+| 3 | 0xF80-0xFFF | $01:84F0 | Complex objects (water, Somaria) |
 
-## Testing Commands
+### Draw Routine Reference
+| Routine | Pattern | Objects |
+|---------|---------|---------|
+| 0 | 2x2 rightwards (1-15 or 32) | 0x00 |
+| 1 | 2x4 rightwards | 0x01-0x02 |
+| 4 | 2x2 rightwards (1-16) | 0x07-0x08 |
+| 7 | 2x2 downwards (1-15 or 32) | 0x60 |
+| 8 | 4x2 downwards | 0x61-0x62 |
+| 16 | 4x4 block | 0x33, 0x4D-0x4F, 0x70+ |
+| 25 | 1x1 solid | Single-tile objects |
+
+---
+
+## Debug Commands
 
 ```bash
-# Run with dungeon editor, check specific room
-./yaze --rom_file=zelda3.sfc --editor=Dungeon
+# Run dungeon editor with debug output
+./yaze --rom_file=zelda3.sfc --editor=Dungeon --debug
 
-# Debug output (add to code temporarily)
-printf("[Object] ID=0x%03X at (%d,%d) size=%d tiles=%zu\n",
-       object.id_, object.x_, object.y_, object.size_, object.tiles().size());
+# Filter debug output for specific issues
+./yaze ... 2>&1 | grep -E "Object|DrawTile|ParseSubtype"
+
+# Check for objects using fallback drawing
+./yaze ... 2>&1 | grep "fallback 1x1"
 ```
 
-## Next Steps Priority
+---
 
-1. **High**: Fix object size decoding in `room_object.cc`
-2. **High**: Verify tile counts for subtype 2/3 objects
-3. **Medium**: Complete `object_to_routine_map_` entries
-4. **Medium**: Add size-aware draw routines
-5. **Low**: Remove debug printf statements after verification
+## Future Enhancements
 
-## Files to Study
+### Short-term (Next Sprint)
+1. Fix remaining transparent object issues
+2. Add object category filtering in UI
+3. Implement object copy/paste
 
-- `/src/zelda3/dungeon/room_object.cc` - Object data decoding
-- `/src/zelda3/dungeon/object_parser.cc` - Tile lookup logic
-- `/src/zelda3/dungeon/object_drawer.cc` - Draw routine implementations
-- ZScream's `DungeonObjectData.cs` - Reference for object mappings
+### Medium-term
+1. Visual object palette with rendered previews
+2. Room template system (save/load object layouts)
+3. Object collision visualization
+
+### Long-term
+1. Drag-and-drop object placement from palette
+2. Smart object snapping (align to grid, other objects)
+3. Room comparison tool (diff between ROMs)
+4. Batch object editing (multi-select properties)
+
+---
+
+## Files Reference
+
+| File | Purpose |
+|------|---------|
+| `room.cc` | Room loading, graphics management |
+| `room_object.cc` | Object encoding/decoding |
+| `object_parser.cc` | Tile data lookup from ROM |
+| `object_drawer.cc` | Draw routine implementations |
+| `dungeon_editor_v2.cc` | Editor UI and interaction |
+| `dungeon_canvas_viewer.cc` | Canvas rendering |
+
+## External References
+- ZScream's `DungeonObjectData.cs` - Object data reference
 - ALTTP disassembly `bank_00.asm` - RoomDrawObjectData at $00:9B52
+- ALTTP disassembly `bank_01.asm` - Draw routines at $01:8000+
