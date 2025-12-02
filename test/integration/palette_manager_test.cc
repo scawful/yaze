@@ -4,7 +4,7 @@
 
 #include "app/gfx/types/snes_color.h"
 #include "app/gfx/types/snes_palette.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 
 namespace yaze {
 namespace gfx {
@@ -37,7 +37,7 @@ TEST_F(PaletteManagerTest, InitializationState) {
   // In production, we'd need a Reset() method for testing
 
   // After initialization with null ROM, should handle gracefully
-  manager.Initialize(nullptr);
+  manager.Initialize(static_cast<Rom*>(nullptr));
   EXPECT_FALSE(manager.IsInitialized());
 }
 
@@ -218,7 +218,7 @@ TEST_F(PaletteManagerTest, MultipleListeners) {
 TEST_F(PaletteManagerTest, DISABLED_GetColorWithoutInitialization) {
   auto& manager = PaletteManager::Get();
   // Reset for this test
-  manager.Initialize(nullptr);
+  manager.Initialize(static_cast<Rom*>(nullptr));
   
   // Should not crash, but return a default color or error
   // Note: Implementation detail - might return black or throw assertion in debug
@@ -230,7 +230,7 @@ TEST_F(PaletteManagerTest, DISABLED_GetColorWithoutInitialization) {
 
 TEST_F(PaletteManagerTest, DISABLED_SetColorWithoutInitializationFails) {
   auto& manager = PaletteManager::Get();
-  manager.Initialize(nullptr);
+  manager.Initialize(static_cast<Rom*>(nullptr));
   
   // Should return false/error instead of crashing
   // Assuming SetColor handles uninitialized state
