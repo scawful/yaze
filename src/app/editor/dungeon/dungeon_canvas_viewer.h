@@ -12,6 +12,7 @@
 #include "rom/rom.h"
 #include "zelda3/dungeon/dungeon_editor_system.h"
 #include "zelda3/dungeon/room.h"
+#include "zelda3/dungeon/room_layer_manager.h"
 #include "zelda3/game_data.h"
 
 namespace yaze {
@@ -91,29 +92,112 @@ class DungeonCanvasViewer {
   }
   ObjectRenderMode GetObjectRenderMode() const { return object_render_mode_; }
 
-  // Layer visibility controls (per-room)
-  void SetBG1Visible(int room_id, bool visible) {
-    GetRoomLayerSettings(room_id).bg1_visible = visible;
+  // Layer visibility controls (per-room) using RoomLayerManager
+  void SetLayerVisible(int room_id, zelda3::LayerType layer, bool visible) {
+    GetRoomLayerManager(room_id).SetLayerVisible(layer, visible);
   }
-  void SetBG2Visible(int room_id, bool visible) {
-    GetRoomLayerSettings(room_id).bg2_visible = visible;
-  }
-  bool IsBG1Visible(int room_id) const {
-    auto it = room_layer_settings_.find(room_id);
-    return it != room_layer_settings_.end() ? it->second.bg1_visible : true;
-  }
-  bool IsBG2Visible(int room_id) const {
-    auto it = room_layer_settings_.find(room_id);
-    return it != room_layer_settings_.end() ? it->second.bg2_visible : true;
+  bool IsLayerVisible(int room_id, zelda3::LayerType layer) const {
+    auto it = room_layer_managers_.find(room_id);
+    return it != room_layer_managers_.end() ? it->second.IsLayerVisible(layer)
+                                            : true;
   }
 
-  // BG2 layer type controls (per-room)
+  // Legacy compatibility - BG1 visibility (combines layout + objects)
+  void SetBG1Visible(int room_id, bool visible) {
+    auto& mgr = GetRoomLayerManager(room_id);
+    mgr.SetLayerVisible(zelda3::LayerType::BG1_Layout, visible);
+    mgr.SetLayerVisible(zelda3::LayerType::BG1_Objects, visible);
+  }
+  void SetBG2Visible(int room_id, bool visible) {
+    auto& mgr = GetRoomLayerManager(room_id);
+    mgr.SetLayerVisible(zelda3::LayerType::BG2_Layout, visible);
+    mgr.SetLayerVisible(zelda3::LayerType::BG2_Objects, visible);
+  }
+  bool IsBG1Visible(int room_id) const {
+    auto it = room_layer_managers_.find(room_id);
+    if (it == room_layer_managers_.end()) return true;
+    return it->second.IsLayerVisible(zelda3::LayerType::BG1_Layout) ||
+           it->second.IsLayerVisible(zelda3::LayerType::BG1_Objects);
+  }
+  bool IsBG2Visible(int room_id) const {
+    auto it = room_layer_managers_.find(room_id);
+    if (it == room_layer_managers_.end()) return true;
+    return it->second.IsLayerVisible(zelda3::LayerType::BG2_Layout) ||
+           it->second.IsLayerVisible(zelda3::LayerType::BG2_Objects);
+  }
+
+  // Layer blend mode controls
+  void SetLayerBlendMode(int room_id, zelda3::LayerType layer,
+                         zelda3::LayerBlendMode mode) {
+    GetRoomLayerManager(room_id).SetLayerBlendMode(layer, mode);
+  }
+  zelda3::LayerBlendMode GetLayerBlendMode(int room_id,
+                                           zelda3::LayerType layer) const {
+    auto it = room_layer_managers_.find(room_id);
+    return it != room_layer_managers_.end()
+               ? it->second.GetLayerBlendMode(layer)
+               : zelda3::LayerBlendMode::Normal;
+  }
+
+  // Per-object translucency
+  void SetObjectTranslucent(int room_id, size_t object_index, bool translucent,
+                            uint8_t alpha = 128) {
+    GetRoomLayerManager(room_id).SetObjectTranslucency(object_index, translucent,
+                                                       alpha);
+  }
+
+  // Layer manager access
+  zelda3::RoomLayerManager& GetRoomLayerManager(int room_id) {
+    return room_layer_managers_[room_id];
+  }
+  const zelda3::RoomLayerManager& GetRoomLayerManager(int room_id) const {
+    static zelda3::RoomLayerManager default_manager;
+    auto it = room_layer_managers_.find(room_id);
+    return it != room_layer_managers_.end() ? it->second : default_manager;
+  }
+
+  // Legacy BG2 layer type (mapped to blend mode)
   void SetBG2LayerType(int room_id, int type) {
-    GetRoomLayerSettings(room_id).bg2_layer_type = type;
+    auto& mgr = GetRoomLayerManager(room_id);
+    zelda3::LayerBlendMode mode;
+    switch (type) {
+      case 0:
+        mode = zelda3::LayerBlendMode::Normal;
+        break;
+      case 1:
+        mode = zelda3::LayerBlendMode::Translucent;
+        break;
+      case 2:
+        mode = zelda3::LayerBlendMode::Addition;
+        break;
+      case 3:
+        mode = zelda3::LayerBlendMode::Dark;
+        break;
+      case 4:
+        mode = zelda3::LayerBlendMode::Off;
+        break;
+      default:
+        mode = zelda3::LayerBlendMode::Normal;
+        break;
+    }
+    mgr.SetLayerBlendMode(zelda3::LayerType::BG2_Layout, mode);
+    mgr.SetLayerBlendMode(zelda3::LayerType::BG2_Objects, mode);
   }
   int GetBG2LayerType(int room_id) const {
-    auto it = room_layer_settings_.find(room_id);
-    return it != room_layer_settings_.end() ? it->second.bg2_layer_type : 0;
+    auto mode = GetLayerBlendMode(room_id, zelda3::LayerType::BG2_Layout);
+    switch (mode) {
+      case zelda3::LayerBlendMode::Normal:
+        return 0;
+      case zelda3::LayerBlendMode::Translucent:
+        return 1;
+      case zelda3::LayerBlendMode::Addition:
+        return 2;
+      case zelda3::LayerBlendMode::Dark:
+        return 3;
+      case zelda3::LayerBlendMode::Off:
+        return 4;
+    }
+    return 0;
   }
 
   // Set the object to be placed
@@ -168,18 +252,8 @@ class DungeonCanvasViewer {
   // Object interaction state
   bool object_interaction_enabled_ = true;
 
-  // Per-room layer visibility settings
-  struct RoomLayerSettings {
-    bool bg1_visible = true;
-    bool bg2_visible = true;
-    int bg2_layer_type = 0;  // 0=Normal, 1=Translucent, 2=Addition, etc.
-  };
-  std::map<int, RoomLayerSettings> room_layer_settings_;
-
-  // Helper to get settings for a room (creates default if not exists)
-  RoomLayerSettings& GetRoomLayerSettings(int room_id) {
-    return room_layer_settings_[room_id];
-  }
+  // Per-room layer managers (4-way visibility, blend modes, per-object translucency)
+  std::map<int, zelda3::RoomLayerManager> room_layer_managers_;
 
   // Palette data
   uint64_t current_palette_group_id_ = 0;

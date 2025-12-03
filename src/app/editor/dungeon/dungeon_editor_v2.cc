@@ -5,7 +5,7 @@
 #include "app/editor/agent/agent_ui_theme.h"
 #include "app/editor/dungeon/panels/dungeon_entrance_list_panel.h"
 #include "app/editor/dungeon/panels/dungeon_entrances_panel.h"
-#include "app/editor/dungeon/panels/dungeon_object_editor_panel.h"
+#include "app/editor/dungeon/panels/object_editor_panel.h"
 #include "app/editor/dungeon/panels/dungeon_palette_editor_panel.h"
 #include "app/editor/dungeon/panels/dungeon_room_graphics_panel.h"
 #include "app/editor/dungeon/panels/dungeon_room_matrix_panel.h"
@@ -211,19 +211,23 @@ absl::Status DungeonEditorV2::Load() {
   (void)dungeon_editor_system_->Initialize();
   dungeon_editor_system_->SetCurrentRoom(current_room_id_);
 
-  // Initialize unified object editor card
+  // Initialize unified object editor panel
   // Note: Initially passing nullptr for viewer, will be set on selection
-  object_editor_card_ = std::make_unique<ObjectEditorCard>(
+  auto object_editor = std::make_unique<ObjectEditorPanel>(
       renderer_, rom_, nullptr, dungeon_editor_system_->GetObjectEditor());
 
-  // Propagate game_data to the object editor card if available
+  // Keep raw pointer for later access
+  object_editor_panel_ = object_editor.get();
+
+  // Propagate game_data to the object editor panel if available
   if (game_data()) {
-    object_editor_card_->SetGameData(game_data());
+    object_editor_panel_->SetGameData(game_data());
   }
 
+  // Register the ObjectEditorPanel directly (it inherits from EditorPanel)
+  // Panel manager takes ownership
   if (dependencies_.panel_manager) {
-    dependencies_.panel_manager->RegisterEditorPanel(
-        std::make_unique<DungeonObjectToolsPanel>(object_editor_card_.get()));
+    dependencies_.panel_manager->RegisterEditorPanel(std::move(object_editor));
   }
 
   palette_editor_.SetOnPaletteChanged([this](int /*palette_id*/) {
@@ -495,13 +499,13 @@ void DungeonEditorV2::OnRoomSelected(int room_id) {
   }
 
   // Update object editor card with current viewer
-  if (object_editor_card_) {
-    object_editor_card_->SetCurrentRoom(room_id);
+  if (object_editor_panel_) {
+    object_editor_panel_->SetCurrentRoom(room_id);
     // IMPORTANT: Update the viewer reference!
-    // This assumes we update ObjectEditorCard to support dynamic viewers or
-    // setter For now, if ObjectEditorCard::SetCanvasViewer exists (we will add
-    // it) object_editor_card_->SetCanvasViewer(GetViewerForRoom(room_id));
-    // Since I haven't edited ObjectEditorCard yet, I'll comment this out for
+    // This assumes we update ObjectEditorPanel to support dynamic viewers or
+    // setter For now, if ObjectEditorPanel::SetCanvasViewer exists (we will add
+    // it) object_editor_panel_->SetCanvasViewer(GetViewerForRoom(room_id));
+    // Since I haven't edited ObjectEditorPanel yet, I'll comment this out for
     // now and assume I will add SetCanvasViewer in the next step. Actually, I
     // must add it.
   }
@@ -588,9 +592,9 @@ void DungeonEditorV2::FocusRoom(int room_id) {
 }
 
 void DungeonEditorV2::SelectObject(int obj_id) {
-  if (object_editor_card_) {
+  if (object_editor_panel_) {
     show_object_editor_ = true;
-    object_editor_card_->SelectObject(obj_id);
+    object_editor_panel_->SelectObject(obj_id);
   }
 }
 
@@ -599,8 +603,8 @@ void DungeonEditorV2::SetAgentMode(bool enabled) {
     show_room_selector_ = true;
     show_object_editor_ = true;
     show_room_graphics_ = true;
-    if (object_editor_card_) {
-      object_editor_card_->SetAgentOptimizedLayout(true);
+    if (object_editor_panel_) {
+      object_editor_panel_->SetAgentOptimizedLayout(true);
     }
   }
 }

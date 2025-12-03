@@ -19,7 +19,7 @@
 #include "dungeon_room_loader.h"
 #include "dungeon_room_selector.h"
 #include "imgui/imgui.h"
-#include "object_editor_card.h"
+#include "panels/object_editor_panel.h"
 #include "rom/rom.h"
 #include "zelda3/dungeon/dungeon_editor_system.h"
 #include "zelda3/dungeon/room.h"
@@ -60,8 +60,8 @@ class DungeonEditorV2 : public Editor {
     game_data_ = game_data;
     dependencies_.game_data = game_data;  // Also set base class dependency
     room_loader_.SetGameData(game_data);
-    if (object_editor_card_) {
-      object_editor_card_->SetGameData(game_data);
+    if (object_editor_panel_) {
+      object_editor_panel_->SetGameData(game_data);
     }
     if (dungeon_editor_system_) {
       dungeon_editor_system_->SetGameData(game_data);
@@ -147,8 +147,8 @@ class DungeonEditorV2 : public Editor {
   const ImVector<int>& active_rooms() const {
     return room_selector_.active_rooms();
   }
-  ObjectEditorCard* object_editor_card() const {
-    return object_editor_card_.get();
+  ObjectEditorPanel* object_editor_panel() const {
+    return object_editor_panel_;
   }
 
  private:
@@ -202,8 +202,7 @@ class DungeonEditorV2 : public Editor {
   std::map<int, std::unique_ptr<DungeonCanvasViewer>> room_viewers_;
 
   gui::PaletteEditorWidget palette_editor_;
-  std::unique_ptr<ObjectEditorCard>
-      object_editor_card_;  // Unified object editor
+  ObjectEditorPanel* object_editor_panel_ = nullptr;  // Owned by PanelManager
   std::unique_ptr<zelda3::DungeonEditorSystem> dungeon_editor_system_;
   std::unique_ptr<emu::render::EmulatorRenderService> render_service_;
 

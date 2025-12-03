@@ -158,6 +158,7 @@ absl::StatusOr<RenderResult> EmulatorRenderService::RenderDungeonObjectStatic(
 
   // Load room for context
   zelda3::Room room = zelda3::LoadRoomFromRom(rom_, req.room_id);
+  room.SetGameData(game_data_);  // Ensure room has access to GameData
 
   // Load room graphics
   uint8_t blockset = req.use_room_defaults ? room.blockset : req.blockset;
@@ -184,7 +185,7 @@ absl::StatusOr<RenderResult> EmulatorRenderService::RenderDungeonObjectStatic(
 
   // Create object drawer with room graphics buffer
   const auto& gfx_buffer = room.get_gfx_buffer();
-  zelda3::ObjectDrawer drawer(rom_, gfx_buffer.data());
+  zelda3::ObjectDrawer drawer(rom_, req.room_id, gfx_buffer.data());
   drawer.InitializeDrawRoutines();
 
   // Draw the object (ObjectDrawer needs the full palette group)
@@ -262,6 +263,7 @@ void EmulatorRenderService::InjectRoomContext(int room_id, uint8_t blockset,
 
   // Load room for graphics
   zelda3::Room room = zelda3::LoadRoomFromRom(rom_, room_id);
+  room.SetGameData(game_data_);  // Ensure room has access to GameData
 
   // Load palette into CGRAM (palettes 0-5, 90 colors)
   if (!game_data_) return;

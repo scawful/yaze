@@ -1,15 +1,17 @@
-#include "object_editor_card.h"
+#include "object_editor_panel.h"
 
 #include "absl/strings/str_format.h"
+#include "app/editor/agent/agent_ui_theme.h"
 #include "app/gfx/backend/irenderer.h"
+#include "app/gfx/resource/arena.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/ui_helpers.h"
-#include "app/editor/agent/agent_ui_theme.h"
 #include "imgui/imgui.h"
 
-namespace yaze::editor {
+namespace yaze {
+namespace editor {
 
-ObjectEditorCard::ObjectEditorCard(
+ObjectEditorPanel::ObjectEditorPanel(
     gfx::IRenderer* renderer, Rom* rom, DungeonCanvasViewer* canvas_viewer,
     std::shared_ptr<zelda3::DungeonObjectEditor> object_editor)
     : renderer_(renderer),
@@ -18,6 +20,11 @@ ObjectEditorCard::ObjectEditorCard(
       object_selector_(rom),
       object_editor_(object_editor) {
   emulator_preview_.Initialize(renderer, rom);
+
+  // Initialize object parser for static editor info lookup
+  if (rom) {
+    object_parser_ = std::make_unique<zelda3::ObjectParser>(rom);
+  }
 
   // Wire up object selector callback
   object_selector_.SetObjectSelectedCallback(
@@ -35,11 +42,15 @@ ObjectEditorCard::ObjectEditorCard(
         }
       });
 
+  // Wire up double-click callback for static object editor
+  object_selector_.SetObjectDoubleClickCallback(
+      [this](int obj_id) { OpenStaticObjectEditor(obj_id); });
+
   // Wire up selection change callback for property panel sync
   SetupSelectionCallbacks();
 }
 
-void ObjectEditorCard::SetupSelectionCallbacks() {
+void ObjectEditorPanel::SetupSelectionCallbacks() {
   if (!canvas_viewer_ || selection_callbacks_setup_) return;
 
   auto& interaction = canvas_viewer_->object_interaction();
@@ -48,7 +59,7 @@ void ObjectEditorCard::SetupSelectionCallbacks() {
   selection_callbacks_setup_ = true;
 }
 
-void ObjectEditorCard::OnSelectionChanged() {
+void ObjectEditorPanel::OnSelectionChanged() {
   if (!canvas_viewer_) return;
 
   auto& interaction = canvas_viewer_->object_interaction();
@@ -67,144 +78,122 @@ void ObjectEditorCard::OnSelectionChanged() {
   }
 }
 
-void ObjectEditorCard::Draw(bool* p_open) {
+void ObjectEditorPanel::Draw(bool* p_open) {
   const auto& theme = AgentUI::GetTheme();
-  // PanelManager handles the window creation (Begin/End)
-  // We just draw the content
-  {
-    // Interaction mode controls at top (moved from tab)
-    ImGui::TextColored(theme.text_secondary_gray, "Mode:");
-    ImGui::SameLine();
 
-    if (ImGui::RadioButton("None",
-                           interaction_mode_ == InteractionMode::None)) {
-      interaction_mode_ = InteractionMode::None;
-      canvas_viewer_->SetObjectInteractionEnabled(false);
-      canvas_viewer_->ClearPreviewObject();
-    }
-    ImGui::SameLine();
-
-    if (ImGui::RadioButton("Place",
-                           interaction_mode_ == InteractionMode::Place)) {
-      interaction_mode_ = InteractionMode::Place;
-      canvas_viewer_->SetObjectInteractionEnabled(true);
-      if (has_preview_object_) {
-        canvas_viewer_->SetPreviewObject(preview_object_);
-      }
-    }
-    ImGui::SameLine();
-
-    if (ImGui::RadioButton("Select",
-                           interaction_mode_ == InteractionMode::Select)) {
-      interaction_mode_ = InteractionMode::Select;
-      canvas_viewer_->SetObjectInteractionEnabled(true);
-      canvas_viewer_->ClearPreviewObject();
-    }
-    ImGui::SameLine();
-
-    if (ImGui::RadioButton("Delete",
-                           interaction_mode_ == InteractionMode::Delete)) {
-      interaction_mode_ = InteractionMode::Delete;
-      canvas_viewer_->SetObjectInteractionEnabled(true);
-      canvas_viewer_->ClearPreviewObject();
-    }
-
-    // Current object info
-    DrawSelectedObjectInfo();
-
+  // Static Object Editor at top (if open)
+  if (static_editor_open_) {
+    DrawStaticObjectEditor();
     ImGui::Separator();
-
-    // -----------------------------------------------------------------------
-    // Emulator Preview (Collapsible)
-    // -----------------------------------------------------------------------
-    // Use the header open state to drive the preview visibility
-    bool preview_open = ImGui::CollapsingHeader(ICON_MD_MONITOR " Preview");
-    show_emulator_preview_ = preview_open;
-    
-    if (preview_open) {
-      ImGui::PushID("PreviewSection");
-      DrawEmulatorPreview();
-      ImGui::PopID();
-    }
-
-    // -----------------------------------------------------------------------
-    // Templates (Collapsible)
-    // -----------------------------------------------------------------------
-    if (ImGui::CollapsingHeader(ICON_MD_DASHBOARD " Templates")) {
-      ImGui::PushID("TemplatesSection");
-      // Fixed height for templates to avoid taking too much space
-      if (ImGui::BeginChild("TemplateList", ImVec2(0, 150), true)) {
-        DrawObjectTemplates();
-      }
-      ImGui::EndChild();
-      ImGui::PopID();
-    }
-
-    // -----------------------------------------------------------------------
-    // Object Browser (Collapsible, Fills remaining space)
-    // -----------------------------------------------------------------------
-    if (ImGui::CollapsingHeader(ICON_MD_LIST " Object Browser", ImGuiTreeNodeFlags_DefaultOpen)) {
-      // Use remaining space for browser
-      ImGui::BeginChild("ObjectBrowserRegion", ImVec2(0, 0), true);
-      DrawObjectSelector();
-      ImGui::EndChild();
-    }
-
-    // Draw modals
-    DrawTemplateCreationModal();
-    DrawDeleteConfirmationModal();
-
-    // Handle keyboard shortcuts
-    HandleKeyboardShortcuts();
   }
+
+  // Interaction mode controls
+  ImGui::TextColored(theme.text_secondary_gray, "Mode:");
+  ImGui::SameLine();
+
+  if (ImGui::RadioButton("None", interaction_mode_ == InteractionMode::None)) {
+    interaction_mode_ = InteractionMode::None;
+    canvas_viewer_->SetObjectInteractionEnabled(false);
+    canvas_viewer_->ClearPreviewObject();
+  }
+  ImGui::SameLine();
+
+  if (ImGui::RadioButton("Place", interaction_mode_ == InteractionMode::Place)) {
+    interaction_mode_ = InteractionMode::Place;
+    canvas_viewer_->SetObjectInteractionEnabled(true);
+    if (has_preview_object_) {
+      canvas_viewer_->SetPreviewObject(preview_object_);
+    }
+  }
+  ImGui::SameLine();
+
+  if (ImGui::RadioButton("Select",
+                         interaction_mode_ == InteractionMode::Select)) {
+    interaction_mode_ = InteractionMode::Select;
+    canvas_viewer_->SetObjectInteractionEnabled(true);
+    canvas_viewer_->ClearPreviewObject();
+  }
+  ImGui::SameLine();
+
+  if (ImGui::RadioButton("Delete",
+                         interaction_mode_ == InteractionMode::Delete)) {
+    interaction_mode_ = InteractionMode::Delete;
+    canvas_viewer_->SetObjectInteractionEnabled(true);
+    canvas_viewer_->ClearPreviewObject();
+  }
+
+  // Current object info
+  DrawSelectedObjectInfo();
+
+  ImGui::Separator();
+
+  // Emulator Preview (Collapsible)
+  bool preview_open = ImGui::CollapsingHeader(ICON_MD_MONITOR " Preview");
+  show_emulator_preview_ = preview_open;
+
+  if (preview_open) {
+    ImGui::PushID("PreviewSection");
+    DrawEmulatorPreview();
+    ImGui::PopID();
+  }
+
+  // Templates (Collapsible)
+  if (ImGui::CollapsingHeader(ICON_MD_DASHBOARD " Templates")) {
+    ImGui::PushID("TemplatesSection");
+    if (ImGui::BeginChild("TemplateList", ImVec2(0, 150), true)) {
+      DrawObjectTemplates();
+    }
+    ImGui::EndChild();
+    ImGui::PopID();
+  }
+
+  // Object Browser (Collapsible, default open)
+  if (ImGui::CollapsingHeader(ICON_MD_LIST " Object Browser",
+                              ImGuiTreeNodeFlags_DefaultOpen)) {
+    ImGui::BeginChild("ObjectBrowserRegion", ImVec2(0, 0), true);
+    DrawObjectSelector();
+    ImGui::EndChild();
+  }
+
+  // Draw modals
+  DrawTemplateCreationModal();
+  DrawDeleteConfirmationModal();
+
+  // Handle keyboard shortcuts
+  HandleKeyboardShortcuts();
 }
 
-void ObjectEditorCard::SelectObject(int obj_id) {
+void ObjectEditorPanel::SelectObject(int obj_id) {
   object_selector_.SelectObject(obj_id);
 }
 
-void ObjectEditorCard::SetAgentOptimizedLayout(bool enabled) {
+void ObjectEditorPanel::SetAgentOptimizedLayout(bool enabled) {
   // In agent mode, we might force tabs open or change layout
-  // For now, ensure we are on the Browser tab if enabled
-  if (enabled) {
-    // This might need more logic to force tab selection if ImGui doesn't support programmatic tab switching easily
-    // But we can ensure the card is expanded/visible in the calling code
-  }
+  (void)enabled;
 }
 
-void ObjectEditorCard::DrawObjectSelector() {
-  // Delegate to the robust DungeonObjectSelector component
-  // This uses full graphics rendering instead of primitive colored squares
+void ObjectEditorPanel::DrawObjectSelector() {
+  // Delegate to the DungeonObjectSelector component
   object_selector_.DrawObjectAssetBrowser();
 }
 
-void ObjectEditorCard::DrawEmulatorPreview() {
+void ObjectEditorPanel::DrawEmulatorPreview() {
   const auto& theme = AgentUI::GetTheme();
-  
-  // Informational text
+
   ImGui::TextColored(theme.text_secondary_gray,
                      ICON_MD_INFO " Real-time object rendering preview");
   gui::HelpMarker(
       "Uses SNES emulation to render objects accurately.\n"
       "May impact performance.");
-  
+
   ImGui::Separator();
 
-  // Embed the emulator preview with improved layout
-  // Use a fixed height for the preview area to ensure it doesn't jump around
-  // 256px height is enough for the SNES preview (usually 224 or 239 lines)
   ImGui::BeginChild("##EmulatorPreviewRegion", ImVec2(0, 260), true);
-
   emulator_preview_.Render();
-
   ImGui::EndChild();
 }
 
-// DrawInteractionControls removed - controls moved to top of card
-
-
-
-void ObjectEditorCard::DrawObjectTemplates() {
+void ObjectEditorPanel::DrawObjectTemplates() {
   if (!object_editor_) {
     ImGui::TextDisabled("Template system unavailable");
     return;
@@ -218,25 +207,21 @@ void ObjectEditorCard::DrawObjectTemplates() {
   if (templates.empty()) {
     ImGui::TextDisabled("No templates found.");
     ImGui::TextWrapped(
-        "Select objects in the canvas and click 'Create Template' to make one.");
+        "Select objects in the canvas and click 'Create Template' to make "
+        "one.");
     return;
   }
 
   if (ImGui::BeginChild("##TemplateList", ImVec2(0, 0), true)) {
     for (size_t i = 0; i < templates.size(); ++i) {
       const auto& tmpl = templates[i];
-      
+
       ImGui::PushID(static_cast<int>(i));
-      
+
       if (ImGui::Selectable(tmpl.name.c_str(), false, 0, ImVec2(0, 40))) {
-        // Place template
-        // For now, place at center of screen or a default location
-        // Ideally, we'd enter a "placement mode" with a ghost preview
-        // But for MVP, let's just insert at (8, 8)
         object_editor_->InsertTemplate(tmpl, 8, 8);
       }
-      
-      // Tooltip with description and object count
+
       if (ImGui::IsItemHovered()) {
         ImGui::BeginTooltip();
         ImGui::Text("%s", tmpl.name.c_str());
@@ -255,7 +240,7 @@ void ObjectEditorCard::DrawObjectTemplates() {
   ImGui::EndChild();
 }
 
-void ObjectEditorCard::DrawTemplateCreationModal() {
+void ObjectEditorPanel::DrawTemplateCreationModal() {
   if (show_template_creation_modal_) {
     ImGui::OpenPopup("Create Template");
     show_template_creation_modal_ = false;
@@ -274,7 +259,6 @@ void ObjectEditorCard::DrawTemplateCreationModal() {
     if (ImGui::Button("Create", ImVec2(120, 0))) {
       if (object_editor_ && strlen(name) > 0) {
         object_editor_->CreateTemplateFromSelection(name, description);
-        // Reset fields
         name[0] = '\0';
         description[0] = '\0';
         ImGui::CloseCurrentPopup();
@@ -289,7 +273,7 @@ void ObjectEditorCard::DrawTemplateCreationModal() {
   }
 }
 
-void ObjectEditorCard::DrawDeleteConfirmationModal() {
+void ObjectEditorPanel::DrawDeleteConfirmationModal() {
   if (show_delete_confirmation_modal_) {
     ImGui::OpenPopup("Delete Objects?");
     show_delete_confirmation_modal_ = false;
@@ -317,7 +301,7 @@ void ObjectEditorCard::DrawDeleteConfirmationModal() {
   }
 }
 
-void ObjectEditorCard::DrawSelectedObjectInfo() {
+void ObjectEditorPanel::DrawSelectedObjectInfo() {
   const auto& theme = AgentUI::GetTheme();
 
   // Show selection state at top
@@ -326,12 +310,11 @@ void ObjectEditorCard::DrawSelectedObjectInfo() {
     auto selected = interaction.GetSelectedObjectIndices();
 
     if (!selected.empty()) {
-      // Show selection info
-      ImGui::TextColored(theme.status_success, ICON_MD_CHECK_CIRCLE " Selected:");
+      ImGui::TextColored(theme.status_success,
+                         ICON_MD_CHECK_CIRCLE " Selected:");
       ImGui::SameLine();
 
       if (selected.size() == 1) {
-        // Single selection - show detailed info
         if (object_editor_) {
           const auto& objects = object_editor_->GetObjects();
           if (selected[0] < objects.size()) {
@@ -348,7 +331,6 @@ void ObjectEditorCard::DrawSelectedObjectInfo() {
           ImGui::Text("1 object");
         }
       } else {
-        // Multi-selection
         ImGui::Text("%zu objects", selected.size());
         ImGui::SameLine();
         ImGui::TextColored(theme.text_secondary_gray,
@@ -360,7 +342,6 @@ void ObjectEditorCard::DrawSelectedObjectInfo() {
 
   ImGui::BeginGroup();
 
-  // Show current object for placement
   ImGui::TextColored(theme.text_info, ICON_MD_INFO " Current:");
 
   if (has_preview_object_) {
@@ -382,12 +363,201 @@ void ObjectEditorCard::DrawSelectedObjectInfo() {
   }
 }
 
-// ============================================================================
-// Keyboard Shortcuts Implementation
-// ============================================================================
+// =============================================================================
+// Static Object Editor (opened via double-click)
+// =============================================================================
 
-void ObjectEditorCard::HandleKeyboardShortcuts() {
-  // Only process shortcuts when editor window has focus
+void ObjectEditorPanel::OpenStaticObjectEditor(int object_id) {
+  static_editor_open_ = true;
+  static_editor_object_id_ = object_id;
+  static_preview_rendered_ = false;
+
+  // Sync with object selector for visual indicator
+  object_selector_.SetStaticEditorObjectId(object_id);
+
+  // Fetch draw routine info for this object
+  if (object_parser_) {
+    static_editor_draw_info_ = object_parser_->GetObjectDrawInfo(object_id);
+  }
+
+  // Render the object preview using ObjectDrawer
+  if (rom_ && rom_->is_loaded()) {
+    // Clear preview buffer
+    static_preview_buffer_.ClearBuffer();
+
+    // Create a preview object at center of canvas
+    zelda3::RoomObject preview_obj(object_id, 32, 32, 0x12, 0);
+    preview_obj.SetRom(rom_);
+    preview_obj.EnsureTilesLoaded();
+
+    // Create drawer and render
+    zelda3::ObjectDrawer drawer(rom_, current_room_id_, nullptr);
+    drawer.InitializeDrawRoutines();
+
+    gfx::PaletteGroup palette_group;
+    auto status = drawer.DrawObject(preview_obj, static_preview_buffer_,
+                                    static_preview_buffer_, palette_group);
+    if (status.ok()) {
+      static_preview_rendered_ = true;
+    }
+  }
+}
+
+void ObjectEditorPanel::CloseStaticObjectEditor() {
+  static_editor_open_ = false;
+  static_editor_object_id_ = -1;
+
+  // Clear the visual indicator in object selector
+  object_selector_.SetStaticEditorObjectId(-1);
+}
+
+void ObjectEditorPanel::DrawStaticObjectEditor() {
+  const auto& theme = AgentUI::GetTheme();
+
+  ImGui::PushStyleColor(ImGuiCol_Header,
+                        ImVec4(0.15f, 0.25f, 0.35f, 1.0f));  // Slate blue header
+  ImGui::PushStyleColor(ImGuiCol_HeaderHovered,
+                        ImVec4(0.20f, 0.30f, 0.40f, 1.0f));
+
+  bool header_open = ImGui::CollapsingHeader(
+      absl::StrFormat(ICON_MD_CONSTRUCTION " Object 0x%02X - %s",
+                      static_editor_object_id_,
+                      static_editor_draw_info_.routine_name.c_str())
+              .c_str(),
+      ImGuiTreeNodeFlags_DefaultOpen);
+
+  ImGui::PopStyleColor(2);
+
+  if (header_open) {
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(8, 6));
+
+    // Two-column layout: Info | Preview
+    if (ImGui::BeginTable("StaticEditorLayout", 2,
+                          ImGuiTableFlags_BordersInnerV)) {
+      ImGui::TableSetupColumn("Info", ImGuiTableColumnFlags_WidthFixed, 200);
+      ImGui::TableSetupColumn("Preview", ImGuiTableColumnFlags_WidthStretch);
+
+      ImGui::TableNextRow();
+
+      // Left column: Object information
+      ImGui::TableNextColumn();
+      {
+        // Object ID with hex/decimal display
+        ImGui::TextColored(theme.text_info, ICON_MD_TAG " Object ID");
+        ImGui::SameLine();
+        ImGui::Text("0x%02X (%d)", static_editor_object_id_,
+                    static_editor_object_id_);
+
+        ImGui::Spacing();
+
+        // Draw routine info
+        ImGui::TextColored(theme.text_info, ICON_MD_BRUSH " Draw Routine");
+    ImGui::Indent();
+        ImGui::Text("ID: %d", static_editor_draw_info_.draw_routine_id);
+        ImGui::Text("Name: %s", static_editor_draw_info_.routine_name.c_str());
+        ImGui::Unindent();
+
+        ImGui::Spacing();
+
+        // Tile and size info
+        ImGui::TextColored(theme.text_info, ICON_MD_GRID_VIEW " Tile Info");
+        ImGui::Indent();
+        ImGui::Text("Tile Count: %d", static_editor_draw_info_.tile_count);
+        ImGui::Text("Orientation: %s",
+                    static_editor_draw_info_.is_horizontal ? "Horizontal"
+                    : static_editor_draw_info_.is_vertical ? "Vertical"
+                                                           : "Both");
+        if (static_editor_draw_info_.both_layers) {
+          ImGui::TextColored(theme.status_warning, ICON_MD_LAYERS " Both BG");
+        }
+        ImGui::Unindent();
+
+        ImGui::Spacing();
+    ImGui::Separator();
+        ImGui::Spacing();
+
+        // Action buttons (vertical layout)
+        if (ImGui::Button(ICON_MD_CONTENT_COPY " Copy ID", ImVec2(-1, 0))) {
+          ImGui::SetClipboardText(
+              absl::StrFormat("0x%02X", static_editor_object_id_).c_str());
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("Copy object ID to clipboard");
+        }
+
+        if (ImGui::Button(ICON_MD_CODE " Export ASM", ImVec2(-1, 0))) {
+          // TODO: Implement ASM export (Phase 5)
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("Export object draw routine as ASM (Phase 5)");
+        }
+
+        ImGui::Spacing();
+
+        // Close button at bottom
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.5f, 0.2f, 0.2f, 1.0f));
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
+                              ImVec4(0.6f, 0.3f, 0.3f, 1.0f));
+        if (ImGui::Button(ICON_MD_CLOSE " Close", ImVec2(-1, 0))) {
+          CloseStaticObjectEditor();
+        }
+        ImGui::PopStyleColor(2);
+      }
+
+      // Right column: Preview canvas
+      ImGui::TableNextColumn();
+      {
+        ImGui::TextColored(theme.text_secondary_gray, "Preview:");
+
+        // Draw preview canvas with the rendered object
+    static_preview_canvas_.DrawBackground();
+    static_preview_canvas_.DrawContextMenu();
+
+        // Draw the preview bitmap if available
+        if (static_preview_rendered_) {
+          auto& bitmap = static_preview_buffer_.bitmap();
+          if (bitmap.texture()) {
+            ImVec2 canvas_pos = static_preview_canvas_.zero_point();
+            ImGui::GetWindowDrawList()->AddImage(
+                (ImTextureID)(intptr_t)bitmap.texture(), canvas_pos,
+                ImVec2(canvas_pos.x + 128, canvas_pos.y + 128));
+          } else {
+            // Queue texture creation if needed
+            gfx::Arena::Get().QueueTextureCommand(
+                gfx::Arena::TextureCommandType::CREATE, &bitmap);
+          }
+        } else {
+          // Show placeholder when no preview
+          ImVec2 center = static_preview_canvas_.zero_point();
+          center.x += 64;
+          center.y += 64;
+          ImGui::GetWindowDrawList()->AddText(
+              ImVec2(center.x - 40, center.y - 8),
+              ImGui::GetColorU32(theme.text_secondary_gray),
+              "No preview available");
+        }
+
+        static_preview_canvas_.DrawOverlay();
+
+        // Usage hint
+        ImGui::Spacing();
+        ImGui::TextColored(theme.text_secondary_gray,
+                           ICON_MD_INFO " Double-click objects in browser\n"
+                           "to view their draw routine info.");
+      }
+
+      ImGui::EndTable();
+    }
+
+    ImGui::PopStyleVar();
+  }
+}
+
+// =============================================================================
+// Keyboard Shortcuts
+// =============================================================================
+
+void ObjectEditorPanel::HandleKeyboardShortcuts() {
   if (!ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows)) {
     return;
   }
@@ -447,10 +617,6 @@ void ObjectEditorCard::HandleKeyboardShortcuts() {
   // I: Toggle object ID labels
   if (ImGui::IsKeyPressed(ImGuiKey_I) && !io.KeyCtrl) {
     show_object_ids_ = !show_object_ids_;
-    // TODO: Implement SetShowObjectIDs in DungeonObjectInteraction
-    // if (canvas_viewer_) {
-    //   canvas_viewer_->object_interaction().SetShowObjectIDs(show_object_ids_);
-    // }
   }
 
   // Arrow keys: Nudge selected objects
@@ -477,7 +643,7 @@ void ObjectEditorCard::HandleKeyboardShortcuts() {
   }
 }
 
-void ObjectEditorCard::SelectAllObjects() {
+void ObjectEditorPanel::SelectAllObjects() {
   if (!canvas_viewer_ || !object_editor_) return;
 
   auto& interaction = canvas_viewer_->object_interaction();
@@ -491,12 +657,12 @@ void ObjectEditorCard::SelectAllObjects() {
   interaction.SetSelectedObjects(all_indices);
 }
 
-void ObjectEditorCard::DeselectAllObjects() {
+void ObjectEditorPanel::DeselectAllObjects() {
   if (!canvas_viewer_) return;
   canvas_viewer_->object_interaction().ClearSelection();
 }
 
-void ObjectEditorCard::DeleteSelectedObjects() {
+void ObjectEditorPanel::DeleteSelectedObjects() {
   if (!object_editor_ || !canvas_viewer_) return;
 
   auto& interaction = canvas_viewer_->object_interaction();
@@ -513,7 +679,7 @@ void ObjectEditorCard::DeleteSelectedObjects() {
   PerformDelete();
 }
 
-void ObjectEditorCard::PerformDelete() {
+void ObjectEditorPanel::PerformDelete() {
   if (!object_editor_ || !canvas_viewer_) return;
 
   auto& interaction = canvas_viewer_->object_interaction();
@@ -532,7 +698,7 @@ void ObjectEditorCard::PerformDelete() {
   interaction.ClearSelection();
 }
 
-void ObjectEditorCard::DuplicateSelectedObjects() {
+void ObjectEditorPanel::DuplicateSelectedObjects() {
   if (!object_editor_ || !canvas_viewer_) return;
 
   auto& interaction = canvas_viewer_->object_interaction();
@@ -543,18 +709,16 @@ void ObjectEditorCard::DuplicateSelectedObjects() {
   std::vector<size_t> new_indices;
 
   for (size_t idx : selected) {
-    // Duplicate with small offset (1 tile right, 1 tile down)
     auto new_idx = object_editor_->DuplicateObject(idx, 1, 1);
     if (new_idx.has_value()) {
       new_indices.push_back(*new_idx);
     }
   }
 
-  // Select the new objects
   interaction.SetSelectedObjects(new_indices);
 }
 
-void ObjectEditorCard::CopySelectedObjects() {
+void ObjectEditorPanel::CopySelectedObjects() {
   if (!object_editor_ || !canvas_viewer_) return;
 
   auto& interaction = canvas_viewer_->object_interaction();
@@ -562,23 +726,20 @@ void ObjectEditorCard::CopySelectedObjects() {
 
   if (selected.empty()) return;
 
-  // Copy selected objects to clipboard (via object editor)
   object_editor_->CopySelectedObjects(selected);
 }
 
-void ObjectEditorCard::PasteObjects() {
+void ObjectEditorPanel::PasteObjects() {
   if (!object_editor_ || !canvas_viewer_) return;
 
-  // Paste objects from clipboard
   auto new_indices = object_editor_->PasteObjects();
 
   if (!new_indices.empty()) {
-    // Select the pasted objects
     canvas_viewer_->object_interaction().SetSelectedObjects(new_indices);
   }
 }
 
-void ObjectEditorCard::NudgeSelectedObjects(int dx, int dy) {
+void ObjectEditorPanel::NudgeSelectedObjects(int dx, int dy) {
   if (!object_editor_ || !canvas_viewer_) return;
 
   auto& interaction = canvas_viewer_->object_interaction();
@@ -591,7 +752,7 @@ void ObjectEditorCard::NudgeSelectedObjects(int dx, int dy) {
   }
 }
 
-void ObjectEditorCard::CycleObjectSelection(int direction) {
+void ObjectEditorPanel::CycleObjectSelection(int direction) {
   if (!canvas_viewer_ || !object_editor_) return;
 
   auto& interaction = canvas_viewer_->object_interaction();
@@ -605,22 +766,17 @@ void ObjectEditorCard::CycleObjectSelection(int direction) {
   size_t next_idx = (current_idx + direction + total_objects) % total_objects;
 
   interaction.SetSelectedObjects({next_idx});
-
-  // Scroll to selected object
-  // TODO: Re-enable when ScrollToObject is implemented
-  // ScrollToObject(next_idx);
 }
 
-void ObjectEditorCard::ScrollToObject(size_t index) {
+void ObjectEditorPanel::ScrollToObject(size_t index) {
   if (!canvas_viewer_ || !object_editor_) return;
 
   const auto& objects = object_editor_->GetObjects();
   if (index >= objects.size()) return;
 
   // TODO: Implement ScrollTo in DungeonCanvasViewer
-  // const auto& obj = objects[index];
-  // canvas_viewer_->ScrollTo(obj.x(), obj.y());
   (void)objects;
 }
 
-}  // namespace yaze::editor
+}  // namespace editor
+}  // namespace yaze
