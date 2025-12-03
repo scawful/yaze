@@ -560,8 +560,8 @@ absl::Status PaletteGroupCard::ImportFromClipboard() {
 const PaletteGroupMetadata OverworldMainPaletteCard::metadata_ =
     OverworldMainPaletteCard::InitializeMetadata();
 
-OverworldMainPaletteCard::OverworldMainPaletteCard(Rom* rom)
-    : PaletteGroupCard("ow_main", "Overworld Main Palettes", rom) {}
+OverworldMainPaletteCard::OverworldMainPaletteCard(Rom* rom, zelda3::GameData* game_data)
+    : PaletteGroupCard("ow_main", "Overworld Main Palettes", rom, game_data) {}
 
 PaletteGroupMetadata OverworldMainPaletteCard::InitializeMetadata() {
   PaletteGroupMetadata metadata;
@@ -654,8 +654,8 @@ void OverworldMainPaletteCard::DrawPaletteGrid() {
 const PaletteGroupMetadata OverworldAnimatedPaletteCard::metadata_ =
     OverworldAnimatedPaletteCard::InitializeMetadata();
 
-OverworldAnimatedPaletteCard::OverworldAnimatedPaletteCard(Rom* rom)
-    : PaletteGroupCard("ow_animated", "Overworld Animated Palettes", rom) {}
+OverworldAnimatedPaletteCard::OverworldAnimatedPaletteCard(Rom* rom, zelda3::GameData* game_data)
+    : PaletteGroupCard("ow_animated", "Overworld Animated Palettes", rom, game_data) {}
 
 PaletteGroupMetadata OverworldAnimatedPaletteCard::InitializeMetadata() {
   PaletteGroupMetadata metadata;
@@ -727,8 +727,8 @@ void OverworldAnimatedPaletteCard::DrawPaletteGrid() {
 const PaletteGroupMetadata DungeonMainPaletteCard::metadata_ =
     DungeonMainPaletteCard::InitializeMetadata();
 
-DungeonMainPaletteCard::DungeonMainPaletteCard(Rom* rom)
-    : PaletteGroupCard("dungeon_main", "Dungeon Main Palettes", rom) {}
+DungeonMainPaletteCard::DungeonMainPaletteCard(Rom* rom, zelda3::GameData* game_data)
+    : PaletteGroupCard("dungeon_main", "Dungeon Main Palettes", rom, game_data) {}
 
 PaletteGroupMetadata DungeonMainPaletteCard::InitializeMetadata() {
   PaletteGroupMetadata metadata;
@@ -804,8 +804,8 @@ void DungeonMainPaletteCard::DrawPaletteGrid() {
 const PaletteGroupMetadata SpritePaletteCard::metadata_ =
     SpritePaletteCard::InitializeMetadata();
 
-SpritePaletteCard::SpritePaletteCard(Rom* rom)
-    : PaletteGroupCard("global_sprites", "Sprite Palettes", rom) {}
+SpritePaletteCard::SpritePaletteCard(Rom* rom, zelda3::GameData* game_data)
+    : PaletteGroupCard("global_sprites", "Sprite Palettes", rom, game_data) {}
 
 PaletteGroupMetadata SpritePaletteCard::InitializeMetadata() {
   PaletteGroupMetadata metadata;
@@ -921,8 +921,8 @@ void SpritePaletteCard::DrawCustomPanels() {
 const PaletteGroupMetadata EquipmentPaletteCard::metadata_ =
     EquipmentPaletteCard::InitializeMetadata();
 
-EquipmentPaletteCard::EquipmentPaletteCard(Rom* rom)
-    : PaletteGroupCard("armors", "Equipment Palettes", rom) {}
+EquipmentPaletteCard::EquipmentPaletteCard(Rom* rom, zelda3::GameData* game_data)
+    : PaletteGroupCard("armors", "Equipment Palettes", rom, game_data) {}
 
 PaletteGroupMetadata EquipmentPaletteCard::InitializeMetadata() {
   PaletteGroupMetadata metadata;
@@ -991,8 +991,9 @@ void EquipmentPaletteCard::DrawPaletteGrid() {
 const PaletteGroupMetadata SpritesAux1PaletteCard::metadata_ =
     SpritesAux1PaletteCard::InitializeMetadata();
 
-SpritesAux1PaletteCard::SpritesAux1PaletteCard(Rom* rom)
-    : PaletteGroupCard("sprites_aux1", "Sprites Aux 1", rom) {}
+SpritesAux1PaletteCard::SpritesAux1PaletteCard(Rom* rom,
+                                                       zelda3::GameData* game_data)
+    : PaletteGroupCard("sprites_aux1", "Sprites Aux 1", rom, game_data) {}
 
 PaletteGroupMetadata SpritesAux1PaletteCard::InitializeMetadata() {
   PaletteGroupMetadata metadata;
@@ -1060,8 +1061,9 @@ void SpritesAux1PaletteCard::DrawPaletteGrid() {
 const PaletteGroupMetadata SpritesAux2PaletteCard::metadata_ =
     SpritesAux2PaletteCard::InitializeMetadata();
 
-SpritesAux2PaletteCard::SpritesAux2PaletteCard(Rom* rom)
-    : PaletteGroupCard("sprites_aux2", "Sprites Aux 2", rom) {}
+SpritesAux2PaletteCard::SpritesAux2PaletteCard(Rom* rom,
+                                                       zelda3::GameData* game_data)
+    : PaletteGroupCard("sprites_aux2", "Sprites Aux 2", rom, game_data) {}
 
 PaletteGroupMetadata SpritesAux2PaletteCard::InitializeMetadata() {
   PaletteGroupMetadata metadata;
@@ -1146,8 +1148,9 @@ void SpritesAux2PaletteCard::DrawPaletteGrid() {
 const PaletteGroupMetadata SpritesAux3PaletteCard::metadata_ =
     SpritesAux3PaletteCard::InitializeMetadata();
 
-SpritesAux3PaletteCard::SpritesAux3PaletteCard(Rom* rom)
-    : PaletteGroupCard("sprites_aux3", "Sprites Aux 3", rom) {}
+SpritesAux3PaletteCard::SpritesAux3PaletteCard(Rom* rom,
+                                                       zelda3::GameData* game_data)
+    : PaletteGroupCard("sprites_aux3", "Sprites Aux 3", rom, game_data) {}
 
 PaletteGroupMetadata SpritesAux3PaletteCard::InitializeMetadata() {
   PaletteGroupMetadata metadata;

@@ -79,7 +79,7 @@ class PaletteGroupCard {
                    const std::string& display_name, Rom* rom,
                    zelda3::GameData* game_data = nullptr);
   
-  void set_game_data(zelda3::GameData* game_data) { game_data_ = game_data; }
+  void SetGameData(zelda3::GameData* game_data) { game_data_ = game_data; }
 
   virtual ~PaletteGroupCard() = default;
 
@@ -282,7 +282,7 @@ class PaletteGroupCard {
  */
 class OverworldMainPaletteCard : public PaletteGroupCard {
  public:
-  explicit OverworldMainPaletteCard(Rom* rom);
+  explicit OverworldMainPaletteCard(Rom* rom, zelda3::GameData* game_data = nullptr);
   ~OverworldMainPaletteCard() override = default;
 
  protected:
@@ -304,7 +304,7 @@ class OverworldMainPaletteCard : public PaletteGroupCard {
  */
 class OverworldAnimatedPaletteCard : public PaletteGroupCard {
  public:
-  explicit OverworldAnimatedPaletteCard(Rom* rom);
+  explicit OverworldAnimatedPaletteCard(Rom* rom, zelda3::GameData* game_data = nullptr);
   ~OverworldAnimatedPaletteCard() override = default;
 
  protected:
@@ -326,7 +326,7 @@ class OverworldAnimatedPaletteCard : public PaletteGroupCard {
  */
 class DungeonMainPaletteCard : public PaletteGroupCard {
  public:
-  explicit DungeonMainPaletteCard(Rom* rom);
+  explicit DungeonMainPaletteCard(Rom* rom, zelda3::GameData* game_data = nullptr);
   ~DungeonMainPaletteCard() override = default;
 
  protected:
@@ -351,7 +351,7 @@ class DungeonMainPaletteCard : public PaletteGroupCard {
  */
 class SpritePaletteCard : public PaletteGroupCard {
  public:
-  explicit SpritePaletteCard(Rom* rom);
+  explicit SpritePaletteCard(Rom* rom, zelda3::GameData* game_data = nullptr);
   ~SpritePaletteCard() override = default;
 
  protected:
@@ -375,7 +375,7 @@ class SpritePaletteCard : public PaletteGroupCard {
  */
 class SpritesAux1PaletteCard : public PaletteGroupCard {
  public:
-  explicit SpritesAux1PaletteCard(Rom* rom);
+  explicit SpritesAux1PaletteCard(Rom* rom, zelda3::GameData* game_data = nullptr);
   ~SpritesAux1PaletteCard() override = default;
 
  protected:
@@ -398,7 +398,7 @@ class SpritesAux1PaletteCard : public PaletteGroupCard {
  */
 class SpritesAux2PaletteCard : public PaletteGroupCard {
  public:
-  explicit SpritesAux2PaletteCard(Rom* rom);
+  explicit SpritesAux2PaletteCard(Rom* rom, zelda3::GameData* game_data = nullptr);
   ~SpritesAux2PaletteCard() override = default;
 
  protected:
@@ -421,7 +421,7 @@ class SpritesAux2PaletteCard : public PaletteGroupCard {
  */
 class SpritesAux3PaletteCard : public PaletteGroupCard {
  public:
-  explicit SpritesAux3PaletteCard(Rom* rom);
+  explicit SpritesAux3PaletteCard(Rom* rom, zelda3::GameData* game_data = nullptr);
   ~SpritesAux3PaletteCard() override = default;
 
  protected:
@@ -443,7 +443,7 @@ class SpritesAux3PaletteCard : public PaletteGroupCard {
  */
 class EquipmentPaletteCard : public PaletteGroupCard {
  public:
-  explicit EquipmentPaletteCard(Rom* rom);
+  explicit EquipmentPaletteCard(Rom* rom, zelda3::GameData* game_data = nullptr);
   ~EquipmentPaletteCard() override = default;
 
  protected:

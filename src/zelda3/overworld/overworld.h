@@ -142,7 +142,7 @@ class Overworld {
   Overworld(Rom* rom, GameData* game_data = nullptr) 
       : rom_(rom), game_data_(game_data) {}
 
-  void set_game_data(GameData* game_data) { game_data_ = game_data; }
+  void SetGameData(GameData* game_data) { game_data_ = game_data; }
   
   // Helper to get version constants from game_data or default to US
   zelda3_version_pointers version_constants() const {

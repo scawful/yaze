@@ -1450,6 +1450,10 @@ std::string WasmControlApi::GetRoomTileData(int room_id) {
 
   // Load room from ROM
   zelda3::Room room = zelda3::LoadRoomFromRom(rom, room_id);
+  auto* game_data = editor_manager_->GetCurrentGameData();
+  if (game_data) {
+    room.SetGameData(game_data);  // Ensure room has access to GameData
+  }
   room.LoadRoomGraphics();
   room.LoadObjects();
 

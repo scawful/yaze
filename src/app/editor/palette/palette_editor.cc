@@ -339,19 +339,29 @@ absl::Status PaletteEditor::Load() {
         std::string(kPaletteGroupNames[i]));
   }
 
-  // Initialize the centralized PaletteManager with ROM data
+  // Initialize the centralized PaletteManager with GameData
   // This must be done before creating any palette cards
-  gfx::PaletteManager::Get().Initialize(rom_);
+  if (game_data()) {
+    gfx::PaletteManager::Get().Initialize(game_data());
+  } else {
+    // Fallback to legacy ROM-only initialization
+    gfx::PaletteManager::Get().Initialize(rom_);
+  }
+
+  // Also set up the embedded GfxGroupEditor
+  gfx_group_editor_.SetRom(rom_);
+  gfx_group_editor_.SetGameData(game_data());
 
   // Initialize palette card instances NOW (after ROM is loaded)
-  ow_main_card_ = std::make_unique<OverworldMainPaletteCard>(rom_);
-  ow_animated_card_ = std::make_unique<OverworldAnimatedPaletteCard>(rom_);
-  dungeon_main_card_ = std::make_unique<DungeonMainPaletteCard>(rom_);
-  sprite_card_ = std::make_unique<SpritePaletteCard>(rom_);
-  sprites_aux1_card_ = std::make_unique<SpritesAux1PaletteCard>(rom_);
-  sprites_aux2_card_ = std::make_unique<SpritesAux2PaletteCard>(rom_);
-  sprites_aux3_card_ = std::make_unique<SpritesAux3PaletteCard>(rom_);
-  equipment_card_ = std::make_unique<EquipmentPaletteCard>(rom_);
+  // Pass both ROM and GameData to enable full functionality
+  ow_main_card_ = std::make_unique<OverworldMainPaletteCard>(rom_, game_data());
+  ow_animated_card_ = std::make_unique<OverworldAnimatedPaletteCard>(rom_, game_data());
+  dungeon_main_card_ = std::make_unique<DungeonMainPaletteCard>(rom_, game_data());
+  sprite_card_ = std::make_unique<SpritePaletteCard>(rom_, game_data());
+  sprites_aux1_card_ = std::make_unique<SpritesAux1PaletteCard>(rom_, game_data());
+  sprites_aux2_card_ = std::make_unique<SpritesAux2PaletteCard>(rom_, game_data());
+  sprites_aux3_card_ = std::make_unique<SpritesAux3PaletteCard>(rom_, game_data());
+  equipment_card_ = std::make_unique<EquipmentPaletteCard>(rom_, game_data());
 
   // Register EditorPanel instances with PanelManager (after cards are created)
   if (dependencies_.panel_manager) {

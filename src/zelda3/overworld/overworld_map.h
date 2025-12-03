@@ -101,7 +101,7 @@ class OverworldMap : public gfx::GfxContext {
   OverworldMap() = default;
   OverworldMap(int index, Rom* rom, GameData* game_data = nullptr);
 
-  void set_game_data(GameData* game_data) { game_data_ = game_data; }
+  void SetGameData(GameData* game_data) { game_data_ = game_data; }
 
   absl::Status BuildMap(int count, int game_state, int world,
                         std::vector<gfx::Tile16>& tiles16,

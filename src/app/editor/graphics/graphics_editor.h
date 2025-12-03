@@ -84,7 +84,12 @@ class GraphicsEditor : public Editor {
   void set_rom(Rom* rom) { rom_ = rom; }
   
   // Set the game data pointer
-  void set_game_data(zelda3::GameData* game_data) { game_data_ = game_data; }
+  void SetGameData(zelda3::GameData* game_data) override {
+    game_data_ = game_data;
+    if (palette_controls_panel_) {
+      palette_controls_panel_->SetGameData(game_data);
+    }
+  }
 
   // Editor shortcuts
   void NextSheet();

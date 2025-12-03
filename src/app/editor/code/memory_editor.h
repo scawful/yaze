@@ -23,7 +23,7 @@ struct MemoryEditor {
   void Update(bool& show_memory_editor);
 
   // Set the ROM pointer
-  void set_rom(Rom* rom) { rom_ = rom; }
+  void SetRom(Rom* rom) { rom_ = rom; }
 
   // Get the ROM pointer
   Rom* rom() const { return rom_; }

@@ -164,9 +164,9 @@ class Tile16Editor : public gfx::GfxContext {
   // Manual tile8 input controls
   void DrawManualTile8Inputs();
 
-  void set_rom(Rom* rom) { rom_ = rom; }
+  void SetRom(Rom* rom) { rom_ = rom; }
   Rom* rom() const { return rom_; }
-  void set_game_data(zelda3::GameData* game_data) { game_data_ = game_data; }
+  void SetGameData(zelda3::GameData* game_data) { game_data_ = game_data; }
   zelda3::GameData* game_data() const { return game_data_; }
 
   // Set the palette from overworld to ensure color consistency

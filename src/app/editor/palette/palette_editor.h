@@ -100,6 +100,12 @@ class PaletteEditor : public Editor {
   void set_rom(Rom* rom) { rom_ = rom; }
   Rom* rom() const { return rom_; }
 
+  // Override to propagate game_data to embedded components
+  void SetGameData(zelda3::GameData* game_data) override {
+    Editor::SetGameData(game_data);
+    gfx_group_editor_.SetGameData(game_data);
+  }
+
   /**
    * @brief Jump to a specific palette by group and index
    * @param group_name The palette group name (e.g., "ow_main", "dungeon_main")

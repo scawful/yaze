@@ -22,9 +22,9 @@ EditorSet::EditorSet(Rom* rom, zelda3::GameData* game_data,
 
   // Propagate game_data to editors that need it
   if (game_data) {
-    dungeon_editor_->set_game_data(game_data);
-    graphics_editor_->set_game_data(game_data);
-    overworld_editor_->set_game_data(game_data);
+    dungeon_editor_->SetGameData(game_data);
+    graphics_editor_->SetGameData(game_data);
+    overworld_editor_->SetGameData(game_data);
   }
 
   active_editors_ = {overworld_editor_.get(), dungeon_editor_.get(),
@@ -44,7 +44,7 @@ void EditorSet::ApplyDependencies(const EditorDependencies& dependencies) {
   for (auto* editor : active_editors_) {
     editor->SetDependencies(dependencies);
   }
-  memory_editor_->set_rom(dependencies.rom);
+  memory_editor_->SetRom(dependencies.rom);
   if (music_editor_) {
     music_editor_->SetProject(dependencies.project);
   }
