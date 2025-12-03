@@ -56,7 +56,15 @@ ParsedElement FindMatchingElement(const std::string& str) {
     if (match.size() > 0) {
       if (text_element.HasArgument) {
         std::string arg = match[1].str().substr(1);
-        return ParsedElement(text_element, std::stoi(arg, nullptr, 16));
+        try {
+          return ParsedElement(text_element, std::stoi(arg, nullptr, 16));
+        } catch (const std::invalid_argument& e) {
+          util::logf("Error parsing argument for %s: %s", text_element.GenericToken.c_str(), arg.c_str());
+          return ParsedElement(text_element, 0);
+        } catch (const std::out_of_range& e) {
+           util::logf("Argument out of range for %s: %s", text_element.GenericToken.c_str(), arg.c_str());
+           return ParsedElement(text_element, 0);
+        }
       } else {
         return ParsedElement(text_element, 0);
       }
@@ -68,8 +76,13 @@ ParsedElement FindMatchingElement(const std::string& str) {
 
   match = dictionary_element.MatchMe(str);
   if (match.size() > 0) {
-    return ParsedElement(dictionary_element,
-                         DICTOFF + std::stoi(match[1].str(), nullptr, 16));
+    try {
+      return ParsedElement(dictionary_element,
+                           DICTOFF + std::stoi(match[1].str(), nullptr, 16));
+    } catch (const std::exception& e) {
+      util::logf("Error parsing dictionary token: %s", match[1].str().c_str());
+      return ParsedElement();
+    }
   }
   return ParsedElement();
 }
